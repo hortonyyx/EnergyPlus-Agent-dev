@@ -80,7 +80,7 @@
    - 不读取图像；`AgentState.image_paths` 始终为空。
 
 #### 3.1.2 人工测试数据集（[../test_data/](../test_data/)）
-共 **13 个 SmallOffice 案例**（`smalloffice_0` … `smalloffice_12`），每个案例包含：
+**14 个 SmallOffice 案例**：`smalloffice_0` … `smalloffice_12` 为早期无尺寸基线；`smalloffice_13` 是 2026-04-21 起的新规格首案(带两级尺寸链 + 4 facade 朝向命名 + 产物集中在 `output/`)。早期 13 案例包含：
 
 | 文件 | 角色 |
 |---|---|
@@ -266,6 +266,43 @@ AI_agent/
 
 ---
 
+## 7.5 sm_13 首轮会话沉淀（2026-04-21）
+
+> 本日围绕 **smalloffice_13** 案例建立新规格 + 修复基础设施阻塞项。要点全部进入 skill / new_case_guide 强约束,后续案例直接继承。
+
+### 7.5.1 输入规格升级
+- **两级尺寸链**(`top_view.png` 外部总链 + 外层分段链,数字黑色等宽字体、单位统一 mm)成为 sm_13 起的硬约束——让"房间尺寸中位误差"第一次有 GT 可比(对应 [pivot_criteria.md §1.1](pivot_criteria.md) 视觉阈值)。
+- 立面图改为**按朝向命名**`{South|North|East|West}_view.png`,每文件即对应朝向的 facade。空串/缺文件 = 该朝向所有楼层无窗,**零个** `create_fenestration_surface` 调用。取消 `front_view` / `side_view` 的同义写法。
+- `testdata_prompt.json` **暂时移除所有 GT 字段**(`_gt_meta`、`Ground truth *`),评测方案搭好后另拆 `gt.json` 分层持有。
+- 细节见 [new_case_guide §1.1 + §1.2](new_case_guide.md) 与 skill [§D4–§D6](../skills/energyplus_mcp/energyplus_mcp_prompt.md)。
+
+### 7.5.2 Fenestration 被提升为 IDF Workflow 独立第 5 步
+- 历史 7 个到 IDF 的案例有 **5 个 0 窗**——根因是 skill 把开窗埋在 IDF Step 4 的一句话里,且没有结构化 Fenestration Table 要求。
+- 已改:skill 里 IDF Tool Usage Workflow 拆成 6 步,Step 5 专门为 Fenestration;[zonetool_prompt §M7](../skills/energyplus_mcp/zonetool_prompt.md) 新增 Wall-index → facade 映射表(Wall_1=南 / Wall_2=东 / Wall_3=北 / Wall_4=西,对应 zone CCW 顶点从 SW 起)。
+- `claude_ep.md` 必须含 Fenestration Table,每行 → 一次 `create_fenestration_surface` 调用,父墙名直接用 `<zone>_Wall_<i>` 查表,不再让 LLM 用 `list_surfaces` 去试探。
+- [new_case_guide §6.4](new_case_guide.md) 加了窗户专项自检脚本。
+
+### 7.5.3 MCP 挂载基础设施修复
+- **typer/click 0.24+8.3 签名冲突**:`uv run main.py mcp-server` 抛 `AttributeError: 'list' object has no attribute 'isidentifier'`,原因是 [main.py](../main.py) `run_agent` 命令用了 `Annotated[X, Option(default, "--flag", ...)]`——新版把 `Option()` 所有位置参数当 decls,`[]` / `Path("output")` 不是 str 就炸;一个命令坏会拖垮 `app()` 全部注册。已改为默认值写签名等号右侧,`Option()` 只留 flag 名。
+- **仓库根补 [../.mcp.json](../.mcp.json)**(内容指向 `uv run python main.py mcp-server --transport stdio`,server key 用 `EnergyPlus-Agent` 与 skill 内工具名前缀 `mcp__EnergyPlus-Agent__*` 一致)。此前会话启动时工具列表没有 `mcp__*`,导致 sm_13 首轮退化到手写 `build_yaml.py`(见 [sm_13 run_log §4 / §5.1](../test_data/SmallOffice/smalloffice_13/output/run_log.md))。
+
+### 7.5.4 标注图 + 产物目录规范
+- **废弃 6× crop 模板**:旧 [skill §2b](../skills/energyplus_mcp/energyplus_mcp_prompt.md) 的 `img.crop(LEFT,TOP,RIGHT,BOTTOM) + 6× NEAREST` 把外围尺寸链都裁掉、再把 PNG 放成 10k+ 像素宽——人工审图时只看得到建筑主体左 1/3。改为**不裁剪** + 最多 2× 放大,保留外围尺寸数字可读。
+- **产物全部进 `output/`**:`top_view_annotated.png` / `claude_ep.md` / YAML / IDF / 临时脚本 / `run_log.md` / `eplusout.*` 都写 `<case_dir>/output/`;输入 PNG + `testdata_prompt.json` 保留在案例根。衍生品与输入分层,便于覆盖式重跑。[new_case_guide §6.1](new_case_guide.md) 目录树重画。
+
+### 7.5.5 下轮 Claude 开会的变更检查点
+1. 启动 Claude Code 时应自动弹出挂载 `EnergyPlus-Agent` server 的请求,接受后 `mcp__EnergyPlus-Agent__create_zone` 等工具出现在工具列表。
+2. Opus 会话必须严格走 MCP(`list_* → create_*`),不得再落回 `build_yaml.py` 手写 YAML。
+3. 标注图必须整图(带外围尺寸链),不得 crop。
+4. 所有 LLM/脚本产物必须在 `<case_dir>/output/`,不得散落案例根。
+5. Fenestration Table 每行 → 一次 `create_fenestration_surface`,父墙走 §M7 Wall-index 映射。
+
+### 7.5.6 仍未解决 / 下一步
+- **EnergyPlus 版本错配**:engine `D:\EnergyPlusV25-2-0\energyplus.exe` 是 25.2.0,仓库 [../data/dependencies/Energy+.idd](../data/dependencies/Energy+.idd) + 生成的 IDF 都是 25.1.0——直接跑会报 IDD mismatch。方案在 [sm_13 run_log §5.2](../test_data/SmallOffice/smalloffice_13/output/run_log.md)(推荐路线 A:升 IDD 回归旧案例)。
+- **评测基线**:§8.1 的 Opus 基线脚本(`AI_agent/eval/run_case.py`)仍未启动;sm_13 完成后应先把其纳入 `P0` 的 13+1 案例集合。
+
+---
+
 ## 8. 待办（滚动更新）
 
 ### 8.1 Next Step（唯一下一步行动）
@@ -286,4 +323,4 @@ AI_agent/
 
 ---
 
-_最后更新：2026-04-20_
+_最后更新：2026-04-21(新增 §7.5 sm_13 首轮会话沉淀;§3.1.2 案例数 13 → 14)_

@@ -103,30 +103,27 @@ def run_agent(
     images: Annotated[
         list[Path],
         Option(
-            [],
             "--image",
             "-i",
             help="Architectural drawing(s); repeat flag for multiple (floorplan + elevation + perspective...)",
         ),
-    ],
+    ] = [],
     output_dir: Annotated[
         Path,
         Option(
-            Path("output"),
             "--output-dir",
             "-o",
             help="Output directory for EnergyPlus simulation results",
         ),
-    ],
+    ] = Path("output"),
     thread_id: Annotated[
         str,
         Option(
-            "demo",
             "--thread-id",
             "-t",
             help="Unique identifier for this conversation thread",
         ),
-    ],
+    ] = "demo",
 ) -> None:
     """Run the multi-phase agent end-to-end.
 
