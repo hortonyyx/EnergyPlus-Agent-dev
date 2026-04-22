@@ -303,9 +303,76 @@ AI_agent/
 
 ---
 
+## 7.6 sm_14 首轮 + 开源模型基础设施（2026-04-22）
+
+> 本轮重心：把 **Qwen3.5-35B-A3B（SiliconFlow API）通过 Continue** 跑通 sm_14 的 Step 1–3，期间遭遇并修复若干基础设施阻塞项。
+
+### 7.6.1 新建文件
+
+| 文件 | 内容摘要 |
+|---|---|
+| [tools/preprocess_images.py](tools/preprocess_images.py) | 白边裁剪 + 长边 resize，解决 Continue 16k per-attachment 硬上限 |
+| [skills/energyplus_mcp/open_model/energyplus_mcp_prompt.md](../skills/energyplus_mcp/open_model/energyplus_mcp_prompt.md) | 开源模型专用 10 步工作流 skill（与 Continue + MCP 配合） |
+| [open_model_guide.md](open_model_guide.md) | 开源模型操作手册：Continue 配置、TPM 策略、预处理、MCP 挂载、图像输入 UX |
+
+### 7.6.2 关键技术发现
+
+**两种 token 估算的巨大差异**
+- 模型侧（Qwen-VL）：`ceil(W/28) × ceil(H/28)` ≈ 1,870 tokens（1536×952 图）
+- Continue 客户端：`W×H/28` ≈ 51,871 tokens（同图）
+- 差约 27.7 倍；Continue 有 16,384 per-attachment 硬墙，超过直接拒绝，与模型/TPM 无关
+- **解法**：`preprocess_images.py` 默认 `top_edge=800 / facade_edge=640`，使 Continue tokens ≤ 14k
+
+**Continue 图像输入 UX**
+- `@Files` 只索引文本文件，找不到 PNG
+- 正确方式：拖拽 / 剪贴板粘贴 / 点击图像按钮（attachments），产生 `image_url` content block
+- **不能**用 MCP `read_file` 读 PNG，模型会报"没有图像读取能力"
+- skill 已在 constraint #2 和 Step 0/1 明确此区分
+
+**SiliconFlow L0 tier 限制**
+- RPM=1000，TPM=40k（60 秒滑动窗口）
+- 429 后等 60–90s 即可恢复，不需要新建会话
+- Continue config.yaml 建议：`contextLength: 32768`, `maxTokens: 4096`
+
+**Continue MCP 挂载格式**
+- `~/.continue/config.yaml` 使用 YAML 列表：`mcpServers: [{name, command, args: [...]}]`
+- 与 Claude Code `.mcp.json`（JSON 对象）格式不同
+- MCP 工具只在 **Agent 模式**下可见，普通 Chat 看不到
+
+### 7.6.3 Bug 修复
+
+- `test_data/SmallOffice/smalloffice_14/testdata_prompt.json`：`Top_view.png` → `top_view.png`（大小写错误导致路径失效）
+
+### 7.6.4 本地部署后 token 管理的变化
+
+| 维度 | SiliconFlow 云端 | 本地 vLLM |
+|---|---|---|
+| TPM 速率限制 | 40k/min，429 后需等待 | **消失**，无 rate limit |
+| Continue 16k 附件上限 | 存在 | 存在（客户端行为，与推理后端无关） |
+| 上下文窗口压力 | 受 `contextLength` 配置影响 | 受显存/模型 max_position_embeddings 限制 |
+| token 管理必要性 | 是（TPM + 上下文） | **仍需要**（上下文 + 推理延迟/显存） |
+
+**结论**：本地部署后 TPM 限制彻底消失，但 `preprocess_images.py` 预处理和分阶段续跑策略仍需保留，原因从"速率墙"变为"上下文窗口容量 + 推理延迟"。
+
+### 7.6.5 sm_14 当前进度
+
+- Step 0（读 manifest + 确认 attachments）：✓
+- Step 1（视觉理解）：✓（触发 Compact 警告，已处理）
+- Step 2（分区规划 → claude_ep.md）：进行中，遭遇 429 后等待恢复
+- Step 3+（Zone / Material / Schedule 工具调用）：待完成
+
+**断点续跑建议**：Step 2 写完 `claude_ep.md` 后新开 Continue 会话，粘贴 manifest + claude_ep.md 内容继续 Step 3，避免长上下文 Compact 截断工具调用历史。
+
+### 7.6.6 安全提示（待确认）
+
+用户在本轮会话中明文粘贴了 SiliconFlow API Key（`sk-xgtd...cjgy`）两次。**建议立即前往 SiliconFlow 控制台 Revoke 并重新生成该 Key。**
+
+---
+
 ## 8. 待办（滚动更新）
 
 ### 8.1 Next Step（唯一下一步行动）
+- [ ] **完成 sm_14 首轮**：新开 Continue 会话，粘贴 `claude_ep.md` + manifest，继续 Step 3（Zone → Material → Schedule → HVAC → Fenestration）
 - [ ] **按 [plan.md](plan.md) P0，写 `AI_agent/eval/run_case.py`，跑 Opus 基线 13 案例并归档到 `AI_agent/eval/reports/<YYYY-MM-DD>_opus_baseline/`**
   - 指标：① claude_ep.md 合规率 ② YAML 生成率 ③ IDF 生成率 ④ EP 仿真完成率 ⑤ zone 数匹配率 + 房间尺寸中位误差 + 走廊 F1 + 特殊 zone F1
   - 产出：`summary.csv`（13 行 × 指标列）+ `per_case/<n>/{trace.jsonl, intake_output.json, decision.md}`
@@ -323,4 +390,4 @@ AI_agent/
 
 ---
 
-_最后更新：2026-04-21(新增 §7.5 sm_13 首轮会话沉淀;§3.1.2 案例数 13 → 14)_
+_最后更新：2026-04-22（新增 §7.6 sm_14 首轮 + 开源模型基础设施；§8.1 加入 sm_14 续跑任务）_
