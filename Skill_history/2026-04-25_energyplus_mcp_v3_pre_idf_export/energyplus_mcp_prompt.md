@@ -515,15 +515,7 @@ This phase produces only geometry. Do **not** create Materials, Constructions (o
 
    After this step run `list_fenestration_surfaces` and verify the count equals the rows in the Fenestration Table. If the table is empty (all facades blank), state so explicitly in the run log — do not silently skip.
 
-5. **Validate, export YAML, convert to IDF** — produce both a YAML and an IDF. The IDF is required for OpenStudio 3D-viewer verification (OpenStudio cannot import YAML).
-
-   a. `validate_config()` — fix any reported errors before proceeding.
-   b. `export_yaml(path="<case_dir>/output/<case_name>.yaml")` — export the MCP state to YAML.
-   c. Convert YAML → IDF: read `export_idf.md` once, then run its complete export script (Step 2 conversion + Step 3 four fix patches + Step 4 save). All four patches must remain in the script:
-      - Patches 1 (RunPeriod None) and 2 (Building warmup days) are **required** even in the geometry phase — the YAML schema emits a default `RunPeriod` with None fields and `Minimum_Number_of_Warmup_Days = 0`, both of which break IDF save / parse.
-      - Patches 3 (Surface→Adiabatic) and 4 (Schedule:Compact None) are **no-ops** in the geometry phase (Step 3 already wrote `Adiabatic` directly; no Schedule:Compact exists). Keep them in the script — they are idempotent.
-   d. Output IDF path: `<case_dir>/output/<case_name>.idf`.
-   e. Tell the user: YAML at `<yaml_path>`, IDF at `<idf_path>`. Open the IDF in OpenStudio's 3D viewer to verify zone outlines, surface adjacency, and window placement. MEP phase (Materials / Schedules / People / Lights / HVAC) is handled in a separate session and is **out of scope here**.
+5. **Validate & export YAML** — call `validate_config()` then `export_yaml(path="<case_dir>/output/<case_name>.yaml")`. Report the YAML path to the user, and remind them that geometry verification is done in OpenStudio's 3D viewer; full simulation requires the MEP phase (handled separately).
 
 ### ⚠️ CRITICAL: Avoid Repeated Creation of Reusable Attributes
 

@@ -203,6 +203,8 @@
 | [new_case_guide.md](new_case_guide.md) | 新建 SmallOffice 测试样例的 7 步流程 | 5 档验证清单 + 常见坑位 + 自动化蓝图 |
 | [plan.md](plan.md) | 输入端 VLM 准确性提升方案（CoT vs 前置小模型）| **P0 评测基线先行 → P1 CoT + PaddleOCR → P2 符号检测 → P3 全矢量化** |
 | [pivot_criteria.md](pivot_criteria.md) | 闭源 → 开源模型的 pivot 判定准则 | 双阈值（视觉 ≥90% + 流水线 ≥75% IDF）；四象限决策；低上限 4 条退路 |
+| [token_optimization.md](token_optimization.md) | Token 优化方案（MCP 工具改造 + 脚本外置） | P0 三档：ack-only 返回 / batch 接口 / scripts/export_idf 外置；P1 自动 boundary 推断 |
+| [open_model_guide.md](open_model_guide.md) | 开源模型操作手册（Continue + 预处理 + MCP） | sm_14 Qwen 实战沉淀 |
 
 ### 5.2 规划中目录（按需创建，不提前 mkdir）
 
@@ -231,6 +233,11 @@ AI_agent/
 3. **每次模型/提示词变更**：在 `AI_agent/experiments/` 新建一次运行记录，至少包含：模型 ID、提示词 hash、评测结果、失败样本。
 4. **提示词语言**：与主仓库保持一致（默认英文系统 prompt + 中文用户输入可接受）；若切到中文原生开源模型（如 Qwen-VL），可做对照实验。
 5. **回归门槛**：在切换默认 provider 前，端到端跑通率不得低于当前 Anthropic 基线的 80%。
+6. **Skill 版本管理**：修改 `skills/energyplus_mcp/`（含子目录）之前，必须先备份当前版本：
+   ```bash
+   cp -r skills/energyplus_mcp Skill_history/<YYYY-MM-DD>_energyplus_mcp
+   ```
+   历史快照存放于根目录 `Skill_history/`，按日期命名。同一天多次备份时加后缀区分（如 `2026-04-25_energyplus_mcp_v2`）。**先备份，再修改**，不得跳过。
 
 ---
 
@@ -369,13 +376,104 @@ AI_agent/
 
 ---
 
+## 7.7 sm_15 几何阶段全 MCP 验证 + token 优化方案（2026-04-25 / 26）
+
+> 本轮三件事：① skill 拆分成「几何阶段 + MEP 阶段」并完成 sm_15 全 MCP 流水线验证；② 摸清 token 消耗结构，制定四档优化路径；③ 多楼层 / 退台 / 挑空的世界坐标原则梳理（待落地）。详细优化方案另存 [token_optimization.md](token_optimization.md)。
+
+### 7.7.1 Skill 拆分：几何阶段 vs MEP 阶段
+
+- **核心决策**：IDF 建模拆为两阶段——几何阶段产出 Zone + Surface + Fenestration（construction 用占位符），MEP 阶段填 Material / Schedule / People / Lights / HVAC + 替换占位 construction。两阶段独立会话，可由不同模型执行。
+- **当前 skill 仅几何阶段**：[skills/energyplus_mcp/energyplus_mcp_prompt.md](../skills/energyplus_mcp/energyplus_mcp_prompt.md) 整体重写：
+  - 删除主 skill 中 Materials/Schedules/People/Lights/HVAC 相关段（~60 行）
+  - 删除文件：`skills/energyplus_mcp/{top_view.png, top_view_annotated.png, schedule_compact_guide.md}`
+  - 新增：**Surface boundary conditions 分类表**（外墙 `Outdoors+SunExposed`；内墙 / F2 楼板 / F1 顶棚 `Adiabatic`；F1 地板 `Ground`；屋顶 `Outdoors`）
+  - 占位 construction：`Default_Ext_Wall` / `Default_Int_Wall` / `Default_Window`
+  - 保留 export_idf.md 4 个补丁（补丁 1+2 必需，补丁 3+4 几何阶段是 no-op 但幂等）
+- **Skill_history 现有快照**（启用 §6.6 备份规则）：
+  - `2026-04-25_energyplus_mcp/` — Opus 几何跑通的原始版（baseline）
+  - `2026-04-25_energyplus_mcp_v2_pre_restore/` — 第一次过度精简的过渡版
+  - `2026-04-25_energyplus_mcp_v3_pre_idf_export/` — 几何信息恢复但缺 IDF 导出的过渡版
+- **new_case_guide.md** 同步更新（§5 投递 prompt 改 3 份 skill；§6 验证清单 ④⑤ 标注为 MEP 阶段；§8 常见坑翻转 schedule/lights/HVAC 的语义；§9 蓝图删 ep_started/ep_completed 留给 MEP）
+
+### 7.7.2 sm_15 测试结果（首次全程 MCP）
+
+| 项 | 值 |
+|---|---|
+| 规模 | 14 zones（F1/F2 各 7：S1/S2/S3 + Corridor + N1/N2/N3）；12 windows（南北各 3 × 2 层）；W=15 / D=8 / H=3.6 ×2 |
+| MCP 调用 | 1 location + 1 building + 14 `create_zone` + **84 `update_surface`** + 12 `create_fenestration_surface` + 1 `export_yaml` |
+| 校验 | zones=14 ✓ / surfaces=84 ✓ / fenestration=12 ✓ / IDF 128 KB |
+| 已知问题 | `FenestrationConverter` 强校验 Construction 必须存在,需在 `convert_all()` 前预置 3 个占位 Construction(已临时绕过,长期需在 ConverterManager 加 `geometry_only=True` 旁路) |
+| 详细记录 | [test_data/SmallOffice/smalloffice_15/output/run_log.md](../test_data/SmallOffice/smalloffice_15/output/run_log.md) |
+
+**关键收获**：sm_13 的 `build_yaml.py` 直写 YAML 路径已被淘汰，sm_15 起所有几何建模严格走 MCP 工具链。
+
+### 7.7.3 Token 消耗诊断（sm_15 实测 ≈ 150k）
+
+主因**不是** skill 大小（删 MEP 内容净降 24 行，省得有限），而是**长链路 MCP 工具调用累积**：
+
+| 来源 | 估算 token |
+|---|---|
+| 14 × create_zone × ~2500 | ~35k |
+| **84 × update_surface × ~750** | **~63k**（最大头） |
+| 12 × create_fenestration × ~400 | ~5k |
+| 模型推理文本（每次调用 100-300） | ~22k |
+| 中途掉线 1 次 → 全 history 重灌 | ~+30k |
+| Skill 文档 + system | ~10k |
+
+每个 MCP 工具返回**完整对象 dump**（约 2-4 KB / surface，含 4 个顶点 JSON），但**不包含全局 ConfigState**——这点比预想的好。Explore agent 报告（2026-04-26）确认 MCP 入口 [src/mcp/server.py:45-111](../src/mcp/server.py)，无现成 batch 接口，新增 `update_surfaces_batch` 工作量约 200-250 行跨 6-8 文件。
+
+### 7.7.4 优化决策：P0 三档（详见 [token_optimization.md](token_optimization.md)）
+
+| 优先级 | 改动 | 预计节省 | 风险 |
+|---|---|---|---|
+| **P0** | `scripts/export_idf.py` 外置 | -3-5k / case | 0 |
+| **P0** | MCP 工具默认 ack-only 返回（verbose 开关回退） | **-50k / case**（最大杠杆） | 低 |
+| **P0** | MCP 加 `update_surfaces_batch` 等批量接口 | -25k / case | 中 |
+| P1 | `create_zone` 自动 boundary 推断 | -15k / case | 中-高 |
+
+**关键澄清**：MCP 逐次调用并不"更适合"本地模型——本地模型 TPM 消失但**上下文容量 + 长 tool-chain 稳定性**比 Opus 更脆弱。优化对闭源/开源都受益。
+
+### 7.7.5 多楼层 / 退台 / 挑空原则（待 skill 落地）
+
+**核心原则**：**全局唯一世界坐标系**——原点 = 整栋投影最大边界的西南内角，所有 zone 顶点用绝对世界坐标；`z_floor(F_k) = sum(h_1..h_{k-1})`。**禁止每层用本地原点**。
+
+| 情形 | 新增 surface 类别 |
+|---|---|
+| F2 zone 上方（标准） | F1 顶棚 / F2 楼板 双 `Adiabatic + Default_Int_Wall` |
+| 退台（F2 缺 zone 处） | F1 顶棚改 `Outdoors + Default_Ext_Wall`（变屋面） |
+| 悬挑（F1 缺 zone 处） | F2 楼板底面改 `Outdoors + Default_Ext_Wall` |
+| 挑空（推荐方案 A） | 单 zone `ceiling_height` 跨层；墙体在邻接面分两段 |
+| 挑空（方案 B） | 拆两 zone + `AirBoundary`，留 MEP 阶段 |
+
+JSON 字段计划扩展：`Top view path of the building, floor N`（每层独立俯视图，强制带 F1 投影虚线 overlay 以验证对齐）。
+
+### 7.7.6 Sonnet 降级测试计划
+
+- **不要用新 case 测**——用 sm_15（known-good）重跑做能力对比
+- 比对维度：claude_ep.md 字段一致性 / YAML zones 14 / windows 12 / 84 update_surface 是否全完成 / 总 token
+- 预设 Opus fallback：Sonnet 卡住或几何错误立即切回 Opus，不让其乱搞
+- 测试顺序：sm_15 → sm_13 → 不直接上多楼层异形 case
+
+### 7.7.7 下轮检查点
+
+1. 先做 P0 改动 4（export_idf.py 外置，30 分钟）→ 验证脚本外置思路
+2. 再做 P0 改动 1（MCP ack-only 返回）→ 最大杠杆
+3. 然后 P0 改动 2（batch 接口）
+4. 完成后 sm_15 重跑做 token 对比（目标 150k → 70-80k）
+5. 然后 Sonnet 重跑 sm_15 做能力对比
+
+---
+
 ## 8. 待办（滚动更新）
 
 ### 8.1 Next Step（唯一下一步行动）
-- [ ] **完成 sm_14 首轮**：新开 Continue 会话，粘贴 `claude_ep.md` + manifest，继续 Step 3（Zone → Material → Schedule → HVAC → Fenestration）
-- [ ] **按 [plan.md](plan.md) P0，写 `AI_agent/eval/run_case.py`，跑 Opus 基线 13 案例并归档到 `AI_agent/eval/reports/<YYYY-MM-DD>_opus_baseline/`**
-  - 指标：① claude_ep.md 合规率 ② YAML 生成率 ③ IDF 生成率 ④ EP 仿真完成率 ⑤ zone 数匹配率 + 房间尺寸中位误差 + 走廊 F1 + 特殊 zone F1
-  - 产出：`summary.csv`（13 行 × 指标列）+ `per_case/<n>/{trace.jsonl, intake_output.json, decision.md}`
+- [ ] **P0 token 优化**（按 [token_optimization.md](token_optimization.md) §6 实施顺序）
+  - [ ] 改动 4：把 [export_idf.md](../skills/energyplus_mcp/export_idf.md) 的脚本搬到 `scripts/export_idf.py`（30 min，零风险）
+  - [ ] 改动 1：MCP 工具返回值改 ack-only + verbose 开关（半天到一天，最大杠杆）
+  - [ ] 改动 2：MCP 加 `update_surfaces_batch` 等批量接口（一两天）
+- [ ] **sm_15 重跑做 token 回归**：目标 150k → 70-80k
+- [ ] **Sonnet 4.6 降级测试**：sm_15 重跑做能力对比，注意预设 Opus fallback
+- [ ] **历史项保留**：sm_14 续跑 + Opus 基线评测脚本（[plan.md](plan.md) P0）排在 token 优化之后
 
 ### 8.2 P0 完成后再启
 - [ ] 核对 `llm.yaml` 中 `model_name: gpt-5.4` 是否为占位符，统一为可运行的 Claude Opus 模型 ID
@@ -390,4 +488,6 @@ AI_agent/
 
 ---
 
-_最后更新：2026-04-22（新增 §7.6 sm_14 首轮 + 开源模型基础设施；§8.1 加入 sm_14 续跑任务）_
+_最后更新：2026-04-26（新增 §7.7 sm_15 几何阶段 + token 优化方案；§5.1 索引补 token_optimization.md / open_model_guide.md；§8.1 改为 P0 token 优化优先；新建 [token_optimization.md](token_optimization.md)）_
+
+_2026-04-22（新增 §7.6 sm_14 首轮 + 开源模型基础设施；§8.1 加入 sm_14 续跑任务）_
