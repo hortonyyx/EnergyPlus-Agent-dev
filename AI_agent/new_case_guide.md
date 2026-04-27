@@ -209,8 +209,9 @@ test_data/SmallOffice/smalloffice_13/
    construction_name = "Default_Window"(占位),父墙按 zonetool_prompt.md
    §M7 Wall-index 映射(Wall_1=南/Wall_2=东/Wall_3=北/Wall_4=西)。
 8. validate_config + export_yaml(output/smalloffice_13.yaml)
-9. 按 export_idf.md 完整脚本转 IDF → output/smalloffice_13.idf
-   (4 个修复补丁全部保留:补丁 1+2 必需,补丁 3+4 在几何阶段是 no-op 但幂等)
+9. 单行 Bash 跑外部脚本转 IDF：`python Tool_scripts/export_idf.py test_data/SmallOffice/smalloffice_13`
+   → output/smalloffice_13.idf。脚本内置 5 条幂等补丁(占位 Construction 预注入 +
+   原 4 条);**不要 inline 复制脚本内容**。
 
 **几何阶段到此结束**。MEP 阶段(Materials / Schedule / People / Lights /
 HVAC)与 EnergyPlus 仿真在独立会话进行,不在本轮验收范围。
@@ -222,7 +223,7 @@ HVAC)与 EnergyPlus 仿真在独立会话进行,不在本轮验收范围。
 - `Write` 生成 `claude_ep.md`
 - 调 `mcp__EnergyPlus-Agent__create_zone / update_surface / create_fenestration_surface / …` 累积 `ConfigState`
 - 调 `mcp__EnergyPlus-Agent__export_yaml` 导出 YAML
-- `Bash` 跑 [export_idf.md](../skills/energyplus_mcp/export_idf.md) 完整脚本 → IDF（几何阶段不跑 EP）
+- `Bash` 单行调 [../Tool_scripts/export_idf.py](../Tool_scripts/export_idf.py) → IDF（几何阶段不跑 EP）
 
 **人工兜底**（仅几何阶段相关）：
 - 「请核对内墙构造是否两侧对称（都用 `Default_Int_Wall` + `Adiabatic`），避免后续 MEP 阶段或 OpenStudio 报 InterZone 不匹配」

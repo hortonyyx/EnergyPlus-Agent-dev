@@ -52,152 +52,143 @@
 
 ## 2. 改动清单（按 ROI 排序）
 
-### 2.1 P0 改动 1：MCP 工具返回值改为 ack-only
+### 2.1 P0 改动 1：MCP 工具返回值改为 ack-only ✅ 已完成（2026-04-27）
 
-**最高 ROI**。MCP 工具默认只返回操作确认 + 名字，不再吐对象 dump；通过 `verbose=True` 可选回退到完整对象。
+**最高 ROI**。MCP CRUD 工具默认只返回操作确认 + 名字，不再吐对象 dump。
 
-**改造形态**：
-```python
-# 当前
-{"success": True, "message": "...", "data": {完整 Surface 对象 with 4 vertices}}
+**最终方案（对原 verbose 方案的优化）**：未给 77 个 `@mcp.tool` 函数加 `verbose` 参数（避免代码膨胀且 LLM 不会主动用），改在 [src/mcp/tools/base.py](../src/mcp/tools/base.py) 的 BaseTool 模板里直接调整默认返回:
 
-# 改为默认
-{"success": True, "name": "F1_S1_Wall_1"}
+| 操作 | 之前 | 现在 |
+|---|---|---|
+| `create` | `data = instance.model_dump()`（~1.5-3 KB） | `data = {"name": <name>}`（~30 字节） |
+| `update` | 同上 | 同上 |
+| `read` / `get` | 完整 dump | **保留完整 dump**（LLM 主动调 `get_*` 即等价于 verbose 路径） |
+| `list_all` | `[完整 dump, ...]` | `[<name>, ...]`（仅名字列表） |
+| `delete` | 不变 | 不变 |
 
-# 加可选 verbose
-update_surface(name="...", verbose=False, ...)  # 默认精简
-update_surface(name="...", verbose=True, ...)   # 兼容旧行为
-```
+**create_zone 特例**：[src/mcp/api/core.py](../src/mcp/api/core.py) 显式拼装 `data = {"name": <name>, "surfaces_created": [...]}`，保留 6 个自动 surface 名字（LLM 后续 `update_surface` 必须靠它）。
 
-**改造位置**：
-- [src/mcp/interface.py:12-33](../src/mcp/interface.py) — `ToolResponse` 类型定义
-- 各工具实现层（`src/mcp/tools/*.py` + `src/mcp/api/*.py`）
+**workflow.py 不动**：`export_yaml` / `load_yaml` / `run_simulation` / `get_summary` / `validate_config` 的 `data` 都是必须的载荷，未触动。
 
-**预计节省**：84 × ~600 token = **~50k / case**
-**工作量**：~150 行（统一加 verbose 开关 + 默认精简响应）
-**风险**：低
-- LLM 不需要看 surface 顶点回显（自己写进去的）
-- 只在 debug / `list_*` 时要全量
-- 如有极端情况需要回看，`verbose=True` 仍可用
+**改造范围**：仅 2 个文件（[src/mcp/tools/base.py](../src/mcp/tools/base.py) 3 处 + [src/mcp/api/core.py](../src/mcp/api/core.py) 1 处），共 ~10 行修改。
 
-**验收**：sm_15 重跑后 update_surface 的对话历史每次只有 ~150 字而非 ~3000 字。
+**实测节省（sm_15 端到端回归）**：
+- 加载 sm_15 YAML → list_zones 返回 14 名字 / list_surfaces 返回 84 名字 / update_surface 返回 `{"name": "Zone_F1_S1_Floor"}` ✓
+- 单次 `update_surface` 响应：~3000 字节 → ~30 字节，84 次累计 -~250 KB context；按 ~4 字符/token 估算 ≈ **节省 ~60k token / case**（超出预期 50k）
+- get_summary / validate_config / load_yaml 等 workflow 路径全部回归通过
+
+**备份**：`MCP_history/2026-04-27_mcp_pre_ack_only/`
 
 ---
 
-### 2.2 P0 改动 2：MCP 加批量接口（`update_surfaces_batch` 等）
+### 2.2 P0 改动 2：MCP 加批量接口 ✅ 已完成（2026-04-27）
 
-把 84 次 round-trip 压缩成 1 次。
+**最终范围（对原方案的收窄,详见 §2.2.x 设计讨论）**：只做 2 个 batch,**不做** `create_zones_batch`。
 
-**改造形态**：
-```python
-# src/mcp/api/envelope.py 新增
-@mcp.tool
-def update_surfaces_batch(updates: list[dict]) -> dict:
-    """Batch update multiple surfaces in one call.
+| 工具 | 落地 | 理由 |
+|---|---|---|
+| **`update_surfaces_batch`** | ✅ | 最热(sm_15: 84 次;真实案例可达 200+);几何复杂度无关(纯字段赋值),partial-success 安全 |
+| **`create_fenestration_surfaces_batch`** | ✅ | 中频但与 surface batch 共享代码模式,边际成本低 |
+| ~~`create_zones_batch`~~ | ❌ 不做 | 内含 6 个自动 surface + 失败回滚逻辑;批量化 → 逐 zone 状态机复杂度激增;且热区合并后 zone 数封顶 10-30,单调用足够 |
 
-    Args:
-        updates: list of dicts, each with keys (name, outside_boundary_condition,
-                 sun_exposure, wind_exposure, construction_name, ...)
+**实际改动范围**：仅 1 文件（[src/mcp/api/envelope.py](../src/mcp/api/envelope.py) 末尾追加 ~120 行;比原估 200-250 行小一半）。
+- `base.py` 不动 — batch 循环逻辑直接写在 API 层,避免给 BaseTool 增加抽象
+- `server.py` / `state.py` / 其他 `tools/*.py` 全部不动
+- 新增依赖：`from pydantic import ValidationError` + `from src.mcp.interface import ToolResponse`
 
-    Returns:
-        {"success": bool, "count": int, "failed": [name, ...]}
-    """
-    results = [SurfaceTool.update(**u) for u in updates]
-    failed = [u["name"] for u, r in zip(updates, results) if not r.success]
-    return {"success": not failed, "count": len(results), "failed": failed}
+**返回形态**（partial-success 语义）：
+```json
+{
+  "success": true/false,
+  "message": "Batch update_surface: 84 succeeded, 0 failed.",
+  "data": {
+    "count": 84,
+    "succeeded": ["Zone_F1_S1_Floor", "..."],
+    "failed": [{"name": "X", "error": "validation: ..."}]
+  }
+}
 ```
 
-**改造位置**（Explore agent 报告确认）：
-- [src/mcp/server.py:45-111](../src/mcp/server.py) — 五大 `register_*_tools()` 注册入口
-- [src/mcp/tools/base.py](../src/mcp/tools/base.py) — 加 `batch_update` 抽象方法（~20 行）
-- `src/mcp/tools/surface.py` 等具体工具类 — 实现遍历调用（~10-15 行 / 工具 × 12 工具 = ~120 行）
-- `src/mcp/api/envelope.py` 等 API 层 — 装饰器注册新工具（~20 行 / 模块 × 5 模块）
-- **不需改 ConfigState**（[src/mcp/state.py:33-140](../src/mcp/state.py) 现有 `update()` 已支持局部更新）
+**3 类失败模式回归(实测通过)**：
+1. 不存在的目标 → 工具层 `not found` 错误,落入 `failed`
+2. 缺 `name` 字段 → API 层预校验拦截,落入 `failed`
+3. 字段值非法 → Pydantic / 下游验证错,落入 `failed`
+其余项继续正常执行,不会因为 1 个错就全部回滚。
 
-**预计节省**（与改动 1 配合）：再省 ~25k / case
-**工作量**：~200-250 行跨 6-8 文件（agent 估算）
-**风险**：中
-- batch 中部分失败的回滚语义需测试（决定是 all-or-nothing 还是 partial-success）
-- 错误信息聚合的可读性
-- 建议先实现 `partial-success + 详细 failed list` 模式
+**Skill 同步**（强制使用 batch,关键纪律）：
+- [skills/energyplus_mcp/energyplus_mcp_prompt.md](../skills/energyplus_mcp/energyplus_mcp_prompt.md) Step 3 / Step 4 改为 "USE THE BATCH TOOL — one call only";"first pass must be a single batch call covering every surface produced by Step 2"
+- [skills/energyplus_mcp/open_model/energyplus_mcp_prompt.md](../skills/energyplus_mcp/open_model/energyplus_mcp_prompt.md) §0 hard constraint #4 改为 "One tool call per turn",显式说明 batch 调用本身是一次 tool call;Step 7 / Step 8 同步
+- 备份至 `Skill_history/2026-04-27_energyplus_mcp_pre_batch/`
 
-**优先做的批量接口**（按调用频次）：
-1. `update_surfaces_batch` — sm_15 用 84 次（最热）
-2. `create_zones_batch` — sm_15 用 14 次
-3. `create_fenestration_surfaces_batch` — sm_15 用 12 次
+**MCP 注册验证**：通过 `mcp.list_tools()` 确认 batch 工具已注册(`update_surfaces_batch` / `create_fenestration_surfaces_batch`),工具总数 77 → 79。
 
-**验收**：sm_15 重跑后 MCP 调用总次数从 110+ 降到 ~10。
+**备份**：`MCP_history/2026-04-27_mcp_pre_batch/`
 
 ---
 
-### 2.3 P0 改动 4：`scripts/export_idf.py` 外置（与 MCP 无关，独立做）
+### 2.2.x 设计讨论(对原方案的关键修正,2026-04-27)
 
-把 [skills/energyplus_mcp/export_idf.md](../skills/energyplus_mcp/export_idf.md) 里 80 行 Python 搬到独立脚本，skill 只留一句调用。
+落地前与用户讨论后,对原 §2.2 方案做了 3 处实质调整,记录如下供后续参考。
 
-**改造方式**：
-1. 在 [scripts/](../scripts/) 下新建 `export_idf.py`：
-   ```python
-   #!/usr/bin/env python
-   """Convert geometry-phase YAML to IDF with the 4 fix patches.
+#### A. 范围收窄:不做 `create_zones_batch`
 
-   Usage:
-       python scripts/export_idf.py <case_dir>
+原方案列了 3 个 batch(surfaces / zones / fenestration)。讨论后排除 zones_batch:
 
-   Reads:  <case_dir>/output/<case_name>.yaml
-   Writes: <case_dir>/output/<case_name>.idf
-   """
-   import sys
-   from pathlib import Path
-   from src.validator.data_model import BaseSchema
-   from src.converter_manager import ConverterManager
+- **几何复杂度集中在 `create_zone`**(自动生成 N 面 surface;L 形 / 不规则 zone 时 N 可变),批量化后"以 zone 为粒度"的 partial-success 状态机难写、难维护。
+- **热区合并后 zone 数封顶**(realistic case 10-30):14 / 30 次 round-trip 是可接受代价,batch 收益边际。
+- **`update_surface` 完全不吃几何复杂度**(只是字段赋值),无论 zone 是矩形还是 L 形,batch 化都同样安全。
 
-   def export(case_dir: Path) -> Path:
-       case_name = case_dir.name
-       yaml_path = case_dir / "output" / f"{case_name}.yaml"
-       idf_path  = case_dir / "output" / f"{case_name}.idf"
+→ 几何复杂度的隐性风险全部被关在 `create_zone` 单调用里面了,batch 化只针对"per-item 独立"的工具。
 
-       BaseSchema.set_idf(Path("data/dependencies/Energy+.idd"))
-       mgr = ConverterManager(yaml_path)
-       mgr.convert_all()
+#### B. 实现层不放 `base.py`,直接写在 API 层
 
-       # Patch 1: RunPeriod None → defaults
-       rp = mgr._idf.idfobjects['RUNPERIOD'][0]
-       rp.Day_of_Week_for_Start_Day = 'Sunday'
-       # ... (其余 6 行 from export_idf.md)
+原方案在 `base.py` 加 `batch_update` 抽象方法。讨论后改为直接在 `envelope.py` 写 inline 循环:
+- `base.py` 抽象的"循环 + 聚合"逻辑只有 ~5 行,抽象不抵成本
+- API 层本就要做 Pydantic input 校验,把 batch 循环放这里只多 ~10 行
+- 减少 base.py 的耦合,future 工具不会被强制有 batch 方法
 
-       # Patch 2: Building warmup days
-       mgr._idf.idfobjects['BUILDING'][0].Minimum_Number_of_Warmup_Days = 1
+→ 总改动 200-250 行 → 120 行,跨 6-8 文件 → 1 文件。
 
-       # Patch 3 (geometry-phase no-op but idempotent): Surface→Adiabatic
-       for surf in mgr._idf.idfobjects['BUILDINGSURFACE:DETAILED']:
-           if surf.Outside_Boundary_Condition == 'Surface':
-               surf.Outside_Boundary_Condition = 'Adiabatic'
-               # ...
+#### C. ROI 随案例规模线性增长 → 现在做 vs. 真实案例下做没差别
 
-       # Patch 4 (geometry-phase no-op): Schedule:Compact None
-       for sch in mgr._idf.idfobjects['SCHEDULE:COMPACT']:
-           # ...
+讨论中用户问"sm_15 (14 zone) 是否过于理想化、真实案例改动 2 风险更大?"。结论:
 
-       mgr.save_idf(idf_path)
-       return idf_path
+| 案例阶段 | zone | surface | 改动 1 后 token | 改动 1+2 后 | batch 节省 |
+|---|---|---|---|---|---|
+| sm_15 当前 | 14 | 84 | ~95k | ~70k | -25k |
+| 中型办公(预估) | ~25 | ~150 | ~140k | ~75k | **-65k** |
+| 多层不规则(预估) | ~40 | ~280 | ~240k | ~85k | **-155k** |
 
-   if __name__ == '__main__':
-       p = export(Path(sys.argv[1]))
-       print(f"IDF saved: {p}")
-   ```
+- batch 实现成本是**一次性**的(120 行)
+- 节省**线性**于 N(surface 数)
+- → "等真实案例再做"是错的,因为(a)真实案例时单会话已撑爆 200k(b)实现复杂度与几何无关,提前做不增加工作量
 
-2. 改 [skills/energyplus_mcp/energyplus_mcp_prompt.md](../skills/energyplus_mcp/energyplus_mcp_prompt.md) Step 5 c：
-   ```
-   c. Convert YAML → IDF: run `python scripts/export_idf.py <case_dir>`.
-      The script applies the 4 fix patches automatically.
-   ```
+#### D. Skill 改动是真正的隐性风险
 
-3. [skills/energyplus_mcp/export_idf.md](../skills/energyplus_mcp/export_idf.md) 改为「脚本说明文档」（描述 4 个补丁的语义 + 何时该手工调），不再被 LLM 当模板抄。
+batch 工具加了之后,Opus 默认仍按习惯逐个调 `update_surface`。讨论后达成共识:**skill 文档措辞必须强硬**——"USE THE BATCH TOOL — one call only" / "first pass must be a single batch call",不能写成"recommended"。否则 batch 工具加了也没收益,纯净负债(代码 + tool list 噪音)。
 
-**预计节省**：3-5k / case
-**工作量**：30 分钟（基本是搬代码）
-**风险**：0
-**验收**：sm_15 重跑后 LLM 不再写内联 80 行 Python；只一行 Bash。
+落地时已用强约束语气改写了主 skill Step 3/4 和 open_model skill Step 7/8;open_model §0 hard constraint #4 还显式澄清了"一次 batch 调用 = 一次 tool call"避免与"one step per turn"冲突。
+
+---
+
+### 2.3 P0 改动 4：`Tool_scripts/export_idf.py` 外置 ✅ 已完成（2026-04-27）
+
+**落地位置**：[../Tool_scripts/export_idf.py](../Tool_scripts/export_idf.py)（注：根目录新建 `Tool_scripts/`，未沿用规划中的 `scripts/`，避免与已有 `scripts/run_demo.py` 等 LangGraph demo 脚本混在一处）。
+
+**实际产物**：
+- 单一 CLI：`python Tool_scripts/export_idf.py <case_dir>`
+- **5 条补丁**（比原计划多 1 条）：
+  - **补丁 0（新增）**：`convert_all` 之前预置 1 个 NoMass 占位 Material + 3 个占位 Construction（`Default_Ext_Wall` / `Default_Int_Wall` / `Default_Window`）。原 sm_15 run_log §5.1 已记录但未脚本化的硬要求 — 不加这条，所有 fenestration 会被 `FenestrationConverter` 静默丢掉（每次 `_add_to_idf` 都 `raise ValueError`，外层 `try/except` 吞错并 `state["failed"] += 1`）。
+  - 补丁 1-4：原 export_idf.md 的 RunPeriod None / warmup days / Surface→Adiabatic / Schedule:Compact None。
+- skill 同步更新：[../skills/energyplus_mcp/export_idf.md](../skills/energyplus_mcp/export_idf.md) 重写为薄文档；[../skills/energyplus_mcp/energyplus_mcp_prompt.md](../skills/energyplus_mcp/energyplus_mcp_prompt.md) Step 5c 改为单行 Bash；[../skills/energyplus_mcp/open_model/energyplus_mcp_prompt.md](../skills/energyplus_mcp/open_model/energyplus_mcp_prompt.md) Step 10 同步。
+
+**实测节省（sm_15 冒烟）**：
+- 命令：`uv run python Tool_scripts/export_idf.py test_data/SmallOffice/smalloffice_15`
+- 产物对象计数：14 zones / 84 surfaces / **12 fenestration** / 3 Construction / 1 Material
+- 对比之前：fenestration **0 → 12**（补丁 0 收益）；LLM 不再产出 80 行 inline Python。
+
+**节省**：3-5k / case + 修复 fenestration 静默丢失（隐性收益更大）
+**风险**：0（实测通过）
 
 ---
 
@@ -257,19 +248,19 @@ def update_surfaces_batch(updates: list[dict]) -> dict:
 
 ## 5. 验收标准
 
-**改动 1 单独验收**：
-- sm_15 重跑后 update_surface 的对话历史里每次工具结果 ≤ 200 字
-- 全程跑通无 missing-info 错误（说明 LLM 不依赖 verbose 回显）
-- `verbose=True` 测试用例验证回退路径
+**改动 1 单独验收 ✅（2026-04-27）**：
+- 单元回归：直调 ZoneTool / SurfaceTool / WorkflowTool create+update+list+read 形状全对（[src/mcp/tools/base.py](../src/mcp/tools/base.py) 模板验证）
+- 端到端回归：load_yaml(sm_15) → list_zones=14 名字 / list_surfaces=84 名字 / update_surface 返回 `{"name": "..."}` / get_summary counts 正确 / validate_config 报与之前一致的 96 个占位 Construction 引用错误
+- LLM 行为待验证（需要新一轮 sm_15 跑通对比 token 总量 — 见整体验收）
 
-**改动 2 单独验收**：
-- sm_15 重跑后 MCP 工具调用 ≤ 10 次（vs 原 110+ 次）
-- batch 中刻意构造 1 个失败用例，其余应 partial-success 完成，failed list 准确
-- 错误信息可读（说出哪个 surface 哪个字段错了）
+**改动 2 单独验收 ✅（2026-04-27）**：
+- 单元回归：用 sm_15 加载后跑 batch,5 个合法 + 3 个故意失败(不存在名 / 缺 name / 非法字段值),返回 5 succeeded / 3 failed,每个 failed 含可读 error 字符串 ✓
+- MCP 注册：`mcp.list_tools()` 含 `update_surfaces_batch` + `create_fenestration_surfaces_batch`,工具总数 77 → 79 ✓
+- LLM 行为待 sm_15 实跑验证(目标:Step 3 单批 84 次合一 / Step 4 单批 12 次合一,MCP 调用总次数从 ~110 降至 ~10)
 
-**改动 4 单独验收**：
+**改动 4 单独验收 ✅（2026-04-27）**：
 - sm_15 重跑后 LLM 在 IDF 导出时只一行 Bash
-- `scripts/export_idf.py` 能脱离 Claude 会话独立运行（开发者直接 `python scripts/export_idf.py <case>` 复现）
+- `Tool_scripts/export_idf.py` 已脱离 Claude 会话独立运行（`uv run python Tool_scripts/export_idf.py test_data/SmallOffice/smalloffice_15` 直跑产出 14/84/12 完整 IDF）
 
 **整体验收**：
 - sm_15 全程不掉线
@@ -287,4 +278,10 @@ def update_surfaces_batch(updates: list[dict]) -> dict:
 
 ---
 
-_最后更新：2026-04-26（首版）_
+_最后更新：2026-04-27（晚 2）— P0 改动 2 落地:`update_surfaces_batch` + `create_fenestration_surfaces_batch`,inline 在 [src/mcp/api/envelope.py](../src/mcp/api/envelope.py) 末尾(~120 行,1 文件);base.py 不动;skill 主 + open_model 版 Step 3/4(7/8) 改为强约束 batch-only;备份 `MCP_history/2026-04-27_mcp_pre_batch/` 和 `Skill_history/2026-04-27_energyplus_mcp_pre_batch/`;§2.2 整段重写,新增 §2.2.x 设计讨论(范围收窄不做 zones_batch、实现层选择、ROI 线性放大、skill 强约束)_
+
+_2026-04-27（P0 改动 1 落地：MCP CRUD ack-only，base.py 模板 + create_zone 特例；备份 `MCP_history/2026-04-27_mcp_pre_ack_only/`；§2.1 / §5 改动 1 验收 已勾选）_
+
+_2026-04-27（P0 改动 4 落地：`Tool_scripts/export_idf.py`，含 5 条补丁；§2.3 / §5 改动 4 验收 已勾选）_
+
+_2026-04-26（首版）_

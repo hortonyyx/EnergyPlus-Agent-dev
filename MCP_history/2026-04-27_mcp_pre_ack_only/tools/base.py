@@ -127,7 +127,7 @@ class BaseTool(ABC):
             return ToolResponse(
                 success=True,
                 message=f"Component '{self.component_name}':'{name}' created successfully.",
-                data={"name": name},
+                data=instance.model_dump(by_alias=True),
             )
 
         except ValidationError as e:
@@ -214,7 +214,7 @@ class BaseTool(ABC):
             return ToolResponse(
                 success=True,
                 message=f"Component '{self.component_name}':'{name}' updated successfully.",
-                data={"name": new_name},
+                data=updated.model_dump(by_alias=True),
             )
 
         except ValidationError as e:
@@ -277,13 +277,12 @@ class BaseTool(ABC):
         """List all components of this type in the configuration.
 
         Returns:
-            ToolResponse with the list of component names. Use `read(name)` to
-            fetch the full object when full attributes are needed.
+            ToolResponse with a list of all component data dictionaries.
         """
-        names = [self._get_name(item) for item in self.storage.values()]
+        items = [item.model_dump(by_alias=True) for item in self.storage.values()]
 
         return ToolResponse(
             success=True,
-            message=f"Listed {len(names)} {self.component_name}s.",
-            data=names,
+            message=f"Listed {len(items)} {self.component_name}s.",
+            data=items,
         )

@@ -26,12 +26,8 @@ and likely crash mid-session:
 3. **No inline Python for image annotation.** Do not call any shell / scripting tool
    to crop, resize, or draw labels on images. The Dimension Extraction text you write
    is the only spatial artefact — `top_view_annotated.png` is no longer generated.
-4. **One tool call per turn.** After each tool call, wait for the result before
-   issuing the next. Do **not** issue multiple separate single-item tool calls
-   (e.g. two `create_zone` calls or two `update_surface` calls) in one turn.
-   Note: a single **`*_batch`** tool call (e.g. `update_surfaces_batch` with a
-   list of 84 items) counts as ONE call — that is the *preferred* form for any
-   step that touches many items, see §3 Step 7 / Step 8.
+4. **One step per turn.** After each tool call, wait for the result before issuing the
+   next. Never batch multiple `create_*` calls in a single turn.
 5. **No speculative retries.** If a tool call fails, report the error and stop; do not
    automatically retry the same call — each retry is ~5k wasted tokens against a 40k
    TPM ceiling.
@@ -163,7 +159,7 @@ Verify three things:
 1. `<case_dir>/testdata_prompt.json` exists (use `read_file` — it is text).
 2. `<case_dir>/output/preprocessed/manifest.json` exists (text, read to confirm
    preprocessing was run). If missing → stop; ask the user to run
-   `python Tool_scripts/preprocess_images.py <case_dir>` first.
+   `python AI_agent/tools/preprocess_images.py <case_dir>` first.
 3. Confirm which images the user attached to **this chat** (as image blocks,
    not file paths). Expected set: `top_view.png` plus any of
    `{South,North,East,West}_view.png` whose JSON path is non-empty.
@@ -272,45 +268,32 @@ missing:
 
 For each create call: one turn.
 
-### Step 7 — Surface construction touch-up (BATCH TOOL — one call only)
+### Step 7 — Surface construction touch-up
 
-For auto-generated walls / floors / ceilings from `create_zone`, update
-`Construction Name` + boundary conditions **in a single
-`update_surfaces_batch` call**. Do **not** loop `update_surface` per surface
-— this is the single biggest TPM sink under the L0 tier.
+For auto-generated walls / floors / ceilings from `create_zone`, update the
+`Construction Name` and boundary conditions. **Do not change geometry.**
+External walls → `Ext_Wall`; partition walls → `Int_Wall`; roofs → `Roof`;
+interior floors/ceilings → `Floor` / `Ceiling`.
 
-**Do not change geometry.** External walls → `Ext_Wall`; partition walls →
-`Int_Wall`; roofs → `Roof`; interior floors/ceilings → `Floor` / `Ceiling`.
+Interzone rule (critical): internal walls on both sides MUST reference the same
+`Int_Wall` construction; asymmetric construction was the #1 cause of EP Fatal in
+the Opus baseline (see [../../AI_agent/CLAUDE.md §3.1.2](../../AI_agent/CLAUDE.md)).
 
-**How**: assemble a list of dicts (one per surface) with keys
-`{name, outside_boundary_condition, sun_exposure, wind_exposure,
-construction_name}`, then call `update_surfaces_batch(updates=[...])` once.
-The response includes `succeeded` and `failed` lists with partial-success
-semantics — re-batch only the failed items if any.
+### Step 8 — Fenestration (DEDICATED, DO NOT SKIP)
 
-Interzone rule (critical): internal walls on both sides MUST reference the
-same `Int_Wall` construction; asymmetric construction was the #1 cause of EP
-Fatal in the Opus baseline (see
-[../../AI_agent/CLAUDE.md §3.1.2](../../AI_agent/CLAUDE.md)).
-
-### Step 8 — Fenestration (DEDICATED — BATCH TOOL — one call only)
-
-Emit every row of the Fenestration Table (Step 3) **in a single
-`create_fenestration_surfaces_batch` call**. Do **not** loop
-`create_fenestration_surface` per row.
-
-Per-item dict fields:
-1. `name` — window ID (e.g. `W_F1_S1`).
-2. `surface_type` — `"Window"`.
-3. `construction_name` — `Ext_Window` (from Step 6; must appear in `list_constructions`).
-4. `building_surface_name` — `<zone>_Wall_<i>` via §M7 mapping
+For every row in the Fenestration Table (Step 3):
+1. `building_surface_name` = `<zone>_Wall_<i>` via §M7 mapping
    (Wall_1=South, Wall_2=East, Wall_3=North, Wall_4=West for the standard
    `[SW, SE, NE, NW]` vertex order).
-5. `vertices` — 4 points on the parent wall's plane, CCW **from outside** per §M6.
+2. `construction_name` = `Ext_Window` (from Step 6; must appear in `list_constructions`).
+3. `vertices` = 4 points on the parent wall's plane, CCW **from outside** per §M6.
+4. `surface_type` = `Window`.
 
-After the batch returns, call `list_fenestration_surfaces` and verify the
-count matches the table. If the table is empty (all facades blank), write
-one line: `All facades blank → zero fenestration calls intentionally.`
+One `create_fenestration_surface` per turn. After the last row, call
+`list_fenestration_surfaces` and verify the count matches the table.
+
+If the Fenestration Table is empty (all facades blank), write one line:
+`All facades blank → zero fenestration calls intentionally.`
 
 ### Step 9 — Schedules / People / Lights / HVAC
 
@@ -331,15 +314,12 @@ One call per turn. Use `list_*` first to avoid duplicates.
 
 1. `validate_config` (one turn). Fix any reported errors before proceeding.
 2. `export_yaml` → `<case_dir>/output/<case_name>.yaml` (one turn).
-3. IDF export: do NOT generate inline Python. Run the external script as a single
-   Bash call:
-   ```bash
-   python Tool_scripts/export_idf.py <case_dir>
-   ```
-   The script applies five idempotent patches (placeholder Construction
-   pre-injection, RunPeriod defaults, warmup days, Surface→Adiabatic,
-   Schedule:Compact None). See [../export_idf.md](../export_idf.md) for the patch
-   list. Do **not** open the script to inline its body.
+3. IDF export: do NOT generate inline Python. Tell the user:
+   > YAML ready at `<path>`. Run `python AI_agent/tools/export_idf.py <case_dir>` to
+   > apply the four fix-up patches and produce the IDF.
+   >
+   > (Until that CLI exists, use the Opus-edition [../export_idf.md](../export_idf.md)
+   > script manually.)
 
 ---
 

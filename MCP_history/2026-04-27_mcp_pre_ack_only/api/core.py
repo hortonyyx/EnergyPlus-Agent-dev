@@ -577,7 +577,7 @@ def register_core_tools(
             success=True,
             message=f"Zone '{name}' created successfully with {len(created_surfaces)} surfaces.",
             data={
-                "name": name,
+                "zone": zone_response.data,
                 "surfaces_created": created_surfaces,
             },
         ).to_mcp_response()

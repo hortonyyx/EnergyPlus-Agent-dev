@@ -493,9 +493,7 @@ This phase produces only geometry. Do **not** create Materials, Constructions (o
 
 2. **Zones** — call `create_zone` for each zone (auto-creates its 4 walls, floor, ceiling — see `zonetool_prompt.md`). After the last zone, call `list_zones` to verify the count matches the expected total from the JSON / dimension extraction.
 
-3. **Surface boundary-condition touch-up — USE THE BATCH TOOL** — fix every auto-generated wall / floor / ceiling **in a single `update_surfaces_batch` call**. Do **not** loop `update_surface` one surface at a time — that wastes 50× the tokens and is the #1 cause of long-chain failures.
-
-   **Do not alter geometry** — only update `outside_boundary_condition`, `sun_exposure`, `wind_exposure`, and `construction_name` (placeholder).
+3. **Surface boundary-condition touch-up** — use the surface class tools (`update_surface`) to fix the auto-generated walls / floor / ceiling. **Do not alter geometry — only update `outside_boundary_condition`, `sun_exposure`, `wind_exposure`, and `construction_name` (placeholder).**
 
    | Surface type | `outside_boundary_condition` | `sun_exposure` | `wind_exposure` | `construction_name` |
    |---|---|---|---|---|
@@ -505,24 +503,17 @@ This phase produces only geometry. Do **not** create Materials, Constructions (o
    | Upper floor slab / floor-below ceiling pair | `Adiabatic` | `NoSun` | `NoWind` | `Default_Int_Wall` |
    | Roof (top floor's exposed ceiling) | `Outdoors` | `SunExposed` | `WindExposed` | `Default_Ext_Wall` |
 
-   **How to use the batch tool**: assemble one Python-list-of-dicts where each dict has `{"name": "<surface name>", "outside_boundary_condition": ..., "sun_exposure": ..., "wind_exposure": ..., "construction_name": ...}`, then call `update_surfaces_batch(updates=[...])` exactly once. The response is `{"count": N, "succeeded": [names], "failed": [{"name", "error"}, ...]}` with partial-success semantics — items in `failed` were skipped, fix and re-batch only those.
+   **How to identify interior walls**: a wall is interior if it is shared (coplanar and coincident) with a wall belonging to an adjacent zone. Use the Zone Adjacency Matrix from `claude_ep.md` to determine which `<zone>_Wall_<i>` pairs are shared.
 
-   **How to identify interior walls**: a wall is interior if it is shared (coplanar and coincident) with a wall belonging to an adjacent zone. Use the Zone Adjacency Matrix from `claude_ep.md` to determine which `<zone>_Wall_<i>` pairs are shared. Both sides of every shared wall pair must use `Adiabatic + Default_Int_Wall` (this avoids the fatal `InterZone construction mismatch` from the Opus baseline).
+   The previous Opus baseline produced fatal `InterZone construction mismatch` errors because internal walls on each side were left with different/default constructions. Using `Adiabatic + Default_Int_Wall` on **both sides** of every shared wall pair avoids this.
 
-   The single-call `update_surface` is still available for one-off fixes after the batch run — but the **first pass must be a single batch call** covering every surface produced by Step 2.
+4. **Fenestration (windows) — DEDICATED STEP, do not skip** — for every row of the Fenestration Table in `claude_ep.md`, call `create_fenestration_surface` exactly once:
+   - `building_surface_name` = `<zone>_Wall_<i>` where the wall index follows the §M7 Wall-index → Facade mapping in `zonetool_prompt.md` (Wall_1=South, Wall_2=East, Wall_3=North, Wall_4=West for the standard CCW rectangle).
+   - `construction_name` = `Default_Window` (placeholder; the real glazing construction is set in the MEP phase).
+   - `vertices` = 4 points on the parent wall's plane, in CCW-**from-outside** order per `zonetool_prompt.md` §M6.
+   - `surface_type` = `Window`.
 
-4. **Fenestration (windows) — DEDICATED STEP, USE THE BATCH TOOL** — emit every row of the Fenestration Table in `claude_ep.md` **in a single `create_fenestration_surfaces_batch` call**. Do **not** loop `create_fenestration_surface` one window at a time.
-
-   **Per-item fields** (each dict in the `items` list):
-   - `name` — the window ID (e.g. `W_F1_S1`).
-   - `surface_type` — `"Window"`.
-   - `construction_name` — `"Default_Window"` (placeholder; real glazing construction set in MEP phase).
-   - `building_surface_name` — `<zone>_Wall_<i>` where wall index follows the §M7 Wall-index → Facade mapping in `zonetool_prompt.md` (Wall_1=South, Wall_2=East, Wall_3=North, Wall_4=West for the standard CCW rectangle).
-   - `vertices` — 4 points on the parent wall's plane, CCW-**from-outside** order per `zonetool_prompt.md` §M6.
-
-   Then call `create_fenestration_surfaces_batch(items=[...])` once. Inspect the returned `failed` list — if non-empty, fix and re-batch only those items.
-
-   After the batch returns, run `list_fenestration_surfaces` and verify the count equals the rows in the Fenestration Table. If the table is empty (all facades blank), state so explicitly in the run log — do not silently skip.
+   After this step run `list_fenestration_surfaces` and verify the count equals the rows in the Fenestration Table. If the table is empty (all facades blank), state so explicitly in the run log — do not silently skip.
 
 5. **Validate, export YAML, convert to IDF** — produce both a YAML and an IDF. The IDF is required for OpenStudio 3D-viewer verification (OpenStudio cannot import YAML).
 
