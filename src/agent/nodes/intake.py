@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import base64
+import re
 from pathlib import Path
 from typing import Any, Literal, TypedDict, cast
 
@@ -34,6 +35,20 @@ INTAKE_SYSTEM_PROMPT = """You are an EnergyPlus building-simulation intake speci
 Given a building description (text and optional architectural drawings —
 floorplan, elevation, section, axonometric, perspective, etc.), extract
 structured specifications for every subsystem.
+
+Each attached image is preceded by a `[Next image] <label>` line that names
+its role (e.g. `Floor 1 plan view`, `South facade elevation`,
+`Supplementary plan / section / axonometric`, or — for legacy single-plan
+inputs — `Top view (shared plan for every floor …)`). Trust those labels
+to assign each image to the correct floor or facade; do NOT re-infer the
+role from picture content.
+
+When multiple `Floor <k> plan view` images are present, treat each as the
+plan for that floor and read its internal partitioning independently.
+The exterior outline (W × D) is assumed identical on every floor in this
+revision; setbacks / cantilevers are out of scope. If the per-floor outer
+chains visibly disagree, flag it in the specs rather than silently picking
+one.
 
 You MUST invoke the IntakeOutput tool to return the structured JSON.
 Do NOT respond with a text/JSON message — always use the tool call.
@@ -115,6 +130,31 @@ def _load_image_part(path: str) -> ImageContentPart:
     )
 
 
+def _label_for_image(path: str) -> str:
+    """Derive a one-line semantic label for an architectural drawing.
+
+    Recognised patterns (case-insensitive, applied to the filename stem):
+      - `<k>f_view`         → "Floor <k> plan view"
+      - `top_view`          → "Top view (shared plan for every floor)"
+      - `<dir>_view` where  → "<Dir> facade elevation"
+        dir ∈ {south, north, east, west}
+      - `supp_plan`         → "Supplementary plan / section"
+      - anything else       → "Architectural drawing: <stem>"
+    """
+    stem = Path(path).stem.lower()
+    floor_match = re.fullmatch(r"(\d+)f_view", stem)
+    if floor_match:
+        return f"Floor {int(floor_match.group(1))} plan view"
+    if stem == "top_view":
+        return "Top view (shared plan for every floor — legacy single-plan input)"
+    facade_match = re.fullmatch(r"(south|north|east|west)_view", stem)
+    if facade_match:
+        return f"{facade_match.group(1).capitalize()} facade elevation"
+    if stem == "supp_plan":
+        return "Supplementary plan / section / axonometric"
+    return f"Architectural drawing: {Path(path).name}"
+
+
 def intake_node(state: AgentState) -> AgentStateUpdate:
     """Parse user_input + image_path into IntakeOutput and seed config_state.
 
@@ -133,6 +173,10 @@ def intake_node(state: AgentState) -> AgentStateUpdate:
 
     content_parts: list[ContentPart] = [TextContentPart(type="text", text=text)]
     for path in state.image_paths:
+        label = _label_for_image(path)
+        content_parts.append(
+            TextContentPart(type="text", text=f"[Next image] {label}")
+        )
         content_parts.append(_load_image_part(path))
 
     result = cast(

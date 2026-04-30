@@ -4,6 +4,8 @@
 > 当前基于 **Claude Opus 人工流水线**；未来脚本化评测参见本文第四节。
 >
 > **2026-04-25 更新**：流水线已拆分为两阶段。本指南面向**几何阶段**（产物：YAML + IDF + claude_ep.md + 标注图，IDF 用 OpenStudio 3D 视图验证几何）。Materials / Schedule / People / Lights / HVAC 由独立的 **MEP 阶段**处理，本指南中所有相关步骤已移除或标注为"MEP 阶段"。EnergyPlus 仿真验收（§6.2 ④⑤）属于 MEP 阶段，几何阶段不做仿真。
+>
+> **2026-04-29 更新（sm_16）**：输入端从「单张俯视图 `top_view.png`」升级为「**逐层平面图** `{k}f_view.png`」，testdata_prompt.json 改用 schema A（`Floor plans` 数组）。每层外包围必须共享同一 `W × D`（硬约束 §D3.1），仅内部分区可不同；退台 / cantilever 暂不支持。旧单图字段 `Top view path of the building` 仍接受为 back-compat（视为各层共享同一平面）。
 
 ---
 
@@ -22,12 +24,13 @@ Step 4 挂 MCP → Step 5 LLM 执行 → Step 6 验证归档 → Step 7 留痕
 
 | 文件名（强约定） | 必需 | 内容 | 规格建议 |
 |---|---|---|---|
-| `top_view.png` | **必需** | 俯视平面图，含尺寸标注（开间/进深/墙位） | ≥ 1024 px 宽；黑线墙 + 白色房间；走廊留白 |
+| `{k}f_view.png`（k=1..N） | **必需** | 第 k 层平面图，含尺寸标注（开间/进深/墙位） | 一层一张；≥ 1024 px 宽；黑线墙 + 白色房间；走廊留白；外包围 `W × D` 必须每层一致 |
+| `top_view.png`（旧） | back-compat | 单张共享平面图（仅当所有层内部分区相同时使用） | 同上；新案例**默认用 `{k}f_view.png` 多张**，不要再用单张 |
 | `South_view.png` | 可选 | 南立面图（y=0 立面） | 能看清层高、窗位、窗高 |
 | `North_view.png` | 可选 | 北立面图（y=y_max 立面） | 同上 |
 | `East_view.png` | 可选 | 东立面图（x=x_max 立面） | 同上 |
 | `West_view.png` | 可选 | 西立面图（x=0 立面） | 同上 |
-| `<supp_plan>.png` | 可选 | 补充平面图 / 剖面 / 轴测 | 复杂造型时提供 |
+| `supp_plan.png` | 可选 | 补充平面图 / 剖面 / 轴测 | 复杂造型时提供 |
 
 **朝向命名不可替换**：skill [§D5](../skills/energyplus_mcp/energyplus_mcp_prompt.md) 规定文件名即权威的 facade 对应关系,不存在 `front_view` / `side_view` 的同义词。文件缺省 = 该立面无窗 = **零个 `create_fenestration_surface` 调用**。
 
@@ -36,11 +39,14 @@ Step 4 挂 MCP → Step 5 LLM 执行 → Step 6 验证归档 → Step 7 留痕
 - 走廊画成 **宽白带**（宽度 ≥ 房间 1/3），不是细线墙 —— LLM 依靠「宽白带 vs 细黑线」区分走廊和墙（[energyplus_mcp_prompt.md](../skills/energyplus_mcp/energyplus_mcp_prompt.md) 第 3 条）。
 - 楼梯 / 卫生间 / 电梯画出标准符号（楼梯：平行斜线+箭头；WC 标志；电梯框）。
 
-### 1.1 尺寸标注规范（sm_13 起强制）
+### 1.1 尺寸标注规范（sm_13 起强制；sm_16 起逐层）
 
 > **背景**：sm_0 ~ sm_12 全部是**无尺寸的纯几何线框**，坐标完全靠 LLM 从 `Floor area` 反推猜测（见 [smalloffice_0/claude_ep.md:14-29](../test_data/SmallOffice/smalloffice_0/claude_ep.md) 的 `0m/5m/10m/15m` 全是 Claude 自编）。这导致「房间尺寸中位误差」永远无 ground truth 可比。**sm_13 起必须带尺寸标注**，以支撑 [pivot_criteria.md §1.1](pivot_criteria.md) 的房间尺寸误差阈值可测。
 
-**俯视图（`top_view.png`）**：
+**逐层平面图（`{k}f_view.png`，k = 1..N；旧 `top_view.png` 同规则）**：
+- 每张图都要画完整的尺寸链（不能只画第一层、其余靠"参考第一层"）
+- **共享外包硬约束**：每张层平面读出的总开间 `W` 与总进深 `D` 必须完全一致（容差 ≤0.01 m）；不一致 = 退台案例 → 当前不支持，需返工
+- 内部分段链可逐层不同（zone 数 / 走廊位置 / 楼梯位置随楼层变化是合法的）
 - **两级尺寸链**
   - 一级（外部）：总开间 / 总进深，画在图外侧上方 + 左侧，单根带箭头
   - 二级（外部）：分段开间 / 分段进深，画在一级之外一层，每段独立数字
@@ -67,77 +73,92 @@ Step 4 挂 MCP → Step 5 LLM 执行 → Step 6 验证归档 → Step 7 留痕
 - ❌ 分数 / 带小数点不足 2 位（`3.6` vs `3.60` 不一致）
 - ❌ 红色 / 蓝色标注（走廊白带区分依赖单色通道）
 
-### 1.2 `testdata_prompt.json` 字段约定（sm_13 版本）
+### 1.2 `testdata_prompt.json` 字段约定（sm_16 schema A）
 
 现阶段仅关心 IDF 建模正确性(含开窗),**暂不写 Ground Truth 字段**。评测方案搭好后再单独拆一个 `gt.json` 持有 GT(见 [plan.md P0](plan.md)),不与 prompt.json 混在一起。
 
-当前保留的字段如下:
+当前字段如下：
 
 | 字段 | 说明 |
 |---|---|
-| `TestName` | 与目录名严格一致（如 `SmallOffice_13`） |
+| `TestName` | 与目录名严格一致（如 `smalloffice_16`） |
 | `Building location` | 气象数据文件名映射（目前仅有 Shenzhen.epw） |
-| `Floor area` | 总建筑面积字符串（如 `"192m²"`,可空） |
+| `Floor area` | 总建筑面积字符串（如 `"360m²"`，可空） |
 | `Building type` | 建筑类型（`Office` 等） |
-| `Top view path of the building` | **必填**,俯视图相对路径 |
+| `Number of floors` | 层数（整数；与 `Floor plans` 长度一致） |
+| `Floor plans` | **必填**，数组：每项 `{"floor": k, "path": "{k}f_view.png", "thermal_zones": int}`。`thermal_zones` 是该层 zone 数（含走廊/楼梯/电梯井），各层可不同 |
+| `Top view path of the building` | back-compat 字段；新案例**留空**。仅当所有楼层共享同一平面、且不想拆为多张时使用 |
 | `South view path of the building` | 可空。空字符串 → 南立面无窗 |
 | `North view path of the building` | 可空。空字符串 → 北立面无窗 |
 | `East view path of the building` | 可空。空字符串 → 东立面无窗 |
 | `West view path of the building` | 可空。空字符串 → 西立面无窗 |
 | `Path of the supplementary plan example drawing for the building` | 可空 |
-| `Number of thermal zones per floor of the building` | 每层 zone 数（串) |
-| `Number of total thermal zones in the building` | 总 zone 数（串) |
-| `Number of floors` | 层数（串) |
 
-模板参见项目根目录的 [../testdata_prompt.json](../testdata_prompt.json),新建案例时复制到对应目录并按图纸改写。
+> 旧字段 `Number of thermal zones per floor of the building` / `Number of total thermal zones in the building` 已并入 `Floor plans[*].thermal_zones`（每层独立记录），不再单独维护。验证脚本通过 `sum(thermal_zones)` 拿到总 zone 数。
+
+模板参见 sm_16 的 [../test_data/SmallOffice/smalloffice_16/testdata_prompt.json](../test_data/SmallOffice/smalloffice_16/testdata_prompt.json)，新建案例时复制到对应目录并按图纸改写。
 
 ---
 
 ## 二、Step 2 · 建案例目录
 
-在 [../test_data/SmallOffice/](../test_data/SmallOffice/) 下**编号递增**建目录（当前末位 `smalloffice_12`，新案例用 `smalloffice_13`）：
+在 [../test_data/SmallOffice/](../test_data/SmallOffice/) 下**编号递增**建目录（当前末位 `smalloffice_16`，新案例用 `smalloffice_17`）：
 
 ```bash
-mkdir -p test_data/SmallOffice/smalloffice_13/output
-cp /path/to/top_view.png    test_data/SmallOffice/smalloffice_13/top_view.png
+mkdir -p test_data/SmallOffice/smalloffice_17/output
 
-# 以下立面图按实际有窗情况挑选拷贝,未提供 = 无窗
-cp /path/to/South_view.png  test_data/SmallOffice/smalloffice_13/South_view.png
-# cp /path/to/North_view.png  test_data/SmallOffice/smalloffice_13/North_view.png
-# cp /path/to/East_view.png   test_data/SmallOffice/smalloffice_13/East_view.png
-# cp /path/to/West_view.png   test_data/SmallOffice/smalloffice_13/West_view.png
+# 逐层平面图：一层一张。建筑有几层就拷几张（k 从 1 起）
+cp /path/to/1f_view.png  test_data/SmallOffice/smalloffice_17/1f_view.png
+cp /path/to/2f_view.png  test_data/SmallOffice/smalloffice_17/2f_view.png
+# cp /path/to/3f_view.png  test_data/SmallOffice/smalloffice_17/3f_view.png
+# ...
+
+# 以下立面图按实际有窗情况挑选拷贝，未提供 = 无窗
+cp /path/to/South_view.png  test_data/SmallOffice/smalloffice_17/South_view.png
+# cp /path/to/North_view.png  test_data/SmallOffice/smalloffice_17/North_view.png
+# cp /path/to/East_view.png   test_data/SmallOffice/smalloffice_17/East_view.png
+# cp /path/to/West_view.png   test_data/SmallOffice/smalloffice_17/West_view.png
+
+# （back-compat）若所有楼层平面完全相同，可只拷一张 top_view.png 替代上面的 {k}f_view.png
+# cp /path/to/top_view.png   test_data/SmallOffice/smalloffice_17/top_view.png
 ```
 
 ---
 
-## 三、Step 3 · 写 `testdata_prompt.json`（Format A 入口）
+## 三、Step 3 · 写 `testdata_prompt.json`（Format A schema A 入口）
 
-模板(基于根目录 [../testdata_prompt.json](../testdata_prompt.json),**不要改 key**):
+模板（参考 sm_16 [../test_data/SmallOffice/smalloffice_16/testdata_prompt.json](../test_data/SmallOffice/smalloffice_16/testdata_prompt.json)，**不要改 key**）：
 
 ```json
 {
-    "TestName": "SmallOffice_13",
+    "TestName": "smalloffice_17",
     "Building location": "Shenzhen",
-    "Floor area": "192m²",
+    "Floor area": "240m²",
     "Building type": "Office",
-    "Top view path of the building": "test_data/SmallOffice/smalloffice_13/top_view.png",
-    "South view path of the building": "test_data/SmallOffice/smalloffice_13/South_view.png",
+    "Number of floors": 2,
+    "Floor plans": [
+        {"floor": 1, "path": "test_data/SmallOffice/smalloffice_17/1f_view.png", "thermal_zones": 5},
+        {"floor": 2, "path": "test_data/SmallOffice/smalloffice_17/2f_view.png", "thermal_zones": 5}
+    ],
+    "South view path of the building": "test_data/SmallOffice/smalloffice_17/South_view.png",
     "North view path of the building": "",
     "East view path of the building": "",
     "West view path of the building": "",
-    "Path of the supplementary plan example drawing for the building": "",
-    "Number of thermal zones per floor of the building": "5",
-    "Number of total thermal zones in the building": "10",
-    "Number of floors": "2"
+    "Path of the supplementary plan example drawing for the building": ""
 }
 ```
 
 **字段说明**：
-- `TestName` → 必须与目录名严格一致（现有 sm_0 / sm_5 的 TestName 都错写成 `"SmallOffice_0"`，**不要沿袭**，新案例务必正确填 `SmallOffice_13`）。
-- `Building location` → 当前仅有 [../data/weather/Shenzhen.epw](../data/weather/Shenzhen.epw)，**首选深圳**；其他城市需自备 EPW 放到 [../data/weather/](../data/weather/)。
-- `Floor area` → 可空字符串，LLM 会从俯视图尺寸链自算。
-- 图像路径 → 相对项目根的 `test_data/...` 路径(历史版本的 `test/test_data/...` 前缀是 bug,**不要沿袭**)。4 条立面路径空串 = 该朝向无窗。
-- 末 3 个整数字段（`Number of thermal zones per floor / total / Number of floors`）→ 这是 **Ground Truth**，评测脚本要拿它比对 LLM 产出，**务必数准**。
+- `TestName` → 必须与目录名严格一致（现有 sm_0 / sm_5 的 TestName 错写成 `"SmallOffice_0"`，**不要沿袭**；新案例统一全小写下划线，例如 `smalloffice_17`）
+- `Building location` → 当前仅有 [../data/weather/Shenzhen.epw](../data/weather/Shenzhen.epw)，**首选深圳**；其他城市需自备 EPW 放到 [../data/weather/](../data/weather/)
+- `Floor area` → 可空字符串，LLM 会从平面图尺寸链自算
+- `Number of floors` → 整数，必须等于 `Floor plans` 数组长度
+- `Floor plans` → **必填**，每项 `{floor, path, thermal_zones}`：
+  - `floor`：从 1 起的整数，与文件名 `{k}f_view.png` 中的 k 对应
+  - `path`：相对项目根的 `test_data/...` 路径
+  - `thermal_zones`：该层 zone 数（含走廊、楼梯、电梯井等独立 zone）— **GT 字段，评测脚本会拿来对账，务必数准**；各层可不同
+- 4 条立面路径 → 空串 = 该朝向无窗
+- back-compat：若 `Floor plans` 缺失但 `Top view path of the building` 非空，skill 会把单图视为所有层共享的平面（仅适用于楼层完全相同的旧案例）
 
 ---
 
@@ -170,7 +191,7 @@ uv run main.py mcp-server --transport http --host 127.0.0.1 --port 8000
 
 > server key 用 `EnergyPlus-Agent`(与仓库根 [../.mcp.json](../.mcp.json) 保持一致),这样 Claude 端看到的工具名前缀就是 `mcp__EnergyPlus-Agent__*`,与 skill 文档里 `mcp__EnergyPlus-Agent__create_zone` 一类引用对齐。如果 key 换成别的(如 `energyplus-agent`),工具前缀会跟着变,skill 里的示例就对不上。
 
-**Claude Code** 用户：仓库根已提供 [../.mcp.json](../.mcp.json)（2026-04-21 补建，此前 sm_13 首轮因无此文件退化到手写 `build_yaml.py`，见 [sm_13 run_log §4](../test_data/SmallOffice/smalloffice_13/output/run_log.md)）。只要在仓库根启动 Claude Code，会话一开始就会提示挂载该 server；接受后工具列表出现 `mcp__EnergyPlus-Agent__create_zone / create_surface / create_fenestration_surface / export_yaml / validate_config / ...`。若会话已开未挂，可用 `/mcp` 重挂，或退出后在仓库根重进。
+**Claude Code** 用户：仓库根已提供 [../.mcp.json](../.mcp.json)（2026-04-21 补建，此前 sm_13 首轮因无此文件退化到手写 `build_yaml.py`，见 [sm_13 run_log §4](../test_data/SmallOffice/smalloffice_17/output/run_log.md)）。只要在仓库根启动 Claude Code，会话一开始就会提示挂载该 server；接受后工具列表出现 `mcp__EnergyPlus-Agent__create_zone / create_surface / create_fenestration_surface / export_yaml / validate_config / ...`。若会话已开未挂，可用 `/mcp` 重挂，或退出后在仓库根重进。
 
 ---
 
@@ -186,32 +207,39 @@ uv run main.py mcp-server --transport http --host 127.0.0.1 --port 8000
 @skills/energyplus_mcp/export_idf.md
 
 测试案例目录：
-test_data/SmallOffice/smalloffice_13/
+test_data/SmallOffice/smalloffice_17/
 
 严格按 skill 文档执行：
 1. 识别 Format A → 读 testdata_prompt.json
-2. 读 top_view.png 与 JSON 中非空的 {South|North|East|West}_view.png
-   (空串路径或文件不存在的立面 = 该朝向所有楼层无窗,直接跳过,不得伪造)
-3. **不裁剪原图**(要保留外围尺寸链便于人工校验),至多 2× NEAREST 放大,
-   画标注后保存到 output/top_view_annotated.png
-4. 写 output/claude_ep.md(Dimension Extraction 四个立面 sub-heading 都要出现;
-   邻接矩阵 + 坐标表 + ASCII 平面图 + Fenestration Table)
-5. 按 list_locations / list_buildings → create_location / create_building 顺序
-   建场地与建筑;然后逐 zone 调 create_zone(参数见 zonetool_prompt.md)。
-6. **执行 skill §IDF Tool Usage Workflow 第 3 步 Surface boundary-condition
-   touch-up**:对每个 zone 自动生成的 6 个 surface,按表格设置 boundary
-   condition 与占位 construction 名(外墙 Outdoors+Default_Ext_Wall;
-   内墙/楼板/F1 顶 Adiabatic+Default_Int_Wall;F1 地面 Ground;顶层屋面
-   Outdoors+Default_Ext_Wall)。**内墙两侧必须对称用 Default_Int_Wall**,
+2. 读 `Floor plans` 数组里的**每一张** `{k}f_view.png`，以及 JSON 中非空的
+   `{South|North|East|West}_view.png`（空串路径或文件不存在的立面 = 该朝向所有
+   楼层无窗，直接跳过，不得伪造）。若 JSON 没有 `Floor plans` 但有
+   `Top view path of the building`，按 back-compat 视为各层共享的平面。
+3. **共享外包验证（§D3.1）**：每张层平面独立读出 `W_f, D_f`，验证全部相等
+   （容差 ≤0.01 m）。不一致 → 停止并提示用户，不要继续建模。
+4. **不裁剪原图**（要保留外围尺寸链便于人工校验），至多 2× NEAREST 放大，
+   **每层各画一份**标注图保存到 `output/floor{k}_annotated.png`。
+5. 写 `output/claude_ep.md`：Dimension Extraction 节里 Per-floor plans
+   每层各一个 sub-heading + 一个 Shared-footprint checksum 行；四个立面
+   sub-heading 都要出现；邻接矩阵 / 坐标表 / ASCII 平面图各**逐层**一份；
+   Fenestration Table 一张。
+6. 按 list_locations / list_buildings → create_location / create_building 顺序
+   建场地与建筑；然后**逐层、逐 zone** 调 create_zone（参数见 zonetool_prompt.md
+   §M1-M2，使用每层独立的 `xs_f, ys_f`；各层 zone 命名带 `_F{k}_`）。
+7. **执行 skill §IDF Tool Usage Workflow 第 3 步 Surface boundary-condition
+   touch-up**：对每个 zone 自动生成的 6 个 surface，按表格设置 boundary
+   condition 与占位 construction 名（外墙 Outdoors+Default_Ext_Wall；
+   内墙 / 中间层楼板 / 中间层天花 Adiabatic+Default_Int_Wall；F1 地面 Ground；
+   顶层屋面 Outdoors+Default_Ext_Wall）。**内墙两侧必须对称用 Default_Int_Wall**，
    否则 InterZone Fatal。
-7. **执行 skill §IDF Tool Usage Workflow 第 4 步独立的 Fenestration 子步**,
-   每行 Fenestration Table 对应一次 `create_fenestration_surface` 调用,
-   construction_name = "Default_Window"(占位),父墙按 zonetool_prompt.md
-   §M7 Wall-index 映射(Wall_1=南/Wall_2=东/Wall_3=北/Wall_4=西)。
-8. validate_config + export_yaml(output/smalloffice_13.yaml)
-9. 单行 Bash 跑外部脚本转 IDF：`python Tool_scripts/export_idf.py test_data/SmallOffice/smalloffice_13`
-   → output/smalloffice_13.idf。脚本内置 5 条幂等补丁(占位 Construction 预注入 +
-   原 4 条);**不要 inline 复制脚本内容**。
+8. **执行 skill §IDF Tool Usage Workflow 第 4 步独立的 Fenestration 子步**，
+   每行 Fenestration Table 对应一次 `create_fenestration_surface` 调用，
+   construction_name = "Default_Window"（占位），父墙按 zonetool_prompt.md
+   §M7 Wall-index 映射（Wall_1=南/Wall_2=东/Wall_3=北/Wall_4=西）。
+9. validate_config + export_yaml(`output/smalloffice_17.yaml`)
+10. 单行 Bash 跑外部脚本转 IDF：`python Tool_scripts/export_idf.py test_data/SmallOffice/smalloffice_17`
+    → `output/smalloffice_17.idf`。脚本内置 5 条幂等补丁（占位 Construction
+    预注入 + 原 4 条）；**不要 inline 复制脚本内容**。
 
 **几何阶段到此结束**。MEP 阶段(Materials / Schedule / People / Lights /
 HVAC)与 EnergyPlus 仿真在独立会话进行,不在本轮验收范围。
@@ -239,22 +267,29 @@ HVAC)与 EnergyPlus 仿真在独立会话进行,不在本轮验收范围。
 ### 6.1 目录最终形态
 
 ```
-test_data/SmallOffice/smalloffice_13/
-├── testdata_prompt.json          ← 手写(输入)
-├── top_view.png                  ← 必需(输入)
-├── South_view.png                ← 按朝向选配,不存在即无窗(输入)
-├── North_view.png                ← (输入,可缺)
-├── East_view.png                 ← (输入,可缺)
-├── West_view.png                 ← (输入,可缺)
-└── output/                       ← 所有 LLM / 工具产出都写进这里,不再散落到案例根
-    ├── top_view_annotated.png    ← LLM 生成(§三 Step 3;整图 ≤2× 放大,保留外围尺寸链)
-    ├── claude_ep.md              ← LLM 生成(Dimension Extraction / 邻接 / 坐标 / Fenestration)
-    ├── smalloffice_13.yaml       ← MCP export_yaml 产物
-    ├── smalloffice_13.idf        ← ConverterManager 产物
-    ├── run_log.md                ← 本轮执行记录(偏离说明、验证清单、仿真日志索引)
-    ├── *.py                      ← 偏离 MCP 时的临时脚本(annotate / build_yaml / export_idf)
-    └── eplusout.*                ← EP 仿真产物(.end / .err / .eso …; 当前阶段可缺)
+test_data/SmallOffice/smalloffice_17/
+├── testdata_prompt.json           ← 手写(输入)
+├── 1f_view.png                    ← 必需(输入,逐层一张)
+├── 2f_view.png                    ← 必需(输入)
+├── ...                            ← 共 N 张,N = Number of floors
+├── South_view.png                 ← 按朝向选配,不存在即无窗(输入)
+├── North_view.png                 ← (输入,可缺)
+├── East_view.png                  ← (输入,可缺)
+├── West_view.png                  ← (输入,可缺)
+├── supp_plan.png                  ← (输入,可缺)
+└── output/                        ← 所有 LLM / 工具产出都写进这里,不再散落到案例根
+    ├── floor1_annotated.png       ← LLM 生成(§三 Step 3 改造后:每层一张;整图 ≤2× 放大,保留外围尺寸链)
+    ├── floor2_annotated.png
+    ├── ...
+    ├── claude_ep.md               ← LLM 生成(Dimension Extraction 含逐层 Per-floor plans + Shared-footprint checksum / 邻接 / 坐标 / Fenestration)
+    ├── smalloffice_17.yaml        ← MCP export_yaml 产物
+    ├── smalloffice_17.idf         ← Tool_scripts/export_idf.py 产物
+    ├── run_log.md                 ← 本轮执行记录(偏离说明、验证清单、仿真日志索引)
+    ├── *.py                       ← 偏离 MCP 时的临时脚本(annotate / build_yaml / export_idf)
+    └── eplusout.*                 ← EP 仿真产物(.end / .err / .eso …; 当前阶段可缺)
 ```
+
+> back-compat：若案例使用旧 `top_view.png` 单图模式（未拆分为 `{k}f_view.png`），输出可仍叫 `top_view_annotated.png`，结构其余不变。
 
 > **2026-04-21 变更**:将 `top_view_annotated.png` / `claude_ep.md` / YAML 从案例根迁到 `output/`,配合 sm_13 run_log 结论——这些都属于"每轮可被覆盖的衍生品",与输入素材(PNG/JSON)要分层管理。历史案例(sm_0..sm_12)可暂不迁移,但新案例强制执行。
 
@@ -264,32 +299,37 @@ test_data/SmallOffice/smalloffice_13/
 
 ```bash
 # ① claude_ep.md 存在且非空
-test -s test_data/SmallOffice/smalloffice_13/output/claude_ep.md && echo "[1] OK"
+test -s test_data/SmallOffice/smalloffice_17/output/claude_ep.md && echo "[1] OK"
 
 # ② YAML zones 数量 vs testdata_prompt.json 的声明
 python -c "
 import yaml, json
-p='test_data/SmallOffice/smalloffice_13/'
-with open(p+'output/smalloffice_13.yaml') as f: d=yaml.safe_load(f)
+p='test_data/SmallOffice/smalloffice_17/'
+with open(p+'output/smalloffice_17.yaml') as f: d=yaml.safe_load(f)
 with open(p+'testdata_prompt.json') as f: j=json.load(f)
 actual=len(d.get('Zone',[]))
-expected=int(j['Number of total thermal zones in the building'])
+# schema A：从 Floor plans 数组求和；缺失则回落到旧字段
+if 'Floor plans' in j:
+    expected=sum(int(fp['thermal_zones']) for fp in j['Floor plans'])
+else:
+    expected=int(j.get('Number of total thermal zones in the building', 0))
 print(f'[2] zones actual={actual} expected={expected} match={actual==expected}')
 "
 
 # ③ IDF 存在
-test -f test_data/SmallOffice/smalloffice_13/output/smalloffice_13.idf && echo "[3] OK"
+test -f test_data/SmallOffice/smalloffice_17/output/smalloffice_17.idf && echo "[3] OK"
 
 # ④ OpenStudio 几何视觉验证(人工)
 #    打开 IDF → SketchUp/OpenStudio 3D 视图 → 检查:
-#    - Zone 轮廓与俯视图一致
+#    - 每层 zone 轮廓与对应 {k}f_view.png 一致
+#    - 各层外包围 W × D 完全相同(共享外包硬约束)
 #    - 内墙两侧匹配,无悬空 surface
-#    - 窗户贴在正确朝向的父墙上,sill/head Z 正确
-#    - F1/F2 楼板叠放正确(F2 不直接落地)
+#    - 窗户贴在正确朝向的父墙上,sill/head Z 正确(z_f = Σ_{k<f} h_k)
+#    - 楼板叠放正确(F2 不直接落地;中间层楼板/天花对应 Adiabatic)
 
 # ⑤ (MEP 阶段才做) EP 仿真状态 + Severe 数 — 几何阶段跳过
-#    cat test_data/SmallOffice/smalloffice_13/output/eplusout.end
-#    grep -c "Severe" test_data/SmallOffice/smalloffice_13/output/eplusout.err
+#    cat test_data/SmallOffice/smalloffice_17/output/eplusout.end
+#    grep -c "Severe" test_data/SmallOffice/smalloffice_17/output/eplusout.err
 ```
 
 ### 6.3 子系统覆盖度自检（几何阶段：仅核对几何对象数）
@@ -297,7 +337,7 @@ test -f test_data/SmallOffice/smalloffice_13/output/smalloffice_13.idf && echo "
 ```bash
 python -c "
 import yaml
-p='test_data/SmallOffice/smalloffice_13/output/smalloffice_13.yaml'
+p='test_data/SmallOffice/smalloffice_17/output/smalloffice_17.yaml'
 with open(p) as f: d=yaml.safe_load(f)
 def n(k): return len(d.get(k,[])) if isinstance(d.get(k),list) else (1 if d.get(k) else 0)
 print(f'zones={n(\"Zone\")}                                  ← 须 > 0,与 JSON 声明一致')
@@ -320,7 +360,7 @@ print(f'hvac_ideal={n(\"HVACTemplate:Zone:IdealLoadsAirSystem\")} (期望 0)')
 ```bash
 python -c "
 import yaml, json, re
-p='test_data/SmallOffice/smalloffice_13/'
+p='test_data/SmallOffice/smalloffice_17/'
 with open(p+'testdata_prompt.json') as f: j=json.load(f)
 
 # 1. 期望窗数:从 JSON 中四个 facade 路径 + claude_ep.md 的 Fenestration Table 推算
@@ -332,7 +372,7 @@ expected_win = len(re.findall(r'^\| W_F\d+', md, re.M))
 print(f'[win] expected windows (Fenestration Table rows) = {expected_win}')
 
 # 2. 实际窗数:YAML
-with open(p+'output/smalloffice_13.yaml') as f: d=yaml.safe_load(f)
+with open(p+'output/smalloffice_17.yaml') as f: d=yaml.safe_load(f)
 actual_win = len(d.get('FenestrationSurface:Detailed',[]))
 print(f'[win] actual windows in YAML = {actual_win}')
 print(f'[win] match = {expected_win == actual_win}')
@@ -362,7 +402,9 @@ print(f'[win] match = {expected_win == actual_win}')
 | 坑 | 表现 | 处理 |
 |---|---|---|
 | `TestName` 写错（沿袭 sm_0/5 的 bug） | 评测脚本按目录名对不上 | 命名与目录严格一致 |
-| 俯视图缺尺寸链 | LLM 瞎猜房间宽度 → zone 数量错 | 返工加标注；或 JSON 里补 `Floor area` 兜底 |
+| 平面图缺尺寸链 | LLM 瞎猜房间宽度 → zone 数量错 | 返工加标注；或 JSON 里补 `Floor area` 兜底 |
+| 各层平面外包围 W × D 不一致 | LLM 在 §D3.1 不变量检查处停下 / 报错；或硬撑下去导致 zone 越过外墙 | 返工对账各层尺寸链；当前不支持退台 / cantilever，需要时降级为「整栋按最大投影包络 + 部分 zone 在外墙位置补 Adiabatic」直到 sm_17+ 正式支持 |
+| 多层平面被合并成一张 `top_view.png` | 内部分区随楼层变化但 LLM 把它当所有层共享 → 上层 zone 错 | 拆成 `1f_view.png` / `2f_view.png` / ...；JSON 用 `Floor plans` 数组；`Top view path` 字段保持空 |
 | 走廊画成细线 | LLM 把走廊识别为墙 → 少一个 zone | 画成宽白带（≥ 房间 1/3 宽） |
 | 挂 MCP 失败 / 工具不可见 | 会话里没有 `mcp__EnergyPlus-Agent__*` | 确认**仓库根**有 [../.mcp.json](../.mcp.json)(2026-04-21 已补建);Claude Code 启动时必须在仓库根目录进入;会话内用 `/mcp` 复查状态 |
 | LLM 在几何阶段创建 schedule/lights/HVAC | YAML 含本应为空的字段 | 阻止并指出这是 MEP 阶段任务；如已发生，删除对应对象后重新 export_yaml |
@@ -370,7 +412,8 @@ print(f'[win] match = {expected_win == actual_win}')
 | 非深圳位置缺 EPW (仅 MEP 阶段) | `energyplus` 启动即报找不到 weather | MEP 阶段需要；几何阶段不跑仿真。先放好 [../data/weather/](../data/weather/)`<City>.epw` |
 | `uv.lock` 解析报错 `duplicate key "xxhash"` | `uv run` 无法启动环境 | `Remove-Item uv.lock` 让 uv 重建(约 45s,176 包) |
 | typer/click 签名冲突(0.24 + 8.3) | `uv run main.py mcp-server` 报 `AttributeError: 'list' object has no attribute 'isidentifier'`,所有子命令注册都挂 | [../main.py](../main.py) `run_agent` 里 `Annotated[X, Option(default, ...)]` 这种把默认值塞进 `Option()` 的写法在新版已非法,默认值必须放函数签名等号右侧。2026-04-21 已修 |
-| 标注图裁剪丢尺寸链 | `top_view_annotated.png` 只显示建筑主体,外围 `3.00 \| 2.00 \| 3.00` 类尺寸链被 crop 掉 | **不裁剪**,整图至多 2× NEAREST 放大(skill §2b 2026-04-21 已改)。若 LLM 仍沿袭 6× crop 旧模板需当面纠偏 |
+| 标注图裁剪丢尺寸链 | `floor{k}_annotated.png`（旧 `top_view_annotated.png`）只显示建筑主体,外围 `3.00 \| 2.00 \| 3.00` 类尺寸链被 crop 掉 | **不裁剪**,整图至多 2× NEAREST 放大(skill §2b 2026-04-21 已改)。若 LLM 仍沿袭 6× crop 旧模板需当面纠偏 |
+| LLM 漏画某层标注图 | `output/` 下只有 `floor1_annotated.png`，缺 `floor2_annotated.png` 等 | 提示 "Step 2 必须对 `Floor plans` 中**每一项**都跑标注脚本"；多层场景下少一份 = 该层 zone 推导没有人工可校验依据 |
 | 过程产物散落案例根 | `claude_ep.md / yaml / annotated.png / 脚本` 与输入 PNG 混在一起 | 强制全部写 `<case_dir>/output/`(skill §Step 3 + guide §6.1 2026-04-21 已改)。输入 PNG / JSON 保留在案例根 |
 
 ---
@@ -381,18 +424,38 @@ print(f'[win] match = {expected_win == actual_win}')
 
 ```python
 # AI_agent/eval/run_case.py （草图）
+import json
+from pathlib import Path
+
+def _collect_images(case_dir: Path) -> list[Path]:
+    spec = json.loads((case_dir / "testdata_prompt.json").read_text(encoding="utf-8"))
+    images: list[Path] = []
+    # schema A：逐层平面图（必填）
+    for fp in spec.get("Floor plans", []):
+        images.append(Path(fp["path"]))
+    # back-compat：仅 top_view 的旧案例
+    if not images and spec.get("Top view path of the building"):
+        images.append(Path(spec["Top view path of the building"]))
+    # 4 朝向立面（可空）+ supp_plan
+    for key in ("South view path of the building",
+                "North view path of the building",
+                "East view path of the building",
+                "West view path of the building",
+                "Path of the supplementary plan example drawing for the building"):
+        v = spec.get(key, "").strip()
+        if v:
+            images.append(Path(v))
+    return [p for p in images if p.exists()]
+
+
 def run_case(case_dir: Path, llm_config: LLMConfig) -> CaseResult:
     prompt_json = case_dir / "testdata_prompt.json"
-    images = [case_dir / n for n in ("top_view.png",
-                                     "South_view.png",
-                                     "North_view.png",
-                                     "East_view.png",
-                                     "West_view.png")]
+    images = _collect_images(case_dir)
 
     graph = build_graph()
     initial = AgentState(
         user_input = prompt_json.read_text(encoding="utf-8"),
-        image_paths = [str(p) for p in images if p.exists()],
+        image_paths = [str(p) for p in images],
     )
     context = SimContext(
         epw_path  = Path("data/weather/Shenzhen.epw"),
@@ -418,12 +481,14 @@ def run_case(case_dir: Path, llm_config: LLMConfig) -> CaseResult:
 脚本到位后，新建案例只做 Step 1–3，然后：
 
 ```bash
-python AI_agent/eval/run_case.py test_data/SmallOffice/smalloffice_13
+python AI_agent/eval/run_case.py test_data/SmallOffice/smalloffice_17
 ```
 
 即可自动跑完 Step 4–6 并产出指标。这是 [claude.md §4.3](claude.md) 的 **M2 里程碑**。
 
 ---
+
+_2026-04-29（sm_16 多层平面输入升级：Step 1 表头加 `{k}f_view.png`；§1.1 加共享外包硬约束；§1.2 字段表改 schema A（`Floor plans` 数组），废弃 `Number of total/per floor` 旧字段；§2 cp 命令改逐层；§3 JSON 模板改 schema A；§5 LLM prompt 第 2 步循环读全部 `Floor plans`、新增第 3 步 §D3.1 共享外包验证、第 4 步标注图改逐层 `floor{k}_annotated.png`、第 5 步 claude_ep.md 节内逐层；§6.1 目录结构改 `{k}f_view.png` + `floor{k}_annotated.png`；§6.2 [2] 总 zone 数改从 `Floor plans` 求和；§6.3/§6.4 路径换 sm_17；§8 常见坑加 W/D 不一致 + 漏拆逐层 + 漏画某层标注图；§9 蓝图 `_collect_images()` 从 `Floor plans` 读图；back-compat：旧 `top_view.png` + `Top view path` 字段保留）_
 
 _最后更新：2026-04-25（流水线拆分为几何阶段 + MEP 阶段；本指南面向几何阶段；移除 schedule_compact_guide.md 引用；Step 5 投递 prompt 重写：增 Surface boundary touch-up 第 6 步、Fenestration 改为 IDF Workflow 第 4 步、删除仿真步骤；§6.2 ④⑤ 仿真验证标注为 MEP 阶段；§6.3 子系统期望值翻转为"几何阶段必为 0"；§8 常见坑更新；§9 蓝图删除 ep_started/ep_completed 指标）_
 

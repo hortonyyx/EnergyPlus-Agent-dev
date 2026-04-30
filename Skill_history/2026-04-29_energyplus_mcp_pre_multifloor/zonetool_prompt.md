@@ -125,29 +125,25 @@ Using the create_zone tool will generate a zone instance along with all surface 
 
 When the input follows the CAD-style convention (meter units, 2-decimal dimension chains — see §D1–D6 of `energyplus_mcp_prompt.md`), use the following direct mapping recipe to go from the `Dimension Extraction` section in `claude_ep.md` to `create_zone` calls. No re-measurement from pixels is allowed.
 
-### M1. Build per-floor zone boundary arrays
+### M1. Build zone boundary arrays
 
-When the input provides multiple per-floor plans (`1f_view.png`, `2f_view.png`, …), each floor `f` carries **its own** segment chains. Build cumulative arrays **independently per floor**:
+From the top-view segment chains, compute cumulative arrays:
 
 ```
-xs_f = [0, x_seg_f_1, x_seg_f_1 + x_seg_f_2, …]   # length = N_cols(f) + 1
-ys_f = [0, y_seg_f_1, y_seg_f_1 + y_seg_f_2, …]   # length = N_rows(f) + 1
+xs = [0, x_seg_1, x_seg_1 + x_seg_2, …]   # length = N_cols + 1
+ys = [0, y_seg_1, y_seg_1 + y_seg_2, …]   # length = N_rows + 1
 ```
 
-Symbolic example: if Floor 1's x-chain reads `s1 | s2 | s3` and y-chain reads `t1 | t2`, then `xs_1 = [0, s1, s1+s2, s1+s2+s3]` and `ys_1 = [0, t1, t1+t2]`. Floor 2 may have a completely different chain (`u1 | u2 | u3 | u4`), giving `xs_2 = [0, u1, u1+u2, u1+u2+u3, u1+u2+u3+u4]`.
-
-**Shared-footprint invariant** (`energyplus_mcp_prompt.md` §D3.1): although the inner segments differ per floor, every floor MUST satisfy `xs_f[-1] == W` and `ys_f[-1] == D` for the building-wide totals `W, D`. Verify this before emitting any `create_zone` call. If the totals disagree across floors, the case has setbacks (out of scope) — stop and ask the user.
-
-Legacy single-plan inputs (one shared `top_view.png`) collapse to `xs_f == xs_1`, `ys_f == ys_1` for all floors.
+Symbolic example: if the top view's x-chain reads `s1 | s2 | s3` and y-chain reads `t1 | t2`, then `xs = [0, s1, s1+s2, s1+s2+s3]` and `ys = [0, t1, t1+t2]`.
 
 ### M2. Emit one `create_zone` call per (row, column) cell that is a distinct room
 
-For each floor `f` with FFL `z_f` (F1 → 0; F2 → h_1; F3 → h_1 + h_2; …) and **its own** boundary arrays `xs_f`, `ys_f`:
+For each floor `f` with FFL `z_f` (F1 → 0; F2 → floor_height; F3 → 2·floor_height; …):
 
 ```
-for each room cell on floor f (i = col index, j = row index):
-    x_min, x_max = xs_f[i], xs_f[i+1]
-    y_min, y_max = ys_f[j], ys_f[j+1]
+for each room cell (i = col index, j = row index):
+    x_min, x_max = xs[i], xs[i+1]
+    y_min, y_max = ys[j], ys[j+1]
     floor_vertices = [
         {"X": x_min, "Y": y_min, "Z": z_f},
         {"X": x_max, "Y": y_min, "Z": z_f},   # CCW when viewed from above
@@ -157,21 +153,19 @@ for each room cell on floor f (i = col index, j = row index):
     x_origin = (x_min + x_max) / 2
     y_origin = (y_min + y_max) / 2
     z_origin = z_f
-    ceiling_height = h_f   # this floor's height from the elevation view's left chain
+    ceiling_height = floor_height   # from elevation view's left chain
 ```
-
-Do NOT reuse one floor's room cells for another floor — every floor's zones come from that floor's plan image only. The number of zones, their names, and their boundaries can all differ between floors.
 
 ### M3. Corridor spanning multiple column cells
 
-When a row (or column) on floor `f` is a corridor that spans **all cells across that direction**, emit **one** `create_zone` call with:
+When a row (or column) is a corridor that spans **all cells across that direction**, emit **one** `create_zone` call with:
 
 ```
-x_min = xs_f[0], x_max = xs_f[-1]     # full building width on this floor
-y_min = ys_f[j],  y_max = ys_f[j+1]
+x_min = xs[0], x_max = xs[-1]     # full building width
+y_min = ys[j],  y_max = ys[j+1]
 ```
 
-i.e. collapse the partitioning on that row (or column) so the corridor becomes a single zone. Different floors may have corridors in different positions (or no corridor at all) — read each floor's plan independently.
+i.e. collapse the partitioning on that row (or column) so the corridor becomes a single zone.
 
 ### M4. Symbolic worked example (2×2 grid, F1)
 
@@ -193,9 +187,9 @@ Upper floors mirror these with `Z = (f-1)·H` and `z_origin = (f-1)·H`; everyth
    area_signed = 0.5 * sum_i ( x_i * y_{i+1} - x_{i+1} * y_i )   # cyclic
    ```
    Positive → CCW (correct). Negative → CW (wrong, reverse the list).
-2. **No gap / overlap (per floor)**: on each floor `f`, the union of all zone rectangles must equal the full footprint `[0, xs_f[-1]] × [0, ys_f[-1]]` with zero overlap. Apply the check **independently** for every floor — the partitioning differs even though the outer rectangle is shared.
-3. **Area sum (per floor)**: sum of per-zone areas on floor `f` equals `xs_f[-1] * ys_f[-1]`, which by §D3.1 also equals the building-wide `W * D`.
-4. **Ceiling height consistency**: every zone on the same floor must have the same `ceiling_height` (= that floor's `h_f` from the elevation left chain). Different floors may have different `h_f`.
+2. **No gap / overlap**: the union of all zone rectangles on a floor must equal the full footprint `[0, xs[-1]] × [0, ys[-1]]` with zero overlap.
+3. **Area sum**: sum of per-zone areas equals `xs[-1] * ys[-1]`.
+4. **Ceiling height consistency**: every zone on the same floor must have the same `ceiling_height`.
 
 ### M6. Window vertices (for `create_fenestration_surface`)
 
