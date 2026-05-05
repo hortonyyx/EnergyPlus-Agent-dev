@@ -131,7 +131,6 @@
 |---|---|
 | [CLAUDE.md](CLAUDE.md) | 本文档 — 项目管理总览 / 下次会话初始上下文 |
 | [idfpy_embed.md](idfpy_embed.md) | **idfpy 全线替换执行计划**（P0-P3 阶段、协作者/本项目分工、~3-4 周） |
-| [idfpy_bug_case_insensitive.md](idfpy_bug_case_insensitive.md) | idfpy IDF parser 大小写 bug 报告（26.1.0.post1 实测仍存在） |
 | [token_optimization.md](token_optimization.md) | Token 优化方案（4 段结构：占用问题 / 解决方案 / 已做 / 计划做） |
 | [new_case_guide.md](new_case_guide.md) | 新建 SmallOffice 测试样例的 7 步流程 |
 | [plan.md](plan.md) | 输入端 VLM 准确性提升方案（CoT vs 前置小模型） |
@@ -167,6 +166,11 @@ AI_agent/
 7. **Baseline 记录触发**：用户说 `记录这次跑 <case> <tag>` → 严格按 [test_baseline/README.md §4.3](../test_data/test_baseline/README.md) 执行清单：先 `Tool_scripts/baseline_record.py <case> <tag>` 生成 skeleton，再按 §4.2 字段所有权填 `<FILL_ME>`，最后 ≤6 行总结。**不替用户填 `dimensions_check`**（OpenStudio 人工验收专属）
 8. **idfpy 替换期**：[idfpy_embed.md](idfpy_embed.md) §3.1 划归协作者；本项目侧并行 §3.2（skill / scripts / 数据 / 文档）
 9. **本项目不再输出完整 IDF**（2026-04-28 决策）：几何阶段产出标准 epJSON / `idf.to_dict()`，喂给协作者侧 intake；`Tool_scripts/export_idf.py` P2 可大幅缩减或删除
+10. **git 权限下放**（2026-05-05 决策）：助手可在自认为的重要节点（阶段性里程碑达成、跑通新案例、skill / MCP / prompt 重大重写完成、idfpy 迁移每个 P 阶段收尾、token 优化阶段性落地等）自行 `git add` + `git commit` 存档备份，**无需每次询问**。规则：
+    - commit message 必须符合仓库现有风格（参考 `git log`：日期前缀 + 简短中文/英文标签，如 `4.28_Multiplefloors`）
+    - **commit body 的 description 必须说明**：① 改动的核心内容 ② 为什么此刻是重要节点（链到 CLAUDE.md §7 哪条 / 哪个 baseline tag / 哪次 skill 备份）③ 影响范围（仅文档 / skill / MCP / 代码）
+    - **禁止**：`git push`（除非用户明确要求）、force push、`reset --hard`、删分支、跳 hook（`--no-verify`）、动 `git config`
+    - 与既有 `Skill_history/` `MCP_history/` 物理备份并行，不互相替代（git 记可回滚的版本，history 目录记不可丢的快照）
 
 ---
 
@@ -232,11 +236,11 @@ P0 评测基线 → P1 分步 CoT + PaddleOCR + cv2 走廊预处理 → P2 YOLOv
 - **本项目不再输出完整 IDF**（§6 #9）：几何阶段产 epJSON 给协作者侧 intake；`export_idf.py` P2 可大幅缩减或删除
 - 已 `pyproject.toml` 加 `idfpy>=26.1.0.post1` + `pillow>=11.0.0`；`idfpy_dev/` 已删
 
-**C. idfpy 已知 bug**（[idfpy_bug_case_insensitive.md](idfpy_bug_case_insensitive.md)）
-- IDF parser 不识别大写对象类型名（`ZONE,` → 0 对象解析；`Zone,` 正常）
-- 26.1.0.post1 实测**仍存在**；与 README 第 23 行宣称"Case-insensitive"矛盾
-- 临时绕过：epJSON 主路径 / `Tool_scripts/idfpy_roundtrip_sm15.py` 的 `normalize_idf_case()`
-- 已交协作者修复，等下个 patch（如 26.1.0.post2）
+**C. idfpy 大小写 bug 已修复**（2026-05-05 验证）
+- ~~26.1.0.post1：IDF parser 不识别大写对象类型名（`ZONE,` → 0 对象解析）~~
+- **26.1.0.post2 实测修复**：`ZONE,` 与 `Zone,` 经 `IDF.load(p)` 都能正确解析为 1 个 Zone（验证脚本：`Building` + `ZONE,TestZoneUpper` 块；`all_of_type('Zone')` 返回 1）
+- pyproject.toml 已 bump 到 `idfpy>=26.1.0.post2`；`uv sync` 通过
+- `Tool_scripts/idfpy_roundtrip_sm15.py` 中的 `normalize_idf_case()` 临时绕过逻辑此后可视为 dead code，等 P1/P2 切换时一并删
 
 ### 7.10 多层平面输入升级（2026-04-29，sm_16）
 
@@ -303,6 +307,69 @@ P0 评测基线 → P1 分步 CoT + PaddleOCR + cv2 走廊预处理 → P2 YOLOv
 - 现实路线：**会话切分**（phase A 出 `claude_ep.md` + 标注图存盘 → 关会话 → phase B 起新会话只读 ep.md 调 MCP）每段 ≤50k，A3B 完全够用；或选 22B+ 激活的 MoE（Qwen3-235B-A22B / DeepSeek-V3 / Llama-405B）
 - 该判断已落到 `pivot_criteria.md` 候选模型选型；激活 idfpy 切换主线（§8.1）后再启 [pivot 评估](pivot_criteria.md)
 
+### 7.12 协作者侧 LangSmith trace 解码 + idfpy bug 修复（2026-05-05）
+
+**A. trace 数据**：协作者投入 `20260414_192502/` 共 335 个 LangSmith run JSON（约 700 MB），覆盖一次完整 5 层办公楼端到端跑通（`thread_id=export-demo`，模型 `gpt-5.4-2026-03-05` via `model_provider: anthropic`，即 Claude Opus 4 系内部命名）。本次抽样解析（run_00 / run_01 / run_05 / run_22 / run_120 头部 + 全文件 `langgraph_node` / `checkpoint_ns` 唯一值统计）锁定了下游架构。
+
+**B. 完整 LangGraph 拓扑（10 个业务节点 + 通用 ReAct 子节点）**
+
+```
+[文本 + 多模态图像]
+   ↓
+intake  ── 单次 LLM tool-call 产出 IntakeOutput Pydantic 对象
+   ↓        包含字段：building / site_location +
+   ↓        zone_specs / material_specs / construction_specs / surface_specs /
+   ↓        fenestration_specs / schedule_specs / lights_specs / people_specs / hvac_specs
+   ↓        （每个 *_specs 是一段自然语言段落，长度 1-3 KB）
+   ↓
+[Supervisor 顺序串接 — 顺序由依赖关系决定]
+   schedule → material → construction → zone → surface → fenestration → lights → people → hvac
+   ↓
+每个 subagent：
+   - 独立 system prompt（领域专家提示词，run_01 schedule prompt = 5.6KB）
+   - 严格隔离的工具子集（schedule 只挂 6 个 schedule_*；material 只挂 create_*_material + list_materials；…）
+   - 标准 ReAct 循环：llm 节点（tool_choice="auto" 串调） → tools 节点（执行 MCP）→ llm 节点 → … → end_turn
+   - 共享 thread_id / checkpoint，所以前面 subagent 建出的对象可被后面引用
+   ↓
+最终产物由协作者侧 idfpy 容器持有；可直接 `idf.save()` 出 IDF 或 `idf.to_dict()` 出 epJSON
+```
+
+**C. 每个 subagent 的输入合同**（看 run_01 / run_05 实证）
+
+```
+System: <subagent 专属 prompt — 含工具调用规范 + 领域 checklist>
+Human:
+   --- <Subsystem> specifications (primary task) ---
+   <intake 产出的 <subagent>_specs 段落>
+
+   --- Downstream specs (reference only; do NOT create non-X objects here, but USE these to infer references) ---
+   [hvac_specs] <hvac specs 段落>
+   [people_specs] ...
+   [lights_specs] ...
+```
+
+下游 specs 当作只读引用——例如 schedule subagent 必须把 hvac/people/lights 将引用的所有 schedule 名都建出来，不能漏。这种"主任务 + 下游引用"双段是稳定的命名一致性机制。
+
+**D. 本项目侧职责真正边界（修订 §1.2 / §6 #9）**
+
+旧版本 §1.2 / §6 #9 写的是"产 epJSON 给协作者侧 intake"——日志反证这是**误读**。实际边界：
+- **本项目（多模态 intake）**：text + drawings → `IntakeOutput` Pydantic 对象（含全部 10 个 *_specs 字段 + building + site_location）
+- **协作者（LangSmith）**：完整 10 节点 LangGraph，从 `intake_node` 起步，各 subagent 通过 MCP 工具构建 IDF
+- **不再需要本项目跑 zone/surface/fenestration MCP 工具构 epJSON**——那是 zone/surface/fenestration subagent 的职责
+
+→ 这彻底简化了本项目侧任务：核心就是把多模态视觉理解结果转为 `IntakeOutput` 同形结构（含所有 *_specs 自然语言段），下游构建链不再走本项目。
+
+**E. idfpy 大小写 bug 修复（同日）**
+- 协作者已在 `idfpy 26.1.0.post2` 修了 §7.9.C 的 IDF parser 大小写 bug
+- 本项目 `pyproject.toml` 升 `idfpy>=26.1.0.post2`；`uv sync` 通过；本地复现脚本验证 `IDF.load(p)` 对 `ZONE,` 与 `Zone,` 两种大小写都返回 1 个 Zone（之前 post1 在 UPPER 下返回 0）
+- `Tool_scripts/idfpy_roundtrip_sm15.py` 的 `normalize_idf_case()` 后续可删
+
+**F. 待办（落 §8）**
+- [ ] 改造 `src/agent/nodes/intake.py` 的 `IntakeOutput` schema 对齐协作者：把现有 schema 扩展为 10 个 *_specs 字段（zone/material/construction/surface/fenestration/schedule/lights/people/hvac）+ building + site_location
+- [ ] 与协作者对齐 `IntakeOutput` Pydantic 字段名 + 类型（建议直接复用协作者侧 schema）
+- [ ] 重新评估 §8 路线：原 idfpy 替换主线（P0-P3）大半工作量在协作者侧 MCP 重写，本项目侧的 P1 小试 / `mcp_v2/` 起步可缩减或撤销
+- [ ] §6 #9 / §2.1 / §2.2 / §1.2 文字按 D 段修订（先暂记 TODO，等协作者侧 schema 定稿再一次性改）
+
 ---
 
 ## 8. 待办（滚动更新）
@@ -339,6 +406,8 @@ P0 评测基线 → P1 分步 CoT + PaddleOCR + cv2 走廊预处理 → P2 YOLOv
 - [ ] 切 `llm.yaml` 默认 provider，全量回归
 
 ---
+
+_2026-05-05 — §6 新增第 10 条「git 权限下放」助手可在重要节点自行存档；解码协作者侧 LangSmith trace（`20260414_192502/` 335 个 run JSON）锁定 10 节点 LangGraph 拓扑（intake → schedule → material → construction → zone → surface → fenestration → lights → people → hvac），改写 §7.9.C 标注 idfpy 大小写 bug 已在 26.1.0.post2 修复并 `pyproject.toml` 升级；新增 §7.12 详述架构 + 本项目侧职责真正边界（产 IntakeOutput Pydantic，不产 epJSON）；§5 删 dangling `idfpy_bug_case_insensitive.md` 引用_
 
 _2026-04-29 (下半) — sm_16 几何阶段端到端跑通；记 baseline `2026-04-29_sm_16_multifloor_v1`（19 zones / 114 surfaces / 16 fenestration / total 164.3k vs sm_15 anchor 163.4k 仅 +0.5%）；token 口径二次修正（deferred + autocompact 不计入 Total，真实 harness ~24k 而非 ~55k 或 ~100k）；token 优化主体（§4.1-§4.5）推迟到 idfpy + MCP 重写后再做；新增 §7.11、修订 §7.10.D、重排 §8.0；同步修订 [token_optimization.md](token_optimization.md) §0/§6_
 
