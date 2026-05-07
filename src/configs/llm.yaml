@@ -1,6 +1,28 @@
-provider: "anthropic"
-base_url: ${oc.env:LLM_BASE_URL,null}
-api_key: ${oc.env:LLM_API_KEY,null}
-model_name: "gpt-5.4"
-temperature: 0.7
-max_tokens: 64000
+# Multi-section LLM config (2026-05-06).
+#
+# `create_llm(node_name=None)` reads:
+#   - `default` section for all downstream subagents (zone / material / schedule /
+#     construction / surface / fenestration / hvac / people / lights)
+#   - `intake` section only when intake_node calls create_llm(node_name="intake")
+#
+# Required env vars (put in .env):
+#   - DEEPSEEK_API_KEY=sk-...   (downstream)
+#   - ANTHROPIC_API_KEY=sk-...  (intake; optional — only if you can drive intake
+#                                via the Anthropic API rather than the half-manual
+#                                Claude Code session described in new_case_guide.md)
+
+default:
+  provider: openai                                    # OpenAI-compatible protocol
+  base_url: ${oc.env:DEEPSEEK_BASE_URL,https://api.deepseek.com/v1}
+  api_key: ${oc.env:DEEPSEEK_API_KEY,null}
+  model_name: deepseek-v4-pro
+  temperature: 0.7
+  max_tokens: 64000
+
+intake:
+  provider: anthropic
+  base_url: ${oc.env:ANTHROPIC_BASE_URL,null}
+  api_key: ${oc.env:ANTHROPIC_API_KEY,null}
+  model_name: claude-opus-4-7
+  temperature: 0.7
+  max_tokens: 64000

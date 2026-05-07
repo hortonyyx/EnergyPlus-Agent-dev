@@ -11,20 +11,49 @@ from src.configs.config import LLMConfig
 load_dotenv()
 
 
-def create_llm(config: LLMConfig | None = None) -> BaseChatModel:
-    """Create a LangChain chat model from LLMConfig.
+def _load_section(node_name: str | None) -> dict[str, Any]:
+    """Resolve `node_name` to the right section of llm.yaml.
+
+    Two layouts supported:
+      - Flat: top-level `provider`/`model_name`/... — single shared LLM (legacy).
+      - Nested: top-level keys are section names (`default`, `intake`, ...);
+        unknown `node_name` falls back to `default`.
+    """
+    raw = OmegaConf.load(
+        Path(__file__).resolve().parent.parent / "configs" / "llm.yaml"
+    )
+    data = OmegaConf.to_container(raw, resolve=True)
+    assert isinstance(data, dict), "llm.yaml must be a mapping"
+
+    if "provider" in data and "model_name" in data:
+        return data  # flat / legacy layout
+
+    if node_name and node_name in data:
+        return data[node_name]
+    if "default" in data:
+        return data["default"]
+    raise RuntimeError(
+        f"llm.yaml has no 'default' section and no section matching node_name={node_name!r}"
+    )
+
+
+def create_llm(
+    config: LLMConfig | None = None,
+    node_name: str | None = None,
+) -> BaseChatModel:
+    """Create a LangChain chat model from llm.yaml.
 
     Args:
-        config: Optional override. If None, reads src/configs/llm.yaml.
+        config: Optional override. If None, reads `src/configs/llm.yaml`.
+        node_name: Section name to pick when llm.yaml uses the multi-section
+            layout. `intake_node` passes "intake"; the 9 downstream subagents
+            pass nothing (defaults to the `default` section).
 
     Returns:
         A BaseChatModel routed to the configured provider.
     """
     if config is None:
-        raw = OmegaConf.load(
-            Path(__file__).resolve().parent.parent / "configs" / "llm.yaml"
-        )
-        config = LLMConfig.model_validate(OmegaConf.to_container(raw, resolve=True))
+        config = LLMConfig.model_validate(_load_section(node_name))
 
     model_id = f"{config.provider}:{config.model_name}"
     kwargs: dict[str, Any] = {

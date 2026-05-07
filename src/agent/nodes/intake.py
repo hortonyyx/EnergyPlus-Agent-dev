@@ -161,8 +161,26 @@ def intake_node(state: AgentState) -> AgentStateUpdate:
     The LLM returns nested BuildingSchema and SiteLocationSchema directly,
     which intake_node writes into the shared config_state. Phase agents
     read their own `*_specs` strings from intake_output.
+
+    Short-circuit: if `state.intake_output` is already populated (the
+    `--intake-from` half-manual flow in `scripts/run_full_pipeline.py`),
+    skip the LLM call and only seed `config_state`.
     """
-    llm = create_llm().with_structured_output(IntakeOutput, include_raw=True)
+    if state.intake_output is not None and not state.validation_errors:
+        config = state.config_state.model_copy(deep=True)
+        config.building = state.intake_output.building
+        config.site_location = state.intake_output.site_location
+        logger.info(
+            "intake_node: short-circuit (pre-populated IntakeOutput); "
+            "building={} site={}",
+            state.intake_output.building.name,
+            state.intake_output.site_location.name,
+        )
+        return AgentStateUpdate(config_state=config, validation_errors=[])
+
+    llm = create_llm(node_name="intake").with_structured_output(
+        IntakeOutput, include_raw=True
+    )
 
     text = state.user_input
     if state.validation_errors:
