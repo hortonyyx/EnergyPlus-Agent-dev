@@ -163,6 +163,25 @@ Claude 报告完成后:
 3. 截图存进 run 目录(建议命名 `openstudio_3d.png`)
 4. 编辑 `geometry.json`: `dimensions_check` 改为 `pass` / `fail` / `partial`、`openstudio_screenshot` 填路径、`anomalies` 补充
 
+### 4.5 半人工流（`pipeline_version=halfmanual_v1`）token 收集差异（2026-05-07 起）
+
+> §4.1 / §4.3 的 `/context` 协议是为旧 `yaml_to_idf_v1`（Opus 单会话全流程）设计的。半人工流下 token 来源**不再单一**，README 流程升级中（plan.md B0''' 任务）。在升级落地前，半人工 case 按下表临时处理：
+
+| token 来源 | 旧流（yaml_to_idf_v1）| 半人工流（halfmanual_v1）|
+|---|---|---|
+| Opus（intake） | 同一会话 `/context` 顶部 `Tokens:` | **用户主动粘** Step 4 临时会话的 `/context`；不粘则 `tokens.intake_total=null` |
+| 下游 9 subagent（DeepSeek）| 不存在 | **API usage**：从 LangSmith trace 或 DeepSeek API 账单收集；本地 `pipeline_run.log` 不直接含 token 计数（待加 hook） |
+| 总和（`tokens.total`）| 直接 `/context.Tokens` | `intake_total + downstream_total`（任一缺失则总和为 null）|
+| 助手会话（本会话协助跑下游 / 写文档） | 与任务 token 同会话不可分 | 与任务无关，**不计入** `tokens.total`（只是协调成本）|
+
+**临时填法（升级前）**：
+- `tokens.total` 留 `null` 不强求
+- `tokens.by_phase` 可写 `{"intake_session": <Opus 端 /context 数>, "downstream_api": null}` 留位
+- `notes.md` 必须在 §"与上一 anchor 的差异观察" 注明"半人工流 token 计量协议升级前，本 run 不参与 Δ 比较"
+- 第一份 anchor：[runs/2026-05-07_sm_16_newarch_v4pro_no_sim_v1/](runs/2026-05-07_sm_16_newarch_v4pro_no_sim_v1/)
+
+**升级目标**：plan.md B0''' "半人工流 token 收集协议" 落地后，§4.1 / §4.3 拆为 `4.3a yaml_to_idf_v1` / `4.3b halfmanual_v1` 两套流程。
+
 ---
 
 ## 5. 后续扩展占位（明天起讨论）

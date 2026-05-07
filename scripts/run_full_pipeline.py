@@ -117,6 +117,12 @@ def main() -> None:
         default="data/weather/Shenzhen.epw",
         help="EPW weather file (only used in full pipeline).",
     )
+    parser.add_argument(
+        "--no-simulate",
+        action="store_true",
+        help="Stop after IDF generation; do not invoke EnergyPlus runner. "
+        "Used for B0' surface-bug iteration (2026-05-07).",
+    )
     args = parser.parse_args()
 
     setup_logger(level="INFO")
@@ -175,7 +181,9 @@ def main() -> None:
         raise FileNotFoundError(f"EPW not found: {epw}")
 
     graph = build_graph()
-    context = SimContext(epw_path=epw, output_dir=output_dir)
+    context = SimContext(
+        epw_path=epw, output_dir=output_dir, run_simulate=not args.no_simulate
+    )
     cfg: RunnableConfig = {"configurable": {"thread_id": args.case}}
 
     def on_event(node: str, update: dict) -> None:

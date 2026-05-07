@@ -50,10 +50,15 @@ def simulate_node(state: AgentState, runtime: Runtime[SimContext]) -> AgentState
     _ensure_default_output_variables(config)
 
     workflow = WorkflowTool(config)
-    response = workflow.run_simulation(
-        epw_path=str(ctx.epw_path.resolve().absolute()),
-        output_dir=str(ctx.output_dir.resolve().absolute()),
-    )
+    if ctx.run_simulate:
+        response = workflow.run_simulation(
+            epw_path=str(ctx.epw_path.resolve().absolute()),
+            output_dir=str(ctx.output_dir.resolve().absolute()),
+        )
+    else:
+        response = workflow.export_idf_only(
+            output_dir=str(ctx.output_dir.resolve().absolute()),
+        )
 
     message = f"[simulate] {response.message}"
     if response.success and isinstance(response.data, dict):

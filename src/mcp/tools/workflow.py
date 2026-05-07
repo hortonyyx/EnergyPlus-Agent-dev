@@ -96,6 +96,41 @@ class WorkflowTool:
             data=self.state.get_summary().model_dump(),
         )
 
+    def export_idf_only(self, output_dir: str = "./output") -> ToolResponse:
+        """Run the validate -> export YAML -> convert IDF chain WITHOUT
+        invoking EnergyPlus. Used by `--no-simulate` debugging path
+        (2026-05-07 added for B0' surface bug iteration).
+        """
+        try:
+            validation = self.validate_config()
+            if not validation.success:
+                return ToolResponse(
+                    success=False,
+                    message="Validation Reference Errors, cannot export IDF.",
+                    data=validation.data,
+                )
+
+            timestamp = time.strftime("%Y%m%d_%H%M%S")
+            temp_yaml = Path(output_dir) / f"temp_{timestamp}.yaml"
+            temp_idf = Path(output_dir) / f"temp_{timestamp}.idf"
+
+            self.state.export_yaml(temp_yaml)
+            manager = ConverterManager(temp_yaml)
+            manager.convert_all()
+            manager.save_idf(temp_idf)
+
+            logger.info("IDF exported (no simulation): {}", temp_idf)
+            return ToolResponse(
+                success=True,
+                message="IDF exported (simulation skipped).",
+                data={"idf_path": str(temp_idf.absolute()), "output_dir": output_dir},
+            )
+        except Exception as e:
+            logger.exception("Error exporting IDF")
+            return ToolResponse(
+                success=False, message=f"Error exporting IDF: {e!s}"
+            )
+
     def run_simulation(
         self, epw_path: str, output_dir: str = "./output"
     ) -> ToolResponse:

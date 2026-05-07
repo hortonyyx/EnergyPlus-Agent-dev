@@ -72,6 +72,7 @@ class SimContext:
 
     epw_path: Path
     output_dir: Path = DEFAULT_OUTPUT_DIR
+    run_simulate: bool = True  # False -> simulate_node only exports IDF
 
 
 def _get_identity(item: Any) -> str:

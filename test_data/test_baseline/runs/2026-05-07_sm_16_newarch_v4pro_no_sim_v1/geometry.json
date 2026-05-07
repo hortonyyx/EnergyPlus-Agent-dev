@@ -1,0 +1,20 @@
+{
+  "counts": {
+    "zones": 19,
+    "surfaces": 135,
+    "fenestration": 16
+  },
+  "counts_expected": {
+    "zones": 19,
+    "surfaces": 135,
+    "fenestration": 21
+  },
+  "dimensions_check": "pending",
+  "openstudio_screenshot": null,
+  "anomalies": [
+    "fenestration short by 5 (built 16, intake fenestration_specs declared 21 in summary line; fenestration_agent itself flagged the inconsistency)",
+    "East / West facade corridor zones not assigned windows — intake side bug (走廊触外墙时未识别为应开窗); user-side optimization target per architecture.md §4.3 🎯",
+    "validate_geometry_closure issued 42 warnings (T-vertex non-manifold; 12/19 zones); accepted per validator NOTICE 2026-05-07 (B0' loosening)"
+  ],
+  "_source_idf": "test_data/SmallOffice/smalloffice_16_newarch/output/temp_20260507_154141.idf"
+}

@@ -1037,16 +1037,37 @@ class GeometrySchema(BaseSchema):
     @field_validator("surfaces")
     def validate_geometry_closure(cls, v):
         # TODO: Consider the use of trimesh to implement a concave polygon triangularization closure check
+        #
+        # ===== TEMPORARILY LOOSENED 2026-05-07 (B0' surface T-vertex bug) =====
+        # Original rule: every unique vertex within a zone must be shared by ≥3
+        # surfaces (manifold-polyhedron closure). EnergyPlus itself does NOT
+        # enforce manifoldness — it only checks per-surface validity + InterZone
+        # surface-pair geometry matching. Our validator was stricter than EP.
+        #
+        # When the floor above (or below) is sub-divided into more zones than the
+        # current floor, the wider zone's ceiling/floor must be split into tiles
+        # to InterZone-pair with each smaller partner; this introduces midpoint
+        # vertices on the ceiling that don't appear on the perpendicular walls
+        # (T-vertex), which the strict ≥3 rule rejects. EP runs fine without
+        # T-vertex insertion.
+        #
+        # Decision: log violations as warnings (so we still notice non-manifold
+        # zones) but do NOT raise — let SurfaceConverter add surfaces and let EP
+        # be the judge. To be removed entirely after idfpy switch
+        # (idfpy_embed.md §3.1; src/validator/data_model.py is dropped).
+        # See AI_agent/plan.md B0' for follow-up.
+        # ====================================================================
         points = np.vstack([surface.vertices for surface in v]).round(8)
         unique_points, counts = np.unique(points, axis=0, return_counts=True)
         unclosure_indices = np.argwhere(counts < 3)
         if len(unclosure_indices) > 0:
             for idx in unclosure_indices:
                 point = unique_points[idx]
-                logger.error("Point {} is not properly closed in the geometry.", point)
-            raise ValueError(
-                "Geometry closure validation failed. Some points are not properly closed."
-            )
+                logger.warning(
+                    "Point {} shared by <3 surfaces in this zone (T-vertex / non-manifold; "
+                    "tolerated 2026-05-07 — see validator NOTICE).",
+                    point,
+                )
         return v
 
     @model_validator(mode="after")

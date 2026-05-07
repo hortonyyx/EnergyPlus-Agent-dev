@@ -75,6 +75,29 @@ B5 / B6 / B7 等 B1-B4 跑通且 GT 集成熟后再启。
 
 ---
 
+### B0'''. [P1] 半人工流 token 收集协议升级
+
+**背景**：[test_baseline/README.md §4.1 / §4.3](../test_data/test_baseline/README.md) 强制 `/context` 作为 `tokens.total` 唯一权威源；这是为旧 `yaml_to_idf_v1`（Opus 单会话全流程）设计的，**半人工流下 token 不再单一来源**：
+- Opus 端在用户的 Step 4 临时会话 `/context`
+- 下游 9 subagent 走 DeepSeek API，token 不在任何 `/context` 里
+- 助手协调会话（本仓库会话）的 token 与任务无关，不应计入
+
+临时方案已写进 [README.md §4.5](../test_data/test_baseline/README.md)（2026-05-07 起新增），但是 stop-gap，需要正式升级。
+
+**任务**：
+- [ ] 在 [scripts/run_full_pipeline.py](../scripts/run_full_pipeline.py) 加 LangSmith / DeepSeek API usage 收集 hook，落到 `<case>/output/downstream_token.json`
+- [ ] 在 [test_baseline/README.md](../test_data/test_baseline/README.md) §4.3 拆出 `4.3a yaml_to_idf_v1` / `4.3b halfmanual_v1` 两套触发执行清单
+- [ ] `tokens.json` schema 加 `intake_total` / `downstream_total` / `total` 三字段（`total = intake_total + downstream_total`，缺一为 null）
+- [ ] 已存的半人工 anchor（2026-05-07_sm_16_newarch_v4pro_no_sim_v1）回填 downstream_total（如能从 DeepSeek 账单查到）
+
+**工作量**：~半天（hook 代码 + README 拆分 + 一份 anchor 回填）
+
+**验收**：下次跑半人工 case 时 `tokens.json` 自动填齐；`/context` 不再是阻塞条件
+
+**依赖**：B0' 修完后、B1 GT 集前（B1 跑 4 case baseline 时直接走升级版 token 协议）
+
+---
+
 ### B0''. [P1] sm_17 端到端首跑
 
 **任务**：
