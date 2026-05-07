@@ -39,7 +39,7 @@ def construction_agent(state: AgentState) -> AgentStateUpdate:
     collector = TraceCollector(phase="construction")
 
     agent = build_react_agent(
-        llm=create_llm(),
+        llm=create_llm(node_name="construction"),
         tools=tools,
         system_prompt=CONSTRUCTION_SYSTEM_PROMPT,
         trace_collector=collector,

@@ -51,7 +51,7 @@ def fenestration_agent(state: AgentState) -> AgentStateUpdate:
     collector = TraceCollector(phase="fenestration")
 
     agent = build_react_agent(
-        llm=create_llm(),
+        llm=create_llm(node_name="fenestration"),
         tools=tools,
         system_prompt=FENESTRATION_SYSTEM_PROMPT,
         trace_collector=collector,

@@ -38,7 +38,7 @@ def lights_agent(state: AgentState) -> AgentStateUpdate:
     collector = TraceCollector(phase="lights")
 
     agent = build_react_agent(
-        llm=create_llm(),
+        llm=create_llm(node_name="lights"),
         tools=tools,
         system_prompt=LIGHTS_SYSTEM_PROMPT,
         trace_collector=collector,

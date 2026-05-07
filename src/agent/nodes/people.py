@@ -37,7 +37,7 @@ def people_agent(state: AgentState) -> AgentStateUpdate:
     collector = TraceCollector(phase="people")
 
     agent = build_react_agent(
-        llm=create_llm(),
+        llm=create_llm(node_name="people"),
         tools=tools,
         system_prompt=PEOPLE_SYSTEM_PROMPT,
         trace_collector=collector,

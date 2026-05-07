@@ -40,7 +40,7 @@ def hvac_agent(state: AgentState) -> AgentStateUpdate:
     collector = TraceCollector(phase="hvac")
 
     agent = build_react_agent(
-        llm=create_llm(),
+        llm=create_llm(node_name="hvac"),
         tools=tools,
         system_prompt=HVAC_SYSTEM_PROMPT,
         trace_collector=collector,

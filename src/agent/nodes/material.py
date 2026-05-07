@@ -33,7 +33,7 @@ def material_agent(state: AgentState) -> AgentStateUpdate:
     collector = TraceCollector(phase="material")
 
     agent = build_react_agent(
-        llm=create_llm(),
+        llm=create_llm(node_name="material"),
         tools=tools,
         system_prompt=MATERIAL_SYSTEM_PROMPT,
         trace_collector=collector,

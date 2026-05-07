@@ -61,7 +61,7 @@ def surface_agent(state: AgentState) -> AgentStateUpdate:
     collector = TraceCollector(phase="surface")
 
     agent = build_react_agent(
-        llm=create_llm(),
+        llm=create_llm(node_name="surface"),
         tools=tools,
         system_prompt=SURFACE_SYSTEM_PROMPT,
         trace_collector=collector,

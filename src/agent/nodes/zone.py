@@ -27,7 +27,7 @@ def zone_agent(state: AgentState) -> AgentStateUpdate:
     collector = TraceCollector(phase="zone")
 
     agent = build_react_agent(
-        llm=create_llm(),
+        llm=create_llm(node_name="zone"),
         tools=tools,
         system_prompt=ZONE_SYSTEM_PROMPT,
         trace_collector=collector,

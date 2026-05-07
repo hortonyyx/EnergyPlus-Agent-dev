@@ -1,3 +1,4 @@
+import os
 import shutil
 import subprocess
 from datetime import datetime
@@ -5,9 +6,31 @@ from io import StringIO
 from pathlib import Path
 from typing import cast
 
+from dotenv import load_dotenv
 from eppy.modeleditor import IDF
 
 from src.utils.logging import get_logger
+
+load_dotenv()
+
+# Resolution order for the EnergyPlus executable:
+#   1) $ENERGYPLUS_EXE env var (explicit override, set in .env)
+#   2) `energyplus` on PATH (portable / CI default)
+#   3) DEFAULT_ENERGYPLUS_EXE below (this machine's known install; per user
+#      2026-05-07: 本机安装位置不会改动)
+DEFAULT_ENERGYPLUS_EXE = r"D:\EnergyPlusV25-2-0\energyplus.exe"
+
+
+def resolve_energyplus_exe() -> str:
+    """Return absolute path to the EnergyPlus executable, or raise."""
+    candidate = os.environ.get("ENERGYPLUS_EXE") or shutil.which("energyplus") or DEFAULT_ENERGYPLUS_EXE
+    if not Path(candidate).is_file():
+        raise FileNotFoundError(
+            f"EnergyPlus executable not found. Tried $ENERGYPLUS_EXE, PATH, and "
+            f"default {DEFAULT_ENERGYPLUS_EXE}. Set ENERGYPLUS_EXE in .env or add "
+            f"the install dir to PATH."
+        )
+    return candidate
 
 
 class EnergyPlusRunner:
@@ -85,9 +108,8 @@ class EnergyPlusRunner:
         self.logger.info("Output directory: {}", output_directory)
 
         try:
-            energyplus_exe = shutil.which("energyplus")
-            if not energyplus_exe:
-                raise FileNotFoundError("EnergyPlus executable not found in PATH")
+            energyplus_exe = resolve_energyplus_exe()
+            self.logger.info("EnergyPlus exe: {}", energyplus_exe)
 
             cmd = [
                 energyplus_exe,

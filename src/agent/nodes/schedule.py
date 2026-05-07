@@ -106,7 +106,7 @@ def schedule_agent(state: AgentState) -> AgentStateUpdate:
     collector = TraceCollector(phase="schedule")
 
     agent = build_react_agent(
-        llm=create_llm(),
+        llm=create_llm(node_name="schedule"),
         tools=tools,
         system_prompt=SCHEDULE_SYSTEM_PROMPT,
         trace_collector=collector,
