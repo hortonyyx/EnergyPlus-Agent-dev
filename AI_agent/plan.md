@@ -1,199 +1,257 @@
-# 输入端 VLM 识别准确性提升计划
+# 行动清单
 
-> 评估两条候选路线并给出分阶段推进计划：
-> **路线 1**：优化 [../skills/energyplus_mcp/](../skills/energyplus_mcp/) skill 文档，采用思维链（CoT）让 VLM 分步识别
-> **路线 2**：前置专用视觉小模型，把平面图矢量化为统一格式（墙/门/窗/房间），再交给 VLM
+> **当前状态**：A 段「代码跑通 / 架构迁移」全部闭环（[CLAUDE.md §5.3](CLAUDE.md)）。当前能力主战场切到 B 段「识图建模能力提升」。idfpy 替换主线（[idfpy_embed.md](idfpy_embed.md)）等协作者交付，搁置中。
+>
+> 优先级：P0（立即）/ P1（一周内）/ P2（依赖 P0/P1）。
 
 ---
 
-## 结论先行
+## 推荐执行顺序
 
-**基于案例集实测数据（[claude.md §3.1.2](claude.md)）的冷结论**：VLM 视觉识别**不是**当前 0/13 端到端通过率的**首要**瓶颈，但确实是 **zone 几何准确性**（6/8 = 75%）和**走廊/楼梯漏识别**的直接原因，值得专门优化。
+接下来一周：**B0 → B1 → B2 → B3 → B4**（一周内拿到第一份可量化 vision baseline，B4/B5 优化才有反馈环）。
+B5 / B6 / B7 等 B1-B4 跑通且 GT 集成熟后再启。
 
-| 方案 | 推荐指数 | 原因 |
+---
+
+## A. 代码跑通（已完成 ✅，2026-05-06）
+
+| 项 | 描述 | 状态 |
 |---|---|---|
-| 方案 1（CoT skill 优化）| ★★★★☆ | 零部署成本，先做。**但必须配合评测基线，否则优化无反馈** |
-| 方案 2（VLM 前置专用视觉模型）| ★★☆☆☆ | 工程量大，且中文建筑图纸**没有现成高精度预训练模型**可用；适合作为 P1 阶段的**局部增强**（只做尺寸链 OCR），不建议作为 P0 主线 |
+| A1 | IntakeOutput schema 与协作者 trace 对齐 drift 检查 | ✅ 11 字段 / BuildingSchema 8 / SiteLocationSchema 5 全部一致，无 drift。详见 [CLAUDE.md §5.3.A](CLAUDE.md) |
+| A2 | per-subagent LLM 配置（intake / default 两 section） | ✅ [llm.yaml](../src/configs/llm.yaml) 多 section + [llm.py:create_llm(node_name)](../src/agent/llm.py) 路由。详见 [CLAUDE.md §5.3.C](CLAUDE.md) |
+| A3 | 端到端验收脚本 | ✅ [scripts/run_full_pipeline.py](../scripts/run_full_pipeline.py)（三入口：全自动 / `--intake-from` / `--intake-only`），原 A3 "preview_geometry 截止 fenestration" 设想被全图脚本替代——下游 DeepSeek 跑近免费，不必砍 |
+| A4 | 文档同步（CLAUDE.md / architecture.md / new_case_guide.md） | ✅ 全部修订；[CLAUDE.md](CLAUDE.md) 410 → 175 行精简；[new_case_guide.md](new_case_guide.md) 重写为半人工 7 步流程 |
 
 ---
 
-## 一、先校准「输入端」到底错在哪
+## B. 识图建模能力提升（视觉能力主线）
 
-从 7 个到达 IDF 的案例回溯错误来源：
-
-| 错误来源 | 频次 | 是不是视觉问题 |
-|---|---|---|
-| zone 数量对不上声明值 | sm_7（少 12 个） | **是**：漏识别房间/走廊分隔 |
-| 房间尺寸偏差 | 未量化（需补工具）| **可能是**：尺寸链 OCR 错 |
-| 内墙两侧构造不对称 | sm_0 Fatal 主因 | **否**：tool-call 时的疏忽 |
-| Schedule/Lights/HVAC 缺失 | 7/7 | **否**：流程漏调 |
-| 大规模案例早停（≥30 zones）| sm_6/9/10 | **否**：tool-call 轮数/上下文 |
-
-**视觉类错误的细分**（按现有 skill 的 Step 2–3 拆解）：
-1. **裁剪框定位不准** → 漏房间或把标注当墙
-2. **尺寸链数字 OCR 错** → 房间宽度偏移
-3. **走廊识别**（宽白带 vs 细线墙）→ zone 数少算
-4. **楼梯 / WC / 电梯符号** → 漏特殊 zone
-5. **跨层对应**（多层时 F2 vs F1 的对位）→ 垂直几何错位
-
-方案 1 能改善 1、3、4、5；方案 2 对 2、3 帮助大但依赖模型质量。
+> **能力主战场是 [architecture.md §3](architecture.md) 表格里"几何依赖：强"的 5 个字段**：`building.name` / `site_location` / `zone_specs` / `surface_specs` / `fenestration_specs`。其余 6 个字段从文本可推，不是瓶颈。
+>
+> 主指标：[pivot_criteria.md](pivot_criteria.md) 视觉层阈值 — zone F1 ≥90% / 尺寸误差 ≤5% / 走廊 F1 ≥0.85 / 特殊 zone F1 ≥0.80。
 
 ---
 
-## 二、方案 1：CoT Skill 优化 —— 详细评估
+### B0. [P0] sm_17 端到端首跑（验证半人工流）
 
-### 2.1 可行性
-✅ **非常高**。[../skills/energyplus_mcp/energyplus_mcp_prompt.md](../skills/energyplus_mcp/energyplus_mcp_prompt.md) 已是半 CoT 结构（Step 0 → Step 7），但有几处可以强化。
+**任务**：
+- 用户写 `.env`：`DEEPSEEK_API_KEY=sk-...` / `DEEPSEEK_BASE_URL=https://api.deepseek.com/v1`
+- 用户开新 Claude Code 会话按 [new_case_guide.md §四](new_case_guide.md) Step 4 投递 prompt → 产 `test_data/SmallOffice/smalloffice_17/output/intake_output.json`
+- 助手跑 `python scripts/run_full_pipeline.py smalloffice_17 --intake-from output/intake_output.json`
+- 触发 `记录这次跑 sm_17 e2e_v1` 落 baseline
 
-### 2.2 具体改造建议
+**工作量**：~半天（含等 DeepSeek 跑下游）
 
-| 现状 | CoT 改造 |
+**验收**：
+- 全 14 节点跑通无 unhandled error
+- L1 Pydantic 通过 / L2 cross_ref errors=[] / L4 `eplusout.end` "EnergyPlus Completed Successfully"
+- L3 OpenStudio 视察由用户后续填 `dimensions_check`
+- baseline 记到 [test_baseline/runs/2026-05-XX_sm_17_e2e_v1/](../test_data/test_baseline/runs/)
+
+**依赖**：A 段已完成；用户提供 DeepSeek key + 跑 Step 4
+
+---
+
+### B1. [P0] 建 GT 数据集（M1 milestone）
+
+**任务**：
+- 在每个 case 目录下加 `gt.json`（不另起 `AI_agent/datasets/`，与素材就近）
+- 起步集：sm_13 / sm_14 / sm_15 / sm_16（已有人工 baseline 的 4 个），后续扩到 ≥10 case
+- 字段（最小集）：
+
+  ```json
+  {
+    "zones": ["GF_Lobby", "GF_Atrium", "..."],
+    "num_floors": 5,
+    "zones_per_floor": {"GF": 6, "F2": 12, "...": "..."},
+    "footprint_W_m": 40.0,
+    "footprint_D_m": 30.0,
+    "facade_wwr": {"South": 0.40, "North": 0.25, "East": 0.40, "West": 0.25},
+    "special_zones": {
+      "atrium": ["GF_Atrium", "F2_Atrium"],
+      "core":   ["GF_Core"],
+      "server": ["F2_East_Server"]
+    }
+  }
+  ```
+
+- 标注源：手动从 testdata_prompt.json + 已存 baseline + OpenStudio 截图反推
+
+**工作量**：~2 天（4 case × 0.5 天）
+
+**验收**：
+- `test_data/SmallOffice/smalloffice_{13,14,15,16}/gt.json` 都存在且字段齐
+- 与 [test_baseline/](../test_data/test_baseline/) 现有数据交叉对验
+
+**依赖**：无
+
+---
+
+### B2. [P0] IntakeOutput diff 评测脚本（M2 milestone）
+
+**任务**：
+- 新建 `AI_agent/eval/intake_diff.py`：
+  - 输入：candidate IntakeOutput JSON 路径 + gt.json 路径
+  - 解析 candidate 的自然语言 specs（regex / 二次 LLM 抽结构）
+  - 输出指标：
+
+    | 指标 | 计算 |
+    |---|---|
+    | `zone_f1` | candidate zone 名集合与 GT 的 F1 |
+    | `num_floors_match` | 整数对错（0/1）|
+    | `zones_per_floor_mae` | 每层 zone 数绝对误差均值 |
+    | `footprint_W_err_m` / `footprint_D_err_m` | 外包尺寸绝对误差 |
+    | `wwr_mae_pct` | 各立面 WWR 绝对误差均值（百分点）|
+    | `special_zone_f1` | atrium / core / server 等特殊 zone 检测 F1 |
+
+  - 输出 CSV 到 `test_data/test_baseline/runs/<date>_<model>_<case>/eval.csv`
+- README 到 `AI_agent/eval/README.md`
+
+**工作量**：~1 天
+
+**验收**：
+- `python -m AI_agent.eval.intake_diff --candidate <path> --gt <path>` 跑出指标
+- 用 sm_17 e2e_v1 baseline 的 `intake_output.json` + sm_15 GT（手工迁移）跑通
+
+**依赖**：B1 数据就位
+
+---
+
+### B3. [P0] Opus baseline 重建（M3 milestone）
+
+**任务**：
+- **半人工流**：用户在 Claude Code 会话里按 [new_case_guide.md §四](new_case_guide.md) 跑全部 GT case 一次（4 个 case × ~10 分钟人工 = ~半天）
+  - 每 case 产出 `intake_output.json`
+- 助手跑 B2 `intake_diff` 对每 case 产 metrics CSV
+- 汇总到 `test_data/test_baseline/runs/<date>_opus_baseline/summary.csv`
+
+**工作量**：~半天（用户人工 + 助手脚本）
+
+**验收**：
+- summary.csv 给出 zone_f1 / 尺寸误差 / WWR 误差等所有指标的均值
+- 与 [pivot_criteria.md §4.4](pivot_criteria.md) 阈值对齐 → 看现状离阈值多远
+
+**依赖**：B0 + B1 + B2 + 用户重复 Step 4 四次
+
+> 注：原 plan.md "Anthropic API 直跑 4 case" 方案因用户无 API key 已废；改为半人工。
+
+---
+
+### B4. [P1] CoT prompt 优化
+
+**背景**：视觉非首要瓶颈但确实是 zone 几何错的直接原因，分步 CoT 收益明确。**2026-05-06 DeepSeek smoke test 还暴露了一个新约束**：禁用 `Floor_N_*` / `for N in ...` 模板写法（已临时打补丁在 [new_case_guide.md §4.2](new_case_guide.md) Step 4 prompt 里）。
+
+**任务**：
+- 改 [intake.py INTAKE_SYSTEM_PROMPT](../src/agent/nodes/intake.py#L34) 为分步：
+  1. 先识别外墙边界（输出闭合多边形）
+  2. 再读尺寸链数字（自检 `sum(segments) + 2 × wall ≟ total_width`）
+  3. 再识别走廊（宽白连通区）
+  4. 再识别楼梯 / WC / 电梯符号
+  5. 综合为 zone 列表 + x/y 范围
+  6. 再生成 surface 邻接矩阵（可机械推导）
+- 每个子步骤用 Pydantic 中间结构约束（避免开源模型自由发挥）
+- 把 [new_case_guide.md §4.2](new_case_guide.md) 的 Floor_N_* 模板禁用规则正式合并进 INTAKE_SYSTEM_PROMPT
+- A/B 比对 B3 baseline
+
+**工作量**：~1 周
+
+**验收**：
+- 跑 B3 同一 4 case，zone_f1 / 尺寸误差对 baseline 提升
+- 提升幅度落到 `test_data/test_baseline/runs/<date>_capability_cot_v1/notes.md`
+
+**依赖**：B3 baseline 落档
+
+---
+
+### B5. [P2] PaddleOCR + cv2 预处理 hook
+
+**背景**：尺寸链 OCR 用 PaddleOCR、走廊用 cv2 形态学，是方案 2 最低 ROI 的子模块，但收益直接（解决"尺寸 OCR 错"+"走廊漏识别"两个具体问题）。
+
+**任务**（半人工流下做法变了）：
+- 新建 `Tool_scripts/preprocess_floor_plan.py` —— **不再插到 graph.py 里**（半人工流 intake 在 Claude Code 会话外）
+  - 输入：image_paths
+  - 用 PaddleOCR 提平面图所有数字 + 坐标 → JSON
+  - 用 cv2 形态学找宽白连通区 → 走廊候选 bbox 列表
+  - 输出 `<case>/output/preprocess.json`
+- 在 [new_case_guide.md §四](new_case_guide.md) Step 4 prompt 模板里加一段「预处理结果（可信度高）」，让用户先跑预处理脚本，把结果贴给 Opus 当 hint
+
+**工作量**：~3-5 天
+
+**验收**：
+- B3 同一 4 case，footprint_W/D_err / wwr_mae 对 B4 进一步下降
+- 落 `test_baseline/runs/<date>_capability_preprocess_v1/notes.md`
+
+**依赖**：B4 完成（避免变量耦合）
+
+---
+
+### B6. [P2] 开源模型评测（M4 milestone）
+
+**任务**：
+- 部署 vLLM + Qwen2.5-VL（先 7B，再 32B / 72B）/ DeepSeek-VL
+- 把 [llm.yaml](../src/configs/llm.yaml) `intake` section 切到 vLLM endpoint（A2 已就绪）
+- 半人工流改全自动：把 Step 4 从 Claude Code 会话改成 `python scripts/run_full_pipeline.py <case>` 直接走 vLLM
+- 跑 B2 同一套评测
+- 横向对比 Opus baseline + CoT + 预处理 + 开源模型四档
+
+**工作量**：~1 周（含部署 + 调参）
+
+**验收**：
+- 候选模型至少一档达 Opus 80%+（[pivot_criteria.md §4.4](pivot_criteria.md) 阈值）
+- 落对比表到 [open_model_guide.md](open_model_guide.md)
+
+**依赖**：B4 + B5 完成
+
+---
+
+### B7. [P3] LoRA SFT + Pivot 切换（M5/M6）
+
+**任务**：
+- 见 [pivot_criteria.md §4.1](pivot_criteria.md)：用 Opus baseline 的 IntakeOutput JSON 集合作 SFT 数据种子（≥500 对，需扩 GT 集到 ≥10 case）
+- LoRA 微调候选开源模型
+- holdout 集评测达 Opus 80% 后切 [llm.yaml](../src/configs/llm.yaml) `intake` 默认 provider
+- 全量回归
+
+**工作量**：~2-3 周
+
+**验收**：[pivot_criteria.md](pivot_criteria.md) 全部阈值达标
+
+**依赖**：B6 完成 + Pivot 阈值达标判定
+
+---
+
+## C. 暂搁置（依赖外部进展，不安排时间）
+
+- **idfpy 替换主线**（[idfpy_embed.md](idfpy_embed.md)）：等协作者完成 [§3.1 MCP 全线重写](idfpy_embed.md)；本项目侧 §3.2 等他们交付后再启
+- **token_optimization §4.1-4.5**（[token_optimization.md](token_optimization.md)）：等 idfpy 切换完成后大量 CRUD 工具消失，重新评估
+- **OpenStudio 几何验收 sm_15/16/17**（[CLAUDE.md §8.1](CLAUDE.md)）：用户人工跑，不卡代码
+
+---
+
+## D. 与 Milestone（[CLAUDE.md §4.3](CLAUDE.md) — 注：§4.3 在精简版中已删除，原映射如下）
+
+| Milestone | 对应本文 TODO |
 |---|---|
-| Step 2b 让模型「一次标完所有 zone」 | 拆成 **① 只识别外墙边界** → ② 只识别尺寸链数字 → ③ 只识别走廊（宽白带）→ ④ 只识别楼梯/WC 符号 → ⑤ 综合成坐标表。**每步单独输出中间产物** |
-| 没有自检回路 | 每步末尾要求模型**自问一致性**：`sum(segments)+2×wall ≟ total_width？`，失败则回到该步重试 |
-| 「Read 图片后裁剪」裁剪框靠 LLM 猜 | 让模型**先画一张 overview 网格叠加图**（10×10 等分），再用网格坐标定位建筑外包，而不是直接给像素值 |
-| Step 3 坐标表让模型一次写全 | 先生成 **房间列表（只有名字和类型）** → 再生成 **x/y 范围** → 再生成 **Floor Vertices** → 最后生成**邻接矩阵**（可从 x/y 范围机械推导） |
-| 没有视觉 Self-Check | 画完 `top_view_annotated.png` 后，再 Read 一次自己画的图做 sanity check（「红字有没有压到墙上？」「有没有 zone 没标？」）|
-
-### 2.3 开源 VLM 适配性
-- **Qwen2.5-VL / InternVL3 / MiniCPM-V 2.6** 对 CoT 指令跟随比 Llama 3.2-Vision 好
-- 但都比 Claude Opus 差 → CoT 的每一步**必须有明确的结构化输出约束**（JSON schema），不能指望模型自觉按格式回
-- 建议改造时把每个子步骤的输出都定成 Pydantic model，逐步填 `IntakeOutput` 而不是一次填满
-
-### 2.4 成本与收益
-- **工程成本**：1–2 周重写 skill + 做 few-shot
-- **预期收益**：zone 识别率 75% → 90%+（估计值）；走廊漏识别 → 可根本解决
-- **风险**：提示词变长，上下文占用增加；开源模型长 CoT 容易跑偏
+| M1（多模态 golden 数据集 v0.1）| B1 |
+| M2（自动评测脚本）| B2 |
+| M3（Opus baseline 重建）| B3 |
+| M4（vLLM + 开源模型评测）| B6 |
+| M5（gap 修补：prompt / few-shot / 微调）| B4 + B5 + B7 |
+| M6（切默认 provider，全量回归）| B7 |
 
 ---
 
-## 三、方案 2：前置专用视觉模型 —— 详细评估
+## 关联文档
 
-### 3.1 可行性警告
-⚠️ **别被现成的预训练模型误导**。公开可用的平面图解析模型基本都是西式住宅训练的：
-
-| 模型 / 数据集 | 覆盖场景 | 对本任务的可用度 |
-|---|---|---|
-| **CubiCasa5K**（Kalervo 2019）| 芬兰公寓手绘 | 外墙识别可用，内部房间类型标签不通用 |
-| **Raster-to-Vector / Floor-SP** | 公寓矢量化 | 对中文办公楼效果差 |
-| **RPLAN**（清华）| 住宅布局 | 只做生成，不做识别 |
-| **FloorPlanCAD**（阿里）| CAD 级建筑图 | **最接近**，但需 CAD 输入非 PNG |
-| **LayoutLMv3 / DocLayNet** | 文档版面 | 不适用 |
-| **PaddleOCR / Tesseract** | 文字 / 数字 OCR | **局部可用**（尺寸链数字） |
-
-**中文建筑渲染图 / 混合风格**（现 `test_data` 里的那种）**没有开箱即用模型**。要达到替代 VLM 感知的精度，需：
-- 自建标注数据集（≥ 500 张）
-- 训 HRNet / Mask R-CNN 做墙/门/窗/符号分割
-- 做后处理 raster → vector
-
-### 3.2 如果硬做，推荐的最小版本
-
-**不做完整矢量化，只做 3 个定向小模块**：
-
-| 模块 | 技术 | 收益 |
-|---|---|---|
-| **尺寸链 OCR** | PaddleOCR + 规则后处理（找 `3600` 这类 4 位数字序列） | 直接解决问题 2（尺寸 OCR 错），最值得做 |
-| **走廊识别** | 传统 CV：`cv2` 形态学运算，提取宽连通白区域（宽度 > 阈值） | 直接解决问题 3 |
-| **楼梯/WC 符号检测** | YOLOv8 在 ~200 张标注图上微调 | 解决问题 4 |
-
-3 个模块的产出塞进 prompt 作为**结构化视觉先验**（JSON），VLM 读图 + 读这份 JSON，准确率会显著抬升。
-
-### 3.3 完整矢量化路线（不推荐作为 P0）
-
-```
-原图 → 墙分割（U-Net）→ 骨架化 → 吸附成直线 → 识别闭合区域 = 房间
-     → 门窗洞检测（YOLOv8）→ 落到墙线上
-     → 尺寸链 OCR（PaddleOCR）→ 房间标注
-     → 符号检测（楼梯/WC/电梯）→ 特殊 zone 类型
-     → 输出统一 JSON（房间列表 + 门窗 + 尺寸 + 类型）→ 喂 VLM
-```
-
-工程量估计 **2–3 个月 + 数据标注**。收益高但 ROI 不划算，除非把这套模型作为「建筑图纸理解库」长期维护。
+- [architecture.md](architecture.md) — 当前架构事实参考
+- [CLAUDE.md](CLAUDE.md) — 项目管理总览（精简版）
+- [new_case_guide.md](new_case_guide.md) — 新建测试样例 7 步流程（半人工版）
+- [pivot_criteria.md](pivot_criteria.md) — Pivot 双阈值
+- [open_model_guide.md](open_model_guide.md) — 开源模型操作手册
+- [idfpy_embed.md](idfpy_embed.md) — idfpy 替换主线（搁置中）
 
 ---
 
-## 四、分阶段推进计划
+_2026-05-07 — A 段四项全闭环（A1 schema drift PASS / A2 多 section LLM / A3 run_full_pipeline 三入口 / A4 文档全修订），从主体下沉到表格；新增 B0 sm_17 端到端首跑作为半人工流验证；B3 改半人工版（用户无 Anthropic API）；B4 加入 Floor_N_* 模板禁用补丁；B5 改 Tool_scripts 预处理脚本（半人工流 intake 在会话外）；B6 footnote 去掉 A2 依赖（已就绪）；C 段加 sm_17。_
 
-### P0（必须先做，1 周）—— 建评测基线
-> **现在没有自动化评测，任何优化都是盲打。** 这是一切改造的前提。
-
-1. 把 [new_case_guide.md §6](new_case_guide.md) 的 5 档验证清单脚本化：`AI_agent/eval/run_case.py`
-2. 把 13 个案例跑一遍 Claude Opus 产出当前基线分
-3. **单独为视觉层建专项指标**：
-   - zone 数匹配率（已知 6/8 = 75%）
-   - 房间尺寸误差（需把 `claude_ep.md` 里的坐标表解析出来和 ground truth 比）
-   - 走廊识别 F1
-   - 楼梯/WC zone 识别 F1
-4. 把 ground truth 补进 `testdata_prompt.json`（现在只有 zone 总数，应加逐房间 x/y 范围）
-
-**没有 P0 就做 P1/P2 = 白做。**
-
-### P1（主攻，2–3 周）—— CoT Skill 优化 + 尺寸链 OCR
-> 即方案 1 + 方案 2 的**最小可行模块**
-
-1. 按 §2.2 重写 [../skills/energyplus_mcp/energyplus_mcp_prompt.md](../skills/energyplus_mcp/energyplus_mcp_prompt.md) 的 Step 2–3 为分步 CoT
-2. 每个子步骤用 Pydantic 结构化输出约束
-3. 在 [../src/agent/nodes/intake.py](../src/agent/nodes/intake.py) 前挂 `preprocess_floorplan` 节点：
-   - 调 PaddleOCR 提取俯视图所有数字 + 坐标 → 注入 HumanMessage 作为「已识别尺寸链」
-   - 用 `cv2` 做走廊候选（宽白连通区）→ 注入「可能的走廊 bbox 列表」
-4. 用 P0 基线评测前后差异
-5. Claude Opus 下提升明显后，再在 Qwen2.5-VL / InternVL3 跑同一套验证
-
-**预期：zone 几何准确率 75% → 90%+；尺寸 OCR 错 → 基本消除。**
-
-### P2（只在 P1 不够时做，1.5–2 个月）—— 补训楼梯/WC/电梯符号检测器
-> 即方案 2 的**中等增量**
-
-1. 在 13 个现有案例 + 爬 200 张公开办公建筑平面图，标注楼梯/WC/电梯 bbox
-2. YOLOv8n 微调（显存友好，几小时可训）
-3. 作为 `preprocess_floorplan` 的第二个输出通道
-4. 重新评测
-
-### P3（不建议做，除非要做通用产品）—— 全矢量化
-> 即方案 2 的**最大版本**
-
-自建 500+ 标注 + 训墙分割 + 房间闭合提取 + 整套 raster-to-vector。只有在把这套东西做成**独立通用产品**时才值得。
-
----
-
-## 五、技术选型清单
-
-| 阶段 | 组件 | 选型 | 理由 |
-|---|---|---|---|
-| P0 | 评测脚本 | 复用 [../src/agent/](../src/agent/) LangGraph + `pytest` | 已有基础设施 |
-| P1 | OCR | **PaddleOCR**（中英混排好于 Tesseract）| 中文建筑图纸标注多为中英混排 |
-| P1 | 走廊提取 | `opencv-python` 形态学运算 | 不需训练，零成本 |
-| P1 | VLM 本地部署 | **vLLM + Qwen2.5-VL-7B-Instruct** | tool-calling 支持好，OpenAI 兼容 API，[../src/configs/llm.yaml](../src/configs/llm.yaml) 改 `provider: openai` 即可接入 |
-| P1 | 结构化输出兼容层 | `outlines` 或 LangChain `with_structured_output(method="json_mode")` | 开源模型 tool-calling 不如 Claude 稳，需兜底 |
-| P2 | 符号检测器 | **YOLOv8n** + `ultralytics` | 易训、易部署 |
-
----
-
-## 六、风险登记
-
-| 风险 | 缓解 |
-|---|---|
-| 建评测基线的工作量被低估（标注 ground truth 费时）| 先标 3–5 个案例的逐房间 x/y 范围，边做边扩 |
-| PaddleOCR 在建筑图数字上召回不够 | 配合传统 CV 找水平数字条带 ROI 再 OCR |
-| 开源 VLM 即便有视觉先验也无法做长 tool-call 链路 | 本 PR 只解决输入端；tool-call 稳定性留给另一路工作（如强制 checklist 节点） |
-| 方案 1 与方案 2 同时上线导致变量耦合 | **严格分阶段**：先 CoT、再加 OCR、再加符号检测，每步单独跑基线 |
-| 视觉层提升但下游 Schedule/Lights/HVAC 仍系统性漏调 | 输入端准确率再高，端到端通过率也上不去 —— 必须并行推进子系统覆盖修复 |
-
----
-
-## 七、一句话行动指令
-
-> **P0 先行：2 周内把评测基线和视觉专项指标做出来**；然后再在方案 1（CoT）+ 方案 2 最小模块（PaddleOCR 尺寸链）上做 A/B，P2/P3 按数据决定要不要投入。
-
----
-
-## 八、与其他文档的关系
-
-- 本文档聚焦**输入端 VLM 识别准确性**。
-- 端到端跑通率的**系统性缺陷**（Schedule/Lights/HVAC 漏调、内墙对称）见 [claude.md §3.1.2](claude.md)。
-- 新建测试样例的操作手册见 [new_case_guide.md](new_case_guide.md)。
-- 开源模型迁移的总体里程碑（M1–M6）见 [claude.md §4.3](claude.md)，本计划对应其中 **M1（数据集）+ M2（评测）+ M5（提示词/微调）** 的输入端子集。
-
----
-
-_最后更新：2026-04-20_
+_2026-05-05 全文重写。删旧版 CoT vs 前置小模型探讨；按 architecture.md 新架构理解重组为「代码跑通 + 识图能力」两线 TODO。_
