@@ -64,4 +64,6 @@ def create_llm(
         kwargs["base_url"] = config.base_url
     if config.api_key:
         kwargs["api_key"] = config.api_key
+    if config.extra_body:
+        kwargs["extra_body"] = config.extra_body
     return init_chat_model(model_id, **kwargs)

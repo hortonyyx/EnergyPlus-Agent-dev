@@ -32,23 +32,59 @@ B5 / B6 / B7 等 B1-B4 跑通且 GT 集成熟后再启。
 
 ---
 
-### B0. [P0] sm_17 端到端首跑（验证半人工流）
+### B0. [P0] 端到端首跑（验证半人工流）— ✅ 部分完成 2026-05-07
 
-**任务**：
-- 用户写 `.env`：`DEEPSEEK_API_KEY=sk-...` / `DEEPSEEK_BASE_URL=https://api.deepseek.com/v1`
-- 用户开新 Claude Code 会话按 [new_case_guide.md §四](new_case_guide.md) Step 4 投递 prompt → 产 `test_data/SmallOffice/smalloffice_17/output/intake_output.json`
-- 助手跑 `python scripts/run_full_pipeline.py smalloffice_17 --intake-from output/intake_output.json`
-- 触发 `记录这次跑 sm_17 e2e_v1` 落 baseline
+**实跑案例**：`smalloffice_16_newarch`（复制 sm_16 用于测试架构）
 
-**工作量**：~半天（含等 DeepSeek 跑下游）
+**已 PASS**：
+- 14 节点机制全部跑通（intake 短路 → phase1 → cross_ref_foundations → construction → surface → fenestration → phase3 → cross_ref_complete → validate → simulate）
+- L1 Pydantic ✅ / L2 cross_ref errors=[] ✅
+- DeepSeek tool-calling 多轮 ReAct 通（`thinking={'type':'disabled'}` 修复有效）
+- 总耗时 ~28 min（surface ~4min / construction ~20min 占大头）
+
+**未通过**：L4 simulate — 卡在 `GeometrySchema.validate_geometry_closure` 几何闭合校验（12/19 zones 有 unclosed 顶点）。**这是下游 surface_agent 的 T-vertex bug**（详见 B0'），不影响架构验证
+
+**架构改造结论**：✅ 半人工 intake + 自动下游联通无机制 bug；剩下是建模质量（Plan B 范畴）
+
+**遗留 todo**（移到 [§8.1](CLAUDE.md)）：
+- [ ] sm_17 端到端再跑一次（不同图纸验证可复用性）
+- [ ] OpenStudio 验收 sm_15 / sm_16 / sm_17 / sm_16_newarch（用户填 `dimensions_check`）
+
+---
+
+### B0'. [P0] surface_agent T-vertex 缺失（首跑发现）
+
+**bug**：F2 zone 划分比 F1 细 → F1 的 ceiling 被切成 N 片以匹配 F2 → 但**F1 对应的 South/North 墙没在切分处插 T-vertex** → `validate_geometry_closure` 拒收（12/19 zones）。
+
+**实例**（sm_16_newarch F1_North_W）：
+- 该 zone 顶上有 2 片 ceiling 共享点 `(3.75, 5, 3.6)` → count=2
+- 但 South_Wall 顶边直接从 `(0,5,3.6)` 走到 `(5,5,3.6)`，没在 `x=3.75` 插断点 → 该点最终 count=2 < 3 → 不闭合
+
+**修复方向**（任选其一）：
+- A. **改 surface_agent prompt**：硬约束 "当顶 ceiling / 楼板被切成 N 片时，对应 zone 的 4 面墙必须在切分位置插 T-vertex"
+- B. **后处理**：[src/converters/surface_converter.py](../src/converters/surface_converter.py) `validate()` 之前自动找未对齐顶点并插入；最稳但复杂
+- C. **放宽 validator**：`validate_geometry_closure` 改为只检查首尾闭合 + 邻接 surface 配对，不强制 ≥3 共享。需评估对 EnergyPlus 实际影响
+
+**工作量**：A=~1 天 / B=~3-5 天 / C=~半天但风险大
 
 **验收**：
-- 全 14 节点跑通无 unhandled error
-- L1 Pydantic 通过 / L2 cross_ref errors=[] / L4 `eplusout.end` "EnergyPlus Completed Successfully"
-- L3 OpenStudio 视察由用户后续填 `dimensions_check`
-- baseline 记到 [test_baseline/runs/2026-05-XX_sm_17_e2e_v1/](../test_data/test_baseline/runs/)
+- sm_16_newarch 重跑 → simulate 通 → IDF 落盘 → `eplusout.end` "EnergyPlus Completed Successfully"
+- L4 PASS
 
-**依赖**：A 段已完成；用户提供 DeepSeek key + 跑 Step 4
+**依赖**：B0 闭环（已具备）
+
+---
+
+### B0''. [P1] sm_17 端到端首跑
+
+**任务**：
+- 用户在新 Claude Code 会话按 [new_case_guide.md §四](new_case_guide.md) 跑 Step 4 → 产 `smalloffice_17/output/intake_output.json`
+- 助手按 [§5.0](new_case_guide.md) 触发协议跑下游
+- 触发 `记录这次跑 sm_17 e2e_v1` 落 baseline
+
+**验收**：与原 B0 一致；关注 sm_17 是否暴露**新**类型 bug（vs B0' 那个 T-vertex）
+
+**依赖**：B0' 修完（否则同样 simulate 失败）
 
 ---
 

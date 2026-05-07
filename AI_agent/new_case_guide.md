@@ -204,18 +204,59 @@ print(' schedule_specs len =', len(io.schedule_specs))
 
 ## 五、Step 5 · 自动跑下游（DeepSeek 驱动）
 
+### 5.0 触发约定（2026-05-07 新增）
+
+> Step 4 跑完 → 用户**不必手敲命令**。切回长期工作的 Claude Code 会话（不是 Step 4 临时会话），用自然语言触发即可。
+
+**用户口令**（任一）：
+- `跑下游 <case>`
+- `Step 5 <case>`
+- `跑 sm_17 下游` 之类
+
+**助手收到口令必须依次**：
+
+1. **先校验入参**：
+   - `test_data/SmallOffice/<case>/output/intake_output.json` 存在
+   - 跑 `python -c "..."` Pydantic L1 校验（[§4.4](#四4-完工检查在原会话或独立-bash-跑) 那段）
+   - 不通过 = 报错，让用户回 Step 4
+2. **echo 当前模型配置**（读 [src/configs/llm.yaml](../src/configs/llm.yaml) `default` section）：
+
+   ```text
+   下游模型配置（src/configs/llm.yaml default）：
+     provider     = openai (DeepSeek 兼容)
+     model_name   = deepseek-v4-pro
+     base_url     = https://api.deepseek.com
+     temperature  = 0.7
+     max_tokens   = 64000
+     thinking     = disabled  ← 见 §5.0.1
+   ```
+
+3. **询问 y/n** 确认：`以上配置开跑？(y/n)`
+4. **y** → 后台启动 `python scripts/run_full_pipeline.py <case> --intake-from output/intake_output.json`，stdout tee 到 `<case>/output/pipeline_run.log`。完成后报告每节点耗时 + 产物 + L1/L2/L4 状态
+5. **n** → 等用户改 [llm.yaml](../src/configs/llm.yaml) 后再触发
+
+#### 5.0.1 为什么 thinking 默认关闭（2026-05-07 sm_16_newarch 首跑发现）
+
+- DeepSeek v4-pro thinking 模式要求 multi-turn 时把上一轮 `reasoning_content` 回传 API；`langchain_openai` 标准 `ChatOpenAI` 不知道这个 DeepSeek 私有字段，第二轮 ReAct tool result 回灌时丢字段 → API 400：`The reasoning_content in the thinking mode must be passed back to the API.`
+- 单 turn 文本（intake capability test 2026-05-06）不暴露此 bug；多轮 tool-calling（9 个 subagent ReAct）必踩
+- 临时方案：[llm.yaml](../src/configs/llm.yaml) `default.extra_body.thinking.type=disabled`，关掉 thinking
+- **能力影响**：v4-pro 关 thinking ≈ v4-flash 非 thinking；CRUD 类 subagent（zone/material/schedule/lights/people/hvac/construction/fenestration）能力够用（首跑 8 个全过），瓶颈在 surface 几何
+- 何时升级：等 surface T-vertex bug（[plan.md B0'](plan.md)）修了仍翻车 → 上方案 A 自定义 `ChatOpenAI` 子类回传 `reasoning_content`
+
 ### 5.1 配置 API key（首次）
 
 仓库根新建 `.env`：
 
 ```
 DEEPSEEK_API_KEY=sk-...
-DEEPSEEK_BASE_URL=https://api.deepseek.com/v1
+DEEPSEEK_BASE_URL=https://api.deepseek.com
 ```
 
 参考 [.env.example](../.env.example)。Anthropic 字段留空（intake 已人工跑完不需要）。
 
 ### 5.2 跑全链路
+
+> 推荐路径：用 [§5.0](#50-触发约定2026-05-07-新增) 对话触发，由助手代跑。下面命令是**助手内部执行**的等价形式 / 用户绕过助手手敲时的备份。
 
 ```powershell
 python scripts/run_full_pipeline.py smalloffice_17 `

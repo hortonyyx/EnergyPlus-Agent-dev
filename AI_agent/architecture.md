@@ -113,7 +113,7 @@ Human:
 |---|---|---|
 | **多模态视觉理解**（核心） | [src/agent/nodes/intake.py](../src/agent/nodes/intake.py) | 图像 + 文本 → 11 字段 IntakeOutput |
 | **LLM provider 配置** | [src/agent/llm.py](../src/agent/llm.py) + [src/configs/llm.yaml](../src/configs/llm.yaml) | 模型切换唯一入口；待扩 per-subagent 配置（见 §7） |
-| **Skill 提示词** | [skills/energyplus_mcp/](../skills/energyplus_mcp/) | 几何 + 开源模型分支 |
+| ~~**Skill 提示词**~~ | ~~[skills/energyplus_mcp/](../skills/energyplus_mcp/)~~ | **2026-05-07 起死代码** —— 新架构无任何代码路径读它。保留到 [idfpy_embed.md §3.2](idfpy_embed.md) 切换时整体重写或删除。能力优化不再针对此目录 |
 | **多模态测试数据 + GT** | [test_data/SmallOffice/smalloffice_*/](../test_data/SmallOffice/) | 图 + testdata_prompt.json + 待建 gt.json |
 | **几何阶段 baseline + 评测** | [test_data/test_baseline/](../test_data/test_baseline/) + 待建 [AI_agent/eval/](eval/) | OpenStudio 视察 + 字段级 diff |
 | **本地推理后端** | 待建 [AI_agent/deploy/](deploy/) | vLLM / SGLang / Langfuse self-hosted |
@@ -127,6 +127,32 @@ Human:
 - `cross_ref_*` / `validate` / `simulate` 编排节点（**本地有代码**）
 - EnergyPlus engine + 结果解析
 - LangSmith 上的部署 / trace 收集（协作者侧独占）
+
+### 4.3 能力优化作用面边界图（2026-05-07 新增）
+
+> 易混淆：本地仓库里**所有目录都是项目侧的**，但"我能优化什么 vs 等协作者交付什么 vs idfpy 切换时机械同步什么"分得很清。下表面向"我下一步该改哪个文件"。
+
+| 作用面 | 文件 / 目录 | 我能直接改？ | 何时改 | 备注 |
+|---|---|---|---|---|
+| **🎯 桥接 prompt**（半人工流 Opus 实际执行的） | [new_case_guide.md §4.2](new_case_guide.md#L130) | ✅ 现在 | 短期主战场 | B4 CoT 拆分先打补丁到这里 |
+| **🎯 INTAKE_SYSTEM_PROMPT**（API 自动 intake 的） | [src/agent/nodes/intake.py L34-109](../src/agent/nodes/intake.py#L34) | ✅ 现在 | 与 §4.2 同步演进，B6 切 API 时生效 |
+| **GT 数据集** | `test_data/SmallOffice/<case>/gt.json` | ✅ 现在 | B1 任务（待建） | 没 GT 就没 B2 评测 |
+| **diff 评测脚本** | `AI_agent/eval/intake_diff.py` | ✅ 现在 | B2 任务（待建） |
+| **OCR / cv2 预处理 hook** | `Tool_scripts/preprocess_floor_plan.py` | ✅ B5 任务（待建） | 给 Opus 做 hint 注入，不动 graph |
+| **测试输入素材** | [test_data/SmallOffice/<case>/](../test_data/SmallOffice/) | ✅ 现在 | 新案例直接 Step 1-3 起 |
+| **下游 9 subagent prompt** | [src/agent/nodes/{material,zone,surface,...}.py](../src/agent/nodes/) | ⚠️ 改但属维护 | bug 修补可改（如 B0' surface T-vertex），prompt 演进归协作者 | idfpy 切换时**必随之改** |
+| **下游 LangChain tool 包装层** | [src/agent/tools/*_tools.py](../src/agent/tools/) | ⚠️ 改但属维护 | 紧贴 MCP 工具签名 | idfpy 切换时**必随之改**（工具数 79→20-25） |
+| **MCP 工具实现** | [src/mcp/tools/](../src/mcp/tools/) + [src/mcp/api/](../src/mcp/api/) | ❌ 等协作者交付 | idfpy 切换主体，~1.5-2 周 | 协作者主导 |
+| **converters / validator** | [src/converters/](../src/converters/) + [src/validator/data_model.py](../src/validator/data_model.py) | ❌ 等协作者交付 | idfpy 切换时整体删 / idf.validate() 顶替 |
+| **死代码** | ~~[skills/energyplus_mcp/](../skills/energyplus_mcp/)~~ | ❌ 不再优化此处 | idfpy 切换时清理 |
+| **EP engine / LangSmith** | — | ❌ 协作者侧 | — |
+
+**判断规则**：
+
+1. 看到任务在 `图 → IntakeOutput JSON` 这一段 → 落在前 6 行（🎯 / ✅），**当下就动**
+2. 看到任务在下游 subagent 出错（如 sm_16_newarch 的 surface T-vertex bug）→ 中间 2 行（⚠️），**改但要意识到 idfpy 切换时还会再改一遍**，写补丁前评估"短期忍 + 等切换时统一处理"vs"立即修"
+3. 看到任务在 MCP 工具 / converter / validator → ❌，等协作者，写 issue 不动手
+4. 看到 skills/ → 不动
 
 ---
 
@@ -214,7 +240,60 @@ env vars：`DEEPSEEK_API_KEY` + `ANTHROPIC_API_KEY`（[`.env.example`](../.env.e
 
 ---
 
-## 8. 关联文档
+## 8. 新人快速上手 QA（2026-05-07 新增）
+
+> 来源：2026-05-07 sm_16_newarch 首跑后用户提的 5 个结构性问题。常见误解直接答清。
+
+### Q1：旧 [skills/energyplus_mcp/](../skills/energyplus_mcp/) 还需要吗？
+
+**否，新架构下已成死代码**。旧流程是 Opus 在 Claude Code 会话里读 3 份 skill 文档 → 编排 80 次 MCP 调用 → 造完整 IDF。新流程下 Opus **只产 IntakeOutput JSON，完全不读 skill 也不调 MCP**；skill 知识被碎片化迁移到 9 个下游 subagent 的 system prompt + intake_node prompt + cross_ref 自动节点里。skills/ 目录留到 [idfpy_embed.md §3.2](idfpy_embed.md) 切换时整体重写或删除。
+
+### Q2：下游 subagent 的 prompt 和 schema 在哪？已经写好了吗？
+
+**是的，已写好且固化**。每个 subagent = 一个 Python 文件 + 硬编码 system prompt + 一组工具：
+
+| 实体 | 位置 |
+|---|---|
+| 9 个 subagent system prompt | [src/agent/nodes/{material,zone,schedule,construction,surface,fenestration,hvac,people,lights}.py](../src/agent/nodes/) `*_SYSTEM_PROMPT` 常量 |
+| 9 套 LangChain tool 包装层 | [src/agent/tools/*_tools.py](../src/agent/tools/) `make_*_tools(ConfigState) -> list[BaseTool]` |
+| MCP 工具实现（被 wrap 的对象） | [src/mcp/tools/](../src/mcp/tools/) |
+| 拓扑编排 | [src/agent/graph.py:55 build_graph](../src/agent/graph.py#L55) |
+
+**契约**：`intake_node` 把 IntakeOutput 装进 `state.intake_output`；每个 subagent 读 `state.intake_output.{name}_specs`（自然语言段，str），跑 ReAct 直到完成。
+
+### Q3：现在架构相当于把旧 skill 拆给 subagent？
+
+**大体对，但不是 1:1 切片**：
+
+1. 粒度变细 + 模型换人：旧 skill 是给 Opus 一份"通才说明书"；新 prompt 是给 DeepSeek 一份"专才说明书"，因此重写。
+2. 横切关注点上移：旧 skill 的"输入格式 / 共享外包硬约束 / 后处理补丁"等抽到 [intake.py INTAKE_SYSTEM_PROMPT](../src/agent/nodes/intake.py#L34) 和 [cross_ref 自动节点](../src/agent/nodes/cross_ref.py)，subagent 拿到的已是清洗过的局部任务。
+
+### Q4：为什么全流程没调 MCP server 了？
+
+**MCP 协议层没了，MCP 工具实现还在用**。区别：
+
+| | 旧 | 新 |
+|---|---|---|
+| 工具调用通路 | stdio JSON-RPC → [src/mcp/server.py](../src/mcp/server.py) → tool 实现 | `@tool` 包装（[src/agent/tools/](../src/agent/tools/)）→ **直接 Python 调用** [src/mcp/tools/](../src/mcp/tools/) 同一份实现类 |
+
+证据：[material_tools.py](../src/agent/tools/material_tools.py) 第 4 行 `from src.mcp.tools.material import MaterialTool` —— 仍是同一个类，只是不通过 MCP 协议而是 in-process 调用。**好处**：①免启动 server ②无 IPC round-trip ③9 个 subagent 共享同一 `ConfigState` 实例 ④LangGraph checkpoint 直接 pickle Python 对象。
+
+### Q5：idfpy 切换对项目 / 我侧的影响？
+
+**协作者主导改 [src/mcp/](../src/mcp/) 实现层；我侧主导改 wrap + prompt + 测试**。具体见 §4.3 边界图。**最值钱的设计**：IntakeOutput Pydantic 契约**完全不受 idfpy 切换影响**——你的 Opus 半人工 intake 流照旧。**意外收益**：[B0' surface T-vertex bug](plan.md) 大概率自动消失（`validate_geometry_closure` 这个超严格本地校验被 idfpy 的 `idf.validate()` 真实 IDD 检查替代；EnergyPlus 本身只要 boundary object 配对，不要每顶点 ≥3 共享）。
+
+### Q6：能力优化的主作用对象到底是什么？
+
+见 §4.3 表头 **🎯** 标记的两行：
+
+1. **半人工流当前**：[new_case_guide.md §4.2](new_case_guide.md#L130) 桥接 prompt（用户贴给 Opus 那段）
+2. **B6 API 自动 intake 后**：[INTAKE_SYSTEM_PROMPT](../src/agent/nodes/intake.py#L34) L34-109
+
+外加 GT 集（B1）、diff 评测（B2）、OCR 预处理（B5）等基础设施。**所有不在这 4 处的代码改动都不属于能力优化主战场**。
+
+---
+
+## 9. 关联文档
 
 | 文档 | 作用 |
 |---|---|
@@ -227,5 +306,7 @@ env vars：`DEEPSEEK_API_KEY` + `ANTHROPIC_API_KEY`（[`.env.example`](../.env.e
 | [open_model_guide.md](open_model_guide.md) | 开源模型操作手册（Continue + 预处理 + MCP） |
 
 ---
+
+_2026-05-07 增补：§4.1 标注 skills/ 为死代码；新增 §4.3 能力优化作用面边界图（11 行 + 4 条判断规则，区分 🎯/✅/⚠️/❌ 四档）；新增 §8 新人快速上手 QA（Q1-Q6，源自 sm_16_newarch 首跑后澄清）。原 §8 关联文档下移为 §9。_
 
 _2026-05-05 首版起草。基于 LangSmith trace 解码 + 与用户 Q&A 澄清；统一旧 CLAUDE.md / plan.md 中"产 epJSON"等过期描述。_

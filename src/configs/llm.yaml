@@ -13,11 +13,18 @@
 
 default:
   provider: openai                                    # OpenAI-compatible protocol
-  base_url: ${oc.env:DEEPSEEK_BASE_URL,https://api.deepseek.com/v1}
+  base_url: ${oc.env:DEEPSEEK_BASE_URL,https://api.deepseek.com}
   api_key: ${oc.env:DEEPSEEK_API_KEY,null}
   model_name: deepseek-v4-pro
   temperature: 0.7
   max_tokens: 64000
+  # Disable v4-pro thinking mode: ReAct multi-turn loops would otherwise need to
+  # pass reasoning_content back each turn, which langchain_openai doesn't do →
+  # 400 "reasoning_content must be passed back to the API". See pipeline_run.log
+  # 2026-05-07 sm_16_newarch material_agent failure.
+  extra_body:
+    thinking:
+      type: disabled
 
 intake:
   provider: anthropic

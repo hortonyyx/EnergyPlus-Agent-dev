@@ -52,3 +52,8 @@ class LLMConfig(BaseModel):
     api_key: str | None = Field(
         default=None, description="The API key of the LLM model"
     )
+    extra_body: dict | None = Field(
+        default=None,
+        description="Provider-specific extra body params merged into the request "
+        "(e.g. DeepSeek `thinking={'type':'disabled'}` to suppress reasoning_content).",
+    )
