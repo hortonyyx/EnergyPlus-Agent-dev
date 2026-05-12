@@ -113,7 +113,7 @@ Human:
 |---|---|---|
 | **多模态视觉理解**（核心） | [src/agent/nodes/intake.py](../src/agent/nodes/intake.py) | 图像 + 文本 → 11 字段 IntakeOutput |
 | **LLM provider 配置** | [src/agent/llm.py](../src/agent/llm.py) + [src/configs/llm.yaml](../src/configs/llm.yaml) | 模型切换唯一入口；待扩 per-subagent 配置（见 §7） |
-| ~~**Skill 提示词**~~ | ~~[skills/energyplus_mcp/](../skills/energyplus_mcp/)~~ | **2026-05-07 起死代码** —— 新架构无任何代码路径读它。保留到 [idfpy_embed.md §3.2](idfpy_embed.md) 切换时整体重写或删除。能力优化不再针对此目录 |
+| **Intake 规则文档库** | [skills/energyplus_mcp/](../skills/energyplus_mcp/) | **2026-05-10 起重新启用** —— 由 [src/agent/nodes/intake.py](../src/agent/nodes/intake.py) 运行时加载，作为 intake 识图 / 几何 / 输出契约规则库；能力优化会直接改这里 |
 | **多模态测试数据 + GT** | [test_data/SmallOffice/smalloffice_*/](../test_data/SmallOffice/) | 图 + testdata_prompt.json + 待建 gt.json |
 | **几何阶段 baseline + 评测** | [test_data/test_baseline/](../test_data/test_baseline/) + 待建 [AI_agent/eval/](eval/) | OpenStudio 视察 + 字段级 diff |
 | **本地推理后端** | 待建 [AI_agent/deploy/](deploy/) | vLLM / SGLang / Langfuse self-hosted |
@@ -144,7 +144,7 @@ Human:
 | **下游 LangChain tool 包装层** | [src/agent/tools/*_tools.py](../src/agent/tools/) | ⚠️ 改但属维护 | 紧贴 MCP 工具签名 | idfpy 切换时**必随之改**（工具数 79→20-25） |
 | **MCP 工具实现** | [src/mcp/tools/](../src/mcp/tools/) + [src/mcp/api/](../src/mcp/api/) | ❌ 等协作者交付 | idfpy 切换主体，~1.5-2 周 | 协作者主导 |
 | **converters / validator** | [src/converters/](../src/converters/) + [src/validator/data_model.py](../src/validator/data_model.py) | ❌ 等协作者交付 | idfpy 切换时整体删 / idf.validate() 顶替 |
-| **死代码** | ~~[skills/energyplus_mcp/](../skills/energyplus_mcp/)~~ | ❌ 不再优化此处 | idfpy 切换时清理 |
+| **Intake 规则文档库** | [skills/energyplus_mcp/](../skills/energyplus_mcp/) | ✅ 现在 | 与 intake prompt 同步演进 | 由 [src/agent/nodes/intake.py](../src/agent/nodes/intake.py) 运行时拼接加载；当前能力恢复主战场之一 |
 | **EP engine / LangSmith** | — | ❌ 协作者侧 | — |
 
 **判断规则**：
@@ -152,7 +152,7 @@ Human:
 1. 看到任务在 `图 → IntakeOutput JSON` 这一段 → 落在前 6 行（🎯 / ✅），**当下就动**
 2. 看到任务在下游 subagent 出错（如 sm_16_newarch 的 surface T-vertex bug）→ 中间 2 行（⚠️），**改但要意识到 idfpy 切换时还会再改一遍**，写补丁前评估"短期忍 + 等切换时统一处理"vs"立即修"
 3. 看到任务在 MCP 工具 / converter / validator → ❌，等协作者，写 issue 不动手
-4. 看到 skills/ → 不动
+4. 看到 `skills/energyplus_mcp/` → 这是 **intake 规则文档库**，属于当前能力恢复主战场，可直接改；仅旧 `open_model/` / `export_idf` 流程已废弃
 
 ---
 
@@ -246,7 +246,7 @@ env vars：`DEEPSEEK_API_KEY` + `ANTHROPIC_API_KEY`（[`.env.example`](../.env.e
 
 ### Q1：旧 [skills/energyplus_mcp/](../skills/energyplus_mcp/) 还需要吗？
 
-**否，新架构下已成死代码**。旧流程是 Opus 在 Claude Code 会话里读 3 份 skill 文档 → 编排 80 次 MCP 调用 → 造完整 IDF。新流程下 Opus **只产 IntakeOutput JSON，完全不读 skill 也不调 MCP**；skill 知识被碎片化迁移到 9 个下游 subagent 的 system prompt + intake_node prompt + cross_ref 自动节点里。skills/ 目录留到 [idfpy_embed.md §3.2](idfpy_embed.md) 切换时整体重写或删除。
+**需要，但角色已变化。** 旧流程里它是 Opus 单会话驱动 MCP 几何 / MEP 建模的主 skill；当前新流程里它不再承担 MCP tool-calling 工作流，而是被 [src/agent/nodes/intake.py](../src/agent/nodes/intake.py#L34) 运行时加载为 **intake 规则文档库**，用于约束图 → IntakeOutput 的识图、几何推导、拓扑和输出契约。能力恢复与升级（B1-B7）会直接改这里；旧的 `open_model/`、`export_idf` 等分支已废弃或移出当前主路径。
 
 ### Q2：下游 subagent 的 prompt 和 schema 在哪？已经写好了吗？
 
@@ -306,6 +306,8 @@ env vars：`DEEPSEEK_API_KEY` + `ANTHROPIC_API_KEY`（[`.env.example`](../.env.e
 | [open_model_guide.md](open_model_guide.md) | 开源模型操作手册（Continue + 预处理 + MCP） |
 
 ---
+
+_2026-05-10 — `skills/energyplus_mcp/` 从“死代码”改判为运行时 intake 规则文档库：由 [intake.py](../src/agent/nodes/intake.py) 自动加载，承担图→IntakeOutput 的识图 / 几何 / 拓扑 / 输出契约约束。旧 `open_model/` 与 `export_idf` 分支不再位于当前主路径；相关开源模型流程改为引用 `Skill_history/` 历史备份。_
 
 _2026-05-07 增补：§4.1 标注 skills/ 为死代码；新增 §4.3 能力优化作用面边界图（11 行 + 4 条判断规则，区分 🎯/✅/⚠️/❌ 四档）；新增 §8 新人快速上手 QA（Q1-Q6，源自 sm_16_newarch 首跑后澄清）。原 §8 关联文档下移为 §9。_
 

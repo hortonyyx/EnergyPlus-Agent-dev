@@ -115,24 +115,24 @@
 
 ## 阶段 1 — 恢复
 
-### B1. [P0] 旧 skill 约束迁移到新架构（恢复 sm_16 旧建模水平）
+### B1. [P0] 旧 skill 能力迁移到新架构（恢复 sm_16 旧建模水平）
 
-**背景**：旧架构（[skills/energyplus_mcp/](../skills/energyplus_mcp/) + Claude Opus 单会话 + skill 分步约束）能在 sm_16 上拿到准确建模。新架构（半人工 Step 4 prompt + 9 subagent 自动下游）的 [INTAKE_SYSTEM_PROMPT](../src/agent/nodes/intake.py#L34) 还是简版，**没把旧 skill 的分步识图 / 绘图标注 / 自检约束等内容迁过来** → sm_16_newarch 建模质量不及旧架构 sm_16 baseline。
+**背景**：旧架构（[skills/energyplus_mcp/](../skills/energyplus_mcp/) + Claude Opus 单会话 + skill 分步约束）能在 sm_16 上拿到准确建模。新架构（半人工 Step 4 prompt + 9 subagent 自动下游）的 intake 路径虽然已切到 [src/agent/nodes/intake.py](../src/agent/nodes/intake.py#L34) + `skills/energyplus_mcp/*.md` 规则文档库，但在迁移初期仍是简版，**没把旧 skill 的分步识图 / 绘图标注 / 自检约束等内容完整迁过来** → sm_16_newarch 建模质量不及旧架构 sm_16 baseline。
 
 **第一原则**：**先恢复，再升级**。新架构必须先到达旧架构能做到的水平，才有资格谈 B5-B7 的能力扩展。
 
 **任务**：
-- [ ] **审计旧 skill 内容**：盘点 [skills/energyplus_mcp/](../skills/energyplus_mcp/) 全部分步约束 / 绘图标注规则 / 自检规则 / 命名规范，列清单
+- [ ] **审计旧 skill 内容**：盘点 [skills/energyplus_mcp/](../skills/energyplus_mcp/) 当前规则文档库与 `../Skill_history/` 历史快照之间的能力映射，列清单
   - 历史备份在 `../Skill_history/` 各目录，参考 [CLAUDE.md §6 #5](CLAUDE.md)
   - 重点：sm_15 几何/MEP 阶段拆分（[CLAUDE.md §5.1](CLAUDE.md)）/ 全局唯一世界坐标系 / 占位 construction 命名
-- [ ] **迁移到新架构 INTAKE_SYSTEM_PROMPT**（半人工流的 Step 4 prompt 模板也同步）：
+- [ ] **增强新架构 intake 规则文档库**（半人工流的 Step 4 prompt 模板也同步）：
   1. 先识别外墙边界（输出闭合多边形）
   2. 再读尺寸链数字（自检 `sum(segments) + 2 × wall ≟ total_width`）
   3. 再识别走廊（宽白连通区）
   4. 再识别楼梯 / WC / 电梯符号
   5. 综合为 zone 列表 + x/y 范围
   6. 再生成 surface 邻接矩阵（可机械推导）
-- [ ] 把 [new_case_guide.md §4.2](new_case_guide.md) Step 4 prompt 里临时补的 `Floor_N_*` 模板禁用规则正式合并进 INTAKE_SYSTEM_PROMPT
+- [ ] 把 [new_case_guide.md §4.2](new_case_guide.md) Step 4 prompt 里临时补的 `Floor_N_*` 模板禁用规则正式合并进 intake 规则文档库与运行时 intake 路径
 - [ ] 用 sm_16 重跑半人工流，与旧架构 sm_16 baseline 对账（zone 数 / 楼层 / 外包 / WWR / 特殊 zone 命中）
 - [ ] 落 `test_data/test_baseline/runs/<date>_capability_recovery_v1/notes.md`
 

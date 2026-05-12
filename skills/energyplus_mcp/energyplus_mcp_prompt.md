@@ -266,6 +266,18 @@ window is mandatory. Per-floor `sill_height / head_height` numbers may
 accompany it as auxiliary scratch, but world-z is the authoritative value the
 downstream geometry agent must consume.
 
+Note: the formulas above assume a single window per floor per facade
+(`N = 1`). When a floor has two or more windows stacked on the same facade
+(`N >= 2`, e.g. high window + low window on one wall), the right-side chain
+becomes `top_gap | win_h_N | inter_gap_{N-1} | win_h_{N-1} | ... | inter_gap_1
+| win_h_1 | sill_h_1`. For the general N-window case, including the
+`inter_gap` term and the per-window subscripted formulas, follow the
+authoritative version in
+[intake_output_contract.md](intake_output_contract.md) under
+`fenestration_specs > Right-side chain pattern (general)`. Self-check rule is
+the same in both files: `z_max_i - z_min_i` must equal that specific window's
+`win_h_i`, never `top_gap` or `inter_gap`.
+
 ### D5. Out-of-Scope for the Current Shared-Footprint Regime
 
 The current intake regime assumes **shared exterior footprint across floors**.

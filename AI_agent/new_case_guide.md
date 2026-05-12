@@ -1,6 +1,9 @@
-# 新建测试样例操作指南（2026-05-06 重写）
+# 新建测试样例操作指南（2026-05-06 重写，2026-05-12 B1 对齐）
 
 > 面向 [../test_data/SmallOffice/](../test_data/SmallOffice/) 下新增一个 SmallOffice 测试案例的标准流程。
+>
+> **2026-05-12 B1 对齐**：
+> - 跟 [plan.md B1](plan.md) "旧 skill 能力迁移 + 关键硬约束补强" 同步：Step 4 自检 checklist 加 per-floor window chain / absolute world z / cross-floor split-pairing 三条硬约束；§八 加入 sm_18 / sm_19 真踩过的两类典型坑
 >
 > **2026-05-06 重写背景**（详见 [CLAUDE.md §7.13](CLAUDE.md)）：
 > - 架构定位修订：本项目侧职责仅到 `IntakeOutput` Pydantic 对象；下游 9 个 subagent + simulate 由 [src/agent/graph.py](../src/agent/graph.py) 自动跑（[architecture.md](architecture.md) §1）
@@ -129,10 +132,18 @@ cp /path/to/South_view.png "test_data/SmallOffice/$case/South_view.png"
 
 ### 4.2 投递 prompt
 
-把下面整段（`---` 之间的部分）作为**第一条消息**贴给会话：
+把下面整段（`---` 之间的部分）作为**第一条消息**贴给会话。
 
 ```text
 请按 EnergyPlus-Agent 项目的 INTAKE 流程，从给定的建筑设计意图（文本 + 平面图 + 立面图）产出一个严格符合 IntakeOutput Pydantic schema 的 JSON。
+
+在开始产出前，你必须先读取以下规则来源，并把它们视为一个整体的 intake 规则库：
+- src/agent/nodes/intake.py
+- skills/energyplus_mcp/ 目录下全部 `.md` 文件
+
+其中：
+- `src/agent/nodes/intake.py` 负责定义 intake 的最小 system prompt 与规则库装配方式
+- `skills/energyplus_mcp/*.md` 是被 intake 引用的规则文档库，需整体遵守，不要只读其中一份
 
 Step 1：读取案例文件
 - 读 test_data/SmallOffice/smalloffice_17/testdata_prompt.json
@@ -140,21 +151,20 @@ Step 1：读取案例文件
 - 读 JSON 中非空的 {South|North|East|West}_view.png（空串路径或文件不存在 = 该朝向无窗，不要伪造）
 - 若 Floor plans 缺失但 Top view path of the building 非空，按 back-compat 视为各层共享平面
 
-Step 2：共享外包硬约束验证
-每张层平面独立读出 W_f, D_f，验证全部相等（容差 ≤0.01 m）。不一致 = 退台案例（当前不支持）→ 直接停下并告诉用户。
+Step 2：先执行共享外包与立面有效性检查
+- 每张层平面独立读出 W_f, D_f，验证全部相等（容差 ≤0.01 m）
+- 若任意楼层外包不一致，视为退台 / 多外包案例（当前不支持）→ 直接停下并告诉用户
+- 对每个立面，文件名朝向就是权威朝向；空串路径 / 缺文件 / 无蓝色窗矩形 = blank facade，不要伪造窗
 
-Step 3：遵循 INTAKE_SYSTEM_PROMPT 的 6 条规则
-完整规则见 src/agent/nodes/intake.py 第 34-109 行。摘要：
-- 名字格式仅 [A-Za-z0-9_]，禁空格/逗号/连字符/括号
-- 跨字段命名一致：surface/fenestration 引用的 construction 名必须在 construction_specs 里定义；hvac/people/lights 引用的 schedule 名必须在 schedule_specs 里定义；surface/people/lights/hvac 引用的 zone 名必须在 zone_specs 里定义
-- schedule_specs 必须完备：thermostat 的 heating/cooling 设定值 schedule、ideal_loads 的 availability、people 的 number_of_people / activity_level、lights 的 schedule_name 全部在 schedule_specs 里建出
-- 不允许 TBD / 空串 / "see above" 占位
-
-**额外硬约束（DeepSeek smoke test 2026-05-06 发现）：**
-- 所有 zone 名必须 enumerated（逐个列出），禁用 Floor_N_* 模板写法
-  - ✗ "Floor_N_South_Office for N in 2..5"
-  - ✓ "Floor_2_South_Office, Floor_3_South_Office, Floor_4_South_Office, Floor_5_South_Office"
-- 引用 zone 的 surface_specs / hvac_specs / people_specs / lights_specs 同样禁用模板，所有引用必须用具体名字
+Step 3：按规则库完成 intake
+- 使用单一世界坐标系：原点 = 共享外包西南内角，x 向右，y 向上，楼层 z 由立面层高链累加
+- 相信尺寸链数字，不要从像素反推长度
+- corridor / stair / WC / lift / lobby / service room 需要显式识别，不能被吞成普通 office
+- 所有 zone 必须逐个枚举，严禁 `Floor_N_*`、`for N in 2..5`、`typical floor` 一类模板压缩写法
+- `zone_specs` / `surface_specs` / `fenestration_specs` 必须足够具体，使下游可机械恢复几何与拓扑关系
+- `schedule_specs` 必须一次性写全，覆盖 thermostat / ideal_loads / people / lights 将引用的所有 schedule
+- 所有跨字段引用名必须逐字一致；所有名字只能用 `[A-Za-z0-9_]`
+- 不允许 TBD / 空串 / see above / etc. / 省略号等占位
 
 Step 4：输出
 返回**仅一个 JSON 对象**，符合 IntakeOutput schema：
@@ -164,6 +174,16 @@ Step 4：输出
 - 9 个 *_specs 是自然语言段（snake_case lowercase 的 top-level key）
 
 不要 markdown 代码块包裹，不要解释性 prose。
+
+完成后先自检（B1 强化必查项）：
+- 所有尺寸链是否闭合
+- 所有楼层是否共享同一 W × D
+- 所有 zone / schedule / construction 引用是否都有定义且逐字一致
+- 所有窗是否只落在真实非空立面、真实 exterior wall 上
+- **每个 facade 是否逐层独立读了 window chain**（不同楼层可以有不同窗数 / 不同分布 / 局部 blank）
+- **每个窗是否写出了 absolute world z_min / z_max**（含 z_floor offset，不只是相对的 sill / head）
+- **每个上下层 partition 错位处的 InterZone ceiling / floor 是否逐 piece 写出了 paired zone**（禁止 "split where needed" 这种软话）
+- 所有 fenestration 名是否在 fenestration_specs 单独成行 + 列出 facade 平面 + 父墙 (Wall_1..Wall_4) + absolute z 范围
 
 完成后用 Write 工具把这个 JSON 写到：
 test_data/SmallOffice/smalloffice_17/output/intake_output.json
@@ -356,6 +376,8 @@ Get-Content "$out/eplusout.end"           # 看 "EnergyPlus Completed Successful
 | `TestName` 写错（沿袭 sm_0/5 的 bug） | 评测脚本按目录名对不上 | 命名与目录严格一致 |
 | LLM 在几何阶段创建 schedule/lights/HVAC | 不再适用——新流程下 Step 5 自动跑 MEP 阶段，不存在"只几何不 MEP"的人工切分 | — |
 | 内墙跨区构造不对称 | OpenStudio 显示悬空 surface / EP Severe: InterZone not matched | 现在由 `cross_ref_complete` + `simulate` 检；看 `eplusout.err` 报错后回 Step 4 改 surface_specs |
+| Cross-floor split-pairing 写软（sm_18 真踩，2026-05-12） | `eplusout.err`: `RoofCeiling:Detailed="<F1_NW_CEILING_E>" references an outside boundary surface that cannot be found:<F2_N1_FLOOR_E>` → EP fatal | surface_specs 必须**逐 piece** 写出 paired zone（"Zone_F1_NW ceiling x 0.00 to 3.75 pairs with Zone_F2_N1 floor"），禁止 "split at combined breaks where needed" 这种软话。详见 [skills/energyplus_mcp/intake_output_contract.md "Cross-floor split-pairing"](../skills/energyplus_mcp/intake_output_contract.md) |
+| Upper-floor window 没加 z_floor offset（sm_19 真踩，2026-05-12） | EP 跑通但 `eplusout.err` 多个 `Base surface does not surround subsurface (CHKSBS), Overlap Status=Partial-Overlap`；OpenStudio 看上层窗位置错（落到地面或墙体外） | fenestration_specs 必须写**absolute world z_min / z_max**（含 z_floor offset），sill/head 仅为辅助 scratch。`z_min = z_floor + sill_height`、`z_max = z_floor + sill_height + window_height`。详见 [skills/energyplus_mcp/intake_output_contract.md `fenestration_specs`](../skills/energyplus_mcp/intake_output_contract.md) + [zonetool_prompt.md "Window Vertex Synthesis Templates"](../skills/energyplus_mcp/zonetool_prompt.md) |
 | 非深圳位置缺 EPW | `simulate` 节点报找不到 weather | 准备 `data/weather/<City>.epw`；脚本默认 `--epw data/weather/Shenzhen.epw` 可改 |
 | `uv.lock` 解析报错 `duplicate key "xxhash"` | `uv run` 启动失败 | `Remove-Item uv.lock` 让 uv 重建（约 45s） |
 | Step 5 中途崩溃想续跑 | LangGraph 用 `InMemorySaver`，进程退出即丢 checkpoint | 重新跑 Step 5 即可（intake 已落盘，不会重复扣 Opus 配额） |
@@ -366,13 +388,14 @@ Get-Content "$out/eplusout.end"           # 看 "EnergyPlus Completed Successful
 
 新流程下，**Step 4 仍是 Opus 主战场**——多模态识图准确率优化都集中在这里。Step 5 是机械跑 DeepSeek，主要看下游 subagent 的 prompt + tool-calling 稳定性，不是识图能力。
 
-后续目标（[plan.md B](plan.md)）：
-- B1 GT 数据集 + B2 IntakeOutput diff 评测脚本：直接对 Step 4 输出的 `intake_output.json` 做字段级 diff
-- B3 baseline 重建：固定 Step 4 prompt + 4 个有 GT 的 case，跑出 zone_f1 / 尺寸 / WWR 等指标
-- B4 CoT prompt 优化 / B5 PaddleOCR 预处理：Step 4 内部分步
-- B6 开源模型评测：Step 4 换成 Qwen2.5-VL 等本地模型 → 对比 Opus baseline
+后续目标（[plan.md B](plan.md)，2026-05-12 三阶段路线）：
 
-Step 5 的下游链路一旦在 sm_17 跑通即视为稳定，不再频繁迭代——后续工作的反馈环都在 Step 4。
+- **阶段 1 — B1 旧 skill 能力迁移**（识图建模硬约束补强）：本节直接受益项。Step 4 的 prompt 模板 + intake 规则文档库（[skills/energyplus_mcp/*.md](../skills/energyplus_mcp/)）一起承载迁移成果
+- **阶段 2 — B2 GT 数据集 / B3 IntakeOutput diff 评测脚本 / B4 Opus baseline + 校对方案 + token 协议**：直接对 Step 4 输出的 `intake_output.json` 做字段级 diff；用半人工流跑 4 个有 GT 的 case 给指标均值
+- **阶段 3 — B5 非方形 / B6 全局坐标退台挑空 / B7 规范化绘图**：Step 4 的能力扩展，超出当前矩形 + 共享外包假设
+- **远期 — B8 开源模型评测 / B9 LoRA SFT**：Step 4 换成 Qwen2.5-VL 等本地模型 → 对比 Opus baseline
+
+Step 5 的下游链路一旦在 sm_16_newarch 跑通即视为稳定，不再频繁迭代——后续工作的反馈环都在 Step 4。下游 subagent prompt 的演进归协作者侧（[CLAUDE.md §2.2](CLAUDE.md)）。
 
 ---
 
@@ -389,5 +412,7 @@ Step 5 的下游链路一旦在 sm_17 跑通即视为稳定，不再频繁迭代
 | 实验日志 | `AI_agent/experiments/<date>_<model>/` | `test_data/test_baseline/runs/<date>_<case>_<tag>/` |
 
 ---
+
+_2026-05-12 — 对齐 plan.md B1 强化：§四.4.2 Step 4 prompt 自检 checklist 加 3 条新硬约束（per-floor window chain / absolute world z / cross-floor split-pairing）；§八常见坑加 sm_18 / sm_19 两类真踩 bug + 对应 skill 文档定位；§九 Pivot 路线图重写以匹配 plan.md 现行 B1-B9 编号（B1=旧 skill 迁移已完成，B2-B4=评测基线，B5-B7=能力升级，B8-B9=Pivot）。_
 
 _2026-05-06 重写：固化半人工工作流（Claude Code intake + DeepSeek 下游）；删旧 §四挂 MCP 章节、改 §五成 run_full_pipeline.py 自动调用；§六验收改为 L1-L4 四层；§七留痕路径迁到 test_baseline/runs/；§八常见坑按新流程改写；§九/§十新增（Pivot 关系 + 新旧对照）。旧版备份在 [backup/new_case_guide.md.bak_2026-05-06](backup/new_case_guide.md.bak_2026-05-06)。_

@@ -31,6 +31,8 @@ class ImageContentPart(TypedDict):
 
 ContentPart = TextContentPart | ImageContentPart
 
+INTAKE_RULES_DIR = Path(__file__).resolve().parents[3] / "skills" / "energyplus_mcp"
+
 INTAKE_SYSTEM_PROMPT = """You are an EnergyPlus building-simulation intake specialist.
 Given a building description (text and optional architectural drawings —
 floorplan, elevation, section, axonometric, perspective, etc.), extract
@@ -43,70 +45,46 @@ inputs — `Top view (shared plan for every floor …)`). Trust those labels
 to assign each image to the correct floor or facade; do NOT re-infer the
 role from picture content.
 
-When multiple `Floor <k> plan view` images are present, treat each as the
-plan for that floor and read its internal partitioning independently.
-The exterior outline (W × D) is assumed identical on every floor in this
-revision; setbacks / cantilevers are out of scope. If the per-floor outer
-chains visibly disagree, flag it in the specs rather than silently picking
-one.
-
 You MUST invoke the IntakeOutput tool to return the structured JSON.
 Do NOT respond with a text/JSON message — always use the tool call.
-Fields:
-- `building`: BuildingSchema with name, terrain, convergence tolerances
-- `site_location`: SiteLocationSchema with latitude, longitude, time_zone, elevation
-- `*_specs`: one natural-language instruction string per subsystem agent
 
-Rules:
-1. If latitude/longitude are not given, infer from the city/region mentioned.
-2. Use reasonable office-building defaults when a parameter is missing
-   (e.g., tolerance 0.04, terrain 'City', solar distribution 'FullExterior').
-3. Each `*_specs` field must be concrete: list zone names, material types,
-   schedule patterns, etc. Do NOT output placeholders like 'TBD'.
-4. Internal consistency is CRITICAL — the phase agents work from your
-   specs. Names referenced across subsystems must MATCH EXACTLY
-   (case, underscores, everything):
-   - Constructions named in `surface_specs` / `fenestration_specs` must
-     be defined in `construction_specs` with the IDENTICAL name.
-   - Schedules named in `hvac_specs` / `people_specs` / `lights_specs`
-     must be defined in `schedule_specs` with the IDENTICAL name.
-   - Zones named in `surface_specs` / `people_specs` / `lights_specs` /
-     `hvac_specs` must be defined in `zone_specs` with the IDENTICAL name.
-   Pick names once, reuse them verbatim. No synonyms, no pluralization.
-5. Name format — EVERY Name field (building.name, site_location.name,
-   zone / material / construction / surface / fenestration / schedule /
-   thermostat / people / lights names) MUST use ONLY word characters
-   (letters, digits) with `_` as the ONLY word separator. NO spaces,
-   NO commas, NO semicolons, NO hyphens, NO slashes, NO parentheses.
-   IDF uses `,` and `;` as field delimiters; other punctuation causes
-   silent field shifts that crash EnergyPlus.
-   Examples:
-     ✓ "Shenzhen_CN", "Office_Zone", "ExtWall_Brick_EPS_Gypsum",
-       "Schedule_Office_Occupancy_Weekday"
-     ✗ "Shenzhen, China"     (comma)
-     ✗ "Office Zone 1"       (space)
-     ✗ "Wall-Assembly-A"     (hyphen)
-     ✗ "Schedule (Weekday)"  (parentheses)
-6. `schedule_specs` MUST be complete — every schedule referenced by a
-   downstream phase has to be described here, because the schedule
-   agent runs FIRST and will not be re-invoked. Checklist of schedule
-   types the downstream phases will request:
+The full intake rule library is appended below this preamble. Treat every
+appended markdown document as mandatory instructions. They jointly define:
+- how to read the drawings
+- how to preserve geometry and topology
+- how to write every `*_specs` field
+- which cases must fail fast instead of being silently normalized
 
-     Downstream field                              | Schedule type   | Unit
-     ----------------------------------------------|-----------------|------
-     thermostat.heating_setpoint_schedule_name     | Temperature     | degC
-     thermostat.cooling_setpoint_schedule_name     | Temperature     | degC
-     ideal_loads.system_availability_schedule_name | Fraction / OnOff| -
-     people.number_of_people_schedule_name         | Fraction        | -
-     people.activity_level_schedule_name           | Activity Level  | W/person
-     lights.schedule_name                          | Fraction        | -
-
-   For every row where the downstream phase is non-empty, `schedule_specs`
-   must (a) name the schedule, (b) state the schedule type limits it
-   uses, and (c) give the value profile (e.g. "weekdays 8-18 at 1.0,
-   else 0.0"). The activity_level schedule is commonly forgotten —
-   default ~120 W/person for seated office work.
+Return exactly one structured `IntakeOutput` object with these fields:
+- `building`
+- `site_location`
+- `zone_specs`
+- `material_specs`
+- `schedule_specs`
+- `construction_specs`
+- `surface_specs`
+- `fenestration_specs`
+- `hvac_specs`
+- `people_specs`
+- `lights_specs`
 """
+
+
+def _load_intake_rule_library() -> str:
+    docs = sorted(INTAKE_RULES_DIR.glob("*.md"))
+    if not docs:
+        raise RuntimeError(f"No intake rule documents found in {INTAKE_RULES_DIR}")
+
+    rendered_docs = []
+    for path in docs:
+        rendered_docs.append(
+            f"\n\n===== BEGIN RULE DOCUMENT: {path.name} =====\n"
+            f"{path.read_text(encoding='utf-8').strip()}\n"
+            f"===== END RULE DOCUMENT: {path.name} ====="
+        )
+
+    return "".join(rendered_docs)
+
 
 _IMAGE_SUFFIX_TO_MIME = {
     ".png": "image/png",
@@ -201,7 +179,11 @@ def intake_node(state: AgentState) -> AgentStateUpdate:
         dict[str, Any],
         llm.invoke(
             [
-                SystemMessage(content=INTAKE_SYSTEM_PROMPT + language_directive()),
+                SystemMessage(
+                    content=INTAKE_SYSTEM_PROMPT
+                    + _load_intake_rule_library()
+                    + language_directive()
+                ),
                 HumanMessage(content=cast("list[str | dict[str, Any]]", content_parts)),
             ]
         ),

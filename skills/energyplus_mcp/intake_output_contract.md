@@ -270,39 +270,106 @@ chain) may accompany the record as auxiliary scratch values, but they are
 range; if a record gives only sill / head numbers without the absolute z
 range, the record is incomplete.
 
-#### World-z formula (mandatory)
+#### Right-side chain pattern (general)
 
-For every window on floor `f` with finished-floor level `z_floor` and sill /
-head read off the elevation:
+A facade right-side chain alternates **gaps** and **windows**, read top-to-bottom:
 
 ```
-z_min = z_floor + sill_height
-z_max = z_floor + sill_height + window_height
+top_gap | win_h_N | inter_gap_{N-1} | win_h_{N-1} | ... | inter_gap_1 | win_h_1 | sill_h_1
 ```
 
-Worked example with `floor_height = 3.60 m`, `sill_height = 1.00 m`,
-`window_height = 1.80 m`:
+where `N` is the number of windows stacked on that floor (counted bottom-up,
+so `win_h_1` is the lowest window). Cases:
 
-- F1 (`z_floor = 0.00`) → `z_min = 1.00`, `z_max = 2.80`
-- F2 (`z_floor = 3.60`) → `z_min = 4.60`, `z_max = 6.40`
-- F3 (`z_floor = 7.20`) → `z_min = 8.20`, `z_max = 10.00`
+- `N = 0`: chain is just `floor_height` itself (no windows on this floor for
+  this facade — locally blank, write nothing).
+- `N = 1` (most common): chain has 3 segments — `top_gap | win_h_1 | sill_h_1`.
+- `N >= 2`: chain has `2N + 1` segments — gaps and windows alternate.
 
-Reason this is load-bearing: forgetting the `z_floor` offset and writing
-`z_min = 1.00, z_max = 2.80` for an upper-floor window produced
-`Base surface does not surround subsurface (CHKSBS), Overlap Status=
-Partial-Overlap` warnings for every upper-floor window in real EnergyPlus
-runs. The parent wall's z range is `[z_floor, z_floor + ceiling_height]`;
-the window's `[z_min, z_max]` must lie strictly inside it.
+Checksum (every floor with windows): the entire chain must sum to the
+`floor_height` (= `ceiling_height` of zones on that floor).
+
+#### Per-window world-z formula (mandatory, generalizes to N windows)
+
+For window `i` on floor `f` (counted bottom-up, `i = 1` = lowest):
+
+```
+z_min_i = z_floor + sill_h_1 + sum over k in [1..i-1] of (win_h_k + inter_gap_k)
+z_max_i = z_min_i + win_h_i
+```
+
+Self-check per window:
+
+```
+z_max_i - z_min_i  must equal  win_h_i
+```
+
+That is — only the chain segment **labelled as that specific window's
+height** sets `z_max - z_min`. `top_gap`, `inter_gap_*`, and `sill_h_*` are
+**different** chain segments and never participate in `z_max - z_min`.
+
+Worked example A (single window per floor, `N = 1`, all three floors
+same dimensions): `top_gap = 0.80, win_h_1 = 1.80, sill_h_1 = 1.00`,
+`floor_height = 3.60`. Chain sum 0.80 + 1.80 + 1.00 = 3.60 ✓.
+
+- F1 (`z_floor = 0.00`) → `z_min_1 = 1.00, z_max_1 = 2.80`, height 1.80
+- F2 (`z_floor = 3.60`) → `z_min_1 = 4.60, z_max_1 = 6.40`, height 1.80
+- F3 (`z_floor = 7.20`) → `z_min_1 = 8.20, z_max_1 = 10.00`, height 1.80
+
+Worked example B (single window, F3 corridor on a tall floor): `top_gap = 1.40,
+win_h_1 = 2.40, sill_h_1 = 1.00`, `floor_height = 4.80`. Chain sum 1.40 + 2.40
++ 1.00 = 4.80 ✓.
+
+- F3 (`z_floor = 7.20`) → `z_min_1 = 7.20 + 1.00 = 8.20`,
+  `z_max_1 = 8.20 + 2.40 = 10.60`, height 2.40
+
+**Common mistake to avoid (example B is exactly where this trips up)**:
+writing `z_max_1 = z_min_1 + top_gap = 8.20 + 1.40 = 9.60`. Wrong — `top_gap`
+is the segment between the top of the window and the ceiling, not the
+window's own height. The result is a window 1.40 m tall instead of 2.40 m
+tall, which downstream propagates into a too-short window in the IDF even
+though all other geometry is correct.
+
+Worked example C (two windows stacked on one floor, `N = 2`, demonstrates the
+inter_gap term): `top_gap = 0.50, win_h_2 = 1.20, inter_gap_1 = 0.40,
+win_h_1 = 1.20, sill_h_1 = 0.30`, `floor_height = 3.60`. Chain sum
+0.50 + 1.20 + 0.40 + 1.20 + 0.30 = 3.60 ✓.
+
+- F1 lower window (`i = 1`): `z_min_1 = 0 + 0.30 = 0.30`,
+  `z_max_1 = 0.30 + 1.20 = 1.50`, height 1.20
+- F1 upper window (`i = 2`): `z_min_2 = 0 + 0.30 + 1.20 + 0.40 = 1.90`,
+  `z_max_2 = 1.90 + 1.20 = 3.10`, height 1.20
+
+Both windows pass `z_max_i - z_min_i == win_h_i == 1.20`. Note how the upper
+window's `z_min_2` includes the lower window's height **and** the inter_gap
+between them; mixing inter_gap into `z_max_2 - z_min_2` would be the same
+class of mistake as the top_gap confusion in example B.
 
 #### Per-window self-check before writing the record
 
 Before writing each window record, verify in your head:
-- `z_min >= z_floor` (window doesn't sit below its floor)
-- `z_max <= z_floor + ceiling_height` (window doesn't poke above its ceiling)
+- `z_max_i - z_min_i == win_h_i` (the right chain segment, identified by the
+  inventory you wrote earlier — see Right-side chain pattern above)
+- `z_min_i >= z_floor` (window doesn't sit below its floor)
+- `z_max_i <= z_floor + ceiling_height` (window doesn't poke above its ceiling)
 - the parent wall named is exterior (not shared with another zone)
 - the facade plane matches the parent wall side per the Wall_1..Wall_4 mapping
+- for floors with `N >= 2` windows on the facade, every `z_min_i` correctly
+  includes the cumulative `win_h_k + inter_gap_k` for all `k < i`
 
 If any of these fails, the record is wrong; fix it before writing.
+
+Reason this is load-bearing: forgetting the `z_floor` offset, or confusing
+`top_gap / inter_gap / window_height` chain segments in the `z_max - z_min`
+calculation, both produce window vertices that fall outside the parent wall
+or have the wrong height in IDF. Real-case observations:
+
+- forgetting `z_floor` → `Base surface does not surround subsurface (CHKSBS),
+  Overlap Status=Partial-Overlap` warnings for every upper-floor window
+- confusing `top_gap` for `window_height` → windows in IDF appear at the
+  correct sill but ~half the intended height (silently — EnergyPlus accepts
+  it as a valid smaller window, OpenStudio reveals the geometric error on
+  visual inspection)
 
 ### `hvac_specs`, `people_specs`, `lights_specs`
 

@@ -123,12 +123,23 @@ def main() -> None:
         help="Stop after IDF generation; do not invoke EnergyPlus runner. "
         "Used for B0' surface-bug iteration (2026-05-07).",
     )
+    parser.add_argument(
+        "--output-subdir",
+        default="output",
+        help="Subdirectory under <case>/ for all artifacts (intake_output.json, "
+        "temp_*.yaml/.idf, eplusout.*, pipeline_run.log). Defaults to 'output'. "
+        "Use a different value (e.g. 'output_new') when re-running to compare "
+        "against a previous run without overwriting it. "
+        "Note: --intake-from is resolved relative to <case>/ as before; copy "
+        "intake_output.json into <case>/<output-subdir>/ first if you want the "
+        "new subdir to contain everything.",
+    )
     args = parser.parse_args()
 
     setup_logger(level="INFO")
 
     case_dir = Path("test_data/SmallOffice") / args.case
-    output_dir = case_dir / "output"
+    output_dir = case_dir / args.output_subdir
     output_dir.mkdir(parents=True, exist_ok=True)
 
     spec = json.loads((case_dir / "testdata_prompt.json").read_text(encoding="utf-8"))

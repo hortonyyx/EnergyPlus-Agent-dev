@@ -8,30 +8,63 @@ from src.agent.tools import make_surface_tools
 from src.agent.trace import TraceCollector, record_phase_trace
 
 SURFACE_SYSTEM_PROMPT = """You are a building geometry expert for EnergyPlus.
-Given surface specifications, create all BuildingSurface:Detailed objects
-(walls, floors, roofs, ceilings) with 3D vertex polygons.
+Given surface specifications + zone specifications, create all
+BuildingSurface:Detailed objects (walls, floors, roofs, ceilings) with
+3D vertex polygons.
 
 Vertices MUST be a list of dicts, each with explicit X / Y / Z keys (not
-a bare [x, y, z] list). Meters, in the global coordinate system. Example
-shape for a 5m x 2m south wall at y=0 (ground to 2m tall):
+a bare [x, y, z] list). Meters, in the global (world) coordinate system.
+
+## CRITICAL: per-floor z values come from zone_specs
+
+The user message starts with a `=== ZONE_SPECS ===` block followed by a
+`=== SURFACE_SPECS ===` block. Use them this way:
+
+- zone_specs gives you, for every zone, its `z_floor` (finished-floor level
+  in absolute world coords) and its `ceiling_height` (this floor's storey
+  height, can differ floor by floor — e.g. F1=3.60, F2=3.60, F3=4.80).
+- surface_specs gives you the adjacency / exterior-vs-interior / construction
+  / split-pairing semantics.
+
+For every wall vertex you write:
+    bottom z = z_floor of that zone
+    top z    = z_floor + ceiling_height of that zone
+Do NOT use a default 3 m floor height. Do NOT round z_floor down (3.60 m
+stays 3.60 m, not 3 m). Different floors may have different `ceiling_height`.
+
+For floor surfaces:    z = z_floor
+For ceiling/roof:      z = z_floor + ceiling_height
+For interzone floor/ceiling pair, the two zones MUST share the same z value
+on the shared boundary (lower zone's ceiling z == upper zone's floor z).
+
+Worked example. Zone `F2_S1` has `z_floor=3.60, ceiling_height=3.60` and
+x-range 0..5, y-range 0..3. Its south wall (CCW from outside) has vertices:
 
     [
-      {"X": 0.0, "Y": 0.0, "Z": 0.0},
-      {"X": 5.0, "Y": 0.0, "Z": 0.0},
-      {"X": 5.0, "Y": 0.0, "Z": 2.0},
-      {"X": 0.0, "Y": 0.0, "Z": 2.0}
+      {"X": 0.0, "Y": 0.0, "Z": 3.60},   # SW-top
+      {"X": 0.0, "Y": 0.0, "Z": 3.60 + 3.60},  # ← but actually start with bottom; see below
+      {"X": 5.0, "Y": 0.0, "Z": 3.60},
+      {"X": 5.0, "Y": 0.0, "Z": 7.20}
     ]
 
-Workflow:
+(Canonical CCW-from-outside order for a south wall observed from y<0 is
+top-left → bottom-left → bottom-right → top-right, so the actual order is
+`(0,0,7.20) → (0,0,3.60) → (5,0,3.60) → (5,0,7.20)`. The vital point is
+that bottom z = 3.60 and top z = 7.20, **not 3 and 6**.)
+
+## Workflow
+
 1. FIRST call `list_zones` to discover the exact zone names created by
    the zone phase.
 2. THEN call `list_constructions` to discover the exact construction
    names and their layer composition (helps you match the right
    construction to each surface type — wall / floor / roof / window).
-3. Create each surface via `create_surface`, reusing those names verbatim.
+3. Create each surface via `create_surface`, reusing those names verbatim
+   and using zone_specs' per-zone `z_floor` + `ceiling_height` for vertex z.
 4. Call `list_surfaces` once at the end to confirm.
 
-Rules:
+## Rules
+
 - `zone_name` and `construction_name` MUST appear verbatim in the
   list_zones / list_constructions results (exact case, underscores).
 - If a needed zone or construction is missing after list, STOP and
@@ -67,9 +100,20 @@ def surface_agent(state: AgentState) -> AgentStateUpdate:
         trace_collector=collector,
     )
 
-    specs = (
-        state.intake_output.surface_specs if state.intake_output else state.user_input
-    )
+    # 2026-05-12: bundle zone_specs + surface_specs so the agent can read each
+    # zone's z_floor / ceiling_height for wall vertex Z (see SURFACE_SYSTEM_PROMPT
+    # "per-floor z values come from zone_specs"). Previously surface_agent only
+    # saw surface_specs → defaulted to 3 m floors → upper-floor windows fell
+    # outside their parent wall and EP emitted CHKSBS partial-overlap warnings.
+    if state.intake_output:
+        specs = (
+            "=== ZONE_SPECS (read each zone's z_floor and ceiling_height) ===\n"
+            f"{state.intake_output.zone_specs}\n\n"
+            "=== SURFACE_SPECS (adjacency / exterior / construction / pairings) ===\n"
+            f"{state.intake_output.surface_specs}"
+        )
+    else:
+        specs = state.user_input
     result = invoke_with_self_repair(agent, local, specs, phase="surface")
 
     final = [
