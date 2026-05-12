@@ -1,603 +1,362 @@
-# EnergyPlus Geometry Builder
+# EnergyPlus Intake Geometry Rules
 
-## Role & Scope
+## Scope
 
-You are an EnergyPlus geometry engineer. Your goal in this phase is to produce a **geometrically correct** YAML/IDF that contains **only**:
-- `Building` + `Site:Location` + `GlobalGeometryRules`
-- `Zone` + `BuildingSurface:Detailed` + `FenestrationSurface:Detailed`
+This document is loaded in full by the intake prompt together with every other
+markdown file in this directory. Treat the whole directory as one mandatory
+rule library.
 
-**Stop after exporting YAML.** Materials, Constructions, Schedules, People, Lights, and HVAC are handled in a separate **MEP phase**. In this phase use placeholder construction names (`Default_Ext_Wall`, `Default_Int_Wall`, `Default_Window`); do **not** create Material, Construction, Schedule, People, Lights, or HVAC objects.
+It governs how intake reads building text plus architectural drawings and turns
+that evidence into `IntakeOutput` natural-language specs. This is **not** an MCP
+execution workflow. Do not rely on tool calls, YAML export steps, or image
+annotation scripts here.
 
-The output of this phase is verified visually in OpenStudio's 3D viewer; full EnergyPlus simulation requires the MEP phase.
+## Core Principles
 
----
-
-## Input Formats
-
-Users will provide test data in one of two formats.
-
-**Format A (Standard Format):** A JSON file (typically `testdata_prompt.json`) containing text information and file paths for:
-- **per-floor plans** (required) — one image per floor under the `"Floor plans"` array; each entry has `{"floor": <k>, "path": "<k>f_view.png", "thermal_zones": <int>}`. The number of entries equals `"Number of floors"`. Legacy single-image input (`"Top view path of the building"` → `top_view.png`) is still accepted for back-compat: if present, treat it as the plan for **every** floor (i.e., all floors share identical internal partitioning).
-- up to four **facade elevations** (each optional) keyed by compass direction — `South_view.png`, `North_view.png`, `East_view.png`, `West_view.png`
-- an optional **supplementary plan** image (cross-section, axonometric, etc.)
-
-Facade images are **named by the direction they face**, not by "front / back / side". The corresponding JSON fields are `"South view path of the building"`, `"North view path of the building"`, `"East view path of the building"`, `"West view path of the building"`. **Empty string means that facade was NOT provided → it must be treated as a blank facade with no windows** (see §D4 blank-facade rule). Do not invent windows for missing facades.
-
-> ⭐ **Hard constraint — shared exterior footprint across floors.**
-> Every floor plan MUST share the **same** outer rectangular footprint `W × D` (i.e., identical x-axis overall length and y-axis overall depth). Only the **internal partitioning** (zone count, zone shapes, corridor placement) may vary between floors. If the input images show different exterior outlines per floor (setbacks, cantilevers, atria), STOP and ask the user — multi-footprint / setback support is out of scope for this revision.
-
-**Format B (Simplified Format):** A directory containing numbered image files (1.png, 2.png, 3.png, etc.) without a JSON file.
-
-You need to create the YAML/IDF using the MCP tools provided. If error messages appear during creation, modify according to the error messages.
-
-## Important Notes
-
-You need to strictly generate content based on the text or image information provided by the user. **If you lack necessary geometric information, you need to ask the user instead of brainstorming on your own.**
-
-If reading images, do not use a browser to read them; instead, read the images directly with the Read tool.
+1. Extract only what the text and drawings support. Do not invent geometry.
+2. Trust dimension-chain numbers over pixel measurement.
+3. Use one building-wide world coordinate system.
+4. Preserve per-floor differences in internal partitioning.
+5. Unsupported setbacks / cantilevers / atria must not be silently normalized.
+6. Make intermediate geometric facts explicit in your internal derivation before
+   writing the final specs.
 
 ---
 
-## Zone Granularity Policy
+## Input Package
 
-**Default: Model every enclosed room as an individual thermal zone.**
+### Format A (current standard)
 
-Unless the user explicitly requests a simplified (grouped) model, each physically distinct room separated by walls must be its own thermal zone. This includes:
-- Every individual office room
-- Corridors (one zone per floor per corridor segment)
-- Staircases / elevator shafts
-- Toilets / service rooms
-- Storage rooms
-- Lobby / entrance halls
+Expect a `testdata_prompt.json` with:
+- required per-floor plans under the `Floor plans` array, or legacy single-plan
+  fallback via `Top view path of the building`
+- optional `South_view.png`, `North_view.png`, `East_view.png`, `West_view.png`
+- optional supplementary drawing (`supp_plan.png`, section, axonometric, etc.)
 
-**Grouped zone model** (multiple rooms merged into one zone) should only be used when the user explicitly asks for it (e.g., "group the north-side offices into one zone").
+### Image Labels Are Authoritative
 
-### Reading Room Boundaries from Floor Plan Dimensions
-
-Horizontal dimension strings in Chinese architectural drawings typically mark **column/wall-centre-line spacings**. Follow these steps to extract individual room widths:
-
-1. **Identify the primary dimension string** (usually the one that sums to the full building width). Verify: sum of all segments + 2 × exterior-wall-thickness = total building width.
-2. **Identify intermediate dimension strings** (shorter strings above/below the primary one). These mark internal partition positions within a zone strip.
-3. **Convert to cumulative x-positions** (room boundary x-coordinates from the west interior face):
-   ```
-   x₀ = 0  (west interior face)
-   xᵢ = xᵢ₋₁ + segment_i
-   ```
-4. **Each pair of consecutive x-positions with a visible wall between them** defines one room's width.
-5. **Repeat for vertical (Y) dimensions** to get room depths.
-
-**Example:** A north strip with dimension string `3600 | 1500 | 2400 | 5000 | 2400 | 1500 | 3600` (total 20 000 mm interior) yields x-boundaries: 0, 3600, 5100, 7500, 12500, 14900, 16400, 20000. Rooms are defined between consecutive boundaries **where internal walls exist** in the plan.
+If the surrounding prompt labels an image as `Floor <k> plan view`,
+`South facade elevation`, etc., trust that label to assign the image's role.
+Do **not** re-infer floor number or facade orientation from the picture alone.
 
 ---
 
-### ⭐ Specialized CAD-style Drawing Conventions (baseline input style)
+## Mandatory Internal Derivation Order
 
-The project's baseline test-case inputs follow a fixed CAD-style drawing convention. All rules below concern the **drawing style**, not any particular building's dimensions or zoning. Apply them to every input that follows this style; trust the dimension chain values verbatim — do not re-measure from pixels.
+Before you write the final `IntakeOutput`, you must internally complete the
+following derivation stages in order. Do not jump directly from image impression
+to final prose.
 
-#### D1. Unit & Number Format
-- **All numbers are in meters, written with 2 decimal places** (e.g., `15.00`, `3.60`, `0.80`).
-- No unit suffix appears next to any number. **Every number is meters**, never millimeters.
-- Use the values as-is when calling `create_zone` / `create_fenestration_surface` — those MCP tools accept meters.
+1. **Input validation**
+   - verify which floor plans exist
+   - verify which facades are present vs. blank
+   - verify whether a supplementary drawing exists
+2. **Shared-footprint check**
+   - read each floor's outer `W_f, D_f`
+   - verify all floors share the same `W × D`
+3. **Dimension extraction**
+   - read x/y segment chains per floor
+   - read floor-height and window-height chains per facade
+   - perform all required checksum tests
+4. **Room enumeration**
+   - enumerate every enclosed space on every floor before assigning roles
+5. **Role assignment**
+   - classify each space as office / corridor / stair / lift / WC / lobby /
+     storage / service room / other
+6. **Coordinate synthesis**
+   - derive per-floor `xs_f / ys_f`
+   - derive each zone's x-range, y-range, `z_floor`, and ceiling height
+7. **Topology synthesis**
+   - derive floor-by-floor adjacency and exterior / interior boundaries
+8. **Fenestration synthesis**
+   - derive every explicit window instance with facade, parent zone, wall side,
+     span, sill, and head height
+9. **Final output assembly**
+   - only now write the 11-field `IntakeOutput`
 
-#### D2. Dimension Chain Topology
-Every axis has a pair of parallel chains:
-- **Outer chain (overall)**: a single dimension equal to the total length along that axis. Use it as a checksum.
-- **Inner chain (segments)**: individual segment lengths that partition the total into meaningful spans (zones, window openings, floor heights, etc.).
-
-**Checksum rule**: `sum(inner segments) == outer total`. A mismatch means the chain was misread — stop, re-inspect the image, do not proceed to zone derivation.
-
-#### D3. Per-Floor Plans (`{k}f_view.png`, one per floor)
-
-The input may now provide **one plan per floor** (`1f_view.png`, `2f_view.png`, …), or a single legacy `top_view.png` shared by all floors. The legend, axes, and dimension-chain conventions below apply identically to **every** floor plan. The world origin and outer footprint are anchored once and reused on every floor (see §D3.1).
-
-- **Visual legend**:
-  - Thick solid black line = wall (exterior or partition).
-  - Light-gray fill between two black lines = wall body.
-  - White rectangle enclosed by black walls = an interior space (room or corridor).
-- **Axes**: x = horizontal, left → right; y = vertical, bottom → top. **Bottom-left inner corner of the building footprint = world origin (0, 0)**, shared across **all** floors.
-- **Room vs Corridor rule**: a **long narrow white strip that spans the full building width (or full depth) between two parallel partition lines** is a **corridor**. Shorter rectangles opening off the corridor are **rooms**. This rule is geometric, not color-based, and is applied independently on each floor.
-- **Dimension chains**: placed outside the building on all four sides. Two parallel chains per axis — outer = total, inner = segments. Segment chains may be asymmetric between the top/bottom or left/right sides when the plan is asymmetric; in that case, read each chain separately and build x and y boundary arrays independently.
-- **Wall thickness is drawn but dimensions measure interior spans directly** — treat each segment as an inside-to-inside length; do not add/subtract wall thickness.
-
-##### D3.1 Shared-footprint invariant across floors
-
-The current revision assumes **identical exterior outlines on every floor**. Concretely:
-
-- **Outer chain identity**: for any two provided floor plans `f` and `g`, `W_f == W_g` and `D_f == D_g`. This is a hard checksum — read each floor's outer chain independently, then verify equality. If they disagree by more than a rounding artefact (≤0.01 m), STOP: either you misread one chain, or the case has setbacks (out of scope).
-- **Inner chains may differ**: x-segment and y-segment chains can vary per floor (e.g., F1 has a 7-room layout while F2 has 8 rooms). Build `xs_f`, `ys_f` independently per floor.
-- **Single world origin**: Z = 0 corresponds to the FFL of Floor 1; upper floors stack at `z_f = Σ_{k<f} h_k` from the elevation view's left chain. (x, y) = (0, 0) is the SW interior corner of the shared footprint, used by every floor.
-- **Setback / cantilever / atrium**: not supported in this revision. If the plans visibly disagree on outer extent, ask the user before proceeding.
-
-#### D4. Facade Elevations (`South_view.png` / `North_view.png` / `East_view.png` / `West_view.png`)
-
-Each provided facade file depicts **one** facade, named by the direction that facade FACES. The file naming pins the plane (see §D5); do not re-infer the orientation from image content.
-
-- **Visual legend**:
-  - Light-gray fill = opaque wall.
-  - Blue filled rectangle = window (fenestration).
-  - Thin black horizontal line across the middle = floor separator between floors.
-- **Left chain (vertical)**: floor heights, listed **top-to-bottom**. For an n-floor building there are n segments; their sum equals the building's total height. The left chain on every facade image must be identical; treat the union as one value per floor.
-- **Right chain (vertical, per floor)**: sub-heights of this facade's opening layout for one floor, listed **top-to-bottom**:
-  - First segment = distance from ceiling to **window head** (top-gap above window).
-  - Second segment = **window height** (= head − sill).
-  - Third segment = **sill height** (from window bottom to FFL of same floor).
-  - Checksum: `top_gap + window_height + sill_height == floor_height`.
-  - If a facade on a given floor has no window, the right chain may be omitted for that floor — that facade on that floor is blank.
-- **Bottom chain (horizontal)**: window horizontal placement along the facade. Pattern is `edge_gap | (window | inter_gap){k−1} | window | edge_gap` for k windows. Sum must equal the top-view **overall width** (for South / North facades, whose horizontal axis is x) or **overall depth** (for East / West facades, whose horizontal axis is y).
-- **Absolute window Z coordinates** (for a floor with FFL `z_floor`):
-  ```
-  window_sill_z = z_floor + sill_height
-  window_head_z = z_floor + sill_height + window_height
-  ```
-  Worked two-floor example with `floor_height = 3.60`, `sill_h = 1.00`, `win_h = 1.80`:
-  - F1 (`z_floor = 0.00`)   → `sill_z = 1.00`,   `head_z = 2.80`
-  - F2 (`z_floor = 3.60`)   → `sill_z = 4.60`,   `head_z = 6.40`
-
-  Upper floors **must** add `z_floor`; forgetting it drops the window onto the ground floor.
-- **Blank-facade rule** — triggers in either case:
-  1. A facade elevation file is provided but contains **no blue rectangles** → that facade has **no fenestration on any floor**.
-  2. A facade elevation file is **not provided** (its JSON path is empty or the file does not exist) → assume that facade is blank on every floor.
-
-  In both cases, emit **zero** `create_fenestration_surface` calls for that facade. Do not invent windows.
-
-#### D5. Filename → Facade → Plane Mapping
-
-The facade file name is authoritative. Do **not** re-derive orientation from image content or from where the user says they "took" the view.
-
-| Elevation file | Facade faces | Parent wall plane | Observer (for CCW-from-outside vertex order) |
-|---|---|---|---|
-| `South_view.png` | South | `y = 0`      | `y < 0` looking +y (north) |
-| `North_view.png` | North | `y = y_max`  | `y > y_max` looking −y (south) |
-| `East_view.png`  | East  | `x = x_max`  | `x > x_max` looking −x (west) |
-| `West_view.png`  | West  | `x = 0`      | `x < 0` looking +x (east) |
-
-Any facade whose file is missing → blank on every floor (§D4 blank-facade rule). There is no "front / side / back" synonym; use the compass direction.
-
-#### D6. Self-check Before Calling `create_zone` or `create_fenestration_surface`
-For every zone and window derived from the chains:
-1. **Sum identity**: sum of inner segment chain == outer total (per axis, per view).
-2. **Facade Z checksum**: per floor, `top_gap + window_height + sill_height == floor_height`.
-3. **Footprint coverage**: sum of all zone floor areas on floor `f` == `W × D` (the shared outer footprint from §D3.1, identical on every floor). Apply this check independently for every floor.
-4. **No gaps, no overlaps** along shared zone boundaries — checked per floor, since internal partitioning may differ between floors while the outer footprint is identical.
-5. **CCW vertex order** (see `zonetool_prompt.md` §M5 for the signed-area test).
-6. **Fenestration Table non-emptiness**: if at least one facade elevation image contains blue rectangles, the Fenestration Table must have at least one row. If all four facades are blank (either not provided or explicitly no blue rectangles), state this fact explicitly in the Fenestration Table section — do not leave it as an unexplained empty table.
-7. **Window parent-wall mapping**: every Fenestration Table row's parent `<zone>_Wall_<i>` must match the §M7 Wall-index → Facade mapping in `zonetool_prompt.md` (Wall_1=South, Wall_2=East, Wall_3=North, Wall_4=West).
-
-If any check fails → re-read the chain, do not call the tool with wrong numbers.
+If any earlier stage is uncertain or fails a checksum, do not compensate by
+writing vague final specs.
 
 ---
 
-### Per-Room Zone Naming Convention
+## Zone Granularity
 
-Use a consistent naming scheme that encodes floor, zone strip, and index:
+Default rule: **every enclosed room is its own thermal zone** unless the user
+explicitly asks for a grouped model.
 
-```
-Zone_F{floor}_{strip}{index}
-```
+This includes:
+- individual offices
+- corridor segments
+- staircases
+- lift / elevator shafts
+- WC / toilets
+- storage / service rooms
+- lobbies / entrance halls
 
-| Token | Meaning | Example values |
-|-------|---------|----------------|
-| `F{floor}` | Floor number | F1, F2, F3 … |
-| `{strip}` | Zone strip | N (north), C (corridor), S (south), E (east), W (west) |
-| `{index}` | Room index in strip, numbered W→E or N→S | 1, 2, 3 … |
+### Room Enumeration Before Geometry Synthesis
 
-Special zones use descriptive suffixes:
+Before assigning coordinates or writing `zone_specs`, first enumerate every
+visually enclosed space floor by floor. This replaces the old annotate step's
+main function.
 
-| Zone type | Naming example |
-|-----------|---------------|
-| Staircase | `Zone_F1_Stair` |
-| Elevator shaft | `Zone_F1_Lift` |
-| Entrance lobby | `Zone_F1_Lobby` |
-| Toilet / WC | `Zone_F1_WC` |
-| Corridor | `Zone_F1_C` or `Zone_F1_C1`, `Zone_F1_C2` if split |
+Required discipline:
+- first list all enclosed spaces you can see on a floor
+- then assign semantic roles to those spaces
+- only then derive coordinates and adjacency
 
-### Handling Non-Rectangular and Multi-Level Rooms
+Do not let coordinate derivation skip room enumeration. Missing rooms early will
+propagate into broken surfaces and windows later.
 
-- **L-shaped rooms**: Split the L into two rectangular zones and treat them as adjacent (share an internal wall).
-- **Staircase shaft spanning multiple floors**: Model the staircase floor-by-floor — one zone per floor for the staircase footprint. Each staircase zone on adjacent floors shares a ceiling/floor surface.
-- **Room crossing strip boundaries**: If a physical room spans (e.g.) both the "north strip" and "corridor strip" depths, it should be modelled as **one zone** with a depth equal to the combined span. The zone boundaries of adjacent rooms must be adjusted accordingly.
+### Corridor Recognition
+
+A corridor is a **long narrow white strip** spanning the full building width or
+full building depth between parallel partition lines. This is a geometric rule,
+not a color heuristic. Shorter enclosed spaces opening off that strip are rooms.
+
+### Special Spaces
+
+Do not merge stairs, lifts, WC, lobby, or service rooms into generic office
+zones when they are visibly distinct in plan.
+
+### Non-Rectangular Room Handling
+
+If a physical room crosses the strip decomposition implied by dimension chains,
+model it as **one room** with the combined span. Do not force a false split
+just because two chains are easier to read separately.
 
 ---
 
-## Workflow
+## CAD-Style Drawing Convention
 
-### Step 0: Identify Data Format
+The project's baseline cases use a fixed CAD-style drawing convention. Apply the
+following rules whenever the drawings match that style.
 
-First, check the provided directory to determine which format you're working with:
+### D1. Units
 
-**Format A (Standard Format):**
-- Look for a JSON file (typically named `testdata_prompt.json` or similar)
-- If found, read the JSON file to get building information and image paths
+- All dimension-chain numbers are in **meters**.
+- Numbers are typically written with two decimal places.
+- Do not reinterpret them as millimetres.
 
-**Format B (Simplified Format):**
-- If no JSON file exists, look for numbered image files (1.png, 2.png, 3.png, etc.)
-- Read all available numbered images to understand the building structure
+### D2. Dimension Chains
 
-### Step 1: Read and Analyze Images
+For each axis:
+- the **outer chain** is the total length
+- the **inner chain** is the segment partition of that same total
 
-**For Format A:**
-Read the test JSON file provided by the user. Then iterate over the image-path fields:
+Hard checksum:
 
-1. **Floor plans** — required. Read `"Floor plans"` if present (an array of `{floor, path, thermal_zones}` entries) and read **every** entry's `path`. Otherwise fall back to the legacy `"Top view path of the building"` field and treat it as the plan for every floor (see §1 Format A back-compat note). Verify that the number of plan entries equals `"Number of floors"`.
-2. Four facade fields — `"South view path of the building"`, `"North view path of the building"`, `"East view path of the building"`, `"West view path of the building"` — each is **optional**. For each field:
-   - If the value is a non-empty string AND the file exists → read it and parse it per §D4.
-   - If the value is an empty string OR the file does not exist → record that facade as **blank on every floor** and do **not** read any image for it.
-3. `"Path of the supplementary plan example drawing for the building"` — read if non-empty.
+`sum(inner segments) == outer total`
 
-Explicitly log which facades are provided vs. blank in the Dimension Extraction section of `claude_ep.md`. The filename direction (§D5) pins each elevation's plane — do not re-infer it from content.
-
-**For Format B:**
-Read all numbered image files in the directory. The images may include:
-- Building floor plans (top views)
-- Building elevations (one per compass direction: south / north / east / west)
-- Cross-sections
-- Detail views
-
-Analyze each image to understand the building's geometry, zones, and structure.
+If the checksum fails, re-read the drawing. Do not continue with guessed values.
 
-### Step 1.5: Extract Dimension Chains (for CAD-style inputs)
-
-When the input images follow the CAD-style convention (see §D1–D6 above), perform a dedicated dimension-extraction pass **before** any annotation or coordinate reasoning:
-
-1. **Per-floor plans** (one or more provided):
-   - For **each** floor `f` (1 … N_floors), read its plan image and record:
-     - Overall width `W_f` and depth `D_f`.
-     - x-segment and y-segment chains; verify segment-sum == overall for each axis.
-     - Cumulative x-boundary array `xs_f` and y-boundary array `ys_f`.
-   - **Cross-floor checksum** (§D3.1 invariant): for any two floors `f, g`, assert `W_f == W_g` and `D_f == D_g` (tolerance ≤0.01 m). If unequal, STOP — either a chain was misread or the case has setbacks (unsupported in this revision; ask the user).
-   - Set the building-wide `W = W_1`, `D = D_1` after the checksum passes.
-2. **For each of the four facades** (South / North / East / West), check whether its elevation file was provided in Step 1:
-   - **Provided** → parse per §D4:
-     - Record the floor-height chain (left side) — verify it sums to the total building height, and that it matches the chains read from any other provided facades.
-     - For each floor that has a window: record the window sub-height chain (right side) and verify `top_gap + window_height + sill_height == floor_height`.
-     - Record the window horizontal placement chain (bottom side). For South / North facades this sum must equal `W`; for East / West facades it must equal `D`.
-   - **Not provided OR no blue rectangles** → mark the facade as **blank on every floor**. Do not fabricate a window chain.
-3. Write all extracted numbers into `claude_ep.md` **under a dedicated "Dimension Extraction" section** (see Step 3) before deriving any zone boundaries. The section must include one sub-heading per facade (four sub-headings total) so the blank vs. provided status of each facade is explicit.
+### Required Internal Dimension Extraction
 
-### Step 2: Annotate Images with Zone Labels (REQUIRED FIRST STEP)
+Even though intake no longer writes `claude_ep.md`, you must still internally
+recover the same class of geometric facts that the old workflow externalized.
+Before producing final specs, determine:
+- per-floor `W_f`, `D_f`
+- per-floor x-segment chain and y-segment chain
+- per-floor cumulative boundary arrays `xs_f`, `ys_f`
+- corridor strip position on each floor
+- per-facade floor-height chain
+- per-window facade placement chain, sill height, and head height
 
-**Before creating the claude_ep.md file, you MUST first annotate the building images with zone labels.** This step is crucial for accurate zone identification and coordinate extraction.
+The final `zone_specs`, `surface_specs`, and `fenestration_specs` must reflect
+these extracted values, not vague visual guesses.
 
-**For Format A:**
-- Iterate over **every** entry in `"Floor plans"` (or, in legacy single-image inputs, the one `"Top view path of the building"`). Each plan needs its own annotated copy.
-- Each plan image shows one floor's layout from above; do not annotate facade images here.
+### D3. Per-Floor Plans
 
-**For Format B:**
-- Identify which numbered image(s) contain the floor plan view
-- Usually the first or second image (1.png or 2.png) contains the floor plan
-- Look for images showing the building layout from above
+For each floor plan:
+- thick black lines = walls
+- light-gray fill between black lines = wall body
+- white enclosed regions = rooms or corridors
+- x increases left → right
+- y increases bottom → top
 
-#### 2a — Read and inspect the image first
+The building-wide world origin is the **southwest inner corner** of the shared
+footprint.
 
-Use the Read tool to open each per-floor plan image visually. Note its full pixel dimensions and roughly locate the building within the image (buildings are often small, centered on a larger canvas). Confirm the §D3.1 invariant before annotating: every floor's outer chain must reproduce the same `W × D`.
+### D3.1 Shared-Footprint Invariant
 
-#### 2b — Annotate the full image (keep dimension chains visible)
+Every floor must share the same outer rectangular footprint `W × D`.
+Internal segmentation may differ floor by floor, but the outer totals must
+satisfy:
+- `W_f == W_g`
+- `D_f == D_g`
+for all floors `f, g` (tolerance ≤ 0.01 m).
 
-**Do NOT crop the image.** The outer dimension chains (e.g. the `5.00 | 5.00 | 5.00` row below the plan, the `3.00 | 2.00 | 3.00` column beside it) are the *primary evidence* for every downstream coordinate, so they must remain visible in the annotated image for human review. Earlier revisions of this skill used a 6× crop+upscale — that produced a multi-megapixel image whose dimension chains were cropped out or fell outside any practical viewport. **Obsolete — do not reintroduce.**
+If the per-floor outer chains disagree, treat the case as unsupported in the
+current revision. Do not silently pick one floor's footprint.
 
-Instead: annotate on the full canvas. If the original image is small enough that labels overlap walls, upscale at most **2×** (NEAREST). Use white-background label boxes so text stays legible over any background color.
+### D4. Facade Elevations
 
-**Output path:** `<case_dir>/output/floor{k}_annotated.png` — one annotated PNG per floor `k`. Every derived artefact goes under `output/`, never next to the input PNGs. (Legacy single-plan inputs may save as `top_view_annotated.png` for back-compat, but new multi-floor inputs MUST use `floor{k}_annotated.png`.)
+Facade filenames are authoritative:
+- `South_view.png` → south facade
+- `North_view.png` → north facade
+- `East_view.png`  → east facade
+- `West_view.png`  → west facade
 
-Run the annotation script **once per floor**, with `IMG_PATH`/`OUT_PATH` set to the per-floor plan and its annotated output, and the `zones` dictionary populated with that floor's zone labels (`Zone_F{k}_*`). Do NOT reuse one floor's zone dictionary for another floor — internal partitions vary per floor.
+Do not reinterpret orientation from picture content.
 
-```bash
-python3 -c "
-from PIL import Image, ImageDraw, ImageFont
+For provided facades:
+- left vertical chain = floor heights
+- right vertical chain = `top_gap | window_height | sill_height`
+- bottom horizontal chain = window placement along the facade
 
-IMG_PATH   = 'PATH_TO_IMAGE'   # absolute path to {k}f_view.png (or top_view.png in legacy)
-OUT_PATH   = 'PATH_TO_OUTPUT'  # absolute path to <case_dir>/output/floor{k}_annotated.png
+Hard checksum on each floor with windows:
 
-# --- 1. Open and inspect ---
-img = Image.open(IMG_PATH)
-print('Original size:', img.size)   # note W x H
+`top_gap + window_height + sill_height == floor_height`
 
-# --- 2. Do NOT crop. Optional gentle upscale (≤2×) only if labels would collide with walls. ---
-SCALE = 2                                       # set to 1 if original is already large
-big = img.resize((img.width * SCALE, img.height * SCALE), Image.NEAREST) if SCALE > 1 else img.copy()
-draw = ImageDraw.Draw(big)
+### D4.1 Blank Facade Rule
 
-# --- 4. Load font (falls back to default if not found) ---
-try:
-    font = ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf', 22)
-except Exception:
-    font = ImageFont.load_default()
-
-# --- 5. Define zones ---
-# Coordinates are in the *output* image (post-SCALE, no crop).
-# Formula: scaled_x = orig_x * SCALE
-# Identify all rooms AND corridors (long narrow white strips between room rows/cols
-# are corridors, not just walls).
-zones = {
-    'Zone1_NW':    (x1, y1),   # replace with actual pixel centres in the output image
-    'Zone2_NE':    (x2, y2),
-    'Corridor_F1': (xc, yc),   # include corridors as separate zones
-    # ... one entry per zone/corridor
-}
-
-# --- 6. Draw labels with white background for readability ---
-MARGIN = 4
-for name, (x, y) in zones.items():
-    bbox = draw.textbbox((0, 0), name, font=font)
-    tw, th = bbox[2] - bbox[0], bbox[3] - bbox[1]
-    draw.rectangle(
-        [x - tw//2 - MARGIN, y - th//2 - MARGIN,
-         x + tw//2 + MARGIN, y + th//2 + MARGIN],
-        fill='white', outline='red'
-    )
-    draw.text((x - tw//2, y - th//2), name, fill='red', font=font)
-
-big.save(OUT_PATH)
-print('Annotated image saved to:', OUT_PATH)
-"
-```
-
-**Critical guidelines for image annotation:**
-
-1. **Read the image first** with the Read tool — do not guess dimensions or building position.
-2. **Label every individual room separately** — do not group multiple rooms into one label. Every enclosed room separated by walls gets its own zone label. Read the floor plan dimensions to find all internal wall positions first.
-3. **Identify corridors carefully** — a long narrow white strip separating rows or columns of rooms is a corridor zone, not a wall. Walls are thin black lines; corridors are wider white spaces that satisfy the geometric rule in §D3.
-4. **Identify staircases and service rooms** — staircase symbols (parallel lines with arrows), toilet symbols, and storage rooms are all separate thermal zones.
-5. **Do NOT crop** — annotate on the full canvas so the outer dimension chains (`5.00|5.00|5.00`, `3.00|2.00|3.00`, etc.) remain visible for review. Upscale at most 2× (NEAREST) only if label boxes collide with walls.
-6. **Use white-background label boxes** (`draw.rectangle` + `draw.text`) so labels are legible over any background.
-7. **Name zones using the per-room convention**: `Zone_F1_N1`, `Zone_F1_N2`, `Zone_F1_Stair`, `Zone_F1_C`, `Zone_F1_S1` … (see Zone Granularity Policy above).
-8. **Include every corridor as a separate thermal zone** — corridors must appear in the zone matrix and in the IDF.
-9. **Save to `<case_dir>/output/floor{k}_annotated.png`** (one per floor) — not next to the input. All LLM-generated artefacts (annotated PNGs, `claude_ep.md`, ad-hoc scripts, YAML, IDF, run_log) live under `output/`. The input PNGs + `testdata_prompt.json` stay in the case root, untouched. Legacy single-plan inputs may keep the `top_view_annotated.png` filename.
+Treat a facade as blank if either of these is true:
+1. the JSON path is empty or the file is missing
+2. the facade image exists but has no blue window rectangles
 
-### Step 3: Create claude_ep.md File
-
-After annotating the images, create a claude_ep.md file **inside the `output/` subdirectory** of the test case. All derived artefacts (annotated PNG, `claude_ep.md`, scratch scripts, YAML, IDF, `run_log.md`) live under `<case_dir>/output/`. The input PNGs + `testdata_prompt.json` remain in the case root.
-
-**For Format A:** Create `<json_dir>/output/claude_ep.md` (create `output/` if missing).
-
-**For Format B:** Create `<images_dir>/output/claude_ep.md`.
-
-The file MUST contain the following sections in order:
-
-1. **Building Information** — TestName, Location, Floor Area, Building Type, N floors, N zones.
-2. **Dimension Extraction** (for CAD-style inputs) — faithful transcription of every dimension-chain number read from each per-floor plan and each provided facade elevation, grouped by view, with checksum verifications. The Per-floor plans block must contain one sub-heading per floor (Floor 1, Floor 2, …) plus a Shared-footprint checksum line. Every facade (S / N / E / W) must appear as a sub-heading, even if only to state it is blank.
-3. **Floor Plan Diagram** (ASCII) — one per floor.
-4. **Zone Adjacency Matrix** — one per floor.
-5. **Zone Coordinates Table** — one per floor (see format below).
-6. **Fenestration Table** — list all windows with absolute x-range, parent facade (y or x plane), z-range, and parent zone.
-
-#### "Dimension Extraction" section template
-
-Use the following skeleton; substitute the actual numbers and segment counts read from the images. Include explicit `✓` checksum lines to show your verification; if any checksum fails, stop and re-read.
-
-```markdown
-## Dimension Extraction
-
-### Per-floor plans
-
-#### Shared footprint (§D3.1 invariant)
-- W = <W> m (x), D = <D> m (y) — verified equal across every floor plan ✓
-
-#### Floor 1 — file: <1f_view.png | top_view.png>
-- Overall (this floor): <W_1> m (x) × <D_1> m (y)         (matches shared W × D ✓)
-- x-segments (left→right): s1 | s2 | … | sN              (sum = <W> ✓)
-- y-segments (bottom→top): t1 | t2 | … | tM              (sum = <D> ✓)
-- Cumulative x-boundaries (xs_1): [0, s1, s1+s2, …, <W>]
-- Cumulative y-boundaries (ys_1): [0, t1, t1+t2, …, <D>]
-- Corridor strip(s): <e.g., the y ∈ [t1, t1+t2] row is the full-width corridor>
-
-#### Floor 2 — file: <2f_view.png>
-<same structure; xs_2 / ys_2 may differ from xs_1 / ys_1; outer totals must equal the shared W × D>
-
-#### Floor k — file: <kf_view.png>
-<repeat for every floor entry in the JSON `Floor plans` array>
-
-### South facade (y = 0) — file: <South_view.png | NOT PROVIDED>
-- Floor heights (top→bottom): h1 | h2 | … | hK   (sum = <H_total> ✓)
-- Per-floor sub-heights (top→bottom) for floors with windows:
-    F<k>: top_gap | win_h | sill_h                (sum = h<k> ✓)
-- Window x-segments (bottom chain): eg | w1 | g1 | w2 | g2 | … | wk | eg   (sum = <W> ✓)
-- Window x-ranges: [eg, eg+w1], [eg+w1+g1, eg+w1+g1+w2], …
-- Window absolute z (per floor): sill_z = z_floor + sill_h; head_z = z_floor + sill_h + win_h
-
-### North facade (y = <D>) — file: <North_view.png | NOT PROVIDED → blank on every floor>
-<same structure as South facade if provided; otherwise one line: "Not provided → treated as blank.">
-
-### East facade (x = <W>) — file: <East_view.png | NOT PROVIDED → blank on every floor>
-<same structure; horizontal chain sums to <D> instead of <W>>
-
-### West facade (x = 0) — file: <West_view.png | NOT PROVIDED → blank on every floor>
-<same structure; horizontal chain sums to <D> instead of <W>>
-```
-
-**Rule**: each of the four sub-headings MUST appear even when the facade is blank — so the absence of windows on that facade is explicit, not implied.
-
-#### Zone Adjacency Matrix
-
-zone  | zone1 | zone2 | zone3
-zone1|    0   |    1   |    0
-zone2|    1   |    0   |    1
-zone3|    0   |    1   |    0
-
-1 indicates adjacent zones, 0 indicates non-adjacent zones or the zone itself.
-
-#### Zone Coordinates Table (REQUIRED)
-
-**You MUST include a zone coordinates table for each floor in the claude_ep.md file.** This table provides the geometric definition of each zone's floor vertices, which is essential for accurate zone creation.
-
-The zone coordinates table must include the following columns:
-
-| Column | Description | Format |
-|--------|-------------|--------|
-| Zone | Zone name | e.g., `Zone_F1_NW`, `Corridor_F1` |
-| x-range (m) | X coordinate range | e.g., `0–4` |
-| y-range (m) | Y coordinate range | e.g., `9–12` |
-| Area (m²) | Floor area | e.g., `12` |
-| Floor Vertices (CCW, Z=X) | Floor vertices in counter-clockwise order | e.g., `(0,9), (4,9), (4,12), (0,12)` for ground floor; `(0,9,3.6), (4,9,3.6), (4,12,3.6), (0,12,3.6)` for upper floors |
-
-**Format Requirements:**
-
-1. **Separate table for each floor** with a clear heading indicating the floor level and Z coordinate range
-2. **Counter-clockwise (CCW) vertex order** - vertices must be listed in counter-clockwise order when viewed from above
-3. **Z coordinate** - For ground floor (Floor 1), use Z=0 in the vertex coordinates. For upper floors, include the actual Z coordinate (e.g., Z = sum of floor heights below it)
-4. **Area calculation** - Calculate area as width × depth for rectangular zones
-5. **Coordinate ranges** - Show the x and y ranges clearly using the format `min–max`
-
-**Table skeleton:**
-
-```markdown
-### Floor <k> (z = <z_floor> m → ceiling at <z_floor + h_k> m)
-
-| Zone | x-range (m) | y-range (m) | Area (m²) | Floor Vertices (CCW, Z=<z_floor>) |
-|---|---|---|---|---|
-| <zone name> | <x_min>–<x_max> | <y_min>–<y_max> | <A> | (x_min,y_min,z), (x_max,y_min,z), (x_max,y_max,z), (x_min,y_max,z) |
-| …  | …  | …  | …  | … |
-```
-
-**Key Points:**
-- For ground floor (Floor 1), vertices use 2D format: `(x, y)`
-- For upper floors, vertices use 3D format: `(x, y, z)` where z is the floor elevation
-- Always list vertices in counter-clockwise order starting from a corner
-- Include corridors as separate zones in the table
-- Ensure the floor plan diagram matches the coordinates in the table
-
-#### Fenestration Table (REQUIRED for CAD-style inputs)
-
-For every window derived from the elevation views, record one row:
-
-| Window ID | Parent Zone | Facade | Plane | x-range (m) | y-range (m) | z-range (m) | Width × Height |
-|---|---|---|---|---|---|---|---|
-| W_F<k>_<name> | Zone_F<k>_<name> | South / North / East / West | y=0 / y=<D> / x=<W> / x=0 | … | … | … | … |
-
-Vertices for `create_fenestration_surface` (CCW when viewed **from outside** the building):
-- South facade (y=0): `(x_min, 0, z_min), (x_max, 0, z_min), (x_max, 0, z_max), (x_min, 0, z_max)`
-- North facade (y=<D>): swap the first two and last two to remain CCW from the outside (observer at y > <D>).
-- East / West facades: x is constant; y and z vary.
-
-ASCII floor plan diagram (one per floor, consistent with the coordinates table):
+Blank facade means **zero windows on that facade**. Do not invent fenestration.
+
+### D4.2 Per-Floor Window Chain — Read Each Floor Separately
+
+A single facade elevation typically shows **distinct window chains for each
+floor**. Different floors on the same facade may have:
+- different numbers of windows
+- different window widths and gaps
+- different `top_gap / window_height / sill_height` decomposition
+- one floor blank while another floor on the same facade carries windows
+
+Hard rule: read each floor's horizontal window chain **independently** from
+that floor's portion of the facade elevation. Do **not** reuse one floor's
+window placement for another floor unless the elevation explicitly shows
+identical patterns. Do **not** infer "the facade has windows" from the
+presence of windows on any single floor.
+
+For each provided facade, perform per-floor enumeration:
+- list each floor's window count separately
+- list each floor's window x-spans (or y-spans for east / west) separately
+- mark any floor that is locally blank on this facade
+
+This is the explicit replacement for the old workflow's per-floor Fenestration
+Table rows.
+
+### D4.3 Upper-Floor Window — Absolute World Z (Hard Rule)
+
+Windows must be expressed in the building-wide world coordinate system, not in
+per-floor local coordinates. Use these formulas for every window on floor `f`
+with finished-floor level `z_floor`:
 
 ```
-    0m       x1m       x2m       ...       Wm
-Dm  +---------+---------+---------+---------+ Dm
-    | Zone_N1 | Zone_N2 |   ...   | Zone_Nn |
-ym1 +---------+---------+---------+---------+ ym1
-    |               Zone_C                  |
-ym2 +---------+---------+---------+---------+ ym2
-    | Zone_S1 | Zone_S2 |   ...   | Zone_Sn |
-0m  +---------+---------+---------+---------+ 0m
-    0m       x1m       x2m       ...       Wm
+window_sill_z = z_floor + sill_height
+window_head_z = z_floor + sill_height + window_height
 ```
 
-Note: When creating building floor plan diagrams, you must correctly identify the relationships between various rooms, ensure they correspond to the zone matrix chart, and ensure each per-floor diagram is consistent with **that floor's** plan image (and the supplementary plan view, if provided).
-Additional Note: You must correctly identify building corridor spaces; we also need to include building corridors in the diagram, and building corridors also count as zones.
-Additional Note: **Each individual room in the floor plan must appear as a separate row in the zone coordinates table and a separate box in the floor plan diagram.** Do not merge rooms. Use the dimension strings in the plan to find internal wall positions and derive each room's x/y boundaries precisely.
+Worked two-floor example with `floor_height = 3.60`, `sill_h = 1.00`,
+`win_h = 1.80`:
 
-### Special Considerations for Format B (Numbered Images)
+- F1 (`z_floor = 0.00`) → `sill_z = 1.00`, `head_z = 2.80`
+- F2 (`z_floor = 3.60`) → `sill_z = 4.60`, `head_z = 6.40`
+- F3 (`z_floor = 7.20`) → `sill_z = 8.20`, `head_z = 10.00`
 
-When working with Format B (numbered image files without JSON), you need to:
+Upper floors **must** add the accumulated `z_floor`. Forgetting it drops the
+window onto the ground floor and makes its absolute z range fall outside the
+parent wall's z range, which causes EnergyPlus `Base surface does not surround
+subsurface (CHKSBS)` partial-overlap warnings on every upper-floor window.
 
-1. **Extract Building Information from Images:**
-   - Analyze all numbered images to determine:
-     - Number of floors
-     - Number of thermal zones per floor
-     - Building dimensions and layout
-     - Window and door placements
-     - Corridor locations
+When writing `fenestration_specs`, the **absolute** `z_min..z_max` for each
+window is mandatory. Per-floor `sill_height / head_height` numbers may
+accompany it as auxiliary scratch, but world-z is the authoritative value the
+downstream geometry agent must consume.
 
-2. **Infer Missing Information:**
-   - If floor area is not explicitly shown, calculate from dimensions
-   - If ceiling height is not shown, use standard values (typically 3m for office buildings)
-   - If building location is not specified, use a default location or ask the user
+### D5. Out-of-Scope for the Current Shared-Footprint Regime
 
-3. **Cross-Reference Multiple Images:**
-   - Use floor plan images for zone layout
-   - Use elevation images for window/door positions and heights
-   - Use cross-section images for floor heights and ceiling heights
+The current intake regime assumes **shared exterior footprint across floors**.
+The following are therefore out of scope for the current production intake path:
+- setbacks
+- cantilevers
+- multiple exterior footprints across floors
+- atrium / void cases that require breaking the shared-footprint assumption
 
-4. **Document Assumptions:**
-   - In the claude_ep.md file, clearly document any assumptions made
-   - Note which information was inferred from images
-   - Highlight any uncertain parameters that may need user confirmation
+If such a case is visible, do not silently flatten it into an ordinary
+shared-footprint building.
 
-Then, you need to start creating the IDF content step by step based on this zoning diagram.
+Unified handling rule (both manual Step 4 and structured-output runtime path):
 
-### IDF Tool Usage Workflow (Geometry Phase Only)
+1. Detect the unsupported feature explicitly during dimension extraction.
+2. Refuse to fabricate a clean rectangular building from it. Never silently
+   normalize a setback / cantilever / multi-footprint case into a single
+   shared `W × D`.
+3. Surface the inconsistency to the consumer:
+   - in the **manual Step 4 workflow**, stop and tell the user the case is
+     outside the current shared-footprint regime; do not produce an
+     `IntakeOutput`
+   - in the **structured-output runtime path**, since the contract still
+     requires returning an `IntakeOutput`, write the inconsistency explicitly
+     into `zone_specs` / `surface_specs` / `fenestration_specs`. Mark the
+     affected floors as unsupported in prose. Do **not** invent geometry to
+     make the output look clean.
 
-This phase produces only geometry. Do **not** create Materials, Constructions (other than referenced placeholder names), Schedules, People, Lights, or HVAC objects — those are handled in the MEP phase.
+In both contexts, "do not silently fabricate" is the load-bearing rule. The
+only difference is what the consumer hears at the end (a human in the manual
+path, a downstream agent in the runtime path).
 
-1. **Location & Building** — call `create_location` and `create_building`. Before creating, run `list_locations` / `list_buildings` to avoid duplicates.
+### D6. Ambiguity Handling
 
-2. **Zones** — call `create_zone` for each zone (auto-creates its 4 walls, floor, ceiling — see `zonetool_prompt.md`). After the last zone, call `list_zones` to verify the count matches the expected total from the JSON / dimension extraction.
+When evidence is incomplete or conflicting, do not handle all ambiguity the same
+way. Use this policy:
 
-3. **Surface boundary-condition touch-up — USE THE BATCH TOOL** — fix every auto-generated wall / floor / ceiling **in a single `update_surfaces_batch` call**. Do **not** loop `update_surface` one surface at a time — that wastes 50× the tokens and is the #1 cause of long-chain failures.
+- **Fail fast** when the ambiguity breaks global geometry under the current
+  shared-footprint regime:
+  - conflicting floor footprint totals
+  - conflicting floor-count evidence
+  - conflicting facade orientation labels
+  - inconsistent facade height chains that change floor stacking
+- **Conservative default allowed** when the ambiguity is local and does not
+  change topology:
+  - missing non-critical material detail
+  - missing non-critical office defaults outside geometry
+- **Must call out uncertainty explicitly** when a local geometric detail is
+  plausible but not provable from the drawings:
+  - ambiguous room role between two service categories
+  - unclear supplementary detail that does not override the main plan
 
-   **Do not alter geometry** — only update `outside_boundary_condition`, `sun_exposure`, `wind_exposure`, and `construction_name` (placeholder).
+Do not silently normalize a globally ambiguous case into a clean rectangular
+building.
 
-   | Surface type | `outside_boundary_condition` | `sun_exposure` | `wind_exposure` | `construction_name` |
-   |---|---|---|---|---|
-   | Exterior wall (faces outside) | `Outdoors` | `SunExposed` | `WindExposed` | `Default_Ext_Wall` |
-   | Interior wall (shared between two zones) | `Adiabatic` | `NoSun` | `NoWind` | `Default_Int_Wall` |
-   | Ground floor slab (F1 only) | `Ground` | `NoSun` | `NoWind` | `Default_Ext_Wall` |
-   | Upper floor slab / floor-below ceiling pair | `Adiabatic` | `NoSun` | `NoWind` | `Default_Int_Wall` |
-   | Roof (top floor's exposed ceiling) | `Outdoors` | `SunExposed` | `WindExposed` | `Default_Ext_Wall` |
+---
 
-   **How to use the batch tool**: assemble one Python-list-of-dicts where each dict has `{"name": "<surface name>", "outside_boundary_condition": ..., "sun_exposure": ..., "wind_exposure": ..., "construction_name": ...}`, then call `update_surfaces_batch(updates=[...])` exactly once. The response is `{"count": N, "succeeded": [names], "failed": [{"name", "error"}, ...]}` with partial-success semantics — items in `failed` were skipped, fix and re-batch only those.
+## Topology Sketch Requirement
 
-   **How to identify interior walls**: a wall is interior if it is shared (coplanar and coincident) with a wall belonging to an adjacent zone. Use the Zone Adjacency Matrix from `claude_ep.md` to determine which `<zone>_Wall_<i>` pairs are shared. Both sides of every shared wall pair must use `Adiabatic + Default_Int_Wall` (this avoids the fatal `InterZone construction mismatch` from the Opus baseline).
+Before writing `surface_specs`, internally form a floor-by-floor topology sketch.
+This replaces the old workflow's floor-plan diagram and adjacency-matrix role.
+At minimum, you must know:
+- which zones occupy each strip or cell on each floor
+- which boundaries are exterior
+- which zone pairs are adjacent
+- which floors stack above which lower-floor zones
 
-   The single-call `update_surface` is still available for one-off fixes after the batch run — but the **first pass must be a single batch call** covering every surface produced by Step 2.
+If you cannot form a coherent topology sketch, your `surface_specs` will be too
+weak for downstream geometry agents.
 
-4. **Fenestration (windows) — DEDICATED STEP, USE THE BATCH TOOL** — emit every row of the Fenestration Table in `claude_ep.md` **in a single `create_fenestration_surfaces_batch` call**. Do **not** loop `create_fenestration_surface` one window at a time.
+---
 
-   **Per-item fields** (each dict in the `items` list):
-   - `name` — the window ID (e.g. `W_F1_S1`).
-   - `surface_type` — `"Window"`.
-   - `construction_name` — `"Default_Window"` (placeholder; real glazing construction set in MEP phase).
-   - `building_surface_name` — `<zone>_Wall_<i>` where wall index follows the §M7 Wall-index → Facade mapping in `zonetool_prompt.md` (Wall_1=South, Wall_2=East, Wall_3=North, Wall_4=West for the standard CCW rectangle).
-   - `vertices` — 4 points on the parent wall's plane, CCW-**from-outside** order per `zonetool_prompt.md` §M6.
+## Geometry Self-Check Before Writing Specs
 
-   Then call `create_fenestration_surfaces_batch(items=[...])` once. Inspect the returned `failed` list — if non-empty, fix and re-batch only those items.
-
-   After the batch returns, run `list_fenestration_surfaces` and verify the count equals the rows in the Fenestration Table. If the table is empty (all facades blank), state so explicitly in the run log — do not silently skip.
-
-5. **Validate, export YAML, convert to IDF** — produce both a YAML and an IDF. The IDF is required for OpenStudio 3D-viewer verification (OpenStudio cannot import YAML).
-
-   a. `validate_config()` — fix any reported errors before proceeding.
-   b. `export_yaml(path="<case_dir>/output/<case_name>.yaml")` — export the MCP state to YAML.
-   c. Convert YAML → IDF by running the external script (one Bash call, no inline Python):
-      ```bash
-      python Tool_scripts/export_idf.py <case_dir>
-      ```
-      The script applies all five idempotent patches around `convert_all` (placeholder Construction pre-injection, RunPeriod defaults, warmup days, Surface→Adiabatic, Schedule:Compact None). See [export_idf.md](export_idf.md) for the patch list. Do **not** open the script and inline its body — call it.
-   d. Output IDF path: `<case_dir>/output/<case_name>.idf`.
-   e. Tell the user: YAML at `<yaml_path>`, IDF at `<idf_path>`. Open the IDF in OpenStudio's 3D viewer to verify zone outlines, surface adjacency, and window placement. MEP phase (Materials / Schedules / People / Lights / HVAC) is handled in a separate session and is **out of scope here**.
-
-### ⚠️ CRITICAL: Avoid Repeated Creation of Reusable Attributes
-
-In this geometry phase, the only reusable attributes that may already exist are **Locations** and **Buildings**. Always check before creating:
-
-| Attribute Type | List Tool to Check | Create Tool |
-|----------------|-------------------|-------------|
-| Locations | `list_locations` | `create_location` |
-| Buildings | `list_buildings` | `create_building` |
-
-Materials, Constructions, Schedules, Thermostats, etc. are **not created** in this phase — placeholder construction names suffice for `update_surface` / `create_fenestration_surface`.
-
-#### Geometric Attributes (Create Each Time)
-
-The following geometric attribute types are **building-specific** and must be created fresh per building:
-
-- **Zones** (`create_zone`) — each building has a unique zone layout
-- **Surfaces** (`update_surface` for the auto-generated ones) — boundary conditions and placeholder constructions
-- **Fenestration Surfaces** (`create_fenestration_surface`) — windows are building-specific
-
-## MCP Usage Skills
-
-Before using zone class tools, read the `zonetool_prompt.md` document to obtain instructions for using zone class tools. You must operate according to these instructions when using the tools.
-
-### Important Notes
-
-When using the `create_zone` function, six surfaces corresponding to this zone will also be created, but the construction and other parameters for these six surfaces are default parameters and need to be modified later (in step 3 of the IDF workflow above).
-
-When using the `create_zone` tool, please ensure you input the floor vertices parameter, which is a list of geometric points at the bottom of the zone. **You must enter them in counterclockwise order.** When using the zone creation tool, ensure the base point is the actual zone base vertex.
-
-Also note that you need to identify building corridor areas; we consider building corridors as separate thermal zones, and you need to reflect the building corridors in the zone matrix.
-
-## Current Task Objective
-
-The current task is to help users complete the creation of a **geometry-phase** YAML/IDF file. The geometric data in this file (Zones, Surfaces with correct boundary conditions, Fenestration) must be consistent with the images, text, and other information provided by the user. The MEP phase (Materials, Schedules, People, Lights, HVAC) is handled in a separate session and is **out of scope here**.
+Before finalizing `IntakeOutput`, verify:
+1. every used dimension chain closes against its total
+2. every floor respects the shared `W × D` footprint
+3. every zone belongs to the correct floor and role
+4. corridors / stair / WC / lift are not dropped
+5. no blank facade receives windows
+6. for every window, the absolute z range is computed as
+   `z_floor + sill_height` to `z_floor + sill_height + window_height` and lies
+   inside the parent wall's z range `[z_floor, z_floor + ceiling_height]`
+7. each facade was read per-floor (different floors on the same facade may have
+   different window chains, including some floors being locally blank)
+8. unsupported geometry is not silently normalized
+9. you have completed room enumeration before coordinate synthesis
+10. you have completed dimension extraction before final prose generation
+11. you can internally map every window to a real parent zone and exterior wall
+12. for vertically stacked zones with **misaligned partitions** between floors,
+    every InterZone floor / ceiling surface is split at the union of break
+    points and each piece is paired explicitly with the correct upper / lower
+    zone — see `intake_output_contract.md` `surface_specs` for the required
+    enumeration density
