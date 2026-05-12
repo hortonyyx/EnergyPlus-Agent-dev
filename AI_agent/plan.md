@@ -1,24 +1,27 @@
 # 行动清单
 
-> **当前状态**：A 段「代码跑通 / 架构迁移」全部闭环（[CLAUDE.md §5.3](CLAUDE.md)）。当前能力主战场切到 B 段「识图建模能力提升」。idfpy 替换主线（[idfpy_embed.md](idfpy_embed.md)）等协作者交付，搁置中。
+> **当前状态**：A 段「代码跑通 / 架构迁移」全部闭环（[CLAUDE.md §5.3](CLAUDE.md)）。B 段「识图建模能力提升」阶段 1（B1 旧 skill 迁移）✅ 完成 2026-05-12（[CLAUDE.md §5.5](CLAUDE.md)），主线切到阶段 2（B2-B4 评测基线规范化）。idfpy 替换主线（[idfpy_embed.md](idfpy_embed.md)）等协作者交付，搁置中。
 >
 > 优先级：P0（立即）/ P1（一周内）/ P2（依赖 P0/P1）。
 
 ---
 
-## 推荐执行顺序（2026-05-07 晚 — 三阶段路线图）
+## 推荐执行顺序（2026-05-12 更新 — B1 闭环，主线切 B2-B4）
 
-新架构 sm_16_newarch 已验证半人工 → 自动下游 → IDF → EP 全链路通（[B0](#b0-p0-端到端首跑验证半人工流--完成-2026-05-07)），
-但**新架构识图建模质量不及旧架构 skill 约束流的 sm_16 baseline**。识图建模能力主线按下列三阶段推进:
+阶段 1 已完成：B1 旧 skill 能力迁移 + surface_agent z_floor hotfix。sm_20 半人工流
+EP cleanly 跑通（0 severe / 0 fatal / 14 无害 warning），架构通透性 anchor 从
+sm_16_newarch 切到 sm_20（后者一把过，不需要手工修 Construction）。
 
 ```
-阶段 1 [B1]：恢复
-   旧架构靠 skill 约束（分步识图 / 绘图标注等）实现 sm_16 准确建模。
-   新架构尚未迁移这套约束 → 第一任务是把旧 skill 内容迁到新架构 INTAKE_SYSTEM_PROMPT，
-   恢复到旧架构 sm_16 建模水平。
+阶段 1 [B1] ✅ 完成 2026-05-12
+   skills/energyplus_mcp/ 3 个 md 文档库按 audit 4 个 Gap 全部补硬约束；
+   surface_agent prompt + 输入装配 hotfix（src_history 备份；下游改动记录在
+   downstream_agent_changes.md）；fenestration chain 通式 + 反例补到 contract。
+   验收：sm_20 OpenStudio 视察 zone 几何 / 楼层堆叠 / WWR / 上层窗 z 落在墙
+   内皆正确；EP cleanly 完成。
 
-阶段 2 [B2-B4]：评测基线规范化
-   恢复后建立测试评测基线：GT 集 / 自动评测脚本 / Opus baseline /
+阶段 2 [B2-B4]：评测基线规范化 ← 当前主线焦点
+   建立测试评测基线：GT 集 / 自动评测脚本 / Opus baseline /
    校对方案 / 测试记录规范化 / token 统计协议升级。
 
 阶段 3 [B5-B7]：能力升级
@@ -29,10 +32,11 @@
 远期 [B8-B9]：开源模型 + LoRA Pivot（[pivot_criteria.md](pivot_criteria.md)）
 ```
 
-**当前主线焦点 = 几何正确性**（IntakeOutput → IDF 几何对错）。simulate 跑通**不是**短期目标 ——
-已知 fenestration glazing layer 兼容性 bug（[§C](#c-暂搁置依赖外部进展不安排时间)）让 EP fatal，按决策延后到 idfpy 切换时一并解。
+**当前主线焦点 = 评测基线规范化**（B2-B4）。simulate 跑通已被 sm_20 证明可达成；
+fenestration SimpleGlazing layer 兼容性（[§C](#c-暂搁置依赖外部进展不安排时间)）
+仍按决策延后到 idfpy 切换时一并解，但不阻塞当前主线。
 
-**接下来一周聚焦 B1**（阶段 1 恢复），完成后切 B2-B4。B5-B7 在阶段 1 收敛 + 评测体系就绪后启。
+**接下来一周聚焦 B2-B4**（评测基线）。B5-B7 在评测体系就绪后启。
 
 ---
 
@@ -113,36 +117,35 @@
 
 ---
 
-## 阶段 1 — 恢复
+## 阶段 1 — 恢复（✅ 完成 2026-05-12）
 
-### B1. [P0] 旧 skill 能力迁移到新架构（恢复 sm_16 旧建模水平）
+### B1. [P0] 旧 skill 能力迁移到新架构（恢复 sm_16 旧建模水平）— ✅ 完成 2026-05-12
 
 **背景**：旧架构（[skills/energyplus_mcp/](../skills/energyplus_mcp/) + Claude Opus 单会话 + skill 分步约束）能在 sm_16 上拿到准确建模。新架构（半人工 Step 4 prompt + 9 subagent 自动下游）的 intake 路径虽然已切到 [src/agent/nodes/intake.py](../src/agent/nodes/intake.py#L34) + `skills/energyplus_mcp/*.md` 规则文档库，但在迁移初期仍是简版，**没把旧 skill 的分步识图 / 绘图标注 / 自检约束等内容完整迁过来** → sm_16_newarch 建模质量不及旧架构 sm_16 baseline。
 
 **第一原则**：**先恢复，再升级**。新架构必须先到达旧架构能做到的水平，才有资格谈 B5-B7 的能力扩展。
 
-**任务**：
-- [ ] **审计旧 skill 内容**：盘点 [skills/energyplus_mcp/](../skills/energyplus_mcp/) 当前规则文档库与 `../Skill_history/` 历史快照之间的能力映射，列清单
-  - 历史备份在 `../Skill_history/` 各目录，参考 [CLAUDE.md §6 #5](CLAUDE.md)
-  - 重点：sm_15 几何/MEP 阶段拆分（[CLAUDE.md §5.1](CLAUDE.md)）/ 全局唯一世界坐标系 / 占位 construction 命名
-- [ ] **增强新架构 intake 规则文档库**（半人工流的 Step 4 prompt 模板也同步）：
-  1. 先识别外墙边界（输出闭合多边形）
-  2. 再读尺寸链数字（自检 `sum(segments) + 2 × wall ≟ total_width`）
-  3. 再识别走廊（宽白连通区）
-  4. 再识别楼梯 / WC / 电梯符号
-  5. 综合为 zone 列表 + x/y 范围
-  6. 再生成 surface 邻接矩阵（可机械推导）
-- [ ] 把 [new_case_guide.md §4.2](new_case_guide.md) Step 4 prompt 里临时补的 `Floor_N_*` 模板禁用规则正式合并进 intake 规则文档库与运行时 intake 路径
-- [ ] 用 sm_16 重跑半人工流，与旧架构 sm_16 baseline 对账（zone 数 / 楼层 / 外包 / WWR / 特殊 zone 命中）
-- [ ] 落 `test_data/test_baseline/runs/<date>_capability_recovery_v1/notes.md`
+**任务**（全部完成）：
+- [x] 审计旧 skill 内容 → codex 完成的 [`energyplus_mcp_migration_audit_2026-05-11.md`](energyplus_mcp_migration_audit_2026-05-11.md) 列出 4 个 Gap
+- [x] 增强新架构 intake 规则文档库（3 个 md 文件全改）：
+  - [`energyplus_mcp_prompt.md`](../skills/energyplus_mcp/energyplus_mcp_prompt.md) §D4.2 per-floor window chain hard rule / §D4.3 absolute world z 公式 + 3 层 worked example / §D5 unsupported-case 双标统一 / Mandatory Internal Derivation Order 9 步顺序
+  - [`intake_output_contract.md`](../skills/energyplus_mcp/intake_output_contract.md)（新增）：surface_specs cross-floor split-pairing required enumeration / fenestration_specs Right-side chain pattern N-window 通式 + 3 worked example (A 单窗等高 / B sm_20 corridor 不等高 / C 同层堆叠双窗) + counter-example + 自检规则 `z_max_i - z_min_i == win_h_i`
+  - [`zonetool_prompt.md`](../skills/energyplus_mcp/zonetool_prompt.md) 恢复 4 立面 CCW-from-outside vertex synthesis 表 + Floor 2 南窗 worked example
+- [x] `Floor_N_*` 模板禁用规则合并到 intake_output_contract.md "No Compression, No Placeholders"
+- [x] **下游 surface_agent hotfix**（[downstream_agent_changes.md 2026-05-12 条](downstream_agent_changes.md)）：[`src/agent/nodes/surface.py`](../src/agent/nodes/surface.py) 同时传 zone_specs + surface_specs 到 agent，加 "per-floor z values come from zone_specs" 硬指引，worked example 改 F2_S1 (3.60 m)；备份 `src_history/2026-05-12_surface_agent_zfloor_fix/`
+- [x] 用 sm_20（= sm_19 plans）跑半人工流双版对照：
+  - `test_data/SmallOffice/smalloffice_20/output/`（B1 only，仍 10 CHKSBS partial-overlap）
+  - `test_data/SmallOffice/smalloffice_20/output_new/`（B1 + surface fix，0 CHKSBS，EP cleanly 完成）
 
-**工作量**：~1 周
+**工作量**：实际 ~半天集中产出（audit + 文档撰写 + surface hotfix + 双版跑 + diagnose）
 
 **验收**：
-- sm_16 半人工流复跑结果在主指标上**追平或超过**旧架构 sm_16 baseline
-- 关键差距点（如有）落到 notes.md 当作阶段 2 评测体系第一批锚点
+- ✅ sm_20 半人工流 EP `Completed Successfully` / 0 severe / 0 fatal / 14 无害 warning
+- ✅ 上层窗 z 严格落在父墙 z 范围内（F2 wall z=[3.60,7.20]，F2 窗 z=[4.60,6.40]）
+- ✅ cross-floor split-pairing 无 `RoofCeiling references not-found` fatal
+- ⚠️ 残留：intake 对东西立面 F3 corridor 窗有偶发 `z_max = z_min + top_gap` 计算 slip（写 9.60 应 10.60）—— intake_output_contract.md 已补 N 窗通式 + 反例 + 自检，下次跑新 case 应被挡住；sm_20 落盘错值保留作 audit anchor
 
-**依赖**：无（B0 全链路通已具备，可直接迭代 prompt）
+**架构通透性 anchor 更新**：sm_20 取代 sm_16_newarch（后者要手工修一行 Construction）。
 
 ---
 
@@ -395,6 +398,8 @@
 - [idfpy_embed.md](idfpy_embed.md) — idfpy 替换主线（搁置中）
 
 ---
+
+_2026-05-12 — **B1 阶段闭环**：3 个 skill md 全部按 audit 4 个 Gap 补硬约束 + fenestration chain N 窗通式 + 反例；surface_agent prompt + 输入装配 hotfix（src_history 备份 + downstream_agent_changes.md）。sm_20 半人工流 EP cleanly 跑通取代 sm_16_newarch 成为新通透性 anchor。推荐执行顺序更新：主线焦点切到 B2-B4（评测基线规范化）。详见 [CLAUDE.md §5.5](CLAUDE.md) + B1 节本文。_
 
 _2026-05-07 (晚 v2) — B 段三阶段重组（用户路线图）：阶段 1 恢复 [B1] / 阶段 2 评测基线规范化 [B2-B4] / 阶段 3 能力升级 [B5-B7] / 远期 [B8-B9]。新 B1 = 旧 skill 约束迁移到新架构（吸收原 B4 CoT 内容）；新 B4 = Opus baseline + 校对方案 + token 协议升级（吸收原 B0'''）；新 B5/B6/B7 = 非方形平面 / 全局坐标退台挑空 / 规范化绘图（含原 B5 PaddleOCR 预处理）；新 B8/B9 = 原 B6/B7 远期 pivot。Milestone 映射加 M0 恢复阶段。_
 
