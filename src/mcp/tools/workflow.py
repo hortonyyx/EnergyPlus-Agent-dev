@@ -155,9 +155,12 @@ class WorkflowTool:
                     data=validation.data,
                 )
 
+            output_dir_path = Path(output_dir)
+            output_dir_path.mkdir(parents=True, exist_ok=True)
+
             timestamp = time.strftime("%Y%m%d_%H%M%S")
-            temp_yaml = Path(output_dir) / f"temp_{timestamp}.yaml"
-            temp_idf = Path(output_dir) / f"temp_{timestamp}.idf"
+            temp_yaml = output_dir_path / f"temp_{timestamp}.yaml"
+            temp_idf = output_dir_path / f"temp_{timestamp}.idf"
 
             self.state.export_yaml(temp_yaml)
 
@@ -166,14 +169,20 @@ class WorkflowTool:
             manager.save_idf(temp_idf)
 
             runner = EnergyPlusRunner(idf=manager.idf)
-            runner.run_idf(epw_path)
+            runner.run_idf(epw_path, output_directory=output_dir_path)
 
-            logger.info("Simulation run successfully. Output directory: {}", output_dir)
+            logger.info(
+                "Simulation run successfully. Output directory: {}",
+                output_dir_path,
+            )
 
             return ToolResponse(
                 success=True,
                 message="Simulation run successfully.",
-                data={"idf_path": str(temp_idf.absolute()), "output_dir": output_dir},
+                data={
+                    "idf_path": str(temp_idf.absolute()),
+                    "output_dir": str(output_dir_path.absolute()),
+                },
             )
 
         except Exception as e:
