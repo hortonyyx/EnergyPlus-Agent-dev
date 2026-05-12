@@ -3,6 +3,8 @@
 > 目标：让 intake 能处理不同风格的建筑平面图，不依赖单一固定制图规范。
 >
 > 讨论日期：2026-05-10。起点见 [pivot_criteria.md §3.2](pivot_criteria.md) 退路 A（前置视觉预处理），但方案已从"前置小模型矢量化"收敛为"同一 VLM 拆两步调用 + 中间标准化表示"。
+>
+> **2026-05-12 — POC 验证 PASS（详见 §9）**：sm_20 全套两步法 + 下游 + EP 真跑通过。架构通透性 + 识图泛化 + 微调可行性同时验证。决策：**两步法立为新主线**（[plan.md](plan.md) 提升为最高优先级 B1.5）。
 
 ---
 
@@ -162,9 +164,76 @@
 
 ---
 
+## 9. POC 验证结果（2026-05-12，sm_20）
+
+### 9.1 实验设置
+
+- **Case**：`test_data/SmallOffice_TwoStep/smalloffice_20/`（与 `test_data/SmallOffice/smalloffice_20/` 同素材，单步法 anchor 在那边的 `output_new/`）
+- **Phase 1**：Claude Code 会话 + Opus 4.7，7 张图（3 平面 + 4 立面）→ 7 份矢量 JSON + summary。schema 见 [vector_schema_v1.md](../test_data/SmallOffice_TwoStep/smalloffice_20/vector_schema_v1.md)（v1.2）
+- **Phase 2**：两条路径并行验证
+  - Opus 路径：Claude Code 会话直写 IntakeOutput JSON
+  - DeepSeek 路径：[`Tool_scripts/run_phase2_deepseek.py`](../Tool_scripts/run_phase2_deepseek.py)（绕过 langchain，thinking enabled，max_tokens 64k）
+- **Phase 2 规则**：[phase2_rules.md](../test_data/SmallOffice_TwoStep/smalloffice_20/phase2_rules.md)（v1.3 升级版在 [`skills/energyplus_mcp_twostep/`](../skills/energyplus_mcp_twostep/)）
+
+### 9.2 三方对比结果（详见 [`compare/diff.md`](../test_data/SmallOffice_TwoStep/smalloffice_20/compare/diff.md)）
+
+| 维度 | opus 2-step | deepseek 2-step | anchor 1-step（旧 sm_20 output_new）|
+|---|---|---|---|
+| Pydantic validate | ✅ | ✅ | ✅ |
+| L2 cross_ref | ✅ | ✅ | ✅ |
+| L3 IDF（19 zones + 16 windows）| ✅ | ✅ | ✅ |
+| L4 EP simulate | ❌ Fatal（construction asymmetry，规则漏洞已在 v1.3 修） | ✅ Completed Successfully | ✅ Completed |
+| F3 corridor 窗 z（B1 残留 slip）| ✅ 8.20–10.60 | ✅ 8.20–10.60 | ❌ 8.20–**9.60**（错）|
+| OpenStudio 几何视察 | ✅（用户视察）| ✅（用户视察）| ✅（B1 时验证）|
+
+### 9.3 关键发现
+
+1. **两步法两条路径都修正了 anchor 单步法的 F3 corridor 窗 z 计算 slip**（B1 残留问题）。Phase1 把"窗高 2.40 + sill 1.00 + top_gap 1.40"识图层面**锁定**为 `y_range_m: [8.20, 10.60]`，phase2 没机会重做坐标推导 → 视觉错被截断在 phase1
+2. **DeepSeek 路径下游 EP cleanly 跑通**（0 severe / 9 warning / 8.49s 全年）证明两步法 IntakeOutput 不破坏现有下游契约
+3. **Opus 路径 EP fatal** 反而是宝贵副产物：暴露 phase2_rules.md 一条规则漏洞（**InterZone surface 不能用两个独立 construction**，必须共用单一 `Cons_InterFloor`，否则 EP 拒绝层栈非反向对称配对）。已在 v1.3 修复
+4. **Opus phase2 暴露 10 条 schema gap**（见 `phase2_intake/opus/phase2_followup_notes.md`）：cross-floor sub-surface 命名 / 走廊负载密度 / building.Name 大小写策略 / Schedule:Compact day-type 名等。规则演进信号丰富
+
+### 9.4 验证两个假设
+
+| 假设 | 结果 |
+|---|---|
+| **重绘可行**：VLM 能否把任意风格图忠实矢量化 | ✅ Opus 处理 sm_20 7 张图（含 F2 北 4 不对称窗 + F3 通长窗 + East/West F3 corridor 单窗）全部正确，4 立面 facade_axis_note 准（含轴向 + 符号），dim 链一字不差 |
+| **建模收益**：结构化输入是否提升 phase2 质量 | ✅ 两步法 F3 corridor 窗 z 准；anchor 单步法 z 错。phase1 锁定识图结果 = phase2 没机会出视觉相关错（误差预算分离生效）|
+
+### 9.5 两个 phase 微调可行性评估
+
+- **Phase 1 微调**：VLM 结构化视觉抽取任务 = 预训练分布近邻；训练数据 (任意风格图, 标准化 JSON) 对易构造；schema 强约束输出形态 → 比"直接训 IntakeOutput"更易微调小 VLM
+- **Phase 2 微调**：纯文本推理 → **不需要 VLM**，任何文本 LLM 都行（甚至 sub-billion-param）；训练数据 (vector JSON, IntakeOutput) 对可从 anchor 批量生成；目标量化指标清晰（zone f1 / 拓扑正确率）
+- **两条数据流独立改进，互不阻塞**
+
+### 9.6 Phase 1 用户校验机制
+
+POC 验证用户可在 ~30 min 内人工检查 SVG 是否与原图一致：
+- [`Tool_scripts/render_vector_to_svg.py`](../Tool_scripts/render_vector_to_svg.py) 矢量 JSON → SVG（含 1m 网格 + 5m 加深网格 + pen 类型分色图例）
+- 浏览器并排原图 + SVG 即可逐项检查"墙位 / 窗位 / 尺寸 / 立面分层"
+- POC sm_20 实测：7 张图都在第一轮通过人工核验，未发现遗漏 / 错位
+
+### 9.7 决策
+
+**两步法立为新主线** —— [plan.md](plan.md) 提升为最高优先级。具体路径见 §8 架构影响前瞻 + plan.md B1.5。
+
+### 9.8 待迭代
+
+| 项 | 优先级 | 备注 |
+|---|---|---|
+| 异图泛化（噪声 / 装饰 / 索引箭头 / 楼梯 / 家具）| P0 next POC | sm_20 是规整办公楼，是 schema 舒适区。挑一张噪声大的图压一压 |
+| `intake_node` 重写为两步串行 | P0 | 见 §8 + plan.md B1.5 |
+| 评测脚本（vector JSON 自动 diff GT）| P1 | B2-B4 评测基线规范化吸收 |
+| phase2_rules 继续补 schema gap（Opus 10 条 + 后续 case）| P1 | 滚动迭代，每 case 跑完更新 v1.x |
+| Phase 1 / Phase 2 各自小模型微调 | P2 | 等评测体系就绪 + 数据积累后启 |
+
+---
+
 ## 关联文档
 
 - [CLAUDE.md](CLAUDE.md) — 项目管理总览
-- [plan.md](plan.md) — 行动清单（B1 旧 skill 恢复 / B2-B4 评测基线 / B5-B7 能力升级）
+- [plan.md](plan.md) — 行动清单（**B1.5 两步法立为最高优先级**；B2-B4 评测基线；B5-B7 能力升级）
 - [pivot_criteria.md](pivot_criteria.md) — §3.2 退路 A 前置视觉预处理（本方案是该路径的具体化）
-- [new_case_guide.md](new_case_guide.md) — 标准工作流
+- [new_case_guide.md](new_case_guide.md) — 标准工作流（待跟两步法集成后更新）
+- [`../skills/energyplus_mcp_twostep/`](../skills/energyplus_mcp_twostep/) — 两步法 skill 演进源
+- [`../test_data/SmallOffice_TwoStep/`](../test_data/SmallOffice_TwoStep/) — 两步法测试语料库

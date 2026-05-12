@@ -1,0 +1,359 @@
+Program Version,EnergyPlus, Version 25.2.0-cf7368216c, YMD=2026.05.12 20:42
+! This file shows details about the branches, nodes, and other
+! elements of the flow connections.
+! This file is intended for use in "debugging" potential problems
+! that may also be detected by the program, but may be more easily
+! identified by "eye".
+! This file is also intended to support software which draws a
+! schematic diagram of the HVAC system.
+! ===============================================================
+! #Nodes,<Number of Unique Nodes>
+ #Nodes,57
+! <Node>,<NodeNumber>,<Node Name>,<Node Fluid Type>,<# Times Node Referenced After Definition>
+ Node,1,F1_S1 ZONE AIR NODE,Air,0
+ Node,2,F1_S1 IDEAL LOADS SUPPLY INLET,Air,1
+ Node,3,F1_S1 RETURN OUTLET,Air,0
+ Node,4,F1_S2 ZONE AIR NODE,Air,0
+ Node,5,F1_S2 IDEAL LOADS SUPPLY INLET,Air,1
+ Node,6,F1_S2 RETURN OUTLET,Air,0
+ Node,7,F1_S3 ZONE AIR NODE,Air,0
+ Node,8,F1_S3 IDEAL LOADS SUPPLY INLET,Air,1
+ Node,9,F1_S3 RETURN OUTLET,Air,0
+ Node,10,F1_CORRIDOR ZONE AIR NODE,Air,0
+ Node,11,F1_CORRIDOR IDEAL LOADS SUPPLY INLET,Air,1
+ Node,12,F1_CORRIDOR RETURN OUTLET,Air,0
+ Node,13,F1_N1 ZONE AIR NODE,Air,0
+ Node,14,F1_N1 IDEAL LOADS SUPPLY INLET,Air,1
+ Node,15,F1_N1 RETURN OUTLET,Air,0
+ Node,16,F1_N2 ZONE AIR NODE,Air,0
+ Node,17,F1_N2 IDEAL LOADS SUPPLY INLET,Air,1
+ Node,18,F1_N2 RETURN OUTLET,Air,0
+ Node,19,F1_N3 ZONE AIR NODE,Air,0
+ Node,20,F1_N3 IDEAL LOADS SUPPLY INLET,Air,1
+ Node,21,F1_N3 RETURN OUTLET,Air,0
+ Node,22,F2_S1 ZONE AIR NODE,Air,0
+ Node,23,F2_S1 IDEAL LOADS SUPPLY INLET,Air,1
+ Node,24,F2_S1 RETURN OUTLET,Air,0
+ Node,25,F2_S2 ZONE AIR NODE,Air,0
+ Node,26,F2_S2 IDEAL LOADS SUPPLY INLET,Air,1
+ Node,27,F2_S2 RETURN OUTLET,Air,0
+ Node,28,F2_S3 ZONE AIR NODE,Air,0
+ Node,29,F2_S3 IDEAL LOADS SUPPLY INLET,Air,1
+ Node,30,F2_S3 RETURN OUTLET,Air,0
+ Node,31,F2_CORRIDOR ZONE AIR NODE,Air,0
+ Node,32,F2_CORRIDOR IDEAL LOADS SUPPLY INLET,Air,1
+ Node,33,F2_CORRIDOR RETURN OUTLET,Air,0
+ Node,34,F2_N1 ZONE AIR NODE,Air,0
+ Node,35,F2_N1 IDEAL LOADS SUPPLY INLET,Air,1
+ Node,36,F2_N1 RETURN OUTLET,Air,0
+ Node,37,F2_N2 ZONE AIR NODE,Air,0
+ Node,38,F2_N2 IDEAL LOADS SUPPLY INLET,Air,1
+ Node,39,F2_N2 RETURN OUTLET,Air,0
+ Node,40,F2_N3 ZONE AIR NODE,Air,0
+ Node,41,F2_N3 IDEAL LOADS SUPPLY INLET,Air,1
+ Node,42,F2_N3 RETURN OUTLET,Air,0
+ Node,43,F2_N4 ZONE AIR NODE,Air,0
+ Node,44,F2_N4 IDEAL LOADS SUPPLY INLET,Air,1
+ Node,45,F2_N4 RETURN OUTLET,Air,0
+ Node,46,F3_S1 ZONE AIR NODE,Air,0
+ Node,47,F3_S1 IDEAL LOADS SUPPLY INLET,Air,1
+ Node,48,F3_S1 RETURN OUTLET,Air,0
+ Node,49,F3_S2 ZONE AIR NODE,Air,0
+ Node,50,F3_S2 IDEAL LOADS SUPPLY INLET,Air,1
+ Node,51,F3_S2 RETURN OUTLET,Air,0
+ Node,52,F3_CORRIDOR ZONE AIR NODE,Air,0
+ Node,53,F3_CORRIDOR IDEAL LOADS SUPPLY INLET,Air,1
+ Node,54,F3_CORRIDOR RETURN OUTLET,Air,0
+ Node,55,F3_N1 ZONE AIR NODE,Air,0
+ Node,56,F3_N1 IDEAL LOADS SUPPLY INLET,Air,1
+ Node,57,F3_N1 RETURN OUTLET,Air,0
+! ===============================================================
+! Suspicious nodes have 0 references.  It is normal for some nodes, however.
+! Listing nodes with 0 references (culled from previous list):
+! <Suspicious Node>,<NodeNumber>,<Node Name>,<Node Fluid Type>,<# Times Node Referenced After Definition>
+ Suspicious Node,1,F1_S1 ZONE AIR NODE,Air,0
+ Suspicious Node,3,F1_S1 RETURN OUTLET,Air,0
+ Suspicious Node,4,F1_S2 ZONE AIR NODE,Air,0
+ Suspicious Node,6,F1_S2 RETURN OUTLET,Air,0
+ Suspicious Node,7,F1_S3 ZONE AIR NODE,Air,0
+ Suspicious Node,9,F1_S3 RETURN OUTLET,Air,0
+ Suspicious Node,10,F1_CORRIDOR ZONE AIR NODE,Air,0
+ Suspicious Node,12,F1_CORRIDOR RETURN OUTLET,Air,0
+ Suspicious Node,13,F1_N1 ZONE AIR NODE,Air,0
+ Suspicious Node,15,F1_N1 RETURN OUTLET,Air,0
+ Suspicious Node,16,F1_N2 ZONE AIR NODE,Air,0
+ Suspicious Node,18,F1_N2 RETURN OUTLET,Air,0
+ Suspicious Node,19,F1_N3 ZONE AIR NODE,Air,0
+ Suspicious Node,21,F1_N3 RETURN OUTLET,Air,0
+ Suspicious Node,22,F2_S1 ZONE AIR NODE,Air,0
+ Suspicious Node,24,F2_S1 RETURN OUTLET,Air,0
+ Suspicious Node,25,F2_S2 ZONE AIR NODE,Air,0
+ Suspicious Node,27,F2_S2 RETURN OUTLET,Air,0
+ Suspicious Node,28,F2_S3 ZONE AIR NODE,Air,0
+ Suspicious Node,30,F2_S3 RETURN OUTLET,Air,0
+ Suspicious Node,31,F2_CORRIDOR ZONE AIR NODE,Air,0
+ Suspicious Node,33,F2_CORRIDOR RETURN OUTLET,Air,0
+ Suspicious Node,34,F2_N1 ZONE AIR NODE,Air,0
+ Suspicious Node,36,F2_N1 RETURN OUTLET,Air,0
+ Suspicious Node,37,F2_N2 ZONE AIR NODE,Air,0
+ Suspicious Node,39,F2_N2 RETURN OUTLET,Air,0
+ Suspicious Node,40,F2_N3 ZONE AIR NODE,Air,0
+ Suspicious Node,42,F2_N3 RETURN OUTLET,Air,0
+ Suspicious Node,43,F2_N4 ZONE AIR NODE,Air,0
+ Suspicious Node,45,F2_N4 RETURN OUTLET,Air,0
+ Suspicious Node,46,F3_S1 ZONE AIR NODE,Air,0
+ Suspicious Node,48,F3_S1 RETURN OUTLET,Air,0
+ Suspicious Node,49,F3_S2 ZONE AIR NODE,Air,0
+ Suspicious Node,51,F3_S2 RETURN OUTLET,Air,0
+ Suspicious Node,52,F3_CORRIDOR ZONE AIR NODE,Air,0
+ Suspicious Node,54,F3_CORRIDOR RETURN OUTLET,Air,0
+ Suspicious Node,55,F3_N1 ZONE AIR NODE,Air,0
+ Suspicious Node,57,F3_N1 RETURN OUTLET,Air,0
+! ===============================================================
+! <#Branch Lists>,<Number of Branch Lists>
+ #Branch Lists,0
+! <Branch List>,<Branch List Count>,<Branch List Name>,<Loop Name>,<Loop Type>,<Number of Branches>
+! <Branch>,<Branch Count>,<Branch Name>,<Loop Name>,<Loop Type>,<Branch Inlet Node Name>,<Branch Outlet Node Name>
+! ===============================================================
+! <#Supply Air Paths>,<Number of Supply Air Paths>
+ #Supply Air Paths,0
+! <Supply Air Path>,<Supply Air Path Count>,<Supply Air Path Name>,<AirLoopHVAC Name>
+! <#Components on Supply Air Path>,<Number of Components>
+! <Supply Air Path Component>,<Component Count>,<Component Type>,<Component Name>,<AirLoopHVAC Name>
+! <#Outlet Nodes on Supply Air Path Component>,<Number of Nodes>
+! <Supply Air Path Component Nodes>,<Node Count>,<Component Type>,<Component Name>,<Inlet Node Name>,<Outlet Node Name>,<AirLoopHVAC Name>
+! ===============================================================
+! <#Return Air Paths>,<Number of Return Air Paths>
+ #Return Air Paths,0
+! <Return Air Path>,<Return Air Path Count>,<Return Air Path Name>,<AirLoopHVAC Name>
+! <#Components on Return Air Path>,<Number of Components>
+! <Return Air Path Component>,<Component Count>,<Component Type>,<Component Name>,<AirLoopHVAC Name>
+! <#Inlet Nodes on Return Air Path Component>,<Number of Nodes>
+! <Return Air Path Component Nodes>,<Node Count>,<Component Type>,<Component Name>,<Inlet Node Name>,<Outlet Node Name>,<AirLoopHVAC Name>
+! ===============================================================
+! #Outdoor Air Nodes,<Number of Outdoor Air Nodes>
+ #Outdoor Air Nodes,0
+! ===============================================================
+! <#Component Sets>,<Number of Component Sets>
+ #Component Sets,0
+! <Component Set>,<Component Set Count>,<Parent Object Type>,<Parent Object Name>,<Component Type>,<Component Name>,<Inlet Node ID>,<Outlet Node ID>,<Description>
+! ===============================================================
+! <# Plant Loops>,<Number of Plant Loops>
+ #Plant Loops,0
+! <Plant Loop>,<Plant Loop Name>,<Loop Type>,<Inlet Node Name>,<Outlet Node Name>,<Branch List>,<Connector List>
+! <Plant Loop Connector>,<Connector Type>,<Connector Name>,<Loop Name>,<Loop Type>,<Number of Inlets/Outlets>
+! <Plant Loop Connector Branches>,<Connector Node Count>,<Connector Type>,<Connector Name>,<Inlet Branch>,<Outlet Branch>,<Loop Name>,<Loop Type>
+! <Plant Loop Connector Nodes>,<Connector Node Count>,<Connector Type>,<Connector Name>,<Inlet Node>,<Outlet Node>,<Loop Name>,<Loop Type>
+! <Plant Loop Supply Connection>,<Plant Loop Name>,<Supply Side Outlet Node Name>,<Demand Side Inlet Node Name>
+! <Plant Loop Return Connection>,<Plant Loop Name>,<Demand Side Outlet Node Name>,<Supply Side Inlet Node Name>
+! ===============================================================
+! <# Condenser Loops>,<Number of Condenser Loops>
+ #Condenser Loops,0
+! <Condenser Loop>,<Condenser Loop Name>,<Loop Type>,<Inlet Node Name>,<Outlet Node Name>,<Branch List>,<Connector List>
+! <Condenser Loop Connector>,<Connector Type>,<Connector Name>,<Loop Name>,<Loop Type>,<Number of Inlets/Outlets>
+! <Condenser Loop Connector Branches>,<Connector Node Count>,<Connector Type>,<Connector Name>,<Inlet Branch>,<Outlet Branch>,<Loop Name>,<Loop Type>
+! <Condenser Loop Connector Nodes>,<Connector Node Count>,<Connector Type>,<Connector Name>,<Inlet Node>,<Outlet Node>,<Loop Name>,<Loop Type>
+! <Condenser Loop Supply Connection>,<Condenser Loop Name>,<Supply Side Outlet Node Name>,<Demand Side Inlet Node Name>
+! <Condenser Loop Return Connection>,<Condenser Loop Name>,<Demand Side Outlet Node Name>,<Supply Side Inlet Node Name>
+! ===============================================================
+! <# Controlled Zones>,<Number of Controlled Zones>
+ #Controlled Zones,19
+! <Controlled Zone>,<Controlled Zone Name>,<Equip List Name>,<Control List Name>,<Zone Node Name>,<# Inlet Nodes>,<# Exhaust Nodes>,<# Return Nodes>
+! <Controlled Zone Inlet>,<Inlet Node Count>,<Controlled Zone Name>,<Supply Air Inlet Node Name>,<SD Sys:Cooling/Heating [DD:Cooling] Inlet Node Name>,<DD Sys:Heating Inlet Node Name>
+! <Controlled Zone Exhaust>,<Exhaust Node Count>,<Controlled Zone Name>,<Exhaust Air Node Name>
+ Controlled Zone,F1_S1,F1_S1 EQUIPMENT,,F1_S1 ZONE AIR NODE,1,0,1
+   Controlled Zone Inlet,1,F1_S1,F1_S1 IDEAL LOADS SUPPLY INLET,Undefined,N/A
+   Controlled Zone Return,1,F1_S1,F1_S1 RETURN OUTLET
+ Controlled Zone,F1_S2,F1_S2 EQUIPMENT,,F1_S2 ZONE AIR NODE,1,0,1
+   Controlled Zone Inlet,1,F1_S2,F1_S2 IDEAL LOADS SUPPLY INLET,Undefined,N/A
+   Controlled Zone Return,1,F1_S2,F1_S2 RETURN OUTLET
+ Controlled Zone,F1_S3,F1_S3 EQUIPMENT,,F1_S3 ZONE AIR NODE,1,0,1
+   Controlled Zone Inlet,1,F1_S3,F1_S3 IDEAL LOADS SUPPLY INLET,Undefined,N/A
+   Controlled Zone Return,1,F1_S3,F1_S3 RETURN OUTLET
+ Controlled Zone,F1_CORRIDOR,F1_CORRIDOR EQUIPMENT,,F1_CORRIDOR ZONE AIR NODE,1,0,1
+   Controlled Zone Inlet,1,F1_CORRIDOR,F1_CORRIDOR IDEAL LOADS SUPPLY INLET,Undefined,N/A
+   Controlled Zone Return,1,F1_CORRIDOR,F1_CORRIDOR RETURN OUTLET
+ Controlled Zone,F1_N1,F1_N1 EQUIPMENT,,F1_N1 ZONE AIR NODE,1,0,1
+   Controlled Zone Inlet,1,F1_N1,F1_N1 IDEAL LOADS SUPPLY INLET,Undefined,N/A
+   Controlled Zone Return,1,F1_N1,F1_N1 RETURN OUTLET
+ Controlled Zone,F1_N2,F1_N2 EQUIPMENT,,F1_N2 ZONE AIR NODE,1,0,1
+   Controlled Zone Inlet,1,F1_N2,F1_N2 IDEAL LOADS SUPPLY INLET,Undefined,N/A
+   Controlled Zone Return,1,F1_N2,F1_N2 RETURN OUTLET
+ Controlled Zone,F1_N3,F1_N3 EQUIPMENT,,F1_N3 ZONE AIR NODE,1,0,1
+   Controlled Zone Inlet,1,F1_N3,F1_N3 IDEAL LOADS SUPPLY INLET,Undefined,N/A
+   Controlled Zone Return,1,F1_N3,F1_N3 RETURN OUTLET
+ Controlled Zone,F2_S1,F2_S1 EQUIPMENT,,F2_S1 ZONE AIR NODE,1,0,1
+   Controlled Zone Inlet,1,F2_S1,F2_S1 IDEAL LOADS SUPPLY INLET,Undefined,N/A
+   Controlled Zone Return,1,F2_S1,F2_S1 RETURN OUTLET
+ Controlled Zone,F2_S2,F2_S2 EQUIPMENT,,F2_S2 ZONE AIR NODE,1,0,1
+   Controlled Zone Inlet,1,F2_S2,F2_S2 IDEAL LOADS SUPPLY INLET,Undefined,N/A
+   Controlled Zone Return,1,F2_S2,F2_S2 RETURN OUTLET
+ Controlled Zone,F2_S3,F2_S3 EQUIPMENT,,F2_S3 ZONE AIR NODE,1,0,1
+   Controlled Zone Inlet,1,F2_S3,F2_S3 IDEAL LOADS SUPPLY INLET,Undefined,N/A
+   Controlled Zone Return,1,F2_S3,F2_S3 RETURN OUTLET
+ Controlled Zone,F2_CORRIDOR,F2_CORRIDOR EQUIPMENT,,F2_CORRIDOR ZONE AIR NODE,1,0,1
+   Controlled Zone Inlet,1,F2_CORRIDOR,F2_CORRIDOR IDEAL LOADS SUPPLY INLET,Undefined,N/A
+   Controlled Zone Return,1,F2_CORRIDOR,F2_CORRIDOR RETURN OUTLET
+ Controlled Zone,F2_N1,F2_N1 EQUIPMENT,,F2_N1 ZONE AIR NODE,1,0,1
+   Controlled Zone Inlet,1,F2_N1,F2_N1 IDEAL LOADS SUPPLY INLET,Undefined,N/A
+   Controlled Zone Return,1,F2_N1,F2_N1 RETURN OUTLET
+ Controlled Zone,F2_N2,F2_N2 EQUIPMENT,,F2_N2 ZONE AIR NODE,1,0,1
+   Controlled Zone Inlet,1,F2_N2,F2_N2 IDEAL LOADS SUPPLY INLET,Undefined,N/A
+   Controlled Zone Return,1,F2_N2,F2_N2 RETURN OUTLET
+ Controlled Zone,F2_N3,F2_N3 EQUIPMENT,,F2_N3 ZONE AIR NODE,1,0,1
+   Controlled Zone Inlet,1,F2_N3,F2_N3 IDEAL LOADS SUPPLY INLET,Undefined,N/A
+   Controlled Zone Return,1,F2_N3,F2_N3 RETURN OUTLET
+ Controlled Zone,F2_N4,F2_N4 EQUIPMENT,,F2_N4 ZONE AIR NODE,1,0,1
+   Controlled Zone Inlet,1,F2_N4,F2_N4 IDEAL LOADS SUPPLY INLET,Undefined,N/A
+   Controlled Zone Return,1,F2_N4,F2_N4 RETURN OUTLET
+ Controlled Zone,F3_S1,F3_S1 EQUIPMENT,,F3_S1 ZONE AIR NODE,1,0,1
+   Controlled Zone Inlet,1,F3_S1,F3_S1 IDEAL LOADS SUPPLY INLET,Undefined,N/A
+   Controlled Zone Return,1,F3_S1,F3_S1 RETURN OUTLET
+ Controlled Zone,F3_S2,F3_S2 EQUIPMENT,,F3_S2 ZONE AIR NODE,1,0,1
+   Controlled Zone Inlet,1,F3_S2,F3_S2 IDEAL LOADS SUPPLY INLET,Undefined,N/A
+   Controlled Zone Return,1,F3_S2,F3_S2 RETURN OUTLET
+ Controlled Zone,F3_CORRIDOR,F3_CORRIDOR EQUIPMENT,,F3_CORRIDOR ZONE AIR NODE,1,0,1
+   Controlled Zone Inlet,1,F3_CORRIDOR,F3_CORRIDOR IDEAL LOADS SUPPLY INLET,Undefined,N/A
+   Controlled Zone Return,1,F3_CORRIDOR,F3_CORRIDOR RETURN OUTLET
+ Controlled Zone,F3_N1,F3_N1 EQUIPMENT,,F3_N1 ZONE AIR NODE,1,0,1
+   Controlled Zone Inlet,1,F3_N1,F3_N1 IDEAL LOADS SUPPLY INLET,Undefined,N/A
+   Controlled Zone Return,1,F3_N1,F3_N1 RETURN OUTLET
+! ===============================================================
+! <#Zone Equipment Lists>,<Number of Zone Equipment Lists>
+ #Zone Equipment Lists,19
+! <Zone Equipment List>,<Zone Equipment List Count>,<Zone Equipment List Name>,<Zone Name>,<Number of Components>
+! <Zone Equipment Component>,<Component Count>,<Component Type>,<Component Name>,<Zone Name>,<Heating Priority>,<Cooling Priority>
+ Zone Equipment List,1,F1_S1 EQUIPMENT,F1_S1,1
+   Zone Equipment Component,1,ZONEHVAC:IDEALLOADSAIRSYSTEM,F1_S1 IDEAL LOADS AIR SYSTEM,F1_S1,1,1
+ Zone Equipment List,2,F1_S2 EQUIPMENT,F1_S2,1
+   Zone Equipment Component,1,ZONEHVAC:IDEALLOADSAIRSYSTEM,F1_S2 IDEAL LOADS AIR SYSTEM,F1_S2,1,1
+ Zone Equipment List,3,F1_S3 EQUIPMENT,F1_S3,1
+   Zone Equipment Component,1,ZONEHVAC:IDEALLOADSAIRSYSTEM,F1_S3 IDEAL LOADS AIR SYSTEM,F1_S3,1,1
+ Zone Equipment List,4,F1_CORRIDOR EQUIPMENT,F1_CORRIDOR,1
+   Zone Equipment Component,1,ZONEHVAC:IDEALLOADSAIRSYSTEM,F1_CORRIDOR IDEAL LOADS AIR SYSTEM,F1_CORRIDOR,1,1
+ Zone Equipment List,5,F1_N1 EQUIPMENT,F1_N1,1
+   Zone Equipment Component,1,ZONEHVAC:IDEALLOADSAIRSYSTEM,F1_N1 IDEAL LOADS AIR SYSTEM,F1_N1,1,1
+ Zone Equipment List,6,F1_N2 EQUIPMENT,F1_N2,1
+   Zone Equipment Component,1,ZONEHVAC:IDEALLOADSAIRSYSTEM,F1_N2 IDEAL LOADS AIR SYSTEM,F1_N2,1,1
+ Zone Equipment List,7,F1_N3 EQUIPMENT,F1_N3,1
+   Zone Equipment Component,1,ZONEHVAC:IDEALLOADSAIRSYSTEM,F1_N3 IDEAL LOADS AIR SYSTEM,F1_N3,1,1
+ Zone Equipment List,8,F2_S1 EQUIPMENT,F2_S1,1
+   Zone Equipment Component,1,ZONEHVAC:IDEALLOADSAIRSYSTEM,F2_S1 IDEAL LOADS AIR SYSTEM,F2_S1,1,1
+ Zone Equipment List,9,F2_S2 EQUIPMENT,F2_S2,1
+   Zone Equipment Component,1,ZONEHVAC:IDEALLOADSAIRSYSTEM,F2_S2 IDEAL LOADS AIR SYSTEM,F2_S2,1,1
+ Zone Equipment List,10,F2_S3 EQUIPMENT,F2_S3,1
+   Zone Equipment Component,1,ZONEHVAC:IDEALLOADSAIRSYSTEM,F2_S3 IDEAL LOADS AIR SYSTEM,F2_S3,1,1
+ Zone Equipment List,11,F2_CORRIDOR EQUIPMENT,F2_CORRIDOR,1
+   Zone Equipment Component,1,ZONEHVAC:IDEALLOADSAIRSYSTEM,F2_CORRIDOR IDEAL LOADS AIR SYSTEM,F2_CORRIDOR,1,1
+ Zone Equipment List,12,F2_N1 EQUIPMENT,F2_N1,1
+   Zone Equipment Component,1,ZONEHVAC:IDEALLOADSAIRSYSTEM,F2_N1 IDEAL LOADS AIR SYSTEM,F2_N1,1,1
+ Zone Equipment List,13,F2_N2 EQUIPMENT,F2_N2,1
+   Zone Equipment Component,1,ZONEHVAC:IDEALLOADSAIRSYSTEM,F2_N2 IDEAL LOADS AIR SYSTEM,F2_N2,1,1
+ Zone Equipment List,14,F2_N3 EQUIPMENT,F2_N3,1
+   Zone Equipment Component,1,ZONEHVAC:IDEALLOADSAIRSYSTEM,F2_N3 IDEAL LOADS AIR SYSTEM,F2_N3,1,1
+ Zone Equipment List,15,F2_N4 EQUIPMENT,F2_N4,1
+   Zone Equipment Component,1,ZONEHVAC:IDEALLOADSAIRSYSTEM,F2_N4 IDEAL LOADS AIR SYSTEM,F2_N4,1,1
+ Zone Equipment List,16,F3_S1 EQUIPMENT,F3_S1,1
+   Zone Equipment Component,1,ZONEHVAC:IDEALLOADSAIRSYSTEM,F3_S1 IDEAL LOADS AIR SYSTEM,F3_S1,1,1
+ Zone Equipment List,17,F3_S2 EQUIPMENT,F3_S2,1
+   Zone Equipment Component,1,ZONEHVAC:IDEALLOADSAIRSYSTEM,F3_S2 IDEAL LOADS AIR SYSTEM,F3_S2,1,1
+ Zone Equipment List,18,F3_CORRIDOR EQUIPMENT,F3_CORRIDOR,1
+   Zone Equipment Component,1,ZONEHVAC:IDEALLOADSAIRSYSTEM,F3_CORRIDOR IDEAL LOADS AIR SYSTEM,F3_CORRIDOR,1,1
+ Zone Equipment List,19,F3_N1 EQUIPMENT,F3_N1,1
+   Zone Equipment Component,1,ZONEHVAC:IDEALLOADSAIRSYSTEM,F3_N1 IDEAL LOADS AIR SYSTEM,F3_N1,1,1
+! ===============================================================
+! <#AirLoopHVACs>,<Number of AirLoopHVACs>
+ #AirLoopHVACs,0
+! <AirLoopHVAC>,<Air Loop Name>,<# Return Nodes>,<# Supply Nodes>,<# Zones Cooled>,<# Zones Heated>,<Outdoor Air Used>
+! <AirLoop Return Connections>,<Connection Count>,<AirLoopHVAC Name>,<Zn Eqp Return Node #>,<Zn Eqp Return Node Name>,<AirLoop Return Node #>,<Air Loop Return Node Name>
+! <AirLoop Supply Connections>,<Connection Count>,<AirLoopHVAC Name>,<Zn Eqp Supply Node #>,<Zn Eqp Supply Node Name>,<AirLoop Supply Node #>,<Air Loop Supply Node Name>
+! <Cooled Zone Info>,<Cooled Zone Count>,<Cooled Zone Name>,<Cooled Zone Inlet Node #>,<Cooled Zone Inlet Node Name>,<AirLoopHVAC Name>
+! <Heated Zone Info>,<Heated Zone Count>,<Heated Zone Name>,<Heated Zone Inlet Node #>,<Heated Zone Inlet Node Name>,<AirLoopHVAC Name>
+! <Outdoor Air Connections>,<OA Inlet Node #>,<OA Return Air Inlet Node Name>,<OA Outlet Node #>,<OA Mixed Air Outlet Node Name>,<AirLoopHVAC Name>
+! <AirLoopHVAC Connector>,<Connector Type>,<Connector Name>,<Loop Name>,<Loop Type>,<Number of Inlets/Outlets>
+! <AirLoopHVAC Connector Branches>,<Connector Node Count>,<Connector Type>,<Connector Name>,<Inlet Branch>,<Outlet Branch>,<Loop Name>,<Loop Type>
+! <AirLoopHVAC Connector Nodes>,<Connector Node Count>,<Connector Type>,<Connector Name>,<Inlet Node>,<Outlet Node>,<Loop Name>,<Loop Type>
+! ===============================================================
+! <#Parent Node Connections>,<Number of Parent Node Connections>
+ #Parent Node Connections,0
+! <Parent Node Connection>,<Node Name>,<Node ObjectType>,<Node ObjectName>,<Node ConnectionType>,<Node FluidStream>
+! ===============================================================
+! <#Non-Parent Node Connections>,<Number of Non-Parent Node Connections>
+ #Non-Parent Node Connections,76
+! <Non-Parent Node Connection>,<Node Name>,<Node ObjectType>,<Node ObjectName>,<Node ConnectionType>,<Node FluidStream>
+ Non-Parent Node Connection,F1_S1 ZONE AIR NODE,ZONEHVAC:EQUIPMENTCONNECTIONS,F1_S1,ZoneNode,1
+ Non-Parent Node Connection,F1_S1 IDEAL LOADS SUPPLY INLET,ZONEHVAC:EQUIPMENTCONNECTIONS,F1_S1,ZoneInlet,1
+ Non-Parent Node Connection,F1_S1 RETURN OUTLET,ZONEHVAC:EQUIPMENTCONNECTIONS,F1_S1,ZoneReturn,1
+ Non-Parent Node Connection,F1_S2 ZONE AIR NODE,ZONEHVAC:EQUIPMENTCONNECTIONS,F1_S2,ZoneNode,1
+ Non-Parent Node Connection,F1_S2 IDEAL LOADS SUPPLY INLET,ZONEHVAC:EQUIPMENTCONNECTIONS,F1_S2,ZoneInlet,1
+ Non-Parent Node Connection,F1_S2 RETURN OUTLET,ZONEHVAC:EQUIPMENTCONNECTIONS,F1_S2,ZoneReturn,1
+ Non-Parent Node Connection,F1_S3 ZONE AIR NODE,ZONEHVAC:EQUIPMENTCONNECTIONS,F1_S3,ZoneNode,1
+ Non-Parent Node Connection,F1_S3 IDEAL LOADS SUPPLY INLET,ZONEHVAC:EQUIPMENTCONNECTIONS,F1_S3,ZoneInlet,1
+ Non-Parent Node Connection,F1_S3 RETURN OUTLET,ZONEHVAC:EQUIPMENTCONNECTIONS,F1_S3,ZoneReturn,1
+ Non-Parent Node Connection,F1_CORRIDOR ZONE AIR NODE,ZONEHVAC:EQUIPMENTCONNECTIONS,F1_CORRIDOR,ZoneNode,1
+ Non-Parent Node Connection,F1_CORRIDOR IDEAL LOADS SUPPLY INLET,ZONEHVAC:EQUIPMENTCONNECTIONS,F1_CORRIDOR,ZoneInlet,1
+ Non-Parent Node Connection,F1_CORRIDOR RETURN OUTLET,ZONEHVAC:EQUIPMENTCONNECTIONS,F1_CORRIDOR,ZoneReturn,1
+ Non-Parent Node Connection,F1_N1 ZONE AIR NODE,ZONEHVAC:EQUIPMENTCONNECTIONS,F1_N1,ZoneNode,1
+ Non-Parent Node Connection,F1_N1 IDEAL LOADS SUPPLY INLET,ZONEHVAC:EQUIPMENTCONNECTIONS,F1_N1,ZoneInlet,1
+ Non-Parent Node Connection,F1_N1 RETURN OUTLET,ZONEHVAC:EQUIPMENTCONNECTIONS,F1_N1,ZoneReturn,1
+ Non-Parent Node Connection,F1_N2 ZONE AIR NODE,ZONEHVAC:EQUIPMENTCONNECTIONS,F1_N2,ZoneNode,1
+ Non-Parent Node Connection,F1_N2 IDEAL LOADS SUPPLY INLET,ZONEHVAC:EQUIPMENTCONNECTIONS,F1_N2,ZoneInlet,1
+ Non-Parent Node Connection,F1_N2 RETURN OUTLET,ZONEHVAC:EQUIPMENTCONNECTIONS,F1_N2,ZoneReturn,1
+ Non-Parent Node Connection,F1_N3 ZONE AIR NODE,ZONEHVAC:EQUIPMENTCONNECTIONS,F1_N3,ZoneNode,1
+ Non-Parent Node Connection,F1_N3 IDEAL LOADS SUPPLY INLET,ZONEHVAC:EQUIPMENTCONNECTIONS,F1_N3,ZoneInlet,1
+ Non-Parent Node Connection,F1_N3 RETURN OUTLET,ZONEHVAC:EQUIPMENTCONNECTIONS,F1_N3,ZoneReturn,1
+ Non-Parent Node Connection,F2_S1 ZONE AIR NODE,ZONEHVAC:EQUIPMENTCONNECTIONS,F2_S1,ZoneNode,1
+ Non-Parent Node Connection,F2_S1 IDEAL LOADS SUPPLY INLET,ZONEHVAC:EQUIPMENTCONNECTIONS,F2_S1,ZoneInlet,1
+ Non-Parent Node Connection,F2_S1 RETURN OUTLET,ZONEHVAC:EQUIPMENTCONNECTIONS,F2_S1,ZoneReturn,1
+ Non-Parent Node Connection,F2_S2 ZONE AIR NODE,ZONEHVAC:EQUIPMENTCONNECTIONS,F2_S2,ZoneNode,1
+ Non-Parent Node Connection,F2_S2 IDEAL LOADS SUPPLY INLET,ZONEHVAC:EQUIPMENTCONNECTIONS,F2_S2,ZoneInlet,1
+ Non-Parent Node Connection,F2_S2 RETURN OUTLET,ZONEHVAC:EQUIPMENTCONNECTIONS,F2_S2,ZoneReturn,1
+ Non-Parent Node Connection,F2_S3 ZONE AIR NODE,ZONEHVAC:EQUIPMENTCONNECTIONS,F2_S3,ZoneNode,1
+ Non-Parent Node Connection,F2_S3 IDEAL LOADS SUPPLY INLET,ZONEHVAC:EQUIPMENTCONNECTIONS,F2_S3,ZoneInlet,1
+ Non-Parent Node Connection,F2_S3 RETURN OUTLET,ZONEHVAC:EQUIPMENTCONNECTIONS,F2_S3,ZoneReturn,1
+ Non-Parent Node Connection,F2_CORRIDOR ZONE AIR NODE,ZONEHVAC:EQUIPMENTCONNECTIONS,F2_CORRIDOR,ZoneNode,1
+ Non-Parent Node Connection,F2_CORRIDOR IDEAL LOADS SUPPLY INLET,ZONEHVAC:EQUIPMENTCONNECTIONS,F2_CORRIDOR,ZoneInlet,1
+ Non-Parent Node Connection,F2_CORRIDOR RETURN OUTLET,ZONEHVAC:EQUIPMENTCONNECTIONS,F2_CORRIDOR,ZoneReturn,1
+ Non-Parent Node Connection,F2_N1 ZONE AIR NODE,ZONEHVAC:EQUIPMENTCONNECTIONS,F2_N1,ZoneNode,1
+ Non-Parent Node Connection,F2_N1 IDEAL LOADS SUPPLY INLET,ZONEHVAC:EQUIPMENTCONNECTIONS,F2_N1,ZoneInlet,1
+ Non-Parent Node Connection,F2_N1 RETURN OUTLET,ZONEHVAC:EQUIPMENTCONNECTIONS,F2_N1,ZoneReturn,1
+ Non-Parent Node Connection,F2_N2 ZONE AIR NODE,ZONEHVAC:EQUIPMENTCONNECTIONS,F2_N2,ZoneNode,1
+ Non-Parent Node Connection,F2_N2 IDEAL LOADS SUPPLY INLET,ZONEHVAC:EQUIPMENTCONNECTIONS,F2_N2,ZoneInlet,1
+ Non-Parent Node Connection,F2_N2 RETURN OUTLET,ZONEHVAC:EQUIPMENTCONNECTIONS,F2_N2,ZoneReturn,1
+ Non-Parent Node Connection,F2_N3 ZONE AIR NODE,ZONEHVAC:EQUIPMENTCONNECTIONS,F2_N3,ZoneNode,1
+ Non-Parent Node Connection,F2_N3 IDEAL LOADS SUPPLY INLET,ZONEHVAC:EQUIPMENTCONNECTIONS,F2_N3,ZoneInlet,1
+ Non-Parent Node Connection,F2_N3 RETURN OUTLET,ZONEHVAC:EQUIPMENTCONNECTIONS,F2_N3,ZoneReturn,1
+ Non-Parent Node Connection,F2_N4 ZONE AIR NODE,ZONEHVAC:EQUIPMENTCONNECTIONS,F2_N4,ZoneNode,1
+ Non-Parent Node Connection,F2_N4 IDEAL LOADS SUPPLY INLET,ZONEHVAC:EQUIPMENTCONNECTIONS,F2_N4,ZoneInlet,1
+ Non-Parent Node Connection,F2_N4 RETURN OUTLET,ZONEHVAC:EQUIPMENTCONNECTIONS,F2_N4,ZoneReturn,1
+ Non-Parent Node Connection,F3_S1 ZONE AIR NODE,ZONEHVAC:EQUIPMENTCONNECTIONS,F3_S1,ZoneNode,1
+ Non-Parent Node Connection,F3_S1 IDEAL LOADS SUPPLY INLET,ZONEHVAC:EQUIPMENTCONNECTIONS,F3_S1,ZoneInlet,1
+ Non-Parent Node Connection,F3_S1 RETURN OUTLET,ZONEHVAC:EQUIPMENTCONNECTIONS,F3_S1,ZoneReturn,1
+ Non-Parent Node Connection,F3_S2 ZONE AIR NODE,ZONEHVAC:EQUIPMENTCONNECTIONS,F3_S2,ZoneNode,1
+ Non-Parent Node Connection,F3_S2 IDEAL LOADS SUPPLY INLET,ZONEHVAC:EQUIPMENTCONNECTIONS,F3_S2,ZoneInlet,1
+ Non-Parent Node Connection,F3_S2 RETURN OUTLET,ZONEHVAC:EQUIPMENTCONNECTIONS,F3_S2,ZoneReturn,1
+ Non-Parent Node Connection,F3_CORRIDOR ZONE AIR NODE,ZONEHVAC:EQUIPMENTCONNECTIONS,F3_CORRIDOR,ZoneNode,1
+ Non-Parent Node Connection,F3_CORRIDOR IDEAL LOADS SUPPLY INLET,ZONEHVAC:EQUIPMENTCONNECTIONS,F3_CORRIDOR,ZoneInlet,1
+ Non-Parent Node Connection,F3_CORRIDOR RETURN OUTLET,ZONEHVAC:EQUIPMENTCONNECTIONS,F3_CORRIDOR,ZoneReturn,1
+ Non-Parent Node Connection,F3_N1 ZONE AIR NODE,ZONEHVAC:EQUIPMENTCONNECTIONS,F3_N1,ZoneNode,1
+ Non-Parent Node Connection,F3_N1 IDEAL LOADS SUPPLY INLET,ZONEHVAC:EQUIPMENTCONNECTIONS,F3_N1,ZoneInlet,1
+ Non-Parent Node Connection,F3_N1 RETURN OUTLET,ZONEHVAC:EQUIPMENTCONNECTIONS,F3_N1,ZoneReturn,1
+ Non-Parent Node Connection,F1_CORRIDOR IDEAL LOADS SUPPLY INLET,ZONEHVAC:IDEALLOADSAIRSYSTEM,F1_CORRIDOR IDEAL LOADS AIR SYSTEM,Outlet,1
+ Non-Parent Node Connection,F1_N1 IDEAL LOADS SUPPLY INLET,ZONEHVAC:IDEALLOADSAIRSYSTEM,F1_N1 IDEAL LOADS AIR SYSTEM,Outlet,1
+ Non-Parent Node Connection,F1_N2 IDEAL LOADS SUPPLY INLET,ZONEHVAC:IDEALLOADSAIRSYSTEM,F1_N2 IDEAL LOADS AIR SYSTEM,Outlet,1
+ Non-Parent Node Connection,F1_N3 IDEAL LOADS SUPPLY INLET,ZONEHVAC:IDEALLOADSAIRSYSTEM,F1_N3 IDEAL LOADS AIR SYSTEM,Outlet,1
+ Non-Parent Node Connection,F1_S1 IDEAL LOADS SUPPLY INLET,ZONEHVAC:IDEALLOADSAIRSYSTEM,F1_S1 IDEAL LOADS AIR SYSTEM,Outlet,1
+ Non-Parent Node Connection,F1_S2 IDEAL LOADS SUPPLY INLET,ZONEHVAC:IDEALLOADSAIRSYSTEM,F1_S2 IDEAL LOADS AIR SYSTEM,Outlet,1
+ Non-Parent Node Connection,F1_S3 IDEAL LOADS SUPPLY INLET,ZONEHVAC:IDEALLOADSAIRSYSTEM,F1_S3 IDEAL LOADS AIR SYSTEM,Outlet,1
+ Non-Parent Node Connection,F2_CORRIDOR IDEAL LOADS SUPPLY INLET,ZONEHVAC:IDEALLOADSAIRSYSTEM,F2_CORRIDOR IDEAL LOADS AIR SYSTEM,Outlet,1
+ Non-Parent Node Connection,F2_N1 IDEAL LOADS SUPPLY INLET,ZONEHVAC:IDEALLOADSAIRSYSTEM,F2_N1 IDEAL LOADS AIR SYSTEM,Outlet,1
+ Non-Parent Node Connection,F2_N2 IDEAL LOADS SUPPLY INLET,ZONEHVAC:IDEALLOADSAIRSYSTEM,F2_N2 IDEAL LOADS AIR SYSTEM,Outlet,1
+ Non-Parent Node Connection,F2_N3 IDEAL LOADS SUPPLY INLET,ZONEHVAC:IDEALLOADSAIRSYSTEM,F2_N3 IDEAL LOADS AIR SYSTEM,Outlet,1
+ Non-Parent Node Connection,F2_N4 IDEAL LOADS SUPPLY INLET,ZONEHVAC:IDEALLOADSAIRSYSTEM,F2_N4 IDEAL LOADS AIR SYSTEM,Outlet,1
+ Non-Parent Node Connection,F2_S1 IDEAL LOADS SUPPLY INLET,ZONEHVAC:IDEALLOADSAIRSYSTEM,F2_S1 IDEAL LOADS AIR SYSTEM,Outlet,1
+ Non-Parent Node Connection,F2_S2 IDEAL LOADS SUPPLY INLET,ZONEHVAC:IDEALLOADSAIRSYSTEM,F2_S2 IDEAL LOADS AIR SYSTEM,Outlet,1
+ Non-Parent Node Connection,F2_S3 IDEAL LOADS SUPPLY INLET,ZONEHVAC:IDEALLOADSAIRSYSTEM,F2_S3 IDEAL LOADS AIR SYSTEM,Outlet,1
+ Non-Parent Node Connection,F3_CORRIDOR IDEAL LOADS SUPPLY INLET,ZONEHVAC:IDEALLOADSAIRSYSTEM,F3_CORRIDOR IDEAL LOADS AIR SYSTEM,Outlet,1
+ Non-Parent Node Connection,F3_N1 IDEAL LOADS SUPPLY INLET,ZONEHVAC:IDEALLOADSAIRSYSTEM,F3_N1 IDEAL LOADS AIR SYSTEM,Outlet,1
+ Non-Parent Node Connection,F3_S1 IDEAL LOADS SUPPLY INLET,ZONEHVAC:IDEALLOADSAIRSYSTEM,F3_S1 IDEAL LOADS AIR SYSTEM,Outlet,1
+ Non-Parent Node Connection,F3_S2 IDEAL LOADS SUPPLY INLET,ZONEHVAC:IDEALLOADSAIRSYSTEM,F3_S2 IDEAL LOADS AIR SYSTEM,Outlet,1

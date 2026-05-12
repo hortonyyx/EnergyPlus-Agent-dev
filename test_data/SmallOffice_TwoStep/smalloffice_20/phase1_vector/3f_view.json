@@ -1,0 +1,55 @@
+{
+  "image_label": "Floor 3 plan view",
+  "image_kind": "plan",
+  "facade_axis_note": null,
+  "scale_origin": {
+    "world_x_m": 0.00,
+    "world_y_m": 0.00,
+    "world_z_m": null,
+    "note": "本图本地原点 = 整栋投影 SW 内角；z 范围由立面尺寸链给出，phase1 不填"
+  },
+
+  "strokes": [
+    {"id": "S1", "pen": "wall", "geometry": {"kind": "line", "p1": [0.00, 0.00],  "p2": [15.00, 0.00], "thickness_m": null}, "note": "南侧水平外周墙"},
+    {"id": "S2", "pen": "wall", "geometry": {"kind": "line", "p1": [15.00, 0.00], "p2": [15.00, 8.00], "thickness_m": null}, "note": "东侧垂直外周墙"},
+    {"id": "S3", "pen": "wall", "geometry": {"kind": "line", "p1": [15.00, 8.00], "p2": [0.00, 8.00],  "thickness_m": null}, "note": "北侧水平外周墙"},
+    {"id": "S4", "pen": "wall", "geometry": {"kind": "line", "p1": [0.00, 8.00],  "p2": [0.00, 0.00],  "thickness_m": null}, "note": "西侧垂直外周墙"},
+
+    {"id": "S5", "pen": "wall", "geometry": {"kind": "line", "p1": [0.00, 3.00],  "p2": [15.00, 3.00], "thickness_m": null}, "note": "水平内墙（走廊南侧，分隔底排与中间走廊）"},
+    {"id": "S6", "pen": "wall", "geometry": {"kind": "line", "p1": [0.00, 5.00],  "p2": [15.00, 5.00], "thickness_m": null}, "note": "水平内墙（走廊北侧，分隔中间走廊与顶排）"},
+
+    {"id": "S7", "pen": "wall", "geometry": {"kind": "line", "p1": [7.50, 0.00],  "p2": [7.50, 3.00],  "thickness_m": null}, "note": "垂直内墙（底排唯一一道，x=7.50）"}
+  ],
+
+  "dimensions": [
+    {"id": "D1",  "text": "15.00", "from": [0.00, 8.00],  "to": [15.00, 8.00], "axis": "x", "note": "顶部总长链"},
+    {"id": "D2",  "text": "15.00", "from": [0.00, 0.00],  "to": [15.00, 0.00], "axis": "x", "note": "底部总长链"},
+    {"id": "D3",  "text": "7.50",  "from": [0.00, 0.00],  "to": [7.50, 0.00],  "axis": "x", "note": "底部分段 1"},
+    {"id": "D4",  "text": "7.50",  "from": [7.50, 0.00],  "to": [15.00, 0.00], "axis": "x", "note": "底部分段 2"},
+
+    {"id": "D5",  "text": "8.00",  "from": [0.00, 0.00],  "to": [0.00, 8.00],  "axis": "y", "note": "左侧总宽链"},
+    {"id": "D6",  "text": "3.00",  "from": [0.00, 0.00],  "to": [0.00, 3.00],  "axis": "y", "note": "左侧分段 1"},
+    {"id": "D7",  "text": "2.00",  "from": [0.00, 3.00],  "to": [0.00, 5.00],  "axis": "y", "note": "左侧分段 2"},
+    {"id": "D8",  "text": "3.00",  "from": [0.00, 5.00],  "to": [0.00, 8.00],  "axis": "y", "note": "左侧分段 3"},
+
+    {"id": "D9",  "text": "8.00",  "from": [15.00, 0.00], "to": [15.00, 8.00], "axis": "y", "note": "右侧总宽链"},
+    {"id": "D10", "text": "3.00",  "from": [15.00, 0.00], "to": [15.00, 3.00], "axis": "y", "note": "右侧分段 1"},
+    {"id": "D11", "text": "2.00",  "from": [15.00, 3.00], "to": [15.00, 5.00], "axis": "y", "note": "右侧分段 2"},
+    {"id": "D12", "text": "3.00",  "from": [15.00, 5.00], "to": [15.00, 8.00], "axis": "y", "note": "右侧分段 3"}
+  ],
+
+  "ocr_texts": [],
+
+  "self_check": {
+    "all_dimensions_transcribed": true,
+    "all_visible_strokes_captured": true,
+    "no_topology_inferred": true,
+    "pens_used": ["wall"],
+    "unknowns_noted": [
+      "墙厚未标注且仿真无需 → strokes[*].geometry.thickness_m 全部 null（schema §0.2）",
+      "原图无文字标签 → ocr_texts 为空",
+      "顶排 y∈[5,8] 与中间走廊 y∈[3,5] 图上无垂直内墙打断，作整通处理；底排仅一道 x=7.50 垂直墙"
+    ],
+    "uncaptured_visual_elements": []
+  }
+}

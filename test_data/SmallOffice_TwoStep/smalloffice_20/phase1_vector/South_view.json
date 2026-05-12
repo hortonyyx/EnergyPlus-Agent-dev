@@ -1,0 +1,65 @@
+{
+  "image_label": "South view of the building",
+  "image_kind": "elevation",
+  "facade_axis_note": "South facade: local x = world x (increasing eastward); local y = world z (increasing upward, ground z=0)",
+  "scale_origin": {
+    "world_x_m": 0.00,
+    "world_y_m": 0.00,
+    "world_z_m": 0.00,
+    "note": "本图本地原点 = 立面外周左下角 = 南立面 SW 底角；x_local 沿世界 x+，y_local 沿世界 z+"
+  },
+
+  "strokes": [
+    {"id": "S1", "pen": "wall_fill", "geometry": {"kind": "rect", "x_range_m": [0.00, 15.00], "y_range_m": [0.00, 3.60]},  "note": "F1 墙身灰填充（y∈[0, 3.60]，按尺寸链分层）"},
+    {"id": "S2", "pen": "wall_fill", "geometry": {"kind": "rect", "x_range_m": [0.00, 15.00], "y_range_m": [3.60, 7.20]}, "note": "F2 墙身灰填充（y∈[3.60, 7.20]）"},
+    {"id": "S3", "pen": "wall_fill", "geometry": {"kind": "rect", "x_range_m": [0.00, 15.00], "y_range_m": [7.20, 12.00]}, "note": "F3 墙身灰填充（y∈[7.20, 12.00]，本层无窗）"},
+
+    {"id": "S4", "pen": "window", "geometry": {"kind": "rect", "x_range_m": [1.40, 3.80],   "y_range_m": [1.00, 2.80]}, "note": "F1 窗 1"},
+    {"id": "S5", "pen": "window", "geometry": {"kind": "rect", "x_range_m": [6.30, 8.70],   "y_range_m": [1.00, 2.80]}, "note": "F1 窗 2"},
+    {"id": "S6", "pen": "window", "geometry": {"kind": "rect", "x_range_m": [11.20, 13.60], "y_range_m": [1.00, 2.80]}, "note": "F1 窗 3"},
+
+    {"id": "S7", "pen": "window", "geometry": {"kind": "rect", "x_range_m": [1.40, 3.80],   "y_range_m": [4.40, 6.20]}, "note": "F2 窗 1"},
+    {"id": "S8", "pen": "window", "geometry": {"kind": "rect", "x_range_m": [6.30, 8.70],   "y_range_m": [4.40, 6.20]}, "note": "F2 窗 2"},
+    {"id": "S9", "pen": "window", "geometry": {"kind": "rect", "x_range_m": [11.20, 13.60], "y_range_m": [4.40, 6.20]}, "note": "F2 窗 3"}
+  ],
+
+  "dimensions": [
+    {"id": "D1",  "text": "15.00", "from": [0.00, 0.00],  "to": [15.00, 0.00], "axis": "x", "note": "底部总长链"},
+    {"id": "D2",  "text": "1.40",  "from": [0.00, 0.00],  "to": [1.40, 0.00],  "axis": "x", "note": "底部分段 1（西墩）"},
+    {"id": "D3",  "text": "2.40",  "from": [1.40, 0.00],  "to": [3.80, 0.00],  "axis": "x", "note": "底部分段 2（F1 窗 1 宽）"},
+    {"id": "D4",  "text": "2.50",  "from": [3.80, 0.00],  "to": [6.30, 0.00],  "axis": "x", "note": "底部分段 3（窗间墩）"},
+    {"id": "D5",  "text": "2.40",  "from": [6.30, 0.00],  "to": [8.70, 0.00],  "axis": "x", "note": "底部分段 4（F1 窗 2 宽）"},
+    {"id": "D6",  "text": "2.50",  "from": [8.70, 0.00],  "to": [11.20, 0.00], "axis": "x", "note": "底部分段 5（窗间墩）"},
+    {"id": "D7",  "text": "2.40",  "from": [11.20, 0.00], "to": [13.60, 0.00], "axis": "x", "note": "底部分段 6（F1 窗 3 宽）"},
+    {"id": "D8",  "text": "1.40",  "from": [13.60, 0.00], "to": [15.00, 0.00], "axis": "x", "note": "底部分段 7（东墩）"},
+
+    {"id": "D9",  "text": "12.00", "from": [0.00, 0.00],  "to": [0.00, 12.00], "axis": "y", "note": "左侧总高链"},
+    {"id": "D10", "text": "3.60",  "from": [0.00, 0.00],  "to": [0.00, 3.60],  "axis": "y", "note": "左侧分段 F1 层高"},
+    {"id": "D11", "text": "3.60",  "from": [0.00, 3.60],  "to": [0.00, 7.20],  "axis": "y", "note": "左侧分段 F2 层高"},
+    {"id": "D12", "text": "4.80",  "from": [0.00, 7.20],  "to": [0.00, 12.00], "axis": "y", "note": "左侧分段 F3 层高"},
+
+    {"id": "D13", "text": "12.00", "from": [15.00, 0.00], "to": [15.00, 12.00], "axis": "y", "note": "右侧总高链"},
+    {"id": "D14", "text": "1.00",  "from": [15.00, 0.00], "to": [15.00, 1.00],  "axis": "y", "note": "F1 窗 sill 距地"},
+    {"id": "D15", "text": "1.80",  "from": [15.00, 1.00], "to": [15.00, 2.80],  "axis": "y", "note": "F1 窗高"},
+    {"id": "D16", "text": "0.80",  "from": [15.00, 2.80], "to": [15.00, 3.60],  "axis": "y", "note": "F1 窗顶到楼板顶"},
+    {"id": "D17", "text": "1.00",  "from": [15.00, 3.60], "to": [15.00, 4.40],  "axis": "y", "note": "F2 楼板顶到窗 sill"},
+    {"id": "D18", "text": "1.80",  "from": [15.00, 4.40], "to": [15.00, 6.20],  "axis": "y", "note": "F2 窗高"},
+    {"id": "D19", "text": "0.80",  "from": [15.00, 6.20], "to": [15.00, 7.20],  "axis": "y", "note": "F2 窗顶到楼板顶"},
+    {"id": "D20", "text": "4.80",  "from": [15.00, 7.20], "to": [15.00, 12.00], "axis": "y", "note": "F3 层高（无窗）"}
+  ],
+
+  "ocr_texts": [],
+
+  "self_check": {
+    "all_dimensions_transcribed": true,
+    "all_visible_strokes_captured": true,
+    "no_topology_inferred": true,
+    "pens_used": ["wall_fill", "window"],
+    "unknowns_noted": [
+      "F3 层无窗，仅 wall_fill",
+      "立面外周轮廓线视觉上与 wall_fill 边重合 → 未单独画 outline stroke（schema §3.2）",
+      "F3 层高 4.80 与 F1/F2 的 3.60 不一致，phase1 原样照写"
+    ],
+    "uncaptured_visual_elements": []
+  }
+}
