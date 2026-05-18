@@ -1,0 +1,26 @@
+{
+  "name": "EnergyPlus-Agent",
+  "build": {
+    "dockerfile": "Dockerfile",
+    // 构建上下文设为 .devcontainer/ 本身 —— 该 Dockerfile 不 COPY 仓库代码,
+    // 上下文越小构建越快(不必把 test_data/.git 等传给 Docker daemon)。
+    "context": "."
+  },
+  // 容器首次创建后装一次依赖(含 dev 组:pytest / ruff)。
+  // venv 落在 /opt/venv(见 Dockerfile),不污染挂载的工作区。
+  "postCreateCommand": "uv sync --frozen",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-python.python",
+        "ms-python.vscode-pylance",
+        "charliermarsh.ruff"
+      ],
+      "settings": {
+        "python.defaultInterpreterPath": "/opt/venv/bin/python"
+      }
+    }
+  },
+  // MCP server 的 HTTP 端口,需在容器里调试 server 时用得上。
+  "forwardPorts": [8000]
+}

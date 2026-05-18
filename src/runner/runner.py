@@ -1,6 +1,7 @@
 import os
 import shutil
 import subprocess
+import sys
 from datetime import datetime
 from io import StringIO
 from pathlib import Path
@@ -15,10 +16,15 @@ load_dotenv()
 
 # Resolution order for the EnergyPlus executable:
 #   1) $ENERGYPLUS_EXE env var (explicit override, set in .env)
-#   2) `energyplus` on PATH (portable / CI default)
-#   3) DEFAULT_ENERGYPLUS_EXE below (this machine's known install; per user
-#      2026-05-07: 本机安装位置不会改动)
-DEFAULT_ENERGYPLUS_EXE = r"D:\EnergyPlusV25-2-0\energyplus.exe"
+#   2) `energyplus` on PATH (Linux container / CI default; nrel/energyplus image)
+#   3) DEFAULT_ENERGYPLUS_EXE below (platform-specific last-resort fallback)
+# On Windows this points at the known local install; on Linux/macOS we fall
+# back to the bare name so a PATH lookup (step 2) is the only sane resolution.
+DEFAULT_ENERGYPLUS_EXE = (
+    r"D:\EnergyPlusV25-2-0\energyplus.exe"
+    if sys.platform == "win32"
+    else "energyplus"
+)
 
 
 def resolve_energyplus_exe() -> str:
