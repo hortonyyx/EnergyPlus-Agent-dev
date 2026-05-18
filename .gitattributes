@@ -1,0 +1,42 @@
+# 统一换行符，消除 Windows ↔ Mac/Linux 的 CRLF 伪 diff。
+# 默认：所有文本文件检出/提交时规范化为 LF。
+* text=auto eol=lf
+
+# 源码与配置：强制 LF（Linux 容器、CI、Mac 一致）
+*.py     text eol=lf
+*.pyi    text eol=lf
+*.sh     text eol=lf
+*.yaml   text eol=lf
+*.yml    text eol=lf
+*.toml   text eol=lf
+*.json   text eol=lf
+*.md     text eol=lf
+*.cfg    text eol=lf
+*.ini    text eol=lf
+*.lock   text eol=lf
+Dockerfile text eol=lf
+.env.example text eol=lf
+
+# EnergyPlus 输入文件是文本，统一 LF
+*.idf    text eol=lf
+*.imf    text eol=lf
+*.epJSON text eol=lf
+*.epw    text eol=lf
+*.ddy    text eol=lf
+
+# Windows 专用脚本必须保留 CRLF，否则在 Windows 上可能解析异常
+*.bat    text eol=crlf
+*.cmd    text eol=crlf
+*.ps1    text eol=crlf
+
+# 二进制文件：不做换行符转换
+*.png    binary
+*.jpg    binary
+*.jpeg   binary
+*.gif    binary
+*.ico    binary
+*.pdf    binary
+*.eso    binary
+*.sql    binary
+*.so     binary
+*.zip    binary

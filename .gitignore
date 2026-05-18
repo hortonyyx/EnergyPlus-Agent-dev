@@ -242,3 +242,30 @@ _dev/
 
 data/examples/
 *.txt
+
+# OS-generated files (跨端开发必须排除，否则 Mac/Windows 互相污染)
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Codex CLI 本地配置 (agent 工具本地状态，不进仓库)
+.codex/
+
+# EnergyPlus 运行产物 (可由 IDF 重跑；test_data 里跟踪的 *.idf/*.epw 输入文件不受影响)
+*.err
+*.eio
+*.mtr
+*.mtd
+*.rdd
+*.mdd
+*.bnd
+*.audit
+*.end
+*.shd
+eplusout.*
+eplustbl.*
