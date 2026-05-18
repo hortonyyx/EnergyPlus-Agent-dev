@@ -52,7 +52,9 @@ def mcp_server(
     from src.mcp.server import mcp
 
     if transport == "stdio":
-        mcp.run()
+        # stdio MCP transports reserve stdout for protocol frames only.
+        # FastMCP's default banner/INFO startup logs break client handshakes.
+        mcp.run(transport="stdio", show_banner=False, log_level="ERROR")
     else:
         mcp.run(transport=transport, port=port, host=host)
 
