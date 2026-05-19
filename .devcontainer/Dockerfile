@@ -7,6 +7,11 @@
 # 基础镜像自带 Linux 版 EnergyPlus 25.1.0,`energyplus` 已在 PATH 上。
 FROM nrel/energyplus:25.1.0
 
+# 非交互式 apt —— 否则 python3.12-dev 拉进来的 tzdata 会在构建期弹出
+# "Geographic area" 时区选择交互框,容器构建无 TTY 会永久挂死。
+# 用 ARG(而非 ENV)使其只在构建期生效、不泄漏到容器运行时环境。
+ARG DEBIAN_FRONTEND=noninteractive
+
 # Python 3.12 (Ubuntu 22.04 默认只有 3.10; pyproject.toml 要求 >=3.12)
 # git 是 VS Code Dev Containers 的运行依赖;curl/ca-certificates/gnupg 用于添加 PPA
 RUN apt-get update \
@@ -18,6 +23,20 @@ RUN apt-get update \
     && apt-get update \
     && apt-get install -y --no-install-recommends python3.12 python3.12-venv python3.12-dev \
     && rm -rf /var/lib/apt/lists/*
+
+# Node.js —— 三个 AI CLI 都是 npm 包。原先用 devcontainer feature 装,
+# 但 feature 来自 ghcr.io,国内网络下经常拉取超时(socket hang up)导致容器
+# 创建直接失败。改为构建期用 NodeSource 仓库装,不再依赖 ghcr.io。
+RUN curl -fsSL https://deb.nodesource.com/setup_lts.x | bash - \
+    && apt-get install -y --no-install-recommends nodejs \
+    && rm -rf /var/lib/apt/lists/*
+
+# 三个 AI CLI 在构建期装,不放 postCreateCommand:
+#   - 构建期装,npm install 若中途网络波动会让 docker build 直接失败、即时可见;
+#     放 postCreateCommand 曾出现包写入了 node_modules 但 /usr/bin bin 软链接
+#     没建好的"静默半完成"状态(rebuild 后 claude/codex/gemini 全 command not found)。
+#   - 装进镜像层后 Rebuild Container 走缓存,不必每次重新拉。
+RUN npm install -g @anthropic-ai/claude-code @openai/codex @google/gemini-cli
 
 # uv: 用安装脚本而非 COPY —— 自动检测运行时架构,避免在 arm64 Mac 上构建时
 # 错误拉取 arm64 uv 而基础镜像是 amd64 导致的架构不匹配问题。

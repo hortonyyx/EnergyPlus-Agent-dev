@@ -17,7 +17,8 @@
 ### 进容器
 - `git clone` 本仓库 → VS Code 打开。
 - 按 `F1` → `Dev Containers: Reopen in Container`。
-- 首次构建会拉镜像(`nrel/energyplus`,约 170MB)+ 装 Node + 跑依赖,**需几分钟**。
+- 首次构建会拉镜像(`nrel/energyplus`,约 170MB)+ 装 Node + 三个 AI CLI(构建期)
+  + `uv sync` 跑 Python 依赖(容器创建后),**需几分钟**。
 
 ### 改了 .devcontainer/ 之后
 配置(`features` / `postCreateCommand` / `mounts` / `Dockerfile`)变更后,
@@ -44,7 +45,12 @@ claude --version && codex --version && gemini --version
 |---|---|
 | `.env` | 照 `.env.example` 新建并填密钥。被 gitignore,不跨端同步。 |
 | Docker Desktop | 每台机器各装一次。 |
-| AI CLI 登录态 | 通过 `mounts` 挂载宿主机 `~/.claude` `~/.codex` `~/.gemini` 复用;挂载失败则在容器内重新登录。 |
+| AI CLI 登录态 | 通过 `mounts` 挂载宿主机配置复用登录态;挂载失败则在容器内重新登录。 |
+
+> **codex 例外**:只挂 `~/.codex/auth.json`(认证),不挂整个 `~/.codex`。
+> 整目录挂载会让 codex 的 `state_*.sqlite` 落在 Windows bind mount 上,
+> sqlite 文件锁不兼容,启动即报 `disk I/O error`。前提是宿主机已 `codex login`
+> 过、`~/.codex/auth.json` 存在;否则进容器后在容器内重新登录。
 
 ---
 
