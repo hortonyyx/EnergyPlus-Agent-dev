@@ -184,14 +184,21 @@
 - [ ] 跑通后落 `test_data/SmallOffice_TwoStep/<new_case>/`，跑挂的话补 [`skills/energyplus_mcp_twostep/`](../skills/energyplus_mcp_twostep/) 规则
 - [ ] 注：[`run_phase2_deepseek.py`](../Tool_scripts/run_phase2_deepseek.py) 的 `PHASE1_FILES` 写死了 3 层+4 立面 7 个文件名；新 case 楼层/立面数不同时跑 phase2 前先改成按目录扫描
 
-#### B1.5.b [P0] phase2_rules.md / phase1_vector_schema.md 持续迭代
-- [ ] 把 Opus phase2_followup_notes.md 中可机械化的 4-5 条合入 phase2_rules v1.4：
-  - cross-floor sub-surface 命名约定（如 `<parent>_seg<n>`）
-  - 走廊负载密度（30 m²/p / 5 W/m²）vs 办公室典型值
-  - building.Name 大小写策略（推荐 PascalCase）
-  - site.Name 规范化为 `<City>_<ISO2>`
-  - Schedule:Compact day-type 名（EnergyPlus 接受 `Weekdays/Weekends/Holiday/AllOtherDays`）
-- [ ] 维护版本历史段，每条修正写明缘起 case + 缺口现象
+#### B1.5.b [P0] phase1 / phase2 skill 持续迭代
+
+**phase1 辅助 skill = 识图库 + 笔库（两面，喂 POC v2；2026-05-25 框架确立）**：
+- [ ] **识图库（新产物，先做一版）**：一般建筑图画法知识库——墙的多种画法（粗黑线 / 双线 / 影线 / 灰填充）、窗的表达、家具 / 铺装 / 轴网圈 / 楼梯符号长相。目标 = 提升 phase1 跨**风格 / 画法**泛化识别力（认出来才能按选择性提取正确画 keep-set、把杂物排除进 `uncaptured`）。与 [B7](#b7-p1-能力升级-3--规范化绘图--门--窗--楼梯识别)「规范化绘图」**反方向互补**（B7 约束输入按规约画；识图库教 phase1 读杂多规约），别重复造
+- [ ] **笔库（定调）**：审视 pen 集——留哪些、多少够。准则 = [floorplan_redraw_strategy.md §10.3](floorplan_redraw_strategy.md) 最小词典 + 按需提拔，提拔触发器 = 「phase2 是否需要这条信息」。守最小集，不为家具 / 门造笔（门 heal、家具 exclude）
+- [ ] 跑 POC v2 时用识图库 + 笔库观察：phase1 在噪声 / 异风格图上的 keep-set 分类准确率 + 杂物排除率
+
+**phase2_rules 规则合并（吸收 Opus phase2_followup_notes 可机械化项）**：
+- [ ] cross-floor sub-surface 命名约定（如 `<parent>_seg<n>`）
+- [ ] 走廊负载密度（30 m²/p / 5 W/m²）vs 办公室典型值
+- [ ] building.Name 大小写策略（推荐 PascalCase）
+- [ ] site.Name 规范化为 `<City>_<ISO2>`
+- [ ] Schedule:Compact day-type 名（EnergyPlus 接受 `Weekdays/Weekends/Holiday/AllOtherDays`）
+
+> 注（2026-05-25 起）：`skills/energyplus_mcp_twostep/` 是纯当前版本 spec，**文件内不再写版本号 / changelog / 缘起 case**（决策史归 git commit + 本 plan + [floorplan_redraw_strategy.md](floorplan_redraw_strategy.md)）。每次改 skill 仍按 [CLAUDE.md §6#5](CLAUDE.md) 备份到 `Skill_history/`。
 
 #### B1.5.c [P0] `intake_node` 重写为两步串行
 - [ ] [`src/agent/nodes/intake.py`](../src/agent/nodes/intake.py) 改为：

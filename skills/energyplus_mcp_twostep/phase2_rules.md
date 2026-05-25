@@ -11,11 +11,15 @@ the drawing" parts there are useless to phase 2, and the key output contract is 
 
 ### 0.1 Input
 
-Read by directory:
-- **phase 1 vector JSONs** (one per image), e.g. `phase1_vector/{1f_view, 2f_view, 3f_view,
+Read **every** vector JSON in the directory (do not assume a fixed file set):
+- **plan + elevation vector JSONs** (one per image), e.g. `phase1_vector/{1f_view, 2f_view, 3f_view,
   South_view, North_view, East_view, West_view}.json`; schema defined in
   [vector_schema_v1.md](phase1_vector_schema.md)
-- **metadata**: `testdata_prompt.json` (number of floors, floor area, building use, city, etc.)
+- **supplementary / section vector JSONs** if present (e.g. `supp_plan`, a section) — consume them
+  for stair indexing, local geometry clarification, or anything the main plans/elevations leave
+  ambiguous; do not silently ignore a supplement the case provided
+- **metadata**: `testdata_prompt.json` (number of floors, floor area, building use, city, facade
+  paths — an empty/absent facade path means that facade is blank, i.e. zero windows)
 
 ### 0.2 Output
 
@@ -77,7 +81,8 @@ disagree, **report the conflict — do not silently pick one floor's footprint**
 
 ### 2.2 Floor heights and per-floor z ranges
 
-Derive from any elevation's left/right total-height chain + segment chains:
+Derive from any elevation's left/right total-height chain + segment chains (values are per case —
+do not reuse another case's heights). Example only, not reusable:
 
 - F1: z_floor = 0.00, ceiling_height = 3.60, z_top = 3.60
 - F2: z_floor = 3.60, ceiling_height = 3.60, z_top = 7.20
@@ -141,14 +146,21 @@ Produce in the following order to avoid naming drift when later fields reference
 
 ### Step 1 — `building`
 
-From testdata: name = `Smalloffice_20` (snake/camel mix ok, no spaces), type = `Office`,
-num_floors = 3, total_floor_area_m2 = 360.
+Derive every field from `testdata_prompt.json`, never copy a previous case's values:
+- name from `TestName` (no spaces; snake/camel mix ok)
+- type from `Building type`
+- num_floors from `Number of floors` (must equal the `Floor plans` length)
+- total_floor_area_m2 from `Floor area`
+
+Use office defaults only where a field is genuinely missing.
+(Example only, not reusable: `Smalloffice_20` / `Office` / 3 / 360.)
 
 ### Step 2 — `site_location`
 
-From testdata "Building location": "Shenzhen" → `city = "Shenzhen_CN"` (naming rule see §5),
-climate_zone by geographic common sense or leave blank, weather_file = `Shenzhen.epw` (consistent
-with [.env](.env) `data/weather/Shenzhen.epw`).
+Derive from testdata `Building location`: `city = "<Location>_CN"` (naming rule see §5),
+weather_file = `<Location>.epw` (must match an EPW under `data/weather/`); climate_zone by geographic
+common sense or leave blank. If lat/long are absent, infer from the city/region.
+(Example only, not reusable: `Shenzhen` → `Shenzhen_CN` / `Shenzhen.epw`.)
 
 ### Step 3 — `zone_specs`
 
@@ -200,7 +212,8 @@ Floor / ceiling:
 - F3 ceiling = Roof (top floor) → `outside_boundary_condition = Outdoors`, surface type = `Roof`,
   construction = `Default_Roof`
 
-**Cross-floor split-pairing must be explicitly enumerated**, e.g.:
+**Cross-floor split-pairing must be explicitly enumerated.** When the two stacked floors share the
+same partition layout (aligned), pair zone-to-zone, e.g.:
 
 ```
 - F2_S1.floor pairs with F1_S1.ceiling  [zone (F2_S1) <-> zone (F1_S1)]
@@ -208,7 +221,22 @@ Floor / ceiling:
 - ...
 ```
 
-Do not write "each F2 zone floor maps to the same-named F1 zone ceiling" — that is a template.
+**Misaligned partitions (load-bearing)**: when adjacent floors have different internal partitions, a
+single upper-floor zone's footprint may span multiple lower-floor zones (and vice versa). The
+InterZone floor / ceiling surface must then be **split at the union of x-break and y-break points of
+both stacks**, and **each split piece paired with exactly one zone on the other side**. Write one
+line per piece, stating: source zone (this floor) / surface type (floor or ceiling) / split sub-range
+(absolute world x-range and/or y-range) / paired zone (adjacent floor) / construction. Example:
+
+```
+- Zone_F1_NW ceiling, x 0.00 to 3.75, pairs with Zone_F2_N1 floor, Cons_InterFloor
+- Zone_F1_NW ceiling, x 3.75 to 5.00, pairs with Zone_F2_N2 floor, Cons_InterFloor
+```
+
+Do not write "each F2 zone floor maps to the same-named F1 zone ceiling", "split at the combined
+breaks where needed", or name a split piece without naming its exact paired counterpart — these are
+templates, and missing per-piece pairings produced `RoofCeiling:Detailed references an outside
+boundary surface that cannot be found` fatals in real runs.
 
 Each surface must explicitly give:
 - 4 vertices CCW from outside (zonetool_prompt rule; §4 gives the wall vertex synthesis formulas)
@@ -271,12 +299,23 @@ not give the upper/lower faces different construction names.
 
 ### Step 6 — `fenestration_specs`
 
-List each window explicitly: name / parent_surface_name / construction / 4 vertices CCW from outside
-/ WWR info optional.
+**One record per window**, each carrying all of these fields (vertices alone are not enough — the
+semantic fields make review / diffing catch facade-axis flips, parent-wall mismatches, and wrong z
+before IDF export):
+- window name
+- floor + parent zone
+- facade direction (South / North / East / West)
+- parent_surface_name (the exterior wall surface) + parent wall side (Wall_1=South / Wall_2=East / Wall_3=North / Wall_4=West)
+- facade plane in absolute world coords (`y=0` south / `x=W` east / `y=D` north / `x=0` west)
+- horizontal span axis + absolute range (x-range for south/north, y-range for east/west)
+- **absolute world `z_min` / `z_max`** (the authoritative z statement)
+- 4 vertices CCW from outside (§4.1)
+- referenced construction name
 
 **parent surface mapping** uses the §2.4 formula: from the elevation window stroke local rect →
 world rect → which exterior wall it lands on → parent_surface_name = that exterior wall's surface name.
-Only exterior walls may host windows; a blank facade (no window strokes) gets zero windows.
+Only exterior walls may host windows; for a blank or missing facade (no window strokes / empty or
+absent image path) **explicitly state zero windows on that facade** — never invent fenestration.
 
 **vertices**: synthesize the 4 window vertices CCW from outside per the §4.1 table, using the
 window's absolute world `z_min / z_max` (elevation `y_local` is already world z, see §2.4).
@@ -402,7 +441,7 @@ After producing IntakeOutput, go through each item:
 - [ ] special spaces (corridor / stair / lift / WC / lobby / storage) are not dropped or merged into office zones; a full-span corridor is one zone (§3 Step 3)
 - [ ] `schedule_specs` defines all 6 checklist schedules, including the people activity-level schedule (§3 Step 7)
 - [ ] no unsupported geometry (setback / cantilever / multi-footprint / atrium) silently normalized into a clean box (§2.6)
-- [ ] WWR self-check (e.g. south 3 windows × 2 floors × 2.40×1.80 / north 3 windows F1 + 4 windows F2 + 1 ribbon window F3 / east & west each 1 small F3 window) matches each facade exterior wall area
+- [ ] WWR self-check: total window area per facade (from the fenestration records) is consistent with that facade's exterior wall area and the elevation; counts are per case (example only: sm_20 south 3 windows × 2 floors × 2.40×1.80)
 - [ ] z values continuous with no gap: F1 ceiling top = F2 floor bottom = 3.60, F2 ceiling top = F3 floor bottom = 7.20
 - [ ] **InterZone single-construction** (§5.1): every F2 floor / F1 ceiling pair's construction field equals `Cons_InterFloor` (**not Default_Floor / Default_Ceiling**); F3 floor / F2 ceiling same; the construction names `Default_Floor` / `Default_Ceiling` do not exist
 

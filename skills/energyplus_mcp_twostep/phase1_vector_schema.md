@@ -124,7 +124,7 @@ In EnergyPlus a zone is enclosed by **surfaces (2D faces)**; a wall has no thick
       "geometry": {
         "kind": "polyline",
         "points": [[0,0],[5,0],[5,3],[8,3]],
-        "thickness_m": 0.30,
+        "thickness_m": null,
         "closed": false
       },
       "note": ""
