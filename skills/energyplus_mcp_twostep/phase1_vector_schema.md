@@ -1,58 +1,69 @@
-# Vector Schema v1.2 — phase1 输出格式（"用语义笔重画原图"）
+# Vector Schema — phase1 output format ("redraw the source image with semantic pens")
 
-> v1.2（2026-05-12，sm_20 跑完后微调）：(a) plan 的 `scale_origin.world_z_m` 显式约定一律 null；(b) 自检清单加 outline 重合检查项。
->
-> v1.1（2026-05-12）：在 v1 基础上**拆分 plan / elevation 的 pen 词典**，门统一从必需词典移除，立面墙身灰填充约定"逐层一个 wall_fill"，新增 `uncaptured_visual_elements` 字段。
->
-> v1 取代 v0。v0 把房间归组 / 内外分类 / 父子映射混进 phase1，违反"phase1 只识图、phase2 才做拓扑"的分工。v1 修正。
+Phase 1 turns each architectural drawing into a vector JSON. The model acts like
+an artist re-tracing the original image with a set of **semantically labeled pens**,
+without doing any spatial-topology reasoning. All topology is left to phase 2.
 
 ---
 
-## 0. 心智模型
+## 0. Mental model
 
-把 phase1 想成"用一套**带语义标签的笔**把原图重新描一遍"：
-- "**墙笔**" 描所有墙画过的笔触
-- "**窗笔**" 描所有窗画过的笔触
-- ……外加尺寸链、文字标注
+Think of phase 1 as "re-tracing the source image with a set of semantically labeled pens":
+- the **wall pen** traces every stroke that drew a wall
+- the **window pen** traces every stroke that drew a window
+- … plus dimension chains and text annotations
 
-**phase1 干的事**：辨认每一笔是哪种构件类型，按类型分类描出几何形状
-**phase1 不干的事**：把多笔合并成"一面外墙" / 圈出"这是一个房间" / 说"这扇窗属于哪面墙" / 判"这堵墙朝外还是朝内"
+**What phase 1 does**: identify which component type each stroke is, and trace its
+geometry by type.
+**What phase 1 does NOT do**: merge strokes into "one exterior wall" / outline "this is a
+room" / say "this window belongs to that wall" / judge "this wall faces outside or inside".
 
-那些拓扑推理全部留给 phase2。
+All of that topology reasoning is left to phase 2.
 
-### 0.1 误差预算（重要）
+### 0.1 Error budget (important)
 
-phase1 和 phase2 在误差类型上是完全互斥的：
+Phase 1 and phase 2 are mutually exclusive in the kind of error each can introduce:
 
-| 阶段 | 看得到的 | 可能引入的误差 |
+| Stage | Can see | Errors it can introduce |
 |---|---|---|
-| phase1 | 原图（多模态） | **识图误差**：尺寸读错、笔触遗漏、坐标偏移、立面 x 轴方向搞错 |
-| phase2 | phase1 JSON + skills 规则文档 + testdata_prompt 元信息（**不看图**）| **纯推理误差**：归组错误、内外判错、父子映射错、IntakeOutput 字段写错 |
+| phase 1 | the source image (multimodal) | **perception errors**: misread dimension, missed stroke, offset coordinate, wrong elevation x-axis direction |
+| phase 2 | phase 1 JSON + skill rule docs + testdata_prompt metadata (**does not see the image**) | **pure reasoning errors**: wrong grouping, inside/outside misjudged, parent-child mapping wrong, IntakeOutput field wrong |
 
-**推论**：
-- 所有"图上某数值 / 位置 / 笔触类型"的错都必须在 phase1 截断。phase1 一旦写错，phase2 没机会回溯纠正
-- POC Step 5 diff 评估时，IntakeOutput 中任何与原图视觉相关的不一致，根因 100% 落在 phase1；任何拓扑 / 命名 / 字段格式错才是 phase2 的事
-- 所以 phase1 写 JSON 时**宁可填 null 也不要瞎猜**——null 是"我没看清"，瞎猜的数值会让 phase2 把错的数当真的算
+**Implications**:
+- Every error about "a value / position / stroke type in the image" must be caught in
+  phase 1. Once phase 1 writes it wrong, phase 2 has no chance to backtrack.
+- When diffing IntakeOutput, any inconsistency tied to the source image roots 100% in
+  phase 1; only topology / naming / field-format errors are phase 2's.
+- So when writing the JSON, phase 1 **prefers null over guessing** — null means "I couldn't
+  see it", whereas a guessed value makes phase 2 treat a wrong number as truth.
 
-### 0.2 仿真物理特性的影响
+### 0.2 Effect of simulation physics
 
-EnergyPlus 的 zone 由 **surface（2D 面）**围合，墙没有厚度的概念。所以：
-- plan 上的"粗黑墙"在仿真里就是一条 **centerline**（2D 折线），墙身宽度不参与计算
-- phase1 不必费力估墙厚——`thickness_m` 字段一律填 `null`
-- 立面 `wall_fill` 矩形只用作 z 范围信号源（哪层 z 在哪段），不代表"墙有多厚"
+In EnergyPlus a zone is enclosed by **surfaces (2D faces)**; a wall has no thickness concept. So:
+- a "thick black wall" in plan is just a **centerline** (2D polyline) in simulation; the wall
+  body width does not participate in the calculation
+- phase 1 need not estimate wall thickness — fill `thickness_m` with `null`
+- an elevation `wall_fill` rectangle is only a z-range signal source (which layer's z is where),
+  it does not mean "the wall is this thick"
+- **a door is simply ignored in energy simulation**: a "wall with a door" is, in its simulation
+  reality, **one continuous wall**. So when phase 1 sees a door opening it heals the wall to be
+  continuous (door-healing, see §2.1); the door symbol only triggers the heal and does not enter
+  `strokes`
 
 ---
 
-## 1. 全局约束
+## 1. Global constraints
 
-- **单位**：米，两位小数
-- **每张图自带本地 2D 坐标系**：
-  - `image_kind="plan"`：x = 世界 x（东向），y = 世界 y（北向）
-  - `image_kind="elevation"`：x = 沿该立面的水平方向（`facade_axis_note` 说明对应世界哪条轴含符号），y = 世界 z（向上为正，地面 z=0）
-  - `image_kind="section"`：按图实际定义，在 `facade_axis_note` 里说明
-- **scale_origin** 记录本图本地 (0,0) 在世界系下的位置
-- **描摹规则**：图上画了什么写什么，找不到填 `null`，禁止从背景知识补默认值
-- **文字标签 OCR 原样**，不翻译
+- **Units**: meters, two decimals
+- **Each image carries its own local 2D coordinate system**:
+  - `image_kind="plan"`: x = world x (east), y = world y (north)
+  - `image_kind="elevation"`: x = horizontal direction along that facade (`facade_axis_note`
+    states which world axis it maps to, with sign), y = world z (up positive, ground z=0)
+  - `image_kind="section"`: defined per image, explained in `facade_axis_note`
+- **scale_origin** records where this image's local (0,0) sits in the world system
+- **Tracing rule**: write what is drawn; fill `null` when not found; never backfill defaults from
+  background knowledge
+- **OCR text verbatim**, do not translate
 
 ---
 
@@ -60,47 +71,53 @@ EnergyPlus 的 zone 由 **surface（2D 面）**围合，墙没有厚度的概念
 
 ```jsonc
 {
-  // ===== 元数据 =====
-  "image_label": "Floor 1 plan view",       // 用 testdata_prompt.json 里的官方 label
+  // ===== metadata =====
+  "image_label": "Floor 1 plan view",       // use the official label from testdata_prompt.json
   "image_kind": "plan | elevation | section | other",
-  "facade_axis_note": null,                 // elevation 必填，否则 null
-                                            // 例: "South facade: local x = world x, increasing eastward"
-                                            //     "North facade: local x = -world x, i.e. x_local increasing = world westward"
+  "facade_axis_note": null,                 // required for elevation, otherwise null
+                                            // e.g. "South facade: local x = world x, increasing eastward"
+                                            //      "North facade: local x = -world x, i.e. x_local increasing = world westward"
   "scale_origin": {
-    "world_x_m": 0.00,                      // 本图本地 (0,0) 在世界 x 的位置
-    "world_y_m": 0.00,                      // 本图本地 (0,0) 在世界 y 的位置
-    "world_z_m": null,                      // plan: 一律 null（z 由立面尺寸链给）; elevation: 该立面底标高（地面通常 0.00）
-    "note": "本图本地原点 = 整栋投影 SW 内角"
+    "world_x_m": 0.00,                      // world x of this image's local (0,0)
+    "world_y_m": 0.00,                      // world y of this image's local (0,0)
+    "world_z_m": null,                      // plan: always null (z comes from elevation dim chains); elevation: base elevation of this facade (ground usually 0.00)
+    "note": "this image's local origin = SW inner corner of the whole-building footprint"
   },
 
-  // ===== 笔触 =====
-  // 每根 stroke = 一根连续画出的笔触 + 该笔的语义类型 (pen)。
-  // 如果一根本应连续的笔被开洞（如墙上挖了门洞）打断成两段，记两个 stroke。
+  // ===== strokes =====
+  // each stroke = one continuously drawn stroke + its semantic type (pen).
+  // door handling: a door opening in a wall does **not** break the wall — heal the two
+  //   segments split by the door into one continuous wall stroke, and record
+  //   "healed door opening at <position>" in that stroke's note (in EP a wall is a continuous
+  //   boundary face and a door is ignored, so the continuous wall is faithful to the simulation).
+  //   A window opening is NOT healed — keep it as a window pen. Guardrails (only heal openings
+  //   with a door symbol, do not heal a doorless open span) see §2.1.
   "strokes": [
     {
       "id": "S1",
-      "pen": "wall",                        // 枚举: wall | window | door | stair | other
-                                            // other 用于无法归类的可见笔触（如指北针、标题块）
+      "pen": "wall",                        // enum: wall | window | stair | other
+                                            // door is not a legal pen: a door only triggers healing, it is not drawn (see §2.1 / §3.1)
+                                            // other = visible strokes that cannot be classified (e.g. north arrow, title block)
       "geometry": {
-        "kind": "line",                     // line | rect | polyline | arc
+        "kind": "line",                     // line | rect | polyline
         "p1": [0.00, 0.00],
         "p2": [15.00, 0.00],
-        "thickness_m": null                 // plan 墙一律 null（EP zone 由 surface 围合，墙无厚度）
+        "thickness_m": null                 // plan walls always null (EP zones are enclosed by surfaces, walls have no thickness)
       },
-      "note": ""                            // 自由文字，比如"南侧水平外周墙"
+      "note": ""                            // free text, e.g. "south horizontal perimeter wall"
     },
-    // 矩形填充示例（立面图墙身、立面图窗）
+    // rect-fill example (elevation wall body, elevation window)
     {
       "id": "S99",
       "pen": "window",
       "geometry": {
         "kind": "rect",
-        "x_range_m": [1.40, 3.80],          // 本图本地坐标
+        "x_range_m": [1.40, 3.80],          // this image's local coordinates
         "y_range_m": [1.00, 2.80]
       },
-      "note": "shouth facade F2 window 1"
+      "note": "south facade F2 window 1"
     },
-    // polyline 示例（非直线墙）
+    // polyline example (non-straight wall)
     {
       "id": "S100",
       "pen": "wall",
@@ -112,51 +129,55 @@ EnergyPlus 的 zone 由 **surface（2D 面）**围合，墙没有厚度的概念
       },
       "note": ""
     },
-    // arc 示例（门的开启弧线）
+    // door-healing example: a door split this wall in the source; healed into one continuous wall + trace note
     {
       "id": "S101",
-      "pen": "door",
+      "pen": "wall",
       "geometry": {
-        "kind": "arc",
-        "center": [5.00, 2.00],
-        "radius": 0.90,
-        "start_deg": 0,
-        "end_deg": 90
+        "kind": "line",
+        "p1": [5.00, 0.00],
+        "p2": [10.00, 0.00],
+        "thickness_m": null
       },
-      "note": "door swing arc"
+      "note": "healed door opening at x≈7.5 (door swing seen in plan); EP wall is continuous"
     }
   ],
 
-  // ===== 尺寸链（结构化复合图元）=====
-  // 视觉上"两端 tick + 中间数字"是一个 chunk，单独成类；phase2 才用它推坐标
+  // ===== dimension chains (structured composite primitives) =====
+  // visually a "tick + number + tick" chunk is one unit, classified on its own; phase 2 uses it to derive coordinates
   "dimensions": [
     {
       "id": "D1",
-      "text": "15.00",                      // 原样抄录尺寸链数字
+      "text": "15.00",                      // transcribe the dimension number verbatim
       "from": [0.00, 0.00],
       "to":   [15.00, 0.00],
-      "axis": "x",                          // x | y | z（z 仅 elevation）
-      "note": "底部总长链"
+      "axis": "x",                          // x | y | z (z only on elevation)
+      "note": "bottom total-length chain"
     }
   ],
 
-  // ===== 文字标注 =====
+  // ===== text annotations =====
   "ocr_texts": [
     {"id": "T1", "text": "Office 101", "anchor": [3.00, 1.50], "note": ""}
   ],
 
-  // ===== 自检 =====
+  // ===== self check =====
   "self_check": {
-    "all_dimensions_transcribed": true,     // 尺寸链数字是否全部抄录
-    "all_visible_strokes_captured": true,   // 所有可见笔触是否都进了 strokes 数组
-    "no_topology_inferred": true,           // 是否克制住没去归房间 / 判内外 / 配父子
-    "pens_used": ["wall"],                  // 本图实际用到的 pen 值（去重）
+    "all_dimensions_transcribed": true,     // are all dimension-chain numbers transcribed
+    "all_visible_strokes_captured": true,   // did all visible strokes go into the strokes array
+    "no_topology_inferred": true,           // did you resist grouping rooms / judging inside-outside / pairing parent-child
+    "pens_used": ["wall"],                  // pen values actually used in this image (deduped)
     "unknowns_noted": [
-      "墙厚未标尺寸 → strokes[*].thickness_m 为 null"
+      "wall thickness not dimensioned -> strokes[*].thickness_m = null"
     ],
     "uncaptured_visual_elements": [
-      // 看到但无法归入当前 pen 词典的可见笔触；为空数组表示词典够用
-      // 例: "South_view 顶部出现一根斜线檐口装饰，未归入 other 是否合适？"
+      // **required**: anything "seen but not drawn into strokes" must be acknowledged here:
+      //   (1) strokes the pen dictionary can't cover (cornice / index arrow ...)
+      //   (2) clutter actively excluded by selective extraction (furniture / paving / texture / room text boxes ...)
+      //   (3) healed door openings ("healed door at <position>")
+      // "acknowledged skip" vs "silent loss" makes a world of difference at review time.
+      // Even when the keep-set + dictionary really are enough, leave an explicit note rather than an empty default.
+      // e.g. "F1 plan excluded 8 furniture symbols + 2 paving fills"
     ]
   }
 }
@@ -164,107 +185,154 @@ EnergyPlus 的 zone 由 **surface（2D 面）**围合，墙没有厚度的概念
 
 ---
 
-## 3. pen 枚举说明（按 image_kind 拆）
+## 2.1 Door-healing guardrails
 
-**重要**：plan 和 elevation 用不同的 pen 合法值集。phase1 必须按图的 `image_kind` 选对应词典，不要跨用。
+In EP a wall is a continuous boundary face, a window is a sub-face on a wall, and a door is
+ignored outright in energy simulation. So a "wall with a door" is, in its simulation reality,
+**one continuous wall**. Phase 1 can see the door arc / leaf at a glance; phase 2 only has
+coordinates and cannot reliably tell apart "door / real opening / two independent walls" — so by
+the error-budget principle, healing the door belongs to phase 1. Effect: phase 2 always receives
+a clean, closed wall network (one uniform, image-free, validated regime).
 
-### 3.1 image_kind = "plan" 合法 pen
+**Healing ≠ assigning rooms**: phase 1 only guarantees the wall network is geometrically
+continuous and closed; which walls enclose which room / inside vs outside / naming is still
+phase 2's job (§0 red line).
 
-| pen 值 | 视觉特征（典型）| 何时用 |
-|---|---|---|
-| `wall` | 粗黑实线 / 黑色填充矩形条 | 任何一根识别为墙的笔触 |
-| `window` | 墙体上挖洞 + 蓝色短条（仅当 plan 上确实画了窗）| 窗（sm_20 plan 没画窗）|
-| `stair` | 平行斜线 / 楼梯踏步符号 | 楼梯 |
-| `other` | 上述都不是但确实画了 | 指北针、轴网编号、家具、标题块 |
+Guardrails (to stop phase 1 inventing walls):
 
-**plan 不收 `door`**——仿真不需要门，平面上的门弧 / 门洞一律忽略不进 strokes（除非用户后续明确要门）。
-
-### 3.2 image_kind = "elevation" 合法 pen
-
-| pen 值 | 视觉特征（典型）| 何时用 |
-|---|---|---|
-| `wall_fill` | 浅灰填充矩形（一层一块）| **每层墙身一个 wall_fill stroke**（见 §3.3）|
-| `window` | 蓝色填充矩形 | 立面窗 |
-| `outline` | 立面整体外轮廓粗线 | 仅当外轮廓与 wall_fill 边不重合 / 单独画了一根整体外框 |
-| `other` | 上述都不是但确实画了 | 分层线（楼板分界）、结构线（柱梁）、装饰线（线脚 / 檐口）、立面索引箭头、阴影 |
-
-**elevation 不收 `door`**——和 plan 同理，主入口门可在 note 里记一笔但不进 strokes。
-
-**`other` 的处理**：见到不进枚举的笔触统一标 `other` + note 里描述"这是分层线"或"这是檐口装饰"。不要为每类装饰新造 pen 值——POC 阶段保持最小词典。
-
-### 3.3 立面 wall_fill 的约定（关键）
-
-立面墙身灰填充按"**每层一个 wall_fill stroke**"记。例：
-
-- South_view 是 3 层办公楼 → 出 3 个 wall_fill stroke，分别覆盖 F1 / F2 / F3 的灰填充矩形（按 y 范围分）
-- 即使灰色看上去是连续一整块（无明显分层缝），只要尺寸链标出了每层 z 范围，仍按 3 个 stroke 写，phase1 借尺寸链分层
-- 一层内若灰填充因门洞 / 窗洞**完全打断**（窗框周围有白色无填充区），按打断后的矩形段各自记一个 stroke；但 sm_20 立面窗是叠加在灰填上的，**不打断 wall_fill**，仍是一层一个
-
-phase2 拿到逐层 wall_fill 后直接映射为每层 wall surface 的 z_floor / z_top，比"整面墙一个 fill 再拆"省事。
-
-### 3.4 视觉识别 vs 空间拓扑（再次强调）
-
-判 wall vs window vs wall_fill vs other 是**视觉识别**层面的判断（笔的样子不同），属于 phase1 范畴。
-判 wall 是 ext vs int / window 属于哪面 wall / 多面 wall 围成哪个 room / wall_fill 哪层对应 plan 哪个 zone ←—— 这些是**空间拓扑**判断，全留给 phase2。
+1. **Only heal openings carrying a door symbol (door leaf / swing arc)** — the door symbol is the trigger
+2. **Do not heal a doorless large opening / open span** — that is a real topology signal
+   (possibly the same zone / a genuinely open boundary); welding it shut destroys information
+   phase 2 needs. A gap alone, with no door symbol, does not count
+3. **Do not heal windows** — keep them as a window pen (a window is a sub-face, not a boundary break)
+4. **Always leave a trace when healing**: write `healed door opening at <position>` in that wall
+   stroke's note, and record it in `self_check.uncaptured_visual_elements`, so SVG review can
+   verify "the heal is correct, no real opening was covered up"
 
 ---
 
-## 4. 立面图特别注意
+## 3. pen enums (split by image_kind)
 
-`facade_axis_note` 必须包含本地 x 轴对应世界哪条轴 + 增方向（含符号）：
+**Important**: plan and elevation use different legal pen sets. Phase 1 must pick the dictionary
+matching the image's `image_kind`; do not cross-use.
 
-| 立面 | facade_axis_note 例 |
+### 3.1 image_kind = "plan" legal pens
+
+| pen | typical visual | when to use |
+|---|---|---|
+| `wall` | thick black line / black filled rectangular bar | any stroke recognized as a wall |
+| `window` | opening in wall + short blue bar (only if a window is actually drawn in plan) | window |
+| `stair` | parallel diagonal lines / stair-tread symbol | stairs |
+| `other` | none of the above but actually drawn | north arrow, grid label, furniture, title block |
+
+**Plan does not emit a `door` pen, but doors must be "recognized to drive wall-healing" (see §2.1)**:
+when you see a door leaf / arc, do not draw a door stroke — instead heal the walls on its two sides
+into **one continuous wall stroke** and write `healed door opening at <position>` in the note. The
+door is only a trigger and does not enter strokes itself; the heal also goes into
+`uncaptured_visual_elements` as a trace.
+
+### 3.2 image_kind = "elevation" legal pens
+
+| pen | typical visual | when to use |
+|---|---|---|
+| `wall_fill` | light-gray filled rectangle (one per floor) | **one wall_fill stroke per floor** (see §3.3) |
+| `window` | blue filled rectangle | elevation window |
+| `outline` | overall outline heavy line of the elevation | only if the outline does not coincide with the wall_fill edges / a separate outer frame is drawn |
+| `other` | none of the above but actually drawn | floor-divider lines, structural lines (columns/beams), decorative lines (mouldings/cornices), elevation index arrows, shadows |
+
+**Elevation does not emit a `door` pen** — same as plan; a main entrance door may be noted but does
+not enter strokes.
+
+**Handling `other`**: tag any stroke outside the enum as `other` + a note describing "this is a
+floor-divider line" or "this is a cornice". Do not invent a new pen value per decoration type — keep
+the dictionary minimal.
+
+### 3.3 elevation wall_fill convention (key)
+
+Record elevation wall-body gray fill as "**one wall_fill stroke per floor**". For example:
+
+- a south elevation of a 3-story office → 3 wall_fill strokes, each covering the F1 / F2 / F3 gray
+  fill rectangle (split by y range)
+- even if the gray looks like one continuous block (no visible seam), as long as the dimension chain
+  marks each floor's z range, still write 3 strokes — phase 1 splits by the dimension chain
+- if a floor's gray fill is **completely broken** by a door/window opening (white unfilled area
+  around the frame), record each broken rectangle segment as its own stroke; but when elevation
+  windows overlay the gray fill (no break), it stays one fill per floor
+
+Once phase 2 has per-floor wall_fill it maps directly to each floor's wall surface z_floor / z_top,
+cheaper than "one fill for the whole wall then split".
+
+### 3.4 visual recognition vs spatial topology (emphasized again)
+
+Judging wall vs window vs wall_fill vs other is **visual recognition** (the strokes look different) —
+phase 1's domain.
+Judging wall ext vs int / which wall a window belongs to / which walls enclose which room / which
+floor a wall_fill maps to ←—— these are **spatial topology** judgments, all left to phase 2.
+
+---
+
+## 4. Elevation notes
+
+`facade_axis_note` must state which world axis the local x maps to + the increasing direction (with sign):
+
+| facade | facade_axis_note example |
 |---|---|
 | South | `"South facade: local x = world x (increasing eastward); local y = world z"` |
 | North | `"North facade: local x = -world x (local x increasing = world westward); local y = world z"` |
 | East | `"East facade: local x = world y (increasing northward); local y = world z"` |
 | West | `"West facade: local x = -world y (local x increasing = world southward); local y = world z"` |
 
-立面图的窗 stroke 用 `geometry.kind="rect"` + `x_range_m` / `y_range_m`（本图本地坐标），phase2 用 `facade_axis_note` 翻回世界系。
+Elevation window strokes use `geometry.kind="rect"` + `x_range_m` / `y_range_m` (this image's local
+coordinates); phase 2 uses `facade_axis_note` to translate back to the world system.
 
 ---
 
-## 5. 反例
+## 5. Counter-examples
 
-- ❌ `"pen": "wall", "is_exterior": true` —— is_exterior 是 phase2 判，不要加字段
-- ❌ 把房间多边形塞进 strokes —— 房间不是画出来的笔触
-- ❌ `"pen": "wall", "parent_window_ids": [...]` —— 父子关系是 phase2 推
-- ❌ 把同一根连续墙拆成 10 段小 stroke —— 一笔到底就一个 stroke；除非真的被开洞打断
-- ❌ `"text": "办公室"` 当原图写的 "Office 101" —— OCR 不翻译
-- ❌ `"thickness_m": 0.20` —— plan 墙一律 null（仿真不需要墙厚，见 §0.2）
-- ❌ 用瞎猜的数值替代 null —— 宁可填 null（"没看清"），不要让 phase2 把错值当真值算（见 §0.1）
-- ❌ plan 上画了 `"pen": "wall_fill"` —— wall_fill 只在 elevation 词典里
-- ❌ elevation 上画了 `"pen": "wall"` —— elevation 的墙用 wall_fill；wall 这个值 plan 专用
-- ❌ 立面整面墙一个 wall_fill —— 应"每层一个 wall_fill"（见 §3.3）
-- ❌ 为门 / 家具 / 装饰线新造 pen 值如 `"furniture"` / `"cornice"` —— POC 阶段不扩词典，归 `other` + note 描述
-
----
-
-## 6. 自检清单
-
-- [ ] 按 image_kind 选对了 pen 词典（plan 用 §3.1，elevation 用 §3.2）
-- [ ] 每根可见的 wall/window/wall_fill 笔触都进了 strokes 数组，pen 字段对
-- [ ] elevation 墙身按"每层一个 wall_fill"切分
-- [ ] 没有 rooms[] / is_exterior / parent 关系等拓扑字段
-- [ ] 没有 door / 家具 / 装饰类的独立 pen 值（都归 other 或不记）
-- [ ] 尺寸链每个数字都进了 dimensions 数组
-- [ ] 文字标签原样抄
-- [ ] 找不到的字段填 null
-- [ ] 立面图 facade_axis_note 含轴向 + 符号
-- [ ] 立面 outline：若与 wall_fill 边重合则不单独画（schema §3.2）；已确认本图情况
-- [ ] plan 的 scale_origin.world_z_m 为 null（不要写 0.00）
-- [ ] self_check.pens_used 列出本图用到的 pen 集
-- [ ] self_check.uncaptured_visual_elements 列出词典覆盖不到的笔触
+- ❌ `"pen": "wall", "is_exterior": true` —— is_exterior is phase 2's call, do not add the field
+- ❌ stuffing a room polygon into strokes —— a room is not a drawn stroke
+- ❌ `"pen": "wall", "parent_window_ids": [...]` —— parent-child is phase 2's inference
+- ❌ splitting one continuous wall into 10 small strokes —— one stroke per continuous stroke
+- ❌ splitting a wall with a door into two wall strokes on either side —— heal it into one continuous wall + note (§2.1)
+- ❌ welding a doorless open span into a continuous wall —— that is a real topology signal; only heal openings with a door symbol
+- ❌ leaving `uncaptured_visual_elements` empty when furniture was excluded / a door was healed —— it is required; actively excluded items + heals must be acknowledged
+- ❌ `"text": "办公室"` for an image that says "Office 101" —— OCR does not translate
+- ❌ `"thickness_m": 0.20` —— plan walls always null (simulation does not need wall thickness, see §0.2)
+- ❌ `"pen": "wall_fill"` drawn on a plan —— wall_fill is only in the elevation dictionary
+- ❌ `"pen": "wall"` drawn on an elevation —— elevation walls use wall_fill; the wall value is plan-only
+- ❌ one wall_fill for an entire elevation wall —— should be "one wall_fill per floor" (see §3.3)
+- ❌ inventing a pen value for door / furniture / decorative line such as `"furniture"` / `"cornice"` —— do not expand the dictionary, use `other` + a note
 
 ---
 
-## 7. 与下游契约
+## 6. Self-check list
 
-phase2 接收一组 v1 JSON（每图一份）+ testdata_prompt.json + skills/energyplus_mcp/*.md，重建拓扑：
-- 把多根 wall stroke 围合的封闭区域识别为房间 / zone
-- 判每根 wall 的 is_exterior（看是否在外周）
-- 把每根 window stroke 映射到 parent wall
-- 立面 stroke 翻回世界坐标，做 plan ↔ elevation 一致性核验
-- 输出 IntakeOutput Pydantic
+- [ ] picked the right pen dictionary by image_kind (plan uses §3.1, elevation uses §3.2)
+- [ ] every visible wall/window/wall_fill stroke is in the strokes array with the right pen field
+- [ ] elevation wall bodies split as "one wall_fill per floor"
+- [ ] no rooms[] / is_exterior / parent relations or other topology fields
+- [ ] no standalone door / furniture / decoration pen values (all go to other or are not recorded)
+- [ ] door openings healed into continuous walls (only openings with a door symbol; doorless open spans kept), wall stroke note says `healed door opening at ...`
+- [ ] every dimension-chain number is in the dimensions array
+- [ ] text labels transcribed verbatim
+- [ ] not-found fields filled with null
+- [ ] elevation facade_axis_note includes axis + sign
+- [ ] elevation outline: not drawn separately if it coincides with wall_fill edges (§3.2); confirmed for this image
+- [ ] plan scale_origin.world_z_m is null (not 0.00)
+- [ ] self_check.pens_used lists the pen set used in this image
+- [ ] self_check.uncaptured_visual_elements is **non-empty** (required): records everything "seen but not drawn" — out-of-dictionary strokes + actively excluded clutter + healed doors
 
-phase1 的输出不是 IntakeOutput，**也不应直接和 IntakeOutput 字段对齐**。phase1 的产物只是"重新描了一遍图"。
+---
+
+## 7. Contract with downstream
+
+Phase 2 receives a set of these JSONs (one per image) + testdata_prompt.json + skill rule docs, and
+rebuilds topology:
+- recognize closed regions enclosed by multiple wall strokes as rooms / zones
+- judge each wall's is_exterior (whether it sits on the perimeter)
+- map each window stroke to its parent wall
+- translate elevation strokes back to world coordinates, cross-check plan ↔ elevation consistency
+- output the IntakeOutput Pydantic
+
+Phase 1's output is not IntakeOutput, and **should not align directly with IntakeOutput fields**.
+Phase 1's product is just "the image, re-traced".

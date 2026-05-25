@@ -1,223 +1,321 @@
-# Phase 2 Rules — vector JSON → IntakeOutput（v1.3）
+# Phase 2 Rules — vector JSON → IntakeOutput
 
-> phase2 不看图。所有视觉信息已由 phase1 矢量化进 JSON。本文档专注**"矢量 JSON → IntakeOutput Pydantic"** 的推理 + 输出契约。
-> 不读 `skills/energyplus_mcp/*.md`（旧单步法 skill）——那些文档里"如何读图"的部分对 phase2 无用，关键输出契约已在本文档复刻。
->
-> **版本历史**：
-> - v1.3（2026-05-12，sm_20 Step 6 后）：Step 5 加 **InterZone surface single-construction 硬约束**（Opus 两步法 + downstream 跑出 `GetSurfaceData: Construction ... not same materials in reverse order` EP fatal 暴露规则漏洞；anchor sm_20 用单一 `Cons_InterFloor` 同贴上下两 zone 这套方案是正解）
-> - v1.2（2026-05-12，sm_20 跑后微调）：plan 的 `scale_origin.world_z_m` 一律 null；自检加 outline 重合检查
-> - v1.1（2026-05-12）：plan/elevation pen 词典拆分；wall_fill 逐层；`uncaptured_visual_elements` 字段
-> - v1.0（2026-05-12 初）：strokes[] + pen 类型分类（取代 v0 含拓扑字段方案）
+Phase 2 does not see the image. All visual information has already been vectorized into JSON by
+phase 1. This document focuses on the reasoning + output contract for **"vector JSON → IntakeOutput
+Pydantic"**. Do not read `skills/energyplus_mcp/*.md` (the old single-step skill) — the "how to read
+the drawing" parts there are useless to phase 2, and the key output contract is reproduced here.
 
 ---
 
-## 0. 输入 / 输出
+## 0. Input / Output
 
-### 0.1 输入
+### 0.1 Input
 
-按目录读：
-- **7 份 phase1 矢量 JSON**：`phase1_vector/{1f_view, 2f_view, 3f_view, South_view, North_view, East_view, West_view}.json`，schema 定义见 [vector_schema_v1.md](vector_schema_v1.md)
-- **元信息**：`testdata_prompt.json`（楼层数、楼面积、建筑用途、城市等）
+Read by directory:
+- **phase 1 vector JSONs** (one per image), e.g. `phase1_vector/{1f_view, 2f_view, 3f_view,
+  South_view, North_view, East_view, West_view}.json`; schema defined in
+  [vector_schema_v1.md](phase1_vector_schema.md)
+- **metadata**: `testdata_prompt.json` (number of floors, floor area, building use, city, etc.)
 
-### 0.2 输出
+### 0.2 Output
 
-一个 `IntakeOutput` Pydantic JSON，11 个字段：
-- `building`、`site_location`
-- `zone_specs`、`material_specs`、`schedule_specs`、`construction_specs`、`surface_specs`、`fenestration_specs`、`hvac_specs`、`people_specs`、`lights_specs`
+One `IntakeOutput` Pydantic JSON with 11 fields:
+- `building`, `site_location`
+- `zone_specs`, `material_specs`, `schedule_specs`, `construction_specs`, `surface_specs`,
+  `fenestration_specs`, `hvac_specs`, `people_specs`, `lights_specs`
 
-9 个 `*_specs` 字段都是自然语言指令（**不是结构化数据**），供下游 9 个 subagent 读，必须可机械执行、内部一致。
+The 9 `*_specs` fields are all natural-language instructions (**not structured data**), read by the
+9 downstream subagents; they must be mechanically executable and internally consistent.
 
-### 0.3 误差预算
+### 0.3 Error budget
 
-phase2 不看图 → 任何"图上数值"的错都已经被 phase1 锁定，**你只能引入纯推理误差**：
-- 拓扑判错：哪个 zone 是走廊 / 哪面墙是外墙 / 哪扇窗属于哪面墙
-- 字段格式错：命名不规范 / 跨字段引用不一致 / 模板写法 / 缺枚举
-- 坐标翻译错：立面 x_local ↔ 世界坐标搞反
+Phase 2 does not see the image → any "value in the image" error has already been locked by phase 1,
+**you can only introduce pure reasoning errors**:
+- topology errors: which zone is the corridor / which wall is exterior / which window belongs to which wall
+- field-format errors: non-conforming naming / inconsistent cross-field references / template writing / missing enum
+- coordinate-translation errors: elevation x_local ↔ world coordinates reversed
 
-phase1 JSON 里 `null` 字段是"phase1 没看见"，**不要把 null 当 0 算**；缺失就在你的输出里相应地标注或拒绝建模。
+A `null` field in the phase 1 JSON means "phase 1 didn't see it", **do not treat null as 0**; if
+missing, annotate it accordingly in your output or refuse to model it.
 
 ---
 
-## 1. 世界坐标系与立面翻译
+## 1. World coordinate system and elevation translation
 
-### 1.1 全局坐标系
+### 1.1 Global coordinate system
 
-- 原点 = 整栋投影 SW 内角
-- x 东向，y 北向，z 上向（地面 z=0）
-- 单位米，两位小数
+- origin = SW inner corner of the whole-building footprint
+- x east, y north, z up (ground z=0)
+- units meters, two decimals
 
-### 1.2 立面 local → world 翻译公式（sm_20 实例，按各 JSON 的 `facade_axis_note` 实际填）
+### 1.2 Elevation local → world translation formulas (fill per each JSON's `facade_axis_note`)
 
-phase1 已在 `phase1_summary.md` §3 给出 4 立面公式（直接套用，**不要自行重推**）：
+Phase 1 already gives the 4-facade formulas in `phase1_summary.md` §3 (apply directly, **do not
+re-derive**). Example for a 15×8 footprint:
 
 - South: `X_world = x_local`, `Y_world = 0`, `Z_world = y_local`
 - North: `X_world = 15 - x_local`, `Y_world = 8`, `Z_world = y_local`
 - East:  `X_world = 15`, `Y_world = x_local`, `Z_world = y_local`
 - West:  `X_world = 0`, `Y_world = 8 - x_local`, `Z_world = y_local`
 
-15 / 8 是 sm_20 外包；其他 case 看对应立面 JSON 的 `scale_origin`。
+15 / 8 are that footprint's outer dimensions; for other cases read the corresponding elevation
+JSON's `scale_origin`.
 
 ---
 
-## 2. 从 vector JSON 取关键量
+## 2. Extract key quantities from the vector JSON
 
-### 2.1 外包尺寸
+### 2.1 Footprint dimensions
 
-从任一 plan 的 `dimensions` 取总长链：`text="15.00", axis="x"` 是 W，`text="8.00", axis="y"` 是 D。
+From any plan's `dimensions` take the total-length chains: `text="15.00", axis="x"` is W,
+`text="8.00", axis="y"` is D.
 
-### 2.2 层高与楼层 z 范围
+**Shared-footprint invariant**: the current regime assumes every floor shares the same outer
+rectangular footprint `W × D` (internal partitioning may differ floor by floor). Verify
+`W_f == W_g` and `D_f == D_g` across all floors (tolerance ≤ 0.01 m). If the per-floor outer chains
+disagree, **report the conflict — do not silently pick one floor's footprint** (see §2.6).
 
-从任一 elevation 的 left/right 立面 y 总高链 + 分段链推：
+### 2.2 Floor heights and per-floor z ranges
+
+Derive from any elevation's left/right total-height chain + segment chains:
 
 - F1: z_floor = 0.00, ceiling_height = 3.60, z_top = 3.60
 - F2: z_floor = 3.60, ceiling_height = 3.60, z_top = 7.20
 - F3: z_floor = 7.20, ceiling_height = 4.80, z_top = 12.00
 
-或等价：从某立面的 `strokes[pen=wall_fill]` 的 `y_range_m` 直接读（已分层）。两条路径必须互相一致；不一致就报告冲突，不要私自折中。
+Or equivalently: read directly from some elevation's `strokes[pen=wall_fill]` `y_range_m` (already
+split per floor). The two paths must agree; if they disagree, report the conflict, do not silently
+split the difference.
 
-### 2.3 每层 plan 的 zone 拓扑
+### 2.3 Per-floor plan zone topology
 
-每张 plan JSON 的 `strokes[pen=wall]` 给出所有 wall centerline（2D 线段）。**zone = 这些线段围合的最小封闭多边形**。phase2 必须按几何围合判，不要按 ID 顺序判。
+Each plan JSON's `strokes[pen=wall]` gives all wall centerlines (2D segments). **A zone = the
+smallest closed polygon enclosed by these segments.** Phase 2 must judge by geometric enclosure, not
+by ID order.
 
-例（sm_20 1f）：10 根 wall stroke 围出 6 个房间 + 1 个走廊 = 7 zone（与 testdata `thermal_zones=7` 自洽）。
+Example: 10 wall strokes enclosing 6 rooms + 1 corridor = 7 zones (consistent with testdata
+`thermal_zones=7`).
 
-### 2.4 窗位
+### 2.4 Window positions
 
-每张 elevation JSON 的 `strokes[pen=window]` 给出本立面所有窗的 local rect。通过 §1.2 公式翻回世界坐标，再按 `Y_world` 判属于建筑哪面外墙（North/South：Y=0 或 Y=8；East/West：X=0 或 X=15）。
+Each elevation JSON's `strokes[pen=window]` gives this facade's window local rects. Translate back to
+world coordinates via §1.2, then judge which exterior wall they belong to by `Y_world` (North/South:
+Y=0 or Y=8; East/West: X=0 or X=15).
 
-`y_local` 直接 = `z_world`，不用翻译。
+`y_local` directly = `z_world`, no translation needed.
 
-### 2.5 dimensions 的双向用法
+### 2.5 Two-way use of dimensions
 
-dim 链既给坐标又给交叉校验：
+A dimension chain both gives coordinates and provides cross-checks:
 
-- 直接用：read 数字作距离
-- 校验用：strokes 端点坐标应与 dim 链积累一致（如 South_view F1 第二窗 x_range=[6.30,8.70] 应等于 dim 链 1.40+2.40+2.50=6.30 起，宽 2.40）。若不一致**信 dim**，stroke 坐标可能是 phase1 描摹偏移
+- direct use: read the number as a distance
+- check use: stroke endpoint coordinates should match the accumulated dim chain (e.g. South_view F1
+  second window x_range=[6.30,8.70] should equal dim chain 1.40+2.40+2.50=6.30 start, width 2.40).
+  If they disagree **trust the dim**; the stroke coordinate may be a phase 1 tracing offset
+
+**Dimension-chain checksum**: per axis, the inner segment chain must sum to the outer total chain
+(`sum(inner segments) == outer total`, tolerance ≤ 0.01 m). For an elevation, each floor's
+right-side chain must sum to that floor's height. If a checksum fails, report it — do not continue
+with guessed values (see §2.6).
+
+### 2.6 Coverage and unsupported-geometry handling
+
+**Coverage (per floor, independently)**: the union of all zone footprints must equal the full shared
+footprint; zones must not overlap; there must be no unexplained voids inside the footprint. If a room
+crosses a strip boundary, keep it as one room and adjust the neighboring partitions accordingly.
+
+**Do not silently fabricate**: the current regime assumes a shared rectangular footprint across
+floors. If the vector JSON / dimensions reveal a feature outside this regime — setback, cantilever,
+multiple exterior footprints across floors, atrium / void that breaks the shared footprint — or a
+global conflict (per-floor footprints disagree, conflicting facade orientation, facade height chains
+that change the floor stacking) — **do not fabricate a clean rectangular building from it**. Write
+the inconsistency explicitly into the affected `zone_specs` / `surface_specs` / `fenestration_specs`
+prose and mark those floors as unsupported. Never normalize the case into a single clean `W × D` to
+make the output look tidy.
 
 ---
 
-## 3. IntakeOutput 字段推导顺序
+## 3. IntakeOutput field derivation order
 
-按以下顺序产，避免后字段引用前字段时的命名漂移：
+Produce in the following order to avoid naming drift when later fields reference earlier ones:
 
 ### Step 1 — `building`
 
-从 testdata：name = `Smalloffice_20`（snake/camel mix 也行，无空格）、type = `Office`、num_floors = 3、total_floor_area_m2 = 360。
+From testdata: name = `Smalloffice_20` (snake/camel mix ok, no spaces), type = `Office`,
+num_floors = 3, total_floor_area_m2 = 360.
 
 ### Step 2 — `site_location`
 
-从 testdata "Building location": "Shenzhen" → `city = "Shenzhen_CN"`（命名规则见 §5）、climate_zone 按地理常识或不填、weather_file = `Shenzhen.epw`（与 [.env](.env) `data/weather/Shenzhen.epw` 一致）。
+From testdata "Building location": "Shenzhen" → `city = "Shenzhen_CN"` (naming rule see §5),
+climate_zone by geographic common sense or leave blank, weather_file = `Shenzhen.epw` (consistent
+with [.env](.env) `data/weather/Shenzhen.epw`).
 
 ### Step 3 — `zone_specs`
 
-逐层逐 zone 显式列出，**严禁** `Floor_N_*` 模板写法。
+List explicitly per floor per zone, **strictly forbid** `Floor_N_*` template writing.
 
-命名约定（示例）：`F{1|2|3}_{方位|功能}` 如 `F1_S1` / `F1_Corridor` / `F2_S1` / `F3_North_Office`。所有 zone 名后续被 `surface_specs` / `fenestration_specs` / `hvac_specs` / `people_specs` / `lights_specs` 引用，必须**字面一致**（无大小写漂移、无加 `Zone_` 前缀的同/异写法）。
+Naming convention (example): `F{1|2|3}_{orientation|function}` such as `F1_S1` / `F1_Corridor` /
+`F2_S1` / `F3_North_Office`. Every zone name is later referenced by `surface_specs` /
+`fenestration_specs` / `hvac_specs` / `people_specs` / `lights_specs` and must be **literally
+identical** (no case drift, no same/different spelling with a `Zone_` prefix).
 
-每个 zone 必须显式给：
-- `x_range`、`y_range`（世界系，米）
-- `z_floor`、`ceiling_height`
-- 用途（office / corridor / etc.）
+Each zone must explicitly give:
+- `x_range`, `y_range` (world system, meters)
+- `z_floor`, `ceiling_height`
+- semantic role (office / corridor / stair / lift / WC / lobby / storage / service / etc.)
 
-走廊也是一个 zone（不是 surface）。
+**Granularity**: default rule = **every enclosed room is its own thermal zone**, unless the case
+explicitly asks for a grouped model. Do **not** merge stairs / lifts / WC / lobby / storage / service
+rooms into generic office zones when they are distinct enclosures. (Thermal re-zoning such as
+perimeter/core or merge-by-use is a future, rule-driven step, not this baseline.)
+
+**Corridor recognition**: a corridor is a long narrow strip spanning the full building width or full
+depth between parallel partition lines — a geometric rule, not a color heuristic. A corridor is a
+zone, not a surface. If it spans multiple room cells, collapse it into **one** corridor zone, not
+many fragments. Shorter enclosed spaces opening off the strip are rooms.
+
+**Non-rectangular room**: if a room crosses the strip decomposition implied by the dimension chains,
+model it as **one** room with the combined span; do not force a false split just because two chains
+read more easily separately.
+
+Assign roles from the `ocr_texts` labels phase 1 transcribed (do not invent roles the labels and
+geometry do not support).
 
 ### Step 4 — `surface_specs`
 
-每个 zone 的 4 面 wall + 1 个 floor + 1 个 ceiling（顶层是 roof）。**逐 surface 显式列**，禁止模板写法。
+Each zone has 4 walls + 1 floor + 1 ceiling (top floor's is a roof). **List per surface
+explicitly**, no template writing.
 
-外墙 / 内墙判断：
-- 外墙 = 该 surface 位于建筑外包边界（plan 上属于外周 wall stroke 之一）→ `outside_boundary_condition = Outdoors`
-- 内墙 = 该 surface 在两 zone 之间 → `outside_boundary_condition = Zone`，并显式给出 `adjacent_zone_name`
+Exterior / interior wall judgment:
+- exterior = this surface sits on the building footprint boundary (on plan it is one of the
+  perimeter wall strokes) → `outside_boundary_condition = Outdoors`
+- interior = this surface is between two zones → `outside_boundary_condition = Zone`, and explicitly
+  give `adjacent_zone_name`
 
-楼板 / 天花板：
-- F1 floor → Ground（`outside_boundary_condition = Ground`），construction = `Default_GroundFloor`
-- F2 floor = F1 ceiling → InterZone，配对（split-pairing 必须显式列每对，禁止"foreach"），**两面 construction 都填 `Cons_InterFloor`**（见 §5.1）
-- F3 floor = F2 ceiling → 同上，**两面 construction 都填 `Cons_InterFloor`**
-- F3 ceiling = Roof（顶层）→ `outside_boundary_condition = Outdoors`，surface type = `Roof`，construction = `Default_Roof`
+Floor / ceiling:
+- F1 floor → Ground (`outside_boundary_condition = Ground`), construction = `Default_GroundFloor`
+- F2 floor = F1 ceiling → InterZone, paired (split-pairing must list each pair explicitly, no
+  "foreach"), **both faces' construction = `Cons_InterFloor`** (see §5.1)
+- F3 floor = F2 ceiling → same, **both faces' construction = `Cons_InterFloor`**
+- F3 ceiling = Roof (top floor) → `outside_boundary_condition = Outdoors`, surface type = `Roof`,
+  construction = `Default_Roof`
 
-**Cross-floor split-pairing 必须显式枚举**（B1 hardened constraint），例：
+**Cross-floor split-pairing must be explicitly enumerated**, e.g.:
 
 ```
-- F2_S1.floor pairs with F1_S1.ceiling  [zone (F2_S1) ↔ zone (F1_S1)]
+- F2_S1.floor pairs with F1_S1.ceiling  [zone (F2_S1) <-> zone (F1_S1)]
 - F2_S2.floor pairs with F1_S2.ceiling
 - ...
 ```
 
-不要写 "F2 各 zone floor 对应 F1 同名 zone ceiling" —— 这是模板。
+Do not write "each F2 zone floor maps to the same-named F1 zone ceiling" — that is a template.
 
-每个 surface 必须显式给：
-- 4 vertex CCW from outside（zonetool_prompt 规则；本文档 §6 给出 4 立面 vertex 合成公式）
-- construction name（参见 Step 6 占位）
+Each surface must explicitly give:
+- 4 vertices CCW from outside (zonetool_prompt rule; §4 gives the wall vertex synthesis formulas)
+- construction name (see Step 6 placeholders)
 
 ### Step 5 — `material_specs` / `construction_specs`
 
-材料 + 占位 construction：
-- `Default_Ext_Wall` / `Default_Int_Wall` / `Default_Window` / `Default_GroundFloor` / `Default_Roof` / `Cons_InterFloor`
-- 玻璃用 `WindowMaterial:SimpleGlazingSystem`（**必须 standalone Construction**，不与 air gap / 第二片玻璃叠加，否则 EP 会 NaN fatal）
-- 不透明 surface 用 simple stack（如 stucco + insulation + gypsum）
+Materials + placeholder constructions:
+- `Default_Ext_Wall` / `Default_Int_Wall` / `Default_Window` / `Default_GroundFloor` /
+  `Default_Roof` / `Cons_InterFloor`
+- glazing uses `WindowMaterial:SimpleGlazingSystem` (**must be a standalone Construction**, not
+  stacked with an air gap / a second glass pane, otherwise EP NaN fatal)
+- opaque surfaces use a simple stack (e.g. stucco + insulation + gypsum)
 
-#### Step 5.1 — InterZone surface single-construction 硬约束（v1.3 新增）
+#### Step 5.1 — InterZone surface single-construction hard constraint
 
-**问题背景**：sm_20 Opus 两步法首跑 EP fatal：
+EP hard constraint: **for an InterZone-paired pair of surfaces (the upper zone's floor / the lower
+zone's ceiling), the construction layer stacks must be the reverse of each other** (or share one
+construction, which satisfies it trivially). Otherwise EnergyPlus fatals with:
+
 ```
 GetSurfaceData: Construction DEFAULT_CEILING of interzone surface CEILING_F1_S1
 does not have the same materials in the reverse order as the construction
 DEFAULT_FLOOR of adjacent surface FLOOR_F2_S1
 ```
 
-EP 硬约束：**InterZone 配对的两面 surface（上 zone 的 floor / 下 zone 的 ceiling），construction 层栈必须互为逆序**（或共用同一 construction trivially 满足）。
+**Mandatory rules**:
 
-**强制规则**：
-
-1. **不要为 InterZone 上下面定义两个独立 construction**（如 `Default_Floor` + `Default_Ceiling`）。即使物理设计合理（floor 顶面有 carpet / ceiling 底面有 gypsum），两个独立 construction 层栈通常**不互逆** → EP fatal
-2. **正确做法**：定义**单一 `Cons_InterFloor`**，同时贴在上 zone 的 floor 表面和下 zone 的 ceiling 表面。例：
+1. **Do not define two independent constructions for the upper/lower InterZone faces** (e.g.
+   `Default_Floor` + `Default_Ceiling`). Even if physically reasonable (carpet on the floor top,
+   gypsum on the ceiling bottom), two independent stacks are usually **not mutual reverses** → EP fatal
+2. **Correct approach**: define a **single `Cons_InterFloor`**, applied to both the upper zone's
+   floor surface and the lower zone's ceiling surface. Example:
    ```
    Cons_InterFloor: layers = [Mat_Floor_Concrete, Mat_IntWall_Gypsum]
-   - 用于 F1 ceiling / F2 floor 全部 InterZone 配对
-   - 用于 F2 ceiling / F3 floor 全部 InterZone 配对
-   - 上下两侧 surface 都引用同一 Cons_InterFloor → 反向对称 trivially 成立
+   - used for all F1 ceiling / F2 floor InterZone pairs
+   - used for all F2 ceiling / F3 floor InterZone pairs
+   - both surfaces reference the same Cons_InterFloor -> reverse symmetry holds trivially
    ```
-3. construction_specs 中**仅地面层（F1 floor → Ground）和屋面层（F3 ceiling → Outdoors）**用独立 construction（`Default_GroundFloor` / `Default_Roof`），它们不参与 InterZone 配对
+3. In construction_specs, **only the ground floor (F1 floor → Ground) and the roof (F3 ceiling →
+   Outdoors)** use independent constructions (`Default_GroundFloor` / `Default_Roof`); they do not
+   participate in InterZone pairing
 
-**反例（不允许）**：
+**Counter-example (not allowed)**:
 ```
 ❌ Default_Floor: [Carpet, Concrete]
 ❌ Default_Ceiling: [Concrete, Gypsum]
-   → reverse(Default_Floor) = [Concrete, Carpet] ≠ Default_Ceiling
-   → EP GetSurfaceData fatal
+   -> reverse(Default_Floor) = [Concrete, Carpet] != Default_Ceiling
+   -> EP GetSurfaceData fatal
 ```
 
-**允许但不推荐（仅当强制要分两个 construction 时）**：
-- 两个独立 construction 层栈**严格互逆**（在 spec 里显式 enumerate 两条 layer list 并标注 reverse 关系）
-- 两个独立 construction 层栈**自己就是 palindrome**（如 `[Gypsum, Insul, Gypsum]`）—— sm_20 DeepSeek 路径侥幸通过的方式
+**Allowed but not recommended (only if forced to split into two constructions)**:
+- the two independent stacks are **strictly mutual reverses** (explicitly enumerate both layer lists
+  in the spec and annotate the reverse relationship)
+- each independent stack is **itself a palindrome** (e.g. `[Gypsum, Insul, Gypsum]`)
 
-**与 surface_specs Step 4 的联动**：surface_specs 写每个 InterZone surface 的 construction 字段时，**两侧必须填同一个 construction 名**（如 `Cons_InterFloor`），不要给上下面填不同的 construction 名。
+**Link with surface_specs Step 4**: when surface_specs writes the construction field for each
+InterZone surface, **both sides must use the same construction name** (e.g. `Cons_InterFloor`); do
+not give the upper/lower faces different construction names.
 
 ### Step 6 — `fenestration_specs`
 
-每扇窗显式列：name / parent_surface_name / construction / 4 vertex CCW from outside / WWR 信息可选。
+List each window explicitly: name / parent_surface_name / construction / 4 vertices CCW from outside
+/ WWR info optional.
 
-**parent surface mapping** 走 §2.4 公式：从 elevation 的 window stroke local rect → world rect → 落在哪面外墙 → parent_surface_name = 该外墙的 surface name。
+**parent surface mapping** uses the §2.4 formula: from the elevation window stroke local rect →
+world rect → which exterior wall it lands on → parent_surface_name = that exterior wall's surface name.
+Only exterior walls may host windows; a blank facade (no window strokes) gets zero windows.
 
-**chain z 自检**：`z_max - z_min == sill 起算的窗高`，与 elevation 右侧 dim 链对账（schema §0.1 是 phase1 的事，phase2 拿到值后再校验一次）。
+**vertices**: synthesize the 4 window vertices CCW from outside per the §4.1 table, using the
+window's absolute world `z_min / z_max` (elevation `y_local` is already world z, see §2.4).
+
+**per-window self-check** (before writing each record):
+- `z_max - z_min == that window's height` (reconciled against the elevation right-side dim chain)
+- `z_min >= z_floor` and `z_max <= z_floor + ceiling_height` — the window must sit inside its parent
+  wall's z range, otherwise EnergyPlus emits `Base surface does not surround subsurface (CHKSBS),
+  Overlap Status=Partial-Overlap`
+- the facade plane matches the parent wall side per the §4.1 mapping
 
 ### Step 7 — `schedule_specs` / `people_specs` / `lights_specs` / `hvac_specs`
 
-按 testdata `Building type = Office` 用 ASHRAE 90.1 Office 默认负载档：
-- people: 10 m²/person，9-18 工作日 schedule
-- lights: 10 W/m²，同 schedule
-- hvac: IdealLoadsAirSystem，cooling 24°C / heating 20°C
-- schedule: `Office_Workday` / `Office_Weekend` 等典型 schedule_compact
+By testdata `Building type = Office` use the ASHRAE 90.1 Office default load profile:
+- people: 10 m²/person, 9-18 weekday schedule
+- lights: 10 W/m², same schedule
+- hvac: IdealLoadsAirSystem, cooling 24°C / heating 20°C
+- schedule: typical schedule_compact such as `Office_Workday` / `Office_Weekend`
 
-所有命名遵守 §5。
+**`schedule_specs` must be complete**: the schedule subagent runs first and is not re-invoked later,
+so every schedule any downstream field references must be defined here, each with an exact name,
+schedule type limits, and value profile. Required checklist:
+- thermostat heating setpoint schedule
+- thermostat cooling setpoint schedule
+- ideal loads availability schedule
+- people number-of-people schedule
+- **people activity-level schedule** (easy to forget — do not omit)
+- lights schedule
+
+All naming follows §5.
 
 ---
 
-## 4. zone 围合 → 多边形 → vertex 合成
+## 4. zone enclosure → polygon → vertex synthesis
 
-每个 zone 的 4 面墙在 plan 上是 4 条 wall centerline。CCW from outside 4 vertex 合成（顶视图，每面墙顺时针看是从 outside 看）：
+Each zone's 4 walls are 4 wall centerlines on plan. Synthesize 4 vertices CCW from outside (top view,
+each wall seen clockwise is from the outside):
 
-| 面 | vertex 1 | vertex 2 | vertex 3 | vertex 4 |
+| face | vertex 1 | vertex 2 | vertex 3 | vertex 4 |
 |---|---|---|---|---|
 | South wall (y=y_floor) | (x_min, y_min, z_top) | (x_max, y_min, z_top) | (x_max, y_min, z_floor) | (x_min, y_min, z_floor) |
 | East wall (x=x_max) | (x_max, y_min, z_top) | (x_max, y_max, z_top) | (x_max, y_max, z_floor) | (x_max, y_min, z_floor) |
@@ -226,62 +324,96 @@ EP 硬约束：**InterZone 配对的两面 surface（上 zone 的 floor / 下 zo
 | Floor | (x_min, y_min, z_floor) | (x_max, y_min, z_floor) | (x_max, y_max, z_floor) | (x_min, y_max, z_floor) |
 | Ceiling/Roof | (x_min, y_max, z_top) | (x_max, y_max, z_top) | (x_max, y_min, z_top) | (x_min, y_min, z_top) |
 
-非矩形 zone 用同样的 CCW 原则但要 polygon vertex 多于 4 个；sm_20 全 rect，4 vertex 够。
+Non-rectangular zones use the same CCW principle but need more than 4 polygon vertices; for an
+all-rectangular case, 4 vertices suffice.
+
+For a rectangular zone whose floor polygon is ordered SW → SE → NE → NW, the four walls map to
+facades as: Wall_1 = South, Wall_2 = East, Wall_3 = North, Wall_4 = West. A window on a facade must
+attach to that zone's wall on the same side, not merely the correct facade globally.
+
+### 4.1 Window (fenestration) vertex synthesis
+
+A `FenestrationSurface:Detailed` window must be given vertices CCW **when viewed from outside the
+building**. For a window spanning axis-range `[a_min, a_max]` along its facade plane and z-range
+`[z_min, z_max]` in absolute world coords:
+
+| Facade | Facade plane | V1 (bottom near) | V2 (bottom far) | V3 (top far) | V4 (top near) |
+|---|---|---|---|---|---|
+| South | `y = 0` | `(a_min, 0, z_min)` | `(a_max, 0, z_min)` | `(a_max, 0, z_max)` | `(a_min, 0, z_max)` |
+| North | `y = D` | `(a_max, D, z_min)` | `(a_min, D, z_min)` | `(a_min, D, z_max)` | `(a_max, D, z_max)` |
+| East | `x = W` | `(W, a_max, z_min)` | `(W, a_min, z_min)` | `(W, a_min, z_max)` | `(W, a_max, z_max)` |
+| West | `x = 0` | `(0, a_min, z_min)` | `(0, a_max, z_min)` | `(0, a_max, z_max)` | `(0, a_min, z_max)` |
+
+`W` / `D` are the shared footprint width / depth; for South/North the horizontal span is along x, for
+East/West along y. `z_min / z_max` are **absolute** world z (elevation `y_local` already = world z,
+so no per-floor offset is added on top).
+
+Worked example — F2 south window, `D = 8`, `z_floor_F2 = 3.60`, sill 1.00, head 2.80, x-span 1.40..3.80:
+- `z_min = 3.60 + 1.00 = 4.60`, `z_max = 3.60 + 2.80 = 6.40`
+- vertices CCW from outside: `(1.40, 0, 4.60)` → `(3.80, 0, 4.60)` → `(3.80, 0, 6.40)` → `(1.40, 0, 6.40)`
+
+If the parent wall lives at `z ∈ [3.60, 7.20]` but the window vertices land at `z ∈ [1.00, 2.80]`
+(per-floor offset forgotten), the wall does not surround the sub-surface and EnergyPlus emits
+`CHKSBS Partial-Overlap` for every such window.
 
 ---
 
-## 5. 命名规则（强制）
+## 5. Naming rules (mandatory)
 
-字符集：仅字母 / 数字 / `_`。**禁**：空格、逗号、分号、连字符、斜杠、括号。
+Character set: letters / digits / `_` only. **Forbidden**: spaces, commas, semicolons, hyphens,
+slashes, parentheses.
 
-跨字段引用必须**字面一致**：
-- `surface_specs` / `fenestration_specs` 里的 construction 必须在 `construction_specs` 出现
-- `hvac_specs` / `people_specs` / `lights_specs` 里的 schedule 必须在 `schedule_specs` 出现
-- `surface_specs` / `fenestration_specs` / `hvac_specs` / `people_specs` / `lights_specs` 里的 zone 必须在 `zone_specs` 出现
+Cross-field references must be **literally identical**:
+- a construction in `surface_specs` / `fenestration_specs` must appear in `construction_specs`
+- a schedule in `hvac_specs` / `people_specs` / `lights_specs` must appear in `schedule_specs`
+- a zone in `surface_specs` / `fenestration_specs` / `hvac_specs` / `people_specs` / `lights_specs`
+  must appear in `zone_specs`
 
-合法例：`Shenzhen_CN` / `Zone_F2_C` / `Window_Office_South_1`
-非法例：`Shenzhen, China` / `Zone F2 C` / `Wall-01`
+Legal: `Shenzhen_CN` / `Zone_F2_C` / `Window_Office_South_1`
+Illegal: `Shenzhen, China` / `Zone F2 C` / `Wall-01`
 
 ---
 
-## 6. 不允许的写法
+## 6. Disallowed writing
 
-- ❌ `Floor_N_*` 模板 / `for N in 2..5` / `typical floors` / `repeat for upper floors`
+- ❌ `Floor_N_*` template / `for N in 2..5` / `typical floors` / `repeat for upper floors`
 - ❌ `TBD` / `same as above` / `see above` / `etc.` / `...`
-- ❌ 跨字段命名漂移（`Zone_F1_S1` vs `F1_S1` vs `zone_f1_s1`）
-- ❌ surface_specs 写"F2 各 zone floor 对应 F1 ceiling"——必须逐对枚举
-- ❌ fenestration_specs 不给 parent_surface_name 或不给 CCW vertex
-- ❌ SimpleGlazingSystem 与 air gap / 第二片玻璃同 Construction 叠加（EP 必 fatal）
+- ❌ cross-field naming drift (`Zone_F1_S1` vs `F1_S1` vs `zone_f1_s1`)
+- ❌ surface_specs writing "each F2 zone floor maps to F1 ceiling" — must enumerate each pair
+- ❌ fenestration_specs missing parent_surface_name or missing CCW vertices
+- ❌ SimpleGlazingSystem stacked with an air gap / second glass pane in one Construction (EP will fatal)
 
 ---
 
-## 7. 自检清单
+## 7. Self-check list
 
-产 IntakeOutput 后，逐项过：
+After producing IntakeOutput, go through each item:
 
-- [ ] 11 字段齐
-- [ ] 所有 zone 显式枚举（无模板写法），逐层 zone 数与 testdata `thermal_zones` 自洽（sm_20 = 7+8+4 = 19）
-- [ ] 所有 surface 逐 zone 显式枚举（每 zone 4 wall + floor + ceiling/roof）
-- [ ] cross-floor split-pairing 逐对枚举
-- [ ] 所有 fenestration 给 parent_surface_name 且映射回有效外墙 surface name
-- [ ] 跨字段引用字面一致（construction / schedule / zone）
-- [ ] 命名字符集合法
-- [ ] WWR 自检（南 3 窗 × 2 层 × 2.40×1.80 / 北 3 窗 F1 + 4 窗 F2 + 1 通长窗 F3 / 东 西各 1 个 F3 小窗）每个立面外墙面积匹配
-- [ ] z 值连续无 gap：F1 ceiling 顶 = F2 floor 底 = 3.60，F2 ceiling 顶 = F3 floor 底 = 7.20
-- [ ] **InterZone single-construction** (§5.1)：所有 F2 floor / F1 ceiling 配对的 construction 字段都等于 `Cons_InterFloor`（**而非 Default_Floor / Default_Ceiling**）；F3 floor / F2 ceiling 同上；不存在 `Default_Floor` / `Default_Ceiling` 这两个 construction 名（v1.3 起从词典移除）
+- [ ] all 11 fields present
+- [ ] all zones explicitly enumerated (no template writing), per-floor zone count consistent with testdata `thermal_zones` (e.g. 7+8+4 = 19)
+- [ ] all surfaces explicitly enumerated per zone (each zone 4 walls + floor + ceiling/roof)
+- [ ] cross-floor split-pairing enumerated per pair
+- [ ] every fenestration gives parent_surface_name mapping back to a valid exterior wall surface name
+- [ ] every window's `[z_min, z_max]` lies inside its parent wall's `[z_floor, z_floor + ceiling_height]` (CHKSBS prevention, §3 Step 6)
+- [ ] cross-field references literally identical (construction / schedule / zone)
+- [ ] naming character set legal
+- [ ] shared-footprint invariant holds (all floors same `W × D`, ≤ 0.01 m) and dimension chains pass `sum(inner) == outer` (§2.1 / §2.5)
+- [ ] per-floor coverage: union of zone footprints = shared footprint, no overlaps, no unexplained voids (§2.6)
+- [ ] special spaces (corridor / stair / lift / WC / lobby / storage) are not dropped or merged into office zones; a full-span corridor is one zone (§3 Step 3)
+- [ ] `schedule_specs` defines all 6 checklist schedules, including the people activity-level schedule (§3 Step 7)
+- [ ] no unsupported geometry (setback / cantilever / multi-footprint / atrium) silently normalized into a clean box (§2.6)
+- [ ] WWR self-check (e.g. south 3 windows × 2 floors × 2.40×1.80 / north 3 windows F1 + 4 windows F2 + 1 ribbon window F3 / east & west each 1 small F3 window) matches each facade exterior wall area
+- [ ] z values continuous with no gap: F1 ceiling top = F2 floor bottom = 3.60, F2 ceiling top = F3 floor bottom = 7.20
+- [ ] **InterZone single-construction** (§5.1): every F2 floor / F1 ceiling pair's construction field equals `Cons_InterFloor` (**not Default_Floor / Default_Ceiling**); F3 floor / F2 ceiling same; the construction names `Default_Floor` / `Default_Ceiling` do not exist
 
 ---
 
-## 8. 与现有 skills 文档的关系
+## 8. Relationship to the existing skill docs
 
-本文档替代 phase2 任务对 `skills/energyplus_mcp/*.md` 的依赖。三份文档原本承担三类职责：
+This document replaces the phase 2 task's dependence on `skills/energyplus_mcp/*.md`. With vectorized
+JSON in hand, all "image-reading" parts of those docs are void; the essence of their "output
+contract" parts is consolidated here in §3–§7, and the zonetool vertex synthesis table is in §4.
 
-| 原 skill 文档 | 关于"读图"的部分 | 关于"输出契约"的部分 |
-|---|---|---|
-| `energyplus_mcp_prompt.md` | §D 全章（D1-D6 图纸识别 / 全局坐标 / 立面 chain）| §Mandatory Internal Derivation Order |
-| `intake_output_contract.md` | 无 | 全文（命名 / 无模板 / cross-floor split-pairing / fenestration chain）|
-| `zonetool_prompt.md` | §如何看立面识窗 | §CCW vertex synthesis 表 |
-
-phase2 用矢量 JSON 后，所有"读图部分"作废；"输出契约部分"的精华已浓缩进本文档 §3-§7。zonetool 的 vertex 合成表见本文档 §4。
-
-如果跑 phase2 时发现本文档未覆盖某条原 skill 强约束，请在输出末尾追加 `phase2_followup_notes` 字段记录，便于后续补本文档。
+If while running phase 2 you find a strong constraint from the old skill that this document does not
+cover, append a `phase2_followup_notes` record at the end of your output so this document can be
+extended later.

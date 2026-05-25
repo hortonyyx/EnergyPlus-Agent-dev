@@ -1,75 +1,107 @@
-# Phase 1 启动 Prompt v1（直接粘进新 Claude Code 会话）
+# Phase 1 startup prompt (paste directly into a new Claude Code session)
 
-> v1 取代 v0。v0 让 Opus 同时做识图 + 拓扑，违反分工。v1 修正：phase1 只识图，phase2 才做拓扑。
-> 用法：在 `EnergyPlus-Agent-dev` 项目根新起 Claude Code 会话（Opus 4.7），把下面 "---" 之间的内容整段粘贴作为首条消息。
+> Usage: in the `EnergyPlus-Agent-dev` project root, start a new Claude Code session (a capable
+> multimodal model, e.g. Opus), and paste the block between the "---" markers below as the first
+> message. Copy this template per new case and adjust the paths.
 
 ---
 
-我在做一个 intake 两步法 POC（背景 [AI_agent/floorplan_redraw_strategy.md](AI_agent/floorplan_redraw_strategy.md)）。本会话只做 **phase 1：用语义笔重画原图**——把建筑图纸上的每一根可见笔触按类型（墙笔 / 窗笔 / 门笔 / 楼梯笔 / ...）描出来，**不做任何空间拓扑推理**。
+I am doing **phase 1 of the two-step intake: redraw the source image with semantic pens** — trace
+every visible stroke on the architectural drawing by type (wall pen / window pen / stair pen / ...),
+and do **no spatial-topology reasoning** at all.
 
-## 心智模型
+## Mental model
 
-phase1 = "用一套带语义标签的笔，把原图重画一遍"。比如"墙笔在 (0,0)→(15,0) 画了一根 wall stroke"、"窗笔在立面 (1.4, 1.0)→(3.8, 2.8) 画了一个填充矩形"。
+Phase 1 = "re-trace the source image with a set of semantically labeled pens". For example "the wall
+pen drew a wall stroke from (0,0)→(15,0)", "the window pen drew a filled rectangle at elevation
+(1.4, 1.0)→(3.8, 2.8)".
 
-phase1 **不做**：把多根墙笔围合成"一个房间" / 判某墙是"外墙还是内墙" / 说"这扇窗属于哪面墙" / 写"南立面 F2 中间窗的 z_min/z_max"。**所有拓扑推理留给 phase2**。
+Phase 1 does **not**: enclose multiple wall strokes into "a room" / judge whether a wall is
+"exterior or interior" / say "this window belongs to that wall" / write "the z_min/z_max of the
+middle window on the south elevation F2". **All topology reasoning is left to phase 2.**
 
-## 误差预算（关键，看 schema §0.1）
+## Error budget (key, see schema §0.1)
 
-phase1 看图、phase2 不看图。所以：
+Phase 1 sees the image, phase 2 does not. So:
 
-- **识图误差只能在 phase1 截断**。phase1 一旦尺寸读错、坐标偏移、立面 x 轴搞反、笔触漏画，phase2 没机会回溯纠正——phase2 拿到的就是错的当真的算
-- **宁可填 null 也不要瞎猜**。null = "我没看清/没标"，phase2 知道这是缺失。瞎猜的数值是污染
-- EP 仿真 zone 由 surface（2D 面）围合，**墙没厚度**——plan 墙的 `thickness_m` 一律填 `null`，不要费力估视觉笔宽
+- **perception errors can only be caught in phase 1**. Once phase 1 misreads a dimension, offsets a
+  coordinate, flips the elevation x-axis, or misses a stroke, phase 2 cannot backtrack — it takes
+  what it gets as truth
+- **prefer null over guessing**. null = "I couldn't see it / it isn't dimensioned", which phase 2
+  knows is missing. A guessed value is contamination
+- EP zones are enclosed by surfaces (2D faces), **walls have no thickness** — plan walls'
+  `thickness_m` is always `null`, do not estimate visual stroke width
 
-## 你的任务
+## Your task
 
-1. 完整读 [test_data/SmallOffice/smalloffice_20_redraw/vector_schema_v1.md](test_data/SmallOffice/smalloffice_20_redraw/vector_schema_v1.md)（**必读**，含 strokes / pen 枚举 / 立面 facade_axis_note 规范 / 反例 / 自检）
-2. 看 worked example：[phase1_vector/1f_view.json](test_data/SmallOffice/smalloffice_20_redraw/phase1_vector/1f_view.json) 已经由人工降级写好（10 根 wall stroke + 16 个 dim，**不要重写**），照它的风格做剩下 7 张
-3. 按下表给剩下 7 张图各产一份 JSON：
+1. Read the full vector schema (**required**: strokes / pen enums / elevation facade_axis_note
+   spec / counter-examples / self-check)
+2. Look at the worked example JSON (already hand-authored, e.g. the first plan view — **do not
+   rewrite it**), and follow its style for the remaining images
+3. Produce one JSON per remaining image, e.g.:
 
-| 源 PNG | 输出 JSON | image_kind |
+| source PNG | output JSON | image_kind |
 |---|---|---|
-| ~~1f_view.png~~ | ~~1f_view.json~~ | ~~plan~~（已完成，作 worked example）|
 | `2f_view.png` | `phase1_vector/2f_view.json` | plan |
 | `3f_view.png` | `phase1_vector/3f_view.json` | plan |
 | `South_view.png` | `phase1_vector/South_view.json` | elevation |
 | `North_view.png` | `phase1_vector/North_view.json` | elevation |
 | `East_view.png` | `phase1_vector/East_view.json` | elevation |
 | `West_view.png` | `phase1_vector/West_view.json` | elevation |
-| `supp_plan.png` | `phase1_vector/supp_plan.json` | 自行判断 |
+| `supp_plan.png` | `phase1_vector/supp_plan.json` | decide yourself |
 
-所有源图在 [test_data/SmallOffice/smalloffice_20_redraw/](test_data/SmallOffice/smalloffice_20_redraw/) 目录下。元信息看 [testdata_prompt.json](test_data/SmallOffice/smalloffice_20_redraw/testdata_prompt.json) —— 但只用来了解楼层数 / 层高 / 总尺寸，**不要把 testdata_prompt 的内容直接抄进 phase1 JSON**（phase1 应只反映图上看到的东西）。
+Read metadata from `testdata_prompt.json` — but only to learn the floor count / floor height / total
+dimensions; **do not copy testdata_prompt content directly into the phase 1 JSON** (phase 1 should
+reflect only what is seen in the image).
 
-## 核心纪律
+## Core discipline
 
-1. **plan 和 elevation 用不同 pen 词典**（schema §3）：
-   - plan 合法 pen = `wall` / `window` / `stair` / `other`（**不收 door**）
-   - elevation 合法 pen = `wall_fill` / `window` / `outline` / `other`（**不收 wall、不收 door**）
-   - 跨用即错。比如 elevation 上的墙身必须用 `wall_fill` 不是 `wall`
-2. **立面墙身按"每层一个 wall_fill stroke"切分**（schema §3.3）。sm_20 是 3 层 → 每个立面图出 3 个 wall_fill。即使灰填上下视觉连续，按尺寸链的分层 z 范围切
-3. **拓扑不是 phase1 的工作**。禁止字段：`is_exterior` / `parent_wall_id` / `rooms[]` / 任何"X 属于 Y / X 朝外 / X 围合"类语义
-4. **POC 阶段不扩 pen 词典**。看到分层线 / 结构柱梁 / 装饰线 / 索引箭头一律 `pen="other"` + note 描述；不要新造 `cornice` / `column` / `level_line` 等枚举值。看到词典覆盖不到的笔触在 `self_check.uncaptured_visual_elements` 里记一笔
-5. **一笔到底就一个 stroke**。比如外墙南侧从 (0,0) 到 (15,0) 是**一根** wall stroke，不要拆 3 段。除非真被窗洞物理打断
-6. **找不到填 null**，禁止默认值。plan 墙的 `thickness_m` 一律 null（仿真不用，schema §0.2）；其他字段图上找不到也填 null
-7. **立面图 facade_axis_note 必须含符号**（schema §4 四立面对照表）
-8. **OCR 原样**，找不到文字标签就 ocr_texts 留空数组
+1. **plan and elevation use different pen dictionaries** (schema §3):
+   - plan legal pens = `wall` / `window` / `stair` / `other` (**no door**)
+   - elevation legal pens = `wall_fill` / `window` / `outline` / `other` (**no wall, no door**)
+   - cross-use is an error. E.g. an elevation wall body must use `wall_fill`, not `wall`
+2'. **Heal door openings into continuous walls (door-healing, schema §2.1)**: when you see a door
+   leaf / arc on a plan, do not draw a door pen — heal the walls on its two sides into **one
+   continuous wall stroke** + a note `healed door opening at <position>` (a door is ignored in EP, a
+   wall is a continuous boundary face). Guardrails: only heal openings carrying a door symbol;
+   doorless large open spans are kept, not welded (those are real topology signals); windows are not
+   healed. Record each heal in `uncaptured_visual_elements`
+2. **Split elevation wall bodies as "one wall_fill stroke per floor"** (schema §3.3). For a 3-story
+   building, each elevation produces 3 wall_fills. Even if the gray looks visually continuous, split
+   by the dimension chain's per-floor z ranges
+3. **Topology is not phase 1's job.** Forbidden fields: `is_exterior` / `parent_wall_id` / `rooms[]`
+   / any "X belongs to Y / X faces outside / X encloses" semantics
+4. **Do not expand the pen dictionary.** Floor-divider lines / structural columns-beams / decorative
+   lines / index arrows all go to `pen="other"` + a note; do not invent enum values like `cornice` /
+   `column` / `level_line`
+4'. **`uncaptured_visual_elements` is required**: anything "seen but not drawn into strokes" must be
+   acknowledged — out-of-dictionary strokes + clutter actively excluded by selective extraction
+   (furniture / paving / texture / room text boxes) + healed doors. Even when the dictionary is truly
+   enough, write a note rather than leaving it empty ("acknowledged skip" ≠ "silent loss")
+5. **One stroke per continuous stroke.** E.g. the south perimeter wall from (0,0) to (15,0) is **one**
+   wall stroke, do not split into 3. Door openings do not break a wall (heal into a continuous wall,
+   see 2'); a window on a plan is a sub-face and also does not break a wall
+6. **Fill null when not found**, no defaults. Plan walls' `thickness_m` is always null (simulation
+   doesn't use it, schema §0.2); other fields not found in the image are also null
+7. **Elevation facade_axis_note must include the sign** (schema §4 four-facade table)
+8. **OCR verbatim**; if there are no text labels, leave ocr_texts as an empty array
 
-## 工作流
+## Workflow
 
-1. 读 schema v1 + worked example 1f_view.json（理解风格）
-2. 先做 `2f_view.png` 一张 pilot，完成后停下来让我看，**不要直接批量做完所有 7 张**
-3. 我审 2f_view OK 后，再 batch 处理 3f_view + 4 个立面 + supp_plan
-4. 全部完成后，写一份 [phase1_vector/phase1_summary.md](test_data/SmallOffice/smalloffice_20_redraw/phase1_vector/phase1_summary.md)：
-   - 8 张图各自的可信度自评（高/中/低，含理由）
-   - 哪些字段反复 null / unknowns
-   - 4 立面 x_local ↔ 世界轴对照表（实际填写值）
-   - 你对 schema v1 的反馈：哪里不够用 / 哪里冗余 / 哪些 pen 枚举值不够
+1. Read the schema + the worked-example plan JSON (understand the style)
+2. Do one pilot first (e.g. `2f_view.png`), then stop and let me review — **do not batch all images at once**
+3. After I approve the pilot, batch the rest (other plans + elevations + supplemental plan)
+4. When all are done, write a `phase1_vector/phase1_summary.md`:
+   - per-image confidence self-assessment (high/medium/low, with reasons)
+   - which fields were repeatedly null / unknown
+   - the four-facade x_local ↔ world-axis table (actual filled values)
+   - your feedback on the schema: where it falls short / where it is redundant / which pen enum values are insufficient
 
-## 边界
+## Boundaries
 
-- 不要改 [src/](src/)、[skills/](skills/)、[AI_agent/](AI_agent/) 任何文件
-- 不要改 1f_view.json（已是 worked example）
-- 不要跑 `run_full_pipeline.py` 或任何 EnergyPlus 工具
-- 不要产 IntakeOutput 字段（zone_specs / surface_specs / fenestration_specs / ... 等等），那全是 phase2 的事
+- Do not modify any file under [src/](src/), [skills/](skills/), [AI_agent/](AI_agent/)
+- Do not modify the worked-example JSON (it is the reference)
+- Do not run `run_full_pipeline.py` or any EnergyPlus tool
+- Do not produce IntakeOutput fields (zone_specs / surface_specs / fenestration_specs / ...), that is all phase 2's job
 
-ready 后先做 2f_view.png pilot，完成后停下来等我反馈。
+When ready, do the pilot first, then stop and wait for my feedback.
