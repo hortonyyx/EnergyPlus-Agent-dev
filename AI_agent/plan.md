@@ -171,7 +171,7 @@
 > 设计框架已在 [`floorplan_redraw_strategy.md §10`](floorplan_redraw_strategy.md)（2026-05-22 讨论）收敛：测「信息噪声 / 选择性提取」而非「全局像素降质」；phase1 走选择性提取(B) + 门洞补成连续墙；zone 重划分归 phase2。
 
 - [ ] **图纸准备**（用户）：矩形几何同 sm_20 级 + 信息杂物（家具 / 铺装 / 纹理 / 楼梯 / 轴网圈 / 房间文字）+ **每房间 1-2 个门** + **1-2 处故意遮挡某段尺寸标注** + testdata_prompt.json（楼层/区/外包/WWR）
-- [x] **schema v1.3 amendment（先于跑批，依据 §10.4）** ✅ 2026-05-25：[`phase1_vector_schema.md`](../skills/energyplus_mcp_twostep/phase1_vector_schema.md) §2 "开洞打断成两段"→"门洞补成连续墙 + 留痕"+ 新增 §2.1 四条护栏；§3.1 门处理改"识别以驱动补墙、不出 door 笔、note 记 heal"；`uncaptured_visual_elements` 提为**必填**（扩为"凡看到但没画的都登记"，含主动排除杂物 + heal 门）；`door`/`arc` 退出词典；同步 [`phase1_prompt_template.md`](../skills/energyplus_mcp_twostep/phase1_prompt_template.md) 纪律段。备份 `Skill_history/2026-05-25_twostep_phase1_v1.3_door_healing/`
+- [x] **schema v1.3 amendment（先于跑批，依据 §10.4）** ✅ 2026-05-25：`phase1_vector_schema.md`（后于 2026-05-26 拆分为 [`phase1/`](../skills/energyplus_mcp_twostep/phase1/) 三份：guide/reading_guide/pen_library）§2 "开洞打断成两段"→"门洞补成连续墙 + 留痕"+ 新增 §2.1 四条护栏；门处理改"识别以驱动补墙、不出 door 笔、note 记 heal"；`uncaptured_visual_elements` 提为**必填**（扩为"凡看到但没画的都登记"，含主动排除杂物 + heal 门）；`door`/`arc` 退出词典；同步 [`phase1/prompt_template.md`](../skills/energyplus_mcp_twostep/phase1/prompt_template.md) 纪律段。备份 `Skill_history/2026-05-25_twostep_phase1_v1.3_door_healing/`
 - [ ] 跑两步法（phase1 人工会话 + phase2 DeepSeek）+ 下游 + EP
 - [ ] **判分项**（§10.2 + 选择性提取观察点）：
   - 杂物→结构假阳性（家具/铺装/纹理被当 wall/window）⛔ 最致命
@@ -182,7 +182,7 @@
   - 门是否补成连续墙、没误补无门开口、留了痕 ⚠️
   - phase2 在更复杂矢量 JSON 上能否保持 Step 6 PASS
 - [ ] 跑通后落 `test_data/SmallOffice_TwoStep/<new_case>/`，跑挂的话补 [`skills/energyplus_mcp_twostep/`](../skills/energyplus_mcp_twostep/) 规则
-- [ ] 注：[`run_phase2_deepseek.py`](../Tool_scripts/run_phase2_deepseek.py) 的 `PHASE1_FILES` 写死了 3 层+4 立面 7 个文件名；新 case 楼层/立面数不同时跑 phase2 前先改成按目录扫描
+- [x] 注（2026-05-26 已修）：[`run_phase2_deepseek.py`](../Tool_scripts/run_phase2_deepseek.py) 原写死 `PHASE1_FILES`，已改 `_discover_phase1_files()` 扫 `phase1_vector/*.json`（楼层数字序 → 立面 → supp/section），不再需手改
 
 #### B1.5.b [P0] phase1 / phase2 skill 持续迭代
 
@@ -202,7 +202,7 @@
 
 #### B1.5.c [P0] `intake_node` 重写为两步串行
 - [ ] [`src/agent/nodes/intake.py`](../src/agent/nodes/intake.py) 改为：
-  - phase1 调用：image_paths + phase1_vector_schema → 矢量 JSON（每图一份 + summary）
+  - phase1 调用：image_paths + phase1_guide + phase1_reading_guide + phase1_pen_library → 矢量 JSON（每图一份 + summary）
   - 中间持久化：落到 `<case>/<output_subdir>/phase1_vector/`
   - phase2 调用：phase1 JSON + phase2_rules → IntakeOutput
   - `--intake-from` short-circuit 保留（半人工流 + 评测复跑用）

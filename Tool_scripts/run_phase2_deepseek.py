@@ -56,15 +56,39 @@ ensure_schema_initialized()
 load_dotenv()
 
 
-PHASE1_FILES = [
-    "1f_view.json",
-    "2f_view.json",
-    "3f_view.json",
-    "South_view.json",
-    "North_view.json",
-    "East_view.json",
-    "West_view.json",
-]
+# Plan-view filenames look like "<N>f_view.json" (1f_view.json, 2f_view.json, …);
+# elevations are "<Name>_view.json" (South_view.json, …). The capture group is the
+# floor number so plans sort numerically (10f after 2f, not before).
+_PLAN_RE = re.compile(r"^(\d+)f_view\.json$", flags=re.IGNORECASE)
+
+
+def _discover_phase1_files(case_dir: Path) -> list[str]:
+    """Scan <case>/phase1_vector/ for ALL phase-1 vector JSONs.
+
+    Order: numeric floor plans (by floor number) → facade elevations →
+    supplementary / section / other vector JSONs. We include everything (not just
+    *_view.json) because phase2_rules.md requires consuming supplements/sections
+    too; dropping them was a silent capability regression. phase1_summary.md is
+    .md (not matched by *.json) and is read separately.
+    """
+    vector_dir = case_dir / "phase1_vector"
+    names = sorted(p.name for p in vector_dir.glob("*.json"))
+    if not names:
+        raise FileNotFoundError(f"no *.json found under {vector_dir}")
+    plans = sorted(
+        (n for n in names if _PLAN_RE.match(n)),
+        key=lambda n: (int(_PLAN_RE.match(n).group(1)), n),
+    )
+    elevations = [
+        n for n in names
+        if not _PLAN_RE.match(n) and n.lower().endswith("_view.json")
+    ]
+    others = [
+        n for n in names
+        if not _PLAN_RE.match(n) and not n.lower().endswith("_view.json")
+    ]
+    return plans + elevations + others
+
 
 MODEL_NAME = "deepseek-v4-pro"
 MAX_OUTPUT_TOKENS = 64000
@@ -114,7 +138,7 @@ def build_messages(case_dir: Path) -> tuple[str, str]:
     human_chunks: list[str] = [
         "Project metadata (testdata_prompt.json):\n```json\n" + testdata + "\n```\n"
     ]
-    for fname in PHASE1_FILES:
+    for fname in _discover_phase1_files(case_dir):
         jpath = case_dir / "phase1_vector" / fname
         if not jpath.exists():
             raise FileNotFoundError(f"phase1 JSON missing: {jpath}")

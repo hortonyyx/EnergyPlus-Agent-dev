@@ -13,8 +13,8 @@ the drawing" parts there are useless to phase 2, and the key output contract is 
 
 Read **every** vector JSON in the directory (do not assume a fixed file set):
 - **plan + elevation vector JSONs** (one per image), e.g. `phase1_vector/{1f_view, 2f_view, 3f_view,
-  South_view, North_view, East_view, West_view}.json`; schema defined in
-  [vector_schema_v1.md](phase1_vector_schema.md)
+  South_view, North_view, East_view, West_view}.json`; output format defined in
+  [../phase1/guide.md](../phase1/guide.md) (container) + [../phase1/pen_library.md](../phase1/pen_library.md) (pen meanings)
 - **supplementary / section vector JSONs** if present (e.g. `supp_plan`, a section) — consume them
   for stair indexing, local geometry clarification, or anything the main plans/elevations leave
   ambiguous; do not silently ignore a supplement the case provided

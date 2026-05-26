@@ -15,11 +15,11 @@
 | Step 1–3 | 备素材 / 建目录 / testdata_prompt.json | **完全一致** |
 | Step 4 | 一个会话：图 + 文本 → `intake_output.json` | **拆两步**：4a 识图→矢量 JSON；4b 矢量 JSON→`intake_output.json` |
 | 规则库 | [skills/energyplus_mcp/](../skills/energyplus_mcp/)（单步法，中文）| [skills/energyplus_mcp_twostep/](../skills/energyplus_mcp_twostep/)（两步法，英文）|
-| Step 5–7 | 下游自动跑 + L1–L4 + 留痕 | **完全一致**（但有一个目录接缝，见 §三）|
+| Step 5–7 | 下游自动跑 + L1–L4 + 留痕 | **完全一致**（下游入口见 §三）|
 
 **案例目录**：两步法语料放 [test_data/SmallOffice_TwoStep/](../test_data/SmallOffice_TwoStep/)`<case>/`（与单步法 `SmallOffice/` 并列）。phase1/phase2 全部中间产物落这里。
 
-误差预算（两步法的核心）：phase1 看图、只产「图上看到了什么」；phase2 不看图、只对矢量 JSON 做拓扑推理。任何图相关的错只能在 phase1 截断，phase2 只引入纯推理错。详见 [phase1_vector_schema.md §0.1](../skills/energyplus_mcp_twostep/phase1_vector_schema.md)。
+误差预算（两步法的核心）：phase1 看图、只产「图上看到了什么」；phase2 不看图、只对矢量 JSON 做拓扑推理。任何图相关的错只能在 phase1 截断，phase2 只引入纯推理错。详见 [phase1_guide.md §0.1](../skills/energyplus_mcp_twostep/phase1/guide.md)。
 
 ---
 
@@ -28,7 +28,7 @@
 > **目标**：每张图（逐层平面 + 各立面 + 补充图）→ 一份矢量 JSON（语义笔 strokes + 尺寸链 + OCR），外加一份 `phase1_summary.md`（含 4 立面 local↔world 翻译公式）。**只识图、不做拓扑**。
 
 1. 在仓库根新起一个独立 Claude Code 会话，选多模态强模型（Opus 4.7）。
-2. 把 [skills/energyplus_mcp_twostep/phase1_prompt_template.md](../skills/energyplus_mcp_twostep/phase1_prompt_template.md) 里 `---` 之间整段作为首条消息粘进去，并**按本 case 改路径**（模板里的图名表 / 目录）。
+2. 把 [skills/energyplus_mcp_twostep/phase1/prompt_template.md](../skills/energyplus_mcp_twostep/phase1/prompt_template.md) 里 `---` 之间整段作为首条消息粘进去，并**按本 case 改路径**（模板里的图名表 / 目录）。
 3. 会话会先做一张 pilot（如 `2f_view`），停下等你审；审 OK 后再 batch 其余图。
 4. 人工校验：用 [Tool_scripts/render_vector_to_svg.py](../Tool_scripts/render_vector_to_svg.py) 把矢量 JSON 渲成 SVG，肉眼比对原图，重点看：
    - 杂物（家具/铺装/纹理）有没有被误当 wall/window（假阳性，最致命）
@@ -42,21 +42,21 @@
 
 ## 二、Step 4b · phase2 拓扑（矢量 JSON → IntakeOutput）
 
-> **目标**：读 phase1 矢量 JSON + testdata_prompt.json，按 [phase2_rules.md](../skills/energyplus_mcp_twostep/phase2_rules.md) 推出 11 字段 `IntakeOutput`。**不看原图**。
+> **目标**：读 phase1 矢量 JSON + testdata_prompt.json，按 [phase2_rules.md](../skills/energyplus_mcp_twostep/phase2/rules.md) 推出 11 字段 `IntakeOutput`。**不看原图**。
 
 两条路径，任选：
 
 ### 路径 A — 会话（Opus 等）
 
-新起会话，把 [skills/energyplus_mcp_twostep/phase2_prompt_template.md](../skills/energyplus_mcp_twostep/phase2_prompt_template.md) 改好路径后整段粘入。产 `intake_output.json` + `self_check.md` + （如有）`phase2_followup_notes.md`。
+新起会话，把 [skills/energyplus_mcp_twostep/phase2/prompt_template.md](../skills/energyplus_mcp_twostep/phase2/prompt_template.md) 改好路径后整段粘入。产 `intake_output.json` + `self_check.md` + （如有）`phase2_followup_notes.md`。
 
 ### 路径 B — DeepSeek 自动跑
 
 ```bash
-python Tool_scripts/run_phase2_deepseek.py   # 按脚本内路径常量跑
+python Tool_scripts/run_phase2_deepseek.py --case test_data/SmallOffice_TwoStep/<case>
 ```
 
-⚠️ **坑（务必先改）**：[Tool_scripts/run_phase2_deepseek.py](../Tool_scripts/run_phase2_deepseek.py) 的 `PHASE1_FILES` 把文件名写死成「3 层 + 4 立面」7 个。新 case 楼层/立面数不同时，**跑前先把它改成按目录扫描**，否则会漏读或报缺文件。
+phase1 矢量 JSON 现在**按目录自动扫描**（`phase1_vector/*_view.json`，平面 `<N>f_view` 在前、立面在后），楼层/立面数不同的 case 无需再改脚本。
 
 **产物**：`<case>/phase2_intake/<model>/intake_output.json`（或你约定的位置）。
 
@@ -78,16 +78,20 @@ IntakeOutput.model_validate(data); print('OK 11 fields')
 
 ---
 
-## 三、接 Step 5（下游自动跑）—— 目录接缝
+## 三、接 Step 5（下游自动跑）
 
-> Step 5–7 流程与 [new_case_guide.md §五–§七](new_case_guide.md) 完全一致（含 `跑下游 <case>` 对话触发、L1–L4 验收、`记录这次跑` 留痕）。但有一个**临时接缝**必须处理：
+> Step 5–7 流程与 [new_case_guide.md §五–§七](new_case_guide.md) 完全一致（含 `跑下游 <case>` 对话触发、L1–L4 验收、`记录这次跑` 留痕）。
 
-[scripts/run_full_pipeline.py](../scripts/run_full_pipeline.py) 第 141 行把 case 目录**写死**成 `test_data/SmallOffice/<case>`，**不认 `SmallOffice_TwoStep/`**。所以两步法跑下游前，二选一：
+[scripts/run_full_pipeline.py](../scripts/run_full_pipeline.py) 现有 `--base-dir`，两步法 case 直接指向 `SmallOffice_TwoStep/`，不必再往 `SmallOffice/` 搬：
 
-- **（推荐，最省事）** 把 phase2 产出的 `intake_output.json` 拷到 `test_data/SmallOffice/<case>/output/intake_output.json`（该 case 在 `SmallOffice/` 下需存在同名目录 + testdata_prompt.json + 图；两步法语料与单步法同素材时本就有），再照常 `python scripts/run_full_pipeline.py <case> --intake-from output/intake_output.json`。
-- **（或）** 临时改 `run_full_pipeline.py` 的 `case_dir` 基目录，跑完改回。
+```bash
+# 先把 phase2 产出的 intake_output.json 放到 <case>/output/ 下（--intake-from 相对 <case>/ 解析）
+python scripts/run_full_pipeline.py <case> \
+  --base-dir test_data/SmallOffice_TwoStep \
+  --intake-from output/intake_output.json
+```
 
-> 正式两步法主线（B1.5.c）会把 `intake_node` 改成 phase1+phase2 串行调用，这个接缝届时消失。本临时阶段先手工搬一次 `intake_output.json`。
+> 正式两步法主线（B1.5.c）会把 `intake_node` 改成 phase1+phase2 串行调用，连 `--intake-from` 手工搬运一并消失。
 
 ---
 

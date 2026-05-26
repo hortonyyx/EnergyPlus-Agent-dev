@@ -1,8 +1,21 @@
-# Vector Schema — phase1 output format ("redraw the source image with semantic pens")
+# Phase 1 guide — flow, constraints, and output container
 
-Phase 1 turns each architectural drawing into a vector JSON. The model acts like
-an artist re-tracing the original image with a set of **semantically labeled pens**,
-without doing any spatial-topology reasoning. All topology is left to phase 2.
+Phase 1 turns each architectural drawing into a vector JSON. The model acts like an artist
+re-tracing the original image with a set of **semantically labeled pens**, without doing any
+spatial-topology reasoning. All topology is left to phase 2.
+
+This document is the **master guide**: the error budget, the global constraints, the output
+container (JSON format), and the processing discipline (door-healing, self-check, downstream
+contract). Two sibling docs split off the perception and the action:
+
+- **How to *recognize* what each stroke is** (what walls / doors / windows / dimensions look like,
+  across drawing styles) → [`reading_guide.md`](reading_guide.md)
+- **What to *do* with a recognized category** (which pen / keep-or-ignore / heal) →
+  [`pen_library.md`](pen_library.md)
+
+The three are wired by a shared **semantic-category vocabulary**: the reading guide outputs a
+category label ("door", "wall", "furniture", …); the pen library maps that label to a phase-1
+action; this guide holds the rules and the container that both feed into.
 
 ---
 
@@ -13,10 +26,12 @@ Think of phase 1 as "re-tracing the source image with a set of semantically labe
 - the **window pen** traces every stroke that drew a window
 - … plus dimension chains and text annotations
 
-**What phase 1 does**: identify which component type each stroke is, and trace its
-geometry by type.
-**What phase 1 does NOT do**: merge strokes into "one exterior wall" / outline "this is a
-room" / say "this window belongs to that wall" / judge "this wall faces outside or inside".
+(How to recognize each element across styles → [`reading_guide.md`](reading_guide.md);
+the pen each category maps to → [`pen_library.md`](pen_library.md).)
+
+**What phase 1 does**: identify which component type each stroke is, and trace its geometry by type.
+**What phase 1 does NOT do**: merge strokes into "one exterior wall" / outline "this is a room" /
+say "this window belongs to that wall" / judge "this wall faces outside or inside".
 
 All of that topology reasoning is left to phase 2.
 
@@ -30,21 +45,21 @@ Phase 1 and phase 2 are mutually exclusive in the kind of error each can introdu
 | phase 2 | phase 1 JSON + skill rule docs + testdata_prompt metadata (**does not see the image**) | **pure reasoning errors**: wrong grouping, inside/outside misjudged, parent-child mapping wrong, IntakeOutput field wrong |
 
 **Implications**:
-- Every error about "a value / position / stroke type in the image" must be caught in
-  phase 1. Once phase 1 writes it wrong, phase 2 has no chance to backtrack.
-- When diffing IntakeOutput, any inconsistency tied to the source image roots 100% in
-  phase 1; only topology / naming / field-format errors are phase 2's.
-- So when writing the JSON, phase 1 **prefers null over guessing** — null means "I couldn't
-  see it", whereas a guessed value makes phase 2 treat a wrong number as truth.
+- Every error about "a value / position / stroke type in the image" must be caught in phase 1.
+  Once phase 1 writes it wrong, phase 2 has no chance to backtrack.
+- When diffing IntakeOutput, any inconsistency tied to the source image roots 100% in phase 1; only
+  topology / naming / field-format errors are phase 2's.
+- So when writing the JSON, phase 1 **prefers null over guessing** — null means "I couldn't see it",
+  whereas a guessed value makes phase 2 treat a wrong number as truth.
 
 ### 0.2 Effect of simulation physics
 
 In EnergyPlus a zone is enclosed by **surfaces (2D faces)**; a wall has no thickness concept. So:
-- a "thick black wall" in plan is just a **centerline** (2D polyline) in simulation; the wall
-  body width does not participate in the calculation
+- a "thick black wall" in plan is just a **centerline** (2D polyline) in simulation; the wall body
+  width does not participate in the calculation
 - phase 1 need not estimate wall thickness — fill `thickness_m` with `null`
-- an elevation `wall_fill` rectangle is only a z-range signal source (which layer's z is where),
-  it does not mean "the wall is this thick"
+- an elevation `wall_fill` rectangle is only a z-range signal source (which layer's z is where), it
+  does not mean "the wall is this thick"
 - **a door is simply ignored in energy simulation**: a "wall with a door" is, in its simulation
   reality, **one continuous wall**. So when phase 1 sees a door opening it heals the wall to be
   continuous (door-healing, see §2.1); the door symbol only triggers the heal and does not enter
@@ -86,6 +101,7 @@ In EnergyPlus a zone is enclosed by **surfaces (2D faces)**; a wall has no thick
 
   // ===== strokes =====
   // each stroke = one continuously drawn stroke + its semantic type (pen).
+  // how to recognize each element → reading_guide.md; which pen a category maps to → pen_library.md (plan and elevation differ).
   // door handling: a door opening in a wall does **not** break the wall — heal the two
   //   segments split by the door into one continuous wall stroke, and record
   //   "healed door opening at <position>" in that stroke's note (in EP a wall is a continuous
@@ -95,9 +111,8 @@ In EnergyPlus a zone is enclosed by **surfaces (2D faces)**; a wall has no thick
   "strokes": [
     {
       "id": "S1",
-      "pen": "wall",                        // enum: wall | window | stair | other
-                                            // door is not a legal pen: a door only triggers healing, it is not drawn (see §2.1 / §3.1)
-                                            // other = visible strokes that cannot be classified (e.g. north arrow, title block)
+      "pen": "wall",                        // pen type — see pen_library.md for the legal set
+                                            // (door is never a pen: a door only triggers healing, see §2.1)
       "geometry": {
         "kind": "line",                     // line | rect | polyline
         "p1": [0.00, 0.00],
@@ -187,16 +202,16 @@ In EnergyPlus a zone is enclosed by **surfaces (2D faces)**; a wall has no thick
 
 ## 2.1 Door-healing guardrails
 
-In EP a wall is a continuous boundary face, a window is a sub-face on a wall, and a door is
-ignored outright in energy simulation. So a "wall with a door" is, in its simulation reality,
-**one continuous wall**. Phase 1 can see the door arc / leaf at a glance; phase 2 only has
-coordinates and cannot reliably tell apart "door / real opening / two independent walls" — so by
-the error-budget principle, healing the door belongs to phase 1. Effect: phase 2 always receives
-a clean, closed wall network (one uniform, image-free, validated regime).
+In EP a wall is a continuous boundary face, a window is a sub-face on a wall, and a door is ignored
+outright in energy simulation. So a "wall with a door" is, in its simulation reality, **one
+continuous wall**. Phase 1 can see the door arc / leaf at a glance; phase 2 only has coordinates and
+cannot reliably tell apart "door / real opening / two independent walls" — so by the error-budget
+principle, healing the door belongs to phase 1. Effect: phase 2 always receives a clean, closed wall
+network (one uniform, image-free, validated regime).
 
-**Healing ≠ assigning rooms**: phase 1 only guarantees the wall network is geometrically
-continuous and closed; which walls enclose which room / inside vs outside / naming is still
-phase 2's job (§0 red line).
+**Healing ≠ assigning rooms**: phase 1 only guarantees the wall network is geometrically continuous
+and closed; which walls enclose which room / inside vs outside / naming is still phase 2's job
+(§3 red line).
 
 Guardrails (to stop phase 1 inventing walls):
 
@@ -206,68 +221,22 @@ Guardrails (to stop phase 1 inventing walls):
    phase 2 needs. A gap alone, with no door symbol, does not count
 3. **Do not heal windows** — keep them as a window pen (a window is a sub-face, not a boundary break)
 4. **Always leave a trace when healing**: write `healed door opening at <position>` in that wall
-   stroke's note, and record it in `self_check.uncaptured_visual_elements`, so SVG review can
-   verify "the heal is correct, no real opening was covered up"
+   stroke's note, and record it in `self_check.uncaptured_visual_elements`, so SVG review can verify
+   "the heal is correct, no real opening was covered up"
 
 ---
 
-## 3. pen enums (split by image_kind)
+## 3. Visual recognition vs spatial topology (the red line)
 
-**Important**: plan and elevation use different legal pen sets. Phase 1 must pick the dictionary
-matching the image's `image_kind`; do not cross-use.
+Judging wall vs window vs wall_fill vs non-structural clutter is **visual recognition** (the strokes look different) —
+phase 1's domain (use [`reading_guide.md`](reading_guide.md) to recognize the element,
+then [`pen_library.md`](pen_library.md) to map the category to a pen).
 
-### 3.1 image_kind = "plan" legal pens
-
-| pen | typical visual | when to use |
-|---|---|---|
-| `wall` | thick black line / black filled rectangular bar | any stroke recognized as a wall |
-| `window` | opening in wall + short blue bar (only if a window is actually drawn in plan) | window |
-| `stair` | parallel diagonal lines / stair-tread symbol | stairs |
-| `other` | none of the above but actually drawn | north arrow, grid label, furniture, title block |
-
-**Plan does not emit a `door` pen, but doors must be "recognized to drive wall-healing" (see §2.1)**:
-when you see a door leaf / arc, do not draw a door stroke — instead heal the walls on its two sides
-into **one continuous wall stroke** and write `healed door opening at <position>` in the note. The
-door is only a trigger and does not enter strokes itself; the heal also goes into
-`uncaptured_visual_elements` as a trace.
-
-### 3.2 image_kind = "elevation" legal pens
-
-| pen | typical visual | when to use |
-|---|---|---|
-| `wall_fill` | light-gray filled rectangle (one per floor) | **one wall_fill stroke per floor** (see §3.3) |
-| `window` | blue filled rectangle | elevation window |
-| `outline` | overall outline heavy line of the elevation | only if the outline does not coincide with the wall_fill edges / a separate outer frame is drawn |
-| `other` | none of the above but actually drawn | floor-divider lines, structural lines (columns/beams), decorative lines (mouldings/cornices), elevation index arrows, shadows |
-
-**Elevation does not emit a `door` pen** — same as plan; a main entrance door may be noted but does
-not enter strokes.
-
-**Handling `other`**: tag any stroke outside the enum as `other` + a note describing "this is a
-floor-divider line" or "this is a cornice". Do not invent a new pen value per decoration type — keep
-the dictionary minimal.
-
-### 3.3 elevation wall_fill convention (key)
-
-Record elevation wall-body gray fill as "**one wall_fill stroke per floor**". For example:
-
-- a south elevation of a 3-story office → 3 wall_fill strokes, each covering the F1 / F2 / F3 gray
-  fill rectangle (split by y range)
-- even if the gray looks like one continuous block (no visible seam), as long as the dimension chain
-  marks each floor's z range, still write 3 strokes — phase 1 splits by the dimension chain
-- if a floor's gray fill is **completely broken** by a door/window opening (white unfilled area
-  around the frame), record each broken rectangle segment as its own stroke; but when elevation
-  windows overlay the gray fill (no break), it stays one fill per floor
-
-Once phase 2 has per-floor wall_fill it maps directly to each floor's wall surface z_floor / z_top,
-cheaper than "one fill for the whole wall then split".
-
-### 3.4 visual recognition vs spatial topology (emphasized again)
-
-Judging wall vs window vs wall_fill vs other is **visual recognition** (the strokes look different) —
-phase 1's domain.
 Judging wall ext vs int / which wall a window belongs to / which walls enclose which room / which
 floor a wall_fill maps to ←—— these are **spatial topology** judgments, all left to phase 2.
+
+Phase 1 must resist the second category even when it "looks obvious". The error budget only works if
+phase 1 stays purely perceptual.
 
 ---
 
@@ -287,7 +256,7 @@ coordinates); phase 2 uses `facade_axis_note` to translate back to the world sys
 
 ---
 
-## 5. Counter-examples
+## 5. Counter-examples (recognition discipline)
 
 - ❌ `"pen": "wall", "is_exterior": true` —— is_exterior is phase 2's call, do not add the field
 - ❌ stuffing a room polygon into strokes —— a room is not a drawn stroke
@@ -298,26 +267,25 @@ coordinates); phase 2 uses `facade_axis_note` to translate back to the world sys
 - ❌ leaving `uncaptured_visual_elements` empty when furniture was excluded / a door was healed —— it is required; actively excluded items + heals must be acknowledged
 - ❌ `"text": "办公室"` for an image that says "Office 101" —— OCR does not translate
 - ❌ `"thickness_m": 0.20` —— plan walls always null (simulation does not need wall thickness, see §0.2)
-- ❌ `"pen": "wall_fill"` drawn on a plan —— wall_fill is only in the elevation dictionary
-- ❌ `"pen": "wall"` drawn on an elevation —— elevation walls use wall_fill; the wall value is plan-only
-- ❌ one wall_fill for an entire elevation wall —— should be "one wall_fill per floor" (see §3.3)
-- ❌ inventing a pen value for door / furniture / decorative line such as `"furniture"` / `"cornice"` —— do not expand the dictionary, use `other` + a note
+
+(Pen-vocabulary counter-examples — wrong pen for the image kind, inventing pen values, etc. — are in
+[`pen_library.md`](pen_library.md).)
 
 ---
 
 ## 6. Self-check list
 
-- [ ] picked the right pen dictionary by image_kind (plan uses §3.1, elevation uses §3.2)
+- [ ] picked the right pen dictionary by image_kind (see [`pen_library.md`](pen_library.md): plan vs elevation differ)
 - [ ] every visible wall/window/wall_fill stroke is in the strokes array with the right pen field
-- [ ] elevation wall bodies split as "one wall_fill per floor"
+- [ ] elevation wall bodies split as "one wall_fill per floor" (see pen library)
 - [ ] no rooms[] / is_exterior / parent relations or other topology fields
-- [ ] no standalone door / furniture / decoration pen values (all go to other or are not recorded)
+- [ ] no standalone door / stair / furniture / decoration strokes — recognized and logged (doors trigger healing), never traced as a pen (there is no `other` pen)
 - [ ] door openings healed into continuous walls (only openings with a door symbol; doorless open spans kept), wall stroke note says `healed door opening at ...`
 - [ ] every dimension-chain number is in the dimensions array
 - [ ] text labels transcribed verbatim
 - [ ] not-found fields filled with null
 - [ ] elevation facade_axis_note includes axis + sign
-- [ ] elevation outline: not drawn separately if it coincides with wall_fill edges (§3.2); confirmed for this image
+- [ ] elevation outline: not drawn separately if it coincides with wall_fill edges (see pen library); confirmed for this image
 - [ ] plan scale_origin.world_z_m is null (not 0.00)
 - [ ] self_check.pens_used lists the pen set used in this image
 - [ ] self_check.uncaptured_visual_elements is **non-empty** (required): records everything "seen but not drawn" — out-of-dictionary strokes + actively excluded clutter + healed doors

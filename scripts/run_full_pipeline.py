@@ -97,7 +97,14 @@ def _load_intake_from(path: Path) -> IntakeOutput:
 
 def main() -> None:
     parser = argparse.ArgumentParser()
-    parser.add_argument("case", help="Case dir name under test_data/SmallOffice/")
+    parser.add_argument("case", help="Case dir name under <base-dir>/")
+    parser.add_argument(
+        "--base-dir",
+        type=Path,
+        default=Path("test_data/SmallOffice"),
+        help="Parent dir containing <case>/. Defaults to test_data/SmallOffice. "
+        "Use test_data/SmallOffice_TwoStep for two-step (phase1+phase2) cases.",
+    )
     parser.add_argument(
         "--intake-only",
         action="store_true",
@@ -138,7 +145,7 @@ def main() -> None:
 
     setup_logger(level="INFO")
 
-    case_dir = Path("test_data/SmallOffice") / args.case
+    case_dir = args.base_dir / args.case
     output_dir = case_dir / args.output_subdir
     output_dir.mkdir(parents=True, exist_ok=True)
 

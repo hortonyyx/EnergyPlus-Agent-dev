@@ -16,7 +16,7 @@ flowchart TB
     subgraph P1["Phase 1: 矢量化重绘（视觉翻译）"]
         direction TB
         VLM["🧠 多模态 LLM<br/>当前 Opus 4.7 → 未来微调小 VLM"]
-        SCH[("phase1_vector_schema<br/>strokes + pen 词典")]
+        SCH[("phase1_guide 总指导<br/>+ reading_guide 识图 + pen_library 笔库")]
     end
 
     %% ===== Middle artifact =====
@@ -77,8 +77,9 @@ flowchart TB
 │ Phase 1: 矢量化重绘（视觉翻译）       │ │
 │ ─────────────────────────────────── │ │
 │ • 多模态 LLM (Opus 4.7 → 小 VLM)    │ │
-│ • 约束: phase1_vector_schema        │ │
-│   (strokes + pen 词典)              │ │
+│ • 约束: phase1_guide 总指导         │ │
+│   + reading_guide 识图              │ │
+│   + pen_library 笔库               │ │
 └────────┬────────────────────────────┘ │
          │                              │
          ▼                              │
@@ -199,8 +200,10 @@ flowchart LR
 
 | 文件 | 角色 |
 |---|---|
-| [`skills/energyplus_mcp_twostep/phase1_vector_schema.md`](../skills/energyplus_mcp_twostep/phase1_vector_schema.md) | Phase 1 输出格式契约 |
-| [`skills/energyplus_mcp_twostep/phase2_rules.md`](../skills/energyplus_mcp_twostep/phase2_rules.md) | Phase 2 推理规则 |
+| [`skills/energyplus_mcp_twostep/phase1/guide.md`](../skills/energyplus_mcp_twostep/phase1/guide.md) | Phase 1 总指导（流程 + 约束 + 输出容器 + 门healing/自检纪律）|
+| [`skills/energyplus_mcp_twostep/phase1/reading_guide.md`](../skills/energyplus_mcp_twostep/phase1/reading_guide.md) | Phase 1 识图指南（怎么认出元素、跨风格、画法卡，纯感知）|
+| [`skills/energyplus_mcp_twostep/phase1/pen_library.md`](../skills/energyplus_mcp_twostep/phase1/pen_library.md) | Phase 1 笔库/画图指南（类别→动作映射：哪支笔/忽略/healing）|
+| [`skills/energyplus_mcp_twostep/phase2/rules.md`](../skills/energyplus_mcp_twostep/phase2/rules.md) | Phase 2 推理规则 |
 | [`Tool_scripts/render_vector_to_svg.py`](../Tool_scripts/render_vector_to_svg.py) | 人工校验工具（矢量 JSON → SVG）|
 | [`Tool_scripts/run_phase2_deepseek.py`](../Tool_scripts/run_phase2_deepseek.py) | Phase 2 自动跑批脚本 |
 | [`test_data/SmallOffice_TwoStep/smalloffice_20/`](../test_data/SmallOffice_TwoStep/smalloffice_20/) | POC anchor 全套 artifacts |

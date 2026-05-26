@@ -15,18 +15,19 @@ pure text reasoning.
 
 Read in order:
 
-1. `phase2_rules.md` — full phase 2 rules (input/output / coordinate translation formulas /
+1. `rules.md` — full phase 2 rules (input/output / coordinate translation formulas /
    IntakeOutput field derivation order / naming rules / vertex synthesis / self-check)
-2. `phase1_vector_schema.md` — phase 1 output format reference (only to understand what your input looks like)
+2. `../phase1/guide.md` + `../phase1/pen_library.md` — phase 1 output format reference (only to understand what your input looks like; phase 2 does not need the reading guide)
 3. `phase1_vector/phase1_summary.md` — phase 1 summary (includes the 4-facade local↔world translation formulas, **apply directly**)
-4. the phase 1 vector JSONs (read as needed, not all):
-   - `phase1_vector/1f_view.json`, `2f_view.json`, `3f_view.json`
-   - `phase1_vector/South_view.json`, `North_view.json`, `East_view.json`, `West_view.json`
+4. **every** phase 1 vector JSON under `phase1_vector/` (do not assume a fixed file set):
+   - all floor-plan JSONs (`<N>f_view.json`) and all facade-elevation JSONs (`<Name>_view.json`)
+   - any supplementary / section JSONs if present (e.g. `supp_plan.json`) — read them too
+   - do not assume 3 floors or 4 facades; enumerate what actually exists
 5. `testdata_prompt.json` — metadata (floor count, area, city, use)
 
 ## Task
 
-Following the field derivation order in `phase2_rules.md` §3, produce the IntakeOutput Pydantic JSON, written to:
+Following the field derivation order in `rules.md` §3, produce the IntakeOutput Pydantic JSON, written to:
 
 ```
 phase2_intake/<model>/intake_output.json
@@ -64,7 +65,7 @@ no template writing).
 ## Boundaries
 
 - Do not modify any phase1_vector/ file (phase 1 products are frozen)
-- Do not modify phase2_rules.md / phase1_vector_schema.md (put suggestions in phase2_followup_notes.md)
+- Do not modify rules.md / ../phase1/guide.md / ../phase1/pen_library.md (put suggestions in phase2_followup_notes.md)
 - Do not modify any file under [src/](src/) / [skills/](skills/) / [AI_agent/](AI_agent/)
 - Do not run `run_full_pipeline.py` or any EnergyPlus tool
 - Do not look at the original PNGs (phase 2 discipline)
