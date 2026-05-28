@@ -1,0 +1,65 @@
+{
+  "image_label": "test6 - Room Planner composite plan (Catalan labels), stepped non-rectangular footprint",
+  "image_kind": "plan",
+  "facade_axis_note": null,
+  "scale_origin": {
+    "world_x_m": 0.00,
+    "world_y_m": 0.00,
+    "world_z_m": null,
+    "note": "local origin = SW outer corner of the bounding box. x east, y north. Units METERS. STEPPED NON-RECTANGULAR composite of offset rooms (overall left height 15,00). Exact inter-block offsets are LOW confidence: room areas do not equal WxH (Room Planner irregular shapes), and the blocks abut at offsets that are hard to reconstruct from a single plan. Walls below approximate each room's bounding box; treat absolute coordinates as schematic."
+  },
+  "strokes": [
+    {"id": "S1", "pen": "wall", "geometry": {"kind": "polyline", "points": [[0.00, 2.00], [0.00, 15.00], [7.11, 15.00], [7.11, 11.00], [10.30, 11.00], [10.30, 15.00], [13.90, 15.00], [13.90, 4.80], [14.00, 4.80], [14.00, 0.00], [3.00, 0.00], [3.00, 2.00], [0.00, 2.00]], "thickness_m": null, "closed": true}, "note": "approximate outer perimeter of the stepped composite (CCW). Captures the L/step transitions between the left column, the top block, the right blocks, and the bottom RECEPCIO. LOW confidence on every step vertex — this is the non-rectangular gap."},
+    {"id": "S2", "pen": "wall", "geometry": {"kind": "line", "p1": [0.00, 9.00], "p2": [7.11, 9.00], "thickness_m": null}, "note": "left column: HABITACIO 42.7 (above, 6.00 tall) / HABITACIO 49.8 (below, 7.00 tall) divide. Healed door opening (arc) at x~=1.0."},
+    {"id": "S3", "pen": "wall", "geometry": {"kind": "line", "p1": [7.11, 7.50], "p2": [7.11, 15.00], "thickness_m": null}, "note": "vertical spine separating left column from center/right blocks. x=7.11."},
+    {"id": "S4", "pen": "wall", "geometry": {"kind": "line", "p1": [7.11, 11.00], "p2": [10.30, 11.00], "thickness_m": null}, "note": "south wall of top-center block (HABITACIO 31.8; 6.80 x 4.68). Healed door opening (arc) at x~=8.0."},
+    {"id": "S5", "pen": "wall", "geometry": {"kind": "line", "p1": [10.30, 11.00], "p2": [10.30, 15.00], "thickness_m": null}, "note": "wall between top-center block (31.8) and right-upper block (22.6; 3.63 x 4.92)."},
+    {"id": "S6", "pen": "wall", "geometry": {"kind": "line", "p1": [10.30, 10.00], "p2": [13.90, 10.00], "thickness_m": null}, "note": "south wall of right-upper block (22.6) / north wall of right-mid block (31.7). Healed door opening at x~=11.5."},
+    {"id": "S7", "pen": "wall", "geometry": {"kind": "line", "p1": [7.11, 7.50], "p2": [13.90, 7.50], "thickness_m": null}, "note": "north wall of bottom RECEPCIO (104) / south of right-mid block (31.7, 5.18 tall). Healed door opening at x~=9.0 (RECEPCIO entry)."},
+    {"id": "S8", "pen": "wall", "geometry": {"kind": "line", "p1": [8.18, 7.50], "p2": [8.18, 11.00], "thickness_m": null}, "note": "vertical wall bounding right-mid block (31.7) on its west; 8,18 dim. MEDIUM/LOW conf."},
+    {"id": "S20", "pen": "window", "geometry": {"kind": "line", "p1": [6.00, 0.00], "p2": [9.50, 0.00], "thickness_m": null}, "note": "RECEPCIO south window/opening (dashed gap on bottom wall). z unknown. Parent S1 (bottom run). LOW conf on span."}
+  ],
+  "dimensions": [
+    {"id": "D1", "text": "6.80", "from": [3.50, 15.00], "to": [10.30, 15.00], "axis": "x", "note": "top-center block width (m)"},
+    {"id": "D2", "text": "4.68", "from": [3.50, 10.30], "to": [3.50, 15.00], "axis": "y", "note": "top-center block height (m)"},
+    {"id": "D3", "text": "3.63", "from": [10.30, 14.90], "to": [13.90, 14.90], "axis": "x", "note": "right-upper block width (m)"},
+    {"id": "D4", "text": "4.92", "from": [13.90, 10.00], "to": [13.90, 14.90], "axis": "y", "note": "right-upper block height (m)"},
+    {"id": "D5", "text": "4.68", "from": [10.30, 10.00], "to": [10.30, 14.68], "axis": "y", "note": "duplicate 4.68 dim near top block right edge (m)"},
+    {"id": "D6", "text": "7.11", "from": [0.00, 15.00], "to": [7.11, 15.00], "axis": "x", "note": "left-upper block width (m)"},
+    {"id": "D7", "text": "6.00", "from": [0.00, 9.00], "to": [0.00, 15.00], "axis": "y", "note": "left-upper block height 42.7 (m)"},
+    {"id": "D8", "text": "5.18", "from": [13.90, 4.80], "to": [13.90, 10.00], "axis": "y", "note": "right-mid block height 31.7 (m)"},
+    {"id": "D9", "text": "8.18", "from": [8.18, 10.20], "to": [13.90, 10.20], "axis": "x", "note": "right-mid block width-ish (m)"},
+    {"id": "D10", "text": "7.00", "from": [0.00, 2.00], "to": [0.00, 9.00], "axis": "y", "note": "left-lower block height 49.8 (m)"},
+    {"id": "D11", "text": "15.00", "from": [0.00, 0.00], "to": [0.00, 15.00], "axis": "y", "note": "overall left height (m)"},
+    {"id": "D12", "text": "7.50", "from": [14.00, 0.00], "to": [14.00, 7.50], "axis": "y", "note": "RECEPCIO height (m)"},
+    {"id": "D13", "text": "11.00", "from": [3.00, 0.00], "to": [14.00, 0.00], "axis": "x", "note": "RECEPCIO bottom width (m)"}
+  ],
+  "ocr_texts": [
+    {"id": "T1", "text": "HABITACIÓ\nN\n31.8 m²", "anchor": [6.80, 12.50], "note": "top-center room ('N' = placeholder room name under HABITACIO)"},
+    {"id": "T2", "text": "HABITACIÓ\nN\n22.6 m²", "anchor": [12.00, 12.40], "note": "right-upper room"},
+    {"id": "T3", "text": "HABITACIÓ\nN\n31.7 m²", "anchor": [11.00, 8.20], "note": "right-mid room"},
+    {"id": "T4", "text": "HABITACIÓ\nN\n42.7 m²", "anchor": [3.50, 12.00], "note": "left-upper room"},
+    {"id": "T5", "text": "HABITACIÓ\nN\n49.8 m²", "anchor": [3.50, 5.50], "note": "left-lower room"},
+    {"id": "T6", "text": "RECEPCIÓ\nN\n104 m²", "anchor": [8.50, 3.50], "note": "bottom reception room"}
+  ],
+  "self_check": {
+    "all_dimensions_transcribed": true,
+    "all_visible_strokes_captured": true,
+    "no_topology_inferred": true,
+    "pens_used": ["wall", "window"],
+    "unknowns_noted": [
+      "STEPPED NON-RECTANGULAR composite: the headline difficulty. Inter-block offsets reconstructed approximately; every step vertex is LOW confidence. Areas != WxH (irregular Room Planner shapes), so cannot back-solve offsets cleanly",
+      "the perimeter polyline S1 is a best-effort stitch of the visible step transitions; phase2 should treat block adjacencies as uncertain",
+      "window z absent (plan-only)",
+      "units meters"
+    ],
+    "uncaptured_visual_elements": [
+      "WATERMARK ignored: 'ROOM PLANNER / roomplannerapp.com' logo+text bottom-right -> not structure, not traced",
+      "no furniture in this drawing (schematic, empty rooms)",
+      "the 'N' under each room name is a placeholder room-name token -> kept inside the room ocr_texts rather than dropped",
+      "HEALED DOORS (~4): left-column divide (S2 x~=1.0); top-center block entry (S4 x~=8.0); right-upper/mid divide (S6 x~=11.5); RECEPCIO entry (S7 x~=9.0)",
+      "WINDOWS: bottom RECEPCIO south wall shows dashed window openings (S20); other walls schematic with no clear glazing",
+      "CAPABILITY FLAG: this stepped composite is beyond the current rectangular-footprint comfort zone (plan.md B5/B6 non-rectangular + global-coord work). Phase1 captured what it could; absolute geometry is schematic"
+    ]
+  }
+}

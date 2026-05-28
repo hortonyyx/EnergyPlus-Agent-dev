@@ -1,0 +1,58 @@
+{
+  "image_label": "test3 - '4x6' studio, single-story plan (heavily photorealistic 3D top view)",
+  "image_kind": "plan",
+  "facade_axis_note": null,
+  "scale_origin": {
+    "world_x_m": 0.00,
+    "world_y_m": 0.00,
+    "world_z_m": null,
+    "note": "local origin = SW outer corner. x east, y north. Units METERS. Outer footprint ~3.85 (x, bottom reads 3,70; title '4x6') x 6.00 (y) m. HARDEST image: full photoreal 3D render, no room labels, walls are extruded grey blocks, openings shown as reddish reveals -> wall/window/door discrimination is LOW confidence throughout."
+  },
+  "strokes": [
+    {"id": "S1", "pen": "wall", "geometry": {"kind": "line", "p1": [0.00, 0.00], "p2": [3.85, 0.00], "thickness_m": null}, "note": "south perimeter wall. Bottom dim 3,70. Healed entry-door opening at x~=1.5 (reddish bottom reveal read as entry; LOW confidence)."},
+    {"id": "S2", "pen": "wall", "geometry": {"kind": "line", "p1": [0.00, 6.00], "p2": [3.85, 6.00], "thickness_m": null}, "note": "north perimeter wall (bedroom + bath top)."},
+    {"id": "S3", "pen": "wall", "geometry": {"kind": "line", "p1": [0.00, 0.00], "p2": [0.00, 6.00], "thickness_m": null}, "note": "west perimeter wall. Two reddish reveals on this wall read as windows (S11 bedroom, S12 living)."},
+    {"id": "S4", "pen": "wall", "geometry": {"kind": "line", "p1": [3.85, 0.00], "p2": [3.85, 6.00], "thickness_m": null}, "note": "east perimeter wall (kitchen side). One reddish reveal -> window S13."},
+    {"id": "S5", "pen": "wall", "geometry": {"kind": "line", "p1": [2.10, 3.00], "p2": [2.10, 6.00], "thickness_m": null}, "note": "vertical partition: bedroom (west) / bath (east), upper half. LOW confidence on x (~top 2,05 split)."},
+    {"id": "S6", "pen": "wall", "geometry": {"kind": "line", "p1": [2.10, 3.00], "p2": [3.85, 3.00], "thickness_m": null}, "note": "bath south wall. LOW confidence. Healed door opening near x~=2.5 (bath entry, swing not clearly drawn -> low confidence heal)."},
+    {"id": "S11", "pen": "window", "geometry": {"kind": "line", "p1": [0.00, 4.30], "p2": [0.00, 5.30], "thickness_m": null}, "note": "bedroom west window (upper reddish reveal). LOW conf window-vs-door. World-z unknown. Parent wall S3."},
+    {"id": "S12", "pen": "window", "geometry": {"kind": "line", "p1": [0.00, 1.00], "p2": [0.00, 2.00], "thickness_m": null}, "note": "living west window (lower reddish reveal). LOW conf. World-z unknown. Parent wall S3."},
+    {"id": "S13", "pen": "window", "geometry": {"kind": "line", "p1": [3.85, 1.20], "p2": [3.85, 2.20], "thickness_m": null}, "note": "kitchen east window (reddish reveal on right wall). LOW conf. World-z unknown. Parent wall S4."}
+  ],
+  "dimensions": [
+    {"id": "D1", "text": "2,05", "from": [0.00, 6.00], "to": [2.05, 6.00], "axis": "x", "note": "top sub-chain left (m)"},
+    {"id": "D2", "text": "1,50", "from": [2.35, 6.00], "to": [3.85, 6.00], "axis": "x", "note": "top sub-chain right (m); reading uncertain"},
+    {"id": "D3", "text": "4,00", "from": [0.00, 6.00], "to": [3.85, 6.00], "axis": "x", "note": "top overall-ish (m); positioned near top, reading uncertain"},
+    {"id": "D4", "text": "3,70", "from": [0.00, 0.00], "to": [3.85, 0.00], "axis": "x", "note": "bottom total width (m)"},
+    {"id": "D5", "text": "3,15", "from": [0.00, 2.85], "to": [0.00, 6.00], "axis": "y", "note": "left sub-chain: bedroom depth (m)"},
+    {"id": "D6", "text": "4,00", "from": [0.00, 0.00], "to": [0.00, 4.00], "axis": "y", "note": "left sub-chain (m); reading uncertain, overlaps"},
+    {"id": "D7", "text": "1,50", "from": [3.85, 4.50], "to": [3.85, 6.00], "axis": "y", "note": "right sub-chain: bath height (m)"},
+    {"id": "D8", "text": "6,00", "from": [3.85, 0.00], "to": [3.85, 6.00], "axis": "y", "note": "right total height (m)"},
+    {"id": "D9", "text": "15", "from": [0.00, 5.90], "to": [0.15, 5.90], "axis": "x", "note": "wall thickness 15 cm (corner tick); thickness NOT used (thickness_m stays null)"},
+    {"id": "D10", "text": "15", "from": [0.00, 0.00], "to": [0.00, 0.15], "axis": "y", "note": "wall thickness 15 cm; not used"}
+  ],
+  "ocr_texts": [
+    {"id": "T1", "text": "4x6", "anchor": [1.90, 6.50], "note": "title callout (overall WxD)"}
+  ],
+  "self_check": {
+    "all_dimensions_transcribed": true,
+    "all_visible_strokes_captured": true,
+    "no_topology_inferred": true,
+    "pens_used": ["wall", "window"],
+    "unknowns_noted": [
+      "NO room labels -> rooms inferred from furniture, but phase1 does not assign rooms (left to phase2); only walls/windows traced",
+      "openings shown as reddish 3D reveals -> window vs door discrimination LOW confidence; bottom reveal guessed as entry door (healed), side reveals guessed as windows",
+      "interior partitions (S5,S6) LOW confidence; dimension chain reading partly uncertain (D3/D6 overlap)",
+      "wall thickness dimensioned (15 cm) but thickness_m kept null per simulation rule",
+      "window z absent (plan-only)"
+    ],
+    "uncaptured_visual_elements": [
+      "FURNITURE excluded: double bed; grey cubby shelf/divider between bedroom and living (read as furniture, not wall); L-shaped sofa; TV unit; dining stools",
+      "SANITARY excluded: bath sink, toilet, shower",
+      "EQUIPMENT excluded: kitchen counter, cooktop, sink, fridge",
+      "FLOOR-FINISH excluded: wood floor texture, grey bath floor tiles",
+      "HEALED DOORS (~2, LOW conf): bottom entry (S1, ~x=1.5); bath door (S6, ~x=2.5) — door symbols not crisply drawn in this render, healed tentatively",
+      "AMBIGUITY FLAG: this photoreal render is at the edge of plan-reading; several wall/opening calls are best-guess. Recommend rejecting/redrawing this drawing class in a real pipeline, or supplying a line-drawing version"
+    ]
+  }
+}
