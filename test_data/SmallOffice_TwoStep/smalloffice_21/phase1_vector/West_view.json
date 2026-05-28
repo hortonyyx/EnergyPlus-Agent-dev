@@ -1,0 +1,64 @@
+{
+  "image_label": "West elevation",
+  "image_kind": "elevation",
+  "facade_axis_note": "West facade: local x = -world y (local x increasing = world southward); local y = world z (up positive, ground z=0). local x=0 is at world y=8 (NW corner), local x=8 is at world y=0 (SW corner)",
+  "scale_origin": {
+    "world_x_m": 0.00,
+    "world_y_m": 8.00,
+    "world_z_m": 0.00,
+    "note": "local origin (0,0) = NW outer corner at ground (world x=0, world y=8, z=0); local x = -world y, increasing southward; facade spans world y 8..0, z 0..6.6"
+  },
+  "strokes": [
+    {
+      "id": "S1",
+      "pen": "wall_fill",
+      "geometry": {"kind": "rect", "x_range_m": [0.00, 8.00], "y_range_m": [0.00, 3.00]},
+      "note": "F1 wall body (z 0.00-3.00)"
+    },
+    {
+      "id": "S2",
+      "pen": "wall_fill",
+      "geometry": {"kind": "rect", "x_range_m": [0.00, 8.00], "y_range_m": [3.00, 6.60]},
+      "note": "F2 wall body (z 3.00-6.60)"
+    },
+    {
+      "id": "S3",
+      "pen": "window",
+      "geometry": {"kind": "rect", "x_range_m": [3.40, 4.60], "y_range_m": [4.00, 5.80]},
+      "note": "F2 window (1200x1800; sill z=4.0, head z=5.8), centered on facade"
+    }
+  ],
+  "dimensions": [
+    {"id": "D1", "text": "8000", "from": [0.00, 6.60], "to": [8.00, 6.60], "axis": "x", "note": "top overall width chain"},
+    {"id": "D2", "text": "3400", "from": [0.00, 6.60], "to": [3.40, 6.60], "axis": "x", "note": "top sub-chain"},
+    {"id": "D3", "text": "1200", "from": [3.40, 6.60], "to": [4.60, 6.60], "axis": "x", "note": "top sub-chain (F2 window / F1 door width)"},
+    {"id": "D4", "text": "3400", "from": [4.60, 6.60], "to": [8.00, 6.60], "axis": "x", "note": "top sub-chain"},
+    {"id": "D5", "text": "6600", "from": [0.00, 0.00], "to": [0.00, 6.60], "axis": "z", "note": "left overall height chain"},
+    {"id": "D6", "text": "3600", "from": [0.00, 3.00], "to": [0.00, 6.60], "axis": "z", "note": "left F2 storey height"},
+    {"id": "D7", "text": "3000", "from": [0.00, 0.00], "to": [0.00, 3.00], "axis": "z", "note": "left F1 storey height"},
+    {"id": "D8", "text": "800", "from": [0.00, 5.80], "to": [0.00, 6.60], "axis": "z", "note": "F2 head-to-top"},
+    {"id": "D9", "text": "1800", "from": [0.00, 4.00], "to": [0.00, 5.80], "axis": "z", "note": "F2 window height"},
+    {"id": "D10", "text": "1000", "from": [0.00, 3.00], "to": [0.00, 4.00], "axis": "z", "note": "F2 floor-to-sill"},
+    {"id": "D11", "text": "3000", "from": [0.00, 0.00], "to": [0.00, 3.00], "axis": "z", "note": "F1 storey height (right-side chain, door bay)"},
+    {"id": "D12", "text": "3600", "from": [8.00, 3.00], "to": [8.00, 6.60], "axis": "z", "note": "right F2 storey height"},
+    {"id": "D13", "text": "3000", "from": [8.00, 0.00], "to": [8.00, 3.00], "axis": "z", "note": "right F1 storey height"},
+    {"id": "D14", "text": "6600", "from": [8.00, 0.00], "to": [8.00, 6.60], "axis": "z", "note": "right overall height chain"},
+    {"id": "D15", "text": "8000", "from": [0.00, 0.00], "to": [8.00, 0.00], "axis": "x", "note": "bottom overall width chain"}
+  ],
+  "ocr_texts": [],
+  "self_check": {
+    "all_dimensions_transcribed": true,
+    "all_visible_strokes_captured": true,
+    "no_topology_inferred": true,
+    "pens_used": ["wall_fill", "window"],
+    "unknowns_noted": [
+      "outline coincides with wall_fill edges (flat roof) -> not traced separately",
+      "F1 has a glazed double door (not a window) -> not traced (doors are not an elevation pen); its z-extent ~0 to 2.1 inferred from the mullion lines"
+    ],
+    "uncaptured_visual_elements": [
+      "F1 glazed double-leaf door, centered (local x 3.40-4.60, z ~0 to ~2.1) — recognized as door, not traced as a window; healed on the plan side (west wall door openings)",
+      "outline silhouette coincides with wall_fill edges, not drawn separately (flat roof, top z=6.6)",
+      "excluded green dimension chains terminator ticks and extension lines (annotation)"
+    ]
+  }
+}

@@ -166,13 +166,15 @@
 
 **任务**：
 
-#### B1.5.a [P0] POC v2 — 异图泛化压力测试
+#### B1.5.a [P0] POC v2 — 异图泛化压力测试 — ✅ 首个异图 PASS 2026-05-28（sm21）
+
+> **结果（2026-05-28，sm21）**：2 层办公异图（15×8 m，家具/门噪声）全套两步法 EP `Completed Successfully` / 0 severe / 0 fatal / 6 无害 warning / 15 窗。phase1（冷启 Opus 子代理）重绘忠实、误差预算守住；phase2（DeepSeek 盲跑）首跑暴露 **phase2 规则缺口**：`material_specs` 漏声明具名 glazing 材料、把玻璃只写进 `construction_specs` 内联 → construction 子代理找不到材料正确跳过 `Default_Window` → 0 窗 → EP 段错。**根因在咱们侧 phase2/rules.md（非协作者下游 prompt）**。补 Step 5 "material ↔ construction split" 硬规则后重跑 → PASS。sm21 成为继 sm_20 的第二个干净 EP anchor。详见 [CLAUDE.md §5.7](CLAUDE.md) + [twostep memory]。**B1.5.c（intake_node 串行重写）就此解禁**。
 
 > 设计框架已在 [`floorplan_redraw_strategy.md §10`](floorplan_redraw_strategy.md)（2026-05-22 讨论）收敛：测「信息噪声 / 选择性提取」而非「全局像素降质」；phase1 走选择性提取(B) + 门洞补成连续墙；zone 重划分归 phase2。
 
 - [ ] **图纸准备**（用户）：矩形几何同 sm_20 级 + 信息杂物（家具 / 铺装 / 纹理 / 楼梯 / 轴网圈 / 房间文字）+ **每房间 1-2 个门** + **1-2 处故意遮挡某段尺寸标注** + testdata_prompt.json（楼层/区/外包/WWR）
 - [x] **schema v1.3 amendment（先于跑批，依据 §10.4）** ✅ 2026-05-25：`phase1_vector_schema.md`（后于 2026-05-26 拆分为 [`phase1/`](../skills/energyplus_mcp_twostep/phase1/) 三份：guide/reading_guide/pen_library）§2 "开洞打断成两段"→"门洞补成连续墙 + 留痕"+ 新增 §2.1 四条护栏；门处理改"识别以驱动补墙、不出 door 笔、note 记 heal"；`uncaptured_visual_elements` 提为**必填**（扩为"凡看到但没画的都登记"，含主动排除杂物 + heal 门）；`door`/`arc` 退出词典；同步 [`phase1/prompt_template.md`](../skills/energyplus_mcp_twostep/phase1/prompt_template.md) 纪律段。备份 `Skill_history/2026-05-25_twostep_phase1_v1.3_door_healing/`
-- [ ] 跑两步法（phase1 人工会话 + phase2 DeepSeek）+ 下游 + EP
+- [x] 跑两步法（phase1 子代理 + phase2 DeepSeek）+ 下游 + EP ✅ sm21 PASS（修 glazing material 规则后）
 - [ ] **判分项**（§10.2 + 选择性提取观察点）：
   - 杂物→结构假阳性（家具/铺装/纹理被当 wall/window）⛔ 最致命
   - 漏真墙/真窗假阴性 ⛔
@@ -181,7 +183,8 @@
   - `uncaptured_visual_elements` 是否真触发 ⚠️
   - 门是否补成连续墙、没误补无门开口、留了痕 ⚠️
   - phase2 在更复杂矢量 JSON 上能否保持 Step 6 PASS
-- [ ] 跑通后落 `test_data/SmallOffice_TwoStep/<new_case>/`，跑挂的话补 [`skills/energyplus_mcp_twostep/`](../skills/energyplus_mcp_twostep/) 规则
+- [x] 跑通后落 `test_data/SmallOffice_TwoStep/<new_case>/` ✅ sm21；跑挂补规则 ✅ phase2/rules.md Step 5 glazing material split（备份 `Skill_history/2026-05-28_phase2_glazing_material_rule/`）
+- [ ] 再跑 1-2 张异图坐实泛化（可挑 phase1_generalization 的矩形图 test1/test7 补 testdata 跑全链路）
 - [x] 注（2026-05-26 已修）：[`run_phase2_deepseek.py`](../Tool_scripts/run_phase2_deepseek.py) 原写死 `PHASE1_FILES`，已改 `_discover_phase1_files()` 扫 `phase1_vector/*.json`（楼层数字序 → 立面 → supp/section），不再需手改
 
 #### B1.5.b [P0] phase1 / phase2 skill 持续迭代
