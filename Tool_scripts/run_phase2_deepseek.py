@@ -41,6 +41,13 @@ _PROJECT_ROOT = Path(__file__).resolve().parents[1]
 if str(_PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(_PROJECT_ROOT))
 
+# Phase-2 rule docs live in the skill library (HEAD spec), not in the case dir.
+# phase2 reads: phase2/rules.md + phase1/guide.md + phase1/pen_library.md
+# (it does NOT read phase1/reading_guide.md — that is image-perception only and
+# phase2 never sees images). Matches the phase 2 "Required reading" in
+# AI_agent/new_case_guide_twostep.md Step 4b.
+_SKILL_DIR = _PROJECT_ROOT / "skills" / "energyplus_mcp_twostep"
+
 from dotenv import load_dotenv  # noqa: E402
 from loguru import logger  # noqa: E402
 from openai import OpenAI  # noqa: E402
@@ -100,8 +107,9 @@ def _read(p: Path) -> str:
 
 def build_messages(case_dir: Path) -> tuple[str, str]:
     """Return (system_prompt, human_message)."""
-    rules = _read(case_dir / "phase2_rules.md")
-    schema_ref = _read(case_dir / "vector_schema_v1.md")
+    rules = _read(_SKILL_DIR / "phase2" / "rules.md")
+    phase1_guide = _read(_SKILL_DIR / "phase1" / "guide.md")
+    phase1_pens = _read(_SKILL_DIR / "phase1" / "pen_library.md")
     summary = _read(case_dir / "phase1_vector" / "phase1_summary.md")
     testdata = _read(case_dir / "testdata_prompt.json")
 
@@ -124,12 +132,15 @@ def build_messages(case_dir: Path) -> tuple[str, str]:
         "===== BEGIN IntakeOutput JSON SCHEMA =====\n"
         f"{intake_schema}\n"
         "===== END IntakeOutput JSON SCHEMA =====\n\n"
-        "===== BEGIN RULE DOCUMENT: phase2_rules.md =====\n"
+        "===== BEGIN RULE DOCUMENT: phase2/rules.md =====\n"
         f"{rules}\n"
-        "===== END RULE DOCUMENT: phase2_rules.md =====\n\n"
-        "===== BEGIN REFERENCE: vector_schema_v1.md (phase 1 output format) =====\n"
-        f"{schema_ref}\n"
-        "===== END REFERENCE: vector_schema_v1.md =====\n\n"
+        "===== END RULE DOCUMENT: phase2/rules.md =====\n\n"
+        "===== BEGIN REFERENCE: phase1/guide.md (phase 1 output format) =====\n"
+        f"{phase1_guide}\n"
+        "===== END REFERENCE: phase1/guide.md =====\n\n"
+        "===== BEGIN REFERENCE: phase1/pen_library.md (phase 1 pen enum) =====\n"
+        f"{phase1_pens}\n"
+        "===== END REFERENCE: phase1/pen_library.md =====\n\n"
         "===== BEGIN REFERENCE: phase1_summary.md (phase 1 results + facade formulas) =====\n"
         f"{summary}\n"
         "===== END REFERENCE: phase1_summary.md =====\n"
@@ -146,7 +157,7 @@ def build_messages(case_dir: Path) -> tuple[str, str]:
             f"\n[phase1 vector] {fname}:\n```json\n{_read(jpath)}\n```\n"
         )
     human_chunks.append(
-        "\nProduce the IntakeOutput JSON now. Follow phase2_rules.md Step 1→7 "
+        "\nProduce the IntakeOutput JSON now. Follow phase2/rules.md Step 1→7 "
         "derivation order. Enumerate every zone / surface / split-pairing / "
         "fenestration explicitly — no templates, no Floor_N_* shorthand. "
         "Use the facade translation formulas in phase1_summary.md §3 verbatim. "
@@ -286,7 +297,8 @@ def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument(
         "--case", required=True,
-        help="case directory containing phase1_vector/, phase2_rules.md, etc.",
+        help="case directory containing phase1_vector/ + testdata_prompt.json "
+             "(rule docs are read from skills/energyplus_mcp_twostep/)",
     )
     args = ap.parse_args()
     run(Path(args.case).resolve())

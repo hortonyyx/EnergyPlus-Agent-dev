@@ -251,6 +251,21 @@ Materials + placeholder constructions:
   stacked with an air gap / a second glass pane, otherwise EP NaN fatal)
 - opaque surfaces use a simple stack (e.g. stucco + insulation + gypsum)
 
+**material ↔ construction split (hard).** Materials and constructions are produced by two separate
+downstream agents: the material agent creates every material object, the construction agent only
+references materials **by name, verbatim**. So a `construction_specs` layer that names a material not
+present in `material_specs` is dropped — the construction agent finds no such material and silently
+skips that whole Construction (→ missing construction → its surfaces/windows cannot attach → EP fatal).
+Therefore:
+- **every** Construction layer (opaque and glazing alike) must name a material that is explicitly
+  declared in `material_specs`.
+- the **glazing material must be declared in `material_specs`** as a named
+  `WindowMaterial:SimpleGlazingSystem` (explicit `Name` + U-Factor + SHGC; the material agent creates
+  it via `create_glazing_material`). `Default_Window`'s single layer then references that material
+  name. Do **not** write the glazing properties only inline under `construction_specs` — an inline
+  `WindowMaterial:SimpleGlazingSystem` block that adds no named entry to `material_specs` leaves the
+  window Construction with no resolvable layer, so it is dropped and the model ends up with 0 windows.
+
 #### Step 5.1 — InterZone surface single-construction hard constraint
 
 EP hard constraint: **for an InterZone-paired pair of surfaces (the upper zone's floor / the lower
