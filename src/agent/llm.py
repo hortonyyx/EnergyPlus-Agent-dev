@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 from typing import Any
 
@@ -10,21 +11,44 @@ from src.configs.config import LLMConfig
 
 load_dotenv()
 
+# Environment override for the LLM config file. When set (e.g. by
+# run_full_pipeline to a per-case `<case>/llm.yaml`), every model — phase 2 and
+# all 9 downstream subagents — resolves its section from that file instead of
+# the global default, so a formal test run can pin its own model combination
+# without editing the shared config. Falls back to src/configs/llm.yaml.
+LLM_CONFIG_ENV: str = "EP_AGENT_LLM_CONFIG"
+
+_DEFAULT_LLM_CONFIG: Path = (
+    Path(__file__).resolve().parent.parent / "configs" / "llm.yaml"
+)
+
+
+def resolve_llm_config_path() -> Path:
+    """Active LLM config file: `$EP_AGENT_LLM_CONFIG` if set, else the global default."""
+    override = os.environ.get(LLM_CONFIG_ENV)
+    if override:
+        p = Path(override)
+        if not p.is_file():
+            raise FileNotFoundError(
+                f"{LLM_CONFIG_ENV}={override} does not point to a file"
+            )
+        return p
+    return _DEFAULT_LLM_CONFIG
+
 
 def load_llm_section(node_name: str | None) -> dict[str, Any]:
-    """Resolve `node_name` to the right section of llm.yaml.
+    """Resolve `node_name` to the right section of the active llm config.
 
     Two layouts supported:
       - Flat: top-level `provider`/`model_name`/... — single shared LLM (legacy).
       - Nested: top-level keys are section names (`default`, `intake`, ...);
         unknown `node_name` falls back to `default`.
 
-    Public so non-langchain callers (e.g. src/agent/phase2.py, which uses a raw
-    OpenAI client) can read the same single config home.
+    Config file = `resolve_llm_config_path()` (per-case override or global
+    default). Public so non-langchain callers (e.g. src/agent/phase2.py, which
+    uses a raw OpenAI client) read the same config home.
     """
-    raw = OmegaConf.load(
-        Path(__file__).resolve().parent.parent / "configs" / "llm.yaml"
-    )
+    raw = OmegaConf.load(resolve_llm_config_path())
     data = OmegaConf.to_container(raw, resolve=True)
     assert isinstance(data, dict), "llm.yaml must be a mapping"
 

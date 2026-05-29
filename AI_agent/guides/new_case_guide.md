@@ -4,7 +4,7 @@
 >
 > **两条使用模式，先分清**：
 > - **平时 dev 测试**：直接指定各阶段模型，让主控 Agent 开子代理跑（如 phase1 用一个子会话、phase2 换不同模型对比）。灵活、临时，**不走本指南**。
-> - **正式测试（本指南）**：完整端到端。**除 phase1 目前半人工喂矢量外，phase2 + 9 个下游 subagent + EnergyPlus 全自动一次性跑完**。所有自动阶段的模型**统一在 [`src/configs/llm.yaml`](../../src/configs/llm.yaml) 配置**，不在代码里硬编码、不在命令行临时指定。
+> - **正式测试（本指南）**：完整端到端。**除 phase1 目前半人工喂矢量外，phase2 + 9 个下游 subagent + EnergyPlus 全自动一次性跑完**。每次测试用**一份 per-case 模型配置**(`<case>/llm.yaml`,从全局拷贝当默认、自己改),方便快速切模型组合;全局 [`src/configs/llm.yaml`](../../src/configs/llm.yaml) 作兜底。详见 §5.1。
 >
 > **架构**：两步法 intake（[architecture/architecture.md](../architecture/architecture.md)）。phase1 = 图 → 语义矢量 JSON（看图、只识不推）；phase2 = 矢量 JSON → `IntakeOutput`（不看图、纯拓扑推理）。两步分离 = **误差预算分离**（识图错归 phase1，推理错归 phase2）。规则真身在 [`skills/energyplus_mcp_twostep/`](../../skills/energyplus_mcp_twostep)。
 >
@@ -139,19 +139,34 @@ cp /path/to/South_view.png test_data/SmallOffice_TwoStep/$case/South_view.png
 
 > phase1 矢量落盘后，**一条命令全自动跑完**。phase2 不看图、纯文本推理；之后 9 个下游 subagent 建 IDF；几何门把关；EP 仿真。
 
-### 5.1 模型配置（统一在 llm.yaml）
+### 5.1 模型配置（per-case 独立指定，全局兜底）
 
-**所有自动阶段的模型只在 [`src/configs/llm.yaml`](../../src/configs/llm.yaml) 配置**，不在命令行/代码里指定。要换某阶段模型 = 改对应 section。
+**每次正式测试用一份独立的模型配置**，方便快速切模型组合做对比。机制:
 
-| 阶段 | llm.yaml section | 当前模型 | thinking |
+- 配置文件解析顺序(`run_full_pipeline` → 环境变量 `EP_AGENT_LLM_CONFIG` → [`src/agent/llm.py:resolve_llm_config_path`](../../src/agent/llm.py)):
+  1. `--llm-config <path>` 显式指定 → 用它
+  2. 否则 **`<case>/llm.yaml`** 存在 → 用它(**per-case 默认,推荐**)
+  3. 否则 → 全局 [`src/configs/llm.yaml`](../../src/configs/llm.yaml)(兜底默认)
+- 解析到的配置对**所有自动阶段统一生效**(phase2 + 9 下游);命令行/代码不单独指定模型。
+
+**起一份 per-case 配置**(从全局拷贝当默认,再自己改):
+```bash
+python scripts/run_full_pipeline.py <case> --base-dir test_data/SmallOffice_TwoStep --init-llm-config
+# → 生成 <case>/llm.yaml(全局副本);编辑它设本测试的模型组合,之后正常跑即自动用它
+```
+`<case>/llm.yaml` 建议随 case 提交,作"这次测试用了什么模型组合"的记录。
+
+各 section → 阶段映射(全局默认值;per-case 拷贝后同结构,改值即可):
+
+| 阶段 | section | 默认模型 | thinking |
 |---|---|---|---|
-| **phase2 拓扑** | `intake_phase2` | deepseek-v4-pro | **enabled**（单次推理，要思考预算）|
-| 下游 surface / construction / fenestration | `default` | deepseek-v4-pro | disabled（几何瓶颈节点用 pro）|
-| 下游 zone / material / schedule / hvac / people / lights | `zone`（`*flash` 锚） | deepseek-v4-flash | disabled（CRUD 型节点）|
-| phase1（半人工，不经 llm.yaml）| —（未来 `intake_phase1`）| Claude Code 会话选的模型 | — |
+| **phase2 拓扑** | `intake_phase2` | deepseek-v4-pro | **enabled**(单次推理,要思考预算)|
+| 下游 surface / construction / fenestration | `default` | deepseek-v4-pro | disabled(几何瓶颈节点用 pro)|
+| 下游 zone / material / schedule / hvac / people / lights | `zone`(`*flash` 锚)| deepseek-v4-flash | disabled(CRUD 型节点)|
+| phase1(半人工,不经此配置)| —(未来 `intake_phase1`)| Claude Code 会话选的模型 | — |
 | cross_ref / validate / **InterZone 门** / simulate | 无 LLM | 确定性代码 | — |
 
-> **thinking 口径**：`intake_phase2` 单次推理开 thinking（重空间推理);`default`/`*flash` 是多轮 ReAct,thinking 必须 disabled(langchain_openai 不回传 `reasoning_content`，开则 400）。两者刻意相反，别"统一"。
+> **thinking 口径**:`intake_phase2` 单次推理开 thinking(重空间推理);`default`/`*flash` 是多轮 ReAct,thinking 必须 disabled(langchain_openai 不回传 `reasoning_content`,开则 400)。两者刻意相反,别"统一"。
 
 ### 5.2 触发约定（对话驱动）
 
@@ -161,7 +176,7 @@ cp /path/to/South_view.png test_data/SmallOffice_TwoStep/$case/South_view.png
 
 **助手收到口令依次**：
 1. **校验入参**：`<case>/phase1_vector/` 存在且含 `*.json` + `phase1_summary.md`；`testdata_prompt.json` 存在
-2. **echo 模型配置**（读 llm.yaml `intake_phase2` + `default` + flash 关键字段，照 §5.1 表）
+2. **echo 模型配置**：先解析本次用哪份配置(`<case>/llm.yaml` 若存在,否则全局),再 echo 其 `intake_phase2` + `default` + flash 关键字段(照 §5.1 表),并报明配置文件路径
 3. **询问 y/n**：`以上配置开跑？(y/n)`
 4. **y** → 后台启动命令，stdout tee 到 `<case>/output/pipeline_run.log`。完成后报告每节点 + InterZone 门结果 + EP 状态
 5. **n** → 等用户改 llm.yaml 后再触发
@@ -185,7 +200,7 @@ python scripts/run_full_pipeline.py <case> \
 8. **装配 IDF → InterZone 几何门**（[`src/validator/interzone.py`](../../src/validator/interzone.py)）：配对存在/互逆/单一引用/面积/法向相反/共面/最小边长。有 issue → `success=False`，**IDF 照落盘但 EP 不跑**
 9. 门过 → `simulate`：转 IDF → 跑 EnergyPlus
 
-**有用 flag**：`--intake-only`（只跑到 phase2 出 `intake_output.json` 停，调试 phase2 用）；`--output-subdir output_v2`（同 case 多版对照）；`--no-simulate`（出 IDF 不跑 EP）。
+**有用 flag**：`--llm-config <path>`(显式指定本次模型配置,优先于 `<case>/llm.yaml`);`--init-llm-config`(从全局拷一份 `<case>/llm.yaml` 模板后退出,给你改);`--intake-only`(只跑到 phase2 出 `intake_output.json` 停,调试 phase2 用);`--output-subdir output_v2`(同 case 多版对照);`--no-simulate`(出 IDF 不跑 EP)。
 
 ### 5.4 单独迭代 phase2（可选）
 

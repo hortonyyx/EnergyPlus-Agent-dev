@@ -34,6 +34,8 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
+import shutil
 from pathlib import Path
 
 from langchain_core.runnables import RunnableConfig
@@ -139,6 +141,27 @@ def main() -> None:
         ),
     )
     parser.add_argument(
+        "--llm-config",
+        type=Path,
+        default=None,
+        help=(
+            "Per-run LLM config file (the model combination for THIS test). "
+            "Overrides the global src/configs/llm.yaml for every stage "
+            "(phase2 + 9 downstream). If omitted, auto-detects <case>/llm.yaml; "
+            "if that is absent too, uses the global default. Lets each formal "
+            "test pin its own model combo without editing the shared config."
+        ),
+    )
+    parser.add_argument(
+        "--init-llm-config",
+        action="store_true",
+        help=(
+            "Scaffold a per-case config by copying the global src/configs/llm.yaml "
+            "to <case>/llm.yaml (if absent), then exit. Edit it to set this "
+            "test's model combination, then run normally."
+        ),
+    )
+    parser.add_argument(
         "--epw",
         default="data/weather/Shenzhen.epw",
         help="EPW weather file (only used in full pipeline).",
@@ -165,6 +188,33 @@ def main() -> None:
     setup_logger(level="INFO")
 
     case_dir = args.base_dir / args.case
+
+    # --- LLM config resolution (per-case model combination) ---
+    global_llm_config = Path("src/configs/llm.yaml")
+    per_case_llm_config = case_dir / "llm.yaml"
+    if args.init_llm_config:
+        if per_case_llm_config.exists():
+            logger.info("per-case LLM config already exists: {}", per_case_llm_config)
+        else:
+            case_dir.mkdir(parents=True, exist_ok=True)
+            shutil.copy(global_llm_config, per_case_llm_config)
+            logger.info(
+                "scaffolded per-case LLM config -> {} (edit it to set this test's "
+                "model combination, then run without --init-llm-config)",
+                per_case_llm_config,
+            )
+        return
+    if args.llm_config is not None:
+        llm_config = args.llm_config
+        if not llm_config.is_file():
+            raise SystemExit(f"--llm-config not found: {llm_config}")
+    elif per_case_llm_config.is_file():
+        llm_config = per_case_llm_config  # auto-detected per-case config
+    else:
+        llm_config = global_llm_config
+    os.environ["EP_AGENT_LLM_CONFIG"] = str(llm_config.resolve())
+    logger.info("LLM config: {}", llm_config)
+
     output_dir = case_dir / args.output_subdir
     output_dir.mkdir(parents=True, exist_ok=True)
 

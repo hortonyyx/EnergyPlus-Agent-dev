@@ -161,11 +161,13 @@ def test_min_edge_sliver():
 
 
 def test_audit_counts_only_mutual_pairs():
-    # One clean mutual pair + one broken (non-reciprocal) reference.
+    # One clean mutual pair + TWO broken (non-reciprocal) references, so the old
+    # `Surface//2` count (4//2 = 2) diverges from the actual mutual-pair count (1).
     a = _wall("A", "B", 0.0)
-    b = _wall("B", "A", 0.0)
+    b = _wall("B", "A", 0.0, reverse=True)
     x = _wall("X", "ghost", 0.0)
-    audit = audit_interzone_surface_pairs(FakeIDF([a, b, x]))
-    assert audit["reciprocal_interzone_pairs"] == 1  # not 3//2 = 1 by luck; X excluded
-    assert audit["obc_surface"] == 3
-    assert audit["pair_issues"] >= 1
+    y = _wall("Y", "ghost2", 0.0)
+    audit = audit_interzone_surface_pairs(FakeIDF([a, b, x, y]))
+    assert audit["obc_surface"] == 4  # old impl would report 4 // 2 == 2 pairs
+    assert audit["reciprocal_interzone_pairs"] == 1  # only A<->B are mutual
+    assert audit["pair_issues"] >= 2  # X and Y target missing surfaces
