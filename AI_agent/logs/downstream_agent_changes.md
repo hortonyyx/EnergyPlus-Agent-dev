@@ -38,6 +38,14 @@
 
 **交协作者**:此门是确定性几何校验,与下游 prompt 正交;协作者下次合并下游代码时**保留**此门 + 校验器。若未来真出现合法 <0.1m 几何(罕见),调 `interzone.py` 的 `_MIN_EDGE`。
 
+**审阅回环修正(2026-05-29,Codex [interzone_pair_gate review](review/review/2026-05-29_interzone_pair_gate_review.md))**:
+- #1 High 修复:竖直墙配对之前只查 Floor/Ceiling/Roof 的 z 共面,漏了 Wall↔Wall(等面积/反法向但分处平行面也能过)→ 改成对所有互逆对做通用点到面共面校验(`_max_point_to_plane`,`_PLANE_TOL=0.02m`)。重标定 4 个真 IDF 零误杀。
+- 加 [tests/test_interzone.py](../../tests/test_interzone.py) 12 个 mock 单测(含竖直墙偏移类);reciprocal 计数改数真实互指;`_check_interzone_pairs` 去重(validate 只跑一次)。全套 20/20。
+
+### 2026-05-29 — intake_node 两步串行(B1.5.c,本项目侧核心非下游)
+
+> 记此条仅为协作者合并 `src/` 时知情:`intake_node` 改为两步分发(短路 / phase1 矢量→phase2 / legacy 单步),新增 [src/agent/phase2.py](../../src/agent/phase2.py)(phase2 单一实现,raw OpenAI + thinking,读 `llm.yaml:intake_phase2`)。下游 9 subagent 契约(`IntakeOutput` 11 字段)**不变**。详见 [review/review/2026-05-29_twostep_intake_node_switch_review.md](review/review/2026-05-29_twostep_intake_node_switch_review.md) 的 Disposition(Codex 审,2 High + 2 Med + 1 Low 全修)。备份 [src_history/2026-05-29_intake_node_twostep/intake.py](../../src_history/2026-05-29_intake_node_twostep/intake.py)。
+
 ---
 
 ### 2026-05-12 — surface_agent z_floor / ceiling_height 修复

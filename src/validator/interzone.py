@@ -47,7 +47,7 @@ _SURFACE_OBJ = "BUILDINGSURFACE:DETAILED"
 # while still catching real modelling defects.
 _AREA_ABS_TOL = 0.02  # m^2
 _AREA_REL_TOL = 0.01  # 1 %
-_Z_TOL = 0.02  # m — floor/ceiling shared-plane agreement
+_PLANE_TOL = 0.02  # m — paired surfaces must lie on the same plane (any orientation)
 _NORMAL_DOT_TOL = -0.99  # paired unit normals must be ~antiparallel
 _MIN_EDGE = 0.10  # m — anything thinner is a degenerate sliver, not a wall
 
@@ -76,8 +76,23 @@ def _min_edge_length(coords: list[tuple[float, float, float]]) -> float:
     return float(np.linalg.norm(pts - rolled, axis=1).min())
 
 
-def _z_values(coords: list[tuple[float, float, float]]) -> np.ndarray:
-    return np.asarray([c[2] for c in coords], dtype=float)
+def _max_point_to_plane(
+    src_coords: list[tuple[float, float, float]],
+    tgt_coords: list[tuple[float, float, float]],
+    src_normal: np.ndarray,
+) -> float:
+    """Max distance of target vertices from the plane through the source surface.
+
+    Plane = (point `src_coords[0]`, normal `src_normal`). For a correctly paired
+    InterZone surface the two faces are coincident, so every target vertex sits
+    on the source plane (distance ~0). Returns 0.0 if the source normal is
+    degenerate (the min-edge guard reports that surface separately).
+    """
+    if np.linalg.norm(src_normal) < 1e-9:
+        return 0.0
+    p0 = np.asarray(src_coords[0], dtype=float)
+    tgt = np.asarray(tgt_coords, dtype=float)
+    return float(np.abs((tgt - p0) @ src_normal).max())
 
 
 def validate_interzone_surface_pairs(idf: IDF) -> list[str]:
@@ -153,41 +168,64 @@ def validate_interzone_surface_pairs(idf: IDF) -> list[str]:
                 f"{a_src:.4f} vs {a_tgt:.4f} m^2"
             )
 
-        dot = float(np.dot(_unit_normal(src.coords), _unit_normal(tgt.coords)))
+        n_src = _unit_normal(src.coords)
+        dot = float(np.dot(n_src, _unit_normal(tgt.coords)))
         if dot > _NORMAL_DOT_TOL:
             issues.append(
                 f"InterZone pair '{src.Name}' <-> '{tgt_name}' normals not opposite "
                 f"(unit-normal dot {dot:.3f}; expected <= {_NORMAL_DOT_TOL})"
             )
 
-        # Floor/ceiling pairs are horizontal — they must share one z-plane.
-        if {src.Surface_Type, tgt.Surface_Type} <= {"Floor", "Ceiling", "Roof"}:
-            zs = np.concatenate([_z_values(src.coords), _z_values(tgt.coords)])
-            if zs.max() - zs.min() > _Z_TOL:
-                issues.append(
-                    f"InterZone floor/ceiling pair '{src.Name}' <-> '{tgt_name}' "
-                    f"not coplanar in z: span {zs.max() - zs.min():.4f} m "
-                    f"(> {_Z_TOL} m)"
-                )
+        # Plane coincidence (any orientation — walls AND floor/ceiling). Two
+        # reciprocal, equal-area, opposite-normal surfaces can still sit on
+        # different parallel planes (e.g. a wall pair offset 0.05 m along its
+        # normal); they are then not the same physical boundary face. Measure
+        # the target vertices' point-to-plane distance from the source plane.
+        plane_dist = _max_point_to_plane(src.coords, tgt.coords, n_src)
+        if plane_dist > _PLANE_TOL:
+            issues.append(
+                f"InterZone pair '{src.Name}' <-> '{tgt_name}' not coplanar: "
+                f"max point-to-plane distance {plane_dist:.4f} m (> {_PLANE_TOL} m)"
+            )
 
     return issues
 
 
-def audit_interzone_surface_pairs(idf: IDF) -> dict[str, int]:
+def audit_interzone_surface_pairs(
+    idf: IDF, *, issues: list[str] | None = None
+) -> dict[str, int]:
     """Non-failing summary counts for baseline run notes (review #4).
 
     Returns total surfaces, counts by outside boundary condition, reciprocal
-    InterZone pair count, and the number of pairing issues.
+    InterZone pair count, and the number of pairing issues. Pass `issues` to
+    reuse an already-computed result and avoid validating twice.
     """
     surfaces = idf.idfobjects[_SURFACE_OBJ]
     obc_counts = Counter(s.Outside_Boundary_Condition for s in surfaces)
-    issues = validate_interzone_surface_pairs(idf)
+    if issues is None:
+        issues = validate_interzone_surface_pairs(idf)
+
+    # Count surfaces that are *actually* mutual references, not Surface//2 (which
+    # is wrong when the graph is broken/odd/non-reciprocal).
+    by_name = {s.Name: s for s in surfaces}
+    mutual: set[frozenset[str]] = set()
+    for s in surfaces:
+        if s.Outside_Boundary_Condition != "Surface":
+            continue
+        tgt = by_name.get(s.Outside_Boundary_Condition_Object)
+        if (
+            tgt is not None
+            and tgt.Outside_Boundary_Condition == "Surface"
+            and tgt.Outside_Boundary_Condition_Object == s.Name
+        ):
+            mutual.add(frozenset((s.Name, tgt.Name)))
+
     return {
         "buildingsurface_total": len(surfaces),
         "obc_outdoors": obc_counts.get("Outdoors", 0),
         "obc_surface": obc_counts.get("Surface", 0),
         "obc_ground": obc_counts.get("Ground", 0),
         "obc_adiabatic": obc_counts.get("Adiabatic", 0),
-        "reciprocal_interzone_pairs": obc_counts.get("Surface", 0) // 2,
+        "reciprocal_interzone_pairs": len(mutual),
         "pair_issues": len(issues),
     }

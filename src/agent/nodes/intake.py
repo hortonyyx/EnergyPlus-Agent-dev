@@ -133,16 +133,29 @@ def _label_for_image(path: str) -> str:
     return f"Architectural drawing: {Path(path).name}"
 
 
+def _seed_config(state: AgentState, intake: IntakeOutput) -> AgentStateUpdate:
+    """Write building + site_location into config_state and return the update."""
+    config = state.config_state.model_copy(deep=True)
+    config.building = intake.building
+    config.site_location = intake.site_location
+    return AgentStateUpdate(
+        intake_output=intake, config_state=config, validation_errors=[]
+    )
+
+
 def intake_node(state: AgentState) -> AgentStateUpdate:
-    """Parse user_input + image_path into IntakeOutput and seed config_state.
+    """Produce IntakeOutput and seed config_state. Three dispatch modes:
 
-    The LLM returns nested BuildingSchema and SiteLocationSchema directly,
-    which intake_node writes into the shared config_state. Phase agents
-    read their own `*_specs` strings from intake_output.
+    1. **Short-circuit** — `state.intake_output` already populated (the
+       `--intake-from` flow): skip everything, just seed config_state.
+    2. **Two-step phase 2** — `state.phase1_vector_dir` set (the half-manual
+       two-step flow: `--phase1-from`): run phase 2 (vector JSON -> IntakeOutput)
+       via `src.agent.phase2.run_phase2`, image-blind. This is the dev default.
+    3. **Legacy single-step** — neither of the above: one multimodal
+       image -> IntakeOutput call (needs an Anthropic-capable `intake` section).
 
-    Short-circuit: if `state.intake_output` is already populated (the
-    `--intake-from` half-manual flow in `scripts/run_full_pipeline.py`),
-    skip the LLM call and only seed `config_state`.
+    The downstream contract is identical in all three modes — the graph always
+    receives one validated `IntakeOutput`.
     """
     if state.intake_output is not None and not state.validation_errors:
         config = state.config_state.model_copy(deep=True)
@@ -155,6 +168,35 @@ def intake_node(state: AgentState) -> AgentStateUpdate:
             state.intake_output.site_location.name,
         )
         return AgentStateUpdate(config_state=config, validation_errors=[])
+
+    if state.phase1_vector_dir:
+        # Two-step: phase 1 (perception) already produced vector JSON; run
+        # phase 2 (topology) here. Stay in two-step even when validation_errors
+        # are present (a validate->intake repair): falling through to the legacy
+        # single-step branch would switch model family + modality and destroy
+        # the error-budget separation. Feed the errors in as repair context.
+        # Imported lazily so the legacy path / tests that never touch phase 2
+        # don't pull in the OpenAI client.
+        from src.agent.phase2 import run_phase2
+
+        vector_dir = Path(state.phase1_vector_dir)
+        testdata_text = state.testdata_text or state.user_input
+        feedback = "\n".join(f"- {e}" for e in state.validation_errors) or None
+        out_dir = Path(state.phase2_debug_dir) if state.phase2_debug_dir else None
+        logger.info(
+            "intake_node: two-step phase 2 from {} (repair={})",
+            vector_dir,
+            bool(feedback),
+        )
+        intake = run_phase2(
+            vector_dir, testdata_text, out_dir=out_dir, feedback=feedback
+        )
+        logger.info(
+            "intake_node: phase 2 done; building={} site={}",
+            intake.building.name,
+            intake.site_location.name,
+        )
+        return _seed_config(state, intake)
 
     llm = create_llm(node_name="intake").with_structured_output(
         IntakeOutput, include_raw=True

@@ -4,7 +4,7 @@
 #   intake / zone / material / schedule / construction / surface /
 #   fenestration / hvac / people / lights
 #
-# Resolution rule (see src/agent/llm.py:_load_section):
+# Resolution rule (see src/agent/llm.py:load_llm_section):
 #   1) if a section matching `node_name` exists → use it
 #   2) else → fall back to `default`
 #
@@ -50,6 +50,38 @@ intake:
   model_name: claude-opus-4-7
   temperature: 0.7
   max_tokens: 64000
+
+# Two-step intake (2026-05-29, B1.5.c). intake_node runs phase 2 (vector JSON ->
+# IntakeOutput) when phase-1 vectors are provided (half-manual dev flow:
+# --phase1-from), else falls back to the legacy single-step `intake` section.
+#
+# intake_phase2: text-only topology reasoning over phase-1 vectors. Read by
+# src/agent/phase2.py via a RAW OpenAI client (not langchain): phase 2 is
+# single-shot and WANTS DeepSeek thinking ON (langchain_openai would burn the
+# output budget on reasoning_content). thinking=enabled here is deliberate and
+# differs from `default` (which disables it for the ReAct downstream loops).
+intake_phase2:
+  provider: openai
+  base_url: ${oc.env:DEEPSEEK_BASE_URL,https://api.deepseek.com}
+  api_key: ${oc.env:DEEPSEEK_API_KEY,null}
+  model_name: deepseek-v4-pro
+  temperature: 0.3
+  max_tokens: 64000
+  extra_body:
+    thinking:
+      type: enabled
+
+# intake_phase1 (FUTURE, full-auto two-step): a multimodal VLM that turns images
+# into phase-1 vector JSON, so the pipeline can run without a Claude Code
+# session. Not wired yet — dev currently does phase 1 half-manually in a Claude
+# Code Opus session. When enabled, intake_node's `else` branch would call it.
+# intake_phase1:
+#   provider: anthropic
+#   base_url: ${oc.env:ANTHROPIC_BASE_URL,null}
+#   api_key: ${oc.env:ANTHROPIC_API_KEY,null}
+#   model_name: claude-opus-4-7
+#   temperature: 0.4
+#   max_tokens: 64000
 
 # Per-subagent partition (2026-05-07, ref: baseline run
 # test_data/test_baseline/runs/2026-05-07_sm_16_newarch_v4pro_no_sim_v1/notes.md §3.2):

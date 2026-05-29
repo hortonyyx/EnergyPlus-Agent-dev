@@ -191,6 +191,18 @@ class AgentState(BaseModel):
     messages: Annotated[list[AnyMessage], add_messages] = Field(default_factory=list)
     user_input: str = ""
     image_paths: list[str] = Field(default_factory=list)
+    phase1_vector_dir: str | None = None
+    """Directory of phase-1 vector JSONs (+ phase1_summary.md) for the two-step
+    intake flow. When set (and `intake_output` is not pre-filled), intake_node
+    runs phase 2 (vector JSON -> IntakeOutput) instead of the legacy single-step
+    image->IntakeOutput call. Populated by run_full_pipeline `--phase1-from`."""
+    testdata_text: str | None = None
+    """Raw testdata_prompt.json content for the two-step phase-2 call. phase2's
+    prompt labels this block as JSON, so it must be the raw file, NOT the
+    human-readable `user_input` summary. Populated by run_full_pipeline."""
+    phase2_debug_dir: str | None = None
+    """Where intake_node's phase 2 writes raw_response/thinking/parse artifacts
+    for audit. Populated by run_full_pipeline (= <output>/phase2_intake)."""
 
     config_state: Annotated[ConfigState, merge_config_state] = Field(
         default_factory=ConfigState
@@ -208,6 +220,9 @@ class AgentStateUpdate(TypedDict, total=False):
     messages: Sequence[AnyMessage]
     user_input: str
     image_paths: list[str]
+    phase1_vector_dir: str | None
+    testdata_text: str | None
+    phase2_debug_dir: str | None
     config_state: ConfigState
     intake_output: IntakeOutput | None
     validation_errors: list[str]

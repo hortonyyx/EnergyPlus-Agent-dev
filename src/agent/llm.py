@@ -11,13 +11,16 @@ from src.configs.config import LLMConfig
 load_dotenv()
 
 
-def _load_section(node_name: str | None) -> dict[str, Any]:
+def load_llm_section(node_name: str | None) -> dict[str, Any]:
     """Resolve `node_name` to the right section of llm.yaml.
 
     Two layouts supported:
       - Flat: top-level `provider`/`model_name`/... — single shared LLM (legacy).
       - Nested: top-level keys are section names (`default`, `intake`, ...);
         unknown `node_name` falls back to `default`.
+
+    Public so non-langchain callers (e.g. src/agent/phase2.py, which uses a raw
+    OpenAI client) can read the same single config home.
     """
     raw = OmegaConf.load(
         Path(__file__).resolve().parent.parent / "configs" / "llm.yaml"
@@ -53,7 +56,7 @@ def create_llm(
         A BaseChatModel routed to the configured provider.
     """
     if config is None:
-        config = LLMConfig.model_validate(_load_section(node_name))
+        config = LLMConfig.model_validate(load_llm_section(node_name))
 
     model_id = f"{config.provider}:{config.model_name}"
     kwargs: dict[str, Any] = {

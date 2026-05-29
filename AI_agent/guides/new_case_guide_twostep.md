@@ -237,15 +237,17 @@ When done, output three files: `intake_output.json` / `self_check.md` / `phase2_
 
 ---
 
-### 路径 B — DeepSeek 自动跑
+### 路径 B — DeepSeek 自动跑（独立脚本，仅迭代规则时用）
+
+> **注（2026-05-29，B1.5.c 起）**：phase2 已收进主线 —— `--phase1-from`（见 §三）让 `run_full_pipeline.py` 自己跑 phase2，**正常跑 case 不必单独跑本脚本**。本脚本现是 [src/agent/phase2.py](../../src/agent/phase2.py) 的薄 CLI 包装（同一份代码,不会漂移），留作**单独迭代 `phase2/rules.md`**、或要一份对照用 phase2 产物时用。
 
 ```bash
 python Tool_scripts/run_phase2_deepseek.py --case test_data/SmallOffice_TwoStep/<case>
 ```
 
-phase1 矢量 JSON 现在**按目录自动扫描**（`phase1_vector/*_view.json`，平面 `<N>f_view` 在前、立面在后），楼层/立面数不同的 case 无需再改脚本。
+phase1 矢量 JSON **按目录自动扫描**（`phase1_vector/*.json`，平面 `<N>f_view` 在前、立面在后、补充图最后），楼层/立面数不同的 case 无需改脚本。
 
-**产物**：`<case>/phase2_intake/<model>/intake_output.json`（或你约定的位置）。
+**产物**：`<case>/phase2_intake/deepseek/intake_output.json`（+ `raw_response.txt` / `thinking.txt`）。
 
 ### L1 校验（同 new_case_guide.md §4.4）
 
@@ -269,20 +271,24 @@ IntakeOutput.model_validate(data); print('OK 11 fields')
 
 > Step 5–7 流程与 [new_case_guide.md §五–§七](new_case_guide.md) 完全一致（含 `跑下游 <case>` 对话触发、L1–L4 验收、`记录这次跑` 留痕）。
 
-[scripts/run_full_pipeline.py](../../scripts/run_full_pipeline.py) 现有 `--base-dir`，两步法 case 直接指向 `SmallOffice_TwoStep/`，不必再往 `SmallOffice/` 搬：
+**推荐（B1.5.c 起，两步法主线）**：phase1 矢量 JSON 落在 `<case>/phase1_vector/` 后，直接用 `--phase1-from` 让 `intake_node` 自己跑 phase2（DeepSeek，`intake_phase2` 段），**不必手工搬 intake_output.json**：
 
 ```bash
-# 先把 phase2 产出的 intake_output.json 放到 <case>/output/ 下（--intake-from 相对 <case>/ 解析）
 python scripts/run_full_pipeline.py <case> \
   --base-dir test_data/SmallOffice_TwoStep \
-  --intake-from output/intake_output.json
+  --phase1-from phase1_vector
 ```
 
-> 正式两步法主线（B1.5.c）会把 `intake_node` 改成 phase1+phase2 串行调用，连 `--intake-from` 手工搬运一并消失。
+- `--phase1-from <dir>`：相对 `<case>/` 解析的 phase1 矢量目录（含 `*.json` + `phase1_summary.md`）。intake_node 跑 phase2 → 产 `IntakeOutput` → 存 `<case>/output/intake_output.json` → 接下游。
+- 想只看 phase2 产物不跑下游：加 `--intake-only`。
+- 已有现成 `intake_output.json`（如路径 A 会话产出）也可仍走 `--intake-from output/intake_output.json`（与 `--phase1-from` 互斥，二选一）。
+
+> InterZone 几何门（2026-05-29）：下游出 IDF 后、跑 EP 前有确定性 InterZone surface-pair 校验（[src/validator/interzone.py](../../src/validator/interzone.py)）；配对缺失/退化碎片会 fail-fast 挡在 EP 前，`run_simulation` 返回 `success=False`。
 
 ---
 
 ## 四、与正式版的关系
 
-- 本文件是 POC v2 期间的**操作脚手架**，规则真身在 [skills/energyplus_mcp_twostep/](../../skills/energyplus_mcp_twostep)（英文、纯当前版本 spec）。
-- POC v2（[plan.md B1.5.a](../plan.md)）通过 → 按 [plan.md B1.5.c/e](../plan.md) 把两步法切成 `intake_node` 运行时串行调用 + 把 Step 4 两步正式写进 [new_case_guide.md](new_case_guide.md)（拆 4a/4b、改引用到 twostep 库、去掉 §三 的目录接缝）→ 删除本临时文件。
+- 本文件是 POC v2 / 切架构期间的**操作脚手架**，规则真身在 [skills/energyplus_mcp_twostep/](../../skills/energyplus_mcp_twostep)（英文、纯当前版本 spec）。
+- **B1.5.c 已落地（2026-05-29）**：`intake_node` 已能两步串行 —— phase1 矢量在 `<case>/phase1_vector/` 后，`run_full_pipeline.py --phase1-from phase1_vector` 让 intake_node 自动跑 phase2（[src/agent/phase2.py](../../src/agent/phase2.py)，读 `intake_phase2` 段）。phase1 仍半人工（Step 4a 会话）。§三 的「手工搬 intake_output.json」接缝已消除。
+- **仍待办**：把 Step 4 两步正式并进 [new_case_guide.md](new_case_guide.md)（拆 4a/4b、引用改到 twostep 库）后删除本临时文件；全自动 phase1（VLM）= `intake_phase1` 段预留未接（dev 现走半人工）。

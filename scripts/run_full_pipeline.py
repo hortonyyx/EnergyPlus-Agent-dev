@@ -1,20 +1,27 @@
 """End-to-end local run for a SmallOffice case.
 
-Two flows are supported:
+Intake flows (pick one):
 
-    Flow Y-auto  (intake handled by Anthropic API; needs ANTHROPIC_API_KEY):
-        python scripts/run_full_pipeline.py smalloffice_17
+    Flow TWO-STEP  (default dev flow; no Anthropic API needed):
+        # 1) In a Claude Code session, drive phase 1 (image -> vector JSON)
+        #    following AI_agent/guides/new_case_guide_twostep.md Step 4a; save
+        #    the per-image vector JSONs + phase1_summary.md under
+        #    test_data/.../<case>/phase1_vector/
+        # 2) Then run — intake_node runs phase 2 (vector JSON -> IntakeOutput)
+        #    automatically via DeepSeek (intake_phase2 section of llm.yaml):
+        python scripts/run_full_pipeline.py <case> \
+            --base-dir test_data/SmallOffice_TwoStep \
+            --phase1-from phase1_vector
 
-    Flow Y-manual  (intake handled in a Claude Code session, then re-imported;
-                    no Anthropic API needed — used by Claude pro subscribers):
-        # 1) In a separate Claude Code window, drive intake manually following
-        #    AI_agent/guides/new_case_guide.md §4-5 and save the resulting JSON to
-        #    test_data/SmallOffice/smalloffice_17/output/intake_output.json
-        # 2) Then run:
-        python scripts/run_full_pipeline.py smalloffice_17 \
+    Flow INTAKE-FROM  (a finished IntakeOutput already on disk):
+        python scripts/run_full_pipeline.py <case> \
             --intake-from output/intake_output.json
 
-    Optional --intake-only flag stops after intake (Flow X in CLAUDE.md notes).
+    Flow AUTO  (legacy single-step image -> IntakeOutput; needs ANTHROPIC_API_KEY):
+        python scripts/run_full_pipeline.py <case>
+
+    Optional --intake-only flag stops after intake (also works with --phase1-from
+    to run phase 2 only and dump intake_output.json).
 
 Outputs go to <case>/output/:
     intake_output.json     IntakeOutput Pydantic dump (cross-process artifact)
@@ -120,6 +127,18 @@ def main() -> None:
         ),
     )
     parser.add_argument(
+        "--phase1-from",
+        type=Path,
+        default=None,
+        help=(
+            "Two-step flow: directory (relative to <case>/) of phase-1 vector "
+            "JSONs + phase1_summary.md. intake_node runs phase 2 "
+            "(vector JSON -> IntakeOutput) automatically. This is the default "
+            "two-step dev flow (phase 1 produced half-manually in a Claude Code "
+            "session). Mutually exclusive with --intake-from."
+        ),
+    )
+    parser.add_argument(
         "--epw",
         default="data/weather/Shenzhen.epw",
         help="EPW weather file (only used in full pipeline).",
@@ -149,9 +168,17 @@ def main() -> None:
     output_dir = case_dir / args.output_subdir
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    spec = json.loads((case_dir / "testdata_prompt.json").read_text(encoding="utf-8"))
+    testdata_raw = (case_dir / "testdata_prompt.json").read_text(encoding="utf-8")
+    spec = json.loads(testdata_raw)
     user_input = _build_user_input(spec)
     image_paths = [str(p) for p in _collect_images(case_dir, spec)]
+
+    if args.intake_from is not None and args.phase1_from is not None:
+        raise SystemExit(
+            "--intake-from and --phase1-from are mutually exclusive: the first "
+            "supplies a finished IntakeOutput, the second runs phase 2 to build "
+            "one. Pick one."
+        )
 
     pre_intake: IntakeOutput | None = None
     if args.intake_from is not None:
@@ -165,6 +192,16 @@ def main() -> None:
             pre_intake.building.name,
         )
 
+    phase1_vector_dir: str | None = None
+    if args.phase1_from is not None:
+        p1_dir = args.phase1_from
+        if not p1_dir.is_absolute():
+            p1_dir = case_dir / p1_dir
+        if not p1_dir.is_dir():
+            raise SystemExit(f"--phase1-from dir not found: {p1_dir}")
+        phase1_vector_dir = str(p1_dir)
+        logger.info("phase1_from={} (intake_node will run phase 2)", p1_dir)
+
     logger.info(
         "case={} images={} intake_only={} intake_from={}",
         args.case,
@@ -177,6 +214,11 @@ def main() -> None:
         user_input=user_input,
         image_paths=image_paths,
         intake_output=pre_intake,
+        phase1_vector_dir=phase1_vector_dir,
+        testdata_text=testdata_raw,
+        phase2_debug_dir=str(output_dir / "phase2_intake")
+        if phase1_vector_dir
+        else None,
     )
 
     if args.intake_only:

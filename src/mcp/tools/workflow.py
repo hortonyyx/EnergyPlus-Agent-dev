@@ -26,9 +26,9 @@ def _check_interzone_pairs(manager: ConverterManager) -> list[str]:
     deep-copies an IDF backed by a StringIO that may already be closed.
     """
     idf = manager._idf
-    audit = audit_interzone_surface_pairs(idf)
-    logger.info("InterZone surface-pair audit: {}", audit)
     issues = validate_interzone_surface_pairs(idf)
+    audit = audit_interzone_surface_pairs(idf, issues=issues)
+    logger.info("InterZone surface-pair audit: {}", audit)
     if issues:
         logger.error(
             "InterZone surface-pair validation found {} issue(s):", len(issues)
