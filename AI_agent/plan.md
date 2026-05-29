@@ -220,7 +220,7 @@
 
 #### B1.5.g [P0] InterZone 确定性几何门 — ✅ 完成 2026-05-29（审阅 A，[CLAUDE.md §5.8.B](CLAUDE.md)）
 - [x] [`src/validator/interzone.py`](../src/validator/interzone.py) 接进 [`WorkflowTool`](../src/mcp/tools/workflow.py) EP 前 fail-fast；2 份 Codex review 全修、re-verify 全 PASS；测试 5→23
-- [ ] 残留：覆盖完整性校验（需 shapely，[logs/downstream_agent_changes.md](logs/downstream_agent_changes.md) 跟踪）
+- [ ] 残留：**覆盖完整性校验**（抓"本该是内部边界、两侧却都标 Outdoors/Adiabatic、于是不在配对图里"的洞——per-pair 门 + EP 都查不到）。**决策 2026-05-29：长期解走 `shapely`，不急实现、当前仅标记**（风险未真咬过；落地时机 = 招到能暴露该洞的 case，或 B5 非方形平面开工时一并做）。详见 [logs/downstream_agent_changes.md](logs/downstream_agent_changes.md) 2026-05-29 条
 
 #### B1.5.f [P1] 评测嵌入
 - [ ] phase1 矢量 JSON diff 评测（与 GT 数据集 v0 字段对齐）
@@ -351,6 +351,12 @@
 ### B5. [P1] 能力升级 1 — 非方形平面（如 L 形 / U 形）
 
 **背景**：当前 sm_13-17 全是矩形平面。真实建筑常见 L 形 / U 形 / 凹凸异型。需要 INTAKE_SYSTEM_PROMPT + zone_specs / surface_specs 拓展支持任意闭合多边形外包。
+
+> **架构方向（2026-05-29 会话收敛，两腿并行）**：B5 是 split-pairing/覆盖洞风险从"理论"转"现实"的拐点。处理它有两条**并行**的腿（**不二选一**）：
+> - **忠实建模 leg**（[capability/recognition_modeling_capability.md §8](capability/recognition_modeling_capability.md)）：phase2 容差重生成保留真实几何，给 prompt 加非方形切分规则 + 仲裁/常识。有 beyond-EP 产品价值（图纸→建筑模型），**继续落地**。
+> - **再拓扑 leg**（[architecture/geometry_first_zonification.md](architecture/geometry_first_zonification.md)）：切分/配对下沉为「平面再拓扑（热区积木）+ 确定性几何内核」，覆盖升为构造不变量；与 idfpy 同期做最省力。**作强力支线**实验，稳定再切。
+>
+> B5 case 可由任一腿驱动；下面的 prompt-扩展任务属忠实 leg 渐进路径。
 
 **任务（边做边细化）**：
 - [ ] 在 `test_data/SmallOffice/` 加 1-2 个 L 形 case（含图纸 + testdata_prompt.json + GT）

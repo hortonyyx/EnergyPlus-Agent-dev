@@ -2,7 +2,7 @@
 
 > **定位**：识图→建模质量是项目长期主线工作的主要对象。本文档管理这条线的**问题框架 / 诊断证据 / 设计哲学 / 改进方向 / 待定取舍**，是一份持续迭代的活文档。
 >
-> 与其他文档的关系：[plan.md](../plan.md) B 段（B1.5.b / B5-B7）是任务清单；[floorplan_redraw_strategy.md](floorplan_redraw_strategy.md) 是两步法架构策略与 POC 史；本文档是**质量提升的设计与决策载体**。skill 的具体落地仍在 [`skills/energyplus_mcp_twostep/`](../../skills/energyplus_mcp_twostep)。
+> 与其他文档的关系：[plan.md](../plan.md) B 段（B1.5.b / B5-B7）是任务清单；[floorplan_redraw_strategy.md](floorplan_redraw_strategy.md) 是两步法架构策略与 POC 史；[../architecture/geometry_first_zonification.md](../architecture/geometry_first_zonification.md) 是**并行的另一条腿**（再拓扑：抽象成热区积木、丢弃真实几何，EP 鲁棒性最优但变化最大）。**本文档 = 忠实建模 leg**（保留真实建筑几何的容差重生成），是**质量提升的设计与决策载体**，且有 beyond-EP 的独立产品价值（图纸→建筑模型小 Agent）。两腿并行决策见 §8。skill 的具体落地仍在 [`skills/energyplus_mcp_twostep/`](../../skills/energyplus_mcp_twostep)。
 >
 > _建档 2026-05-28。首轮内容 = sm21 三模型 phase2 诊断 + 容差重生成设计讨论（讨论已捕获，未落地实现）。_
 
@@ -117,7 +117,34 @@ phase1 在 1f 把同一道隔墙估成 **4.90/10.10**、2f 估成 **4.95/10.05**
 
 ## 7. 状态与下一步
 
-- 状态：**设计讨论已捕获，未落地实现**。
+- 状态：**设计讨论已捕获，未落地实现**；2026-05-29 定调**两条腿并行**（见 §8），本 leg（忠实建模）**继续落地、不被再拓扑取代**。
 - 落地入口（取舍拍板后）：改 [`skills/energyplus_mcp_twostep/phase2/rules.md`](../../skills/energyplus_mcp_twostep/phase2/rules.md)（约束求解 + 容差 + 定性分级）+ 新建建筑常识先验文档；phase1 侧小改双通道+置信度。均按 [CLAUDE.md §6#5](../CLAUDE.md) 备份到 `Skill_history/`。
+- **下一步动作**：先拍板 §6 的 4 个待定取舍（动手前置），再按上面落地入口动 phase2/rules.md。
 - 对应任务：[plan.md](../plan.md) B1.5.b（phase1/phase2 skill 迭代）+ B5-B7（能力升级）。
 - sm21 实验产物：`test_data/SmallOffice_TwoStep/smalloffice_21/phase2_intake/{deepseek,opus,sonnet}/` + `output_{opus,sonnet}/`（未 commit）。
+
+---
+
+## 8. 两条腿并行：忠实建模 leg（本文档）vs 再拓扑 leg（2026-05-29 决策）
+
+**定调（用户）**：两条腿并行推进，不二选一。
+
+- **本文档 = 忠实建模 leg**：phase2 作容差重生成约束求解器，**保留真实建筑几何**（真墙、真房间）。§1-§7 全部适用——A 类（水密：闭缝/吸附/生成规则）和 B 类（仲裁/常识/审计）**都在 phase2 解**，没有剖分内核兜底水密。
+  - **本项目之外的价值**：若真能约束出高建模质量，等于实现了一个 **图纸 → 建筑几何模型** 的小 Agent 流程。这个忠实保留建筑空间的能力本身就有产品价值，不止服务 EP。
+- **[geometry_first_zonification.md](../architecture/geometry_first_zonification.md) = 再拓扑 leg**：抽象成热区积木块、**丢弃真实建筑空间信息**；A 类降为内核构造不变量、B 类迁入 phase2a 判断层。对 EP 鲁棒性最优，但**相对原始信息变化最大**（最激进）。
+- **关系与节奏**：再拓扑确实最好（EP 几乎必通），但变化大；先作**强力支线**推进、实验稳定了再切过去。忠实 leg 因其 beyond-EP 价值**独立继续落地**，不被再拓扑取代。
+
+### 8.1 两 leg 对 A/B 两类问题的处置差异
+
+> A 类 = 几何装配/水密性（"积木怎么拼合法"）；B 类 = 噪声/矛盾感知下的判断（"说谎的图纸里正确几何是什么"）。
+
+| | 忠实建模 leg（本文档） | 再拓扑 leg |
+|---|---|---|
+| A 类（水密装配） | phase2 重生成求解器解（§5.1/§5.4 生成规则**全保留**） | 内核构造不变量（自动免费） |
+| B 类（噪声仲裁/常识） | phase2 解（§5.2/§5.3/corrections **全保留**） | phase2a 判断层解（仍需） |
+| 真实建筑几何 | **保留**（产品价值所在） | 丢弃（抽象成块） |
+| 崩溃安全网 | **保留**（错几何仍可能 EP 段错 = 有用信号） | **撤除**（任何剖分都水密必通 → 错而不崩，B 类成唯一守门人） |
+| 相对原始信息变化 | 小（忠实） | 大（激进） |
+
+### 8.2 共享基础设施
+两 leg 共用：phase1 忠实感知（笔画+尺寸链+置信度双通道）、两步法误差预算分离、下游 9 subagent、InterZone 门。差异只在 **phase2 这一段怎么从感知到几何**——忠实 leg 是"容差重生成保留真墙"，再拓扑 leg 是"剖分+升起成积木"。

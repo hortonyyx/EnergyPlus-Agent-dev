@@ -23,10 +23,22 @@ Implemented (review #1 + degeneracy):
   - no surface has an edge below `min_edge` (degenerate sliver — the EP
     input-stage segfault class)
 
-Deferred (review #2, needs polygon intersection / shapely): stacked-floor
-coverage completeness — that adjacent-floor footprint overlaps are fully and
-uniquely paired with no holes/duplicates. Tracked in
-AI_agent/logs/downstream_agent_changes.md.
+Deferred (review #2): coverage completeness. Failure class this gate canNOT
+catch — a region that *should* be an interior boundary (an inter-floor slab, or
+a wall between adjacent zones) but where *both* sides were modelled as Outdoors/
+Adiabatic, so the region is absent from the pair graph entirely. Every declared
+pair is then legal (this gate passes) and EP runs without error, yet the model
+has invented an exterior boundary mid-building. Detecting it needs the zone
+footprints unioned/intersected to find the area that *must* be tiled, then the
+union of interior horizontal-pair polygons subtracted from it — a non-empty
+difference is a hole. That requires polygon union/intersection/difference.
+
+Decision (2026-05-29): the long-term implementation will use `shapely` (chosen
+over a pure-numpy axis-aligned-rectangle scheme because the latter must be
+rewritten for the L-shape / rotated footprints of plan B5). Not urgent — the
+"each pair legal but collectively incomplete" risk has not yet bitten a real
+case; land it once a case actually exposes the hole, or alongside the B5
+non-rectangular work. Tracked in AI_agent/logs/downstream_agent_changes.md.
 """
 
 from __future__ import annotations
