@@ -1,10 +1,12 @@
-# 新建测试样例操作指南 —— 两步法 Step 4（临时版）
+# 两步法 phase1/phase2 prompt 模板附录
 
-> **临时文档**。当前主线 [new_case_guide.md](new_case_guide.md) 的 Step 4 仍是单步法（半人工 intake）。本文件只覆盖**两步法的 Step 4**（拆 4a phase1 / 4b phase2），用模板临时驱动，方便 B1.5.a 异图 POC v2 期间跑两步法。
+> **定位（2026-05-29 起）**：[new_case_guide.md](new_case_guide.md) 已正式化为两步法完整版（Step 4 phase1 半人工 + Step 5 一次性自动）。本文件**降级为操作附录**,只留两件还在用的东西：
+> - **§一 phase1 启动 prompt 模板** —— 正式指南 Step 4 引用的就是它（粘进 Claude Code 会话识图）。**这是本文件的活内容。**
+> - **§二路径 A phase2 会话 prompt** —— 想用会话（非自动脚本）手跑 phase2 时用（如跨模型对比）。
 >
-> **定位**：Step 1–3（备素材 / 建目录 / 写 testdata_prompt.json）与 Step 5–7（下游自动跑 / 验收 / 留痕）**完全复用 [new_case_guide.md](new_case_guide.md)**，本文件只替换中间的 Step 4。
+> **已被取代**：§二路径 B（DeepSeek 自动跑）+ §三（接 Step 5）的"手工搬 intake_output.json"流程，已被 [new_case_guide.md Step 5](new_case_guide.md) 的 `--phase1-from` 一次性自动跑取代——正式流程看主指南，本文件保留这些段仅作历史/手动备选。
 >
-> **何时退役**：POC v2 通过、按 [plan.md B1.5.c/e](../plan.md) 把 `intake_node` 改成两步串行 + 正式重写 new_case_guide.md 后，本临时文件并入主指南删除。决策背景见 [floorplan_redraw_strategy.md §10](../capability/floorplan_redraw_strategy.md)。
+> 规则真身在 [skills/energyplus_mcp_twostep/](../../skills/energyplus_mcp_twostep)。决策背景见 [floorplan_redraw_strategy.md §10](../capability/floorplan_redraw_strategy.md)。
 
 ---
 
