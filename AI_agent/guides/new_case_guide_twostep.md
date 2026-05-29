@@ -4,7 +4,7 @@
 >
 > **定位**：Step 1–3（备素材 / 建目录 / 写 testdata_prompt.json）与 Step 5–7（下游自动跑 / 验收 / 留痕）**完全复用 [new_case_guide.md](new_case_guide.md)**，本文件只替换中间的 Step 4。
 >
-> **何时退役**：POC v2 通过、按 [plan.md B1.5.c/e](plan.md) 把 `intake_node` 改成两步串行 + 正式重写 new_case_guide.md 后，本临时文件并入主指南删除。决策背景见 [floorplan_redraw_strategy.md §10](floorplan_redraw_strategy.md)。
+> **何时退役**：POC v2 通过、按 [plan.md B1.5.c/e](../plan.md) 把 `intake_node` 改成两步串行 + 正式重写 new_case_guide.md 后，本临时文件并入主指南删除。决策背景见 [floorplan_redraw_strategy.md §10](../capability/floorplan_redraw_strategy.md)。
 
 ---
 
@@ -14,12 +14,12 @@
 |---|---|---|
 | Step 1–3 | 备素材 / 建目录 / testdata_prompt.json | **完全一致** |
 | Step 4 | 一个会话：图 + 文本 → `intake_output.json` | **拆两步**：4a 识图→矢量 JSON；4b 矢量 JSON→`intake_output.json` |
-| 规则库 | [skills/energyplus_mcp/](../skills/energyplus_mcp/)（单步法，中文）| [skills/energyplus_mcp_twostep/](../skills/energyplus_mcp_twostep/)（两步法，英文）|
+| 规则库 | [skills/energyplus_mcp/](../../skills/energyplus_mcp)（单步法，中文）| [skills/energyplus_mcp_twostep/](../../skills/energyplus_mcp_twostep)（两步法，英文）|
 | Step 5–7 | 下游自动跑 + L1–L4 + 留痕 | **完全一致**（下游入口见 §三）|
 
-**案例目录**：两步法语料放 [test_data/SmallOffice_TwoStep/](../test_data/SmallOffice_TwoStep/)`<case>/`（与单步法 `SmallOffice/` 并列）。phase1/phase2 全部中间产物落这里。
+**案例目录**：两步法语料放 [test_data/SmallOffice_TwoStep/](../../test_data/SmallOffice_TwoStep)`<case>/`（与单步法 `SmallOffice/` 并列）。phase1/phase2 全部中间产物落这里。
 
-误差预算（两步法的核心）：phase1 看图、只产「图上看到了什么」；phase2 不看图、只对矢量 JSON 做拓扑推理。任何图相关的错只能在 phase1 截断，phase2 只引入纯推理错。详见 [phase1_guide.md §0.1](../skills/energyplus_mcp_twostep/phase1/guide.md)。
+误差预算（两步法的核心）：phase1 看图、只产「图上看到了什么」；phase2 不看图、只对矢量 JSON 做拓扑推理。任何图相关的错只能在 phase1 截断，phase2 只引入纯推理错。详见 [phase1_guide.md §0.1](../../skills/energyplus_mcp_twostep/phase1/guide.md)。
 
 ---
 
@@ -33,7 +33,7 @@
 
 #### Phase 1 启动 prompt（粘进新会话；按 case 改图名表）
 
-> 在 `EnergyPlus-Agent-dev` 项目根新起会话（多模态强模型，如 Opus），把下面 `---` 之间整段作首条消息粘入。规则真身在 [skills/energyplus_mcp_twostep/phase1/](../skills/energyplus_mcp_twostep/phase1/)（`guide.md` / `reading_guide.md` / `pen_library.md`），会话运行时读取，不必拷进 case 目录。
+> 在 `EnergyPlus-Agent-dev` 项目根新起会话（多模态强模型，如 Opus），把下面 `---` 之间整段作首条消息粘入。规则真身在 [skills/energyplus_mcp_twostep/phase1/](../../skills/energyplus_mcp_twostep/phase1)（`guide.md` / `reading_guide.md` / `pen_library.md`），会话运行时读取，不必拷进 case 目录。
 
 ---
 
@@ -138,7 +138,7 @@ reflect only what is seen in the image).
 
 ## Boundaries
 
-- Do not modify any file under [src/](src/), [skills/](skills/), [AI_agent/](AI_agent/)
+- Do not modify any file under [../../src](../../src), [../../skills](../../skills), [..](..)
 - Do not modify the worked-example JSON (it is the reference)
 - Do not run `run_full_pipeline.py` or any EnergyPlus tool
 - Do not produce IntakeOutput fields (zone_specs / surface_specs / fenestration_specs / ...), that is all phase 2's job
@@ -146,7 +146,7 @@ reflect only what is seen in the image).
 When ready, do the pilot first, then stop and wait for my feedback.
 
 ---
-4. 人工校验：用 [Tool_scripts/render_vector_to_svg.py](../Tool_scripts/render_vector_to_svg.py) 把矢量 JSON 渲成 SVG，肉眼比对原图，重点看：
+4. 人工校验：用 [Tool_scripts/render_vector_to_svg.py](../../Tool_scripts/render_vector_to_svg.py) 把矢量 JSON 渲成 SVG，肉眼比对原图，重点看：
    - 杂物（家具/铺装/纹理）有没有被误当 wall/window（假阳性，最致命）
    - 真墙/真窗有没有漏（假阴性）
    - 门洞有没有按 v1.3 规则 heal 成连续墙（带门符号才补、留痕）
@@ -158,7 +158,7 @@ When ready, do the pilot first, then stop and wait for my feedback.
 
 ## 二、Step 4b · phase2 拓扑（矢量 JSON → IntakeOutput）
 
-> **目标**：读 phase1 矢量 JSON + testdata_prompt.json，按 [phase2_rules.md](../skills/energyplus_mcp_twostep/phase2/rules.md) 推出 11 字段 `IntakeOutput`。**不看原图**。
+> **目标**：读 phase1 矢量 JSON + testdata_prompt.json，按 [phase2_rules.md](../../skills/energyplus_mcp_twostep/phase2/rules.md) 推出 11 字段 `IntakeOutput`。**不看原图**。
 
 两条路径，任选：
 
@@ -166,7 +166,7 @@ When ready, do the pilot first, then stop and wait for my feedback.
 
 新起会话，把下面 `---` 之间整段改好路径后粘入。产 `intake_output.json` + `self_check.md` + （如有）`phase2_followup_notes.md`。
 
-> 规则真身在 [skills/energyplus_mcp_twostep/phase2/rules.md](../skills/energyplus_mcp_twostep/phase2/rules.md) + [phase1/guide.md](../skills/energyplus_mcp_twostep/phase1/guide.md) + [phase1/pen_library.md](../skills/energyplus_mcp_twostep/phase1/pen_library.md)，会话运行时读取。自动路径（路径 B）由 `Tool_scripts/run_phase2_deepseek.py` 跑，不用本 prompt。
+> 规则真身在 [skills/energyplus_mcp_twostep/phase2/rules.md](../../skills/energyplus_mcp_twostep/phase2/rules.md) + [phase1/guide.md](../../skills/energyplus_mcp_twostep/phase1/guide.md) + [phase1/pen_library.md](../../skills/energyplus_mcp_twostep/phase1/pen_library.md)，会话运行时读取。自动路径（路径 B）由 `Tool_scripts/run_phase2_deepseek.py` 跑，不用本 prompt。
 
 ---
 
@@ -196,7 +196,7 @@ Following the field derivation order in `rules.md` §3, produce the IntakeOutput
 phase2_intake/<model>/intake_output.json
 ```
 
-For the format, reference the IntakeOutput Pydantic definition in [src/agent/state.py](src/agent/state.py).
+For the format, reference the IntakeOutput Pydantic definition in [../../src/agent/state.py](../../src/agent/state.py).
 All 11 fields must be present: building / site_location / zone_specs / material_specs /
 schedule_specs / construction_specs / surface_specs / fenestration_specs / hvac_specs / people_specs
 / lights_specs.
@@ -229,7 +229,7 @@ no template writing).
 
 - Do not modify any phase1_vector/ file (phase 1 products are frozen)
 - Do not modify rules.md / phase1/guide.md / phase1/pen_library.md (put suggestions in phase2_followup_notes.md)
-- Do not modify any file under [src/](src/) / [skills/](skills/) / [AI_agent/](AI_agent/)
+- Do not modify any file under [../../src](../../src) / [../../skills](../../skills) / [..](..)
 - Do not run `run_full_pipeline.py` or any EnergyPlus tool
 - Do not look at the original PNGs (phase 2 discipline)
 
@@ -269,7 +269,7 @@ IntakeOutput.model_validate(data); print('OK 11 fields')
 
 > Step 5–7 流程与 [new_case_guide.md §五–§七](new_case_guide.md) 完全一致（含 `跑下游 <case>` 对话触发、L1–L4 验收、`记录这次跑` 留痕）。
 
-[scripts/run_full_pipeline.py](../scripts/run_full_pipeline.py) 现有 `--base-dir`，两步法 case 直接指向 `SmallOffice_TwoStep/`，不必再往 `SmallOffice/` 搬：
+[scripts/run_full_pipeline.py](../../scripts/run_full_pipeline.py) 现有 `--base-dir`，两步法 case 直接指向 `SmallOffice_TwoStep/`，不必再往 `SmallOffice/` 搬：
 
 ```bash
 # 先把 phase2 产出的 intake_output.json 放到 <case>/output/ 下（--intake-from 相对 <case>/ 解析）
@@ -284,5 +284,5 @@ python scripts/run_full_pipeline.py <case> \
 
 ## 四、与正式版的关系
 
-- 本文件是 POC v2 期间的**操作脚手架**，规则真身在 [skills/energyplus_mcp_twostep/](../skills/energyplus_mcp_twostep/)（英文、纯当前版本 spec）。
-- POC v2（[plan.md B1.5.a](plan.md)）通过 → 按 [plan.md B1.5.c/e](plan.md) 把两步法切成 `intake_node` 运行时串行调用 + 把 Step 4 两步正式写进 [new_case_guide.md](new_case_guide.md)（拆 4a/4b、改引用到 twostep 库、去掉 §三 的目录接缝）→ 删除本临时文件。
+- 本文件是 POC v2 期间的**操作脚手架**，规则真身在 [skills/energyplus_mcp_twostep/](../../skills/energyplus_mcp_twostep)（英文、纯当前版本 spec）。
+- POC v2（[plan.md B1.5.a](../plan.md)）通过 → 按 [plan.md B1.5.c/e](../plan.md) 把两步法切成 `intake_node` 运行时串行调用 + 把 Step 4 两步正式写进 [new_case_guide.md](new_case_guide.md)（拆 4a/4b、改引用到 twostep 库、去掉 §三 的目录接缝）→ 删除本临时文件。

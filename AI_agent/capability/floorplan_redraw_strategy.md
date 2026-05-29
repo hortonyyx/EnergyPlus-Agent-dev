@@ -2,15 +2,15 @@
 
 > 目标：让 intake 能处理不同风格的建筑平面图，不依赖单一固定制图规范。
 >
-> 讨论日期：2026-05-10。起点见 [pivot_criteria.md §3.2](pivot_criteria.md) 退路 A（前置视觉预处理），但方案已从"前置小模型矢量化"收敛为"同一 VLM 拆两步调用 + 中间标准化表示"。
+> 讨论日期：2026-05-10。起点见 [pivot_criteria.md §3.2](../reference/pivot_criteria.md) 退路 A（前置视觉预处理），但方案已从"前置小模型矢量化"收敛为"同一 VLM 拆两步调用 + 中间标准化表示"。
 >
-> **2026-05-12 — POC 验证 PASS（详见 §9）**：sm_20 全套两步法 + 下游 + EP 真跑通过。架构通透性 + 识图泛化 + 微调可行性同时验证。决策：**两步法立为新主线**（[plan.md](plan.md) 提升为最高优先级 B1.5）。
+> **2026-05-12 — POC 验证 PASS（详见 §9）**：sm_20 全套两步法 + 下游 + EP 真跑通过。架构通透性 + 识图泛化 + 微调可行性同时验证。决策：**两步法立为新主线**（[../plan.md](../plan.md) 提升为最高优先级 B1.5）。
 
 ---
 
 ## 1. 问题
 
-当前 INTAKE_SYSTEM_PROMPT（[intake.py](../src/agent/nodes/intake.py#L34)）和旧 skill（[energyplus_mcp_prompt.md](../skills/energyplus_mcp/energyplus_mcp_prompt.md)）把一套特定 CAD 制图规范硬编码进了 prompt：
+当前 INTAKE_SYSTEM_PROMPT（[intake.py](../../src/agent/nodes/intake.py#L34)）和旧 skill（[energyplus_mcp_prompt.md](../../skills/energyplus_mcp/energyplus_mcp_prompt.md)）把一套特定 CAD 制图规范硬编码进了 prompt：
 
 - 粗黑实线 = 墙，浅灰填充 = 墙身
 - 蓝色矩形 = 窗
@@ -125,7 +125,7 @@
 初版讨论曾认为阶段 2 可以是"确定性编译器"——这只是部分正确。以 wall/window/room 列表推导 zone 的 x/y 坐标确实是算术运算（xᵢ = xᵢ₋₁ + segmentᵢ），但以下推理**不是**确定性的：
 
 - 哪个房间是走廊？（宽窄条判断有模糊性）
-- 房间是否跨 strip？（需空间上下文判断，[energyplus_mcp_prompt.md §Handling Non-Rectangular Rooms](../skills/energyplus_mcp/energyplus_mcp_prompt.md)）
+- 房间是否跨 strip？（需空间上下文判断，[energyplus_mcp_prompt.md §Handling Non-Rectangular Rooms](../../skills/energyplus_mcp/energyplus_mcp_prompt.md)）
 - 窗的 parent wall 映射（立面图的窗 → 平面图的墙，需要"立方体展开"空间想象力）
 - 楼层间 zone 的对齐关系（挑空/退台场景下的表面配对）
 
@@ -156,7 +156,7 @@
 
 | 现有组件 | 变化 |
 |---|---|
-| [intake.py](../src/agent/nodes/intake.py) `intake_node` | 从单次 LLM 调用改为"阶段 1 重绘 + 阶段 2 建模"两次调用；short-circuit 路径 (`--intake-from`) 保留 |
+| [intake.py](../../src/agent/nodes/intake.py) `intake_node` | 从单次 LLM 调用改为"阶段 1 重绘 + 阶段 2 建模"两次调用；short-circuit 路径 (`--intake-from`) 保留 |
 | 阶段 2 的 system prompt | 接收结构化 JSON，专注空间推理规则。可复用纯文本 LLM |
 | 半人工流（Step 4） | 用户可见阶段 1 重绘 SVG 并可以修正后再推进到阶段 2 |
 | 全自动流 | `run_full_pipeline.py` 内部串联两次调用 |
@@ -169,13 +169,13 @@
 ### 9.1 实验设置
 
 - **Case**：`test_data/SmallOffice_TwoStep/smalloffice_20/`（与 `test_data/SmallOffice/smalloffice_20/` 同素材，单步法 anchor 在那边的 `output_new/`）
-- **Phase 1**：Claude Code 会话 + Opus 4.7，7 张图（3 平面 + 4 立面）→ 7 份矢量 JSON + summary。schema 见 [vector_schema_v1.md](../test_data/SmallOffice_TwoStep/smalloffice_20/vector_schema_v1.md)（v1.2）
+- **Phase 1**：Claude Code 会话 + Opus 4.7，7 张图（3 平面 + 4 立面）→ 7 份矢量 JSON + summary。schema 见 [vector_schema_v1.md](../../test_data/SmallOffice_TwoStep/smalloffice_20/vector_schema_v1.md)（v1.2）
 - **Phase 2**：两条路径并行验证
   - Opus 路径：Claude Code 会话直写 IntakeOutput JSON
-  - DeepSeek 路径：[`Tool_scripts/run_phase2_deepseek.py`](../Tool_scripts/run_phase2_deepseek.py)（绕过 langchain，thinking enabled，max_tokens 64k）
-- **Phase 2 规则**：[phase2_rules.md](../test_data/SmallOffice_TwoStep/smalloffice_20/phase2_rules.md)（v1.3 升级版在 [`skills/energyplus_mcp_twostep/`](../skills/energyplus_mcp_twostep/)）
+  - DeepSeek 路径：[`Tool_scripts/run_phase2_deepseek.py`](../../Tool_scripts/run_phase2_deepseek.py)（绕过 langchain，thinking enabled，max_tokens 64k）
+- **Phase 2 规则**：[phase2_rules.md](../../test_data/SmallOffice_TwoStep/smalloffice_20/phase2_rules.md)（v1.3 升级版在 [`skills/energyplus_mcp_twostep/`](../../skills/energyplus_mcp_twostep)）
 
-### 9.2 三方对比结果（详见 [`compare/diff.md`](../test_data/SmallOffice_TwoStep/smalloffice_20/compare/diff.md)）
+### 9.2 三方对比结果（详见 [`compare/diff.md`](../../test_data/SmallOffice_TwoStep/smalloffice_20/compare/diff.md)）
 
 | 维度 | opus 2-step | deepseek 2-step | anchor 1-step（旧 sm_20 output_new）|
 |---|---|---|---|
@@ -209,13 +209,13 @@
 ### 9.6 Phase 1 用户校验机制
 
 POC 验证用户可在 ~30 min 内人工检查 SVG 是否与原图一致：
-- [`Tool_scripts/render_vector_to_svg.py`](../Tool_scripts/render_vector_to_svg.py) 矢量 JSON → SVG（含 1m 网格 + 5m 加深网格 + pen 类型分色图例）
+- [`Tool_scripts/render_vector_to_svg.py`](../../Tool_scripts/render_vector_to_svg.py) 矢量 JSON → SVG（含 1m 网格 + 5m 加深网格 + pen 类型分色图例）
 - 浏览器并排原图 + SVG 即可逐项检查"墙位 / 窗位 / 尺寸 / 立面分层"
 - POC sm_20 实测：7 张图都在第一轮通过人工核验，未发现遗漏 / 错位
 
 ### 9.7 决策
 
-**两步法立为新主线** —— [plan.md](plan.md) 提升为最高优先级。具体路径见 §8 架构影响前瞻 + plan.md B1.5。
+**两步法立为新主线** —— [../plan.md](../plan.md) 提升为最高优先级。具体路径见 §8 架构影响前瞻 + plan.md B1.5。
 
 ### 9.8 待迭代
 
@@ -235,11 +235,11 @@ POC 验证用户可在 ~30 min 内人工检查 SVG 是否与原图一致：
 
 > 本节是一次设计讨论的落盘。结论用于指导 B1.5.a 异图 POC v2 的图纸准备 + phase1_vector_schema v1.3 amendment + phase2_rules 后续 zoning 节。用户当时正去准备噪声测试材料。
 >
-> **进度（2026-05-25）**：§10.4 的 phase1_vector_schema **v1.3 amendment 已落盘**（door-healing + `uncaptured` 提必填 + `door`/`arc` 退出词典），同步更新 [`phase1_prompt_template.md`](../skills/energyplus_mcp_twostep/phase1_prompt_template.md) 纪律段；备份 `Skill_history/2026-05-25_twostep_phase1_v1.3_door_healing/`。**剩 POC v2 跑批仍等用户交噪声图 + testdata_prompt.json**（§10.6 #3）。
+> **进度（2026-05-25）**：§10.4 的 phase1_vector_schema **v1.3 amendment 已落盘**（door-healing + `uncaptured` 提必填 + `door`/`arc` 退出词典），同步更新 [`phase1_prompt_template.md`](../../skills/energyplus_mcp_twostep/phase1_prompt_template.md) 纪律段；备份 `Skill_history/2026-05-25_twostep_phase1_v1.3_door_healing/`。**剩 POC v2 跑批仍等用户交噪声图 + testdata_prompt.json**（§10.6 #3）。
 
 ### 10.1 机制确认：phase1 是「读尺寸链标注」驱动，不是「数像素量尺寸」
 
-核对 sm_20 实际产物（[`phase1_vector/`](../test_data/SmallOffice_TwoStep/smalloffice_20/phase1_vector/)）确认：
+核对 sm_20 实际产物（[`phase1_vector/`](../../test_data/SmallOffice_TwoStep/smalloffice_20/phase1_vector)）确认：
 
 - 平面墙 `S1` `p1=[0,0]→p2=[15,0]`，这个 15 直接来自尺寸链 `D1 "15.00"`；墙端点钉在尺寸链给的米数上，**不是按像素跨度量出来的**
 - 立面窗 z `S4 y_range=[1.0,2.8]` = `D14 sill 1.00` + `D15 窗高 1.80`，纯标注算术
@@ -269,7 +269,7 @@ POC 验证用户可在 ~30 min 内人工检查 SVG 是否与原图一致：
   3. token / 错误面更小
 - **代价**：留/弃判断上移到 phase1，一旦把细隔墙误判成家具丢了，phase2 救不回（silent loss）。两个对冲：
   - **承认式排除**：看到但不画的，**必须**进 `uncaptured_visual_elements`（把该字段从可选提成必填）——"承认跳过"与"静默丢失"在复查时天壤之别
-  - **保留 phase1 SVG 人工核验**（[`render_vector_to_svg.py`](../Tool_scripts/render_vector_to_svg.py)）兜 silent loss；等 phase1 自动化后 `uncaptured` 日志 + 置信度标记顶上
+  - **保留 phase1 SVG 人工核验**（[`render_vector_to_svg.py`](../../Tool_scripts/render_vector_to_svg.py)）兜 silent loss；等 phase1 自动化后 `uncaptured` 日志 + 置信度标记顶上
 - **不是永远 B**：按需逐级提拔（`uncaptured`→`other`→专用笔），由下游需求（B6 楼梯成 zone / B7 微调 VLM 要忠实重绘）驱动，不提前还债
 
 ### 10.4 决策：phase1 把「门洞补成连续墙」→ 闭合墙网
@@ -301,7 +301,7 @@ POC 验证用户可在 ~30 min 内人工检查 SVG 是否与原图一致：
 
 ### 10.6 执行决策（用户拍板）
 
-1. **异图 POC v2（B1.5.a）先于 intake_node 重写（B1.5.c）** —— 与 [`compare/diff.md §8.2`](../test_data/SmallOffice_TwoStep/smalloffice_20/compare/diff.md) 建议一致（POC v1 仅 1 图证据不足，不应直接动主线）
+1. **异图 POC v2（B1.5.a）先于 intake_node 重写（B1.5.c）** —— 与 [`compare/diff.md §8.2`](../../test_data/SmallOffice_TwoStep/smalloffice_20/compare/diff.md) 建议一致（POC v1 仅 1 图证据不足，不应直接动主线）
 2. **POC v2 通过后 → 直接全线切两步法主线**（不再分步骇行）
 3. 下一步：用户准备噪声测试图（矩形几何同 sm_20 级 + 信息杂物 + 每房间 1-2 个门 + 1-2 处遮挡）+ testdata_prompt.json；助手据此建 case 目录 + 出画图 checklist + 跑 phase2（DeepSeek，§6#10 y/n 触发）
 
@@ -309,9 +309,9 @@ POC 验证用户可在 ~30 min 内人工检查 SVG 是否与原图一致：
 
 ## 关联文档
 
-- [CLAUDE.md](CLAUDE.md) — 项目管理总览
-- [plan.md](plan.md) — 行动清单（**B1.5 两步法立为最高优先级**；B2-B4 评测基线；B5-B7 能力升级）
-- [pivot_criteria.md](pivot_criteria.md) — §3.2 退路 A 前置视觉预处理（本方案是该路径的具体化）
-- [new_case_guide.md](new_case_guide.md) — 标准工作流（待跟两步法集成后更新）
-- [`../skills/energyplus_mcp_twostep/`](../skills/energyplus_mcp_twostep/) — 两步法 skill 演进源
-- [`../test_data/SmallOffice_TwoStep/`](../test_data/SmallOffice_TwoStep/) — 两步法测试语料库
+- [../CLAUDE.md](../CLAUDE.md) — 项目管理总览
+- [../plan.md](../plan.md) — 行动清单（**B1.5 两步法立为最高优先级**；B2-B4 评测基线；B5-B7 能力升级）
+- [../reference/pivot_criteria.md](../reference/pivot_criteria.md) — §3.2 退路 A 前置视觉预处理（本方案是该路径的具体化）
+- [../guides/new_case_guide.md](../guides/new_case_guide.md) — 标准工作流（待跟两步法集成后更新）
+- [`../skills/energyplus_mcp_twostep/`](../../skills/energyplus_mcp_twostep) — 两步法 skill 演进源
+- [`../test_data/SmallOffice_TwoStep/`](../../test_data/SmallOffice_TwoStep) — 两步法测试语料库

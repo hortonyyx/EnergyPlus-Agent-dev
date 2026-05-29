@@ -1,7 +1,7 @@
 # Token 优化方案
 
 > **目的**：把单 case token 消耗压到 Opus 单会话稳定可完成、且为开源模型上下文窗口（16k–64k 实际可用）留余量。
-> **背景**：[CLAUDE.md §7.7 / §7.8](CLAUDE.md)。
+> **背景**：[CLAUDE.md §7.7 / §7.8](../CLAUDE.md)。
 
 ---
 
@@ -80,7 +80,7 @@ Claude Code harness 已切换到 **deferred MCP 架构**：
 
 ### 3.1 ✅ MCP CRUD 默认 ack-only（2026-04-27）
 
-**改造**：[src/mcp/tools/base.py](../src/mcp/tools/base.py) 模板 3 处 + [src/mcp/api/core.py](../src/mcp/api/core.py) `create_zone` 特例 1 处，共 ~10 行。
+**改造**：[src/mcp/tools/base.py](../../src/mcp/tools/base.py) 模板 3 处 + [src/mcp/api/core.py](../../src/mcp/api/core.py) `create_zone` 特例 1 处，共 ~10 行。
 
 | 操作 | 改前 | 改后 |
 |---|---|---|
@@ -108,7 +108,7 @@ Claude Code harness 已切换到 **deferred MCP 架构**：
 | `create_fenestration_surfaces_batch` | ✅（与 surface batch 共享代码模式） |
 | ~~`create_zones_batch`~~ | 不做 |
 
-**实现**：[src/mcp/api/envelope.py](../src/mcp/api/envelope.py) 末尾追加 ~120 行 inline 循环（base.py 不动），返回 partial-success 语义：
+**实现**：[src/mcp/api/envelope.py](../../src/mcp/api/envelope.py) 末尾追加 ~120 行 inline 循环（base.py 不动），返回 partial-success 语义：
 ```json
 {"success": true, "message": "Batch update_surface: 84 succeeded, 0 failed.",
  "data": {"count": 84, "succeeded": [...], "failed": [{"name": "X", "error": "..."}]}}
@@ -116,7 +116,7 @@ Claude Code harness 已切换到 **deferred MCP 架构**：
 
 **3 类失败模式回归通过**：不存在的目标 / 缺 `name` / 字段值非法 → 各项独立失败，其余继续。
 
-**Skill 同步**（关键纪律）：[energyplus_mcp_prompt.md](../skills/energyplus_mcp/energyplus_mcp_prompt.md) Step 3/4 + [open_model 版](../skills/energyplus_mcp/open_model/energyplus_mcp_prompt.md) Step 7/8 改为强约束 "USE THE BATCH TOOL — one call only"，open_model §0 hard constraint #4 显式说明 "一次 batch 调用 = 一次 tool call"。MCP 工具总数 77 → 79。
+**Skill 同步**（关键纪律）：[energyplus_mcp_prompt.md](../../skills/energyplus_mcp/energyplus_mcp_prompt.md) Step 3/4 + [open_model 版](../../skills/energyplus_mcp/open_model/energyplus_mcp_prompt.md) Step 7/8 改为强约束 "USE THE BATCH TOOL — one call only"，open_model §0 hard constraint #4 显式说明 "一次 batch 调用 = 一次 tool call"。MCP 工具总数 77 → 79。
 
 **预计节省**（线性 ROI）：
 
@@ -132,7 +132,7 @@ Claude Code harness 已切换到 **deferred MCP 架构**：
 
 ### 3.3 ✅ `Tool_scripts/export_idf.py` 外置（2026-04-27）
 
-**改造**：根目录新建 [Tool_scripts/export_idf.py](../Tool_scripts/export_idf.py)，CLI `python Tool_scripts/export_idf.py <case_dir>`，含 **5 条补丁**（比原计划多 1 条）：
+**改造**：根目录新建 [Tool_scripts/export_idf.py](../../Tool_scripts/export_idf.py)，CLI `python Tool_scripts/export_idf.py <case_dir>`，含 **5 条补丁**（比原计划多 1 条）：
 
 | 补丁 | 说明 |
 |---|---|
@@ -142,7 +142,7 @@ Claude Code harness 已切换到 **deferred MCP 架构**：
 | 3 | InterZone Surface → Adiabatic + Int_Wall（几何阶段 no-op，幂等） |
 | 4 | Schedule:Compact None 字段（几何阶段 no-op） |
 
-**Skill 同步**：[export_idf.md](../skills/energyplus_mcp/export_idf.md) 重写为薄文档，主 skill Step 5c + open_model Step 10 改为单行 Bash。
+**Skill 同步**：[export_idf.md](../../skills/energyplus_mcp/export_idf.md) 重写为薄文档，主 skill Step 5c + open_model Step 10 改为单行 Bash。
 
 **实测**（sm_15 冒烟）：fenestration **0 → 12**（补丁 0 收益），LLM 不再产出 inline Python。
 
@@ -156,7 +156,7 @@ Claude Code harness 已切换到 **deferred MCP 架构**：
 >
 > **理由**：
 > 1. P2 会大量重写 / 删除现有 MCP 工具签名（CRUD 体系会被 idfpy `idf.validate()` + `to_dict()` 取代），现在做的 §4.1（validate 截断）、§4.3（顶点短形式）等改动**大概率被推翻或迁移成本翻倍**。
-> 2. sm_16 实测（[CLAUDE.md §7.11](CLAUDE.md)）已证明在 `update_surfaces_batch` 加持下，复杂度 +36% 仅吃掉 +0.5% token；说明 §3 三档 P0 已经把 messages 段压到接近 batch 化的天花板。
+> 2. sm_16 实测（[CLAUDE.md §7.11](../CLAUDE.md)）已证明在 `update_surfaces_batch` 加持下，复杂度 +36% 仅吃掉 +0.5% token；说明 §3 三档 P0 已经把 messages 段压到接近 batch 化的天花板。
 > 3. 距离开源模型可承受区间还差一道**会话切分**工程（phase A 出 `claude_ep.md` → 关会话 → phase B 调 MCP，每段 ≤50k），这道工程也应在 idfpy 切完后再设计 — 否则 phase B 跑的是即将作废的 MCP。
 > 4. messages 段 140k 占 86% 才是真正大头，但其中 ~80k 是图像视觉 + skill 文档（不在本节范围），单纯压 §4.1-§4.5 至多再省 10-15k，对开源模型迁移仍不够。
 >
@@ -174,7 +174,7 @@ Claude Code harness 已切换到 **deferred MCP 架构**：
 
 **目标**：解决 P4。
 
-**改造**（[src/mcp/api/workflow.py](../src/mcp/api/workflow.py) `validate_config`）：
+**改造**（[src/mcp/api/workflow.py](../../src/mcp/api/workflow.py) `validate_config`）：
 - 原：返回完整 `errors: [...]`
 - 新：`errors_count: 96, errors_first_n: [前 5 条], errors_by_type: {"placeholder_construction": 96}, errors_truncated: true`
 - 可选 `verbose=true` 取全量
@@ -192,7 +192,7 @@ Claude Code harness 已切换到 **deferred MCP 架构**：
 **改造**：
 1. `testdata_prompt.json` 加字段：`facade_status: {south: "with_windows", north: "with_windows", east: "blank", west: "blank"}`
 2. skill Step 1 加规则：`facade_status=blank` 的方向**不附图**，直接登记 0 个 fenestration
-3. 同步 [new_case_guide.md](new_case_guide.md) 案例规范
+3. 同步 [../guides/new_case_guide.md](../guides/new_case_guide.md) 案例规范
 
 **节省**：-3-5k / case（Opus 视觉 token；Continue/开源场景每 attachment 14k 上限被释放，节省更大）
 **工作量**：1 小时（skill + JSON schema 文档）
@@ -331,7 +331,7 @@ LLM 可写 `[[0,0,0],[5,0,0],[5,8,0],[0,8,0]]`（每点 ~8 token vs ~25 token）
 ## 8. 与其他工作流的衔接
 
 - **MEP 阶段 skill**：MEP 落地时 Materials / Schedules / People / Lights / HVAC 同样吃批量重复，本轮 §3.2 batch 接口可直接复用。
-- **`AI_agent/eval/run_case.py`**（[plan.md](plan.md) P0）：评测脚本会跑 sm_0..sm_15 全集，单 case 优化让 Opus baseline 跑得起。
+- **`AI_agent/eval/run_case.py`**（[../plan.md](../plan.md) P0）：评测脚本会跑 sm_0..sm_15 全集，单 case 优化让 Opus baseline 跑得起。
 - **Sonnet / 本地开源迁移**：token 优化是这两条路能跑通的前提（开源模型上下文 16-64k + 长 tool-chain 稳定性差）。
 
 ---

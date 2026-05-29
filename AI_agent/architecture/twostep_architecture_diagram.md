@@ -1,6 +1,6 @@
 # 两步法 intake 架构图示（汇报用）
 
-> 配合 [`floorplan_redraw_strategy.md`](floorplan_redraw_strategy.md) §9 POC 结果使用。
+> 配合 [`floorplan_redraw_strategy.md`](../capability/floorplan_redraw_strategy.md) §9 POC 结果使用。
 
 ---
 
@@ -200,14 +200,14 @@ flowchart LR
 
 | 文件 | 角色 |
 |---|---|
-| [`skills/energyplus_mcp_twostep/phase1/guide.md`](../skills/energyplus_mcp_twostep/phase1/guide.md) | Phase 1 总指导（流程 + 约束 + 输出容器 + 门healing/自检纪律）|
-| [`skills/energyplus_mcp_twostep/phase1/reading_guide.md`](../skills/energyplus_mcp_twostep/phase1/reading_guide.md) | Phase 1 识图指南（怎么认出元素、跨风格、画法卡，纯感知）|
-| [`skills/energyplus_mcp_twostep/phase1/pen_library.md`](../skills/energyplus_mcp_twostep/phase1/pen_library.md) | Phase 1 笔库/画图指南（类别→动作映射：哪支笔/忽略/healing）|
-| [`skills/energyplus_mcp_twostep/phase2/rules.md`](../skills/energyplus_mcp_twostep/phase2/rules.md) | Phase 2 推理规则 |
-| [`Tool_scripts/render_vector_to_svg.py`](../Tool_scripts/render_vector_to_svg.py) | 人工校验工具（矢量 JSON → SVG）|
-| [`Tool_scripts/run_phase2_deepseek.py`](../Tool_scripts/run_phase2_deepseek.py) | Phase 2 自动跑批脚本 |
-| [`test_data/SmallOffice_TwoStep/smalloffice_20/`](../test_data/SmallOffice_TwoStep/smalloffice_20/) | POC anchor 全套 artifacts |
-| [`test_data/SmallOffice_TwoStep/smalloffice_20/compare/diff.md`](../test_data/SmallOffice_TwoStep/smalloffice_20/compare/diff.md) | 三方对比详表 |
+| [`skills/energyplus_mcp_twostep/phase1/guide.md`](../../skills/energyplus_mcp_twostep/phase1/guide.md) | Phase 1 总指导（流程 + 约束 + 输出容器 + 门healing/自检纪律）|
+| [`skills/energyplus_mcp_twostep/phase1/reading_guide.md`](../../skills/energyplus_mcp_twostep/phase1/reading_guide.md) | Phase 1 识图指南（怎么认出元素、跨风格、画法卡，纯感知）|
+| [`skills/energyplus_mcp_twostep/phase1/pen_library.md`](../../skills/energyplus_mcp_twostep/phase1/pen_library.md) | Phase 1 笔库/画图指南（类别→动作映射：哪支笔/忽略/healing）|
+| [`skills/energyplus_mcp_twostep/phase2/rules.md`](../../skills/energyplus_mcp_twostep/phase2/rules.md) | Phase 2 推理规则 |
+| [`Tool_scripts/render_vector_to_svg.py`](../../Tool_scripts/render_vector_to_svg.py) | 人工校验工具（矢量 JSON → SVG）|
+| [`Tool_scripts/run_phase2_deepseek.py`](../../Tool_scripts/run_phase2_deepseek.py) | Phase 2 自动跑批脚本 |
+| [`test_data/SmallOffice_TwoStep/smalloffice_20/`](../../test_data/SmallOffice_TwoStep/smalloffice_20) | POC anchor 全套 artifacts |
+| [`test_data/SmallOffice_TwoStep/smalloffice_20/compare/diff.md`](../../test_data/SmallOffice_TwoStep/smalloffice_20/compare/diff.md) | 三方对比详表 |
 
 ---
 

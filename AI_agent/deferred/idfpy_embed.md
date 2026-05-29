@@ -1,14 +1,14 @@
 # idfpy 全线替换执行计划
 
-> **目标**：本项目从 `eppy + 手写 Pydantic schema + 13 个 converter + ConverterManager` 全线切换到 [idfpy](../idfpy_dev/)（协作者维护）。
-> **背景**：见 [CLAUDE.md §1](CLAUDE.md) 项目定位、[CLAUDE.md §3.1.2](CLAUDE.md) 现状痛点（IDD 错配 / fenestration 静默丢失 / schema 覆盖不全）。
+> **目标**：本项目从 `eppy + 手写 Pydantic schema + 13 个 converter + ConverterManager` 全线切换到 [idfpy](../../idfpy_dev)（协作者维护）。
+> **背景**：见 [CLAUDE.md §1](../CLAUDE.md) 项目定位、[CLAUDE.md §3.1.2](../CLAUDE.md) 现状痛点（IDD 错配 / fenestration 静默丢失 / schema 覆盖不全）。
 > **本文件定位**：阶段拆分 + 角色分工 + 验收门槛。MCP 工具重写主体由协作者完成；本项目侧负责 skill / scripts / 测试数据 / 文档。
 
 ---
 
 ## 0. round-trip 验证已通过（2026-04-28）
 
-[Tool_scripts/idfpy_roundtrip_sm15.py](../Tool_scripts/idfpy_roundtrip_sm15.py) 跑 sm_15 IDF（14 zones / 84 surfaces / 12 fenestration），结果：
+[Tool_scripts/idfpy_roundtrip_sm15.py](../../Tool_scripts/idfpy_roundtrip_sm15.py) 跑 sm_15 IDF（14 zones / 84 surfaces / 12 fenestration），结果：
 
 | 检验 | 结果 |
 |---|---|
@@ -26,7 +26,7 @@
 ## 1. 阶段 P0 — 阻塞解除（协作者侧 + 本项目侧并行）
 
 ### 1.1 协作者 — 修复 idfpy IDF parser 大小写 bug
-- 见独立 bug 报告 [idfpy_bug_case_insensitive.md](idfpy_bug_case_insensitive.md)
+- 见独立 bug 报告 [../idfpy_bug_case_insensitive.md](../idfpy_bug_case_insensitive.md)
 - 不修也能用 epJSON 路径，但 EnergyPlus engine 输出仍以 IDF 大写为主，长期需要修
 - 工作量预估：~5 行（`idfpy/idf.py:_process_block` 加 canonical case 归一化 + 1 个测试 fixture）
 
@@ -120,7 +120,7 @@ P1 完成后回答两个问题：
 |---|---|
 | sm_0 ~ sm_15 round-trip | 旧 IDF → idfpy → epJSON → idfpy → IDF，counts 一致 / `validate()` 0 errors |
 | sm_15 几何阶段重跑 | LLM 用新 MCP 工具走完，counts 与 anchor 一致（14/84/12） |
-| EnergyPlus 仿真 | sm_0（已知唯一能起仿真的）在新栈下仍能起仿真，结果不变（参考 [CLAUDE.md §3.1.2](CLAUDE.md) sm_0 Fatal 根因，新栈应消除） |
+| EnergyPlus 仿真 | sm_0（已知唯一能起仿真的）在新栈下仍能起仿真，结果不变（参考 [CLAUDE.md §3.1.2](../CLAUDE.md) sm_0 Fatal 根因，新栈应消除） |
 | token 实测 | sm_15 重跑取 `/context` total，与 §0 deferred MCP 架构下旧 anchor 横向对比；预计 messages 段下降 30%+（CRUD 工具大量消失） |
 | 双向 round-trip | `IDF → from_dict → IDF` / `IDF → epJSON → IDF`，对象数 + key 字段 100% 一致 |
 
@@ -132,7 +132,7 @@ P1 完成后回答两个问题：
 
 ### 4.3 切换发布
 - 主分支 PR 合并前：在 `Skill_history/` + `MCP_history/` 各建一份切换前快照
-- 合并后立即更新 [README.md](../README.md) 项目结构 + 技术栈
+- 合并后立即更新 [README.md](../../README.md) 项目结构 + 技术栈
 - `pyproject.toml` 删 eppy 依赖
 
 ---
@@ -164,11 +164,11 @@ P1 完成后回答两个问题：
 
 ## 7. 当前 Next Step
 
-1. **协作者**：阅读 [idfpy_bug_case_insensitive.md](idfpy_bug_case_insensitive.md)，修复 IDF parser 大小写 bug（不阻塞 P1，但越早越好）
+1. **协作者**：阅读 [../idfpy_bug_case_insensitive.md](../idfpy_bug_case_insensitive.md)，修复 IDF parser 大小写 bug（不阻塞 P1，但越早越好）
 2. **本项目**：决策 EnergyPlus engine 版本（升 26.1 / 锁 25.2 / 等协作者补 25.2 schema），见 §1.2
 3. **本项目 P1 启动**：`src/mcp_v2/` 起步，先做 `core.py` + `envelope.py` 两个 group，跑 sm_15 几何阶段
 4. **冻结 token_optimization.md §4 计划项**：§4.1 / §4.2 / §4.3 / §4.4 / §4.5 全部暂停，避免在 P2 推翻前重复投入
 
 ---
 
-_最后更新：2026-04-28 — 首版起草。基于 sm_15 round-trip 验证（[Tool_scripts/idfpy_roundtrip_sm15.py](../Tool_scripts/idfpy_roundtrip_sm15.py)）通过的事实，列 P0-P3 四阶段、协作者/本项目分工、验收门槛、风险登记_
+_最后更新：2026-04-28 — 首版起草。基于 sm_15 round-trip 验证（[Tool_scripts/idfpy_roundtrip_sm15.py](../../Tool_scripts/idfpy_roundtrip_sm15.py)）通过的事实，列 P0-P3 四阶段、协作者/本项目分工、验收门槛、风险登记_

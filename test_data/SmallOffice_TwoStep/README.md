@@ -9,7 +9,7 @@
 - DeepSeek 两步法全链路 EP cleanly 跑通（0 severe / 9 warning）
 - 架构通透性 + 识图泛化 + 微调可行性同时验证
 
-详见 [`smalloffice_20/compare/diff.md`](smalloffice_20/compare/diff.md) + [AI_agent/floorplan_redraw_strategy.md](../../AI_agent/floorplan_redraw_strategy.md) §9。
+详见 [`smalloffice_20/compare/diff.md`](smalloffice_20/compare/diff.md) + [AI_agent/floorplan_redraw_strategy.md](../../AI_agent/capability/floorplan_redraw_strategy.md) §9。
 
 ## 标准 case 目录结构
 

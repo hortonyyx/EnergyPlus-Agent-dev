@@ -8,7 +8,7 @@ Two flows are supported:
     Flow Y-manual  (intake handled in a Claude Code session, then re-imported;
                     no Anthropic API needed — used by Claude pro subscribers):
         # 1) In a separate Claude Code window, drive intake manually following
-        #    AI_agent/new_case_guide.md §4-5 and save the resulting JSON to
+        #    AI_agent/guides/new_case_guide.md §4-5 and save the resulting JSON to
         #    test_data/SmallOffice/smalloffice_17/output/intake_output.json
         # 2) Then run:
         python scripts/run_full_pipeline.py smalloffice_17 \
@@ -44,7 +44,7 @@ SUPPORTED_FACADES = ("South", "North", "East", "West")
 
 
 def _collect_images(case_dir: Path, spec: dict) -> list[Path]:
-    """Per AI_agent/new_case_guide.md §九 schema A:
+    """Per AI_agent/guides/new_case_guide.md §九 schema A:
     Floor plans (per-floor) -> top_view (back-compat) -> facades -> supp_plan.
     """
     images: list[Path] = []

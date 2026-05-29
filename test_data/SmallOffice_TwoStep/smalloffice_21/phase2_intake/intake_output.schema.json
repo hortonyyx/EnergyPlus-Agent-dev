@@ -1,0 +1,166 @@
+{
+  "$defs": {
+    "BuildingSchema": {
+      "additionalProperties": true,
+      "properties": {
+        "Name": {
+          "description": "Building name",
+          "title": "Name",
+          "type": "string"
+        },
+        "North Axis": {
+          "default": 0.0,
+          "description": "Building north axis in degrees",
+          "title": "North Axis",
+          "type": "number"
+        },
+        "Terrain": {
+          "default": "Suburbs",
+          "description": "Terrain type",
+          "title": "Terrain",
+          "type": "string"
+        },
+        "Loads Convergence Tolerance Value": {
+          "default": 0.04,
+          "description": "Loads convergence tolerance value",
+          "title": "Loads Convergence Tolerance Value",
+          "type": "number"
+        },
+        "Temperature Convergence Tolerance Value": {
+          "default": 0.4,
+          "description": "Temperature convergence tolerance value",
+          "title": "Temperature Convergence Tolerance Value",
+          "type": "number"
+        },
+        "Solar Distribution": {
+          "default": "FullExterior",
+          "description": "Solar distribution",
+          "title": "Solar Distribution",
+          "type": "string"
+        },
+        "Maximum Number of Warmup Days": {
+          "default": 25,
+          "description": "Maximum number of warmup days",
+          "title": "Maximum Number Of Warmup Days",
+          "type": "integer"
+        },
+        "Minimum Number of Warmup Days": {
+          "default": 1,
+          "description": "Minimum number of warmup days (E+ 25.1 requires > 0)",
+          "title": "Minimum Number Of Warmup Days",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "Name"
+      ],
+      "title": "BuildingSchema",
+      "type": "object"
+    },
+    "SiteLocationSchema": {
+      "additionalProperties": true,
+      "properties": {
+        "Name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "Latitude": {
+          "title": "Latitude",
+          "type": "number"
+        },
+        "Longitude": {
+          "title": "Longitude",
+          "type": "number"
+        },
+        "Time Zone": {
+          "title": "Time Zone",
+          "type": "number"
+        },
+        "Elevation": {
+          "title": "Elevation",
+          "type": "number"
+        }
+      },
+      "required": [
+        "Name",
+        "Latitude",
+        "Longitude",
+        "Time Zone",
+        "Elevation"
+      ],
+      "title": "SiteLocationSchema",
+      "type": "object"
+    }
+  },
+  "description": "Structured output from intake LLM call.\n\n`building` and `site_location` are nested schemas populated directly\nby the LLM's structured output, so intake_node does not need to parse\nfree text a second time.\n\nAll `*_specs` fields are natural-language task instructions passed to\nthe corresponding phase agent.",
+  "properties": {
+    "building": {
+      "$ref": "#/$defs/BuildingSchema",
+      "description": "Building object (name, orientation, terrain, tolerances)"
+    },
+    "site_location": {
+      "$ref": "#/$defs/SiteLocationSchema",
+      "description": "Site location (latitude, longitude, time zone, elevation)"
+    },
+    "zone_specs": {
+      "description": "Zone creation instructions: count, names, dimensions, positions",
+      "title": "Zone Specs",
+      "type": "string"
+    },
+    "material_specs": {
+      "description": "Material definitions with thermal properties",
+      "title": "Material Specs",
+      "type": "string"
+    },
+    "schedule_specs": {
+      "description": "Schedule definitions: occupancy, lighting, HVAC operation patterns",
+      "title": "Schedule Specs",
+      "type": "string"
+    },
+    "construction_specs": {
+      "description": "Construction assembly instructions referencing materials",
+      "title": "Construction Specs",
+      "type": "string"
+    },
+    "surface_specs": {
+      "description": "Surface geometry instructions referencing zones and constructions",
+      "title": "Surface Specs",
+      "type": "string"
+    },
+    "fenestration_specs": {
+      "description": "Window/door instructions referencing surfaces",
+      "title": "Fenestration Specs",
+      "type": "string"
+    },
+    "hvac_specs": {
+      "description": "HVAC system type, thermostat setpoints, schedule references",
+      "title": "Hvac Specs",
+      "type": "string"
+    },
+    "people_specs": {
+      "description": "Occupancy: zone assignment, density, activity schedule per zone",
+      "title": "People Specs",
+      "type": "string"
+    },
+    "lights_specs": {
+      "description": "Lighting: zone assignment, power density, schedule per zone",
+      "title": "Lights Specs",
+      "type": "string"
+    }
+  },
+  "required": [
+    "building",
+    "site_location",
+    "zone_specs",
+    "material_specs",
+    "schedule_specs",
+    "construction_specs",
+    "surface_specs",
+    "fenestration_specs",
+    "hvac_specs",
+    "people_specs",
+    "lights_specs"
+  ],
+  "title": "IntakeOutput",
+  "type": "object"
+}

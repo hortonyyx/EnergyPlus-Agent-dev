@@ -19,7 +19,7 @@ only introduce perception errors), phase 2 only reasons over the vectorized JSON
 
 This folder holds only the knowledge specs above. The **operational startup prompts** (the phase 1 /
 phase 2 blocks to paste into a new session) live in
-[`../../AI_agent/new_case_guide_twostep.md`](../../AI_agent/new_case_guide_twostep.md) Step 4a / 4b —
+[`../../AI_agent/new_case_guide_twostep.md`](../../AI_agent/guides/new_case_guide_twostep.md) Step 4a / 4b —
 kept in one place so they don't drift from the run procedure.
 
 ## Flow

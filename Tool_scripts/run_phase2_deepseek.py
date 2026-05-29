@@ -45,7 +45,7 @@ if str(_PROJECT_ROOT) not in sys.path:
 # phase2 reads: phase2/rules.md + phase1/guide.md + phase1/pen_library.md
 # (it does NOT read phase1/reading_guide.md — that is image-perception only and
 # phase2 never sees images). Matches the phase 2 "Required reading" in
-# AI_agent/new_case_guide_twostep.md Step 4b.
+# AI_agent/guides/new_case_guide_twostep.md Step 4b.
 _SKILL_DIR = _PROJECT_ROOT / "skills" / "energyplus_mcp_twostep"
 
 from dotenv import load_dotenv  # noqa: E402

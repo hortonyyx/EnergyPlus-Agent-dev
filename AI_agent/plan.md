@@ -2,7 +2,7 @@
 
 > **当前状态**：A 段「代码跑通 / 架构迁移」全部闭环（[CLAUDE.md §5.3](CLAUDE.md)）。B 段「识图建模能力提升」阶段 1（B1 旧 skill 迁移）✅ 完成 2026-05-12（[CLAUDE.md §5.5](CLAUDE.md)）。
 >
-> **2026-05-12 晚 — 两步法 POC PASS（[floorplan_redraw_strategy.md §9](floorplan_redraw_strategy.md)）**：sm_20 全套两步法 + 下游 + EP 真跑验证；架构通透性 + 识图泛化 + 微调可行性同时验证。**新主线 = B1.5 两步法立项**（最高优先级，详见下节）。B2-B4 评测基线规范化与之并行推进。idfpy 替换主线（[idfpy_embed.md](idfpy_embed.md)）等协作者交付，仍搁置。
+> **2026-05-12 晚 — 两步法 POC PASS（[floorplan_redraw_strategy.md §9](capability/floorplan_redraw_strategy.md)）**：sm_20 全套两步法 + 下游 + EP 真跑验证；架构通透性 + 识图泛化 + 微调可行性同时验证。**新主线 = B1.5 两步法立项**（最高优先级，详见下节）。B2-B4 评测基线规范化与之并行推进。idfpy 替换主线（[deferred/idfpy_embed.md](deferred/idfpy_embed.md)）等协作者交付，仍搁置。
 >
 > 优先级：P0（立即）/ P1（一周内）/ P2（依赖 P0/P1）。
 
@@ -16,7 +16,7 @@
    EP cleanly 跑通；架构通透性 anchor 从 sm_16_newarch 切到 sm_20。
 
 【新】阶段 1.5 [B1.5]：两步法 intake 立项 ← 当前最高优先级（2026-05-12 晚起）
-   sm_20 两步法 POC PASS（[floorplan_redraw_strategy.md §9](floorplan_redraw_strategy.md)）。
+   sm_20 两步法 POC PASS（[floorplan_redraw_strategy.md §9](capability/floorplan_redraw_strategy.md)）。
    下一步：异图 POC v2（噪声图）+ intake_node 重写串行调用两 phase +
    skills/energyplus_mcp_twostep 持续迭代 + 评测嵌入。详见本文 B1.5 节。
 
@@ -32,7 +32,7 @@
    3. 引入规范化绘图实现门 / 窗 / 楼梯等识别
    注：B5-B7 都从两步法路径展开（phase1 schema 词典扩展 / phase2 规则扩展）。
 
-远期 [B8-B9]：开源模型 + LoRA Pivot（[pivot_criteria.md](pivot_criteria.md)）
+远期 [B8-B9]：开源模型 + LoRA Pivot（[reference/pivot_criteria.md](reference/pivot_criteria.md)）
    两步法天然分两个微调目标：phase1 = (图, 矢量 JSON) VLM 微调；
    phase2 = (矢量 JSON, IntakeOutput) 纯文本 LLM 微调。
 ```
@@ -49,15 +49,15 @@
 | A1 | IntakeOutput schema 与协作者 trace 对齐 drift 检查 | ✅ 11 字段 / BuildingSchema 8 / SiteLocationSchema 5 全部一致，无 drift。详见 [CLAUDE.md §5.3.A](CLAUDE.md) |
 | A2 | per-subagent LLM 配置（intake / default 两 section） | ✅ [llm.yaml](../src/configs/llm.yaml) 多 section + [llm.py:create_llm(node_name)](../src/agent/llm.py) 路由。详见 [CLAUDE.md §5.3.C](CLAUDE.md) |
 | A3 | 端到端验收脚本 | ✅ [scripts/run_full_pipeline.py](../scripts/run_full_pipeline.py)（三入口：全自动 / `--intake-from` / `--intake-only`），原 A3 "preview_geometry 截止 fenestration" 设想被全图脚本替代——下游 DeepSeek 跑近免费，不必砍 |
-| A4 | 文档同步（CLAUDE.md / architecture.md / new_case_guide.md） | ✅ 全部修订；[CLAUDE.md](CLAUDE.md) 410 → 175 行精简；[new_case_guide.md](new_case_guide.md) 重写为半人工 7 步流程 |
+| A4 | 文档同步（CLAUDE.md / architecture.md / new_case_guide.md） | ✅ 全部修订；[CLAUDE.md](CLAUDE.md) 410 → 175 行精简；[guides/new_case_guide.md](guides/new_case_guide.md) 重写为半人工 7 步流程 |
 
 ---
 
 ## B. 识图建模能力提升（视觉能力主线）
 
-> **能力主战场是 [architecture.md §3](architecture.md) 表格里"几何依赖：强"的 5 个字段**：`building.name` / `site_location` / `zone_specs` / `surface_specs` / `fenestration_specs`。其余 6 个字段从文本可推，不是瓶颈。
+> **能力主战场是 [architecture.md §3](architecture/architecture.md) 表格里"几何依赖：强"的 5 个字段**：`building.name` / `site_location` / `zone_specs` / `surface_specs` / `fenestration_specs`。其余 6 个字段从文本可推，不是瓶颈。
 >
-> 主指标：[pivot_criteria.md](pivot_criteria.md) 视觉层阈值 — zone F1 ≥90% / 尺寸误差 ≤5% / 走廊 F1 ≥0.85 / 特殊 zone F1 ≥0.80。
+> 主指标：[reference/pivot_criteria.md](reference/pivot_criteria.md) 视觉层阈值 — zone F1 ≥90% / 尺寸误差 ≤5% / 走廊 F1 ≥0.85 / 特殊 zone F1 ≥0.80。
 >
 > **三阶段总览**：B1 恢复 → B2-B4 评测基线规范化 → B5-B7 能力升级 → B8-B9 远期 pivot。详见各节。
 
@@ -79,7 +79,7 @@
 **真跑 simulate 关键发现**（见 [§C](#c-暂搁置依赖外部进展不安排时间) fenestration glazing 条）：
 - T-vertex 实证**不卡 EP**（warm-up 0 几何 severe）→ B0' 关闭
 - 真 fatal = fenestration_agent 把 `WindowMaterial:SimpleGlazingSystem` 当一层叠加 → window 求解器 NaN
-- 手工修 Construction 单层引用后 EP PASS；artifacts 在 [`smalloffice_16_newarch/output/ep_run_glazingfix/`](../test_data/SmallOffice/smalloffice_16_newarch/output/ep_run_glazingfix/)
+- 手工修 Construction 单层引用后 EP PASS；artifacts 在 [`smalloffice_16_newarch/output/ep_run_glazingfix/`](../test_data/SmallOffice/smalloffice_16_newarch/output/ep_run_glazingfix)
 
 **遗留 todo**（已沉到 [§8.1](CLAUDE.md)）：
 - [ ] sm_17 端到端再跑一次（不同图纸验证可复用性，不再被 T-vertex 阻塞）
@@ -98,7 +98,7 @@
 
 **留在 codebase 的临时措施**：
 - [src/validator/data_model.py validate_geometry_closure](../src/validator/data_model.py) 永久保持 `logger.warning`，不恢复 raise
-- 待 idfpy 切换时整体删 validator，这条临时性约束自然消失（[idfpy_embed.md](idfpy_embed.md)）
+- 待 idfpy 切换时整体删 validator，这条临时性约束自然消失（[deferred/idfpy_embed.md](deferred/idfpy_embed.md)）
 
 **作废**：原 A 改 prompt / B 后处理 / C 放宽 validator 三方案，不再做。
 
@@ -107,8 +107,8 @@
 ### B0''. [P1] sm_17 端到端首跑（异图验证）
 
 **任务**：
-- 用户在新 Claude Code 会话按 [new_case_guide.md §四](new_case_guide.md) 跑 Step 4 → 产 `smalloffice_17/output/intake_output.json`
-- 助手按 [§5.0](new_case_guide.md) 触发协议跑下游
+- 用户在新 Claude Code 会话按 [new_case_guide.md §四](guides/new_case_guide.md) 跑 Step 4 → 产 `smalloffice_17/output/intake_output.json`
+- 助手按 [§5.0](guides/new_case_guide.md) 触发协议跑下游
 - 触发 `记录这次跑 sm_17 e2e_v1` 落 baseline
 
 **验收**：与 B0 类似；关注 sm_17 是否暴露**新**类型 bug。
@@ -123,7 +123,7 @@
 
 ### B1. [P0] 旧 skill 能力迁移到新架构（恢复 sm_16 旧建模水平）— ✅ 完成 2026-05-12
 
-**背景**：旧架构（[skills/energyplus_mcp/](../skills/energyplus_mcp/) + Claude Opus 单会话 + skill 分步约束）能在 sm_16 上拿到准确建模。新架构（半人工 Step 4 prompt + 9 subagent 自动下游）的 intake 路径虽然已切到 [src/agent/nodes/intake.py](../src/agent/nodes/intake.py#L34) + `skills/energyplus_mcp/*.md` 规则文档库，但在迁移初期仍是简版，**没把旧 skill 的分步识图 / 绘图标注 / 自检约束等内容完整迁过来** → sm_16_newarch 建模质量不及旧架构 sm_16 baseline。
+**背景**：旧架构（[skills/energyplus_mcp/](../skills/energyplus_mcp) + Claude Opus 单会话 + skill 分步约束）能在 sm_16 上拿到准确建模。新架构（半人工 Step 4 prompt + 9 subagent 自动下游）的 intake 路径虽然已切到 [src/agent/nodes/intake.py](../src/agent/nodes/intake.py#L34) + `skills/energyplus_mcp/*.md` 规则文档库，但在迁移初期仍是简版，**没把旧 skill 的分步识图 / 绘图标注 / 自检约束等内容完整迁过来** → sm_16_newarch 建模质量不及旧架构 sm_16 baseline。
 
 **第一原则**：**先恢复，再升级**。新架构必须先到达旧架构能做到的水平，才有资格谈 B5-B7 的能力扩展。
 
@@ -134,7 +134,7 @@
   - [`intake_output_contract.md`](../skills/energyplus_mcp/intake_output_contract.md)（新增）：surface_specs cross-floor split-pairing required enumeration / fenestration_specs Right-side chain pattern N-window 通式 + 3 worked example (A 单窗等高 / B sm_20 corridor 不等高 / C 同层堆叠双窗) + counter-example + 自检规则 `z_max_i - z_min_i == win_h_i`
   - [`zonetool_prompt.md`](../skills/energyplus_mcp/zonetool_prompt.md) 恢复 4 立面 CCW-from-outside vertex synthesis 表 + Floor 2 南窗 worked example
 - [x] `Floor_N_*` 模板禁用规则合并到 intake_output_contract.md "No Compression, No Placeholders"
-- [x] **下游 surface_agent hotfix**（[downstream_agent_changes.md 2026-05-12 条](downstream_agent_changes.md)）：[`src/agent/nodes/surface.py`](../src/agent/nodes/surface.py) 同时传 zone_specs + surface_specs 到 agent，加 "per-floor z values come from zone_specs" 硬指引，worked example 改 F2_S1 (3.60 m)；备份 `src_history/2026-05-12_surface_agent_zfloor_fix/`
+- [x] **下游 surface_agent hotfix**（[downstream_agent_changes.md 2026-05-12 条](logs/downstream_agent_changes.md)）：[`src/agent/nodes/surface.py`](../src/agent/nodes/surface.py) 同时传 zone_specs + surface_specs 到 agent，加 "per-floor z values come from zone_specs" 硬指引，worked example 改 F2_S1 (3.60 m)；备份 `src_history/2026-05-12_surface_agent_zfloor_fix/`
 - [x] 用 sm_20（= sm_19 plans）跑半人工流双版对照：
   - `test_data/SmallOffice/smalloffice_20/output/`（B1 only，仍 10 CHKSBS partial-overlap）
   - `test_data/SmallOffice/smalloffice_20/output_new/`（B1 + surface fix，0 CHKSBS，EP cleanly 完成）
@@ -155,7 +155,7 @@
 
 ### B1.5. [P0] 两步法 intake 主线立项
 
-**背景**：[`floorplan_redraw_strategy.md`](floorplan_redraw_strategy.md) §9 — sm_20 POC PASS 2026-05-12 晚。两步法（phase1 矢量化重绘 → phase2 拓扑建模）相对单步法的硬证据：
+**背景**：[`floorplan_redraw_strategy.md`](capability/floorplan_redraw_strategy.md) §9 — sm_20 POC PASS 2026-05-12 晚。两步法（phase1 矢量化重绘 → phase2 拓扑建模）相对单步法的硬证据：
 
 - **F3 corridor 窗 z 修正**：两步法两条路径都准（z=10.60），anchor 单步法错（z=9.60，B1 残留 slip 再现）。phase1 把识图结果锁定在 `y_range_m: [8.20, 10.60]` → phase2 无机会重做坐标推导
 - **DeepSeek 路径下游 EP cleanly 跑通**：0 severe / 9 warning / 8.49s 全年仿真。证明两步法 IntakeOutput **不破坏现有下游契约**
@@ -170,10 +170,10 @@
 
 > **结果（2026-05-28，sm21）**：2 层办公异图（15×8 m，家具/门噪声）全套两步法 EP `Completed Successfully` / 0 severe / 0 fatal / 6 无害 warning / 15 窗。phase1（冷启 Opus 子代理）重绘忠实、误差预算守住；phase2（DeepSeek 盲跑）首跑暴露 **phase2 规则缺口**：`material_specs` 漏声明具名 glazing 材料、把玻璃只写进 `construction_specs` 内联 → construction 子代理找不到材料正确跳过 `Default_Window` → 0 窗 → EP 段错。**根因在咱们侧 phase2/rules.md（非协作者下游 prompt）**。补 Step 5 "material ↔ construction split" 硬规则后重跑 → PASS。sm21 成为继 sm_20 的第二个干净 EP anchor。详见 [CLAUDE.md §5.7](CLAUDE.md) + [twostep memory]。**B1.5.c（intake_node 串行重写）就此解禁**。
 
-> 设计框架已在 [`floorplan_redraw_strategy.md §10`](floorplan_redraw_strategy.md)（2026-05-22 讨论）收敛：测「信息噪声 / 选择性提取」而非「全局像素降质」；phase1 走选择性提取(B) + 门洞补成连续墙；zone 重划分归 phase2。
+> 设计框架已在 [`floorplan_redraw_strategy.md §10`](capability/floorplan_redraw_strategy.md)（2026-05-22 讨论）收敛：测「信息噪声 / 选择性提取」而非「全局像素降质」；phase1 走选择性提取(B) + 门洞补成连续墙；zone 重划分归 phase2。
 
 - [ ] **图纸准备**（用户）：矩形几何同 sm_20 级 + 信息杂物（家具 / 铺装 / 纹理 / 楼梯 / 轴网圈 / 房间文字）+ **每房间 1-2 个门** + **1-2 处故意遮挡某段尺寸标注** + testdata_prompt.json（楼层/区/外包/WWR）
-- [x] **schema v1.3 amendment（先于跑批，依据 §10.4）** ✅ 2026-05-25：`phase1_vector_schema.md`（后于 2026-05-26 拆分为 [`phase1/`](../skills/energyplus_mcp_twostep/phase1/) 三份：guide/reading_guide/pen_library）§2 "开洞打断成两段"→"门洞补成连续墙 + 留痕"+ 新增 §2.1 四条护栏；门处理改"识别以驱动补墙、不出 door 笔、note 记 heal"；`uncaptured_visual_elements` 提为**必填**（扩为"凡看到但没画的都登记"，含主动排除杂物 + heal 门）；`door`/`arc` 退出词典；同步 [`phase1/prompt_template.md`](../skills/energyplus_mcp_twostep/phase1/prompt_template.md) 纪律段。备份 `Skill_history/2026-05-25_twostep_phase1_v1.3_door_healing/`
+- [x] **schema v1.3 amendment（先于跑批，依据 §10.4）** ✅ 2026-05-25：`phase1_vector_schema.md`（后于 2026-05-26 拆分为 [`phase1/`](../skills/energyplus_mcp_twostep/phase1) 三份：guide/reading_guide/pen_library）§2 "开洞打断成两段"→"门洞补成连续墙 + 留痕"+ 新增 §2.1 四条护栏；门处理改"识别以驱动补墙、不出 door 笔、note 记 heal"；`uncaptured_visual_elements` 提为**必填**（扩为"凡看到但没画的都登记"，含主动排除杂物 + heal 门）；`door`/`arc` 退出词典；同步 [`phase1/prompt_template.md`](../skills/energyplus_mcp_twostep/phase1/prompt_template.md) 纪律段。备份 `Skill_history/2026-05-25_twostep_phase1_v1.3_door_healing/`
 - [x] 跑两步法（phase1 子代理 + phase2 DeepSeek）+ 下游 + EP ✅ sm21 PASS（修 glazing material 规则后）
 - [ ] **判分项**（§10.2 + 选择性提取观察点）：
   - 杂物→结构假阳性（家具/铺装/纹理被当 wall/window）⛔ 最致命
@@ -191,7 +191,7 @@
 
 **phase1 辅助 skill = 识图库 + 笔库（两面，喂 POC v2；2026-05-25 框架确立）**：
 - [ ] **识图库（新产物，先做一版）**：一般建筑图画法知识库——墙的多种画法（粗黑线 / 双线 / 影线 / 灰填充）、窗的表达、家具 / 铺装 / 轴网圈 / 楼梯符号长相。目标 = 提升 phase1 跨**风格 / 画法**泛化识别力（认出来才能按选择性提取正确画 keep-set、把杂物排除进 `uncaptured`）。与 [B7](#b7-p1-能力升级-3--规范化绘图--门--窗--楼梯识别)「规范化绘图」**反方向互补**（B7 约束输入按规约画；识图库教 phase1 读杂多规约），别重复造
-- [ ] **笔库（定调）**：审视 pen 集——留哪些、多少够。准则 = [floorplan_redraw_strategy.md §10.3](floorplan_redraw_strategy.md) 最小词典 + 按需提拔，提拔触发器 = 「phase2 是否需要这条信息」。守最小集，不为家具 / 门造笔（门 heal、家具 exclude）
+- [ ] **笔库（定调）**：审视 pen 集——留哪些、多少够。准则 = [floorplan_redraw_strategy.md §10.3](capability/floorplan_redraw_strategy.md) 最小词典 + 按需提拔，提拔触发器 = 「phase2 是否需要这条信息」。守最小集，不为家具 / 门造笔（门 heal、家具 exclude）
 - [ ] 跑 POC v2 时用识图库 + 笔库观察：phase1 在噪声 / 异风格图上的 keep-set 分类准确率 + 杂物排除率
 
 **phase2_rules 规则合并（吸收 Opus phase2_followup_notes 可机械化项）**：
@@ -201,7 +201,7 @@
 - [ ] site.Name 规范化为 `<City>_<ISO2>`
 - [ ] Schedule:Compact day-type 名（EnergyPlus 接受 `Weekdays/Weekends/Holiday/AllOtherDays`）
 
-> 注（2026-05-25 起）：`skills/energyplus_mcp_twostep/` 是纯当前版本 spec，**文件内不再写版本号 / changelog / 缘起 case**（决策史归 git commit + 本 plan + [floorplan_redraw_strategy.md](floorplan_redraw_strategy.md)）。每次改 skill 仍按 [CLAUDE.md §6#5](CLAUDE.md) 备份到 `Skill_history/`。
+> 注（2026-05-25 起）：`skills/energyplus_mcp_twostep/` 是纯当前版本 spec，**文件内不再写版本号 / changelog / 缘起 case**（决策史归 git commit + 本 plan + [capability/floorplan_redraw_strategy.md](capability/floorplan_redraw_strategy.md)）。每次改 skill 仍按 [CLAUDE.md §6#5](CLAUDE.md) 备份到 `Skill_history/`。
 
 #### B1.5.c [P0] `intake_node` 重写为两步串行
 - [ ] [`src/agent/nodes/intake.py`](../src/agent/nodes/intake.py) 改为：
@@ -210,14 +210,14 @@
   - phase2 调用：phase1 JSON + phase2_rules → IntakeOutput
   - `--intake-from` short-circuit 保留（半人工流 + 评测复跑用）
 - [ ] [`src/configs/llm.yaml`](../src/configs/llm.yaml) 加 section 分 `intake_phase1` (VLM, multimodal) + `intake_phase2` (text-only, thinking enabled)
-- [ ] 备份原 intake.py 到 `src_history/`，在 [downstream_agent_changes.md](downstream_agent_changes.md) 加改动记录
+- [ ] 备份原 intake.py 到 `src_history/`，在 [logs/downstream_agent_changes.md](logs/downstream_agent_changes.md) 加改动记录
 - [ ] [`scripts/run_full_pipeline.py`](../scripts/run_full_pipeline.py) 入口适配：新增 `--phase1-from` flag 让半人工 phase1 跑（如 Claude Code 会话）后塞回去；保留 `--intake-from` 用于完整 IntakeOutput 直接喂
 
 #### B1.5.d [P0] [`Tool_scripts/run_phase2_deepseek.py`](../Tool_scripts/run_phase2_deepseek.py) 已建，迁入主线后改成 phase2_node
 - [ ] 把 `_fix_js_concat` JS 拼接修复 + thinking enabled + JSON-only 直出策略合入新 phase2_node
 - [ ] 维持 `ensure_schema_initialized()` 初始化 IDD 的入口
 
-#### B1.5.e [P0] [`new_case_guide.md`](new_case_guide.md) 重写为两步流程
+#### B1.5.e [P0] [`new_case_guide.md`](guides/new_case_guide.md) 重写为两步流程
 - [ ] Step 4 拆 4a phase1 / 4b phase2
 - [ ] Step 4a 默认走 Claude Code Opus 会话 + SVG 人工核验（30 min/case）
 - [ ] Step 4b 走自动 DeepSeek 脚本 / 或 Opus 会话二选一
@@ -270,7 +270,7 @@
 
 **验收**：
 - `test_data/SmallOffice/smalloffice_{13,14,15,16}/gt.json` 都存在且字段齐
-- 与 [test_baseline/](../test_data/test_baseline/) 现有数据交叉对验
+- 与 [test_baseline/](../test_data/test_baseline) 现有数据交叉对验
 
 **依赖**：B1 完成（确保新架构识图能力已恢复，评测才有意义）
 
@@ -309,7 +309,7 @@
 ### B4. [P0] Opus baseline 重建 + 校对方案 + token 协议升级（M3 milestone）
 
 **A. Opus baseline 重建**：
-- 半人工流：用户在 Claude Code 会话按 [new_case_guide.md §四](new_case_guide.md) 跑全部 GT case 一次（4 case × ~10 分钟人工 = ~半天）
+- 半人工流：用户在 Claude Code 会话按 [new_case_guide.md §四](guides/new_case_guide.md) 跑全部 GT case 一次（4 case × ~10 分钟人工 = ~半天）
 - 每 case 产出 `intake_output.json`
 - 助手跑 B3 `intake_diff` 对每 case 产 metrics CSV
 - 汇总到 `test_data/test_baseline/runs/<date>_opus_baseline/summary.csv`
@@ -339,7 +339,7 @@
 - summary.csv 给出 zone_f1 / 尺寸误差 / WWR 误差等所有指标均值
 - 校对方案落 README + baseline 目录骨架
 - 下次跑半人工 case 时 `tokens.json` 自动填齐，`/context` 不再阻塞
-- 与 [pivot_criteria.md §4.4](pivot_criteria.md) 阈值对齐 → 看现状离阈值多远
+- 与 [pivot_criteria.md §4.4](reference/pivot_criteria.md) 阈值对齐 → 看现状离阈值多远
 
 **依赖**：B1 + B2 + B3 + 用户重复 Step 4 四次
 
@@ -391,7 +391,7 @@
 
 - ① **用户侧规约**：
   - [ ] 写 `AI_agent/drawing_convention.md`：门 = 红色弧段 / 窗 = 蓝色双线 / 楼梯 = 灰色平行斜线 / WC = 蓝色"WC"标签 / etc.
-  - [ ] 在 [new_case_guide.md §四](new_case_guide.md) Step 1 加规约说明，让用户准备图纸时按约定标
+  - [ ] 在 [new_case_guide.md §四](guides/new_case_guide.md) Step 1 加规约说明，让用户准备图纸时按约定标
   - [ ] INTAKE_SYSTEM_PROMPT 加"按规约识别"分支
 
 - ② **工具侧预处理**（原 B5 PaddleOCR + cv2 内容并入此处）：
@@ -400,7 +400,7 @@
     - cv2 形态学找宽白连通区 → 走廊 bbox 候选
     - 颜色滤波 + 模板匹配找门 / 窗 / 楼梯符号 → 实例列表
     - 输出 `<case>/output/preprocess.json`
-  - [ ] [new_case_guide.md Step 4](new_case_guide.md) prompt 模板加「预处理结果（可信度高）」段，让用户先跑预处理脚本，把结果贴给 Opus 当 hint
+  - [ ] [new_case_guide.md Step 4](guides/new_case_guide.md) prompt 模板加「预处理结果（可信度高）」段，让用户先跑预处理脚本，把结果贴给 Opus 当 hint
 
 **工作量**：~2-3 周（① 约半周 / ② 1-2 周）
 
@@ -427,8 +427,8 @@
 **工作量**：~1 周（含部署 + 调参）
 
 **验收**：
-- 候选模型至少一档达 Opus 80%+（[pivot_criteria.md §4.4](pivot_criteria.md) 阈值）
-- 落对比表到 [open_model_guide.md](open_model_guide.md)
+- 候选模型至少一档达 Opus 80%+（[pivot_criteria.md §4.4](reference/pivot_criteria.md) 阈值）
+- 落对比表到 [reference/open_model_guide.md](reference/open_model_guide.md)
 
 **依赖**：B1-B7 完成
 
@@ -437,14 +437,14 @@
 ### B9. [P3] LoRA SFT + Pivot 切换（M5/M6）
 
 **任务**：
-- 见 [pivot_criteria.md §4.1](pivot_criteria.md)：用 Opus baseline 的 IntakeOutput JSON 集合作 SFT 数据种子（≥500 对，需扩 GT 集到 ≥10 case）
+- 见 [pivot_criteria.md §4.1](reference/pivot_criteria.md)：用 Opus baseline 的 IntakeOutput JSON 集合作 SFT 数据种子（≥500 对，需扩 GT 集到 ≥10 case）
 - LoRA 微调候选开源模型
 - holdout 集评测达 Opus 80% 后切 [llm.yaml](../src/configs/llm.yaml) `intake` 默认 provider
 - 全量回归
 
 **工作量**：~2-3 周
 
-**验收**：[pivot_criteria.md](pivot_criteria.md) 全部阈值达标
+**验收**：[reference/pivot_criteria.md](reference/pivot_criteria.md) 全部阈值达标
 
 **依赖**：B8 完成 + Pivot 阈值达标判定
 
@@ -452,15 +452,15 @@
 
 ## C. 暂搁置（依赖外部进展，不安排时间）
 
-- **idfpy 替换主线**（[idfpy_embed.md](idfpy_embed.md)）：等协作者完成 [§3.1 MCP 全线重写](idfpy_embed.md)；本项目侧 §3.2 等他们交付后再启
-- **token_optimization §4.1-4.5**（[token_optimization.md](token_optimization.md)）：等 idfpy 切换完成后大量 CRUD 工具消失，重新评估
+- **idfpy 替换主线**（[deferred/idfpy_embed.md](deferred/idfpy_embed.md)）：等协作者完成 [§3.1 MCP 全线重写](deferred/idfpy_embed.md)；本项目侧 §3.2 等他们交付后再启
+- **token_optimization §4.1-4.5**（[deferred/token_optimization.md](deferred/token_optimization.md)）：等 idfpy 切换完成后大量 CRUD 工具消失，重新评估
 - **OpenStudio 几何验收 sm_15/16/17**（[CLAUDE.md §8.1](CLAUDE.md)）：用户人工跑，不卡代码
 - **fenestration / construction Construction layer 兼容性 prompt 修**（2026-05-07 sm_16_newarch 真跑发现）：
   - bug：`WindowMaterial:SimpleGlazingSystem` 被当作可串联玻璃层（与 air gap + 第二片玻璃组成三明治） → EP window 求解器收敛失败 NaN fatal
   - 实例：sm_16_newarch `Window_Double_Glazing` Construction → `F1_NORTH_W_WINDOW` fatal；手工把 Construction 改成单层引用 SimpleGlazing 后 EP `Completed Successfully` / 0 severe
   - 副 bug：`Glass_Clear_6mm` U=5.7 是单层透明玻璃值，但命名 `Double_Glazing` —— 命名/数值不一致
   - **不修原因**：用户决策当前焦点是几何正确性；idfpy 自带 schema 校验切换后会原生拒绝该组合，短期改 prompt 属重复投资
-  - **启动条件**：idfpy MCP 重写交付后（[idfpy_embed.md](idfpy_embed.md)）一并解
+  - **启动条件**：idfpy MCP 重写交付后（[deferred/idfpy_embed.md](deferred/idfpy_embed.md)）一并解
 
 ---
 
@@ -480,16 +480,16 @@
 
 ## 关联文档
 
-- [architecture.md](architecture.md) — 当前架构事实参考
+- [architecture/architecture.md](architecture/architecture.md) — 当前架构事实参考
 - [CLAUDE.md](CLAUDE.md) — 项目管理总览（精简版）
-- [new_case_guide.md](new_case_guide.md) — 新建测试样例 7 步流程（半人工版）
-- [pivot_criteria.md](pivot_criteria.md) — Pivot 双阈值
-- [open_model_guide.md](open_model_guide.md) — 开源模型操作手册
-- [idfpy_embed.md](idfpy_embed.md) — idfpy 替换主线（搁置中）
+- [guides/new_case_guide.md](guides/new_case_guide.md) — 新建测试样例 7 步流程（半人工版）
+- [reference/pivot_criteria.md](reference/pivot_criteria.md) — Pivot 双阈值
+- [reference/open_model_guide.md](reference/open_model_guide.md) — 开源模型操作手册
+- [deferred/idfpy_embed.md](deferred/idfpy_embed.md) — idfpy 替换主线（搁置中）
 
 ---
 
-_2026-05-12 (晚) — **两步法 POC PASS + B1.5 立项最高优先级**：sm_20 全套两步法（phase1 矢量化 → phase2 拓扑建模）+ 下游 + EP 真跑通过（DeepSeek 路径 EP cleanly / Opus 路径暴露 InterZone construction rule 漏洞已在 phase2_rules v1.3 修）。F3 corridor 窗 z 修正（anchor 单步错 9.60，两步法都对 10.60）证明误差预算分离生效。新增 B1.5 节：POC v2 异图 / intake_node 改两步 / 评测嵌入 / new_case_guide 重写。详见 [floorplan_redraw_strategy.md §9](floorplan_redraw_strategy.md) + B1.5 节。两步法 artifacts 迁到 [`test_data/SmallOffice_TwoStep/`](../test_data/SmallOffice_TwoStep/)，skill 演进源在 [`skills/energyplus_mcp_twostep/`](../skills/energyplus_mcp_twostep/)。_
+_2026-05-12 (晚) — **两步法 POC PASS + B1.5 立项最高优先级**：sm_20 全套两步法（phase1 矢量化 → phase2 拓扑建模）+ 下游 + EP 真跑通过（DeepSeek 路径 EP cleanly / Opus 路径暴露 InterZone construction rule 漏洞已在 phase2_rules v1.3 修）。F3 corridor 窗 z 修正（anchor 单步错 9.60，两步法都对 10.60）证明误差预算分离生效。新增 B1.5 节：POC v2 异图 / intake_node 改两步 / 评测嵌入 / new_case_guide 重写。详见 [floorplan_redraw_strategy.md §9](capability/floorplan_redraw_strategy.md) + B1.5 节。两步法 artifacts 迁到 [`test_data/SmallOffice_TwoStep/`](../test_data/SmallOffice_TwoStep)，skill 演进源在 [`skills/energyplus_mcp_twostep/`](../skills/energyplus_mcp_twostep)。_
 
 _2026-05-12 — **B1 阶段闭环**：3 个 skill md 全部按 audit 4 个 Gap 补硬约束 + fenestration chain N 窗通式 + 反例；surface_agent prompt + 输入装配 hotfix（src_history 备份 + downstream_agent_changes.md）。sm_20 半人工流 EP cleanly 跑通取代 sm_16_newarch 成为新通透性 anchor。推荐执行顺序更新：主线焦点切到 B2-B4（评测基线规范化）。详见 [CLAUDE.md §5.5](CLAUDE.md) + B1 节本文。_
 

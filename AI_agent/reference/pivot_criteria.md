@@ -19,7 +19,7 @@
 
 ## 一、Pivot 阈值（必须双达标才切）
 
-所有指标口径与 [plan.md](plan.md) §四 P0 的评测体系一致。
+所有指标口径与 [../plan.md](../plan.md) §四 P0 的评测体系一致。
 
 ### 1.1 视觉层阈值（VLM 感知能力）
 
@@ -32,7 +32,7 @@
 
 ### 1.2 流水线阈值（下游可消费性）
 
-| 指标 | Pivot 阈值 | 当前基线（[claude.md §3.1.2](claude.md)）|
+| 指标 | Pivot 阈值 | 当前基线（[claude.md §3.1.2](../claude.md)）|
 |---|---|---|
 | claude_ep.md 合规率 | ≥ 95% | 92%（12/13）|
 | YAML 生成率 | ≥ 85% | 62%（8/13）|
@@ -48,7 +48,7 @@
 | 接近阈值但未达 | — | 还在爬坡，未触顶 | ⏸ **继续调 prompt**，别切模型 |
 | 明显低于阈值且已收敛 | — | 任务触顶低于阈值 | ⚠️ **进入下一节「低上限应对」** |
 
-**当前状态自查**：视觉层只有 zone 匹配率有粗略估计（~75%），其余三项未量化；流水线 EP 完成率 0%。**所以现在还没到判定时机**——必须先完成 [plan.md](plan.md) P0 评测基线，再看 Opus 摸到哪里。
+**当前状态自查**：视觉层只有 zone 匹配率有粗略估计（~75%），其余三项未量化；流水线 EP 完成率 0%。**所以现在还没到判定时机**——必须先完成 [../plan.md](../plan.md) P0 评测基线，再看 Opus 摸到哪里。
 
 ---
 
@@ -88,7 +88,7 @@ Opus 视觉得分低且不再涨
 
 | 退路 | 思路 | 工程成本 | 适用情形 |
 |---|---|---|---|
-| **A. 前置视觉小模型** | 回到 [plan.md 方案 2](plan.md) 的最小模块（PaddleOCR + cv2 走廊）| 低 | 问题集中在数字识别 / 宽白带区分 |
+| **A. 前置视觉小模型** | 回到 [plan.md 方案 2](../plan.md) 的最小模块（PaddleOCR + cv2 走廊）| 低 | 问题集中在数字识别 / 宽白带区分 |
 | **B. 缩减任务（DSL 替代自由形式）** | 不让模型输出 `IntakeOutput`，改输出受限 DSL（如「房间格子语言」），程序翻译成 IDF | 中 | 问题集中在模型跑偏格式 |
 | **C. Human-in-the-Loop** | LLM 出草稿 → 人工 10 秒级修正 → 入 IDF | 低 | 研究阶段够用，产品化不行 |
 | **D. 闭源模型蒸馏专用小模型** | 即使闭源只有 75%，拿其 trace SFT 专用 VLM，可过拟合特定建筑风格 | 高 | 建筑风格集中、样本可扩到 500+ |
@@ -116,13 +116,13 @@ Opus 视觉得分低且不再涨
 
 1. **领域错位**：训练集是住宅室内设计（Manhattan 63.7%，语义标签 bedroom/kitchen/bath），与办公楼 SmallOffice（走廊/楼梯/WC/电梯）不重合；
 2. **输出缺关键维度**：坐标归一化到 [0,1024] 像素 → **无米制尺度**，而 `create_zone` 需要真实世界坐标；也不输出楼层堆叠（`floors`/`zones_per_floor`），仍需外挂 OCR 读尺寸链反算比例 + 楼层逻辑；
-3. **不解决当前瓶颈**：[CLAUDE.md §7.2](CLAUDE.md) 已结论视觉不是瓶颈，真瓶颈在长链路 tool-call 稳定性 + Schedule/Lights/HVAC 漏调——即便前置一个完美矢量化器，EP 完成率不会因此从 0 跳到 50%。
+3. **不解决当前瓶颈**：[CLAUDE.md §7.2](../CLAUDE.md) 已结论视觉不是瓶颈，真瓶颈在长链路 tool-call 稳定性 + Schedule/Lights/HVAC 漏调——即便前置一个完美矢量化器，EP 完成率不会因此从 0 跳到 50%。
 
 **触发再评估的条件**（任一满足）：
 - 官方放出权重 + FPBench-2K，且 P1 在视觉层触顶仍低于 §1.1 阈值；
 - Pivot 判定落入第四象限（触顶低于阈值且已收敛），此时走 3.2 退路 A，把 FloorplanVLM 作为 A 的增强方案与 PaddleOCR 并列评估。
 
-**轻量跟踪动作**：订阅 arxiv 2602.06507 v2 更新；若 FPBench-2K 先于模型释出，可仅拿来做 [plan.md](plan.md) 评测脚本的外部 sanity check。
+**轻量跟踪动作**：订阅 arxiv 2602.06507 v2 更新；若 FPBench-2K 先于模型释出，可仅拿来做 [../plan.md](../plan.md) 评测脚本的外部 sanity check。
 
 ---
 
@@ -143,12 +143,12 @@ Opus 视觉得分低且不再涨
 
 ### 4.3 训练方式（Week 12–14）
 1. **LoRA SFT**（首选）：仅训 rank=16 的 LoRA，1 张 A100 / H100，约 6–12 小时
-2. 评估：在 holdout 上复用 [plan.md](plan.md) P0 指标，**必须超过 Opus 的 80%**（即领域内不能比闭源差太远）
+2. 评估：在 holdout 上复用 [../plan.md](../plan.md) P0 指标，**必须超过 Opus 的 80%**（即领域内不能比闭源差太远）
 3. 若 LoRA 不够：全参 SFT（显存翻倍、时间翻 3 倍）
 
 ### 4.4 部署（Week 15+）
 1. vLLM 启 OpenAI 兼容 API
-2. [../src/configs/llm.yaml](../src/configs/llm.yaml) 改 `provider: openai`, `base_url: http://localhost:8000/v1`
+2. [../../src/configs/llm.yaml](../../src/configs/llm.yaml) 改 `provider: openai`, `base_url: http://localhost:8000/v1`
 3. 跑完整 13 案例回归，与 Opus 基线对比
 
 ---
@@ -197,16 +197,16 @@ Week 8+   开源 VLM SFT        能修（补 OCR/cv2 先验）  改不动
 
 ## 七、一句话行动准则
 
-> **Opus 到不了 90% / 75% 阈值前，禁止谈 Pivot 到开源模型。没有评测数据前，禁止谈 Opus 到没到。所以真正的 next step 只有一件事：把 [plan.md](plan.md) P0 评测基线跑出来。**
+> **Opus 到不了 90% / 75% 阈值前，禁止谈 Pivot 到开源模型。没有评测数据前，禁止谈 Opus 到没到。所以真正的 next step 只有一件事：把 [../plan.md](../plan.md) P0 评测基线跑出来。**
 
 ---
 
 ## 八、与其他文档的关系
 
-- 评测体系与 CoT 改造细节 → [plan.md](plan.md)
-- 13 案例现状与子系统缺陷清单 → [claude.md §3.1.2](claude.md)
-- 新建案例流程 → [new_case_guide.md](new_case_guide.md)
-- Opus 迁移里程碑 M1–M6 → [claude.md §4.3](claude.md)，本文档对应其中 **M5 的 go/no-go 判定条款**
+- 评测体系与 CoT 改造细节 → [../plan.md](../plan.md)
+- 13 案例现状与子系统缺陷清单 → [claude.md §3.1.2](../claude.md)
+- 新建案例流程 → [../guides/new_case_guide.md](../guides/new_case_guide.md)
+- Opus 迁移里程碑 M1–M6 → [claude.md §4.3](../claude.md)，本文档对应其中 **M5 的 go/no-go 判定条款**
 
 ---
 
