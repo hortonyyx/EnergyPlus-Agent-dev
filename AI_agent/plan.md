@@ -203,25 +203,25 @@
 
 > 注（2026-05-25 起）：`skills/energyplus_mcp_twostep/` 是纯当前版本 spec，**文件内不再写版本号 / changelog / 缘起 case**（决策史归 git commit + 本 plan + [capability/floorplan_redraw_strategy.md](capability/floorplan_redraw_strategy.md)）。每次改 skill 仍按 [CLAUDE.md §6#5](CLAUDE.md) 备份到 `Skill_history/`。
 
-#### B1.5.c [P0] `intake_node` 重写为两步串行
-- [ ] [`src/agent/nodes/intake.py`](../src/agent/nodes/intake.py) 改为：
-  - phase1 调用：image_paths + phase1_guide + phase1_reading_guide + phase1_pen_library → 矢量 JSON（每图一份 + summary）
-  - 中间持久化：落到 `<case>/<output_subdir>/phase1_vector/`
-  - phase2 调用：phase1 JSON + phase2_rules → IntakeOutput
-  - `--intake-from` short-circuit 保留（半人工流 + 评测复跑用）
-- [ ] [`src/configs/llm.yaml`](../src/configs/llm.yaml) 加 section 分 `intake_phase1` (VLM, multimodal) + `intake_phase2` (text-only, thinking enabled)
-- [ ] 备份原 intake.py 到 `src_history/`，在 [logs/downstream_agent_changes.md](logs/downstream_agent_changes.md) 加改动记录
-- [ ] [`scripts/run_full_pipeline.py`](../scripts/run_full_pipeline.py) 入口适配：新增 `--phase1-from` flag 让半人工 phase1 跑（如 Claude Code 会话）后塞回去；保留 `--intake-from` 用于完整 IntakeOutput 直接喂
+#### B1.5.c [P0] `intake_node` 重写为两步串行 — ✅ 完成 2026-05-29（[CLAUDE.md §5.8](CLAUDE.md)）
+- [x] [`src/agent/nodes/intake.py`](../src/agent/nodes/intake.py) 三路分发：短路 `--intake-from` / `phase1_vector_dir`→phase2 / legacy 单步；`--intake-from` short-circuit 保留
+- [x] [`src/configs/llm.yaml`](../src/configs/llm.yaml) 加 `intake_phase2`（text-only, thinking enabled）；`intake_phase1`（VLM）预留注释段（全自动 phase1 待 pivot）
+- [x] 备份 `src_history/2026-05-29_intake_node_twostep/`，[logs/downstream_agent_changes.md](logs/downstream_agent_changes.md) 加记录
+- [x] [`scripts/run_full_pipeline.py`](../scripts/run_full_pipeline.py) 加 `--phase1-from`（半人工 phase1 矢量 → intake_node 跑 phase2）；保留 `--intake-from`
+- [x] **附加**：per-case 模型配置（`<case>/llm.yaml` 经 `EP_AGENT_LLM_CONFIG` 覆盖全局，`--init-llm-config` 拷模板）；e2e 首次完整跑通新架构
 
-#### B1.5.d [P0] [`Tool_scripts/run_phase2_deepseek.py`](../Tool_scripts/run_phase2_deepseek.py) 已建，迁入主线后改成 phase2_node
-- [ ] 把 `_fix_js_concat` JS 拼接修复 + thinking enabled + JSON-only 直出策略合入新 phase2_node
-- [ ] 维持 `ensure_schema_initialized()` 初始化 IDD 的入口
+#### B1.5.d [P0] `run_phase2_deepseek.py` 迁入主线 — ✅ 完成 2026-05-29
+- [x] 核心提为 [`src/agent/phase2.py`](../src/agent/phase2.py) 单一实现（`_fix_js_concat` + thinking enabled + JSON-only 直出 + `discover_phase1_files`），`intake_node` 与脚本共用、不漂移
+- [x] `ensure_schema_initialized()` 内置进 `run_phase2`（任何调用方安全）；[`run_phase2_deepseek.py`](../Tool_scripts/run_phase2_deepseek.py) 收成薄 CLI 包装
 
-#### B1.5.e [P0] [`new_case_guide.md`](guides/new_case_guide.md) 重写为两步流程
-- [ ] Step 4 拆 4a phase1 / 4b phase2
-- [ ] Step 4a 默认走 Claude Code Opus 会话 + SVG 人工核验（30 min/case）
-- [ ] Step 4b 走自动 DeepSeek 脚本 / 或 Opus 会话二选一
-- [ ] Step 5 不变（下游）
+#### B1.5.e [P0] `new_case_guide.md` 正式化为两步流程 — ✅ 完成 2026-05-29
+- [x] [`new_case_guide.md`](guides/new_case_guide.md) 正式版：Step 4 phase1 半人工 + Step 5 一次性自动（phase2+下游+EP）+ §5.1 per-case 模型配置 + Step 6 InterZone 门验收层 + dev临时模式vs正式模式边界
+- [x] [`new_case_guide_twostep.md`](guides/new_case_guide_twostep.md) 降级为 phase1/phase2 prompt 模板附录；旧单步法版备份 `logs/backup/.bak_2026-05-29`
+- [ ] 残留：guide 完全并轨（phase1 模板移入主指南、删 twostep 附录）
+
+#### B1.5.g [P0] InterZone 确定性几何门 — ✅ 完成 2026-05-29（审阅 A，[CLAUDE.md §5.8.B](CLAUDE.md)）
+- [x] [`src/validator/interzone.py`](../src/validator/interzone.py) 接进 [`WorkflowTool`](../src/mcp/tools/workflow.py) EP 前 fail-fast；2 份 Codex review 全修、re-verify 全 PASS；测试 5→23
+- [ ] 残留：覆盖完整性校验（需 shapely，[logs/downstream_agent_changes.md](logs/downstream_agent_changes.md) 跟踪）
 
 #### B1.5.f [P1] 评测嵌入
 - [ ] phase1 矢量 JSON diff 评测（与 GT 数据集 v0 字段对齐）
@@ -488,6 +488,8 @@
 - [deferred/idfpy_embed.md](deferred/idfpy_embed.md) — idfpy 替换主线（搁置中）
 
 ---
+
+_2026-05-29 — **B1.5.c/d/e/g 交付（两步法切主线 + InterZone 门 + 正式指南）**：B1.5.c `intake_node` 三路分发串行 + `src/agent/phase2.py` 单一实现 + `--phase1-from` + per-case 模型配置；B1.5.d `run_phase2_deepseek` 收成薄包装；B1.5.e `new_case_guide.md` 正式化两步法；新增 B1.5.g InterZone 确定性几何门（审阅 A，EP 前 fail-fast，e2e 全新输出抓 6 缺陷）。两份 Codex review 3 High + 4 Med/Low 全修、re-verify 全 PASS；测试 5→23。e2e 首次完整跑通新架构（机制 100% 通，几何质量挂门 = 建模质量主线问题，审阅 B 待落地）。详见 [CLAUDE.md §5.8](CLAUDE.md)。_
 
 _2026-05-12 (晚) — **两步法 POC PASS + B1.5 立项最高优先级**：sm_20 全套两步法（phase1 矢量化 → phase2 拓扑建模）+ 下游 + EP 真跑通过（DeepSeek 路径 EP cleanly / Opus 路径暴露 InterZone construction rule 漏洞已在 phase2_rules v1.3 修）。F3 corridor 窗 z 修正（anchor 单步错 9.60，两步法都对 10.60）证明误差预算分离生效。新增 B1.5 节：POC v2 异图 / intake_node 改两步 / 评测嵌入 / new_case_guide 重写。详见 [floorplan_redraw_strategy.md §9](capability/floorplan_redraw_strategy.md) + B1.5 节。两步法 artifacts 迁到 [`test_data/SmallOffice_TwoStep/`](../test_data/SmallOffice_TwoStep)，skill 演进源在 [`skills/energyplus_mcp_twostep/`](../skills/energyplus_mcp_twostep)。_
 
