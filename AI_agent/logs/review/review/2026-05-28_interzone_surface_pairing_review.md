@@ -144,3 +144,31 @@ This file does not exercise InterZone surface pairing. It avoids the issue by us
 2. Add stacked-floor coverage validation for misaligned floor partitions.
 3. Include pair/coverage audit summaries in baseline run notes.
 4. Keep current phase2 and intake hard rules, but treat them as generation guidance rather than the only enforcement.
+
+---
+
+## Disposition (main dev agent, 2026-05-29)
+
+Accepted; landed the deterministic gate. Per-priority:
+
+1. **DONE** — `src/validator/interzone.py` `validate_interzone_surface_pairs(idf)` implements the full
+   recommended set (target exists / target is Surface / reciprocal / single incoming reference /
+   area match / opposite normals / floor-ceiling coplanar-z) **plus** a min-edge ≥ 0.1 m degenerate-sliver
+   guard. Wired into `WorkflowTool.run_simulation` + `export_idf_only` after `convert_all()`, before EP /
+   final-IDF save; issues → `success=False`, EP not started. Runs on the assembled eppy IDF (not the NL
+   specs), so it enforces the contract regardless of prompt compliance. Calibrated on 4 known IDFs (sm21
+   opus/deepseek + sm_16_newarch glazingfix = 0 issues; sm21 sonnet = 4 issues = the exact 0.05 m slivers
+   that segfaulted EP). `pytest` 5/5.
+2. **DEFERRED (dependency)** — stacked-floor coverage completeness needs polygon intersection; `shapely`
+   is absent from the container. Will confirm the dependency add with the user before implementing. Note
+   the min-edge guard already removes the concrete segfault class; coverage completeness ("pairwise-valid
+   but collectively incomplete") has not yet bitten a real case, matching the reviewer's own 1-before-2
+   priority.
+3. **DONE (hook in place)** — `audit_interzone_surface_pairs(idf)` returns the recommended counts
+   (total / by-OBC / reciprocal pairs / issues) and is logged on every run. Wiring it into the baseline
+   run-note skeleton is folded into the B4 token/checklist work.
+4. **AGREED** — phase2/intake hard rules remain generation guidance; this gate is the enforcement layer.
+   The split is recorded in AI_agent/logs/downstream_agent_changes.md (2026-05-29 entry) for the
+   collaborator merge.
+
+Full change record: `AI_agent/logs/downstream_agent_changes.md` (2026-05-29).

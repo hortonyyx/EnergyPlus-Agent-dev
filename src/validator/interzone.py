@@ -1,0 +1,193 @@
+"""Deterministic InterZone surface-pair validation.
+
+EnergyPlus accepts whatever surface graph it is handed and only catches some
+errors late — or, for degenerate sub-tolerance slivers, segfaults in the input
+stage before writing `.err` (observed sm21 Sonnet path, exit 139). This module
+adds an early, explicit gate run on the *assembled* IDF, before EnergyPlus, so a
+missing / non-reciprocal / degenerate InterZone pair fails fast with a precise
+message instead of a late EP fatal or a silent wrong-physics "pass".
+
+It operates on the eppy `IDF` object (not on the natural-language `*_specs`), so
+it validates what the surface agent actually produced regardless of which prompt
+wording it followed — closing the "correctness depends on prompt compliance" gap
+flagged by the 2026-05-28 InterZone surface pairing review (finding #1).
+
+Implemented (review #1 + degeneracy):
+  - every `Outside Boundary Condition = Surface` target exists
+  - the target is itself `Outside Boundary Condition = Surface`
+  - the target points back to the source (reciprocity)
+  - no surface is the target of more than one incoming pair
+  - paired areas match within tolerance
+  - paired normals are opposite within tolerance
+  - paired horizontal (floor/ceiling) surfaces lie on the same z-plane
+  - no surface has an edge below `min_edge` (degenerate sliver — the EP
+    input-stage segfault class)
+
+Deferred (review #2, needs polygon intersection / shapely): stacked-floor
+coverage completeness — that adjacent-floor footprint overlaps are fully and
+uniquely paired with no holes/duplicates. Tracked in
+AI_agent/logs/downstream_agent_changes.md.
+"""
+
+from __future__ import annotations
+
+from collections import Counter
+
+import numpy as np
+from eppy.modeleditor import IDF
+
+from src.utils.logging import get_logger
+
+logger = get_logger(__name__)
+
+_SURFACE_OBJ = "BUILDINGSURFACE:DETAILED"
+
+# Tolerances. Coordinates are in metres; these buildings are modelled at the
+# centimetre level so the thresholds sit comfortably above vertex round-off
+# while still catching real modelling defects.
+_AREA_ABS_TOL = 0.02  # m^2
+_AREA_REL_TOL = 0.01  # 1 %
+_Z_TOL = 0.02  # m — floor/ceiling shared-plane agreement
+_NORMAL_DOT_TOL = -0.99  # paired unit normals must be ~antiparallel
+_MIN_EDGE = 0.10  # m — anything thinner is a degenerate sliver, not a wall
+
+
+def _unit_normal(coords: list[tuple[float, float, float]]) -> np.ndarray:
+    """Newell's method — robust planar polygon normal, returned as a unit vector."""
+    pts = np.asarray(coords, dtype=float)
+    n = np.zeros(3)
+    for i in range(len(pts)):
+        a = pts[i]
+        b = pts[(i + 1) % len(pts)]
+        n[0] += (a[1] - b[1]) * (a[2] + b[2])
+        n[1] += (a[2] - b[2]) * (a[0] + b[0])
+        n[2] += (a[0] - b[0]) * (a[1] + b[1])
+    norm = np.linalg.norm(n)
+    if norm < 1e-12:
+        return n  # degenerate; min-edge check reports it separately
+    return n / norm
+
+
+def _min_edge_length(coords: list[tuple[float, float, float]]) -> float:
+    pts = np.asarray(coords, dtype=float)
+    if len(pts) < 2:
+        return 0.0
+    rolled = np.roll(pts, -1, axis=0)
+    return float(np.linalg.norm(pts - rolled, axis=1).min())
+
+
+def _z_values(coords: list[tuple[float, float, float]]) -> np.ndarray:
+    return np.asarray([c[2] for c in coords], dtype=float)
+
+
+def validate_interzone_surface_pairs(idf: IDF) -> list[str]:
+    """Return a list of human-readable InterZone pairing issues (empty = clean).
+
+    The string format mirrors `ConfigState.validate_references()` so callers can
+    treat both the same way.
+    """
+    surfaces = idf.idfobjects[_SURFACE_OBJ]
+    by_name = {s.Name: s for s in surfaces}
+    issues: list[str] = []
+
+    # Degenerate-sliver guard (applies to every surface, not just InterZone).
+    for s in surfaces:
+        min_edge = _min_edge_length(s.coords)
+        if min_edge < _MIN_EDGE:
+            issues.append(
+                f"degenerate surface '{s.Name}': shortest edge {min_edge:.4f} m "
+                f"< {_MIN_EDGE} m (sub-tolerance sliver — EP may segfault in input "
+                f"processing)"
+            )
+
+    interzone = [s for s in surfaces if s.Outside_Boundary_Condition == "Surface"]
+
+    # 1-1 reciprocity: each target may be claimed by exactly one source.
+    target_counts = Counter(s.Outside_Boundary_Condition_Object for s in interzone)
+
+    seen_pairs: set[frozenset[str]] = set()
+    for src in interzone:
+        tgt_name = src.Outside_Boundary_Condition_Object
+        if not tgt_name:
+            issues.append(
+                f"InterZone surface '{src.Name}' has OBC=Surface but no boundary "
+                f"object (target name is empty)"
+            )
+            continue
+        if tgt_name not in by_name:
+            issues.append(
+                f"InterZone surface '{src.Name}' targets missing surface "
+                f"'{tgt_name}'"
+            )
+            continue
+        tgt = by_name[tgt_name]
+        if tgt.Outside_Boundary_Condition != "Surface":
+            issues.append(
+                f"InterZone surface '{src.Name}' targets '{tgt_name}', whose OBC is "
+                f"'{tgt.Outside_Boundary_Condition}' (must be 'Surface')"
+            )
+            continue
+        if tgt.Outside_Boundary_Condition_Object != src.Name:
+            issues.append(
+                f"InterZone surface '{src.Name}' -> '{tgt_name}' is not reciprocal: "
+                f"'{tgt_name}' points back to "
+                f"'{tgt.Outside_Boundary_Condition_Object or '(empty)'}'"
+            )
+            continue
+        if target_counts[tgt_name] > 1:
+            issues.append(
+                f"InterZone surface '{tgt_name}' is targeted by "
+                f"{target_counts[tgt_name]} sources (must be exactly one)"
+            )
+
+        # Geometry agreement — check each unordered pair once.
+        key = frozenset((src.Name, tgt_name))
+        if key in seen_pairs:
+            continue
+        seen_pairs.add(key)
+
+        a_src, a_tgt = src.area, tgt.area
+        if abs(a_src - a_tgt) > max(_AREA_ABS_TOL, _AREA_REL_TOL * max(a_src, a_tgt)):
+            issues.append(
+                f"InterZone pair '{src.Name}' <-> '{tgt_name}' area mismatch: "
+                f"{a_src:.4f} vs {a_tgt:.4f} m^2"
+            )
+
+        dot = float(np.dot(_unit_normal(src.coords), _unit_normal(tgt.coords)))
+        if dot > _NORMAL_DOT_TOL:
+            issues.append(
+                f"InterZone pair '{src.Name}' <-> '{tgt_name}' normals not opposite "
+                f"(unit-normal dot {dot:.3f}; expected <= {_NORMAL_DOT_TOL})"
+            )
+
+        # Floor/ceiling pairs are horizontal — they must share one z-plane.
+        if {src.Surface_Type, tgt.Surface_Type} <= {"Floor", "Ceiling", "Roof"}:
+            zs = np.concatenate([_z_values(src.coords), _z_values(tgt.coords)])
+            if zs.max() - zs.min() > _Z_TOL:
+                issues.append(
+                    f"InterZone floor/ceiling pair '{src.Name}' <-> '{tgt_name}' "
+                    f"not coplanar in z: span {zs.max() - zs.min():.4f} m "
+                    f"(> {_Z_TOL} m)"
+                )
+
+    return issues
+
+
+def audit_interzone_surface_pairs(idf: IDF) -> dict[str, int]:
+    """Non-failing summary counts for baseline run notes (review #4).
+
+    Returns total surfaces, counts by outside boundary condition, reciprocal
+    InterZone pair count, and the number of pairing issues.
+    """
+    surfaces = idf.idfobjects[_SURFACE_OBJ]
+    obc_counts = Counter(s.Outside_Boundary_Condition for s in surfaces)
+    issues = validate_interzone_surface_pairs(idf)
+    return {
+        "buildingsurface_total": len(surfaces),
+        "obc_outdoors": obc_counts.get("Outdoors", 0),
+        "obc_surface": obc_counts.get("Surface", 0),
+        "obc_ground": obc_counts.get("Ground", 0),
+        "obc_adiabatic": obc_counts.get("Adiabatic", 0),
+        "reciprocal_interzone_pairs": obc_counts.get("Surface", 0) // 2,
+        "pair_issues": len(issues),
+    }

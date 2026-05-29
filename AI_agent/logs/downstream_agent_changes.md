@@ -15,6 +15,31 @@
 
 ## 改动记录
 
+### 2026-05-29 — 确定性 InterZone surface-pair 校验门(审阅 A 落地)
+
+**Trigger**：2026-05-28 Codex [InterZone surface pairing 审阅](review/review/2026-05-28_interzone_surface_pairing_review.md) 两条 High：(1) surface 阶段后**缺确定性配对校验门**——`surface_converter.py` 只逐对象校验形状、不校验整张 `Outside Boundary Condition = Surface` 引用图;(2) 缺跨层楼板**覆盖**校验。配合 sm21 三模型实验:Sonnet 忠实复现 phase1 的 5cm 跨层抖动 → 切出 0.05m×3m 退化碎片 → EP 输入阶段 **段错 (exit 139)**,`.err` 空。EP 通过≠几何对、EP 段错前不写 `.err`,**"EP completed" 作唯一验收信号太晚太粗**。
+
+**改动**(非下游 subagent prompt,属本项目侧**校验基础设施**;按 §6#5 仍备份 + 记录):
+- **新增** [src/validator/interzone.py](../../src/validator/interzone.py)(纯 numpy,无新依赖):
+  - `validate_interzone_surface_pairs(idf)` → 在装配好的 eppy IDF 上验:OBC=Surface 目标存在 / 目标本身 OBC=Surface / 互逆指回 / 单一引用(无多重 target)/ 配对面积匹配 / 单位法向相反(Newell)/ 楼板天花同 z 面 / **最小边长 ≥ 0.1m(退化碎片守卫,直接挡 Sonnet 段错那一类)**
+  - `audit_interzone_surface_pairs(idf)` → 非失败汇总计数(总面数 / 各 OBC 计数 / 互逆对数 / issue 数),供 baseline run notes 记录(审阅 #4)
+- **改** [src/mcp/tools/workflow.py](../../src/mcp/tools/workflow.py):`run_simulation` + `export_idf_only` 在 `manager.convert_all()` 后、跑 EP / 落最终 IDF 前调 `_check_interzone_pairs()`;有 issue → 返回 `success=False`(仍存 IDF 供检视),**不启动 EP**。读 `manager._idf`(live,只读)而非 `manager.idf`(deepcopy 一个 StringIO 已关闭的 IDF,会 `I/O operation on closed file`)。
+
+**标定**(动手前拿 3 个已知 IDF 验,零误杀):
+- sm21 OPUS(好,EP 完成)→ 0 issue ✅ 放行
+- sm21 DEEPSEEK(EP 完成但几何最差/幽灵房)→ 0 issue ✅ 放行(幽灵房是"尺寸错"非"配对/退化错",配对图本身合法——印证 EP 通过≠几何对,此门只管 IDF 有效性)
+- sm21 SONNET(段错)→ 4 issue ✅ 抓出 `F1_SM_Office_Ceiling_S2` 等 4 个 0.05m 退化碎片(正是 Codex 点名那条),`success=False` 挡在 EP 前
+- sm_16_newarch glazingfix(好 anchor,135 面)→ 0 issue ✅ 放行
+- `pytest` 5/5 通过。
+
+**未做(审阅 A #2,需依赖)**:跨层楼板**覆盖完整性**校验(相邻层 footprint 求交、每个非零交集恰有一对、面积等于交集面积)需多边形求交;容器内 `shapely` 缺失,加依赖前与用户确认。Codex 自身优先级亦把 #1 排 #2 之前;且"配对各自合法但集体不完整"风险至今未真咬过。占位 follow-up。
+
+**备份**:[src_history/2026-05-29_interzone_pair_validator/workflow.py](../../src_history/2026-05-29_interzone_pair_validator/workflow.py)(改前版本)。`interzone.py` 为新增文件无需备份。
+
+**交协作者**:此门是确定性几何校验,与下游 prompt 正交;协作者下次合并下游代码时**保留**此门 + 校验器。若未来真出现合法 <0.1m 几何(罕见),调 `interzone.py` 的 `_MIN_EDGE`。
+
+---
+
 ### 2026-05-12 — surface_agent z_floor / ceiling_height 修复
 
 **Trigger**：sm_20 半人工流首跑（B1 强化版 intake）EP `Completed Successfully` 但仍有 10 个 `Base surface does not surround subsurface (CHKSBS) Partial-Overlap` warnings，集中在 F2 / F3 上层窗。诊断 IDF 发现：

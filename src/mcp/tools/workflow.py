@@ -6,8 +6,36 @@ from src.mcp.interface import ToolResponse
 from src.mcp.state import ConfigState
 from src.runner.runner import EnergyPlusRunner
 from src.utils.logging import get_logger
+from src.validator.interzone import (
+    audit_interzone_surface_pairs,
+    validate_interzone_surface_pairs,
+)
 
 logger = get_logger(__name__)
+
+
+def _check_interzone_pairs(manager: ConverterManager) -> list[str]:
+    """Deterministic InterZone surface-pair gate on the assembled IDF.
+
+    Run after `convert_all()` and before EnergyPlus so a missing / non-
+    reciprocal / degenerate pair fails fast with a precise message instead of a
+    late EP fatal or a silent wrong-physics pass. See
+    src/validator/interzone.py and the 2026-05-28 InterZone review.
+
+    Reads the live `manager._idf` (read-only); the `manager.idf` property
+    deep-copies an IDF backed by a StringIO that may already be closed.
+    """
+    idf = manager._idf
+    audit = audit_interzone_surface_pairs(idf)
+    logger.info("InterZone surface-pair audit: {}", audit)
+    issues = validate_interzone_surface_pairs(idf)
+    if issues:
+        logger.error(
+            "InterZone surface-pair validation found {} issue(s):", len(issues)
+        )
+        for issue in issues:
+            logger.error("  - {}", issue)
+    return issues
 
 
 class WorkflowTool:
@@ -117,6 +145,22 @@ class WorkflowTool:
             self.state.export_yaml(temp_yaml)
             manager = ConverterManager(temp_yaml)
             manager.convert_all()
+
+            pair_issues = _check_interzone_pairs(manager)
+            if pair_issues:
+                manager.save_idf(temp_idf)  # keep artifact for inspection
+                return ToolResponse(
+                    success=False,
+                    message=(
+                        f"InterZone surface-pair validation failed: "
+                        f"{len(pair_issues)} issue(s). IDF not accepted."
+                    ),
+                    data={
+                        "interzone_pair_issues": pair_issues,
+                        "idf_path": str(temp_idf.absolute()),
+                    },
+                )
+
             manager.save_idf(temp_idf)
 
             logger.info("IDF exported (no simulation): {}", temp_idf)
@@ -166,6 +210,22 @@ class WorkflowTool:
 
             manager = ConverterManager(temp_yaml)
             manager.convert_all()
+
+            pair_issues = _check_interzone_pairs(manager)
+            if pair_issues:
+                manager.save_idf(temp_idf)  # keep artifact for inspection
+                return ToolResponse(
+                    success=False,
+                    message=(
+                        f"InterZone surface-pair validation failed: "
+                        f"{len(pair_issues)} issue(s). Simulation not started."
+                    ),
+                    data={
+                        "interzone_pair_issues": pair_issues,
+                        "idf_path": str(temp_idf.absolute()),
+                    },
+                )
+
             manager.save_idf(temp_idf)
 
             runner = EnergyPlusRunner(idf=manager.idf)
