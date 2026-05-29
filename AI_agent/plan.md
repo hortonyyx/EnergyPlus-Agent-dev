@@ -216,8 +216,7 @@
 
 #### B1.5.e [P0] `new_case_guide.md` 正式化为两步流程 — ✅ 完成 2026-05-29
 - [x] [`new_case_guide.md`](guides/new_case_guide.md) 正式版：Step 4 phase1 半人工 + Step 5 一次性自动（phase2+下游+EP）+ §5.1 per-case 模型配置 + Step 6 InterZone 门验收层 + dev临时模式vs正式模式边界
-- [x] [`new_case_guide_twostep.md`](guides/new_case_guide_twostep.md) 降级为 phase1/phase2 prompt 模板附录；旧单步法版备份 `logs/backup/.bak_2026-05-29`
-- [ ] 残留：guide 完全并轨（phase1 模板移入主指南、删 twostep 附录）
+- [x] phase1/phase2 启动 prompt 并入 [`new_case_guide.md`](guides/new_case_guide.md) 附录 A/B；临时 `new_case_guide_twostep.md` **已删**（guide 完全并轨）；旧单步法版备份 `logs/backup/.bak_2026-05-29`
 
 #### B1.5.g [P0] InterZone 确定性几何门 — ✅ 完成 2026-05-29（审阅 A，[CLAUDE.md §5.8.B](CLAUDE.md)）
 - [x] [`src/validator/interzone.py`](../src/validator/interzone.py) 接进 [`WorkflowTool`](../src/mcp/tools/workflow.py) EP 前 fail-fast；2 份 Codex review 全修、re-verify 全 PASS；测试 5→23

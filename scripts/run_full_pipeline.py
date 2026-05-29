@@ -4,7 +4,7 @@ Intake flows (pick one):
 
     Flow TWO-STEP  (default dev flow; no Anthropic API needed):
         # 1) In a Claude Code session, drive phase 1 (image -> vector JSON)
-        #    following AI_agent/guides/new_case_guide_twostep.md Step 4a; save
+        #    following AI_agent/guides/new_case_guide.md Step 4 (Appendix A); save
         #    the per-image vector JSONs + phase1_summary.md under
         #    test_data/.../<case>/phase1_vector/
         # 2) Then run — intake_node runs phase 2 (vector JSON -> IntakeOutput)

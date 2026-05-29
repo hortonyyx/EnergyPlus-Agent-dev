@@ -118,7 +118,7 @@ cp /path/to/South_view.png test_data/SmallOffice_TwoStep/$case/South_view.png
 ### 4.1 跑 phase1
 
 1. 仓库根新起独立 Claude Code 会话，选多模态强模型（如 Opus）。
-2. 把 [`new_case_guide_twostep.md` §一的 phase1 启动 prompt](new_case_guide_twostep.md) 整段贴入，按 case 改图名表。规则真身在 [`skills/energyplus_mcp_twostep/phase1/`](../../skills/energyplus_mcp_twostep/phase1)（`guide.md` 流程/误差预算/输出容器 + `reading_guide.md` 跨画法识别 + `pen_library.md` 笔库），会话运行时读取。
+2. 把 [**附录 A · phase1 启动 prompt**](#附录-a--phase1-启动-prompt粘进-claude-code-会话)整段贴入，按 case 改图名表。规则真身在 [`skills/energyplus_mcp_twostep/phase1/`](../../skills/energyplus_mcp_twostep/phase1)（`guide.md` 流程/误差预算/输出容器 + `reading_guide.md` 跨画法识别 + `pen_library.md` 笔库），会话运行时读取。
 3. 会话先做一张 pilot 停下等审；审 OK 再 batch 其余。
 
 ### 4.2 产物 + 人工校验
@@ -281,4 +281,199 @@ io = IntakeOutput.model_validate(d); print('OK 11 fields; building=', io.buildin
 
 ---
 
-_2026-05-29 — 正式化为两步法新架构完整版：Step 4 改 phase1 半人工识图（产矢量 JSON）；Step 5 改一次性自动（phase2 + 下游 + EP，模型统一 llm.yaml `intake_phase2`/`default`/flash）；Step 6 加 InterZone 几何门验收层；明确 dev 临时模式 vs 正式一次性模式的边界。配套 B1.5.c（intake_node 两步串行）+ InterZone 门（src/validator/interzone.py）。旧单步法版本备份 logs/backup/new_case_guide.md.bak_2026-05-29。_
+---
+
+## 附录 A · phase1 启动 prompt（粘进 Claude Code 会话）
+
+> Step 4 用。仓库根新起多模态会话，把下面 `---` 之间整段作首条消息粘入，**按 case 改图名表**。规则真身在 [`skills/energyplus_mcp_twostep/phase1/`](../../skills/energyplus_mcp_twostep/phase1)，会话运行时读取，不必拷进 case 目录。
+
+---
+
+I am doing **phase 1 of the two-step intake: redraw the source image with semantic pens** — trace
+every visible structural stroke on the architectural drawing by type (wall pen / window pen / wall_fill pen / ...),
+and do **no spatial-topology reasoning** at all.
+
+## Mental model
+
+Phase 1 = "re-trace the source image with a set of semantically labeled pens". For example "the wall
+pen drew a wall stroke from (0,0)→(15,0)", "the window pen drew a filled rectangle at elevation
+(1.4, 1.0)→(3.8, 2.8)".
+
+Phase 1 does **not**: enclose multiple wall strokes into "a room" / judge whether a wall is
+"exterior or interior" / say "this window belongs to that wall" / write "the z_min/z_max of the
+middle window on the south elevation F2". **All topology reasoning is left to phase 2.**
+
+## Error budget (key, see guide.md §0.1)
+
+Phase 1 sees the image, phase 2 does not. So:
+
+- **perception errors can only be caught in phase 1**. Once phase 1 misreads a dimension, offsets a
+  coordinate, flips the elevation x-axis, or misses a stroke, phase 2 cannot backtrack — it takes
+  what it gets as truth
+- **prefer null over guessing**. null = "I couldn't see it / it isn't dimensioned", which phase 2
+  knows is missing. A guessed value is contamination
+- EP zones are enclosed by surfaces (2D faces), **walls have no thickness** — plan walls'
+  `thickness_m` is always `null`, do not estimate visual stroke width
+
+## Your task
+
+1. Read all three phase-1 skill docs (**required**):
+   - `skills/energyplus_mcp_twostep/phase1/guide.md` — flow / error budget / global constraints / output container / door-healing /
+     facade_axis_note spec / self-check / downstream contract
+   - `skills/energyplus_mcp_twostep/phase1/reading_guide.md` — how to *recognize* each element across drawing styles (the
+     convention cards + the semantic-category vocabulary)
+   - `skills/energyplus_mcp_twostep/phase1/pen_library.md` — what to *do* with each recognized category (which pen / keep-or-ignore /
+     wall_fill convention)
+2. Look at the worked example JSON (already hand-authored, e.g. the first plan view — **do not
+   rewrite it**), and follow its style for the remaining images
+3. Produce one JSON per remaining image, e.g.:
+
+| source PNG | output JSON | image_kind |
+|---|---|---|
+| `2f_view.png` | `phase1_vector/2f_view.json` | plan |
+| `3f_view.png` | `phase1_vector/3f_view.json` | plan |
+| `South_view.png` | `phase1_vector/South_view.json` | elevation |
+| `North_view.png` | `phase1_vector/North_view.json` | elevation |
+| `East_view.png` | `phase1_vector/East_view.json` | elevation |
+| `West_view.png` | `phase1_vector/West_view.json` | elevation |
+| `supp_plan.png` | `phase1_vector/supp_plan.json` | decide yourself |
+
+Read metadata from `testdata_prompt.json` — but only to learn the floor count / floor height / total
+dimensions; **do not copy testdata_prompt content directly into the phase 1 JSON** (phase 1 should
+reflect only what is seen in the image).
+
+## Core discipline
+
+1. **plan and elevation use different, minimal pen sets** (pen_library.md):
+   - plan legal pens = `wall` / `window`
+   - elevation legal pens = `wall_fill` / `window` / `outline`
+   - there is **no `other` pen and no `door` pen**; stairs / columns / grids / furniture / decoration
+     are recognized then logged in `uncaptured_visual_elements`, **not traced** (do not trace stair treads)
+   - cross-use is an error. E.g. an elevation wall body must use `wall_fill`, not `wall`
+2'. **Heal door openings into continuous walls (door-healing, guide.md §2.1)**: when you see a door
+   leaf / arc on a plan, do not draw a door pen — heal the walls on its two sides into **one
+   continuous wall stroke** + a note `healed door opening at <position>` (a door is ignored in EP, a
+   wall is a continuous boundary face). Guardrails: only heal openings carrying a door symbol;
+   doorless large open spans are kept, not welded (those are real topology signals); windows are not
+   healed. Record each heal in `uncaptured_visual_elements`
+2. **Split elevation wall bodies as "one wall_fill stroke per floor"** (pen_library.md §3). For a 3-story
+   building, each elevation produces 3 wall_fills. Even if the gray looks visually continuous, split
+   by the dimension chain's per-floor z ranges
+3. **Topology is not phase 1's job.** Forbidden fields: `is_exterior` / `parent_wall_id` / `rooms[]`
+   / any "X belongs to Y / X faces outside / X encloses" semantics
+4. **Do not expand the pen set, and do not trace non-keep marks.** Columns / beams / decorative lines /
+   index arrows / grid lines / stair treads are **recognized then logged in `uncaptured_visual_elements`**,
+   not traced as strokes; do not invent enum values like `cornice` / `column` / `level_line` and do
+   not fall back to an `other` pen (there is none)
+4'. **`uncaptured_visual_elements` is required**: anything "seen but not drawn into strokes" must be
+   acknowledged — out-of-dictionary strokes + clutter actively excluded by selective extraction
+   (furniture / paving / texture / room text boxes) + healed doors. Even when the dictionary is truly
+   enough, write a note rather than leaving it empty ("acknowledged skip" ≠ "silent loss")
+5. **One stroke per continuous stroke.** E.g. the south perimeter wall from (0,0) to (15,0) is **one**
+   wall stroke, do not split into 3. Door openings do not break a wall (heal into a continuous wall,
+   see 2'); a window on a plan is a sub-face and also does not break a wall
+6. **Fill null when not found**, no defaults. Plan walls' `thickness_m` is always null (simulation
+   doesn't use it, guide.md §0.2); other fields not found in the image are also null
+7. **Elevation facade_axis_note must include the sign** (guide.md §4 four-facade table)
+8. **OCR verbatim**; if there are no text labels, leave ocr_texts as an empty array
+
+## Workflow
+
+1. Read guide.md + reading_guide.md + pen_library.md + the worked-example plan JSON (understand the style)
+2. Do one pilot first (e.g. `2f_view.png`), then stop and let me review — **do not batch all images at once**
+3. After I approve the pilot, batch the rest (other plans + elevations + supplemental plan)
+4. When all are done, write a `phase1_vector/phase1_summary.md`:
+   - per-image confidence self-assessment (high/medium/low, with reasons)
+   - which fields were repeatedly null / unknown
+   - the four-facade x_local ↔ world-axis table (actual filled values)
+   - your feedback on the schema: where it falls short / where it is redundant / which pen enum values are insufficient
+
+## Boundaries
+
+- Do not modify any file under [../../src](../../src), [../../skills](../../skills), [..](..)
+- Do not modify the worked-example JSON (it is the reference)
+- Do not run `run_full_pipeline.py` or any EnergyPlus tool
+- Do not produce IntakeOutput fields (zone_specs / surface_specs / fenestration_specs / ...), that is all phase 2's job
+
+When ready, do the pilot first, then stop and wait for my feedback.
+
+---
+
+完工后人工校验：用 [Tool_scripts/render_vector_to_svg.py](../../Tool_scripts/render_vector_to_svg.py) / [render_vector_to_png.py](../../Tool_scripts/render_vector_to_png.py) 渲图肉眼比对（见 Step 4.2）。
+
+---
+
+## 附录 B · phase2 会话手跑 prompt（可选，跨模型对比用）
+
+> 正式流程 phase2 由 Step 5 `--phase1-from` 自动跑（DeepSeek，`intake_phase2` 段）。本附录仅当你想用**会话**手跑 phase2（如换模型对比、或脚本不可用时）才用。产 `phase2_intake/<model>/intake_output.json` 后，可走 `--intake-from` 喂下游。
+
+---
+
+I am doing phase 2 of the two-step intake. Phase 1 (image → vector JSON) is done (products in
+`phase1_vector/`). This session does only **phase 2: vector JSON → IntakeOutput** — no image,
+pure text reasoning.
+
+## Required reading
+
+Read in order:
+
+1. `skills/energyplus_mcp_twostep/phase2/rules.md` — full phase 2 rules (input/output / coordinate translation formulas /
+   IntakeOutput field derivation order / naming rules / vertex synthesis / self-check)
+2. `skills/energyplus_mcp_twostep/phase1/guide.md` + `skills/energyplus_mcp_twostep/phase1/pen_library.md` — phase 1 output format reference (only to understand what your input looks like; phase 2 does not need the reading guide)
+3. `phase1_vector/phase1_summary.md` — phase 1 summary (includes the 4-facade local↔world translation formulas, **apply directly**)
+4. **every** phase 1 vector JSON under `phase1_vector/` (do not assume a fixed file set):
+   - all floor-plan JSONs (`<N>f_view.json`) and all facade-elevation JSONs (`<Name>_view.json`)
+   - any supplementary / section JSONs if present (e.g. `supp_plan.json`) — read them too
+   - do not assume 3 floors or 4 facades; enumerate what actually exists
+5. `testdata_prompt.json` — metadata (floor count, area, city, use)
+
+## Task
+
+Following the field derivation order in `rules.md` §3, produce the IntakeOutput Pydantic JSON, written to:
+
+```
+phase2_intake/<model>/intake_output.json
+```
+
+For the format, reference the IntakeOutput Pydantic definition in [../../src/agent/state.py](../../src/agent/state.py).
+All 11 fields must be present: building / site_location / zone_specs / material_specs /
+schedule_specs / construction_specs / surface_specs / fenestration_specs / hvac_specs / people_specs
+/ lights_specs.
+
+The 9 `*_specs` fields are **natural-language instructions** (not structured data), but must be
+explicit, mechanically executable, and internally consistent — the 9 downstream subagents rely on
+these strings. Naming rules are strict (letters/digits/`_` only, literally consistent across fields,
+no template writing).
+
+## Mental model
+
+- You have already "seen the image" — all visual info is in the phase 1 JSON. **Do not go back to the original PNG**
+- Any error tied to "a value in the image" is phase 1's fault (already frozen); you can only
+  introduce pure reasoning errors (topology, naming, field format, coordinate translation)
+- A `null` in the phase 1 JSON = "phase 1 didn't see it", **do not treat it as 0**; if missing,
+  annotate accordingly in your output
+- Elevation local coordinates must be translated back to the world system per the `phase1_summary.md`
+  §3 formula, **do not re-derive**
+
+## Workflow
+
+1. Read the required docs (rules / schema / summary / testdata_prompt + sample a few JSONs)
+2. Walk through phase2_rules §3 Step 1→7 mentally, confirm you are confident before writing
+3. Write `phase2_intake/<model>/intake_output.json` — write it all at once, **do not append in multiple passes**
+4. After writing, run the self-check (phase2_rules §7, 9 items) and write the result to `phase2_intake/<model>/self_check.md`
+5. If phase2_rules does not cover something and you had to "improvise" to finish, record it in
+   `phase2_intake/<model>/phase2_followup_notes.md` so the rules can be extended later
+
+## Boundaries
+
+- Do not modify any phase1_vector/ file (phase 1 products are frozen)
+- Do not modify rules.md / phase1/guide.md / phase1/pen_library.md (put suggestions in phase2_followup_notes.md)
+- Do not modify any file under [../../src](../../src) / [../../skills](../../skills) / [..](..)
+- Do not run `run_full_pipeline.py` or any EnergyPlus tool
+- Do not look at the original PNGs (phase 2 discipline)
+
+When done, output three files: `intake_output.json` / `self_check.md` / `phase2_followup_notes.md` (if any).
+
+---
+
+_2026-05-29 — 正式化为两步法新架构完整版：Step 4 改 phase1 半人工识图（产矢量 JSON）；Step 5 改一次性自动（phase2 + 下游 + EP，模型统一 llm.yaml `intake_phase2`/`default`/flash）；Step 6 加 InterZone 几何门验收层；明确 dev 临时模式 vs 正式一次性模式的边界。phase1/phase2 prompt 模板并入附录 A/B（原 new_case_guide_twostep.md 已删）。配套 B1.5.c（intake_node 两步串行）+ InterZone 门（src/validator/interzone.py）。旧单步法版本备份 logs/backup/new_case_guide.md.bak_2026-05-29。_
