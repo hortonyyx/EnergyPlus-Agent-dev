@@ -1,0 +1,97 @@
+{
+  "image_label": "East facade elevation",
+  "image_kind": "elevation",
+  "facade_axis_note": "East facade: local x = world y (increasing northward); local y = world z",
+  "scale_origin": {
+    "world_x_m": 15.0,
+    "world_y_m": 0.0,
+    "world_z_m": 0.0,
+    "note": "this image's local origin = southeast ground corner on the east facade"
+  },
+  "strokes": [
+    {
+      "id": "S1",
+      "pen": "wall_fill",
+      "geometry": {
+        "kind": "rect",
+        "x_range_m": [
+          0.0,
+          8.0
+        ],
+        "y_range_m": [
+          0.0,
+          3.6
+        ]
+      },
+      "note": "east facade first-floor wall band"
+    },
+    {
+      "id": "S2",
+      "pen": "wall_fill",
+      "geometry": {
+        "kind": "rect",
+        "x_range_m": [
+          0.0,
+          8.0
+        ],
+        "y_range_m": [
+          3.6,
+          7.2
+        ]
+      },
+      "note": "east facade second-floor wall band"
+    },
+    {
+      "id": "S3",
+      "pen": "wall_fill",
+      "geometry": {
+        "kind": "rect",
+        "x_range_m": [
+          0.0,
+          8.0
+        ],
+        "y_range_m": [
+          7.2,
+          12.0
+        ]
+      },
+      "note": "east facade third-floor wall band including parapet zone"
+    },
+    {
+      "id": "S4",
+      "pen": "window",
+      "geometry": {
+        "kind": "rect",
+        "x_range_m": [
+          3.52,
+          4.48
+        ],
+        "y_range_m": [
+          8.23,
+          10.6
+        ]
+      },
+      "note": "east facade single upper-story window"
+    }
+  ],
+  "dimensions": [],
+  "ocr_texts": [],
+  "self_check": {
+    "all_dimensions_transcribed": true,
+    "all_visible_strokes_captured": true,
+    "no_topology_inferred": true,
+    "pens_used": [
+      "wall_fill",
+      "window"
+    ],
+    "unknowns_noted": [
+      "no printed level or height dimensions are visible on this elevation",
+      "elevation y coordinates are image-derived from the shared facade pixel scale using the known 8.00 m facade width"
+    ],
+    "uncaptured_visual_elements": [
+      "facade outline coincides with wall_fill edges and is not traced as a separate outline stroke",
+      "storey divider lines at z approximately 3.60 m and 7.20 m are used to split wall_fill bands but are not legal pen strokes",
+      "window frame outlines are collapsed to window rects"
+    ]
+  }
+}

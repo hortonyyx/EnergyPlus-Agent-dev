@@ -208,6 +208,7 @@ def run_phase2(
     model_name = section["model_name"]
     max_tokens = section.get("max_tokens", 64000)
     temperature = section.get("temperature", 0.3)
+    reasoning_effort = section.get("reasoning_effort")
     extra_body = section.get("extra_body") or {"thinking": {"type": "enabled"}}
     if not api_key:
         raise RuntimeError(
@@ -228,6 +229,13 @@ def run_phase2(
         len(human_message),
     )
 
+    # reasoning_effort (DeepSeek thinking models: "high" default / "max"). Only
+    # forward it when set — passing an explicit None serializes as `null` in the
+    # request body, which is not the same as omitting the field.
+    optional: dict = {}
+    if reasoning_effort is not None:
+        optional["reasoning_effort"] = reasoning_effort
+
     # Bound the call: DeepSeek thinking on a ~100k-char prompt legitimately takes
     # minutes, but a stalled connection must error rather than hang indefinitely.
     client = OpenAI(api_key=api_key, base_url=base_url, timeout=600.0, max_retries=2)
@@ -240,6 +248,7 @@ def run_phase2(
         temperature=temperature,
         max_tokens=max_tokens,
         extra_body=extra_body,
+        **optional,
     )
 
     msg = resp.choices[0].message

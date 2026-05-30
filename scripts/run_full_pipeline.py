@@ -156,9 +156,10 @@ def main() -> None:
         "--init-llm-config",
         action="store_true",
         help=(
-            "Scaffold a per-case config by copying the global src/configs/llm.yaml "
-            "to <case>/llm.yaml (if absent), then exit. Edit it to set this "
-            "test's model combination, then run normally."
+            "Scaffold a per-case config from the simple per-stage template "
+            "(src/configs/llm_per_case_template.yaml) to <case>/llm.yaml (if "
+            "absent), then exit. Edit it to set this test's model combination, "
+            "then run normally."
         ),
     )
     parser.add_argument(
@@ -191,13 +192,14 @@ def main() -> None:
 
     # --- LLM config resolution (per-case model combination) ---
     global_llm_config = Path("src/configs/llm.yaml")
+    per_case_template = Path("src/configs/llm_per_case_template.yaml")
     per_case_llm_config = case_dir / "llm.yaml"
     if args.init_llm_config:
         if per_case_llm_config.exists():
             logger.info("per-case LLM config already exists: {}", per_case_llm_config)
         else:
             case_dir.mkdir(parents=True, exist_ok=True)
-            shutil.copy(global_llm_config, per_case_llm_config)
+            shutil.copy(per_case_template, per_case_llm_config)
             logger.info(
                 "scaffolded per-case LLM config -> {} (edit it to set this test's "
                 "model combination, then run without --init-llm-config)",

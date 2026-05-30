@@ -67,6 +67,10 @@ intake_phase2:
   model_name: deepseek-v4-pro
   temperature: 0.3
   max_tokens: 64000
+  # DeepSeek thinking effort: "high" (default) or "max" (more exhaustive, slower
+  # /costlier). low/medium map to high, xhigh to max. Read by src/agent/phase2.py;
+  # omit the key entirely to fall back to the provider default.
+  reasoning_effort: high
   extra_body:
     thinking:
       type: enabled
