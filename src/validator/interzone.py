@@ -63,6 +63,13 @@ _PLANE_TOL = 0.02  # m — paired surfaces must lie on the same plane (any orien
 _NORMAL_DOT_TOL = -0.99  # paired unit normals must be ~antiparallel
 _MIN_EDGE = 0.10  # m — anything thinner is a degenerate sliver, not a wall
 
+# Outside Boundary Conditions EnergyPlus accepts for our pipeline. Anything else
+# (notably `Zone`, removed from modern EP — `invalid Outside Boundary
+# Condition="ZONE"` severe) means an interzone surface was encoded wrong; it must
+# be `Surface` + a reciprocal object. This closes the gate blind spot where
+# OBC=Zone surfaces were silently ignored (only OBC=Surface was validated).
+_VALID_OBC = {"Outdoors", "Ground", "Surface", "Adiabatic"}
+
 
 def _unit_normal(coords: list[tuple[float, float, float]]) -> np.ndarray:
     """Newell's method — robust planar polygon normal, returned as a unit vector."""
@@ -125,6 +132,17 @@ def validate_interzone_surface_pairs(idf: IDF) -> list[str]:
                 f"degenerate surface '{s.Name}': shortest edge {min_edge:.4f} m "
                 f"< {_MIN_EDGE} m (sub-tolerance sliver — EP may segfault in input "
                 f"processing)"
+            )
+
+    # Invalid OBC guard — catches OBC=Zone (and any other non-accepted value)
+    # that the Surface-only pairing checks below would otherwise ignore.
+    for s in surfaces:
+        obc = s.Outside_Boundary_Condition
+        if obc not in _VALID_OBC:
+            issues.append(
+                f"surface '{s.Name}' has invalid Outside Boundary Condition "
+                f"'{obc}' — EnergyPlus rejects it; an interzone surface must be "
+                f"'Surface' with a reciprocal boundary object, not '{obc}'"
             )
 
     interzone = [s for s in surfaces if s.Outside_Boundary_Condition == "Surface"]

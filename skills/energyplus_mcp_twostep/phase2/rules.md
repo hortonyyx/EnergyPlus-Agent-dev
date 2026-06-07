@@ -201,8 +201,16 @@ explicitly**, no template writing.
 Exterior / interior wall judgment:
 - exterior = this surface sits on the building footprint boundary (on plan it is one of the
   perimeter wall strokes) → `outside_boundary_condition = Outdoors`
-- interior = this surface is between two zones → `outside_boundary_condition = Zone`, and explicitly
-  give `adjacent_zone_name`
+- interior = this surface is between two zones → `outside_boundary_condition = Surface`, with
+  `outside_boundary_condition_object` set to the **exact partner surface name** in the adjacent zone
+  (also state the adjacent zone). Name **both** sides and point them at each other reciprocally, e.g.
+  `Wall_East_F1_R1` (in F1_R1) ↔ `Wall_West_F1_R2` (in F1_R2).
+
+> **EnergyPlus has no `Zone` boundary condition.** Every interzone surface — interior walls **and**
+> interfloor floor/ceilings alike — uses `outside_boundary_condition = Surface` + a reciprocal
+> `outside_boundary_condition_object`. Writing `outside_boundary_condition = Zone` is an EnergyPlus
+> input error (`invalid Outside Boundary Condition="ZONE"` severe). The two paired faces must
+> reference each other and use the same (or reverse-stacked) construction (§5.1).
 
 Floor / ceiling:
 - F1 floor → Ground (`outside_boundary_condition = Ground`), construction = `Default_GroundFloor`

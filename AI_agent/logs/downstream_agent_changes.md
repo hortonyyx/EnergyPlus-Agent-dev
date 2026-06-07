@@ -33,6 +33,12 @@
 - [src/agent/phase2.py](../../src/agent/phase2.py) 重构（备份 `src_history/2026-06-07_phase2_partA_wiring/phase2.py_v2_pre_staged`）为 **2a 校正(LLM,出 CorrectedGeometry) → 确定性核(代码) → 2b 建模(LLM,出 IntakeOutput)**；中间态全物化（`phase2a_geometry.json` / `_snapped.json` / `corrections.json`）；每段独立 LLM section（`intake_phase2a`/`intake_phase2b`,缺则回退 `intake_phase2`）= 可分别换模型；`run_phase2` 签名不变。
 - 实测（sm21）：确定性核**结构性消碎片**（全局 x 轴集最小间距 2.575m≥0.1，跨层 4.90/4.95→4.925 统一）；三段中间态物化可验。残留 = **phase2a 判断质量**（2f 南向仍"两大两小"未仲裁成四等分）——问题干净隔离在校正段，可单独评测/迭代。`CorrectedGeometry` = baseline diff 目标。
 
+**后续（同日）— EP 拦路逐层剥离 + OBC 修复 + 门补盲区**：核消碎片后门过（pair_issues 0），EP 跑起来逐层暴露下游问题：
+- **OBC=Zone（EP 25.1.0 不认）**：根因 [`rules.md`](../../skills/energyplus_mcp_twostep/phase2/rules.md) Step 4 写"interior→OBC=Zone"（老 anchor 没逐面字面写、surface_agent 自译成 Surface 才侥幸过；staged phase2b 结构化逐面写 Zone→IDF 原样 40 个 OBC=ZONE→EP severe）。**修**：rules.md Step 4 内墙改 `OBC=Surface`+互逆 `outside_boundary_condition_object`，加粗注"EP 无 Zone 边界条件"（备份 `Skill_history/2026-06-07_obc_surface_not_zone/`）。验证：phase2b 重出 OBC=Surface 58 / Zone 0 / 58 互逆对象。
+- **门盲区**：[`src/validator/interzone.py`](../../src/validator/interzone.py) 旧版只校验 OBC=Surface、对 OBC=Zone 完全不看（碎片消了才暴露）。**修**：加 `_VALID_OBC={Outdoors,Ground,Surface,Adiabatic}` 守卫，任何非法 OBC（含 Zone）直接 flag（备份 `src_history/2026-06-07_phase2_partA_wiring/interzone.py_pre_obc`）。
+- **phase2.py 两个 standalone bug**：`_call_json_llm` 缺 `out_dir.mkdir`、`run_phase2a/b` 缺 `ensure_schema_initialized()`（仅 orchestrator 调过）→ 单独调用 stage 崩。均修（idempotent）。
+- **剩余 EP 拦路（已精确归层，属切配轨非 partA）**：OBC 修对后门抓到 **26 个互逆配对问题**——走廊跨 N 房,phase2b 把走廊墙拆成 `*_Split_n` 指向各房墙(对),但各房墙 target 仍指未拆走廊名(13 missing + 13 non-reciprocal)。**拆一侧忘回指** = InterZone 面配对的确定性记账,LLM 不稳,正是**切配确定性内核**该解决的([reference/split_pairing_kernel_reference.md](../reference/split_pairing_kernel_reference.md)),门精准抓住、无崩溃。partA 域内工作到此为止。
+
 ---
 
 ### 2026-05-29 — 确定性 InterZone surface-pair 校验门(审阅 A 落地)

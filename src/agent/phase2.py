@@ -130,6 +130,8 @@ def _call_json_llm(
     extra_body = section.get("extra_body") or {"thinking": {"type": "enabled"}}
     if not api_key:
         raise RuntimeError(f"{prefix}: no api_key (set DEEPSEEK_API_KEY in .env).")
+    if out_dir is not None:
+        out_dir.mkdir(parents=True, exist_ok=True)
 
     logger.info(
         "{}: model={} prompt sizes system={} human={} chars",
@@ -263,6 +265,7 @@ def run_phase2a(
     out_dir: Path | None = None,
     feedback: str | None = None,
 ) -> CorrectedGeometry:
+    ensure_schema_initialized()  # safe for standalone stage calls (idempotent)
     system_prompt, human = _build_phase2a_messages(
         vector_dir, testdata_text, feedback=feedback
     )
@@ -348,6 +351,7 @@ def run_phase2b(
     out_dir: Path | None = None,
     feedback: str | None = None,
 ) -> IntakeOutput:
+    ensure_schema_initialized()  # safe for standalone stage calls (idempotent)
     system_prompt, human = _build_phase2b_messages(
         geom, testdata_text, feedback=feedback
     )
