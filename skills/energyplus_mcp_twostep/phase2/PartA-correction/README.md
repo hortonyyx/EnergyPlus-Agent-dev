@@ -1,11 +1,12 @@
-# Correction layer
+# PartA — Correction layer
 
 The correction layer turns perceived geometric primitives (possibly noisy or
 self-contradictory) into a clean, self-consistent, simulation-friendly set,
-and records every material change. It sits between perception and zoning:
+and records every material change. It is the **first sub-stage of phase2** (the
+vector-JSON → IntakeOutput node), ahead of zoning and geometry build:
 
 ```
-perception → [correction] → zoning → geometry build → surface matching → EnergyPlus
+phase1 perception → [ PartA correction → zoning → geometry build ]phase2 → surface matching → EnergyPlus
 ```
 
 ## Documents (read in order)
