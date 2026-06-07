@@ -137,8 +137,9 @@ phase1 在 1f 把同一道隔墙估成 **4.90/10.10**、2f 估成 **4.95/10.05**
 
 ## 7. 状态与下一步
 
-- 状态：**设计定稿（2026-06-07 审阅后），未落地实现**；两条腿并行（§8），本 leg（忠实建模）继续落地。
-- **下一步 = 逐篇写 skill 文档库**（用户说"审过后逐篇落地"）。落地入口：[`skills/energyplus_mcp_twostep/phase2/PartA-correction/`](../../skills/energyplus_mcp_twostep/phase2/PartA-correction)（phase2 内首子阶段，A0→A1-min+A2→A4 stub→A3）+ phase2/rules.md 接入；phase1 侧按 A0 上游契约小改（双通道+置信度，实现归 phase1 skill 另议）。改既有 skill 文件按 [CLAUDE.md §6#5](../CLAUDE.md) 备份到 `Skill_history/`。
+- 状态：**逐篇落地中**（设计定稿 → Phase 1）。**A0 已写 + 审 + 定稿**（[A0_contract.md](../../skills/energyplus_mcp_twostep/phase2/PartA-correction/A0_contract.md)；Codex review 8 findings 全纳入：claim-type 分级证据 / 审计 envelope / tolerance registry / 第 7 类 conflict / PartA-scoped validation + 顶层 status / 三档 profile A3-A4 强度 / provenance mode）。容差常数已用[检索包](../logs/review/review/2026-06-07_partA_priors_tolerance_retrieval.md)国标值回填（SNAP_GRID=50mm/M2、MIN_EDGE=0.1m、gap 100/300/500mm 分带、WWR/area ±5%、PERIMETER_DEPTH 标归 zoning）。
+- **下一步 = A1-min + A2（同批）**，引 A0 的 evidence/tolerance/audit 口径；后 A4 stub（用检索包先验表）→ A3。落地入口：[`skills/.../PartA-correction/`](../../skills/energyplus_mcp_twostep/phase2/PartA-correction)。phase1 侧按 A0 §6 上游契约小改（provenance+置信度，归 phase1 skill 另议）；接入 phase2/rules.md 及改既有 skill 按 [CLAUDE.md §6#5](../CLAUDE.md) 备份。
+- 检索包先验大表（A4 素材）：[partA_priors_tolerance_retrieval.md](../logs/review/review/2026-06-07_partA_priors_tolerance_retrieval.md)——办公建筑门窗/房间/层高/WWR 国标值 + 红线（先验只出 score、按 space type 分型、不覆盖测量）。
 - 依赖/耦合：A1/A2 现在做不浪费（room_identity + use_grouped_rooms 都用，且改善 perimeter_core 的立面/窗锚点）；A3/A4 mode-aware、perimeter_core 下克制（与 [zonification 调研](../architecture/geometry_first_zonification.md) §0 一致）。评测尺子（[plan.md B2-B4](../plan.md)）立起来后才放开 A3/A4 精度判断档。
 - 对应任务：[plan.md](../plan.md) B1.5.b（phase1/phase2 skill 迭代）+ B5-B7。
 - sm21 实验产物：`test_data/SmallOffice_TwoStep/smalloffice_21/phase2_intake/{deepseek,opus,sonnet}/` + `output_{opus,sonnet}/`（未 commit）。
