@@ -84,45 +84,63 @@ phase1 在 1f 把同一道隔墙估成 **4.90/10.10**、2f 估成 **4.95/10.05**
 
 ---
 
-## 5. 四条改进方向（原案 + 细化 + 风险）
+## 5. partA 容差校正约束集（设计定稿，2026-06-07 审阅后）
 
-### 5.1 闭缝（约束缝隙出现）
-- 真实建筑不会出现 sm21 那种 240mm 缝；小于阈值的缝判定封闭。
-- **要点不是"看到缝就闭"，而是全局一致吸附**：同一道墙在不同楼层 / 不同通道吸到**同一条规范轴线**。Sonnet 段错正是 F1=4.90、F2=4.95 没吸到一起 → 5cm 碎片。规则 = "建立每栋楼规范隔墙轴集，所有引用吸附到它"。
-- 阈值：闭合缝隙阈值可大些（用户举例 500mm，待商）；坐标吸附粒度小些（见 5.2）。两者分开定。
+> 取代原"四条改进方向"（用户初步想法）。Codex 审阅 verdict = **整体 sound，3 处修正后逐篇落地**，8 条 finding **全部采纳**。请求 [request](../logs/review/request/2026-06-07_partA_correction_constraint_set_request.md) + 审阅 [review](../logs/review/review/2026-06-07_partA_correction_constraint_set_review.md)。**partA = 校正层**：phase1 噪声/矛盾感知 → 干净自洽、EP 友好的几何基元，并记录每次修正。
 
-### 5.2 数值粒度 + 尺寸链对齐总尺寸
-- 坐标量化到 **50mm** 粒度（方案阶段精度 10mm，仿真 50mm 无碍），规避画图精度噪声。
-- **强制"子尺寸链之和 = 总尺寸"做闭合校正**——把"四等分被墙厚扰动"一次性吸收。
-- **坐标走绝对粒度、面积/WWR 走相对误差（±5% 量级），两者别混。**
+### 5.1 切割轴：确定性 vs 判断（= 未来 codify 接缝）
 
-### 5.3 建筑常识库（先验自生成）
-- 单独做一份 **phase2 侧先验文档**：典型窗台高/窗高、常见门宽/窗宽、建筑模数、各类房间最小开间进深等。立面缺窗尺寸链时按常规配置；挡掉 DeepSeek 的 1.2m 幽灵房。
-- **红线：先验是裁决/兜底，不得覆盖一致测量数据**。优先级 = 一致测量数据 > 尺寸链推导 > 常识先验；先验仅在数据缺失/自相矛盾时启用，且记进 `corrections[]`。否则会"修"掉真实异常设计（真有 1.2m 设备间）。
-- 与 B1.5.b "识图库" 区分：识图库 = phase1 侧"长什么样"；常识库 = phase2 侧"合理值是多少"。
+按**操作性质**切，不按现象。这根轴 = 确定性 vs 判断 = 未来切配/idfpy 成熟时可整篇抬走变代码的接缝（确定性篇抬走、判断篇留 LLM）。**审阅修正（finding 2）**：A1/A2 的"确定性"仅在**证据已分级、同一意图墙/轴已判定之后**成立；证据身份、同墙聚类、合法错位 vs 抖动的判别**必须有升级到 A3 的机制**——不是纯机械。
 
-### 5.4 定性 > 定量 约束分级
-分两层落地：
-- **生成规则（phase2 建模时遵守）**：zone 闭合无缝、相邻 zone 贴合、窗不跨 zone、立面窗 z/位置 > 平面窗位置。
-- **验证自检（phase2 出 JSON 前断言 + 下游/EP 兜底）**：闭合性、窗∈父面等"建完才能验"的，self-check 卡住再吐。
+### 5.2 五篇分文档
+
+| 篇 | 类型 | 管什么（审阅后） |
+|---|---|---|
+| **A0 容差·证据·审计·校验契约** | 脊柱（**升级版**，finding 1） | 容差**分级**（非只数值）+ **证据分级** `direct_measurement\|transcribed_dimension\|estimated_stroke\|inferred_topology\|prior\|unknown` + confidence 模型 + **corrections/conflicts/unsupported schema**（source ids/原值/解析值/rule id/阈值/delta/前后置信/是否改拓扑）+ validation schema + **method profiles**（room_identity/use_grouped_rooms/perimeter_core 各自严格度，finding 7）+ **上游 phase1 provenance 输入契约**（finding 8）|
+| **A1 坐标归一化** | 确定性 over typed evidence（+ 升级路径） | 确定路径：世界系 / plan·facade local→world / z-stack / **已知墙厚**的中线转换。升级→A3：墙侧未知 / 缺墙厚 / 原点冲突 / 立面-平面朝向冲突 |
+| **A2 正则化/吸附** | 确定性 over typed evidence（+ 升级路径） | 确定路径：规范轴集 / 跨层聚类（**仅当证据说"同一意图墙/轴"**）/ canonical 后再量化 / 子链=总长闭合 / 最小碎片防止。升级→A3：错位超抖动容差 / 语义证据说不同墙·shaft·楼梯 / 聚类会删真房 → A3 或 unsupported |
+| **A3 冲突仲裁与补全** | 判断（**mode-aware**，finding 7） | 显式冲突类下的通道优先级 / 缺失补全 / 先验使用规则 / unsupported 策略 / 置信降级 / 决策后**回调 A2 重跑**。perimeter_core 下保守调用，room_identity 下才激进 |
+| **A4 建筑常识先验库** | 数据（**硬门控**，finding 5） | 窗台·窗高 / 门·窗宽 / 模数 / 各 space type 房间尺寸先验。**先验只出 warning/score 不直接 correct**；仅证据缺失·矛盾·低置信时才驱动修正；**语义证据支持的异常小房保留或标 conflict**（不归一）；每次用先验记 `prior_id`；**按 building/space type 分型**，禁全局单一最小房表 |
+
+### 5.3 落地序（审阅后微调，finding 3/4）
+
+- **撰写/落地序**：A0 → **（A1-min + A2 同批）** → A4 stub → A3。**不把 A2 独立写在 A1 前**（A2 需坐标系/中线/立面映射前提，先写 A2 会把这些暗埋进去拆不干净）。
+- **运行时（带反馈，非单向）**：`A1 → A2-detect → A3-resolve(+A4) → A2-apply → validate`。例：尺寸链 vs 笔画轴冲突，A2 检出、A3 选通道、A2 再确定性建规范轴集。
+
+### 5.4 每篇统一 header 约定（finding 3）
+
+每篇开头声明：消费的 input artifact 字段 / 可写的 output 字段 / 何时必须吐 `corrections[]` / 何时必须吐 `conflicts[]`·unsupported 而非硬修 / 是否可改拓扑。这条 header 约定防止五篇退化成五坨 prompt 散文。
+
+### 5.5 corrections[] 分级（finding 6）
+
+硬要求，但只对**实质改动**。A0 区分四类事件：**normalization**（输出精度内取整，无害）/ **corrections**（改了源值·拓扑·闭缝·吸轴·选了某证据通道）/ **conflicts**（未解或超阈歧义）/ **unsupported**（当前不能安全修）。硬规则：凡改几何超出输出取整、改拓扑、改证据权威、或调用先验，**必须记**；记不出 source ids + rule id 就标 unsupported、别静默通过。
+
+### 5.6 验收（写完 skill 后据此判）
+
+- sm21 全病灶可解释：0.24m 墙侧缝 / 5cm 跨层抖动 / 尺寸链 vs 笔画冲突 / 1.2m 幽灵房疑似。
+- 每条 correction 有 source ids + rule ids。
+- A2 不得仅凭坐标接近合并轴（语义证据说不同则不并）。
+- A4 先验不得覆盖高置信证据、不得抹掉带标签的 service/shaft/WC 房（否则标 conflict）。
+- perimeter_core 模式可跳过高细节内房仲裁，同时保住外壳/立面/WWR 正确。
+- 旧 phase1 JSON 可降置信运行，但新 provenance 字段须显式声明需求。
 
 ---
 
-## 6. 待定取舍（动手前需拍板）
+## 6. 待定取舍（已拍板 / 已被审阅解决）
 
-1. **重生成放哪**：phase2 重写为约束求解器（+ phase1 保持忠实，无新步骤）—— vs —— 独立的 reconciliation 显式 pass。（倾向前者）
-2. **`corrections[]` 审计日志**：是否定为硬要求。（倾向是，放宽约束的前提）
-3. **先验红线**：常识库严格作裁决/兜底、不覆盖一致测量数据。（待确认）
-4. **阈值框架**：闭缝阈值 vs 坐标吸附粒度分开；面积/WWR 走相对误差。具体数值本轮先不锁，定框架。
+1. **重生成放哪** → phase2 内（容差校正 partA + zonification + 几何建模），无独立 reconciliation pass。✅
+2. **`corrections[]` 硬要求** → 是，但分级、只对实质改动（§5.5）。✅
+3. **先验红线** → 确认，且加硬门控（§5.2 A4 / finding 5）：先验只出 score、语义证据优先、记 prior_id、按 space type 分型。✅
+4. **阈值框架** → A0 定容差分级 + method profiles（§5.2 A0）；具体数值随首篇落地时锁。✅
 
 ---
 
 ## 7. 状态与下一步
 
-- 状态：**设计讨论已捕获，未落地实现**；2026-05-29 定调**两条腿并行**（见 §8），本 leg（忠实建模）**继续落地、不被再拓扑取代**。
-- 落地入口（取舍拍板后）：改 [`skills/energyplus_mcp_twostep/phase2/rules.md`](../../skills/energyplus_mcp_twostep/phase2/rules.md)（约束求解 + 容差 + 定性分级）+ 新建建筑常识先验文档；phase1 侧小改双通道+置信度。均按 [CLAUDE.md §6#5](../CLAUDE.md) 备份到 `Skill_history/`。
-- **下一步动作**：先拍板 §6 的 4 个待定取舍（动手前置），再按上面落地入口动 phase2/rules.md。
-- 对应任务：[plan.md](../plan.md) B1.5.b（phase1/phase2 skill 迭代）+ B5-B7（能力升级）。
+- 状态：**设计定稿（2026-06-07 审阅后），未落地实现**；两条腿并行（§8），本 leg（忠实建模）继续落地。
+- **下一步 = 逐篇写 skill 文档库**（用户说"审过后逐篇落地"）。落地入口：在 [`skills/energyplus_mcp_twostep/`](../../skills/energyplus_mcp_twostep) 新建 partA 约束文档库（A0→A1-min+A2→A4 stub→A3）+ phase2/rules.md 接入；phase1 侧按 A0 上游契约小改（双通道+置信度，实现归 phase1 skill 另议）。均按 [CLAUDE.md §6#5](../CLAUDE.md) 备份到 `Skill_history/`。
+- 依赖/耦合：A1/A2 现在做不浪费（room_identity + use_grouped_rooms 都用，且改善 perimeter_core 的立面/窗锚点）；A3/A4 mode-aware、perimeter_core 下克制（与 [zonification 调研](../architecture/geometry_first_zonification.md) §0 一致）。评测尺子（[plan.md B2-B4](../plan.md)）立起来后才放开 A3/A4 精度判断档。
+- 对应任务：[plan.md](../plan.md) B1.5.b（phase1/phase2 skill 迭代）+ B5-B7。
 - sm21 实验产物：`test_data/SmallOffice_TwoStep/smalloffice_21/phase2_intake/{deepseek,opus,sonnet}/` + `output_{opus,sonnet}/`（未 commit）。
 
 ---
