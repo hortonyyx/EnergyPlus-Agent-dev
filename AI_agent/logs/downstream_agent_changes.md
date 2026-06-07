@@ -28,6 +28,11 @@
 
 **验收**：在 sm21 / sm22 跑通（partA 应消除"同墙跨层 5cm 抖动→退化碎片"那类，InterZone 门更易过）；跑通后建评测 baseline。
 
+**后续（同日）— 一步出 → 三段解耦重构**：sm21 全链路实测一步出 (b) 不可靠（phase2 没执行 A2 跨层统一 → 4 个 0.05m 碎片 → 门拦下；2f 南向分区/窗也没校对）。根因 = 校正未物化、确定性操作交给 LLM。改为**三段解耦**：
+- 新增 [`src/agent/correction/`](../../src/agent/correction)：`schema.py`（`CorrectedGeometry` 中间态:rectangular cells + windows + per-floor z + audit）+ `deterministic.py`（确定性核:全局规范轴吸附 + 碎片守卫,证据/容差门控,常数取 A0 registry）。
+- [src/agent/phase2.py](../../src/agent/phase2.py) 重构（备份 `src_history/2026-06-07_phase2_partA_wiring/phase2.py_v2_pre_staged`）为 **2a 校正(LLM,出 CorrectedGeometry) → 确定性核(代码) → 2b 建模(LLM,出 IntakeOutput)**；中间态全物化（`phase2a_geometry.json` / `_snapped.json` / `corrections.json`）；每段独立 LLM section（`intake_phase2a`/`intake_phase2b`,缺则回退 `intake_phase2`）= 可分别换模型；`run_phase2` 签名不变。
+- 实测（sm21）：确定性核**结构性消碎片**（全局 x 轴集最小间距 2.575m≥0.1，跨层 4.90/4.95→4.925 统一）；三段中间态物化可验。残留 = **phase2a 判断质量**（2f 南向仍"两大两小"未仲裁成四等分）——问题干净隔离在校正段，可单独评测/迭代。`CorrectedGeometry` = baseline diff 目标。
+
 ---
 
 ### 2026-05-29 — 确定性 InterZone surface-pair 校验门(审阅 A 落地)
