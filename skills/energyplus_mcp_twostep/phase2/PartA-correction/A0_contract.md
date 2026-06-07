@@ -68,6 +68,9 @@ tie is **not** silently split — it becomes a `conflict`. In particular, A2 mus
 **not** merge two axes on coordinate proximity alone (a `numeric` argument) when
 `topology_identity` evidence says they are distinct.
 
+Authority resolution compares structured evidence items by the tuple
+`(claim_type, grade, source_kind, confidence)`, in that precedence.
+
 ---
 
 ## 2. Audit taxonomy
@@ -181,6 +184,20 @@ emit `unsupported`.
 | `AREA_REL_TOL` | ±5 | % | calibrated | all | warn / accept | BEM QA; `GB 50189-2015` 3.4.3 |
 | `WWR_REL_TOL` | ±5% or ±0.02 | ratio | calibrated | all | warn / accept | `GB 50189-2015` 3.2.2 / 3.3.1 |
 | `PERIMETER_DEPTH` | 4.6 (range 2.4–6.1) | m | calibrated | — (downstream zoning, **not** PartA) | n/a | `ASHRAE 90.1-2019 Add. ag`; listed for reference, PartA rules must not consume it |
+
+**Precedence (axis identity vs gap closing vs output).** These are distinct
+operations and must not be conflated:
+
+- **Axis identity** (are two coordinates the same intended axis/wall?) uses
+  `AXIS_JITTER_TOL` **only**, gated by `topology_identity` evidence. Beyond it →
+  `reference_or_identity_ambiguity` → A3.
+- **Gap closing** (should two things that don't touch be made to touch?) uses the
+  `GAP_CLOSE_THRESHOLD` / `GAP_CONFLICT_BAND` / `GAP_UNSUPPORTED` bands. These are
+  a connectivity operation, **not** axis identity.
+- **Output** uses `OUTPUT_PRECISION` for final formatting only. `SNAP_GRID` is a
+  candidate regularization grid for low-confidence stroke-only geometry; canonical
+  axis values are chosen from authoritative evidence and are **not** rounded to
+  `SNAP_GRID` before dimension-chain closure.
 
 Architectural-commonsense priors (door/window/room/height values) live in `A4`,
 not here; they are advisory (`prior_score` / `warning`), never executable

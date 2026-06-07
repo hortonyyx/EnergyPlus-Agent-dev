@@ -34,8 +34,11 @@ the world frame.
 
 ### 2.2 Facade (elevation)
 - Horizontal axis → the facade's world axis (x for North/South, y for East/West).
-- `y_local` (height) → world z **directly**; do not add a per-floor offset on top
-  (the elevation already carries absolute height).
+- `y_local` (height) → world z **through the `facade_local → world` transform**.
+  If the transform establishes that `y_local` is building-absolute, no per-floor
+  offset is added. If the vertical origin is ambiguous (e.g. a cropped elevation
+  with a local vertical datum), emit `facade_plan_mismatch` /
+  `reference_or_identity_ambiguity` → A3 rather than assuming a convention.
 - Facade orientation is fixed by the facade's world plane. If the declared
   orientation conflicts with the plan position, emit `facade_plan_mismatch`
   (claim_type `topology_identity`) → A3; do not silently re-orient.
@@ -59,8 +62,11 @@ All wall axes are expressed at the wall **centerline** in the world frame.
   the wall's **measured** thickness.
 - The coordinate shift is a `correction` with `claim_type = numeric`; the
   "which side / what thickness" decision rests on `topology_identity` evidence.
-- A `prior` wall thickness (from `A4`) may be used **only** when measurement is
-  absent, and must be logged with `prior_id`.
+- A1 may consume a wall thickness only if it is **measured** or already
+  **resolved by A3**. A1 does **not** invoke `A4` itself: if thickness is absent
+  and only an `A4` prior could fill it, A1 emits `reference_or_identity_ambiguity`
+  and stops that conversion until A3 resolves it (priors are applied in A3, never
+  inside A1).
 - Escalation: unknown wall side, no thickness basis, or conflicting origin →
   `reference_or_identity_ambiguity` → A3. Do not guess a centerline.
 

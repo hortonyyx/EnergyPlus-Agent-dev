@@ -137,8 +137,10 @@ phase1 在 1f 把同一道隔墙估成 **4.90/10.10**、2f 估成 **4.95/10.05**
 
 ## 7. 状态与下一步
 
-- 状态：**逐篇落地中**（设计定稿 → Phase 1）。**A0 已写 + 审 + 定稿**（[A0_contract.md](../../skills/energyplus_mcp_twostep/phase2/PartA-correction/A0_contract.md)；Codex review 8 findings 全纳入：claim-type 分级证据 / 审计 envelope / tolerance registry / 第 7 类 conflict / PartA-scoped validation + 顶层 status / 三档 profile A3-A4 强度 / provenance mode）。容差常数已用[检索包](../logs/review/review/2026-06-07_partA_priors_tolerance_retrieval.md)国标值回填（SNAP_GRID=50mm/M2、MIN_EDGE=0.1m、gap 100/300/500mm 分带、WWR/area ±5%、PERIMETER_DEPTH 标归 zoning）。
-- **下一步 = A1-min + A2（同批）**，引 A0 的 evidence/tolerance/audit 口径；后 A4 stub（用检索包先验表）→ A3。落地入口：[`skills/.../PartA-correction/`](../../skills/energyplus_mcp_twostep/phase2/PartA-correction)。phase1 侧按 A0 §6 上游契约小改（provenance+置信度，归 phase1 skill 另议）；接入 phase2/rules.md 及改既有 skill 按 [CLAUDE.md §6#5](../CLAUDE.md) 备份。
+- 状态：**Phase 1（A0 + A1 + A2）已写 + 审 + 定稿**。三篇均在 [`skills/.../PartA-correction/`](../../skills/energyplus_mcp_twostep/phase2/PartA-correction)：
+  - **A0**：8 findings 全纳入（claim-type 分级证据 / 审计 envelope / tolerance registry / 第 7 类 conflict / PartA-scoped validation + 顶层 status / 三档 profile A3-A4 强度 / provenance mode）；容差常数用[检索包](../logs/review/review/2026-06-07_partA_priors_tolerance_retrieval.md)国标值回填（SNAP=50mm/M2、MIN_EDGE=0.1m、gap 100/300/500 分带、WWR/area ±5%、PERIMETER_DEPTH 归 zoning）。
+  - **A1（坐标归一化）/ A2（正则吸附）**：A1A2 review conditionally accept + A0 re-verify closeable，6 条 minimal patch 全改（A1 不自行调 A4 先验、facade 竖向走 transform 不硬假设；A2 轴身份只用 AXIS_JITTER_TOL/>则升 A3、SNAP_GRID 非预闭合取整、sliver 吸收作唯一改拓扑且条件化；A0 §4 加轴身份 vs 闭缝 vs 输出优先级）。
+- **下一步 = Phase 2：A4 stub（用检索包先验大表填）→ A3**（评测 gated，[plan.md B2-B4](../plan.md) 尺子立起来后放开 A3/A4 精度判断档）。phase1 侧按 A0 §6 上游契约小改（provenance+置信度，归 phase1 skill 另议）；接入 phase2/rules.md 及改既有 skill 按 [CLAUDE.md §6#5](../CLAUDE.md) 备份。
 - 检索包先验大表（A4 素材）：[partA_priors_tolerance_retrieval.md](../logs/review/review/2026-06-07_partA_priors_tolerance_retrieval.md)——办公建筑门窗/房间/层高/WWR 国标值 + 红线（先验只出 score、按 space type 分型、不覆盖测量）。
 - 依赖/耦合：A1/A2 现在做不浪费（room_identity + use_grouped_rooms 都用，且改善 perimeter_core 的立面/窗锚点）；A3/A4 mode-aware、perimeter_core 下克制（与 [zonification 调研](../architecture/geometry_first_zonification.md) §0 一致）。评测尺子（[plan.md B2-B4](../plan.md)）立起来后才放开 A3/A4 精度判断档。
 - 对应任务：[plan.md](../plan.md) B1.5.b（phase1/phase2 skill 迭代）+ B5-B7。

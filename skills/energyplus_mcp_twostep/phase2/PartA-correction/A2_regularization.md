@@ -18,9 +18,9 @@ Emit conflicts[] / unsupported when: an offset falls in GAP_CONFLICT_BAND / exce
                  AXIS_JITTER_TOL, snapping would merge entities that topology or
                  semantic evidence says are distinct, or a sub-MIN_EDGE_LENGTH
                  sliver cannot be safely absorbed
-May change topology: no for snap / close / quantize; absorbing a
-                 sub-MIN_EDGE_LENGTH sliver may remove a degenerate entity
-                 (logged, changes_topology = true)
+May change topology: yes, **only** for logged sub-MIN_EDGE_LENGTH degenerate
+                 sliver absorption; all other A2 operations (snap / close /
+                 quantize) preserve topology
 ```
 
 Applies under **all** profiles. Under `perimeter_core`, internal-axis
@@ -33,21 +33,34 @@ envelope/facade axes are always canonicalized.
 
 - Build a per-building set of canonical x-axes, y-axes, and z-levels that all
   references snap to.
+Axis identity is governed by `AXIS_JITTER_TOL` **only** — the gap-closing bands
+(`GAP_CLOSE_THRESHOLD` / `GAP_CONFLICT_BAND` / `GAP_UNSUPPORTED`) are a separate
+operation (connectivity, not identity; A0 §4 precedence note).
+
 - An evidence item joins an existing canonical axis only when **both**:
   (a) `topology_identity` evidence supports "same intended axis / wall", **and**
   (b) the offset ≤ `AXIS_JITTER_TOL`.
 - Coordinate proximity alone (a `numeric` argument) is **not** sufficient to
   merge (A0 §1.4).
+- **Offset > `AXIS_JITTER_TOL`**: never merge on proximity → emit
+  `reference_or_identity_ambiguity` (or `cross_floor_axis_jitter` for the
+  pure-numeric subtype) → A3, unless A3 has already resolved that identity.
+- Topology / semantic evidence says distinct (shaft, stair, genuine stagger) →
+  do not merge regardless of offset → conflict → A3.
 - **Cross-floor unification**: the same intended wall across floors snaps to one
   canonical axis. This is the primary guard against cross-floor jitter slivers.
-- Escalation: offset within `GAP_CONFLICT_BAND`, or topology / semantic evidence
-  says distinct (shaft, stair, genuine stagger) → `reference_or_identity_ambiguity`
-  (or `cross_floor_axis_jitter` for the pure-numeric subtype) → A3. Do not merge.
 
 ## 2. Snapping
 
-- Snap joined coordinates to their canonical axis value, on the `SNAP_GRID`.
-- Each snap that moves a coordinate beyond `OUTPUT_PRECISION` is a `correction`.
+- The canonical axis **value** is chosen from authoritative evidence (or an A3
+  decision), **not** by rounding to `SNAP_GRID`. Do **not** round canonical
+  values to `SNAP_GRID` before dimension-chain closure — that would degrade
+  authoritative dimensions and then "close" the damage.
+- `SNAP_GRID` is a candidate regularization grid for **low-confidence,
+  stroke-only** geometry that has no dimension backing; it is not pre-closure
+  rounding for dimensioned axes.
+- Snap joined coordinates to their (evidence-chosen) canonical axis value. Each
+  snap that moves a coordinate beyond `OUTPUT_PRECISION` is a `correction`.
 
 ## 3. Dimension-chain closure
 
@@ -71,9 +84,13 @@ envelope/facade axes are always canonicalized.
 - No generated edge / piece below `MIN_EDGE_LENGTH`. This is the direct guard
   against the degenerate-fragment EnergyPlus crash class.
 - A sub-`MIN_EDGE_LENGTH` piece almost always means two axes were not unified:
-  first re-snap to the canonical axis (§1). If that resolves it → `correction`.
-  If a genuine sub-threshold feature remains, absorb it into the neighbor
-  (`correction`, `changes_topology = true`) or mark `unsupported`.
+  first re-snap to the canonical axis (§1). If that resolves it → `correction`
+  (no topology change).
+- If a genuine sub-threshold feature remains, absorption is the **only**
+  topology-changing A2 operation and must be logged (`changes_topology = true`).
+  Mark `unsupported` instead of absorbing when the sliver is semantically
+  meaningful, belongs to a declared exception space (shaft / stair / WC / service),
+  or cannot be absorbed without changing source attribution.
 
 ## 6. Runtime feedback
 
