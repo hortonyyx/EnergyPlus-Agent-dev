@@ -109,14 +109,32 @@ def build_phase2_messages(
     """Return (system_prompt, human_message) for the phase-2 call.
 
     Rule docs come from the skill library (HEAD spec). phase 2 reads
-    phase2/rules.md + phase1/guide.md + phase1/pen_library.md (NOT
-    phase1/reading_guide.md — that is image-perception only and phase 2 never
-    sees images). phase1_summary.md comes from the vector dir.
+    phase2/rules.md + phase2/PartA-correction/{README,A0..A4} (Step 0 correction
+    layer) + phase1/guide.md + phase1/pen_library.md (NOT phase1/reading_guide.md
+    — that is image-perception only and phase 2 never sees images).
+    phase1_summary.md comes from the vector dir.
     """
     rules = _read(_SKILL_DIR / "phase2" / "rules.md")
     phase1_guide = _read(_SKILL_DIR / "phase1" / "guide.md")
     phase1_pens = _read(_SKILL_DIR / "phase1" / "pen_library.md")
     summary = _read(vector_dir / "phase1_summary.md")
+
+    # PartA correction layer (Step 0): applied to the phase-1 primitives before
+    # the rules.md Step 1-7 derivation. Loaded from the skill library so the docs
+    # are the single source of truth (no inline duplication).
+    partA_dir = _SKILL_DIR / "phase2" / "PartA-correction"
+    partA_order = [
+        "README.md",
+        "A0_contract.md",
+        "A1_coordinate_normalization.md",
+        "A2_regularization.md",
+        "A3_arbitration.md",
+        "A4_priors.md",
+    ]
+    partA = "\n\n".join(
+        f"----- PartA-correction/{name} -----\n{_read(partA_dir / name)}"
+        for name in partA_order
+    )
 
     intake_schema = json.dumps(
         IntakeOutput.model_json_schema(), indent=2, ensure_ascii=False
@@ -140,6 +158,9 @@ def build_phase2_messages(
         "===== BEGIN RULE DOCUMENT: phase2/rules.md =====\n"
         f"{rules}\n"
         "===== END RULE DOCUMENT: phase2/rules.md =====\n\n"
+        "===== BEGIN RULE DOCUMENT: PartA-correction (Step 0 — apply BEFORE rules.md Step 1-7) =====\n"
+        f"{partA}\n"
+        "===== END RULE DOCUMENT: PartA-correction =====\n\n"
         "===== BEGIN REFERENCE: phase1/guide.md (phase 1 output format) =====\n"
         f"{phase1_guide}\n"
         "===== END REFERENCE: phase1/guide.md =====\n\n"
@@ -164,11 +185,19 @@ def build_phase2_messages(
             "Address every item above while still following phase2/rules.md.\n"
         )
     human_chunks.append(
-        "\nProduce the IntakeOutput JSON now. Follow phase2/rules.md Step 1->7 "
-        "derivation order. Enumerate every zone / surface / split-pairing / "
-        "fenestration explicitly — no templates, no Floor_N_* shorthand. "
-        "Use the facade translation formulas in phase1_summary.md §3 verbatim. "
-        "Remember: output ONLY the JSON object, nothing else."
+        "\nProduce the IntakeOutput JSON now.\n"
+        "FIRST apply the PartA-correction layer (Step 0) to the phase-1 "
+        "primitives: normalize coordinates into one world frame at wall centerline "
+        "and reconcile the z-stack (A1); build a per-building canonical axis set, "
+        "unify the same wall across floors, snap, close dimension chains, and "
+        "prevent sub-MIN_EDGE_LENGTH slivers (A2); arbitrate conflicts and complete "
+        "missing values, using A4 priors only under A0/A3 gating (A3). Derive "
+        "everything below from the CORRECTED primitives.\n"
+        "THEN follow phase2/rules.md Step 1->7 derivation order. Enumerate every "
+        "zone / surface / split-pairing / fenestration explicitly — no templates, "
+        "no Floor_N_* shorthand. Use the facade translation formulas in "
+        "phase1_summary.md §3 verbatim. Remember: output ONLY the IntakeOutput "
+        "JSON object, nothing else."
     )
     return system_prompt, "".join(human_chunks)
 

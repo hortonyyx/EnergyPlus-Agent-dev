@@ -15,6 +15,21 @@
 
 ## 改动记录
 
+### 2026-06-07 — PartA 校正层 P0 接入 phase2 prompt
+
+**Trigger**：识图建模质量主线（忠实建模 leg）落地。PartA 容差校正层 skill 文档库（[`skills/energyplus_mcp_twostep/phase2/PartA-correction/`](../../skills/energyplus_mcp_twostep/phase2/PartA-correction) 的 A0–A4 + README）已写 + 审 + 定稿（A0/A1/A2 经 Codex 审，A3/A4 为 P0）。需把它接进 phase2 实际执行。
+
+**改动**（本项目侧 phase2 节点，非协作者下游 subagent；按 §6#5 备份 [`src_history/2026-06-07_phase2_partA_wiring/phase2.py`](../../src_history/2026-06-07_phase2_partA_wiring)）：
+- [src/agent/phase2.py](../../src/agent/phase2.py) `build_phase2_messages`：从 skill 库载入 PartA-correction 5 篇（README + A0–A4，单一真源、不内联复制），作为 `===== RULE DOCUMENT: PartA-correction (Step 0) =====` 块加进 system prompt（置于 phase2/rules.md 之后、phase1 参考之前）。
+- human 收尾指令加 **Step 0**：先对 phase-1 基元跑 A1（中线归一+z-stack）→ A2（规范轴集+跨层统一+吸附+链闭合+碎片防止）→ A3（仲裁补全，A4 先验仅在 A0/A3 门控下用），用**校正后**基元再走 rules.md Step 1→7。
+- **P0 取舍**：输出**保持纯 IntakeOutput 不变**（不加 corrections[] audit wrapper，避免多吐 token 触发 64k 截断、最大化跑通率）；partA 作内部 Step 0 应用，效果靠输出几何（无 5cm 跨层碎片 / 中线轴 / 闭合链）+ thinking.txt 验证。**audit wrapper（corrections/conflicts/unsupported 落 sidecar）= 建评测 baseline 时的 fast-follow**（baseline 需"看错 vs 改错"归因）。
+
+**影响范围**：仅 phase2 prompt 装配；输出契约不变（下游 9 subagent / cross_ref / validate / interzone 门全不受影响）。phase2 prompt 增大约 1.5–2 万字符（PartA 5 篇），DeepSeek thinking 可承受。
+
+**验收**：在 sm21 / sm22 跑通（partA 应消除"同墙跨层 5cm 抖动→退化碎片"那类，InterZone 门更易过）；跑通后建评测 baseline。
+
+---
+
 ### 2026-05-29 — 确定性 InterZone surface-pair 校验门(审阅 A 落地)
 
 **Trigger**：2026-05-28 Codex [InterZone surface pairing 审阅](review/review/2026-05-28_interzone_surface_pairing_review.md) 两条 High：(1) surface 阶段后**缺确定性配对校验门**——`surface_converter.py` 只逐对象校验形状、不校验整张 `Outside Boundary Condition = Surface` 引用图;(2) 缺跨层楼板**覆盖**校验。配合 sm21 三模型实验:Sonnet 忠实复现 phase1 的 5cm 跨层抖动 → 切出 0.05m×3m 退化碎片 → EP 输入阶段 **段错 (exit 139)**,`.err` 空。EP 通过≠几何对、EP 段错前不写 `.err`,**"EP completed" 作唯一验收信号太晚太粗**。
