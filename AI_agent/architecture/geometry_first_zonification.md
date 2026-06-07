@@ -14,6 +14,44 @@
 
 ---
 
+## 0. 研究结论与状态（2026-06-07，本文为本线唯一汇总文档）
+
+> **本文 = 热区再拓扑 leg 的唯一汇总文档**。设计骨架（§1-§9，注意按顶部 banner 把"确定性几何内核 / split-pairing"重映射为已独立的切配）+ 本节研究结论。**状态：支线休眠，确定开展时再重启；当前专注主线（识图建模质量 partA 校正）。** 调研全文 = [../logs/review/review/2026-06-07_zonification_approach_review.md](../logs/review/review/2026-06-07_zonification_approach_review.md)（Codex），请求 = [../logs/review/request/2026-06-07_zonification_approach_request.md](../logs/review/request/2026-06-07_zonification_approach_request.md)。
+
+### 0.1 调研裁决
+
+**接受核心判断**：「算法 vs LLM」不是对的刀，「**确定性几何 vs 语义/策略判断**」才是。几何拥有 footprint 构造、覆盖校验、周边进深切分、朝向分桶；LLM/规则拥有房间用途解读、归并策略、例外、给用户解释。
+
+### 0.2 落地路线（可调谱系，非单一范式）
+
+| method | 定位 | 内墙精度需求 |
+|---|---|---|
+| `perimeter_core` | **首个 MVP**（周边核心，最鲁棒、最接近 ASHRAE/BEM、最省校正） | 低（只需外壳+立面+朝向证据，20 房→4-5 区） |
+| `use_grouped_rooms` | 第二模式（按 use/schedule/load/HVAC/朝向归并真实房 cell） | 中（需可靠闭合房间 cell + 标签 + 邻接图） |
+| `room_identity` | 忠实基线 / 对照端点（≈忠实建模 leg） | 高（每房边界=热边界） |
+
+`method` 提为一等参数；与 `perimeter_depth_m`(默认 4.6m/15ft)、`orientation_buckets`(NESW±45°)、`merge_policy`、`exception_policy` 一起作**用户可确认输入**，下游几何建模前先 preview。
+
+### 0.3 关键精修（动手前必记）
+
+1. **几何剖分非平凡**：简单内偏只够矩形；凹形/中庭/天井会切出空核/碎片/朝向歧义 → 需 **straight-skeleton / Autozoner** 拓扑分解，否则该 case 标 unsupported。**Shapely 先行做自有校验器+剖分器；OpenStudio 作 oracle/对照、不作首个硬依赖。**
+2. **源房间 cell 与输出热区分离**：走 sidecar `zonification_output.json`，**不改 IntakeOutput 契约**；perimeter_core 下热区会切穿房间 → 按面积**分数归属**（`source_room_attribution`），非整房成员。
+3. **LLM 只分类/解释归并，不画多边形**：确定性码建候选剖分+校验覆盖；规则按硬元数据归并；LLM 补缺失标签+标例外+解释偏离；确定性 verifier 兜底每个源房已映射/分数归属/显式 unsupported。
+4. **剖分合法性确定性校验**：`unary_union(zones) ≈ footprint`、两两重叠<容差、`footprint - union` 无未声明洞、最小面积/边长阈值、每窗锚点恰映射一个立面/周边区。注意 Shapely 单多边形 `is_valid` 不够，须校验**整个集合**的覆盖。
+5. **验收加 BEM 保真度残差层**（楼层面积/各立面外墙面积/roof·ground/WWR/源房→热区映射/每区语义混合/区数+method），不止"覆盖通过 + EP 跑通"——分区粒度有能耗后果（LBNL 实证），不是无害实现细节。
+
+### 0.4 交付序（重启时照此）
+
+1. 定义 `zonification_output.json` sidecar + 渲染/diff target。
+2. 在现有矩形 case 上跑**非阻塞** Shapely 覆盖校验报告。
+3. 实现 `perimeter_core`（简单矩形 + 简单正交 L/U，凹形显式 unsupported）。
+4. 加用户可确认控件（method/进深/朝向桶/例外策略）。
+5. 加 BEM 保真残差 + 源房分数归属。
+6. spike OpenStudio/openstudio-standards + Autozoner 作复杂 footprint 参考。
+7. 房间 cell 拓扑+标签可靠后加 `use_grouped_rooms` 图聚类。
+
+---
+
 ## 1. 起点：当前 split-pairing 是怎么做的
 
 EP 模型要求 InterZone 边界**逐面一对一对应**（不是几何建模那种一对多）。当相邻层分区不一致时，一道墙/楼板要切成多片、每片配一个对面 zone。这件事当前在管线里分四个环节完成，**没有任何一处用确定性几何算法**：
