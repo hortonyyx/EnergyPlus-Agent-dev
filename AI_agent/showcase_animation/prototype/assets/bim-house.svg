@@ -1,0 +1,67 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 260 210" role="img" aria-label="BIM: isometric house built from wall, roof, window and door, then annotated">
+  <title>BIM — Building Information Model</title>
+  <style>
+    .ln { fill: none; stroke: #2d383d; stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+    .face-l { fill: #f4f7f8; }
+    .face-r { fill: #e9eef0; }
+    .roof   { fill: #fbe7cf; }
+    .open   { fill: #fff4ec; stroke: #b3611c; stroke-width: 1.6; }
+    .part { transform-box: fill-box; transform-origin: center; opacity: 0; }
+    .lead { fill: none; stroke: #d98a3d; stroke-width: 1.5; stroke-dasharray: 80; stroke-dashoffset: 80; opacity: 0; }
+    .dot  { fill: #b3611c; opacity: 0; }
+    .lbl-bg { fill: #fff4ec; stroke: #e7c39a; stroke-width: 1; opacity: 0; }
+    .lbl  { fill: #b3611c; font: 700 12px system-ui, sans-serif; opacity: 0; white-space: nowrap; }
+
+    /* play ONCE on (re)load, build up part by part, then hold the full figure */
+    .part, .lead, .dot, .lbl, .lbl-bg { animation-iteration-count: 1; animation-fill-mode: both; animation-timing-function: ease; }
+    @keyframes pop  { 0%{opacity:0;transform:scale(.6)} 60%{opacity:1;transform:scale(1.04)} 100%{opacity:1;transform:scale(1)} }
+    @keyframes appr { 0%{opacity:0} 100%{opacity:1} }
+    @keyframes draw { 0%{stroke-dashoffset:80;opacity:0} 12%{opacity:1} 100%{stroke-dashoffset:0;opacity:1} }
+
+    .walls { animation: pop .32s .05s both; }
+    .roofp { animation: pop .32s .28s both; }
+    .winp  { animation: pop .30s .54s both; }
+    .doorp { animation: pop .30s .74s both; }
+    .lead.a{animation: draw .35s .92s both;} .dot.a,.lbl.a,.lbl-bg.a{animation: appr .22s 1.05s both;}
+    .lead.b{animation: draw .35s 1.08s both;} .dot.b,.lbl.b,.lbl-bg.b{animation: appr .22s 1.21s both;}
+    .lead.c{animation: draw .35s 1.24s both;} .dot.c,.lbl.c,.lbl-bg.c{animation: appr .22s 1.37s both;}
+    .lead.d{animation: draw .35s 1.40s both;} .dot.d,.lbl.d,.lbl-bg.d{animation: appr .22s 1.53s both;}
+  </style>
+
+  <!-- WALLS -->
+  <g class="part walls">
+    <polygon class="face-l ln" points="81.5,64 130,92 130,134 81.5,106"/>
+    <polygon class="face-r ln" points="178.5,64 130,92 130,134 178.5,106"/>
+  </g>
+  <!-- ROOF -->
+  <polygon class="part roofp roof ln" points="130,36 178.5,64 130,92 81.5,64"/>
+  <!-- WINDOWS -->
+  <g class="part winp">
+    <polygon class="open" points="150.6,99.7 137.3,107.4 137.3,93.4 150.6,85.7"/>
+    <polygon class="open" points="88.8,87.8 102.1,95.5 102.1,81.5 88.8,73.8"/>
+  </g>
+  <!-- DOOR -->
+  <polygon class="part doorp open" points="172.4,109.5 157.9,117.9 157.9,92.7 172.4,84.3"/>
+
+  <!-- ANNOTATIONS -->
+  <!-- Roof -->
+  <path class="lead b" d="M150,52 L172,26"/>
+  <circle class="dot b" cx="150" cy="52" r="2.4"/>
+  <rect class="lbl-bg b" x="158" y="14" width="42" height="17" rx="4"/>
+  <text class="lbl b" x="165" y="26">Roof</text>
+  <!-- Wall (moved lower-left, clear of the window) -->
+  <path class="lead a" d="M101,116 L42,123"/>
+  <circle class="dot a" cx="101" cy="116" r="2.4"/>
+  <rect class="lbl-bg a" x="2" y="115" width="42" height="17" rx="4"/>
+  <text class="lbl a" x="9" y="127">Wall</text>
+  <!-- Window -->
+  <path class="lead c" d="M150,91 L200,80"/>
+  <circle class="dot c" cx="150" cy="91" r="2.4"/>
+  <rect class="lbl-bg c" x="200" y="71" width="58" height="17" rx="4"/>
+  <text class="lbl c" x="206" y="83">Window</text>
+  <!-- Door -->
+  <path class="lead d" d="M168,103 L206,121"/>
+  <circle class="dot d" cx="168" cy="103" r="2.4"/>
+  <rect class="lbl-bg d" x="206" y="113" width="44" height="17" rx="4"/>
+  <text class="lbl d" x="213" y="125">Door</text>
+</svg>

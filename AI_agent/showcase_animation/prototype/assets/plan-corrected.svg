@@ -1,0 +1,139 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2048 1498" role="img" aria-label="Geometry correction: the raw redraw is verified and snapped to a clean, closed plan">
+  <defs>
+    <style>
+      .camera { transform-origin: 0 0; animation: cameraTour 5.5s cubic-bezier(.55,0,.18,1) both; }
+
+      .wall   { fill: none; stroke: #2f4a57; stroke-width: 8; stroke-linecap: square; stroke-linejoin: miter;
+                stroke-dasharray: 100; stroke-dashoffset: 0; }
+      .col    { fill: #3a525e; opacity: 1; }
+      .window { fill: none; stroke: #2f76c4; stroke-width: 13; stroke-linecap: butt; opacity: 1; }
+      .door   { fill: none; stroke: #d98a3d; stroke-width: 5; stroke-linecap: round; stroke-linejoin: round; opacity: 1; }
+
+      /* error highlight + fix layers */
+      .ring   { fill: none; stroke: #e0473f; stroke-width: 6; opacity: 0; transform-box: fill-box; transform-origin: center; }
+      .fixseg { fill: none; stroke: #2f4a57; stroke-width: 8; stroke-linecap: square;
+                stroke-dasharray: 100; stroke-dashoffset: 0; }
+      .overshoot { fill: none; stroke: #e0473f; stroke-width: 8; stroke-linecap: square;
+                   stroke-dasharray: 100; stroke-dashoffset: 0; opacity: 1; }
+      .snapcol{ fill: #3a525e; opacity: 1; }
+      .fixwin { fill: none; stroke: #2f76c4; stroke-width: 13; stroke-linecap: butt; opacity: 1; }
+
+      .ring, .fixseg, .overshoot, .snapcol, .fixwin
+              { animation-iteration-count: 1; animation-fill-mode: both; animation-timing-function: ease-out; }
+      @keyframes show  { from { opacity: 0; } to { opacity: 1; } }
+      @keyframes ringp { 0%{opacity:0;transform:scale(.4)} 25%{opacity:1;transform:scale(1)} 70%{opacity:1} 100%{opacity:0;transform:scale(1)} }
+      @keyframes fixdraw { 0%{stroke-dashoffset:100;stroke:#e0473f} 60%{stroke:#e0473f} 100%{stroke-dashoffset:0;stroke:#2f4a57} }
+      @keyframes untrim  { 0%{stroke-dashoffset:0;opacity:1} 100%{stroke-dashoffset:100;opacity:0} }
+      @keyframes snapc   { 0%{transform:translate(12px,-12px);fill:#e0473f} 100%{transform:translate(0,0);fill:#3a525e} }
+      /* window correction: the blue window is ALWAYS present at the wrong (straddling) spot,
+         then slides up into room A when the camera reaches it — no red flag, no fade-in */
+      @keyframes winslide { from{transform:translateY(84px)} to{transform:translateY(0)} }
+      /* camera: quick zoom from the full plan into the first detail, visit each fix, then pull back */
+      @keyframes cameraTour {
+        0%        { transform: translate(0,0) scale(1); }             /* full overview (quick zoom-in follows) */
+        9%, 22%   { transform: translate(-89px,-1426px) scale(3); }   /* divider gap (r1/f1) */
+        31%, 42%  { transform: translate(-146px,-3400px) scale(3); }  /* overshoot (r3) */
+        51%, 62%  { transform: translate(-1346px,-3322px) scale(3); } /* off-grid column (r4) */
+        71%, 84%  { transform: translate(454px,-1426px) scale(3); }   /* window slide-in */
+        94%, 100% { transform: translate(0,0) scale(1); }             /* pull back to full */
+      }
+
+      .ring.r1 { animation: ringp .60s .58s both; }
+      .ring.r3 { animation: ringp .60s 1.80s both; }
+      .ring.r4 { animation: ringp .60s 2.90s both; }
+      .fixseg.f1 { animation: fixdraw .50s .72s both; }
+      .overshoot { animation: untrim .55s 1.95s both; }
+      .snapcol   { animation: snapc .55s 3.08s both; }
+      .fixwin    { animation: winslide .65s 3.98s both; }
+    </style>
+  </defs>
+
+  <g class="camera">
+  <!-- CLEAN / CORRECTED walls (draw on) -->
+  <g id="walls">
+    <rect class="wall" pathLength="100" x="845" y="40" width="425" height="335"/>
+    <rect class="wall" pathLength="100" x="40" y="40" width="1940" height="1330"/>
+    <line class="wall" pathLength="100" x1="390" y1="455" x2="390" y2="1370"/>
+    <line class="wall" pathLength="100" x1="40" y1="455" x2="390" y2="455"/>
+    <line class="wall" pathLength="100" x1="40" y1="725" x2="352" y2="725"/>   <!-- base; gap closed by fix f1 -->
+    <line class="wall" pathLength="100" x1="40" y1="1030" x2="390" y2="1030"/>
+    <line class="wall" pathLength="100" x1="1660" y1="455" x2="1660" y2="1030"/>
+    <line class="wall" pathLength="100" x1="1660" y1="455" x2="1980" y2="455"/>
+    <line class="wall" pathLength="100" x1="1660" y1="725" x2="1980" y2="725"/>
+    <line class="wall" pathLength="100" x1="1660" y1="1030" x2="1980" y2="1030"/>
+    <path class="wall" pathLength="100" d="M560 455 H750 V865 H560 Z"/> <!-- stair core (continuous left wall; former f2 gap removed) -->
+    <rect class="wall" pathLength="100" x="750" y="455" width="110" height="410"/>
+    <rect class="wall" pathLength="100" x="860" y="455" width="135" height="165"/>
+    <rect class="wall" pathLength="100" x="560" y="865" width="400" height="165"/>
+    <rect class="wall" pathLength="100" x="1080" y="455" width="135" height="165"/>
+    <rect class="wall" pathLength="100" x="1215" y="455" width="90" height="410"/>
+    <rect class="wall" pathLength="100" x="1305" y="455" width="210" height="410"/>
+    <rect class="wall" pathLength="100" x="1110" y="865" width="405" height="165"/>
+  </g>
+
+  <!-- columns: 11 on-grid (static) -->
+  <g id="columns">
+    <rect class="col" x="27.0" y="27.0" width="26" height="26" rx="1"/>
+    <rect class="col" x="1967.0" y="27.0" width="26" height="26" rx="1"/>
+    <rect class="col" x="27.0" y="1357.0" width="26" height="26" rx="1"/>
+    <rect class="col" x="1967.0" y="1357.0" width="26" height="26" rx="1"/>
+    <rect class="col" x="31.0" y="311.0" width="18" height="18" rx="1"/>
+    <rect class="col" x="31.0" y="1161.0" width="18" height="18" rx="1"/>
+    <rect class="col" x="1971.0" y="311.0" width="18" height="18" rx="1"/>
+    <rect class="col" x="1971.0" y="1161.0" width="18" height="18" rx="1"/>
+    <rect class="col" x="421.0" y="1361.0" width="18" height="18" rx="1"/>
+    <rect class="col" x="1221.0" y="1361.0" width="18" height="18" rx="1"/>
+    <rect class="col" x="1561.0" y="1361.0" width="18" height="18" rx="1"/>
+  </g>
+
+  <!-- windows: correct ones (static), bad/straddling one handled in fix layer -->
+  <g id="windows">
+    <line class="window" x1="175.0" y1="40" x2="305.0" y2="40"/>
+    <line class="window" x1="450.0" y1="40" x2="580.0" y2="40"/>
+    <line class="window" x1="1405.0" y1="40" x2="1535.0" y2="40"/>
+    <line class="window" x1="1685.0" y1="40" x2="1815.0" y2="40"/>
+    <line class="window" x1="185.0" y1="1370" x2="315.0" y2="1370"/>
+    <line class="window" x1="495.0" y1="1370" x2="625.0" y2="1370"/>
+    <line class="window" x1="1395.0" y1="1370" x2="1525.0" y2="1370"/>
+    <line class="window" x1="1725.0" y1="1370" x2="1855.0" y2="1370"/>
+    <line class="window" x1="1980" y1="602.5" x2="1980" y2="687.5"/>
+    <line class="window" x1="1980" y1="942.5" x2="1980" y2="1027.5"/>
+  </g>
+
+  <!-- DOORS (unified) -->
+  <g id="doors">
+    <path class="door" d="M390 590 L330 590 M330 590 A60 60 0 0 1 390 530"/>
+    <path class="door" d="M390 880 L330 880 M330 880 A60 60 0 0 1 390 820"/>
+    <path class="door" d="M390 1200 L330 1200 M330 1200 A60 60 0 0 1 390 1140"/>
+    <path class="door" d="M1660 590 L1720 590 M1720 590 A60 60 0 0 0 1660 530"/>
+    <path class="door" d="M1660 880 L1720 880 M1720 880 A60 60 0 0 0 1660 820"/>
+    <path class="door" d="M1180 375 L1180 311 M1180 311 A64 64 0 0 0 1116 375"/>
+    <path class="door" d="M650 455 L650 515 M650 515 A60 60 0 0 1 590 455"/>
+    <path class="door" d="M930 620 L930 560 M930 560 A60 60 0 0 0 870 620"/>
+    <path class="door" d="M1150 620 L1150 560 M1150 560 A60 60 0 0 0 1090 620"/>
+    <path class="door" d="M1390 455 L1390 515 M1390 515 A60 60 0 0 1 1330 455"/>
+    <path class="door" d="M650 865 L650 925 M650 925 A60 60 0 0 1 590 865"/>
+    <path class="door" d="M1430 865 L1430 925 M1430 925 A60 60 0 0 1 1370 865"/>
+    <path class="door" d="M960 1370 L960 1306 M960 1306 A64 64 0 0 0 896 1370"/>
+    <path class="door" d="M1088 1370 L1088 1306 M1088 1306 A64 64 0 0 1 1152 1370"/>
+  </g>
+
+  <!-- FIX LAYER: errors flagged then resolved -->
+  <g id="fixes">
+    <!-- overshoot stub past the bottom wall (retracted/trimmed) -->
+    <line class="overshoot" pathLength="100" x1="390" y1="1370" x2="390" y2="1395"/>
+    <!-- off-grid column (snaps onto the grid line) -->
+    <rect class="col snapcol" x="781.0" y="1361.0" width="18" height="18" rx="1"/>
+
+    <!-- error highlight rings (window beat needs none — the blue window just slides) -->
+    <circle class="ring r1" cx="371" cy="725" r="34"/>
+    <circle class="ring r3" cx="390" cy="1383" r="30"/>
+    <circle class="ring r4" cx="790" cy="1357" r="34"/>
+
+    <!-- fix segment that closes the divider breakpoint -->
+    <line class="fixseg f1" pathLength="100" x1="352" y1="725" x2="390" y2="725"/>
+    <!-- the left-wall window: slides up from the wrong straddling spot into room A (blue, no red flag) -->
+    <line class="fixwin" x1="40" y1="600" x2="40" y2="682"/>
+  </g>
+  </g>
+</svg>

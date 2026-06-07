@@ -1,0 +1,92 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2048 1498" role="img" aria-label="Vector redraw of the floor plan: traced walls, columns, windows and door swings, with a few raw errors">
+  <defs>
+    <style>
+      .wall   { fill: none; stroke: #2f4a57; stroke-width: 8; stroke-linecap: square; stroke-linejoin: miter;
+                stroke-dasharray: 100; stroke-dashoffset: 0; }
+      .col    { fill: #3a525e; opacity: 1; }
+      .window { fill: none; stroke: #2f76c4; stroke-width: 13; stroke-linecap: butt; opacity: 1; }
+      .door   { fill: none; stroke: #d98a3d; stroke-width: 5; stroke-linecap: round; stroke-linejoin: round; opacity: 1; }
+
+      .wall, .col, .window, .door { animation-iteration-count: 1; animation-fill-mode: both; animation-timing-function: ease-out; }
+      @keyframes draw { from { stroke-dashoffset: 100; } to { stroke-dashoffset: 0; } }
+      @keyframes show { from { opacity: 0; } to { opacity: 1; } }
+      .wall   { animation: draw 1.0s .1s both; }
+      .col    { animation: show .4s .9s both; }
+      .window { animation: show .45s 1.1s both; }
+      .door   { animation: show .5s 1.45s both; }
+    </style>
+  </defs>
+
+  <g id="walls">
+    <rect class="wall" pathLength="100" x="845" y="40" width="425" height="335"/>
+    <!-- envelope: left corridor wall overshoots past the bottom (raw, un-snapped corner) -->
+    <line class="wall" pathLength="100" x1="390" y1="455" x2="390" y2="1395"/>
+    <rect class="wall" pathLength="100" x="40" y="40" width="1940" height="1330"/>
+    <line class="wall" pathLength="100" x1="40" y1="455" x2="390" y2="455"/>
+    <!-- raw breakpoint 1: this divider stops short of the corridor wall -->
+    <line class="wall" pathLength="100" x1="40" y1="725" x2="352" y2="725"/>
+    <line class="wall" pathLength="100" x1="40" y1="1030" x2="390" y2="1030"/>
+    <line class="wall" pathLength="100" x1="1660" y1="455" x2="1660" y2="1030"/>
+    <line class="wall" pathLength="100" x1="1660" y1="455" x2="1980" y2="455"/>
+    <line class="wall" pathLength="100" x1="1660" y1="725" x2="1980" y2="725"/>
+    <line class="wall" pathLength="100" x1="1660" y1="1030" x2="1980" y2="1030"/>
+    <!-- raw breakpoint 2: stair core room left wall has a small open joint (y490-510) -->
+    <path class="wall" pathLength="100" d="M560 490 V455 H750 V865 H560 V510"/>
+    <rect class="wall" pathLength="100" x="750" y="455" width="110" height="410"/>
+    <rect class="wall" pathLength="100" x="860" y="455" width="135" height="165"/>
+    <rect class="wall" pathLength="100" x="560" y="865" width="400" height="165"/>
+    <rect class="wall" pathLength="100" x="1080" y="455" width="135" height="165"/>
+    <rect class="wall" pathLength="100" x="1215" y="455" width="90" height="410"/>
+    <rect class="wall" pathLength="100" x="1305" y="455" width="210" height="410"/>
+    <rect class="wall" pathLength="100" x="1110" y="865" width="405" height="165"/>
+  </g>
+
+  <g id="columns">
+    <rect class="col" x="27.0" y="27.0" width="26" height="26" rx="1"/>
+    <rect class="col" x="1967.0" y="27.0" width="26" height="26" rx="1"/>
+    <rect class="col" x="27.0" y="1357.0" width="26" height="26" rx="1"/>
+    <rect class="col" x="1967.0" y="1357.0" width="26" height="26" rx="1"/>
+    <rect class="col" x="31.0" y="311.0" width="18" height="18" rx="1"/>
+    <rect class="col" x="31.0" y="1161.0" width="18" height="18" rx="1"/>
+    <rect class="col" x="1971.0" y="311.0" width="18" height="18" rx="1"/>
+    <rect class="col" x="1971.0" y="1161.0" width="18" height="18" rx="1"/>
+    <rect class="col" x="421.0" y="1361.0" width="18" height="18" rx="1"/>
+    <!-- raw: this column is off the grid line (will be snapped in correction) -->
+    <rect class="col" x="793.0" y="1349.0" width="18" height="18" rx="1"/>
+    <rect class="col" x="1221.0" y="1361.0" width="18" height="18" rx="1"/>
+    <rect class="col" x="1561.0" y="1361.0" width="18" height="18" rx="1"/>
+  </g>
+
+  <g id="windows">
+    <line class="window" x1="175.0" y1="40" x2="305.0" y2="40"/>
+    <line class="window" x1="450.0" y1="40" x2="580.0" y2="40"/>
+    <line class="window" x1="1405.0" y1="40" x2="1535.0" y2="40"/>
+    <line class="window" x1="1685.0" y1="40" x2="1815.0" y2="40"/>
+    <line class="window" x1="185.0" y1="1370" x2="315.0" y2="1370"/>
+    <line class="window" x1="495.0" y1="1370" x2="625.0" y2="1370"/>
+    <line class="window" x1="1395.0" y1="1370" x2="1525.0" y2="1370"/>
+    <line class="window" x1="1725.0" y1="1370" x2="1855.0" y2="1370"/>
+    <!-- raw: this left-wall window straddles the y=725 partition (spans two rooms) -->
+    <line class="window" x1="40" y1="690" x2="40" y2="760"/>
+    <line class="window" x1="1980" y1="602.5" x2="1980" y2="687.5"/>
+    <line class="window" x1="1980" y1="942.5" x2="1980" y2="1027.5"/>
+  </g>
+
+  <!-- DOORS: unified style — leaf line + 90-degree swing arc, opening into each room -->
+  <g id="doors">
+    <path class="door" d="M390 590 L330 590 M330 590 A60 60 0 0 1 390 530"/>
+    <path class="door" d="M390 880 L330 880 M330 880 A60 60 0 0 1 390 820"/>
+    <path class="door" d="M390 1200 L330 1200 M330 1200 A60 60 0 0 1 390 1140"/>
+    <path class="door" d="M1660 590 L1720 590 M1720 590 A60 60 0 0 0 1660 530"/>
+    <path class="door" d="M1660 880 L1720 880 M1720 880 A60 60 0 0 0 1660 820"/>
+    <path class="door" d="M1180 375 L1180 311 M1180 311 A64 64 0 0 0 1116 375"/>
+    <path class="door" d="M650 455 L650 515 M650 515 A60 60 0 0 1 590 455"/>
+    <path class="door" d="M930 620 L930 560 M930 560 A60 60 0 0 0 870 620"/>
+    <path class="door" d="M1150 620 L1150 560 M1150 560 A60 60 0 0 0 1090 620"/>
+    <path class="door" d="M1390 455 L1390 515 M1390 515 A60 60 0 0 1 1330 455"/>
+    <path class="door" d="M650 865 L650 925 M650 925 A60 60 0 0 1 590 865"/>
+    <path class="door" d="M1430 865 L1430 925 M1430 925 A60 60 0 0 1 1370 865"/>
+    <path class="door" d="M960 1370 L960 1306 M960 1306 A64 64 0 0 0 896 1370"/>
+    <path class="door" d="M1088 1370 L1088 1306 M1088 1306 A64 64 0 0 1 1152 1370"/>
+  </g>
+</svg>

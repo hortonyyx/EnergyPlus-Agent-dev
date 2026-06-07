@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 260 210" role="img" aria-label="BEM: building cube occupied by three solid red thermal-zone blocks">
+  <title>BEM — Building Energy Model (thermal zones)</title>
+  <style>
+    .env  { fill: none; stroke: #9aa6ab; stroke-width: 1.6; stroke-linejoin: round; stroke-linecap: round; }
+    .floor{ fill: #eef1f2; stroke: #9aa6ab; stroke-width: 1.6; }
+    .rim  { fill: none; stroke: #9aa6ab; stroke-width: 1.6; stroke-dasharray: 5 4; }
+    /* solid block faces: top bright, front mid, right dark — strong dark edges */
+    .zTop { fill: rgba(232,96,74,0.66); stroke: #a82d18; stroke-width: 1.4; stroke-linejoin: round; }
+    .zF   { fill: rgba(210,74,48,0.66); stroke: #a82d18; stroke-width: 1.4; stroke-linejoin: round; }
+    .zR   { fill: rgba(181,58,34,0.66); stroke: #a82d18; stroke-width: 1.4; stroke-linejoin: round; }
+    .room { opacity: 0; }
+    .zone { transform-box: fill-box; transform-origin: center; opacity: 0; }
+    .lbl-bg { fill: #fff4ec; stroke: #e7c39a; stroke-width: 1; opacity: 0; }
+    .lbl  { fill: #a82d18; font: 700 15px system-ui, sans-serif; opacity: 0; white-space: nowrap; }
+
+    /* play ONCE: empty cube -> three solid red blocks rise to occupy it -> hold */
+    .room, .zone, .lbl, .lbl-bg { animation-iteration-count: 1; animation-fill-mode: both; animation-timing-function: ease; }
+    @keyframes appr { 0%{opacity:0} 100%{opacity:1} }
+    @keyframes rise { 0%{opacity:0;transform:translateY(20px)} 70%{opacity:1} 100%{opacity:1;transform:translateY(0)} }
+    .room { animation: appr .3s .05s both; }
+    .zA { animation: rise .42s .34s both; }
+    .zB { animation: rise .42s .70s both; }
+    .zC { animation: rise .42s 1.06s both; }
+    .lbl, .lbl-bg { animation: appr .25s 1.46s both; }
+  </style>
+
+  <!-- empty cube envelope (open top) the blocks will occupy -->
+  <g class="room">
+    <polygon class="floor" points="130,78 178.5,106 130,134 81.5,106"/>
+    <polygon class="rim" points="130,36 178.5,64 130,92 81.5,64"/>
+    <line class="env" x1="130" y1="134" x2="130" y2="92"/>
+    <line class="env" x1="81.5" y1="106" x2="81.5" y2="64"/>
+    <line class="env" x1="178.5" y1="106" x2="178.5" y2="64"/>
+  </g>
+
+  <!-- three SOLID red blocks (small gaps between them), back -> front, 1 big + 2 small -->
+  <!-- BIG (back) -->
+  <g class="zone zA">
+    <polygon class="zF" points="154.9,76.3 108.8,49.7 108.8,91.7 154.9,118.3"/>
+    <polygon class="zR" points="176.1,64 154.9,76.3 154.9,118.3 176.1,106"/>
+    <polygon class="zTop" points="130,37.4 176.1,64 154.9,76.3 108.8,49.7"/>
+  </g>
+  <!-- SMALL front-left -->
+  <g class="zone zB">
+    <polygon class="zF" points="105.1,76.3 83.9,64 83.9,106 105.1,118.3"/>
+    <polygon class="zR" points="126.4,64 105.1,76.3 105.1,118.3 126.4,106"/>
+    <polygon class="zTop" points="105.1,51.8 126.4,64 105.1,76.3 83.9,64"/>
+  </g>
+  <!-- SMALL front-right -->
+  <g class="zone zC">
+    <polygon class="zF" points="130,90.6 108.8,78.4 108.8,120.4 130,132.6"/>
+    <polygon class="zR" points="151.2,78.4 130,90.6 130,132.6 151.2,120.4"/>
+    <polygon class="zTop" points="130,66.1 151.2,78.4 130,90.6 108.8,78.4"/>
+  </g>
+
+  <!-- label -->
+  <rect class="lbl-bg" x="68" y="146" width="124" height="23" rx="6"/>
+  <text class="lbl" x="79" y="162">Thermal Zones</text>
+</svg>

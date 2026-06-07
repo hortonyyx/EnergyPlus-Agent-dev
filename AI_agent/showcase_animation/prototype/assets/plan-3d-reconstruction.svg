@@ -1,0 +1,202 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2048 1498" role="img" aria-label="BIM 3D reconstruction: corrected axonometric plan rises into interior walls, then exterior walls, roof, and visible facade openings">
+  <defs>
+    <style>
+      .shadow { fill: rgba(45, 56, 61, .10); filter: url(#blurShadow); }
+      .ground { fill: #f4f7f8; stroke: #d8e0e3; stroke-width: 1.3; stroke-linejoin: round; }
+      .plan-layer { animation: planDim .42s 1.55s both ease-out; }
+      .plan-wall {
+        fill: none; stroke: #2d383d; stroke-width: 1.4; stroke-linecap: square; stroke-linejoin: miter;
+        vector-effect: non-scaling-stroke;
+      }
+      .plan-window {
+        fill: none; stroke: #b3611c; stroke-width: 1.9; stroke-linecap: butt;
+        vector-effect: non-scaling-stroke;
+      }
+      .plan-door {
+        fill: none; stroke: #d98a3d; stroke-width: 1.15; stroke-linecap: round; stroke-linejoin: round;
+        vector-effect: non-scaling-stroke;
+      }
+      .plan-col { fill: #2d383d; }
+      .wall-face {
+        opacity: 0; stroke: #2d383d; stroke-width: 0.9; stroke-linejoin: round;
+        vector-effect: non-scaling-stroke;
+      }
+      .face-n, .face-s { fill: #f4f7f8; }
+      .face-e, .face-w { fill: #e9eef0; }
+      .roof {
+        opacity: 0; fill: rgba(251, 231, 207, .64); stroke: #2d383d; stroke-width: 1.3;
+        stroke-linejoin: round; vector-effect: non-scaling-stroke; transform-box: fill-box; transform-origin: center;
+        animation: roofDrop .58s 2.34s cubic-bezier(.24, .86, .24, 1) both;
+      }
+      .roof-trim {
+        fill: none; stroke: rgba(45, 56, 61, .44); stroke-width: 0.7; stroke-linejoin: round;
+        opacity: 0; vector-effect: non-scaling-stroke; animation: show .34s 2.76s both ease-out;
+      }
+      .facade-window {
+        opacity: 0; fill: #fff4ec; stroke: #b3611c; stroke-width: 1.05; stroke-linejoin: round;
+        vector-effect: non-scaling-stroke; transform-box: fill-box; transform-origin: center;
+        animation: windowPop .36s var(--d) cubic-bezier(.2, .8, .2, 1) both;
+      }
+      .corner-pin { fill: #2d383d; opacity: 0; animation: show .32s 2.94s both ease-out; }
+      @keyframes planDim {
+        from { opacity: 1; }
+        to { opacity: .08; }
+      }
+      @keyframes roofDrop {
+        0% { opacity: 0; transform: translateY(-70px); }
+        100% { opacity: 1; transform: translateY(0); }
+      }
+      @keyframes windowPop {
+        0% { opacity: 0; transform: scale(.72); }
+        100% { opacity: 1; transform: scale(1); }
+      }
+      @keyframes show {
+        from { opacity: 0; }
+        to { opacity: 1; }
+      }
+    </style>
+    <filter id="blurShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="10"/>
+    </filter>
+  </defs>
+
+  <g id="bim-reconstruction">
+    <polygon class="shadow" points="990,467.6 1921.2,894.4 1282.8,1187 351.6,760.2"/>
+    <polygon class="ground" points="990,467.6 1921.2,894.4 1282.8,1187 351.6,760.2"/>
+
+    <g class="plan-layer" id="corrected-plan-axonometric" transform="matrix(0.48 0.22 -0.48 0.22 990 450)">
+      <g id="plan-walls">
+        <rect class="plan-wall" x="845" y="40" width="425" height="335"/>
+        <rect class="plan-wall" x="40" y="40" width="1940" height="1330"/>
+        <line class="plan-wall" x1="390" y1="455" x2="390" y2="1370"/>
+        <line class="plan-wall" x1="40" y1="455" x2="390" y2="455"/>
+        <line class="plan-wall" x1="40" y1="725" x2="352" y2="725"/>
+        <line class="plan-wall" x1="352" y1="725" x2="390" y2="725"/>
+        <line class="plan-wall" x1="40" y1="1030" x2="390" y2="1030"/>
+        <line class="plan-wall" x1="1660" y1="455" x2="1660" y2="1030"/>
+        <line class="plan-wall" x1="1660" y1="455" x2="1980" y2="455"/>
+        <line class="plan-wall" x1="1660" y1="725" x2="1980" y2="725"/>
+        <line class="plan-wall" x1="1660" y1="1030" x2="1980" y2="1030"/>
+        <path class="plan-wall" d="M560 490 V455 H750 V865 H560 V510"/>
+        <line class="plan-wall" x1="560" y1="490" x2="560" y2="510"/>
+        <rect class="plan-wall" x="750" y="455" width="110" height="410"/>
+        <rect class="plan-wall" x="860" y="455" width="135" height="165"/>
+        <rect class="plan-wall" x="560" y="865" width="400" height="165"/>
+        <rect class="plan-wall" x="1080" y="455" width="135" height="165"/>
+        <rect class="plan-wall" x="1215" y="455" width="90" height="410"/>
+        <rect class="plan-wall" x="1305" y="455" width="210" height="410"/>
+        <rect class="plan-wall" x="1110" y="865" width="405" height="165"/>
+      </g>
+
+      <g id="plan-columns">
+        <rect class="plan-col" x="27" y="27" width="26" height="26" rx="1"/>
+        <rect class="plan-col" x="1967" y="27" width="26" height="26" rx="1"/>
+        <rect class="plan-col" x="27" y="1357" width="26" height="26" rx="1"/>
+        <rect class="plan-col" x="1967" y="1357" width="26" height="26" rx="1"/>
+        <rect class="plan-col" x="31" y="311" width="18" height="18" rx="1"/>
+        <rect class="plan-col" x="31" y="1161" width="18" height="18" rx="1"/>
+        <rect class="plan-col" x="1971" y="311" width="18" height="18" rx="1"/>
+        <rect class="plan-col" x="1971" y="1161" width="18" height="18" rx="1"/>
+        <rect class="plan-col" x="421" y="1361" width="18" height="18" rx="1"/>
+        <rect class="plan-col" x="781" y="1361" width="18" height="18" rx="1"/>
+        <rect class="plan-col" x="1221" y="1361" width="18" height="18" rx="1"/>
+        <rect class="plan-col" x="1561" y="1361" width="18" height="18" rx="1"/>
+      </g>
+
+      <g id="plan-windows">
+        <line class="plan-window" x1="175" y1="40" x2="305" y2="40"/>
+        <line class="plan-window" x1="450" y1="40" x2="580" y2="40"/>
+        <line class="plan-window" x1="1405" y1="40" x2="1535" y2="40"/>
+        <line class="plan-window" x1="1685" y1="40" x2="1815" y2="40"/>
+        <line class="plan-window" x1="185" y1="1370" x2="315" y2="1370"/>
+        <line class="plan-window" x1="495" y1="1370" x2="625" y2="1370"/>
+        <line class="plan-window" x1="1395" y1="1370" x2="1525" y2="1370"/>
+        <line class="plan-window" x1="1725" y1="1370" x2="1855" y2="1370"/>
+        <line class="plan-window" x1="1980" y1="602.5" x2="1980" y2="687.5"/>
+        <line class="plan-window" x1="1980" y1="942.5" x2="1980" y2="1027.5"/>
+        <line class="plan-window" x1="40" y1="600" x2="40" y2="682"/>
+      </g>
+
+      <g id="plan-doors">
+        <path class="plan-door" d="M390 590 L330 590 M330 590 A60 60 0 0 1 390 530"/>
+        <path class="plan-door" d="M390 880 L330 880 M330 880 A60 60 0 0 1 390 820"/>
+        <path class="plan-door" d="M390 1200 L330 1200 M330 1200 A60 60 0 0 1 390 1140"/>
+        <path class="plan-door" d="M1660 590 L1720 590 M1720 590 A60 60 0 0 0 1660 530"/>
+        <path class="plan-door" d="M1660 880 L1720 880 M1720 880 A60 60 0 0 0 1660 820"/>
+        <path class="plan-door" d="M1180 375 L1180 311 M1180 311 A64 64 0 0 0 1116 375"/>
+        <path class="plan-door" d="M650 455 L650 515 M650 515 A60 60 0 0 1 590 455"/>
+        <path class="plan-door" d="M930 620 L930 560 M930 560 A60 60 0 0 0 870 620"/>
+        <path class="plan-door" d="M1150 620 L1150 560 M1150 560 A60 60 0 0 0 1090 620"/>
+        <path class="plan-door" d="M1390 455 L1390 515 M1390 515 A60 60 0 0 1 1330 455"/>
+        <path class="plan-door" d="M650 865 L650 925 M650 925 A60 60 0 0 1 590 865"/>
+        <path class="plan-door" d="M1430 865 L1430 925 M1430 925 A60 60 0 0 1 1370 865"/>
+        <path class="plan-door" d="M960 1370 L960 1306 M960 1306 A64 64 0 0 0 896 1370"/>
+        <path class="plan-door" d="M1088 1370 L1088 1306 M1088 1306 A64 64 0 0 1 1152 1370"/>
+      </g>
+    </g>
+
+    <!-- BACK exterior walls (far NW/NE edges) — drawn BEFORE interior walls so the interiors correctly occlude them -->
+    <g id="exterior-walls-back">
+      <polygon class="wall-face face-n" points="990,467.6 1921.2,894.4 1921.2,894.4 990,467.6"><animate attributeName="points" begin="1.72s" dur=".62s" values="990,467.6 1921.2,894.4 1921.2,894.4 990,467.6;990,467.6 1921.2,894.4 1921.2,699.4 990,272.6" fill="freeze"/><animate attributeName="opacity" begin="1.72s" dur=".14s" from="0" to="1" fill="freeze"/></polygon>
+      <polygon class="wall-face face-w" points="351.6,760.2 990,467.6 990,467.6 351.6,760.2"><animate attributeName="points" begin="1.76s" dur=".62s" values="351.6,760.2 990,467.6 990,467.6 351.6,760.2;351.6,760.2 990,467.6 990,272.6 351.6,565.2" fill="freeze"/><animate attributeName="opacity" begin="1.76s" dur=".14s" from="0" to="1" fill="freeze"/></polygon>
+    </g>
+
+    <g id="interior-walls">
+      <polygon class="wall-face face-w" points="958.8,635.9 519.6,837.2 519.6,837.2 958.8,635.9"><animate attributeName="points" begin="0.42s" dur=".62s" values="958.8,635.9 519.6,837.2 519.6,837.2 958.8,635.9;958.8,635.9 519.6,837.2 519.6,642.2 958.8,440.9" fill="freeze"/><animate attributeName="opacity" begin="0.42s" dur=".14s" from="0" to="1" fill="freeze"/></polygon>
+      <polygon class="wall-face face-n" points="790.8,558.9 958.8,635.9 958.8,635.9 790.8,558.9"><animate attributeName="points" begin="0.46s" dur=".62s" values="790.8,558.9 958.8,635.9 958.8,635.9 790.8,558.9;790.8,558.9 958.8,635.9 958.8,440.9 790.8,363.9" fill="freeze"/><animate attributeName="opacity" begin="0.46s" dur=".14s" from="0" to="1" fill="freeze"/></polygon>
+      <polygon class="wall-face face-n" points="661.2,618.3 829.2,695.3 829.2,695.3 661.2,618.3"><animate attributeName="points" begin="0.5s" dur=".62s" values="661.2,618.3 829.2,695.3 829.2,695.3 661.2,618.3;661.2,618.3 829.2,695.3 829.2,500.3 661.2,423.3" fill="freeze"/><animate attributeName="opacity" begin="0.5s" dur=".14s" from="0" to="1" fill="freeze"/></polygon>
+      <polygon class="wall-face face-n" points="514.8,685.4 682.8,762.4 682.8,762.4 514.8,685.4"><animate attributeName="points" begin="0.54s" dur=".62s" values="514.8,685.4 682.8,762.4 682.8,762.4 514.8,685.4;514.8,685.4 682.8,762.4 682.8,567.4 514.8,490.4" fill="freeze"/><animate attributeName="opacity" begin="0.54s" dur=".14s" from="0" to="1" fill="freeze"/></polygon>
+      <polygon class="wall-face face-e" points="1568.4,915.3 1292.4,1041.8 1292.4,1041.8 1568.4,915.3"><animate attributeName="points" begin="0.58s" dur=".62s" values="1568.4,915.3 1292.4,1041.8 1292.4,1041.8 1568.4,915.3;1568.4,915.3 1292.4,1041.8 1292.4,846.8 1568.4,720.3" fill="freeze"/><animate attributeName="opacity" begin="0.58s" dur=".14s" from="0" to="1" fill="freeze"/></polygon>
+      <polygon class="wall-face face-n" points="1568.4,915.3 1722,985.7 1722,985.7 1568.4,915.3"><animate attributeName="points" begin="0.62s" dur=".62s" values="1568.4,915.3 1722,985.7 1722,985.7 1568.4,915.3;1568.4,915.3 1722,985.7 1722,790.7 1568.4,720.3" fill="freeze"/><animate attributeName="opacity" begin="0.62s" dur=".14s" from="0" to="1" fill="freeze"/></polygon>
+      <polygon class="wall-face face-n" points="1438.8,974.7 1592.4,1045.1 1592.4,1045.1 1438.8,974.7"><animate attributeName="points" begin="0.66s" dur=".62s" values="1438.8,974.7 1592.4,1045.1 1592.4,1045.1 1438.8,974.7;1438.8,974.7 1592.4,1045.1 1592.4,850.1 1438.8,779.7" fill="freeze"/><animate attributeName="opacity" begin="0.66s" dur=".14s" from="0" to="1" fill="freeze"/></polygon>
+      <polygon class="wall-face face-n" points="1292.4,1041.8 1446,1112.2 1446,1112.2 1292.4,1041.8"><animate attributeName="points" begin="0.7s" dur=".62s" values="1292.4,1041.8 1446,1112.2 1446,1112.2 1292.4,1041.8;1292.4,1041.8 1446,1112.2 1446,917.2 1292.4,846.8" fill="freeze"/><animate attributeName="opacity" begin="0.7s" dur=".14s" from="0" to="1" fill="freeze"/></polygon>
+      <polygon class="wall-face face-n" points="1376.4,644.7 1580.4,738.2 1580.4,738.2 1376.4,644.7"><animate attributeName="points" begin="0.74s" dur=".62s" values="1376.4,644.7 1580.4,738.2 1580.4,738.2 1376.4,644.7;1376.4,644.7 1580.4,738.2 1580.4,543.2 1376.4,449.7" fill="freeze"/><animate attributeName="opacity" begin="0.74s" dur=".14s" from="0" to="1" fill="freeze"/></polygon>
+      <polygon class="wall-face face-e" points="1580.4,738.2 1419.6,811.9 1419.6,811.9 1580.4,738.2"><animate attributeName="points" begin="0.78s" dur=".62s" values="1580.4,738.2 1419.6,811.9 1419.6,811.9 1580.4,738.2;1580.4,738.2 1419.6,811.9 1419.6,616.9 1580.4,543.2" fill="freeze"/><animate attributeName="opacity" begin="0.78s" dur=".14s" from="0" to="1" fill="freeze"/></polygon>
+      <polygon class="wall-face face-s" points="1419.6,811.9 1215.6,718.4 1215.6,718.4 1419.6,811.9"><animate attributeName="points" begin="0.82s" dur=".62s" values="1419.6,811.9 1215.6,718.4 1215.6,718.4 1419.6,811.9;1419.6,811.9 1215.6,718.4 1215.6,523.4 1419.6,616.9" fill="freeze"/><animate attributeName="opacity" begin="0.82s" dur=".14s" from="0" to="1" fill="freeze"/></polygon>
+      <polygon class="wall-face face-w" points="1215.6,718.4 1376.4,644.7 1376.4,644.7 1215.6,718.4"><animate attributeName="points" begin="0.86s" dur=".62s" values="1215.6,718.4 1376.4,644.7 1376.4,644.7 1215.6,718.4;1215.6,718.4 1376.4,644.7 1376.4,449.7 1215.6,523.4" fill="freeze"/><animate attributeName="opacity" begin="0.86s" dur=".14s" from="0" to="1" fill="freeze"/></polygon>
+      <polygon class="wall-face face-w" points="1023.6,681 843.6,763.5 843.6,763.5 1023.6,681"><animate attributeName="points" begin="0.9s" dur=".62s" values="1023.6,681 843.6,763.5 843.6,763.5 1023.6,681;1023.6,681 843.6,763.5 843.6,568.5 1023.6,486" fill="freeze"/><animate attributeName="opacity" begin="0.9s" dur=".14s" from="0" to="1" fill="freeze"/></polygon>
+      <polygon class="wall-face face-n" points="1040.4,673.3 1131.6,715.1 1131.6,715.1 1040.4,673.3"><animate attributeName="points" begin="0.94s" dur=".62s" values="1040.4,673.3 1131.6,715.1 1131.6,715.1 1040.4,673.3;1040.4,673.3 1131.6,715.1 1131.6,520.1 1040.4,478.3" fill="freeze"/><animate attributeName="opacity" begin="0.94s" dur=".14s" from="0" to="1" fill="freeze"/></polygon>
+      <polygon class="wall-face face-e" points="1131.6,715.1 934.8,805.3 934.8,805.3 1131.6,715.1"><animate attributeName="points" begin="0.98s" dur=".62s" values="1131.6,715.1 934.8,805.3 934.8,805.3 1131.6,715.1;1131.6,715.1 934.8,805.3 934.8,610.3 1131.6,520.1" fill="freeze"/><animate attributeName="opacity" begin="0.98s" dur=".14s" from="0" to="1" fill="freeze"/></polygon>
+      <polygon class="wall-face face-s" points="934.8,805.3 843.6,763.5 843.6,763.5 934.8,805.3"><animate attributeName="points" begin="1.02s" dur=".62s" values="934.8,805.3 843.6,763.5 843.6,763.5 934.8,805.3;934.8,805.3 843.6,763.5 843.6,568.5 934.8,610.3" fill="freeze"/><animate attributeName="opacity" begin="1.02s" dur=".14s" from="0" to="1" fill="freeze"/></polygon>
+      <polygon class="wall-face face-e" points="1184.4,739.3 1105.2,775.6 1105.2,775.6 1184.4,739.3"><animate attributeName="points" begin="1.06s" dur=".62s" values="1184.4,739.3 1105.2,775.6 1105.2,775.6 1184.4,739.3;1184.4,739.3 1105.2,775.6 1105.2,580.6 1184.4,544.3" fill="freeze"/><animate attributeName="opacity" begin="1.06s" dur=".14s" from="0" to="1" fill="freeze"/></polygon>
+      <polygon class="wall-face face-s" points="1105.2,775.6 1170,805.3 1170,805.3 1105.2,775.6"><animate attributeName="points" begin="1.1s" dur=".62s" values="1105.2,775.6 1170,805.3 1170,805.3 1105.2,775.6;1105.2,775.6 1170,805.3 1170,610.3 1105.2,580.6" fill="freeze"/><animate attributeName="opacity" begin="1.1s" dur=".14s" from="0" to="1" fill="freeze"/></polygon>
+      <polygon class="wall-face face-e" points="1249.2,769 1170,805.3 1170,805.3 1249.2,769"><animate attributeName="points" begin="1.14s" dur=".62s" values="1249.2,769 1170,805.3 1170,805.3 1249.2,769;1249.2,769 1170,805.3 1170,610.3 1249.2,574" fill="freeze"/><animate attributeName="opacity" begin="1.14s" dur=".14s" from="0" to="1" fill="freeze"/></polygon>
+      <polygon class="wall-face face-e" points="1290,787.7 1210.8,824 1210.8,824 1290,787.7"><animate attributeName="points" begin="1.18s" dur=".62s" values="1290,787.7 1210.8,824 1210.8,824 1290,787.7;1290,787.7 1210.8,824 1210.8,629 1290,592.7" fill="freeze"/><animate attributeName="opacity" begin="1.18s" dur=".14s" from="0" to="1" fill="freeze"/></polygon>
+      <polygon class="wall-face face-s" points="1210.8,824 1275.6,853.7 1275.6,853.7 1210.8,824"><animate attributeName="points" begin="1.22s" dur=".62s" values="1210.8,824 1275.6,853.7 1275.6,853.7 1210.8,824;1210.8,824 1275.6,853.7 1275.6,658.7 1210.8,629" fill="freeze"/><animate attributeName="opacity" begin="1.22s" dur=".14s" from="0" to="1" fill="freeze"/></polygon>
+      <polygon class="wall-face face-e" points="1354.8,817.4 1158,907.6 1158,907.6 1354.8,817.4"><animate attributeName="points" begin="1.26s" dur=".62s" values="1354.8,817.4 1158,907.6 1158,907.6 1354.8,817.4;1354.8,817.4 1158,907.6 1158,712.6 1354.8,622.4" fill="freeze"/><animate attributeName="opacity" begin="1.26s" dur=".14s" from="0" to="1" fill="freeze"/></polygon>
+      <polygon class="wall-face face-e" points="1398,837.2 1201.2,927.4 1201.2,927.4 1398,837.2"><animate attributeName="points" begin="1.3s" dur=".62s" values="1398,837.2 1201.2,927.4 1201.2,927.4 1398,837.2;1398,837.2 1201.2,927.4 1201.2,732.4 1398,642.2" fill="freeze"/><animate attributeName="opacity" begin="1.3s" dur=".14s" from="0" to="1" fill="freeze"/></polygon>
+      <polygon class="wall-face face-s" points="1201.2,927.4 1302,973.6 1302,973.6 1201.2,927.4"><animate attributeName="points" begin="1.34s" dur=".62s" values="1201.2,927.4 1302,973.6 1302,973.6 1201.2,927.4;1201.2,927.4 1302,973.6 1302,778.6 1201.2,732.4" fill="freeze"/><animate attributeName="opacity" begin="1.34s" dur=".14s" from="0" to="1" fill="freeze"/></polygon>
+      <polygon class="wall-face face-n" points="843.6,763.5 1035.6,851.5 1035.6,851.5 843.6,763.5"><animate attributeName="points" begin="1.38s" dur=".62s" values="843.6,763.5 1035.6,851.5 1035.6,851.5 843.6,763.5;843.6,763.5 1035.6,851.5 1035.6,656.5 843.6,568.5" fill="freeze"/><animate attributeName="opacity" begin="1.38s" dur=".14s" from="0" to="1" fill="freeze"/></polygon>
+      <polygon class="wall-face face-s" points="956.4,887.8 764.4,799.8 764.4,799.8 956.4,887.8"><animate attributeName="points" begin="1.42s" dur=".62s" values="956.4,887.8 764.4,799.8 764.4,799.8 956.4,887.8;956.4,887.8 764.4,799.8 764.4,604.8 956.4,692.8" fill="freeze"/><animate attributeName="opacity" begin="1.42s" dur=".14s" from="0" to="1" fill="freeze"/></polygon>
+      <polygon class="wall-face face-e" points="1035.6,851.5 956.4,887.8 956.4,887.8 1035.6,851.5"><animate attributeName="points" begin="1.46s" dur=".62s" values="1035.6,851.5 956.4,887.8 956.4,887.8 1035.6,851.5;1035.6,851.5 956.4,887.8 956.4,692.8 1035.6,656.5" fill="freeze"/><animate attributeName="opacity" begin="1.46s" dur=".14s" from="0" to="1" fill="freeze"/></polygon>
+      <polygon class="wall-face face-n" points="1107.6,884.5 1302,973.6 1302,973.6 1107.6,884.5"><animate attributeName="points" begin="1.5s" dur=".62s" values="1107.6,884.5 1302,973.6 1302,973.6 1107.6,884.5;1107.6,884.5 1302,973.6 1302,778.6 1107.6,689.5" fill="freeze"/><animate attributeName="opacity" begin="1.5s" dur=".14s" from="0" to="1" fill="freeze"/></polygon>
+      <polygon class="wall-face face-s" points="1222.8,1009.9 1028.4,920.8 1028.4,920.8 1222.8,1009.9"><animate attributeName="points" begin="1.54s" dur=".62s" values="1222.8,1009.9 1028.4,920.8 1028.4,920.8 1222.8,1009.9;1222.8,1009.9 1028.4,920.8 1028.4,725.8 1222.8,814.9" fill="freeze"/><animate attributeName="opacity" begin="1.54s" dur=".14s" from="0" to="1" fill="freeze"/></polygon>
+      <polygon class="wall-face face-w" points="1107.6,884.5 1028.4,920.8 1028.4,920.8 1107.6,884.5"><animate attributeName="points" begin="1.58s" dur=".62s" values="1107.6,884.5 1028.4,920.8 1028.4,920.8 1107.6,884.5;1107.6,884.5 1028.4,920.8 1028.4,725.8 1107.6,689.5" fill="freeze"/><animate attributeName="opacity" begin="1.58s" dur=".14s" from="0" to="1" fill="freeze"/></polygon>
+    </g>
+
+    <!-- FRONT exterior walls (near SE/SW edges) — drawn AFTER interior walls so they correctly occlude the interiors -->
+    <g id="exterior-walls-front">
+      <polygon class="wall-face face-e" points="1921.2,894.4 1282.8,1187 1282.8,1187 1921.2,894.4"><animate attributeName="points" begin="1.8s" dur=".62s" values="1921.2,894.4 1282.8,1187 1282.8,1187 1921.2,894.4;1921.2,894.4 1282.8,1187 1282.8,992 1921.2,699.4" fill="freeze"/><animate attributeName="opacity" begin="1.8s" dur=".14s" from="0" to="1" fill="freeze"/></polygon>
+      <polygon class="wall-face face-s" points="1282.8,1187 351.6,760.2 351.6,760.2 1282.8,1187"><animate attributeName="points" begin="1.84s" dur=".62s" values="1282.8,1187 351.6,760.2 351.6,760.2 1282.8,1187;1282.8,1187 351.6,760.2 351.6,565.2 1282.8,992" fill="freeze"/><animate attributeName="opacity" begin="1.84s" dur=".14s" from="0" to="1" fill="freeze"/></polygon>
+    </g>
+
+    <polygon class="roof" points="990,272.6 1921.2,699.4 1282.8,992 351.6,565.2"/>
+    <polyline class="roof-trim" points="990,272.6 1921.2,699.4 1282.8,992 351.6,565.2 990,272.6"/>
+
+    <g id="facade-windows">
+      <polygon class="facade-window" style="--d:2.86s" points="421.2,717.1 483.6,745.7 483.6,695.7 421.2,667.1"/>
+      <polygon class="facade-window" style="--d:2.94s" points="570,785.3 632.4,813.9 632.4,763.9 570,735.3"/>
+      <polygon class="facade-window" style="--d:3.02s" points="1002,983.3 1064.4,1011.9 1064.4,961.9 1002,933.3"/>
+      <polygon class="facade-window" style="--d:3.10s" points="1160.4,1055.9 1222.8,1084.5 1222.8,1034.5 1160.4,1005.9"/>
+      <polygon class="facade-window" style="--d:3.18s" points="1651.2,943.2 1610.4,961.9 1610.4,911.9 1651.2,893.2"/>
+      <polygon class="facade-window" style="--d:3.26s" points="1488,1018 1447.2,1036.7 1447.2,986.7 1488,968"/>
+    </g>
+
+    <g id="corner-pins">
+      <rect class="corner-pin" x="984" y="266.6" width="12" height="12" rx="1.5"/>
+      <rect class="corner-pin" x="1915.2" y="693.4" width="12" height="12" rx="1.5"/>
+      <rect class="corner-pin" x="1276.8" y="986" width="12" height="12" rx="1.5"/>
+      <rect class="corner-pin" x="345.6" y="559.2" width="12" height="12" rx="1.5"/>
+    </g>
+  </g>
+</svg>

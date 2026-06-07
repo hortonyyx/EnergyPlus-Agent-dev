@@ -1,0 +1,796 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>EnergyPlus Agent Showcase Prototype</title>
+    <link rel="stylesheet" href="styles.css?v=62" />
+  </head>
+  <body class="mode-continuous">
+    <div class="prototype-shell">
+      <header class="top-bar" aria-label="Prototype controls">
+        <div class="prototype-title">EnergyPlus Agent Showcase</div>
+        <div class="controls">
+          <div class="mode-toggle" aria-label="Playback mode">
+            <button
+              class="mode-button is-active"
+              id="continuousModeButton"
+              type="button"
+              aria-pressed="true"
+            >
+              Continuous
+            </button>
+            <button
+              class="mode-button"
+              id="slideModeButton"
+              type="button"
+              aria-pressed="false"
+            >
+              Slide
+            </button>
+          </div>
+          <button class="control-button" id="playButton" type="button">
+            <svg viewBox="0 0 20 20" aria-hidden="true">
+              <path d="M6.5 4.2 15.5 10l-9 5.8V4.2Z" />
+            </svg>
+            <span>Play</span>
+          </button>
+          <button class="control-button" id="restartButton" type="button">
+            <svg viewBox="0 0 20 20" aria-hidden="true">
+              <path
+                d="M15.5 7.1a6 6 0 1 0 1 5.1"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.8"
+                stroke-linecap="round"
+              />
+              <path d="M15.6 2.8v4.7h-4.7Z" />
+            </svg>
+            <span>Restart</span>
+          </button>
+          <button class="control-button slide-control" id="previousButton" type="button">
+            <svg viewBox="0 0 20 20" aria-hidden="true">
+              <path d="M12.8 4.2 4.5 10l8.3 5.8V4.2Z" />
+              <path d="M15.4 4.6h-1.8v10.8h1.8V4.6Z" />
+            </svg>
+            <span>Previous</span>
+          </button>
+          <button class="control-button slide-control" id="nextButton" type="button">
+            <span>Next</span>
+            <svg viewBox="0 0 20 20" aria-hidden="true">
+              <path d="M7.2 4.2 15.5 10l-8.3 5.8V4.2Z" />
+              <path d="M4.6 4.6h1.8v10.8H4.6V4.6Z" />
+            </svg>
+          </button>
+        </div>
+      </header>
+
+      <main class="showcase-layout">
+        <nav class="shot-nav play-nav" aria-label="Animated shot directory">
+          <button
+            class="shot-nav-button play-shot-button is-active"
+            type="button"
+            data-shot-target="0"
+            aria-current="step"
+          >
+            <span class="shot-number">Shot 1</span>
+            <span class="nav-play-icon" aria-hidden="true"></span>
+            Opening
+          </button>
+          <button class="shot-nav-button play-shot-button" type="button" data-shot-target="1">
+            <span class="shot-number">Shot 2</span>
+            <span class="nav-play-icon" aria-hidden="true"></span>
+            Traditional Workflow
+          </button>
+          <button class="shot-nav-button play-shot-button" type="button" data-shot-target="2">
+            <span class="shot-number">Shot 3</span>
+            <span class="nav-play-icon" aria-hidden="true"></span>
+            Building Simulation Copilot
+          </button>
+          <button class="shot-nav-button play-shot-button" type="button" data-shot-target="3">
+            <span class="shot-number">Shot 4</span>
+            <span class="nav-play-icon" aria-hidden="true"></span>
+            EnergyPlus Agent
+          </button>
+          <button class="shot-nav-button play-shot-button" type="button" data-shot-target="4">
+            <span class="shot-number">Shot 5</span>
+            <span class="nav-play-icon" aria-hidden="true"></span>
+            My Pipeline
+          </button>
+          <button class="shot-nav-button play-shot-button" type="button" data-shot-target="5">
+            <span class="shot-number">Shot 6</span>
+            <span class="nav-play-icon" aria-hidden="true"></span>
+            Multimodal Design input
+          </button>
+          <button class="shot-nav-button play-shot-button" type="button" data-shot-target="6">
+            <span class="shot-number">Shot 7</span>
+            <span class="nav-play-icon" aria-hidden="true"></span>
+            Overall Pipeline
+          </button>
+          <button class="shot-nav-button play-shot-button" type="button" data-shot-target="7">
+            <span class="shot-number">Shot 8</span>
+            <span class="nav-play-icon" aria-hidden="true"></span>
+            Path 1: Drawing to BIM
+          </button>
+          <button class="shot-nav-button play-shot-button" type="button" data-shot-target="8">
+            <span class="shot-number">Shot 9</span>
+            <span class="nav-play-icon" aria-hidden="true"></span>
+            Path 2: Drawing to BEM
+          </button>
+          <button class="shot-nav-button play-shot-button" type="button" data-shot-target="9">
+            <span class="shot-number">Shot 10</span>
+            <span class="nav-play-icon" aria-hidden="true"></span>
+            Verifiable workflow
+          </button>
+        </nav>
+
+        <div class="stage-shell">
+          <div class="stage" aria-label="EnergyPlus Agent showcase animation">
+          <section class="scene scene-opening" aria-label="Opening">
+            <h1 class="opening-title">
+              Building simulation is powerful, but complex.
+            </h1>
+
+            <div class="building-visual opening-analysis" aria-hidden="true">
+              <img
+                src="assets/shot1-building-simulation-clean.png"
+                alt=""
+                decoding="async"
+              />
+            </div>
+          </section>
+
+          <section class="scene scene-workflow" aria-label="Traditional Workflow">
+            <h2 class="workflow-title">A Long and Specialized Workflow</h2>
+
+            <div class="workflow-window">
+              <div class="workflow-map">
+                <div class="workflow-track" aria-label="Traditional workflow chain">
+                  <div class="workflow-node early" style="--node-delay: 6.0s">Design</div>
+                  <span class="connector" style="--connector-delay: 6.18s"></span>
+                  <div class="workflow-node early" style="--node-delay: 6.28s">Drawing Set</div>
+                  <span class="connector" style="--connector-delay: 6.46s"></span>
+                  <div class="workflow-node expert" style="--node-delay: 6.56s">Geometry Model</div>
+                  <span class="connector" style="--connector-delay: 6.74s"></span>
+                  <div class="workflow-node expert" style="--node-delay: 6.84s">Model Cleanup</div>
+                  <span class="connector" style="--connector-delay: 7.02s"></span>
+                  <div class="workflow-node expert" style="--node-delay: 7.12s">Thermal Zoning</div>
+                  <span class="connector" style="--connector-delay: 7.30s"></span>
+                  <div class="workflow-node expert" style="--node-delay: 7.40s">Envelope Data</div>
+                  <span class="connector" style="--connector-delay: 7.58s"></span>
+                  <div class="workflow-node expert" style="--node-delay: 7.68s">Internal Loads</div>
+                  <span class="connector" style="--connector-delay: 7.86s"></span>
+                  <div class="workflow-node expert" style="--node-delay: 7.96s">HVAC Systems</div>
+                  <span class="connector" style="--connector-delay: 8.14s"></span>
+                  <div class="workflow-node expert" style="--node-delay: 8.24s">Schedules</div>
+                  <span class="connector" style="--connector-delay: 8.42s"></span>
+                  <div class="workflow-node expert" style="--node-delay: 8.52s">Weather Data</div>
+                  <span class="connector" style="--connector-delay: 8.70s"></span>
+                  <div class="workflow-node model" style="--node-delay: 8.80s">EnergyPlus IDF</div>
+                  <span class="connector" style="--connector-delay: 8.98s"></span>
+                  <div class="workflow-node model" style="--node-delay: 9.08s">Simulation Run</div>
+                  <span class="connector" style="--connector-delay: 9.26s"></span>
+                  <div class="workflow-node result-end" style="--node-delay: 9.36s">
+                    Energy &amp; Comfort Results
+                  </div>
+                </div>
+              </div>
+
+              <div class="pain-point pain-one">
+                <strong>Expert-dependent Setup</strong>
+                <span class="pain-image" aria-hidden="true">
+                  <svg viewBox="0 0 16 16">
+                    <path d="M8.211 2.047a.5.5 0 0 0-.422 0l-7.5 3.5a.5.5 0 0 0 .025.917l7.5 3a.5.5 0 0 0 .372 0L14 7.14V13a1 1 0 0 0-1 1v2h3v-2a1 1 0 0 0-1-1V6.739l.686-.275a.5.5 0 0 0 .025-.917z"/>
+                    <path d="M4.176 9.032a.5.5 0 0 0-.656.327l-.5 1.7a.5.5 0 0 0 .294.605l4.5 1.8a.5.5 0 0 0 .372 0l4.5-1.8a.5.5 0 0 0 .294-.605l-.5-1.7a.5.5 0 0 0-.656-.327L8 10.466z"/>
+                  </svg>
+                </span>
+              </div>
+              <div class="pain-point pain-two">
+                <strong>Late-stage Simulation</strong>
+                <span class="pain-image" aria-hidden="true">
+                  <svg viewBox="0 0 16 16">
+                    <path d="M2.5 15a.5.5 0 1 1 0-1h1v-1a4.5 4.5 0 0 1 2.557-4.06c.29-.139.443-.377.443-.59v-.7c0-.213-.154-.451-.443-.59A4.5 4.5 0 0 1 3.5 3V2h-1a.5.5 0 0 1 0-1h11a.5.5 0 0 1 0 1h-1v1a4.5 4.5 0 0 1-2.557 4.06c-.29.139-.443.377-.443.59v.7c0 .213.154.451.443.59A4.5 4.5 0 0 1 12.5 13v1h1a.5.5 0 0 1 0 1zm2-13v1c0 .537.12 1.045.337 1.5h6.326c.216-.455.337-.963.337-1.5V2zm3 6.35c0 .701-.478 1.236-1.011 1.492A3.5 3.5 0 0 0 4.5 13s.866-1.299 3-1.48zm1 0v3.17c2.134.181 3 1.48 3 1.48a3.5 3.5 0 0 0-1.989-3.158C8.978 9.586 8.5 9.052 8.5 8.351z"/>
+                  </svg>
+                </span>
+              </div>
+              <div class="pain-point pain-three">
+                <strong>Broken Feedback Loop</strong>
+                <span class="pain-image" aria-hidden="true">
+                  <svg viewBox="0 0 16 16">
+                    <path d="M11.534 7h3.932a.25.25 0 0 1 .192.41l-1.966 2.36a.25.25 0 0 1-.384 0l-1.966-2.36a.25.25 0 0 1 .192-.41m-11 2h3.932a.25.25 0 0 0 .192-.41L2.692 6.23a.25.25 0 0 0-.384 0L.342 8.59A.25.25 0 0 0 .534 9"/>
+                    <path fill-rule="evenodd" d="M8 3c-1.552 0-2.94.707-3.857 1.818a.5.5 0 1 1-.771-.636A6.002 6.002 0 0 1 13.917 7H12.9A5 5 0 0 0 8 3M3.1 9a5.002 5.002 0 0 0 8.757 2.182.5.5 0 1 1 .771.636A6.002 6.002 0 0 1 2.083 9z"/>
+                    <path d="M3.04 13.04a.6.6 0 0 1 0-.848L12.19 3.04a.6.6 0 1 1 .85.85l-9.15 9.15a.6.6 0 0 1-.85 0" fill="#ffffff" stroke="#ffffff" stroke-width="0.8"/>
+                    <path d="M3.6 13.1a.55.55 0 0 1 0-.778L12.32 3.6a.55.55 0 1 1 .778.778l-8.72 8.72a.55.55 0 0 1-.778 0"/>
+                  </svg>
+                </span>
+              </div>
+
+              <div class="loop-anchor loop-anchor-left">Design</div>
+              <div class="loop-anchor loop-anchor-right">Energy &amp; Comfort Results</div>
+              <div class="workflow-package" aria-hidden="true">
+                <span class="pkg-node pkg-early">Design</span>
+                <i></i>
+                <span class="pkg-node pkg-agent">Geometry</span>
+                <i></i>
+                <span class="pkg-node pkg-agent">Cleanup</span>
+                <i></i>
+                <span class="pkg-node pkg-agent">Zoning</span>
+                <i></i>
+                <span class="pkg-node pkg-agent">Envelope</span>
+                <i></i>
+                <span class="pkg-node pkg-agent">Loads</span>
+                <i></i>
+                <span class="pkg-node pkg-agent">HVAC</span>
+                <i></i>
+                <span class="pkg-node pkg-agent">Schedules</span>
+                <i></i>
+                <span class="pkg-node pkg-agent">Weather</span>
+                <i></i>
+                <span class="pkg-node pkg-agent">IDF</span>
+                <i></i>
+                <span class="pkg-node pkg-agent">Simulation</span>
+                <i></i>
+                <span class="pkg-node pkg-result">Results</span>
+              </div>
+              <svg class="blocked-feedback" viewBox="0 0 1040 120" aria-hidden="true">
+                <defs>
+                  <marker
+                    id="feedbackArrow"
+                    markerWidth="9"
+                    markerHeight="9"
+                    refX="2"
+                    refY="4.5"
+                    orient="auto"
+                  >
+                    <path d="M9 4.5 0 0v9Z" />
+                  </marker>
+                </defs>
+                <path
+                  class="blocked-path"
+                  d="M1010 34C810 106 230 108 30 36"
+                  marker-end="url(#feedbackArrow)"
+                />
+                <g class="blocked-x">
+                  <text x="520" y="113" text-anchor="middle" font-family="Inter, Segoe UI, sans-serif" font-size="52" font-weight="800" fill="#b94a48" stroke="none">?</text>
+                </g>
+              </svg>
+            </div>
+          </section>
+
+          <section class="scene scene-reframe" aria-label="Product Reframe">
+            <h2 class="reframe-title">EnergyPlus: Building Simulation Copilot</h2>
+
+            <div class="legacy-strip" aria-hidden="true">
+              <span class="pkg-node pkg-early ls-design">Design</span>
+              <i class="ls-edge"></i>
+              <span class="blue-block">
+                <span class="pkg-node pkg-agent">Geometry</span>
+                <i></i>
+                <span class="pkg-node pkg-agent">Cleanup</span>
+                <i></i>
+                <span class="pkg-node pkg-agent">Zoning</span>
+                <i></i>
+                <span class="pkg-node pkg-agent">Envelope</span>
+                <i></i>
+                <span class="pkg-node pkg-agent">Loads</span>
+                <i></i>
+                <span class="pkg-node pkg-agent">HVAC</span>
+                <i></i>
+                <span class="pkg-node pkg-agent">Schedules</span>
+                <i></i>
+                <span class="pkg-node pkg-agent">Weather</span>
+                <i></i>
+                <span class="pkg-node pkg-agent">IDF</span>
+                <i></i>
+                <span class="pkg-node pkg-agent">Simulation</span>
+              </span>
+              <i class="ls-edge"></i>
+              <span class="pkg-node pkg-result ls-results">Results</span>
+            </div>
+
+            <div class="product-loop">
+              <svg class="loop-lines" viewBox="0 0 760 360" aria-hidden="true">
+                <defs>
+                  <marker
+                    id="loopArrow"
+                    markerWidth="7"
+                    markerHeight="7"
+                    refX="5.5"
+                    refY="3.5"
+                    orient="auto"
+                  >
+                    <path d="M0 0 7 3.5 0 7Z" />
+                  </marker>
+                  <marker
+                    id="loopArrowRed"
+                    markerWidth="9"
+                    markerHeight="9"
+                    refX="8"
+                    refY="4.5"
+                    orient="auto"
+                  >
+                    <path d="M0 0 9 4.5 0 9Z" />
+                  </marker>
+                </defs>
+                <path class="loop-line line-design-agent" d="M228 240 330 128" marker-end="url(#loopArrow)" />
+                <path class="loop-line line-agent-feedback" d="M430 128 532 240" marker-end="url(#loopArrow)" />
+                <path
+                  class="loop-line line-feedback-design"
+                  d="M492 277 272 277"
+                  marker-end="url(#loopArrow)"
+                />
+              </svg>
+
+              <div class="loop-node loop-design">Design</div>
+              <div class="agent-module">
+                <strong>EnergyPlus Agent</strong>
+              </div>
+              <div class="loop-node loop-feedback">Results</div>
+            </div>
+
+            <p class="product-claim">
+              Bring energy and comfort insights into design decisions.
+            </p>
+          </section>
+
+          <section class="scene scene-inside" aria-label="Inside EnergyPlus Agent">
+            <h2 class="inside-title">Inside EnergyPlus Agent</h2>
+
+            <div class="inside-flow">
+              <div class="expanded-agent" aria-label="EnergyPlus Agent capabilities">
+                <div class="expanded-agent-head">EnergyPlus Agent</div>
+                <div class="capability-flow">
+                  <article class="capability capability-one cap-mine">
+                    <span class="cap-icon" aria-hidden="true">
+                      <svg viewBox="0 0 16 16"><path d="M10.5 8a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0"/><path d="M0 8s3-5.5 8-5.5S16 8 16 8s-3 5.5-8 5.5S0 8 0 8m8 3.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7"/></svg>
+                    </span>
+                    <h3>Design Understanding</h3>
+                  </article>
+                  <article class="capability capability-two cap-mine">
+                    <span class="cap-icon" aria-hidden="true">
+                      <svg viewBox="0 0 16 16"><path d="M8.5 2.687c.654-.689 1.782-.886 3.112-.752 1.234.124 2.503.523 3.388.893v9.923c-.918-.35-2.107-.692-3.287-.81-1.094-.111-2.278-.039-3.213.492zM8 1.783C7.015.936 5.587.81 4.287.94c-1.514.153-3.042.672-3.994 1.105A.5.5 0 0 0 0 2.5v11a.5.5 0 0 0 .707.455c.882-.4 2.303-.881 3.68-1.02 1.409-.142 2.59.087 3.223.877a.5.5 0 0 0 .78 0c.633-.79 1.814-1.019 3.222-.877 1.378.139 2.8.62 3.681 1.02A.5.5 0 0 0 16 13.5v-11a.5.5 0 0 0-.293-.455c-.952-.433-2.48-.952-3.994-1.105C10.413.809 8.985.936 8 1.783"/></svg>
+                    </span>
+                    <h3>Knowledge-Grounded Modeling</h3>
+                  </article>
+                  <article class="capability capability-three cap-mine">
+                    <span class="cap-icon" aria-hidden="true">
+                      <svg viewBox="0 0 16 16"><path d="M9.405 1.05c-.413-1.4-2.397-1.4-2.81 0l-.1.34a1.464 1.464 0 0 1-2.105.872l-.31-.17c-1.283-.698-2.686.705-1.987 1.987l.169.311a1.464 1.464 0 0 1-.872 2.105l-.34.1c-1.4.413-1.4 2.397 0 2.81l.34.1a1.464 1.464 0 0 1 .872 2.105l-.17.31c-.698 1.283.705 2.686 1.987 1.987l.311-.169a1.464 1.464 0 0 1 2.105.872l.1.34c.413 1.4 2.397 1.4 2.81 0l.1-.34a1.464 1.464 0 0 1 2.105-.872l.31.17c1.283.698 2.686-.705 1.987-1.987l-.169-.311a1.464 1.464 0 0 1 .872-2.105l.34-.1c1.4-.413 1.4-2.397 0-2.81l-.34-.1a1.464 1.464 0 0 1-.872-2.105l.17-.31c.698-1.283-.705-2.686-1.987-1.987l-.311.169a1.464 1.464 0 0 1-2.105-.872zM8 10.93a2.929 2.929 0 1 1 0-5.86 2.929 2.929 0 0 1 0 5.858z"/></svg>
+                    </span>
+                    <h3>Simulation Model Pipeline</h3>
+                  </article>
+                  <article class="capability capability-four">
+                    <span class="cap-icon" aria-hidden="true">
+                      <svg viewBox="0 0 16 16"><path fill-rule="evenodd" d="M0 0h1v15h15v1H0zm10 3.5a.5.5 0 0 1 .5-.5h4a.5.5 0 0 1 .5.5v4a.5.5 0 0 1-1 0V4.9l-3.613 4.417a.5.5 0 0 1-.74.037L7.06 6.767l-3.656 5.027a.5.5 0 0 1-.808-.588l4-5.5a.5.5 0 0 1 .758-.06l2.609 2.61L13.445 4H10.5a.5.5 0 0 1-.5-.5"/></svg>
+                    </span>
+                    <h3>Insight &amp; Optimization</h3>
+                  </article>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="scene scene-contribution" aria-label="My Pipeline">
+            <h2 class="contribution-title">My Pipeline</h2>
+
+            <div class="contrib-flow">
+              <!-- left: multimodal inputs -->
+              <div class="contrib-inputs">
+                <div class="contrib-zone-head">Multimodal Inputs</div>
+                <span class="cin">Architectural Drawings</span>
+                <span class="cin">Natural Language</span>
+                <span class="cin">Parametric Code</span>
+                <span class="cin">Configuration Files</span>
+              </div>
+
+              <span class="contrib-arrow contrib-arrow-in" aria-hidden="true"></span>
+
+              <!-- center: drawing-to-model stages carried from Shot 4 -->
+              <div class="contrib-pipeline">
+                <article class="contrib-cap cc-one">
+                  <span class="cap-icon" aria-hidden="true">
+                    <svg viewBox="0 0 16 16"><path d="M10.5 8a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0"/><path d="M0 8s3-5.5 8-5.5S16 8 16 8s-3 5.5-8 5.5S0 8 0 8m8 3.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7"/></svg>
+                  </span>
+                  <h3>Design Understanding</h3>
+                </article>
+                <article class="contrib-cap cc-two">
+                  <span class="cap-icon" aria-hidden="true">
+                    <svg viewBox="0 0 16 16"><path d="M8.5 2.687c.654-.689 1.782-.886 3.112-.752 1.234.124 2.503.523 3.388.893v9.923c-.918-.35-2.107-.692-3.287-.81-1.094-.111-2.278-.039-3.213.492zM8 1.783C7.015.936 5.587.81 4.287.94c-1.514.153-3.042.672-3.994 1.105A.5.5 0 0 0 0 2.5v11a.5.5 0 0 0 .707.455c.882-.4 2.303-.881 3.68-1.02 1.409-.142 2.59.087 3.223.877a.5.5 0 0 0 .78 0c.633-.79 1.814-1.019 3.222-.877 1.378.139 2.8.62 3.681 1.02A.5.5 0 0 0 16 13.5v-11a.5.5 0 0 0-.293-.455c-.952-.433-2.48-.952-3.994-1.105C10.413.809 8.985.936 8 1.783"/></svg>
+                  </span>
+                  <h3>Knowledge-Grounded Modeling</h3>
+                </article>
+              </div>
+
+              <span class="contrib-arrow contrib-arrow-out" aria-hidden="true"></span>
+
+              <!-- right: BIM / BEM outputs, then BEM continues into simulation modeling -->
+              <div class="contrib-model-stage">
+                <article class="contrib-out out-bim">
+                  <span class="out-figure"><img src="assets/bim-house.svg?v=4" alt="" class="bim-fig" /></span>
+                  <strong>BIM Model</strong>
+                  <span class="out-full">Building Information Model</span>
+                </article>
+                <article class="contrib-out out-bem">
+                  <span class="out-figure"><img src="assets/bem-zones.svg?v=6" alt="" class="bem-fig" /></span>
+                  <strong>BEM Model</strong>
+                  <span class="out-full">Building Energy Model</span>
+                </article>
+                <span class="contrib-arrow-bem" aria-hidden="true"></span>
+                <article class="contrib-cap contrib-simulation cc-three">
+                  <span class="cap-icon" aria-hidden="true">
+                    <svg viewBox="0 0 16 16"><path d="M9.405 1.05c-.413-1.4-2.397-1.4-2.81 0l-.1.34a1.464 1.464 0 0 1-2.105.872l-.31-.17c-1.283-.698-2.686.705-1.987 1.987l.169.311a1.464 1.464 0 0 1-.872 2.105l-.34.1c-1.4.413-1.4 2.397 0 2.81l.34.1a1.464 1.464 0 0 1 .872 2.105l-.17.31c-.698 1.283.705 2.686 1.987 1.987l.311-.169a1.464 1.464 0 0 1 2.105.872l.1.34c.413 1.4 2.397 1.4 2.81 0l.1-.34a1.464 1.464 0 0 1 2.105-.872l.31.17c1.283.698 2.686-.705 1.987-1.987l-.169-.311a1.464 1.464 0 0 1 .872-2.105l.34-.1c1.4-.413 1.4-2.397 0-2.81l-.34-.1a1.464 1.464 0 0 1-.872-2.105l.17-.31c.698-1.283-.705-2.686-1.987-1.987l-.311.169a1.464 1.464 0 0 1-2.105-.872zM8 10.93a2.929 2.929 0 1 1 0-5.86 2.929 2.929 0 0 1 0 5.858z"/></svg>
+                  </span>
+                  <h3>Simulation Model Pipeline</h3>
+                </article>
+              </div>
+            </div>
+          </section>
+
+          <section class="scene scene-evidence" aria-label="Multimodal Design input">
+            <h2 class="evidence-title">Multimodal Design input</h2>
+
+            <div class="evidence-layout" aria-label="Design evidence input categories">
+              <div class="evidence-cards">
+                <article class="evidence-card evidence-drawings">
+                  <span class="ev-figure"><img src="assets/Architectural%20Drawings.png?v=2" alt="" /></span>
+                  <h3>Architectural Drawings</h3>
+                  <p>floor plans / elevations / 3D views</p>
+                </article>
+                <article class="evidence-card evidence-language">
+                  <span class="ev-figure"><img src="assets/Natural%20Language.png?v=1" alt="" /></span>
+                  <h3>Natural Language</h3>
+                  <p>design intent / constraints</p>
+                </article>
+                <article class="evidence-card evidence-code">
+                  <span class="ev-figure"><img src="assets/Parametric%20Code.png?v=1" alt="" /></span>
+                  <h3>Parametric Code</h3>
+                  <p>Grasshopper / scripts</p>
+                </article>
+                <article class="evidence-card evidence-config">
+                  <span class="ev-figure"><img src="assets/Configuration%20Files.png?v=1" alt="" /></span>
+                  <h3>Configuration Files</h3>
+                  <p>YAML / weather / site data</p>
+                </article>
+              </div>
+
+              <span class="ev-down-arrow" aria-hidden="true"></span>
+              <div class="evidence-next-node">Pipeline</div>
+            </div>
+          </section>
+
+          <section class="scene scene-pipeline" aria-label="Pipeline Overview">
+            <h2 class="pipeline-title">From multimodal inputs to BIM and BEM models.</h2>
+
+            <div class="pipeline-wrap" aria-label="Multimodal inputs to BIM and BEM pipeline">
+              <svg class="pipe-links" viewBox="0 0 1290 460" preserveAspectRatio="none" aria-hidden="true">
+                <defs>
+                  <marker id="pmk" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><path d="M0 0 8 4 0 8Z" fill="#5b6a70"/></marker>
+                  <marker id="pmkO" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><path d="M0 0 8 4 0 8Z" fill="#b3611c"/></marker>
+                </defs>
+                <!-- shared chain (center lane) -->
+                <path class="pl pl-share" d="M104 230 H119" marker-end="url(#pmk)"/>
+                <path class="pl pl-share" d="M274 230 H289" marker-end="url(#pmk)"/>
+                <!-- fork 1: Vector Redraw -> two branches -->
+                <path class="pl pl-fork" d="M386 224 L408 110" marker-end="url(#pmkO)"/>
+                <path class="pl pl-fork" d="M386 236 L428 350" marker-end="url(#pmkO)"/>
+                <!-- branch internal arrows -->
+                <path class="pl pl-branch" d="M616 104 H636" marker-end="url(#pmkO)"/>
+                <path class="pl pl-branch" d="M596 356 H636" marker-end="url(#pmkO)"/>
+                <!-- merge: both branches -> 9 Domain Agents -->
+                <path class="pl pl-merge" d="M824 104 L834 225" marker-end="url(#pmkO)"/>
+                <path class="pl pl-merge" d="M824 356 L834 235" marker-end="url(#pmkO)"/>
+                <!-- fork 2: 9 Domain Agents -> two model outputs -->
+                <path class="pl pl-out" d="M1111 224 L1131 110" marker-end="url(#pmkO)"/>
+                <path class="pl pl-out" d="M1111 236 L1131 350" marker-end="url(#pmkO)"/>
+              </svg>
+
+              <!-- shared chain (center lane) — all three two-line -->
+              <span class="pnode pnode-2l pp g-share" style="--x:59px;--y:230px">Design<br/>Input</span>
+              <span class="pnode pnode-2l pp g-share pipeline-owned" style="--x:198px;--y:230px">Drawing<br/>Understanding</span>
+              <span class="pnode pnode-fork pnode-2l pp g-share pipeline-owned" style="--x:339px;--y:230px">Vector<br/>Redraw</span>
+
+              <!-- BIM branch (upper lane) — single line -->
+              <span class="lane-tag tag-bim pp g-bim" style="--x:514px;--y:31px">BIM Path</span>
+              <span class="pnode pp g-bim pipeline-owned" style="--x:514px;--y:104px">Geometry Correction</span>
+              <span class="pnode pp g-bim pipeline-owned" style="--x:732px;--y:104px">3D Reconstruction</span>
+
+              <!-- BEM branch (lower lane) — single line -->
+              <span class="lane-tag tag-bem pp g-bem" style="--x:514px;--y:399px">BEM Path</span>
+              <span class="pnode pp g-bem pipeline-owned" style="--x:514px;--y:356px">Thermal Zoning</span>
+              <span class="pnode pp g-bem pipeline-owned" style="--x:732px;--y:356px">Zone Construction</span>
+
+              <!-- merge: 9 Domain Agents (center lane) -->
+              <div class="pnode p-agents pp g-merge pipeline-owned" style="--x:980px;--y:230px">
+                <span class="pa-head">9 Domain Agents</span>
+                <span class="pa-grid">
+                  <i>Schedules</i><i>Materials</i><i>Constructions</i>
+                  <i>Zones</i><i>Surfaces</i><i>Fenestration</i>
+                  <i>Lights</i><i>People</i><i>HVAC</i>
+                </span>
+              </div>
+
+              <!-- fork 2: two model outputs -->
+              <span class="pnode pout out-bim pp g-bim" style="--x:1199px;--y:104px">BIM Model</span>
+              <span class="pnode pout out-bem pp g-bem" style="--x:1199px;--y:356px">BEM Model</span>
+            </div>
+          </section>
+
+          <section class="scene scene-bim" aria-label="Path 1: Drawing to BIM">
+            <h2 class="path-title">Path 1: Drawing to BIM</h2>
+
+            <div class="step4-flow" aria-label="Drawing to BIM, step by step">
+              <div class="s4step">
+                <article class="s4card">
+                  <span class="s4fig plan" aria-hidden="true"><img class="planimg" src="assets/Drawing Understanding.png?v=1" alt=""></span>
+                  <h3>Drawing Understanding</h3>
+                </article>
+                <div class="s4tech">
+                  <strong>Drawing Knowledge Base</strong>
+                  <span>RAG</span>
+                </div>
+              </div>
+
+              <span class="s4arrow" data-model="VLM" aria-hidden="true"></span>
+
+              <div class="s4step">
+                <article class="s4card">
+                  <span class="s4fig plan" aria-hidden="true"><img class="planimg plansvg" src="assets/plan-redraw.svg?v=1" alt=""></span>
+                  <h3>Vector Redraw</h3>
+                </article>
+                <div class="s4tech">
+                  <strong>Architectural Semantics KB</strong>
+                  <span>RAG</span>
+                </div>
+              </div>
+
+              <span class="s4arrow" data-model="LLM" aria-hidden="true"></span>
+
+              <div class="s4step">
+                <article class="s4card">
+                  <span class="s4fig plan" aria-hidden="true"><img class="planimg plansvg" src="assets/plan-corrected.svg?v=4" alt=""></span>
+                  <h3>Geometry Correction</h3>
+                </article>
+                <div class="s4tech">
+                  <strong>Building Commonsense KB</strong>
+                  <span>RAG</span>
+                </div>
+              </div>
+
+              <span class="s4arrow" data-model="LLM" aria-hidden="true"></span>
+
+              <div class="s4step">
+                <article class="s4card">
+                  <span class="s4fig plan" aria-hidden="true"><img class="planimg plansvg" src="assets/plan-3d-reconstruction.svg?v=3" alt=""></span>
+                  <h3>3D Reconstruction</h3>
+                </article>
+                <div class="s4tech">
+                  <strong>Building Standards KB</strong>
+                  <span>RAG</span>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="scene scene-bem" aria-label="Path 2: Drawing to BEM">
+            <h2 class="path-title">Path 2: Drawing to BEM</h2>
+
+            <div class="step4-flow" aria-label="Drawing to BEM, step by step">
+              <div class="s4step">
+                <article class="s4card">
+                  <span class="s4fig plan" aria-hidden="true"><img class="planimg" src="assets/Drawing Understanding.png?v=1" alt=""></span>
+                  <h3>Drawing Understanding</h3>
+                </article>
+                <div class="s4tech">
+                  <strong>Drawing Knowledge Base</strong>
+                  <span>RAG</span>
+                </div>
+              </div>
+
+              <span class="s4arrow" data-model="VLM" aria-hidden="true"></span>
+
+              <div class="s4step">
+                <article class="s4card">
+                  <span class="s4fig plan" aria-hidden="true"><img class="planimg plansvg" src="assets/plan-redraw.svg?v=1" alt=""></span>
+                  <h3>Vector Redraw</h3>
+                </article>
+                <div class="s4tech">
+                  <strong>Architectural Semantics KB</strong>
+                  <span>RAG</span>
+                </div>
+              </div>
+
+              <span class="s4arrow" data-model="LLM" aria-hidden="true"></span>
+
+              <div class="s4step">
+                <article class="s4card">
+                  <span class="s4fig plan" aria-hidden="true"><img class="planimg plansvg" src="assets/plan-thermal-zoning.svg?v=1" alt=""></span>
+                  <h3>Thermal Zoning</h3>
+                </article>
+                <div class="s4tech">
+                  <strong>Thermal Standards KB</strong>
+                  <span>RAG + Zoning Algorithm</span>
+                </div>
+              </div>
+
+              <span class="s4arrow" data-model="LLM" aria-hidden="true"></span>
+
+              <div class="s4step">
+                <article class="s4card">
+                  <span class="s4fig plan" aria-hidden="true"><img class="planimg plansvg" src="assets/plan-zone-construction.svg?v=1" alt=""></span>
+                  <h3>Zone Construction</h3>
+                </article>
+                <div class="s4tech">
+                  <strong>Zone Geometry Construction</strong>
+                  <span>Geometry Kernel / OpenStudio SDK</span>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="scene scene-verifiable" aria-label="Human-in-the-loop verifiable workflow">
+            <h2 class="verification-title">Verifiable workflow</h2>
+
+            <div class="verification-map" aria-label="Pipeline with human-verifiable intermediate artifacts">
+              <svg class="verification-links" viewBox="0 0 1290 460" preserveAspectRatio="none" aria-hidden="true">
+                <defs>
+                  <marker id="vmk" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+                    <path d="M0 0 8 4 0 8Z" fill="#5b6a70"/>
+                  </marker>
+                  <marker id="vmkO" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+                    <path d="M0 0 8 4 0 8Z" fill="#b3611c"/>
+                  </marker>
+                  <marker id="vmkB" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto-start-reverse">
+                    <path d="M0 0 8 4 0 8Z" fill="#2f7880"/>
+                  </marker>
+                </defs>
+
+                <!-- Shot 7 final pipeline: coordinates and paths intentionally unchanged. -->
+                <path class="vl vl-core" d="M104 230 H119" marker-end="url(#vmk)"/>
+                <path class="vl vl-core" d="M274 230 H289" marker-end="url(#vmk)"/>
+                <path class="vl vl-core vl-accent" d="M386 224 L408 110" marker-end="url(#vmkO)"/>
+                <path class="vl vl-core vl-accent" d="M386 236 L428 350" marker-end="url(#vmkO)"/>
+                <path class="vl vl-core vl-accent" d="M616 104 H636" marker-end="url(#vmkO)"/>
+                <path class="vl vl-core vl-accent" d="M596 356 H636" marker-end="url(#vmkO)"/>
+                <path class="vl vl-core vl-accent" d="M824 104 L834 225" marker-end="url(#vmkO)"/>
+                <path class="vl vl-core vl-accent" d="M824 356 L834 235" marker-end="url(#vmkO)"/>
+                <path class="vl vl-core vl-accent" d="M1111 224 L1131 110" marker-end="url(#vmkO)"/>
+                <path class="vl vl-core vl-accent" d="M1111 236 L1131 350" marker-end="url(#vmkO)"/>
+
+                <!-- Review overlays only; the underlying Shot 7 diagram is untouched. -->
+                <path class="vl vl-review" d="M339 202 V59" marker-end="url(#vmkB)"/>
+                <path class="vl vl-review" d="M514 82 V59" marker-end="url(#vmkB)"/>
+                <path class="vl vl-review" d="M732 82 V59" marker-end="url(#vmkB)"/>
+                <path class="vl vl-review" d="M514 378 V401" marker-end="url(#vmkB)"/>
+                <path class="vl vl-review" d="M732 378 V401" marker-end="url(#vmkB)"/>
+
+                <path class="vl vl-rag" d="M980 70 V152" marker-end="url(#vmkB)"/>
+                <path class="vl vl-interactive" d="M980 308 V390" marker-start="url(#vmkB)" marker-end="url(#vmkB)"/>
+              </svg>
+
+              <span class="verification-node verification-node-2l verification-core" style="--x:59px;--y:230px">Design<br/>Input</span>
+              <span class="verification-node verification-node-2l verification-core pipeline-owned" style="--x:198px;--y:230px">Drawing<br/>Understanding</span>
+              <span class="verification-node verification-node-2l verification-node-fork verification-core pipeline-owned" style="--x:339px;--y:230px">Vector<br/>Redraw</span>
+
+              <span class="verification-node verification-core pipeline-owned" style="--x:514px;--y:104px">Geometry Correction</span>
+              <span class="verification-node verification-core pipeline-owned" style="--x:732px;--y:104px">3D Reconstruction</span>
+
+              <span class="verification-node verification-core pipeline-owned" style="--x:514px;--y:356px">Thermal Zoning</span>
+              <span class="verification-node verification-core pipeline-owned" style="--x:732px;--y:356px">Zone Construction</span>
+
+              <div class="verification-agents verification-core pipeline-owned" style="--x:980px;--y:230px">
+                <span class="verification-agents-head">9 Domain Agents</span>
+                <span class="verification-agents-grid">
+                  <i>Schedules</i><i>Materials</i><i>Constructions</i>
+                  <i>Zones</i><i>Surfaces</i><i>Fenestration</i>
+                  <i>Lights</i><i>People</i><i>HVAC</i>
+                </span>
+              </div>
+
+              <span class="verification-output verification-core" style="--x:1199px;--y:104px">BIM Model</span>
+              <span class="verification-output verification-core" style="--x:1199px;--y:356px">BEM Model</span>
+
+              <article class="verification-artifact verification-review" style="--x:339px;--y:20px">
+                <span class="verification-artifact-user" aria-hidden="true">
+                  <svg viewBox="0 0 32 32"><circle cx="16" cy="10" r="6"></circle><path d="M6 29c1.2-7 5-10.5 10-10.5S24.8 22 26 29"></path></svg>
+                </span>
+                <span class="verification-artifact-figure"><img src="assets/plan-redraw.svg?v=1" alt=""></span>
+                <strong>Vector SVG</strong>
+              </article>
+              <article class="verification-artifact verification-review" style="--x:514px;--y:20px">
+                <span class="verification-artifact-user" aria-hidden="true">
+                  <svg viewBox="0 0 32 32"><circle cx="16" cy="10" r="6"></circle><path d="M6 29c1.2-7 5-10.5 10-10.5S24.8 22 26 29"></path></svg>
+                </span>
+                <span class="verification-artifact-figure"><img src="assets/plan-corrected.svg?v=4" alt=""></span>
+                <strong>Corrected SVG</strong>
+              </article>
+              <article class="verification-artifact verification-review" style="--x:732px;--y:20px">
+                <span class="verification-artifact-user" aria-hidden="true">
+                  <svg viewBox="0 0 32 32"><circle cx="16" cy="10" r="6"></circle><path d="M6 29c1.2-7 5-10.5 10-10.5S24.8 22 26 29"></path></svg>
+                </span>
+                <span class="verification-artifact-figure"><img src="assets/plan-3d-reconstruction.svg?v=3" alt=""></span>
+                <strong>3D Geometry View</strong>
+              </article>
+              <article class="verification-artifact verification-review" style="--x:514px;--y:440px">
+                <span class="verification-artifact-user" aria-hidden="true">
+                  <svg viewBox="0 0 32 32"><circle cx="16" cy="10" r="6"></circle><path d="M6 29c1.2-7 5-10.5 10-10.5S24.8 22 26 29"></path></svg>
+                </span>
+                <span class="verification-artifact-figure"><img src="assets/plan-thermal-zoning.svg?v=1" alt=""></span>
+                <strong>Thermal Zoning Map</strong>
+              </article>
+              <article class="verification-artifact verification-review" style="--x:732px;--y:440px">
+                <span class="verification-artifact-user" aria-hidden="true">
+                  <svg viewBox="0 0 32 32"><circle cx="16" cy="10" r="6"></circle><path d="M6 29c1.2-7 5-10.5 10-10.5S24.8 22 26 29"></path></svg>
+                </span>
+                <span class="verification-artifact-figure"><img src="assets/plan-zone-construction.svg?v=1" alt=""></span>
+                <strong>3D Thermal Zones</strong>
+              </article>
+
+              <div class="verification-rag verification-downstream" style="--x:980px;--y:42px">
+                <strong>Domain Knowledge Bases</strong>
+                <span>RAG</span>
+              </div>
+
+              <div class="verification-user verification-downstream" style="--x:980px;--y:425px" aria-label="User review and confirmation">
+                <svg class="verification-user-icon" viewBox="0 0 32 32" aria-hidden="true">
+                  <circle cx="16" cy="10" r="6"></circle>
+                  <path d="M6 29c1.2-7 5-10.5 10-10.5S24.8 22 26 29"></path>
+                </svg>
+              </div>
+            </div>
+          </section>
+          </div>
+        </div>
+
+        <nav class="shot-nav final-nav" aria-label="Final-frame shot directory">
+          <button
+            class="shot-nav-button final-shot-button is-active"
+            type="button"
+            data-shot-final-target="0"
+            aria-current="step"
+          >
+            <span class="shot-number">Shot 1</span>
+            Opening
+          </button>
+          <button class="shot-nav-button final-shot-button" type="button" data-shot-final-target="1">
+            <span class="shot-number">Shot 2</span>
+            Traditional Workflow
+          </button>
+          <button class="shot-nav-button final-shot-button" type="button" data-shot-final-target="2">
+            <span class="shot-number">Shot 3</span>
+            Building Simulation Copilot
+          </button>
+          <button class="shot-nav-button final-shot-button" type="button" data-shot-final-target="3">
+            <span class="shot-number">Shot 4</span>
+            EnergyPlus Agent
+          </button>
+          <button class="shot-nav-button final-shot-button" type="button" data-shot-final-target="4">
+            <span class="shot-number">Shot 5</span>
+            My Pipeline
+          </button>
+          <button class="shot-nav-button final-shot-button" type="button" data-shot-final-target="5">
+            <span class="shot-number">Shot 6</span>
+            Multimodal Design input
+          </button>
+          <button class="shot-nav-button final-shot-button" type="button" data-shot-final-target="6">
+            <span class="shot-number">Shot 7</span>
+            Overall Pipeline
+          </button>
+          <button class="shot-nav-button final-shot-button" type="button" data-shot-final-target="7">
+            <span class="shot-number">Shot 8</span>
+            Path 1: Drawing to BIM
+          </button>
+          <button class="shot-nav-button final-shot-button" type="button" data-shot-final-target="8">
+            <span class="shot-number">Shot 9</span>
+            Path 2: Drawing to BEM
+          </button>
+          <button class="shot-nav-button final-shot-button" type="button" data-shot-final-target="9">
+            <span class="shot-number">Shot 10</span>
+            Verifiable workflow
+          </button>
+        </nav>
+      </main>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.13/dist/gsap.min.js"></script>
+    <script src="script.js?v=60"></script>
+  </body>
+</html>

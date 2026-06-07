@@ -1,0 +1,388 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2048 1498" role="img" aria-label="BEM zone construction: axonometric thermal zone footprints extrude into stacked zone volumes">
+  <defs>
+    <style>
+      .ground { fill: #eef1f2; stroke: #9aa6ab; stroke-width: 1.4; stroke-linejoin: round; }
+      .shadow { fill: rgba(47,74,87,.10); filter: url(#blurShadow); }
+      .foot-zone { stroke: #982414; stroke-width: 1; stroke-linejoin: miter; vector-effect: non-scaling-stroke; }
+      .foot-zone.z-light { fill: rgba(232,96,74,.18); }
+      .foot-zone.z-mid   { fill: rgba(210,74,48,.17); }
+      .foot-zone.z-dark  { fill: rgba(181,58,34,.16); }
+      .iso-outline { fill: none; stroke: #7f8d93; stroke-width: 2.2; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
+      .iso-grid { fill: none; stroke: rgba(127,141,147,.55); stroke-width: 1.2; stroke-linecap: square; vector-effect: non-scaling-stroke; }
+      .face { stroke: #982414; stroke-width: 1.15; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
+      .z-light .top { fill: rgba(232,96,74,.78); }
+      .z-light .front { fill: rgba(210,74,48,.76); }
+      .z-light .right, .z-light .left { fill: rgba(181,58,34,.74); }
+      .z-mid .top { fill: rgba(222,82,56,.78); }
+      .z-mid .front { fill: rgba(196,61,39,.76); }
+      .z-mid .right, .z-mid .left { fill: rgba(162,45,27,.74); }
+      .z-dark .top { fill: rgba(196,66,43,.78); }
+      .z-dark .front { fill: rgba(168,48,29,.76); }
+      .z-dark .right, .z-dark .left { fill: rgba(132,34,20,.74); }
+      .floor-seam { fill: none; stroke: rgba(120,32,20,.46); stroke-width: .9; vector-effect: non-scaling-stroke; }
+    </style>
+    <filter id="blurShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="10"/>
+    </filter>
+  </defs>
+
+  <g id="zone-construction-iso">
+    <polygon class="shadow" points="990,467.6 1921.2,894.4 1282.8,1187 351.6,760.2"/>
+    <polygon class="ground" points="990,467.6 1921.2,894.4 1282.8,1187 351.6,760.2"/>
+
+    <g id="zone-footprints">
+      <polygon class="foot-zone z-dark" points="511.0,687.2 675.1,762.4 515.8,835.4 351.6,760.2"/>
+      <polygon class="foot-zone z-mid" points="787.0,560.7 1032.7,673.3 760.6,798.0 514.8,685.4"/>
+      <polygon class="foot-zone z-light" points="990.0,467.6 1372.6,642.9 1177.2,732.5 794.6,557.1"/>
+      <polygon class="foot-zone z-mid" points="1380.2,646.5 1576.6,736.4 1381.2,826.0 1184.9,736.0"/>
+      <polygon class="foot-zone z-light" points="1040.4,676.8 1491.1,883.4 1219.0,1008.1 768.2,801.6"/>
+      <polygon class="foot-zone z-dark" points="1584.2,740.0 1921.2,894.4 1725.8,983.9 1388.9,829.5"/>
+      <polygon class="foot-zone z-dark" points="1498.8,886.9 1718.2,987.5 1446.0,1112.2 1226.6,1011.7"/>
+      <polygon class="foot-zone z-mid" points="682.8,765.9 1442.2,1114.0 1282.8,1187.0 523.4,839.0"/>
+    </g>
+
+    <g id="iso-reference-lines">
+      <path class="iso-grid" d="M794.6 557.1L1177.2 732.5 M1184.9 736L1381.2 826 M1388.9 829.5L1725.8 983.9 M514.8 685.4L760.6 798 M768.2 801.6L1219 1008.1 M1226.6 1011.7L1446 1112.2 M351.6 760.2L515.8 835.4 M523.4 839L1282.8 1187"/>
+      <polygon class="iso-outline" points="990,467.6 1921.2,894.4 1282.8,1187 351.6,760.2"/>
+    </g>
+
+    <g id="zone-blocks">
+      <g class="zone-block z-dark z8-l1">
+        <polygon class="face left" points="511.0,687.2 351.6,760.2 351.6,760.2 511.0,687.2" opacity="0">
+          <animate attributeName="points" begin="0.42s" dur=".72s" values="511.0,687.2 351.6,760.2 351.6,760.2 511.0,687.2;511.0,547.2 351.6,620.2 351.6,760.2 511.0,687.2" fill="freeze"/>
+          <animate attributeName="opacity" begin="0.42s" dur=".16s" from="0" to="1" fill="freeze"/>
+        </polygon>
+        <polygon class="face right" points="675.1,762.4 515.8,835.4 515.8,835.4 675.1,762.4" opacity="0">
+          <animate attributeName="points" begin="0.42s" dur=".72s" values="675.1,762.4 515.8,835.4 515.8,835.4 675.1,762.4;675.1,622.4 515.8,695.4 515.8,835.4 675.1,762.4" fill="freeze"/>
+          <animate attributeName="opacity" begin="0.42s" dur=".16s" from="0" to="1" fill="freeze"/>
+        </polygon>
+        <polygon class="face front" points="351.6,760.2 515.8,835.4 515.8,835.4 351.6,760.2" opacity="0">
+          <animate attributeName="points" begin="0.42s" dur=".72s" values="351.6,760.2 515.8,835.4 515.8,835.4 351.6,760.2;351.6,620.2 515.8,695.4 515.8,835.4 351.6,760.2" fill="freeze"/>
+          <animate attributeName="opacity" begin="0.42s" dur=".16s" from="0" to="1" fill="freeze"/>
+        </polygon>
+        <polygon class="face top" points="511.0,687.2 675.1,762.4 515.8,835.4 351.6,760.2" opacity="0">
+          <animate attributeName="points" begin="0.42s" dur=".72s" values="511.0,687.2 675.1,762.4 515.8,835.4 351.6,760.2;511.0,547.2 675.1,622.4 515.8,695.4 351.6,620.2" fill="freeze"/>
+          <animate attributeName="opacity" begin="0.42s" dur=".16s" from="0" to="1" fill="freeze"/>
+        </polygon>
+        <polyline class="floor-seam" points="511.0,687.2 675.1,762.4 515.8,835.4 351.6,760.2 511.0,687.2" opacity="0">
+          <animate attributeName="opacity" begin="0.88s" dur=".16s" from="0" to="1" fill="freeze"/>
+        </polyline>
+      </g>
+      <g class="zone-block z-mid z4-l1">
+        <polygon class="face left" points="787.0,560.7 514.8,685.4 514.8,685.4 787.0,560.7" opacity="0">
+          <animate attributeName="points" begin="0.51s" dur=".72s" values="787.0,560.7 514.8,685.4 514.8,685.4 787.0,560.7;787.0,420.7 514.8,545.4 514.8,685.4 787.0,560.7" fill="freeze"/>
+          <animate attributeName="opacity" begin="0.51s" dur=".16s" from="0" to="1" fill="freeze"/>
+        </polygon>
+        <polygon class="face right" points="1032.7,673.3 760.6,798.0 760.6,798.0 1032.7,673.3" opacity="0">
+          <animate attributeName="points" begin="0.51s" dur=".72s" values="1032.7,673.3 760.6,798.0 760.6,798.0 1032.7,673.3;1032.7,533.3 760.6,658.0 760.6,798.0 1032.7,673.3" fill="freeze"/>
+          <animate attributeName="opacity" begin="0.51s" dur=".16s" from="0" to="1" fill="freeze"/>
+        </polygon>
+        <polygon class="face front" points="514.8,685.4 760.6,798.0 760.6,798.0 514.8,685.4" opacity="0">
+          <animate attributeName="points" begin="0.51s" dur=".72s" values="514.8,685.4 760.6,798.0 760.6,798.0 514.8,685.4;514.8,545.4 760.6,658.0 760.6,798.0 514.8,685.4" fill="freeze"/>
+          <animate attributeName="opacity" begin="0.51s" dur=".16s" from="0" to="1" fill="freeze"/>
+        </polygon>
+        <polygon class="face top" points="787.0,560.7 1032.7,673.3 760.6,798.0 514.8,685.4" opacity="0">
+          <animate attributeName="points" begin="0.51s" dur=".72s" values="787.0,560.7 1032.7,673.3 760.6,798.0 514.8,685.4;787.0,420.7 1032.7,533.3 760.6,658.0 514.8,545.4" fill="freeze"/>
+          <animate attributeName="opacity" begin="0.51s" dur=".16s" from="0" to="1" fill="freeze"/>
+        </polygon>
+        <polyline class="floor-seam" points="787.0,560.7 1032.7,673.3 760.6,798.0 514.8,685.4 787.0,560.7" opacity="0">
+          <animate attributeName="opacity" begin="0.97s" dur=".16s" from="0" to="1" fill="freeze"/>
+        </polyline>
+      </g>
+      <g class="zone-block z-mid z4-l2">
+        <polygon class="face left" points="787.0,420.7 514.8,545.4 514.8,545.4 787.0,420.7" opacity="0">
+          <animate attributeName="points" begin="0.75s" dur=".72s" values="787.0,420.7 514.8,545.4 514.8,545.4 787.0,420.7;787.0,280.7 514.8,405.4 514.8,545.4 787.0,420.7" fill="freeze"/>
+          <animate attributeName="opacity" begin="0.75s" dur=".16s" from="0" to="1" fill="freeze"/>
+        </polygon>
+        <polygon class="face right" points="1032.7,533.3 760.6,658.0 760.6,658.0 1032.7,533.3" opacity="0">
+          <animate attributeName="points" begin="0.75s" dur=".72s" values="1032.7,533.3 760.6,658.0 760.6,658.0 1032.7,533.3;1032.7,393.3 760.6,518.0 760.6,658.0 1032.7,533.3" fill="freeze"/>
+          <animate attributeName="opacity" begin="0.75s" dur=".16s" from="0" to="1" fill="freeze"/>
+        </polygon>
+        <polygon class="face front" points="514.8,545.4 760.6,658.0 760.6,658.0 514.8,545.4" opacity="0">
+          <animate attributeName="points" begin="0.75s" dur=".72s" values="514.8,545.4 760.6,658.0 760.6,658.0 514.8,545.4;514.8,405.4 760.6,518.0 760.6,658.0 514.8,545.4" fill="freeze"/>
+          <animate attributeName="opacity" begin="0.75s" dur=".16s" from="0" to="1" fill="freeze"/>
+        </polygon>
+        <polygon class="face top" points="787.0,420.7 1032.7,533.3 760.6,658.0 514.8,545.4" opacity="0">
+          <animate attributeName="points" begin="0.75s" dur=".72s" values="787.0,420.7 1032.7,533.3 760.6,658.0 514.8,545.4;787.0,280.7 1032.7,393.3 760.6,518.0 514.8,405.4" fill="freeze"/>
+          <animate attributeName="opacity" begin="0.75s" dur=".16s" from="0" to="1" fill="freeze"/>
+        </polygon>
+        <polyline class="floor-seam" points="787.0,420.7 1032.7,533.3 760.6,658.0 514.8,545.4 787.0,420.7" opacity="0">
+          <animate attributeName="opacity" begin="1.21s" dur=".16s" from="0" to="1" fill="freeze"/>
+        </polyline>
+      </g>
+      <g class="zone-block z-light z1-l1">
+        <polygon class="face left" points="990.0,467.6 794.6,557.1 794.6,557.1 990.0,467.6" opacity="0">
+          <animate attributeName="points" begin="0.60s" dur=".72s" values="990.0,467.6 794.6,557.1 794.6,557.1 990.0,467.6;990.0,327.6 794.6,417.1 794.6,557.1 990.0,467.6" fill="freeze"/>
+          <animate attributeName="opacity" begin="0.60s" dur=".16s" from="0" to="1" fill="freeze"/>
+        </polygon>
+        <polygon class="face right" points="1372.6,642.9 1177.2,732.5 1177.2,732.5 1372.6,642.9" opacity="0">
+          <animate attributeName="points" begin="0.60s" dur=".72s" values="1372.6,642.9 1177.2,732.5 1177.2,732.5 1372.6,642.9;1372.6,502.9 1177.2,592.5 1177.2,732.5 1372.6,642.9" fill="freeze"/>
+          <animate attributeName="opacity" begin="0.60s" dur=".16s" from="0" to="1" fill="freeze"/>
+        </polygon>
+        <polygon class="face front" points="794.6,557.1 1177.2,732.5 1177.2,732.5 794.6,557.1" opacity="0">
+          <animate attributeName="points" begin="0.60s" dur=".72s" values="794.6,557.1 1177.2,732.5 1177.2,732.5 794.6,557.1;794.6,417.1 1177.2,592.5 1177.2,732.5 794.6,557.1" fill="freeze"/>
+          <animate attributeName="opacity" begin="0.60s" dur=".16s" from="0" to="1" fill="freeze"/>
+        </polygon>
+        <polygon class="face top" points="990.0,467.6 1372.6,642.9 1177.2,732.5 794.6,557.1" opacity="0">
+          <animate attributeName="points" begin="0.60s" dur=".72s" values="990.0,467.6 1372.6,642.9 1177.2,732.5 794.6,557.1;990.0,327.6 1372.6,502.9 1177.2,592.5 794.6,417.1" fill="freeze"/>
+          <animate attributeName="opacity" begin="0.60s" dur=".16s" from="0" to="1" fill="freeze"/>
+        </polygon>
+        <polyline class="floor-seam" points="990.0,467.6 1372.6,642.9 1177.2,732.5 794.6,557.1 990.0,467.6" opacity="0">
+          <animate attributeName="opacity" begin="1.06s" dur=".16s" from="0" to="1" fill="freeze"/>
+        </polyline>
+      </g>
+      <g class="zone-block z-light z1-l2">
+        <polygon class="face left" points="990.0,327.6 794.6,417.1 794.6,417.1 990.0,327.6" opacity="0">
+          <animate attributeName="points" begin="0.84s" dur=".72s" values="990.0,327.6 794.6,417.1 794.6,417.1 990.0,327.6;990.0,187.6 794.6,277.1 794.6,417.1 990.0,327.6" fill="freeze"/>
+          <animate attributeName="opacity" begin="0.84s" dur=".16s" from="0" to="1" fill="freeze"/>
+        </polygon>
+        <polygon class="face right" points="1372.6,502.9 1177.2,592.5 1177.2,592.5 1372.6,502.9" opacity="0">
+          <animate attributeName="points" begin="0.84s" dur=".72s" values="1372.6,502.9 1177.2,592.5 1177.2,592.5 1372.6,502.9;1372.6,362.9 1177.2,452.5 1177.2,592.5 1372.6,502.9" fill="freeze"/>
+          <animate attributeName="opacity" begin="0.84s" dur=".16s" from="0" to="1" fill="freeze"/>
+        </polygon>
+        <polygon class="face front" points="794.6,417.1 1177.2,592.5 1177.2,592.5 794.6,417.1" opacity="0">
+          <animate attributeName="points" begin="0.84s" dur=".72s" values="794.6,417.1 1177.2,592.5 1177.2,592.5 794.6,417.1;794.6,277.1 1177.2,452.5 1177.2,592.5 794.6,417.1" fill="freeze"/>
+          <animate attributeName="opacity" begin="0.84s" dur=".16s" from="0" to="1" fill="freeze"/>
+        </polygon>
+        <polygon class="face top" points="990.0,327.6 1372.6,502.9 1177.2,592.5 794.6,417.1" opacity="0">
+          <animate attributeName="points" begin="0.84s" dur=".72s" values="990.0,327.6 1372.6,502.9 1177.2,592.5 794.6,417.1;990.0,187.6 1372.6,362.9 1177.2,452.5 794.6,277.1" fill="freeze"/>
+          <animate attributeName="opacity" begin="0.84s" dur=".16s" from="0" to="1" fill="freeze"/>
+        </polygon>
+        <polyline class="floor-seam" points="990.0,327.6 1372.6,502.9 1177.2,592.5 794.6,417.1 990.0,327.6" opacity="0">
+          <animate attributeName="opacity" begin="1.30s" dur=".16s" from="0" to="1" fill="freeze"/>
+        </polyline>
+      </g>
+      <g class="zone-block z-mid z2-l1">
+        <polygon class="face left" points="1380.2,646.5 1184.9,736.0 1184.9,736.0 1380.2,646.5" opacity="0">
+          <animate attributeName="points" begin="0.69s" dur=".72s" values="1380.2,646.5 1184.9,736.0 1184.9,736.0 1380.2,646.5;1380.2,506.5 1184.9,596.0 1184.9,736.0 1380.2,646.5" fill="freeze"/>
+          <animate attributeName="opacity" begin="0.69s" dur=".16s" from="0" to="1" fill="freeze"/>
+        </polygon>
+        <polygon class="face right" points="1576.6,736.4 1381.2,826.0 1381.2,826.0 1576.6,736.4" opacity="0">
+          <animate attributeName="points" begin="0.69s" dur=".72s" values="1576.6,736.4 1381.2,826.0 1381.2,826.0 1576.6,736.4;1576.6,596.4 1381.2,686.0 1381.2,826.0 1576.6,736.4" fill="freeze"/>
+          <animate attributeName="opacity" begin="0.69s" dur=".16s" from="0" to="1" fill="freeze"/>
+        </polygon>
+        <polygon class="face front" points="1184.9,736.0 1381.2,826.0 1381.2,826.0 1184.9,736.0" opacity="0">
+          <animate attributeName="points" begin="0.69s" dur=".72s" values="1184.9,736.0 1381.2,826.0 1381.2,826.0 1184.9,736.0;1184.9,596.0 1381.2,686.0 1381.2,826.0 1184.9,736.0" fill="freeze"/>
+          <animate attributeName="opacity" begin="0.69s" dur=".16s" from="0" to="1" fill="freeze"/>
+        </polygon>
+        <polygon class="face top" points="1380.2,646.5 1576.6,736.4 1381.2,826.0 1184.9,736.0" opacity="0">
+          <animate attributeName="points" begin="0.69s" dur=".72s" values="1380.2,646.5 1576.6,736.4 1381.2,826.0 1184.9,736.0;1380.2,506.5 1576.6,596.4 1381.2,686.0 1184.9,596.0" fill="freeze"/>
+          <animate attributeName="opacity" begin="0.69s" dur=".16s" from="0" to="1" fill="freeze"/>
+        </polygon>
+        <polyline class="floor-seam" points="1380.2,646.5 1576.6,736.4 1381.2,826.0 1184.9,736.0 1380.2,646.5" opacity="0">
+          <animate attributeName="opacity" begin="1.15s" dur=".16s" from="0" to="1" fill="freeze"/>
+        </polyline>
+      </g>
+      <g class="zone-block z-light z5-l1">
+        <polygon class="face left" points="1040.4,676.8 768.2,801.6 768.2,801.6 1040.4,676.8" opacity="0">
+          <animate attributeName="points" begin="0.78s" dur=".72s" values="1040.4,676.8 768.2,801.6 768.2,801.6 1040.4,676.8;1040.4,536.8 768.2,661.6 768.2,801.6 1040.4,676.8" fill="freeze"/>
+          <animate attributeName="opacity" begin="0.78s" dur=".16s" from="0" to="1" fill="freeze"/>
+        </polygon>
+        <polygon class="face right" points="1491.1,883.4 1219.0,1008.1 1219.0,1008.1 1491.1,883.4" opacity="0">
+          <animate attributeName="points" begin="0.78s" dur=".72s" values="1491.1,883.4 1219.0,1008.1 1219.0,1008.1 1491.1,883.4;1491.1,743.4 1219.0,868.1 1219.0,1008.1 1491.1,883.4" fill="freeze"/>
+          <animate attributeName="opacity" begin="0.78s" dur=".16s" from="0" to="1" fill="freeze"/>
+        </polygon>
+        <polygon class="face front" points="768.2,801.6 1219.0,1008.1 1219.0,1008.1 768.2,801.6" opacity="0">
+          <animate attributeName="points" begin="0.78s" dur=".72s" values="768.2,801.6 1219.0,1008.1 1219.0,1008.1 768.2,801.6;768.2,661.6 1219.0,868.1 1219.0,1008.1 768.2,801.6" fill="freeze"/>
+          <animate attributeName="opacity" begin="0.78s" dur=".16s" from="0" to="1" fill="freeze"/>
+        </polygon>
+        <polygon class="face top" points="1040.4,676.8 1491.1,883.4 1219.0,1008.1 768.2,801.6" opacity="0">
+          <animate attributeName="points" begin="0.78s" dur=".72s" values="1040.4,676.8 1491.1,883.4 1219.0,1008.1 768.2,801.6;1040.4,536.8 1491.1,743.4 1219.0,868.1 768.2,661.6" fill="freeze"/>
+          <animate attributeName="opacity" begin="0.78s" dur=".16s" from="0" to="1" fill="freeze"/>
+        </polygon>
+        <polyline class="floor-seam" points="1040.4,676.8 1491.1,883.4 1219.0,1008.1 768.2,801.6 1040.4,676.8" opacity="0">
+          <animate attributeName="opacity" begin="1.24s" dur=".16s" from="0" to="1" fill="freeze"/>
+        </polyline>
+      </g>
+      <g class="zone-block z-light z5-l2">
+        <polygon class="face left" points="1040.4,536.8 768.2,661.6 768.2,661.6 1040.4,536.8" opacity="0">
+          <animate attributeName="points" begin="1.02s" dur=".72s" values="1040.4,536.8 768.2,661.6 768.2,661.6 1040.4,536.8;1040.4,396.8 768.2,521.6 768.2,661.6 1040.4,536.8" fill="freeze"/>
+          <animate attributeName="opacity" begin="1.02s" dur=".16s" from="0" to="1" fill="freeze"/>
+        </polygon>
+        <polygon class="face right" points="1491.1,743.4 1219.0,868.1 1219.0,868.1 1491.1,743.4" opacity="0">
+          <animate attributeName="points" begin="1.02s" dur=".72s" values="1491.1,743.4 1219.0,868.1 1219.0,868.1 1491.1,743.4;1491.1,603.4 1219.0,728.1 1219.0,868.1 1491.1,743.4" fill="freeze"/>
+          <animate attributeName="opacity" begin="1.02s" dur=".16s" from="0" to="1" fill="freeze"/>
+        </polygon>
+        <polygon class="face front" points="768.2,661.6 1219.0,868.1 1219.0,868.1 768.2,661.6" opacity="0">
+          <animate attributeName="points" begin="1.02s" dur=".72s" values="768.2,661.6 1219.0,868.1 1219.0,868.1 768.2,661.6;768.2,521.6 1219.0,728.1 1219.0,868.1 768.2,661.6" fill="freeze"/>
+          <animate attributeName="opacity" begin="1.02s" dur=".16s" from="0" to="1" fill="freeze"/>
+        </polygon>
+        <polygon class="face top" points="1040.4,536.8 1491.1,743.4 1219.0,868.1 768.2,661.6" opacity="0">
+          <animate attributeName="points" begin="1.02s" dur=".72s" values="1040.4,536.8 1491.1,743.4 1219.0,868.1 768.2,661.6;1040.4,396.8 1491.1,603.4 1219.0,728.1 768.2,521.6" fill="freeze"/>
+          <animate attributeName="opacity" begin="1.02s" dur=".16s" from="0" to="1" fill="freeze"/>
+        </polygon>
+        <polyline class="floor-seam" points="1040.4,536.8 1491.1,743.4 1219.0,868.1 768.2,661.6 1040.4,536.8" opacity="0">
+          <animate attributeName="opacity" begin="1.48s" dur=".16s" from="0" to="1" fill="freeze"/>
+        </polyline>
+      </g>
+      <g class="zone-block z-light z5-l3">
+        <polygon class="face left" points="1040.4,396.8 768.2,521.6 768.2,521.6 1040.4,396.8" opacity="0">
+          <animate attributeName="points" begin="1.26s" dur=".72s" values="1040.4,396.8 768.2,521.6 768.2,521.6 1040.4,396.8;1040.4,231.8 768.2,356.6 768.2,521.6 1040.4,396.8" fill="freeze"/>
+          <animate attributeName="opacity" begin="1.26s" dur=".16s" from="0" to="1" fill="freeze"/>
+        </polygon>
+        <polygon class="face right" points="1491.1,603.4 1219.0,728.1 1219.0,728.1 1491.1,603.4" opacity="0">
+          <animate attributeName="points" begin="1.26s" dur=".72s" values="1491.1,603.4 1219.0,728.1 1219.0,728.1 1491.1,603.4;1491.1,438.4 1219.0,563.1 1219.0,728.1 1491.1,603.4" fill="freeze"/>
+          <animate attributeName="opacity" begin="1.26s" dur=".16s" from="0" to="1" fill="freeze"/>
+        </polygon>
+        <polygon class="face front" points="768.2,521.6 1219.0,728.1 1219.0,728.1 768.2,521.6" opacity="0">
+          <animate attributeName="points" begin="1.26s" dur=".72s" values="768.2,521.6 1219.0,728.1 1219.0,728.1 768.2,521.6;768.2,356.6 1219.0,563.1 1219.0,728.1 768.2,521.6" fill="freeze"/>
+          <animate attributeName="opacity" begin="1.26s" dur=".16s" from="0" to="1" fill="freeze"/>
+        </polygon>
+        <polygon class="face top" points="1040.4,396.8 1491.1,603.4 1219.0,728.1 768.2,521.6" opacity="0">
+          <animate attributeName="points" begin="1.26s" dur=".72s" values="1040.4,396.8 1491.1,603.4 1219.0,728.1 768.2,521.6;1040.4,231.8 1491.1,438.4 1219.0,563.1 768.2,356.6" fill="freeze"/>
+          <animate attributeName="opacity" begin="1.26s" dur=".16s" from="0" to="1" fill="freeze"/>
+        </polygon>
+        <polyline class="floor-seam" points="1040.4,396.8 1491.1,603.4 1219.0,728.1 768.2,521.6 1040.4,396.8" opacity="0">
+          <animate attributeName="opacity" begin="1.72s" dur=".16s" from="0" to="1" fill="freeze"/>
+        </polyline>
+      </g>
+      <g class="zone-block z-dark z3-l1">
+        <polygon class="face left" points="1584.2,740.0 1388.9,829.5 1388.9,829.5 1584.2,740.0" opacity="0">
+          <animate attributeName="points" begin="0.87s" dur=".72s" values="1584.2,740.0 1388.9,829.5 1388.9,829.5 1584.2,740.0;1584.2,600.0 1388.9,689.5 1388.9,829.5 1584.2,740.0" fill="freeze"/>
+          <animate attributeName="opacity" begin="0.87s" dur=".16s" from="0" to="1" fill="freeze"/>
+        </polygon>
+        <polygon class="face right" points="1921.2,894.4 1725.8,983.9 1725.8,983.9 1921.2,894.4" opacity="0">
+          <animate attributeName="points" begin="0.87s" dur=".72s" values="1921.2,894.4 1725.8,983.9 1725.8,983.9 1921.2,894.4;1921.2,754.4 1725.8,843.9 1725.8,983.9 1921.2,894.4" fill="freeze"/>
+          <animate attributeName="opacity" begin="0.87s" dur=".16s" from="0" to="1" fill="freeze"/>
+        </polygon>
+        <polygon class="face front" points="1388.9,829.5 1725.8,983.9 1725.8,983.9 1388.9,829.5" opacity="0">
+          <animate attributeName="points" begin="0.87s" dur=".72s" values="1388.9,829.5 1725.8,983.9 1725.8,983.9 1388.9,829.5;1388.9,689.5 1725.8,843.9 1725.8,983.9 1388.9,829.5" fill="freeze"/>
+          <animate attributeName="opacity" begin="0.87s" dur=".16s" from="0" to="1" fill="freeze"/>
+        </polygon>
+        <polygon class="face top" points="1584.2,740.0 1921.2,894.4 1725.8,983.9 1388.9,829.5" opacity="0">
+          <animate attributeName="points" begin="0.87s" dur=".72s" values="1584.2,740.0 1921.2,894.4 1725.8,983.9 1388.9,829.5;1584.2,600.0 1921.2,754.4 1725.8,843.9 1388.9,689.5" fill="freeze"/>
+          <animate attributeName="opacity" begin="0.87s" dur=".16s" from="0" to="1" fill="freeze"/>
+        </polygon>
+        <polyline class="floor-seam" points="1584.2,740.0 1921.2,894.4 1725.8,983.9 1388.9,829.5 1584.2,740.0" opacity="0">
+          <animate attributeName="opacity" begin="1.33s" dur=".16s" from="0" to="1" fill="freeze"/>
+        </polyline>
+      </g>
+      <g class="zone-block z-dark z3-l2">
+        <polygon class="face left" points="1584.2,600.0 1388.9,689.5 1388.9,689.5 1584.2,600.0" opacity="0">
+          <animate attributeName="points" begin="1.11s" dur=".72s" values="1584.2,600.0 1388.9,689.5 1388.9,689.5 1584.2,600.0;1584.2,460.0 1388.9,549.5 1388.9,689.5 1584.2,600.0" fill="freeze"/>
+          <animate attributeName="opacity" begin="1.11s" dur=".16s" from="0" to="1" fill="freeze"/>
+        </polygon>
+        <polygon class="face right" points="1921.2,754.4 1725.8,843.9 1725.8,843.9 1921.2,754.4" opacity="0">
+          <animate attributeName="points" begin="1.11s" dur=".72s" values="1921.2,754.4 1725.8,843.9 1725.8,843.9 1921.2,754.4;1921.2,614.4 1725.8,703.9 1725.8,843.9 1921.2,754.4" fill="freeze"/>
+          <animate attributeName="opacity" begin="1.11s" dur=".16s" from="0" to="1" fill="freeze"/>
+        </polygon>
+        <polygon class="face front" points="1388.9,689.5 1725.8,843.9 1725.8,843.9 1388.9,689.5" opacity="0">
+          <animate attributeName="points" begin="1.11s" dur=".72s" values="1388.9,689.5 1725.8,843.9 1725.8,843.9 1388.9,689.5;1388.9,549.5 1725.8,703.9 1725.8,843.9 1388.9,689.5" fill="freeze"/>
+          <animate attributeName="opacity" begin="1.11s" dur=".16s" from="0" to="1" fill="freeze"/>
+        </polygon>
+        <polygon class="face top" points="1584.2,600.0 1921.2,754.4 1725.8,843.9 1388.9,689.5" opacity="0">
+          <animate attributeName="points" begin="1.11s" dur=".72s" values="1584.2,600.0 1921.2,754.4 1725.8,843.9 1388.9,689.5;1584.2,460.0 1921.2,614.4 1725.8,703.9 1388.9,549.5" fill="freeze"/>
+          <animate attributeName="opacity" begin="1.11s" dur=".16s" from="0" to="1" fill="freeze"/>
+        </polygon>
+        <polyline class="floor-seam" points="1584.2,600.0 1921.2,754.4 1725.8,843.9 1388.9,689.5 1584.2,600.0" opacity="0">
+          <animate attributeName="opacity" begin="1.57s" dur=".16s" from="0" to="1" fill="freeze"/>
+        </polyline>
+      </g>
+      <g class="zone-block z-dark z3-l3">
+        <polygon class="face left" points="1584.2,460.0 1388.9,549.5 1388.9,549.5 1584.2,460.0" opacity="0">
+          <animate attributeName="points" begin="1.35s" dur=".72s" values="1584.2,460.0 1388.9,549.5 1388.9,549.5 1584.2,460.0;1584.2,305.0 1388.9,394.5 1388.9,549.5 1584.2,460.0" fill="freeze"/>
+          <animate attributeName="opacity" begin="1.35s" dur=".16s" from="0" to="1" fill="freeze"/>
+        </polygon>
+        <polygon class="face right" points="1921.2,614.4 1725.8,703.9 1725.8,703.9 1921.2,614.4" opacity="0">
+          <animate attributeName="points" begin="1.35s" dur=".72s" values="1921.2,614.4 1725.8,703.9 1725.8,703.9 1921.2,614.4;1921.2,459.4 1725.8,548.9 1725.8,703.9 1921.2,614.4" fill="freeze"/>
+          <animate attributeName="opacity" begin="1.35s" dur=".16s" from="0" to="1" fill="freeze"/>
+        </polygon>
+        <polygon class="face front" points="1388.9,549.5 1725.8,703.9 1725.8,703.9 1388.9,549.5" opacity="0">
+          <animate attributeName="points" begin="1.35s" dur=".72s" values="1388.9,549.5 1725.8,703.9 1725.8,703.9 1388.9,549.5;1388.9,394.5 1725.8,548.9 1725.8,703.9 1388.9,549.5" fill="freeze"/>
+          <animate attributeName="opacity" begin="1.35s" dur=".16s" from="0" to="1" fill="freeze"/>
+        </polygon>
+        <polygon class="face top" points="1584.2,460.0 1921.2,614.4 1725.8,703.9 1388.9,549.5" opacity="0">
+          <animate attributeName="points" begin="1.35s" dur=".72s" values="1584.2,460.0 1921.2,614.4 1725.8,703.9 1388.9,549.5;1584.2,305.0 1921.2,459.4 1725.8,548.9 1388.9,394.5" fill="freeze"/>
+          <animate attributeName="opacity" begin="1.35s" dur=".16s" from="0" to="1" fill="freeze"/>
+        </polygon>
+        <polyline class="floor-seam" points="1584.2,460.0 1921.2,614.4 1725.8,703.9 1388.9,549.5 1584.2,460.0" opacity="0">
+          <animate attributeName="opacity" begin="1.81s" dur=".16s" from="0" to="1" fill="freeze"/>
+        </polyline>
+      </g>
+      <g class="zone-block z-dark z6-l1">
+        <polygon class="face left" points="1498.8,886.9 1226.6,1011.7 1226.6,1011.7 1498.8,886.9" opacity="0">
+          <animate attributeName="points" begin="0.96s" dur=".72s" values="1498.8,886.9 1226.6,1011.7 1226.6,1011.7 1498.8,886.9;1498.8,746.9 1226.6,871.7 1226.6,1011.7 1498.8,886.9" fill="freeze"/>
+          <animate attributeName="opacity" begin="0.96s" dur=".16s" from="0" to="1" fill="freeze"/>
+        </polygon>
+        <polygon class="face right" points="1718.2,987.5 1446.0,1112.2 1446.0,1112.2 1718.2,987.5" opacity="0">
+          <animate attributeName="points" begin="0.96s" dur=".72s" values="1718.2,987.5 1446.0,1112.2 1446.0,1112.2 1718.2,987.5;1718.2,847.5 1446.0,972.2 1446.0,1112.2 1718.2,987.5" fill="freeze"/>
+          <animate attributeName="opacity" begin="0.96s" dur=".16s" from="0" to="1" fill="freeze"/>
+        </polygon>
+        <polygon class="face front" points="1226.6,1011.7 1446.0,1112.2 1446.0,1112.2 1226.6,1011.7" opacity="0">
+          <animate attributeName="points" begin="0.96s" dur=".72s" values="1226.6,1011.7 1446.0,1112.2 1446.0,1112.2 1226.6,1011.7;1226.6,871.7 1446.0,972.2 1446.0,1112.2 1226.6,1011.7" fill="freeze"/>
+          <animate attributeName="opacity" begin="0.96s" dur=".16s" from="0" to="1" fill="freeze"/>
+        </polygon>
+        <polygon class="face top" points="1498.8,886.9 1718.2,987.5 1446.0,1112.2 1226.6,1011.7" opacity="0">
+          <animate attributeName="points" begin="0.96s" dur=".72s" values="1498.8,886.9 1718.2,987.5 1446.0,1112.2 1226.6,1011.7;1498.8,746.9 1718.2,847.5 1446.0,972.2 1226.6,871.7" fill="freeze"/>
+          <animate attributeName="opacity" begin="0.96s" dur=".16s" from="0" to="1" fill="freeze"/>
+        </polygon>
+        <polyline class="floor-seam" points="1498.8,886.9 1718.2,987.5 1446.0,1112.2 1226.6,1011.7 1498.8,886.9" opacity="0">
+          <animate attributeName="opacity" begin="1.42s" dur=".16s" from="0" to="1" fill="freeze"/>
+        </polyline>
+      </g>
+      <g class="zone-block z-dark z6-l2">
+        <polygon class="face left" points="1498.8,746.9 1226.6,871.7 1226.6,871.7 1498.8,746.9" opacity="0">
+          <animate attributeName="points" begin="1.20s" dur=".72s" values="1498.8,746.9 1226.6,871.7 1226.6,871.7 1498.8,746.9;1498.8,606.9 1226.6,731.7 1226.6,871.7 1498.8,746.9" fill="freeze"/>
+          <animate attributeName="opacity" begin="1.20s" dur=".16s" from="0" to="1" fill="freeze"/>
+        </polygon>
+        <polygon class="face right" points="1718.2,847.5 1446.0,972.2 1446.0,972.2 1718.2,847.5" opacity="0">
+          <animate attributeName="points" begin="1.20s" dur=".72s" values="1718.2,847.5 1446.0,972.2 1446.0,972.2 1718.2,847.5;1718.2,707.5 1446.0,832.2 1446.0,972.2 1718.2,847.5" fill="freeze"/>
+          <animate attributeName="opacity" begin="1.20s" dur=".16s" from="0" to="1" fill="freeze"/>
+        </polygon>
+        <polygon class="face front" points="1226.6,871.7 1446.0,972.2 1446.0,972.2 1226.6,871.7" opacity="0">
+          <animate attributeName="points" begin="1.20s" dur=".72s" values="1226.6,871.7 1446.0,972.2 1446.0,972.2 1226.6,871.7;1226.6,731.7 1446.0,832.2 1446.0,972.2 1226.6,871.7" fill="freeze"/>
+          <animate attributeName="opacity" begin="1.20s" dur=".16s" from="0" to="1" fill="freeze"/>
+        </polygon>
+        <polygon class="face top" points="1498.8,746.9 1718.2,847.5 1446.0,972.2 1226.6,871.7" opacity="0">
+          <animate attributeName="points" begin="1.20s" dur=".72s" values="1498.8,746.9 1718.2,847.5 1446.0,972.2 1226.6,871.7;1498.8,606.9 1718.2,707.5 1446.0,832.2 1226.6,731.7" fill="freeze"/>
+          <animate attributeName="opacity" begin="1.20s" dur=".16s" from="0" to="1" fill="freeze"/>
+        </polygon>
+        <polyline class="floor-seam" points="1498.8,746.9 1718.2,847.5 1446.0,972.2 1226.6,871.7 1498.8,746.9" opacity="0">
+          <animate attributeName="opacity" begin="1.66s" dur=".16s" from="0" to="1" fill="freeze"/>
+        </polyline>
+      </g>
+      <g class="zone-block z-mid z7-l1">
+        <polygon class="face left" points="682.8,765.9 523.4,839.0 523.4,839.0 682.8,765.9" opacity="0">
+          <animate attributeName="points" begin="1.05s" dur=".72s" values="682.8,765.9 523.4,839.0 523.4,839.0 682.8,765.9;682.8,625.9 523.4,699.0 523.4,839.0 682.8,765.9" fill="freeze"/>
+          <animate attributeName="opacity" begin="1.05s" dur=".16s" from="0" to="1" fill="freeze"/>
+        </polygon>
+        <polygon class="face right" points="1442.2,1114.0 1282.8,1187.0 1282.8,1187.0 1442.2,1114.0" opacity="0">
+          <animate attributeName="points" begin="1.05s" dur=".72s" values="1442.2,1114.0 1282.8,1187.0 1282.8,1187.0 1442.2,1114.0;1442.2,974.0 1282.8,1047.0 1282.8,1187.0 1442.2,1114.0" fill="freeze"/>
+          <animate attributeName="opacity" begin="1.05s" dur=".16s" from="0" to="1" fill="freeze"/>
+        </polygon>
+        <polygon class="face front" points="523.4,839.0 1282.8,1187.0 1282.8,1187.0 523.4,839.0" opacity="0">
+          <animate attributeName="points" begin="1.05s" dur=".72s" values="523.4,839.0 1282.8,1187.0 1282.8,1187.0 523.4,839.0;523.4,699.0 1282.8,1047.0 1282.8,1187.0 523.4,839.0" fill="freeze"/>
+          <animate attributeName="opacity" begin="1.05s" dur=".16s" from="0" to="1" fill="freeze"/>
+        </polygon>
+        <polygon class="face top" points="682.8,765.9 1442.2,1114.0 1282.8,1187.0 523.4,839.0" opacity="0">
+          <animate attributeName="points" begin="1.05s" dur=".72s" values="682.8,765.9 1442.2,1114.0 1282.8,1187.0 523.4,839.0;682.8,625.9 1442.2,974.0 1282.8,1047.0 523.4,699.0" fill="freeze"/>
+          <animate attributeName="opacity" begin="1.05s" dur=".16s" from="0" to="1" fill="freeze"/>
+        </polygon>
+        <polyline class="floor-seam" points="682.8,765.9 1442.2,1114.0 1282.8,1187.0 523.4,839.0 682.8,765.9" opacity="0">
+          <animate attributeName="opacity" begin="1.51s" dur=".16s" from="0" to="1" fill="freeze"/>
+        </polyline>
+      </g>
+      <g class="zone-block z-mid z7-l2">
+        <polygon class="face left" points="682.8,625.9 523.4,699.0 523.4,699.0 682.8,625.9" opacity="0">
+          <animate attributeName="points" begin="1.29s" dur=".72s" values="682.8,625.9 523.4,699.0 523.4,699.0 682.8,625.9;682.8,485.9 523.4,559.0 523.4,699.0 682.8,625.9" fill="freeze"/>
+          <animate attributeName="opacity" begin="1.29s" dur=".16s" from="0" to="1" fill="freeze"/>
+        </polygon>
+        <polygon class="face right" points="1442.2,974.0 1282.8,1047.0 1282.8,1047.0 1442.2,974.0" opacity="0">
+          <animate attributeName="points" begin="1.29s" dur=".72s" values="1442.2,974.0 1282.8,1047.0 1282.8,1047.0 1442.2,974.0;1442.2,834.0 1282.8,907.0 1282.8,1047.0 1442.2,974.0" fill="freeze"/>
+          <animate attributeName="opacity" begin="1.29s" dur=".16s" from="0" to="1" fill="freeze"/>
+        </polygon>
+        <polygon class="face front" points="523.4,699.0 1282.8,1047.0 1282.8,1047.0 523.4,699.0" opacity="0">
+          <animate attributeName="points" begin="1.29s" dur=".72s" values="523.4,699.0 1282.8,1047.0 1282.8,1047.0 523.4,699.0;523.4,559.0 1282.8,907.0 1282.8,1047.0 523.4,699.0" fill="freeze"/>
+          <animate attributeName="opacity" begin="1.29s" dur=".16s" from="0" to="1" fill="freeze"/>
+        </polygon>
+        <polygon class="face top" points="682.8,625.9 1442.2,974.0 1282.8,1047.0 523.4,699.0" opacity="0">
+          <animate attributeName="points" begin="1.29s" dur=".72s" values="682.8,625.9 1442.2,974.0 1282.8,1047.0 523.4,699.0;682.8,485.9 1442.2,834.0 1282.8,907.0 523.4,559.0" fill="freeze"/>
+          <animate attributeName="opacity" begin="1.29s" dur=".16s" from="0" to="1" fill="freeze"/>
+        </polygon>
+        <polyline class="floor-seam" points="682.8,625.9 1442.2,974.0 1282.8,1047.0 523.4,699.0 682.8,625.9" opacity="0">
+          <animate attributeName="opacity" begin="1.75s" dur=".16s" from="0" to="1" fill="freeze"/>
+        </polyline>
+      </g>
+    </g>
+  </g>
+</svg>
