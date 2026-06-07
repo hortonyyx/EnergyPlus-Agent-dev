@@ -5,6 +5,12 @@
 > **状态**：**设计讨论已捕获，未落地实现。** 当前主线仍是已交付的两步法（phase1 半人工 + phase2 DeepSeek + 9 下游 subagent，[architecture.md](architecture.md)）。**2026-05-29 定调：本文是与「忠实建模 leg」并行的「再拓扑 leg」——作强力支线推进，实验稳定了再切过去**（它 EP 鲁棒性最优但相对原始信息变化最大、最激进；忠实 leg 因 beyond-EP 价值独立继续）。落地时机见 §9，两腿分工见 [../capability/recognition_modeling_capability.md §8](../capability/recognition_modeling_capability.md)。
 >
 > **与其他文档关系**：[architecture.md](architecture.md) = 当前事实架构；[../capability/recognition_modeling_capability.md](../capability/recognition_modeling_capability.md) = **另一条腿（忠实建模 leg）** + 识图→建模质量主线；[../deferred/idfpy_embed.md](../deferred/idfpy_embed.md) = idfpy 切换计划；[../plan.md](../plan.md) B5-B7 = 能力升级任务。本文是再拓扑 leg 的**架构骨架**。
+>
+> **⚠️ 术语对齐（2026-06-07，与用户锁定）**：本文早期用「再拓扑」指代**含切配的整个几何内核**，口径已收窄——
+> - **再拓扑 = 仅指 zonification**（在 phase1 平面上新划热区）。
+> - **切配**（把面切成 EP 一一对应）= **独立、确定性、与两条线无关**，已摘出为 leg-agnostic 轨，**下游另有人做、不归本项目管**（技术参考 [../reference/split_pairing_kernel_reference.md](../reference/split_pairing_kernel_reference.md)）。本文 §1-§4 的「确定性几何内核 / 升起+相交+匹配+切分+配对」即切配，读时按此归位。
+> - **两条线（忠实建模 / 热区再拓扑）只在 zonification 的方式与粒度上分叉**；校正 / 几何建模 / 切配均两线共用。
+> - zonification 怎么做（算法 vs LLM vs 范式）的开放调研 = [../logs/review/request/2026-06-07_zonification_approach_request.md](../logs/review/request/2026-06-07_zonification_approach_request.md)。
 
 ---
 

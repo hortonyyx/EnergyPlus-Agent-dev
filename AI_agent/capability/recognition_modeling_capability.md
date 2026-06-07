@@ -5,6 +5,8 @@
 > 与其他文档的关系：[plan.md](../plan.md) B 段（B1.5.b / B5-B7）是任务清单；[floorplan_redraw_strategy.md](floorplan_redraw_strategy.md) 是两步法架构策略与 POC 史；[../architecture/geometry_first_zonification.md](../architecture/geometry_first_zonification.md) 是**并行的另一条腿**（再拓扑：抽象成热区积木、丢弃真实几何，EP 鲁棒性最优但变化最大）。**本文档 = 忠实建模 leg**（保留真实建筑几何的容差重生成），是**质量提升的设计与决策载体**，且有 beyond-EP 的独立产品价值（图纸→建筑模型小 Agent）。两腿并行决策见 §8。skill 的具体落地仍在 [`skills/energyplus_mcp_twostep/`](../../skills/energyplus_mcp_twostep)。
 >
 > _建档 2026-05-28。首轮内容 = sm21 三模型 phase2 诊断 + 容差重生成设计讨论（讨论已捕获，未落地实现）。_
+>
+> **⚠️ 术语对齐（2026-06-07，与用户锁定）**：**两条线（忠实建模 / 热区再拓扑）只在 zonification 的方式与粒度上分叉**——忠实 = 房间=zone（需把图纸校正到高精度）；热区再拓扑 = 平面上先划少而大的热区再建模（省校正精度）。**校正（partA）/ 几何建模 / 切配 三段两线共用**。**切配**（面切成 EP 一一对应）= **独立、确定性、与两条线无关**（下游另有人做，技术参考 [../reference/split_pairing_kernel_reference.md](../reference/split_pairing_kernel_reference.md)）。因此本文 §8 早期把"A 类水密装配"当作两腿差异点的框架**已被 §8 表下的更正注修正**：水密=切配，对两腿是同一个确定性算法，不是差异点。zonification 实现的开放调研 = [../logs/review/request/2026-06-07_zonification_approach_request.md](../logs/review/request/2026-06-07_zonification_approach_request.md)。
 
 ---
 
@@ -146,5 +148,7 @@ phase1 在 1f 把同一道隔墙估成 **4.90/10.10**、2f 估成 **4.95/10.05**
 | 崩溃安全网 | **保留**（错几何仍可能 EP 段错 = 有用信号） | **撤除**（任何剖分都水密必通 → 错而不崩，B 类成唯一守门人） |
 | 相对原始信息变化 | 小（忠实） | 大（激进） |
 
+> **更正注（2026-06-07，术语锁定后）**：上表「A 类（水密装配）」一行**已不成立作差异点**。按 2026-06-07 约定，水密装配 = **切配**（面切成 EP 一一对应）= **确定性算法、对两腿是同一个**（两腿产出的 zone 体块粒度不同，但都喂同一个切配），下游另有人做、不归本项目管。因此两腿的真正差异**只在 zonification 的方式与粒度**（真实房间=zone vs 平面先划少而大的热区）+ 随之而来的**校正精度需求**（忠实需高、再拓扑省）。「真实建筑几何 保留/丢弃」「相对原始信息变化 小/大」两行仍成立；「崩溃安全网」一行的口径也随切配统一为确定性而变（两腿都靠确定性切配水密通过，崩溃安全网论点需重审，待 partA 讨论时一并处理）。
+
 ### 8.2 共享基础设施
-两 leg 共用：phase1 忠实感知（笔画+尺寸链+置信度双通道）、两步法误差预算分离、下游 9 subagent、InterZone 门。差异只在 **phase2 这一段怎么从感知到几何**——忠实 leg 是"容差重生成保留真墙"，再拓扑 leg 是"剖分+升起成积木"。
+两 leg 共用：phase1 忠实感知（笔画+尺寸链+置信度双通道）、两步法误差预算分离、下游 9 subagent、InterZone 门、**校正(partA)、几何建模、切配**。差异只在 **zonification 这一段怎么从平面定出 zone**——忠实 leg 是"房间=zone 保留真墙"，热区再拓扑 leg 是"平面先划少而大的热区"。

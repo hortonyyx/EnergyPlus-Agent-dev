@@ -357,6 +357,8 @@
 > - **再拓扑 leg**（[architecture/geometry_first_zonification.md](architecture/geometry_first_zonification.md)）：切分/配对下沉为「平面再拓扑（热区积木）+ 确定性几何内核」，覆盖升为构造不变量；与 idfpy 同期做最省力。**作强力支线**实验，稳定再切。
 >
 > B5 case 可由任一腿驱动；下面的 prompt-扩展任务属忠实 leg 渐进路径。
+>
+> **术语对齐（2026-06-07）**：上文「再拓扑 leg ... 切分/配对下沉」口径已更新——**两条线只在 zonification（怎么定 zone）分叉**（忠实=房间为zone / 热区再拓扑=平面先划热区）；**切配（面切成 EP 一一对应）= 独立确定性算法、与两条线无关、下游另有人做**（技术参考 [reference/split_pairing_kernel_reference.md](reference/split_pairing_kernel_reference.md)）。覆盖洞属切配/几何侧，不是腿的差异。详见 [architecture/geometry_first_zonification.md](architecture/geometry_first_zonification.md) 顶 banner。
 
 **任务（边做边细化）**：
 - [ ] 在 `test_data/SmallOffice/` 加 1-2 个 L 形 case（含图纸 + testdata_prompt.json + GT）
