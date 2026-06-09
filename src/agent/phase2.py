@@ -579,24 +579,35 @@ def run_phase2(
     assembly stitches them and runs a contract check. Falls back to the legacy
     whole-output phase2b only on a hard kernel build error.
 
-    When `out_dir` is given, artifacts are filed by stage:
-      out_dir/partA/   phase2a_geometry.json (pre-snap) + phase2a_geometry_snapped.json
-                       (post core) + corrections.json + building_geometry.json +
-                       kernel_gate_report.json + geometry_specs.md
-      out_dir/partB/   mep_output.json + intake_output.json (final) + mep raw/thinking
+    When `out_dir` is given, artifacts are filed into stage-numbered subdirs that
+    mirror the 0–5 pipeline:
+      out_dir/1_correction/    phase2a_geometry.json (pre-snap) +
+                               phase2a_geometry_snapped.json (post core) +
+                               corrections.json + phase2a raw/thinking
+      out_dir/2_modelling/     building_geometry.json + kernel_gate_report.json
+      out_dir/3_split_pairing/ geometry_specs.md (serialized cut+paired specs)
+      out_dir/4_mep/           mep_output.json + mep raw/thinking
+      out_dir/5_intakeoutput/  intake_output.json (final) + contract_issues.json
     Signature unchanged so intake_node / CLI callers do not change. `feedback`
     is routed to both phase 2a (geometry) and 4_MEP (physics) repair.
     """
     ensure_schema_initialized()
-    partA = (out_dir / "partA") if out_dir is not None else None
-    partB = (out_dir / "partB") if out_dir is not None else None
-    if partA is not None:
-        partA.mkdir(parents=True, exist_ok=True)
-    if partB is not None:
-        partB.mkdir(parents=True, exist_ok=True)
+
+    def _stage(name: str) -> Path | None:
+        if out_dir is None:
+            return None
+        d = out_dir / name
+        d.mkdir(parents=True, exist_ok=True)
+        return d
+
+    s1 = _stage("1_correction")
+    s2 = _stage("2_modelling")
+    s3 = _stage("3_split_pairing")
+    s4 = _stage("4_mep")
+    s5 = _stage("5_intakeoutput")
 
     logger.info("phase2a: correction from {}", vector_dir)
-    geom = run_phase2a(vector_dir, testdata_text, out_dir=partA, feedback=feedback)
+    geom = run_phase2a(vector_dir, testdata_text, out_dir=s1, feedback=feedback)
 
     n_corr_before = len(geom.corrections)
     geom = apply_deterministic_core(geom)
@@ -605,11 +616,11 @@ def run_phase2(
         len(geom.corrections) - n_corr_before,
         len(geom.unsupported),
     )
-    if partA is not None:
-        (partA / "phase2a_geometry_snapped.json").write_text(
+    if s1 is not None:
+        (s1 / "phase2a_geometry_snapped.json").write_text(
             geom.model_dump_json(indent=2), encoding="utf-8"
         )
-        (partA / "corrections.json").write_text(
+        (s1 / "corrections.json").write_text(
             json.dumps(
                 {
                     "corrections": geom.corrections,
@@ -624,9 +635,9 @@ def run_phase2(
 
     # Deterministic geometry kernel (2_modelling -> 3_split_pairing). Under fork
     # (a) this geometry is authoritative; we serialize it into the geometry specs.
-    bg, kernel_issues = materialize_kernel_geometry(geom, partA)
+    bg, kernel_issues = materialize_kernel_geometry(geom, s2)
     if kernel_issues:
-        hint = "" if partA is None else "; see partA/kernel_gate_report.json"
+        hint = "" if s2 is None else "; see 2_modelling/kernel_gate_report.json"
         logger.warning(
             "phase2 kernel: {} InterZone gate issue(s) on the deterministic build "
             "(advisory — the downstream gate re-checks the assembled IDF{})",
@@ -638,17 +649,17 @@ def run_phase2(
         # Hard kernel error: fall back to the legacy whole-output phase2b so the
         # run still produces an IntakeOutput (one-line rollback path).
         logger.warning("phase2: kernel build failed; falling back to legacy phase2b")
-        return run_phase2b(geom, testdata_text, out_dir=partB, feedback=feedback)
+        return run_phase2b(geom, testdata_text, out_dir=s5, feedback=feedback)
 
-    # 5_intakeoutput (geometry half): serialize kernel geometry -> specs text.
+    # 3_split_pairing (serialization): kernel geometry -> specs text.
     from src.agent.geometry.specs import serialize_geometry
     from src.agent.intakeoutput import assemble_intake_output, validate_contract
 
     zone_specs, surface_specs, fenestration_specs, used_constructions = (
         serialize_geometry(bg)
     )
-    if partA is not None:
-        (partA / "geometry_specs.md").write_text(
+    if s3 is not None:
+        (s3 / "geometry_specs.md").write_text(
             f"# zone_specs\n\n{zone_specs}\n\n# surface_specs\n\n{surface_specs}\n\n"
             f"# fenestration_specs\n\n{fenestration_specs}\n",
             encoding="utf-8",
@@ -662,7 +673,7 @@ def run_phase2(
         len(used_constructions),
     )
     mep = run_mep(
-        zone_specs, used_constructions, testdata_text, out_dir=partB, feedback=feedback
+        zone_specs, used_constructions, testdata_text, out_dir=s4, feedback=feedback
     )
 
     # 5_intakeoutput (assembly): stitch + deterministic contract check.
@@ -674,8 +685,8 @@ def run_phase2(
     )
     contract_issues = validate_contract(intake, used_constructions)
     if contract_issues:
-        if partB is not None:
-            (partB / "contract_issues.json").write_text(
+        if s5 is not None:
+            (s5 / "contract_issues.json").write_text(
                 json.dumps(contract_issues, indent=2, ensure_ascii=False),
                 encoding="utf-8",
             )
@@ -684,9 +695,9 @@ def run_phase2(
             "referenced definitions):\n- " + "\n- ".join(contract_issues)
         )
 
-    if partB is not None:
-        (partB / "intake_output.json").write_text(
+    if s5 is not None:
+        (s5 / "intake_output.json").write_text(
             intake.model_dump_json(indent=2, by_alias=False), encoding="utf-8"
         )
-        logger.success("5_intakeoutput: wrote {}", partB / "intake_output.json")
+        logger.success("5_intakeoutput: wrote {}", s5 / "intake_output.json")
     return intake
