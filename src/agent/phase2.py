@@ -28,6 +28,7 @@ from __future__ import annotations
 import json
 import re
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 from loguru import logger
 from openai import OpenAI
@@ -36,6 +37,9 @@ from src.agent._share import ensure_schema_initialized
 from src.agent.correction import CorrectedGeometry, apply_deterministic_core
 from src.agent.llm import load_llm_section
 from src.agent.state import IntakeOutput
+
+if TYPE_CHECKING:
+    from src.agent.geometry.modelling import BuildingGeometry
 
 _SKILL_DIR = Path(__file__).resolve().parents[2] / "skills" / "energyplus_mcp_twostep"
 _PARTA_DIR = _SKILL_DIR / "1_correction"
@@ -355,6 +359,10 @@ def run_phase2b(
     out_dir: Path | None = None,
     feedback: str | None = None,
 ) -> IntakeOutput:
+    """LEGACY (pre-Step-5): one LLM call authoring the WHOLE IntakeOutput incl.
+    geometry. Superseded by the deterministic-geometry + run_mep + assembly flow
+    in run_phase2. Kept callable as a one-line rollback; **remove after the
+    Step-8 e2e validates the new flow.**"""
     ensure_schema_initialized()  # safe for standalone stage calls (idempotent)
     system_prompt, human = _build_phase2b_messages(
         geom, testdata_text, feedback=feedback
@@ -380,24 +388,114 @@ def run_phase2b(
 
 
 # --------------------------------------------------------------------------- #
+# 4_MEP — physical-information authoring (LLM): non-geometry specs only
+# --------------------------------------------------------------------------- #
+def _build_mep_messages(
+    zone_specs: str,
+    used_constructions: set[str],
+    testdata_text: str,
+    *,
+    feedback: str | None = None,
+):
+    from src.agent.intakeoutput import MepOutput
+
+    authoring = _read(_SKILL_DIR / "4_mep" / "authoring.md")
+    mep = _read(_SKILL_DIR / "4_mep" / "mep.md")
+    mep_schema = json.dumps(
+        MepOutput.model_json_schema(), indent=2, ensure_ascii=False
+    )
+    cons_list = "\n".join(f"- {c}" for c in sorted(used_constructions))
+
+    system_prompt = (
+        "You are running stage 4_MEP of a two-step EnergyPlus intake. The geometry "
+        "is ALREADY built and serialized deterministically — you author ONLY the "
+        "non-geometry specs and attach them by name. Do NOT produce zone_specs / "
+        "surface_specs / fenestration_specs.\n\n"
+        "Output a single MepOutput JSON object with exactly these keys: building, "
+        "site_location, material_specs, construction_specs, schedule_specs, "
+        "hvac_specs, people_specs, lights_specs.\n\n"
+        "OUTPUT FORMAT (strict): ONLY the MepOutput JSON object, `{`..`}`, no "
+        "markdown, no prose.\n\n"
+        "===== BEGIN MepOutput JSON SCHEMA =====\n"
+        f"{mep_schema}\n"
+        "===== END MepOutput JSON SCHEMA =====\n\n"
+        "===== BEGIN RULE DOCUMENT: 4_mep/authoring.md =====\n"
+        f"{authoring}\n"
+        "===== END RULE DOCUMENT: 4_mep/authoring.md =====\n\n"
+        "===== BEGIN REFERENCE: 4_mep/mep.md (default values) =====\n"
+        f"{mep}\n"
+        "===== END REFERENCE: 4_mep/mep.md =====\n"
+    )
+
+    chunks = [
+        "Project metadata (testdata_prompt.json):\n```json\n" + testdata_text + "\n```\n",
+        "\nZONE LIST (author per-zone people/lights/hvac against these exact "
+        "names; do not re-author geometry):\n```\n" + zone_specs + "\n```\n",
+        "\nREQUIRED CONSTRUCTIONS — the geometry references these; you MUST define "
+        "every one in construction_specs (with its materials in material_specs):\n"
+        + cons_list + "\n",
+    ]
+    if feedback:
+        chunks.append(
+            "\n\n=== Feedback from a previous attempt — fix these ===\n"
+            f"{feedback}\n"
+        )
+    chunks.append(
+        "\nProduce the MepOutput JSON now. Define every required construction, "
+        "keep schedule_specs complete (incl. the people activity-level schedule), "
+        "and follow the naming rules. Output ONLY the JSON object."
+    )
+    return system_prompt, "".join(chunks)
+
+
+def run_mep(
+    zone_specs: str,
+    used_constructions: set[str],
+    testdata_text: str,
+    *,
+    out_dir: Path | None = None,
+    feedback: str | None = None,
+):
+    """4_MEP LLM stage: author the 8 non-geometry IntakeOutput fields."""
+    from src.agent.intakeoutput import MepOutput
+
+    ensure_schema_initialized()
+    system_prompt, human = _build_mep_messages(
+        zone_specs, used_constructions, testdata_text, feedback=feedback
+    )
+    parsed = _call_json_llm(
+        _section("mep"), system_prompt, human, out_dir=out_dir, prefix="mep"
+    )
+    try:
+        result = MepOutput.model_validate(parsed)
+    except Exception as e:
+        if out_dir is not None:
+            (out_dir / "mep_output_unvalidated.json").write_text(
+                json.dumps(parsed, indent=2, ensure_ascii=False), encoding="utf-8"
+            )
+        raise RuntimeError(f"4_mep: MepOutput validation error: {e}") from e
+    if out_dir is not None:
+        (out_dir / "mep_output.json").write_text(
+            result.model_dump_json(indent=2), encoding="utf-8"
+        )
+    return result
+
+
+# --------------------------------------------------------------------------- #
 # orchestration
 # --------------------------------------------------------------------------- #
 def materialize_kernel_geometry(
     geom: CorrectedGeometry, out_dir: Path | None
-) -> list[str]:
+) -> tuple["BuildingGeometry | None", list[str]]:
     """Run the deterministic geometry kernel (2_modelling -> 3_split_pairing) on
     the snapped CorrectedGeometry and materialize the result + a gate report.
 
-    This is the Step-4 wiring: the kernel now runs on every real phase-2 pass,
-    so its coverage is exercised on live phase-2a output and the InterZone gate
-    gives an early, deterministic geometry signal. It is **advisory** here — the
-    geometry it produces is not yet fed into the IntakeOutput (phase2b still
-    authors geometry); how the kernel's surfaces become `surface_specs` is the
-    Step-5 integration fork. Never raises: a kernel/gate failure must not break a
-    run while phase2b remains authoritative.
-
-    Returns the list of InterZone gate issues (empty = clean), or a single-item
-    list describing why the kernel could not run.
+    Returns `(building_geometry, gate_issues)`. The geometry is the authoritative
+    geometry the rest of phase 2 serializes (fork a); `run_phase2` reuses this
+    object — it does NOT build a second time. On a hard kernel error, returns
+    `(None, [err])` so `run_phase2` can fall back to the legacy phase2b. The
+    InterZone gate issues are advisory here (the downstream gate re-checks the
+    assembled IDF). Never raises.
     """
     # Lazy imports: keep the kernel (shapely/eppy) off the hot path for callers
     # that never reach here, mirroring the run_phase2 import discipline.
@@ -407,7 +505,7 @@ def materialize_kernel_geometry(
         from src.validator.interzone import validate_interzone_surface_pairs
 
         # build_geometry is read-only on `geom` (it constructs new ZoneVolumes /
-        # polygons), so the same `geom` is safe to hand to phase2b afterwards.
+        # polygons), so the same `geom` is safe to hand to later stages.
         bg = build_geometry(geom)
         issues = validate_interzone_surface_pairs(building_to_idf(bg))
     except Exception as e:  # noqa: BLE001 — advisory stage, never fatal
@@ -418,7 +516,7 @@ def materialize_kernel_geometry(
                 json.dumps({"gate_issues": err, "build_notes": []}, indent=2),
                 encoding="utf-8",
             )
-        return err
+        return None, err
 
     logger.info(
         "phase2 kernel: {} zones, {} surfaces, {} windows; gate issues={} notes={}",
@@ -463,7 +561,7 @@ def materialize_kernel_geometry(
             ),
             encoding="utf-8",
         )
-    return issues
+    return bg, issues
 
 
 def run_phase2(
@@ -473,16 +571,21 @@ def run_phase2(
     out_dir: Path | None = None,
     feedback: str | None = None,
 ) -> IntakeOutput:
-    """Staged phase 2: 2a correction -> deterministic core -> 2b modeling.
+    """Staged phase 2: 2a correction -> deterministic core -> deterministic
+    geometry kernel -> 4_MEP (LLM) -> 5_intakeoutput assembly.
 
-    When `out_dir` is given, artifacts are filed by stage into two subdirs:
+    Geometry is deterministic (fork a): the kernel builds + the serializer emits
+    zone/surface/fenestration specs; 4_MEP authors only the 8 non-geometry fields;
+    assembly stitches them and runs a contract check. Falls back to the legacy
+    whole-output phase2b only on a hard kernel build error.
+
+    When `out_dir` is given, artifacts are filed by stage:
       out_dir/partA/   phase2a_geometry.json (pre-snap) + phase2a_geometry_snapped.json
-                       (post core) + corrections.json (2a + core audit) + phase2a raw/thinking
-                       + building_geometry.json + kernel_gate_report.json (Step-4
-                       deterministic geometry kernel, advisory)
-      out_dir/partB/   intake_output.json (final) + phase2b raw/thinking
+                       (post core) + corrections.json + building_geometry.json +
+                       kernel_gate_report.json + geometry_specs.md
+      out_dir/partB/   mep_output.json + intake_output.json (final) + mep raw/thinking
     Signature unchanged so intake_node / CLI callers do not change. `feedback`
-    is routed to phase 2a (geometry correction).
+    is routed to both phase 2a (geometry) and 4_MEP (physics) repair.
     """
     ensure_schema_initialized()
     partA = (out_dir / "partA") if out_dir is not None else None
@@ -519,17 +622,71 @@ def run_phase2(
             encoding="utf-8",
         )
 
-    # Step-4 wiring: run the deterministic geometry kernel on the snapped
-    # geometry (advisory — phase2b still authors the geometry that ships).
-    kernel_issues = materialize_kernel_geometry(geom, partA)
+    # Deterministic geometry kernel (2_modelling -> 3_split_pairing). Under fork
+    # (a) this geometry is authoritative; we serialize it into the geometry specs.
+    bg, kernel_issues = materialize_kernel_geometry(geom, partA)
     if kernel_issues:
         hint = "" if partA is None else "; see partA/kernel_gate_report.json"
         logger.warning(
             "phase2 kernel: {} InterZone gate issue(s) on the deterministic build "
-            "(advisory{})",
+            "(advisory — the downstream gate re-checks the assembled IDF{})",
             len(kernel_issues),
             hint,
         )
 
-    logger.info("phase2b: modeling from corrected geometry")
-    return run_phase2b(geom, testdata_text, out_dir=partB)
+    if bg is None:
+        # Hard kernel error: fall back to the legacy whole-output phase2b so the
+        # run still produces an IntakeOutput (one-line rollback path).
+        logger.warning("phase2: kernel build failed; falling back to legacy phase2b")
+        return run_phase2b(geom, testdata_text, out_dir=partB, feedback=feedback)
+
+    # 5_intakeoutput (geometry half): serialize kernel geometry -> specs text.
+    from src.agent.geometry.specs import serialize_geometry
+    from src.agent.intakeoutput import assemble_intake_output, validate_contract
+
+    zone_specs, surface_specs, fenestration_specs, used_constructions = (
+        serialize_geometry(bg)
+    )
+    if partA is not None:
+        (partA / "geometry_specs.md").write_text(
+            f"# zone_specs\n\n{zone_specs}\n\n# surface_specs\n\n{surface_specs}\n\n"
+            f"# fenestration_specs\n\n{fenestration_specs}\n",
+            encoding="utf-8",
+        )
+
+    # 4_MEP (LLM): author the 8 non-geometry fields against the zone list +
+    # required construction set.
+    logger.info(
+        "4_mep: authoring non-geometry specs ({} zones, {} constructions)",
+        len(dict.fromkeys(bg.zones)),
+        len(used_constructions),
+    )
+    mep = run_mep(
+        zone_specs, used_constructions, testdata_text, out_dir=partB, feedback=feedback
+    )
+
+    # 5_intakeoutput (assembly): stitch + deterministic contract check.
+    intake = assemble_intake_output(
+        zone_specs=zone_specs,
+        surface_specs=surface_specs,
+        fenestration_specs=fenestration_specs,
+        mep=mep,
+    )
+    contract_issues = validate_contract(intake, used_constructions)
+    if contract_issues:
+        if partB is not None:
+            (partB / "contract_issues.json").write_text(
+                json.dumps(contract_issues, indent=2, ensure_ascii=False),
+                encoding="utf-8",
+            )
+        raise RuntimeError(
+            "5_intakeoutput contract check failed (4_MEP omitted geometry-"
+            "referenced definitions):\n- " + "\n- ".join(contract_issues)
+        )
+
+    if partB is not None:
+        (partB / "intake_output.json").write_text(
+            intake.model_dump_json(indent=2, by_alias=False), encoding="utf-8"
+        )
+        logger.success("5_intakeoutput: wrote {}", partB / "intake_output.json")
+    return intake

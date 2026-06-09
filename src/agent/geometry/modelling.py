@@ -48,14 +48,6 @@ class Window:
 
 
 @dataclass
-class BuildingGeometry:
-    zones: list[str] = field(default_factory=list)
-    surfaces: list[Surface] = field(default_factory=list)
-    windows: list[Window] = field(default_factory=list)
-    notes: list[str] = field(default_factory=list)
-
-
-@dataclass
 class ZoneVolume:
     """One zone's volume: footprint polygon + z range. The leg-agnostic unit
     `split_pairing` consumes — any zonification (faithful rooms / re-topologized
@@ -68,6 +60,16 @@ class ZoneVolume:
     zt: float
     fi: int                 # floor membership (every zonification has floors);
                             # actual face pairing is z + polygon driven, not fi
+    role: str = "office"    # semantic role (for zone_specs serialization)
+
+
+@dataclass
+class BuildingGeometry:
+    zones: list[str] = field(default_factory=list)
+    surfaces: list[Surface] = field(default_factory=list)
+    windows: list[Window] = field(default_factory=list)
+    notes: list[str] = field(default_factory=list)
+    zone_volumes: list[ZoneVolume] = field(default_factory=list)  # for serialization
 
 
 class NameRegistry:
@@ -263,7 +265,10 @@ def build_zone_volumes(geom: CorrectedGeometry) -> tuple[list[ZoneVolume], list[
         zt = zf + float(fl.ceiling_height)
         for c in fl.cells:
             zvs.append(
-                ZoneVolume(_safe(c.id), c.id, _cell_polygon(c), zf, zt, fi)
+                ZoneVolume(
+                    _safe(c.id), c.id, _cell_polygon(c), zf, zt, fi,
+                    getattr(c, "role", "office") or "office",
+                )
             )
 
     by_fi: dict[int, list[ZoneVolume]] = {}

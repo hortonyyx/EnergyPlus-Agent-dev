@@ -34,6 +34,7 @@ def build_geometry(geom: CorrectedGeometry) -> BuildingGeometry:
     # 建模·几何: cells -> zone volumes (+ tiling guard notes)
     zvs, overlap_notes = build_zone_volumes(geom)
     out.zones = [zv.zone for zv in zvs]
+    out.zone_volumes = zvs
     out.notes.extend(overlap_notes)
 
     # 切配·仿真: zone volumes -> cut + paired surfaces

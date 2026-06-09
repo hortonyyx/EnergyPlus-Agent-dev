@@ -1,3 +1,16 @@
+> ⚠️ **SUPERSEDED (Step 5, 0–5 refactor).** The single phase2b LLM call this document
+> drove is retired. Its content now lives in three homes:
+> - **Geometry** (world coords, zone/surface/fenestration derivation, split-pairing,
+>   vertex synthesis) → the deterministic kernel: [`../2_modelling/spec.md`](../2_modelling/spec.md)
+>   + [`../3_split_pairing/spec.md`](../3_split_pairing/spec.md) (code in `src/agent/geometry/`).
+> - **Physics / contract** (building, site, material↔construction, schedules, MEP, naming)
+>   → [`../4_mep/authoring.md`](../4_mep/authoring.md).
+> - Section→home map: [`AI_agent/architecture/rules_md_split_map.md`](../../../AI_agent/architecture/rules_md_split_map.md).
+>
+> This file is kept only as the prompt for the **legacy fallback** `run_phase2b`
+> (used only on a hard kernel build error) and as history. Do not extend it; edit the
+> homes above instead. Scheduled for removal after the Step-8 e2e validates the new flow.
+
 # Phase 2 Rules — vector JSON → IntakeOutput
 
 Phase 2 does not see the image. All visual information has already been vectorized into JSON by

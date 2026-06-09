@@ -25,8 +25,9 @@ def _clean_two_floor() -> CorrectedGeometry:
 
 
 def test_kernel_wiring_clean_build_materializes(tmp_path):
-    issues = materialize_kernel_geometry(_clean_two_floor(), tmp_path)
+    bg, issues = materialize_kernel_geometry(_clean_two_floor(), tmp_path)
     assert issues == [], issues
+    assert bg is not None and bg.zones and bg.surfaces
     geo = json.loads((tmp_path / "building_geometry.json").read_text())
     assert geo["zones"] and geo["surfaces"]
     report = json.loads((tmp_path / "kernel_gate_report.json").read_text())
@@ -35,7 +36,8 @@ def test_kernel_wiring_clean_build_materializes(tmp_path):
 
 def test_kernel_wiring_no_outdir_is_silent():
     """Advisory stage tolerates out_dir=None (no materialization, still returns)."""
-    assert materialize_kernel_geometry(_clean_two_floor(), None) == []
+    bg, issues = materialize_kernel_geometry(_clean_two_floor(), None)
+    assert issues == [] and bg is not None
 
 
 def test_kernel_wiring_never_raises_on_overlap(tmp_path):
