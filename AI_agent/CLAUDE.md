@@ -4,6 +4,8 @@
 
 ---
 
+> 🚧 **进行中（跨会话活任务，2026-06-09 起）**：管线重构为 **0–5 阶段架构**（0_Reading/1_Correction/2_Modelling/3_Split-pairing/4_MEP/5_Intakeoutput）。Step 1 完成（commit `29845ea`），Step 2–8 待做。**新会话接手先读** [logs/2026-06-09_pipeline_0-5_refactor_handoff.md](logs/2026-06-09_pipeline_0-5_refactor_handoff.md)（含状态/剩余步骤/工作流约定/待拍板项）+ [architecture/pipeline_stage_contracts.md](architecture/pipeline_stage_contracts.md)。
+
 ## 1. 项目总览
 
 ### 1.1 仓库 / 目标
