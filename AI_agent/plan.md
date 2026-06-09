@@ -358,7 +358,9 @@
 >
 > B5 case 可由任一腿驱动；下面的 prompt-扩展任务属忠实 leg 渐进路径。
 >
-> **术语对齐（2026-06-07）**：上文「再拓扑 leg ... 切分/配对下沉」口径已更新——**两条线只在 zonification（怎么定 zone）分叉**（忠实=房间为zone / 热区再拓扑=平面先划热区）；**切配（面切成 EP 一一对应）= 独立确定性算法、与两条线无关、下游另有人做**（技术参考 [reference/split_pairing_kernel_reference.md](reference/split_pairing_kernel_reference.md)）。覆盖洞属切配/几何侧，不是腿的差异。详见 [architecture/geometry_first_zonification.md](architecture/geometry_first_zonification.md) 顶 banner。
+> **术语对齐（2026-06-07）**：上文「再拓扑 leg ... 切分/配对下沉」口径已更新——**两条线只在 zonification（怎么定 zone）分叉**（忠实=房间为zone / 热区再拓扑=平面先划热区）；**切配（面切成 EP 一一对应）= 独立确定性算法、与两条线无关**（技术参考 [reference/split_pairing_kernel_reference.md](reference/split_pairing_kernel_reference.md)）。覆盖洞属切配/几何侧，不是腿的差异。详见 [architecture/geometry_first_zonification.md](architecture/geometry_first_zonification.md) 顶 banner。
+>
+> **落位反转（2026-06-09）**：切配从「下游另有人做」改为 **本项目侧确定性做、确定性核之后吃 cells**——连同 cell→面几何生成（建模·几何）一起收进**确定性造面/切配内核**。证据=sm20/sm21 对照（一步出 LLM 切配对、staged 退化）。目标总架构 `识图→校正→建模·几何(确定性)→切配·仿真(确定性)→物理挂载→下游`，LLM 只做感知+校正判断+物理语义、代码做所有几何+装配。详见 [CLAUDE.md §5.10](CLAUDE.md) + [pipeline_stage_contracts §0.1](architecture/pipeline_stage_contracts.md) + [split_pairing_kernel_reference §6](reference/split_pairing_kernel_reference.md)。**P0 待建。**
 
 **任务（边做边细化）**：
 - [ ] 在 `test_data/SmallOffice/` 加 1-2 个 L 形 case（含图纸 + testdata_prompt.json + GT）

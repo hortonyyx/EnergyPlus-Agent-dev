@@ -15,6 +15,34 @@
 
 ## 改动记录
 
+### 2026-06-09 — 确定性核容差外置配置 + SNAP_GRID 吸附 + 窗户分级（优先级 #2.1）
+
+**Trigger**：[recognition_modeling §6.5#1](../capability/recognition_modeling_capability.md) 待完善——确定性核轴吸附取簇**均值**（4.90/4.95→4.925），漏出 **mm 级非栅格值**；且常数硬编码在 `deterministic.py`、不含 `SNAP_GRID`，与 A0 registry「单一真源」承诺漂移（[pipeline_stage_contracts §5.1](../architecture/pipeline_stage_contracts.md)）。用户定调（2026-06-09）：结构栅格 50mm、窗户分级更细（10mm + 钳进父墙）。
+
+**改动**（本项目侧 phase2 确定性核，非协作者下游 subagent；备份 [`src_history/2026-06-09_deterministic_core_snapgrid/deterministic.py`](../../src_history/2026-06-09_deterministic_core_snapgrid)）：
+- **新增** [`src/configs/correction.yaml`](../../src/configs/correction.yaml)：容差外置配置（详细中文注释每参数的约束 + 颗粒度选择依据）。值溯源 A0 §4 registry，消 Python 硬编码漂移。env `EP_AGENT_CORRECTION_CONFIG` 可逐 run 覆盖（镜像 `EP_AGENT_LLM_CONFIG`），方便测不同颗粒度。
+- **新增** [`src/agent/correction/config.py`](../../src/agent/correction/config.py)：loader（OmegaConf + env 覆盖 + `CoreTolerances` dataclass + 跨字段不变量校验 `structural_snap_grid ≤ min_edge`）。
+- **改** [`src/agent/correction/deterministic.py`](../../src/agent/correction/deterministic.py)：(a) 常数改从 config 读，签名加可选 `tol`（测试可注入）；(b) 轴算法 **聚类(身份) → 吸附结构栅格(规整) → 碎片守卫(min_edge)** 三步——簇均值不再漏出，吸到 50mm 栅格；吸附后再过碎片守卫保证 min_edge 不被吸附破坏；(c) **窗户分级**：不再吸结构栅格，改 `window_snap_grid`(10mm) + 可选钳进父墙 span / 楼层 z 范围（防 CHKSBS 越界）。
+- **新增** [`tests/test_deterministic_core.py`](../../tests/test_deterministic_core.py)：8 测（跨层统一 / 吸栅格无 mm 均值 / 碎片守卫 / 窗细栅格 / 窗钳制 / 钳制可关 / 不变量拒绝 / 默认 config 加载）。
+
+**影响范围**：仅 phase2 确定性核内部；`CorrectedGeometry` / `IntakeOutput` 契约不变，下游零影响。**解 [pipeline_stage_contracts §5.1](../architecture/pipeline_stage_contracts.md)**（A0↔核漂移 + mm 级值）。
+
+**验收**：23/23 测试通过（8 新 + interzone 12 + llm_config 3）；冒烟验证 4.90/4.95→统一 50mm 栅格值、窗 10mm 保真 + 越界钳制生效。**待做**：A0 §4 文档同步窗户分级策略（doc follow-up）；在 sm21/sm22 重跑确认 mm 级值消失。
+
+**追加（同日）— 连接性补缝 #2.4（内墙→外墙 gap-close）**：用户提"内墙没顶到外墙留小缝"靠什么解决。诊断：补缝是**连接性操作**（≠ 轴身份），代码里**原本无任何实现**——`GAP_*` band 只在 A0 prose 由 phase2a LLM 执行（同 sm21 不可靠风险）。用户定调（BEM 闭包必须封口，否则形不成 zone + 真建筑少有 <300mm 有意缝）→ 阈值定 **300mm**（A0 老值 100mm 太保守）。改动：
+- [correction.yaml](../../src/configs/correction.yaml) + [config.py](../../src/agent/correction/config.py)：加 `gap_close_threshold_m`(0.300) + `gap_arbitration_band_m`(1.000)，不变量 `axis_jitter < gap_close < gap_arbitration`。
+- [deterministic.py](../../src/agent/correction/deterministic.py)：加 `_close_to_boundary` 连接性 pass（cell 边落 footprint 内侧 ≤300mm → 吸到边界封口，方向性、仅内墙→外墙），接在轴吸附之后；audit 记 `deterministic_core.gap_close`。
+- A0 §4（备份 [`Skill_history/2026-06-09_gap_close_threshold_300/`](../../Skill_history)）：`GAP_CLOSE_THRESHOLD` 100→300、`GAP_CONFLICT_BAND` 300–1000(门洞)、`GAP_UNSUPPORTED` ≥1000(开放边界/zonification)；basis 改为"BEM 闭包+代价不对称"；precedence prose 注明核执行 ≤阈值自动闭合。
+- 测试 +4（内墙够到外墙 / 内部隔墙不动 / >300mm 不闭合 / 不变量），**27/27 通过**。
+- **残留**：内墙→内墙连接性 + 300–1000mm A3 门洞判断 + ≥1000mm zonification，均属判断层非确定性核（[pipeline_stage_contracts §5.5](../architecture/pipeline_stage_contracts.md)）。
+
+**追加（同日）— MEP 先验去混合 #2.2（缩范围）**：原 #2.2「建几何+MEP 共享先验库」经用户定调缩为**只去混合**——当前聚焦几何建模、输入无荷载/时间表数据，MEP 暂不建库。改动：
+- **新增** [`phase2/priors/mep.md`](../../skills/energyplus_mcp_twostep/phase2/priors/mep.md)：把 [rules.md](../../skills/energyplus_mcp_twostep/phase2/rules.md) Step 7 的 4 行 MEP 默认值（人 10m²/p、灯 10W/m²、HVAC 24/20℃、Office_Workday/Weekend）抽出，标 **DRAFT 种子**（几何稳定后再扩成分型/分级/带出处的真库）。值不变。
+- **改** rules.md Step 7（备份 [`Skill_history/2026-06-09_gap_close_threshold_300/rules.md_pre_mep_extract`](../../Skill_history)）：内联值 → 指向 `priors/mep.md` 的指针；保留「schedule_specs 必须完整」结构契约 + 必填清单（那是建模契约非先验值）。Step 5 material/construction 是结构规则，不动。
+- **改** [`src/agent/phase2.py`](../../src/agent/phase2.py)（备份 [`src_history/2026-06-09_phase2b_load_mep/`](../../src_history)）：`_build_phase2b_messages` 加载 mep.md 作 REFERENCE 块（phase2b 仍拿到默认值；行为不变）。
+- **deferred**（等几何稳定）：mep.md 扩成真先验库 + 与 A4 几何先验合并进统一 `priors/`（[pipeline_stage_contracts §5.2](../architecture/pipeline_stage_contracts.md)）。
+- **验收**：phase2b 装配冒烟通过（mep 块在 + 默认值携带 + rules 指针生效）；纯抽离无行为变更。
+
 ### 2026-06-07 — PartA 校正层 P0 接入 phase2 prompt
 
 **Trigger**：识图建模质量主线（忠实建模 leg）落地。PartA 容差校正层 skill 文档库（[`skills/energyplus_mcp_twostep/phase2/PartA-correction/`](../../skills/energyplus_mcp_twostep/phase2/PartA-correction) 的 A0–A4 + README）已写 + 审 + 定稿（A0/A1/A2 经 Codex 审，A3/A4 为 P0）。需把它接进 phase2 实际执行。

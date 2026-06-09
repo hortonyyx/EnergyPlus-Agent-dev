@@ -254,6 +254,18 @@ def main() -> None:
         phase1_vector_dir = str(p1_dir)
         logger.info("phase1_from={} (intake_node will run phase 2)", p1_dir)
 
+    # Organized two-step layout (the solidified standard): phase 2 artifacts go to
+    # <case>/phase2/{partA,partB}; downstream + EP go to <case>/EP_run. Other flows
+    # keep the flat <case>/<output-subdir>/ layout for back-compat.
+    if phase1_vector_dir is not None and args.output_subdir == "output":
+        output_dir = case_dir / "EP_run"
+        output_dir.mkdir(parents=True, exist_ok=True)
+        phase2_debug_dir = str(case_dir / "phase2")
+    else:
+        phase2_debug_dir = (
+            str(output_dir / "phase2_intake") if phase1_vector_dir else None
+        )
+
     logger.info(
         "case={} images={} intake_only={} intake_from={}",
         args.case,
@@ -268,9 +280,7 @@ def main() -> None:
         intake_output=pre_intake,
         phase1_vector_dir=phase1_vector_dir,
         testdata_text=testdata_raw,
-        phase2_debug_dir=str(output_dir / "phase2_intake")
-        if phase1_vector_dir
-        else None,
+        phase2_debug_dir=phase2_debug_dir,
     )
 
     if args.intake_only:

@@ -177,9 +177,9 @@ emit `unsupported`.
 | `SNAP_GRID` | 50 | mm | calibrated | all | transform | M/2 submodule (`GB/T 50002-2013`); matches partition-thickness granularity |
 | `MIN_EDGE_LENGTH` | 0.10 | m | calibrated | all | hard_fail | EP very-small-vertex warning (~0.01 m) + sliver safety gate; below → merge/re-snap/unsupported |
 | `DIMCHAIN_CLOSE_TOL` | 10 | mm | calibrated | all | close / conflict | `\|Σsegments − total\|`; = M/10 |
-| `GAP_CLOSE_THRESHOLD` | ≤100 | mm | calibrated | all | auto-close w/ evidence | wall-thickness series (`GB/T 50002-2013` 4.3.2) |
-| `GAP_CONFLICT_BAND` | 100–300 | mm | calibrated | all | escalate → A3 | inner-face vs centerline/exterior-face ambiguity |
-| `GAP_UNSUPPORTED` | ≥500 | mm | calibrated | all | unsupported / A3 | too large for wall noise; likely real void or source error |
+| `GAP_CLOSE_THRESHOLD` | ≤300 | mm | calibrated | all | auto-close (connectivity) | a thermal zone needs a closed enclosure (an unclosed gap forms no EP zone); intentional sub-300mm gaps are vanishingly rare and must close for BEM anyway. The fail-to-close cost (no zone) dominates the wrong-close cost at this size, so the threshold sits well above the wall-thickness series (`GB/T 50002-2013` 4.3.2) |
+| `GAP_CONFLICT_BAND` | 300–1000 | mm | calibrated | all | escalate → A3 | doorway/opening scale: the wall LINE still closes (door = sub-surface, zone boundary continuous), but whether a real opening means one merged space vs two needs judgment |
+| `GAP_UNSUPPORTED` | ≥1000 | mm | calibrated | all | unsupported / A3 / zonification | open-boundary scale; likely a real open-plan edge or void — do not silently wall it; the one-zone-vs-two call is zonification, not gap-closing |
 | `AXIS_JITTER_TOL` | 50 | mm | calibrated | all | same-axis only with identity evidence | = `SNAP_GRID`; beyond, or if topology says distinct → `reference_or_identity_ambiguity` → A3 |
 | `AREA_REL_TOL` | ±5 | % | calibrated | all | warn / accept | BEM QA; `GB 50189-2015` 3.4.3 |
 | `WWR_REL_TOL` | ±5% or ±0.02 | ratio | calibrated | all | warn / accept | `GB 50189-2015` 3.2.2 / 3.3.1 |
@@ -193,7 +193,11 @@ operations and must not be conflated:
   `reference_or_identity_ambiguity` → A3.
 - **Gap closing** (should two things that don't touch be made to touch?) uses the
   `GAP_CLOSE_THRESHOLD` / `GAP_CONFLICT_BAND` / `GAP_UNSUPPORTED` bands. These are
-  a connectivity operation, **not** axis identity.
+  a connectivity operation, **not** axis identity (a much bigger threshold than
+  `AXIS_JITTER_TOL`, applied directionally). The ≤`GAP_CLOSE_THRESHOLD` auto-close
+  of a cell edge onto a footprint boundary is executed deterministically by the
+  core (internal-wall-to-exterior, the dominant case); internal-to-internal
+  connectivity and the conflict/unsupported bands remain A3 judgment.
 - **Output** uses `OUTPUT_PRECISION` for final formatting only. `SNAP_GRID` is a
   candidate regularization grid for low-confidence stroke-only geometry; canonical
   axis values are chosen from authoritative evidence and are **not** rounded to

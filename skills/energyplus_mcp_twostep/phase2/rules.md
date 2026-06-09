@@ -352,11 +352,10 @@ window's absolute world `z_min / z_max` (elevation `y_local` is already world z,
 
 ### Step 7 — `schedule_specs` / `people_specs` / `lights_specs` / `hvac_specs`
 
-By testdata `Building type = Office` use the ASHRAE 90.1 Office default load profile:
-- people: 10 m²/person, 9-18 weekday schedule
-- lights: 10 W/m², same schedule
-- hvac: IdealLoadsAirSystem, cooling 24°C / heating 20°C
-- schedule: typical schedule_compact such as `Office_Workday` / `Office_Weekend`
+The input carries geometry, not loads/schedules, so these are assigned from the
+default MEP priors. **Default load / schedule / HVAC values: [`priors/mep.md`](priors/mep.md)**
+(by testdata `Building type`; office is seeded). Explicit input data overrides the defaults.
+This step then enforces the structural completeness contract below.
 
 **`schedule_specs` must be complete**: the schedule subagent runs first and is not re-invoked later,
 so every schedule any downstream field references must be defined here, each with an exact name,

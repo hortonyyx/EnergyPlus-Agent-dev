@@ -38,7 +38,7 @@ from src.agent.llm import load_llm_section
 from src.agent.state import IntakeOutput
 
 _SKILL_DIR = Path(__file__).resolve().parents[2] / "skills" / "energyplus_mcp_twostep"
-_PARTA_DIR = _SKILL_DIR / "phase2" / "PartA-correction"
+_PARTA_DIR = _SKILL_DIR / "1_correction"
 _PARTA_DOCS = [
     "README.md",
     "A0_contract.md",
@@ -104,7 +104,7 @@ def _extract_json(text: str) -> str:
 
 def _load_partA() -> str:
     return "\n\n".join(
-        f"----- PartA-correction/{name} -----\n{_read(_PARTA_DIR / name)}"
+        f"----- 1_correction/{name} -----\n{_read(_PARTA_DIR / name)}"
         for name in _PARTA_DOCS
     )
 
@@ -197,8 +197,8 @@ def _build_phase2a_messages(
     vector_dir: Path, testdata_text: str, *, feedback: str | None = None
 ) -> tuple[str, str]:
     partA = _load_partA()
-    phase1_guide = _read(_SKILL_DIR / "phase1" / "guide.md")
-    phase1_pens = _read(_SKILL_DIR / "phase1" / "pen_library.md")
+    phase1_guide = _read(_SKILL_DIR / "0_reading" / "guide.md")
+    phase1_pens = _read(_SKILL_DIR / "0_reading" / "pen_library.md")
     summary = _read(vector_dir / "phase1_summary.md")
     geom_schema = json.dumps(
         CorrectedGeometry.model_json_schema(), indent=2, ensure_ascii=False
@@ -294,6 +294,7 @@ def _build_phase2b_messages(
     geom: CorrectedGeometry, testdata_text: str, *, feedback: str | None = None
 ) -> tuple[str, str]:
     rules = _read(_SKILL_DIR / "phase2" / "rules.md")
+    mep = _read(_SKILL_DIR / "4_mep" / "mep.md")
     intake_schema = json.dumps(
         IntakeOutput.model_json_schema(), indent=2, ensure_ascii=False
     )
@@ -322,6 +323,9 @@ def _build_phase2b_messages(
         "===== BEGIN RULE DOCUMENT: phase2/rules.md =====\n"
         f"{rules}\n"
         "===== END RULE DOCUMENT: phase2/rules.md =====\n\n"
+        "===== BEGIN REFERENCE: 4_mep/mep.md (default loads/schedules/HVAC) =====\n"
+        f"{mep}\n"
+        "===== END REFERENCE: 4_mep/mep.md =====\n\n"
         "===== BEGIN CORRECTED GEOMETRY (authoritative — build from this) =====\n"
         f"{geom_json}\n"
         "===== END CORRECTED GEOMETRY =====\n"
@@ -387,17 +391,23 @@ def run_phase2(
 ) -> IntakeOutput:
     """Staged phase 2: 2a correction -> deterministic core -> 2b modeling.
 
-    Materializes (when out_dir given): phase2a_geometry.json (pre-snap),
-    phase2a_geometry_snapped.json (post core), corrections.json (2a + core audit),
-    intake_output.json (final). Signature unchanged so intake_node / CLI callers
-    do not change. `feedback` is routed to phase 2a (geometry correction).
+    When `out_dir` is given, artifacts are filed by stage into two subdirs:
+      out_dir/partA/   phase2a_geometry.json (pre-snap) + phase2a_geometry_snapped.json
+                       (post core) + corrections.json (2a + core audit) + phase2a raw/thinking
+      out_dir/partB/   intake_output.json (final) + phase2b raw/thinking
+    Signature unchanged so intake_node / CLI callers do not change. `feedback`
+    is routed to phase 2a (geometry correction).
     """
     ensure_schema_initialized()
-    if out_dir is not None:
-        out_dir.mkdir(parents=True, exist_ok=True)
+    partA = (out_dir / "partA") if out_dir is not None else None
+    partB = (out_dir / "partB") if out_dir is not None else None
+    if partA is not None:
+        partA.mkdir(parents=True, exist_ok=True)
+    if partB is not None:
+        partB.mkdir(parents=True, exist_ok=True)
 
     logger.info("phase2a: correction from {}", vector_dir)
-    geom = run_phase2a(vector_dir, testdata_text, out_dir=out_dir, feedback=feedback)
+    geom = run_phase2a(vector_dir, testdata_text, out_dir=partA, feedback=feedback)
 
     n_corr_before = len(geom.corrections)
     geom = apply_deterministic_core(geom)
@@ -406,11 +416,11 @@ def run_phase2(
         len(geom.corrections) - n_corr_before,
         len(geom.unsupported),
     )
-    if out_dir is not None:
-        (out_dir / "phase2a_geometry_snapped.json").write_text(
+    if partA is not None:
+        (partA / "phase2a_geometry_snapped.json").write_text(
             geom.model_dump_json(indent=2), encoding="utf-8"
         )
-        (out_dir / "corrections.json").write_text(
+        (partA / "corrections.json").write_text(
             json.dumps(
                 {
                     "corrections": geom.corrections,
@@ -424,4 +434,4 @@ def run_phase2(
         )
 
     logger.info("phase2b: modeling from corrected geometry")
-    return run_phase2b(geom, testdata_text, out_dir=out_dir)
+    return run_phase2b(geom, testdata_text, out_dir=partB)

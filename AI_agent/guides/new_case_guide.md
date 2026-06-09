@@ -67,10 +67,12 @@ cp /path/to/South_view.png test_data/SmallOffice_TwoStep/$case/South_view.png
 # ... 按实际有窗朝向挑选
 ```
 
-目录约定：
-- 源图（`*_view.png`）放 `<case>/` 根
-- phase1 矢量产物放 `<case>/phase1_vector/`
-- phase2 + 下游 + EP 产物放 `<case>/output/`（或 `--output-subdir` 指定的子目录）
+目录约定（**固化布局，2026-06-09**，权威详表见 [pipeline_stage_contracts §3.1](../architecture/pipeline_stage_contracts.md)）：
+- 源图（`*_view.png`）+ `testdata_prompt.json` + `llm.yaml` 放 `<case>/` 根
+- phase1 矢量产物放 `<case>/phase1/`（旧 case 用 `phase1_vector/`，`--phase1-from` 后跟目录名）
+- phase2 产物放 `<case>/phase2/{partA,partB}/`（partA=2a 校正+核，partB=2b 建模）
+- 下游装配 + EP 产物放 `<case>/EP_run/`
+- 各阶段校验工具：phase1 用 `render_vector_to_png.py`；partA 用 `render_corrected_geometry.py`（逐层平面图）；EP 段 InterZone 门 + EP `.err`
 
 ---
 
@@ -192,7 +194,7 @@ python scripts/run_full_pipeline.py <case> \
 脚本动作：
 1. 读 `testdata_prompt.json`（原文）+ 收集图路径
 2. `--phase1-from phase1_vector` → 把 `<case>/phase1_vector/` 交给 `intake_node`
-3. `intake_node` 跑 **phase2**（[`src/agent/phase2.py`](../../src/agent/phase2.py)，DeepSeek raw client + thinking，读 `intake_phase2` 段）→ 产 `IntakeOutput`，落 `<case>/output/intake_output.json`，phase2 调试产物落 `<case>/output/phase2_intake/`
+3. `intake_node` 跑 **phase2 三段**（[`src/agent/phase2.py`](../../src/agent/phase2.py)，DeepSeek，2a 校正→确定性核→2b 建模）→ partA 产物（`phase2a_geometry[_snapped].json` + `corrections.json`）落 `<case>/phase2/partA/`，partB（`intake_output.json`）落 `<case>/phase2/partB/`；下游 + EP 落 `<case>/EP_run/`
 4. phase 1 并行：zone / material / schedule
 5. `cross_ref_foundations` → `construction → surface → fenestration` 串行
 6. phase 3 并行：hvac / people / lights
@@ -231,8 +233,8 @@ python Tool_scripts/run_phase2_deepseek.py --case test_data/SmallOffice_TwoStep/
 | **L1 Pydantic** | `IntakeOutput` 11 字段 schema | 自动（`intake_node` 出 `IntakeOutput` 即过）；手动复验见下 |
 | **L2 cross_ref** | zone × material × schedule × surface 命名一致 | 自动（`cross_ref_foundations/complete` 出 `validation_errors`，看 `[node=cross_ref_*]` 行，errors=[]=过）|
 | **InterZone 门** | 跨层配对图确定性几何校验 | 自动（EP 前 fail-fast，看日志 `InterZone surface-pair audit` + `pair_issues`）|
-| **L3 OpenStudio**（人工）| zone 轮廓/外包/内墙匹配/窗位/楼板叠放 | 用户 OpenStudio 打开 `<case>/output/temp_*.idf` 视察，填 `dimensions_check` |
-| **L4 EP 仿真** | `EnergyPlus Completed Successfully` / 0 severe | `<case>/output/eplusout.end` + `eplusout.err` |
+| **L3 OpenStudio**（人工）| zone 轮廓/外包/内墙匹配/窗位/楼板叠放 | 用户 OpenStudio 打开 `<case>/EP_run/temp_*.idf` 视察，填 `dimensions_check` |
+| **L4 EP 仿真** | `EnergyPlus Completed Successfully` / 0 severe | `<case>/EP_run/eplusout.end` + `eplusout.err` |
 
 L1 手动复验：
 ```bash

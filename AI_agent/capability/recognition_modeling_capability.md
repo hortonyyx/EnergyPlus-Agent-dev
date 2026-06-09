@@ -142,7 +142,7 @@ phase1 在 1f 把同一道隔墙估成 **4.90/10.10**、2f 估成 **4.95/10.05**
 **待完善（后续，不阻塞 baseline）**：
 1. **确定性核完善（用户 2026-06-07 标记）**：当前轴吸附取簇**均值**（4.90/4.95→4.925），出现 **mm 级非栅格值**。需**统一误差约束**——吸到 `SNAP_GRID`(50mm) 栅格而非任意均值，整条管线容差口径统一（A0 registry 是单一真源，落实到核的实现）。
 2. **先验共享（用户 2026-06-07 提出）**：A4 当前是**几何先验**(窗/门/房尺寸)，只在 phase2a 被 A3 用；但**建模(phase2b)也需常识先验**(U值/灯·人密度/时间表/玻璃属性/WWR目标，当前散在 rules.md Step7+下游)。应把先验做成**两段共享参考库**(几何+MEP 一处)，校正与建模都查，而非割裂。
-3. **EP 绿瓶颈 = 切配层**：互逆配对(走廊跨房拆墙回指)LLM 记账不稳，属[切配确定性内核](../reference/split_pairing_kernel_reference.md)轨(非 partA)；门精准抓、无崩溃。
+3. **EP 绿瓶颈 = 切配层**：互逆配对(走廊跨房拆墙回指)LLM 记账不稳，门精准抓、无崩溃。**定性更新（2026-06-09，见 §7 末）**：sm20/sm21 对照证明这不是"LLM 做不到"——一步出 LLM 切配做得对（sm20 三层 7/8/4 也 0 门 issue），是 **staged 架构把跨层切配孤立成 LLM 机械记账杂活才退化**。决策：**切配（及全部 cell→面几何生成）确定性化、在我方核之后做**（[split_pairing_kernel_reference §6](../reference/split_pairing_kernel_reference.md)，反转"归下游"旧定）。
 4. **phase2a 判断质量**：2f 南向布局仍"两大两小"未仲裁四等分(顶点层)，待 baseline 后单独攻。
 
 ---
@@ -158,6 +158,22 @@ phase1 在 1f 把同一道隔墙估成 **4.90/10.10**、2f 估成 **4.95/10.05**
 
 - 对应任务：[plan.md](../plan.md) B1.5.b + B2-B4。
 - sm21 实验产物（未 commit）：`phase2_intake/{deepseek,opus,sonnet,staged_p0,staged_p0_obcfix}/` + `output_{partA_p0,staged_e2e,staged_obcfix}/`。
+
+### 7.1 sm21_pre 端到端跑 + 切配定性反转 + 目标架构定调（2026-06-09）
+
+**A. 优先级 #2 推进**：确定性核 #2.1（吸 SNAP_GRID + 窗户分级）/ #2.4（连接性补缝 300mm）/ #2.2（MEP 去混合为 [priors/mep.md](../../skills/energyplus_mcp_twostep/phase2/priors/mep.md) draft 种子）全落（[downstream_agent_changes 2026-06-09](../logs/downstream_agent_changes.md)）。新增 [CorrectedGeometry 渲染器](../../Tool_scripts/render_corrected_geometry.py)（phase2a 产物首次可肉眼看）。
+
+**B. 固化规范流程 + sm21_pre 干净跑**：plumbing 固化产物布局（`<case>/{phase1, phase2/{partA,partB}, EP_run}`，[pipeline_stage_contracts §3.1](../architecture/pipeline_stage_contracts.md)）。新建 `smalloffice_21_pre`（phase1=Sonnet sub-agent，余全 DeepSeek）完整跑通：phase1 识图忠实、#2.1 验证（56 坐标全栅格、0 mm 级值，核成 no-op 安全网=phase2a 自己做对了）、phase2b+下游全跑、**门抓 12 切配 issue/EP 未启动**。
+
+**C. 切配定性反转（重要）**：sm20/sm21 对照（见 [split_pairing_kernel_reference §2.5](../reference/split_pairing_kernel_reference.md)）——**一步出 LLM 切配做得对**（sm20 三层 7/8/4 更难也 0 门 issue、真切子面），**staged 退化**（sm21 12/26 issue）。根因 = staged 把跨层切配孤立成 LLM 机械记账杂活，非 LLM 不能、非信息变少（cells 含全部跨层几何且更干净）。**推翻 §6.5#3 + [kernel ref](../reference/split_pairing_kernel_reference.md) 旧"归下游"定性**：切配收回我方。
+
+**D. 目标总架构定调（用户）**：
+```
+识图        校正                建模·几何          切配·仿真          物理挂载         下游·组装
+phase1      phase2a判断+确定性核  cells→zones+面     面切分+互逆配对      材料/时间表/HVAC  9 subagent
+(LLM/VLM)   (LLM + 代码)        (确定性·待建)       (确定性·待建)       (LLM/模板)       (确定性装配)
+```
+一刀切分：**LLM 只做 感知 + 校正判断 + 物理语义；代码做 所有几何（建模+切配）+ 装配**。「建模·几何」+「切配·仿真」都收进**确定性造面/切配内核**（核之后、吃 cells），整块吃掉 rules.md §4/§2.6 + surface_agent 的脆弱几何指令；下游 surface_agent 退化成忠实誊写（不动契约、不动下游代码）。这与 phase3（MEP 撰写分段）同向：几何彻底确定性后 LLM 只剩语义。**待实现**（矩形现可落 / 非矩形随 B5 上 shapely）。
 
 ---
 
