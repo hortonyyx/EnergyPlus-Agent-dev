@@ -382,6 +382,90 @@ def run_phase2b(
 # --------------------------------------------------------------------------- #
 # orchestration
 # --------------------------------------------------------------------------- #
+def materialize_kernel_geometry(
+    geom: CorrectedGeometry, out_dir: Path | None
+) -> list[str]:
+    """Run the deterministic geometry kernel (2_modelling -> 3_split_pairing) on
+    the snapped CorrectedGeometry and materialize the result + a gate report.
+
+    This is the Step-4 wiring: the kernel now runs on every real phase-2 pass,
+    so its coverage is exercised on live phase-2a output and the InterZone gate
+    gives an early, deterministic geometry signal. It is **advisory** here — the
+    geometry it produces is not yet fed into the IntakeOutput (phase2b still
+    authors geometry); how the kernel's surfaces become `surface_specs` is the
+    Step-5 integration fork. Never raises: a kernel/gate failure must not break a
+    run while phase2b remains authoritative.
+
+    Returns the list of InterZone gate issues (empty = clean), or a single-item
+    list describing why the kernel could not run.
+    """
+    # Lazy imports: keep the kernel (shapely/eppy) off the hot path for callers
+    # that never reach here, mirroring the run_phase2 import discipline.
+    try:
+        from src.agent.geometry import build_geometry
+        from src.agent.geometry.to_idf import building_to_idf
+        from src.validator.interzone import validate_interzone_surface_pairs
+
+        # build_geometry is read-only on `geom` (it constructs new ZoneVolumes /
+        # polygons), so the same `geom` is safe to hand to phase2b afterwards.
+        bg = build_geometry(geom)
+        issues = validate_interzone_surface_pairs(building_to_idf(bg))
+    except Exception as e:  # noqa: BLE001 — advisory stage, never fatal
+        logger.warning("phase2 kernel: geometry build/gate failed: {}", e)
+        err = [f"kernel-error: {type(e).__name__}: {e}"]
+        if out_dir is not None:
+            (out_dir / "kernel_gate_report.json").write_text(
+                json.dumps({"gate_issues": err, "build_notes": []}, indent=2),
+                encoding="utf-8",
+            )
+        return err
+
+    logger.info(
+        "phase2 kernel: {} zones, {} surfaces, {} windows; gate issues={} notes={}",
+        len(dict.fromkeys(bg.zones)),
+        len(bg.surfaces),
+        len(bg.windows),
+        len(issues),
+        len(bg.notes),
+    )
+    if out_dir is not None:
+        (out_dir / "building_geometry.json").write_text(
+            json.dumps(
+                {
+                    "zones": list(dict.fromkeys(bg.zones)),
+                    "surfaces": [
+                        {
+                            "name": s.name,
+                            "zone": s.zone,
+                            "type": s.stype,
+                            "obc": s.obc,
+                            "obc_obj": s.obc_obj,
+                            "verts": [list(v) for v in s.verts],
+                        }
+                        for s in bg.surfaces
+                    ],
+                    "windows": [
+                        {"name": w.name, "parent": w.parent,
+                         "verts": [list(v) for v in w.verts]}
+                        for w in bg.windows
+                    ],
+                },
+                indent=2,
+                ensure_ascii=False,
+            ),
+            encoding="utf-8",
+        )
+        (out_dir / "kernel_gate_report.json").write_text(
+            json.dumps(
+                {"gate_issues": issues, "build_notes": bg.notes},
+                indent=2,
+                ensure_ascii=False,
+            ),
+            encoding="utf-8",
+        )
+    return issues
+
+
 def run_phase2(
     vector_dir: Path,
     testdata_text: str,
@@ -394,6 +478,8 @@ def run_phase2(
     When `out_dir` is given, artifacts are filed by stage into two subdirs:
       out_dir/partA/   phase2a_geometry.json (pre-snap) + phase2a_geometry_snapped.json
                        (post core) + corrections.json (2a + core audit) + phase2a raw/thinking
+                       + building_geometry.json + kernel_gate_report.json (Step-4
+                       deterministic geometry kernel, advisory)
       out_dir/partB/   intake_output.json (final) + phase2b raw/thinking
     Signature unchanged so intake_node / CLI callers do not change. `feedback`
     is routed to phase 2a (geometry correction).
@@ -431,6 +517,18 @@ def run_phase2(
                 ensure_ascii=False,
             ),
             encoding="utf-8",
+        )
+
+    # Step-4 wiring: run the deterministic geometry kernel on the snapped
+    # geometry (advisory — phase2b still authors the geometry that ships).
+    kernel_issues = materialize_kernel_geometry(geom, partA)
+    if kernel_issues:
+        hint = "" if partA is None else "; see partA/kernel_gate_report.json"
+        logger.warning(
+            "phase2 kernel: {} InterZone gate issue(s) on the deterministic build "
+            "(advisory{})",
+            len(kernel_issues),
+            hint,
         )
 
     logger.info("phase2b: modeling from corrected geometry")
