@@ -83,6 +83,16 @@
 
 ---
 
+## 8.5 术语全盘清理完成（2026-06-10）
+
+旧称 **phase1/phase2/phase2a/phase2b 全部改成 0–5 阶段名**，代码/配置/测试零残留。`phase2.py→pipeline.py`、`run_phase2→run_pipeline`、删 `run_phase2b`+`rules.md`、llm 段 `intake_phase2→intake_correction`、state/CLI/产物名全改、reading 目录 `phase1_vector/→0_reading/`。活文档全改 + 历史叙述加术语对照 banner。52 测绿，DeepSeek 审过，已 push。复查请求 [review/request/2026-06-10_phase_to_stage_terminology_cleanup_request.md](review/request/2026-06-10_phase_to_stage_terminology_cleanup_request.md)（待 Codex）。**例外**：`graph.py`/`cross_ref.py` 的 "phase 1/2/3" 是下游 subagent 执行波次（另一概念），保留。
+
+## 8.6 ★下一轮优先级（用户定，2026-06-10）
+
+1. **跑干净 anchor**：按现在的 0–5 管线跑一次 **sm21 端到端**，拿一个干净 anchor（`run_full_pipeline.py smalloffice_21 --base-dir test_data/SmallOffice_TwoStep --reading-from 0_reading`；EP 在能跑的机器上，或注意本容器 EP 二进制对不完整 schedule segfault 的环境坑 + 已写 `ENERGYPLUS_EXE` 进 `.env`）。
+2. **测新样例**（用户新做好的一个，类 test5）：建目录 + 识图(0_reading) + 跑 0–5 管线，验证泛化。
+3. **anchor 流程干净（无结构性大问题）→ 开始做 test_baseline**（[test_data/test_baseline/README.md](../../test_data/test_baseline/README.md)）。
+
 ## 8. 关键文件索引
 - 内核：[src/agent/geometry/build.py](../../src/agent/geometry/build.py) · [to_idf.py](../../src/agent/geometry/to_idf.py) · [tests/test_geometry_kernel.py](../../tests/test_geometry_kernel.py)
 - 校正核：[src/agent/correction/](../../src/agent/correction)（deterministic.py / config.py / schema.py）· [src/configs/correction.yaml](../../src/configs/correction.yaml)
