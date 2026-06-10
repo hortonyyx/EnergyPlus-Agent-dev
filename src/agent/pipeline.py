@@ -33,6 +33,7 @@ from __future__ import annotations
 
 import json
 import re
+from collections.abc import Callable
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -128,9 +129,25 @@ def _section(stage: str) -> dict:
 
 
 def _call_json_llm(
-    section: dict, system_prompt: str, human: str, *, out_dir: Path | None, prefix: str
+    section: dict,
+    system_prompt: str,
+    human: str,
+    *,
+    out_dir: Path | None,
+    prefix: str,
+    attempts: int = 1,
+    validate: Callable[[dict], None] | None = None,
 ) -> dict:
-    """One JSON-only LLM call; return the parsed dict. Saves raw/thinking artifacts."""
+    """JSON-only LLM call with retry; return the parsed (and optionally validated) dict.
+
+    The staged-intake LLM (DeepSeek) is single-shot per call and occasionally
+    returns invalid JSON or a structurally-valid-but-incomplete object (e.g. a
+    CorrectedGeometry that dropped all facade windows — the sm21 0-window class).
+    With `attempts > 1` a parse/`validate` failure re-issues the call (the model's
+    sampling differs each draw), turning an intermittent bad draw from a hard
+    pipeline failure into a retry. `validate(parsed)` may raise to reject a draw
+    that parses but fails a semantic check. Saves raw/thinking artifacts (last
+    attempt). Raises after the final attempt still fails."""
     api_key = section.get("api_key")
     base_url = section.get("base_url")
     model_name = section["model_name"]
@@ -155,49 +172,72 @@ def _call_json_llm(
         optional["reasoning_effort"] = reasoning_effort
 
     client = OpenAI(api_key=api_key, base_url=base_url, timeout=600.0, max_retries=2)
-    resp = client.chat.completions.create(
-        model=model_name,
-        messages=[
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": human},
-        ],
-        temperature=temperature,
-        max_tokens=max_tokens,
-        extra_body=extra_body,
-        **optional,
-    )
-    msg = resp.choices[0].message
-    finish_reason = resp.choices[0].finish_reason
-    content = msg.content or ""
-    reasoning = getattr(msg, "reasoning_content", None)
-    usage = resp.usage
-    logger.info(
-        "{}: finish_reason={} usage={}",
-        prefix,
-        finish_reason,
-        {
-            "prompt_tokens": getattr(usage, "prompt_tokens", None),
-            "completion_tokens": getattr(usage, "completion_tokens", None),
-        },
-    )
-    if out_dir is not None:
-        if reasoning:
-            (out_dir / f"{prefix}_thinking.txt").write_text(reasoning, encoding="utf-8")
-        (out_dir / f"{prefix}_raw.txt").write_text(content, encoding="utf-8")
-    if finish_reason == "length":
-        logger.warning("{}: hit max_tokens — response likely truncated", prefix)
-    if not content.strip():
-        raise RuntimeError(f"{prefix}: empty content (finish_reason={finish_reason})")
-
-    payload = _extract_json(content)
-    try:
-        return json.loads(payload)
-    except json.JSONDecodeError as e:
+    last_err: Exception | None = None
+    for attempt in range(1, attempts + 1):
+        resp = client.chat.completions.create(
+            model=model_name,
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": human},
+            ],
+            temperature=temperature,
+            max_tokens=max_tokens,
+            extra_body=extra_body,
+            **optional,
+        )
+        msg = resp.choices[0].message
+        finish_reason = resp.choices[0].finish_reason
+        content = msg.content or ""
+        reasoning = getattr(msg, "reasoning_content", None)
+        usage = resp.usage
+        logger.info(
+            "{}: attempt {}/{} finish_reason={} usage={}",
+            prefix,
+            attempt,
+            attempts,
+            finish_reason,
+            {
+                "prompt_tokens": getattr(usage, "prompt_tokens", None),
+                "completion_tokens": getattr(usage, "completion_tokens", None),
+            },
+        )
         if out_dir is not None:
-            (out_dir / f"{prefix}_parse_error.txt").write_text(
-                f"json decode: {e}\nfirst 500 chars:\n{payload[:500]}", encoding="utf-8"
-            )
-        raise RuntimeError(f"{prefix}: JSON decode error: {e}") from e
+            if reasoning:
+                (out_dir / f"{prefix}_thinking.txt").write_text(
+                    reasoning, encoding="utf-8"
+                )
+            (out_dir / f"{prefix}_raw.txt").write_text(content, encoding="utf-8")
+        if finish_reason == "length":
+            logger.warning("{}: hit max_tokens — response likely truncated", prefix)
+
+        try:
+            if not content.strip():
+                raise ValueError(f"empty content (finish_reason={finish_reason})")
+            parsed = json.loads(_extract_json(content))
+            if validate is not None:
+                validate(parsed)
+            return parsed
+        except Exception as e:  # noqa: BLE001 — any bad draw is a retry candidate
+            last_err = e
+            if out_dir is not None:
+                preview = _extract_json(content)[:500] if content.strip() else "(empty)"
+                (out_dir / f"{prefix}_parse_error.txt").write_text(
+                    f"attempt {attempt}/{attempts}: {e}\nfirst 500 chars:\n{preview}",
+                    encoding="utf-8",
+                )
+            if attempt < attempts:
+                logger.warning(
+                    "{}: attempt {}/{} rejected ({}); retrying",
+                    prefix,
+                    attempt,
+                    attempts,
+                    e,
+                )
+                continue
+            raise RuntimeError(
+                f"{prefix}: failed after {attempts} attempt(s): {last_err}"
+            ) from last_err
+    raise RuntimeError(f"{prefix}: no attempts ran")  # unreachable when attempts >= 1
 
 
 # --------------------------------------------------------------------------- #
@@ -269,6 +309,41 @@ def _build_correction_messages(
     return system_prompt, "".join(chunks)
 
 
+def _reading_window_stroke_count(vector_dir: Path) -> int:
+    """Total `window`-pen strokes across all reading-stage vector JSONs.
+
+    A proxy for "this building has windows in the drawings". Used only as a
+    presence signal (>0 vs 0), not a 1:1 count — a plan window stroke and its
+    elevation counterpart both count, so this over-counts window entities."""
+    total = 0
+    for p in sorted(vector_dir.glob("*.json")):
+        try:
+            d = json.loads(p.read_text(encoding="utf-8"))
+        except (json.JSONDecodeError, OSError):
+            continue
+        total += sum(1 for s in d.get("strokes", []) if s.get("pen") == "window")
+    return total
+
+
+def _make_window_completeness_validator(
+    expected_window_strokes: int,
+) -> Callable[[dict], None]:
+    """Reject a CorrectedGeometry draw that dropped every window when the reading
+    stage clearly saw windows (the sm21 0-window class). Conservative: only the
+    all-or-nothing case (reading has windows, correction emitted zero) triggers a
+    retry — `window strokes != window entities`, so no fuzzy "too few" threshold."""
+
+    def _validate(parsed: dict) -> None:
+        if expected_window_strokes > 0 and not (parsed.get("windows") or []):
+            raise ValueError(
+                f"correction emitted 0 windows but the reading stage has "
+                f"{expected_window_strokes} window stroke(s) — facade windows were "
+                f"dropped (a known 1_correction instability, not a kernel issue)"
+            )
+
+    return _validate
+
+
 def run_correction(
     vector_dir: Path,
     testdata_text: str,
@@ -281,7 +356,15 @@ def run_correction(
         vector_dir, testdata_text, feedback=feedback
     )
     parsed = _call_json_llm(
-        _section("correction"), system_prompt, human, out_dir=out_dir, prefix="correction"
+        _section("correction"),
+        system_prompt,
+        human,
+        out_dir=out_dir,
+        prefix="correction",
+        attempts=3,
+        validate=_make_window_completeness_validator(
+            _reading_window_stroke_count(vector_dir)
+        ),
     )
     try:
         geom = CorrectedGeometry.model_validate(parsed)
@@ -375,7 +458,7 @@ def run_mep(
         zone_specs, used_constructions, testdata_text, feedback=feedback
     )
     parsed = _call_json_llm(
-        _section("mep"), system_prompt, human, out_dir=out_dir, prefix="mep"
+        _section("mep"), system_prompt, human, out_dir=out_dir, prefix="mep", attempts=3
     )
     try:
         result = MepOutput.model_validate(parsed)
