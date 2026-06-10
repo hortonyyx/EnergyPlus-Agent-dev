@@ -6,6 +6,8 @@
 >
 > **2026-05-12 晚 — 两步法 POC PASS（[floorplan_redraw_strategy.md §9](capability/floorplan_redraw_strategy.md)）**：sm_20 全套两步法 + 下游 + EP 真跑验证；架构通透性 + 识图泛化 + 微调可行性同时验证。**新主线 = B1.5 两步法立项**（最高优先级，详见下节）。B2-B4 评测基线规范化与之并行推进。idfpy 替换主线（[deferred/idfpy_embed.md](deferred/idfpy_embed.md)）等协作者交付，仍搁置。
 >
+> **2026-06-10 — 0–5 管线 EP 跑通 + B 结案 + 路线锚定**：schedule 段错根因修（确定性门）+ 1_correction 稳定性硬化（重试+窗自检）；**sm21（2层）+ sm23（单层）EP cleanly 跑通**（详见 [CLAUDE.md §5.11 后 banner](CLAUDE.md)）。**用户定路线**：① Fable 5 完整体检 0–5 找硬伤（[review request](logs/review/request/2026-06-10_pipeline_0-5_full_audit_request.md)）② sm20+sm21 干净 anchor → 建 **test_baseline**（B2–B4）③ 接**国产 VLM API** 全流程（0_reading 自动化，B8 提前）④ **依次升级建筑复杂度**强化 0–5 各环节（B5–B7，建议清单 [pipeline_0-5_capability_upgrade_suggestions.md](architecture/pipeline_0-5_capability_upgrade_suggestions.md)）。
+>
 > 优先级：P0（立即）/ P1（一周内）/ P2（依赖 P0/P1）。
 
 ---
