@@ -4,7 +4,7 @@
 
 ---
 
-> 🚧 **进行中（跨会话活任务，2026-06-09 起）**：管线重构为 **0–5 阶段架构**（0_Reading/1_Correction/2_Modelling/3_Split-pairing/4_MEP/5_Intakeoutput）。**Step 1–7 完成**（`29845ea`/`6117f58`/`945c54c`/`600f7d0`/`a978009`/`763ee97`+docs）——几何已彻底确定性化（内核造面+切配→序列化 surface_specs，fork a 下游誊写），phase2b 解耦成 4_MEP(LLM 物理)+5_intakeoutput(确定性装配)，`IntakeOutput` 契约不变。**仅剩 Step 8（sm21_pre e2e 复测）**，需 DeepSeek API + 下游全跑。**新会话先读** [logs/2026-06-09_pipeline_0-5_refactor_handoff.md](logs/2026-06-09_pipeline_0-5_refactor_handoff.md) + [architecture/pipeline_stage_contracts.md](architecture/pipeline_stage_contracts.md)（已更新到新实态）。详见 §5.11。
+> ✅ **0–5 阶段重构完成（2026-06-09→06-10，Step 1–8）**：管线重构为 **0–5 阶段架构**（0_Reading/1_Correction/2_Modelling/3_Split-pairing/4_MEP/5_Intakeoutput），commits `29845ea`/`6117f58`/`945c54c`/`600f7d0`/`a978009`/`763ee97`/`c0dddc4`/`3577…`。几何已彻底确定性化（内核造面+切配→序列化 surface_specs，fork a 下游誊写），phase2b 解耦成 4_MEP(LLM 物理)+5_intakeoutput(确定性装配)，`IntakeOutput` 契约不变。**Step 8 e2e（干净 sm21）**：确定性几何 InterZone 门 0 issue + 4_MEP 契约 0 issue + 下游忠实誊写 100 面 + 装配 IDF 门 0 pair_issues（对照旧 staged 12–26 issue）；EP 本体未跑通=本容器 energyplus 二进制 segfault（环境，非模型）。详见 §5.11 + [handoff](logs/2026-06-09_pipeline_0-5_refactor_handoff.md) + [pipeline_stage_contracts.md](architecture/pipeline_stage_contracts.md)。**残留**：EP 在能跑的机器复跑 / legacy run_phase2b+rules.md 可删 / fork(b) 待议 / 非矩形随 B5。
 
 ## 1. 项目总览
 

@@ -1,6 +1,8 @@
 # 交接 · 管线重构为 0–5 阶段架构（活任务，跨会话）
 
-> **状态（2026-06-09 v2）**：Step 1–7 完成并提交（Step 1 `29845ea`；Step 2 `6117f58`；Step 3 `945c54c`；Step 4 `600f7d0`；Step 5 `a978009`；Step 6 `763ee97`；Step 7 docs）。**Step 8（sm21_pre e2e 复测）待做** —— 唯一剩余项，需 DeepSeek API + 下游全跑。fork (a)（序列化→下游誊写）已选定实现；fork (b) 记录待后续整合再议。
+> **状态（2026-06-10，全部 8 步完成）**：Step 1–8 完成（Step 1 `29845ea`；2 `6117f58`；3 `945c54c`；4 `600f7d0`；5 `a978009`；6 `763ee97`；7 `c0dddc4`；8 anchor `3577…`）。fork (a)（序列化→下游誊写）已实现并 e2e 验证；fork (b) 记录待后续整合再议。
+>
+> **Step 8 e2e 结论（干净 sm21 输入，per §7 Q2）**：确定性几何 → 内核 → InterZone 门 **0 issue**（14 zone 两层错配，对照旧 staged 12–26 issue）；内核→序列化→**4_MEP（真 DeepSeek 调用）**→装配→**契约校验 0 issue** → 完整合法 IntakeOutput；喂下游 9 subagent → surface_agent **忠实誊写** 100 个面 → 装配 IDF → **InterZone 门 0 pair_issues**（31 互逆对/62 Surface/7 Ground）。**EP 本体未跑通：本容器 energyplus 二进制启动即 segfault（empty err，非模型问题——模型错会出 severe 不会 segfault；且 binary 不在 PATH 上、runner 本就跳过）= 环境限制**，待在能跑 EP 的机器（宿主 Windows 引擎 / 修好的容器）上复跑确认 `Completed Successfully`。几何正确性以 InterZone 门为准（项目定义，§5.8.B），已 0 issue。
 > **首读**：本文 + [pipeline_stage_contracts.md](../architecture/pipeline_stage_contracts.md)（架构 spec，**已更新到新实态**）+ [split_pairing_kernel_reference.md §7](../reference/split_pairing_kernel_reference.md)（切配落地状态）+ [rules_md_split_map.md](../architecture/rules_md_split_map.md)（rules.md 拆解 + 口径）。
 
 ---
