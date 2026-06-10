@@ -557,9 +557,9 @@ def run_pipeline(
     if bg is None:
         # Hard kernel error: the geometry is required and deterministic, so a
         # build failure is a bug to fix, not something to paper over with an LLM.
+        where = " (see 2_modelling/kernel_gate_report.json)" if s2 is not None else ""
         raise RuntimeError(
-            "geometry kernel build failed (see 2_modelling/kernel_gate_report.json): "
-            + "; ".join(kernel_issues)
+            f"geometry kernel build failed{where}: " + "; ".join(kernel_issues)
         )
 
     # 3_split_pairing (serialization): kernel geometry -> specs text.
