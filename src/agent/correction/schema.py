@@ -1,7 +1,7 @@
-"""Materialized intermediate geometry for the staged phase-2 correction pipeline.
+"""Materialized intermediate geometry for the staged correction pipeline.
 
-phase2a (LLM correction) emits `CorrectedGeometry`; the deterministic core snaps
-it; phase2b (LLM modeling) consumes it to produce `IntakeOutput`. Holding this
+correction stage (LLM correction) emits `CorrectedGeometry`; the deterministic core snaps
+it; the modeling/MEP stages (LLM modeling) consumes it to produce `IntakeOutput`. Holding this
 artifact explicit decouples the stages (swap a model per stage) and makes the
 correction checkpoint verifiable and diffable for evaluation.
 
@@ -46,7 +46,7 @@ class Floor(BaseModel):
 
 
 class CorrectedGeometry(BaseModel):
-    """Corrected, world-frame, centerline geometry primitives — the phase-2a output."""
+    """Corrected, world-frame, centerline geometry primitives — the correction-stage output."""
 
     model_config = ConfigDict(extra="allow")
     footprint_x: list[float]  # [min, max]

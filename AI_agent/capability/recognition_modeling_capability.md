@@ -1,5 +1,7 @@
 # 识图 → 建模 能力提升（长期主线活文档）
 
+> **术语对照（2026-06-10 改名后）**：本文历史叙述沿用旧称——phase1=0_reading（识图）/ phase2a=1_correction（校正）/ phase2b 已拆为 2_modelling+3_split_pairing（几何，代码内核）+4_mep（物理）+5_intakeoutput（装配）；代码模块 `src/agent/pipeline.py`（`run_pipeline`）。详见 [pipeline_stage_contracts.md](../architecture/pipeline_stage_contracts.md)。
+
 > **定位**：识图→建模质量是项目长期主线工作的主要对象。本文档管理这条线的**问题框架 / 诊断证据 / 设计哲学 / 改进方向 / 待定取舍**，是一份持续迭代的活文档。
 >
 > 与其他文档的关系：[plan.md](../plan.md) B 段（B1.5.b / B5-B7）是任务清单；[floorplan_redraw_strategy.md](floorplan_redraw_strategy.md) 是两步法架构策略与 POC 史；[../architecture/geometry_first_zonification.md](../architecture/geometry_first_zonification.md) 是**并行的另一条腿**（再拓扑：抽象成热区积木、丢弃真实几何，EP 鲁棒性最优但变化最大）。**本文档 = 忠实建模 leg**（保留真实建筑几何的容差重生成），是**质量提升的设计与决策载体**，且有 beyond-EP 的独立产品价值（图纸→建筑模型小 Agent）。两腿并行决策见 §8。skill 的具体落地仍在 [`skills/intake_pipeline/`](../../skills/intake_pipeline)。

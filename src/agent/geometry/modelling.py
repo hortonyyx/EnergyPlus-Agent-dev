@@ -255,7 +255,7 @@ def _find_parent_wall(surfaces: list[Surface], zone: str, w) -> Surface | None:
 # --------------------------------------------------------------------------- #
 def build_zone_volumes(geom: CorrectedGeometry) -> tuple[list[ZoneVolume], list[str]]:
     """Cells -> zone volumes, in floor-major / cell order. Also returns tiling
-    guard notes: same-floor cells must not overlap (a phase2a defect — e.g. a
+    guard notes: same-floor cells must not overlap (a correction stage defect — e.g. a
     corridor placed over the rooms it should sit between produces same-side walls
     the gate rejects). Flag, don't paper over."""
     zvs: list[ZoneVolume] = []
@@ -284,7 +284,7 @@ def build_zone_volumes(geom: CorrectedGeometry) -> tuple[list[ZoneVolume], list[
                         f"OVERLAP: cells '{group[i].cell_id}' and "
                         f"'{group[j].cell_id}' on floor {fname} overlap by "
                         f"{ov:.2f} m^2 — cells must tile, not overlap "
-                        f"(upstream phase2a/correction defect)"
+                        f"(upstream correction stage/correction defect)"
                     )
     return zvs, notes
 

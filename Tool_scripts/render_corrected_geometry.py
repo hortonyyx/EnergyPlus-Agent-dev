@@ -1,11 +1,11 @@
-"""Render a phase-2a CorrectedGeometry JSON to PNG for visual validation.
+"""Render a correction-stage CorrectedGeometry JSON to PNG for visual validation.
 
-phase 2a does NOT emit a drawing — it emits structured geometry primitives
+the correction stage does NOT emit a drawing — it emits structured geometry primitives
 (rectangular room cells + windows + per-floor z + audit). This renders that
 abstraction to a plan view (one panel per floor) so the correction result can be
 eyeballed: are cells tiling the footprint? did cross-floor axes unify? do windows
-sit on the right facade? — the phase-2a analogue of render_vector_to_png.py for
-phase 1.
+sit on the right facade? — the correction-stage analogue of render_vector_to_png.py for
+the reading stage.
 
 Usage:
     python Tool_scripts/render_corrected_geometry.py <corrected_geometry.json> [--out x.png]
@@ -68,7 +68,7 @@ def render(data: dict) -> Image.Image:
     d = ImageDraw.Draw(img)
 
     title = (
-        f"phase2a CorrectedGeometry  |  footprint {w_m:g}×{h_m:g} m  |  "
+        f"correction stage CorrectedGeometry  |  footprint {w_m:g}×{h_m:g} m  |  "
         f"corrections={len(data.get('corrections') or [])} "
         f"conflicts={len(data.get('conflicts') or [])} "
         f"unsupported={len(data.get('unsupported') or [])}"
@@ -136,7 +136,7 @@ def render(data: dict) -> Image.Image:
 
 def main() -> None:
     ap = argparse.ArgumentParser()
-    ap.add_argument("json_path", help="CorrectedGeometry JSON (phase2a_geometry[_snapped].json)")
+    ap.add_argument("json_path", help="CorrectedGeometry JSON (correction stage_geometry[_snapped].json)")
     ap.add_argument("--out", help="output PNG path (default: <json>.png)")
     args = ap.parse_args()
     j = Path(args.json_path)

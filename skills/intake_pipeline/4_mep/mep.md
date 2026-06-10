@@ -1,7 +1,7 @@
 # MEP priors — DRAFT seed
 
 > **Status: DRAFT seed, not a knowledge base yet.** This holds the default
-> MEP load / schedule / HVAC values phase 2b assigns when the input carries no
+> MEP load / schedule / HVAC values the 4_mep stage assigns when the input carries no
 > such data — which is the current situation (the drawings + testdata give
 > geometry, not loads or schedules). It was extracted out of `rules.md` Step 7 so
 > the modeling rules stay geometry-focused and these defaults live in one place.

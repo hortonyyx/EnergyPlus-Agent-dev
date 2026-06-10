@@ -12,7 +12,7 @@ from src.configs.config import LLMConfig
 load_dotenv()
 
 # Environment override for the LLM config file. When set (e.g. by
-# run_full_pipeline to a per-case `<case>/llm.yaml`), every model — phase 2 and
+# run_full_pipeline to a per-case `<case>/llm.yaml`), every model — the pipeline and
 # all 9 downstream subagents — resolves its section from that file instead of
 # the global default, so a formal test run can pin its own model combination
 # without editing the shared config. Falls back to src/configs/llm.yaml.
@@ -45,7 +45,7 @@ def load_llm_section(node_name: str | None) -> dict[str, Any]:
         unknown `node_name` falls back to `default`.
 
     Config file = `resolve_llm_config_path()` (per-case override or global
-    default). Public so non-langchain callers (e.g. src/agent/phase2.py, which
+    default). Public so non-langchain callers (e.g. src/agent/pipeline.py, which
     uses a raw OpenAI client) read the same config home.
     """
     raw = OmegaConf.load(resolve_llm_config_path())

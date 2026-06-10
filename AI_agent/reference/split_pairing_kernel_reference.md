@@ -1,5 +1,7 @@
 # 切配（split-pairing）确定性内核 — 技术参考 + 落位决策
 
+> **术语对照（2026-06-10 改名后）**：本文历史叙述沿用旧称——phase1=0_reading（识图）/ phase2a=1_correction（校正）/ phase2b 已拆为 2_modelling+3_split_pairing（几何，代码内核）+4_mep（物理）+5_intakeoutput（装配）；代码模块 `src/agent/pipeline.py`（`run_pipeline`）。详见 [pipeline_stage_contracts.md](../architecture/pipeline_stage_contracts.md)。
+
 > **⚠️ 决策反转（2026-06-09，用户定）**：切配**收回本项目侧自己做**，不再「归下游」。落位 = **确定性算法，紧接确定性核之后、吃 `CorrectedGeometry` 的 cells 做**（详见 §6）。推翻 2026-06-07「下游另有人做、不归本项目管」的旧定性。
 >
 > **触发证据（2026-06-09，sm20/sm21 对照）**：见 §2.5。一步出 LLM 能把切配做对（sm20 三层 7/8/4 更难也 0 门 issue、真切子面），**staged 反而退化**（sm21 staged 12/26 issue）——证明切配不是「LLM 做不到」，是 staged 架构把这块跨层几何活儿孤立成 LLM 机械记账杂活、做不稳。结论：**该确定性化、在我方做**。
@@ -45,7 +47,7 @@ surface_converter(纯代码)  照单写入 IDF, 只逐面校验形状, 不验配
 interzone.py 门(确定性)    事后校验整张配对图(8 项), 不切面                  ← 裁判, 我方
 ```
 
-- 切分**决策**在 [skills/intake_pipeline/phase2/rules.md](../../skills/intake_pipeline/phase2/rules.md) §2.6 / Step 4（phase2 文本心算 O(n×m) break 点并集枚举）。
+- 切分**决策**在 [skills/intake_pipeline/4_mep/mep.md](../../skills/intake_pipeline/4_mep/mep.md) §2.6 / Step 4（phase2 文本心算 O(n×m) break 点并集枚举）。
 - 几何**实现**在 [src/agent/nodes/surface.py](../../src/agent/nodes/surface.py)（surface LLM 把子区间变顶点、设互逆引用）。
 - 事后**裁判**在 [src/validator/interzone.py](../../src/validator/interzone.py)（装配后 EP 前 fail-fast，8 项：目标存在/是 Surface/互逆/单一引用/面积匹配/法向相反/共面/最小边长≥0.1m）。**只裁不切。**
 
@@ -97,7 +99,7 @@ interzone.py 门(确定性)    事后校验整张配对图(8 项), 不切面    
 - [src/validator/interzone.py](../../src/validator/interzone.py) — 现 per-pair 确定性门（切配内核的事后校验可由它退化成 sanity check）
 - [src/agent/nodes/surface.py](../../src/agent/nodes/surface.py) — 现 LLM 几何实现（切配内核要取代的）
 - [src/converters/surface_converter.py](../../src/converters/surface_converter.py) — 纯写入
-- [skills/intake_pipeline/phase2/rules.md](../../skills/intake_pipeline/phase2/rules.md) §2.6 / Step 4 — 现切分决策文本规则
+- [skills/intake_pipeline/4_mep/mep.md](../../skills/intake_pipeline/4_mep/mep.md) §2.6 / Step 4 — 现切分决策文本规则
 - [AI_agent/deferred/idfpy_embed.md](../deferred/idfpy_embed.md) — idfpy 切换计划（切配内核的使能器）
 - [AI_agent/architecture/geometry_first_zonification.md](../architecture/geometry_first_zonification.md) §7.2 — idfpy/shapely 分工分析
 
@@ -124,7 +126,7 @@ interzone.py 门(确定性)    事后校验整张配对图(8 项), 不切面    
 
 切配确定性内核**已建成并接进主链**（shapely 多边形原生）：
 - 造面+切配：[src/agent/geometry/split_pairing.py](../../src/agent/geometry/split_pairing.py)（同层内墙互逆配对 + 跨层楼板/天花切分配对 + roof/ground + 重叠守卫）+ [modelling.py](../../src/agent/geometry/modelling.py)（zone 体块 + 面顶点合成）。**leg-agnostic**：吃 `list[ZoneVolume]`，任何 zonification 粒度同算法。
-- 接线：[phase2.py](../../src/agent/phase2.py) `run_phase2` 核之后 build_geometry → [specs.py](../../src/agent/geometry/specs.py) `serialize_geometry` 序列化成 `surface_specs` → **fork (a)** 下游 surface_agent 忠实誊写。`IntakeOutput` 契约不变、下游不动。
+- 接线：[phase2.py](../../src/agent/pipeline.py) `run_phase2` 核之后 build_geometry → [specs.py](../../src/agent/geometry/specs.py) `serialize_geometry` 序列化成 `surface_specs` → **fork (a)** 下游 surface_agent 忠实誊写。`IntakeOutput` 契约不变、下游不动。
 - 验证：[tests/test_geometry_kernel.py](../../tests/test_geometry_kernel.py) 8 测对标 InterZone 门 0 issue（含 sm20-shaped 三层 4/3/2 错配）。**事后裁判** = [interzone.py](../../src/validator/interzone.py) 门（退化成 sanity check，§5 已预言）。
 - **待**：非矩形端到端 case 随 B5；sm21_pre e2e = Step 8。fork (b)（确定性直接造面绕过下游）记录待后续整合再议。
 

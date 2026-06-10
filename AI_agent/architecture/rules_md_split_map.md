@@ -1,8 +1,16 @@
 # rules.md split map — geometry → kernel / physics → 4_mep / contract → assembly
 
+> **⚠️ Historical record (Step 2 of the 0–5 refactor).** Written while the single
+> whole-output `phase2/rules.md` prompt was still live. That prompt is now retired
+> and the refactor is complete; this doc is kept as the section→destination
+> rationale. Old terms map to today's stages: **phase 1 = 0_reading**,
+> **phase2a = 1_correction**, **phase2b geometry = 2_modelling + 3_split_pairing
+> (kernel)**, **phase2b physics = 4_mep**, **phase2b assembly = 5_intakeoutput**.
+>
 > **Step 2 of the 0–5 pipeline refactor** (handoff
 > [2026-06-09_pipeline_0-5_refactor_handoff.md](../logs/2026-06-09_pipeline_0-5_refactor_handoff.md)).
-> Classifies every section of [phase2/rules.md](../../skills/intake_pipeline/phase2/rules.md)
+> Classifies every section of the old `phase2/rules.md` (archived to
+> `Skill_history/2026-06-10_phase2_terminology_cleanup/`)
 > by where it belongs under the target architecture
 > ([pipeline_stage_contracts §0.1](pipeline_stage_contracts.md)), names the kernel
 > function that already implements each geometry rule (or marks a GAP), and records
@@ -13,7 +21,7 @@
 
 ## 0. Why rules.md is not gutted yet (sequencing)
 
-`rules.md` is the live system prompt for **phase2b** ([phase2.py](../../src/agent/phase2.py)
+`rules.md` is the live system prompt for **phase2b** ([phase2.py](../../src/agent/pipeline.py)
 `run_phase2b`), which today authors the **entire** `IntakeOutput` including all geometry.
 The deterministic geometry kernel ([geometry/build.py](../../src/agent/geometry/build.py))
 already implements the geometry, but is **not wired into the pipeline** (Step 4) and

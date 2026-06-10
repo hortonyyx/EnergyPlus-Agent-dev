@@ -1,8 +1,8 @@
-# Phase 1 guide — flow, constraints, and output container
+# Reading-stage guide (0_reading) — flow, constraints, and output container
 
-Phase 1 turns each architectural drawing into a vector JSON. The model acts like an artist
+The reading stage turns each architectural drawing into a vector JSON. The model acts like an artist
 re-tracing the original image with a set of **semantically labeled pens**, without doing any
-spatial-topology reasoning. All topology is left to phase 2.
+spatial-topology reasoning. All topology is left to the correction stage.
 
 This document is the **master guide**: the error budget, the global constraints, the output
 container (JSON format), and the processing discipline (door-healing, self-check, downstream
@@ -21,7 +21,7 @@ action; this guide holds the rules and the container that both feed into.
 
 ## 0. Mental model
 
-Think of phase 1 as "re-tracing the source image with a set of semantically labeled pens":
+Think of the reading stage as "re-tracing the source image with a set of semantically labeled pens":
 - the **wall pen** traces every stroke that drew a wall
 - the **window pen** traces every stroke that drew a window
 - … plus dimension chains and text annotations
@@ -29,39 +29,39 @@ Think of phase 1 as "re-tracing the source image with a set of semantically labe
 (How to recognize each element across styles → [`reading_guide.md`](reading_guide.md);
 the pen each category maps to → [`pen_library.md`](pen_library.md).)
 
-**What phase 1 does**: identify which component type each stroke is, and trace its geometry by type.
-**What phase 1 does NOT do**: merge strokes into "one exterior wall" / outline "this is a room" /
+**What the reading stage does**: identify which component type each stroke is, and trace its geometry by type.
+**What the reading stage does NOT do**: merge strokes into "one exterior wall" / outline "this is a room" /
 say "this window belongs to that wall" / judge "this wall faces outside or inside".
 
-All of that topology reasoning is left to phase 2.
+All of that topology reasoning is left to the correction stage.
 
 ### 0.1 Error budget (important)
 
-Phase 1 and phase 2 are mutually exclusive in the kind of error each can introduce:
+The reading stage and the correction stage are mutually exclusive in the kind of error each can introduce:
 
 | Stage | Can see | Errors it can introduce |
 |---|---|---|
-| phase 1 | the source image (multimodal) | **perception errors**: misread dimension, missed stroke, offset coordinate, wrong elevation x-axis direction |
-| phase 2 | phase 1 JSON + skill rule docs + testdata_prompt metadata (**does not see the image**) | **pure reasoning errors**: wrong grouping, inside/outside misjudged, parent-child mapping wrong, IntakeOutput field wrong |
+| the reading stage | the source image (multimodal) | **perception errors**: misread dimension, missed stroke, offset coordinate, wrong elevation x-axis direction |
+| the correction stage | the reading stage JSON + skill rule docs + testdata_prompt metadata (**does not see the image**) | **pure reasoning errors**: wrong grouping, inside/outside misjudged, parent-child mapping wrong, IntakeOutput field wrong |
 
 **Implications**:
-- Every error about "a value / position / stroke type in the image" must be caught in phase 1.
-  Once phase 1 writes it wrong, phase 2 has no chance to backtrack.
-- When diffing IntakeOutput, any inconsistency tied to the source image roots 100% in phase 1; only
-  topology / naming / field-format errors are phase 2's.
-- So when writing the JSON, phase 1 **prefers null over guessing** — null means "I couldn't see it",
-  whereas a guessed value makes phase 2 treat a wrong number as truth.
+- Every error about "a value / position / stroke type in the image" must be caught in the reading stage.
+  Once the reading stage writes it wrong, the correction stage has no chance to backtrack.
+- When diffing IntakeOutput, any inconsistency tied to the source image roots 100% in the reading stage; only
+  topology / naming / field-format errors are the correction stage's.
+- So when writing the JSON, the reading stage **prefers null over guessing** — null means "I couldn't see it",
+  whereas a guessed value makes the correction stage treat a wrong number as truth.
 
 ### 0.2 Effect of simulation physics
 
 In EnergyPlus a zone is enclosed by **surfaces (2D faces)**; a wall has no thickness concept. So:
 - a "thick black wall" in plan is just a **centerline** (2D polyline) in simulation; the wall body
   width does not participate in the calculation
-- phase 1 need not estimate wall thickness — fill `thickness_m` with `null`
+- the reading stage need not estimate wall thickness — fill `thickness_m` with `null`
 - an elevation `wall_fill` rectangle is only a z-range signal source (which layer's z is where), it
   does not mean "the wall is this thick"
 - **a door is simply ignored in energy simulation**: a "wall with a door" is, in its simulation
-  reality, **one continuous wall**. So when phase 1 sees a door opening it heals the wall to be
+  reality, **one continuous wall**. So when the reading stage sees a door opening it heals the wall to be
   continuous (door-healing, see §2.1); the door symbol only triggers the heal and does not enter
   `strokes`
 
@@ -159,7 +159,7 @@ In EnergyPlus a zone is enclosed by **surfaces (2D faces)**; a wall has no thick
   ],
 
   // ===== dimension chains (structured composite primitives) =====
-  // visually a "tick + number + tick" chunk is one unit, classified on its own; phase 2 uses it to derive coordinates
+  // visually a "tick + number + tick" chunk is one unit, classified on its own; the correction stage uses it to derive coordinates
   "dimensions": [
     {
       "id": "D1",
@@ -204,21 +204,21 @@ In EnergyPlus a zone is enclosed by **surfaces (2D faces)**; a wall has no thick
 
 In EP a wall is a continuous boundary face, a window is a sub-face on a wall, and a door is ignored
 outright in energy simulation. So a "wall with a door" is, in its simulation reality, **one
-continuous wall**. Phase 1 can see the door arc / leaf at a glance; phase 2 only has coordinates and
+continuous wall**. The reading stage can see the door arc / leaf at a glance; the correction stage only has coordinates and
 cannot reliably tell apart "door / real opening / two independent walls" — so by the error-budget
-principle, healing the door belongs to phase 1. Effect: phase 2 always receives a clean, closed wall
+principle, healing the door belongs to the reading stage. Effect: the correction stage always receives a clean, closed wall
 network (one uniform, image-free, validated regime).
 
-**Healing ≠ assigning rooms**: phase 1 only guarantees the wall network is geometrically continuous
-and closed; which walls enclose which room / inside vs outside / naming is still phase 2's job
+**Healing ≠ assigning rooms**: the reading stage only guarantees the wall network is geometrically continuous
+and closed; which walls enclose which room / inside vs outside / naming is still the correction stage's job
 (§3 red line).
 
-Guardrails (to stop phase 1 inventing walls):
+Guardrails (to stop the reading stage inventing walls):
 
 1. **Only heal openings carrying a door symbol (door leaf / swing arc)** — the door symbol is the trigger
 2. **Do not heal a doorless large opening / open span** — that is a real topology signal
    (possibly the same zone / a genuinely open boundary); welding it shut destroys information
-   phase 2 needs. A gap alone, with no door symbol, does not count
+   the correction stage needs. A gap alone, with no door symbol, does not count
 3. **Do not heal windows** — keep them as a window pen (a window is a sub-face, not a boundary break)
 4. **Always leave a trace when healing**: write `healed door opening at <position>` in that wall
    stroke's note, and record it in `self_check.uncaptured_visual_elements`, so SVG review can verify
@@ -229,14 +229,14 @@ Guardrails (to stop phase 1 inventing walls):
 ## 3. Visual recognition vs spatial topology (the red line)
 
 Judging wall vs window vs wall_fill vs non-structural clutter is **visual recognition** (the strokes look different) —
-phase 1's domain (use [`reading_guide.md`](reading_guide.md) to recognize the element,
+the reading stage's domain (use [`reading_guide.md`](reading_guide.md) to recognize the element,
 then [`pen_library.md`](pen_library.md) to map the category to a pen).
 
 Judging wall ext vs int / which wall a window belongs to / which walls enclose which room / which
-floor a wall_fill maps to ←—— these are **spatial topology** judgments, all left to phase 2.
+floor a wall_fill maps to ←—— these are **spatial topology** judgments, all left to the correction stage.
 
-Phase 1 must resist the second category even when it "looks obvious". The error budget only works if
-phase 1 stays purely perceptual.
+The reading stage must resist the second category even when it "looks obvious". The error budget only works if
+the reading stage stays purely perceptual.
 
 ---
 
@@ -252,15 +252,15 @@ phase 1 stays purely perceptual.
 | West | `"West facade: local x = -world y (local x increasing = world southward); local y = world z"` |
 
 Elevation window strokes use `geometry.kind="rect"` + `x_range_m` / `y_range_m` (this image's local
-coordinates); phase 2 uses `facade_axis_note` to translate back to the world system.
+coordinates); the correction stage uses `facade_axis_note` to translate back to the world system.
 
 ---
 
 ## 5. Counter-examples (recognition discipline)
 
-- ❌ `"pen": "wall", "is_exterior": true` —— is_exterior is phase 2's call, do not add the field
+- ❌ `"pen": "wall", "is_exterior": true` —— is_exterior is the correction stage's call, do not add the field
 - ❌ stuffing a room polygon into strokes —— a room is not a drawn stroke
-- ❌ `"pen": "wall", "parent_window_ids": [...]` —— parent-child is phase 2's inference
+- ❌ `"pen": "wall", "parent_window_ids": [...]` —— parent-child is the correction stage's inference
 - ❌ splitting one continuous wall into 10 small strokes —— one stroke per continuous stroke
 - ❌ splitting a wall with a door into two wall strokes on either side —— heal it into one continuous wall + note (§2.1)
 - ❌ welding a doorless open span into a continuous wall —— that is a real topology signal; only heal openings with a door symbol
@@ -294,7 +294,7 @@ coordinates); phase 2 uses `facade_axis_note` to translate back to the world sys
 
 ## 7. Contract with downstream
 
-Phase 2 receives a set of these JSONs (one per image) + testdata_prompt.json + skill rule docs, and
+The correction stage receives a set of these JSONs (one per image) + testdata_prompt.json + skill rule docs, and
 rebuilds topology:
 - recognize closed regions enclosed by multiple wall strokes as rooms / zones
 - judge each wall's is_exterior (whether it sits on the perimeter)
@@ -302,5 +302,5 @@ rebuilds topology:
 - translate elevation strokes back to world coordinates, cross-check plan ↔ elevation consistency
 - output the IntakeOutput Pydantic
 
-Phase 1's output is not IntakeOutput, and **should not align directly with IntakeOutput fields**.
-Phase 1's product is just "the image, re-traced".
+the reading stage's output is not IntakeOutput, and **should not align directly with IntakeOutput fields**.
+the reading stage's product is just "the image, re-traced".

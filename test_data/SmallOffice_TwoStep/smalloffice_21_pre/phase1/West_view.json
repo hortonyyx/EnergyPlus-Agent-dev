@@ -1,0 +1,78 @@
+{
+  "image_label": "West elevation",
+  "image_kind": "elevation",
+  "facade_axis_note": "West facade: local x = -world y (local x increasing = world southward, i.e. local x=0 is the north end of the building, local x=8 is the south end); local y = world z (increasing upward, ground = 0)",
+  "scale_origin": {
+    "world_x_m": 0.00,
+    "world_y_m": 8.00,
+    "world_z_m": 0.00,
+    "note": "local origin = NW corner at ground level; local x runs southward = 8.0 - world y; local y = world z"
+  },
+  "strokes": [
+    {
+      "id": "S1",
+      "pen": "wall_fill",
+      "geometry": {
+        "kind": "rect",
+        "x_range_m": [0.00, 8.00],
+        "y_range_m": [0.00, 3.00]
+      },
+      "note": "West facade F1 wall body (ground floor, y=0 to 3.0m); entry door opening visible but door is not traced"
+    },
+    {
+      "id": "S2",
+      "pen": "wall_fill",
+      "geometry": {
+        "kind": "rect",
+        "x_range_m": [0.00, 8.00],
+        "y_range_m": [3.00, 6.60]
+      },
+      "note": "West facade F2 wall body (upper floor, y=3.0 to 6.6m)"
+    },
+    {
+      "id": "S3",
+      "pen": "window",
+      "geometry": {
+        "kind": "rect",
+        "x_range_m": [3.40, 4.60],
+        "y_range_m": [4.00, 5.80]
+      },
+      "note": "F2 west window; 1200mm wide, 1800mm tall, sill at 1000mm above F2 floor (y=3.0+1.0=4.0); from top chain 3400+1200 and F2 height chain 1000+1800+800"
+    }
+  ],
+  "dimensions": [
+    {"id": "D1",  "text": "8000",  "from": [0.00, 6.60], "to": [8.00, 6.60], "axis": "x", "note": "top overall width chain"},
+    {"id": "D2",  "text": "3400",  "from": [0.00, 6.60], "to": [3.40, 6.60], "axis": "x", "note": "top sub-chain, north margin (local x)"},
+    {"id": "D3",  "text": "1200",  "from": [3.40, 6.60], "to": [4.60, 6.60], "axis": "x", "note": "top sub-chain (F2 window width / F1 door width)"},
+    {"id": "D4",  "text": "3400",  "from": [4.60, 6.60], "to": [8.00, 6.60], "axis": "x", "note": "top sub-chain, south margin (local x)"},
+    {"id": "D5",  "text": "6600",  "from": [0.00, 0.00], "to": [0.00, 6.60], "axis": "z", "note": "left overall height chain"},
+    {"id": "D6",  "text": "3600",  "from": [0.00, 3.00], "to": [0.00, 6.60], "axis": "z", "note": "left sub-chain, F2 height"},
+    {"id": "D7",  "text": "800",   "from": [0.00, 5.80], "to": [0.00, 6.60], "axis": "z", "note": "left sub-chain F2, parapet above window"},
+    {"id": "D8",  "text": "1800",  "from": [0.00, 4.00], "to": [0.00, 5.80], "axis": "z", "note": "left sub-chain F2, window height"},
+    {"id": "D9",  "text": "1000",  "from": [0.00, 3.00], "to": [0.00, 4.00], "axis": "z", "note": "left sub-chain F2, sill height above F2 floor"},
+    {"id": "D10", "text": "3000",  "from": [0.00, 0.00], "to": [0.00, 3.00], "axis": "z", "note": "left sub-chain, F1 height (no window sub-chain; entry door in F1 has no height dimension annotation visible)"},
+    {"id": "D11", "text": "6600",  "from": [8.00, 0.00], "to": [8.00, 6.60], "axis": "z", "note": "right overall height chain"},
+    {"id": "D12", "text": "3600",  "from": [8.00, 3.00], "to": [8.00, 6.60], "axis": "z", "note": "right sub-chain, F2 height"},
+    {"id": "D13", "text": "3000",  "from": [8.00, 0.00], "to": [8.00, 3.00], "axis": "z", "note": "right sub-chain, F1 height"},
+    {"id": "D14", "text": "8000",  "from": [0.00, 0.00], "to": [8.00, 0.00], "axis": "x", "note": "bottom overall width chain (second occurrence)"}
+  ],
+  "ocr_texts": [],
+  "self_check": {
+    "all_dimensions_transcribed": true,
+    "all_visible_strokes_captured": true,
+    "no_topology_inferred": true,
+    "pens_used": ["wall_fill", "window"],
+    "unknowns_noted": [
+      "local x = -world y; local x=0 is north end (world y=8.0), local x=8 is south end (world y=0); phase 2 must apply facade_axis_note",
+      "F1 has a double entry door visible at local x=[3.40,4.60] spanning from y=0 to approx y=2.1m — doors are NOT traced (no door pen); logged in uncaptured",
+      "F1 has no window sub-chain on height axis (no F1 windows on west facade other than the door); F1 height chain shows only the total 3000mm",
+      "F2 west window y=[4.0,5.8] consistent with south/east/north F2 window height data"
+    ],
+    "uncaptured_visual_elements": [
+      "entry double door on west facade F1 at local x=[3.40,4.60], y≈[0.0,2.1] (double door with center meeting stile and two panels each side visible in elevation); door is NOT traced — no door pen; corresponds to west wall door openings in 1f plan",
+      "floor/storey line at y=3.0 visible as horizontal line; used to split wall_fill, not separately traced",
+      "building outline coincides with wall_fill edges; not drawn as separate outline stroke",
+      "excluded dimension annotation ticks and extension lines"
+    ]
+  }
+}

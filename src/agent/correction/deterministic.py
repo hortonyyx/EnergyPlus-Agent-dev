@@ -1,6 +1,6 @@
 """Deterministic correction core: canonical axis snapping + sliver guard.
 
-Runs on `CorrectedGeometry` (phase2a output) before phase2b modeling. Builds a
+Runs on `CorrectedGeometry` (correction stage output) before the modeling/MEP stages modeling. Builds a
 GLOBAL canonical axis set across all floors and snaps every cell / window /
 footprint boundary onto it, so:
 
@@ -10,9 +10,9 @@ footprint boundary onto it, so:
      floor/ceiling split cannot produce a degenerate sub-tolerance sliver — the
      EnergyPlus input-processing segfault class is made structurally impossible.
 
-This kills the CRASH. It does NOT guarantee CORRECTNESS: if phase2a mis-placed a
+This kills the CRASH. It does NOT guarantee CORRECTNESS: if correction stage mis-placed a
 partition, snapping removes the crack but keeps the wrong layout. Geometric
-correctness is the judgment layer's job (phase2a, A3 arbitration). "No crash" and
+correctness is the judgment layer's job (correction stage, A3 arbitration). "No crash" and
 "is correct" are deliberately separate concerns.
 
 Pipeline per axis (structural x/y): cluster (identity) -> snap representative to

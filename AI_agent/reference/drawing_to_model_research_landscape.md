@@ -1,5 +1,7 @@
 # 图纸 → 建筑模型生成：研究现状、业界做法与"伪建模 vs 真三维"路径
 
+> **术语对照（2026-06-10 改名后）**：本文历史叙述沿用旧称——phase1=0_reading（识图）/ phase2a=1_correction（校正）/ phase2b 已拆为 2_modelling+3_split_pairing（几何，代码内核）+4_mep（物理）+5_intakeoutput（装配）；代码模块 `src/agent/pipeline.py`（`run_pipeline`）。详见 [pipeline_stage_contracts.md](../architecture/pipeline_stage_contracts.md)。
+
 > **定位**：回答 2026-05-29 用户的研究性提问——目前有没有"给定图纸→生成建筑模型"的相关研究？业界怎么做？本项目本质是"伪建模"，真三维生成的实现路径是什么？这套流程会被快速淘汰吗？
 >
 > **性质**：外部研究/技术现状参考（不是本项目设计决策）。供定位本项目在研究/业界版图中的坐标、识别可借的现成轮子与可防御的 niche。

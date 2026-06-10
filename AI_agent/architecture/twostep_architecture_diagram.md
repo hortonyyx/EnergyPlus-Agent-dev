@@ -1,5 +1,7 @@
 # 两步法 intake 架构图示（汇报用）
 
+> **术语对照（2026-06-10 改名后）**：本文历史叙述沿用旧称——phase1=0_reading（识图）/ phase2a=1_correction（校正）/ phase2b 已拆为 2_modelling+3_split_pairing（几何，代码内核）+4_mep（物理）+5_intakeoutput（装配）；代码模块 `src/agent/pipeline.py`（`run_pipeline`）。详见 [pipeline_stage_contracts.md](../architecture/pipeline_stage_contracts.md)。
+
 > 配合 [`floorplan_redraw_strategy.md`](../capability/floorplan_redraw_strategy.md) §9 POC 结果使用。
 
 ---
@@ -203,9 +205,9 @@ flowchart LR
 | [`skills/intake_pipeline/phase1/guide.md`](../../skills/intake_pipeline/phase1/guide.md) | Phase 1 总指导（流程 + 约束 + 输出容器 + 门healing/自检纪律）|
 | [`skills/intake_pipeline/phase1/reading_guide.md`](../../skills/intake_pipeline/phase1/reading_guide.md) | Phase 1 识图指南（怎么认出元素、跨风格、画法卡，纯感知）|
 | [`skills/intake_pipeline/phase1/pen_library.md`](../../skills/intake_pipeline/phase1/pen_library.md) | Phase 1 笔库/画图指南（类别→动作映射：哪支笔/忽略/healing）|
-| [`skills/intake_pipeline/phase2/rules.md`](../../skills/intake_pipeline/phase2/rules.md) | Phase 2 推理规则 |
+| [`skills/intake_pipeline/4_mep/mep.md`](../../skills/intake_pipeline/4_mep/mep.md) | Phase 2 推理规则 |
 | [`Tool_scripts/render_vector_to_svg.py`](../../Tool_scripts/render_vector_to_svg.py) | 人工校验工具（矢量 JSON → SVG）|
-| [`Tool_scripts/run_phase2_deepseek.py`](../../Tool_scripts/run_phase2_deepseek.py) | Phase 2 自动跑批脚本 |
+| [`Tool_scripts/run_pipeline_deepseek.py`](../../Tool_scripts/run_pipeline_deepseek.py) | Phase 2 自动跑批脚本 |
 | [`test_data/SmallOffice_TwoStep/smalloffice_20/`](../../test_data/SmallOffice_TwoStep/smalloffice_20) | POC anchor 全套 artifacts |
 | [`test_data/SmallOffice_TwoStep/smalloffice_20/compare/diff.md`](../../test_data/SmallOffice_TwoStep/smalloffice_20/compare/diff.md) | 三方对比详表 |
 

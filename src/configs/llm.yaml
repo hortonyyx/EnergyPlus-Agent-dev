@@ -43,24 +43,18 @@ default:
     thinking:
       type: disabled
 
-intake:
-  provider: anthropic
-  base_url: ${oc.env:ANTHROPIC_BASE_URL,null}
-  api_key: ${oc.env:ANTHROPIC_API_KEY,null}
-  model_name: claude-opus-4-7
-  temperature: 0.7
-  max_tokens: 64000
-
-# Two-step intake (2026-05-29, B1.5.c). intake_node runs phase 2 (vector JSON ->
-# IntakeOutput) when phase-1 vectors are provided (half-manual dev flow:
-# --phase1-from), else falls back to the legacy single-step `intake` section.
+# Staged intake pipeline LLM sections (intake_node runs the pipeline when
+# reading-stage vectors are provided: --reading-from). The pipeline makes two LLM
+# calls: 1_correction and 4_mep (the geometry stages 2/3 + assembly 5 are
+# deterministic code, no LLM). Read by src/agent/pipeline.py via a RAW OpenAI
+# client (not langchain): each call is single-shot and WANTS DeepSeek thinking ON
+# (langchain_openai would burn the output budget on reasoning_content).
+# thinking=enabled here is deliberate and differs from `default` (which disables
+# it for the ReAct downstream loops).
 #
-# intake_phase2: text-only topology reasoning over phase-1 vectors. Read by
-# src/agent/phase2.py via a RAW OpenAI client (not langchain): phase 2 is
-# single-shot and WANTS DeepSeek thinking ON (langchain_openai would burn the
-# output budget on reasoning_content). thinking=enabled here is deliberate and
-# differs from `default` (which disables it for the ReAct downstream loops).
-intake_phase2:
+# intake_correction: text-only correction over reading-stage vectors. This is the
+# primary intake section; `intake_mep` falls back to it if absent.
+intake_correction:
   provider: openai
   base_url: ${oc.env:DEEPSEEK_BASE_URL,https://api.deepseek.com}
   api_key: ${oc.env:DEEPSEEK_API_KEY,null}
@@ -68,18 +62,29 @@ intake_phase2:
   temperature: 0.3
   max_tokens: 64000
   # DeepSeek thinking effort: "high" (default) or "max" (more exhaustive, slower
-  # /costlier). low/medium map to high, xhigh to max. Read by src/agent/phase2.py;
+  # /costlier). low/medium map to high, xhigh to max. Read by src/agent/pipeline.py;
   # omit the key entirely to fall back to the provider default.
   reasoning_effort: high
   extra_body:
     thinking:
       type: enabled
 
-# intake_phase1 (FUTURE, full-auto two-step): a multimodal VLM that turns images
-# into phase-1 vector JSON, so the pipeline can run without a Claude Code
-# session. Not wired yet — dev currently does phase 1 half-manually in a Claude
-# Code Opus session. When enabled, intake_node's `else` branch would call it.
-# intake_phase1:
+# intake_mep (optional override for the 4_mep physics stage). If absent, the
+# pipeline falls back to intake_correction. Add a section here only to run 4_mep
+# on a different model than 1_correction.
+# intake_mep:
+#   provider: openai
+#   base_url: ${oc.env:DEEPSEEK_BASE_URL,https://api.deepseek.com}
+#   api_key: ${oc.env:DEEPSEEK_API_KEY,null}
+#   model_name: deepseek-v4-pro
+#   temperature: 0.3
+#   max_tokens: 64000
+
+# intake_reading (FUTURE, full-auto reading stage): a multimodal VLM that turns
+# images into reading-stage vector JSON, so the pipeline can run without a Claude
+# Code session. Not wired yet — dev currently does the reading stage half-manually
+# in a Claude Code Opus session.
+# intake_reading:
 #   provider: anthropic
 #   base_url: ${oc.env:ANTHROPIC_BASE_URL,null}
 #   api_key: ${oc.env:ANTHROPIC_API_KEY,null}

@@ -1,12 +1,12 @@
-# PartA — Correction layer
+# 1_correction — Correction layer
 
 The correction layer turns perceived geometric primitives (possibly noisy or
 self-contradictory) into a clean, self-consistent, simulation-friendly set,
-and records every material change. It is the **first sub-stage of phase2** (the
-vector-JSON → IntakeOutput node), ahead of zoning and geometry build:
+and records every material change. It is **stage 1 of the pipeline** (after the
+reading stage produces vectors), ahead of the deterministic geometry build:
 
 ```
-phase1 perception → [ PartA correction → zoning → geometry build ]phase2 → surface matching → EnergyPlus
+0_reading (perception) → [ 1_correction → deterministic core → 2_modelling + 3_split_pairing (geometry) ] → 4_mep (physics) → 5_intakeoutput → downstream → EnergyPlus
 ```
 
 ## Documents (read in order)

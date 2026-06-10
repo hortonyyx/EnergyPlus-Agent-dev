@@ -1,8 +1,8 @@
-"""Staged phase-2 correction layer.
+"""Staged correction layer.
 
-phase2a (LLM correction) -> CorrectedGeometry  (materialized intermediate)
+correction stage (LLM correction) -> CorrectedGeometry  (materialized intermediate)
    -> deterministic core (code: canonical axis snap + sliver guard)
-   -> phase2b (LLM modeling) -> IntakeOutput
+   -> the modeling/MEP stages (LLM modeling) -> IntakeOutput
 
 Decoupling the stages makes each model swappable and the correction checkpoint
 verifiable / diffable for evaluation. Spec: skills/intake_pipeline/ (1_correction + 4_mep)

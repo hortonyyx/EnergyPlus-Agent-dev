@@ -86,7 +86,7 @@
 ## 8. 关键文件索引
 - 内核：[src/agent/geometry/build.py](../../src/agent/geometry/build.py) · [to_idf.py](../../src/agent/geometry/to_idf.py) · [tests/test_geometry_kernel.py](../../tests/test_geometry_kernel.py)
 - 校正核：[src/agent/correction/](../../src/agent/correction)（deterministic.py / config.py / schema.py）· [src/configs/correction.yaml](../../src/configs/correction.yaml)
-- phase2 主链：[src/agent/phase2.py](../../src/agent/phase2.py)（run_phase2 = 2a→核→2b；待拆 2_modelling/3_split_pairing/4_mep/5_intakeoutput）
+- phase2 主链：[src/agent/pipeline.py](../../src/agent/pipeline.py)（run_phase2 = 2a→核→2b；待拆 2_modelling/3_split_pairing/4_mep/5_intakeoutput）
 - 门：[src/validator/interzone.py](../../src/validator/interzone.py)（"对"的定义）
 - skill：[skills/intake_pipeline/](../../skills/intake_pipeline)（0_reading/1_correction/4_mep/ + phase2/rules.md 待拆）
 - 审阅：[Tool_scripts/deepseek_review.py](../../Tool_scripts/deepseek_review.py)

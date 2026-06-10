@@ -1,5 +1,7 @@
 # 识图泛化：图纸重绘 + 几何建模两步架构
 
+> **术语对照（2026-06-10 改名后）**：本文历史叙述沿用旧称——phase1=0_reading（识图）/ phase2a=1_correction（校正）/ phase2b 已拆为 2_modelling+3_split_pairing（几何，代码内核）+4_mep（物理）+5_intakeoutput（装配）；代码模块 `src/agent/pipeline.py`（`run_pipeline`）。详见 [pipeline_stage_contracts.md](../architecture/pipeline_stage_contracts.md)。
+
 > 目标：让 intake 能处理不同风格的建筑平面图，不依赖单一固定制图规范。
 >
 > 讨论日期：2026-05-10。起点见 [pivot_criteria.md §3.2](../reference/pivot_criteria.md) 退路 A（前置视觉预处理），但方案已从"前置小模型矢量化"收敛为"同一 VLM 拆两步调用 + 中间标准化表示"。
@@ -172,7 +174,7 @@
 - **Phase 1**：Claude Code 会话 + Opus 4.7，7 张图（3 平面 + 4 立面）→ 7 份矢量 JSON + summary。schema 见 [vector_schema_v1.md](../../test_data/SmallOffice_TwoStep/smalloffice_20/vector_schema_v1.md)（v1.2）
 - **Phase 2**：两条路径并行验证
   - Opus 路径：Claude Code 会话直写 IntakeOutput JSON
-  - DeepSeek 路径：[`Tool_scripts/run_phase2_deepseek.py`](../../Tool_scripts/run_phase2_deepseek.py)（绕过 langchain，thinking enabled，max_tokens 64k）
+  - DeepSeek 路径：[`Tool_scripts/run_pipeline_deepseek.py`](../../Tool_scripts/run_pipeline_deepseek.py)（绕过 langchain，thinking enabled，max_tokens 64k）
 - **Phase 2 规则**：[phase2_rules.md](../../test_data/SmallOffice_TwoStep/smalloffice_20/phase2_rules.md)（v1.3 升级版在 [`skills/intake_pipeline/`](../../skills/intake_pipeline)）
 
 ### 9.2 三方对比结果（详见 [`compare/diff.md`](../../test_data/SmallOffice_TwoStep/smalloffice_20/compare/diff.md)）
@@ -239,7 +241,7 @@ POC 验证用户可在 ~30 min 内人工检查 SVG 是否与原图一致：
 
 ### 10.1 机制确认：phase1 是「读尺寸链标注」驱动，不是「数像素量尺寸」
 
-核对 sm_20 实际产物（[`phase1_vector/`](../../test_data/SmallOffice_TwoStep/smalloffice_20/phase1_vector)）确认：
+核对 sm_20 实际产物（[`phase1_vector/`](../../test_data/SmallOffice_TwoStep/smalloffice_20/0_reading)）确认：
 
 - 平面墙 `S1` `p1=[0,0]→p2=[15,0]`，这个 15 直接来自尺寸链 `D1 "15.00"`；墙端点钉在尺寸链给的米数上，**不是按像素跨度量出来的**
 - 立面窗 z `S4 y_range=[1.0,2.8]` = `D14 sill 1.00` + `D15 窗高 1.80`，纯标注算术

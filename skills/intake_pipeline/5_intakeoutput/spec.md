@@ -8,7 +8,7 @@ project boundary.
 
 Implementation: [`src/agent/intakeoutput.py`](../../../src/agent/intakeoutput.py)
 (`assemble_intake_output` + `validate_contract`); orchestrated by
-[`src/agent/phase2.py`](../../../src/agent/phase2.py) `run_phase2`.
+[`src/agent/pipeline.py`](../../../src/agent/pipeline.py) `run_pipeline`.
 
 > **Why this stage has a spec but no LLM prompt:** like 2_modelling / 3_split_pairing
 > it is pure deterministic code — this doc is the *spec the code realizes*, not a

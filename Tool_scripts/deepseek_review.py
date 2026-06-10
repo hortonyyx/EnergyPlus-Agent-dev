@@ -65,7 +65,7 @@ def main() -> None:
     args = ap.parse_args()
 
     content = _gather(args)
-    section = load_llm_section("intake_phase2")
+    section = load_llm_section("intake_correction")
     client = OpenAI(
         api_key=section["api_key"],
         base_url=section.get("base_url"),

@@ -94,7 +94,7 @@ def test_lshape_polygon_clean():
 
 
 def test_overlap_is_flagged():
-    """Overlapping cells (a phase2a tiling defect) must be reported in notes."""
+    """Overlapping cells (a correction-stage tiling defect) must be reported in notes."""
     g = CorrectedGeometry(
         footprint_x=[0, 10], footprint_y=[0, 8],
         floors=[{"name": "F1", "z_floor": 0.0, "ceiling_height": 3.0, "cells": [
@@ -109,7 +109,7 @@ def test_overlap_is_flagged():
 # --------------------------------------------------------------------------- #
 # Step-2 coverage: benchmark the kernel against sm20-grade geometry (3 floors,
 # different partition count per floor → maximally misaligned cross-floor split-
-# pairing). This is the case the one-step LLM got right and staged phase2 broke;
+# pairing). This is the case the one-step LLM got right and the staged pipeline broke;
 # it must pass the real gate by construction, proving the kernel covers the
 # geometry edge cases rules.md used to delegate to the LLM.
 # --------------------------------------------------------------------------- #
@@ -147,7 +147,7 @@ def test_sm20_shaped_misaligned_three_floor_clean():
 def test_sm21_clean_layout_gate_clean():
     """The real sm21 clean layout (14 zones, 2 floors, misaligned F1/F2
     partitions → genuine cross-floor split-pairing) passes the gate with 0
-    issues. This is the case the staged LLM phase2 broke (12–26 gate issues);
+    issues. This is the case the staged LLM pipeline broke (12–26 gate issues);
     the deterministic kernel resolves it — the Step-8 regression anchor."""
     g = CorrectedGeometry(
         footprint_x=[0, 15], footprint_y=[0, 8],

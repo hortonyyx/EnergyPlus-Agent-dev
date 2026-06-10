@@ -2,16 +2,16 @@
 
 Intake flows (pick one):
 
-    Flow TWO-STEP  (default dev flow; no Anthropic API needed):
-        # 1) In a Claude Code session, drive phase 1 (image -> vector JSON)
+    Flow PIPELINE  (default dev flow; no Anthropic API needed):
+        # 1) In a Claude Code session, drive the reading stage (image -> vector JSON)
         #    following AI_agent/guides/new_case_guide.md Step 4 (Appendix A); save
-        #    the per-image vector JSONs + phase1_summary.md under
-        #    test_data/.../<case>/phase1_vector/
-        # 2) Then run — intake_node runs phase 2 (vector JSON -> IntakeOutput)
-        #    automatically via DeepSeek (intake_phase2 section of llm.yaml):
+        #    the per-image vector JSONs + reading_summary.md under
+        #    test_data/.../<case>/0_reading/
+        # 2) Then run — intake_node runs the pipeline (vector JSON -> IntakeOutput)
+        #    automatically via DeepSeek (intake_correction section of llm.yaml):
         python scripts/run_full_pipeline.py <case> \
             --base-dir test_data/SmallOffice_TwoStep \
-            --phase1-from phase1_vector
+            --reading-from 0_reading
 
     Flow INTAKE-FROM  (a finished IntakeOutput already on disk):
         python scripts/run_full_pipeline.py <case> \
@@ -20,8 +20,8 @@ Intake flows (pick one):
     Flow AUTO  (legacy single-step image -> IntakeOutput; needs ANTHROPIC_API_KEY):
         python scripts/run_full_pipeline.py <case>
 
-    Optional --intake-only flag stops after intake (also works with --phase1-from
-    to run phase 2 only and dump intake_output.json).
+    Optional --intake-only flag stops after intake (also works with --reading-from
+    to run the pipeline only and dump intake_output.json).
 
 Outputs go to <case>/output/:
     intake_output.json     IntakeOutput Pydantic dump (cross-process artifact)
@@ -112,7 +112,7 @@ def main() -> None:
         type=Path,
         default=Path("test_data/SmallOffice"),
         help="Parent dir containing <case>/. Defaults to test_data/SmallOffice. "
-        "Use test_data/SmallOffice_TwoStep for two-step (phase1+phase2) cases.",
+        "Use test_data/SmallOffice_TwoStep for staged-pipeline cases.",
     )
     parser.add_argument(
         "--intake-only",
@@ -129,14 +129,14 @@ def main() -> None:
         ),
     )
     parser.add_argument(
-        "--phase1-from",
+        "--reading-from",
         type=Path,
         default=None,
         help=(
-            "Two-step flow: directory (relative to <case>/) of phase-1 vector "
-            "JSONs + phase1_summary.md. intake_node runs phase 2 "
-            "(vector JSON -> IntakeOutput) automatically. This is the default "
-            "two-step dev flow (phase 1 produced half-manually in a Claude Code "
+            "Pipeline flow: directory (relative to <case>/) of reading-stage vector "
+            "JSONs + reading_summary.md. intake_node runs the staged pipeline "
+            "(vector JSON -> IntakeOutput) automatically. This is the default dev "
+            "flow (the reading stage produced half-manually in a Claude Code "
             "session). Mutually exclusive with --intake-from."
         ),
     )
@@ -147,7 +147,7 @@ def main() -> None:
         help=(
             "Per-run LLM config file (the model combination for THIS test). "
             "Overrides the global src/configs/llm.yaml for every stage "
-            "(phase2 + 9 downstream). If omitted, auto-detects <case>/llm.yaml; "
+            "(intake pipeline + 9 downstream). If omitted, auto-detects <case>/llm.yaml; "
             "if that is absent too, uses the global default. Lets each formal "
             "test pin its own model combo without editing the shared config."
         ),
@@ -225,10 +225,10 @@ def main() -> None:
     user_input = _build_user_input(spec)
     image_paths = [str(p) for p in _collect_images(case_dir, spec)]
 
-    if args.intake_from is not None and args.phase1_from is not None:
+    if args.intake_from is not None and args.reading_from is not None:
         raise SystemExit(
-            "--intake-from and --phase1-from are mutually exclusive: the first "
-            "supplies a finished IntakeOutput, the second runs phase 2 to build "
+            "--intake-from and --reading-from are mutually exclusive: the first "
+            "supplies a finished IntakeOutput, the second runs the pipeline to build "
             "one. Pick one."
         )
 
@@ -244,28 +244,28 @@ def main() -> None:
             pre_intake.building.name,
         )
 
-    phase1_vector_dir: str | None = None
-    if args.phase1_from is not None:
-        p1_dir = args.phase1_from
+    reading_vector_dir: str | None = None
+    if args.reading_from is not None:
+        p1_dir = args.reading_from
         if not p1_dir.is_absolute():
             p1_dir = case_dir / p1_dir
         if not p1_dir.is_dir():
-            raise SystemExit(f"--phase1-from dir not found: {p1_dir}")
-        phase1_vector_dir = str(p1_dir)
-        logger.info("phase1_from={} (intake_node will run phase 2)", p1_dir)
+            raise SystemExit(f"--reading-from dir not found: {p1_dir}")
+        reading_vector_dir = str(p1_dir)
+        logger.info("reading_from={} (intake_node will run the pipeline)", p1_dir)
 
-    # Organized two-step layout (0–5 stage dirs): phase 2 writes stage-numbered
+    # Organized layout (0–5 stage dirs): the pipeline writes stage-numbered
     # subdirs (1_correction / 2_modelling / 3_split_pairing / 4_mep /
-    # 5_intakeoutput) directly under <case> (alongside the phase-1 input dir and
+    # 5_intakeoutput) directly under <case> (alongside the reading input dir and
     # EP_run); downstream + EP go to <case>/EP_run. Other flows keep the flat
     # <case>/<output-subdir>/ layout for back-compat.
-    if phase1_vector_dir is not None and args.output_subdir == "output":
+    if reading_vector_dir is not None and args.output_subdir == "output":
         output_dir = case_dir / "EP_run"
         output_dir.mkdir(parents=True, exist_ok=True)
-        phase2_debug_dir = str(case_dir)
+        pipeline_out_dir = str(case_dir)
     else:
-        phase2_debug_dir = (
-            str(output_dir / "phase2_intake") if phase1_vector_dir else None
+        pipeline_out_dir = (
+            str(output_dir / "pipeline_out") if reading_vector_dir else None
         )
 
     logger.info(
@@ -280,9 +280,9 @@ def main() -> None:
         user_input=user_input,
         image_paths=image_paths,
         intake_output=pre_intake,
-        phase1_vector_dir=phase1_vector_dir,
+        reading_vector_dir=reading_vector_dir,
         testdata_text=testdata_raw,
-        phase2_debug_dir=phase2_debug_dir,
+        pipeline_out_dir=pipeline_out_dir,
     )
 
     if args.intake_only:

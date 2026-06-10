@@ -22,13 +22,14 @@ def intake_node(state: AgentState) -> AgentStateUpdate:
 
     1. **Short-circuit** — `state.intake_output` already populated (the
        `--intake-from` flow): skip everything, just seed config_state.
-    2. **Two-step phase 2** — `state.phase1_vector_dir` set (the half-manual
-       two-step flow: `--phase1-from`): run phase 2 (vector JSON -> IntakeOutput)
-       via `src.agent.phase2.run_phase2`, image-blind. This is the mainline.
+    2. **Pipeline** — `state.reading_vector_dir` set (the half-manual flow:
+       `--reading-from`): run the staged intake pipeline (vector JSON ->
+       IntakeOutput) via `src.agent.pipeline.run_pipeline`, image-blind. This is
+       the mainline.
 
     The legacy single-step (one multimodal image -> IntakeOutput) path is retired
     (its skill library `skills/energyplus_mcp/` was archived to Skill_history on
-    2026-06-10); the two-step pipeline is the only supported flow.
+    2026-06-10); the staged pipeline is the only supported flow.
     """
     if state.intake_output is not None and not state.validation_errors:
         config = state.config_state.model_copy(deep=True)
@@ -42,29 +43,29 @@ def intake_node(state: AgentState) -> AgentStateUpdate:
         )
         return AgentStateUpdate(config_state=config, validation_errors=[])
 
-    if state.phase1_vector_dir:
-        # Two-step: phase 1 (perception) already produced vector JSON; run
-        # phase 2 (correction -> deterministic geometry -> 4_MEP -> assembly)
-        # here. Stay in two-step even with validation_errors present (a
+    if state.reading_vector_dir:
+        # The reading stage already produced vector JSON; run the staged pipeline
+        # (1_correction -> deterministic geometry -> 4_mep -> 5_intakeoutput) here.
+        # Stay in the pipeline even with validation_errors present (a
         # validate->intake repair): feed the errors in as repair context.
-        # Imported lazily so callers/tests that never touch phase 2 don't pull
-        # in the OpenAI client.
-        from src.agent.phase2 import run_phase2
+        # Imported lazily so callers/tests that never touch the pipeline don't
+        # pull in the OpenAI client.
+        from src.agent.pipeline import run_pipeline
 
-        vector_dir = Path(state.phase1_vector_dir)
+        vector_dir = Path(state.reading_vector_dir)
         testdata_text = state.testdata_text or state.user_input
         feedback = "\n".join(f"- {e}" for e in state.validation_errors) or None
-        out_dir = Path(state.phase2_debug_dir) if state.phase2_debug_dir else None
+        out_dir = Path(state.pipeline_out_dir) if state.pipeline_out_dir else None
         logger.info(
-            "intake_node: two-step phase 2 from {} (repair={})",
+            "intake_node: pipeline from {} (repair={})",
             vector_dir,
             bool(feedback),
         )
-        intake = run_phase2(
+        intake = run_pipeline(
             vector_dir, testdata_text, out_dir=out_dir, feedback=feedback
         )
         logger.info(
-            "intake_node: phase 2 done; building={} site={}",
+            "intake_node: pipeline done; building={} site={}",
             intake.building.name,
             intake.site_location.name,
         )
@@ -73,5 +74,5 @@ def intake_node(state: AgentState) -> AgentStateUpdate:
     raise RuntimeError(
         "intake_node: no input. The legacy single-step image->IntakeOutput path "
         "is retired. Provide either a pre-built IntakeOutput (--intake-from) or a "
-        "phase-1 vector directory (--phase1-from) for the two-step pipeline."
+        "reading-stage vector directory (--reading-from) for the staged pipeline."
     )

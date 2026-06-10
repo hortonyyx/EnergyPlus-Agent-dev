@@ -1,4 +1,4 @@
-# Phase 1 pen library — what to do with a recognized element
+# Reading-stage pen library (0_reading) — what to do with a recognized element
 
 This maps a **semantic category** (recognized via [`reading_guide.md`](reading_guide.md))
 to a **phase-1 action**: trace it with a pen, route it to dimensions/text, ignore-and-log it, or
@@ -27,7 +27,7 @@ cross-use.
 | `dimension-chain` | → `dimensions[]` (verbatim number) | → `dimensions[]` |
 | `level-marker` | → `dimensions[]` (z) if it carries a height | → `dimensions[]` (z) |
 | `text-label` | → `ocr_texts[]` (verbatim) | → `ocr_texts[]` |
-| `scale` | not a stroke; note in `phase1_summary.md` | same |
+| `scale` | not a stroke; note in `reading_summary.md` | same |
 | `grid-axis` | not geometry; ignore → log | same |
 | `north-arrow` | not geometry; ignore → log | — |
 | `view-marker` | not geometry (it points at another drawing); ignore → log | ignore → log |
@@ -42,12 +42,12 @@ cross-use.
 | `decoration` | **ignore → log** | same |
 | `unknown` | best-guess a real pen (wall/window) with a low-confidence note **only if clearly geometric**; otherwise ignore → log | same (wall_fill/outline/window) |
 
-**Keep-set vs ignore-set**: the keep-set (what phase 2 turns into geometry/coordinates) is just
+**Keep-set vs ignore-set**: the keep-set (what the correction stage turns into geometry/coordinates) is just
 walls, windows, wall_fill, outline, dimensions, levels, and text. Everything else is the ignore-set —
 **recognized, then logged, never silently dropped** ([`guide.md` §2 self_check](guide.md)): the
 clutter (furniture / sanitary / … / decoration) **and** `stair` / `column` / `vertical-circ` /
-grid-axis / north-arrow / view-marker / legend, whose geometry phase 2 does not consume (a stairwell
-reaches phase 2 as its bounding walls + a label, not as traced treads). `door` is the special case:
+grid-axis / north-arrow / view-marker / legend, whose geometry the correction stage does not consume (a stairwell
+reaches the correction stage as its bounding walls + a label, not as traced treads). `door` is the special case:
 recognized but not drawn, it triggers healing instead.
 
 ---
@@ -57,7 +57,7 @@ recognized but not drawn, it triggers healing instead.
 - **plan**: `wall` · `window`
 - **elevation**: `wall_fill` · `window` · `outline`
 
-That is the whole set — kept minimal to exactly what phase 2 turns into geometry. Anything that is
+That is the whole set — kept minimal to exactly what the correction stage turns into geometry. Anything that is
 not one of these (column, stair, grid line, north arrow, decoration, furniture, …) is **not traced
 as a stroke**: recognize it and record it in `uncaptured_visual_elements`. There is no `other` pen
 and no `door` pen.
@@ -74,7 +74,7 @@ Record the elevation wall-body fill as **one `wall_fill` stroke per floor**:
   broken segment as its own stroke; when windows merely overlay the fill (no break), keep one fill
   per floor
 
-Per-floor `wall_fill` lets phase 2 map directly to each floor's wall surface z_floor / z_top.
+Per-floor `wall_fill` lets the correction stage map directly to each floor's wall surface z_floor / z_top.
 
 ---
 

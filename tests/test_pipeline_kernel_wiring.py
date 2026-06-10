@@ -1,13 +1,13 @@
-"""Step-4 wiring: the deterministic geometry kernel runs inside phase 2 as an
+"""Step-4 wiring: the deterministic geometry kernel runs inside the pipeline as an
 advisory stage — it materializes a building_geometry.json + gate report and
-returns gate issues, but never raises (phase2b stays authoritative)."""
+returns gate issues, but never raises (advisory stage)."""
 
 from __future__ import annotations
 
 import json
 
 from src.agent.correction.schema import CorrectedGeometry
-from src.agent.phase2 import materialize_kernel_geometry
+from src.agent.pipeline import materialize_kernel_geometry
 
 
 def _clean_two_floor() -> CorrectedGeometry:
@@ -41,7 +41,7 @@ def test_kernel_wiring_no_outdir_is_silent():
 
 
 def test_kernel_wiring_never_raises_on_overlap(tmp_path):
-    """A phase2a tiling defect (overlap) is reported via notes, not an exception."""
+    """A correction-stage tiling defect (overlap) is reported via notes, not an exception."""
     g = CorrectedGeometry(
         footprint_x=[0, 10], footprint_y=[0, 8],
         floors=[{"name": "F1", "z_floor": 0.0, "ceiling_height": 3.0, "cells": [

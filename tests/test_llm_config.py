@@ -25,7 +25,7 @@ def test_default_when_env_unset(monkeypatch):
 def test_env_override_redirects_and_loads(monkeypatch, tmp_path):
     cfg = tmp_path / "llm.yaml"
     cfg.write_text(
-        "intake_phase2:\n"
+        "intake_correction:\n"
         "  provider: openai\n"
         "  model_name: per-case-model\n"
         "  api_key: dummy\n"
@@ -34,7 +34,7 @@ def test_env_override_redirects_and_loads(monkeypatch, tmp_path):
     )
     monkeypatch.setenv(LLM_CONFIG_ENV, str(cfg))
     assert resolve_llm_config_path() == cfg
-    section = load_llm_section("intake_phase2")
+    section = load_llm_section("intake_correction")
     assert section["model_name"] == "per-case-model"
     assert section["max_tokens"] == 123
 

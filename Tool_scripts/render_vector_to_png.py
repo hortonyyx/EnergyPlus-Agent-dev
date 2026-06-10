@@ -1,4 +1,4 @@
-"""Render phase1 vector JSON to PNG (PIL) for side-by-side validation against the source image.
+"""Render reading-stage vector JSON to PNG (PIL) for side-by-side validation against the source image.
 
 Companion to render_vector_to_svg.py. PNG is easier to eyeball next to the original than the SVG,
 and (unlike SVG) can be read back by a multimodal model for self-inspection.

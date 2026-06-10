@@ -7,12 +7,14 @@
 #  · 每段都要写全字段——缺的字段不会从别的段继承。
 # ============================================================
 
-# 阶段一 · 识图（phase1）
+# 阶段 0 · 识图（0_reading）
 #   把建筑图纸读成矢量 JSON。目前由人工 / Claude Code 会话完成，不经 API，无需在此配置。
 
-# 阶段二 · 拓扑推理（phase2）
-#   把识图矢量 JSON 推理成建筑拓扑 / 分区。单次调用，开启思考。
-intake_phase2:
+# 阶段 1 · 校正（1_correction）
+#   把识图矢量 JSON 校正成自洽的 CorrectedGeometry。单次调用，开启思考。
+#   （阶段 2/3 几何 + 阶段 5 装配是确定性代码、无 LLM；阶段 4 物理 4_mep 若要单独换模型，
+#    在全局 llm.yaml 加 intake_mep 段，缺省回退本段。）
+intake_correction:
   provider: openai
   base_url: ${oc.env:DEEPSEEK_BASE_URL,https://api.deepseek.com}
   api_key: ${oc.env:DEEPSEEK_API_KEY,null}
@@ -22,7 +24,7 @@ intake_phase2:
   reasoning_effort: high   # 推理强度：high（默认）/ max（更彻底、更慢更贵）
   extra_body:
     thinking:
-      type: enabled        # phase2 需要思考，保持 enabled
+      type: enabled        # 校正单次推理需要思考，保持 enabled
 
 # 阶段三 · 下游建模（9 个子节点）
 #   默认分两档：几何节点（墙面/构造/门窗）用 pro，CRUD 节点用 flash。

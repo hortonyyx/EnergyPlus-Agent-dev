@@ -21,11 +21,11 @@ and the LLM does only perception, correction judgment, and physics semantics.
 
 The `code` stages have a `spec.md` documenting the deterministic behavior their code
 realizes (not a prompt). The LLM stages have rule docs loaded into their prompt at
-runtime by [`src/agent/phase2.py`](../../src/agent/phase2.py).
+runtime by [`src/agent/pipeline.py`](../../src/agent/pipeline.py).
 
-`phase2/rules.md` is the **legacy** whole-output phase-2b prompt, kept only for the
-fallback `run_phase2b` (used only on a hard kernel build error); it is marked
-SUPERSEDED and scheduled for removal.
+> The old single whole-output `phase2/rules.md` prompt is retired (the geometry it
+> drove is now deterministic code; the physics moved to `4_mep/`). Archived to
+> `Skill_history/2026-06-10_phase2_terminology_cleanup/`.
 
 ## Error-budget split
 

@@ -1,8 +1,8 @@
-"""Render phase1 vector JSON to SVG for manual side-by-side validation against source PNG.
+"""Render reading-stage vector JSON to SVG for manual side-by-side validation against source PNG.
 
 Usage:
     python Tool_scripts/render_vector_to_svg.py <vector_json> [--out <svg_path>]
-    python Tool_scripts/render_vector_to_svg.py --dir test_data/SmallOffice/smalloffice_20_redraw/phase1_vector
+    python Tool_scripts/render_vector_to_svg.py --dir test_data/SmallOffice/smalloffice_20_redraw/0_reading
 
 Reads the schema defined in test_data/SmallOffice/smalloffice_20_redraw/vector_schema_v0.md.
 Handles both image_kind='plan' (walls/rooms in world x/y) and 'elevation'

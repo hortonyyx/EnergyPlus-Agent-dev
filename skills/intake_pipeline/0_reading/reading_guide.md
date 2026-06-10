@@ -1,6 +1,6 @@
-# Phase 1 reading guide — how to recognize what a drawing element *is*
+# Reading-stage recognition guide (0_reading) — how to recognize what a drawing element *is*
 
-This is the **recognition reference** for phase 1. It answers one question only: *given this stroke /
+This is the **recognition reference** for the reading stage. It answers one question only: *given this stroke /
 mark on the drawing, what is it?* It outputs a **semantic-category label** (`wall`, `door`,
 `window`, `furniture`, …). It does **not** decide what to do with that label — which pen to use,
 whether to keep or ignore, whether to heal — that is [`pen_library.md`](pen_library.md).
@@ -34,7 +34,7 @@ visual variants as *examples, not an exhaustive list*.
 ### 0.2 When unsure, recognize-enough-to-log (never silently drop)
 
 If a mark does not clearly fit any category, do not guess it into the wrong one. Per the error
-budget ([`guide.md` §0.1](guide.md)), a wrong category is contamination phase 2 cannot
+budget ([`guide.md` §0.1](guide.md)), a wrong category is contamination the correction stage cannot
 undo. Instead:
 - give your best category guess **with low confidence in the note**, or
 - label it `unknown` and record it in `self_check.uncaptured_visual_elements`
@@ -96,7 +96,7 @@ Decide *what kind of drawing* first — the element dictionaries differ by type.
   side, ground line at the bottom, no room interiors. Coordinates: x = horizontal along the facade,
   y = world z (up).
 - **Axonometric / perspective / 3D render**: recognize it as a **non-orthographic view** (out of
-  scope — phase 1 only traces orthographic plans and elevations; what to do with it is the pen
+  scope — the reading stage only traces orthographic plans and elevations; what to do with it is the pen
   library's call).
 - If a sheet has several drawings, segment by title text / frame and treat each as its own image.
 
@@ -208,7 +208,7 @@ one thick line, two thin lines, or a black bar.
 ## E. Elevation-specific elements
 
 An elevation carries **z (height)** information; the plan carries x/y. The two views are
-complementary, but *combining* them (matching a plan edge to an elevation) is phase 2's job — here,
+complementary, but *combining* them (matching a plan edge to an elevation) is the correction stage's job — here,
 just read each elevation on its own.
 
 ### E.0 How to read an elevation (suggested order)

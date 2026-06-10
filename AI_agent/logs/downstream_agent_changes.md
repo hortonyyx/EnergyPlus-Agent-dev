@@ -52,7 +52,7 @@
 **追加（同日）— MEP 先验去混合 #2.2（缩范围）**：原 #2.2「建几何+MEP 共享先验库」经用户定调缩为**只去混合**——当前聚焦几何建模、输入无荷载/时间表数据，MEP 暂不建库。改动：
 - **新增** [`phase2/priors/mep.md`](../../skills/energyplus_mcp_twostep/phase2/priors/mep.md)：把 [rules.md](../../skills/energyplus_mcp_twostep/phase2/rules.md) Step 7 的 4 行 MEP 默认值（人 10m²/p、灯 10W/m²、HVAC 24/20℃、Office_Workday/Weekend）抽出，标 **DRAFT 种子**（几何稳定后再扩成分型/分级/带出处的真库）。值不变。
 - **改** rules.md Step 7（备份 [`Skill_history/2026-06-09_gap_close_threshold_300/rules.md_pre_mep_extract`](../../Skill_history)）：内联值 → 指向 `priors/mep.md` 的指针；保留「schedule_specs 必须完整」结构契约 + 必填清单（那是建模契约非先验值）。Step 5 material/construction 是结构规则，不动。
-- **改** [`src/agent/phase2.py`](../../src/agent/phase2.py)（备份 [`src_history/2026-06-09_phase2b_load_mep/`](../../src_history)）：`_build_phase2b_messages` 加载 mep.md 作 REFERENCE 块（phase2b 仍拿到默认值；行为不变）。
+- **改** [`src/agent/pipeline.py`](../../src/agent/pipeline.py)（备份 [`src_history/2026-06-09_phase2b_load_mep/`](../../src_history)）：`_build_phase2b_messages` 加载 mep.md 作 REFERENCE 块（phase2b 仍拿到默认值；行为不变）。
 - **deferred**（等几何稳定）：mep.md 扩成真先验库 + 与 A4 几何先验合并进统一 `priors/`（[pipeline_stage_contracts §5.2](../architecture/pipeline_stage_contracts.md)）。
 - **验收**：phase2b 装配冒烟通过（mep 块在 + 默认值携带 + rules 指针生效）；纯抽离无行为变更。
 
@@ -61,7 +61,7 @@
 **Trigger**：识图建模质量主线（忠实建模 leg）落地。PartA 容差校正层 skill 文档库（[`skills/energyplus_mcp_twostep/phase2/PartA-correction/`](../../skills/energyplus_mcp_twostep/phase2/PartA-correction) 的 A0–A4 + README）已写 + 审 + 定稿（A0/A1/A2 经 Codex 审，A3/A4 为 P0）。需把它接进 phase2 实际执行。
 
 **改动**（本项目侧 phase2 节点，非协作者下游 subagent；按 §6#5 备份 [`src_history/2026-06-07_phase2_partA_wiring/phase2.py`](../../src_history/2026-06-07_phase2_partA_wiring)）：
-- [src/agent/phase2.py](../../src/agent/phase2.py) `build_phase2_messages`：从 skill 库载入 PartA-correction 5 篇（README + A0–A4，单一真源、不内联复制），作为 `===== RULE DOCUMENT: PartA-correction (Step 0) =====` 块加进 system prompt（置于 phase2/rules.md 之后、phase1 参考之前）。
+- [src/agent/pipeline.py](../../src/agent/pipeline.py) `build_phase2_messages`：从 skill 库载入 PartA-correction 5 篇（README + A0–A4，单一真源、不内联复制），作为 `===== RULE DOCUMENT: PartA-correction (Step 0) =====` 块加进 system prompt（置于 phase2/rules.md 之后、phase1 参考之前）。
 - human 收尾指令加 **Step 0**：先对 phase-1 基元跑 A1（中线归一+z-stack）→ A2（规范轴集+跨层统一+吸附+链闭合+碎片防止）→ A3（仲裁补全，A4 先验仅在 A0/A3 门控下用），用**校正后**基元再走 rules.md Step 1→7。
 - **P0 取舍**：输出**保持纯 IntakeOutput 不变**（不加 corrections[] audit wrapper，避免多吐 token 触发 64k 截断、最大化跑通率）；partA 作内部 Step 0 应用，效果靠输出几何（无 5cm 跨层碎片 / 中线轴 / 闭合链）+ thinking.txt 验证。**audit wrapper（corrections/conflicts/unsupported 落 sidecar）= 建评测 baseline 时的 fast-follow**（baseline 需"看错 vs 改错"归因）。
 
@@ -71,7 +71,7 @@
 
 **后续（同日）— 一步出 → 三段解耦重构**：sm21 全链路实测一步出 (b) 不可靠（phase2 没执行 A2 跨层统一 → 4 个 0.05m 碎片 → 门拦下；2f 南向分区/窗也没校对）。根因 = 校正未物化、确定性操作交给 LLM。改为**三段解耦**：
 - 新增 [`src/agent/correction/`](../../src/agent/correction)：`schema.py`（`CorrectedGeometry` 中间态:rectangular cells + windows + per-floor z + audit）+ `deterministic.py`（确定性核:全局规范轴吸附 + 碎片守卫,证据/容差门控,常数取 A0 registry）。
-- [src/agent/phase2.py](../../src/agent/phase2.py) 重构（备份 `src_history/2026-06-07_phase2_partA_wiring/phase2.py_v2_pre_staged`）为 **2a 校正(LLM,出 CorrectedGeometry) → 确定性核(代码) → 2b 建模(LLM,出 IntakeOutput)**；中间态全物化（`phase2a_geometry.json` / `_snapped.json` / `corrections.json`）；每段独立 LLM section（`intake_phase2a`/`intake_phase2b`,缺则回退 `intake_phase2`）= 可分别换模型；`run_phase2` 签名不变。
+- [src/agent/pipeline.py](../../src/agent/pipeline.py) 重构（备份 `src_history/2026-06-07_phase2_partA_wiring/phase2.py_v2_pre_staged`）为 **2a 校正(LLM,出 CorrectedGeometry) → 确定性核(代码) → 2b 建模(LLM,出 IntakeOutput)**；中间态全物化（`phase2a_geometry.json` / `_snapped.json` / `corrections.json`）；每段独立 LLM section（`intake_phase2a`/`intake_phase2b`,缺则回退 `intake_correction`）= 可分别换模型；`run_phase2` 签名不变。
 - 实测（sm21）：确定性核**结构性消碎片**（全局 x 轴集最小间距 2.575m≥0.1，跨层 4.90/4.95→4.925 统一）；三段中间态物化可验。残留 = **phase2a 判断质量**（2f 南向仍"两大两小"未仲裁成四等分）——问题干净隔离在校正段，可单独评测/迭代。`CorrectedGeometry` = baseline diff 目标。
 
 **后续（同日）— EP 拦路逐层剥离 + OBC 修复 + 门补盲区**：核消碎片后门过（pair_issues 0），EP 跑起来逐层暴露下游问题：
@@ -119,7 +119,7 @@
 
 ### 2026-05-29 — intake_node 两步串行(B1.5.c,本项目侧核心非下游)
 
-> 记此条仅为协作者合并 `src/` 时知情:`intake_node` 改为两步分发(短路 / phase1 矢量→phase2 / legacy 单步),新增 [src/agent/phase2.py](../../src/agent/phase2.py)(phase2 单一实现,raw OpenAI + thinking,读 `llm.yaml:intake_phase2`)。下游 9 subagent 契约(`IntakeOutput` 11 字段)**不变**。详见 [review/review/2026-05-29_twostep_intake_node_switch_review.md](review/review/2026-05-29_twostep_intake_node_switch_review.md) 的 Disposition(Codex 审,2 High + 2 Med + 1 Low 全修)。备份 [src_history/2026-05-29_intake_node_twostep/intake.py](../../src_history/2026-05-29_intake_node_twostep/intake.py)。
+> 记此条仅为协作者合并 `src/` 时知情:`intake_node` 改为两步分发(短路 / phase1 矢量→phase2 / legacy 单步),新增 [src/agent/pipeline.py](../../src/agent/pipeline.py)(phase2 单一实现,raw OpenAI + thinking,读 `llm.yaml:intake_correction`)。下游 9 subagent 契约(`IntakeOutput` 11 字段)**不变**。详见 [review/review/2026-05-29_twostep_intake_node_switch_review.md](review/review/2026-05-29_twostep_intake_node_switch_review.md) 的 Disposition(Codex 审,2 High + 2 Med + 1 Low 全修)。备份 [src_history/2026-05-29_intake_node_twostep/intake.py](../../src_history/2026-05-29_intake_node_twostep/intake.py)。
 
 ---
 
