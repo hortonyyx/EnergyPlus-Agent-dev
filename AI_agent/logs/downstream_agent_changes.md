@@ -28,6 +28,19 @@
 
 **环境注记**：容器 `energyplus` 二进制对不完整 schedule **segfault 而非 severe**（脆弱），且不在 PATH 上（runner 解析不到）。已把 `ENERGYPLUS_EXE` 写进 `.env` 指向容器内 `/EnergyPlus-25.1.0-…/energyplus`（`.env` per-machine gitignored，不影响宿主 Windows）。
 
+### 2026-06-10 (v2) — 确定性 schedule 完整性门（代码兜住 segfault，补 v1 只改 prose 的不足）
+
+**Trigger**：v1（上一条）已诊断 segfault 真因 + 加 `4_mep/authoring.md` prose 规则，但**该规则其实早已存在、4_MEP 仍违反**（DeepSeek 写 `For: Weekdays`+`For: Weekends Holidays` 就收尾，漏 design/custom days）。纯 prose 是已知偏弱兜底——与项目哲学（§5.8.B：代码强制不变量、别指望 LLM 记得）一致，补一道确定性门。
+
+**改动**（备份 `src_history/2026-06-10_schedule_completeness_gate/workflow.py`）：
+- **新增** [`src/validator/schedules.py`](../../src/validator/schedules.py) `validate_schedule_completeness(idf)`：解析装配 IDF 每个 `Schedule:Compact` 的 `For:` 子句 → 展开 day-type 覆盖（`AllDays`/`AllOtherDays` 特判为全覆盖/余项兜底）→ 缺任一 canonical day type 即报精确 issue。镜像 `interzone.py` 风格（读 eppy IDF 对象、字符串 issue 列表）。
+- **改** [`src/mcp/tools/workflow.py`](../../src/mcp/tools/workflow.py)：加 `_check_schedules`，在 `export_idf` + `run_simulation` 两处 EP 前与 interzone 门**并联**；任一门有 issue 即 fail-fast（消息合并为 "Pre-EnergyPlus gate failed: N issue(s) (X interzone, Y schedule)"，data 加 `schedule_issues` 键，保留 `interzone_pair_issues`）。
+- **新增** [`tests/test_schedule_completeness.py`](../../tests/test_schedule_completeness.py)：9 测（AllDays/AllOtherDays 完整 / 全枚举完整 / `Weekdays+Weekends Holidays` 不完整 = sm21 真错 / Weekdays-only / 未知 token / 多 schedule 各报 / 大小写 / 空 IDF）。
+
+**影响范围**：纯增 EP 前确定性门；无下游契约改动；无外部消费 `interzone_pair_issues` 键（grep 确认）。把整类「不完整 schedule → 容器 EP segfault」从隐患变 EP 前可定位 issue。**验收**：61/61 测试绿（9 新 + 52）；门在 stale step8 IDF 上当场抓全 6 个不完整 schedule。
+
+**注（defect 2 澄清）**：v1 line 27 的「24 窗幻觉」已由 `6493bee` 治标（0 窗时序列化器显式 "NO windows"）。但 stale step8 IDF（02:46，早于 6493bee 03:12）里那 24 个挂在 interzone 墙上的窗就是这个幻觉症状，非内核挂错宿主。**真问题（归 B，待解）= 内核为何对 sm21 出 0 窗**（办公楼本应有立面窗，窗在 0→3 阶段丢了）。
+
 ### 2026-06-09 — 确定性核容差外置配置 + SNAP_GRID 吸附 + 窗户分级（优先级 #2.1）
 
 **Trigger**：[recognition_modeling §6.5#1](../capability/recognition_modeling_capability.md) 待完善——确定性核轴吸附取簇**均值**（4.90/4.95→4.925），漏出 **mm 级非栅格值**；且常数硬编码在 `deterministic.py`、不含 `SNAP_GRID`，与 A0 registry「单一真源」承诺漂移（[pipeline_stage_contracts §5.1](../architecture/pipeline_stage_contracts.md)）。用户定调（2026-06-09）：结构栅格 50mm、窗户分级更细（10mm + 钳进父墙）。

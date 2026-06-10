@@ -60,13 +60,30 @@ missing.
 The schedule subagent runs first and is not re-invoked, so every schedule any field
 references must be defined here with an exact name, type limits, and value profile.
 
-**Every `Schedule:Compact` MUST cover ALL day types for the whole year** — not just
-`For: Weekdays` + weekend. A schedule that lists `For: Weekdays`, `For: Saturday`,
-`For: Sunday` but omits `SummerDesignDay` / `WinterDesignDay` / `AllOtherDays` is
-**incomplete**: EnergyPlus requires full coverage and will error (some EP builds even
-crash). Always finish each schedule with a catch-all `For: AllOtherDays` block (or use
-`For: AllDays`), e.g. `... For: AllOtherDays, Until: 24:00, <value>;`. State this for
-every schedule, including setpoints and availability.
+**Every `Schedule:Compact` MUST cover ALL day types for the whole year**, and the ONLY
+two ways to guarantee that are: end the schedule with a catch-all `For: AllOtherDays`
+block, **or** use a single `For: AllDays`. Anything else is incomplete and EnergyPlus
+will error (EP 25.1.0 here **segfaults** — no message, just a crash — on an incomplete
+`Schedule:Compact`).
+
+`Weekdays` + `Weekend`/`Weekends`/`Weekends Holidays` does **NOT** complete coverage:
+`SummerDesignDay`, `WinterDesignDay`, `CustomDay1`, `CustomDay2` are still uncovered.
+You MUST still append `For: AllOtherDays`.
+
+```
+✗ WRONG (crashes EP):           ✓ CORRECT:
+  For: Weekdays,                  For: Weekdays,
+    Until: 20:00, 1.0,              Until: 20:00, 1.0,
+    Until: 24:00, 0.0,              Until: 24:00, 0.0,
+  For: Weekends Holidays,         For: Weekends Holidays,
+    Until: 24:00, 0.0;             Until: 24:00, 0.0,
+                                  For: AllOtherDays,
+                                    Until: 24:00, 0.0;
+```
+
+Apply this to **every** schedule — workday/occupancy/lights profiles AND setpoints AND
+availability. The catch-all value for setpoints/availability is a safe constant (e.g. the
+unoccupied/off value).
 
 Required checklist:
 - thermostat heating setpoint schedule

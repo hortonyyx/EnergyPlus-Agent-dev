@@ -10,6 +10,7 @@ from src.validator.interzone import (
     audit_interzone_surface_pairs,
     validate_interzone_surface_pairs,
 )
+from src.validator.schedules import validate_schedule_completeness
 
 logger = get_logger(__name__)
 
@@ -33,6 +34,22 @@ def _check_interzone_pairs(manager: ConverterManager) -> list[str]:
         logger.error(
             "InterZone surface-pair validation found {} issue(s):", len(issues)
         )
+        for issue in issues:
+            logger.error("  - {}", issue)
+    return issues
+
+
+def _check_schedules(manager: ConverterManager) -> list[str]:
+    """Deterministic Schedule:Compact day-type completeness gate on the IDF.
+
+    Run before EnergyPlus so an incomplete schedule (missing AllOtherDays /
+    design-day coverage) fails fast with a precise message instead of the EP
+    25.1.0 input-stage segfault. See src/validator/schedules.py and the
+    4_mep/authoring.md schedule rule it enforces in code.
+    """
+    issues = validate_schedule_completeness(manager._idf)
+    if issues:
+        logger.error("Schedule completeness validation found {} issue(s):", len(issues))
         for issue in issues:
             logger.error("  - {}", issue)
     return issues
@@ -147,16 +164,20 @@ class WorkflowTool:
             manager.convert_all()
 
             pair_issues = _check_interzone_pairs(manager)
-            if pair_issues:
+            schedule_issues = _check_schedules(manager)
+            if pair_issues or schedule_issues:
                 manager.save_idf(temp_idf)  # keep artifact for inspection
+                gate_total = len(pair_issues) + len(schedule_issues)
                 return ToolResponse(
                     success=False,
                     message=(
-                        f"InterZone surface-pair validation failed: "
-                        f"{len(pair_issues)} issue(s). IDF not accepted."
+                        f"Pre-EnergyPlus gate failed: {gate_total} issue(s) "
+                        f"({len(pair_issues)} interzone, {len(schedule_issues)} "
+                        f"schedule). IDF not accepted."
                     ),
                     data={
                         "interzone_pair_issues": pair_issues,
+                        "schedule_issues": schedule_issues,
                         "idf_path": str(temp_idf.absolute()),
                     },
                 )
@@ -212,16 +233,20 @@ class WorkflowTool:
             manager.convert_all()
 
             pair_issues = _check_interzone_pairs(manager)
-            if pair_issues:
+            schedule_issues = _check_schedules(manager)
+            if pair_issues or schedule_issues:
                 manager.save_idf(temp_idf)  # keep artifact for inspection
+                gate_total = len(pair_issues) + len(schedule_issues)
                 return ToolResponse(
                     success=False,
                     message=(
-                        f"InterZone surface-pair validation failed: "
-                        f"{len(pair_issues)} issue(s). Simulation not started."
+                        f"Pre-EnergyPlus gate failed: {gate_total} issue(s) "
+                        f"({len(pair_issues)} interzone, {len(schedule_issues)} "
+                        f"schedule). Simulation not started."
                     ),
                     data={
                         "interzone_pair_issues": pair_issues,
+                        "schedule_issues": schedule_issues,
                         "idf_path": str(temp_idf.absolute()),
                     },
                 )
