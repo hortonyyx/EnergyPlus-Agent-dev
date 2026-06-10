@@ -10,28 +10,38 @@
 
 ## 0. 子流程链总览
 
+> **更新（2026-06-09，0–5 重构 Step 2–6 落地）**：phase2b 已**解耦**——几何走确定性内核（建模+切配），物理走 4_MEP（LLM），装配走 5_intakeoutput（确定性）。下图为当前实态；下方 §0.1 的目标架构对矩形情形已落地。
+
 ```
  actor         stage                    输入                         产物
 ─────────────────────────────────────────────────────────────────────────────
- 半人工/VLM    phase1  识图          建筑图 + testdata          phase1_vector/*.json
+ 半人工/VLM    0_reading 识图        建筑图 + testdata          phase1_vector/*.json
                (image-bound)                                    + phase1_summary.md
                   │
                   ▼
- LLM           phase2a 校正          vectors + PartA(A0–A4)      CorrectedGeometry
-               (image-blind)                                    (phase2a_geometry.json)
+ LLM           phase2a 校正          vectors + 1_correction(A0–A4) CorrectedGeometry
+               (image-blind)                                    (1_correction/phase2a_geometry.json)
                   │
                   ▼
  代码          core   确定性核        CorrectedGeometry           snapped CorrectedGeometry
-               (no LLM)              + A0 容差 registry          (phase2a_geometry_snapped.json
-                                                                  + corrections.json)
+               (no LLM)              + A0 容差 registry          (1_correction/..._snapped.json)
                   │
                   ▼
- LLM           phase2b 建模          snapped CorrectedGeometry    IntakeOutput
-               (image-blind)        + phase2/rules.md           (intake_output.json)
+ 代码          2_modelling+3_split_  snapped CorrectedGeometry    BuildingGeometry → 序列化
+               _pairing 几何内核      (kernel build + 切配)        zone/surface/fenestration_specs
+               (no LLM)                                          (2_modelling/3_split_pairing/)
+                  │
+                  ▼
+ LLM           4_mep 物理            zone 列表 + 必需 construction 集 material/construction/schedule/
+               (image-blind)        + 4_mep/authoring.md+mep.md   people/lights/hvac + building/site
+                  │                                              (4_mep/mep_output.json)
+                  ▼
+ 代码          5_intakeoutput 装配    geometry specs + MEP specs   IntakeOutput + 契约校验
+               (no LLM)                                          (5_intakeoutput/intake_output.json)
                   │
    ══════════════ 本项目侧契约边界：IntakeOutput（11 字段，不变）══════════════
                   ▼
- 下游(协作者)  9 subagent + cross_ref + validate    IntakeOutput → 装配好的 IDF
+ 下游(协作者)  9 subagent + cross_ref + validate    IntakeOutput → 装配好的 IDF（几何被忠实誊写）
                   │
                   ▼
  代码          InterZone 门          IDF → pass/fail（EP 前 fail-fast）
@@ -39,9 +49,16 @@
                simulate              IDF → EnergyPlus 结果
 ```
 
-实现：phase2 三段编排在 [src/agent/phase2.py](../../src/agent/phase2.py) `run_phase2`（被 `intake_node` 与 `run_phase2_deepseek.py` 薄包装共用）；确定性核在 [src/agent/correction/deterministic.py](../../src/agent/correction/deterministic.py)；中间态 schema 在 [src/agent/correction/schema.py](../../src/agent/correction/schema.py)；InterZone 门在 [src/validator/interzone.py](../../src/validator/interzone.py)，由 [workflow.py](../../src/mcp/tools/workflow.py) 在 EP 前调。
+实现：编排在 [src/agent/phase2.py](../../src/agent/phase2.py) `run_phase2`（被 `intake_node` 与 `run_phase2_deepseek.py` 薄包装共用）；确定性核 [correction/deterministic.py](../../src/agent/correction/deterministic.py)；几何内核 [geometry/](../../src/agent/geometry)（`modelling.py` 造面 + `split_pairing.py` 切配 + `specs.py` 序列化）；4_MEP 段 `run_mep`；装配 [intakeoutput.py](../../src/agent/intakeoutput.py)（`assemble_intake_output` + `validate_contract`）；InterZone 门 [interzone.py](../../src/validator/interzone.py)。**fork (a)**（用户 2026-06-09 定）：几何序列化成 `surface_specs` 文本、下游 surface_agent 忠实誊写；fork (b)（确定性直接造面绕过下游）记录待后续整合再议。**legacy fallback**：仅在内核 build 硬错时回退 `run_phase2b`（一步出整个 IntakeOutput），Step 8 e2e 验证后删。
 
-> **【未来架构标记，不急落】phase2b 拆 phase3（MEP 撰写分段）**：当前 phase2b 一步出**整个** `IntakeOutput`——几何（zone/surface/fenestration）+ 非几何（material/construction/schedule/people/lights/hvac）+ 切配指令全揉一起。设想拆出 **phase3**：phase2b 只 author 几何 specs，phase3 装载 MEP specs，再一起下游。切配留几何侧（确定性，见 §0.1）。等几何稳定 + [priors/mep.md](../../skills/energyplus_mcp_twostep/phase2/priors/mep.md) 扩成真先验库后再落。
+> **口径统一（一物多名，2026-06-09）**：同一个「内部边界面之间的对应关系」在不同层有不同叫法，等价——
+> - **切配** / **split-pairing**（口语 / 概念）= 把相邻 zone/层之间一对多的面，切成 EP 要求的逐面一对一 + 互逆引用。
+> - `surface_specs` 里写作 `adjacent_zone` / `adjacent_surface`（哪个 zone、哪个对面面）。
+> - IDF / EnergyPlus 里是 `Outside_Boundary_Condition = Surface` + `Outside_Boundary_Condition_Object`（互逆指向对面面）。
+> - 代码内核里是 `Surface.obc = "Surface"` + `obc_obj`（[split_pairing.py](../../src/agent/geometry/split_pairing.py)）。
+> 三者是同一件事的三种表述；**EnergyPlus 没有 `Zone` 边界条件**，写 `OBC=Zone` 是 severe。
+
+> **【未来架构标记，不急落】4_MEP 再拆 phase3（MEP 撰写分段）**：4_MEP 现一步出全部 8 个非几何字段。设想进一步拆 material/construction（结构）与 schedule/people/lights/hvac（荷载）。等 mep.md 扩成真先验库后再落。
 
 ### 0.1 目标总架构（2026-06-09 用户定调）— 几何彻底确定性化
 
@@ -56,7 +73,9 @@ phase1      phase2a判断 + 确定性核  cells→zones+面     面切分+互逆
 
 **一刀切分原则**：**LLM 只做 感知（识图）+ 校正判断 + 物理语义挂载；代码做 所有几何（建模 + 切配）+ 装配。** 「建模·几何」（cells→zones+墙/楼板/天花面 + OBC 判定 + 顶点合成）与「切配·仿真」（跨层/邻区面切分 + 互逆配对）都收进**确定性造面/切配内核**（核之后、吃 cells），整块吃掉 [rules.md](../../skills/energyplus_mcp_twostep/phase2/rules.md) §4/§2.6 + [surface.py](../../src/agent/nodes/surface.py) 的脆弱几何指令。产出**已完整解析的 surface_specs**，下游 surface_agent 退化成忠实誊写——**`IntakeOutput` 契约不变、下游代码不动**。
 
-**触发证据**：sm20/sm21 对照（[split_pairing_kernel_reference §2.5](../reference/split_pairing_kernel_reference.md)）——一步出 LLM 切配做得对、staged 退化，证明几何造面/切配是确定性活儿不该交 LLM。**待实现**：矩形现可落（deterministic.py 旁），非矩形随 B5 上 shapely。与上面 phase3（MEP 分段）同向：几何确定性后 LLM 只剩语义。
+**触发证据**：sm20/sm21 对照（[split_pairing_kernel_reference §2.5](../reference/split_pairing_kernel_reference.md)）——一步出 LLM 切配做得对、staged 退化，证明几何造面/切配是确定性活儿不该交 LLM。
+
+**落地状态（2026-06-09，0–5 重构 Step 2–6）**：✅ **矩形情形已落地**——几何内核 [geometry/](../../src/agent/geometry)（`modelling.py` 造面 + `split_pairing.py` 切配，shapely 多边形原生）接进 `run_phase2`，序列化成 `surface_specs`，4_MEP 只剩物理语义，5_intakeoutput 确定性装配。LLM 已不碰几何。`IntakeOutput` 契约不变、下游不动（fork a，下游誊写）。**待实现**：非矩形（L/U、退台）内核已 polygon-native 可吃，但端到端非矩形 case 随 B5 验证；e2e 实测（sm21_pre）= Step 8。
 
 ---
 
@@ -83,11 +102,23 @@ phase1      phase2a判断 + 确定性核  cells→zones+面     面切分+互逆
 - **产物**：snapped `CorrectedGeometry`（`phase2a_geometry_snapped.json`）+ `corrections.json`（2a + core 合并 audit）。
 - **消费者**：phase2b（读 snapped）；`corrections.json` 当前仅 sidecar（见 §3 缺口 5.4）。
 
-### phase2b — 建模（image-blind，LLM）
-- **职责**：从已校正且已吸附的几何造 `IntakeOutput`。**CorrectedGeometry 坐标是权威**：不得重新推导/重吸附/「改进」坐标。每 cell=1 热区（4 墙+地板+天花）；footprint 边界面=Outdoors，否则 interzone Surface；跨层楼板/天花 split-pairing 由堆叠层 cell 重叠枚举；窗按给定 span+z 挂到房间外墙；非几何 specs 从 testdata+rules 产。
-- **喂的 skill**：[phase2/rules.md](../../skills/energyplus_mcp_twostep/phase2/rules.md)（Step 1→7 派生顺序 + 命名规则 + Step 4 OBC=Surface + Step 5 material↔construction split）。
-- **输入**：snapped `CorrectedGeometry` + testdata + 可选 `feedback`。
-- **产物**：`IntakeOutput`（`intake_output.json`）——**本项目侧交接契约**。
+### 2_modelling + 3_split_pairing — 几何内核（代码，无 LLM）
+- **职责**：从 snapped `CorrectedGeometry` 确定性造出全部几何面并切配。`modelling`：cell→zone 体块 + 面顶点合成（外法向、CCW-from-outside）；`split_pairing`：同层内墙互逆配对 + 跨层楼板/天花切分配对 + roof/ground + 窗挂外墙。`specs.serialize_geometry` 把 `BuildingGeometry` 序列化成 `zone_specs`/`surface_specs`/`fenestration_specs` 文本 + `used_constructions` 集（construction 按面型/OBC 定，互逆面同名 `Cons_InterFloor`）。
+- **喂的 skill**：[2_modelling/spec.md](../../skills/energyplus_mcp_twostep/2_modelling/spec.md) + [3_split_pairing/spec.md](../../skills/energyplus_mcp_twostep/3_split_pairing/spec.md)（code-of-spec，非 LLM prompt）。
+- **输入**：snapped `CorrectedGeometry`。
+- **产物**：3 个几何 spec 文本 + `used_constructions`（喂 4_MEP）；物化 `building_geometry.json` / `geometry_specs.md`。
+
+### 4_mep — 物理信息撰写（image-blind，LLM）
+- **职责**：只产非几何的 8 个字段——`building`/`site_location` + `material`/`construction`/`schedule`/`people`/`lights`/`hvac_specs`。必须定义 `used_constructions` 里每个 construction（否则面挂不上、EP fatal）。
+- **喂的 skill**：[4_mep/authoring.md](../../skills/energyplus_mcp_twostep/4_mep/authoring.md)（撰写规则）+ [4_mep/mep.md](../../skills/energyplus_mcp_twostep/4_mep/mep.md)（默认值）。
+- **输入**：testdata + 序列化的 zone 列表（取 zone 名写 per-zone people/lights/hvac）+ 必需 construction 集 + 可选 `feedback`。
+- **产物**：`MepOutput`（8 字段，`4_mep/mep_output.json`）。
+
+### 5_intakeoutput — 装配（代码，无 LLM）
+- **职责**：把 3 个几何 specs + 8 个 MEP 字段机械拼成 `IntakeOutput`，跑确定性契约校验（每个 `used_constructions` 必须在 `construction_specs` 里被定义，逐 token 严格匹配；缺则 raise）。
+- **输入**：geometry specs + `MepOutput`。
+- **产物**：`IntakeOutput`（`5_intakeoutput/intake_output.json`）——**本项目侧交接契约（11 字段不变）**。
+- **legacy**：内核 build 硬错时 `run_phase2` 回退一步出 `run_phase2b`（读 `phase2/rules.md`，已标 SUPERSEDED，Step 8 后删）。
 
 ### downstream — 9 subagent + cross_ref + validate（协作者维护 prompt）
 - **职责**：`IntakeOutput` → 装配 IDF。
@@ -99,16 +130,18 @@ phase1      phase2a判断 + 确定性核  cells→zones+面     面切分+互逆
 
 ## 2. skill ↔ 子流程矩阵
 
-| skill 文档 | phase1 | phase2a | core | phase2b | 下游 |
-|---|:--:|:--:|:--:|:--:|:--:|
-| phase1/guide.md | ●主 | ○参考 | | | |
-| phase1/reading_guide.md | ●主 | | | | |
-| phase1/pen_library.md | ●主 | ○参考 | | | |
-| PartA-correction/A0–A4 + README | | ●规则 | (常数源) | | |
-| phase2/rules.md | | | | ●规则 | |
-| 下游各节点 prompt（src/nodes/*.py） | | | | | ●协作者 |
+| skill 文档 | phase1 | phase2a | core | 几何内核(2_3) | 4_mep | 5_intakeoutput | 下游 |
+|---|:--:|:--:|:--:|:--:|:--:|:--:|:--:|
+| 0_reading/guide.md | ●主 | ○参考 | | | | | |
+| 0_reading/reading_guide.md | ●主 | | | | | | |
+| 0_reading/pen_library.md | ●主 | ○参考 | | | | | |
+| 1_correction/A0–A4 + README | | ●规则 | (常数源) | | | | |
+| 2_modelling/spec.md + 3_split_pairing/spec.md | | | | ●code-of-spec | | | |
+| 4_mep/authoring.md + mep.md | | | | | ●规则 | | |
+| phase2/rules.md（legacy fallback `run_phase2b`） | | | | | | (回退时) | |
+| 下游各节点 prompt（src/nodes/*.py） | | | | | | | ●协作者 |
 
-`●主`=该段主规则；`○参考`=作背景理解喂入；`(常数源)`=应作单一真源被代码读取（当前未接，见 5.1）。
+`●主`=该段主规则；`○参考`=背景理解喂入；`●code-of-spec`=非 LLM prompt，是代码内核的规格文档；`(常数源)`=应作单一真源被代码读取（A0 registry，5.1 已接）。
 
 ## 3. 中间产物 ↔ 子流程矩阵
 
@@ -116,9 +149,12 @@ phase1      phase2a判断 + 确定性核  cells→zones+面     面切分+互逆
 |---|---|---|---|
 | `phase1_vector/*.json` + `phase1_summary.md` | phase1 | phase2a | 半人工落盘；矢量 JSON + 立面翻译公式 |
 | `phase2a_geometry.json` | phase2a | core | `CorrectedGeometry`（pre-snap）；**baseline diff 目标** |
-| `phase2a_geometry_snapped.json` | core | phase2b | `CorrectedGeometry`（post-snap，权威坐标） |
+| `phase2a_geometry_snapped.json` | core | 几何内核 | `CorrectedGeometry`（post-snap，权威坐标） |
 | `corrections.json` | 2a + core | — *(sidecar)* | corrections/conflicts/unsupported 合并；当前不喂下游（见 5.4） |
-| `intake_output.json` | phase2b | 下游 | `IntakeOutput` 11 字段 = **交接契约** |
+| `building_geometry.json` | 几何内核(2_modelling) | 序列化器 | zones+面（确定性造面+切配）+ `kernel_gate_report.json`（门判定，advisory） |
+| `geometry_specs.md`（zone/surface/fenestration_specs） | 几何内核(3_split_pairing) | 5_intakeoutput + 4_mep(zone 列表) | 序列化的几何 specs 文本 + `used_constructions` 集 |
+| `mep_output.json` | 4_mep | 5_intakeoutput | `MepOutput` 8 非几何字段 |
+| `intake_output.json` | 5_intakeoutput | 下游 | `IntakeOutput` 11 字段 = **交接契约**（geometry 3 + MEP 8 装配 + 契约校验）|
 | IDF / EP 结果 | 下游 / simulate | — | InterZone 门 + EP |
 
 ### 3.1 固化的 on-disk 布局 + 每阶段校验工具（2026-06-09）
@@ -129,18 +165,23 @@ phase1      phase2a判断 + 确定性核  cells→zones+面     面切分+互逆
 <case>/
   *.png, testdata_prompt.json        源素材（输入）
   llm.yaml                           per-case 模型组合
-  phase1/                            phase1 产物（半人工 / sub-agent）
+  phase1/  (= 0_reading)             phase1 产物（半人工 / sub-agent）
     {1f,2f,..}_view.json + *_render.png + phase1_summary.md
-  phase2/
-    partA/                           phase2a 校正 + 确定性核
-      phase2a_geometry.json          LLM 直出（pre-snap）
-      phase2a_geometry_snapped.json  核吸附后（权威坐标）
-      phase2a_geometry_snapped.png   渲染（校验用）
-      corrections.json               2a+核 audit
-      phase2a_raw.txt
-    partB/                           phase2b 建模
-      intake_output.json             IntakeOutput 交接契约
-      phase2b_raw.txt
+  1_correction/                      phase2a 校正 + 确定性核
+    phase2a_geometry.json            LLM 直出（pre-snap）
+    phase2a_geometry_snapped.json    核吸附后（权威坐标）
+    corrections.json                 2a+核 audit
+    phase2a_raw.txt
+  2_modelling/                       几何内核 build
+    building_geometry.json           zones+面（确定性造面+切配结果）
+    kernel_gate_report.json          InterZone 门对内核几何的判定（advisory）
+  3_split_pairing/
+    geometry_specs.md                序列化的 zone/surface/fenestration specs
+  4_mep/                             物理撰写（LLM）
+    mep_output.json + mep_raw.txt
+  5_intakeoutput/
+    intake_output.json               IntakeOutput 交接契约
+    contract_issues.json             契约校验失败时（缺 construction 等）
   EP_run/                            下游装配 + EP
     temp_*.idf / temp_*.yaml / intake_output.json / pipeline_run.log
 ```

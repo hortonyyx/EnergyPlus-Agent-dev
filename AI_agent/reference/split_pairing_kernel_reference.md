@@ -120,6 +120,16 @@ interzone.py 门(确定性)    事后校验整张配对图(8 项), 不切面    
 
 ---
 
+## 7. 落地状态（2026-06-09，0–5 重构 Step 2–6）✅ 矩形已落地
+
+切配确定性内核**已建成并接进主链**（shapely 多边形原生）：
+- 造面+切配：[src/agent/geometry/split_pairing.py](../../src/agent/geometry/split_pairing.py)（同层内墙互逆配对 + 跨层楼板/天花切分配对 + roof/ground + 重叠守卫）+ [modelling.py](../../src/agent/geometry/modelling.py)（zone 体块 + 面顶点合成）。**leg-agnostic**：吃 `list[ZoneVolume]`，任何 zonification 粒度同算法。
+- 接线：[phase2.py](../../src/agent/phase2.py) `run_phase2` 核之后 build_geometry → [specs.py](../../src/agent/geometry/specs.py) `serialize_geometry` 序列化成 `surface_specs` → **fork (a)** 下游 surface_agent 忠实誊写。`IntakeOutput` 契约不变、下游不动。
+- 验证：[tests/test_geometry_kernel.py](../../tests/test_geometry_kernel.py) 8 测对标 InterZone 门 0 issue（含 sm20-shaped 三层 4/3/2 错配）。**事后裁判** = [interzone.py](../../src/validator/interzone.py) 门（退化成 sanity check，§5 已预言）。
+- **待**：非矩形端到端 case 随 B5；sm21_pre e2e = Step 8。fork (b)（确定性直接造面绕过下游）记录待后续整合再议。
+
+---
+
 _2026-06-09 — **决策反转**：切配从"归下游、不归本项目"改为"**我方确定性做、核之后吃 cells**"。源 = sm20/sm21 对照（§2.5）证明 staged 切配退化是架构把确定性几何活儿塞给 LLM，非 LLM 不能。banner + §2.5 + §4#4 + §6 更新。_
 
 _2026-06-07 建档 — 主开发 Agent。源 = 几何管线术语锁定后，把切配从"再拓扑"里摘出作独立 leg-agnostic 确定性轨。（彼时定"实现归下游"，已被 2026-06-09 推翻，见上。）_

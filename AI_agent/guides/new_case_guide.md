@@ -70,9 +70,9 @@ cp /path/to/South_view.png test_data/SmallOffice_TwoStep/$case/South_view.png
 目录约定（**固化布局，2026-06-09**，权威详表见 [pipeline_stage_contracts §3.1](../architecture/pipeline_stage_contracts.md)）：
 - 源图（`*_view.png`）+ `testdata_prompt.json` + `llm.yaml` 放 `<case>/` 根
 - phase1 矢量产物放 `<case>/phase1/`（旧 case 用 `phase1_vector/`，`--phase1-from` 后跟目录名）
-- phase2 产物放 `<case>/phase2/{partA,partB}/`（partA=2a 校正+核，partB=2b 建模）
+- phase2 产物按 0–5 阶段分门别类放 `<case>/{1_correction, 2_modelling, 3_split_pairing, 4_mep, 5_intakeoutput}/`（2026-06-09 重构）：1_correction=2a 校正+确定性核；2_modelling=几何内核 build（`building_geometry.json`）；3_split_pairing=序列化几何 specs；4_mep=物理撰写（LLM）；5_intakeoutput=最终 `intake_output.json` + 契约校验
 - 下游装配 + EP 产物放 `<case>/EP_run/`
-- 各阶段校验工具：phase1 用 `render_vector_to_png.py`；partA 用 `render_corrected_geometry.py`（逐层平面图）；EP 段 InterZone 门 + EP `.err`
+- 各阶段校验工具：phase1 用 `render_vector_to_png.py`；1_correction 用 `render_corrected_geometry.py`（逐层平面图）；2_modelling 看 `kernel_gate_report.json`；EP 段 InterZone 门 + EP `.err`
 
 ---
 
@@ -194,7 +194,7 @@ python scripts/run_full_pipeline.py <case> \
 脚本动作：
 1. 读 `testdata_prompt.json`（原文）+ 收集图路径
 2. `--phase1-from phase1_vector` → 把 `<case>/phase1_vector/` 交给 `intake_node`
-3. `intake_node` 跑 **phase2 三段**（[`src/agent/phase2.py`](../../src/agent/phase2.py)，DeepSeek，2a 校正→确定性核→2b 建模）→ partA 产物（`phase2a_geometry[_snapped].json` + `corrections.json`）落 `<case>/phase2/partA/`，partB（`intake_output.json`）落 `<case>/phase2/partB/`；下游 + EP 落 `<case>/EP_run/`
+3. `intake_node` 跑 **phase2 多段**（[`src/agent/phase2.py`](../../src/agent/phase2.py)）：2a 校正(LLM)→确定性核→**几何内核**(代码：造面+切配，序列化成 surface_specs)→**4_MEP**(LLM，只产非几何 8 字段)→**5_intakeoutput**(代码：装配 + 契约校验)。产物按阶段落 `<case>/{1_correction,2_modelling,3_split_pairing,4_mep,5_intakeoutput}/`，最终 `intake_output.json` 在 `5_intakeoutput/`；下游 + EP 落 `<case>/EP_run/`。几何确定、LLM 只剩物理语义（fork a：下游 surface_agent 忠实誊写）
 4. phase 1 并行：zone / material / schedule
 5. `cross_ref_foundations` → `construction → surface → fenestration` 串行
 6. phase 3 并行：hvac / people / lights

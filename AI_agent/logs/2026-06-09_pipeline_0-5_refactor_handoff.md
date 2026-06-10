@@ -1,7 +1,7 @@
 # 交接 · 管线重构为 0–5 阶段架构（活任务，跨会话）
 
-> **状态（2026-06-09，commit `29845ea` 后）**：Step 1 完成并提交；Step 2–8 待做。新会话从这里接着干。
-> **首读**：本文 + [pipeline_stage_contracts.md](../architecture/pipeline_stage_contracts.md)（架构 spec）+ [split_pairing_kernel_reference.md](../reference/split_pairing_kernel_reference.md)（切配落位决策）。
+> **状态（2026-06-09 v2）**：Step 1–7 完成并提交（Step 1 `29845ea`；Step 2 `6117f58`；Step 3 `945c54c`；Step 4 `600f7d0`；Step 5 `a978009`；Step 6 `763ee97`；Step 7 docs）。**Step 8（sm21_pre e2e 复测）待做** —— 唯一剩余项，需 DeepSeek API + 下游全跑。fork (a)（序列化→下游誊写）已选定实现；fork (b) 记录待后续整合再议。
+> **首读**：本文 + [pipeline_stage_contracts.md](../architecture/pipeline_stage_contracts.md)（架构 spec，**已更新到新实态**）+ [split_pairing_kernel_reference.md §7](../reference/split_pairing_kernel_reference.md)（切配落地状态）+ [rules_md_split_map.md](../architecture/rules_md_split_map.md)（rules.md 拆解 + 口径）。
 
 ---
 
