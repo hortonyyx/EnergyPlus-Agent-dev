@@ -6,7 +6,7 @@
 > - **平时 dev 测试**：直接指定各阶段模型，让主控 Agent 开子代理跑（如 phase1 用一个子会话、phase2 换不同模型对比）。灵活、临时，**不走本指南**。
 > - **正式测试（本指南）**：完整端到端。**除 phase1 目前半人工喂矢量外，phase2 + 9 个下游 subagent + EnergyPlus 全自动一次性跑完**。每次测试用**一份 per-case 模型配置**(`<case>/llm.yaml`,从全局拷贝当默认、自己改),方便快速切模型组合;全局 [`src/configs/llm.yaml`](../../src/configs/llm.yaml) 作兜底。详见 §5.1。
 >
-> **架构**：两步法 intake（[architecture/architecture.md](../architecture/architecture.md)）。phase1 = 图 → 语义矢量 JSON（看图、只识不推）；phase2 = 矢量 JSON → `IntakeOutput`（不看图、纯拓扑推理）。两步分离 = **误差预算分离**（识图错归 phase1，推理错归 phase2）。规则真身在 [`skills/energyplus_mcp_twostep/`](../../skills/energyplus_mcp_twostep)。
+> **架构**：两步法 intake（[architecture/architecture.md](../architecture/architecture.md)）。phase1 = 图 → 语义矢量 JSON（看图、只识不推）；phase2 = 矢量 JSON → `IntakeOutput`（不看图、纯拓扑推理）。两步分离 = **误差预算分离**（识图错归 phase1，推理错归 phase2）。规则真身在 [`skills/intake_pipeline/`](../../skills/intake_pipeline)。
 >
 > 旧单步法版本备份在 [logs/backup/new_case_guide.md.bak_2026-05-29](../logs/backup/new_case_guide.md.bak_2026-05-29)。
 
@@ -120,7 +120,7 @@ cp /path/to/South_view.png test_data/SmallOffice_TwoStep/$case/South_view.png
 ### 4.1 跑 phase1
 
 1. 仓库根新起独立 Claude Code 会话，选多模态强模型（如 Opus）。
-2. 把 [**附录 A · phase1 启动 prompt**](#附录-a--phase1-启动-prompt粘进-claude-code-会话)整段贴入，按 case 改图名表。规则真身在 [`skills/energyplus_mcp_twostep/phase1/`](../../skills/energyplus_mcp_twostep/phase1)（`guide.md` 流程/误差预算/输出容器 + `reading_guide.md` 跨画法识别 + `pen_library.md` 笔库），会话运行时读取。
+2. 把 [**附录 A · phase1 启动 prompt**](#附录-a--phase1-启动-prompt粘进-claude-code-会话)整段贴入，按 case 改图名表。规则真身在 [`skills/intake_pipeline/phase1/`](../../skills/intake_pipeline/phase1)（`guide.md` 流程/误差预算/输出容器 + `reading_guide.md` 跨画法识别 + `pen_library.md` 笔库），会话运行时读取。
 3. 会话先做一张 pilot 停下等审；审 OK 再 batch 其余。
 
 ### 4.2 产物 + 人工校验
@@ -287,7 +287,7 @@ io = IntakeOutput.model_validate(d); print('OK 11 fields; building=', io.buildin
 
 ## 附录 A · phase1 启动 prompt（粘进 Claude Code 会话）
 
-> Step 4 用。仓库根新起多模态会话，把下面 `---` 之间整段作首条消息粘入，**按 case 改图名表**。规则真身在 [`skills/energyplus_mcp_twostep/phase1/`](../../skills/energyplus_mcp_twostep/phase1)，会话运行时读取，不必拷进 case 目录。
+> Step 4 用。仓库根新起多模态会话，把下面 `---` 之间整段作首条消息粘入，**按 case 改图名表**。规则真身在 [`skills/intake_pipeline/phase1/`](../../skills/intake_pipeline/phase1)，会话运行时读取，不必拷进 case 目录。
 
 ---
 
@@ -320,11 +320,11 @@ Phase 1 sees the image, phase 2 does not. So:
 ## Your task
 
 1. Read all three phase-1 skill docs (**required**):
-   - `skills/energyplus_mcp_twostep/phase1/guide.md` — flow / error budget / global constraints / output container / door-healing /
+   - `skills/intake_pipeline/phase1/guide.md` — flow / error budget / global constraints / output container / door-healing /
      facade_axis_note spec / self-check / downstream contract
-   - `skills/energyplus_mcp_twostep/phase1/reading_guide.md` — how to *recognize* each element across drawing styles (the
+   - `skills/intake_pipeline/phase1/reading_guide.md` — how to *recognize* each element across drawing styles (the
      convention cards + the semantic-category vocabulary)
-   - `skills/energyplus_mcp_twostep/phase1/pen_library.md` — what to *do* with each recognized category (which pen / keep-or-ignore /
+   - `skills/intake_pipeline/phase1/pen_library.md` — what to *do* with each recognized category (which pen / keep-or-ignore /
      wall_fill convention)
 2. Look at the worked example JSON (already hand-authored, e.g. the first plan view — **do not
    rewrite it**), and follow its style for the remaining images
@@ -419,9 +419,9 @@ pure text reasoning.
 
 Read in order:
 
-1. `skills/energyplus_mcp_twostep/phase2/rules.md` — full phase 2 rules (input/output / coordinate translation formulas /
+1. `skills/intake_pipeline/phase2/rules.md` — full phase 2 rules (input/output / coordinate translation formulas /
    IntakeOutput field derivation order / naming rules / vertex synthesis / self-check)
-2. `skills/energyplus_mcp_twostep/phase1/guide.md` + `skills/energyplus_mcp_twostep/phase1/pen_library.md` — phase 1 output format reference (only to understand what your input looks like; phase 2 does not need the reading guide)
+2. `skills/intake_pipeline/phase1/guide.md` + `skills/intake_pipeline/phase1/pen_library.md` — phase 1 output format reference (only to understand what your input looks like; phase 2 does not need the reading guide)
 3. `phase1_vector/phase1_summary.md` — phase 1 summary (includes the 4-facade local↔world translation formulas, **apply directly**)
 4. **every** phase 1 vector JSON under `phase1_vector/` (do not assume a fixed file set):
    - all floor-plan JSONs (`<N>f_view.json`) and all facade-elevation JSONs (`<Name>_view.json`)

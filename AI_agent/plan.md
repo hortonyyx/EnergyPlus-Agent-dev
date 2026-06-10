@@ -18,7 +18,7 @@
 【新】阶段 1.5 [B1.5]：两步法 intake 立项 ← 当前最高优先级（2026-05-12 晚起）
    sm_20 两步法 POC PASS（[floorplan_redraw_strategy.md §9](capability/floorplan_redraw_strategy.md)）。
    下一步：异图 POC v2（噪声图）+ intake_node 重写串行调用两 phase +
-   skills/energyplus_mcp_twostep 持续迭代 + 评测嵌入。详见本文 B1.5 节。
+   skills/intake_pipeline 持续迭代 + 评测嵌入。详见本文 B1.5 节。
 
 阶段 2 [B2-B4]：评测基线规范化（与 B1.5 并行推进）
    建立测试评测基线：GT 集 / 自动评测脚本 / Opus baseline /
@@ -173,7 +173,7 @@
 > 设计框架已在 [`floorplan_redraw_strategy.md §10`](capability/floorplan_redraw_strategy.md)（2026-05-22 讨论）收敛：测「信息噪声 / 选择性提取」而非「全局像素降质」；phase1 走选择性提取(B) + 门洞补成连续墙；zone 重划分归 phase2。
 
 - [ ] **图纸准备**（用户）：矩形几何同 sm_20 级 + 信息杂物（家具 / 铺装 / 纹理 / 楼梯 / 轴网圈 / 房间文字）+ **每房间 1-2 个门** + **1-2 处故意遮挡某段尺寸标注** + testdata_prompt.json（楼层/区/外包/WWR）
-- [x] **schema v1.3 amendment（先于跑批，依据 §10.4）** ✅ 2026-05-25：`phase1_vector_schema.md`（后于 2026-05-26 拆分为 [`phase1/`](../skills/energyplus_mcp_twostep/phase1) 三份：guide/reading_guide/pen_library）§2 "开洞打断成两段"→"门洞补成连续墙 + 留痕"+ 新增 §2.1 四条护栏；门处理改"识别以驱动补墙、不出 door 笔、note 记 heal"；`uncaptured_visual_elements` 提为**必填**（扩为"凡看到但没画的都登记"，含主动排除杂物 + heal 门）；`door`/`arc` 退出词典；同步 [`phase1/prompt_template.md`](../skills/energyplus_mcp_twostep/phase1/prompt_template.md) 纪律段。备份 `Skill_history/2026-05-25_twostep_phase1_v1.3_door_healing/`
+- [x] **schema v1.3 amendment（先于跑批，依据 §10.4）** ✅ 2026-05-25：`phase1_vector_schema.md`（后于 2026-05-26 拆分为 [`phase1/`](../skills/intake_pipeline/phase1) 三份：guide/reading_guide/pen_library）§2 "开洞打断成两段"→"门洞补成连续墙 + 留痕"+ 新增 §2.1 四条护栏；门处理改"识别以驱动补墙、不出 door 笔、note 记 heal"；`uncaptured_visual_elements` 提为**必填**（扩为"凡看到但没画的都登记"，含主动排除杂物 + heal 门）；`door`/`arc` 退出词典；同步 [`phase1/prompt_template.md`](../skills/intake_pipeline/phase1/prompt_template.md) 纪律段。备份 `Skill_history/2026-05-25_twostep_phase1_v1.3_door_healing/`
 - [x] 跑两步法（phase1 子代理 + phase2 DeepSeek）+ 下游 + EP ✅ sm21 PASS（修 glazing material 规则后）
 - [ ] **判分项**（§10.2 + 选择性提取观察点）：
   - 杂物→结构假阳性（家具/铺装/纹理被当 wall/window）⛔ 最致命
@@ -201,7 +201,7 @@
 - [ ] site.Name 规范化为 `<City>_<ISO2>`
 - [ ] Schedule:Compact day-type 名（EnergyPlus 接受 `Weekdays/Weekends/Holiday/AllOtherDays`）
 
-> 注（2026-05-25 起）：`skills/energyplus_mcp_twostep/` 是纯当前版本 spec，**文件内不再写版本号 / changelog / 缘起 case**（决策史归 git commit + 本 plan + [capability/floorplan_redraw_strategy.md](capability/floorplan_redraw_strategy.md)）。每次改 skill 仍按 [CLAUDE.md §6#5](CLAUDE.md) 备份到 `Skill_history/`。
+> 注（2026-05-25 起）：`skills/intake_pipeline/` 是纯当前版本 spec，**文件内不再写版本号 / changelog / 缘起 case**（决策史归 git commit + 本 plan + [capability/floorplan_redraw_strategy.md](capability/floorplan_redraw_strategy.md)）。每次改 skill 仍按 [CLAUDE.md §6#5](CLAUDE.md) 备份到 `Skill_history/`。
 
 #### B1.5.c [P0] `intake_node` 重写为两步串行 — ✅ 完成 2026-05-29（[CLAUDE.md §5.8](CLAUDE.md)）
 - [x] [`src/agent/nodes/intake.py`](../src/agent/nodes/intake.py) 三路分发：短路 `--intake-from` / `phase1_vector_dir`→phase2 / legacy 单步；`--intake-from` short-circuit 保留
@@ -500,7 +500,7 @@
 
 _2026-05-29 — **B1.5.c/d/e/g 交付（两步法切主线 + InterZone 门 + 正式指南）**：B1.5.c `intake_node` 三路分发串行 + `src/agent/phase2.py` 单一实现 + `--phase1-from` + per-case 模型配置；B1.5.d `run_phase2_deepseek` 收成薄包装；B1.5.e `new_case_guide.md` 正式化两步法；新增 B1.5.g InterZone 确定性几何门（审阅 A，EP 前 fail-fast，e2e 全新输出抓 6 缺陷）。两份 Codex review 3 High + 4 Med/Low 全修、re-verify 全 PASS；测试 5→23。e2e 首次完整跑通新架构（机制 100% 通，几何质量挂门 = 建模质量主线问题，审阅 B 待落地）。详见 [CLAUDE.md §5.8](CLAUDE.md)。_
 
-_2026-05-12 (晚) — **两步法 POC PASS + B1.5 立项最高优先级**：sm_20 全套两步法（phase1 矢量化 → phase2 拓扑建模）+ 下游 + EP 真跑通过（DeepSeek 路径 EP cleanly / Opus 路径暴露 InterZone construction rule 漏洞已在 phase2_rules v1.3 修）。F3 corridor 窗 z 修正（anchor 单步错 9.60，两步法都对 10.60）证明误差预算分离生效。新增 B1.5 节：POC v2 异图 / intake_node 改两步 / 评测嵌入 / new_case_guide 重写。详见 [floorplan_redraw_strategy.md §9](capability/floorplan_redraw_strategy.md) + B1.5 节。两步法 artifacts 迁到 [`test_data/SmallOffice_TwoStep/`](../test_data/SmallOffice_TwoStep)，skill 演进源在 [`skills/energyplus_mcp_twostep/`](../skills/energyplus_mcp_twostep)。_
+_2026-05-12 (晚) — **两步法 POC PASS + B1.5 立项最高优先级**：sm_20 全套两步法（phase1 矢量化 → phase2 拓扑建模）+ 下游 + EP 真跑通过（DeepSeek 路径 EP cleanly / Opus 路径暴露 InterZone construction rule 漏洞已在 phase2_rules v1.3 修）。F3 corridor 窗 z 修正（anchor 单步错 9.60，两步法都对 10.60）证明误差预算分离生效。新增 B1.5 节：POC v2 异图 / intake_node 改两步 / 评测嵌入 / new_case_guide 重写。详见 [floorplan_redraw_strategy.md §9](capability/floorplan_redraw_strategy.md) + B1.5 节。两步法 artifacts 迁到 [`test_data/SmallOffice_TwoStep/`](../test_data/SmallOffice_TwoStep)，skill 演进源在 [`skills/intake_pipeline/`](../skills/intake_pipeline)。_
 
 _2026-05-12 — **B1 阶段闭环**：3 个 skill md 全部按 audit 4 个 Gap 补硬约束 + fenestration chain N 窗通式 + 反例；surface_agent prompt + 输入装配 hotfix（src_history 备份 + downstream_agent_changes.md）。sm_20 半人工流 EP cleanly 跑通取代 sm_16_newarch 成为新通透性 anchor。推荐执行顺序更新：主线焦点切到 B2-B4（评测基线规范化）。详见 [CLAUDE.md §5.5](CLAUDE.md) + B1 节本文。_
 

@@ -2,7 +2,7 @@
 
 > **Step 2 of the 0–5 pipeline refactor** (handoff
 > [2026-06-09_pipeline_0-5_refactor_handoff.md](../logs/2026-06-09_pipeline_0-5_refactor_handoff.md)).
-> Classifies every section of [phase2/rules.md](../../skills/energyplus_mcp_twostep/phase2/rules.md)
+> Classifies every section of [phase2/rules.md](../../skills/intake_pipeline/phase2/rules.md)
 > by where it belongs under the target architecture
 > ([pipeline_stage_contracts §0.1](pipeline_stage_contracts.md)), names the kernel
 > function that already implements each geometry rule (or marks a GAP), and records
@@ -68,7 +68,7 @@ deterministic assembly (today inside phase2b); **GAP** = not yet implemented any
 | §3 Step 4 `surface_specs` (4 walls+floor+ceiling, OBC, reciprocal pairing, **cross-floor split-pairing**) | **KERNEL** | walls: `_wall_verts` + same-floor boundary pairing; floor/ceiling: cross-floor `intersection` pairing; Outdoors/Ground/Surface OBC + `obc_obj` reciprocity — all in `build_geometry` |
 | §3 Step 5 `material_specs`/`construction_specs` (+ §5.1 interzone single-construction reverse symmetry) | PHYSICS | construction assignment → `4_mep`. NB the **pairing** is KERNEL; assembly must give both paired faces the **same** construction name (`Cons_InterFloor`) to satisfy EP reverse-layer rule |
 | §3 Step 6 `fenestration_specs` (per-window record, vertices, self-check) | KERNEL (vertices/parent/z) + CONTRACT (semantic fields) | `_window_verts` + `_find_parent_wall`; CHKSBS-prevention is structural (window z within parent wall) — kernel-enforced |
-| §3 Step 7 `schedule/people/lights/hvac` | PHYSICS | already moved to [4_mep/mep.md](../../skills/energyplus_mcp_twostep/4_mep/mep.md) (Step 1); rules.md Step 7 points there |
+| §3 Step 7 `schedule/people/lights/hvac` | PHYSICS | already moved to [4_mep/mep.md](../../skills/intake_pipeline/4_mep/mep.md) (Step 1); rules.md Step 7 points there |
 | §4 vertex synthesis (CCW-from-outside table, window vertex table) | **KERNEL** | `_wall_verts` / `_ring_verts` / `_window_verts` + `_orient`/`_newell` (normal-based, supersedes the hardcoded tables) |
 | §5 naming rules (EP-safe chars, cross-field literal-identical) | CONTRACT | assembly; kernel already emits EP-safe names via `_safe()` |
 | §6 disallowed writing | CONTRACT | mostly anti-template discipline for the LLM; moot once geometry is deterministic |

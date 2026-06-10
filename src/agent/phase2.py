@@ -41,7 +41,7 @@ from src.agent.state import IntakeOutput
 if TYPE_CHECKING:
     from src.agent.geometry.modelling import BuildingGeometry
 
-_SKILL_DIR = Path(__file__).resolve().parents[2] / "skills" / "energyplus_mcp_twostep"
+_SKILL_DIR = Path(__file__).resolve().parents[2] / "skills" / "intake_pipeline"
 _PARTA_DIR = _SKILL_DIR / "1_correction"
 _PARTA_DOCS = [
     "README.md",

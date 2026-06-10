@@ -12,7 +12,7 @@ Usage:
 Reads:
     <case>/phase1_vector/*.json + phase1_summary.md
     <case>/testdata_prompt.json
-    skills/energyplus_mcp_twostep/{phase2/rules.md, phase1/guide.md, phase1/pen_library.md}
+    skills/intake_pipeline/{1_correction, 0_reading, 2_modelling, 3_split_pairing, 4_mep}
 
 Writes (to <case>/phase2_intake/deepseek/):
     intake_output.json     on success
@@ -48,7 +48,7 @@ def main() -> None:
         "--case",
         required=True,
         help="case directory containing phase1_vector/ + testdata_prompt.json "
-        "(rule docs are read from skills/energyplus_mcp_twostep/)",
+        "(rule docs are read from skills/intake_pipeline/)",
     )
     args = ap.parse_args()
 

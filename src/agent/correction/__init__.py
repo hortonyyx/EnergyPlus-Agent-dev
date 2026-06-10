@@ -5,7 +5,7 @@ phase2a (LLM correction) -> CorrectedGeometry  (materialized intermediate)
    -> phase2b (LLM modeling) -> IntakeOutput
 
 Decoupling the stages makes each model swappable and the correction checkpoint
-verifiable / diffable for evaluation. Spec: skills/energyplus_mcp_twostep/phase2/
+verifiable / diffable for evaluation. Spec: skills/intake_pipeline/ (1_correction + 4_mep)
 PartA-correction/.
 """
 

@@ -173,7 +173,7 @@
 - **Phase 2**：两条路径并行验证
   - Opus 路径：Claude Code 会话直写 IntakeOutput JSON
   - DeepSeek 路径：[`Tool_scripts/run_phase2_deepseek.py`](../../Tool_scripts/run_phase2_deepseek.py)（绕过 langchain，thinking enabled，max_tokens 64k）
-- **Phase 2 规则**：[phase2_rules.md](../../test_data/SmallOffice_TwoStep/smalloffice_20/phase2_rules.md)（v1.3 升级版在 [`skills/energyplus_mcp_twostep/`](../../skills/energyplus_mcp_twostep)）
+- **Phase 2 规则**：[phase2_rules.md](../../test_data/SmallOffice_TwoStep/smalloffice_20/phase2_rules.md)（v1.3 升级版在 [`skills/intake_pipeline/`](../../skills/intake_pipeline)）
 
 ### 9.2 三方对比结果（详见 [`compare/diff.md`](../../test_data/SmallOffice_TwoStep/smalloffice_20/compare/diff.md)）
 
@@ -235,7 +235,7 @@ POC 验证用户可在 ~30 min 内人工检查 SVG 是否与原图一致：
 
 > 本节是一次设计讨论的落盘。结论用于指导 B1.5.a 异图 POC v2 的图纸准备 + phase1_vector_schema v1.3 amendment + phase2_rules 后续 zoning 节。用户当时正去准备噪声测试材料。
 >
-> **进度（2026-05-25）**：§10.4 的 phase1_vector_schema **v1.3 amendment 已落盘**（door-healing + `uncaptured` 提必填 + `door`/`arc` 退出词典），同步更新 [`phase1_prompt_template.md`](../../skills/energyplus_mcp_twostep/phase1_prompt_template.md) 纪律段；备份 `Skill_history/2026-05-25_twostep_phase1_v1.3_door_healing/`。**剩 POC v2 跑批仍等用户交噪声图 + testdata_prompt.json**（§10.6 #3）。
+> **进度（2026-05-25）**：§10.4 的 phase1_vector_schema **v1.3 amendment 已落盘**（door-healing + `uncaptured` 提必填 + `door`/`arc` 退出词典），同步更新 [`phase1_prompt_template.md`](../../skills/intake_pipeline/phase1_prompt_template.md) 纪律段；备份 `Skill_history/2026-05-25_twostep_phase1_v1.3_door_healing/`。**剩 POC v2 跑批仍等用户交噪声图 + testdata_prompt.json**（§10.6 #3）。
 
 ### 10.1 机制确认：phase1 是「读尺寸链标注」驱动，不是「数像素量尺寸」
 
@@ -313,5 +313,5 @@ POC 验证用户可在 ~30 min 内人工检查 SVG 是否与原图一致：
 - [../plan.md](../plan.md) — 行动清单（**B1.5 两步法立为最高优先级**；B2-B4 评测基线；B5-B7 能力升级）
 - [../reference/pivot_criteria.md](../reference/pivot_criteria.md) — §3.2 退路 A 前置视觉预处理（本方案是该路径的具体化）
 - [../guides/new_case_guide.md](../guides/new_case_guide.md) — 标准工作流（待跟两步法集成后更新）
-- [`../skills/energyplus_mcp_twostep/`](../../skills/energyplus_mcp_twostep) — 两步法 skill 演进源
+- [`../skills/intake_pipeline/`](../../skills/intake_pipeline) — 两步法 skill 演进源
 - [`../test_data/SmallOffice_TwoStep/`](../../test_data/SmallOffice_TwoStep) — 两步法测试语料库

@@ -71,7 +71,7 @@ phase1      phase2a判断 + 确定性核  cells→zones+面     面切分+互逆
 感知         CorrectedGeometry     几何建筑模型        EP合法仿真几何        物理信息挂上         IDF + EP
 ```
 
-**一刀切分原则**：**LLM 只做 感知（识图）+ 校正判断 + 物理语义挂载；代码做 所有几何（建模 + 切配）+ 装配。** 「建模·几何」（cells→zones+墙/楼板/天花面 + OBC 判定 + 顶点合成）与「切配·仿真」（跨层/邻区面切分 + 互逆配对）都收进**确定性造面/切配内核**（核之后、吃 cells），整块吃掉 [rules.md](../../skills/energyplus_mcp_twostep/phase2/rules.md) §4/§2.6 + [surface.py](../../src/agent/nodes/surface.py) 的脆弱几何指令。产出**已完整解析的 surface_specs**，下游 surface_agent 退化成忠实誊写——**`IntakeOutput` 契约不变、下游代码不动**。
+**一刀切分原则**：**LLM 只做 感知（识图）+ 校正判断 + 物理语义挂载；代码做 所有几何（建模 + 切配）+ 装配。** 「建模·几何」（cells→zones+墙/楼板/天花面 + OBC 判定 + 顶点合成）与「切配·仿真」（跨层/邻区面切分 + 互逆配对）都收进**确定性造面/切配内核**（核之后、吃 cells），整块吃掉 [rules.md](../../skills/intake_pipeline/phase2/rules.md) §4/§2.6 + [surface.py](../../src/agent/nodes/surface.py) 的脆弱几何指令。产出**已完整解析的 surface_specs**，下游 surface_agent 退化成忠实誊写——**`IntakeOutput` 契约不变、下游代码不动**。
 
 **触发证据**：sm20/sm21 对照（[split_pairing_kernel_reference §2.5](../reference/split_pairing_kernel_reference.md)）——一步出 LLM 切配做得对、staged 退化，证明几何造面/切配是确定性活儿不该交 LLM。
 
@@ -83,34 +83,34 @@ phase1      phase2a判断 + 确定性核  cells→zones+面     面切分+互逆
 
 ### phase1 — 识图（image-bound，半人工 Opus 子代理 / 未来 VLM）
 - **职责**：把每张图 retrace 成语义矢量 JSON；**只识别、不做拓扑推理**（拓扑全留给 phase2）。
-- **喂的 skill**：[phase1/guide.md](../../skills/energyplus_mcp_twostep/phase1/guide.md)（主指导：误差预算 / 全局约束 / 输出容器 / 纪律）+ [phase1/reading_guide.md](../../skills/energyplus_mcp_twostep/phase1/reading_guide.md)（识别：一个 mark 是什么类别）+ [phase1/pen_library.md](../../skills/energyplus_mcp_twostep/phase1/pen_library.md)（动作：类别→画笔/路由/忽略登记/healing）。三文档分工：`reading_guide` 认类别 → `pen_library` 定动作 → `guide` 管流程容器。
+- **喂的 skill**：[phase1/guide.md](../../skills/intake_pipeline/phase1/guide.md)（主指导：误差预算 / 全局约束 / 输出容器 / 纪律）+ [phase1/reading_guide.md](../../skills/intake_pipeline/phase1/reading_guide.md)（识别：一个 mark 是什么类别）+ [phase1/pen_library.md](../../skills/intake_pipeline/phase1/pen_library.md)（动作：类别→画笔/路由/忽略登记/healing）。三文档分工：`reading_guide` 认类别 → `pen_library` 定动作 → `guide` 管流程容器。
 - **输入**：建筑图（多张）+ `testdata_prompt.json`。
 - **产物**：`<case>/phase1_vector/` 下 `Nf_view.json`（楼层平面）/ `*_view.json`（立面）/ supp / `phase1_summary.md`（含 §3 立面 local→world 翻译公式）。
 - **消费者**：phase2a。
 
 ### phase2a — 校正（image-blind，LLM）
 - **职责**：把感知基元（可能有噪声/自相矛盾）变成干净、自洽、仿真友好的几何基元，记录每处实质改动。A1 中线归一+z-stack → A2 规范轴集+吸附+链闭合 → A3 仲裁补全（A4 先验仅在 A0/A3 门控下用）。
-- **喂的 skill**：[PartA-correction/](../../skills/energyplus_mcp_twostep/phase2/PartA-correction) 全部 5 篇（README + A0 契约 + A1 坐标归一 + A2 规范化 + A3 仲裁 + A4 先验）作 RULE DOCUMENT；phase1 的 `guide.md` + `pen_library.md` 作 REFERENCE（理解矢量基元含义，**不含** reading_guide——那是 phase1 专用）；`phase1_summary.md` 作 REFERENCE。
+- **喂的 skill**：[PartA-correction/](../../skills/intake_pipeline/phase2/PartA-correction) 全部 5 篇（README + A0 契约 + A1 坐标归一 + A2 规范化 + A3 仲裁 + A4 先验）作 RULE DOCUMENT；phase1 的 `guide.md` + `pen_library.md` 作 REFERENCE（理解矢量基元含义，**不含** reading_guide——那是 phase1 专用）；`phase1_summary.md` 作 REFERENCE。
 - **输入**：phase1 全部矢量 JSON + testdata + 可选 `feedback`（validate→intake 回修时路由到此段）。
 - **产物**：`CorrectedGeometry`（矩形 cells + windows + per-floor z + audit `corrections/conflicts/unsupported`），物化为 `phase2a_geometry.json`。
 - **边界**：**只产几何基元，不产 zones/surfaces**（system prompt 硬约束）。
 
 ### core — 确定性核（代码，无 LLM）
 - **职责**：建全局规范轴集，把每个 cell/window/footprint 边吸附上去 → (1) 同墙跨层字节一致（消跨层抖动）；(2) 任意两规范轴不近于 `MIN_EDGE_LENGTH`（结构性杜绝退化碎片，EP 输入段错类不可能发生）。**消碎片 ≠ 保正确**：吸附去裂缝但留错布局，几何正确性是判断层（phase2a/A3）的事。
-- **喂的 skill**：无（常数应取 [A0 §4 容差 registry](../../skills/energyplus_mcp_twostep/phase2/PartA-correction/A0_contract.md)）。
+- **喂的 skill**：无（常数应取 [A0 §4 容差 registry](../../skills/intake_pipeline/phase2/PartA-correction/A0_contract.md)）。
 - **输入**：`CorrectedGeometry`。
 - **产物**：snapped `CorrectedGeometry`（`phase2a_geometry_snapped.json`）+ `corrections.json`（2a + core 合并 audit）。
 - **消费者**：phase2b（读 snapped）；`corrections.json` 当前仅 sidecar（见 §3 缺口 5.4）。
 
 ### 2_modelling + 3_split_pairing — 几何内核（代码，无 LLM）
 - **职责**：从 snapped `CorrectedGeometry` 确定性造出全部几何面并切配。`modelling`：cell→zone 体块 + 面顶点合成（外法向、CCW-from-outside）；`split_pairing`：同层内墙互逆配对 + 跨层楼板/天花切分配对 + roof/ground + 窗挂外墙。`specs.serialize_geometry` 把 `BuildingGeometry` 序列化成 `zone_specs`/`surface_specs`/`fenestration_specs` 文本 + `used_constructions` 集（construction 按面型/OBC 定，互逆面同名 `Cons_InterFloor`）。
-- **喂的 skill**：[2_modelling/spec.md](../../skills/energyplus_mcp_twostep/2_modelling/spec.md) + [3_split_pairing/spec.md](../../skills/energyplus_mcp_twostep/3_split_pairing/spec.md)（code-of-spec，非 LLM prompt）。
+- **喂的 skill**：[2_modelling/spec.md](../../skills/intake_pipeline/2_modelling/spec.md) + [3_split_pairing/spec.md](../../skills/intake_pipeline/3_split_pairing/spec.md)（code-of-spec，非 LLM prompt）。
 - **输入**：snapped `CorrectedGeometry`。
 - **产物**：3 个几何 spec 文本 + `used_constructions`（喂 4_MEP）；物化 `building_geometry.json` / `geometry_specs.md`。
 
 ### 4_mep — 物理信息撰写（image-blind，LLM）
 - **职责**：只产非几何的 8 个字段——`building`/`site_location` + `material`/`construction`/`schedule`/`people`/`lights`/`hvac_specs`。必须定义 `used_constructions` 里每个 construction（否则面挂不上、EP fatal）。
-- **喂的 skill**：[4_mep/authoring.md](../../skills/energyplus_mcp_twostep/4_mep/authoring.md)（撰写规则）+ [4_mep/mep.md](../../skills/energyplus_mcp_twostep/4_mep/mep.md)（默认值）。
+- **喂的 skill**：[4_mep/authoring.md](../../skills/intake_pipeline/4_mep/authoring.md)（撰写规则）+ [4_mep/mep.md](../../skills/intake_pipeline/4_mep/mep.md)（默认值）。
 - **输入**：testdata + 序列化的 zone 列表（取 zone 名写 per-zone people/lights/hvac）+ 必需 construction 集 + 可选 `feedback`。
 - **产物**：`MepOutput`（8 字段，`4_mep/mep_output.json`）。
 
@@ -211,10 +211,10 @@ phase1      phase2a判断 + 确定性核  cells→zones+面     面切分+互逆
 原 [deterministic.py](../../src/agent/correction/deterministic.py) 把常数 Python 硬编码、不含 `SNAP_GRID`，簇均值吸附产 mm 级非栅格值。**已修**：容差外置 [src/configs/correction.yaml](../../src/configs/correction.yaml)（核从 config 读、env 可覆盖）；轴算法改 **聚类→吸附 50mm 栅格→碎片守卫**（簇均值不漏出）；**窗户分级** 10mm + 钳进父墙（不吸结构栅格）。值溯源 A0 §4。详见 [downstream_agent_changes.md 2026-06-09 条](../logs/downstream_agent_changes.md)。**doc 残留**：A0 §4 同步窗户分级策略 + window_snap_grid 命名。
 
 ### 5.2 先验割裂：几何（A4）vs MEP（散落）→ MEP 已抽离为草稿种子（2026-06-09，决策：几何优先）
-原状：[A4_priors.md](../../skills/energyplus_mcp_twostep/phase2/PartA-correction/A4_priors.md) = 结构化**几何**先验（phase2a/A3 用）；**MEP 默认值**（人密度/LPD/时间表/HVAC 设点）作 4 行散文混在 [rules.md](../../skills/energyplus_mcp_twostep/phase2/rules.md) Step 7。**用户定调（2026-06-09）**：当前聚焦几何建模正确性，输入也无荷载/时间表数据，MEP 暂不建库——**只去混合**：把 Step 7 的默认值抽到 [priors/mep.md](../../skills/energyplus_mcp_twostep/phase2/priors/mep.md)（标 DRAFT 种子），rules.md Step 7 改指针 + 保留 schedule 完整性契约，phase2b 加载 mep.md（值不变、行为不变）。**deferred**：(a) 把 mep.md 扩成分型/分级/带出处的真先验库 + (b) 几何先验(A4)与 MEP 合并进 `priors/`（统一库）——**都等几何稳定后再做**。Step 5 的 material/construction 是结构规则非先验值，留 rules.md。
+原状：[A4_priors.md](../../skills/intake_pipeline/phase2/PartA-correction/A4_priors.md) = 结构化**几何**先验（phase2a/A3 用）；**MEP 默认值**（人密度/LPD/时间表/HVAC 设点）作 4 行散文混在 [rules.md](../../skills/intake_pipeline/phase2/rules.md) Step 7。**用户定调（2026-06-09）**：当前聚焦几何建模正确性，输入也无荷载/时间表数据，MEP 暂不建库——**只去混合**：把 Step 7 的默认值抽到 [priors/mep.md](../../skills/intake_pipeline/phase2/priors/mep.md)（标 DRAFT 种子），rules.md Step 7 改指针 + 保留 schedule 完整性契约，phase2b 加载 mep.md（值不变、行为不变）。**deferred**：(a) 把 mep.md 扩成分型/分级/带出处的真先验库 + (b) 几何先验(A4)与 MEP 合并进 `priors/`（统一库）——**都等几何稳定后再做**。Step 5 的 material/construction 是结构规则非先验值，留 rules.md。
 
 ### 5.3 phase1 provenance 契约未在上游落实（→ 优先级 #2.3）
-[A0 §6](../../skills/energyplus_mcp_twostep/phase2/PartA-correction/A0_contract.md) 定义了 `provenance_mode`/`coverage` + per-claim 证据分级，但 phase1 三文档还**不产结构化 provenance** → phase2a 实际跑 `legacy` 模式（估算笔画与测量值不可区分，全降级 `estimated_stroke`）。规范目标：phase1 输出容器带 provenance（strokes/dim-chains/labels/facades/windows 各自 source+confidence），让 phase2a 能按证据分级仲裁，"别把估算笔画当测量值吐"。
+[A0 §6](../../skills/intake_pipeline/phase2/PartA-correction/A0_contract.md) 定义了 `provenance_mode`/`coverage` + per-claim 证据分级，但 phase1 三文档还**不产结构化 provenance** → phase2a 实际跑 `legacy` 模式（估算笔画与测量值不可区分，全降级 `estimated_stroke`）。规范目标：phase1 输出容器带 provenance（strokes/dim-chains/labels/facades/windows 各自 source+confidence），让 phase2a 能按证据分级仲裁，"别把估算笔画当测量值吐"。
 
 ### 5.4 audit sidecar 未被消费（→ 优先级 #3 baseline 归因）
 `corrections.json` 已物化但下游/评测不消费（P0 决策保 `IntakeOutput` 纯净、避免 64k 截断）。建 baseline 时需"看错（phase1/2a 判断）vs 改错（下游）"归因 → fast-follow 接入评测。

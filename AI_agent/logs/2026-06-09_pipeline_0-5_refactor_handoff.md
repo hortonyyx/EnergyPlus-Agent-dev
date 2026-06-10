@@ -30,7 +30,7 @@
 - 优先级 #2 三项（partA 待完善）：
   - **#2.1** 确定性核容差外置 [`src/configs/correction.yaml`](../../src/configs/correction.yaml) + [`correction/config.py`](../../src/agent/correction/config.py)；聚类后吸 `SNAP_GRID`(50mm)、窗户分级(10mm+钳父墙)，消簇均值 mm 级值。
   - **#2.4** 连接性补缝 [`deterministic.py`](../../src/agent/correction/deterministic.py) `_close_to_boundary`：内墙落 footprint 内侧 ≤300mm 自动封口（A0 老值 100→300）。
-  - **#2.2** MEP 去混合：rules.md Step7 默认值→ [`4_mep/mep.md`](../../skills/energyplus_mcp_twostep/4_mep/mep.md)（DRAFT 种子），phase2b 加载。
+  - **#2.2** MEP 去混合：rules.md Step7 默认值→ [`4_mep/mep.md`](../../skills/intake_pipeline/4_mep/mep.md)（DRAFT 种子），phase2b 加载。
 - **审阅工具** [`Tool_scripts/deepseek_review.py`](../../Tool_scripts/deepseek_review.py)：容器内 DeepSeek 审阅 CLI（deepseek MCP 在容器不可达，用此代替；已验证可用）。
 - sm21_pre 完整跑（组织化布局 `phase2/{partA,partB}`+`EP_run`）+ [`render_corrected_geometry.py`](../../Tool_scripts/render_corrected_geometry.py)（phase2a 产物可视化）。
 
@@ -88,6 +88,6 @@
 - 校正核：[src/agent/correction/](../../src/agent/correction)（deterministic.py / config.py / schema.py）· [src/configs/correction.yaml](../../src/configs/correction.yaml)
 - phase2 主链：[src/agent/phase2.py](../../src/agent/phase2.py)（run_phase2 = 2a→核→2b；待拆 2_modelling/3_split_pairing/4_mep/5_intakeoutput）
 - 门：[src/validator/interzone.py](../../src/validator/interzone.py)（"对"的定义）
-- skill：[skills/energyplus_mcp_twostep/](../../skills/energyplus_mcp_twostep)（0_reading/1_correction/4_mep/ + phase2/rules.md 待拆）
+- skill：[skills/intake_pipeline/](../../skills/intake_pipeline)（0_reading/1_correction/4_mep/ + phase2/rules.md 待拆）
 - 审阅：[Tool_scripts/deepseek_review.py](../../Tool_scripts/deepseek_review.py)
 - 架构 spec：[pipeline_stage_contracts.md](../architecture/pipeline_stage_contracts.md) §0.1（目标架构）/ §3.1（产物布局）

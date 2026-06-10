@@ -45,7 +45,7 @@ surface_converter(纯代码)  照单写入 IDF, 只逐面校验形状, 不验配
 interzone.py 门(确定性)    事后校验整张配对图(8 项), 不切面                  ← 裁判, 我方
 ```
 
-- 切分**决策**在 [skills/energyplus_mcp_twostep/phase2/rules.md](../../skills/energyplus_mcp_twostep/phase2/rules.md) §2.6 / Step 4（phase2 文本心算 O(n×m) break 点并集枚举）。
+- 切分**决策**在 [skills/intake_pipeline/phase2/rules.md](../../skills/intake_pipeline/phase2/rules.md) §2.6 / Step 4（phase2 文本心算 O(n×m) break 点并集枚举）。
 - 几何**实现**在 [src/agent/nodes/surface.py](../../src/agent/nodes/surface.py)（surface LLM 把子区间变顶点、设互逆引用）。
 - 事后**裁判**在 [src/validator/interzone.py](../../src/validator/interzone.py)（装配后 EP 前 fail-fast，8 项：目标存在/是 Surface/互逆/单一引用/面积匹配/法向相反/共面/最小边长≥0.1m）。**只裁不切。**
 
@@ -97,7 +97,7 @@ interzone.py 门(确定性)    事后校验整张配对图(8 项), 不切面    
 - [src/validator/interzone.py](../../src/validator/interzone.py) — 现 per-pair 确定性门（切配内核的事后校验可由它退化成 sanity check）
 - [src/agent/nodes/surface.py](../../src/agent/nodes/surface.py) — 现 LLM 几何实现（切配内核要取代的）
 - [src/converters/surface_converter.py](../../src/converters/surface_converter.py) — 纯写入
-- [skills/energyplus_mcp_twostep/phase2/rules.md](../../skills/energyplus_mcp_twostep/phase2/rules.md) §2.6 / Step 4 — 现切分决策文本规则
+- [skills/intake_pipeline/phase2/rules.md](../../skills/intake_pipeline/phase2/rules.md) §2.6 / Step 4 — 现切分决策文本规则
 - [AI_agent/deferred/idfpy_embed.md](../deferred/idfpy_embed.md) — idfpy 切换计划（切配内核的使能器）
 - [AI_agent/architecture/geometry_first_zonification.md](../architecture/geometry_first_zonification.md) §7.2 — idfpy/shapely 分工分析
 

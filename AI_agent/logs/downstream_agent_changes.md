@@ -15,6 +15,19 @@
 
 ## 改动记录
 
+### 2026-06-10 — ⚠️ 下游待改：schedule subagent 必须产完整 day-type 覆盖（EP segfault 真因）
+
+**Trigger**：Step 8 sm21 e2e 真跑 EP（容器内 EnergyPlus 25.1.0）逐层 bisect 出 segfault 真因——下游 **schedule subagent** 产的 6 个 `Schedule:Compact`（`Office_Workday` / `Office_People_Number` / `Office_Lights_Schedule` / `Office_Heating_Setpoint` / `Office_Cooling_Setpoint` / `Office_HVAC_Availability`）只写 `For: Weekdays` + 周末，**漏 `SummerDesignDay` / `WinterDesignDay` / `AllOtherDays`**。EnergyPlus 要求 day-type 全覆盖——**正常 EP 报 severe，但容器这个 EP build 直接 segfault**。证据：每个不完整 schedule 单独跑都 segfault；补全覆盖→EP 正常处理不再 segfault；纯几何+construction（无 schedule）→ `Completed Successfully`。**几何无关**（内核几何 EP-valid）。
+
+**本项目侧已改**（我方 4_MEP 源头兜住，不动协作者下游）：
+- `4_mep/authoring.md`（随 skill 库改名为 `intake_pipeline/`）加硬规则：每个 `Schedule:Compact` 必须覆盖全部 day-type，结尾用 `For: AllOtherDays`（或 `For: AllDays`）兜底。备份 `Skill_history/2026-06-10_step8_fixes/`。
+
+**下游待协作者带进去**（schedule 节点 prompt，[src/agent/nodes/schedule.py](../../src/agent/nodes/schedule.py)）：schedule subagent 的 prompt 应强制每个 `Schedule:Compact` 以 `For: AllOtherDays`（或 `AllDays`）收尾，确保 day-type 全覆盖。当前它产的是 `Weekdays`+`Saturday`+`Sunday`+`Holidays`（漏 design days / AllOtherDays）。**这是"协作者下次 prompt 演进应带进去的强力数据点"**。
+
+**另一相关（我方 fork-a 序列化 bug，已修，非下游）**：序列化器对 0-窗模型只写表头 → fenestration subagent 幻觉 24 个非法窗。已在 [`specs.py`](../../src/agent/geometry/specs.py) `serialize_geometry` 改为显式 "NO windows, do NOT create any"（commit `6493bee`）。
+
+**环境注记**：容器 `energyplus` 二进制对不完整 schedule **segfault 而非 severe**（脆弱），且不在 PATH 上（runner 解析不到）。已把 `ENERGYPLUS_EXE` 写进 `.env` 指向容器内 `/EnergyPlus-25.1.0-…/energyplus`（`.env` per-machine gitignored，不影响宿主 Windows）。
+
 ### 2026-06-09 — 确定性核容差外置配置 + SNAP_GRID 吸附 + 窗户分级（优先级 #2.1）
 
 **Trigger**：[recognition_modeling §6.5#1](../capability/recognition_modeling_capability.md) 待完善——确定性核轴吸附取簇**均值**（4.90/4.95→4.925），漏出 **mm 级非栅格值**；且常数硬编码在 `deterministic.py`、不含 `SNAP_GRID`，与 A0 registry「单一真源」承诺漂移（[pipeline_stage_contracts §5.1](../architecture/pipeline_stage_contracts.md)）。用户定调（2026-06-09）：结构栅格 50mm、窗户分级更细（10mm + 钳进父墙）。

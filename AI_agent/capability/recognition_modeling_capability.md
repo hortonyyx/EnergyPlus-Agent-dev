@@ -2,7 +2,7 @@
 
 > **定位**：识图→建模质量是项目长期主线工作的主要对象。本文档管理这条线的**问题框架 / 诊断证据 / 设计哲学 / 改进方向 / 待定取舍**，是一份持续迭代的活文档。
 >
-> 与其他文档的关系：[plan.md](../plan.md) B 段（B1.5.b / B5-B7）是任务清单；[floorplan_redraw_strategy.md](floorplan_redraw_strategy.md) 是两步法架构策略与 POC 史；[../architecture/geometry_first_zonification.md](../architecture/geometry_first_zonification.md) 是**并行的另一条腿**（再拓扑：抽象成热区积木、丢弃真实几何，EP 鲁棒性最优但变化最大）。**本文档 = 忠实建模 leg**（保留真实建筑几何的容差重生成），是**质量提升的设计与决策载体**，且有 beyond-EP 的独立产品价值（图纸→建筑模型小 Agent）。两腿并行决策见 §8。skill 的具体落地仍在 [`skills/energyplus_mcp_twostep/`](../../skills/energyplus_mcp_twostep)。
+> 与其他文档的关系：[plan.md](../plan.md) B 段（B1.5.b / B5-B7）是任务清单；[floorplan_redraw_strategy.md](floorplan_redraw_strategy.md) 是两步法架构策略与 POC 史；[../architecture/geometry_first_zonification.md](../architecture/geometry_first_zonification.md) 是**并行的另一条腿**（再拓扑：抽象成热区积木、丢弃真实几何，EP 鲁棒性最优但变化最大）。**本文档 = 忠实建模 leg**（保留真实建筑几何的容差重生成），是**质量提升的设计与决策载体**，且有 beyond-EP 的独立产品价值（图纸→建筑模型小 Agent）。两腿并行决策见 §8。skill 的具体落地仍在 [`skills/intake_pipeline/`](../../skills/intake_pipeline)。
 >
 > _建档 2026-05-28。首轮内容 = sm21 三模型 phase2 诊断 + 容差重生成设计讨论（讨论已捕获，未落地实现）。_
 >
@@ -161,7 +161,7 @@ phase1 在 1f 把同一道隔墙估成 **4.90/10.10**、2f 估成 **4.95/10.05**
 
 ### 7.1 sm21_pre 端到端跑 + 切配定性反转 + 目标架构定调（2026-06-09）
 
-**A. 优先级 #2 推进**：确定性核 #2.1（吸 SNAP_GRID + 窗户分级）/ #2.4（连接性补缝 300mm）/ #2.2（MEP 去混合为 [priors/mep.md](../../skills/energyplus_mcp_twostep/phase2/priors/mep.md) draft 种子）全落（[downstream_agent_changes 2026-06-09](../logs/downstream_agent_changes.md)）。新增 [CorrectedGeometry 渲染器](../../Tool_scripts/render_corrected_geometry.py)（phase2a 产物首次可肉眼看）。
+**A. 优先级 #2 推进**：确定性核 #2.1（吸 SNAP_GRID + 窗户分级）/ #2.4（连接性补缝 300mm）/ #2.2（MEP 去混合为 [priors/mep.md](../../skills/intake_pipeline/phase2/priors/mep.md) draft 种子）全落（[downstream_agent_changes 2026-06-09](../logs/downstream_agent_changes.md)）。新增 [CorrectedGeometry 渲染器](../../Tool_scripts/render_corrected_geometry.py)（phase2a 产物首次可肉眼看）。
 
 **B. 固化规范流程 + sm21_pre 干净跑**：plumbing 固化产物布局（`<case>/{phase1, phase2/{partA,partB}, EP_run}`，[pipeline_stage_contracts §3.1](../architecture/pipeline_stage_contracts.md)）。新建 `smalloffice_21_pre`（phase1=Sonnet sub-agent，余全 DeepSeek）完整跑通：phase1 识图忠实、#2.1 验证（56 坐标全栅格、0 mm 级值，核成 no-op 安全网=phase2a 自己做对了）、phase2b+下游全跑、**门抓 12 切配 issue/EP 未启动**。
 
