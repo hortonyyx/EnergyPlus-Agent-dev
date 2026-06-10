@@ -144,6 +144,35 @@ def test_sm20_shaped_misaligned_three_floor_clean():
     assert issues == [], issues
 
 
+def test_sm21_clean_layout_gate_clean():
+    """The real sm21 clean layout (14 zones, 2 floors, misaligned F1/F2
+    partitions → genuine cross-floor split-pairing) passes the gate with 0
+    issues. This is the case the staged LLM phase2 broke (12–26 gate issues);
+    the deterministic kernel resolves it — the Step-8 regression anchor."""
+    g = CorrectedGeometry(
+        footprint_x=[0, 15], footprint_y=[0, 8],
+        floors=[
+            {"name": "F1", "z_floor": 0.0, "ceiling_height": 3.0, "cells": [
+                {"id": "F1_SW_Lobby", "role": "entrance lobby", "x": [0, 4.64], "y": [0, 3]},
+                {"id": "F1_SM_Office", "x": [4.64, 11.36], "y": [0, 3]},
+                {"id": "F1_SE_Office", "x": [11.36, 15], "y": [0, 3]},
+                {"id": "F1_Corridor", "role": "corridor", "x": [0, 15], "y": [3, 5]},
+                {"id": "F1_NW_Office", "x": [0, 4.94], "y": [5, 8]},
+                {"id": "F1_NM_Office", "x": [4.94, 11.12], "y": [5, 8]},
+                {"id": "F1_NE_Office", "x": [11.12, 15], "y": [5, 8]}]},
+            {"name": "F2", "z_floor": 3.0, "ceiling_height": 3.6, "cells": [
+                {"id": "F2_S1_Office", "x": [0, 4.11], "y": [0, 3]},
+                {"id": "F2_S2_Office", "x": [4.11, 5.31], "y": [0, 3]},
+                {"id": "F2_S3_Office", "x": [5.31, 10.89], "y": [0, 3]},
+                {"id": "F2_S4_Office", "x": [10.89, 15], "y": [0, 3]},
+                {"id": "F2_Corridor", "role": "corridor", "x": [0, 15], "y": [3, 5]},
+                {"id": "F2_N1_Meeting", "role": "meeting room", "x": [0, 7.5], "y": [5, 8]},
+                {"id": "F2_N2_Meeting", "role": "meeting room", "x": [7.5, 15], "y": [5, 8]}]},
+        ],
+    )
+    assert _gate(g) == [], _gate(g)
+
+
 def test_window_attaches_on_upper_floors():
     """A window on each floor's south facade attaches to the right exterior wall
     with z inside the parent wall — the multi-floor fenestration path rules.md
