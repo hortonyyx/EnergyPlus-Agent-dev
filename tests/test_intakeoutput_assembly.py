@@ -56,6 +56,24 @@ def test_serialize_geometry_shape():
     assert CONSTRUCTION_VOCAB["window"] in used
 
 
+def test_serialize_no_windows_is_explicit():
+    """A model with zero windows must say so unambiguously (else the downstream
+    fenestration agent invents windows — sm21 e2e hallucinated 24)."""
+    g = CorrectedGeometry(
+        footprint_x=[0, 10], footprint_y=[0, 8],
+        floors=[{"name": "F1", "z_floor": 0.0, "ceiling_height": 3.0, "cells": [
+            {"id": "A", "x": [0, 5], "y": [0, 8]},
+            {"id": "B", "x": [5, 10], "y": [0, 8]}]}],
+    )  # no windows
+    zs, ss, fen, used = serialize_geometry(build_geometry(g))
+    assert "NO windows" in fen and "Do NOT create" in fen
+    assert CONSTRUCTION_VOCAB["window"] not in used  # no window construction needed
+    # the early-return must still yield the full, well-formed geometry tuple
+    assert "A" in zs and "B" in zs               # zone_specs complete
+    assert "adjacent_zone=" in ss                # surface_specs complete (paired)
+    assert CONSTRUCTION_VOCAB["ext_wall"] in used  # structural constructions present
+
+
 def _mep(construction_specs: str) -> MepOutput:
     return MepOutput(
         building=BuildingSchema(name="T"),

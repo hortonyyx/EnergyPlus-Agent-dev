@@ -59,6 +59,15 @@ missing.
 ### schedule_specs (must be complete)
 The schedule subagent runs first and is not re-invoked, so every schedule any field
 references must be defined here with an exact name, type limits, and value profile.
+
+**Every `Schedule:Compact` MUST cover ALL day types for the whole year** — not just
+`For: Weekdays` + weekend. A schedule that lists `For: Weekdays`, `For: Saturday`,
+`For: Sunday` but omits `SummerDesignDay` / `WinterDesignDay` / `AllOtherDays` is
+**incomplete**: EnergyPlus requires full coverage and will error (some EP builds even
+crash). Always finish each schedule with a catch-all `For: AllOtherDays` block (or use
+`For: AllDays`), e.g. `... For: AllOtherDays, Until: 24:00, <value>;`. State this for
+every schedule, including setpoints and availability.
+
 Required checklist:
 - thermostat heating setpoint schedule
 - thermostat cooling setpoint schedule

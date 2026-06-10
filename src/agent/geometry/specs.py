@@ -140,13 +140,24 @@ def serialize_geometry(
     surface_specs = "\n".join(s_lines)
 
     # ---- fenestration_specs ----
+    if not bg.windows:
+        # Be explicit: an empty list is "zero windows", NOT "decide for yourself".
+        # A bare header let the downstream agent invent windows (sm21 e2e: 24
+        # hallucinated). State it unambiguously so it creates none.
+        fenestration_specs = (
+            "This model has NO windows. The geometry contains zero fenestration "
+            "surfaces. Do NOT create any FenestrationSurface:Detailed objects and "
+            "do NOT invent windows on any facade."
+        )
+        return zone_specs, surface_specs, fenestration_specs, used
+
     f_lines = [
         "Windows are FenestrationSurface:Detailed, vertices CCW from outside, "
         f"Construction={CONSTRUCTION_VOCAB['window']}. parent is the exterior "
-        "wall surface name (transcribe verbatim).",
+        "wall surface name (transcribe verbatim). Create EXACTLY the windows "
+        "listed below — no more, no fewer.",
     ]
-    if bg.windows:
-        used.add(CONSTRUCTION_VOCAB["window"])
+    used.add(CONSTRUCTION_VOCAB["window"])
     for w in bg.windows:
         zs = [v[2] for v in w.verts]
         f_lines.append(
