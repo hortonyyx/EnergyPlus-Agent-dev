@@ -1,0 +1,89 @@
+{
+  "image_label": "West elevation",
+  "image_kind": "elevation",
+  "facade_axis_note": "West facade: local x = -world y (local x increasing = world southward); local y = world z (up positive, ground z=0)",
+  "scale_origin": {
+    "world_x_m": 0.00,
+    "world_y_m": 20.00,
+    "world_z_m": 0.00,
+    "note": "local origin = NW outer corner at ground (world x=0, world y=20, z=0); local x increases southward so world y = 20 - x_local; facade spans local x 0..20 (world y 20..0), z 0..4.5"
+  },
+  "strokes": [
+    {
+      "id": "S1",
+      "pen": "wall_fill",
+      "geometry": {"kind": "rect", "x_range_m": [0.00, 20.00], "y_range_m": [0.00, 4.50]},
+      "note": "F1 wall body (single floor, z 0.00-4.50); window openings overlay this fill"
+    },
+    {
+      "id": "S2",
+      "pen": "window",
+      "geometry": {"kind": "rect", "x_range_m": [0.54, 2.04], "y_range_m": [1.00, 2.80]},
+      "note": "F1 window 1 (1500mm wide x 1800mm tall; sill z=1.00, head z=2.80; from bottom chain 540+1500 → x=0.54-2.04; height from left chain 1000+1800)"
+    },
+    {
+      "id": "S3",
+      "pen": "window",
+      "geometry": {"kind": "rect", "x_range_m": [4.42, 5.62], "y_range_m": [1.00, 2.80]},
+      "note": "F1 window 2 (1200mm wide x 1800mm tall; sill z=1.00, head z=2.80; from bottom chain 540+1500+2380=4420 → x=4.42-5.62)"
+    },
+    {
+      "id": "S4",
+      "pen": "window",
+      "geometry": {"kind": "rect", "x_range_m": [7.36, 8.86], "y_range_m": [1.00, 2.80]},
+      "note": "F1 window 3 (1500mm wide x 1800mm tall; sill z=1.00, head z=2.80; from bottom chain 540+1500+2380+1200+1740=7360 → x=7.36-8.86)"
+    },
+    {
+      "id": "S5",
+      "pen": "window",
+      "geometry": {"kind": "rect", "x_range_m": [10.08, 11.58], "y_range_m": [1.00, 2.80]},
+      "note": "F1 window 4 (1500mm wide x 1800mm tall; sill z=1.00, head z=2.80; from bottom chain 7360+1500+1220=10080 → x=10.08-11.58)"
+    },
+    {
+      "id": "S6",
+      "pen": "window",
+      "geometry": {"kind": "rect", "x_range_m": [14.66, 19.46], "y_range_m": [1.00, 3.40]},
+      "note": "F1 large window (4800mm wide x 2400mm tall; sill z=1.00, head z=3.40; from bottom chain 10080+1500+3080=14660 → x=14.66-19.46; height from right chain 1000+2400)"
+    }
+  ],
+  "dimensions": [
+    {"id": "D1", "text": "20000", "from": [0.00, 4.50], "to": [20.00, 4.50], "axis": "x", "note": "top overall facade length (N-S)"},
+    {"id": "D2", "text": "20000", "from": [0.00, 0.00], "to": [20.00, 0.00], "axis": "x", "note": "bottom overall facade length (N-S)"},
+    {"id": "D3", "text": "540",  "from": [0.00, 0.00], "to": [0.54, 0.00], "axis": "x", "note": "bottom sub-chain: north margin (local x=0 is NW corner)"},
+    {"id": "D4", "text": "1500", "from": [0.54, 0.00], "to": [2.04, 0.00], "axis": "x", "note": "bottom sub-chain: window 1 width"},
+    {"id": "D5", "text": "2380", "from": [2.04, 0.00], "to": [4.42, 0.00], "axis": "x", "note": "bottom sub-chain: pier between win1 and win2"},
+    {"id": "D6", "text": "1200", "from": [4.42, 0.00], "to": [5.62, 0.00], "axis": "x", "note": "bottom sub-chain: window 2 width"},
+    {"id": "D7", "text": "1740", "from": [5.62, 0.00], "to": [7.36, 0.00], "axis": "x", "note": "bottom sub-chain: pier between win2 and win3"},
+    {"id": "D8", "text": "1500", "from": [7.36, 0.00], "to": [8.86, 0.00], "axis": "x", "note": "bottom sub-chain: window 3 width"},
+    {"id": "D9", "text": "1220", "from": [8.86, 0.00], "to": [10.08, 0.00], "axis": "x", "note": "bottom sub-chain: pier between win3 and win4"},
+    {"id": "D10", "text": "1500", "from": [10.08, 0.00], "to": [11.58, 0.00], "axis": "x", "note": "bottom sub-chain: window 4 width"},
+    {"id": "D11", "text": "3080", "from": [11.58, 0.00], "to": [14.66, 0.00], "axis": "x", "note": "bottom sub-chain: pier between win4 and large window"},
+    {"id": "D12", "text": "4800", "from": [14.66, 0.00], "to": [19.46, 0.00], "axis": "x", "note": "bottom sub-chain: large window width"},
+    {"id": "D13", "text": "540",  "from": [19.46, 0.00], "to": [20.00, 0.00], "axis": "x", "note": "bottom sub-chain: south margin"},
+    {"id": "D14", "text": "4500", "from": [0.00, 0.00], "to": [0.00, 4.50], "axis": "z", "note": "left (north end) overall building height"},
+    {"id": "D15", "text": "1000", "from": [0.00, 0.00], "to": [0.00, 1.00], "axis": "z", "note": "left chain: floor to window sill"},
+    {"id": "D16", "text": "1800", "from": [0.00, 1.00], "to": [0.00, 2.80], "axis": "z", "note": "left chain: small window height"},
+    {"id": "D17", "text": "1700", "from": [0.00, 2.80], "to": [0.00, 4.50], "axis": "z", "note": "left chain: window head to roof"},
+    {"id": "D18", "text": "4500", "from": [20.00, 0.00], "to": [20.00, 4.50], "axis": "z", "note": "right (south end) overall building height"},
+    {"id": "D19", "text": "1000", "from": [20.00, 0.00], "to": [20.00, 1.00], "axis": "z", "note": "right chain: floor to large window sill"},
+    {"id": "D20", "text": "2400", "from": [20.00, 1.00], "to": [20.00, 3.40], "axis": "z", "note": "right chain: large window height"},
+    {"id": "D21", "text": "1100", "from": [20.00, 3.40], "to": [20.00, 4.50], "axis": "z", "note": "right chain: large window head to roof"}
+  ],
+  "ocr_texts": [],
+  "self_check": {
+    "all_dimensions_transcribed": true,
+    "all_visible_strokes_captured": true,
+    "no_topology_inferred": true,
+    "pens_used": ["wall_fill", "window"],
+    "unknowns_noted": [
+      "outline not drawn as a separate stroke: coincides with wall_fill outer edges (flat roof, single floor) → redundant, not traced",
+      "no door symbols visible on west elevation; all 5 openings are windows",
+      "win1-4 use left z-chain (sill=1.00, head=2.80, height=1800); large win5 uses right z-chain (sill=1.00, head=3.40, height=2400); the two window groups have different heights"
+    ],
+    "uncaptured_visual_elements": [
+      "outline silhouette coincides with wall_fill edges (flat roof, single floor), not drawn separately",
+      "excluded green dimension chain terminator ticks and extension lines (annotation)",
+      "no doors seen on west elevation"
+    ]
+  }
+}

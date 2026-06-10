@@ -1,0 +1,70 @@
+{
+  "image_label": "South elevation",
+  "image_kind": "elevation",
+  "facade_axis_note": "South facade: local x = world x (increasing eastward); local y = world z (up positive, ground z=0)",
+  "scale_origin": {
+    "world_x_m": 0.00,
+    "world_y_m": 0.00,
+    "world_z_m": 0.00,
+    "note": "local origin = SW outer corner at ground (world x=0, world y=0, z=0); facade spans world x 0..10, z 0..4.5"
+  },
+  "strokes": [
+    {
+      "id": "S1",
+      "pen": "wall_fill",
+      "geometry": {"kind": "rect", "x_range_m": [0.00, 10.00], "y_range_m": [0.00, 4.50]},
+      "note": "F1 wall body (single floor, z 0.00-4.50); window and door openings overlay this fill"
+    },
+    {
+      "id": "S2",
+      "pen": "window",
+      "geometry": {"kind": "rect", "x_range_m": [2.04, 4.54], "y_range_m": [1.00, 2.80]},
+      "note": "F1 window west (2500mm wide x 1800mm tall; sill z=1.00, head z=2.80; from bottom chain 540+1500=2.04, window width 2500 → x=2.04-4.54; height from left chain 1000+1800=2800)"
+    },
+    {
+      "id": "S3",
+      "pen": "window",
+      "geometry": {"kind": "rect", "x_range_m": [5.44, 7.96], "y_range_m": [1.00, 2.80]},
+      "note": "F1 window east (2520mm wide x 1800mm tall; sill z=1.00, head z=2.80; from bottom chain: after door at 4.54-5.44, window 2520 → x=5.44-7.96)"
+    }
+  ],
+  "dimensions": [
+    {"id": "D1", "text": "10000", "from": [0.00, 4.50], "to": [10.00, 4.50], "axis": "x", "note": "top overall facade width"},
+    {"id": "D2", "text": "10000", "from": [0.00, 0.00], "to": [10.00, 0.00], "axis": "x", "note": "bottom overall facade width"},
+    {"id": "D3", "text": "540",  "from": [0.00, 0.00], "to": [0.54, 0.00], "axis": "x", "note": "bottom sub-chain: west margin"},
+    {"id": "D4", "text": "1500", "from": [0.54, 0.00], "to": [2.04, 0.00], "axis": "x", "note": "bottom sub-chain: west pier"},
+    {"id": "D5", "text": "2500", "from": [2.04, 0.00], "to": [4.54, 0.00], "axis": "x", "note": "bottom sub-chain: west window width"},
+    {"id": "D6", "text": "900",  "from": [4.54, 0.00], "to": [5.44, 0.00], "axis": "x", "note": "bottom sub-chain: center door width"},
+    {"id": "D7", "text": "2520", "from": [5.44, 0.00], "to": [7.96, 0.00], "axis": "x", "note": "bottom sub-chain: east window width"},
+    {"id": "D8", "text": "1500", "from": [7.96, 0.00], "to": [9.46, 0.00], "axis": "x", "note": "bottom sub-chain: east pier"},
+    {"id": "D9", "text": "540",  "from": [9.46, 0.00], "to": [10.00, 0.00], "axis": "x", "note": "bottom sub-chain: east margin"},
+    {"id": "D10", "text": "4500", "from": [0.00, 0.00], "to": [0.00, 4.50], "axis": "z", "note": "left overall building height"},
+    {"id": "D11", "text": "1000", "from": [0.00, 0.00], "to": [0.00, 1.00], "axis": "z", "note": "left chain: floor to window sill"},
+    {"id": "D12", "text": "1800", "from": [0.00, 1.00], "to": [0.00, 2.80], "axis": "z", "note": "left chain: window height"},
+    {"id": "D13", "text": "1700", "from": [0.00, 2.80], "to": [0.00, 4.50], "axis": "z", "note": "left chain: window head to roof"},
+    {"id": "D14", "text": "4500", "from": [10.00, 0.00], "to": [10.00, 4.50], "axis": "z", "note": "right overall building height"},
+    {"id": "D15", "text": "1000", "from": [10.00, 0.00], "to": [10.00, 1.00], "axis": "z", "note": "right chain: floor to window sill"},
+    {"id": "D16", "text": "1800", "from": [10.00, 1.00], "to": [10.00, 2.80], "axis": "z", "note": "right chain: window height"},
+    {"id": "D17", "text": "1700", "from": [10.00, 2.80], "to": [10.00, 4.50], "axis": "z", "note": "right chain: window head to roof"},
+    {"id": "D18", "text": "200",  "from": [4.54, 0.00], "to": [5.44, 0.20], "axis": "z", "note": "center chain: door threshold / sill step (200mm)"},
+    {"id": "D19", "text": "2400", "from": [4.54, 0.20], "to": [5.44, 2.60], "axis": "z", "note": "center chain: door leaf height (z=0.20-2.60)"},
+    {"id": "D20", "text": "1900", "from": [4.54, 2.60], "to": [5.44, 4.50], "axis": "z", "note": "center chain: above door to roof (z=2.60-4.50)"}
+  ],
+  "ocr_texts": [],
+  "self_check": {
+    "all_dimensions_transcribed": true,
+    "all_visible_strokes_captured": true,
+    "no_topology_inferred": true,
+    "pens_used": ["wall_fill", "window"],
+    "unknowns_noted": [
+      "outline not drawn as a separate stroke: it coincides with the wall_fill outer edges (flat roof, single floor) → redundant, not traced",
+      "door at center (x=4.54-5.44) not traced; transom window above door (z≈2.60-2.80?) also not traced as its z-extent is part of the door assembly and ambiguous in this view; logged in uncaptured"
+    ],
+    "uncaptured_visual_elements": [
+      "F1 center door (single-leaf glazed door at x=4.54-5.44, height z≈0.20-2.60 with 200mm threshold) — recognized as door, not traced (door is not an elevation pen; healed on plan side S1)",
+      "transom window above center door (approximately z=2.60-2.80, same x-span as door, 900mm wide) — part of door assembly; logged here; not traced separately since it is part of the door frame assembly at an ambiguous z-band",
+      "outline silhouette coincides with wall_fill edges (flat roof, single floor), not drawn separately",
+      "excluded green dimension chain terminator ticks and extension lines (annotation)"
+    ]
+  }
+}

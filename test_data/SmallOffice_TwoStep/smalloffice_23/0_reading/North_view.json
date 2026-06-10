@@ -1,0 +1,60 @@
+{
+  "image_label": "North elevation",
+  "image_kind": "elevation",
+  "facade_axis_note": "North facade: local x = -world x (local x increasing = world westward); local y = world z (up positive, ground z=0)",
+  "scale_origin": {
+    "world_x_m": 10.00,
+    "world_y_m": 20.00,
+    "world_z_m": 0.00,
+    "note": "local origin = NE outer corner at ground (world x=10, world y=20, z=0); local x increases westward so world x = 10 - x_local; facade spans local x 0..10 (world x 10..0), z 0..4.5"
+  },
+  "strokes": [
+    {
+      "id": "S1",
+      "pen": "wall_fill",
+      "geometry": {"kind": "rect", "x_range_m": [0.00, 10.00], "y_range_m": [0.00, 4.50]},
+      "note": "F1 wall body (single floor, z 0.00-4.50); window and door openings overlay this fill"
+    },
+    {
+      "id": "S2",
+      "pen": "window",
+      "geometry": {"kind": "rect", "x_range_m": [0.54, 5.34], "y_range_m": [1.00, 3.40]},
+      "note": "F1 large window (4800mm wide x 2400mm tall; sill z=1.00, head z=3.40; from bottom chain 540+4800 → x=0.54-5.34; height from left chain 1000+2400=3400)"
+    }
+  ],
+  "dimensions": [
+    {"id": "D1", "text": "10000", "from": [0.00, 4.50], "to": [10.00, 4.50], "axis": "x", "note": "top overall facade width"},
+    {"id": "D2", "text": "10000", "from": [0.00, 0.00], "to": [10.00, 0.00], "axis": "x", "note": "bottom overall facade width"},
+    {"id": "D3", "text": "540",  "from": [0.00, 0.00], "to": [0.54, 0.00], "axis": "x", "note": "bottom sub-chain: east margin (local x=0 is NE corner)"},
+    {"id": "D4", "text": "4800", "from": [0.54, 0.00], "to": [5.34, 0.00], "axis": "x", "note": "bottom sub-chain: large window width"},
+    {"id": "D5", "text": "2520", "from": [5.34, 0.00], "to": [7.86, 0.00], "axis": "x", "note": "bottom sub-chain: pier between window and door"},
+    {"id": "D6", "text": "1600", "from": [7.86, 0.00], "to": [9.46, 0.00], "axis": "x", "note": "bottom sub-chain: double door width"},
+    {"id": "D7", "text": "540",  "from": [9.46, 0.00], "to": [10.00, 0.00], "axis": "x", "note": "bottom sub-chain: west margin"},
+    {"id": "D8", "text": "4500", "from": [0.00, 0.00], "to": [0.00, 4.50], "axis": "z", "note": "left (east end) overall building height"},
+    {"id": "D9", "text": "1000", "from": [0.00, 0.00], "to": [0.00, 1.00], "axis": "z", "note": "left chain: floor to window sill"},
+    {"id": "D10", "text": "2400", "from": [0.00, 1.00], "to": [0.00, 3.40], "axis": "z", "note": "left chain: window height"},
+    {"id": "D11", "text": "1100", "from": [0.00, 3.40], "to": [0.00, 4.50], "axis": "z", "note": "left chain: window head to roof"},
+    {"id": "D12", "text": "4500", "from": [10.00, 0.00], "to": [10.00, 4.50], "axis": "z", "note": "right (west end) overall building height"},
+    {"id": "D13", "text": "200",  "from": [9.46, 0.00], "to": [9.46, 0.20], "axis": "z", "note": "right chain: door threshold / sill step (200mm)"},
+    {"id": "D14", "text": "2400", "from": [9.46, 0.20], "to": [9.46, 2.60], "axis": "z", "note": "right chain: double door leaf height (z=0.20-2.60)"},
+    {"id": "D15", "text": "1900", "from": [9.46, 2.60], "to": [9.46, 4.50], "axis": "z", "note": "right chain: above door to roof (z=2.60-4.50)"}
+  ],
+  "ocr_texts": [],
+  "self_check": {
+    "all_dimensions_transcribed": true,
+    "all_visible_strokes_captured": true,
+    "no_topology_inferred": true,
+    "pens_used": ["wall_fill", "window"],
+    "unknowns_noted": [
+      "outline not drawn as a separate stroke: coincides with wall_fill outer edges (flat roof, single floor) → redundant, not traced",
+      "north door (double-leaf with transom) at local x=7.86-9.46 not traced; it is a door, not a window pen; healed on plan side",
+      "transom window above north door not traced separately (part of door assembly, z ambiguous)"
+    ],
+    "uncaptured_visual_elements": [
+      "F1 north double door (double-leaf glazed door at local x=7.86-9.46, z≈0.20-2.60 with 200mm threshold) — recognized as door, not traced (door is not an elevation pen; healed on plan side S3)",
+      "transom above north door (local x=7.86-9.46, z≈2.60 to ~2.80) — part of door assembly; not traced",
+      "outline silhouette coincides with wall_fill edges (flat roof, single floor), not drawn separately",
+      "excluded green dimension chain terminator ticks and extension lines (annotation)"
+    ]
+  }
+}
