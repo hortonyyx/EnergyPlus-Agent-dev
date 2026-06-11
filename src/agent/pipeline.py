@@ -40,9 +40,11 @@ from typing import TYPE_CHECKING
 from loguru import logger
 from openai import OpenAI
 
+from omegaconf import OmegaConf
+
 from src.agent._share import ensure_schema_initialized
 from src.agent.correction import CorrectedGeometry, apply_deterministic_core
-from src.agent.llm import load_llm_section
+from src.agent.llm import load_llm_section, resolve_llm_config_path
 from src.agent.state import IntakeOutput
 
 if TYPE_CHECKING:
@@ -121,11 +123,25 @@ def _load_correction_docs() -> str:
 
 
 def _section(stage: str) -> dict:
-    """Load `intake_<stage>` if present, else fall back to `intake_correction`."""
-    try:
-        return load_llm_section(f"intake_{stage}")
-    except Exception:
-        return load_llm_section("intake_correction")
+    """Load `intake_<stage>` if present, else fall back to `intake_correction`.
+
+    Only the "section absent from the config file" case triggers fallback.
+    Any other error (YAML syntax, env-var interpolation failure, missing
+    `default` and missing section) propagates immediately so a misconfigured
+    `intake_mep` block never silently masquerades as `intake_correction`.
+    """
+    section_name = f"intake_{stage}"
+    # Read the raw (unresolved) config keys without triggering interpolation —
+    # this lets us distinguish "key absent → safe to fall back" from "key
+    # present but value is broken → must surface the error".
+    raw_keys = set(OmegaConf.load(resolve_llm_config_path()).keys())
+    if section_name in raw_keys:
+        # Section exists: load and resolve it; any error here is a real config
+        # problem and must not be swallowed.
+        return load_llm_section(section_name)
+    # Section absent: fall back to intake_correction (still raises if that
+    # section is also absent or broken).
+    return load_llm_section("intake_correction")
 
 
 def _call_json_llm(
@@ -174,55 +190,63 @@ def _call_json_llm(
     client = OpenAI(api_key=api_key, base_url=base_url, timeout=600.0, max_retries=2)
     last_err: Exception | None = None
     for attempt in range(1, attempts + 1):
-        resp = client.chat.completions.create(
-            model=model_name,
-            messages=[
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": human},
-            ],
-            temperature=temperature,
-            max_tokens=max_tokens,
-            extra_body=extra_body,
-            **optional,
-        )
-        msg = resp.choices[0].message
-        finish_reason = resp.choices[0].finish_reason
-        content = msg.content or ""
-        reasoning = getattr(msg, "reasoning_content", None)
-        usage = resp.usage
-        logger.info(
-            "{}: attempt {}/{} finish_reason={} usage={}",
-            prefix,
-            attempt,
-            attempts,
-            finish_reason,
-            {
-                "prompt_tokens": getattr(usage, "prompt_tokens", None),
-                "completion_tokens": getattr(usage, "completion_tokens", None),
-            },
-        )
-        if out_dir is not None:
-            if reasoning:
-                (out_dir / f"{prefix}_thinking.txt").write_text(
-                    reasoning, encoding="utf-8"
-                )
-            (out_dir / f"{prefix}_raw.txt").write_text(content, encoding="utf-8")
-        if finish_reason == "length":
-            logger.warning("{}: hit max_tokens — response likely truncated", prefix)
-
+        # Reset per-attempt state so the except branch can always reference
+        # `content` even when a transport error fires before the response is
+        # unpacked (L2: transport exceptions now consume an attempt and retry).
+        content: str = ""
+        finish_reason: str | None = None
         try:
+            resp = client.chat.completions.create(
+                model=model_name,
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": human},
+                ],
+                temperature=temperature,
+                max_tokens=max_tokens,
+                extra_body=extra_body,
+                **optional,
+            )
+            msg = resp.choices[0].message
+            finish_reason = resp.choices[0].finish_reason
+            content = msg.content or ""
+            reasoning = getattr(msg, "reasoning_content", None)
+            usage = resp.usage
+            logger.info(
+                "{}: attempt {}/{} finish_reason={} usage={}",
+                prefix,
+                attempt,
+                attempts,
+                finish_reason,
+                {
+                    "prompt_tokens": getattr(usage, "prompt_tokens", None),
+                    "completion_tokens": getattr(usage, "completion_tokens", None),
+                },
+            )
+            if out_dir is not None:
+                if reasoning:
+                    (out_dir / f"{prefix}_thinking.txt").write_text(
+                        reasoning, encoding="utf-8"
+                    )
+                (out_dir / f"{prefix}_raw.txt").write_text(content, encoding="utf-8")
+            if finish_reason == "length":
+                logger.warning("{}: hit max_tokens — response likely truncated", prefix)
+
             if not content.strip():
                 raise ValueError(f"empty content (finish_reason={finish_reason})")
             parsed = json.loads(_extract_json(content))
             if validate is not None:
                 validate(parsed)
             return parsed
-        except Exception as e:  # noqa: BLE001 — any bad draw is a retry candidate
+        except Exception as e:  # noqa: BLE001 — transport errors and bad draws both retry
             last_err = e
             if out_dir is not None:
+                # `content` is always a str here (initialised "" above); for
+                # transport failures it stays "" and the preview reflects that.
                 preview = _extract_json(content)[:500] if content.strip() else "(empty)"
                 (out_dir / f"{prefix}_parse_error.txt").write_text(
-                    f"attempt {attempt}/{attempts}: {e}\nfirst 500 chars:\n{preview}",
+                    f"attempt {attempt}/{attempts}: {type(e).__name__}: {e}\n"
+                    f"first 500 chars:\n{preview}",
                     encoding="utf-8",
                 )
             if attempt < attempts:
@@ -325,21 +349,71 @@ def _reading_window_stroke_count(vector_dir: Path) -> int:
     return total
 
 
-def _make_window_completeness_validator(
+def _make_correction_validator(
     expected_window_strokes: int,
 ) -> Callable[[dict], None]:
-    """Reject a CorrectedGeometry draw that dropped every window when the reading
-    stage clearly saw windows (the sm21 0-window class). Conservative: only the
-    all-or-nothing case (reading has windows, correction emitted zero) triggers a
-    retry — `window strokes != window entities`, so no fuzzy "too few" threshold."""
+    """Return a validator that rejects a CorrectedGeometry draw with any of:
+
+    1. Pydantic schema violation (e.g. facade="Northeast" — caught by
+       CorrectedGeometry.model_validate, which also normalises single-letter
+       aliases and rejects anything outside N/S/E/W).
+    2. Window completeness: reading stage has windows but correction emitted
+       zero (the sm21 0-window instability class). Conservative: only the
+       all-or-nothing case triggers a retry — window strokes ≠ window entities,
+       so no fuzzy "too few" threshold.
+    3. Duplicate cell ids across floors: three downstream dicts key on cell id;
+       duplicates cause silent last-wins geometry corruption.
+    4. z-stack discontinuity: adjacent floors whose gap |upper.z_floor −
+       (lower.z_floor + lower.ceiling_height)| exceeds gap_close_threshold_m
+       (from correction.yaml). Gaps ≤ the threshold are auto-closed by the
+       deterministic core, so they must NOT be rejected here.
+
+    On any failure raises ValueError with a descriptive message, which causes
+    `_call_json_llm` to log a warning and retry (up to `attempts` draws).
+    """
+    from src.agent.correction.config import load_core_tolerances
 
     def _validate(parsed: dict) -> None:
-        if expected_window_strokes > 0 and not (parsed.get("windows") or []):
+        # --- 1. Pydantic schema (covers facade normalisation / Literal guard) ---
+        geom = CorrectedGeometry.model_validate(parsed)
+
+        # --- 2. Window completeness ---
+        if expected_window_strokes > 0 and not geom.windows:
             raise ValueError(
                 f"correction emitted 0 windows but the reading stage has "
                 f"{expected_window_strokes} window stroke(s) — facade windows were "
                 f"dropped (a known 1_correction instability, not a kernel issue)"
             )
+
+        # --- 3. Duplicate cell ids across floors ---
+        seen: dict[str, str] = {}  # cell_id -> floor_name
+        for floor in geom.floors:
+            for cell in floor.cells:
+                if cell.id in seen:
+                    raise ValueError(
+                        f"duplicate cell id '{cell.id}' found in floors "
+                        f"'{seen[cell.id]}' and '{floor.name}' — "
+                        f"downstream geometry dicts key on cell id, so duplicates "
+                        f"cause silent last-wins corruption"
+                    )
+                seen[cell.id] = floor.name
+
+        # --- 4. z-stack continuity ---
+        tol = load_core_tolerances()
+        gap_limit = tol.gap_close_threshold_m
+        sorted_floors = sorted(geom.floors, key=lambda f: f.z_floor)
+        for prev, cur in zip(sorted_floors, sorted_floors[1:]):
+            expected_z = prev.z_floor + prev.ceiling_height
+            gap = abs(cur.z_floor - expected_z)
+            if gap > gap_limit:
+                raise ValueError(
+                    f"z-stack discontinuity between floor '{prev.name}' "
+                    f"(z_floor={prev.z_floor}, ceiling_height={prev.ceiling_height}, "
+                    f"top={expected_z:.3f}) and floor '{cur.name}' "
+                    f"(z_floor={cur.z_floor}): gap={gap:.3f} m > "
+                    f"gap_close_threshold={gap_limit} m — "
+                    f"gaps above this threshold are not auto-closed by the core"
+                )
 
     return _validate
 
@@ -362,7 +436,7 @@ def run_correction(
         out_dir=out_dir,
         prefix="correction",
         attempts=3,
-        validate=_make_window_completeness_validator(
+        validate=_make_correction_validator(
             _reading_window_stroke_count(vector_dir)
         ),
     )
