@@ -1,4 +1,5 @@
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -25,6 +26,36 @@ DEFAULT_ENERGYPLUS_EXE = (
     if sys.platform == "win32"
     else "energyplus"
 )
+
+
+def read_ep_end(output_directory: "Path | str") -> "dict | None":
+    """Parse <output_directory>/eplusout.end.
+
+    Returns a dict with keys:
+        "completed": bool  — True if the line contains "Completed Successfully"
+        "warnings":  int   — warning count (−1 if not found)
+        "severe":    int   — severe error count (−1 if not found)
+        "raw":       str   — the trimmed raw line
+
+    Returns None if the file does not exist (e.g. EP crashed before writing it)
+    or if any read error occurs.
+    """
+    end_file = Path(output_directory) / "eplusout.end"
+    try:
+        if not end_file.exists():
+            return None
+        raw = end_file.read_text(encoding="utf-8", errors="replace").strip()
+    except Exception:
+        return None
+
+    completed = "Completed Successfully" in raw
+
+    warnings_match = re.search(r"(\d+)\s+Warning", raw)
+    severe_match = re.search(r"(\d+)\s+Severe", raw)
+    warnings = int(warnings_match.group(1)) if warnings_match else -1
+    severe = int(severe_match.group(1)) if severe_match else -1
+
+    return {"completed": completed, "warnings": warnings, "severe": severe, "raw": raw}
 
 
 def resolve_energyplus_exe() -> str:
@@ -107,6 +138,10 @@ class EnergyPlusRunner:
         else:
             output_directory = Path(output_directory)
         output_directory.mkdir(parents=True, exist_ok=True)
+        # Remove any stale eplusout.end from a previous run so that a crash
+        # (e.g. segfault, exit 139) cannot be mistaken for success by
+        # read_ep_end() reading the old file.
+        (output_directory / "eplusout.end").unlink(missing_ok=True)
 
         self.logger.info("Starting EnergyPlus simulation...")
         self.logger.info("IDF file: {}", self.idf_path)

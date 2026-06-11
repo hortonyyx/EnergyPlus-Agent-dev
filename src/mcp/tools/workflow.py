@@ -4,7 +4,7 @@ from pathlib import Path
 from src.converter_manager import ConverterManager
 from src.mcp.interface import ToolResponse
 from src.mcp.state import ConfigState
-from src.runner.runner import EnergyPlusRunner
+from src.runner.runner import EnergyPlusRunner, read_ep_end
 from src.utils.logging import get_logger
 from src.validator.interzone import (
     audit_interzone_surface_pairs,
@@ -48,6 +48,8 @@ def _check_schedules(manager: ConverterManager) -> list[str]:
     4_mep/authoring.md schedule rule it enforces in code.
     """
     issues = validate_schedule_completeness(manager._idf)
+    n = len(manager._idf.idfobjects["SCHEDULE:COMPACT"])
+    logger.info("Schedule completeness audit: {} Schedule:Compact checked, {} issue(s)", n, len(issues))
     if issues:
         logger.error("Schedule completeness validation found {} issue(s):", len(issues))
         for issue in issues:
@@ -254,19 +256,51 @@ class WorkflowTool:
             manager.save_idf(temp_idf)
 
             runner = EnergyPlusRunner(idf=manager.idf)
-            runner.run_idf(epw_path, output_directory=output_dir_path)
+            ok = runner.run_idf(epw_path, output_directory=output_dir_path)
+            end = read_ep_end(output_dir_path)
+
+            if not ok or end is None or not end["completed"]:
+                # Read the tail of eplusout.err for diagnostic detail.
+                err_file = output_dir_path / "eplusout.err"
+                err_tail: str | None = None
+                try:
+                    if err_file.exists():
+                        lines = err_file.read_text(encoding="utf-8", errors="replace").splitlines()
+                        err_tail = "\n".join(lines[-40:])
+                except Exception:
+                    pass
+
+                ep_end_msg = (
+                    end["raw"]
+                    if end is not None
+                    else "no eplusout.end written (likely crash/segfault)"
+                )
+                logger.error("EnergyPlus FAILED: {}", ep_end_msg)
+                return ToolResponse(
+                    success=False,
+                    message=f"EnergyPlus FAILED: {ep_end_msg}",
+                    data={
+                        "idf_path": str(temp_idf.absolute()),
+                        "output_dir": str(output_dir_path.absolute()),
+                        "ep_end": end,
+                        "err_tail": err_tail,
+                    },
+                )
 
             logger.info(
-                "Simulation run successfully. Output directory: {}",
+                "Simulation completed: {} severe, {} warnings. Output directory: {}",
+                end["severe"],
+                end["warnings"],
                 output_dir_path,
             )
 
             return ToolResponse(
                 success=True,
-                message="Simulation run successfully.",
+                message=f"Simulation completed: {end['severe']} severe, {end['warnings']} warnings.",
                 data={
                     "idf_path": str(temp_idf.absolute()),
                     "output_dir": str(output_dir_path.absolute()),
+                    "ep_end": end,
                 },
             )
 
