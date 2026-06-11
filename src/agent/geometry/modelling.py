@@ -211,6 +211,15 @@ def _facade_axis(facade: str) -> str:
     return "x" if facade.lower().startswith(("e", "w")) else "y"
 
 
+# Outward normal (x, y) a wall must have to belong to a given facade.
+_FACADE_NORMAL = {
+    "north": (0.0, 1.0),
+    "south": (0.0, -1.0),
+    "east": (1.0, 0.0),
+    "west": (-1.0, 0.0),
+}
+
+
 def _window_verts(w, parent: Surface) -> list:
     """Window rectangle on the parent wall's plane, CCW from outside."""
     span = sorted(float(s) for s in w.span)
@@ -227,13 +236,22 @@ def _window_verts(w, parent: Surface) -> list:
 
 
 def _find_parent_wall(surfaces: list[Surface], zone: str, w) -> Surface | None:
-    """Pick the zone's exterior wall on the window facade whose XY span covers it."""
+    """Pick the zone's exterior wall on the window facade whose XY span covers it.
+
+    The wall's outward normal must point in the facade direction — a span/axis
+    match alone is not enough (a full-depth room has constant-y exterior walls
+    on BOTH north and south; without the normal check a South window would
+    silently attach to whichever matching wall came last)."""
     span = sorted(float(s) for s in w.span)
     axis = _facade_axis(w.facade)
+    want = _FACADE_NORMAL[w.facade.strip().lower()]
     best = None
     for s in surfaces:
         if s.zone != zone or s.stype != "Wall" or s.obc != "Outdoors":
             continue
+        n = _newell(s.verts)
+        if float(n[0] * want[0] + n[1] * want[1]) < 0.9:
+            continue  # wall does not face the window's facade
         xs = [v[0] for v in s.verts]
         ys = [v[1] for v in s.verts]
         # wall must be (near) constant in the facade-normal axis and span the window
@@ -257,7 +275,52 @@ def build_zone_volumes(geom: CorrectedGeometry) -> tuple[list[ZoneVolume], list[
     """Cells -> zone volumes, in floor-major / cell order. Also returns tiling
     guard notes: same-floor cells must not overlap (a correction stage defect — e.g. a
     corridor placed over the rooms it should sit between produces same-side walls
-    the gate rejects). Flag, don't paper over."""
+    the gate rejects). Flag, don't paper over.
+
+    Hard guards (raise, never silently corrupt — the InterZone gate is blind to
+    both failure classes):
+      - cell ids must be globally unique across floors (every id-keyed map in
+        split_pairing / window attachment is last-wins on duplicates), and so
+        must the EP-safe zone names derived from them;
+      - the z-stack must be contiguous: a gap/overlap beyond the pairing
+        tolerance would silently model an internal floor interface as Roof +
+        exposed Floor (mid-building outdoors) with zero gate issues.
+    """
+    # ---- id / zone-name uniqueness guard ----
+    floor_of_id: dict[str, str] = {}
+    id_of_zone: dict[str, str] = {}
+    for fl in geom.floors:
+        for c in fl.cells:
+            if c.id in floor_of_id:
+                raise ValueError(
+                    f"duplicate cell id '{c.id}' on floors '{floor_of_id[c.id]}' "
+                    f"and '{fl.name}' — cell ids must be globally unique across "
+                    f"floors (A0 id_uniqueness); duplicates silently merge zones "
+                    f"and mis-pair surfaces"
+                )
+            floor_of_id[c.id] = fl.name
+            zn = _safe(c.id)
+            if zn in id_of_zone:
+                raise ValueError(
+                    f"cell ids '{id_of_zone[zn]}' and '{c.id}' collide on the "
+                    f"EP-safe zone name '{zn}' after sanitization — rename one"
+                )
+            id_of_zone[zn] = c.id
+
+    # ---- z-stack continuity guard ----
+    floors_by_z = sorted(geom.floors, key=lambda f: float(f.z_floor))
+    for prev, cur in zip(floors_by_z, floors_by_z[1:]):
+        top = float(prev.z_floor) + float(prev.ceiling_height)
+        gap = float(cur.z_floor) - top
+        if abs(gap) > _Z_TOL:
+            raise ValueError(
+                f"broken z-stack: floor '{cur.name}' starts at z={cur.z_floor} "
+                f"but floor '{prev.name}' tops out at z={top} (gap {gap:+.3f} m "
+                f"> {_Z_TOL} m tolerance) — split-pairing would silently model "
+                f"this interface as Roof + exposed Floor (mid-building outdoors); "
+                f"fix the correction-stage z values"
+            )
+
     zvs: list[ZoneVolume] = []
     notes: list[str] = []
     for fi, fl in enumerate(geom.floors):

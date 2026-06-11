@@ -46,4 +46,14 @@ def build_geometry(geom: CorrectedGeometry) -> BuildingGeometry:
     out.windows, win_notes = attach_windows(geom, out.surfaces, zv_by_cell, registry)
     out.notes.extend(win_notes)
 
+    # Window completeness: every window the correction stage kept must attach.
+    # A silent drop (unknown room / no exterior wall on that facade) would flow
+    # downstream as "create exactly these windows" minus the lost ones and pass
+    # every gate — fail loud instead; the notes name each loss and its reason.
+    if len(out.windows) != len(geom.windows):
+        raise ValueError(
+            f"window attachment lost {len(geom.windows) - len(out.windows)} of "
+            f"{len(geom.windows)} window(s): " + "; ".join(win_notes)
+        )
+
     return out

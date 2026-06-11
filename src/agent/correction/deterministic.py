@@ -151,6 +151,35 @@ def apply_deterministic_core(
     geom.footprint_x, geom.footprint_y = fx, fy
     gthr = tol.gap_close_threshold_m
 
+    # ---- z-stack continuity: close small inter-floor gaps (the z counterpart of
+    # gap_close). The split-pairing kernel pairs floor/ceiling only when
+    # |lower top - upper z_floor| is within its z tolerance; a small LLM z jitter
+    # would otherwise silently turn the interface into Roof + exposed Floor
+    # (mid-building outdoors) that no downstream gate can see. Small gaps snap to
+    # the lower floor's top (audit-logged); larger ones are flagged unsupported
+    # here and hard-rejected by the kernel (build_zone_volumes). ----
+    floors_by_z = sorted(geom.floors, key=lambda f: f.z_floor)
+    for prev, cur in zip(floors_by_z, floors_by_z[1:]):
+        top = prev.z_floor + prev.ceiling_height
+        gap = cur.z_floor - top
+        if gap == 0:
+            continue
+        if abs(gap) <= gthr:
+            log(f"{cur.name}.z_floor", "z", cur.z_floor, top, "deterministic_core.z_stack")
+            cur.z_floor = top
+        else:
+            unsupported.append(
+                {
+                    "target": cur.name,
+                    "reason": (
+                        f"broken z-stack: floor starts at z={cur.z_floor} but the "
+                        f"floor below ('{prev.name}') tops out at z={top} "
+                        f"(gap {gap:+.3f} m > {gthr} m)"
+                    ),
+                    "regime_assumption_violated": "contiguous stacked floors",
+                }
+            )
+
     def axis_then_reach(cid, label, orig, amap, lo, hi):
         """Axis-identity snap, then connectivity-close to a footprint boundary."""
         snapped = _snap(orig, amap)
@@ -177,21 +206,62 @@ def apply_deterministic_core(
 
     # ---- windows: finer grid + clamp into parent cell/floor (no structural grid) ----
     wgrid = tol.window_snap_grid_m
-    cell_by_id = {c.id: (fl, c) for fl in geom.floors for c in fl.cells}
+    cell_by_id: dict[str, tuple] = {}
+    for fl in geom.floors:
+        for c in fl.cells:
+            if c.id in cell_by_id:
+                # A duplicate id would make this lookup (and every id-keyed map in
+                # the kernel) silently resolve to the wrong floor's cell. Fail loud.
+                raise ValueError(
+                    f"duplicate cell id '{c.id}' (also on floor "
+                    f"'{cell_by_id[c.id][0].name}') — cell ids must be globally "
+                    f"unique across floors (A0 id_uniqueness)"
+                )
+            cell_by_id[c.id] = (fl, c)
+    kept_windows = []
     for w in geom.windows:
         s0, s1 = _snap_to_grid(w.span[0], wgrid), _snap_to_grid(w.span[1], wgrid)
         z0, z1 = _snap_to_grid(w.z[0], wgrid), _snap_to_grid(w.z[1], wgrid)
-        if tol.window_clamp_to_parent and w.room in cell_by_id:
+        clamped = tol.window_clamp_to_parent and w.room in cell_by_id
+        if clamped:
             fl, c = cell_by_id[w.room]
             lo, hi = (c.x[0], c.x[1]) if w.facade.lower().startswith(("n", "s")) else (c.y[0], c.y[1])
             s0, s1 = _clamp(s0, lo, hi), _clamp(s1, lo, hi)
             zlo, zhi = fl.z_floor, fl.z_floor + fl.ceiling_height
             z0, z1 = _clamp(z0, zlo, zhi), _clamp(z1, zlo, zhi)
+        # Post-clamp sanity: clamping an out-of-range window must not manufacture
+        # illegal geometry. A degenerate window (zero/sub-tolerance width or
+        # height) or one covering its parent cell's full facade AND full floor
+        # height (subsurface area >= base surface — an EnergyPlus severe) is
+        # dropped explicitly with an unsupported entry, never passed downstream.
+        reason = None
+        if (s1 - s0) < tol.min_edge_length_m or (z1 - z0) < tol.min_edge_length_m:
+            reason = (
+                f"degenerate after snap/clamp: span [{s0}, {s1}], z [{z0}, {z1}] "
+                f"(width or height < {tol.min_edge_length_m} m)"
+            )
+        elif clamped and s0 <= lo and s1 >= hi and z0 <= zlo and z1 >= zhi:
+            reason = (
+                f"covers the full wall face after clamp (span [{s0}, {s1}] = cell "
+                f"edge, z [{z0}, {z1}] = full floor height) — a subsurface must be "
+                f"strictly smaller than its base surface"
+            )
+        if reason is not None:
+            unsupported.append(
+                {
+                    "target": w.id,
+                    "reason": reason,
+                    "regime_assumption_violated": "window strictly inside its parent wall",
+                }
+            )
+            continue
         log(f"{w.id}.span[0]", "span", w.span[0], s0, "deterministic_core.window")
         log(f"{w.id}.span[1]", "span", w.span[1], s1, "deterministic_core.window")
         log(f"{w.id}.z[0]", "z", w.z[0], z0, "deterministic_core.window")
         log(f"{w.id}.z[1]", "z", w.z[1], z1, "deterministic_core.window")
         w.span, w.z = [s0, s1], [z0, z1]
+        kept_windows.append(w)
+    geom.windows = kept_windows
 
     geom.corrections = corrections
     geom.unsupported = unsupported
