@@ -131,3 +131,29 @@
 | 3. 三个已知风险点确认 | ✅ 逐项核对（§3）；覆盖洞的 z 向子类确认真咬并给出低成本修法 |
 
 **建议处置顺序**：H1+H2+M1（同在 kernel 入口,一个 PR 可打包,~50 行 + 测试）→ H3（workflow/runner,独立 PR）→ M2/M3/L1-L3 随手。修完再落 test_baseline,baseline 的"EP 0 severe"断言依赖 H3。
+
+---
+
+## 6. 处置记录（2026-06-11 当日，Fable 5 执行，用户指示"全部修"）
+
+全部 findings 已修复并验证,分三块落地（备份齐全,见 [downstream_agent_changes.md 2026-06-11 条](../../downstream_agent_changes.md)）:
+
+| 块 | findings | 落点 |
+|---|---|---|
+| PR1 内核守卫 | H1 + H2 + M1 + M2 + L3 + **H4(新)** | schema.py / deterministic.py / modelling.py / build.py + tests/test_kernel_guards.py(16 测) |
+| PR2 EP 闭环 | H3 + M3 | runner.py(`read_ep_end`) / workflow.py + tests/test_ep_end_gate.py(7 测) |
+| PR3 correction 稳健性 | L1 + L2 + draw 级复合校验 | pipeline.py(`_make_correction_validator`) + test_correction_stability.py(16 测) |
+
+**H4（修复过程中新发现的硬伤,已修）**：`_find_parent_wall` 原实现只按"常数轴 + 跨度覆盖"选墙、不校验朝向——全进深房间（南北两侧都有外墙）的南窗会静默挂到**北墙**（取决于面列表顺序）,窗被搬到对面立面,InterZone 门与 EP 全程无感。sm20/sm21 未踩中纯属偶然（所有带窗房间恰好单侧采光）。修复:按窗 facade 推外法向,用 Newell 法向点积 ≥ 0.9 过滤候选墙;新增双侧采光定向测试。
+
+**防线分层**（同一不变量三道防线,层层兜底）:
+1. **draw 级（重试）**:`run_correction` 的 validate 回调现做 schema(含 facade enum)/0 窗/重复 cell id/z-stack 断裂复合校验,坏 draw 触发重抽(attempts=3)而非死管线;
+2. **确定性核（修复+显式丢弃）**:小 z 缝(≤0.3m)自动吸附记 correction;非法窗(退化/满墙)显式丢弃记 unsupported;
+3. **内核（raise backstop）**:重复 id/撞 zone 名/断 z-stack(>0.02m)/丢窗 一律 raise,绝不静默产出坏几何。
+
+**验证**:
+- 全套 pytest **99 绿**（69 原有 + 30 新增）;
+- §2 全部复现脚本反向验证 PASS（R1 core+kernel 双 raise / R2 0.3m 吸附+0.5m raise / R3 raise / R5 显式丢弃 / facade 非法 schema 拒绝）;
+- **sm20 e2e 复跑回归**（output_fable_audit_postfix）:结果与修复前完全一致（19 区/135 面/16 窗、两门 0 issue、EP Completed Successfully 0 severe 25 warnings、correction 一发即中）,且 M3 audit 行（`6 Schedule:Compact checked, 0 issue(s)`）与 H3 新消息（`Simulation completed: 0 severe, 25 warnings`）均已生效。
+
+**本 review 全部 findings closeable。**遗留(低优先,记录不阻塞): InterZone 门的 fenestration 检查(M2 的"中期"部分,核侧已兜)与 x/y 向 shapely 全量覆盖检查仍按原计划随 B5。

@@ -15,6 +15,29 @@
 
 ## 改动记录
 
+### 2026-06-11 — audit 硬伤修复：内核守卫 + EP 退出码闭环 + correction 重试校验
+
+**Trigger**：[2026-06-11 full audit review](review/review/2026-06-11_pipeline_0-5_full_audit_review.md) 的 3H/3M/3L 硬伤全部修复（用户指示"全部改"）。修复过程中测试又暴露 1 个新硬伤（H4，见下）。备份：`src_history/2026-06-11_kernel_guards/`（schema/deterministic/modelling/build）、`src_history/2026-06-11_ep_exitcode_gate/runner.py` + `MCP_history/2026-06-11_ep_exitcode_gate/workflow.py`、`src_history/2026-06-11_correction_robustness/pipeline.py`。
+
+**PR1 内核守卫**（[modelling.py](../../src/agent/geometry/modelling.py) / [build.py](../../src/agent/geometry/build.py) / [deterministic.py](../../src/agent/correction/deterministic.py) / [schema.py](../../src/agent/correction/schema.py)）：
+- **H1**：`build_zone_volumes` 对跨层重复 cell id / `_safe` 后撞 zone 名 raise；确定性核 `cell_by_id` 构建同步查重。
+- **H2**：确定性核新增 z-stack 连续性 pass（|缝| ≤ `gap_close_threshold_m` 吸到下层顶、记 correction；超差记 unsupported）；`build_zone_volumes` 对 > `_Z_TOL` 的层间缝/重叠 raise（防"楼中天台"静默通过）。
+- **M1**：`build_geometry` 末尾窗数量核对,attach 丢窗即 raise(带逐窗原因)。
+- **M2**：核钳制后窗合法性校验——退化窗(宽/高 < min_edge)或满墙窗显式丢弃 + unsupported,不再产非法几何。
+- **L3**：`Window.facade` 改 `Literal[North/South/East/West]` + 大小写/单字母归一,非法值 schema 拒绝(LLM 提示里的 JSON schema 同步获得 enum)。
+- **H4(修复中新发现)**：`_find_parent_wall` 原来只按"常数轴+跨度覆盖"选墙、不看朝向——全进深房间(南北都有外墙)的南窗会静默挂到北墙(窗被搬到对面立面,门/EP 全盲)。sm20/21 未踩中纯属带窗房间都单侧采光。已加外法向匹配(`_FACADE_NORMAL` + Newell 法向点积 ≥0.9)。
+
+**PR2 EP 闭环**（[runner.py](../../src/runner/runner.py) / [workflow.py](../../src/mcp/tools/workflow.py)）：
+- **H3**：`run_simulation` 接住 `run_idf` 返回值 + 新增 `read_ep_end()` 解析 `eplusout.end`;EP 非零退出/无 end 文件/非 Completed → `success=False`,data 带 `ep_end` + `eplusout.err` 末 40 行;成功消息改为 "Simulation completed: N severe, M warnings"(验收可自动断言)。开跑前清掉旧 `eplusout.end` 防段错后读到上次的旧文件。
+- **M3**：`_check_schedules` 加无条件 audit 行,与 interzone 门对称。
+
+**PR3 correction 稳健性**（[pipeline.py](../../src/agent/pipeline.py)）：
+- **L1**：`_section()` 只在"段不存在"时 fallback,配置写坏不再被静默掩盖。
+- **L2**：`create()` 调用移入重试 try,传输层异常消耗 attempt 而非中止全部重试。
+- **draw 级校验**：`run_correction` 的 validate 回调升级为复合校验(schema 含 facade / 0 窗 / 重复 cell id / z-stack 断裂 > gap_close),坏 draw 触发重抽(attempts=3)而非死在内核;核与内核守卫仍为确定性 backstop。
+
+**影响范围**：全部为本项目侧(校正核/几何内核/装配工具/runner),无下游 subagent prompt 改动、`IntakeOutput` 契约不变。语义变化:之前静默通过的四类坏几何(重复 id / 断 z-stack / 丢窗 / 非法窗)现在 fail loud 或显式丢弃——这是 audit 的设计意图。**验收**:全套 pytest 绿(69→9x,新增 kernel_guards / ep_end_gate / correction 校验测试);audit 复现脚本反向验证全 PASS;sm20 e2e 复跑回归(见 review 文档处置记录)。
+
 ### 2026-06-10 — ⚠️ 下游待改：schedule subagent 必须产完整 day-type 覆盖（EP segfault 真因）
 
 **Trigger**：Step 8 sm21 e2e 真跑 EP（容器内 EnergyPlus 25.1.0）逐层 bisect 出 segfault 真因——下游 **schedule subagent** 产的 6 个 `Schedule:Compact`（`Office_Workday` / `Office_People_Number` / `Office_Lights_Schedule` / `Office_Heating_Setpoint` / `Office_Cooling_Setpoint` / `Office_HVAC_Availability`）只写 `For: Weekdays` + 周末，**漏 `SummerDesignDay` / `WinterDesignDay` / `AllOtherDays`**。EnergyPlus 要求 day-type 全覆盖——**正常 EP 报 severe，但容器这个 EP build 直接 segfault**。证据：每个不完整 schedule 单独跑都 segfault；补全覆盖→EP 正常处理不再 segfault；纯几何+construction（无 schedule）→ `Completed Successfully`。**几何无关**（内核几何 EP-valid）。
