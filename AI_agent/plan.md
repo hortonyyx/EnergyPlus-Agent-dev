@@ -8,6 +8,8 @@
 >
 > **2026-06-10 — 0–5 管线 EP 跑通 + B 结案 + 路线锚定**：schedule 段错根因修（确定性门）+ 1_correction 稳定性硬化（重试+窗自检）；**sm21（2层）+ sm23（单层）EP cleanly 跑通**（详见 [CLAUDE.md §5.11 后 banner](CLAUDE.md)）。**用户定路线**：① Fable 5 完整体检 0–5 找硬伤（[review request](logs/review/request/2026-06-10_pipeline_0-5_full_audit_request.md)）② sm20+sm21 干净 anchor → 建 **test_baseline**（B2–B4）③ 接**国产 VLM API** 全流程（0_reading 自动化，B8 提前）④ **依次升级建筑复杂度**强化 0–5 各环节（B5–B7，建议清单 [pipeline_0-5_capability_upgrade_suggestions.md](architecture/pipeline_0-5_capability_upgrade_suggestions.md)）。
 >
+> **2026-06-11 — 路线①完成：完整体检 + 硬伤当日全修**：sm21 + **sm20（3 层首验）双端到端一把过**（两门 0 issue / EP 0 severe），[review](logs/review/review/2026-06-11_pipeline_0-5_full_audit_review.md) 落 4H/3M/3L 硬伤并当日全修（含 H3 EP 退出码闭环——**baseline EP 断言已可自动化**；H4 窗朝向新硬伤）；测试 99 绿（详见 [CLAUDE.md §5.12](CLAUDE.md)）。**B5–B7 的执行路径已细化为 [0–3 复杂度升级路径骨架](architecture/pipeline_0-5_capability_upgrade_suggestions.md)**（C2 正交多边形+多平面立面 → C3 退台/挑空 → C4 斜交墙；2026-05-29 搁置的 shapely 覆盖完整性门建议提前到 C2 落地）。**当前次步 = 路线②建 test_baseline**。
+>
 > 优先级：P0（立即）/ P1（一周内）/ P2（依赖 P0/P1）。
 
 ---

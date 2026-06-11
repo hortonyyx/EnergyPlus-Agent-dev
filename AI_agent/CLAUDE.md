@@ -6,6 +6,8 @@
 
 > ✅ **0–5 阶段重构完成（2026-06-09→06-10，Step 1–8）**：管线重构为 **0–5 阶段架构**（0_Reading/1_Correction/2_Modelling/3_Split-pairing/4_MEP/5_Intakeoutput），commits `29845ea`/`6117f58`/`945c54c`/`600f7d0`/`a978009`/`763ee97`/`c0dddc4`/`3577…`。几何已彻底确定性化（内核造面+切配→序列化 surface_specs，fork a 下游誊写），phase2b 解耦成 4_MEP(LLM 物理)+5_intakeoutput(确定性装配)，`IntakeOutput` 契约不变。**Step 8 e2e（干净 sm21）**：确定性几何 InterZone 门 0 issue + 4_MEP 契约 0 issue + 下游忠实誊写 100 面 + 装配 IDF 门 0 pair_issues（对照旧 staged 12–26 issue）。详见 §5.11 + [handoff](logs/2026-06-09_pipeline_0-5_refactor_handoff.md) + [pipeline_stage_contracts.md](architecture/pipeline_stage_contracts.md)。
 
+> ✅ **0–5 完整体检 + 硬伤当日全修 + 复杂度路径骨架（2026-06-11，Fable 5，commits `b530a8a`/`49c3fea`/`4df069e`/`35aa185`/`696e2c2`/`58627cd`）**：审 request 执行完毕——**sm21 + sm20（3 层新架构首验）双端到端一把过**（两门 0 issue / EP 0 severe / 誊写保真 100% / 旧 schema 兼容 / 切配覆盖手算 0 洞），[review](logs/review/review/2026-06-11_pipeline_0-5_full_audit_review.md) 落 **4H/3M/3L 硬伤**（全部合成复现取证）并**当日全部修复**（详见 §5.12）：H1 重复 cell id 守卫 / H2 z-stack 连续性（核吸附+内核 raise）/ H3 EP 退出码闭环（fatal 不再误报 success）/ **H4 窗朝向匹配（修复中新发现）**/ M1-M3 / L1-L3。**三层防线**：draw 级复合校验（坏 draw 重抽）→ 确定性核（修复/显式丢弃）→ 内核 raise backstop。测试 69→**99 绿**，sm20 e2e 复跑回归一致。**另起 [0–3 复杂度升级路径骨架](architecture/pipeline_0-5_capability_upgrade_suggestions.md)**（主战场：C2 正交多边形+多平面立面 → C3 退台/挑空（墙竖向 z-cut）→ C4 斜交墙；内核先行+守卫同步）。**下一步**：建 test_baseline（EP 断言已可自动化）→ 接国产 VLM → 开 C2。
+>
 > ✅ **EP 跑通 + 两个真因修复 + B 结案（2026-06-10，commits `04e7dbe`/`fd3d4bf`/`5e2f881`）**：之前"EP 段错=环境"是**误判**。真因①不完整 `Schedule:Compact`（漏 `AllOtherDays`）→ 容器 EP 25.1.0 段错 → 加**确定性 schedule 门**（[src/validator/schedules.py](../src/validator/schedules.py)）+ authoring 硬化。真因② sm21 "0 窗" **不是内核 bug**（窗逻辑自 step8 未变、稳出 15 窗）= **1_correction (DeepSeek) 偶发抽风**（漏窗/非法 JSON）→ `_call_json_llm` **加重试 + 窗完整性自检**（[src/agent/pipeline.py](../src/agent/pipeline.py)）。**实证**：sm21 端到端 14 区/100 面/**15 窗**/两门 0 issue/**EP Completed Successfully 0 severe**（干净 anchor）；新案例 **sm23**（单层 9 区 11 窗）EP 干净跑通。测试 69 绿。**下一步路线**（用户 2026-06-10）：Fable 5 完整体检 0–5 找硬伤（[review request](logs/review/request/2026-06-10_pipeline_0-5_full_audit_request.md)；capability 升级建议另落 [文档](architecture/pipeline_0-5_capability_upgrade_suggestions.md)）→ 拿 sm20+sm21 干净 anchor 建 **test_baseline** → 接**国产 VLM API** 全流程 → **依次升级建筑复杂度**强化 0–5 各环节能力。**残留**：sm20 3 层新架构待验（Fable 5）/ sm23 zonification 粒度瑕疵（capability）/ fork(b) 待议 / 非矩形随 B5。
 
 ## 1. 项目总览
@@ -260,6 +262,18 @@ IDF 建模拆「几何阶段」+「MEP 阶段」，独立会话可由不同模�
 **D. 口径统一**（Step 7）：**切配 = `adjacent_zone`/`adjacent_surface`(surface_specs) = `OBC=Surface`+`object`(IDF) = `obc`+`obc_obj`(代码)**，同一事三表述；EP 无 `Zone` 边界条件（[pipeline_stage_contracts §0 口径框](architecture/pipeline_stage_contracts.md)）。fork (b)（确定性直接造面绕过下游）记录待后续整合再议。
 
 **E. 测试 50 绿**（kernel 8 + 序列化/装配/契约 4 + 内核接线 3 + 历史）。每步 备份→实现→DeepSeek 审→commit。**残留**：① Step 8 sm21_pre e2e 复测（用干净手搓输入，per 用户决定 phase2a 重叠 defect 另开）② legacy `run_phase2b` + `rules.md` Step 8 后删 ③ 非矩形端到端随 B5。
+
+### 5.12 0–5 完整体检 + 硬伤当日全修 + 复杂度路径骨架（2026-06-11，Fable 5）
+
+[audit request](logs/review/request/2026-06-10_pipeline_0-5_full_audit_request.md) → [review + 处置记录](logs/review/review/2026-06-11_pipeline_0-5_full_audit_review.md) 闭环；改动史 [downstream_agent_changes.md 2026-06-11 条](logs/downstream_agent_changes.md)。
+
+**A. 体检实证（验收全过）**：sm21（14 区/100 面/15 窗）+ **sm20 三层新架构首验一把过**（19 区/135 面/16 窗、z-stack 0/3.6/7.2 正确合成、旧 0_reading schema 兼容）；两案例 InterZone+schedule 门 0 issue、EP `Completed Successfully` 0 severe、warning 全无害；**下游誊写保真 100%**（235 面逐顶点比对全为同环旋转、零法向翻转）；切配覆盖完整性手算独立验证 0 洞；correction 4 次 LLM 调用全一发即中。
+
+**B. 硬伤 4H/3M/3L 全修（三 commit）**：`49c3fea` 内核守卫（H1 跨层重复 cell id 三处 dict last-wins → 核+内核 raise；H2 z-stack 裸奔 → 核 ≤0.3m 吸附+内核 >0.02m raise；M1 丢窗 raise；M2 钳制产非法窗 → 显式丢弃记 unsupported；L3 facade Literal；**H4 修复中新发现**——`_find_parent_wall` 不看朝向，全进深房间南窗静默挂北墙，加 Newell 外法向匹配）；`4df069e` EP 闭环（H3 `run_simulation` 原丢弃 `run_idf` 返回值、EP fatal 报 success——接住 + 新增 `read_ep_end()` 解析 `eplusout.end`，失败返 `success=False` 带 err 尾部，成功消息含 severe/warning 数 → **baseline EP 断言可自动化**；M3 schedule 门 audit 行）；`35aa185` correction 稳健性（L1 配置错不再静默 fallback；L2 传输异常进重试；draw 级复合校验 schema/0 窗/重复 id/z 断裂 → 坏 draw 重抽）。**三层防线定型**：draw 重抽 → 核修复/显式丢弃 → 内核 raise。测试 69→**99 绿**；audit 复现脚本反向验证全 PASS；sm20 e2e 复跑（`output_fable_audit_postfix`）回归一致。
+
+**C. 0–3 复杂度升级路径骨架**（`58627cd`，[capability 文档](architecture/pipeline_0-5_capability_upgrade_suggestions.md)，用户定调主战场）：阶梯 **C2**（正交多边形 + 多平面立面；内核 shapely 半就绪，缺口在 0/1 窗归翼仲裁 + 覆盖门提前落地）→ **C3**（退台已就绪先收；挑空/跨层 zone = 内核最大改造：墙配对 by_floor → z 区间重叠驱动、切配首次扩到**切墙**、带洞楼板分解）→ **C4**（斜交墙：核旋转系吸附 + 窗挂载投影化）。三原则：分工线不动 / 内核先行（合成用例先升 2+3）/ 守卫与档位同步。五接缝：schema 演化（四处同步）/ 核算法 / 切配 z-cut / 门守卫 / 识图输入类型（C3 需剖面图 image_kind）。
+
+**D. capability 顺手发现**（4_mep）：材料质量跨 draw 波动（sm21 某 draw 全 no-mass）/ 活动量数值超典型区间 / design days+地温默认块缺——记录待落地，不阻塞。
 
 ---
 
