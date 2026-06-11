@@ -1,6 +1,7 @@
 ![CodeRabbit Pull Request Reviews](https://img.shields.io/coderabbit/prs/github/ITOTI-Y/EnergyPlus-Agent?utm_source=oss&utm_medium=github&utm_campaign=ITOTI-Y%2FEnergyPlus-Agent&labelColor=171717&color=FF570A&link=https%3A%2F%2Fcoderabbit.ai&label=CodeRabbit+Reviews)
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/ITOTI-Y/EnergyPlus-Agent)
-[![Showcase](https://img.shields.io/badge/Showcase-Live%20Demo-blue?style=flat)](https://hortonyyx.github.io/EnergyPlus-Agent-dev/AI_agent/showcase_animation/prototype/)
+
+[![Showcase Animation](https://img.shields.io/badge/🎬%20动画演示-Live%20Demo%20→-1a6fe8?style=for-the-badge&labelColor=0d1117)](https://hortonyyx.github.io/EnergyPlus-Agent-dev/AI_agent/showcase_animation/prototype/)
 
 # EnergyPlus Agent System
 
