@@ -17,7 +17,7 @@
 ## 1_correction（校正，LLM）
 
 - **稳定性**（2026-06-10 已加重试 + 窗自检兜底，commit `fd3d4bf`）：进一步可加——结构化输出约束 / 更细的自检（区数 vs testdata、楼层 z-stack 连续性、外包闭合）。
-- **多层 z-stack 合成**：2 层已验证，3 层（sm20）待验；facade_local→world 的逐层 z 偏移是易错点。
+- **多层 z-stack 合成**：2 层已验证，**3 层（sm20）2026-06-11 audit 实证通过**（0/3.6/7.2 连续、各层窗 z 落位正确、一发即中）；facade_local→world 的逐层 z 偏移仍是易错点（z 连续性确定性守卫属硬伤修复，见 [audit review H2](../logs/review/review/2026-06-11_pipeline_0-5_full_audit_review.md)）。
 - **仲裁/先验丰富度**：A3 仲裁 + A4 几何先验目前偏薄，复杂图（凹形/退台）下需要更强的常识仲裁。
 
 ## 2_modelling（建模·几何，确定性）
@@ -34,6 +34,9 @@
 
 - **schedule 完整性**（2026-06-10 已加确定性门 + authoring 硬化，commit `04e7dbe`）：先验库 `mep.md` 目前是 office 单一种子；扩成多建筑类型（学校/商业/住宅）的 MEP 先验库。
 - **构造/材料真实性**：当前占位构造（Default_*）；接真实构造库 + 按气候区选型。
+- **材料质量跨 draw 波动**（2026-06-11 audit 顺手发现）：同一 prompt 下 sm21 某次 draw 全配 no-mass 材料 → EP "building has no thermal mass" warning，sm20 同期正常。可在 authoring.md 加"外墙/楼板至少一层有质量材料"硬规则，或入契约校验。
+- **数值合理性**（2026-06-11 audit 顺手发现）：sm20 的 OFFICE_ACTIVITY 活动量 schedule 数值超出 70–1000 W/person 典型区间（19 条 EP warning）；可在 mep.md 先验里给典型值表。
+- **仿真控制默认值**（2026-06-11 audit 顺手发现）：4_mep 不产 design days 但 SimulationControl 默认要求 design-day 仿真（EP warning）；地温缺省走 EP 默认 18 °C。可补 authoring 默认块。
 - **HVAC 升级**：当前 IdealLoads；后续可扩真实系统（plan.md 远期）。
 
 ## 5_intakeoutput（装配，确定性）
