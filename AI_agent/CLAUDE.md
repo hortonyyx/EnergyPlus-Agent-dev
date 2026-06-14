@@ -6,6 +6,8 @@
 
 ---
 
+> ✅ **仓库整理 + Codex review 闭环 + 标准 case 布局落地（2026-06-14，commits `7494253`→`8e3b1a8` 共 8 个）**：①**仓库结构整理**——脚本合并 `scripts/`(总启动) + `scripts/tool_scripts/`(子操作) + `tests_scripts/`(开发脚本) + 退役归档；根 history 备份归并 `backup/{Skill,src,MCP,scripts}_history/`；`test_data/` → **`case_tests/{0_reading_tests, e2e_tests, test_baseline}`** + 旧单步语料归档 `backup/tests_history/SmallOffice`。②**Codex「phase→0–5 阶段名清理」review 闭环**（CHANGES REQUESTED，6 findings 全修，详见 §5.13 + [review](logs/review/review/2026-06-10_phase_to_stage_terminology_cleanup_review.md)）：M1 代码硬伤（`pipeline.py:_section()` 严格化：`intake_correction` 缺失 raise 不再静默落 `default`，+3 测试）/ M2-M4 活文档全改 0–5 当前接线（CLAUDE.md/pipeline_stage_contracts/new_case_guide/READMEs）。③**标准 case 组织结构定调**：`<case>/{llm.yaml(根), case_data/(素材), 0_reading…5_intakeoutput/, EP/(IDF)→EP/EP_run/(仿真)}`；建参考 case **`sm20_anchor`**（sm20 干净素材）；**代码路由接通**（run_full_pipeline 读 `case_data/testdata`；`SimContext.ep_run_subdir` opt-in 让 EP 仿真落 `EP/EP_run/`、IDF 留 `EP/`）。测试 99→**103 绿**。**下一步**：跑 sm20_anchor 出干净产物 → **逐环节约束各阶段输出 + 校验方式** → sm21 起规范 baseline → sm23 质量 → 接 VLM。
+
 > ✅ **0–5 阶段重构完成（2026-06-09→06-10，Step 1–8）**：管线重构为 **0–5 阶段架构**（0_Reading/1_Correction/2_Modelling/3_Split-pairing/4_MEP/5_Intakeoutput），commits `29845ea`/`6117f58`/`945c54c`/`600f7d0`/`a978009`/`763ee97`/`c0dddc4`/`3577…`。几何已彻底确定性化（内核造面+切配→序列化 surface_specs，fork a 下游誊写），phase2b 解耦成 4_MEP(LLM 物理)+5_intakeoutput(确定性装配)，`IntakeOutput` 契约不变。**Step 8 e2e（干净 sm21）**：确定性几何 InterZone 门 0 issue + 4_MEP 契约 0 issue + 下游忠实誊写 100 面 + 装配 IDF 门 0 pair_issues（对照旧 staged 12–26 issue）。详见 §5.11 + [handoff](logs/2026-06-09_pipeline_0-5_refactor_handoff.md) + [pipeline_stage_contracts.md](architecture/pipeline_stage_contracts.md)。
 
 > ✅ **0–5 完整体检 + 硬伤当日全修 + 复杂度路径骨架（2026-06-11，Fable 5，commits `b530a8a`/`49c3fea`/`4df069e`/`35aa185`/`696e2c2`/`58627cd`）**：审 request 执行完毕——**sm21 + sm20（3 层新架构首验）双端到端一把过**（两门 0 issue / EP 0 severe / 誊写保真 100% / 旧 schema 兼容 / 切配覆盖手算 0 洞），[review](logs/review/review/2026-06-11_pipeline_0-5_full_audit_review.md) 落 **4H/3M/3L 硬伤**（全部合成复现取证）并**当日全部修复**（详见 §5.12）：H1 重复 cell id 守卫 / H2 z-stack 连续性（核吸附+内核 raise）/ H3 EP 退出码闭环（fatal 不再误报 success）/ **H4 窗朝向匹配（修复中新发现）**/ M1-M3 / L1-L3。**三层防线**：draw 级复合校验（坏 draw 重抽）→ 确定性核（修复/显式丢弃）→ 内核 raise backstop。测试 69→**99 绿**，sm20 e2e 复跑回归一致。**另起 [0–3 复杂度升级路径骨架](architecture/pipeline_0-5_capability_upgrade_suggestions.md)**（主战场：C2 正交多边形+多平面立面 → C3 退台/挑空（墙竖向 z-cut）→ C4 斜交墙；内核先行+守卫同步）。**下一步**：建 test_baseline（EP 断言已可自动化）→ 接国产 VLM → 开 C2。
@@ -279,6 +281,16 @@ IDF 建模拆「几何阶段」+「MEP 阶段」，独立会话可由不同模�
 
 **D. capability 顺手发现**（4_mep）：材料质量跨 draw 波动（sm21 某 draw 全 no-mass）/ 活动量数值超典型区间 / design days+地温默认块缺——记录待落地，不阻塞。
 
+### 5.13 仓库整理 + Codex review 闭环 + 标准 case 布局（2026-06-14，commits `7494253`→`8e3b1a8`）
+
+建规范 baseline 前的整理 + 收尾会话。改动史见 [downstream_agent_changes 2026-06-14 条](logs/downstream_agent_changes.md)。
+
+**A. 仓库结构整理**：① **脚本合并**——散在 `scripts/` + `Tool_scripts/` 收成单一体系：`scripts/`(总启动 `run_full_pipeline`+`run_pipeline_deepseek`) / `scripts/tool_scripts/`(render×3 + baseline_record + preprocess_images) / 根 `tests_scripts/`(deepseek_review) / 根 `backup/scripts_history/`(退役归档 run_demo/export_trace/_share/export_idf/idfpy_roundtrip)。② **history 备份归并** `backup/{Skill,src,MCP,scripts}_history/`（核实旧文档「都被 gitignore 排除」**失实**——实际多为跟踪/未忽略，已就地校正 §6#5）。③ **`test_data/` → `case_tests/`**（`0_reading_tests`=phase1_generalization / `e2e_tests`=SmallOffice_TwoStep / `test_baseline` 随迁内部不动）+ 旧单步语料 `SmallOffice` → `backup/tests_history/`。④ 删空占位 `docs/` + gitignore Fable audit 产物。
+
+**B. Codex「phase→0–5 阶段名清理」review 闭环**（CHANGES REQUESTED，6 findings 全修，[review 处置表](logs/review/review/2026-06-10_phase_to_stage_terminology_cleanup_review.md)）：**M1 代码硬伤**——`pipeline.py:_section()` `intake_correction` 缺失原静默落下游 `default` ReAct 配置（错模型/thinking），改**显式 raise**；`intake_mep` 仅回退已确认存在的 correction（+3 测试）。**M2-M4**：会话首加载 CLAUDE.md §1.2/1.3/2.1/6#7/7 + 权威 pipeline_stage_contracts §3.1 + new_case_guide + corpus/case READMEs 全部从已删 phase1/phase2/run_phase2/partA 改为 0–5 当前接线（命令 `--reading-from phase1`→`0_reading`、产物路径、已落地内核"待建"→"已落地"）；CLAUDE.md 顶加统一术语 banner。
+
+**C. 标准 case 组织结构定调（用户）+ 代码路由接通**：`<case>/{llm.yaml(根), case_data/(图纸+testdata), 0_reading…5_intakeoutput/, EP/(IDF)→EP/EP_run/(仿真)}`。建首个参考 case **`sm20_anchor`**（sm20 干净素材，未跑）。代码路由：`run_full_pipeline` 读 `case_data/testdata_prompt.json`（缺则回退 case 根=旧 case 兼容）；新增 **`SimContext.ep_run_subdir`** opt-in（贯穿 `workflow.run_simulation`/simulate 节点），默认正式流让 EP 仿真落 `EP/EP_run/`、IDF 留 `EP/`，不影响其他调用方。测试 99→**103 绿**。**下一步**：跑 sm20_anchor 出干净产物 → 逐环节约束各阶段输出 + 校验方式 → sm21 起规范 baseline → sm23 质量 → 接 VLM。
+
 ---
 
 ## 6. 协作者 / 助手约定
@@ -373,6 +385,8 @@ IDF 建模拆「几何阶段」+「MEP 阶段」，独立会话可由不同模�
 - [ ] 切 [llm.yaml](../src/configs/llm.yaml) `intake` section 默认 provider，全量回归
 
 ---
+
+_2026-06-14 — **仓库整理 + Codex review 闭环 + 标准 case 布局**：新增 §5.13 + 顶部 banner。①仓库结构整理（脚本合并 `scripts/`+`tool_scripts/`+`tests_scripts/`、history 归并 `backup/`、`test_data/`→`case_tests/`、旧单步语料归档 `backup/tests_history/`、删空 docs/）；②Codex「phase→0–5 阶段名清理」review 闭环（M1 `pipeline.py:_section()` 严格化代码修+3 测试、M2-M4 活文档全改 0–5 当前接线、顶加术语 banner）；③标准 case 结构定调（`case_data/`+0–5+`EP/EP_run/`+根 `llm.yaml`）+ 建 `sm20_anchor` + 代码路由接通（`SimContext.ep_run_subdir` opt-in、testdata 读 case_data）。测试 99→103。下一步=逐环节约束输出+校验 → sm21 规范 baseline。_
 
 _2026-06-09 (v2) — **优先级 #2 落地 + 固化流程 + 切配定性反转 + 目标架构**：新增 §5.10。partA #2.1/#2.4/#2.2 落地（容差外置 correction.yaml + SNAP_GRID 吸附 + 窗户分级 + 连接性补缝 300mm + MEP 去混合 + CorrectedGeometry 渲染器，测试 30）；固化产物布局（`<case>/{phase1,phase2/{partA,partB},EP_run}`）+ 新建 sm21_pre 完整跑通；**切配定性反转**（sm20/sm21 对照证明一步出 LLM 切配做得对、staged 退化→切配收回我方确定性做，反转 2026-06-07"归下游"）；**目标总架构定调**（识图→校正→建模·几何→切配·仿真→物理挂载→下游，LLM 只做感知+校正判断+物理语义、代码做所有几何+装配）。§8.1 加"确定性造面/切配内核"P0 待建 + phase3 标记。详见 §5.10 + [pipeline_stage_contracts §0.1/§3.1](architecture/pipeline_stage_contracts.md) + [split_pairing_kernel_reference §6](reference/split_pairing_kernel_reference.md)。_
 
