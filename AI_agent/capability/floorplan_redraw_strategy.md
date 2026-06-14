@@ -174,7 +174,7 @@
 - **Phase 1**：Claude Code 会话 + Opus 4.7，7 张图（3 平面 + 4 立面）→ 7 份矢量 JSON + summary。schema 见 [vector_schema_v1.md](../../test_data/SmallOffice_TwoStep/smalloffice_20/vector_schema_v1.md)（v1.2）
 - **Phase 2**：两条路径并行验证
   - Opus 路径：Claude Code 会话直写 IntakeOutput JSON
-  - DeepSeek 路径：[`Tool_scripts/run_pipeline_deepseek.py`](../../Tool_scripts/run_pipeline_deepseek.py)（绕过 langchain，thinking enabled，max_tokens 64k）
+  - DeepSeek 路径：[`scripts/run_pipeline_deepseek.py`](../../scripts/run_pipeline_deepseek.py)（绕过 langchain，thinking enabled，max_tokens 64k）
 - **Phase 2 规则**：[phase2_rules.md](../../test_data/SmallOffice_TwoStep/smalloffice_20/phase2_rules.md)（v1.3 升级版在 [`skills/intake_pipeline/`](../../skills/intake_pipeline)）
 
 ### 9.2 三方对比结果（详见 [`compare/diff.md`](../../test_data/SmallOffice_TwoStep/smalloffice_20/compare/diff.md)）
@@ -211,7 +211,7 @@
 ### 9.6 Phase 1 用户校验机制
 
 POC 验证用户可在 ~30 min 内人工检查 SVG 是否与原图一致：
-- [`Tool_scripts/render_vector_to_svg.py`](../../Tool_scripts/render_vector_to_svg.py) 矢量 JSON → SVG（含 1m 网格 + 5m 加深网格 + pen 类型分色图例）
+- [`scripts/tool_scripts/render_vector_to_svg.py`](../../scripts/tool_scripts/render_vector_to_svg.py) 矢量 JSON → SVG（含 1m 网格 + 5m 加深网格 + pen 类型分色图例）
 - 浏览器并排原图 + SVG 即可逐项检查"墙位 / 窗位 / 尺寸 / 立面分层"
 - POC sm_20 实测：7 张图都在第一轮通过人工核验，未发现遗漏 / 错位
 
@@ -271,7 +271,7 @@ POC 验证用户可在 ~30 min 内人工检查 SVG 是否与原图一致：
   3. token / 错误面更小
 - **代价**：留/弃判断上移到 phase1，一旦把细隔墙误判成家具丢了，phase2 救不回（silent loss）。两个对冲：
   - **承认式排除**：看到但不画的，**必须**进 `uncaptured_visual_elements`（把该字段从可选提成必填）——"承认跳过"与"静默丢失"在复查时天壤之别
-  - **保留 phase1 SVG 人工核验**（[`render_vector_to_svg.py`](../../Tool_scripts/render_vector_to_svg.py)）兜 silent loss；等 phase1 自动化后 `uncaptured` 日志 + 置信度标记顶上
+  - **保留 phase1 SVG 人工核验**（[`render_vector_to_svg.py`](../../scripts/tool_scripts/render_vector_to_svg.py)）兜 silent loss；等 phase1 自动化后 `uncaptured` 日志 + 置信度标记顶上
 - **不是永远 B**：按需逐级提拔（`uncaptured`→`other`→专用笔），由下游需求（B6 楼梯成 zone / B7 微调 VLM 要忠实重绘）驱动，不提前还债
 
 ### 10.4 决策：phase1 把「门洞补成连续墙」→ 闭合墙网

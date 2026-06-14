@@ -16,8 +16,8 @@ Defaults below target the tighter constraint (Continue <= 16,384):
     facade_edge = 640   -> ~9k Continue tokens, ~0.9k vision tokens
 
 Usage:
-    python Tool_scripts/preprocess_images.py <case_dir>
-    python Tool_scripts/preprocess_images.py <case_dir> --top-edge 896 --facade-edge 704
+    python scripts/tool_scripts/preprocess_images.py <case_dir>
+    python scripts/tool_scripts/preprocess_images.py <case_dir> --top-edge 896 --facade-edge 704
 
 Outputs are written to <case_dir>/output/preprocessed/ alongside a
 manifest.json. Point the VLM (Continue / intake_node) at this directory

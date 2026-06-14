@@ -8,7 +8,7 @@ sit on the right facade? — the correction-stage analogue of render_vector_to_p
 the reading stage.
 
 Usage:
-    python Tool_scripts/render_corrected_geometry.py <corrected_geometry.json> [--out x.png]
+    python scripts/tool_scripts/render_corrected_geometry.py <corrected_geometry.json> [--out x.png]
 
 Pure PIL, no other deps (mirrors render_vector_to_png.py).
 """

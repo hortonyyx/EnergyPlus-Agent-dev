@@ -4,8 +4,8 @@ Companion to render_vector_to_svg.py. PNG is easier to eyeball next to the origi
 and (unlike SVG) can be read back by a multimodal model for self-inspection.
 
 Usage:
-    python Tool_scripts/render_vector_to_png.py <vector_json> [--out <png_path>]
-    python Tool_scripts/render_vector_to_png.py --dir <dir-of-vector-jsons>
+    python scripts/tool_scripts/render_vector_to_png.py <vector_json> [--out <png_path>]
+    python scripts/tool_scripts/render_vector_to_png.py --dir <dir-of-vector-jsons>
 
 Handles image_kind='plan' and 'elevation'. Geometry mirrors render_vector_to_svg.py:
 world -> px with y flipped (north up), walls dark, windows blue, dims green, ocr purple.

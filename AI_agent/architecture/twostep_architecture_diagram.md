@@ -206,8 +206,8 @@ flowchart LR
 | [`skills/intake_pipeline/phase1/reading_guide.md`](../../skills/intake_pipeline/phase1/reading_guide.md) | Phase 1 识图指南（怎么认出元素、跨风格、画法卡，纯感知）|
 | [`skills/intake_pipeline/phase1/pen_library.md`](../../skills/intake_pipeline/phase1/pen_library.md) | Phase 1 笔库/画图指南（类别→动作映射：哪支笔/忽略/healing）|
 | [`skills/intake_pipeline/4_mep/mep.md`](../../skills/intake_pipeline/4_mep/mep.md) | Phase 2 推理规则 |
-| [`Tool_scripts/render_vector_to_svg.py`](../../Tool_scripts/render_vector_to_svg.py) | 人工校验工具（矢量 JSON → SVG）|
-| [`Tool_scripts/run_pipeline_deepseek.py`](../../Tool_scripts/run_pipeline_deepseek.py) | Phase 2 自动跑批脚本 |
+| [`scripts/tool_scripts/render_vector_to_svg.py`](../../scripts/tool_scripts/render_vector_to_svg.py) | 人工校验工具（矢量 JSON → SVG）|
+| [`scripts/run_pipeline_deepseek.py`](../../scripts/run_pipeline_deepseek.py) | Phase 2 自动跑批脚本 |
 | [`test_data/SmallOffice_TwoStep/smalloffice_20/`](../../test_data/SmallOffice_TwoStep/smalloffice_20) | POC anchor 全套 artifacts |
 | [`test_data/SmallOffice_TwoStep/smalloffice_20/compare/diff.md`](../../test_data/SmallOffice_TwoStep/smalloffice_20/compare/diff.md) | 三方对比详表 |
 

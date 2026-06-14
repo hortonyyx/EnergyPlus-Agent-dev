@@ -191,7 +191,7 @@
   - phase2 在更复杂矢量 JSON 上能否保持 Step 6 PASS
 - [x] 跑通后落 `test_data/SmallOffice_TwoStep/<new_case>/` ✅ sm21；跑挂补规则 ✅ phase2/rules.md Step 5 glazing material split（备份 `Skill_history/2026-05-28_phase2_glazing_material_rule/`）
 - [ ] 再跑 1-2 张异图坐实泛化（可挑 phase1_generalization 的矩形图 test1/test7 补 testdata 跑全链路）
-- [x] 注（2026-05-26 已修）：[`run_pipeline_deepseek.py`](../Tool_scripts/run_pipeline_deepseek.py) 原写死 `PHASE1_FILES`，已改 `_discover_phase1_files()` 扫 `phase1_vector/*.json`（楼层数字序 → 立面 → supp/section），不再需手改
+- [x] 注（2026-05-26 已修）：[`run_pipeline_deepseek.py`](../scripts/run_pipeline_deepseek.py) 原写死 `PHASE1_FILES`，已改 `_discover_phase1_files()` 扫 `phase1_vector/*.json`（楼层数字序 → 立面 → supp/section），不再需手改
 
 #### B1.5.b [P0] phase1 / phase2 skill 持续迭代
 
@@ -218,7 +218,7 @@
 
 #### B1.5.d [P0] `run_pipeline_deepseek.py` 迁入主线 — ✅ 完成 2026-05-29
 - [x] 核心提为 [`src/agent/pipeline.py`](../src/agent/pipeline.py) 单一实现（`_fix_js_concat` + thinking enabled + JSON-only 直出 + `discover_phase1_files`），`intake_node` 与脚本共用、不漂移
-- [x] `ensure_schema_initialized()` 内置进 `run_phase2`（任何调用方安全）；[`run_pipeline_deepseek.py`](../Tool_scripts/run_pipeline_deepseek.py) 收成薄 CLI 包装
+- [x] `ensure_schema_initialized()` 内置进 `run_phase2`（任何调用方安全）；[`run_pipeline_deepseek.py`](../scripts/run_pipeline_deepseek.py) 收成薄 CLI 包装
 
 #### B1.5.e [P0] `new_case_guide.md` 正式化为两步流程 — ✅ 完成 2026-05-29
 - [x] [`new_case_guide.md`](guides/new_case_guide.md) 正式版：Step 4 phase1 半人工 + Step 5 一次性自动（phase2+下游+EP）+ §5.1 per-case 模型配置 + Step 6 InterZone 门验收层 + dev临时模式vs正式模式边界
@@ -410,7 +410,7 @@
   - [ ] INTAKE_SYSTEM_PROMPT 加"按规约识别"分支
 
 - ② **工具侧预处理**（原 B5 PaddleOCR + cv2 内容并入此处）：
-  - [ ] 新建 `Tool_scripts/preprocess_floor_plan.py`：
+  - [ ] 新建 `scripts/tool_scripts/preprocess_floor_plan.py`：
     - PaddleOCR 提平面图所有数字 + 坐标 → JSON
     - cv2 形态学找宽白连通区 → 走廊 bbox 候选
     - 颜色滤波 + 模板匹配找门 / 窗 / 楼梯符号 → 实例列表

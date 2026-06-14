@@ -190,8 +190,8 @@ phase1      phase2a判断 + 确定性核  cells→zones+面     面切分+互逆
 
 | 阶段 | 产物 | 校验工具 / 信号 |
 |---|---|---|
-| phase1 | `phase1/*.json` | [render_vector_to_png.py](../../Tool_scripts/render_vector_to_png.py)/`_svg.py` → 肉眼比对原图 |
-| phase2a+核 | `partA/*.json` | [render_corrected_geometry.py](../../Tool_scripts/render_corrected_geometry.py) → 逐层平面图肉眼看（cells 铺满? 跨层轴统一? 窗在对的立面?）；Pydantic 结构；`corrections.json` audit。**待补**：A0 §7 确定性校验器（coverage/closure/z-stack，见 §5.1 类） |
+| phase1 | `phase1/*.json` | [render_vector_to_png.py](../../scripts/tool_scripts/render_vector_to_png.py)/`_svg.py` → 肉眼比对原图 |
+| phase2a+核 | `partA/*.json` | [render_corrected_geometry.py](../../scripts/tool_scripts/render_corrected_geometry.py) → 逐层平面图肉眼看（cells 铺满? 跨层轴统一? 窗在对的立面?）；Pydantic 结构；`corrections.json` audit。**待补**：A0 §7 确定性校验器（coverage/closure/z-stack，见 §5.1 类） |
 | phase2b | `partB/intake_output.json` | Pydantic + 下游 L2 cross_ref |
 | 下游+EP | `EP_run/` | **InterZone 门**（EP 前 fail-fast，确定性）+ L3 OpenStudio + L4 EP completed |
 

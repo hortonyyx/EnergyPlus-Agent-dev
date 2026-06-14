@@ -104,7 +104,7 @@ Continue 的 workspace 打开 `C:\work\ep-agent` 即可。脚本里用到的所�
 例如 `test_data/SmallOffice/smalloffice_14`）：
 
 ```bash
-python Tool_scripts/preprocess_images.py <case_dir>
+python scripts/tool_scripts/preprocess_images.py <case_dir>
 ```
 
 该脚本：
@@ -119,13 +119,13 @@ python Tool_scripts/preprocess_images.py <case_dir>
 
 ```bash
 # 阈值调更高（更保守，只裁近纯白）
-python Tool_scripts/preprocess_images.py <case> --trim-threshold 252
+python scripts/tool_scripts/preprocess_images.py <case> --trim-threshold 252
 
 # 加大保留边距
-python Tool_scripts/preprocess_images.py <case> --trim-padding 40
+python scripts/tool_scripts/preprocess_images.py <case> --trim-padding 40
 
 # 完全跳过裁白边
-python Tool_scripts/preprocess_images.py <case> --no-trim
+python scripts/tool_scripts/preprocess_images.py <case> --no-trim
 ```
 
 ### 3.2 覆盖式重跑
@@ -318,9 +318,9 @@ AI_agent/experiments/2026-04-22_qwen35/smalloffice_13/
 ## 9. 未来工作（不在本指南覆盖范围）
 
 - ~~`AI_agent/tools/export_idf.py`~~ — **已完成（2026-04-27）**：脚本落地为
-  [../../Tool_scripts/export_idf.py](../../Tool_scripts/export_idf.py)，含 5 条补丁
+  [../../scripts_history/export_idf.py](../../scripts_history/export_idf.py)，含 5 条补丁
   （多了占位 Construction 预注入），主 skill 与 open_model skill 的 IDF 导出步骤
-  已改为单行 `python Tool_scripts/export_idf.py <case_dir>`。
+  已改为单行 `python scripts_history/export_idf.py <case_dir>`。
 - `AI_agent/eval/run_case.py` — 自动化评测，不再需要本指南的手动放行（[plan.md P0](../plan.md)）
 - vLLM 本地部署（摆脱 SiliconFlow TPM 约束）的 `AI_agent/deploy/` 脚本
 

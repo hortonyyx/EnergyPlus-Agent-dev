@@ -6,12 +6,12 @@ need to fill the remaining <FILL_ME> fields.
 
 Usage
 -----
-    python Tool_scripts/baseline_record.py <case> <tag> [--idf <path>] [--date <YYYY-MM-DD>]
+    python scripts/tool_scripts/baseline_record.py <case> <tag> [--idf <path>] [--date <YYYY-MM-DD>]
 
 Examples
 --------
-    python Tool_scripts/baseline_record.py sm_15 post_p0
-    python Tool_scripts/baseline_record.py sm_15 post_p0 --idf custom/path/foo.idf
+    python scripts/tool_scripts/baseline_record.py sm_15 post_p0
+    python scripts/tool_scripts/baseline_record.py sm_15 post_p0 --idf custom/path/foo.idf
 
 Behavior
 --------

@@ -66,7 +66,7 @@ Claude Code harness 已切换到 **deferred MCP 架构**：
 |---|---|---|
 | P1 工具返回值膨胀 | MCP CRUD 默认 ack-only（list_all 返名字数组、create/update 返 `{"name"}`、read/get 保留全量 dump） | ✅ 已做（§3.1） |
 | P2 逐次调用 | 加 `update_surfaces_batch` + `create_fenestration_surfaces_batch` | ✅ 已做（§3.2） |
-| P3 inline Python | `Tool_scripts/export_idf.py` 外置 + 5 条补丁固化 | ✅ 已做（§3.3） |
+| P3 inline Python | `scripts_history/export_idf.py` 外置 + 5 条补丁固化 | ✅ 已做（§3.3） |
 | P4 validate 错误列表 | 错误截断 + 按类型聚类 + 可选 verbose | 📋 计划做（§4.1） |
 | P5 blank facade 视觉浪费 | testdata_prompt.json 加 `facade_status`，skill Step 1 跳图 | 📋 计划做（§4.2） |
 | P6 顶点 JSON 长形式 | Pydantic union type 接受 `[x,y,z]` | 📋 计划做（§4.3） |
@@ -130,9 +130,9 @@ Claude Code harness 已切换到 **deferred MCP 架构**：
 
 ---
 
-### 3.3 ✅ `Tool_scripts/export_idf.py` 外置（2026-04-27）
+### 3.3 ✅ `scripts_history/export_idf.py` 外置（2026-04-27）
 
-**改造**：根目录新建 [Tool_scripts/export_idf.py](../../Tool_scripts/export_idf.py)，CLI `python Tool_scripts/export_idf.py <case_dir>`，含 **5 条补丁**（比原计划多 1 条）：
+**改造**：根目录新建 [scripts_history/export_idf.py](../../scripts_history/export_idf.py)，CLI `python scripts_history/export_idf.py <case_dir>`，含 **5 条补丁**（比原计划多 1 条）：
 
 | 补丁 | 说明 |
 |---|---|

@@ -138,7 +138,7 @@ Human:
 | **🎯 INTAKE_SYSTEM_PROMPT**（API 自动 intake 的） | [src/agent/nodes/intake.py L34-109](../../src/agent/nodes/intake.py#L34) | ✅ 现在 | 与 §4.2 同步演进，B6 切 API 时生效 |
 | **GT 数据集** | `test_data/SmallOffice/<case>/gt.json` | ✅ 现在 | B1 任务（待建） | 没 GT 就没 B2 评测 |
 | **diff 评测脚本** | `AI_agent/eval/intake_diff.py` | ✅ 现在 | B2 任务（待建） |
-| **OCR / cv2 预处理 hook** | `Tool_scripts/preprocess_floor_plan.py` | ✅ B5 任务（待建） | 给 Opus 做 hint 注入，不动 graph |
+| **OCR / cv2 预处理 hook** | `scripts/tool_scripts/preprocess_floor_plan.py` | ✅ B5 任务（待建） | 给 Opus 做 hint 注入，不动 graph |
 | **测试输入素材** | [test_data/SmallOffice/<case>/](../../test_data/SmallOffice) | ✅ 现在 | 新案例直接 Step 1-3 起 |
 | **下游 9 subagent prompt** | [src/agent/nodes/{material,zone,surface,...}.py](../../src/agent/nodes) | ⚠️ 改但属维护 | bug 修补可改（如 B0' surface T-vertex），prompt 演进归协作者 | idfpy 切换时**必随之改** |
 | **下游 LangChain tool 包装层** | [src/agent/tools/*_tools.py](../../src/agent/tools) | ⚠️ 改但属维护 | 紧贴 MCP 工具签名 | idfpy 切换时**必随之改**（工具数 79→20-25） |

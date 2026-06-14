@@ -123,7 +123,7 @@ Claude 收到触发后按 §4.3 执行。用户**不需要**额外指明参考�
 
 1. **Bash 调脚本**:
    ```bash
-   uv run python Tool_scripts/baseline_record.py <case> <tag>
+   uv run python scripts/tool_scripts/baseline_record.py <case> <tag>
    ```
    验证 stdout 报告 `[ok] Counts: ...` 三个数字 ≠ null。
    - 若脚本报 `[warn] No IDF found`，停下来问用户 IDF 路径，**不要继续填**。

@@ -26,7 +26,7 @@ phase1_generalization/
   testN/
     testN.jpg          original (copied in for side-by-side)
     testN.json         phase1 vector output
-    testN.svg          official render (Tool_scripts/render_vector_to_svg.py) — browser, zoomable
+    testN.svg          official render (scripts/tool_scripts/render_vector_to_svg.py) — browser, zoomable
     testN_render.png   PIL render — more legible side-by-side
 ```
 
@@ -90,5 +90,5 @@ forced into rectangles. The two genuine weak spots are **photorealistic 3D** (te
 
 ```bash
 # re-render any case
-python Tool_scripts/render_vector_to_svg.py test_data/phase1_generalization/testN/testN.json
+python scripts/tool_scripts/render_vector_to_svg.py test_data/phase1_generalization/testN/testN.json
 ```

@@ -163,7 +163,7 @@ phase1 在 1f 把同一道隔墙估成 **4.90/10.10**、2f 估成 **4.95/10.05**
 
 ### 7.1 sm21_pre 端到端跑 + 切配定性反转 + 目标架构定调（2026-06-09）
 
-**A. 优先级 #2 推进**：确定性核 #2.1（吸 SNAP_GRID + 窗户分级）/ #2.4（连接性补缝 300mm）/ #2.2（MEP 去混合为 [priors/mep.md](../../skills/intake_pipeline/phase2/priors/mep.md) draft 种子）全落（[downstream_agent_changes 2026-06-09](../logs/downstream_agent_changes.md)）。新增 [CorrectedGeometry 渲染器](../../Tool_scripts/render_corrected_geometry.py)（phase2a 产物首次可肉眼看）。
+**A. 优先级 #2 推进**：确定性核 #2.1（吸 SNAP_GRID + 窗户分级）/ #2.4（连接性补缝 300mm）/ #2.2（MEP 去混合为 [priors/mep.md](../../skills/intake_pipeline/phase2/priors/mep.md) draft 种子）全落（[downstream_agent_changes 2026-06-09](../logs/downstream_agent_changes.md)）。新增 [CorrectedGeometry 渲染器](../../scripts/tool_scripts/render_corrected_geometry.py)（phase2a 产物首次可肉眼看）。
 
 **B. 固化规范流程 + sm21_pre 干净跑**：plumbing 固化产物布局（`<case>/{phase1, phase2/{partA,partB}, EP_run}`，[pipeline_stage_contracts §3.1](../architecture/pipeline_stage_contracts.md)）。新建 `smalloffice_21_pre`（phase1=Sonnet sub-agent，余全 DeepSeek）完整跑通：phase1 识图忠实、#2.1 验证（56 坐标全栅格、0 mm 级值，核成 no-op 安全网=phase2a 自己做对了）、phase2b+下游全跑、**门抓 12 切配 issue/EP 未启动**。
 

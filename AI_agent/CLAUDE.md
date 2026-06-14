@@ -48,7 +48,7 @@ phase2（image-blind）几何确定性化（Step 2–6，2026-06-09）：
 | [../src/validator/interzone.py](../src/validator/interzone.py) | InterZone 确定性几何门（EP 前 fail-fast）|
 | [../src/agent/llm.py](../src/agent/llm.py) + [../src/configs/llm.yaml](../src/configs/llm.yaml) | LLM 工厂 + 多 section（per-case `<case>/llm.yaml` 经 `EP_AGENT_LLM_CONFIG` 覆盖）|
 | [../src/mcp](../src/mcp) | MCP 工具集（idfpy 替换主线搁置中，[deferred/idfpy_embed.md](deferred/idfpy_embed.md)）|
-| [../scripts/run_full_pipeline.py](../scripts/run_full_pipeline.py) | 端到端 / 半人工 / 仅 intake 三种入口 |
+| [../scripts](../scripts) | 脚本总目录（2026-06-14 合并）：`scripts/`=总启动器（`run_full_pipeline.py` 端到端/半人工/仅 intake 三入口 · `run_pipeline_deepseek.py` pipeline 独立 CLI）；`scripts/tool_scripts/`=流程子操作（render×3 校验渲染 / `baseline_record.py` / `preprocess_images.py`）；根 `tests_scripts/`=流程无关开发脚本（`deepseek_review.py`）；根 `scripts_history/`=退役脚本归档 |
 | [../test_data/SmallOffice](../test_data/SmallOffice) | 案例（sm_0..17）|
 | [../test_data/test_baseline/runs](../test_data/test_baseline/runs) | baseline + capability 实验日志归档（2026-05-06 起）|
 | [../tests/test_zone_agent.py](../tests/test_zone_agent.py) | 唯一自动化测试（zone_agent 纯文本）|
@@ -81,7 +81,7 @@ LangGraph + LangChain（`init_chat_model("{provider}:{model_name}")` 路由）�
 
 1. **视觉理解非首要瓶颈**（13 案例 12/13 出 claude_ep.md = 92% 通过）
 2. 真正瓶颈：**长链路 tool-calling 稳定性 + 子系统覆盖完整性**（旧基线 Schedule/Lights/HVAC 普遍缺失；新流程下交给 cross_ref + validate 兜底）
-3. **强制后处理补丁**不能交给 LLM 记得打 → [Tool_scripts/export_idf.py](../Tool_scripts/export_idf.py) 5 条补丁脚本化；idfpy 切换后大部分由 `idf.validate()` 顶替
+3. **强制后处理补丁**不能交给 LLM 记得打 → [scripts_history/export_idf.py](../scripts_history/export_idf.py) 5 条补丁脚本化；idfpy 切换后大部分由 `idf.validate()` 顶替
 4. **token 口径**：`/context` 真值才作准；deferred MCP / autocompact / system tools deferred 都不计入 Total（[memory project_context_token_accounting.md](../memory/project_context_token_accounting.md)）
 
 ---
@@ -178,7 +178,7 @@ IDF 建模拆「几何阶段」+「MEP 阶段」，独立会话可由不同模�
 - **Phase 1**（识图）：Claude Code 会话 + Opus 4.7，7 张图 → 7 份矢量 JSON + summary。schema = strokes[] + pen 类型（wall / wall_fill / window / outline / other），含 plan / elevation 词典分拆 + 4 立面 facade_axis_note 含符号
 - **Phase 2**（拓扑）：双路径对比
   - Opus 路径（Claude Code 会话直写）
-  - DeepSeek 路径（[`Tool_scripts/run_pipeline_deepseek.py`](../Tool_scripts/run_pipeline_deepseek.py)，绕过 langchain、thinking enabled、max_tokens=64k、`_fix_js_concat` regex 修 JS 风格字符串拼接、`ensure_schema_initialized()` 初始化 IDD）
+  - DeepSeek 路径（[`scripts/run_pipeline_deepseek.py`](../scripts/run_pipeline_deepseek.py)，绕过 langchain、thinking enabled、max_tokens=64k、`_fix_js_concat` regex 修 JS 风格字符串拼接、`ensure_schema_initialized()` 初始化 IDD）
 - **Step 6 全链路**：Opus 路径 + 下游 9 subagent + EP fatal（construction asymmetry 规则漏洞，phase2_rules v1.3 已修）；**DeepSeek 路径 EP cleanly Completed**（0 severe / 9 warning / 8.49s 全年）
 - **F3 corridor 窗 z 修正**：两步法两条路径都对（z=10.60）/ anchor 单步法错（z=9.60）—— phase1 锁定识图结果让 phase2 无机会重做坐标推导，误差预算分离生效
 
@@ -187,15 +187,15 @@ IDF 建模拆「几何阶段」+「MEP 阶段」，独立会话可由不同模�
 **C. Artifacts 迁移**
 - 测试 case：[`test_data/SmallOffice_TwoStep/smalloffice_20/`](../test_data/SmallOffice_TwoStep/smalloffice_20)（与 `SmallOffice/smalloffice_20/` 同素材，两步法跑）
 - Skill 演进源：[`skills/intake_pipeline/`](../skills/intake_pipeline)（`phase1_vector_schema.md` v1.2 + `phase2_rules.md` v1.3 + 两个 prompt 模板 + README）
-- DeepSeek 自动跑批脚本：[`Tool_scripts/run_pipeline_deepseek.py`](../Tool_scripts/run_pipeline_deepseek.py)
-- SVG 渲染（phase1 人工校验工具）：[`Tool_scripts/render_vector_to_svg.py`](../Tool_scripts/render_vector_to_svg.py)
+- DeepSeek 自动跑批脚本：[`scripts/run_pipeline_deepseek.py`](../scripts/run_pipeline_deepseek.py)
+- SVG 渲染（phase1 人工校验工具）：[`scripts/tool_scripts/render_vector_to_svg.py`](../scripts/tool_scripts/render_vector_to_svg.py)
 - 三方对比详表：[`test_data/SmallOffice_TwoStep/smalloffice_20/compare/diff.md`](../test_data/SmallOffice_TwoStep/smalloffice_20/compare/diff.md)
 
 **D. 后续主线动作**（[plan.md B1.5](plan.md)）
 - B1.5.a 异图 POC v2（噪声 / 装饰 / 索引 / 楼梯）
 - B1.5.b phase2_rules.md / phase1_vector_schema.md 持续迭代（吸收 Opus 10 条 followup notes）
 - B1.5.c `intake_node` 重写为两步串行调用（保留 `--intake-from` short-circuit）
-- B1.5.d `Tool_scripts/run_pipeline_deepseek.py` 迁入主线作 phase2_node
+- B1.5.d `scripts/run_pipeline_deepseek.py` 迁入主线作 phase2_node
 - B1.5.e [`new_case_guide.md`](guides/new_case_guide.md) Step 4 拆 4a phase1 / 4b phase2
 - B1.5.f 评测脚本支持识图错 ↔ 推理错自动归因
 
@@ -207,11 +207,11 @@ IDF 建模拆「几何阶段」+「MEP 阶段」，独立会话可由不同模�
 
 **C. 决策：切两步法新架构 greenlight**：POC v2 异图跑通 → 确定切两步法为主线架构，[plan.md B1.5.c](plan.md)（`intake_node` 重写为 phase1+phase2 串行）就此解禁。**建模质量问题（几何细节等）仍较大，按"切架构 + 质量慢慢解决"并行推进**，不阻塞架构切换。
 
-**D. prompt 模板归一 + 工具修整**：phase1/phase2 启动 prompt 从 skill 库移进 [guides/new_case_guide_twostep.md](guides/new_case_guide_twostep.md) Step 4a/4b（一处，[[skills-lib-clean-spec-policy]]）；[`run_pipeline_deepseek.py`](../Tool_scripts/run_pipeline_deepseek.py) 改为从 skill 库直接读规则文档（消除 case 级陈旧副本依赖）。
+**D. prompt 模板归一 + 工具修整**：phase1/phase2 启动 prompt 从 skill 库移进 [guides/new_case_guide_twostep.md](guides/new_case_guide_twostep.md) Step 4a/4b（一处，[[skills-lib-clean-spec-policy]]）；[`run_pipeline_deepseek.py`](../scripts/run_pipeline_deepseek.py) 改为从 skill 库直接读规则文档（消除 case 级陈旧副本依赖）。
 
 ### 5.8 两步法切主线架构落地 + InterZone 确定性几何门 + 正式流程指南（2026-05-29）
 
-**A. B1.5.c 两步法 `intake_node` 串行重写交付**（[plan.md B1.5.c/d](plan.md)）：`intake_node` 三路分发（短路 `--intake-from` / `phase1_vector_dir`→phase2 / legacy 单步）；新增 [src/agent/pipeline.py](../src/agent/pipeline.py)（phase2 **单一实现**，DeepSeek raw client + thinking，读 `llm.yaml:intake_correction`）；[run_full_pipeline.py](../scripts/run_full_pipeline.py) 加 `--reading-from`；[`run_pipeline_deepseek.py`](../Tool_scripts/run_pipeline_deepseek.py) 收成 `phase2.py` 的薄 CLI 包装（脚本与主线不再漂移，B1.5.d）。**e2e 首次完整跑通新架构**（phase1 矢量→phase2→9 下游→IDF 装配），机制 100% 通。
+**A. B1.5.c 两步法 `intake_node` 串行重写交付**（[plan.md B1.5.c/d](plan.md)）：`intake_node` 三路分发（短路 `--intake-from` / `phase1_vector_dir`→phase2 / legacy 单步）；新增 [src/agent/pipeline.py](../src/agent/pipeline.py)（phase2 **单一实现**，DeepSeek raw client + thinking，读 `llm.yaml:intake_correction`）；[run_full_pipeline.py](../scripts/run_full_pipeline.py) 加 `--reading-from`；[`run_pipeline_deepseek.py`](../scripts/run_pipeline_deepseek.py) 收成 `phase2.py` 的薄 CLI 包装（脚本与主线不再漂移，B1.5.d）。**e2e 首次完整跑通新架构**（phase1 矢量→phase2→9 下游→IDF 装配），机制 100% 通。
 
 **B. InterZone 确定性几何门**（审阅 A 落地）：新增 [src/validator/interzone.py](../src/validator/interzone.py)，在 [`WorkflowTool`](../src/mcp/tools/workflow.py) 装配 IDF 后、跑 EP 前作 fail-fast 门（OBC=Surface 目标存在/互逆/单一引用/面积/法向相反/通用点到面共面/最小边长 ≥0.1m）。标定 4 个已知 IDF **零误杀**；e2e 全新 phase2 输出上**当场抓 6 个跨层 split-pairing 缺陷挡 EP**。把"EP 通过≠几何对"从隐患变显式可定位 issue。
 
@@ -241,7 +241,7 @@ IDF 建模拆「几何阶段」+「MEP 阶段」，独立会话可由不同模�
 
 详见 [capability/recognition_modeling_capability.md §7.1](capability/recognition_modeling_capability.md) + [logs/downstream_agent_changes.md 2026-06-09](logs/downstream_agent_changes.md)。
 
-**A. partA 待完善 #2 落地**：确定性核 #2.1（容差外置 [correction.yaml](../src/configs/correction.yaml) + 吸 `SNAP_GRID` + 窗户分级 10mm+钳父墙）/ #2.4（连接性补缝 300mm，内墙→外墙）/ #2.2（MEP 去混合为 [priors/mep.md](../skills/intake_pipeline/phase2/priors/mep.md) draft 种子）。新增 [CorrectedGeometry 渲染器](../Tool_scripts/render_corrected_geometry.py)。测试 27→30。
+**A. partA 待完善 #2 落地**：确定性核 #2.1（容差外置 [correction.yaml](../src/configs/correction.yaml) + 吸 `SNAP_GRID` + 窗户分级 10mm+钳父墙）/ #2.4（连接性补缝 300mm，内墙→外墙）/ #2.2（MEP 去混合为 [priors/mep.md](../skills/intake_pipeline/phase2/priors/mep.md) draft 种子）。新增 [CorrectedGeometry 渲染器](../scripts/tool_scripts/render_corrected_geometry.py)。测试 27→30。
 
 **B. 固化规范流程 + 产物布局**：`run_full_pipeline --reading-from` 产物按阶段分门别类（`<case>/{phase1, phase2/{partA,partB}, EP_run}`，[pipeline_stage_contracts §3.1](architecture/pipeline_stage_contracts.md)）。新建 **`smalloffice_21_pre`**（干净 sm21，phase1=Sonnet sub-agent，余全 DeepSeek）完整跑通：phase1 忠实、#2.1 验证（全栅格无 mm 级值）、门抓 12 切配 issue/EP 按设计未启动。
 
@@ -286,8 +286,8 @@ IDF 建模拆「几何阶段」+「MEP 阶段」，独立会话可由不同模�
 5. **Skill / MCP / 下游 subagent 改动备份**：
    - 动 `../skills/` 或 `../src/mcp/` 前先 `cp -r` 到 `Skill_history/<YYYY-MM-DD>_<reason>/` 或 `MCP_history/<YYYY-MM-DD>_<reason>/`（同日多次加 `_v2` / `_pre_X`）
    - 动 `../src/` 下任何下游 subagent 代码（`agent/nodes/*.py` / `agent/tools/*` / 其他下游 prompt 装配点）前先 `cp` 到 `src_history/<YYYY-MM-DD>_<reason>/<file>.py`，并在 [logs/downstream_agent_changes.md](logs/downstream_agent_changes.md) 加一条改动记录 + 跟协作者交接清单
-   - `Skill_history/` / `src_history/` / `MCP_history/` 都被 `.gitignore` 排除——这些是本地 audit / 回退用
-6. **Baseline 记录触发**：用户说 `记录这次跑 <case> <tag>` → 严格按 [test_baseline/README.md §4.3](../test_data/test_baseline/README.md) 执行（先 `Tool_scripts/baseline_record.py <case> <tag>` 起骨架，用户粘 `/context` 到 `context.txt`，助手填非用户字段，**不替用户填 `dimensions_check`**）
+   - `Skill_history/` / `src_history/` / `MCP_history/` / `scripts_history/`（退役脚本归档，2026-06-14 脚本目录合并时建）是本地 audit / 回退归档。**注（2026-06-14 核实）**：这些目录当前**并未**被 `.gitignore` 排除——`Skill_history`/`MCP_history` 已有跟踪文件、`scripts_history` 也保持跟踪；旧文档曾误称"都被 .gitignore 排除"。是否改为本地-only（忽略）待定
+6. **Baseline 记录触发**：用户说 `记录这次跑 <case> <tag>` → 严格按 [test_baseline/README.md §4.3](../test_data/test_baseline/README.md) 执行（先 `scripts/tool_scripts/baseline_record.py <case> <tag>` 起骨架，用户粘 `/context` 到 `context.txt`，助手填非用户字段，**不替用户填 `dimensions_check`**）
 7. **本项目交接产物 = IntakeOutput JSON**（2026-05-06 起）：本项目侧职责到 [IntakeOutput Pydantic](../src/agent/state.py#L23)；下游走 [run_full_pipeline.py](../scripts/run_full_pipeline.py) 自动跑产 IDF + 仿真。与此对应，`../skills/energyplus_mcp/` 现为 intake 规则文档库，由 [src/agent/nodes/intake.py](../src/agent/nodes/intake.py) 运行时加载，不再是旧 MCP 主 skill。
 8. **idfpy 替换搁置**（[deferred/idfpy_embed.md](deferred/idfpy_embed.md) §3.1 协作者侧 MCP 重写未交付）：本项目侧 P1/P2 动作冻结
 9. **git 权限下放**：助手可在重要节点（跑通新案例 / skill / MCP / prompt 重大重写完成 / 阶段性里程碑）自行 `git add` + `commit`；commit message 仿仓库风格（`<月.日>_<英文标签>`，如 `5.6_HalfmanualWorkflow`），body 必须含①改动核心 ②为何此刻是节点 ③影响范围。**禁**：`git push`（除非用户明确要求）/ force push / `reset --hard` / 跳 hook / 动 `git config`

@@ -19,7 +19,7 @@ physics semantics (4_mep).
 
 This module is the single implementation. It is called from:
   - `intake_node` (the main graph), and
-  - `Tool_scripts/run_pipeline_deepseek.py` (thin standalone CLI wrapper).
+  - `scripts/run_pipeline_deepseek.py` (thin standalone CLI wrapper).
 
 Per-stage model config: `intake_correction` / `intake_mep` in llm.yaml if present,
 else fall back to `intake_correction` (so "model switching has one home" still

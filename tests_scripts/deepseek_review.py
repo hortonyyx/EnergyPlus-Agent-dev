@@ -7,13 +7,13 @@ prints a graded review — genuine DeepSeek, no MCP plumbing.
 
 Usage:
     # review the working-tree diff vs HEAD
-    python Tool_scripts/deepseek_review.py --diff --context "what & why; what to check"
+    python tests_scripts/deepseek_review.py --diff --context "what & why; what to check"
     # review specific files
-    python Tool_scripts/deepseek_review.py --files a.py b.py --context "..."
+    python tests_scripts/deepseek_review.py --files a.py b.py --context "..."
     # review arbitrary text (e.g. a plan) from stdin
-    echo "<plan>" | python Tool_scripts/deepseek_review.py --context "review this plan"
+    echo "<plan>" | python tests_scripts/deepseek_review.py --context "review this plan"
     # save the review to the audit trail
-    python Tool_scripts/deepseek_review.py --diff --context "..." --out AI_agent/logs/review/review/<date>_<topic>_deepseek.md
+    python tests_scripts/deepseek_review.py --diff --context "..." --out AI_agent/logs/review/review/<date>_<topic>_deepseek.md
 """
 
 from __future__ import annotations

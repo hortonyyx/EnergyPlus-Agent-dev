@@ -6,7 +6,7 @@ case dir without spinning up the whole graph (e.g. to iterate on the stage rule
 docs or to produce an artifact for comparison).
 
 Usage:
-    python Tool_scripts/run_pipeline_deepseek.py \\
+    python scripts/run_pipeline_deepseek.py \\
         --case test_data/SmallOffice_TwoStep/smalloffice_21
 
 Reads:

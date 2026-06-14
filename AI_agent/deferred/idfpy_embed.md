@@ -8,7 +8,7 @@
 
 ## 0. round-trip 验证已通过（2026-04-28）
 
-[Tool_scripts/idfpy_roundtrip_sm15.py](../../Tool_scripts/idfpy_roundtrip_sm15.py) 跑 sm_15 IDF（14 zones / 84 surfaces / 12 fenestration），结果：
+[scripts_history/idfpy_roundtrip_sm15.py](../../scripts_history/idfpy_roundtrip_sm15.py) 跑 sm_15 IDF（14 zones / 84 surfaces / 12 fenestration），结果：
 
 | 检验 | 结果 |
 |---|---|
@@ -58,12 +58,12 @@
 | **新建** `src/mcp_v2/api/envelope.py` | `create_surface` / `update_surface` / `update_surfaces_batch` / `create_fenestration_surface` |
 | **新建** `src/mcp_v2/api/workflow.py` | `validate_config`（直接代理 `idf.validate()`）/ `export_idf`（`idf.save()`）/ `load_idf` |
 | **新建** `src/mcp_v2/server.py` | 注册到 `EnergyPlus-Agent-v2` 单独 MCP server name |
-| **新建** `Tool_scripts/sm15_replay_idfpy.py` | 用 v2 工具 + sm_15 claude_ep.md 数据 build IDF，与原 sm_15.idf 比对 |
+| **新建** `scripts/tool_scripts/sm15_replay_idfpy.py` | 用 v2 工具 + sm_15 claude_ep.md 数据 build IDF，与原 sm_15.idf 比对 |
 
 ### 2.2 验收
 - sm_15 几何阶段 IDF round-trip：counts 一致 / `idf.validate()` 0 errors
 - LLM 在 v2 工具下走完几何阶段，token 总量与现有 §3.1+§3.2 P0 完成态对比
-- `Tool_scripts/export_idf.py` 5 条补丁 → 看哪些能丢（idfpy 的 `validate()` 已可顶替补丁 0/3/4）
+- `scripts_history/export_idf.py` 5 条补丁 → 看哪些能丢（idfpy 的 `validate()` 已可顶替补丁 0/3/4）
 
 ### 2.3 决策点
 P1 完成后回答两个问题：
@@ -95,7 +95,7 @@ P1 完成后回答两个问题：
 | **重写** `skills/energyplus_mcp/energyplus_mcp_prompt.md`（主） | 删 ConverterManager / YAML 中介 / 4 条手工补丁规范；按 idfpy 思路（idf.add → idf.validate → idf.save）重写工具调用流程 |
 | **重写** `skills/energyplus_mcp/zonetool_prompt.md` | 适配新 create_zone API（参数名可能变） |
 | **删** `skills/energyplus_mcp/schedule_compact_guide.md` | idfpy 的 Schedule:Compact 由 Pydantic schema 强校验，不需要文档级规范 |
-| **重写** `skills/energyplus_mcp/export_idf.md` + `Tool_scripts/export_idf.py` | 大幅缩减：补丁 0/3/4 由 idfpy.validate 顶替；保留补丁 1/2（数据填充） |
+| **重写** `skills/energyplus_mcp/export_idf.md` + `scripts_history/export_idf.py` | 大幅缩减：补丁 0/3/4 由 idfpy.validate 顶替；保留补丁 1/2（数据填充） |
 | **重写** `skills/energyplus_mcp/open_model/energyplus_mcp_prompt.md` | 同主版同步 |
 | **更新** `AI_agent/new_case_guide.md` | 验证清单从 5 档调整（`validate()` 顶替原 P0/P1 几道关） |
 | **更新** `AI_agent/CLAUDE.md` | §3.1.2 的"系统性缺陷"部分加注"已被 idfpy 解决"；§7.7 几何/MEP skill 拆分计划落到 idfpy 之上 |
@@ -108,7 +108,7 @@ P1 完成后回答两个问题：
 ### 3.3 不动的部分
 - `src/rag/`、`src/database/`、`src/configs/`（embedding 路径）—— 与 idfpy 无关
 - `src/agent/`（LangGraph 多模态 agent）—— 多模态入口不变，下游 IDF 构建工具集换成新 MCP server
-- `Tool_scripts/preprocess_images.py`、`Tool_scripts/baseline_record.py` —— 与 idfpy 无关
+- `scripts/tool_scripts/preprocess_images.py`、`scripts/tool_scripts/baseline_record.py` —— 与 idfpy 无关
 
 ---
 
@@ -171,4 +171,4 @@ P1 完成后回答两个问题：
 
 ---
 
-_最后更新：2026-04-28 — 首版起草。基于 sm_15 round-trip 验证（[Tool_scripts/idfpy_roundtrip_sm15.py](../../Tool_scripts/idfpy_roundtrip_sm15.py)）通过的事实，列 P0-P3 四阶段、协作者/本项目分工、验收门槛、风险登记_
+_最后更新：2026-04-28 — 首版起草。基于 sm_15 round-trip 验证（[scripts_history/idfpy_roundtrip_sm15.py](../../scripts_history/idfpy_roundtrip_sm15.py)）通过的事实，列 P0-P3 四阶段、协作者/本项目分工、验收门槛、风险登记_

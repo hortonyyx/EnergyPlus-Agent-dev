@@ -127,7 +127,7 @@ cp /path/to/South_view.png test_data/SmallOffice_TwoStep/$case/South_view.png
 
 **产物**：`<case>/0_reading/{1f_view,2f_view,...,South_view,...}.json` + `<case>/0_reading/reading_summary.md`。
 
-用 [`Tool_scripts/render_vector_to_svg.py`](../../Tool_scripts/render_vector_to_svg.py) 把矢量 JSON 渲成 SVG/PNG，肉眼比对原图，重点看（[[phase1-output-conventions]]）：
+用 [`scripts/tool_scripts/render_vector_to_svg.py`](../../scripts/tool_scripts/render_vector_to_svg.py) 把矢量 JSON 渲成 SVG/PNG，肉眼比对原图，重点看（[[phase1-output-conventions]]）：
 - 杂物（家具/铺装/纹理）有没有被误当 wall/window（假阳性，**最致命**）
 - 真墙/真窗有没有漏（假阴性）
 - 门洞有没有按规则 heal 成连续墙（带门符号才补、留痕）
@@ -210,7 +210,7 @@ python scripts/run_full_pipeline.py <case> \
 用薄 CLI 包装（与主线同一份 `run_pipeline`，不会漂移）：
 
 ```bash
-python Tool_scripts/run_pipeline_deepseek.py --case test_data/SmallOffice_TwoStep/<case>
+python scripts/run_pipeline_deepseek.py --case test_data/SmallOffice_TwoStep/<case>
 # 产物：<case>/pipeline_out/{1_correction,2_modelling,3_split_pairing,4_mep,5_intakeoutput}/
 #       最终 intake_output.json 在 5_intakeoutput/
 ```
@@ -406,7 +406,7 @@ When ready, do the pilot first, then stop and wait for my feedback.
 
 ---
 
-完工后人工校验：用 [Tool_scripts/render_vector_to_svg.py](../../Tool_scripts/render_vector_to_svg.py) / [render_vector_to_png.py](../../Tool_scripts/render_vector_to_png.py) 渲图肉眼比对（见 Step 4.2）。
+完工后人工校验：用 [scripts/tool_scripts/render_vector_to_svg.py](../../scripts/tool_scripts/render_vector_to_svg.py) / [render_vector_to_png.py](../../scripts/tool_scripts/render_vector_to_png.py) 渲图肉眼比对（见 Step 4.2）。
 
 ---
 
@@ -414,7 +414,7 @@ When ready, do the pilot first, then stop and wait for my feedback.
 
 > **已废弃（2026-06-10，0–5 重构）。** 旧流程让一个会话一次性 author 整个 `IntakeOutput`（含几何）。现在几何由确定性内核（`src/agent/geometry/`）造、不再由 LLM 写——会话手 author 的几何与确定性管线不一致，会产错格式。
 >
-> **跨模型对比改用**：`run_full_pipeline.py --reading-from 0_reading`（或 `Tool_scripts/run_pipeline_deepseek.py`，§5.4），换模型 = 改 `<case>/llm.yaml` 的 `intake_correction` / `intake_mep` 段。校正阶段的会话调试规则见 `skills/intake_pipeline/1_correction/`。
+> **跨模型对比改用**：`run_full_pipeline.py --reading-from 0_reading`（或 `scripts/run_pipeline_deepseek.py`，§5.4），换模型 = 改 `<case>/llm.yaml` 的 `intake_correction` / `intake_mep` 段。校正阶段的会话调试规则见 `skills/intake_pipeline/1_correction/`。
 
 ---
 
