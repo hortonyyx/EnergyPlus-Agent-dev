@@ -33,7 +33,7 @@
 
 **应对策略**：
 1. 把图缩小到合理大小再喂模型（§3）
-2. 开源模型专用流程仍沿用旧的瘦身 + 分步几何 skill（当前主仓已移除 `open_model/` 目录，使用时应参考历史备份或后续重建版；见 [Skill_history/](../../Skill_history)）
+2. 开源模型专用流程仍沿用旧的瘦身 + 分步几何 skill（当前主仓已移除 `open_model/` 目录，使用时应参考历史备份或后续重建版；见 [backup/Skill_history/](../../backup/Skill_history)）
 3. 路径软链到纯 ASCII 目录（§2.4）
 4. 一次只让模型做一步，人工确认后放行（§5）
 
@@ -196,8 +196,8 @@ mcpServers:
 请按以下历史 open-model skill 文档完成 EnergyPlus IDF 构建,严格遵守 §0 的硬约束
 (一次一步、不要写 Python 画标注图、不要用 read_file 读 PNG)。
 
-skill 文档(从 `Skill_history/` 历史备份中读取):
-@Skill_history/2026-05-10_energyplus_mcp_pre_intake_doclib/open_model/energyplus_mcp_prompt.md
+skill 文档(从 `backup/Skill_history/` 历史备份中读取):
+@backup/Skill_history/2026-05-10_energyplus_mcp_pre_intake_doclib/open_model/energyplus_mcp_prompt.md
 
 案例目录:<case_dir>
 图像已作为 chat attachments 随本消息附上,共 N 张(top_view + 立面图)。
@@ -210,7 +210,7 @@ skill 文档(从 `Skill_history/` 历史备份中读取):
 ````
 
 **关键点**：
-- 读取的是 `Skill_history/.../open_model/energyplus_mcp_prompt.md` 历史瘦身版，
+- 读取的是 `backup/Skill_history/.../open_model/energyplus_mcp_prompt.md` 历史瘦身版，
   **不是**当前 `skills/energyplus_mcp/` 下的 intake 规则文档库
 - `zonetool_prompt.md` 和 `schedule_compact_guide.md` 让模型自己在用到时再读
   （skill §0 hard constraint #6）；**不要**第一轮就投这俩
@@ -237,7 +237,7 @@ Continue 默认行为会把整个对话历史 + 完整 system prompt 每轮重�
 2. **新开一个 Continue 会话**（清历史）
 3. 第一轮 prompt 变为（`<case_dir>` 替换成实际路径）：
    ````text
-   @Skill_history/2026-05-10_energyplus_mcp_pre_intake_doclib/open_model/energyplus_mcp_prompt.md
+   @backup/Skill_history/2026-05-10_energyplus_mcp_pre_intake_doclib/open_model/energyplus_mcp_prompt.md
    @<case_dir>/output/run_log.md
 
    从 run_log 记录的下一步继续。
@@ -318,9 +318,9 @@ AI_agent/experiments/2026-04-22_qwen35/smalloffice_13/
 ## 9. 未来工作（不在本指南覆盖范围）
 
 - ~~`AI_agent/tools/export_idf.py`~~ — **已完成（2026-04-27）**：脚本落地为
-  [../../scripts_history/export_idf.py](../../scripts_history/export_idf.py)，含 5 条补丁
+  [../../backup/scripts_history/export_idf.py](../../backup/scripts_history/export_idf.py)，含 5 条补丁
   （多了占位 Construction 预注入），主 skill 与 open_model skill 的 IDF 导出步骤
-  已改为单行 `python scripts_history/export_idf.py <case_dir>`。
+  已改为单行 `python backup/scripts_history/export_idf.py <case_dir>`。
 - `AI_agent/eval/run_case.py` — 自动化评测，不再需要本指南的手动放行（[plan.md P0](../plan.md)）
 - vLLM 本地部署（摆脱 SiliconFlow TPM 约束）的 `AI_agent/deploy/` 脚本
 

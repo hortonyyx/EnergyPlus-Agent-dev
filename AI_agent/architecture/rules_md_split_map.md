@@ -10,7 +10,7 @@
 > **Step 2 of the 0–5 pipeline refactor** (handoff
 > [2026-06-09_pipeline_0-5_refactor_handoff.md](../logs/2026-06-09_pipeline_0-5_refactor_handoff.md)).
 > Classifies every section of the old `phase2/rules.md` (archived to
-> `Skill_history/2026-06-10_phase2_terminology_cleanup/`)
+> `backup/Skill_history/2026-06-10_phase2_terminology_cleanup/`)
 > by where it belongs under the target architecture
 > ([pipeline_stage_contracts §0.1](pipeline_stage_contracts.md)), names the kernel
 > function that already implements each geometry rule (or marks a GAP), and records

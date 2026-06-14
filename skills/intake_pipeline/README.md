@@ -6,7 +6,7 @@ is organized into ordered stages **0–5**; geometry is fully deterministic (cod
 and the LLM does only perception, correction judgment, and physics semantics.
 
 > Renamed from `energyplus_mcp_twostep/` (2026-06-10). The single-step library
-> `energyplus_mcp/` is retired (archived to `Skill_history/`).
+> `energyplus_mcp/` is retired (archived to `backup/Skill_history/`).
 
 ## Stages (0–5)
 
@@ -25,7 +25,7 @@ runtime by [`src/agent/pipeline.py`](../../src/agent/pipeline.py).
 
 > The old single whole-output `phase2/rules.md` prompt is retired (the geometry it
 > drove is now deterministic code; the physics moved to `4_mep/`). Archived to
-> `Skill_history/2026-06-10_phase2_terminology_cleanup/`.
+> `backup/Skill_history/2026-06-10_phase2_terminology_cleanup/`.
 
 ## Error-budget split
 

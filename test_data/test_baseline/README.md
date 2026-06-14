@@ -43,7 +43,7 @@ test_data/test_baseline/
 | `timestamp` | ISO8601 | run 启动时间 |
 | `case` | str | 案例名（如 `sm_15`） |
 | `model` | str | LLM 模型 ID（如 `claude-opus-4-7`） |
-| `skill_version` | str | Skill_history 快照目录名或 hash |
+| `skill_version` | str | backup/Skill_history 快照目录名或 hash |
 | `mcp_tool_count` | int | MCP server 注册的工具总数（识别 batch 等增量） |
 | `pipeline_version` | str | **关键**：`yaml_to_idf_v1` / `function_pkg_v1` 等 |
 | `p0_flags` | str[] | 已启用的 P0 优化项：`ack_only` / `batch` / `export_idf_externalized` |
@@ -100,7 +100,7 @@ Claude 收到触发后按 §4.3 执行。用户**不需要**额外指明参考�
 |---|---|---|
 | `meta.timestamp` / `meta.case` | 脚本 | 自动 |
 | `meta.model` | Claude | 从当前模型 ID（自知） |
-| `meta.skill_version` | Claude | 当前 `Skill_history/` 最新快照目录名 |
+| `meta.skill_version` | Claude | 当前 `backup/Skill_history/` 最新快照目录名 |
 | `meta.mcp_tool_count` | Claude | 调用 `ListMcpResourcesTool` 或当前 `<tools>` 列表点数（仅数 `mcp__EnergyPlus-Agent__*` 前缀） |
 | `meta.pipeline_version` | Claude | 当前流程标识（如 `yaml_to_idf_v1` / `function_pkg_v1`） |
 | `meta.p0_flags` | Claude | 当前已启用的 P0 项（参考 [token_optimization.md](../../AI_agent/deferred/token_optimization.md) §2） |

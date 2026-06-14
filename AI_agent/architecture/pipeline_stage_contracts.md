@@ -51,7 +51,7 @@
                simulate              IDF → EnergyPlus 结果
 ```
 
-实现：编排在 [src/agent/pipeline.py](../../src/agent/pipeline.py) `run_pipeline`（被 `intake_node` 与 `run_pipeline_deepseek.py` 薄包装共用）；确定性核 [correction/deterministic.py](../../src/agent/correction/deterministic.py)；几何内核 [geometry/](../../src/agent/geometry)（`modelling.py` 造面 + `split_pairing.py` 切配 + `specs.py` 序列化）；4_MEP 段 `run_mep`；装配 [intakeoutput.py](../../src/agent/intakeoutput.py)（`assemble_intake_output` + `validate_contract`）；InterZone 门 [interzone.py](../../src/validator/interzone.py)。**fork (a)**（用户 2026-06-09 定）：几何序列化成 `surface_specs` 文本、下游 surface_agent 忠实誊写；fork (b)（确定性直接造面绕过下游）记录待后续整合再议。内核 build 硬错时直接 raise（几何是确定性必需品，硬错=bug 应修，**不再有 LLM 回退**；旧 `run_phase2b` 已删、`rules.md` 已退役归档 Skill_history）。
+实现：编排在 [src/agent/pipeline.py](../../src/agent/pipeline.py) `run_pipeline`（被 `intake_node` 与 `run_pipeline_deepseek.py` 薄包装共用）；确定性核 [correction/deterministic.py](../../src/agent/correction/deterministic.py)；几何内核 [geometry/](../../src/agent/geometry)（`modelling.py` 造面 + `split_pairing.py` 切配 + `specs.py` 序列化）；4_MEP 段 `run_mep`；装配 [intakeoutput.py](../../src/agent/intakeoutput.py)（`assemble_intake_output` + `validate_contract`）；InterZone 门 [interzone.py](../../src/validator/interzone.py)。**fork (a)**（用户 2026-06-09 定）：几何序列化成 `surface_specs` 文本、下游 surface_agent 忠实誊写；fork (b)（确定性直接造面绕过下游）记录待后续整合再议。内核 build 硬错时直接 raise（几何是确定性必需品，硬错=bug 应修，**不再有 LLM 回退**；旧 `run_phase2b` 已删、`rules.md` 已退役归档 backup/Skill_history）。
 
 > **口径统一（一物多名，2026-06-09）**：同一个「内部边界面之间的对应关系」在不同层有不同叫法，等价——
 > - **切配** / **split-pairing**（口语 / 概念）= 把相邻 zone/层之间一对多的面，切成 EP 要求的逐面一对一 + 互逆引用。
@@ -73,7 +73,7 @@ phase1      phase2a判断 + 确定性核  cells→zones+面     面切分+互逆
 感知         CorrectedGeometry     几何建筑模型        EP合法仿真几何        物理信息挂上         IDF + EP
 ```
 
-**一刀切分原则**：**LLM 只做 感知（识图）+ 校正判断 + 物理语义挂载；代码做 所有几何（建模 + 切配）+ 装配。** 「建模·几何」（cells→zones+墙/楼板/天花面 + OBC 判定 + 顶点合成）与「切配·仿真」（跨层/邻区面切分 + 互逆配对）都收进**确定性造面/切配内核**（核之后、吃 cells），整块吃掉 `rules.md`（已退役，归档 Skill_history） §4/§2.6 + [surface.py](../../src/agent/nodes/surface.py) 的脆弱几何指令。产出**已完整解析的 surface_specs**，下游 surface_agent 退化成忠实誊写——**`IntakeOutput` 契约不变、下游代码不动**。
+**一刀切分原则**：**LLM 只做 感知（识图）+ 校正判断 + 物理语义挂载；代码做 所有几何（建模 + 切配）+ 装配。** 「建模·几何」（cells→zones+墙/楼板/天花面 + OBC 判定 + 顶点合成）与「切配·仿真」（跨层/邻区面切分 + 互逆配对）都收进**确定性造面/切配内核**（核之后、吃 cells），整块吃掉 `rules.md`（已退役，归档 backup/Skill_history） §4/§2.6 + [surface.py](../../src/agent/nodes/surface.py) 的脆弱几何指令。产出**已完整解析的 surface_specs**，下游 surface_agent 退化成忠实誊写——**`IntakeOutput` 契约不变、下游代码不动**。
 
 **触发证据**：sm20/sm21 对照（[split_pairing_kernel_reference §2.5](../reference/split_pairing_kernel_reference.md)）——一步出 LLM 切配做得对、staged 退化，证明几何造面/切配是确定性活儿不该交 LLM。
 
@@ -213,7 +213,7 @@ phase1      phase2a判断 + 确定性核  cells→zones+面     面切分+互逆
 原 [deterministic.py](../../src/agent/correction/deterministic.py) 把常数 Python 硬编码、不含 `SNAP_GRID`，簇均值吸附产 mm 级非栅格值。**已修**：容差外置 [src/configs/correction.yaml](../../src/configs/correction.yaml)（核从 config 读、env 可覆盖）；轴算法改 **聚类→吸附 50mm 栅格→碎片守卫**（簇均值不漏出）；**窗户分级** 10mm + 钳进父墙（不吸结构栅格）。值溯源 A0 §4。详见 [downstream_agent_changes.md 2026-06-09 条](../logs/downstream_agent_changes.md)。**doc 残留**：A0 §4 同步窗户分级策略 + window_snap_grid 命名。
 
 ### 5.2 先验割裂：几何（A4）vs MEP（散落）→ MEP 已抽离为草稿种子（2026-06-09，决策：几何优先）
-原状：[A4_priors.md](../../skills/intake_pipeline/1_correction/A4_priors.md) = 结构化**几何**先验（phase2a/A3 用）；**MEP 默认值**（人密度/LPD/时间表/HVAC 设点）作 4 行散文混在 `rules.md`（已退役，归档 Skill_history） Step 7。**用户定调（2026-06-09）**：当前聚焦几何建模正确性，输入也无荷载/时间表数据，MEP 暂不建库——**只去混合**：把 Step 7 的默认值抽到 [priors/mep.md](../../skills/intake_pipeline/4_mep/mep.md)（标 DRAFT 种子），rules.md Step 7 改指针 + 保留 schedule 完整性契约，phase2b 加载 mep.md（值不变、行为不变）。**deferred**：(a) 把 mep.md 扩成分型/分级/带出处的真先验库 + (b) 几何先验(A4)与 MEP 合并进 `priors/`（统一库）——**都等几何稳定后再做**。Step 5 的 material/construction 是结构规则非先验值，留 rules.md。
+原状：[A4_priors.md](../../skills/intake_pipeline/1_correction/A4_priors.md) = 结构化**几何**先验（phase2a/A3 用）；**MEP 默认值**（人密度/LPD/时间表/HVAC 设点）作 4 行散文混在 `rules.md`（已退役，归档 backup/Skill_history） Step 7。**用户定调（2026-06-09）**：当前聚焦几何建模正确性，输入也无荷载/时间表数据，MEP 暂不建库——**只去混合**：把 Step 7 的默认值抽到 [priors/mep.md](../../skills/intake_pipeline/4_mep/mep.md)（标 DRAFT 种子），rules.md Step 7 改指针 + 保留 schedule 完整性契约，phase2b 加载 mep.md（值不变、行为不变）。**deferred**：(a) 把 mep.md 扩成分型/分级/带出处的真先验库 + (b) 几何先验(A4)与 MEP 合并进 `priors/`（统一库）——**都等几何稳定后再做**。Step 5 的 material/construction 是结构规则非先验值，留 rules.md。
 
 ### 5.3 phase1 provenance 契约未在上游落实（→ 优先级 #2.3）
 [A0 §6](../../skills/intake_pipeline/1_correction/A0_contract.md) 定义了 `provenance_mode`/`coverage` + per-claim 证据分级，但 phase1 三文档还**不产结构化 provenance** → phase2a 实际跑 `legacy` 模式（估算笔画与测量值不可区分，全降级 `estimated_stroke`）。规范目标：phase1 输出容器带 provenance（strokes/dim-chains/labels/facades/windows 各自 source+confidence），让 phase2a 能按证据分级仲裁，"别把估算笔画当测量值吐"。

@@ -140,7 +140,7 @@
   - [`intake_output_contract.md`](../skills/energyplus_mcp/intake_output_contract.md)（新增）：surface_specs cross-floor split-pairing required enumeration / fenestration_specs Right-side chain pattern N-window 通式 + 3 worked example (A 单窗等高 / B sm_20 corridor 不等高 / C 同层堆叠双窗) + counter-example + 自检规则 `z_max_i - z_min_i == win_h_i`
   - [`zonetool_prompt.md`](../skills/energyplus_mcp/zonetool_prompt.md) 恢复 4 立面 CCW-from-outside vertex synthesis 表 + Floor 2 南窗 worked example
 - [x] `Floor_N_*` 模板禁用规则合并到 intake_output_contract.md "No Compression, No Placeholders"
-- [x] **下游 surface_agent hotfix**（[downstream_agent_changes.md 2026-05-12 条](logs/downstream_agent_changes.md)）：[`src/agent/nodes/surface.py`](../src/agent/nodes/surface.py) 同时传 zone_specs + surface_specs 到 agent，加 "per-floor z values come from zone_specs" 硬指引，worked example 改 F2_S1 (3.60 m)；备份 `src_history/2026-05-12_surface_agent_zfloor_fix/`
+- [x] **下游 surface_agent hotfix**（[downstream_agent_changes.md 2026-05-12 条](logs/downstream_agent_changes.md)）：[`src/agent/nodes/surface.py`](../src/agent/nodes/surface.py) 同时传 zone_specs + surface_specs 到 agent，加 "per-floor z values come from zone_specs" 硬指引，worked example 改 F2_S1 (3.60 m)；备份 `backup/src_history/2026-05-12_surface_agent_zfloor_fix/`
 - [x] 用 sm_20（= sm_19 plans）跑半人工流双版对照：
   - `test_data/SmallOffice/smalloffice_20/output/`（B1 only，仍 10 CHKSBS partial-overlap）
   - `test_data/SmallOffice/smalloffice_20/output_new/`（B1 + surface fix，0 CHKSBS，EP cleanly 完成）
@@ -179,7 +179,7 @@
 > 设计框架已在 [`floorplan_redraw_strategy.md §10`](capability/floorplan_redraw_strategy.md)（2026-05-22 讨论）收敛：测「信息噪声 / 选择性提取」而非「全局像素降质」；phase1 走选择性提取(B) + 门洞补成连续墙；zone 重划分归 phase2。
 
 - [ ] **图纸准备**（用户）：矩形几何同 sm_20 级 + 信息杂物（家具 / 铺装 / 纹理 / 楼梯 / 轴网圈 / 房间文字）+ **每房间 1-2 个门** + **1-2 处故意遮挡某段尺寸标注** + testdata_prompt.json（楼层/区/外包/WWR）
-- [x] **schema v1.3 amendment（先于跑批，依据 §10.4）** ✅ 2026-05-25：`phase1_vector_schema.md`（后于 2026-05-26 拆分为 [`phase1/`](../skills/intake_pipeline/phase1) 三份：guide/reading_guide/pen_library）§2 "开洞打断成两段"→"门洞补成连续墙 + 留痕"+ 新增 §2.1 四条护栏；门处理改"识别以驱动补墙、不出 door 笔、note 记 heal"；`uncaptured_visual_elements` 提为**必填**（扩为"凡看到但没画的都登记"，含主动排除杂物 + heal 门）；`door`/`arc` 退出词典；同步 [`phase1/prompt_template.md`](../skills/intake_pipeline/phase1/prompt_template.md) 纪律段。备份 `Skill_history/2026-05-25_twostep_phase1_v1.3_door_healing/`
+- [x] **schema v1.3 amendment（先于跑批，依据 §10.4）** ✅ 2026-05-25：`phase1_vector_schema.md`（后于 2026-05-26 拆分为 [`phase1/`](../skills/intake_pipeline/phase1) 三份：guide/reading_guide/pen_library）§2 "开洞打断成两段"→"门洞补成连续墙 + 留痕"+ 新增 §2.1 四条护栏；门处理改"识别以驱动补墙、不出 door 笔、note 记 heal"；`uncaptured_visual_elements` 提为**必填**（扩为"凡看到但没画的都登记"，含主动排除杂物 + heal 门）；`door`/`arc` 退出词典；同步 [`phase1/prompt_template.md`](../skills/intake_pipeline/phase1/prompt_template.md) 纪律段。备份 `backup/Skill_history/2026-05-25_twostep_phase1_v1.3_door_healing/`
 - [x] 跑两步法（phase1 子代理 + phase2 DeepSeek）+ 下游 + EP ✅ sm21 PASS（修 glazing material 规则后）
 - [ ] **判分项**（§10.2 + 选择性提取观察点）：
   - 杂物→结构假阳性（家具/铺装/纹理被当 wall/window）⛔ 最致命
@@ -189,7 +189,7 @@
   - `uncaptured_visual_elements` 是否真触发 ⚠️
   - 门是否补成连续墙、没误补无门开口、留了痕 ⚠️
   - phase2 在更复杂矢量 JSON 上能否保持 Step 6 PASS
-- [x] 跑通后落 `test_data/SmallOffice_TwoStep/<new_case>/` ✅ sm21；跑挂补规则 ✅ phase2/rules.md Step 5 glazing material split（备份 `Skill_history/2026-05-28_phase2_glazing_material_rule/`）
+- [x] 跑通后落 `test_data/SmallOffice_TwoStep/<new_case>/` ✅ sm21；跑挂补规则 ✅ phase2/rules.md Step 5 glazing material split（备份 `backup/Skill_history/2026-05-28_phase2_glazing_material_rule/`）
 - [ ] 再跑 1-2 张异图坐实泛化（可挑 phase1_generalization 的矩形图 test1/test7 补 testdata 跑全链路）
 - [x] 注（2026-05-26 已修）：[`run_pipeline_deepseek.py`](../scripts/run_pipeline_deepseek.py) 原写死 `PHASE1_FILES`，已改 `_discover_phase1_files()` 扫 `phase1_vector/*.json`（楼层数字序 → 立面 → supp/section），不再需手改
 
@@ -207,12 +207,12 @@
 - [ ] site.Name 规范化为 `<City>_<ISO2>`
 - [ ] Schedule:Compact day-type 名（EnergyPlus 接受 `Weekdays/Weekends/Holiday/AllOtherDays`）
 
-> 注（2026-05-25 起）：`skills/intake_pipeline/` 是纯当前版本 spec，**文件内不再写版本号 / changelog / 缘起 case**（决策史归 git commit + 本 plan + [capability/floorplan_redraw_strategy.md](capability/floorplan_redraw_strategy.md)）。每次改 skill 仍按 [CLAUDE.md §6#5](CLAUDE.md) 备份到 `Skill_history/`。
+> 注（2026-05-25 起）：`skills/intake_pipeline/` 是纯当前版本 spec，**文件内不再写版本号 / changelog / 缘起 case**（决策史归 git commit + 本 plan + [capability/floorplan_redraw_strategy.md](capability/floorplan_redraw_strategy.md)）。每次改 skill 仍按 [CLAUDE.md §6#5](CLAUDE.md) 备份到 `backup/Skill_history/`。
 
 #### B1.5.c [P0] `intake_node` 重写为两步串行 — ✅ 完成 2026-05-29（[CLAUDE.md §5.8](CLAUDE.md)）
 - [x] [`src/agent/nodes/intake.py`](../src/agent/nodes/intake.py) 三路分发：短路 `--intake-from` / `phase1_vector_dir`→phase2 / legacy 单步；`--intake-from` short-circuit 保留
 - [x] [`src/configs/llm.yaml`](../src/configs/llm.yaml) 加 `intake_correction`（text-only, thinking enabled）；`intake_phase1`（VLM）预留注释段（全自动 phase1 待 pivot）
-- [x] 备份 `src_history/2026-05-29_intake_node_twostep/`，[logs/downstream_agent_changes.md](logs/downstream_agent_changes.md) 加记录
+- [x] 备份 `backup/src_history/2026-05-29_intake_node_twostep/`，[logs/downstream_agent_changes.md](logs/downstream_agent_changes.md) 加记录
 - [x] [`scripts/run_full_pipeline.py`](../scripts/run_full_pipeline.py) 加 `--reading-from`（半人工 phase1 矢量 → intake_node 跑 phase2）；保留 `--intake-from`
 - [x] **附加**：per-case 模型配置（`<case>/llm.yaml` 经 `EP_AGENT_LLM_CONFIG` 覆盖全局，`--init-llm-config` 拷模板）；e2e 首次完整跑通新架构
 
@@ -508,7 +508,7 @@ _2026-05-29 — **B1.5.c/d/e/g 交付（两步法切主线 + InterZone 门 + 正
 
 _2026-05-12 (晚) — **两步法 POC PASS + B1.5 立项最高优先级**：sm_20 全套两步法（phase1 矢量化 → phase2 拓扑建模）+ 下游 + EP 真跑通过（DeepSeek 路径 EP cleanly / Opus 路径暴露 InterZone construction rule 漏洞已在 phase2_rules v1.3 修）。F3 corridor 窗 z 修正（anchor 单步错 9.60，两步法都对 10.60）证明误差预算分离生效。新增 B1.5 节：POC v2 异图 / intake_node 改两步 / 评测嵌入 / new_case_guide 重写。详见 [floorplan_redraw_strategy.md §9](capability/floorplan_redraw_strategy.md) + B1.5 节。两步法 artifacts 迁到 [`test_data/SmallOffice_TwoStep/`](../test_data/SmallOffice_TwoStep)，skill 演进源在 [`skills/intake_pipeline/`](../skills/intake_pipeline)。_
 
-_2026-05-12 — **B1 阶段闭环**：3 个 skill md 全部按 audit 4 个 Gap 补硬约束 + fenestration chain N 窗通式 + 反例；surface_agent prompt + 输入装配 hotfix（src_history 备份 + downstream_agent_changes.md）。sm_20 半人工流 EP cleanly 跑通取代 sm_16_newarch 成为新通透性 anchor。推荐执行顺序更新：主线焦点切到 B2-B4（评测基线规范化）。详见 [CLAUDE.md §5.5](CLAUDE.md) + B1 节本文。_
+_2026-05-12 — **B1 阶段闭环**：3 个 skill md 全部按 audit 4 个 Gap 补硬约束 + fenestration chain N 窗通式 + 反例；surface_agent prompt + 输入装配 hotfix（backup/src_history 备份 + downstream_agent_changes.md）。sm_20 半人工流 EP cleanly 跑通取代 sm_16_newarch 成为新通透性 anchor。推荐执行顺序更新：主线焦点切到 B2-B4（评测基线规范化）。详见 [CLAUDE.md §5.5](CLAUDE.md) + B1 节本文。_
 
 _2026-05-07 (晚 v2) — B 段三阶段重组（用户路线图）：阶段 1 恢复 [B1] / 阶段 2 评测基线规范化 [B2-B4] / 阶段 3 能力升级 [B5-B7] / 远期 [B8-B9]。新 B1 = 旧 skill 约束迁移到新架构（吸收原 B4 CoT 内容）；新 B4 = Opus baseline + 校对方案 + token 协议升级（吸收原 B0'''）；新 B5/B6/B7 = 非方形平面 / 全局坐标退台挑空 / 规范化绘图（含原 B5 PaddleOCR 预处理）；新 B8/B9 = 原 B6/B7 远期 pivot。Milestone 映射加 M0 恢复阶段。_
 

@@ -28,7 +28,7 @@ def intake_node(state: AgentState) -> AgentStateUpdate:
        the mainline.
 
     The legacy single-step (one multimodal image -> IntakeOutput) path is retired
-    (its skill library `skills/energyplus_mcp/` was archived to Skill_history on
+    (its skill library `skills/energyplus_mcp/` was archived to backup/Skill_history on
     2026-06-10); the staged pipeline is the only supported flow.
     """
     if state.intake_output is not None and not state.validation_errors:

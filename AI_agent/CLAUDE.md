@@ -48,7 +48,7 @@ phase2（image-blind）几何确定性化（Step 2–6，2026-06-09）：
 | [../src/validator/interzone.py](../src/validator/interzone.py) | InterZone 确定性几何门（EP 前 fail-fast）|
 | [../src/agent/llm.py](../src/agent/llm.py) + [../src/configs/llm.yaml](../src/configs/llm.yaml) | LLM 工厂 + 多 section（per-case `<case>/llm.yaml` 经 `EP_AGENT_LLM_CONFIG` 覆盖）|
 | [../src/mcp](../src/mcp) | MCP 工具集（idfpy 替换主线搁置中，[deferred/idfpy_embed.md](deferred/idfpy_embed.md)）|
-| [../scripts](../scripts) | 脚本总目录（2026-06-14 合并）：`scripts/`=总启动器（`run_full_pipeline.py` 端到端/半人工/仅 intake 三入口 · `run_pipeline_deepseek.py` pipeline 独立 CLI）；`scripts/tool_scripts/`=流程子操作（render×3 校验渲染 / `baseline_record.py` / `preprocess_images.py`）；根 `tests_scripts/`=流程无关开发脚本（`deepseek_review.py`）；根 `scripts_history/`=退役脚本归档 |
+| [../scripts](../scripts) | 脚本总目录（2026-06-14 合并）：`scripts/`=总启动器（`run_full_pipeline.py` 端到端/半人工/仅 intake 三入口 · `run_pipeline_deepseek.py` pipeline 独立 CLI）；`scripts/tool_scripts/`=流程子操作（render×3 校验渲染 / `baseline_record.py` / `preprocess_images.py`）；根 `tests_scripts/`=流程无关开发脚本（`deepseek_review.py`）；根 `backup/scripts_history/`=退役脚本归档 |
 | [../test_data/SmallOffice](../test_data/SmallOffice) | 案例（sm_0..17）|
 | [../test_data/test_baseline/runs](../test_data/test_baseline/runs) | baseline + capability 实验日志归档（2026-05-06 起）|
 | [../tests/test_zone_agent.py](../tests/test_zone_agent.py) | 唯一自动化测试（zone_agent 纯文本）|
@@ -81,7 +81,7 @@ LangGraph + LangChain（`init_chat_model("{provider}:{model_name}")` 路由）�
 
 1. **视觉理解非首要瓶颈**（13 案例 12/13 出 claude_ep.md = 92% 通过）
 2. 真正瓶颈：**长链路 tool-calling 稳定性 + 子系统覆盖完整性**（旧基线 Schedule/Lights/HVAC 普遍缺失；新流程下交给 cross_ref + validate 兜底）
-3. **强制后处理补丁**不能交给 LLM 记得打 → [scripts_history/export_idf.py](../scripts_history/export_idf.py) 5 条补丁脚本化；idfpy 切换后大部分由 `idf.validate()` 顶替
+3. **强制后处理补丁**不能交给 LLM 记得打 → [backup/scripts_history/export_idf.py](../backup/scripts_history/export_idf.py) 5 条补丁脚本化；idfpy 切换后大部分由 `idf.validate()` 顶替
 4. **token 口径**：`/context` 真值才作准；deferred MCP / autocompact / system tools deferred 都不计入 Total（[memory project_context_token_accounting.md](../memory/project_context_token_accounting.md)）
 
 ---
@@ -160,7 +160,7 @@ IDF 建模拆「几何阶段」+「MEP 阶段」，独立会话可由不同模�
 **B. surface_agent z_floor hotfix**（[logs/downstream_agent_changes.md](logs/downstream_agent_changes.md) 2026-05-12 条）
 - 真因：[`src/agent/nodes/surface.py`](../src/agent/nodes/surface.py) 的 `SURFACE_SYSTEM_PROMPT` 只收 `surface_specs`、看不到 `zone_specs`，且 prompt 没指引读 `z_floor / ceiling_height` → DeepSeek 默认按 3 m 层高建墙 → 上层窗 z 落在墙外 CHKSBS partial-overlap
 - 修复：(a) 同时传 `zone_specs + surface_specs` 两段；(b) 加 "per-floor z values come from zone_specs" 硬指引；(c) worked example 改为 F2_S1 (`z_floor=3.60, h=3.60`)
-- 备份：[src_history/2026-05-12_surface_agent_zfloor_fix/](../src_history/2026-05-12_surface_agent_zfloor_fix)
+- 备份：[backup/src_history/2026-05-12_surface_agent_zfloor_fix/](../backup/src_history/2026-05-12_surface_agent_zfloor_fix)
 - 验证：sm_20 output_new EP `Completed Successfully` / 0 severe / 14 warning（全无害）/ F2 wall z=[3.60,7.20] / 窗 z=[4.60,6.40] 严格落在墙内
 
 **C. 架构通透性新基准**：sm_20 取代 sm_16_newarch 成为"全链路真跑 cleanly 通"的新 anchor（sm_16_newarch 要手工修一行 Construction，sm_20 一把过）。
@@ -203,7 +203,7 @@ IDF 建模拆「几何阶段」+「MEP 阶段」，独立会话可由不同模�
 
 **A. sm21 端到端 PASS**：2 层办公异图（15×8 m，含家具/门噪声）全套两步法（phase1 冷启 Opus 子代理识图 → phase2 DeepSeek 盲跑拓扑 → 下游 9 subagent → EP）。EP `Completed Successfully` / 0 severe / 0 fatal / 6 无害 warning / 5.07s / **15 窗**。继 sm_20 的第二个两步法干净 EP anchor，且首个**异图**（非 sm_20 同源素材）跑通。phase1 重绘忠实（零家具泄漏、门 healing、立面两层 wall_fill 分割、facade 翻译表符号正确），误差预算守住（助手看过图但 phase2 走不看图的 DeepSeek 脚本）。
 
-**B. 暴露并修复 phase2 规则缺口（咱们负责侧）**：phase2 首跑把窗玻璃只写进 `construction_specs` 内联 `WindowMaterial:SimpleGlazingSystem`、`material_specs` 漏声明具名 glazing 材料 → material 节点没建玻璃材料 → construction 节点 `list_materials` 找不到、按其 prompt 正确跳过 `Default_Window` → fenestration 中止 0 窗 → EP 段错。**下游 3 节点行为全对，根因在 phase2/rules.md**（非协作者下游 prompt）。修复：[`phase2/rules.md`](../skills/intake_pipeline/4_mep/mep.md) Step 5 新增 "material ↔ construction split" 硬规则（glazing 材料必须作具名 `WindowMaterial:SimpleGlazingSystem` 进 material_specs、`Default_Window` 按名引用、禁内联）。重跑验证 PASS。备份 `Skill_history/2026-05-28_phase2_glazing_material_rule/`。
+**B. 暴露并修复 phase2 规则缺口（咱们负责侧）**：phase2 首跑把窗玻璃只写进 `construction_specs` 内联 `WindowMaterial:SimpleGlazingSystem`、`material_specs` 漏声明具名 glazing 材料 → material 节点没建玻璃材料 → construction 节点 `list_materials` 找不到、按其 prompt 正确跳过 `Default_Window` → fenestration 中止 0 窗 → EP 段错。**下游 3 节点行为全对，根因在 phase2/rules.md**（非协作者下游 prompt）。修复：[`phase2/rules.md`](../skills/intake_pipeline/4_mep/mep.md) Step 5 新增 "material ↔ construction split" 硬规则（glazing 材料必须作具名 `WindowMaterial:SimpleGlazingSystem` 进 material_specs、`Default_Window` 按名引用、禁内联）。重跑验证 PASS。备份 `backup/Skill_history/2026-05-28_phase2_glazing_material_rule/`。
 
 **C. 决策：切两步法新架构 greenlight**：POC v2 异图跑通 → 确定切两步法为主线架构，[plan.md B1.5.c](plan.md)（`intake_node` 重写为 phase1+phase2 串行）就此解禁。**建模质量问题（几何细节等）仍较大，按"切架构 + 质量慢慢解决"并行推进**，不阻塞架构切换。
 
@@ -284,9 +284,9 @@ IDF 建模拆「几何阶段」+「MEP 阶段」，独立会话可由不同模�
 3. **每次 prompt / 模型变更**：在 [test_baseline/runs/](../test_data/test_baseline/runs) 新建 capability run 记录（模型 ID / prompt hash / 评测结果 / 失败样本）
 4. **回归门槛**：切默认 provider 前，端到端跑通率不得低于 Anthropic 基线 80%
 5. **Skill / MCP / 下游 subagent 改动备份**：
-   - 动 `../skills/` 或 `../src/mcp/` 前先 `cp -r` 到 `Skill_history/<YYYY-MM-DD>_<reason>/` 或 `MCP_history/<YYYY-MM-DD>_<reason>/`（同日多次加 `_v2` / `_pre_X`）
-   - 动 `../src/` 下任何下游 subagent 代码（`agent/nodes/*.py` / `agent/tools/*` / 其他下游 prompt 装配点）前先 `cp` 到 `src_history/<YYYY-MM-DD>_<reason>/<file>.py`，并在 [logs/downstream_agent_changes.md](logs/downstream_agent_changes.md) 加一条改动记录 + 跟协作者交接清单
-   - `Skill_history/` / `src_history/` / `MCP_history/` / `scripts_history/`（退役脚本归档，2026-06-14 脚本目录合并时建）是本地 audit / 回退归档。**注（2026-06-14 核实）**：这些目录当前**并未**被 `.gitignore` 排除——`Skill_history`/`MCP_history` 已有跟踪文件、`scripts_history` 也保持跟踪；旧文档曾误称"都被 .gitignore 排除"。是否改为本地-only（忽略）待定
+   - 动 `../skills/` 或 `../src/mcp/` 前先 `cp -r` 到 `backup/Skill_history/<YYYY-MM-DD>_<reason>/` 或 `backup/MCP_history/<YYYY-MM-DD>_<reason>/`（同日多次加 `_v2` / `_pre_X`）
+   - 动 `../src/` 下任何下游 subagent 代码（`agent/nodes/*.py` / `agent/tools/*` / 其他下游 prompt 装配点）前先 `cp` 到 `backup/src_history/<YYYY-MM-DD>_<reason>/<file>.py`，并在 [logs/downstream_agent_changes.md](logs/downstream_agent_changes.md) 加一条改动记录 + 跟协作者交接清单
+   - `backup/Skill_history/` / `backup/src_history/` / `backup/MCP_history/` / `backup/scripts_history/`（退役脚本归档，2026-06-14 脚本目录合并时建）是本地 audit / 回退归档。**注（2026-06-14 核实）**：这些目录当前**并未**被 `.gitignore` 排除——`backup/Skill_history`/`backup/MCP_history` 已有跟踪文件、`backup/scripts_history` 也保持跟踪；旧文档曾误称"都被 .gitignore 排除"。是否改为本地-only（忽略）待定
 6. **Baseline 记录触发**：用户说 `记录这次跑 <case> <tag>` → 严格按 [test_baseline/README.md §4.3](../test_data/test_baseline/README.md) 执行（先 `scripts/tool_scripts/baseline_record.py <case> <tag>` 起骨架，用户粘 `/context` 到 `context.txt`，助手填非用户字段，**不替用户填 `dimensions_check`**）
 7. **本项目交接产物 = IntakeOutput JSON**（2026-05-06 起）：本项目侧职责到 [IntakeOutput Pydantic](../src/agent/state.py#L23)；下游走 [run_full_pipeline.py](../scripts/run_full_pipeline.py) 自动跑产 IDF + 仿真。与此对应，`../skills/energyplus_mcp/` 现为 intake 规则文档库，由 [src/agent/nodes/intake.py](../src/agent/nodes/intake.py) 运行时加载，不再是旧 MCP 主 skill。
 8. **idfpy 替换搁置**（[deferred/idfpy_embed.md](deferred/idfpy_embed.md) §3.1 协作者侧 MCP 重写未交付）：本项目侧 P1/P2 动作冻结
@@ -304,7 +304,7 @@ IDF 建模拆「几何阶段」+「MEP 阶段」，独立会话可由不同模�
 14. **重要节点交叉模型审阅工作流**（2026-05-25 起，[`review/`](logs/review)）：重大重写 / 能力迁移 / 架构变更等关键节点窗口，切到另一模型做交叉审阅。目录 [`AI_agent/review/`](logs/review) 下分 `request/` 与 `review/`：
     - **主开发 Agent**：发起审阅时把「请求审阅文档」落到 [`review/request/`](logs/review/request)，命名 `<YYYY-MM-DD>_<topic>_request.md`，写清审阅范围 / 关注点 / 相关文件 / 验收标准
     - **审阅 Agent**（另一模型，如 Codex / Gemini）：审完把「审阅文档」落到 [`review/review/`](logs/review/review)，命名 `<YYYY-MM-DD>_<topic>_review.md`，含 verdict + 分级 findings（High/Medium/Low）+ 证据 + 建议修复
-    - **回环**：主开发 Agent 收到 review 后逐条处置 findings，在会话回应里说明每条怎么修 / 为何不修；request 与 review 文档**被 git 跟踪**保留作审计轨迹（与 `Skill_history/` / `src_history/` 等 gitignore 本地备份不同）
+    - **回环**：主开发 Agent 收到 review 后逐条处置 findings，在会话回应里说明每条怎么修 / 为何不修；request 与 review 文档**被 git 跟踪**保留作审计轨迹（与 `backup/Skill_history/` / `backup/src_history/` 等 gitignore 本地备份不同）
     - 首份 review：[`review/review/2026-05-25_twostep_skill_migration_review.md`](logs/review/review/2026-05-25_twostep_skill_migration_review.md)（Codex 审两步法 skill 迁移，5 条 findings 已全部修）
 
 ---
@@ -331,7 +331,7 @@ IDF 建模拆「几何阶段」+「MEP 阶段」，独立会话可由不同模�
 | [deferred/token_optimization.md](deferred/token_optimization.md) | Token 优化（idfpy 切换后再做）|
 | [reference/open_model_guide.md](reference/open_model_guide.md) | 开源模型操作手册（Continue + 预处理 + MCP）|
 | [deferred/idfpy_embed.md](deferred/idfpy_embed.md) | idfpy 全线替换计划（搁置中）|
-| [logs/downstream_agent_changes.md](logs/downstream_agent_changes.md) | 本项目侧对下游 9 subagent / cross_ref / validate / simulate 代码的 hotfix 记录（备份在 [`../src_history/`](../src_history)）|
+| [logs/downstream_agent_changes.md](logs/downstream_agent_changes.md) | 本项目侧对下游 9 subagent / cross_ref / validate / simulate 代码的 hotfix 记录（备份在 [`../backup/src_history/`](../backup/src_history)）|
 | [logs/backup](logs/backup) | 旧版本 / 历史快照 |
 | [../test_data/test_baseline/README.md](../test_data/test_baseline/README.md) | baseline 字段定义 + 触发流程 |
 | [../.devcontainer/README.md](../.devcontainer/README.md) | 多端开发环境指南(VS Code Dev Container 统一 Win/Mac/云)|
@@ -384,7 +384,7 @@ _2026-05-19 — 多端开发环境上线：§6 新增 #13（VS Code Dev Containe
 
 _2026-05-12 (晚) — **两步法 POC PASS + B1.5 立项**：新增 §5.6（sm_20 全套两步法验证结果 + 决策切主线 + artifacts 迁移目录），§7 索引加两步法 skill / corpus 路径，§8.1 加 B1.5 最高优先级 todo。详见 [`floorplan_redraw_strategy.md §9`](capability/floorplan_redraw_strategy.md) + [plan.md B1.5](plan.md)。_
 
-_2026-05-12 — B1 阶段闭环：新增 §5.5（sm_18/19/20 真跑发现 + B1 全部交付 + surface_agent z_floor hotfix）；§6 #5 升级为"Skill / MCP / 下游 subagent 三类备份"并加 src_history/ + downstream_agent_changes.md 流程；§7 文档索引加 downstream_agent_changes.md；§8.1 B1 标 ✅ 切主线到 B2-B4。详见 [`downstream_agent_changes.md`](logs/downstream_agent_changes.md) 2026-05-12 条 + [plan.md B1](plan.md)。_
+_2026-05-12 — B1 阶段闭环：新增 §5.5（sm_18/19/20 真跑发现 + B1 全部交付 + surface_agent z_floor hotfix）；§6 #5 升级为"Skill / MCP / 下游 subagent 三类备份"并加 backup/src_history/ + downstream_agent_changes.md 流程；§7 文档索引加 downstream_agent_changes.md；§8.1 B1 标 ✅ 切主线到 B2-B4。详见 [`downstream_agent_changes.md`](logs/downstream_agent_changes.md) 2026-05-12 条 + [plan.md B1](plan.md)。_
 
 _2026-05-07 (晚 v3) — runner.py 加 EP exe 三级解析（`$ENERGYPLUS_EXE` env → PATH → 硬编码 `D:\EnergyPlusV25-2-0\energyplus.exe`）；`.env` / `.env.example` 同步加 `ENERGYPLUS_EXE`；§1.3 路径表说明同步。下次跑 `run_full_pipeline.py <case>` 不再卡 FileNotFoundError。_
 
@@ -392,4 +392,4 @@ _2026-05-07 (晚 v2) — §1.3 加 EnergyPlus 引擎本地路径 + EPW 默认气
 
 _2026-05-07 (晚) — 真跑 sm_16_newarch IDF 实证 EP 全链路通：T-vertex 不卡 EP，真 fatal 是 fenestration SimpleGlazing layer 兼容性 bug。决策不调 prompt（与 idfpy 切换一并解），主线焦点切到几何正确性。新增 §5.4；§8.1 重写活跃 todo（关 T-vertex / 加 per-subagent 模型配置）；§8.2 加 fenestration glazing deferred item。_
 
-_2026-05-07 — 重写精简：原 410 行压到 ~150 行；§7 历史 timeline（sm_13/14/15/16 各 baseline + token 优化 P0 全过程 + Claude Code harness 切换等）整体下移到 baseline runs / git log；保留对当前架构仍有约束力的决策（几何/MEP 拆分 / trace 解码 / 半人工固化 + A2）；§5 索引补 backup/；§6 #5 合并 Skill_history/MCP_history 备份约定；§8 拆活跃 / 搁置 / Pivot 三档。详细历史变更日志见 git log。_
+_2026-05-07 — 重写精简：原 410 行压到 ~150 行；§7 历史 timeline（sm_13/14/15/16 各 baseline + token 优化 P0 全过程 + Claude Code harness 切换等）整体下移到 baseline runs / git log；保留对当前架构仍有约束力的决策（几何/MEP 拆分 / trace 解码 / 半人工固化 + A2）；§5 索引补 backup/；§6 #5 合并 backup/Skill_history/backup/MCP_history 备份约定；§8 拆活跃 / 搁置 / Pivot 三档。详细历史变更日志见 git log。_

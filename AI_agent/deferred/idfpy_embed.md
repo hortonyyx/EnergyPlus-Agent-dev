@@ -8,7 +8,7 @@
 
 ## 0. round-trip 验证已通过（2026-04-28）
 
-[scripts_history/idfpy_roundtrip_sm15.py](../../scripts_history/idfpy_roundtrip_sm15.py) 跑 sm_15 IDF（14 zones / 84 surfaces / 12 fenestration），结果：
+[backup/scripts_history/idfpy_roundtrip_sm15.py](../../backup/scripts_history/idfpy_roundtrip_sm15.py) 跑 sm_15 IDF（14 zones / 84 surfaces / 12 fenestration），结果：
 
 | 检验 | 结果 |
 |---|---|
@@ -63,7 +63,7 @@
 ### 2.2 验收
 - sm_15 几何阶段 IDF round-trip：counts 一致 / `idf.validate()` 0 errors
 - LLM 在 v2 工具下走完几何阶段，token 总量与现有 §3.1+§3.2 P0 完成态对比
-- `scripts_history/export_idf.py` 5 条补丁 → 看哪些能丢（idfpy 的 `validate()` 已可顶替补丁 0/3/4）
+- `backup/scripts_history/export_idf.py` 5 条补丁 → 看哪些能丢（idfpy 的 `validate()` 已可顶替补丁 0/3/4）
 
 ### 2.3 决策点
 P1 完成后回答两个问题：
@@ -95,7 +95,7 @@ P1 完成后回答两个问题：
 | **重写** `skills/energyplus_mcp/energyplus_mcp_prompt.md`（主） | 删 ConverterManager / YAML 中介 / 4 条手工补丁规范；按 idfpy 思路（idf.add → idf.validate → idf.save）重写工具调用流程 |
 | **重写** `skills/energyplus_mcp/zonetool_prompt.md` | 适配新 create_zone API（参数名可能变） |
 | **删** `skills/energyplus_mcp/schedule_compact_guide.md` | idfpy 的 Schedule:Compact 由 Pydantic schema 强校验，不需要文档级规范 |
-| **重写** `skills/energyplus_mcp/export_idf.md` + `scripts_history/export_idf.py` | 大幅缩减：补丁 0/3/4 由 idfpy.validate 顶替；保留补丁 1/2（数据填充） |
+| **重写** `skills/energyplus_mcp/export_idf.md` + `backup/scripts_history/export_idf.py` | 大幅缩减：补丁 0/3/4 由 idfpy.validate 顶替；保留补丁 1/2（数据填充） |
 | **重写** `skills/energyplus_mcp/open_model/energyplus_mcp_prompt.md` | 同主版同步 |
 | **更新** `AI_agent/new_case_guide.md` | 验证清单从 5 档调整（`validate()` 顶替原 P0/P1 几道关） |
 | **更新** `AI_agent/CLAUDE.md` | §3.1.2 的"系统性缺陷"部分加注"已被 idfpy 解决"；§7.7 几何/MEP skill 拆分计划落到 idfpy 之上 |
@@ -131,7 +131,7 @@ P1 完成后回答两个问题：
 - 至少 3 个 case：sm_15 几何 / sm_0（含 MEP）/ sm_13（多 case 完整流水线）
 
 ### 4.3 切换发布
-- 主分支 PR 合并前：在 `Skill_history/` + `MCP_history/` 各建一份切换前快照
+- 主分支 PR 合并前：在 `backup/Skill_history/` + `backup/MCP_history/` 各建一份切换前快照
 - 合并后立即更新 [README.md](../../README.md) 项目结构 + 技术栈
 - `pyproject.toml` 删 eppy 依赖
 
@@ -171,4 +171,4 @@ P1 完成后回答两个问题：
 
 ---
 
-_最后更新：2026-04-28 — 首版起草。基于 sm_15 round-trip 验证（[scripts_history/idfpy_roundtrip_sm15.py](../../scripts_history/idfpy_roundtrip_sm15.py)）通过的事实，列 P0-P3 四阶段、协作者/本项目分工、验收门槛、风险登记_
+_最后更新：2026-04-28 — 首版起草。基于 sm_15 round-trip 验证（[backup/scripts_history/idfpy_roundtrip_sm15.py](../../backup/scripts_history/idfpy_roundtrip_sm15.py)）通过的事实，列 P0-P3 四阶段、协作者/本项目分工、验收门槛、风险登记_

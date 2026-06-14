@@ -307,7 +307,7 @@ env vars：`DEEPSEEK_API_KEY` + `ANTHROPIC_API_KEY`（[`.env.example`](../../.en
 
 ---
 
-_2026-05-10 — `skills/energyplus_mcp/` 从“死代码”改判为运行时 intake 规则文档库：由 [intake.py](../../src/agent/nodes/intake.py) 自动加载，承担图→IntakeOutput 的识图 / 几何 / 拓扑 / 输出契约约束。旧 `open_model/` 与 `export_idf` 分支不再位于当前主路径；相关开源模型流程改为引用 `Skill_history/` 历史备份。_
+_2026-05-10 — `skills/energyplus_mcp/` 从“死代码”改判为运行时 intake 规则文档库：由 [intake.py](../../src/agent/nodes/intake.py) 自动加载，承担图→IntakeOutput 的识图 / 几何 / 拓扑 / 输出契约约束。旧 `open_model/` 与 `export_idf` 分支不再位于当前主路径；相关开源模型流程改为引用 `backup/Skill_history/` 历史备份。_
 
 _2026-05-07 增补：§4.1 标注 skills/ 为死代码；新增 §4.3 能力优化作用面边界图（11 行 + 4 条判断规则，区分 🎯/✅/⚠️/❌ 四档）；新增 §8 新人快速上手 QA（Q1-Q6，源自 sm_16_newarch 首跑后澄清）。原 §8 关联文档下移为 §9。_
 
