@@ -170,14 +170,14 @@
 
 ### 9.1 实验设置
 
-- **Case**：`test_data/SmallOffice_TwoStep/smalloffice_20/`（与 `test_data/SmallOffice/smalloffice_20/` 同素材，单步法 anchor 在那边的 `output_new/`）
-- **Phase 1**：Claude Code 会话 + Opus 4.7，7 张图（3 平面 + 4 立面）→ 7 份矢量 JSON + summary。schema 见 [vector_schema_v1.md](../../test_data/SmallOffice_TwoStep/smalloffice_20/vector_schema_v1.md)（v1.2）
+- **Case**：`case_tests/e2e_tests/smalloffice_20/`（与 `backup/tests_history/SmallOffice/smalloffice_20/` 同素材，单步法 anchor 在那边的 `output_new/`）
+- **Phase 1**：Claude Code 会话 + Opus 4.7，7 张图（3 平面 + 4 立面）→ 7 份矢量 JSON + summary。schema 见 [vector_schema_v1.md](../../case_tests/e2e_tests/smalloffice_20/vector_schema_v1.md)（v1.2）
 - **Phase 2**：两条路径并行验证
   - Opus 路径：Claude Code 会话直写 IntakeOutput JSON
   - DeepSeek 路径：[`scripts/run_pipeline_deepseek.py`](../../scripts/run_pipeline_deepseek.py)（绕过 langchain，thinking enabled，max_tokens 64k）
-- **Phase 2 规则**：[phase2_rules.md](../../test_data/SmallOffice_TwoStep/smalloffice_20/phase2_rules.md)（v1.3 升级版在 [`skills/intake_pipeline/`](../../skills/intake_pipeline)）
+- **Phase 2 规则**：[phase2_rules.md](../../case_tests/e2e_tests/smalloffice_20/phase2_rules.md)（v1.3 升级版在 [`skills/intake_pipeline/`](../../skills/intake_pipeline)）
 
-### 9.2 三方对比结果（详见 [`compare/diff.md`](../../test_data/SmallOffice_TwoStep/smalloffice_20/compare/diff.md)）
+### 9.2 三方对比结果（详见 [`compare/diff.md`](../../case_tests/e2e_tests/smalloffice_20/compare/diff.md)）
 
 | 维度 | opus 2-step | deepseek 2-step | anchor 1-step（旧 sm_20 output_new）|
 |---|---|---|---|
@@ -241,7 +241,7 @@ POC 验证用户可在 ~30 min 内人工检查 SVG 是否与原图一致：
 
 ### 10.1 机制确认：phase1 是「读尺寸链标注」驱动，不是「数像素量尺寸」
 
-核对 sm_20 实际产物（[`phase1_vector/`](../../test_data/SmallOffice_TwoStep/smalloffice_20/0_reading)）确认：
+核对 sm_20 实际产物（[`phase1_vector/`](../../case_tests/e2e_tests/smalloffice_20/0_reading)）确认：
 
 - 平面墙 `S1` `p1=[0,0]→p2=[15,0]`，这个 15 直接来自尺寸链 `D1 "15.00"`；墙端点钉在尺寸链给的米数上，**不是按像素跨度量出来的**
 - 立面窗 z `S4 y_range=[1.0,2.8]` = `D14 sill 1.00` + `D15 窗高 1.80`，纯标注算术
@@ -303,7 +303,7 @@ POC 验证用户可在 ~30 min 内人工检查 SVG 是否与原图一致：
 
 ### 10.6 执行决策（用户拍板）
 
-1. **异图 POC v2（B1.5.a）先于 intake_node 重写（B1.5.c）** —— 与 [`compare/diff.md §8.2`](../../test_data/SmallOffice_TwoStep/smalloffice_20/compare/diff.md) 建议一致（POC v1 仅 1 图证据不足，不应直接动主线）
+1. **异图 POC v2（B1.5.a）先于 intake_node 重写（B1.5.c）** —— 与 [`compare/diff.md §8.2`](../../case_tests/e2e_tests/smalloffice_20/compare/diff.md) 建议一致（POC v1 仅 1 图证据不足，不应直接动主线）
 2. **POC v2 通过后 → 直接全线切两步法主线**（不再分步骇行）
 3. 下一步：用户准备噪声测试图（矩形几何同 sm_20 级 + 信息杂物 + 每房间 1-2 个门 + 1-2 处遮挡）+ testdata_prompt.json；助手据此建 case 目录 + 出画图 checklist + 跑 phase2（DeepSeek，§6#10 y/n 触发）
 
@@ -316,4 +316,4 @@ POC 验证用户可在 ~30 min 内人工检查 SVG 是否与原图一致：
 - [../reference/pivot_criteria.md](../reference/pivot_criteria.md) — §3.2 退路 A 前置视觉预处理（本方案是该路径的具体化）
 - [../guides/new_case_guide.md](../guides/new_case_guide.md) — 标准工作流（待跟两步法集成后更新）
 - [`../skills/intake_pipeline/`](../../skills/intake_pipeline) — 两步法 skill 演进源
-- [`../test_data/SmallOffice_TwoStep/`](../../test_data/SmallOffice_TwoStep) — 两步法测试语料库
+- [`../case_tests/e2e_tests/`](../../case_tests/e2e_tests) — 两步法测试语料库

@@ -161,7 +161,7 @@ phase1      phase2a判断 + 确定性核  cells→zones+面     面切分+互逆
 
 ### 3.1 固化的 on-disk 布局 + 每阶段校验工具（2026-06-09）
 
-`run_full_pipeline.py <case> --base-dir test_data/SmallOffice_TwoStep --reading-from phase1` 产出按阶段分门别类（[run_full_pipeline.py](../../scripts/run_full_pipeline.py) + [pipeline.py](../../src/agent/pipeline.py) `run_pipeline` 固化）：
+`run_full_pipeline.py <case> --base-dir case_tests/e2e_tests --reading-from phase1` 产出按阶段分门别类（[run_full_pipeline.py](../../scripts/run_full_pipeline.py) + [pipeline.py](../../src/agent/pipeline.py) `run_pipeline` 固化）：
 
 ```
 <case>/

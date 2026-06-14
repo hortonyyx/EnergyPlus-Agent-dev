@@ -23,13 +23,13 @@ Step 4 识图（0_reading）（半人工，唯一人工步）
    ↓
 Step 5 一次性自动跑（管线 + 下游 + EP，全部 llm.yaml 配置）
    - python scripts/run_full_pipeline.py <case> \
-         --base-dir test_data/SmallOffice_TwoStep --reading-from 0_reading
+         --base-dir case_tests/e2e_tests --reading-from 0_reading
    - intake_node 跑管线（矢量 → IntakeOutput）→ 9 subagent → cross_ref
      → validate → 装配 IDF → InterZone 几何门 → simulate
    - 产出：<case>/output/intake_output.json + temp_*.yaml/.idf + eplusout.*
    ↓
 Step 6 验收（L1 Pydantic / L2 cross_ref / InterZone 门 / L3 OpenStudio / L4 EP）
-Step 7 留痕到 test_data/test_baseline/runs/
+Step 7 留痕到 case_tests/test_baseline/runs/
 ```
 
 **和单步法的唯一流程差异**：Step 4 从「一个会话出 `intake_output.json`」变成「识图出矢量 JSON」，管线收进 Step 5 自动跑。Step 1–3、Step 6–7 基本沿用。
@@ -54,16 +54,16 @@ Step 7 留痕到 test_data/test_baseline/runs/
 
 ## 二、Step 2 · 建案例目录
 
-分阶段语料放 [`test_data/SmallOffice_TwoStep/`](../../test_data/SmallOffice_TwoStep)`<case>/`（与单步法 `SmallOffice/` 并列）。
+分阶段语料放 [`case_tests/e2e_tests/`](../../case_tests/e2e_tests)`<case>/`（与单步法 `SmallOffice/` 并列）。
 
 ```bash
 case=smalloffice_22
-mkdir -p test_data/SmallOffice_TwoStep/$case/0_reading
-mkdir -p test_data/SmallOffice_TwoStep/$case/output
+mkdir -p case_tests/e2e_tests/$case/0_reading
+mkdir -p case_tests/e2e_tests/$case/output
 
-cp /path/to/1f_view.png  test_data/SmallOffice_TwoStep/$case/1f_view.png
-cp /path/to/2f_view.png  test_data/SmallOffice_TwoStep/$case/2f_view.png
-cp /path/to/South_view.png test_data/SmallOffice_TwoStep/$case/South_view.png
+cp /path/to/1f_view.png  case_tests/e2e_tests/$case/1f_view.png
+cp /path/to/2f_view.png  case_tests/e2e_tests/$case/2f_view.png
+cp /path/to/South_view.png case_tests/e2e_tests/$case/South_view.png
 # ... 按实际有窗朝向挑选
 ```
 
@@ -88,13 +88,13 @@ cp /path/to/South_view.png test_data/SmallOffice_TwoStep/$case/South_view.png
     "Building type": "Office",
     "Number of floors": 2,
     "Floor plans": [
-        {"floor": 1, "path": "test_data/SmallOffice_TwoStep/smalloffice_22/1f_view.png", "thermal_zones": 7},
-        {"floor": 2, "path": "test_data/SmallOffice_TwoStep/smalloffice_22/2f_view.png", "thermal_zones": 7}
+        {"floor": 1, "path": "case_tests/e2e_tests/smalloffice_22/1f_view.png", "thermal_zones": 7},
+        {"floor": 2, "path": "case_tests/e2e_tests/smalloffice_22/2f_view.png", "thermal_zones": 7}
     ],
-    "South view path of the building": "test_data/SmallOffice_TwoStep/smalloffice_22/South_view.png",
-    "North view path of the building": "test_data/SmallOffice_TwoStep/smalloffice_22/North_view.png",
-    "East view path of the building":  "test_data/SmallOffice_TwoStep/smalloffice_22/East_view.png",
-    "West view path of the building":  "test_data/SmallOffice_TwoStep/smalloffice_22/West_view.png",
+    "South view path of the building": "case_tests/e2e_tests/smalloffice_22/South_view.png",
+    "North view path of the building": "case_tests/e2e_tests/smalloffice_22/North_view.png",
+    "East view path of the building":  "case_tests/e2e_tests/smalloffice_22/East_view.png",
+    "West view path of the building":  "case_tests/e2e_tests/smalloffice_22/West_view.png",
     "Path of the supplementary plan example drawing for the building": ""
 }
 ```
@@ -153,7 +153,7 @@ cp /path/to/South_view.png test_data/SmallOffice_TwoStep/$case/South_view.png
 
 **起一份 per-case 配置**(从全局拷贝当默认,再自己改):
 ```bash
-python scripts/run_full_pipeline.py <case> --base-dir test_data/SmallOffice_TwoStep --init-llm-config
+python scripts/run_full_pipeline.py <case> --base-dir case_tests/e2e_tests --init-llm-config
 # → 生成 <case>/llm.yaml(全局副本);编辑它设本测试的模型组合,之后正常跑即自动用它
 ```
 `<case>/llm.yaml` 建议随 case 提交,作"这次测试用了什么模型组合"的记录。
@@ -187,7 +187,7 @@ python scripts/run_full_pipeline.py <case> --base-dir test_data/SmallOffice_TwoS
 
 ```bash
 python scripts/run_full_pipeline.py <case> \
-    --base-dir test_data/SmallOffice_TwoStep \
+    --base-dir case_tests/e2e_tests \
     --reading-from 0_reading
 ```
 
@@ -210,7 +210,7 @@ python scripts/run_full_pipeline.py <case> \
 用薄 CLI 包装（与主线同一份 `run_pipeline`，不会漂移）：
 
 ```bash
-python scripts/run_pipeline_deepseek.py --case test_data/SmallOffice_TwoStep/<case>
+python scripts/run_pipeline_deepseek.py --case case_tests/e2e_tests/<case>
 # 产物：<case>/pipeline_out/{1_correction,2_modelling,3_split_pairing,4_mep,5_intakeoutput}/
 #       最终 intake_output.json 在 5_intakeoutput/
 ```
@@ -248,7 +248,7 @@ import sys, json
 sys.path.insert(0, '.')
 from src.agent._share import ensure_schema_initialized; ensure_schema_initialized()
 from src.agent.state import IntakeOutput
-d = json.loads(open('test_data/SmallOffice_TwoStep/<case>/output/intake_output.json', encoding='utf-8').read())
+d = json.loads(open('case_tests/e2e_tests/<case>/output/intake_output.json', encoding='utf-8').read())
 io = IntakeOutput.model_validate(d); print('OK 11 fields; building=', io.building.name)
 "
 ```
@@ -259,7 +259,7 @@ io = IntakeOutput.model_validate(d); print('OK 11 fields; building=', io.buildin
 
 ## 七、Step 7 · 留痕到 `test_baseline/runs/`
 
-跑完想存档：对会话说 `记录这次跑 <case> <tag>`，按 [test_baseline/README.md §4.3](../../test_data/test_baseline/README.md) 流程（`baseline_record.py` 起骨架 → 用户粘 `/context` → 助手填非用户字段 → 用户填 `dimensions_check`）。记录时**一并记 InterZone 门的 audit 计数**（总面/互逆对/issue 数）作几何质量信号。
+跑完想存档：对会话说 `记录这次跑 <case> <tag>`，按 [test_baseline/README.md §4.3](../../case_tests/test_baseline/README.md) 流程（`baseline_record.py` 起骨架 → 用户粘 `/context` → 助手填非用户字段 → 用户填 `dimensions_check`）。记录时**一并记 InterZone 门的 audit 计数**（总面/互逆对/issue 数）作几何质量信号。
 
 非 baseline 的 capability 实验放 `runs/<YYYY-MM-DD>_capability_<topic>/`。
 

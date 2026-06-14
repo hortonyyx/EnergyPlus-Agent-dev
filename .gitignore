@@ -7,13 +7,13 @@ __pycache__/
 20*_*/
 !backup/Skill_history/
 !backup/MCP_history/
-!test_data/test_baseline/runs/
+!case_tests/test_baseline/runs/
 
 # EnergyPlus 时序变量输出 (二进制，单文件 ~15MB，可由 IDF 重跑出来)
 eplusout.eso
 
 # codex intake 中间识图产物 (~4MB/case；不进 baseline，作 debug 用)
-test_data/SmallOffice/*/debug_crops*/
+backup/tests_history/SmallOffice/*/debug_crops*/
 
 
 # C extensions
@@ -271,22 +271,22 @@ eplusout.*
 eplustbl.*
 # Experiment products (regenerable runs / intermediate stages); keep on disk, not in git.
 # (per AI_agent/CLAUDE.md §5.9.E — test_data experiment outputs are not committed)
-test_data/SmallOffice_TwoStep/smalloffice_21/output_partA_p0/
-test_data/SmallOffice_TwoStep/smalloffice_21/output_staged_e2e/
-test_data/SmallOffice_TwoStep/smalloffice_21/output_staged_obcfix/
-test_data/SmallOffice_TwoStep/smalloffice_21/output_step8_e2e/
-test_data/SmallOffice_TwoStep/smalloffice_21/phase2_intake/deepseek_partA_p0/
-test_data/SmallOffice_TwoStep/smalloffice_21/phase2_intake/staged_p0/
-test_data/SmallOffice_TwoStep/smalloffice_21/phase2_intake/staged_p0_obcfix/
-test_data/SmallOffice_TwoStep/smalloffice_21/output_b_verify/
-test_data/SmallOffice_TwoStep/smalloffice_21_pre/
+case_tests/e2e_tests/smalloffice_21/output_partA_p0/
+case_tests/e2e_tests/smalloffice_21/output_staged_e2e/
+case_tests/e2e_tests/smalloffice_21/output_staged_obcfix/
+case_tests/e2e_tests/smalloffice_21/output_step8_e2e/
+case_tests/e2e_tests/smalloffice_21/phase2_intake/deepseek_partA_p0/
+case_tests/e2e_tests/smalloffice_21/phase2_intake/staged_p0/
+case_tests/e2e_tests/smalloffice_21/phase2_intake/staged_p0_obcfix/
+case_tests/e2e_tests/smalloffice_21/output_b_verify/
+case_tests/e2e_tests/smalloffice_21_pre/
 # Fable 5 full-audit run outputs (2026-06-11), any case
-test_data/SmallOffice_TwoStep/*/output_fable_audit*/
+case_tests/e2e_tests/*/output_fable_audit*/
 # smalloffice_23 staged experiment outputs (keep 1f_view.png..West_view.png + testdata + 0_reading)
-test_data/SmallOffice_TwoStep/smalloffice_23/1_correction/
-test_data/SmallOffice_TwoStep/smalloffice_23/2_modelling/
-test_data/SmallOffice_TwoStep/smalloffice_23/3_split_pairing/
-test_data/SmallOffice_TwoStep/smalloffice_23/4_mep/
-test_data/SmallOffice_TwoStep/smalloffice_23/5_intakeoutput/
-test_data/SmallOffice_TwoStep/smalloffice_23/EP_run/
-test_data/SmallOffice_TwoStep/smalloffice_23/output/
+case_tests/e2e_tests/smalloffice_23/1_correction/
+case_tests/e2e_tests/smalloffice_23/2_modelling/
+case_tests/e2e_tests/smalloffice_23/3_split_pairing/
+case_tests/e2e_tests/smalloffice_23/4_mep/
+case_tests/e2e_tests/smalloffice_23/5_intakeoutput/
+case_tests/e2e_tests/smalloffice_23/EP_run/
+case_tests/e2e_tests/smalloffice_23/output/

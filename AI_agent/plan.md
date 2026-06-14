@@ -85,7 +85,7 @@
 **真跑 simulate 关键发现**（见 [§C](#c-暂搁置依赖外部进展不安排时间) fenestration glazing 条）：
 - T-vertex 实证**不卡 EP**（warm-up 0 几何 severe）→ B0' 关闭
 - 真 fatal = fenestration_agent 把 `WindowMaterial:SimpleGlazingSystem` 当一层叠加 → window 求解器 NaN
-- 手工修 Construction 单层引用后 EP PASS；artifacts 在 [`smalloffice_16_newarch/output/ep_run_glazingfix/`](../test_data/SmallOffice/smalloffice_16_newarch/output/ep_run_glazingfix)
+- 手工修 Construction 单层引用后 EP PASS；artifacts 在 [`smalloffice_16_newarch/output/ep_run_glazingfix/`](../backup/tests_history/SmallOffice/smalloffice_16_newarch/output/ep_run_glazingfix)
 
 **遗留 todo**（已沉到 [§8.1](CLAUDE.md)）：
 - [ ] sm_17 端到端再跑一次（不同图纸验证可复用性，不再被 T-vertex 阻塞）
@@ -142,8 +142,8 @@
 - [x] `Floor_N_*` 模板禁用规则合并到 intake_output_contract.md "No Compression, No Placeholders"
 - [x] **下游 surface_agent hotfix**（[downstream_agent_changes.md 2026-05-12 条](logs/downstream_agent_changes.md)）：[`src/agent/nodes/surface.py`](../src/agent/nodes/surface.py) 同时传 zone_specs + surface_specs 到 agent，加 "per-floor z values come from zone_specs" 硬指引，worked example 改 F2_S1 (3.60 m)；备份 `backup/src_history/2026-05-12_surface_agent_zfloor_fix/`
 - [x] 用 sm_20（= sm_19 plans）跑半人工流双版对照：
-  - `test_data/SmallOffice/smalloffice_20/output/`（B1 only，仍 10 CHKSBS partial-overlap）
-  - `test_data/SmallOffice/smalloffice_20/output_new/`（B1 + surface fix，0 CHKSBS，EP cleanly 完成）
+  - `backup/tests_history/SmallOffice/smalloffice_20/output/`（B1 only，仍 10 CHKSBS partial-overlap）
+  - `backup/tests_history/SmallOffice/smalloffice_20/output_new/`（B1 + surface fix，0 CHKSBS，EP cleanly 完成）
 
 **工作量**：实际 ~半天集中产出（audit + 文档撰写 + surface hotfix + 双版跑 + diagnose）
 
@@ -189,7 +189,7 @@
   - `uncaptured_visual_elements` 是否真触发 ⚠️
   - 门是否补成连续墙、没误补无门开口、留了痕 ⚠️
   - phase2 在更复杂矢量 JSON 上能否保持 Step 6 PASS
-- [x] 跑通后落 `test_data/SmallOffice_TwoStep/<new_case>/` ✅ sm21；跑挂补规则 ✅ phase2/rules.md Step 5 glazing material split（备份 `backup/Skill_history/2026-05-28_phase2_glazing_material_rule/`）
+- [x] 跑通后落 `case_tests/e2e_tests/<new_case>/` ✅ sm21；跑挂补规则 ✅ phase2/rules.md Step 5 glazing material split（备份 `backup/Skill_history/2026-05-28_phase2_glazing_material_rule/`）
 - [ ] 再跑 1-2 张异图坐实泛化（可挑 phase1_generalization 的矩形图 test1/test7 补 testdata 跑全链路）
 - [x] 注（2026-05-26 已修）：[`run_pipeline_deepseek.py`](../scripts/run_pipeline_deepseek.py) 原写死 `PHASE1_FILES`，已改 `_discover_phase1_files()` 扫 `phase1_vector/*.json`（楼层数字序 → 立面 → supp/section），不再需手改
 
@@ -274,8 +274,8 @@
 **工作量**：~2 天（4 case × 0.5 天）
 
 **验收**：
-- `test_data/SmallOffice/smalloffice_{13,14,15,16}/gt.json` 都存在且字段齐
-- 与 [test_baseline/](../test_data/test_baseline) 现有数据交叉对验
+- `backup/tests_history/SmallOffice/smalloffice_{13,14,15,16}/gt.json` 都存在且字段齐
+- 与 [test_baseline/](../case_tests/test_baseline) 现有数据交叉对验
 
 **依赖**：B1 完成（确保新架构识图能力已恢复，评测才有意义）
 
@@ -298,7 +298,7 @@
     | `wwr_mae_pct` | 各立面 WWR 绝对误差均值（百分点）|
     | `special_zone_f1` | atrium / core / server 等特殊 zone 检测 F1 |
 
-  - 输出 CSV 到 `test_data/test_baseline/runs/<date>_<model>_<case>/eval.csv`
+  - 输出 CSV 到 `case_tests/test_baseline/runs/<date>_<model>_<case>/eval.csv`
 - README 到 `AI_agent/eval/README.md`
 
 **工作量**：~1 天
@@ -317,10 +317,10 @@
 - 半人工流：用户在 Claude Code 会话按 [new_case_guide.md §四](guides/new_case_guide.md) 跑全部 GT case 一次（4 case × ~10 分钟人工 = ~半天）
 - 每 case 产出 `intake_output.json`
 - 助手跑 B3 `intake_diff` 对每 case 产 metrics CSV
-- 汇总到 `test_data/test_baseline/runs/<date>_opus_baseline/summary.csv`
+- 汇总到 `case_tests/test_baseline/runs/<date>_opus_baseline/summary.csv`
 
 **B. 校对方案规范化**：
-- 在 [test_data/test_baseline/README.md](../test_data/test_baseline/README.md) 加一节「校对方案」：
+- 在 [case_tests/test_baseline/README.md](../case_tests/test_baseline/README.md) 加一节「校对方案」：
   - 自动校对项：B3 `intake_diff` 输出的 6 个指标
   - 半自动校对项：OpenStudio 几何视察（用户填 `dimensions_check`）/ IDF 落盘后 EP 真跑的可仿真性
   - 人工校对项：特殊 zone 命名是否符合规范 / surface 邻接是否符合常识
@@ -328,13 +328,13 @@
 - 触发协议：`记录这次跑 <case> <tag>` 流程加入 B3 自动评测步
 
 **C. Token 协议升级**（原 B0''' 并入此处）：
-- [test_baseline/README.md §4.1 / §4.3](../test_data/test_baseline/README.md) 强制 `/context` 作 `tokens.total` 唯一权威源是为旧 `yaml_to_idf_v1`（Opus 单会话）设计；半人工流下不再单一来源：
+- [test_baseline/README.md §4.1 / §4.3](../case_tests/test_baseline/README.md) 强制 `/context` 作 `tokens.total` 唯一权威源是为旧 `yaml_to_idf_v1`（Opus 单会话）设计；半人工流下不再单一来源：
   - Opus 端在用户 Step 4 临时会话 `/context`（手动粘）
   - 下游 9 subagent 走 DeepSeek API（不在任何 `/context`）
   - 助手协调会话与任务无关，不计入
 - 任务：
   - [ ] [scripts/run_full_pipeline.py](../scripts/run_full_pipeline.py) 加 LangSmith / DeepSeek API usage 收集 hook → 落 `<case>/output/downstream_token.json`
-  - [ ] [test_baseline/README.md §4.3](../test_data/test_baseline/README.md) 拆 `4.3a yaml_to_idf_v1` / `4.3b halfmanual_v1` 两套触发清单
+  - [ ] [test_baseline/README.md §4.3](../case_tests/test_baseline/README.md) 拆 `4.3a yaml_to_idf_v1` / `4.3b halfmanual_v1` 两套触发清单
   - [ ] `tokens.json` schema 加 `intake_total` / `downstream_total` / `total` 三字段
   - [ ] 已存半人工 anchor（`2026-05-07_sm_16_newarch_v4pro_no_sim_v1`）回填 `downstream_total`（如能从 DeepSeek 账单查到）
 
@@ -369,7 +369,7 @@
 > **落位反转（2026-06-09）**：切配从「下游另有人做」改为 **本项目侧确定性做、确定性核之后吃 cells**——连同 cell→面几何生成（建模·几何）一起收进**确定性造面/切配内核**。证据=sm20/sm21 对照（一步出 LLM 切配对、staged 退化）。目标总架构 `识图→校正→建模·几何(确定性)→切配·仿真(确定性)→物理挂载→下游`，LLM 只做感知+校正判断+物理语义、代码做所有几何+装配。详见 [CLAUDE.md §5.10](CLAUDE.md) + [pipeline_stage_contracts §0.1](architecture/pipeline_stage_contracts.md) + [split_pairing_kernel_reference §6](reference/split_pairing_kernel_reference.md)。**P0 待建。**
 
 **任务（边做边细化）**：
-- [ ] 在 `test_data/SmallOffice/` 加 1-2 个 L 形 case（含图纸 + testdata_prompt.json + GT）
+- [ ] 在 `backup/tests_history/SmallOffice/` 加 1-2 个 L 形 case（含图纸 + testdata_prompt.json + GT）
 - [ ] 评估当前 prompt 在 L 形上的失败模式（外包多边形 / WWR 立面定义 / surface 邻接）
 - [ ] 升级 INTAKE_SYSTEM_PROMPT：外包从"width × depth"扩展为"vertex 列表"；WWR 按"立面 segment"而不是"东南西北"
 - [ ] 评估 surface_agent / fenestration_agent 是否能消化新 schema（必要时小改 prompt）
@@ -506,7 +506,7 @@
 
 _2026-05-29 — **B1.5.c/d/e/g 交付（两步法切主线 + InterZone 门 + 正式指南）**：B1.5.c `intake_node` 三路分发串行 + `src/agent/pipeline.py` 单一实现 + `--reading-from` + per-case 模型配置；B1.5.d `run_pipeline_deepseek` 收成薄包装；B1.5.e `new_case_guide.md` 正式化两步法；新增 B1.5.g InterZone 确定性几何门（审阅 A，EP 前 fail-fast，e2e 全新输出抓 6 缺陷）。两份 Codex review 3 High + 4 Med/Low 全修、re-verify 全 PASS；测试 5→23。e2e 首次完整跑通新架构（机制 100% 通，几何质量挂门 = 建模质量主线问题，审阅 B 待落地）。详见 [CLAUDE.md §5.8](CLAUDE.md)。_
 
-_2026-05-12 (晚) — **两步法 POC PASS + B1.5 立项最高优先级**：sm_20 全套两步法（phase1 矢量化 → phase2 拓扑建模）+ 下游 + EP 真跑通过（DeepSeek 路径 EP cleanly / Opus 路径暴露 InterZone construction rule 漏洞已在 phase2_rules v1.3 修）。F3 corridor 窗 z 修正（anchor 单步错 9.60，两步法都对 10.60）证明误差预算分离生效。新增 B1.5 节：POC v2 异图 / intake_node 改两步 / 评测嵌入 / new_case_guide 重写。详见 [floorplan_redraw_strategy.md §9](capability/floorplan_redraw_strategy.md) + B1.5 节。两步法 artifacts 迁到 [`test_data/SmallOffice_TwoStep/`](../test_data/SmallOffice_TwoStep)，skill 演进源在 [`skills/intake_pipeline/`](../skills/intake_pipeline)。_
+_2026-05-12 (晚) — **两步法 POC PASS + B1.5 立项最高优先级**：sm_20 全套两步法（phase1 矢量化 → phase2 拓扑建模）+ 下游 + EP 真跑通过（DeepSeek 路径 EP cleanly / Opus 路径暴露 InterZone construction rule 漏洞已在 phase2_rules v1.3 修）。F3 corridor 窗 z 修正（anchor 单步错 9.60，两步法都对 10.60）证明误差预算分离生效。新增 B1.5 节：POC v2 异图 / intake_node 改两步 / 评测嵌入 / new_case_guide 重写。详见 [floorplan_redraw_strategy.md §9](capability/floorplan_redraw_strategy.md) + B1.5 节。两步法 artifacts 迁到 [`case_tests/e2e_tests/`](../case_tests/e2e_tests)，skill 演进源在 [`skills/intake_pipeline/`](../skills/intake_pipeline)。_
 
 _2026-05-12 — **B1 阶段闭环**：3 个 skill md 全部按 audit 4 个 Gap 补硬约束 + fenestration chain N 窗通式 + 反例；surface_agent prompt + 输入装配 hotfix（backup/src_history 备份 + downstream_agent_changes.md）。sm_20 半人工流 EP cleanly 跑通取代 sm_16_newarch 成为新通透性 anchor。推荐执行顺序更新：主线焦点切到 B2-B4（评测基线规范化）。详见 [CLAUDE.md §5.5](CLAUDE.md) + B1 节本文。_
 

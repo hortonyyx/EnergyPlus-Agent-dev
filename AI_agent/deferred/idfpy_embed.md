@@ -102,8 +102,8 @@ P1 完成后回答两个问题：
 | **重写** `AI_agent/token_optimization.md` | §3.1 ack-only / §3.2 batch 重新评估（很多 CRUD 工具消失）；§4.5 自动 boundary 推断借 idfpy mixin 大幅简化 |
 | **删** `data/dependencies/Energy+.idd` | P3 验收稳定后再删 |
 | **迁移** `data/schemas/*.yaml` 测试用 YAML | 写一次性脚本：旧 YAML → idfpy 对象 → 重存 epJSON（本项目内只读 epJSON） |
-| **重做** `test_data/test_baseline/` 全部 anchor | 旧 anchor 基于已废 harness + 已废 converter，全部失效；用 sm_15 在新栈下重建 |
-| **保留** `test_data/SmallOffice/smalloffice_*/` 输入数据 | testdata_prompt.json + 4 张 view 不动；`output/` 子目录全部需重跑 |
+| **重做** `case_tests/test_baseline/` 全部 anchor | 旧 anchor 基于已废 harness + 已废 converter，全部失效；用 sm_15 在新栈下重建 |
+| **保留** `backup/tests_history/SmallOffice/smalloffice_*/` 输入数据 | testdata_prompt.json + 4 张 view 不动；`output/` 子目录全部需重跑 |
 
 ### 3.3 不动的部分
 - `src/rag/`、`src/database/`、`src/configs/`（embedding 路径）—— 与 idfpy 无关
@@ -126,7 +126,7 @@ P1 完成后回答两个问题：
 
 ### 4.2 重建 baseline anchor
 
-- `test_data/test_baseline/runs/2026-XX-XX_sm15_idfpy_v1/`
+- `case_tests/test_baseline/runs/2026-XX-XX_sm15_idfpy_v1/`
 - `meta.pipeline_version: "idfpy_v1"`（与旧 `yaml_to_idf_v1` 分桶，不直接比较 token / counts）
 - 至少 3 个 case：sm_15 几何 / sm_0（含 MEP）/ sm_13（多 case 完整流水线）
 

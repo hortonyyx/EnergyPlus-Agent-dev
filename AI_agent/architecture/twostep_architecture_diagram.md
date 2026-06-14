@@ -208,8 +208,8 @@ flowchart LR
 | [`skills/intake_pipeline/4_mep/mep.md`](../../skills/intake_pipeline/4_mep/mep.md) | Phase 2 推理规则 |
 | [`scripts/tool_scripts/render_vector_to_svg.py`](../../scripts/tool_scripts/render_vector_to_svg.py) | 人工校验工具（矢量 JSON → SVG）|
 | [`scripts/run_pipeline_deepseek.py`](../../scripts/run_pipeline_deepseek.py) | Phase 2 自动跑批脚本 |
-| [`test_data/SmallOffice_TwoStep/smalloffice_20/`](../../test_data/SmallOffice_TwoStep/smalloffice_20) | POC anchor 全套 artifacts |
-| [`test_data/SmallOffice_TwoStep/smalloffice_20/compare/diff.md`](../../test_data/SmallOffice_TwoStep/smalloffice_20/compare/diff.md) | 三方对比详表 |
+| [`case_tests/e2e_tests/smalloffice_20/`](../../case_tests/e2e_tests/smalloffice_20) | POC anchor 全套 artifacts |
+| [`case_tests/e2e_tests/smalloffice_20/compare/diff.md`](../../case_tests/e2e_tests/smalloffice_20/compare/diff.md) | 三方对比详表 |
 
 ---
 

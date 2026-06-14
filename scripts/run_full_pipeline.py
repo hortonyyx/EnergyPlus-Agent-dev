@@ -6,11 +6,11 @@ Intake flows (pick one):
         # 1) In a Claude Code session, drive the reading stage (image -> vector JSON)
         #    following AI_agent/guides/new_case_guide.md Step 4 (Appendix A); save
         #    the per-image vector JSONs + reading_summary.md under
-        #    test_data/.../<case>/0_reading/
+        #    case_tests/.../<case>/0_reading/
         # 2) Then run — intake_node runs the pipeline (vector JSON -> IntakeOutput)
         #    automatically via DeepSeek (intake_correction section of llm.yaml):
         python scripts/run_full_pipeline.py <case> \
-            --base-dir test_data/SmallOffice_TwoStep \
+            --base-dir case_tests/e2e_tests \
             --reading-from 0_reading
 
     Flow INTAKE-FROM  (a finished IntakeOutput already on disk):
@@ -110,9 +110,10 @@ def main() -> None:
     parser.add_argument(
         "--base-dir",
         type=Path,
-        default=Path("test_data/SmallOffice"),
-        help="Parent dir containing <case>/. Defaults to test_data/SmallOffice. "
-        "Use test_data/SmallOffice_TwoStep for staged-pipeline cases.",
+        default=Path("case_tests/e2e_tests"),
+        help="Parent dir containing <case>/. Defaults to case_tests/e2e_tests "
+        "(active two-step corpus). Archived single-step cases live under "
+        "backup/tests_history/SmallOffice.",
     )
     parser.add_argument(
         "--intake-only",

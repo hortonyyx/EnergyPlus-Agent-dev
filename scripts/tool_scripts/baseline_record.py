@@ -16,11 +16,11 @@ Examples
 Behavior
 --------
 - run_id   = "<date>_<case>_<tag>"  (date defaults to today)
-- run_dir  = "test_data/test_baseline/runs/<run_id>/"
+- run_dir  = "case_tests/test_baseline/runs/<run_id>/"
 - Refuses to overwrite an existing run_dir (safer than silent merge).
 - IDF discovery:
     * --idf override wins
-    * else for case == "sm_<N>" tries test_data/SmallOffice/smalloffice_<N>/output/smalloffice_<N>.idf
+    * else for case == "sm_<N>" tries backup/tests_history/SmallOffice/smalloffice_<N>/output/smalloffice_<N>.idf
     * if no IDF found, counts are left null and a warning is printed.
 - IDF parsing is regex-based (no eppy dependency, no IDD load) — fast, robust
   for top-level object counting.
@@ -32,7 +32,7 @@ meta.json     :  timestamp, case, p0_flags=[]; the rest = "<FILL_ME>"
 tokens.json   :  empty skeleton with by_phase / by_tool dicts
 notes.md      :  section stubs
 
-What Claude / user must fill afterward — see test_data/test_baseline/README.md.
+What Claude / user must fill afterward — see case_tests/test_baseline/README.md.
 """
 from __future__ import annotations
 
@@ -58,7 +58,7 @@ def find_idf(case: str, override: str | None) -> Path | None:
     if m:
         n = m.group(1)
         candidate = (
-            PROJECT_ROOT / "test_data" / "SmallOffice"
+            PROJECT_ROOT / "backup" / "tests_history" / "SmallOffice"
             / f"smalloffice_{n}" / "output" / f"smalloffice_{n}.idf"
         )
         if candidate.exists():
@@ -163,7 +163,7 @@ def main() -> int:
 
     date = args.date or datetime.now().strftime("%Y-%m-%d")
     run_id = f"{date}_{args.case}_{args.tag}"
-    run_dir = PROJECT_ROOT / "test_data" / "test_baseline" / "runs" / run_id
+    run_dir = PROJECT_ROOT / "case_tests" / "test_baseline" / "runs" / run_id
 
     if run_dir.exists():
         print(f"[error] {run_dir} already exists. Refusing to overwrite.", file=sys.stderr)
@@ -198,7 +198,7 @@ def main() -> int:
     print("Next steps:")
     print("  1. Claude fills <FILL_ME> in meta.json + tokens.json + notes.md from session memory.")
     print("  2. User opens IDF in OpenStudio, sets geometry.json.dimensions_check, drops screenshot.")
-    print("  Reference: test_data/test_baseline/README.md")
+    print("  Reference: case_tests/test_baseline/README.md")
     return 0
 
 

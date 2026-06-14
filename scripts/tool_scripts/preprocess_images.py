@@ -197,7 +197,7 @@ def process_case(
 
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    ap.add_argument("case_dir", type=Path, help="Path to a case directory, e.g. test_data/SmallOffice/smalloffice_13")
+    ap.add_argument("case_dir", type=Path, help="Path to a case directory, e.g. backup/tests_history/SmallOffice/smalloffice_13")
     ap.add_argument("--top-edge", type=int, default=TOP_EDGE_DEFAULT,
                     help=f"Long edge cap for top_view / supp_plan (default {TOP_EDGE_DEFAULT} px, "
                          "~14k Continue tokens / ~1.0k vision tokens)")

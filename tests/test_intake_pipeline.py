@@ -23,7 +23,7 @@ from src.agent.state import AgentState, IntakeOutput
 ensure_schema_initialized()
 
 _ANCHOR = Path(
-    "test_data/SmallOffice/smalloffice_20/output_new/intake_output.json"
+    "backup/tests_history/SmallOffice/smalloffice_20/output_new/intake_output.json"
 )
 
 

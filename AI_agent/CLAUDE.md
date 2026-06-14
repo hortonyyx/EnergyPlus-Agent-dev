@@ -49,8 +49,8 @@ phase2（image-blind）几何确定性化（Step 2–6，2026-06-09）：
 | [../src/agent/llm.py](../src/agent/llm.py) + [../src/configs/llm.yaml](../src/configs/llm.yaml) | LLM 工厂 + 多 section（per-case `<case>/llm.yaml` 经 `EP_AGENT_LLM_CONFIG` 覆盖）|
 | [../src/mcp](../src/mcp) | MCP 工具集（idfpy 替换主线搁置中，[deferred/idfpy_embed.md](deferred/idfpy_embed.md)）|
 | [../scripts](../scripts) | 脚本总目录（2026-06-14 合并）：`scripts/`=总启动器（`run_full_pipeline.py` 端到端/半人工/仅 intake 三入口 · `run_pipeline_deepseek.py` pipeline 独立 CLI）；`scripts/tool_scripts/`=流程子操作（render×3 校验渲染 / `baseline_record.py` / `preprocess_images.py`）；根 `tests_scripts/`=流程无关开发脚本（`deepseek_review.py`）；根 `backup/scripts_history/`=退役脚本归档 |
-| [../test_data/SmallOffice](../test_data/SmallOffice) | 案例（sm_0..17）|
-| [../test_data/test_baseline/runs](../test_data/test_baseline/runs) | baseline + capability 实验日志归档（2026-05-06 起）|
+| [../backup/tests_history/SmallOffice](../backup/tests_history/SmallOffice) | 案例（sm_0..17）|
+| [../case_tests/test_baseline/runs](../case_tests/test_baseline/runs) | baseline + capability 实验日志归档（2026-05-06 起）|
 | [../tests/test_zone_agent.py](../tests/test_zone_agent.py) | 唯一自动化测试（zone_agent 纯文本）|
 | `D:\EnergyPlusV25-2-0\energyplus.exe` | EnergyPlus 引擎本地位置（v25.2.0）。runner.py 解析顺序: `$ENERGYPLUS_EXE` env → PATH → 硬编码默认（同此路径）。已写进 [`.env`](../.env)。本机不会改动。 |
 | [../data/weather/Shenzhen.epw](../data/weather/Shenzhen.epw) | 默认 EPW 气象文件 |
@@ -93,7 +93,7 @@ Step 1-3  素材 / 目录 / testdata_prompt.json（schema A：Floor plans 数组
 Step 4    半人工 intake（Claude Code 会话 + Opus）→ <case>/output/intake_output.json
 Step 5    python scripts/run_full_pipeline.py <case> --intake-from output/intake_output.json
 Step 6    L1 Pydantic / L2 cross_ref / L3 OpenStudio / L4 EP completion 四层验收
-Step 7    用户说"记录这次跑 <case> <tag>" → 落 test_data/test_baseline/runs/
+Step 7    用户说"记录这次跑 <case> <tag>" → 落 case_tests/test_baseline/runs/
 ```
 
 ---
@@ -116,7 +116,7 @@ IDF 建模拆「几何阶段」+「MEP 阶段」，独立会话可由不同模�
 **B. DeepSeek V4 pro 文本通路 capability test PASS**
 - HARD_USER_INPUT（5 层办公楼 + 中庭，1953 字符）→ 49k completion / 11 字段齐 / Pydantic PASS / 0 命名违规 / 跨字段引用 100% 一致
 - 软风险：DeepSeek 用 `Floor_N_*` 模板写法（协作者是逐个枚举）→ 已在 [new_case_guide.md §4.2](guides/new_case_guide.md) Step 4 prompt 加硬约束补丁
-- artifacts：[../test_data/test_baseline/runs/2026-05-06_capability_deepseek_v4pro_intake](../test_data/test_baseline/runs/2026-05-06_capability_deepseek_v4pro_intake)
+- artifacts：[../case_tests/test_baseline/runs/2026-05-06_capability_deepseek_v4pro_intake](../case_tests/test_baseline/runs/2026-05-06_capability_deepseek_v4pro_intake)
 
 **C. A2 多 section LLM 配置已实施**
 - [llm.yaml](../src/configs/llm.yaml) 拆 `default`（DeepSeek V4 pro）+ `intake`（Claude Opus 4.7）
@@ -130,7 +130,7 @@ IDF 建模拆「几何阶段」+「MEP 阶段」，独立会话可由不同模�
 
 **E. 实验日志归档目录迁移**
 - 旧 `AI_agent/experiments/` 全空已废
-- 一律落 [../test_data/test_baseline/runs](../test_data/test_baseline/runs)
+- 一律落 [../case_tests/test_baseline/runs](../case_tests/test_baseline/runs)
 - 命名：建模 baseline `<YYYY-MM-DD>_<case>_<tag>/`；capability test `<YYYY-MM-DD>_capability_<topic>/`
 
 ### 5.4 simulate 全链路通验证 + 真因定位（2026-05-07 晚）
@@ -139,7 +139,7 @@ IDF 建模拆「几何阶段」+「MEP 阶段」，独立会话可由不同模�
 - T-vertex **不卡 EP**：warm-up 无任何几何相关 severe → [plan.md B0'](plan.md) 关闭
 - 真 fatal：window 求解器在 `F1_NORTH_W_WINDOW` 收敛失败（4 个 glazing face 温度全 NaN）
 - Root cause：fenestration_agent 把 `WindowMaterial:SimpleGlazingSystem` 当作一层玻璃片，组成 玻璃→空气→玻璃 三明治 Construction（EP IDD 硬约束：SimpleGlazing 必须 standalone）
-- 手工把 `Window_Double_Glazing` Construction 改成单层引用 SimpleGlazing 后 EP `Completed Successfully` / 0 severe / 9 warnings / 14.8 秒（artifacts [`smalloffice_16_newarch/output/ep_run_glazingfix/`](../test_data/SmallOffice/smalloffice_16_newarch/output/ep_run_glazingfix)）
+- 手工把 `Window_Double_Glazing` Construction 改成单层引用 SimpleGlazing 后 EP `Completed Successfully` / 0 severe / 9 warnings / 14.8 秒（artifacts [`smalloffice_16_newarch/output/ep_run_glazingfix/`](../backup/tests_history/SmallOffice/smalloffice_16_newarch/output/ep_run_glazingfix)）
 
 **B. 架构结论**：✅ 半人工 intake → 自动下游 → IDF → EnergyPlus 全链路机制 100% 通；零架构层 bug。所有剩余问题都是单一 subagent prompt 级建模质量
 
@@ -185,11 +185,11 @@ IDF 建模拆「几何阶段」+「MEP 阶段」，独立会话可由不同模�
 **B. 决策**：**两步法立为新主线**。B1.5 提升为最高优先级（[plan.md B1.5](plan.md)）。B2-B4 评测基线规范化并行推进但必须从一开始就支持矢量 JSON 中间层。
 
 **C. Artifacts 迁移**
-- 测试 case：[`test_data/SmallOffice_TwoStep/smalloffice_20/`](../test_data/SmallOffice_TwoStep/smalloffice_20)（与 `SmallOffice/smalloffice_20/` 同素材，两步法跑）
+- 测试 case：[`case_tests/e2e_tests/smalloffice_20/`](../case_tests/e2e_tests/smalloffice_20)（与 `SmallOffice/smalloffice_20/` 同素材，两步法跑）
 - Skill 演进源：[`skills/intake_pipeline/`](../skills/intake_pipeline)（`phase1_vector_schema.md` v1.2 + `phase2_rules.md` v1.3 + 两个 prompt 模板 + README）
 - DeepSeek 自动跑批脚本：[`scripts/run_pipeline_deepseek.py`](../scripts/run_pipeline_deepseek.py)
 - SVG 渲染（phase1 人工校验工具）：[`scripts/tool_scripts/render_vector_to_svg.py`](../scripts/tool_scripts/render_vector_to_svg.py)
-- 三方对比详表：[`test_data/SmallOffice_TwoStep/smalloffice_20/compare/diff.md`](../test_data/SmallOffice_TwoStep/smalloffice_20/compare/diff.md)
+- 三方对比详表：[`case_tests/e2e_tests/smalloffice_20/compare/diff.md`](../case_tests/e2e_tests/smalloffice_20/compare/diff.md)
 
 **D. 后续主线动作**（[plan.md B1.5](plan.md)）
 - B1.5.a 异图 POC v2（噪声 / 装饰 / 索引 / 楼梯）
@@ -281,13 +281,13 @@ IDF 建模拆「几何阶段」+「MEP 阶段」，独立会话可由不同模�
 
 1. **模型切换入口唯一**：[llm.yaml](../src/configs/llm.yaml) + [llm.py](../src/agent/llm.py)；不在节点内硬编码
 2. **多模态改动只改 intake**：不绕过 `intake_node` 把图像直接塞下游
-3. **每次 prompt / 模型变更**：在 [test_baseline/runs/](../test_data/test_baseline/runs) 新建 capability run 记录（模型 ID / prompt hash / 评测结果 / 失败样本）
+3. **每次 prompt / 模型变更**：在 [test_baseline/runs/](../case_tests/test_baseline/runs) 新建 capability run 记录（模型 ID / prompt hash / 评测结果 / 失败样本）
 4. **回归门槛**：切默认 provider 前，端到端跑通率不得低于 Anthropic 基线 80%
 5. **Skill / MCP / 下游 subagent 改动备份**：
    - 动 `../skills/` 或 `../src/mcp/` 前先 `cp -r` 到 `backup/Skill_history/<YYYY-MM-DD>_<reason>/` 或 `backup/MCP_history/<YYYY-MM-DD>_<reason>/`（同日多次加 `_v2` / `_pre_X`）
    - 动 `../src/` 下任何下游 subagent 代码（`agent/nodes/*.py` / `agent/tools/*` / 其他下游 prompt 装配点）前先 `cp` 到 `backup/src_history/<YYYY-MM-DD>_<reason>/<file>.py`，并在 [logs/downstream_agent_changes.md](logs/downstream_agent_changes.md) 加一条改动记录 + 跟协作者交接清单
    - `backup/Skill_history/` / `backup/src_history/` / `backup/MCP_history/` / `backup/scripts_history/`（退役脚本归档，2026-06-14 脚本目录合并时建）是本地 audit / 回退归档。**注（2026-06-14 核实）**：这些目录当前**并未**被 `.gitignore` 排除——`backup/Skill_history`/`backup/MCP_history` 已有跟踪文件、`backup/scripts_history` 也保持跟踪；旧文档曾误称"都被 .gitignore 排除"。是否改为本地-only（忽略）待定
-6. **Baseline 记录触发**：用户说 `记录这次跑 <case> <tag>` → 严格按 [test_baseline/README.md §4.3](../test_data/test_baseline/README.md) 执行（先 `scripts/tool_scripts/baseline_record.py <case> <tag>` 起骨架，用户粘 `/context` 到 `context.txt`，助手填非用户字段，**不替用户填 `dimensions_check`**）
+6. **Baseline 记录触发**：用户说 `记录这次跑 <case> <tag>` → 严格按 [test_baseline/README.md §4.3](../case_tests/test_baseline/README.md) 执行（先 `scripts/tool_scripts/baseline_record.py <case> <tag>` 起骨架，用户粘 `/context` 到 `context.txt`，助手填非用户字段，**不替用户填 `dimensions_check`**）
 7. **本项目交接产物 = IntakeOutput JSON**（2026-05-06 起）：本项目侧职责到 [IntakeOutput Pydantic](../src/agent/state.py#L23)；下游走 [run_full_pipeline.py](../scripts/run_full_pipeline.py) 自动跑产 IDF + 仿真。与此对应，`../skills/energyplus_mcp/` 现为 intake 规则文档库，由 [src/agent/nodes/intake.py](../src/agent/nodes/intake.py) 运行时加载，不再是旧 MCP 主 skill。
 8. **idfpy 替换搁置**（[deferred/idfpy_embed.md](deferred/idfpy_embed.md) §3.1 协作者侧 MCP 重写未交付）：本项目侧 P1/P2 动作冻结
 9. **git 权限下放**：助手可在重要节点（跑通新案例 / skill / MCP / prompt 重大重写完成 / 阶段性里程碑）自行 `git add` + `commit`；commit message 仿仓库风格（`<月.日>_<英文标签>`，如 `5.6_HalfmanualWorkflow`），body 必须含①改动核心 ②为何此刻是节点 ③影响范围。**禁**：`git push`（除非用户明确要求）/ force push / `reset --hard` / 跳 hook / 动 `git config`
@@ -327,13 +327,13 @@ IDF 建模拆「几何阶段」+「MEP 阶段」，独立会话可由不同模�
 | [capability/floorplan_redraw_strategy.md](capability/floorplan_redraw_strategy.md) | 识图泛化：VLM 重绘 + 几何建模两步架构（2026-05-10 策略讨论 + 2026-05-12 §9 POC PASS 结果）|
 | [capability/recognition_modeling_capability.md](capability/recognition_modeling_capability.md) | **识图→建模质量长期主线活文档**（容差内重生成 + 定性>定量；含 sm21 三模型 phase2 诊断 + 4 条改进方向 + 待定取舍）|
 | [`../skills/intake_pipeline/`](../skills/intake_pipeline) | **两步法 skill 演进源**：phase1 三分（guide 总指导 / reading_guide 识图 / pen_library 笔库）;phase2/rules.md（2b 建模）+ **phase2/PartA-correction/（2a 校正 A0–A4，2026-06-07）**|
-| [`../test_data/SmallOffice_TwoStep/`](../test_data/SmallOffice_TwoStep) | **两步法测试语料库**（与 `SmallOffice/` 并列，2026-05-12 新建）|
+| [`../case_tests/e2e_tests/`](../case_tests/e2e_tests) | **两步法测试语料库**（与 `SmallOffice/` 并列，2026-05-12 新建）|
 | [deferred/token_optimization.md](deferred/token_optimization.md) | Token 优化（idfpy 切换后再做）|
 | [reference/open_model_guide.md](reference/open_model_guide.md) | 开源模型操作手册（Continue + 预处理 + MCP）|
 | [deferred/idfpy_embed.md](deferred/idfpy_embed.md) | idfpy 全线替换计划（搁置中）|
 | [logs/downstream_agent_changes.md](logs/downstream_agent_changes.md) | 本项目侧对下游 9 subagent / cross_ref / validate / simulate 代码的 hotfix 记录（备份在 [`../backup/src_history/`](../backup/src_history)）|
 | [logs/backup](logs/backup) | 旧版本 / 历史快照 |
-| [../test_data/test_baseline/README.md](../test_data/test_baseline/README.md) | baseline 字段定义 + 触发流程 |
+| [../case_tests/test_baseline/README.md](../case_tests/test_baseline/README.md) | baseline 字段定义 + 触发流程 |
 | [../.devcontainer/README.md](../.devcontainer/README.md) | 多端开发环境指南(VS Code Dev Container 统一 Win/Mac/云)|
 | [logs/review](logs/review) | 交叉模型审阅工作流目录（`request/` 请求 + `review/` 审阅，见 §6 #14）|
 

@@ -7,7 +7,7 @@ docs or to produce an artifact for comparison).
 
 Usage:
     python scripts/run_pipeline_deepseek.py \\
-        --case test_data/SmallOffice_TwoStep/smalloffice_21
+        --case case_tests/e2e_tests/smalloffice_21
 
 Reads:
     <case>/0_reading/*.json + reading_summary.md

@@ -114,8 +114,8 @@ Human:
 | **多模态视觉理解**（核心） | [src/agent/nodes/intake.py](../../src/agent/nodes/intake.py) | 图像 + 文本 → 11 字段 IntakeOutput |
 | **LLM provider 配置** | [src/agent/llm.py](../../src/agent/llm.py) + [src/configs/llm.yaml](../../src/configs/llm.yaml) | 模型切换唯一入口；待扩 per-subagent 配置（见 §7） |
 | **Intake 规则文档库** | [skills/energyplus_mcp/](../../skills/energyplus_mcp) | **2026-05-10 起重新启用** —— 由 [src/agent/nodes/intake.py](../../src/agent/nodes/intake.py) 运行时加载，作为 intake 识图 / 几何 / 输出契约规则库；能力优化会直接改这里 |
-| **多模态测试数据 + GT** | [test_data/SmallOffice/smalloffice_*/](../../test_data/SmallOffice) | 图 + testdata_prompt.json + 待建 gt.json |
-| **几何阶段 baseline + 评测** | [test_data/test_baseline/](../../test_data/test_baseline) + 待建 [AI_agent/eval/](../eval) | OpenStudio 视察 + 字段级 diff |
+| **多模态测试数据 + GT** | [backup/tests_history/SmallOffice/smalloffice_*/](../../backup/tests_history/SmallOffice) | 图 + testdata_prompt.json + 待建 gt.json |
+| **几何阶段 baseline + 评测** | [case_tests/test_baseline/](../../case_tests/test_baseline) + 待建 [AI_agent/eval/](../eval) | OpenStudio 视察 + 字段级 diff |
 | **本地推理后端** | 待建 [AI_agent/deploy/](../deploy) | vLLM / SGLang / Langfuse self-hosted |
 
 ### 4.2 Out-of-scope（协作者维护权 ≠ 本地无代码）
@@ -136,10 +136,10 @@ Human:
 |---|---|---|---|---|
 | **🎯 桥接 prompt**（半人工流 Opus 实际执行的） | [new_case_guide.md §4.2](../guides/new_case_guide.md#L130) | ✅ 现在 | 短期主战场 | B4 CoT 拆分先打补丁到这里 |
 | **🎯 INTAKE_SYSTEM_PROMPT**（API 自动 intake 的） | [src/agent/nodes/intake.py L34-109](../../src/agent/nodes/intake.py#L34) | ✅ 现在 | 与 §4.2 同步演进，B6 切 API 时生效 |
-| **GT 数据集** | `test_data/SmallOffice/<case>/gt.json` | ✅ 现在 | B1 任务（待建） | 没 GT 就没 B2 评测 |
+| **GT 数据集** | `backup/tests_history/SmallOffice/<case>/gt.json` | ✅ 现在 | B1 任务（待建） | 没 GT 就没 B2 评测 |
 | **diff 评测脚本** | `AI_agent/eval/intake_diff.py` | ✅ 现在 | B2 任务（待建） |
 | **OCR / cv2 预处理 hook** | `scripts/tool_scripts/preprocess_floor_plan.py` | ✅ B5 任务（待建） | 给 Opus 做 hint 注入，不动 graph |
-| **测试输入素材** | [test_data/SmallOffice/<case>/](../../test_data/SmallOffice) | ✅ 现在 | 新案例直接 Step 1-3 起 |
+| **测试输入素材** | [backup/tests_history/SmallOffice/<case>/](../../backup/tests_history/SmallOffice) | ✅ 现在 | 新案例直接 Step 1-3 起 |
 | **下游 9 subagent prompt** | [src/agent/nodes/{material,zone,surface,...}.py](../../src/agent/nodes) | ⚠️ 改但属维护 | bug 修补可改（如 B0' surface T-vertex），prompt 演进归协作者 | idfpy 切换时**必随之改** |
 | **下游 LangChain tool 包装层** | [src/agent/tools/*_tools.py](../../src/agent/tools) | ⚠️ 改但属维护 | 紧贴 MCP 工具签名 | idfpy 切换时**必随之改**（工具数 79→20-25） |
 | **MCP 工具实现** | [src/mcp/tools/](../../src/mcp/tools) + [src/mcp/api/](../../src/mcp/api) | ❌ 等协作者交付 | idfpy 切换主体，~1.5-2 周 | 协作者主导 |
@@ -230,7 +230,7 @@ env vars：`DEEPSEEK_API_KEY` + `ANTHROPIC_API_KEY`（[`.env.example`](../../.en
 
 ### 7.2 IntakeOutput schema drift（2026-05-06 已对齐）
 
-本地 11 字段 / BuildingSchema 8 字段 / SiteLocationSchema 5 字段，与协作者 LangSmith trace `20260414_192502/run_00` 解码出的字段集**逐字段一致**，无 drift。详见 [test_data/test_baseline/runs/2026-05-06_capability_deepseek_v4pro_intake/](../../test_data/test_baseline/runs/2026-05-06_capability_deepseek_v4pro_intake) 的 notes.md。
+本地 11 字段 / BuildingSchema 8 字段 / SiteLocationSchema 5 字段，与协作者 LangSmith trace `20260414_192502/run_00` 解码出的字段集**逐字段一致**，无 drift。详见 [case_tests/test_baseline/runs/2026-05-06_capability_deepseek_v4pro_intake/](../../case_tests/test_baseline/runs/2026-05-06_capability_deepseek_v4pro_intake) 的 notes.md。
 
 ### 7.3 idfpy 替换主线搁置
 

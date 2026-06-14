@@ -101,7 +101,7 @@ Continue 的 workspace 打开 `C:\work\ep-agent` 即可。脚本里用到的所�
 ## 3. 图像预处理（强制步骤）
 
 开源模型会话开始前，**必须**为每个案例跑一次预处理（`<case_dir>` 替换成实际案例路径，
-例如 `test_data/SmallOffice/smalloffice_14`）：
+例如 `backup/tests_history/SmallOffice/smalloffice_14`）：
 
 ```bash
 python scripts/tool_scripts/preprocess_images.py <case_dir>
@@ -190,7 +190,7 @@ mcpServers:
 - `supp_plan.png`(可选)
 
 然后发送下面的文本(`<case_dir>` 替换为实际路径,如
-`test_data/SmallOffice/smalloffice_14`):
+`backup/tests_history/SmallOffice/smalloffice_14`):
 
 ````text
 请按以下历史 open-model skill 文档完成 EnergyPlus IDF 构建,严格遵守 §0 的硬约束
@@ -297,7 +297,7 @@ AI_agent/experiments/<YYYY-MM-DD>_<model-short>/
 
 ```bash
 # Opus baseline produced 里
-test_data/SmallOffice/smalloffice_13/output/
+backup/tests_history/SmallOffice/smalloffice_13/output/
   claude_ep.md / smalloffice_13.yaml / smalloffice_13.idf
 
 # Open-source 实验里（在 experiments/ 下复制一份）
