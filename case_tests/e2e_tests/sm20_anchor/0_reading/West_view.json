@@ -1,0 +1,55 @@
+{
+  "image_label": "West view of the building",
+  "image_kind": "elevation",
+  "facade_axis_note": "West facade: local x = -world y (local x increasing = world southward); local y = world z (increasing upward, ground z=0)",
+  "scale_origin": {
+    "world_x_m": 0.00,
+    "world_y_m": 8.00,
+    "world_z_m": 0.00,
+    "note": "本图本地原点 = 西立面外周左下角 = 西立面 NW 底角（世界 (0, 8, 0)）；x_local 沿世界 y-，y_local 沿世界 z+"
+  },
+
+  "strokes": [
+    {"id": "S1", "pen": "wall_fill", "geometry": {"kind": "rect", "x_range_m": [0.00, 8.00], "y_range_m": [0.00, 3.60]},  "note": "F1 墙身灰填充"},
+    {"id": "S2", "pen": "wall_fill", "geometry": {"kind": "rect", "x_range_m": [0.00, 8.00], "y_range_m": [3.60, 7.20]}, "note": "F2 墙身灰填充"},
+    {"id": "S3", "pen": "wall_fill", "geometry": {"kind": "rect", "x_range_m": [0.00, 8.00], "y_range_m": [7.20, 12.00]}, "note": "F3 墙身灰填充"},
+
+    {"id": "S4", "pen": "window", "geometry": {"kind": "rect", "x_range_m": [3.50, 4.50], "y_range_m": [8.20, 10.60]}, "note": "F3 中心小窗（仅本立面 F3 有 1 个窗，F1/F2 无窗）"}
+  ],
+
+  "dimensions": [
+    {"id": "D1",  "text": "8.00", "from": [0.00, 12.00], "to": [8.00, 12.00], "axis": "x", "note": "顶部总长链"},
+    {"id": "D2",  "text": "3.50", "from": [0.00, 12.00], "to": [3.50, 12.00], "axis": "x", "note": "顶部分段（F3 窗左侧墩）"},
+    {"id": "D3",  "text": "1.00", "from": [3.50, 12.00], "to": [4.50, 12.00], "axis": "x", "note": "F3 窗宽"},
+    {"id": "D4",  "text": "3.50", "from": [4.50, 12.00], "to": [8.00, 12.00], "axis": "x", "note": "顶部分段（F3 窗右侧墩）"},
+
+    {"id": "D5",  "text": "8.00", "from": [0.00, 0.00],  "to": [8.00, 0.00],  "axis": "x", "note": "底部总长链"},
+
+    {"id": "D6",  "text": "12.00", "from": [0.00, 0.00],  "to": [0.00, 12.00], "axis": "y", "note": "左侧总高链"},
+    {"id": "D7",  "text": "3.60",  "from": [0.00, 0.00],  "to": [0.00, 3.60],  "axis": "y", "note": "F1 层高"},
+    {"id": "D8",  "text": "3.60",  "from": [0.00, 3.60],  "to": [0.00, 7.20],  "axis": "y", "note": "F2 层高"},
+    {"id": "D9",  "text": "4.80",  "from": [0.00, 7.20],  "to": [0.00, 12.00], "axis": "y", "note": "F3 层高"},
+
+    {"id": "D10", "text": "12.00", "from": [8.00, 0.00],  "to": [8.00, 12.00], "axis": "y", "note": "右侧总高链"},
+    {"id": "D11", "text": "3.60",  "from": [8.00, 0.00],  "to": [8.00, 3.60],  "axis": "y", "note": "F1 层高（右）"},
+    {"id": "D12", "text": "3.60",  "from": [8.00, 3.60],  "to": [8.00, 7.20],  "axis": "y", "note": "F2 层高（右）"},
+    {"id": "D13", "text": "1.00",  "from": [8.00, 7.20],  "to": [8.00, 8.20],  "axis": "y", "note": "F3 楼板顶到 F3 窗 sill"},
+    {"id": "D14", "text": "2.40",  "from": [8.00, 8.20],  "to": [8.00, 10.60], "axis": "y", "note": "F3 窗高"},
+    {"id": "D15", "text": "1.40",  "from": [8.00, 10.60], "to": [8.00, 12.00], "axis": "y", "note": "F3 窗顶到屋顶"}
+  ],
+
+  "ocr_texts": [],
+
+  "self_check": {
+    "all_dimensions_transcribed": true,
+    "all_visible_strokes_captured": true,
+    "no_topology_inferred": true,
+    "pens_used": ["wall_fill", "window"],
+    "unknowns_noted": [
+      "本立面仅 F3 有 1 个小窗，F1/F2 无窗 → strokes 仅 1 个 window",
+      "立面外周轮廓与 wall_fill 边重合 → 未单独画 outline stroke",
+      "本立面宽 8.00；本图本地 x 增方向为世界 y- 方向（schema §4），窗在本图视觉中位 x_local≈[3.50,4.50]"
+    ],
+    "uncaptured_visual_elements": []
+  }
+}
