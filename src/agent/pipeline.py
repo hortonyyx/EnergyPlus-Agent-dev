@@ -139,8 +139,16 @@ def _section(stage: str) -> dict:
         # Section exists: load and resolve it; any error here is a real config
         # problem and must not be swallowed.
         return load_llm_section(section_name)
-    # Section absent: fall back to intake_correction (still raises if that
-    # section is also absent or broken).
+    # Section absent: fall back to intake_correction — but ONLY if it is itself
+    # present. We must NOT delegate the absence to load_llm_section, which would
+    # silently resolve to the downstream `default` ReAct config (wrong model /
+    # thinking / temperature). A missing intake_correction is a hard config error.
+    if "intake_correction" not in raw_keys:
+        raise RuntimeError(
+            f"llm.yaml has no 'intake_correction' section (required as the "
+            f"fallback for '{section_name}'); refusing to silently use 'default'. "
+            f"Add an 'intake_correction' section to the config."
+        )
     return load_llm_section("intake_correction")
 
 

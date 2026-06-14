@@ -26,7 +26,7 @@ Step 5 一次性自动跑（管线 + 下游 + EP，全部 llm.yaml 配置）
          --base-dir case_tests/e2e_tests --reading-from 0_reading
    - intake_node 跑管线（矢量 → IntakeOutput）→ 9 subagent → cross_ref
      → validate → 装配 IDF → InterZone 几何门 → simulate
-   - 产出：<case>/output/intake_output.json + temp_*.yaml/.idf + eplusout.*
+   - 产出（默认正式流）：阶段目录 `<case>/{1_correction,2_modelling,3_split_pairing,4_mep,5_intakeoutput}/`（权威 `5_intakeoutput/intake_output.json`）+ 下游与 EP 在 `<case>/EP_run/`（temp_*.yaml/.idf + eplusout.*）
    ↓
 Step 6 验收（L1 Pydantic / L2 cross_ref / InterZone 门 / L3 OpenStudio / L4 EP）
 Step 7 留痕到 case_tests/test_baseline/runs/
@@ -180,7 +180,7 @@ python scripts/run_full_pipeline.py <case> --base-dir case_tests/e2e_tests --ini
 1. **校验入参**：`<case>/0_reading/` 存在且含 `*.json` + `reading_summary.md`；`testdata_prompt.json` 存在
 2. **echo 模型配置**：先解析本次用哪份配置(`<case>/llm.yaml` 若存在,否则全局),再 echo 其 `intake_correction` + `default` + flash 关键字段(照 §5.1 表),并报明配置文件路径
 3. **询问 y/n**：`以上配置开跑？(y/n)`
-4. **y** → 后台启动命令，stdout tee 到 `<case>/output/pipeline_run.log`。完成后报告每节点 + InterZone 门结果 + EP 状态
+4. **y** → 后台启动命令，stdout tee 到 `<case>/EP_run/pipeline_run.log`（默认正式流）。完成后报告每节点 + InterZone 门结果 + EP 状态
 5. **n** → 等用户改 llm.yaml 后再触发
 
 ### 5.3 命令（助手内部执行 / 用户绕过时手敲）
@@ -223,7 +223,7 @@ python scripts/run_pipeline_deepseek.py --case case_tests/e2e_tests/<case>
 | 现象 | 处理 |
 |---|---|
 | `RuntimeError: ... no api_key` | 检查 `.env` 的 `DEEPSEEK_API_KEY` |
-| 管线报 JSON decode / Pydantic 错 | 看 `<case>/output/pipeline_out/{raw_response,parse_error}.txt`；多半是校正/建模规则缺口或识图矢量有问题 |
+| 管线报 JSON decode / Pydantic 错 | 默认正式流看 `<case>/1_correction/correction_{raw,parse_error}.txt` 或 `<case>/4_mep/mep_{raw,parse_error}.txt`（dev `run_pipeline_deepseek` 流在 `<case>/pipeline_out/` 下同名）；多半是校正/建模规则缺口或识图矢量有问题 |
 | 管线卡很久 | client 已设 `timeout=600`；超时会报错而非挂死 |
 | `cross_ref_*` 报命名 drift | 管线输出跨字段命名不一致；看 1_correction/4_mep 命名约束 |
 | **InterZone 门 fail（`success=False`）** | 看日志 `interzone_pair_issues`：退化碎片 / 面积不符 / 不互逆 = **跨层 split-pairing 几何质量问题**（识图建模质量主线）。门正确挡下，**不是架构 bug**；IDF 已落盘可检视 |
@@ -248,7 +248,7 @@ import sys, json
 sys.path.insert(0, '.')
 from src.agent._share import ensure_schema_initialized; ensure_schema_initialized()
 from src.agent.state import IntakeOutput
-d = json.loads(open('case_tests/e2e_tests/<case>/output/intake_output.json', encoding='utf-8').read())
+d = json.loads(open('case_tests/e2e_tests/<case>/5_intakeoutput/intake_output.json', encoding='utf-8').read())
 io = IntakeOutput.model_validate(d); print('OK 11 fields; building=', io.building.name)
 "
 ```

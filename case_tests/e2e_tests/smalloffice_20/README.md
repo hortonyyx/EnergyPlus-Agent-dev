@@ -1,6 +1,8 @@
 # smalloffice_20 — 两步法 POC anchor
 
-> 2026-05-12 跑出。原 case `SmallOffice/smalloffice_20/` 的同素材复用版本，用两步法跑。架构通透性 + 识图泛化 + 微调可行性的硬证据。
+> ⚠️ **历史 POC 记录（2026-05-12），不可按当前主线复现**：下文「如何复现」的命令/路径是当时状态，含**已退役**脚本（`run_phase2_deepseek.py`）、旧目录名（`phase1_vector/` 现为 `0_reading/`、`test_data/SmallOffice_TwoStep/` 现为 `case_tests/e2e_tests/`）与从未存在的 flag（`--case-root`）。**当前复现以 [AI_agent/guides/new_case_guide.md](../../../AI_agent/guides/new_case_guide.md) 为准**（`run_full_pipeline.py <case> --base-dir case_tests/e2e_tests --reading-from 0_reading`）。本文保留作 POC 验收的审计记录。
+>
+> 2026-05-12 跑出。原 case `backup/tests_history/SmallOffice/smalloffice_20/` 的同素材复用版本，用两步法跑。架构通透性 + 识图泛化 + 微调可行性的硬证据。
 
 ## 验收 PASS 项
 

@@ -64,13 +64,13 @@
 
 ### 0.1 目标总架构（2026-06-09 用户定调）— 几何彻底确定性化
 
-当前 phase2b 一步出全部 specs（含几何造面 + 切配 = LLM 做）。**目标**把几何从 LLM 手里全部收进代码：
+几何已彻底确定性化（0–5 重构落地）：几何造面 + 切配全部从 LLM 手里收进代码内核，LLM 只剩校正判断 + 物理语义。本节定义的目标架构**对矩形情形已落地**（非矩形随 B5 shapely）：
 
 ```
-识图        校正                  建模·几何模型      切配·仿真模型       物理信息挂载       下游·产品组装
-phase1      phase2a判断 + 确定性核  cells→zones+面     面切分+互逆配对      材料/时间表/HVAC    9 subagent
-(LLM/VLM)   (LLM + 代码)          (确定性·待建)       (确定性·待建)        (LLM/模板)         (确定性装配)
-感知         CorrectedGeometry     几何建筑模型        EP合法仿真几何        物理信息挂上         IDF + EP
+识图          校正                建模·几何模型      切配·仿真模型       物理信息挂载       下游·产品组装
+0_reading     1_correction判断+核  2_modelling        3_split_pairing     4_mep              9 subagent
+(LLM/VLM)     (LLM + 代码)        (确定性·已落地)    (确定性·已落地)     (LLM/模板)         (确定性装配)
+感知           CorrectedGeometry   cells→zones+面     面切分+互逆配对      物理信息挂上         IDF + EP
 ```
 
 **一刀切分原则**：**LLM 只做 感知（识图）+ 校正判断 + 物理语义挂载；代码做 所有几何（建模 + 切配）+ 装配。** 「建模·几何」（cells→zones+墙/楼板/天花面 + OBC 判定 + 顶点合成）与「切配·仿真」（跨层/邻区面切分 + 互逆配对）都收进**确定性造面/切配内核**（核之后、吃 cells），整块吃掉 `rules.md`（已退役，归档 backup/Skill_history） §4/§2.6 + [surface.py](../../src/agent/nodes/surface.py) 的脆弱几何指令。产出**已完整解析的 surface_specs**，下游 surface_agent 退化成忠实誊写——**`IntakeOutput` 契约不变、下游代码不动**。
@@ -161,26 +161,26 @@ phase1      phase2a判断 + 确定性核  cells→zones+面     面切分+互逆
 
 ### 3.1 固化的 on-disk 布局 + 每阶段校验工具（2026-06-09）
 
-`run_full_pipeline.py <case> --base-dir case_tests/e2e_tests --reading-from phase1` 产出按阶段分门别类（[run_full_pipeline.py](../../scripts/run_full_pipeline.py) + [pipeline.py](../../src/agent/pipeline.py) `run_pipeline` 固化）：
+`run_full_pipeline.py <case> --base-dir case_tests/e2e_tests --reading-from 0_reading` 产出按阶段分门别类（[run_full_pipeline.py](../../scripts/run_full_pipeline.py) + [pipeline.py](../../src/agent/pipeline.py) `run_pipeline` 固化）：
 
 ```
 <case>/
   *.png, testdata_prompt.json        源素材（输入）
   llm.yaml                           per-case 模型组合
-  phase1/  (= 0_reading)             phase1 产物（半人工 / sub-agent）
+  0_reading/                         识图产物（半人工 / sub-agent）
     {1f,2f,..}_view.json + *_render.png + reading_summary.md
-  1_correction/                      phase2a 校正 + 确定性核
+  1_correction/                      校正(LLM) + 确定性核
     correction_geometry.json            LLM 直出（pre-snap）
     correction_geometry_snapped.json    核吸附后（权威坐标）
-    corrections.json                 2a+核 audit
-    phase2a_raw.txt
+    corrections.json                 校正+核 audit
+    correction_raw.txt               (+ correction_thinking.txt / correction_parse_error.txt)
   2_modelling/                       几何内核 build
     building_geometry.json           zones+面（确定性造面+切配结果）
     kernel_gate_report.json          InterZone 门对内核几何的判定（advisory）
   3_split_pairing/
     geometry_specs.md                序列化的 zone/surface/fenestration specs
   4_mep/                             物理撰写（LLM）
-    mep_output.json + mep_raw.txt
+    mep_output.json + mep_raw.txt    (+ mep_thinking.txt / mep_parse_error.txt)
   5_intakeoutput/
     intake_output.json               IntakeOutput 交接契约
     contract_issues.json             契约校验失败时（缺 construction 等）
@@ -190,9 +190,9 @@ phase1      phase2a判断 + 确定性核  cells→zones+面     面切分+互逆
 
 | 阶段 | 产物 | 校验工具 / 信号 |
 |---|---|---|
-| phase1 | `phase1/*.json` | [render_vector_to_png.py](../../scripts/tool_scripts/render_vector_to_png.py)/`_svg.py` → 肉眼比对原图 |
-| phase2a+核 | `partA/*.json` | [render_corrected_geometry.py](../../scripts/tool_scripts/render_corrected_geometry.py) → 逐层平面图肉眼看（cells 铺满? 跨层轴统一? 窗在对的立面?）；Pydantic 结构；`corrections.json` audit。**待补**：A0 §7 确定性校验器（coverage/closure/z-stack，见 §5.1 类） |
-| phase2b | `partB/intake_output.json` | Pydantic + 下游 L2 cross_ref |
+| 0_reading | `0_reading/*.json` | [render_vector_to_png.py](../../scripts/tool_scripts/render_vector_to_png.py)/`_svg.py` → 肉眼比对原图 |
+| 1_correction+核 | `1_correction/*.json` | [render_corrected_geometry.py](../../scripts/tool_scripts/render_corrected_geometry.py) → 逐层平面图肉眼看（cells 铺满? 跨层轴统一? 窗在对的立面?）；Pydantic 结构；`corrections.json` audit。**待补**：A0 §7 确定性校验器（coverage/closure/z-stack，见 §5.1 类） |
+| 5_intakeoutput | `5_intakeoutput/intake_output.json` | Pydantic + 下游 L2 cross_ref |
 | 下游+EP | `EP_run/` | **InterZone 门**（EP 前 fail-fast，确定性）+ L3 OpenStudio + L4 EP completed |
 
 ---
@@ -227,6 +227,6 @@ phase1      phase2a判断 + 确定性核  cells→zones+面     面切分+互逆
 ---
 
 ## 6. 范围说明
-- **切配 + cell→面几何生成**（互逆配对 / 造面 / OBC / 顶点）= **本项目侧确定性化、核之后做**（§0.1；2026-06-09 反转旧"归下游"定，见 [split_pairing_kernel_reference §6](../reference/split_pairing_kernel_reference.md)）。**待建**。
+- **切配 + cell→面几何生成**（互逆配对 / 造面 / OBC / 顶点）= **本项目侧确定性化、核之后做**（§0.1；2026-06-09 反转旧"归下游"定，见 [split_pairing_kernel_reference §6](../reference/split_pairing_kernel_reference.md)）。**已落地（矩形）**：[geometry/](../../src/agent/geometry) `modelling.py`+`split_pairing.py`+`specs.py` 接进 `run_pipeline`；非矩形随 B5 shapely。
 - **下游 9 subagent / cross_ref / validate prompt** = 协作者维护（本地有代码）。
 - **InterZone 覆盖完整性校验**（shapely 长期解）= 标记未实现，落地时机 = B5 非方形 / 招到暴露 case（[downstream_agent_changes.md 2026-05-29 条](../logs/downstream_agent_changes.md)）。

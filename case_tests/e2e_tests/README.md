@@ -1,45 +1,42 @@
-# SmallOffice_TwoStep — 两步法识图建模测试语料库
+# e2e_tests — 两步法 0–5 管线端到端测试语料库
 
-> 与 [`../SmallOffice/`](../SmallOffice/) 并列。该目录里的所有 case **使用两步法 intake**（phase1 矢量化重绘 → phase2 拓扑建模），而 `SmallOffice/` 走旧的单步多模态 intake。
+> 本目录 case 走当前主线：**0_reading 识图（半人工 / 未来 VLM）→ `run_pipeline`（1_correction 校正 → 几何确定性内核 2_modelling+3_split_pairing → 4_mep 物理 → 5_intakeoutput 装配）→ 9 subagent 下游 → InterZone 门 → EnergyPlus**。完整流程见 [AI_agent/guides/new_case_guide.md](../../AI_agent/guides/new_case_guide.md)。
+>
+> 退役的单步多模态语料归档在 [`../../backup/tests_history/SmallOffice/`](../../backup/tests_history/SmallOffice/)。
 
-## 缘起
-
-2026-05-12 sm_20 POC 验证：
-- F3 corridor 窗 z 修正（B1 残留 slip） — 两步法两条路径都准 / 单步 anchor 错
-- DeepSeek 两步法全链路 EP cleanly 跑通（0 severe / 9 warning）
-- 架构通透性 + 识图泛化 + 微调可行性同时验证
-
-详见 [`smalloffice_20/compare/diff.md`](smalloffice_20/compare/diff.md) + [AI_agent/floorplan_redraw_strategy.md](../../AI_agent/capability/floorplan_redraw_strategy.md) §9。
-
-## 标准 case 目录结构
+## 标准 case 目录结构（0–5 阶段化）
 
 ```
 <case>/
-├── *_view.png / supp_plan.png         # 源图纸
-├── testdata_prompt.json               # 元信息（楼层数 / 用途 / 城市 ...）
-├── phase1_prompt.md                   # phase1 启动 prompt（粘进新 Claude Code 会话）
-├── phase2_prompt.md                   # phase2 启动 prompt（同上）
-├── vector_schema_v*.md                # phase1 矢量 JSON schema（运行时本地副本）
-├── phase2_rules.md                    # phase2 规则（运行时本地副本）
-├── phase1_vector/                     # phase1 产物（每图一份 JSON + SVG + summary）
-├── phase2_intake/{opus,deepseek}/     # phase2 产物（intake_output.json 等）
-├── output_<llm>/                      # run_full_pipeline 下游 + EP 产物
-├── step6_<llm>.log                    # 下游链路日志
-└── compare/diff.md                    # 路径间三方对比（含 anchor 一步法）
+├── *_view.png / supp_plan.png         # 源图纸（输入）
+├── testdata_prompt.json               # 元信息（楼层数 / 用途 / 城市 …）
+├── llm.yaml                           # per-case 模型组合（可选；--init-llm-config 生成）
+├── 0_reading/                         # 识图产物：{1f,2f,…}_view.json + *_render.png + reading_summary.md
+├── 1_correction/                      # 校正(LLM)+确定性核：correction_geometry(_snapped).json + corrections.json + correction_raw.txt
+├── 2_modelling/                       # 几何内核：building_geometry.json + kernel_gate_report.json
+├── 3_split_pairing/                   # geometry_specs.md（序列化 zone/surface/fenestration specs）
+├── 4_mep/                             # 物理(LLM)：mep_output.json + mep_raw.txt
+├── 5_intakeoutput/                    # 权威 intake_output.json + contract_issues.json
+└── EP_run/                            # 下游装配 + EP：temp_*.idf/.yaml + eplusout.* + pipeline_run.log
 ```
 
-## 标准 schema / rules 来源
+> 实验产物目录（`output_*` / `*_pre` 等）按 [CLAUDE.md §5.9.E](../../AI_agent/CLAUDE.md) 惯例不入库（.gitignore 排除）。
 
-每个 case 的 `vector_schema_v*.md` 和 `phase2_rules.md` 是运行时**本地副本**，记录该次跑用的版本（audit anchor）。**演进版本** 在 [`../../skills/energyplus_mcp_twostep/`](../../skills/energyplus_mcp_twostep/) 维护，新建 case 时从 skill 复制最新版到 case 目录。
+## 规则文档来源
+
+几何规则在代码（`src/agent/geometry/`，确定性、不靠 prompt）；校正/物理规则在唯一 skill 库 [`../../skills/intake_pipeline/`](../../skills/intake_pipeline)（`1_correction/` 校正、`4_mep/` 物理），运行时由 `src/agent/pipeline.py` 按阶段加载。**case 目录不再放规则副本**——规则随主线 skill 库演进，不在 case 内复制。
 
 ## 当前 case
 
 | case | 状态 | 备注 |
 |---|---|---|
-| `smalloffice_20/` | ✅ POC validated 2026-05-12 | 19 zones / 16 windows / F2 北 4 不对称窗 + F3 通长窗 + F3 corridor 窗。OpenStudio 几何视察 PASS。DeepSeek 路径 EP cleanly；Opus 路径 EP fatal (phase2_rules v1.3 修复) |
+| `smalloffice_20/` | ✅ 干净 anchor | 3 层 19 区 / 16 窗；首个两步法 EP cleanly anchor（2026-05-12）|
+| `smalloffice_21/` | ✅ 干净 anchor | 2 层异图 14 区 / 100 面 / 15 窗；首个异图端到端（2026-05-28）|
+| `smalloffice_21_pre/` | 实验 | 干净手搓输入版（不入库）|
+| `smalloffice_22/` | ✅ | 第 3 个干净 anchor + per-case 模型配置验证 |
+| `smalloffice_23/` | ✅ | 单层 9 区 / 11 窗，EP 干净跑通 |
 
-## 与旧 corpus（`SmallOffice/`）的关系
+## 与归档单步语料（`backup/tests_history/SmallOffice/`）的关系
 
-- 旧 corpus 仍保留作 anchor + 历史 baseline 数据。`smalloffice_20/output_new/intake_output.json` 是单步 anchor（POC 对比用）
-- 新 corpus（本目录）是两步法的工作区，后续新建 case 默认进这里
-- 等两步法成为主线后，`SmallOffice/` 历史 case 可逐步迁移过来重跑
+- 旧单步 corpus 保留作历史 baseline / anchor 数据；`smalloffice_20/output_new/intake_output.json` 是单步 anchor（POC 对比用）。
+- 新建 case 默认进本目录，走两步法 0–5 管线。

@@ -17,8 +17,9 @@ Intake flows (pick one):
         python scripts/run_full_pipeline.py <case> \
             --intake-from output/intake_output.json
 
-    Flow AUTO  (legacy single-step image -> IntakeOutput; needs ANTHROPIC_API_KEY):
-        python scripts/run_full_pipeline.py <case>
+    (The legacy single-step AUTO flow — `run_full_pipeline.py <case>` with no
+    --reading-from / --intake-from — is RETIRED: intake_node raises on no input.
+    Pick one of the two flows above.)
 
     Optional --intake-only flag stops after intake (also works with --reading-from
     to run the pipeline only and dump intake_output.json).

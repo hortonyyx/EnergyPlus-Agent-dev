@@ -2,6 +2,8 @@
 
 > 项目管理上下文，主要供 LLM 会话首加载读取。详细架构见 [architecture/architecture.md](architecture/architecture.md)；标准工作流见 [guides/new_case_guide.md](guides/new_case_guide.md)；行动清单见 [plan.md](plan.md)。
 
+> **术语 banner（2026-06-10 改名后，当前唯一口径）**：管线 = **0_reading**（识图）→ **1_correction**（校正,LLM）→ **2_modelling**+**3_split_pairing**（几何内核,代码）→ **4_mep**（物理,LLM）→ **5_intakeoutput**（装配,代码）。代码入口 `src/agent/pipeline.py:run_pipeline`。**历史叙述（§5 / changelog / logs/）沿用旧称**——phase1=0_reading / phase2a=1_correction / phase2b=2_modelling+…+5_intakeoutput / `run_phase2`→`run_pipeline`；读历史段落时按此对照，勿当当前接口。
+
 ---
 
 > ✅ **0–5 阶段重构完成（2026-06-09→06-10，Step 1–8）**：管线重构为 **0–5 阶段架构**（0_Reading/1_Correction/2_Modelling/3_Split-pairing/4_MEP/5_Intakeoutput），commits `29845ea`/`6117f58`/`945c54c`/`600f7d0`/`a978009`/`763ee97`/`c0dddc4`/`3577…`。几何已彻底确定性化（内核造面+切配→序列化 surface_specs，fork a 下游誊写），phase2b 解耦成 4_MEP(LLM 物理)+5_intakeoutput(确定性装配)，`IntakeOutput` 契约不变。**Step 8 e2e（干净 sm21）**：确定性几何 InterZone 门 0 issue + 4_MEP 契约 0 issue + 下游忠实誊写 100 面 + 装配 IDF 门 0 pair_issues（对照旧 staged 12–26 issue）。详见 §5.11 + [handoff](logs/2026-06-09_pipeline_0-5_refactor_handoff.md) + [pipeline_stage_contracts.md](architecture/pipeline_stage_contracts.md)。
@@ -16,24 +18,25 @@
 - 根目录：[..](..)；项目说明：[../README.md](../README.md)
 - 目标：建筑设计意图（YAML / 自然语言 / 建筑图纸）→ 合法 EnergyPlus IDF + 仿真完成
 
-### 1.2 当前架构（2026-05-29 起两步法主线；2026-06-07 phase2 切三段）
+### 1.2 当前架构（2026-05-29 起两步法主线；2026-06-09 起 0–5 阶段管线）
 
 ```
 [建筑图 + 文本]
    ↓
-phase1 识图（半人工 Opus 子代理 / 未来 VLM）→ phase1_vector/*.json + summary
+0_reading 识图（半人工 Opus 子代理 / 未来 VLM）→ <case>/0_reading/*.json + reading_summary.md
    ↓
-phase2（image-blind）几何确定性化（Step 2–6，2026-06-09）：
-   2a 校正(LLM) → 确定性核(代码) → 几何内核 造面+切配(代码) → 序列化 surface_specs
-                                  → 4_MEP 物理(LLM) → 5_intakeoutput 装配+契约校验(代码)
+run_pipeline（image-blind，src/agent/pipeline.py）几何彻底确定性化：
+   1_correction 校正(LLM,出 CorrectedGeometry) → 确定性核(代码)
+     → 2_modelling 造面 + 3_split_pairing 互逆配对/跨层切分（几何内核,代码）→ 序列化 surface_specs
+     → 4_mep 物理(LLM,只产 8 非几何字段) → 5_intakeoutput 装配+契约校验(代码)
    ↓ 落盘 IntakeOutput Pydantic JSON ── 本项目侧交接契约（11 字段不变）──
    ↓
 自动下游（9 subagent，本地 LangGraph）→ InterZone 门(EP前) → IDF / EnergyPlus
 ```
 
-- **权威接线**：[architecture/pipeline_stage_contracts.md](architecture/pipeline_stage_contracts.md)（子流程↔skill↔中间产物，2026-06-09；取代下方 architecture.md 的管线部分）
-- **intake/phase2**：[../src/agent/nodes/intake.py](../src/agent/nodes/intake.py) 三路分发 → [../src/agent/pipeline.py](../src/agent/pipeline.py) `run_phase2`（2a/核/2b）；确定性核 [../src/agent/correction/](../src/agent/correction)
-- **下游 9 subagent + simulate**：[../scripts/run_full_pipeline.py](../scripts/run_full_pipeline.py)（`<case>` 全自动 / `--reading-from` 半人工 phase1 / `--intake-from` 跳 phase2）调 [../src/agent/graph.py](../src/agent/graph.py)
+- **权威接线**：[architecture/pipeline_stage_contracts.md](architecture/pipeline_stage_contracts.md)（子流程↔skill↔中间产物）
+- **intake/pipeline**：[../src/agent/nodes/intake.py](../src/agent/nodes/intake.py) 两路分发（短路 `--intake-from` / `--reading-from` 0_reading→pipeline；无输入则 raise，legacy 单步已退役）→ [../src/agent/pipeline.py](../src/agent/pipeline.py) `run_pipeline`（run_correction→核→几何内核→run_mep→装配）；确定性核 [../src/agent/correction/](../src/agent/correction)、几何内核 [../src/agent/geometry/](../src/agent/geometry)
+- **下游 9 subagent + simulate**：[../scripts/run_full_pipeline.py](../scripts/run_full_pipeline.py)（`--reading-from` 半人工 reading→pipeline / `--intake-from` 用现成 IntakeOutput；无参数报错）调 [../src/agent/graph.py](../src/agent/graph.py)
 - **协作者侧 LangSmith**：trace `20260414_192502/` 是本地 graph 的镜像 / 演化版（[§5.2](#52-协作者侧-langsmith-trace-20260414_192502-2026-05-05)），他们维护下游 prompt 演进，本项目本地有完整可独立跑代码
 - **完整工作流**：[guides/new_case_guide.md](guides/new_case_guide.md)（两步法正式版）
 
@@ -42,9 +45,10 @@ phase2（image-blind）几何确定性化（Step 2–6，2026-06-09）：
 | 路径 | 作用 |
 |---|---|
 | [../src/agent](../src/agent) | 14 节点 LangGraph（intake → 9 subagent → cross_ref → validate → simulate）|
-| [../src/agent/nodes/intake.py](../src/agent/nodes/intake.py) | intake_node 三路分发（短路 `--intake-from` / phase1矢量→phase2 / legacy 单步）|
-| [../src/agent/pipeline.py](../src/agent/pipeline.py) | phase2 单一实现：2a 校正 → 确定性核 → 2b 建模；中间态全物化 |
-| [../src/agent/correction/](../src/agent/correction) | `schema.py`（CorrectedGeometry 中间态）+ `deterministic.py`（确定性核：规范轴吸附+碎片守卫）|
+| [../src/agent/nodes/intake.py](../src/agent/nodes/intake.py) | intake_node 两路分发（短路 `--intake-from` / `--reading-from` 0_reading 矢量→`run_pipeline`；无输入 raise，legacy 单步已退役）|
+| [../src/agent/pipeline.py](../src/agent/pipeline.py) | 0–5 单一实现 `run_pipeline`：1_correction 校正(LLM) → 确定性核 → 2_modelling+3_split_pairing 几何内核(代码) → 4_mep 物理(LLM) → 5_intakeoutput 装配+契约校验；中间态全物化（`run_correction`/`run_mep` 子步）|
+| [../src/agent/correction/](../src/agent/correction) | `schema.py`（CorrectedGeometry 中间态）+ `deterministic.py`（确定性核：规范轴吸附+碎片守卫）+ `config.py`（容差 registry）|
+| [../src/agent/geometry/](../src/agent/geometry) | 几何确定性内核：`modelling.py`（cells→体块+造面）+ `split_pairing.py`（互逆配对+跨层切分）+ `specs.py`（序列化 surface_specs）；`intakeoutput.py` 装配 + `validate_contract` |
 | [../src/validator/interzone.py](../src/validator/interzone.py) | InterZone 确定性几何门（EP 前 fail-fast）|
 | [../src/agent/llm.py](../src/agent/llm.py) + [../src/configs/llm.yaml](../src/configs/llm.yaml) | LLM 工厂 + 多 section（per-case `<case>/llm.yaml` 经 `EP_AGENT_LLM_CONFIG` 覆盖）|
 | [../src/mcp](../src/mcp) | MCP 工具集（idfpy 替换主线搁置中，[deferred/idfpy_embed.md](deferred/idfpy_embed.md)）|
@@ -65,7 +69,7 @@ LangGraph + LangChain（`init_chat_model("{provider}:{model_name}")` 路由）�
 ### 2.1 In-scope
 1. `intake_node` 多模态理解（图 + 文本 → IntakeOutput Pydantic JSON）— **核心战场**
 2. [../src/agent/llm.py](../src/agent/llm.py) provider 抽象与开源模型接入
-3. Skill 提示词演进（`../skills/energyplus_mcp/`，几何阶段拆分版）
+3. Skill 提示词演进（`../skills/intake_pipeline/`，0–5 阶段库：0_reading/1_correction/2_modelling/3_split_pairing/4_mep/5_intakeoutput）
 4. 多模态测试数据集 + baseline + 评测
 5. 本地推理后端（vLLM / SGLang，等 Pivot 准入）
 
@@ -207,7 +211,7 @@ IDF 建模拆「几何阶段」+「MEP 阶段」，独立会话可由不同模�
 
 **C. 决策：切两步法新架构 greenlight**：POC v2 异图跑通 → 确定切两步法为主线架构，[plan.md B1.5.c](plan.md)（`intake_node` 重写为 phase1+phase2 串行）就此解禁。**建模质量问题（几何细节等）仍较大，按"切架构 + 质量慢慢解决"并行推进**，不阻塞架构切换。
 
-**D. prompt 模板归一 + 工具修整**：phase1/phase2 启动 prompt 从 skill 库移进 [guides/new_case_guide_twostep.md](guides/new_case_guide_twostep.md) Step 4a/4b（一处，[[skills-lib-clean-spec-policy]]）；[`run_pipeline_deepseek.py`](../scripts/run_pipeline_deepseek.py) 改为从 skill 库直接读规则文档（消除 case 级陈旧副本依赖）。
+**D. prompt 模板归一 + 工具修整**：phase1/phase2 启动 prompt 从 skill 库移进 `guides/new_case_guide_twostep.md`（已删，prompt 后并入 new_case_guide.md 附录）Step 4a/4b（一处，[[skills-lib-clean-spec-policy]]）；[`run_pipeline_deepseek.py`](../scripts/run_pipeline_deepseek.py) 改为从 skill 库直接读规则文档（消除 case 级陈旧副本依赖）。
 
 ### 5.8 两步法切主线架构落地 + InterZone 确定性几何门 + 正式流程指南（2026-05-29）
 
@@ -288,7 +292,7 @@ IDF 建模拆「几何阶段」+「MEP 阶段」，独立会话可由不同模�
    - 动 `../src/` 下任何下游 subagent 代码（`agent/nodes/*.py` / `agent/tools/*` / 其他下游 prompt 装配点）前先 `cp` 到 `backup/src_history/<YYYY-MM-DD>_<reason>/<file>.py`，并在 [logs/downstream_agent_changes.md](logs/downstream_agent_changes.md) 加一条改动记录 + 跟协作者交接清单
    - `backup/Skill_history/` / `backup/src_history/` / `backup/MCP_history/` / `backup/scripts_history/`（退役脚本归档，2026-06-14 脚本目录合并时建）是本地 audit / 回退归档。**注（2026-06-14 核实）**：这些目录当前**并未**被 `.gitignore` 排除——`backup/Skill_history`/`backup/MCP_history` 已有跟踪文件、`backup/scripts_history` 也保持跟踪；旧文档曾误称"都被 .gitignore 排除"。是否改为本地-only（忽略）待定
 6. **Baseline 记录触发**：用户说 `记录这次跑 <case> <tag>` → 严格按 [test_baseline/README.md §4.3](../case_tests/test_baseline/README.md) 执行（先 `scripts/tool_scripts/baseline_record.py <case> <tag>` 起骨架，用户粘 `/context` 到 `context.txt`，助手填非用户字段，**不替用户填 `dimensions_check`**）
-7. **本项目交接产物 = IntakeOutput JSON**（2026-05-06 起）：本项目侧职责到 [IntakeOutput Pydantic](../src/agent/state.py#L23)；下游走 [run_full_pipeline.py](../scripts/run_full_pipeline.py) 自动跑产 IDF + 仿真。与此对应，`../skills/energyplus_mcp/` 现为 intake 规则文档库，由 [src/agent/nodes/intake.py](../src/agent/nodes/intake.py) 运行时加载，不再是旧 MCP 主 skill。
+7. **本项目交接产物 = IntakeOutput JSON**（2026-05-06 起）：本项目侧职责到 [IntakeOutput Pydantic](../src/agent/state.py#L23)；下游走 [run_full_pipeline.py](../scripts/run_full_pipeline.py) 自动跑产 IDF + 仿真。规则文档库是 [`../skills/intake_pipeline/`](../skills/intake_pipeline)（0–5 阶段），由 [src/agent/pipeline.py](../src/agent/pipeline.py) 运行时按阶段加载（0_reading/1_correction/4_mep）；旧 `skills/energyplus_mcp/` 单步库已退役删除。
 8. **idfpy 替换搁置**（[deferred/idfpy_embed.md](deferred/idfpy_embed.md) §3.1 协作者侧 MCP 重写未交付）：本项目侧 P1/P2 动作冻结
 9. **git 权限下放**：助手可在重要节点（跑通新案例 / skill / MCP / prompt 重大重写完成 / 阶段性里程碑）自行 `git add` + `commit`；commit message 仿仓库风格（`<月.日>_<英文标签>`，如 `5.6_HalfmanualWorkflow`），body 必须含①改动核心 ②为何此刻是节点 ③影响范围。**禁**：`git push`（除非用户明确要求）/ force push / `reset --hard` / 跳 hook / 动 `git config`
 10. **Step 5 对话触发协议**（2026-05-07 起）：用户说 "跑下游 <case>" / "Step 5 <case>" → 助手依次①L1 Pydantic 校验 `<case>/output/intake_output.json` ②echo `llm.yaml` `default` section 关键字段（含 `extra_body.thinking`）③`y/n` 确认 ④后台启动 `run_full_pipeline.py` 并 tee log。详见 [new_case_guide.md §5.0](guides/new_case_guide.md)
@@ -326,7 +330,7 @@ IDF 建模拆「几何阶段」+「MEP 阶段」，独立会话可由不同模�
 | [reference/drawing_to_model_research_landscape.md](reference/drawing_to_model_research_landscape.md) | **研究现状参考**：图纸→建筑模型生成的三流派（CV 重建/BIM-to-BEM/生成式）+ "真三维=确定性几何内核非神经生成" + 本项目定位（BEM 非伪建模、niche=杂乱真实图→仿真就绪 BEM、架构属前沿不会被淘汰）|
 | [capability/floorplan_redraw_strategy.md](capability/floorplan_redraw_strategy.md) | 识图泛化：VLM 重绘 + 几何建模两步架构（2026-05-10 策略讨论 + 2026-05-12 §9 POC PASS 结果）|
 | [capability/recognition_modeling_capability.md](capability/recognition_modeling_capability.md) | **识图→建模质量长期主线活文档**（容差内重生成 + 定性>定量；含 sm21 三模型 phase2 诊断 + 4 条改进方向 + 待定取舍）|
-| [`../skills/intake_pipeline/`](../skills/intake_pipeline) | **两步法 skill 演进源**：phase1 三分（guide 总指导 / reading_guide 识图 / pen_library 笔库）;phase2/rules.md（2b 建模）+ **phase2/PartA-correction/（2a 校正 A0–A4，2026-06-07）**|
+| [`../skills/intake_pipeline/`](../skills/intake_pipeline) | **0–5 阶段 skill 演进源**（唯一 skill 库）：`0_reading/`（识图 guide+reading_guide+pen_library）/ `1_correction/`（校正 A0–A4）/ `2_modelling/` / `3_split_pairing/`（几何内核参考）/ `4_mep/`（authoring.md+mep.md 物理撰写）/ `5_intakeoutput/`（装配契约）|
 | [`../case_tests/e2e_tests/`](../case_tests/e2e_tests) | **两步法测试语料库**（与 `SmallOffice/` 并列，2026-05-12 新建）|
 | [deferred/token_optimization.md](deferred/token_optimization.md) | Token 优化（idfpy 切换后再做）|
 | [reference/open_model_guide.md](reference/open_model_guide.md) | 开源模型操作手册（Continue + 预处理 + MCP）|
@@ -378,7 +382,7 @@ _2026-05-29 — **两步法切主线落地 + InterZone 几何门 + 正式指南 
 
 _2026-05-28 — **异图 POC v2 PASS（sm21）+ 切新架构 greenlight**：新增 §5.7（sm21 2 层异图全链路 EP cleanly 跑通 / phase2 glazing material 规则缺口暴露并修复 / 切两步法主线 greenlight，B1.5.c 解禁 / prompt 模板归一 + run_pipeline_deepseek 读 skill 库）；plan.md B1.5.a 标 ✅ 首个异图 PASS。glazing 修复=[`phase2/rules.md`](../skills/intake_pipeline/4_mep/mep.md) Step 5 "material ↔ construction split" 硬规则（根因在咱们侧 phase2 规则，非协作者下游 prompt）。质量问题按"切架构 + 慢慢解决"并行。详见 §5.7 + plan.md B1.5.a。_
 
-_2026-05-25 — 交叉审阅工作流 + 两步法 skill 库整合：§6 新增 #14（`AI_agent/review/` 的 request→review→act 闭环，首份是 Codex 审两步法迁移）；§7 索引加 [`new_case_guide_twostep.md`](guides/new_case_guide_twostep.md)（临时两步法 Step 4 指南）+ [`review/`](logs/review)。配套：两步法 skill 库（[`../skills/intake_pipeline/`](../skills/intake_pipeline)）已全英文化 + 清成纯当前版本 spec（无时间戳/版本日志/决策引用）+ 补回旧单步法输出契约缺口 + 按 Codex review 5 条 findings 修复（去 sm_20 硬编码 / split-pairing sub-range / fenestration 审计字段 / supp+blank facade / phase1 thickness 例子）。_
+_2026-05-25 — 交叉审阅工作流 + 两步法 skill 库整合：§6 新增 #14（`AI_agent/review/` 的 request→review→act 闭环，首份是 Codex 审两步法迁移）；§7 索引加 `new_case_guide_twostep.md`（临时两步法 Step 4 指南，后已删并入 new_case_guide.md）+ [`review/`](logs/review)。配套：两步法 skill 库（[`../skills/intake_pipeline/`](../skills/intake_pipeline)）已全英文化 + 清成纯当前版本 spec（无时间戳/版本日志/决策引用）+ 补回旧单步法输出契约缺口 + 按 Codex review 5 条 findings 修复（去 sm_20 硬编码 / split-pairing sub-range / fenestration 审计字段 / supp+blank facade / phase1 thickness 例子）。_
 
 _2026-05-19 — 多端开发环境上线：§6 新增 #13（VS Code Dev Container 统一 Win/Mac/云，容器内 EnergyPlus 25.1.0 与宿主机 v25.2.0 patch 差异提示），§7 文档索引加 [`../.devcontainer/README.md`](../.devcontainer/README.md)。三个 AI CLI 改在 Dockerfile 构建期装（修原 postCreateCommand 静默半完成 bug）。#13 补 `docker/` 服务器/MCP-server 部署镜像用法（docker-compose 正式版 vs dev 热重载版），与 `.devcontainer/` 区分。_
 
