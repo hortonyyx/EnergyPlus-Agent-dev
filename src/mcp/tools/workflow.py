@@ -199,7 +199,8 @@ class WorkflowTool:
             )
 
     def run_simulation(
-        self, epw_path: str, output_dir: str = "./output"
+        self, epw_path: str, output_dir: str = "./output",
+        ep_run_subdir: str | None = None,
     ) -> ToolResponse:
         """Run an EnergyPlus simulation with the current configuration.
 
@@ -208,7 +209,13 @@ class WorkflowTool:
 
         Args:
             epw_path: Path to the EPW weather data file.
-            output_dir: Directory for simulation output files.
+            output_dir: Directory for IDF-related artifacts (temp_*.yaml/.idf).
+            ep_run_subdir: When set, EnergyPlus run artifacts (eplusout.*) go to
+                `output_dir/<ep_run_subdir>/` instead of `output_dir/` itself, so
+                the IDF and the simulation outputs live in separate folders
+                (standard case layout: EP/ holds the IDF, EP/EP_run/ the sim).
+                When None (default), behaviour is unchanged — everything flat in
+                output_dir.
 
         Returns:
             ToolResponse with IDF path and output directory on success.
@@ -255,13 +262,20 @@ class WorkflowTool:
 
             manager.save_idf(temp_idf)
 
+            # IDF stays in output_dir; EP run artifacts optionally nest in a
+            # subdir so the assembled IDF and the simulation outputs separate.
+            ep_run_dir = output_dir_path
+            if ep_run_subdir:
+                ep_run_dir = output_dir_path / ep_run_subdir
+                ep_run_dir.mkdir(parents=True, exist_ok=True)
+
             runner = EnergyPlusRunner(idf=manager.idf)
-            ok = runner.run_idf(epw_path, output_directory=output_dir_path)
-            end = read_ep_end(output_dir_path)
+            ok = runner.run_idf(epw_path, output_directory=ep_run_dir)
+            end = read_ep_end(ep_run_dir)
 
             if not ok or end is None or not end["completed"]:
                 # Read the tail of eplusout.err for diagnostic detail.
-                err_file = output_dir_path / "eplusout.err"
+                err_file = ep_run_dir / "eplusout.err"
                 err_tail: str | None = None
                 try:
                     if err_file.exists():

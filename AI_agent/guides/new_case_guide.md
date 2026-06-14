@@ -26,7 +26,7 @@ Step 5 一次性自动跑（管线 + 下游 + EP，全部 llm.yaml 配置）
          --base-dir case_tests/e2e_tests --reading-from 0_reading
    - intake_node 跑管线（矢量 → IntakeOutput）→ 9 subagent → cross_ref
      → validate → 装配 IDF → InterZone 几何门 → simulate
-   - 产出（默认正式流）：阶段目录 `<case>/{1_correction,2_modelling,3_split_pairing,4_mep,5_intakeoutput}/`（权威 `5_intakeoutput/intake_output.json`）+ 下游与 EP 在 `<case>/EP_run/`（temp_*.yaml/.idf + eplusout.*）
+   - 产出（默认正式流）：阶段目录 `<case>/{1_correction,2_modelling,3_split_pairing,4_mep,5_intakeoutput}/`（权威 `5_intakeoutput/intake_output.json`）+ IDF 相关在 `<case>/EP/`（temp_*.yaml/.idf）+ EP 仿真在 `<case>/EP/EP_run/`（eplusout.*）
    ↓
 Step 6 验收（L1 Pydantic / L2 cross_ref / InterZone 门 / L3 OpenStudio / L4 EP）
 Step 7 留痕到 case_tests/test_baseline/runs/
@@ -67,11 +67,11 @@ cp /path/to/South_view.png case_tests/e2e_tests/$case/South_view.png
 # ... 按实际有窗朝向挑选
 ```
 
-目录约定（**固化布局，2026-06-09**，权威详表见 [pipeline_stage_contracts §3.1](../architecture/pipeline_stage_contracts.md)）：
-- 源图（`*_view.png`）+ `testdata_prompt.json` + `llm.yaml` 放 `<case>/` 根
+目录约定（**标准布局，2026-06-14**，权威详表见 [pipeline_stage_contracts §3.1](../architecture/pipeline_stage_contracts.md)）：
+- 素材（源图 `*_view.png` + `testdata_prompt.json`）放 `<case>/case_data/`；`llm.yaml` 放 `<case>/` 根
 - 识图矢量产物放 `<case>/0_reading/`（`--reading-from` 后跟目录名）
-- 管线产物按 0–5 阶段分门别类放 `<case>/{1_correction, 2_modelling, 3_split_pairing, 4_mep, 5_intakeoutput}/`（2026-06-09 重构）：1_correction=2a 校正+确定性核；2_modelling=几何内核 build（`building_geometry.json`）；3_split_pairing=序列化几何 specs；4_mep=物理撰写（LLM）；5_intakeoutput=最终 `intake_output.json` + 契约校验
-- 下游装配 + EP 产物放 `<case>/EP_run/`
+- 管线产物按 0–5 阶段分门别类放 `<case>/{1_correction, 2_modelling, 3_split_pairing, 4_mep, 5_intakeoutput}/`：1_correction=校正+确定性核；2_modelling=几何内核 build（`building_geometry.json`）；3_split_pairing=序列化几何 specs；4_mep=物理撰写（LLM）；5_intakeoutput=最终 `intake_output.json` + 契约校验
+- IDF 相关产物放 `<case>/EP/`，EP 仿真产物放 `<case>/EP/EP_run/`
 - 各阶段校验工具：识图用 `render_vector_to_png.py`；1_correction 用 `render_corrected_geometry.py`（逐层平面图）；2_modelling 看 `kernel_gate_report.json`；EP 段 InterZone 门 + EP `.err`
 
 ---
@@ -180,7 +180,7 @@ python scripts/run_full_pipeline.py <case> --base-dir case_tests/e2e_tests --ini
 1. **校验入参**：`<case>/0_reading/` 存在且含 `*.json` + `reading_summary.md`；`testdata_prompt.json` 存在
 2. **echo 模型配置**：先解析本次用哪份配置(`<case>/llm.yaml` 若存在,否则全局),再 echo 其 `intake_correction` + `default` + flash 关键字段(照 §5.1 表),并报明配置文件路径
 3. **询问 y/n**：`以上配置开跑？(y/n)`
-4. **y** → 后台启动命令，stdout tee 到 `<case>/EP_run/pipeline_run.log`（默认正式流）。完成后报告每节点 + InterZone 门结果 + EP 状态
+4. **y** → 后台启动命令，stdout tee 到 `<case>/EP/EP_run/pipeline_run.log`（默认正式流）。完成后报告每节点 + InterZone 门结果 + EP 状态
 5. **n** → 等用户改 llm.yaml 后再触发
 
 ### 5.3 命令（助手内部执行 / 用户绕过时手敲）
@@ -194,7 +194,7 @@ python scripts/run_full_pipeline.py <case> \
 脚本动作：
 1. 读 `testdata_prompt.json`（原文）+ 收集图路径
 2. `--reading-from 0_reading` → 把 `<case>/0_reading/` 交给 `intake_node`
-3. `intake_node` 跑 **多阶段**（[`src/agent/pipeline.py`](../../src/agent/pipeline.py)）：2a 校正(LLM)→确定性核→**几何内核**(代码：造面+切配，序列化成 surface_specs)→**4_MEP**(LLM，只产非几何 8 字段)→**5_intakeoutput**(代码：装配 + 契约校验)。产物按阶段落 `<case>/{1_correction,2_modelling,3_split_pairing,4_mep,5_intakeoutput}/`，最终 `intake_output.json` 在 `5_intakeoutput/`；下游 + EP 落 `<case>/EP_run/`。几何确定、LLM 只剩物理语义（fork a：下游 surface_agent 忠实誊写）
+3. `intake_node` 跑 **多阶段**（[`src/agent/pipeline.py`](../../src/agent/pipeline.py)）：2a 校正(LLM)→确定性核→**几何内核**(代码：造面+切配，序列化成 surface_specs)→**4_MEP**(LLM，只产非几何 8 字段)→**5_intakeoutput**(代码：装配 + 契约校验)。产物按阶段落 `<case>/{1_correction,2_modelling,3_split_pairing,4_mep,5_intakeoutput}/`，最终 `intake_output.json` 在 `5_intakeoutput/`；IDF 相关落 `<case>/EP/`、EP 仿真落 `<case>/EP/EP_run/`。几何确定、LLM 只剩物理语义（fork a：下游 surface_agent 忠实誊写）
 4. 下游第一波并行：zone / material / schedule
 5. `cross_ref_foundations` → `construction → surface → fenestration` 串行
 6. phase 3 并行：hvac / people / lights
@@ -238,8 +238,8 @@ python scripts/run_pipeline_deepseek.py --case case_tests/e2e_tests/<case>
 | **L1 Pydantic** | `IntakeOutput` 11 字段 schema | 自动（`intake_node` 出 `IntakeOutput` 即过）；手动复验见下 |
 | **L2 cross_ref** | zone × material × schedule × surface 命名一致 | 自动（`cross_ref_foundations/complete` 出 `validation_errors`，看 `[node=cross_ref_*]` 行，errors=[]=过）|
 | **InterZone 门** | 跨层配对图确定性几何校验 | 自动（EP 前 fail-fast，看日志 `InterZone surface-pair audit` + `pair_issues`）|
-| **L3 OpenStudio**（人工）| zone 轮廓/外包/内墙匹配/窗位/楼板叠放 | 用户 OpenStudio 打开 `<case>/EP_run/temp_*.idf` 视察，填 `dimensions_check` |
-| **L4 EP 仿真** | `EnergyPlus Completed Successfully` / 0 severe | `<case>/EP_run/eplusout.end` + `eplusout.err` |
+| **L3 OpenStudio**（人工）| zone 轮廓/外包/内墙匹配/窗位/楼板叠放 | 用户 OpenStudio 打开 `<case>/EP/temp_*.idf` 视察，填 `dimensions_check` |
+| **L4 EP 仿真** | `EnergyPlus Completed Successfully` / 0 severe | `<case>/EP/EP_run/eplusout.end` + `eplusout.err` |
 
 L1 手动复验：
 ```bash

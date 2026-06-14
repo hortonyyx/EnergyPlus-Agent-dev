@@ -15,6 +15,16 @@
 
 ## 改动记录
 
+### 2026-06-14 — 标准 case 布局：EP 产物拆 EP/ + EP/EP_run/（opt-in）
+
+**Trigger**：规范测试 case 组织结构（用户定标准，[corpus README](../../case_tests/e2e_tests/README.md)）——素材进 `case_data/`、IDF 落 `<case>/EP/`、EP 仿真落 `<case>/EP/EP_run/`。备份：`backup/src_history/2026-06-14_ep_run_subdir/`（state.py / simulate.py / run_full_pipeline.py）+ `backup/MCP_history/2026-06-14_ep_run_subdir/workflow.py`。
+
+- **[workflow.py](../../src/mcp/tools/workflow.py) `run_simulation`**：新增 opt-in 参数 `ep_run_subdir`。设置时 EP 运行产物（`eplusout.*`）落 `output_dir/<ep_run_subdir>/`、IDF（`temp_*`）留 `output_dir/`；为 None（默认）时行为不变（扁平）。**不影响 MCP API / 其他调用方**（默认 None）。
+- **[state.py](../../src/agent/state.py) `SimContext`**：加 `ep_run_subdir: str | None = None` 字段（frozen dataclass）。
+- **[simulate.py](../../src/agent/nodes/simulate.py)**：`run_simulation` 调用透传 `ctx.ep_run_subdir`。
+- **[run_full_pipeline.py](../../scripts/run_full_pipeline.py)**：testdata 读 `case_data/testdata_prompt.json`（缺则回退 case 根 = 旧 case 兼容）；默认正式流（`--reading-from` + 默认 output-subdir）`output_dir=<case>/EP`、`ep_run_subdir="EP_run"`，并透传给 `SimContext`。
+- **协作者交接**：本改动是产物**落点路由**，不动任何下游 subagent prompt / 装配逻辑；EP 行为（gate / 退出码闭环）不变。测试 102 全绿（含 `test_ep_end_gate` 失败路径，默认 None 路径不受影响）。
+
 ### 2026-06-11 — audit 硬伤修复：内核守卫 + EP 退出码闭环 + correction 重试校验
 
 **Trigger**：[2026-06-11 full audit review](review/review/2026-06-11_pipeline_0-5_full_audit_review.md) 的 3H/3M/3L 硬伤全部修复（用户指示"全部改"）。修复过程中测试又暴露 1 个新硬伤（H4，见下）。备份：`src_history/2026-06-11_kernel_guards/`（schema/deterministic/modelling/build）、`src_history/2026-06-11_ep_exitcode_gate/runner.py` + `MCP_history/2026-06-11_ep_exitcode_gate/workflow.py`、`src_history/2026-06-11_correction_robustness/pipeline.py`。

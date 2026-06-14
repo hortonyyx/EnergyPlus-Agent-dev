@@ -220,9 +220,13 @@ def main() -> None:
     logger.info("LLM config: {}", llm_config)
 
     output_dir = case_dir / args.output_subdir
-    output_dir.mkdir(parents=True, exist_ok=True)
 
-    testdata_raw = (case_dir / "testdata_prompt.json").read_text(encoding="utf-8")
+    # Standard layout puts inputs under <case>/case_data/; fall back to the
+    # legacy flat layout (testdata at <case> root) for older cases.
+    testdata_path = case_dir / "case_data" / "testdata_prompt.json"
+    if not testdata_path.exists():
+        testdata_path = case_dir / "testdata_prompt.json"
+    testdata_raw = testdata_path.read_text(encoding="utf-8")
     spec = json.loads(testdata_raw)
     user_input = _build_user_input(spec)
     image_paths = [str(p) for p in _collect_images(case_dir, spec)]
@@ -256,19 +260,21 @@ def main() -> None:
         reading_vector_dir = str(p1_dir)
         logger.info("reading_from={} (intake_node will run the pipeline)", p1_dir)
 
-    # Organized layout (0–5 stage dirs): the pipeline writes stage-numbered
+    # Standard case layout (0–5 stage dirs): the pipeline writes stage-numbered
     # subdirs (1_correction / 2_modelling / 3_split_pairing / 4_mep /
-    # 5_intakeoutput) directly under <case> (alongside the reading input dir and
-    # EP_run); downstream + EP go to <case>/EP_run. Other flows keep the flat
-    # <case>/<output-subdir>/ layout for back-compat.
+    # 5_intakeoutput) directly under <case> (alongside the 0_reading input dir);
+    # IDF-related outputs go to <case>/EP and the EnergyPlus sim to <case>/EP/EP_run.
+    # Other flows keep the flat <case>/<output-subdir>/ layout for back-compat.
+    ep_run_subdir: str | None = None
     if reading_vector_dir is not None and args.output_subdir == "output":
-        output_dir = case_dir / "EP_run"
-        output_dir.mkdir(parents=True, exist_ok=True)
+        output_dir = case_dir / "EP"
+        ep_run_subdir = "EP_run"
         pipeline_out_dir = str(case_dir)
     else:
         pipeline_out_dir = (
             str(output_dir / "pipeline_out") if reading_vector_dir else None
         )
+    output_dir.mkdir(parents=True, exist_ok=True)
 
     logger.info(
         "case={} images={} intake_only={} intake_from={}",
@@ -308,7 +314,10 @@ def main() -> None:
 
     graph = build_graph()
     context = SimContext(
-        epw_path=epw, output_dir=output_dir, run_simulate=not args.no_simulate
+        epw_path=epw,
+        output_dir=output_dir,
+        run_simulate=not args.no_simulate,
+        ep_run_subdir=ep_run_subdir,
     )
     cfg: RunnableConfig = {"configurable": {"thread_id": args.case}}
 

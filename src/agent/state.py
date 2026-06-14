@@ -73,6 +73,10 @@ class SimContext:
     epw_path: Path
     output_dir: Path = DEFAULT_OUTPUT_DIR
     run_simulate: bool = True  # False -> simulate_node only exports IDF
+    # When set, EnergyPlus run artifacts go to output_dir/<ep_run_subdir>/ while
+    # the IDF stays in output_dir (standard case layout: EP/ holds IDF, EP/EP_run/
+    # the sim). None -> flat (legacy behaviour).
+    ep_run_subdir: str | None = None
 
 
 def _get_identity(item: Any) -> str:

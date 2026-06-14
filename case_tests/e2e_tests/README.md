@@ -24,7 +24,7 @@
     └── EP_run/                        # 仿真输出：eplusout.* + ep_console.log + run_idfonly.log
 ```
 
-> **代码路由 2026-06-15 接通**（run_full_pipeline 读 `case_data/testdata_prompt.json`、产出落 `EP/` + `EP/EP_run/`）；在此之前 run 仍落旧布局（testdata 读 case 根、EP 产物在 `EP_run/` flat）。sm20_anchor 已按新标准组织。
+> **代码路由已接通（2026-06-14）**：`run_full_pipeline` 读 `case_data/testdata_prompt.json`（缺则回退 case 根 = 旧 case 兼容）、IDF 落 `EP/`、EP 仿真落 `EP/EP_run/`。sm20_anchor 已按新标准组织，可直接跑。
 >
 > 实验产物目录（`output_*` / `*_pre` 等）按 [CLAUDE.md §5.9.E](../../AI_agent/CLAUDE.md) 惯例不入库（.gitignore 排除）。
 

@@ -54,6 +54,7 @@ def simulate_node(state: AgentState, runtime: Runtime[SimContext]) -> AgentState
         response = workflow.run_simulation(
             epw_path=str(ctx.epw_path.resolve().absolute()),
             output_dir=str(ctx.output_dir.resolve().absolute()),
+            ep_run_subdir=ctx.ep_run_subdir,
         )
     else:
         response = workflow.export_idf_only(

@@ -132,3 +132,44 @@ def test_run_simulation_ep_failure_returns_false(tmp_path: Path) -> None:
     # ep_end must be None (no file written) or contain completed=False
     ep_end = response.data.get("ep_end")
     assert ep_end is None or ep_end.get("completed") is False
+
+
+def test_run_simulation_ep_run_subdir_nests(tmp_path: Path) -> None:
+    """With ep_run_subdir set, EnergyPlus runs into output_dir/<subdir>/ (standard
+    case layout EP/EP_run) while the IDF stays in output_dir; read_ep_end reads the
+    nested eplusout.end."""
+    from src.mcp.tools.workflow import WorkflowTool
+
+    mock_state = MagicMock()
+    mock_state.validate_references.return_value = []
+    mock_state.export_yaml.return_value = None
+    mock_state.get_summary.return_value = MagicMock(model_dump=lambda: {})
+
+    mock_manager = MagicMock()
+    mock_manager.convert_all.return_value = None
+    mock_manager.save_idf.return_value = None
+    mock_manager.idf = MagicMock()
+
+    output_dir = tmp_path / "EP"
+
+    def fake_run(*_args, **kwargs):
+        # EP must be handed the nested run dir; write a success end file there.
+        run_dir = Path(kwargs["output_directory"])
+        assert run_dir == output_dir / "EP_run"
+        (run_dir / "eplusout.end").write_text(EP_SUCCESS_LINE + "\n", encoding="utf-8")
+        return True
+
+    with (
+        patch("src.mcp.tools.workflow.ConverterManager", return_value=mock_manager),
+        patch("src.mcp.tools.workflow.validate_interzone_surface_pairs", return_value=[]),
+        patch("src.mcp.tools.workflow.audit_interzone_surface_pairs", return_value="pair_issues=0"),
+        patch("src.mcp.tools.workflow.validate_schedule_completeness", return_value=[]),
+        patch("src.runner.runner.EnergyPlusRunner.run_idf", side_effect=fake_run),
+    ):
+        tool = WorkflowTool(state=mock_state)
+        response = tool.run_simulation(
+            epw_path="dummy.epw", output_dir=str(output_dir), ep_run_subdir="EP_run"
+        )
+
+    assert response.success is True
+    assert (output_dir / "EP_run" / "eplusout.end").exists()

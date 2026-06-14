@@ -165,8 +165,9 @@
 
 ```
 <case>/
-  *.png, testdata_prompt.json        源素材（输入）
-  llm.yaml                           per-case 模型组合
+  llm.yaml                           per-case 模型组合（case 根）
+  case_data/                         源素材（输入）
+    *.png + testdata_prompt.json     图纸 + 元信息（图纸路径指向本目录）
   0_reading/                         识图产物（半人工 / sub-agent）
     {1f,2f,..}_view.json + *_render.png + reading_summary.md
   1_correction/                      校正(LLM) + 确定性核
@@ -184,9 +185,13 @@
   5_intakeoutput/
     intake_output.json               IntakeOutput 交接契约
     contract_issues.json             契约校验失败时（缺 construction 等）
-  EP_run/                            下游装配 + EP
-    temp_*.idf / temp_*.yaml / intake_output.json / pipeline_run.log
+  EP/                                IDF 相关输出（下游装配）
+    temp_*.idf / temp_*.yaml / intake_output.json 副本 / idf_plan.png
+    EP_run/                          EP 仿真输出
+      eplusout.* / ep_console.log / pipeline_run.log
 ```
+
+> **路由（2026-06-14 接通）**：`run_full_pipeline` 读 `case_data/testdata_prompt.json`；`SimContext.ep_run_subdir="EP_run"` 让 `workflow.run_simulation` 把 EP 仿真产物落 `EP/EP_run/`、IDF 留 `EP/`（opt-in，不影响其他调用方）。
 
 | 阶段 | 产物 | 校验工具 / 信号 |
 |---|---|---|
