@@ -1,0 +1,202 @@
+"""Stage registry + capability model + the per-stage attempt recorder (M0).
+
+The 0–5 pipeline stages each have a *capability* that decides how a failure is
+handled (contracts §0.3 failure classification):
+
+  - ``manual``        — a human produces the artifact (0_reading today). Auto
+                        routing can only ask for ``human_redraw_required``.
+  - ``stochastic``    — an LLM draw (1_correction, 4_mep). A bad draw is
+                        blind-resampled (same input, different sampling).
+  - ``deterministic`` — code (core, 2_modelling, 3_split_pairing, 5_intakeoutput).
+                        A post-condition failure is fail-closed: a code defect to
+                        raise, never an upstream bounce / sample swap.
+
+``StageRunner`` is the thin recorder that ties a produced artifact to an
+append-only attempt dir + a CheckReport + the run manifest. It does NOT decide
+cross-stage routing or invalidation — that belongs to the orchestrator
+(invalidation.py). It deliberately does not reuse the correction-stage
+``_make_correction_validator`` as a generic harness (施工 H2): single-stage draw
++ retry is a separate concern (judge/retry.py).
+"""
+
+from __future__ import annotations
+
+from enum import Enum
+from pathlib import Path
+
+from pydantic import BaseModel, ConfigDict
+
+from src.agent.execution.manifest import (
+    RunManifest,
+    StageRecord,
+    hash_obj,
+    hash_text,
+    new_attempt_dir,
+)
+from src.validator.checks.schema import CheckReport
+
+
+class Capability(str, Enum):
+    MANUAL = "manual"
+    STOCHASTIC = "stochastic"
+    DETERMINISTIC = "deterministic"
+
+
+class StageSpec(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    stage: str
+    capability: Capability
+    # Stages whose accepted output this stage consumes (for input-hash recording
+    # and the invalidation DAG).
+    depends_on: tuple[str, ...] = ()
+
+
+# The canonical 0–5 stage chain (contracts §0). `core` is the deterministic snap
+# folded into 1_correction's dir on disk but is a distinct deterministic step.
+STAGE_REGISTRY: dict[str, StageSpec] = {
+    s.stage: s
+    for s in [
+        StageSpec(stage="0_reading", capability=Capability.MANUAL),
+        StageSpec(stage="1_correction", capability=Capability.STOCHASTIC,
+                  depends_on=("0_reading",)),
+        StageSpec(stage="2_modelling", capability=Capability.DETERMINISTIC,
+                  depends_on=("1_correction",)),
+        StageSpec(stage="3_split_pairing", capability=Capability.DETERMINISTIC,
+                  depends_on=("2_modelling",)),
+        StageSpec(stage="4_mep", capability=Capability.STOCHASTIC,
+                  depends_on=("3_split_pairing",)),
+        StageSpec(stage="5_intakeoutput", capability=Capability.DETERMINISTIC,
+                  depends_on=("3_split_pairing", "4_mep")),
+    ]
+}
+
+# Stable pipeline order (manifest / DAG iteration).
+STAGE_ORDER: list[str] = list(STAGE_REGISTRY.keys())
+
+
+def stage_spec(stage: str) -> StageSpec:
+    try:
+        return STAGE_REGISTRY[stage]
+    except KeyError as e:
+        raise KeyError(
+            f"unknown stage '{stage}'; known: {', '.join(STAGE_REGISTRY)}"
+        ) from e
+
+
+class RecordedAttempt(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    stage: str
+    attempt_index: int
+    attempt_dir: str
+    output_hash: str
+    accepted: bool
+    check_passed: bool
+
+
+class StageRunner:
+    """Files an attempt's artifacts under append-only dirs and updates the
+    manifest pointer when the attempt is accepted.
+
+    Usage::
+
+        runner = StageRunner(case_dir, manifest)
+        att = runner.record(
+            stage="2_modelling",
+            stage_dir=case_dir / "2_modelling",
+            output_obj=building_geometry_dict,
+            report=check_report,
+            input_hashes={"1_correction": corr_hash},
+        )
+
+    ``record`` writes ``output.json`` + ``checks.json`` into a fresh attempt dir.
+    Acceptance follows the failure-classification policy:
+      - deterministic / manual: accepted iff the report does not block;
+      - stochastic: the caller decides (a retry may supersede), default accept
+        iff the report does not block.
+    """
+
+    def __init__(self, case_dir: Path, manifest: RunManifest) -> None:
+        self.case_dir = Path(case_dir)
+        self.manifest = manifest
+
+    def record(
+        self,
+        *,
+        stage: str,
+        stage_dir: Path,
+        output_obj,
+        report: CheckReport,
+        input_hashes: dict[str, str] | None = None,
+        stage_version: str = "1",
+        accept: bool | None = None,
+    ) -> RecordedAttempt:
+        spec = stage_spec(stage)
+        stage_dir = Path(stage_dir)
+        stage_dir.mkdir(parents=True, exist_ok=True)
+        adir = new_attempt_dir(stage_dir)
+
+        out_text = (
+            output_obj
+            if isinstance(output_obj, str)
+            else _to_json(output_obj)
+        )
+        (adir / "output.json").write_text(out_text, encoding="utf-8")
+        output_hash = hash_text(out_text)
+
+        # Stamp the report with the hashes it was computed against, then persist.
+        report.attempt_hash = output_hash
+        if report.artifact_hash is None:
+            report.artifact_hash = output_hash
+        (adir / "checks.json").write_text(
+            report.model_dump_json(indent=2), encoding="utf-8"
+        )
+
+        check_passed = report.passed
+        do_accept = check_passed if accept is None else accept
+        rec = RecordedAttempt(
+            stage=stage,
+            attempt_index=int(adir.name),
+            attempt_dir=str(adir),
+            output_hash=output_hash,
+            accepted=do_accept,
+            check_passed=check_passed,
+        )
+        if do_accept:
+            self.manifest.accept(
+                StageRecord(
+                    stage=stage,
+                    accepted_attempt=rec.attempt_index,
+                    output_hash=output_hash,
+                    input_hashes=input_hashes or {},
+                    stage_version=stage_version,
+                    check_version=report.results[0].check_version
+                    if report.results
+                    else "1",
+                    capability=spec.capability.value,
+                    check_passed=check_passed,
+                )
+            )
+        return rec
+
+
+def _to_json(obj) -> str:
+    import json
+
+    if hasattr(obj, "model_dump_json"):  # pydantic
+        return obj.model_dump_json(indent=2)
+    return json.dumps(obj, indent=2, ensure_ascii=False)
+
+
+# Re-export so callers can hash inputs without importing manifest directly.
+__all__ = [
+    "Capability",
+    "StageSpec",
+    "STAGE_REGISTRY",
+    "STAGE_ORDER",
+    "stage_spec",
+    "StageRunner",
+    "RecordedAttempt",
+    "hash_obj",
+]
