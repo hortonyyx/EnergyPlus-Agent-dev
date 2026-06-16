@@ -55,10 +55,37 @@ missing.
   The glazing material must be a named `WindowMaterial:SimpleGlazingSystem` in
   `material_specs` (Name + U-Factor + SHGC); `Default_Window` references it by name. Never
   inline glazing properties only under `construction_specs`.
+- **thermal mass (hard — never make the whole envelope `Material:NoMass`).** Opaque
+  envelope constructions (exterior + interior walls, ground floor, roof, `Cons_InterFloor`)
+  MUST each carry at least one **mass-bearing `Material`** layer — a full `Material` object
+  (Roughness + Thickness + Conductivity + Density + Specific Heat), e.g. concrete, brick, or
+  gypsum board. A model whose every opaque layer is `Material:NoMass` has zero thermal mass
+  and EnergyPlus warmup **will not converge → severe errors**. Concretely: give
+  `Mat_Floor_Concrete`, `Mat_Roof_Membrane`'s structural deck, and the wall structural layer
+  real massed `Material` definitions; reserve `Material:NoMass` for thin finish / insulation
+  / membrane resistance layers only. `WindowMaterial:SimpleGlazingSystem` stays standalone
+  (no mass). Example massed layer:
+  ```
+  Material, Mat_Floor_Concrete, MediumRough, 0.15, 1.95, 2240, 900, 0.9, 0.7, 0.7;
+  !-           Name           Roughness  Thick Cond  Dens  Cp  ...absorptances
+  ```
 
 ### schedule_specs (must be complete)
 The schedule subagent runs first and is not re-invoked, so every schedule any field
 references must be defined here with an exact name, type limits, and value profile.
+
+**ScheduleTypeLimits self-containment (hard).** Every `Schedule:Compact`'s *Schedule Type
+Limits Name* (field 2 — e.g. `Fraction`, `Temperature`, `ActivityLevel`, `OnOff`) MUST be
+defined as a `ScheduleTypeLimits` object **in `schedule_specs`**. Do NOT assume a type limit
+is predefined/built-in — author each one you reference. Standard set:
+```
+ScheduleTypeLimits, Fraction,      0, 1,   Continuous;
+ScheduleTypeLimits, Temperature, -60, 200, Continuous;
+ScheduleTypeLimits, ActivityLevel,  0, ,   Continuous;
+ScheduleTypeLimits, OnOff,          0, 1,   Discrete;
+```
+A `Schedule:Compact` that names an undefined type limit fails the 4_mep self-containment
+gate (`mep.schedule_type_refs`).
 
 **Every `Schedule:Compact` MUST cover ALL day types for the whole year**, and the ONLY
 two ways to guarantee that are: end the schedule with a catch-all `For: AllOtherDays`

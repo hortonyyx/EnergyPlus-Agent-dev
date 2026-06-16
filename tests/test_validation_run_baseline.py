@@ -186,3 +186,39 @@ def test_downstream_only_scope_skips_geometry():
     assert set(res.reports) == {"5_intakeoutput"}
     assert not res.blocked
     assert res.geometry_digest is None
+
+
+# --- sm21_anchor: 2-floor golden RUN (run_2026-06-16_opus_e2e) -----------------
+# A 2-storey office with a differing F1 (3 N offices + corridor + 3 S) vs F2
+# (2 N meeting + corridor + 4 S). Fresh cold-agent reading (no reuse), gate① all
+# green, EP 0 severe. Counts are the regression anchor; gt is judge-only.
+_ANCHOR_21 = Path("case_tests/e2e_tests/sm21_anchor")
+_RUN_21 = _ANCHOR_21 / "run_2026-06-16_opus_e2e"
+
+
+def test_sm21_anchor_positive_baseline():
+    """Every per-stage gate ① passes on the clean sm21_anchor golden run."""
+    res = validate_case(_RUN_21, policy=RunPolicy(require_ep=True))
+    assert not res.blocked, res.blocking_summary
+    assert res.case == "sm21_anchor"
+    for key, rep in res.reports.items():
+        assert rep.passed, f"{key} blocked: {[r.message for r in rep.blocking()]}"
+
+
+def test_sm21_anchor_golden_counts():
+    """Frozen geometry counts: 14 zones / 100 surfaces / 15 windows (== gt)."""
+    import json
+
+    bg = json.loads(
+        (_RUN_21 / "2_modelling" / "building_geometry.json").read_text())
+    assert len(bg["zones"]) == 14
+    assert len(bg["surfaces"]) == 100
+    assert len(bg["windows"]) == 15
+
+
+def test_sm21_anchor_ep_clean():
+    """EP completed with zero severe errors."""
+    from src.runner.runner import read_ep_end
+
+    end = read_ep_end(_RUN_21 / "EP" / "EP_run")
+    assert end is not None and end["completed"] and end["severe"] == 0
