@@ -6,7 +6,7 @@
 | anchor / run | 楼层/区 | golden 计数 (区/面/窗) | gate① | EP | 状态 | 记录 |
 |---|---|---|---|---|---|---|
 | `sm20_anchor/run_2026-06-15_baseline` | 3 层 (7/8/4) | 19 / 135 / 16 | 0 block | Completed, 0 severe | ✅ golden（`tests/test_validation_run_baseline.py`）| `run_.../baseline.json` + `RUN_REPORT.md` |
-| `sm21_anchor/run_<待跑>` | 2 层 (7/7) | 待跑 (gt: 14/?/15) | 待跑 | 待跑 | ⏳ 待建（gt 已起草待核 → 建 case → 跑）| gt `test_baseline/gt/sm21_anchor.json`（draft）|
+| `sm21_anchor/run_<待跑>` | 2 层 (7/7) | 待跑 (gt: 14/?/15) | 待跑 | 待跑 | ⏳ 待建（gt 已核准 ✅ → 下轮建 case → 跑）| gt `test_baseline/gt/sm21_anchor.json`（**verified**）|
 
 > **图例**：✅=干净入库的金标准；⏳=待跑；❌=有 block/severe，不可作 baseline。
 > golden 计数即回归断言锚点；变更需在 PR 说明原因。
