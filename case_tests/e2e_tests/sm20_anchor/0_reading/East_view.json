@@ -1,41 +1,178 @@
 {
-  "image_label": "East view of the building",
+  "image_label": "East view",
   "image_kind": "elevation",
-  "facade_axis_note": "East facade: local x = world y (increasing northward); local y = world z (increasing upward, ground z=0)",
+  "facade_axis_note": "East facade: local x = world y (increasing northward); local y = world z (up, ground z=0)",
   "scale_origin": {
     "world_x_m": 15.00,
     "world_y_m": 0.00,
     "world_z_m": 0.00,
-    "note": "本图本地原点 = 东立面外周左下角 = 东立面 SE 底角（世界 (15, 0, 0)）；x_local 沿世界 y+，y_local 沿世界 z+"
+    "note": "local (0,0) = SE corner of whole-building footprint at grade; local x=0 maps to world y=0 (south end of east facade), local x increases northward"
   },
 
   "strokes": [
-    {"id": "S1", "pen": "wall_fill", "geometry": {"kind": "rect", "x_range_m": [0.00, 8.00], "y_range_m": [0.00, 3.60]},  "note": "F1 墙身灰填充"},
-    {"id": "S2", "pen": "wall_fill", "geometry": {"kind": "rect", "x_range_m": [0.00, 8.00], "y_range_m": [3.60, 7.20]}, "note": "F2 墙身灰填充"},
-    {"id": "S3", "pen": "wall_fill", "geometry": {"kind": "rect", "x_range_m": [0.00, 8.00], "y_range_m": [7.20, 12.00]}, "note": "F3 墙身灰填充"},
-
-    {"id": "S4", "pen": "window", "geometry": {"kind": "rect", "x_range_m": [3.50, 4.50], "y_range_m": [8.20, 10.60]}, "note": "F3 中心小窗（仅本立面 F3 有 1 个窗，F1/F2 无窗）"}
+    {
+      "id": "S1",
+      "pen": "wall_fill",
+      "geometry": {
+        "kind": "rect",
+        "x_range_m": [0.00, 8.00],
+        "y_range_m": [0.00, 3.60]
+      },
+      "note": "East facade F1 wall fill, z 0.00 to 3.60; no windows on F1 east"
+    },
+    {
+      "id": "S2",
+      "pen": "wall_fill",
+      "geometry": {
+        "kind": "rect",
+        "x_range_m": [0.00, 8.00],
+        "y_range_m": [3.60, 7.20]
+      },
+      "note": "East facade F2 wall fill, z 3.60 to 7.20; no windows on F2 east"
+    },
+    {
+      "id": "S3",
+      "pen": "wall_fill",
+      "geometry": {
+        "kind": "rect",
+        "x_range_m": [0.00, 8.00],
+        "y_range_m": [7.20, 12.00]
+      },
+      "note": "East facade F3 wall fill, z 7.20 to 12.00"
+    },
+    {
+      "id": "S4",
+      "pen": "window",
+      "geometry": {
+        "kind": "rect",
+        "x_range_m": [3.50, 4.50],
+        "y_range_m": [8.60, 11.00]
+      },
+      "note": "East F3 window (centered on facade); sill 1.40 above F3 floor (z=7.20), height 2.40"
+    }
   ],
 
   "dimensions": [
-    {"id": "D1",  "text": "8.00", "from": [0.00, 12.00], "to": [8.00, 12.00], "axis": "x", "note": "顶部总长链"},
-    {"id": "D2",  "text": "3.50", "from": [0.00, 12.00], "to": [3.50, 12.00], "axis": "x", "note": "顶部分段（F3 窗左侧墩）"},
-    {"id": "D3",  "text": "1.00", "from": [3.50, 12.00], "to": [4.50, 12.00], "axis": "x", "note": "F3 窗宽"},
-    {"id": "D4",  "text": "3.50", "from": [4.50, 12.00], "to": [8.00, 12.00], "axis": "x", "note": "顶部分段（F3 窗右侧墩）"},
-
-    {"id": "D5",  "text": "8.00", "from": [0.00, 0.00],  "to": [8.00, 0.00],  "axis": "x", "note": "底部总长链"},
-
-    {"id": "D6",  "text": "12.00", "from": [0.00, 0.00],  "to": [0.00, 12.00], "axis": "y", "note": "左侧总高链"},
-    {"id": "D7",  "text": "3.60",  "from": [0.00, 0.00],  "to": [0.00, 3.60],  "axis": "y", "note": "F1 层高"},
-    {"id": "D8",  "text": "3.60",  "from": [0.00, 3.60],  "to": [0.00, 7.20],  "axis": "y", "note": "F2 层高"},
-    {"id": "D9",  "text": "4.80",  "from": [0.00, 7.20],  "to": [0.00, 12.00], "axis": "y", "note": "F3 层高"},
-
-    {"id": "D10", "text": "12.00", "from": [8.00, 0.00],  "to": [8.00, 12.00], "axis": "y", "note": "右侧总高链"},
-    {"id": "D11", "text": "3.60",  "from": [8.00, 0.00],  "to": [8.00, 3.60],  "axis": "y", "note": "F1 层高（右）"},
-    {"id": "D12", "text": "3.60",  "from": [8.00, 3.60],  "to": [8.00, 7.20],  "axis": "y", "note": "F2 层高（右）"},
-    {"id": "D13", "text": "1.00",  "from": [8.00, 7.20],  "to": [8.00, 8.20],  "axis": "y", "note": "F3 楼板顶到 F3 窗 sill"},
-    {"id": "D14", "text": "2.40",  "from": [8.00, 8.20],  "to": [8.00, 10.60], "axis": "y", "note": "F3 窗高"},
-    {"id": "D15", "text": "1.40",  "from": [8.00, 10.60], "to": [8.00, 12.00], "axis": "y", "note": "F3 窗顶到屋顶"}
+    {
+      "id": "D1",
+      "text": "8.00",
+      "from": [0.00, 0.00],
+      "to":   [8.00, 0.00],
+      "axis": "x",
+      "note": "bottom total-width chain (facade width = building depth)"
+    },
+    {
+      "id": "D2",
+      "text": "8.00",
+      "from": [0.00, 0.00],
+      "to":   [8.00, 0.00],
+      "axis": "x",
+      "note": "top total-width chain (duplicate)"
+    },
+    {
+      "id": "D3",
+      "text": "3.50",
+      "from": [0.00, 0.00],
+      "to":   [3.50, 0.00],
+      "axis": "x",
+      "note": "top chain: left margin to window"
+    },
+    {
+      "id": "D4",
+      "text": "1.00",
+      "from": [3.50, 0.00],
+      "to":   [4.50, 0.00],
+      "axis": "x",
+      "note": "top chain: window width"
+    },
+    {
+      "id": "D5",
+      "text": "3.50",
+      "from": [4.50, 0.00],
+      "to":   [8.00, 0.00],
+      "axis": "x",
+      "note": "top chain: right margin from window"
+    },
+    {
+      "id": "D6",
+      "text": "12.00",
+      "from": [0.00, 0.00],
+      "to":   [0.00, 12.00],
+      "axis": "z",
+      "note": "left total-height dimension chain"
+    },
+    {
+      "id": "D7",
+      "text": "4.80",
+      "from": [0.00, 7.20],
+      "to":   [0.00, 12.00],
+      "axis": "z",
+      "note": "left chain: F3 floor height"
+    },
+    {
+      "id": "D8",
+      "text": "3.60",
+      "from": [0.00, 3.60],
+      "to":   [0.00, 7.20],
+      "axis": "z",
+      "note": "left chain: F2 floor height"
+    },
+    {
+      "id": "D9",
+      "text": "3.60",
+      "from": [0.00, 0.00],
+      "to":   [0.00, 3.60],
+      "axis": "z",
+      "note": "left chain: F1 floor height"
+    },
+    {
+      "id": "D10",
+      "text": "12.00",
+      "from": [0.00, 0.00],
+      "to":   [0.00, 12.00],
+      "axis": "z",
+      "note": "right total-height dimension chain (duplicate)"
+    },
+    {
+      "id": "D11",
+      "text": "3.60",
+      "from": [0.00, 0.00],
+      "to":   [0.00, 3.60],
+      "axis": "z",
+      "note": "right chain: F1 floor height"
+    },
+    {
+      "id": "D12",
+      "text": "3.60",
+      "from": [0.00, 3.60],
+      "to":   [0.00, 7.20],
+      "axis": "z",
+      "note": "right chain: F2 floor height"
+    },
+    {
+      "id": "D13",
+      "text": "1.40",
+      "from": [0.00, 7.20],
+      "to":   [0.00, 8.60],
+      "axis": "z",
+      "note": "right inner chain: F3 window sill height above F3 floor"
+    },
+    {
+      "id": "D14",
+      "text": "2.40",
+      "from": [0.00, 8.60],
+      "to":   [0.00, 11.00],
+      "axis": "z",
+      "note": "right inner chain: F3 window height"
+    },
+    {
+      "id": "D15",
+      "text": "1.00",
+      "from": [0.00, 11.00],
+      "to":   [0.00, 12.00],
+      "axis": "z",
+      "note": "right inner chain: F3 window head to roof"
+    }
   ],
 
   "ocr_texts": [],
@@ -46,10 +183,14 @@
     "no_topology_inferred": true,
     "pens_used": ["wall_fill", "window"],
     "unknowns_noted": [
-      "本立面仅 F3 有 1 个小窗，F1/F2 无窗 → strokes 仅 1 个 window",
-      "立面外周轮廓与 wall_fill 边重合 → 未单独画 outline stroke",
-      "本立面宽 8.00（= 平面 y 向跨度），与 South/North 立面宽 15.00 不同"
+      "F1 and F2 east facade have no windows — confirmed by visual inspection",
+      "F3 window: horizontal chain 3.50+1.00+3.50=8.00 (window width=1.00m, centered); vertical sill=1.40, height=2.40, head=1.00",
+      "window is visually centered horizontally (local x=3.50 to 4.50, midpoint=4.00 = exactly half of 8.00)"
     ],
-    "uncaptured_visual_elements": []
+    "uncaptured_visual_elements": [
+      "no doors, decoration, or furniture observed in this elevation",
+      "gray fill within wall_fill rectangles is material shading — not a separate stroke",
+      "storey separation horizontal lines at z=3.60 and z=7.20 delimit the per-floor wall_fill splits; not drawn as separate outline strokes"
+    ]
   }
 }

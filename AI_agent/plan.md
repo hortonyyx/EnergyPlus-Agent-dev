@@ -12,6 +12,8 @@
 >
 > **2026-06-14 — 整理 + review 闭环 + 标准 case 布局（路线②准备）**：仓库整理（脚本合并 `scripts/`、history 归并 `backup/`、`test_data/`→`case_tests/{0_reading_tests,e2e_tests,test_baseline}`）；Codex phase→0–5 review 闭环（M1 `_section` 严格化代码修 + M2-M4 活文档；测试 99→103）；**定标准 case 结构**（`case_data/` + 0–5 + `EP/EP_run/` + 根 `llm.yaml`）+ 建 `sm20_anchor` + 代码路由接通（详见 [CLAUDE.md §5.13](CLAUDE.md)）。**当前次步**：跑 `sm20_anchor` 出干净产物 → **逐环节约束各阶段输出 + 校验方式** → sm21 起规范 baseline（B2–B4，主要约束各子环节输出+校验）→ sm23 质量 → 接 VLM。
 >
+> **2026-06-15 — sm20_anchor 首跑 + 0–5「逐阶段输入·输出·校验」架构设计/施工方案 + Codex 三轮审闭环（路线②落实，纯设计未写实现）**：跑 sm20_anchor（Sonnet 重识图，19区/135面/EP干净）暴露 **2f 走廊识图错全程无门逮住** → 系统化设计 0–5 逐段校验门（每段 ①确定性自校验 + ②LLM/VLM judge 结构化清单；失败分类确定性 fail-closed 不弹上游；reading=per-image/correction=拓扑跨图对参考；2/3 无 per-run judge + 交互 3D = 上线用户几何确认门；judge=开发期数据工厂→上线撤轻量迁小模型），落 [pipeline_stage_contracts.md](architecture/pipeline_stage_contracts.md) v8 + [pipeline_validation_build_plan.md](architecture/pipeline_validation_build_plan.md) v3（施工序 **M0 执行/审计地基→M1 schema/parser→M2a/b/c→M3 judge→M4 产品**）。Codex 设计+施工+re-verify 三审闭环（双 CHANGES REQUESTED→处置→CLOSEABLE）。**下一步=按施工方案开工 M0**（确定性优先，M2 无 judge）。
+>
 > 优先级：P0（立即）/ P1（一周内）/ P2（依赖 P0/P1）。
 
 ---

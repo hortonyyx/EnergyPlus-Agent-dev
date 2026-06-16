@@ -6,41 +6,251 @@
     "world_x_m": 0.00,
     "world_y_m": 0.00,
     "world_z_m": null,
-    "note": "本图本地原点 = 整栋投影 SW 内角；plan 的 z 一律 null（schema v1.2 §1），由立面尺寸链给"
+    "note": "local (0,0) = SW inner corner of whole-building footprint; x increases east, y increases north"
   },
 
   "strokes": [
-    {"id": "S1",  "pen": "wall", "geometry": {"kind": "line", "p1": [0.00, 0.00],  "p2": [15.00, 0.00], "thickness_m": null}, "note": "南侧水平外周墙"},
-    {"id": "S2",  "pen": "wall", "geometry": {"kind": "line", "p1": [15.00, 0.00], "p2": [15.00, 8.00], "thickness_m": null}, "note": "东侧垂直外周墙"},
-    {"id": "S3",  "pen": "wall", "geometry": {"kind": "line", "p1": [15.00, 8.00], "p2": [0.00, 8.00],  "thickness_m": null}, "note": "北侧水平外周墙"},
-    {"id": "S4",  "pen": "wall", "geometry": {"kind": "line", "p1": [0.00, 8.00],  "p2": [0.00, 0.00],  "thickness_m": null}, "note": "西侧垂直外周墙"},
-
-    {"id": "S5",  "pen": "wall", "geometry": {"kind": "line", "p1": [0.00, 3.00],  "p2": [15.00, 3.00], "thickness_m": null}, "note": "水平内墙（中下分隔线）"},
-    {"id": "S6",  "pen": "wall", "geometry": {"kind": "line", "p1": [0.00, 5.00],  "p2": [15.00, 5.00], "thickness_m": null}, "note": "水平内墙（中上分隔线）"},
-
-    {"id": "S7",  "pen": "wall", "geometry": {"kind": "line", "p1": [5.00, 0.00],  "p2": [5.00, 3.00],  "thickness_m": null}, "note": "垂直内墙（下排第 1 道）"},
-    {"id": "S8",  "pen": "wall", "geometry": {"kind": "line", "p1": [10.00, 0.00], "p2": [10.00, 3.00], "thickness_m": null}, "note": "垂直内墙（下排第 2 道）"},
-    {"id": "S9",  "pen": "wall", "geometry": {"kind": "line", "p1": [5.00, 5.00],  "p2": [5.00, 8.00],  "thickness_m": null}, "note": "垂直内墙（上排第 1 道）"},
-    {"id": "S10", "pen": "wall", "geometry": {"kind": "line", "p1": [10.00, 5.00], "p2": [10.00, 8.00], "thickness_m": null}, "note": "垂直内墙（上排第 2 道）"}
+    {
+      "id": "S1",
+      "pen": "wall",
+      "geometry": {
+        "kind": "line",
+        "p1": [0.00, 0.00],
+        "p2": [15.00, 0.00],
+        "thickness_m": null
+      },
+      "note": "south perimeter wall (horizontal)"
+    },
+    {
+      "id": "S2",
+      "pen": "wall",
+      "geometry": {
+        "kind": "line",
+        "p1": [15.00, 0.00],
+        "p2": [15.00, 8.00],
+        "thickness_m": null
+      },
+      "note": "east perimeter wall (vertical)"
+    },
+    {
+      "id": "S3",
+      "pen": "wall",
+      "geometry": {
+        "kind": "line",
+        "p1": [15.00, 8.00],
+        "p2": [0.00, 8.00],
+        "thickness_m": null
+      },
+      "note": "north perimeter wall (horizontal)"
+    },
+    {
+      "id": "S4",
+      "pen": "wall",
+      "geometry": {
+        "kind": "line",
+        "p1": [0.00, 8.00],
+        "p2": [0.00, 0.00],
+        "thickness_m": null
+      },
+      "note": "west perimeter wall (vertical)"
+    },
+    {
+      "id": "S5",
+      "pen": "wall",
+      "geometry": {
+        "kind": "line",
+        "p1": [0.00, 3.00],
+        "p2": [15.00, 3.00],
+        "thickness_m": null
+      },
+      "note": "interior horizontal wall at y=3.00 (separates south zone from middle corridor)"
+    },
+    {
+      "id": "S6",
+      "pen": "wall",
+      "geometry": {
+        "kind": "line",
+        "p1": [0.00, 5.00],
+        "p2": [15.00, 5.00],
+        "thickness_m": null
+      },
+      "note": "interior horizontal wall at y=5.00 (separates middle corridor from north zone)"
+    },
+    {
+      "id": "S7",
+      "pen": "wall",
+      "geometry": {
+        "kind": "line",
+        "p1": [5.00, 0.00],
+        "p2": [5.00, 3.00],
+        "thickness_m": null
+      },
+      "note": "interior vertical wall at x=5.00 in south zone (y 0 to 3)"
+    },
+    {
+      "id": "S8",
+      "pen": "wall",
+      "geometry": {
+        "kind": "line",
+        "p1": [10.00, 0.00],
+        "p2": [10.00, 3.00],
+        "thickness_m": null
+      },
+      "note": "interior vertical wall at x=10.00 in south zone (y 0 to 3)"
+    },
+    {
+      "id": "S9",
+      "pen": "wall",
+      "geometry": {
+        "kind": "line",
+        "p1": [5.00, 5.00],
+        "p2": [5.00, 8.00],
+        "thickness_m": null
+      },
+      "note": "interior vertical wall at x=5.00 in north zone (y 5 to 8)"
+    },
+    {
+      "id": "S10",
+      "pen": "wall",
+      "geometry": {
+        "kind": "line",
+        "p1": [10.00, 5.00],
+        "p2": [10.00, 8.00],
+        "thickness_m": null
+      },
+      "note": "interior vertical wall at x=10.00 in north zone (y 5 to 8)"
+    }
   ],
 
   "dimensions": [
-    {"id": "D1",  "text": "15.00", "from": [0.00, 8.00],  "to": [15.00, 8.00], "axis": "x", "note": "顶部总长链"},
-    {"id": "D2",  "text": "5.00",  "from": [0.00, 8.00],  "to": [5.00, 8.00],  "axis": "x", "note": "顶部分段 1"},
-    {"id": "D3",  "text": "5.00",  "from": [5.00, 8.00],  "to": [10.00, 8.00], "axis": "x", "note": "顶部分段 2"},
-    {"id": "D4",  "text": "5.00",  "from": [10.00, 8.00], "to": [15.00, 8.00], "axis": "x", "note": "顶部分段 3"},
-    {"id": "D5",  "text": "15.00", "from": [0.00, 0.00],  "to": [15.00, 0.00], "axis": "x", "note": "底部总长链"},
-    {"id": "D6",  "text": "5.00",  "from": [0.00, 0.00],  "to": [5.00, 0.00],  "axis": "x", "note": "底部分段 1"},
-    {"id": "D7",  "text": "5.00",  "from": [5.00, 0.00],  "to": [10.00, 0.00], "axis": "x", "note": "底部分段 2"},
-    {"id": "D8",  "text": "5.00",  "from": [10.00, 0.00], "to": [15.00, 0.00], "axis": "x", "note": "底部分段 3"},
-    {"id": "D9",  "text": "8.00",  "from": [0.00, 0.00],  "to": [0.00, 8.00],  "axis": "y", "note": "左侧总宽链"},
-    {"id": "D10", "text": "3.00",  "from": [0.00, 0.00],  "to": [0.00, 3.00],  "axis": "y", "note": "左侧分段 1"},
-    {"id": "D11", "text": "2.00",  "from": [0.00, 3.00],  "to": [0.00, 5.00],  "axis": "y", "note": "左侧分段 2"},
-    {"id": "D12", "text": "3.00",  "from": [0.00, 5.00],  "to": [0.00, 8.00],  "axis": "y", "note": "左侧分段 3"},
-    {"id": "D13", "text": "8.00",  "from": [15.00, 0.00], "to": [15.00, 8.00], "axis": "y", "note": "右侧总宽链"},
-    {"id": "D14", "text": "3.00",  "from": [15.00, 0.00], "to": [15.00, 3.00], "axis": "y", "note": "右侧分段 1"},
-    {"id": "D15", "text": "2.00",  "from": [15.00, 3.00], "to": [15.00, 5.00], "axis": "y", "note": "右侧分段 2"},
-    {"id": "D16", "text": "3.00",  "from": [15.00, 5.00], "to": [15.00, 8.00], "axis": "y", "note": "右侧分段 3"}
+    {
+      "id": "D1",
+      "text": "15.00",
+      "from": [0.00, 0.00],
+      "to":   [15.00, 0.00],
+      "axis": "x",
+      "note": "top total-width dimension chain"
+    },
+    {
+      "id": "D2",
+      "text": "5.00",
+      "from": [0.00, 0.00],
+      "to":   [5.00, 0.00],
+      "axis": "x",
+      "note": "top chain segment 1 (west third)"
+    },
+    {
+      "id": "D3",
+      "text": "5.00",
+      "from": [5.00, 0.00],
+      "to":   [10.00, 0.00],
+      "axis": "x",
+      "note": "top chain segment 2 (middle third)"
+    },
+    {
+      "id": "D4",
+      "text": "5.00",
+      "from": [10.00, 0.00],
+      "to":   [15.00, 0.00],
+      "axis": "x",
+      "note": "top chain segment 3 (east third)"
+    },
+    {
+      "id": "D5",
+      "text": "15.00",
+      "from": [0.00, 0.00],
+      "to":   [15.00, 0.00],
+      "axis": "x",
+      "note": "bottom total-width dimension chain (duplicate)"
+    },
+    {
+      "id": "D6",
+      "text": "5.00",
+      "from": [0.00, 0.00],
+      "to":   [5.00, 0.00],
+      "axis": "x",
+      "note": "bottom chain segment 1"
+    },
+    {
+      "id": "D7",
+      "text": "5.00",
+      "from": [5.00, 0.00],
+      "to":   [10.00, 0.00],
+      "axis": "x",
+      "note": "bottom chain segment 2"
+    },
+    {
+      "id": "D8",
+      "text": "5.00",
+      "from": [10.00, 0.00],
+      "to":   [15.00, 0.00],
+      "axis": "x",
+      "note": "bottom chain segment 3"
+    },
+    {
+      "id": "D9",
+      "text": "8.00",
+      "from": [0.00, 0.00],
+      "to":   [0.00, 8.00],
+      "axis": "y",
+      "note": "left total-depth dimension chain"
+    },
+    {
+      "id": "D10",
+      "text": "3.00",
+      "from": [0.00, 0.00],
+      "to":   [0.00, 3.00],
+      "axis": "y",
+      "note": "left chain: south zone depth"
+    },
+    {
+      "id": "D11",
+      "text": "2.00",
+      "from": [0.00, 3.00],
+      "to":   [0.00, 5.00],
+      "axis": "y",
+      "note": "left chain: middle corridor depth"
+    },
+    {
+      "id": "D12",
+      "text": "3.00",
+      "from": [0.00, 5.00],
+      "to":   [0.00, 8.00],
+      "axis": "y",
+      "note": "left chain: north zone depth"
+    },
+    {
+      "id": "D13",
+      "text": "8.00",
+      "from": [0.00, 0.00],
+      "to":   [0.00, 8.00],
+      "axis": "y",
+      "note": "right total-depth dimension chain (duplicate)"
+    },
+    {
+      "id": "D14",
+      "text": "3.00",
+      "from": [0.00, 0.00],
+      "to":   [0.00, 3.00],
+      "axis": "y",
+      "note": "right chain: south zone depth"
+    },
+    {
+      "id": "D15",
+      "text": "2.00",
+      "from": [0.00, 3.00],
+      "to":   [0.00, 5.00],
+      "axis": "y",
+      "note": "right chain: middle corridor depth"
+    },
+    {
+      "id": "D16",
+      "text": "3.00",
+      "from": [0.00, 5.00],
+      "to":   [0.00, 8.00],
+      "axis": "y",
+      "note": "right chain: north zone depth"
+    }
   ],
 
   "ocr_texts": [],
@@ -51,10 +261,15 @@
     "no_topology_inferred": true,
     "pens_used": ["wall"],
     "unknowns_noted": [
-      "墙厚未标注且仿真无需 → strokes[*].geometry.thickness_m 全部 null（schema §0.2）",
-      "原图无文字标签 → ocr_texts 为空",
-      "原图无窗、无楼梯、无指北针 → 平面图本张仅有 wall pen + dimensions（plan 词典本就不收 door）"
+      "wall thickness not dimensioned -> strokes[*].thickness_m = null",
+      "no windows visible in this plan (windows appear only in elevation views)",
+      "no door symbols observed in 1F plan"
     ],
-    "uncaptured_visual_elements": []
+    "uncaptured_visual_elements": [
+      "no furniture, sanitary, equipment, or decoration observed — drawing is clean geometry only",
+      "no north arrow visible in this plan",
+      "no stair or circulation elements observed on 1F",
+      "no room text labels present"
+    ]
   }
 }
