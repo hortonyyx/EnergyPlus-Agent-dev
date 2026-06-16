@@ -160,27 +160,43 @@ def test_bad_building_geometry_blocks_no_digest(tmp_path):
         r.check_id for r in res.reports["2_modelling"].blocking()}
 
 
-def test_require_ep_blocks_when_no_run(tmp_path):
+# EP run outputs (eplusout.*) are gitignored, so these tests synthesize the .end
+# in a tmp copy rather than depending on a live/committed one — hermetic on a
+# fresh clone / CI.
+_CLEAN_END = "EnergyPlus Completed Successfully-- 6 Warning; 0 Severe Errors; ...\n"
+
+
+def _anchor_copy_with_ep(tmp_path, end_text: str | None):
     import shutil
 
     case = tmp_path / "sm20_anchor"
     shutil.copytree(_ANCHOR, case)
-    (case / "EP" / "EP_run" / "eplusout.end").unlink()  # remove the EP run
+    end = case / "EP" / "EP_run" / "eplusout.end"
+    end.parent.mkdir(parents=True, exist_ok=True)
+    if end_text is None:
+        end.unlink(missing_ok=True)
+    else:
+        end.write_text(end_text)
+    return case
+
+
+def test_require_ep_blocks_when_no_run(tmp_path):
+    case = _anchor_copy_with_ep(tmp_path, None)  # no EP run
     res = validate_case(case, policy=RunPolicy(require_ep=True))
     assert res.blocked
     assert any("eplusout.end" in s for s in res.blocking_summary)
 
 
-def test_require_ep_passes_on_clean_run():
-    # sm20_anchor ships a clean committed EP run (Completed, 0 severe).
-    res = validate_case(_ANCHOR, policy=RunPolicy(require_ep=True))
+def test_require_ep_passes_on_clean_run(tmp_path):
+    case = _anchor_copy_with_ep(tmp_path, _CLEAN_END)
+    res = validate_case(case, policy=RunPolicy(require_ep=True))
     assert not res.blocked
     assert res.reports["downstream"].passed
 
 
-def test_anchor_has_committed_ep_baseline():
-    res = validate_case(_ANCHOR)  # require_ep defaults False
-    # the committed EP run is still validated when present, and is clean
+def test_anchor_with_clean_ep_run_validates(tmp_path):
+    case = _anchor_copy_with_ep(tmp_path, _CLEAN_END)
+    res = validate_case(case)  # require_ep defaults False
     assert "downstream" in res.reports and res.reports["downstream"].passed
     assert not res.blocked
 
