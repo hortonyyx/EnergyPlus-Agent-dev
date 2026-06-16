@@ -131,6 +131,8 @@ skills/intake_pipeline/<stage>/judge_rubric.md   J0/J1（J4 stub-disabled）
 
 **Codex re-verify（2026-06-16，CHANGES REQUESTED：4/5 PASS、High 1 PARTIAL，[reverify review](../logs/review/review/2026-06-16_pipeline_0-5_validation_reverify_review.md)）→ 全修**：High 残项=`validate_case` 只修了「缺文件」、**坏/陈旧的 2/3 产物仍空过**且 digest 绑到未校验字节 → 把 building_geometry 序列化抽成单一真源 [specs.py `building_geometry_dict`/`geometry_specs_markdown`](../../src/agent/geometry/specs.py)（pipeline.py 改用、输出零变），validate_case 把**磁盘 2/3 产物对账确定性重建**（`kernel.artifact_consistency` 不符即 block）、digest **仅在 2/3 一致且 2_modelling 过后**才算；Medium 残项=`zone_closure` 漏查「声明了但无任何面」的 zone → 遍历 `bg.zones∪zone_volumes∪有面 zone`。+3 回归（坏 specs/坏 building_geometry/无面 zone）。
 
+**Codex re-verify #2（2026-06-16）→ CLOSEABLE**（[reverify2 review](../logs/review/review/2026-06-16_pipeline_0-5_validation_reverify2_review.md)）：无 blocking findings，High-1 残项 + 次要 Medium 均 PASS，上轮 5 条 intact。**三轮实现审阅闭环完成（CHANGES REQUESTED ×2 → CLOSEABLE）。**
+
 **测试 103 → 191 → 201 → 204 全绿。** 纪律全守：每条确定性 check 配正反单测 + 真坏 fixture；policy≠fact（profile 切 not_applicable 不另写 policy）；append-only 不覆盖坏 draw；judge 不注入 prompt；未动 `IntakeOutput` 契约 / 未动 `run_pipeline` / 未动下游。**残留（deferred 不阻塞）**：viewer 交互层（pyvista/three.js spike）；4_mep 合理性区间（占位待 MEP 输入富化）；judge LLM/VLM 真实接线（harness 已就位、judge_fn 可插拔）；resume 接进 `run_pipeline`（地基已就位、validate_case 已用）。
 
 ---
