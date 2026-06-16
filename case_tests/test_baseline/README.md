@@ -13,23 +13,24 @@
 
 ## 1. 一个 baseline anchor 长什么样
 
-baseline = 一个**干净的** anchor case（如 `sm20_anchor` / `sm21_anchor`），跑通后**自带**全部
-反馈与记录，落在该 case 目录内：
+baseline = 一个**干净的** anchor case 的一次 **run**（`<case>/run_<注释>/`）。**case = 纯素材**
+（`case_data/`，改素材才新 case）；每次跑 = 自包含 run（单 case 可多轮）。run 内**自带**全部反馈与记录：
 
 ```
 <case>/
-  case_data/                源素材（*_view.png + testdata_prompt.json）
-  llm.yaml                  这次用的模型组合（= 记录的一部分）
-  0_reading/                识图矢量 + *_render.png + reading_summary.md
-  1_correction/ … 5_intakeoutput/
-    <stage 产物>
-    <stage>_checks.json     ← gate① 确定性反馈（每条 check pass/flag/block + evidence）
-    attempts/NNN/           ← append-only 每次抽：output + checks + judge（不覆盖坏草稿）
-  2_modelling/building_geometry.json + kernel_gate_report.json
-  EP/EP_run/                EP 仿真（eplusout.* 本地 gitignored）
-  run_manifest.json         各段 accepted 指针 + input hash + geometry approval digest
-  baseline.json             ← 机器成绩单（golden 计数 / digest / 各段 gate 汇总 / flags / EP / 抽几次）
-  RUN_REPORT.md             ← 人读总反馈 + 🔍 肉视检验清单
+  case_data/                  ← THE case（源素材 *_view.png + testdata_prompt.json）
+  run_<注释>/                  ← 一次 run（自包含；多轮 = 多个 run_ 文件夹）
+    llm.yaml                  本 run 模型组合（= 记录的一部分）
+    0_reading/                本 run 识图矢量 + *_render.png + reading_summary.md
+    1_correction/ … 5_intakeoutput/
+      <stage 产物>
+      <stage>_checks.json     ← gate① 确定性反馈（每条 check pass/flag/block + evidence）
+      attempts/NNN/           ← append-only 每次抽：output + checks + judge（不覆盖坏草稿）
+    2_modelling/building_geometry.json + kernel_gate_report.json
+    EP/EP_run/                EP 仿真（eplusout.* 本地 gitignored）
+    run_manifest.json         各段 accepted 指针 + input hash + geometry approval digest
+    baseline.json             ← 机器成绩单（golden 计数 / digest / 各段 gate 汇总 / flags / EP / 抽几次）
+    RUN_REPORT.md             ← 人读总反馈 + 🔍 肉视检验清单
 ```
 
 **「干净」收口标准**：gate① **0 block** + EP **0 severe**；cross-check **flag 允许存在但必须在

@@ -11,7 +11,7 @@ from src.validator.idf_fragments import (
     parse_mep_fragments,
 )
 
-_MEP = Path("case_tests/e2e_tests/sm20_anchor/4_mep/mep_output.json")
+_MEP = Path("case_tests/e2e_tests/sm20_anchor/run_2026-06-15_baseline/4_mep/mep_output.json")
 
 
 def _load_mep() -> dict:

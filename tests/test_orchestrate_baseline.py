@@ -20,6 +20,7 @@ sys.path.insert(0, str(Path("scripts/tool_scripts").resolve()))
 import record_baseline  # noqa: E402
 
 _ANCHOR = Path("case_tests/e2e_tests/sm20_anchor")
+_RUN_NAME = "run_2026-06-15_baseline"
 
 
 # --------------------------------------------------------------------------- #
@@ -86,23 +87,25 @@ def test_summarize_gates_rolls_up():
 def test_record_baseline_on_anchor(tmp_path):
     case = tmp_path / "sm20_anchor"
     shutil.copytree(_ANCHOR, case)
-    b = record_baseline.record_baseline(case, date="2026-06-16", orchestrator="test")
+    run = case / _RUN_NAME
+    b = record_baseline.record_baseline(run, date="2026-06-16", orchestrator="test")
     assert b["blocked"] is False
+    assert b["case"] == "sm20_anchor" and b["run"] == _RUN_NAME
     assert b["geometry"] == {"zones": 19, "surfaces": 135, "windows": 16}
     assert b["geometry_digest"] is not None
-    # files written
-    bj = json.loads((case / "baseline.json").read_text())
+    # files written into the run dir
+    bj = json.loads((run / "baseline.json").read_text())
     assert bj["case"] == "sm20_anchor"
-    report = (case / "RUN_REPORT.md").read_text()
+    report = (run / "RUN_REPORT.md").read_text()
     assert "肉视检验" in report
     assert "结论" in report
     # gate① per-stage checks also written by validate_case(write_reports=True)
-    assert (case / "1_correction" / "correction_checks.json").exists()
+    assert (run / "1_correction" / "correction_checks.json").exists()
 
 
 def test_record_baseline_report_lists_eyeball_items(tmp_path):
     case = tmp_path / "sm20_anchor"
     shutil.copytree(_ANCHOR, case)
-    record_baseline.record_baseline(case, date="2026-06-16", orchestrator="test")
-    report = (case / "RUN_REPORT.md").read_text()
+    record_baseline.record_baseline(case / _RUN_NAME, date="2026-06-16", orchestrator="test")
+    report = (case / _RUN_NAME / "RUN_REPORT.md").read_text()
     assert "填色区图" in report and "立面窗位图" in report and "3D 体量" in report

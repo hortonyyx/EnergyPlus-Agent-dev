@@ -14,6 +14,7 @@ from src.validator.checks.reading import check_reading_view
 from src.validator.checks.schema import CheckLayer, CheckReport
 
 _ANCHOR = Path("case_tests/e2e_tests/sm20_anchor")
+_RUN = _ANCHOR / "run_2026-06-15_baseline"
 _FIX = Path("tests/fixtures/validation")
 
 
@@ -26,7 +27,7 @@ def _ids(rep):
 # --------------------------------------------------------------------------- #
 def test_clean_anchor_reading_passes():
     for name in ("1f_view.json", "East_view.json"):
-        view = load_reading_view(_ANCHOR / "0_reading" / name)
+        view = load_reading_view(_RUN / "0_reading" / name)
         rep = check_reading_view(view)
         assert rep.passed, f"{name} blocking: {[r.message for r in rep.blocking()]}"
 
@@ -110,7 +111,7 @@ def test_broken_dimension_chain_flags_not_blocks():
 # --------------------------------------------------------------------------- #
 def test_clean_anchor_correction_passes():
     geom = CorrectedGeometry.model_validate_json(
-        (_ANCHOR / "1_correction" / "correction_geometry_snapped.json").read_text()
+        (_RUN / "1_correction" / "correction_geometry_snapped.json").read_text()
     )
     rep = check_correction(geom, expected_zone_total=19)
     assert rep.passed, [r.message for r in rep.blocking()]

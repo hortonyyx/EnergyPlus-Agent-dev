@@ -59,40 +59,48 @@ def _expected_zone_total(case_dir: Path) -> int | None:
 
 
 def validate_case(
-    case_dir: Path | str,
+    run_dir: Path | str,
     *,
+    case_dir: Path | str | None = None,
     policy: RunPolicy | None = None,
     write_reports: bool = False,
 ) -> CaseValidationResult:
-    case_dir = Path(case_dir)
+    """Validate one self-contained RUN (``<case>/run_<note>/``).
+
+    A run dir holds 0_reading + 1..5 + EP (the per-run products); the CASE
+    (materials/testdata) is its parent, resolvable via ``case_dir`` (default
+    ``run_dir.parent``) — gt is per-case and judge-only, never read here. Reports /
+    manifest / approval are written into the run dir."""
+    run_dir = Path(run_dir)
+    case_dir = Path(case_dir) if case_dir is not None else run_dir.parent
     policy = policy or RunPolicy()
     res = CaseValidationResult(case=case_dir.name)
     profile = policy.capability_profile
 
     if policy.validation_scope == ValidationScope.DOWNSTREAM_ONLY:
-        _validate_downstream_only(case_dir, res, profile, write_reports)
+        _validate_downstream_only(run_dir, res, profile, write_reports)
         _finalize(res)
         return res
 
     # ---- required-artifact guard (fail-CLOSED: a missing required artifact in
     # full scope is a blocking ERROR, never a silent pass) ----
-    snapped = case_dir / "1_correction" / "correction_geometry_snapped.json"
-    bg_json = case_dir / "2_modelling" / "building_geometry.json"
-    specs_path = case_dir / "3_split_pairing" / "geometry_specs.md"
-    mep_path = case_dir / "4_mep" / "mep_output.json"
-    intake_path = case_dir / "5_intakeoutput" / "intake_output.json"
-    rdir = case_dir / "0_reading"
-    ep_run = case_dir / "EP" / "EP_run"
+    snapped = run_dir / "1_correction" / "correction_geometry_snapped.json"
+    bg_json = run_dir / "2_modelling" / "building_geometry.json"
+    specs_path = run_dir / "3_split_pairing" / "geometry_specs.md"
+    mep_path = run_dir / "4_mep" / "mep_output.json"
+    intake_path = run_dir / "5_intakeoutput" / "intake_output.json"
+    rdir = run_dir / "0_reading"
+    ep_run = run_dir / "EP" / "EP_run"
     ep_end = ep_run / "eplusout.end"
 
     has_reading = rdir.exists() and any(rdir.glob("*_view.json"))
     required = {
         "0_reading": (has_reading, "0_reading/*_view.json"),
-        "1_correction": (snapped.exists(), str(snapped.relative_to(case_dir))),
-        "2_modelling": (bg_json.exists(), str(bg_json.relative_to(case_dir))),
-        "3_split_pairing": (specs_path.exists(), str(specs_path.relative_to(case_dir))),
-        "4_mep": (mep_path.exists(), str(mep_path.relative_to(case_dir))),
-        "5_intakeoutput": (intake_path.exists(), str(intake_path.relative_to(case_dir))),
+        "1_correction": (snapped.exists(), str(snapped.relative_to(run_dir))),
+        "2_modelling": (bg_json.exists(), str(bg_json.relative_to(run_dir))),
+        "3_split_pairing": (specs_path.exists(), str(specs_path.relative_to(run_dir))),
+        "4_mep": (mep_path.exists(), str(mep_path.relative_to(run_dir))),
+        "5_intakeoutput": (intake_path.exists(), str(intake_path.relative_to(run_dir))),
     }
     if policy.require_ep:
         required["downstream"] = (ep_end.exists(), "EP/EP_run/eplusout.end")
@@ -126,7 +134,7 @@ def validate_case(
         )
         res.reports["1_correction"] = crep
         if write_reports:
-            _write(case_dir / "1_correction" / "correction_checks.json", crep)
+            _write(run_dir / "1_correction" / "correction_checks.json", crep)
 
         # 2/3 kernel — rebuild the authoritative geometry from the snapped cells,
         # AND reconcile the committed on-disk 2/3 artifacts against that rebuild so
@@ -159,7 +167,7 @@ def validate_case(
                         "(stale/garbage artifact)")
                 res.reports["2_modelling"] = krep
                 if write_reports:
-                    _write(case_dir / "2_modelling" / "kernel_checks.json", krep)
+                    _write(run_dir / "2_modelling" / "kernel_checks.json", krep)
 
             # S3: geometry_specs.md must equal the serializer output.
             if specs_path.exists():
@@ -182,7 +190,7 @@ def validate_case(
                          zone_names=zone_names or None, capability_profile=profile)
         res.reports["4_mep"] = mrep
         if write_reports:
-            _write(case_dir / "4_mep" / "mep_checks.json", mrep)
+            _write(run_dir / "4_mep" / "mep_checks.json", mrep)
 
     # ---- 5_intakeoutput backstop ----
     if intake_path.exists():
@@ -197,7 +205,7 @@ def validate_case(
                                  "unavailable")
         res.reports["5_intakeoutput"] = arep
         if write_reports:
-            _write(case_dir / "5_intakeoutput" / "assembly_checks.json", arep)
+            _write(run_dir / "5_intakeoutput" / "assembly_checks.json", arep)
 
     # ---- EP baseline ----
     if ep_end.exists():
@@ -223,24 +231,24 @@ def validate_case(
         res.geometry_digest = geometry_checkpoint_digest(
             building_geometry=bg_dict, geometry_specs=specs, kernel_check_report=kreport,
         )
-        res.geometry_approved = is_approved(case_dir, res.geometry_digest)
+        res.geometry_approved = is_approved(run_dir, res.geometry_digest)
 
     _finalize(res, policy)
     if write_reports:
         # A validation SUMMARY — NOT the M0 audit manifest (which is backed by
         # append-only attempt dirs). Distinct filename so it cannot masquerade as,
         # or overwrite, run_manifest.json.
-        _build_manifest(case_dir, res).save(case_dir, filename="validation_manifest.json")
+        _build_manifest(res).save(run_dir, filename="validation_manifest.json")
     return res
 
 
 def _validate_downstream_only(
-    case_dir: Path, res: CaseValidationResult, profile: str, write_reports: bool
+    run_dir: Path, res: CaseValidationResult, profile: str, write_reports: bool
 ) -> None:
     """--intake-from: only the supplied IntakeOutput is validated (Pydantic)."""
-    intake_path = case_dir / "5_intakeoutput" / "intake_output.json"
+    intake_path = run_dir / "5_intakeoutput" / "intake_output.json"
     if not intake_path.exists():
-        intake_path = case_dir / "EP" / "intake_output.json"
+        intake_path = run_dir / "EP" / "intake_output.json"
     rep = CheckReport(stage="5_intakeoutput", capability_profile=profile)
     from src.validator.checks.schema import CheckLayer, CheckStatus
 
@@ -278,8 +286,8 @@ def _finalize(res: CaseValidationResult, policy: RunPolicy | None = None) -> Non
                 "geometry checkpoint not approved (confirmation_policy=required)")
 
 
-def _build_manifest(case_dir: Path, res: CaseValidationResult) -> RunManifest:
-    m = RunManifest(case=case_dir.name)
+def _build_manifest(res: CaseValidationResult) -> RunManifest:
+    m = RunManifest(case=res.case)
     for key, rep in res.reports.items():
         stage = key.split("::")[0]
         if stage in m.stages:

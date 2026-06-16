@@ -13,7 +13,7 @@ from src.agent.reading import (
     parse_value_m,
 )
 
-_ANCHOR = Path("case_tests/e2e_tests/sm20_anchor/0_reading")
+_ANCHOR = Path("case_tests/e2e_tests/sm20_anchor/run_2026-06-15_baseline/0_reading")
 
 
 def test_parse_value_m():

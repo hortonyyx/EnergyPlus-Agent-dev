@@ -16,6 +16,16 @@
 > 「judge 经验固化成确定性 check」= 把对答案的判断重写成**不靠答案、只靠输入就能查的不变量**
 > （例：不是「区划对不对 gt」，而是「cells 是否铺满 footprint 无洞无叠」）——**不是**让 gate 读 gt。
 
+## 精确坐标谁判？——不是 gt、不是 judge，是**确定性层**
+
+gt 的 `rect_m` 是**布局意图（清空间 bbox ±墙厚）**，**故意不精确**。精确坐标有**容差带**（一段范围都算
+对），**既不归 gt 也不归 judge**：
+- **确定性核**把冗余坐标**坍缩成规范值**（吸 50mm 栅格 / 补缝 / z-stack 吸附）；
+- **gate① kernel** 用**带容差不变量**判过不过（coverage 无洞无叠 / 闭合 / 最小边 / 互逆面积 / z 连续）；
+- **gate① 交叉核对**软 flag 坐标 vs 尺寸链。
+
+→ **judge 只判布局/计数/窗位（定性、对 gt）；精确坐标 mm 级由确定性判，judge 与 gt 都不卡。**
+
 代码上：只有 [`src/agent/judge/gt.py`](../../../src/agent/judge/gt.py) `load_gt()` 读本目录；
 `src/validator/checks/*`（gate①）与 `src/agent/pipeline.py`（执行器）**不得 import 它**
 （有测试 `tests/test_gt_discipline.py` 机械守住）。

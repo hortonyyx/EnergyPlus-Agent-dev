@@ -15,11 +15,12 @@ from src.validator.checks.kernel import check_kernel
 from src.validator.checks.schema import CheckStatus
 
 _ANCHOR = Path("case_tests/e2e_tests/sm20_anchor")
+_RUN = _ANCHOR / "run_2026-06-15_baseline"
 
 
 def _anchor_geom() -> CorrectedGeometry:
     return CorrectedGeometry.model_validate_json(
-        (_ANCHOR / "1_correction" / "correction_geometry_snapped.json").read_text()
+        (_RUN / "1_correction" / "correction_geometry_snapped.json").read_text()
     )
 
 

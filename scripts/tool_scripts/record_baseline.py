@@ -110,18 +110,23 @@ def _eyeball_checklist(case_dir: Path, summary: dict, counts: dict) -> list[str]
     return items
 
 
-def record_baseline(case_dir: Path, *, date: str, orchestrator: str,
+def record_baseline(run_dir: Path, *, date: str, orchestrator: str,
                     require_ep: bool = False) -> dict:
-    res = validate_case(case_dir, policy=RunPolicy(require_ep=require_ep),
+    """Record a self-contained RUN (``<case>/run_<note>/``) as a baseline. The
+    case (materials) is the run's parent; products + llm.yaml live in the run."""
+    run_dir = Path(run_dir)
+    case = run_dir.parent.name
+    res = validate_case(run_dir, policy=RunPolicy(require_ep=require_ep),
                         write_reports=True)
     summary = summarize_gates(res.reports)
-    counts = _geometry_counts(case_dir)
-    draws, verdicts = _draws_and_verdicts(case_dir)
+    counts = _geometry_counts(run_dir)
+    draws, verdicts = _draws_and_verdicts(run_dir)
     baseline = {
-        "case": case_dir.name,
+        "case": case,
+        "run": run_dir.name,
         "recorded": date,
         "orchestrator": orchestrator,
-        "models": _models_from_llm_yaml(case_dir),
+        "models": _models_from_llm_yaml(run_dir),
         "geometry": counts,
         "geometry_digest": res.geometry_digest,
         "geometry_approved": res.geometry_approved,
@@ -130,13 +135,13 @@ def record_baseline(case_dir: Path, *, date: str, orchestrator: str,
         "blocking": summary["blocking"],
         "judge_verdicts": verdicts,
         "draws": draws,
-        "ep": _ep_end(case_dir),
+        "ep": _ep_end(run_dir),
         "blocked": res.blocked,
     }
-    (case_dir / "baseline.json").write_text(
+    (run_dir / "baseline.json").write_text(
         json.dumps(baseline, indent=2, ensure_ascii=False), encoding="utf-8")
-    (case_dir / "RUN_REPORT.md").write_text(
-        _render_report(baseline, _eyeball_checklist(case_dir, summary, counts)),
+    (run_dir / "RUN_REPORT.md").write_text(
+        _render_report(baseline, _eyeball_checklist(run_dir, summary, counts)),
         encoding="utf-8")
     return baseline
 
@@ -146,7 +151,8 @@ def _render_report(b: dict, eyeball: list[str]) -> str:
     ep = b["ep"]
     verdict = "✅ clean" if not b["blocked"] else "❌ BLOCKED"
     lines = [
-        f"# {b['case']} 跑批反馈 ({b['recorded']}, orchestrator={b['orchestrator']})",
+        f"# {b['case']} / {b.get('run','')} 跑批反馈 "
+        f"({b['recorded']}, orchestrator={b['orchestrator']})",
         "",
         f"**结论**: {verdict}"
         + (f" / EP {'Completed' if ep and ep['completed'] else 'NOT completed'}, "
@@ -181,16 +187,17 @@ def _render_report(b: dict, eyeball: list[str]) -> str:
 
 def main() -> None:
     ap = argparse.ArgumentParser()
-    ap.add_argument("case")
+    ap.add_argument("case", help="case name under <base-dir>/")
+    ap.add_argument("run", help="run folder name under <case>/ (e.g. run_2026-06-16_opus)")
     ap.add_argument("--base-dir", default="case_tests/e2e_tests")
     ap.add_argument("--date", required=True, help="ISO date of the run (no Date.now in tooling)")
     ap.add_argument("--orchestrator", required=True, help="main Agent model id, e.g. opus-4.8")
     ap.add_argument("--require-ep", action="store_true")
     args = ap.parse_args()
-    case_dir = Path(args.base_dir) / args.case
-    b = record_baseline(case_dir, date=args.date, orchestrator=args.orchestrator,
+    run_dir = Path(args.base_dir) / args.case / args.run
+    b = record_baseline(run_dir, date=args.date, orchestrator=args.orchestrator,
                         require_ep=args.require_ep)
-    print(f"wrote {case_dir/'baseline.json'} + RUN_REPORT.md  (blocked={b['blocked']})")
+    print(f"wrote {run_dir/'baseline.json'} + RUN_REPORT.md  (blocked={b['blocked']})")
 
 
 if __name__ == "__main__":

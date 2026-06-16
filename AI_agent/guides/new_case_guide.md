@@ -32,18 +32,29 @@
 
 judge 密度（自洽口径）：**只在 LLM 段 0/1/4 有 judge**；确定性段 2/3 无 per-run judge（靶子=代码单测）；5 无 judge。J0=0_reading、J1=1_correction（rubric 见 `skills/intake_pipeline/{0_reading,1_correction}/judge_rubric.md`）；**J4(4_mep) 暂 disabled stub**。
 
-## 0.1 初始 case = 最小（素材 + 配置），其余跑中建（2026-06-16 用户定）
+## 0.1 case = 纯素材；每次 run 自包含进 `run_<注释>/`（2026-06-16 用户定）
 
-一个**初始测试 case**（提交入库的起点）**只含两样**，**绝不预搭空骨架**：
+**case = 一组确定的测试素材**——`<case>/` 提交入库时**只含 `case_data/`**（`*_view.png` +
+`testdata_prompt.json`）。**改素材才新建 case**。
+
+**每次跑 = 一个自包含的 `run_<注释>/`**（单 case 可多轮 run：换模型组合 / 重抽 / 复跑）。一个 run
+内含它自己的**配置 + 识图 + 全部产物 + 记录**，run 之间互不干扰、各自可复现：
 ```
 <case>/
-  case_data/   素材: *_view.png + testdata_prompt.json
-  llm.yaml     模型配置
-  0_reading/   识图产物(现半人工/子Agent产、可复用真产物;将来 VLM 跑中建)——是输出不是素材
+  case_data/                       ← THE case（素材；改素材才新 case）
+  run_<注释>/                       ← 一次 run（自包含）
+    llm.yaml                       本 run 模型配置
+    0_reading/                     本 run 识图（复用好识图=拷进新 run）
+    1_correction/ … 5_intakeoutput/  各段产物 + <stage>_checks.json + attempts/NNN/
+    2_modelling/building_geometry.json + kernel_gate_report.json
+    EP/EP_run/
+    run_manifest.json
+    baseline.json + RUN_REPORT.md
+  run_<另一注释>/ …                  ← 另一轮（如换模型）
 ```
-`1_correction/ … 5_intakeoutput/ EP/` 全部**跑的时候才由代码建**（`mkdir(parents=True)` 按需建）。
-所以「跑后布局（全树）」（[contracts §3.1](../architecture/pipeline_stage_contracts.md)）是 run **之后**
-的样子，不是初始 case 要先搭好的样子。`validate_case` / `record_baseline` 都是 run **之后**才跑。
+`1_correction…5_intakeoutput/ EP/` 由代码**跑中建**（`mkdir(parents=True)`），绝不预搭空骨架。
+`validate_case(<run_dir>)` / `record_baseline(<case> <run>)` 都对**一个 run 目录**操作（case 素材由
+`run_dir.parent` 解析）。gt 不在 case 内（见 §0.2）。
 
 ## 0.2 参考答案（gt）= judge② 专用，gate① / 执行器绝不看
 

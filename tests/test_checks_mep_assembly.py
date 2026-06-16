@@ -11,6 +11,7 @@ from src.validator.checks.mep import check_mep
 from src.validator.checks.schema import CheckStatus
 
 _ANCHOR = Path("case_tests/e2e_tests/sm20_anchor")
+_RUN = _ANCHOR / "run_2026-06-15_baseline"
 _FIX = Path("tests/fixtures/validation")
 
 
@@ -19,7 +20,7 @@ def _blocking(rep):
 
 
 def _anchor_mep() -> dict:
-    return json.loads((_ANCHOR / "4_mep" / "mep_output.json").read_text())
+    return json.loads((_RUN / "4_mep" / "mep_output.json").read_text())
 
 
 # --------------------------------------------------------------------------- #
@@ -28,7 +29,7 @@ def _anchor_mep() -> dict:
 def test_clean_anchor_mep_passes():
     mep = _anchor_mep()
     # zones from the building geometry (19 zones)
-    bg = json.loads((_ANCHOR / "2_modelling" / "building_geometry.json").read_text())
+    bg = json.loads((_RUN / "2_modelling" / "building_geometry.json").read_text())
     zones = set(bg["zones"])
     used = {s["obc_obj"] for s in bg["surfaces"] if s["obc"] == "Surface"}  # not the real set
     rep = check_mep(mep, zone_names=zones)
@@ -107,7 +108,7 @@ def test_missing_schedule_day_types_blocks():
 # --------------------------------------------------------------------------- #
 def test_assembly_backstop_passes_on_clean_anchor():
     intake = IntakeOutput.model_validate_json(
-        (_ANCHOR / "5_intakeoutput" / "intake_output.json").read_text()
+        (_RUN / "5_intakeoutput" / "intake_output.json").read_text()
     )
     used = {"Default_Ext_Wall", "Default_Int_Wall", "Cons_InterFloor",
             "Default_GroundFloor"}
@@ -117,7 +118,7 @@ def test_assembly_backstop_passes_on_clean_anchor():
 
 def test_assembly_backstop_attributes_owner_to_mep():
     intake = IntakeOutput.model_validate_json(
-        (_ANCHOR / "5_intakeoutput" / "intake_output.json").read_text()
+        (_RUN / "5_intakeoutput" / "intake_output.json").read_text()
     )
     rep = check_assembly(intake, {"Cons_Missing"})
     blocking = rep.blocking()
