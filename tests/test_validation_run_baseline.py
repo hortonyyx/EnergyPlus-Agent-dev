@@ -130,6 +130,36 @@ def test_missing_geometry_artifact_no_bogus_digest(tmp_path):
     assert res.geometry_digest is None  # no digest from a {} fallback
 
 
+def test_bad_geometry_specs_blocks_no_digest(tmp_path):
+    """Stale/garbage geometry_specs.md must block + no approval digest (re-verify High)."""
+    import shutil
+
+    case = tmp_path / "sm20_anchor"
+    shutil.copytree(_ANCHOR, case)
+    (case / "3_split_pairing" / "geometry_specs.md").write_text(
+        "garbage geometry specs, not the generated surface graph")
+    res = validate_case(case)
+    assert res.blocked
+    assert res.geometry_digest is None  # never bind a digest to unchecked bytes
+    assert "3_split_pairing" in res.reports and not res.reports["3_split_pairing"].passed
+
+
+def test_bad_building_geometry_blocks_no_digest(tmp_path):
+    """Stale/garbage building_geometry.json must block + no digest (re-verify High)."""
+    import json as _json
+    import shutil
+
+    case = tmp_path / "sm20_anchor"
+    shutil.copytree(_ANCHOR, case)
+    (case / "2_modelling" / "building_geometry.json").write_text(
+        _json.dumps({"zones": ["BogusZone"], "surfaces": [], "windows": []}))
+    res = validate_case(case)
+    assert res.blocked
+    assert res.geometry_digest is None
+    assert "kernel.artifact_consistency" in {
+        r.check_id for r in res.reports["2_modelling"].blocking()}
+
+
 def test_require_ep_blocks_when_no_run(tmp_path):
     import shutil
 

@@ -602,31 +602,10 @@ def materialize_kernel_geometry(
         len(bg.notes),
     )
     if out_dir is not None:
+        from src.agent.geometry.specs import building_geometry_json
+
         (out_dir / "building_geometry.json").write_text(
-            json.dumps(
-                {
-                    "zones": list(dict.fromkeys(bg.zones)),
-                    "surfaces": [
-                        {
-                            "name": s.name,
-                            "zone": s.zone,
-                            "type": s.stype,
-                            "obc": s.obc,
-                            "obc_obj": s.obc_obj,
-                            "verts": [list(v) for v in s.verts],
-                        }
-                        for s in bg.surfaces
-                    ],
-                    "windows": [
-                        {"name": w.name, "parent": w.parent,
-                         "verts": [list(v) for v in w.verts]}
-                        for w in bg.windows
-                    ],
-                },
-                indent=2,
-                ensure_ascii=False,
-            ),
-            encoding="utf-8",
+            building_geometry_json(bg), encoding="utf-8"
         )
         (out_dir / "kernel_gate_report.json").write_text(
             json.dumps(
@@ -728,7 +707,7 @@ def run_pipeline(
         )
 
     # 3_split_pairing (serialization): kernel geometry -> specs text.
-    from src.agent.geometry.specs import serialize_geometry
+    from src.agent.geometry.specs import geometry_specs_markdown, serialize_geometry
     from src.agent.intakeoutput import assemble_intake_output, validate_contract
 
     zone_specs, surface_specs, fenestration_specs, used_constructions = (
@@ -736,8 +715,7 @@ def run_pipeline(
     )
     if s3 is not None:
         (s3 / "geometry_specs.md").write_text(
-            f"# zone_specs\n\n{zone_specs}\n\n# surface_specs\n\n{surface_specs}\n\n"
-            f"# fenestration_specs\n\n{fenestration_specs}\n",
+            geometry_specs_markdown(zone_specs, surface_specs, fenestration_specs),
             encoding="utf-8",
         )
 

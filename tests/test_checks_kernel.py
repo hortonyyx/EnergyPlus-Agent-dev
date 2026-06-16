@@ -70,6 +70,21 @@ def test_spec_self_consistency_dangling_obc():
     assert "kernel.spec_self_consistency" in _blocking_ids(rep)
 
 
+def test_declared_zone_with_no_surfaces_blocks():
+    """A declared zone (bg.zones/zone_volumes) with zero surfaces must block its
+    closure, not be skipped (re-verify Medium)."""
+    from src.agent.geometry.modelling import BuildingGeometry, ZoneVolume
+    from shapely.geometry import Polygon
+
+    bg = BuildingGeometry(
+        zones=["Z1"], surfaces=[], windows=[],
+        zone_volumes=[ZoneVolume("Z1", "Z1", Polygon([(0, 0), (5, 0), (5, 4), (0, 4)]),
+                                 0.0, 3.0, 0)],
+    )
+    rep = check_kernel(bg)
+    assert "kernel.zone_closure" in _blocking_ids(rep)
+
+
 def test_undefined_zone_blocks():
     """A surface whose zone is not in bg.zones/zone_volumes must block (Codex M2)."""
     bg = build_geometry(_anchor_geom())

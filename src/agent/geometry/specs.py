@@ -15,7 +15,48 @@ trivially (rules.md §5.1).
 
 from __future__ import annotations
 
+import json
+
 from src.agent.geometry.modelling import BuildingGeometry, Surface
+
+
+def building_geometry_dict(bg: BuildingGeometry) -> dict:
+    """Canonical JSON-able form of a BuildingGeometry — the single source of truth
+    for the ``2_modelling/building_geometry.json`` artifact. The pipeline writer
+    and the validator (validation_run.consistency check) both use this so the
+    on-disk artifact can be reconciled against a deterministic rebuild."""
+    return {
+        "zones": list(dict.fromkeys(bg.zones)),
+        "surfaces": [
+            {
+                "name": s.name,
+                "zone": s.zone,
+                "type": s.stype,
+                "obc": s.obc,
+                "obc_obj": s.obc_obj,
+                "verts": [list(v) for v in s.verts],
+            }
+            for s in bg.surfaces
+        ],
+        "windows": [
+            {"name": w.name, "parent": w.parent, "verts": [list(v) for v in w.verts]}
+            for w in bg.windows
+        ],
+    }
+
+
+def geometry_specs_markdown(
+    zone_specs: str, surface_specs: str, fenestration_specs: str
+) -> str:
+    """Canonical text of the ``3_split_pairing/geometry_specs.md`` artifact."""
+    return (
+        f"# zone_specs\n\n{zone_specs}\n\n# surface_specs\n\n{surface_specs}\n\n"
+        f"# fenestration_specs\n\n{fenestration_specs}\n"
+    )
+
+
+def building_geometry_json(bg: BuildingGeometry, *, indent: int = 2) -> str:
+    return json.dumps(building_geometry_dict(bg), indent=indent, ensure_ascii=False)
 
 # Fixed construction vocabulary — the seam between the geometry serializer and
 # the 4_MEP author. Both reference these exact names.

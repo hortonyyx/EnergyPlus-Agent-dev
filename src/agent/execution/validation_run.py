@@ -29,7 +29,7 @@ from src.validator.checks.correction import check_correction
 from src.validator.checks.kernel import check_kernel
 from src.validator.checks.mep import check_mep
 from src.validator.checks.reading import check_reading_view
-from src.validator.checks.schema import CheckReport
+from src.validator.checks.schema import CheckLayer, CheckReport
 
 
 @dataclass
@@ -116,6 +116,7 @@ def validate_case(
     bg = None
     used_constructions: set[str] = set()
     zone_names: set[str] = set()
+    geometry_consistent = True  # set False if on-disk 2/3 drift from the rebuild
     if snapped.exists():
         geom = CorrectedGeometry.model_validate_json(snapped.read_text())
         relied = (case_dir / "case_data" / "testdata_prompt.json").exists()
@@ -127,22 +128,50 @@ def validate_case(
         if write_reports:
             _write(case_dir / "1_correction" / "correction_checks.json", crep)
 
-        # 2/3 kernel — rebuild the authoritative geometry from the snapped cells.
-        # Only record under "2_modelling" when the on-disk artifact also exists
-        # (otherwise the required-artifact ERROR above already holds that key).
+        # 2/3 kernel — rebuild the authoritative geometry from the snapped cells,
+        # AND reconcile the committed on-disk 2/3 artifacts against that rebuild so
+        # a stale/garbage building_geometry.json or geometry_specs.md cannot pass.
         try:
             from src.agent.geometry import build_geometry
-            from src.agent.geometry.specs import serialize_geometry
+            from src.agent.geometry.specs import (
+                building_geometry_dict,
+                geometry_specs_markdown,
+                serialize_geometry,
+            )
 
             bg = build_geometry(geom)
-            _, _, _, used_constructions = serialize_geometry(bg)
+            zone_specs, surface_specs, fen_specs, used_constructions = serialize_geometry(bg)
             zone_names = set(dict.fromkeys(bg.zones))
+
+            # S2: kernel check on the authoritative rebuild + on-disk consistency.
             if bg_json.exists():
                 krep = check_kernel(bg, capability_profile=profile)
+                try:
+                    disk_bg = json.loads(bg_json.read_text())
+                except json.JSONDecodeError:
+                    disk_bg = None
+                if disk_bg != building_geometry_dict(bg):
+                    geometry_consistent = False
+                    krep.add_fail(
+                        "kernel.artifact_consistency", CheckLayer.INVARIANT,
+                        "committed building_geometry.json does not match the "
+                        "deterministic rebuild from snapped correction geometry "
+                        "(stale/garbage artifact)")
                 res.reports["2_modelling"] = krep
                 if write_reports:
                     _write(case_dir / "2_modelling" / "kernel_checks.json", krep)
+
+            # S3: geometry_specs.md must equal the serializer output.
+            if specs_path.exists():
+                expected_md = geometry_specs_markdown(zone_specs, surface_specs, fen_specs)
+                if specs_path.read_text() != expected_md:
+                    geometry_consistent = False
+                    res.reports["3_split_pairing"] = _error_report(
+                        "3_split_pairing", profile,
+                        "committed geometry_specs.md does not match the deterministic "
+                        "serializer output (stale/garbage artifact)")
         except Exception as e:  # noqa: BLE001 — recorded as a blocking error report
+            geometry_consistent = False
             res.reports["2_modelling"] = _error_report("2_modelling", profile,
                                                         f"kernel build failed: {e}")
 
@@ -178,9 +207,16 @@ def validate_case(
     #  require_ep=False the EP baseline is intentionally not validated.)
 
     # ---- geometry approval digest + confirmation policy ----
-    # Only compute a digest from the REAL on-disk geometry artifacts; never from a
-    # {} / "" fallback (a bogus digest could be "approved" by accident).
-    if bg_json.exists() and specs_path.exists() and "2_modelling" in res.reports:
+    # Only compute a digest from the REAL on-disk geometry artifacts, and ONLY
+    # after they passed the consistency check — never bind an approval to stale /
+    # unchecked bytes ({}/"" fallback or a drifted artifact).
+    if (
+        bg_json.exists()
+        and specs_path.exists()
+        and geometry_consistent
+        and "2_modelling" in res.reports
+        and res.reports["2_modelling"].passed
+    ):
         bg_dict = json.loads(bg_json.read_text())
         specs = specs_path.read_text()
         kreport = res.reports["2_modelling"].model_dump()

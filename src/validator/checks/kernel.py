@@ -90,8 +90,14 @@ def _zone_closure(rep: CheckReport, bg: BuildingGeometry) -> None:
     fragments floors/ceilings/walls into sub-faces, so a single face never matches
     the footprint — but the summed floor/ceiling area and wall width must."""
     polys = {zv.zone: zv for zv in bg.zone_volumes}
+    by_zone = _by_zone(bg)
+    # Iterate the union of declared zones (bg.zones / zone_volumes) and zones that
+    # actually own surfaces — so a DECLARED zone with no surfaces at all still gets
+    # checked (and fails on the missing Floor/Ceiling/Wall) rather than skipped.
+    all_zones = set(dict.fromkeys(bg.zones)) | set(polys) | set(by_zone)
     bad = []
-    for zone, surfs in _by_zone(bg).items():
+    for zone in sorted(all_zones):
+        surfs = by_zone.get(zone, [])
         floors = [s for s in surfs if s.stype == "Floor"]
         tops = [s for s in surfs if s.stype in ("Ceiling", "Roof")]
         walls = [s for s in surfs if s.stype == "Wall"]
@@ -128,7 +134,7 @@ def _zone_closure(rep: CheckReport, bg: BuildingGeometry) -> None:
                      f"{len(bad)} zone-closure defect(s)", evidence={"offenders": bad})
     else:
         rep.add_pass("kernel.zone_closure", CheckLayer.INVARIANT,
-                     evidence={"zones": len(_by_zone(bg))})
+                     evidence={"zones": len(all_zones)})
 
 
 def _normals(rep: CheckReport, bg: BuildingGeometry) -> None:
