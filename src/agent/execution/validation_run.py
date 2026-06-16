@@ -74,9 +74,35 @@ def validate_case(
         _finalize(res)
         return res
 
-    # ---- 0_reading ----
+    # ---- required-artifact guard (fail-CLOSED: a missing required artifact in
+    # full scope is a blocking ERROR, never a silent pass) ----
+    snapped = case_dir / "1_correction" / "correction_geometry_snapped.json"
+    bg_json = case_dir / "2_modelling" / "building_geometry.json"
+    specs_path = case_dir / "3_split_pairing" / "geometry_specs.md"
+    mep_path = case_dir / "4_mep" / "mep_output.json"
+    intake_path = case_dir / "5_intakeoutput" / "intake_output.json"
     rdir = case_dir / "0_reading"
-    if rdir.exists():
+    ep_run = case_dir / "EP" / "EP_run"
+    ep_end = ep_run / "eplusout.end"
+
+    has_reading = rdir.exists() and any(rdir.glob("*_view.json"))
+    required = {
+        "0_reading": (has_reading, "0_reading/*_view.json"),
+        "1_correction": (snapped.exists(), str(snapped.relative_to(case_dir))),
+        "2_modelling": (bg_json.exists(), str(bg_json.relative_to(case_dir))),
+        "3_split_pairing": (specs_path.exists(), str(specs_path.relative_to(case_dir))),
+        "4_mep": (mep_path.exists(), str(mep_path.relative_to(case_dir))),
+        "5_intakeoutput": (intake_path.exists(), str(intake_path.relative_to(case_dir))),
+    }
+    if policy.require_ep:
+        required["downstream"] = (ep_end.exists(), "EP/EP_run/eplusout.end")
+    for stage_key, (present, where) in required.items():
+        if not present:
+            res.reports[stage_key] = _error_report(
+                stage_key, profile, f"required artifact missing: {where}")
+
+    # ---- 0_reading ----
+    if has_reading:
         from src.agent.reading import load_reading_view
 
         for vj in sorted(rdir.glob("*_view.json")):
@@ -87,7 +113,6 @@ def validate_case(
                 _write(rdir / f"{vj.stem}_checks.json", rep)
 
     # ---- 1_correction (+ rebuild kernel for 2/3) ----
-    snapped = case_dir / "1_correction" / "correction_geometry_snapped.json"
     bg = None
     used_constructions: set[str] = set()
     zone_names: set[str] = set()
@@ -103,23 +128,25 @@ def validate_case(
             _write(case_dir / "1_correction" / "correction_checks.json", crep)
 
         # 2/3 kernel — rebuild the authoritative geometry from the snapped cells.
+        # Only record under "2_modelling" when the on-disk artifact also exists
+        # (otherwise the required-artifact ERROR above already holds that key).
         try:
             from src.agent.geometry import build_geometry
             from src.agent.geometry.specs import serialize_geometry
 
             bg = build_geometry(geom)
-            krep = check_kernel(bg, capability_profile=profile)
-            res.reports["2_modelling"] = krep
-            if write_reports:
-                _write(case_dir / "2_modelling" / "kernel_checks.json", krep)
             _, _, _, used_constructions = serialize_geometry(bg)
             zone_names = set(dict.fromkeys(bg.zones))
+            if bg_json.exists():
+                krep = check_kernel(bg, capability_profile=profile)
+                res.reports["2_modelling"] = krep
+                if write_reports:
+                    _write(case_dir / "2_modelling" / "kernel_checks.json", krep)
         except Exception as e:  # noqa: BLE001 — recorded as a blocking error report
             res.reports["2_modelling"] = _error_report("2_modelling", profile,
                                                         f"kernel build failed: {e}")
 
     # ---- 4_mep ----
-    mep_path = case_dir / "4_mep" / "mep_output.json"
     if mep_path.exists():
         mep = json.loads(mep_path.read_text())
         mrep = check_mep(mep, used_constructions=used_constructions or None,
@@ -129,26 +156,33 @@ def validate_case(
             _write(case_dir / "4_mep" / "mep_checks.json", mrep)
 
     # ---- 5_intakeoutput backstop ----
-    intake_path = case_dir / "5_intakeoutput" / "intake_output.json"
-    if intake_path.exists() and used_constructions:
+    if intake_path.exists():
         intake = IntakeOutput.model_validate_json(intake_path.read_text())
-        arep = check_assembly(intake, used_constructions, capability_profile=profile)
+        if used_constructions:
+            arep = check_assembly(intake, used_constructions, capability_profile=profile)
+        else:
+            # intake present but no construction set to backstop against (upstream
+            # geometry missing) — record an explicit error, do not skip silently.
+            arep = _error_report("5_intakeoutput", profile,
+                                 "cannot backstop: upstream geometry/used_constructions "
+                                 "unavailable")
         res.reports["5_intakeoutput"] = arep
         if write_reports:
             _write(case_dir / "5_intakeoutput" / "assembly_checks.json", arep)
 
-    # ---- EP baseline (if a run exists) ----
-    ep_run = case_dir / "EP" / "EP_run"
-    if (ep_run / "eplusout.end").exists():
+    # ---- EP baseline ----
+    if ep_end.exists():
         eprep = check_ep_baseline(ep_run, capability_profile=profile)
         res.reports["downstream"] = eprep
+    # (missing EP with require_ep=True is already a blocking ERROR above; with
+    #  require_ep=False the EP baseline is intentionally not validated.)
 
     # ---- geometry approval digest + confirmation policy ----
-    if bg is not None and "2_modelling" in res.reports:
-        bg_dict = json.loads((case_dir / "2_modelling" / "building_geometry.json").read_text()) \
-            if (case_dir / "2_modelling" / "building_geometry.json").exists() else {}
-        specs_path = case_dir / "3_split_pairing" / "geometry_specs.md"
-        specs = specs_path.read_text() if specs_path.exists() else ""
+    # Only compute a digest from the REAL on-disk geometry artifacts; never from a
+    # {} / "" fallback (a bogus digest could be "approved" by accident).
+    if bg_json.exists() and specs_path.exists() and "2_modelling" in res.reports:
+        bg_dict = json.loads(bg_json.read_text())
+        specs = specs_path.read_text()
         kreport = res.reports["2_modelling"].model_dump()
         res.geometry_digest = geometry_checkpoint_digest(
             building_geometry=bg_dict, geometry_specs=specs, kernel_check_report=kreport,
@@ -157,7 +191,10 @@ def validate_case(
 
     _finalize(res, policy)
     if write_reports:
-        _build_manifest(case_dir, res).save(case_dir)
+        # A validation SUMMARY — NOT the M0 audit manifest (which is backed by
+        # append-only attempt dirs). Distinct filename so it cannot masquerade as,
+        # or overwrite, run_manifest.json.
+        _build_manifest(case_dir, res).save(case_dir, filename="validation_manifest.json")
     return res
 
 

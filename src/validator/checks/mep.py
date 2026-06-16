@@ -92,8 +92,17 @@ def _construction_to_material(rep: CheckReport, idx: IdfFragmentIndex) -> None:
     mats = _material_names(idx)
     bad = []
     for c in idx.of_type("CONSTRUCTION"):
-        for layer in c.fields[1:]:
-            if layer and layer not in mats:
+        # Strip trailing empties (eppy pads optional layer fields) before judging.
+        layers = list(c.fields[1:])
+        while layers and not str(layers[-1]).strip():
+            layers.pop()
+        if not layers:
+            bad.append({"construction": c.name, "reason": "no layers (empty construction)"})
+            continue
+        for layer in layers:
+            if not str(layer).strip():
+                bad.append({"construction": c.name, "reason": "blank layer field (gap)"})
+            elif layer not in mats:
                 bad.append({"construction": c.name, "missing_layer": layer})
     if bad:
         rep.add_fail("mep.construction_to_material", CheckLayer.INVARIANT,

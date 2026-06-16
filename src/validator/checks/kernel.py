@@ -102,7 +102,12 @@ def _zone_closure(rep: CheckReport, bg: BuildingGeometry) -> None:
         if not walls:
             bad.append({"zone": zone, "missing": "Wall"})
         zv = polys.get(zone)
-        if zv is None or not (floors and tops and walls):
+        if zv is None:
+            # A surface references a zone with no ZoneVolume → the zone is not
+            # declared; block rather than silently skip its closure checks.
+            bad.append({"zone": zone, "reason": "no ZoneVolume (zone not declared)"})
+            continue
+        if not (floors and tops and walls):
             continue
         area = zv.polygon.area
         perim = zv.polygon.length
@@ -181,7 +186,10 @@ def _pairing_gate(
 
 
 def _spec_self_consistency(rep: CheckReport, bg: BuildingGeometry) -> None:
-    zones = set(dict.fromkeys(bg.zones)) | {s.zone for s in bg.surfaces}
+    # Declared zones come ONLY from the zone declaration (bg.zones / zone_volumes),
+    # NOT from the surfaces themselves — otherwise a surface pointing at an
+    # undeclared zone would vacuously satisfy `s.zone in zones`.
+    zones = set(dict.fromkeys(bg.zones)) | {zv.zone for zv in bg.zone_volumes}
     names = {s.name for s in bg.surfaces}
     bad = []
     for s in bg.surfaces:

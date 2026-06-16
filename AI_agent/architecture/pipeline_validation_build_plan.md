@@ -127,7 +127,9 @@ skills/intake_pipeline/<stage>/judge_rubric.md   J0/J1（J4 stub-disabled）
 | **M3** | ✅ | `src/agent/judge/`（verdict schema v2：criterion status + not_applicable/insufficient_evidence + root_stage/confidence + retriable；`retry_stage_draw` 单阶段盲抽，两入口 repair_feedback vs judge_retry_context **不串线**；executor J0/J1 接线 + **J4 disabled stub** 非假 PASS + unknown 不路由 quarantine + append-only verdict）；J0/J1 `judge_rubric.md`。judge 测试全 fake。`tests/test_judge_harness.py` 15 |
 | **M4** | ✅ | `src/agent/execution/validation_run.py`（`validate_case` 非侵入式跑全段 gate①、不动 `run_pipeline`；confirmation_policy 绑定 geometry digest；`--intake-from`→downstream_only scope）。sm20_anchor 正 baseline 全过 + 负例语料（fixtures）。`tests/test_validation_run_baseline.py` 6 |
 
-**测试 103 → 191 全绿。** 纪律全守：每条确定性 check 配正反单测 + 真坏 fixture；policy≠fact（profile 切 not_applicable 不另写 policy）；append-only 不覆盖坏 draw；judge 不注入 prompt；未动 `IntakeOutput` 契约 / 未动 `run_pipeline` / 未动下游。**残留（deferred 不阻塞）**：viewer 交互层（pyvista/three.js spike）；4_mep 合理性区间（占位待 MEP 输入富化）；judge LLM/VLM 真实接线（harness 已就位、judge_fn 可插拔）；resume 接进 `run_pipeline`（地基已就位、validate_case 已用）。
+**Codex 实现审阅闭环（2026-06-16，CHANGES REQUESTED → 5 findings 全修，[review](../logs/review/review/2026-06-16_pipeline_0-5_validation_implementation_review.md)）**：H1 `validate_case` 全 scope 缺必需产物原静默放行 → 加**必需产物表**逐项发 blocking ERROR + EP 改由 `policy.require_ep` 控（不再凭缺 `.end` 推断 pre-EP）+ digest 只从真产物算（杜绝 `{}` 伪 digest）；H2 `write_reports` 原覆写/伪造 `run_manifest.json` → 改写独立 `validation_manifest.json`（不冒充 M0 审计 manifest）；M1 空/空白 layer Construction 原 vacuous 放行 → 拦；M2 `kernel.spec_self_consistency` 声明集原并入 surface 自身 zone（逮不住未声明 zone）→ 只用 `bg.zones`/`zone_volumes` + closure 拦无 ZoneVolume 的 zone；M3 reading rect 崩轴退化 `and`→`or`。+10 回归测试。
+
+**测试 103 → 191 → 201 全绿。** 纪律全守：每条确定性 check 配正反单测 + 真坏 fixture；policy≠fact（profile 切 not_applicable 不另写 policy）；append-only 不覆盖坏 draw；judge 不注入 prompt；未动 `IntakeOutput` 契约 / 未动 `run_pipeline` / 未动下游。**残留（deferred 不阻塞）**：viewer 交互层（pyvista/three.js spike）；4_mep 合理性区间（占位待 MEP 输入富化）；judge LLM/VLM 真实接线（harness 已就位、judge_fn 可插拔）；resume 接进 `run_pipeline`（地基已就位、validate_case 已用）。
 
 ---
 

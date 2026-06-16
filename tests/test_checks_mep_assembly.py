@@ -57,6 +57,19 @@ def test_bad_mep_semantics_all_three_fire():
     assert "mep.load_to_schedule" in ids
 
 
+def test_empty_construction_blocks():
+    """A Construction with no layers must NOT pass vacuously (Codex M1)."""
+    mep = {
+        "building": {"name": "B", "north_axis": 0.0, "terrain": "City"},
+        "site_location": {"name": "S", "latitude": 22.5, "longitude": 114.0,
+                          "time_zone": 8.0, "elevation": 5.0},
+        "material_specs": "", "construction_specs": "Construction,\n  Default_Ext_Wall;\n",
+        "schedule_specs": "", "hvac_specs": "", "people_specs": "", "lights_specs": "",
+    }
+    rep = check_mep(mep, used_constructions={"Default_Ext_Wall"})
+    assert "mep.construction_to_material" in _blocking(rep)
+
+
 def test_missing_construction_coverage_blocks():
     mep = _anchor_mep()
     rep = check_mep(mep, used_constructions={"Cons_DoesNotExist"})

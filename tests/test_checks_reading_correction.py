@@ -60,6 +60,17 @@ def test_reading_degenerate_line_blocks():
     assert "reading.nondegenerate_geometry" in _ids(check_reading_view(v))
 
 
+def test_reading_collapsed_axis_rect_blocks():
+    """A rect with one collapsed axis (e.g. width 0, height 3) is degenerate (Codex M3)."""
+    v = ReadingView.model_validate({
+        "image_kind": "elevation", "uncaptured": [],
+        "facade": {"view_facade": "South"},
+        "strokes": [{"id": "S1", "pen": "wall_fill",
+                     "geometry": {"kind": "rect", "x_range_m": [5, 5], "y_range_m": [0, 3]}}],
+    })
+    assert "reading.nondegenerate_geometry" in _ids(check_reading_view(v))
+
+
 def test_reading_elevation_missing_facade_blocks():
     v = ReadingView.model_validate({
         "image_kind": "elevation", "uncaptured": [],

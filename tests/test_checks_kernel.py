@@ -70,6 +70,18 @@ def test_spec_self_consistency_dangling_obc():
     assert "kernel.spec_self_consistency" in _blocking_ids(rep)
 
 
+def test_undefined_zone_blocks():
+    """A surface whose zone is not in bg.zones/zone_volumes must block (Codex M2)."""
+    bg = build_geometry(_anchor_geom())
+    target = bg.surfaces[0].zone
+    for s in bg.surfaces:
+        if s.zone == target:
+            s.zone = "NoSuchZone"  # leave bg.zones / zone_volumes unchanged
+    rep = check_kernel(bg)
+    blocked = _blocking_ids(rep)
+    assert "kernel.spec_self_consistency" in blocked or "kernel.zone_closure" in blocked
+
+
 def test_pairing_gate_blocks_on_injected_issue():
     bg = build_geometry(_anchor_geom())
     rep = check_kernel(bg, interzone_issues=["injected: wall X has no reciprocal"])

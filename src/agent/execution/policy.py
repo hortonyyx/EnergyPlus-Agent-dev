@@ -37,6 +37,11 @@ class RunPolicy(BaseModel):
     judge_enabled: bool = False  # dev-期 scaffold; off by default (M2 det. first)
     validation_scope: ValidationScope = ValidationScope.FULL
     capability_profile: str = "rectangular"
+    # Whether a full-scope run REQUIRES an EnergyPlus run (EP/EP_run/eplusout.end).
+    # Default False = geometry/MEP-only validation (pre-EP) is a first-class mode;
+    # a missing .end is then explicitly skipped, NOT silently passed. Set True to
+    # make the EP baseline a required, blocking artifact.
+    require_ep: bool = False
     budget: RunBudget = RunBudget()
 
     def confirmation_blocks(self, approved: bool) -> bool:

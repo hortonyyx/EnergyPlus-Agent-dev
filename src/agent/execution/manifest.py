@@ -127,8 +127,8 @@ class RunManifest(BaseModel):
             return cls(case=Path(case_dir).name)
         return cls.model_validate_json(p.read_text(encoding="utf-8"))
 
-    def save(self, case_dir: Path) -> Path:
-        p = Path(case_dir) / MANIFEST_NAME
+    def save(self, case_dir: Path, *, filename: str = MANIFEST_NAME) -> Path:
+        p = Path(case_dir) / filename
         p.write_text(self.model_dump_json(indent=2), encoding="utf-8")
         return p
 

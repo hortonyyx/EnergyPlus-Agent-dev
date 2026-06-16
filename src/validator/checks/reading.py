@@ -166,8 +166,9 @@ def _geometry_wellformed(rep: CheckReport, view: ReadingView) -> None:
             xr, yr = g.get("x_range_m"), g.get("y_range_m")
             if not (xr and yr and _finite(*xr, *yr)):
                 bad.append({"id": s.id, "reason": "non-finite rect range"})
-            elif abs(xr[1] - xr[0]) < _MIN_EXTENT and abs(yr[1] - yr[0]) < _MIN_EXTENT:
-                bad.append({"id": s.id, "reason": "degenerate rect (zero area)"})
+            elif abs(xr[1] - xr[0]) < _MIN_EXTENT or abs(yr[1] - yr[0]) < _MIN_EXTENT:
+                # EITHER collapsed axis makes a rectangle degenerate (zero area).
+                bad.append({"id": s.id, "reason": "degenerate rect (collapsed axis)"})
     if bad:
         rep.add_fail(
             "reading.nondegenerate_geometry", CheckLayer.INVARIANT,
