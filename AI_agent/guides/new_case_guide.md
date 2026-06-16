@@ -32,6 +32,27 @@
 
 judge 密度（自洽口径）：**只在 LLM 段 0/1/4 有 judge**；确定性段 2/3 无 per-run judge（靶子=代码单测）；5 无 judge。J0=0_reading、J1=1_correction（rubric 见 `skills/intake_pipeline/{0_reading,1_correction}/judge_rubric.md`）；**J4(4_mep) 暂 disabled stub**。
 
+## 0.1 初始 case = 最小（素材 + 配置），其余跑中建（2026-06-16 用户定）
+
+一个**初始测试 case**（提交入库的起点）**只含两样**，**绝不预搭空骨架**：
+```
+<case>/
+  case_data/   素材: *_view.png + testdata_prompt.json
+  llm.yaml     模型配置
+  0_reading/   识图产物(现半人工/子Agent产、可复用真产物;将来 VLM 跑中建)——是输出不是素材
+```
+`1_correction/ … 5_intakeoutput/ EP/` 全部**跑的时候才由代码建**（`mkdir(parents=True)` 按需建）。
+所以「跑后布局（全树）」（[contracts §3.1](../architecture/pipeline_stage_contracts.md)）是 run **之后**
+的样子，不是初始 case 要先搭好的样子。`validate_case` / `record_baseline` 都是 run **之后**才跑。
+
+## 0.2 参考答案（gt）= judge② 专用，gate① / 执行器绝不看
+
+每个 case 的评测标准答案放 [`case_tests/test_baseline/gt/<case>.json`](../../case_tests/test_baseline/gt)
+（真实区划 / 每立面窗数 / 尺寸真值，人读原图独立得出）。**只有你（gate② judge）经
+[`src/agent/judge/gt.py:load_gt`](../../src/agent/judge/gt.py) 读它**；**gate① 与执行器绝不 import**
+（gate① 随上线、prod 无答案，必须 dev/prod 一致；执行器看了=照抄、误差预算崩）。详见
+[gt/README.md](../../case_tests/test_baseline/gt/README.md)。判 1_correction 时载 gt 直接比对区划/窗数。
+
 ## 1. 不污染原则（最重要，机械保证，别破）
 
 > 你既编排又当 judge，最大风险是把 judge 信息 / 下游信息泄漏进某段的输入，污染误差预算与训练数据。

@@ -226,6 +226,8 @@
 
 ### 3.1 固化的 on-disk 布局 + 每阶段校验工具
 
+> **初始 case vs 跑后布局（2026-06-16 用户定）**：下方全树是 run **之后**的样子。**初始 case（入库起点）只含 `case_data/`（素材 + testdata）+ 根 `llm.yaml`（+ `0_reading/` 这个识图产物，半人工/复用真产物）——`1_correction…5_intakeoutput/ EP/` 全部跑中由代码建，绝不预搭空骨架**。`validate_case`/`record_baseline` 都是 run 之后才跑。评测参考答案 gt 不在 case 内，放 `case_tests/test_baseline/gt/<case>.json`（**judge② 专用，gate①/执行器绝不读**，见 [new_case_guide §0.2](../guides/new_case_guide.md)）。
+
 `run_full_pipeline.py <case> --base-dir case_tests/e2e_tests --reading-from 0_reading` 产出按阶段分门别类：
 
 ```
