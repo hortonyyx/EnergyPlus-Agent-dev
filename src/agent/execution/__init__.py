@@ -36,6 +36,7 @@ from src.agent.execution.policy import (
     RunPolicy,
     ValidationScope,
 )
+from src.agent.execution.orchestrate import file_stage_attempt, summarize_gates
 from src.agent.execution.routing import RouteAction, route_stage_failure
 from src.agent.execution.validation_run import (
     CaseValidationResult,
@@ -74,6 +75,8 @@ __all__ = [
     "ValidationScope",
     "RouteAction",
     "route_stage_failure",
+    "file_stage_attempt",
+    "summarize_gates",
     "CaseValidationResult",
     "validate_case",
     "STAGE_ORDER",
