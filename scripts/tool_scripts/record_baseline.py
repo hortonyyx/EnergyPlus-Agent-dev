@@ -21,7 +21,7 @@ import argparse
 import json
 from pathlib import Path
 
-from src.agent.execution import summarize_gates, validate_case
+from src.agent.execution import load_state, summarize_gates, validate_case
 from src.agent.execution.policy import RunPolicy
 
 
@@ -102,7 +102,8 @@ def _eyeball_checklist(case_dir: Path, summary: dict, counts: dict) -> list[str]
         "每层填色区图 `1_correction/*_zones.png` vs 原平面图 —— 房间无错并/错分/缺失/多出"
         "（尤其走廊是否被切断，sm20 那类坑）",
         "立面窗位图 `1_correction/*_elev.png` vs 原立面 —— 窗落在对的立面/楼层/位置",
-        "3D 体量 `2_modelling/building_geometry.glb` —— 整体像不像这栋楼（trimesh 出 GLB）",
+        "3D 几何 `2_modelling/geometry_viewer.html`（浏览器打开：orbit / 半透明 / 截面 / 爆炸 / 量距）"
+        " —— 整体体量 + 内部分区 + 窗在对的立面，确认无误后 `approve-geometry`",
     ]
     for f in summary.get("flags", []):
         items.append(
@@ -121,6 +122,7 @@ def record_baseline(run_dir: Path, *, date: str, orchestrator: str,
     summary = summarize_gates(res.reports)
     counts = _geometry_counts(run_dir)
     draws, verdicts = _draws_and_verdicts(run_dir)
+    state = load_state(run_dir)  # stepwise orchestration ledger (stop_reason etc.)
     baseline = {
         "case": case,
         "run": run_dir.name,
@@ -135,6 +137,8 @@ def record_baseline(run_dir: Path, *, date: str, orchestrator: str,
         "blocking": summary["blocking"],
         "judge_verdicts": verdicts,
         "draws": draws,
+        "orchestration": state.get("stages", {}),
+        "stop_reason": state.get("stop_reason"),
         "ep": _ep_end(run_dir),
         "blocked": res.blocked,
     }
@@ -149,7 +153,11 @@ def record_baseline(run_dir: Path, *, date: str, orchestrator: str,
 def _render_report(b: dict, eyeball: list[str]) -> str:
     g = b["geometry"]
     ep = b["ep"]
-    verdict = "✅ clean" if not b["blocked"] else "❌ BLOCKED"
+    stop = b.get("stop_reason")
+    if b["blocked"] or stop:
+        verdict = f"❌ STOPPED ({stop})" if stop else "❌ BLOCKED"
+    else:
+        verdict = "✅ clean"
     lines = [
         f"# {b['case']} / {b.get('run','')} 跑批反馈 "
         f"({b['recorded']}, orchestrator={b['orchestrator']})",
@@ -169,10 +177,17 @@ def _render_report(b: dict, eyeball: list[str]) -> str:
     ]
     for stage, agg in b["gates"].items():
         lines.append(f"| {stage} | {agg['pass']} | {agg['flag']} | {agg['block']} | {agg['na']} |")
+    if b.get("orchestration"):
+        lines += ["", "## 逐段编排状态（judge-in-the-loop）", "",
+                  "| 段 | status | 抽样 |", "|---|---|---|"]
+        for stage, st in b["orchestration"].items():
+            lines.append(f"| {stage} | {st.get('status','?')} | {st.get('attempts_used','?')} |")
     if b["draws"]:
-        lines += ["", f"**抽样次数**: {b['draws']}"]
+        lines += ["", f"**抽样次数（attempts/ 落盘）**: {b['draws']}"]
     if b["judge_verdicts"]:
-        lines += ["", f"**judge② verdicts**: {len(b['judge_verdicts'])} 条（见各 attempts/NNN/judge.json）"]
+        nblk = sum(1 for v in b["judge_verdicts"] if v.get("blocking"))
+        lines += ["", f"**judge② verdicts**: {len(b['judge_verdicts'])} 条"
+                  f"（{nblk} 条 blocking；见各 attempts/NNN/judge.json）"]
     if b["blocking"]:
         lines += ["", "## ⛔ blocking"]
         lines += [f"- [{x['stage']}::{x['check']}] {x['message']}" for x in b["blocking"]]

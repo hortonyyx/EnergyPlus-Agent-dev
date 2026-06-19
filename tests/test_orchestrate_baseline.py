@@ -108,4 +108,4 @@ def test_record_baseline_report_lists_eyeball_items(tmp_path):
     shutil.copytree(_ANCHOR, case)
     record_baseline.record_baseline(case / _RUN_NAME, date="2026-06-16", orchestrator="test")
     report = (case / _RUN_NAME / "RUN_REPORT.md").read_text()
-    assert "填色区图" in report and "立面窗位图" in report and "3D 体量" in report
+    assert "填色区图" in report and "立面窗位图" in report and "3D 几何" in report

@@ -38,6 +38,19 @@ from src.agent.execution.policy import (
 )
 from src.agent.execution.orchestrate import file_stage_attempt, summarize_gates
 from src.agent.execution.routing import RouteAction, route_stage_failure
+from src.agent.execution.step_orchestrator import (
+    ADVANCE_OK,
+    TERMINAL_STOP,
+    StageOutcome,
+    StepStatus,
+    approve_geometry,
+    geometry_is_approved,
+    load_state,
+    mark_geometry_approved,
+    run_one_stage,
+    submit_verdict,
+    update_state,
+)
 from src.agent.execution.validation_run import (
     CaseValidationResult,
     validate_case,
@@ -77,6 +90,17 @@ __all__ = [
     "route_stage_failure",
     "file_stage_attempt",
     "summarize_gates",
+    "ADVANCE_OK",
+    "TERMINAL_STOP",
+    "StageOutcome",
+    "StepStatus",
+    "approve_geometry",
+    "geometry_is_approved",
+    "load_state",
+    "mark_geometry_approved",
+    "run_one_stage",
+    "submit_verdict",
+    "update_state",
     "CaseValidationResult",
     "validate_case",
     "STAGE_ORDER",

@@ -299,6 +299,69 @@ def test_correction_validator_rejects_illegal_facade():
 
 
 # ---------------------------------------------------------------------------
+# correction_draw_issues + _schema_only_correction_validator (stepwise split,
+# review 2026-06-19 High-2): semantic draw checks are reported (not raised) so the
+# stepwise orchestrator routes them through gate① (counted + filed), while the
+# inner LLM retry handles only schema/format.
+# ---------------------------------------------------------------------------
+
+def _cg(d: dict):
+    from src.agent.correction.schema import CorrectedGeometry
+    return CorrectedGeometry.model_validate(d)
+
+
+def test_draw_issues_flags_zero_windows():
+    issues = pipeline.correction_draw_issues(_cg(_geom(windows=[])), 5)
+    assert any("0 windows" in m for m in issues)
+
+
+def test_draw_issues_clean_when_reading_has_no_windows():
+    assert pipeline.correction_draw_issues(_cg(_geom(windows=[])), 0) == []
+
+
+def test_draw_issues_flags_duplicate_cell_id():
+    dup = _geom(floors=[
+        {"name": "F1", "z_floor": 0.0, "ceiling_height": 3.0,
+         "cells": [{"id": "C", "role": "office", "x": [0, 5], "y": [0, 8]}]},
+        {"name": "F2", "z_floor": 3.0, "ceiling_height": 3.0,
+         "cells": [{"id": "C", "role": "office", "x": [0, 5], "y": [0, 8]}]},
+    ])
+    assert any("duplicate cell id" in m for m in pipeline.correction_draw_issues(_cg(dup), 0))
+
+
+def test_draw_issues_flags_large_z_gap_but_not_small():
+    big = _geom(floors=[
+        {"name": "F1", "z_floor": 0.0, "ceiling_height": 3.0,
+         "cells": [{"id": "R1", "role": "office", "x": [0, 10], "y": [0, 8]}]},
+        {"name": "F2", "z_floor": 3.5, "ceiling_height": 3.0,
+         "cells": [{"id": "R2", "role": "office", "x": [0, 10], "y": [0, 8]}]},
+    ])
+    assert any("z-stack" in m for m in pipeline.correction_draw_issues(_cg(big), 0))
+    small = _geom(floors=[
+        {"name": "F1", "z_floor": 0.0, "ceiling_height": 3.0,
+         "cells": [{"id": "R1", "role": "office", "x": [0, 10], "y": [0, 8]}]},
+        {"name": "F2", "z_floor": 3.2, "ceiling_height": 3.0,
+         "cells": [{"id": "R2", "role": "office", "x": [0, 10], "y": [0, 8]}]},
+    ])
+    assert pipeline.correction_draw_issues(_cg(small), 0) == []
+
+
+def test_draw_issues_clean_geom():
+    assert pipeline.correction_draw_issues(_cg(_geom(windows=[_window()])), 1) == []
+
+
+def test_schema_only_validator_accepts_semantically_bad_draw():
+    # 0-window draw is schema-valid → inner validator must accept it so it reaches
+    # gate① as a counted attempt (not silently re-drawn, bypassing the budget).
+    pipeline._schema_only_correction_validator(_geom(windows=[]))  # must not raise
+
+
+def test_schema_only_validator_rejects_schema_violation():
+    with pytest.raises(Exception, match="Northeast|facade"):
+        pipeline._schema_only_correction_validator(_geom(windows=[_window(facade="Northeast")]))
+
+
+# ---------------------------------------------------------------------------
 # L1 — _section() does NOT silently fall back on config-broken sections
 # ---------------------------------------------------------------------------
 

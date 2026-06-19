@@ -357,73 +357,92 @@ def _reading_window_stroke_count(vector_dir: Path) -> int:
     return total
 
 
-def _make_correction_validator(
-    expected_window_strokes: int,
-) -> Callable[[dict], None]:
-    """Return a validator that rejects a CorrectedGeometry draw with any of:
+def correction_draw_issues(
+    geom: "CorrectedGeometry", expected_window_strokes: int
+) -> list[str]:
+    """Semantic draw-quality issues on a parsed (pre-core) CorrectedGeometry — the
+    content checks that decide whether a structurally-valid draw is good enough:
 
-    1. Pydantic schema violation (e.g. facade="Northeast" — caught by
-       CorrectedGeometry.model_validate, which also normalises single-letter
-       aliases and rejects anything outside N/S/E/W).
-    2. Window completeness: reading stage has windows but correction emitted
-       zero (the sm21 0-window instability class). Conservative: only the
-       all-or-nothing case triggers a retry — window strokes ≠ window entities,
-       so no fuzzy "too few" threshold.
-    3. Duplicate cell ids across floors: three downstream dicts key on cell id;
-       duplicates cause silent last-wins geometry corruption.
-    4. z-stack discontinuity: adjacent floors whose gap |upper.z_floor −
-       (lower.z_floor + lower.ceiling_height)| exceeds gap_close_threshold_m
-       (from correction.yaml). Gaps ≤ the threshold are auto-closed by the
-       deterministic core, so they must NOT be rejected here.
+    - Window completeness: reading has windows but correction emitted zero (the
+      sm21 0-window instability). Conservative: only the all-or-nothing case (window
+      strokes ≠ window entities, so no fuzzy "too few" threshold).
+    - Duplicate cell ids across floors: three downstream dicts key on cell id;
+      duplicates cause silent last-wins corruption.
+    - z-stack discontinuity: adjacent floors whose gap exceeds gap_close_threshold_m
+      (gaps ≤ the threshold are auto-closed by the deterministic core, so they are
+      NOT issues here — run this on the PRE-core draw).
 
-    On any failure raises ValueError with a descriptive message, which causes
-    `_call_json_llm` to log a warning and retry (up to `attempts` draws).
+    Returns a list of messages (empty = clean). It does NOT raise — so the stepwise
+    orchestrator can fold these into the stage gate① report (each semantic-bad draw
+    then becomes a counted, append-only attempt + a blind resample), instead of
+    being silently retried inside the LLM call and bypassing the per-stage budget.
     """
     from src.agent.correction.config import load_core_tolerances
 
-    def _validate(parsed: dict) -> None:
-        # --- 1. Pydantic schema (covers facade normalisation / Literal guard) ---
-        geom = CorrectedGeometry.model_validate(parsed)
+    issues: list[str] = []
+    if expected_window_strokes > 0 and not geom.windows:
+        issues.append(
+            f"correction emitted 0 windows but the reading stage has "
+            f"{expected_window_strokes} window stroke(s) — facade windows were "
+            f"dropped (a known 1_correction instability, not a kernel issue)"
+        )
 
-        # --- 2. Window completeness ---
-        if expected_window_strokes > 0 and not geom.windows:
-            raise ValueError(
-                f"correction emitted 0 windows but the reading stage has "
-                f"{expected_window_strokes} window stroke(s) — facade windows were "
-                f"dropped (a known 1_correction instability, not a kernel issue)"
-            )
-
-        # --- 3. Duplicate cell ids across floors ---
-        seen: dict[str, str] = {}  # cell_id -> floor_name
-        for floor in geom.floors:
-            for cell in floor.cells:
-                if cell.id in seen:
-                    raise ValueError(
-                        f"duplicate cell id '{cell.id}' found in floors "
-                        f"'{seen[cell.id]}' and '{floor.name}' — "
-                        f"downstream geometry dicts key on cell id, so duplicates "
-                        f"cause silent last-wins corruption"
-                    )
+    seen: dict[str, str] = {}  # cell_id -> floor_name
+    for floor in geom.floors:
+        for cell in floor.cells:
+            if cell.id in seen:
+                issues.append(
+                    f"duplicate cell id '{cell.id}' found in floors "
+                    f"'{seen[cell.id]}' and '{floor.name}' — downstream geometry "
+                    f"dicts key on cell id, so duplicates cause last-wins corruption"
+                )
+            else:
                 seen[cell.id] = floor.name
 
-        # --- 4. z-stack continuity ---
-        tol = load_core_tolerances()
-        gap_limit = tol.gap_close_threshold_m
-        sorted_floors = sorted(geom.floors, key=lambda f: f.z_floor)
-        for prev, cur in zip(sorted_floors, sorted_floors[1:]):
-            expected_z = prev.z_floor + prev.ceiling_height
-            gap = abs(cur.z_floor - expected_z)
-            if gap > gap_limit:
-                raise ValueError(
-                    f"z-stack discontinuity between floor '{prev.name}' "
-                    f"(z_floor={prev.z_floor}, ceiling_height={prev.ceiling_height}, "
-                    f"top={expected_z:.3f}) and floor '{cur.name}' "
-                    f"(z_floor={cur.z_floor}): gap={gap:.3f} m > "
-                    f"gap_close_threshold={gap_limit} m — "
-                    f"gaps above this threshold are not auto-closed by the core"
-                )
+    tol = load_core_tolerances()
+    gap_limit = tol.gap_close_threshold_m
+    sorted_floors = sorted(geom.floors, key=lambda f: f.z_floor)
+    for prev, cur in zip(sorted_floors, sorted_floors[1:]):
+        expected_z = prev.z_floor + prev.ceiling_height
+        gap = abs(cur.z_floor - expected_z)
+        if gap > gap_limit:
+            issues.append(
+                f"z-stack discontinuity between floor '{prev.name}' "
+                f"(top={expected_z:.3f}) and '{cur.name}' (z_floor={cur.z_floor}): "
+                f"gap={gap:.3f} m > gap_close_threshold={gap_limit} m"
+            )
+    return issues
+
+
+def _schema_only_correction_validator(parsed: dict) -> None:
+    """Inner-retry validator for stepwise mode: accept any draw that parses into a
+    valid CorrectedGeometry (schema/format robustness only). Semantic draw quality
+    is judged by the OUTER gate① (correction_draw_issues), so a content-bad draw is
+    counted + filed, not silently re-drawn inside `_call_json_llm`."""
+    CorrectedGeometry.model_validate(parsed)
+
+
+def _make_correction_validator(
+    expected_window_strokes: int,
+) -> Callable[[dict], None]:
+    """Full inner-retry validator (legacy ``run_pipeline`` path): reject a draw on
+    Pydantic schema violation OR any semantic draw issue (0-window / duplicate cell
+    id / z-stack discontinuity). Raises ValueError on the first problem, which makes
+    `_call_json_llm` log + retry (up to `attempts` draws).
+
+    Stepwise mode uses ``_schema_only_correction_validator`` instead and routes the
+    semantic checks through gate① — see ``correction_draw_issues``.
+    """
+    def _validate(parsed: dict) -> None:
+        geom = CorrectedGeometry.model_validate(parsed)  # schema/format
+        issues = correction_draw_issues(geom, expected_window_strokes)
+        if issues:
+            raise ValueError(issues[0])
 
     return _validate
+
+
+_UNSET_VALIDATOR = object()
 
 
 def run_correction(
@@ -432,10 +451,25 @@ def run_correction(
     *,
     out_dir: Path | None = None,
     feedback: str | None = None,
+    draw_validate: "Callable[[dict], None] | None | object" = _UNSET_VALIDATOR,
 ) -> CorrectedGeometry:
+    """1_correction LLM stage → CorrectedGeometry (pre-core).
+
+    ``draw_validate`` is the inner-retry validator (a failure re-issues the LLM call
+    up to ``attempts`` times). Default = the full ``_make_correction_validator``
+    (legacy ``run_pipeline`` path: schema + semantic). Pass
+    ``_schema_only_correction_validator`` (stepwise mode) so the inner retry handles
+    only schema/format, leaving semantic draw quality to gate① (so a content-bad
+    draw is counted + filed as an attempt, not silently re-drawn). Pass ``None`` to
+    disable the inner validator entirely."""
     ensure_schema_initialized()  # safe for standalone stage calls (idempotent)
     system_prompt, human = _build_correction_messages(
         vector_dir, testdata_text, feedback=feedback
+    )
+    validator = (
+        _make_correction_validator(_reading_window_stroke_count(vector_dir))
+        if draw_validate is _UNSET_VALIDATOR
+        else draw_validate
     )
     parsed = _call_json_llm(
         _section("correction"),
@@ -444,9 +478,7 @@ def run_correction(
         out_dir=out_dir,
         prefix="correction",
         attempts=3,
-        validate=_make_correction_validator(
-            _reading_window_stroke_count(vector_dir)
-        ),
+        validate=validator,
     )
     try:
         geom = CorrectedGeometry.model_validate(parsed)

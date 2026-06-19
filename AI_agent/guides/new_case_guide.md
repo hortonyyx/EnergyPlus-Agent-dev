@@ -84,6 +84,27 @@ judge 密度（自洽口径）：**只在 LLM 段 0/1/4 有 judge**；确定性�
 
 记号：`<case>` 在 `case_tests/e2e_tests/<case>/`；标准布局见 [contracts §3.1](../architecture/pipeline_stage_contracts.md)。
 
+> **逐段 judge-in-the-loop 驱动器（2026-06-19 落地，理想态已实现）**：用
+> [`scripts/tool_scripts/run_stage.py`](../../scripts/tool_scripts/run_stage.py) 一段一动作地推进——每段
+> **跑执行器 → gate① →（坏 draw 段内盲重抽 ≤ 预算）→ 渲染 → 落 append-only attempt → 停下交你
+> judge②**。核心状态机 [`src/agent/execution/step_orchestrator.py`](../../src/agent/execution/step_orchestrator.py)（`run_one_stage`/`submit_verdict`/`approve_geometry`/`update_state`）。verbs：
+> ```bash
+> BD=case_tests/e2e_tests
+> # 逐段：跑一段 → 看它停在哪个状态（awaiting_judge / deterministic_pass / awaiting_geometry_approval / quarantined / …）
+> python scripts/tool_scripts/run_stage.py --base-dir $BD --date <ISO> run      <case> <run> <stage>
+> # judge②：你看完 packet 的原图+渲染(+gt)，写一份 StageVerdict JSON，提交
+> python scripts/tool_scripts/run_stage.py --base-dir $BD --date <ISO> judge    <case> <run> <stage> --verdict v.json
+> #   verdict 非阻塞→JUDGE_PASS(进下一段)；severe/fatal 可路由→JUDGE_BLOCK(↻ resample)；不可归因→交人；manual 段→human_redraw
+> python scripts/tool_scripts/run_stage.py --base-dir $BD --date <ISO> resample <case> <run> <stage>   # judge 打回后盲重抽（同 ≤3 预算）
+> # 几何阻塞门：3_split_pairing 过 gate① 后停在 awaiting_geometry_approval；用户在对话里看 3D/区图/立面确认后你才批
+> python scripts/tool_scripts/run_stage.py --base-dir $BD --date <ISO> approve-geometry <case> <run> --actor <user>
+> python scripts/tool_scripts/run_stage.py --base-dir $BD status <case> <run>   # 看编排账本 + stop_reason
+> ```
+> **停下判据**（按 §1.3）：gate①-block 盲重抽耗尽=`quarantined`；deterministic gate①-block=`deterministic_defect`（fail-closed）；
+> judge severe/fatal 不可归因=`judge_block_human`；0_reading 阻塞=`human_redraw_required`。任一停点 → 直接出总报告。
+> **几何门**：`ConfirmationPolicy.REQUIRED` 已接成阻塞门，**未 approve 时 `run 4_mep` 直接拒跑、不画**。
+> 跑完或中途停 → `record_baseline.py`（已纳入逐段 status + stop_reason + judge verdict 计数）出 baseline.json + RUN_REPORT.md。
+
 ### 准备
 - 确认 `case_data/testdata_prompt.json` + `case_data/*_view.png` + 根 `llm.yaml` 就位。
 - `.env` 有 `DEEPSEEK_API_KEY`（1_correction/4_mep 走 DeepSeek）。EP 在 `/EnergyPlus-*/energyplus`。
@@ -106,12 +127,17 @@ judge 密度（自洽口径）：**只在 LLM 段 0/1/4 有 judge**；确定性�
   rubric=`1_correction/judge_rubric.md`）：区划/跨层/窗位/计数/整体 redraw 五条。severe/fatal→盲重抽。
   渲染件：`render_corrected_geometry.py`（区图）+ `render_elevation_windows.py`（窗位图）。
 
-### S2+S3 几何内核（代码，确定性，无 judge）
+### S2+S3 几何内核（代码，确定性，无 judge）+ 几何阻塞人工确认门
 - 执行器：`materialize_kernel_geometry(geom, out_dir)` 造面+切配 → `building_geometry.json` +
   `geometry_specs.md`。
 - **gate①**：`check_kernel`（封闭/法向/pairing-gate-as-block/**矩形 coverage completeness**/spec 自洽）
   → `kernel_checks.json`。block = **代码缺陷，fail-closed**（不弹上游）。
-- 3D 件：`render_building_3d.py` 出 GLB（headless 无静态 PNG 会显式 skip，不算 PASS）。
+- **3D 检视（#3，2026-06-19）**：`run_stage run … 3_split_pairing` 过 gate① 后生成
+  **`2_modelling/geometry_viewer.html`**（`render_geometry_viewer.py` 出的**自包含离线**交互查看器：
+  three.js 内嵌、浏览器双击即用——orbit/缩放 + 墙体半透明 + X·Y·Z 截面 + 爆炸视图 + 量距 + 点选高亮区 +
+  按楼层/区/OBC 着色 + 存 PNG）。GLB 旁路 `render_building_3d.py` 已从主流程剥离（工具保留，后续需要再启）。
+- **阻塞门**：`ConfirmationPolicy.REQUIRED` 下停在 `awaiting_geometry_approval`，用户浏览器看完确认无误
+  → `run_stage approve-geometry <case> <run> --actor <你>`（绑 geometry digest，几何漂移自动失效）→ 才放行 S4。
 
 ### S4 4_mep（物理，DeepSeek 独立调用）
 - 执行器：`run_mep(zone_specs, used_constructions, testdata, out_dir=...)`——独立 DeepSeek，只喂 zone
@@ -126,10 +152,11 @@ judge 密度（自洽口径）：**只在 LLM 段 0/1/4 有 judge**；确定性�
 - 下游 9 subagent + InterZone 门 + EP 仿真：跑 `run_full_pipeline`（它内部完成校正→…→EP；若你已逐段
   跑出 intake，可 `--intake-from` 只跑下游+EP）。EP end 断言：`check_ep_baseline`。
 
-> **简化路径（v1 可用）**：若不想逐段手动编排，可整链 `python scripts/run_full_pipeline.py <case>
-> --base-dir case_tests/e2e_tests --reading-from 0_reading`（DeepSeek 各段隔离调用、内部坏 draw 自动
-> 重抽），**跑完再 `validate_case` 出 gate①、你再 judge② 补 verdict**。逐段编排是理想（attempts 全
-> 上 + per-stage judge 盲抽），整链+事后 judge 是务实 v1。两者都不污染（执行器本就隔离）。
+> **两条路径**：① **逐段 judge-in-the-loop（理想态，2026-06-19 已落地，默认走这条）**——`run_stage.py`
+> 一段一停，per-stage judge 盲抽 + attempts 全上 + 几何阻塞门（见本节顶部驱动器框）。② **整链 v1（仍可用，
+> 调试/回归用）**——`python scripts/run_full_pipeline.py <case> --base-dir case_tests/e2e_tests
+> --reading-from 0_reading` 跑完再 `validate_case` 出 gate①、事后补 judge②。两者都不污染（执行器本就隔离）；
+> 差别只在 judge 是**逐段在线打回**（①）还是**事后统一**（②）。
 
 ## 3. 记录（attempts 全上 + 成绩单 + 人读反馈）
 
