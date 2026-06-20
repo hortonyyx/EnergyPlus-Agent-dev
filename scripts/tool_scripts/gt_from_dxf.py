@@ -141,28 +141,44 @@ def _zones(walls, fp):
 
 
 def _plan_openings(msp, fps):
-    """Plan windows ($TCHSYS$WIN2D) + exterior doors ($DorLib2D$), facade-local."""
+    """Plan windows ($TCHSYS$WIN2D) + exterior doors ($DorLib2D$), facade-local.
+
+    Centre + width come from the virtualised INSERT bbox along the facade axis (NOT
+    insert-point + xscale, which aren't guaranteed = drawn centre/width — the same class
+    that caused the elevation-height bug). Exception: DOORS keep insert + xscale, because
+    a $DorLib2D$ block's bbox is inflated by the swing arc (bbox would overstate the leaf).
+    """
     windows, doors = [], []
     for e in msp.query("INSERT"):
         name = e.dxf.name
         is_win, is_door = "WIN2D" in name, "DorLib" in name
         if not (is_win or is_door):
             continue
-        cx, cy = e.dxf.insert.x, e.dxf.insert.y
-        if cy <= PLAN_BAND_Y:
+        ip = e.dxf.insert
+        if ip.y <= PLAN_BAND_Y:
             continue
         floor = next((fl for fl, fp in fps.items()
-                      if fp["minx"] - EDGE_TOL <= cx <= fp["maxx"] + EDGE_TOL
-                      and fp["miny"] - EDGE_TOL <= cy <= fp["maxy"] + EDGE_TOL), None)
+                      if fp["minx"] - EDGE_TOL <= ip.x <= fp["maxx"] + EDGE_TOL
+                      and fp["miny"] - EDGE_TOL <= ip.y <= fp["maxy"] + EDGE_TOL), None)
         if floor is None:
             continue
         fp = fps[floor]
-        facade = _facade_of(cx, cy, fp)
+        facade = _facade_of(ip.x, ip.y, fp)
         if facade is None:
             continue
-        centre = (cx - fp["minx"]) if facade in ("North", "South") else (cy - fp["miny"])
+        ns = facade in ("North", "South")
+        if is_win:                                    # window: bbox is the drawn extent
+            b = bbox.extents([e])
+            if not b.has_data:
+                continue
+            lo, hi = (b.extmin.x, b.extmax.x) if ns else (b.extmin.y, b.extmax.y)
+            origin = fp["minx"] if ns else fp["miny"]
+            centre, width = (lo + hi) / 2 - origin, hi - lo
+        else:                                         # door: insert + xscale (bbox = +swing arc)
+            centre = (ip.x - fp["minx"]) if ns else (ip.y - fp["miny"])
+            width = abs(e.dxf.xscale)
         rec = {"facade": facade, "floor": floor, "centre_m": centre / 1000.0,
-               "width_m": abs(e.dxf.xscale) / 1000.0}
+               "width_m": width / 1000.0}
         (windows if is_win else doors).append(rec)
     return windows, doors
 
@@ -266,7 +282,7 @@ def build(case: str) -> dict:
                  "D_m": round((fp1["maxy"] - fp1["miny"]) / 1000.0, 3)}
 
     floors = _build_floors(fps, walls, floor_z, floor_h)
-    windows = _build_windows(pwins, doors, elevs, footprint)
+    windows = _build_windows(pwins, elevs, floor_z)
     doors_out = _build_doors(doors)
 
     gt = {"case": case, "schema_version": 2, "_source": "cad_dxf",
@@ -309,7 +325,7 @@ def _match_sill_head(plan_centre, elev_wins):
     return round(best["sill_m"], 3), round(best["head_m"], 3)
 
 
-def _build_windows(pwins, doors, elevs, footprint):
+def _build_windows(pwins, elevs, floor_z):
     by_key: dict[tuple, list] = {}
     for w in pwins:
         by_key.setdefault((w["facade"], w["floor"]), []).append(w)
@@ -318,7 +334,7 @@ def _build_windows(pwins, doors, elevs, footprint):
         for floor in ("Floor 1", "Floor 2"):
             wins = sorted(by_key.get((facade, floor), []), key=lambda w: w["centre_m"])
             ev = [e for e in elevs.get(facade, {}).get("windows", [])
-                  if _floor_of_sill(e["sill_m"]) == floor]
+                  if _floor_of_sill(e["sill_m"], floor_z) == floor]
             openings = []
             for w in wins:
                 x0 = round(w["centre_m"] - w["width_m"] / 2, 3)
@@ -336,8 +352,11 @@ def _build_windows(pwins, doors, elevs, footprint):
     return out
 
 
-def _floor_of_sill(sill_m):
-    return "Floor 1" if sill_m < 3.0 else "Floor 2"
+def _floor_of_sill(sill_m, floor_z):
+    """The floor whose z_floor is the greatest one at/below the sill (interval classify,
+    not a hardcoded 3.0 boundary — generalises past two floors)."""
+    below = [(z, n) for n, z in floor_z.items() if z <= sill_m + 0.5]
+    return max(below)[1] if below else min(floor_z, key=floor_z.get)
 
 
 def _build_doors(doors):
@@ -354,18 +373,36 @@ def _build_doors(doors):
 
 
 def _self_check(gt: dict) -> list[str]:
-    """Internal consistency (no human gt to compare against): zones tile each floor with
-    no gaps/overlaps, window count == len(openings), windows sit on a real facade."""
+    """Internal consistency (no human gt to compare against) — fail LOUDLY on the implicit
+    assumptions of this DXF form (Codex hardening). gt is trustworthy only if these pass."""
     issues = []
     W, D = gt["footprint"]["W_m"], gt["footprint"]["D_m"]
+    # topology: 4 facades present, every floor non-empty, zones tile the footprint
+    facades = {w["facade"] for w in gt["windows"]}
+    if facades != {"North", "South", "East", "West"}:
+        issues.append(f"facades != N/S/E/W: {sorted(facades)}")
     for f in gt["floors"]:
+        if not f["zones"]:
+            issues.append(f"{f['name']}: no zones")
         area = sum((z["rect_m"][2] - z["rect_m"][0]) * (z["rect_m"][3] - z["rect_m"][1])
                    for z in f["zones"])
         if abs(area - W * D) > 0.5:
             issues.append(f"{f['name']}: zones cover {area:.1f} m² ≠ footprint {W*D:.1f} m²")
+        # role-map completeness: every zone got a real role from _ROLES (not the "room" fallback)
+        if any(z["role"] == "room" for z in f["zones"]):
+            issues.append(f"{f['name']}: a zone fell back to role 'room' — _ROLES count mismatch")
+    # per-opening data both renderers need (BUG A schema completeness)
     for w in gt["windows"]:
         if w["count"] != len(w.get("openings", [])):
             issues.append(f"{w['facade']} {w['floor']}: count {w['count']} ≠ {len(w.get('openings', []))} openings")
+        for o in w.get("openings", []):
+            if "sill_m" not in o or "head_m" not in o:
+                issues.append(f"{w['facade']} {w['floor']}: opening missing sill/head (elev unmatched)")
+            elif not (0 <= o["sill_m"] < o["head_m"] <= 20):
+                issues.append(f"{w['facade']} {w['floor']}: bad sill/head {o['sill_m']}/{o['head_m']}")
+    for d in gt["doors"]:
+        if "x_m" not in d:
+            issues.append(f"door {d['facade']} {d['floor']}: missing position")
     return issues
 
 
@@ -397,6 +434,10 @@ def main() -> None:
     r = build(args.case)
     _print(r)
     if args.write:
+        issues = _self_check(r["gt"])
+        if issues:                                    # fail loudly — never promote a broken gt
+            raise SystemExit(f"REFUSING to write gt.json — self-check failed:\n  " +
+                             "\n  ".join(issues))
         out = r["bundle"] / "gt.json"
         out.write_text(json.dumps(r["gt"], ensure_ascii=False, indent=2), encoding="utf-8")
         print(f"\nwrote {out}  (DXF-built gt — verify via the overlay onto the originals)")

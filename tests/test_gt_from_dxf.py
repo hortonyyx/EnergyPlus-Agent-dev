@@ -84,3 +84,30 @@ def test_gt_is_v2_with_fingerprint(built):
     assert gt["schema_version"] == 2 and gt["_source"] == "cad_dxf"
     assert len(gt["_cad_sha256"]) == 64
     assert all("openings" in w for w in gt["windows"] if w["count"])
+
+
+def test_schema_completeness_for_both_renderers(built):
+    """BUG A guard: the per-opening + door data both render types consume must be present
+    (windows had only facade-level sill/head, doors had no position -> renderers diverged)."""
+    gt = built["gt"]
+    for w in gt["windows"]:
+        for o in w["openings"]:
+            assert {"x_m", "width_m", "sill_m", "head_m"} <= set(o)
+    for d in gt["doors"]:
+        assert {"x_m", "width_m", "sill_m", "head_m"} <= set(d)
+
+
+def test_self_check_catches_breakage(built):
+    """The self-check must actually fail on a broken gt (not just pass on the good one)."""
+    import copy
+    assert gfd._self_check(built["gt"]) == []
+    bad = copy.deepcopy(built["gt"])
+    bad["windows"][0]["openings"][0].pop("sill_m", None)        # drop per-opening z
+    assert gfd._self_check(bad)                                  # -> must report an issue
+
+
+def test_floor_classification_uses_intervals():
+    fz = {"Floor 1": 0.0, "Floor 2": 3.0}
+    assert gfd._floor_of_sill(1.0, fz) == "Floor 1"
+    assert gfd._floor_of_sill(1.5, fz) == "Floor 1"            # the raised small window
+    assert gfd._floor_of_sill(4.0, fz) == "Floor 2"
