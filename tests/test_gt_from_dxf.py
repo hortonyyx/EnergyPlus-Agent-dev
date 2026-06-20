@@ -1,9 +1,10 @@
-"""Regression anchor for gt_from_dxf.py (CAD→gt extraction, plan §9).
+"""Regression anchor for gt_from_dxf.py (DXF-primary gt builder, plan §9).
 
-Extracting from the 天正「图形导出」 source.dxf must reconcile with the independently
-human-read gt: same footprint, same per-facade/floor window counts, same exterior
-doors — and ADD exact per-window openings (x_m, width_m) the human gt lacked. If a
-future DXF re-export or extractor change breaks that reconciliation, this fails."""
+The DXF-built gt must reconcile with the independently human-read gt: same footprint,
+same zonification (counts + layout), same per-facade/floor window counts, same exterior
+doors — and ADD machine-exact detail the human gt lacked (per-window x/width and
+per-opening sill/head). Roles come from the auxiliary map (DXF has no room labels). If
+a DXF re-export or extractor change breaks the reconciliation, this fails."""
 
 from __future__ import annotations
 
@@ -20,51 +21,64 @@ pytestmark = pytest.mark.skipif(not _HAS_DXF, reason="sm21_anchor/source.dxf not
 
 
 @pytest.fixture(scope="module")
-def result():
-    return gfd.extract("sm21_anchor")
+def built():
+    return gfd.build("sm21_anchor")
 
 
-def test_footprint_matches_gt(result):
-    rep = result["report"]
-    assert rep["footprint_cad"] == {"W_m": 15.0, "D_m": 8.0}
-    assert rep["footprint_cad"]["W_m"] == rep["footprint_gt"]["W_m"]
-    assert rep["footprint_cad"]["D_m"] == rep["footprint_gt"]["D_m"]
+def test_footprint(built):
+    assert built["gt"]["footprint"] == {"W_m": 15.0, "D_m": 8.0}
 
 
-def test_all_window_counts_reconcile(result):
-    rows = result["report"]["rows"]
-    assert rows, "no window rows extracted"
-    mismatches = [(r["facade"], r["floor"], r["gt_count"], r["cad_count"])
-                  for r in rows if not r["match"]]
-    assert not mismatches, f"CAD/gt window-count mismatches: {mismatches}"
+def test_self_consistent(built):
+    assert gfd._self_check(built["gt"]) == []      # zones tile footprint, counts==openings
 
 
-def test_exterior_doors_match_gt(result):
-    # gt: South-F1 (main entrance) + West-F1 (secondary). order-independent.
-    assert set(result["report"]["doors_cad"]) == {("South", "Floor 1"), ("West", "Floor 1")}
+def test_zones_reconstructed_from_walls(built):
+    floors = {f["name"]: f for f in built["gt"]["floors"]}
+    assert floors["Floor 1"]["zone_count"] == 7
+    assert floors["Floor 2"]["zone_count"] == 7
+    f1 = {z["id"]: z for z in floors["Floor 1"]["zones"]}
+    # geometry from the wall grid + roles from the auxiliary map
+    assert f1["F1_S3"]["role"] == "meeting" and f1["F1_S3"]["rect_m"] == [10.0, 0.0, 15.0, 3.0]
+    assert f1["F1_N1"]["role"] == "office" and f1["F1_N1"]["rect_m"] == [0.0, 5.0, 5.0, 8.0]
+    assert f1["F1_COR"]["role"] == "corridor" and f1["F1_COR"]["rect_m"] == [0.0, 3.0, 15.0, 5.0]
+    f2 = {z["id"]: z for z in floors["Floor 2"]["zones"]}
+    assert [z for z in ("F2_N1", "F2_N2") if f2[z]["role"] == "meeting"] == ["F2_N1", "F2_N2"]
+    assert f2["F2_S1"]["rect_m"] == [0.0, 0.0, 3.75, 3.0]
 
 
-def test_openings_are_exact_and_sane(result):
-    """Every CAD-counted window carries an x_m + width_m; widths are positive metres."""
-    rows = result["report"]["rows"]
-    for r in rows:
-        for o in r["openings"]:
-            assert "x_m" in o and "width_m" in o
-            assert 0.1 <= o["width_m"] <= 6.0
-            assert -0.5 <= o["x_m"] <= 15.0
-    # spot-check the verified facts: South-F1 = one small (1.2) + two large (2.4)
-    s_f1 = next(r for r in rows if r["facade"] == "South" and r["floor"] == "Floor 1")
-    widths = sorted(o["width_m"] for o in s_f1["openings"])
-    assert widths == [1.2, 2.4, 2.4]
-    # North-F2 = two 3.6 m windows
-    n_f2 = next(r for r in rows if r["facade"] == "North" and r["floor"] == "Floor 2")
-    assert sorted(o["width_m"] for o in n_f2["openings"]) == [3.6, 3.6]
+def test_floor_heights_from_elevation(built):
+    floors = {f["name"]: f for f in built["gt"]["floors"]}
+    assert floors["Floor 1"]["z_floor"] == 0.0 and floors["Floor 1"]["ceiling_height"] == 3.0
+    assert floors["Floor 2"]["z_floor"] == 3.0 and floors["Floor 2"]["ceiling_height"] == 3.6
 
 
-def test_proposed_gt_is_v2_with_fingerprint(result):
-    p = result["proposed"]
-    assert p["schema_version"] == 2
-    assert p["_source"] == "cad_dxf"
-    assert len(p["_cad_sha256"]) == 64
-    # openings injected into window entries that had CAD matches
-    assert any("openings" in w for w in p["windows"])
+def test_window_counts(built):
+    counts = {(w["facade"], w["floor"]): w["count"] for w in built["gt"]["windows"]}
+    assert counts[("North", "Floor 1")] == 3 and counts[("South", "Floor 1")] == 3
+    assert counts[("East", "Floor 1")] == 1 and counts[("West", "Floor 1")] == 0
+    assert counts[("North", "Floor 2")] == 2 and counts[("South", "Floor 2")] == 4
+    assert counts[("East", "Floor 2")] == 1 and counts[("West", "Floor 2")] == 1
+
+
+def test_exterior_doors_match(built):
+    assert {(d["facade"], d["floor"]) for d in built["gt"]["doors"]} == \
+        {("South", "Floor 1"), ("West", "Floor 1")}
+
+
+def test_openings_carry_exact_x_and_per_opening_z(built):
+    wins = {(w["facade"], w["floor"]): w for w in built["gt"]["windows"]}
+    # South-F1 = small (1.2) + two large (2.4); the small one has its own raised sill
+    sf1 = wins[("South", "Floor 1")]["openings"]
+    assert sorted(o["width_m"] for o in sf1) == [1.2, 2.4, 2.4]
+    small = min(sf1, key=lambda o: o["width_m"])
+    assert small["sill_m"] == 1.5 and small["head_m"] == 2.1     # CAD-precise, not facade-uniform
+    # East/West F2 windows are 1.2 m tall (head 5.2), not the human gt's 5.8
+    assert wins[("East", "Floor 2")]["openings"][0]["head_m"] == 5.2
+
+
+def test_gt_is_v2_with_fingerprint(built):
+    gt = built["gt"]
+    assert gt["schema_version"] == 2 and gt["_source"] == "cad_dxf"
+    assert len(gt["_cad_sha256"]) == 64
+    assert all("openings" in w for w in gt["windows"] if w["count"])

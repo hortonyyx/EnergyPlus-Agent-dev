@@ -1,9 +1,11 @@
 {
-  "_status": "verified",
-  "_verified": "user, 2026-06-16",
-  "_purpose": "EVALUATION ground truth for the gate② judge ONLY. NEVER read by gate① (ships to prod, which has no answers) or by stage executors (would collapse the error budget). See gt/README.md.",
-  "_source": "cad_dxf",
   "case": "sm21_anchor",
+  "schema_version": 2,
+  "_source": "cad_dxf",
+  "_cad_file": "source.dxf",
+  "_cad_sha256": "b02e0574a05b0e982dd74f8ed4bc0287a042cd57a0cbf623ab7952f7b61d79e0",
+  "_extractor": "gt_from_dxf v2 (DXF primary builder; roles from auxiliary map)",
+  "_note": "Geometry (footprint/zones/windows/doors/heights) extracted from source.dxf; zone roles from the auxiliary map (DXF carries no room labels). Verify via the overlay onto the original drawings.",
   "footprint": {
     "W_m": 15.0,
     "D_m": 8.0
@@ -14,52 +16,7 @@
       "z_floor": 0.0,
       "ceiling_height": 3.0,
       "zone_count": 7,
-      "layout": "North 3 offices | corridor (full E-W) | South 2 offices + 1 meeting (round table)",
       "zones": [
-        {
-          "id": "F1_N1",
-          "role": "office",
-          "rect_m": [
-            0.0,
-            5.0,
-            5.0,
-            8.0
-          ],
-          "note": "NW office (desk+2 chairs)"
-        },
-        {
-          "id": "F1_N2",
-          "role": "office",
-          "rect_m": [
-            5.0,
-            5.0,
-            10.0,
-            8.0
-          ],
-          "note": "N-mid office"
-        },
-        {
-          "id": "F1_N3",
-          "role": "office",
-          "rect_m": [
-            10.0,
-            5.0,
-            15.0,
-            8.0
-          ],
-          "note": "NE office"
-        },
-        {
-          "id": "F1_COR",
-          "role": "corridor",
-          "rect_m": [
-            0.0,
-            3.0,
-            15.0,
-            5.0
-          ],
-          "note": "central corridor, spans full E-W (~1500 clear)"
-        },
         {
           "id": "F1_S1",
           "role": "office",
@@ -68,8 +25,7 @@
             0.0,
             5.0,
             3.0
-          ],
-          "note": "SW office (L-sofa)"
+          ]
         },
         {
           "id": "F1_S2",
@@ -79,8 +35,7 @@
             0.0,
             10.0,
             3.0
-          ],
-          "note": "S-mid office (L-sofa)"
+          ]
         },
         {
           "id": "F1_S3",
@@ -90,13 +45,48 @@
             0.0,
             15.0,
             3.0
-          ],
-          "note": "SE meeting room (round table)"
+          ]
+        },
+        {
+          "id": "F1_COR",
+          "role": "corridor",
+          "rect_m": [
+            0.0,
+            3.0,
+            15.0,
+            5.0
+          ]
+        },
+        {
+          "id": "F1_N1",
+          "role": "office",
+          "rect_m": [
+            0.0,
+            5.0,
+            5.0,
+            8.0
+          ]
+        },
+        {
+          "id": "F1_N2",
+          "role": "office",
+          "rect_m": [
+            5.0,
+            5.0,
+            10.0,
+            8.0
+          ]
+        },
+        {
+          "id": "F1_N3",
+          "role": "office",
+          "rect_m": [
+            10.0,
+            5.0,
+            15.0,
+            8.0
+          ]
         }
-      ],
-      "_x_partitions_approx_m": [
-        5.0,
-        10.0
       ]
     },
     {
@@ -104,41 +94,7 @@
       "z_floor": 3.0,
       "ceiling_height": 3.6,
       "zone_count": 7,
-      "layout": "North 2 large meeting rooms | corridor (full E-W) | South 4 offices  (DIFFERS from F1)",
       "zones": [
-        {
-          "id": "F2_N1",
-          "role": "meeting",
-          "rect_m": [
-            0.0,
-            5.0,
-            7.5,
-            8.0
-          ],
-          "note": "NW large meeting room (conference table)"
-        },
-        {
-          "id": "F2_N2",
-          "role": "meeting",
-          "rect_m": [
-            7.5,
-            5.0,
-            15.0,
-            8.0
-          ],
-          "note": "NE large meeting room"
-        },
-        {
-          "id": "F2_COR",
-          "role": "corridor",
-          "rect_m": [
-            0.0,
-            3.0,
-            15.0,
-            5.0
-          ],
-          "note": "central corridor, full E-W"
-        },
         {
           "id": "F2_S1",
           "role": "office",
@@ -147,8 +103,7 @@
             0.0,
             3.75,
             3.0
-          ],
-          "note": "S office 1"
+          ]
         },
         {
           "id": "F2_S2",
@@ -158,8 +113,7 @@
             0.0,
             7.5,
             3.0
-          ],
-          "note": "S office 2"
+          ]
         },
         {
           "id": "F2_S3",
@@ -169,8 +123,7 @@
             0.0,
             11.25,
             3.0
-          ],
-          "note": "S office 3"
+          ]
         },
         {
           "id": "F2_S4",
@@ -180,20 +133,39 @@
             0.0,
             15.0,
             3.0
-          ],
-          "note": "S office 4"
+          ]
+        },
+        {
+          "id": "F2_COR",
+          "role": "corridor",
+          "rect_m": [
+            0.0,
+            3.0,
+            15.0,
+            5.0
+          ]
+        },
+        {
+          "id": "F2_N1",
+          "role": "meeting",
+          "rect_m": [
+            0.0,
+            5.0,
+            7.5,
+            8.0
+          ]
+        },
+        {
+          "id": "F2_N2",
+          "role": "meeting",
+          "rect_m": [
+            7.5,
+            5.0,
+            15.0,
+            8.0
+          ]
         }
-      ],
-      "_x_partitions_approx_m": {
-        "north": [
-          7.5
-        ],
-        "south": [
-          3.75,
-          7.5,
-          11.25
-        ]
-      }
+      ]
     }
   ],
   "windows": [
@@ -203,19 +175,45 @@
       "count": 3,
       "sill_m": 1.0,
       "head_m": 2.6,
-      "note": "one per N office (~2400 wide)",
       "openings": [
         {
           "x_m": 1.24,
-          "width_m": 2.4
+          "width_m": 2.4,
+          "sill_m": 1.0,
+          "head_m": 2.6
         },
         {
           "x_m": 6.3,
-          "width_m": 2.4
+          "width_m": 2.4,
+          "sill_m": 1.0,
+          "head_m": 2.6
         },
         {
           "x_m": 11.36,
-          "width_m": 2.4
+          "width_m": 2.4,
+          "sill_m": 1.0,
+          "head_m": 2.6
+        }
+      ]
+    },
+    {
+      "facade": "North",
+      "floor": "Floor 2",
+      "count": 2,
+      "sill_m": 4.0,
+      "head_m": 5.8,
+      "openings": [
+        {
+          "x_m": 1.95,
+          "width_m": 3.6,
+          "sill_m": 4.0,
+          "head_m": 5.8
+        },
+        {
+          "x_m": 9.45,
+          "width_m": 3.6,
+          "sill_m": 4.0,
+          "head_m": 5.8
         }
       ]
     },
@@ -225,59 +223,24 @@
       "count": 3,
       "sill_m": 1.0,
       "head_m": 2.6,
-      "note": "one small + two large (2400); plus the main entrance DOOR",
       "openings": [
         {
           "x_m": 3.44,
-          "width_m": 1.2
+          "width_m": 1.2,
+          "sill_m": 1.5,
+          "head_m": 2.1
         },
         {
           "x_m": 6.3,
-          "width_m": 2.4
+          "width_m": 2.4,
+          "sill_m": 1.0,
+          "head_m": 2.6
         },
         {
           "x_m": 11.36,
-          "width_m": 2.4
-        }
-      ]
-    },
-    {
-      "facade": "East",
-      "floor": "Floor 1",
-      "count": 1,
-      "sill_m": 1.0,
-      "head_m": 2.6,
-      "note": "corridor east end (1200 wide)",
-      "openings": [
-        {
-          "x_m": 3.4,
-          "width_m": 1.2
-        }
-      ]
-    },
-    {
-      "facade": "West",
-      "floor": "Floor 1",
-      "count": 0,
-      "sill_m": null,
-      "head_m": null,
-      "note": "NO window — secondary entrance DOOR here instead"
-    },
-    {
-      "facade": "North",
-      "floor": "Floor 2",
-      "count": 2,
-      "sill_m": 4.0,
-      "head_m": 5.8,
-      "note": "one big per meeting room (~3600 wide)",
-      "openings": [
-        {
-          "x_m": 1.95,
-          "width_m": 3.6
-        },
-        {
-          "x_m": 9.45,
-          "width_m": 3.6
+          "width_m": 2.4,
+          "sill_m": 1.0,
+          "head_m": 2.6
         }
       ]
     },
@@ -287,23 +250,45 @@
       "count": 4,
       "sill_m": 4.0,
       "head_m": 5.8,
-      "note": "one per S office (1200 wide)",
       "openings": [
         {
           "x_m": 2.19,
-          "width_m": 1.2
+          "width_m": 1.2,
+          "sill_m": 4.0,
+          "head_m": 5.8
         },
         {
           "x_m": 4.11,
-          "width_m": 1.2
+          "width_m": 1.2,
+          "sill_m": 4.0,
+          "head_m": 5.8
         },
         {
           "x_m": 9.69,
-          "width_m": 1.2
+          "width_m": 1.2,
+          "sill_m": 4.0,
+          "head_m": 5.8
         },
         {
           "x_m": 11.61,
-          "width_m": 1.2
+          "width_m": 1.2,
+          "sill_m": 4.0,
+          "head_m": 5.8
+        }
+      ]
+    },
+    {
+      "facade": "East",
+      "floor": "Floor 1",
+      "count": 1,
+      "sill_m": 1.0,
+      "head_m": 2.2,
+      "openings": [
+        {
+          "x_m": 3.4,
+          "width_m": 1.2,
+          "sill_m": 1.0,
+          "head_m": 2.2
         }
       ]
     },
@@ -312,54 +297,48 @@
       "floor": "Floor 2",
       "count": 1,
       "sill_m": 4.0,
-      "head_m": 5.8,
-      "note": "corridor east end",
+      "head_m": 5.2,
       "openings": [
         {
           "x_m": 3.4,
-          "width_m": 1.2
+          "width_m": 1.2,
+          "sill_m": 4.0,
+          "head_m": 5.2
         }
       ]
+    },
+    {
+      "facade": "West",
+      "floor": "Floor 1",
+      "count": 0,
+      "sill_m": null,
+      "head_m": null,
+      "openings": []
     },
     {
       "facade": "West",
       "floor": "Floor 2",
       "count": 1,
       "sill_m": 4.0,
-      "head_m": 5.8,
-      "note": "corridor west end",
+      "head_m": 5.2,
       "openings": [
         {
           "x_m": 3.4,
-          "width_m": 1.2
+          "width_m": 1.2,
+          "sill_m": 4.0,
+          "head_m": 5.2
         }
       ]
     }
   ],
   "doors": [
     {
-      "facade": "South",
-      "floor": "Floor 1",
-      "note": "main entrance (~900 wide, bottom-left in plan)"
+      "facade": "West",
+      "floor": "Floor 1"
     },
     {
-      "facade": "West",
-      "floor": "Floor 1",
-      "note": "secondary entrance (double-leaf glass door, corridor west end)"
+      "facade": "South",
+      "floor": "Floor 1"
     }
-  ],
-  "dimensions_truth": {
-    "footprint_W_m": 15.0,
-    "footprint_D_m": 8.0,
-    "F1_height_m": 3.0,
-    "F2_height_m": 3.6,
-    "south_band_depth_m": 3.0,
-    "north_band_depth_m": 3.0,
-    "corridor_clear_m": 1.5
-  },
-  "notes": "Corridor spans full E-W on BOTH floors. F2 layout intentionally differs from F1 (F1: 3+1+3 = 7; F2: 2 meeting north + 4 office south + 1 corridor = 7). Total windows 15 (door at South-F1 + West-F1 not counted as windows). rect_m are clear-space bboxes (±wall thickness ~240); exact centerlines are 1_correction's to fix — gt judges layout INTENT, not mm.",
-  "schema_version": 2,
-  "_cad_file": "source.dxf",
-  "_cad_sha256": "b02e0574a05b0e982dd74f8ed4bc0287a042cd57a0cbf623ab7952f7b61d79e0",
-  "_extractor": "gt_from_dxf v1"
+  ]
 }

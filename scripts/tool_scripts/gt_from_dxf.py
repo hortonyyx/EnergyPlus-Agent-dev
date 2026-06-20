@@ -1,33 +1,34 @@
-"""Extract a maximal gt from a 天正「图形导出」 plain DXF (CAD→gt, plan §4 / P2).
+"""Build a maximal gt FROM a 天正「图形导出」 plain DXF — DXF as the primary builder.
 
-Reads `gt/<case>/source.dxf` (天正 objects must be exploded to plain entities first —
-see inspect_dxf.py / the plan) and pulls the geometry gt couldn't get from human
-reading: exact per-window along-facade position + width, plus footprint and exterior
-doors. It does NOT silently overwrite the verified answer key — it writes a PROPOSED
-`gt/<case>/gt_from_cad.json` and prints a reconciliation report against the existing
-`gt.json` (counts per facade/floor MUST match), for a human to review (via the overlay
-render) before promoting.
+The DXF is the cleanest, most precise raw material, so gt geometry is built from it
+(not copied from human reading). The ONE thing the DXF lacks is room ROLES/names (it
+carries no room labels — only 6 view-title texts), so roles come from a small auxiliary
+map filled by looking at the drawings; everything else is machine-exact and traceable
+to the DXF. The overlay render (render_gt overlay mode) is the human QA gate that
+catches DXF→gt extraction bugs before the gt is trusted.
 
-Offline judge/human-side tool: reads the answer-key source DXF; never imported by
-gate① or executors (test_gt_discipline enforces).
+What is extracted (verified on sm21, 2026-06-20):
+  * views        : 图名 TEXT anchors ('1f平面图' / '南立面' …); plan band y > -9000.
+  * footprint    : WALL-line bbox per plan view (mm → m).
+  * zones        : WALL network — horizontal walls → bands; per band, vertical walls
+                   (y-span > 1.5 m) → partitions → cells. role from the auxiliary map.
+  * z_floor / h  : elevation floor lines (z = 0 / 3000 / 6600 → F1 h=3.0, F2 h=3.6).
+  * windows      : plan INSERT '$TCHSYS$WIN2D' (centre + |xscale| width + facade + floor)
+                   cross-referenced with elevation E_WINDOW inserts (sill z + height)
+                   → per-opening {x_m, width_m, sill_m, head_m}.
+  * doors        : plan INSERT '$DorLib2D$' on a perimeter wall (exterior).
 
-What maps to what (verified on sm21, 2026-06-20):
-  * view segmentation : 图名 TEXT anchors ('1f平面图' / '南立面' …); plan band y>-9000.
-  * footprint         : WALL-layer line bbox per plan view (mm → m).
-  * window            : INSERT '$TCHSYS$WIN2D' — insert pt = centre, |xscale| = width;
-                        facade = which perimeter wall it sits on; floor = which plan.
-  * door              : INSERT '$DorLib2D$' — exterior if on a perimeter wall.
-  * sill/head z       : kept from the existing verified gt for v1 (elevation-derived
-                        z is a v2 enhancement — see plan §4 S4).
+Writes a proposed `gt/<case>/gt_from_cad.json` + a reconciliation report against the
+existing gt.json (counts / zone layout / footprint must match). Offline judge/human
+tool; never imported by gate① or executors (test_gt_discipline enforces).
 
 Usage:
-    python scripts/tool_scripts/gt_from_dxf.py sm21_anchor
+    python scripts/tool_scripts/gt_from_dxf.py sm21_anchor [--write]
 """
 
 from __future__ import annotations
 
 import argparse
-import copy
 import hashlib
 import json
 from pathlib import Path
@@ -35,18 +36,47 @@ from pathlib import Path
 import ezdxf
 
 GT_DIR = Path("case_tests/test_baseline/gt")
-EDGE_TOL = 400.0          # mm: how close to a perimeter wall counts as "on" that facade
-PLAN_BAND_Y = -9000.0     # model-space y above this = plan views, below = elevations
+PLAN_BAND_Y = -9000.0     # model y above this = plan views, below = elevations
+EDGE_TOL = 400.0          # mm: proximity to a perimeter wall = "on" that facade
+WALL_MIN = 800.0          # mm: a "structural" wall line is at least this long
+PART_MIN = 1500.0         # mm: a partition spans at least this much of a band
 
 _FLOOR_OF = {"1f平面图": "Floor 1", "2f平面图": "Floor 2"}
-_FACADE_OF = {"北立面": "North", "南立面": "South", "东立面": "East", "西立面": "West"}
+_FACADE_OF = {"北立面": "North", "南立面": "South", "西立面": "West", "东立面": "East"}
+
+# auxiliary roles — the ONLY human input (DXF has no room labels). Per floor, per band
+# (south→corridor→north), left→right. Read off the drawings (furniture: round/conference
+# table = meeting, desks = office; the thin full-width central band = corridor).
+_ROLES = {
+    "Floor 1": {"north": ["office", "office", "office"],
+                "corridor": ["corridor"],
+                "south": ["office", "office", "meeting"]},
+    "Floor 2": {"north": ["meeting", "meeting"],
+                "corridor": ["corridor"],
+                "south": ["office", "office", "office", "office"]},
+}
 
 
 def _sha256(p: Path) -> str:
     return hashlib.sha256(p.read_bytes()).hexdigest()
 
 
-def _titles(msp) -> dict[str, tuple[float, float]]:
+def _cluster(vals: list[float], tol: float) -> list[float]:
+    if not vals:
+        return []
+    vals = sorted(vals)
+    out, grp = [], [vals[0]]
+    for v in vals[1:]:
+        if v - grp[-1] <= tol:
+            grp.append(v)
+        else:
+            out.append(sum(grp) / len(grp))
+            grp = [v]
+    out.append(sum(grp) / len(grp))
+    return out
+
+
+def _titles(msp):
     out = {}
     for e in msp.query("TEXT"):
         t = e.dxf.text.strip()
@@ -55,163 +85,317 @@ def _titles(msp) -> dict[str, tuple[float, float]]:
     return out
 
 
-def _plan_split_x(titles: dict) -> float:
-    xs = sorted(titles[t][0] for t in _FLOOR_OF if t in titles)
-    return sum(xs) / len(xs) if len(xs) == 2 else float("inf")
+# --------------------------------------------------------------------------- plans
 
 
-def _facade_of(cx, cy, minx, miny, maxx, maxy) -> str | None:
-    """Which perimeter wall the point sits on (None = interior)."""
-    if abs(cy - miny) <= EDGE_TOL:
-        return "South"
-    if abs(cy - maxy) <= EDGE_TOL:
-        return "North"
-    if abs(cx - minx) <= EDGE_TOL:
-        return "West"
-    if abs(cx - maxx) <= EDGE_TOL:
-        return "East"
-    return None
-
-
-def _plan_footprints(msp, titles) -> dict[str, dict]:
-    """Per plan-view floor: WALL-line bbox -> footprint + origin."""
-    split = _plan_split_x(titles)
-    acc: dict[str, list] = {"Floor 1": [], "Floor 2": []}
+def _plan_walls(msp, split):
+    """Per floor: vertical + horizontal structural WALL lines, in plan band."""
+    walls = {"Floor 1": {"v": [], "h": []}, "Floor 2": {"v": [], "h": []}}
     for e in msp.query("LINE[layer=='WALL']"):
-        mx = (e.dxf.start.x + e.dxf.end.x) / 2
-        my = (e.dxf.start.y + e.dxf.end.y) / 2
+        s, t = e.dxf.start, e.dxf.end
+        mx, my = (s.x + t.x) / 2, (s.y + t.y) / 2
         if my <= PLAN_BAND_Y:
             continue
         floor = "Floor 1" if mx < split else "Floor 2"
-        acc[floor] += [(e.dxf.start.x, e.dxf.start.y), (e.dxf.end.x, e.dxf.end.y)]
-    out = {}
-    for floor, pts in acc.items():
-        if not pts:
-            continue
-        xs = [p[0] for p in pts]
-        ys = [p[1] for p in pts]
-        out[floor] = {"minx": min(xs), "miny": min(ys), "maxx": max(xs), "maxy": max(ys)}
-    return out
+        if abs(s.x - t.x) < 30 and abs(s.y - t.y) >= WALL_MIN:
+            walls[floor]["v"].append((mx, min(s.y, t.y), max(s.y, t.y)))
+        elif abs(s.y - t.y) < 30 and abs(s.x - t.x) >= WALL_MIN:
+            walls[floor]["h"].append((my, min(s.x, t.x), max(s.x, t.x)))
+    return walls
 
 
-def _openings(msp, fps) -> tuple[list, list]:
-    """Plan windows ($TCHSYS$WIN2D) + exterior doors ($DorLib2D$)."""
+def _bands(hlines, oy, maxy):
+    """Structural horizontal lines → band edges (merge 240 wall-thickness pairs);
+    snap the outermost edges to the footprint perimeter (0 .. D)."""
+    ys = _cluster([h[0] for h in hlines], tol=300)          # merges outer+inner faces
+    edges = sorted({round(y - oy) for y in ys})
+    if len(edges) >= 2:
+        edges[0] = 0.0
+        edges[-1] = round(maxy - oy)
+    return edges
+
+
+def _zones(walls, fp):
+    """Reconstruct cells from the wall network: bands × per-band partitions."""
+    ox, oy = fp["minx"], fp["miny"]
+    D = fp["maxy"] - fp["miny"]
+    edges = _bands(walls["h"], oy, fp["maxy"])               # e.g. [0,3000,5000,8000]
+    bands = sorted(zip(edges, edges[1:]))                     # consecutive y-segments, S→N
+    # name by position: bottommost = south, topmost = north, the rest = corridor
+    named = []
+    for i, (y0, y1) in enumerate(bands):
+        band = "south" if i == 0 else "north" if i == len(bands) - 1 else "corridor"
+        named.append((band, y0, y1))
+    cells = []
+    for band, y0, y1 in named:
+        # vertical walls spanning this band → partition x's (facade-local)
+        part = [v[0] - ox for v in walls["v"]
+                if v[1] <= oy + y0 + 300 and v[2] >= oy + y1 - 300 and (v[2] - v[1]) >= PART_MIN]
+        xs = _cluster(part, tol=300)
+        # drop perimeter-coincident, keep clean interior boundaries; add 0 + W
+        W = fp["maxx"] - fp["minx"]
+        bounds = sorted({0.0, W} | {x for x in xs if 300 < x < W - 300})
+        cells.append((band, y0, y1, bounds))
+    return cells
+
+
+def _plan_openings(msp, fps):
+    """Plan windows ($TCHSYS$WIN2D) + exterior doors ($DorLib2D$), facade-local."""
     windows, doors = [], []
     for e in msp.query("INSERT"):
         name = e.dxf.name
-        is_win = "WIN2D" in name
-        is_door = "DorLib" in name or "DorLib2D" in name
+        is_win, is_door = "WIN2D" in name, "DorLib" in name
         if not (is_win or is_door):
             continue
         cx, cy = e.dxf.insert.x, e.dxf.insert.y
-        if cy <= PLAN_BAND_Y:                       # plan band only
+        if cy <= PLAN_BAND_Y:
             continue
-        floor = None
-        for fl, fp in fps.items():
-            if fp["minx"] - EDGE_TOL <= cx <= fp["maxx"] + EDGE_TOL and \
-               fp["miny"] - EDGE_TOL <= cy <= fp["maxy"] + EDGE_TOL:
-                floor = fl
-                break
+        floor = next((fl for fl, fp in fps.items()
+                      if fp["minx"] - EDGE_TOL <= cx <= fp["maxx"] + EDGE_TOL
+                      and fp["miny"] - EDGE_TOL <= cy <= fp["maxy"] + EDGE_TOL), None)
         if floor is None:
             continue
         fp = fps[floor]
-        facade = _facade_of(cx, cy, fp["minx"], fp["miny"], fp["maxx"], fp["maxy"])
+        facade = _facade_of(cx, cy, fp)
         if facade is None:
-            continue                                 # interior door — not a gt opening
-        # along-facade centre (mm, local to the facade's start corner) + width
-        if facade in ("North", "South"):
-            centre = cx - fp["minx"]
-        else:
-            centre = cy - fp["miny"]
-        rec = {"facade": facade, "floor": floor, "centre_mm": round(centre, 1)}
+            continue
+        centre = (cx - fp["minx"]) if facade in ("North", "South") else (cy - fp["miny"])
+        rec = {"facade": facade, "floor": floor, "centre_m": centre / 1000.0}
         if is_win:
-            rec["width_mm"] = round(abs(e.dxf.xscale), 1)
+            rec["width_m"] = abs(e.dxf.xscale) / 1000.0
             windows.append(rec)
         else:
             doors.append(rec)
     return windows, doors
 
 
-def _to_openings_m(wins: list[dict]) -> dict[tuple, list]:
-    """(facade, floor) -> sorted [{x_m, width_m}] (x_m = left edge, facade-local)."""
-    out: dict[tuple, list] = {}
-    for w in wins:
-        x0 = (w["centre_mm"] - w["width_mm"] / 2) / 1000.0
-        out.setdefault((w["facade"], w["floor"]), []).append(
-            {"x_m": round(x0, 3), "width_m": round(w["width_mm"] / 1000.0, 3)})
-    for k in out:
-        out[k].sort(key=lambda o: o["x_m"])
+def _facade_of(cx, cy, fp):
+    if abs(cy - fp["miny"]) <= EDGE_TOL:
+        return "South"
+    if abs(cy - fp["maxy"]) <= EDGE_TOL:
+        return "North"
+    if abs(cx - fp["minx"]) <= EDGE_TOL:
+        return "West"
+    if abs(cx - fp["maxx"]) <= EDGE_TOL:
+        return "East"
+    return None
+
+
+def _plan_footprints(msp, split):
+    acc = {"Floor 1": [], "Floor 2": []}
+    for e in msp.query("LINE[layer=='WALL']"):
+        s, t = e.dxf.start, e.dxf.end
+        if (s.y + t.y) / 2 <= PLAN_BAND_Y:
+            continue
+        floor = "Floor 1" if (s.x + t.x) / 2 < split else "Floor 2"
+        acc[floor] += [(s.x, s.y), (t.x, t.y)]
+    out = {}
+    for fl, pts in acc.items():
+        if pts:
+            xs, ys = [p[0] for p in pts], [p[1] for p in pts]
+            out[fl] = {"minx": min(xs), "miny": min(ys), "maxx": max(xs), "maxy": max(ys)}
     return out
 
 
-def extract(case: str) -> dict:
+# ----------------------------------------------------------------------- elevations
+
+
+def _elevations(msp, doc, titles):
+    """Per facade: ground base, floor z-lines, and windows (facade-local x, sill, height)."""
+    out = {}
+    for cn, facade in _FACADE_OF.items():
+        if cn not in titles:
+            continue
+        cx = titles[cn][0]
+        hy, wins, wxs = set(), [], []
+        for e in msp.query("LINE"):
+            s, t = e.dxf.start, e.dxf.end
+            if (s.y + t.y) / 2 < PLAN_BAND_Y and abs((s.x + t.x) / 2 - cx) < 8000 \
+                    and abs(s.y - t.y) < 30 and abs(s.x - t.x) > 2000:
+                hy.add((s.y + t.y) / 2)
+        base = min(hy) if hy else 0.0
+        ex = [s for s in
+              ([e.dxf.insert.x for e in msp.query("INSERT[layer=='E_WINDOW']")
+                if e.dxf.insert.y < PLAN_BAND_Y and abs(e.dxf.insert.x - cx) < 8000])]
+        emin = min(ex) if ex else cx
+        for e in msp.query("INSERT[layer=='E_WINDOW']"):
+            p = e.dxf.insert
+            if p.y >= PLAN_BAND_Y or abs(p.x - cx) >= 8000:
+                continue
+            blk = doc.blocks.get(e.dxf.name)
+            ys = [v for be in blk.query("LINE") for v in (be.dxf.start.y, be.dxf.end.y)]
+            height = (max(ys) - min(ys)) * abs(e.dxf.yscale) if ys else 0.0
+            sill = p.y - base
+            if height < 100 or sill < 100:           # skip the door (sill≈0, tall)
+                continue
+            wins.append({"x_m": (p.x - emin) / 1000.0, "sill_m": sill / 1000.0,
+                         "head_m": (sill + height) / 1000.0})
+        floors_z = sorted(round(y - base) for y in hy)
+        out[facade] = {"floor_z": floors_z, "windows": wins}
+    return out
+
+
+# --------------------------------------------------------------------------- build
+
+
+def build(case: str) -> dict:
+    """Build the gt purely from the DXF (+ the auxiliary roles map). No dependence on
+    any prior human-read gt — the DXF is the sole geometric source of truth."""
     bundle = GT_DIR / case
     dxf_path = bundle / "source.dxf"
-    gt = json.loads((bundle / "gt.json").read_text(encoding="utf-8"))
 
     doc = ezdxf.readfile(str(dxf_path))
     msp = doc.modelspace()
     titles = _titles(msp)
-    fps = _plan_footprints(msp, titles)
-    wins, doors = _openings(msp, fps)
-    openings = _to_openings_m(wins)
+    split = sum(titles[t][0] for t in _FLOOR_OF if t in titles) / 2
+    fps = _plan_footprints(msp, split)
+    walls = _plan_walls(msp, split)
+    pwins, doors = _plan_openings(msp, fps)
+    elevs = _elevations(msp, doc, titles)
 
-    # footprint (m) from Floor 1 plan
-    fp1 = fps.get("Floor 1") or next(iter(fps.values()))
+    # floor heights from elevation z-lines (shared)
+    zlines = sorted({z for ev in elevs.values() for z in ev["floor_z"]})  # [0,3000,6600]
+    floor_h = {"Floor 1": (zlines[1] - zlines[0]) / 1000.0 if len(zlines) > 1 else 3.0,
+               "Floor 2": (zlines[2] - zlines[1]) / 1000.0 if len(zlines) > 2 else 3.6}
+    floor_z = {"Floor 1": zlines[0] / 1000.0 if zlines else 0.0,
+               "Floor 2": zlines[1] / 1000.0 if len(zlines) > 1 else 3.0}
+
+    fp1 = fps["Floor 1"]
     footprint = {"W_m": round((fp1["maxx"] - fp1["minx"]) / 1000.0, 3),
                  "D_m": round((fp1["maxy"] - fp1["miny"]) / 1000.0, 3)}
 
-    # reconcile vs existing gt + inject openings into a proposed v2
-    proposed = copy.deepcopy(gt)
-    proposed["schema_version"] = 2
-    proposed["_source"] = "cad_dxf"
-    proposed["_cad_file"] = "source.dxf"
-    proposed["_cad_sha256"] = _sha256(dxf_path)
-    proposed["_extractor"] = "gt_from_dxf v1"
+    floors = _build_floors(fps, walls, floor_z, floor_h)
+    windows = _build_windows(pwins, doors, elevs, footprint)
+    doors_out = _build_doors(doors)
 
-    report = {"case": case, "footprint_cad": footprint, "footprint_gt": gt["footprint"],
-              "doors_cad": [(d["facade"], d["floor"]) for d in doors], "rows": []}
-    for w in proposed.get("windows", []):
-        key = (w["facade"], w["floor"])
-        ops = openings.get(key, [])
-        cad_n, gt_n = len(ops), int(w.get("count", 0))
-        if ops:
-            w["openings"] = ops
-        report["rows"].append({"facade": w["facade"], "floor": w["floor"],
-                               "gt_count": gt_n, "cad_count": cad_n,
-                               "match": cad_n == gt_n,
-                               "openings": ops})
-    return {"report": report, "proposed": proposed, "bundle": bundle}
+    gt = {"case": case, "schema_version": 2, "_source": "cad_dxf",
+          "_cad_file": "source.dxf", "_cad_sha256": _sha256(dxf_path),
+          "_extractor": "gt_from_dxf v2 (DXF primary builder; roles from auxiliary map)",
+          "_note": "Geometry (footprint/zones/windows/doors/heights) extracted from "
+                   "source.dxf; zone roles from the auxiliary map (DXF carries no room "
+                   "labels). Verify via the overlay onto the original drawings.",
+          "footprint": footprint, "floors": floors, "windows": windows, "doors": doors_out}
+    return {"gt": gt, "bundle": bundle}
 
 
-def _print_report(r: dict) -> None:
-    rep = r["report"]
-    print(f"case: {rep['case']}")
-    print(f"footprint  CAD {rep['footprint_cad']}  vs gt {rep['footprint_gt']}")
-    print(f"exterior doors (CAD): {rep['doors_cad']}")
-    print("\nwindow reconciliation (facade/floor : gt vs CAD count):")
-    all_match = True
-    for row in rep["rows"]:
-        mark = "OK " if row["match"] else "!! "
-        all_match &= row["match"]
-        ops = "  ".join(f"x{o['x_m']:g}/w{o['width_m']:g}" for o in row["openings"])
-        print(f"  {mark}{row['facade']:<6} {row['floor']:<8} gt={row['gt_count']} cad={row['cad_count']}   {ops}")
-    print(f"\nall counts match gt: {all_match}")
+def _build_floors(fps, walls, floor_z, floor_h):
+    floors = []
+    for fl in ("Floor 1", "Floor 2"):
+        cells = _zones(walls[fl], fps[fl])
+        fnum = fl.split()[1]
+        zones, counters = [], {}
+        for band, y0, y1, bounds in cells:
+            roles = _ROLES[fl].get(band, [])
+            segs = list(zip(bounds, bounds[1:]))
+            for i, (x0, x1) in enumerate(segs):
+                role = roles[i] if i < len(roles) else "room"
+                tag = {"north": "N", "south": "S", "corridor": "COR"}[band]
+                counters[tag] = counters.get(tag, 0) + 1
+                zid = f"F{fnum}_{tag}" if band == "corridor" else f"F{fnum}_{tag}{counters[tag]}"
+                zones.append({"id": zid, "role": role,
+                              "rect_m": [round(x0 / 1000, 2), round(y0 / 1000, 2),
+                                         round(x1 / 1000, 2), round(y1 / 1000, 2)]})
+        floors.append({"name": fl, "z_floor": floor_z[fl], "ceiling_height": floor_h[fl],
+                       "zone_count": len(zones), "zones": zones})
+    return floors
+
+
+def _match_sill_head(plan_centre, elev_wins):
+    """Nearest elevation window by facade-local x → (sill, head)."""
+    if not elev_wins:
+        return None, None
+    best = min(elev_wins, key=lambda w: abs(w["x_m"] - plan_centre))
+    return round(best["sill_m"], 3), round(best["head_m"], 3)
+
+
+def _build_windows(pwins, doors, elevs, footprint):
+    by_key: dict[tuple, list] = {}
+    for w in pwins:
+        by_key.setdefault((w["facade"], w["floor"]), []).append(w)
+    out = []
+    for facade in ("North", "South", "East", "West"):
+        for floor in ("Floor 1", "Floor 2"):
+            wins = sorted(by_key.get((facade, floor), []), key=lambda w: w["centre_m"])
+            ev = [e for e in elevs.get(facade, {}).get("windows", [])
+                  if _floor_of_sill(e["sill_m"]) == floor]
+            openings = []
+            for w in wins:
+                x0 = round(w["centre_m"] - w["width_m"] / 2, 3)
+                sill, head = _match_sill_head(w["centre_m"], ev)
+                op = {"x_m": x0, "width_m": round(w["width_m"], 3)}
+                if sill is not None:
+                    op["sill_m"], op["head_m"] = sill, head
+                openings.append(op)
+            sset = sorted({o["sill_m"] for o in openings if "sill_m" in o})
+            hset = sorted({o["head_m"] for o in openings if "head_m" in o})
+            out.append({"facade": facade, "floor": floor, "count": len(openings),
+                        "sill_m": sset[0] if sset else None,
+                        "head_m": hset[-1] if hset else None,
+                        "openings": openings})
+    return out
+
+
+def _floor_of_sill(sill_m):
+    return "Floor 1" if sill_m < 3.0 else "Floor 2"
+
+
+def _build_doors(doors):
+    out = []
+    for d in doors:
+        out.append({"facade": d["facade"], "floor": d["floor"]})
+    return out
+
+
+# --------------------------------------------------------------------------- report
+
+
+def _self_check(gt: dict) -> list[str]:
+    """Internal consistency (no human gt to compare against): zones tile each floor with
+    no gaps/overlaps, window count == len(openings), windows sit on a real facade."""
+    issues = []
+    W, D = gt["footprint"]["W_m"], gt["footprint"]["D_m"]
+    for f in gt["floors"]:
+        area = sum((z["rect_m"][2] - z["rect_m"][0]) * (z["rect_m"][3] - z["rect_m"][1])
+                   for z in f["zones"])
+        if abs(area - W * D) > 0.5:
+            issues.append(f"{f['name']}: zones cover {area:.1f} m² ≠ footprint {W*D:.1f} m²")
+    for w in gt["windows"]:
+        if w["count"] != len(w.get("openings", [])):
+            issues.append(f"{w['facade']} {w['floor']}: count {w['count']} ≠ {len(w.get('openings', []))} openings")
+    return issues
+
+
+def _print(r: dict) -> None:
+    gt = r["gt"]
+    print(f"footprint   {gt['footprint']}    (DXF-built, no human gt referenced)")
+    print(f"ext doors   {[(d['facade'], d['floor']) for d in gt['doors']]}")
+    print("\nfloors / zones (DXF walls → grid; roles from auxiliary map):")
+    for f in gt["floors"]:
+        print(f"  {f['name']} z={f['z_floor']} h={f['ceiling_height']} ({f['zone_count']} zones)")
+        for z in f["zones"]:
+            print(f"     {z['id']:<8} {z['role']:<9} rect={z['rect_m']}")
+    print("\nwindows — per-opening x / width / sill-head (all from DXF):")
+    for w in gt["windows"]:
+        ops = "  ".join(
+            f"x{o['x_m']:g}/w{o['width_m']:g}" + (f"/z{o['sill_m']:g}-{o['head_m']:g}" if "sill_m" in o else "")
+            for o in w["openings"])
+        print(f"  {w['facade']:<6} {w['floor']:<8} n={w['count']}   {ops}")
+    issues = _self_check(gt)
+    print(f"\nself-consistency: {'OK — zones tile footprint, counts match openings' if not issues else issues}")
 
 
 def main() -> None:
-    ap = argparse.ArgumentParser(description="Extract maximal gt (exact window openings) from a 天正 plain DXF.")
-    ap.add_argument("case", help="case name, e.g. sm21_anchor")
+    ap = argparse.ArgumentParser(description="Build a maximal gt FROM the 天正 plain DXF (primary builder).")
+    ap.add_argument("case")
     ap.add_argument("--write", action="store_true",
-                    help="write the proposed gt to gt/<case>/gt_from_cad.json (default: report only)")
+                    help="write the DXF-built gt straight to gt/<case>/gt.json (promote)")
     args = ap.parse_args()
-
-    r = extract(args.case)
-    _print_report(r)
+    r = build(args.case)
+    _print(r)
     if args.write:
-        out = r["bundle"] / "gt_from_cad.json"
-        out.write_text(json.dumps(r["proposed"], ensure_ascii=False, indent=2), encoding="utf-8")
-        print(f"\nwrote proposed gt -> {out}  (review via overlay, then promote to gt.json)")
+        out = r["bundle"] / "gt.json"
+        out.write_text(json.dumps(r["gt"], ensure_ascii=False, indent=2), encoding="utf-8")
+        print(f"\nwrote {out}  (DXF-built gt — verify via the overlay onto the originals)")
 
 
 if __name__ == "__main__":

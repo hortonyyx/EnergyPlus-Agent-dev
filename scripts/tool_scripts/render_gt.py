@@ -267,13 +267,29 @@ def _door_frac(door: dict) -> float:
     return 0.5
 
 
+def _openings_for(gt: dict, facade: str, floor: str):
+    for w in gt.get("windows", []):
+        if w.get("facade") == facade and w.get("floor") == floor:
+            return w.get("openings")
+    return None
+
+
 def _draw_plan_openings(d: ImageDraw.ImageDraw, gt: dict, fl: dict, tx, ty,
                         w_m: float, d_m: float) -> None:
     floor_name = fl.get("name")
     for facade in ("North", "South", "East", "West"):
-        n = sum(int(w.get("count", 0)) for w in gt.get("windows", [])
-                if w.get("facade") == facade and w.get("floor") == floor_name)
+        ops = _openings_for(gt, facade, floor_name)
         (x0, y0), (x1, y1), orient = _facade_edge_plan(facade, tx, ty, w_m, d_m)
+        if ops:  # exact: draw each window at its true along-facade [x_m, x_m+width]
+            for o in ops:
+                a, b = o["x_m"], o["x_m"] + o["width_m"]
+                if orient == "h":      # facade-local x = world x (from west)
+                    d.line([(tx(a), y0), (tx(b), y0)], fill=WINDOW, width=7)
+                else:                  # E/W facade-local = world y (from south)
+                    d.line([(x0, ty(a)), (x0, ty(b))], fill=WINDOW, width=7)
+            continue
+        n = sum(int(w.get("count", 0)) for w in gt.get("windows", [])   # fallback: schematic
+                if w.get("facade") == facade and w.get("floor") == floor_name)
         for i in range(n):
             c = (i + 1) / (n + 1)
             if orient == "h":
@@ -312,8 +328,8 @@ def render_plan(gt: dict) -> Image.Image:
     d.text((12, 10), f"GT plan  -  {gt.get('case', '?')}   "
            f"footprint {_fmt(w_m)} x {_fmt(d_m)} m", font=_font(20), fill=TEXT)
     d.text((12, 36), "zone boxes = gt clear-space extents (±wall thickness); "
-           "blue ticks = windows (x schematic); brown = door. "
-           "Compare against the floor-plan drawings.", font=_font(13), fill=SUBTLE)
+           "blue = windows (exact x+width from CAD where present, else schematic); "
+           "brown = door. Compare against the floor-plan drawings.", font=_font(13), fill=SUBTLE)
     for i, fl in enumerate(floors):
         _draw_plan_floor(img, d, i * (pw + PANEL_GAP), HEADER, gt, fl)
     return img
@@ -363,13 +379,20 @@ def _draw_elev_panel(img: Image.Image, d: ImageDraw.ImageDraw, ox: int, oy: int,
             continue
         n = int(entry["count"])
         sill, head = float(entry["sill_m"]), float(entry["head_m"])
-        slot = fw / n
-        bw = min(slot * 0.55, 2.4)
-        for i in range(n):
-            cx = slot * (i + 0.5)
-            d.rectangle([tx(cx - bw / 2), tz(head), tx(cx + bw / 2), tz(sill)],
-                        fill=ImageColor.getrgb(WINDOW_FILL), outline=WINDOW, width=2)
-        _centre_text(d, tx(fw / 2), tz(head) - 12, f"{n} win  (x schematic)", 12, WINDOW)
+        ops = entry.get("openings")
+        if ops:  # exact: box each window at its true along-facade [x_m, x_m+width]
+            for o in ops:
+                d.rectangle([tx(o["x_m"]), tz(head), tx(o["x_m"] + o["width_m"]), tz(sill)],
+                            fill=ImageColor.getrgb(WINDOW_FILL), outline=WINDOW, width=2)
+            _centre_text(d, tx(fw / 2), tz(head) - 12, f"{n} win  (exact x)", 12, WINDOW)
+        else:    # fallback: evenly distributed
+            slot = fw / n
+            bw = min(slot * 0.55, 2.4)
+            for i in range(n):
+                cx = slot * (i + 0.5)
+                d.rectangle([tx(cx - bw / 2), tz(head), tx(cx + bw / 2), tz(sill)],
+                            fill=ImageColor.getrgb(WINDOW_FILL), outline=WINDOW, width=2)
+            _centre_text(d, tx(fw / 2), tz(head) - 12, f"{n} win  (x schematic)", 12, WINDOW)
 
     # doors on this facade
     for door in gt.get("doors", []):
@@ -428,8 +451,9 @@ def render_elev(gt: dict) -> Image.Image:
     d = ImageDraw.Draw(img)
     d.text((12, 10), f"GT elevations  -  {gt.get('case', '?')}   total height {_fmt(ht)} m",
            font=_font(20), fill=TEXT)
-    d.text((12, 36), "boxes = windows at gt [sill, head] z (count exact, x schematic); "
-           "brown = door. Compare against the elevation drawings.", font=_font(13), fill=SUBTLE)
+    d.text((12, 36), "boxes = windows at gt [sill, head] z; x+width exact from CAD where "
+           "present, else schematic; brown = door. Compare against the elevation drawings.",
+           font=_font(13), fill=SUBTLE)
     for i, facade in enumerate(facades):
         ox = (i % 2) * (col_w + PANEL_GAP)
         oy = HEADER + (i // 2) * (ph + PANEL_GAP)
