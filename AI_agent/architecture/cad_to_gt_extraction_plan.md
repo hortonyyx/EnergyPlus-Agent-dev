@@ -15,6 +15,10 @@ gt（评测标准答案）目前由**人读 PNG** 产出，只能断言人能稳
 **一鱼两吃**：同一套 CAD 解析器也是未来 **CAD 矢量输入模态**（区别于当前图片识别腿）的种子——
 区别只在消费方（喂 0_reading 而非喂 judge），解析逻辑共享。
 
+> **范围（用户 2026-06-20 定）**：当前 CAD 直导入 = **仅作 gt 参照来源**；**CAD 作为正式模态输入 +
+> 归一化（§10）= 之后再做**。另：用户提的"人工把识图输入规范成一种标准格式减识别负担"是**输入端**
+> 的另一条近期线（属规范化绘图，见 plan.md B7），不混进 gt 这条。
+
 ## 2. 两个硬问题（决定可行性）
 
 **P-A. 天正自定义对象 ezdxf 读不到——但大概率能由我们这边吸收（2026-06-20 修正）。**
@@ -136,7 +140,7 @@ gt/README 定过：精确坐标的**容差带判过/不过**归确定性层（ga
 
 - **P0（本轮 ✅）**：装 ezdxf；`inspect_dxf.py` + 合成天正样例测试（2 测）；本方案文档。
 - **P1（✅ 进行中，2026-06-20）**：用户天正「图形导出」sm21 → DXF 放 `gt/sm21_anchor/source.dxf`（**已到位**，inspector 实测 `proxy=0`/WALL 216 线/WINDOW 29 块/E_WINDOW 18/PUB_DIM 165/6 图名/6 视图区都聚出）；逐 case bundle 已建。**P1 出口规格（gate，不达不准进 P2）**[Codex M-S3/S4 planning hole]：把 inspector 报告里**实测**的实体编码逐项列出（窗=LINE 对/矩形/块/洞口？房间对象在否？立面层分隔线/地线在否？），并为**每个 gt 必填字段**指定 **唯一**：解析规则 | 人工 override 路径 | fail-fast 诊断——三者缺一不写该字段的解析。
-- **P2**：写 `scripts/tool_scripts/gt_from_dxf.py`（S2–S7，含指纹校验 §3a + 分级核 §4-S5）→ 生成 sm21 满配 gt；与现人读 gt 对账（计数/sill/head 应一致，x 新增）。
+- **P2（✅ v1 完成，2026-06-20）**：`scripts/tool_scripts/gt_from_dxf.py` 从 source.dxf 抽**精确窗 openings(x+宽)+外门+footprint**，**全对账 gt**（footprint 15×8 / 外门 South+West F1 / 8 立面窗计数全中），写 proposed `gt_from_cad.json`（schema_version2+openings+`_cad_sha256`，**不覆盖已核 gt.json**）+ `test_gt_from_dxf`（5 测）。关键解码：窗=`$TCHSYS$WIN2D`（insert 点=中心·`|xscale|`=宽·周边墙=facade）；门=`$DorLib2D$`（周边=外门）；立面 E_WINDOW insert.y→sill z。**v1 待补（v2）**：立面 z 抽 sill/head（现沿用已核 gt）、墙网重建 zones rect（现用人读）、render_gt 画精确 openings + overlay 叠原图、晋升 gt_from_cad→gt.json。
 - **P3**：`render_gt` 加精确 overlay 模式；人浏览器/图片确认对齐。
 - **P4**：测试（合成 + 真 sm21 子集）；扩 `test_gt_discipline`；更新 gt/README + 手册。
 - **P5（later）**：泛化其他 case；CAD 输入模态轨复用解析器。
