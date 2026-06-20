@@ -60,7 +60,6 @@ from src.agent.execution.stage_runner import (
     StageRunner,
     stage_spec,
 )
-from src.agent.judge.executor import rubric_for
 from src.agent.judge.verdict import StageVerdict
 from src.validator.checks.schema import CheckReport
 
@@ -267,6 +266,10 @@ def _post_gate1(
             stage, StepStatus.AWAITING_GEOMETRY_APPROVAL, attempts, attempt_idx, report,
             message="geometry built + gate① passed — awaiting human geometry confirmation",
         )
+
+    # lazy import: judge.executor imports from src.agent.execution, so a top-level
+    # import here would close an execution<->judge package import cycle.
+    from src.agent.judge.executor import rubric_for
 
     reg = rubric_for(stage)
     if reg is not None and reg[1] and policy.judge_enabled:  # an ENABLED judge (J0 / J1)

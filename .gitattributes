@@ -30,6 +30,9 @@ Dockerfile text eol=lf
 *.ps1    text eol=crlf
 
 # 二进制文件：不做换行符转换
+# CAD 源（gt 答案级数据，将来要算 sha256 指纹绑定）—— 必须保字节原样，禁 CRLF→LF 改写
+*.dxf    binary
+*.dwg    binary
 *.png    binary
 *.jpg    binary
 *.jpeg   binary
