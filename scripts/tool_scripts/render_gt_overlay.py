@@ -130,10 +130,14 @@ def overlay_plan(case, gt, cd, floor):
     for dr in gt["doors"]:
         if dr["floor"] != floor:
             continue
-        if dr["facade"] == "South":
-            d.line([(PX(0.3), PY(0)), (PX(1.2), PY(0))], fill=DOOR + (255,), width=10)
-        elif dr["facade"] == "West":
-            d.line([(PX(0), PY(3.2)), (PX(0), PY(4.8))], fill=DOOR + (255,), width=10)
+        a, w = dr.get("x_m", 0.0), dr.get("width_m", 0.9)
+        if dr["facade"] in ("North", "South"):           # facade-local x = world x
+            yy = PY(D) if dr["facade"] == "North" else PY(0)
+            d.line([(PX(a), yy), (PX(a + w), yy)], fill=DOOR + (255,), width=10)
+        else:                                            # E/W facade-local = world y
+            xx = PX(W) if dr["facade"] == "East" else PX(0)
+            yA = yb - a / D * (yb - yt); yB = yb - (a + w) / D * (yb - yt)
+            d.line([(xx, yA), (xx, yB)], fill=DOOR + (255,), width=10)
     d.text((10, 8), f"TYPE 2  {floor}:  gt over dimmed original  (is gt faithful to the drawing?)",
            font=_font(22), fill=(255, 255, 255, 255))
     out = Image.alpha_composite(dim, ov).convert("RGB")
@@ -168,6 +172,12 @@ def overlay_elev(case, gt, cd, facade):
             xa, xb = PX(o["x_m"]), PX(o["x_m"] + o["width_m"])
             d.rectangle([min(xa, xb), PZ(o["head_m"]), max(xa, xb), PZ(o["sill_m"])],
                         outline=WIN + (255,), width=4)
+    for dr in gt["doors"]:
+        if dr["facade"] != facade:
+            continue
+        xa, xb = PX(dr["x_m"]), PX(dr["x_m"] + dr["width_m"])
+        d.rectangle([min(xa, xb), PZ(dr.get("head_m", 2.1)), max(xa, xb), PZ(dr.get("sill_m", 0))],
+                    outline=DOOR + (255,), width=4)
     d.text((10, 8), f"TYPE 2  {facade} elevation:  gt over dimmed original  "
            "(do gt windows match the drawing?)", font=_font(20), fill=(255, 255, 255, 255))
     out = Image.alpha_composite(dim, ov).convert("RGB")

@@ -302,17 +302,17 @@ def _draw_plan_openings(d: ImageDraw.ImageDraw, gt: dict, fl: dict, tx, ty,
     for door in gt.get("doors", []):
         if door.get("floor") != floor_name:
             continue
-        (x0, y0), (x1, y1), orient = _facade_edge_plan(door["facade"], tx, ty, w_m, d_m)
-        c = _door_frac(door)
-        if orient == "h":
-            cx = x0 + (x1 - x0) * c
-            d.line([(cx - 12, y0), (cx + 12, y0)], fill=DOOR, width=7)
-            d.text((cx - 14, y0 + (6 if door["facade"].lower().startswith("s") else -18)),
+        (ex0, ey0), (ex1, ey1), orient = _facade_edge_plan(door["facade"], tx, ty, w_m, d_m)
+        a = door.get("x_m"); w = door.get("width_m", 0.9)
+        if orient == "h":      # facade-local x = world x; draw [a, a+w] on the edge
+            xa, xb = (tx(a), tx(a + w)) if a is not None else (ex0 + (ex1 - ex0) * _door_frac(door) - 12,) * 2
+            d.line([(xa, ey0), (xb, ey0)], fill=DOOR, width=7)
+            d.text(((xa + xb) / 2 - 14, ey0 + (6 if door["facade"].lower().startswith("s") else -18)),
                    "DOOR", font=_font(12), fill=DOOR)
-        else:
-            cy = y0 + (y1 - y0) * c
-            d.line([(x0, cy - 12), (x0, cy + 12)], fill=DOOR, width=7)
-            d.text((x0 + (6 if door["facade"].lower().startswith("e") else -42), cy - 7),
+        else:                  # E/W facade-local = world y
+            ya, yb = (ty(a), ty(a + w)) if a is not None else (ey0 + (ey1 - ey0) * _door_frac(door) - 12,) * 2
+            d.line([(ex0, ya), (ex0, yb)], fill=DOOR, width=7)
+            d.text((ex0 + (6 if door["facade"].lower().startswith("e") else -42), (ya + yb) / 2 - 7),
                    "DOOR", font=_font(12), fill=DOOR)
 
 
@@ -380,9 +380,10 @@ def _draw_elev_panel(img: Image.Image, d: ImageDraw.ImageDraw, ox: int, oy: int,
         n = int(entry["count"])
         sill, head = float(entry["sill_m"]), float(entry["head_m"])
         ops = entry.get("openings")
-        if ops:  # exact: box each window at its true along-facade [x_m, x_m+width]
+        if ops:  # exact: box each window at its true [x_m,x_m+width] × per-opening [sill,head]
             for o in ops:
-                d.rectangle([tx(o["x_m"]), tz(head), tx(o["x_m"] + o["width_m"]), tz(sill)],
+                os, oh = o.get("sill_m", sill), o.get("head_m", head)
+                d.rectangle([tx(o["x_m"]), tz(oh), tx(o["x_m"] + o["width_m"]), tz(os)],
                             fill=ImageColor.getrgb(WINDOW_FILL), outline=WINDOW, width=2)
             _centre_text(d, tx(fw / 2), tz(head) - 12, f"{n} win  (exact x)", 12, WINDOW)
         else:    # fallback: evenly distributed
@@ -394,15 +395,15 @@ def _draw_elev_panel(img: Image.Image, d: ImageDraw.ImageDraw, ox: int, oy: int,
                             fill=ImageColor.getrgb(WINDOW_FILL), outline=WINDOW, width=2)
             _centre_text(d, tx(fw / 2), tz(head) - 12, f"{n} win  (x schematic)", 12, WINDOW)
 
-    # doors on this facade
+    # doors on this facade (at their true along-facade x + width)
     for door in gt.get("doors", []):
         if door.get("facade") != facade:
             continue
-        c = _door_frac(door)
-        cx = fw * c
-        d.rectangle([tx(cx - 0.45), tz(2.1), tx(cx + 0.45), tz(0)],
-                    fill=None, outline=DOOR, width=3)
-        _centre_text(d, tx(cx), tz(2.1) - 11, "DOOR", 12, DOOR)
+        x0 = door.get("x_m", fw * _door_frac(door) - 0.45)
+        w = door.get("width_m", 0.9)
+        hd, sl = door.get("head_m", 2.1), door.get("sill_m", 0.0)
+        d.rectangle([tx(x0), tz(hd), tx(x0 + w), tz(sl)], fill=None, outline=DOOR, width=3)
+        _centre_text(d, tx(x0 + w / 2), tz(hd) - 11, "DOOR", 12, DOOR)
 
     # ---- dimension chains
     _dim_h(d, tx(0), tx(fw), oy + HEADER - 6, f"{_fmt(fw)} m")          # width (top)

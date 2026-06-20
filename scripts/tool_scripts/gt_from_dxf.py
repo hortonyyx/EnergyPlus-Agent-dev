@@ -34,6 +34,7 @@ import json
 from pathlib import Path
 
 import ezdxf
+from ezdxf import bbox
 
 GT_DIR = Path("case_tests/test_baseline/gt")
 PLAN_BAND_Y = -9000.0     # model y above this = plan views, below = elevations
@@ -160,12 +161,9 @@ def _plan_openings(msp, fps):
         if facade is None:
             continue
         centre = (cx - fp["minx"]) if facade in ("North", "South") else (cy - fp["miny"])
-        rec = {"facade": facade, "floor": floor, "centre_m": centre / 1000.0}
-        if is_win:
-            rec["width_m"] = abs(e.dxf.xscale) / 1000.0
-            windows.append(rec)
-        else:
-            doors.append(rec)
+        rec = {"facade": facade, "floor": floor, "centre_m": centre / 1000.0,
+               "width_m": abs(e.dxf.xscale) / 1000.0}
+        (windows if is_win else doors).append(rec)
     return windows, doors
 
 
@@ -222,14 +220,17 @@ def _elevations(msp, doc, titles):
             p = e.dxf.insert
             if p.y >= PLAN_BAND_Y or abs(p.x - cx) >= 8000:
                 continue
-            blk = doc.blocks.get(e.dxf.name)
-            ys = [v for be in blk.query("LINE") for v in (be.dxf.start.y, be.dxf.end.y)]
-            height = (max(ys) - min(ys)) * abs(e.dxf.yscale) if ys else 0.0
-            sill = p.y - base
-            if height < 100 or sill < 100:           # skip the door (sill≈0, tall)
+            # real drawn z-extent via the virtualised insert bbox — NOT block-LINE-extent
+            # × yscale, which under-measures blocks whose geometry isn't all LINEs.
+            b = bbox.extents([e])
+            if not b.has_data:
                 continue
-            wins.append({"x_m": (p.x - emin) / 1000.0, "sill_m": sill / 1000.0,
-                         "head_m": (sill + height) / 1000.0})
+            sill, head = b.extmin.y - base, b.extmax.y - base
+            cxw = (b.extmin.x + b.extmax.x) / 2          # window centre (for plan↔elev match)
+            if (head - sill) < 100 or sill < 100:        # skip the door (sill≈0, full-height)
+                continue
+            wins.append({"x_m": (cxw - emin) / 1000.0, "sill_m": sill / 1000.0,
+                         "head_m": head / 1000.0})
         floors_z = sorted(round(y - base) for y in hy)
         out[facade] = {"floor_z": floors_z, "windows": wins}
     return out
@@ -342,7 +343,10 @@ def _floor_of_sill(sill_m):
 def _build_doors(doors):
     out = []
     for d in doors:
-        out.append({"facade": d["facade"], "floor": d["floor"]})
+        w = round(d.get("width_m", 0.9), 3)
+        out.append({"facade": d["facade"], "floor": d["floor"],
+                    "x_m": round(d["centre_m"] - w / 2, 3), "width_m": w,
+                    "sill_m": 0.0, "head_m": 2.1})        # exterior doors are full-height
     return out
 
 

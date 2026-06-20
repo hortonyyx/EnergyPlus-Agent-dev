@@ -73,8 +73,10 @@ def test_openings_carry_exact_x_and_per_opening_z(built):
     assert sorted(o["width_m"] for o in sf1) == [1.2, 2.4, 2.4]
     small = min(sf1, key=lambda o: o["width_m"])
     assert small["sill_m"] == 1.5 and small["head_m"] == 2.1     # CAD-precise, not facade-uniform
-    # East/West F2 windows are 1.2 m tall (head 5.2), not the human gt's 5.8
-    assert wins[("East", "Floor 2")]["openings"][0]["head_m"] == 5.2
+    # East/West F2 windows: 1800 mm tall → head 5.8 (bbox.extents, not block-LINE×yscale)
+    assert wins[("East", "Floor 2")]["openings"][0]["head_m"] == 5.8
+    assert wins[("East", "Floor 1")]["openings"][0]["head_m"] == 2.8
+    assert wins[("West", "Floor 2")]["openings"][0]["head_m"] == 5.8
 
 
 def test_gt_is_v2_with_fingerprint(built):
