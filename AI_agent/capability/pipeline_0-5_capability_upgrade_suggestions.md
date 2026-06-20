@@ -4,7 +4,7 @@
 >
 > **状态（2026-06-10）**：骨架 + 当前已知建议（Opus 起草）。明天 Fable 5 做完整体检时，顺手发现的 capability 想法往这里加。**这些升级先不实施**，按用户路线（§ 路线图）在 test_baseline + 国产 VLM 接通后，**依次提升建筑复杂度时**再逐项落地。
 >
-> 权威接线见 [pipeline_stage_contracts.md](pipeline_stage_contracts.md)。术语：识图=0_reading / 校正=1_correction / 建模=2_modelling / 切配=3_split_pairing / 物理=4_mep / 装配=5_intakeoutput。
+> 权威接线见 [pipeline_stage_contracts.md](../architecture/pipeline_stage_contracts.md)。术语：识图=0_reading / 校正=1_correction / 建模=2_modelling / 切配=3_split_pairing / 物理=4_mep / 装配=5_intakeoutput。
 
 ---
 
@@ -22,7 +22,7 @@
 
 ## 2_modelling（建模·几何，确定性）
 
-- **非矩形 footprint**：当前矩形 cell；L/U 形、凹凸异型需 cell 多边形 + straight-skeleton（plan.md B5，[geometry_first_zonification.md](geometry_first_zonification.md)）。**复杂度升级路径详见下方 §0–3 路径骨架（C2 档）**。
+- **非矩形 footprint**：当前矩形 cell；L/U 形、凹凸异型需 cell 多边形 + straight-skeleton（plan.md B5，[geometry_first_zonification.md](../proposals/geometry_first_zonification.md)）。**复杂度升级路径详见下方 §0–3 路径骨架（C2 档）**。
 - **zonification 粒度**：sm23 暴露——走廊被横墙切成多段、房间粗合并。怎么定 zone 边界（贴房间 vs 贴热区）是 capability 主线（[recognition_modeling_capability.md](../capability/recognition_modeling_capability.md)）。
 
 ## 3_split_pairing（切配·仿真，确定性）

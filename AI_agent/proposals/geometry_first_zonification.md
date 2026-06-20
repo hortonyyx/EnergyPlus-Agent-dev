@@ -4,9 +4,9 @@
 
 > **定位**：一份**前瞻架构设计文档**（design proposal），不是已落地的事实参考。记录 2026-05-29 一次会话收敛出的长期建模架构方向——把"surface 切分/配对"从 LLM 文本推理下沉为「**平面再拓扑（热分区）+ 确定性几何内核**」。
 >
-> **状态**：**设计讨论已捕获，未落地实现。** 当前主线仍是已交付的两步法（phase1 半人工 + phase2 DeepSeek + 9 下游 subagent，[architecture.md](architecture.md)）。**2026-05-29 定调：本文是与「忠实建模 leg」并行的「再拓扑 leg」——作强力支线推进，实验稳定了再切过去**（它 EP 鲁棒性最优但相对原始信息变化最大、最激进；忠实 leg 因 beyond-EP 价值独立继续）。落地时机见 §9，两腿分工见 [../capability/recognition_modeling_capability.md §8](../capability/recognition_modeling_capability.md)。
+> **状态**：**设计讨论已捕获，未落地实现。** 当前主线仍是已交付的两步法（phase1 半人工 + phase2 DeepSeek + 9 下游 subagent，[pipeline_stage_contracts.md](../architecture/pipeline_stage_contracts.md)）。**2026-05-29 定调：本文是与「忠实建模 leg」并行的「再拓扑 leg」——作强力支线推进，实验稳定了再切过去**（它 EP 鲁棒性最优但相对原始信息变化最大、最激进；忠实 leg 因 beyond-EP 价值独立继续）。落地时机见 §9，两腿分工见 [../capability/recognition_modeling_capability.md §8](../capability/recognition_modeling_capability.md)。
 >
-> **与其他文档关系**：[architecture.md](architecture.md) = 当前事实架构；[../capability/recognition_modeling_capability.md](../capability/recognition_modeling_capability.md) = **另一条腿（忠实建模 leg）** + 识图→建模质量主线；[../deferred/idfpy_embed.md](../deferred/idfpy_embed.md) = idfpy 切换计划；[../plan.md](../plan.md) B5-B7 = 能力升级任务。本文是再拓扑 leg 的**架构骨架**。
+> **与其他文档关系**：[pipeline_stage_contracts.md](../architecture/pipeline_stage_contracts.md) = 当前事实架构；[../capability/recognition_modeling_capability.md](../capability/recognition_modeling_capability.md) = **另一条腿（忠实建模 leg）** + 识图→建模质量主线；[../deferred/idfpy_embed.md](../deferred/idfpy_embed.md) = idfpy 切换计划；[../plan.md](../plan.md) B5-B7 = 能力升级任务。本文是再拓扑 leg 的**架构骨架**。
 >
 > **⚠️ 术语对齐（2026-06-07，与用户锁定）**：本文早期用「再拓扑」指代**含切配的整个几何内核**，口径已收窄——
 > - **再拓扑 = 仅指 zonification**（在 phase1 平面上新划热区）。

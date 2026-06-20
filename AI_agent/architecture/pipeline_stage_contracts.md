@@ -1,6 +1,6 @@
 # 管线各阶段：输入 · 输出 · 校验（活文档）
 
-> **0–5 管线的权威接线 + 产物校验登记，活文档。** 逐阶段记清**输入什么 / 输出什么 / 怎么校验**。建于 2026-06-09（几何确定性化），2026-06-14 接通标准 case 布局，**2026-06-15 全文重写**（清掉 phase1/phase2a/phase2b/partA 旧称、并入产物校验登记 + 校验门模型 + reading/correction 分工再定）。取代 [architecture.md](architecture.md) 的「管线」部分。
+> **0–5 管线的权威接线 + 产物校验登记，活文档。** 逐阶段记清**输入什么 / 输出什么 / 怎么校验**。建于 2026-06-09（几何确定性化），2026-06-14 接通标准 case 布局，**2026-06-15 全文重写**（清掉 phase1/phase2a/phase2b/partA 旧称、并入产物校验登记 + 校验门模型 + reading/correction 分工再定）。取代 [architecture.md](../archive/architecture.md) 的「管线」部分。
 >
 > **当前唯一术语**：管线 = **0_reading**（识图）→ **1_correction**（校正 LLM + 确定性核）→ **2_modelling** + **3_split_pairing**（几何内核，代码）→ **4_mep**（物理 LLM）→ **5_intakeoutput**（装配，代码）→ 下游 9 subagent → EP。代码入口 [src/agent/pipeline.py](../../src/agent/pipeline.py) `run_pipeline`（`run_correction` + 核 + 几何内核 + `run_mep` + 装配）。**不再用 phase1/phase2a/phase2b——读历史文档遇旧称按此对照。**
 >
@@ -105,7 +105,7 @@
 | `stochastic_draw_failure`（0 自动后/1/4 的 draw 不过）| **盲重抽**（同输入换采样；judge 评语只进带外日志、绝不注入 prompt）|
 | `judge_mismatch` | 盲重抽 stochastic 段；`root_confidence` 低 → **不自动路由、交人** |
 - **0_reading 当前 = `manual` runner** → 自动路由只返回 `human_redraw_required`（VLM runner 接入后才开放自动盲重抽）。
-- **不复用 `_make_correction_validator`** 当通用 harness——抽 `draw_json_once` + 单阶段 `retry_stage_draw`，跨阶段 route/invalidation 归执行地基（[施工方案 M0](pipeline_validation_build_plan.md)）；明确两入口 `repair_feedback`（下游 repair 可注入）vs `judge_retry_context=None`（必盲抽）不串线。
+- **不复用 `_make_correction_validator`** 当通用 harness——抽 `draw_json_once` + 单阶段 `retry_stage_draw`，跨阶段 route/invalidation 归执行地基（[施工方案 M0](../archive/pipeline_validation_build_plan.md)）；明确两入口 `repair_feedback`（下游 repair 可注入）vs `judge_retry_context=None`（必盲抽）不串线。
 - **打回目标 = judge 归因的根因阶段**（非机械上一步）；归因不确定不自动路由。
 - **预算 = 每阶段 3 次 + 整条 run 全局预算 + 循环检测**；超则终止 + 记 **`quarantined_failure`**（排除 judge 误判/代码 bug/配置错后才进训练 hard-sample 集）。
 
@@ -113,7 +113,7 @@
 
 **judge = 开发期脚手架 / 数据工厂**：每条 verdict = ① 训小模型的监督标签 ② "哪些 judge 经验可固化成确定性校验"的清单。等小模型吃透 + 错类固化够多 → **撤顶尖 judge**，上线只留确定性校验 + 小模型（轻量化）。**半人工期**：人类操作员可看 judge 带外评语手修，但不注入任何自动 prompt（不污染训练数据）。
 
-### 0.4 Codex 双 review 纳入（2026-06-15 v7，逐条处置见会话 + [施工方案 v2](pipeline_validation_build_plan.md)）
+### 0.4 Codex 双 review 纳入（2026-06-15 v7，逐条处置见会话 + [施工方案 v2](../archive/pipeline_validation_build_plan.md)）
 
 两份 review（[设计](../logs/review/review/2026-06-15_pipeline_0-5_validation_architecture_design_review.md) + [施工](../logs/review/review/2026-06-15_pipeline_0-5_validation_build_plan_review.md)，双 CHANGES REQUESTED）已全盘接受。**下表为 v7 修订要点速查——均已逐段改齐落实于 §1/§3 正文（非"上文覆盖下文"，纳入 re-verify High 1）**；机制细节落施工方案 M0–M4：
 
@@ -265,7 +265,7 @@
 
 ### 3.2 应补校验 backlog（按杠杆排序）
 
-> **实现状态（2026-06-15 v9，M0–M4 一轮落地，测试 103→191）**：下表「应补 ❌」**确定性部分已全部落地**——schema/policy 地基 [`src/validator/checks/schema.py`](../../src/validator/checks/schema.py)（CheckReport v2，policy≠fact）；执行/审计地基 [`src/agent/execution/`](../../src/agent/execution)（append-only attempts/失效 DAG/resume/budget/approval digest/失败分类 routing）；逐段确定性 check [`src/validator/checks/{reading,correction,kernel,mep,assembly}.py`](../../src/validator/checks) + [`src/agent/correction/{geometry_validator,facade}.py`](../../src/agent/correction) + 统一 parser [`src/validator/idf_fragments.py`](../../src/validator/idf_fragments.py)；judge harness [`src/agent/judge/`](../../src/agent/judge)（verdict v2 + 单阶段盲抽不串线 + J0/J1 rubric + J4 disabled stub）；视觉件 `render_elevation_windows.py` + `render_building_3d.py`(trimesh，headless 显式 skip)；capstone [`validate_case`](../../src/agent/execution/validation_run.py) 非侵入跑全段 gate①（未动 `run_pipeline`/契约/下游）。施工进度表见 [build_plan §5](pipeline_validation_build_plan.md#5-施工进度)。**仍 deferred**：judge LLM/VLM 真实接线（harness 已就位、judge_fn 可插拔）/ 4_mep 合理性区间（占位）/ viewer 交互层 spike / resume 接进 `run_pipeline`（地基就位）。
+> **实现状态（2026-06-15 v9，M0–M4 一轮落地，测试 103→191）**：下表「应补 ❌」**确定性部分已全部落地**——schema/policy 地基 [`src/validator/checks/schema.py`](../../src/validator/checks/schema.py)（CheckReport v2，policy≠fact）；执行/审计地基 [`src/agent/execution/`](../../src/agent/execution)（append-only attempts/失效 DAG/resume/budget/approval digest/失败分类 routing）；逐段确定性 check [`src/validator/checks/{reading,correction,kernel,mep,assembly}.py`](../../src/validator/checks) + [`src/agent/correction/{geometry_validator,facade}.py`](../../src/agent/correction) + 统一 parser [`src/validator/idf_fragments.py`](../../src/validator/idf_fragments.py)；judge harness [`src/agent/judge/`](../../src/agent/judge)（verdict v2 + 单阶段盲抽不串线 + J0/J1 rubric + J4 disabled stub）；视觉件 `render_elevation_windows.py` + `render_building_3d.py`(trimesh，headless 显式 skip)；capstone [`validate_case`](../../src/agent/execution/validation_run.py) 非侵入跑全段 gate①（未动 `run_pipeline`/契约/下游）。施工进度表见 [build_plan §5](../archive/pipeline_validation_build_plan.md#5-施工进度)。**仍 deferred**：judge LLM/VLM 真实接线（harness 已就位、judge_fn 可插拔）/ 4_mep 合理性区间（占位）/ viewer 交互层 spike / resume 接进 `run_pipeline`（地基就位）。
 
 逐段「应补 ❌」汇总成施工序（纪律：每条明确归 §0.2 三层 + §0.3 哪道门；确定性校验配单测；改 skill/src 按 [CLAUDE.md §6#5](../CLAUDE.md) 备份）：
 
@@ -321,7 +321,7 @@ _2026-06-15 (v5) — **4_mep 校验框架定稿**（逐阶段探讨锁第 4 段�
 _2026-06-15 (v4) — **2+3 几何内核校验定稿**（逐阶段探讨锁第 3 段）：确定性阶段靶子=代码（单测+不变量）、**无 per-run LLM judge**；gate① 确定性集（封闭完整/法向一致/kernel_gate_report 提 block/互逆+面积/覆盖完整性 shapely 随 B5/spec 自洽）→ `kernel_checks.json`；产物加 **交互 3D 查看器**（pyvista `export_html`：转/半透/剖切 + 按切配上色，并掉单出 2D 覆盖图）+ 静态 PNG；**关键**：交互 3D = **上线保留的用户几何确认门**（确认几何对才进仿真，区别于 dev 期 LLM judge）。§3 矩阵 + §3.2#3 同步。_
 _2026-06-15 (v3) — **1_correction 校验定稿**（逐阶段探讨锁第 2 段）：产物加 `correction_checks.json` + 填色区图 `*_zones.png` + 立面窗位图 `*_elev.png`（+将来 zone 区图）；gate① 确定性 = A0§7 几何校验器 + 立面 local→world 代码翻译 + 跨图对账 + 窗位落墙 + 区数 tripwire；gate② = 看原图的 VLM judge 对参考答案（testdata + B2 gt.json）裁 redraw 保真 5 条；区数双管（tripwire + judge）。§3 矩阵 + §3.2#2 同步。_
 _2026-06-15 (v8) — **纳入 Codex re-verify（NOT YET CLOSEABLE → must-fix 全落）**：re-verify High 1 = §0.4 不能当覆盖 banner，**§1/§3 逐段改齐 v7 口径**（已删/改：0_reading facade→image-local 朝向字段·uncaptured 不 block·stroke↔dim 降低置信「内部一致性」非 2f 主验收·0=manual→human_redraw；1_correction world 落位在本段生成+delta/audit 归因；2/3 viewer trimesh 先行·用户门=调用策略+hash·kernel_gate_report 提 block；4_mep idf_fragments parser+对象语义 block；5 仅 assemble+backstop·全 MEP 引用图归 4；§0.3 门①失败分类·§3.2#7 不复用 validator·§3.1 加 attempts/manifest/approval 目标布局·§0.4 改为速查非覆盖）。施工方案 v3 补完整失效 DAG + approval digest + facade canonical schema + per-milestone 验收测试矩阵。Codex 判：三项 must-fix 完成即两 review CLOSEABLE、可直接开工 M0、无需第三轮架构重审。_
-_2026-06-15 (v7) — **纳入 Codex 双 review（设计+施工，双 CHANGES REQUESTED，全盘接受）**：§0.3 改失败分类（确定性后置 fail-closed 不弹上游 / 只 stochastic 0/1/4 盲重抽 / 0=manual→human_redraw / 全局预算+循环检测 / hard sample quarantine / 不复用 `_make_correction_validator`）+ verdict schema v2（not_applicable/insufficient_evidence/root_stage/root_confidence/retriable）+ judge 密度自洽；新增 §0.4「Codex 纳入」10 条（facade 仅 image-local·world 落位归 correction / reading schema 迁移 dimension chain+provenance / stroke↔dim 降低置信非 2f 主验收 / 2f 归因 delta-audit / 矩形 coverage 本轮 block / uncaptured 不 block / 4 拥有 MEP 引用图+对象语义+idf_fragments parser·5 仅 backstop / check schema v2 policy-事实分离 / 用户门=调用策略+hash / viewer trimesh 先行）；§1 2/3·5 + §3.2 + §4 不变量 6 同步。机制细节落 [施工方案 v2](pipeline_validation_build_plan.md)（M0 执行地基→M1 schema/parser→M2a/b/c→M3→M4）。_
+_2026-06-15 (v7) — **纳入 Codex 双 review（设计+施工，双 CHANGES REQUESTED，全盘接受）**：§0.3 改失败分类（确定性后置 fail-closed 不弹上游 / 只 stochastic 0/1/4 盲重抽 / 0=manual→human_redraw / 全局预算+循环检测 / hard sample quarantine / 不复用 `_make_correction_validator`）+ verdict schema v2（not_applicable/insufficient_evidence/root_stage/root_confidence/retriable）+ judge 密度自洽；新增 §0.4「Codex 纳入」10 条（facade 仅 image-local·world 落位归 correction / reading schema 迁移 dimension chain+provenance / stroke↔dim 降低置信非 2f 主验收 / 2f 归因 delta-audit / 矩形 coverage 本轮 block / uncaptured 不 block / 4 拥有 MEP 引用图+对象语义+idf_fragments parser·5 仅 backstop / check schema v2 policy-事实分离 / 用户门=调用策略+hash / viewer trimesh 先行）；§1 2/3·5 + §3.2 + §4 不变量 6 同步。机制细节落 [施工方案 v2](../archive/pipeline_validation_build_plan.md)（M0 执行地基→M1 schema/parser→M2a/b/c→M3→M4）。_
 _2026-06-15 (v2) — **全文重写按 0–5 口径 + 并入校验门模型 + reading/correction 分工再定**：清掉 phase1/phase2a/phase2b/partA 旧称（§0 图/§2/§3 矩阵/§4 不变量/§5.3 全换 0–5 名）；§0.3 新增逐阶段校验门模型（确定性①+judge②、结构化 verdict 不用数字分、盲重抽、3 次预算、judge=数据工厂、密度按阶段、judge 不给流程额外信息）；§1 0_reading 校验收窄为 per-image（结构 linter/尺寸链闭合/stroke↔dimension 互核/越界 + 七类 VLM judge），**区数/跨图/填色区图移到 1_correction**；1_correction 补填色区图/zone 区图 + 立面 local→world 代码翻译 + 跨图 reconcile + 对参考答案 judge；§4 加不变量 6（judge 不给流程信息）。_
 _2026-06-15 (v1) — 并入「逐阶段产物与校验登记」，升级为「输入·输出·校验」活文档（§0.2 三层框架 + §1 每段校验 + §3.2 backlog）。_
 _2026-06-09 — 建文档（几何确定性化后权威接线参考）。_

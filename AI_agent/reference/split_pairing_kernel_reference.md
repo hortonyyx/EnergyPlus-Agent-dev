@@ -88,7 +88,7 @@ interzone.py 门(确定性)    事后校验整张配对图(8 项), 不切面    
 ## 4. 关键认知（别踩的坑）
 
 1. **idfpy 不自动解切配/覆盖**：idfpy `validate()` 是 **schema 校验、不验几何**。覆盖洞 / 切错是**几何缺陷不是 schema 违规**，`validate()` 会愉快放行。别指望切 idfpy 像消掉 glazing bug 那样消掉切配问题（glazing 是 schema 约束所以能被原生拒，切配/覆盖不是）。
-2. **覆盖完整性 vs 配对合法性是两件事**：interzone 门（及切配内核）查的是"已声明配对是否合法"；另有一类"覆盖洞"（本该是内部边界、两侧却都标 Outdoors/Adiabatic → 不进配对图 → 门盲、EP 也不报错）需 footprint 并/交/差（shapely）专门查。若 zonification 端能保证输出是**合法平面剖分**，覆盖洞可升为"构造不变量"从源头消解（见 [architecture/geometry_first_zonification.md](../architecture/geometry_first_zonification.md) §4.3）——这是 zonification 端的事，与切配互补。
+2. **覆盖完整性 vs 配对合法性是两件事**：interzone 门（及切配内核）查的是"已声明配对是否合法"；另有一类"覆盖洞"（本该是内部边界、两侧却都标 Outdoors/Adiabatic → 不进配对图 → 门盲、EP 也不报错）需 footprint 并/交/差（shapely）专门查。若 zonification 端能保证输出是**合法平面剖分**，覆盖洞可升为"构造不变量"从源头消解（见 [architecture/geometry_first_zonification.md](../proposals/geometry_first_zonification.md) §4.3）——这是 zonification 端的事，与切配互补。
 3. **切配与 zonification 解耦**：切配吃任何粒度的 zone 体块都同一算法。zonification 范式（忠实房间=zone / 热区再拓扑少而大）只改输入基数，不改切配算法。两件事可独立推进。
 4. **所有权边界**：当前几何实现在 [surface.py](../../src/agent/nodes/surface.py)（协作者方 LLM）。**新决策（§6）下，切配在我方核之后做、产出已解析的 surface_specs**，下游 surface_agent 退化成忠实誊写——所以**不动下游代码、不改 `IntakeOutput` 契约**（我们交出去的 surface_specs 几何已完整解析，反而帮下游）。这比"下沉到下游 surface.py"更省、不跨所有权边界。
 
@@ -101,7 +101,7 @@ interzone.py 门(确定性)    事后校验整张配对图(8 项), 不切面    
 - [src/converters/surface_converter.py](../../src/converters/surface_converter.py) — 纯写入
 - [skills/intake_pipeline/4_mep/mep.md](../../skills/intake_pipeline/4_mep/mep.md) §2.6 / Step 4 — 现切分决策文本规则
 - [AI_agent/deferred/idfpy_embed.md](../deferred/idfpy_embed.md) — idfpy 切换计划（切配内核的使能器）
-- [AI_agent/architecture/geometry_first_zonification.md](../architecture/geometry_first_zonification.md) §7.2 — idfpy/shapely 分工分析
+- [AI_agent/architecture/geometry_first_zonification.md](../proposals/geometry_first_zonification.md) §7.2 — idfpy/shapely 分工分析
 
 ---
 

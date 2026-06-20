@@ -3,7 +3,7 @@
 > 面向**用开源多模态模型**（Qwen3.5-35B-A3B、Qwen2.5-VL-32B、InternVL 等）
 > 手动跑 EnergyPlus-Agent 流水线的操作手册。
 >
-> 闭源基线（Claude Opus）用 [../guides/new_case_guide.md](../guides/new_case_guide.md) + [../../skills/energyplus_mcp](../../skills/energyplus_mcp) intake 规则文档库；
+> 闭源基线（Claude Opus）用 [../guides/new_case_guide.md](../guides/new_case_guide.md) + [../../skills/energyplus_mcp](../../skills/intake_pipeline) 0–5 阶段 skill 库；
 > 本文只覆盖「开源模型专用」的差异步骤。
 
 ---

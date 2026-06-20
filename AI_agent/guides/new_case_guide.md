@@ -6,7 +6,7 @@
 >
 > **范围**：本项目侧 = 识图 → 校正 → 几何（造面+切配）→ 物理 → 装配 → 产 `IntakeOutput` → 下游 9
 > subagent → EP。权威接线见 [architecture/pipeline_stage_contracts.md](../architecture/pipeline_stage_contracts.md)；
-> 校验架构施工 [architecture/pipeline_validation_build_plan.md](../architecture/pipeline_validation_build_plan.md)。
+> 校验架构施工 [architecture/pipeline_validation_build_plan.md](../archive/pipeline_validation_build_plan.md)。
 >
 > **两种模式**：① **dev baseline（本手册）**——主 Agent 编排 + judge + 记录，跑出自包含 baseline；
 > ② **未来一键化**——0_reading 接 VLM、judge 迁小模型/固化成确定性 check 后，整链无主 Agent 自动跑

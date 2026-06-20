@@ -1,7 +1,7 @@
 # 方案：天正合并 CAD → 满配 gt（评测答案自动生成）
 
 > 状态：**设计待审**（2026-06-20）。前置工具链已落地（ezdxf + `inspect_dxf.py` + 合成天正样例测试）。
-> 关联：[gt/README.md](../../case_tests/test_baseline/gt/README.md)（gt 铁律）、[per-stage 校验+judge 架构](../../memory)（judge 用 gt）、`render_gt.py`（gt 渲染核验）。
+> 关联：[gt/README.md](../../case_tests/test_baseline/gt/README.md)（gt 铁律）、[per-stage 校验+judge 架构](../architecture/pipeline_stage_contracts.md)（judge 用 gt）、`render_gt.py`（gt 渲染核验）。
 
 ## 1. 目标与动机
 

@@ -68,7 +68,7 @@
 
 > **必须破除的误解**："真三维生成" ≠ 神经生成（路径 d）。对**精确量纲**的建筑 / BEM，主流"真三维"是 **a + b 的确定性几何路径**（感知 → 矢量 → 程序化升起 + 布尔），**不是** diffusion / NeRF——后者不尊重尺寸，做不了能耗模型或可交付 BIM。
 >
-> **所以对你的领域，"真三维" = 确定性几何内核——正是你的再拓扑 leg（[geometry_first_zonification.md](../architecture/geometry_first_zonification.md) 路径 b）。你离它不远，它已在你的路线图上。**
+> **所以对你的领域，"真三维" = 确定性几何内核——正是你的再拓扑 leg（[geometry_first_zonification.md](../proposals/geometry_first_zonification.md) 路径 b）。你离它不远，它已在你的路线图上。**
 
 ---
 

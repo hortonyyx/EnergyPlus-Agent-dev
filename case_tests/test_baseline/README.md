@@ -48,6 +48,12 @@ baseline = 一个**干净的** anchor case 的一次 **run**（`<case>/run_<注�
 判据：致命/严重 → **盲重抽**（≤3，超则 quarantine 交人）；轻微 → flag 放行。**judge 评语只进记录、
 绝不回灌阶段 prompt**（不污染输入，见手册「不污染原则」）。
 
+> **judge② 的「参考」= gt 评测答案**（[gt/README.md](gt/README.md)）：逐 case bundle `gt/<case>/gt.json`，
+> **只 gate② judge / 人 可读**，gate①/执行器绝不 import（铁律，`tests/test_gt_discipline.py` 守）。
+> gt 由人读原图得出、故意不含窗 along-facade x；**CAD→gt 满配答案方向**（精确窗 x+宽+区划+门）见
+> [proposals/cad_to_gt_extraction_plan.md](../../AI_agent/proposals/cad_to_gt_extraction_plan.md)。
+> 人/judge 对照 gt 用 `scripts/tool_scripts/render_gt.py` 出带尺寸标注的平面图+立面图（核布局意图、不核 mm）。
+
 ## 3. 生成 / 记录
 
 跑批与 judge 由主 Agent 按 [new_case_guide.md](../../AI_agent/guides/new_case_guide.md) 执行；

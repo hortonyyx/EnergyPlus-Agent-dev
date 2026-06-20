@@ -237,7 +237,7 @@ POC 验证用户可在 ~30 min 内人工检查 SVG 是否与原图一致：
 
 > 本节是一次设计讨论的落盘。结论用于指导 B1.5.a 异图 POC v2 的图纸准备 + phase1_vector_schema v1.3 amendment + phase2_rules 后续 zoning 节。用户当时正去准备噪声测试材料。
 >
-> **进度（2026-05-25）**：§10.4 的 phase1_vector_schema **v1.3 amendment 已落盘**（door-healing + `uncaptured` 提必填 + `door`/`arc` 退出词典），同步更新 [`phase1_prompt_template.md`](../../skills/intake_pipeline/phase1_prompt_template.md) 纪律段；备份 `backup/Skill_history/2026-05-25_twostep_phase1_v1.3_door_healing/`。**剩 POC v2 跑批仍等用户交噪声图 + testdata_prompt.json**（§10.6 #3）。
+> **进度（2026-05-25）**：§10.4 的 phase1_vector_schema **v1.3 amendment 已落盘**（door-healing + `uncaptured` 提必填 + `door`/`arc` 退出词典），同步更新 [`0_reading/guide.md`](../../skills/intake_pipeline/0_reading/guide.md) 纪律段；备份 `backup/Skill_history/2026-05-25_twostep_phase1_v1.3_door_healing/`。**剩 POC v2 跑批仍等用户交噪声图 + testdata_prompt.json**（§10.6 #3）。
 
 ### 10.1 机制确认：phase1 是「读尺寸链标注」驱动，不是「数像素量尺寸」
 
