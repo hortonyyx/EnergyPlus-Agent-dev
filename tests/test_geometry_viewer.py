@@ -74,6 +74,43 @@ def test_title_is_html_escaped():
     assert "Geometry inspection — <b>&x" not in html       # raw title not injected
 
 
+def test_viewer_colours_zones_by_room_type():
+    """zone mode colours each zone by its room type from a fixed palette + shows a
+    swatch→type legend (user 2026-06-20)."""
+    html = rgv.build_viewer_html(_GEO, title="t", roles={"Z1": "office", "Z2": "corridor"})
+    start = html.index("window.GEO = ") + len("window.GEO = ")
+    geo = json.loads(html[start:html.index(";</script>", start)])
+    assert geo["roles"] == {"Z1": "office", "Z2": "corridor"}   # role map embedded
+    assert "ROLE_COLORS" in html and "roleColor" in html         # fixed colour table + lookup
+    assert "function updateLegend" in html and 'id="legend"' in html  # legend panel (swatch→type)
+    assert 'MeshBasicMaterial' in html  # flat fill → whole zone one uniform colour (no lighting wash)
+
+
+def test_viewer_without_roles_falls_back_to_white_zone_fill():
+    html = rgv.build_viewer_html(_GEO, title="t")  # no roles
+    start = html.index("window.GEO = ") + len("window.GEO = ")
+    geo = json.loads(html[start:html.index(";</script>", start)])
+    assert geo["roles"] == {}  # empty → JS HAS_ROLES false → legacy white zone fill
+
+
+def test_discover_roles_from_correction_geometry(tmp_path):
+    """zone→role auto-discovered from sibling 1_correction/correction_geometry.json
+    (cell.id == building_geometry zone name)."""
+    run = tmp_path / "run_x"
+    (run / "2_modelling").mkdir(parents=True)
+    (run / "1_correction").mkdir(parents=True)
+    bg = run / "2_modelling" / "building_geometry.json"
+    bg.write_text(json.dumps({"zones": ["A", "B"], "surfaces": [], "windows": []}), encoding="utf-8")
+    (run / "1_correction" / "correction_geometry.json").write_text(json.dumps({
+        "floors": [{"cells": [{"id": "A", "role": "office"}, {"id": "B", "role": "meeting"}]}]
+    }), encoding="utf-8")
+    assert rgv.discover_roles(bg) == {"A": "office", "B": "meeting"}
+    # missing sibling → empty (graceful, viewer falls back to white)
+    lone = tmp_path / "lonely.json"
+    lone.write_text(json.dumps({"zones": [], "surfaces": [], "windows": []}), encoding="utf-8")
+    assert rgv.discover_roles(lone) == {}
+
+
 def test_app_js_parses_with_node(tmp_path):
     """If node is available, the app script must parse (catches JS syntax errors I
     cannot catch by running the browser headless)."""

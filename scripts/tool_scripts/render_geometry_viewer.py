@@ -51,7 +51,7 @@ def _js_embed(obj) -> str:
 # --------------------------------------------------------------------------- #
 _APP_JS = r"""
 (function () {
-  const GEO = window.GEO || { zones: [], surfaces: [], windows: [] };
+  const GEO = window.GEO || { zones: [], surfaces: [], windows: [], roles: {} };
   const $ = (id) => document.getElementById(id);
   const SURF = (GEO.surfaces || []).filter(s => (s.verts || []).length >= 3);
   const WINS = (GEO.windows || []).filter(w => (w.verts || []).length >= 3);
@@ -75,6 +75,27 @@ _APP_JS = r"""
   const FLOOR_COLORS = [0xb0d0e8,0xffe0b2,0xc8e6c9,0xf4c7c7,0xd1c4e9,0xfff59d,0xb2dfdb,0xd7ccc8];
   const TYPE_COLORS = { Wall:0xdfe3e6, Floor:0xc8a165, Ceiling:0x9fa8da, Roof:0xfff3b0 };
   const WINDOW_COLOR = 0x1e5ad2, WHITE = 0xffffff, SEL_COLOR = 0xff9800;
+  // fixed room-type → fill colour. Mirrors render_gt.py ROLE_FILL (office/meeting/corridor)
+  // so the 3D viewer and the gt plan share one palette; synonyms map to the same hue so the
+  // SAME room type is always the SAME colour (across cases + helps see which zones to merge).
+  const ROLE_COLORS = {
+    office:0xcfe3f2, open_office:0xcfe3f2, openoffice:0xcfe3f2,
+    meeting:0xd7ecd2, conference:0xd7ecd2,
+    corridor:0xfdf0c8, circulation:0xfdf0c8, hallway:0xfdf0c8,
+    lobby:0xf6d6c2, reception:0xf6d6c2,
+    restroom:0xe6d5f0, toilet:0xe6d5f0, wc:0xe6d5f0, bathroom:0xe6d5f0,
+    stair:0xdcdcdc, stairwell:0xdcdcdc, elevator:0xd0d0d0, lift:0xd0d0d0,
+    kitchen:0xfde0e0, pantry:0xfde0e0, storage:0xe6e3d2, store:0xe6e3d2,
+    server:0xcfe0db, equipment:0xcfe0db, mechanical:0xcfe0db, electrical:0xcfe0db,
+    retail:0xf0e4b0, shop:0xf0e4b0 };
+  const ROLE_DEFAULT = 0xc9ced4;                 // typed but unknown role
+  const ROLES = GEO.roles || {};
+  const HAS_ROLES = Object.keys(ROLES).length > 0;
+  const roleOf = z => (ROLES[z] || '').toString().toLowerCase();
+  // zone-mode fill: by room type if roles are available, else white (legacy behaviour)
+  const roleColor = z => { if(!HAS_ROLES) return WHITE; const r=roleOf(z); return r ? (ROLE_COLORS[r] ?? ROLE_DEFAULT) : ROLE_DEFAULT; };
+  const hex6 = c => '#'+('000000'+(c>>>0).toString(16)).slice(-6);
+  const esc = s => String(s).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
   // Geometry is drawn at TRUE positions (so measure is exact + no inset gaps).
   // z-fighting is avoided by: (a) at explode=0, HIDING one face of each coincident
   // reciprocal (split-paired) pair — solid clean shell, no gaps; (b) at explode>0,
@@ -182,7 +203,9 @@ _APP_JS = r"""
   const isDup = (s) => s.obc==='Surface' && s.obc_obj && s.name > s.obc_obj;  // one of each reciprocal pair
   SURF.forEach(s=>{
     const zone=s.zone||'?', fi=zoneFloor[zone] ?? nearestBase(zmin(s),BASES), dup=isDup(s);
-    const m=new THREE.MeshStandardMaterial({side:THREE.DoubleSide, transparent:true, opacity:1, roughness:0.9, metalness:0.0});
+    // FLAT (unlit) fill so every face of a zone renders the EXACT same colour — no
+    // lighting wash that made horizontal (roof/floor) faces read near-white. Edges keep form.
+    const m=new THREE.MeshBasicMaterial({side:THREE.DoubleSide, transparent:true, opacity:1});
     const mesh=new THREE.Mesh(ringGeom(s.verts), m);
     mesh.userData={zone, floor:fi, type:s.type||'Wall', name:s.name, kind:'surface', dup, area:polyArea(s.verts)};
     surfMeshes.push(mesh); root.add(mesh);
@@ -218,22 +241,33 @@ _APP_JS = r"""
   function refreshColors(){
     const mode=$('colorBy').value;
     surfMeshes.forEach(m=>{ let c; if(mode==='floor') c=FLOOR_COLORS[m.userData.floor%FLOOR_COLORS.length];
-      else if(mode==='zone'||mode==='edge') c=WHITE; else c=TYPE_COLORS[m.userData.type] ?? 0xcccccc;
+      else if(mode==='zone') c=roleColor(m.userData.zone);   // colour by room type
+      else if(mode==='edge') c=WHITE; else c=TYPE_COLORS[m.userData.type] ?? 0xcccccc;
       m.userData.baseColor=c; });
     winMeshes.forEach(m=>m.userData.baseColor=WINDOW_COLOR);
     allMeshes().forEach(m=>m.material.color.setHex(selected.has(m) ? SEL_COLOR : m.userData.baseColor));
+    updateLegend(mode);
   }
   function clearSelGroup(){ while(selGroup.children.length) selGroup.remove(selGroup.children[0]); }
   function setSelection(arr, lbl){ clearSelGroup(); selected=new Set(arr);
     allMeshes().forEach(m=>m.material.color.setHex(selected.has(m)?SEL_COLOR:(m.userData.baseColor??0xcccccc)));
-    $('sel').textContent=lbl||''; $('sel').style.display=lbl?'block':'none'; }
+    $('sel').innerHTML=lbl||''; $('sel').style.display=lbl?'block':'none'; }
   function clearSelection(){ setSelection([], ''); }
 
   // ---- measure (button; CONTINUOUS; CAD-style screen-space vertex snap on true geometry) ----
   let measuring=false, measurePts=[]; const mGroup=new THREE.Group(); scene.add(mGroup);
-  const BALL=radius*0.008;
-  const snap=new THREE.Mesh(new THREE.SphereGeometry(BALL,16,16),
-    new THREE.MeshBasicMaterial({color:0x00e5ff, depthTest:false})); snap.visible=false; scene.add(snap);
+  // overlay helpers: always-on-top (depthTest off + depthWrite off + high renderOrder) so a
+  // highlight is NEVER hidden behind the (transparent) faces — no need to rotate to see it.
+  function topMat(color){ return new THREE.MeshBasicMaterial({color, depthTest:false, depthWrite:false, transparent:true}); }
+  function topBall(p, color, rmul){ const s=new THREE.Mesh(new THREE.SphereGeometry(radius*(rmul||0.010),16,16), topMat(color));
+    s.position.copy(p); s.renderOrder=999; return s; }
+  // a THICK highlight line as a thin cylinder — WebGL ignores LineMaterial.linewidth, so a
+  // real tube is the only way to get a visibly bold line that reads at any camera angle.
+  function fatLine(a, b, color, rmul){ const dir=new THREE.Vector3().subVectors(b,a); const len=dir.length()||1e-6; const r=radius*(rmul||0.005);
+    const m=new THREE.Mesh(new THREE.CylinderGeometry(r, r, len, 8), topMat(color));
+    m.position.copy(a).addScaledVector(dir, 0.5);
+    m.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0), dir.clone().normalize()); m.renderOrder=999; return m; }
+  const snap=topBall(new THREE.Vector3(), 0x00e5ff, 0.011); snap.visible=false; scene.add(snap);
   const CAND=[];  // {v: true world Vector3, zone}
   SURF.forEach(s=>s.verts.forEach(v=>CAND.push({v:new THREE.Vector3(v[0],v[1],v[2]), zone:s.zone||'?'})));
   WINS.forEach(w=>{const z=zoneOfWindow(w); w.verts.forEach(v=>CAND.push({v:new THREE.Vector3(v[0],v[1],v[2]), zone:z}));});
@@ -242,13 +276,20 @@ _APP_JS = r"""
     $('meas').style.display='none'; renderer.domElement.style.cursor='default'; }
   function startMeasure(){ clearMeasure(); measuring=true; renderer.domElement.style.cursor='crosshair';
     $('meas').style.display='block'; $('meas').textContent='measure: snap vertex 1  (Esc to exit)'; }
-  function marker(p){ const s=new THREE.Mesh(new THREE.SphereGeometry(BALL,16,16),
-    new THREE.MeshBasicMaterial({color:0xd81b60, depthTest:false})); s.position.copy(p); mGroup.add(s); }
-  function snapAt(cx, cy){ const r=renderer.domElement.getBoundingClientRect();
-    let best=null, bd=24*24; // 24px radius
+  function marker(p){ mGroup.add(topBall(p, 0xd81b60, 0.011)); }
+  // Picking follows wall opacity: when walls are OPAQUE you can only snap/select what is visibly
+  // in front (a candidate hidden behind a face is skipped); turn DOWN wall opacity to reach the
+  // geometry behind. Keeps the precise screen-nearest aim within the tolerance.
+  const _ray=new THREE.Raycaster();
+  function occluded(w){ const from=camera.position; const dir=w.clone().sub(from); const dist=dir.length()||1e-6;
+    _ray.set(from, dir.divideScalar(dist)); _ray.near=0; _ray.far=dist-radius*0.01;   // only faces strictly IN FRONT of w
+    return _ray.intersectObjects(surfMeshes.filter(m=>m.visible), false).length>0; }
+  function seeThrough(){ return parseFloat($('opacity').value) < 1; }   // transparent → allowed to reach behind
+  function snapPick(cx, cy){ const r=renderer.domElement.getBoundingClientRect(); const thru=seeThrough();
+    let best=null, bd=24*24;
     for(const c of CAND){ const w=c.v.clone().add(explodeOffset(c.zone)); const p=w.clone().project(camera);
       if(p.z<-1||p.z>1) continue; const sx=(p.x*0.5+0.5)*r.width, sy=(-p.y*0.5+0.5)*r.height;
-      const d=(sx-cx)**2+(sy-cy)**2; if(d<bd){bd=d; best=w;} }
+      const d=(sx-cx)**2+(sy-cy)**2; if(d<bd && (thru || !occluded(w))){ bd=d; best=w; } }
     return best; }
 
   // ---- edge select (screen-space nearest segment → length) ----
@@ -267,17 +308,17 @@ _APP_JS = r"""
     let t=((px-ax)*dx+(py-ay)*dy)/L2; t=Math.max(0,Math.min(1,t));
     return (px-(ax+t*dx))**2 + (py-(ay+t*dy))**2; }
   function edgePick(ev){ const r=renderer.domElement.getBoundingClientRect();
-    const cx=ev.clientX-r.left, cy=ev.clientY-r.top; let best=null, bd=18*18;
+    const cx=ev.clientX-r.left, cy=ev.clientY-r.top; const thru=seeThrough(); let best=null, bd=18*18;
     for(const e of EDGES){ if(!edgeVisible(e)) continue; const o=explodeOffset(e.zone);
-      const pa=e.a.clone().add(o).project(camera), pb=e.b.clone().add(o).project(camera);
+      const A=e.a.clone().add(o), B=e.b.clone().add(o);
+      const pa=A.clone().project(camera), pb=B.clone().project(camera);
       if(pa.z<-1||pa.z>1||pb.z<-1||pb.z>1) continue;  // skip if EITHER endpoint is behind/clipped
       const ax=(pa.x*.5+.5)*r.width, ay=(-pa.y*.5+.5)*r.height, bx=(pb.x*.5+.5)*r.width, by=(-pb.y*.5+.5)*r.height;
-      const d=segDist(cx,cy,ax,ay,bx,by); if(d<bd){bd=d; best=e;} }
+      const d=segDist(cx,cy,ax,ay,bx,by);   // opaque: skip an edge hidden behind a face (use its midpoint)
+      if(d<bd && (thru || !occluded(A.clone().add(B).multiplyScalar(0.5)))){ bd=d; best={e,A,B}; } }
     clearSelection(); if(!best) return;
-    const o=explodeOffset(best.zone), A=best.a.clone().add(o), B=best.b.clone().add(o);
-    selGroup.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints([A,B]), new THREE.LineBasicMaterial({color:SEL_COLOR, depthTest:false})));
-    [A,B].forEach(p=>{ const s=new THREE.Mesh(new THREE.SphereGeometry(BALL,12,12), new THREE.MeshBasicMaterial({color:SEL_COLOR, depthTest:false})); s.position.copy(p); selGroup.add(s); });
-    $('sel').textContent='edge · length '+best.len.toFixed(3)+' m'; $('sel').style.display='block'; }
+    selGroup.add(fatLine(best.A, best.B, SEL_COLOR, 0.006));   // whole edge as one thick, always-on-top line
+    $('sel').innerHTML='<div class="hh">edge</div>'+kv([['length',best.e.len.toFixed(3)+' m']]); $('sel').style.display='block'; }
 
   // ---- selection picking (face raycast, for click-select only) ----
   const raycaster=new THREE.Raycaster();
@@ -285,22 +326,26 @@ _APP_JS = r"""
     const mouse=new THREE.Vector2(((ev.clientX-r.left)/r.width)*2-1, -((ev.clientY-r.top)/r.height)*2+1);
     raycaster.setFromCamera(mouse,camera);
     const hits=raycaster.intersectObjects(allMeshes().filter(m=>m.visible),false); return hits.length?hits[0]:null; }
+  // structured selection readout: a titled block of label→value rows (one per line)
+  function kv(pairs){ return pairs.filter(p=>p[1]!=null && p[1]!=='').map(p=>row(p[0], esc(p[1]))).join(''); }
   function describe(mode,o){ const u=o.userData;
-    if(mode==='floor') return 'floor F'+(u.floor+1);
-    if(mode==='zone') return 'zone '+u.zone+' · volume '+(zoneVol[u.zone]||0).toFixed(2)+' m³';
+    if(mode==='floor') return '<div class="hh">floor</div>'+kv([['floor','F'+(u.floor+1)]]);
+    if(mode==='zone'){ const r=roleOf(u.zone);
+      return '<div class="hh">zone</div>'+kv([['name',u.zone],['type',r||'—'],
+        ['volume',(zoneVol[u.zone]||0).toFixed(2)+' m³']]); }
     // surface: gross area (a wall's polygon is the FULL rectangle — window openings are
     // separate child surfaces and are NOT subtracted)
-    return u.type+' '+u.name+' · area '+(u.area||0).toFixed(2)+' m²'+
-      (u.type==='Wall' ? ' (gross — window openings not deducted)' : '');
+    return '<div class="hh">surface</div>'+kv([['name',u.name],['type',u.type],
+      ['area',(u.area||0).toFixed(2)+' m²'], ['note', u.type==='Wall'?'gross (windows not deducted)':'']]);
   }
   function handleClick(ev){
     if(measuring){ const r=renderer.domElement.getBoundingClientRect();
-      const p=snapAt(ev.clientX-r.left, ev.clientY-r.top); if(!p) return;
+      const p=snapPick(ev.clientX-r.left, ev.clientY-r.top); if(!p) return;
       if(measurePts.length>=2) clearPair();  // continuous: a new click starts a fresh pair (only latest shown)
       marker(p); measurePts.push(p);
       if(measurePts.length<2){ $('meas').textContent='measure: snap vertex 2  (Esc to exit)'; }
-      else { const d=measurePts[0].distanceTo(measurePts[1]); const g=new THREE.BufferGeometry().setFromPoints(measurePts);
-        mGroup.add(new THREE.Line(g,new THREE.LineBasicMaterial({color:0xd81b60, depthTest:false})));
+      else { const d=measurePts[0].distanceTo(measurePts[1]);
+        mGroup.add(fatLine(measurePts[0], measurePts[1], 0xd81b60, 0.004));  // always-on-top distance line
         $('meas').textContent='distance: '+d.toFixed(3)+' m  (click=next, Esc=exit)'; }
       return; }
     const mode=$('colorBy').value;
@@ -317,7 +362,7 @@ _APP_JS = r"""
   renderer.domElement.addEventListener('pointerup', e=>{ if(e.button!==0||!downXY) return;
     const moved=Math.hypot(e.clientX-downXY[0], e.clientY-downXY[1]); downXY=null; if(moved<=5) handleClick(e); });
   renderer.domElement.addEventListener('pointermove', e=>{ if(!measuring) return;
-    const r=renderer.domElement.getBoundingClientRect(); const p=snapAt(e.clientX-r.left, e.clientY-r.top);
+    const r=renderer.domElement.getBoundingClientRect(); const p=snapPick(e.clientX-r.left, e.clientY-r.top);
     if(p){ snap.position.copy(p); snap.visible=true; } else snap.visible=false; });
 
   // ---- display toggles + explode ----
@@ -346,6 +391,19 @@ _APP_JS = r"""
     '<div class="hh">MODEL</div>' + row('zones',(GEO.zones||[]).length) + row('surfaces',SURF.length) + row('windows',WINS.length) +
     '<div class="hh">BOUNDING BOX</div>' + row('width (x)',size.x.toFixed(2)+' m') + row('depth (y)',size.y.toFixed(2)+' m') +
     row('height (z)',size.z.toFixed(2)+' m') + row('floors',BASES.length);
+
+  // ---- room-type legend (shown in zone mode: colour swatch → room type) ----
+  function updateLegend(mode){
+    const el=$('legend'); if(!el) return;
+    if(mode!=='zone' || !HAS_ROLES){ el.style.display='none'; el.innerHTML=''; return; }
+    const present=[], seen=new Set();
+    (GEO.zones||[]).forEach(z=>{ const r=roleOf(z)||'untyped'; if(!seen.has(r)){ seen.add(r); present.push(r);} });
+    present.sort();
+    let h='';
+    present.forEach(r=>{ const c=(r==='untyped')?ROLE_DEFAULT:(ROLE_COLORS[r]??ROLE_DEFAULT);
+      h+='<div class="lg"><span class="sw" style="background:'+hex6(c)+'"></span>'+esc(r)+'</div>'; });
+    el.innerHTML=h; el.style.display='block';
+  }
 
   // ---- section controls ----
   const secDiv=$('sections'); secDiv.innerHTML='<h2>section cuts</h2>';
@@ -383,8 +441,7 @@ _PANEL_HTML = r"""
   <div class="subtitle">__TITLE__</div>
 
   <h2>select by</h2>
-  <select id="colorBy"><option value="floor">floor</option><option value="zone">zone</option><option value="surface">surface</option><option value="edge">edge</option></select>
-  <div class="hint">click to select &middot; floor / zone (volume) / surface (area) / edge (length)</div>
+  <select id="colorBy"><option value="zone">zone</option><option value="floor">floor</option><option value="surface">surface</option><option value="edge">edge</option></select>
 
   <h2>floor</h2>
   <select id="floorSel"><option value="-1">all floors</option></select>
@@ -409,6 +466,7 @@ _PANEL_HTML = r"""
 </div>
 <div id="rinfo">
   <div id="hud"></div>
+  <div id="legend"></div>
   <div id="sel"></div>
   <div id="meas"></div>
 </div>
@@ -442,7 +500,15 @@ _STYLE = r"""
   #hud .kv { display:flex; justify-content:space-between; padding:2px 0 2px 10px; }
   #hud .kv span { color:#c7d2e0; }
   #hud .kv b { color:#fff; font-weight:600; }
-  #sel { display:none; background:rgba(38,50,80,0.92); color:#cfe3ff; padding:10px 16px; border-radius:8px; font-size:16px; font-weight:600; }
+  #legend { display:none; background:rgba(20,28,44,0.88); color:#eef; padding:10px 16px; border-radius:8px; font-size:13px; }
+  #legend .hh { font-size:12px; letter-spacing:.05em; color:#8fb0e0; margin:0 0 6px; text-transform:uppercase; }
+  #legend .lg { display:flex; align-items:center; gap:8px; padding:2px 0; text-transform:capitalize; }
+  #legend .sw { width:14px; height:14px; border-radius:3px; border:1px solid rgba(255,255,255,0.4); display:inline-block; flex:0 0 auto; }
+  #sel { display:none; background:rgba(38,50,80,0.92); color:#eef; padding:12px 16px; border-radius:8px; font-size:14px; }
+  #sel .hh { font-size:12px; letter-spacing:.05em; color:#9fc0ef; margin:0 0 5px; text-transform:uppercase; }
+  #sel .kv { display:flex; justify-content:space-between; gap:16px; padding:3px 0 3px 10px; }
+  #sel .kv span { color:#c7d2e0; }
+  #sel .kv b { color:#fff; font-weight:600; text-align:right; word-break:break-word; }
   #meas { display:none; background:#d81b60; color:#fff; padding:11px 16px; border-radius:8px; font-size:19px; font-weight:700; box-shadow:0 2px 8px rgba(216,27,96,0.45); }
 """
 
@@ -466,13 +532,40 @@ def app_js() -> str:
     return _APP_JS
 
 
-def build_viewer_html(data: dict, *, title: str = "building geometry") -> str:
+def discover_roles(bg_path: Path) -> dict:
+    """zone-name -> room role (office/meeting/corridor/...) from the sibling
+    1_correction/correction_geometry.json (cell.id == building_geometry zone name).
+    Returns {} when not found — viewer then falls back to white zone fill."""
+    candidates = [
+        bg_path.parent.parent / "1_correction" / "correction_geometry.json",  # <run>/2_modelling/bg.json
+        bg_path.parent / "correction_geometry.json",
+        bg_path.with_name("correction_geometry.json"),
+    ]
+    for cg in candidates:
+        if not cg.exists():
+            continue
+        try:
+            d = json.loads(cg.read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            return {}
+        roles = {}
+        for fl in d.get("floors", []):
+            for c in fl.get("cells", []):
+                cid, role = c.get("id"), c.get("role")
+                if cid and role:
+                    roles[str(cid)] = str(role)
+        return roles
+    return {}
+
+
+def build_viewer_html(data: dict, *, title: str = "building geometry", roles: dict | None = None) -> str:
     three_js = (_VENDOR / "three.min.js").read_text(encoding="utf-8")
     orbit_js = (_VENDOR / "OrbitControls.js").read_text(encoding="utf-8")
     geo = {
         "zones": data.get("zones", []),
         "surfaces": data.get("surfaces", []),
         "windows": data.get("windows", []),
+        "roles": roles if roles is not None else data.get("roles", {}),
     }
     safe_title = html.escape(title)  # HTML-context (title tag + panel text)
     return (
@@ -492,13 +585,21 @@ def main() -> int:
     ap.add_argument("json", help="building_geometry.json")
     ap.add_argument("--out", help="output HTML (default: <json dir>/geometry_viewer.html)")
     ap.add_argument("--title", default="")
+    ap.add_argument("--roles", help="optional JSON {zone: role} to colour zones by room type; "
+                                    "default auto-discovers 1_correction/correction_geometry.json")
     args = ap.parse_args()
     j = Path(args.json)
     data = json.loads(j.read_text(encoding="utf-8"))
+    if args.roles:
+        roles = json.loads(Path(args.roles).read_text(encoding="utf-8"))
+    else:
+        roles = discover_roles(j)
     out = Path(args.out) if args.out else j.with_name("geometry_viewer.html")
     title = args.title or j.parent.parent.name or j.stem
     out.parent.mkdir(parents=True, exist_ok=True)
-    out.write_text(build_viewer_html(data, title=title), encoding="utf-8")
+    out.write_text(build_viewer_html(data, title=title, roles=roles), encoding="utf-8")
+    if roles:
+        print(f"  room-type roles: {len(roles)} zones (colour-by-type enabled)")
     kb = out.stat().st_size // 1024
     print(f"wrote {out}  ({kb} KB, offline; orbit / opacity / sections / explode / vertex-measure)")
     return 0
