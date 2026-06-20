@@ -56,7 +56,7 @@ run_pipeline（image-blind，src/agent/pipeline.py）几何彻底确定性化：
 | [../src/agent/llm.py](../src/agent/llm.py) + [../src/configs/llm.yaml](../src/configs/llm.yaml) | LLM 工厂 + 多 section（per-case `<case>/llm.yaml` 经 `EP_AGENT_LLM_CONFIG` 覆盖）；容差 [correction.yaml](../src/configs/correction.yaml) |
 | [../src/agent/graph.py](../src/agent/graph.py) | 下游 LangGraph（intake → 9 subagent → cross_ref → validate → simulate）；prompt 演进归协作者（§3）|
 | [../scripts/](../scripts) | 总启动 `run_full_pipeline.py`（`--reading-from`/`--intake-from`）；`tool_scripts/`=render×N + `run_stage.py` + `record_baseline.py` + `render_geometry_viewer.py` + `render_gt.py` + `gt_from_dxf.py` + `inspect_dxf.py` |
-| [../tests/](../tests) | pytest **274 绿**（kernel/checks/judge/orchestrator/gt/interzone/schedule…）|
+| [../tests/](../tests) | pytest **277 绿**（kernel/checks/judge/orchestrator/gt/interzone/schedule/viewer…）|
 | [../case_tests/](../case_tests) | `0_reading_tests/` + `e2e_tests/`(含 sm20_anchor/sm21_anchor) + `test_baseline/`(方案+注册表+gt) |
 | `$ENERGYPLUS_EXE` | EnergyPlus 引擎；解析序 env→PATH→硬编码默认。容器内 25.1.0、宿主 Windows 25.2.0（patch 差异，数值对齐以容器为准）|
 | [../data/weather/Shenzhen.epw](../data/weather/Shenzhen.epw) | 默认 EPW 气象 |
@@ -76,8 +76,8 @@ EnergyPlus 经 `WorkflowTool.run_simulation`（eppy + ConverterManager，idfpy �
 
 ## 2. 当前开发状态
 
-- **分支** `6.15_ValidationArchM0toM4`；测试 **274 绿**；最新 commit `41558e1`（2026-06-20）。
-- **已落地**（详见 [decision_log.md §A](decision_log.md)）：0–5 校验架构 M0–M4 + 逐段 judge-in-the-loop 编排 + 离线 3D 几何查看器 + 新 baseline 方案（自包含 anchor + gt）+ sm20/sm21 两份 golden baseline + CAD→gt 满配答案方向（工具链就位、方案待审）+ gt 渲染核验。
+- **分支** `6.15_ValidationArchM0toM4`；测试 **277 绿**；最新 commit `3f9ed35`（2026-06-20）。
+- **已落地**（详见 [decision_log.md §A](decision_log.md)）：0–5 校验架构 M0–M4 + 逐段 judge-in-the-loop 编排 + 离线 3D 几何查看器（2026-06-20 加房间类型着色 + 拾取跟随透明度）+ 新 baseline 方案（自包含 anchor + gt）+ sm20/sm21 两份 golden baseline + CAD→gt 满配答案方向（工具链就位、方案待审）+ gt 渲染核验 + **管理文档重构**（CLAUDE/plan/decision_log 三分职责、architecture 收敛为单一架构文档、archive/proposals/capability 归位）。
 - **下一步**：① 用 `run_stage.py` 真驱动 **sm21_anchor** 出首份 judge-in-the-loop baseline（用户已排期，本轮文档整理后跑）；② sm21 **South 2F 窗 along-facade x** 仍是真 bug（待核 1_correction）；③ CAD→gt 方案待用户图形导出 DXF 后推进。完整滚动计划见 [plan.md](plan.md)。
 
 ---
