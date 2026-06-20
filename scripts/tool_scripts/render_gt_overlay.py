@@ -22,7 +22,9 @@ import json
 from pathlib import Path
 
 import numpy as np
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageDraw, ImageEnhance, ImageFont
+
+DIM = 0.38     # original drawing dimmed to this brightness so the gt overlay stands out
 
 GT_DIR = Path("case_tests/test_baseline/gt")
 CASE_DATA = Path("case_tests/e2e_tests/{case}/case_data")
@@ -94,7 +96,8 @@ def _load(case):
 def overlay_plan(case, gt, cd, floor):
     png = cd / f"{_FLOOR_PNG[floor]}.png"
     base = Image.open(png).convert("RGBA")
-    im = np.asarray(base.convert("RGB"))
+    im = np.asarray(base.convert("RGB"))               # calibrate on the full-brightness original
+    dim = ImageEnhance.Brightness(base.convert("RGB")).enhance(DIM).convert("RGBA")
     W, D = gt["footprint"]["W_m"], gt["footprint"]["D_m"]
     x0, x1, yt, yb = _calibrate(im, W, D)
 
@@ -131,7 +134,9 @@ def overlay_plan(case, gt, cd, floor):
             d.line([(PX(0.3), PY(0)), (PX(1.2), PY(0))], fill=DOOR + (255,), width=10)
         elif dr["facade"] == "West":
             d.line([(PX(0), PY(3.2)), (PX(0), PY(4.8))], fill=DOOR + (255,), width=10)
-    out = Image.alpha_composite(base, ov).convert("RGB")
+    d.text((10, 8), f"TYPE 2  {floor}:  gt over dimmed original  (is gt faithful to the drawing?)",
+           font=_font(22), fill=(255, 255, 255, 255))
+    out = Image.alpha_composite(dim, ov).convert("RGB")
     return out
 
 
@@ -139,6 +144,7 @@ def overlay_elev(case, gt, cd, facade):
     png = cd / f"{_FACADE_PNG[facade]}.png"
     base = Image.open(png).convert("RGBA")
     im = np.asarray(base.convert("RGB"))
+    dim = ImageEnhance.Brightness(base.convert("RGB")).enhance(DIM).convert("RGBA")
     fw = gt["footprint"]["W_m"] if facade in ("North", "South") else gt["footprint"]["D_m"]
     ht = max(f["z_floor"] + f["ceiling_height"] for f in gt["floors"])
     x0, x1, yt, yb = _calibrate(im, fw, ht)
@@ -162,7 +168,9 @@ def overlay_elev(case, gt, cd, facade):
             xa, xb = PX(o["x_m"]), PX(o["x_m"] + o["width_m"])
             d.rectangle([min(xa, xb), PZ(o["head_m"]), max(xa, xb), PZ(o["sill_m"])],
                         outline=WIN + (255,), width=4)
-    out = Image.alpha_composite(base, ov).convert("RGB")
+    d.text((10, 8), f"TYPE 2  {facade} elevation:  gt over dimmed original  "
+           "(do gt windows match the drawing?)", font=_font(20), fill=(255, 255, 255, 255))
+    out = Image.alpha_composite(dim, ov).convert("RGB")
     return out
 
 

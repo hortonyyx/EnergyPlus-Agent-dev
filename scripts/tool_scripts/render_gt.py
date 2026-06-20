@@ -325,7 +325,7 @@ def render_plan(gt: dict) -> Image.Image:
     total_h = HEADER + ph
     img = Image.new("RGB", (total_w, total_h), BG)
     d = ImageDraw.Draw(img)
-    d.text((12, 10), f"GT plan  -  {gt.get('case', '?')}   "
+    d.text((12, 10), f"TYPE 1  GT plan (gt's own rendering)  -  {gt.get('case', '?')}   "
            f"footprint {_fmt(w_m)} x {_fmt(d_m)} m", font=_font(20), fill=TEXT)
     d.text((12, 36), "zone boxes = gt clear-space extents (±wall thickness); "
            "blue = windows (exact x+width from CAD where present, else schematic); "
@@ -449,8 +449,8 @@ def render_elev(gt: dict) -> Image.Image:
     total_h = HEADER + ph * 2 + PANEL_GAP
     img = Image.new("RGB", (total_w, total_h), BG)
     d = ImageDraw.Draw(img)
-    d.text((12, 10), f"GT elevations  -  {gt.get('case', '?')}   total height {_fmt(ht)} m",
-           font=_font(20), fill=TEXT)
+    d.text((12, 10), f"TYPE 1  GT elevations (gt's own rendering)  -  {gt.get('case', '?')}   "
+           f"total height {_fmt(ht)} m", font=_font(20), fill=TEXT)
     d.text((12, 36), "boxes = windows at gt [sill, head] z; x+width exact from CAD where "
            "present, else schematic; brown = door. Compare against the elevation drawings.",
            font=_font(13), fill=SUBTLE)
