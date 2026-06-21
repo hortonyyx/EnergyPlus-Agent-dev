@@ -78,7 +78,7 @@ EnergyPlus 经 `WorkflowTool.run_simulation`（eppy + ConverterManager，idfpy �
 
 - **分支** `6.15_ValidationArchM0toM4`；测试 **288 绿**；最新里程碑 `6.21_RoleObservationsPhase1`（2026-06-21）。
 - **已落地**（详见 [decision_log.md §A](decision_log.md)）：0–5 校验架构 M0–M4 + 逐段 judge-in-the-loop 编排 + 离线 3D 几何查看器 + 新 baseline 方案（自包含 anchor + gt）+ sm20/sm21 两份 golden baseline + sm21 双模型轮（GPT-5.4 识图 clean / judge-in-the-loop 验证）+ CAD→gt 工具链 + 管理文档重构 + **Claude 编排/Codex 执行协作规约**（[guides/codex_execution_protocol.md](guides/codex_execution_protocol.md)，审阅方向反转 + 本机沙箱校准）+ **P0#1 跨层概念墙对齐**（`deterministic.py` 加 `_reconcile_cross_floor`：per-floor identity → footprint 硬锚 → mutual-nearest 跨层匹配 + 歧义 flag → provenance-aware sliver；sm21 112→100 面、走廊跨层对齐、双审+四重验证）。
-- **下一步**（plan.md N1b）：① **命名确定性化**（楼层-类型-方位-序号，blast radius 宽、需 baseline 重录）；② role **phase-2**（确定性绑定 sidecar + gate① provenance + plan→world 变换产物，远期）；③ viewer 挪 manual_review；④ 诊断 Sonnet/平面识别下降。（N2 South 2F 窗 x **已关闭**=不复现、为 06-16 Opus 旧轮产物；role **phase-1 已落地**。）完整滚动计划见 [plan.md](plan.md)。
+- **下一步**（plan.md N1b）：① **命名确定性化**（楼层-类型-方位-序号，blast radius 宽、需 baseline 重录）；② role **phase-2**（确定性绑定 sidecar + gate① provenance + plan→world 变换产物，远期）；③ 诊断 Sonnet/平面识别下降。（N2 South 2F 窗 x **已关闭**；role **phase-1**、viewer 挪 manual_review **已落地**。）完整滚动计划见 [plan.md](plan.md)。
 
 ---
 
