@@ -328,9 +328,15 @@ def _render_geometry_viewer(run_dir: Path, case_dir: Path) -> str | None:
         import render_geometry_viewer as rgv
 
         data = json.loads(bg.read_text(encoding="utf-8"))
-        out = run_dir / "2_modelling" / "geometry_viewer.html"
+        # Human geometry-confirmation artifact lives in its own manual_review/
+        # folder (not a pipeline-stage output); role-coloured from the sibling
+        # 1_correction so the reviewer sees room types. (backlog: edit-writeback.)
+        out = run_dir / "manual_review" / "geometry_viewer.html"
+        out.parent.mkdir(parents=True, exist_ok=True)
         out.write_text(
-            rgv.build_viewer_html(data, title=f"{case_dir.name} / {run_dir.name}"),
+            rgv.build_viewer_html(
+                data, title=f"{case_dir.name} / {run_dir.name}",
+                roles=rgv.discover_roles(bg)),
             encoding="utf-8")
         return str(out)
     except Exception as e:  # noqa: BLE001 — viewer is best-effort, never fatal

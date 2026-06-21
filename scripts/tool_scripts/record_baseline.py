@@ -102,7 +102,7 @@ def _eyeball_checklist(case_dir: Path, summary: dict, counts: dict) -> list[str]
         "每层填色区图 `1_correction/*_zones.png` vs 原平面图 —— 房间无错并/错分/缺失/多出"
         "（尤其走廊是否被切断，sm20 那类坑）",
         "立面窗位图 `1_correction/*_elev.png` vs 原立面 —— 窗落在对的立面/楼层/位置",
-        "3D 几何 `2_modelling/geometry_viewer.html`（浏览器打开：orbit / 半透明 / 截面 / 爆炸 / 量距）"
+        "3D 几何 `manual_review/geometry_viewer.html`（浏览器打开：orbit / 半透明 / 截面 / 爆炸 / 量距）"
         " —— 整体体量 + 内部分区 + 窗在对的立面，确认无误后 `approve-geometry`",
     ]
     for f in summary.get("flags", []):
