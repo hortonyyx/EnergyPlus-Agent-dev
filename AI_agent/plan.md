@@ -22,8 +22,9 @@
 - 用 [`scripts/tool_scripts/run_stage.py`](../scripts/tool_scripts/run_stage.py) 逐段真驱动 sm21_anchor（draw→gate①→judge②→盲重抽/几何 approve→4_mep）。**已跑通**：GPT-5.4 识图 run 端到端 clean，三份 baseline 在册（见 N1b）。
 - 残留：更新 [test_baseline/index.md](../case_tests/test_baseline/index.md) + golden 测试（待 commit 时一并）。
 
-### N2. [P0] sm21 South 2F 窗 along-facade x bug
-- 现象：南立面 2F 窗 x 位置真错（gt 已 verified，差异定位在 1_correction）。核 correction 沿立面 x 推导，修后回归 sm21。
+### N2. [P0] ✅ 关闭 — sm21 South 2F 窗 x bug 不复现（2026-06-21）
+- 诊断（Codex 探查 + Claude 自验）：GPT54 run 实际产出 South 2F 窗 x = gt 完全一致（[2.19,3.39]…[11.61,12.81]）。原"真 bug"是 **06-16 Opus 旧轮**产物（那轮 1_correction 把窗 x 沿立面平移 -0.24m）。随识图质量提升消失。诊断 `logs/review/request/2026-06-21_sm21_south2f_window_x_diagnosis.md`。
+- 潜在隐患（降级 backlog，不急修）：Opus 轮的 -0.24m 疑似"墙厚补偿误加到 along-facade 轴"——当前好识图不触发，可能是潜伏 correction 逻辑 bug。
 
 ### N1b. [P0] sm21 双模型轮(2026-06-21) backlog —— GPT-5.4 跑测暴露的真问题
 > 本轮：GPT-5.4(codex CLI `-i`)识图 → 干净 14区/112面/15窗、EP 0 severe；Sonnet 0/2 阻塞(J1/J0)；
@@ -32,8 +33,8 @@
 
 - **[P0] ✅ 核加跨层内墙对齐 + 外包优先（2026-06-21 完成，`6.21_CrossFloorWallAlign`）**：根因修正——轴线图**本就全楼共享**，真因=同层/跨层共用 `axis_jitter_tol=0.05`，走廊跨层差恰 0.10m 卡在容差缝（不聚类、sliver `<0.10` 严格不并）→ 两轴幸存生碎面。修=`deterministic.py` 新增 `_reconcile_cross_floor`：per-floor identity → footprint 硬锚 → **mutual-nearest** 跨层匹配（图级冲突即 flag、不静默合）→ provenance-aware sliver；新容差 `cross_floor_align_tol_m=0.11`。走廊两层对齐到 y[3.15,4.85]，**sm21 112→100 面**、zones/windows 不变。经 Codex 双审（REWORK→APPROVE-WITH-CHANGES）+ 四重验证。审计轨迹 `logs/review/{request,review}/2026-06-21_cross_floor_wall_alignment_*.md`。
 - **[P1] viewer 挪独立人工文件夹**：现 `2_modelling/geometry_viewer.html`（切配后产物）→ 挪 `<run>/manual_review/`（后续加编辑回写，单独放合理；接 [proposals/editable_geometry_confirmation.md](proposals/editable_geometry_confirmation.md)）。
-- **[P1] 房间类型(role) 移回 reading**：现 role 由 1_correction(DeepSeek, image-blind) 出 → 判错（F1 东南圆桌房→office）。reading 看得见图，role 归 reading；**correction 不许改房间类型**。
-- **[P1] 命名确定性化**：现 zone cell id 由 DeepSeek 出（各 run 口径乱 `R_1F_Cor` vs `F1_corridor`），surface/window 名内核派生。改**代码确定性生成**，约定 **楼层-类型-方位-序号**（序号含 SW/NE 方位）。
+- **[P1] 房间类型(role) 移回 reading — ✅ phase-1 落地（2026-06-21 `6.21_RoleObservationsPhase1`）**：reading 加可选 `room_labels`(RoomRoleObservation,topology-light) + 共享词表 `src/agent/roles.py` + correction prompt 把 room_labels 当输入优先采用。绑定仍 correction 隐式做（输入升级）。**phase-2（远期，"更精准修法"用户定缓做）**：确定性绑定 sidecar `role_assignments.json` + `Cell.role_source_label_id` + gate① role-provenance INVARIANT + 4_mep unknown 策略 + sm21 baseline 重录 + **plan-local→world 一等可审变换产物**（确定性 anchor-in-cell 的使能件，把 LLM 移出空间绑定）。完整设计在 `logs/review/{request,review}/2026-06-21_role_to_reading_plan_*.md`（含 v1/v2/v3 演进 + Codex 三轮审）。
+- **[P1] 命名确定性化（下一项）**：现 zone cell id 由 DeepSeek 出（各 run 口径乱 `R_1F_Cor` vs `F1_corridor`），surface/window 名内核派生。改**代码确定性生成**，约定 **楼层-类型-方位-序号**（序号含 SW/NE 方位）。**注：blast radius 极宽**（全下游精确名引用 + 30+ 测试 + golden baseline 字节相等需重录）、且类型段依赖 role 可靠（已 phase-1 就位）。侦察 map `logs/review/request/2026-06-21_role_and_naming_recon.md`。
 - **[P1] 查 Sonnet 识图为何变差**：Sonnet 曾出最忠实重绘，本轮 0/2（内墙↔尺寸刻度混淆、门当窗）。
 - **[P1] 查平面识别为何下降**：现立面很准、平面降了（以前相反）。外包优先策略可能相关。
 - **[P2] 主控汇报优化**：零散 json 分门别类收好、用户只看报告；产出"最终报告格式+内容"优化建议。
