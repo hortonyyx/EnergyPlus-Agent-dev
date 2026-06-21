@@ -1,0 +1,225 @@
+{
+  "image_label": "East elevation view",
+  "image_kind": "elevation",
+  "facade_axis_note": "East facade: local x = world y (increasing northward); local y = world z",
+  "scale_origin": {
+    "world_x_m": null,
+    "world_y_m": 0.00,
+    "world_z_m": 0.00,
+    "note": "local (0,0) = SE ground-level corner of east facade (world y=0.00); local x increases northward (world y direction), local y increases upward"
+  },
+
+  "strokes": [
+    {
+      "id": "S1",
+      "pen": "wall_fill",
+      "geometry": {
+        "kind": "rect",
+        "x_range_m": [0.00, 8.00],
+        "y_range_m": [3.00, 6.60]
+      },
+      "note": "east facade F2 wall body (local y=3.00 to 6.60m)"
+    },
+    {
+      "id": "S2",
+      "pen": "wall_fill",
+      "geometry": {
+        "kind": "rect",
+        "x_range_m": [0.00, 8.00],
+        "y_range_m": [0.00, 3.00]
+      },
+      "note": "east facade F1 wall body (local y=0.00 to 3.00m)"
+    },
+
+    {
+      "id": "S3",
+      "pen": "window",
+      "geometry": {
+        "kind": "rect",
+        "x_range_m": [3.40, 4.60],
+        "y_range_m": [4.00, 5.80]
+      },
+      "note": "F2 window E-1: local x=3400 to 3400+1200=4600mm (centered, from top chain 3400+1200+3400); y from inner chain: sill=1000mm from F2 floor → y_bottom=3.00+1.00=4.00; height=1800mm → y_top=5.80; head=800mm to top of F2"
+    },
+    {
+      "id": "S4",
+      "pen": "window",
+      "geometry": {
+        "kind": "rect",
+        "x_range_m": [3.40, 4.60],
+        "y_range_m": [1.00, 2.80]
+      },
+      "note": "F1 window E-2: local x=3400 to 4600mm (same center as F2 window); y from inner chain F1: sill=1000mm from ground → y_bottom=1.00; height=1800mm → y_top=2.80; gap=200mm at top of F1 zone"
+    },
+
+    {
+      "id": "S5",
+      "pen": "outline",
+      "geometry": {
+        "kind": "rect",
+        "x_range_m": [0.00, 8.00],
+        "y_range_m": [0.00, 6.60]
+      },
+      "note": "overall east facade outline bounding box"
+    }
+  ],
+
+  "dimensions": [
+    {
+      "id": "D1",
+      "text": "8000",
+      "from": [0.00, 6.60],
+      "to": [8.00, 6.60],
+      "axis": "x",
+      "note": "top overall width of east facade (=building depth)"
+    },
+    {
+      "id": "D2",
+      "text": "3400",
+      "from": [0.00, 6.60],
+      "to": [3.40, 6.60],
+      "axis": "x",
+      "note": "top chain segment 1 (south solid zone)"
+    },
+    {
+      "id": "D3",
+      "text": "1200",
+      "from": [3.40, 6.60],
+      "to": [4.60, 6.60],
+      "axis": "x",
+      "note": "top chain segment 2 (window width)"
+    },
+    {
+      "id": "D4",
+      "text": "3400",
+      "from": [4.60, 6.60],
+      "to": [8.00, 6.60],
+      "axis": "x",
+      "note": "top chain segment 3 (north solid zone)"
+    },
+    {
+      "id": "D5",
+      "text": "6600",
+      "from": [0.00, 0.00],
+      "to": [0.00, 6.60],
+      "axis": "z",
+      "note": "left side overall height"
+    },
+    {
+      "id": "D6",
+      "text": "3600",
+      "from": [0.00, 3.00],
+      "to": [0.00, 6.60],
+      "axis": "z",
+      "note": "left chain: F2 storey height"
+    },
+    {
+      "id": "D7",
+      "text": "3000",
+      "from": [0.00, 0.00],
+      "to": [0.00, 3.00],
+      "axis": "z",
+      "note": "left chain: F1 storey height"
+    },
+    {
+      "id": "D8",
+      "text": "800",
+      "from": [0.00, 5.80],
+      "to": [0.00, 6.60],
+      "axis": "z",
+      "note": "inner left chain F2: head to top = 800mm"
+    },
+    {
+      "id": "D9",
+      "text": "1800",
+      "from": [0.00, 4.00],
+      "to": [0.00, 5.80],
+      "axis": "z",
+      "note": "inner left chain F2: window height = 1800mm"
+    },
+    {
+      "id": "D10",
+      "text": "1000",
+      "from": [0.00, 3.00],
+      "to": [0.00, 4.00],
+      "axis": "z",
+      "note": "inner left chain F2: sill from F2 floor = 1000mm"
+    },
+    {
+      "id": "D11",
+      "text": "200",
+      "from": [0.00, 2.80],
+      "to": [0.00, 3.00],
+      "axis": "z",
+      "note": "inner left chain F1: head to F2 floor = 200mm"
+    },
+    {
+      "id": "D12",
+      "text": "1800",
+      "from": [0.00, 1.00],
+      "to": [0.00, 2.80],
+      "axis": "z",
+      "note": "inner left chain F1: window height = 1800mm"
+    },
+    {
+      "id": "D13",
+      "text": "1000",
+      "from": [0.00, 0.00],
+      "to": [0.00, 1.00],
+      "axis": "z",
+      "note": "inner left chain F1: sill from ground = 1000mm"
+    },
+    {
+      "id": "D14",
+      "text": "6600",
+      "from": [8.00, 0.00],
+      "to": [8.00, 6.60],
+      "axis": "z",
+      "note": "right side overall height"
+    },
+    {
+      "id": "D15",
+      "text": "3600",
+      "from": [8.00, 3.00],
+      "to": [8.00, 6.60],
+      "axis": "z",
+      "note": "right chain: F2 storey height"
+    },
+    {
+      "id": "D16",
+      "text": "3000",
+      "from": [8.00, 0.00],
+      "to": [8.00, 3.00],
+      "axis": "z",
+      "note": "right chain: F1 storey height"
+    },
+    {
+      "id": "D17",
+      "text": "8000",
+      "from": [0.00, 0.00],
+      "to": [8.00, 0.00],
+      "axis": "x",
+      "note": "bottom overall width (repeated at ground)"
+    }
+  ],
+
+  "ocr_texts": [],
+
+  "self_check": {
+    "all_dimensions_transcribed": true,
+    "all_visible_strokes_captured": true,
+    "no_topology_inferred": true,
+    "pens_used": ["wall_fill", "window", "outline"],
+    "unknowns_noted": [
+      "inner left chain F1: reads as 1000+1800+200=3000 (sill+height+head); this gives window y=[1.00,2.80] with only 200mm head clearance — notable, transcribed faithfully",
+      "right side of image has same outer dim labels (6600, 3000, 3600) but inner chain not separately listed; assumed symmetric with left side",
+      "window x is centered at local x=3.40 to 4.60 (based on top chain 3400+1200+3400=8000)"
+    ],
+    "uncaptured_visual_elements": [
+      "floor divider line at y=3.00m (storey boundary S1/S2 boundary)",
+      "no door on east facade",
+      "no balcony or decorative elements visible",
+      "outline S5 largely coincides with wall_fill edges; retained as a distinct heavy bounding rectangle is visible in the drawing"
+    ]
+  }
+}

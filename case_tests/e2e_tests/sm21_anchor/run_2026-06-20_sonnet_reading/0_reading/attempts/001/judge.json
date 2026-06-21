@@ -1,0 +1,46 @@
+{
+  "stage": "0_reading",
+  "rubric_id": "J0",
+  "criteria": [
+    {
+      "criterion": "missed real element",
+      "status": "pass",
+      "evidence": "All perimeter + interior walls traced on both plans; window strokes present on N/S/E walls (F1) and N(2)/S(4)/E(1) (F2). Elevation window counts match per-facade truth (S=7, N=5, E=2, W=1)."
+    },
+    {
+      "criterion": "clutter traced as structure",
+      "status": "pass",
+      "evidence": "Desks/chairs/round meeting table/L-furniture/computers and the grid/dimension lines are NOT traced as strokes; logged in uncaptured_visual_elements."
+    },
+    {
+      "criterion": "pen misclassified",
+      "status": "pass",
+      "evidence": "Plans use wall/window only; elevations use wall_fill (one per floor) + window + outline. Window vs wall not confused on either plan or the South elevation."
+    },
+    {
+      "criterion": "number copied wrong",
+      "status": "pass",
+      "evidence": "1f top chain 1240/2400/1300/... and 2f top chain 1950/3600/1889/1891/3600/1950 transcribed verbatim; South elevation chains 2190/1200/720/1200/4380... and heights 800/1800/1000 + 600/900/1500 match the drawing."
+    },
+    {
+      "criterion": "image-local orientation self-consistent",
+      "status": "pass",
+      "evidence": "Each elevation declares view_facade from the trusted image name; no east/west written into the in-image axis."
+    },
+    {
+      "criterion": "door healing wrong",
+      "status": "pass",
+      "evidence": "West-F1 (1500 door) and South-F1 (far-left door) healed into continuous wall on the plan; on the South elevation the far-left F1 door is NOT traced as a window. No real opening wrongly healed shut."
+    },
+    {
+      "criterion": "whole-region missing / misplaced",
+      "status": "pass",
+      "evidence": "F1 = 3 N rooms + corridor + 3 S rooms (meeting/round-table at S-right); F2 = 2 N meeting rooms + corridor + 4 S offices. Both bands and the corridor present and correctly placed."
+    }
+  ],
+  "root_stage": null,
+  "root_confidence": 0.0,
+  "retriable": true,
+  "judge_disabled": false,
+  "notes": "J0 PASS (Sonnet 4.6 reading). Faithful per-image tracing on all 6 views; per-facade window counts agree with truth; dimension chains transcribed verbatim; doors healed correctly. Internal-wall x-positions are medium-confidence (Sonnet self-noted) but exact placement is 1_correction's job (snaps to dimension chains), not a reading defect."
+}

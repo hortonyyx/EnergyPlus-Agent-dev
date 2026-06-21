@@ -1,0 +1,36 @@
+{
+  "stage": "1_correction",
+  "rubric_id": "J1",
+  "criteria": [
+    {
+      "criterion": "zonification fidelity",
+      "status": "severe",
+      "evidence": "Two spurious interior partitions over-segment the south bands. F1 south = SW(lobby)+S1+S2+S3 (4 cells) but the drawing shows 3 rooms (2 L-desk offices + 1 round-table meeting), dividers at ~x5/x10 like the north band; there is no real partition near the SW. F2 south = S1..S5 (5 cells) but the drawing shows 4 offices, dividers at x3.75/x7.5/x11.25 only. The extra F2 divider sits at x=5.51, a furniture/window sub-dimension, not a wall."
+    },
+    {
+      "criterion": "cross-floor consistency",
+      "status": "pass",
+      "evidence": "Perimeter (15x8), the two corridor walls (y3/y5) and the corridor band align across F1/F2; no cross-floor wall jitter."
+    },
+    {
+      "criterion": "window position fidelity",
+      "status": "pass",
+      "evidence": "elev.png matches per-facade truth: South F2=4 + F1=3, North F2=2 + F1=3, East 1+1, West F2=1 (F1 is a door, correctly absent). Windows land on the right facade/floor."
+    },
+    {
+      "criterion": "count vs reference",
+      "status": "severe",
+      "evidence": "16 zones vs testdata thermal_zones=14 and gt=14 (F1 7 + F2 7). Deterministic tripwire flagged 16!=14. The +2 has no sound explanation — it is the two over-read partitions above, not a legitimate split."
+    },
+    {
+      "criterion": "overall redraw",
+      "status": "severe",
+      "evidence": "The building cannot be redrawn faithfully from this corrected geometry: F1 gains a non-existent SW lobby and F2 gains a non-existent 5th south office. Geometry otherwise (footprint, corridor, north rooms, windows) is faithful."
+    }
+  ],
+  "root_stage": "0_reading",
+  "root_confidence": 0.78,
+  "retriable": true,
+  "judge_disabled": false,
+  "notes": "Root cause = 0_reading (Sonnet) traced exterior south-wall dimension ticks (door/window cumulative positions 3440/7560/11560 on F1; the 5510 furniture sub-dim on F2) as INTERIOR partitions. correction is image-blind and faithfully propagated those walls (then labeled the F1 SW cell 'lobby'); the defect originates in the reading, not the correction. Disposition: 0_reading is manual -> human_redraw_required (re-read the two south bands: F1 south = 2 dividers at ~x5/x10 -> 3 rooms; F2 south = 3 dividers at x3.75/x7.5/x11.25 -> 4 rooms). Window reading was correct and need not change."
+}

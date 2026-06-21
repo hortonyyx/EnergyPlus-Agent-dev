@@ -1,0 +1,216 @@
+{
+  "image_label": "East elevation view",
+  "image_kind": "elevation",
+  "facade_axis_note": "East facade: local x = world y (increasing northward); local y = world z (up positive, ground z=0.00)",
+  "scale_origin": {
+    "world_x_m": null,
+    "world_y_m": 0.00,
+    "world_z_m": 0.00,
+    "note": "local x=0.00 corresponds to world y=0.00 (SE corner of building); local x increases northward (world y increasing); local y=0.00 at ground"
+  },
+
+  "strokes": [
+    {
+      "id": "S1",
+      "pen": "wall_fill",
+      "geometry": {
+        "kind": "rect",
+        "x_range_m": [0.00, 8.00],
+        "y_range_m": [3.00, 6.60]
+      },
+      "note": "east facade Floor 2 wall body; y from floor line at 3.00 to top at 6.60 m; total width = 8000 mm"
+    },
+    {
+      "id": "S2",
+      "pen": "wall_fill",
+      "geometry": {
+        "kind": "rect",
+        "x_range_m": [0.00, 8.00],
+        "y_range_m": [0.00, 3.00]
+      },
+      "note": "east facade Floor 1 wall body; y from ground 0.00 to floor line at 3.00 m"
+    },
+    {
+      "id": "SW1",
+      "pen": "window",
+      "geometry": {
+        "kind": "rect",
+        "x_range_m": [3.40, 4.60],
+        "y_range_m": [3.80, 5.60]
+      },
+      "note": "F2 window; top chain: 3400 offset + 1200 wide = x [3.40, 4.60]; height from left sub-chain: 800 above + 1800 high => y [6.60-0.80-1.80=3.80, 3.80+1.80=5.60]"
+    },
+    {
+      "id": "SW2",
+      "pen": "window",
+      "geometry": {
+        "kind": "rect",
+        "x_range_m": [3.40, 4.60],
+        "y_range_m": [1.00, 2.80]
+      },
+      "note": "F1 window; x same as F2 window (centered at x=4.00, 1200 wide); height from left sub-chain: 1000 sill + 1800 high => y [1.00, 2.80] (noting F1 sub-dims: 1000+1800+200=3000)"
+    }
+  ],
+
+  "dimensions": [
+    {
+      "id": "D1",
+      "text": "8000",
+      "from": [0.00, 6.60],
+      "to": [8.00, 6.60],
+      "axis": "x",
+      "note": "top overall total width (east facade = building depth 8000 mm)"
+    },
+    {
+      "id": "D2",
+      "text": "3400",
+      "from": [0.00, 6.60],
+      "to": [3.40, 6.60],
+      "axis": "x",
+      "note": "top chain seg 1"
+    },
+    {
+      "id": "D3",
+      "text": "1200",
+      "from": [3.40, 6.60],
+      "to": [4.60, 6.60],
+      "axis": "x",
+      "note": "top chain seg 2 (window width; sum: 3400+1200+3400=8000 ✓)"
+    },
+    {
+      "id": "D4",
+      "text": "3400",
+      "from": [4.60, 6.60],
+      "to": [8.00, 6.60],
+      "axis": "x",
+      "note": "top chain seg 3"
+    },
+    {
+      "id": "D5",
+      "text": "6600",
+      "from": [0.00, 0.00],
+      "to": [0.00, 6.60],
+      "axis": "z",
+      "note": "left side overall height"
+    },
+    {
+      "id": "D6",
+      "text": "3600",
+      "from": [0.00, 3.00],
+      "to": [0.00, 6.60],
+      "axis": "z",
+      "note": "left side chain: F2 floor height"
+    },
+    {
+      "id": "D7",
+      "text": "800",
+      "from": [0.00, 5.80],
+      "to": [0.00, 6.60],
+      "axis": "z",
+      "note": "left side sub-chain: wall above F2 window"
+    },
+    {
+      "id": "D8",
+      "text": "1800",
+      "from": [0.00, 4.00],
+      "to": [0.00, 5.80],
+      "axis": "z",
+      "note": "left side sub-chain: F2 window height"
+    },
+    {
+      "id": "D9",
+      "text": "1000",
+      "from": [0.00, 3.00],
+      "to": [0.00, 4.00],
+      "axis": "z",
+      "note": "left side sub-chain: F2 window sill (above F2 floor line; sum F2: 800+1800+1000=3600 ✓)"
+    },
+    {
+      "id": "D10",
+      "text": "3000",
+      "from": [0.00, 0.00],
+      "to": [0.00, 3.00],
+      "axis": "z",
+      "note": "left side chain: F1 floor height"
+    },
+    {
+      "id": "D11",
+      "text": "200",
+      "from": [0.00, 2.80],
+      "to": [0.00, 3.00],
+      "axis": "z",
+      "note": "left side sub-chain: wall above F1 window"
+    },
+    {
+      "id": "D12",
+      "text": "1800",
+      "from": [0.00, 1.00],
+      "to": [0.00, 2.80],
+      "axis": "z",
+      "note": "left side sub-chain: F1 window height"
+    },
+    {
+      "id": "D13",
+      "text": "1000",
+      "from": [0.00, 0.00],
+      "to": [0.00, 1.00],
+      "axis": "z",
+      "note": "left side sub-chain: F1 window sill (sum F1: 200+1800+1000=3000 ✓)"
+    },
+    {
+      "id": "D14",
+      "text": "6600",
+      "from": [8.00, 0.00],
+      "to": [8.00, 6.60],
+      "axis": "z",
+      "note": "right side overall height"
+    },
+    {
+      "id": "D15",
+      "text": "3600",
+      "from": [8.00, 3.00],
+      "to": [8.00, 6.60],
+      "axis": "z",
+      "note": "right side chain: F2 floor height"
+    },
+    {
+      "id": "D16",
+      "text": "3000",
+      "from": [8.00, 0.00],
+      "to": [8.00, 3.00],
+      "axis": "z",
+      "note": "right side chain: F1 floor height"
+    },
+    {
+      "id": "D17",
+      "text": "8000",
+      "from": [0.00, 0.00],
+      "to": [8.00, 0.00],
+      "axis": "x",
+      "note": "bottom overall total width"
+    }
+  ],
+
+  "ocr_texts": [],
+
+  "self_check": {
+    "all_dimensions_transcribed": true,
+    "all_visible_strokes_captured": true,
+    "no_topology_inferred": true,
+    "pens_used": ["wall_fill", "window"],
+    "unknowns_noted": [
+      "top chain sum: 3400+1200+3400=8000 ✓",
+      "F2 height sub-dims: 800+1800+1000=3600 ✓",
+      "F1 height sub-dims: 200+1800+1000=3000 ✓",
+      "both windows (F1 and F2) are centered horizontally at x=[3.40,4.60], i.e. same x position on the facade — one window per floor",
+      "facade_axis_note: local x = world y (northward); correction stage maps x_local to world_y"
+    ],
+    "uncaptured_visual_elements": [
+      "outline: outer heavy rectangle of elevation coincides with wall_fill outer edges — not a separate stroke",
+      "horizontal floor line at y=3.00 m: boundary between F1 and F2 wall_fill — not a separate pen stroke",
+      "no level marker triangles visible",
+      "no scale bar or title text visible",
+      "no door symbols on east facade"
+    ]
+  }
+}

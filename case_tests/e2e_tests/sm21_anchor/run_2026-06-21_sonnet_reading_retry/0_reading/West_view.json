@@ -1,0 +1,200 @@
+{
+  "image_label": "West elevation view",
+  "image_kind": "elevation",
+  "facade_axis_note": "West facade: local x = -world y (local x increasing = world southward); local y = world z (up positive, ground z=0.00)",
+  "scale_origin": {
+    "world_x_m": null,
+    "world_y_m": 8.00,
+    "world_z_m": 0.00,
+    "note": "local x=0.00 corresponds to world y=8.00 (NW corner of building); local x increases southward (world y decreasing); local y=0.00 at ground"
+  },
+
+  "strokes": [
+    {
+      "id": "S1",
+      "pen": "wall_fill",
+      "geometry": {
+        "kind": "rect",
+        "x_range_m": [0.00, 8.00],
+        "y_range_m": [3.00, 6.60]
+      },
+      "note": "west facade Floor 2 wall body; y from floor line at 3.00 to top at 6.60 m; total width = building depth 8000 mm"
+    },
+    {
+      "id": "S2",
+      "pen": "wall_fill",
+      "geometry": {
+        "kind": "rect",
+        "x_range_m": [0.00, 8.00],
+        "y_range_m": [0.00, 3.00]
+      },
+      "note": "west facade Floor 1 wall body; y from ground 0.00 to floor line at 3.00 m"
+    },
+    {
+      "id": "SW1",
+      "pen": "window",
+      "geometry": {
+        "kind": "rect",
+        "x_range_m": [3.40, 4.60],
+        "y_range_m": [3.80, 5.60]
+      },
+      "note": "F2 window; top chain: 3400 offset + 1200 wide = x [3.40, 4.60]; height from sub-chain: 800 above + 1800 high => y [6.60-0.80-1.80=3.80, 5.60]"
+    },
+    {
+      "id": "SW2",
+      "pen": "window",
+      "geometry": {
+        "kind": "rect",
+        "x_range_m": [3.40, 4.60],
+        "y_range_m": [0.00, 2.55]
+      },
+      "note": "F1 element: a tall rectangle from ground floor (~y=0.00) to approx y=2.55 m, centered at x=[3.40,4.60]; has internal vertical subdivisions suggesting a double-door leaf; in elevation a door is shown as a floor-height tall rectangle — no door pen exists; treating as an opening captured with window pen; correction stage to classify as door; note this opening reaches floor (y_min=0.00)"
+    }
+  ],
+
+  "dimensions": [
+    {
+      "id": "D1",
+      "text": "8000",
+      "from": [0.00, 6.60],
+      "to": [8.00, 6.60],
+      "axis": "x",
+      "note": "top overall total width"
+    },
+    {
+      "id": "D2",
+      "text": "3400",
+      "from": [0.00, 6.60],
+      "to": [3.40, 6.60],
+      "axis": "x",
+      "note": "top chain seg 1"
+    },
+    {
+      "id": "D3",
+      "text": "1200",
+      "from": [3.40, 6.60],
+      "to": [4.60, 6.60],
+      "axis": "x",
+      "note": "top chain seg 2 (window/door centered opening width; sum: 3400+1200+3400=8000 ✓)"
+    },
+    {
+      "id": "D4",
+      "text": "3400",
+      "from": [4.60, 6.60],
+      "to": [8.00, 6.60],
+      "axis": "x",
+      "note": "top chain seg 3"
+    },
+    {
+      "id": "D5",
+      "text": "6600",
+      "from": [0.00, 0.00],
+      "to": [0.00, 6.60],
+      "axis": "z",
+      "note": "left side overall height"
+    },
+    {
+      "id": "D6",
+      "text": "3600",
+      "from": [0.00, 3.00],
+      "to": [0.00, 6.60],
+      "axis": "z",
+      "note": "left side chain: F2 floor height"
+    },
+    {
+      "id": "D7",
+      "text": "800",
+      "from": [0.00, 5.80],
+      "to": [0.00, 6.60],
+      "axis": "z",
+      "note": "left side sub-chain: wall above F2 window"
+    },
+    {
+      "id": "D8",
+      "text": "1800",
+      "from": [0.00, 4.00],
+      "to": [0.00, 5.80],
+      "axis": "z",
+      "note": "left side sub-chain: F2 window height (sum: 800+1800+1000=3600 ✓)"
+    },
+    {
+      "id": "D9",
+      "text": "1000",
+      "from": [0.00, 3.00],
+      "to": [0.00, 4.00],
+      "axis": "z",
+      "note": "left side sub-chain: F2 window sill"
+    },
+    {
+      "id": "D10",
+      "text": "3000",
+      "from": [0.00, 0.00],
+      "to": [0.00, 3.00],
+      "axis": "z",
+      "note": "left side chain: F1 floor height"
+    },
+    {
+      "id": "D11",
+      "text": "3000",
+      "from": [0.00, 0.00],
+      "to": [0.00, 3.00],
+      "axis": "z",
+      "note": "inner left sub-chain: F1 = 3000 (no sub-dims visible within F1 on this facade — door spans full zone)"
+    },
+    {
+      "id": "D12",
+      "text": "6600",
+      "from": [8.00, 0.00],
+      "to": [8.00, 6.60],
+      "axis": "z",
+      "note": "right side overall height"
+    },
+    {
+      "id": "D13",
+      "text": "3600",
+      "from": [8.00, 3.00],
+      "to": [8.00, 6.60],
+      "axis": "z",
+      "note": "right side chain: F2 floor height"
+    },
+    {
+      "id": "D14",
+      "text": "3000",
+      "from": [8.00, 0.00],
+      "to": [8.00, 3.00],
+      "axis": "z",
+      "note": "right side chain: F1 floor height"
+    },
+    {
+      "id": "D15",
+      "text": "8000",
+      "from": [0.00, 0.00],
+      "to": [8.00, 0.00],
+      "axis": "x",
+      "note": "bottom overall total width"
+    }
+  ],
+
+  "ocr_texts": [],
+
+  "self_check": {
+    "all_dimensions_transcribed": true,
+    "all_visible_strokes_captured": true,
+    "no_topology_inferred": true,
+    "pens_used": ["wall_fill", "window"],
+    "unknowns_noted": [
+      "top chain sum: 3400+1200+3400=8000 ✓",
+      "F2 height sub-dims: 800+1800+1000=3600 ✓",
+      "F1 has no sub-dim chain visible beyond the 3000 total — the door opening spans nearly full F1 height",
+      "SW2 (F1 element) is identified as a DOOR in elevation: tall rectangle from y=0 to ~2.55 m (door height), with internal vertical line(s) showing double-leaf door; no 'door' pen in elevation action set; captured with 'window' pen per pen_library rule (door in elevation: 'not drawn (note only)'); however the opening does visually break wall_fill S2 — logged here for correction stage; y_max estimated at ~2.55 m (actual height not dimensioned in this image)",
+      "facade_axis_note: local x = -world_y (southward); correction stage must apply sign flip"
+    ],
+    "uncaptured_visual_elements": [
+      "door symbol F1 west facade (SW2): double-leaf door visible as tall rectangle with internal verticals and horizontal splits; floor-to-top at ~2.55 m; NOTE: pen_library says elevation door = 'not drawn (note only)'; however the opening is a real break in wall_fill; captured as window pen opening for correction stage to handle; this is a known ambiguity — logged explicitly",
+      "outline: heavy outer rectangle border coincides with wall_fill outer edges — not a separate stroke",
+      "horizontal floor line at y=3.00 m: boundary between F1 and F2 — not a separate pen stroke",
+      "no level marker triangles visible",
+      "no scale bar or title text visible"
+    ]
+  }
+}

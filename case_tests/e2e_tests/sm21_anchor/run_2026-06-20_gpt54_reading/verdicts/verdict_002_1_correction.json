@@ -1,0 +1,36 @@
+{
+  "stage": "1_correction",
+  "rubric_id": "J1",
+  "criteria": [
+    {
+      "criterion": "zonification fidelity",
+      "status": "pass",
+      "evidence": "F1 = 3 south office + full-width corridor + 3 north office; F2 = 4 south office + corridor + 2 north conference. No room wrongly merged/split/invented; corridor intact on both floors (not cut)."
+    },
+    {
+      "criterion": "cross-floor consistency",
+      "status": "pass",
+      "evidence": "Footprint 15x8, corridor band y3-5, and perimeter align across F1/F2; north/south interior walls consistent."
+    },
+    {
+      "criterion": "window position fidelity",
+      "status": "pass",
+      "evidence": "elev.png matches truth on every facade: South F2=4+F1=3, North F2=2+F1=3, East 1+1, West F2=1 (F1 door absent). Right facade/floor/position."
+    },
+    {
+      "criterion": "count vs reference",
+      "status": "pass",
+      "evidence": "14 zones (F1 7 + F2 7) == testdata thermal_zones=14 == gt 14. Deterministic zone-count tripwire did NOT fire (block 0, flag 0). Total windows 15 match."
+    },
+    {
+      "criterion": "overall redraw",
+      "status": "minor",
+      "evidence": "Building redraws faithfully. ONE minor: F1 south-east room (F1_office_03) is labeled office but gt marks it meeting (round conference table). Role-label only — affects internal-load tier, not geometry/zone-count/windows. The image-blind correction cannot see the round table (it is uncaptured furniture), so it defaulted to office."
+    }
+  ],
+  "root_stage": "1_correction",
+  "root_confidence": 0.5,
+  "retriable": false,
+  "judge_disabled": false,
+  "notes": "J1 PASS (GPT-5.4 reading -> DeepSeek correction). Clean 14 zones, no tripwire — markedly better than the Sonnet-reading run (16 zones, blocked) on the same images + same correction model. Only a minor office-vs-meeting role label on F1-SE (same minor seen in the 2026-06-16 Opus-reading baseline); non-blocking, geometry untouched, do not resample."
+}

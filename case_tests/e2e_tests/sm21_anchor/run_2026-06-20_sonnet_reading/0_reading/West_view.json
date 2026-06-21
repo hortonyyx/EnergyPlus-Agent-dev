@@ -1,0 +1,200 @@
+{
+  "image_label": "West elevation view",
+  "image_kind": "elevation",
+  "facade_axis_note": "West facade: local x = -world y (local x increasing = world southward); local y = world z",
+  "scale_origin": {
+    "world_x_m": null,
+    "world_y_m": 8.00,
+    "world_z_m": 0.00,
+    "note": "local (0,0) = NW ground-level corner of west facade (world y=8.00); local x increases southward (negative world-y direction), local y increases upward"
+  },
+
+  "strokes": [
+    {
+      "id": "S1",
+      "pen": "wall_fill",
+      "geometry": {
+        "kind": "rect",
+        "x_range_m": [0.00, 8.00],
+        "y_range_m": [3.00, 6.60]
+      },
+      "note": "west facade F2 wall body (local y=3.00 to 6.60m)"
+    },
+    {
+      "id": "S2",
+      "pen": "wall_fill",
+      "geometry": {
+        "kind": "rect",
+        "x_range_m": [0.00, 8.00],
+        "y_range_m": [0.00, 3.00]
+      },
+      "note": "west facade F1 wall body (local y=0.00 to 3.00m)"
+    },
+
+    {
+      "id": "S3",
+      "pen": "window",
+      "geometry": {
+        "kind": "rect",
+        "x_range_m": [3.40, 4.60],
+        "y_range_m": [4.00, 5.80]
+      },
+      "note": "F2 window W-1: local x=3400 to 3400+1200=4600mm (centered); y from inner chain: sill=1000mm from F2 floor → y_bottom=3.00+1.00=4.00; height=1800mm → y_top=5.80; head=800mm to top"
+    },
+
+    {
+      "id": "S4",
+      "pen": "outline",
+      "geometry": {
+        "kind": "rect",
+        "x_range_m": [0.00, 8.00],
+        "y_range_m": [0.00, 6.60]
+      },
+      "note": "overall west facade outline bounding box"
+    }
+  ],
+
+  "dimensions": [
+    {
+      "id": "D1",
+      "text": "8000",
+      "from": [0.00, 6.60],
+      "to": [8.00, 6.60],
+      "axis": "x",
+      "note": "top overall width of west facade"
+    },
+    {
+      "id": "D2",
+      "text": "3400",
+      "from": [0.00, 6.60],
+      "to": [3.40, 6.60],
+      "axis": "x",
+      "note": "top chain segment 1 (north solid zone)"
+    },
+    {
+      "id": "D3",
+      "text": "1200",
+      "from": [3.40, 6.60],
+      "to": [4.60, 6.60],
+      "axis": "x",
+      "note": "top chain segment 2 (window/door opening width)"
+    },
+    {
+      "id": "D4",
+      "text": "3400",
+      "from": [4.60, 6.60],
+      "to": [8.00, 6.60],
+      "axis": "x",
+      "note": "top chain segment 3 (south solid zone)"
+    },
+    {
+      "id": "D5",
+      "text": "6600",
+      "from": [0.00, 0.00],
+      "to": [0.00, 6.60],
+      "axis": "z",
+      "note": "left side overall height"
+    },
+    {
+      "id": "D6",
+      "text": "3600",
+      "from": [0.00, 3.00],
+      "to": [0.00, 6.60],
+      "axis": "z",
+      "note": "left chain: F2 storey height"
+    },
+    {
+      "id": "D7",
+      "text": "3000",
+      "from": [0.00, 0.00],
+      "to": [0.00, 3.00],
+      "axis": "z",
+      "note": "left chain: F1 storey height"
+    },
+    {
+      "id": "D8",
+      "text": "800",
+      "from": [0.00, 5.80],
+      "to": [0.00, 6.60],
+      "axis": "z",
+      "note": "inner left chain F2: head to top = 800mm"
+    },
+    {
+      "id": "D9",
+      "text": "1800",
+      "from": [0.00, 4.00],
+      "to": [0.00, 5.80],
+      "axis": "z",
+      "note": "inner left chain F2: window height = 1800mm"
+    },
+    {
+      "id": "D10",
+      "text": "1000",
+      "from": [0.00, 3.00],
+      "to": [0.00, 4.00],
+      "axis": "z",
+      "note": "inner left chain F2: sill from F2 floor = 1000mm"
+    },
+    {
+      "id": "D11",
+      "text": "3000",
+      "from": [0.00, 0.00],
+      "to": [0.00, 3.00],
+      "axis": "z",
+      "note": "inner left chain F1: full F1 storey height (no further subdivision in inner chain visible for F1 — the F1 opening spans full height minus frame only)"
+    },
+    {
+      "id": "D12",
+      "text": "3000",
+      "from": [8.00, 0.00],
+      "to": [8.00, 3.00],
+      "axis": "z",
+      "note": "right chain F1 storey height label"
+    },
+    {
+      "id": "D13",
+      "text": "3600",
+      "from": [8.00, 3.00],
+      "to": [8.00, 6.60],
+      "axis": "z",
+      "note": "right chain F2 storey height label"
+    },
+    {
+      "id": "D14",
+      "text": "6600",
+      "from": [8.00, 0.00],
+      "to": [8.00, 6.60],
+      "axis": "z",
+      "note": "right side overall height"
+    },
+    {
+      "id": "D15",
+      "text": "8000",
+      "from": [0.00, 0.00],
+      "to": [8.00, 0.00],
+      "axis": "x",
+      "note": "bottom overall width (repeated at ground)"
+    }
+  ],
+
+  "ocr_texts": [],
+
+  "self_check": {
+    "all_dimensions_transcribed": true,
+    "all_visible_strokes_captured": true,
+    "no_topology_inferred": true,
+    "pens_used": ["wall_fill", "window", "outline"],
+    "unknowns_noted": [
+      "F1 element at local x=3.40 to 4.60 (same center position as F2 window) appears to be a double-door (glazed entry door): rectangle drawn with visible internal vertical line(s) dividing it into two door leaves, extending nearly full-height of F1; classified as door-in-elevation, not window — not traced as window stroke; logged in uncaptured_visual_elements",
+      "F1 inner left dim chain: only the overall 3000 outer label is visible; no sub-segments for the door opening height — door height not precisely dimensioned in visible inner chain",
+      "west facade is likely the main entrance facade of the building based on presence of double-door",
+      "wall thickness not applicable in elevation"
+    ],
+    "uncaptured_visual_elements": [
+      "entrance double-door in F1 west facade: centered at local x=3.40 to 4.60m, approximate y=0.00 to 2.80m (full or near-full floor height); drawn as a rectangle with internal vertical leaf dividers and possibly a bottom threshold line; classified as door (elevation door per reading_guide.md §D card); NOT traced as a window stroke per pen library (door → not drawn, note only)",
+      "floor divider line at y=3.00m (storey boundary between S1 and S2)",
+      "no balcony or decorative elements visible on west facade",
+      "outline S4 largely coincides with wall_fill edges; retained as a distinct bounding frame is visible"
+    ]
+  }
+}

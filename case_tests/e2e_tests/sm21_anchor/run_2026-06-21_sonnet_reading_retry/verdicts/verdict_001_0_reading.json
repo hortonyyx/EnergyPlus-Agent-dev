@@ -1,0 +1,46 @@
+{
+  "stage": "0_reading",
+  "rubric_id": "J0",
+  "criteria": [
+    {
+      "criterion": "missed real element",
+      "status": "pass",
+      "evidence": "All perimeter walls and the corridor traced; no real wall/window omitted."
+    },
+    {
+      "criterion": "clutter traced as structure",
+      "status": "severe",
+      "evidence": "Interior dimension ticks traced as walls: F1 has vertical walls at x=3.44 and x=6.3 (no real partition there; true dividers are x5/x10, matching the north band); F2 has an extra divider at x=7.74 (near-duplicate of the real x7.5). Over-segments both plans."
+    },
+    {
+      "criterion": "pen misclassified",
+      "status": "severe",
+      "evidence": "South-F1 door and West-F1 double door traced with the WINDOW pen (elevation window counts inflate to South=8 vs truth 7, West=2 vs truth 1). Doors are not windows."
+    },
+    {
+      "criterion": "number copied wrong",
+      "status": "minor",
+      "evidence": "Self-reported dimension-chain discrepancies (1f top chain ~760mm off across its 9 segments; 2f top ~120mm, bottom ~400mm). Internal-consistency only; not independently re-OCR'd here."
+    },
+    {
+      "criterion": "image-local orientation self-consistent",
+      "status": "pass",
+      "evidence": "view_facade declared per elevation from the trusted image name; in-image axis kept local."
+    },
+    {
+      "criterion": "door healing wrong",
+      "status": "severe",
+      "evidence": "South-F1 and West-F1 door openings were NOT healed into continuous wall — they were emitted as window strokes, and are NOT logged in uncaptured_visual_elements. (Contrast: the first Sonnet run and the GPT-5.4 run both healed these two doors correctly.)"
+    },
+    {
+      "criterion": "whole-region missing / misplaced",
+      "status": "pass",
+      "evidence": "All bands (north rooms / corridor / south rooms) present and correctly placed; the defect is over-segmentation + door handling, not missing regions."
+    }
+  ],
+  "root_stage": "0_reading",
+  "root_confidence": 0.85,
+  "retriable": true,
+  "judge_disabled": false,
+  "notes": "J0 SEVERE (Sonnet blind-retry run#2). Two recognition errors: (a) interior dimension ticks traced as walls (over-segments both plans, even more than run#1), (b) two elevation doors traced as windows (run#1 healed them correctly). Sonnet now 0/2 clean on this case at the reading-fidelity level — the weakness (interior-wall vs dimension-tick discrimination, door handling) is systematic, not a one-off bad draw. 0_reading is manual -> human_redraw_required."
+}

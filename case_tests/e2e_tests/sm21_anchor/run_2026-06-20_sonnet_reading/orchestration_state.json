@@ -1,0 +1,31 @@
+{
+  "stages": {
+    "0_reading": {
+      "stage": "0_reading",
+      "status": "judge_pass",
+      "attempts_used": 1,
+      "accepted_attempt": 1,
+      "message": "judge verdict non-blocking (pass/minor) → advance",
+      "gate1": {
+        "passed": true,
+        "block": 0,
+        "flag": 0
+      }
+    },
+    "1_correction": {
+      "stage": "1_correction",
+      "status": "human_redraw_required",
+      "attempts_used": 1,
+      "accepted_attempt": 1,
+      "message": "judge blocked, root='0_reading' (manual) → human re-trace required",
+      "route_target": "0_reading",
+      "gate1": {
+        "passed": true,
+        "block": 0,
+        "flag": 1
+      }
+    }
+  },
+  "stop_reason": "human_redraw_required@1_correction",
+  "updated": "2026-06-21"
+}

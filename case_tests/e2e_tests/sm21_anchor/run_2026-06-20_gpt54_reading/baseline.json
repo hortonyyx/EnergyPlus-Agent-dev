@@ -1,0 +1,166 @@
+{
+  "case": "sm21_anchor",
+  "run": "run_2026-06-20_gpt54_reading",
+  "recorded": "2026-06-21",
+  "orchestrator": "opus-4.8",
+  "models": {
+    "intake_correction": "deepseek-v4-pro",
+    "default": "deepseek-v4-pro"
+  },
+  "geometry": {
+    "zones": 14,
+    "surfaces": 112,
+    "windows": 15
+  },
+  "geometry_digest": "6d7a44f4caae4e92ddc750a70361a7c8c37a8c150c4e17951d65aed9be5aaa2c",
+  "geometry_approved": true,
+  "gates": {
+    "0_reading": {
+      "pass": 52,
+      "flag": 0,
+      "block": 0,
+      "na": 8,
+      "skip": 0
+    },
+    "1_correction": {
+      "pass": 7,
+      "flag": 0,
+      "block": 0,
+      "na": 1,
+      "skip": 0
+    },
+    "2_modelling": {
+      "pass": 5,
+      "flag": 0,
+      "block": 0,
+      "na": 0,
+      "skip": 0
+    },
+    "4_mep": {
+      "pass": 10,
+      "flag": 0,
+      "block": 0,
+      "na": 1,
+      "skip": 0
+    },
+    "5_intakeoutput": {
+      "pass": 1,
+      "flag": 0,
+      "block": 0,
+      "na": 0,
+      "skip": 0
+    },
+    "downstream": {
+      "pass": 3,
+      "flag": 0,
+      "block": 0,
+      "na": 1,
+      "skip": 0
+    }
+  },
+  "flags": [],
+  "blocking": [],
+  "judge_verdicts": [
+    {
+      "stage": "0_reading",
+      "attempt": 2,
+      "blocking": false,
+      "root_stage": null
+    },
+    {
+      "stage": "1_correction",
+      "attempt": 1,
+      "blocking": false,
+      "root_stage": "1_correction"
+    }
+  ],
+  "draws": {
+    "0_reading": 2,
+    "1_correction": 1,
+    "2_modelling": 1,
+    "3_split_pairing": 1,
+    "4_mep": 1,
+    "5_intakeoutput": 1
+  },
+  "orchestration": {
+    "0_reading": {
+      "stage": "0_reading",
+      "status": "judge_pass",
+      "attempts_used": 2,
+      "accepted_attempt": 2,
+      "message": "judge verdict non-blocking (pass/minor) → advance",
+      "gate1": {
+        "passed": true,
+        "block": 0,
+        "flag": 0
+      }
+    },
+    "1_correction": {
+      "stage": "1_correction",
+      "status": "judge_pass",
+      "attempts_used": 1,
+      "accepted_attempt": 1,
+      "message": "judge verdict non-blocking (pass/minor) → advance",
+      "gate1": {
+        "passed": true,
+        "block": 0,
+        "flag": 0
+      }
+    },
+    "2_modelling": {
+      "stage": "2_modelling",
+      "status": "deterministic_pass",
+      "attempts_used": 1,
+      "accepted_attempt": 1,
+      "message": "gate① passed — no enabled judge for this stage → advance",
+      "gate1": {
+        "passed": true,
+        "block": 0,
+        "flag": 0
+      }
+    },
+    "3_split_pairing": {
+      "stage": "3_split_pairing",
+      "status": "awaiting_geometry_approval",
+      "attempts_used": 1,
+      "accepted_attempt": 1,
+      "message": "geometry built + gate① passed — awaiting human geometry confirmation",
+      "gate1": {
+        "passed": true,
+        "block": 0,
+        "flag": 0
+      }
+    },
+    "4_mep": {
+      "stage": "4_mep",
+      "status": "deterministic_pass",
+      "attempts_used": 1,
+      "accepted_attempt": 1,
+      "message": "gate① passed — no enabled judge for this stage → advance",
+      "gate1": {
+        "passed": true,
+        "block": 0,
+        "flag": 0
+      }
+    },
+    "5_intakeoutput": {
+      "stage": "5_intakeoutput",
+      "status": "deterministic_pass",
+      "attempts_used": 1,
+      "accepted_attempt": 1,
+      "message": "gate① passed — no enabled judge for this stage → advance",
+      "gate1": {
+        "passed": true,
+        "block": 0,
+        "flag": 0
+      }
+    }
+  },
+  "stop_reason": null,
+  "ep": {
+    "completed": true,
+    "severe": 0,
+    "warnings": 6
+  },
+  "blocked": false
+}

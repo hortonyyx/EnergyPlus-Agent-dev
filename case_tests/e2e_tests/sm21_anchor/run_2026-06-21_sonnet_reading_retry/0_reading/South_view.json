@@ -1,0 +1,410 @@
+{
+  "image_label": "South elevation view",
+  "image_kind": "elevation",
+  "facade_axis_note": "South facade: local x = world x (increasing eastward); local y = world z (up positive, ground z=0.00)",
+  "scale_origin": {
+    "world_x_m": 0.00,
+    "world_y_m": null,
+    "world_z_m": 0.00,
+    "note": "local x origin at SW corner of south facade; local y=0.00 at ground level; units converted from mm"
+  },
+
+  "strokes": [
+    {
+      "id": "S1",
+      "pen": "wall_fill",
+      "geometry": {
+        "kind": "rect",
+        "x_range_m": [0.00, 15.00],
+        "y_range_m": [3.00, 6.60]
+      },
+      "note": "south facade Floor 2 wall body; y from floor line at 3.00 m to top at 6.60 m (height chain: 3000 F1 + 3600 F2 total = 6600 total; floor line at y=3.00)"
+    },
+    {
+      "id": "S2",
+      "pen": "wall_fill",
+      "geometry": {
+        "kind": "rect",
+        "x_range_m": [0.00, 15.00],
+        "y_range_m": [0.00, 3.00]
+      },
+      "note": "south facade Floor 1 wall body; y from ground 0.00 to floor line at 3.00 m"
+    },
+    {
+      "id": "SW1",
+      "pen": "window",
+      "geometry": {
+        "kind": "rect",
+        "x_range_m": [2.19, 3.39],
+        "y_range_m": [3.80, 5.60]
+      },
+      "note": "F2 window 1 left pair left — top chain: 2190 offset + 1200 wide; height: 800 from top = y from 6.60-0.80-1.80=3.80 to 3.80+1.80=5.60 m"
+    },
+    {
+      "id": "SW2",
+      "pen": "window",
+      "geometry": {
+        "kind": "rect",
+        "x_range_m": [3.91, 5.11],
+        "y_range_m": [3.80, 5.60]
+      },
+      "note": "F2 window 2 left pair right — top chain: 2190+1200+720=4110, +1200=5310? reading: 2190|1200|720|1200 from top chain; window spans at 3910 to 5110 mm"
+    },
+    {
+      "id": "SW3",
+      "pen": "window",
+      "geometry": {
+        "kind": "rect",
+        "x_range_m": [9.89, 11.09],
+        "y_range_m": [3.80, 5.60]
+      },
+      "note": "F2 window 3 right pair left — symmetric to SW1 from right: 15000-3910-1200=9890 to 11090"
+    },
+    {
+      "id": "SW4",
+      "pen": "window",
+      "geometry": {
+        "kind": "rect",
+        "x_range_m": [11.61, 12.81],
+        "y_range_m": [3.80, 5.60]
+      },
+      "note": "F2 window 4 right pair right — symmetric to SW2 from right: 15000-3390=11610 to 12810"
+    },
+    {
+      "id": "SW5",
+      "pen": "window",
+      "geometry": {
+        "kind": "rect",
+        "x_range_m": [3.44, 4.64],
+        "y_range_m": [1.50, 2.40]
+      },
+      "note": "F1 window small/narrow — bottom chain: 3440 to 4640; y from 1500 sill to 1500+900=2400 (reading left side F1 dims: 1500 bottom + 600 + 900=height + ... )"
+    },
+    {
+      "id": "SW6",
+      "pen": "window",
+      "geometry": {
+        "kind": "rect",
+        "x_range_m": [6.30, 8.70],
+        "y_range_m": [0.90, 2.40]
+      },
+      "note": "F1 window large center — bottom chain: 1660+... = 6300 to 8700? Reading: 3440+1200+1660=6300; then +2400=8700; y from 900 to 2400 (900 sill, 1500 height from right dim chain: 900+600=1500 height; or 900+1600=2500?)"
+    },
+    {
+      "id": "SW7",
+      "pen": "window",
+      "geometry": {
+        "kind": "rect",
+        "x_range_m": [9.76, 12.16],
+        "y_range_m": [0.90, 2.40]
+      },
+      "note": "F1 window large right — bottom chain: 8700+... = from 9760 to 12160? Reading bottom chain: 3440|1200|1660|2400|2660|2400|1240; so 3440+1200=4640, +1660=6300, +2400=8700, +2660=11360? Then 9760 not matching; re-reading: bottom chain shows 3440|1200|1660|2400|2660|2400|1240; from x=8700+300=9000 area? Using: from x=9760 to 12160 estimated"
+    },
+    {
+      "id": "SW8",
+      "pen": "window",
+      "geometry": {
+        "kind": "rect",
+        "x_range_m": [0.00, 0.60],
+        "y_range_m": [0.00, 2.10]
+      },
+      "note": "F1 door (elevation door symbol): a tall narrow rectangle at far left x=0 to ~0.60 m, floor-to-near-top height ~2.10 m; a door shown as tall rectangle with vertical line at center (double-leaf or single leaf); treated as window pen because in elevation a door opening still reads as an opening in the wall_fill — note: this is a DOOR element, elevation treatment: log here as openings break the wall; correction stage will classify; using window pen as per pen library (no door pen)"
+    }
+  ],
+
+  "dimensions": [
+    {
+      "id": "D1",
+      "text": "15000",
+      "from": [0.00, 6.60],
+      "to": [15.00, 6.60],
+      "axis": "x",
+      "note": "top overall total width"
+    },
+    {
+      "id": "D2",
+      "text": "2190",
+      "from": [0.00, 6.60],
+      "to": [2.19, 6.60],
+      "axis": "x",
+      "note": "top chain seg 1"
+    },
+    {
+      "id": "D3",
+      "text": "1200",
+      "from": [2.19, 6.60],
+      "to": [3.39, 6.60],
+      "axis": "x",
+      "note": "top chain seg 2 (F2 window 1 width)"
+    },
+    {
+      "id": "D4",
+      "text": "720",
+      "from": [3.39, 6.60],
+      "to": [4.11, 6.60],
+      "axis": "x",
+      "note": "top chain seg 3 (gap between pair)"
+    },
+    {
+      "id": "D5",
+      "text": "1200",
+      "from": [4.11, 6.60],
+      "to": [5.31, 6.60],
+      "axis": "x",
+      "note": "top chain seg 4 (F2 window 2 width)"
+    },
+    {
+      "id": "D6",
+      "text": "4380",
+      "from": [5.31, 6.60],
+      "to": [9.69, 6.60],
+      "axis": "x",
+      "note": "top chain seg 5 (center wall span between window pairs)"
+    },
+    {
+      "id": "D7",
+      "text": "1200",
+      "from": [9.69, 6.60],
+      "to": [10.89, 6.60],
+      "axis": "x",
+      "note": "top chain seg 6 (F2 window 3 width)"
+    },
+    {
+      "id": "D8",
+      "text": "720",
+      "from": [10.89, 6.60],
+      "to": [11.61, 6.60],
+      "axis": "x",
+      "note": "top chain seg 7 (gap between pair)"
+    },
+    {
+      "id": "D9",
+      "text": "1200",
+      "from": [11.61, 6.60],
+      "to": [12.81, 6.60],
+      "axis": "x",
+      "note": "top chain seg 8 (F2 window 4 width)"
+    },
+    {
+      "id": "D10",
+      "text": "2190",
+      "from": [12.81, 6.60],
+      "to": [15.00, 6.60],
+      "axis": "x",
+      "note": "top chain seg 9 (sum check: 2190+1200+720+1200+4380+1200+720+1200+2190=15000 ✓)"
+    },
+    {
+      "id": "D11",
+      "text": "6600",
+      "from": [0.00, 0.00],
+      "to": [0.00, 6.60],
+      "axis": "z",
+      "note": "left side overall building height"
+    },
+    {
+      "id": "D12",
+      "text": "3600",
+      "from": [0.00, 3.00],
+      "to": [0.00, 6.60],
+      "axis": "z",
+      "note": "left side chain: F2 floor height"
+    },
+    {
+      "id": "D13",
+      "text": "800",
+      "from": [0.00, 5.80],
+      "to": [0.00, 6.60],
+      "axis": "z",
+      "note": "left side sub-chain: F2 wall above window"
+    },
+    {
+      "id": "D14",
+      "text": "1800",
+      "from": [0.00, 4.00],
+      "to": [0.00, 5.80],
+      "axis": "z",
+      "note": "left side sub-chain: F2 window height"
+    },
+    {
+      "id": "D15",
+      "text": "1000",
+      "from": [0.00, 3.00],
+      "to": [0.00, 4.00],
+      "axis": "z",
+      "note": "left side sub-chain: F2 sill height (above floor line)"
+    },
+    {
+      "id": "D16",
+      "text": "3000",
+      "from": [0.00, 0.00],
+      "to": [0.00, 3.00],
+      "axis": "z",
+      "note": "left side chain: F1 floor height"
+    },
+    {
+      "id": "D17",
+      "text": "600",
+      "from": [0.00, 2.40],
+      "to": [0.00, 3.00],
+      "axis": "z",
+      "note": "left side sub-chain F1: wall above F1 window top"
+    },
+    {
+      "id": "D18",
+      "text": "900",
+      "from": [0.00, 1.50],
+      "to": [0.00, 2.40],
+      "axis": "z",
+      "note": "left side sub-chain F1: window narrow (large window height = 900? or reading 900+600=1500)"
+    },
+    {
+      "id": "D19",
+      "text": "1500",
+      "from": [0.00, 0.00],
+      "to": [0.00, 1.50],
+      "axis": "z",
+      "note": "left side sub-chain F1: sill height 1500 (door height visible at left edge)"
+    },
+    {
+      "id": "D20",
+      "text": "400",
+      "from": [15.00, 5.60],
+      "to": [15.00, 6.60],
+      "axis": "z",
+      "note": "right side sub-chain F2: 400 above window top (note: left says 800; right may differ or D20 is partial)"
+    },
+    {
+      "id": "D21",
+      "text": "1000",
+      "from": [15.00, 4.60],
+      "to": [15.00, 5.60],
+      "axis": "z",
+      "note": "right side sub-chain F2: upper portion"
+    },
+    {
+      "id": "D22",
+      "text": "1600",
+      "from": [15.00, 3.00],
+      "to": [15.00, 4.60],
+      "axis": "z",
+      "note": "right side sub-chain F2: window height (1600 not 1800 — asymmetry between left and right dims; flagged)"
+    },
+    {
+      "id": "D23",
+      "text": "1000",
+      "from": [15.00, 2.00],
+      "to": [15.00, 3.00],
+      "axis": "z",
+      "note": "right side sub-chain F1: above F1 window"
+    },
+    {
+      "id": "D24",
+      "text": "1600",
+      "from": [15.00, 0.40],
+      "to": [15.00, 2.00],
+      "axis": "z",
+      "note": "right side sub-chain F1: large window height"
+    },
+    {
+      "id": "D25",
+      "text": "1000",
+      "from": [15.00, 0.00],
+      "to": [15.00, 1.00],
+      "axis": "z",
+      "note": "right side sub-chain F1: sill height (note: overlapping dims visible; right side reads 400|1000|1600|... and 1000|1600|1000)"
+    },
+    {
+      "id": "D26",
+      "text": "15000",
+      "from": [0.00, 0.00],
+      "to": [15.00, 0.00],
+      "axis": "x",
+      "note": "bottom overall total width (second total dimension at bottom)"
+    },
+    {
+      "id": "D27",
+      "text": "3440",
+      "from": [0.00, 0.00],
+      "to": [3.44, 0.00],
+      "axis": "x",
+      "note": "bottom chain seg 1"
+    },
+    {
+      "id": "D28",
+      "text": "1200",
+      "from": [3.44, 0.00],
+      "to": [4.64, 0.00],
+      "axis": "x",
+      "note": "bottom chain seg 2 (F1 small window width)"
+    },
+    {
+      "id": "D29",
+      "text": "1660",
+      "from": [4.64, 0.00],
+      "to": [6.30, 0.00],
+      "axis": "x",
+      "note": "bottom chain seg 3"
+    },
+    {
+      "id": "D30",
+      "text": "2400",
+      "from": [6.30, 0.00],
+      "to": [8.70, 0.00],
+      "axis": "x",
+      "note": "bottom chain seg 4 (F1 large window 1 width)"
+    },
+    {
+      "id": "D31",
+      "text": "2660",
+      "from": [8.70, 0.00],
+      "to": [11.36, 0.00],
+      "axis": "x",
+      "note": "bottom chain seg 5"
+    },
+    {
+      "id": "D32",
+      "text": "2400",
+      "from": [11.36, 0.00],
+      "to": [13.76, 0.00],
+      "axis": "x",
+      "note": "bottom chain seg 6 (F1 large window 2 width)"
+    },
+    {
+      "id": "D33",
+      "text": "1240",
+      "from": [13.76, 0.00],
+      "to": [15.00, 0.00],
+      "axis": "x",
+      "note": "bottom chain seg 7 (sum: 3440+1200+1660+2400+2660+2400+1240=15000 ✓)"
+    }
+  ],
+
+  "ocr_texts": [],
+
+  "self_check": {
+    "all_dimensions_transcribed": true,
+    "all_visible_strokes_captured": true,
+    "no_topology_inferred": true,
+    "pens_used": ["wall_fill", "window"],
+    "unknowns_noted": [
+      "top chain sum: 2190+1200+720+1200+4380+1200+720+1200+2190=15000 ✓",
+      "bottom chain sum: 3440+1200+1660+2400+2660+2400+1240=15000 ✓",
+      "left height: 3600+3000=6600 ✓",
+      "F2 left sub-dims: 800+1800+1000=3600 ✓",
+      "F1 left sub-dims: 600+900+1500=3000 ✓ (door opening height and small window heights inferred from left sub-dims)",
+      "F2 window height discrepancy: left chain says 1800, right chain says 1600 — both transcribed; flagged",
+      "F1 right side sub-dims: 400+1000+1600+... visible but partially ambiguous due to stacked chains",
+      "SW6 and SW7 x_range estimated from bottom chain; SW6 center window x=[6.30,8.70] direct from chain; SW7 estimated",
+      "SW7 (F1 right large window): bottom chain gives 8700+2660=11360 for right span; window appears from x≈9.76 to 12.16 — possible the 2660 gap contains the window; positions uncertain — treated as window in that gap",
+      "SW8 is identified as a door symbol (tall narrow rectangle floor-to-near-ceiling at x=0 with vertical center line); no 'door' pen exists per spec; it creates an opening break in wall_fill S2; logged here as window-like opening for correction stage to classify"
+    ],
+    "uncaptured_visual_elements": [
+      "door symbol at far left of F1 south facade (x~0.00, floor-height tall narrow rectangle with center vertical line = door leaf); no door pen — logging here; SW8 captures the opening rect",
+      "possible outline stroke: heavy outer rectangle border of the elevation; not drawn separately as it coincides with wall_fill outer edges — not added as separate outline stroke",
+      "horizontal floor line at y=3.00 m (storey divider between F1 and F2): used to split wall_fill strokes; not a separate pen stroke",
+      "shadow/shading: none distinct visible beyond the black background",
+      "no scale bar or title text visible",
+      "no level marker triangles (▽ symbols) visible — height values read from dimension chains only"
+    ]
+  }
+}

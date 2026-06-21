@@ -226,12 +226,18 @@ def _draw_mep(run_dir: Path, testdata_text: str):
 
 
 def _draw_assembly(run_dir: Path):
+    from src.agent._share import ensure_schema_initialized
     from src.agent.intakeoutput import (
         MepOutput,
         assemble_intake_output,
         validate_contract,
     )
     from src.validator.checks.assembly import check_assembly
+
+    # MepOutput / IntakeOutput embed IDD-backed schemas (e.g. BuildingSchema's
+    # terrain validator reads BaseSchema._idf_field). The integrated pipeline inits
+    # the IDD; this stepwise driver must do the same before deserializing them.
+    ensure_schema_initialized()
 
     zone_specs, surface_specs, fen_specs, used, _ = _geometry_zone_meta(run_dir)
     mep_path = run_dir / "4_mep" / "mep_output.json"

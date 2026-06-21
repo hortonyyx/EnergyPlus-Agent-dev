@@ -1,0 +1,46 @@
+{
+  "stage": "0_reading",
+  "rubric_id": "J0",
+  "criteria": [
+    {
+      "criterion": "missed real element",
+      "status": "pass",
+      "evidence": "All perimeter + interior walls traced on both plans; interior dividers F1 @x5/x10 (3+3 rooms), F2 @x3.75/7.5/11.25 south + @x7.5 north (4+2). Window strokes present and counts match truth (S7,N5,E2,W1)."
+    },
+    {
+      "criterion": "clutter traced as structure",
+      "status": "pass",
+      "evidence": "Desks/chairs/round table/L-furniture/computers/dimension grid NOT traced; logged in uncaptured_visual_elements."
+    },
+    {
+      "criterion": "pen misclassified",
+      "status": "pass",
+      "evidence": "Plans use wall/window (line+rect); elevations use wall_fill(2 per facade)+window+outline. No window/wall confusion."
+    },
+    {
+      "criterion": "number copied wrong",
+      "status": "pass",
+      "evidence": "Window x-positions and floor heights consistent with the drawings; interior wall x at true gridlines (5/10, 3.75/7.5/11.25), not at exterior-wall dimension ticks."
+    },
+    {
+      "criterion": "image-local orientation self-consistent",
+      "status": "pass",
+      "evidence": "Each elevation declares view_facade (south/north/east/west) from the trusted image name; facade_axis_note keeps in-image axis local."
+    },
+    {
+      "criterion": "door healing wrong",
+      "status": "pass",
+      "evidence": "South-F1 entrance door and West-F1 double door healed (NOT traced as windows), both logged in uncaptured_visual_elements — matches the two gt doors."
+    },
+    {
+      "criterion": "whole-region missing / misplaced",
+      "status": "pass",
+      "evidence": "F1 = 3 N + corridor + 3 S; F2 = 2 N (conference) + corridor + 4 S (office). All bands present and correctly placed; no spurious split (contrast: the Sonnet reading over-segmented both south bands)."
+    }
+  ],
+  "root_stage": null,
+  "root_confidence": 0.0,
+  "retriable": true,
+  "judge_disabled": false,
+  "notes": "J0 PASS (GPT-5.4 via codex CLI -i). Faithful per-image tracing; interior walls at true gridlines (no over-read of exterior dimension ticks), window counts match truth, doors healed. Elevation rect geometry was normalized p1/p2 -> x_range_m/y_range_m (pure schema key rename of GPT-5.4's own values; perception unchanged)."
+}
