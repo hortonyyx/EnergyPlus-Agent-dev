@@ -30,7 +30,7 @@
 > judge-in-the-loop 验证成功。三份 baseline 在 `case_tests/e2e_tests/sm21_anchor/run_2026-06-2*`。
 > 本轮已改：run_stage S5 缺 IDD 初始化 → 加 `ensure_schema_initialized()`（待 commit）。
 
-- **[P0] 核加跨层内墙对齐 + 外包优先**：本轮主问题=GPT 版 112 面 vs 06-16 Opus 100 面。根因=GPT-5.4 两层走廊读得不一样宽（F1 y[3.1,4.9] / F2 y[3.2,4.8]，差 10cm）→ 确定性核**各层独立 snap、无跨层对齐** → 走廊↔房交界生碎面。修：同一条概念墙全楼统一坐标、**外包(总长宽)优先内部其次**。
+- **[P0] ✅ 核加跨层内墙对齐 + 外包优先（2026-06-21 完成，`6.21_CrossFloorWallAlign`）**：根因修正——轴线图**本就全楼共享**，真因=同层/跨层共用 `axis_jitter_tol=0.05`，走廊跨层差恰 0.10m 卡在容差缝（不聚类、sliver `<0.10` 严格不并）→ 两轴幸存生碎面。修=`deterministic.py` 新增 `_reconcile_cross_floor`：per-floor identity → footprint 硬锚 → **mutual-nearest** 跨层匹配（图级冲突即 flag、不静默合）→ provenance-aware sliver；新容差 `cross_floor_align_tol_m=0.11`。走廊两层对齐到 y[3.15,4.85]，**sm21 112→100 面**、zones/windows 不变。经 Codex 双审（REWORK→APPROVE-WITH-CHANGES）+ 四重验证。审计轨迹 `logs/review/{request,review}/2026-06-21_cross_floor_wall_alignment_*.md`。
 - **[P1] viewer 挪独立人工文件夹**：现 `2_modelling/geometry_viewer.html`（切配后产物）→ 挪 `<run>/manual_review/`（后续加编辑回写，单独放合理；接 [proposals/editable_geometry_confirmation.md](proposals/editable_geometry_confirmation.md)）。
 - **[P1] 房间类型(role) 移回 reading**：现 role 由 1_correction(DeepSeek, image-blind) 出 → 判错（F1 东南圆桌房→office）。reading 看得见图，role 归 reading；**correction 不许改房间类型**。
 - **[P1] 命名确定性化**：现 zone cell id 由 DeepSeek 出（各 run 口径乱 `R_1F_Cor` vs `F1_corridor`），surface/window 名内核派生。改**代码确定性生成**，约定 **楼层-类型-方位-序号**（序号含 SW/NE 方位）。

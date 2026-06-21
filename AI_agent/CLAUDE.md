@@ -76,9 +76,9 @@ EnergyPlus 经 `WorkflowTool.run_simulation`（eppy + ConverterManager，idfpy �
 
 ## 2. 当前开发状态
 
-- **分支** `6.15_ValidationArchM0toM4`；测试 **277 绿**；最新 commit `3f9ed35`（2026-06-20）。
-- **已落地**（详见 [decision_log.md §A](decision_log.md)）：0–5 校验架构 M0–M4 + 逐段 judge-in-the-loop 编排 + 离线 3D 几何查看器（2026-06-20 加房间类型着色 + 拾取跟随透明度）+ 新 baseline 方案（自包含 anchor + gt）+ sm20/sm21 两份 golden baseline + CAD→gt 满配答案方向（工具链就位、方案待审）+ gt 渲染核验 + **管理文档重构**（CLAUDE/plan/decision_log 三分职责、architecture 收敛为单一架构文档、archive/proposals/capability 归位）。
-- **下一步**：① 用 `run_stage.py` 真驱动 **sm21_anchor** 出首份 judge-in-the-loop baseline（用户已排期，本轮文档整理后跑）；② sm21 **South 2F 窗 along-facade x** 仍是真 bug（待核 1_correction）；③ CAD→gt 方案待用户图形导出 DXF 后推进。完整滚动计划见 [plan.md](plan.md)。
+- **分支** `6.15_ValidationArchM0toM4`；测试 **281 绿**；最新里程碑 `6.21_CrossFloorWallAlign`（2026-06-21）。
+- **已落地**（详见 [decision_log.md §A](decision_log.md)）：0–5 校验架构 M0–M4 + 逐段 judge-in-the-loop 编排 + 离线 3D 几何查看器 + 新 baseline 方案（自包含 anchor + gt）+ sm20/sm21 两份 golden baseline + sm21 双模型轮（GPT-5.4 识图 clean / judge-in-the-loop 验证）+ CAD→gt 工具链 + 管理文档重构 + **Claude 编排/Codex 执行协作规约**（[guides/codex_execution_protocol.md](guides/codex_execution_protocol.md)，审阅方向反转 + 本机沙箱校准）+ **P0#1 跨层概念墙对齐**（`deterministic.py` 加 `_reconcile_cross_floor`：per-floor identity → footprint 硬锚 → mutual-nearest 跨层匹配 + 歧义 flag → provenance-aware sliver；sm21 112→100 面、走廊跨层对齐、双审+四重验证）。
+- **下一步**（plan.md N1b）：① sm21 **South 2F 窗 along-facade x** 真 bug（核 1_correction）；② 房间 role 移回 reading、命名确定性化、viewer 挪 manual_review；③ 诊断 Sonnet/平面识别下降。完整滚动计划见 [plan.md](plan.md)。
 
 ---
 
@@ -108,7 +108,7 @@ EnergyPlus 经 `WorkflowTool.run_simulation`（eppy + ConverterManager，idfpy �
 5. **本项目交接产物 = IntakeOutput JSON**；下游走 [run_full_pipeline.py](../scripts/run_full_pipeline.py) 自动跑产 IDF + 仿真；规则库 [`../skills/intake_pipeline/`](../skills/intake_pipeline) 按阶段运行时加载。**skill 库 = 英文纯当前版本 spec**：文件内不写时间戳/版本号/changelog/缘起 case（决策史归 decision_log + git）；0–5 阶段布局；旧 `energyplus_mcp` 单步库已退役。
 6. **回归门槛**：切默认 provider 前端到端跑通率 ≥ Anthropic 基线 80%（[reference/pivot_criteria.md](reference/pivot_criteria.md)）。
 7. **git 权限下放**：助手可在里程碑自行 `git add`+`commit`（message 仿 `<月.日>_<英文标签>`，body 含①改动②为何此刻③影响）。**禁** push（除非明确要求）/ force push / `reset --hard` / 跳 hook / 动 `git config`。
-8. **重要节点交叉模型审阅**（[logs/review/](logs/review)）：request→review→处置闭环落盘审计轨迹。**默认走 Codex MCP 直审**（`mcp__codex__codex` `danger-full-access`，需用户授权；自主读文件+跑 pytest，findings 内联回、request/review 仍落盘）。
+8. **Claude 编排 / Codex 执行**（操作手册 [guides/codex_execution_protocol.md](guides/codex_execution_protocol.md)）：Claude 主控（方案+审 diff+judge+memory/文档+commit），执行尽量派 Codex（省 Claude 上下文、推理算 Codex 额度）。**审阅方向**：Claude 出方案 → Codex 审方案（`mcp__codex__codex`，落 `logs/review/`）→ Claude 裁决（不盲从）→ 派 Codex 执行器（简报含「审阅需求」自报需复核处）→ Claude **按 review-ask 复核、不逐次全审**（把 Codex 当可靠工具），**大节点才全面审**（自跑 pytest + 逐行 diff + 端到端回归）。方案类决策**双审**后再派。**本机硬坑**：Codex MCP 碰本地文件必须 `sandbox=danger-full-access`（read-only/workspace-write 起 bwrap 失败→静默回退读 GitHub @main）；sandbox 建 thread 时定死，换权限须新开会话；看图走 CLI `codex exec -i`（MCP 无图参数）；模型默认 gpt-5.5/xhigh，宜高不宜低。
 9. **开发环境统一 VS Code Dev Container**（[../.devcontainer/README.md](../.devcontainer/README.md)）：容器内 EnergyPlus 25.1.0；git 是唯一同步通道，禁文件同步工具同步本目录；`.devcontainer/`(bind mount, VS Code) vs `docker/`(COPY 代码, MCP server 发布) 别混。
 10. **DeepSeek**：v4-pro thinking 默认关（langchain_openai 不回传 reasoning_content 多轮 tool-call 必 400）；`deepseek-bridge` MCP 可调时派简单文本任务省额度，架构/编辑/集成仍主模型负责。
 11. **idfpy 替换 + token 优化搁置**（[deferred/](deferred)）：等协作者侧 MCP 重写交付。
@@ -124,6 +124,7 @@ EnergyPlus 经 `WorkflowTool.run_simulation`（eppy + ConverterManager，idfpy �
 | [decision_log.md](decision_log.md) | **历史决策唯一归档**：里程碑时间线 + §5.1–5.13 决策详档 + 变更日志 |
 | [architecture/pipeline_stage_contracts.md](architecture/pipeline_stage_contracts.md) | **唯一「当前稳定架构」文档**（活）：逐阶段 输入·输出·校验 + 两道门 + 规范不变量 + 接缝缺口 |
 | [guides/new_case_guide.md](guides/new_case_guide.md) | **主 Agent（编排器+judge②）操作手册**：换主控模型读此接手 |
+| [guides/codex_execution_protocol.md](guides/codex_execution_protocol.md) | **Claude 编排 / Codex 执行**协作规约：分工 + 省上下文机制 + 通道/沙箱校准 + 审阅反转 + 兜底纪律 |
 | [capability/](capability) | **识图→建模能力主线**：`recognition_modeling_capability.md`(质量主线) · `floorplan_redraw_strategy.md`(两步法策略/POC 史) · `pipeline_0-5_capability_upgrade_suggestions.md`(C2/C3/C4 复杂度升级) |
 | [proposals/](proposals) | **未落地的方案/讨论**：`geometry_first_zonification.md`(再拓扑支线,休眠) · `editable_geometry_confirmation.md`(可编辑几何确认,DEFERRED) · `cad_to_gt_extraction_plan.md`(CAD→gt,设计待审) |
 | [reference/](reference) | 稳定参考：`pivot_criteria.md` · `open_model_guide.md` · `drawing_to_model_research_landscape.md` · `split_pairing_kernel_reference.md` · `InterZone_Surface_Matching_TechNote.md` |
