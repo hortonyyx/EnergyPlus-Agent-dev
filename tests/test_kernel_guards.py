@@ -15,6 +15,7 @@ from src.agent.geometry import build_geometry
 def _tol(**over) -> CoreTolerances:
     base = dict(
         axis_jitter_tol_m=0.05,
+        cross_floor_align_tol_m=0.11,
         structural_snap_grid_m=0.05,
         min_edge_length_m=0.10,
         output_precision_m=0.01,

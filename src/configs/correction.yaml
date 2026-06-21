@@ -33,6 +33,10 @@ correction:
   #           reference_or_identity_ambiguity 交 A3 仲裁(见 A0 §1.4 / §3)。
   # 对应 A0：AXIS_JITTER_TOL = 50mm (= SNAP_GRID，M/2 模数)。
 
+  cross_floor_align_tol_m: 0.11
+  # 跨层同墙 reading jitter 的保守对齐上限。安全性来自 deterministic core 的
+  # mutual-nearest + competition flag 策略，而不是把此 tol 调大。
+
   # ====== 第2步：结构轴吸附栅格 ======
   structural_snap_grid_m: 0.050
   # 约束：房间 / 墙 / 外包的 x、y 代表值，吸附到此栅格的整数倍。

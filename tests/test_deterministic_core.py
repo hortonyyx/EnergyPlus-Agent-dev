@@ -13,6 +13,7 @@ from src.agent.correction.config import CoreTolerances, load_core_tolerances
 def _tol(**over) -> CoreTolerances:
     base = dict(
         axis_jitter_tol_m=0.05,
+        cross_floor_align_tol_m=0.11,
         structural_snap_grid_m=0.05,
         min_edge_length_m=0.10,
         output_precision_m=0.01,
@@ -52,11 +53,77 @@ def _two_floor(x_f1: float, x_f2: float, windows: list | None = None) -> Correct
     )
 
 
+def _multi_floor_partitions(partitions: list[list[float]]) -> CorrectedGeometry:
+    floors = []
+    for idx, axes in enumerate(partitions, start=1):
+        bounds = [0.0, *axes, 10.0]
+        floors.append(
+            {
+                "name": f"F{idx}",
+                "z_floor": 3.6 * (idx - 1),
+                "ceiling_height": 3.6,
+                "cells": [
+                    {
+                        "id": f"F{idx}_{cell_idx}",
+                        "x": [bounds[cell_idx], bounds[cell_idx + 1]],
+                        "y": [0.0, 8.0],
+                    }
+                    for cell_idx in range(len(bounds) - 1)
+                ],
+            }
+        )
+    return CorrectedGeometry(footprint_x=[0.0, 10.0], footprint_y=[0.0, 8.0], floors=floors)
+
+
 def test_cross_floor_jitter_unified():
     """The same wall read as 4.90 (F1) and 4.95 (F2) becomes one canonical axis."""
     g = apply_deterministic_core(_two_floor(4.90, 4.95), _tol())
     right = {c.x[1] for fl in g.floors for c in fl.cells if c.id.endswith("_A")}
     assert len(right) == 1, f"cross-floor axis not unified: {right}"
+
+
+def test_cross_floor_corridor_jitter_uses_align_tol():
+    """Two floors read at 3.10 / 3.20 reconcile to one canonical axis."""
+    g = apply_deterministic_core(_two_floor(3.10, 3.20), _tol())
+    right = {c.x[1] for fl in g.floors for c in fl.cells if c.id.endswith("_A")}
+    assert len(right) == 1
+    assert any(e.get("rule_id") == "deterministic_core.cross_floor_align" for e in g.corrections)
+
+
+def test_cross_floor_reconcile_preserves_same_floor_axes():
+    """A nearby cross-floor read must not collapse two valid same-floor axes."""
+    g = apply_deterministic_core(_multi_floor_partitions([[3.10, 3.21], [3.19]]), _tol())
+    f1_bounds = sorted({x for c in g.floors[0].cells for x in c.x})
+    assert 3.10 in f1_bounds
+    assert any(abs(x - 3.20) < 1e-9 for x in f1_bounds)
+    assert len([x for x in f1_bounds if 3.0 < x < 3.3]) == 2
+    assert not g.unsupported
+    assert (
+        any(e.get("rule_id") == "deterministic_core.cross_floor_ambiguous" for e in g.corrections)
+        or {c.x[1] for c in g.floors[1].cells if c.id == "F2_0"} <= set(f1_bounds)
+    )
+
+
+def test_cross_floor_three_floor_chain_does_not_collapse():
+    """Adjacent links inside tol must not become one transitive cross-floor axis."""
+    g = apply_deterministic_core(_multi_floor_partitions([[3.10], [3.18], [3.26]]), _tol())
+    right = {c.x[1] for fl in g.floors for c in fl.cells if c.id.endswith("_0")}
+    assert len(right) > 1
+    assert any(e.get("rule_id") == "deterministic_core.cross_floor_ambiguous" for e in g.corrections)
+    assert not g.unsupported
+
+
+def test_cross_floor_competing_candidates_flagged_not_silently_stolen():
+    """One-to-many cross-floor candidates stay split and emit an ambiguity audit."""
+    g = apply_deterministic_core(
+        _multi_floor_partitions([[3.10], [3.17, 3.29]]),
+        _tol(cross_floor_align_tol_m=0.20),
+    )
+    f2_bounds = sorted({x for c in g.floors[1].cells for x in c.x})
+    assert len([x for x in f2_bounds if 3.0 < x < 3.4]) == 2
+    assert any(e.get("rule_id") == "deterministic_core.cross_floor_ambiguous" for e in g.corrections)
+    assert not any(e.get("rule_id") == "deterministic_core.cross_floor_align" for e in g.corrections)
+    assert not g.unsupported
 
 
 def test_snapped_to_grid_no_mm_level_mean():

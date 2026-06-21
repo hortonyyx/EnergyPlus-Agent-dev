@@ -46,6 +46,7 @@ class CoreTolerances:
     """
 
     axis_jitter_tol_m: float  # same-axis identity clustering threshold
+    cross_floor_align_tol_m: float  # conservative cross-floor same-wall alignment threshold
     structural_snap_grid_m: float  # grid for room/wall/footprint axes (post-cluster)
     min_edge_length_m: float  # sliver floor; no two canonical axes closer than this
     output_precision_m: float  # format precision + correction-logging threshold
@@ -63,13 +64,16 @@ class CoreTolerances:
             )
         if self.axis_jitter_tol_m <= 0 or self.window_snap_grid_m <= 0:
             raise ValueError("jitter tol and window grid must be positive")
-        # connectivity is a coarser op than identity, and below the arbitration band
-        if not (self.axis_jitter_tol_m < self.gap_close_threshold_m
+        # cross-floor identity is coarser than per-floor jitter, and connectivity
+        # is coarser still but below the arbitration band.
+        if not (self.axis_jitter_tol_m < self.cross_floor_align_tol_m
+                < self.gap_close_threshold_m
                 < self.gap_arbitration_band_m):
             raise ValueError(
-                "must hold axis_jitter_tol < gap_close_threshold < gap_arbitration_band; "
-                f"got {self.axis_jitter_tol_m} / {self.gap_close_threshold_m} / "
-                f"{self.gap_arbitration_band_m}"
+                "must hold axis_jitter_tol < cross_floor_align_tol < "
+                "gap_close_threshold < gap_arbitration_band; got "
+                f"{self.axis_jitter_tol_m} / {self.cross_floor_align_tol_m} / "
+                f"{self.gap_close_threshold_m} / {self.gap_arbitration_band_m}"
             )
 
 
@@ -81,6 +85,7 @@ def _load_cached(path_str: str) -> CoreTolerances:
     c = data.get("correction", data)  # tolerate a flat layout too
     tol = CoreTolerances(
         axis_jitter_tol_m=float(c["axis_jitter_tol_m"]),
+        cross_floor_align_tol_m=float(c["cross_floor_align_tol_m"]),
         structural_snap_grid_m=float(c["structural_snap_grid_m"]),
         min_edge_length_m=float(c["min_edge_length_m"]),
         output_precision_m=float(c["output_precision_m"]),

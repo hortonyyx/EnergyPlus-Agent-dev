@@ -15,14 +15,16 @@ partition, snapping removes the crack but keeps the wrong layout. Geometric
 correctness is the judgment layer's job (correction stage, A3 arbitration). "No crash" and
 "is correct" are deliberately separate concerns.
 
-Pipeline per axis (structural x/y): cluster (identity) -> snap representative to
-grid (regularize) -> sliver-merge (min-edge safety). Then a CONNECTIVITY pass pulls
-any cell edge falling within `gap_close_threshold_m` inside a footprint boundary
-out onto it, so an internal wall that stops short of the exterior seals the
-enclosure (an unclosed enclosure forms no EnergyPlus zone). Connectivity is a
-coarser, distinct operation from axis identity (A0 §4) — bigger threshold,
-directional, footprint-only for now. Windows are tiered finer and are NOT placed
-on the structural grid (no cross-floor identity / sliver role); they snap to
+Pipeline per axis (structural x/y): per-floor cluster (identity) ->
+cross-floor reconcile (hard footprint anchors, mutual-nearest matches, ambiguity
+flags) -> snap representative to grid (regularize) -> provenance-aware
+sliver-merge (min-edge safety). Then a CONNECTIVITY pass pulls any cell edge
+falling within `gap_close_threshold_m` inside a footprint boundary out onto it,
+so an internal wall that stops short of the exterior seals the enclosure (an
+unclosed enclosure forms no EnergyPlus zone). Connectivity is a coarser,
+distinct operation from axis identity (A0 §4) — bigger threshold, directional,
+footprint-only for now. Windows are tiered finer and are NOT placed on the
+structural grid (no cross-floor identity / sliver role); they snap to
 `window_snap_grid_m` and clamp into their parent cell/floor.
 
 All tolerances come from `src/configs/correction.yaml` (basis: A0_contract.md §4),
@@ -32,13 +34,66 @@ place to tune granularity and no A0-doc vs Python-constant drift.
 
 from __future__ import annotations
 
+from collections import defaultdict
+from dataclasses import dataclass, field
+
 from src.agent.correction.config import CoreTolerances, load_core_tolerances
 from src.agent.correction.schema import CorrectedGeometry
+
+
+_EPS = 1e-9
+
+
+@dataclass(frozen=True)
+class _IdentityCluster:
+    rep: float
+    raw: tuple[float, ...]
+
+
+@dataclass(frozen=True)
+class _AxisNode:
+    idx: int
+    floor: str
+    rep: float
+    raw: tuple[float, ...]
+
+
+@dataclass
+class _AxisGroup:
+    canonical: float
+    raw: list[float] = field(default_factory=list)
+    support_by_floor: dict[str, list[float]] = field(default_factory=dict)
+    node_ids: set[int] = field(default_factory=set)
+    fixed_anchor: float | None = None
+    footprint_raw: list[float] = field(default_factory=list)
+    sliver_values: list[float] = field(default_factory=list)
 
 
 def _snap_to_grid(v: float, grid: float) -> float:
     """Round `v` to the nearest multiple of `grid` (grid > 0)."""
     return round(round(v / grid) * grid, 6)
+
+
+def _axis_value(v: float) -> float:
+    return round(float(v), 6)
+
+
+def _identity_clusters(values: list[float], tol: CoreTolerances) -> list[_IdentityCluster]:
+    pts = sorted({_axis_value(v) for v in values})
+    if not pts:
+        return []
+
+    clusters: list[list[float]] = [[pts[0]]]
+    for v in pts[1:]:
+        if v - clusters[-1][-1] <= tol.axis_jitter_tol_m + _EPS:
+            clusters[-1].append(v)
+        else:
+            clusters.append([v])
+
+    return [
+        _IdentityCluster(rep=_axis_value(sum(c) / len(c)), raw=tuple(c))
+        for c in clusters
+    ]
 
 
 def _build_axis_map(values: list[float], tol: CoreTolerances) -> dict[float, float]:
@@ -51,20 +106,12 @@ def _build_axis_map(values: list[float], tol: CoreTolerances) -> dict[float, flo
        a sub-tolerance strip).
     """
     grid = tol.structural_snap_grid_m
-    pts = sorted({round(float(v), 6) for v in values})
-    if not pts:
+    clusters = _identity_clusters(values, tol)
+    if not clusters:
         return {}
 
-    # 1. identity clustering
-    clusters: list[list[float]] = [[pts[0]]]
-    for v in pts[1:]:
-        if v - clusters[-1][-1] <= tol.axis_jitter_tol_m:
-            clusters[-1].append(v)
-        else:
-            clusters.append([v])
-
     # 2. snap each representative onto the structural grid
-    reps = [_snap_to_grid(sum(c) / len(c), grid) for c in clusters]
+    reps = [_snap_to_grid(c.rep, grid) for c in clusters]
 
     # 3. sliver guard against the running canonical value
     groups: list[list[int]] = [[0]]
@@ -82,9 +129,358 @@ def _build_axis_map(values: list[float], tol: CoreTolerances) -> dict[float, flo
     for gi, grp in enumerate(groups):
         cval = round(canon[gi], 6)
         for ci in grp:
-            for v in clusters[ci]:
+            for v in clusters[ci].raw:
                 mapping[v] = cval
     return mapping
+
+
+def _copy_support(support: dict[str, list[float]]) -> dict[str, list[float]]:
+    return {floor: list(values) for floor, values in support.items()}
+
+
+def _group_from_nodes(
+    nodes: list[_AxisNode],
+    canonical: float,
+    *,
+    fixed_anchor: float | None = None,
+    footprint_raw: list[float] | None = None,
+) -> _AxisGroup:
+    support: dict[str, list[float]] = defaultdict(list)
+    raw: list[float] = []
+    node_ids: set[int] = set()
+    for node in nodes:
+        support[node.floor].append(node.rep)
+        raw.extend(node.raw)
+        node_ids.add(node.idx)
+    fp_raw = list(footprint_raw or [])
+    raw.extend(fp_raw)
+    cval = _axis_value(canonical)
+    return _AxisGroup(
+        canonical=cval,
+        raw=raw,
+        support_by_floor=dict(support),
+        node_ids=node_ids,
+        fixed_anchor=fixed_anchor,
+        footprint_raw=fp_raw,
+        sliver_values=[cval],
+    )
+
+
+def _merge_axis_groups(a: _AxisGroup, b: _AxisGroup, tol: CoreTolerances) -> _AxisGroup:
+    fixed = [v for v in (a.fixed_anchor, b.fixed_anchor) if v is not None]
+    if fixed:
+        canonical = fixed[0]
+    else:
+        values = a.sliver_values + b.sliver_values
+        canonical = _snap_to_grid(sum(values) / len(values), tol.structural_snap_grid_m)
+
+    support = _copy_support(a.support_by_floor)
+    for floor, values in b.support_by_floor.items():
+        support.setdefault(floor, []).extend(values)
+
+    return _AxisGroup(
+        canonical=_axis_value(canonical),
+        raw=a.raw + b.raw,
+        support_by_floor=support,
+        node_ids=set(a.node_ids) | set(b.node_ids),
+        fixed_anchor=fixed[0] if fixed else None,
+        footprint_raw=a.footprint_raw + b.footprint_raw,
+        sliver_values=a.sliver_values + b.sliver_values,
+    )
+
+
+def _same_floor_sliver_conflict(a: _AxisGroup, b: _AxisGroup, tol: CoreTolerances) -> bool:
+    for floor in set(a.support_by_floor) & set(b.support_by_floor):
+        for av in a.support_by_floor[floor]:
+            for bv in b.support_by_floor[floor]:
+                if abs(av - bv) >= tol.min_edge_length_m - _EPS:
+                    return True
+    return False
+
+
+def _blocked_pair_crosses(a: _AxisGroup, b: _AxisGroup, blocked_pairs: set[frozenset[int]]) -> bool:
+    for aid in a.node_ids:
+        for bid in b.node_ids:
+            if frozenset((aid, bid)) in blocked_pairs:
+                return True
+    return False
+
+
+def _reconcile_cross_floor(
+    per_floor_axes: dict[str, list[float]],
+    footprint_coords: list[float],
+    tol: CoreTolerances,
+    axis: str,
+) -> tuple[dict[float, float], list[dict]]:
+    """Return a raw-coordinate map after provenance-aware cross-floor reconcile."""
+    grid = tol.structural_snap_grid_m
+    audit: list[dict] = []
+    ambiguous_seen: set[tuple[str, tuple[int, ...]]] = set()
+
+    nodes: list[_AxisNode] = []
+    for floor in sorted(per_floor_axes):
+        for cluster in _identity_clusters(per_floor_axes[floor], tol):
+            nodes.append(
+                _AxisNode(
+                    idx=len(nodes),
+                    floor=floor,
+                    rep=cluster.rep,
+                    raw=cluster.raw,
+                )
+            )
+    node_by_id = {node.idx: node for node in nodes}
+
+    def add_ambiguity(node_ids: set[int], reason: str) -> None:
+        key = (reason, tuple(sorted(node_ids)))
+        if key in ambiguous_seen:
+            return
+        ambiguous_seen.add(key)
+        values = sorted({_axis_value(node_by_id[nid].rep) for nid in node_ids})
+        floors = sorted({node_by_id[nid].floor for nid in node_ids})
+        audit.append(
+            {
+                "rule_id": "deterministic_core.cross_floor_ambiguous",
+                "stage": "core",
+                "target": f"{axis}.axis",
+                "axis": axis,
+                "original_value": [round(v, 4) for v in values],
+                "resolved_value": [round(v, 4) for v in values],
+                "delta": 0.0,
+                "tolerance_name": "CROSS_FLOOR_ALIGN_TOL",
+                "reason": reason,
+                "floors": floors,
+            }
+        )
+
+    def block_pair(aid: int, bid: int) -> None:
+        if aid != bid:
+            blocked_pairs.add(frozenset((aid, bid)))
+
+    blocked_pairs: set[frozenset[int]] = set()
+    ambiguous_nodes: set[int] = set()
+
+    # Phase B0/B footprint hard anchors. Anchors are snapped once and then never
+    # averaged; competing same-floor candidates near a footprint are left apart.
+    footprint = [
+        (_axis_value(raw), _snap_to_grid(raw, grid))
+        for raw in sorted({_axis_value(v) for v in footprint_coords})
+    ]
+    fp_candidates: dict[int, dict[str, list[int]]] = {
+        idx: defaultdict(list) for idx in range(len(footprint))
+    }
+    node_fp_candidates: dict[int, list[int]] = defaultdict(list)
+    for node in nodes:
+        for anchor_idx, (_, anchor) in enumerate(footprint):
+            if abs(node.rep - anchor) <= tol.cross_floor_align_tol_m + _EPS:
+                fp_candidates[anchor_idx][node.floor].append(node.idx)
+                node_fp_candidates[node.idx].append(anchor_idx)
+
+    for node_id, anchors in node_fp_candidates.items():
+        if len(anchors) >= 2:
+            ambiguous_nodes.add(node_id)
+            add_ambiguity({node_id}, "candidate is within tolerance of multiple footprint anchors")
+
+    for floors in fp_candidates.values():
+        for candidates in floors.values():
+            if len(candidates) >= 2:
+                ambiguous_nodes.update(candidates)
+                for i, aid in enumerate(candidates):
+                    for bid in candidates[i + 1:]:
+                        block_pair(aid, bid)
+                add_ambiguity(
+                    set(candidates),
+                    "multiple same-floor candidates compete for a footprint anchor",
+                )
+
+    footprint_assignment: dict[int, int] = {}
+    for node_id, anchors in node_fp_candidates.items():
+        if node_id in ambiguous_nodes or len(anchors) != 1:
+            continue
+        anchor_idx = anchors[0]
+        floor_candidates = fp_candidates[anchor_idx][node_by_id[node_id].floor]
+        if len(floor_candidates) == 1:
+            footprint_assignment[node_id] = anchor_idx
+
+    free_nodes = [
+        node
+        for node in nodes
+        if node.idx not in footprint_assignment and node.idx not in ambiguous_nodes
+    ]
+
+    # Phase B constrained cross-floor matching. Competition is graph-level:
+    # any node with two or more cross-floor candidates blocks the whole area.
+    candidates_by_node: dict[int, list[int]] = {node.idx: [] for node in free_nodes}
+    for i, a in enumerate(free_nodes):
+        for b in free_nodes[i + 1:]:
+            if a.floor == b.floor:
+                continue
+            if abs(a.rep - b.rep) <= tol.cross_floor_align_tol_m + _EPS:
+                candidates_by_node[a.idx].append(b.idx)
+                candidates_by_node[b.idx].append(a.idx)
+
+    for node_id, candidates in candidates_by_node.items():
+        if len(candidates) >= 2:
+            ambiguous_nodes.add(node_id)
+            for candidate in candidates:
+                block_pair(node_id, candidate)
+            add_ambiguity(
+                {node_id, *candidates},
+                "cross-floor candidate competition",
+            )
+
+    parent = {node.idx: node.idx for node in free_nodes if node.idx not in ambiguous_nodes}
+
+    def find(node_id: int) -> int:
+        while parent[node_id] != node_id:
+            parent[node_id] = parent[parent[node_id]]
+            node_id = parent[node_id]
+        return node_id
+
+    def union(aid: int, bid: int) -> None:
+        ra, rb = find(aid), find(bid)
+        if ra != rb:
+            parent[rb] = ra
+
+    accepted_edges: set[frozenset[int]] = set()
+    for node_id, candidates in candidates_by_node.items():
+        if node_id in ambiguous_nodes or len(candidates) != 1:
+            continue
+        candidate = candidates[0]
+        if candidate in ambiguous_nodes:
+            continue
+        if candidates_by_node.get(candidate) == [node_id]:
+            accepted_edges.add(frozenset((node_id, candidate)))
+
+    for edge in sorted(accepted_edges, key=lambda e: tuple(sorted(e))):
+        aid, bid = tuple(edge)
+        union(aid, bid)
+
+    components: dict[int, list[_AxisNode]] = defaultdict(list)
+    for node in free_nodes:
+        if node.idx in ambiguous_nodes:
+            continue
+        components[find(node.idx)].append(node)
+
+    groups: list[_AxisGroup] = []
+    for anchor_idx, (raw, anchor) in enumerate(footprint):
+        members = [
+            node_by_id[node_id]
+            for node_id, assigned_anchor in footprint_assignment.items()
+            if assigned_anchor == anchor_idx
+        ]
+        groups.append(
+            _group_from_nodes(
+                members,
+                anchor,
+                fixed_anchor=anchor,
+                footprint_raw=[raw],
+            )
+        )
+
+    grouped_node_ids: set[int] = set(footprint_assignment)
+    for component in components.values():
+        floors = [node.floor for node in component]
+        reps = [node.rep for node in component]
+        legal = (
+            len(floors) == len(set(floors))
+            and max(reps) - min(reps) <= tol.cross_floor_align_tol_m + _EPS
+        )
+        if not legal:
+            ids = {node.idx for node in component}
+            ambiguous_nodes.update(ids)
+            for node in component:
+                for other in component:
+                    block_pair(node.idx, other.idx)
+            add_ambiguity(ids, "cross-floor component violates floor uniqueness or diameter")
+            continue
+
+        canonical = _snap_to_grid(sum(reps) / len(reps), grid)
+        groups.append(_group_from_nodes(component, canonical))
+        grouped_node_ids.update(node.idx for node in component)
+
+    for node in nodes:
+        if node.idx not in grouped_node_ids:
+            groups.append(_group_from_nodes([node], _snap_to_grid(node.rep, grid)))
+
+    def group_sort_key(group: _AxisGroup) -> tuple[float, int, float]:
+        return (
+            group.canonical,
+            0 if group.fixed_anchor is not None else 1,
+            min(group.raw) if group.raw else group.canonical,
+        )
+
+    # Phase C provenance-aware sliver guard. Cross-floor ambiguity pairs and
+    # valid same-floor Phase A separations are never silently collapsed.
+    while True:
+        merged_any = False
+        next_groups: list[_AxisGroup] = []
+        groups = sorted(groups, key=group_sort_key)
+        i = 0
+        while i < len(groups):
+            if i + 1 >= len(groups):
+                next_groups.append(groups[i])
+                i += 1
+                continue
+
+            a, b = groups[i], groups[i + 1]
+            if b.canonical - a.canonical < tol.min_edge_length_m - _EPS:
+                conflict = (
+                    _same_floor_sliver_conflict(a, b, tol)
+                    or _blocked_pair_crosses(a, b, blocked_pairs)
+                    or (
+                        a.fixed_anchor is not None
+                        and b.fixed_anchor is not None
+                        and abs(a.fixed_anchor - b.fixed_anchor) > _EPS
+                    )
+                )
+                if conflict:
+                    add_ambiguity(
+                        set(a.node_ids) | set(b.node_ids),
+                        "provenance-aware sliver guard kept axes separate",
+                    )
+                    next_groups.append(a)
+                    i += 1
+                else:
+                    next_groups.append(_merge_axis_groups(a, b, tol))
+                    merged_any = True
+                    i += 2
+            else:
+                next_groups.append(a)
+                i += 1
+
+        groups = next_groups
+        if not merged_any:
+            break
+
+    mapping: dict[float, float] = {}
+    for group in groups:
+        cval = _axis_value(group.canonical)
+        for raw in group.raw:
+            mapping[_axis_value(raw)] = cval
+
+    for group in groups:
+        has_cross_floor = len(group.support_by_floor) > 1
+        has_footprint_attach = bool(group.footprint_raw and group.node_ids)
+        if not (has_cross_floor or has_footprint_attach):
+            continue
+        cval = _axis_value(group.canonical)
+        for raw in sorted({_axis_value(v) for v in group.raw if v not in group.footprint_raw}):
+            if abs(cval - raw) <= tol.output_precision_m:
+                continue
+            audit.append(
+                {
+                    "rule_id": "deterministic_core.cross_floor_align",
+                    "stage": "core",
+                    "target": f"{axis}.axis[{raw:.4f}]",
+                    "axis": axis,
+                    "original_value": round(raw, 4),
+                    "resolved_value": round(cval, 4),
+                    "delta": round(cval - raw, 4),
+                    "tolerance_name": "CROSS_FLOOR_ALIGN_TOL+SNAP_GRID+MIN_EDGE_LENGTH",
+                }
+            )
+
+    return mapping, audit
 
 
 def _snap(v: float, mapping: dict[float, float]) -> float:
@@ -117,19 +513,25 @@ def apply_deterministic_core(
     if tol is None:
         tol = load_core_tolerances()
 
+    corrections = list(geom.corrections)
+    unsupported = list(geom.unsupported)
+
     # ---- structural axes: room / wall / footprint x,y only (NOT windows) ----
-    xs: list[float] = [*geom.footprint_x]
-    ys: list[float] = [*geom.footprint_y]
+    per_floor_x: dict[str, list[float]] = {}
+    per_floor_y: dict[str, list[float]] = {}
     for fl in geom.floors:
+        xs: list[float] = []
+        ys: list[float] = []
         for c in fl.cells:
             xs += [c.x[0], c.x[1]]
             ys += [c.y[0], c.y[1]]
+        per_floor_x[fl.name] = xs
+        per_floor_y[fl.name] = ys
 
-    xmap = _build_axis_map(xs, tol)
-    ymap = _build_axis_map(ys, tol)
-
-    corrections = list(geom.corrections)
-    unsupported = list(geom.unsupported)
+    xmap, x_audit = _reconcile_cross_floor(per_floor_x, geom.footprint_x, tol, "x")
+    ymap, y_audit = _reconcile_cross_floor(per_floor_y, geom.footprint_y, tol, "y")
+    corrections.extend(x_audit)
+    corrections.extend(y_audit)
 
     def log(target: str, axis: str, before: float, after: float, rule: str) -> None:
         if abs(after - before) > tol.output_precision_m:
