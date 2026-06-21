@@ -8,6 +8,7 @@ from src.agent.reading import (
     Dimension,
     DimensionRole,
     ReadingView,
+    RoomRoleObservation,
     load_reading_view,
     migrate_view,
     parse_value_m,
@@ -64,6 +65,46 @@ def test_canonical_view_loads_without_migration():
     v = ReadingView.model_validate(canonical)
     assert v.migrated_from_legacy is False
     assert v.dimensions[0].role == DimensionRole.OVERALL
+    assert v.room_labels == []
+
+
+def test_room_labels_round_trip():
+    canonical = {
+        "image_label": "Floor 2",
+        "image_kind": "plan",
+        "strokes": [],
+        "dimensions": [],
+        "uncaptured": [],
+        "room_labels": [
+            {
+                "id": "RL1",
+                "anchor": [4.2, 6.1],
+                "role": "meeting",
+                "label_text": "Meeting Room",
+                "basis": "label",
+                "confidence": 0.93,
+            }
+        ],
+    }
+    v = ReadingView.model_validate(canonical)
+    assert v.room_labels == [
+        RoomRoleObservation(
+            id="RL1",
+            anchor=[4.2, 6.1],
+            role="meeting",
+            label_text="Meeting Room",
+            basis="label",
+            confidence=0.93,
+        )
+    ]
+    assert ReadingView.model_validate(v.model_dump()).room_labels[0].role == "meeting"
+
+
+def test_legacy_room_labels_absent_defaults_empty_round_trip():
+    legacy = {"image_label": "Floor 1", "image_kind": "plan", "uncaptured": []}
+    v = ReadingView.model_validate(legacy)
+    assert v.room_labels == []
+    assert ReadingView.model_validate_json(v.model_dump_json()).room_labels == []
 
 
 def test_dimension_from_alias():

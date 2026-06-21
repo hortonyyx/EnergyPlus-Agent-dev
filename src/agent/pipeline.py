@@ -300,6 +300,8 @@ def _build_correction_messages(
         "values; log every material change in `corrections`, unresolved ambiguity "
         "in `conflicts`, and anything unsafe to fix in `unsupported`.\n\n"
         "Each room is one rectangular cell {id, role, x:[min,max], y:[min,max]}. "
+        "For `role`, prefer the image-observed role from room_labels; fall back "
+        "to layout priors ONLY when no observation covers a room. "
         "Each floor gives z_floor + ceiling_height. Each window gives facade, "
         "along-facade span [min,max], z [sill,head] (absolute world z), and the "
         "room id it belongs to. Do not output zones/surfaces — only the corrected "
@@ -326,7 +328,16 @@ def _build_correction_messages(
     chunks = [
         "Project metadata (testdata_prompt.json):\n```json\n" + testdata_text + "\n```\n"
     ]
-    for fname in discover_vector_files(vector_dir):
+    vector_files = discover_vector_files(vector_dir)
+    room_label_inputs = _reading_room_label_inputs(vector_dir, vector_files)
+    if room_label_inputs:
+        chunks.append(
+            "\nExplicit room role observations from reading `room_labels` "
+            "(image-local anchors):\n```json\n"
+            + json.dumps(room_label_inputs, indent=2, ensure_ascii=False)
+            + "\n```\n"
+        )
+    for fname in vector_files:
         chunks.append(f"\n[reading vector] {fname}:\n```json\n{_read(vector_dir / fname)}\n```\n")
     if feedback:
         chunks.append(
@@ -339,6 +350,27 @@ def _build_correction_messages(
         "verbatim. Enumerate every room cell and window explicitly."
     )
     return system_prompt, "".join(chunks)
+
+
+def _reading_room_label_inputs(vector_dir: Path, vector_files: list[str]) -> list[dict]:
+    observations = []
+    for fname in vector_files:
+        try:
+            data = json.loads(_read(vector_dir / fname))
+        except (json.JSONDecodeError, OSError):
+            continue
+        room_labels = data.get("room_labels") or []
+        if not room_labels:
+            continue
+        observations.append(
+            {
+                "view_file": fname,
+                "image_label": data.get("image_label", ""),
+                "image_kind": data.get("image_kind", ""),
+                "room_labels": room_labels,
+            }
+        )
+    return observations
 
 
 def _reading_window_stroke_count(vector_dir: Path) -> int:

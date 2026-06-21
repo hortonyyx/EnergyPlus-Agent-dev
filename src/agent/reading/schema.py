@@ -91,6 +91,18 @@ class FacadeOrientation(BaseModel):
     orientation_evidence: list[OrientationEvidence] = Field(default_factory=list)
 
 
+class RoomRoleObservation(BaseModel):
+    """Topology-light room-role observation from visible labels or furniture."""
+
+    model_config = ConfigDict(extra="allow")
+    id: str
+    anchor: list[float]
+    role: str
+    label_text: str
+    basis: str
+    confidence: float | None = None
+
+
 class ReadingView(BaseModel):
     """One drawing's reading-stage output."""
 
@@ -101,6 +113,7 @@ class ReadingView(BaseModel):
     strokes: list[Stroke] = Field(default_factory=list)
     dimensions: list[Dimension] = Field(default_factory=list)
     ocr_texts: list = Field(default_factory=list)
+    room_labels: list[RoomRoleObservation] = Field(default_factory=list)
     # uncaptured: things deliberately not traced. Must EXIST and be a list (clean
     # drawing → []); the linter only enforces "exists + list", never non-empty.
     uncaptured: list = Field(default_factory=list)

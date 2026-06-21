@@ -206,6 +206,39 @@ def test_reading_window_stroke_count(tmp_path):
     assert pipeline._reading_window_stroke_count(tmp_path) == 3
 
 
+def test_correction_prompt_includes_room_labels_when_present(tmp_path):
+    (tmp_path / "reading_summary.md").write_text("summary", encoding="utf-8")
+    (tmp_path / "1f_view.json").write_text(
+        json.dumps(
+            {
+                "image_label": "Floor 1",
+                "image_kind": "plan",
+                "strokes": [],
+                "dimensions": [],
+                "uncaptured": [],
+                "room_labels": [
+                    {
+                        "id": "RL1",
+                        "anchor": [3.0, 4.0],
+                        "role": "meeting",
+                        "label_text": "Meeting Room",
+                        "basis": "label",
+                    }
+                ],
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    system, human = pipeline._build_correction_messages(tmp_path, "{}")
+
+    assert "prefer the image-observed role from room_labels" in system
+    assert "fall back to layout priors ONLY when no observation covers a room" in system
+    assert "Explicit room role observations from reading `room_labels`" in human
+    assert '"id": "RL1"' in human
+    assert '"role": "meeting"' in human
+
+
 # ---------------------------------------------------------------------------
 # _make_correction_validator — updated tests for the composite validator
 # ---------------------------------------------------------------------------

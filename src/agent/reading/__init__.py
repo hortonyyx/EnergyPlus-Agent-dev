@@ -14,6 +14,7 @@ from src.agent.reading.schema import (
     FacadeOrientation,
     OrientationEvidence,
     ReadingView,
+    RoomRoleObservation,
     Stroke,
 )
 
@@ -27,5 +28,6 @@ __all__ = [
     "FacadeOrientation",
     "OrientationEvidence",
     "ReadingView",
+    "RoomRoleObservation",
     "Stroke",
 ]

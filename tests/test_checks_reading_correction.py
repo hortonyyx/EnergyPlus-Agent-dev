@@ -22,6 +22,18 @@ def _ids(rep):
     return {r.check_id for r in rep.blocking()}
 
 
+def _plan_with_room_labels(room_labels):
+    return ReadingView.model_validate({
+        "image_kind": "plan",
+        "uncaptured": [],
+        "strokes": [
+            {"id": "S1", "pen": "wall", "geometry": {"kind": "line", "p1": [0, 0], "p2": [10, 0]}},
+            {"id": "S2", "pen": "wall", "geometry": {"kind": "line", "p1": [0, 8], "p2": [10, 8]}},
+        ],
+        "room_labels": room_labels,
+    })
+
+
 # --------------------------------------------------------------------------- #
 # reading linter — clean anchor passes, synthetic bad blocks
 # --------------------------------------------------------------------------- #
@@ -42,6 +54,71 @@ def test_reading_duplicate_stroke_id_blocks():
     })
     rep = check_reading_view(v)
     assert "reading.stroke_ids_unique" in _ids(rep)
+
+
+def test_reading_room_labels_empty_noop():
+    v = _plan_with_room_labels([])
+    rep = check_reading_view(v)
+    assert not any("room_label" in r.check_id for r in rep.results)
+
+
+def test_reading_room_labels_valid_when_present():
+    v = _plan_with_room_labels([
+        {
+            "id": "RL1",
+            "anchor": [2.0, 4.0],
+            "role": "meeting room",
+            "label_text": "Meeting Room",
+            "basis": "label",
+        },
+        {
+            "id": "RL2",
+            "anchor": [8.0, 2.0],
+            "role": "lobby",
+            "label_text": "round table cluster",
+            "basis": "furniture",
+            "confidence": None,
+        },
+    ])
+    rep = check_reading_view(v)
+    assert rep.passed, [r.message for r in rep.blocking()]
+    passed = {r.check_id for r in rep.results if r.status.value == "pass"}
+    assert {
+        "reading.room_label_ids_unique",
+        "reading.room_label_roles_valid",
+        "reading.room_label_basis_valid",
+        "reading.room_label_anchors_in_bounds",
+    } <= passed
+
+
+def test_reading_room_labels_invalid_blocks():
+    v = _plan_with_room_labels([
+        {
+            "id": "RL1",
+            "anchor": [2.0, 4.0],
+            "role": "office",
+            "label_text": "Office",
+            "basis": "label",
+        },
+        {
+            "id": "RL1",
+            "anchor": [12.0, 4.0],
+            "role": "banquet",
+            "label_text": "Banquet",
+            "basis": "prior",
+        },
+    ])
+    blocking = _ids(check_reading_view(v))
+    assert {
+        "reading.room_label_ids_unique",
+        "reading.room_label_roles_valid",
+        "reading.room_label_basis_valid",
+    } <= blocking
+    rep = check_reading_view(v)
+    flagged = {r.check_id for r in rep.flagged()}
+    assert "reading.room_label_anchors_in_bounds" in flagged
+    anchor = next(r for r in rep.results if r.check_id == "reading.room_label_anchors_in_bounds")
+    assert anchor.layer == CheckLayer.CROSS_CHECK
 
 
 def test_reading_illegal_pen_for_plan_blocks():
