@@ -305,8 +305,8 @@
 **已落地**：`Stroke` 加可选 `provenance`(seen|dimension_derived|estimated|unknown)/`confidence`/`dimension_refs`（[schema.py](../../src/agent/reading/schema.py)）；reading 校验器落地承诺已久的 **stroke↔dimension 一致性 CROSS_CHECK**（非阻塞 flag，10mm 容差，perimeter 排除，中性「verify」措辞）+ **`provenance_mode`(full|partial|legacy) 报告**（[checks/reading.py](../../src/validator/checks/reading.py)）；guide/pen 补**双通道纪律**(尺寸链刻度≠墙) + 门≠窗负例 + **provenance→A0 grade 映射**(`seen`=视觉存在证据→numeric `estimated_stroke`，**非 `direct_measurement`**；`dimension_derived`→`transcribed_dimension` 须带 `dimension_refs`)。correction A1-A4 **不动**（trust-the-dim 早已落地，缺的只是上游冲突信号）。审计 logs/review/2026-06-21_reading_honest_and_judge_routing_{proposal,review}。
 > 原缺口（留档）：A0 §6 定义了 provenance_mode/coverage + per-claim 证据分级，但 0_reading 三文档曾**不产结构化 provenance** → 1_correction 实际跑 `legacy` 模式，估算笔画与测量值不可区分。这也是 §1「尺寸链为权威量级」从隐式变显式的前提。
 
-### 5.4 audit sidecar 未被消费（→ 优先级 #3 baseline 归因）
-`corrections.json` 已物化但下游/评测不消费（P0 决策保 `IntakeOutput` 纯净、避免 64k 截断）。建 baseline 时需"看错（0_reading/1_correction 判断）vs 改错（下游）"归因 → fast-follow 接入评测。
+### 5.4 audit sidecar → baseline 归因 ✅ baseline 侧已收口（2026-06-22，PR-A）
+`corrections.json` 已物化且 correction 门查完整性，但此前 `record_baseline`/`baseline.json` 不消费它。**已落地**：`record_baseline` best-effort 读 `1_correction/corrections.json` → `baseline.json.corrections_summary`（counts by kind/rule_id/stage + capped corrections rows + **full conflicts/unsupported** + sidecar 状态）+ `RUN_REPORT.md` 新增 `## 校正审计（看错↔改错归因）` 节（conflicts/unsupported 在前）；**不动 gate flags/计数**（Finding 6）。审计轨迹 logs/review/2026-06-22_audit_attribution_and_auto_reread_{proposal,review}。**残留（N4）**：把 gt-diff 与 corrections 机械 JOIN（逐差异自动判 看错↔改错），属评测嵌入。原 P0 决策仍保 `IntakeOutput` 纯净（不把 audit 灌进交接契约、避免 64k 截断）。
 
 ### 5.5 连接性补缝（#2.4，2026-06-09 部分落地）
 "内墙没顶到外墙、留小缝" → 闭包不连续就形不成 zone（BEM fatal）。与轴吸附是**两类操作**（身份 50mm vs 连接性 300mm，A0 §4 分开）。**已落**：核加连接性 pass——cell 边落 footprint 内侧 ≤ `gap_close_threshold`(300mm) → 吸到边界封口（[deterministic.py](../../src/agent/correction/deterministic.py) `_close_to_boundary`，方向性、仅内墙→外墙）。**残留**：① 内墙→内墙连接性（风险更高暂不做）② 300–1000mm 走 A3（门洞判断）、≥1000mm 走 zonification（开放边界）——属判断，非确定性核。

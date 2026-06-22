@@ -23,6 +23,66 @@ _ANCHOR = Path("case_tests/e2e_tests/sm20_anchor")
 _RUN_NAME = "run_2026-06-15_baseline"
 
 
+def _minimal_run(tmp_path: Path) -> Path:
+    run = tmp_path / "synthetic_case" / "run_audit"
+    run.mkdir(parents=True)
+    return run
+
+
+def _mixed_audit_payload() -> dict:
+    corrections = [
+        {
+            "id": "corr_a1",
+            "stage": "A1",
+            "rule_id": "A1_local_to_world",
+            "target": "global_world_frame",
+            "source_ids": ["1f_view", "South_view"],
+            "original_value": "local coordinates",
+            "resolved_value": "world coordinates",
+            "delta": "(-0.24,-0.24)m",
+            "changes_topology": False,
+            "method_profile": "room_identity",
+        },
+        {
+            "stage": "core",
+            "rule_id": "deterministic_core.snap",
+            "target": "x.axis[4.9100]",
+            "axis": "x",
+            "original_value": 4.91,
+            "resolved_value": 4.9,
+            "delta": -0.01,
+            "tolerance_name": "SNAP_GRID",
+        },
+    ]
+    corrections.extend(
+        {"id": f"bulk_{i}", "stage": "A2", "rule_id": "bulk_rule", "target": f"axis_{i}"}
+        for i in range(23)
+    )
+    return {
+        "corrections": corrections,
+        "conflicts": [
+            {
+                "id": "conf_1",
+                "stage": "A3",
+                "conflict_type": "stroke_vs_dimension",
+                "candidates": [
+                    {"value": 4.9, "source_ids": ["S7"]},
+                    {"value": 4.94, "source_ids": ["D4", "D5"]},
+                ],
+                "reason_unresolved": "dimension and stroke disagree",
+                "fallback_action": "used dimension chain",
+            }
+        ],
+        "unsupported": [
+            {
+                "id": "unsup_1",
+                "reason": "door found in elevation; doors are not modeled here",
+                "regime_assumption_violated": "windows only",
+            }
+        ],
+    }
+
+
 # --------------------------------------------------------------------------- #
 # orchestrate
 # --------------------------------------------------------------------------- #
@@ -109,6 +169,96 @@ def test_record_baseline_report_lists_eyeball_items(tmp_path):
     record_baseline.record_baseline(case / _RUN_NAME, date="2026-06-16", orchestrator="test")
     report = (case / _RUN_NAME / "RUN_REPORT.md").read_text()
     assert "填色区图" in report and "立面窗位图" in report and "3D 几何" in report
+
+
+def test_record_baseline_missing_corrections_sidecar_does_not_change_gates(tmp_path):
+    run = _minimal_run(tmp_path)
+    b = record_baseline.record_baseline(run, date="2026-06-22", orchestrator="test")
+
+    assert b["corrections_summary"]["present"] is False
+    assert b["corrections_summary"]["parse_status"] == "missing"
+    assert b["corrections_summary"]["sidecar_path"] == "1_correction/corrections.json"
+    assert b["corrections_summary"]["counts"] == {
+        "corrections": 0,
+        "conflicts": 0,
+        "unsupported": 0,
+    }
+    assert b["flags"] == []
+    assert all(agg["flag"] == 0 for agg in b["gates"].values())
+    report = (run / "RUN_REPORT.md").read_text()
+    assert "## 校正审计（看错↔改错归因）" in report
+    assert "（无 corrections.json）" in report
+
+
+def test_record_baseline_correction_audit_summary_is_separate_from_flags(tmp_path):
+    run = _minimal_run(tmp_path)
+    before = record_baseline.record_baseline(run, date="2026-06-22", orchestrator="test")
+    before_flags = before["flags"]
+    before_gates = before["gates"]
+
+    audit = _mixed_audit_payload()
+    sidecar = run / "1_correction" / "corrections.json"
+    sidecar.parent.mkdir(parents=True, exist_ok=True)
+    sidecar.write_text(json.dumps(audit, ensure_ascii=False), encoding="utf-8")
+
+    after = record_baseline.record_baseline(run, date="2026-06-22", orchestrator="test")
+    summary = after["corrections_summary"]
+    assert summary["present"] is True
+    assert summary["parse_status"] == "ok"
+    assert summary["sidecar_path"] == "1_correction/corrections.json"
+    assert summary["counts"] == {"corrections": 25, "conflicts": 1, "unsupported": 1}
+    assert summary["by_rule_id"] == {
+        "A1_local_to_world": 1,
+        "bulk_rule": 23,
+        "deterministic_core.snap": 1,
+    }
+    assert summary["by_stage"]["A1"] == 1
+    assert summary["by_stage"]["A2"] == 23
+    assert summary["by_stage"]["A3"] == 1
+    assert summary["by_stage"]["core"] == 1
+    assert summary["corrections"]["total"] == 25
+    assert summary["corrections"]["shown"] == 20
+    assert summary["corrections"]["cap"] == 20
+    assert len(summary["corrections"]["rows"]) == 20
+    assert summary["corrections"]["rows"][0] == {
+        "id": "corr_a1",
+        "rule_id": "A1_local_to_world",
+        "target": "global_world_frame",
+        "source_ids": ["1f_view", "South_view"],
+        "original_value": "local coordinates",
+        "resolved_value": "world coordinates",
+        "delta": "(-0.24,-0.24)m",
+        "changes_topology": False,
+    }
+    assert summary["conflicts"] == audit["conflicts"]
+    assert summary["unsupported"] == audit["unsupported"]
+
+    assert after["flags"] == before_flags
+    assert after["gates"] == before_gates
+    report = (run / "RUN_REPORT.md").read_text()
+    assert "## 校正审计（看错↔改错归因）" in report
+    assert "### conflicts[]" in report
+    assert "### unsupported[]" in report
+    assert "### corrections[]（显示 20/25，cap=20）" in report
+    assert "audit-derived [corrections_summary]" in report
+
+
+def test_record_baseline_malformed_corrections_sidecar_is_best_effort(tmp_path):
+    run = _minimal_run(tmp_path)
+    sidecar = run / "1_correction" / "corrections.json"
+    sidecar.parent.mkdir(parents=True)
+    sidecar.write_text("{not-json", encoding="utf-8")
+
+    b = record_baseline.record_baseline(run, date="2026-06-22", orchestrator="test")
+    assert b["corrections_summary"]["present"] is True
+    assert b["corrections_summary"]["parse_status"] == "malformed_json"
+    assert b["corrections_summary"]["counts"] == {
+        "corrections": 0,
+        "conflicts": 0,
+        "unsupported": 0,
+    }
+    report = (run / "RUN_REPORT.md").read_text()
+    assert "读取状态: malformed_json" in report
 
 
 def test_record_baseline_verdict_blocking_is_recoverability_aware():

@@ -19,6 +19,7 @@ from __future__ import annotations
 
 import argparse
 import json
+from collections import Counter
 from pathlib import Path
 
 from src.agent.execution import load_state, summarize_gates, validate_case
@@ -98,7 +99,125 @@ def _verdict_blocking(v: dict) -> bool:
     return StageVerdict.model_validate(v).blocking
 
 
-def _eyeball_checklist(case_dir: Path, summary: dict, counts: dict) -> list[str]:
+_AUDIT_KINDS = ("corrections", "conflicts", "unsupported")
+_CORRECTION_ROW_KEYS = (
+    "id",
+    "rule_id",
+    "target",
+    "source_ids",
+    "original_value",
+    "resolved_value",
+    "delta",
+    "changes_topology",
+)
+_CORRECTION_ROW_CAP = 20
+
+
+def _empty_corrections_summary(
+    sidecar_path: str,
+    *,
+    present: bool,
+    parse_status: str,
+    parse_error: str | None = None,
+) -> dict:
+    summary = {
+        "sidecar_path": sidecar_path,
+        "present": present,
+        "parse_status": parse_status,
+        "counts": {kind: 0 for kind in _AUDIT_KINDS},
+        "by_rule_id": {},
+        "by_stage": {},
+        "corrections": {"total": 0, "shown": 0, "cap": _CORRECTION_ROW_CAP, "rows": []},
+        "conflicts": [],
+        "unsupported": [],
+    }
+    if parse_error:
+        summary["parse_error"] = parse_error
+    return summary
+
+
+def _as_list(obj) -> list:
+    return obj if isinstance(obj, list) else []
+
+
+def _string_count_value(entry: dict, key: str) -> str | None:
+    value = entry.get(key)
+    if value is None or value == "":
+        return None
+    return str(value)
+
+
+def _count_audit_fields(entries: list) -> tuple[dict, dict]:
+    by_rule_id: Counter[str] = Counter()
+    by_stage: Counter[str] = Counter()
+    for entry in entries:
+        if not isinstance(entry, dict):
+            continue
+        rule_id = _string_count_value(entry, "rule_id")
+        stage = _string_count_value(entry, "stage")
+        if rule_id:
+            by_rule_id[rule_id] += 1
+        if stage:
+            by_stage[stage] += 1
+    return dict(sorted(by_rule_id.items())), dict(sorted(by_stage.items()))
+
+
+def _summarize_correction_rows(corrections: list, cap: int = _CORRECTION_ROW_CAP) -> dict:
+    rows = []
+    for entry in corrections[:cap]:
+        if isinstance(entry, dict):
+            row = {key: entry.get(key) for key in _CORRECTION_ROW_KEYS if key in entry}
+        else:
+            row = {"value": entry}
+        rows.append(row)
+    return {"total": len(corrections), "shown": len(rows), "cap": cap, "rows": rows}
+
+
+def _corrections_summary(run_dir: Path) -> dict:
+    """Best-effort read of 1_correction/corrections.json for attribution reporting.
+
+    The sidecar is intentionally heterogeneous: LLM A0 entries are rich dicts,
+    deterministic-core entries are narrower, and legacy/bad entries should not make
+    baseline recording fail.
+    """
+    sidecar = run_dir / "1_correction" / "corrections.json"
+    rel = sidecar.relative_to(run_dir).as_posix()
+    if not sidecar.exists():
+        return _empty_corrections_summary(rel, present=False, parse_status="missing")
+    try:
+        data = json.loads(sidecar.read_text(encoding="utf-8"))
+    except Exception as e:  # noqa: BLE001 — attribution sidecar is best-effort metadata
+        return _empty_corrections_summary(
+            rel, present=True, parse_status="malformed_json", parse_error=str(e))
+    if not isinstance(data, dict):
+        return _empty_corrections_summary(
+            rel, present=True, parse_status="invalid_shape",
+            parse_error="root JSON value is not an object")
+
+    corrections = _as_list(data.get("corrections", []))
+    conflicts = _as_list(data.get("conflicts", []))
+    unsupported = _as_list(data.get("unsupported", []))
+    by_rule_id, by_stage = _count_audit_fields(corrections + conflicts + unsupported)
+    return {
+        "sidecar_path": rel,
+        "present": True,
+        "parse_status": "ok",
+        "counts": {
+            "corrections": len(corrections),
+            "conflicts": len(conflicts),
+            "unsupported": len(unsupported),
+        },
+        "by_rule_id": by_rule_id,
+        "by_stage": by_stage,
+        "corrections": _summarize_correction_rows(corrections),
+        "conflicts": conflicts,
+        "unsupported": unsupported,
+    }
+
+
+def _eyeball_checklist(
+    case_dir: Path, summary: dict, counts: dict, corrections_summary: dict | None = None
+) -> list[str]:
     """The 🔍 L-肉眼 list: perceptual items deterministic + judge can't fully
     settle. Always-on items + one per surfaced flag."""
     items = [
@@ -111,6 +230,15 @@ def _eyeball_checklist(case_dir: Path, summary: dict, counts: dict) -> list[str]
     for f in summary.get("flags", []):
         items.append(
             f"flag [{f['stage']}::{f['check']}] —— {f['message']}（对应渲染件人工核一眼）")
+    if corrections_summary:
+        c = corrections_summary.get("counts", {})
+        conflicts = c.get("conflicts", 0)
+        unsupported = c.get("unsupported", 0)
+        if conflicts or unsupported:
+            items.append(
+                "audit-derived [corrections_summary] —— "
+                f"`corrections.json` 有 {conflicts} conflicts / {unsupported} unsupported，"
+                "人核看错↔改错归因")
     return items
 
 
@@ -126,6 +254,7 @@ def record_baseline(run_dir: Path, *, date: str, orchestrator: str,
     counts = _geometry_counts(run_dir)
     draws, verdicts = _draws_and_verdicts(run_dir)
     state = load_state(run_dir)  # stepwise orchestration ledger (stop_reason etc.)
+    corr_summary = _corrections_summary(run_dir)
     baseline = {
         "case": case,
         "run": run_dir.name,
@@ -143,14 +272,65 @@ def record_baseline(run_dir: Path, *, date: str, orchestrator: str,
         "orchestration": state.get("stages", {}),
         "stop_reason": state.get("stop_reason"),
         "ep": _ep_end(run_dir),
+        "corrections_summary": corr_summary,
         "blocked": res.blocked,
     }
     (run_dir / "baseline.json").write_text(
         json.dumps(baseline, indent=2, ensure_ascii=False), encoding="utf-8")
     (run_dir / "RUN_REPORT.md").write_text(
-        _render_report(baseline, _eyeball_checklist(run_dir, summary, counts)),
+        _render_report(
+            baseline, _eyeball_checklist(run_dir, summary, counts, corr_summary)),
         encoding="utf-8")
     return baseline
+
+
+def _audit_json(obj) -> str:
+    return json.dumps(obj, ensure_ascii=False)
+
+
+def _render_corrections_audit(summary: dict) -> list[str]:
+    lines = ["", "## 校正审计（看错↔改错归因）"]
+    path = summary.get("sidecar_path", "1_correction/corrections.json")
+    status = summary.get("parse_status", "unknown")
+    if not summary.get("present"):
+        lines += ["", f"- （无 corrections.json）`{path}`"]
+        return lines
+    if status != "ok":
+        msg = summary.get("parse_error", "")
+        lines += ["", f"- `corrections.json` 读取状态: {status}" + (f" — {msg}" if msg else "")]
+        return lines
+
+    counts = summary.get("counts", {})
+    conflicts = summary.get("conflicts", [])
+    unsupported = summary.get("unsupported", [])
+    corrections = summary.get("corrections", {})
+    rows = corrections.get("rows", [])
+
+    if conflicts:
+        lines += ["", "### conflicts[]"]
+        lines += [f"- {_audit_json(entry)}" for entry in conflicts]
+    if unsupported:
+        lines += ["", "### unsupported[]"]
+        lines += [f"- {_audit_json(entry)}" for entry in unsupported]
+    if rows:
+        lines += ["", f"### corrections[]（显示 {corrections.get('shown', len(rows))}/"
+                  f"{corrections.get('total', len(rows))}，cap={corrections.get('cap', '?')}）"]
+        lines += [f"- {_audit_json(row)}" for row in rows]
+    elif not (conflicts or unsupported):
+        lines += ["", "- `corrections.json` 存在，但 audit 为空。"]
+
+    lines += [
+        "",
+        "### count summary",
+        f"- sidecar: `{path}` ({status})",
+        "- counts: "
+        f"corrections={counts.get('corrections', 0)}, "
+        f"conflicts={counts.get('conflicts', 0)}, "
+        f"unsupported={counts.get('unsupported', 0)}",
+        f"- by_rule_id: {_audit_json(summary.get('by_rule_id', {}))}",
+        f"- by_stage: {_audit_json(summary.get('by_stage', {}))}",
+    ]
+    return lines
 
 
 def _render_report(b: dict, eyeball: list[str]) -> str:
@@ -197,6 +377,7 @@ def _render_report(b: dict, eyeball: list[str]) -> str:
     if b["flags"]:
         lines += ["", "## ⚠️ flags（不阻塞、供归因）"]
         lines += [f"- [{x['stage']}::{x['check']}] {x['message']}" for x in b["flags"]]
+    lines += _render_corrections_audit(b.get("corrections_summary", {}))
     lines += ["", "## 🔍 请你肉视检验（确定性 + judge 都盖不死的感知项）"]
     lines += [f"{i+1}. {it}" for i, it in enumerate(eyeball)]
     lines += ["", f"_附: baseline.json / 各 <stage>_checks.json / geometry_digest={b['geometry_digest']}_"]
