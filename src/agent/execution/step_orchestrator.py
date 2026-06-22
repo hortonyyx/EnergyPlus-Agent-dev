@@ -16,7 +16,7 @@ AI_agent/guides/new_case_guide.md §2):
         Agent submits StageVerdict:
             non-blocking                      → JUDGE_PASS (advance)
             blocking + routable + stochastic  → JUDGE_BLOCK (blind resample, same budget)
-            blocking + manual (0_reading)     → HUMAN_REDRAW_REQUIRED (stop)
+            blocking + manual (0_reading)     → AWAITING_REREAD if runner-enabled, else human
             blocking + unattributed/low-conf  → JUDGE_BLOCK_HUMAN (交人, stop)
 
 Disciplines this module mechanically keeps:
@@ -73,6 +73,7 @@ class StepStatus(str, Enum):
     AWAITING_JUDGE = "awaiting_judge"                 # gate① passed, judge stage → Agent judges
     DETERMINISTIC_PASS = "deterministic_pass"         # gate① passed, no enabled judge → advance
     AWAITING_GEOMETRY_APPROVAL = "awaiting_geometry_approval"  # human geometry confirm gate
+    AWAITING_REREAD = "awaiting_reread"               # manual reading blocked, runner protocol available
     # --- judge verdict outcomes ---
     JUDGE_PASS = "judge_pass"                         # verdict non-blocking → advance
     JUDGE_BLOCK = "judge_block"                       # verdict blocking, routable → resample
@@ -144,6 +145,17 @@ def _attempt_dir(stage_dir: Path, idx: int) -> Path:
     return stage_dir / "attempts" / f"{idx:03d}"
 
 
+def _sibling_stage_dir_for(stage: str, stage_dir: Path) -> Callable[[str], Path]:
+    parent = Path(stage_dir).parent
+
+    def resolve(target: str) -> Path:
+        if target == stage:
+            return Path(stage_dir)
+        return parent / target
+
+    return resolve
+
+
 def _report_summary(rep: CheckReport) -> dict:
     return {
         "passed": rep.passed,
@@ -193,6 +205,7 @@ def run_one_stage(
     draw_fn: Callable[[str | None], tuple[object, CheckReport]],
     geometry_approved: Callable[[], bool] | None = None,
     packet_fn: Callable[[Path, CheckReport], dict] | None = None,
+    stage_dir_for: Callable[[str], Path] | None = None,
     force_draw: bool = False,
 ) -> StageOutcome:
     """Run one stage to its next decision point.
@@ -206,6 +219,7 @@ def run_one_stage(
     spec = stage_spec(stage)
     cap = spec.capability
     approved = geometry_approved or (lambda: True)
+    stage_dir_for = stage_dir_for or _sibling_stage_dir_for(stage, stage_dir)
 
     # --- geometry gate: 4_mep refuses to run until the checkpoint is approved ---
     if stage == GEOMETRY_GATED_STAGE and policy.confirmation_blocks(approved()):
@@ -219,7 +233,8 @@ def run_one_stage(
         # already gate①-accepted: re-emit the post-gate① decision without redrawing
         report = _load_report(stage_dir, accepted.accepted_attempt)
         return _post_gate1(stage, stage_dir, accepted.accepted_attempt, report,
-                           policy, approved, _existing_attempts(stage_dir), packet_fn)
+                           policy, approved, _existing_attempts(stage_dir), packet_fn,
+                           stage_dir_for)
 
     cap_draws = policy.budget.per_stage_draws
     existing = _existing_attempts(stage_dir)
@@ -246,6 +261,24 @@ def run_one_stage(
                 message="deterministic gate① blocked — code defect, fail-closed (no resample)",
             )
         if cap == Capability.MANUAL:
+            if policy.reading_runner_available:
+                if existing < cap_draws:
+                    return StageOutcome(
+                        stage, StepStatus.AWAITING_REREAD, existing, attempt_idx, report,
+                        route_target=stage,
+                        message=(
+                            "0_reading gate① blocked — blind sub-agent re-read available "
+                            f"(attempts {existing}/{cap_draws})"
+                        ),
+                    )
+                return StageOutcome(
+                    stage, StepStatus.QUARANTINED, existing, attempt_idx, report,
+                    route_target=stage,
+                    message=(
+                        "0_reading gate① blocked and re-read budget "
+                        f"({cap_draws}) is spent — quarantine for human triage"
+                    ),
+                )
             return StageOutcome(
                 stage, StepStatus.HUMAN_REDRAW_REQUIRED, existing, attempt_idx, report,
                 message="0_reading gate① blocked — manual stage needs a human re-trace",
@@ -253,7 +286,7 @@ def run_one_stage(
         # stochastic → loop and blind-resample
 
     return _post_gate1(stage, stage_dir, attempt_idx, last_report, policy,
-                       approved, existing, packet_fn)
+                       approved, existing, packet_fn, stage_dir_for)
 
 
 def _post_gate1(
@@ -261,6 +294,7 @@ def _post_gate1(
     report: CheckReport | None, policy: RunPolicy,
     approved: Callable[[], bool], attempts: int,
     packet_fn: Callable[[Path, CheckReport], dict] | None,
+    stage_dir_for: Callable[[str], Path],
 ) -> StageOutcome:
     """gate① passed — decide: judge / geometry-gate / advance."""
     # geometry checkpoint sits after 3_split_pairing (digest binds 2+3+kernel report)
@@ -278,7 +312,9 @@ def _post_gate1(
     if reg is not None and reg[1] and policy.judge_enabled:  # an ENABLED judge (J0 / J1)
         existing_verdict = _load_verdict(stage_dir, attempt_idx)
         if existing_verdict is not None:
-            return _verdict_outcome(stage, attempt_idx, report, existing_verdict, attempts)
+            return _verdict_outcome(
+                stage, attempt_idx, report, existing_verdict, attempts,
+                policy=policy, stage_dir_for=stage_dir_for)
         packet = None
         if packet_fn is not None and report is not None:
             packet = packet_fn(_attempt_dir(stage_dir, attempt_idx), report)
@@ -303,6 +339,8 @@ def submit_verdict(
     attempt_index: int,
     verdict: StageVerdict,
     verdict_dir: Path | None = None,
+    policy: RunPolicy | None = None,
+    stage_dir_for: Callable[[str], Path] | None = None,
     confidence_threshold: float = 0.6,
 ) -> StageOutcome:
     """Persist the Agent's judge verdict beside the accepted attempt + classify it.
@@ -315,20 +353,28 @@ def submit_verdict(
     adir.mkdir(parents=True, exist_ok=True)
     (adir / "judge.json").write_text(verdict.model_dump_json(indent=2), encoding="utf-8")
     _append_verdict_log(verdict_dir, verdict)
+    policy = policy or RunPolicy()
+    stage_dir_for = stage_dir_for or _sibling_stage_dir_for(stage, stage_dir)
     return _verdict_outcome(
         stage, attempt_index, _load_report(stage_dir, attempt_index), verdict,
         _existing_attempts(stage_dir), confidence_threshold,
+        policy=policy, stage_dir_for=stage_dir_for,
     )
 
 
 def _verdict_outcome(
     stage: str, attempt_index: int, report: CheckReport | None,
     verdict: StageVerdict, attempts: int, confidence_threshold: float = 0.6,
+    *,
+    policy: RunPolicy | None = None,
+    stage_dir_for: Callable[[str], Path] | None = None,
 ) -> StageOutcome:
     """Classify a judge verdict by its *attributed root stage* (not mechanically the
     judged stage): a J1 verdict whose root is 0_reading must route to a human
     re-trace, not a 1_correction resample (contracts §0.3 upstream_input_failure)."""
     recoverable_count = _recoverable_severe_count(verdict)
+    policy = policy or RunPolicy()
+    stage_dir_for = stage_dir_for or (lambda target: Path(target))
     if not verdict.blocking:
         if recoverable_count:
             return StageOutcome(
@@ -359,6 +405,26 @@ def _verdict_outcome(
         )
     target_cap = stage_spec(target).capability
     if target_cap == Capability.MANUAL:
+        if policy.reading_runner_available:
+            cap_draws = policy.budget.per_stage_draws
+            target_attempts = _existing_attempts(Path(stage_dir_for(target)))
+            if target_attempts < cap_draws:
+                return StageOutcome(
+                    stage, StepStatus.AWAITING_REREAD, target_attempts, attempt_index, report,
+                    route_target=target,
+                    message=(
+                        f"judge blocked, root='{target}' (manual) — blind sub-agent "
+                        f"re-read available (attempts {target_attempts}/{cap_draws})"
+                    ),
+                )
+            return StageOutcome(
+                stage, StepStatus.QUARANTINED, target_attempts, attempt_index, report,
+                route_target=target,
+                message=(
+                    f"judge blocked, root='{target}' (manual) but re-read budget "
+                    f"({cap_draws}) is spent — quarantine for human triage"
+                ),
+            )
         return StageOutcome(
             stage, StepStatus.HUMAN_REDRAW_REQUIRED, attempts, attempt_index, report,
             route_target=target,
@@ -451,8 +517,8 @@ def update_state(run_dir: Path, outcome: StageOutcome, *, timestamp: str = "") -
     state["updated"] = timestamp
     if outcome.terminal_stop:
         state["stop_reason"] = f"{outcome.status.value}@{outcome.stage}"
-    elif outcome.status == StepStatus.AWAITING_GEOMETRY_APPROVAL:
-        state["stop_reason"] = f"awaiting_geometry_approval@{outcome.stage}"
+    elif outcome.status in (StepStatus.AWAITING_GEOMETRY_APPROVAL, StepStatus.AWAITING_REREAD):
+        state["stop_reason"] = f"{outcome.status.value}@{outcome.stage}"
     else:
         state["stop_reason"] = None
     Path(run_dir).joinpath(STATE_NAME).write_text(

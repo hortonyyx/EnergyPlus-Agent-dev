@@ -78,7 +78,8 @@ judge 密度（自洽口径）：**只在 LLM 段 0/1/4 有 judge**；确定性�
    - `stochastic_draw_failure`（0自动后/1/4 的 draw）→ **盲重抽**（≤3，超则 quarantine 交人）。
    - `upstream_input_failure`（输入违反前置）→ 弹**上游产出段**。
    - `judge_mismatch` → 盲重抽；归因不确定（root_confidence 低）→ **不自动路由、交人**。
-   - **0_reading 当前 = manual** → 自动只返 `human_redraw_required`（VLM runner 接入后才自动盲抽）。
+   - **0_reading 默认 = manual** → `human_redraw_required`；当 `reading_runner_available=True` 时，
+     可返回 `awaiting_reread`，由主 Agent 冷启隔离子 Agent 做盲重读（≤每段预算）。
 
 ## 2. 逐段编排流程（你每跑一个 case 这样走）
 
@@ -94,14 +95,16 @@ judge 密度（自洽口径）：**只在 LLM 段 0/1/4 有 judge**；确定性�
 > python scripts/tool_scripts/run_stage.py --base-dir $BD --date <ISO> run      <case> <run> <stage>
 > # judge②：你看完 packet 的原图+渲染(+gt)，写一份 StageVerdict JSON，提交
 > python scripts/tool_scripts/run_stage.py --base-dir $BD --date <ISO> judge    <case> <run> <stage> --verdict v.json
-> #   verdict 非阻塞→JUDGE_PASS(进下一段)；severe/fatal 可路由→JUDGE_BLOCK(↻ resample)；不可归因→交人；manual 段→human_redraw
+> #   verdict 非阻塞→JUDGE_PASS(进下一段)；severe/fatal 可路由→JUDGE_BLOCK(↻ resample)；
+> #   不可归因→交人；manual 段默认→human_redraw，有 runner→awaiting_reread
 > python scripts/tool_scripts/run_stage.py --base-dir $BD --date <ISO> resample <case> <run> <stage>   # judge 打回后盲重抽（同 ≤3 预算）
 > # 几何阻塞门：3_split_pairing 过 gate① 后停在 awaiting_geometry_approval；用户在对话里看 3D/区图/立面确认后你才批
 > python scripts/tool_scripts/run_stage.py --base-dir $BD --date <ISO> approve-geometry <case> <run> --actor <user>
 > python scripts/tool_scripts/run_stage.py --base-dir $BD status <case> <run>   # 看编排账本 + stop_reason
 > ```
 > **停下判据**（按 §1.3）：gate①-block 盲重抽耗尽=`quarantined`；deterministic gate①-block=`deterministic_defect`（fail-closed）；
-> judge severe/fatal 不可归因=`judge_block_human`；0_reading 阻塞=`human_redraw_required`。任一停点 → 直接出总报告。
+> judge severe/fatal 不可归因=`judge_block_human`；0_reading 阻塞默认=`human_redraw_required`，
+> runner 可用时=`awaiting_reread`（非 terminal，等主 Agent 完成盲重读 handoff 后继续）。任一 terminal 停点 → 直接出总报告。
 > **几何门**：`ConfirmationPolicy.REQUIRED` 已接成阻塞门，**未 approve 时 `run 4_mep` 直接拒跑、不画**。
 > 跑完或中途停 → `record_baseline.py`（已纳入逐段 status + stop_reason + judge verdict 计数）出 baseline.json + RUN_REPORT.md。
 
@@ -115,7 +118,17 @@ judge 密度（自洽口径）：**只在 LLM 段 0/1/4 有 judge**；确定性�
   `skills/intake_pipeline/0_reading/`。
 - **gate①**：`check_reading_view`（结构 linter）→ 逐视图 `*_checks.json`。
 - **gate② J0**（你看【原图 + `*_render.png` 线框 + JSON】，rubric=`0_reading/judge_rubric.md`）：七类
-  识别错。致命/严重 → **human_redraw_required**（manual 段不自动重抽，告诉用户重描）。
+  识别错。致命/严重 → 默认 **human_redraw_required**；若本 run 显式启用 `reading_runner_available`，
+  orchestrator 返回 **awaiting_reread**。
+- **awaiting_reread handoff（主 Agent 协议，orchestrator 不执行）**：冷启一个隔离多模态子 Agent，
+  只给 `case_data/*.png`（原分辨率，必要时裁图）、`testdata_prompt.json`、`skills/intake_pipeline/0_reading/`。
+  **禁止**给 prior strokes / prior attempts / judge commentary / gt。模型/effort ladder 必须按 attempt
+  预声明并带外记录；优先用原图保真、独立 OCR、严格 schema/linter 这些 discipline-safe lever，而不是把
+  judge 评语变成 prompt repair。子 Agent 写/替换 flat working copy：`0_reading/*_view.json` +
+  `reading_summary.md`（可附渲染）。然后主 Agent 跑
+  `python scripts/tool_scripts/run_stage.py ... resample <case> <run> 0_reading --force`，它会读取 flat
+  working copy，记录成下一次 `0_reading/attempts/NNN/output.json`，再 gate①→J0；达到 `per_stage_draws`
+  仍不过则 quarantine/交人。
 
 ### S1 1_correction（校正，DeepSeek 独立调用）
 - 执行器：`src/agent/pipeline.py:run_correction(vector_dir, testdata, out_dir=...)`——独立 DeepSeek

@@ -7,8 +7,10 @@ take:
 
   capability      blocking failure → action
   ─────────────   ─────────────────────────────────────────────────────────────
-  manual          ``human_redraw_required``  (0_reading today; auto resample only
-                  opens once a VLM runner is wired)
+  manual          ``human_redraw_required`` by default (0_reading); when
+                  RunPolicy.reading_runner_available is enabled, the step
+                  orchestrator can return ``awaiting_reread`` so the main Agent
+                  runs the blind cold-start sub-agent protocol
   stochastic      ``blind_resample``         (1_correction / 4_mep: same input,
                   different sampling; judge text never injected into the prompt)
   deterministic   ``fail_closed``            (core / 2 / 3 / 5: a code defect to

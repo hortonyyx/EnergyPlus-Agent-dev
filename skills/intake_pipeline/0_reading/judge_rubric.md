@@ -48,6 +48,15 @@ world placement — those are 1_correction's (J1).
   4. the defect is honestly surfaced by provenance/confidence or a gate1 CROSS_CHECK flag.
 - If any condition fails, set `recoverability="unrecoverable"` or `"unknown"` and halt.
   Default on uncertainty is unrecoverable. A false green costs more than a wasted re-read.
+- Runtime disposition: `0_reading` is manual by default, so an unrecoverable/unknown
+  severe or fatal finding stops at `human_redraw_required`. When
+  `RunPolicy.reading_runner_available` is enabled and the root-stage budget remains,
+  the orchestrator returns non-terminal `awaiting_reread`; the main Agent then runs a
+  blind cold-start sub-agent re-read. The sub-agent receives only original case images,
+  `testdata_prompt.json`, and the 0_reading skill — no prior strokes, judge
+  commentary, prior attempts, or gt — and writes/replaces the flat `0_reading/*_view.json`
+  working copy before `run_stage resample ... 0_reading --force` records the next
+  attempt. At `per_stage_draws`, quarantine/human triage.
 - Set `root_stage="0_reading"` when the defect is a recognition error; leave
   `root_stage=null` + low `root_confidence` when you cannot attribute confidently
   (do **not** force a routing decision).

@@ -385,9 +385,13 @@ def _judge_packet(stage: str, case: str, case_dir: Path, run_dir: Path,
 # --------------------------------------------------------------------------- #
 # verbs
 # --------------------------------------------------------------------------- #
-def _make_policy() -> RunPolicy:
+def _make_policy(*, reading_runner_available: bool = False) -> RunPolicy:
     # dev baseline: judge on, geometry confirmation REQUIRED (blocking human gate)
-    return RunPolicy(confirmation_policy=ConfirmationPolicy.REQUIRED, judge_enabled=True)
+    return RunPolicy(
+        confirmation_policy=ConfirmationPolicy.REQUIRED,
+        judge_enabled=True,
+        reading_runner_available=reading_runner_available,
+    )
 
 
 def _print_outcome(outcome, packet: dict | None = None) -> None:
@@ -411,10 +415,26 @@ def _print_outcome(outcome, packet: dict | None = None) -> None:
             print(f"     gt(judge-only): {packet['gt_path']}")
 
 
+def _print_reread_protocol(args, outcome) -> None:
+    target = outcome.route_target or "0_reading"
+    date_arg = f" --date {args.date}" if args.date else ""
+    print("  ↻ blind re-read protocol:")
+    print("     1. Spawn a fresh isolated cold-start sub-agent for 0_reading.")
+    print("     2. Give it ONLY case_data/*.png, testdata_prompt.json, and the 0_reading skill.")
+    print("        Do NOT give prior strokes, prior attempts, judge commentary, or gt.")
+    print("     3. Use original-resolution images / crops and any predeclared model-effort ladder; log the runner config out-of-band.")
+    print("     4. Have it write/replace the flat working copy: 0_reading/*_view.json plus reading_summary.md.")
+    print("     5. Then record and re-gate that flat copy:")
+    print(
+        "        python scripts/tool_scripts/run_stage.py"
+        f" --base-dir {args.base_dir}{date_arg} resample {args.case} {args.run} {target} --force"
+    )
+
+
 def cmd_run(args) -> int:
     case_dir, run_dir, td_path = _resolve(args.base_dir, args.case, args.run)
     testdata_text = td_path.read_text(encoding="utf-8") if td_path.exists() else ""
-    policy = _make_policy()
+    policy = _make_policy(reading_runner_available=args.reading_runner_available)
     manifest = RunManifest.load(run_dir)
     runner = StageRunner(run_dir, manifest)
     stage = args.stage
@@ -428,6 +448,7 @@ def cmd_run(args) -> int:
         stage=stage, runner=runner, stage_dir=stage_dir, policy=policy,
         draw_fn=draw_fn, packet_fn=_packet_fn, force_draw=args.force,
         geometry_approved=lambda: geometry_is_approved(run_dir, case_dir=case_dir),
+        stage_dir_for=lambda target: run_dir / target,
     )
     manifest.save(run_dir)
     # 4_mep J4 is a disabled judge — record the explicit disabled verdict (not a PASS).
@@ -435,6 +456,8 @@ def cmd_run(args) -> int:
         run_judge("4_mep", {}, judge_fn=None, verdict_dir=run_dir / "verdicts")
     update_state(run_dir, outcome, timestamp=args.date or "")
     _print_outcome(outcome, outcome.packet)
+    if outcome.status == StepStatus.AWAITING_REREAD:
+        _print_reread_protocol(args, outcome)
     # geometry confirmation gate: produce the interactive offline 3D viewer for the
     # human to inspect (orbit / 半透明 / 截面 / explode / measure) before approving.
     if (stage in ("2_modelling", "3_split_pairing")
@@ -453,6 +476,7 @@ def cmd_resample(args) -> int:
 
 def cmd_judge(args) -> int:
     _case_dir, run_dir, _td = _resolve(args.base_dir, args.case, args.run)
+    policy = _make_policy(reading_runner_available=args.reading_runner_available)
     stage = args.stage
     stage_dir = run_dir / stage
     manifest = RunManifest.load(run_dir)
@@ -467,6 +491,7 @@ def cmd_judge(args) -> int:
     outcome = submit_verdict(
         stage=stage, stage_dir=stage_dir, attempt_index=accepted.accepted_attempt,
         verdict=verdict, verdict_dir=run_dir / "verdicts",
+        policy=policy, stage_dir_for=lambda target: run_dir / target,
     )
     update_state(run_dir, outcome, timestamp=args.date or "")
     _print_outcome(outcome)
@@ -475,6 +500,8 @@ def cmd_judge(args) -> int:
         # stage (e.g. a J1 verdict rooted in a stochastic upstream stage).
         target = outcome.route_target or stage
         print(f"  ↻ blind resample: `run_stage.py resample {args.case} {args.run} {target}`")
+    elif outcome.status == StepStatus.AWAITING_REREAD:
+        _print_reread_protocol(args, outcome)
     return 0 if not outcome.terminal_stop else 2
 
 
@@ -515,6 +542,8 @@ def main() -> int:
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--base-dir", default="case_tests/e2e_tests")
     ap.add_argument("--date", default="", help="ISO date stamp for state/approval")
+    ap.add_argument("--reading-runner-available", action="store_true",
+                    help="enable awaiting_reread decisions; the main Agent still runs the sub-agent protocol")
     sub = ap.add_subparsers(dest="verb", required=True)
 
     for verb in ("run", "resample"):

@@ -107,7 +107,7 @@
 | `deterministic_code_failure`（输入合法、确定性代码违反后置）| **fail-closed、记 code defect、raise；绝不弹上游/换样本掩盖** |
 | `stochastic_draw_failure`（0 自动后/1/4 的 draw 不过）| **盲重抽**（同输入换采样；judge 评语只进带外日志、绝不注入 prompt）|
 | `judge_mismatch` | 盲重抽 stochastic 段；`root_confidence` 低 → **不自动路由、交人** |
-- **0_reading 当前 = `manual` runner** → 自动路由只返回 `human_redraw_required`（VLM runner 接入后才开放自动盲重抽）。
+- **0_reading 默认 = `manual` runner** → `human_redraw_required`；**当 `RunPolicy.reading_runner_available=True`**（PR-B，2026-06-22）→ orchestrator 返回**非终止** `awaiting_reread`，主 Agent 冷启**隔离子代理盲重读**（子代理即 runner，不必等外部 VLM API；写 flat view → `resample --force` 记 attempt → 再 gate①→J0；≤`per_stage_draws` → quarantine）。
 - **不复用 `_make_correction_validator`** 当通用 harness——抽 `draw_json_once` + 单阶段 `retry_stage_draw`，跨阶段 route/invalidation 归执行地基（[施工方案 M0](../archive/pipeline_validation_build_plan.md)）；明确两入口 `repair_feedback`（下游 repair 可注入）vs `judge_retry_context=None`（必盲抽）不串线。
 - **打回目标 = judge 归因的根因阶段**（非机械上一步）；归因不确定不自动路由。
 - **预算 = 每阶段 3 次 + 整条 run 全局预算 + 循环检测**；超则终止 + 记 **`quarantined_failure`**（排除 judge 误判/代码 bug/配置错后才进训练 hard-sample 集）。
@@ -143,7 +143,7 @@
 - **消费者**：1_correction。
 - **判据**：reading 只问「**这张图画了什么，你忠实描了吗**」——per-image 感知，**不建拓扑、不要参考答案、不做世界落位**（区数/跨图/轴翻落位全归 1_correction）。
 - **校验**：
-  - **① 确定性**（→ `reading_checks.json`；坏则按 §0.3 失败分类——**0 当前 `manual` runner → `human_redraw_required`**，VLM runner 接入后才自动盲重抽）：⚠️现仅 `self_check` 自评。**应补 ❌**：(a) **结构 linter**（L-不变量, block）合法 pen×kind / 无拓扑字段 / plan thickness&world_z=null / 立面 image-local 朝向字段齐全 / 唯一 stroke·dimension id / 有限数值 / 非退化 line·rect / dimension 可解析 / axis-端点一致 /〔**`uncaptured` 仅要求存在且为 list、不要求非空**——干净图合法 `[]`〕；(b) **单图尺寸链闭合**（flag）Σ段==total（用 chain_id/role/order）；(c) **内部几何-尺寸一致性**（原 stroke↔dimension，**低置信 flag、非 2f 主验收**）stroke 近似长≈对应 dimension——只验内部一致，**不能逮"自洽地全错"**（同一次识图非独立真值；原图数字真值交 ②/独立 OCR）；(d) **单图越界**（flag）坐标在本图声明范围内。
+  - **① 确定性**（→ `reading_checks.json`；坏则按 §0.3 失败分类——**0 默认 `manual` runner → `human_redraw_required`**；`reading_runner_available` 开启则非终止 `awaiting_reread`（主 Agent 子代理盲重读，PR-B 2026-06-22））：⚠️现仅 `self_check` 自评。**应补 ❌**：(a) **结构 linter**（L-不变量, block）合法 pen×kind / 无拓扑字段 / plan thickness&world_z=null / 立面 image-local 朝向字段齐全 / 唯一 stroke·dimension id / 有限数值 / 非退化 line·rect / dimension 可解析 / axis-端点一致 /〔**`uncaptured` 仅要求存在且为 list、不要求非空**——干净图合法 `[]`〕；(b) **单图尺寸链闭合**（flag）Σ段==total（用 chain_id/role/order）；(c) **内部几何-尺寸一致性**（原 stroke↔dimension，**低置信 flag、非 2f 主验收**）stroke 近似长≈对应 dimension——只验内部一致，**不能逮"自洽地全错"**（同一次识图非独立真值；原图数字真值交 ②/独立 OCR）；(d) **单图越界**（flag）坐标在本图声明范围内。
   - **② VLM judge**（喂【原图+线框渲染+JSON】，结构化清单，**应补 ❌**）：七类明显识别错误——① 漏描真墙/真窗 ② 杂物当结构（家具/铺装/文字/轴网/楼梯）③ 笔型认错 ④ 数字抄错（复读尺寸标注，**这里才是抄录真值主验收**）⑤ image-local 朝向声明与视图自洽（**声明级**，真翻落位归 1）⑥ 门 healing 错 ⑦ 整片缺失/错位。致命/严重→**`human_redraw_required`**（0 当前 manual；VLM 接入后自动盲重读、3 次→终止）。
   - ⚠️ 现状 L-肉眼：`render_vector_to_png.py` 手动渲图比对（[[phase1-output-conventions]]）。
 

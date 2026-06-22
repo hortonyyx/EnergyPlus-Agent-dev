@@ -11,10 +11,12 @@ from __future__ import annotations
 from pathlib import Path
 
 from src.agent.execution import (
+    ADVANCE_OK,
     RunManifest,
     RunPolicy,
     StageRunner,
     StepStatus,
+    TERMINAL_STOP,
     load_state,
     mark_geometry_approved,
     run_one_stage,
@@ -55,6 +57,15 @@ def _fake_draw(stage: str, results: list[bool]):
 
 def _runner(tmp_path):
     return StageRunner(tmp_path, RunManifest(case="t"))
+
+
+def _record_attempts(tmp_path, stage: str, n: int):
+    runner = _runner(tmp_path)
+    draw, _ = _fake_draw(stage, [True] * n)
+    for _ in range(n):
+        run_one_stage(stage=stage, runner=runner, stage_dir=tmp_path / stage,
+                      policy=RunPolicy(), draw_fn=draw, force_draw=True)
+    return runner
 
 
 def _verdict(stage, *, blocking, root="1_correction", conf=0.9):
@@ -138,6 +149,44 @@ def test_manual_block_requires_human_redraw(tmp_path):
     assert out.attempts_used == 1  # manual: not auto-resampled
 
 
+def test_awaiting_reread_is_nonterminal_and_not_advance_ok():
+    assert StepStatus.AWAITING_REREAD not in TERMINAL_STOP
+    assert StepStatus.AWAITING_REREAD not in ADVANCE_OK
+
+
+def test_manual_block_awaits_reread_when_runner_available(tmp_path):
+    draw, calls = _fake_draw("0_reading", [False])
+    out = run_one_stage(
+        stage="0_reading",
+        runner=_runner(tmp_path),
+        stage_dir=tmp_path / "0_reading",
+        policy=RunPolicy(reading_runner_available=True),
+        draw_fn=draw,
+    )
+    assert out.status == StepStatus.AWAITING_REREAD
+    assert out.terminal_stop is False
+    assert out.route_target == "0_reading"
+    assert out.attempts_used == 1
+    assert calls["feedback"] == [None]
+
+
+def test_manual_block_runner_available_budget_spent_quarantines(tmp_path):
+    draw, _ = _fake_draw("0_reading", [False, False, False])
+    runner = _runner(tmp_path)
+    policy = RunPolicy(reading_runner_available=True)
+    out1 = run_one_stage(stage="0_reading", runner=runner,
+                         stage_dir=tmp_path / "0_reading", policy=policy, draw_fn=draw)
+    out2 = run_one_stage(stage="0_reading", runner=runner,
+                         stage_dir=tmp_path / "0_reading", policy=policy, draw_fn=draw)
+    out3 = run_one_stage(stage="0_reading", runner=runner,
+                         stage_dir=tmp_path / "0_reading", policy=policy, draw_fn=draw)
+    assert out1.status == StepStatus.AWAITING_REREAD
+    assert out2.status == StepStatus.AWAITING_REREAD
+    assert out3.status == StepStatus.QUARANTINED
+    assert out3.route_target == "0_reading"
+    assert out3.attempts_used == 3
+
+
 def test_manual_pass_awaits_judge_j0(tmp_path):
     draw, _ = _fake_draw("0_reading", [True])
     out = run_one_stage(stage="0_reading", runner=_runner(tmp_path),
@@ -208,6 +257,67 @@ def test_verdict_routes_to_manual_upstream_root_human_redraw(tmp_path):
                          attempt_index=1,
                          verdict=_verdict("1_correction", blocking=True, root="0_reading"))
     assert out.status == StepStatus.HUMAN_REDRAW_REQUIRED
+    assert out.route_target == "0_reading"
+
+
+def test_verdict_manual_root_awaits_reread_using_root_stage_budget(tmp_path):
+    _record_attempts(tmp_path, "0_reading", 1)
+    _record_attempts(tmp_path, "1_correction", 3)
+    out = submit_verdict(
+        stage="1_correction",
+        stage_dir=tmp_path / "1_correction",
+        attempt_index=3,
+        verdict=_verdict("1_correction", blocking=True, root="0_reading"),
+        policy=RunPolicy(reading_runner_available=True),
+        stage_dir_for=lambda target: tmp_path / target,
+    )
+    assert out.status == StepStatus.AWAITING_REREAD
+    assert out.route_target == "0_reading"
+    # Proves budget used 0_reading attempts (1), not judged 1_correction attempts (3).
+    assert out.attempts_used == 1
+
+
+def test_verdict_manual_root_budget_spent_quarantines(tmp_path):
+    _record_attempts(tmp_path, "0_reading", 3)
+    _record_attempts(tmp_path, "1_correction", 1)
+    out = submit_verdict(
+        stage="1_correction",
+        stage_dir=tmp_path / "1_correction",
+        attempt_index=1,
+        verdict=_verdict("1_correction", blocking=True, root="0_reading"),
+        policy=RunPolicy(reading_runner_available=True),
+        stage_dir_for=lambda target: tmp_path / target,
+    )
+    assert out.status == StepStatus.QUARANTINED
+    assert out.route_target == "0_reading"
+    assert out.attempts_used == 3
+
+
+def test_existing_verdict_manual_root_awaits_reread(tmp_path):
+    runner = _runner(tmp_path)
+    reading_draw, _ = _fake_draw("0_reading", [True])
+    run_one_stage(stage="0_reading", runner=runner, stage_dir=tmp_path / "0_reading",
+                  policy=RunPolicy(), draw_fn=reading_draw)
+    correction_draw, _ = _fake_draw("1_correction", [True])
+    run_one_stage(stage="1_correction", runner=runner, stage_dir=tmp_path / "1_correction",
+                  policy=_judge_policy(), draw_fn=correction_draw)
+    submit_verdict(
+        stage="1_correction",
+        stage_dir=tmp_path / "1_correction",
+        attempt_index=1,
+        verdict=_verdict("1_correction", blocking=True, root="0_reading"),
+        policy=RunPolicy(reading_runner_available=True),
+        stage_dir_for=lambda target: tmp_path / target,
+    )
+    out = run_one_stage(
+        stage="1_correction",
+        runner=runner,
+        stage_dir=tmp_path / "1_correction",
+        policy=RunPolicy(judge_enabled=True, reading_runner_available=True),
+        draw_fn=correction_draw,
+        stage_dir_for=lambda target: tmp_path / target,
+    )
+    assert out.status == StepStatus.AWAITING_REREAD
     assert out.route_target == "0_reading"
 
 
@@ -326,6 +436,17 @@ def test_update_state_clean_has_no_stop_reason(tmp_path):
                         stage_dir=tmp_path / "2_modelling", policy=RunPolicy(), draw_fn=draw)
     update_state(tmp_path, out, timestamp="2026-06-19")
     assert load_state(tmp_path)["stop_reason"] is None
+
+
+def test_update_state_records_awaiting_reread_stop_reason(tmp_path):
+    draw, _ = _fake_draw("0_reading", [False])
+    out = run_one_stage(stage="0_reading", runner=_runner(tmp_path),
+                        stage_dir=tmp_path / "0_reading",
+                        policy=RunPolicy(reading_runner_available=True), draw_fn=draw)
+    update_state(tmp_path, out, timestamp="2026-06-22")
+    state = load_state(tmp_path)
+    assert state["stop_reason"] == "awaiting_reread@0_reading"
+    assert state["stages"]["0_reading"]["status"] == "awaiting_reread"
 
 
 def test_geometry_approval_clears_stop_reason(tmp_path):

@@ -14,7 +14,7 @@ from __future__ import annotations
 
 from enum import Enum
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 from src.agent.execution.invalidation import RunBudget
 
@@ -42,6 +42,13 @@ class RunPolicy(BaseModel):
     # a missing .end is then explicitly skipped, NOT silently passed. Set True to
     # make the EP baseline a required, blocking artifact.
     require_ep: bool = False
+    # Default False preserves the current manual 0_reading stop. When True, the
+    # orchestrator may return awaiting_reread; the main Agent owns the actual
+    # cold-start sub-agent protocol and artifact handoff.
+    reading_runner_available: bool = False
+    # Advisory metadata for the main-Agent runner protocol. The orchestrator does
+    # not consume it; it only records the predeclared model/effort ladder elsewhere.
+    reading_runner_ladder: list[dict] = Field(default_factory=list)
     budget: RunBudget = RunBudget()
 
     def confirmation_blocks(self, approved: bool) -> bool:
