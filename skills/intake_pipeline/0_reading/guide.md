@@ -45,12 +45,18 @@ The reading stage and the correction stage are mutually exclusive in the kind of
 | the correction stage | the reading stage JSON + skill rule docs + testdata_prompt metadata (**does not see the image**) | **pure reasoning errors**: wrong grouping, inside/outside misjudged, parent-child mapping wrong, IntakeOutput field wrong |
 
 **Implications**:
-- Every error about "a value / position / stroke type in the image" must be caught in the reading stage.
-  Once the reading stage writes it wrong, the correction stage has no chance to backtrack.
+- Every error about "a value / position / stroke type in the image" must be caught in the reading stage
+  unless the reading JSON still carries an independent redundant channel that pins the truth.
+  An offset coordinate with a surviving dimension chain and honest provenance can be recovered by
+  correction; a missed stroke, wrong category, or dimension annotation emitted as a wall destroys
+  evidence and must be re-read.
 - When diffing IntakeOutput, any inconsistency tied to the source image roots 100% in the reading stage; only
   topology / naming / field-format errors are the correction stage's.
 - So when writing the JSON, the reading stage **prefers null over guessing** — null means "I couldn't see it",
   whereas a guessed value makes the correction stage treat a wrong number as truth.
+- **Two-channel discipline**: wall/window strokes and dimension chains are independent evidence channels.
+  A dimension annotation, cumulative tick, extension line, or window/door sub-dimension must NEVER become
+  a `wall` stroke. Put dimensions in `dimensions[]`; put uncertainty in provenance/confidence.
 
 ### 0.2 Effect of simulation physics
 
@@ -113,6 +119,9 @@ In EnergyPlus a zone is enclosed by **surfaces (2D faces)**; a wall has no thick
       "id": "S1",
       "pen": "wall",                        // pen type — see pen_library.md for the legal set
                                             // (door is never a pen: a door only triggers healing, see §2.1)
+      "provenance": "seen",                 // seen | dimension_derived | estimated | unknown
+      "confidence": "high",                 // high | medium | low
+      "dimension_refs": [],                 // required when provenance="dimension_derived"
       "geometry": {
         "kind": "line",                     // line | rect | polyline
         "p1": [0.00, 0.00],
@@ -157,6 +166,12 @@ In EnergyPlus a zone is enclosed by **surfaces (2D faces)**; a wall has no thick
       "note": "healed door opening at x≈7.5 (door swing seen in plan); EP wall is continuous"
     }
   ],
+
+  // Provenance mapping into correction's A0 evidence model:
+  // - seen = visual existence evidence; its numeric coordinate is estimated_stroke, NOT direct_measurement
+  // - dimension_derived = numeric transcribed_dimension and requires non-empty dimension_refs
+  // - estimated = low-confidence estimated_stroke
+  // - unknown or missing = legacy/unknown; correction must downgrade confidence
 
   // ===== dimension chains (structured composite primitives) =====
   // visually a "tick + number + tick" chunk is one unit, classified on its own; the correction stage uses it to derive coordinates
@@ -264,6 +279,8 @@ coordinates); the correction stage uses `facade_axis_note` to translate back to 
 - ❌ splitting one continuous wall into 10 small strokes —— one stroke per continuous stroke
 - ❌ splitting a wall with a door into two wall strokes on either side —— heal it into one continuous wall + note (§2.1)
 - ❌ welding a doorless open span into a continuous wall —— that is a real topology signal; only heal openings with a door symbol
+- ❌ tracing a dimension-chain cumulative position or tick drawn outside the building outline as an interior `wall`
+  —— dimension annotations are not walls; they go to `dimensions[]`
 - ❌ leaving `uncaptured_visual_elements` empty when furniture was excluded / a door was healed —— it is required; actively excluded items + heals must be acknowledged
 - ❌ `"text": "办公室"` for an image that says "Office 101" —— OCR does not translate
 - ❌ `"thickness_m": 0.20` —— plan walls always null (simulation does not need wall thickness, see §0.2)
@@ -277,6 +294,9 @@ coordinates); the correction stage uses `facade_axis_note` to translate back to 
 
 - [ ] picked the right pen dictionary by image_kind (see [`pen_library.md`](pen_library.md): plan vs elevation differ)
 - [ ] every visible wall/window/wall_fill stroke is in the strokes array with the right pen field
+- [ ] every wall/window/wall_fill/outline stroke carries `provenance` + `confidence`; `dimension_derived`
+      strokes have non-empty `dimension_refs`
+- [ ] no dimension-chain cumulative position / tick / extension line was emitted as a wall stroke
 - [ ] elevation wall bodies split as "one wall_fill per floor" (see pen library)
 - [ ] no rooms[] / is_exterior / parent relations or other topology fields
 - [ ] no standalone door / stair / furniture / decoration strokes — recognized and logged (doors trigger healing), never traced as a pen (there is no `other` pen)

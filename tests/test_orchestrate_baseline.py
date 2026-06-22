@@ -109,3 +109,28 @@ def test_record_baseline_report_lists_eyeball_items(tmp_path):
     record_baseline.record_baseline(case / _RUN_NAME, date="2026-06-16", orchestrator="test")
     report = (case / _RUN_NAME / "RUN_REPORT.md").read_text()
     assert "填色区图" in report and "立面窗位图" in report and "3D 几何" in report
+
+
+def test_record_baseline_verdict_blocking_is_recoverability_aware():
+    j0_recoverable = {
+        "stage": "0_reading",
+        "rubric_id": "J0",
+        "criteria": [
+            {
+                "criterion": "stroke_vs_dimension",
+                "status": "severe",
+                "recoverability": "correction_recoverable",
+            }
+        ],
+    }
+    assert record_baseline._verdict_blocking(j0_recoverable) is False
+
+    j1_recoverable = {**j0_recoverable, "stage": "1_correction", "rubric_id": "J1"}
+    assert record_baseline._verdict_blocking(j1_recoverable) is True
+
+    legacy = {
+        "stage": "0_reading",
+        "rubric_id": "J0",
+        "criteria": [{"criterion": "legacy", "status": "severe"}],
+    }
+    assert record_baseline._verdict_blocking(legacy) is True

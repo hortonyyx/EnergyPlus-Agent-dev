@@ -31,6 +31,8 @@ _ELEVATION_PENS = {"wall_fill", "window", "outline"}
 _FORBIDDEN_STROKE_KEYS = {"zone", "adjacent_zone", "adjacent_surface", "obc", "world_z"}
 _ROOM_LABEL_BASES = {"label", "furniture", "ocr"}
 _MIN_EXTENT = 0.05  # m — below this a line/rect is degenerate
+_OUTPUT_PRECISION_M = 0.01  # A0 OUTPUT_PRECISION / DIMCHAIN_CLOSE_TOL scale
+_PROVENANCE_PENS = {"wall", "window", "wall_fill", "outline"}
 
 
 def _finite(*vals) -> bool:
@@ -97,6 +99,9 @@ def check_reading_view(
 
     # ---- CROSS_CHECK: dimension-chain closure ----
     _chain_closure(rep, view)
+
+    # ---- CROSS_CHECK: stroke provenance + internal stroke↔dimension consistency ----
+    _stroke_dimension_consistency(rep, view)
 
     return rep
 
@@ -410,3 +415,247 @@ def _chain_closure(rep: CheckReport, view: ReadingView) -> None:
     else:
         rep.add_pass("reading.dimension_chain_closure", CheckLayer.CROSS_CHECK,
                      evidence={"chains_checked": len(chains)})
+
+
+def _stroke_dimension_consistency(rep: CheckReport, view: ReadingView) -> None:
+    """Report provenance coverage and flag plan-wall coordinates that sit exactly
+    on dimension-chain cumulative positions. This is advisory only: a real wall can
+    be dimensioned, so J0 must verify the rendered/source image evidence."""
+    structural = [s for s in view.strokes if s.pen in _PROVENANCE_PENS]
+    with_provenance = [
+        s for s in structural if getattr(s, "provenance", None) is not None
+    ]
+    if not structural or not with_provenance:
+        mode = "legacy"
+    elif len(with_provenance) == len(structural):
+        mode = "full"
+    else:
+        mode = "partial"
+    rep.add_pass(
+        "reading.stroke_provenance_coverage",
+        CheckLayer.CROSS_CHECK,
+        evidence={
+            "provenance_mode": mode,
+            "structural_strokes": len(structural),
+            "with_provenance": len(with_provenance),
+        },
+    )
+
+    if (view.image_kind or "").lower() != "plan":
+        rep.add(
+            "reading.stroke_dimension_consistency",
+            CheckStatus.NOT_APPLICABLE,
+            CheckLayer.CROSS_CHECK,
+            message="not a plan",
+        )
+        return
+
+    dim_positions = _dimension_chain_positions(view)
+    if not dim_positions.get("x") and not dim_positions.get("y"):
+        rep.add(
+            "reading.stroke_dimension_consistency",
+            CheckStatus.NOT_APPLICABLE,
+            CheckLayer.CROSS_CHECK,
+            message="no chain_id-tagged x/y dimension cumulative positions",
+        )
+        return
+
+    bounds = _wall_bounds(view)
+    offenders = []
+    for stroke in view.strokes:
+        if stroke.pen != "wall":
+            continue
+        if getattr(stroke, "provenance", None) == "dimension_derived":
+            continue
+        axis_line = _wall_axis_line(stroke)
+        if axis_line is None:
+            continue
+        axis, coord, p1, p2 = axis_line
+        if _is_perimeter_axis(axis, coord, bounds):
+            continue
+        matches = [
+            pos for pos in dim_positions.get(axis, [])
+            if abs(pos["coord"] - coord) <= _OUTPUT_PRECISION_M
+        ]
+        if not matches:
+            continue
+        joined = _wall_join_evidence(view, stroke, p1, p2)
+        offenders.append({
+            "stroke_id": stroke.id,
+            "axis": axis,
+            "coord_m": coord,
+            "matching_dimension_ids": sorted({
+                dim_id for pos in matches for dim_id in pos["dimension_ids"]
+            }),
+            "matching_positions": matches,
+            "joins_walls": joined,
+            "bounds_rooms_inferable": joined["both_endpoints_join"],
+        })
+
+    if offenders:
+        rep.add_fail(
+            "reading.stroke_dimension_consistency",
+            CheckLayer.CROSS_CHECK,
+            f"{len(offenders)} plan wall stroke coordinate(s) coincide with "
+            "dimension-chain cumulative positions; verify each is a real "
+            "room-bounding wall",
+            evidence={"tolerance_m": _OUTPUT_PRECISION_M, "offenders": offenders},
+        )
+    else:
+        rep.add_pass(
+            "reading.stroke_dimension_consistency",
+            CheckLayer.CROSS_CHECK,
+            evidence={
+                "tolerance_m": _OUTPUT_PRECISION_M,
+                "axes_with_chains": sorted(k for k, v in dim_positions.items() if v),
+            },
+        )
+
+
+def _dimension_chain_positions(view: ReadingView) -> dict[str, list[dict]]:
+    chains: dict[tuple[str, str], list] = {}
+    for d in view.dimensions:
+        if d.chain_id and d.axis in ("x", "y"):
+            chains.setdefault((d.chain_id, d.axis), []).append(d)
+
+    positions: dict[str, list[dict]] = {"x": [], "y": []}
+    seen: set[tuple[str, float, tuple[str, ...]]] = set()
+    for (chain_id, axis), dims in chains.items():
+        ordered = sorted(dims, key=lambda d: (d.order is None, d.order or 0, d.id))
+        running = 0.0
+        running_ids: list[str] = []
+        for d in ordered:
+            # Prefer explicit endpoints: they are already cumulative coordinates in
+            # the reading frame and avoid guessing a datum.
+            endpoint_coords = []
+            if d.from_pt and len(d.from_pt) >= 2 and _finite(*d.from_pt[:2]):
+                endpoint_coords.append(float(d.from_pt[0 if axis == "x" else 1]))
+            if d.to and len(d.to) >= 2 and _finite(*d.to[:2]):
+                endpoint_coords.append(float(d.to[0 if axis == "x" else 1]))
+            for coord in endpoint_coords:
+                _add_dim_position(positions, seen, axis, coord, [d.id], chain_id)
+
+            val = d.value_m if d.value_m is not None else parse_value_m(d.text_verbatim or d.text)
+            if val is None:
+                continue
+            role = d.role.value if d.role is not None else None
+            if role == "segment":
+                running += float(val)
+                running_ids.append(d.id)
+                _add_dim_position(positions, seen, axis, running, running_ids, chain_id)
+    return positions
+
+
+def _add_dim_position(
+    positions: dict[str, list[dict]],
+    seen: set[tuple[str, float, tuple[str, ...]]],
+    axis: str,
+    coord: float,
+    dimension_ids: list[str],
+    chain_id: str,
+) -> None:
+    rounded = round(float(coord), 6)
+    ids = tuple(sorted(dimension_ids))
+    key = (axis, rounded, ids)
+    if key in seen:
+        return
+    seen.add(key)
+    positions[axis].append({
+        "coord": rounded,
+        "dimension_ids": list(ids),
+        "chain_id": chain_id,
+    })
+
+
+def _wall_axis_line(stroke) -> tuple[str, float, list[float], list[float]] | None:
+    g = stroke.geometry or {}
+    if g.get("kind") != "line":
+        return None
+    p1, p2 = g.get("p1"), g.get("p2")
+    if not (isinstance(p1, list) and isinstance(p2, list) and len(p1) >= 2 and len(p2) >= 2):
+        return None
+    if not _finite(*p1[:2], *p2[:2]):
+        return None
+    x1, y1 = float(p1[0]), float(p1[1])
+    x2, y2 = float(p2[0]), float(p2[1])
+    if abs(x1 - x2) <= _OUTPUT_PRECISION_M:
+        return "x", round((x1 + x2) / 2, 6), [x1, y1], [x2, y2]
+    if abs(y1 - y2) <= _OUTPUT_PRECISION_M:
+        return "y", round((y1 + y2) / 2, 6), [x1, y1], [x2, y2]
+    return None
+
+
+def _wall_bounds(view: ReadingView) -> tuple[float, float, float, float] | None:
+    xs: list[float] = []
+    ys: list[float] = []
+    for stroke in view.strokes:
+        if stroke.pen != "wall":
+            continue
+        g = stroke.geometry or {}
+        if g.get("kind") != "line":
+            continue
+        p1, p2 = g.get("p1"), g.get("p2")
+        if (
+            isinstance(p1, list) and isinstance(p2, list)
+            and len(p1) >= 2 and len(p2) >= 2
+            and _finite(*p1[:2], *p2[:2])
+        ):
+            xs.extend([float(p1[0]), float(p2[0])])
+            ys.extend([float(p1[1]), float(p2[1])])
+    if not xs or not ys:
+        return None
+    return min(xs), max(xs), min(ys), max(ys)
+
+
+def _is_perimeter_axis(
+    axis: str, coord: float, bounds: tuple[float, float, float, float] | None
+) -> bool:
+    if bounds is None:
+        return False
+    xmin, xmax, ymin, ymax = bounds
+    extremes = (xmin, xmax) if axis == "x" else (ymin, ymax)
+    return any(abs(coord - edge) <= _OUTPUT_PRECISION_M for edge in extremes)
+
+
+def _wall_join_evidence(view: ReadingView, stroke, p1: list[float], p2: list[float]) -> dict:
+    joins = [
+        _point_joins_other_wall(view, stroke.id, p1),
+        _point_joins_other_wall(view, stroke.id, p2),
+    ]
+    return {
+        "p1": joins[0],
+        "p2": joins[1],
+        "both_endpoints_join": all(joins),
+    }
+
+
+def _point_joins_other_wall(view: ReadingView, own_id: str, pt: list[float]) -> bool:
+    for other in view.strokes:
+        if other.id == own_id or other.pen != "wall":
+            continue
+        g = other.geometry or {}
+        if g.get("kind") != "line":
+            continue
+        p1, p2 = g.get("p1"), g.get("p2")
+        if not (
+            isinstance(p1, list) and isinstance(p2, list)
+            and len(p1) >= 2 and len(p2) >= 2
+            and _finite(*p1[:2], *p2[:2])
+        ):
+            continue
+        if _point_on_segment(pt, [float(p1[0]), float(p1[1])], [float(p2[0]), float(p2[1])]):
+            return True
+    return False
+
+
+def _point_on_segment(pt: list[float], a: list[float], b: list[float]) -> bool:
+    px, py = pt
+    ax, ay = a
+    bx, by = b
+    dx, dy = bx - ax, by - ay
+    seg_len2 = dx * dx + dy * dy
+    if seg_len2 <= 0:
+        return False
+    t = max(0.0, min(1.0, ((px - ax) * dx + (py - ay) * dy) / seg_len2))
+    closest = [ax + t * dx, ay + t * dy]
+    return math.dist(pt, closest) <= _OUTPUT_PRECISION_M

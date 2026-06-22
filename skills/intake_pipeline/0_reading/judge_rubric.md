@@ -12,9 +12,13 @@ world placement — those are 1_correction's (J1).
 ## Criteria (seven classes of obvious recognition error)
 1. **missed real element** — a real wall or window in the drawing has no stroke.
 2. **clutter traced as structure** — furniture / paving / text / grid axes /
-   stairs traced as a wall/window stroke (should be `uncaptured`, not a stroke).
+   stairs / dimension-chain ticks traced as a wall/window stroke (should be
+   `uncaptured` or `dimensions[]`, not a stroke). When `testdata_prompt.json`
+   carries per-floor `thermal_zones`, also sanity-check plan band/cell counts for
+   over-segmentation (e.g. north rooms + corridor + south rooms) before passing.
 3. **pen misclassified** — a wall traced as window (or vice-versa); on elevations,
-   `wall_fill` vs `outline` vs `window` confusion.
+   `wall_fill` vs `outline` vs `window` confusion, including an elevation door
+   emitted as `window`.
 4. **number copied wrong** — a dimension's `text_verbatim` does not match the
    number printed in the drawing. **This is the transcription-truth check** (the
    deterministic linter only checks internal consistency; the real-number truth
@@ -28,14 +32,27 @@ world placement — those are 1_correction's (J1).
    absent or grossly displaced.
 
 ## Disposition
-- **fatal / severe** → `human_redraw_required` (0_reading is `manual` today; once a
-  VLM runner is wired, auto blind-reread, 3 attempts → terminate).
-- **minor** → flag and pass.
+- **Disposition = severity x recoverability**, not severity alone:
+
+  | severity | correction_recoverable | unrecoverable / unknown |
+  |---|---|---|
+  | severe / fatal | pass-through to correction; J1 confirms | halt -> re-read |
+  | minor | flag + pass | flag + pass |
+
+- A severe/fatal finding is `correction_recoverable` only when all four conditions hold:
+  1. it is a value/coordinate error, not an existence or identity/category error;
+  2. an independent surviving channel pins the truth (faithfully emitted dimension
+     chain, footprint closure, cross-floor twin, or facade-plan cross-reference);
+  3. the conflict is in correction's deterministically-resolvable set (`stroke_vs_dimension`,
+     `cross_floor_axis_jitter`, or dominant-channel `checksum_failure`);
+  4. the defect is honestly surfaced by provenance/confidence or a gate1 CROSS_CHECK flag.
+- If any condition fails, set `recoverability="unrecoverable"` or `"unknown"` and halt.
+  Default on uncertainty is unrecoverable. A false green costs more than a wasted re-read.
 - Set `root_stage="0_reading"` when the defect is a recognition error; leave
   `root_stage=null` + low `root_confidence` when you cannot attribute confidently
   (do **not** force a routing decision).
 
 ## Output
-A `StageVerdict` (verdict schema v2): `criteria[]` + `root_stage` +
-`root_confidence` + `retriable`. Commentary is **out-of-band only** — it is never
-injected back into the reading prompt.
+A `StageVerdict` (verdict schema v2): `criteria[]` with `status`,
+`recoverability`, and evidence + `root_stage` + `root_confidence` + `retriable`.
+Commentary is **out-of-band only** — it is never injected back into the reading prompt.

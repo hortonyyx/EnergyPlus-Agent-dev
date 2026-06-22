@@ -34,6 +34,44 @@ def _plan_with_room_labels(room_labels):
     })
 
 
+def _provenance_mode(rep):
+    result = next(r for r in rep.results if r.check_id == "reading.stroke_provenance_coverage")
+    return result.evidence["provenance_mode"]
+
+
+def _sm21_like_dim_chain():
+    return [
+        {"id": "D27", "text": "540", "value_m": 0.54, "chain_id": "south", "role": "segment", "order": 1, "axis": "x", "from": [0.00, 0.00], "to": [0.54, 0.00]},
+        {"id": "D28", "text": "900", "value_m": 0.90, "chain_id": "south", "role": "segment", "order": 2, "axis": "x", "from": [0.54, 0.00], "to": [1.44, 0.00]},
+        {"id": "D29", "text": "2000", "value_m": 2.00, "chain_id": "south", "role": "segment", "order": 3, "axis": "x", "from": [1.44, 0.00], "to": [3.44, 0.00]},
+        {"id": "D30", "text": "1200", "value_m": 1.20, "chain_id": "south", "role": "segment", "order": 4, "axis": "x", "from": [3.44, 0.00], "to": [4.64, 0.00]},
+    ]
+
+
+def _rect_plan_with_vertical_wall(x, *, provenance=None, dimension_refs=None):
+    wall = {
+        "id": "S5",
+        "pen": "wall",
+        "geometry": {"kind": "line", "p1": [x, 0.0], "p2": [x, 3.0], "thickness_m": None},
+    }
+    if provenance is not None:
+        wall["provenance"] = provenance
+    if dimension_refs is not None:
+        wall["dimension_refs"] = dimension_refs
+    return ReadingView.model_validate({
+        "image_kind": "plan",
+        "uncaptured": [],
+        "strokes": [
+            {"id": "S1", "pen": "wall", "geometry": {"kind": "line", "p1": [0, 0], "p2": [5, 0], "thickness_m": None}, "provenance": "seen", "confidence": "high"},
+            {"id": "S2", "pen": "wall", "geometry": {"kind": "line", "p1": [0, 3], "p2": [5, 3], "thickness_m": None}, "provenance": "seen", "confidence": "high"},
+            {"id": "S3", "pen": "wall", "geometry": {"kind": "line", "p1": [0, 0], "p2": [0, 3], "thickness_m": None}, "provenance": "seen", "confidence": "high"},
+            {"id": "S4", "pen": "wall", "geometry": {"kind": "line", "p1": [5, 0], "p2": [5, 3], "thickness_m": None}, "provenance": "seen", "confidence": "high"},
+            wall,
+        ],
+        "dimensions": _sm21_like_dim_chain(),
+    })
+
+
 # --------------------------------------------------------------------------- #
 # reading linter — clean anchor passes, synthetic bad blocks
 # --------------------------------------------------------------------------- #
@@ -119,6 +157,49 @@ def test_reading_room_labels_invalid_blocks():
     assert "reading.room_label_anchors_in_bounds" in flagged
     anchor = next(r for r in rep.results if r.check_id == "reading.room_label_anchors_in_bounds")
     assert anchor.layer == CheckLayer.CROSS_CHECK
+
+
+def test_reading_provenance_mode_full_partial_legacy():
+    legacy = _plan_with_room_labels([])
+    assert _provenance_mode(check_reading_view(legacy)) == "legacy"
+
+    partial = _plan_with_room_labels([])
+    partial.strokes[0].provenance = "seen"
+    assert _provenance_mode(check_reading_view(partial)) == "partial"
+
+    full = _plan_with_room_labels([])
+    for stroke in full.strokes:
+        stroke.provenance = "seen"
+        stroke.confidence = "high"
+    assert _provenance_mode(check_reading_view(full)) == "full"
+
+
+def test_stroke_dimension_consistency_flags_sm21_like_wall_without_blocking():
+    v = _rect_plan_with_vertical_wall(3.44)
+    rep = check_reading_view(v)
+    assert rep.passed, [r.message for r in rep.blocking()]
+    flagged = {r.check_id for r in rep.flagged()}
+    assert "reading.stroke_dimension_consistency" in flagged
+    result = next(r for r in rep.results if r.check_id == "reading.stroke_dimension_consistency")
+    offender = result.evidence["offenders"][0]
+    assert offender["stroke_id"] == "S5"
+    assert offender["axis"] == "x"
+    assert offender["coord_m"] == 3.44
+    assert "D29" in offender["matching_dimension_ids"]
+    assert offender["joins_walls"]["both_endpoints_join"] is True
+    assert result.layer == CheckLayer.CROSS_CHECK
+
+
+def test_stroke_dimension_consistency_ignores_dimension_derived_clean_grid():
+    v = _rect_plan_with_vertical_wall(
+        3.44, provenance="dimension_derived", dimension_refs=["D27", "D28", "D29"]
+    )
+    rep = check_reading_view(v)
+    assert rep.passed, [r.message for r in rep.blocking()]
+    flagged = {r.check_id for r in rep.flagged()}
+    assert "reading.stroke_dimension_consistency" not in flagged
+    result = next(r for r in rep.results if r.check_id == "reading.stroke_dimension_consistency")
+    assert result.status.value == "pass"
 
 
 def test_reading_illegal_pen_for_plan_blocks():

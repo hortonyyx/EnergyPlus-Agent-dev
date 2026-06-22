@@ -165,6 +165,33 @@ def test_verdict_nonblocking_passes(tmp_path):
     assert len(list((tmp_path / "verdicts").glob("verdict_*.json"))) == 1
 
 
+def test_j0_recoverable_pass_through_message_and_count(tmp_path):
+    _accept_one(tmp_path, "0_reading")
+    verdict = StageVerdict(
+        stage="0_reading",
+        rubric_id="J0",
+        criteria=[
+            {
+                "criterion": "stroke_vs_dimension",
+                "status": "severe",
+                "recoverability": "correction_recoverable",
+            }
+        ],
+        root_stage="0_reading",
+        root_confidence=0.9,
+    )
+    out = submit_verdict(
+        stage="0_reading",
+        stage_dir=tmp_path / "0_reading",
+        attempt_index=1,
+        verdict=verdict,
+    )
+    assert out.status == StepStatus.JUDGE_PASS
+    assert out.recoverable_criteria_count == 1
+    assert "pass-through" in out.message
+    assert out.summary()["recoverable_criteria_count"] == 1
+
+
 def test_verdict_blocking_routable_resamples_same_stage(tmp_path):
     _accept_one(tmp_path, "1_correction")
     out = submit_verdict(stage="1_correction", stage_dir=tmp_path / "1_correction",

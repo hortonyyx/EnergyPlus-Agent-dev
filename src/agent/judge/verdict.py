@@ -11,7 +11,8 @@ verdict also carries attribution fields the orchestrator uses to route:
 
 Criterion statuses include ``not_applicable`` and ``insufficient_evidence`` so a
 judge can decline to rule rather than guess (design L2). A verdict blocks the
-stage when any criterion is SEVERE or FATAL; MINOR flags but passes.
+stage when any criterion is SEVERE or FATAL, except for J0 criteria explicitly
+marked correction-recoverable.
 """
 
 from __future__ import annotations
@@ -30,10 +31,17 @@ class CriterionStatus(str, Enum):
     INSUFFICIENT_EVIDENCE = "insufficient_evidence"
 
 
+class Recoverability(str, Enum):
+    CORRECTION_RECOVERABLE = "correction_recoverable"
+    UNRECOVERABLE = "unrecoverable"
+    UNKNOWN = "unknown"
+
+
 class CriterionVerdict(BaseModel):
     model_config = ConfigDict(extra="forbid")
     criterion: str
     status: CriterionStatus
+    recoverability: Recoverability | None = None
     evidence: str = ""
 
 
@@ -55,6 +63,10 @@ class StageVerdict(BaseModel):
     def blocking(self) -> bool:
         return any(
             c.status in (CriterionStatus.SEVERE, CriterionStatus.FATAL)
+            and not (
+                self.rubric_id == "J0"
+                and c.recoverability == Recoverability.CORRECTION_RECOVERABLE
+            )
             for c in self.criteria
         )
 

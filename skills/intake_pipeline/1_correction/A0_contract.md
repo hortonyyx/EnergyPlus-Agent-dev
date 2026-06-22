@@ -232,6 +232,12 @@ For correction to be safe, perception input should:
   facade windows, and self-check notes;
 - link estimated geometry to the dimension ids / inference rule that produced it.
 
+Reading `Stroke.provenance` maps into this evidence model as: `seen` = visual
+existence evidence and numeric `estimated_stroke` (not `direct_measurement`);
+`dimension_derived` = numeric `transcribed_dimension` and requires non-empty
+`dimension_refs`; `estimated` = low-confidence `estimated_stroke`;
+`unknown`/missing = legacy/unknown.
+
 ### 6.1 Provenance mode and coverage
 
 ```

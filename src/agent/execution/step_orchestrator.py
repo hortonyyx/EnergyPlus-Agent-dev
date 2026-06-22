@@ -60,7 +60,7 @@ from src.agent.execution.stage_runner import (
     StageRunner,
     stage_spec,
 )
-from src.agent.judge.verdict import StageVerdict
+from src.agent.judge.verdict import CriterionStatus, Recoverability, StageVerdict
 from src.validator.checks.schema import CheckReport
 
 STATE_NAME = "orchestration_state.json"
@@ -106,6 +106,7 @@ class StageOutcome:
     # When a judge attributes the failure to a (possibly upstream) root stage, the
     # stage a resample / human-redraw should target — not necessarily ``stage``.
     route_target: str | None = None
+    recoverable_criteria_count: int = 0
 
     @property
     def terminal_stop(self) -> bool:
@@ -125,6 +126,8 @@ class StageOutcome:
         }
         if self.route_target is not None:
             d["route_target"] = self.route_target
+        if self.recoverable_criteria_count:
+            d["recoverable_criteria_count"] = self.recoverable_criteria_count
         if self.report is not None:
             d["gate1"] = _report_summary(self.report)
         return d
@@ -325,7 +328,18 @@ def _verdict_outcome(
     """Classify a judge verdict by its *attributed root stage* (not mechanically the
     judged stage): a J1 verdict whose root is 0_reading must route to a human
     re-trace, not a 1_correction resample (contracts §0.3 upstream_input_failure)."""
+    recoverable_count = _recoverable_severe_count(verdict)
     if not verdict.blocking:
+        if recoverable_count:
+            return StageOutcome(
+                stage, StepStatus.JUDGE_PASS, attempts, attempt_index, report,
+                message=(
+                    "judge verdict pass-through "
+                    f"({recoverable_count} severe/fatal correction-recoverable "
+                    "J0 criterion/criteria) → advance to correction"
+                ),
+                recoverable_criteria_count=recoverable_count,
+            )
         return StageOutcome(
             stage, StepStatus.JUDGE_PASS, attempts, attempt_index, report,
             message="judge verdict non-blocking (pass/minor) → advance",
@@ -360,6 +374,17 @@ def _verdict_outcome(
         stage, StepStatus.JUDGE_BLOCK, attempts, attempt_index, report,
         route_target=target,
         message=f"judge blocked (routable, root='{target}') → blind resample {target}",
+    )
+
+
+def _recoverable_severe_count(verdict: StageVerdict) -> int:
+    if verdict.rubric_id != "J0":
+        return 0
+    return sum(
+        1
+        for c in verdict.criteria
+        if c.status in (CriterionStatus.SEVERE, CriterionStatus.FATAL)
+        and c.recoverability == Recoverability.CORRECTION_RECOVERABLE
     )
 
 

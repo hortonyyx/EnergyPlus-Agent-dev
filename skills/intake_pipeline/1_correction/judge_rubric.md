@@ -37,6 +37,13 @@ reference answer)?"** — this is the most human-verification-dependent stage.
 - **minor** → flag and pass.
 - Attribute `root_stage` only with sufficient evidence + confidence; otherwise
   leave `root_stage=null` (→ human triage, not auto-routed).
+- J1 is the confirm gate for any J0 severe/fatal finding passed through as
+  `correction_recoverable`. Re-judge independently against the originals and
+  reference answer; no `correction_obligations[]` hand-off is required.
+- If a J0 pass-through defect is not fixed, attribute the root by evidence:
+  surviving channel insufficient or perception/category error visible in originals
+  → `root_stage="0_reading"` (re-read); channels sufficient but correction failed
+  the arbitration → `root_stage="1_correction"` (blind resample).
 
 ## Output
 A `StageVerdict` (verdict schema v2). Reference answer source: testdata (zone

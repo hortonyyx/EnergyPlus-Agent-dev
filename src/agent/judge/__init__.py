@@ -18,6 +18,7 @@ from src.agent.judge.retry import StageDrawResult, draw_json_once, retry_stage_d
 from src.agent.judge.verdict import (
     CriterionStatus,
     CriterionVerdict,
+    Recoverability,
     StageVerdict,
     disabled_verdict,
 )
@@ -32,6 +33,7 @@ __all__ = [
     "retry_stage_draw",
     "CriterionStatus",
     "CriterionVerdict",
+    "Recoverability",
     "StageVerdict",
     "disabled_verdict",
 ]

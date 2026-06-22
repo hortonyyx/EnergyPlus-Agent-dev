@@ -97,6 +97,9 @@
 1. **① 确定性自校验**（便宜、先跑）：§0.2 的 L-不变量(block) + L-交叉核对(flag)，结果落该段 `*_checks.json`。失败**先按下方失败分类处置**（stochastic 段盲重抽 / 确定性 code failure fail-closed / 0 当前 manual→`human_redraw_required`），不烧 judge。
 2. **② LLM/VLM judge**（①过后才跑）：按该段 **rubric（标准清单）逐条裁**，每条 **pass / 轻微 / 严重 / 致命 + 证据**（**结构化清单，不用数字评分**——本项目「定性 > 定量」）。verdict schema 还含 **`not_applicable` / `insufficient_evidence` / `root_stage|null` / `root_confidence` / `retriable`**（纳入设计 L2；**unknown 不得自动路由**）。判据：**致命/严重 → 打回；轻微 → flag 放行**。
 
+**judge 路由 = severity × recoverability（2026-06-22 用户全程 ratify，已落地，详 [[reading-honest-judge-routing-architecture]] / logs/review/2026-06-21_reading_honest_and_judge_routing_*）**：致命/严重不再单看严重度——加第二轴 `CriterionVerdict.recoverability`（correction_recoverable|unrecoverable|unknown）。**`blocking` 改成 J0-scoped**：severe/fatal 一律 block，**唯独** J0 标 `correction_recoverable` 的放行到 correction、由 J1 对参考独立复审确认；**J1 永远 block**（确认门，无下游 correction 可恢复）；缺省/unknown→当 unrecoverable→**向后兼容**。J0 标 `correction_recoverable` 须**同时**满足四条：①值/坐标错非身份·存在错 ②有独立幸存通道钉真值（尺寸链/footprint/跨层孪生/立面-平面互证）③落 correction 确定性可解集（`stroke_vs_dimension`/`cross_floor_axis_jitter`/主导通道 `checksum_failure`）④被 provenance 或 gate① CROSS_CHECK flag 诚实标出。**默认不确定→中止重读**（假绿出货代价 > 浪费重读）。
+- **who-fixes 总纲（image-blind 边界）**：correction **永 image-blind 纯文本、不做 VLM**（开图=翻倍 VLM 要求、杀「看错 vs 改错」归因、饿死小模型监督、重引入「信刚看的图 > 尺寸链」bug；trust-the-dim 正因 correction 不能重感知才成立）。**脚手架=降智机制**（每道护栏=弱模型不必聪明到能独立做对的那件事，服务国产 VLM→本地开源北极星）。**看图仲裁归 judge（J0/J1 本就看图）+ 重读循环，不进 correction 生成**。证据冗余仍在 + 不靠猜→可放行 correction；证据销毁（通道塌缩）/身份错/漏元素→reading 中止。
+
 **失败分类 + 重做规则（2026-06-15 v7 纳入 Codex 设计 H1 / 施工 H1·H2）**：失败**先分类、再决定处置**，**不能一律弹上游**——
 | 失败类 | 处置 |
 |---|---|
@@ -298,8 +301,9 @@
 ### 5.2 先验割裂：几何（A4）vs MEP（散落）→ MEP 已抽离为草稿种子（2026-06-09）
 [A4_priors.md](../../skills/intake_pipeline/1_correction/A4_priors.md) = 结构化**几何**先验（1_correction/A3 用）；**MEP 默认值**抽到 [mep.md](../../skills/intake_pipeline/4_mep/mep.md)（标 DRAFT 种子，值不变行为不变）。**deferred**（等几何稳定后）：(a) mep.md 扩成分型/分级/带出处真先验库 (b) 几何先验(A4)与 MEP 合并进统一 `priors/`。
 
-### 5.3 0_reading provenance 契约未在上游落实（→ 优先级 #2.3）
-[A0 §6](../../skills/intake_pipeline/1_correction/A0_contract.md) 定义了 `provenance_mode`/`coverage` + per-claim 证据分级，但 0_reading 三文档还**不产结构化 provenance** → 1_correction 实际跑 `legacy` 模式（估算笔画与测量值不可区分，全降级 `estimated_stroke`）。规范目标：0_reading 输出容器带 provenance（strokes/dim-chains/labels/facades/windows 各自 source+confidence），让 1_correction 能按证据分级仲裁——这也是 §1「**尺寸链为权威量级**」从隐式变显式的前提。
+### 5.3 0_reading provenance 契约 ✅ 已解（2026-06-22，修 sm21 Sonnet 识图）
+**已落地**：`Stroke` 加可选 `provenance`(seen|dimension_derived|estimated|unknown)/`confidence`/`dimension_refs`（[schema.py](../../src/agent/reading/schema.py)）；reading 校验器落地承诺已久的 **stroke↔dimension 一致性 CROSS_CHECK**（非阻塞 flag，10mm 容差，perimeter 排除，中性「verify」措辞）+ **`provenance_mode`(full|partial|legacy) 报告**（[checks/reading.py](../../src/validator/checks/reading.py)）；guide/pen 补**双通道纪律**(尺寸链刻度≠墙) + 门≠窗负例 + **provenance→A0 grade 映射**(`seen`=视觉存在证据→numeric `estimated_stroke`，**非 `direct_measurement`**；`dimension_derived`→`transcribed_dimension` 须带 `dimension_refs`)。correction A1-A4 **不动**（trust-the-dim 早已落地，缺的只是上游冲突信号）。审计 logs/review/2026-06-21_reading_honest_and_judge_routing_{proposal,review}。
+> 原缺口（留档）：A0 §6 定义了 provenance_mode/coverage + per-claim 证据分级，但 0_reading 三文档曾**不产结构化 provenance** → 1_correction 实际跑 `legacy` 模式，估算笔画与测量值不可区分。这也是 §1「尺寸链为权威量级」从隐式变显式的前提。
 
 ### 5.4 audit sidecar 未被消费（→ 优先级 #3 baseline 归因）
 `corrections.json` 已物化但下游/评测不消费（P0 决策保 `IntakeOutput` 纯净、避免 64k 截断）。建 baseline 时需"看错（0_reading/1_correction 判断）vs 改错（下游）"归因 → fast-follow 接入评测。

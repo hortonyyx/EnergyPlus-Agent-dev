@@ -9,6 +9,7 @@ from src.agent.reading import (
     DimensionRole,
     ReadingView,
     RoomRoleObservation,
+    Stroke,
     load_reading_view,
     migrate_view,
     parse_value_m,
@@ -66,6 +67,30 @@ def test_canonical_view_loads_without_migration():
     assert v.migrated_from_legacy is False
     assert v.dimensions[0].role == DimensionRole.OVERALL
     assert v.room_labels == []
+
+
+def test_stroke_provenance_fields_default_and_round_trip():
+    legacy = Stroke.model_validate({
+        "id": "S1",
+        "pen": "wall",
+        "geometry": {"kind": "line", "p1": [0, 0], "p2": [5, 0]},
+    })
+    assert legacy.provenance is None
+    assert legacy.confidence is None
+    assert legacy.dimension_refs == []
+
+    derived = Stroke.model_validate({
+        "id": "S2",
+        "pen": "wall",
+        "provenance": "dimension_derived",
+        "confidence": "medium",
+        "dimension_refs": ["D1", "D2"],
+        "geometry": {"kind": "line", "p1": [5, 0], "p2": [5, 3]},
+    })
+    dumped = derived.model_dump()
+    assert dumped["provenance"] == "dimension_derived"
+    assert dumped["confidence"] == "medium"
+    assert dumped["dimension_refs"] == ["D1", "D2"]
 
 
 def test_room_labels_round_trip():

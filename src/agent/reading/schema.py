@@ -40,6 +40,9 @@ class Stroke(BaseModel):
     id: str
     pen: str
     geometry: dict = Field(default_factory=dict)
+    provenance: Literal["seen", "dimension_derived", "estimated", "unknown"] | None = None
+    confidence: Literal["high", "medium", "low"] | None = None
+    dimension_refs: list[str] = Field(default_factory=list)
     note: str | None = None
 
 

@@ -23,6 +23,7 @@ from pathlib import Path
 
 from src.agent.execution import load_state, summarize_gates, validate_case
 from src.agent.execution.policy import RunPolicy
+from src.agent.judge.verdict import StageVerdict
 
 
 def _models_from_llm_yaml(case_dir: Path) -> dict:
@@ -83,16 +84,18 @@ def _draws_and_verdicts(case_dir: Path) -> tuple[dict, list]:
             if jf.exists():
                 try:
                     v = json.loads(jf.read_text())
-                    verdicts.append({"stage": stage, "attempt": int(ap.name),
-                                     "blocking": _verdict_blocking(v),
-                                     "root_stage": v.get("root_stage")})
-                except json.JSONDecodeError:
+                    blocking = _verdict_blocking(v)
+                except Exception:  # noqa: BLE001 — best-effort verdict metadata
                     pass
+                else:
+                    verdicts.append({"stage": stage, "attempt": int(ap.name),
+                                     "blocking": blocking,
+                                     "root_stage": v.get("root_stage")})
     return draws, verdicts
 
 
 def _verdict_blocking(v: dict) -> bool:
-    return any(c.get("status") in ("severe", "fatal") for c in v.get("criteria", []))
+    return StageVerdict.model_validate(v).blocking
 
 
 def _eyeball_checklist(case_dir: Path, summary: dict, counts: dict) -> list[str]:

@@ -34,6 +34,54 @@ def test_verdict_blocking_and_routable():
     assert v.routable() is True
 
 
+def test_j0_severe_recoverable_is_not_blocking():
+    v = StageVerdict(
+        stage="0_reading",
+        rubric_id="J0",
+        criteria=[
+            {
+                "criterion": "stroke_vs_dimension",
+                "status": "severe",
+                "recoverability": "correction_recoverable",
+            }
+        ],
+        root_stage="0_reading",
+        root_confidence=0.9,
+    )
+    assert v.blocking is False
+    assert v.routable() is False
+
+
+def test_j1_severe_recoverable_still_blocks():
+    v = StageVerdict(
+        stage="1_correction",
+        rubric_id="J1",
+        criteria=[
+            {
+                "criterion": "redraw",
+                "status": "severe",
+                "recoverability": "correction_recoverable",
+            }
+        ],
+        root_stage="1_correction",
+        root_confidence=0.9,
+    )
+    assert v.blocking is True
+    assert v.routable() is True
+
+
+def test_severe_missing_recoverability_blocks_for_backward_compat():
+    v = StageVerdict(
+        stage="0_reading",
+        rubric_id="J0",
+        criteria=[{"criterion": "legacy", "status": "severe"}],
+        root_stage="0_reading",
+        root_confidence=0.9,
+    )
+    assert v.blocking is True
+    assert v.routable() is True
+
+
 def test_unknown_root_not_routable():
     """Blocking but unknown root / low confidence → NOT auto-routed (交人)."""
     v = StageVerdict(

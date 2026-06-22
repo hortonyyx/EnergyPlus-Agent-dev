@@ -88,3 +88,5 @@ Per-floor `wall_fill` lets the correction stage map directly to each floor's wal
 - ❌ tracing stair treads as `wall` (or any pen) — recognize the stair, but treads are not geometry;
   log them and let the bounding walls define the stairwell
 - ❌ `"pen": "door"` — door is never a pen; it triggers wall-healing ([`guide.md` §2.1](guide.md))
+- ❌ tracing an elevation floor-height door as `"pen": "window"` because it breaks `wall_fill` — a
+  door is recognized and logged, never emitted with the window pen, even when it is a real opening

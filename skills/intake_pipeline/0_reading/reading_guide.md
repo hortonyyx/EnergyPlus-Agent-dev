@@ -150,6 +150,8 @@ one thick line, two thin lines, or a black bar.
 - **Confusable with**: vs furniture/cabinet outline (thinner, small rectangular blocks with internal
   subdivision, not forming room boundaries) · vs dimension extension lines (thin, outside the plan,
   don't close) · vs grid axis (dash-dot, passes *through* the wall center and extends past it).
+- **Positive test**: an interior wall bounds rooms and joins the perimeter / corridor wall network.
+  Cumulative dimension positions or ticks outside the outline do not bound rooms and do not become walls.
 
 ### Card · `column`
 - **Appears in**: P (and E occasionally)
