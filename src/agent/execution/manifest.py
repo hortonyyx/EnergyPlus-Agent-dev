@@ -25,6 +25,8 @@ from pathlib import Path
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from src.agent.execution.run_meta import run_meta_path
+
 MANIFEST_NAME = "run_manifest.json"
 ATTEMPTS_DIRNAME = "attempts"
 
@@ -111,7 +113,8 @@ class StageRecord(BaseModel):
 
 class RunManifest(BaseModel):
     """Indexes each stage to its accepted attempt. Persisted as run_manifest.json
-    at the case root. Append-only attempts live beside it under each stage dir."""
+    under the run metadata dir. Append-only attempts live beside it under each
+    stage dir."""
 
     model_config = ConfigDict(extra="forbid")
 
@@ -122,13 +125,13 @@ class RunManifest(BaseModel):
     # ---- io ----
     @classmethod
     def load(cls, case_dir: Path) -> "RunManifest":
-        p = Path(case_dir) / MANIFEST_NAME
+        p = run_meta_path(case_dir, MANIFEST_NAME)
         if not p.exists():
             return cls(case=Path(case_dir).name)
         return cls.model_validate_json(p.read_text(encoding="utf-8"))
 
     def save(self, case_dir: Path, *, filename: str = MANIFEST_NAME) -> Path:
-        p = Path(case_dir) / filename
+        p = run_meta_path(case_dir, filename, for_write=True)
         p.write_text(self.model_dump_json(indent=2), encoding="utf-8")
         return p
 

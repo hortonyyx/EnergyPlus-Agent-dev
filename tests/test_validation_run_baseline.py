@@ -13,6 +13,7 @@ from pathlib import Path
 from src.agent.execution import (
     GeometryApproval,
     RunPolicy,
+    run_meta_path,
     validate_case,
 )
 from src.agent.execution.policy import ConfirmationPolicy, ValidationScope
@@ -49,9 +50,11 @@ def test_sm20_anchor_reports_writable(tmp_path):
     assert (run / "1_correction" / "correction_checks.json").exists()
     assert (run / "2_modelling" / "kernel_checks.json").exists()
     assert (run / "4_mep" / "mep_checks.json").exists()
-    # validation SUMMARY into the run dir under a distinct name (not the audit manifest)
-    assert (run / "validation_manifest.json").exists()
+    # validation SUMMARY into _run under a distinct name (not the audit manifest)
+    assert run_meta_path(run, "validation_manifest.json").exists()
+    assert not (run / "validation_manifest.json").exists()
     assert not (run / "run_manifest.json").exists()
+    assert not run_meta_path(run, "run_manifest.json").exists()
     assert not res.blocked
 
 
@@ -88,7 +91,8 @@ def test_existing_manifest_not_overwritten_by_validate_case(tmp_path):
     validate_case(run, write_reports=True)
     assert (run / "run_manifest.json").read_text().strip() == \
         '{"case":"sm20_anchor","stages":{}}'
-    assert (run / "validation_manifest.json").exists()
+    assert run_meta_path(run, "validation_manifest.json").exists()
+    assert not (run / "validation_manifest.json").exists()
 
 
 # --------------------------------------------------------------------------- #

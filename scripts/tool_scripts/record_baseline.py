@@ -1,10 +1,10 @@
-"""Record a case as a self-contained baseline: baseline.json + report/.
+"""Record a case as a self-contained baseline: _run/baseline.json + report/.
 
 The new (2026-06-16) baseline scheme: a clean anchor case carries its own machine
-score-card (baseline.json) + a curated report/ folder. This tool runs the
+score-card (_run/baseline.json) + a curated report/ folder. This tool runs the
 deterministic gate① over the on-disk run (validate_case), rolls it up
 (summarize_gates), folds in the model config (llm.yaml) + EP end-state, and
-writes baseline.json plus report/FACTS.md and report/REPORT.md.
+writes _run/baseline.json plus the single human-facing report/REPORT.md.
 
 It does NOT run the pipeline or any LLM — it records an already-produced run. The
 judge② verdicts (the Agent's, in <stage>/attempts/NNN/judge.json) are summarized
@@ -23,16 +23,24 @@ from collections import Counter
 from pathlib import Path
 
 from src.agent.execution import load_state, summarize_gates, validate_case
+from src.agent.execution.approval import APPROVAL_NAME
+from src.agent.execution.manifest import MANIFEST_NAME
 from src.agent.execution.policy import RunPolicy
+from src.agent.execution.run_meta import RUN_META_DIR, run_meta_path
+from src.agent.execution.stage_runner import STAGE_ORDER
+from src.agent.execution.step_orchestrator import STATE_NAME
 from src.agent.judge.verdict import StageVerdict
 
 from report_assembly import (
+    VALIDATION_MANIFEST_NAME,
     build_evidence_index,
     collect_eyeball_assets,
     derive_run_state,
     ensure_geometry_viewer,
     write_report_files,
 )
+
+BASELINE_NAME = "baseline.json"
 
 
 def _models_from_llm_yaml(case_dir: Path) -> dict:
@@ -311,13 +319,19 @@ def record_baseline(
         "report_assets": report_assets,
         "viewer": viewer,
     }
-    (run_dir / "baseline.json").write_text(
+    run_meta_path(run_dir, BASELINE_NAME, for_write=True).write_text(
         json.dumps(baseline, indent=2, ensure_ascii=False), encoding="utf-8")
     write_report_files(
         run_dir,
         baseline=report_context,
-        facts_text=_render_facts(
-            report_context, _eyeball_checklist(report_assets, viewer, summary, corr_summary)),
+        generated_sections={
+            "facts_card": _render_facts_card(report_context),
+            "eyeball_index": _render_eyeball_index(
+                report_context,
+                _eyeball_checklist(report_assets, viewer, summary, corr_summary),
+            ),
+            "appendix": _render_appendix(report_context),
+        },
         force_template=force_template,
     )
     return report_context
@@ -373,7 +387,7 @@ def _render_corrections_audit(summary: dict) -> list[str]:
 
 
 def _render_evidence_index(index: list[dict]) -> list[str]:
-    lines = ["", "## evidence_index"]
+    lines = ["", "### evidence_index"]
     if not index:
         return lines + ["", "- （empty）"]
     for entry in index:
@@ -422,7 +436,7 @@ def _render_report_assets(b: dict) -> list[str]:
 
 def _render_run_state(b: dict) -> list[str]:
     state = b.get("run_state", {})
-    lines = ["", "## run_state", "", f"- status: `{state.get('status', 'unknown')}`"]
+    lines = ["", "### run_state", "", f"- status: `{state.get('status', 'unknown')}`"]
     if state.get("completed_clean"):
         lines.append("- completed_clean: true")
     if state.get("root_stop"):
@@ -445,7 +459,49 @@ def _render_run_state(b: dict) -> list[str]:
     return lines
 
 
-def _render_facts(b: dict, eyeball: list[str]) -> str:
+def _downstream_missing_after_root(b: dict) -> list[dict]:
+    run_state = b.get("run_state", {})
+    root = run_state.get("root_stop") or {}
+    root_stage = root.get("stage")
+    if root_stage not in STAGE_ORDER:
+        return []
+    root_index = STAGE_ORDER.index(root_stage)
+    out = []
+    for item in b.get("blocking", []):
+        stage = item.get("stage")
+        if stage in STAGE_ORDER and STAGE_ORDER.index(stage) > root_index:
+            msg = item.get("message", "")
+            if "required artifact missing" in msg:
+                out.append(item)
+    return out
+
+
+def _render_corrections_audit_summary(summary: dict) -> list[str]:
+    lines = ["", "### 校正审计摘要"]
+    path = summary.get("sidecar_path", "1_correction/corrections.json")
+    status = summary.get("parse_status", "unknown")
+    if not summary.get("present"):
+        return lines + ["", f"- sidecar: `{path}` (missing)"]
+    if status != "ok":
+        msg = summary.get("parse_error", "")
+        return lines + [
+            "",
+            f"- sidecar: `{path}` ({status})" + (f" — {msg}" if msg else ""),
+        ]
+    counts = summary.get("counts", {})
+    return lines + [
+        "",
+        f"- sidecar: `{path}` ({status})",
+        "- counts: "
+        f"corrections={counts.get('corrections', 0)}, "
+        f"conflicts={counts.get('conflicts', 0)}, "
+        f"unsupported={counts.get('unsupported', 0)}",
+        f"- by_rule_id: {_audit_json(summary.get('by_rule_id', {}))}",
+        f"- by_stage: {_audit_json(summary.get('by_stage', {}))}",
+    ]
+
+
+def _render_facts_card(b: dict) -> str:
     g = b["geometry"]
     ep = b["ep"]
     stop = b.get("stop_reason")
@@ -463,8 +519,7 @@ def _render_facts(b: dict, eyeball: list[str]) -> str:
     else:
         verdict = f"⚠️ {run_status or 'state_unknown'}"
     lines = [
-        f"# {b['case']} / {b.get('run','')} FACTS "
-        f"({b['recorded']}, orchestrator={b['orchestrator']})",
+        "## 事实卡",
         "",
         f"**结论**: {verdict}"
         + (f" / EP {'Completed' if ep and ep['completed'] else 'NOT completed'}, "
@@ -472,9 +527,10 @@ def _render_facts(b: dict, eyeball: list[str]) -> str:
         + (f" / {g.get('zones','?')}区·{g.get('surfaces','?')}面·{g.get('windows','?')}窗"
            if g else ""),
         "",
-        f"**模型**: {b['models'] or '(未读到 llm.yaml)'}",
+        f"**数字权威**: [../{RUN_META_DIR}/{BASELINE_NAME}](../{RUN_META_DIR}/{BASELINE_NAME}) "
+        "+ 本 REPORT 的 GEN 区；AGENT 区为主控叙事/建议，citation linter 只约束建议证据 id。",
         "",
-        "## 逐段 gate①",
+        "### 逐段 gate①",
         "",
         "| 段 | pass | flag | block | n/a |",
         "|---|---|---|---|---|",
@@ -482,7 +538,7 @@ def _render_facts(b: dict, eyeball: list[str]) -> str:
     for stage, agg in b["gates"].items():
         lines.append(f"| {stage} | {agg['pass']} | {agg['flag']} | {agg['block']} | {agg['na']} |")
     if b.get("orchestration"):
-        lines += ["", "## 逐段编排状态（judge-in-the-loop）", "",
+        lines += ["", "### 逐段编排状态（judge-in-the-loop）", "",
                   "| 段 | status | 抽样 |", "|---|---|---|"]
         for stage, st in b["orchestration"].items():
             lines.append(f"| {stage} | {st.get('status','?')} | {st.get('attempts_used','?')} |")
@@ -494,17 +550,59 @@ def _render_facts(b: dict, eyeball: list[str]) -> str:
                   f"（{nblk} 条 blocking；见各 attempts/NNN/judge.json）"]
     lines += _render_run_state(b)
     if b["blocking"]:
-        lines += ["", "## ⛔ blocking"]
+        lines += ["", "### blocking"]
         lines += [f"- [{x['stage']}::{x['check']}] {x['message']}" for x in b["blocking"]]
     if b["flags"]:
-        lines += ["", "## ⚠️ flags（不阻塞、供归因）"]
+        lines += ["", "### flags（不阻塞、供归因）"]
         lines += [f"- [{x['stage']}::{x['check']}] {x['message']}" for x in b["flags"]]
-    lines += _render_corrections_audit(b.get("corrections_summary", {}))
-    lines += _render_report_assets(b)
-    lines += ["", "## 🔍 请你肉视检验（确定性 + judge 都盖不死的感知项）"]
+    consequential = _downstream_missing_after_root(b)
+    if consequential:
+        lines += ["", "### 连带缺失下游件", ""]
+        lines += [f"- `{x.get('stage')}`: {x.get('message')}" for x in consequential]
+    lines += _render_corrections_audit_summary(b.get("corrections_summary", {}))
+    return "\n".join(lines) + "\n"
+
+
+def _render_eyeball_index(b: dict, eyeball: list[str]) -> str:
+    lines = ["## 肉视检验索引", ""]
     lines += [f"{i+1}. {it}" for i, it in enumerate(eyeball)]
+    assets = b.get("report_assets", {})
+    viewer = b.get("viewer", {})
+    lines += ["", "### report/eyeball"]
+    if assets.get("assets"):
+        lines += [
+            f"- [{a['filename']}](eyeball/{a['filename']}) — {a['producer']} from `{a['source']}`"
+            for a in assets["assets"]
+        ]
+    else:
+        lines.append("- 2D eyeball assets unavailable; missing producers are listed above.")
+    if assets.get("missing"):
+        lines += ["", "### missing producers"]
+        lines += [f"- `{m['source']}` ({m['producer']})" for m in assets["missing"]]
+    lines += ["", "### manual_review viewer"]
+    if viewer.get("available"):
+        lines.append(f"- [3D geometry viewer]({viewer['report_link']}) — `{viewer['status']}`")
+    else:
+        lines.append(f"- 3D geometry viewer unavailable — {viewer.get('reason', 'unknown')}")
+    return "\n".join(lines) + "\n"
+
+
+def _render_appendix(b: dict) -> str:
+    lines = [
+        "## 附录指针",
+        "",
+        f"- numeric authority: [../{RUN_META_DIR}/{BASELINE_NAME}](../{RUN_META_DIR}/{BASELINE_NAME})",
+        f"- run manifest: [../{RUN_META_DIR}/{MANIFEST_NAME}](../{RUN_META_DIR}/{MANIFEST_NAME})",
+        "- validation summary: "
+        f"[../{RUN_META_DIR}/{VALIDATION_MANIFEST_NAME}](../{RUN_META_DIR}/{VALIDATION_MANIFEST_NAME})",
+        f"- geometry approval: [../{RUN_META_DIR}/{APPROVAL_NAME}](../{RUN_META_DIR}/{APPROVAL_NAME})",
+        f"- orchestration ledger: [../{RUN_META_DIR}/{STATE_NAME}](../{RUN_META_DIR}/{STATE_NAME})",
+        "- raw reading outputs: [../0_reading/](../0_reading/)",
+        "- correction audit: [../1_correction/corrections.json](../1_correction/corrections.json)",
+        "- judge verdict log: [../verdicts/](../verdicts/)",
+        f"- geometry_digest: `{b['geometry_digest']}`",
+    ]
     lines += _render_evidence_index(b.get("evidence_index", []))
-    lines += ["", f"_附: baseline.json / 各 <stage>_checks.json / geometry_digest={b['geometry_digest']}_"]
     return "\n".join(lines) + "\n"
 
 
@@ -523,7 +621,7 @@ def main() -> None:
     b = record_baseline(run_dir, date=args.date, orchestrator=args.orchestrator,
                         require_ep=args.require_ep, force_template=args.force_template)
     print(
-        f"wrote {run_dir/'baseline.json'} + {run_dir/'report'}  "
+        f"wrote {run_meta_path(run_dir, BASELINE_NAME)} + {run_dir/'report'/'REPORT.md'}  "
         f"(blocked={b['blocked']}, run_state={b['run_state']['status']})"
     )
 

@@ -11,8 +11,8 @@ primitives over the M0 audit layer:
     accepted pointer if it passed. This is where the Agent's judge verdict is
     persisted (judge.json), realizing "attempts 全上".
   - ``summarize_gates`` — roll a set of stage CheckReports into the per-stage
-    pass/flag/block counts + the flag detail list that feed baseline.json and
-    report/FACTS.md.
+    pass/flag/block counts + the flag detail list that feed _run/baseline.json
+    and report/REPORT.md GEN regions.
 
 It deliberately does NOT inject anything into a stage prompt — repair/resample
 discipline lives in judge/retry.py (blind resample; judge_retry_context never
@@ -67,9 +67,9 @@ def summarize_gates(reports: dict[str, CheckReport]) -> dict:
     """Roll stage CheckReports into a report-card summary.
 
     Returns ``{"gates": {stage: {pass,flag,block,na,skip}}, "flags": [...],
-    "blocking": [...]}`` — the machine summary baseline.json embeds and
-    report/FACTS.md renders. Per-view reading keys (``0_reading::1f_view``) collapse
-    onto their stage (``0_reading``)."""
+    "blocking": [...]}`` — the machine summary _run/baseline.json embeds and
+    report/REPORT.md GEN regions render. Per-view reading keys
+    (``0_reading::1f_view``) collapse onto their stage (``0_reading``)."""
     gates: dict[str, dict[str, int]] = {}
     flags: list[dict] = []
     blocking: list[dict] = []

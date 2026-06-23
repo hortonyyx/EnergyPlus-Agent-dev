@@ -229,13 +229,13 @@
 
 ### 3.1 固化的 on-disk 布局 + 每阶段校验工具
 
-> **case = 纯素材；run 自包含（2026-06-16 用户定）**：`<case>/` 入库只含 `case_data/`（素材 + testdata），**改素材才新 case**。每次跑 = 自包含 `<case>/run_<注释>/`（单 case 可多轮 run），内含本 run 的 `llm.yaml` + `0_reading/` + `1_correction…5_intakeoutput/` + `EP/` + `run_manifest.json` + `baseline.json` + `report/`（`FACTS.md` + 主控撰写 `REPORT.md` + `eyeball/`）；1–5/EP 由代码**跑中建**、绝不预搭空骨架。下方「全树」即一个 **run 目录** run 后的样子（非 case 根）。`validate_case(<run_dir>)`/`record_baseline(<case> <run>)` 对 run 目录操作（case 素材由 `run_dir.parent` 解析）。评测参考答案 gt 不在 case 内，放 `case_tests/test_baseline/gt/<case>.json`（**judge② 专用，gate①/执行器绝不读**，见 [new_case_guide §0.2](../guides/new_case_guide.md)）。
+> **case = 纯素材；run 自包含（2026-06-16 用户定；2026-06-23 布局整理）**：`<case>/` 入库只含 `case_data/`（素材 + testdata），**改素材才新 case**。每次跑 = 自包含 `<case>/run_<注释>/`（单 case 可多轮 run），内含本 run 的 `llm.yaml` + `0_reading/` + `1_correction…5_intakeoutput/` + `EP/` + `_run/`（机器记账：manifest / validation summary / baseline / state / approval）+ `report/REPORT.md`（唯一人读报告，GEN 事实区 + AGENT 叙事/建议 + `eyeball/` 索引）；1–5/EP 由代码**跑中建**、绝不预搭空骨架。下方「全树」即一个 **run 目录** run 后的样子（非 case 根）。`validate_case(<run_dir>)`/`record_baseline(<case> <run>)` 对 run 目录操作（case 素材由 `run_dir.parent` 解析）。评测参考答案 gt 不在 case 内，放 `case_tests/test_baseline/gt/<case>.json`（**judge② 专用，gate①/执行器绝不读**，见 [new_case_guide §0.2](../guides/new_case_guide.md)）。
 
 `run_full_pipeline.py <case> --base-dir case_tests/e2e_tests --reading-from 0_reading` 产出按阶段分门别类：
 
 ```
 <case>/
-  llm.yaml                           per-case 模型组合（case 根）
+  llm.yaml                           per-run 模型组合（run 根）
   case_data/                         源素材：*.png + testdata_prompt.json
   0_reading/                         识图产物（半人工 / sub-agent）
     {1f,2f,..}_view.json + reading_summary.md + *_render.png (+ reading_checks.json 应补)
@@ -258,11 +258,20 @@
   EP/                                IDF 相关输出（下游装配）
     temp_*.idf / temp_*.yaml / intake_output.json 副本 / idf_plan.png
     EP_run/                          EP 仿真输出: eplusout.* / ep_console.log / pipeline_run.log
+  _run/
+    run_manifest.json                accepted attempts + hashes
+    validation_manifest.json         validate_case summary
+    geometry_approval.json           geometry digest approval（如有）
+    orchestration_state.json         judge-in-the-loop ledger（如有）
+    baseline.json                    数字权威 scorecard + evidence_index
+  report/
+    REPORT.md                        唯一人读报告；GEN 区代码刷新，AGENT 区主控保留
+    eyeball/                         汇拢的 2D 肉检件
 ```
 
 > **路由（2026-06-14 接通）**：`run_full_pipeline` 读 `case_data/testdata_prompt.json`；`SimContext.ep_run_subdir="EP_run"` 让 EP 仿真落 `EP/EP_run/`、IDF 留 `EP/`。
 
-> **M0 目标布局（append-only attempts，施工 M0；上为现状 flat、将迁移）**：每段改 `<stage>/attempts/NNN/{output,checks,judge}.*`（**不覆盖坏 draw**）+ 根 `run_manifest.json`（指向各段 accepted attempt + input artifact hashes + stage/check version）+ `geometry_approval.json`（绑定 accepted geometry checkpoint digest = building_geometry+geometry_specs+kernel check report+version；批准后 resume 复用、不重抽）。失效 DAG：`0→1-5 / 1→2-5 / 2→3-5 / 3→4-5 / 4→5`。
+> **M0 布局（append-only attempts，施工 M0）**：每段 `<stage>/attempts/NNN/{output,checks,judge}.*`（**不覆盖坏 draw**）+ `_run/run_manifest.json`（指向各段 accepted attempt + input artifact hashes + stage/check version）+ `_run/geometry_approval.json`（绑定 accepted geometry checkpoint digest = building_geometry+geometry_specs+kernel check report+version；批准后 resume 复用、不重抽）。失效 DAG：`0→1-5 / 1→2-5 / 2→3-5 / 3→4-5 / 4→5`。
 
 > **每段校验工具速览见 §1 各段「校验」条**（现有 ✅⚠️ + 应补 ❌，带 file:line）；本表不重复。
 
@@ -288,7 +297,7 @@
 2. **IntakeOutput 边界**：11 字段契约不变；0–5 分段对下游 9 subagent / cross_ref / validate / InterZone 门**零影响**。
 3. **确定性 vs 判断切分**：A1/A2 + 确定性核 = 确定性；A3/A4 = 判断。**消碎片（核，防崩溃）与几何正确（1_correction，判断）是两件事**，刻意分离。
 4. **skill = 单一真源**：所有 skill 运行时从 `skills/` 载入，不内联复制；A0 容差 registry 是常数单一真源。
-5. **per-stage 可换模型**：`intake_correction` / `intake_mep` LLM section（缺则回退 `intake_correction`），换模型 = 改 per-case `<case>/llm.yaml`。
+5. **per-stage 可换模型**：`intake_correction` / `intake_mep` LLM section（缺则回退 `intake_correction`），run 记录换模型 = 改 `<run>/llm.yaml`。
 6. **judge 不给流程额外信息 + 失败分类**（2026-06-15，v7 纳入 Codex 设计 H1）：judge 评语只进带外日志、绝不注入子流程 prompt；重做=盲重抽；**确定性后置失败 fail-closed 记 code defect、不弹上游/不换样本掩盖**；只 stochastic 0/1/4 盲重抽（0 当前 manual→human_redraw_required）；归因不确定（`root_confidence` 低）不自动路由；全局预算+循环检测、hard sample 先 `quarantined`。
 
 ---
@@ -306,7 +315,7 @@
 > 原缺口（留档）：A0 §6 定义了 provenance_mode/coverage + per-claim 证据分级，但 0_reading 三文档曾**不产结构化 provenance** → 1_correction 实际跑 `legacy` 模式，估算笔画与测量值不可区分。这也是 §1「尺寸链为权威量级」从隐式变显式的前提。
 
 ### 5.4 audit sidecar → baseline 归因 ✅ baseline 侧已收口（2026-06-22，PR-A）
-`corrections.json` 已物化且 correction 门查完整性，但此前 `record_baseline`/`baseline.json` 不消费它。**已落地**：`record_baseline` best-effort 读 `1_correction/corrections.json` → `baseline.json.corrections_summary`（counts by kind/rule_id/stage + capped corrections rows + **full conflicts/unsupported** + sidecar 状态）+ `report/FACTS.md` 新增 `## 校正审计（看错↔改错归因）` 节（conflicts/unsupported 在前）；**不动 gate flags/计数**（Finding 6）。审计轨迹 logs/review/2026-06-22_audit_attribution_and_auto_reread_{proposal,review}。**残留（N4）**：把 gt-diff 与 corrections 机械 JOIN（逐差异自动判 看错↔改错），属评测嵌入。原 P0 决策仍保 `IntakeOutput` 纯净（不把 audit 灌进交接契约、避免 64k 截断）。
+`corrections.json` 已物化且 correction 门查完整性，但此前 `record_baseline`/`_run/baseline.json` 不消费它。**已落地**：`record_baseline` best-effort 读 `1_correction/corrections.json` → `_run/baseline.json.corrections_summary`（counts by kind/rule_id/stage + capped corrections rows + **full conflicts/unsupported** + sidecar 状态）+ `report/REPORT.md` 的 GEN 事实区新增校正审计摘要；**不动 gate flags/计数**（Finding 6）。审计轨迹 logs/review/2026-06-22_audit_attribution_and_auto_reread_{proposal,review}。**残留（N4）**：把 gt-diff 与 corrections 机械 JOIN（逐差异自动判 看错↔改错），属评测嵌入。原 P0 决策仍保 `IntakeOutput` 纯净（不把 audit 灌进交接契约、避免 64k 截断）。
 
 ### 5.5 连接性补缝（#2.4，2026-06-09 部分落地）
 "内墙没顶到外墙、留小缝" → 闭包不连续就形不成 zone（BEM fatal）。与轴吸附是**两类操作**（身份 50mm vs 连接性 300mm，A0 §4 分开）。**已落**：核加连接性 pass——cell 边落 footprint 内侧 ≤ `gap_close_threshold`(300mm) → 吸到边界封口（[deterministic.py](../../src/agent/correction/deterministic.py) `_close_to_boundary`，方向性、仅内墙→外墙）。**残留**：① 内墙→内墙连接性（风险更高暂不做）② 300–1000mm 走 A3（门洞判断）、≥1000mm 走 zonification（开放边界）——属判断，非确定性核。

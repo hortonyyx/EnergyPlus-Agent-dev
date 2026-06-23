@@ -54,6 +54,7 @@ from pathlib import Path
 from src.agent.execution.manifest import next_attempt_index
 from src.agent.execution.orchestrate import file_stage_attempt
 from src.agent.execution.policy import RunPolicy
+from src.agent.execution.run_meta import run_meta_path
 from src.agent.execution.stage_runner import (
     STAGE_REGISTRY,
     Capability,
@@ -495,7 +496,7 @@ def geometry_is_approved(run_dir: Path, *, case_dir: Path | None = None) -> bool
 # orchestration state ledger (feeds record_baseline's stop-reason)
 # --------------------------------------------------------------------------- #
 def load_state(run_dir: Path) -> dict:
-    p = Path(run_dir) / STATE_NAME
+    p = run_meta_path(run_dir, STATE_NAME)
     if not p.exists():
         return {"stages": {}, "stop_reason": None, "updated": ""}
     try:
@@ -521,7 +522,7 @@ def update_state(run_dir: Path, outcome: StageOutcome, *, timestamp: str = "") -
         state["stop_reason"] = f"{outcome.status.value}@{outcome.stage}"
     else:
         state["stop_reason"] = None
-    Path(run_dir).joinpath(STATE_NAME).write_text(
+    run_meta_path(run_dir, STATE_NAME, for_write=True).write_text(
         json.dumps(state, indent=2, ensure_ascii=False), encoding="utf-8"
     )
     return state
@@ -537,7 +538,7 @@ def mark_geometry_approved(run_dir: Path, *, timestamp: str = "") -> dict:
     sr = state.get("stop_reason")
     if sr and sr.startswith("awaiting_geometry_approval"):
         state["stop_reason"] = None
-    Path(run_dir).joinpath(STATE_NAME).write_text(
+    run_meta_path(run_dir, STATE_NAME, for_write=True).write_text(
         json.dumps(state, indent=2, ensure_ascii=False), encoding="utf-8"
     )
     return state

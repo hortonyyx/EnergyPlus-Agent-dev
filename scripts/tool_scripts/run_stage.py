@@ -18,7 +18,8 @@ Stages: 0_reading 1_correction 2_modelling 3_split_pairing 4_mep 5_intakeoutput.
 After 5_intakeoutput passes, run downstream + EP with the existing driver:
     python scripts/run_full_pipeline.py <case> --base-dir <bd> \
         --intake-from <run>/5_intakeoutput/intake_output.json
-then `record_baseline.py <case> <run> --require-ep` for baseline.json + report/.
+then `record_baseline.py <case> <run> --require-ep` for _run/baseline.json
+and report/REPORT.md.
 """
 
 from __future__ import annotations

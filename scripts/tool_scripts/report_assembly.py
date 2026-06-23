@@ -11,11 +11,18 @@ import json
 import os
 import re
 import shutil
+import warnings
 from collections import Counter
 from pathlib import Path
 
+from src.agent.execution.run_meta import RUN_META_DIR
 from src.agent.execution.stage_runner import STAGE_ORDER
-from src.agent.execution.step_orchestrator import ADVANCE_OK, TERMINAL_STOP, StepStatus
+from src.agent.execution.step_orchestrator import (
+    ADVANCE_OK,
+    STATE_NAME,
+    TERMINAL_STOP,
+    StepStatus,
+)
 from src.validator.checks.schema import Disposition, disposition
 
 PENDING = {
@@ -30,6 +37,18 @@ NO_EVIDENCE_SENTINEL = "本 run 无可证据支持的建议"
 
 _AUDIT_KINDS = ("corrections", "conflicts", "unsupported")
 _EVIDENCE_TOKEN_RE = re.compile(r"\[(E:[^\]\s]+)\]")
+_AGENT_START_RE = re.compile(r"^<!-- AGENT:START ([A-Za-z0-9_.-]+) -->$")
+_AGENT_END_RE = re.compile(r"^<!-- AGENT:END ([A-Za-z0-9_.-]+) -->$")
+_GEN_START_RE = re.compile(r"^<!-- GEN:START ([A-Za-z0-9_.-]+) -->$")
+_GEN_END_RE = re.compile(r"^<!-- GEN:END ([A-Za-z0-9_.-]+) -->$")
+
+EXPECTED_AGENT_KEYS = ("conclusion", "focus", "diagnosis", "recommendations")
+GEN_KEYS = ("model_config", "facts_card", "eyeball_index", "appendix")
+VALIDATION_MANIFEST_NAME = "validation_manifest.json"
+
+
+class ReportMarkerError(ValueError):
+    """Raised when AGENT marker structure is ambiguous or unsafe to merge."""
 
 
 def _status_values(statuses: set[StepStatus]) -> set[str]:
@@ -379,7 +398,13 @@ def build_evidence_index(
     if stop:
         status = stop.get("status", "unknown")
         stage = stop.get("stage", "unknown")
-        _add_entry(entries, f"E:stop:{status}@{stage}", "stop", "orchestration_state.json", stop)
+        _add_entry(
+            entries,
+            f"E:stop:{status}@{stage}",
+            "stop",
+            f"{RUN_META_DIR}/{STATE_NAME}",
+            stop,
+        )
 
     _add_entry(entries, "E:ep:result", "ep", "EP/EP_run/eplusout.end", {"ep": ep})
     _add_entry(entries, "E:geom:digest", "geometry", "2_modelling/building_geometry.json", {
@@ -397,13 +422,22 @@ def _evidence_ids(evidence_index: list[dict]) -> set[str]:
     return {entry["id"] for entry in evidence_index if "id" in entry}
 
 
-def lint_report_citations(report_text: str, evidence_index: list[dict]) -> list[str]:
-    """Lexically validate the REPORT.md recommendation mini-format."""
+def lint_report_citations(
+    recommendations_text: str,
+    evidence_index: list[dict],
+    *,
+    block_name: str = "AGENT:recommendations",
+) -> list[str]:
+    """Lexically validate the authored recommendation mini-format.
+
+    The caller supplies the already-extracted AGENT recommendations block; this
+    function no longer rediscovers recommendations by scanning the whole report.
+    """
     known = _evidence_ids(evidence_index)
-    lines = report_text.splitlines()
+    lines = recommendations_text.splitlines()
     sections: dict[str, list[str]] = {}
     errors: list[str] = []
-    in_recommendations = False
+    in_recommendations = not any(line.strip().startswith("## ") for line in lines)
     current_bucket: str | None = None
 
     for line in lines:
@@ -417,11 +451,11 @@ def lint_report_citations(report_text: str, evidence_index: list[dict]) -> list[
         if stripped.startswith("### "):
             bucket = stripped[4:].strip()
             if bucket not in RECOMMENDATION_BUCKETS:
-                errors.append(f"unknown recommendation bucket: {bucket}")
+                errors.append(f"{block_name}: unknown recommendation bucket: {bucket}")
                 current_bucket = None
                 continue
             if bucket in sections:
-                errors.append(f"duplicate recommendation bucket: {bucket}")
+                errors.append(f"{block_name}: duplicate recommendation bucket: {bucket}")
             sections.setdefault(bucket, [])
             current_bucket = bucket
             continue
@@ -430,9 +464,11 @@ def lint_report_citations(report_text: str, evidence_index: list[dict]) -> list[
 
     for bucket in RECOMMENDATION_BUCKETS:
         if bucket not in sections:
-            errors.append(f"missing recommendation bucket: {bucket}")
+            errors.append(f"{block_name}: missing recommendation bucket: {bucket}")
             continue
-        errors.extend(_lint_bucket(bucket, sections[bucket], known))
+        errors.extend(
+            f"{block_name}: {error}" for error in _lint_bucket(bucket, sections[bucket], known)
+        )
     return errors
 
 
@@ -494,8 +530,8 @@ def _lint_bucket(bucket: str, raw_lines: list[str], known: set[str]) -> list[str
     return errors
 
 
-def assert_report_citations(report_text: str, evidence_index: list[dict]) -> None:
-    errors = lint_report_citations(report_text, evidence_index)
+def assert_report_citations(recommendations_text: str, evidence_index: list[dict]) -> None:
+    errors = lint_report_citations(recommendations_text, evidence_index)
     if errors:
         raise AssertionError("REPORT.md citation lint failed:\n- " + "\n- ".join(errors))
 
@@ -558,93 +594,180 @@ def _status_tldr(baseline: dict) -> str:
     return str(state or "unknown")
 
 
-def render_report_template(baseline: dict) -> str:
-    """Render the Agent-authored REPORT.md skeleton.
+def _marker_line(line: str) -> str:
+    return line[:-1] if line.endswith("\n") else line
 
-    The recommendation buckets are initialized with the exact no-evidence
-    sentinel so the structural linter passes until the Agent replaces a bucket
-    with cited bullet records.
-    """
-    assets = baseline.get("report_assets", {})
-    viewer = baseline.get("viewer", {})
+
+def extract_agent_regions(report_text: str) -> dict[str, str]:
+    """Extract AGENT regions, ignoring any marker-like text inside GEN regions."""
+    regions: dict[str, str] = {}
+    active_key: str | None = None
+    active_lines: list[str] = []
+    gen_depth = 0
+
+    for lineno, raw_line in enumerate(report_text.splitlines(keepends=True), start=1):
+        line = _marker_line(raw_line)
+
+        if _GEN_START_RE.match(line):
+            if active_key is None:
+                gen_depth += 1
+                continue
+        if _GEN_END_RE.match(line):
+            if active_key is None and gen_depth:
+                gen_depth -= 1
+                continue
+        if gen_depth:
+            continue
+
+        start = _AGENT_START_RE.match(line)
+        end = _AGENT_END_RE.match(line)
+
+        if start:
+            key = start.group(1)
+            if key not in EXPECTED_AGENT_KEYS:
+                raise ReportMarkerError(f"unknown AGENT marker key {key!r} at line {lineno}")
+            if active_key is not None:
+                raise ReportMarkerError(
+                    f"nested AGENT marker {key!r} at line {lineno}; "
+                    f"{active_key!r} is still open"
+                )
+            if key in regions:
+                raise ReportMarkerError(f"duplicate AGENT marker key {key!r} at line {lineno}")
+            active_key = key
+            active_lines = []
+            continue
+
+        if end:
+            key = end.group(1)
+            if active_key is None:
+                raise ReportMarkerError(f"reversed/unmatched AGENT end {key!r} at line {lineno}")
+            if key != active_key:
+                raise ReportMarkerError(
+                    f"reversed AGENT marker at line {lineno}: "
+                    f"opened {active_key!r}, closed {key!r}"
+                )
+            regions[key] = "".join(active_lines)
+            active_key = None
+            active_lines = []
+            continue
+
+        if active_key is not None:
+            active_lines.append(raw_line)
+
+    if active_key is not None:
+        raise ReportMarkerError(f"unclosed AGENT marker {active_key!r}")
+
+    return regions
+
+
+def _wrap_region(kind: str, key: str, body: str) -> str:
+    text = body if body.endswith("\n") else body + "\n"
+    return f"<!-- {kind}:START {key} -->\n{text}<!-- {kind}:END {key} -->\n"
+
+
+def _format_models(models: dict) -> list[str]:
+    if not models:
+        return ["- models: `(未读到 llm.yaml)`"]
+    return [f"- {key}: `{value}`" for key, value in sorted(models.items())]
+
+
+def _render_model_config(baseline: dict) -> str:
     lines = [
         f"# {baseline['case']} / {baseline.get('run', '')} REPORT",
         "",
-        "<!-- GENERATED-SKELETON: deterministic scaffolding; Agent-authored narrative lives in this file. -->",
+        "## 本次模型配置",
         "",
-        "## 一句话结论",
-        "",
+        f"- llm.yaml: [../llm.yaml](../llm.yaml)",
+        f"- recorded: `{baseline.get('recorded', '')}`",
+        f"- orchestrator: `{baseline.get('orchestrator', '')}`",
         f"- 自动状态: `{_status_tldr(baseline)}`",
-        "<!-- AGENT-FILL: 用一句话写 pass/blocked + 本 run 最重要的一件事。 -->",
-        "",
-        "## 本轮侧重点",
-        "",
-        "<!-- AGENT-FILL: 说明这轮在测什么、为何重要。 -->",
-        "",
-        "## 事实卡",
-        "",
-        "- [FACTS.md](FACTS.md)",
-        "- [baseline.json](../baseline.json)",
-        f"- evidence_index entries: {len(baseline.get('evidence_index', []))}",
-        "",
-        "## 运行状态",
-        "",
-        *_state_summary_lines(baseline.get("run_state", {})),
-    ]
-    consequential = _downstream_missing_after_root(baseline)
-    if consequential:
-        lines += ["", "### 连带缺失下游件", ""]
-        lines += [f"- `{x.get('stage')}`: {x.get('message')}" for x in consequential]
-    lines += [
-        "",
-        "## 错在哪儿 + 归因",
-        "",
-        "<!-- AGENT-FILL: 用 evidence_index 把 gate/judge/correction/肉检事实串成因果链。 -->",
-        "",
-        "## 肉视检验",
-        "",
-    ]
-    if assets.get("assets"):
-        lines += [f"- [{a['filename']}](eyeball/{a['filename']}) — {a['producer']} from `{a['source']}`"
-                  for a in assets["assets"]]
-    else:
-        lines.append("- 2D eyeball assets unavailable; see FACTS.md missing producers.")
-    if viewer.get("available"):
-        lines.append(f"- [3D geometry viewer]({viewer['report_link']}) — `{viewer['status']}`")
-    else:
-        lines.append(f"- 3D geometry viewer unavailable — {viewer.get('reason', 'unknown')}")
-    lines += [
-        "",
-        "## 建议",
-        "",
-    ]
-    for bucket in RECOMMENDATION_BUCKETS:
-        lines += ["", f"### {bucket}", "", NO_EVIDENCE_SENTINEL]
-    lines += [
-        "",
-        "## 附录指针",
-        "",
-        "- raw reading outputs: [../0_reading/](../0_reading/)",
-        "- correction audit: [../1_correction/corrections.json](../1_correction/corrections.json)",
-        "- judge verdict log: [../verdicts/](../verdicts/)",
-        "- orchestration ledger: [../orchestration_state.json](../orchestration_state.json)",
+        *_format_models(baseline.get("models", {})),
     ]
     return "\n".join(lines).rstrip() + "\n"
+
+
+def _default_agent_region(key: str, baseline: dict) -> str:
+    if key == "conclusion":
+        return "\n".join([
+            "## 一句话结论",
+            "",
+            f"- 自动状态: `{_status_tldr(baseline)}`",
+            "<!-- AGENT-FILL: 用一句话写 pass/blocked + 本 run 最重要的一件事。 -->",
+            "",
+        ])
+    if key == "focus":
+        return "\n".join([
+            "## 本轮侧重点",
+            "",
+            "<!-- AGENT-FILL: 说明这轮在测什么、为何重要。 -->",
+            "",
+        ])
+    if key == "diagnosis":
+        return "\n".join([
+            "## 错在哪儿 + 归因",
+            "",
+            "<!-- AGENT-FILL: 用 evidence_index 把 gate/judge/correction/肉检事实串成因果链。 -->",
+            "",
+        ])
+    if key == "recommendations":
+        lines = ["## 建议", ""]
+        for bucket in RECOMMENDATION_BUCKETS:
+            lines += ["", f"### {bucket}", "", NO_EVIDENCE_SENTINEL]
+        lines.append("")
+        return "\n".join(lines)
+    raise KeyError(key)
+
+
+def _agent_region(key: str, baseline: dict, existing: dict[str, str]) -> str:
+    if key in existing:
+        return existing[key]
+    warnings.warn(
+        f"REPORT.md missing AGENT region {key!r}; using placeholder",
+        RuntimeWarning,
+        stacklevel=2,
+    )
+    return _default_agent_region(key, baseline)
+
+
+def render_marked_report(
+    baseline: dict,
+    *,
+    generated_sections: dict[str, str],
+    agent_regions: dict[str, str],
+) -> str:
+    """Render the single marker-delimited REPORT.md."""
+    sections: list[str] = []
+    sections.append(_wrap_region("GEN", "model_config", _render_model_config(baseline)))
+    sections.append(_wrap_region("GEN", "facts_card", generated_sections["facts_card"]))
+    for key in ("conclusion", "focus", "diagnosis", "recommendations"):
+        sections.append(_wrap_region("AGENT", key, _agent_region(key, baseline, agent_regions)))
+    sections.append(_wrap_region("GEN", "eyeball_index", generated_sections["eyeball_index"]))
+    sections.append(_wrap_region("GEN", "appendix", generated_sections["appendix"]))
+    return "\n".join(section.rstrip() for section in sections).rstrip() + "\n"
 
 
 def write_report_files(
     run_dir: Path,
     *,
     baseline: dict,
-    facts_text: str,
+    generated_sections: dict[str, str],
     force_template: bool = False,
 ) -> None:
     report_dir = Path(run_dir) / "report"
     report_dir.mkdir(parents=True, exist_ok=True)
-    (report_dir / "FACTS.md").write_text(facts_text, encoding="utf-8")
-    template = render_report_template(baseline)
-    (report_dir / "REPORT.template.md").write_text(template, encoding="utf-8")
     report = report_dir / "REPORT.md"
-    if force_template or not report.exists():
-        report.write_text(template, encoding="utf-8")
-    assert_report_citations(report.read_text(encoding="utf-8"), baseline["evidence_index"])
+    existing_regions: dict[str, str] = {}
+    if report.exists():
+        existing_regions = extract_agent_regions(report.read_text(encoding="utf-8"))
+    if force_template:
+        existing_regions = {}
+    merged = render_marked_report(
+        baseline,
+        generated_sections=generated_sections,
+        agent_regions=existing_regions,
+    )
+    recommendation_block = extract_agent_regions(merged)["recommendations"]
+    assert_report_citations(recommendation_block, baseline["evidence_index"])
+    (report_dir / "FACTS.md").unlink(missing_ok=True)
+    (report_dir / "REPORT.template.md").unlink(missing_ok=True)
+    report.write_text(merged, encoding="utf-8")

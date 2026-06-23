@@ -25,6 +25,7 @@ from src.agent.execution import (
     geometry_checkpoint_digest,
     invalidate,
     is_approved,
+    run_meta_path,
     stages_to_run,
 )
 from src.agent.execution.manifest import next_attempt_index
@@ -75,11 +76,23 @@ def test_append_only_rejected_does_not_overwrite(tmp_path):
 
 
 def test_manifest_roundtrip(tmp_path):
+    (tmp_path / "run_manifest.json").write_text('{"case":"stale_root","stages":{}}')
     m = RunManifest(case="t")
     m.accept(StageRecord(stage="1_correction", accepted_attempt=1, output_hash="abc"))
-    m.save(tmp_path)
+    path = m.save(tmp_path)
+    assert path == run_meta_path(tmp_path, "run_manifest.json")
+    assert path.exists()
     m2 = RunManifest.load(tmp_path)
     assert m2.accepted("1_correction").output_hash == "abc"
+    assert m2.case == "t"
+
+
+def test_manifest_filename_override_uses_run_meta_dir(tmp_path):
+    m = RunManifest(case="t")
+    path = m.save(tmp_path, filename="validation_manifest.json")
+    assert path == run_meta_path(tmp_path, "validation_manifest.json")
+    assert path.exists()
+    assert not (tmp_path / "validation_manifest.json").exists()
 
 
 # --------------------------------------------------------------------------- #

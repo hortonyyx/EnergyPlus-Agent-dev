@@ -28,23 +28,26 @@ baseline = 一个**干净的** anchor case 的一次 **run**（`<case>/run_<注�
       attempts/NNN/           ← append-only 每次抽：output + checks + judge（不覆盖坏草稿）
     2_modelling/building_geometry.json + kernel_gate_report.json
     EP/EP_run/                EP 仿真（eplusout.* 本地 gitignored）
-    run_manifest.json         各段 accepted 指针 + input hash + geometry approval digest
-    baseline.json             ← 机器成绩单（golden 计数 / digest / 各段 gate 汇总 / flags / EP / 抽几次）
+    _run/
+      run_manifest.json       各段 accepted 指针 + input hash + geometry approval digest
+      validation_manifest.json validate_case summary（非 M0 audit manifest）
+      geometry_approval.json  geometry digest approval（如有）
+      orchestration_state.json judge-in-the-loop ledger（如有）
+      baseline.json           ← 机器成绩单（golden 计数 / digest / gate 汇总 / flags / EP / 抽几次）
     report/
-      FACTS.md                ← 确定性事实卡
-      REPORT.md               ← 主控撰写的人读总反馈 + 🔍 肉视检验清单 + 建议
+      REPORT.md               ← 唯一人读总反馈（GEN 事实区 + AGENT 叙事/建议 + 🔍 肉检索引）
       eyeball/                ← 汇拢的 2D 肉检件
 ```
 
 **「干净」收口标准**：gate① **0 block** + EP **0 severe**；cross-check **flag 允许存在但必须在
-`baseline.json.flags[]` 与 `report/FACTS.md` / `report/REPORT.md` 留痕**。出现不该有的 flag（区数 tripwire、跨图对账不齐
+`_run/baseline.json.flags[]` 与 `report/REPORT.md` 的 GEN 区留痕**。出现不该有的 flag（区数 tripwire、跨图对账不齐
 等）→ 回 0_reading 修到干净，不带病入库。
 
 ## 2. 三层反馈（来源）
 
 | 层 | 谁产 | 落处 |
 |---|---|---|
-| **gate① 确定性** | 代码 [`validate_case`](../../src/agent/execution/validation_run.py) | `<stage>_checks.json` + `baseline.json.gates` |
+| **gate① 确定性** | 代码 [`validate_case`](../../src/agent/execution/validation_run.py) | `<stage>_checks.json` + `_run/baseline.json.gates` |
 | **judge② 感知** | **主 Agent（编排器自己当 judge，看原图+渲染件+参考）** | `attempts/NNN/judge.json`（verdict schema v2，append-only）|
 | **L-肉眼** | **人**（按 `report/REPORT.md` 的 🔍 清单核确定性/judge 都盖不死的感知项）| 人工 |
 
@@ -61,7 +64,7 @@ baseline = 一个**干净的** anchor case 的一次 **run**（`<case>/run_<注�
 
 跑批与 judge 由主 Agent 按 [new_case_guide.md](../../AI_agent/guides/new_case_guide.md) 执行；
 跑完用 [`scripts/tool_scripts/record_baseline.py`](../../scripts/tool_scripts/record_baseline.py)
-生成 `baseline.json` + `report/`：
+生成 `_run/baseline.json` + `report/REPORT.md`：
 
 ```bash
 python scripts/tool_scripts/record_baseline.py <case> <run> \

@@ -1,0 +1,504 @@
+{
+  "case": "sm21_anchor",
+  "run": "run_2026-06-21_sonnet_reading_retry",
+  "recorded": "2026-06-21",
+  "orchestrator": "opus-4.8",
+  "models": {
+    "intake_correction": "deepseek-v4-pro",
+    "default": "deepseek-v4-pro"
+  },
+  "geometry": {},
+  "geometry_digest": null,
+  "geometry_approved": false,
+  "gates": {
+    "1_correction": {
+      "pass": 0,
+      "flag": 0,
+      "block": 1,
+      "na": 0,
+      "skip": 0
+    },
+    "2_modelling": {
+      "pass": 0,
+      "flag": 0,
+      "block": 1,
+      "na": 0,
+      "skip": 0
+    },
+    "3_split_pairing": {
+      "pass": 0,
+      "flag": 0,
+      "block": 1,
+      "na": 0,
+      "skip": 0
+    },
+    "4_mep": {
+      "pass": 0,
+      "flag": 0,
+      "block": 1,
+      "na": 0,
+      "skip": 0
+    },
+    "5_intakeoutput": {
+      "pass": 0,
+      "flag": 0,
+      "block": 1,
+      "na": 0,
+      "skip": 0
+    },
+    "0_reading": {
+      "pass": 58,
+      "flag": 0,
+      "block": 0,
+      "na": 14,
+      "skip": 0
+    }
+  },
+  "flags": [],
+  "blocking": [
+    {
+      "stage": "1_correction",
+      "check": "1_correction.build",
+      "message": "required artifact missing: 1_correction/correction_geometry_snapped.json"
+    },
+    {
+      "stage": "2_modelling",
+      "check": "2_modelling.build",
+      "message": "required artifact missing: 2_modelling/building_geometry.json"
+    },
+    {
+      "stage": "3_split_pairing",
+      "check": "3_split_pairing.build",
+      "message": "required artifact missing: 3_split_pairing/geometry_specs.md"
+    },
+    {
+      "stage": "4_mep",
+      "check": "4_mep.build",
+      "message": "required artifact missing: 4_mep/mep_output.json"
+    },
+    {
+      "stage": "5_intakeoutput",
+      "check": "5_intakeoutput.build",
+      "message": "required artifact missing: 5_intakeoutput/intake_output.json"
+    }
+  ],
+  "judge_verdicts": [
+    {
+      "stage": "0_reading",
+      "attempt": 1,
+      "blocking": true,
+      "root_stage": "0_reading"
+    }
+  ],
+  "draws": {
+    "0_reading": 1
+  },
+  "orchestration": {
+    "0_reading": {
+      "stage": "0_reading",
+      "status": "human_redraw_required",
+      "attempts_used": 1,
+      "accepted_attempt": 1,
+      "message": "judge blocked, root='0_reading' (manual) → human re-trace required",
+      "route_target": "0_reading",
+      "gate1": {
+        "passed": true,
+        "block": 0,
+        "flag": 0
+      }
+    }
+  },
+  "stop_reason": "human_redraw_required@0_reading",
+  "ep": null,
+  "corrections_summary": {
+    "sidecar_path": "1_correction/corrections.json",
+    "present": false,
+    "parse_status": "missing",
+    "counts": {
+      "corrections": 0,
+      "conflicts": 0,
+      "unsupported": 0
+    },
+    "by_rule_id": {},
+    "by_stage": {},
+    "corrections": {
+      "total": 0,
+      "shown": 0,
+      "cap": 20,
+      "rows": []
+    },
+    "conflicts": [],
+    "unsupported": []
+  },
+  "evidence_index": [
+    {
+      "id": "E:gate:1_correction:1_correction.build",
+      "kind": "gate",
+      "source": "1_correction",
+      "payload": {
+        "report_key": "1_correction",
+        "stage": "1_correction",
+        "check_id": "1_correction.build",
+        "status": "error",
+        "layer": "invariant",
+        "disposition": "block",
+        "message": "required artifact missing: 1_correction/correction_geometry_snapped.json",
+        "evidence": {}
+      }
+    },
+    {
+      "id": "E:gate:2_modelling:2_modelling.build",
+      "kind": "gate",
+      "source": "2_modelling",
+      "payload": {
+        "report_key": "2_modelling",
+        "stage": "2_modelling",
+        "check_id": "2_modelling.build",
+        "status": "error",
+        "layer": "invariant",
+        "disposition": "block",
+        "message": "required artifact missing: 2_modelling/building_geometry.json",
+        "evidence": {}
+      }
+    },
+    {
+      "id": "E:gate:3_split_pairing:3_split_pairing.build",
+      "kind": "gate",
+      "source": "3_split_pairing",
+      "payload": {
+        "report_key": "3_split_pairing",
+        "stage": "3_split_pairing",
+        "check_id": "3_split_pairing.build",
+        "status": "error",
+        "layer": "invariant",
+        "disposition": "block",
+        "message": "required artifact missing: 3_split_pairing/geometry_specs.md",
+        "evidence": {}
+      }
+    },
+    {
+      "id": "E:gate:4_mep:4_mep.build",
+      "kind": "gate",
+      "source": "4_mep",
+      "payload": {
+        "report_key": "4_mep",
+        "stage": "4_mep",
+        "check_id": "4_mep.build",
+        "status": "error",
+        "layer": "invariant",
+        "disposition": "block",
+        "message": "required artifact missing: 4_mep/mep_output.json",
+        "evidence": {}
+      }
+    },
+    {
+      "id": "E:gate:5_intakeoutput:5_intakeoutput.build",
+      "kind": "gate",
+      "source": "5_intakeoutput",
+      "payload": {
+        "report_key": "5_intakeoutput",
+        "stage": "5_intakeoutput",
+        "check_id": "5_intakeoutput.build",
+        "status": "error",
+        "layer": "invariant",
+        "disposition": "block",
+        "message": "required artifact missing: 5_intakeoutput/intake_output.json",
+        "evidence": {}
+      }
+    },
+    {
+      "id": "E:judge:0_reading:001:c1",
+      "kind": "judge",
+      "source": "0_reading/attempts/001/judge.json",
+      "payload": {
+        "stage": "0_reading",
+        "attempt": "001",
+        "criterion_ordinal": 1,
+        "criterion": {
+          "criterion": "missed real element",
+          "status": "pass",
+          "evidence": "All perimeter walls and the corridor traced; no real wall/window omitted."
+        },
+        "root_stage": "0_reading",
+        "rubric_id": "J0"
+      }
+    },
+    {
+      "id": "E:judge:0_reading:001:c2",
+      "kind": "judge",
+      "source": "0_reading/attempts/001/judge.json",
+      "payload": {
+        "stage": "0_reading",
+        "attempt": "001",
+        "criterion_ordinal": 2,
+        "criterion": {
+          "criterion": "clutter traced as structure",
+          "status": "severe",
+          "evidence": "Interior dimension ticks traced as walls: F1 has vertical walls at x=3.44 and x=6.3 (no real partition there; true dividers are x5/x10, matching the north band); F2 has an extra divider at x=7.74 (near-duplicate of the real x7.5). Over-segments both plans."
+        },
+        "root_stage": "0_reading",
+        "rubric_id": "J0"
+      }
+    },
+    {
+      "id": "E:judge:0_reading:001:c3",
+      "kind": "judge",
+      "source": "0_reading/attempts/001/judge.json",
+      "payload": {
+        "stage": "0_reading",
+        "attempt": "001",
+        "criterion_ordinal": 3,
+        "criterion": {
+          "criterion": "pen misclassified",
+          "status": "severe",
+          "evidence": "South-F1 door and West-F1 double door traced with the WINDOW pen (elevation window counts inflate to South=8 vs truth 7, West=2 vs truth 1). Doors are not windows."
+        },
+        "root_stage": "0_reading",
+        "rubric_id": "J0"
+      }
+    },
+    {
+      "id": "E:judge:0_reading:001:c4",
+      "kind": "judge",
+      "source": "0_reading/attempts/001/judge.json",
+      "payload": {
+        "stage": "0_reading",
+        "attempt": "001",
+        "criterion_ordinal": 4,
+        "criterion": {
+          "criterion": "number copied wrong",
+          "status": "minor",
+          "evidence": "Self-reported dimension-chain discrepancies (1f top chain ~760mm off across its 9 segments; 2f top ~120mm, bottom ~400mm). Internal-consistency only; not independently re-OCR'd here."
+        },
+        "root_stage": "0_reading",
+        "rubric_id": "J0"
+      }
+    },
+    {
+      "id": "E:judge:0_reading:001:c5",
+      "kind": "judge",
+      "source": "0_reading/attempts/001/judge.json",
+      "payload": {
+        "stage": "0_reading",
+        "attempt": "001",
+        "criterion_ordinal": 5,
+        "criterion": {
+          "criterion": "image-local orientation self-consistent",
+          "status": "pass",
+          "evidence": "view_facade declared per elevation from the trusted image name; in-image axis kept local."
+        },
+        "root_stage": "0_reading",
+        "rubric_id": "J0"
+      }
+    },
+    {
+      "id": "E:judge:0_reading:001:c6",
+      "kind": "judge",
+      "source": "0_reading/attempts/001/judge.json",
+      "payload": {
+        "stage": "0_reading",
+        "attempt": "001",
+        "criterion_ordinal": 6,
+        "criterion": {
+          "criterion": "door healing wrong",
+          "status": "severe",
+          "evidence": "South-F1 and West-F1 door openings were NOT healed into continuous wall — they were emitted as window strokes, and are NOT logged in uncaptured_visual_elements. (Contrast: the first Sonnet run and the GPT-5.4 run both healed these two doors correctly.)"
+        },
+        "root_stage": "0_reading",
+        "rubric_id": "J0"
+      }
+    },
+    {
+      "id": "E:judge:0_reading:001:c7",
+      "kind": "judge",
+      "source": "0_reading/attempts/001/judge.json",
+      "payload": {
+        "stage": "0_reading",
+        "attempt": "001",
+        "criterion_ordinal": 7,
+        "criterion": {
+          "criterion": "whole-region missing / misplaced",
+          "status": "pass",
+          "evidence": "All bands (north rooms / corridor / south rooms) present and correctly placed; the defect is over-segmentation + door handling, not missing regions."
+        },
+        "root_stage": "0_reading",
+        "rubric_id": "J0"
+      }
+    },
+    {
+      "id": "E:stop:human_redraw_required@0_reading",
+      "kind": "stop",
+      "source": "_run/orchestration_state.json",
+      "payload": {
+        "stage": "0_reading",
+        "status": "human_redraw_required",
+        "attempts_used": 1,
+        "accepted_attempt": 1,
+        "message": "judge blocked, root='0_reading' (manual) → human re-trace required",
+        "route_target": "0_reading"
+      }
+    },
+    {
+      "id": "E:ep:result",
+      "kind": "ep",
+      "source": "EP/EP_run/eplusout.end",
+      "payload": {
+        "ep": null
+      }
+    },
+    {
+      "id": "E:geom:digest",
+      "kind": "geometry",
+      "source": "2_modelling/building_geometry.json",
+      "payload": {
+        "geometry_digest": null,
+        "geometry_approved": false
+      }
+    },
+    {
+      "id": "E:eyeball:0_reading_1f_view_render.png",
+      "kind": "eyeball",
+      "source": "report/eyeball/0_reading_1f_view_render.png",
+      "payload": {
+        "filename": "0_reading_1f_view_render.png",
+        "path": "report/eyeball/0_reading_1f_view_render.png",
+        "producer": "reading_render",
+        "source": "0_reading/1f_view_render.png",
+        "status": "copied"
+      }
+    },
+    {
+      "id": "E:eyeball:0_reading_2f_view_render.png",
+      "kind": "eyeball",
+      "source": "report/eyeball/0_reading_2f_view_render.png",
+      "payload": {
+        "filename": "0_reading_2f_view_render.png",
+        "path": "report/eyeball/0_reading_2f_view_render.png",
+        "producer": "reading_render",
+        "source": "0_reading/2f_view_render.png",
+        "status": "copied"
+      }
+    },
+    {
+      "id": "E:eyeball:0_reading_East_view_render.png",
+      "kind": "eyeball",
+      "source": "report/eyeball/0_reading_East_view_render.png",
+      "payload": {
+        "filename": "0_reading_East_view_render.png",
+        "path": "report/eyeball/0_reading_East_view_render.png",
+        "producer": "reading_render",
+        "source": "0_reading/East_view_render.png",
+        "status": "copied"
+      }
+    },
+    {
+      "id": "E:eyeball:0_reading_North_view_render.png",
+      "kind": "eyeball",
+      "source": "report/eyeball/0_reading_North_view_render.png",
+      "payload": {
+        "filename": "0_reading_North_view_render.png",
+        "path": "report/eyeball/0_reading_North_view_render.png",
+        "producer": "reading_render",
+        "source": "0_reading/North_view_render.png",
+        "status": "copied"
+      }
+    },
+    {
+      "id": "E:eyeball:0_reading_South_view_render.png",
+      "kind": "eyeball",
+      "source": "report/eyeball/0_reading_South_view_render.png",
+      "payload": {
+        "filename": "0_reading_South_view_render.png",
+        "path": "report/eyeball/0_reading_South_view_render.png",
+        "producer": "reading_render",
+        "source": "0_reading/South_view_render.png",
+        "status": "copied"
+      }
+    },
+    {
+      "id": "E:eyeball:0_reading_West_view_render.png",
+      "kind": "eyeball",
+      "source": "report/eyeball/0_reading_West_view_render.png",
+      "payload": {
+        "filename": "0_reading_West_view_render.png",
+        "path": "report/eyeball/0_reading_West_view_render.png",
+        "producer": "reading_render",
+        "source": "0_reading/West_view_render.png",
+        "status": "copied"
+      }
+    },
+    {
+      "id": "E:eyeball:case_data_1f_view.png",
+      "kind": "eyeball",
+      "source": "report/eyeball/case_data_1f_view.png",
+      "payload": {
+        "filename": "case_data_1f_view.png",
+        "path": "report/eyeball/case_data_1f_view.png",
+        "producer": "case_data_view",
+        "source": "../case_data/1f_view.png",
+        "status": "copied"
+      }
+    },
+    {
+      "id": "E:eyeball:case_data_2f_view.png",
+      "kind": "eyeball",
+      "source": "report/eyeball/case_data_2f_view.png",
+      "payload": {
+        "filename": "case_data_2f_view.png",
+        "path": "report/eyeball/case_data_2f_view.png",
+        "producer": "case_data_view",
+        "source": "../case_data/2f_view.png",
+        "status": "copied"
+      }
+    },
+    {
+      "id": "E:eyeball:case_data_East_view.png",
+      "kind": "eyeball",
+      "source": "report/eyeball/case_data_East_view.png",
+      "payload": {
+        "filename": "case_data_East_view.png",
+        "path": "report/eyeball/case_data_East_view.png",
+        "producer": "case_data_view",
+        "source": "../case_data/East_view.png",
+        "status": "copied"
+      }
+    },
+    {
+      "id": "E:eyeball:case_data_North_view.png",
+      "kind": "eyeball",
+      "source": "report/eyeball/case_data_North_view.png",
+      "payload": {
+        "filename": "case_data_North_view.png",
+        "path": "report/eyeball/case_data_North_view.png",
+        "producer": "case_data_view",
+        "source": "../case_data/North_view.png",
+        "status": "copied"
+      }
+    },
+    {
+      "id": "E:eyeball:case_data_South_view.png",
+      "kind": "eyeball",
+      "source": "report/eyeball/case_data_South_view.png",
+      "payload": {
+        "filename": "case_data_South_view.png",
+        "path": "report/eyeball/case_data_South_view.png",
+        "producer": "case_data_view",
+        "source": "../case_data/South_view.png",
+        "status": "copied"
+      }
+    },
+    {
+      "id": "E:eyeball:case_data_West_view.png",
+      "kind": "eyeball",
+      "source": "report/eyeball/case_data_West_view.png",
+      "payload": {
+        "filename": "case_data_West_view.png",
+        "path": "report/eyeball/case_data_West_view.png",
+        "producer": "case_data_view",
+        "source": "../case_data/West_view.png",
+        "status": "copied"
+      }
+    }
+  ],
+  "blocked": true
+}

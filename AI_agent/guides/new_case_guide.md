@@ -48,8 +48,8 @@ judge 密度（自洽口径）：**只在 LLM 段 0/1/4 有 judge**；确定性�
     1_correction/ … 5_intakeoutput/  各段产物 + <stage>_checks.json + attempts/NNN/
     2_modelling/building_geometry.json + kernel_gate_report.json
     EP/EP_run/
-    run_manifest.json
-    baseline.json + report/
+    _run/                         机器记账：run_manifest / validation_manifest / baseline / state / approval
+    report/REPORT.md              唯一人读报告（GEN 事实区 + AGENT 叙事/建议）
   run_<另一注释>/ …                  ← 另一轮（如换模型）
 ```
 `1_correction…5_intakeoutput/ EP/` 由代码**跑中建**（`mkdir(parents=True)`），绝不预搭空骨架。
@@ -106,7 +106,7 @@ judge 密度（自洽口径）：**只在 LLM 段 0/1/4 有 judge**；确定性�
 > judge severe/fatal 不可归因=`judge_block_human`；0_reading 阻塞默认=`human_redraw_required`，
 > runner 可用时=`awaiting_reread`（非 terminal，等主 Agent 完成盲重读 handoff 后继续）。任一 terminal 停点 → 直接出总报告。
 > **几何门**：`ConfirmationPolicy.REQUIRED` 已接成阻塞门，**未 approve 时 `run 4_mep` 直接拒跑、不画**。
-> 跑完或中途停 → `record_baseline.py`（已纳入逐段 status + stop_reason + judge verdict 计数）出 `baseline.json` + `report/`。
+> 跑完或中途停 → `record_baseline.py`（已纳入逐段 status + stop_reason + judge verdict 计数）出 `_run/baseline.json` + `report/REPORT.md`。
 
 ### 准备
 - 确认 `case_data/testdata_prompt.json` + `case_data/*_view.png` + 根 `llm.yaml` 就位。
@@ -175,12 +175,12 @@ judge 密度（自洽口径）：**只在 LLM 段 0/1/4 有 judge**；确定性�
 
 - **每次抽都落 append-only attempt**：用 [`file_stage_attempt(runner, stage=…, output_obj=…,
   report=…, verdict=…)`](../../src/agent/execution/orchestrate.py) → `<stage>/attempts/NNN/{output,
-  checks,judge}.json`（**不覆盖坏草稿**），accepted 指针进 `run_manifest.json`。`runner =
+  checks,judge}.json`（**不覆盖坏草稿**），accepted 指针进 `_run/run_manifest.json`。`runner =
   StageRunner(case_dir, RunManifest.load(case_dir))`。
 - **你的 judge verdict** 用 `StageVerdict`（schema v2：criterion status + root_stage/confidence +
   retriable，见 `src/agent/judge/verdict.py`）；可经 `run_judge(stage, artifacts, judge_fn=<你填
   verdict>)` 走预算/quarantine/append-only，或直接 `file_stage_attempt(..., verdict=…)`。
-- **成绩单 + 人读反馈**：跑完一条命令出 `baseline.json` + `report/`：
+- **成绩单 + 人读反馈**：跑完一条命令出 `_run/baseline.json` + `report/REPORT.md`：
   ```bash
   python scripts/tool_scripts/record_baseline.py <case> <run> --base-dir case_tests/e2e_tests \
       --date <ISO 日期> --orchestrator <你的模型id>
@@ -190,9 +190,9 @@ judge 密度（自洽口径）：**只在 LLM 段 0/1/4 有 judge**；确定性�
 
 ## 4. 给用户的总反馈 + 🔍 肉视清单
 
-`record_baseline.py` 生成 `report/FACTS.md`（确定性事实卡）和 `report/REPORT.md`（主控撰写骨架）。
+`record_baseline.py` 生成单一 `report/REPORT.md`：GEN 区由代码刷新，AGENT 区保留主控撰写内容。
 **你必须完成 `REPORT.md` 的 Agent-fill 槽位**，尤其是错因链和四桶建议；建议区只能用结构化 bullet：
-`action` / `evidence: [E:...]` / `owner`，每条 evidence id 必须存在于 `baseline.json.evidence_index`。
+`action` / `evidence: [E:...]` / `owner`，每条 evidence id 必须存在于 `_run/baseline.json.evidence_index`。
 若某桶无证据支持，保留精确哨兵 `本 run 无可证据支持的建议`。**你在对话里也复述这份反馈**，并明确告诉用户：
 
 - 结论（clean / blocked）+ golden 计数 + EP 结果。
@@ -203,7 +203,7 @@ judge 密度（自洽口径）：**只在 LLM 段 0/1/4 有 judge**；确定性�
 
 ## 5. 「干净」收口 + baseline 入库
 
-- 收口标准：gate① **0 block** + EP **0 severe**；flag 允许但必须在 `baseline.json.flags[]` 留痕。
+- 收口标准：gate① **0 block** + EP **0 severe**；flag 允许但必须在 `_run/baseline.json.flags[]` 留痕。
   出现不该有的 flag（区数 tripwire / 跨图对账不齐）→ 回 S0 修识图到干净，不带病入库。
 - 入库：在 [`case_tests/test_baseline/index.md`](../../case_tests/test_baseline/index.md) 登记一行
   （golden 计数 + 状态），并加/更新该 anchor 的 golden 测试（`tests/test_validation_run_baseline.py`
@@ -213,7 +213,7 @@ judge 密度（自洽口径）：**只在 LLM 段 0/1/4 有 judge**；确定性�
 
 ## 6. 模型配置（per-case）
 
-`<case>/llm.yaml`（从全局 `src/configs/llm.yaml` 拷模板，经 `EP_AGENT_LLM_CONFIG` 覆盖）。段→阶段：
+`<run>/llm.yaml`（run 记录的模型配置；从全局 `src/configs/llm.yaml` 拷模板，经 `EP_AGENT_LLM_CONFIG` 覆盖）。段→阶段：
 
 | 段 | 阶段 | thinking |
 |---|---|---|
@@ -222,7 +222,7 @@ judge 密度（自洽口径）：**只在 LLM 段 0/1/4 有 judge**；确定性�
 | `default` | 下游 surface/construction/fenestration | disabled（多轮 ReAct，开则 400）|
 | `zone`(*flash) | 下游 zone/material/schedule/hvac/people/lights | disabled |
 
-换模型 = 改 per-case `llm.yaml`，不动全局/代码。
+换模型 = 改 run 里的 `llm.yaml`，不动全局/代码。
 
 ## 7. 常见坑
 

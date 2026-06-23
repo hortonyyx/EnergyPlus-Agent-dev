@@ -29,6 +29,7 @@ from pathlib import Path
 from pydantic import BaseModel, ConfigDict
 
 from src.agent.execution.manifest import combined_digest, hash_obj, hash_text
+from src.agent.execution.run_meta import run_meta_path
 
 APPROVAL_NAME = "geometry_approval.json"
 
@@ -65,13 +66,13 @@ class GeometryApproval(BaseModel):
     # ---- io ----
     @classmethod
     def load(cls, case_dir: Path) -> "GeometryApproval | None":
-        p = Path(case_dir) / APPROVAL_NAME
+        p = run_meta_path(case_dir, APPROVAL_NAME)
         if not p.exists():
             return None
         return cls.model_validate_json(p.read_text(encoding="utf-8"))
 
     def save(self, case_dir: Path) -> Path:
-        p = Path(case_dir) / APPROVAL_NAME
+        p = run_meta_path(case_dir, APPROVAL_NAME, for_write=True)
         p.write_text(self.model_dump_json(indent=2), encoding="utf-8")
         return p
 

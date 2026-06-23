@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import re
 import shutil
 import sys
 from pathlib import Path
@@ -13,6 +14,7 @@ from src.agent.execution import (
     RunManifest,
     StageRunner,
     file_stage_attempt,
+    run_meta_path,
     summarize_gates,
 )
 from src.agent.judge import StageVerdict
@@ -162,14 +164,19 @@ def test_record_baseline_on_anchor(tmp_path):
     assert b["geometry"] == {"zones": 19, "surfaces": 135, "windows": 16}
     assert b["geometry_digest"] is not None
     # files written into the run dir
-    bj = json.loads((run / "baseline.json").read_text())
+    bj = json.loads(run_meta_path(run, "baseline.json").read_text())
     assert bj["case"] == "sm20_anchor"
     assert "evidence_index" in bj
     assert "run_state" not in bj
-    facts = (run / "report" / "FACTS.md").read_text()
     report = (run / "report" / "REPORT.md").read_text()
-    assert "肉视检验" in facts
-    assert "结论" in facts
+    assert report.startswith("<!-- GEN:START model_config -->")
+    assert "## 本次模型配置" in report
+    assert "## 事实卡" in report
+    assert "## 肉视检验索引" in report
+    assert not (run / "report" / "FACTS.md").exists()
+    assert not (run / "report" / "REPORT.template.md").exists()
+    assert "肉视检验" in report
+    assert "结论" in report
     assert "## 建议" in report
     assert not (run / "RUN_REPORT.md").exists()
     # record_baseline must not rewrite load-bearing gate artifacts.
@@ -188,11 +195,11 @@ def test_record_baseline_report_lists_eyeball_items(tmp_path):
     assert (eye / "1_correction_elev.png").exists()
     assert (eye / "0_reading_1f_view_render.png").exists()
     assert (eye / "case_data_1f_view.png").exists()
-    facts = (run / "report" / "FACTS.md").read_text()
     report = (run / "report" / "REPORT.md").read_text()
-    assert "report/eyeball/1_correction_zones.png" in facts
+    assert "report/eyeball/1_correction_zones.png" in report
     assert "[3D geometry viewer](../manual_review/geometry_viewer.html)" in report
     assert (run / "manual_review" / "geometry_viewer.html").exists()
+    assert not (run / "report" / "FACTS.md").exists()
 
 
 def test_record_baseline_state_aware_report_suppresses_dead_viewer(tmp_path):
@@ -223,9 +230,9 @@ def test_record_baseline_missing_corrections_sidecar_does_not_change_gates(tmp_p
     }
     assert b["flags"] == []
     assert all(agg["flag"] == 0 for agg in b["gates"].values())
-    facts = (run / "report" / "FACTS.md").read_text()
-    assert "## 校正审计（看错↔改错归因）" in facts
-    assert "（无 corrections.json）" in facts
+    report = (run / "report" / "REPORT.md").read_text()
+    assert "### 校正审计摘要" in report
+    assert "sidecar: `1_correction/corrections.json` (missing)" in report
 
 
 def test_record_baseline_correction_audit_summary_is_separate_from_flags(tmp_path):
@@ -281,13 +288,11 @@ def test_record_baseline_correction_audit_summary_is_separate_from_flags(tmp_pat
     assert "E:corr:unsupported:unsup_1" in ids
     assert len([eid for eid in ids if eid.startswith("E:corr:")]) == 27
 
-    facts = (run / "report" / "FACTS.md").read_text()
-    assert "## 校正审计（看错↔改错归因）" in facts
-    assert "### conflicts[]" in facts
-    assert "### unsupported[]" in facts
-    assert "### corrections[]（显示 20/25，cap=20）" in facts
-    assert "audit-derived [corrections_summary]" in facts
-    assert "`E:corr:corrections:bulk_22`" in facts
+    report = (run / "report" / "REPORT.md").read_text()
+    assert "### 校正审计摘要" in report
+    assert "corrections=25, conflicts=1, unsupported=1" in report
+    assert "audit-derived [corrections_summary]" in report
+    assert "`E:corr:corrections:bulk_22`" in report
 
 
 def test_record_baseline_malformed_corrections_sidecar_is_best_effort(tmp_path):
@@ -304,8 +309,8 @@ def test_record_baseline_malformed_corrections_sidecar_is_best_effort(tmp_path):
         "conflicts": 0,
         "unsupported": 0,
     }
-    facts = (run / "report" / "FACTS.md").read_text()
-    assert "读取状态: malformed_json" in facts
+    report = (run / "report" / "REPORT.md").read_text()
+    assert "malformed_json" in report
 
 
 def test_record_baseline_verdict_blocking_is_recoverability_aware():
@@ -357,7 +362,7 @@ def _all_stage_state(overrides: dict[str, str] | None = None) -> dict:
 
 
 def test_run_state_completed_clean_real_geometry_gate_shape():
-    state = json.loads((_SM21 / _GPT54_RUN / "orchestration_state.json").read_text())
+    state = json.loads(run_meta_path(_SM21 / _GPT54_RUN, "orchestration_state.json").read_text())
     derived = report_assembly.derive_run_state(state, geometry_approved=True)
     assert derived["status"] == "completed_clean"
     assert derived["completed_clean"] is True
@@ -491,22 +496,145 @@ free prose is not allowed here
 def test_citation_linter_fails_bad_recommendations(text):
     errors = report_assembly.lint_report_citations(text, [{"id": "E:geom:digest"}])
     assert errors
+    assert all("AGENT:recommendations" in error for error in errors)
 
 
-def test_record_baseline_preserves_authored_report_unless_forced(tmp_path):
+def _recommendation_block(evidence_id: str) -> str:
+    return _valid_recommendation_report(evidence_id).removeprefix("# report\n\n")
+
+
+def _replace_agent_region(text: str, key: str, body: str) -> str:
+    body_text = body if body.endswith("\n") else body + "\n"
+    pattern = re.compile(
+        rf"<!-- AGENT:START {re.escape(key)} -->\n.*?<!-- AGENT:END {re.escape(key)} -->\n?",
+        re.S,
+    )
+    replacement = f"<!-- AGENT:START {key} -->\n{body_text}<!-- AGENT:END {key} -->\n"
+    new, count = pattern.subn(replacement, text, count=1)
+    assert count == 1
+    return new
+
+
+def test_record_baseline_marker_merge_preserves_agent_edits_and_is_idempotent(tmp_path):
     case = tmp_path / "sm21_anchor"
     shutil.copytree(_SM21, case)
     run = case / _GPT54_RUN
     first = record_baseline.record_baseline(run, date="2026-06-21", orchestrator="test")
     evidence_id = first["evidence_index"][0]["id"]
-    authored = _valid_recommendation_report(evidence_id).replace(
-        "# report", "# authored report\n\nCustom narrative survives.")
     report_path = run / "report" / "REPORT.md"
+    authored = report_path.read_text(encoding="utf-8")
+    authored = _replace_agent_region(
+        authored,
+        "conclusion",
+        "## 一句话结论\n\nCustom narrative survives.\n",
+    )
+    authored = _replace_agent_region(
+        authored,
+        "recommendations",
+        _recommendation_block(evidence_id),
+    )
     report_path.write_text(authored, encoding="utf-8")
 
     record_baseline.record_baseline(run, date="2026-06-21", orchestrator="test")
-    assert "Custom narrative survives." in report_path.read_text(encoding="utf-8")
+    after_one = report_path.read_text(encoding="utf-8")
+    assert "Custom narrative survives." in after_one
+    assert "- action: add a sharper gate" in after_one
+
+    record_baseline.record_baseline(run, date="2026-06-21", orchestrator="test")
+    assert report_path.read_text(encoding="utf-8") == after_one
 
     record_baseline.record_baseline(
         run, date="2026-06-21", orchestrator="test", force_template=True)
     assert "Custom narrative survives." not in report_path.read_text(encoding="utf-8")
+
+
+def test_record_baseline_missing_agent_region_gets_placeholder(tmp_path):
+    run = _minimal_run(tmp_path)
+    record_baseline.record_baseline(run, date="2026-06-23", orchestrator="test")
+    report_path = run / "report" / "REPORT.md"
+    text = report_path.read_text(encoding="utf-8")
+    text = re.sub(
+        r"<!-- AGENT:START focus -->\n.*?<!-- AGENT:END focus -->\n?",
+        "",
+        text,
+        count=1,
+        flags=re.S,
+    )
+    report_path.write_text(text, encoding="utf-8")
+
+    record_baseline.record_baseline(run, date="2026-06-23", orchestrator="test")
+    report = report_path.read_text(encoding="utf-8")
+    assert "<!-- AGENT:START focus -->" in report
+    assert "AGENT-FILL: 说明这轮在测什么" in report
+
+
+def test_record_baseline_duplicate_agent_marker_fails_before_write(tmp_path):
+    run = _minimal_run(tmp_path)
+    record_baseline.record_baseline(run, date="2026-06-23", orchestrator="test")
+    report_path = run / "report" / "REPORT.md"
+    original = report_path.read_text(encoding="utf-8")
+    report_path.write_text(
+        original + "\n<!-- AGENT:START focus -->\nduplicate\n<!-- AGENT:END focus -->\n",
+        encoding="utf-8",
+    )
+
+    with pytest.raises(report_assembly.ReportMarkerError, match="duplicate AGENT marker"):
+        record_baseline.record_baseline(run, date="2026-06-23", orchestrator="test")
+
+
+def test_record_baseline_nested_agent_marker_fails_before_write(tmp_path):
+    run = _minimal_run(tmp_path)
+    record_baseline.record_baseline(run, date="2026-06-23", orchestrator="test")
+    report_path = run / "report" / "REPORT.md"
+    text = _replace_agent_region(
+        report_path.read_text(encoding="utf-8"),
+        "conclusion",
+        "## 一句话结论\n\n<!-- AGENT:START focus -->\n",
+    )
+    report_path.write_text(text, encoding="utf-8")
+
+    with pytest.raises(report_assembly.ReportMarkerError, match="nested AGENT marker"):
+        record_baseline.record_baseline(run, date="2026-06-23", orchestrator="test")
+
+
+@pytest.mark.parametrize(
+    ("text", "match"),
+    [
+        ("<!-- AGENT:END focus -->\n", "reversed/unmatched AGENT end"),
+        ("<!-- AGENT:START focus -->\nopen\n", "unclosed AGENT marker"),
+    ],
+)
+def test_agent_marker_reversed_or_unclosed_fails(text, match):
+    with pytest.raises(report_assembly.ReportMarkerError, match=match):
+        report_assembly.extract_agent_regions(text)
+
+
+def test_agent_marker_like_text_inside_gen_payload_is_ignored(tmp_path):
+    run = _minimal_run(tmp_path)
+    record_baseline.record_baseline(run, date="2026-06-23", orchestrator="test")
+    report_path = run / "report" / "REPORT.md"
+    text = report_path.read_text(encoding="utf-8").replace(
+        "<!-- GEN:START facts_card -->\n",
+        "<!-- GEN:START facts_card -->\n<!-- AGENT:START recommendations -->\n",
+        1,
+    )
+    report_path.write_text(text, encoding="utf-8")
+
+    record_baseline.record_baseline(run, date="2026-06-23", orchestrator="test")
+    report = report_path.read_text(encoding="utf-8")
+    assert report.count("<!-- AGENT:START recommendations -->") == 1
+
+
+def test_record_baseline_stale_recommendation_evidence_fails_with_agent_block(tmp_path):
+    run = _minimal_run(tmp_path)
+    record_baseline.record_baseline(run, date="2026-06-23", orchestrator="test")
+    report_path = run / "report" / "REPORT.md"
+    text = _replace_agent_region(
+        report_path.read_text(encoding="utf-8"),
+        "recommendations",
+        _recommendation_block("E:stale:id"),
+    )
+    report_path.write_text(text, encoding="utf-8")
+
+    with pytest.raises(AssertionError, match="AGENT:recommendations.*E:stale:id"):
+        record_baseline.record_baseline(run, date="2026-06-23", orchestrator="test")

@@ -36,6 +36,7 @@ from src.agent.execution.policy import (
     RunPolicy,
     ValidationScope,
 )
+from src.agent.execution.run_meta import RUN_META_DIR, run_meta_path
 from src.agent.execution.orchestrate import file_stage_attempt, summarize_gates
 from src.agent.execution.routing import RouteAction, route_stage_failure
 from src.agent.execution.step_orchestrator import (
@@ -86,6 +87,8 @@ __all__ = [
     "ConfirmationPolicy",
     "RunPolicy",
     "ValidationScope",
+    "RUN_META_DIR",
+    "run_meta_path",
     "RouteAction",
     "route_stage_failure",
     "file_stage_attempt",

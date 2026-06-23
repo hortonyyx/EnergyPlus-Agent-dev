@@ -1,0 +1,1335 @@
+{
+  "case": "sm21_anchor",
+  "run": "run_2026-06-16_opus_e2e",
+  "recorded": "2026-06-16",
+  "orchestrator": "opus-4.8",
+  "models": {
+    "intake_correction": "deepseek-v4-pro",
+    "default": "deepseek-v4-pro"
+  },
+  "geometry": {
+    "zones": 14,
+    "surfaces": 100,
+    "windows": 15
+  },
+  "geometry_digest": "8ba319cb6b560f5625a5f7d72c7abb205f8491e19d89621bb9ac70e77cd21feb",
+  "geometry_approved": false,
+  "gates": {
+    "0_reading": {
+      "pass": 58,
+      "flag": 0,
+      "block": 0,
+      "na": 14,
+      "skip": 0
+    },
+    "1_correction": {
+      "pass": 7,
+      "flag": 0,
+      "block": 0,
+      "na": 1,
+      "skip": 0
+    },
+    "2_modelling": {
+      "pass": 5,
+      "flag": 0,
+      "block": 0,
+      "na": 0,
+      "skip": 0
+    },
+    "4_mep": {
+      "pass": 10,
+      "flag": 0,
+      "block": 0,
+      "na": 1,
+      "skip": 0
+    },
+    "5_intakeoutput": {
+      "pass": 1,
+      "flag": 0,
+      "block": 0,
+      "na": 0,
+      "skip": 0
+    },
+    "downstream": {
+      "pass": 3,
+      "flag": 0,
+      "block": 0,
+      "na": 1,
+      "skip": 0
+    }
+  },
+  "flags": [],
+  "blocking": [],
+  "judge_verdicts": [],
+  "draws": {},
+  "orchestration": {},
+  "stop_reason": null,
+  "ep": {
+    "completed": true,
+    "severe": 0,
+    "warnings": 6
+  },
+  "corrections_summary": {
+    "sidecar_path": "1_correction/corrections.json",
+    "present": true,
+    "parse_status": "ok",
+    "counts": {
+      "corrections": 31,
+      "conflicts": 1,
+      "unsupported": 0
+    },
+    "by_rule_id": {
+      "A1_local_to_world": 1,
+      "A3_stroke_vs_dimension": 6,
+      "deterministic_core.snap": 24
+    },
+    "by_stage": {
+      "A1": 1,
+      "A3": 7,
+      "core": 24
+    },
+    "corrections": {
+      "total": 31,
+      "shown": 20,
+      "cap": 20,
+      "rows": [
+        {
+          "id": "corr_001",
+          "rule_id": "A1_local_to_world",
+          "source_ids": [
+            "1f_view",
+            "2f_view",
+            "East_view",
+            "North_view",
+            "South_view",
+            "West_view"
+          ],
+          "original_value": "reading local coords (origin at SW outer corner)",
+          "resolved_value": "world coords (origin at SW inner corner; shift x,y by -0.24 m)",
+          "delta": "all coordinates shifted by constant vector (-0.24,-0.24) m",
+          "changes_topology": false
+        },
+        {
+          "id": "corr_002",
+          "rule_id": "A3_stroke_vs_dimension",
+          "source_ids": [
+            "1f_view_S5",
+            "1f_view_S6",
+            "2f_view_S5",
+            "2f_view_S6",
+            "1f_view_D12",
+            "1f_view_D18",
+            "reading_summary"
+          ],
+          "original_value": "stroke estimates: lower corridor wall y=2.80, upper y=4.72 (world)",
+          "resolved_value": "lower corridor wall y=2.76, upper y=4.76 (world)",
+          "delta": "±0.04 m",
+          "changes_topology": false
+        },
+        {
+          "id": "corr_003",
+          "rule_id": "A3_stroke_vs_dimension",
+          "source_ids": [
+            "1f_view_S9",
+            "1f_view_S10",
+            "1f_view_D26-D36"
+          ],
+          "original_value": "stroke x: left partition 4.32, right partition 9.70 (world)",
+          "resolved_value": "left partition 4.76, right partition 9.76 (world)",
+          "delta": "+0.44 / +0.06 m",
+          "changes_topology": false
+        },
+        {
+          "id": "corr_004",
+          "rule_id": "A3_stroke_vs_dimension",
+          "source_ids": [
+            "2f_view_S7",
+            "2f_view_D2-D7"
+          ],
+          "original_value": "stroke x: 7.26 (world)",
+          "resolved_value": "x=7.199 (world)",
+          "delta": "-0.061 m",
+          "changes_topology": false
+        },
+        {
+          "id": "corr_005",
+          "rule_id": "A3_stroke_vs_dimension",
+          "source_ids": [
+            "2f_view_S8",
+            "2f_view_S9",
+            "2f_view_S10",
+            "2f_view_D19-D30"
+          ],
+          "original_value": "stroke x: 3.55, 7.26, 10.97 (world)",
+          "resolved_value": "x=3.51, 7.26, 11.01 (world)",
+          "delta": "up to ±0.07 m",
+          "changes_topology": false
+        },
+        {
+          "id": "corr_006",
+          "rule_id": "A3_stroke_vs_dimension",
+          "source_ids": [
+            "1f_view_S14",
+            "South_view_S8",
+            "1f_view_D29"
+          ],
+          "original_value": "plan stroke span approx. 2.70‑3.90 m",
+          "resolved_value": "span 3.20‑4.40 m (world)",
+          "delta": "translated from 3440‑4640 mm reading",
+          "changes_topology": false
+        },
+        {
+          "id": "corr_007",
+          "rule_id": "A3_stroke_vs_dimension",
+          "source_ids": [
+            "1f_view_S15",
+            "1f_view_S16",
+            "South_view_S9",
+            "South_view_S10"
+          ],
+          "original_value": "approximate plan strokes",
+          "resolved_value": "span 6.06‑8.46 and 11.12‑13.52 world",
+          "delta": "corrected to chain‑derived positions (6300‑8700 and 11360‑13760 reading)",
+          "changes_topology": false
+        },
+        {
+          "rule_id": "deterministic_core.snap",
+          "target": "R_1F_TL.x[0]",
+          "original_value": -0.12,
+          "resolved_value": -0.1,
+          "delta": 0.02
+        },
+        {
+          "rule_id": "deterministic_core.snap",
+          "target": "R_1F_TL.x[1]",
+          "original_value": 4.32,
+          "resolved_value": 4.3,
+          "delta": -0.02
+        },
+        {
+          "rule_id": "deterministic_core.snap",
+          "target": "R_1F_TL.y[1]",
+          "original_value": 7.64,
+          "resolved_value": 7.65,
+          "delta": 0.01
+        },
+        {
+          "rule_id": "deterministic_core.snap",
+          "target": "R_1F_TM.x[0]",
+          "original_value": 4.32,
+          "resolved_value": 4.3,
+          "delta": -0.02
+        },
+        {
+          "rule_id": "deterministic_core.snap",
+          "target": "R_1F_TM.y[1]",
+          "original_value": 7.64,
+          "resolved_value": 7.65,
+          "delta": 0.01
+        },
+        {
+          "rule_id": "deterministic_core.snap",
+          "target": "R_1F_TR.y[1]",
+          "original_value": 7.64,
+          "resolved_value": 7.65,
+          "delta": 0.01
+        },
+        {
+          "rule_id": "deterministic_core.snap",
+          "target": "R_1F_BL.x[0]",
+          "original_value": -0.12,
+          "resolved_value": -0.1,
+          "delta": 0.02
+        },
+        {
+          "rule_id": "deterministic_core.snap",
+          "target": "R_1F_BL.y[0]",
+          "original_value": -0.12,
+          "resolved_value": -0.1,
+          "delta": 0.02
+        },
+        {
+          "rule_id": "deterministic_core.snap",
+          "target": "R_1F_BM.x[1]",
+          "original_value": 9.76,
+          "resolved_value": 9.7,
+          "delta": -0.06
+        },
+        {
+          "rule_id": "deterministic_core.snap",
+          "target": "R_1F_BM.y[0]",
+          "original_value": -0.12,
+          "resolved_value": -0.1,
+          "delta": 0.02
+        },
+        {
+          "rule_id": "deterministic_core.snap",
+          "target": "R_1F_BR.x[0]",
+          "original_value": 9.76,
+          "resolved_value": 9.7,
+          "delta": -0.06
+        },
+        {
+          "rule_id": "deterministic_core.snap",
+          "target": "R_1F_BR.y[0]",
+          "original_value": -0.12,
+          "resolved_value": -0.1,
+          "delta": 0.02
+        },
+        {
+          "rule_id": "deterministic_core.snap",
+          "target": "R_1F_Cor.x[0]",
+          "original_value": -0.12,
+          "resolved_value": -0.1,
+          "delta": 0.02
+        }
+      ]
+    },
+    "conflicts": [
+      {
+        "id": "conf_001",
+        "stage": "A3",
+        "method_profile": "room_identity",
+        "entity_type": "vertex",
+        "entity_id": null,
+        "floor_id": "Floor 1",
+        "parent_id": null,
+        "coordinate_frame": "world",
+        "unit": "m",
+        "conflict_type": "checksum_failure",
+        "claim_type": "numeric",
+        "candidates": [
+          {
+            "value": "corridor width 1200 mm (vertical chain on east)",
+            "source_ids": [
+              "1f_view_D21"
+            ],
+            "evidence_grade": "transcribed_dimension",
+            "confidence": "low"
+          },
+          {
+            "value": "corridor width 1500 mm (vertical chain on west)",
+            "source_ids": [
+              "1f_view_D15"
+            ],
+            "evidence_grade": "transcribed_dimension",
+            "confidence": "low"
+          }
+        ],
+        "reason_unresolved": "Both values come from vertical dimension chains that likely describe elevation heights (east window height 1200, west corridor band 1500 from outer face) rather than plan corridor width. Neither was used for lateral positioning.",
+        "fallback_action": "Used the 3000 mm room bands to locate corridor walls (2.76/4.76 world), giving a corridor width of 1.76 m. Lateral partitions were placed using the south facade sub-chain, which provided consistent window-to-wall spacing."
+      }
+    ],
+    "unsupported": []
+  },
+  "evidence_index": [
+    {
+      "id": "E:corr:corrections:corr_001",
+      "kind": "correction",
+      "source": "1_correction/corrections.json",
+      "payload": {
+        "kind": "corrections",
+        "ordinal": 1,
+        "raw_id": "corr_001",
+        "row": {
+          "id": "corr_001",
+          "stage": "A1",
+          "method_profile": "room_identity",
+          "entity_type": "vertex",
+          "entity_id": "global_world_frame",
+          "floor_id": null,
+          "parent_id": null,
+          "coordinate_frame": "world",
+          "unit": "m",
+          "rule_id": "A1_local_to_world",
+          "claim_type": "numeric",
+          "conflict_type": null,
+          "source_ids": [
+            "1f_view",
+            "2f_view",
+            "East_view",
+            "North_view",
+            "South_view",
+            "West_view"
+          ],
+          "original_value": "reading local coords (origin at SW outer corner)",
+          "resolved_value": "world coords (origin at SW inner corner; shift x,y by -0.24 m)",
+          "value_type": "point",
+          "tolerance_name": "OUTPUT_PRECISION",
+          "tolerance_value": 0.01,
+          "delta": "all coordinates shifted by constant vector (-0.24,-0.24) m",
+          "evidence_grade": "estimated_stroke",
+          "confidence_before": "medium",
+          "confidence_after": "high",
+          "changes_topology": false,
+          "prior_id": null,
+          "note": "Converted from drawing-local frame (SW outer corner origin) to world frame with SW inner corner at (0,0). Outer wall thickness 0.24 m from OCR labels."
+        }
+      }
+    },
+    {
+      "id": "E:corr:corrections:corr_002",
+      "kind": "correction",
+      "source": "1_correction/corrections.json",
+      "payload": {
+        "kind": "corrections",
+        "ordinal": 2,
+        "raw_id": "corr_002",
+        "row": {
+          "id": "corr_002",
+          "stage": "A3",
+          "method_profile": "room_identity",
+          "entity_type": "axis",
+          "entity_id": "corridor_walls_y",
+          "floor_id": "Floor 1, Floor 2",
+          "parent_id": null,
+          "coordinate_frame": "world",
+          "unit": "m",
+          "rule_id": "A3_stroke_vs_dimension",
+          "claim_type": "numeric",
+          "conflict_type": "stroke_vs_dimension",
+          "source_ids": [
+            "1f_view_S5",
+            "1f_view_S6",
+            "2f_view_S5",
+            "2f_view_S6",
+            "1f_view_D12",
+            "1f_view_D18",
+            "reading_summary"
+          ],
+          "original_value": "stroke estimates: lower corridor wall y=2.80, upper y=4.72 (world)",
+          "resolved_value": "lower corridor wall y=2.76, upper y=4.76 (world)",
+          "value_type": "line",
+          "tolerance_name": "SNAP_GRID",
+          "tolerance_value": 0.05,
+          "delta": "±0.04 m",
+          "evidence_grade": "direct_measurement",
+          "confidence_before": "medium",
+          "confidence_after": "high",
+          "changes_topology": false,
+          "prior_id": null,
+          "note": "Dimension chains D12/D18 on plan give 3000 mm bands from outer faces to corridor walls. Outer face at y=0.00/8.00 reading ⇒ corridor centerlines at 3.00/5.00 reading (2.76/4.76 world). Trusted dimension over stroke trace."
+        }
+      }
+    },
+    {
+      "id": "E:corr:corrections:corr_003",
+      "kind": "correction",
+      "source": "1_correction/corrections.json",
+      "payload": {
+        "kind": "corrections",
+        "ordinal": 3,
+        "raw_id": "corr_003",
+        "row": {
+          "id": "corr_003",
+          "stage": "A3",
+          "method_profile": "room_identity",
+          "entity_type": "axis",
+          "entity_id": "R_1F_partitions_bottom",
+          "floor_id": "Floor 1",
+          "parent_id": null,
+          "coordinate_frame": "world",
+          "unit": "m",
+          "rule_id": "A3_stroke_vs_dimension",
+          "claim_type": "numeric",
+          "conflict_type": "stroke_vs_dimension",
+          "source_ids": [
+            "1f_view_S9",
+            "1f_view_S10",
+            "1f_view_D26-D36"
+          ],
+          "original_value": "stroke x: left partition 4.32, right partition 9.70 (world)",
+          "resolved_value": "left partition 4.76, right partition 9.76 (world)",
+          "value_type": "point",
+          "tolerance_name": "SNAP_GRID",
+          "tolerance_value": 0.05,
+          "delta": "+0.44 / +0.06 m",
+          "evidence_grade": "transcribed_dimension",
+          "confidence_before": "low",
+          "confidence_after": "high",
+          "changes_topology": false,
+          "prior_id": null,
+          "note": "South facade sub-chain D26‑D36 positions the small window 3440–4640 and large windows 6300–8700 / 11360–13760. The partition between left/middle rooms lies at the break after the 360 mm segment (x=5000 reading = 4.76 world) and between middle/right after the 1300 mm segment (x≈10000 reading = 9.76 world). These replace approximate stroke coordinates."
+        }
+      }
+    },
+    {
+      "id": "E:corr:corrections:corr_004",
+      "kind": "correction",
+      "source": "1_correction/corrections.json",
+      "payload": {
+        "kind": "corrections",
+        "ordinal": 4,
+        "raw_id": "corr_004",
+        "row": {
+          "id": "corr_004",
+          "stage": "A3",
+          "method_profile": "room_identity",
+          "entity_type": "axis",
+          "entity_id": "R_2F_partition_top_center",
+          "floor_id": "Floor 2",
+          "parent_id": null,
+          "coordinate_frame": "world",
+          "unit": "m",
+          "rule_id": "A3_stroke_vs_dimension",
+          "claim_type": "numeric",
+          "conflict_type": "stroke_vs_dimension",
+          "source_ids": [
+            "2f_view_S7",
+            "2f_view_D2-D7"
+          ],
+          "original_value": "stroke x: 7.26 (world)",
+          "resolved_value": "x=7.199 (world)",
+          "value_type": "point",
+          "tolerance_name": "SNAP_GRID",
+          "tolerance_value": 0.05,
+          "delta": "-0.061 m",
+          "evidence_grade": "transcribed_dimension",
+          "confidence_before": "low",
+          "confidence_after": "high",
+          "changes_topology": false,
+          "prior_id": null,
+          "note": "North sub‑chain 1950+3600+1889=7439 reading (7.199 world) places the center partition of the two top rooms; stroke was ~7.50 reading."
+        }
+      }
+    },
+    {
+      "id": "E:corr:corrections:corr_005",
+      "kind": "correction",
+      "source": "1_correction/corrections.json",
+      "payload": {
+        "kind": "corrections",
+        "ordinal": 5,
+        "raw_id": "corr_005",
+        "row": {
+          "id": "corr_005",
+          "stage": "A3",
+          "method_profile": "room_identity",
+          "entity_type": "axis",
+          "entity_id": "R_2F_partitions_bottom",
+          "floor_id": "Floor 2",
+          "parent_id": null,
+          "coordinate_frame": "world",
+          "unit": "m",
+          "rule_id": "A3_stroke_vs_dimension",
+          "claim_type": "numeric",
+          "conflict_type": "stroke_vs_dimension",
+          "source_ids": [
+            "2f_view_S8",
+            "2f_view_S9",
+            "2f_view_S10",
+            "2f_view_D19-D30"
+          ],
+          "original_value": "stroke x: 3.55, 7.26, 10.97 (world)",
+          "resolved_value": "x=3.51, 7.26, 11.01 (world)",
+          "value_type": "point",
+          "tolerance_name": "SNAP_GRID",
+          "tolerance_value": 0.05,
+          "delta": "up to ±0.07 m",
+          "evidence_grade": "transcribed_dimension",
+          "confidence_before": "low",
+          "confidence_after": "high",
+          "changes_topology": false,
+          "prior_id": null,
+          "note": "South sub‑chain D19‑D30 fixes window‑pair gaps; the partitions were deduced at 3750, 7500, 11250 reading (3.51, 7.26, 11.01 world)."
+        }
+      }
+    },
+    {
+      "id": "E:corr:corrections:corr_006",
+      "kind": "correction",
+      "source": "1_correction/corrections.json",
+      "payload": {
+        "kind": "corrections",
+        "ordinal": 6,
+        "raw_id": "corr_006",
+        "row": {
+          "id": "corr_006",
+          "stage": "A3",
+          "method_profile": "room_identity",
+          "entity_type": "window",
+          "entity_id": "W_1F_S_small",
+          "floor_id": "Floor 1",
+          "parent_id": "R_1F_BL",
+          "coordinate_frame": "world",
+          "unit": "m",
+          "rule_id": "A3_stroke_vs_dimension",
+          "claim_type": "numeric",
+          "conflict_type": "stroke_vs_dimension",
+          "source_ids": [
+            "1f_view_S14",
+            "South_view_S8",
+            "1f_view_D29"
+          ],
+          "original_value": "plan stroke span approx. 2.70‑3.90 m",
+          "resolved_value": "span 3.20‑4.40 m (world)",
+          "value_type": "line",
+          "tolerance_name": "OUTPUT_PRECISION",
+          "tolerance_value": 0.01,
+          "delta": "translated from 3440‑4640 mm reading",
+          "evidence_grade": "direct_measurement",
+          "confidence_before": "medium",
+          "confidence_after": "high",
+          "changes_topology": false,
+          "prior_id": null,
+          "note": "Elevation dimension chain D29 (1200 window) combined with offset 3440 gives precise position; used instead of approximate plan stroke."
+        }
+      }
+    },
+    {
+      "id": "E:corr:corrections:corr_007",
+      "kind": "correction",
+      "source": "1_correction/corrections.json",
+      "payload": {
+        "kind": "corrections",
+        "ordinal": 7,
+        "raw_id": "corr_007",
+        "row": {
+          "id": "corr_007",
+          "stage": "A3",
+          "method_profile": "room_identity",
+          "entity_type": "window",
+          "entity_id": "W_1F_S_1, W_1F_S_2",
+          "floor_id": "Floor 1",
+          "parent_id": null,
+          "coordinate_frame": "world",
+          "unit": "m",
+          "rule_id": "A3_stroke_vs_dimension",
+          "claim_type": "numeric",
+          "conflict_type": "stroke_vs_dimension",
+          "source_ids": [
+            "1f_view_S15",
+            "1f_view_S16",
+            "South_view_S9",
+            "South_view_S10"
+          ],
+          "original_value": "approximate plan strokes",
+          "resolved_value": "span 6.06‑8.46 and 11.12‑13.52 world",
+          "value_type": "line",
+          "tolerance_name": "OUTPUT_PRECISION",
+          "tolerance_value": 0.01,
+          "delta": "corrected to chain‑derived positions (6300‑8700 and 11360‑13760 reading)",
+          "evidence_grade": "direct_measurement",
+          "confidence_before": "medium",
+          "confidence_after": "high",
+          "changes_topology": false,
+          "prior_id": null,
+          "note": "Elevation sub‑chain D31‑D35 positions large windows; trusted over plan strokes."
+        }
+      }
+    },
+    {
+      "id": "E:corr:corrections:r8",
+      "kind": "correction",
+      "source": "1_correction/corrections.json",
+      "payload": {
+        "kind": "corrections",
+        "ordinal": 8,
+        "raw_id": null,
+        "row": {
+          "rule_id": "deterministic_core.snap",
+          "stage": "core",
+          "target": "R_1F_TL.x[0]",
+          "axis": "x",
+          "original_value": -0.12,
+          "resolved_value": -0.1,
+          "delta": 0.02,
+          "tolerance_name": "AXIS_JITTER_TOL+SNAP_GRID+MIN_EDGE_LENGTH"
+        }
+      }
+    },
+    {
+      "id": "E:corr:corrections:r9",
+      "kind": "correction",
+      "source": "1_correction/corrections.json",
+      "payload": {
+        "kind": "corrections",
+        "ordinal": 9,
+        "raw_id": null,
+        "row": {
+          "rule_id": "deterministic_core.snap",
+          "stage": "core",
+          "target": "R_1F_TL.x[1]",
+          "axis": "x",
+          "original_value": 4.32,
+          "resolved_value": 4.3,
+          "delta": -0.02,
+          "tolerance_name": "AXIS_JITTER_TOL+SNAP_GRID+MIN_EDGE_LENGTH"
+        }
+      }
+    },
+    {
+      "id": "E:corr:corrections:r10",
+      "kind": "correction",
+      "source": "1_correction/corrections.json",
+      "payload": {
+        "kind": "corrections",
+        "ordinal": 10,
+        "raw_id": null,
+        "row": {
+          "rule_id": "deterministic_core.snap",
+          "stage": "core",
+          "target": "R_1F_TL.y[1]",
+          "axis": "y",
+          "original_value": 7.64,
+          "resolved_value": 7.65,
+          "delta": 0.01,
+          "tolerance_name": "AXIS_JITTER_TOL+SNAP_GRID+MIN_EDGE_LENGTH"
+        }
+      }
+    },
+    {
+      "id": "E:corr:corrections:r11",
+      "kind": "correction",
+      "source": "1_correction/corrections.json",
+      "payload": {
+        "kind": "corrections",
+        "ordinal": 11,
+        "raw_id": null,
+        "row": {
+          "rule_id": "deterministic_core.snap",
+          "stage": "core",
+          "target": "R_1F_TM.x[0]",
+          "axis": "x",
+          "original_value": 4.32,
+          "resolved_value": 4.3,
+          "delta": -0.02,
+          "tolerance_name": "AXIS_JITTER_TOL+SNAP_GRID+MIN_EDGE_LENGTH"
+        }
+      }
+    },
+    {
+      "id": "E:corr:corrections:r12",
+      "kind": "correction",
+      "source": "1_correction/corrections.json",
+      "payload": {
+        "kind": "corrections",
+        "ordinal": 12,
+        "raw_id": null,
+        "row": {
+          "rule_id": "deterministic_core.snap",
+          "stage": "core",
+          "target": "R_1F_TM.y[1]",
+          "axis": "y",
+          "original_value": 7.64,
+          "resolved_value": 7.65,
+          "delta": 0.01,
+          "tolerance_name": "AXIS_JITTER_TOL+SNAP_GRID+MIN_EDGE_LENGTH"
+        }
+      }
+    },
+    {
+      "id": "E:corr:corrections:r13",
+      "kind": "correction",
+      "source": "1_correction/corrections.json",
+      "payload": {
+        "kind": "corrections",
+        "ordinal": 13,
+        "raw_id": null,
+        "row": {
+          "rule_id": "deterministic_core.snap",
+          "stage": "core",
+          "target": "R_1F_TR.y[1]",
+          "axis": "y",
+          "original_value": 7.64,
+          "resolved_value": 7.65,
+          "delta": 0.01,
+          "tolerance_name": "AXIS_JITTER_TOL+SNAP_GRID+MIN_EDGE_LENGTH"
+        }
+      }
+    },
+    {
+      "id": "E:corr:corrections:r14",
+      "kind": "correction",
+      "source": "1_correction/corrections.json",
+      "payload": {
+        "kind": "corrections",
+        "ordinal": 14,
+        "raw_id": null,
+        "row": {
+          "rule_id": "deterministic_core.snap",
+          "stage": "core",
+          "target": "R_1F_BL.x[0]",
+          "axis": "x",
+          "original_value": -0.12,
+          "resolved_value": -0.1,
+          "delta": 0.02,
+          "tolerance_name": "AXIS_JITTER_TOL+SNAP_GRID+MIN_EDGE_LENGTH"
+        }
+      }
+    },
+    {
+      "id": "E:corr:corrections:r15",
+      "kind": "correction",
+      "source": "1_correction/corrections.json",
+      "payload": {
+        "kind": "corrections",
+        "ordinal": 15,
+        "raw_id": null,
+        "row": {
+          "rule_id": "deterministic_core.snap",
+          "stage": "core",
+          "target": "R_1F_BL.y[0]",
+          "axis": "y",
+          "original_value": -0.12,
+          "resolved_value": -0.1,
+          "delta": 0.02,
+          "tolerance_name": "AXIS_JITTER_TOL+SNAP_GRID+MIN_EDGE_LENGTH"
+        }
+      }
+    },
+    {
+      "id": "E:corr:corrections:r16",
+      "kind": "correction",
+      "source": "1_correction/corrections.json",
+      "payload": {
+        "kind": "corrections",
+        "ordinal": 16,
+        "raw_id": null,
+        "row": {
+          "rule_id": "deterministic_core.snap",
+          "stage": "core",
+          "target": "R_1F_BM.x[1]",
+          "axis": "x",
+          "original_value": 9.76,
+          "resolved_value": 9.7,
+          "delta": -0.06,
+          "tolerance_name": "AXIS_JITTER_TOL+SNAP_GRID+MIN_EDGE_LENGTH"
+        }
+      }
+    },
+    {
+      "id": "E:corr:corrections:r17",
+      "kind": "correction",
+      "source": "1_correction/corrections.json",
+      "payload": {
+        "kind": "corrections",
+        "ordinal": 17,
+        "raw_id": null,
+        "row": {
+          "rule_id": "deterministic_core.snap",
+          "stage": "core",
+          "target": "R_1F_BM.y[0]",
+          "axis": "y",
+          "original_value": -0.12,
+          "resolved_value": -0.1,
+          "delta": 0.02,
+          "tolerance_name": "AXIS_JITTER_TOL+SNAP_GRID+MIN_EDGE_LENGTH"
+        }
+      }
+    },
+    {
+      "id": "E:corr:corrections:r18",
+      "kind": "correction",
+      "source": "1_correction/corrections.json",
+      "payload": {
+        "kind": "corrections",
+        "ordinal": 18,
+        "raw_id": null,
+        "row": {
+          "rule_id": "deterministic_core.snap",
+          "stage": "core",
+          "target": "R_1F_BR.x[0]",
+          "axis": "x",
+          "original_value": 9.76,
+          "resolved_value": 9.7,
+          "delta": -0.06,
+          "tolerance_name": "AXIS_JITTER_TOL+SNAP_GRID+MIN_EDGE_LENGTH"
+        }
+      }
+    },
+    {
+      "id": "E:corr:corrections:r19",
+      "kind": "correction",
+      "source": "1_correction/corrections.json",
+      "payload": {
+        "kind": "corrections",
+        "ordinal": 19,
+        "raw_id": null,
+        "row": {
+          "rule_id": "deterministic_core.snap",
+          "stage": "core",
+          "target": "R_1F_BR.y[0]",
+          "axis": "y",
+          "original_value": -0.12,
+          "resolved_value": -0.1,
+          "delta": 0.02,
+          "tolerance_name": "AXIS_JITTER_TOL+SNAP_GRID+MIN_EDGE_LENGTH"
+        }
+      }
+    },
+    {
+      "id": "E:corr:corrections:r20",
+      "kind": "correction",
+      "source": "1_correction/corrections.json",
+      "payload": {
+        "kind": "corrections",
+        "ordinal": 20,
+        "raw_id": null,
+        "row": {
+          "rule_id": "deterministic_core.snap",
+          "stage": "core",
+          "target": "R_1F_Cor.x[0]",
+          "axis": "x",
+          "original_value": -0.12,
+          "resolved_value": -0.1,
+          "delta": 0.02,
+          "tolerance_name": "AXIS_JITTER_TOL+SNAP_GRID+MIN_EDGE_LENGTH"
+        }
+      }
+    },
+    {
+      "id": "E:corr:corrections:r21",
+      "kind": "correction",
+      "source": "1_correction/corrections.json",
+      "payload": {
+        "kind": "corrections",
+        "ordinal": 21,
+        "raw_id": null,
+        "row": {
+          "rule_id": "deterministic_core.snap",
+          "stage": "core",
+          "target": "R_2F_TL.x[0]",
+          "axis": "x",
+          "original_value": -0.12,
+          "resolved_value": -0.1,
+          "delta": 0.02,
+          "tolerance_name": "AXIS_JITTER_TOL+SNAP_GRID+MIN_EDGE_LENGTH"
+        }
+      }
+    },
+    {
+      "id": "E:corr:corrections:r22",
+      "kind": "correction",
+      "source": "1_correction/corrections.json",
+      "payload": {
+        "kind": "corrections",
+        "ordinal": 22,
+        "raw_id": null,
+        "row": {
+          "rule_id": "deterministic_core.snap",
+          "stage": "core",
+          "target": "R_2F_TL.y[1]",
+          "axis": "y",
+          "original_value": 7.64,
+          "resolved_value": 7.65,
+          "delta": 0.01,
+          "tolerance_name": "AXIS_JITTER_TOL+SNAP_GRID+MIN_EDGE_LENGTH"
+        }
+      }
+    },
+    {
+      "id": "E:corr:corrections:r23",
+      "kind": "correction",
+      "source": "1_correction/corrections.json",
+      "payload": {
+        "kind": "corrections",
+        "ordinal": 23,
+        "raw_id": null,
+        "row": {
+          "rule_id": "deterministic_core.snap",
+          "stage": "core",
+          "target": "R_2F_TR.y[1]",
+          "axis": "y",
+          "original_value": 7.64,
+          "resolved_value": 7.65,
+          "delta": 0.01,
+          "tolerance_name": "AXIS_JITTER_TOL+SNAP_GRID+MIN_EDGE_LENGTH"
+        }
+      }
+    },
+    {
+      "id": "E:corr:corrections:r24",
+      "kind": "correction",
+      "source": "1_correction/corrections.json",
+      "payload": {
+        "kind": "corrections",
+        "ordinal": 24,
+        "raw_id": null,
+        "row": {
+          "rule_id": "deterministic_core.snap",
+          "stage": "core",
+          "target": "R_2F_B1.x[0]",
+          "axis": "x",
+          "original_value": -0.12,
+          "resolved_value": -0.1,
+          "delta": 0.02,
+          "tolerance_name": "AXIS_JITTER_TOL+SNAP_GRID+MIN_EDGE_LENGTH"
+        }
+      }
+    },
+    {
+      "id": "E:corr:corrections:r25",
+      "kind": "correction",
+      "source": "1_correction/corrections.json",
+      "payload": {
+        "kind": "corrections",
+        "ordinal": 25,
+        "raw_id": null,
+        "row": {
+          "rule_id": "deterministic_core.snap",
+          "stage": "core",
+          "target": "R_2F_B1.y[0]",
+          "axis": "y",
+          "original_value": -0.12,
+          "resolved_value": -0.1,
+          "delta": 0.02,
+          "tolerance_name": "AXIS_JITTER_TOL+SNAP_GRID+MIN_EDGE_LENGTH"
+        }
+      }
+    },
+    {
+      "id": "E:corr:corrections:r26",
+      "kind": "correction",
+      "source": "1_correction/corrections.json",
+      "payload": {
+        "kind": "corrections",
+        "ordinal": 26,
+        "raw_id": null,
+        "row": {
+          "rule_id": "deterministic_core.snap",
+          "stage": "core",
+          "target": "R_2F_B2.x[1]",
+          "axis": "x",
+          "original_value": 7.26,
+          "resolved_value": 7.2,
+          "delta": -0.06,
+          "tolerance_name": "AXIS_JITTER_TOL+SNAP_GRID+MIN_EDGE_LENGTH"
+        }
+      }
+    },
+    {
+      "id": "E:corr:corrections:r27",
+      "kind": "correction",
+      "source": "1_correction/corrections.json",
+      "payload": {
+        "kind": "corrections",
+        "ordinal": 27,
+        "raw_id": null,
+        "row": {
+          "rule_id": "deterministic_core.snap",
+          "stage": "core",
+          "target": "R_2F_B2.y[0]",
+          "axis": "y",
+          "original_value": -0.12,
+          "resolved_value": -0.1,
+          "delta": 0.02,
+          "tolerance_name": "AXIS_JITTER_TOL+SNAP_GRID+MIN_EDGE_LENGTH"
+        }
+      }
+    },
+    {
+      "id": "E:corr:corrections:r28",
+      "kind": "correction",
+      "source": "1_correction/corrections.json",
+      "payload": {
+        "kind": "corrections",
+        "ordinal": 28,
+        "raw_id": null,
+        "row": {
+          "rule_id": "deterministic_core.snap",
+          "stage": "core",
+          "target": "R_2F_B3.x[0]",
+          "axis": "x",
+          "original_value": 7.26,
+          "resolved_value": 7.2,
+          "delta": -0.06,
+          "tolerance_name": "AXIS_JITTER_TOL+SNAP_GRID+MIN_EDGE_LENGTH"
+        }
+      }
+    },
+    {
+      "id": "E:corr:corrections:r29",
+      "kind": "correction",
+      "source": "1_correction/corrections.json",
+      "payload": {
+        "kind": "corrections",
+        "ordinal": 29,
+        "raw_id": null,
+        "row": {
+          "rule_id": "deterministic_core.snap",
+          "stage": "core",
+          "target": "R_2F_B3.y[0]",
+          "axis": "y",
+          "original_value": -0.12,
+          "resolved_value": -0.1,
+          "delta": 0.02,
+          "tolerance_name": "AXIS_JITTER_TOL+SNAP_GRID+MIN_EDGE_LENGTH"
+        }
+      }
+    },
+    {
+      "id": "E:corr:corrections:r30",
+      "kind": "correction",
+      "source": "1_correction/corrections.json",
+      "payload": {
+        "kind": "corrections",
+        "ordinal": 30,
+        "raw_id": null,
+        "row": {
+          "rule_id": "deterministic_core.snap",
+          "stage": "core",
+          "target": "R_2F_B4.y[0]",
+          "axis": "y",
+          "original_value": -0.12,
+          "resolved_value": -0.1,
+          "delta": 0.02,
+          "tolerance_name": "AXIS_JITTER_TOL+SNAP_GRID+MIN_EDGE_LENGTH"
+        }
+      }
+    },
+    {
+      "id": "E:corr:corrections:r31",
+      "kind": "correction",
+      "source": "1_correction/corrections.json",
+      "payload": {
+        "kind": "corrections",
+        "ordinal": 31,
+        "raw_id": null,
+        "row": {
+          "rule_id": "deterministic_core.snap",
+          "stage": "core",
+          "target": "R_2F_Cor.x[0]",
+          "axis": "x",
+          "original_value": -0.12,
+          "resolved_value": -0.1,
+          "delta": 0.02,
+          "tolerance_name": "AXIS_JITTER_TOL+SNAP_GRID+MIN_EDGE_LENGTH"
+        }
+      }
+    },
+    {
+      "id": "E:corr:conflicts:conf_001",
+      "kind": "correction",
+      "source": "1_correction/corrections.json",
+      "payload": {
+        "kind": "conflicts",
+        "ordinal": 1,
+        "raw_id": "conf_001",
+        "row": {
+          "id": "conf_001",
+          "stage": "A3",
+          "method_profile": "room_identity",
+          "entity_type": "vertex",
+          "entity_id": null,
+          "floor_id": "Floor 1",
+          "parent_id": null,
+          "coordinate_frame": "world",
+          "unit": "m",
+          "conflict_type": "checksum_failure",
+          "claim_type": "numeric",
+          "candidates": [
+            {
+              "value": "corridor width 1200 mm (vertical chain on east)",
+              "source_ids": [
+                "1f_view_D21"
+              ],
+              "evidence_grade": "transcribed_dimension",
+              "confidence": "low"
+            },
+            {
+              "value": "corridor width 1500 mm (vertical chain on west)",
+              "source_ids": [
+                "1f_view_D15"
+              ],
+              "evidence_grade": "transcribed_dimension",
+              "confidence": "low"
+            }
+          ],
+          "reason_unresolved": "Both values come from vertical dimension chains that likely describe elevation heights (east window height 1200, west corridor band 1500 from outer face) rather than plan corridor width. Neither was used for lateral positioning.",
+          "fallback_action": "Used the 3000 mm room bands to locate corridor walls (2.76/4.76 world), giving a corridor width of 1.76 m. Lateral partitions were placed using the south facade sub-chain, which provided consistent window-to-wall spacing."
+        }
+      }
+    },
+    {
+      "id": "E:ep:result",
+      "kind": "ep",
+      "source": "EP/EP_run/eplusout.end",
+      "payload": {
+        "ep": {
+          "completed": true,
+          "severe": 0,
+          "warnings": 6
+        }
+      }
+    },
+    {
+      "id": "E:geom:digest",
+      "kind": "geometry",
+      "source": "2_modelling/building_geometry.json",
+      "payload": {
+        "geometry_digest": "8ba319cb6b560f5625a5f7d72c7abb205f8491e19d89621bb9ac70e77cd21feb",
+        "geometry_approved": false
+      }
+    },
+    {
+      "id": "E:eyeball:1_correction_zones.png",
+      "kind": "eyeball",
+      "source": "report/eyeball/1_correction_zones.png",
+      "payload": {
+        "filename": "1_correction_zones.png",
+        "path": "report/eyeball/1_correction_zones.png",
+        "producer": "correction_zones",
+        "source": "1_correction/zones.png",
+        "status": "copied"
+      }
+    },
+    {
+      "id": "E:eyeball:1_correction_elev.png",
+      "kind": "eyeball",
+      "source": "report/eyeball/1_correction_elev.png",
+      "payload": {
+        "filename": "1_correction_elev.png",
+        "path": "report/eyeball/1_correction_elev.png",
+        "producer": "correction_elev",
+        "source": "1_correction/elev.png",
+        "status": "copied"
+      }
+    },
+    {
+      "id": "E:eyeball:0_reading_1f_view_render.png",
+      "kind": "eyeball",
+      "source": "report/eyeball/0_reading_1f_view_render.png",
+      "payload": {
+        "filename": "0_reading_1f_view_render.png",
+        "path": "report/eyeball/0_reading_1f_view_render.png",
+        "producer": "reading_render",
+        "source": "0_reading/1f_view_render.png",
+        "status": "copied"
+      }
+    },
+    {
+      "id": "E:eyeball:0_reading_2f_view_render.png",
+      "kind": "eyeball",
+      "source": "report/eyeball/0_reading_2f_view_render.png",
+      "payload": {
+        "filename": "0_reading_2f_view_render.png",
+        "path": "report/eyeball/0_reading_2f_view_render.png",
+        "producer": "reading_render",
+        "source": "0_reading/2f_view_render.png",
+        "status": "copied"
+      }
+    },
+    {
+      "id": "E:eyeball:0_reading_East_view_render.png",
+      "kind": "eyeball",
+      "source": "report/eyeball/0_reading_East_view_render.png",
+      "payload": {
+        "filename": "0_reading_East_view_render.png",
+        "path": "report/eyeball/0_reading_East_view_render.png",
+        "producer": "reading_render",
+        "source": "0_reading/East_view_render.png",
+        "status": "copied"
+      }
+    },
+    {
+      "id": "E:eyeball:0_reading_North_view_render.png",
+      "kind": "eyeball",
+      "source": "report/eyeball/0_reading_North_view_render.png",
+      "payload": {
+        "filename": "0_reading_North_view_render.png",
+        "path": "report/eyeball/0_reading_North_view_render.png",
+        "producer": "reading_render",
+        "source": "0_reading/North_view_render.png",
+        "status": "copied"
+      }
+    },
+    {
+      "id": "E:eyeball:0_reading_South_view_render.png",
+      "kind": "eyeball",
+      "source": "report/eyeball/0_reading_South_view_render.png",
+      "payload": {
+        "filename": "0_reading_South_view_render.png",
+        "path": "report/eyeball/0_reading_South_view_render.png",
+        "producer": "reading_render",
+        "source": "0_reading/South_view_render.png",
+        "status": "copied"
+      }
+    },
+    {
+      "id": "E:eyeball:0_reading_West_view_render.png",
+      "kind": "eyeball",
+      "source": "report/eyeball/0_reading_West_view_render.png",
+      "payload": {
+        "filename": "0_reading_West_view_render.png",
+        "path": "report/eyeball/0_reading_West_view_render.png",
+        "producer": "reading_render",
+        "source": "0_reading/West_view_render.png",
+        "status": "copied"
+      }
+    },
+    {
+      "id": "E:eyeball:case_data_1f_view.png",
+      "kind": "eyeball",
+      "source": "report/eyeball/case_data_1f_view.png",
+      "payload": {
+        "filename": "case_data_1f_view.png",
+        "path": "report/eyeball/case_data_1f_view.png",
+        "producer": "case_data_view",
+        "source": "../case_data/1f_view.png",
+        "status": "copied"
+      }
+    },
+    {
+      "id": "E:eyeball:case_data_2f_view.png",
+      "kind": "eyeball",
+      "source": "report/eyeball/case_data_2f_view.png",
+      "payload": {
+        "filename": "case_data_2f_view.png",
+        "path": "report/eyeball/case_data_2f_view.png",
+        "producer": "case_data_view",
+        "source": "../case_data/2f_view.png",
+        "status": "copied"
+      }
+    },
+    {
+      "id": "E:eyeball:case_data_East_view.png",
+      "kind": "eyeball",
+      "source": "report/eyeball/case_data_East_view.png",
+      "payload": {
+        "filename": "case_data_East_view.png",
+        "path": "report/eyeball/case_data_East_view.png",
+        "producer": "case_data_view",
+        "source": "../case_data/East_view.png",
+        "status": "copied"
+      }
+    },
+    {
+      "id": "E:eyeball:case_data_North_view.png",
+      "kind": "eyeball",
+      "source": "report/eyeball/case_data_North_view.png",
+      "payload": {
+        "filename": "case_data_North_view.png",
+        "path": "report/eyeball/case_data_North_view.png",
+        "producer": "case_data_view",
+        "source": "../case_data/North_view.png",
+        "status": "copied"
+      }
+    },
+    {
+      "id": "E:eyeball:case_data_South_view.png",
+      "kind": "eyeball",
+      "source": "report/eyeball/case_data_South_view.png",
+      "payload": {
+        "filename": "case_data_South_view.png",
+        "path": "report/eyeball/case_data_South_view.png",
+        "producer": "case_data_view",
+        "source": "../case_data/South_view.png",
+        "status": "copied"
+      }
+    },
+    {
+      "id": "E:eyeball:case_data_West_view.png",
+      "kind": "eyeball",
+      "source": "report/eyeball/case_data_West_view.png",
+      "payload": {
+        "filename": "case_data_West_view.png",
+        "path": "report/eyeball/case_data_West_view.png",
+        "producer": "case_data_view",
+        "source": "../case_data/West_view.png",
+        "status": "copied"
+      }
+    }
+  ],
+  "blocked": false
+}
