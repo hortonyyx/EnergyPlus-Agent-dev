@@ -10,6 +10,12 @@ PartA-correction/.
 """
 
 from src.agent.correction.deterministic import apply_deterministic_core
+from src.agent.correction.envelope import AuthoritativeEnvelope, EnvelopeCandidate
 from src.agent.correction.schema import CorrectedGeometry
 
-__all__ = ["CorrectedGeometry", "apply_deterministic_core"]
+__all__ = [
+    "AuthoritativeEnvelope",
+    "CorrectedGeometry",
+    "EnvelopeCandidate",
+    "apply_deterministic_core",
+]

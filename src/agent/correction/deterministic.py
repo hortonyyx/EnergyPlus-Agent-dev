@@ -38,6 +38,8 @@ from collections import defaultdict
 from dataclasses import dataclass, field
 
 from src.agent.correction.config import CoreTolerances, load_core_tolerances
+from src.agent.correction.envelope import AuthoritativeEnvelope, EnvelopeAxisResolution
+from src.agent.correction.geometry_validator import validate_corrected_geometry
 from src.agent.correction.schema import CorrectedGeometry
 
 
@@ -502,8 +504,205 @@ def _close_to_boundary(v: float, lo: float, hi: float, thr: float) -> float:
     return v
 
 
+def _envelope_reject_entry(axis: str, resolution: EnvelopeAxisResolution, reason: str) -> dict:
+    return {
+        "target": f"{axis}.footprint",
+        "reason": reason,
+        "regime_assumption_violated": "facade authoritative envelope reconcile",
+        "rule_id": "deterministic_core.envelope_reconcile",
+        "axis": axis,
+        "envelope_resolution": resolution.to_dict(),
+    }
+
+
+def _attached_boundary_cells(geom: CorrectedGeometry, axis: str, side: str, old_value: float, attach_tol: float) -> list[tuple]:
+    out = []
+    for fl in geom.floors:
+        for c in fl.cells:
+            values = c.x if axis == "x" else c.y
+            idx = 0 if side == "lo" else 1
+            if abs(float(values[idx]) - old_value) <= attach_tol + _EPS:
+                out.append((fl, c, idx))
+    return out
+
+
+def _guard_envelope_axis_move(
+    geom: CorrectedGeometry,
+    axis: str,
+    old_bounds: tuple[float, float],
+    new_bounds: tuple[float, float],
+    tol: CoreTolerances,
+    resolution: EnvelopeAxisResolution,
+) -> dict | None:
+    # boundary_attach_tol is intentionally aliased to envelope_reconcile_tol_m:
+    # the same wall-thickness-scale allowance that accepts the facade envelope
+    # defines which old perimeter cell edges are considered attached.
+    attach_tol = tol.envelope_reconcile_tol_m
+    sides = [("lo", 0, old_bounds[0], new_bounds[0]), ("hi", 1, old_bounds[1], new_bounds[1])]
+    offending: list[dict] = []
+    for side, idx, old_value, new_value in sides:
+        if abs(new_value - old_value) <= tol.output_precision_m:
+            continue
+        attached = _attached_boundary_cells(geom, axis, side, old_value, attach_tol)
+        if not attached:
+            offending.append({"side": side, "reason": "no cell edge attached to old footprint boundary"})
+            continue
+        for _, cell, edge_idx in attached:
+            values = list(cell.x if axis == "x" else cell.y)
+            other_idx = 1 - edge_idx
+            other = float(values[other_idx])
+            if edge_idx == 0:
+                new_extent = other - new_value
+                crosses = new_value >= other - _EPS
+            else:
+                new_extent = new_value - other
+                crosses = new_value <= other + _EPS
+            if crosses or new_extent < tol.min_edge_length_m - _EPS:
+                offending.append(
+                    {
+                        "cell_id": cell.id,
+                        "side": side,
+                        "old_edge": round(old_value, 6),
+                        "new_edge": round(new_value, 6),
+                        "nearest_interior_axis": round(other, 6),
+                        "new_extent": round(new_extent, 6),
+                        "reason": "move would cross nearest interior axis, invert, or shrink below min_edge_length_m",
+                    }
+                )
+    if offending:
+        return _envelope_reject_entry(
+            axis,
+            resolution,
+            "pre-move guard rejected envelope reconcile",
+        ) | {"offending_cells": offending}
+    return None
+
+
+def _apply_envelope_reconcile(
+    geom: CorrectedGeometry,
+    tol: CoreTolerances,
+    authoritative_envelope: AuthoritativeEnvelope | None,
+    corrections: list[dict],
+    unsupported: list[dict],
+    conflicts: list[dict],
+) -> tuple[list[float], list[float]]:
+    fx = list(map(float, geom.footprint_x))
+    fy = list(map(float, geom.footprint_y))
+    if authoritative_envelope is None:
+        return fx, fy
+
+    accepted_any = False
+    for axis, old_bounds in (("x", (fx[0], fx[1])), ("y", (fy[0], fy[1]))):
+        resolution = authoritative_envelope.axis(axis)  # type: ignore[arg-type]
+        if resolution is None:
+            continue
+        if resolution.status == "conflict":
+            conflicts.append(_envelope_reject_entry(axis, resolution, resolution.reason or "facade envelope conflict"))
+            continue
+        if resolution.status != "accepted":
+            unsupported.append(_envelope_reject_entry(axis, resolution, resolution.reason or "facade envelope skipped"))
+            continue
+        if resolution.bounds is None:
+            unsupported.append(_envelope_reject_entry(axis, resolution, "origin ambiguity: accepted span has no bounds"))
+            continue
+
+        new_bounds = (float(resolution.bounds[0]), float(resolution.bounds[1]))
+        old_span = old_bounds[1] - old_bounds[0]
+        new_span = new_bounds[1] - new_bounds[0]
+        max_delta = max(
+            abs(new_bounds[0] - old_bounds[0]),
+            abs(new_bounds[1] - old_bounds[1]),
+            abs(new_span - old_span),
+        )
+        if max_delta > tol.envelope_reconcile_tol_m + _EPS:
+            unsupported.append(
+                _envelope_reject_entry(
+                    axis,
+                    resolution,
+                    (
+                        f"authoritative envelope delta {max_delta:.3f} m exceeds "
+                        f"ENVELOPE_RECONCILE_TOL {tol.envelope_reconcile_tol_m:.3f} m"
+                    ),
+                )
+            )
+            continue
+
+        guard = _guard_envelope_axis_move(geom, axis, old_bounds, new_bounds, tol, resolution)
+        if guard is not None:
+            unsupported.append(guard)
+            continue
+
+        moved_cells: list[dict] = []
+        for side, idx, old_value, new_value in (
+            ("lo", 0, old_bounds[0], new_bounds[0]),
+            ("hi", 1, old_bounds[1], new_bounds[1]),
+        ):
+            if abs(new_value - old_value) <= tol.output_precision_m:
+                continue
+            for _, cell, edge_idx in _attached_boundary_cells(
+                geom, axis, side, old_value, tol.envelope_reconcile_tol_m
+            ):
+                values = cell.x if axis == "x" else cell.y
+                before = float(values[edge_idx])
+                values[edge_idx] = new_value
+                moved_cells.append(
+                    {
+                        "cell_id": cell.id,
+                        "edge": f"{axis}[{edge_idx}]",
+                        "side": side,
+                        "original_value": round(before, 6),
+                        "resolved_value": round(new_value, 6),
+                    }
+                )
+
+        if axis == "x":
+            fx = [new_bounds[0], new_bounds[1]]
+            geom.footprint_x = fx
+        else:
+            fy = [new_bounds[0], new_bounds[1]]
+            geom.footprint_y = fy
+
+        source = resolution.source
+        corrections.append(
+            {
+                "rule_id": "deterministic_core.envelope_reconcile",
+                "stage": "core",
+                "target": f"{axis}.footprint",
+                "axis": axis,
+                "source_view": source.view if source else None,
+                "source_id": source.source_id if source else None,
+                "source_kind": source.source_kind if source else None,
+                "candidate_class": source.candidate_class if source else None,
+                "original_bounds": [round(old_bounds[0], 6), round(old_bounds[1], 6)],
+                "original_span": round(old_span, 6),
+                "resolved_bounds": [round(new_bounds[0], 6), round(new_bounds[1], 6)],
+                "resolved_span": round(new_span, 6),
+                "delta": round(new_span - old_span, 6),
+                "tolerance_name": "ENVELOPE_RECONCILE_TOL",
+                "tolerance_value": tol.envelope_reconcile_tol_m,
+                "boundary_attach_tol_name": "ENVELOPE_RECONCILE_TOL",
+                "boundary_attach_tol_value": tol.envelope_reconcile_tol_m,
+                "candidate": source.to_dict() if source else None,
+                "corroborating_candidates": [c.to_dict() for c in resolution.corroborating_sources],
+                "moved_cells": moved_cells,
+            }
+        )
+        accepted_any = True
+
+    if accepted_any:
+        findings = validate_corrected_geometry(geom)
+        failed = [f for f in findings if not f.ok and f.check_id in {"correction.coverage", "correction.nondegenerate"}]
+        if failed:
+            messages = "; ".join(f"{f.check_id}: {f.message}" for f in failed)
+            raise ValueError(f"envelope reconcile violated corrected-geometry invariant: {messages}")
+    return fx, fy
+
+
 def apply_deterministic_core(
-    geom: CorrectedGeometry, tol: CoreTolerances | None = None
+    geom: CorrectedGeometry,
+    tol: CoreTolerances | None = None,
+    *,
+    authoritative_envelope: AuthoritativeEnvelope | None = None,
 ) -> CorrectedGeometry:
     """Snap all geometry onto a global canonical axis set; append audit entries.
 
@@ -515,6 +714,7 @@ def apply_deterministic_core(
 
     corrections = list(geom.corrections)
     unsupported = list(geom.unsupported)
+    conflicts = list(geom.conflicts)
 
     # ---- structural axes: room / wall / footprint x,y only (NOT windows) ----
     per_floor_x: dict[str, list[float]] = {}
@@ -551,6 +751,14 @@ def apply_deterministic_core(
     fx = [_snap(geom.footprint_x[0], xmap), _snap(geom.footprint_x[1], xmap)]
     fy = [_snap(geom.footprint_y[0], ymap), _snap(geom.footprint_y[1], ymap)]
     geom.footprint_x, geom.footprint_y = fx, fy
+    fx, fy = _apply_envelope_reconcile(
+        geom,
+        tol,
+        authoritative_envelope,
+        corrections,
+        unsupported,
+        conflicts,
+    )
     gthr = tol.gap_close_threshold_m
 
     # ---- z-stack continuity: close small inter-floor gaps (the z counterpart of
@@ -666,5 +874,6 @@ def apply_deterministic_core(
     geom.windows = kept_windows
 
     geom.corrections = corrections
+    geom.conflicts = conflicts
     geom.unsupported = unsupported
     return geom

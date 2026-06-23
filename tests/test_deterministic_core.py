@@ -8,6 +8,12 @@ import pytest
 
 from src.agent.correction import CorrectedGeometry, apply_deterministic_core
 from src.agent.correction.config import CoreTolerances, load_core_tolerances
+from src.agent.correction.envelope import (
+    AuthoritativeEnvelope,
+    EnvelopeAxisResolution,
+    EnvelopeCandidate,
+)
+from src.agent.correction.geometry_validator import validate_corrected_geometry
 
 
 def _tol(**over) -> CoreTolerances:
@@ -19,6 +25,7 @@ def _tol(**over) -> CoreTolerances:
         output_precision_m=0.01,
         window_snap_grid_m=0.01,
         window_clamp_to_parent=True,
+        envelope_reconcile_tol_m=0.30,
         gap_close_threshold_m=0.30,
         gap_arbitration_band_m=1.00,
     )
@@ -73,6 +80,52 @@ def _multi_floor_partitions(partitions: list[list[float]]) -> CorrectedGeometry:
             }
         )
     return CorrectedGeometry(footprint_x=[0.0, 10.0], footprint_y=[0.0, 8.0], floors=floors)
+
+
+def _envelope_axis(axis: str, bounds: tuple[float, float], *, view: str = "South") -> EnvelopeAxisResolution:
+    c = EnvelopeCandidate(
+        axis=axis,
+        bounds=bounds,
+        span=bounds[1] - bounds[0],
+        source_kind="dimension",
+        view=view,
+        source_id="D1",
+        role="overall",
+        note="overall total",
+        confidence=0.95,
+    )
+    return EnvelopeAxisResolution(
+        axis=axis,
+        status="accepted",
+        bounds=bounds,
+        span=bounds[1] - bounds[0],
+        source=c,
+        candidates=(c,),
+        reason="accepted",
+    )
+
+
+def _three_bay_inset() -> CorrectedGeometry:
+    return CorrectedGeometry(
+        footprint_x=[0.12, 14.88],
+        footprint_y=[0.12, 7.88],
+        windows=[
+            {"id": "W1", "floor": "F1", "facade": "South", "span": [1.0, 2.0], "z": [1.0, 2.0], "room": "A"},
+            {"id": "W2", "floor": "F1", "facade": "East", "span": [3.0, 4.0], "z": [1.0, 2.0], "room": "C"},
+        ],
+        floors=[
+            {
+                "name": "F1",
+                "z_floor": 0.0,
+                "ceiling_height": 3.6,
+                "cells": [
+                    {"id": "A", "x": [0.12, 5.0], "y": [0.12, 7.88]},
+                    {"id": "B", "x": [5.0, 10.0], "y": [0.12, 7.88]},
+                    {"id": "C", "x": [10.0, 14.88], "y": [0.12, 7.88]},
+                ],
+            }
+        ],
+    )
 
 
 def test_cross_floor_jitter_unified():
@@ -208,6 +261,135 @@ def test_gap_beyond_threshold_not_closed():
     )
     out = apply_deterministic_core(g, _tol())
     assert out.floors[0].cells[0].x[0] == 0.40
+
+
+def test_authoritative_envelope_accepts_bounds_and_moves_only_perimeter_edges():
+    g = _three_bay_inset()
+    env = AuthoritativeEnvelope(
+        axes={
+            "x": _envelope_axis("x", (0.0, 15.0)),
+            "y": _envelope_axis("y", (0.0, 8.0), view="East"),
+        }
+    )
+    out = apply_deterministic_core(g, _tol(), authoritative_envelope=env)
+
+    assert out.footprint_x == [0.0, 15.0]
+    assert out.footprint_y == [0.0, 8.0]
+    cells = {c.id: c for c in out.floors[0].cells}
+    assert cells["A"].x == [0.0, 5.0]
+    assert cells["B"].x == [5.0, 10.0]
+    assert cells["C"].x == [10.0, 15.0]
+    assert {x for c in out.floors[0].cells for x in c.x if x in {5.0, 10.0}} == {5.0, 10.0}
+    assert cells["A"].y == [0.0, 8.0]
+    assert [w.span for w in out.windows] == [[1.0, 2.0], [3.0, 4.0]]
+    assert not [f for f in validate_corrected_geometry(out) if not f.ok]
+    assert any(e.get("rule_id") == "deterministic_core.envelope_reconcile" for e in out.corrections)
+
+
+def test_authoritative_envelope_over_tolerance_rejected():
+    g = _three_bay_inset()
+    baseline = apply_deterministic_core(_three_bay_inset(), _tol())
+    env = AuthoritativeEnvelope(axes={"x": _envelope_axis("x", (0.0, 16.0))})
+    out = apply_deterministic_core(g, _tol(), authoritative_envelope=env)
+    assert out.footprint_x == baseline.footprint_x
+    assert any(
+        e.get("rule_id") == "deterministic_core.envelope_reconcile"
+        and "exceeds" in e.get("reason", "")
+        for e in out.unsupported
+    )
+
+
+def test_authoritative_envelope_none_is_noop_for_envelope_path():
+    baseline = apply_deterministic_core(_three_bay_inset(), _tol(gap_close_threshold_m=0.30))
+    out = apply_deterministic_core(
+        _three_bay_inset(),
+        _tol(gap_close_threshold_m=0.30),
+        authoritative_envelope=None,
+    )
+    assert out.model_dump() == baseline.model_dump()
+    assert not any(e.get("rule_id") == "deterministic_core.envelope_reconcile" for e in out.corrections)
+
+
+def test_authoritative_envelope_origin_ambiguity_skips():
+    candidate = EnvelopeCandidate(
+        axis="x",
+        bounds=None,
+        span=15.0,
+        source_kind="dimension_text",
+        view="South",
+        source_id="D1",
+        role="overall",
+        note="overall total",
+        confidence=0.5,
+    )
+    env = AuthoritativeEnvelope(
+        axes={
+            "x": EnvelopeAxisResolution(
+                axis="x",
+                status="accepted",
+                bounds=None,
+                span=15.0,
+                source=candidate,
+                candidates=(candidate,),
+            )
+        }
+    )
+    out = apply_deterministic_core(_three_bay_inset(), _tol(), authoritative_envelope=env)
+    baseline = apply_deterministic_core(_three_bay_inset(), _tol())
+    assert out.footprint_x == baseline.footprint_x
+    assert any("origin ambiguity" in e.get("reason", "") for e in out.unsupported)
+
+
+def test_authoritative_envelope_insufficient_evidence_skip_logged():
+    c = EnvelopeCandidate(
+        axis="x",
+        bounds=(0.0, 15.0),
+        span=15.0,
+        source_kind="dimension",
+        view="South",
+        source_id="D2",
+        confidence=0.6,
+    )
+    env = AuthoritativeEnvelope(
+        axes={
+            "x": EnvelopeAxisResolution(
+                axis="x",
+                status="skipped",
+                candidates=(c,),
+                reason="insufficient evidence",
+            )
+        }
+    )
+    out = apply_deterministic_core(_three_bay_inset(), _tol(), authoritative_envelope=env)
+    baseline = apply_deterministic_core(_three_bay_inset(), _tol())
+    assert out.footprint_x == baseline.footprint_x
+    assert any("insufficient evidence" in e.get("reason", "") for e in out.unsupported)
+
+
+def test_authoritative_envelope_pre_move_guard_rejects_cell_collapse():
+    g = CorrectedGeometry(
+        footprint_x=[0.0, 10.0],
+        footprint_y=[0.0, 8.0],
+        floors=[
+            {
+                "name": "F1",
+                "z_floor": 0.0,
+                "ceiling_height": 3.6,
+                "cells": [
+                    {"id": "thin", "x": [0.0, 0.20], "y": [0.0, 8.0]},
+                    {"id": "rest", "x": [0.20, 10.0], "y": [0.0, 8.0]},
+                ],
+            }
+        ],
+    )
+    env = AuthoritativeEnvelope(axes={"x": _envelope_axis("x", (0.15, 10.0))})
+    out = apply_deterministic_core(g, _tol(), authoritative_envelope=env)
+    assert out.footprint_x == [0.0, 10.0]
+    assert any(
+        e.get("rule_id") == "deterministic_core.envelope_reconcile"
+        and e.get("offending_cells")
+        for e in out.unsupported
+    )
 
 
 def test_invariant_gap_close_ordering():

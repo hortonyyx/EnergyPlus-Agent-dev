@@ -21,6 +21,10 @@ from src.agent.correction.geometry_validator import (
     GeometryFinding,
     validate_corrected_geometry,
 )
+from src.agent.correction.envelope import (
+    envelope_candidates_from_elevation_widths,
+    resolve_authoritative_envelope,
+)
 from src.agent.correction.schema import CorrectedGeometry
 from src.validator.checks.schema import CheckLayer, CheckReport, CheckStatus
 
@@ -83,6 +87,12 @@ def _cross_image_reconcile(
         return
     width = abs(max(geom.footprint_x) - min(geom.footprint_x))   # N/S facade width
     depth = abs(max(geom.footprint_y) - min(geom.footprint_y))   # E/W facade width
+    envelope = resolve_authoritative_envelope(
+        envelope_candidates_from_elevation_widths(elevation_widths),
+        footprint={"x": (min(geom.footprint_x), max(geom.footprint_x)),
+                   "y": (min(geom.footprint_y), max(geom.footprint_y))},
+        footprint_tolerance_m=0.10,
+    )
     expected = {"North": width, "South": width, "East": depth, "West": depth}
     mismatches = []
     for facade, w in elevation_widths.items():
@@ -96,10 +106,16 @@ def _cross_image_reconcile(
         rep.add_fail(
             "correction.cross_image_reconcile", CheckLayer.CROSS_CHECK,
             f"{len(mismatches)} facade width(s) disagree with the footprint",
-            evidence={"mismatches": mismatches})
+            evidence={
+                "mismatches": mismatches,
+                "authoritative_envelope": envelope.to_dict(),
+            })
     else:
         rep.add_pass("correction.cross_image_reconcile", CheckLayer.CROSS_CHECK,
-                     evidence={"facades_checked": len(elevation_widths)})
+                     evidence={
+                         "facades_checked": len(elevation_widths),
+                         "authoritative_envelope": envelope.to_dict(),
+                     })
 
 
 def _geom_signature(geom: CorrectedGeometry) -> list:

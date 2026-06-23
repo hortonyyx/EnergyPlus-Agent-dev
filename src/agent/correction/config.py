@@ -52,6 +52,7 @@ class CoreTolerances:
     output_precision_m: float  # format precision + correction-logging threshold
     window_snap_grid_m: float  # finer grid for window span/z (no structural role)
     window_clamp_to_parent: bool  # clamp window span/z into its parent cell/floor
+    envelope_reconcile_tol_m: float  # facade-envelope vs footprint basis correction threshold
     gap_close_threshold_m: float  # auto-close a cell edge this close to the footprint
     gap_arbitration_band_m: float  # above gap_close, escalate to A3 (doc/A3; not code)
 
@@ -64,6 +65,11 @@ class CoreTolerances:
             )
         if self.axis_jitter_tol_m <= 0 or self.window_snap_grid_m <= 0:
             raise ValueError("jitter tol and window grid must be positive")
+        if self.envelope_reconcile_tol_m <= self.cross_floor_align_tol_m:
+            raise ValueError(
+                "envelope_reconcile_tol_m must be greater than cross_floor_align_tol_m; got "
+                f"{self.envelope_reconcile_tol_m} vs {self.cross_floor_align_tol_m}"
+            )
         # cross-floor identity is coarser than per-floor jitter, and connectivity
         # is coarser still but below the arbitration band.
         if not (self.axis_jitter_tol_m < self.cross_floor_align_tol_m
@@ -91,6 +97,7 @@ def _load_cached(path_str: str) -> CoreTolerances:
         output_precision_m=float(c["output_precision_m"]),
         window_snap_grid_m=float(c["window_snap_grid_m"]),
         window_clamp_to_parent=bool(c.get("window_clamp_to_parent", True)),
+        envelope_reconcile_tol_m=float(c["envelope_reconcile_tol_m"]),
         gap_close_threshold_m=float(c["gap_close_threshold_m"]),
         gap_arbitration_band_m=float(c["gap_arbitration_band_m"]),
     )

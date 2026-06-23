@@ -44,6 +44,8 @@ from omegaconf import OmegaConf
 
 from src.agent._share import ensure_schema_initialized
 from src.agent.correction import CorrectedGeometry, apply_deterministic_core
+from src.agent.correction.config import load_core_tolerances
+from src.agent.correction.envelope import extract_authoritative_envelope
 from src.agent.llm import load_llm_section, resolve_llm_config_path
 from src.agent.state import IntakeOutput
 
@@ -727,7 +729,17 @@ def run_pipeline(
     geom = run_correction(vector_dir, testdata_text, out_dir=s1, feedback=feedback)
 
     n_corr_before = len(geom.corrections)
-    geom = apply_deterministic_core(geom)
+    tol = load_core_tolerances()
+    authoritative_envelope = extract_authoritative_envelope(
+        vector_dir,
+        footprint=geom,
+        footprint_tolerance_m=tol.envelope_reconcile_tol_m,
+    )
+    geom = apply_deterministic_core(
+        geom,
+        tol,
+        authoritative_envelope=authoritative_envelope,
+    )
     logger.info(
         "core: deterministic snap added {} correction(s), {} unsupported",
         len(geom.corrections) - n_corr_before,

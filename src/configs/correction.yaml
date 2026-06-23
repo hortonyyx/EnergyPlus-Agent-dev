@@ -87,6 +87,18 @@ correction:
   # 作用：防"窗顶冒出墙顶 / 窗边伸出墙外"那类 CHKSBS partial-overlap。
   #       false 时只吸附不钳制(调试用，便于观察 LLM 原始越界程度)。
 
+  # ====== 立面外包权威吸收(外包→footprint 基准，#2.3) ======
+  envelope_reconcile_tol_m: 0.300
+  # 约束：立面外包 bounds 与 correction footprint 的 lo/hi/跨度差若均 ≤ 此值，
+  #       且 reading 证据满足外包权威规则 → footprint 与贴旧外边界的 cell 边
+  #       吸到立面外包；超过则不静默强压，记 unsupported/conflict。
+  # 背景：立面尺寸常到外墙外包，平面 footprint 可能到墙中线/轴线，同栋楼两套
+  #       基准会差约一个墙厚(如每边 120mm、跨度差 240mm)。
+  # 作用：吸收墙厚量级的外包/中线差，让整栋 origin 回到 SW 外包角；窗不沿立面
+  #       平移，随重建后的父外墙平面定位。
+  # 0.30 = 容一个偏厚外墙(~0.24)+余量；调小→偏厚墙吸不动，调大→可能吞真实尺寸差。
+  # boundary_attach_tol 当前显式等同此值：只移动距旧 footprint 外边界 ≤ 此值的 cell 边。
+
   # ====== 连接性补缝(端点→边界，#2.4) ======
   # 【与轴吸附是两类操作】轴吸附(structural_snap_grid)问"两坐标是不是同一道墙"
   # (身份，颗粒 50mm)；补缝问"一条墙线该不该接到边界上"(连接性，颗粒 300mm)。
