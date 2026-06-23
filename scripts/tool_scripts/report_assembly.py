@@ -1,0 +1,650 @@
+"""Deterministic per-run report assembly helpers.
+
+This module builds the additive ``report/`` view for a completed or stopped run.
+It deliberately reads only run artifacts and the parent case's ``case_data/``
+images; it never imports or reads test_baseline/gt.
+"""
+
+from __future__ import annotations
+
+import json
+import os
+import re
+import shutil
+from collections import Counter
+from pathlib import Path
+
+from src.agent.execution.stage_runner import STAGE_ORDER
+from src.agent.execution.step_orchestrator import ADVANCE_OK, TERMINAL_STOP, StepStatus
+from src.validator.checks.schema import Disposition, disposition
+
+PENDING = {
+    StepStatus.AWAITING_JUDGE,
+    StepStatus.JUDGE_BLOCK,
+    StepStatus.AWAITING_REREAD,
+    StepStatus.AWAITING_GEOMETRY_APPROVAL,
+}
+
+RECOMMENDATION_BUCKETS = ("机制问题", "能力升级", "脚手架建议", "修法")
+NO_EVIDENCE_SENTINEL = "本 run 无可证据支持的建议"
+
+_AUDIT_KINDS = ("corrections", "conflicts", "unsupported")
+_EVIDENCE_TOKEN_RE = re.compile(r"\[(E:[^\]\s]+)\]")
+
+
+def _status_values(statuses: set[StepStatus]) -> set[str]:
+    return {s.value for s in statuses}
+
+
+_TERMINAL_VALUES = _status_values(TERMINAL_STOP)
+_ADVANCE_VALUES = _status_values(ADVANCE_OK)
+_PENDING_VALUES = _status_values(PENDING)
+
+
+def _rel(path: Path, start: Path) -> str:
+    return os.path.relpath(path, start).replace(os.sep, "/")
+
+
+def _slug(value: object) -> str:
+    slug = re.sub(r"[^A-Za-z0-9_.-]+", "_", str(value)).strip("_")
+    return slug or "row"
+
+
+def _copy_asset(src: Path, out_dir: Path, wanted_name: str, used: set[str]) -> dict:
+    stem = Path(wanted_name).stem
+    suffix = Path(wanted_name).suffix
+    name = wanted_name
+    idx = 2
+    while name in used:
+        name = f"{stem}__{idx}{suffix}"
+        idx += 1
+    used.add(name)
+    dst = out_dir / name
+    dst.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copy2(src, dst)
+    return {"filename": name, "path": f"report/eyeball/{name}"}
+
+
+def collect_eyeball_assets(run_dir: Path) -> dict:
+    """Copy real 2D visual artifacts into ``report/eyeball/``.
+
+    The collector is intentionally explicit: it knows the current producer paths
+    and records missing producers instead of relying on wishful wildcard names.
+    """
+    run_dir = Path(run_dir)
+    out_dir = run_dir / "report" / "eyeball"
+    out_dir.mkdir(parents=True, exist_ok=True)
+    used: set[str] = set()
+    assets: list[dict] = []
+    missing: list[dict] = []
+
+    explicit = [
+        ("correction_zones", run_dir / "1_correction" / "zones.png", "1_correction_zones.png"),
+        ("correction_elev", run_dir / "1_correction" / "elev.png", "1_correction_elev.png"),
+    ]
+    for producer, src, target_name in explicit:
+        if src.exists():
+            copied = _copy_asset(src, out_dir, target_name, used)
+            copied.update({
+                "producer": producer,
+                "source": _rel(src, run_dir),
+                "status": "copied",
+            })
+            assets.append(copied)
+        else:
+            missing.append({
+                "producer": producer,
+                "source": _rel(src, run_dir),
+                "status": "missing",
+            })
+
+    reading_renders = sorted((run_dir / "0_reading").glob("*_render.png"))
+    if reading_renders:
+        for src in reading_renders:
+            copied = _copy_asset(src, out_dir, f"0_reading_{src.name}", used)
+            copied.update({
+                "producer": "reading_render",
+                "source": _rel(src, run_dir),
+                "status": "copied",
+            })
+            assets.append(copied)
+    else:
+        missing.append({
+            "producer": "reading_render",
+            "source": "0_reading/*_render.png",
+            "status": "missing",
+        })
+
+    case_data = run_dir.parent / "case_data"
+    source_views = sorted(case_data.glob("*_view.png"))
+    if source_views:
+        for src in source_views:
+            copied = _copy_asset(src, out_dir, f"case_data_{src.name}", used)
+            copied.update({
+                "producer": "case_data_view",
+                "source": _rel(src, run_dir),
+                "status": "copied",
+            })
+            assets.append(copied)
+    else:
+        missing.append({
+            "producer": "case_data_view",
+            "source": "../case_data/*_view.png",
+            "status": "missing",
+        })
+
+    return {"dir": "report/eyeball", "assets": assets, "missing": missing}
+
+
+def ensure_geometry_viewer(run_dir: Path) -> dict:
+    """Verify or regenerate ``manual_review/geometry_viewer.html``.
+
+    The viewer remains outside ``report/``. If geometry exists and the gitignored
+    viewer is absent, this regenerates it from ``2_modelling/building_geometry.json``.
+    """
+    run_dir = Path(run_dir)
+    viewer = run_dir / "manual_review" / "geometry_viewer.html"
+    rel_viewer = _rel(viewer, run_dir)
+    if viewer.exists():
+        return {
+            "available": True,
+            "path": rel_viewer,
+            "report_link": "../manual_review/geometry_viewer.html",
+            "status": "existing",
+        }
+
+    bg = run_dir / "2_modelling" / "building_geometry.json"
+    if not bg.exists():
+        return {
+            "available": False,
+            "path": rel_viewer,
+            "status": "unavailable",
+            "reason": "missing 2_modelling/building_geometry.json",
+        }
+
+    try:
+        from render_geometry_viewer import build_viewer_html, discover_roles
+
+        data = json.loads(bg.read_text(encoding="utf-8"))
+        viewer.parent.mkdir(parents=True, exist_ok=True)
+        viewer.write_text(
+            build_viewer_html(data, title=run_dir.name, roles=discover_roles(bg)),
+            encoding="utf-8",
+        )
+    except Exception as e:  # noqa: BLE001 - viewer is useful but not load-bearing
+        return {
+            "available": False,
+            "path": rel_viewer,
+            "status": "unavailable",
+            "reason": f"regeneration failed: {e}",
+        }
+
+    return {
+        "available": True,
+        "path": rel_viewer,
+        "report_link": "../manual_review/geometry_viewer.html",
+        "status": "regenerated",
+    }
+
+
+def _stage_entry(stage: str, info: dict) -> dict:
+    return {
+        "stage": stage,
+        "status": str(info.get("status", "")),
+        "attempts_used": info.get("attempts_used"),
+        "accepted_attempt": info.get("accepted_attempt"),
+        "message": info.get("message", ""),
+        "route_target": info.get("route_target"),
+    }
+
+
+def _is_geometry_superseded(stage: str, status: str, geometry_approved: bool) -> bool:
+    return (
+        stage == "3_split_pairing"
+        and status == StepStatus.AWAITING_GEOMETRY_APPROVAL.value
+        and geometry_approved
+    )
+
+
+def derive_run_state(state: dict, *, geometry_approved: bool) -> dict:
+    """Derive report state from the per-stage orchestration ledger.
+
+    ``completed_clean`` scans every expected stage. The only ignored pending
+    status is the real geometry approval shape: 3_split_pairing still says
+    awaiting_geometry_approval while the run-level geometry_approved flag is true.
+    """
+    stages = state.get("stages", {}) if isinstance(state, dict) else {}
+    ordered: list[dict] = []
+    missing_expected: list[str] = []
+    ignored_pending: list[dict] = []
+    terminals: list[dict] = []
+    pendings: list[dict] = []
+
+    for stage in STAGE_ORDER:
+        raw = stages.get(stage)
+        if not isinstance(raw, dict):
+            missing_expected.append(stage)
+            continue
+        entry = _stage_entry(stage, raw)
+        status = entry["status"]
+        ordered.append(entry)
+        if status in _PENDING_VALUES:
+            if _is_geometry_superseded(stage, status, geometry_approved):
+                ignored_pending.append(entry)
+            else:
+                pendings.append(entry)
+        if status in _TERMINAL_VALUES:
+            terminals.append(entry)
+
+    latest_expected = ordered[-1] if ordered else None
+    latest_expected_ok = bool(latest_expected and latest_expected["status"] in _ADVANCE_VALUES)
+    completed_clean = (
+        not missing_expected
+        and latest_expected_ok
+        and not terminals
+        and not pendings
+    )
+
+    if terminals:
+        status = "root_stopped"
+    elif pendings:
+        status = "pending"
+    elif completed_clean:
+        status = "completed_clean"
+    else:
+        status = "incomplete"
+
+    return {
+        "status": status,
+        "completed_clean": completed_clean,
+        "root_stop": terminals[-1] if terminals else None,
+        "pending": None if terminals else (pendings[-1] if pendings else None),
+        "pending_candidates": pendings,
+        "ignored_pending": ignored_pending,
+        "missing_expected": missing_expected,
+        "latest_expected": latest_expected,
+        "expected": STAGE_ORDER,
+        "stop_reason": state.get("stop_reason") if isinstance(state, dict) else None,
+    }
+
+
+def assert_unique_evidence_ids(evidence_index: list[dict]) -> None:
+    counts = Counter(entry.get("id") for entry in evidence_index)
+    dupes = sorted(eid for eid, count in counts.items() if eid and count > 1)
+    if dupes:
+        raise AssertionError(f"duplicate evidence ids: {', '.join(dupes)}")
+
+
+def _add_entry(entries: list[dict], eid: str, kind: str, source: str, payload: dict) -> None:
+    entries.append({"id": eid, "kind": kind, "source": source, "payload": payload})
+
+
+def _gate_entries(validation_result) -> list[dict]:
+    entries: list[dict] = []
+    for report_key in sorted(validation_result.reports):
+        rep = validation_result.reports[report_key]
+        per_check: Counter[str] = Counter()
+        for result in rep.results:
+            disp = disposition(result, capability_profile=rep.capability_profile)
+            if disp not in (Disposition.BLOCK, Disposition.FLAG):
+                continue
+            per_check[result.check_id] += 1
+            suffix = "" if per_check[result.check_id] == 1 else f"#{per_check[result.check_id]}"
+            eid = f"E:gate:{report_key}:{result.check_id}{suffix}"
+            _add_entry(entries, eid, "gate", report_key, {
+                "report_key": report_key,
+                "stage": report_key.split("::")[0],
+                "check_id": result.check_id,
+                "status": result.status.value,
+                "layer": result.layer.value,
+                "disposition": disp.value,
+                "message": result.message,
+                "evidence": result.evidence,
+            })
+    return entries
+
+
+def _judge_entries(run_dir: Path) -> list[dict]:
+    entries: list[dict] = []
+    for stage in STAGE_ORDER:
+        attempts_dir = run_dir / stage / "attempts"
+        if not attempts_dir.exists():
+            continue
+        for attempt in sorted(p for p in attempts_dir.iterdir() if p.is_dir() and p.name.isdigit()):
+            judge_path = attempt / "judge.json"
+            if not judge_path.exists():
+                continue
+            try:
+                verdict = json.loads(judge_path.read_text(encoding="utf-8"))
+            except Exception:  # noqa: BLE001 - malformed judge sidecar is not indexable
+                continue
+            criteria = verdict.get("criteria", [])
+            if not isinstance(criteria, list):
+                continue
+            for ordinal, criterion in enumerate(criteria, start=1):
+                eid = f"E:judge:{stage}:{attempt.name}:c{ordinal}"
+                _add_entry(entries, eid, "judge", _rel(judge_path, run_dir), {
+                    "stage": stage,
+                    "attempt": attempt.name,
+                    "criterion_ordinal": ordinal,
+                    "criterion": criterion,
+                    "root_stage": verdict.get("root_stage"),
+                    "rubric_id": verdict.get("rubric_id"),
+                })
+    return entries
+
+
+def _correction_entries(run_dir: Path) -> list[dict]:
+    entries: list[dict] = []
+    sidecar = run_dir / "1_correction" / "corrections.json"
+    if not sidecar.exists():
+        return entries
+    try:
+        data = json.loads(sidecar.read_text(encoding="utf-8"))
+    except Exception:  # noqa: BLE001 - malformed audit sidecar is reported elsewhere
+        return entries
+    if not isinstance(data, dict):
+        return entries
+    for kind in _AUDIT_KINDS:
+        rows = data.get(kind, [])
+        if not isinstance(rows, list):
+            continue
+        for ordinal, row in enumerate(rows, start=1):
+            raw_id = row.get("id") if isinstance(row, dict) else None
+            suffix = _slug(raw_id) if raw_id else f"r{ordinal}"
+            eid = f"E:corr:{kind}:{suffix}"
+            _add_entry(entries, eid, "correction", _rel(sidecar, run_dir), {
+                "kind": kind,
+                "ordinal": ordinal,
+                "raw_id": raw_id,
+                "row": row,
+            })
+    return entries
+
+
+def build_evidence_index(
+    run_dir: Path,
+    validation_result,
+    *,
+    report_assets: dict,
+    run_state: dict,
+    ep: dict | None,
+) -> list[dict]:
+    entries: list[dict] = []
+    entries.extend(_gate_entries(validation_result))
+    entries.extend(_judge_entries(Path(run_dir)))
+    entries.extend(_correction_entries(Path(run_dir)))
+
+    stop = run_state.get("root_stop") or run_state.get("pending")
+    if stop:
+        status = stop.get("status", "unknown")
+        stage = stop.get("stage", "unknown")
+        _add_entry(entries, f"E:stop:{status}@{stage}", "stop", "orchestration_state.json", stop)
+
+    _add_entry(entries, "E:ep:result", "ep", "EP/EP_run/eplusout.end", {"ep": ep})
+    _add_entry(entries, "E:geom:digest", "geometry", "2_modelling/building_geometry.json", {
+        "geometry_digest": getattr(validation_result, "geometry_digest", None),
+        "geometry_approved": getattr(validation_result, "geometry_approved", False),
+    })
+    for asset in report_assets.get("assets", []):
+        _add_entry(entries, f"E:eyeball:{asset['filename']}", "eyeball", asset["path"], asset)
+
+    assert_unique_evidence_ids(entries)
+    return entries
+
+
+def _evidence_ids(evidence_index: list[dict]) -> set[str]:
+    return {entry["id"] for entry in evidence_index if "id" in entry}
+
+
+def lint_report_citations(report_text: str, evidence_index: list[dict]) -> list[str]:
+    """Lexically validate the REPORT.md recommendation mini-format."""
+    known = _evidence_ids(evidence_index)
+    lines = report_text.splitlines()
+    sections: dict[str, list[str]] = {}
+    errors: list[str] = []
+    in_recommendations = False
+    current_bucket: str | None = None
+
+    for line in lines:
+        stripped = line.strip()
+        if stripped.startswith("## "):
+            in_recommendations = stripped == "## 建议"
+            current_bucket = None
+            continue
+        if not in_recommendations:
+            continue
+        if stripped.startswith("### "):
+            bucket = stripped[4:].strip()
+            if bucket not in RECOMMENDATION_BUCKETS:
+                errors.append(f"unknown recommendation bucket: {bucket}")
+                current_bucket = None
+                continue
+            if bucket in sections:
+                errors.append(f"duplicate recommendation bucket: {bucket}")
+            sections.setdefault(bucket, [])
+            current_bucket = bucket
+            continue
+        if current_bucket is not None:
+            sections[current_bucket].append(line.rstrip())
+
+    for bucket in RECOMMENDATION_BUCKETS:
+        if bucket not in sections:
+            errors.append(f"missing recommendation bucket: {bucket}")
+            continue
+        errors.extend(_lint_bucket(bucket, sections[bucket], known))
+    return errors
+
+
+def _next_nonblank(lines: list[str], start: int) -> tuple[int, str] | None:
+    i = start
+    while i < len(lines):
+        if lines[i].strip():
+            return i, lines[i]
+        i += 1
+    return None
+
+
+def _lint_bucket(bucket: str, raw_lines: list[str], known: set[str]) -> list[str]:
+    errors: list[str] = []
+    content = [line for line in raw_lines if line.strip()]
+    if content == [NO_EVIDENCE_SENTINEL]:
+        return []
+    if not content:
+        return [f"{bucket}: empty bucket"]
+
+    i = 0
+    while i < len(raw_lines):
+        line = raw_lines[i]
+        stripped = line.strip()
+        if not stripped or stripped.startswith("> note:"):
+            i += 1
+            continue
+        if not line.startswith("- action: "):
+            errors.append(f"{bucket}: unsupported prose or malformed record: {stripped}")
+            i += 1
+            continue
+        action = line.removeprefix("- action: ").strip()
+        if not action:
+            errors.append(f"{bucket}: empty action")
+
+        evidence_pos = _next_nonblank(raw_lines, i + 1)
+        if evidence_pos is None or not evidence_pos[1].startswith("  evidence: "):
+            errors.append(f"{bucket}: action missing evidence line")
+            i += 1
+            continue
+        evidence_line = evidence_pos[1]
+        cited = _EVIDENCE_TOKEN_RE.findall(evidence_line)
+        if not cited:
+            errors.append(f"{bucket}: action must cite at least one evidence id")
+        for eid in cited:
+            if eid not in known:
+                errors.append(f"{bucket}: unknown evidence id {eid}")
+
+        owner_pos = _next_nonblank(raw_lines, evidence_pos[0] + 1)
+        if owner_pos is None or not owner_pos[1].startswith("  owner: "):
+            errors.append(f"{bucket}: action missing owner line")
+            i = evidence_pos[0] + 1
+            continue
+        owner = owner_pos[1].removeprefix("  owner: ").strip()
+        if not owner:
+            errors.append(f"{bucket}: empty owner")
+        i = owner_pos[0] + 1
+
+    return errors
+
+
+def assert_report_citations(report_text: str, evidence_index: list[dict]) -> None:
+    errors = lint_report_citations(report_text, evidence_index)
+    if errors:
+        raise AssertionError("REPORT.md citation lint failed:\n- " + "\n- ".join(errors))
+
+
+def _state_summary_lines(run_state: dict) -> list[str]:
+    status = run_state.get("status")
+    if status == "completed_clean":
+        return ["- run_state: completed_clean", "- 根因停: none", "- pending: none"]
+    if status == "root_stopped":
+        root = run_state.get("root_stop") or {}
+        lines = [
+            f"- run_state: root_stopped",
+            f"- 根因停: `{root.get('status')}@{root.get('stage')}`",
+        ]
+        if root.get("message"):
+            lines.append(f"- stop message: {root['message']}")
+        return lines
+    if status == "pending":
+        pending = run_state.get("pending") or {}
+        lines = [
+            "- run_state: pending",
+            f"- pending: `{pending.get('status')}@{pending.get('stage')}`",
+        ]
+        if pending.get("message"):
+            lines.append(f"- pending message: {pending['message']}")
+        return lines
+    return [
+        f"- run_state: {status or 'unknown'}",
+        f"- missing expected stages: {run_state.get('missing_expected', [])}",
+    ]
+
+
+def _downstream_missing_after_root(baseline: dict) -> list[dict]:
+    run_state = baseline.get("run_state", {})
+    root = run_state.get("root_stop") or {}
+    root_stage = root.get("stage")
+    if root_stage not in STAGE_ORDER:
+        return []
+    root_index = STAGE_ORDER.index(root_stage)
+    out = []
+    for item in baseline.get("blocking", []):
+        stage = item.get("stage")
+        if stage in STAGE_ORDER and STAGE_ORDER.index(stage) > root_index:
+            msg = item.get("message", "")
+            if "required artifact missing" in msg:
+                out.append(item)
+    return out
+
+
+def _status_tldr(baseline: dict) -> str:
+    state = baseline.get("run_state", {}).get("status")
+    if state == "completed_clean":
+        return "completed_clean"
+    if state == "root_stopped":
+        root = baseline.get("run_state", {}).get("root_stop") or {}
+        return f"root_stopped: {root.get('status')}@{root.get('stage')}"
+    if state == "pending":
+        pending = baseline.get("run_state", {}).get("pending") or {}
+        return f"pending: {pending.get('status')}@{pending.get('stage')}"
+    return str(state or "unknown")
+
+
+def render_report_template(baseline: dict) -> str:
+    """Render the Agent-authored REPORT.md skeleton.
+
+    The recommendation buckets are initialized with the exact no-evidence
+    sentinel so the structural linter passes until the Agent replaces a bucket
+    with cited bullet records.
+    """
+    assets = baseline.get("report_assets", {})
+    viewer = baseline.get("viewer", {})
+    lines = [
+        f"# {baseline['case']} / {baseline.get('run', '')} REPORT",
+        "",
+        "<!-- GENERATED-SKELETON: deterministic scaffolding; Agent-authored narrative lives in this file. -->",
+        "",
+        "## 一句话结论",
+        "",
+        f"- 自动状态: `{_status_tldr(baseline)}`",
+        "<!-- AGENT-FILL: 用一句话写 pass/blocked + 本 run 最重要的一件事。 -->",
+        "",
+        "## 本轮侧重点",
+        "",
+        "<!-- AGENT-FILL: 说明这轮在测什么、为何重要。 -->",
+        "",
+        "## 事实卡",
+        "",
+        "- [FACTS.md](FACTS.md)",
+        "- [baseline.json](../baseline.json)",
+        f"- evidence_index entries: {len(baseline.get('evidence_index', []))}",
+        "",
+        "## 运行状态",
+        "",
+        *_state_summary_lines(baseline.get("run_state", {})),
+    ]
+    consequential = _downstream_missing_after_root(baseline)
+    if consequential:
+        lines += ["", "### 连带缺失下游件", ""]
+        lines += [f"- `{x.get('stage')}`: {x.get('message')}" for x in consequential]
+    lines += [
+        "",
+        "## 错在哪儿 + 归因",
+        "",
+        "<!-- AGENT-FILL: 用 evidence_index 把 gate/judge/correction/肉检事实串成因果链。 -->",
+        "",
+        "## 肉视检验",
+        "",
+    ]
+    if assets.get("assets"):
+        lines += [f"- [{a['filename']}](eyeball/{a['filename']}) — {a['producer']} from `{a['source']}`"
+                  for a in assets["assets"]]
+    else:
+        lines.append("- 2D eyeball assets unavailable; see FACTS.md missing producers.")
+    if viewer.get("available"):
+        lines.append(f"- [3D geometry viewer]({viewer['report_link']}) — `{viewer['status']}`")
+    else:
+        lines.append(f"- 3D geometry viewer unavailable — {viewer.get('reason', 'unknown')}")
+    lines += [
+        "",
+        "## 建议",
+        "",
+    ]
+    for bucket in RECOMMENDATION_BUCKETS:
+        lines += ["", f"### {bucket}", "", NO_EVIDENCE_SENTINEL]
+    lines += [
+        "",
+        "## 附录指针",
+        "",
+        "- raw reading outputs: [../0_reading/](../0_reading/)",
+        "- correction audit: [../1_correction/corrections.json](../1_correction/corrections.json)",
+        "- judge verdict log: [../verdicts/](../verdicts/)",
+        "- orchestration ledger: [../orchestration_state.json](../orchestration_state.json)",
+    ]
+    return "\n".join(lines).rstrip() + "\n"
+
+
+def write_report_files(
+    run_dir: Path,
+    *,
+    baseline: dict,
+    facts_text: str,
+    force_template: bool = False,
+) -> None:
+    report_dir = Path(run_dir) / "report"
+    report_dir.mkdir(parents=True, exist_ok=True)
+    (report_dir / "FACTS.md").write_text(facts_text, encoding="utf-8")
+    template = render_report_template(baseline)
+    (report_dir / "REPORT.template.md").write_text(template, encoding="utf-8")
+    report = report_dir / "REPORT.md"
+    if force_template or not report.exists():
+        report.write_text(template, encoding="utf-8")
+    assert_report_citations(report.read_text(encoding="utf-8"), baseline["evidence_index"])

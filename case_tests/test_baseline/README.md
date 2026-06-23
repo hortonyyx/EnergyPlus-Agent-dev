@@ -30,11 +30,14 @@ baseline = 一个**干净的** anchor case 的一次 **run**（`<case>/run_<注�
     EP/EP_run/                EP 仿真（eplusout.* 本地 gitignored）
     run_manifest.json         各段 accepted 指针 + input hash + geometry approval digest
     baseline.json             ← 机器成绩单（golden 计数 / digest / 各段 gate 汇总 / flags / EP / 抽几次）
-    RUN_REPORT.md             ← 人读总反馈 + 🔍 肉视检验清单
+    report/
+      FACTS.md                ← 确定性事实卡
+      REPORT.md               ← 主控撰写的人读总反馈 + 🔍 肉视检验清单 + 建议
+      eyeball/                ← 汇拢的 2D 肉检件
 ```
 
 **「干净」收口标准**：gate① **0 block** + EP **0 severe**；cross-check **flag 允许存在但必须在
-`baseline.json.flags[]` 与 `RUN_REPORT.md` 留痕**。出现不该有的 flag（区数 tripwire、跨图对账不齐
+`baseline.json.flags[]` 与 `report/FACTS.md` / `report/REPORT.md` 留痕**。出现不该有的 flag（区数 tripwire、跨图对账不齐
 等）→ 回 0_reading 修到干净，不带病入库。
 
 ## 2. 三层反馈（来源）
@@ -43,7 +46,7 @@ baseline = 一个**干净的** anchor case 的一次 **run**（`<case>/run_<注�
 |---|---|---|
 | **gate① 确定性** | 代码 [`validate_case`](../../src/agent/execution/validation_run.py) | `<stage>_checks.json` + `baseline.json.gates` |
 | **judge② 感知** | **主 Agent（编排器自己当 judge，看原图+渲染件+参考）** | `attempts/NNN/judge.json`（verdict schema v2，append-only）|
-| **L-肉眼** | **人**（按 RUN_REPORT 的 🔍 清单核确定性/judge 都盖不死的感知项）| 人工 |
+| **L-肉眼** | **人**（按 `report/REPORT.md` 的 🔍 清单核确定性/judge 都盖不死的感知项）| 人工 |
 
 判据：致命/严重 → **盲重抽**（≤3，超则 quarantine 交人）；轻微 → flag 放行。**judge 评语只进记录、
 绝不回灌阶段 prompt**（不污染输入，见手册「不污染原则」）。
@@ -58,10 +61,10 @@ baseline = 一个**干净的** anchor case 的一次 **run**（`<case>/run_<注�
 
 跑批与 judge 由主 Agent 按 [new_case_guide.md](../../AI_agent/guides/new_case_guide.md) 执行；
 跑完用 [`scripts/tool_scripts/record_baseline.py`](../../scripts/tool_scripts/record_baseline.py)
-生成 `baseline.json` + `RUN_REPORT.md`：
+生成 `baseline.json` + `report/`：
 
 ```bash
-python scripts/tool_scripts/record_baseline.py <case> \
+python scripts/tool_scripts/record_baseline.py <case> <run> \
     --base-dir case_tests/e2e_tests --date 2026-06-16 --orchestrator opus-4.8
 ```
 

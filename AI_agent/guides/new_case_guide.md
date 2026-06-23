@@ -28,7 +28,7 @@
 |---|---|---|---|
 | **gate① 确定性** | 代码 [`validate_case`](../../src/agent/execution/validation_run.py) | 结构/几何不变量(block) + 交叉核对(flag) | block→盲重抽/fail-closed；flag→留痕放行 |
 | **gate② judge** | **你**（多模态看图）| 该段 rubric 逐条 `pass/minor/severe/fatal/...`（结构化清单，**非数字分**）| severe/fatal→盲重抽；minor→flag |
-| **L-肉眼** | **人** | 确定性+judge 都盖不死的感知项 | 你在 RUN_REPORT 列 🔍 清单告诉用户看哪张图的哪点 |
+| **L-肉眼** | **人** | 确定性+judge 都盖不死的感知项 | 你在 `report/REPORT.md` 列 🔍 清单告诉用户看哪张图的哪点 |
 
 judge 密度（自洽口径）：**只在 LLM 段 0/1/4 有 judge**；确定性段 2/3 无 per-run judge（靶子=代码单测）；5 无 judge。J0=0_reading、J1=1_correction（rubric 见 `skills/intake_pipeline/{0_reading,1_correction}/judge_rubric.md`）；**J4(4_mep) 暂 disabled stub**。
 
@@ -49,7 +49,7 @@ judge 密度（自洽口径）：**只在 LLM 段 0/1/4 有 judge**；确定性�
     2_modelling/building_geometry.json + kernel_gate_report.json
     EP/EP_run/
     run_manifest.json
-    baseline.json + RUN_REPORT.md
+    baseline.json + report/
   run_<另一注释>/ …                  ← 另一轮（如换模型）
 ```
 `1_correction…5_intakeoutput/ EP/` 由代码**跑中建**（`mkdir(parents=True)`），绝不预搭空骨架。
@@ -106,7 +106,7 @@ judge 密度（自洽口径）：**只在 LLM 段 0/1/4 有 judge**；确定性�
 > judge severe/fatal 不可归因=`judge_block_human`；0_reading 阻塞默认=`human_redraw_required`，
 > runner 可用时=`awaiting_reread`（非 terminal，等主 Agent 完成盲重读 handoff 后继续）。任一 terminal 停点 → 直接出总报告。
 > **几何门**：`ConfirmationPolicy.REQUIRED` 已接成阻塞门，**未 approve 时 `run 4_mep` 直接拒跑、不画**。
-> 跑完或中途停 → `record_baseline.py`（已纳入逐段 status + stop_reason + judge verdict 计数）出 baseline.json + RUN_REPORT.md。
+> 跑完或中途停 → `record_baseline.py`（已纳入逐段 status + stop_reason + judge verdict 计数）出 `baseline.json` + `report/`。
 
 ### 准备
 - 确认 `case_data/testdata_prompt.json` + `case_data/*_view.png` + 根 `llm.yaml` 就位。
@@ -146,7 +146,7 @@ judge 密度（自洽口径）：**只在 LLM 段 0/1/4 有 judge**；确定性�
 - **gate①**：`check_kernel`（封闭/法向/pairing-gate-as-block/**矩形 coverage completeness**/spec 自洽）
   → `kernel_checks.json`。block = **代码缺陷，fail-closed**（不弹上游）。
 - **3D 检视（#3，2026-06-19）**：`run_stage run … 3_split_pairing` 过 gate① 后生成
-  **`2_modelling/geometry_viewer.html`**（`render_geometry_viewer.py` 出的**自包含离线**交互查看器：
+  **`manual_review/geometry_viewer.html`**（`render_geometry_viewer.py` 出的**自包含离线**交互查看器：
   three.js 内嵌、浏览器双击即用——orbit/缩放 + 墙体半透明 + X·Y·Z 截面 + 爆炸视图 + 量距 + 点选高亮区 +
   按楼层/区/OBC 着色 + 存 PNG）。GLB 旁路 `render_building_3d.py` 已从主流程剥离（工具保留，后续需要再启）。
 - **阻塞门**：`ConfirmationPolicy.REQUIRED` 下停在 `awaiting_geometry_approval`，用户浏览器看完确认无误
@@ -180,21 +180,25 @@ judge 密度（自洽口径）：**只在 LLM 段 0/1/4 有 judge**；确定性�
 - **你的 judge verdict** 用 `StageVerdict`（schema v2：criterion status + root_stage/confidence +
   retriable，见 `src/agent/judge/verdict.py`）；可经 `run_judge(stage, artifacts, judge_fn=<你填
   verdict>)` 走预算/quarantine/append-only，或直接 `file_stage_attempt(..., verdict=…)`。
-- **成绩单 + 人读反馈**：跑完一条命令出 `baseline.json` + `RUN_REPORT.md`：
+- **成绩单 + 人读反馈**：跑完一条命令出 `baseline.json` + `report/`：
   ```bash
-  python scripts/tool_scripts/record_baseline.py <case> --base-dir case_tests/e2e_tests \
+  python scripts/tool_scripts/record_baseline.py <case> <run> --base-dir case_tests/e2e_tests \
       --date <ISO 日期> --orchestrator <你的模型id>
   ```
-  它跑 `validate_case(write_reports=True)` + 汇总 + 读 llm.yaml/EP end + 收集 attempts/verdicts。
+  它跑 `validate_case(write_reports=False)` + 汇总 + 读 llm.yaml/EP end + 收集 attempts/verdicts，
+  不重写 load-bearing `<stage>_checks.json`。
 
 ## 4. 给用户的总反馈 + 🔍 肉视清单
 
-`record_baseline.py` 生成的 `RUN_REPORT.md` 就是模板（一句话结论 / 逐段 gate① / 抽样次数 / judge
-verdicts / flags / **🔍 肉视检验清单**）。**你在对话里也复述这份反馈**，并明确告诉用户：
+`record_baseline.py` 生成 `report/FACTS.md`（确定性事实卡）和 `report/REPORT.md`（主控撰写骨架）。
+**你必须完成 `REPORT.md` 的 Agent-fill 槽位**，尤其是错因链和四桶建议；建议区只能用结构化 bullet：
+`action` / `evidence: [E:...]` / `owner`，每条 evidence id 必须存在于 `baseline.json.evidence_index`。
+若某桶无证据支持，保留精确哨兵 `本 run 无可证据支持的建议`。**你在对话里也复述这份反馈**，并明确告诉用户：
 
 - 结论（clean / blocked）+ golden 计数 + EP 结果。
-- **🔍 必看**（L-肉眼，确定性+judge 盖不死的）：① 每层填色区图 vs 原平面（走廊有没有被切断那类）
-  ② 立面窗位图 vs 原立面（窗在不在对的立面）③ 3D GLB 体量像不像 ④ 每条 flag 对应的那张图那一点。
+- **🔍 必看**（L-肉眼，确定性+judge 盖不死的）：① `report/eyeball/` 里的填色区图 vs 原平面（走廊有没有被切断那类）
+  ② `report/eyeball/` 里的立面窗位图 vs 原立面（窗在不在对的立面）③ `manual_review/geometry_viewer.html`
+  体量/分区/窗位像不像 ④ 每条 flag 对应的那张图那一点。
 - **不要让用户瞎看**——精确到"看哪张图的哪一点"。
 
 ## 5. 「干净」收口 + baseline 入库
@@ -288,6 +292,6 @@ IntakeOutput fields. Do the pilot, then wait for feedback.
 
 _2026-06-16 — 重写为「主 Agent（编排器 + judge②）操作手册」：换主控模型读此即可接手。新增 §0 三道关 /
 §1 不污染原则（执行器隔离 + 盲重抽 + 失败分类）/ §2 逐段编排（各段执行器 + gate① + gate② rubric）/
-§3 记录（attempts 全上 file_stage_attempt + record_baseline）/ §4 总反馈+🔍肉视清单 / §5 干净收口+入库。
+§3 记录（attempts 全上 file_stage_attempt + record_baseline）/ §4 总反馈+🔍肉视清单+REPORT 撰写 / §5 干净收口+入库。
 配套校验架构 M0–M4（`src/agent/execution/`、`src/validator/checks/`、`src/agent/judge/`）。旧「正式化一次
 性跑」版备份 logs/backup/new_case_guide.md.bak_2026-05-29（更早）。_

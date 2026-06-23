@@ -7,6 +7,8 @@ import shutil
 import sys
 from pathlib import Path
 
+import pytest
+
 from src.agent.execution import (
     RunManifest,
     StageRunner,
@@ -18,9 +20,13 @@ from src.validator.checks.schema import CheckLayer, CheckReport
 
 sys.path.insert(0, str(Path("scripts/tool_scripts").resolve()))
 import record_baseline  # noqa: E402
+import report_assembly  # noqa: E402
 
 _ANCHOR = Path("case_tests/e2e_tests/sm20_anchor")
 _RUN_NAME = "run_2026-06-15_baseline"
+_SM21 = Path("case_tests/e2e_tests/sm21_anchor")
+_GPT54_RUN = "run_2026-06-20_gpt54_reading"
+_SONNET_RUN = "run_2026-06-20_sonnet_reading"
 
 
 def _minimal_run(tmp_path: Path) -> Path:
@@ -148,6 +154,8 @@ def test_record_baseline_on_anchor(tmp_path):
     case = tmp_path / "sm20_anchor"
     shutil.copytree(_ANCHOR, case)
     run = case / _RUN_NAME
+    (run / "RUN_REPORT.md").unlink(missing_ok=True)
+    checks_before = (run / "1_correction" / "correction_checks.json").read_bytes()
     b = record_baseline.record_baseline(run, date="2026-06-16", orchestrator="test")
     assert b["blocked"] is False
     assert b["case"] == "sm20_anchor" and b["run"] == _RUN_NAME
@@ -156,19 +164,49 @@ def test_record_baseline_on_anchor(tmp_path):
     # files written into the run dir
     bj = json.loads((run / "baseline.json").read_text())
     assert bj["case"] == "sm20_anchor"
-    report = (run / "RUN_REPORT.md").read_text()
-    assert "肉视检验" in report
-    assert "结论" in report
-    # gate① per-stage checks also written by validate_case(write_reports=True)
+    assert "evidence_index" in bj
+    assert "run_state" not in bj
+    facts = (run / "report" / "FACTS.md").read_text()
+    report = (run / "report" / "REPORT.md").read_text()
+    assert "肉视检验" in facts
+    assert "结论" in facts
+    assert "## 建议" in report
+    assert not (run / "RUN_REPORT.md").exists()
+    # record_baseline must not rewrite load-bearing gate artifacts.
+    assert (run / "1_correction" / "correction_checks.json").read_bytes() == checks_before
     assert (run / "1_correction" / "correction_checks.json").exists()
 
 
 def test_record_baseline_report_lists_eyeball_items(tmp_path):
-    case = tmp_path / "sm20_anchor"
-    shutil.copytree(_ANCHOR, case)
-    record_baseline.record_baseline(case / _RUN_NAME, date="2026-06-16", orchestrator="test")
-    report = (case / _RUN_NAME / "RUN_REPORT.md").read_text()
-    assert "填色区图" in report and "立面窗位图" in report and "3D 几何" in report
+    case = tmp_path / "sm21_anchor"
+    shutil.copytree(_SM21, case)
+    run = case / _GPT54_RUN
+    record_baseline.record_baseline(run, date="2026-06-21", orchestrator="test")
+
+    eye = run / "report" / "eyeball"
+    assert (eye / "1_correction_zones.png").exists()
+    assert (eye / "1_correction_elev.png").exists()
+    assert (eye / "0_reading_1f_view_render.png").exists()
+    assert (eye / "case_data_1f_view.png").exists()
+    facts = (run / "report" / "FACTS.md").read_text()
+    report = (run / "report" / "REPORT.md").read_text()
+    assert "report/eyeball/1_correction_zones.png" in facts
+    assert "[3D geometry viewer](../manual_review/geometry_viewer.html)" in report
+    assert (run / "manual_review" / "geometry_viewer.html").exists()
+
+
+def test_record_baseline_state_aware_report_suppresses_dead_viewer(tmp_path):
+    case = tmp_path / "sm21_anchor"
+    shutil.copytree(_SM21, case)
+    run = case / _SONNET_RUN
+    record_baseline.record_baseline(run, date="2026-06-21", orchestrator="test")
+
+    report = (run / "report" / "REPORT.md").read_text()
+    assert "root_stopped: human_redraw_required@1_correction" in report
+    assert "### 连带缺失下游件" in report
+    assert "2_modelling/building_geometry.json" in report
+    assert "3D geometry viewer unavailable" in report
+    assert "../manual_review/geometry_viewer.html" not in report
 
 
 def test_record_baseline_missing_corrections_sidecar_does_not_change_gates(tmp_path):
@@ -185,9 +223,9 @@ def test_record_baseline_missing_corrections_sidecar_does_not_change_gates(tmp_p
     }
     assert b["flags"] == []
     assert all(agg["flag"] == 0 for agg in b["gates"].values())
-    report = (run / "RUN_REPORT.md").read_text()
-    assert "## 校正审计（看错↔改错归因）" in report
-    assert "（无 corrections.json）" in report
+    facts = (run / "report" / "FACTS.md").read_text()
+    assert "## 校正审计（看错↔改错归因）" in facts
+    assert "（无 corrections.json）" in facts
 
 
 def test_record_baseline_correction_audit_summary_is_separate_from_flags(tmp_path):
@@ -235,12 +273,21 @@ def test_record_baseline_correction_audit_summary_is_separate_from_flags(tmp_pat
 
     assert after["flags"] == before_flags
     assert after["gates"] == before_gates
-    report = (run / "RUN_REPORT.md").read_text()
-    assert "## 校正审计（看错↔改错归因）" in report
-    assert "### conflicts[]" in report
-    assert "### unsupported[]" in report
-    assert "### corrections[]（显示 20/25，cap=20）" in report
-    assert "audit-derived [corrections_summary]" in report
+    ids = {entry["id"] for entry in after["evidence_index"]}
+    assert "E:corr:corrections:corr_a1" in ids
+    assert "E:corr:corrections:r2" in ids
+    assert "E:corr:corrections:bulk_22" in ids
+    assert "E:corr:conflicts:conf_1" in ids
+    assert "E:corr:unsupported:unsup_1" in ids
+    assert len([eid for eid in ids if eid.startswith("E:corr:")]) == 27
+
+    facts = (run / "report" / "FACTS.md").read_text()
+    assert "## 校正审计（看错↔改错归因）" in facts
+    assert "### conflicts[]" in facts
+    assert "### unsupported[]" in facts
+    assert "### corrections[]（显示 20/25，cap=20）" in facts
+    assert "audit-derived [corrections_summary]" in facts
+    assert "`E:corr:corrections:bulk_22`" in facts
 
 
 def test_record_baseline_malformed_corrections_sidecar_is_best_effort(tmp_path):
@@ -257,8 +304,8 @@ def test_record_baseline_malformed_corrections_sidecar_is_best_effort(tmp_path):
         "conflicts": 0,
         "unsupported": 0,
     }
-    report = (run / "RUN_REPORT.md").read_text()
-    assert "读取状态: malformed_json" in report
+    facts = (run / "report" / "FACTS.md").read_text()
+    assert "读取状态: malformed_json" in facts
 
 
 def test_record_baseline_verdict_blocking_is_recoverability_aware():
@@ -284,3 +331,182 @@ def test_record_baseline_verdict_blocking_is_recoverability_aware():
         "criteria": [{"criterion": "legacy", "status": "severe"}],
     }
     assert record_baseline._verdict_blocking(legacy) is True
+
+
+def _ok_stage(stage: str, status: str = "deterministic_pass") -> dict:
+    return {
+        "stage": stage,
+        "status": status,
+        "attempts_used": 1,
+        "accepted_attempt": 1,
+        "message": f"{status}@{stage}",
+    }
+
+
+def _all_stage_state(overrides: dict[str, str] | None = None) -> dict:
+    statuses = {
+        "0_reading": "judge_pass",
+        "1_correction": "judge_pass",
+        "2_modelling": "deterministic_pass",
+        "3_split_pairing": "deterministic_pass",
+        "4_mep": "deterministic_pass",
+        "5_intakeoutput": "deterministic_pass",
+    }
+    statuses.update(overrides or {})
+    return {"stages": {stage: _ok_stage(stage, status) for stage, status in statuses.items()}}
+
+
+def test_run_state_completed_clean_real_geometry_gate_shape():
+    state = json.loads((_SM21 / _GPT54_RUN / "orchestration_state.json").read_text())
+    derived = report_assembly.derive_run_state(state, geometry_approved=True)
+    assert derived["status"] == "completed_clean"
+    assert derived["completed_clean"] is True
+    assert derived["pending"] is None
+    assert derived["ignored_pending"][0]["stage"] == "3_split_pairing"
+
+
+@pytest.mark.parametrize(
+    ("stage", "status"),
+    [
+        ("0_reading", "awaiting_judge"),
+        ("1_correction", "judge_block"),
+        ("0_reading", "awaiting_reread"),
+        ("3_split_pairing", "awaiting_geometry_approval"),
+    ],
+)
+def test_run_state_pending_cases(stage, status):
+    derived = report_assembly.derive_run_state(
+        _all_stage_state({stage: status}), geometry_approved=False)
+    assert derived["status"] == "pending"
+    assert derived["completed_clean"] is False
+    assert derived["pending"]["stage"] == stage
+    assert derived["pending"]["status"] == status
+
+
+def test_run_state_non_human_terminal_precedes_pending():
+    derived = report_assembly.derive_run_state(
+        _all_stage_state({
+            "4_mep": "quarantined",
+            "5_intakeoutput": "awaiting_judge",
+        }),
+        geometry_approved=False,
+    )
+    assert derived["status"] == "root_stopped"
+    assert derived["root_stop"]["stage"] == "4_mep"
+    assert derived["root_stop"]["status"] == "quarantined"
+    assert derived["pending"] is None
+    assert derived["pending_candidates"][0]["stage"] == "5_intakeoutput"
+
+
+def test_evidence_index_duplicate_id_assertion():
+    with pytest.raises(AssertionError, match="duplicate evidence ids"):
+        report_assembly.assert_unique_evidence_ids([
+            {"id": "E:gate:0_reading::1f_view:x"},
+            {"id": "E:gate:0_reading::1f_view:x"},
+        ])
+
+
+def _valid_recommendation_report(evidence_id: str) -> str:
+    return f"""# report
+
+## 建议
+
+### 机制问题
+
+- action: add a sharper gate
+  evidence: [{evidence_id}]
+  owner: scaffold
+
+### 能力升级
+
+本 run 无可证据支持的建议
+
+### 脚手架建议
+
+> note: context is allowed when explicitly marked.
+- action: add a judge checklist item
+  evidence: [{evidence_id}]
+  owner: scaffold
+
+### 修法
+
+本 run 无可证据支持的建议
+"""
+
+
+def test_citation_linter_passes_structured_recommendations():
+    index = [{"id": "E:geom:digest"}]
+    assert report_assembly.lint_report_citations(
+        _valid_recommendation_report("E:geom:digest"), index) == []
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        _valid_recommendation_report("E:missing"),
+        """# report
+
+## 建议
+
+### 机制问题
+
+free prose is not allowed here
+
+### 能力升级
+
+本 run 无可证据支持的建议
+
+### 脚手架建议
+
+本 run 无可证据支持的建议
+
+### 修法
+
+本 run 无可证据支持的建议
+""",
+        """# report
+
+## 建议
+
+### 机制问题
+
+- action: cite nothing
+  evidence:
+  owner: scaffold
+
+### 能力升级
+
+本 run 无可证据支持的建议
+
+### 脚手架建议
+
+本 run 无可证据支持的建议
+
+### 修法
+
+本 run 无可证据支持的建议
+""",
+    ],
+)
+def test_citation_linter_fails_bad_recommendations(text):
+    errors = report_assembly.lint_report_citations(text, [{"id": "E:geom:digest"}])
+    assert errors
+
+
+def test_record_baseline_preserves_authored_report_unless_forced(tmp_path):
+    case = tmp_path / "sm21_anchor"
+    shutil.copytree(_SM21, case)
+    run = case / _GPT54_RUN
+    first = record_baseline.record_baseline(run, date="2026-06-21", orchestrator="test")
+    evidence_id = first["evidence_index"][0]["id"]
+    authored = _valid_recommendation_report(evidence_id).replace(
+        "# report", "# authored report\n\nCustom narrative survives.")
+    report_path = run / "report" / "REPORT.md"
+    report_path.write_text(authored, encoding="utf-8")
+
+    record_baseline.record_baseline(run, date="2026-06-21", orchestrator="test")
+    assert "Custom narrative survives." in report_path.read_text(encoding="utf-8")
+
+    record_baseline.record_baseline(
+        run, date="2026-06-21", orchestrator="test", force_template=True)
+    assert "Custom narrative survives." not in report_path.read_text(encoding="utf-8")

@@ -1,12 +1,12 @@
 # baseline 注册表
 
-> 当前规范 baseline anchor 一览。每个 anchor 自包含成绩单（`<case>/baseline.json`）+ 人读反馈
-> （`<case>/RUN_REPORT.md`）+ golden 测试。新增/更新 baseline 后在此登记一行。
+> 当前规范 baseline anchor 一览。每个 anchor 自包含成绩单（`<run>/baseline.json`）+ 人读反馈
+> （`<run>/report/REPORT.md` + `FACTS.md`）+ golden 测试。新增/更新 baseline 后在此登记一行。
 
 | anchor / run | 楼层/区 | golden 计数 (区/面/窗) | gate① | EP | 状态 | 记录 |
 |---|---|---|---|---|---|---|
-| `sm20_anchor/run_2026-06-15_baseline` | 3 层 (7/8/4) | 19 / 135 / 16 | 0 block | Completed, 0 severe | ✅ golden（`tests/test_validation_run_baseline.py`）| `run_.../baseline.json` + `RUN_REPORT.md` |
-| `sm21_anchor/run_2026-06-16_opus_e2e` | 2 层 (7/7) | 14 / 100 / 15 | 0 block | Completed, 0 severe | ✅ golden（`tests/test_validation_run_baseline.py`）| `run_.../baseline.json` + `RUN_REPORT.md`；gt `gt/sm21_anchor/gt.json`（计数/立面/层高 verified）|
+| `sm20_anchor/run_2026-06-15_baseline` | 3 层 (7/8/4) | 19 / 135 / 16 | 0 block | Completed, 0 severe | ✅ golden（`tests/test_validation_run_baseline.py`）| `run_.../baseline.json` + `report/` |
+| `sm21_anchor/run_2026-06-16_opus_e2e` | 2 层 (7/7) | 14 / 100 / 15 | 0 block | Completed, 0 severe | ✅ golden（`tests/test_validation_run_baseline.py`）| `run_.../baseline.json` + `report/`；gt `gt/sm21_anchor/gt.json`（计数/立面/层高 verified）|
 
 > **图例**：✅=干净入库的金标准；⏳=待跑；❌=有 block/severe，不可作 baseline。
 > golden 计数即回归断言锚点；变更需在 PR 说明原因。

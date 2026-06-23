@@ -229,7 +229,7 @@
 
 ### 3.1 固化的 on-disk 布局 + 每阶段校验工具
 
-> **case = 纯素材；run 自包含（2026-06-16 用户定）**：`<case>/` 入库只含 `case_data/`（素材 + testdata），**改素材才新 case**。每次跑 = 自包含 `<case>/run_<注释>/`（单 case 可多轮 run），内含本 run 的 `llm.yaml` + `0_reading/` + `1_correction…5_intakeoutput/` + `EP/` + `run_manifest.json` + `baseline.json` + `RUN_REPORT.md`；1–5/EP 由代码**跑中建**、绝不预搭空骨架。下方「全树」即一个 **run 目录** run 后的样子（非 case 根）。`validate_case(<run_dir>)`/`record_baseline(<case> <run>)` 对 run 目录操作（case 素材由 `run_dir.parent` 解析）。评测参考答案 gt 不在 case 内，放 `case_tests/test_baseline/gt/<case>.json`（**judge② 专用，gate①/执行器绝不读**，见 [new_case_guide §0.2](../guides/new_case_guide.md)）。
+> **case = 纯素材；run 自包含（2026-06-16 用户定）**：`<case>/` 入库只含 `case_data/`（素材 + testdata），**改素材才新 case**。每次跑 = 自包含 `<case>/run_<注释>/`（单 case 可多轮 run），内含本 run 的 `llm.yaml` + `0_reading/` + `1_correction…5_intakeoutput/` + `EP/` + `run_manifest.json` + `baseline.json` + `report/`（`FACTS.md` + 主控撰写 `REPORT.md` + `eyeball/`）；1–5/EP 由代码**跑中建**、绝不预搭空骨架。下方「全树」即一个 **run 目录** run 后的样子（非 case 根）。`validate_case(<run_dir>)`/`record_baseline(<case> <run>)` 对 run 目录操作（case 素材由 `run_dir.parent` 解析）。评测参考答案 gt 不在 case 内，放 `case_tests/test_baseline/gt/<case>.json`（**judge② 专用，gate①/执行器绝不读**，见 [new_case_guide §0.2](../guides/new_case_guide.md)）。
 
 `run_full_pipeline.py <case> --base-dir case_tests/e2e_tests --reading-from 0_reading` 产出按阶段分门别类：
 
@@ -306,7 +306,7 @@
 > 原缺口（留档）：A0 §6 定义了 provenance_mode/coverage + per-claim 证据分级，但 0_reading 三文档曾**不产结构化 provenance** → 1_correction 实际跑 `legacy` 模式，估算笔画与测量值不可区分。这也是 §1「尺寸链为权威量级」从隐式变显式的前提。
 
 ### 5.4 audit sidecar → baseline 归因 ✅ baseline 侧已收口（2026-06-22，PR-A）
-`corrections.json` 已物化且 correction 门查完整性，但此前 `record_baseline`/`baseline.json` 不消费它。**已落地**：`record_baseline` best-effort 读 `1_correction/corrections.json` → `baseline.json.corrections_summary`（counts by kind/rule_id/stage + capped corrections rows + **full conflicts/unsupported** + sidecar 状态）+ `RUN_REPORT.md` 新增 `## 校正审计（看错↔改错归因）` 节（conflicts/unsupported 在前）；**不动 gate flags/计数**（Finding 6）。审计轨迹 logs/review/2026-06-22_audit_attribution_and_auto_reread_{proposal,review}。**残留（N4）**：把 gt-diff 与 corrections 机械 JOIN（逐差异自动判 看错↔改错），属评测嵌入。原 P0 决策仍保 `IntakeOutput` 纯净（不把 audit 灌进交接契约、避免 64k 截断）。
+`corrections.json` 已物化且 correction 门查完整性，但此前 `record_baseline`/`baseline.json` 不消费它。**已落地**：`record_baseline` best-effort 读 `1_correction/corrections.json` → `baseline.json.corrections_summary`（counts by kind/rule_id/stage + capped corrections rows + **full conflicts/unsupported** + sidecar 状态）+ `report/FACTS.md` 新增 `## 校正审计（看错↔改错归因）` 节（conflicts/unsupported 在前）；**不动 gate flags/计数**（Finding 6）。审计轨迹 logs/review/2026-06-22_audit_attribution_and_auto_reread_{proposal,review}。**残留（N4）**：把 gt-diff 与 corrections 机械 JOIN（逐差异自动判 看错↔改错），属评测嵌入。原 P0 决策仍保 `IntakeOutput` 纯净（不把 audit 灌进交接契约、避免 64k 截断）。
 
 ### 5.5 连接性补缝（#2.4，2026-06-09 部分落地）
 "内墙没顶到外墙、留小缝" → 闭包不连续就形不成 zone（BEM fatal）。与轴吸附是**两类操作**（身份 50mm vs 连接性 300mm，A0 §4 分开）。**已落**：核加连接性 pass——cell 边落 footprint 内侧 ≤ `gap_close_threshold`(300mm) → 吸到边界封口（[deterministic.py](../../src/agent/correction/deterministic.py) `_close_to_boundary`，方向性、仅内墙→外墙）。**残留**：① 内墙→内墙连接性（风险更高暂不做）② 300–1000mm 走 A3（门洞判断）、≥1000mm 走 zonification（开放边界）——属判断，非确定性核。

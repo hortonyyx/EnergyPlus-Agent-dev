@@ -138,5 +138,1856 @@
   },
   "stop_reason": "human_redraw_required@1_correction",
   "ep": null,
-  "blocked": true
+  "blocked": true,
+  "evidence_index": [
+    {
+      "id": "E:gate:1_correction:correction.zone_count_tripwire",
+      "kind": "gate",
+      "source": "1_correction",
+      "payload": {
+        "report_key": "1_correction",
+        "stage": "1_correction",
+        "check_id": "correction.zone_count_tripwire",
+        "status": "fail",
+        "layer": "cross_check",
+        "disposition": "flag",
+        "message": "cell count 16 != testdata thermal_zones 14",
+        "evidence": {
+          "actual": 16,
+          "expected": 14,
+          "per_floor": {
+            "F1": 8,
+            "F2": 8
+          }
+        }
+      }
+    },
+    {
+      "id": "E:gate:2_modelling:2_modelling.build",
+      "kind": "gate",
+      "source": "2_modelling",
+      "payload": {
+        "report_key": "2_modelling",
+        "stage": "2_modelling",
+        "check_id": "2_modelling.build",
+        "status": "error",
+        "layer": "invariant",
+        "disposition": "block",
+        "message": "required artifact missing: 2_modelling/building_geometry.json",
+        "evidence": {}
+      }
+    },
+    {
+      "id": "E:gate:3_split_pairing:3_split_pairing.build",
+      "kind": "gate",
+      "source": "3_split_pairing",
+      "payload": {
+        "report_key": "3_split_pairing",
+        "stage": "3_split_pairing",
+        "check_id": "3_split_pairing.build",
+        "status": "error",
+        "layer": "invariant",
+        "disposition": "block",
+        "message": "required artifact missing: 3_split_pairing/geometry_specs.md",
+        "evidence": {}
+      }
+    },
+    {
+      "id": "E:gate:4_mep:4_mep.build",
+      "kind": "gate",
+      "source": "4_mep",
+      "payload": {
+        "report_key": "4_mep",
+        "stage": "4_mep",
+        "check_id": "4_mep.build",
+        "status": "error",
+        "layer": "invariant",
+        "disposition": "block",
+        "message": "required artifact missing: 4_mep/mep_output.json",
+        "evidence": {}
+      }
+    },
+    {
+      "id": "E:gate:5_intakeoutput:5_intakeoutput.build",
+      "kind": "gate",
+      "source": "5_intakeoutput",
+      "payload": {
+        "report_key": "5_intakeoutput",
+        "stage": "5_intakeoutput",
+        "check_id": "5_intakeoutput.build",
+        "status": "error",
+        "layer": "invariant",
+        "disposition": "block",
+        "message": "required artifact missing: 5_intakeoutput/intake_output.json",
+        "evidence": {}
+      }
+    },
+    {
+      "id": "E:judge:0_reading:001:c1",
+      "kind": "judge",
+      "source": "0_reading/attempts/001/judge.json",
+      "payload": {
+        "stage": "0_reading",
+        "attempt": "001",
+        "criterion_ordinal": 1,
+        "criterion": {
+          "criterion": "missed real element",
+          "status": "pass",
+          "evidence": "All perimeter + interior walls traced on both plans; window strokes present on N/S/E walls (F1) and N(2)/S(4)/E(1) (F2). Elevation window counts match per-facade truth (S=7, N=5, E=2, W=1)."
+        },
+        "root_stage": null,
+        "rubric_id": "J0"
+      }
+    },
+    {
+      "id": "E:judge:0_reading:001:c2",
+      "kind": "judge",
+      "source": "0_reading/attempts/001/judge.json",
+      "payload": {
+        "stage": "0_reading",
+        "attempt": "001",
+        "criterion_ordinal": 2,
+        "criterion": {
+          "criterion": "clutter traced as structure",
+          "status": "pass",
+          "evidence": "Desks/chairs/round meeting table/L-furniture/computers and the grid/dimension lines are NOT traced as strokes; logged in uncaptured_visual_elements."
+        },
+        "root_stage": null,
+        "rubric_id": "J0"
+      }
+    },
+    {
+      "id": "E:judge:0_reading:001:c3",
+      "kind": "judge",
+      "source": "0_reading/attempts/001/judge.json",
+      "payload": {
+        "stage": "0_reading",
+        "attempt": "001",
+        "criterion_ordinal": 3,
+        "criterion": {
+          "criterion": "pen misclassified",
+          "status": "pass",
+          "evidence": "Plans use wall/window only; elevations use wall_fill (one per floor) + window + outline. Window vs wall not confused on either plan or the South elevation."
+        },
+        "root_stage": null,
+        "rubric_id": "J0"
+      }
+    },
+    {
+      "id": "E:judge:0_reading:001:c4",
+      "kind": "judge",
+      "source": "0_reading/attempts/001/judge.json",
+      "payload": {
+        "stage": "0_reading",
+        "attempt": "001",
+        "criterion_ordinal": 4,
+        "criterion": {
+          "criterion": "number copied wrong",
+          "status": "pass",
+          "evidence": "1f top chain 1240/2400/1300/... and 2f top chain 1950/3600/1889/1891/3600/1950 transcribed verbatim; South elevation chains 2190/1200/720/1200/4380... and heights 800/1800/1000 + 600/900/1500 match the drawing."
+        },
+        "root_stage": null,
+        "rubric_id": "J0"
+      }
+    },
+    {
+      "id": "E:judge:0_reading:001:c5",
+      "kind": "judge",
+      "source": "0_reading/attempts/001/judge.json",
+      "payload": {
+        "stage": "0_reading",
+        "attempt": "001",
+        "criterion_ordinal": 5,
+        "criterion": {
+          "criterion": "image-local orientation self-consistent",
+          "status": "pass",
+          "evidence": "Each elevation declares view_facade from the trusted image name; no east/west written into the in-image axis."
+        },
+        "root_stage": null,
+        "rubric_id": "J0"
+      }
+    },
+    {
+      "id": "E:judge:0_reading:001:c6",
+      "kind": "judge",
+      "source": "0_reading/attempts/001/judge.json",
+      "payload": {
+        "stage": "0_reading",
+        "attempt": "001",
+        "criterion_ordinal": 6,
+        "criterion": {
+          "criterion": "door healing wrong",
+          "status": "pass",
+          "evidence": "West-F1 (1500 door) and South-F1 (far-left door) healed into continuous wall on the plan; on the South elevation the far-left F1 door is NOT traced as a window. No real opening wrongly healed shut."
+        },
+        "root_stage": null,
+        "rubric_id": "J0"
+      }
+    },
+    {
+      "id": "E:judge:0_reading:001:c7",
+      "kind": "judge",
+      "source": "0_reading/attempts/001/judge.json",
+      "payload": {
+        "stage": "0_reading",
+        "attempt": "001",
+        "criterion_ordinal": 7,
+        "criterion": {
+          "criterion": "whole-region missing / misplaced",
+          "status": "pass",
+          "evidence": "F1 = 3 N rooms + corridor + 3 S rooms (meeting/round-table at S-right); F2 = 2 N meeting rooms + corridor + 4 S offices. Both bands and the corridor present and correctly placed."
+        },
+        "root_stage": null,
+        "rubric_id": "J0"
+      }
+    },
+    {
+      "id": "E:judge:1_correction:001:c1",
+      "kind": "judge",
+      "source": "1_correction/attempts/001/judge.json",
+      "payload": {
+        "stage": "1_correction",
+        "attempt": "001",
+        "criterion_ordinal": 1,
+        "criterion": {
+          "criterion": "zonification fidelity",
+          "status": "severe",
+          "evidence": "Two spurious interior partitions over-segment the south bands. F1 south = SW(lobby)+S1+S2+S3 (4 cells) but the drawing shows 3 rooms (2 L-desk offices + 1 round-table meeting), dividers at ~x5/x10 like the north band; there is no real partition near the SW. F2 south = S1..S5 (5 cells) but the drawing shows 4 offices, dividers at x3.75/x7.5/x11.25 only. The extra F2 divider sits at x=5.51, a furniture/window sub-dimension, not a wall."
+        },
+        "root_stage": "0_reading",
+        "rubric_id": "J1"
+      }
+    },
+    {
+      "id": "E:judge:1_correction:001:c2",
+      "kind": "judge",
+      "source": "1_correction/attempts/001/judge.json",
+      "payload": {
+        "stage": "1_correction",
+        "attempt": "001",
+        "criterion_ordinal": 2,
+        "criterion": {
+          "criterion": "cross-floor consistency",
+          "status": "pass",
+          "evidence": "Perimeter (15x8), the two corridor walls (y3/y5) and the corridor band align across F1/F2; no cross-floor wall jitter."
+        },
+        "root_stage": "0_reading",
+        "rubric_id": "J1"
+      }
+    },
+    {
+      "id": "E:judge:1_correction:001:c3",
+      "kind": "judge",
+      "source": "1_correction/attempts/001/judge.json",
+      "payload": {
+        "stage": "1_correction",
+        "attempt": "001",
+        "criterion_ordinal": 3,
+        "criterion": {
+          "criterion": "window position fidelity",
+          "status": "pass",
+          "evidence": "elev.png matches per-facade truth: South F2=4 + F1=3, North F2=2 + F1=3, East 1+1, West F2=1 (F1 is a door, correctly absent). Windows land on the right facade/floor."
+        },
+        "root_stage": "0_reading",
+        "rubric_id": "J1"
+      }
+    },
+    {
+      "id": "E:judge:1_correction:001:c4",
+      "kind": "judge",
+      "source": "1_correction/attempts/001/judge.json",
+      "payload": {
+        "stage": "1_correction",
+        "attempt": "001",
+        "criterion_ordinal": 4,
+        "criterion": {
+          "criterion": "count vs reference",
+          "status": "severe",
+          "evidence": "16 zones vs testdata thermal_zones=14 and gt=14 (F1 7 + F2 7). Deterministic tripwire flagged 16!=14. The +2 has no sound explanation — it is the two over-read partitions above, not a legitimate split."
+        },
+        "root_stage": "0_reading",
+        "rubric_id": "J1"
+      }
+    },
+    {
+      "id": "E:judge:1_correction:001:c5",
+      "kind": "judge",
+      "source": "1_correction/attempts/001/judge.json",
+      "payload": {
+        "stage": "1_correction",
+        "attempt": "001",
+        "criterion_ordinal": 5,
+        "criterion": {
+          "criterion": "overall redraw",
+          "status": "severe",
+          "evidence": "The building cannot be redrawn faithfully from this corrected geometry: F1 gains a non-existent SW lobby and F2 gains a non-existent 5th south office. Geometry otherwise (footprint, corridor, north rooms, windows) is faithful."
+        },
+        "root_stage": "0_reading",
+        "rubric_id": "J1"
+      }
+    },
+    {
+      "id": "E:corr:corrections:corr_001",
+      "kind": "correction",
+      "source": "1_correction/corrections.json",
+      "payload": {
+        "kind": "corrections",
+        "ordinal": 1,
+        "raw_id": "corr_001",
+        "row": {
+          "id": "corr_001",
+          "stage": "A1",
+          "method_profile": "room_identity",
+          "entity_type": "axis",
+          "entity_id": "south_perimeter_wall_y",
+          "floor_id": "F1",
+          "coordinate_frame": "world",
+          "unit": "m",
+          "rule_id": "centerline_shift_exterior_south",
+          "claim_type": "numeric",
+          "conflict_type": null,
+          "source_ids": [
+            "S1_1f_view"
+          ],
+          "original_value": 0.0,
+          "resolved_value": 0.1,
+          "value_type": "scalar",
+          "tolerance_name": "ext_wall_thk",
+          "tolerance_value": 0.2,
+          "delta": 0.1,
+          "evidence_grade": "prior",
+          "confidence_before": "medium",
+          "confidence_after": "medium",
+          "changes_topology": false,
+          "prior_id": "ext_wall_thk",
+          "note": "Shifted south perimeter wall from outer face (y=0.00) to centerline (y=0.10) using A4 ext_wall_thk=0.20m prior. Wall thickness not dimensioned in plans; A3 arbitration applied A4 prior for missing thickness."
+        }
+      }
+    },
+    {
+      "id": "E:corr:corrections:corr_002",
+      "kind": "correction",
+      "source": "1_correction/corrections.json",
+      "payload": {
+        "kind": "corrections",
+        "ordinal": 2,
+        "raw_id": "corr_002",
+        "row": {
+          "id": "corr_002",
+          "stage": "A1",
+          "method_profile": "room_identity",
+          "entity_type": "axis",
+          "entity_id": "north_perimeter_wall_y",
+          "floor_id": "F1",
+          "coordinate_frame": "world",
+          "unit": "m",
+          "rule_id": "centerline_shift_exterior_north",
+          "claim_type": "numeric",
+          "conflict_type": null,
+          "source_ids": [
+            "S2_1f_view"
+          ],
+          "original_value": 8.0,
+          "resolved_value": 7.9,
+          "value_type": "scalar",
+          "tolerance_name": "ext_wall_thk",
+          "tolerance_value": 0.2,
+          "delta": -0.1,
+          "evidence_grade": "prior",
+          "confidence_before": "medium",
+          "confidence_after": "medium",
+          "changes_topology": false,
+          "prior_id": "ext_wall_thk",
+          "note": "Shifted north perimeter wall from outer face (y=8.00) to centerline (y=7.90)."
+        }
+      }
+    },
+    {
+      "id": "E:corr:corrections:corr_003",
+      "kind": "correction",
+      "source": "1_correction/corrections.json",
+      "payload": {
+        "kind": "corrections",
+        "ordinal": 3,
+        "raw_id": "corr_003",
+        "row": {
+          "id": "corr_003",
+          "stage": "A1",
+          "method_profile": "room_identity",
+          "entity_type": "axis",
+          "entity_id": "west_perimeter_wall_x",
+          "floor_id": "F1",
+          "coordinate_frame": "world",
+          "unit": "m",
+          "rule_id": "centerline_shift_exterior_west",
+          "claim_type": "numeric",
+          "conflict_type": null,
+          "source_ids": [
+            "S3_1f_view"
+          ],
+          "original_value": 0.0,
+          "resolved_value": 0.1,
+          "value_type": "scalar",
+          "tolerance_name": "ext_wall_thk",
+          "tolerance_value": 0.2,
+          "delta": 0.1,
+          "evidence_grade": "prior",
+          "confidence_before": "medium",
+          "confidence_after": "medium",
+          "changes_topology": false,
+          "prior_id": "ext_wall_thk",
+          "note": "Shifted west perimeter wall from outer face (x=0.00) to centerline (x=0.10)."
+        }
+      }
+    },
+    {
+      "id": "E:corr:corrections:corr_004",
+      "kind": "correction",
+      "source": "1_correction/corrections.json",
+      "payload": {
+        "kind": "corrections",
+        "ordinal": 4,
+        "raw_id": "corr_004",
+        "row": {
+          "id": "corr_004",
+          "stage": "A1",
+          "method_profile": "room_identity",
+          "entity_type": "axis",
+          "entity_id": "east_perimeter_wall_x",
+          "floor_id": "F1",
+          "coordinate_frame": "world",
+          "unit": "m",
+          "rule_id": "centerline_shift_exterior_east",
+          "claim_type": "numeric",
+          "conflict_type": null,
+          "source_ids": [
+            "S4_1f_view"
+          ],
+          "original_value": 15.0,
+          "resolved_value": 14.9,
+          "value_type": "scalar",
+          "tolerance_name": "ext_wall_thk",
+          "tolerance_value": 0.2,
+          "delta": -0.1,
+          "evidence_grade": "prior",
+          "confidence_before": "medium",
+          "confidence_after": "medium",
+          "changes_topology": false,
+          "prior_id": "ext_wall_thk",
+          "note": "Shifted east perimeter wall from outer face (x=15.00) to centerline (x=14.90)."
+        }
+      }
+    },
+    {
+      "id": "E:corr:corrections:corr_005",
+      "kind": "correction",
+      "source": "1_correction/corrections.json",
+      "payload": {
+        "kind": "corrections",
+        "ordinal": 5,
+        "raw_id": "corr_005",
+        "row": {
+          "id": "corr_005",
+          "stage": "A1",
+          "method_profile": "room_identity",
+          "entity_type": "axis",
+          "entity_id": "corridor_south_wall_y",
+          "floor_id": "F1",
+          "coordinate_frame": "world",
+          "unit": "m",
+          "rule_id": "centerline_shift_interior_corridor_south",
+          "claim_type": "numeric",
+          "conflict_type": null,
+          "source_ids": [
+            "S6_1f_view",
+            "D13_1f_view"
+          ],
+          "original_value": 3.0,
+          "resolved_value": 3.125,
+          "value_type": "scalar",
+          "tolerance_name": "int_wall_thk",
+          "tolerance_value": 0.25,
+          "delta": 0.125,
+          "evidence_grade": "transcribed_dimension",
+          "confidence_before": "high",
+          "confidence_after": "high",
+          "changes_topology": false,
+          "prior_id": null,
+          "note": "Interior corridor wall at y=3.00 (face per D13: 250mm wall y=3.00-3.25). Shifted to centerline y=3.125 using dimensioned wall thickness 0.25m from D13+D14+D15 chain."
+        }
+      }
+    },
+    {
+      "id": "E:corr:corrections:corr_006",
+      "kind": "correction",
+      "source": "1_correction/corrections.json",
+      "payload": {
+        "kind": "corrections",
+        "ordinal": 6,
+        "raw_id": "corr_006",
+        "row": {
+          "id": "corr_006",
+          "stage": "A1",
+          "method_profile": "room_identity",
+          "entity_type": "axis",
+          "entity_id": "corridor_north_wall_y",
+          "floor_id": "F1",
+          "coordinate_frame": "world",
+          "unit": "m",
+          "rule_id": "centerline_shift_interior_corridor_north",
+          "claim_type": "numeric",
+          "conflict_type": null,
+          "source_ids": [
+            "S5_1f_view",
+            "D15_1f_view"
+          ],
+          "original_value": 5.0,
+          "resolved_value": 4.875,
+          "value_type": "scalar",
+          "tolerance_name": "int_wall_thk",
+          "tolerance_value": 0.25,
+          "delta": -0.125,
+          "evidence_grade": "transcribed_dimension",
+          "confidence_before": "high",
+          "confidence_after": "high",
+          "changes_topology": false,
+          "prior_id": null,
+          "note": "Interior corridor wall at y=5.00 (face per D15: 250mm wall y=4.75-5.00). Shifted to centerline y=4.875."
+        }
+      }
+    },
+    {
+      "id": "E:corr:corrections:corr_007",
+      "kind": "correction",
+      "source": "1_correction/corrections.json",
+      "payload": {
+        "kind": "corrections",
+        "ordinal": 7,
+        "raw_id": "corr_007",
+        "row": {
+          "id": "corr_007",
+          "stage": "A3-resolve",
+          "method_profile": "room_identity",
+          "entity_type": "cell",
+          "entity_id": "cell_1_S2",
+          "floor_id": "F1",
+          "coordinate_frame": "world",
+          "unit": "m",
+          "rule_id": "interior_wall_x_S10_adjusted",
+          "claim_type": "topology_identity",
+          "conflict_type": "facade_plan_mismatch",
+          "source_ids": [
+            "S10_1f_view",
+            "D28_1f_view",
+            "S8_South_view"
+          ],
+          "original_value": 7.56,
+          "resolved_value": 6.3,
+          "value_type": "scalar",
+          "tolerance_name": "AXIS_JITTER_TOL",
+          "tolerance_value": 0.05,
+          "delta": -1.26,
+          "evidence_grade": "transcribed_dimension",
+          "confidence_before": "low",
+          "confidence_after": "medium",
+          "changes_topology": true,
+          "prior_id": null,
+          "note": "Reading-stage interior wall at x=7.56 would split south facade window at [6.30,8.70]. Per A3 arbitration (stroke_vs_dimension: trust dimension chain), moved wall to x=6.30 (window left edge from South elevation D26/D28 chain) so window falls entirely within cell_1_S2."
+        }
+      }
+    },
+    {
+      "id": "E:corr:corrections:corr_008",
+      "kind": "correction",
+      "source": "1_correction/corrections.json",
+      "payload": {
+        "kind": "corrections",
+        "ordinal": 8,
+        "raw_id": "corr_008",
+        "row": {
+          "id": "corr_008",
+          "stage": "A3-resolve",
+          "method_profile": "room_identity",
+          "entity_type": "cell",
+          "entity_id": "cell_1_S3",
+          "floor_id": "F1",
+          "coordinate_frame": "world",
+          "unit": "m",
+          "rule_id": "interior_wall_x_S11_adjusted",
+          "claim_type": "topology_identity",
+          "conflict_type": "facade_plan_mismatch",
+          "source_ids": [
+            "S11_1f_view",
+            "D31_1f_view",
+            "S9_South_view"
+          ],
+          "original_value": 11.56,
+          "resolved_value": 11.36,
+          "value_type": "scalar",
+          "tolerance_name": "AXIS_JITTER_TOL",
+          "tolerance_value": 0.05,
+          "delta": -0.2,
+          "evidence_grade": "transcribed_dimension",
+          "confidence_before": "low",
+          "confidence_after": "medium",
+          "changes_topology": true,
+          "prior_id": null,
+          "note": "Adjusted wall from estimated x=11.56 to dimension-chain point x=11.36 (D31 left edge) to align with window boundary; window at [11.36,13.76] falls entirely within cell_1_S3."
+        }
+      }
+    },
+    {
+      "id": "E:corr:corrections:corr_009",
+      "kind": "correction",
+      "source": "1_correction/corrections.json",
+      "payload": {
+        "kind": "corrections",
+        "ordinal": 9,
+        "raw_id": "corr_009",
+        "row": {
+          "id": "corr_009",
+          "stage": "A3-resolve",
+          "method_profile": "room_identity",
+          "entity_type": "window",
+          "entity_id": "win_F1_S_facade_W1",
+          "floor_id": "F1",
+          "coordinate_frame": "world",
+          "unit": "m",
+          "rule_id": "south_facade_window_resolution_plan_vs_elevation",
+          "claim_type": "numeric",
+          "conflict_type": "facade_plan_mismatch",
+          "source_ids": [
+            "D24_1f_view",
+            "D24_South_view",
+            "S7_South_view",
+            "S15_1f_view"
+          ],
+          "original_value": [
+            1.44,
+            3.44
+          ],
+          "resolved_value": [
+            3.44,
+            4.64
+          ],
+          "value_type": "facade_extent",
+          "tolerance_name": "DIMCHAIN_CLOSE_TOL",
+          "tolerance_value": 0.01,
+          "delta": null,
+          "evidence_grade": "transcribed_dimension",
+          "confidence_before": "medium",
+          "confidence_after": "high",
+          "changes_topology": false,
+          "prior_id": null,
+          "note": "Plan bottom chain D24=2000 at [1.44,3.44] conflicts with South elevation D24=1200 at [3.44,4.64]. Elevation is authoritative source for window geometry (shows actual window rectangle with inner z-chain 1500+900+600). Adopted elevation chain values."
+        }
+      }
+    },
+    {
+      "id": "E:corr:corrections:corr_010",
+      "kind": "correction",
+      "source": "1_correction/corrections.json",
+      "payload": {
+        "kind": "corrections",
+        "ordinal": 10,
+        "raw_id": "corr_010",
+        "row": {
+          "id": "corr_010",
+          "stage": "A2-apply",
+          "method_profile": "room_identity",
+          "entity_type": "window",
+          "entity_id": "win_F1_S_facade_W1",
+          "floor_id": "F1",
+          "coordinate_frame": "world",
+          "unit": "m",
+          "rule_id": "snap_window_to_elevation_chain",
+          "claim_type": "numeric",
+          "conflict_type": null,
+          "source_ids": [
+            "S7_South_view",
+            "D20_South_view",
+            "D21_South_view",
+            "D22_South_view"
+          ],
+          "original_value": [
+            3.44,
+            4.64
+          ],
+          "resolved_value": [
+            3.44,
+            4.64
+          ],
+          "value_type": "facade_extent",
+          "tolerance_name": "OUTPUT_PRECISION",
+          "tolerance_value": 0.01,
+          "delta": 0.0,
+          "evidence_grade": "transcribed_dimension",
+          "confidence_before": "high",
+          "confidence_after": "high",
+          "changes_topology": false,
+          "prior_id": null,
+          "note": "F1 south facade left window: sill=1500mm, height=900mm, head=600mm from inner left chain (D20+D21+D22=3000). World z=[1.50,2.40]."
+        }
+      }
+    },
+    {
+      "id": "E:corr:corrections:corr_011",
+      "kind": "correction",
+      "source": "1_correction/corrections.json",
+      "payload": {
+        "kind": "corrections",
+        "ordinal": 11,
+        "raw_id": "corr_011",
+        "row": {
+          "id": "corr_011",
+          "stage": "A2-apply",
+          "method_profile": "room_identity",
+          "entity_type": "axis",
+          "entity_id": "F2_bottom_chain_checksum",
+          "floor_id": "F2",
+          "coordinate_frame": "world",
+          "unit": "m",
+          "rule_id": "dimchain_closure_F2_bottom",
+          "claim_type": "numeric",
+          "conflict_type": "checksum_failure",
+          "source_ids": [
+            "D19_2f_view",
+            "D20_2f_view",
+            "D21_2f_view",
+            "D22_2f_view",
+            "D23_2f_view",
+            "D24_2f_view",
+            "D25_2f_view",
+            "D26_2f_view",
+            "D27_2f_view",
+            "D28_2f_view",
+            "D29_2f_view",
+            "D30_2f_view"
+          ],
+          "original_value": null,
+          "resolved_value": null,
+          "value_type": "line",
+          "tolerance_name": "DIMCHAIN_CLOSE_TOL",
+          "tolerance_value": 0.01,
+          "delta": null,
+          "evidence_grade": "transcribed_dimension",
+          "confidence_before": "medium",
+          "confidence_after": "low",
+          "changes_topology": false,
+          "prior_id": null,
+          "note": "F2 bottom dimension chain does not sum cleanly to 15.00m (2190+1200+360+560+1200+2190+2190+1200+360+560+1200+2190 ≠ 15000). Used reading-stage wall positions at x=3.75,5.51,7.50,11.25 as best available topology evidence with note of residual closure error."
+        }
+      }
+    },
+    {
+      "id": "E:corr:corrections:corr_012",
+      "kind": "correction",
+      "source": "1_correction/corrections.json",
+      "payload": {
+        "kind": "corrections",
+        "ordinal": 12,
+        "raw_id": "corr_012",
+        "row": {
+          "id": "corr_012",
+          "stage": "A1",
+          "method_profile": "room_identity",
+          "entity_type": "coordinate",
+          "entity_id": "z_stack_F1_F2",
+          "floor_id": "all",
+          "coordinate_frame": "world",
+          "unit": "m",
+          "rule_id": "z_stack_reconciliation",
+          "claim_type": "numeric",
+          "conflict_type": null,
+          "source_ids": [
+            "D5_East_view",
+            "D6_East_view",
+            "D7_East_view",
+            "D11_North_view",
+            "D12_North_view",
+            "D13_North_view"
+          ],
+          "original_value": null,
+          "resolved_value": null,
+          "value_type": "scalar",
+          "tolerance_name": "DIMCHAIN_CLOSE_TOL",
+          "tolerance_value": 0.01,
+          "delta": 0.0,
+          "evidence_grade": "direct_measurement",
+          "confidence_before": "high",
+          "confidence_after": "high",
+          "changes_topology": false,
+          "prior_id": null,
+          "note": "All 4 elevations agree: F1 z_floor=0.00, F1 ceiling=3.00, F2 z_floor=3.00, F2 ceiling=6.60. F1 ceiling == F2 floor (contiguous stack). No offset needed."
+        }
+      }
+    },
+    {
+      "id": "E:corr:corrections:corr_013",
+      "kind": "correction",
+      "source": "1_correction/corrections.json",
+      "payload": {
+        "kind": "corrections",
+        "ordinal": 13,
+        "raw_id": "corr_013",
+        "row": {
+          "id": "corr_013",
+          "stage": "A2-apply",
+          "method_profile": "room_identity",
+          "entity_type": "window",
+          "entity_id": "win_F1_N_facade_W1",
+          "floor_id": "F1",
+          "coordinate_frame": "world",
+          "unit": "m",
+          "rule_id": "north_facade_F1_window_world_transform",
+          "claim_type": "numeric",
+          "conflict_type": null,
+          "source_ids": [
+            "S5_North_view",
+            "D18_North_view",
+            "D19_North_view"
+          ],
+          "original_value": [
+            1.24,
+            3.64
+          ],
+          "resolved_value": [
+            1.24,
+            3.64
+          ],
+          "value_type": "facade_extent",
+          "tolerance_name": "OUTPUT_PRECISION",
+          "tolerance_value": 0.01,
+          "delta": 0.0,
+          "evidence_grade": "transcribed_dimension",
+          "confidence_before": "high",
+          "confidence_after": "high",
+          "changes_topology": false,
+          "prior_id": null,
+          "note": "North facade F1 west window: local x=[1.24,3.64] → world x range (North: local x = -world x, from world x=15.00). World span min=15.00-3.64=11.36, max=15.00-1.24=13.76, but applied along-facade convention: span [1.24,3.64] along world-y=7.90 in increasing eastward direction. z from inner left chain F1: sill=1.00, height=1.60 → z=[1.00,2.60]."
+        }
+      }
+    },
+    {
+      "id": "E:corr:corrections:corr_014",
+      "kind": "correction",
+      "source": "1_correction/corrections.json",
+      "payload": {
+        "kind": "corrections",
+        "ordinal": 14,
+        "raw_id": "corr_014",
+        "row": {
+          "id": "corr_014",
+          "stage": "A3-resolve",
+          "method_profile": "room_identity",
+          "entity_type": "cell",
+          "entity_id": "cell_2_S2",
+          "floor_id": "F2",
+          "coordinate_frame": "world",
+          "unit": "m",
+          "rule_id": "F2_south_wall_closure",
+          "claim_type": "topology_identity",
+          "conflict_type": "reference_or_identity_ambiguity",
+          "source_ids": [
+            "S9_2f_view",
+            "D22_2f_view",
+            "D23_2f_view"
+          ],
+          "original_value": 5.51,
+          "resolved_value": 5.51,
+          "value_type": "scalar",
+          "tolerance_name": "AXIS_JITTER_TOL",
+          "tolerance_value": 0.05,
+          "delta": 0.0,
+          "evidence_grade": "transcribed_dimension",
+          "confidence_before": "medium",
+          "confidence_after": "medium",
+          "changes_topology": false,
+          "prior_id": null,
+          "note": "S9 at x=5.51 aligns with D23 right edge; window D23=[4.31,5.51] ends at wall face. Accepted as final."
+        }
+      }
+    },
+    {
+      "id": "E:corr:corrections:r15",
+      "kind": "correction",
+      "source": "1_correction/corrections.json",
+      "payload": {
+        "kind": "corrections",
+        "ordinal": 15,
+        "raw_id": null,
+        "row": {
+          "rule_id": "deterministic_core.snap",
+          "stage": "core",
+          "target": "cell_1_SW.x[1]",
+          "axis": "x",
+          "original_value": 3.44,
+          "resolved_value": 3.45,
+          "delta": 0.01,
+          "tolerance_name": "AXIS_JITTER_TOL+SNAP_GRID+MIN_EDGE_LENGTH"
+        }
+      }
+    },
+    {
+      "id": "E:corr:corrections:r16",
+      "kind": "correction",
+      "source": "1_correction/corrections.json",
+      "payload": {
+        "kind": "corrections",
+        "ordinal": 16,
+        "raw_id": null,
+        "row": {
+          "rule_id": "deterministic_core.snap",
+          "stage": "core",
+          "target": "cell_1_SW.y[1]",
+          "axis": "y",
+          "original_value": 3.125,
+          "resolved_value": 3.1,
+          "delta": -0.025,
+          "tolerance_name": "AXIS_JITTER_TOL+SNAP_GRID+MIN_EDGE_LENGTH"
+        }
+      }
+    },
+    {
+      "id": "E:corr:corrections:r17",
+      "kind": "correction",
+      "source": "1_correction/corrections.json",
+      "payload": {
+        "kind": "corrections",
+        "ordinal": 17,
+        "raw_id": null,
+        "row": {
+          "rule_id": "deterministic_core.snap",
+          "stage": "core",
+          "target": "cell_1_S1.x[0]",
+          "axis": "x",
+          "original_value": 3.44,
+          "resolved_value": 3.45,
+          "delta": 0.01,
+          "tolerance_name": "AXIS_JITTER_TOL+SNAP_GRID+MIN_EDGE_LENGTH"
+        }
+      }
+    },
+    {
+      "id": "E:corr:corrections:r18",
+      "kind": "correction",
+      "source": "1_correction/corrections.json",
+      "payload": {
+        "kind": "corrections",
+        "ordinal": 18,
+        "raw_id": null,
+        "row": {
+          "rule_id": "deterministic_core.snap",
+          "stage": "core",
+          "target": "cell_1_S1.y[1]",
+          "axis": "y",
+          "original_value": 3.125,
+          "resolved_value": 3.1,
+          "delta": -0.025,
+          "tolerance_name": "AXIS_JITTER_TOL+SNAP_GRID+MIN_EDGE_LENGTH"
+        }
+      }
+    },
+    {
+      "id": "E:corr:corrections:r19",
+      "kind": "correction",
+      "source": "1_correction/corrections.json",
+      "payload": {
+        "kind": "corrections",
+        "ordinal": 19,
+        "raw_id": null,
+        "row": {
+          "rule_id": "deterministic_core.snap",
+          "stage": "core",
+          "target": "cell_1_S2.x[1]",
+          "axis": "x",
+          "original_value": 11.36,
+          "resolved_value": 11.3,
+          "delta": -0.06,
+          "tolerance_name": "AXIS_JITTER_TOL+SNAP_GRID+MIN_EDGE_LENGTH"
+        }
+      }
+    },
+    {
+      "id": "E:corr:corrections:r20",
+      "kind": "correction",
+      "source": "1_correction/corrections.json",
+      "payload": {
+        "kind": "corrections",
+        "ordinal": 20,
+        "raw_id": null,
+        "row": {
+          "rule_id": "deterministic_core.snap",
+          "stage": "core",
+          "target": "cell_1_S2.y[1]",
+          "axis": "y",
+          "original_value": 3.125,
+          "resolved_value": 3.1,
+          "delta": -0.025,
+          "tolerance_name": "AXIS_JITTER_TOL+SNAP_GRID+MIN_EDGE_LENGTH"
+        }
+      }
+    },
+    {
+      "id": "E:corr:corrections:r21",
+      "kind": "correction",
+      "source": "1_correction/corrections.json",
+      "payload": {
+        "kind": "corrections",
+        "ordinal": 21,
+        "raw_id": null,
+        "row": {
+          "rule_id": "deterministic_core.snap",
+          "stage": "core",
+          "target": "cell_1_S3.x[0]",
+          "axis": "x",
+          "original_value": 11.36,
+          "resolved_value": 11.3,
+          "delta": -0.06,
+          "tolerance_name": "AXIS_JITTER_TOL+SNAP_GRID+MIN_EDGE_LENGTH"
+        }
+      }
+    },
+    {
+      "id": "E:corr:corrections:r22",
+      "kind": "correction",
+      "source": "1_correction/corrections.json",
+      "payload": {
+        "kind": "corrections",
+        "ordinal": 22,
+        "raw_id": null,
+        "row": {
+          "rule_id": "deterministic_core.snap",
+          "stage": "core",
+          "target": "cell_1_S3.y[1]",
+          "axis": "y",
+          "original_value": 3.125,
+          "resolved_value": 3.1,
+          "delta": -0.025,
+          "tolerance_name": "AXIS_JITTER_TOL+SNAP_GRID+MIN_EDGE_LENGTH"
+        }
+      }
+    },
+    {
+      "id": "E:corr:corrections:r23",
+      "kind": "correction",
+      "source": "1_correction/corrections.json",
+      "payload": {
+        "kind": "corrections",
+        "ordinal": 23,
+        "raw_id": null,
+        "row": {
+          "rule_id": "deterministic_core.snap",
+          "stage": "core",
+          "target": "cell_1_C.y[0]",
+          "axis": "y",
+          "original_value": 3.125,
+          "resolved_value": 3.1,
+          "delta": -0.025,
+          "tolerance_name": "AXIS_JITTER_TOL+SNAP_GRID+MIN_EDGE_LENGTH"
+        }
+      }
+    },
+    {
+      "id": "E:corr:corrections:r24",
+      "kind": "correction",
+      "source": "1_correction/corrections.json",
+      "payload": {
+        "kind": "corrections",
+        "ordinal": 24,
+        "raw_id": null,
+        "row": {
+          "rule_id": "deterministic_core.snap",
+          "stage": "core",
+          "target": "cell_1_C.y[1]",
+          "axis": "y",
+          "original_value": 4.875,
+          "resolved_value": 4.9,
+          "delta": 0.025,
+          "tolerance_name": "AXIS_JITTER_TOL+SNAP_GRID+MIN_EDGE_LENGTH"
+        }
+      }
+    },
+    {
+      "id": "E:corr:corrections:r25",
+      "kind": "correction",
+      "source": "1_correction/corrections.json",
+      "payload": {
+        "kind": "corrections",
+        "ordinal": 25,
+        "raw_id": null,
+        "row": {
+          "rule_id": "deterministic_core.snap",
+          "stage": "core",
+          "target": "cell_1_N1.y[0]",
+          "axis": "y",
+          "original_value": 4.875,
+          "resolved_value": 4.9,
+          "delta": 0.025,
+          "tolerance_name": "AXIS_JITTER_TOL+SNAP_GRID+MIN_EDGE_LENGTH"
+        }
+      }
+    },
+    {
+      "id": "E:corr:corrections:r26",
+      "kind": "correction",
+      "source": "1_correction/corrections.json",
+      "payload": {
+        "kind": "corrections",
+        "ordinal": 26,
+        "raw_id": null,
+        "row": {
+          "rule_id": "deterministic_core.snap",
+          "stage": "core",
+          "target": "cell_1_N2.x[1]",
+          "axis": "x",
+          "original_value": 9.82,
+          "resolved_value": 9.8,
+          "delta": -0.02,
+          "tolerance_name": "AXIS_JITTER_TOL+SNAP_GRID+MIN_EDGE_LENGTH"
+        }
+      }
+    },
+    {
+      "id": "E:corr:corrections:r27",
+      "kind": "correction",
+      "source": "1_correction/corrections.json",
+      "payload": {
+        "kind": "corrections",
+        "ordinal": 27,
+        "raw_id": null,
+        "row": {
+          "rule_id": "deterministic_core.snap",
+          "stage": "core",
+          "target": "cell_1_N2.y[0]",
+          "axis": "y",
+          "original_value": 4.875,
+          "resolved_value": 4.9,
+          "delta": 0.025,
+          "tolerance_name": "AXIS_JITTER_TOL+SNAP_GRID+MIN_EDGE_LENGTH"
+        }
+      }
+    },
+    {
+      "id": "E:corr:corrections:r28",
+      "kind": "correction",
+      "source": "1_correction/corrections.json",
+      "payload": {
+        "kind": "corrections",
+        "ordinal": 28,
+        "raw_id": null,
+        "row": {
+          "rule_id": "deterministic_core.snap",
+          "stage": "core",
+          "target": "cell_1_N3.x[0]",
+          "axis": "x",
+          "original_value": 9.82,
+          "resolved_value": 9.8,
+          "delta": -0.02,
+          "tolerance_name": "AXIS_JITTER_TOL+SNAP_GRID+MIN_EDGE_LENGTH"
+        }
+      }
+    },
+    {
+      "id": "E:corr:corrections:r29",
+      "kind": "correction",
+      "source": "1_correction/corrections.json",
+      "payload": {
+        "kind": "corrections",
+        "ordinal": 29,
+        "raw_id": null,
+        "row": {
+          "rule_id": "deterministic_core.snap",
+          "stage": "core",
+          "target": "cell_1_N3.y[0]",
+          "axis": "y",
+          "original_value": 4.875,
+          "resolved_value": 4.9,
+          "delta": 0.025,
+          "tolerance_name": "AXIS_JITTER_TOL+SNAP_GRID+MIN_EDGE_LENGTH"
+        }
+      }
+    },
+    {
+      "id": "E:corr:corrections:r30",
+      "kind": "correction",
+      "source": "1_correction/corrections.json",
+      "payload": {
+        "kind": "corrections",
+        "ordinal": 30,
+        "raw_id": null,
+        "row": {
+          "rule_id": "deterministic_core.snap",
+          "stage": "core",
+          "target": "cell_2_S1.y[1]",
+          "axis": "y",
+          "original_value": 3.125,
+          "resolved_value": 3.1,
+          "delta": -0.025,
+          "tolerance_name": "AXIS_JITTER_TOL+SNAP_GRID+MIN_EDGE_LENGTH"
+        }
+      }
+    },
+    {
+      "id": "E:corr:corrections:r31",
+      "kind": "correction",
+      "source": "1_correction/corrections.json",
+      "payload": {
+        "kind": "corrections",
+        "ordinal": 31,
+        "raw_id": null,
+        "row": {
+          "rule_id": "deterministic_core.snap",
+          "stage": "core",
+          "target": "cell_2_S2.y[1]",
+          "axis": "y",
+          "original_value": 3.125,
+          "resolved_value": 3.1,
+          "delta": -0.025,
+          "tolerance_name": "AXIS_JITTER_TOL+SNAP_GRID+MIN_EDGE_LENGTH"
+        }
+      }
+    },
+    {
+      "id": "E:corr:corrections:r32",
+      "kind": "correction",
+      "source": "1_correction/corrections.json",
+      "payload": {
+        "kind": "corrections",
+        "ordinal": 32,
+        "raw_id": null,
+        "row": {
+          "rule_id": "deterministic_core.snap",
+          "stage": "core",
+          "target": "cell_2_S3.y[1]",
+          "axis": "y",
+          "original_value": 3.125,
+          "resolved_value": 3.1,
+          "delta": -0.025,
+          "tolerance_name": "AXIS_JITTER_TOL+SNAP_GRID+MIN_EDGE_LENGTH"
+        }
+      }
+    },
+    {
+      "id": "E:corr:corrections:r33",
+      "kind": "correction",
+      "source": "1_correction/corrections.json",
+      "payload": {
+        "kind": "corrections",
+        "ordinal": 33,
+        "raw_id": null,
+        "row": {
+          "rule_id": "deterministic_core.snap",
+          "stage": "core",
+          "target": "cell_2_S4.x[1]",
+          "axis": "x",
+          "original_value": 11.25,
+          "resolved_value": 11.3,
+          "delta": 0.05,
+          "tolerance_name": "AXIS_JITTER_TOL+SNAP_GRID+MIN_EDGE_LENGTH"
+        }
+      }
+    },
+    {
+      "id": "E:corr:corrections:r34",
+      "kind": "correction",
+      "source": "1_correction/corrections.json",
+      "payload": {
+        "kind": "corrections",
+        "ordinal": 34,
+        "raw_id": null,
+        "row": {
+          "rule_id": "deterministic_core.snap",
+          "stage": "core",
+          "target": "cell_2_S4.y[1]",
+          "axis": "y",
+          "original_value": 3.125,
+          "resolved_value": 3.1,
+          "delta": -0.025,
+          "tolerance_name": "AXIS_JITTER_TOL+SNAP_GRID+MIN_EDGE_LENGTH"
+        }
+      }
+    },
+    {
+      "id": "E:corr:corrections:r35",
+      "kind": "correction",
+      "source": "1_correction/corrections.json",
+      "payload": {
+        "kind": "corrections",
+        "ordinal": 35,
+        "raw_id": null,
+        "row": {
+          "rule_id": "deterministic_core.snap",
+          "stage": "core",
+          "target": "cell_2_S5.x[0]",
+          "axis": "x",
+          "original_value": 11.25,
+          "resolved_value": 11.3,
+          "delta": 0.05,
+          "tolerance_name": "AXIS_JITTER_TOL+SNAP_GRID+MIN_EDGE_LENGTH"
+        }
+      }
+    },
+    {
+      "id": "E:corr:corrections:r36",
+      "kind": "correction",
+      "source": "1_correction/corrections.json",
+      "payload": {
+        "kind": "corrections",
+        "ordinal": 36,
+        "raw_id": null,
+        "row": {
+          "rule_id": "deterministic_core.snap",
+          "stage": "core",
+          "target": "cell_2_S5.y[1]",
+          "axis": "y",
+          "original_value": 3.125,
+          "resolved_value": 3.1,
+          "delta": -0.025,
+          "tolerance_name": "AXIS_JITTER_TOL+SNAP_GRID+MIN_EDGE_LENGTH"
+        }
+      }
+    },
+    {
+      "id": "E:corr:corrections:r37",
+      "kind": "correction",
+      "source": "1_correction/corrections.json",
+      "payload": {
+        "kind": "corrections",
+        "ordinal": 37,
+        "raw_id": null,
+        "row": {
+          "rule_id": "deterministic_core.snap",
+          "stage": "core",
+          "target": "cell_2_I.y[0]",
+          "axis": "y",
+          "original_value": 3.125,
+          "resolved_value": 3.1,
+          "delta": -0.025,
+          "tolerance_name": "AXIS_JITTER_TOL+SNAP_GRID+MIN_EDGE_LENGTH"
+        }
+      }
+    },
+    {
+      "id": "E:corr:corrections:r38",
+      "kind": "correction",
+      "source": "1_correction/corrections.json",
+      "payload": {
+        "kind": "corrections",
+        "ordinal": 38,
+        "raw_id": null,
+        "row": {
+          "rule_id": "deterministic_core.snap",
+          "stage": "core",
+          "target": "cell_2_I.y[1]",
+          "axis": "y",
+          "original_value": 4.875,
+          "resolved_value": 4.9,
+          "delta": 0.025,
+          "tolerance_name": "AXIS_JITTER_TOL+SNAP_GRID+MIN_EDGE_LENGTH"
+        }
+      }
+    },
+    {
+      "id": "E:corr:corrections:r39",
+      "kind": "correction",
+      "source": "1_correction/corrections.json",
+      "payload": {
+        "kind": "corrections",
+        "ordinal": 39,
+        "raw_id": null,
+        "row": {
+          "rule_id": "deterministic_core.snap",
+          "stage": "core",
+          "target": "cell_2_N1.y[0]",
+          "axis": "y",
+          "original_value": 4.875,
+          "resolved_value": 4.9,
+          "delta": 0.025,
+          "tolerance_name": "AXIS_JITTER_TOL+SNAP_GRID+MIN_EDGE_LENGTH"
+        }
+      }
+    },
+    {
+      "id": "E:corr:corrections:r40",
+      "kind": "correction",
+      "source": "1_correction/corrections.json",
+      "payload": {
+        "kind": "corrections",
+        "ordinal": 40,
+        "raw_id": null,
+        "row": {
+          "rule_id": "deterministic_core.snap",
+          "stage": "core",
+          "target": "cell_2_N2.y[0]",
+          "axis": "y",
+          "original_value": 4.875,
+          "resolved_value": 4.9,
+          "delta": 0.025,
+          "tolerance_name": "AXIS_JITTER_TOL+SNAP_GRID+MIN_EDGE_LENGTH"
+        }
+      }
+    },
+    {
+      "id": "E:corr:corrections:r41",
+      "kind": "correction",
+      "source": "1_correction/corrections.json",
+      "payload": {
+        "kind": "corrections",
+        "ordinal": 41,
+        "raw_id": null,
+        "row": {
+          "rule_id": "deterministic_core.window",
+          "stage": "core",
+          "target": "win_F1_S_facade_W1.span[0]",
+          "axis": "span",
+          "original_value": 3.44,
+          "resolved_value": 3.45,
+          "delta": 0.01,
+          "tolerance_name": "AXIS_JITTER_TOL+SNAP_GRID+MIN_EDGE_LENGTH"
+        }
+      }
+    },
+    {
+      "id": "E:corr:conflicts:conf_001",
+      "kind": "correction",
+      "source": "1_correction/corrections.json",
+      "payload": {
+        "kind": "conflicts",
+        "ordinal": 1,
+        "raw_id": "conf_001",
+        "row": {
+          "id": "conf_001",
+          "conflict_type": "facade_plan_mismatch",
+          "claim_type": "numeric",
+          "candidates": [
+            {
+              "value": [
+                1.44,
+                3.44
+              ],
+              "source_ids": [
+                "D24_1f_view"
+              ],
+              "evidence_grade": "transcribed_dimension",
+              "confidence": "medium"
+            },
+            {
+              "value": [
+                3.44,
+                4.64
+              ],
+              "source_ids": [
+                "D24_South_view",
+                "S7_South_view"
+              ],
+              "evidence_grade": "transcribed_dimension",
+              "confidence": "high"
+            }
+          ],
+          "reason_unresolved": "Plan bottom chain D24=2000mm at [1.44,3.44] vs South elevation D24=1200mm at [3.44,4.64]. Two dimension chains give different window width and position for same facade. Elevation chosen as authoritative (shows actual window rectangle with inner z-chain).",
+          "fallback_action": "Adopted elevation chain (1200mm at [3.44,4.64]); plan stroke S15 at [0.90,2.90] treated as inaccurate tracing offset. Logged as corr_009."
+        }
+      }
+    },
+    {
+      "id": "E:corr:conflicts:conf_002",
+      "kind": "correction",
+      "source": "1_correction/corrections.json",
+      "payload": {
+        "kind": "conflicts",
+        "ordinal": 2,
+        "raw_id": "conf_002",
+        "row": {
+          "id": "conf_002",
+          "conflict_type": "stroke_vs_dimension",
+          "claim_type": "numeric",
+          "candidates": [
+            {
+              "value": 7.56,
+              "source_ids": [
+                "S10_1f_view"
+              ],
+              "evidence_grade": "estimated_stroke",
+              "confidence": "low"
+            },
+            {
+              "value": 6.3,
+              "source_ids": [
+                "D28_1f_view",
+                "D26_South_view"
+              ],
+              "evidence_grade": "transcribed_dimension",
+              "confidence": "high"
+            }
+          ],
+          "reason_unresolved": "Reading-stage interior wall S10 at x=7.56 (estimated from cumulative sum) would split south facade window [6.30,8.70] across two rooms. Dimension chain gives window left edge at 6.30. Topology requirement (each window in one room) forces wall to x=6.30.",
+          "fallback_action": "Moved interior wall to x=6.30 (corr_007)."
+        }
+      }
+    },
+    {
+      "id": "E:corr:conflicts:conf_003",
+      "kind": "correction",
+      "source": "1_correction/corrections.json",
+      "payload": {
+        "kind": "conflicts",
+        "ordinal": 3,
+        "raw_id": "conf_003",
+        "row": {
+          "id": "conf_003",
+          "conflict_type": "checksum_failure",
+          "claim_type": "numeric",
+          "candidates": [
+            {
+              "value": "Σ=15344mm",
+              "source_ids": [
+                "D19_2f_view",
+                "D20_2f_view",
+                "D21_2f_view",
+                "D22_2f_view",
+                "D23_2f_view",
+                "D24_2f_view",
+                "D25_2f_view",
+                "D26_2f_view",
+                "D27_2f_view",
+                "D28_2f_view",
+                "D29_2f_view",
+                "D30_2f_view"
+              ],
+              "evidence_grade": "transcribed_dimension",
+              "confidence": "medium"
+            },
+            {
+              "value": "15000",
+              "source_ids": [
+                "D1_2f_view",
+                "D30_2f_view"
+              ],
+              "evidence_grade": "direct_measurement",
+              "confidence": "high"
+            }
+          ],
+          "reason_unresolved": "F2 bottom dimension chain segments do not sum to outer total 15000mm. Individual segment values from reading stage contain internal inconsistency (e.g. D24 2190 from 5.51→7.50 but 5.51+2.19=7.70). Reading-stage transcription error suspected.",
+          "fallback_action": "Used reading-stage wall positions (S8=3.75, S9=5.51, S10=7.50, S11=11.25) as best available topology evidence despite chain inconsistency; noted in corr_011."
+        }
+      }
+    },
+    {
+      "id": "E:corr:conflicts:conf_004",
+      "kind": "correction",
+      "source": "1_correction/corrections.json",
+      "payload": {
+        "kind": "conflicts",
+        "ordinal": 4,
+        "raw_id": "conf_004",
+        "row": {
+          "id": "conf_004",
+          "conflict_type": "reference_or_identity_ambiguity",
+          "claim_type": "topology_identity",
+          "candidates": [
+            {
+              "value": "3 interior walls south zone F1",
+              "source_ids": [
+                "S9_1f_view",
+                "S10_1f_view",
+                "S11_1f_view"
+              ],
+              "evidence_grade": "estimated_stroke",
+              "confidence": "low"
+            },
+            {
+              "value": "2 interior walls south zone F1",
+              "source_ids": [
+                "D12_D16_constraint_7_zones"
+              ],
+              "evidence_grade": "inferred_topology",
+              "confidence": "medium"
+            }
+          ],
+          "reason_unresolved": "Reading stage observed 3 interior walls in F1 south zone creating 4 bays, but metadata says 7 thermal zones total per floor (3N+3S+1 corridor=7, implying 3 south rooms not 4). Leftmost bay (x=0.10-3.44) treated as entrance/lobby cell; may merge with corridor in downstream zoning.",
+          "fallback_action": "Emitted all 4 cells; downstream zonification may merge cell_1_SW with cell_1_C."
+        }
+      }
+    },
+    {
+      "id": "E:corr:conflicts:conf_005",
+      "kind": "correction",
+      "source": "1_correction/corrections.json",
+      "payload": {
+        "kind": "conflicts",
+        "ordinal": 5,
+        "raw_id": "conf_005",
+        "row": {
+          "id": "conf_005",
+          "conflict_type": "semantic_size_prior",
+          "claim_type": "semantic",
+          "candidates": [
+            {
+              "value": "cell_2_S2 width=1.76m",
+              "source_ids": [
+                "S8_2f_view",
+                "S9_2f_view"
+              ],
+              "evidence_grade": "estimated_stroke",
+              "confidence": "medium"
+            },
+            {
+              "value": "office min width ~2.4m",
+              "source_ids": [
+                "office_area_pp_A4"
+              ],
+              "evidence_grade": "prior",
+              "confidence": "low"
+            }
+          ],
+          "reason_unresolved": "F2 cell_2_S2 (x=[3.75,5.51], width=1.76m) is narrow relative to typical office. May be workstation bay or service space rather than full office. Kept as-is; label may change in downstream zoning.",
+          "fallback_action": "Kept cell with role='office'; prior not applied. Width is plausible as a narrow workstation bay in open-plan configuration."
+        }
+      }
+    },
+    {
+      "id": "E:corr:unsupported:unsup_001",
+      "kind": "correction",
+      "source": "1_correction/corrections.json",
+      "payload": {
+        "kind": "unsupported",
+        "ordinal": 1,
+        "raw_id": "unsup_001",
+        "row": {
+          "id": "unsup_001",
+          "reason": "West facade F1 entrance door (double-door at local x=[3.40,4.60], y≈[0.00,2.80]) is a door, not a window. No window geometry to emit for west facade F1. The door opening is noted but not modeled as a window per pen library (door → not drawn). Downstream must handle this as a zero-window west F1 wall surface with a door sub-surface if needed.",
+          "regime_assumption_violated": "Door in elevation — correction stage does not model doors; door-healing already done in reading stage for plan walls. Elevation door presence noted."
+        }
+      }
+    },
+    {
+      "id": "E:corr:unsupported:unsup_002",
+      "kind": "correction",
+      "source": "1_correction/corrections.json",
+      "payload": {
+        "kind": "unsupported",
+        "ordinal": 2,
+        "raw_id": "unsup_002",
+        "row": {
+          "id": "unsup_002",
+          "reason": "South facade F1 entrance door (door at x≈[0.40,1.04], y≈[0.00,2.10]) visible in South elevation. Similar to unsup_001: door, not window. South facade F1 leftmost bay (x=0-3.44) contains entrance door rather than window.",
+          "regime_assumption_violated": "Door in elevation — same as unsup_001."
+        }
+      }
+    },
+    {
+      "id": "E:corr:unsupported:unsup_003",
+      "kind": "correction",
+      "source": "1_correction/corrections.json",
+      "payload": {
+        "kind": "unsupported",
+        "ordinal": 3,
+        "raw_id": "unsup_003",
+        "row": {
+          "id": "unsup_003",
+          "reason": "F2 bottom dimension chain checksum failure (Σ≠15000). Individual segment transcription errors in reading stage prevent clean dimension-chain closure. Cell positions for F2 south zone rely on reading-stage stroke estimates rather than closed dimension chain.",
+          "regime_assumption_violated": "Dimension-chain closure required but segments do not sum to outer total within DIMCHAIN_CLOSE_TOL. Cannot auto-close without guessing which segments are wrong."
+        }
+      }
+    },
+    {
+      "id": "E:stop:human_redraw_required@1_correction",
+      "kind": "stop",
+      "source": "orchestration_state.json",
+      "payload": {
+        "stage": "1_correction",
+        "status": "human_redraw_required",
+        "attempts_used": 1,
+        "accepted_attempt": 1,
+        "message": "judge blocked, root='0_reading' (manual) → human re-trace required",
+        "route_target": "0_reading"
+      }
+    },
+    {
+      "id": "E:ep:result",
+      "kind": "ep",
+      "source": "EP/EP_run/eplusout.end",
+      "payload": {
+        "ep": null
+      }
+    },
+    {
+      "id": "E:geom:digest",
+      "kind": "geometry",
+      "source": "2_modelling/building_geometry.json",
+      "payload": {
+        "geometry_digest": null,
+        "geometry_approved": false
+      }
+    },
+    {
+      "id": "E:eyeball:1_correction_zones.png",
+      "kind": "eyeball",
+      "source": "report/eyeball/1_correction_zones.png",
+      "payload": {
+        "filename": "1_correction_zones.png",
+        "path": "report/eyeball/1_correction_zones.png",
+        "producer": "correction_zones",
+        "source": "1_correction/zones.png",
+        "status": "copied"
+      }
+    },
+    {
+      "id": "E:eyeball:1_correction_elev.png",
+      "kind": "eyeball",
+      "source": "report/eyeball/1_correction_elev.png",
+      "payload": {
+        "filename": "1_correction_elev.png",
+        "path": "report/eyeball/1_correction_elev.png",
+        "producer": "correction_elev",
+        "source": "1_correction/elev.png",
+        "status": "copied"
+      }
+    },
+    {
+      "id": "E:eyeball:0_reading_1f_view_render.png",
+      "kind": "eyeball",
+      "source": "report/eyeball/0_reading_1f_view_render.png",
+      "payload": {
+        "filename": "0_reading_1f_view_render.png",
+        "path": "report/eyeball/0_reading_1f_view_render.png",
+        "producer": "reading_render",
+        "source": "0_reading/1f_view_render.png",
+        "status": "copied"
+      }
+    },
+    {
+      "id": "E:eyeball:0_reading_2f_view_render.png",
+      "kind": "eyeball",
+      "source": "report/eyeball/0_reading_2f_view_render.png",
+      "payload": {
+        "filename": "0_reading_2f_view_render.png",
+        "path": "report/eyeball/0_reading_2f_view_render.png",
+        "producer": "reading_render",
+        "source": "0_reading/2f_view_render.png",
+        "status": "copied"
+      }
+    },
+    {
+      "id": "E:eyeball:0_reading_East_view_render.png",
+      "kind": "eyeball",
+      "source": "report/eyeball/0_reading_East_view_render.png",
+      "payload": {
+        "filename": "0_reading_East_view_render.png",
+        "path": "report/eyeball/0_reading_East_view_render.png",
+        "producer": "reading_render",
+        "source": "0_reading/East_view_render.png",
+        "status": "copied"
+      }
+    },
+    {
+      "id": "E:eyeball:0_reading_North_view_render.png",
+      "kind": "eyeball",
+      "source": "report/eyeball/0_reading_North_view_render.png",
+      "payload": {
+        "filename": "0_reading_North_view_render.png",
+        "path": "report/eyeball/0_reading_North_view_render.png",
+        "producer": "reading_render",
+        "source": "0_reading/North_view_render.png",
+        "status": "copied"
+      }
+    },
+    {
+      "id": "E:eyeball:0_reading_South_view_render.png",
+      "kind": "eyeball",
+      "source": "report/eyeball/0_reading_South_view_render.png",
+      "payload": {
+        "filename": "0_reading_South_view_render.png",
+        "path": "report/eyeball/0_reading_South_view_render.png",
+        "producer": "reading_render",
+        "source": "0_reading/South_view_render.png",
+        "status": "copied"
+      }
+    },
+    {
+      "id": "E:eyeball:0_reading_West_view_render.png",
+      "kind": "eyeball",
+      "source": "report/eyeball/0_reading_West_view_render.png",
+      "payload": {
+        "filename": "0_reading_West_view_render.png",
+        "path": "report/eyeball/0_reading_West_view_render.png",
+        "producer": "reading_render",
+        "source": "0_reading/West_view_render.png",
+        "status": "copied"
+      }
+    },
+    {
+      "id": "E:eyeball:case_data_1f_view.png",
+      "kind": "eyeball",
+      "source": "report/eyeball/case_data_1f_view.png",
+      "payload": {
+        "filename": "case_data_1f_view.png",
+        "path": "report/eyeball/case_data_1f_view.png",
+        "producer": "case_data_view",
+        "source": "../case_data/1f_view.png",
+        "status": "copied"
+      }
+    },
+    {
+      "id": "E:eyeball:case_data_2f_view.png",
+      "kind": "eyeball",
+      "source": "report/eyeball/case_data_2f_view.png",
+      "payload": {
+        "filename": "case_data_2f_view.png",
+        "path": "report/eyeball/case_data_2f_view.png",
+        "producer": "case_data_view",
+        "source": "../case_data/2f_view.png",
+        "status": "copied"
+      }
+    },
+    {
+      "id": "E:eyeball:case_data_East_view.png",
+      "kind": "eyeball",
+      "source": "report/eyeball/case_data_East_view.png",
+      "payload": {
+        "filename": "case_data_East_view.png",
+        "path": "report/eyeball/case_data_East_view.png",
+        "producer": "case_data_view",
+        "source": "../case_data/East_view.png",
+        "status": "copied"
+      }
+    },
+    {
+      "id": "E:eyeball:case_data_North_view.png",
+      "kind": "eyeball",
+      "source": "report/eyeball/case_data_North_view.png",
+      "payload": {
+        "filename": "case_data_North_view.png",
+        "path": "report/eyeball/case_data_North_view.png",
+        "producer": "case_data_view",
+        "source": "../case_data/North_view.png",
+        "status": "copied"
+      }
+    },
+    {
+      "id": "E:eyeball:case_data_South_view.png",
+      "kind": "eyeball",
+      "source": "report/eyeball/case_data_South_view.png",
+      "payload": {
+        "filename": "case_data_South_view.png",
+        "path": "report/eyeball/case_data_South_view.png",
+        "producer": "case_data_view",
+        "source": "../case_data/South_view.png",
+        "status": "copied"
+      }
+    },
+    {
+      "id": "E:eyeball:case_data_West_view.png",
+      "kind": "eyeball",
+      "source": "report/eyeball/case_data_West_view.png",
+      "payload": {
+        "filename": "case_data_West_view.png",
+        "path": "report/eyeball/case_data_West_view.png",
+        "producer": "case_data_view",
+        "source": "../case_data/West_view.png",
+        "status": "copied"
+      }
+    }
+  ]
 }
