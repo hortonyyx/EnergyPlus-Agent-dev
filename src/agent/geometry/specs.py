@@ -16,8 +16,42 @@ trivially (rules.md §5.1).
 from __future__ import annotations
 
 import json
+import re
 
-from src.agent.geometry.modelling import BuildingGeometry, Surface
+from src.agent.geometry.modelling import BuildingGeometry, Surface, Window
+
+
+def _zone_order(bg: BuildingGeometry) -> list[str]:
+    if bg.zone_volumes:
+        return [zv.zone for zv in bg.zone_volumes]
+    return list(dict.fromkeys(bg.zones))
+
+
+def _surface_sort_key(bg: BuildingGeometry):
+    zone_idx = {zone: i for i, zone in enumerate(_zone_order(bg))}
+    type_rank = {"Wall": 0, "Floor": 1, "Ceiling": 2, "Roof": 3}
+
+    def piece_index(s: Surface) -> int:
+        if s.stype == "Wall":
+            m = re.search(r"_W(\d+)$", s.name)
+            return int(m.group(1)) if m else 999999
+        m = re.search(rf"_{re.escape(s.stype)}(\d*)$", s.name)
+        if m:
+            return int(m.group(1) or "1")
+        return 999999
+
+    return lambda s: (zone_idx.get(s.zone, 999999), type_rank.get(s.stype, 9), piece_index(s), s.name)
+
+
+def _window_sort_key(bg: BuildingGeometry):
+    surf_idx = {s.name: i for i, s in enumerate(sorted(bg.surfaces, key=_surface_sort_key(bg)))}
+
+    def key(w: Window) -> tuple:
+        m = re.search(r"_Win(\d+)$", w.name)
+        k = int(m.group(1)) if m else 999999
+        return (surf_idx.get(w.parent, 999999), k, w.name)
+
+    return key
 
 
 def building_geometry_dict(bg: BuildingGeometry) -> dict:
@@ -25,8 +59,13 @@ def building_geometry_dict(bg: BuildingGeometry) -> dict:
     for the ``2_modelling/building_geometry.json`` artifact. The pipeline writer
     and the validator (validation_run.consistency check) both use this so the
     on-disk artifact can be reconciled against a deterministic rebuild."""
+    zones = _zone_order(bg)
     return {
-        "zones": list(dict.fromkeys(bg.zones)),
+        "zones": zones,
+        "zone_meta": [
+            {"name": zv.zone, "role": zv.role, "cell_id": zv.cell_id, "fi": zv.fi}
+            for zv in bg.zone_volumes
+        ],
         "surfaces": [
             {
                 "name": s.name,
@@ -36,11 +75,11 @@ def building_geometry_dict(bg: BuildingGeometry) -> dict:
                 "obc_obj": s.obc_obj,
                 "verts": [list(v) for v in s.verts],
             }
-            for s in bg.surfaces
+            for s in sorted(bg.surfaces, key=_surface_sort_key(bg))
         ],
         "windows": [
             {"name": w.name, "parent": w.parent, "verts": [list(v) for v in w.verts]}
-            for w in bg.windows
+            for w in sorted(bg.windows, key=_window_sort_key(bg))
         ],
     }
 
@@ -125,7 +164,7 @@ def serialize_geometry(
         "people_specs / lights_specs / hvac_specs.",
     ]
     by_fi: dict[int, list] = {}
-    for zv in bg.zone_volumes:
+    for zv in sorted(bg.zone_volumes, key=lambda z: (_zone_order(bg).index(z.zone), z.zone)):
         by_fi.setdefault(zv.fi, []).append(zv)
     for fi in sorted(by_fi):
         zvs = by_fi[fi]
@@ -150,10 +189,11 @@ def serialize_geometry(
         "adjacent surface is its reciprocal partner.",
     ]
     surfaces_by_zone: dict[str, list[Surface]] = {}
-    for s in bg.surfaces:
+    ordered_surfaces = sorted(bg.surfaces, key=_surface_sort_key(bg))
+    for s in ordered_surfaces:
         surfaces_by_zone.setdefault(s.zone, []).append(s)
     # keep zone order stable (zone_volumes order)
-    zone_order = [zv.zone for zv in bg.zone_volumes]
+    zone_order = _zone_order(bg)
     for zone in zone_order:
         if zone not in surfaces_by_zone:
             continue
@@ -199,7 +239,7 @@ def serialize_geometry(
         "listed below — no more, no fewer.",
     ]
     used.add(CONSTRUCTION_VOCAB["window"])
-    for w in bg.windows:
+    for w in sorted(bg.windows, key=_window_sort_key(bg)):
         zs = [v[2] for v in w.verts]
         f_lines.append(
             f"- {w.name}: parent={w.parent}, "

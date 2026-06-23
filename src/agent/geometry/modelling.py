@@ -17,6 +17,7 @@ import re
 from dataclasses import dataclass, field
 
 import numpy as np
+from shapely.geometry import Point
 from shapely.geometry import LineString, MultiLineString, Polygon
 
 from src.agent.correction.schema import Cell, CorrectedGeometry
@@ -25,6 +26,7 @@ from src.agent.correction.schema import Cell, CorrectedGeometry
 _MIN_EDGE = 0.10      # m — below this a face is a degenerate sliver (gate floor)
 _Z_TOL = 0.02         # m — floors stack when |lower ceiling z - upper floor z| <= this
 _AREA_MIN = 0.05      # m^2 — ignore overlaps/segments smaller than this
+_NAME_QUANT = 6       # shared precision for deterministic public-name keys
 
 
 # --------------------------------------------------------------------------- #
@@ -61,6 +63,7 @@ class ZoneVolume:
     fi: int                 # floor membership (every zonification has floors);
                             # actual face pairing is z + polygon driven, not fi
     role: str = "office"    # semantic role (for zone_specs serialization)
+    handle: str = ""        # short deterministic public handle, e.g. Z01
 
 
 @dataclass
@@ -95,6 +98,66 @@ class NameRegistry:
 def _safe(name: str) -> str:
     """EnergyPlus-safe identifier: letters/digits/_ only."""
     return re.sub(r"[^A-Za-z0-9_]", "_", str(name))
+
+
+def _q(value: float) -> float:
+    return round(float(value), _NAME_QUANT)
+
+
+def _qpt(pt) -> tuple[float, float]:
+    return (_q(pt[0]), _q(pt[1]))
+
+
+def _role_token(role: str | None) -> str:
+    raw = str(role or "").strip()
+    if not raw:
+        raw = "office"
+    parts = re.findall(r"[A-Za-z0-9]+", raw)
+    titled = "_".join(part[:1].upper() + part[1:].lower() for part in parts)
+    token = re.sub(r"_+", "_", _safe(titled)).strip("_")
+    return token or "Office"
+
+
+def _canonical_ring(poly: Polygon) -> tuple[tuple[float, float], ...]:
+    coords = [_qpt(p) for p in list(poly.exterior.coords)[:-1]]
+    if len(coords) < 3:
+        return tuple(coords)
+    if not _is_ccw(coords + [coords[0]]):
+        coords = list(reversed(coords))
+    start = min(range(len(coords)), key=lambda i: (coords[i][1], coords[i][0]))
+    return tuple(coords[start:] + coords[:start])
+
+
+def _geometry_fingerprint(poly: Polygon) -> tuple:
+    minx, miny, maxx, maxy = poly.bounds
+    return (
+        (_q(minx), _q(miny), _q(maxx), _q(maxy)),
+        _q(poly.area),
+        _canonical_ring(poly),
+    )
+
+
+def _zone_centroid_key(poly: Polygon) -> tuple[float, float]:
+    c = poly.centroid
+    return (_q(-c.y), _q(c.x))
+
+
+def _zone_quadrant(poly: Polygon, footprint_x: list[float], footprint_y: list[float]) -> str:
+    cx = (float(footprint_x[0]) + float(footprint_x[1])) / 2.0
+    cy = (float(footprint_y[0]) + float(footprint_y[1])) / 2.0
+    half_w = max(abs(float(footprint_x[1]) - float(footprint_x[0])) / 2.0, 1e-9)
+    half_h = max(abs(float(footprint_y[1]) - float(footprint_y[0])) / 2.0, 1e-9)
+    p = poly.centroid
+    dx, dy = p.x - cx, p.y - cy
+    tol_x = min(half_w * 0.05, 0.5) + 1e-6
+    tol_y = min(half_h * 0.05, 0.5) + 1e-6
+    near_x = abs(dx) <= tol_x
+    near_y = abs(dy) <= tol_y
+    if near_x and near_y:
+        return "C"
+    ns = "" if near_y else ("N" if dy > 0 else "S")
+    ew = "" if near_x else ("E" if dx > 0 else "W")
+    return ns + ew
 
 
 def _cell_polygon(c: Cell) -> Polygon:
@@ -272,7 +335,7 @@ def _find_parent_wall(surfaces: list[Surface], zone: str, w) -> Surface | None:
 # zone volumes + window attachment (geometry realization, not topology)
 # --------------------------------------------------------------------------- #
 def build_zone_volumes(geom: CorrectedGeometry) -> tuple[list[ZoneVolume], list[str]]:
-    """Cells -> zone volumes, in floor-major / cell order. Also returns tiling
+    """Cells -> zone volumes, returned in deterministic public-name order. Also returns tiling
     guard notes: same-floor cells must not overlap (a correction stage defect — e.g. a
     corridor placed over the rooms it should sit between produces same-side walls
     the gate rejects). Flag, don't paper over.
@@ -280,15 +343,13 @@ def build_zone_volumes(geom: CorrectedGeometry) -> tuple[list[ZoneVolume], list[
     Hard guards (raise, never silently corrupt — the InterZone gate is blind to
     both failure classes):
       - cell ids must be globally unique across floors (every id-keyed map in
-        split_pairing / window attachment is last-wins on duplicates), and so
-        must the EP-safe zone names derived from them;
+        split_pairing / window attachment is last-wins on duplicates);
       - the z-stack must be contiguous: a gap/overlap beyond the pairing
         tolerance would silently model an internal floor interface as Roof +
         exposed Floor (mid-building outdoors) with zero gate issues.
     """
-    # ---- id / zone-name uniqueness guard ----
+    # ---- source-id uniqueness guard ----
     floor_of_id: dict[str, str] = {}
-    id_of_zone: dict[str, str] = {}
     for fl in geom.floors:
         for c in fl.cells:
             if c.id in floor_of_id:
@@ -299,23 +360,16 @@ def build_zone_volumes(geom: CorrectedGeometry) -> tuple[list[ZoneVolume], list[
                     f"and mis-pair surfaces"
                 )
             floor_of_id[c.id] = fl.name
-            zn = _safe(c.id)
-            if zn in id_of_zone:
-                raise ValueError(
-                    f"cell ids '{id_of_zone[zn]}' and '{c.id}' collide on the "
-                    f"EP-safe zone name '{zn}' after sanitization — rename one"
-                )
-            id_of_zone[zn] = c.id
 
     # ---- z-stack continuity guard ----
-    floors_by_z = sorted(geom.floors, key=lambda f: float(f.z_floor))
+    floors_by_z = sorted(enumerate(geom.floors), key=lambda item: float(item[1].z_floor))
     for prev, cur in zip(floors_by_z, floors_by_z[1:]):
-        top = float(prev.z_floor) + float(prev.ceiling_height)
-        gap = float(cur.z_floor) - top
+        top = float(prev[1].z_floor) + float(prev[1].ceiling_height)
+        gap = float(cur[1].z_floor) - top
         if abs(gap) > _Z_TOL:
             raise ValueError(
-                f"broken z-stack: floor '{cur.name}' starts at z={cur.z_floor} "
-                f"but floor '{prev.name}' tops out at z={top} (gap {gap:+.3f} m "
+                f"broken z-stack: floor '{cur[1].name}' starts at z={cur[1].z_floor} "
+                f"but floor '{prev[1].name}' tops out at z={top} (gap {gap:+.3f} m "
                 f"> {_Z_TOL} m tolerance) — split-pairing would silently model "
                 f"this interface as Roof + exposed Floor (mid-building outdoors); "
                 f"fix the correction-stage z values"
@@ -323,22 +377,51 @@ def build_zone_volumes(geom: CorrectedGeometry) -> tuple[list[ZoneVolume], list[
 
     zvs: list[ZoneVolume] = []
     notes: list[str] = []
-    for fi, fl in enumerate(geom.floors):
+    floor_name_by_rank: dict[int, str] = {}
+    for rank, (_orig_i, fl) in enumerate(floors_by_z):
+        floor_name_by_rank[rank] = fl.name
         zf = float(fl.z_floor)
         zt = zf + float(fl.ceiling_height)
         for c in fl.cells:
             zvs.append(
                 ZoneVolume(
-                    _safe(c.id), c.id, _cell_polygon(c), zf, zt, fi,
+                    "", c.id, _cell_polygon(c), zf, zt, rank,
                     getattr(c, "role", "office") or "office",
                 )
             )
+
+    seen_fingerprint: dict[tuple[int, tuple], str] = {}
+    for zv in zvs:
+        fp = _geometry_fingerprint(zv.polygon)
+        key = (zv.fi, fp)
+        if key in seen_fingerprint:
+            raise ValueError(
+                f"duplicate same-floor zone geometry fingerprint for cell ids "
+                f"'{seen_fingerprint[key]}' and '{zv.cell_id}' — deterministic "
+                f"zone serials require unique geometry"
+            )
+        seen_fingerprint[key] = zv.cell_id
+
+    zvs.sort(
+        key=lambda zv: (
+            zv.fi,
+            *_zone_centroid_key(zv.polygon),
+            _geometry_fingerprint(zv.polygon),
+            _safe(zv.cell_id),
+        )
+    )
+    width = max(2, len(str(len(zvs))))
+    for idx, zv in enumerate(zvs, start=1):
+        zv.handle = f"Z{idx:0{width}d}"
+        role = _role_token(zv.role)
+        quadrant = _zone_quadrant(zv.polygon, geom.footprint_x, geom.footprint_y)
+        zv.zone = f"{zv.handle}_F{zv.fi + 1}_{role}_{quadrant}"
 
     by_fi: dict[int, list[ZoneVolume]] = {}
     for zv in zvs:
         by_fi.setdefault(zv.fi, []).append(zv)
     for fi, group in by_fi.items():
-        fname = geom.floors[fi].name
+        fname = floor_name_by_rank.get(fi, f"F{fi + 1}")
         for i in range(len(group)):
             for j in range(i + 1, len(group)):
                 ov = group[i].polygon.intersection(group[j].polygon).area
@@ -361,6 +444,7 @@ def attach_windows(
     """Attach each window to its room's exterior wall on that facade. Runs after
     all walls exist so `_find_parent_wall` sees the finished exterior-wall set."""
     windows: list[Window] = []
+    pending: list[tuple[Window, str]] = []
     notes: list[str] = []
     for w in geom.windows:
         if w.room not in zv_by_cell:
@@ -373,5 +457,29 @@ def attach_windows(
             continue
         verts = _window_verts(w, parent)
         if verts:
-            windows.append(Window(registry.uname(f"{zone}_Win"), parent.name, verts))
-    return windows, notes
+            win = Window("", parent.name, verts)
+            windows.append(win)
+            pending.append((win, str(w.id)))
+
+    by_parent: dict[str, list[tuple[Window, str]]] = {}
+    for win, src in pending:
+        by_parent.setdefault(win.parent, []).append((win, str(src)))
+
+    def win_key(item: tuple[Window, str]) -> tuple:
+        win, src = item
+        xs = [v[0] for v in win.verts]
+        ys = [v[1] for v in win.verts]
+        zs = [v[2] for v in win.verts]
+        if max(xs) - min(xs) >= max(ys) - min(ys):
+            a0, a1 = min(xs), max(xs)
+        else:
+            a0, a1 = min(ys), max(ys)
+        return (_q(a0), _q(a1), _q(min(zs)), _q(max(zs)), _safe(src))
+
+    named: list[Window] = []
+    for parent in sorted(by_parent):
+        items = sorted(by_parent[parent], key=win_key)
+        for idx, (win, _src) in enumerate(items, start=1):
+            win.name = f"{parent}_Win{idx}"
+            named.append(win)
+    return named, notes

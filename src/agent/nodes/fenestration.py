@@ -41,7 +41,8 @@ Rules:
 - surface_type is Window, Door, or GlassDoor.
 - Typical window-to-wall ratio: 0.3-0.4 on facade walls; derive vertex
   coordinates from the parent wall's corners and the WWR.
-- Naming: '{parent_surface}_Window' or '{zone}_{direction}_Window_{index}'.
+- Window names are deterministic public names from fenestration_specs:
+  '{parent_wall}_Win{k}' (e.g., 'Z01_W1_Win1'). Transcribe them exactly.
 """
 
 

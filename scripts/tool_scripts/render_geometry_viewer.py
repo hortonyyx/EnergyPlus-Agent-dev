@@ -533,9 +533,23 @@ def app_js() -> str:
 
 
 def discover_roles(bg_path: Path) -> dict:
-    """zone-name -> room role (office/meeting/corridor/...) from the sibling
-    1_correction/correction_geometry.json (cell.id == building_geometry zone name).
-    Returns {} when not found — viewer then falls back to white zone fill."""
+    """zone-name -> room role (office/meeting/corridor/...).
+
+    Prefer building_geometry.json zone_meta because deterministic public zone
+    names intentionally differ from correction Cell.id. Fall back to the legacy
+    sibling correction lookup for older artifacts.
+    """
+    try:
+        bg = json.loads(bg_path.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        bg = {}
+    roles = {
+        str(m["name"]): str(m["role"])
+        for m in bg.get("zone_meta", [])
+        if m.get("name") and m.get("role")
+    }
+    if roles:
+        return roles
     candidates = [
         bg_path.parent.parent / "1_correction" / "correction_geometry.json",  # <run>/2_modelling/bg.json
         bg_path.parent / "correction_geometry.json",
@@ -586,7 +600,7 @@ def main() -> int:
     ap.add_argument("--out", help="output HTML (default: <json dir>/geometry_viewer.html)")
     ap.add_argument("--title", default="")
     ap.add_argument("--roles", help="optional JSON {zone: role} to colour zones by room type; "
-                                    "default auto-discovers 1_correction/correction_geometry.json")
+                                    "default uses building_geometry zone_meta, then legacy correction lookup")
     args = ap.parse_args()
     j = Path(args.json)
     data = json.loads(j.read_text(encoding="utf-8"))

@@ -19,7 +19,9 @@ construction. Imports geometry primitives from `modelling` only (one-way dep).
 
 from __future__ import annotations
 
-from shapely.geometry import LineString
+import math
+
+from shapely.geometry import LineString, Polygon
 from shapely.ops import unary_union
 
 from src.agent.geometry.modelling import (
@@ -28,8 +30,12 @@ from src.agent.geometry.modelling import (
     NameRegistry,
     Surface,
     ZoneVolume,
+    _canonical_ring,
     _iter_segments,
     _polys,
+    _q,
+    _qpt,
+    _safe,
     _ring_verts,
     _wall_verts,
 )
@@ -37,9 +43,10 @@ from src.agent.geometry.modelling import (
 
 def pair_surfaces(zvs: list[ZoneVolume], registry: NameRegistry) -> list[Surface]:
     surfaces: list[Surface] = []
+    pair_refs: list[tuple[Surface, Surface]] = []
 
     def add(zone, stype, verts, obc, obc_obj="") -> Surface:
-        s = Surface(registry.uname(f"{zone}_{stype}"), zone, stype, verts, obc, obc_obj)
+        s = Surface("", zone, stype, verts, obc, obc_obj)
         surfaces.append(s)
         return s
 
@@ -68,7 +75,7 @@ def pair_surfaces(zvs: list[ZoneVolume], registry: NameRegistry) -> list[Surface
                     )
                     sa = add(za.zone, "Wall", wa, "Surface")
                     sb = add(zb.zone, "Wall", wb, "Surface")
-                    sa.obc_obj, sb.obc_obj = sb.name, sa.name
+                    pair_refs.append((sa, sb))
                     shared_acc[A].append(LineString([p1, p2]))
                     shared_acc[B].append(LineString([p1, p2]))
 
@@ -106,7 +113,7 @@ def pair_surfaces(zvs: list[ZoneVolume], registry: NameRegistry) -> list[Surface
                         continue
                     fs = add(zone, "Floor", _ring_verts(piece, zf, up=False), "Surface")
                     cs = add(L.zone, "Ceiling", _ring_verts(piece, zf, up=True), "Surface")
-                    fs.obc_obj, cs.obc_obj = cs.name, fs.name
+                    pair_refs.append((fs, cs))
                     covered.append(piece)
             rem = poly.difference(unary_union(covered)) if covered else poly
             for piece in _polys(rem):
@@ -136,4 +143,107 @@ def pair_surfaces(zvs: list[ZoneVolume], registry: NameRegistry) -> list[Surface
                 if piece.area >= _AREA_MIN:
                     add(zone, "Roof", _ring_verts(piece, zt, up=True), "Outdoors")
 
-    return surfaces
+    zone_by_name = {zv.zone: zv for zv in zvs}
+    zone_index = {zv.zone: i for i, zv in enumerate(zvs)}
+    pair_partner: dict[int, Surface] = {}
+    for a, b in pair_refs:
+        pair_partner[id(a)] = b
+        pair_partner[id(b)] = a
+
+    def wall_xy_pair(s: Surface) -> tuple[tuple[float, float], tuple[float, float]]:
+        pts: list[tuple[float, float]] = []
+        for v in s.verts:
+            p = _qpt((v[0], v[1]))
+            if p not in pts:
+                pts.append(p)
+        if len(pts) < 2:
+            raise ValueError(f"cannot name degenerate wall surface in zone {s.zone}")
+        a, b = pts[0], pts[1]
+        return tuple(sorted((a, b)))  # type: ignore[return-value]
+
+    def ring_position(zv: ZoneVolume, pt: tuple[float, float]) -> float:
+        ring = list(_canonical_ring(zv.polygon))
+        if len(ring) < 2:
+            return 0.0
+        best = (float("inf"), 0.0)
+        walked = 0.0
+        px, py = pt
+        for a, b in zip(ring, ring[1:] + ring[:1]):
+            ax, ay = a
+            bx, by = b
+            dx, dy = bx - ax, by - ay
+            seg_len2 = dx * dx + dy * dy
+            seg_len = math.sqrt(seg_len2)
+            if seg_len2 <= 1e-18:
+                continue
+            t = max(0.0, min(1.0, ((px - ax) * dx + (py - ay) * dy) / seg_len2))
+            qx, qy = ax + t * dx, ay + t * dy
+            dist2 = (px - qx) ** 2 + (py - qy) ** 2
+            cand = (dist2, walked + t * seg_len)
+            if cand < best:
+                best = cand
+            walked += seg_len
+        return _q(best[1])
+
+    def wall_key(s: Surface) -> tuple:
+        zv = zone_by_name[s.zone]
+        a, b = wall_xy_pair(s)
+        mid = ((_q(a[0] + b[0]) / 2.0), (_q(a[1] + b[1]) / 2.0))
+        partner = pair_partner.get(id(s))
+        partner_handle = zone_by_name[partner.zone].handle if partner else ""
+        length = math.dist(a, b)
+        obc_rank = {"Outdoors": 0, "Ground": 1, "Surface": 2, "Adiabatic": 3}.get(s.obc, 9)
+        return (ring_position(zv, mid), a, b, _q(length), obc_rank, partner_handle)
+
+    def horizontal_poly(s: Surface):
+        poly = Polygon([(v[0], v[1]) for v in s.verts])
+        if not poly.is_valid:
+            poly = poly.buffer(0)
+        return poly
+
+    def horizontal_key(s: Surface) -> tuple:
+        poly = horizontal_poly(s)
+        c = poly.centroid
+        minx, miny, maxx, maxy = poly.bounds
+        return (
+            _q(-c.y), _q(c.x),
+            (_q(minx), _q(miny), _q(maxx), _q(maxy)),
+            _q(poly.area),
+            tuple(_qpt((v[0], v[1])) for v in s.verts),
+        )
+
+    surface_order: dict[int, tuple] = {}
+    type_rank = {"Wall": 0, "Floor": 1, "Ceiling": 2, "Roof": 3}
+    for zv in zvs:
+        group = [s for s in surfaces if s.zone == zv.zone]
+        walls = [s for s in group if s.stype == "Wall"]
+        keyed_walls = sorted(((wall_key(s), s) for s in walls), key=lambda ks: ks[0])
+        for prev, cur in zip(keyed_walls, keyed_walls[1:]):
+            if prev[0] == cur[0]:
+                raise ValueError(
+                    f"ambiguous wall ring naming key in zone {zv.zone}; "
+                    f"surface order would depend on geometry iteration"
+                )
+        for idx, (_key, s) in enumerate(keyed_walls, start=1):
+            s.name = f"{zv.handle}_W{idx}"
+            surface_order[id(s)] = (zone_index[zv.zone], type_rank[s.stype], idx)
+
+        for stype in ("Floor", "Ceiling", "Roof"):
+            items = sorted(((horizontal_key(s), s) for s in group if s.stype == stype), key=lambda ks: ks[0])
+            for prev, cur in zip(items, items[1:]):
+                if prev[0] == cur[0]:
+                    raise ValueError(f"ambiguous {stype.lower()} naming key in zone {zv.zone}")
+            multi = len(items) > 1
+            for idx, (_key, s) in enumerate(items, start=1):
+                suffix = str(idx) if multi else ""
+                s.name = f"{zv.handle}_{stype}{suffix}"
+                surface_order[id(s)] = (zone_index[zv.zone], type_rank[stype], idx)
+
+    for a, b in pair_refs:
+        a.obc_obj = b.name
+        b.obc_obj = a.name
+
+    return sorted(
+        surfaces,
+        key=lambda s: surface_order.get(id(s), (zone_index.get(s.zone, 999999), 9, _safe(s.name))),
+    )

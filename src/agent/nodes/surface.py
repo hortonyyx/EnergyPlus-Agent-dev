@@ -83,8 +83,10 @@ that bottom z = 3.60 and top z = 7.20, **not 3 and 6**.)
       partner surface in the other zone
     * Adiabatic walls (e.g., between identical thermal zones): 'Adiabatic'
 - surface_type is one of Wall, Floor, Roof, Ceiling (case-insensitive).
-- Name convention: '{zone}_{direction}_{type}', e.g.,
-  'F1_Office_North_Wall', 'F1_Office_Floor', 'F1_Office_Roof'.
+- Surface names are deterministic public names from surface_specs. Walls use
+  the short zone handle plus ring order, e.g. 'Z01_W1'; horizontal faces use
+  'Z01_Floor', 'Z01_Ceiling', or 'Z01_Roof' with numeric suffixes for pieces.
+  Transcribe them exactly.
 """
 
 

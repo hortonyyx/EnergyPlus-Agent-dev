@@ -76,7 +76,8 @@ def test_setback_clean():
     assert issues == [], issues
     # the exposed part of F1's ceiling must be a Roof (Outdoors)
     bg = build_geometry(g)
-    assert any(s.stype == "Roof" and s.zone == "F1_A" for s in bg.surfaces)
+    lower_zone = next(zv.zone for zv in bg.zone_volumes if zv.cell_id == "F1_A")
+    assert any(s.stype == "Roof" and s.zone == lower_zone for s in bg.surfaces)
 
 
 def test_lshape_polygon_clean():

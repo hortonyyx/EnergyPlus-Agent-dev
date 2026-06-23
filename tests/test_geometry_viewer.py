@@ -93,18 +93,30 @@ def test_viewer_without_roles_falls_back_to_white_zone_fill():
     assert geo["roles"] == {}  # empty → JS HAS_ROLES false → legacy white zone fill
 
 
-def test_discover_roles_from_correction_geometry(tmp_path):
-    """zone→role auto-discovered from sibling 1_correction/correction_geometry.json
-    (cell.id == building_geometry zone name)."""
+def test_discover_roles_prefers_zone_meta_then_legacy_correction(tmp_path):
+    """zone→role auto-discovery prefers building_geometry zone_meta because
+    deterministic public names differ from correction cell ids."""
     run = tmp_path / "run_x"
     (run / "2_modelling").mkdir(parents=True)
     (run / "1_correction").mkdir(parents=True)
     bg = run / "2_modelling" / "building_geometry.json"
-    bg.write_text(json.dumps({"zones": ["A", "B"], "surfaces": [], "windows": []}), encoding="utf-8")
-    (run / "1_correction" / "correction_geometry.json").write_text(json.dumps({
-        "floors": [{"cells": [{"id": "A", "role": "office"}, {"id": "B", "role": "meeting"}]}]
+    bg.write_text(json.dumps({
+        "zones": ["Z01_F1_Office_W", "Z02_F1_Meeting_E"],
+        "zone_meta": [
+            {"name": "Z01_F1_Office_W", "role": "office", "cell_id": "A", "fi": 0},
+            {"name": "Z02_F1_Meeting_E", "role": "meeting", "cell_id": "B", "fi": 0},
+        ],
+        "surfaces": [], "windows": [],
     }), encoding="utf-8")
-    assert rgv.discover_roles(bg) == {"A": "office", "B": "meeting"}
+    (run / "1_correction" / "correction_geometry.json").write_text(json.dumps({
+        "floors": [{"cells": [{"id": "A", "role": "wrong"}, {"id": "B", "role": "wrong"}]}]
+    }), encoding="utf-8")
+    assert rgv.discover_roles(bg) == {"Z01_F1_Office_W": "office", "Z02_F1_Meeting_E": "meeting"}
+
+    legacy = run / "2_modelling" / "legacy_building_geometry.json"
+    legacy.write_text(json.dumps({"zones": ["A", "B"], "surfaces": [], "windows": []}), encoding="utf-8")
+    assert rgv.discover_roles(legacy) == {"A": "wrong", "B": "wrong"}
+
     # missing sibling → empty (graceful, viewer falls back to white)
     lone = tmp_path / "lonely.json"
     lone.write_text(json.dumps({"zones": [], "surfaces": [], "windows": []}), encoding="utf-8")

@@ -64,13 +64,16 @@ def test_duplicate_cell_id_raises_in_core():
         apply_deterministic_core(g, _tol())
 
 
-def test_zone_name_collision_after_sanitize_raises():
+def test_sanitized_source_id_collision_does_not_block_public_naming():
     g = _geom([
         _floor("F1", 0.0, 3.0, [{"id": "Room 1", "x": [0, 5], "y": [0, 8]},
                                 {"id": "Room_1", "x": [5, 10], "y": [0, 8]}]),
-    ])
-    with pytest.raises(ValueError, match="collide on the EP-safe zone name"):
-        build_geometry(g)
+    ], windows=[{"id": "W1", "floor": "F1", "facade": "South",
+                 "span": [1, 3], "z": [1.0, 2.5], "room": "Room 1"}])
+    bg = build_geometry(g)
+    assert len(bg.zones) == 2
+    assert len(set(bg.zones)) == 2
+    assert len(bg.windows) == 1
 
 
 # --------------------------------------------------------------------------- #

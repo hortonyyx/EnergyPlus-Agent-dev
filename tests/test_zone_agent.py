@@ -13,7 +13,10 @@ def test_zone_agent_creates_two_zones():
                 "Time Zone": 8.0,
                 "Elevation": 10.0,
             },
-            "zone_specs": "Create two zones: F1_Office (6x6m, ground floor) and F1_Corridor (6x2m, ground floor).",
+            "zone_specs": (
+                "Create two zones: Z01_F1_Office_SW (6x6m, ground floor) "
+                "and Z02_F1_Corridor_N (6x2m, ground floor)."
+            ),
             "material_specs": "",
             "schedule_specs": "",
             "construction_specs": "",
@@ -27,4 +30,4 @@ def test_zone_agent_creates_two_zones():
     out = zone_agent(AgentState(intake_output=intake))
     zones = out["config_state"].zones
     assert len(zones) == 2
-    assert {z.name for z in zones} == {"F1_Office", "F1_Corridor"}
+    assert {z.name for z in zones} == {"Z01_F1_Office_SW", "Z02_F1_Corridor_N"}

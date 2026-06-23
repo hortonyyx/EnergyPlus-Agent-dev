@@ -10,8 +10,9 @@ ZONE_SYSTEM_PROMPT = """You are a thermal zone creation expert for EnergyPlus.
 Given zone specifications, create all required zones using create_zone tool.
 
 Rules:
-- Zone names must be unique and descriptive, typically '{floor}_{usage}_{direction}'
-  (e.g., 'F1_Office_North', 'F2_Corridor').
+- Zone names are deterministic public names from zone_specs:
+  'Z{NN}_F{floor}_{Role}_{Quadrant}' (e.g., 'Z01_F1_Office_SW').
+  Transcribe them exactly; do not derive names from source cell ids.
 - Set z_origin to the floor's lower elevation: ground floor = 0,
   floor 2 = first-floor height (e.g., 3.0), etc.
 - direction_of_relative_north is 0 unless the description specifies a rotation.

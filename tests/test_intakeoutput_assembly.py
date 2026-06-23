@@ -36,8 +36,9 @@ def test_serialize_geometry_shape():
     zone_specs, surface_specs, fen_specs, used = serialize_geometry(bg)
 
     # every zone present with its z + role
-    for zone in ("F1_L", "F1_R", "F2_L", "F2_R"):
+    for zone in bg.zones:
         assert zone in zone_specs
+    assert all(zone.startswith("Z") for zone in bg.zones)
     assert "ceiling_height=3.00" in zone_specs
     assert "role: corridor" in zone_specs  # role carried through ZoneVolume
 
@@ -69,7 +70,7 @@ def test_serialize_no_windows_is_explicit():
     assert "NO windows" in fen and "Do NOT create" in fen
     assert CONSTRUCTION_VOCAB["window"] not in used  # no window construction needed
     # the early-return must still yield the full, well-formed geometry tuple
-    assert "A" in zs and "B" in zs               # zone_specs complete
+    assert zs.count("- Z") == 2                  # zone_specs complete
     assert "adjacent_zone=" in ss                # surface_specs complete (paired)
     assert CONSTRUCTION_VOCAB["ext_wall"] in used  # structural constructions present
 

@@ -20,7 +20,7 @@ def make_zone_tools(config: ConfigState) -> list[BaseTool]:
         """Create a thermal zone.
 
         Args:
-            name: Unique zone name (e.g., 'F1_Office_North').
+            name: Unique deterministic zone name (e.g., 'Z01_F1_Office_SW').
             x_origin: X of zone origin (meters).
             y_origin: Y of zone origin (meters).
             z_origin: Z of zone origin; use 0 for ground floor, floor height for higher floors.
