@@ -19,7 +19,10 @@
 
 - **MCP `mcp__codex__codex` / `mcp__codex__codex-reply`**（主力）：session 持久（`threadId` 续），适合「写代码+跑测」多步执行 + 方案审阅。
 - **CLI `codex exec -i <图>`**（看图专用）：MCP 无图像参数，识图/读平面立面必须走 CLI；大输出 redirect 到文件读 tail；坑=后台进程 stdin 不 EOF 致 codex 死等干耗（额度不掉），用 `echo "" | codex …` 喂 EOF。
-- **模型/effort（宜高不宜低）**：Codex 额度充裕，执行/审阅都用高 tier。本机 `~/.codex/config.toml` 默认 `model=gpt-5.5` + `model_reasoning_effort=xhigh`，本项目 `trust_level=trusted`——直接继承默认即高 tier，无需显式降级。
+- **模型/effort（按角色分档，不一股脑全开最高，2026-06-23 用户定）**：Codex 额度虽充裕，但 effort 按角色定，避免无谓烧最高档——
+  - **方案审阅（adversarial review）→ `gpt-5.5` + `xhigh`**：方案对错是质量命门，审阅吃满推理。
+  - **执行 → `gpt-5.5` + `medium` / `high`，主控按任务复杂度定**：spec 极清的机械执行用 `medium`；接缝多 / 判断密 / 碰不变量的执行用 `high`。**默认不再 xhigh**。
+  - **机制**：本机 `~/.codex/config.toml` 默认 `model=gpt-5.5` + `model_reasoning_effort=xhigh` + `trust_level=trusted`；per-call 降档经 MCP `config={"model_reasoning_effort":"medium"|"high"}` 覆盖（直接继承默认会是 xhigh，对执行偏高）。
 
 ## 4. 本机沙箱校准（硬坑，2026-06-21 实测）
 
