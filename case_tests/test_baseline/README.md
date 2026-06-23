@@ -13,8 +13,9 @@
 
 ## 1. 一个 baseline anchor 长什么样
 
-baseline = 一个**干净的** anchor case 的一次 **run**（`<case>/run_<注释>/`）。**case = 纯素材**
+**golden 是 run 级、不是 case 级**（2026-06-23 用户定）：golden = **(case 素材 × 一种模型配置 × 流程稳定跑出的稳定结果)** 的那**一次 run**（`<case>/run_<注释>/`）。同一 case 在不同模型配置下是不同 golden 候选；一次 run 只有在**流程稳定 + 结果可复现**时才挣得 golden，不是随便一跑就算。**case = 纯素材**
 （`case_data/`，改素材才新 case）；每次跑 = 自包含 run（单 case 可多轮）。run 内**自带**全部反馈与记录：
+（注：早于稳定 step-orchestrated 流程的老 run 无编排账本、REPORT 的 run_state 会显 `incomplete`，那些不是真 golden、不必管；真 golden 走稳定流程跑出、天然 `completed_clean`。）
 
 ```
 <case>/
