@@ -1,0 +1,202 @@
+{
+  "image_label": "West facade elevation view",
+  "image_kind": "elevation",
+  "facade_axis_note": "West facade: local x = -world y (local x increasing = world southward); local y = world z (up positive, ground z=0)",
+  "scale_origin": {
+    "world_x_m": 0.00,
+    "world_y_m": 8.00,
+    "world_z_m": 0.00,
+    "note": "local origin = NW ground corner of west facade (world x=0.00, y=8.00, z=0.00); local x increases southward (= -world y); local y increases upward (= world z)"
+  },
+
+  "strokes": [
+    {
+      "id": "S1",
+      "pen": "wall_fill",
+      "provenance": "seen",
+      "confidence": "high",
+      "dimension_refs": ["D_height_f1", "D1"],
+      "geometry": {
+        "kind": "rect",
+        "x_range_m": [0.00, 8.00],
+        "y_range_m": [0.00, 3.00]
+      },
+      "note": "F1 west facade wall body; door opening at approx x=3.40–4.60 is a floor-height door (not traced); wall_fill covers full width per pen library (door is not a window sub-face)"
+    },
+    {
+      "id": "S2",
+      "pen": "wall_fill",
+      "provenance": "seen",
+      "confidence": "high",
+      "dimension_refs": ["D_height_f2", "D1"],
+      "geometry": {
+        "kind": "rect",
+        "x_range_m": [0.00, 8.00],
+        "y_range_m": [3.00, 6.60]
+      },
+      "note": "F2 west facade wall body; window opening is a sub-face (traced separately)"
+    },
+    {
+      "id": "S3",
+      "pen": "window",
+      "provenance": "seen",
+      "confidence": "high",
+      "dimension_refs": ["D_top2", "D_f2_h"],
+      "geometry": {
+        "kind": "rect",
+        "x_range_m": [3.40, 4.60],
+        "y_range_m": [3.80, 5.60]
+      },
+      "note": "F2 west window; one window centred on west facade; x from top chain: 3400+1200=4600; start=3.40, end=4.60; sill=3.00+0.80=3.80, top=3.00+2.60=5.60 (inner left F2 chain: 800+1800=2600mm above F2 floor)"
+    }
+  ],
+
+  "dimensions": [
+    {
+      "id": "D1",
+      "text": "8000",
+      "from": [0.00, 6.60],
+      "to": [8.00, 6.60],
+      "axis": "x",
+      "note": "overall width top dimension (local x = -world y, building depth 8m)"
+    },
+    {
+      "id": "D1b",
+      "text": "8000",
+      "from": [0.00, 0.00],
+      "to": [8.00, 0.00],
+      "axis": "x",
+      "note": "overall width bottom dimension"
+    },
+    {
+      "id": "D_top1",
+      "text": "3400",
+      "from": [0.00, 6.60],
+      "to": [3.40, 6.60],
+      "axis": "x",
+      "note": "top chain: north pier (local x=0 = world north)"
+    },
+    {
+      "id": "D_top2",
+      "text": "1200",
+      "from": [3.40, 6.60],
+      "to": [4.60, 6.60],
+      "axis": "x",
+      "note": "top chain: opening width (F2 window and F1 door share same x band)"
+    },
+    {
+      "id": "D_top3",
+      "text": "3400",
+      "from": [4.60, 6.60],
+      "to": [8.00, 6.60],
+      "axis": "x",
+      "note": "top chain: south pier"
+    },
+    {
+      "id": "D_height_f1",
+      "text": "3000",
+      "from": [0.00, 0.00],
+      "to": [0.00, 3.00],
+      "axis": "z",
+      "note": "left outer height chain: F1 floor-to-floor"
+    },
+    {
+      "id": "D_height_f2",
+      "text": "3600",
+      "from": [0.00, 3.00],
+      "to": [0.00, 6.60],
+      "axis": "z",
+      "note": "left outer height chain: F2 floor-to-roof"
+    },
+    {
+      "id": "D_total_h",
+      "text": "6600",
+      "from": [0.00, 0.00],
+      "to": [0.00, 6.60],
+      "axis": "z",
+      "note": "overall building height"
+    },
+    {
+      "id": "D_f2_sill",
+      "text": "800",
+      "from": [0.00, 3.00],
+      "to": [0.00, 3.80],
+      "axis": "z",
+      "note": "inner left F2 height chain: sill above F2 floor"
+    },
+    {
+      "id": "D_f2_winh",
+      "text": "1800",
+      "from": [0.00, 3.80],
+      "to": [0.00, 5.60],
+      "axis": "z",
+      "note": "inner left F2 height chain: window height"
+    },
+    {
+      "id": "D_f2_head",
+      "text": "1000",
+      "from": [0.00, 5.60],
+      "to": [0.00, 6.60],
+      "axis": "z",
+      "note": "inner left F2 height chain: head to roof"
+    },
+    {
+      "id": "D_f1_inner",
+      "text": "3000",
+      "from": [0.00, 0.00],
+      "to": [0.00, 3.00],
+      "axis": "z",
+      "note": "inner left F1 height annotation: shows 3000 as single block (no sill sub-division visible); consistent with floor-height door opening (no sill)"
+    },
+    {
+      "id": "D_right_outer_f1",
+      "text": "3000",
+      "from": [8.00, 0.00],
+      "to": [8.00, 3.00],
+      "axis": "z",
+      "note": "right outer height chain: F1 floor-to-floor"
+    },
+    {
+      "id": "D_right_outer_f2",
+      "text": "3600",
+      "from": [8.00, 3.00],
+      "to": [8.00, 6.60],
+      "axis": "z",
+      "note": "right outer height chain: F2 floor-to-roof"
+    }
+  ],
+
+  "ocr_texts": [
+    {"id": "T1", "text": "8000", "anchor": [4.00, 7.00], "note": "overall width top"},
+    {"id": "T2", "text": "8000", "anchor": [4.00, -0.40], "note": "overall width bottom"},
+    {"id": "T3", "text": "3400", "anchor": [1.70, 7.20], "note": "top chain seg 1"},
+    {"id": "T4", "text": "1200", "anchor": [4.00, 7.20], "note": "top chain seg 2 (opening width)"},
+    {"id": "T5", "text": "3400", "anchor": [6.30, 7.20], "note": "top chain seg 3"},
+    {"id": "T6", "text": "6600", "anchor": [-0.80, 3.30], "note": "total height"},
+    {"id": "T7", "text": "3600", "anchor": [-1.20, 4.80], "note": "F2 height"},
+    {"id": "T8", "text": "3000", "anchor": [-1.20, 1.50], "note": "F1 height"},
+    {"id": "T9", "text": "800", "anchor": [-0.40, 3.40], "note": "F2 sill"},
+    {"id": "T10", "text": "1800", "anchor": [-0.40, 4.70], "note": "F2 window height"},
+    {"id": "T11", "text": "1000", "anchor": [-0.40, 6.10], "note": "F2 head"},
+    {"id": "T12", "text": "3000", "anchor": [-0.40, 1.50], "note": "F1 inner annotation (no sill sub-division)"},
+    {"id": "T13", "text": "3000", "anchor": [8.80, 1.50], "note": "F1 height (right outer)"},
+    {"id": "T14", "text": "3600", "anchor": [8.80, 4.80], "note": "F2 height (right outer)"}
+  ],
+
+  "self_check": {
+    "all_dimensions_transcribed": true,
+    "all_visible_strokes_captured": true,
+    "no_topology_inferred": true,
+    "pens_used": ["wall_fill", "window"],
+    "unknowns_noted": [
+      "F1 west facade opening: a floor-height double-door (visible as tall cyan opening with vertical mullion at centre, floor-to-~2.8m approx); recognized as door NOT window — excluded from strokes per pen library; logged in uncaptured_visual_elements",
+      "F1 inner left height chain shows a single '3000' annotation without sill sub-divisions, consistent with a door (no sill); contrast with East facade F1 which shows 200+1800+1000 for a window",
+      "outline not drawn separately — wall_fill edges coincide with facade outline"
+    ],
+    "uncaptured_visual_elements": [
+      "F1 west facade door (floor-height, double-panel, approx x=3.40–4.60, y=0.00 to ~2.80): recognized as door, NOT traced as window pen per pen library; the wall_fill S1 covers full width",
+      "storey line at y=3.00 dividing F1 and F2 wall bodies — delimiter, not a separate pen stroke",
+      "scale text not visible in this image"
+    ]
+  }
+}

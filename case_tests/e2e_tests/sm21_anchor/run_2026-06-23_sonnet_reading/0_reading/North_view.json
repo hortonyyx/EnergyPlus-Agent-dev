@@ -1,0 +1,408 @@
+{
+  "image_label": "North facade elevation view",
+  "image_kind": "elevation",
+  "facade_axis_note": "North facade: local x = -world x (local x increasing = world westward); local y = world z (up positive, ground z=0)",
+  "scale_origin": {
+    "world_x_m": 15.00,
+    "world_y_m": 8.00,
+    "world_z_m": 0.00,
+    "note": "local origin = NE ground corner of north facade (world x=15.00, y=8.00, z=0.00); local x increases westward (= -world x); local y increases upward (= world z)"
+  },
+
+  "strokes": [
+    {
+      "id": "S1",
+      "pen": "wall_fill",
+      "provenance": "seen",
+      "confidence": "high",
+      "dimension_refs": ["D_height_f1", "D1"],
+      "geometry": {
+        "kind": "rect",
+        "x_range_m": [0.00, 15.00],
+        "y_range_m": [0.00, 3.00]
+      },
+      "note": "F1 north facade wall body; dark filled area between ground and F2 floor line"
+    },
+    {
+      "id": "S2",
+      "pen": "wall_fill",
+      "provenance": "seen",
+      "confidence": "high",
+      "dimension_refs": ["D_height_f2", "D1"],
+      "geometry": {
+        "kind": "rect",
+        "x_range_m": [0.00, 15.00],
+        "y_range_m": [3.00, 6.60]
+      },
+      "note": "F2 north facade wall body; dark filled area between F2 floor line and roof"
+    },
+    {
+      "id": "S3",
+      "pen": "window",
+      "provenance": "seen",
+      "confidence": "high",
+      "dimension_refs": ["D_top2", "D_f2_h"],
+      "geometry": {
+        "kind": "rect",
+        "x_range_m": [1.95, 5.55],
+        "y_range_m": [3.80, 5.60]
+      },
+      "note": "F2 north window 1 (west in local coords = east in world); large horizontal window; x from top chain: start=1.95, end=1.95+3.60=5.55; sill=3.00+0.80=3.80, top=3.00+2.60=5.60 (800+1800=2600mm above F2 floor)"
+    },
+    {
+      "id": "S4",
+      "pen": "window",
+      "provenance": "seen",
+      "confidence": "high",
+      "dimension_refs": ["D_top4", "D_f2_h"],
+      "geometry": {
+        "kind": "rect",
+        "x_range_m": [9.45, 13.05],
+        "y_range_m": [3.80, 5.60]
+      },
+      "note": "F2 north window 2 (east in local coords = west in world); large horizontal window; x from top chain: start=15.00-1.95-3.60=9.45, end=13.05; same y_range as S3"
+    },
+    {
+      "id": "S5",
+      "pen": "window",
+      "provenance": "seen",
+      "confidence": "high",
+      "dimension_refs": ["D_bot2", "D_f1_h"],
+      "geometry": {
+        "kind": "rect",
+        "x_range_m": [1.24, 3.64],
+        "y_range_m": [0.40, 2.00]
+      },
+      "note": "F1 north window 1 (west in local coords); x from bottom chain: start=1.24, end=1.24+2.40=3.64; sill=0.40m, top=2.00m from inner height chain (400+1600=2000mm)"
+    },
+    {
+      "id": "S6",
+      "pen": "window",
+      "provenance": "seen",
+      "confidence": "high",
+      "dimension_refs": ["D_bot4", "D_f1_h"],
+      "geometry": {
+        "kind": "rect",
+        "x_range_m": [6.30, 8.70],
+        "y_range_m": [0.40, 2.00]
+      },
+      "note": "F1 north window 2 (centre); x from bottom chain: start=1.24+2.40+2.66=6.30, end=6.30+2.40=8.70; same y_range"
+    },
+    {
+      "id": "S7",
+      "pen": "window",
+      "provenance": "seen",
+      "confidence": "high",
+      "dimension_refs": ["D_bot6", "D_f1_h"],
+      "geometry": {
+        "kind": "rect",
+        "x_range_m": [11.36, 13.76],
+        "y_range_m": [0.40, 2.00]
+      },
+      "note": "F1 north window 3 (east in local coords); x from bottom chain: start=1.24+2.40+2.66+2.40+2.66=11.36, end=11.36+2.40=13.76; same y_range"
+    }
+  ],
+
+  "dimensions": [
+    {
+      "id": "D1",
+      "text": "15000",
+      "from": [0.00, 6.60],
+      "to": [15.00, 6.60],
+      "axis": "x",
+      "note": "overall width top dimension (local x)"
+    },
+    {
+      "id": "D1b",
+      "text": "15000",
+      "from": [0.00, 0.00],
+      "to": [15.00, 0.00],
+      "axis": "x",
+      "note": "overall width bottom dimension"
+    },
+    {
+      "id": "D_top1",
+      "text": "1950",
+      "from": [0.00, 6.60],
+      "to": [1.95, 6.60],
+      "axis": "x",
+      "note": "top chain: east pier (local x=0 = world east)"
+    },
+    {
+      "id": "D_top2",
+      "text": "3600",
+      "from": [1.95, 6.60],
+      "to": [5.55, 6.60],
+      "axis": "x",
+      "note": "top chain: F2 window 1 width"
+    },
+    {
+      "id": "D_top3",
+      "text": "3900",
+      "from": [5.55, 6.60],
+      "to": [9.45, 6.60],
+      "axis": "x",
+      "note": "top chain: central pier between F2 windows"
+    },
+    {
+      "id": "D_top4",
+      "text": "3600",
+      "from": [9.45, 6.60],
+      "to": [13.05, 6.60],
+      "axis": "x",
+      "note": "top chain: F2 window 2 width"
+    },
+    {
+      "id": "D_top5",
+      "text": "1950",
+      "from": [13.05, 6.60],
+      "to": [15.00, 6.60],
+      "axis": "x",
+      "note": "top chain: west pier (local x=15 = world west)"
+    },
+    {
+      "id": "D_bot1",
+      "text": "1240",
+      "from": [0.00, 0.00],
+      "to": [1.24, 0.00],
+      "axis": "x",
+      "note": "bottom chain: east end pier"
+    },
+    {
+      "id": "D_bot2",
+      "text": "2400",
+      "from": [1.24, 0.00],
+      "to": [3.64, 0.00],
+      "axis": "x",
+      "note": "bottom chain: F1 window 1 width"
+    },
+    {
+      "id": "D_bot3",
+      "text": "2660",
+      "from": [3.64, 0.00],
+      "to": [6.30, 0.00],
+      "axis": "x",
+      "note": "bottom chain: pier between F1 windows 1 and 2"
+    },
+    {
+      "id": "D_bot4",
+      "text": "2400",
+      "from": [6.30, 0.00],
+      "to": [8.70, 0.00],
+      "axis": "x",
+      "note": "bottom chain: F1 window 2 width"
+    },
+    {
+      "id": "D_bot5",
+      "text": "2660",
+      "from": [8.70, 0.00],
+      "to": [11.36, 0.00],
+      "axis": "x",
+      "note": "bottom chain: pier between F1 windows 2 and 3"
+    },
+    {
+      "id": "D_bot6",
+      "text": "2400",
+      "from": [11.36, 0.00],
+      "to": [13.76, 0.00],
+      "axis": "x",
+      "note": "bottom chain: F1 window 3 width"
+    },
+    {
+      "id": "D_bot7",
+      "text": "1240",
+      "from": [13.76, 0.00],
+      "to": [15.00, 0.00],
+      "axis": "x",
+      "note": "bottom chain: west end pier"
+    },
+    {
+      "id": "D_height_f1",
+      "text": "3000",
+      "from": [0.00, 0.00],
+      "to": [0.00, 3.00],
+      "axis": "z",
+      "note": "left outer height chain: F1 floor-to-floor"
+    },
+    {
+      "id": "D_height_f2",
+      "text": "3600",
+      "from": [0.00, 3.00],
+      "to": [0.00, 6.60],
+      "axis": "z",
+      "note": "left outer height chain: F2 floor-to-roof"
+    },
+    {
+      "id": "D_total_h",
+      "text": "6600",
+      "from": [0.00, 0.00],
+      "to": [0.00, 6.60],
+      "axis": "z",
+      "note": "overall building height"
+    },
+    {
+      "id": "D_f2_sill",
+      "text": "800",
+      "from": [0.00, 3.00],
+      "to": [0.00, 3.80],
+      "axis": "z",
+      "note": "inner left F2 height chain: sill above F2 floor"
+    },
+    {
+      "id": "D_f2_winh",
+      "text": "1800",
+      "from": [0.00, 3.80],
+      "to": [0.00, 5.60],
+      "axis": "z",
+      "note": "inner left F2 height chain: window height"
+    },
+    {
+      "id": "D_f2_head",
+      "text": "1000",
+      "from": [0.00, 5.60],
+      "to": [0.00, 6.60],
+      "axis": "z",
+      "note": "inner left F2 height chain: head to roof"
+    },
+    {
+      "id": "D_f1_sill",
+      "text": "400",
+      "from": [0.00, 0.00],
+      "to": [0.00, 0.40],
+      "axis": "z",
+      "note": "inner left F1 height chain: sill"
+    },
+    {
+      "id": "D_f1_winh",
+      "text": "1600",
+      "from": [0.00, 0.40],
+      "to": [0.00, 2.00],
+      "axis": "z",
+      "note": "inner left F1 height chain: window height"
+    },
+    {
+      "id": "D_f1_head",
+      "text": "1000",
+      "from": [0.00, 2.00],
+      "to": [0.00, 3.00],
+      "axis": "z",
+      "note": "inner left F1 height chain: head to F2 floor"
+    },
+    {
+      "id": "D_right_outer_f1",
+      "text": "3000",
+      "from": [15.00, 0.00],
+      "to": [15.00, 3.00],
+      "axis": "z",
+      "note": "right outer height chain: F1 floor-to-floor"
+    },
+    {
+      "id": "D_right_outer_f2",
+      "text": "3600",
+      "from": [15.00, 3.00],
+      "to": [15.00, 6.60],
+      "axis": "z",
+      "note": "right outer height chain: F2 floor-to-roof"
+    },
+    {
+      "id": "D_right_f2_sill",
+      "text": "800",
+      "from": [15.00, 3.00],
+      "to": [15.00, 3.80],
+      "axis": "z",
+      "note": "inner right F2 sill (confirmed same as left)"
+    },
+    {
+      "id": "D_right_f2_winh",
+      "text": "1800",
+      "from": [15.00, 3.80],
+      "to": [15.00, 5.60],
+      "axis": "z",
+      "note": "inner right F2 window height"
+    },
+    {
+      "id": "D_right_f2_head",
+      "text": "1000",
+      "from": [15.00, 5.60],
+      "to": [15.00, 6.60],
+      "axis": "z",
+      "note": "inner right F2 head"
+    },
+    {
+      "id": "D_right_f1_sill",
+      "text": "400",
+      "from": [15.00, 0.00],
+      "to": [15.00, 0.40],
+      "axis": "z",
+      "note": "inner right F1 sill"
+    },
+    {
+      "id": "D_right_f1_winh",
+      "text": "1600",
+      "from": [15.00, 0.40],
+      "to": [15.00, 2.00],
+      "axis": "z",
+      "note": "inner right F1 window height"
+    },
+    {
+      "id": "D_right_f1_head",
+      "text": "1000",
+      "from": [15.00, 2.00],
+      "to": [15.00, 3.00],
+      "axis": "z",
+      "note": "inner right F1 head"
+    }
+  ],
+
+  "ocr_texts": [
+    {"id": "T1", "text": "15000", "anchor": [7.50, 7.00], "note": "overall width top"},
+    {"id": "T2", "text": "15000", "anchor": [7.50, -0.40], "note": "overall width bottom"},
+    {"id": "T3", "text": "1950", "anchor": [0.975, 7.20], "note": "top chain seg 1"},
+    {"id": "T4", "text": "3600", "anchor": [3.75, 7.20], "note": "top chain seg 2"},
+    {"id": "T5", "text": "3900", "anchor": [7.50, 7.20], "note": "top chain seg 3 (centre pier)"},
+    {"id": "T6", "text": "3600", "anchor": [11.25, 7.20], "note": "top chain seg 4"},
+    {"id": "T7", "text": "1950", "anchor": [14.025, 7.20], "note": "top chain seg 5"},
+    {"id": "T8", "text": "1240", "anchor": [0.62, -0.50], "note": "bottom chain seg 1"},
+    {"id": "T9", "text": "2400", "anchor": [2.44, -0.50], "note": "bottom chain seg 2"},
+    {"id": "T10", "text": "2660", "anchor": [4.97, -0.50], "note": "bottom chain seg 3"},
+    {"id": "T11", "text": "2400", "anchor": [7.50, -0.50], "note": "bottom chain seg 4"},
+    {"id": "T12", "text": "2660", "anchor": [10.03, -0.50], "note": "bottom chain seg 5"},
+    {"id": "T13", "text": "2400", "anchor": [12.56, -0.50], "note": "bottom chain seg 6"},
+    {"id": "T14", "text": "1240", "anchor": [14.38, -0.50], "note": "bottom chain seg 7"},
+    {"id": "T15", "text": "6600", "anchor": [-0.80, 3.30], "note": "total height"},
+    {"id": "T16", "text": "3600", "anchor": [-1.20, 4.80], "note": "F2 height"},
+    {"id": "T17", "text": "3000", "anchor": [-1.20, 1.50], "note": "F1 height"},
+    {"id": "T18", "text": "800", "anchor": [-0.40, 3.40], "note": "F2 sill (left inner)"},
+    {"id": "T19", "text": "1800", "anchor": [-0.40, 4.70], "note": "F2 window height (left inner)"},
+    {"id": "T20", "text": "1000", "anchor": [-0.40, 6.10], "note": "F2 head (left inner)"},
+    {"id": "T21", "text": "400", "anchor": [-0.40, 0.20], "note": "F1 sill (left inner)"},
+    {"id": "T22", "text": "1600", "anchor": [-0.40, 1.20], "note": "F1 window height (left inner)"},
+    {"id": "T23", "text": "1000", "anchor": [-0.40, 2.50], "note": "F1 head (left inner)"},
+    {"id": "T24", "text": "3000", "anchor": [16.00, 1.50], "note": "F1 height (right outer)"},
+    {"id": "T25", "text": "3600", "anchor": [16.00, 4.80], "note": "F2 height (right outer)"},
+    {"id": "T26", "text": "800", "anchor": [15.40, 3.40], "note": "F2 sill (right inner)"},
+    {"id": "T27", "text": "1800", "anchor": [15.40, 4.70], "note": "F2 window height (right inner)"},
+    {"id": "T28", "text": "1000", "anchor": [15.40, 6.10], "note": "F2 head (right inner)"},
+    {"id": "T29", "text": "400", "anchor": [15.40, 0.20], "note": "F1 sill (right inner)"},
+    {"id": "T30", "text": "1600", "anchor": [15.40, 1.20], "note": "F1 window height (right inner)"},
+    {"id": "T31", "text": "1000", "anchor": [15.40, 2.50], "note": "F1 head (right inner)"}
+  ],
+
+  "self_check": {
+    "all_dimensions_transcribed": true,
+    "all_visible_strokes_captured": true,
+    "no_topology_inferred": true,
+    "pens_used": ["wall_fill", "window"],
+    "unknowns_noted": [
+      "local x increases westward per facade_axis_note; correction stage will apply sign conversion to world x",
+      "F2 has 2 large windows (3600mm wide each) on north facade vs 4 small windows (1200mm wide each) on south facade — different fenestration pattern between floors on north vs south",
+      "F1 has 3 windows on north facade same width (2400mm each) as south facade large windows; different height chains (south: some 900/600/1500, north: all 400/1600/1000) — no south small window on north facade",
+      "outline not drawn separately — wall_fill edges coincide with facade outline"
+    ],
+    "uncaptured_visual_elements": [
+      "storey line at y=3.00 dividing F1 and F2 wall bodies — delimiter between wall_fill strokes, not a separate pen stroke",
+      "scale text and title block not visible in this image",
+      "no door visible on north facade"
+    ]
+  }
+}

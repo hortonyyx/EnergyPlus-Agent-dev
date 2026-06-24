@@ -1,0 +1,775 @@
+{
+  "case": "sm21_anchor",
+  "run": "run_2026-06-23_sonnet_reading",
+  "recorded": "2026-06-23",
+  "orchestrator": "opus-4.8",
+  "models": {
+    "intake_correction": "deepseek-v4-pro",
+    "default": "deepseek-v4-pro"
+  },
+  "geometry": {},
+  "geometry_digest": null,
+  "geometry_approved": false,
+  "gates": {
+    "1_correction": {
+      "pass": 0,
+      "flag": 0,
+      "block": 1,
+      "na": 0,
+      "skip": 0
+    },
+    "2_modelling": {
+      "pass": 0,
+      "flag": 0,
+      "block": 1,
+      "na": 0,
+      "skip": 0
+    },
+    "3_split_pairing": {
+      "pass": 0,
+      "flag": 0,
+      "block": 1,
+      "na": 0,
+      "skip": 0
+    },
+    "4_mep": {
+      "pass": 0,
+      "flag": 0,
+      "block": 1,
+      "na": 0,
+      "skip": 0
+    },
+    "5_intakeoutput": {
+      "pass": 0,
+      "flag": 0,
+      "block": 1,
+      "na": 0,
+      "skip": 0
+    },
+    "0_reading": {
+      "pass": 58,
+      "flag": 0,
+      "block": 0,
+      "na": 14,
+      "skip": 0
+    }
+  },
+  "flags": [],
+  "blocking": [
+    {
+      "stage": "1_correction",
+      "check": "1_correction.build",
+      "message": "required artifact missing: 1_correction/correction_geometry_snapped.json"
+    },
+    {
+      "stage": "2_modelling",
+      "check": "2_modelling.build",
+      "message": "required artifact missing: 2_modelling/building_geometry.json"
+    },
+    {
+      "stage": "3_split_pairing",
+      "check": "3_split_pairing.build",
+      "message": "required artifact missing: 3_split_pairing/geometry_specs.md"
+    },
+    {
+      "stage": "4_mep",
+      "check": "4_mep.build",
+      "message": "required artifact missing: 4_mep/mep_output.json"
+    },
+    {
+      "stage": "5_intakeoutput",
+      "check": "5_intakeoutput.build",
+      "message": "required artifact missing: 5_intakeoutput/intake_output.json"
+    }
+  ],
+  "judge_verdicts": [
+    {
+      "stage": "0_reading",
+      "attempt": 1,
+      "blocking": true,
+      "root_stage": "0_reading"
+    },
+    {
+      "stage": "0_reading",
+      "attempt": 2,
+      "blocking": true,
+      "root_stage": "0_reading"
+    },
+    {
+      "stage": "0_reading",
+      "attempt": 3,
+      "blocking": true,
+      "root_stage": "0_reading"
+    }
+  ],
+  "draws": {
+    "0_reading": 3
+  },
+  "orchestration": {
+    "0_reading": {
+      "stage": "0_reading",
+      "status": "quarantined",
+      "attempts_used": 3,
+      "accepted_attempt": 3,
+      "message": "judge blocked, root='0_reading' (manual) but re-read budget (3) is spent — quarantine for human triage",
+      "route_target": "0_reading",
+      "gate1": {
+        "passed": true,
+        "block": 0,
+        "flag": 0
+      }
+    }
+  },
+  "stop_reason": "quarantined@0_reading",
+  "ep": null,
+  "corrections_summary": {
+    "sidecar_path": "1_correction/corrections.json",
+    "present": false,
+    "parse_status": "missing",
+    "counts": {
+      "corrections": 0,
+      "conflicts": 0,
+      "unsupported": 0
+    },
+    "by_rule_id": {},
+    "by_stage": {},
+    "corrections": {
+      "total": 0,
+      "shown": 0,
+      "cap": 20,
+      "rows": []
+    },
+    "conflicts": [],
+    "unsupported": []
+  },
+  "evidence_index": [
+    {
+      "id": "E:gate:1_correction:1_correction.build",
+      "kind": "gate",
+      "source": "1_correction",
+      "payload": {
+        "report_key": "1_correction",
+        "stage": "1_correction",
+        "check_id": "1_correction.build",
+        "status": "error",
+        "layer": "invariant",
+        "disposition": "block",
+        "message": "required artifact missing: 1_correction/correction_geometry_snapped.json",
+        "evidence": {}
+      }
+    },
+    {
+      "id": "E:gate:2_modelling:2_modelling.build",
+      "kind": "gate",
+      "source": "2_modelling",
+      "payload": {
+        "report_key": "2_modelling",
+        "stage": "2_modelling",
+        "check_id": "2_modelling.build",
+        "status": "error",
+        "layer": "invariant",
+        "disposition": "block",
+        "message": "required artifact missing: 2_modelling/building_geometry.json",
+        "evidence": {}
+      }
+    },
+    {
+      "id": "E:gate:3_split_pairing:3_split_pairing.build",
+      "kind": "gate",
+      "source": "3_split_pairing",
+      "payload": {
+        "report_key": "3_split_pairing",
+        "stage": "3_split_pairing",
+        "check_id": "3_split_pairing.build",
+        "status": "error",
+        "layer": "invariant",
+        "disposition": "block",
+        "message": "required artifact missing: 3_split_pairing/geometry_specs.md",
+        "evidence": {}
+      }
+    },
+    {
+      "id": "E:gate:4_mep:4_mep.build",
+      "kind": "gate",
+      "source": "4_mep",
+      "payload": {
+        "report_key": "4_mep",
+        "stage": "4_mep",
+        "check_id": "4_mep.build",
+        "status": "error",
+        "layer": "invariant",
+        "disposition": "block",
+        "message": "required artifact missing: 4_mep/mep_output.json",
+        "evidence": {}
+      }
+    },
+    {
+      "id": "E:gate:5_intakeoutput:5_intakeoutput.build",
+      "kind": "gate",
+      "source": "5_intakeoutput",
+      "payload": {
+        "report_key": "5_intakeoutput",
+        "stage": "5_intakeoutput",
+        "check_id": "5_intakeoutput.build",
+        "status": "error",
+        "layer": "invariant",
+        "disposition": "block",
+        "message": "required artifact missing: 5_intakeoutput/intake_output.json",
+        "evidence": {}
+      }
+    },
+    {
+      "id": "E:judge:0_reading:001:c1",
+      "kind": "judge",
+      "source": "0_reading/attempts/001/judge.json",
+      "payload": {
+        "stage": "0_reading",
+        "attempt": "001",
+        "criterion_ordinal": 1,
+        "criterion": {
+          "criterion": "missed real element",
+          "status": "pass",
+          "recoverability": null,
+          "evidence": "Envelope (15.00x8.00), both corridor walls, north-band partitions, and per-facade windows are all present on both plans. No under-tracing observed; the failure mode here is over-tracing (see clutter)."
+        },
+        "root_stage": "0_reading",
+        "rubric_id": "J0"
+      }
+    },
+    {
+      "id": "E:judge:0_reading:001:c2",
+      "kind": "judge",
+      "source": "0_reading/attempts/001/judge.json",
+      "payload": {
+        "stage": "0_reading",
+        "attempt": "001",
+        "criterion_ordinal": 2,
+        "criterion": {
+          "criterion": "clutter traced as structure",
+          "status": "severe",
+          "recoverability": "unrecoverable",
+          "evidence": "1f_view south band over-segmented: 8 'south interior partition' walls S9-S16 at x=1.44/3.44/5.00/6.30/8.70/10.00/11.36/13.76. Of these, 3.44/6.30/11.36 coincide with the South-facade window x-positions (gt 3.44/6.3/11.36) and the rest are bottom dimension-chain cumulative ticks. Real south band = 3 rooms / 2 partitions (x=5,10), confirmed by (a) gt F1_S1/S2/S3 [0-5][5-10][10-15], (b) testdata thermal_zones=7 = 3 south + corridor + 3 north, and (c) Sonnet's OWN north-band twins S7/S8 at x=4.94/9.82. So 6 spurious walls were traced from window edges + dimension ticks. This is an EXISTENCE error (fabricated walls), not a value/coordinate error, so condition 1 of correction-recoverability fails -> unrecoverable; correction is image-blind and cannot know which of the 8 are real."
+        },
+        "root_stage": "0_reading",
+        "rubric_id": "J0"
+      }
+    },
+    {
+      "id": "E:judge:0_reading:001:c3",
+      "kind": "judge",
+      "source": "0_reading/attempts/001/judge.json",
+      "payload": {
+        "stage": "0_reading",
+        "attempt": "001",
+        "criterion_ordinal": 3,
+        "criterion": {
+          "criterion": "pen misclassified",
+          "status": "pass",
+          "recoverability": null,
+          "evidence": "Walls vs windows cleanly separated on both plans (W1-W7 window pen distinct from S* wall pen); no door emitted as window pen."
+        },
+        "root_stage": "0_reading",
+        "rubric_id": "J0"
+      }
+    },
+    {
+      "id": "E:judge:0_reading:001:c4",
+      "kind": "judge",
+      "source": "0_reading/attempts/001/judge.json",
+      "payload": {
+        "stage": "0_reading",
+        "attempt": "001",
+        "criterion_ordinal": 4,
+        "criterion": {
+          "criterion": "number copied wrong",
+          "status": "pass",
+          "recoverability": null,
+          "evidence": "Spot-checked transcriptions match the drawing: overall 15000x8000, north chain 1240/2400/1300..., interior 3000/1500/250 corridor build-up, F1 height 3000. No mis-OCR found on the values checked (full re-OCR deferred to the re-read)."
+        },
+        "root_stage": "0_reading",
+        "rubric_id": "J0"
+      }
+    },
+    {
+      "id": "E:judge:0_reading:001:c5",
+      "kind": "judge",
+      "source": "0_reading/attempts/001/judge.json",
+      "payload": {
+        "stage": "0_reading",
+        "attempt": "001",
+        "criterion_ordinal": 5,
+        "criterion": {
+          "criterion": "image-local orientation self-consistent",
+          "status": "insufficient_evidence",
+          "recoverability": null,
+          "evidence": "Prioritized plan adjudication this pass (the blocking finding is on 1f). Elevation per-facade window counts (S7/N5/E2/W1) match gt facade totals exactly, a positive signal, but per-image orientation declarations were not pixel-verified; will be covered by the full blind re-read."
+        },
+        "root_stage": "0_reading",
+        "rubric_id": "J0"
+      }
+    },
+    {
+      "id": "E:judge:0_reading:001:c6",
+      "kind": "judge",
+      "source": "0_reading/attempts/001/judge.json",
+      "payload": {
+        "stage": "0_reading",
+        "attempt": "001",
+        "criterion_ordinal": 6,
+        "criterion": {
+          "criterion": "door healing wrong",
+          "status": "minor",
+          "recoverability": "unrecoverable",
+          "evidence": "Door openings are mentioned inline in stroke provenance as 'healed', which is the correct topological treatment, but 1f_view uncaptured_visual_elements[] is EMPTY -- the heal events (west entry door, interior corridor doors) were not logged per the discipline (guide: note healing in uncaptured). Discipline lapse, not a geometry error; non-blocking."
+        },
+        "root_stage": "0_reading",
+        "rubric_id": "J0"
+      }
+    },
+    {
+      "id": "E:judge:0_reading:001:c7",
+      "kind": "judge",
+      "source": "0_reading/attempts/001/judge.json",
+      "payload": {
+        "stage": "0_reading",
+        "attempt": "001",
+        "criterion_ordinal": 7,
+        "criterion": {
+          "criterion": "whole-region missing / misplaced",
+          "status": "pass",
+          "recoverability": null,
+          "evidence": "All bands/floors present and in plausible positions; the defect is over-segmentation within the 1f south band, not a missing or displaced region."
+        },
+        "root_stage": "0_reading",
+        "rubric_id": "J0"
+      }
+    },
+    {
+      "id": "E:judge:0_reading:002:c1",
+      "kind": "judge",
+      "source": "0_reading/attempts/002/judge.json",
+      "payload": {
+        "stage": "0_reading",
+        "attempt": "002",
+        "criterion_ordinal": 1,
+        "criterion": {
+          "criterion": "clutter traced as structure",
+          "status": "severe",
+          "recoverability": "unrecoverable",
+          "evidence": "1f_view STILL over-segmented on re-read: 16 wall strokes = 4 perimeter + 2 corridor + 10 interior partitions (Sonnet's own summary). gt floor 1 has only 4 interior partitions (north x=5,10; south x=5,10) for 7 zones; testdata thermal_zones=7. ~6 partitions are spurious. SMOKING GUN: most wall strokes carry provenance='dimension_derived' -- Sonnet is placing partitions at dimension-chain segment boundaries rather than at actually-drawn wall lines. This is exactly the documented sm21 failure (logs/review/request/2026-06-21_sonnet_plan_recognition_diagnosis.md: 'Both Sonnet attempts over-read plan sub-dimension positions as partitions'). Existence error -> unrecoverable. The generic 'dimension ticks are not walls' reinforcement did NOT fix it (identical to attempt 1) -> model x case perception limit, not sampling variance."
+        },
+        "root_stage": "0_reading",
+        "rubric_id": "J0"
+      }
+    },
+    {
+      "id": "E:judge:0_reading:002:c2",
+      "kind": "judge",
+      "source": "0_reading/attempts/002/judge.json",
+      "payload": {
+        "stage": "0_reading",
+        "attempt": "002",
+        "criterion_ordinal": 2,
+        "criterion": {
+          "criterion": "missed real element",
+          "status": "pass",
+          "recoverability": null,
+          "evidence": "Over-tracing, not under-tracing; envelope/corridor/windows present."
+        },
+        "root_stage": "0_reading",
+        "rubric_id": "J0"
+      }
+    },
+    {
+      "id": "E:judge:0_reading:002:c3",
+      "kind": "judge",
+      "source": "0_reading/attempts/002/judge.json",
+      "payload": {
+        "stage": "0_reading",
+        "attempt": "002",
+        "criterion_ordinal": 3,
+        "criterion": {
+          "criterion": "pen misclassified",
+          "status": "pass",
+          "recoverability": null,
+          "evidence": "Walls vs windows separated; elevations use wall_fill/window/outline."
+        },
+        "root_stage": "0_reading",
+        "rubric_id": "J0"
+      }
+    },
+    {
+      "id": "E:judge:0_reading:002:c4",
+      "kind": "judge",
+      "source": "0_reading/attempts/002/judge.json",
+      "payload": {
+        "stage": "0_reading",
+        "attempt": "002",
+        "criterion_ordinal": 4,
+        "criterion": {
+          "criterion": "number copied wrong",
+          "status": "pass",
+          "recoverability": null,
+          "evidence": "Spot-checked dimension transcriptions consistent (15000/8000, corridor build-up, East F1 1800 vs S/N 1600 honestly flagged as image discrepancy)."
+        },
+        "root_stage": "0_reading",
+        "rubric_id": "J0"
+      }
+    },
+    {
+      "id": "E:judge:0_reading:002:c5",
+      "kind": "judge",
+      "source": "0_reading/attempts/002/judge.json",
+      "payload": {
+        "stage": "0_reading",
+        "attempt": "002",
+        "criterion_ordinal": 5,
+        "criterion": {
+          "criterion": "image-local orientation self-consistent",
+          "status": "pass",
+          "recoverability": null,
+          "evidence": "Elevation window counts match gt facade totals exactly: South=7, North=5, East=2, West=1. Sonnet's ELEVATION reading is excellent; only the furniture/dimension-dense PLANS over-segment."
+        },
+        "root_stage": "0_reading",
+        "rubric_id": "J0"
+      }
+    },
+    {
+      "id": "E:judge:0_reading:002:c6",
+      "kind": "judge",
+      "source": "0_reading/attempts/002/judge.json",
+      "payload": {
+        "stage": "0_reading",
+        "attempt": "002",
+        "criterion_ordinal": 6,
+        "criterion": {
+          "criterion": "door healing wrong",
+          "status": "pass",
+          "recoverability": null,
+          "evidence": "This attempt logs healed door openings (7 on 1f) and elevation doors (South, West) per discipline -- improvement over attempt 1's empty uncaptured list."
+        },
+        "root_stage": "0_reading",
+        "rubric_id": "J0"
+      }
+    },
+    {
+      "id": "E:judge:0_reading:002:c7",
+      "kind": "judge",
+      "source": "0_reading/attempts/002/judge.json",
+      "payload": {
+        "stage": "0_reading",
+        "attempt": "002",
+        "criterion_ordinal": 7,
+        "criterion": {
+          "criterion": "whole-region missing / misplaced",
+          "status": "pass",
+          "recoverability": null,
+          "evidence": "All bands/floors present and positioned correctly; defect is intra-band over-segmentation only."
+        },
+        "root_stage": "0_reading",
+        "rubric_id": "J0"
+      }
+    },
+    {
+      "id": "E:judge:0_reading:003:c1",
+      "kind": "judge",
+      "source": "0_reading/attempts/003/judge.json",
+      "payload": {
+        "stage": "0_reading",
+        "attempt": "003",
+        "criterion_ordinal": 1,
+        "criterion": {
+          "criterion": "clutter traced as structure",
+          "status": "severe",
+          "recoverability": "unrecoverable",
+          "evidence": "MUCH improved but not clean. 1f dropped from 16 walls (att1/att2) to 10 walls; 2f is now CORRECT (2 north + corridor + 4 south = 7, partitions ~3.39/7.5/11.61 ~= gt 3.75/7.5/11.25). Residual defect: 1f south band still has a spurious partition at x=3.44 (= the South-F1 small-window left edge / bottom dimension-chain cumulative 540+900+2000=3440), splitting the [0,5] SW office into two -> floor 1 = 8 zones vs gt 7. The window-edge was still read as a wall. Existence error -> unrecoverable. The generic 'existence comes from a drawn wall line, not a dimension' discipline largely worked (eliminated ~6 of 7 spurious partitions and all of 2f) but one window-edge partition survived on 1f."
+        },
+        "root_stage": "0_reading",
+        "rubric_id": "J0"
+      }
+    },
+    {
+      "id": "E:judge:0_reading:003:c2",
+      "kind": "judge",
+      "source": "0_reading/attempts/003/judge.json",
+      "payload": {
+        "stage": "0_reading",
+        "attempt": "003",
+        "criterion_ordinal": 2,
+        "criterion": {
+          "criterion": "missed real element",
+          "status": "pass",
+          "recoverability": null,
+          "evidence": "Envelope, corridor, windows all present; failure mode is residual over-tracing, not under-tracing."
+        },
+        "root_stage": "0_reading",
+        "rubric_id": "J0"
+      }
+    },
+    {
+      "id": "E:judge:0_reading:003:c3",
+      "kind": "judge",
+      "source": "0_reading/attempts/003/judge.json",
+      "payload": {
+        "stage": "0_reading",
+        "attempt": "003",
+        "criterion_ordinal": 3,
+        "criterion": {
+          "criterion": "pen misclassified",
+          "status": "pass",
+          "recoverability": null,
+          "evidence": "Walls vs windows separated; elevations use wall_fill/window/outline correctly."
+        },
+        "root_stage": "0_reading",
+        "rubric_id": "J0"
+      }
+    },
+    {
+      "id": "E:judge:0_reading:003:c4",
+      "kind": "judge",
+      "source": "0_reading/attempts/003/judge.json",
+      "payload": {
+        "stage": "0_reading",
+        "attempt": "003",
+        "criterion_ordinal": 4,
+        "criterion": {
+          "criterion": "number copied wrong",
+          "status": "pass",
+          "recoverability": null,
+          "evidence": "Dimensions transcribed faithfully incl. honest anomaly flags (East F1 sill=200, 2f bottom chain 360+560 sums 200mm over -> logged unknown)."
+        },
+        "root_stage": "0_reading",
+        "rubric_id": "J0"
+      }
+    },
+    {
+      "id": "E:judge:0_reading:003:c5",
+      "kind": "judge",
+      "source": "0_reading/attempts/003/judge.json",
+      "payload": {
+        "stage": "0_reading",
+        "attempt": "003",
+        "criterion_ordinal": 5,
+        "criterion": {
+          "criterion": "image-local orientation self-consistent",
+          "status": "pass",
+          "recoverability": null,
+          "evidence": "Elevation window counts match gt facade totals exactly: South=7, North=5, East=2, West=1. Sonnet's elevation reading is reliably correct."
+        },
+        "root_stage": "0_reading",
+        "rubric_id": "J0"
+      }
+    },
+    {
+      "id": "E:judge:0_reading:003:c6",
+      "kind": "judge",
+      "source": "0_reading/attempts/003/judge.json",
+      "payload": {
+        "stage": "0_reading",
+        "attempt": "003",
+        "criterion_ordinal": 6,
+        "criterion": {
+          "criterion": "door healing wrong",
+          "status": "pass",
+          "recoverability": null,
+          "evidence": "West F1 floor-height double-door and South F1 door correctly excluded from window pen and logged; door heals noted on partitions."
+        },
+        "root_stage": "0_reading",
+        "rubric_id": "J0"
+      }
+    },
+    {
+      "id": "E:judge:0_reading:003:c7",
+      "kind": "judge",
+      "source": "0_reading/attempts/003/judge.json",
+      "payload": {
+        "stage": "0_reading",
+        "attempt": "003",
+        "criterion_ordinal": 7,
+        "criterion": {
+          "criterion": "whole-region missing / misplaced",
+          "status": "pass",
+          "recoverability": null,
+          "evidence": "All bands/floors present and positioned correctly; only a single intra-band spurious partition remains on 1f."
+        },
+        "root_stage": "0_reading",
+        "rubric_id": "J0"
+      }
+    },
+    {
+      "id": "E:stop:quarantined@0_reading",
+      "kind": "stop",
+      "source": "_run/orchestration_state.json",
+      "payload": {
+        "stage": "0_reading",
+        "status": "quarantined",
+        "attempts_used": 3,
+        "accepted_attempt": 3,
+        "message": "judge blocked, root='0_reading' (manual) but re-read budget (3) is spent — quarantine for human triage",
+        "route_target": "0_reading"
+      }
+    },
+    {
+      "id": "E:ep:result",
+      "kind": "ep",
+      "source": "EP/EP_run/eplusout.end",
+      "payload": {
+        "ep": null
+      }
+    },
+    {
+      "id": "E:geom:digest",
+      "kind": "geometry",
+      "source": "2_modelling/building_geometry.json",
+      "payload": {
+        "geometry_digest": null,
+        "geometry_approved": false
+      }
+    },
+    {
+      "id": "E:eyeball:0_reading_1f_view_render.png",
+      "kind": "eyeball",
+      "source": "report/eyeball/0_reading_1f_view_render.png",
+      "payload": {
+        "filename": "0_reading_1f_view_render.png",
+        "path": "report/eyeball/0_reading_1f_view_render.png",
+        "producer": "reading_render",
+        "source": "0_reading/1f_view_render.png",
+        "status": "copied"
+      }
+    },
+    {
+      "id": "E:eyeball:0_reading_2f_view_render.png",
+      "kind": "eyeball",
+      "source": "report/eyeball/0_reading_2f_view_render.png",
+      "payload": {
+        "filename": "0_reading_2f_view_render.png",
+        "path": "report/eyeball/0_reading_2f_view_render.png",
+        "producer": "reading_render",
+        "source": "0_reading/2f_view_render.png",
+        "status": "copied"
+      }
+    },
+    {
+      "id": "E:eyeball:0_reading_East_view_render.png",
+      "kind": "eyeball",
+      "source": "report/eyeball/0_reading_East_view_render.png",
+      "payload": {
+        "filename": "0_reading_East_view_render.png",
+        "path": "report/eyeball/0_reading_East_view_render.png",
+        "producer": "reading_render",
+        "source": "0_reading/East_view_render.png",
+        "status": "copied"
+      }
+    },
+    {
+      "id": "E:eyeball:0_reading_North_view_render.png",
+      "kind": "eyeball",
+      "source": "report/eyeball/0_reading_North_view_render.png",
+      "payload": {
+        "filename": "0_reading_North_view_render.png",
+        "path": "report/eyeball/0_reading_North_view_render.png",
+        "producer": "reading_render",
+        "source": "0_reading/North_view_render.png",
+        "status": "copied"
+      }
+    },
+    {
+      "id": "E:eyeball:0_reading_South_view_render.png",
+      "kind": "eyeball",
+      "source": "report/eyeball/0_reading_South_view_render.png",
+      "payload": {
+        "filename": "0_reading_South_view_render.png",
+        "path": "report/eyeball/0_reading_South_view_render.png",
+        "producer": "reading_render",
+        "source": "0_reading/South_view_render.png",
+        "status": "copied"
+      }
+    },
+    {
+      "id": "E:eyeball:0_reading_West_view_render.png",
+      "kind": "eyeball",
+      "source": "report/eyeball/0_reading_West_view_render.png",
+      "payload": {
+        "filename": "0_reading_West_view_render.png",
+        "path": "report/eyeball/0_reading_West_view_render.png",
+        "producer": "reading_render",
+        "source": "0_reading/West_view_render.png",
+        "status": "copied"
+      }
+    },
+    {
+      "id": "E:eyeball:case_data_1f_view.png",
+      "kind": "eyeball",
+      "source": "report/eyeball/case_data_1f_view.png",
+      "payload": {
+        "filename": "case_data_1f_view.png",
+        "path": "report/eyeball/case_data_1f_view.png",
+        "producer": "case_data_view",
+        "source": "../case_data/1f_view.png",
+        "status": "copied"
+      }
+    },
+    {
+      "id": "E:eyeball:case_data_2f_view.png",
+      "kind": "eyeball",
+      "source": "report/eyeball/case_data_2f_view.png",
+      "payload": {
+        "filename": "case_data_2f_view.png",
+        "path": "report/eyeball/case_data_2f_view.png",
+        "producer": "case_data_view",
+        "source": "../case_data/2f_view.png",
+        "status": "copied"
+      }
+    },
+    {
+      "id": "E:eyeball:case_data_East_view.png",
+      "kind": "eyeball",
+      "source": "report/eyeball/case_data_East_view.png",
+      "payload": {
+        "filename": "case_data_East_view.png",
+        "path": "report/eyeball/case_data_East_view.png",
+        "producer": "case_data_view",
+        "source": "../case_data/East_view.png",
+        "status": "copied"
+      }
+    },
+    {
+      "id": "E:eyeball:case_data_North_view.png",
+      "kind": "eyeball",
+      "source": "report/eyeball/case_data_North_view.png",
+      "payload": {
+        "filename": "case_data_North_view.png",
+        "path": "report/eyeball/case_data_North_view.png",
+        "producer": "case_data_view",
+        "source": "../case_data/North_view.png",
+        "status": "copied"
+      }
+    },
+    {
+      "id": "E:eyeball:case_data_South_view.png",
+      "kind": "eyeball",
+      "source": "report/eyeball/case_data_South_view.png",
+      "payload": {
+        "filename": "case_data_South_view.png",
+        "path": "report/eyeball/case_data_South_view.png",
+        "producer": "case_data_view",
+        "source": "../case_data/South_view.png",
+        "status": "copied"
+      }
+    },
+    {
+      "id": "E:eyeball:case_data_West_view.png",
+      "kind": "eyeball",
+      "source": "report/eyeball/case_data_West_view.png",
+      "payload": {
+        "filename": "case_data_West_view.png",
+        "path": "report/eyeball/case_data_West_view.png",
+        "producer": "case_data_view",
+        "source": "../case_data/West_view.png",
+        "status": "copied"
+      }
+    }
+  ],
+  "blocked": true
+}

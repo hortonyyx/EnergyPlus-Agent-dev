@@ -1,0 +1,41 @@
+{
+  "stage": "1_correction",
+  "rubric_id": "J1",
+  "criteria": [
+    {
+      "criterion": "zonation_layout",
+      "status": "pass",
+      "recoverability": null,
+      "evidence": "Zonation matches the clean Opus reading: N reception, left column (3 offices/conference), right column (small/middle/bottom offices), central N-S corridor. Layout faithful to plan."
+    },
+    {
+      "criterion": "zone_count",
+      "status": "minor",
+      "recoverability": "correction_recoverable",
+      "evidence": "Tripwire 11 cells != testdata 8 thermal_zones. NOT an error: the deterministic rectangular-decomposition kernel splits the two NON-RECTANGULAR rooms into rectangles — the L-shaped corridor -> cell_corridor + cell_corridor_lower, and the stepped bottom-right office -> bottom_upper/mid/lower. Expected behavior for this non-square probe case; downstream zone-grouping (whether the split cells re-merge into one EP zone) is the real question to observe."
+    },
+    {
+      "criterion": "window_placement",
+      "status": "pass",
+      "recoverability": null,
+      "evidence": "Facade windows placed on perimeter walls (west/east/north/south) per elevations; blue marks on facade cells in render."
+    },
+    {
+      "criterion": "cross_floor",
+      "status": "pass",
+      "recoverability": null,
+      "evidence": "Single floor; not applicable."
+    },
+    {
+      "criterion": "overall_redraw",
+      "status": "pass",
+      "recoverability": null,
+      "evidence": "No global redraw needed; footprint 10x20m, corrections=24 conflicts=1 unsupported=0."
+    }
+  ],
+  "root_stage": "1_correction",
+  "root_confidence": 0.9,
+  "retriable": false,
+  "judge_disabled": false,
+  "notes": "Non-blocking. Non-square decomposition inflates cell count (11 vs 8) by design; advancing to observe how the kernel + downstream handle the non-rectangular corridor/office end-to-end. No gt for this case (intentional)."
+}

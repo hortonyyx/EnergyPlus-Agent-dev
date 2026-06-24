@@ -1,0 +1,53 @@
+{
+  "stage": "0_reading",
+  "rubric_id": "J0",
+  "criteria": [
+    {
+      "criterion": "clutter traced as structure",
+      "status": "severe",
+      "recoverability": "unrecoverable",
+      "evidence": "MUCH improved but not clean. 1f dropped from 16 walls (att1/att2) to 10 walls; 2f is now CORRECT (2 north + corridor + 4 south = 7, partitions ~3.39/7.5/11.61 ~= gt 3.75/7.5/11.25). Residual defect: 1f south band still has a spurious partition at x=3.44 (= the South-F1 small-window left edge / bottom dimension-chain cumulative 540+900+2000=3440), splitting the [0,5] SW office into two -> floor 1 = 8 zones vs gt 7. The window-edge was still read as a wall. Existence error -> unrecoverable. The generic 'existence comes from a drawn wall line, not a dimension' discipline largely worked (eliminated ~6 of 7 spurious partitions and all of 2f) but one window-edge partition survived on 1f."
+    },
+    {
+      "criterion": "missed real element",
+      "status": "pass",
+      "recoverability": null,
+      "evidence": "Envelope, corridor, windows all present; failure mode is residual over-tracing, not under-tracing."
+    },
+    {
+      "criterion": "pen misclassified",
+      "status": "pass",
+      "recoverability": null,
+      "evidence": "Walls vs windows separated; elevations use wall_fill/window/outline correctly."
+    },
+    {
+      "criterion": "number copied wrong",
+      "status": "pass",
+      "recoverability": null,
+      "evidence": "Dimensions transcribed faithfully incl. honest anomaly flags (East F1 sill=200, 2f bottom chain 360+560 sums 200mm over -> logged unknown)."
+    },
+    {
+      "criterion": "image-local orientation self-consistent",
+      "status": "pass",
+      "recoverability": null,
+      "evidence": "Elevation window counts match gt facade totals exactly: South=7, North=5, East=2, West=1. Sonnet's elevation reading is reliably correct."
+    },
+    {
+      "criterion": "door healing wrong",
+      "status": "pass",
+      "recoverability": null,
+      "evidence": "West F1 floor-height double-door and South F1 door correctly excluded from window pen and logged; door heals noted on partitions."
+    },
+    {
+      "criterion": "whole-region missing / misplaced",
+      "status": "pass",
+      "recoverability": null,
+      "evidence": "All bands/floors present and positioned correctly; only a single intra-band spurious partition remains on 1f."
+    }
+  ],
+  "root_stage": "0_reading",
+  "root_confidence": 0.9,
+  "retriable": false,
+  "judge_disabled": false,
+  "notes": "FINAL ATTEMPT 3/3 -> QUARANTINE (budget exhausted, honest record per user directive). Sonnet x sm21 reading: dramatic improvement across the ladder (att1/att2: 16 walls / 10 interior partitions, provenance=dimension_derived -> att3: 10 walls, all 'seen', 2f fully correct) driven by the existence-vs-position discipline lever, but 1f retains ONE window-edge spurious partition (x=3.44) -> 8 zones vs 7. NOT golden-clean; do NOT pass into baseline. This is strong evidence for N1d: the discipline-safe lever works (16->10, 2f fixed); the residual is the furniture/dimension-dense south band of 1f -> combine with clutter/dimension-layer masking (N1d fix direction) to close the last gap. retriable=false: budget exhausted, and the residual is a perception limit, not sampling variance."
+}

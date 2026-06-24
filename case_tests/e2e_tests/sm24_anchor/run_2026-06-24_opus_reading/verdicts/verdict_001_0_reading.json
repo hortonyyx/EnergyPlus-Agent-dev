@@ -1,0 +1,53 @@
+{
+  "stage": "0_reading",
+  "rubric_id": "J0",
+  "criteria": [
+    {
+      "criterion": "wall_completeness",
+      "status": "pass",
+      "recoverability": null,
+      "evidence": "All drawn walls captured: perimeter + corridor spine + 6 interior dividers + L-step. No real wall missed vs raster (render matches plan)."
+    },
+    {
+      "criterion": "no_furniture_as_wall",
+      "status": "pass",
+      "recoverability": null,
+      "evidence": "Sofa, desks, oval conference table, credenza, monitors, chairs recognized and logged in uncaptured; none traced."
+    },
+    {
+      "criterion": "no_dimension_as_wall",
+      "status": "pass",
+      "recoverability": null,
+      "evidence": "No dimension chain / tick / extension line emitted as a wall; 240mm thickness kept in dimensions[] only."
+    },
+    {
+      "criterion": "door_healing",
+      "status": "pass",
+      "recoverability": null,
+      "evidence": "3 exterior double-doors + interior swing doors healed into continuous walls; doorless corridor mouth left as a gap (not welded)."
+    },
+    {
+      "criterion": "window_recognition",
+      "status": "pass",
+      "recoverability": null,
+      "evidence": "11 elevation windows read with z-bands; plan cyan cross-checked; window vs door disambiguated."
+    },
+    {
+      "criterion": "elevation_axes",
+      "status": "pass",
+      "recoverability": null,
+      "evidence": "facade_axis_note + sign recorded per facade; world-axis flip (N, W opposite) deferred to correction as designed."
+    },
+    {
+      "criterion": "lstep_coordinates",
+      "status": "minor",
+      "recoverability": "correction_recoverable",
+      "evidence": "S13 L-step / bottom-right office door x derived from pixels (medium confidence); dimension chains pin the gross layout, only the fine step x is soft."
+    }
+  ],
+  "root_stage": "0_reading",
+  "root_confidence": 0.9,
+  "retriable": false,
+  "judge_disabled": false,
+  "notes": "Faithful non-square plan trace. Wall network render matches the raster; non-rectangular corridor L-step captured. One minor recoverable item. Non-blocking — advance."
+}

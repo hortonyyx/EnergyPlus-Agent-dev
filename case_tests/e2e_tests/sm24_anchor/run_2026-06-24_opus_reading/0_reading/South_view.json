@@ -1,0 +1,59 @@
+{
+  "image_label": "South view path of the building",
+  "image_kind": "elevation",
+  "facade_axis_note": "South facade: local x = world x (increasing eastward); local y = world z (up, ground z=0)",
+  "scale_origin": {
+    "world_x_m": 0.00,
+    "world_y_m": 0.00,
+    "world_z_m": 0.00,
+    "note": "elevation local origin at SW outer corner; facade total width 10.00 m, total height 4.50 m (10000 / 4500 mm chains)"
+  },
+  "strokes": [
+    {
+      "id": "S1",
+      "pen": "wall_fill",
+      "provenance": "seen",
+      "confidence": "high",
+      "dimension_refs": [],
+      "geometry": {"kind": "rect", "x_range_m": [0.00, 10.00], "y_range_m": [0.00, 4.50]},
+      "note": "single-storey south facade wall body (one wall_fill, 1 floor); openings overlay it"
+    },
+    {
+      "id": "S2",
+      "pen": "window",
+      "provenance": "dimension_derived",
+      "confidence": "high",
+      "dimension_refs": ["D_bot", "D_left"],
+      "geometry": {"kind": "rect", "x_range_m": [0.54, 2.04], "y_range_m": [1.00, 2.80]},
+      "note": "left window, 1500 wide x 1800 tall, sill z=1.00 top z=2.80"
+    },
+    {
+      "id": "S3",
+      "pen": "window",
+      "provenance": "dimension_derived",
+      "confidence": "high",
+      "dimension_refs": ["D_bot", "D_right"],
+      "geometry": {"kind": "rect", "x_range_m": [7.96, 9.46], "y_range_m": [1.00, 2.80]},
+      "note": "right window, 1500 wide x 1800 tall, sill z=1.00 top z=2.80"
+    }
+  ],
+  "dimensions": [
+    {"id": "D_top_total", "text": "10000", "from": [0.00, 4.50], "to": [10.00, 4.50], "axis": "x", "note": "overall width"},
+    {"id": "D_bot", "text": "540 / 1500 / 2500 / 900 / 2520 / 1500 / 540", "from": [0.00, 0.00], "to": [10.00, 0.00], "axis": "x", "note": "bottom chain: 540, 1500 (window), 2500, 900 (door), 2520, 1500 (window), 540"},
+    {"id": "D_left", "text": "4500 (1700 / 1800 / 1000)", "from": [0.00, 0.00], "to": [0.00, 4.50], "axis": "z", "note": "left height chain top->bottom 1700, 1800 (window), 1000 (sill); window sill z=1.00 top z=2.80"},
+    {"id": "D_mid", "text": "1900 / 2400 / 200", "from": [4.18, 0.00], "to": [4.18, 4.50], "axis": "z", "note": "center door height chain: 1900 transom band, 2400 door leaf, 200 base"},
+    {"id": "D_right", "text": "4500 (1700 / 1800 / 1000)", "from": [10.00, 0.00], "to": [10.00, 4.50], "axis": "z", "note": "right height chain mirrors left"}
+  ],
+  "ocr_texts": [],
+  "self_check": {
+    "all_dimensions_transcribed": true,
+    "all_visible_strokes_captured": true,
+    "no_topology_inferred": true,
+    "pens_used": ["wall_fill", "window"],
+    "unknowns_noted": ["single floor -> one wall_fill"],
+    "uncaptured_visual_elements": [
+      "central double-leaf door (900 wide, 2400 leaf + 1900 transom) recognized and NOT traced (door is not a pen); it overlays the wall_fill",
+      "outline coincides with wall_fill edges -> not traced as a separate stroke"
+    ]
+  }
+}

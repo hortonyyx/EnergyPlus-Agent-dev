@@ -1,0 +1,53 @@
+{
+  "stage": "0_reading",
+  "rubric_id": "J0",
+  "criteria": [
+    {
+      "criterion": "missed real element",
+      "status": "pass",
+      "recoverability": null,
+      "evidence": "RECOVERED. 2f south band now has 3 partitions (S8/S9/S10) -> 4 rooms, matching gt F2_S1-S4 and testdata thermal_zones=7 (2f = 2 north + corridor + 4 south = 7). Facade window totals match gt exactly: South=7, North=5, East=2, West=1. No missing wall or window."
+    },
+    {
+      "criterion": "clutter traced as structure",
+      "status": "pass",
+      "recoverability": null,
+      "evidence": "1f = 10 walls -> 7 zones (3 north + corridor + 3 south); 2f = 10 walls -> 7 zones. No furniture/dimension-tick over-segmentation; partition positions visually align with the drawn walls (1f north/south x~5,10; 2f south ~3.75/7.5/11.25, 2f north ~7.5)."
+    },
+    {
+      "criterion": "pen misclassified",
+      "status": "pass",
+      "recoverability": null,
+      "evidence": "Walls vs windows clean on plans; wall_fill/window/outline correct on elevations."
+    },
+    {
+      "criterion": "number copied wrong",
+      "status": "pass",
+      "recoverability": null,
+      "evidence": "Overall 15000x8000 and per-band structure consistent with the drawings; no mis-OCR found on values checked."
+    },
+    {
+      "criterion": "image-local orientation self-consistent",
+      "status": "pass",
+      "recoverability": null,
+      "evidence": "view_facade declarations match trusted image names; per-facade window counts all match gt totals."
+    },
+    {
+      "criterion": "door healing wrong",
+      "status": "minor",
+      "recoverability": "unrecoverable",
+      "evidence": "South F1 entrance door + West F1 double-door correctly NOT traced as windows, but not all are logged in uncaptured_visual_elements. Discipline lapse, non-blocking."
+    },
+    {
+      "criterion": "whole-region missing / misplaced",
+      "status": "pass",
+      "recoverability": null,
+      "evidence": "All bands/floors present and correctly placed; both floors are correct 7-zone layouts."
+    }
+  ],
+  "root_stage": null,
+  "root_confidence": 0.0,
+  "retriable": true,
+  "judge_disabled": false,
+  "notes": "PASS (attempt 3). gpt-5.4-mini recovered to a clean reading via the auto-reread machinery: att1 (South-F2 windows merged 4->2 + 2f south under-segmented) -> att2 (South windows fixed 5->7 via generic anti-merge discipline) -> att3 (2f south partition recovered -> 4 rooms). End-to-end validation of judge-in-the-loop + reading-honest + auto-reread on a weak model. Only a non-blocking door-logging minor remains. Advance to 1_correction."
+}

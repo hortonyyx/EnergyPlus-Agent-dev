@@ -1,0 +1,53 @@
+{
+  "stage": "0_reading",
+  "rubric_id": "J0",
+  "criteria": [
+    {
+      "criterion": "missed real element",
+      "status": "severe",
+      "recoverability": "unrecoverable",
+      "evidence": "2f_view south band STILL under-segmented after re-read: 9 walls = 4 envelope + 2 corridor + 1 north partition + only 2 south partitions -> 3 south rooms. gt F2 south = 4 rooms (F2_S1/S2/S3/S4 at [0-3.75][3.75-7.5][7.5-11.25][11.25-15], partitions x=3.75/7.5/11.25) and testdata thermal_zones=7 (gpt-mini 2f = 2 north + corridor + 3 south = 6). One real south partition still not traced. Existence error -> unrecoverable; image-blind correction cannot invent the missing wall. NOTE: 1f is correct (10 walls -> 7 zones)."
+    },
+    {
+      "criterion": "clutter traced as structure",
+      "status": "pass",
+      "recoverability": null,
+      "evidence": "No over-tracing; the failure mode here is under-reading, not furniture/dimension-tick over-segmentation."
+    },
+    {
+      "criterion": "pen misclassified",
+      "status": "pass",
+      "recoverability": null,
+      "evidence": "Window vs wall_fill clean on elevations."
+    },
+    {
+      "criterion": "number copied wrong",
+      "status": "insufficient_evidence",
+      "recoverability": null,
+      "evidence": "Provenance still terse; full transcription truth not re-OCR-verified. Overall 15000x8000 consistent."
+    },
+    {
+      "criterion": "image-local orientation self-consistent",
+      "status": "pass",
+      "recoverability": null,
+      "evidence": "RECOVERED on this attempt: South elevation now traces 7 distinct windows (was 5; merged F2 pairs are now split) -> matches gt South total exactly (F1=3 + F2=4). North=5, East=2, West=1 all match gt. The generic 'do not merge adjacent windows' discipline fixed the South-F2 merge."
+    },
+    {
+      "criterion": "door healing wrong",
+      "status": "minor",
+      "recoverability": "unrecoverable",
+      "evidence": "South F1 entrance door still not logged in uncaptured_visual_elements (correctly not traced as window). Non-blocking."
+    },
+    {
+      "criterion": "whole-region missing / misplaced",
+      "status": "pass",
+      "recoverability": null,
+      "evidence": "All bands/floors present; single missing 2f-south partition only."
+    }
+  ],
+  "root_stage": "0_reading",
+  "root_confidence": 0.9,
+  "retriable": true,
+  "judge_disabled": false,
+  "notes": "Attempt 2 partial recovery: South-elevation window merge FIXED (5->7, matches gt) via the generic anti-merge discipline. Remaining severe = 2f plan south band under-segmented (4 rooms->3, 1 partition still missed) -- a fine-granularity plan-perception miss that the generic discipline did not fix. Halt -> re-read attempt 3 (final budget). If attempt 3 still misses the 2f partition, quarantine and record honestly (gpt-5.4-mini perception limit on dense-furniture plan granularity, per N1d case x model diagnosis)."
+}

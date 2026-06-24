@@ -1,0 +1,53 @@
+{
+  "stage": "0_reading",
+  "rubric_id": "J0",
+  "criteria": [
+    {
+      "criterion": "missed real element",
+      "status": "severe",
+      "recoverability": "unrecoverable",
+      "evidence": "TWO missed-existence defects. (a) 2f_view south band under-segmented: only 2 south partitions (S8,S9) -> 3 rooms, but the drawing + gt F2_S1/S2/S3/S4 [0-3.75][3.75-7.5][7.5-11.25][11.25-15] = 4 rooms, and testdata thermal_zones=7 (gpt54mini's 2f totals only 6 = 2 north + corridor + 3 south). One real partition wall (~x=3.75 or 11.25) was not traced. (b) South_view F2 windows merged 4->2: the F2 top-chain 1200/720/1200 ... 1200/720/1200 is two pairs of distinct 1.2m windows separated by a 0.72m pier each (gt South F2 x=2.19,4.11,9.69,11.61), but gpt54mini traced 2 wide windows. Both are existence errors (fabricated absence), condition 1 of correction-recoverability fails -> unrecoverable; correction is image-blind and cannot reconstruct a missing wall or split a merged window."
+    },
+    {
+      "criterion": "clutter traced as structure",
+      "status": "pass",
+      "recoverability": null,
+      "evidence": "Plans are clean -- no furniture/dimension-tick over-tracing. 1f = 10 walls (4 envelope + 2 corridor + 2 north partitions + 2 south partitions) -> correct 7 zones. No spurious partitions (contrast: the Sonnet run over-segmented the 1f south band)."
+    },
+    {
+      "criterion": "pen misclassified",
+      "status": "minor",
+      "recoverability": "unrecoverable",
+      "evidence": "Window pen vs wall_fill cleanly separated on elevations. The South F2 merge (above) is a grouping/granularity error rather than a wrong pen; counted under 'missed real element'. No wall-as-window confusion."
+    },
+    {
+      "criterion": "number copied wrong",
+      "status": "insufficient_evidence",
+      "recoverability": null,
+      "evidence": "2f wall provenance is terse ('seen') with no transcribed dimension values, so internal-vs-drawing transcription could not be spot-verified the way it could on the Sonnet run. Top/overall 15000x8000 consistent. Full re-OCR deferred to the blind re-read."
+    },
+    {
+      "criterion": "image-local orientation self-consistent",
+      "status": "pass",
+      "recoverability": null,
+      "evidence": "view_facade declarations match the trusted image names (South/North/East/West). North=5, East=2, West=1 window counts match gt facade totals exactly; only South is off due to the F2 merge."
+    },
+    {
+      "criterion": "door healing wrong",
+      "status": "minor",
+      "recoverability": "unrecoverable",
+      "evidence": "South_view has a clear F1 entrance door (the cross-hatched panel far left, gt South F1 door x=0.54 w=0.9) that was correctly NOT traced as a window, but uncaptured_visual_elements is None -- door presence not logged per discipline. Non-blocking."
+    },
+    {
+      "criterion": "whole-region missing / misplaced",
+      "status": "pass",
+      "recoverability": null,
+      "evidence": "All bands/floors present and positioned plausibly; defects are a single missing partition + a window merge, not a missing wing/floor."
+    }
+  ],
+  "root_stage": "0_reading",
+  "root_confidence": 0.9,
+  "retriable": true,
+  "judge_disabled": false,
+  "notes": "Halt -> re-read. gpt-5.4-mini under-read F2 granularity: missed 1 south partition on 2f (4 rooms->3) and merged 4 South-F2 windows->2. Both existence errors => unrecoverable. NOTE the complementary contrast vs the Sonnet run: gpt54mini plans are clean (no over-segmentation) but under-reads fine F2 detail; Sonnet over-segments plans but nails elevation window counts. Out-of-band commentary only; not injected into the re-read prompt."
+}

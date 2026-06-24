@@ -1,0 +1,53 @@
+{
+  "stage": "0_reading",
+  "rubric_id": "J0",
+  "criteria": [
+    {
+      "criterion": "clutter traced as structure",
+      "status": "severe",
+      "recoverability": "unrecoverable",
+      "evidence": "1f_view STILL over-segmented on re-read: 16 wall strokes = 4 perimeter + 2 corridor + 10 interior partitions (Sonnet's own summary). gt floor 1 has only 4 interior partitions (north x=5,10; south x=5,10) for 7 zones; testdata thermal_zones=7. ~6 partitions are spurious. SMOKING GUN: most wall strokes carry provenance='dimension_derived' -- Sonnet is placing partitions at dimension-chain segment boundaries rather than at actually-drawn wall lines. This is exactly the documented sm21 failure (logs/review/request/2026-06-21_sonnet_plan_recognition_diagnosis.md: 'Both Sonnet attempts over-read plan sub-dimension positions as partitions'). Existence error -> unrecoverable. The generic 'dimension ticks are not walls' reinforcement did NOT fix it (identical to attempt 1) -> model x case perception limit, not sampling variance."
+    },
+    {
+      "criterion": "missed real element",
+      "status": "pass",
+      "recoverability": null,
+      "evidence": "Over-tracing, not under-tracing; envelope/corridor/windows present."
+    },
+    {
+      "criterion": "pen misclassified",
+      "status": "pass",
+      "recoverability": null,
+      "evidence": "Walls vs windows separated; elevations use wall_fill/window/outline."
+    },
+    {
+      "criterion": "number copied wrong",
+      "status": "pass",
+      "recoverability": null,
+      "evidence": "Spot-checked dimension transcriptions consistent (15000/8000, corridor build-up, East F1 1800 vs S/N 1600 honestly flagged as image discrepancy)."
+    },
+    {
+      "criterion": "image-local orientation self-consistent",
+      "status": "pass",
+      "recoverability": null,
+      "evidence": "Elevation window counts match gt facade totals exactly: South=7, North=5, East=2, West=1. Sonnet's ELEVATION reading is excellent; only the furniture/dimension-dense PLANS over-segment."
+    },
+    {
+      "criterion": "door healing wrong",
+      "status": "pass",
+      "recoverability": null,
+      "evidence": "This attempt logs healed door openings (7 on 1f) and elevation doors (South, West) per discipline -- improvement over attempt 1's empty uncaptured list."
+    },
+    {
+      "criterion": "whole-region missing / misplaced",
+      "status": "pass",
+      "recoverability": null,
+      "evidence": "All bands/floors present and positioned correctly; defect is intra-band over-segmentation only."
+    }
+  ],
+  "root_stage": "0_reading",
+  "root_confidence": 0.95,
+  "retriable": true,
+  "judge_disabled": false,
+  "notes": "Attempt 2 reproduces attempt 1's 1f over-segmentation despite generic anti-dimension-tick discipline. provenance='dimension_derived' confirms the mechanism. Halt -> re-read attempt 3 (final budget); expected to confirm a model x case perception limit (Sonnet conflates dense furniture + dimension chains with partitions on sm21 plans), per N1d. If attempt 3 still over-segments, quarantine and record honestly -- do NOT pass a 9+-cell south band into golden."
+}

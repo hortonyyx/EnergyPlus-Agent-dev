@@ -1,0 +1,85 @@
+{
+  "image_label": "West view path of the building",
+  "image_kind": "elevation",
+  "facade_axis_note": "West facade: local x = -world y (local x increasing = world southward); local y = world z (up, ground z=0)",
+  "scale_origin": {
+    "world_x_m": 0.00,
+    "world_y_m": 0.00,
+    "world_z_m": 0.00,
+    "note": "elevation local origin at the left edge of the drawn west facade; total width 20.00 m, height 4.50 m. Local x maps to world y (opposite sign); sign resolved by correction."
+  },
+  "strokes": [
+    {
+      "id": "S1",
+      "pen": "wall_fill",
+      "provenance": "seen",
+      "confidence": "high",
+      "dimension_refs": [],
+      "geometry": {"kind": "rect", "x_range_m": [0.00, 20.00], "y_range_m": [0.00, 4.50]},
+      "note": "single-storey west facade wall body (one wall_fill)"
+    },
+    {
+      "id": "S2",
+      "pen": "window",
+      "provenance": "dimension_derived",
+      "confidence": "high",
+      "dimension_refs": ["D_bot", "D_left"],
+      "geometry": {"kind": "rect", "x_range_m": [0.54, 2.04], "y_range_m": [1.00, 2.80]},
+      "note": "window 1, 1500 wide x 1800 tall, sill z=1.00 top z=2.80"
+    },
+    {
+      "id": "S3",
+      "pen": "window",
+      "provenance": "dimension_derived",
+      "confidence": "high",
+      "dimension_refs": ["D_bot", "D_left"],
+      "geometry": {"kind": "rect", "x_range_m": [4.42, 5.62], "y_range_m": [1.00, 2.80]},
+      "note": "window 2, 1200 wide x 1800 tall, sill z=1.00 top z=2.80"
+    },
+    {
+      "id": "S4",
+      "pen": "window",
+      "provenance": "dimension_derived",
+      "confidence": "high",
+      "dimension_refs": ["D_bot", "D_left"],
+      "geometry": {"kind": "rect", "x_range_m": [7.36, 8.86], "y_range_m": [1.00, 2.80]},
+      "note": "window 3, 1500 wide x 1800 tall, sill z=1.00 top z=2.80"
+    },
+    {
+      "id": "S5",
+      "pen": "window",
+      "provenance": "dimension_derived",
+      "confidence": "high",
+      "dimension_refs": ["D_bot", "D_left"],
+      "geometry": {"kind": "rect", "x_range_m": [10.08, 11.58], "y_range_m": [1.00, 2.80]},
+      "note": "window 4, 1500 wide x 1800 tall, sill z=1.00 top z=2.80"
+    },
+    {
+      "id": "S6",
+      "pen": "window",
+      "provenance": "dimension_derived",
+      "confidence": "high",
+      "dimension_refs": ["D_bot", "D_right"],
+      "geometry": {"kind": "rect", "x_range_m": [14.66, 19.46], "y_range_m": [1.00, 3.40]},
+      "note": "large window 5, 4800 wide x 2400 tall, sill z=1.00 top z=3.40"
+    }
+  ],
+  "dimensions": [
+    {"id": "D_top_total", "text": "20000", "from": [0.00, 4.50], "to": [20.00, 4.50], "axis": "x", "note": "overall length"},
+    {"id": "D_bot", "text": "540 / 1500 / 2380 / 1200 / 1740 / 1500 / 1220 / 1500 / 3080 / 4800 / 540", "from": [0.00, 0.00], "to": [20.00, 0.00], "axis": "x", "note": "bottom chain: 540, 1500(win), 2380, 1200(win), 1740, 1500(win), 1220, 1500(win), 3080, 4800(big win), 540"},
+    {"id": "D_left", "text": "4500 (1700 / 1800 / 1000)", "from": [0.00, 0.00], "to": [0.00, 4.50], "axis": "z", "note": "small-window height: 1700 top, 1800 window, 1000 sill -> sill z=1.00 top z=2.80"},
+    {"id": "D_right", "text": "4500 (1100 / 2400 / 1000)", "from": [20.00, 0.00], "to": [20.00, 4.50], "axis": "z", "note": "big-window height: 1100 top, 2400 window, 1000 sill -> sill z=1.00 top z=3.40"}
+  ],
+  "ocr_texts": [],
+  "self_check": {
+    "all_dimensions_transcribed": true,
+    "all_visible_strokes_captured": true,
+    "no_topology_inferred": true,
+    "pens_used": ["wall_fill", "window"],
+    "unknowns_noted": ["single floor -> one wall_fill", "local x maps to world y (opposite sign); deferred to correction", "no doors on the west facade"],
+    "uncaptured_visual_elements": [
+      "west facade carries 5 windows and no doors",
+      "outline coincides with wall_fill edges -> not traced separately"
+    ]
+  }
+}

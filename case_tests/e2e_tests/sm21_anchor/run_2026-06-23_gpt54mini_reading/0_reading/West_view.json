@@ -1,0 +1,54 @@
+{
+  "image_label": "West facade elevation",
+  "image_kind": "elevation",
+  "view_facade": "West",
+  "facade_axis_note": "West facade: local x = -world y (local x increasing = world southward); local y = world z (up positive, ground z=0)",
+  "scale_origin": {
+    "world_x_m": 0.0,
+    "world_y_m": 8.0,
+    "world_z_m": 0.0,
+    "note": "this image's local origin = bottom-left ground corner of the west facade"
+  },
+  "strokes": [
+    {"id": "S1", "pen": "outline", "provenance": "seen", "confidence": "high", "geometry": {"kind": "rect", "x_range_m": [0.0, 8.0], "y_range_m": [0.0, 6.6]}, "note": "overall facade silhouette"},
+    {"id": "S2", "pen": "wall_fill", "provenance": "dimension_derived", "confidence": "high", "dimension_refs": ["D1", "D7", "D19", "D20"], "geometry": {"kind": "rect", "x_range_m": [0.0, 8.0], "y_range_m": [0.0, 3.0]}, "note": "lower floor wall band"},
+    {"id": "S3", "pen": "wall_fill", "provenance": "dimension_derived", "confidence": "high", "dimension_refs": ["D1", "D7", "D19", "D21"], "geometry": {"kind": "rect", "x_range_m": [0.0, 8.0], "y_range_m": [3.0, 6.6]}, "note": "upper floor wall band"},
+    {"id": "S4", "pen": "window", "provenance": "dimension_derived", "confidence": "high", "dimension_refs": ["D2", "D3", "D24", "D25"], "geometry": {"kind": "rect", "x_range_m": [3.4, 4.6], "y_range_m": [4.0, 5.8]}, "note": "upper window"}
+  ],
+  "dimensions": [
+    {"id": "D1", "text": "8000", "from": [0.0, 6.6], "to": [8.0, 6.6], "axis": "x", "note": "top overall width"},
+    {"id": "D2", "text": "3400", "from": [0.0, 6.6], "to": [3.4, 6.6], "axis": "x", "note": "top chain segment 1"},
+    {"id": "D3", "text": "1200", "from": [3.4, 6.6], "to": [4.6, 6.6], "axis": "x", "note": "top chain segment 2"},
+    {"id": "D4", "text": "3400", "from": [4.6, 6.6], "to": [8.0, 6.6], "axis": "x", "note": "top chain segment 3"},
+
+    {"id": "D7", "text": "8000", "from": [0.0, 0.0], "to": [8.0, 0.0], "axis": "x", "note": "bottom overall width"},
+    {"id": "D8", "text": "3400", "from": [0.0, 0.0], "to": [3.4, 0.0], "axis": "x", "note": "bottom chain segment 1"},
+    {"id": "D9", "text": "1200", "from": [3.4, 0.0], "to": [4.6, 0.0], "axis": "x", "note": "bottom chain segment 2"},
+    {"id": "D10", "text": "3400", "from": [4.6, 0.0], "to": [8.0, 0.0], "axis": "x", "note": "bottom chain segment 3"},
+
+    {"id": "D19", "text": "6600", "from": [0.0, 0.0], "to": [0.0, 6.6], "axis": "z", "note": "overall facade height"},
+    {"id": "D20", "text": "3000", "from": [0.0, 0.0], "to": [0.0, 3.0], "axis": "z", "note": "lower floor height"},
+    {"id": "D21", "text": "3600", "from": [0.0, 3.0], "to": [0.0, 6.6], "axis": "z", "note": "upper floor height"},
+    {"id": "D22", "text": "1000", "from": [0.0, 0.0], "to": [0.0, 1.0], "axis": "z", "note": "lower sill height"},
+    {"id": "D23", "text": "1800", "from": [0.0, 1.0], "to": [0.0, 2.8], "axis": "z", "note": "lower opening height"},
+    {"id": "D24", "text": "1000", "from": [0.0, 3.0], "to": [0.0, 4.0], "axis": "z", "note": "upper sill height"},
+    {"id": "D25", "text": "1800", "from": [0.0, 4.0], "to": [0.0, 5.8], "axis": "z", "note": "upper window height"},
+    {"id": "D26", "text": "800", "from": [0.0, 5.8], "to": [0.0, 6.6], "axis": "z", "note": "roof band above upper window"}
+  ],
+  "ocr_texts": [],
+  "self_check": {
+    "all_dimensions_transcribed": true,
+    "all_visible_strokes_captured": true,
+    "no_topology_inferred": true,
+    "pens_used": ["outline", "wall_fill", "window"],
+    "unknowns_noted": [
+      "storey divider line at z=3.0 is visible but not a legal pen stroke",
+      "lower-floor double door is visible and intentionally not traced as a window stroke"
+    ],
+    "uncaptured_visual_elements": [
+      "lower-floor double door on the west facade (not traced)",
+      "storey divider line at z=3.00",
+      "dimension ticks, extension lines, and green leader strokes excluded"
+    ]
+  }
+}

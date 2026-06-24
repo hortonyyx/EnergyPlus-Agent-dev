@@ -7,6 +7,8 @@
 |---|---|---|---|---|---|---|
 | `sm20_anchor/run_2026-06-15_baseline` | 3 层 (7/8/4) | 19 / 135 / 16 | 0 block | Completed, 0 severe | ✅ golden（`tests/test_validation_run_baseline.py`）| `_run/baseline.json` + `report/REPORT.md` |
 | `sm21_anchor/run_2026-06-16_opus_e2e` | 2 层 (7/7) | 14 / 100 / 15 | 0 block | Completed, 0 severe | ✅ golden（`tests/test_validation_run_baseline.py`）| `_run/baseline.json` + `report/REPORT.md`；gt `gt/sm21_anchor/gt.json`（计数/立面/层高 verified）|
+| `sm21_anchor/run_2026-06-23_gpt54mini_reading` | 2 层 (7/7) | 14 / 100 / 15 | 0 block | Completed, 0 severe | 🟡 clean 候选（**新命名/外包/report 全代码**；gpt-5.4-mini 识图经 auto-reread 3 跳救回；golden 重录待 N1d 识图修后定）| `_run/baseline.json` + `report/REPORT.md` |
+| `sm21_anchor/run_2026-06-23_sonnet_reading` | — | — | (0_reading) | 未跑 | ❌ quarantine@0_reading（3/3，1f 过度分割；**疑真回归**=reading-honest 新 schema 致 dimension_derived 过度分割，sm21_pre 06-09 同图同 Sonnet 读干净，详 plan.md N1d）| `_run/baseline.json` + `report/REPORT.md`（四桶建议）|
 
 > **图例**：✅=干净入库的金标准；⏳=待跑；❌=有 block/severe，不可作 baseline。
 > golden 计数即回归断言锚点；变更需在 PR 说明原因。

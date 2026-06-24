@@ -1,0 +1,78 @@
+{
+  "stage": "1_correction",
+  "capability_profile": "rectangular",
+  "artifact_hash": "6db72113bbe11326b9f2ae0ea81aeebf37224ebf1c82b2b062a72cc71ac0feae",
+  "attempt_hash": "6db72113bbe11326b9f2ae0ea81aeebf37224ebf1c82b2b062a72cc71ac0feae",
+  "report_schema_version": "2.0",
+  "results": [
+    {
+      "check_id": "correction.coverage",
+      "status": "pass",
+      "layer": "invariant",
+      "check_version": "1",
+      "message": "",
+      "evidence": {
+        "floor": "Floor 1",
+        "covered_m2": 200.0
+      }
+    },
+    {
+      "check_id": "correction.nondegenerate",
+      "status": "pass",
+      "layer": "invariant",
+      "check_version": "1",
+      "message": "",
+      "evidence": {}
+    },
+    {
+      "check_id": "correction.zstack_continuity",
+      "status": "pass",
+      "layer": "invariant",
+      "check_version": "1",
+      "message": "",
+      "evidence": {}
+    },
+    {
+      "check_id": "correction.zone_count_tripwire",
+      "status": "fail",
+      "layer": "cross_check",
+      "check_version": "1",
+      "message": "cell count 11 != testdata thermal_zones 8",
+      "evidence": {
+        "actual": 11,
+        "expected": 8,
+        "per_floor": {
+          "Floor 1": 11
+        }
+      }
+    },
+    {
+      "check_id": "correction.window_on_wall",
+      "status": "pass",
+      "layer": "cross_check",
+      "check_version": "1",
+      "message": "",
+      "evidence": {
+        "windows": 11
+      }
+    },
+    {
+      "check_id": "correction.cross_image_reconcile",
+      "status": "not_applicable",
+      "layer": "cross_check",
+      "check_version": "1",
+      "message": "no elevation widths supplied",
+      "evidence": {}
+    },
+    {
+      "check_id": "correction.audit_completeness",
+      "status": "pass",
+      "layer": "invariant",
+      "check_version": "1",
+      "message": "",
+      "evidence": {
+        "audit_entries": 25
+      }
+    }
+  ]
+}

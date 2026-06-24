@@ -1,0 +1,1226 @@
+{
+  "case": "sm21_anchor",
+  "run": "run_2026-06-23_gpt54mini_reading",
+  "recorded": "2026-06-23",
+  "orchestrator": "opus-4.8",
+  "models": {
+    "intake_correction": "deepseek-v4-pro",
+    "default": "deepseek-v4-pro"
+  },
+  "geometry": {
+    "zones": 14,
+    "surfaces": 100,
+    "windows": 15
+  },
+  "geometry_digest": "ecac6a8a693043db7814b5e78cbf9ead720adea0456d26e82e4b11104458cb04",
+  "geometry_approved": true,
+  "gates": {
+    "0_reading": {
+      "pass": 58,
+      "flag": 0,
+      "block": 0,
+      "na": 14,
+      "skip": 0
+    },
+    "1_correction": {
+      "pass": 7,
+      "flag": 0,
+      "block": 0,
+      "na": 1,
+      "skip": 0
+    },
+    "2_modelling": {
+      "pass": 5,
+      "flag": 0,
+      "block": 0,
+      "na": 0,
+      "skip": 0
+    },
+    "4_mep": {
+      "pass": 10,
+      "flag": 0,
+      "block": 0,
+      "na": 1,
+      "skip": 0
+    },
+    "5_intakeoutput": {
+      "pass": 1,
+      "flag": 0,
+      "block": 0,
+      "na": 0,
+      "skip": 0
+    },
+    "downstream": {
+      "pass": 3,
+      "flag": 0,
+      "block": 0,
+      "na": 1,
+      "skip": 0
+    }
+  },
+  "flags": [],
+  "blocking": [],
+  "judge_verdicts": [
+    {
+      "stage": "0_reading",
+      "attempt": 1,
+      "blocking": true,
+      "root_stage": "0_reading"
+    },
+    {
+      "stage": "0_reading",
+      "attempt": 2,
+      "blocking": true,
+      "root_stage": "0_reading"
+    },
+    {
+      "stage": "0_reading",
+      "attempt": 3,
+      "blocking": false,
+      "root_stage": null
+    },
+    {
+      "stage": "1_correction",
+      "attempt": 1,
+      "blocking": false,
+      "root_stage": null
+    }
+  ],
+  "draws": {
+    "0_reading": 3,
+    "1_correction": 1,
+    "2_modelling": 1,
+    "3_split_pairing": 1,
+    "4_mep": 1,
+    "5_intakeoutput": 1
+  },
+  "orchestration": {
+    "0_reading": {
+      "stage": "0_reading",
+      "status": "judge_pass",
+      "attempts_used": 3,
+      "accepted_attempt": 3,
+      "message": "judge verdict non-blocking (pass/minor) → advance",
+      "gate1": {
+        "passed": true,
+        "block": 0,
+        "flag": 0
+      }
+    },
+    "1_correction": {
+      "stage": "1_correction",
+      "status": "judge_pass",
+      "attempts_used": 1,
+      "accepted_attempt": 1,
+      "message": "judge verdict non-blocking (pass/minor) → advance",
+      "gate1": {
+        "passed": true,
+        "block": 0,
+        "flag": 0
+      }
+    },
+    "2_modelling": {
+      "stage": "2_modelling",
+      "status": "deterministic_pass",
+      "attempts_used": 1,
+      "accepted_attempt": 1,
+      "message": "gate① passed — no enabled judge for this stage → advance",
+      "gate1": {
+        "passed": true,
+        "block": 0,
+        "flag": 0
+      }
+    },
+    "3_split_pairing": {
+      "stage": "3_split_pairing",
+      "status": "awaiting_geometry_approval",
+      "attempts_used": 1,
+      "accepted_attempt": 1,
+      "message": "geometry built + gate① passed — awaiting human geometry confirmation",
+      "gate1": {
+        "passed": true,
+        "block": 0,
+        "flag": 0
+      }
+    },
+    "4_mep": {
+      "stage": "4_mep",
+      "status": "deterministic_pass",
+      "attempts_used": 1,
+      "accepted_attempt": 1,
+      "message": "gate① passed — no enabled judge for this stage → advance",
+      "gate1": {
+        "passed": true,
+        "block": 0,
+        "flag": 0
+      }
+    },
+    "5_intakeoutput": {
+      "stage": "5_intakeoutput",
+      "status": "deterministic_pass",
+      "attempts_used": 1,
+      "accepted_attempt": 1,
+      "message": "gate① passed — no enabled judge for this stage → advance",
+      "gate1": {
+        "passed": true,
+        "block": 0,
+        "flag": 0
+      }
+    }
+  },
+  "stop_reason": null,
+  "ep": {
+    "completed": true,
+    "severe": 0,
+    "warnings": 6
+  },
+  "corrections_summary": {
+    "sidecar_path": "1_correction/corrections.json",
+    "present": true,
+    "parse_status": "ok",
+    "counts": {
+      "corrections": 6,
+      "conflicts": 0,
+      "unsupported": 0
+    },
+    "by_rule_id": {
+      "A1_centerline": 1,
+      "A2_checksum_failure": 1,
+      "A3_facade_plan_mismatch": 1,
+      "A3_prior_completion": 1,
+      "A3_stroke_vs_dimension": 2
+    },
+    "by_stage": {
+      "A1": 1,
+      "A2": 1,
+      "A3": 4
+    },
+    "corrections": {
+      "total": 6,
+      "shown": 6,
+      "cap": 20,
+      "rows": [
+        {
+          "id": "corr-1",
+          "rule_id": "A1_centerline",
+          "source_ids": [
+            "1f_S1",
+            "1f_S2",
+            "1f_S3",
+            "1f_S4",
+            "2f_S1",
+            "2f_S2",
+            "2f_S3",
+            "2f_S4"
+          ],
+          "original_value": "exterior wall strokes at assumed outer face (x=0,15; y=0,8)",
+          "resolved_value": "wall centerlines shifted inward by 0.10 m (half of ext_wall_thk=0.20)",
+          "delta": "±0.10",
+          "changes_topology": false
+        },
+        {
+          "id": "corr-2",
+          "rule_id": "A3_stroke_vs_dimension",
+          "source_ids": [
+            "1f_S11",
+            "1f_S12",
+            "1f_S13",
+            "North_S4",
+            "North_S5",
+            "North_S6",
+            "North_S7",
+            "North_S8"
+          ],
+          "original_value": "plan: [1.24,3.64], [6.18,8.58], [11.12,13.52]; elevation: [1.24,3.64], [6.30,8.70], [11.36,13.76]",
+          "resolved_value": "adopted elevation facade dimensions: [6.30,8.70], [11.36,13.76]",
+          "delta": "+0.12 / +0.24",
+          "changes_topology": false
+        },
+        {
+          "id": "corr-3",
+          "rule_id": "A3_facade_plan_mismatch",
+          "source_ids": [
+            "2f_S13",
+            "2f_S14",
+            "2f_S15",
+            "2f_S16",
+            "South_S4",
+            "South_S5",
+            "South_S6",
+            "South_S7"
+          ],
+          "original_value": "plan: [2.19,3.39], [4.95,6.15], [8.19,9.39], [10.95,12.15]; elevation: [2.19,3.39], [4.11,5.31], [9.69,10.89], [11.61,12.81]",
+          "resolved_value": "adopted elevation top chain windows (sums to 15.00, plan bottom chain does not close)",
+          "delta": "variable",
+          "changes_topology": false
+        },
+        {
+          "id": "corr-4",
+          "rule_id": "A3_stroke_vs_dimension",
+          "source_ids": [
+            "1f_S17",
+            "East_S5"
+          ],
+          "original_value": "plan: span y [3.28,4.48], z [2.94,4.48]; elevation: y [3.4,4.6], z [1.0,2.8]",
+          "resolved_value": "east elevation definitive: world y [3.4,4.6], sill 1.0, head 2.8",
+          "delta": "shifted y and z",
+          "changes_topology": false
+        },
+        {
+          "id": "corr-5",
+          "rule_id": "A2_checksum_failure",
+          "source_ids": [
+            "1f_D1",
+            "1f_D2",
+            "1f_D3",
+            "1f_D4",
+            "1f_D5",
+            "1f_D6",
+            "1f_D7",
+            "1f_D8",
+            "1f_D9",
+            "1f_D10"
+          ],
+          "original_value": "top chain sum = 14.76, overall D1 = 15.00",
+          "resolved_value": "overall 15.00 trusted; gap of 0.24 assigned to eastern end segment; bottom chain simultaneous closure used for interior wall x=5,10.",
+          "delta": "+0.24",
+          "changes_topology": false
+        },
+        {
+          "id": "corr-6",
+          "rule_id": "A3_prior_completion",
+          "source_ids": [],
+          "original_value": "no room labels",
+          "resolved_value": "assigned role 'office' to perimeter cells and 'corridor' to central band based on typical office layout prior",
+          "delta": null,
+          "changes_topology": false
+        }
+      ]
+    },
+    "conflicts": [],
+    "unsupported": []
+  },
+  "evidence_index": [
+    {
+      "id": "E:judge:0_reading:001:c1",
+      "kind": "judge",
+      "source": "0_reading/attempts/001/judge.json",
+      "payload": {
+        "stage": "0_reading",
+        "attempt": "001",
+        "criterion_ordinal": 1,
+        "criterion": {
+          "criterion": "missed real element",
+          "status": "severe",
+          "recoverability": "unrecoverable",
+          "evidence": "TWO missed-existence defects. (a) 2f_view south band under-segmented: only 2 south partitions (S8,S9) -> 3 rooms, but the drawing + gt F2_S1/S2/S3/S4 [0-3.75][3.75-7.5][7.5-11.25][11.25-15] = 4 rooms, and testdata thermal_zones=7 (gpt54mini's 2f totals only 6 = 2 north + corridor + 3 south). One real partition wall (~x=3.75 or 11.25) was not traced. (b) South_view F2 windows merged 4->2: the F2 top-chain 1200/720/1200 ... 1200/720/1200 is two pairs of distinct 1.2m windows separated by a 0.72m pier each (gt South F2 x=2.19,4.11,9.69,11.61), but gpt54mini traced 2 wide windows. Both are existence errors (fabricated absence), condition 1 of correction-recoverability fails -> unrecoverable; correction is image-blind and cannot reconstruct a missing wall or split a merged window."
+        },
+        "root_stage": "0_reading",
+        "rubric_id": "J0"
+      }
+    },
+    {
+      "id": "E:judge:0_reading:001:c2",
+      "kind": "judge",
+      "source": "0_reading/attempts/001/judge.json",
+      "payload": {
+        "stage": "0_reading",
+        "attempt": "001",
+        "criterion_ordinal": 2,
+        "criterion": {
+          "criterion": "clutter traced as structure",
+          "status": "pass",
+          "recoverability": null,
+          "evidence": "Plans are clean -- no furniture/dimension-tick over-tracing. 1f = 10 walls (4 envelope + 2 corridor + 2 north partitions + 2 south partitions) -> correct 7 zones. No spurious partitions (contrast: the Sonnet run over-segmented the 1f south band)."
+        },
+        "root_stage": "0_reading",
+        "rubric_id": "J0"
+      }
+    },
+    {
+      "id": "E:judge:0_reading:001:c3",
+      "kind": "judge",
+      "source": "0_reading/attempts/001/judge.json",
+      "payload": {
+        "stage": "0_reading",
+        "attempt": "001",
+        "criterion_ordinal": 3,
+        "criterion": {
+          "criterion": "pen misclassified",
+          "status": "minor",
+          "recoverability": "unrecoverable",
+          "evidence": "Window pen vs wall_fill cleanly separated on elevations. The South F2 merge (above) is a grouping/granularity error rather than a wrong pen; counted under 'missed real element'. No wall-as-window confusion."
+        },
+        "root_stage": "0_reading",
+        "rubric_id": "J0"
+      }
+    },
+    {
+      "id": "E:judge:0_reading:001:c4",
+      "kind": "judge",
+      "source": "0_reading/attempts/001/judge.json",
+      "payload": {
+        "stage": "0_reading",
+        "attempt": "001",
+        "criterion_ordinal": 4,
+        "criterion": {
+          "criterion": "number copied wrong",
+          "status": "insufficient_evidence",
+          "recoverability": null,
+          "evidence": "2f wall provenance is terse ('seen') with no transcribed dimension values, so internal-vs-drawing transcription could not be spot-verified the way it could on the Sonnet run. Top/overall 15000x8000 consistent. Full re-OCR deferred to the blind re-read."
+        },
+        "root_stage": "0_reading",
+        "rubric_id": "J0"
+      }
+    },
+    {
+      "id": "E:judge:0_reading:001:c5",
+      "kind": "judge",
+      "source": "0_reading/attempts/001/judge.json",
+      "payload": {
+        "stage": "0_reading",
+        "attempt": "001",
+        "criterion_ordinal": 5,
+        "criterion": {
+          "criterion": "image-local orientation self-consistent",
+          "status": "pass",
+          "recoverability": null,
+          "evidence": "view_facade declarations match the trusted image names (South/North/East/West). North=5, East=2, West=1 window counts match gt facade totals exactly; only South is off due to the F2 merge."
+        },
+        "root_stage": "0_reading",
+        "rubric_id": "J0"
+      }
+    },
+    {
+      "id": "E:judge:0_reading:001:c6",
+      "kind": "judge",
+      "source": "0_reading/attempts/001/judge.json",
+      "payload": {
+        "stage": "0_reading",
+        "attempt": "001",
+        "criterion_ordinal": 6,
+        "criterion": {
+          "criterion": "door healing wrong",
+          "status": "minor",
+          "recoverability": "unrecoverable",
+          "evidence": "South_view has a clear F1 entrance door (the cross-hatched panel far left, gt South F1 door x=0.54 w=0.9) that was correctly NOT traced as a window, but uncaptured_visual_elements is None -- door presence not logged per discipline. Non-blocking."
+        },
+        "root_stage": "0_reading",
+        "rubric_id": "J0"
+      }
+    },
+    {
+      "id": "E:judge:0_reading:001:c7",
+      "kind": "judge",
+      "source": "0_reading/attempts/001/judge.json",
+      "payload": {
+        "stage": "0_reading",
+        "attempt": "001",
+        "criterion_ordinal": 7,
+        "criterion": {
+          "criterion": "whole-region missing / misplaced",
+          "status": "pass",
+          "recoverability": null,
+          "evidence": "All bands/floors present and positioned plausibly; defects are a single missing partition + a window merge, not a missing wing/floor."
+        },
+        "root_stage": "0_reading",
+        "rubric_id": "J0"
+      }
+    },
+    {
+      "id": "E:judge:0_reading:002:c1",
+      "kind": "judge",
+      "source": "0_reading/attempts/002/judge.json",
+      "payload": {
+        "stage": "0_reading",
+        "attempt": "002",
+        "criterion_ordinal": 1,
+        "criterion": {
+          "criterion": "missed real element",
+          "status": "severe",
+          "recoverability": "unrecoverable",
+          "evidence": "2f_view south band STILL under-segmented after re-read: 9 walls = 4 envelope + 2 corridor + 1 north partition + only 2 south partitions -> 3 south rooms. gt F2 south = 4 rooms (F2_S1/S2/S3/S4 at [0-3.75][3.75-7.5][7.5-11.25][11.25-15], partitions x=3.75/7.5/11.25) and testdata thermal_zones=7 (gpt-mini 2f = 2 north + corridor + 3 south = 6). One real south partition still not traced. Existence error -> unrecoverable; image-blind correction cannot invent the missing wall. NOTE: 1f is correct (10 walls -> 7 zones)."
+        },
+        "root_stage": "0_reading",
+        "rubric_id": "J0"
+      }
+    },
+    {
+      "id": "E:judge:0_reading:002:c2",
+      "kind": "judge",
+      "source": "0_reading/attempts/002/judge.json",
+      "payload": {
+        "stage": "0_reading",
+        "attempt": "002",
+        "criterion_ordinal": 2,
+        "criterion": {
+          "criterion": "clutter traced as structure",
+          "status": "pass",
+          "recoverability": null,
+          "evidence": "No over-tracing; the failure mode here is under-reading, not furniture/dimension-tick over-segmentation."
+        },
+        "root_stage": "0_reading",
+        "rubric_id": "J0"
+      }
+    },
+    {
+      "id": "E:judge:0_reading:002:c3",
+      "kind": "judge",
+      "source": "0_reading/attempts/002/judge.json",
+      "payload": {
+        "stage": "0_reading",
+        "attempt": "002",
+        "criterion_ordinal": 3,
+        "criterion": {
+          "criterion": "pen misclassified",
+          "status": "pass",
+          "recoverability": null,
+          "evidence": "Window vs wall_fill clean on elevations."
+        },
+        "root_stage": "0_reading",
+        "rubric_id": "J0"
+      }
+    },
+    {
+      "id": "E:judge:0_reading:002:c4",
+      "kind": "judge",
+      "source": "0_reading/attempts/002/judge.json",
+      "payload": {
+        "stage": "0_reading",
+        "attempt": "002",
+        "criterion_ordinal": 4,
+        "criterion": {
+          "criterion": "number copied wrong",
+          "status": "insufficient_evidence",
+          "recoverability": null,
+          "evidence": "Provenance still terse; full transcription truth not re-OCR-verified. Overall 15000x8000 consistent."
+        },
+        "root_stage": "0_reading",
+        "rubric_id": "J0"
+      }
+    },
+    {
+      "id": "E:judge:0_reading:002:c5",
+      "kind": "judge",
+      "source": "0_reading/attempts/002/judge.json",
+      "payload": {
+        "stage": "0_reading",
+        "attempt": "002",
+        "criterion_ordinal": 5,
+        "criterion": {
+          "criterion": "image-local orientation self-consistent",
+          "status": "pass",
+          "recoverability": null,
+          "evidence": "RECOVERED on this attempt: South elevation now traces 7 distinct windows (was 5; merged F2 pairs are now split) -> matches gt South total exactly (F1=3 + F2=4). North=5, East=2, West=1 all match gt. The generic 'do not merge adjacent windows' discipline fixed the South-F2 merge."
+        },
+        "root_stage": "0_reading",
+        "rubric_id": "J0"
+      }
+    },
+    {
+      "id": "E:judge:0_reading:002:c6",
+      "kind": "judge",
+      "source": "0_reading/attempts/002/judge.json",
+      "payload": {
+        "stage": "0_reading",
+        "attempt": "002",
+        "criterion_ordinal": 6,
+        "criterion": {
+          "criterion": "door healing wrong",
+          "status": "minor",
+          "recoverability": "unrecoverable",
+          "evidence": "South F1 entrance door still not logged in uncaptured_visual_elements (correctly not traced as window). Non-blocking."
+        },
+        "root_stage": "0_reading",
+        "rubric_id": "J0"
+      }
+    },
+    {
+      "id": "E:judge:0_reading:002:c7",
+      "kind": "judge",
+      "source": "0_reading/attempts/002/judge.json",
+      "payload": {
+        "stage": "0_reading",
+        "attempt": "002",
+        "criterion_ordinal": 7,
+        "criterion": {
+          "criterion": "whole-region missing / misplaced",
+          "status": "pass",
+          "recoverability": null,
+          "evidence": "All bands/floors present; single missing 2f-south partition only."
+        },
+        "root_stage": "0_reading",
+        "rubric_id": "J0"
+      }
+    },
+    {
+      "id": "E:judge:0_reading:003:c1",
+      "kind": "judge",
+      "source": "0_reading/attempts/003/judge.json",
+      "payload": {
+        "stage": "0_reading",
+        "attempt": "003",
+        "criterion_ordinal": 1,
+        "criterion": {
+          "criterion": "missed real element",
+          "status": "pass",
+          "recoverability": null,
+          "evidence": "RECOVERED. 2f south band now has 3 partitions (S8/S9/S10) -> 4 rooms, matching gt F2_S1-S4 and testdata thermal_zones=7 (2f = 2 north + corridor + 4 south = 7). Facade window totals match gt exactly: South=7, North=5, East=2, West=1. No missing wall or window."
+        },
+        "root_stage": null,
+        "rubric_id": "J0"
+      }
+    },
+    {
+      "id": "E:judge:0_reading:003:c2",
+      "kind": "judge",
+      "source": "0_reading/attempts/003/judge.json",
+      "payload": {
+        "stage": "0_reading",
+        "attempt": "003",
+        "criterion_ordinal": 2,
+        "criterion": {
+          "criterion": "clutter traced as structure",
+          "status": "pass",
+          "recoverability": null,
+          "evidence": "1f = 10 walls -> 7 zones (3 north + corridor + 3 south); 2f = 10 walls -> 7 zones. No furniture/dimension-tick over-segmentation; partition positions visually align with the drawn walls (1f north/south x~5,10; 2f south ~3.75/7.5/11.25, 2f north ~7.5)."
+        },
+        "root_stage": null,
+        "rubric_id": "J0"
+      }
+    },
+    {
+      "id": "E:judge:0_reading:003:c3",
+      "kind": "judge",
+      "source": "0_reading/attempts/003/judge.json",
+      "payload": {
+        "stage": "0_reading",
+        "attempt": "003",
+        "criterion_ordinal": 3,
+        "criterion": {
+          "criterion": "pen misclassified",
+          "status": "pass",
+          "recoverability": null,
+          "evidence": "Walls vs windows clean on plans; wall_fill/window/outline correct on elevations."
+        },
+        "root_stage": null,
+        "rubric_id": "J0"
+      }
+    },
+    {
+      "id": "E:judge:0_reading:003:c4",
+      "kind": "judge",
+      "source": "0_reading/attempts/003/judge.json",
+      "payload": {
+        "stage": "0_reading",
+        "attempt": "003",
+        "criterion_ordinal": 4,
+        "criterion": {
+          "criterion": "number copied wrong",
+          "status": "pass",
+          "recoverability": null,
+          "evidence": "Overall 15000x8000 and per-band structure consistent with the drawings; no mis-OCR found on values checked."
+        },
+        "root_stage": null,
+        "rubric_id": "J0"
+      }
+    },
+    {
+      "id": "E:judge:0_reading:003:c5",
+      "kind": "judge",
+      "source": "0_reading/attempts/003/judge.json",
+      "payload": {
+        "stage": "0_reading",
+        "attempt": "003",
+        "criterion_ordinal": 5,
+        "criterion": {
+          "criterion": "image-local orientation self-consistent",
+          "status": "pass",
+          "recoverability": null,
+          "evidence": "view_facade declarations match trusted image names; per-facade window counts all match gt totals."
+        },
+        "root_stage": null,
+        "rubric_id": "J0"
+      }
+    },
+    {
+      "id": "E:judge:0_reading:003:c6",
+      "kind": "judge",
+      "source": "0_reading/attempts/003/judge.json",
+      "payload": {
+        "stage": "0_reading",
+        "attempt": "003",
+        "criterion_ordinal": 6,
+        "criterion": {
+          "criterion": "door healing wrong",
+          "status": "minor",
+          "recoverability": "unrecoverable",
+          "evidence": "South F1 entrance door + West F1 double-door correctly NOT traced as windows, but not all are logged in uncaptured_visual_elements. Discipline lapse, non-blocking."
+        },
+        "root_stage": null,
+        "rubric_id": "J0"
+      }
+    },
+    {
+      "id": "E:judge:0_reading:003:c7",
+      "kind": "judge",
+      "source": "0_reading/attempts/003/judge.json",
+      "payload": {
+        "stage": "0_reading",
+        "attempt": "003",
+        "criterion_ordinal": 7,
+        "criterion": {
+          "criterion": "whole-region missing / misplaced",
+          "status": "pass",
+          "recoverability": null,
+          "evidence": "All bands/floors present and correctly placed; both floors are correct 7-zone layouts."
+        },
+        "root_stage": null,
+        "rubric_id": "J0"
+      }
+    },
+    {
+      "id": "E:judge:1_correction:001:c1",
+      "kind": "judge",
+      "source": "1_correction/attempts/001/judge.json",
+      "payload": {
+        "stage": "1_correction",
+        "attempt": "001",
+        "criterion_ordinal": 1,
+        "criterion": {
+          "criterion": "zonification fidelity",
+          "status": "pass",
+          "recoverability": null,
+          "evidence": "Filled zone plan matches originals: F1 = 3 south offices + full-width corridor + 3 north offices; F2 = 4 south offices + corridor + 2 north rooms. No room wrongly merged/split/missing/invented vs the plans."
+        },
+        "root_stage": null,
+        "rubric_id": "J1"
+      }
+    },
+    {
+      "id": "E:judge:1_correction:001:c2",
+      "kind": "judge",
+      "source": "1_correction/attempts/001/judge.json",
+      "payload": {
+        "stage": "1_correction",
+        "attempt": "001",
+        "criterion_ordinal": 2,
+        "criterion": {
+          "criterion": "cross-floor consistency",
+          "status": "pass",
+          "recoverability": null,
+          "evidence": "Corridor band aligns y=[3,5] on both floors; no ~5cm jitter; envelope shared. (This is the failure class that broke the 06-07 Sonnet run; here it is clean.)"
+        },
+        "root_stage": null,
+        "rubric_id": "J1"
+      }
+    },
+    {
+      "id": "E:judge:1_correction:001:c3",
+      "kind": "judge",
+      "source": "1_correction/attempts/001/judge.json",
+      "payload": {
+        "stage": "1_correction",
+        "attempt": "001",
+        "criterion_ordinal": 3,
+        "criterion": {
+          "criterion": "window position fidelity",
+          "status": "pass",
+          "recoverability": null,
+          "evidence": "elev.png vs originals: South F2=4 (left pair + right pair) + F1=3 (small + 2 large); North F2=2 wide + F1=3; East 1/floor; West F2=1, F1=0 (door). Each window on correct facade + floor; positions qualitatively correct."
+        },
+        "root_stage": null,
+        "rubric_id": "J1"
+      }
+    },
+    {
+      "id": "E:judge:1_correction:001:c4",
+      "kind": "judge",
+      "source": "1_correction/attempts/001/judge.json",
+      "payload": {
+        "stage": "1_correction",
+        "attempt": "001",
+        "criterion_ordinal": 4,
+        "criterion": {
+          "criterion": "count vs reference",
+          "status": "pass",
+          "recoverability": null,
+          "evidence": "Zones=14 (testdata 7+7) and windows=15 match gt exactly (S=7,N=5,E=2,W=1). conflicts=[] unsupported=[]."
+        },
+        "root_stage": null,
+        "rubric_id": "J1"
+      }
+    },
+    {
+      "id": "E:judge:1_correction:001:c5",
+      "kind": "judge",
+      "source": "1_correction/attempts/001/judge.json",
+      "payload": {
+        "stage": "1_correction",
+        "attempt": "001",
+        "criterion_ordinal": 5,
+        "criterion": {
+          "criterion": "overall redraw",
+          "status": "minor",
+          "recoverability": "unrecoverable",
+          "evidence": "Building is faithfully redrawable. Two non-geometry minors: (a) all zones labeled role=office, but gt has F1_S3=meeting and F2_N1/N2=meeting -- a use-type/load-tier difference only, does not affect geometry (same minor class as the 06-16 baseline). (b) footprint resolved to [0.1,14.9]x[0.1,7.9]=14.8x7.8 rather than the authoritative [0,15]x[0,8]: the envelope-priority extractor did not get structured elevation overall-dimension signal from gpt-5.4-mini's elevation reading and fell back to the plan-inset footprint; 0.2m < envelope_reconcile_tol 0.30, within tolerance, not blocking -- noted for the envelope feature's weak-model degradation."
+        },
+        "root_stage": null,
+        "rubric_id": "J1"
+      }
+    },
+    {
+      "id": "E:corr:corrections:corr-1",
+      "kind": "correction",
+      "source": "1_correction/corrections.json",
+      "payload": {
+        "kind": "corrections",
+        "ordinal": 1,
+        "raw_id": "corr-1",
+        "row": {
+          "id": "corr-1",
+          "stage": "A1",
+          "method_profile": "all",
+          "entity_type": "edge",
+          "entity_id": "footprint_perimeter",
+          "floor_id": null,
+          "parent_id": null,
+          "coordinate_frame": "world",
+          "unit": "m",
+          "rule_id": "A1_centerline",
+          "claim_type": "numeric",
+          "conflict_type": "reference_or_identity_ambiguity",
+          "source_ids": [
+            "1f_S1",
+            "1f_S2",
+            "1f_S3",
+            "1f_S4",
+            "2f_S1",
+            "2f_S2",
+            "2f_S3",
+            "2f_S4"
+          ],
+          "original_value": "exterior wall strokes at assumed outer face (x=0,15; y=0,8)",
+          "resolved_value": "wall centerlines shifted inward by 0.10 m (half of ext_wall_thk=0.20)",
+          "value_type": "line",
+          "tolerance_name": null,
+          "tolerance_value": null,
+          "delta": "±0.10",
+          "evidence_grade": "prior",
+          "confidence_before": "high",
+          "confidence_after": "medium",
+          "changes_topology": false,
+          "prior_id": "ext_wall_thk",
+          "note": "Applied prior exterior wall thickness 0.20 m to convert facade face strokes to wall centerline. Interior walls kept as centreline (no shift)."
+        }
+      }
+    },
+    {
+      "id": "E:corr:corrections:corr-2",
+      "kind": "correction",
+      "source": "1_correction/corrections.json",
+      "payload": {
+        "kind": "corrections",
+        "ordinal": 2,
+        "raw_id": "corr-2",
+        "row": {
+          "id": "corr-2",
+          "stage": "A3",
+          "method_profile": "all",
+          "entity_type": "window",
+          "entity_id": "F1 north windows",
+          "floor_id": "Floor 1",
+          "parent_id": null,
+          "coordinate_frame": "world",
+          "unit": "m",
+          "rule_id": "A3_stroke_vs_dimension",
+          "claim_type": "numeric",
+          "conflict_type": "stroke_vs_dimension",
+          "source_ids": [
+            "1f_S11",
+            "1f_S12",
+            "1f_S13",
+            "North_S4",
+            "North_S5",
+            "North_S6",
+            "North_S7",
+            "North_S8"
+          ],
+          "original_value": "plan: [1.24,3.64], [6.18,8.58], [11.12,13.52]; elevation: [1.24,3.64], [6.30,8.70], [11.36,13.76]",
+          "resolved_value": "adopted elevation facade dimensions: [6.30,8.70], [11.36,13.76]",
+          "value_type": "facade_extent",
+          "tolerance_name": "DIMCHAIN_CLOSE_TOL",
+          "tolerance_value": 0.01,
+          "delta": "+0.12 / +0.24",
+          "evidence_grade": "transcribed_dimension",
+          "confidence_before": "medium",
+          "confidence_after": "high",
+          "changes_topology": false,
+          "prior_id": null,
+          "note": "Resolved discrepancy between plan-derived north window positions (from top chain that did not close) and accurate elevation dimension chain (sums to 15.00)."
+        }
+      }
+    },
+    {
+      "id": "E:corr:corrections:corr-3",
+      "kind": "correction",
+      "source": "1_correction/corrections.json",
+      "payload": {
+        "kind": "corrections",
+        "ordinal": 3,
+        "raw_id": "corr-3",
+        "row": {
+          "id": "corr-3",
+          "stage": "A3",
+          "method_profile": "all",
+          "entity_type": "window",
+          "entity_id": "F2 south windows",
+          "floor_id": "Floor 2",
+          "parent_id": null,
+          "coordinate_frame": "world",
+          "unit": "m",
+          "rule_id": "A3_facade_plan_mismatch",
+          "claim_type": "numeric",
+          "conflict_type": "facade_plan_mismatch",
+          "source_ids": [
+            "2f_S13",
+            "2f_S14",
+            "2f_S15",
+            "2f_S16",
+            "South_S4",
+            "South_S5",
+            "South_S6",
+            "South_S7"
+          ],
+          "original_value": "plan: [2.19,3.39], [4.95,6.15], [8.19,9.39], [10.95,12.15]; elevation: [2.19,3.39], [4.11,5.31], [9.69,10.89], [11.61,12.81]",
+          "resolved_value": "adopted elevation top chain windows (sums to 15.00, plan bottom chain does not close)",
+          "value_type": "facade_extent",
+          "tolerance_name": "DIMCHAIN_CLOSE_TOL",
+          "tolerance_value": 0.01,
+          "delta": "variable",
+          "evidence_grade": "transcribed_dimension",
+          "confidence_before": "medium",
+          "confidence_after": "high",
+          "changes_topology": false,
+          "prior_id": null,
+          "note": "F2 south facade windows taken from South elevation upper chain; plan bottom chain had checksum failure (14.28 vs 15.00)."
+        }
+      }
+    },
+    {
+      "id": "E:corr:corrections:corr-4",
+      "kind": "correction",
+      "source": "1_correction/corrections.json",
+      "payload": {
+        "kind": "corrections",
+        "ordinal": 4,
+        "raw_id": "corr-4",
+        "row": {
+          "id": "corr-4",
+          "stage": "A3",
+          "method_profile": "all",
+          "entity_type": "window",
+          "entity_id": "F1 east window",
+          "floor_id": "Floor 1",
+          "parent_id": null,
+          "coordinate_frame": "world",
+          "unit": "m",
+          "rule_id": "A3_stroke_vs_dimension",
+          "claim_type": "numeric",
+          "conflict_type": "stroke_vs_dimension",
+          "source_ids": [
+            "1f_S17",
+            "East_S5"
+          ],
+          "original_value": "plan: span y [3.28,4.48], z [2.94,4.48]; elevation: y [3.4,4.6], z [1.0,2.8]",
+          "resolved_value": "east elevation definitive: world y [3.4,4.6], sill 1.0, head 2.8",
+          "value_type": "facade_extent",
+          "tolerance_name": "DIMCHAIN_CLOSE_TOL",
+          "tolerance_value": 0.01,
+          "delta": "shifted y and z",
+          "evidence_grade": "transcribed_dimension",
+          "confidence_before": "medium",
+          "confidence_after": "high",
+          "changes_topology": false,
+          "prior_id": null,
+          "note": "East elevation chain is fully closed and gives accurate z; plan east‑side dimension chain did not sum correctly (7760 vs 8000)."
+        }
+      }
+    },
+    {
+      "id": "E:corr:corrections:corr-5",
+      "kind": "correction",
+      "source": "1_correction/corrections.json",
+      "payload": {
+        "kind": "corrections",
+        "ordinal": 5,
+        "raw_id": "corr-5",
+        "row": {
+          "id": "corr-5",
+          "stage": "A2",
+          "method_profile": "all",
+          "entity_type": "dimension_chain",
+          "entity_id": "F1 top chain",
+          "floor_id": "Floor 1",
+          "parent_id": null,
+          "coordinate_frame": "plan_local",
+          "unit": "m",
+          "rule_id": "A2_checksum_failure",
+          "claim_type": "numeric",
+          "conflict_type": "checksum_failure",
+          "source_ids": [
+            "1f_D1",
+            "1f_D2",
+            "1f_D3",
+            "1f_D4",
+            "1f_D5",
+            "1f_D6",
+            "1f_D7",
+            "1f_D8",
+            "1f_D9",
+            "1f_D10"
+          ],
+          "original_value": "top chain sum = 14.76, overall D1 = 15.00",
+          "resolved_value": "overall 15.00 trusted; gap of 0.24 assigned to eastern end segment; bottom chain simultaneous closure used for interior wall x=5,10.",
+          "value_type": "scalar",
+          "tolerance_name": "DIMCHAIN_CLOSE_TOL",
+          "tolerance_value": 0.01,
+          "delta": "+0.24",
+          "evidence_grade": "transcribed_dimension",
+          "confidence_before": "medium",
+          "confidence_after": "high",
+          "changes_topology": false,
+          "prior_id": null,
+          "note": "F1 top dimension chain did not close; overall length preserved and missing length distributed."
+        }
+      }
+    },
+    {
+      "id": "E:corr:corrections:corr-6",
+      "kind": "correction",
+      "source": "1_correction/corrections.json",
+      "payload": {
+        "kind": "corrections",
+        "ordinal": 6,
+        "raw_id": "corr-6",
+        "row": {
+          "id": "corr-6",
+          "stage": "A3",
+          "method_profile": "use_grouped_rooms",
+          "entity_type": "cell",
+          "entity_id": "all cells",
+          "floor_id": null,
+          "parent_id": null,
+          "coordinate_frame": "world",
+          "unit": "none",
+          "rule_id": "A3_prior_completion",
+          "claim_type": "semantic",
+          "conflict_type": null,
+          "source_ids": [],
+          "original_value": "no room labels",
+          "resolved_value": "assigned role 'office' to perimeter cells and 'corridor' to central band based on typical office layout prior",
+          "value_type": "ratio",
+          "tolerance_name": null,
+          "tolerance_value": null,
+          "delta": null,
+          "evidence_grade": "prior",
+          "confidence_before": "unknown",
+          "confidence_after": "low",
+          "changes_topology": false,
+          "prior_id": "office_area_pp",
+          "note": "No OCR room labels present; roles inferred from repeated floor plan pattern (centre circulation band + perimeter offices)."
+        }
+      }
+    },
+    {
+      "id": "E:ep:result",
+      "kind": "ep",
+      "source": "EP/EP_run/eplusout.end",
+      "payload": {
+        "ep": {
+          "completed": true,
+          "severe": 0,
+          "warnings": 6
+        }
+      }
+    },
+    {
+      "id": "E:geom:digest",
+      "kind": "geometry",
+      "source": "2_modelling/building_geometry.json",
+      "payload": {
+        "geometry_digest": "ecac6a8a693043db7814b5e78cbf9ead720adea0456d26e82e4b11104458cb04",
+        "geometry_approved": true
+      }
+    },
+    {
+      "id": "E:eyeball:1_correction_zones.png",
+      "kind": "eyeball",
+      "source": "report/eyeball/1_correction_zones.png",
+      "payload": {
+        "filename": "1_correction_zones.png",
+        "path": "report/eyeball/1_correction_zones.png",
+        "producer": "correction_zones",
+        "source": "1_correction/zones.png",
+        "status": "copied"
+      }
+    },
+    {
+      "id": "E:eyeball:1_correction_elev.png",
+      "kind": "eyeball",
+      "source": "report/eyeball/1_correction_elev.png",
+      "payload": {
+        "filename": "1_correction_elev.png",
+        "path": "report/eyeball/1_correction_elev.png",
+        "producer": "correction_elev",
+        "source": "1_correction/elev.png",
+        "status": "copied"
+      }
+    },
+    {
+      "id": "E:eyeball:0_reading_1f_view_render.png",
+      "kind": "eyeball",
+      "source": "report/eyeball/0_reading_1f_view_render.png",
+      "payload": {
+        "filename": "0_reading_1f_view_render.png",
+        "path": "report/eyeball/0_reading_1f_view_render.png",
+        "producer": "reading_render",
+        "source": "0_reading/1f_view_render.png",
+        "status": "copied"
+      }
+    },
+    {
+      "id": "E:eyeball:0_reading_2f_view_render.png",
+      "kind": "eyeball",
+      "source": "report/eyeball/0_reading_2f_view_render.png",
+      "payload": {
+        "filename": "0_reading_2f_view_render.png",
+        "path": "report/eyeball/0_reading_2f_view_render.png",
+        "producer": "reading_render",
+        "source": "0_reading/2f_view_render.png",
+        "status": "copied"
+      }
+    },
+    {
+      "id": "E:eyeball:0_reading_East_view_render.png",
+      "kind": "eyeball",
+      "source": "report/eyeball/0_reading_East_view_render.png",
+      "payload": {
+        "filename": "0_reading_East_view_render.png",
+        "path": "report/eyeball/0_reading_East_view_render.png",
+        "producer": "reading_render",
+        "source": "0_reading/East_view_render.png",
+        "status": "copied"
+      }
+    },
+    {
+      "id": "E:eyeball:0_reading_North_view_render.png",
+      "kind": "eyeball",
+      "source": "report/eyeball/0_reading_North_view_render.png",
+      "payload": {
+        "filename": "0_reading_North_view_render.png",
+        "path": "report/eyeball/0_reading_North_view_render.png",
+        "producer": "reading_render",
+        "source": "0_reading/North_view_render.png",
+        "status": "copied"
+      }
+    },
+    {
+      "id": "E:eyeball:0_reading_South_view_render.png",
+      "kind": "eyeball",
+      "source": "report/eyeball/0_reading_South_view_render.png",
+      "payload": {
+        "filename": "0_reading_South_view_render.png",
+        "path": "report/eyeball/0_reading_South_view_render.png",
+        "producer": "reading_render",
+        "source": "0_reading/South_view_render.png",
+        "status": "copied"
+      }
+    },
+    {
+      "id": "E:eyeball:0_reading_West_view_render.png",
+      "kind": "eyeball",
+      "source": "report/eyeball/0_reading_West_view_render.png",
+      "payload": {
+        "filename": "0_reading_West_view_render.png",
+        "path": "report/eyeball/0_reading_West_view_render.png",
+        "producer": "reading_render",
+        "source": "0_reading/West_view_render.png",
+        "status": "copied"
+      }
+    },
+    {
+      "id": "E:eyeball:case_data_1f_view.png",
+      "kind": "eyeball",
+      "source": "report/eyeball/case_data_1f_view.png",
+      "payload": {
+        "filename": "case_data_1f_view.png",
+        "path": "report/eyeball/case_data_1f_view.png",
+        "producer": "case_data_view",
+        "source": "../case_data/1f_view.png",
+        "status": "copied"
+      }
+    },
+    {
+      "id": "E:eyeball:case_data_2f_view.png",
+      "kind": "eyeball",
+      "source": "report/eyeball/case_data_2f_view.png",
+      "payload": {
+        "filename": "case_data_2f_view.png",
+        "path": "report/eyeball/case_data_2f_view.png",
+        "producer": "case_data_view",
+        "source": "../case_data/2f_view.png",
+        "status": "copied"
+      }
+    },
+    {
+      "id": "E:eyeball:case_data_East_view.png",
+      "kind": "eyeball",
+      "source": "report/eyeball/case_data_East_view.png",
+      "payload": {
+        "filename": "case_data_East_view.png",
+        "path": "report/eyeball/case_data_East_view.png",
+        "producer": "case_data_view",
+        "source": "../case_data/East_view.png",
+        "status": "copied"
+      }
+    },
+    {
+      "id": "E:eyeball:case_data_North_view.png",
+      "kind": "eyeball",
+      "source": "report/eyeball/case_data_North_view.png",
+      "payload": {
+        "filename": "case_data_North_view.png",
+        "path": "report/eyeball/case_data_North_view.png",
+        "producer": "case_data_view",
+        "source": "../case_data/North_view.png",
+        "status": "copied"
+      }
+    },
+    {
+      "id": "E:eyeball:case_data_South_view.png",
+      "kind": "eyeball",
+      "source": "report/eyeball/case_data_South_view.png",
+      "payload": {
+        "filename": "case_data_South_view.png",
+        "path": "report/eyeball/case_data_South_view.png",
+        "producer": "case_data_view",
+        "source": "../case_data/South_view.png",
+        "status": "copied"
+      }
+    },
+    {
+      "id": "E:eyeball:case_data_West_view.png",
+      "kind": "eyeball",
+      "source": "report/eyeball/case_data_West_view.png",
+      "payload": {
+        "filename": "case_data_West_view.png",
+        "path": "report/eyeball/case_data_West_view.png",
+        "producer": "case_data_view",
+        "source": "../case_data/West_view.png",
+        "status": "copied"
+      }
+    }
+  ],
+  "blocked": false
+}

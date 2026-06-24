@@ -1,0 +1,53 @@
+{
+  "stage": "0_reading",
+  "rubric_id": "J0",
+  "criteria": [
+    {
+      "criterion": "missed real element",
+      "status": "pass",
+      "recoverability": null,
+      "evidence": "Envelope (15.00x8.00), both corridor walls, north-band partitions, and per-facade windows are all present on both plans. No under-tracing observed; the failure mode here is over-tracing (see clutter)."
+    },
+    {
+      "criterion": "clutter traced as structure",
+      "status": "severe",
+      "recoverability": "unrecoverable",
+      "evidence": "1f_view south band over-segmented: 8 'south interior partition' walls S9-S16 at x=1.44/3.44/5.00/6.30/8.70/10.00/11.36/13.76. Of these, 3.44/6.30/11.36 coincide with the South-facade window x-positions (gt 3.44/6.3/11.36) and the rest are bottom dimension-chain cumulative ticks. Real south band = 3 rooms / 2 partitions (x=5,10), confirmed by (a) gt F1_S1/S2/S3 [0-5][5-10][10-15], (b) testdata thermal_zones=7 = 3 south + corridor + 3 north, and (c) Sonnet's OWN north-band twins S7/S8 at x=4.94/9.82. So 6 spurious walls were traced from window edges + dimension ticks. This is an EXISTENCE error (fabricated walls), not a value/coordinate error, so condition 1 of correction-recoverability fails -> unrecoverable; correction is image-blind and cannot know which of the 8 are real."
+    },
+    {
+      "criterion": "pen misclassified",
+      "status": "pass",
+      "recoverability": null,
+      "evidence": "Walls vs windows cleanly separated on both plans (W1-W7 window pen distinct from S* wall pen); no door emitted as window pen."
+    },
+    {
+      "criterion": "number copied wrong",
+      "status": "pass",
+      "recoverability": null,
+      "evidence": "Spot-checked transcriptions match the drawing: overall 15000x8000, north chain 1240/2400/1300..., interior 3000/1500/250 corridor build-up, F1 height 3000. No mis-OCR found on the values checked (full re-OCR deferred to the re-read)."
+    },
+    {
+      "criterion": "image-local orientation self-consistent",
+      "status": "insufficient_evidence",
+      "recoverability": null,
+      "evidence": "Prioritized plan adjudication this pass (the blocking finding is on 1f). Elevation per-facade window counts (S7/N5/E2/W1) match gt facade totals exactly, a positive signal, but per-image orientation declarations were not pixel-verified; will be covered by the full blind re-read."
+    },
+    {
+      "criterion": "door healing wrong",
+      "status": "minor",
+      "recoverability": "unrecoverable",
+      "evidence": "Door openings are mentioned inline in stroke provenance as 'healed', which is the correct topological treatment, but 1f_view uncaptured_visual_elements[] is EMPTY -- the heal events (west entry door, interior corridor doors) were not logged per the discipline (guide: note healing in uncaptured). Discipline lapse, not a geometry error; non-blocking."
+    },
+    {
+      "criterion": "whole-region missing / misplaced",
+      "status": "pass",
+      "recoverability": null,
+      "evidence": "All bands/floors present and in plausible positions; the defect is over-segmentation within the 1f south band, not a missing or displaced region."
+    }
+  ],
+  "root_stage": "0_reading",
+  "root_confidence": 0.9,
+  "retriable": true,
+  "judge_disabled": false,
+  "notes": "Halt -> re-read. Dominant defect = 1f south-band over-segmentation (6 fabricated partitions from window edges + dimension ticks); existence error => unrecoverable, correction cannot resolve image-blind. Sonnet got the NORTH band of the same floor right (S7/S8 at x=5,10), so the failure is local to the furniture/dimension-dense south band. 2f wall count (12) is mildly above the expected ~10 and should be re-verified on the blind re-read. Out-of-band commentary only; not to be injected into the re-read prompt."
+}

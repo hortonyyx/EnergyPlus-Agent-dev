@@ -1,0 +1,1515 @@
+{
+  "case": "sm24_anchor",
+  "run": "run_2026-06-24_opus_reading",
+  "recorded": "2026-06-24",
+  "orchestrator": "opus-4.8",
+  "models": {
+    "intake_correction": "deepseek-v4-pro",
+    "default": "deepseek-v4-pro"
+  },
+  "geometry": {
+    "zones": 11,
+    "surfaces": 76,
+    "windows": 11
+  },
+  "geometry_digest": "92b70adb282f0c560b866dc6b0857e9829d453b5a5194f4b04203f7744760176",
+  "geometry_approved": true,
+  "gates": {
+    "0_reading": {
+      "pass": 49,
+      "flag": 0,
+      "block": 0,
+      "na": 11,
+      "skip": 0
+    },
+    "1_correction": {
+      "pass": 5,
+      "flag": 1,
+      "block": 0,
+      "na": 1,
+      "skip": 0
+    },
+    "2_modelling": {
+      "pass": 5,
+      "flag": 0,
+      "block": 0,
+      "na": 0,
+      "skip": 0
+    },
+    "4_mep": {
+      "pass": 10,
+      "flag": 0,
+      "block": 0,
+      "na": 1,
+      "skip": 0
+    },
+    "5_intakeoutput": {
+      "pass": 1,
+      "flag": 0,
+      "block": 0,
+      "na": 0,
+      "skip": 0
+    },
+    "downstream": {
+      "pass": 3,
+      "flag": 0,
+      "block": 0,
+      "na": 1,
+      "skip": 0
+    }
+  },
+  "flags": [
+    {
+      "stage": "1_correction",
+      "check": "correction.zone_count_tripwire",
+      "message": "cell count 11 != testdata thermal_zones 8",
+      "evidence": {
+        "actual": 11,
+        "expected": 8,
+        "per_floor": {
+          "Floor 1": 11
+        }
+      }
+    }
+  ],
+  "blocking": [],
+  "judge_verdicts": [
+    {
+      "stage": "0_reading",
+      "attempt": 1,
+      "blocking": false,
+      "root_stage": "0_reading"
+    },
+    {
+      "stage": "1_correction",
+      "attempt": 2,
+      "blocking": false,
+      "root_stage": "1_correction"
+    }
+  ],
+  "draws": {
+    "0_reading": 1,
+    "1_correction": 2,
+    "2_modelling": 1,
+    "3_split_pairing": 1,
+    "4_mep": 1,
+    "5_intakeoutput": 1
+  },
+  "orchestration": {
+    "0_reading": {
+      "stage": "0_reading",
+      "status": "judge_pass",
+      "attempts_used": 1,
+      "accepted_attempt": 1,
+      "message": "judge verdict non-blocking (pass/minor) → advance",
+      "gate1": {
+        "passed": true,
+        "block": 0,
+        "flag": 0
+      }
+    },
+    "1_correction": {
+      "stage": "1_correction",
+      "status": "judge_pass",
+      "attempts_used": 2,
+      "accepted_attempt": 2,
+      "message": "judge verdict non-blocking (pass/minor) → advance",
+      "gate1": {
+        "passed": true,
+        "block": 0,
+        "flag": 1
+      }
+    },
+    "2_modelling": {
+      "stage": "2_modelling",
+      "status": "deterministic_pass",
+      "attempts_used": 1,
+      "accepted_attempt": 1,
+      "message": "gate① passed — no enabled judge for this stage → advance",
+      "gate1": {
+        "passed": true,
+        "block": 0,
+        "flag": 0
+      }
+    },
+    "3_split_pairing": {
+      "stage": "3_split_pairing",
+      "status": "awaiting_geometry_approval",
+      "attempts_used": 1,
+      "accepted_attempt": 1,
+      "message": "geometry built + gate① passed — awaiting human geometry confirmation",
+      "gate1": {
+        "passed": true,
+        "block": 0,
+        "flag": 0
+      }
+    },
+    "4_mep": {
+      "stage": "4_mep",
+      "status": "deterministic_pass",
+      "attempts_used": 1,
+      "accepted_attempt": 1,
+      "message": "gate① passed — no enabled judge for this stage → advance",
+      "gate1": {
+        "passed": true,
+        "block": 0,
+        "flag": 0
+      }
+    },
+    "5_intakeoutput": {
+      "stage": "5_intakeoutput",
+      "status": "deterministic_pass",
+      "attempts_used": 1,
+      "accepted_attempt": 1,
+      "message": "gate① passed — no enabled judge for this stage → advance",
+      "gate1": {
+        "passed": true,
+        "block": 0,
+        "flag": 0
+      }
+    }
+  },
+  "stop_reason": null,
+  "ep": {
+    "completed": true,
+    "severe": 0,
+    "warnings": 6
+  },
+  "corrections_summary": {
+    "sidecar_path": "1_correction/corrections.json",
+    "present": true,
+    "parse_status": "ok",
+    "counts": {
+      "corrections": 24,
+      "conflicts": 1,
+      "unsupported": 0
+    },
+    "by_rule_id": {
+      "A1_centerline_exterior": 4,
+      "A3_gap_close_north_divider": 1,
+      "A3_inferred_wall_extension": 1,
+      "deterministic_core.snap": 17,
+      "deterministic_core.window": 1
+    },
+    "by_stage": {
+      "A1": 4,
+      "A3": 3,
+      "core": 18
+    },
+    "corrections": {
+      "total": 24,
+      "shown": 20,
+      "cap": 20,
+      "rows": [
+        {
+          "id": "corr_1",
+          "rule_id": "A1_centerline_exterior",
+          "source_ids": [
+            "S1"
+          ],
+          "original_value": {
+            "point": [
+              0.0,
+              0.0
+            ]
+          },
+          "resolved_value": {
+            "point": [
+              -0.12,
+              0.0
+            ]
+          },
+          "delta": -0.12,
+          "changes_topology": false
+        },
+        {
+          "id": "corr_2",
+          "rule_id": "A1_centerline_exterior",
+          "source_ids": [
+            "S3"
+          ],
+          "original_value": {
+            "point": [
+              10.0,
+              0.0
+            ]
+          },
+          "resolved_value": {
+            "point": [
+              9.88,
+              0.0
+            ]
+          },
+          "delta": -0.12,
+          "changes_topology": false
+        },
+        {
+          "id": "corr_3",
+          "rule_id": "A1_centerline_exterior",
+          "source_ids": [
+            "S4"
+          ],
+          "original_value": {
+            "point": [
+              0.0,
+              0.0
+            ]
+          },
+          "resolved_value": {
+            "point": [
+              0.0,
+              -0.12
+            ]
+          },
+          "delta": -0.12,
+          "changes_topology": false
+        },
+        {
+          "id": "corr_4",
+          "rule_id": "A1_centerline_exterior",
+          "source_ids": [
+            "S2"
+          ],
+          "original_value": {
+            "point": [
+              0.0,
+              20.0
+            ]
+          },
+          "resolved_value": {
+            "point": [
+              0.0,
+              19.88
+            ]
+          },
+          "delta": -0.12,
+          "changes_topology": false
+        },
+        {
+          "id": "corr_5",
+          "rule_id": "A3_gap_close_north_divider",
+          "source_ids": [
+            "S7",
+            "S8"
+          ],
+          "original_value": {
+            "line": "gap at x 4.10-5.90, y=16.10"
+          },
+          "resolved_value": {
+            "line": "continuous wall at y=16.10 with double door at x 4.10-5.90"
+          },
+          "delta": null,
+          "changes_topology": true
+        },
+        {
+          "id": "corr_6",
+          "rule_id": "A3_inferred_wall_extension",
+          "source_ids": [
+            "S13"
+          ],
+          "original_value": {
+            "line": "polyline ends at (9.58,4.04)"
+          },
+          "resolved_value": {
+            "line": "extended vertical wall from (9.58,4.04) to (9.58,-0.12)"
+          },
+          "delta": null,
+          "changes_topology": true
+        },
+        {
+          "rule_id": "deterministic_core.snap",
+          "target": "cell_north_reception.x[0]",
+          "original_value": -0.12,
+          "resolved_value": -0.1,
+          "delta": 0.02
+        },
+        {
+          "rule_id": "deterministic_core.snap",
+          "target": "cell_north_reception.x[1]",
+          "original_value": 9.88,
+          "resolved_value": 9.9,
+          "delta": 0.02
+        },
+        {
+          "rule_id": "deterministic_core.snap",
+          "target": "cell_north_reception.y[1]",
+          "original_value": 19.88,
+          "resolved_value": 19.9,
+          "delta": 0.02
+        },
+        {
+          "rule_id": "deterministic_core.snap",
+          "target": "cell_corridor_lower.x[1]",
+          "original_value": 9.58,
+          "resolved_value": 9.6,
+          "delta": 0.02
+        },
+        {
+          "rule_id": "deterministic_core.snap",
+          "target": "cell_corridor_lower.y[0]",
+          "original_value": -0.12,
+          "resolved_value": -0.1,
+          "delta": 0.02
+        },
+        {
+          "rule_id": "deterministic_core.snap",
+          "target": "cell_office_left_upper.x[0]",
+          "original_value": -0.12,
+          "resolved_value": -0.1,
+          "delta": 0.02
+        },
+        {
+          "rule_id": "deterministic_core.snap",
+          "target": "cell_office_left_middle.x[0]",
+          "original_value": -0.12,
+          "resolved_value": -0.1,
+          "delta": 0.02
+        },
+        {
+          "rule_id": "deterministic_core.snap",
+          "target": "cell_conference_left_bottom.x[0]",
+          "original_value": -0.12,
+          "resolved_value": -0.1,
+          "delta": 0.02
+        },
+        {
+          "rule_id": "deterministic_core.snap",
+          "target": "cell_conference_left_bottom.y[0]",
+          "original_value": -0.12,
+          "resolved_value": -0.1,
+          "delta": 0.02
+        },
+        {
+          "rule_id": "deterministic_core.snap",
+          "target": "cell_office_right_small.x[1]",
+          "original_value": 9.88,
+          "resolved_value": 9.9,
+          "delta": 0.02
+        },
+        {
+          "rule_id": "deterministic_core.snap",
+          "target": "cell_office_right_middle.x[1]",
+          "original_value": 9.88,
+          "resolved_value": 9.9,
+          "delta": 0.02
+        },
+        {
+          "rule_id": "deterministic_core.snap",
+          "target": "cell_office_right_bottom_upper.x[1]",
+          "original_value": 9.88,
+          "resolved_value": 9.9,
+          "delta": 0.02
+        },
+        {
+          "rule_id": "deterministic_core.snap",
+          "target": "cell_office_right_bottom_mid.x[0]",
+          "original_value": 9.58,
+          "resolved_value": 9.6,
+          "delta": 0.02
+        },
+        {
+          "rule_id": "deterministic_core.snap",
+          "target": "cell_office_right_bottom_mid.x[1]",
+          "original_value": 9.88,
+          "resolved_value": 9.9,
+          "delta": 0.02
+        }
+      ]
+    },
+    "conflicts": [
+      {
+        "id": "conf_1",
+        "stage": "A3",
+        "method_profile": "room_identity",
+        "entity_type": "window",
+        "entity_id": "win_south_2",
+        "floor_id": "Floor 1",
+        "coordinate_frame": "world",
+        "conflict_type": "semantic_size_prior",
+        "claim_type": "semantic",
+        "candidates": [
+          {
+            "value": "belongs to corridor cell",
+            "source_ids": [
+              "South_view S3"
+            ],
+            "evidence_grade": "direct_measurement",
+            "confidence": "high"
+          }
+        ],
+        "reason_unresolved": "Window falls on the south facade where the corridor wall segment is located; a corridor by convention rarely has a direct exterior window, but the geometry forces the assignment. No alternate room is adjacent at that x coordinate.",
+        "fallback_action": "Assigned to cell_corridor_lower with a warning; may be re‑evaluated after thermal zoning."
+      }
+    ],
+    "unsupported": []
+  },
+  "evidence_index": [
+    {
+      "id": "E:gate:1_correction:correction.zone_count_tripwire",
+      "kind": "gate",
+      "source": "1_correction",
+      "payload": {
+        "report_key": "1_correction",
+        "stage": "1_correction",
+        "check_id": "correction.zone_count_tripwire",
+        "status": "fail",
+        "layer": "cross_check",
+        "disposition": "flag",
+        "message": "cell count 11 != testdata thermal_zones 8",
+        "evidence": {
+          "actual": 11,
+          "expected": 8,
+          "per_floor": {
+            "Floor 1": 11
+          }
+        }
+      }
+    },
+    {
+      "id": "E:judge:0_reading:001:c1",
+      "kind": "judge",
+      "source": "0_reading/attempts/001/judge.json",
+      "payload": {
+        "stage": "0_reading",
+        "attempt": "001",
+        "criterion_ordinal": 1,
+        "criterion": {
+          "criterion": "wall_completeness",
+          "status": "pass",
+          "recoverability": null,
+          "evidence": "All drawn walls captured: perimeter + corridor spine + 6 interior dividers + L-step. No real wall missed vs raster (render matches plan)."
+        },
+        "root_stage": "0_reading",
+        "rubric_id": "J0"
+      }
+    },
+    {
+      "id": "E:judge:0_reading:001:c2",
+      "kind": "judge",
+      "source": "0_reading/attempts/001/judge.json",
+      "payload": {
+        "stage": "0_reading",
+        "attempt": "001",
+        "criterion_ordinal": 2,
+        "criterion": {
+          "criterion": "no_furniture_as_wall",
+          "status": "pass",
+          "recoverability": null,
+          "evidence": "Sofa, desks, oval conference table, credenza, monitors, chairs recognized and logged in uncaptured; none traced."
+        },
+        "root_stage": "0_reading",
+        "rubric_id": "J0"
+      }
+    },
+    {
+      "id": "E:judge:0_reading:001:c3",
+      "kind": "judge",
+      "source": "0_reading/attempts/001/judge.json",
+      "payload": {
+        "stage": "0_reading",
+        "attempt": "001",
+        "criterion_ordinal": 3,
+        "criterion": {
+          "criterion": "no_dimension_as_wall",
+          "status": "pass",
+          "recoverability": null,
+          "evidence": "No dimension chain / tick / extension line emitted as a wall; 240mm thickness kept in dimensions[] only."
+        },
+        "root_stage": "0_reading",
+        "rubric_id": "J0"
+      }
+    },
+    {
+      "id": "E:judge:0_reading:001:c4",
+      "kind": "judge",
+      "source": "0_reading/attempts/001/judge.json",
+      "payload": {
+        "stage": "0_reading",
+        "attempt": "001",
+        "criterion_ordinal": 4,
+        "criterion": {
+          "criterion": "door_healing",
+          "status": "pass",
+          "recoverability": null,
+          "evidence": "3 exterior double-doors + interior swing doors healed into continuous walls; doorless corridor mouth left as a gap (not welded)."
+        },
+        "root_stage": "0_reading",
+        "rubric_id": "J0"
+      }
+    },
+    {
+      "id": "E:judge:0_reading:001:c5",
+      "kind": "judge",
+      "source": "0_reading/attempts/001/judge.json",
+      "payload": {
+        "stage": "0_reading",
+        "attempt": "001",
+        "criterion_ordinal": 5,
+        "criterion": {
+          "criterion": "window_recognition",
+          "status": "pass",
+          "recoverability": null,
+          "evidence": "11 elevation windows read with z-bands; plan cyan cross-checked; window vs door disambiguated."
+        },
+        "root_stage": "0_reading",
+        "rubric_id": "J0"
+      }
+    },
+    {
+      "id": "E:judge:0_reading:001:c6",
+      "kind": "judge",
+      "source": "0_reading/attempts/001/judge.json",
+      "payload": {
+        "stage": "0_reading",
+        "attempt": "001",
+        "criterion_ordinal": 6,
+        "criterion": {
+          "criterion": "elevation_axes",
+          "status": "pass",
+          "recoverability": null,
+          "evidence": "facade_axis_note + sign recorded per facade; world-axis flip (N, W opposite) deferred to correction as designed."
+        },
+        "root_stage": "0_reading",
+        "rubric_id": "J0"
+      }
+    },
+    {
+      "id": "E:judge:0_reading:001:c7",
+      "kind": "judge",
+      "source": "0_reading/attempts/001/judge.json",
+      "payload": {
+        "stage": "0_reading",
+        "attempt": "001",
+        "criterion_ordinal": 7,
+        "criterion": {
+          "criterion": "lstep_coordinates",
+          "status": "minor",
+          "recoverability": "correction_recoverable",
+          "evidence": "S13 L-step / bottom-right office door x derived from pixels (medium confidence); dimension chains pin the gross layout, only the fine step x is soft."
+        },
+        "root_stage": "0_reading",
+        "rubric_id": "J0"
+      }
+    },
+    {
+      "id": "E:judge:1_correction:002:c1",
+      "kind": "judge",
+      "source": "1_correction/attempts/002/judge.json",
+      "payload": {
+        "stage": "1_correction",
+        "attempt": "002",
+        "criterion_ordinal": 1,
+        "criterion": {
+          "criterion": "zonation_layout",
+          "status": "pass",
+          "recoverability": null,
+          "evidence": "Zonation matches the clean Opus reading: N reception, left column (3 offices/conference), right column (small/middle/bottom offices), central N-S corridor. Layout faithful to plan."
+        },
+        "root_stage": "1_correction",
+        "rubric_id": "J1"
+      }
+    },
+    {
+      "id": "E:judge:1_correction:002:c2",
+      "kind": "judge",
+      "source": "1_correction/attempts/002/judge.json",
+      "payload": {
+        "stage": "1_correction",
+        "attempt": "002",
+        "criterion_ordinal": 2,
+        "criterion": {
+          "criterion": "zone_count",
+          "status": "minor",
+          "recoverability": "correction_recoverable",
+          "evidence": "Tripwire 11 cells != testdata 8 thermal_zones. NOT an error: the deterministic rectangular-decomposition kernel splits the two NON-RECTANGULAR rooms into rectangles — the L-shaped corridor -> cell_corridor + cell_corridor_lower, and the stepped bottom-right office -> bottom_upper/mid/lower. Expected behavior for this non-square probe case; downstream zone-grouping (whether the split cells re-merge into one EP zone) is the real question to observe."
+        },
+        "root_stage": "1_correction",
+        "rubric_id": "J1"
+      }
+    },
+    {
+      "id": "E:judge:1_correction:002:c3",
+      "kind": "judge",
+      "source": "1_correction/attempts/002/judge.json",
+      "payload": {
+        "stage": "1_correction",
+        "attempt": "002",
+        "criterion_ordinal": 3,
+        "criterion": {
+          "criterion": "window_placement",
+          "status": "pass",
+          "recoverability": null,
+          "evidence": "Facade windows placed on perimeter walls (west/east/north/south) per elevations; blue marks on facade cells in render."
+        },
+        "root_stage": "1_correction",
+        "rubric_id": "J1"
+      }
+    },
+    {
+      "id": "E:judge:1_correction:002:c4",
+      "kind": "judge",
+      "source": "1_correction/attempts/002/judge.json",
+      "payload": {
+        "stage": "1_correction",
+        "attempt": "002",
+        "criterion_ordinal": 4,
+        "criterion": {
+          "criterion": "cross_floor",
+          "status": "pass",
+          "recoverability": null,
+          "evidence": "Single floor; not applicable."
+        },
+        "root_stage": "1_correction",
+        "rubric_id": "J1"
+      }
+    },
+    {
+      "id": "E:judge:1_correction:002:c5",
+      "kind": "judge",
+      "source": "1_correction/attempts/002/judge.json",
+      "payload": {
+        "stage": "1_correction",
+        "attempt": "002",
+        "criterion_ordinal": 5,
+        "criterion": {
+          "criterion": "overall_redraw",
+          "status": "pass",
+          "recoverability": null,
+          "evidence": "No global redraw needed; footprint 10x20m, corrections=24 conflicts=1 unsupported=0."
+        },
+        "root_stage": "1_correction",
+        "rubric_id": "J1"
+      }
+    },
+    {
+      "id": "E:corr:corrections:corr_1",
+      "kind": "correction",
+      "source": "1_correction/corrections.json",
+      "payload": {
+        "kind": "corrections",
+        "ordinal": 1,
+        "raw_id": "corr_1",
+        "row": {
+          "id": "corr_1",
+          "stage": "A1",
+          "method_profile": "room_identity",
+          "entity_type": "axis",
+          "entity_id": "west_wall_axis",
+          "floor_id": "Floor 1",
+          "coordinate_frame": "world",
+          "rule_id": "A1_centerline_exterior",
+          "claim_type": "numeric",
+          "conflict_type": null,
+          "source_ids": [
+            "S1"
+          ],
+          "original_value": {
+            "point": [
+              0.0,
+              0.0
+            ]
+          },
+          "resolved_value": {
+            "point": [
+              -0.12,
+              0.0
+            ]
+          },
+          "value_type": "point",
+          "tolerance_name": "OUTPUT_PRECISION",
+          "tolerance_value": 0.01,
+          "delta": -0.12,
+          "evidence_grade": "direct_measurement",
+          "confidence_before": "high",
+          "confidence_after": "high",
+          "changes_topology": false,
+          "prior_id": null,
+          "note": "Shifted west wall from inner face to centerline using measured thickness 240 mm (half = 0.12 m outward)."
+        }
+      }
+    },
+    {
+      "id": "E:corr:corrections:corr_2",
+      "kind": "correction",
+      "source": "1_correction/corrections.json",
+      "payload": {
+        "kind": "corrections",
+        "ordinal": 2,
+        "raw_id": "corr_2",
+        "row": {
+          "id": "corr_2",
+          "stage": "A1",
+          "method_profile": "room_identity",
+          "entity_type": "axis",
+          "entity_id": "east_wall_axis",
+          "floor_id": "Floor 1",
+          "coordinate_frame": "world",
+          "rule_id": "A1_centerline_exterior",
+          "claim_type": "numeric",
+          "conflict_type": null,
+          "source_ids": [
+            "S3"
+          ],
+          "original_value": {
+            "point": [
+              10.0,
+              0.0
+            ]
+          },
+          "resolved_value": {
+            "point": [
+              9.88,
+              0.0
+            ]
+          },
+          "value_type": "point",
+          "tolerance_name": "OUTPUT_PRECISION",
+          "tolerance_value": 0.01,
+          "delta": -0.12,
+          "evidence_grade": "direct_measurement",
+          "confidence_before": "high",
+          "confidence_after": "high",
+          "changes_topology": false,
+          "prior_id": null,
+          "note": "Shifted east wall from inner face to centerline outward by 0.12 m."
+        }
+      }
+    },
+    {
+      "id": "E:corr:corrections:corr_3",
+      "kind": "correction",
+      "source": "1_correction/corrections.json",
+      "payload": {
+        "kind": "corrections",
+        "ordinal": 3,
+        "raw_id": "corr_3",
+        "row": {
+          "id": "corr_3",
+          "stage": "A1",
+          "method_profile": "room_identity",
+          "entity_type": "axis",
+          "entity_id": "south_wall_axis",
+          "floor_id": "Floor 1",
+          "coordinate_frame": "world",
+          "rule_id": "A1_centerline_exterior",
+          "claim_type": "numeric",
+          "conflict_type": null,
+          "source_ids": [
+            "S4"
+          ],
+          "original_value": {
+            "point": [
+              0.0,
+              0.0
+            ]
+          },
+          "resolved_value": {
+            "point": [
+              0.0,
+              -0.12
+            ]
+          },
+          "value_type": "point",
+          "tolerance_name": "OUTPUT_PRECISION",
+          "tolerance_value": 0.01,
+          "delta": -0.12,
+          "evidence_grade": "direct_measurement",
+          "confidence_before": "high",
+          "confidence_after": "high",
+          "changes_topology": false,
+          "prior_id": null,
+          "note": "Shifted south wall from inner face to centerline outward by 0.12 m."
+        }
+      }
+    },
+    {
+      "id": "E:corr:corrections:corr_4",
+      "kind": "correction",
+      "source": "1_correction/corrections.json",
+      "payload": {
+        "kind": "corrections",
+        "ordinal": 4,
+        "raw_id": "corr_4",
+        "row": {
+          "id": "corr_4",
+          "stage": "A1",
+          "method_profile": "room_identity",
+          "entity_type": "axis",
+          "entity_id": "north_wall_axis",
+          "floor_id": "Floor 1",
+          "coordinate_frame": "world",
+          "rule_id": "A1_centerline_exterior",
+          "claim_type": "numeric",
+          "conflict_type": null,
+          "source_ids": [
+            "S2"
+          ],
+          "original_value": {
+            "point": [
+              0.0,
+              20.0
+            ]
+          },
+          "resolved_value": {
+            "point": [
+              0.0,
+              19.88
+            ]
+          },
+          "value_type": "point",
+          "tolerance_name": "OUTPUT_PRECISION",
+          "tolerance_value": 0.01,
+          "delta": -0.12,
+          "evidence_grade": "direct_measurement",
+          "confidence_before": "high",
+          "confidence_after": "high",
+          "changes_topology": false,
+          "prior_id": null,
+          "note": "Shifted north wall from inner face to centerline outward by 0.12 m."
+        }
+      }
+    },
+    {
+      "id": "E:corr:corrections:corr_5",
+      "kind": "correction",
+      "source": "1_correction/corrections.json",
+      "payload": {
+        "kind": "corrections",
+        "ordinal": 5,
+        "raw_id": "corr_5",
+        "row": {
+          "id": "corr_5",
+          "stage": "A3",
+          "method_profile": "room_identity",
+          "entity_type": "edge",
+          "entity_id": "north_divider_gap",
+          "floor_id": "Floor 1",
+          "coordinate_frame": "world",
+          "rule_id": "A3_gap_close_north_divider",
+          "claim_type": "topology_identity",
+          "conflict_type": null,
+          "source_ids": [
+            "S7",
+            "S8"
+          ],
+          "original_value": {
+            "line": "gap at x 4.10-5.90, y=16.10"
+          },
+          "resolved_value": {
+            "line": "continuous wall at y=16.10 with double door at x 4.10-5.90"
+          },
+          "value_type": "line",
+          "tolerance_name": null,
+          "tolerance_value": null,
+          "delta": null,
+          "evidence_grade": "inferred_topology",
+          "confidence_before": "high",
+          "confidence_after": "high",
+          "changes_topology": true,
+          "prior_id": null,
+          "note": "Closed the gap between S7 and S8 at the corridor mouth by inferring a continuous wall with a door opening; the two segments belong to the same north room divider with a double-door arc observed."
+        }
+      }
+    },
+    {
+      "id": "E:corr:corrections:corr_6",
+      "kind": "correction",
+      "source": "1_correction/corrections.json",
+      "payload": {
+        "kind": "corrections",
+        "ordinal": 6,
+        "raw_id": "corr_6",
+        "row": {
+          "id": "corr_6",
+          "stage": "A3",
+          "method_profile": "room_identity",
+          "entity_type": "edge",
+          "entity_id": "L_step_west_wall_extension",
+          "floor_id": "Floor 1",
+          "coordinate_frame": "world",
+          "rule_id": "A3_inferred_wall_extension",
+          "claim_type": "topology_identity",
+          "conflict_type": null,
+          "source_ids": [
+            "S13"
+          ],
+          "original_value": {
+            "line": "polyline ends at (9.58,4.04)"
+          },
+          "resolved_value": {
+            "line": "extended vertical wall from (9.58,4.04) to (9.58,-0.12)"
+          },
+          "value_type": "line",
+          "tolerance_name": null,
+          "tolerance_value": null,
+          "delta": null,
+          "evidence_grade": "inferred_topology",
+          "confidence_before": "medium",
+          "confidence_after": "medium",
+          "changes_topology": true,
+          "prior_id": null,
+          "note": "Extended the missing portion of the bottom-right office west wall from the L‑step down to the south wall to enclose the office; inferred from the stepped‑wall description and the need to close the cell."
+        }
+      }
+    },
+    {
+      "id": "E:corr:corrections:r7",
+      "kind": "correction",
+      "source": "1_correction/corrections.json",
+      "payload": {
+        "kind": "corrections",
+        "ordinal": 7,
+        "raw_id": null,
+        "row": {
+          "rule_id": "deterministic_core.snap",
+          "stage": "core",
+          "target": "cell_north_reception.x[0]",
+          "axis": "x",
+          "original_value": -0.12,
+          "resolved_value": -0.1,
+          "delta": 0.02,
+          "tolerance_name": "AXIS_JITTER_TOL+SNAP_GRID+MIN_EDGE_LENGTH"
+        }
+      }
+    },
+    {
+      "id": "E:corr:corrections:r8",
+      "kind": "correction",
+      "source": "1_correction/corrections.json",
+      "payload": {
+        "kind": "corrections",
+        "ordinal": 8,
+        "raw_id": null,
+        "row": {
+          "rule_id": "deterministic_core.snap",
+          "stage": "core",
+          "target": "cell_north_reception.x[1]",
+          "axis": "x",
+          "original_value": 9.88,
+          "resolved_value": 9.9,
+          "delta": 0.02,
+          "tolerance_name": "AXIS_JITTER_TOL+SNAP_GRID+MIN_EDGE_LENGTH"
+        }
+      }
+    },
+    {
+      "id": "E:corr:corrections:r9",
+      "kind": "correction",
+      "source": "1_correction/corrections.json",
+      "payload": {
+        "kind": "corrections",
+        "ordinal": 9,
+        "raw_id": null,
+        "row": {
+          "rule_id": "deterministic_core.snap",
+          "stage": "core",
+          "target": "cell_north_reception.y[1]",
+          "axis": "y",
+          "original_value": 19.88,
+          "resolved_value": 19.9,
+          "delta": 0.02,
+          "tolerance_name": "AXIS_JITTER_TOL+SNAP_GRID+MIN_EDGE_LENGTH"
+        }
+      }
+    },
+    {
+      "id": "E:corr:corrections:r10",
+      "kind": "correction",
+      "source": "1_correction/corrections.json",
+      "payload": {
+        "kind": "corrections",
+        "ordinal": 10,
+        "raw_id": null,
+        "row": {
+          "rule_id": "deterministic_core.snap",
+          "stage": "core",
+          "target": "cell_corridor_lower.x[1]",
+          "axis": "x",
+          "original_value": 9.58,
+          "resolved_value": 9.6,
+          "delta": 0.02,
+          "tolerance_name": "AXIS_JITTER_TOL+SNAP_GRID+MIN_EDGE_LENGTH"
+        }
+      }
+    },
+    {
+      "id": "E:corr:corrections:r11",
+      "kind": "correction",
+      "source": "1_correction/corrections.json",
+      "payload": {
+        "kind": "corrections",
+        "ordinal": 11,
+        "raw_id": null,
+        "row": {
+          "rule_id": "deterministic_core.snap",
+          "stage": "core",
+          "target": "cell_corridor_lower.y[0]",
+          "axis": "y",
+          "original_value": -0.12,
+          "resolved_value": -0.1,
+          "delta": 0.02,
+          "tolerance_name": "AXIS_JITTER_TOL+SNAP_GRID+MIN_EDGE_LENGTH"
+        }
+      }
+    },
+    {
+      "id": "E:corr:corrections:r12",
+      "kind": "correction",
+      "source": "1_correction/corrections.json",
+      "payload": {
+        "kind": "corrections",
+        "ordinal": 12,
+        "raw_id": null,
+        "row": {
+          "rule_id": "deterministic_core.snap",
+          "stage": "core",
+          "target": "cell_office_left_upper.x[0]",
+          "axis": "x",
+          "original_value": -0.12,
+          "resolved_value": -0.1,
+          "delta": 0.02,
+          "tolerance_name": "AXIS_JITTER_TOL+SNAP_GRID+MIN_EDGE_LENGTH"
+        }
+      }
+    },
+    {
+      "id": "E:corr:corrections:r13",
+      "kind": "correction",
+      "source": "1_correction/corrections.json",
+      "payload": {
+        "kind": "corrections",
+        "ordinal": 13,
+        "raw_id": null,
+        "row": {
+          "rule_id": "deterministic_core.snap",
+          "stage": "core",
+          "target": "cell_office_left_middle.x[0]",
+          "axis": "x",
+          "original_value": -0.12,
+          "resolved_value": -0.1,
+          "delta": 0.02,
+          "tolerance_name": "AXIS_JITTER_TOL+SNAP_GRID+MIN_EDGE_LENGTH"
+        }
+      }
+    },
+    {
+      "id": "E:corr:corrections:r14",
+      "kind": "correction",
+      "source": "1_correction/corrections.json",
+      "payload": {
+        "kind": "corrections",
+        "ordinal": 14,
+        "raw_id": null,
+        "row": {
+          "rule_id": "deterministic_core.snap",
+          "stage": "core",
+          "target": "cell_conference_left_bottom.x[0]",
+          "axis": "x",
+          "original_value": -0.12,
+          "resolved_value": -0.1,
+          "delta": 0.02,
+          "tolerance_name": "AXIS_JITTER_TOL+SNAP_GRID+MIN_EDGE_LENGTH"
+        }
+      }
+    },
+    {
+      "id": "E:corr:corrections:r15",
+      "kind": "correction",
+      "source": "1_correction/corrections.json",
+      "payload": {
+        "kind": "corrections",
+        "ordinal": 15,
+        "raw_id": null,
+        "row": {
+          "rule_id": "deterministic_core.snap",
+          "stage": "core",
+          "target": "cell_conference_left_bottom.y[0]",
+          "axis": "y",
+          "original_value": -0.12,
+          "resolved_value": -0.1,
+          "delta": 0.02,
+          "tolerance_name": "AXIS_JITTER_TOL+SNAP_GRID+MIN_EDGE_LENGTH"
+        }
+      }
+    },
+    {
+      "id": "E:corr:corrections:r16",
+      "kind": "correction",
+      "source": "1_correction/corrections.json",
+      "payload": {
+        "kind": "corrections",
+        "ordinal": 16,
+        "raw_id": null,
+        "row": {
+          "rule_id": "deterministic_core.snap",
+          "stage": "core",
+          "target": "cell_office_right_small.x[1]",
+          "axis": "x",
+          "original_value": 9.88,
+          "resolved_value": 9.9,
+          "delta": 0.02,
+          "tolerance_name": "AXIS_JITTER_TOL+SNAP_GRID+MIN_EDGE_LENGTH"
+        }
+      }
+    },
+    {
+      "id": "E:corr:corrections:r17",
+      "kind": "correction",
+      "source": "1_correction/corrections.json",
+      "payload": {
+        "kind": "corrections",
+        "ordinal": 17,
+        "raw_id": null,
+        "row": {
+          "rule_id": "deterministic_core.snap",
+          "stage": "core",
+          "target": "cell_office_right_middle.x[1]",
+          "axis": "x",
+          "original_value": 9.88,
+          "resolved_value": 9.9,
+          "delta": 0.02,
+          "tolerance_name": "AXIS_JITTER_TOL+SNAP_GRID+MIN_EDGE_LENGTH"
+        }
+      }
+    },
+    {
+      "id": "E:corr:corrections:r18",
+      "kind": "correction",
+      "source": "1_correction/corrections.json",
+      "payload": {
+        "kind": "corrections",
+        "ordinal": 18,
+        "raw_id": null,
+        "row": {
+          "rule_id": "deterministic_core.snap",
+          "stage": "core",
+          "target": "cell_office_right_bottom_upper.x[1]",
+          "axis": "x",
+          "original_value": 9.88,
+          "resolved_value": 9.9,
+          "delta": 0.02,
+          "tolerance_name": "AXIS_JITTER_TOL+SNAP_GRID+MIN_EDGE_LENGTH"
+        }
+      }
+    },
+    {
+      "id": "E:corr:corrections:r19",
+      "kind": "correction",
+      "source": "1_correction/corrections.json",
+      "payload": {
+        "kind": "corrections",
+        "ordinal": 19,
+        "raw_id": null,
+        "row": {
+          "rule_id": "deterministic_core.snap",
+          "stage": "core",
+          "target": "cell_office_right_bottom_mid.x[0]",
+          "axis": "x",
+          "original_value": 9.58,
+          "resolved_value": 9.6,
+          "delta": 0.02,
+          "tolerance_name": "AXIS_JITTER_TOL+SNAP_GRID+MIN_EDGE_LENGTH"
+        }
+      }
+    },
+    {
+      "id": "E:corr:corrections:r20",
+      "kind": "correction",
+      "source": "1_correction/corrections.json",
+      "payload": {
+        "kind": "corrections",
+        "ordinal": 20,
+        "raw_id": null,
+        "row": {
+          "rule_id": "deterministic_core.snap",
+          "stage": "core",
+          "target": "cell_office_right_bottom_mid.x[1]",
+          "axis": "x",
+          "original_value": 9.88,
+          "resolved_value": 9.9,
+          "delta": 0.02,
+          "tolerance_name": "AXIS_JITTER_TOL+SNAP_GRID+MIN_EDGE_LENGTH"
+        }
+      }
+    },
+    {
+      "id": "E:corr:corrections:r21",
+      "kind": "correction",
+      "source": "1_correction/corrections.json",
+      "payload": {
+        "kind": "corrections",
+        "ordinal": 21,
+        "raw_id": null,
+        "row": {
+          "rule_id": "deterministic_core.snap",
+          "stage": "core",
+          "target": "cell_office_right_bottom_lower.x[0]",
+          "axis": "x",
+          "original_value": 9.58,
+          "resolved_value": 9.6,
+          "delta": 0.02,
+          "tolerance_name": "AXIS_JITTER_TOL+SNAP_GRID+MIN_EDGE_LENGTH"
+        }
+      }
+    },
+    {
+      "id": "E:corr:corrections:r22",
+      "kind": "correction",
+      "source": "1_correction/corrections.json",
+      "payload": {
+        "kind": "corrections",
+        "ordinal": 22,
+        "raw_id": null,
+        "row": {
+          "rule_id": "deterministic_core.snap",
+          "stage": "core",
+          "target": "cell_office_right_bottom_lower.x[1]",
+          "axis": "x",
+          "original_value": 9.88,
+          "resolved_value": 9.9,
+          "delta": 0.02,
+          "tolerance_name": "AXIS_JITTER_TOL+SNAP_GRID+MIN_EDGE_LENGTH"
+        }
+      }
+    },
+    {
+      "id": "E:corr:corrections:r23",
+      "kind": "correction",
+      "source": "1_correction/corrections.json",
+      "payload": {
+        "kind": "corrections",
+        "ordinal": 23,
+        "raw_id": null,
+        "row": {
+          "rule_id": "deterministic_core.snap",
+          "stage": "core",
+          "target": "cell_office_right_bottom_lower.y[0]",
+          "axis": "y",
+          "original_value": -0.12,
+          "resolved_value": -0.1,
+          "delta": 0.02,
+          "tolerance_name": "AXIS_JITTER_TOL+SNAP_GRID+MIN_EDGE_LENGTH"
+        }
+      }
+    },
+    {
+      "id": "E:corr:corrections:r24",
+      "kind": "correction",
+      "source": "1_correction/corrections.json",
+      "payload": {
+        "kind": "corrections",
+        "ordinal": 24,
+        "raw_id": null,
+        "row": {
+          "rule_id": "deterministic_core.window",
+          "stage": "core",
+          "target": "win_east_2.span[0]",
+          "axis": "span",
+          "original_value": 14.38,
+          "resolved_value": 15.05,
+          "delta": 0.67,
+          "tolerance_name": "AXIS_JITTER_TOL+SNAP_GRID+MIN_EDGE_LENGTH"
+        }
+      }
+    },
+    {
+      "id": "E:corr:conflicts:conf_1",
+      "kind": "correction",
+      "source": "1_correction/corrections.json",
+      "payload": {
+        "kind": "conflicts",
+        "ordinal": 1,
+        "raw_id": "conf_1",
+        "row": {
+          "id": "conf_1",
+          "stage": "A3",
+          "method_profile": "room_identity",
+          "entity_type": "window",
+          "entity_id": "win_south_2",
+          "floor_id": "Floor 1",
+          "coordinate_frame": "world",
+          "conflict_type": "semantic_size_prior",
+          "claim_type": "semantic",
+          "candidates": [
+            {
+              "value": "belongs to corridor cell",
+              "source_ids": [
+                "South_view S3"
+              ],
+              "evidence_grade": "direct_measurement",
+              "confidence": "high"
+            }
+          ],
+          "reason_unresolved": "Window falls on the south facade where the corridor wall segment is located; a corridor by convention rarely has a direct exterior window, but the geometry forces the assignment. No alternate room is adjacent at that x coordinate.",
+          "fallback_action": "Assigned to cell_corridor_lower with a warning; may be re‑evaluated after thermal zoning."
+        }
+      }
+    },
+    {
+      "id": "E:ep:result",
+      "kind": "ep",
+      "source": "EP/EP_run/eplusout.end",
+      "payload": {
+        "ep": {
+          "completed": true,
+          "severe": 0,
+          "warnings": 6
+        }
+      }
+    },
+    {
+      "id": "E:geom:digest",
+      "kind": "geometry",
+      "source": "2_modelling/building_geometry.json",
+      "payload": {
+        "geometry_digest": "92b70adb282f0c560b866dc6b0857e9829d453b5a5194f4b04203f7744760176",
+        "geometry_approved": true
+      }
+    },
+    {
+      "id": "E:eyeball:1_correction_zones.png",
+      "kind": "eyeball",
+      "source": "report/eyeball/1_correction_zones.png",
+      "payload": {
+        "filename": "1_correction_zones.png",
+        "path": "report/eyeball/1_correction_zones.png",
+        "producer": "correction_zones",
+        "source": "1_correction/zones.png",
+        "status": "copied"
+      }
+    },
+    {
+      "id": "E:eyeball:1_correction_elev.png",
+      "kind": "eyeball",
+      "source": "report/eyeball/1_correction_elev.png",
+      "payload": {
+        "filename": "1_correction_elev.png",
+        "path": "report/eyeball/1_correction_elev.png",
+        "producer": "correction_elev",
+        "source": "1_correction/elev.png",
+        "status": "copied"
+      }
+    },
+    {
+      "id": "E:eyeball:0_reading_1f_view_render.png",
+      "kind": "eyeball",
+      "source": "report/eyeball/0_reading_1f_view_render.png",
+      "payload": {
+        "filename": "0_reading_1f_view_render.png",
+        "path": "report/eyeball/0_reading_1f_view_render.png",
+        "producer": "reading_render",
+        "source": "0_reading/1f_view_render.png",
+        "status": "copied"
+      }
+    },
+    {
+      "id": "E:eyeball:0_reading_East_view_render.png",
+      "kind": "eyeball",
+      "source": "report/eyeball/0_reading_East_view_render.png",
+      "payload": {
+        "filename": "0_reading_East_view_render.png",
+        "path": "report/eyeball/0_reading_East_view_render.png",
+        "producer": "reading_render",
+        "source": "0_reading/East_view_render.png",
+        "status": "copied"
+      }
+    },
+    {
+      "id": "E:eyeball:0_reading_North_view_render.png",
+      "kind": "eyeball",
+      "source": "report/eyeball/0_reading_North_view_render.png",
+      "payload": {
+        "filename": "0_reading_North_view_render.png",
+        "path": "report/eyeball/0_reading_North_view_render.png",
+        "producer": "reading_render",
+        "source": "0_reading/North_view_render.png",
+        "status": "copied"
+      }
+    },
+    {
+      "id": "E:eyeball:0_reading_South_view_render.png",
+      "kind": "eyeball",
+      "source": "report/eyeball/0_reading_South_view_render.png",
+      "payload": {
+        "filename": "0_reading_South_view_render.png",
+        "path": "report/eyeball/0_reading_South_view_render.png",
+        "producer": "reading_render",
+        "source": "0_reading/South_view_render.png",
+        "status": "copied"
+      }
+    },
+    {
+      "id": "E:eyeball:0_reading_West_view_render.png",
+      "kind": "eyeball",
+      "source": "report/eyeball/0_reading_West_view_render.png",
+      "payload": {
+        "filename": "0_reading_West_view_render.png",
+        "path": "report/eyeball/0_reading_West_view_render.png",
+        "producer": "reading_render",
+        "source": "0_reading/West_view_render.png",
+        "status": "copied"
+      }
+    },
+    {
+      "id": "E:eyeball:case_data_1f_view.png",
+      "kind": "eyeball",
+      "source": "report/eyeball/case_data_1f_view.png",
+      "payload": {
+        "filename": "case_data_1f_view.png",
+        "path": "report/eyeball/case_data_1f_view.png",
+        "producer": "case_data_view",
+        "source": "../case_data/1f_view.png",
+        "status": "copied"
+      }
+    },
+    {
+      "id": "E:eyeball:case_data_East_view.png",
+      "kind": "eyeball",
+      "source": "report/eyeball/case_data_East_view.png",
+      "payload": {
+        "filename": "case_data_East_view.png",
+        "path": "report/eyeball/case_data_East_view.png",
+        "producer": "case_data_view",
+        "source": "../case_data/East_view.png",
+        "status": "copied"
+      }
+    },
+    {
+      "id": "E:eyeball:case_data_North_view.png",
+      "kind": "eyeball",
+      "source": "report/eyeball/case_data_North_view.png",
+      "payload": {
+        "filename": "case_data_North_view.png",
+        "path": "report/eyeball/case_data_North_view.png",
+        "producer": "case_data_view",
+        "source": "../case_data/North_view.png",
+        "status": "copied"
+      }
+    },
+    {
+      "id": "E:eyeball:case_data_South_view.png",
+      "kind": "eyeball",
+      "source": "report/eyeball/case_data_South_view.png",
+      "payload": {
+        "filename": "case_data_South_view.png",
+        "path": "report/eyeball/case_data_South_view.png",
+        "producer": "case_data_view",
+        "source": "../case_data/South_view.png",
+        "status": "copied"
+      }
+    },
+    {
+      "id": "E:eyeball:case_data_West_view.png",
+      "kind": "eyeball",
+      "source": "report/eyeball/case_data_West_view.png",
+      "payload": {
+        "filename": "case_data_West_view.png",
+        "path": "report/eyeball/case_data_West_view.png",
+        "producer": "case_data_view",
+        "source": "../case_data/West_view.png",
+        "status": "copied"
+      }
+    }
+  ],
+  "blocked": false
+}

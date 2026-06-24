@@ -1,0 +1,49 @@
+{
+  "image_label": "North view path of the building",
+  "image_kind": "elevation",
+  "facade_axis_note": "North facade: local x = -world x (local x increasing = world westward); local y = world z (up, ground z=0)",
+  "scale_origin": {
+    "world_x_m": 0.00,
+    "world_y_m": 0.00,
+    "world_z_m": 0.00,
+    "note": "elevation local origin at the left edge of the drawn north facade; total width 10.00 m, height 4.50 m. Local x runs opposite to world east (north facade is viewed from outside looking south)."
+  },
+  "strokes": [
+    {
+      "id": "S1",
+      "pen": "wall_fill",
+      "provenance": "seen",
+      "confidence": "high",
+      "dimension_refs": [],
+      "geometry": {"kind": "rect", "x_range_m": [0.00, 10.00], "y_range_m": [0.00, 4.50]},
+      "note": "single-storey north facade wall body (one wall_fill)"
+    },
+    {
+      "id": "S2",
+      "pen": "window",
+      "provenance": "dimension_derived",
+      "confidence": "high",
+      "dimension_refs": ["D_bot", "D_left"],
+      "geometry": {"kind": "rect", "x_range_m": [0.54, 5.34], "y_range_m": [1.00, 3.40]},
+      "note": "large left window (image-local), 4800 wide x 2400 tall, sill z=1.00 top z=3.40"
+    }
+  ],
+  "dimensions": [
+    {"id": "D_top_total", "text": "10000", "from": [0.00, 4.50], "to": [10.00, 4.50], "axis": "x", "note": "overall width"},
+    {"id": "D_bot", "text": "540 / 4800 / 2520 / 1600 / 540", "from": [0.00, 0.00], "to": [10.00, 0.00], "axis": "x", "note": "bottom chain: 540, 4800 (window), 2520, 1600 (double door), 540"},
+    {"id": "D_left", "text": "4500 (1100 / 2400 / 1000)", "from": [0.00, 0.00], "to": [0.00, 4.50], "axis": "z", "note": "left height chain top->bottom 1100, 2400 (window), 1000 (sill); window sill z=1.00 top z=3.40"},
+    {"id": "D_right", "text": "1900 / 2400 / 200", "from": [10.00, 0.00], "to": [10.00, 4.50], "axis": "z", "note": "right height chain at the door: 1900 transom band, 2400 door leaf, 200 base"}
+  ],
+  "ocr_texts": [],
+  "self_check": {
+    "all_dimensions_transcribed": true,
+    "all_visible_strokes_captured": true,
+    "no_topology_inferred": true,
+    "pens_used": ["wall_fill", "window"],
+    "unknowns_noted": ["single floor -> one wall_fill", "local x is opposite world east (north facade); world-axis sign left to correction"],
+    "uncaptured_visual_elements": [
+      "right-side double-leaf door (1600 wide, 2400 leaf + 1900 transom) recognized and NOT traced (door is not a pen)",
+      "outline coincides with wall_fill edges -> not traced separately"
+    ]
+  }
+}
