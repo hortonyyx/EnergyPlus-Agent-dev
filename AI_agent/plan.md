@@ -14,10 +14,11 @@
 0–5 管线 + 逐段校验架构（gate① 确定性 + gate② judge）已落地，sm20/sm21 两份 golden baseline 在册。
 **当前在把"逐段 judge-in-the-loop 编排"真跑起来、出第一份带 judge 的规范 baseline**，并扫尾两步法/评测的残留。
 
-> **🔴 [P0 顶置 · 2026-06-24 首做] 识图质量诊断**——见 [N1d](#n1d-p0-识图质量诊断-2026-06-24-顶置)。
-> 2026-06-23 sm21 批次重跑：Sonnet + gpt-5.4-mini 两条 reading J0 都 severe→reread。**决定性证据已坐实=真回归**：
-> sm21_pre（06-09 Sonnet，**md5 同一张图**）读干净 7 区，reading-honest 新 schema(06-22) 后同模型同图过度分割
-> （provenance=dimension_derived）。**头号嫌疑=reading-honest 的 dimension 字段**，非杂物/非模型弱。先 diff 旧/新 schema + A/B 控变量。
+> **🔴 [P0 最高优先级 · 2026-06-25 用户定] reading 能力提升**——第一阶段目标 = **Sonnet 干净读出 sm21**。
+> 2026-06-24/25 系列受控实验已把方向收敛（详 [N1e](#n1e-p0-sonnet-怎么顶--reading-退化2026-06-24下次起点)）：
+> ① prompt 强度非杠杆 ② schema 非杠杆 ③ 杂物只是次要帮凶 ④ **完整老脚手架让 Sonnet r1 达 sm21_pre 级**（墙9/9·0.0m·过度分割+1）
+> → **脚手架退化是墙/结构退化的主因且可恢复**（窗位残留=模型）。**用户据此改判 sm21_pre 识图本体=Sonnet**（非 Opus；decision_log 旧记 Opus 从无产物级硬证）。
+> 脚手架退化**双路审计已出合并候选清单**（Claude+Codex，`logs/review/2026-06-25_scaffold_degradation_audit/RECONCILED_candidates.md`）。下一步=逐条排查恢复。
 
 ---
 
@@ -70,11 +71,20 @@
 - **本轮产物留痕**：`run_2026-06-23_sonnet_reading`、`run_2026-06-23_gpt54mini_reading`（各 attempts/001 + J0 verdict + reread_ladder.md）。
 - **结论锚**：judge-in-the-loop + reading-honest + auto-reread 机制本身**验证成功**（错可见→正确判不可恢复→盲重读启动）；问题在**识图产物质量**这一环。
 
-### N1e. [P0] Sonnet 怎么顶 + reading 退化（2026-06-24，**下次起点**）
+### N1e. [P0] ✅ Sonnet 强/弱 prompt A/B 已跑（2026-06-25，结论=prompt 强度不是杠杆）
 > 目标=让 Sonnet 现在就能用于 reading。坐标级对账(`score_reading_vs_gt`)实测:同一张图盲读,**Opus 墙 9/9 窗 10/15;Sonnet 墙 7/9(1f 竖墙偏 0.36m) 窗 4/15**——Sonnet 原始盲读坐标差(用户裁定"Sonnet 仍很糟、Opus 基本正确")。
 - **reading 退化调查已结(双路收敛,详 [logs/review/2026-06-24_reading_degradation_dual_investigation.md](logs/review/2026-06-24_reading_degradation_dual_investigation.md))**:核心 skill 规则没退化,但 ① fa04ef6 把"坐标必须读准"软化成"有尺寸链可由 correction 恢复"(对坐标 vs gt 是真退化)② 启动 prompt 06-16 缩水(丢了总尺寸锚定 + 四立面映射表 + 8 条 discipline)③ schema/guide 的 dimension 字段不同步。**注:均为指令层退化的合理机制,未证明=Sonnet 坐标错成因;sm21_pre 好识图本体是 Opus。**
-- **下次做 = Sonnet 强/弱 prompt A/B**:给 Sonnet 恢复旧式强 prompt(坐标必须读准·别指望 correction 恢复 + testdata 总尺寸锚定 + 四立面映射表 + 尺寸链算式入 note),vs 现 prompt,**两边都用 `score_reading_vs_gt` 按 gt 坐标量**,看 Sonnet 1f 竖墙 0.36m + 窗错位能否压下去。顺带可修 schema/guide 不同步。
-- 历史归因彻底闭合:sm21_pre 干净识图本体=Opus(05-28 pocv2),非 Sonnet 盲读;详 [[reading-quality-investigation-2026-06-24]]。
+- **✅ A/B 已跑（2026-06-25，详 [logs/review/2026-06-25_sonnet_strong_weak_prompt_ab/](logs/review/2026-06-25_sonnet_strong_weak_prompt_ab/README.md)）**：单变量(仅启动 prompt 强弱)、4 冷启隔离 Sonnet 子代理(2弱/2强)、强臂保 image-local 加回[坐标硬线+尺寸链算式入note+testdata面积锚定]、`score_reading_vs_gt` 对账。**结论=强 prompt 无清晰坐标优势**：① 1f 竖墙偏移四臂一致(0.06–0.18m)、cited 的 0.36m 谁都没复现、strong_1 2f 竖墙反更差(+0.15 vs weak_2 精确0)；② 窗最好是 **weak_2(1f 6/7、全 11/15)是弱臂**、2f 窗 hit 0/5/2 由 run 方差主导；③ 强臂唯一一致信号=墙过度分割略少(多余墙1 vs 弱2–4,n=2不显著)；④ **run 间方差 > prompt 臂差**——同 N1d「受控隔离下 Sonnet 戏剧缺陷不复现」。**强臂撞 session limit 后已由独立隔离子代理补全(单补、保样本独立)、4 臂全 6 图**；完整 totals 反更硬:weak_1 墙7/9窗4/15、**weak_2 9/9·11/15**、strong_1 9/9·7/15、strong_2 8/9·11/15——**weak_2(弱臂)与 strong 持平/更好**,窗 4–11 跨度内方差>臂差。已渲 6 张四臂对比图(1f/2f/4立面)发用户肉检 + 归 logs/renders。
+- **⚠️ 副产=抓到 scorer bug 并修**：`score_reading_vs_gt` 此前**只解析 `geometry.p1/p2`(line)、不认 `rect`/`x_range_m`**——首轮 strong 5/7窗 vs weak 0/7窗 是假象(两臂窗 x 读的一样且都命中,只是 weak 用 rect 形)。修=`src/agent/judge/reading_score.py` 新增 `_as_segment()`(line+rect 都认、墙窗共用)+回归测试,全测 341→342。**教训现场**:差点把 scorer bug 当 prompt 修好窗,印证 [[judge-gt-authoritative-images-auxiliary]]。
+- **真 lever（下一步候选，非 prompt 强度）**：杂物/尺寸链 tick 掩膜 · 局部放大裁图 · 加 reread 预算 · 换强模型(Opus)——见 N1d 末。
+- **✅ 杂物消融快筛(2026-06-25)**:control(带杂物)vs 只留墙+窗,同 Sonnet 同 prompt。去杂物把 1f 过度分割 +3.5→+2 **但没消除**(Sonnet 干净图上仍多画~2墙)、且去尺寸链致坐标崩(墙命中 7-9/9→1-3/9)。→ **杂物是帮凶非主犯**,根子仍是模型感知。详 logs `_montage_declutter_1f.png`。
+- **✅ 完整老脚手架对照(2026-06-25,决定性)**:Sonnet+老脚手架(`127ba06`全套)读 sm21,vs Sonnet+新脚手架。**r1=墙9/9·偏移0.0m·过度分割+1**(视觉≈sm21_pre,首次有 Sonnet 跑达标),新脚手架同模型过度分割+4。**但 r2 平庸(+5)=方差仍在**;**南窗 r1 错3个**(老脚手架没救回窗)。结论=**脚手架退化是墙/结构退化主因且可恢复;窗位残留指向模型**。先量化了 sm21_pre 标杆=墙9/9·窗14/15·过度分割0。**用户据 old_r1 改判 sm21_pre=Sonnet**。
+- **✅ 脚手架退化双路审计(2026-06-25)**:Claude+Codex 各独立枚举 老/更早 vs 新脚手架的能力退化候选(不映射症状/不开方),合并去重→`logs/review/2026-06-25_scaffold_degradation_audit/{claude,codex}_findings.md` + `RECONCILED_candidates.md`(26 条分5组+优先级)。**核心定位**:vs `127ba06` skill 三件套~95%相同→退化在 ①启动prompt精简 ②§0.1错误预算软化(`fa04ef6`) ③schema↔guide不同步。**下一步=逐条排查恢复**(P0=坐标硬线+testdata锚定+一段一笔反例+dimensions[]示例对齐schema)。
+- **🔧 下一轮开修清单(2026-06-25 用户定,本轮只记录、下轮动手)**:
+  1. **逐项排查 + 逐步恢复脚手架**(按 `RECONCILED_candidates.md` 优先级),**目标 = 把 Sonnet 读 sm21 恢复到 sm21_pre 水平**(墙9/9·窗14/15·过度分割0)。保 reading-honest 架构 + 反过度分割条款。
+  2. **启动 prompt 做成 skill 文档**(纳入版本管理)——**单独建文件 or 拆进现 0_reading 结构,下轮再定**;**实际启动 prompt 简化成单命令**(不再每 case 贴一大段)。理由=便于版本管理、避免"启动 prompt 退化"这种本轮根因再发生。
+  3. **judge 文档从 pipeline skill 里单拎出来**:`skills/intake_pipeline/0_reading/judge_rubric.md` 现和 reading skill(guide/reading_guide/pen_library)混在一起;judge 是 gate② 的东西、不属 reading 执行 skill,要**移出**单独存放(位置下轮定)。
+- 历史归因:sm21_pre 干净识图,用户 2026-06-25 据老脚手架对照**改判本体=Sonnet**(decision_log 旧记 Opus 05-28 pocv2 从无产物级硬证);详 [[reading-quality-investigation-2026-06-24]]。
 
 ### N3. [P1] CAD→gt 满配答案（见 [proposals/cad_to_gt_extraction_plan.md](proposals/cad_to_gt_extraction_plan.md)）
 - 工具链已就位（ezdxf + proxy-graphics 解码 + `gt_from_dxf` + overlay 核验）。**待用户从天正图形导出/另存 DXF** → 抽满配 gt（精确窗 x+宽、精确区划、门）。方案过 Codex 审、设计待落。
@@ -88,7 +98,7 @@
 ### N4. [P1] 两步法 / 评测残留（原 B1.5.b / B1.5.f / B2–B4）
 - **skill 迭代**：phase1 识图库 + 笔库（跨画法泛化）；phase2 规则吸收可机械化项（命名约定 / 负载密度 / day-type 名）。
 - **评测嵌入**：gt diff 评测脚本（zone_f1 / 尺寸误差 / WWR / special_zone_f1 + 识图错↔推理错归因）；嵌进 record_baseline 流程。
-  - **✅ 坐标级 reading↔gt 评分器已落地（2026-06-24 `score_reading_vs_gt`）**：`src/agent/judge/reading_score.py`（judge 侧，经 load_gt 读 gt，不破 gt 隔离铁律）+ CLI `scripts/tool_scripts/score_reading_vs_gt.py` + `tests/test_reading_score.py`（测试 335→341）。从 gt zone rect 派生内墙竖/横线 + 窗 span，对识图墙/窗坐标逐元素匹配，报命中/漏/多 + 实际偏移。**这是用户定的权威 reading 评测口径**（[[judge-gt-authoritative-images-auxiliary]]：数据 vs gt 为唯一标准、看图仅辅助）。残留：zone_f1/WWR 等综合指标 + 嵌 record_baseline。
+  - **✅ 坐标级 reading↔gt 评分器已落地（2026-06-24 `score_reading_vs_gt`）**：`src/agent/judge/reading_score.py`（judge 侧，经 load_gt 读 gt，不破 gt 隔离铁律）+ CLI `scripts/tool_scripts/score_reading_vs_gt.py` + `tests/test_reading_score.py`（测试 335→341；**2026-06-25 补 `_as_segment` 让 rect/x_range_m 形 geometry 与 line/p1p2 同分**→342，修了"rect 形窗静默算0"的漏算）。从 gt zone rect 派生内墙竖/横线 + 窗 span，对识图墙/窗坐标逐元素匹配，报命中/漏/多 + 实际偏移。**这是用户定的权威 reading 评测口径**（[[judge-gt-authoritative-images-auxiliary]]：数据 vs gt 为唯一标准、看图仅辅助）。残留：zone_f1/WWR 等综合指标 + 嵌 record_baseline。
 - **GT 数据集扩面**：sm20/sm21 已有 gt；按需补 ≥1 异图坐实泛化。
 
 ---
