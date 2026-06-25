@@ -45,11 +45,21 @@ The reading stage and the correction stage are mutually exclusive in the kind of
 | the correction stage | the reading stage JSON + skill rule docs + testdata_prompt metadata (**does not see the image**) | **pure reasoning errors**: wrong grouping, inside/outside misjudged, parent-child mapping wrong, IntakeOutput field wrong |
 
 **Implications**:
-- Every error about "a value / position / stroke type in the image" must be caught in the reading stage
-  unless the reading JSON still carries an independent redundant channel that pins the truth.
-  An offset coordinate with a surviving dimension chain and honest provenance can be recovered by
-  correction; a missed stroke, wrong category, or dimension annotation emitted as a wall destroys
-  evidence and must be re-read.
+- **Read every coordinate as if it is final.** The default is a hard line: a position you place is
+  taken downstream as truth — the correction stage cannot see the image to second-guess it. Once the
+  reading stage offsets a coordinate, flips an elevation x-axis, or misreads a dimension, the
+  correction stage takes what it gets.
+- **The one escape hatch is the redundant channel, and it must be earned.** An offset coordinate can
+  be recovered by correction *only if* you also emit the dimension chain that pins it in `dimensions[]`
+  (literal `text_verbatim` + parsed `value_m`) **and** mark that stroke's `provenance` honestly as
+  `dimension_derived`. No surviving dimension chain ⇒ no recovery. And a missed stroke, wrong
+  category, or dimension annotation emitted as a `wall` destroys evidence outright and the redundant
+  channel cannot save it — it must be re-read. So do not lean on "correction will fix it": either
+  transcribe the dimension chain that backs the coordinate, or read the coordinate precisely.
+- **Anchor against the testdata totals.** Read the building's total dimensions / floor count / floor
+  height from `testdata_prompt.json` and use them to *check* your coordinates (the perimeter should
+  span the stated total width/depth; per-floor z should match the floor height). This is a cross-check
+  only — never copy testdata content into the JSON in place of reading the image.
 - When diffing IntakeOutput, any inconsistency tied to the source image roots 100% in the reading stage; only
   topology / naming / field-format errors are the correction stage's.
 - So when writing the JSON, the reading stage **prefers null over guessing** — null means "I couldn't see it",
@@ -174,15 +184,48 @@ In EnergyPlus a zone is enclosed by **surfaces (2D faces)**; a wall has no thick
   // - unknown or missing = legacy/unknown; correction must downgrade confidence
 
   // ===== dimension chains (structured composite primitives) =====
-  // visually a "tick + number + tick" chunk is one unit, classified on its own; the correction stage uses it to derive coordinates
+  // visually a "tick + number + tick" chunk is one unit, classified on its own; the correction stage
+  // uses it to derive coordinates. Emit the chain STRUCTURED so the closure check (Σ segments == overall)
+  // can run and so the redundant channel (see §0.1) actually pins your coordinates. One entry per
+  // number; group a chain with a shared chain_id; role = overall | segment | baseline; order = its
+  // position along the chain. text_verbatim = the literal characters as drawn (truth); value_m = parsed metres.
   "dimensions": [
     {
       "id": "D1",
-      "text": "15.00",                      // transcribe the dimension number verbatim
+      "text_verbatim": "15000",             // literal OCR string exactly as drawn (truth — keep units/format)
+      "value_m": 15.00,                     // parsed metres
       "from": [0.00, 0.00],
       "to":   [15.00, 0.00],
       "axis": "x",                          // x | y | z (z only on elevation)
+      "chain_id": "C_bottom",               // groups the strings of one dimension chain
+      "role": "overall",                    // overall | segment | baseline
+      "order": 0,                           // position within the chain
+      "anchor": null,                       // optional pixel bbox/anchor of the number
       "note": "bottom total-length chain"
+    },
+    {
+      "id": "D2",
+      "text_verbatim": "5000",
+      "value_m": 5.00,
+      "from": [0.00, 0.00],
+      "to":   [5.00, 0.00],
+      "axis": "x",
+      "chain_id": "C_bottom",               // same chain as the overall above
+      "role": "segment",
+      "order": 1,
+      "note": "segment 1 of the bottom chain"
+    },
+    {
+      "id": "D3",
+      "text_verbatim": "10000",
+      "value_m": 10.00,
+      "from": [5.00, 0.00],
+      "to":   [15.00, 0.00],
+      "axis": "x",
+      "chain_id": "C_bottom",
+      "role": "segment",
+      "order": 2,
+      "note": "segment 2; Σ segments (5+10) == overall (15) — the closure check the correction stage runs"
     }
   ],
 
@@ -277,10 +320,15 @@ coordinates); the correction stage uses `facade_axis_note` to translate back to 
 - ❌ stuffing a room polygon into strokes —— a room is not a drawn stroke
 - ❌ `"pen": "wall", "parent_window_ids": [...]` —— parent-child is the correction stage's inference
 - ❌ splitting one continuous wall into 10 small strokes —— one stroke per continuous stroke
+  (e.g. the south perimeter from (0,0) to (15,0) is **ONE** wall stroke, not 3; a window or door on it
+  is a sub-face/heal, not a break)
 - ❌ splitting a wall with a door into two wall strokes on either side —— heal it into one continuous wall + note (§2.1)
 - ❌ welding a doorless open span into a continuous wall —— that is a real topology signal; only heal openings with a door symbol
 - ❌ tracing a dimension-chain cumulative position or tick drawn outside the building outline as an interior `wall`
   —— dimension annotations are not walls; they go to `dimensions[]`
+- ❌ turning a **window-hole edge** (the short jamb line bounding a window opening) into an interior `wall`
+  —— the window is a sub-face, its opening edges are not partitions; over-segmentation here is the #1
+  reading failure on cluttered plans (do not manufacture partitions from window jambs / dimension ticks / furniture)
 - ❌ leaving `uncaptured_visual_elements` empty when furniture was excluded / a door was healed —— it is required; actively excluded items + heals must be acknowledged
 - ❌ `"text": "办公室"` for an image that says "Office 101" —— OCR does not translate
 - ❌ `"thickness_m": 0.20` —— plan walls always null (simulation does not need wall thickness, see §0.2)

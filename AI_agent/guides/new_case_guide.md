@@ -240,53 +240,26 @@ judge 密度（自洽口径）：**只在 LLM 段 0/1/4 有 judge**；确定性�
 
 ## 附录 A · 识图（0_reading）子 Agent 启动 prompt
 
-> S0 用。冷启一个多模态子 Agent / 独立会话，把下面整段作首条消息，**按 case 改图名表**。规则真身在
-> `skills/intake_pipeline/0_reading/`，运行时读取。
+> S0 用。冷启一个多模态子 Agent / 独立会话。**启动 prompt 已版本化为单文件**
+> [`skills/intake_pipeline/0_reading/session_kickoff.md`](../../skills/intake_pipeline/0_reading/session_kickoff.md)
+> ——durable 纪律不再贴在这里（根因=非版本化启动 prompt 会悄悄退化），规则真身在
+> `skills/intake_pipeline/0_reading/` 三件套，运行时读取。
 
----
+把下面**单行**作首条消息（按 case 改占位）：
 
-I am doing **the reading stage of the staged intake pipeline: redraw the source image with semantic pens** — trace
-every visible structural stroke by type (wall / window / wall_fill / outline pen) and do **no spatial-topology
-reasoning** at all.
+```
+Read skills/intake_pipeline/0_reading/session_kickoff.md and follow it for case <CASE>.
+The drawings are at <CASE>/case_data/ (or the path I give you); fill the image table in the kickoff
+before tracing. Do the pilot first, then stop and wait for my review.
+```
 
-## Mental model
-The reading stage = "re-trace the source image with semantically labeled pens". It does NOT enclose strokes into
-rooms / judge exterior-vs-interior / say a window belongs to a wall / place anything in world coordinates. **All
-topology + world placement is the downstream stages' job.**
-
-## Error budget (key)
-The reading stage sees the image; downstream stages do not. Perception errors can only be caught here. **Prefer
-null over guessing.** Plan walls have no thickness (`thickness_m`=null). Do not copy testdata content into the JSON
-(reflect only what the image shows).
-
-## Task
-1. Read the three skill docs (required): `skills/intake_pipeline/0_reading/{guide.md, reading_guide.md,
-   pen_library.md}`.
-2. Follow the worked-example plan JSON's style (do not rewrite it).
-3. One JSON per image (`<case>/0_reading/<name>_view.json`); plans `image_kind=plan`, elevations `=elevation`.
-
-## Core discipline
-- plan legal pens = `wall`/`window`; elevation = `wall_fill`/`window`/`outline`. No `other`/`door` pen.
-- Heal door openings into one continuous wall (note it in `uncaptured_visual_elements`).
-- Elevation wall body = one `wall_fill` per floor.
-- Forbidden fields: `is_exterior`/`parent_wall_id`/`rooms[]`/any "belongs to / faces out / encloses".
-- Stairs/columns/grids/furniture → recognize then log in `uncaptured_visual_elements`, NOT traced.
-- One stroke per continuous wall. Fill null when not found. OCR verbatim.
-- For elevations, emit the image-local facade fields (`view_facade` from the trusted image name; do NOT write
-  east/west into the in-image axis). World axis/sign is derived later by 1_correction — not your job.
-
-## Workflow
-Do one pilot image first, stop for review, then batch the rest. Finally write `0_reading/reading_summary.md`
-(per-image confidence + repeatedly-null fields + schema feedback).
-
-## Boundaries
-Do not modify anything under `src/`, `skills/`, `AI_agent/`. Do not run the pipeline or EnergyPlus. Do not produce
-IntakeOutput fields. Do the pilot, then wait for feedback.
+`session_kickoff.md` 自身会指引读三件套 skill 文档 + 填本 case 图名表 + pilot→review→batch 流程 + 边界。
+改纪律请改 `guide.md`（版本化），不要改回启动 prompt。
 
 ---
 
 完工后人工校验：`render_vector_to_png.py` 渲图肉眼比对（杂物误当结构 / 漏真墙真窗 / 门 healing /
-`uncaptured_visual_elements` 是否如实）。
+`uncaptured` 是否如实）。
 
 ---
 
