@@ -62,6 +62,23 @@ def test_perfect_reading_all_hit():
     assert not sc.extra_vwalls and not sc.extra_hwalls
 
 
+def test_rect_geometry_scores_like_equivalent_line():
+    # A window/wall may be emitted as a `rect` (x_range_m/y_range_m) instead of a
+    # `line` (p1/p2); both are legal reading-schema shapes and must score the same.
+    rect_reading = {"strokes": [
+        {"pen": "wall", "geometry": {"kind": "rect", "x_range_m": [5, 5], "y_range_m": [0, 3]}},
+        {"pen": "wall", "geometry": {"kind": "rect", "x_range_m": [10, 10], "y_range_m": [0, 8]}},
+        {"pen": "wall", "geometry": {"kind": "rect", "x_range_m": [0, 15], "y_range_m": [3, 3]}},
+        {"pen": "wall", "geometry": {"kind": "rect", "x_range_m": [0, 15], "y_range_m": [5, 5]}},
+        {"pen": "window", "geometry": {"kind": "rect", "x_range_m": [1.24, 3.64], "y_range_m": [7.8, 8.0]}},
+        {"pen": "window", "geometry": {"kind": "rect", "x_range_m": [6.3, 8.7], "y_range_m": [7.8, 8.0]}},
+        {"pen": "window", "geometry": {"kind": "rect", "x_range_m": [14.9, 15.0], "y_range_m": [3.4, 4.6]}},
+    ]}
+    sc = rs.score_floor(rect_reading, _GT, "Floor 1")
+    assert sc.wall_hits() == (4, 4)
+    assert sc.window_hits() == (3, 3)
+
+
 def test_offset_within_tol_counts_as_hit_with_delta():
     reading = {"strokes": [
         _wall("wall", [4.88, 0], [4.88, 3]), _wall("wall", [9.76, 0], [9.76, 3]),

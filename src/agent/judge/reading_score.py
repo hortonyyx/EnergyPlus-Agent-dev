@@ -150,17 +150,38 @@ def _dedupe(vals: list[float], tol: float = 0.20) -> list[float]:
     return out
 
 
+def _as_segment(g: dict) -> tuple[float, float, float, float] | None:
+    """Normalise a stroke geometry to (x1, y1, x2, y2).
+
+    Two reading-schema shapes are both legal: a ``line`` (``p1``/``p2``) and a
+    ``rect`` (``x_range_m``/``y_range_m``). A rect is collapsed to its midline
+    along the longer axis (a window/wall sub-face spans one direction), so both
+    shapes score identically. Returns None when geometry is unusable.
+    """
+    p1, p2 = g.get("p1"), g.get("p2")
+    if p1 and p2:
+        return p1[0], p1[1], p2[0], p2[1]
+    xr, yr = g.get("x_range_m"), g.get("y_range_m")
+    if xr and yr and len(xr) == 2 and len(yr) == 2:
+        dx, dy = abs(xr[1] - xr[0]), abs(yr[1] - yr[0])
+        if dx >= dy:  # horizontal span at mid-y
+            ym = (yr[0] + yr[1]) / 2
+            return min(xr), ym, max(xr), ym
+        xm = (xr[0] + xr[1]) / 2  # vertical span at mid-x
+        return xm, min(yr), xm, max(yr)
+    return None
+
+
 def extract_reading_walls(reading: dict, W: float, D: float) -> tuple[list[float], list[float]]:
     vx: list[float] = []
     hy: list[float] = []
     for s in _strokes(reading):
         if s.get("pen") != "wall":
             continue
-        g = s.get("geometry", {})
-        p1, p2 = g.get("p1"), g.get("p2")
-        if not p1 or not p2:
+        seg = _as_segment(s.get("geometry", {}))
+        if seg is None:
             continue
-        x1, y1, x2, y2 = p1[0], p1[1], p2[0], p2[1]
+        x1, y1, x2, y2 = seg
         if abs(x1 - x2) < _COLINEAR_EPS_M and _BOUNDARY_EPS_M < x1 < W - _BOUNDARY_EPS_M:
             vx.append(round(x1, 2))
         elif abs(y1 - y2) < _COLINEAR_EPS_M and _BOUNDARY_EPS_M < y1 < D - _BOUNDARY_EPS_M:
@@ -173,11 +194,10 @@ def extract_reading_windows(reading: dict, W: float, D: float) -> dict[str, list
     for s in _strokes(reading):
         if s.get("pen") != "window":
             continue
-        g = s.get("geometry", {})
-        p1, p2 = g.get("p1"), g.get("p2")
-        if not p1 or not p2:
+        seg = _as_segment(s.get("geometry", {}))
+        if seg is None:
             continue
-        x1, y1, x2, y2 = p1[0], p1[1], p2[0], p2[1]
+        x1, y1, x2, y2 = seg
         horiz = abs(y1 - y2) < _COLINEAR_EPS_M
         vert = abs(x1 - x2) < _COLINEAR_EPS_M
         if horiz and y1 > D - 1.0:
