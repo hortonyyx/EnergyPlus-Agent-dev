@@ -33,7 +33,7 @@ cross-use.
 | `view-marker` | not geometry (it points at another drawing); ignore → log | ignore → log |
 | `legend-titleblock` | not geometry; ignore → log (use legend to interpret hatches) | same |
 | `material-hatch` | not a separate stroke; it informs wall-vs-paving classification; log | same |
-| `furniture` | **ignore → log** in `uncaptured_visual_elements` | same |
+| `furniture` | **ignore → log** in top-level `uncaptured` | same |
 | `sanitary` | **ignore → log** | same |
 | `equipment` | **ignore → log** | same |
 | `landscape-paving` | **ignore → log** | same |
@@ -59,7 +59,7 @@ recognized but not drawn, it triggers healing instead.
 
 That is the whole set — kept minimal to exactly what the correction stage turns into geometry. Anything that is
 not one of these (column, stair, grid line, north arrow, decoration, furniture, …) is **not traced
-as a stroke**: recognize it and record it in `uncaptured_visual_elements`. There is no `other` pen
+as a stroke**: recognize it and record it in the top-level `uncaptured` list. There is no `other` pen
 and no `door` pen.
 
 ---

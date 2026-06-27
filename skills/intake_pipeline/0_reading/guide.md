@@ -86,12 +86,14 @@ In EnergyPlus a zone is enclosed by **surfaces (2D faces)**; a wall has no thick
 ## 1. Global constraints
 
 - **Units**: meters, two decimals
-- **Each image carries its own local 2D coordinate system**:
-  - `image_kind="plan"`: x = world x (east), y = world y (north)
-  - `image_kind="elevation"`: x = horizontal direction along that facade (`facade_axis_note`
-    states which world axis it maps to, with sign), y = world z (up positive, ground z=0)
-  - `image_kind="section"`: defined per image, explained in `facade_axis_note`
-- **scale_origin** records where this image's local (0,0) sits in the world system
+- **Each image is read in its OWN local 2D frame — the reading stage does NO world placement**:
+  - `image_kind="plan"`: x = horizontal (drawing right), y = vertical (drawing up). A plan is already
+    drawn in plan orientation, so these read directly as the building's plan axes.
+  - `image_kind="elevation"`: x = horizontal along that facade (purely in-image), y = height (up
+    positive). Record WHICH facade this is and which screen direction local-x increases in the
+    image-local `facade` block (§4); do NOT state a world axis / sign / base here — the correction
+    stage derives world placement from the plan footprint + this facade block.
+  - `image_kind="section"`: defined per image; record what the axes mean in `note`s, image-local only.
 - **Tracing rule**: write what is drawn; fill `null` when not found; never backfill defaults from
   background knowledge
 - **OCR text verbatim**, do not translate
@@ -105,14 +107,16 @@ In EnergyPlus a zone is enclosed by **surfaces (2D faces)**; a wall has no thick
   // ===== metadata =====
   "image_label": "Floor 1 plan view",       // use the official label from testdata_prompt.json
   "image_kind": "plan | elevation | section | other",
-  "facade_axis_note": null,                 // required for elevation, otherwise null
-                                            // e.g. "South facade: local x = world x, increasing eastward"
-                                            //      "North facade: local x = -world x, i.e. x_local increasing = world westward"
-  "scale_origin": {
-    "world_x_m": 0.00,                      // world x of this image's local (0,0)
-    "world_y_m": 0.00,                      // world y of this image's local (0,0)
-    "world_z_m": null,                      // plan: always null (z comes from elevation dim chains); elevation: base elevation of this facade (ground usually 0.00)
-    "note": "this image's local origin = SW inner corner of the whole-building footprint"
+  // facade: IMAGE-LOCAL elevation orientation (elevation only; plan → null). Records which facade
+  // this view shows and which screen direction local-x increases. NO world axis / sign / base — the
+  // correction stage derives world placement from the plan footprint + this block (§4).
+  "facade": {
+    "view_facade": "South",                 // which facade this elevation shows (from the image label/metadata)
+    "local_x_positive": "image_left_to_right", // purely in-image; NEVER "east"/"west"
+    "mirrored": "false",                    // "true" | "false" | "unknown"
+    "orientation_evidence": [
+      {"source": "image_name", "detail": "label says 'South elevation'", "confidence": "high"}
+    ]
   },
 
   // ===== strokes =====
@@ -234,6 +238,19 @@ In EnergyPlus a zone is enclosed by **surfaces (2D faces)**; a wall has no thick
     {"id": "T1", "text": "Office 101", "anchor": [3.00, 1.50], "note": ""}
   ],
 
+  // ===== uncaptured: seen but deliberately NOT traced into strokes (canonical TOP-LEVEL carrier) =====
+  // Record here (top-level — NOT nested in self_check) anything "seen but not drawn into strokes":
+  //   (1) strokes the pen dictionary can't cover (cornice / index arrow ...)
+  //   (2) clutter actively excluded by selective extraction (furniture / paving / texture / room text boxes ...)
+  //   (3) every healed door opening ("healed door opening at <position> on <stroke>")
+  // "acknowledged skip" vs "silent loss" makes a world of difference at review time. A genuinely clean
+  // drawing may be []; but if you healed a door or excluded clutter it MUST appear here (the linter
+  // flags a healed-door note that has no matching `uncaptured` entry).
+  "uncaptured": [
+    "F1 plan excluded 8 furniture symbols + 2 paving fills",
+    "healed door opening at x≈7.5 on south wall S101"
+  ],
+
   // ===== self check =====
   "self_check": {
     "all_dimensions_transcribed": true,     // are all dimension-chain numbers transcribed
@@ -242,15 +259,6 @@ In EnergyPlus a zone is enclosed by **surfaces (2D faces)**; a wall has no thick
     "pens_used": ["wall"],                  // pen values actually used in this image (deduped)
     "unknowns_noted": [
       "wall thickness not dimensioned -> strokes[*].thickness_m = null"
-    ],
-    "uncaptured_visual_elements": [
-      // **required**: anything "seen but not drawn into strokes" must be acknowledged here:
-      //   (1) strokes the pen dictionary can't cover (cornice / index arrow ...)
-      //   (2) clutter actively excluded by selective extraction (furniture / paving / texture / room text boxes ...)
-      //   (3) healed door openings ("healed door at <position>")
-      // "acknowledged skip" vs "silent loss" makes a world of difference at review time.
-      // Even when the keep-set + dictionary really are enough, leave an explicit note rather than an empty default.
-      // e.g. "F1 plan excluded 8 furniture symbols + 2 paving fills"
     ]
   }
 }
@@ -279,8 +287,9 @@ Guardrails (to stop the reading stage inventing walls):
    the correction stage needs. A gap alone, with no door symbol, does not count
 3. **Do not heal windows** — keep them as a window pen (a window is a sub-face, not a boundary break)
 4. **Always leave a trace when healing**: write `healed door opening at <position>` in that wall
-   stroke's note, and record it in `self_check.uncaptured_visual_elements`, so SVG review can verify
-   "the heal is correct, no real opening was covered up"
+   stroke's note, and record it in the top-level `uncaptured` list, so SVG review can verify
+   "the heal is correct, no real opening was covered up" (the linter flags a healed-door note with
+   no matching `uncaptured` entry)
 
 ---
 
@@ -298,19 +307,23 @@ the reading stage stays purely perceptual.
 
 ---
 
-## 4. Elevation notes
+## 4. Elevation orientation (image-local)
 
-`facade_axis_note` must state which world axis the local x maps to + the increasing direction (with sign):
+An elevation is read in its own image frame. Record orientation in the image-local `facade` block —
+NOT a world-axis claim:
 
-| facade | facade_axis_note example |
-|---|---|
-| South | `"South facade: local x = world x (increasing eastward); local y = world z"` |
-| North | `"North facade: local x = -world x (local x increasing = world westward); local y = world z"` |
-| East | `"East facade: local x = world y (increasing northward); local y = world z"` |
-| West | `"West facade: local x = -world y (local x increasing = world southward); local y = world z"` |
+- `view_facade` — which facade this view shows (North/South/East/West), from the image label/metadata.
+- `local_x_positive` — which screen direction local-x increases (`image_left_to_right` |
+  `image_right_to_left`); a purely in-image convention, **never** "east"/"west".
+- `mirrored` — `true` | `false` | `unknown`.
+- `orientation_evidence` — where the facade identity came from (`image_name` / `ocr_label` / `metadata`).
+
+Do **not** state which world axis the facade maps to, or its sign / base elevation — that is world
+placement, which the correction stage derives from the plan footprint + this facade block (the
+per-facade world-axis convention lives in 1_correction `A1 §2.2`, not here).
 
 Elevation window strokes use `geometry.kind="rect"` + `x_range_m` / `y_range_m` (this image's local
-coordinates); the correction stage uses `facade_axis_note` to translate back to the world system.
+coordinates); the correction stage maps them into the world frame.
 
 ---
 
@@ -329,7 +342,7 @@ coordinates); the correction stage uses `facade_axis_note` to translate back to 
 - ❌ turning a **window-hole edge** (the short jamb line bounding a window opening) into an interior `wall`
   —— the window is a sub-face, its opening edges are not partitions; over-segmentation here is the #1
   reading failure on cluttered plans (do not manufacture partitions from window jambs / dimension ticks / furniture)
-- ❌ leaving `uncaptured_visual_elements` empty when furniture was excluded / a door was healed —— it is required; actively excluded items + heals must be acknowledged
+- ❌ leaving the top-level `uncaptured` empty when furniture was excluded / a door was healed —— actively excluded items + heals must be acknowledged there (a clean drawing with nothing skipped may be [])
 - ❌ `"text": "办公室"` for an image that says "Office 101" —— OCR does not translate
 - ❌ `"thickness_m": 0.20` —— plan walls always null (simulation does not need wall thickness, see §0.2)
 
@@ -352,11 +365,10 @@ coordinates); the correction stage uses `facade_axis_note` to translate back to 
 - [ ] every dimension-chain number is in the dimensions array
 - [ ] text labels transcribed verbatim
 - [ ] not-found fields filled with null
-- [ ] elevation facade_axis_note includes axis + sign
+- [ ] elevation `facade` block filled image-local (view_facade + local_x_positive + mirrored); no world axis / sign here
 - [ ] elevation outline: not drawn separately if it coincides with wall_fill edges (see pen library); confirmed for this image
-- [ ] plan scale_origin.world_z_m is null (not 0.00)
 - [ ] self_check.pens_used lists the pen set used in this image
-- [ ] self_check.uncaptured_visual_elements is **non-empty** (required): records everything "seen but not drawn" — out-of-dictionary strokes + actively excluded clutter + healed doors
+- [ ] top-level `uncaptured` records everything "seen but not drawn" — out-of-dictionary strokes + actively excluded clutter + healed doors (a genuinely clean drawing may be [], but any heal / exclusion must appear)
 
 ---
 
@@ -367,7 +379,8 @@ rebuilds topology:
 - recognize closed regions enclosed by multiple wall strokes as rooms / zones
 - judge each wall's is_exterior (whether it sits on the perimeter)
 - map each window stroke to its parent wall
-- translate elevation strokes back to world coordinates, cross-check plan ↔ elevation consistency
+- translate elevation strokes into world coordinates using the image-local `facade` block + the plan
+  footprint (the per-facade world-axis convention lives in 1_correction `A1 §2.2`), cross-check plan ↔ elevation consistency
 - output the IntakeOutput Pydantic
 
 the reading stage's output is not IntakeOutput, and **should not align directly with IntakeOutput fields**.

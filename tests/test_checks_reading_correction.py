@@ -202,6 +202,64 @@ def test_stroke_dimension_consistency_ignores_dimension_derived_clean_grid():
     assert result.status.value == "pass"
 
 
+def _plan_with_healed_door(*, uncaptured=None, self_check=None):
+    data = {
+        "image_kind": "plan",
+        "strokes": [
+            {"id": "S1", "pen": "wall",
+             "geometry": {"kind": "line", "p1": [0, 0], "p2": [10, 0], "thickness_m": None},
+             "note": "healed door opening at x≈7.5 (door swing seen); EP wall is continuous"},
+            {"id": "S2", "pen": "wall",
+             "geometry": {"kind": "line", "p1": [0, 8], "p2": [10, 8], "thickness_m": None}},
+        ],
+    }
+    if uncaptured is not None:
+        data["uncaptured"] = uncaptured
+    if self_check is not None:
+        data["self_check"] = self_check
+    return ReadingView.model_validate(data)
+
+
+def _heal_result(rep):
+    return next(r for r in rep.results if r.check_id == "reading.door_heal_traced")
+
+
+def test_door_heal_without_trace_flags_not_blocks():
+    rep = check_reading_view(_plan_with_healed_door(uncaptured=[]))
+    assert rep.passed, [r.message for r in rep.blocking()]  # advisory, never blocks
+    assert "reading.door_heal_traced" in {r.check_id for r in rep.flagged()}
+    res = _heal_result(rep)
+    assert res.layer == CheckLayer.CROSS_CHECK
+    assert res.evidence["healed_stroke_ids"] == ["S1"]
+
+
+def test_door_heal_with_top_level_trace_passes():
+    rep = check_reading_view(_plan_with_healed_door(
+        uncaptured=["healed door opening at x≈7.5 on S1"]))
+    assert "reading.door_heal_traced" not in {r.check_id for r in rep.flagged()}
+    assert _heal_result(rep).status.value == "pass"
+
+
+def test_door_heal_trace_in_nested_self_check_tolerated():
+    # carrier alignment (F2): a heal trace nested under the legacy
+    # self_check.uncaptured_visual_elements is still pooled and counts.
+    rep = check_reading_view(_plan_with_healed_door(
+        uncaptured=[],
+        self_check={"uncaptured_visual_elements": ["healed door at x≈7.5"]}))
+    assert "reading.door_heal_traced" not in {r.check_id for r in rep.flagged()}
+    assert _heal_result(rep).status.value == "pass"
+
+
+def test_no_heal_clean_plan_door_heal_not_applicable():
+    v = ReadingView.model_validate({
+        "image_kind": "plan", "uncaptured": [],
+        "strokes": [{"id": "S1", "pen": "wall", "geometry": {"kind": "line", "p1": [0, 0], "p2": [10, 0]}}],
+    })
+    rep = check_reading_view(v)
+    assert "reading.door_heal_traced" not in {r.check_id for r in rep.flagged()}
+    assert _heal_result(rep).status.value == "not_applicable"
+
+
 def test_reading_illegal_pen_for_plan_blocks():
     v = ReadingView.model_validate({
         "image_kind": "plan", "uncaptured": [],

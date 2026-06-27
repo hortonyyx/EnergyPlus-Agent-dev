@@ -33,7 +33,27 @@ Apply the plan's origin offset / rotation to bring `plan_local` coordinates into
 the world frame.
 
 ### 2.2 Facade (elevation)
-- Horizontal axis → the facade's world axis (x for North/South, y for East/West).
+The reading stage gives each elevation an **image-local** `facade` block only
+(`view_facade`, `local_x_positive`, `mirrored`); world axis / sign / base are
+derived **here**, never asserted by reading.
+
+- **Horizontal axis + sign** → map the elevation's local-x to the facade's world
+  axis using `view_facade` + the standard external-elevation convention below
+  (default orthogonal building; `local_x_positive=image_left_to_right`, not
+  mirrored). Flip the sign if `mirrored=true` or `local_x_positive=image_right_to_left`.
+
+  | view_facade | local-x maps to | increasing local-x → |
+  |---|---|---|
+  | South | world **x** | east (**+x**) |
+  | North | world **x** | west (**−x**) |
+  | East  | world **y** | north (**+y**) |
+  | West  | world **y** | south (**−y**) |
+
+  This per-facade table is the orthogonal default. For an oblique / polygon facade
+  whose plane is not axis-aligned, the world direction is the in-plan direction of
+  the matched perimeter wall, not a fixed axis — derive it from the plan footprint
+  (future: a first-class `facade_local → world` transform artifact); if the facade
+  cannot be matched to a plan edge, emit `facade_plan_mismatch` → A3.
 - `y_local` (height) → world z **through the `facade_local → world` transform**.
   If the transform establishes that `y_local` is building-absolute, no per-floor
   offset is added. If the vertical origin is ambiguous (e.g. a cropped elevation

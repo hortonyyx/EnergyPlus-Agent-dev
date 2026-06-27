@@ -49,14 +49,27 @@ def _legal_pens(image_kind: str) -> set[str] | None:
 
 
 def _uncaptured_list(view: ReadingView) -> list | None:
-    """Effective uncaptured list, tolerating the legacy key name."""
-    if isinstance(view.uncaptured, list) and view.uncaptured:
-        return view.uncaptured
+    """Effective uncaptured entries, pooled across the canonical top-level
+    ``uncaptured`` and the tolerated legacy carriers (top-level
+    ``uncaptured_visual_elements`` extra, and the old nested
+    ``self_check.uncaptured_visual_elements``). Returns ``None`` only when no
+    carrier is present as a list at all."""
+    found = False
+    pooled: list = []
+    if isinstance(view.uncaptured, list):
+        found = True
+        pooled.extend(view.uncaptured)
     extra = getattr(view, "__pydantic_extra__", None) or {}
-    for key in ("uncaptured", "uncaptured_visual_elements"):
-        if key in extra and isinstance(extra[key], list):
-            return extra[key]
-    return view.uncaptured if isinstance(view.uncaptured, list) else None
+    legacy = extra.get("uncaptured_visual_elements")
+    if isinstance(legacy, list):
+        found = True
+        pooled.extend(legacy)
+    if isinstance(view.self_check, dict):
+        nested = view.self_check.get("uncaptured_visual_elements")
+        if isinstance(nested, list):
+            found = True
+            pooled.extend(nested)
+    return pooled if found else None
 
 
 def check_reading_view(
@@ -102,6 +115,9 @@ def check_reading_view(
 
     # ---- CROSS_CHECK: stroke provenance + internal stroke↔dimension consistency ----
     _stroke_dimension_consistency(rep, view)
+
+    # ---- CROSS_CHECK: healed door openings leave a trace in uncaptured ----
+    _door_heal_traced(rep, view)
 
     return rep
 
@@ -361,6 +377,45 @@ def _dimensions_wellformed(rep: CheckReport, view: ReadingView) -> None:
         )
     else:
         rep.add_pass("reading.axis_endpoint_consistent", CheckLayer.INVARIANT)
+
+
+def _door_heal_traced(rep: CheckReport, view: ReadingView) -> None:
+    """Flag a healed door opening (a wall stroke whose note says it healed a door)
+    that leaves no matching trace in ``uncaptured`` — the old "acknowledged skip
+    vs silent loss" discipline (guide §2.1 guardrail 4). Advisory: a missing audit
+    note does not corrupt geometry, so this surfaces to gate② rather than blocks.
+    Only fires when a heal happened, so a clean drawing with ``uncaptured=[]`` is
+    untouched."""
+    # Match the guide §2.1 convention phrase "healed door opening at <position>"
+    # (precise — avoids false-flagging a note like "door not healed").
+    healed = [
+        s for s in view.strokes
+        if isinstance(getattr(s, "note", None), str) and "healed door" in s.note.lower()
+    ]
+    if not healed:
+        rep.add("reading.door_heal_traced", CheckStatus.NOT_APPLICABLE,
+                CheckLayer.CROSS_CHECK, message="no healed door openings")
+        return
+    pooled = _uncaptured_list(view) or []
+    heal_traces = [e for e in pooled if "heal" in str(e).lower()]
+    if not heal_traces:
+        rep.add_fail(
+            "reading.door_heal_traced", CheckLayer.CROSS_CHECK,
+            f"{len(healed)} wall stroke(s) healed a door opening but `uncaptured` "
+            "records no heal trace (silent-loss risk; see guide §2.1)",
+            evidence={
+                "healed_stroke_ids": [s.id for s in healed],
+                "uncaptured_entries": len(pooled),
+            },
+        )
+    else:
+        rep.add_pass(
+            "reading.door_heal_traced", CheckLayer.CROSS_CHECK,
+            evidence={
+                "healed_stroke_ids": [s.id for s in healed],
+                "heal_traces": len(heal_traces),
+            },
+        )
 
 
 def _facade_fields(rep: CheckReport, view: ReadingView) -> None:

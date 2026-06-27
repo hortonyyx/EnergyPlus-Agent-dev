@@ -37,7 +37,7 @@ If a mark does not clearly fit any category, do not guess it into the wrong one.
 budget ([`guide.md` §0.1](guide.md)), a wrong category is contamination the correction stage cannot
 undo. Instead:
 - give your best category guess **with low confidence in the note**, or
-- label it `unknown` and record it in `self_check.uncaptured_visual_elements`
+- label it `unknown` and record it in the top-level `uncaptured` list
 
 "Acknowledged unknown" is recoverable at review; a confident miscategorization is not.
 
@@ -89,12 +89,12 @@ Decide *what kind of drawing* first — the element dictionaries differ by type.
 
 - **Plan** (floor plan): a horizontal cut viewed from above (cut roughly at window height). Cues:
   rooms enclosed by walls, a roughly rectangular/orthogonal layout, in-plane dimension chains on the
-  outside, room-name text inside, a north arrow, door swings. Coordinates: x = world east, y = world
-  north.
+  outside, room-name text inside, a north arrow, door swings. Coordinates (image-local): x =
+  horizontal (drawing right), y = vertical (drawing up).
 - **Elevation**: an orthographic view of one exterior face. Cues: a flat outer silhouette, floor
   lines stacked vertically, windows as a regular grid of rectangles, height/level markers up the
-  side, ground line at the bottom, no room interiors. Coordinates: x = horizontal along the facade,
-  y = world z (up).
+  side, ground line at the bottom, no room interiors. Coordinates (image-local): x = horizontal
+  along the facade, y = height (up); orientation is image-local — see `guide.md` §4 (no world axis here).
 - **Axonometric / perspective / 3D render**: recognize it as a **non-orthographic view** (out of
   scope — the reading stage only traces orthographic plans and elevations; what to do with it is the pen
   library's call).

@@ -348,8 +348,10 @@ def _build_correction_messages(
         )
     chunks.append(
         "\nApply the correction now and output ONLY the CorrectedGeometry JSON "
-        "object. Use the facade translation formulas in reading_summary.md §3 "
-        "verbatim. Enumerate every room cell and window explicitly."
+        "object. Derive each window's world `span` from its elevation's image-local "
+        "`facade` block using the per-facade world-axis convention in 1_correction "
+        "A1 §2.2 (mind the North/West sign flip); reading does not assert world axes. "
+        "Enumerate every room cell and window explicitly."
     )
     return system_prompt, "".join(chunks)
 
