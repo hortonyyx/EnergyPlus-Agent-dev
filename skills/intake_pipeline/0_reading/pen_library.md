@@ -18,7 +18,7 @@ cross-use.
 |---|---|---|
 | `wall` | `wall` pen (one stroke per continuous wall; `thickness_m`=null) | part of `wall_fill` (see §3) |
 | `column` | recognize → log (not a zone boundary; not traced) | same; if embedded in a wall it is part of that `wall_fill` |
-| `window` | `window` pen — keep if drawn (gives x/y + which wall) | `window` pen — **the authoritative source of window z** |
+| `window` | `window` pen — record the window's position; which wall it belongs to is the correction stage's call | `window` pen — **the authoritative source of window z**; read each facade × floor's window chain independently, do not copy a "typical floor" |
 | `door` | **not drawn** → trigger wall-healing ([`guide.md` §2.1](guide.md)) | not drawn (note only) |
 | `stair` | recognize → **do not trace treads**; log treads in `uncaptured`; the stairwell is defined by its bounding `wall`s; any `楼梯`/stair label → `ocr_texts[]` | same |
 | `vertical-circ` | recognize → log (region tag; not traced); shaft defined by bounding `wall`s | same |
@@ -29,6 +29,7 @@ cross-use.
 | `text-label` | → `ocr_texts[]` (verbatim) | → `ocr_texts[]` |
 | `scale` | not a stroke; note in `reading_summary.md` | same |
 | `grid-axis` | not geometry; ignore → log | same |
+| `beam` / overhead hidden line | recognize → log (not a plan/elevation keep pen; do not trace hidden/above-cut lines as walls) | same |
 | `north-arrow` | not geometry; ignore → log | — |
 | `view-marker` | not geometry (it points at another drawing); ignore → log | ignore → log |
 | `legend-titleblock` | not geometry; ignore → log (use legend to interpret hatches) | same |
@@ -50,15 +51,21 @@ grid-axis / north-arrow / view-marker / legend, whose geometry the correction st
 reaches the correction stage as its bounding walls + a label, not as traced treads). `door` is the special case:
 recognized but not drawn, it triggers healing instead.
 
+For elevation windows, record the visible chain on each facade and each floor independently. Do not
+reuse a typical-floor chain from another floor/facade just because the drawing looks repetitive.
+Stage-1 companion TODO: correction should later run count/blank cross-checks across facade × floor.
+
 ---
 
 ## 2. Legal pen values
 
 - **plan**: `wall` · `window`
 - **elevation**: `wall_fill` · `window` · `outline`
+- **section / supplementary / other**: no fixed pen set yet; keep the image-local trace only when it
+  clearly uses the same structural pens, explain axes/scope in notes, and log uncertain marks
 
 That is the whole set — kept minimal to exactly what the correction stage turns into geometry. Anything that is
-not one of these (column, stair, grid line, north arrow, decoration, furniture, …) is **not traced
+not one of these (column, beam / overhead hidden line, stair, grid line, north arrow, decoration, furniture, …) is **not traced
 as a stroke**: recognize it and record it in the top-level `uncaptured` list. There is no `other` pen
 and no `door` pen.
 

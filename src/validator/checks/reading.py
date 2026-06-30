@@ -27,8 +27,19 @@ from src.validator.checks.schema import CheckLayer, CheckReport, CheckStatus
 # Legal pen sets by image kind (pen_library.md §2).
 _PLAN_PENS = {"wall", "window"}
 _ELEVATION_PENS = {"wall_fill", "window", "outline"}
+_GEOMETRY_KINDS = {"line", "rect", "polyline"}
 # Topology / world fields a reading stroke must NOT carry (those are 1_correction's).
-_FORBIDDEN_STROKE_KEYS = {"zone", "adjacent_zone", "adjacent_surface", "obc", "world_z"}
+_FORBIDDEN_STROKE_KEYS = {
+    "zone",
+    "adjacent_zone",
+    "adjacent_surface",
+    "obc",
+    "world_z",
+    "is_exterior",
+    "parent_wall_id",
+    "parent_window_ids",
+    "rooms",
+}
 _ROOM_LABEL_BASES = {"label", "furniture", "ocr"}
 _MIN_EXTENT = 0.05  # m — below this a line/rect is degenerate
 _OUTPUT_PRECISION_M = 0.01  # A0 OUTPUT_PRECISION / DIMCHAIN_CLOSE_TOL scale
@@ -287,8 +298,9 @@ def _pen_kind(rep: CheckReport, view: ReadingView) -> None:
             bad.append({"id": s.id, "pen": s.pen, "reason": "illegal pen for image_kind"})
             continue
         kind = (s.geometry or {}).get("kind")
-        if kind not in (None, "line", "rect", "polyline"):
-            bad.append({"id": s.id, "kind": kind, "reason": "unknown geometry kind"})
+        if kind not in _GEOMETRY_KINDS:
+            reason = "missing geometry kind" if kind is None else "unknown geometry kind"
+            bad.append({"id": s.id, "kind": kind, "reason": reason})
     if bad:
         rep.add_fail(
             "reading.pen_kind_valid", CheckLayer.INVARIANT,
@@ -336,6 +348,16 @@ def _geometry_wellformed(rep: CheckReport, view: ReadingView) -> None:
             elif abs(xr[1] - xr[0]) < _MIN_EXTENT or abs(yr[1] - yr[0]) < _MIN_EXTENT:
                 # EITHER collapsed axis makes a rectangle degenerate (zero area).
                 bad.append({"id": s.id, "reason": "degenerate rect (collapsed axis)"})
+        elif kind == "polyline":
+            pts = g.get("points")
+            if not (
+                isinstance(pts, list)
+                and len(pts) >= 2
+                and all(isinstance(pt, list) and len(pt) >= 2 and _finite(*pt[:2]) for pt in pts)
+            ):
+                bad.append({"id": s.id, "reason": "malformed polyline points"})
+            elif sum(math.dist(pts[i - 1][:2], pts[i][:2]) for i in range(1, len(pts))) < _MIN_EXTENT:
+                bad.append({"id": s.id, "reason": "degenerate polyline (zero length)"})
     if bad:
         rep.add_fail(
             "reading.nondegenerate_geometry", CheckLayer.INVARIANT,

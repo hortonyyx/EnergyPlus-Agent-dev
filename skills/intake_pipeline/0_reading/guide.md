@@ -94,6 +94,8 @@ In EnergyPlus a zone is enclosed by **surfaces (2D faces)**; a wall has no thick
     image-local `facade` block (§4); do NOT state a world axis / sign / base here — the correction
     stage derives world placement from the plan footprint + this facade block.
   - `image_kind="section"`: defined per image; record what the axes mean in `note`s, image-local only.
+  - `image_kind="supplementary"` / `"other"`: use only when the source is not a normal plan/elevation.
+    Keep the same image-local discipline, explain the scope/axes in notes, and do not invent topology.
 - **Tracing rule**: write what is drawn; fill `null` when not found; never backfill defaults from
   background knowledge
 - **OCR text verbatim**, do not translate
@@ -106,7 +108,7 @@ In EnergyPlus a zone is enclosed by **surfaces (2D faces)**; a wall has no thick
 {
   // ===== metadata =====
   "image_label": "Floor 1 plan view",       // use the official label from testdata_prompt.json
-  "image_kind": "plan | elevation | section | other",
+  "image_kind": "plan | elevation | section | supplementary | other",
   // facade: IMAGE-LOCAL elevation orientation (elevation only; plan → null). Records which facade
   // this view shows and which screen direction local-x increases. NO world axis / sign / base — the
   // correction stage derives world placement from the plan footprint + this block (§4).
@@ -121,6 +123,8 @@ In EnergyPlus a zone is enclosed by **surfaces (2D faces)**; a wall has no thick
 
   // ===== strokes =====
   // each stroke = one continuously drawn stroke + its semantic type (pen).
+  // Concrete re-trace examples: the wall pen can draw a wall line from (0,0)→(15,0);
+  // the window pen can draw an elevation/window rectangle from (1.4,1.0)→(3.8,2.8).
   // how to recognize each element → reading_guide.md; which pen a category maps to → pen_library.md (plan and elevation differ).
   // door handling: a door opening in a wall does **not** break the wall — heal the two
   //   segments split by the door into one continuous wall stroke, and record
@@ -148,6 +152,9 @@ In EnergyPlus a zone is enclosed by **surfaces (2D faces)**; a wall has no thick
     {
       "id": "S99",
       "pen": "window",
+      "provenance": "seen",
+      "confidence": "high",
+      "dimension_refs": [],
       "geometry": {
         "kind": "rect",
         "x_range_m": [1.40, 3.80],          // this image's local coordinates
@@ -159,6 +166,9 @@ In EnergyPlus a zone is enclosed by **surfaces (2D faces)**; a wall has no thick
     {
       "id": "S100",
       "pen": "wall",
+      "provenance": "seen",
+      "confidence": "medium",
+      "dimension_refs": [],
       "geometry": {
         "kind": "polyline",
         "points": [[0,0],[5,0],[5,3],[8,3]],
@@ -171,6 +181,9 @@ In EnergyPlus a zone is enclosed by **surfaces (2D faces)**; a wall has no thick
     {
       "id": "S101",
       "pen": "wall",
+      "provenance": "seen",
+      "confidence": "high",
+      "dimension_refs": [],
       "geometry": {
         "kind": "line",
         "p1": [5.00, 0.00],
@@ -356,8 +369,9 @@ coordinates); the correction stage maps them into the world frame.
 - [ ] picked the right pen dictionary by image_kind (see [`pen_library.md`](pen_library.md): plan vs elevation differ)
 - [ ] every visible wall/window/wall_fill stroke is in the strokes array with the right pen field
 - [ ] every wall/window/wall_fill/outline stroke carries `provenance` + `confidence`; `dimension_derived`
-      strokes have non-empty `dimension_refs`
+      strokes have non-empty `dimension_refs`; estimated/unknown strokes are marked honestly
 - [ ] no dimension-chain cumulative position / tick / extension line was emitted as a wall stroke
+      or window stroke; dimension ticks outside the building outline are not partitions
 - [ ] elevation wall bodies split as "one wall_fill per floor" (see pen library)
 - [ ] no rooms[] / is_exterior / parent relations or other topology fields
 - [ ] no standalone door / stair / furniture / decoration strokes — recognized and logged (doors trigger healing), never traced as a pen (there is no `other` pen)

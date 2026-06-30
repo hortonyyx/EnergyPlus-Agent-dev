@@ -101,7 +101,13 @@
   - **关键发现(归 backlog,非本批)**:① `src/agent/correction/facade.py:derive_facade_frame` = 已建但**全未接线**的确定性 facade→world 翻译(contracts §158b "应补",即"全局坐标侧",用户定先不启);② 其 **East/West sign(−1/+1)与活口径(老guide East=+y)相反、且 E/W sign 测试未覆盖**——接线进核前必须对 gt 校验再定(勿凭推理擅改,呼应 [[judge-gt-authoritative-images-auxiliary]])。
   - **backlog(本轮记录、未建)**:① #50 per-facade/floor 窗链;② `_FORBIDDEN_STROKE_KEYS` 补 `is_exterior/parent_window_ids/rooms`;③ 接 `derive_facade_frame` 进核做确定性 local→world(+修/验 E/W sign)= 全局坐标可审变换主线;④ guide judge_rubric 移出(N1e item3 推下轮)。
 - **✅ Codex 独立全 0-5 迁移审计(2026-06-27,reference)**:用户定"让 Codex 全面查 0-5(含 0)再独立核实一遍、Claude 不并行自查保独立"。已落 `logs/review/2026-06-27_full_0to5_migration_audit_codex/codex_findings.md`(已迁64/遗漏4/⚠️冲突7/有意删5,80 条分 5 段)。**独立复现**了 reading 侧 top 冲突(P1b facade 斩断·correction 引用 §3·derive_facade_frame 未接线),且新揭 1-5 候选:kernel InterZone 在 `check_kernel` 是 block 但 `run_pipeline` 当 advisory 续行 / 老走廊几何规则未承载 / 4_mep 漏 people activity-level schedule 引用 + TBD-etc 占位禁令。**Claude 暂不裁**,待后续连同测试结果一起查+修。
-- **⏸ reading 先收口**(用户定):本轮 reading 冲突桶 4 条已修+commit,**reading 暂停**,后面**拿测试结果(恢复脚手架 image-local 重读 sm21 对 gt 对账)再继续查+修**;1-5 修法待 Claude 综合 Codex reference 后逐段出方案(走正规 Codex 审+执行)。
+- **✅ reading 脚手架完整恢复(2026-06-27 `6.27_ReadingScaffoldFullRestore`,Claude 出方案→Codex 审→Codex 执行→Claude 全面审)**:
+  - **口径改写(用户 ratify)**:目标不是"Sonnet 达 sm21_pre 就停"——北极星=弱/开源 VLM、脚手架=降智补偿。**先把 `有效∧与新架构兼容` 的旧脚手架(127ba06)约束一条不漏补进当前脚手架,后期再精简(检索库/代码化);sm21_pre=回归地板不是天花板**。
+  - **范围/方法**:focus reading;提案 `logs/review/2026-06-27_reading_scaffold_full_restore_proposal.md`(把 N1e 26 候选 + N1f #50/禁字段门逐条分类:补/已覆盖/排除/裁定),Codex 方案审 **APPROVE-WITH-CHANGES**(`..._review.md`)Claude 全采纳。
+  - **补(prose)**:doc 作用说明 / re-trace 坐标示例 / 图→输出 manifest / worked-example 锚 / `beam`+overhead 隐线(log-only)/ workflow 消歧 / self-check provenance+tick / stroke 示例 provenance 一致 / 扩展 image_kind 处置 / 窗"belongs-to 归 correction" / **#50 per-facade×floor 独立窗链(不复制 typical floor)**。**补(代码门)**:`_FORBIDDEN_STROKE_KEYS` += is_exterior/parent_wall_id/parent_window_ids/rooms;`geometry.kind` 必填且∈{line,rect,polyline} + polyline well-formed;+3 测试。**349 passed/9 xfailed**(Claude 自跑核)。
+  - **排除(Codex 确认无误排)**:facade 世界轴表(3,image-local 有意)/ other·stair·door pen(22)/ 门 two-strokes(23)/ 移除 room_labels(25)/ prompt 强度。**已覆盖不重加**:门-healing 护栏(9)。
+  - **stage-1 companion(TODO 已记、未建)**:correction 侧 per-facade/floor count/blank CROSS_CHECK(#50 enforcement);候选 7 manifest 完整性门(待 expected-image manifest)。
+- **⏳ reading 残留 = 实测**:冷启 Sonnet 用恢复后脚手架重读 sm21 + `score_reading_vs_gt` 对 gt → **作回归地板 + 弱模型评测 harness**(非逐条门)。1-5 修法待 Claude 综合 Codex 0-5 reference 后逐段出方案(走正规 Codex 审+执行)。
 
 ### N3. [P1] CAD→gt 满配答案（见 [proposals/cad_to_gt_extraction_plan.md](proposals/cad_to_gt_extraction_plan.md)）
 - 工具链已就位（ezdxf + proxy-graphics 解码 + `gt_from_dxf` + overlay 核验）。**待用户从天正图形导出/另存 DXF** → 抽满配 gt（精确窗 x+宽、精确区划、门）。方案过 Codex 审、设计待落。

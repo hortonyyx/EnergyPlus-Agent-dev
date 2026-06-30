@@ -54,6 +54,7 @@ with each (which pen / keep / ignore / heal / route to dimensions[] / ocr_texts[
 |---|---|
 | `wall` | a room-bounding structural line |
 | `column` | an isolated structural post |
+| `beam` | a hidden/above-cut overhead structural line, not a room boundary |
 | `window` | a glazed opening in a wall |
 | `door` | a wall opening with an operating leaf |
 | `stair` | a stepped vertical-circulation run |
@@ -84,8 +85,10 @@ _Example image crops for the cards below are pending the v2 corpus (the `example
 
 ## A. Drawing-type identification
 
-Decide *what kind of drawing* first — the element dictionaries differ by type. Only **plan** and
-**elevation** are in scope.
+Decide *what kind of drawing* first — the element dictionaries differ by type. **Plan** and
+**elevation** are the primary traced views. `section`, `supplementary`, and `other` are allowed
+image kinds for ancillary sources; recognize their content image-locally and explain scope/axes in
+notes instead of forcing them into a plan/elevation interpretation.
 
 - **Plan** (floor plan): a horizontal cut viewed from above (cut roughly at window height). Cues:
   rooms enclosed by walls, a roughly rectangular/orthogonal layout, in-plane dimension chains on the
@@ -221,11 +224,15 @@ just read each elevation on its own.
    facade into floors. They delimit the per-floor `wall_fill` and give each floor's z band.
 3. **Per-floor `wall_fill`** — one fill stroke per floor, bounded by those storey lines.
 4. **Window grid + openings** — windows usually repeat as a regular grid; record each as a rect
-   (x_range along the facade, y_range = its z band). An opening that fully breaks the wall body
-   splits that floor's `wall_fill`.
+   (x_range along the facade, y_range = its z band). Read each facade × floor's window chain
+   independently; do **not** copy a "typical floor" pattern from another facade or floor. An opening
+   that fully breaks the wall body splits that floor's `wall_fill`.
 5. **Level / height markers** — ▽ ±0.000 etc.: the authoritative z values; transcribe verbatim.
 6. **Attachments** (balcony / sun-shade / railing / canopy) — recognize them so they are **not
    mistaken for windows or storey lines**; they are non-structural (see the `decoration` card, §H).
+
+Stage-1 companion TODO: correction should later cross-check per-facade/per-floor window counts and
+blank floors, but the reading stage's job is only to record each visible chain independently.
 
 ### Card · `wall_fill`
 - **Appears in**: E

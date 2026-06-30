@@ -10,13 +10,16 @@ three rule docs below; the recap section is only a pointer so nothing here can s
 
 ## First: read the rule docs (required)
 
-Read all three before tracing anything, then follow the worked-example plan JSON's style (do not rewrite it):
+Read all three before tracing anything, then follow the worked-example plan JSON's style.
+Canonical worked-example file: `case_tests/e2e_tests/smalloffice_20/0_reading/1f_view.json`.
+Read it as a style/format anchor only; **do not rewrite it**.
 
 - `skills/intake_pipeline/0_reading/guide.md` — error budget, global constraints, JSON schema,
-  door-healing, self-check, downstream contract
-- `skills/intake_pipeline/0_reading/reading_guide.md` — how to *recognize* each element across drawing styles
-- `skills/intake_pipeline/0_reading/pen_library.md` — what to *do* with each recognized category
-  (which pen / keep-or-ignore / wall_fill convention)
+  door-healing, self-check, downstream contract; this is the master rule container
+- `skills/intake_pipeline/0_reading/reading_guide.md` — how to *recognize* each element across drawing styles;
+  it outputs only semantic-category labels
+- `skills/intake_pipeline/0_reading/pen_library.md` — what to *do* with each recognized category:
+  which pen to use, what to keep/log, and when door-healing applies
 
 ## Non-negotiables — a checklist of WHAT to read, not a second copy of the rules
 
@@ -37,19 +40,29 @@ to go read:
 
 ## Images for this case
 
-Produce one JSON per image at `<case>/0_reading/<name>_view.json` (plans `image_kind=plan`, elevations
-`image_kind=elevation`). Fill this table for the current case:
+Produce one JSON per source drawing at `<case>/0_reading/<name>_view.json`. Fill this manifest for
+the current case before tracing; every source image must have exactly one output row or an explicit
+skip reason in `reading_summary.md`.
 
-| source PNG | output JSON | image_kind |
-|---|---|---|
-| `<fill>` | `0_reading/<fill>_view.json` | plan / elevation |
+| source PNG | output JSON | image_kind | status / note |
+|---|---|---|---|
+| `1f_view.png` | `0_reading/1f_view.json` | plan | worked example if already supplied; otherwise pilot candidate |
+| `2f_view.png` | `0_reading/2f_view.json` | plan | fill/delete row for this case |
+| `3f_view.png` | `0_reading/3f_view.json` | plan | fill/delete row for this case |
+| `South_view.png` | `0_reading/South_view.json` | elevation | fill/delete row for this case |
+| `North_view.png` | `0_reading/North_view.json` | elevation | fill/delete row for this case |
+| `East_view.png` | `0_reading/East_view.json` | elevation | fill/delete row for this case |
+| `West_view.png` | `0_reading/West_view.json` | elevation | fill/delete row for this case |
+| `supp_plan.png` | `0_reading/supp_plan_view.json` | supplementary / plan | choose by content; explain in note |
+| `<section/detail/other>.png` | `0_reading/<name>_view.json` | section / supplementary / other | include only if present; explain axes/scope in notes |
 
 ## Workflow
 
 1. Read the three rule docs + the worked-example JSON (understand the style).
-2. Do **one** pilot image first, then stop and wait for review — do not batch all images at once.
-3. After the pilot is approved, batch the rest (other plans + elevations + supplemental plan).
-4. When all are done, write `0_reading/reading_summary.md`: per-image confidence self-assessment
+2. Do **one** pilot image first.
+3. Stop and wait for review of that pilot; do not batch remaining images yet.
+4. After the pilot is approved, batch the rest (other plans + elevations + supplemental/section images).
+5. When all are done, write `0_reading/reading_summary.md`: per-image confidence self-assessment
    (high / medium / low, with reasons), which fields were repeatedly null / unknown, and your schema feedback.
 
 ## Boundaries

@@ -269,12 +269,68 @@ def test_reading_illegal_pen_for_plan_blocks():
     assert "reading.pen_kind_valid" in _ids(rep)  # wall_fill is elevation-only
 
 
+def test_reading_forbidden_topology_fields_block():
+    v = ReadingView.model_validate({
+        "image_kind": "plan",
+        "uncaptured": [],
+        "strokes": [
+            {
+                "id": "S1",
+                "pen": "wall",
+                "parent_wall_id": "W1",
+                "rooms": ["R1"],
+                "geometry": {
+                    "kind": "line",
+                    "p1": [0, 0],
+                    "p2": [10, 0],
+                    "is_exterior": True,
+                    "parent_window_ids": ["WIN1"],
+                },
+            }
+        ],
+    })
+    rep = check_reading_view(v)
+    assert "reading.no_topology_fields" in _ids(rep)
+    result = next(r for r in rep.results if r.check_id == "reading.no_topology_fields")
+    assert result.evidence["offenders"] == [{
+        "id": "S1",
+        "fields": ["is_exterior", "parent_wall_id", "parent_window_ids", "rooms"],
+    }]
+
+
+def test_reading_missing_geometry_kind_blocks():
+    v = ReadingView.model_validate({
+        "image_kind": "plan",
+        "uncaptured": [],
+        "strokes": [{"id": "S1", "pen": "wall", "geometry": {"p1": [0, 0], "p2": [10, 0]}}],
+    })
+    rep = check_reading_view(v)
+    assert "reading.pen_kind_valid" in _ids(rep)
+    result = next(r for r in rep.results if r.check_id == "reading.pen_kind_valid")
+    assert result.evidence["offenders"] == [{"id": "S1", "kind": None, "reason": "missing geometry kind"}]
+
+
 def test_reading_degenerate_line_blocks():
     v = ReadingView.model_validate({
         "image_kind": "plan", "uncaptured": [],
         "strokes": [{"id": "S1", "pen": "wall", "geometry": {"kind": "line", "p1": [1, 1], "p2": [1, 1]}}],
     })
     assert "reading.nondegenerate_geometry" in _ids(check_reading_view(v))
+
+
+def test_reading_malformed_polyline_blocks():
+    v = ReadingView.model_validate({
+        "image_kind": "plan",
+        "uncaptured": [],
+        "strokes": [
+            {"id": "S1", "pen": "wall", "geometry": {"kind": "polyline", "points": [[0, 0]]}},
+            {"id": "S2", "pen": "wall", "geometry": {"kind": "polyline", "points": [[0, 0], ["bad", 1]]}},
+        ],
+    })
+    rep = check_reading_view(v)
+    assert "reading.nondegenerate_geometry" in _ids(rep)
+    result = next(r for r in rep.results if r.check_id == "reading.nondegenerate_geometry")
+    assert [offender["id"] for offender in result.evidence["offenders"]] == ["S1", "S2"]
 
 
 def test_reading_collapsed_axis_rect_blocks():
