@@ -48,7 +48,10 @@ from src.agent.execution import (  # noqa: E402
     submit_verdict,
     update_state,
 )
-from src.agent.execution.case_metadata import dimensioned_view_names  # noqa: E402
+from src.agent.execution.case_metadata import (  # noqa: E402
+    dimensioned_view_names,
+    expected_zone_total_from_testdata,
+)
 from src.agent.execution.policy import ConfirmationPolicy  # noqa: E402
 from src.agent.judge.executor import rubric_for, run_judge  # noqa: E402
 from src.agent.judge.verdict import StageVerdict  # noqa: E402
@@ -77,9 +80,7 @@ def _expected_zone_total(testdata_path: Path) -> int | None:
         data = json.loads(testdata_path.read_text(encoding="utf-8"))
     except json.JSONDecodeError:
         return None
-    plans = data.get("Floor plans") or []
-    totals = [p.get("thermal_zones") for p in plans if isinstance(p.get("thermal_zones"), int)]
-    return sum(totals) if totals else None
+    return expected_zone_total_from_testdata(data) if isinstance(data, dict) else None
 
 
 # --------------------------------------------------------------------------- #

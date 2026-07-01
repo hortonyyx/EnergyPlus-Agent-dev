@@ -28,6 +28,26 @@ def load_case_metadata(case_dir: Path | str) -> dict:
     return data if isinstance(data, dict) else {}
 
 
+def parse_testdata_text(text: str) -> dict | None:
+    if not text.strip():
+        return None
+    try:
+        data = json.loads(text)
+    except json.JSONDecodeError:
+        return None
+    return data if isinstance(data, dict) else None
+
+
+def expected_zone_total_from_testdata(data: dict) -> int | None:
+    plans = data.get("Floor plans") or []
+    totals = [
+        plan.get("thermal_zones")
+        for plan in plans
+        if isinstance(plan, dict) and isinstance(plan.get("thermal_zones"), int)
+    ]
+    return sum(totals) if totals else None
+
+
 def dimensioned_view_names(case_dir: Path | str) -> set[str]:
     data = load_case_metadata(case_dir)
     names: set[str] = set()

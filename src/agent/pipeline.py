@@ -732,6 +732,39 @@ def materialize_kernel_geometry(
     return bg, issues
 
 
+def _gate_self_check_report(
+    *,
+    stage_name: str,
+    report,
+    stage_dir: Path | None,
+    filename: str,
+    run_profile: RunProfile,
+) -> None:
+    if stage_dir is not None:
+        (stage_dir / filename).write_text(
+            report.model_dump_json(indent=2), encoding="utf-8"
+        )
+    blocking = report.blocking()
+    if not blocking:
+        return
+    blocking_ids = [result.check_id for result in blocking]
+    if run_profile in {"golden", "regression"}:
+        raise RuntimeError(
+            f"{stage_name} self-check blocked under run_profile={run_profile}: "
+            + "; ".join(
+                f"{result.check_id}: {result.message}" for result in blocking
+            )
+        )
+    logger.warning(
+        "{} self-check reported {} blocking check(s) under run_profile={}; "
+        "continuing: {}",
+        stage_name,
+        len(blocking),
+        run_profile,
+        ", ".join(blocking_ids),
+    )
+
+
 def run_pipeline(
     vector_dir: Path,
     testdata_text: str,
@@ -739,6 +772,7 @@ def run_pipeline(
     out_dir: Path | None = None,
     feedback: str | None = None,
     run_profile: RunProfile = "exploratory",
+    capability_profile: str = "rectangular",
 ) -> IntakeOutput:
     """Staged intake: 1_correction -> deterministic core -> deterministic geometry
     kernel (2_modelling + 3_split_pairing) -> 4_mep (LLM) -> 5_intakeoutput assembly.
@@ -777,10 +811,17 @@ def run_pipeline(
     s5 = _stage("5_intakeoutput")
 
     logger.info("1_correction: correcting from {}", vector_dir)
+    from src.agent.execution.case_metadata import (
+        expected_zone_total_from_testdata,
+        parse_testdata_text,
+    )
+
+    parsed_testdata = parse_testdata_text(testdata_text)
     dimensioned_views = dimensioned_view_names_from_testdata_text(testdata_text)
     evidence_debt = compute_evidence_debt_from_vector_dir(
         vector_dir,
         run_profile=run_profile,
+        capability_profile=capability_profile,
         dimensioned_views=dimensioned_views,
     )
     if s1 is not None:
@@ -797,6 +838,7 @@ def run_pipeline(
         out_dir=s1,
         feedback=feedback,
         run_profile=run_profile,
+        capability_profile=capability_profile,
         evidence_debt=evidence_debt,
     )
 
@@ -857,6 +899,29 @@ def run_pipeline(
             encoding="utf-8",
         )
 
+    from src.validator.checks.correction import check_correction
+
+    correction_report = check_correction(
+        geom,
+        expected_zone_total=(
+            expected_zone_total_from_testdata(parsed_testdata)
+            if parsed_testdata is not None
+            else None
+        ),
+        raw_geom=None,
+        relied_on_testdata=bool(parsed_testdata),
+        capability_profile=capability_profile,
+        run_profile=run_profile,
+        evidence_debt=evidence_debt,
+    )
+    _gate_self_check_report(
+        stage_name="1_correction",
+        report=correction_report,
+        stage_dir=s1,
+        filename="correction_checks.json",
+        run_profile=run_profile,
+    )
+
     # Deterministic geometry kernel (2_modelling -> 3_split_pairing). This geometry
     # is authoritative; we serialize it into the geometry specs.
     bg, kernel_issues = materialize_kernel_geometry(geom, s2)
@@ -881,6 +946,7 @@ def run_pipeline(
 
     kernel_report = check_kernel(
         bg,
+        capability_profile=capability_profile,
         interzone_issues=kernel_issues,
         run_profile=run_profile,
     )
@@ -916,6 +982,23 @@ def run_pipeline(
     )
     mep = run_mep(
         zone_specs, used_constructions, testdata_text, out_dir=s4, feedback=feedback
+    )
+
+    from src.validator.checks.mep import check_mep
+
+    mep_report = check_mep(
+        json.loads(mep.model_dump_json()),
+        used_constructions=used_constructions or None,
+        zone_names=set(dict.fromkeys(bg.zones)) or None,
+        testdata=parsed_testdata,
+        capability_profile=capability_profile,
+    )
+    _gate_self_check_report(
+        stage_name="4_mep",
+        report=mep_report,
+        stage_dir=s4,
+        filename="mep_checks.json",
+        run_profile=run_profile,
     )
 
     # 5_intakeoutput (assembly): stitch + deterministic contract check.

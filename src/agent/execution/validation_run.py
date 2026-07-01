@@ -21,7 +21,10 @@ from pathlib import Path
 
 from src.agent.correction.schema import CorrectedGeometry
 from src.agent.execution.approval import geometry_checkpoint_digest, is_approved
-from src.agent.execution.case_metadata import dimensioned_view_names
+from src.agent.execution.case_metadata import (
+    dimensioned_view_names,
+    expected_zone_total_from_testdata,
+)
 from src.agent.execution.manifest import RunManifest, StageRecord, hash_text
 from src.agent.execution.policy import RunPolicy, ValidationScope
 from src.agent.state import IntakeOutput
@@ -54,9 +57,7 @@ def _expected_zone_total(case_dir: Path) -> int | None:
         data = json.loads(td.read_text(encoding="utf-8"))
     except json.JSONDecodeError:
         return None
-    plans = data.get("Floor plans") or []
-    totals = [p.get("thermal_zones") for p in plans if isinstance(p.get("thermal_zones"), int)]
-    return sum(totals) if totals else None
+    return expected_zone_total_from_testdata(data) if isinstance(data, dict) else None
 
 
 def _load_testdata(case_dir: Path) -> dict | None:
