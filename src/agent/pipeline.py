@@ -950,15 +950,13 @@ def run_pipeline(
         interzone_issues=kernel_issues,
         run_profile=run_profile,
     )
-    if s2 is not None:
-        (s2 / "kernel_checks.json").write_text(
-            kernel_report.model_dump_json(indent=2), encoding="utf-8"
-        )
-    if kernel_issues and run_profile in {"golden", "regression"}:
-        raise RuntimeError(
-            "2_modelling InterZone pairing gate blocked under "
-            f"run_profile={run_profile}: " + "; ".join(kernel_issues)
-        )
+    _gate_self_check_report(
+        stage_name="2_modelling",
+        report=kernel_report,
+        stage_dir=s2,
+        filename="kernel_checks.json",
+        run_profile=run_profile,
+    )
 
     # 3_split_pairing (serialization): kernel geometry -> specs text.
     from src.agent.geometry.specs import geometry_specs_markdown, serialize_geometry
@@ -1008,6 +1006,15 @@ def run_pipeline(
         fenestration_specs=fenestration_specs,
         mep=mep,
     )
+    from src.validator.checks.assembly import check_assembly
+
+    assembly_report = check_assembly(
+        intake, used_constructions, capability_profile=capability_profile
+    )
+    if s5 is not None:
+        (s5 / "assembly_checks.json").write_text(
+            assembly_report.model_dump_json(indent=2), encoding="utf-8"
+        )
     contract_issues = validate_contract(intake, used_constructions)
     if contract_issues:
         if s5 is not None:

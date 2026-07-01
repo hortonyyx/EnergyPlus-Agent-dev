@@ -11,7 +11,7 @@ from src.agent.correction.schema import CorrectedGeometry
 from src.agent.execution.validation_run import validate_case
 from src.agent.intakeoutput import MepOutput
 from src.agent.state import IntakeOutput
-from src.validator.checks.schema import CheckReport
+from src.validator.checks.schema import CheckLayer, CheckReport, CheckStatus
 
 
 _SITE = {
@@ -197,8 +197,90 @@ def test_run_pipeline_inline_correction_mep_smoke_exploratory(tmp_path, monkeypa
     assert isinstance(intake, IntakeOutput)
     correction = _report(out_dir / "1_correction" / "correction_checks.json")
     mep = _report(out_dir / "4_mep" / "mep_checks.json")
+    assembly = _report(out_dir / "5_intakeoutput" / "assembly_checks.json")
     assert correction.passed, [r.check_id for r in correction.blocking()]
     assert mep.passed, [r.check_id for r in mep.blocking()]
+    assert assembly.passed, [r.check_id for r in assembly.blocking()]
+
+
+def _patch_kernel_check_non_pairing_blocker(
+    monkeypatch: pytest.MonkeyPatch,
+    *,
+    check_id: str = "kernel.coverage_completeness",
+) -> None:
+    import src.validator.checks.kernel as kernel_checks
+
+    def fake_check_kernel(
+        _bg,
+        *,
+        capability_profile: str = "rectangular",
+        interzone_issues: list[str] | None = None,
+        run_profile: str = "exploratory",
+    ) -> CheckReport:
+        assert not interzone_issues
+        rep = CheckReport(
+            stage="2_modelling",
+            capability_profile=capability_profile,
+            run_profile=run_profile,
+        )
+        rep.add("kernel.pairing_gate", CheckStatus.PASS, CheckLayer.INVARIANT)
+        rep.add(
+            check_id,
+            CheckStatus.FAIL,
+            CheckLayer.INVARIANT,
+            message="injected non-pairing kernel invariant",
+            evidence={"source": "test"},
+        )
+        return rep
+
+    monkeypatch.setattr(kernel_checks, "check_kernel", fake_check_kernel)
+
+
+def test_run_pipeline_golden_blocks_on_non_pairing_kernel_invariant(
+    tmp_path, monkeypatch
+):
+    vector_dir = _patch_llm_stages(monkeypatch, tmp_path)
+    _patch_kernel_check_non_pairing_blocker(monkeypatch)
+    out_dir = tmp_path / "out"
+
+    with pytest.raises(
+        RuntimeError,
+        match="2_modelling self-check blocked under run_profile=golden",
+    ) as exc:
+        pipeline.run_pipeline(vector_dir, "{}", out_dir=out_dir, run_profile="golden")
+
+    assert "kernel.coverage_completeness" in str(exc.value)
+    assert (out_dir / "2_modelling" / "building_geometry.json").exists()
+    assert (out_dir / "2_modelling" / "kernel_gate_report.json").exists()
+    kernel = _report(out_dir / "2_modelling" / "kernel_checks.json")
+    assert "kernel.coverage_completeness" in {
+        result.check_id for result in kernel.blocking()
+    }
+    assert not (out_dir / "3_split_pairing" / "geometry_specs.md").exists()
+
+
+def test_run_pipeline_exploratory_warns_and_continues_on_non_pairing_kernel_invariant(
+    tmp_path, monkeypatch
+):
+    vector_dir = _patch_llm_stages(monkeypatch, tmp_path)
+    _patch_kernel_check_non_pairing_blocker(monkeypatch, check_id="kernel.normals")
+    out_dir = tmp_path / "out"
+    warnings: list[str] = []
+    sink = pipeline.logger.add(lambda msg: warnings.append(str(msg)), level="WARNING")
+    try:
+        intake = pipeline.run_pipeline(
+            vector_dir, "{}", out_dir=out_dir, run_profile="exploratory"
+        )
+    finally:
+        pipeline.logger.remove(sink)
+
+    assert isinstance(intake, IntakeOutput)
+    kernel = _report(out_dir / "2_modelling" / "kernel_checks.json")
+    assert "kernel.normals" in {result.check_id for result in kernel.blocking()}
+    assert any("2_modelling self-check" in msg for msg in warnings)
+    assert any("kernel.normals" in msg for msg in warnings)
+    assert (out_dir / "3_split_pairing" / "geometry_specs.md").exists()
+    assert (out_dir / "5_intakeoutput" / "intake_output.json").exists()
 
 
 def test_run_pipeline_exploratory_writes_and_warns_but_continues(
@@ -265,6 +347,10 @@ def test_run_pipeline_inline_reports_match_validate_case(tmp_path, monkeypatch):
         _report(run_dir / "1_correction" / "correction_checks.json")
     )
     inline_mep = _statuses(_report(run_dir / "4_mep" / "mep_checks.json"))
+    inline_assembly = _statuses(
+        _report(run_dir / "5_intakeoutput" / "assembly_checks.json")
+    )
+    assert inline_assembly == {"assembly.contract_backstop": "pass"}
 
     validate_case(run_dir, case_dir=case_dir, write_reports=True)
 
@@ -272,6 +358,9 @@ def test_run_pipeline_inline_reports_match_validate_case(tmp_path, monkeypatch):
         _report(run_dir / "1_correction" / "correction_checks.json")
     )
     assert inline_mep == _statuses(_report(run_dir / "4_mep" / "mep_checks.json"))
+    assert inline_assembly == _statuses(
+        _report(run_dir / "5_intakeoutput" / "assembly_checks.json")
+    )
 
 
 def test_run_pipeline_a8_pre_core_coverage_still_enters_correction_report(

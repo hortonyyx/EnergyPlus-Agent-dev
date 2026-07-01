@@ -378,8 +378,12 @@ def test_run_pipeline_fail_closed_for_kernel_pairing_gate_profiles(
     vector_dir = _patch_pipeline_to_inject_interzone_issue(tmp_path, monkeypatch)
     out_dir = tmp_path / "out"
 
-    with pytest.raises(RuntimeError, match="InterZone pairing gate blocked"):
+    with pytest.raises(
+        RuntimeError,
+        match=f"2_modelling self-check blocked under run_profile={run_profile}",
+    ) as exc:
         pipeline.run_pipeline(vector_dir, "{}", out_dir=out_dir, run_profile=run_profile)
+    assert "kernel.pairing_gate" in str(exc.value)
 
     report = CheckReport.model_validate_json(
         (out_dir / "2_modelling" / "kernel_checks.json").read_text()
