@@ -48,6 +48,7 @@ from src.agent.execution import (  # noqa: E402
     submit_verdict,
     update_state,
 )
+from src.agent.execution.case_metadata import dimensioned_view_names  # noqa: E402
 from src.agent.execution.policy import ConfirmationPolicy  # noqa: E402
 from src.agent.judge.executor import rubric_for, run_judge  # noqa: E402
 from src.agent.judge.verdict import StageVerdict  # noqa: E402
@@ -84,14 +85,18 @@ def _expected_zone_total(testdata_path: Path) -> int | None:
 # --------------------------------------------------------------------------- #
 # stage executors — each returns (output_obj, gate①_report)
 # --------------------------------------------------------------------------- #
-def _draw_reading(run_dir: Path):
+def _draw_reading(run_dir: Path, policy: RunPolicy, dimensioned_views: set[str]):
     """0_reading is MANUAL: validate the already-produced view JSONs (no LLM)."""
     from src.agent.reading import load_reading_view
     from src.validator.checks.reading import check_reading_view
 
     rdir = run_dir / "0_reading"
     views = sorted(rdir.glob("*_view.json"))
-    rep = CheckReport(stage="0_reading")
+    rep = CheckReport(
+        stage="0_reading",
+        capability_profile=policy.capability_profile,
+        run_profile=policy.run_profile,
+    )
     if not views:
         rep.add("reading.present", CheckStatus.ERROR, CheckLayer.INVARIANT,
                 message="no 0_reading/*_view.json found — produce reading first")
@@ -100,7 +105,12 @@ def _draw_reading(run_dir: Path):
     for vj in views:
         view = load_reading_view(vj)
         out[vj.stem] = json.loads(vj.read_text(encoding="utf-8"))
-        sub = check_reading_view(view)
+        sub = check_reading_view(
+            view,
+            capability_profile=policy.capability_profile,
+            run_profile=policy.run_profile,
+            view_metadata={"dimensioned": vj.stem in dimensioned_views},
+        )
         for r in sub.results:  # merge per-view results under one stage report
             rep.results.append(r.model_copy(update={"check_id": f"{vj.stem}.{r.check_id}"}))
     return out, rep
@@ -262,9 +272,9 @@ def _draw_assembly(run_dir: Path):
     return intake, rep
 
 
-def _make_draw_fn(stage: str, run_dir: Path, testdata_text: str, td_path: Path):
+def _make_draw_fn(stage: str, run_dir: Path, testdata_text: str, td_path: Path, policy: RunPolicy):
     if stage == "0_reading":
-        return lambda _fb: _draw_reading(run_dir)
+        return lambda _fb: _draw_reading(run_dir, policy, dimensioned_view_names(run_dir.parent))
     if stage == "1_correction":
         ez = _expected_zone_total(td_path)
         relied = td_path.exists()
@@ -386,12 +396,17 @@ def _judge_packet(stage: str, case: str, case_dir: Path, run_dir: Path,
 # --------------------------------------------------------------------------- #
 # verbs
 # --------------------------------------------------------------------------- #
-def _make_policy(*, reading_runner_available: bool = False) -> RunPolicy:
+def _make_policy(
+    *,
+    reading_runner_available: bool = False,
+    run_profile: str = "exploratory",
+) -> RunPolicy:
     # dev baseline: judge on, geometry confirmation REQUIRED (blocking human gate)
     return RunPolicy(
         confirmation_policy=ConfirmationPolicy.REQUIRED,
         judge_enabled=True,
         reading_runner_available=reading_runner_available,
+        run_profile=run_profile,
     )
 
 
@@ -435,12 +450,15 @@ def _print_reread_protocol(args, outcome) -> None:
 def cmd_run(args) -> int:
     case_dir, run_dir, td_path = _resolve(args.base_dir, args.case, args.run)
     testdata_text = td_path.read_text(encoding="utf-8") if td_path.exists() else ""
-    policy = _make_policy(reading_runner_available=args.reading_runner_available)
+    policy = _make_policy(
+        reading_runner_available=args.reading_runner_available,
+        run_profile=args.run_profile,
+    )
     manifest = RunManifest.load(run_dir)
     runner = StageRunner(run_dir, manifest)
     stage = args.stage
     stage_dir = run_dir / stage
-    draw_fn = _make_draw_fn(stage, run_dir, testdata_text, td_path)
+    draw_fn = _make_draw_fn(stage, run_dir, testdata_text, td_path, policy)
 
     def _packet_fn(adir: Path, rep: CheckReport) -> dict:
         return _judge_packet(stage, args.case, case_dir, run_dir, adir, rep)
@@ -477,7 +495,10 @@ def cmd_resample(args) -> int:
 
 def cmd_judge(args) -> int:
     _case_dir, run_dir, _td = _resolve(args.base_dir, args.case, args.run)
-    policy = _make_policy(reading_runner_available=args.reading_runner_available)
+    policy = _make_policy(
+        reading_runner_available=args.reading_runner_available,
+        run_profile=args.run_profile,
+    )
     stage = args.stage
     stage_dir = run_dir / stage
     manifest = RunManifest.load(run_dir)
@@ -545,6 +566,12 @@ def main() -> int:
     ap.add_argument("--date", default="", help="ISO date stamp for state/approval")
     ap.add_argument("--reading-runner-available", action="store_true",
                     help="enable awaiting_reread decisions; the main Agent still runs the sub-agent protocol")
+    ap.add_argument(
+        "--run-profile",
+        choices=("exploratory", "dev", "golden", "regression"),
+        default="exploratory",
+        help="evidence gate policy: exploratory/dev flag, golden/regression block",
+    )
     sub = ap.add_subparsers(dest="verb", required=True)
 
     for verb in ("run", "resample"):

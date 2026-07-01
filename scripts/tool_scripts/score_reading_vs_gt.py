@@ -66,7 +66,8 @@ def main() -> int:
     ap.add_argument("--gt-dir")
     ap.add_argument("--wall-tol", type=float, default=rs.DEFAULT_WALL_TOL_M)
     ap.add_argument("--win-tol", type=float, default=rs.DEFAULT_WIN_CENTRE_TOL_M)
-    ap.add_argument("--json", action="store_true", help="emit machine-readable summary")
+    ap.add_argument("--json", action="store_true", help="also emit machine-readable summary after human rows")
+    ap.add_argument("--json-only", action="store_true", help="emit only the machine-readable summary")
     args = ap.parse_args()
 
     target = Path(args.target)
@@ -86,14 +87,20 @@ def main() -> int:
             return 2
         scores = {target.stem: rs.score_floor(reading, gt, fname, wall_tol=args.wall_tol, win_tol=args.win_tol)}
 
-    print(f"# reading↔gt score — case {args.case}  (wall_tol={args.wall_tol}m, win_tol={args.win_tol}m)")
     tot_wh = tot_wt = tot_nh = tot_nt = 0
     summary = {}
     for stem, sc in scores.items():
-        _print_floor(stem, sc)
         wh, wt = sc.wall_hits(); nh, nt = sc.window_hits()
         tot_wh += wh; tot_wt += wt; tot_nh += nh; tot_nt += nt
         summary[stem] = {"walls": [wh, wt], "windows": [nh, nt], "max_wall_offset_m": sc.max_wall_offset()}
+
+    if args.json_only:
+        print(json.dumps(summary, indent=2))
+        return 0
+
+    print(f"# reading↔gt score — case {args.case}  (wall_tol={args.wall_tol}m, win_tol={args.win_tol}m)")
+    for stem, sc in scores.items():
+        _print_floor(stem, sc)
     print(f"\n=== TOTAL: walls {tot_wh}/{tot_wt}, windows {tot_nh}/{tot_nt} ===")
     if args.json:
         print(json.dumps(summary, indent=2))

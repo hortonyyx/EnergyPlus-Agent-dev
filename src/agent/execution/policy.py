@@ -13,6 +13,7 @@ constructs a :class:`RunPolicy` and the orchestrator consults it to decide:
 from __future__ import annotations
 
 from enum import Enum
+from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -30,6 +31,9 @@ class ValidationScope(str, Enum):
     DOWNSTREAM_ONLY = "downstream_only"  # --intake-from: only the supplied IntakeOutput
 
 
+RunProfile = Literal["exploratory", "dev", "golden", "regression"]
+
+
 class RunPolicy(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
@@ -37,6 +41,7 @@ class RunPolicy(BaseModel):
     judge_enabled: bool = False  # dev-期 scaffold; off by default (M2 det. first)
     validation_scope: ValidationScope = ValidationScope.FULL
     capability_profile: str = "rectangular"
+    run_profile: RunProfile = "exploratory"
     # Whether a full-scope run REQUIRES an EnergyPlus run (EP/EP_run/eplusout.end).
     # Default False = geometry/MEP-only validation (pre-EP) is a first-class mode;
     # a missing .end is then explicitly skipped, NOT silently passed. Set True to

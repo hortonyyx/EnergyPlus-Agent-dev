@@ -8,14 +8,16 @@ from pathlib import Path
 from src.agent.correction.facade import derive_facade_frame
 from src.agent.correction.schema import CorrectedGeometry
 from src.agent.execution import RouteAction, route_stage_failure
-from src.agent.reading import ReadingView, load_reading_view
+from src.agent.judge.gt import load_gt
+from src.agent.reading import ReadingView, attach_raw_metadata, load_reading_view
 from src.validator.checks.correction import check_correction
 from src.validator.checks.reading import check_reading_view
-from src.validator.checks.schema import CheckLayer, CheckReport
+from src.validator.checks.schema import CheckLayer, CheckReport, EVIDENCE_CHECK_IDS
 
 _ANCHOR = Path("case_tests/e2e_tests/sm20_anchor")
 _RUN = _ANCHOR / "run_2026-06-15_baseline"
 _FIX = Path("tests/fixtures/validation")
+_RESTORE_READINGS = Path("AI_agent/logs/review/2026-06-30_reading_scaffold_restore_validation/readings")
 
 
 def _ids(rep):
@@ -37,6 +39,23 @@ def _plan_with_room_labels(room_labels):
 def _provenance_mode(rep):
     result = next(r for r in rep.results if r.check_id == "reading.stroke_provenance_coverage")
     return result.evidence["provenance_mode"]
+
+
+def _provenance_result(rep):
+    return next(r for r in rep.results if r.check_id == "reading.stroke_provenance_coverage")
+
+
+def _jamb_result(rep):
+    return next(r for r in rep.results if r.check_id == "reading.partition_on_window_jamb")
+
+
+def _load_restore_reading(path: Path) -> ReadingView:
+    data = json.loads(path.read_text(encoding="utf-8"))
+    for dim in data.get("dimensions", []):
+        for key in ("from", "to"):
+            if dim.get(key) == [None, None]:
+                dim.pop(key)
+    return ReadingView.model_validate(data)
 
 
 def _sm21_like_dim_chain():
@@ -69,6 +88,45 @@ def _rect_plan_with_vertical_wall(x, *, provenance=None, dimension_refs=None):
             wall,
         ],
         "dimensions": _sm21_like_dim_chain(),
+    })
+
+
+def _dimensioned_chain_view(*, overall=5.0, segments=None, axis="x"):
+    if segments is None:
+        segments = [2.0, 3.0]
+    dims = [
+        {
+            "id": "D0",
+            "text_verbatim": str(overall),
+            "value_m": overall,
+            "chain_id": "c",
+            "role": "overall",
+            "order": 0,
+            "axis": axis,
+            "from": [0, 0],
+            "to": [overall if axis == "x" else 0, overall if axis == "y" else 0],
+        }
+    ]
+    running = 0.0
+    for idx, value in enumerate(segments, start=1):
+        start = running
+        running += value
+        dims.append({
+            "id": f"D{idx}",
+            "text_verbatim": str(value),
+            "value_m": value,
+            "chain_id": "c",
+            "role": "segment",
+            "order": idx,
+            "axis": axis,
+            "from": [start if axis == "x" else 0, start if axis == "y" else 0],
+            "to": [running if axis == "x" else 0, running if axis == "y" else 0],
+        })
+    return ReadingView.model_validate({
+        "image_kind": "plan",
+        "uncaptured": [],
+        "strokes": [],
+        "dimensions": dims,
     })
 
 
@@ -161,17 +219,41 @@ def test_reading_room_labels_invalid_blocks():
 
 def test_reading_provenance_mode_full_partial_legacy():
     legacy = _plan_with_room_labels([])
-    assert _provenance_mode(check_reading_view(legacy)) == "legacy"
+    legacy_rep = check_reading_view(legacy)
+    assert _provenance_mode(legacy_rep) == "legacy"
+    assert _provenance_result(legacy_rep).status.value == "fail"
+    assert "reading.stroke_provenance_coverage" in {r.check_id for r in legacy_rep.flagged()}
 
     partial = _plan_with_room_labels([])
     partial.strokes[0].provenance = "seen"
-    assert _provenance_mode(check_reading_view(partial)) == "partial"
+    partial_rep = check_reading_view(partial)
+    assert _provenance_mode(partial_rep) == "partial"
+    assert _provenance_result(partial_rep).status.value == "fail"
+    assert "reading.stroke_provenance_coverage" in {r.check_id for r in partial_rep.flagged()}
 
     full = _plan_with_room_labels([])
     for stroke in full.strokes:
         stroke.provenance = "seen"
         stroke.confidence = "high"
-    assert _provenance_mode(check_reading_view(full)) == "full"
+    full_rep = check_reading_view(full)
+    assert _provenance_mode(full_rep) == "full"
+    assert _provenance_result(full_rep).status.value == "pass"
+
+
+def test_provenance_coverage_blocks_by_profile_but_legacy_migrated_is_grandfathered():
+    partial = _plan_with_room_labels([])
+    partial.strokes[0].provenance = "seen"
+
+    regression = check_reading_view(partial, run_profile="regression")
+    assert "reading.stroke_provenance_coverage" in {r.check_id for r in regression.blocking()}
+
+    grandfathered = check_reading_view(
+        partial,
+        run_profile="regression",
+        view_metadata={"legacy_migrated": True},
+    )
+    assert "reading.stroke_provenance_coverage" in {r.check_id for r in grandfathered.flagged()}
+    assert "reading.stroke_provenance_coverage" not in {r.check_id for r in grandfathered.blocking()}
 
 
 def test_stroke_dimension_consistency_flags_sm21_like_wall_without_blocking():
@@ -199,6 +281,183 @@ def test_stroke_dimension_consistency_ignores_dimension_derived_clean_grid():
     flagged = {r.check_id for r in rep.flagged()}
     assert "reading.stroke_dimension_consistency" not in flagged
     result = next(r for r in rep.results if r.check_id == "reading.stroke_dimension_consistency")
+    assert result.status.value == "pass"
+
+
+def test_partition_on_window_jamb_flags_advisory_only():
+    v = ReadingView.model_validate({
+        "image_kind": "plan",
+        "uncaptured": [],
+        "strokes": [
+            {"id": "S1", "pen": "wall", "provenance": "seen", "geometry": {"kind": "line", "p1": [0, 0], "p2": [15, 0]}},
+            {"id": "S2", "pen": "wall", "provenance": "seen", "geometry": {"kind": "line", "p1": [0, 8], "p2": [15, 8]}},
+            {"id": "S3", "pen": "wall", "provenance": "seen", "geometry": {"kind": "line", "p1": [0, 0], "p2": [0, 8]}},
+            {"id": "S4", "pen": "wall", "provenance": "seen", "geometry": {"kind": "line", "p1": [15, 0], "p2": [15, 8]}},
+            {"id": "W1", "pen": "window", "provenance": "seen", "geometry": {"kind": "line", "p1": [3.4, 0], "p2": [4.6, 0]}},
+            {"id": "S5", "pen": "wall", "provenance": "seen", "geometry": {"kind": "line", "p1": [3.39, 0], "p2": [3.39, 8]}},
+        ],
+        "dimensions": [
+            {"id": "D0", "text_verbatim": "15.0", "value_m": 15.0, "chain_id": "south", "role": "overall", "order": 0, "axis": "x", "from": [0, 0], "to": [15, 0]},
+            {"id": "D1", "text_verbatim": "3.4", "value_m": 3.4, "chain_id": "south", "role": "segment", "order": 1, "axis": "x", "from": [0, 0], "to": [3.4, 0]},
+            {"id": "D2", "text_verbatim": "11.6", "value_m": 11.6, "chain_id": "south", "role": "segment", "order": 2, "axis": "x", "from": [3.4, 0], "to": [15, 0]},
+        ],
+    })
+    rep = check_reading_view(v, run_profile="regression")
+    assert rep.passed, [r.message for r in rep.blocking()]
+    assert "reading.partition_on_window_jamb" not in EVIDENCE_CHECK_IDS
+    assert "reading.partition_on_window_jamb" in {r.check_id for r in rep.flagged()}
+    result = _jamb_result(rep)
+    offender = result.evidence["offenders"][0]
+    assert offender["stroke_id"] == "S5"
+    assert offender["window_jambs"][0]["window_id"] == "W1"
+    assert offender["matching_dimension_positions"]
+    assert offender["joins_walls"]["both_endpoints_join"] is True
+    assert result.layer == CheckLayer.CROSS_CHECK
+
+
+def test_partition_not_on_window_jamb_is_clean():
+    v = ReadingView.model_validate({
+        "image_kind": "plan",
+        "uncaptured": [],
+        "strokes": [
+            {"id": "S1", "pen": "wall", "provenance": "seen", "geometry": {"kind": "line", "p1": [0, 0], "p2": [15, 0]}},
+            {"id": "S2", "pen": "wall", "provenance": "seen", "geometry": {"kind": "line", "p1": [0, 8], "p2": [15, 8]}},
+            {"id": "S3", "pen": "wall", "provenance": "seen", "geometry": {"kind": "line", "p1": [0, 0], "p2": [0, 8]}},
+            {"id": "S4", "pen": "wall", "provenance": "seen", "geometry": {"kind": "line", "p1": [15, 0], "p2": [15, 8]}},
+            {"id": "W1", "pen": "window", "provenance": "seen", "geometry": {"kind": "line", "p1": [3.4, 0], "p2": [4.6, 0]}},
+            {"id": "S5", "pen": "wall", "provenance": "seen", "geometry": {"kind": "line", "p1": [5, 0], "p2": [5, 8]}},
+        ],
+    })
+    result = _jamb_result(check_reading_view(v, run_profile="regression"))
+    assert result.status.value == "pass"
+
+
+def test_partition_on_window_jamb_real_restore_reading_r2_flags_four():
+    r2 = _load_restore_reading(_RESTORE_READINGS / "sonnet_r2" / "1f_view.json")
+
+    r2_result = _jamb_result(check_reading_view(r2))
+    assert r2_result.status.value == "fail"
+    offenders = r2_result.evidence["offenders"]
+    assert [offender["stroke_id"] for offender in offenders] == ["S9", "S11", "S12", "S14"]
+    assert [round(offender["coord_m"], 2) for offender in offenders] == [3.44, 6.3, 8.7, 11.36]
+    assert all(offender["matching_dimension_positions"] for offender in offenders)
+    assert all(offender["joins_walls"]["both_endpoints_join"] for offender in offenders)
+
+
+def test_dimension_chain_closure_groups_by_chain_id_and_axis():
+    v = ReadingView.model_validate({
+        "image_kind": "plan",
+        "uncaptured": [],
+        "dimensions": [
+            {"id": "DX0", "text_verbatim": "5", "value_m": 5, "chain_id": "same", "role": "overall", "order": 0, "axis": "x"},
+            {"id": "DX1", "text_verbatim": "2", "value_m": 2, "chain_id": "same", "role": "segment", "order": 1, "axis": "x"},
+            {"id": "DX2", "text_verbatim": "3", "value_m": 3, "chain_id": "same", "role": "segment", "order": 2, "axis": "x"},
+            {"id": "DY0", "text_verbatim": "7", "value_m": 7, "chain_id": "same", "role": "overall", "order": 0, "axis": "y"},
+            {"id": "DY1", "text_verbatim": "4", "value_m": 4, "chain_id": "same", "role": "segment", "order": 1, "axis": "y"},
+            {"id": "DY2", "text_verbatim": "3", "value_m": 3, "chain_id": "same", "role": "segment", "order": 2, "axis": "y"},
+        ],
+    })
+    closure = next(r for r in check_reading_view(v).results
+                   if r.check_id == "reading.dimension_chain_closure")
+    assert closure.status.value == "pass"
+    assert closure.evidence["chains_checked"] == 2
+
+
+def test_incomplete_dimension_chain_is_evidence_debt():
+    v = ReadingView.model_validate({
+        "image_kind": "plan",
+        "uncaptured": [],
+        "dimensions": [
+            {"id": "D1", "text_verbatim": "2", "value_m": 2, "chain_id": "c", "role": "segment", "order": 1, "axis": "x"},
+        ],
+    })
+    rep = check_reading_view(v)
+    assert "reading.dimension_chain_closure" in {r.check_id for r in rep.flagged()}
+
+
+def test_non_closing_dimension_chain_is_evidence_debt():
+    rep = check_reading_view(_dimensioned_chain_view(overall=6.0, segments=[2.0, 3.0]))
+    assert "reading.dimension_chain_closure" in {r.check_id for r in rep.flagged()}
+
+
+def test_dimensioned_view_with_empty_dimensions_is_evidence_debt():
+    v = ReadingView.model_validate({"image_kind": "plan", "uncaptured": [], "dimensions": []})
+    rep = check_reading_view(v, dimensioned=True)
+    assert "reading.dimensions_present" in {r.check_id for r in rep.flagged()}
+
+
+def test_dimensioned_new_dimensions_require_p1a_fields():
+    v = ReadingView.model_validate({
+        "image_kind": "plan",
+        "uncaptured": [],
+        "dimensions": [{"id": "D1", "text": "5", "value_m": 5}],
+    })
+    rep = check_reading_view(v, dimensioned=True)
+    assert "reading.dimension_p1a_fields" in {r.check_id for r in rep.flagged()}
+
+
+def test_dimension_derived_refs_are_required_and_resolvable():
+    v = ReadingView.model_validate({
+        "image_kind": "plan",
+        "uncaptured": [],
+        "strokes": [
+            {"id": "S1", "pen": "wall", "provenance": "dimension_derived", "dimension_refs": [],
+             "geometry": {"kind": "line", "p1": [0, 0], "p2": [1, 0]}},
+            {"id": "S2", "pen": "wall", "provenance": "dimension_derived", "dimension_refs": ["missing"],
+             "geometry": {"kind": "line", "p1": [0, 1], "p2": [1, 1]}},
+        ],
+        "dimensions": [{"id": "D1", "text_verbatim": "1", "value_m": 1}],
+    })
+    rep = check_reading_view(v)
+    assert "reading.dimension_derived_refs" in {r.check_id for r in rep.flagged()}
+
+    v.strokes[0].dimension_refs = ["D1"]
+    v.strokes[1].dimension_refs = ["D1"]
+    rep = check_reading_view(v)
+    result = next(r for r in rep.results if r.check_id == "reading.dimension_derived_refs")
+    assert result.status.value == "pass"
+
+
+def test_run_profile_blocks_evidence_debt_only_in_regression():
+    v = _dimensioned_chain_view(overall=6.0, segments=[2.0, 3.0])
+    exploratory = check_reading_view(v, run_profile="exploratory")
+    regression = check_reading_view(v, run_profile="regression")
+    assert "reading.dimension_chain_closure" in {r.check_id for r in exploratory.flagged()}
+    assert "reading.dimension_chain_closure" in {r.check_id for r in regression.blocking()}
+
+
+def test_legacy_migrated_evidence_debt_never_blocks():
+    v = ReadingView.model_validate({"image_kind": "plan", "uncaptured": [], "dimensions": []})
+    rep = check_reading_view(
+        v,
+        run_profile="regression",
+        view_metadata={
+            "dimensioned": True,
+            "raw_has_dimensions": False,
+            "raw_has_uncaptured": False,
+            "legacy_migrated": True,
+        },
+    )
+    assert "reading.dimensions_present" in {r.check_id for r in rep.flagged()}
+    assert not rep.blocking()
+
+
+def test_raw_uncaptured_presence_distinguishes_missing_from_explicit_empty():
+    missing = ReadingView.model_validate({"image_kind": "plan", "strokes": []})
+    attach_raw_metadata(
+        missing,
+        {"raw_has_dimensions": False, "raw_has_uncaptured": False, "legacy_migrated": False},
+    )
+    rep = check_reading_view(missing)
+    assert "reading.raw_field_presence" in {r.check_id for r in rep.flagged()}
+
+    explicit = ReadingView.model_validate({"image_kind": "plan", "uncaptured": [], "strokes": []})
+    attach_raw_metadata(
+        explicit,
+        {"raw_has_dimensions": False, "raw_has_uncaptured": True, "legacy_migrated": False},
+    )
+    result = next(r for r in check_reading_view(explicit).results
+                  if r.check_id == "reading.raw_field_presence")
     assert result.status.value == "pass"
 
 
@@ -367,9 +626,9 @@ def test_broken_dimension_chain_flags_not_blocks():
     v = ReadingView.model_validate({
         "image_kind": "plan", "uncaptured": [],
         "dimensions": [
-            {"id": "D1", "value_m": 15.0, "chain_id": "w", "role": "overall", "order": 0},
-            {"id": "D2", "value_m": 3.0, "chain_id": "w", "role": "segment", "order": 1},
-            {"id": "D3", "value_m": 3.0, "chain_id": "w", "role": "segment", "order": 2},
+            {"id": "D1", "value_m": 15.0, "chain_id": "w", "role": "overall", "order": 0, "axis": "x"},
+            {"id": "D2", "value_m": 3.0, "chain_id": "w", "role": "segment", "order": 1, "axis": "x"},
+            {"id": "D3", "value_m": 3.0, "chain_id": "w", "role": "segment", "order": 2, "axis": "x"},
         ],
     })
     rep = check_reading_view(v)
@@ -457,6 +716,34 @@ def test_facade_frames_standard_convention():
 
     east = derive_facade_frame(view_facade="East", footprint_x=fx, footprint_y=fy)
     assert east.world_axis == "y" and east.base_world == 15.0
+
+
+def test_facade_east_west_signs_match_sm21_f2_gt_window_spans():
+    gt = load_gt("sm21_anchor")
+    fp = gt["footprint"]
+    fx, fy = [0.0, fp["W_m"]], [0.0, fp["D_m"]]
+    east_opening = next(
+        w for w in gt["windows"]
+        if w["facade"] == "East" and w["floor"] == "Floor 2"
+    )["openings"][0]
+    west_opening = next(
+        w for w in gt["windows"]
+        if w["facade"] == "West" and w["floor"] == "Floor 2"
+    )["openings"][0]
+
+    east = derive_facade_frame(view_facade="East", footprint_x=fx, footprint_y=fy)
+    east_start = east_opening["x_m"]
+    east_end = east_start + east_opening["width_m"]
+    assert east.sign == +1
+    assert round(east.to_world_along(east_start), 6) == round(east_start, 6)
+    assert round(east.to_world_along(east_end), 6) == round(east_end, 6)
+
+    west = derive_facade_frame(view_facade="West", footprint_x=fx, footprint_y=fy)
+    west_start = west_opening["x_m"]
+    west_end = west_start + west_opening["width_m"]
+    assert west.sign == -1
+    assert round(west.to_world_along(west_start), 6) == round(west_end, 6)
+    assert round(west.to_world_along(west_end), 6) == round(west_start, 6)
 
 
 def test_facade_mirrored_flips_sign():

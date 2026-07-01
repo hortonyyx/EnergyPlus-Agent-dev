@@ -1,6 +1,9 @@
 """Tests for the coordinate-level reading↔gt scorer (judge-side metric)."""
 from __future__ import annotations
 
+from pathlib import Path
+
+from src.agent.judge.gt import load_gt
 from src.agent.judge import reading_score as rs
 
 # Synthetic gt: 15×8 footprint, one floor, 3 south + corridor + 3 north
@@ -103,3 +106,26 @@ def test_displaced_wall_beyond_tol_is_miss_plus_extra():
 def test_floor_name_mapping():
     assert rs.floor_name_for_image("1f_view", _GT) == "Floor 1"
     assert rs.floor_name_for_image("2f_view", _GT) is None  # only 1 floor in synthetic gt
+
+
+def test_sm21_phase1_reading_score_regression_floor():
+    gt = load_gt("sm21_anchor")
+    scores = rs.score_reading_dir(
+        Path("case_tests/e2e_tests/smalloffice_21_pre/phase1"),
+        "sm21_anchor",
+    )
+    assert scores
+
+    wall_hits = wall_total = window_hits = window_total = 0
+    for score in scores.values():
+        wh, wt = score.wall_hits()
+        nh, nt = score.window_hits()
+        wall_hits += wh
+        wall_total += wt
+        window_hits += nh
+        window_total += nt
+
+    assert wall_hits == wall_total == 9
+    assert window_total == 15
+    assert window_hits >= 14
+    assert gt is not None and gt["case"] == "sm21_anchor"

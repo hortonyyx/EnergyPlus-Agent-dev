@@ -29,11 +29,33 @@ append-only attempts), plus ``check_version`` for golden-test stability.
 from __future__ import annotations
 
 from enum import Enum
+from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
 # Bump when the report-level shape changes (golden tests assert on this).
-REPORT_SCHEMA_VERSION = "2.0"
+REPORT_SCHEMA_VERSION = "2.1"
+
+RunProfile = Literal["exploratory", "dev", "golden", "regression"]
+
+EVIDENCE_CHECK_IDS = frozenset(
+    {
+        "reading.dimension_chain_closure",
+        "reading.dimension_derived_refs",
+        "reading.dimensions_present",
+        "reading.dimension_p1a_fields",
+        "reading.raw_field_presence",
+        "reading.stroke_provenance_coverage",
+    }
+)
+
+_EVIDENCE_BLOCK_PROFILES = {"golden", "regression"}
+
+
+def is_evidence_check_id(check_id: str) -> bool:
+    return check_id in EVIDENCE_CHECK_IDS or any(
+        check_id.endswith(f".{canonical}") for canonical in EVIDENCE_CHECK_IDS
+    )
 
 
 class CheckStatus(str, Enum):
@@ -81,7 +103,10 @@ class CheckResult(BaseModel):
 
 
 def disposition(
-    result: CheckResult, *, capability_profile: str = "rectangular"
+    result: CheckResult,
+    *,
+    capability_profile: str = "rectangular",
+    run_profile: RunProfile = "exploratory",
 ) -> Disposition:
     """Map a check FACT to a policy disposition. Pure function (§0.4 #8).
 
@@ -101,6 +126,12 @@ def disposition(
         # clean, so we must not let it pass silently.
         return Disposition.BLOCK
     # status == FAIL
+    if is_evidence_check_id(result.check_id):
+        if result.evidence.get("legacy_migrated"):
+            return Disposition.FLAG
+        if run_profile in _EVIDENCE_BLOCK_PROFILES:
+            return Disposition.BLOCK
+        return Disposition.FLAG
     if result.layer == CheckLayer.INVARIANT:
         return Disposition.BLOCK
     return Disposition.FLAG  # cross_check / perceptual failures flag, don't stop
@@ -113,6 +144,7 @@ class CheckReport(BaseModel):
 
     stage: str
     capability_profile: str = "rectangular"
+    run_profile: RunProfile = "exploratory"
     artifact_hash: str | None = None
     attempt_hash: str | None = None
     report_schema_version: str = REPORT_SCHEMA_VERSION
@@ -151,7 +183,14 @@ class CheckReport(BaseModel):
     # ---- policy-aware queries ----
     def dispositions(self) -> list[tuple[CheckResult, Disposition]]:
         return [
-            (r, disposition(r, capability_profile=self.capability_profile))
+            (
+                r,
+                disposition(
+                    r,
+                    capability_profile=self.capability_profile,
+                    run_profile=self.run_profile,
+                ),
+            )
             for r in self.results
         ]
 

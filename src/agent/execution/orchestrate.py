@@ -29,6 +29,7 @@ from src.validator.checks.schema import (
     CheckStatus,
     Disposition,
     disposition,
+    is_evidence_check_id,
 )
 
 
@@ -73,11 +74,26 @@ def summarize_gates(reports: dict[str, CheckReport]) -> dict:
     gates: dict[str, dict[str, int]] = {}
     flags: list[dict] = []
     blocking: list[dict] = []
+    reading_syntax_valid = True
+    reading_evidence_clean = True
     for key, rep in reports.items():
         stage = key.split("::")[0]
         agg = gates.setdefault(stage, {"pass": 0, "flag": 0, "block": 0, "na": 0, "skip": 0})
         for r in rep.results:
-            d = disposition(r, capability_profile=rep.capability_profile)
+            d = disposition(
+                r,
+                capability_profile=rep.capability_profile,
+                run_profile=rep.run_profile,
+            )
+            if stage == "0_reading":
+                if is_evidence_check_id(r.check_id) and d in (Disposition.BLOCK, Disposition.FLAG):
+                    reading_evidence_clean = False
+                if (
+                    not is_evidence_check_id(r.check_id)
+                    and r.layer.value == "invariant"
+                    and d == Disposition.BLOCK
+                ):
+                    reading_syntax_valid = False
             if d == Disposition.BLOCK:
                 agg["block"] += 1
                 blocking.append({"stage": stage, "check": r.check_id, "message": r.message})
@@ -91,4 +107,14 @@ def summarize_gates(reports: dict[str, CheckReport]) -> dict:
                 agg["na"] += 1
             else:  # PASS
                 agg["pass"] += 1
-    return {"gates": gates, "flags": flags, "blocking": blocking}
+    return {
+        "gates": gates,
+        "flags": flags,
+        "blocking": blocking,
+        "signals": {
+            "reading_syntax_valid": reading_syntax_valid,
+            "reading_evidence_clean": reading_evidence_clean,
+            "j0_semantic_clean": None,
+            "pipeline_recovered": None,
+        },
+    }

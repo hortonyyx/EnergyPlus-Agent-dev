@@ -27,6 +27,8 @@ from src.agent.reading.schema import (
     ReadingView,
 )
 
+READING_RAW_METADATA_ATTR = "_reading_raw_metadata"
+
 # "15.00", "8", "3.6 m", "12,500" (mm-style comma kept simple: strip thousands).
 _NUM_RE = re.compile(r"[-+]?\d{1,3}(?:,\d{3})*(?:\.\d+)?|\d+(?:\.\d+)?")
 _FACADE_IN_TEXT = re.compile(r"\b(north|south|east|west)\b", re.IGNORECASE)
@@ -113,6 +115,31 @@ def _is_legacy(view: dict) -> bool:
     return False
 
 
+def _raw_metadata(view: dict, *, legacy_migrated: bool) -> dict:
+    return {
+        "raw_has_dimensions": "dimensions" in view,
+        "raw_has_uncaptured": "uncaptured" in view,
+        "legacy_migrated": legacy_migrated,
+    }
+
+
+def attach_raw_metadata(view: ReadingView, metadata: dict) -> ReadingView:
+    """Attach non-contract loader metadata for validators/report evidence."""
+    object.__setattr__(view, READING_RAW_METADATA_ATTR, dict(metadata))
+    return view
+
+
+def reading_raw_metadata(view: ReadingView) -> dict:
+    meta = getattr(view, READING_RAW_METADATA_ATTR, None)
+    if isinstance(meta, dict):
+        return dict(meta)
+    return {
+        "raw_has_dimensions": None,
+        "raw_has_uncaptured": None,
+        "legacy_migrated": bool(getattr(view, "migrated_from_legacy", False)),
+    }
+
+
 def migrate_view(view: dict) -> ReadingView:
     """Migrate a legacy reading-view dict into a canonical ReadingView."""
     flags: list[str] = []
@@ -130,7 +157,8 @@ def migrate_view(view: dict) -> ReadingView:
         out["uncaptured"] = []
     out["migrated_from_legacy"] = True
     out["migration_flags"] = flags
-    return ReadingView.model_validate(out)
+    migrated = ReadingView.model_validate(out)
+    return attach_raw_metadata(migrated, _raw_metadata(view, legacy_migrated=True))
 
 
 def load_reading_view(path: Path | str) -> ReadingView:
@@ -138,4 +166,5 @@ def load_reading_view(path: Path | str) -> ReadingView:
     data = json.loads(Path(path).read_text(encoding="utf-8"))
     if _is_legacy(data):
         return migrate_view(data)
-    return ReadingView.model_validate(data)
+    view = ReadingView.model_validate(data)
+    return attach_raw_metadata(view, _raw_metadata(data, legacy_migrated=False))

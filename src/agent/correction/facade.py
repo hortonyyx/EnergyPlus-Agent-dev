@@ -13,8 +13,8 @@ a facade *from outside*:
   ──────  ───────────────────  ───────────────────────────────  ──────────────
   South   y = footprint_y_min  west→east  (+x)                   −y
   North   y = footprint_y_max  east→west  (−x)                   +y
-  East    x = footprint_x_max  north→south (−y)                  +x
-  West    x = footprint_x_min  south→north (+y)                  −x
+  East    x = footprint_x_max  south→north (+y)                  +x
+  West    x = footprint_x_min  north→south (−y)                  −x
 
 ``mirrored=true`` flips the sign (the drawing is reversed left-for-right). Sign is
 NOT taken from a VLM self-declaration: it comes from the convention + the mirror
@@ -31,8 +31,8 @@ from dataclasses import dataclass
 _CONVENTION = {
     "South": ("x", "y_min", +1),
     "North": ("x", "y_max", -1),
-    "East": ("y", "x_max", -1),
-    "West": ("y", "x_min", +1),
+    "East": ("y", "x_max", +1),
+    "West": ("y", "x_min", -1),
 }
 
 # Outward normal (x, y) per facade.

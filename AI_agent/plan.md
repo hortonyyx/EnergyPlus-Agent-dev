@@ -107,7 +107,12 @@
   - **补(prose)**:doc 作用说明 / re-trace 坐标示例 / 图→输出 manifest / worked-example 锚 / `beam`+overhead 隐线(log-only)/ workflow 消歧 / self-check provenance+tick / stroke 示例 provenance 一致 / 扩展 image_kind 处置 / 窗"belongs-to 归 correction" / **#50 per-facade×floor 独立窗链(不复制 typical floor)**。**补(代码门)**:`_FORBIDDEN_STROKE_KEYS` += is_exterior/parent_wall_id/parent_window_ids/rooms;`geometry.kind` 必填且∈{line,rect,polyline} + polyline well-formed;+3 测试。**349 passed/9 xfailed**(Claude 自跑核)。
   - **排除(Codex 确认无误排)**:facade 世界轴表(3,image-local 有意)/ other·stair·door pen(22)/ 门 two-strokes(23)/ 移除 room_labels(25)/ prompt 强度。**已覆盖不重加**:门-healing 护栏(9)。
   - **stage-1 companion(TODO 已记、未建)**:correction 侧 per-facade/floor count/blank CROSS_CHECK(#50 enforcement);候选 7 manifest 完整性门(待 expected-image manifest)。
-- **⏳ reading 残留 = 实测**:冷启 Sonnet 用恢复后脚手架重读 sm21 + `score_reading_vs_gt` 对 gt → **作回归地板 + 弱模型评测 harness**(非逐条门)。1-5 修法待 Claude 综合 Codex 0-5 reference 后逐段出方案(走正规 Codex 审+执行)。
+- **✅ reading 实测已跑（2026-06-30）**:冷启 Sonnet×2 用恢复后脚手架重读 sm21 + `score_reading_vs_gt`：**r1 复现 sm21_pre 地板（墙9/9·过度分割0·2f竖墙0.0m）/ r2 墙9/9·过度分割+4·窗12/15**→ 墙/结构稳达回归地板；**过度分割+窗位仍 run 方差/模型主导、非 prose 可治**（r1/r2 同脚手架同图一干净一+4）。产物 `logs/review/2026-06-30_reading_scaffold_restore_validation/`。
+
+### N1g. [P0] reading 演进 + Phase A 证据门硬化（2026-06-30 起，见 [proposals/reading_evolution_dual_channel_cv.md](proposals/reading_evolution_dual_channel_cv.md)）
+> 实测后用户发起 reading 演进讨论。三方诊断收敛：病根=**prose↔gate 执行落差**（reading docs 要双通道证据、schema/validator 把缺失/弱证据当 clean → correction 救场、"pipeline 绿"掩"reading 弱"）+ **算术在 VLM**（reading 纯尺寸链累加算坐标、像素 anchor 空着，违反 0-5）。三档路线：**A 证据门硬化 / B 双通道+算术下沉（尺寸驱动重建·Shapely polygonize）/ C OCR+CV（DXF 数据工厂起手）**。用户定：OCR 暂不起、**先不上 CV**（自训泛化差、reading 要吃各风格图）、维护脚手架为主。
+- **✅ Phase A 已落地（2026-06-30 `6.30_ReadingEvidenceGateHardening`，两批 Codex 执行 + Claude 大节点全面审，349→365 绿、golden 零差）**：A1 链完整性闭合〔`(chain_id,axis)` 分组〕/ A2 dimension_derived⇒resolvable refs 纯门 / A3 `RunPolicy.run_profile` + `EVIDENCE_CHECK_IDS` allowlist + 四信号 / A4 dimensioned manifest 门〔新 `case_metadata.py` 不 import gt〕+ 强制 dimensions/P1a / A5 provenance legacy·partial 升 fail / A6 `partition_on_window_jamb` advisory〔返修过：去 dim/join 双 guard 才抓到 r2 4 道伪墙〕/ A7 raw-presence sidecar / A9 `score_reading_vs_gt --json-only` + phase1 floor 测试 / A10 facade.py E/W sign 翻正〔East+1/West−1 对齐 A1+gt〕。flag/block by run_profile + legacy 祖父化。冒烟坐实门咬合（gpt54 空 dimensions→block、r2 伪墙→A6 flag）。Codex 审轨 `logs/review/review/2026-06-30_reading_phase_a_spec_review.md` + 执行日志 batch{1,2}。
+- **⏳ 残留**：① **Phase B**（双通道 schema + 算术下沉求解器 + 接线 derive_facade_frame）；② **A8**（correction 缺证据→确定性路由 unsupported/needs_reread，触 correction 契约的跟批）；③ **Phase C**（OCR/CV，远期）；④ **reading 1-5 修法**（待 Claude 综合 Codex 0-5 reference 后逐段出方案，走正规 Codex 审+执行）。
 
 ### N3. [P1] CAD→gt 满配答案（见 [proposals/cad_to_gt_extraction_plan.md](proposals/cad_to_gt_extraction_plan.md)）
 - 工具链已就位（ezdxf + proxy-graphics 解码 + `gt_from_dxf` + overlay 核验）。**待用户从天正图形导出/另存 DXF** → 抽满配 gt（精确窗 x+宽、精确区划、门）。方案过 Codex 审、设计待落。
@@ -150,6 +155,7 @@
 | 模块 | 文档 | 状态 |
 |---|---|---|
 | CAD→gt 满配答案 / CAD 输入模态种子 | [proposals/cad_to_gt_extraction_plan.md](proposals/cad_to_gt_extraction_plan.md) | 设计待审，工具链就位 |
+| reading 演进（证据门硬化+算术下沉+双通道+CV）| [proposals/reading_evolution_dual_channel_cv.md](proposals/reading_evolution_dual_channel_cv.md) | **Phase A 待 Codex 双审**（2026-06-30，三方诊断综合）；B/C 后续 |
 | 0–3 复杂度升级路径（C2/C3/C4）| [capability/pipeline_0-5_capability_upgrade_suggestions.md](capability/pipeline_0-5_capability_upgrade_suggestions.md) | 骨架已立，随中期推进 |
 | 再拓扑 leg（热区积木 zonification）| [proposals/geometry_first_zonification.md](proposals/geometry_first_zonification.md) | 强力支线，休眠 |
 | 可编辑几何确认环节 | [proposals/editable_geometry_confirmation.md](proposals/editable_geometry_confirmation.md) | DEFERRED，先讨论 |

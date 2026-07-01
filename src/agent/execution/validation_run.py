@@ -21,6 +21,7 @@ from pathlib import Path
 
 from src.agent.correction.schema import CorrectedGeometry
 from src.agent.execution.approval import geometry_checkpoint_digest, is_approved
+from src.agent.execution.case_metadata import dimensioned_view_names
 from src.agent.execution.manifest import RunManifest, StageRecord, hash_text
 from src.agent.execution.policy import RunPolicy, ValidationScope
 from src.agent.state import IntakeOutput
@@ -76,9 +77,10 @@ def validate_case(
     policy = policy or RunPolicy()
     res = CaseValidationResult(case=case_dir.name)
     profile = policy.capability_profile
+    run_profile = policy.run_profile
 
     if policy.validation_scope == ValidationScope.DOWNSTREAM_ONLY:
-        _validate_downstream_only(run_dir, res, profile, write_reports)
+        _validate_downstream_only(run_dir, res, profile, run_profile, write_reports)
         _finalize(res)
         return res
 
@@ -107,15 +109,21 @@ def validate_case(
     for stage_key, (present, where) in required.items():
         if not present:
             res.reports[stage_key] = _error_report(
-                stage_key, profile, f"required artifact missing: {where}")
+                stage_key, profile, run_profile, f"required artifact missing: {where}")
 
     # ---- 0_reading ----
     if has_reading:
         from src.agent.reading import load_reading_view
 
+        dimensioned_views = dimensioned_view_names(case_dir)
         for vj in sorted(rdir.glob("*_view.json")):
             view = load_reading_view(vj)
-            rep = check_reading_view(view, capability_profile=profile)
+            rep = check_reading_view(
+                view,
+                capability_profile=profile,
+                run_profile=run_profile,
+                view_metadata={"dimensioned": vj.stem in dimensioned_views},
+            )
             res.reports[f"0_reading::{vj.stem}"] = rep
             if write_reports:
                 _write(rdir / f"{vj.stem}_checks.json", rep)
@@ -175,12 +183,12 @@ def validate_case(
                 if specs_path.read_text() != expected_md:
                     geometry_consistent = False
                     res.reports["3_split_pairing"] = _error_report(
-                        "3_split_pairing", profile,
+                        "3_split_pairing", profile, run_profile,
                         "committed geometry_specs.md does not match the deterministic "
                         "serializer output (stale/garbage artifact)")
         except Exception as e:  # noqa: BLE001 — recorded as a blocking error report
             geometry_consistent = False
-            res.reports["2_modelling"] = _error_report("2_modelling", profile,
+            res.reports["2_modelling"] = _error_report("2_modelling", profile, run_profile,
                                                         f"kernel build failed: {e}")
 
     # ---- 4_mep ----
@@ -201,6 +209,7 @@ def validate_case(
             # intake present but no construction set to backstop against (upstream
             # geometry missing) — record an explicit error, do not skip silently.
             arep = _error_report("5_intakeoutput", profile,
+                                 run_profile,
                                  "cannot backstop: upstream geometry/used_constructions "
                                  "unavailable")
         res.reports["5_intakeoutput"] = arep
@@ -243,13 +252,21 @@ def validate_case(
 
 
 def _validate_downstream_only(
-    run_dir: Path, res: CaseValidationResult, profile: str, write_reports: bool
+    run_dir: Path,
+    res: CaseValidationResult,
+    profile: str,
+    run_profile: str,
+    write_reports: bool,
 ) -> None:
     """--intake-from: only the supplied IntakeOutput is validated (Pydantic)."""
     intake_path = run_dir / "5_intakeoutput" / "intake_output.json"
     if not intake_path.exists():
         intake_path = run_dir / "EP" / "intake_output.json"
-    rep = CheckReport(stage="5_intakeoutput", capability_profile=profile)
+    rep = CheckReport(
+        stage="5_intakeoutput",
+        capability_profile=profile,
+        run_profile=run_profile,
+    )
     from src.validator.checks.schema import CheckLayer, CheckStatus
 
     if intake_path.exists():
@@ -265,10 +282,10 @@ def _validate_downstream_only(
     res.reports["5_intakeoutput"] = rep
 
 
-def _error_report(stage: str, profile: str, message: str) -> CheckReport:
+def _error_report(stage: str, profile: str, run_profile: str, message: str) -> CheckReport:
     from src.validator.checks.schema import CheckLayer, CheckStatus
 
-    rep = CheckReport(stage=stage, capability_profile=profile)
+    rep = CheckReport(stage=stage, capability_profile=profile, run_profile=run_profile)
     rep.add(f"{stage}.build", CheckStatus.ERROR, CheckLayer.INVARIANT, message=message)
     return rep
 

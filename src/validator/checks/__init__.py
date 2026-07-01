@@ -16,7 +16,9 @@ from .schema import (
     CheckResult,
     CheckStatus,
     Disposition,
+    EVIDENCE_CHECK_IDS,
     disposition,
+    is_evidence_check_id,
 )
 
 __all__ = [
@@ -26,5 +28,7 @@ __all__ = [
     "CheckResult",
     "CheckStatus",
     "Disposition",
+    "EVIDENCE_CHECK_IDS",
     "disposition",
+    "is_evidence_check_id",
 ]

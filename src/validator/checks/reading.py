@@ -19,10 +19,10 @@ from __future__ import annotations
 
 import math
 
-from src.agent.reading.legacy import parse_value_m
+from src.agent.reading.legacy import parse_value_m, reading_raw_metadata
 from src.agent.reading.schema import ReadingView
 from src.agent.roles import CANONICAL_ROLES, normalize
-from src.validator.checks.schema import CheckLayer, CheckReport, CheckStatus
+from src.validator.checks.schema import CheckLayer, CheckReport, CheckStatus, RunProfile
 
 # Legal pen sets by image kind (pen_library.md §2).
 _PLAN_PENS = {"wall", "window"}
@@ -44,6 +44,7 @@ _ROOM_LABEL_BASES = {"label", "furniture", "ocr"}
 _MIN_EXTENT = 0.05  # m — below this a line/rect is degenerate
 _OUTPUT_PRECISION_M = 0.01  # A0 OUTPUT_PRECISION / DIMCHAIN_CLOSE_TOL scale
 _PROVENANCE_PENS = {"wall", "window", "wall_fill", "outline"}
+_WINDOW_JAMB_TOLERANCE_M = 0.20
 
 
 def _finite(*vals) -> bool:
@@ -84,9 +85,19 @@ def _uncaptured_list(view: ReadingView) -> list | None:
 
 
 def check_reading_view(
-    view: ReadingView, *, capability_profile: str = "rectangular"
+    view: ReadingView,
+    *,
+    capability_profile: str = "rectangular",
+    run_profile: RunProfile = "exploratory",
+    view_metadata: dict | None = None,
+    dimensioned: bool | None = None,
 ) -> CheckReport:
-    rep = CheckReport(stage="0_reading", capability_profile=capability_profile)
+    rep = CheckReport(
+        stage="0_reading",
+        capability_profile=capability_profile,
+        run_profile=run_profile,
+    )
+    meta = _view_metadata(view, view_metadata, dimensioned=dimensioned)
 
     # ---- INVARIANT: unique ids ----
     _unique_ids(rep, "stroke", [s.id for s in view.strokes])
@@ -118,19 +129,52 @@ def check_reading_view(
         rep.add_pass("reading.uncaptured_present", CheckLayer.INVARIANT,
                      evidence={"count": len(unc)})
 
+    _raw_field_presence(rep, meta)
+
+    # ---- CROSS_CHECK: dimensioned source views carry dimension evidence ----
+    _dimensioned_view_evidence(rep, view, meta)
+
     # ---- INVARIANT: topology-light room-role observations, only if present ----
     _room_labels_wellformed(rep, view)
 
     # ---- CROSS_CHECK: dimension-chain closure ----
-    _chain_closure(rep, view)
+    _chain_closure(rep, view, meta)
+
+    # ---- CROSS_CHECK: dimension-derived strokes cite real dimensions ----
+    _dimension_derived_refs(rep, view, meta)
 
     # ---- CROSS_CHECK: stroke provenance + internal stroke↔dimension consistency ----
-    _stroke_dimension_consistency(rep, view)
+    _stroke_dimension_consistency(rep, view, meta)
 
     # ---- CROSS_CHECK: healed door openings leave a trace in uncaptured ----
     _door_heal_traced(rep, view)
 
     return rep
+
+
+def _view_metadata(
+    view: ReadingView,
+    view_metadata: dict | None,
+    *,
+    dimensioned: bool | None,
+) -> dict:
+    meta = reading_raw_metadata(view)
+    if view_metadata:
+        meta.update(view_metadata)
+    if dimensioned is not None:
+        meta["dimensioned"] = dimensioned
+    meta.setdefault("dimensioned", False)
+    meta.setdefault("legacy_migrated", bool(getattr(view, "migrated_from_legacy", False)))
+    return meta
+
+
+def _evidence_meta(meta: dict) -> dict:
+    return {
+        "dimensioned": bool(meta.get("dimensioned")),
+        "raw_has_dimensions": meta.get("raw_has_dimensions"),
+        "raw_has_uncaptured": meta.get("raw_has_uncaptured"),
+        "legacy_migrated": bool(meta.get("legacy_migrated")),
+    }
 
 
 def _unique_ids(rep: CheckReport, kind: str, ids: list[str]) -> None:
@@ -401,6 +445,100 @@ def _dimensions_wellformed(rep: CheckReport, view: ReadingView) -> None:
         rep.add_pass("reading.axis_endpoint_consistent", CheckLayer.INVARIANT)
 
 
+def _raw_field_presence(rep: CheckReport, meta: dict) -> None:
+    evidence = _evidence_meta(meta)
+    raw_has_uncaptured = meta.get("raw_has_uncaptured")
+    if raw_has_uncaptured is False:
+        rep.add_fail(
+            "reading.raw_field_presence",
+            CheckLayer.CROSS_CHECK,
+            "raw reading JSON omitted uncaptured before schema/default migration",
+            evidence=evidence,
+        )
+    else:
+        rep.add_pass("reading.raw_field_presence", CheckLayer.CROSS_CHECK, evidence=evidence)
+
+
+def _dimensioned_view_evidence(rep: CheckReport, view: ReadingView, meta: dict) -> None:
+    evidence = _evidence_meta(meta)
+    if not meta.get("dimensioned"):
+        rep.add(
+            "reading.dimensions_present",
+            CheckStatus.NOT_APPLICABLE,
+            CheckLayer.CROSS_CHECK,
+            message="view is not declared dimensioned",
+            evidence=evidence,
+        )
+        rep.add(
+            "reading.dimension_p1a_fields",
+            CheckStatus.NOT_APPLICABLE,
+            CheckLayer.CROSS_CHECK,
+            message="view is not declared dimensioned",
+            evidence=evidence,
+        )
+        return
+
+    if not view.dimensions:
+        rep.add_fail(
+            "reading.dimensions_present",
+            CheckLayer.CROSS_CHECK,
+            "dimensioned view has empty dimensions[]",
+            evidence={**evidence, "dimension_count": 0},
+        )
+        rep.add(
+            "reading.dimension_p1a_fields",
+            CheckStatus.NOT_APPLICABLE,
+            CheckLayer.CROSS_CHECK,
+            message="no dimensions to inspect",
+            evidence={**evidence, "dimension_count": 0},
+        )
+        return
+    rep.add_pass(
+        "reading.dimensions_present",
+        CheckLayer.CROSS_CHECK,
+        evidence={**evidence, "dimension_count": len(view.dimensions)},
+    )
+
+    if meta.get("legacy_migrated"):
+        rep.add(
+            "reading.dimension_p1a_fields",
+            CheckStatus.NOT_APPLICABLE,
+            CheckLayer.CROSS_CHECK,
+            message="legacy-migrated dimensions are grandfathered",
+            evidence={**evidence, "dimension_count": len(view.dimensions)},
+        )
+        return
+
+    offenders = []
+    for d in view.dimensions:
+        missing = []
+        if not d.text_verbatim:
+            missing.append("text_verbatim")
+        if d.value_m is None:
+            missing.append("value_m")
+        if not d.chain_id:
+            missing.append("chain_id")
+        if d.role is None:
+            missing.append("role")
+        if d.order is None:
+            missing.append("order")
+        if missing:
+            offenders.append({"id": d.id, "missing": missing})
+    if offenders:
+        rep.add_fail(
+            "reading.dimension_p1a_fields",
+            CheckLayer.CROSS_CHECK,
+            f"{len(offenders)} dimension(s) missing required P1a fields",
+            evidence={**evidence, "offenders": offenders},
+        )
+    else:
+        rep.add_pass(
+            "reading.dimension_p1a_fields",
+            CheckLayer.CROSS_CHECK,
+            evidence={**evidence, "dimension_count": len(view.dimensions)},
+        )
+
+
 def _door_heal_traced(rep: CheckReport, view: ReadingView) -> None:
     """Flag a healed door opening (a wall stroke whose note says it healed a door)
     that leaves no matching trace in ``uncaptured`` — the old "acknowledged skip
@@ -456,45 +594,143 @@ def _facade_fields(rep: CheckReport, view: ReadingView) -> None:
                      evidence={"view_facade": f.view_facade, "mirrored": str(f.mirrored)})
 
 
-def _chain_closure(rep: CheckReport, view: ReadingView) -> None:
-    """Σ segment values == overall value, per chain_id (cross_check flag)."""
-    chains: dict[str, dict] = {}
+def _chain_closure(rep: CheckReport, view: ReadingView, meta: dict) -> None:
+    """Σ segment values == overall/baseline value, per (chain_id, axis).
+
+    Limitation: arithmetic closure catches many but not all misreads; a
+    self-consistent wrong read still closes (see
+    tests/test_checks_reading_correction.py::test_self_consistent_wrong_dimension_passes_linter).
+    """
+    evidence = _evidence_meta(meta)
+    missing_chain_id = []
+    missing_axis = []
+    chains: dict[tuple[str, str], dict] = {}
     for d in view.dimensions:
         if not d.chain_id:
+            if meta.get("dimensioned"):
+                missing_chain_id.append(d.id)
             continue
-        c = chains.setdefault(d.chain_id, {"overall": None, "segments": []})
+        if d.axis not in ("x", "y"):
+            if meta.get("dimensioned"):
+                missing_axis.append(d.id)
+            continue
+        c = chains.setdefault(
+            (d.chain_id, d.axis),
+            {"overall": [], "segments": [], "dimension_ids": []},
+        )
+        c["dimension_ids"].append(d.id)
         val = d.value_m if d.value_m is not None else parse_value_m(d.text_verbatim or d.text)
         if val is None:
             continue
         if d.role and d.role.value in ("overall", "baseline"):
-            c["overall"] = val
+            c["overall"].append({"id": d.id, "value": val, "role": d.role.value})
         elif d.role and d.role.value == "segment":
-            c["segments"].append(val)
+            c["segments"].append({"id": d.id, "value": val, "order": d.order})
     if not chains:
+        if meta.get("dimensioned") and view.dimensions:
+            rep.add_fail(
+                "reading.dimension_chain_closure",
+                CheckLayer.CROSS_CHECK,
+                "dimensioned view has no complete chain_id+axis dimension groups",
+                evidence={
+                    **evidence,
+                    "missing_chain_id": missing_chain_id,
+                    "missing_axis": missing_axis,
+                },
+            )
+            return
         rep.add("reading.dimension_chain_closure", CheckStatus.NOT_APPLICABLE,
-                CheckLayer.CROSS_CHECK, message="no chain_id-tagged dimensions")
+                CheckLayer.CROSS_CHECK, message="no chain_id-tagged dimensions",
+                evidence=evidence)
         return
     mismatches = []
-    for cid, c in chains.items():
-        if c["overall"] is None or not c["segments"]:
+    incomplete = []
+    for (cid, axis), c in chains.items():
+        if not c["overall"] or not c["segments"]:
+            incomplete.append({
+                "chain_id": cid,
+                "axis": axis,
+                "overall_count": len(c["overall"]),
+                "segment_count": len(c["segments"]),
+                "dimension_ids": c["dimension_ids"],
+            })
             continue
-        seg_sum = sum(c["segments"])
-        if abs(seg_sum - c["overall"]) > 0.05:
+        unordered = [seg["id"] for seg in c["segments"] if seg["order"] is None]
+        if unordered:
+            incomplete.append({
+                "chain_id": cid,
+                "axis": axis,
+                "reason": "segment missing order",
+                "segment_ids": unordered,
+            })
+            continue
+        seg_sum = sum(seg["value"] for seg in c["segments"])
+        overall = c["overall"][0]
+        if abs(seg_sum - overall["value"]) > 0.05:
             mismatches.append(
-                {"chain": cid, "overall": c["overall"], "segment_sum": seg_sum}
+                {
+                    "chain_id": cid,
+                    "axis": axis,
+                    "overall": overall["value"],
+                    "overall_id": overall["id"],
+                    "segment_sum": seg_sum,
+                    "segment_ids": [seg["id"] for seg in c["segments"]],
+                }
             )
-    if mismatches:
+    if missing_chain_id or missing_axis or incomplete or mismatches:
         rep.add_fail(
             "reading.dimension_chain_closure", CheckLayer.CROSS_CHECK,
-            f"{len(mismatches)} dimension chain(s) do not close",
-            evidence={"mismatches": mismatches},
+            "dimension chain evidence is missing, incomplete, or non-closing",
+            evidence={
+                **evidence,
+                "missing_chain_id": missing_chain_id,
+                "missing_axis": missing_axis,
+                "incomplete": incomplete,
+                "mismatches": mismatches,
+            },
         )
     else:
         rep.add_pass("reading.dimension_chain_closure", CheckLayer.CROSS_CHECK,
-                     evidence={"chains_checked": len(chains)})
+                     evidence={**evidence, "chains_checked": len(chains)})
 
 
-def _stroke_dimension_consistency(rep: CheckReport, view: ReadingView) -> None:
+def _dimension_derived_refs(rep: CheckReport, view: ReadingView, meta: dict) -> None:
+    dim_ids = {d.id for d in view.dimensions}
+    offenders = []
+    checked = 0
+    for s in view.strokes:
+        if getattr(s, "provenance", None) != "dimension_derived":
+            continue
+        checked += 1
+        refs = list(getattr(s, "dimension_refs", []) or [])
+        missing_refs = [ref for ref in refs if ref not in dim_ids]
+        if not refs or missing_refs:
+            offenders.append({
+                "stroke_id": s.id,
+                "dimension_refs": refs,
+                "missing_refs": missing_refs,
+            })
+    evidence = {**_evidence_meta(meta), "strokes_checked": checked}
+    if offenders:
+        rep.add_fail(
+            "reading.dimension_derived_refs",
+            CheckLayer.CROSS_CHECK,
+            f"{len(offenders)} dimension_derived stroke(s) have empty or unresolved dimension_refs",
+            evidence={**evidence, "offenders": offenders},
+        )
+    elif checked:
+        rep.add_pass("reading.dimension_derived_refs", CheckLayer.CROSS_CHECK, evidence=evidence)
+    else:
+        rep.add(
+            "reading.dimension_derived_refs",
+            CheckStatus.NOT_APPLICABLE,
+            CheckLayer.CROSS_CHECK,
+            message="no dimension_derived strokes",
+            evidence=evidence,
+        )
+
+
+def _stroke_dimension_consistency(rep: CheckReport, view: ReadingView, meta: dict) -> None:
     """Report provenance coverage and flag plan-wall coordinates that sit exactly
     on dimension-chain cumulative positions. This is advisory only: a real wall can
     be dimensioned, so J0 must verify the rendered/source image evidence."""
@@ -508,17 +744,33 @@ def _stroke_dimension_consistency(rep: CheckReport, view: ReadingView) -> None:
         mode = "full"
     else:
         mode = "partial"
-    rep.add_pass(
-        "reading.stroke_provenance_coverage",
-        CheckLayer.CROSS_CHECK,
-        evidence={
-            "provenance_mode": mode,
-            "structural_strokes": len(structural),
-            "with_provenance": len(with_provenance),
-        },
-    )
+    provenance_evidence = {
+        **_evidence_meta(meta),
+        "provenance_mode": mode,
+        "structural_strokes": len(structural),
+        "with_provenance": len(with_provenance),
+    }
+    if mode in ("legacy", "partial"):
+        rep.add_fail(
+            "reading.stroke_provenance_coverage",
+            CheckLayer.CROSS_CHECK,
+            "structural strokes lack full provenance coverage",
+            evidence=provenance_evidence,
+        )
+    else:
+        rep.add_pass(
+            "reading.stroke_provenance_coverage",
+            CheckLayer.CROSS_CHECK,
+            evidence=provenance_evidence,
+        )
 
     if (view.image_kind or "").lower() != "plan":
+        rep.add(
+            "reading.partition_on_window_jamb",
+            CheckStatus.NOT_APPLICABLE,
+            CheckLayer.CROSS_CHECK,
+            message="not a plan",
+        )
         rep.add(
             "reading.stroke_dimension_consistency",
             CheckStatus.NOT_APPLICABLE,
@@ -528,6 +780,9 @@ def _stroke_dimension_consistency(rep: CheckReport, view: ReadingView) -> None:
         return
 
     dim_positions = _dimension_chain_positions(view)
+    bounds = _wall_bounds(view)
+    _partition_on_window_jamb(rep, view, dim_positions, bounds)
+
     if not dim_positions.get("x") and not dim_positions.get("y"):
         rep.add(
             "reading.stroke_dimension_consistency",
@@ -537,7 +792,6 @@ def _stroke_dimension_consistency(rep: CheckReport, view: ReadingView) -> None:
         )
         return
 
-    bounds = _wall_bounds(view)
     offenders = []
     for stroke in view.strokes:
         if stroke.pen != "wall":
@@ -642,6 +896,128 @@ def _add_dim_position(
         "dimension_ids": list(ids),
         "chain_id": chain_id,
     })
+
+
+def _partition_on_window_jamb(
+    rep: CheckReport,
+    view: ReadingView,
+    dim_positions: dict[str, list[dict]],
+    bounds: tuple[float, float, float, float] | None,
+) -> None:
+    jambs = _window_jamb_positions(view)
+    if not jambs.get("x") and not jambs.get("y"):
+        rep.add(
+            "reading.partition_on_window_jamb",
+            CheckStatus.NOT_APPLICABLE,
+            CheckLayer.CROSS_CHECK,
+            message="no window jamb geometry",
+            evidence={"tolerance_m": _WINDOW_JAMB_TOLERANCE_M},
+        )
+        return
+
+    offenders = []
+    for stroke in view.strokes:
+        if stroke.pen != "wall":
+            continue
+        axis_line = _wall_axis_line(stroke)
+        if axis_line is None:
+            continue
+        axis, coord, p1, p2 = axis_line
+        if _is_perimeter_axis(axis, coord, bounds):
+            continue
+
+        matching_jambs = [
+            jamb for jamb in jambs.get(axis, [])
+            if abs(jamb["coord_m"] - coord) <= _WINDOW_JAMB_TOLERANCE_M
+        ]
+        if not matching_jambs:
+            continue
+
+        matching_dimensions = [
+            pos for pos in dim_positions.get(axis, [])
+            if abs(pos["coord"] - coord) <= _WINDOW_JAMB_TOLERANCE_M
+        ]
+        joins = _wall_join_evidence(view, stroke, p1, p2)
+
+        offenders.append({
+            "stroke_id": stroke.id,
+            "axis": axis,
+            "coord_m": coord,
+            "window_jambs": matching_jambs,
+            "matching_dimension_positions": matching_dimensions,
+            "joins_walls": joins,
+        })
+
+    if offenders:
+        rep.add_fail(
+            "reading.partition_on_window_jamb",
+            CheckLayer.CROSS_CHECK,
+            f"{len(offenders)} interior wall stroke coordinate(s) coincide with "
+            "window jambs; verify each is a real partition rather than a traced jamb",
+            evidence={
+                "tolerance_m": _WINDOW_JAMB_TOLERANCE_M,
+                "offenders": offenders,
+            },
+        )
+    else:
+        rep.add_pass(
+            "reading.partition_on_window_jamb",
+            CheckLayer.CROSS_CHECK,
+            evidence={
+                "tolerance_m": _WINDOW_JAMB_TOLERANCE_M,
+                "window_jamb_count": sum(len(v) for v in jambs.values()),
+            },
+        )
+
+
+def _window_jamb_positions(view: ReadingView) -> dict[str, list[dict]]:
+    positions: dict[str, list[dict]] = {"x": [], "y": []}
+    seen: set[tuple[str, float, str]] = set()
+
+    def add(axis: str, coord: float, stroke_id: str, source: str) -> None:
+        rounded = round(float(coord), 6)
+        key = (axis, rounded, stroke_id)
+        if key in seen:
+            return
+        seen.add(key)
+        positions[axis].append({
+            "window_id": stroke_id,
+            "coord_m": rounded,
+            "source": source,
+        })
+
+    for stroke in view.strokes:
+        if stroke.pen != "window":
+            continue
+        g = stroke.geometry or {}
+        kind = g.get("kind")
+        if kind == "rect":
+            xr, yr = g.get("x_range_m"), g.get("y_range_m")
+            if isinstance(xr, list) and len(xr) >= 2 and _finite(*xr[:2]):
+                add("x", float(xr[0]), stroke.id, "x_range_m[0]")
+                add("x", float(xr[1]), stroke.id, "x_range_m[1]")
+            if isinstance(yr, list) and len(yr) >= 2 and _finite(*yr[:2]):
+                add("y", float(yr[0]), stroke.id, "y_range_m[0]")
+                add("y", float(yr[1]), stroke.id, "y_range_m[1]")
+        elif kind == "line":
+            p1, p2 = g.get("p1"), g.get("p2")
+            if not (
+                isinstance(p1, list)
+                and isinstance(p2, list)
+                and len(p1) >= 2
+                and len(p2) >= 2
+                and _finite(*p1[:2], *p2[:2])
+            ):
+                continue
+            x1, y1 = float(p1[0]), float(p1[1])
+            x2, y2 = float(p2[0]), float(p2[1])
+            if abs(y1 - y2) <= _OUTPUT_PRECISION_M:
+                add("x", x1, stroke.id, "p1.x")
+                add("x", x2, stroke.id, "p2.x")
+            elif abs(x1 - x2) <= _OUTPUT_PRECISION_M:
+                add("y", y1, stroke.id, "p1.y")
+                add("y", y2, stroke.id, "p2.y")
+    return positions
 
 
 def _wall_axis_line(stroke) -> tuple[str, float, list[float], list[float]] | None:

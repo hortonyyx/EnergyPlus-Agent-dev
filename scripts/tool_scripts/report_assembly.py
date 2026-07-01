@@ -304,7 +304,11 @@ def _gate_entries(validation_result) -> list[dict]:
         rep = validation_result.reports[report_key]
         per_check: Counter[str] = Counter()
         for result in rep.results:
-            disp = disposition(result, capability_profile=rep.capability_profile)
+            disp = disposition(
+                result,
+                capability_profile=rep.capability_profile,
+                run_profile=rep.run_profile,
+            )
             if disp not in (Disposition.BLOCK, Disposition.FLAG):
                 continue
             per_check[result.check_id] += 1
@@ -583,6 +587,8 @@ def _downstream_missing_after_root(baseline: dict) -> list[dict]:
 
 def _status_tldr(baseline: dict) -> str:
     state = baseline.get("run_state", {}).get("status")
+    if state == "completed_clean" and baseline.get("signals", {}).get("reading_evidence_clean") is False:
+        return "reading_evidence_debt"
     if state == "completed_clean":
         return "completed_clean"
     if state == "root_stopped":
@@ -592,6 +598,18 @@ def _status_tldr(baseline: dict) -> str:
         pending = baseline.get("run_state", {}).get("pending") or {}
         return f"pending: {pending.get('status')}@{pending.get('stage')}"
     return str(state or "unknown")
+
+
+def _format_signals(signals: dict) -> list[str]:
+    if not signals:
+        return []
+    keys = (
+        "reading_syntax_valid",
+        "reading_evidence_clean",
+        "j0_semantic_clean",
+        "pipeline_recovered",
+    )
+    return [f"- {key}: `{signals.get(key)}`" for key in keys]
 
 
 def _marker_line(line: str) -> str:
@@ -682,6 +700,7 @@ def _render_model_config(baseline: dict) -> str:
         f"- orchestrator: `{baseline.get('orchestrator', '')}`",
         f"- 自动状态: `{_status_tldr(baseline)}`",
         *_format_models(baseline.get("models", {})),
+        *_format_signals(baseline.get("signals", {})),
     ]
     return "\n".join(lines).rstrip() + "\n"
 

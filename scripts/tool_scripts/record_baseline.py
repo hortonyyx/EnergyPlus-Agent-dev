@@ -106,6 +106,7 @@ def _draws_and_verdicts(case_dir: Path) -> tuple[dict, list]:
                     pass
                 else:
                     verdicts.append({"stage": stage, "attempt": int(ap.name),
+                                     "rubric_id": v.get("rubric_id"),
                                      "blocking": blocking,
                                      "root_stage": v.get("root_stage")})
     return draws, verdicts
@@ -231,6 +232,27 @@ def _corrections_summary(run_dir: Path) -> dict:
     }
 
 
+def _j0_semantic_clean(verdicts: list[dict]) -> bool | None:
+    j0 = [
+        v for v in verdicts
+        if v.get("stage") == "0_reading" or v.get("rubric_id") == "J0"
+    ]
+    if not j0:
+        return None
+    return not any(v.get("blocking") for v in j0)
+
+
+def _pipeline_recovered(corrections_summary: dict) -> bool | None:
+    if corrections_summary.get("parse_status") != "ok":
+        return None
+    counts = corrections_summary.get("counts", {})
+    if counts.get("conflicts", 0) or counts.get("unsupported", 0):
+        return False
+    if counts.get("corrections", 0):
+        return True
+    return None
+
+
 def _eyeball_checklist(
     report_assets: dict,
     viewer: dict,
@@ -273,19 +295,28 @@ def record_baseline(
     date: str,
     orchestrator: str,
     require_ep: bool = False,
+    run_profile: str = "exploratory",
     force_template: bool = False,
 ) -> dict:
     """Record a self-contained RUN (``<case>/run_<note>/``) as a baseline. The
     case (materials) is the run's parent; products + llm.yaml live in the run."""
     run_dir = Path(run_dir)
     case = run_dir.parent.name
-    res = validate_case(run_dir, policy=RunPolicy(require_ep=require_ep),
-                        write_reports=False)
+    res = validate_case(
+        run_dir,
+        policy=RunPolicy(require_ep=require_ep, run_profile=run_profile),
+        write_reports=False,
+    )
     summary = summarize_gates(res.reports)
     counts = _geometry_counts(run_dir)
     draws, verdicts = _draws_and_verdicts(run_dir)
     state = load_state(run_dir)  # stepwise orchestration ledger (stop_reason etc.)
     corr_summary = _corrections_summary(run_dir)
+    signals = {
+        **summary.get("signals", {}),
+        "j0_semantic_clean": _j0_semantic_clean(verdicts),
+        "pipeline_recovered": _pipeline_recovered(corr_summary),
+    }
     ep = _ep_end(run_dir)
     report_assets = collect_eyeball_assets(run_dir)
     viewer = ensure_geometry_viewer(run_dir)
@@ -302,6 +333,7 @@ def record_baseline(
         "geometry_digest": res.geometry_digest,
         "geometry_approved": res.geometry_approved,
         "gates": summary["gates"],
+        "signals": signals,
         "flags": summary["flags"],
         "blocking": summary["blocking"],
         "judge_verdicts": verdicts,
@@ -506,9 +538,8 @@ def _render_facts_card(b: dict) -> str:
     ep = b["ep"]
     stop = b.get("stop_reason")
     run_status = b.get("run_state", {}).get("status")
-    if run_status == "completed_clean" and not b["blocked"] and not stop:
-        verdict = "✅ clean"
-    elif run_status == "root_stopped":
+    signals = b.get("signals", {})
+    if run_status == "root_stopped":
         root = b.get("run_state", {}).get("root_stop") or {}
         verdict = f"❌ STOPPED ({root.get('status')}@{root.get('stage')})"
     elif run_status == "pending":
@@ -516,6 +547,10 @@ def _render_facts_card(b: dict) -> str:
         verdict = f"⏸ PENDING ({pending.get('status')}@{pending.get('stage')})"
     elif b["blocked"] or stop:
         verdict = f"❌ STOPPED ({stop})" if stop else "❌ BLOCKED"
+    elif signals.get("reading_evidence_clean") is False:
+        verdict = "⚠️ reading evidence debt"
+    elif run_status == "completed_clean":
+        verdict = "✅ clean"
     else:
         verdict = f"⚠️ {run_status or 'state_unknown'}"
     lines = [
@@ -537,6 +572,20 @@ def _render_facts_card(b: dict) -> str:
     ]
     for stage, agg in b["gates"].items():
         lines.append(f"| {stage} | {agg['pass']} | {agg['flag']} | {agg['block']} | {agg['na']} |")
+    lines += [
+        "",
+        "### 证据信号",
+        "",
+        "| signal | value |",
+        "|---|---|",
+    ]
+    for key in (
+        "reading_syntax_valid",
+        "reading_evidence_clean",
+        "j0_semantic_clean",
+        "pipeline_recovered",
+    ):
+        lines.append(f"| {key} | `{signals.get(key)}` |")
     if b.get("orchestration"):
         lines += ["", "### 逐段编排状态（judge-in-the-loop）", "",
                   "| 段 | status | 抽样 |", "|---|---|---|"]
@@ -614,12 +663,19 @@ def main() -> None:
     ap.add_argument("--date", required=True, help="ISO date of the run (no Date.now in tooling)")
     ap.add_argument("--orchestrator", required=True, help="main Agent model id, e.g. opus-4.8")
     ap.add_argument("--require-ep", action="store_true")
+    ap.add_argument(
+        "--run-profile",
+        choices=("exploratory", "dev", "golden", "regression"),
+        default="exploratory",
+        help="evidence gate policy: exploratory/dev flag, golden/regression block",
+    )
     ap.add_argument("--force-template", action="store_true",
                     help="overwrite report/REPORT.md from the generated skeleton")
     args = ap.parse_args()
     run_dir = Path(args.base_dir) / args.case / args.run
     b = record_baseline(run_dir, date=args.date, orchestrator=args.orchestrator,
-                        require_ep=args.require_ep, force_template=args.force_template)
+                        require_ep=args.require_ep, run_profile=args.run_profile,
+                        force_template=args.force_template)
     print(
         f"wrote {run_meta_path(run_dir, BASELINE_NAME)} + {run_dir/'report'/'REPORT.md'}  "
         f"(blocked={b['blocked']}, run_state={b['run_state']['status']})"

@@ -151,6 +151,28 @@ def test_summarize_gates_rolls_up():
     assert s["gates"]["2_modelling"]["block"] == 1
     assert len(s["flags"]) == 1 and s["flags"][0]["check"] == "b"
     assert len(s["blocking"]) == 1 and s["blocking"][0]["check"] == "c"
+    assert s["signals"]["reading_syntax_valid"] is True
+    assert s["signals"]["reading_evidence_clean"] is True
+
+
+def test_reading_evidence_signal_turns_report_status_red():
+    reading = CheckReport(stage="0_reading", run_profile="regression")
+    reading.add_fail(
+        "reading.dimensions_present",
+        CheckLayer.CROSS_CHECK,
+        "dimensioned view has empty dimensions[]",
+        evidence={"legacy_migrated": False},
+    )
+    s = summarize_gates({"0_reading::1f_view": reading})
+    assert s["signals"]["reading_syntax_valid"] is True
+    assert s["signals"]["reading_evidence_clean"] is False
+    assert s["gates"]["0_reading"]["block"] == 1
+
+    baseline = {
+        "run_state": {"status": "completed_clean"},
+        "signals": s["signals"],
+    }
+    assert report_assembly._status_tldr(baseline) == "reading_evidence_debt"
 
 
 # --------------------------------------------------------------------------- #
@@ -194,6 +216,9 @@ def test_record_baseline_report_lists_eyeball_items(tmp_path):
     shutil.copytree(_SM21, case)
     run = case / _GPT54_RUN
     record_baseline.record_baseline(run, date="2026-06-21", orchestrator="test")
+    baseline = json.loads(run_meta_path(run, "baseline.json").read_text())
+    assert "signals" in baseline
+    assert "reading_evidence_clean" in baseline["signals"]
 
     eye = run / "report" / "eyeball"
     assert (eye / "1_correction_zones.png").exists()
@@ -201,6 +226,7 @@ def test_record_baseline_report_lists_eyeball_items(tmp_path):
     assert (eye / "0_reading_1f_view_render.png").exists()
     assert (eye / "case_data_1f_view.png").exists()
     report = (run / "report" / "REPORT.md").read_text()
+    assert "reading_evidence_clean" in report
     assert "report/eyeball/1_correction_zones.png" in report
     assert "[3D geometry viewer](../manual_review/geometry_viewer.html)" in report
     assert (run / "manual_review" / "geometry_viewer.html").exists()
