@@ -385,6 +385,32 @@ def _correction_entries(run_dir: Path) -> list[dict]:
     return entries
 
 
+def _evidence_debt_entries(run_dir: Path) -> list[dict]:
+    entries: list[dict] = []
+    sidecar = run_dir / "1_correction" / "evidence_debt.json"
+    if not sidecar.exists():
+        return entries
+    try:
+        data = json.loads(sidecar.read_text(encoding="utf-8"))
+    except Exception:  # noqa: BLE001 - malformed sidecar is not indexable
+        return entries
+    debts = data.get("debts") if isinstance(data, dict) else None
+    if not isinstance(debts, list):
+        return entries
+    for ordinal, row in enumerate(debts, start=1):
+        if not isinstance(row, dict):
+            continue
+        suffix = _slug(
+            f"{row.get('view') or 'run'}_{row.get('canonical_check_id') or ordinal}_{ordinal}"
+        )
+        eid = f"E:debt:{suffix}"
+        _add_entry(entries, eid, "evidence_debt", _rel(sidecar, run_dir), {
+            "ordinal": ordinal,
+            "row": row,
+        })
+    return entries
+
+
 def build_evidence_index(
     run_dir: Path,
     validation_result,
@@ -396,6 +422,7 @@ def build_evidence_index(
     entries: list[dict] = []
     entries.extend(_gate_entries(validation_result))
     entries.extend(_judge_entries(Path(run_dir)))
+    entries.extend(_evidence_debt_entries(Path(run_dir)))
     entries.extend(_correction_entries(Path(run_dir)))
 
     stop = run_state.get("root_stop") or run_state.get("pending")

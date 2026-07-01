@@ -50,6 +50,7 @@ EVIDENCE_CHECK_IDS = frozenset(
 )
 
 _EVIDENCE_BLOCK_PROFILES = {"golden", "regression"}
+_CORRECTION_EVIDENCE_DEBT_COVERAGE = "correction.evidence_debt_coverage"
 
 
 def is_evidence_check_id(check_id: str) -> bool:
@@ -126,6 +127,13 @@ def disposition(
         # clean, so we must not let it pass silently.
         return Disposition.BLOCK
     # status == FAIL
+    if result.check_id == _CORRECTION_EVIDENCE_DEBT_COVERAGE:
+        if (
+            result.evidence.get("scope") == "element_local"
+            and run_profile in _EVIDENCE_BLOCK_PROFILES
+        ):
+            return Disposition.BLOCK
+        return Disposition.FLAG
     if is_evidence_check_id(result.check_id):
         if result.evidence.get("legacy_migrated"):
             return Disposition.FLAG

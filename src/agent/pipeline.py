@@ -46,8 +46,15 @@ from src.agent._share import ensure_schema_initialized
 from src.agent.correction import CorrectedGeometry, apply_deterministic_core
 from src.agent.correction.config import load_core_tolerances
 from src.agent.correction.envelope import extract_authoritative_envelope
+from src.agent.execution.evidence_preflight import (
+    EvidenceDebt,
+    compute_evidence_debt_from_vector_dir,
+    dimensioned_view_names_from_testdata_text,
+    write_evidence_debt,
+)
 from src.agent.llm import load_llm_section, resolve_llm_config_path
 from src.agent.state import IntakeOutput
+from src.validator.checks.schema import Disposition, RunProfile
 
 if TYPE_CHECKING:
     from src.agent.geometry.modelling import BuildingGeometry
@@ -278,7 +285,11 @@ def _call_json_llm(
 # 1_correction — correction (LLM) -> CorrectedGeometry
 # --------------------------------------------------------------------------- #
 def _build_correction_messages(
-    vector_dir: Path, testdata_text: str, *, feedback: str | None = None
+    vector_dir: Path,
+    testdata_text: str,
+    *,
+    feedback: str | None = None,
+    evidence_debt: EvidenceDebt | None = None,
 ) -> tuple[str, str]:
     correction_docs = _load_correction_docs()
     reading_guide = _read(_SKILL_DIR / "0_reading" / "guide.md")
@@ -338,6 +349,20 @@ def _build_correction_messages(
             "(image-local anchors):\n```json\n"
             + json.dumps(room_label_inputs, indent=2, ensure_ascii=False)
             + "\n```\n"
+        )
+    if evidence_debt is not None and evidence_debt.debts:
+        chunks.append(
+            "\nReading evidence debt from deterministic 0_reading preflight "
+            "(A8 handoff; current run_profile disposition already applied):\n"
+            "```json\n"
+            + evidence_debt.model_dump_json(indent=2)
+            + "\n```\n"
+            "Correction discipline for evidence debt: do not invent coordinates, "
+            "dimensions, or source links for debt items. If the reading artifact "
+            "does not contain independent evidence to resolve an item, record the "
+            "unresolved item in `conflicts` with the debt check_id/view/offender ids. "
+            "Do not write these reading evidence-debt items to `unsupported`; "
+            "`unsupported` is reserved for deterministic kernel findings.\n"
         )
     for fname in vector_files:
         chunks.append(f"\n[reading vector] {fname}:\n```json\n{_read(vector_dir / fname)}\n```\n")
@@ -488,6 +513,11 @@ def run_correction(
     out_dir: Path | None = None,
     feedback: str | None = None,
     draw_validate: "Callable[[dict], None] | None | object" = _UNSET_VALIDATOR,
+    run_profile: RunProfile = "exploratory",
+    capability_profile: str = "rectangular",
+    evidence_debt: EvidenceDebt | None = None,
+    dimensioned_views: set[str] | None = None,
+    fail_closed_evidence_debt: bool = False,
 ) -> CorrectedGeometry:
     """1_correction LLM stage → CorrectedGeometry (pre-core).
 
@@ -499,8 +529,24 @@ def run_correction(
     draw is counted + filed as an attempt, not silently re-drawn). Pass ``None`` to
     disable the inner validator entirely."""
     ensure_schema_initialized()  # safe for standalone stage calls (idempotent)
+    if evidence_debt is None:
+        evidence_debt = compute_evidence_debt_from_vector_dir(
+            vector_dir,
+            run_profile=run_profile,
+            capability_profile=capability_profile,
+            dimensioned_views=dimensioned_views
+            or dimensioned_view_names_from_testdata_text(testdata_text),
+        )
+    if out_dir is not None:
+        write_evidence_debt(out_dir / "evidence_debt.json", evidence_debt)
+    if fail_closed_evidence_debt and evidence_debt.blocking:
+        checks = ", ".join(item.check_id for item in evidence_debt.blocking)
+        raise RuntimeError(
+            "1_correction preflight blocked by reading evidence debt "
+            f"under run_profile={run_profile}: {checks}"
+        )
     system_prompt, human = _build_correction_messages(
-        vector_dir, testdata_text, feedback=feedback
+        vector_dir, testdata_text, feedback=feedback, evidence_debt=evidence_debt
     )
     validator = (
         _make_correction_validator(_reading_window_stroke_count(vector_dir))
@@ -692,6 +738,7 @@ def run_pipeline(
     *,
     out_dir: Path | None = None,
     feedback: str | None = None,
+    run_profile: RunProfile = "exploratory",
 ) -> IntakeOutput:
     """Staged intake: 1_correction -> deterministic core -> deterministic geometry
     kernel (2_modelling + 3_split_pairing) -> 4_mep (LLM) -> 5_intakeoutput assembly.
@@ -709,8 +756,9 @@ def run_pipeline(
       out_dir/3_split_pairing/ geometry_specs.md (serialized cut+paired specs)
       out_dir/4_mep/           mep_output.json + mep raw/thinking
       out_dir/5_intakeoutput/  intake_output.json (final) + contract_issues.json
-    Signature unchanged so intake_node / CLI callers do not change. `feedback`
-    is routed to both 1_correction (geometry) and 4_mep (physics) repair.
+    ``run_profile`` defaults to exploratory for backward compatibility.
+    ``feedback`` is routed to both 1_correction (geometry) and 4_mep (physics)
+    repair.
     """
     ensure_schema_initialized()
 
@@ -728,7 +776,51 @@ def run_pipeline(
     s5 = _stage("5_intakeoutput")
 
     logger.info("1_correction: correcting from {}", vector_dir)
-    geom = run_correction(vector_dir, testdata_text, out_dir=s1, feedback=feedback)
+    dimensioned_views = dimensioned_view_names_from_testdata_text(testdata_text)
+    evidence_debt = compute_evidence_debt_from_vector_dir(
+        vector_dir,
+        run_profile=run_profile,
+        dimensioned_views=dimensioned_views,
+    )
+    if s1 is not None:
+        write_evidence_debt(s1 / "evidence_debt.json", evidence_debt)
+    if evidence_debt.blocking:
+        checks = ", ".join(item.check_id for item in evidence_debt.blocking)
+        raise RuntimeError(
+            "1_correction preflight blocked by reading evidence debt "
+            f"under run_profile={run_profile}: {checks}"
+        )
+    geom = run_correction(
+        vector_dir,
+        testdata_text,
+        out_dir=s1,
+        feedback=feedback,
+        run_profile=run_profile,
+        evidence_debt=evidence_debt,
+    )
+
+    from src.validator.checks.correction import check_evidence_debt_coverage
+
+    coverage_report = check_evidence_debt_coverage(
+        geom,
+        evidence_debt,
+        run_profile=run_profile,
+    )
+    if coverage_report.results and s1 is not None:
+        (s1 / "evidence_debt_coverage_checks.json").write_text(
+            coverage_report.model_dump_json(indent=2), encoding="utf-8"
+        )
+    blocking_coverage = [
+        result
+        for result, disp in coverage_report.dispositions()
+        if disp == Disposition.BLOCK
+    ]
+    if blocking_coverage:
+        raise RuntimeError(
+            "1_correction evidence debt coverage blocked under "
+            f"run_profile={run_profile}: "
+            + "; ".join(f"{r.check_id}: {r.message}" for r in blocking_coverage)
+        )
 
     n_corr_before = len(geom.corrections)
     tol = load_core_tolerances()

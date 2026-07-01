@@ -26,7 +26,8 @@ from src.agent.correction.envelope import (
     resolve_authoritative_envelope,
 )
 from src.agent.correction.schema import CorrectedGeometry
-from src.validator.checks.schema import CheckLayer, CheckReport, CheckStatus
+from src.agent.execution.evidence_preflight import EvidenceDebt
+from src.validator.checks.schema import CheckLayer, CheckReport, CheckStatus, RunProfile
 
 # Which geometry findings are hard invariants vs soft cross-checks.
 _INVARIANT_CHECKS = {
@@ -64,14 +65,37 @@ def check_correction(
     relied_on_testdata: bool = False,
     elevation_widths: dict[str, float] | None = None,
     capability_profile: str = "rectangular",
+    run_profile: RunProfile = "exploratory",
+    evidence_debt: EvidenceDebt | dict | None = None,
 ) -> CheckReport:
-    rep = CheckReport(stage="1_correction", capability_profile=capability_profile)
+    rep = CheckReport(
+        stage="1_correction",
+        capability_profile=capability_profile,
+        run_profile=run_profile,
+    )
 
     for f in validate_corrected_geometry(geom, expected_zone_total=expected_zone_total):
         _add_finding(rep, f)
 
     _cross_image_reconcile(rep, geom, elevation_widths)
     _audit_completeness(rep, geom, raw_geom, relied_on_testdata)
+    _evidence_debt_coverage(rep, geom, evidence_debt)
+    return rep
+
+
+def check_evidence_debt_coverage(
+    geom: CorrectedGeometry,
+    evidence_debt: EvidenceDebt | dict | None,
+    *,
+    capability_profile: str = "rectangular",
+    run_profile: RunProfile = "exploratory",
+) -> CheckReport:
+    rep = CheckReport(
+        stage="1_correction",
+        capability_profile=capability_profile,
+        run_profile=run_profile,
+    )
+    _evidence_debt_coverage(rep, geom, evidence_debt)
     return rep
 
 
@@ -171,3 +195,98 @@ def _audit_completeness(
     else:
         rep.add_pass("correction.audit_completeness", CheckLayer.INVARIANT,
                      evidence={"audit_entries": len(audit_entries)})
+
+
+def _coerce_debt(evidence_debt: EvidenceDebt | dict | None) -> EvidenceDebt | None:
+    if evidence_debt is None:
+        return None
+    if isinstance(evidence_debt, EvidenceDebt):
+        return evidence_debt
+    if isinstance(evidence_debt, dict):
+        return EvidenceDebt.model_validate(evidence_debt)
+    return None
+
+
+def _row_text(row: dict) -> str:
+    return str(row)
+
+
+def _audit_rows(geom: CorrectedGeometry) -> list[dict]:
+    return [
+        row
+        for row in [*list(geom.conflicts), *list(geom.corrections)]
+        if isinstance(row, dict)
+    ]
+
+
+def _mentions(row: dict, values: list[str]) -> bool:
+    text = _row_text(row)
+    return any(value and value in text for value in values)
+
+
+def _covered_by_audit(item, rows: list[dict]) -> bool:
+    if item.scope == "element_local":
+        return bool(item.offender_ids) and all(
+            any(_mentions(row, [offender]) for row in rows)
+            for offender in item.offender_ids
+        )
+    needles = [item.check_id, item.canonical_check_id]
+    if item.view:
+        needles.append(item.view)
+    return any(_mentions(row, needles) for row in rows)
+
+
+def _evidence_debt_coverage(
+    rep: CheckReport,
+    geom: CorrectedGeometry,
+    evidence_debt: EvidenceDebt | dict | None,
+) -> None:
+    """A8.3b: check only that reading evidence debt was explicitly covered.
+
+    Element-local debt is strong enough to block in golden/regression via
+    ``disposition()``. View/global debt cannot be mapped to a specific cell/window,
+    so it remains advisory even under those profiles.
+    """
+    debt = _coerce_debt(evidence_debt)
+    if debt is None or not debt.debts:
+        return
+
+    rows = _audit_rows(geom)
+    element_missing = []
+    advisory_missing = []
+    for item in debt.debts:
+        if _covered_by_audit(item, rows):
+            continue
+        payload = {
+            "check_id": item.check_id,
+            "canonical_check_id": item.canonical_check_id,
+            "view": item.view,
+            "message": item.message,
+        }
+        if item.scope == "element_local":
+            element_missing.append({**payload, "offender_ids": item.offender_ids})
+        else:
+            advisory_missing.append(payload)
+
+    if element_missing:
+        rep.add_fail(
+            "correction.evidence_debt_coverage",
+            CheckLayer.CROSS_CHECK,
+            f"{len(element_missing)} element-local evidence debt item(s) were not "
+            "covered by conflicts/corrections",
+            evidence={"scope": "element_local", "missing": element_missing},
+        )
+    if advisory_missing:
+        rep.add_fail(
+            "correction.evidence_debt_coverage",
+            CheckLayer.CROSS_CHECK,
+            f"{len(advisory_missing)} view/global evidence debt item(s) were not "
+            "mentioned in correction audit",
+            evidence={"scope": "view_global", "missing": advisory_missing},
+        )
+    if not element_missing and not advisory_missing:
+        rep.add_pass(
+            "correction.evidence_debt_coverage",
+            CheckLayer.CROSS_CHECK,
+            evidence={"scope": "all", "debt_items": len(debt.debts)},
+        )

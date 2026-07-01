@@ -116,8 +116,15 @@ def _draw_reading(run_dir: Path, policy: RunPolicy, dimensioned_views: set[str])
     return out, rep
 
 
-def _draw_correction(run_dir: Path, testdata_text: str, expected_zones, relied):
+def _draw_correction(
+    run_dir: Path,
+    testdata_text: str,
+    expected_zones,
+    relied,
+    policy: RunPolicy,
+):
     from src.agent.correction.deterministic import apply_deterministic_core
+    from src.agent.execution.evidence_preflight import load_evidence_debt
     from src.agent.pipeline import (
         _reading_window_stroke_count,
         _schema_only_correction_validator,
@@ -133,14 +140,22 @@ def _draw_correction(run_dir: Path, testdata_text: str, expected_zones, relied):
     # gate①'s job (so a content-bad draw is counted + filed, not silently re-drawn
     # inside the LLM call, bypassing the per-stage budget — review 2026-06-19 High-2).
     geom = run_correction(rdir, testdata_text, out_dir=s1, feedback=None,
-                          draw_validate=_schema_only_correction_validator)
+                          draw_validate=_schema_only_correction_validator,
+                          run_profile=policy.run_profile,
+                          capability_profile=policy.capability_profile,
+                          dimensioned_views=dimensioned_view_names(run_dir.parent))
+    evidence_debt = load_evidence_debt(s1 / "evidence_debt.json")
 
     # Semantic checks on the PRE-core draw. If bad, THIS draw blocks gate① → the
     # outer loop files it as an append-only attempt, counts it, and blind-resamples.
     # Do not run the deterministic core (it may raise on e.g. duplicate cell ids).
     draw_issues = correction_draw_issues(geom, _reading_window_stroke_count(rdir))
     if draw_issues:
-        rep = CheckReport(stage="1_correction")
+        rep = CheckReport(
+            stage="1_correction",
+            capability_profile=policy.capability_profile,
+            run_profile=policy.run_profile,
+        )
         for msg in draw_issues:
             rep.add_fail("correction.draw_quality", CheckLayer.INVARIANT, msg)
         return geom, rep
@@ -154,7 +169,10 @@ def _draw_correction(run_dir: Path, testdata_text: str, expected_zones, relied):
                     "unsupported": geom.unsupported}, indent=2, ensure_ascii=False),
         encoding="utf-8")
     rep = check_correction(geom, expected_zone_total=expected_zones,
-                           relied_on_testdata=relied)
+                           relied_on_testdata=relied,
+                           capability_profile=policy.capability_profile,
+                           run_profile=policy.run_profile,
+                           evidence_debt=evidence_debt)
     return geom, rep
 
 
@@ -278,7 +296,7 @@ def _make_draw_fn(stage: str, run_dir: Path, testdata_text: str, td_path: Path, 
     if stage == "1_correction":
         ez = _expected_zone_total(td_path)
         relied = td_path.exists()
-        return lambda _fb: _draw_correction(run_dir, testdata_text, ez, relied)
+        return lambda _fb: _draw_correction(run_dir, testdata_text, ez, relied, policy)
     if stage == "2_modelling":
         return lambda _fb: _draw_modelling(run_dir)
     if stage == "3_split_pairing":

@@ -134,11 +134,17 @@ def validate_case(
     zone_names: set[str] = set()
     geometry_consistent = True  # set False if on-disk 2/3 drift from the rebuild
     if snapped.exists():
+        from src.agent.execution.evidence_preflight import load_evidence_debt
+
         geom = CorrectedGeometry.model_validate_json(snapped.read_text())
         relied = (case_dir / "case_data" / "testdata_prompt.json").exists()
+        evidence_debt = load_evidence_debt(run_dir / "1_correction" / "evidence_debt.json")
         crep = check_correction(
             geom, expected_zone_total=_expected_zone_total(case_dir),
-            relied_on_testdata=relied, capability_profile=profile,
+            relied_on_testdata=relied,
+            capability_profile=profile,
+            run_profile=run_profile,
+            evidence_debt=evidence_debt,
         )
         res.reports["1_correction"] = crep
         if write_reports:

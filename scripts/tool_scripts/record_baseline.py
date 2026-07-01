@@ -429,6 +429,9 @@ def _render_evidence_index(index: list[dict]) -> list[str]:
             desc = criterion.get("criterion") if isinstance(criterion, dict) else ""
         elif entry.get("kind") == "gate":
             desc = payload.get("message", "")
+        elif entry.get("kind") == "evidence_debt":
+            row = payload.get("row", {})
+            desc = row.get("check_id") if isinstance(row, dict) else ""
         elif entry.get("kind") == "correction":
             desc = payload.get("raw_id") or f"row {payload.get('ordinal')}"
         else:
@@ -647,6 +650,7 @@ def _render_appendix(b: dict) -> str:
         f"- geometry approval: [../{RUN_META_DIR}/{APPROVAL_NAME}](../{RUN_META_DIR}/{APPROVAL_NAME})",
         f"- orchestration ledger: [../{RUN_META_DIR}/{STATE_NAME}](../{RUN_META_DIR}/{STATE_NAME})",
         "- raw reading outputs: [../0_reading/](../0_reading/)",
+        "- reading evidence debt: [../1_correction/evidence_debt.json](../1_correction/evidence_debt.json)",
         "- correction audit: [../1_correction/corrections.json](../1_correction/corrections.json)",
         "- judge verdict log: [../verdicts/](../verdicts/)",
         f"- geometry_digest: `{b['geometry_digest']}`",
