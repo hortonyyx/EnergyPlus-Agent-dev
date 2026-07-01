@@ -140,7 +140,7 @@ def _schedule_completeness(rep: CheckReport, idx: IdfFragmentIndex) -> None:
 def _load_refs(
     rep: CheckReport, idx: IdfFragmentIndex, zone_names: set[str] | None
 ) -> None:
-    """People/Lights/Equipment → zone (field 1) and → schedule (field 2)."""
+    """People/Lights/Equipment → zone (field 1) and → schedule references."""
     sched_names = idx.has_name("SCHEDULE:COMPACT")
     zone_bad, sched_bad = [], []
     for obj in idx.of_type(*_LOAD_TYPES):
@@ -150,6 +150,16 @@ def _load_refs(
             zone_bad.append({"object": obj.name, "zone_ref": zref})
         if sref and sref not in sched_names:
             sched_bad.append({"object": obj.name, "schedule_ref": sref})
+        if obj.obj_type == "PEOPLE":
+            activity_ref = _people_activity_schedule_name(obj)
+            if not activity_ref:
+                sched_bad.append(
+                    {"object": obj.name, "activity_schedule_ref": "", "reason": "missing"}
+                )
+            elif activity_ref not in sched_names:
+                sched_bad.append(
+                    {"object": obj.name, "activity_schedule_ref": activity_ref}
+                )
     if zone_names is None:
         rep.add("mep.load_to_zone", CheckStatus.NOT_APPLICABLE, CheckLayer.INVARIANT,
                 message="no zone list supplied")
@@ -161,10 +171,23 @@ def _load_refs(
         rep.add_pass("mep.load_to_zone", CheckLayer.INVARIANT)
     if sched_bad:
         rep.add_fail("mep.load_to_schedule", CheckLayer.INVARIANT,
-                     f"{len(sched_bad)} load(s) reference an undefined schedule",
+                     f"{len(sched_bad)} load schedule reference(s) are missing or undefined",
                      evidence={"offenders": sched_bad})
     else:
         rep.add_pass("mep.load_to_schedule", CheckLayer.INVARIANT)
+
+
+def _people_activity_schedule_name(obj) -> str:
+    """People.Activity Level Schedule Name via eppy raw object, then field 9."""
+    raw = getattr(obj, "raw", None)
+    if raw is not None:
+        try:
+            return str(getattr(raw, "Activity_Level_Schedule_Name", "") or "").strip()
+        except Exception:  # noqa: BLE001 - fall back to parsed field layout
+            pass
+    if len(obj.fields) > 9:
+        return str(obj.fields[9] or "").strip()
+    return ""
 
 
 def _per_zone_coverage(

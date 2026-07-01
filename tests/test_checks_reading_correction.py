@@ -12,7 +12,7 @@ from src.agent.judge.gt import load_gt
 from src.agent.reading import ReadingView, attach_raw_metadata, load_reading_view
 from src.validator.checks.correction import check_correction
 from src.validator.checks.reading import check_reading_view
-from src.validator.checks.schema import CheckLayer, CheckReport, EVIDENCE_CHECK_IDS
+from src.validator.checks.schema import CheckLayer, CheckReport, CheckStatus, EVIDENCE_CHECK_IDS
 
 _ANCHOR = Path("case_tests/e2e_tests/sm20_anchor")
 _RUN = _ANCHOR / "run_2026-06-15_baseline"
@@ -698,6 +698,26 @@ def test_audit_completeness_passes_when_sourced():
     })
     rep = check_correction(geom, relied_on_testdata=True)
     assert rep.passed, [r.message for r in rep.blocking()]
+
+
+def test_correction_residual_soft_checks_are_explicitly_deferred():
+    geom = CorrectedGeometry.model_validate({
+        "footprint_x": [0, 10], "footprint_y": [0, 8],
+        "floors": [{"name": "F1", "z_floor": 0, "ceiling_height": 3, "cells": [{"id": "A", "x": [0, 10], "y": [0, 8]}]}],
+    })
+    rep = check_correction(geom)
+    deferred = {
+        r.check_id: r for r in rep.results
+        if r.check_id.startswith("correction.") and r.status == CheckStatus.NOT_APPLICABLE
+    }
+    for check_id in (
+        "correction.facade_area_residuals",
+        "correction.wwr_residuals",
+        "correction.area_residuals",
+        "correction.unsupported_count_by_severity",
+    ):
+        assert deferred[check_id].layer == CheckLayer.CROSS_CHECK
+        assert deferred[check_id].message == "deferred until evidence is richer"
 
 
 # --------------------------------------------------------------------------- #

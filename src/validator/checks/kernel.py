@@ -28,7 +28,7 @@ from __future__ import annotations
 import numpy as np
 
 from src.agent.geometry.modelling import BuildingGeometry, Surface
-from src.validator.checks.schema import CheckLayer, CheckReport, CheckStatus
+from src.validator.checks.schema import CheckLayer, CheckReport, CheckStatus, RunProfile
 
 _AREA_TOL = 0.10       # m^2 — interface-area reconcile tolerance
 _PERIM_TOL = 0.10      # m — perimeter-match tolerance
@@ -60,8 +60,13 @@ def check_kernel(
     *,
     capability_profile: str = "rectangular",
     interzone_issues: list[str] | None = None,
+    run_profile: RunProfile = "exploratory",
 ) -> CheckReport:
-    rep = CheckReport(stage="2_modelling", capability_profile=capability_profile)
+    rep = CheckReport(
+        stage="2_modelling",
+        capability_profile=capability_profile,
+        run_profile=run_profile,
+    )
     _zone_closure(rep, bg)
     _normals(rep, bg)
     _pairing_gate(rep, bg, interzone_issues)

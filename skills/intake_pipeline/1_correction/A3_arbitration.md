@@ -32,6 +32,14 @@ Resolve each `conflict_type` (A0 §3) using the claim-type authority ladders
 | `reference_or_identity_ambiguity` | decide same-vs-distinct from `topology_identity` + `semantic` evidence; if undecidable → `unsupported` (never merge on doubt) |
 | `semantic_size_prior` | see §3 (prior gating) |
 
+Corridor/circulation identity: if adjacent corridor fragments are supported by
+continuous circulation evidence (same label/use, open passage, continuous
+centerline/width, and no physical wall/door partition between them), prefer one
+continuous corridor zone. Do not merge across a drawn wall, door-controlled
+partition, fire/stair/core boundary, floor break, or unresolved identity
+ambiguity; when evidence is insufficient, keep distinct cells or mark
+`unsupported` rather than merging on doubt.
+
 ## 2. Completion (missing values)
 
 Fill an `unknown` from, in order: higher-authority same-entity evidence >

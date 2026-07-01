@@ -167,7 +167,11 @@ def validate_case(
 
             # S2: kernel check on the authoritative rebuild + on-disk consistency.
             if bg_json.exists():
-                krep = check_kernel(bg, capability_profile=profile)
+                krep = check_kernel(
+                    bg,
+                    capability_profile=profile,
+                    run_profile=run_profile,
+                )
                 try:
                     disk_bg = json.loads(bg_json.read_text())
                 except json.JSONDecodeError:

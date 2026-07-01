@@ -103,6 +103,53 @@ def test_missing_schedule_day_types_blocks():
     assert "mep.schedule_completeness" in _blocking(rep)
 
 
+def _people_activity_mep(activity_field: str, *, include_activity_schedule: bool) -> dict:
+    activity_schedule = (
+        "\n\nSchedule:Compact,\n  Activity,\n  Any Number,\n  Through: 12/31,\n"
+        "  For: AllDays,\n  Until: 24:00,120.0;\n"
+        if include_activity_schedule
+        else ""
+    )
+    return {
+        "building": {"name": "B", "north_axis": 0.0, "terrain": "City"},
+        "site_location": {"name": "S", "latitude": 22.5, "longitude": 114.0,
+                          "time_zone": 8.0, "elevation": 5.0},
+        "material_specs": "", "construction_specs": "",
+        "schedule_specs": "ScheduleTypeLimits,\n  Fraction,\n  0,\n  1,\n  Continuous;\n\n"
+                          "ScheduleTypeLimits,\n  Any Number,\n  ,\n  ,\n  Continuous;\n\n"
+                          "Schedule:Compact,\n  Occ,\n  Fraction,\n  Through: 12/31,\n"
+                          "  For: AllDays,\n  Until: 24:00,1.0;\n"
+                          f"{activity_schedule}",
+        "hvac_specs": "",
+        "people_specs": "People,\n  P1,\n  Z1,\n  Occ,\n  People,\n  1,\n  ,\n  ,\n"
+                        f"  0.3,\n  Autocalculate{activity_field};\n",
+        "lights_specs": "",
+    }
+
+
+def test_people_missing_activity_schedule_blocks_load_to_schedule():
+    mep = _people_activity_mep("", include_activity_schedule=False)
+    rep = check_mep(mep, zone_names={"Z1"})
+    result = next(r for r in rep.results if r.check_id == "mep.load_to_schedule")
+    assert result.status == CheckStatus.FAIL
+    assert result.evidence["offenders"][0]["reason"] == "missing"
+
+
+def test_people_undefined_activity_schedule_blocks_load_to_schedule():
+    mep = _people_activity_mep(",\n  MissingActivity", include_activity_schedule=False)
+    rep = check_mep(mep, zone_names={"Z1"})
+    result = next(r for r in rep.results if r.check_id == "mep.load_to_schedule")
+    assert result.status == CheckStatus.FAIL
+    assert result.evidence["offenders"][0]["activity_schedule_ref"] == "MissingActivity"
+
+
+def test_people_primary_and_activity_schedules_pass_load_to_schedule():
+    mep = _people_activity_mep(",\n  Activity", include_activity_schedule=True)
+    rep = check_mep(mep, zone_names={"Z1"})
+    result = next(r for r in rep.results if r.check_id == "mep.load_to_schedule")
+    assert result.status == CheckStatus.PASS
+
+
 # --------------------------------------------------------------------------- #
 # 5 backstop — owner stays 4_mep
 # --------------------------------------------------------------------------- #

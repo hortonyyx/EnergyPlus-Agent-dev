@@ -752,7 +752,8 @@ def run_pipeline(
       out_dir/1_correction/    correction_geometry.json (pre-snap) +
                                correction_geometry_snapped.json (post core) +
                                corrections.json + correction raw/thinking
-      out_dir/2_modelling/     building_geometry.json + kernel_gate_report.json
+      out_dir/2_modelling/     building_geometry.json + kernel_gate_report.json +
+                               kernel_checks.json
       out_dir/3_split_pairing/ geometry_specs.md (serialized cut+paired specs)
       out_dir/4_mep/           mep_output.json + mep raw/thinking
       out_dir/5_intakeoutput/  intake_output.json (final) + contract_issues.json
@@ -874,6 +875,23 @@ def run_pipeline(
         where = " (see 2_modelling/kernel_gate_report.json)" if s2 is not None else ""
         raise RuntimeError(
             f"geometry kernel build failed{where}: " + "; ".join(kernel_issues)
+        )
+
+    from src.validator.checks.kernel import check_kernel
+
+    kernel_report = check_kernel(
+        bg,
+        interzone_issues=kernel_issues,
+        run_profile=run_profile,
+    )
+    if s2 is not None:
+        (s2 / "kernel_checks.json").write_text(
+            kernel_report.model_dump_json(indent=2), encoding="utf-8"
+        )
+    if kernel_issues and run_profile in {"golden", "regression"}:
+        raise RuntimeError(
+            "2_modelling InterZone pairing gate blocked under "
+            f"run_profile={run_profile}: " + "; ".join(kernel_issues)
         )
 
     # 3_split_pairing (serialization): kernel geometry -> specs text.

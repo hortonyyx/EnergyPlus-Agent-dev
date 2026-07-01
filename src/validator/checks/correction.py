@@ -39,6 +39,12 @@ _CROSSCHECK_CHECKS = {
     "correction.zone_count_tripwire",
     "correction.window_on_wall",
 }
+_DEFERRED_RESIDUAL_CHECKS = (
+    "correction.facade_area_residuals",
+    "correction.wwr_residuals",
+    "correction.area_residuals",
+    "correction.unsupported_count_by_severity",
+)
 
 
 def _layer_of(check_id: str) -> CheckLayer:
@@ -80,6 +86,7 @@ def check_correction(
     _cross_image_reconcile(rep, geom, elevation_widths)
     _audit_completeness(rep, geom, raw_geom, relied_on_testdata)
     _evidence_debt_coverage(rep, geom, evidence_debt)
+    _deferred_residual_placeholders(rep)
     return rep
 
 
@@ -289,4 +296,15 @@ def _evidence_debt_coverage(
             "correction.evidence_debt_coverage",
             CheckLayer.CROSS_CHECK,
             evidence={"scope": "all", "debt_items": len(debt.debts)},
+        )
+
+
+def _deferred_residual_placeholders(rep: CheckReport) -> None:
+    """A0 residual soft checks are visible placeholders until evidence improves."""
+    for check_id in _DEFERRED_RESIDUAL_CHECKS:
+        rep.add(
+            check_id,
+            CheckStatus.NOT_APPLICABLE,
+            CheckLayer.CROSS_CHECK,
+            message="deferred until evidence is richer",
         )

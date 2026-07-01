@@ -2,11 +2,13 @@ from __future__ import annotations
 
 import json
 import sys
+from types import SimpleNamespace
 from pathlib import Path
 
 import pytest
 
 import src.agent.pipeline as pipeline
+from src.agent.intakeoutput import MepOutput
 from src.agent.correction.schema import CorrectedGeometry
 from src.agent.execution.evidence_preflight import (
     EvidenceDebt,
@@ -50,6 +52,66 @@ def _write_reading(vector_dir: Path, payload: dict, name: str = "1f_view.json") 
     vector_dir.mkdir(parents=True, exist_ok=True)
     (vector_dir / "reading_summary.md").write_text("summary", encoding="utf-8")
     (vector_dir / name).write_text(json.dumps(payload), encoding="utf-8")
+
+
+def _mep_stub() -> MepOutput:
+    return MepOutput.model_validate(
+        {
+            "building": {"Name": "B", "North Axis": 0.0, "Terrain": "City"},
+            "site_location": {
+                "Name": "S",
+                "Latitude": 22.5,
+                "Longitude": 114.0,
+                "Time Zone": 8.0,
+                "Elevation": 5.0,
+            },
+            "material_specs": "",
+            "construction_specs": "\n".join(
+                [
+                    "Default_Ext_Wall",
+                    "Default_Int_Wall",
+                    "Default_GroundFloor",
+                    "Default_Roof",
+                    "Cons_InterFloor",
+                ]
+            ),
+            "schedule_specs": "",
+            "hvac_specs": "",
+            "people_specs": "",
+            "lights_specs": "",
+        }
+    )
+
+
+def _patch_pipeline_to_inject_interzone_issue(tmp_path, monkeypatch):
+    vector_dir = tmp_path / "0_reading"
+    _write_reading(
+        vector_dir,
+        {
+            "image_kind": "plan",
+            "uncaptured": [],
+            "strokes": [
+                {
+                    "id": "S1",
+                    "pen": "wall",
+                    "provenance": "seen",
+                    "confidence": "high",
+                    "geometry": {"kind": "line", "p1": [0, 0], "p2": [2, 0]},
+                }
+            ],
+        },
+    )
+    monkeypatch.setattr(pipeline, "run_correction", lambda *_args, **_kwargs: _minimal_geom())
+    monkeypatch.setattr(pipeline, "run_mep", lambda *_args, **_kwargs: _mep_stub())
+
+    import src.validator.interzone as interzone
+
+    monkeypatch.setattr(
+        interzone,
+        "validate_interzone_surface_pairs",
+        lambda _idf: ["injected InterZone reciprocal mismatch"],
+    )
+    return vector_dir
 
 
 def test_preflight_projects_empty_debt_as_noop():
@@ -269,3 +331,60 @@ def test_evidence_debt_sidecar_enters_report_evidence_index(tmp_path):
     assert len(entries) == 1
     assert entries[0]["id"].startswith("E:debt:")
     assert entries[0]["source"] == "1_correction/evidence_debt.json"
+
+
+def test_run_pipeline_exploratory_surfaces_kernel_pairing_gate_and_continues(
+    tmp_path, monkeypatch
+):
+    vector_dir = _patch_pipeline_to_inject_interzone_issue(tmp_path, monkeypatch)
+    out_dir = tmp_path / "out"
+
+    pipeline.run_pipeline(vector_dir, "{}", out_dir=out_dir, run_profile="exploratory")
+
+    assert (out_dir / "2_modelling" / "building_geometry.json").exists()
+    assert (out_dir / "2_modelling" / "kernel_gate_report.json").exists()
+    assert (out_dir / "3_split_pairing" / "geometry_specs.md").exists()
+    assert (out_dir / "5_intakeoutput" / "intake_output.json").exists()
+
+    report = CheckReport.model_validate_json(
+        (out_dir / "2_modelling" / "kernel_checks.json").read_text()
+    )
+    pairing = next(r for r in report.results if r.check_id == "kernel.pairing_gate")
+    assert pairing.status.value == "fail"
+    assert report.blocking()[0].check_id == "kernel.pairing_gate"
+
+    validation_result = SimpleNamespace(
+        reports={"2_modelling": report},
+        geometry_digest=None,
+        geometry_approved=False,
+    )
+    entries = report_assembly.build_evidence_index(
+        out_dir,
+        validation_result,
+        report_assets={"assets": []},
+        run_state={},
+        ep=None,
+    )
+    gate = next(e for e in entries if e["id"] == "E:gate:2_modelling:kernel.pairing_gate")
+    assert gate["kind"] == "gate"
+    assert gate["payload"]["disposition"] == "block"
+    assert gate["payload"]["check_id"] == "kernel.pairing_gate"
+
+
+@pytest.mark.parametrize("run_profile", ["golden", "regression"])
+def test_run_pipeline_fail_closed_for_kernel_pairing_gate_profiles(
+    tmp_path, monkeypatch, run_profile
+):
+    vector_dir = _patch_pipeline_to_inject_interzone_issue(tmp_path, monkeypatch)
+    out_dir = tmp_path / "out"
+
+    with pytest.raises(RuntimeError, match="InterZone pairing gate blocked"):
+        pipeline.run_pipeline(vector_dir, "{}", out_dir=out_dir, run_profile=run_profile)
+
+    report = CheckReport.model_validate_json(
+        (out_dir / "2_modelling" / "kernel_checks.json").read_text()
+    )
+    pairing = next(r for r in report.results if r.check_id == "kernel.pairing_gate")
+    assert pairing.status.value == "fail"
+    assert report.run_profile == run_profile
+    assert not (out_dir / "3_split_pairing" / "geometry_specs.md").exists()
