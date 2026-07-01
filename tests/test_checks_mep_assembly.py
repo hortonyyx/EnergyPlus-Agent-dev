@@ -103,6 +103,111 @@ def test_missing_schedule_day_types_blocks():
     assert "mep.schedule_completeness" in _blocking(rep)
 
 
+def _schedule_placeholder_mep(schedule_name: str) -> dict:
+    return {
+        "building": {"name": "B", "north_axis": 0.0, "terrain": "City"},
+        "site_location": {"name": "S", "latitude": 22.5, "longitude": 114.0,
+                          "time_zone": 8.0, "elevation": 5.0},
+        "material_specs": "", "construction_specs": "",
+        "schedule_specs": "ScheduleTypeLimits,\n  Fraction,\n  0,\n  1,\n  Continuous;\n\n"
+                          "Schedule:Compact,\n"
+                          f"  {schedule_name},\n"
+                          "  Fraction,\n"
+                          "  Through: 12/31,\n"
+                          "  For: AllDays,\n"
+                          "  Until: 24:00,1.0;\n",
+        "hvac_specs": "", "people_specs": "", "lights_specs": "",
+    }
+
+
+def test_placeholder_ban_blocks_tbd_in_mep_schedule():
+    rep = check_mep(_schedule_placeholder_mep("TBD"))
+    result = next(r for r in rep.results if r.check_id == "mep.placeholder_ban")
+    assert result.status == CheckStatus.FAIL
+    assert "mep.placeholder_ban" in _blocking(rep)
+
+
+def test_placeholder_ban_passes_clean_mep_schedule():
+    rep = check_mep(_schedule_placeholder_mep("Occ"))
+    result = next(r for r in rep.results if r.check_id == "mep.placeholder_ban")
+    assert result.status == CheckStatus.PASS
+
+
+def _material_name_charset_mep(material_name: str) -> dict:
+    return {
+        "building": {"name": "B", "north_axis": 0.0, "terrain": "City"},
+        "site_location": {"name": "S", "latitude": 22.5, "longitude": 114.0,
+                          "time_zone": 8.0, "elevation": 5.0},
+        "material_specs": "Material,\n"
+                          f"  {material_name},\n"
+                          "  MediumRough,\n"
+                          "  0.1,\n"
+                          "  0.5,\n"
+                          "  800,\n"
+                          "  1000,\n"
+                          "  0.9,\n"
+                          "  0.7,\n"
+                          "  0.7;\n",
+        "construction_specs": "Construction,\n"
+                              "  Wall,\n"
+                              f"  {material_name};\n",
+        "schedule_specs": "", "hvac_specs": "", "people_specs": "", "lights_specs": "",
+    }
+
+
+def test_name_charset_flags_material_with_illegal_char_without_blocking():
+    rep = check_mep(_material_name_charset_mep("Mat@Bad"))
+    result = next(r for r in rep.results if r.check_id == "mep.name_charset")
+    assert result.status == CheckStatus.FAIL
+    assert "mep.name_charset" in {r.check_id for r in rep.flagged()}
+    assert rep.passed
+
+
+def test_name_charset_passes_clean_material_name():
+    rep = check_mep(_material_name_charset_mep("Mat_Bad-1"))
+    result = next(r for r in rep.results if r.check_id == "mep.name_charset")
+    assert result.status == CheckStatus.PASS
+
+
+def test_site_matches_testdata_flags_structured_mismatch_without_blocking():
+    mep = _schedule_placeholder_mep("Occ")
+    testdata = {
+        "site_location": {
+            "latitude": 23.5,
+            "longitude": 114.0,
+            "time_zone": 8.0,
+            "elevation": 5.0,
+        }
+    }
+    rep = check_mep(mep, testdata=testdata)
+    result = next(r for r in rep.results if r.check_id == "mep.site_matches_testdata")
+    assert result.status == CheckStatus.FAIL
+    assert "mep.site_matches_testdata" in {r.check_id for r in rep.flagged()}
+    assert rep.passed
+
+
+def test_site_matches_testdata_passes_structured_match():
+    mep = _schedule_placeholder_mep("Occ")
+    testdata = {
+        "site_location": {
+            "latitude": 22.5,
+            "longitude": 114.0,
+            "time_zone": 8.0,
+            "elevation": 5.0,
+        }
+    }
+    rep = check_mep(mep, testdata=testdata)
+    result = next(r for r in rep.results if r.check_id == "mep.site_matches_testdata")
+    assert result.status == CheckStatus.PASS
+
+
+def test_site_matches_testdata_not_applicable_without_structured_site_fields():
+    mep = _schedule_placeholder_mep("Occ")
+    rep = check_mep(mep, testdata={"Building location": "Shenzhen"})
+    result = next(r for r in rep.results if r.check_id == "mep.site_matches_testdata")
+    assert result.status == CheckStatus.NOT_APPLICABLE
+
+
 def _people_activity_mep(activity_field: str, *, include_activity_schedule: bool) -> dict:
     activity_schedule = (
         "\n\nSchedule:Compact,\n  Activity,\n  Any Number,\n  Through: 12/31,\n"

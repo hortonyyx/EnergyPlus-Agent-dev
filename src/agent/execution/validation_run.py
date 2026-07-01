@@ -59,6 +59,17 @@ def _expected_zone_total(case_dir: Path) -> int | None:
     return sum(totals) if totals else None
 
 
+def _load_testdata(case_dir: Path) -> dict | None:
+    td = case_dir / "case_data" / "testdata_prompt.json"
+    if not td.exists():
+        return None
+    try:
+        data = json.loads(td.read_text(encoding="utf-8"))
+    except json.JSONDecodeError:
+        return None
+    return data if isinstance(data, dict) else None
+
+
 def validate_case(
     run_dir: Path | str,
     *,
@@ -94,6 +105,7 @@ def validate_case(
     rdir = run_dir / "0_reading"
     ep_run = run_dir / "EP" / "EP_run"
     ep_end = ep_run / "eplusout.end"
+    testdata = _load_testdata(case_dir)
 
     has_reading = rdir.exists() and any(rdir.glob("*_view.json"))
     required = {
@@ -205,7 +217,8 @@ def validate_case(
     if mep_path.exists():
         mep = json.loads(mep_path.read_text())
         mrep = check_mep(mep, used_constructions=used_constructions or None,
-                         zone_names=zone_names or None, capability_profile=profile)
+                         zone_names=zone_names or None, testdata=testdata,
+                         capability_profile=profile)
         res.reports["4_mep"] = mrep
         if write_reports:
             _write(run_dir / "4_mep" / "mep_checks.json", mrep)

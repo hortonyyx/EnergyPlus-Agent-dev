@@ -25,6 +25,8 @@ ERROR (fail-closed → block + resample).
 
 from __future__ import annotations
 
+import re
+
 from src.validator.checks.schema import CheckLayer, CheckReport, CheckStatus
 from src.validator.idf_fragments import IdfFragmentIndex, parse_mep_fragments
 from src.validator.schedules import validate_schedule_completeness
@@ -36,6 +38,41 @@ _MATERIAL_TYPES = (
     "WINDOWMATERIAL:GAS", "WINDOWMATERIAL:BLIND", "MATERIAL:INFRAREDTRANSPARENT",
 )
 _LOAD_TYPES = ("PEOPLE", "LIGHTS", "ELECTRICEQUIPMENT")
+_NAME_CHARSET_TYPES = _MATERIAL_TYPES + ("CONSTRUCTION", "SCHEDULE:COMPACT", "SCHEDULETYPELIMITS")
+_NAME_CHARSET_RE = re.compile(r"^[A-Za-z0-9_ -]+$")
+_SITE_FIELD_ALIASES = {
+    "latitude": ("latitude", "Latitude"),
+    "longitude": ("longitude", "Longitude"),
+    "time_zone": ("time_zone", "time zone", "timezone", "Time Zone", "TimeZone"),
+    "elevation": ("elevation", "Elevation"),
+}
+_SITE_FIELD_TOLERANCES = {
+    "latitude": 0.01,
+    "longitude": 0.01,
+    "time_zone": 0.1,
+    "elevation": 1.0,
+}
+_TESTDATA_SITE_CONTAINERS = ("site_location", "Site Location", "site", "Site")
+_PLACEHOLDER_PATTERNS = (
+    ("TBD", re.compile(r"(?<![A-Za-z0-9_])tbd(?![A-Za-z0-9_])", re.IGNORECASE)),
+    (
+        "same as above",
+        re.compile(r"(?<![A-Za-z0-9_])same\s+as\s+above(?![A-Za-z0-9_])", re.IGNORECASE),
+    ),
+    (
+        "see above",
+        re.compile(r"(?<![A-Za-z0-9_])see\s+above(?![A-Za-z0-9_])", re.IGNORECASE),
+    ),
+    ("etc.", re.compile(r"(?<![A-Za-z0-9_])etc\.(?![A-Za-z0-9_])", re.IGNORECASE)),
+    ("ellipsis", re.compile(r"\.\.\.|…")),
+    (
+        "angle-placeholder",
+        re.compile(
+            r"<\s*[A-Za-z0-9_ -]*(?:placeholder|tbd|todo|insert|replace)[A-Za-z0-9_ -]*\s*>",
+            re.IGNORECASE,
+        ),
+    ),
+)
 
 
 def check_mep(
@@ -44,6 +81,7 @@ def check_mep(
     used_constructions: set[str] | None = None,
     zone_names: set[str] | None = None,
     geometry_idf: str = "",
+    testdata: dict | None = None,
     capability_profile: str = "rectangular",
 ) -> CheckReport:
     rep = CheckReport(stage="4_mep", capability_profile=capability_profile)
@@ -54,6 +92,9 @@ def check_mep(
         return rep  # fail-closed; nothing else can be trusted
     rep.add_pass("mep.idf_parse", CheckLayer.INVARIANT)
 
+    _placeholder_ban(rep, mep, idx)
+    _name_charset(rep, idx)
+    _site_matches_testdata(rep, mep, testdata)
     _construction_coverage(rep, idx, used_constructions)
     _construction_to_material(rep, idx)
     _schedule_type_refs(rep, idx)
@@ -68,6 +109,229 @@ def check_mep(
 
 def _material_names(idx: IdfFragmentIndex) -> set[str]:
     return idx.has_name(*_MATERIAL_TYPES)
+
+
+def _placeholder_ban(rep: CheckReport, mep: dict | object, idx: IdfFragmentIndex) -> None:
+    offenders = []
+    for obj in idx.objects:
+        for i, value in enumerate(obj.fields):
+            match = _placeholder_match(value)
+            if match:
+                offenders.append(
+                    {
+                        "surface": "parsed_idf_field",
+                        "object_type": obj.obj_type,
+                        "object": obj.name,
+                        "field_index": i,
+                        "token": match,
+                        "value": value,
+                    }
+                )
+    for path, value in _structured_string_values(mep):
+        match = _placeholder_match(value)
+        if match:
+            offenders.append(
+                {"surface": "structured_mep_field", "path": path, "token": match, "value": value}
+            )
+    evidence = {
+        "scanned_surface": (
+            "parsed IDF fragment field values plus structured building/site string fields"
+        ),
+        "guards": (
+            "case-insensitive token/phrase patterns use non-word boundaries; ellipsis "
+            "requires literal ... or …; angle placeholders require placeholder/tbd/todo/"
+            "insert/replace text inside <>"
+        ),
+    }
+    if offenders:
+        rep.add_fail(
+            "mep.placeholder_ban",
+            CheckLayer.INVARIANT,
+            f"{len(offenders)} MEP-authored field(s) contain placeholder/template prose",
+            evidence=evidence | {"offenders": offenders},
+        )
+    else:
+        rep.add_pass("mep.placeholder_ban", CheckLayer.INVARIANT, evidence=evidence)
+
+
+def _placeholder_match(value: object) -> str | None:
+    text = str(value or "")
+    for label, pattern in _PLACEHOLDER_PATTERNS:
+        if pattern.search(text):
+            return label
+    return None
+
+
+def _structured_string_values(mep: dict | object) -> list[tuple[str, str]]:
+    out: list[tuple[str, str]] = []
+    for parent_name in ("building", "site_location"):
+        parent = _get_value(mep, parent_name)
+        name = _get_value(parent, "name")
+        if isinstance(name, str):
+            out.append((f"{parent_name}.name", name))
+    return out
+
+
+def _get_value(obj: object, key: str) -> object:
+    if obj is None:
+        return None
+    if isinstance(obj, dict):
+        return obj.get(key)
+    return getattr(obj, key, None)
+
+
+def _name_charset(rep: CheckReport, idx: IdfFragmentIndex) -> None:
+    offenders = []
+    for obj in idx.of_type(*_NAME_CHARSET_TYPES):
+        if _NAME_CHARSET_RE.fullmatch(obj.name or ""):
+            continue
+        offenders.append(
+            {
+                "object_type": obj.obj_type,
+                "name": obj.name,
+                "illegal_chars": sorted({c for c in obj.name if not _name_char_allowed(c)}),
+            }
+        )
+    evidence = {
+        "allowed_charset": "letters, digits, underscore, hyphen, and space",
+        "allowed_pattern": r"^[A-Za-z0-9_ -]+$",
+        "scanned_object_types": sorted(set(_NAME_CHARSET_TYPES)),
+    }
+    if offenders:
+        rep.add_fail(
+            "mep.name_charset",
+            CheckLayer.CROSS_CHECK,
+            f"{len(offenders)} MEP-authored object name(s) contain non EP-safe characters",
+            evidence=evidence | {"offenders": offenders},
+        )
+    else:
+        rep.add_pass("mep.name_charset", CheckLayer.CROSS_CHECK, evidence=evidence)
+
+
+def _name_char_allowed(char: str) -> bool:
+    return char.isascii() and (char.isalnum() or char in {"_", "-", " "})
+
+
+def _site_matches_testdata(
+    rep: CheckReport, mep: dict | object, testdata: dict | None
+) -> None:
+    expected, schema_evidence = _extract_testdata_site(testdata)
+    evidence = {
+        **schema_evidence,
+        "tolerances": _SITE_FIELD_TOLERANCES,
+    }
+    if not expected:
+        rep.add(
+            "mep.site_matches_testdata",
+            CheckStatus.NOT_APPLICABLE,
+            CheckLayer.CROSS_CHECK,
+            message=(
+                "no comparable structured site fields in testdata "
+                "(latitude/longitude/time_zone/elevation)"
+            ),
+            evidence=evidence,
+        )
+        return
+
+    actual = _extract_mep_site(mep)
+    offenders = []
+    for field, expected_value in expected.items():
+        actual_value = actual.get(field)
+        if actual_value is None:
+            offenders.append({"field": field, "expected": expected_value, "actual": None})
+            continue
+        delta = abs(actual_value - expected_value)
+        tolerance = _SITE_FIELD_TOLERANCES[field]
+        if delta > tolerance:
+            offenders.append(
+                {
+                    "field": field,
+                    "expected": expected_value,
+                    "actual": actual_value,
+                    "delta": delta,
+                    "tolerance": tolerance,
+                }
+            )
+    evidence |= {
+        "comparison": "real",
+        "compared_fields": sorted(expected),
+    }
+    if offenders:
+        rep.add_fail(
+            "mep.site_matches_testdata",
+            CheckLayer.CROSS_CHECK,
+            f"{len(offenders)} MEP site field(s) differ from structured testdata",
+            evidence=evidence | {"offenders": offenders},
+        )
+    else:
+        rep.add_pass("mep.site_matches_testdata", CheckLayer.CROSS_CHECK, evidence=evidence)
+
+
+def _extract_testdata_site(testdata: dict | None) -> tuple[dict[str, float], dict]:
+    evidence = {
+        "testdata_schema": "none supplied",
+        "structured_site_fields": [],
+        "location_string_fields": [],
+    }
+    if not isinstance(testdata, dict):
+        return {}, evidence
+
+    candidates = [testdata]
+    for key in _TESTDATA_SITE_CONTAINERS:
+        value = testdata.get(key)
+        if isinstance(value, dict):
+            candidates.insert(0, value)
+
+    out: dict[str, float] = {}
+    for candidate in candidates:
+        for field, aliases in _SITE_FIELD_ALIASES.items():
+            if field in out:
+                continue
+            value = _first_numeric(candidate, aliases)
+            if value is not None:
+                out[field] = value
+
+    string_fields = [
+        key
+        for key in ("Building location", "building_location", "location", "Location")
+        if isinstance(testdata.get(key), str)
+    ]
+    evidence = {
+        "testdata_schema": (
+            "searched top-level keys and nested site/site_location objects for numeric "
+            "latitude/longitude/time_zone/elevation"
+        ),
+        "structured_site_fields": sorted(out),
+        "location_string_fields": string_fields,
+    }
+    return out, evidence
+
+
+def _extract_mep_site(mep: dict | object) -> dict[str, float]:
+    site = _get_value(mep, "site_location")
+    out: dict[str, float] = {}
+    for field, aliases in _SITE_FIELD_ALIASES.items():
+        value = _first_numeric(site, aliases)
+        if value is not None:
+            out[field] = value
+    return out
+
+
+def _first_numeric(obj: object, keys: tuple[str, ...]) -> float | None:
+    for key in keys:
+        value = _get_value(obj, key)
+        if value is None:
+            continue
+        if isinstance(value, bool):
+            continue
+        if isinstance(value, (int, float)):
+            return float(value)
+        if isinstance(value, str):
+            try:
+                return float(value.strip())
+            except ValueError:
+                continue
+    return None
 
 
 def _construction_coverage(
