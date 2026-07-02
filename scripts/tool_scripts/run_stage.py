@@ -398,14 +398,168 @@ def _source_images(case_dir: Path) -> list[str]:
     return out
 
 
+def _line_match_dict(m) -> dict:
+    return {"truth": m.truth, "read": m.read, "delta": m.delta}
+
+
+def _win_match_dict(m) -> dict:
+    return {"truth": list(m.truth), "read": list(m.read) if m.read else None,
+            "centre_delta": m.centre_delta}
+
+
+def _floor_score_dict(score) -> dict:
+    wh, wt = score.wall_hits()
+    winh, wint = score.window_hits()
+    return {
+        "floor": score.floor,
+        "wall_hits": wh,
+        "wall_total": wt,
+        "window_hits": winh,
+        "window_total": wint,
+        "max_wall_offset_m": score.max_wall_offset(),
+        "vwalls": [_line_match_dict(m) for m in score.vwalls],
+        "hwalls": [_line_match_dict(m) for m in score.hwalls],
+        "extra_vwalls": score.extra_vwalls,
+        "extra_hwalls": score.extra_hwalls,
+        "windows": {
+            facade: [_win_match_dict(m) for m in matches]
+            for facade, matches in score.windows.items()
+        },
+        "extra_windows": {
+            facade: [list(span) for span in spans]
+            for facade, spans in score.extra_windows.items()
+        },
+    }
+
+
+def _score_reading_attempt_output(output: dict, gt: dict):
+    from src.agent.judge.reading_score import floor_name_for_image, score_floor
+
+    scores = {}
+    evidence: list[dict] = []
+    for stem, view in sorted(output.items()):
+        if not isinstance(view, dict) or view.get("image_kind") not in (None, "plan"):
+            continue
+        floor_name = floor_name_for_image(stem, gt)
+        if floor_name is None:
+            evidence.append(
+                {"type": "unmatched_reading_view", "view": stem,
+                 "reason": "could not map view stem to gt floor"}
+            )
+            continue
+        scores[stem] = score_floor(view, gt, floor_name)
+    return scores, evidence, {}
+
+
+def _score_attempt_output(stage: str, output: dict, gt: dict):
+    from src.agent.judge.correction_score import score_correction_geometry
+    from src.agent.judge.score_policy import reading_score_criteria
+
+    if stage == "0_reading":
+        scores, evidence, floor_map = _score_reading_attempt_output(output, gt)
+    elif stage == "1_correction":
+        result = score_correction_geometry(output, gt)
+        scores, evidence, floor_map = result.scores, result.evidence, result.floor_map
+    else:
+        return None
+    return {
+        "scores": scores,
+        "evidence": evidence,
+        "floor_map": floor_map,
+        "score_criteria": reading_score_criteria(scores, extra_evidence=evidence),
+    }
+
+
+def _load_valid_score_sidecar(sidecar: Path, *, stage: str, attempt: int, output_hash: str) -> dict | None:
+    if not sidecar.exists():
+        return None
+    try:
+        data = json.loads(sidecar.read_text(encoding="utf-8"))
+    except json.JSONDecodeError:
+        return None
+    if (
+        data.get("stage") == stage
+        and data.get("attempt") == attempt
+        and data.get("output_hash") == output_hash
+        and data.get("source") == "attempt_output"
+    ):
+        return data
+    return None
+
+
+def _judge_gt_artifacts(stage: str, case: str, run_dir: Path, attempt_dir: Path, gt: dict) -> dict:
+    from src.agent.execution.manifest import attempt_index_of, hash_text
+
+    if stage not in {"0_reading", "1_correction"}:
+        return {"score_vs_gt": None, "overlay": None, "score_criteria": []}
+
+    manifest = RunManifest.load(run_dir)
+    rec = manifest.accepted(stage)
+    attempt = attempt_index_of(attempt_dir)
+    if rec is None or rec.accepted_attempt != attempt:
+        return {"score_vs_gt": None, "overlay": None, "score_criteria": []}
+
+    output_path = attempt_dir / "output.json"
+    output_text = output_path.read_text(encoding="utf-8")
+    if hash_text(output_text) != rec.output_hash:
+        raise RuntimeError(
+            f"{stage} attempt output hash does not match manifest accepted hash"
+        )
+
+    score_path = attempt_dir / "score_vs_gt.json"
+    sidecar = _load_valid_score_sidecar(
+        score_path, stage=stage, attempt=attempt, output_hash=rec.output_hash
+    )
+    if sidecar is None:
+        output = json.loads(output_text)
+        scored = _score_attempt_output(stage, output, gt)
+        if scored is None:
+            return {"score_vs_gt": None, "overlay": None, "score_criteria": []}
+        sidecar = {
+            "stage": stage,
+            "attempt": attempt,
+            "output_hash": rec.output_hash,
+            "source": "attempt_output",
+            "case": case,
+            "scores": {
+                key: _floor_score_dict(score)
+                for key, score in scored["scores"].items()
+            },
+            "floor_map": scored["floor_map"],
+            "evidence": scored["evidence"],
+            "score_criteria": scored["score_criteria"],
+        }
+        score_path.write_text(json.dumps(sidecar, indent=2, ensure_ascii=False), encoding="utf-8")
+
+    overlay_path = attempt_dir / "overlay.png"
+    if not overlay_path.exists():
+        sys.path.insert(0, str(_REPO_ROOT / "scripts" / "tool_scripts"))
+        import render_overlay
+
+        output = json.loads(output_text)
+        render_overlay.render_overlay_to_path(stage, output, gt, overlay_path)
+
+    return {
+        "score_vs_gt": str(score_path),
+        "overlay": str(overlay_path),
+        "score_criteria": sidecar.get("score_criteria", []),
+    }
+
+
 def _judge_packet(stage: str, case: str, case_dir: Path, run_dir: Path,
                   attempt_dir: Path, report: CheckReport) -> dict:
     # gt is judge-only — import it inside the judge path, never at module load.
-    from src.agent.judge.gt import gt_path, has_gt
+    from src.agent.judge.gt import gt_path, has_gt, load_gt
 
     reg = rubric_for(stage)
     rubric_id = reg[0] if reg else "none"
     renders = _render_stage(stage, run_dir, case_dir)
+    gt = load_gt(case) if has_gt(case) else None
+    gt_artifacts = (
+        _judge_gt_artifacts(stage, case, run_dir, attempt_dir, gt)
+        if gt is not None
+        else {"score_vs_gt": None, "overlay": None, "score_criteria": []}
+    )
     pkt = {
         "stage": stage,
         "rubric_id": rubric_id,
@@ -414,12 +568,18 @@ def _judge_packet(stage: str, case: str, case_dir: Path, run_dir: Path,
         "source_images": _source_images(case_dir),
         "renders": renders,
         "gt_path": str(gt_path(case)) if has_gt(case) else None,
+        "score_vs_gt": gt_artifacts["score_vs_gt"],
+        "score_criteria": gt_artifacts["score_criteria"],
+        "overlay": gt_artifacts["overlay"],
         "gate1": {
             "passed": report.passed,
             "flags": [f"{r.check_id}: {r.message}" for r in report.flagged()],
         },
         "note": "You are gate② judge. View the source images + renders (+ gt), then "
-                "write a StageVerdict JSON and submit it with `judge ... --verdict`.",
+                "write a StageVerdict JSON and submit it with `judge ... --verdict`. "
+                "score_criteria is machine-readable gt reconciliation evidence only; "
+                "StageVerdict remains the authoritative checklist decision. "
+                "Use the reconciliation first, images second; tolerances are relaxed.",
     }
     (attempt_dir / "judge_packet.json").write_text(
         json.dumps(pkt, indent=2, ensure_ascii=False), encoding="utf-8")
