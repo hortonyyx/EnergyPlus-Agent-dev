@@ -1,0 +1,28 @@
+{
+  "stage": "1_correction",
+  "capability_profile": "rectangular",
+  "run_profile": "exploratory",
+  "artifact_hash": null,
+  "attempt_hash": null,
+  "report_schema_version": "2.1",
+  "results": [
+    {
+      "check_id": "correction.evidence_debt_coverage",
+      "status": "fail",
+      "layer": "cross_check",
+      "check_version": "1",
+      "message": "1 view/global evidence debt item(s) were not mentioned in correction audit",
+      "evidence": {
+        "scope": "view_global",
+        "missing": [
+          {
+            "check_id": "East_view.reading.dimension_chain_closure",
+            "canonical_check_id": "reading.dimension_chain_closure",
+            "view": "East_view",
+            "message": "dimension chain evidence is missing, incomplete, or non-closing"
+          }
+        ]
+      }
+    }
+  ]
+}

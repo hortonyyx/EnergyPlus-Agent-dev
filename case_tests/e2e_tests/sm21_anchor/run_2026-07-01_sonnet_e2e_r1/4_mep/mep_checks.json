@@ -1,0 +1,230 @@
+{
+  "stage": "4_mep",
+  "capability_profile": "rectangular",
+  "run_profile": "exploratory",
+  "artifact_hash": null,
+  "attempt_hash": null,
+  "report_schema_version": "2.1",
+  "results": [
+    {
+      "check_id": "mep.idf_parse",
+      "status": "pass",
+      "layer": "invariant",
+      "check_version": "1",
+      "message": "",
+      "evidence": {}
+    },
+    {
+      "check_id": "mep.placeholder_ban",
+      "status": "pass",
+      "layer": "invariant",
+      "check_version": "1",
+      "message": "",
+      "evidence": {
+        "scanned_surface": "parsed IDF fragment field values plus structured building/site string fields",
+        "guards": "case-insensitive token/phrase patterns use non-word boundaries; ellipsis requires literal ... or …; angle placeholders require placeholder/tbd/todo/insert/replace text inside <>"
+      }
+    },
+    {
+      "check_id": "mep.name_charset",
+      "status": "pass",
+      "layer": "cross_check",
+      "check_version": "1",
+      "message": "",
+      "evidence": {
+        "allowed_charset": "letters, digits, underscore, hyphen, and space",
+        "allowed_pattern": "^[A-Za-z0-9_ -]+$",
+        "scanned_object_types": [
+          "CONSTRUCTION",
+          "MATERIAL",
+          "MATERIAL:AIRGAP",
+          "MATERIAL:INFRAREDTRANSPARENT",
+          "MATERIAL:NOMASS",
+          "SCHEDULE:COMPACT",
+          "SCHEDULETYPELIMITS",
+          "WINDOWMATERIAL:BLIND",
+          "WINDOWMATERIAL:GAS",
+          "WINDOWMATERIAL:GLAZING",
+          "WINDOWMATERIAL:SIMPLEGLAZINGSYSTEM"
+        ]
+      }
+    },
+    {
+      "check_id": "mep.site_matches_testdata",
+      "status": "not_applicable",
+      "layer": "cross_check",
+      "check_version": "1",
+      "message": "no comparable structured site fields in testdata (latitude/longitude/time_zone/elevation)",
+      "evidence": {
+        "testdata_schema": "searched top-level keys and nested site/site_location objects for numeric latitude/longitude/time_zone/elevation",
+        "structured_site_fields": [],
+        "location_string_fields": [
+          "Building location"
+        ],
+        "tolerances": {
+          "latitude": 0.01,
+          "longitude": 0.01,
+          "time_zone": 0.1,
+          "elevation": 1.0
+        }
+      }
+    },
+    {
+      "check_id": "mep.construction_coverage",
+      "status": "pass",
+      "layer": "invariant",
+      "check_version": "1",
+      "message": "",
+      "evidence": {
+        "used": 6
+      }
+    },
+    {
+      "check_id": "mep.construction_to_material",
+      "status": "pass",
+      "layer": "invariant",
+      "check_version": "1",
+      "message": "",
+      "evidence": {}
+    },
+    {
+      "check_id": "mep.schedule_type_refs",
+      "status": "pass",
+      "layer": "invariant",
+      "check_version": "1",
+      "message": "",
+      "evidence": {}
+    },
+    {
+      "check_id": "mep.schedule_completeness",
+      "status": "pass",
+      "layer": "invariant",
+      "check_version": "1",
+      "message": "",
+      "evidence": {}
+    },
+    {
+      "check_id": "mep.load_to_zone",
+      "status": "pass",
+      "layer": "invariant",
+      "check_version": "1",
+      "message": "",
+      "evidence": {}
+    },
+    {
+      "check_id": "mep.load_to_schedule",
+      "status": "fail",
+      "layer": "invariant",
+      "check_version": "1",
+      "message": "14 load schedule reference(s) are missing or undefined",
+      "evidence": {
+        "offenders": [
+          {
+            "object": "People_Z01_F1_Office_NW",
+            "activity_schedule_ref": "",
+            "reason": "missing"
+          },
+          {
+            "object": "People_Z02_F1_Office_N",
+            "activity_schedule_ref": "",
+            "reason": "missing"
+          },
+          {
+            "object": "People_Z03_F1_Office_NE",
+            "activity_schedule_ref": "",
+            "reason": "missing"
+          },
+          {
+            "object": "People_Z04_F1_Corridor_C",
+            "activity_schedule_ref": "",
+            "reason": "missing"
+          },
+          {
+            "object": "People_Z05_F1_Office_SW",
+            "activity_schedule_ref": "",
+            "reason": "missing"
+          },
+          {
+            "object": "People_Z06_F1_Office_S",
+            "activity_schedule_ref": "",
+            "reason": "missing"
+          },
+          {
+            "object": "People_Z07_F1_Restroom_SE",
+            "activity_schedule_ref": "",
+            "reason": "missing"
+          },
+          {
+            "object": "People_Z08_F2_Meeting_NW",
+            "activity_schedule_ref": "",
+            "reason": "missing"
+          },
+          {
+            "object": "People_Z09_F2_Meeting_NE",
+            "activity_schedule_ref": "",
+            "reason": "missing"
+          },
+          {
+            "object": "People_Z10_F2_Corridor_C",
+            "activity_schedule_ref": "",
+            "reason": "missing"
+          },
+          {
+            "object": "People_Z11_F2_Office_SW",
+            "activity_schedule_ref": "",
+            "reason": "missing"
+          },
+          {
+            "object": "People_Z12_F2_Office_SW",
+            "activity_schedule_ref": "",
+            "reason": "missing"
+          },
+          {
+            "object": "People_Z13_F2_Office_SE",
+            "activity_schedule_ref": "",
+            "reason": "missing"
+          },
+          {
+            "object": "People_Z14_F2_Office_SE",
+            "activity_schedule_ref": "",
+            "reason": "missing"
+          }
+        ]
+      }
+    },
+    {
+      "check_id": "mep.per_zone_coverage",
+      "status": "pass",
+      "layer": "cross_check",
+      "check_version": "1",
+      "message": "",
+      "evidence": {
+        "zones": 14
+      }
+    },
+    {
+      "check_id": "mep.simpleglazing_standalone",
+      "status": "pass",
+      "layer": "invariant",
+      "check_version": "1",
+      "message": "",
+      "evidence": {}
+    },
+    {
+      "check_id": "mep.nomass_positive_resistance",
+      "status": "pass",
+      "layer": "invariant",
+      "check_version": "1",
+      "message": "",
+      "evidence": {}
+    },
+    {
+      "check_id": "mep.reasonability_bands",
+      "status": "not_applicable",
+      "layer": "cross_check",
+      "check_version": "1",
+      "message": "reasonability bands deferred until MEP input is richer (§5.2)",
+      "evidence": {}
+    }
+  ]
+}

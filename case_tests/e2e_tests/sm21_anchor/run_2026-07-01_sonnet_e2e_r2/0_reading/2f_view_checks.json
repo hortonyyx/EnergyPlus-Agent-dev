@@ -1,0 +1,596 @@
+{
+  "stage": "0_reading",
+  "capability_profile": "rectangular",
+  "run_profile": "exploratory",
+  "artifact_hash": null,
+  "attempt_hash": null,
+  "report_schema_version": "2.1",
+  "results": [
+    {
+      "check_id": "reading.stroke_ids_unique",
+      "status": "pass",
+      "layer": "invariant",
+      "check_version": "1",
+      "message": "",
+      "evidence": {}
+    },
+    {
+      "check_id": "reading.dimension_ids_unique",
+      "status": "pass",
+      "layer": "invariant",
+      "check_version": "1",
+      "message": "",
+      "evidence": {}
+    },
+    {
+      "check_id": "reading.pen_kind_valid",
+      "status": "pass",
+      "layer": "invariant",
+      "check_version": "1",
+      "message": "",
+      "evidence": {}
+    },
+    {
+      "check_id": "reading.no_topology_fields",
+      "status": "pass",
+      "layer": "invariant",
+      "check_version": "1",
+      "message": "",
+      "evidence": {}
+    },
+    {
+      "check_id": "reading.nondegenerate_geometry",
+      "status": "pass",
+      "layer": "invariant",
+      "check_version": "1",
+      "message": "",
+      "evidence": {}
+    },
+    {
+      "check_id": "reading.dimension_parseable",
+      "status": "pass",
+      "layer": "invariant",
+      "check_version": "1",
+      "message": "",
+      "evidence": {}
+    },
+    {
+      "check_id": "reading.axis_endpoint_consistent",
+      "status": "pass",
+      "layer": "invariant",
+      "check_version": "1",
+      "message": "",
+      "evidence": {}
+    },
+    {
+      "check_id": "reading.facade_fields",
+      "status": "not_applicable",
+      "layer": "invariant",
+      "check_version": "1",
+      "message": "not an elevation",
+      "evidence": {}
+    },
+    {
+      "check_id": "reading.uncaptured_present",
+      "status": "pass",
+      "layer": "invariant",
+      "check_version": "1",
+      "message": "",
+      "evidence": {
+        "count": 6
+      }
+    },
+    {
+      "check_id": "reading.raw_field_presence",
+      "status": "pass",
+      "layer": "cross_check",
+      "check_version": "1",
+      "message": "",
+      "evidence": {
+        "dimensioned": true,
+        "raw_has_dimensions": true,
+        "raw_has_uncaptured": true,
+        "legacy_migrated": false
+      }
+    },
+    {
+      "check_id": "reading.dimensions_present",
+      "status": "pass",
+      "layer": "cross_check",
+      "check_version": "1",
+      "message": "",
+      "evidence": {
+        "dimensioned": true,
+        "raw_has_dimensions": true,
+        "raw_has_uncaptured": true,
+        "legacy_migrated": false,
+        "dimension_count": 31
+      }
+    },
+    {
+      "check_id": "reading.dimension_p1a_fields",
+      "status": "pass",
+      "layer": "cross_check",
+      "check_version": "1",
+      "message": "",
+      "evidence": {
+        "dimensioned": true,
+        "raw_has_dimensions": true,
+        "raw_has_uncaptured": true,
+        "legacy_migrated": false,
+        "dimension_count": 31
+      }
+    },
+    {
+      "check_id": "reading.dimension_chain_closure",
+      "status": "fail",
+      "layer": "cross_check",
+      "check_version": "1",
+      "message": "dimension chain evidence is missing, incomplete, or non-closing",
+      "evidence": {
+        "dimensioned": true,
+        "raw_has_dimensions": true,
+        "raw_has_uncaptured": true,
+        "legacy_migrated": false,
+        "missing_chain_id": [],
+        "missing_axis": [],
+        "incomplete": [
+          {
+            "chain_id": "C_top_overall",
+            "axis": "x",
+            "overall_count": 1,
+            "segment_count": 0,
+            "dimension_ids": [
+              "D_ov"
+            ]
+          },
+          {
+            "chain_id": "C_top_seg",
+            "axis": "x",
+            "overall_count": 0,
+            "segment_count": 6,
+            "dimension_ids": [
+              "D_top_W1_seg1",
+              "D_top_W1",
+              "D_top_gap1",
+              "D_top_gap2",
+              "D_top_W2",
+              "D_top_W2_seg2"
+            ]
+          },
+          {
+            "chain_id": "C_bot_overall",
+            "axis": "x",
+            "overall_count": 1,
+            "segment_count": 0,
+            "dimension_ids": [
+              "D_bot_ov"
+            ]
+          },
+          {
+            "chain_id": "C_bot_left",
+            "axis": "x",
+            "overall_count": 0,
+            "segment_count": 6,
+            "dimension_ids": [
+              "D_bot_left_W1_m",
+              "D_bot_left_W1",
+              "D_bot_left_jt1",
+              "D_bot_left_jt2",
+              "D_bot_left_W2",
+              "D_bot_left_m2"
+            ]
+          },
+          {
+            "chain_id": "C_bot_right",
+            "axis": "x",
+            "overall_count": 0,
+            "segment_count": 6,
+            "dimension_ids": [
+              "D_bot_right_m1",
+              "D_bot_right_W1",
+              "D_bot_right_jt1",
+              "D_bot_right_jt2",
+              "D_bot_right_W2",
+              "D_bot_right_m2"
+            ]
+          },
+          {
+            "chain_id": "C_left_overall",
+            "axis": "y",
+            "overall_count": 1,
+            "segment_count": 0,
+            "dimension_ids": [
+              "D_L1"
+            ]
+          },
+          {
+            "chain_id": "C_left_seg",
+            "axis": "y",
+            "overall_count": 0,
+            "segment_count": 5,
+            "dimension_ids": [
+              "D_L2",
+              "D_L3",
+              "D_L4",
+              "D_L5",
+              "D_L6"
+            ]
+          },
+          {
+            "chain_id": "C_right_seg",
+            "axis": "y",
+            "overall_count": 0,
+            "segment_count": 5,
+            "dimension_ids": [
+              "D_R1",
+              "D_R2",
+              "D_R3",
+              "D_R4",
+              "D_R5"
+            ]
+          }
+        ],
+        "mismatches": []
+      }
+    },
+    {
+      "check_id": "reading.dimension_derived_refs",
+      "status": "not_applicable",
+      "layer": "cross_check",
+      "check_version": "1",
+      "message": "no dimension_derived strokes",
+      "evidence": {
+        "dimensioned": true,
+        "raw_has_dimensions": true,
+        "raw_has_uncaptured": true,
+        "legacy_migrated": false,
+        "strokes_checked": 0
+      }
+    },
+    {
+      "check_id": "reading.stroke_provenance_coverage",
+      "status": "pass",
+      "layer": "cross_check",
+      "check_version": "1",
+      "message": "",
+      "evidence": {
+        "dimensioned": true,
+        "raw_has_dimensions": true,
+        "raw_has_uncaptured": true,
+        "legacy_migrated": false,
+        "provenance_mode": "full",
+        "structural_strokes": 18,
+        "with_provenance": 18
+      }
+    },
+    {
+      "check_id": "reading.partition_on_window_jamb",
+      "status": "pass",
+      "layer": "cross_check",
+      "check_version": "1",
+      "message": "",
+      "evidence": {
+        "tolerance_m": 0.2,
+        "window_jamb_count": 16
+      }
+    },
+    {
+      "check_id": "reading.stroke_dimension_consistency",
+      "status": "fail",
+      "layer": "cross_check",
+      "check_version": "1",
+      "message": "6 plan wall stroke coordinate(s) coincide with dimension-chain cumulative positions; verify each is a real room-bounding wall",
+      "evidence": {
+        "tolerance_m": 0.01,
+        "offenders": [
+          {
+            "stroke_id": "S5",
+            "axis": "y",
+            "coord_m": 3.0,
+            "matching_dimension_ids": [
+              "D_L2",
+              "D_L3"
+            ],
+            "matching_positions": [
+              {
+                "coord": 3.0,
+                "dimension_ids": [
+                  "D_L2"
+                ],
+                "chain_id": "C_left_seg"
+              },
+              {
+                "coord": 3.0,
+                "dimension_ids": [
+                  "D_L3"
+                ],
+                "chain_id": "C_left_seg"
+              }
+            ],
+            "joins_walls": {
+              "p1": true,
+              "p2": true,
+              "both_endpoints_join": true
+            },
+            "bounds_rooms_inferable": true
+          },
+          {
+            "stroke_id": "S6",
+            "axis": "y",
+            "coord_m": 5.0,
+            "matching_dimension_ids": [
+              "D_L2",
+              "D_L3",
+              "D_L4",
+              "D_L5",
+              "D_L6"
+            ],
+            "matching_positions": [
+              {
+                "coord": 5.0,
+                "dimension_ids": [
+                  "D_L5"
+                ],
+                "chain_id": "C_left_seg"
+              },
+              {
+                "coord": 5.0,
+                "dimension_ids": [
+                  "D_L2",
+                  "D_L3",
+                  "D_L4",
+                  "D_L5"
+                ],
+                "chain_id": "C_left_seg"
+              },
+              {
+                "coord": 5.0,
+                "dimension_ids": [
+                  "D_L6"
+                ],
+                "chain_id": "C_left_seg"
+              }
+            ],
+            "joins_walls": {
+              "p1": true,
+              "p2": true,
+              "both_endpoints_join": true
+            },
+            "bounds_rooms_inferable": true
+          },
+          {
+            "stroke_id": "S7",
+            "axis": "x",
+            "coord_m": 3.75,
+            "matching_dimension_ids": [
+              "D_bot_left_W1",
+              "D_bot_left_W1_m",
+              "D_bot_left_jt1",
+              "D_bot_left_jt2",
+              "D_bot_right_W1",
+              "D_bot_right_jt1",
+              "D_bot_right_m1"
+            ],
+            "matching_positions": [
+              {
+                "coord": 3.75,
+                "dimension_ids": [
+                  "D_bot_left_jt1"
+                ],
+                "chain_id": "C_bot_left"
+              },
+              {
+                "coord": 3.75,
+                "dimension_ids": [
+                  "D_bot_left_W1",
+                  "D_bot_left_W1_m",
+                  "D_bot_left_jt1"
+                ],
+                "chain_id": "C_bot_left"
+              },
+              {
+                "coord": 3.75,
+                "dimension_ids": [
+                  "D_bot_left_jt2"
+                ],
+                "chain_id": "C_bot_left"
+              },
+              {
+                "coord": 3.75,
+                "dimension_ids": [
+                  "D_bot_right_W1",
+                  "D_bot_right_jt1",
+                  "D_bot_right_m1"
+                ],
+                "chain_id": "C_bot_right"
+              }
+            ],
+            "joins_walls": {
+              "p1": true,
+              "p2": true,
+              "both_endpoints_join": true
+            },
+            "bounds_rooms_inferable": true
+          },
+          {
+            "stroke_id": "S8",
+            "axis": "x",
+            "coord_m": 7.5,
+            "matching_dimension_ids": [
+              "D_bot_left_W1",
+              "D_bot_left_W1_m",
+              "D_bot_left_W2",
+              "D_bot_left_jt1",
+              "D_bot_left_jt2",
+              "D_bot_left_m2",
+              "D_bot_right_W1",
+              "D_bot_right_W2",
+              "D_bot_right_jt1",
+              "D_bot_right_jt2",
+              "D_bot_right_m1",
+              "D_bot_right_m2"
+            ],
+            "matching_positions": [
+              {
+                "coord": 7.5,
+                "dimension_ids": [
+                  "D_bot_left_m2"
+                ],
+                "chain_id": "C_bot_left"
+              },
+              {
+                "coord": 7.5,
+                "dimension_ids": [
+                  "D_bot_left_W1",
+                  "D_bot_left_W1_m",
+                  "D_bot_left_W2",
+                  "D_bot_left_jt1",
+                  "D_bot_left_jt2",
+                  "D_bot_left_m2"
+                ],
+                "chain_id": "C_bot_left"
+              },
+              {
+                "coord": 7.5,
+                "dimension_ids": [
+                  "D_bot_right_m1"
+                ],
+                "chain_id": "C_bot_right"
+              },
+              {
+                "coord": 7.5,
+                "dimension_ids": [
+                  "D_bot_right_W1",
+                  "D_bot_right_W2",
+                  "D_bot_right_jt1",
+                  "D_bot_right_jt2",
+                  "D_bot_right_m1",
+                  "D_bot_right_m2"
+                ],
+                "chain_id": "C_bot_right"
+              }
+            ],
+            "joins_walls": {
+              "p1": true,
+              "p2": true,
+              "both_endpoints_join": true
+            },
+            "bounds_rooms_inferable": true
+          },
+          {
+            "stroke_id": "S9",
+            "axis": "x",
+            "coord_m": 11.25,
+            "matching_dimension_ids": [
+              "D_bot_right_jt1",
+              "D_bot_right_jt2"
+            ],
+            "matching_positions": [
+              {
+                "coord": 11.25,
+                "dimension_ids": [
+                  "D_bot_right_jt1"
+                ],
+                "chain_id": "C_bot_right"
+              },
+              {
+                "coord": 11.25,
+                "dimension_ids": [
+                  "D_bot_right_jt2"
+                ],
+                "chain_id": "C_bot_right"
+              }
+            ],
+            "joins_walls": {
+              "p1": true,
+              "p2": true,
+              "both_endpoints_join": true
+            },
+            "bounds_rooms_inferable": true
+          },
+          {
+            "stroke_id": "S10",
+            "axis": "x",
+            "coord_m": 7.5,
+            "matching_dimension_ids": [
+              "D_bot_left_W1",
+              "D_bot_left_W1_m",
+              "D_bot_left_W2",
+              "D_bot_left_jt1",
+              "D_bot_left_jt2",
+              "D_bot_left_m2",
+              "D_bot_right_W1",
+              "D_bot_right_W2",
+              "D_bot_right_jt1",
+              "D_bot_right_jt2",
+              "D_bot_right_m1",
+              "D_bot_right_m2"
+            ],
+            "matching_positions": [
+              {
+                "coord": 7.5,
+                "dimension_ids": [
+                  "D_bot_left_m2"
+                ],
+                "chain_id": "C_bot_left"
+              },
+              {
+                "coord": 7.5,
+                "dimension_ids": [
+                  "D_bot_left_W1",
+                  "D_bot_left_W1_m",
+                  "D_bot_left_W2",
+                  "D_bot_left_jt1",
+                  "D_bot_left_jt2",
+                  "D_bot_left_m2"
+                ],
+                "chain_id": "C_bot_left"
+              },
+              {
+                "coord": 7.5,
+                "dimension_ids": [
+                  "D_bot_right_m1"
+                ],
+                "chain_id": "C_bot_right"
+              },
+              {
+                "coord": 7.5,
+                "dimension_ids": [
+                  "D_bot_right_W1",
+                  "D_bot_right_W2",
+                  "D_bot_right_jt1",
+                  "D_bot_right_jt2",
+                  "D_bot_right_m1",
+                  "D_bot_right_m2"
+                ],
+                "chain_id": "C_bot_right"
+              }
+            ],
+            "joins_walls": {
+              "p1": true,
+              "p2": true,
+              "both_endpoints_join": true
+            },
+            "bounds_rooms_inferable": true
+          }
+        ]
+      }
+    },
+    {
+      "check_id": "reading.door_heal_traced",
+      "status": "pass",
+      "layer": "cross_check",
+      "check_version": "1",
+      "message": "",
+      "evidence": {
+        "healed_stroke_ids": [
+          "S5",
+          "S6",
+          "S10"
+        ],
+        "heal_traces": 3
+      }
+    }
+  ]
+}

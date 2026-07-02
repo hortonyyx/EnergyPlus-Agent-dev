@@ -1,0 +1,628 @@
+{
+  "image_label": "South elevation view",
+  "image_kind": "elevation",
+  "facade": {
+    "view_facade": "South",
+    "local_x_positive": "image_left_to_right",
+    "mirrored": "false",
+    "orientation_evidence": [
+      {"source": "image_name", "detail": "file named South_view.png", "confidence": "high"},
+      {"source": "metadata", "detail": "testdata_prompt.json lists South view path", "confidence": "high"}
+    ]
+  },
+
+  "strokes": [
+    {
+      "id": "S1",
+      "pen": "wall_fill",
+      "provenance": "seen",
+      "confidence": "high",
+      "dimension_refs": ["DS_left_F2"],
+      "geometry": {
+        "kind": "rect",
+        "x_range_m": [0.00, 15.00],
+        "y_range_m": [3.00, 6.60]
+      },
+      "note": "F2 wall fill (y=3.00 to 6.60); 4 windows overlay but do not fully break this fill"
+    },
+    {
+      "id": "S2",
+      "pen": "wall_fill",
+      "provenance": "seen",
+      "confidence": "high",
+      "dimension_refs": ["DS_left_F1"],
+      "geometry": {
+        "kind": "rect",
+        "x_range_m": [0.00, 15.00],
+        "y_range_m": [0.00, 3.00]
+      },
+      "note": "F1 wall fill (y=0.00 to 3.00); door opening at west end healed (door leaf + swing visible); windows overlay"
+    },
+    {
+      "id": "S3",
+      "pen": "window",
+      "provenance": "seen",
+      "confidence": "high",
+      "dimension_refs": ["DS_top_w1"],
+      "geometry": {
+        "kind": "rect",
+        "x_range_m": [2.19, 3.39],
+        "y_range_m": [4.00, 5.80]
+      },
+      "note": "South F2 window 1 (west-left); x from top chain: 2190 margin + 1200 window → 2.19 to 3.39; y: sill 1000mm above F2 floor (3.0+1.0=4.0) to 4.0+1.8=5.8"
+    },
+    {
+      "id": "S4",
+      "pen": "window",
+      "provenance": "seen",
+      "confidence": "high",
+      "dimension_refs": ["DS_top_w2"],
+      "geometry": {
+        "kind": "rect",
+        "x_range_m": [4.11, 5.31],
+        "y_range_m": [4.00, 5.80]
+      },
+      "note": "South F2 window 2 (west-right); x from top chain: 2190+1200+720=4110 to +1200=5310 → 4.11 to 5.31"
+    },
+    {
+      "id": "S5",
+      "pen": "window",
+      "provenance": "seen",
+      "confidence": "high",
+      "dimension_refs": ["DS_top_w3"],
+      "geometry": {
+        "kind": "rect",
+        "x_range_m": [9.69, 10.89],
+        "y_range_m": [4.00, 5.80]
+      },
+      "note": "South F2 window 3 (east-left); x from top chain: 2190+1200+720+1200+4380=9690 to +1200=10890 → 9.69 to 10.89"
+    },
+    {
+      "id": "S6",
+      "pen": "window",
+      "provenance": "seen",
+      "confidence": "high",
+      "dimension_refs": ["DS_top_w4"],
+      "geometry": {
+        "kind": "rect",
+        "x_range_m": [11.61, 12.81],
+        "y_range_m": [4.00, 5.80]
+      },
+      "note": "South F2 window 4 (east-right); x from top chain: +720+1200=11610 to +1200=12810 → 11.61 to 12.81"
+    },
+    {
+      "id": "S7",
+      "pen": "window",
+      "provenance": "seen",
+      "confidence": "medium",
+      "dimension_refs": ["DS_bottom_w1"],
+      "geometry": {
+        "kind": "rect",
+        "x_range_m": [3.44, 4.64],
+        "y_range_m": [1.50, 2.40]
+      },
+      "note": "South F1 small window; x from bottom chain: 3440+1200=4640 span → 3.44 to 4.64; y: left-inner chain F1 sub shows 1500 sill + 900 window + 600 head → y=1.50 to 2.40; medium confidence on exact x — the small window appears within this 1200mm span"
+    },
+    {
+      "id": "S8",
+      "pen": "window",
+      "provenance": "seen",
+      "confidence": "high",
+      "dimension_refs": ["DS_bottom_w2"],
+      "geometry": {
+        "kind": "rect",
+        "x_range_m": [6.30, 8.70],
+        "y_range_m": [1.50, 2.40]
+      },
+      "note": "South F1 window 2 (center-left large); x from bottom chain: 3440+1200+1660=6300 to +2400=8700 → 6.30 to 8.70"
+    },
+    {
+      "id": "S9",
+      "pen": "window",
+      "provenance": "seen",
+      "confidence": "high",
+      "dimension_refs": ["DS_bottom_w3"],
+      "geometry": {
+        "kind": "rect",
+        "x_range_m": [11.36, 13.76],
+        "y_range_m": [1.50, 2.40]
+      },
+      "note": "South F1 window 3 (east large); x from bottom chain: 6300+2400+2660=11360 to +2400=13760 → 11.36 to 13.76"
+    }
+  ],
+
+  "dimensions": [
+    {
+      "id": "DS1",
+      "text_verbatim": "15000",
+      "value_m": 15.00,
+      "from": [0.00, 6.60],
+      "to": [15.00, 6.60],
+      "axis": "x",
+      "chain_id": "CS_top_overall",
+      "role": "overall",
+      "order": 0,
+      "anchor": null,
+      "note": "top overall width"
+    },
+    {
+      "id": "DS2",
+      "text_verbatim": "2190",
+      "value_m": 2.19,
+      "from": [0.00, 6.60],
+      "to": [2.19, 6.60],
+      "axis": "x",
+      "chain_id": "CS_top_detail",
+      "role": "segment",
+      "order": 1,
+      "anchor": null,
+      "note": "top chain seg1: west margin"
+    },
+    {
+      "id": "DS3",
+      "text_verbatim": "1200",
+      "value_m": 1.20,
+      "from": [2.19, 6.60],
+      "to": [3.39, 6.60],
+      "axis": "x",
+      "chain_id": "CS_top_detail",
+      "role": "segment",
+      "order": 2,
+      "anchor": null,
+      "note": "top chain seg2: F2 window 1 width"
+    },
+    {
+      "id": "DS4",
+      "text_verbatim": "720",
+      "value_m": 0.72,
+      "from": [3.39, 6.60],
+      "to": [4.11, 6.60],
+      "axis": "x",
+      "chain_id": "CS_top_detail",
+      "role": "segment",
+      "order": 3,
+      "anchor": null,
+      "note": "top chain seg3: pier between F2 window pair 1"
+    },
+    {
+      "id": "DS5",
+      "text_verbatim": "1200",
+      "value_m": 1.20,
+      "from": [4.11, 6.60],
+      "to": [5.31, 6.60],
+      "axis": "x",
+      "chain_id": "CS_top_detail",
+      "role": "segment",
+      "order": 4,
+      "anchor": null,
+      "note": "top chain seg4: F2 window 2 width"
+    },
+    {
+      "id": "DS6",
+      "text_verbatim": "4380",
+      "value_m": 4.38,
+      "from": [5.31, 6.60],
+      "to": [9.69, 6.60],
+      "axis": "x",
+      "chain_id": "CS_top_detail",
+      "role": "segment",
+      "order": 5,
+      "anchor": null,
+      "note": "top chain seg5: center solid wall between window pairs"
+    },
+    {
+      "id": "DS7",
+      "text_verbatim": "1200",
+      "value_m": 1.20,
+      "from": [9.69, 6.60],
+      "to": [10.89, 6.60],
+      "axis": "x",
+      "chain_id": "CS_top_detail",
+      "role": "segment",
+      "order": 6,
+      "anchor": null,
+      "note": "top chain seg6: F2 window 3 width"
+    },
+    {
+      "id": "DS8",
+      "text_verbatim": "720",
+      "value_m": 0.72,
+      "from": [10.89, 6.60],
+      "to": [11.61, 6.60],
+      "axis": "x",
+      "chain_id": "CS_top_detail",
+      "role": "segment",
+      "order": 7,
+      "anchor": null,
+      "note": "top chain seg7: pier between F2 window pair 2"
+    },
+    {
+      "id": "DS9",
+      "text_verbatim": "1200",
+      "value_m": 1.20,
+      "from": [11.61, 6.60],
+      "to": [12.81, 6.60],
+      "axis": "x",
+      "chain_id": "CS_top_detail",
+      "role": "segment",
+      "order": 8,
+      "anchor": null,
+      "note": "top chain seg8: F2 window 4 width"
+    },
+    {
+      "id": "DS10",
+      "text_verbatim": "2190",
+      "value_m": 2.19,
+      "from": [12.81, 6.60],
+      "to": [15.00, 6.60],
+      "axis": "x",
+      "chain_id": "CS_top_detail",
+      "role": "segment",
+      "order": 9,
+      "anchor": null,
+      "note": "top chain seg9: east margin; sum 2190+1200+720+1200+4380+1200+720+1200+2190=15000 ✓"
+    },
+    {
+      "id": "DS11",
+      "text_verbatim": "15000",
+      "value_m": 15.00,
+      "from": [0.00, 0.00],
+      "to": [15.00, 0.00],
+      "axis": "x",
+      "chain_id": "CS_bottom_overall",
+      "role": "overall",
+      "order": 0,
+      "anchor": null,
+      "note": "bottom overall width"
+    },
+    {
+      "id": "DS12",
+      "text_verbatim": "3440",
+      "value_m": 3.44,
+      "from": [0.00, 0.00],
+      "to": [3.44, 0.00],
+      "axis": "x",
+      "chain_id": "CS_bottom_detail",
+      "role": "segment",
+      "order": 1,
+      "anchor": null,
+      "note": "bottom chain seg1: west solid section (includes door opening, healed in wall_fill S2)"
+    },
+    {
+      "id": "DS13",
+      "text_verbatim": "1200",
+      "value_m": 1.20,
+      "from": [3.44, 0.00],
+      "to": [4.64, 0.00],
+      "axis": "x",
+      "chain_id": "CS_bottom_detail",
+      "role": "segment",
+      "order": 2,
+      "anchor": null,
+      "note": "bottom chain seg2: small window span (1200mm)"
+    },
+    {
+      "id": "DS14",
+      "text_verbatim": "1660",
+      "value_m": 1.66,
+      "from": [4.64, 0.00],
+      "to": [6.30, 0.00],
+      "axis": "x",
+      "chain_id": "CS_bottom_detail",
+      "role": "segment",
+      "order": 3,
+      "anchor": null,
+      "note": "bottom chain seg3: solid pier"
+    },
+    {
+      "id": "DS15",
+      "text_verbatim": "2400",
+      "value_m": 2.40,
+      "from": [6.30, 0.00],
+      "to": [8.70, 0.00],
+      "axis": "x",
+      "chain_id": "CS_bottom_detail",
+      "role": "segment",
+      "order": 4,
+      "anchor": null,
+      "note": "bottom chain seg4: F1 window 2 width (large center)"
+    },
+    {
+      "id": "DS16",
+      "text_verbatim": "2660",
+      "value_m": 2.66,
+      "from": [8.70, 0.00],
+      "to": [11.36, 0.00],
+      "axis": "x",
+      "chain_id": "CS_bottom_detail",
+      "role": "segment",
+      "order": 5,
+      "anchor": null,
+      "note": "bottom chain seg5: solid pier"
+    },
+    {
+      "id": "DS17",
+      "text_verbatim": "2400",
+      "value_m": 2.40,
+      "from": [11.36, 0.00],
+      "to": [13.76, 0.00],
+      "axis": "x",
+      "chain_id": "CS_bottom_detail",
+      "role": "segment",
+      "order": 6,
+      "anchor": null,
+      "note": "bottom chain seg6: F1 window 3 width (east large)"
+    },
+    {
+      "id": "DS18",
+      "text_verbatim": "1240",
+      "value_m": 1.24,
+      "from": [13.76, 0.00],
+      "to": [15.00, 0.00],
+      "axis": "x",
+      "chain_id": "CS_bottom_detail",
+      "role": "segment",
+      "order": 7,
+      "anchor": null,
+      "note": "bottom chain seg7: east margin; sum 3440+1200+1660+2400+2660+2400+1240=15000 ✓"
+    },
+    {
+      "id": "DS19",
+      "text_verbatim": "6600",
+      "value_m": 6.60,
+      "from": [0.00, 0.00],
+      "to": [0.00, 6.60],
+      "axis": "z",
+      "chain_id": "CS_left_outer",
+      "role": "overall",
+      "order": 0,
+      "anchor": null,
+      "note": "left outer overall height"
+    },
+    {
+      "id": "DS20",
+      "text_verbatim": "3600",
+      "value_m": 3.60,
+      "from": [0.00, 3.00],
+      "to": [0.00, 6.60],
+      "axis": "z",
+      "chain_id": "CS_left_outer",
+      "role": "segment",
+      "order": 1,
+      "anchor": null,
+      "note": "left outer: F2 height 3600mm"
+    },
+    {
+      "id": "DS21",
+      "text_verbatim": "3000",
+      "value_m": 3.00,
+      "from": [0.00, 0.00],
+      "to": [0.00, 3.00],
+      "axis": "z",
+      "chain_id": "CS_left_outer",
+      "role": "segment",
+      "order": 2,
+      "anchor": null,
+      "note": "left outer: F1 height 3000mm"
+    },
+    {
+      "id": "DS22",
+      "text_verbatim": "800",
+      "value_m": 0.80,
+      "from": [0.00, 5.80],
+      "to": [0.00, 6.60],
+      "axis": "z",
+      "chain_id": "CS_left_inner",
+      "role": "segment",
+      "order": 1,
+      "anchor": null,
+      "note": "left inner (top to bottom): parapet above F2 windows"
+    },
+    {
+      "id": "DS23",
+      "text_verbatim": "1800",
+      "value_m": 1.80,
+      "from": [0.00, 4.00],
+      "to": [0.00, 5.80],
+      "axis": "z",
+      "chain_id": "CS_left_inner",
+      "role": "segment",
+      "order": 2,
+      "anchor": null,
+      "note": "left inner: F2 window height 1800mm"
+    },
+    {
+      "id": "DS24",
+      "text_verbatim": "1000",
+      "value_m": 1.00,
+      "from": [0.00, 3.00],
+      "to": [0.00, 4.00],
+      "axis": "z",
+      "chain_id": "CS_left_inner",
+      "role": "segment",
+      "order": 3,
+      "anchor": null,
+      "note": "left inner: sill at base of F2 windows (1000mm above F2 floor = 3.0+1.0=4.0)"
+    },
+    {
+      "id": "DS25",
+      "text_verbatim": "600",
+      "value_m": 0.60,
+      "from": [0.00, 2.40],
+      "to": [0.00, 3.00],
+      "axis": "z",
+      "chain_id": "CS_left_inner",
+      "role": "segment",
+      "order": 4,
+      "anchor": null,
+      "note": "left inner F1 sub (top to bottom): head clearance above F1 windows"
+    },
+    {
+      "id": "DS26",
+      "text_verbatim": "900",
+      "value_m": 0.90,
+      "from": [0.00, 1.50],
+      "to": [0.00, 2.40],
+      "axis": "z",
+      "chain_id": "CS_left_inner",
+      "role": "segment",
+      "order": 5,
+      "anchor": null,
+      "note": "left inner F1: window height 900mm"
+    },
+    {
+      "id": "DS27",
+      "text_verbatim": "1500",
+      "value_m": 1.50,
+      "from": [0.00, 0.00],
+      "to": [0.00, 1.50],
+      "axis": "z",
+      "chain_id": "CS_left_inner",
+      "role": "segment",
+      "order": 6,
+      "anchor": null,
+      "note": "left inner F1: sill height from ground = 1500mm; sum F2: 800+1800+1000=3600 ✓; F1: 600+900+1500=3000 ✓"
+    },
+    {
+      "id": "DS28",
+      "text_verbatim": "6600",
+      "value_m": 6.60,
+      "from": [15.00, 0.00],
+      "to": [15.00, 6.60],
+      "axis": "z",
+      "chain_id": "CS_right_outer",
+      "role": "overall",
+      "order": 0,
+      "anchor": null,
+      "note": "right outer overall height"
+    },
+    {
+      "id": "DS29",
+      "text_verbatim": "3600",
+      "value_m": 3.60,
+      "from": [15.00, 3.00],
+      "to": [15.00, 6.60],
+      "axis": "z",
+      "chain_id": "CS_right_outer",
+      "role": "segment",
+      "order": 1,
+      "anchor": null,
+      "note": "right outer: F2 height"
+    },
+    {
+      "id": "DS30",
+      "text_verbatim": "3000",
+      "value_m": 3.00,
+      "from": [15.00, 0.00],
+      "to": [15.00, 3.00],
+      "axis": "z",
+      "chain_id": "CS_right_outer",
+      "role": "segment",
+      "order": 2,
+      "anchor": null,
+      "note": "right outer: F1 height"
+    },
+    {
+      "id": "DS31",
+      "text_verbatim": "800",
+      "value_m": 0.80,
+      "from": [15.00, 5.80],
+      "to": [15.00, 6.60],
+      "axis": "z",
+      "chain_id": "CS_right_inner",
+      "role": "segment",
+      "order": 1,
+      "anchor": null,
+      "note": "right inner (top to bottom): F2 parapet 800mm"
+    },
+    {
+      "id": "DS32",
+      "text_verbatim": "1800",
+      "value_m": 1.80,
+      "from": [15.00, 4.00],
+      "to": [15.00, 5.80],
+      "axis": "z",
+      "chain_id": "CS_right_inner",
+      "role": "segment",
+      "order": 2,
+      "anchor": null,
+      "note": "right inner: F2 window height 1800mm"
+    },
+    {
+      "id": "DS33",
+      "text_verbatim": "400",
+      "value_m": 0.40,
+      "from": [15.00, 3.60],
+      "to": [15.00, 4.00],
+      "axis": "z",
+      "chain_id": "CS_right_inner",
+      "role": "segment",
+      "order": 3,
+      "anchor": null,
+      "note": "right inner: spandrel below F2 window (400mm)"
+    },
+    {
+      "id": "DS34",
+      "text_verbatim": "1000",
+      "value_m": 1.00,
+      "from": [15.00, 2.60],
+      "to": [15.00, 3.60],
+      "axis": "z",
+      "chain_id": "CS_right_inner",
+      "role": "segment",
+      "order": 4,
+      "anchor": null,
+      "note": "right inner F1: head clearance / spandrel at F1 top"
+    },
+    {
+      "id": "DS35",
+      "text_verbatim": "1600",
+      "value_m": 1.60,
+      "from": [15.00, 1.00],
+      "to": [15.00, 2.60],
+      "axis": "z",
+      "chain_id": "CS_right_inner",
+      "role": "segment",
+      "order": 5,
+      "anchor": null,
+      "note": "right inner F1: window height 1600mm (different from left inner 900mm — right inner may show east facade or different window series)"
+    },
+    {
+      "id": "DS36",
+      "text_verbatim": "1000",
+      "value_m": 1.00,
+      "from": [15.00, 0.00],
+      "to": [15.00, 1.00],
+      "axis": "z",
+      "chain_id": "CS_right_inner",
+      "role": "segment",
+      "order": 6,
+      "anchor": null,
+      "note": "right inner F1: sill from ground 1000mm; NOTE: right inner F1 sub = 1000+1600+1000=3600 ≠ 3000 — discrepancy: may be annotation for east facade window (3000+600 spandrel range), not south F1; transcribed verbatim"
+    }
+  ],
+
+  "ocr_texts": [],
+
+  "uncaptured": [
+    "South F1: door in west area of south facade (double door with leaf and frame visible at approximately x=0.24 to 1.14); recognized as door, healed in wall_fill S2; door leaf extends floor height",
+    "healed door opening at S2 south F1 wall fill, approximately x≈0.24 to 1.14 (door leaf and frame visible in elevation)",
+    "South elevation: right-side inner chain (800+1800+400+1000+1600+1000=6600) differs from left inner (800+1800+1000+600+900+1500=6600) — right inner may annotate east facade windows cross-referenced in south elevation; left inner is authoritative for south F1 window heights",
+    "South elevation: no decorative elements / canopy visible beyond door/window frames",
+    "South elevation: outline coincides with wall_fill edges — not drawn separately"
+  ],
+
+  "self_check": {
+    "all_dimensions_transcribed": true,
+    "all_visible_strokes_captured": true,
+    "no_topology_inferred": true,
+    "pens_used": ["wall_fill", "window"],
+    "unknowns_noted": [
+      "South F1 windows: left-inner chain gives height 900mm and sill 1500mm → y=[1.50, 2.40]; right inner gives different numbers — left inner used for south facade",
+      "South F1 small window (S7): position within 1200mm bottom-chain span at x=3.44 to 4.64; medium confidence on exact position within that span",
+      "Door in south F1 is within the 3440mm bottom-chain seg1 (x=0 to 3.44); exact door x position not dimensioned in bottom chain — estimated at x≈0.24 to 1.14 from visual",
+      "Right-side inner chain discrepancy: sum 1000+1600+1000=3600 vs expected F1=3000; this may be a cross-reference to east facade; flagged",
+      "F2 window y-range uses left inner chain: 1000mm sill above F2 floor (y=3.0+1.0=4.0), 1800mm height (y=5.8)"
+    ]
+  }
+}

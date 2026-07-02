@@ -1,0 +1,350 @@
+{
+  "stage": "0_reading",
+  "capability_profile": "rectangular",
+  "run_profile": "exploratory",
+  "artifact_hash": null,
+  "attempt_hash": null,
+  "report_schema_version": "2.1",
+  "results": [
+    {
+      "check_id": "reading.stroke_ids_unique",
+      "status": "pass",
+      "layer": "invariant",
+      "check_version": "1",
+      "message": "",
+      "evidence": {}
+    },
+    {
+      "check_id": "reading.dimension_ids_unique",
+      "status": "pass",
+      "layer": "invariant",
+      "check_version": "1",
+      "message": "",
+      "evidence": {}
+    },
+    {
+      "check_id": "reading.pen_kind_valid",
+      "status": "pass",
+      "layer": "invariant",
+      "check_version": "1",
+      "message": "",
+      "evidence": {}
+    },
+    {
+      "check_id": "reading.no_topology_fields",
+      "status": "pass",
+      "layer": "invariant",
+      "check_version": "1",
+      "message": "",
+      "evidence": {}
+    },
+    {
+      "check_id": "reading.nondegenerate_geometry",
+      "status": "pass",
+      "layer": "invariant",
+      "check_version": "1",
+      "message": "",
+      "evidence": {}
+    },
+    {
+      "check_id": "reading.dimension_parseable",
+      "status": "pass",
+      "layer": "invariant",
+      "check_version": "1",
+      "message": "",
+      "evidence": {}
+    },
+    {
+      "check_id": "reading.axis_endpoint_consistent",
+      "status": "pass",
+      "layer": "invariant",
+      "check_version": "1",
+      "message": "",
+      "evidence": {}
+    },
+    {
+      "check_id": "reading.facade_fields",
+      "status": "not_applicable",
+      "layer": "invariant",
+      "check_version": "1",
+      "message": "not an elevation",
+      "evidence": {}
+    },
+    {
+      "check_id": "reading.uncaptured_present",
+      "status": "pass",
+      "layer": "invariant",
+      "check_version": "1",
+      "message": "",
+      "evidence": {
+        "count": 8
+      }
+    },
+    {
+      "check_id": "reading.raw_field_presence",
+      "status": "pass",
+      "layer": "cross_check",
+      "check_version": "1",
+      "message": "",
+      "evidence": {
+        "dimensioned": true,
+        "raw_has_dimensions": true,
+        "raw_has_uncaptured": true,
+        "legacy_migrated": false
+      }
+    },
+    {
+      "check_id": "reading.dimensions_present",
+      "status": "pass",
+      "layer": "cross_check",
+      "check_version": "1",
+      "message": "",
+      "evidence": {
+        "dimensioned": true,
+        "raw_has_dimensions": true,
+        "raw_has_uncaptured": true,
+        "legacy_migrated": false,
+        "dimension_count": 32
+      }
+    },
+    {
+      "check_id": "reading.dimension_p1a_fields",
+      "status": "pass",
+      "layer": "cross_check",
+      "check_version": "1",
+      "message": "",
+      "evidence": {
+        "dimensioned": true,
+        "raw_has_dimensions": true,
+        "raw_has_uncaptured": true,
+        "legacy_migrated": false,
+        "dimension_count": 32
+      }
+    },
+    {
+      "check_id": "reading.dimension_chain_closure",
+      "status": "fail",
+      "layer": "cross_check",
+      "check_version": "1",
+      "message": "dimension chain evidence is missing, incomplete, or non-closing",
+      "evidence": {
+        "dimensioned": true,
+        "raw_has_dimensions": true,
+        "raw_has_uncaptured": true,
+        "legacy_migrated": false,
+        "missing_chain_id": [],
+        "missing_axis": [],
+        "incomplete": [
+          {
+            "chain_id": "C_top_overall_2f",
+            "axis": "x",
+            "overall_count": 1,
+            "segment_count": 0,
+            "dimension_ids": [
+              "D2f_1"
+            ]
+          },
+          {
+            "chain_id": "C_top_detail_2f",
+            "axis": "x",
+            "overall_count": 0,
+            "segment_count": 6,
+            "dimension_ids": [
+              "D2f_2",
+              "D2f_3",
+              "D2f_4",
+              "D2f_5",
+              "D2f_6",
+              "D2f_7"
+            ]
+          },
+          {
+            "chain_id": "C_bottom_detail_2f",
+            "axis": "x",
+            "overall_count": 0,
+            "segment_count": 12,
+            "dimension_ids": [
+              "D2f_8",
+              "D2f_9",
+              "D2f_10",
+              "D2f_11",
+              "D2f_12",
+              "D2f_13",
+              "D2f_14",
+              "D2f_15",
+              "D2f_16",
+              "D2f_17",
+              "D2f_18",
+              "D2f_19"
+            ]
+          },
+          {
+            "chain_id": "C_left_overall_2f",
+            "axis": "y",
+            "overall_count": 1,
+            "segment_count": 0,
+            "dimension_ids": [
+              "D2f_20"
+            ]
+          },
+          {
+            "chain_id": "C_left_detail_2f",
+            "axis": "y",
+            "overall_count": 0,
+            "segment_count": 5,
+            "dimension_ids": [
+              "D2f_21",
+              "D2f_22",
+              "D2f_23",
+              "D2f_24",
+              "D2f_25"
+            ]
+          },
+          {
+            "chain_id": "C_right_detail_2f",
+            "axis": "y",
+            "overall_count": 0,
+            "segment_count": 5,
+            "dimension_ids": [
+              "D2f_26",
+              "D2f_27",
+              "D2f_28",
+              "D2f_29",
+              "D2f_30"
+            ]
+          },
+          {
+            "chain_id": "C_interior_annot_2f",
+            "axis": "x",
+            "overall_count": 0,
+            "segment_count": 2,
+            "dimension_ids": [
+              "D2f_31",
+              "D2f_32"
+            ]
+          }
+        ],
+        "mismatches": []
+      }
+    },
+    {
+      "check_id": "reading.dimension_derived_refs",
+      "status": "fail",
+      "layer": "cross_check",
+      "check_version": "1",
+      "message": "6 dimension_derived stroke(s) have empty or unresolved dimension_refs",
+      "evidence": {
+        "dimensioned": true,
+        "raw_has_dimensions": true,
+        "raw_has_uncaptured": true,
+        "legacy_migrated": false,
+        "strokes_checked": 6,
+        "offenders": [
+          {
+            "stroke_id": "S5",
+            "dimension_refs": [
+              "D_left_seg1_2f"
+            ],
+            "missing_refs": [
+              "D_left_seg1_2f"
+            ]
+          },
+          {
+            "stroke_id": "S6",
+            "dimension_refs": [
+              "D_left_seg_top_2f"
+            ],
+            "missing_refs": [
+              "D_left_seg_top_2f"
+            ]
+          },
+          {
+            "stroke_id": "S7",
+            "dimension_refs": [
+              "D_top_center_2f"
+            ],
+            "missing_refs": [
+              "D_top_center_2f"
+            ]
+          },
+          {
+            "stroke_id": "S8",
+            "dimension_refs": [
+              "D_bottom_left_wall_2f"
+            ],
+            "missing_refs": [
+              "D_bottom_left_wall_2f"
+            ]
+          },
+          {
+            "stroke_id": "S9",
+            "dimension_refs": [
+              "D_bottom_center_2f"
+            ],
+            "missing_refs": [
+              "D_bottom_center_2f"
+            ]
+          },
+          {
+            "stroke_id": "S10",
+            "dimension_refs": [
+              "D_bottom_right_wall_2f"
+            ],
+            "missing_refs": [
+              "D_bottom_right_wall_2f"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "check_id": "reading.stroke_provenance_coverage",
+      "status": "pass",
+      "layer": "cross_check",
+      "check_version": "1",
+      "message": "",
+      "evidence": {
+        "dimensioned": true,
+        "raw_has_dimensions": true,
+        "raw_has_uncaptured": true,
+        "legacy_migrated": false,
+        "provenance_mode": "full",
+        "structural_strokes": 16,
+        "with_provenance": 16
+      }
+    },
+    {
+      "check_id": "reading.partition_on_window_jamb",
+      "status": "pass",
+      "layer": "cross_check",
+      "check_version": "1",
+      "message": "",
+      "evidence": {
+        "tolerance_m": 0.2,
+        "window_jamb_count": 12
+      }
+    },
+    {
+      "check_id": "reading.stroke_dimension_consistency",
+      "status": "pass",
+      "layer": "cross_check",
+      "check_version": "1",
+      "message": "",
+      "evidence": {
+        "tolerance_m": 0.01,
+        "axes_with_chains": [
+          "x",
+          "y"
+        ]
+      }
+    },
+    {
+      "check_id": "reading.door_heal_traced",
+      "status": "not_applicable",
+      "layer": "cross_check",
+      "check_version": "1",
+      "message": "no healed door openings",
+      "evidence": {}
+    }
+  ]
+}

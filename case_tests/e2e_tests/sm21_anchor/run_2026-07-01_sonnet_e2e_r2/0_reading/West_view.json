@@ -1,0 +1,274 @@
+{
+  "image_label": "West view",
+  "image_kind": "elevation",
+  "facade": {
+    "view_facade": "West",
+    "local_x_positive": "image_left_to_right",
+    "mirrored": "false",
+    "orientation_evidence": [
+      {"source": "image_name", "detail": "file named West_view.png", "confidence": "high"}
+    ]
+  },
+
+  "strokes": [
+    {
+      "id": "S1",
+      "pen": "wall_fill",
+      "provenance": "seen",
+      "confidence": "high",
+      "dimension_refs": ["D_v_F1", "D_h_overall"],
+      "geometry": {
+        "kind": "rect",
+        "x_range_m": [0.00, 8.00],
+        "y_range_m": [0.00, 3.00]
+      },
+      "note": "floor 1 wall body fill; door opening at x≈[3.40, 4.60] (door recognized and logged, not drawn)"
+    },
+    {
+      "id": "S2",
+      "pen": "wall_fill",
+      "provenance": "seen",
+      "confidence": "high",
+      "dimension_refs": ["D_v_F2", "D_h_overall"],
+      "geometry": {
+        "kind": "rect",
+        "x_range_m": [0.00, 8.00],
+        "y_range_m": [3.00, 6.60]
+      },
+      "note": "floor 2 wall body fill; window W1 is a sub-opening"
+    },
+    {
+      "id": "S3",
+      "pen": "window",
+      "provenance": "seen",
+      "confidence": "high",
+      "dimension_refs": ["D_top_seg1", "D_top_seg2", "D_v_F2_sill", "D_v_F2_ht"],
+      "geometry": {
+        "kind": "rect",
+        "x_range_m": [3.40, 4.60],
+        "y_range_m": [4.00, 5.80]
+      },
+      "note": "West F2 window W1; width=1200mm centered at x=[3.40, 4.60]; sill=1000mm above F2 floor (y=3.0+1.0=4.0), height=1800mm (y=4.0 to 5.8)"
+    }
+  ],
+
+  "dimensions": [
+    {
+      "id": "D_h_overall",
+      "text_verbatim": "8000",
+      "value_m": 8.00,
+      "from": [0.00, 6.60],
+      "to": [8.00, 6.60],
+      "axis": "x",
+      "chain_id": "C_top_overall",
+      "role": "overall",
+      "order": 0,
+      "anchor": null,
+      "note": "top overall width; also repeated at bottom"
+    },
+    {
+      "id": "D_top_seg1",
+      "text_verbatim": "3400",
+      "value_m": 3.40,
+      "from": [0.00, 6.60],
+      "to": [3.40, 6.60],
+      "axis": "x",
+      "chain_id": "C_top_seg",
+      "role": "segment",
+      "order": 1,
+      "anchor": null,
+      "note": "left margin to window/door centerline"
+    },
+    {
+      "id": "D_top_seg2",
+      "text_verbatim": "1200",
+      "value_m": 1.20,
+      "from": [3.40, 6.60],
+      "to": [4.60, 6.60],
+      "axis": "x",
+      "chain_id": "C_top_seg",
+      "role": "segment",
+      "order": 2,
+      "anchor": null,
+      "note": "window/door width"
+    },
+    {
+      "id": "D_top_seg3",
+      "text_verbatim": "3400",
+      "value_m": 3.40,
+      "from": [4.60, 6.60],
+      "to": [8.00, 6.60],
+      "axis": "x",
+      "chain_id": "C_top_seg",
+      "role": "segment",
+      "order": 3,
+      "anchor": null,
+      "note": "right margin; sum=3.4+1.2+3.4=8.0 ✓"
+    },
+    {
+      "id": "D_bot_overall",
+      "text_verbatim": "8000",
+      "value_m": 8.00,
+      "from": [0.00, 0.00],
+      "to": [8.00, 0.00],
+      "axis": "x",
+      "chain_id": "C_bot_overall",
+      "role": "overall",
+      "order": 0,
+      "anchor": null,
+      "note": "bottom overall width"
+    },
+    {
+      "id": "D_v_total",
+      "text_verbatim": "6600",
+      "value_m": 6.60,
+      "from": [0.00, 0.00],
+      "to": [0.00, 6.60],
+      "axis": "y",
+      "chain_id": "C_left_overall",
+      "role": "overall",
+      "order": 0,
+      "anchor": null,
+      "note": "left side total height"
+    },
+    {
+      "id": "D_v_F1",
+      "text_verbatim": "3000",
+      "value_m": 3.00,
+      "from": [0.00, 0.00],
+      "to": [0.00, 3.00],
+      "axis": "y",
+      "chain_id": "C_left_seg",
+      "role": "segment",
+      "order": 1,
+      "anchor": null,
+      "note": "floor 1 height"
+    },
+    {
+      "id": "D_v_F2",
+      "text_verbatim": "3600",
+      "value_m": 3.60,
+      "from": [0.00, 3.00],
+      "to": [0.00, 6.60],
+      "axis": "y",
+      "chain_id": "C_left_seg",
+      "role": "segment",
+      "order": 2,
+      "anchor": null,
+      "note": "floor 2 height"
+    },
+    {
+      "id": "D_v_F2_sill",
+      "text_verbatim": "1000",
+      "value_m": 1.00,
+      "from": [0.00, 3.00],
+      "to": [0.00, 4.00],
+      "axis": "y",
+      "chain_id": "C_left_F2_inner",
+      "role": "segment",
+      "order": 1,
+      "anchor": null,
+      "note": "F2 inner: sill height above F2 floor"
+    },
+    {
+      "id": "D_v_F2_ht",
+      "text_verbatim": "1800",
+      "value_m": 1.80,
+      "from": [0.00, 4.00],
+      "to": [0.00, 5.80],
+      "axis": "y",
+      "chain_id": "C_left_F2_inner",
+      "role": "segment",
+      "order": 2,
+      "anchor": null,
+      "note": "F2 inner: window height"
+    },
+    {
+      "id": "D_v_F2_top",
+      "text_verbatim": "800",
+      "value_m": 0.80,
+      "from": [0.00, 5.80],
+      "to": [0.00, 6.60],
+      "axis": "y",
+      "chain_id": "C_left_F2_inner",
+      "role": "segment",
+      "order": 3,
+      "anchor": null,
+      "note": "F2 inner: parapet above window; sum=1.0+1.8+0.8=3.6 ✓"
+    },
+    {
+      "id": "D_v_F1_inner_vert",
+      "text_verbatim": "3000",
+      "value_m": 3.00,
+      "from": [0.00, 0.00],
+      "to": [0.00, 3.00],
+      "axis": "y",
+      "chain_id": "C_left_F1_inner",
+      "role": "overall",
+      "order": 0,
+      "anchor": null,
+      "note": "F1 inner: no window sub-chain visible (F1 West has a door opening, not a window); door height not explicitly sub-dimensioned in visible chain"
+    },
+    {
+      "id": "D_v_right_total",
+      "text_verbatim": "6600",
+      "value_m": 6.60,
+      "from": [8.00, 0.00],
+      "to": [8.00, 6.60],
+      "axis": "y",
+      "chain_id": "C_right_overall",
+      "role": "overall",
+      "order": 0,
+      "anchor": null,
+      "note": "right side total height"
+    },
+    {
+      "id": "D_v_right_F1",
+      "text_verbatim": "3000",
+      "value_m": 3.00,
+      "from": [8.00, 0.00],
+      "to": [8.00, 3.00],
+      "axis": "y",
+      "chain_id": "C_right_seg",
+      "role": "segment",
+      "order": 1,
+      "anchor": null,
+      "note": "right: floor 1 height"
+    },
+    {
+      "id": "D_v_right_F2",
+      "text_verbatim": "3600",
+      "value_m": 3.60,
+      "from": [8.00, 3.00],
+      "to": [8.00, 6.60],
+      "axis": "y",
+      "chain_id": "C_right_seg",
+      "role": "segment",
+      "order": 2,
+      "anchor": null,
+      "note": "right: floor 2 height"
+    }
+  ],
+
+  "ocr_texts": [],
+
+  "uncaptured": [
+    "West F1 door at x=[3.40, 4.60], y=[0.0, ~2.40]: double-door (two panels with center vertical bar, internal glazing subdivisions visible); recognized as main building entry door from West facade; NOT traced with window pen; door height estimated ~2400mm (no explicit sub-dimension visible)",
+    "West elevation: floor line at y=3.0 (storey line) between wall_fill S1 and S2",
+    "No outline drawn separately from wall_fill edges",
+    "No shadow, decoration, or level markers visible"
+  ],
+
+  "self_check": {
+    "all_dimensions_transcribed": true,
+    "all_visible_strokes_captured": true,
+    "no_topology_inferred": true,
+    "pens_used": ["wall_fill", "window"],
+    "unknowns_noted": [
+      "West F1 has no window — only the door entry; F1 wall_fill S1 recorded as full fill with door opening noted",
+      "Door height on West F1 not explicitly sub-dimensioned in visible chain — estimated ~2400mm; not traced",
+      "Top x-chain applies to both floors (window and door share same 1200mm horizontal dimension at x=[3.40, 4.60])",
+      "No level markers visible"
+    ]
+  }
+}

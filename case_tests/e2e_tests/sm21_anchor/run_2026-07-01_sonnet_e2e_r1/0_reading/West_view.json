@@ -1,0 +1,225 @@
+{
+  "image_label": "West elevation view",
+  "image_kind": "elevation",
+  "facade": {
+    "view_facade": "West",
+    "local_x_positive": "image_left_to_right",
+    "mirrored": "false",
+    "orientation_evidence": [
+      {"source": "image_name", "detail": "file named West_view.png", "confidence": "high"},
+      {"source": "metadata", "detail": "testdata_prompt.json lists West view path", "confidence": "high"}
+    ]
+  },
+
+  "strokes": [
+    {
+      "id": "S1",
+      "pen": "wall_fill",
+      "provenance": "seen",
+      "confidence": "high",
+      "dimension_refs": ["DW_left_F2"],
+      "geometry": {
+        "kind": "rect",
+        "x_range_m": [0.00, 8.00],
+        "y_range_m": [3.00, 6.60]
+      },
+      "note": "F2 wall fill (y=3.00 to 6.60); 1 window overlays"
+    },
+    {
+      "id": "S2",
+      "pen": "wall_fill",
+      "provenance": "seen",
+      "confidence": "high",
+      "dimension_refs": ["DW_left_F1"],
+      "geometry": {
+        "kind": "rect",
+        "x_range_m": [0.00, 8.00],
+        "y_range_m": [0.00, 3.00]
+      },
+      "note": "F1 wall fill (y=0.00 to 3.00); door opening healed (double door leaf visible in center, floor-height)"
+    },
+    {
+      "id": "S3",
+      "pen": "window",
+      "provenance": "seen",
+      "confidence": "high",
+      "dimension_refs": ["DW_x_chain", "DW_inner_F2"],
+      "geometry": {
+        "kind": "rect",
+        "x_range_m": [3.40, 4.60],
+        "y_range_m": [4.00, 5.80]
+      },
+      "note": "West F2 window; x from chain: 3400+1200=4600 → 3.40 to 4.60; y: 1000mm sill above F2 floor (3.0+1.0=4.0) to +1800=5.80; consistent with East and North F2 window heights"
+    }
+  ],
+
+  "dimensions": [
+    {
+      "id": "DW1",
+      "text_verbatim": "8000",
+      "value_m": 8.00,
+      "from": [0.00, 6.60],
+      "to": [8.00, 6.60],
+      "axis": "x",
+      "chain_id": "CW_top_overall",
+      "role": "overall",
+      "order": 0,
+      "anchor": null,
+      "note": "top overall width 8000mm"
+    },
+    {
+      "id": "DW2",
+      "text_verbatim": "3400",
+      "value_m": 3.40,
+      "from": [0.00, 6.60],
+      "to": [3.40, 6.60],
+      "axis": "x",
+      "chain_id": "CW_top_detail",
+      "role": "segment",
+      "order": 1,
+      "anchor": null,
+      "note": "top chain seg1: west margin"
+    },
+    {
+      "id": "DW3",
+      "text_verbatim": "1200",
+      "value_m": 1.20,
+      "from": [3.40, 6.60],
+      "to": [4.60, 6.60],
+      "axis": "x",
+      "chain_id": "CW_top_detail",
+      "role": "segment",
+      "order": 2,
+      "anchor": null,
+      "note": "top chain seg2: window/door width 1200mm"
+    },
+    {
+      "id": "DW4",
+      "text_verbatim": "3400",
+      "value_m": 3.40,
+      "from": [4.60, 6.60],
+      "to": [8.00, 6.60],
+      "axis": "x",
+      "chain_id": "CW_top_detail",
+      "role": "segment",
+      "order": 3,
+      "anchor": null,
+      "note": "top chain seg3: east margin; sum 3400+1200+3400=8000 ✓"
+    },
+    {
+      "id": "DW5",
+      "text_verbatim": "8000",
+      "value_m": 8.00,
+      "from": [0.00, 0.00],
+      "to": [8.00, 0.00],
+      "axis": "x",
+      "chain_id": "CW_bottom_overall",
+      "role": "overall",
+      "order": 0,
+      "anchor": null,
+      "note": "bottom overall width 8000mm"
+    },
+    {
+      "id": "DW6",
+      "text_verbatim": "6600",
+      "value_m": 6.60,
+      "from": [0.00, 0.00],
+      "to": [0.00, 6.60],
+      "axis": "z",
+      "chain_id": "CW_left_outer",
+      "role": "overall",
+      "order": 0,
+      "anchor": null,
+      "note": "left outer overall height"
+    },
+    {
+      "id": "DW7",
+      "text_verbatim": "3000",
+      "value_m": 3.00,
+      "from": [0.00, 3.00],
+      "to": [0.00, 6.60],
+      "axis": "z",
+      "chain_id": "CW_left_outer",
+      "role": "segment",
+      "order": 1,
+      "anchor": null,
+      "note": "left outer: F2 floor-to-roof height labeled '3000' — NOTE: F2 height is 3600mm from other elevations but label says 3000 here; transcribed verbatim as drawn; may be inner room height excluding slab thickness"
+    },
+    {
+      "id": "DW8",
+      "text_verbatim": "3000",
+      "value_m": 3.00,
+      "from": [0.00, 0.00],
+      "to": [0.00, 3.00],
+      "axis": "z",
+      "chain_id": "CW_left_outer",
+      "role": "segment",
+      "order": 2,
+      "anchor": null,
+      "note": "left outer: F1 height labeled '3000' ✓ consistent with other elevations"
+    },
+    {
+      "id": "DW9",
+      "text_verbatim": "6600",
+      "value_m": 6.60,
+      "from": [8.00, 0.00],
+      "to": [8.00, 6.60],
+      "axis": "z",
+      "chain_id": "CW_right_outer",
+      "role": "overall",
+      "order": 0,
+      "anchor": null,
+      "note": "right outer overall height"
+    },
+    {
+      "id": "DW10",
+      "text_verbatim": "3600",
+      "value_m": 3.60,
+      "from": [8.00, 3.00],
+      "to": [8.00, 6.60],
+      "axis": "z",
+      "chain_id": "CW_right_outer",
+      "role": "segment",
+      "order": 1,
+      "anchor": null,
+      "note": "right outer: F2 height 3600mm"
+    },
+    {
+      "id": "DW11",
+      "text_verbatim": "3000",
+      "value_m": 3.00,
+      "from": [8.00, 0.00],
+      "to": [8.00, 3.00],
+      "axis": "z",
+      "chain_id": "CW_right_outer",
+      "role": "segment",
+      "order": 2,
+      "anchor": null,
+      "note": "right outer: F1 height 3000mm"
+    }
+  ],
+
+  "ocr_texts": [],
+
+  "uncaptured": [
+    "West F1: double door visible at approximately x=3.40 to 4.60, spanning floor to approximately y≈2.60 to 2.80 (floor-height door); recognized as door, NOT drawn as window pen; healed in wall_fill S2",
+    "healed door opening at S2 west F1 wall fill, x=3.40 to 4.60 (double door leaf and frame clearly visible at center of west facade F1)",
+    "West elevation: no sub-dimension inner chain visible for window heights — y-range for F2 window estimated consistent with East/North (sill 1000mm, height 1800mm)",
+    "West elevation: left inner chain shows two '3000' segments (one per floor) — appear to be floor height labels not sub-dimension chains for windows",
+    "West elevation: outline coincides with wall_fill edges — not drawn separately",
+    "West elevation: door in F1 occupies same x-span (3.40-4.60) as the F2 window above it"
+  ],
+
+  "self_check": {
+    "all_dimensions_transcribed": true,
+    "all_visible_strokes_captured": true,
+    "no_topology_inferred": true,
+    "pens_used": ["wall_fill", "window"],
+    "unknowns_noted": [
+      "West F2 window y-range [4.00, 5.80] estimated from cross-elevation consistency (1000mm sill, 1800mm height); no explicit sub-dimension tick chain for window heights on west elevation",
+      "West F1 has a door (not a window); door healed in wall_fill S2; not traced as window stroke",
+      "Left inner chain '3000' for F2 zone contradicts outer 3600mm F2 height from right chain — likely showing interior clear height 3000mm vs structural floor-to-floor 3600mm; transcribed verbatim",
+      "Door exact y-extent not dimensioned on west elevation; floor-height door assumed to span y≈0.00 to ≈2.60-2.80 (standard door) — not traced, only logged"
+    ]
+  }
+}
