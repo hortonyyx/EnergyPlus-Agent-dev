@@ -74,6 +74,7 @@ class StepStatus(str, Enum):
     AWAITING_JUDGE = "awaiting_judge"                 # gate① passed, judge stage → Agent judges
     DETERMINISTIC_PASS = "deterministic_pass"         # gate① passed, no enabled judge → advance
     AWAITING_GEOMETRY_APPROVAL = "awaiting_geometry_approval"  # human geometry confirm gate
+    AWAITING_HUMAN_REVIEW = "awaiting_human_review"   # flow-level human review checkpoint
     AWAITING_REREAD = "awaiting_reread"               # manual reading blocked, runner protocol available
     # --- judge verdict outcomes ---
     JUDGE_PASS = "judge_pass"                         # verdict non-blocking → advance
@@ -463,6 +464,7 @@ def approve_geometry(
     *,
     actor: str,
     timestamp: str,
+    policy: str = "required",
     note: str = "",
     case_dir: Path | None = None,
 ):
@@ -477,7 +479,7 @@ def approve_geometry(
     if res.geometry_digest is None:
         return None
     appr = GeometryApproval(
-        digest=res.geometry_digest, actor=actor, policy="required",
+        digest=res.geometry_digest, actor=actor, policy=policy,
         timestamp=timestamp, note=note,
     )
     appr.save(run_dir)
@@ -518,7 +520,11 @@ def update_state(run_dir: Path, outcome: StageOutcome, *, timestamp: str = "") -
     state["updated"] = timestamp
     if outcome.terminal_stop:
         state["stop_reason"] = f"{outcome.status.value}@{outcome.stage}"
-    elif outcome.status in (StepStatus.AWAITING_GEOMETRY_APPROVAL, StepStatus.AWAITING_REREAD):
+    elif outcome.status in (
+        StepStatus.AWAITING_GEOMETRY_APPROVAL,
+        StepStatus.AWAITING_HUMAN_REVIEW,
+        StepStatus.AWAITING_REREAD,
+    ):
         state["stop_reason"] = f"{outcome.status.value}@{outcome.stage}"
     else:
         state["stop_reason"] = None
@@ -544,6 +550,24 @@ def mark_geometry_approved(run_dir: Path, *, timestamp: str = "") -> dict:
     return state
 
 
+def mark_review_approved(run_dir: Path, stage: str, *, timestamp: str = "") -> dict:
+    """Reflect a durable human review approval in the ledger.
+
+    The hash-bound review record remains the authority for resume. This only
+    clears the visible pending stop_reason when it matches the approved stage.
+    """
+    state = load_state(run_dir)
+    state.setdefault("human_review_approved", {})[stage] = True
+    state["updated"] = timestamp
+    sr = state.get("stop_reason")
+    if sr == f"{StepStatus.AWAITING_HUMAN_REVIEW.value}@{stage}":
+        state["stop_reason"] = None
+    run_meta_path(run_dir, STATE_NAME, for_write=True).write_text(
+        json.dumps(state, indent=2, ensure_ascii=False), encoding="utf-8"
+    )
+    return state
+
+
 __all__ = [
     "StepStatus",
     "StageOutcome",
@@ -556,6 +580,7 @@ __all__ = [
     "load_state",
     "update_state",
     "mark_geometry_approved",
+    "mark_review_approved",
     "STATE_NAME",
     "GEOMETRY_CHECKPOINT_STAGE",
     "GEOMETRY_GATED_STAGE",

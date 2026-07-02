@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import json
 from collections.abc import Callable
+from pathlib import Path
 from typing import Any
 
 from langchain_core.runnables import RunnableConfig
@@ -8,6 +10,7 @@ from langgraph.graph.state import CompiledStateGraph
 from langgraph.types import Command
 from loguru import logger
 
+from src.agent._share import ensure_schema_initialized
 from src.agent.state import AgentState, SimContext
 from src.agent.trace import reset_traces
 
@@ -15,6 +18,15 @@ type InterruptDecision = dict[str, Any]
 type InterruptHandler = Callable[[dict[str, Any]], InterruptDecision]
 type NodeEventHandler = Callable[[str, dict[str, Any]], None]
 type AgentGraph = CompiledStateGraph[AgentState, SimContext, AgentState, AgentState]
+
+
+def load_intake_from(path: Path):
+    """Load an IntakeOutput JSON with IDD-backed schemas initialized."""
+    from src.agent.state import IntakeOutput
+
+    ensure_schema_initialized()
+    data = json.loads(Path(path).read_text(encoding="utf-8"))
+    return IntakeOutput.model_validate(data)
 
 
 def run_session(
@@ -62,6 +74,42 @@ def run_session(
 
         decision = on_interrupt(pending[0].value)
         payload = Command(resume=decision)
+
+
+def run_downstream_ep(
+    *,
+    initial_state: AgentState,
+    epw: Path,
+    output_dir: Path,
+    ep_run_subdir: str | None,
+    run_simulate: bool,
+    thread_id: str,
+    on_event: NodeEventHandler | None = None,
+) -> dict[str, Any]:
+    """Run the downstream graph + optional EnergyPlus simulation.
+
+    Callers own config resolution and layout decisions. This helper owns only
+    graph/session/SimContext wiring so CLI and flow use the same EP execution
+    path.
+    """
+    from src.agent.graph import build_graph
+
+    graph = build_graph()
+    context = SimContext(
+        epw_path=Path(epw),
+        output_dir=Path(output_dir),
+        run_simulate=run_simulate,
+        ep_run_subdir=ep_run_subdir,
+    )
+    cfg: RunnableConfig = {"configurable": {"thread_id": thread_id}}
+    return run_session(
+        graph,
+        initial_state,
+        context,
+        cfg,
+        on_interrupt=auto_approval,
+        on_event=on_event,
+    )
 
 
 def interactive_approval(payload: dict[str, Any]) -> InterruptDecision:

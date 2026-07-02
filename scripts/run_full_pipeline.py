@@ -39,13 +39,11 @@ import os
 import shutil
 from pathlib import Path
 
-from langchain_core.runnables import RunnableConfig
 from loguru import logger
 
-from src.agent import AgentState, SimContext, build_graph
-from src.agent._share import ensure_schema_initialized
+from src.agent import AgentState
 from src.agent.nodes import intake_node
-from src.agent.runner import auto_approval, run_session
+from src.agent.runner import load_intake_from, run_downstream_ep
 from src.agent.state import IntakeOutput
 from src.utils.logging import setup_logger
 
@@ -96,13 +94,6 @@ def _build_user_input(spec: dict) -> str:
         else:
             lines.append(f"{k}: {v}")
     return "\n".join(lines)
-
-
-def _load_intake_from(path: Path) -> IntakeOutput:
-    """Load and validate a manually-produced IntakeOutput JSON."""
-    ensure_schema_initialized()
-    data = json.loads(path.read_text(encoding="utf-8"))
-    return IntakeOutput.model_validate(data)
 
 
 def main() -> None:
@@ -243,7 +234,7 @@ def main() -> None:
         intake_path = args.intake_from
         if not intake_path.is_absolute():
             intake_path = case_dir / intake_path
-        pre_intake = _load_intake_from(intake_path)
+        pre_intake = load_intake_from(intake_path)
         logger.info(
             "intake_from={} (skipping intake LLM call; building={})",
             intake_path,
@@ -312,24 +303,16 @@ def main() -> None:
     if not epw.exists():
         raise FileNotFoundError(f"EPW not found: {epw}")
 
-    graph = build_graph()
-    context = SimContext(
-        epw_path=epw,
-        output_dir=output_dir,
-        run_simulate=not args.no_simulate,
-        ep_run_subdir=ep_run_subdir,
-    )
-    cfg: RunnableConfig = {"configurable": {"thread_id": args.case}}
-
     def on_event(node: str, update: dict) -> None:
         logger.info("[node={}] keys={}", node, list(update.keys()) if update else [])
 
-    state = run_session(
-        graph,
-        initial,
-        context,
-        cfg,
-        on_interrupt=auto_approval,
+    state = run_downstream_ep(
+        initial_state=initial,
+        epw=epw,
+        output_dir=output_dir,
+        ep_run_subdir=ep_run_subdir,
+        run_simulate=not args.no_simulate,
+        thread_id=args.case,
         on_event=on_event,
     )
 

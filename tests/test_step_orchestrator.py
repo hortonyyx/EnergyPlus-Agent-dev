@@ -15,10 +15,12 @@ from src.agent.execution import (
     RunManifest,
     RunPolicy,
     StageRunner,
+    StageOutcome,
     StepStatus,
     TERMINAL_STOP,
     load_state,
     mark_geometry_approved,
+    mark_review_approved,
     run_one_stage,
     submit_verdict,
     update_state,
@@ -152,6 +154,11 @@ def test_manual_block_requires_human_redraw(tmp_path):
 def test_awaiting_reread_is_nonterminal_and_not_advance_ok():
     assert StepStatus.AWAITING_REREAD not in TERMINAL_STOP
     assert StepStatus.AWAITING_REREAD not in ADVANCE_OK
+
+
+def test_awaiting_human_review_is_nonterminal_and_not_advance_ok():
+    assert StepStatus.AWAITING_HUMAN_REVIEW not in TERMINAL_STOP
+    assert StepStatus.AWAITING_HUMAN_REVIEW not in ADVANCE_OK
 
 
 def test_manual_block_awaits_reread_when_runner_available(tmp_path):
@@ -459,6 +466,22 @@ def test_geometry_approval_clears_stop_reason(tmp_path):
     mark_geometry_approved(tmp_path, timestamp="t2")
     st = load_state(tmp_path)
     assert st["stop_reason"] is None and st["geometry_approved"] is True
+
+
+def test_human_review_approval_clears_matching_stop_reason(tmp_path):
+    out = StageOutcome(
+        stage="1_correction",
+        status=StepStatus.AWAITING_HUMAN_REVIEW,
+        attempts_used=1,
+        accepted_attempt=1,
+        message="review",
+    )
+    update_state(tmp_path, out, timestamp="t")
+    assert load_state(tmp_path)["stop_reason"] == "awaiting_human_review@1_correction"
+    mark_review_approved(tmp_path, "1_correction", timestamp="t2")
+    st = load_state(tmp_path)
+    assert st["stop_reason"] is None
+    assert st["human_review_approved"]["1_correction"] is True
 
 
 def test_advance_clears_stale_geometry_stop_reason(tmp_path):

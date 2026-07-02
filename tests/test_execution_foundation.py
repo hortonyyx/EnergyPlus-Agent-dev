@@ -21,10 +21,13 @@ from src.agent.execution import (
     RunPolicy,
     StageRecord,
     StageRunner,
+    record_review,
     downstream_of,
     geometry_checkpoint_digest,
     invalidate,
     is_approved,
+    load_reviews,
+    review_is_current,
     run_meta_path,
     stages_to_run,
 )
@@ -224,6 +227,21 @@ def test_approval_digest_stable_and_drift_sensitive(tmp_path):
     )
     assert d_drift != d1
     assert not is_approved(tmp_path, d_drift)
+
+
+def test_human_review_approval_binds_manifest_output_hash(tmp_path):
+    appr = record_review(
+        tmp_path,
+        stage="1_correction",
+        output_hash="hash-a",
+        actor="tester",
+        timestamp="2026-07-02",
+        note="looked",
+    )
+    assert appr.stage == "1_correction"
+    assert load_reviews(tmp_path)["1_correction"].output_hash == "hash-a"
+    assert review_is_current(tmp_path, stage="1_correction", output_hash="hash-a")
+    assert not review_is_current(tmp_path, stage="1_correction", output_hash="hash-b")
 
 
 def test_confirmation_policy_blocking():

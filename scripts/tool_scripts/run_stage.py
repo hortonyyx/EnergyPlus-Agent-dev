@@ -26,6 +26,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import sys
 from pathlib import Path
 
@@ -39,26 +40,39 @@ from src.agent.execution import (  # noqa: E402
     RunManifest,
     RunPolicy,
     StageRunner,
+    StageOutcome,
     StepStatus,
     approve_geometry,
     geometry_is_approved,
+    invalidate,
     load_state,
     mark_geometry_approved,
+    mark_review_approved,
+    record_review,
+    review_is_current,
     run_one_stage,
     submit_verdict,
     update_state,
+    GEOMETRY_CHECKPOINT_STAGE,
 )
 from src.agent.execution.case_metadata import (  # noqa: E402
     dimensioned_view_names,
     expected_zone_total_from_testdata,
 )
 from src.agent.execution.policy import ConfirmationPolicy  # noqa: E402
+from src.agent.execution.approval import GeometryApproval  # noqa: E402
 from src.agent.judge.executor import rubric_for, run_judge  # noqa: E402
 from src.agent.judge.verdict import StageVerdict  # noqa: E402
+from src.agent.runner import load_intake_from, run_downstream_ep  # noqa: E402
+from src.agent.state import AgentState  # noqa: E402
 from src.validator.checks.schema import CheckLayer, CheckReport, CheckStatus  # noqa: E402
 
 _STAGES = ["0_reading", "1_correction", "2_modelling", "3_split_pairing",
            "4_mep", "5_intakeoutput"]
+FLOW_EXIT_OK = 0
+FLOW_EXIT_CHECKPOINT = 10
+FLOW_EXIT_STOP = 20
+FLOW_EXIT_EP_RECORD = 30
 
 
 # --------------------------------------------------------------------------- #
@@ -419,14 +433,191 @@ def _make_policy(
     *,
     reading_runner_available: bool = False,
     run_profile: str = "exploratory",
+    judge_enabled: bool = True,
+    confirmation_policy: ConfirmationPolicy = ConfirmationPolicy.REQUIRED,
 ) -> RunPolicy:
     # dev baseline: judge on, geometry confirmation REQUIRED (blocking human gate)
     return RunPolicy(
-        confirmation_policy=ConfirmationPolicy.REQUIRED,
-        judge_enabled=True,
+        confirmation_policy=confirmation_policy,
+        judge_enabled=judge_enabled,
         reading_runner_available=reading_runner_available,
         run_profile=run_profile,
     )
+
+
+def _stage_index(stage: str) -> int:
+    try:
+        return _STAGES.index(stage)
+    except ValueError as e:
+        raise SystemExit(f"unknown stage '{stage}'; known: {', '.join(_STAGES)}") from e
+
+
+def _enabled_judge(stage: str, policy: RunPolicy) -> bool:
+    reg = rubric_for(stage)
+    return bool(reg is not None and reg[1] and policy.judge_enabled)
+
+
+def _accepted_attempt_dir(run_dir: Path, stage: str, attempt: int) -> Path:
+    return run_dir / stage / "attempts" / f"{attempt:03d}"
+
+
+def _accepted_verdict(run_dir: Path, stage: str, attempt: int) -> StageVerdict | None:
+    p = _accepted_attempt_dir(run_dir, stage, attempt) / "judge.json"
+    if not p.exists():
+        return None
+    try:
+        return StageVerdict.model_validate_json(p.read_text(encoding="utf-8"))
+    except Exception:  # noqa: BLE001 — malformed means not safely advanceable
+        return None
+
+
+def _stage_advance_ready(
+    *,
+    stage: str,
+    manifest: RunManifest,
+    run_dir: Path,
+    case_dir: Path,
+    policy: RunPolicy,
+    review_switches: set[str],
+) -> bool:
+    rec = manifest.accepted(stage)
+    if rec is None:
+        return False
+    if _enabled_judge(stage, policy):
+        verdict = _accepted_verdict(run_dir, stage, rec.accepted_attempt)
+        if verdict is None or verdict.blocking:
+            return False
+    if stage in review_switches and not review_is_current(
+        run_dir, stage=stage, output_hash=rec.output_hash
+    ):
+        return False
+    if stage == GEOMETRY_CHECKPOINT_STAGE and policy.confirmation_policy == ConfirmationPolicy.REQUIRED:
+        if not geometry_is_approved(run_dir, case_dir=case_dir):
+            return False
+    return True
+
+
+def _auto_start_stage(
+    *,
+    manifest: RunManifest,
+    run_dir: Path,
+    case_dir: Path,
+    policy: RunPolicy,
+    review_switches: set[str],
+    to_stage: str,
+) -> str:
+    end = _stage_index(to_stage)
+    state = load_state(run_dir)
+    if state.get("stop_reason"):
+        print(f"  pending hint from state: {state['stop_reason']} (manifest remains authoritative)")
+    for stage in _STAGES[: end + 1]:
+        if not _stage_advance_ready(
+            stage=stage,
+            manifest=manifest,
+            run_dir=run_dir,
+            case_dir=case_dir,
+            policy=policy,
+            review_switches=review_switches,
+        ):
+            return stage
+    return to_stage
+
+
+def _parse_review_switches(raw: str) -> set[str]:
+    mapping = {
+        "reading": "0_reading",
+        "0_reading": "0_reading",
+        "correction": "1_correction",
+        "1_correction": "1_correction",
+    }
+    out: set[str] = set()
+    for item in [x.strip() for x in raw.split(",") if x.strip()]:
+        if item not in mapping:
+            raise SystemExit(
+                f"unknown review checkpoint '{item}'; use reading,correction"
+            )
+        out.add(mapping[item])
+    return out
+
+
+def _print_review_checkpoint(run_dir: Path, stage: str, attempt: int) -> None:
+    adir = _accepted_attempt_dir(run_dir, stage, attempt)
+    overlay = adir / "overlay.png"
+    score = adir / "score_vs_gt.json"
+    print("  human review checkpoint:")
+    if overlay.exists():
+        print(f"     overlay: {overlay}")
+    else:
+        print("     overlay: not generated yet (Batch B 未落地)")
+    if score.exists():
+        print(f"     score_vs_gt: {score}")
+    else:
+        print("     score_vs_gt: not generated yet (Batch B 未落地)")
+    print("     approve after review:")
+    print(f"        run_stage.py approve-review <case> <run> {stage} --actor <you>")
+
+
+def _resolve_flow_llm_config(args, case_dir: Path, run_dir: Path) -> Path:
+    global_cfg = _REPO_ROOT / "src" / "configs" / "llm.yaml"
+    if args.llm_config is not None:
+        cfg = Path(args.llm_config)
+        if not cfg.is_absolute():
+            cfg = Path.cwd() / cfg
+        if not cfg.is_file():
+            raise SystemExit(f"--llm-config not found: {cfg}")
+        return cfg
+    for cfg in (run_dir / "llm.yaml", case_dir / "llm.yaml", global_cfg):
+        if cfg.is_file():
+            return cfg
+    return global_cfg
+
+
+def _flow_ep(run_dir: Path, testdata_text: str, args, case_dir: Path) -> int:
+    cfg = _resolve_flow_llm_config(args, case_dir, run_dir)
+    os.environ["EP_AGENT_LLM_CONFIG"] = str(cfg.resolve())
+    print(f"  LLM config: {cfg}")
+    epw = Path(args.epw)
+    if not epw.is_absolute():
+        epw = _REPO_ROOT / epw
+    if not epw.exists():
+        print(f"✗ EPW not found: {epw}")
+        return FLOW_EXIT_EP_RECORD
+    intake_path = run_dir / "5_intakeoutput" / "intake_output.json"
+    if not intake_path.exists():
+        print(f"✗ missing intake output: {intake_path}")
+        return FLOW_EXIT_EP_RECORD
+    try:
+        intake = load_intake_from(intake_path)
+        initial = AgentState(
+            user_input="",
+            image_paths=[],
+            intake_output=intake,
+            reading_vector_dir=None,
+            testdata_text=testdata_text,
+            pipeline_out_dir=None,
+        )
+
+        def on_event(node: str, update: dict) -> None:
+            print(f"  [EP node={node}] keys={list(update.keys()) if update else []}")
+
+        run_downstream_ep(
+            initial_state=initial,
+            epw=epw,
+            output_dir=run_dir / "EP",
+            ep_run_subdir="EP_run",
+            run_simulate=True,
+            thread_id=f"{args.case}/{args.run}",
+            on_event=on_event,
+        )
+    except Exception as e:  # noqa: BLE001 — flow owns EP failure code
+        print(f"✗ EP downstream run failed: {type(e).__name__}: {e}")
+        return FLOW_EXIT_EP_RECORD
+    end = run_dir / "EP" / "EP_run" / "eplusout.end"
+    if not end.exists():
+        print(f"✗ EP downstream run did not produce {end}")
+        return FLOW_EXIT_EP_RECORD
+    print(f"  EP complete: {end}")
+    return FLOW_EXIT_OK
 
 
 def _print_outcome(outcome, packet: dict | None = None) -> None:
@@ -508,6 +699,12 @@ def cmd_run(args) -> int:
 
 
 def cmd_resample(args) -> int:
+    _case_dir, run_dir, _td = _resolve(args.base_dir, args.case, args.run)
+    manifest = RunManifest.load(run_dir)
+    dropped = invalidate(manifest, args.stage)
+    manifest.save(run_dir)
+    if dropped:
+        print(f"  invalidated downstream accepted pointers: {dropped}")
     args.force = True
     return cmd_run(args)
 
@@ -549,7 +746,7 @@ def cmd_judge(args) -> int:
 def cmd_approve_geometry(args) -> int:
     case_dir, run_dir, _td = _resolve(args.base_dir, args.case, args.run)
     appr = approve_geometry(run_dir, actor=args.actor, timestamp=args.date,
-                            note=args.note or "", case_dir=case_dir)
+                            policy=args.policy, note=args.note or "", case_dir=case_dir)
     if appr is None:
         print("✗ no consistent geometry checkpoint to approve "
               "(build 2_modelling + 3_split_pairing first)")
@@ -560,6 +757,203 @@ def cmd_approve_geometry(args) -> int:
     print(f"  digest={appr.digest}")
     print(f"  → 4_mep is now unblocked: run_stage.py run {args.case} {args.run} 4_mep")
     return 0
+
+
+def cmd_approve_review(args) -> int:
+    _case_dir, run_dir, _td = _resolve(args.base_dir, args.case, args.run)
+    manifest = RunManifest.load(run_dir)
+    rec = manifest.accepted(args.stage)
+    if rec is None:
+        raise SystemExit(f"{args.stage} has no accepted attempt; run it first")
+    appr = record_review(
+        run_dir,
+        stage=args.stage,
+        output_hash=rec.output_hash,
+        actor=args.actor,
+        timestamp=args.date or "",
+        note=args.note or "",
+    )
+    mark_review_approved(run_dir, args.stage, timestamp=args.date or "")
+    print(f"✓ review approved by {appr.actor} @ {appr.timestamp}")
+    print(f"  stage={appr.stage}")
+    print(f"  output_hash={appr.output_hash}")
+    return 0
+
+
+def cmd_flow(args) -> int:
+    case_dir, run_dir, td_path = _resolve(args.base_dir, args.case, args.run)
+    testdata_text = td_path.read_text(encoding="utf-8") if td_path.exists() else ""
+    review_switches = _parse_review_switches(args.review or "")
+    policy = _make_policy(
+        reading_runner_available=args.reading_runner_available,
+        run_profile=args.run_profile,
+        judge_enabled=(args.judge != "off"),
+        confirmation_policy=ConfirmationPolicy.REQUIRED,
+    )
+    manifest = RunManifest.load(run_dir)
+    start_stage = (
+        _auto_start_stage(
+            manifest=manifest,
+            run_dir=run_dir,
+            case_dir=case_dir,
+            policy=policy,
+            review_switches=review_switches,
+            to_stage=args.to_stage,
+        )
+        if args.from_stage == "auto"
+        else args.from_stage
+    )
+    start = _stage_index(start_stage)
+    end = _stage_index(args.to_stage)
+    if start > end:
+        raise SystemExit(f"--from {start_stage} is after --to {args.to_stage}")
+
+    runner = StageRunner(run_dir, manifest)
+    force_next: set[str] = set()
+    i = start
+    while i <= end:
+        stage = _STAGES[i]
+        stage_dir = run_dir / stage
+        draw_fn = _make_draw_fn(stage, run_dir, testdata_text, td_path, policy)
+
+        def _packet_fn(adir: Path, rep: CheckReport, *, _stage=stage) -> dict:
+            return _judge_packet(_stage, args.case, case_dir, run_dir, adir, rep)
+
+        outcome = run_one_stage(
+            stage=stage,
+            runner=runner,
+            stage_dir=stage_dir,
+            policy=policy,
+            draw_fn=draw_fn,
+            packet_fn=_packet_fn,
+            force_draw=stage in force_next,
+            geometry_approved=lambda: geometry_is_approved(run_dir, case_dir=case_dir),
+            stage_dir_for=lambda target: run_dir / target,
+        )
+        force_next.discard(stage)
+        manifest.save(run_dir)
+        if outcome.status == StepStatus.DETERMINISTIC_PASS and stage == "4_mep":
+            run_judge("4_mep", {}, judge_fn=None, verdict_dir=run_dir / "verdicts")
+        update_state(run_dir, outcome, timestamp=args.date or "")
+        _print_outcome(outcome, outcome.packet)
+
+        if outcome.status in (StepStatus.DETERMINISTIC_PASS, StepStatus.JUDGE_PASS):
+            rec = manifest.accepted(stage)
+            if rec is not None and stage in review_switches and not review_is_current(
+                run_dir, stage=stage, output_hash=rec.output_hash
+            ):
+                review_outcome = StageOutcome(
+                    stage=stage,
+                    status=StepStatus.AWAITING_HUMAN_REVIEW,
+                    attempts_used=outcome.attempts_used,
+                    accepted_attempt=outcome.accepted_attempt,
+                    report=outcome.report,
+                    message="stage passed — awaiting durable human review approval",
+                )
+                update_state(run_dir, review_outcome, timestamp=args.date or "")
+                _print_outcome(review_outcome)
+                _print_review_checkpoint(run_dir, stage, rec.accepted_attempt)
+                return FLOW_EXIT_CHECKPOINT
+            i += 1
+            continue
+
+        if outcome.status == StepStatus.AWAITING_JUDGE:
+            print("  submit a verdict, then rerun flow to resume:")
+            print(
+                "     run_stage.py"
+                f" --base-dir {args.base_dir} judge {args.case} {args.run} {stage}"
+                " --verdict <verdict.json>"
+            )
+            return FLOW_EXIT_CHECKPOINT
+
+        if outcome.status == StepStatus.AWAITING_GEOMETRY_APPROVAL:
+            vpath = _render_geometry_viewer(run_dir, case_dir)
+            if vpath:
+                print(f"  3D viewer: {vpath}")
+            if args.geometry == "auto":
+                appr = approve_geometry(
+                    run_dir,
+                    actor="flow:auto",
+                    timestamp=args.date or "",
+                    policy="auto",
+                    note="flow --geometry auto",
+                    case_dir=case_dir,
+                )
+                if appr is None:
+                    print("✗ geometry auto-approval failed: no consistent checkpoint")
+                    return FLOW_EXIT_STOP
+                mark_geometry_approved(run_dir, timestamp=args.date or "")
+                print(f"  geometry auto-approved digest={appr.digest}")
+                continue
+            print("  approve after inspection:")
+            print(
+                "     run_stage.py"
+                f" --base-dir {args.base_dir} approve-geometry {args.case} {args.run}"
+                " --actor <you>"
+            )
+            return FLOW_EXIT_CHECKPOINT
+
+        if outcome.status == StepStatus.AWAITING_REREAD:
+            _print_reread_protocol(args, outcome)
+            return FLOW_EXIT_CHECKPOINT
+
+        if outcome.status == StepStatus.JUDGE_BLOCK:
+            target = outcome.route_target
+            if target not in _STAGES:
+                print(f"  cannot auto-resample judge route target: {target!r}")
+                return FLOW_EXIT_CHECKPOINT
+            if _stage_index(target) > end:
+                print(f"  judge route target {target} is beyond --to {args.to_stage}")
+                return FLOW_EXIT_CHECKPOINT
+            dropped = invalidate(manifest, target)
+            manifest.save(run_dir)
+            if dropped:
+                print(f"  invalidated downstream accepted pointers: {dropped}")
+            print(f"  auto blind-resample target: {target}")
+            force_next.add(target)
+            i = _stage_index(target)
+            continue
+
+        if outcome.terminal_stop:
+            return FLOW_EXIT_STOP
+
+        print(f"  unhandled flow status: {outcome.status.value}")
+        return FLOW_EXIT_CHECKPOINT
+
+    if args.with_ep:
+        code = _flow_ep(run_dir, testdata_text, args, case_dir)
+        if code:
+            return code
+
+    if args.record:
+        state = load_state(run_dir)
+        if state.get("stop_reason") and not args.record_partial:
+            print(f"✗ refusing record with pending stop_reason={state['stop_reason']}")
+            return FLOW_EXIT_EP_RECORD
+        if not args.orchestrator:
+            print("✗ --record requires --orchestrator")
+            return FLOW_EXIT_EP_RECORD
+        if args.run_profile == "golden":
+            appr = GeometryApproval.load(run_dir)
+            if appr is not None and appr.actor == "flow:auto" and appr.policy == "auto":
+                print("⚠ golden record with flow:auto geometry approval; human HTML review is recommended")
+        try:
+            sys.path.insert(0, str(_REPO_ROOT / "scripts" / "tool_scripts"))
+            from record_baseline import record_baseline
+
+            record_baseline(
+                run_dir,
+                date=args.date or "",
+                orchestrator=args.orchestrator,
+                require_ep=args.with_ep,
+                run_profile=args.run_profile,
+            )
+        except Exception as e:  # noqa: BLE001 — flow owns record failure code
+            print(f"✗ record failed: {type(e).__name__}: {e}")
+            return FLOW_EXIT_EP_RECORD
+        print(f"  baseline recorded: {run_dir / '_run' / 'baseline.json'}")
+
+    return FLOW_EXIT_OK
 
 
 def cmd_status(args) -> int:
@@ -605,6 +999,28 @@ def main() -> int:
     pa = sub.add_parser("approve-geometry")
     pa.add_argument("case"); pa.add_argument("run")
     pa.add_argument("--actor", required=True); pa.add_argument("--note")
+    pa.add_argument("--policy", choices=("required", "auto"), default="required")
+
+    pr = sub.add_parser("approve-review")
+    pr.add_argument("case"); pr.add_argument("run"); pr.add_argument("stage", choices=_STAGES)
+    pr.add_argument("--actor", required=True); pr.add_argument("--note")
+
+    pf = sub.add_parser("flow")
+    pf.add_argument("case"); pf.add_argument("run")
+    pf.add_argument("--from", dest="from_stage", default="auto",
+                    choices=["auto", *_STAGES])
+    pf.add_argument("--to", dest="to_stage", default="5_intakeoutput",
+                    choices=_STAGES)
+    pf.add_argument("--judge", choices=("stop", "off"), default="stop")
+    pf.add_argument("--review", default="",
+                    help="comma-separated human checkpoints: reading,correction")
+    pf.add_argument("--geometry", choices=("required", "auto"), default="required")
+    pf.add_argument("--with-ep", action="store_true")
+    pf.add_argument("--record", action="store_true")
+    pf.add_argument("--record-partial", action="store_true")
+    pf.add_argument("--orchestrator", default="")
+    pf.add_argument("--llm-config", type=Path, default=None)
+    pf.add_argument("--epw", default="data/weather/Shenzhen.epw")
 
     ps = sub.add_parser("status")
     ps.add_argument("case"); ps.add_argument("run")
@@ -614,7 +1030,10 @@ def main() -> int:
         args.force = False
     return {
         "run": cmd_run, "resample": cmd_resample, "judge": cmd_judge,
-        "approve-geometry": cmd_approve_geometry, "status": cmd_status,
+        "approve-geometry": cmd_approve_geometry,
+        "approve-review": cmd_approve_review,
+        "flow": cmd_flow,
+        "status": cmd_status,
     }[args.verb](args)
 
 
