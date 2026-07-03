@@ -22,14 +22,14 @@
 
 ```
 每段产物 ─►─ gate① 确定性(代码)  ─►─ judge② (你, 该段有 judge 且开关 on)  ─►─ 人工校验 (用户, 该点开关 on)
-             便宜先跑·违反不变式即失败分类     gt坐标对账(权威)+看图(辅助)              judge 过后停·给用户看 overlay+分表·拍板
+             便宜先跑·违反不变式即失败分类     gt坐标对账(权威)+看图(辅助)              judge 过后停·给用户看 grade 批卷+分表·拍板
 ```
 
 | 层 | 谁 | 判什么 | 处置 |
 |---|---|---|---|
 | **gate① 确定性** | 代码 [`validate_case`](../../src/agent/execution/validation_run.py) | 结构/几何不变量(block) + 交叉核对(flag) | block→盲重抽/fail-closed；flag→留痕放行 |
 | **judge② gate** | **你**（多模态）| 该段 rubric 逐条 `pass/minor/severe/fatal`（结构化清单**非数字分**）| severe/fatal→3 次盲重抽（按根因路由）；minor→flag |
-| **人工校验** | **用户** | judge 之上的外层终审兜底（judge 盖不死的感知项）| judge 过后停·你给用户 overlay+坐标分表·用户拍板（OK→advance / 打回→重抽/重读）|
+| **人工校验** | **用户** | judge 之上的外层终审兜底（judge 盖不死的感知项）| judge 过后停·你给用户 grade 批卷+坐标分表·用户拍板（OK→advance / 打回→重抽/重读）|
 
 **开关叠加解析**：judge 开 + 人工开 → judge 先过、用户再审；judge 开 + 人工关 → 只 judge；judge 关 + 人工开
 → 只人工；都关（或该段无 judge）→ 继续。**judge 与人工是叠加不是二选一**。
@@ -37,21 +37,25 @@
 **judge 判卷口径（硬规约，[[judge-gt-authoritative-images-auxiliary]]）**：
 - **数据权威层 = gt 坐标对账**（`score_*_vs_gt`，**放宽容差**、判布局/计数/窗位定性命中，非毫米精确）。judge
   packet 已带机读 evidence：`score_vs_gt`（sidecar 路径）+ `score_criteria`（suggested pass/minor/severe）+
-  `overlay`（产物↔gt 叠图 PNG）。**以对账为主判据、看图为辅**（看图只补对账盖不到的感知类，如"这是门不是窗"）。
+  `grade 批卷`（产物↔gt 叠图 PNG）。**以对账为主判据、看图为辅**（看图只补对账盖不到的感知类，如"这是门不是窗"）。
 - **但 `StageVerdict` 仍是你的裁决权威**：`score_criteria` 是 advisory evidence，**代码绝不把它写进
-  verdict、绝不用数字分替 checklist**。你读完对账 + overlay + 原图，**自己**写 `StageVerdict`。
+  verdict、绝不用数字分替 checklist**。你读完对账 + grade 批卷 + 原图，**自己**写 `StageVerdict`。
 
 judge 密度（读码实证）：**仅 J0(0_reading)/J1(1_correction) enabled**；J4(4_mep) disabled stub；确定性段
 2/3/5 无 per-run judge（靶子=代码单测）。**J23（几何 judge）= P2 规划中、尚未落地**——当前几何一层只有
 gate① + 人工确认门（见 §2 S2/S3）。rubric 见 `skills/intake_pipeline/{0_reading,1_correction}/judge_rubric.md`。
 
-### 三个人工校验点 ↔ 阶段 ↔ judge ↔ 数据权威层 ↔ overlay
+### 三个人工校验点 ↔ 阶段 ↔ judge ↔ 数据权威层 ↔ grade 批卷
 
-| 校验点(开关) | 阶段 | judge | 数据权威层 | 产物↔gt overlay |
+| 校验点(开关) | 阶段 | judge | 数据权威层 | 产物↔gt grade 批卷 |
 |---|---|---|---|---|
-| **reading** | 0_reading | J0 | `score_reading_vs_gt` | reading 描边叠 gt（`overlay.png`）|
-| **correction** | 1_correction | J1 | `score_correction`(几何对账) | correction cell 叠 gt（`overlay.png`）|
-| **geometry(3D)** | 2/3 | J23（P2 未落地）| `score_geometry_vs_gt`（P2）| **直接看既有 `manual_review/geometry_viewer.html`**（不新渲 overlay）|
+| **reading** | 0_reading | J0 | `score_reading_vs_gt` | reading 描边叠 gt（`grade.png`）|
+| **correction** | 1_correction | J1 | `score_correction`(几何对账) | correction cell 叠 gt（`grade.png`）|
+| **geometry(3D)** | 2/3 | J23（P2 未落地）| `score_geometry_vs_gt`（P2）| **直接看既有 `manual_review/geometry_viewer.html`**（不新渲 grade 批卷）|
+
+**grade 批卷（`render_grade.py`，2026-07-03）= 对 gt 答案的批卷图**：一张合成图 = 平面各层 + 四立面。**sidecar-driven**——只读该 attempt 的 `score_vs_gt.json` 判定**不重算**（图↔证据同源）。**颜色=判定**（绿实线=命中 / 红虚线+淡红填充=漏 / 红实线=多；窗位置画错=gt 原位红幽灵 + 产物错位红实）；**类别=画法**（外边界·内墙 zone 邻接合并线段·窗外挂车道·立面轮廓+楼层线+窗盒）；容差内漂移画淡绿 ±tol 带 + 灰真值中线；**边界/立面外框/楼层线是中性灰参考（未被判定，绿红只留真被判元素）**。**reading 和 correction 各出一套**（都对同一 gt→两表不一样处=correction 结构操作净效果，看进步/退化）。**per-attempt 留痕**：每个 `attempts/NNN/` 都出自己的 `score_vs_gt.json`+`grade.png`，accepted 的 promote 到 `<stage>/grade.png` + `report/eyeball/{0_reading,1_correction}_grade.png`。
+
+**判卷容差 = judge 侧两把独立尺**（`run_config.yaml` 的 `grade:` 段：`reading`/`correction` 各 `wall_tol_m`/`window_centre_tol_m`，per-run 可调，**默认相等 0.30/0.40**）。**≠ `correction.yaml`**（那套是确定性几何核坍缩坐标的**生产尺**、另一回事）。判卷命中/漏/多由**确定性代码**（`_match_lines`/`_match_windows`）判、非 LLM。**correction 是 gt-盲**（修不了连贯准确度误差、只修内部不一致）→ **reading 判卷尺是准确度真闸门，别设得比 correction 松**（否则错误过 reading→correction 修不动→只能后移无解）。
 
 ## 0.1 case = 纯素材；每次 run 自包含进 `run_<注释>/`
 
@@ -63,8 +67,9 @@ gate① + 人工确认门（见 §2 S2/S3）。rubric 见 `skills/intake_pipelin
   case_data/                       ← THE case（素材；改素材才新 case）
   run_<注释>/                       ← 一次 run（自包含）
     llm.yaml                       本 run 模型配置（reading 模型/effort + 下游 + orchestrator 溯源）
-    0_reading/                     本 run 识图（复用好识图=拷进新 run）
-    1_correction/ … 5_intakeoutput/  各段产物 + <stage>_checks.json + attempts/NNN/{output,checks,judge,score_vs_gt,overlay}
+    run_config.yaml                跑前配置（scope/judge/review/models/grade 五段；缺失软降级到旧默认+warn）
+    0_reading/                     本 run 识图（复用好识图=拷进新 run）+ 段根 grade.png（accepted 升级件）
+    1_correction/ … 5_intakeoutput/  各段产物 + <stage>_checks.json + <stage>/grade.png + attempts/NNN/{output,checks,judge,score_vs_gt,grade.png}
     manual_review/geometry_viewer.html  几何人工校验（3D 离线查看器）
     EP/EP_run/                     EP（flow --with-ep 固定落这里）
     _run/                          机器记账：run_manifest / baseline / orchestration_state / geometry_approval / human_review
@@ -77,7 +82,7 @@ gate① + 人工确认门（见 §2 S2/S3）。rubric 见 `skills/intake_pipelin
 
 每个 case 的评测标准答案放 [`case_tests/test_baseline/gt/<case>.json`](../../case_tests/test_baseline/gt)
 （真实区划 / 每立面窗数 / 尺寸真值，人读原图独立得出）。**只有你（gate② judge）+ judge-side 工具经
-[`src/agent/judge/gt.py:load_gt`](../../src/agent/judge/gt.py) 读它**（`score_*_vs_gt`、overlay 渲染都在
+[`src/agent/judge/gt.py:load_gt`](../../src/agent/judge/gt.py) 读它**（`score_*_vs_gt`、grade 批卷 渲染都在
 judge/tooling 侧）；**gate① 与执行器绝不 import**（gate① 随上线、prod 无答案，必须 dev/prod 一致；执行器看了
 =照抄、误差预算崩）。机械守：[`tests/test_gt_discipline.py`](../../tests/test_gt_discipline.py)。详见
 [gt/README.md](../../case_tests/test_baseline/gt/README.md)。无 gt 的 case = 简单测试、判卷降级为纯看图、不上主线。
@@ -112,14 +117,14 @@ judge/tooling 侧）；**gate① 与执行器绝不 import**（gate① 随上线
 **Step 3 · 定起止范围 + judge 开关 + 3 个人工校验开关 →（用户拍）**。映射到 `flow` 参数（见 §2.2 矩阵）。
 
 **Step 4 · judge-in-the-loop 跑**：`run_stage.py flow`。它推进到下一个检查点就停（退出码 10）：
-- **judge 停点**（`--judge stop` 且该段 J0/J1）：看 packet 的 `score_vs_gt` + `overlay` + 原图 → 写
+- **judge 停点**（`--judge stop` 且该段 J0/J1）：看 packet 的 `score_vs_gt` + `grade 批卷` + 原图 → 写
   `StageVerdict` → `judge ... --verdict v.json` 提交 → **重跑 flow 续**。verdict 非阻塞→advance；severe/fatal
   可路由→`flow` 自动盲重抽根因段；不可归因→交人。
 - **几何确认停点**（`--geometry required`）：看 `manual_review/geometry_viewer.html` → `approve-geometry` →
   重跑 flow。（`--geometry auto` 则 flow 自动过、记 `actor=flow:auto/policy=auto` 审计字段，用户"跳我审直接过"即此档。）
 
 **Step 5 · 开了的人工校验点**：judge 过后 flow 停在 `awaiting_human_review`（退 10）→ 你给用户看
-`attempts/NNN/overlay.png` + `score_vs_gt.json` 坐标分表 → **用户拍板** → `approve-review <case> <run> <stage>
+`attempts/NNN/grade.png` + `score_vs_gt.json` 坐标分表 → **用户拍板** → `approve-review <case> <run> <stage>
 --actor <user>` → 重跑 flow 续。（人工校验绑 accepted `output_hash`，任何重抽即失效重审。）
 
 **Step 6 · 跑完 → report → 汇报**：`flow --with-ep --record` 收尾产 `_run/baseline.json` +
@@ -165,11 +170,11 @@ python scripts/tool_scripts/run_stage.py --base-dir $BD approve-review   <case> 
 ### 2.3 逐段执行器 + gate① + judge（`flow` 内部按此推进）
 
 - **S0 0_reading**（识图，冷启子 Agent；后 VLM）：gate① `check_reading_view` 结构 linter；**gate② J0**（你看
-  原图 + `*_render.png` + `overlay.png` + `score_vs_gt.json`，rubric=`0_reading/judge_rubric.md`）；致命/严重→
+  原图 + `*_render.png` + `grade.png` + `score_vs_gt.json`，rubric=`0_reading/judge_rubric.md`）；致命/严重→
   human_redraw / awaiting_reread（handoff 见 §2.1 + 附录 A）。
 - **S1 1_correction**（DeepSeek 独立调用）：执行器 `run_correction`（只喂 reading+testdata+规则、看不到 judge/gt）
   → 确定性核吸附 `apply_deterministic_core`；gate① `check_correction`（coverage/closure/zstack + 区数 tripwire
-  + 窗位落墙 + evidence 覆盖）；**gate② J1**（你看原图 + `zones.png`/`elev.png` + `overlay.png` +
+  + 窗位落墙 + evidence 覆盖）；**gate② J1**（你看原图 + `zones.png`/`elev.png` + `grade.png` +
   `score_vs_gt.json`，rubric=`1_correction/judge_rubric.md`）severe/fatal→盲重抽。
 - **S2+S3 几何内核**（代码，确定性，无 per-run judge）：`materialize_kernel_geometry` 造面+切配；gate①
   `check_kernel`（封闭/法向/pairing-gate/矩形 coverage/spec 自洽），block=**代码缺陷 fail-closed**；过 gate① 后
@@ -185,7 +190,7 @@ python scripts/tool_scripts/run_stage.py --base-dir $BD approve-review   <case> 
 ## 3. 记录（attempts 全上 + 成绩单）
 
 - **每次抽都落 append-only attempt**：`<stage>/attempts/NNN/{output,checks,judge}.json`（+ judge 段的
-  `score_vs_gt.json`/`overlay.png`），accepted 指针进 `_run/run_manifest.json`（`file_stage_attempt`；坏草稿不覆盖）。
+  `score_vs_gt.json`/`grade.png`），accepted 指针进 `_run/run_manifest.json`（`file_stage_attempt`；坏草稿不覆盖）。
 - **你的 judge verdict** = `StageVerdict`（schema v2：criterion status + root_stage/confidence + recoverability，
   见 `src/agent/judge/verdict.py`，`extra="forbid"`——别往里塞 score 数字分）。
 - **人工校验记录** = `_run/human_review.json`（绑 accepted `output_hash`，resample 即失效 fail-closed）。
@@ -199,8 +204,8 @@ python scripts/tool_scripts/run_stage.py --base-dir $BD approve-review   <case> 
 每条 evidence id 必须存在于 `_run/baseline.json.evidence_index`（citation linter 纯词法卡）。无证据支持则留哨兵
 `本 run 无可证据支持的建议`。**你在对话里也复述这份反馈**：
 - 结论（clean / blocked）+ golden 计数 + EP 结果。
-- **🔍 必看**（人工校验，确定性+judge 盖不死的）：① `report/eyeball/` 填色区图/overlay vs 原平面（走廊有没被切断）
-  ② 立面窗位图/overlay vs 原立面（窗在不在对的立面）③ `manual_review/geometry_viewer.html` 体量/分区/窗位像不像
+- **🔍 必看**（人工校验，确定性+judge 盖不死的）：① `report/eyeball/` 填色区图/grade 批卷 vs 原平面（走廊有没被切断）
+  ② 立面窗位图/grade 批卷 vs 原立面（窗在不在对的立面）③ `manual_review/geometry_viewer.html` 体量/分区/窗位像不像
   ④ 每条 flag 对应的那张图那一点。**精确到"看哪张图哪一点"，别让用户瞎看。**
 
 ## 5. 「干净」收口 + baseline 入库
@@ -230,7 +235,7 @@ python scripts/tool_scripts/run_stage.py --base-dir $BD approve-review   <case> 
 | 坑 | 处理 |
 |---|---|
 | 抄近道（run_pipeline 直连 / `run_full_pipeline --intake-from`）| **别**——跳过 judge/attempts/3D/report。走 `flow` |
-| 识图把杂物当结构 / 漏真墙 | gate② J0 抓（看 `overlay.png` + `score_vs_gt`）；manual → human_redraw |
+| 识图把杂物当结构 / 漏真墙 | gate② J0 抓（看 `grade.png` + `score_vs_gt`）；manual → human_redraw |
 | 走廊被切成多段（区数 ↑）| gate① 区数 tripwire flag + J1 布局裁决；回 S0 修 |
 | judge 拍脑袋 | 以 `score_vs_gt` 对账为主判据、看图为辅；坐标一对账就见真章 |
 | 1_correction 0 窗 / 非法 JSON | draw 级校验已拦 → 盲重抽（DeepSeek 偶发）|
@@ -261,9 +266,11 @@ strokes/attempts/judge 评语/gt。
 
 ---
 
-_2026-07-02 — 重写为「单一 `flow` 编排 + 三层叠加门（gate①→judge②→人工校验）+ gt 权威判卷 + overlay」：
+_2026-07-03 — 流程清理批次（`7.03_FlowCleanupBatch1/2`）：① 新增 `<run>/run_config.yaml`（scope/judge/review/models/grade 五段·缺失软降级）；② overlay → **`render_grade.py` gt 批卷**（sidecar-driven 只读判定不重算·颜色=判定/类别=画法·墙窗分层·容差带·边界中性灰·reading与correction各一套对gt）；③ **per-attempt 全渲染**（每 attempt 各出 grade·accepted promote 段根+eyeball）；④ **判卷容差=judge 侧两把独立尺**（run_config `grade:` 段·per-run·非 correction.yaml·默认相等·别让 reading 更松）；⑤ F1 修（judge packet 传 in-memory manifest·首-pass gt-evidence 不再空）。产物 `overlay.png`→`grade.png`。_
+
+_2026-07-02 — 重写为「单一 `flow` 编排 + 三层叠加门（gate①→judge②→人工校验）+ gt 权威判卷 + grade 批卷」：
 正规流程从 ~15 条 per-stage 命令收敛为单一 `run_stage.py flow`（manifest-first 可续 + 3 开关叠加 + JUDGE_BLOCK
 自动重抽 + geometry-auto 审计 + durable 人工校验 + 退出码）。judge 判卷以 `score_*_vs_gt` 对账为权威主判据、
 看图为辅（`StageVerdict` 仍裁决权威、score_criteria 仅 advisory）。J23 几何 judge + `score_geometry_vs_gt` = P2。
 配套 P1 落地：`flow`/`approve-review` verb（run_stage.py）·`review.py`·共享 `run_downstream_ep`·judge-side
-`score_policy`/`correction_score`/`render_overlay`。旧「逐段 ~15 命令」版备份 git 历史（2026-06-16 重写版）。_
+`score_policy`/`correction_score`/`render_overlay`（2026-07-03 改名 `render_grade`）。旧「逐段 ~15 命令」版备份 git 历史（2026-06-16 重写版）。_
