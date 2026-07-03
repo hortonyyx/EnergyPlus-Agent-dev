@@ -171,8 +171,9 @@ def test_flow_first_pass_packet_has_gt_evidence_before_manifest_save(tmp_path, m
     assert code == rs.FLOW_EXIT_CHECKPOINT
     assert packet["score_vs_gt"]
     assert Path(packet["score_vs_gt"]).exists()
-    assert packet["overlay"]
-    assert Path(packet["overlay"]).exists()
+    assert packet["grade"]
+    assert Path(packet["grade"]).exists()
+    assert (run_dir / "0_reading" / "grade.png").exists()
     assert packet["score_criteria"]
 
 

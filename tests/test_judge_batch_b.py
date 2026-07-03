@@ -15,8 +15,8 @@ from src.agent.judge.verdict import StageVerdict
 from src.validator.checks.schema import CheckLayer, CheckReport
 
 sys.path.insert(0, str(Path("scripts/tool_scripts").resolve()))
-import render_overlay  # noqa: E402
-from _overlay_transform import plan_transform  # noqa: E402
+import render_grade  # noqa: E402
+from _grade_transform import plan_transform  # noqa: E402
 
 
 _SM21 = Path("case_tests/e2e_tests/sm21_anchor")
@@ -71,8 +71,8 @@ def test_judge_packet_scores_accepted_reading_attempt_not_mutable_flat(tmp_path,
     assert sidecar["source"] == "attempt_output"
     assert sidecar["output_hash"] == rec.output_hash
     assert sidecar["tolerances"] == {"wall_tol_m": 0.3, "window_centre_tol_m": 0.4}
-    assert packet["overlay"] == str(run_dir / "0_reading" / "attempts" / "002" / "overlay.png")
-    assert Path(packet["overlay"]).exists()
+    assert packet["grade"] == str(run_dir / "0_reading" / "attempts" / "002" / "grade.png")
+    assert Path(packet["grade"]).exists()
     assert packet["score_criteria"] == sidecar["score_criteria"]
     assert {c["criterion"] for c in packet["score_criteria"]} >= {
         "walls_complete",
@@ -161,11 +161,45 @@ def test_judge_packet_scores_correction_attempt_and_records_floor_map(tmp_path, 
     assert sidecar["tolerances"] == {"wall_tol_m": 0.3, "window_centre_tol_m": 0.4}
     assert sidecar["floor_map"] == {"F1": "Floor 1", "F2": "Floor 2"}
     assert sidecar["evidence"] == []
-    assert Path(packet["overlay"]).exists()
+    assert Path(packet["grade"]).exists()
     assert packet["score_criteria"] == sidecar["score_criteria"]
 
 
-def test_overlay_uses_shared_metric_transform_for_gt_and_product_pixels():
+def test_judge_side_renders_every_attempt_and_promotes_accepted_grade(tmp_path):
+    run_dir = _copy_run_subset(
+        tmp_path,
+        "run_2026-06-20_gpt54_reading",
+        [
+            ("0_reading/attempts/001/output.json", "0_reading/attempts/001/output.json"),
+            ("0_reading/attempts/002/output.json", "0_reading/attempts/002/output.json"),
+        ],
+    )
+    manifest = RunManifest.load(run_dir)
+    gt = load_gt("sm21_anchor")
+
+    artifacts = rs._render_all_attempt_grades(
+        "0_reading",
+        "sm21_anchor",
+        run_dir,
+        gt,
+        manifest=manifest,
+        grade=rs.GradeConfig(),
+    )
+
+    assert set(artifacts) == {1, 2}
+    for attempt in (1, 2):
+        adir = run_dir / "0_reading" / "attempts" / f"{attempt:03d}"
+        assert (adir / "score_vs_gt.json").exists()
+        assert (adir / "grade.png").exists()
+        sidecar = json.loads((adir / "score_vs_gt.json").read_text(encoding="utf-8"))
+        assert sidecar["attempt"] == attempt
+        assert sidecar["tolerances"] == {"wall_tol_m": 0.3, "window_centre_tol_m": 0.4}
+
+    accepted = run_dir / "0_reading" / "attempts" / "002" / "grade.png"
+    assert (run_dir / "0_reading" / "grade.png").read_bytes() == accepted.read_bytes()
+
+
+def test_grade_uses_shared_metric_transform_for_gt_and_sidecar_pixels():
     gt = {
         "case": "tiny",
         "footprint": {"W_m": 10.0, "D_m": 4.0},
@@ -183,34 +217,36 @@ def test_overlay_uses_shared_metric_transform_for_gt_and_product_pixels():
         "windows": [],
         "doors": [],
     }
-    output = {
-        "footprint_x": [0.0, 10.0],
-        "footprint_y": [0.0, 4.0],
-        "floors": [
-            {
-                "name": "Floor 1",
-                "z_floor": 0.0,
-                "ceiling_height": 3.0,
-                "cells": [
-                    {"id": "A", "role": "office", "x": [0.0, 5.0], "y": [0.0, 4.0]},
-                    {"id": "B", "role": "office", "x": [5.0, 10.0], "y": [0.0, 4.0]},
-                ],
+    sidecar = {
+        "stage": "1_correction",
+        "attempt": 1,
+        "source": "attempt_output",
+        "tolerances": {"wall_tol_m": 0.3, "window_centre_tol_m": 0.4},
+        "scores": {
+            "Floor 1": {
+                "floor": "Floor 1",
+                "vwalls": [{"truth": 5.0, "read": 5.0, "delta": 0.0}],
+                "hwalls": [],
+                "extra_vwalls": [],
+                "extra_hwalls": [],
+                "windows": {"N": [], "S": [], "E": [], "W": []},
+                "extra_windows": {"N": [], "S": [], "E": [], "W": []},
             }
-        ],
-        "windows": [],
+        },
     }
 
-    img = render_overlay.render_overlay("1_correction", output, gt)
+    img = render_grade.render_grade("1_correction", sidecar, gt)
     tr = plan_transform(
         10.0,
         4.0,
-        scale=render_overlay.SCALE,
+        scale=render_grade.SCALE,
         offset_x=0,
-        offset_y=render_overlay.HEADER + render_overlay.LABEL_H,
+        offset_y=render_grade.HEADER + render_grade.LABEL_H,
+        margin_m=render_grade.PLAN_MARGIN_M,
     )
     split_px = tuple(round(v) for v in tr.px(5.0, 2.0))
     fill_px = tuple(round(v) for v in tr.px(2.0, 2.0))
 
     assert img.mode == "RGB"
-    assert img.getpixel(split_px) == render_overlay.OUT_RED
-    assert img.getpixel(fill_px) == render_overlay.GT_FILL
+    assert img.getpixel(split_px) == render_grade.GREEN
+    assert img.getpixel(fill_px) == render_grade.GT_FILL

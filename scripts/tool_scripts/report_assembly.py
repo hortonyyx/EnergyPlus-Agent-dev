@@ -98,6 +98,8 @@ def collect_eyeball_assets(run_dir: Path) -> dict:
     missing: list[dict] = []
 
     explicit = [
+        ("reading_grade", run_dir / "0_reading" / "grade.png", "0_reading_grade.png"),
+        ("correction_grade", run_dir / "1_correction" / "grade.png", "1_correction_grade.png"),
         ("correction_zones", run_dir / "1_correction" / "zones.png", "1_correction_zones.png"),
         ("correction_elev", run_dir / "1_correction" / "elev.png", "1_correction_elev.png"),
     ]

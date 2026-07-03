@@ -27,6 +27,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import shutil
 import sys
 from pathlib import Path
 
@@ -524,13 +525,13 @@ def _judge_gt_artifacts(
     from src.agent.execution.manifest import attempt_index_of, hash_text
 
     if stage not in {"0_reading", "1_correction"}:
-        return {"score_vs_gt": None, "overlay": None, "score_criteria": []}
+        return {"score_vs_gt": None, "grade": None, "score_criteria": []}
 
     active_manifest = manifest or RunManifest.load(run_dir)
     rec = active_manifest.accepted(stage)
     attempt = attempt_index_of(attempt_dir)
     if rec is None or rec.accepted_attempt != attempt:
-        return {"score_vs_gt": None, "overlay": None, "score_criteria": []}
+        return {"score_vs_gt": None, "grade": None, "score_criteria": []}
 
     output_path = attempt_dir / "output.json"
     output_text = output_path.read_text(encoding="utf-8")
@@ -539,25 +540,56 @@ def _judge_gt_artifacts(
             f"{stage} attempt output hash does not match manifest accepted hash"
         )
 
+    return _grade_attempt_artifacts(
+        stage,
+        case,
+        attempt_dir,
+        gt,
+        grade=grade or GradeConfig(),
+        output_hash=rec.output_hash,
+    )
+
+
+def _grade_attempt_artifacts(
+    stage: str,
+    case: str,
+    attempt_dir: Path,
+    gt: dict,
+    *,
+    grade: GradeConfig,
+    output_hash: str | None = None,
+) -> dict:
+    from src.agent.execution.manifest import attempt_index_of, hash_text
+
+    if stage not in {"0_reading", "1_correction"}:
+        return {"score_vs_gt": None, "grade": None, "score_criteria": []}
+
+    output_path = attempt_dir / "output.json"
+    if not output_path.exists():
+        return {"score_vs_gt": None, "grade": None, "score_criteria": []}
+
+    output_text = output_path.read_text(encoding="utf-8")
+    output_hash = output_hash or hash_text(output_text)
+    attempt = attempt_index_of(attempt_dir)
     score_path = attempt_dir / "score_vs_gt.json"
-    grade = grade or GradeConfig()
     tolerances = grade.as_tolerances()
     sidecar = _load_valid_score_sidecar(
         score_path,
         stage=stage,
         attempt=attempt,
-        output_hash=rec.output_hash,
+        output_hash=output_hash,
         tolerances=tolerances,
     )
+    render_needed = sidecar is None
     if sidecar is None:
         output = json.loads(output_text)
         scored = _score_attempt_output(stage, output, gt, grade=grade)
         if scored is None:
-            return {"score_vs_gt": None, "overlay": None, "score_criteria": []}
+            return {"score_vs_gt": None, "grade": None, "score_criteria": []}
         sidecar = {
             "stage": stage,
             "attempt": attempt,
-            "output_hash": rec.output_hash,
+            "output_hash": output_hash,
             "source": "attempt_output",
             "case": case,
             "tolerances": tolerances,
@@ -571,19 +603,82 @@ def _judge_gt_artifacts(
         }
         score_path.write_text(json.dumps(sidecar, indent=2, ensure_ascii=False), encoding="utf-8")
 
-    overlay_path = attempt_dir / "overlay.png"
-    if not overlay_path.exists():
+    grade_path = attempt_dir / "grade.png"
+    if render_needed or not grade_path.exists():
         sys.path.insert(0, str(_REPO_ROOT / "scripts" / "tool_scripts"))
-        import render_overlay
+        import render_grade
 
-        output = json.loads(output_text)
-        render_overlay.render_overlay_to_path(stage, output, gt, overlay_path)
+        render_grade.render_grade_to_path(stage, sidecar, gt, grade_path)
 
     return {
         "score_vs_gt": str(score_path),
-        "overlay": str(overlay_path),
+        "grade": str(grade_path),
         "score_criteria": sidecar.get("score_criteria", []),
     }
+
+
+def _render_all_attempt_grades(
+    stage: str,
+    case: str,
+    run_dir: Path,
+    gt: dict,
+    *,
+    manifest: RunManifest,
+    grade: GradeConfig,
+) -> dict[int, dict]:
+    if stage not in {"0_reading", "1_correction"}:
+        return {}
+    attempts_dir = run_dir / stage / "attempts"
+    if not attempts_dir.exists():
+        return {}
+
+    out: dict[int, dict] = {}
+    for attempt_dir in sorted(p for p in attempts_dir.iterdir() if p.is_dir()):
+        try:
+            attempt = int(attempt_dir.name)
+        except ValueError:
+            continue
+        out[attempt] = _grade_attempt_artifacts(
+            stage,
+            case,
+            attempt_dir,
+            gt,
+            grade=grade,
+        )
+
+    rec = manifest.accepted(stage)
+    if rec is not None:
+        accepted_grade = run_dir / stage / "attempts" / f"{rec.accepted_attempt:03d}" / "grade.png"
+        if accepted_grade.exists():
+            shutil.copy2(accepted_grade, run_dir / stage / "grade.png")
+    return out
+
+
+def _render_stage_grade_artifacts(
+    stage: str,
+    case: str,
+    run_dir: Path,
+    *,
+    manifest: RunManifest,
+    run_config: RunConfig,
+) -> dict[int, dict]:
+    if stage not in {"0_reading", "1_correction"}:
+        return {}
+    from src.agent.judge.gt import has_gt, load_gt
+
+    if not has_gt(case):
+        return {}
+    gt = load_gt(case)
+    if gt is None:
+        return {}
+    return _render_all_attempt_grades(
+        stage,
+        case,
+        run_dir,
+        gt,
+        manifest=manifest,
+        grade=run_config.grade_for(stage),
+    )
 
 
 def _judge_packet(stage: str, case: str, case_dir: Path, run_dir: Path,
@@ -609,7 +704,7 @@ def _judge_packet(stage: str, case: str, case_dir: Path, run_dir: Path,
             grade=cfg.grade_for(stage),
         )
         if gt is not None
-        else {"score_vs_gt": None, "overlay": None, "score_criteria": []}
+        else {"score_vs_gt": None, "grade": None, "score_criteria": []}
     )
     pkt = {
         "stage": stage,
@@ -621,7 +716,7 @@ def _judge_packet(stage: str, case: str, case_dir: Path, run_dir: Path,
         "gt_path": str(gt_path(case)) if has_gt(case) else None,
         "score_vs_gt": gt_artifacts["score_vs_gt"],
         "score_criteria": gt_artifacts["score_criteria"],
-        "overlay": gt_artifacts["overlay"],
+        "grade": gt_artifacts["grade"],
         "gate1": {
             "passed": report.passed,
             "flags": [f"{r.check_id}: {r.message}" for r in report.flagged()],
@@ -753,13 +848,13 @@ def _parse_review_switches(raw: str) -> set[str]:
 
 def _print_review_checkpoint(run_dir: Path, stage: str, attempt: int) -> None:
     adir = _accepted_attempt_dir(run_dir, stage, attempt)
-    overlay = adir / "overlay.png"
+    grade = adir / "grade.png"
     score = adir / "score_vs_gt.json"
     print("  human review checkpoint:")
-    if overlay.exists():
-        print(f"     overlay: {overlay}")
+    if grade.exists():
+        print(f"     grade: {grade}")
     else:
-        print("     overlay: not generated yet (Batch B 未落地)")
+        print("     grade: not generated yet")
     if score.exists():
         print(f"     score_vs_gt: {score}")
     else:
@@ -901,6 +996,13 @@ def cmd_run(args) -> int:
         stage_dir_for=lambda target: run_dir / target,
     )
     manifest.save(run_dir)
+    _render_stage_grade_artifacts(
+        stage,
+        args.case,
+        run_dir,
+        manifest=manifest,
+        run_config=run_config,
+    )
     # 4_mep J4 is a disabled judge — record the explicit disabled verdict (not a PASS).
     if outcome.status == StepStatus.DETERMINISTIC_PASS and stage == "4_mep":
         run_judge("4_mep", {}, judge_fn=None, verdict_dir=run_dir / "verdicts")
@@ -1071,6 +1173,13 @@ def cmd_flow(args) -> int:
         )
         force_next.discard(stage)
         manifest.save(run_dir)
+        _render_stage_grade_artifacts(
+            stage,
+            args.case,
+            run_dir,
+            manifest=manifest,
+            run_config=run_config,
+        )
         if outcome.status == StepStatus.DETERMINISTIC_PASS and stage == "4_mep":
             run_judge("4_mep", {}, judge_fn=None, verdict_dir=run_dir / "verdicts")
         update_state(run_dir, outcome, timestamp=args.date or "")

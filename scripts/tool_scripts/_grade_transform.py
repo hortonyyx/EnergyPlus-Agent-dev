@@ -1,4 +1,4 @@
-"""Shared metric-to-pixel transform for gt/output overlays."""
+"""Shared metric-to-pixel transform for gt grade renders."""
 
 from __future__ import annotations
 
