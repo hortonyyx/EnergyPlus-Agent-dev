@@ -63,6 +63,47 @@ def test_perfect_reading_all_hit():
     assert sc.window_hits() == (3, 3)
     assert sc.max_wall_offset() == 0.0
     assert not sc.extra_vwalls and not sc.extra_hwalls
+    assert sc.boundary_hits() == (4, 4)
+    assert sc.boundary is not None
+    assert sc.boundary["N"].delta == 0.0
+
+
+def test_boundary_hit_records_delta():
+    reading = {"strokes": [
+        _wall("wall", [0.12, 0], [0.12, 8]),
+        _wall("wall", [14.88, 0], [14.88, 8]),
+        _wall("wall", [0, 0.18], [15, 0.18]),
+        _wall("wall", [0, 7.76], [15, 7.76]),
+    ]}
+
+    sc = rs.score_floor(reading, _GT, "Floor 1")
+
+    assert sc.boundary_hits() == (4, 4)
+    assert sc.boundary is not None
+    assert sc.boundary["W"].delta == 0.12
+    assert sc.boundary["E"].delta == -0.12
+    assert sc.boundary["S"].delta == 0.18
+    assert sc.boundary["N"].delta == -0.24
+
+
+def test_missing_boundary_on_nonempty_reading_is_miss():
+    reading = {"strokes": [
+        _wall("wall", [5, 0], [5, 3]),
+        _wall("window", [1.24, 8], [3.64, 8]),
+    ]}
+
+    sc = rs.score_floor(reading, _GT, "Floor 1")
+
+    assert sc.boundary_hits() == (0, 4)
+    assert sc.boundary is not None
+    assert all(match.read is None for match in sc.boundary.values())
+
+
+def test_empty_reading_boundary_is_no_data():
+    sc = rs.score_floor({"strokes": []}, _GT, "Floor 1")
+
+    assert sc.boundary is None
+    assert sc.boundary_hits() == (0, 0)
 
 
 def test_rect_geometry_scores_like_equivalent_line():

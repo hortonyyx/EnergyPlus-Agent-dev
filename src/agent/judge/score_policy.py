@@ -28,19 +28,26 @@ def reading_score_criteria(
 ) -> list[dict]:
     """Return suggested criterion evidence derived from FloorScore objects."""
     total_wall_hits = total_walls = total_windows_hit = total_windows = 0
+    total_boundary_hits = total_boundary = 0
     extra_walls = extra_windows = 0
+    no_data_boundary_floors = 0
     max_wall_offset = 0.0
     floors: list[dict] = []
 
     for key, score in scores.items():
         wh, wt = score.wall_hits()
         winh, wint = score.window_hits()
+        bh, bt = score.boundary_hits()
         ew = len(score.extra_vwalls) + len(score.extra_hwalls)
         exwin = sum(len(v) for v in score.extra_windows.values())
         total_wall_hits += wh
         total_walls += wt
         total_windows_hit += winh
         total_windows += wint
+        total_boundary_hits += bh
+        total_boundary += bt
+        if score.boundary is None:
+            no_data_boundary_floors += 1
         extra_walls += ew
         extra_windows += exwin
         max_wall_offset = max(max_wall_offset, score.max_wall_offset())
@@ -50,6 +57,9 @@ def reading_score_criteria(
                 "floor": score.floor,
                 "wall_hits": wh,
                 "wall_total": wt,
+                "boundary_hits": bh,
+                "boundary_total": bt,
+                "boundary_no_data": score.boundary is None,
                 "window_hits": winh,
                 "window_total": wint,
                 "extra_walls": ew,
@@ -59,6 +69,7 @@ def reading_score_criteria(
         )
 
     missed_walls = max(0, total_walls - total_wall_hits)
+    missed_boundary = max(0, total_boundary - total_boundary_hits)
     missed_windows = max(0, total_windows - total_windows_hit)
     window_ratio = 1.0 if total_windows == 0 else total_windows_hit / total_windows
 
@@ -68,6 +79,8 @@ def reading_score_criteria(
         wall_status = "minor" if extra_walls <= EXTRA_MINOR_MAX else "severe"
     else:
         wall_status = "pass"
+
+    boundary_status = "severe" if missed_boundary else "pass"
 
     if total_windows == 0 or missed_windows == 0:
         window_status = "pass"
@@ -104,6 +117,17 @@ def reading_score_criteria(
                 f"missed={missed_windows}; extra={extra_windows}; "
                 f"hit_ratio={round(window_ratio, 3)}; "
                 f"centre_tol_m={window_centre_tol_m}"
+            ),
+            "floors": floors,
+        },
+        {
+            "criterion": "boundary_complete",
+            "suggested_status": boundary_status,
+            "evidence": (
+                f"boundary_hits={total_boundary_hits}/{total_boundary}; "
+                f"missed={missed_boundary}; "
+                f"no_data_floors={no_data_boundary_floors}; "
+                f"wall_tol_m={wall_tol_m}"
             ),
             "floors": floors,
         },

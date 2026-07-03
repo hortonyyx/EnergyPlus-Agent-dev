@@ -21,6 +21,7 @@ from .reading_score import (
     _match_windows,
     derive_gt_walls,
     derive_gt_windows,
+    match_boundary,
 )
 
 _BOUNDARY_EPS_M = 0.30
@@ -114,6 +115,72 @@ def _extract_correction_walls(floor, W: float, D: float) -> tuple[list[float], l
     return _dedupe(vx), _dedupe(hy)
 
 
+def _valid_pair(vals) -> tuple[float, float] | None:
+    if vals is None or len(vals) != 2:
+        return None
+    try:
+        a, b = float(vals[0]), float(vals[1])
+    except (TypeError, ValueError):
+        return None
+    return min(a, b), max(a, b)
+
+
+def _floor_cells_bbox(floor) -> tuple[tuple[float, float], tuple[float, float]] | None:
+    xs: list[float] = []
+    ys: list[float] = []
+    for cell in floor.cells:
+        if len(cell.x) == 2:
+            xs.extend([float(cell.x[0]), float(cell.x[1])])
+        if len(cell.y) == 2:
+            ys.extend([float(cell.y[0]), float(cell.y[1])])
+    if not xs or not ys:
+        return None
+    return (min(xs), max(xs)), (min(ys), max(ys))
+
+
+def _fallback_footprint_from_raw_cells(data: dict) -> tuple[tuple[float, float], tuple[float, float]] | None:
+    xs: list[float] = []
+    ys: list[float] = []
+    for floor in data.get("floors") or []:
+        for cell in floor.get("cells") or []:
+            x = cell.get("x") or []
+            y = cell.get("y") or []
+            if len(x) == 2:
+                xs.extend([float(x[0]), float(x[1])])
+            if len(y) == 2:
+                ys.extend([float(y[0]), float(y[1])])
+    if not xs or not ys:
+        return None
+    return (min(xs), max(xs)), (min(ys), max(ys))
+
+
+def _normalise_raw_geom_for_scoring(data: dict) -> dict:
+    fx = _valid_pair(data.get("footprint_x"))
+    fy = _valid_pair(data.get("footprint_y"))
+    if fx is not None and fy is not None:
+        return data
+    bbox = _fallback_footprint_from_raw_cells(data)
+    if bbox is None:
+        return data
+    out = dict(data)
+    if fx is None:
+        out["footprint_x"] = [bbox[0][0], bbox[0][1]]
+    if fy is None:
+        out["footprint_y"] = [bbox[1][0], bbox[1][1]]
+    return out
+
+
+def _extract_correction_boundary(geom: CorrectedGeometry, floor) -> dict[str, float] | None:
+    fx = _valid_pair(getattr(geom, "footprint_x", None))
+    fy = _valid_pair(getattr(geom, "footprint_y", None))
+    if fx is None or fy is None:
+        bbox = _floor_cells_bbox(floor)
+        if bbox is None:
+            return None
+        fx, fy = bbox
+    return {"S": fy[0], "N": fy[1], "W": fx[0], "E": fx[1]}
+
+
 def _gt_floor_for_label(label: str, gt: dict, floor_map: dict[str, str]) -> str | None:
     if label in floor_map:
         return floor_map[label]
@@ -155,7 +222,7 @@ def score_correction_geometry(
     geom = (
         geom_data
         if isinstance(geom_data, CorrectedGeometry)
-        else CorrectedGeometry.model_validate(geom_data)
+        else CorrectedGeometry.model_validate(_normalise_raw_geom_for_scoring(geom_data))
     )
     fp = gt["footprint"]
     W, D = float(fp["W_m"]), float(fp["D_m"])
@@ -177,10 +244,12 @@ def score_correction_geometry(
         gwin = derive_gt_windows(gt, gt_name)
         rvx, rhy = _extract_correction_walls(fl, W, D)
         rwin = _extract_correction_windows(geom, gt_name, gt, floor_map)
+        rbnd = _extract_correction_boundary(geom, fl)
 
         sc = FloorScore(floor=gt_name)
         sc.vwalls, sc.extra_vwalls = _match_lines(rvx, gvx, wall_tol)
         sc.hwalls, sc.extra_hwalls = _match_lines(rhy, ghy, wall_tol)
+        sc.boundary = match_boundary(rbnd, W, D, wall_tol)
         for facade in ("N", "S", "E", "W"):
             ms, extra = _match_windows(rwin[facade], gwin[facade], win_tol)
             sc.windows[facade] = ms

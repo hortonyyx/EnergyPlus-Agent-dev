@@ -71,6 +71,7 @@ from src.validator.checks.schema import CheckLayer, CheckReport, CheckStatus  # 
 
 _STAGES = ["0_reading", "1_correction", "2_modelling", "3_split_pairing",
            "4_mep", "5_intakeoutput"]
+SCORER_SCHEMA = "2"
 FLOW_EXIT_OK = 0
 FLOW_EXIT_CHECKPOINT = 10
 FLOW_EXIT_STOP = 20
@@ -412,7 +413,7 @@ def _win_match_dict(m) -> dict:
 def _floor_score_dict(score) -> dict:
     wh, wt = score.wall_hits()
     winh, wint = score.window_hits()
-    return {
+    out = {
         "floor": score.floor,
         "wall_hits": wh,
         "wall_total": wt,
@@ -432,6 +433,12 @@ def _floor_score_dict(score) -> dict:
             for facade, spans in score.extra_windows.items()
         },
     }
+    if score.boundary is not None:
+        out["boundary"] = {
+            side: _line_match_dict(match)
+            for side, match in score.boundary.items()
+        }
+    return out
 
 
 def _score_reading_attempt_output(output: dict, gt: dict, *, wall_tol: float, win_tol: float):
@@ -506,6 +513,7 @@ def _load_valid_score_sidecar(
         and data.get("attempt") == attempt
         and data.get("output_hash") == output_hash
         and data.get("source") == "attempt_output"
+        and data.get("scorer_schema") == SCORER_SCHEMA
         and data.get("tolerances") == tolerances
     ):
         return data
@@ -591,6 +599,7 @@ def _grade_attempt_artifacts(
             "attempt": attempt,
             "output_hash": output_hash,
             "source": "attempt_output",
+            "scorer_schema": SCORER_SCHEMA,
             "case": case,
             "tolerances": tolerances,
             "scores": {

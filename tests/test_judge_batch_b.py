@@ -69,6 +69,7 @@ def test_judge_packet_scores_accepted_reading_attempt_not_mutable_flat(tmp_path,
     assert sidecar["stage"] == "0_reading"
     assert sidecar["attempt"] == 2
     assert sidecar["source"] == "attempt_output"
+    assert sidecar["scorer_schema"] == rs.SCORER_SCHEMA
     assert sidecar["output_hash"] == rec.output_hash
     assert sidecar["tolerances"] == {"wall_tol_m": 0.3, "window_centre_tol_m": 0.4}
     assert packet["grade"] == str(run_dir / "0_reading" / "attempts" / "002" / "grade.png")
@@ -77,6 +78,7 @@ def test_judge_packet_scores_accepted_reading_attempt_not_mutable_flat(tmp_path,
     assert {c["criterion"] for c in packet["score_criteria"]} >= {
         "walls_complete",
         "windows_placed",
+        "boundary_complete",
         "no_oversplit",
     }
     assert all("suggested_status" in c for c in packet["score_criteria"])
@@ -136,6 +138,120 @@ def test_correction_scorer_maps_f1_f2_to_gt_floors():
     assert result.scores["F2"].wall_hits() == (5, 5)
     assert result.scores["F1"].window_hits() == (7, 7)
     assert result.scores["F2"].window_hits() == (8, 8)
+    assert result.scores["F1"].boundary_hits() == (4, 4)
+    assert result.scores["F2"].boundary_hits() == (4, 4)
+
+
+def test_correction_boundary_uses_footprint_and_records_miss_delta():
+    gt = {
+        "footprint": {"W_m": 15.0, "D_m": 8.0},
+        "floors": [
+            {"name": "Floor 1", "zones": [{"rect_m": [0, 0, 15, 8]}]},
+        ],
+        "windows": [],
+    }
+    output = {
+        "footprint_x": [0.12, 14.72],
+        "footprint_y": [0.0, 8.4],
+        "floors": [
+            {
+                "name": "Floor 1",
+                "z_floor": 0.0,
+                "ceiling_height": 3.0,
+                "cells": [{"id": "A", "role": "office", "x": [0.12, 14.72], "y": [0.0, 8.4]}],
+            }
+        ],
+        "windows": [],
+    }
+
+    result = score_correction_geometry(output, gt)
+    boundary = result.scores["Floor 1"].boundary
+
+    assert boundary is not None
+    assert boundary["W"].delta == 0.12
+    assert boundary["E"].delta == -0.28
+    assert boundary["N"].read is None
+    assert result.scores["Floor 1"].boundary_hits() == (3, 4)
+
+
+def test_correction_boundary_falls_back_to_cells_bbox_when_footprint_missing():
+    gt = {
+        "footprint": {"W_m": 15.0, "D_m": 8.0},
+        "floors": [
+            {"name": "Floor 1", "zones": [{"rect_m": [0, 0, 15, 8]}]},
+        ],
+        "windows": [],
+    }
+    output = {
+        "floors": [
+            {
+                "name": "Floor 1",
+                "z_floor": 0.0,
+                "ceiling_height": 3.0,
+                "cells": [
+                    {"id": "A", "role": "office", "x": [0.0, 7.5], "y": [0.0, 8.0]},
+                    {"id": "B", "role": "office", "x": [7.5, 15.0], "y": [0.0, 8.0]},
+                ],
+            }
+        ],
+        "windows": [],
+    }
+
+    result = score_correction_geometry(output, gt)
+
+    assert result.scores["Floor 1"].boundary_hits() == (4, 4)
+
+
+def test_old_score_sidecar_schema_triggers_recompute_with_boundary(tmp_path):
+    from src.agent.execution.manifest import hash_text
+
+    gt = {
+        "footprint": {"W_m": 10.0, "D_m": 4.0},
+        "floors": [
+            {
+                "name": "Floor 1",
+                "z_floor": 0.0,
+                "ceiling_height": 3.0,
+                "zones": [{"rect_m": [0.0, 0.0, 10.0, 4.0]}],
+            }
+        ],
+        "windows": [],
+    }
+    attempt_dir = tmp_path / "001"
+    attempt_dir.mkdir()
+    output = {
+        "1f_view": {
+            "image_kind": "plan",
+            "strokes": [
+                {"pen": "wall", "geometry": {"p1": [0, 0], "p2": [10, 0]}},
+                {"pen": "wall", "geometry": {"p1": [0, 4], "p2": [10, 4]}},
+                {"pen": "wall", "geometry": {"p1": [0, 0], "p2": [0, 4]}},
+                {"pen": "wall", "geometry": {"p1": [10, 0], "p2": [10, 4]}},
+            ],
+        }
+    }
+    output_text = json.dumps(output)
+    (attempt_dir / "output.json").write_text(output_text, encoding="utf-8")
+    old_sidecar = {
+        "stage": "0_reading",
+        "attempt": 1,
+        "output_hash": hash_text(output_text),
+        "source": "attempt_output",
+        "case": "tiny",
+        "tolerances": {"wall_tol_m": 0.3, "window_centre_tol_m": 0.4},
+        "scores": {},
+        "floor_map": {},
+        "evidence": [],
+        "score_criteria": [],
+    }
+    (attempt_dir / "score_vs_gt.json").write_text(json.dumps(old_sidecar), encoding="utf-8")
+
+    artifacts = rs._grade_attempt_artifacts("0_reading", "tiny", attempt_dir, gt, grade=rs.GradeConfig())
+    sidecar = json.loads((attempt_dir / "score_vs_gt.json").read_text(encoding="utf-8"))
+
+    assert artifacts["score_vs_gt"] == str(attempt_dir / "score_vs_gt.json")
+    assert sidecar["scorer_schema"] == rs.SCORER_SCHEMA
+    assert sidecar["scores"]["1f_view"]["boundary"]["N"]["read"] == 4.0
 
 
 def test_judge_packet_scores_correction_attempt_and_records_floor_map(tmp_path, monkeypatch):
@@ -158,6 +274,7 @@ def test_judge_packet_scores_correction_attempt_and_records_floor_map(tmp_path, 
     sidecar = json.loads(Path(packet["score_vs_gt"]).read_text(encoding="utf-8"))
     assert sidecar["stage"] == "1_correction"
     assert sidecar["source"] == "attempt_output"
+    assert sidecar["scorer_schema"] == rs.SCORER_SCHEMA
     assert sidecar["tolerances"] == {"wall_tol_m": 0.3, "window_centre_tol_m": 0.4}
     assert sidecar["floor_map"] == {"F1": "Floor 1", "F2": "Floor 2"}
     assert sidecar["evidence"] == []
@@ -193,6 +310,7 @@ def test_judge_side_renders_every_attempt_and_promotes_accepted_grade(tmp_path):
         assert (adir / "grade.png").exists()
         sidecar = json.loads((adir / "score_vs_gt.json").read_text(encoding="utf-8"))
         assert sidecar["attempt"] == attempt
+        assert sidecar["scorer_schema"] == rs.SCORER_SCHEMA
         assert sidecar["tolerances"] == {"wall_tol_m": 0.3, "window_centre_tol_m": 0.4}
 
     accepted = run_dir / "0_reading" / "attempts" / "002" / "grade.png"

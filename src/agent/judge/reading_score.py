@@ -61,6 +61,9 @@ class FloorScore:
     extra_hwalls: list[float] = field(default_factory=list)
     windows: dict[str, list[WinMatch]] = field(default_factory=dict)
     extra_windows: dict[str, list[tuple[float, float]]] = field(default_factory=dict)
+    # None means the floor had no reading primitives, so boundary grading is
+    # intentionally no-data. A dict means the four footprint sides were graded.
+    boundary: dict[str, LineMatch] | None = None
 
     def wall_hits(self) -> tuple[int, int]:
         ms = self.vwalls + self.hwalls
@@ -76,6 +79,11 @@ class FloorScore:
     def max_wall_offset(self) -> float:
         ds = [abs(m.delta) for m in self.vwalls + self.hwalls if m.delta is not None]
         return round(max(ds), 3) if ds else 0.0
+
+    def boundary_hits(self) -> tuple[int, int]:
+        if self.boundary is None:
+            return 0, 0
+        return sum(1 for m in self.boundary.values() if m.read is not None), len(self.boundary)
 
 
 # ---------------------------------------------------------------- gt derivation
@@ -211,6 +219,53 @@ def extract_reading_windows(reading: dict, W: float, D: float) -> dict[str, list
     return out
 
 
+def _has_reading_primitives(reading: dict) -> bool:
+    return any(s.get("pen") in {"wall", "window"} for s in _strokes(reading))
+
+
+def _boundary_truth(W: float, D: float) -> dict[str, float]:
+    return {"S": 0.0, "N": D, "W": 0.0, "E": W}
+
+
+def extract_reading_boundary(reading: dict, W: float, D: float) -> dict[str, float] | None:
+    """Extract product footprint-side coordinates from wall strokes.
+
+    Returns None for a floor with no wall/window primitives at all, preserving
+    the renderer's no-data gray behavior. If the floor has primitives but no
+    wall stroke on a side, that side is graded as a miss by ``match_boundary``.
+    """
+    if not _has_reading_primitives(reading):
+        return None
+
+    candidates: dict[str, list[float]] = {"S": [], "N": [], "W": [], "E": []}
+    for s in _strokes(reading):
+        if s.get("pen") != "wall":
+            continue
+        seg = _as_segment(s.get("geometry", {}))
+        if seg is None:
+            continue
+        x1, y1, x2, y2 = seg
+        if abs(x1 - x2) < _COLINEAR_EPS_M:
+            x = (x1 + x2) / 2
+            if abs(x - 0.0) <= _BOUNDARY_EPS_M:
+                candidates["W"].append(round(x, 2))
+            if abs(x - W) <= _BOUNDARY_EPS_M:
+                candidates["E"].append(round(x, 2))
+        elif abs(y1 - y2) < _COLINEAR_EPS_M:
+            y = (y1 + y2) / 2
+            if abs(y - 0.0) <= _BOUNDARY_EPS_M:
+                candidates["S"].append(round(y, 2))
+            if abs(y - D) <= _BOUNDARY_EPS_M:
+                candidates["N"].append(round(y, 2))
+
+    truth = _boundary_truth(W, D)
+    out: dict[str, float] = {}
+    for side, vals in candidates.items():
+        if vals:
+            out[side] = min(vals, key=lambda v: abs(v - truth[side]))
+    return out
+
+
 # ---------------------------------------------------------------------- matching
 
 def _match_lines(read: list[float], truth: list[float], tol: float) -> tuple[list[LineMatch], list[float]]:
@@ -225,6 +280,23 @@ def _match_lines(read: list[float], truth: list[float], tol: float) -> tuple[lis
         else:
             matches.append(LineMatch(t, None, None))
     return matches, pool
+
+
+def match_boundary(
+    read: dict[str, float] | None,
+    W: float,
+    D: float,
+    tol: float,
+) -> dict[str, LineMatch] | None:
+    if read is None:
+        return None
+    truth = _boundary_truth(W, D)
+    out: dict[str, LineMatch] = {}
+    for side in ("S", "N", "W", "E"):
+        vals = [read[side]] if side in read else []
+        matches, _extra = _match_lines(vals, [truth[side]], tol)
+        out[side] = matches[0]
+    return out
 
 
 def _match_windows(read: list[tuple[float, float]], truth: list[tuple[float, float]], tolc: float):
@@ -258,10 +330,12 @@ def score_floor(
     gwin = derive_gt_windows(gt, floor_name)
     rvx, rhy = extract_reading_walls(reading, W, D)
     rwin = extract_reading_windows(reading, W, D)
+    rbnd = extract_reading_boundary(reading, W, D)
 
     sc = FloorScore(floor=floor_name)
     sc.vwalls, sc.extra_vwalls = _match_lines(rvx, gvx, wall_tol)
     sc.hwalls, sc.extra_hwalls = _match_lines(rhy, ghy, wall_tol)
+    sc.boundary = match_boundary(rbnd, W, D, wall_tol)
     for f in ("N", "S", "E", "W"):
         ms, extra = _match_windows(rwin[f], gwin[f], win_tol)
         sc.windows[f] = ms

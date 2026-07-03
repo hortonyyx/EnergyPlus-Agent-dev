@@ -224,6 +224,48 @@ def _draw_wall_axis(
             d.line([p1, p2], fill=GREEN, width=4)
 
 
+def _boundary_line(
+    tr: MetricTransform,
+    W: float,
+    D: float,
+    side: str,
+    coord: float,
+) -> tuple[tuple[float, float], tuple[float, float]]:
+    if side == "S":
+        return tr.px(0, coord), tr.px(W, coord)
+    if side == "N":
+        return tr.px(0, coord), tr.px(W, coord)
+    if side == "W":
+        return tr.px(coord, 0), tr.px(coord, D)
+    return tr.px(coord, 0), tr.px(coord, D)
+
+
+def _draw_plan_boundary(
+    d: ImageDraw.ImageDraw,
+    tr: MetricTransform,
+    W: float,
+    D: float,
+    score: dict,
+) -> None:
+    boundary = score.get("boundary")
+    if not isinstance(boundary, dict):
+        return
+    for side in ("S", "N", "W", "E"):
+        match = boundary.get(side)
+        if not isinstance(match, dict):
+            continue
+        read = match.get("read")
+        truth = match.get("truth")
+        if truth is None:
+            continue
+        coord = float(read if read is not None else truth)
+        p1, p2 = _boundary_line(tr, W, D, side, coord)
+        if read is None:
+            _dashed(d, p1, p2, RED, 5, dash=7, gap=4)
+        else:
+            d.line([p1, p2], fill=GREEN, width=5)
+
+
 def _lane(tr: MetricTransform, W: float, D: float, facade: str, a: float, b: float):
     off = 11
     if facade == "N":
@@ -299,6 +341,7 @@ def _draw_plan_panel(
         d.line([tr.px(float(x), 0), tr.px(float(x), D)], fill=RED, width=5)
     for y in score.get("extra_hwalls", []):
         d.line([tr.px(0, float(y)), tr.px(W, float(y))], fill=RED, width=5)
+    _draw_plan_boundary(d, tr, W, D, score)
     _draw_plan_windows(d, tr, W, D, score)
 
 
@@ -323,6 +366,35 @@ def _floor_z_lookup(gt: dict) -> dict[str, tuple[float, float]]:
         h = float(floor.get("ceiling_height", 3.0))
         out[str(floor.get("name"))] = (z, h)
     return out
+
+
+def _draw_elevation_boundary(
+    d: ImageDraw.ImageDraw,
+    tr: MetricTransform,
+    floors: list[dict],
+    facade: str,
+    span_limit: float,
+    scores_by_floor: dict[str, dict],
+) -> None:
+    for floor in floors:
+        floor_name = str(floor.get("name"))
+        score = scores_by_floor.get(floor_name) or {}
+        boundary = score.get("boundary")
+        if not isinstance(boundary, dict):
+            continue
+        match = boundary.get(facade)
+        if not isinstance(match, dict):
+            continue
+        z0 = float(floor.get("z_floor", 0.0))
+        z1 = z0 + float(floor.get("ceiling_height", 3.0))
+        left = (tr.px(0, z0), tr.px(0, z1))
+        right = (tr.px(span_limit, z0), tr.px(span_limit, z1))
+        if match.get("read") is None:
+            _dashed(d, left[0], left[1], RED, 4, dash=7, gap=4)
+            _dashed(d, right[0], right[1], RED, 4, dash=7, gap=4)
+        else:
+            d.line([left[0], left[1]], fill=GREEN, width=4)
+            d.line([right[0], right[1]], fill=GREEN, width=4)
 
 
 def _draw_elevation_panel(
@@ -353,6 +425,7 @@ def _draw_elevation_panel(
         z = float(floor.get("z_floor", 0.0))
         if z > 0:
             d.line([tr.px(0, z), tr.px(span_limit, z)], fill=REFERENCE, width=4)
+    _draw_elevation_boundary(d, tr, floors, facade, span_limit, scores_by_floor)
 
     if _has_no_data_for_facade(scores_by_floor, floors, facade):
         _draw_no_data(d, ox + 12, oy + 12)
@@ -428,7 +501,7 @@ def render_grade(stage: str, score_sidecar: dict, gt: dict) -> Image.Image:
     d.text((lx + 34, ly), "within-tol drift band", font=_font(11), fill=SUBTLE)
     lx += 190
     d.line([(lx, ly + 7), (lx + 28, ly + 7)], fill=REFERENCE, width=5)
-    d.text((lx + 34, ly), "gray outline = reference geometry (not graded)", font=_font(11), fill=SUBTLE)
+    d.text((lx + 34, ly), "gray outline = reference / no boundary data", font=_font(11), fill=SUBTLE)
 
     scores_by_floor = _scores_by_floor(score_sidecar)
     for i, floor in enumerate(floors):
