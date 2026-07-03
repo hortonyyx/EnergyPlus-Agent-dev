@@ -55,10 +55,8 @@ def test_gate1_checks_do_not_reference_gt():
 
 
 def test_executors_do_not_reference_gt():
-    executors = [
-        Path("src/agent/pipeline.py"),
-        Path("src/agent/correction/deterministic.py"),
-        Path("src/agent/execution/validation_run.py"),  # capstone runs gate①, not judge
-    ]
+    executors = [Path("src/agent/pipeline.py")]
+    executors.extend(sorted(Path("src/agent/execution").rglob("*.py")))
+    executors.extend(sorted(Path("src/agent/correction").rglob("*.py")))
     hits = _scan(executors)
     assert not hits, f"executors / gate① capstone must not reference gt: {hits}"

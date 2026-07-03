@@ -344,6 +344,72 @@ def test_record_baseline_malformed_corrections_sidecar_is_best_effort(tmp_path):
     assert "malformed_json" in report
 
 
+def test_record_baseline_models_structured_from_run_config_and_llm(tmp_path):
+    run = _minimal_run(tmp_path)
+    (run / "run_config.yaml").write_text(
+        "\n".join(
+            [
+                "models:",
+                "  reading:",
+                "    model_id: claude-sonnet-5",
+                "    effort: high",
+                "  correction: deepseek-v4-pro",
+                "  orchestrator: codex-5",
+            ]
+        ),
+        encoding="utf-8",
+    )
+    (run / "llm.yaml").write_text(
+        "\n".join(
+            [
+                "default:",
+                "  model_name: downstream-default",
+                "intake_mep:",
+                "  model_name: mep-model",
+                "  reasoning_effort: max",
+            ]
+        ),
+        encoding="utf-8",
+    )
+
+    models = record_baseline._models_from_llm_yaml(run, orchestrator="fallback-orch")
+
+    assert models["reading"] == {
+        "model_id": "claude-sonnet-5",
+        "effort": "high",
+        "source": "run_config.yaml:models.reading",
+    }
+    assert models["correction"]["model_id"] == "deepseek-v4-pro"
+    assert models["mep"] == {
+        "model_id": "mep-model",
+        "effort": "max",
+        "source": "llm.yaml:intake_mep",
+    }
+    assert models["default"]["model_id"] == "downstream-default"
+    assert models["orchestrator"]["model_id"] == "codex-5"
+
+
+def test_record_baseline_models_missing_run_config_uses_unknown_and_warns(tmp_path):
+    run = _minimal_run(tmp_path)
+    (run / "llm.yaml").write_text(
+        "intake_correction:\n  model_name: correction-model\n  reasoning_effort: high\n",
+        encoding="utf-8",
+    )
+
+    with pytest.warns(RuntimeWarning, match="run_config.yaml"):
+        models = record_baseline._models_from_llm_yaml(run)
+
+    assert models["reading"]["model_id"] == "unknown"
+    assert models["correction"] == {
+        "model_id": "correction-model",
+        "effort": "high",
+        "source": "llm.yaml:intake_correction",
+    }
+    assert models["mep"]["source"] == "llm.yaml:intake_correction(fallback)"
+    assert models["default"]["model_id"] == "unknown"
+    assert models["orchestrator"]["model_id"] == "unknown"
+
+
 def test_record_baseline_verdict_blocking_is_recoverability_aware():
     j0_recoverable = {
         "stage": "0_reading",

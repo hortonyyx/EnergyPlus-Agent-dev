@@ -19,6 +19,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import warnings
 from collections import Counter
 from pathlib import Path
 
@@ -26,6 +27,7 @@ from src.agent.execution import load_state, summarize_gates, validate_case
 from src.agent.execution.approval import APPROVAL_NAME
 from src.agent.execution.manifest import MANIFEST_NAME
 from src.agent.execution.policy import RunPolicy
+from src.agent.execution.run_config import RunConfig, load_run_config
 from src.agent.execution.run_meta import RUN_META_DIR, run_meta_path
 from src.agent.execution.stage_runner import STAGE_ORDER
 from src.agent.execution.step_orchestrator import STATE_NAME
@@ -43,9 +45,8 @@ from report_assembly import (
 BASELINE_NAME = "baseline.json"
 
 
-def _models_from_llm_yaml(case_dir: Path) -> dict:
-    """Best-effort read of the per-case model config (which model per stage)."""
-    p = case_dir / "llm.yaml"
+def _load_llm_yaml(run_dir: Path) -> dict:
+    p = run_dir / "llm.yaml"
     if not p.exists():
         return {}
     try:
@@ -54,12 +55,93 @@ def _models_from_llm_yaml(case_dir: Path) -> dict:
         cfg = OmegaConf.to_container(OmegaConf.load(p), resolve=False)
     except Exception:  # noqa: BLE001 — config read is best-effort metadata
         return {}
-    out = {}
-    for key in ("intake_correction", "intake_mep", "default"):
-        sec = cfg.get(key) if isinstance(cfg, dict) else None
-        if isinstance(sec, dict) and sec.get("model_name"):
-            out[key] = sec["model_name"]
-    return out
+    return cfg if isinstance(cfg, dict) else {}
+
+
+def _model_entry(model_id: object = None, *, effort: object = None, source: str) -> dict:
+    return {
+        "model_id": str(model_id) if model_id not in (None, "") else "unknown",
+        "effort": str(effort) if effort not in (None, "") else "unknown",
+        "source": source,
+    }
+
+
+def _model_from_run_config(cfg: RunConfig, role: str) -> dict | None:
+    raw = cfg.models.get(role)
+    if raw in (None, ""):
+        return None
+    source = f"run_config.yaml:models.{role}"
+    if isinstance(raw, dict):
+        model_id = raw.get("model_id") or raw.get("model_name") or raw.get("model")
+        effort = raw.get("effort") or raw.get("reasoning_effort")
+        return _model_entry(model_id, effort=effort, source=source)
+    return _model_entry(raw, source=source)
+
+
+def _model_from_llm_section(llm: dict, section: str, *, source: str) -> dict | None:
+    sec = llm.get(section)
+    if not isinstance(sec, dict) or not sec.get("model_name"):
+        return None
+    return _model_entry(
+        sec.get("model_name"),
+        effort=sec.get("reasoning_effort") or sec.get("effort"),
+        source=source,
+    )
+
+
+def _models_from_llm_yaml(run_dir: Path, *, orchestrator: str | None = None) -> dict:
+    """Structured model provenance for baseline.models.
+
+    ``run_config.yaml`` is authoritative for reading/orchestrator and overrides
+    legacy ``llm.yaml`` where both exist. Missing metadata is explicit
+    ``unknown`` rather than silent omission.
+    """
+    run_cfg = load_run_config(run_dir)
+    llm = _load_llm_yaml(run_dir)
+    if not run_cfg.present:
+        warnings.warn(
+            f"{run_dir / 'run_config.yaml'} missing; baseline.models will use "
+            "llm.yaml fallbacks plus unknown placeholders",
+            RuntimeWarning,
+            stacklevel=2,
+        )
+
+    models: dict[str, dict] = {}
+    for role in ("reading", "correction", "mep", "default", "orchestrator"):
+        from_cfg = _model_from_run_config(run_cfg, role)
+        if from_cfg is not None:
+            models[role] = from_cfg
+            continue
+        if role == "correction":
+            models[role] = (
+                _model_from_llm_section(
+                    llm, "intake_correction", source="llm.yaml:intake_correction"
+                )
+                or _model_entry(source="unknown")
+            )
+        elif role == "mep":
+            models[role] = (
+                _model_from_llm_section(llm, "intake_mep", source="llm.yaml:intake_mep")
+                or _model_from_llm_section(
+                    llm,
+                    "intake_correction",
+                    source="llm.yaml:intake_correction(fallback)",
+                )
+                or _model_entry(source="unknown")
+            )
+        elif role == "default":
+            models[role] = (
+                _model_from_llm_section(llm, "default", source="llm.yaml:default")
+                or _model_entry(source="unknown")
+            )
+        elif role == "orchestrator" and orchestrator:
+            models[role] = _model_entry(
+                orchestrator,
+                source="record_baseline.orchestrator_arg",
+            )
+        else:
+            models[role] = _model_entry(source="unknown")
+    return models
 
 
 def _ep_end(case_dir: Path) -> dict | None:
@@ -328,7 +410,7 @@ def record_baseline(
         "run": run_dir.name,
         "recorded": date,
         "orchestrator": orchestrator,
-        "models": _models_from_llm_yaml(run_dir),
+        "models": _models_from_llm_yaml(run_dir, orchestrator=orchestrator),
         "geometry": counts,
         "geometry_digest": res.geometry_digest,
         "geometry_approved": res.geometry_approved,

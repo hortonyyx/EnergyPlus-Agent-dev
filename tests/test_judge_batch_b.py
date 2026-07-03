@@ -70,6 +70,7 @@ def test_judge_packet_scores_accepted_reading_attempt_not_mutable_flat(tmp_path,
     assert sidecar["attempt"] == 2
     assert sidecar["source"] == "attempt_output"
     assert sidecar["output_hash"] == rec.output_hash
+    assert sidecar["tolerances"] == {"wall_tol_m": 0.3, "window_centre_tol_m": 0.4}
     assert packet["overlay"] == str(run_dir / "0_reading" / "attempts" / "002" / "overlay.png")
     assert Path(packet["overlay"]).exists()
     assert packet["score_criteria"] == sidecar["score_criteria"]
@@ -104,6 +105,19 @@ def test_judge_packet_scores_accepted_reading_attempt_not_mutable_flat(tmp_path,
     sidecar2 = json.loads(Path(packet2["score_vs_gt"]).read_text(encoding="utf-8"))
     assert sidecar2["output_hash"] == rec.output_hash
     assert sidecar2["scores"]
+
+    sidecar2["tolerances"] = {"wall_tol_m": 9.9, "window_centre_tol_m": 9.9}
+    sidecar_path.write_text(json.dumps(sidecar2), encoding="utf-8")
+    packet3 = rs._judge_packet(
+        "0_reading",
+        "sm21_anchor",
+        case_dir,
+        run_dir,
+        run_dir / "0_reading" / "attempts" / "002",
+        _pass_report("0_reading"),
+    )
+    sidecar3 = json.loads(Path(packet3["score_vs_gt"]).read_text(encoding="utf-8"))
+    assert sidecar3["tolerances"] == {"wall_tol_m": 0.3, "window_centre_tol_m": 0.4}
 
 
 def test_correction_scorer_maps_f1_f2_to_gt_floors():
@@ -144,6 +158,7 @@ def test_judge_packet_scores_correction_attempt_and_records_floor_map(tmp_path, 
     sidecar = json.loads(Path(packet["score_vs_gt"]).read_text(encoding="utf-8"))
     assert sidecar["stage"] == "1_correction"
     assert sidecar["source"] == "attempt_output"
+    assert sidecar["tolerances"] == {"wall_tol_m": 0.3, "window_centre_tol_m": 0.4}
     assert sidecar["floor_map"] == {"F1": "Floor 1", "F2": "Floor 2"}
     assert sidecar["evidence"] == []
     assert Path(packet["overlay"]).exists()

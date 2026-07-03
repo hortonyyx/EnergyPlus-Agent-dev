@@ -61,6 +61,7 @@ from src.agent.execution.case_metadata import (  # noqa: E402
 )
 from src.agent.execution.policy import ConfirmationPolicy  # noqa: E402
 from src.agent.execution.approval import GeometryApproval  # noqa: E402
+from src.agent.execution.run_config import GradeConfig, RunConfig, load_run_config  # noqa: E402
 from src.agent.judge.executor import rubric_for, run_judge  # noqa: E402
 from src.agent.judge.verdict import StageVerdict  # noqa: E402
 from src.agent.runner import load_intake_from, run_downstream_ep  # noqa: E402
@@ -432,7 +433,7 @@ def _floor_score_dict(score) -> dict:
     }
 
 
-def _score_reading_attempt_output(output: dict, gt: dict):
+def _score_reading_attempt_output(output: dict, gt: dict, *, wall_tol: float, win_tol: float):
     from src.agent.judge.reading_score import floor_name_for_image, score_floor
 
     scores = {}
@@ -447,18 +448,28 @@ def _score_reading_attempt_output(output: dict, gt: dict):
                  "reason": "could not map view stem to gt floor"}
             )
             continue
-        scores[stem] = score_floor(view, gt, floor_name)
+        scores[stem] = score_floor(view, gt, floor_name, wall_tol=wall_tol, win_tol=win_tol)
     return scores, evidence, {}
 
 
-def _score_attempt_output(stage: str, output: dict, gt: dict):
+def _score_attempt_output(
+    stage: str,
+    output: dict,
+    gt: dict,
+    *,
+    grade: GradeConfig,
+):
     from src.agent.judge.correction_score import score_correction_geometry
     from src.agent.judge.score_policy import reading_score_criteria
 
+    wall_tol = grade.wall_tol_m
+    win_tol = grade.window_centre_tol_m
     if stage == "0_reading":
-        scores, evidence, floor_map = _score_reading_attempt_output(output, gt)
+        scores, evidence, floor_map = _score_reading_attempt_output(
+            output, gt, wall_tol=wall_tol, win_tol=win_tol
+        )
     elif stage == "1_correction":
-        result = score_correction_geometry(output, gt)
+        result = score_correction_geometry(output, gt, wall_tol=wall_tol, win_tol=win_tol)
         scores, evidence, floor_map = result.scores, result.evidence, result.floor_map
     else:
         return None
@@ -466,11 +477,23 @@ def _score_attempt_output(stage: str, output: dict, gt: dict):
         "scores": scores,
         "evidence": evidence,
         "floor_map": floor_map,
-        "score_criteria": reading_score_criteria(scores, extra_evidence=evidence),
+        "score_criteria": reading_score_criteria(
+            scores,
+            wall_tol_m=wall_tol,
+            window_centre_tol_m=win_tol,
+            extra_evidence=evidence,
+        ),
     }
 
 
-def _load_valid_score_sidecar(sidecar: Path, *, stage: str, attempt: int, output_hash: str) -> dict | None:
+def _load_valid_score_sidecar(
+    sidecar: Path,
+    *,
+    stage: str,
+    attempt: int,
+    output_hash: str,
+    tolerances: dict[str, float],
+) -> dict | None:
     if not sidecar.exists():
         return None
     try:
@@ -482,19 +505,29 @@ def _load_valid_score_sidecar(sidecar: Path, *, stage: str, attempt: int, output
         and data.get("attempt") == attempt
         and data.get("output_hash") == output_hash
         and data.get("source") == "attempt_output"
+        and data.get("tolerances") == tolerances
     ):
         return data
     return None
 
 
-def _judge_gt_artifacts(stage: str, case: str, run_dir: Path, attempt_dir: Path, gt: dict) -> dict:
+def _judge_gt_artifacts(
+    stage: str,
+    case: str,
+    run_dir: Path,
+    attempt_dir: Path,
+    gt: dict,
+    *,
+    manifest: RunManifest | None = None,
+    grade: GradeConfig | None = None,
+) -> dict:
     from src.agent.execution.manifest import attempt_index_of, hash_text
 
     if stage not in {"0_reading", "1_correction"}:
         return {"score_vs_gt": None, "overlay": None, "score_criteria": []}
 
-    manifest = RunManifest.load(run_dir)
-    rec = manifest.accepted(stage)
+    active_manifest = manifest or RunManifest.load(run_dir)
+    rec = active_manifest.accepted(stage)
     attempt = attempt_index_of(attempt_dir)
     if rec is None or rec.accepted_attempt != attempt:
         return {"score_vs_gt": None, "overlay": None, "score_criteria": []}
@@ -507,12 +540,18 @@ def _judge_gt_artifacts(stage: str, case: str, run_dir: Path, attempt_dir: Path,
         )
 
     score_path = attempt_dir / "score_vs_gt.json"
+    grade = grade or GradeConfig()
+    tolerances = grade.as_tolerances()
     sidecar = _load_valid_score_sidecar(
-        score_path, stage=stage, attempt=attempt, output_hash=rec.output_hash
+        score_path,
+        stage=stage,
+        attempt=attempt,
+        output_hash=rec.output_hash,
+        tolerances=tolerances,
     )
     if sidecar is None:
         output = json.loads(output_text)
-        scored = _score_attempt_output(stage, output, gt)
+        scored = _score_attempt_output(stage, output, gt, grade=grade)
         if scored is None:
             return {"score_vs_gt": None, "overlay": None, "score_criteria": []}
         sidecar = {
@@ -521,6 +560,7 @@ def _judge_gt_artifacts(stage: str, case: str, run_dir: Path, attempt_dir: Path,
             "output_hash": rec.output_hash,
             "source": "attempt_output",
             "case": case,
+            "tolerances": tolerances,
             "scores": {
                 key: _floor_score_dict(score)
                 for key, score in scored["scores"].items()
@@ -547,7 +587,9 @@ def _judge_gt_artifacts(stage: str, case: str, run_dir: Path, attempt_dir: Path,
 
 
 def _judge_packet(stage: str, case: str, case_dir: Path, run_dir: Path,
-                  attempt_dir: Path, report: CheckReport) -> dict:
+                  attempt_dir: Path, report: CheckReport,
+                  *, manifest: RunManifest | None = None,
+                  run_config: RunConfig | None = None) -> dict:
     # gt is judge-only — import it inside the judge path, never at module load.
     from src.agent.judge.gt import gt_path, has_gt, load_gt
 
@@ -555,8 +597,17 @@ def _judge_packet(stage: str, case: str, case_dir: Path, run_dir: Path,
     rubric_id = reg[0] if reg else "none"
     renders = _render_stage(stage, run_dir, case_dir)
     gt = load_gt(case) if has_gt(case) else None
+    cfg = run_config or RunConfig.defaults(path=run_dir / "run_config.yaml", present=False)
     gt_artifacts = (
-        _judge_gt_artifacts(stage, case, run_dir, attempt_dir, gt)
+        _judge_gt_artifacts(
+            stage,
+            case,
+            run_dir,
+            attempt_dir,
+            gt,
+            manifest=manifest,
+            grade=cfg.grade_for(stage),
+        )
         if gt is not None
         else {"score_vs_gt": None, "overlay": None, "score_criteria": []}
     )
@@ -820,6 +871,7 @@ def _print_reread_protocol(args, outcome) -> None:
 def cmd_run(args) -> int:
     case_dir, run_dir, td_path = _resolve(args.base_dir, args.case, args.run)
     testdata_text = td_path.read_text(encoding="utf-8") if td_path.exists() else ""
+    run_config = load_run_config(run_dir)
     policy = _make_policy(
         reading_runner_available=args.reading_runner_available,
         run_profile=args.run_profile,
@@ -831,7 +883,16 @@ def cmd_run(args) -> int:
     draw_fn = _make_draw_fn(stage, run_dir, testdata_text, td_path, policy)
 
     def _packet_fn(adir: Path, rep: CheckReport) -> dict:
-        return _judge_packet(stage, args.case, case_dir, run_dir, adir, rep)
+        return _judge_packet(
+            stage,
+            args.case,
+            case_dir,
+            run_dir,
+            adir,
+            rep,
+            manifest=manifest,
+            run_config=run_config,
+        )
 
     outcome = run_one_stage(
         stage=stage, runner=runner, stage_dir=stage_dir, policy=policy,
@@ -943,11 +1004,20 @@ def cmd_approve_review(args) -> int:
 def cmd_flow(args) -> int:
     case_dir, run_dir, td_path = _resolve(args.base_dir, args.case, args.run)
     testdata_text = td_path.read_text(encoding="utf-8") if td_path.exists() else ""
-    review_switches = _parse_review_switches(args.review or "")
+    run_config = load_run_config(run_dir)
+    review_switches = (
+        _parse_review_switches(args.review or "")
+        if args.review
+        else run_config.review_stages()
+    )
+    judge_mode = run_config.judge_mode if run_config.present else args.judge
+    to_stage = args.to_stage
+    if run_config.present and args.to_stage == "5_intakeoutput" and run_config.scope_stages:
+        to_stage = run_config.scope_stages[-1]
     policy = _make_policy(
         reading_runner_available=args.reading_runner_available,
         run_profile=args.run_profile,
-        judge_enabled=(args.judge != "off"),
+        judge_enabled=(judge_mode != "off"),
         confirmation_policy=ConfirmationPolicy.REQUIRED,
     )
     manifest = RunManifest.load(run_dir)
@@ -958,15 +1028,15 @@ def cmd_flow(args) -> int:
             case_dir=case_dir,
             policy=policy,
             review_switches=review_switches,
-            to_stage=args.to_stage,
+            to_stage=to_stage,
         )
         if args.from_stage == "auto"
         else args.from_stage
     )
     start = _stage_index(start_stage)
-    end = _stage_index(args.to_stage)
+    end = _stage_index(to_stage)
     if start > end:
-        raise SystemExit(f"--from {start_stage} is after --to {args.to_stage}")
+        raise SystemExit(f"--from {start_stage} is after --to {to_stage}")
 
     runner = StageRunner(run_dir, manifest)
     force_next: set[str] = set()
@@ -977,7 +1047,16 @@ def cmd_flow(args) -> int:
         draw_fn = _make_draw_fn(stage, run_dir, testdata_text, td_path, policy)
 
         def _packet_fn(adir: Path, rep: CheckReport, *, _stage=stage) -> dict:
-            return _judge_packet(_stage, args.case, case_dir, run_dir, adir, rep)
+            return _judge_packet(
+                _stage,
+                args.case,
+                case_dir,
+                run_dir,
+                adir,
+                rep,
+                manifest=manifest,
+                run_config=run_config,
+            )
 
         outcome = run_one_stage(
             stage=stage,
@@ -1063,7 +1142,7 @@ def cmd_flow(args) -> int:
                 print(f"  cannot auto-resample judge route target: {target!r}")
                 return FLOW_EXIT_CHECKPOINT
             if _stage_index(target) > end:
-                print(f"  judge route target {target} is beyond --to {args.to_stage}")
+                print(f"  judge route target {target} is beyond --to {to_stage}")
                 return FLOW_EXIT_CHECKPOINT
             dropped = invalidate(manifest, target)
             manifest.save(run_dir)

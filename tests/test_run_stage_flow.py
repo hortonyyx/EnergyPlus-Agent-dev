@@ -1,10 +1,14 @@
 from __future__ import annotations
 
+import json
+from pathlib import Path
 from types import SimpleNamespace
 
 import scripts.tool_scripts.run_stage as rs
 from src.agent.execution import RunManifest, StageOutcome, StageRecord, StepStatus, load_state
 from src.validator.checks.schema import CheckLayer, CheckReport
+
+_SM21 = Path("case_tests/e2e_tests/sm21_anchor")
 
 
 def _args(tmp_path, **overrides):
@@ -113,6 +117,63 @@ def test_flow_human_review_checkpoint_and_approve_resume(tmp_path, monkeypatch):
     new_hash = RunManifest.load(run_dir).accepted("1_correction").output_hash
     assert new_hash != old_hash
     assert rs.cmd_flow(args) == rs.FLOW_EXIT_CHECKPOINT
+
+
+def test_flow_uses_run_config_defaults_for_judge_and_review(tmp_path, monkeypatch):
+    monkeypatch.setattr(rs, "_make_draw_fn", _fake_make_draw_fn)
+    run_dir = tmp_path / "case" / "run"
+    run_dir.mkdir(parents=True)
+    (run_dir / "run_config.yaml").write_text(
+        "\n".join(
+            [
+                "scope:",
+                "  stages: [1_correction]",
+                "judge:",
+                "  mode: off",
+                "review:",
+                "  correction: true",
+            ]
+        ),
+        encoding="utf-8",
+    )
+
+    code = rs.cmd_flow(_args(tmp_path, review="", judge="stop"))
+
+    assert code == rs.FLOW_EXIT_CHECKPOINT
+    assert load_state(run_dir)["stop_reason"] == "awaiting_human_review@1_correction"
+
+
+def test_flow_first_pass_packet_has_gt_evidence_before_manifest_save(tmp_path, monkeypatch):
+    output = json.loads(
+        (_SM21 / "run_2026-06-20_gpt54_reading/0_reading/attempts/002/output.json")
+        .read_text(encoding="utf-8")
+    )
+
+    def draw_reading(_stage, _run_dir, *_args, **_kwargs):
+        return lambda _fb: (output, _pass_report("0_reading"))
+
+    monkeypatch.setattr(rs, "_make_draw_fn", draw_reading)
+    monkeypatch.setattr(rs, "_render_stage", lambda *_args, **_kwargs: [])
+
+    code = rs.cmd_flow(
+        _args(
+            tmp_path,
+            case="sm21_anchor",
+            from_stage="0_reading",
+            to_stage="0_reading",
+            judge="stop",
+        )
+    )
+
+    run_dir = tmp_path / "sm21_anchor" / "run"
+    packet_path = run_dir / "0_reading" / "attempts" / "001" / "judge_packet.json"
+    packet = json.loads(packet_path.read_text(encoding="utf-8"))
+    assert code == rs.FLOW_EXIT_CHECKPOINT
+    assert packet["score_vs_gt"]
+    assert Path(packet["score_vs_gt"]).exists()
+    assert packet["overlay"]
+    assert Path(packet["overlay"]).exists()
+    assert packet["score_criteria"]
 
 
 def test_flow_judge_block_auto_invalidates_and_force_resamples(tmp_path, monkeypatch):

@@ -22,6 +22,8 @@ WINDOW_MINOR_RATIO = 0.80
 def reading_score_criteria(
     scores: Mapping[str, FloorScore],
     *,
+    wall_tol_m: float = DEFAULT_WALL_TOL_M,
+    window_centre_tol_m: float = DEFAULT_WIN_CENTRE_TOL_M,
     extra_evidence: list[dict] | None = None,
 ) -> list[dict]:
     """Return suggested criterion evidence derived from FloorScore objects."""
@@ -90,7 +92,7 @@ def reading_score_criteria(
                 f"wall_hits={total_wall_hits}/{total_walls}; "
                 f"missed={missed_walls}; extra={extra_walls}; "
                 f"max_offset_m={round(max_wall_offset, 3)}; "
-                f"wall_tol_m={DEFAULT_WALL_TOL_M}"
+                f"wall_tol_m={wall_tol_m}"
             ),
             "floors": floors,
         },
@@ -101,7 +103,7 @@ def reading_score_criteria(
                 f"window_hits={total_windows_hit}/{total_windows}; "
                 f"missed={missed_windows}; extra={extra_windows}; "
                 f"hit_ratio={round(window_ratio, 3)}; "
-                f"centre_tol_m={DEFAULT_WIN_CENTRE_TOL_M}"
+                f"centre_tol_m={window_centre_tol_m}"
             ),
             "floors": floors,
         },

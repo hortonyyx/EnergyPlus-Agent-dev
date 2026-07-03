@@ -712,8 +712,18 @@ def _wrap_region(kind: str, key: str, body: str) -> str:
 
 def _format_models(models: dict) -> list[str]:
     if not models:
-        return ["- models: `(未读到 llm.yaml)`"]
-    return [f"- {key}: `{value}`" for key, value in sorted(models.items())]
+        return ["- models: `(未读到 run_config.yaml / llm.yaml)`"]
+    lines = []
+    for key, value in sorted(models.items()):
+        if isinstance(value, dict):
+            lines.append(
+                f"- {key}: `{value.get('model_id', 'unknown')}` "
+                f"(effort=`{value.get('effort', 'unknown')}`, "
+                f"source=`{value.get('source', 'unknown')}`)"
+            )
+        else:
+            lines.append(f"- {key}: `{value}`")
+    return lines
 
 
 def _render_model_config(baseline: dict) -> str:
@@ -722,6 +732,7 @@ def _render_model_config(baseline: dict) -> str:
         "",
         "## 本次模型配置",
         "",
+        f"- run_config.yaml: [../run_config.yaml](../run_config.yaml)",
         f"- llm.yaml: [../llm.yaml](../llm.yaml)",
         f"- recorded: `{baseline.get('recorded', '')}`",
         f"- orchestrator: `{baseline.get('orchestrator', '')}`",
