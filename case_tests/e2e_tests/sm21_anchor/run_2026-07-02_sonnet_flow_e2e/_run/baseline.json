@@ -1,0 +1,3891 @@
+{
+  "case": "sm21_anchor",
+  "run": "run_2026-07-02_sonnet_flow_e2e",
+  "recorded": "2026-07-02",
+  "orchestrator": "claude-opus-4-8",
+  "models": {
+    "intake_correction": "deepseek-v4-pro",
+    "default": "deepseek-v4-pro"
+  },
+  "geometry": {
+    "zones": 14,
+    "surfaces": 100,
+    "windows": 15
+  },
+  "geometry_digest": "f683752da9ddf2e4ae11666d81ed91e35ccd0bf6e2dfd073736f736adff4e34c",
+  "geometry_approved": true,
+  "gates": {
+    "0_reading": {
+      "pass": 79,
+      "flag": 8,
+      "block": 0,
+      "na": 21,
+      "skip": 0
+    },
+    "1_correction": {
+      "pass": 8,
+      "flag": 0,
+      "block": 0,
+      "na": 5,
+      "skip": 0
+    },
+    "2_modelling": {
+      "pass": 5,
+      "flag": 0,
+      "block": 0,
+      "na": 0,
+      "skip": 0
+    },
+    "4_mep": {
+      "pass": 12,
+      "flag": 0,
+      "block": 0,
+      "na": 2,
+      "skip": 0
+    },
+    "5_intakeoutput": {
+      "pass": 1,
+      "flag": 0,
+      "block": 0,
+      "na": 0,
+      "skip": 0
+    },
+    "downstream": {
+      "pass": 3,
+      "flag": 0,
+      "block": 0,
+      "na": 1,
+      "skip": 0
+    }
+  },
+  "signals": {
+    "reading_syntax_valid": true,
+    "reading_evidence_clean": false,
+    "j0_semantic_clean": true,
+    "pipeline_recovered": false
+  },
+  "flags": [
+    {
+      "stage": "0_reading",
+      "check": "reading.dimension_chain_closure",
+      "message": "dimension chain evidence is missing, incomplete, or non-closing",
+      "evidence": {
+        "dimensioned": true,
+        "raw_has_dimensions": true,
+        "raw_has_uncaptured": true,
+        "legacy_migrated": false,
+        "missing_chain_id": [],
+        "missing_axis": [],
+        "incomplete": [
+          {
+            "chain_id": "C_bottom",
+            "axis": "x",
+            "overall_count": 0,
+            "segment_count": 11,
+            "dimension_ids": [
+              "D11",
+              "D12",
+              "D13",
+              "D14",
+              "D15",
+              "D16",
+              "D17",
+              "D18",
+              "D19",
+              "D20",
+              "D21"
+            ]
+          },
+          {
+            "chain_id": "C_right",
+            "axis": "y",
+            "overall_count": 0,
+            "segment_count": 5,
+            "dimension_ids": [
+              "D28",
+              "D29",
+              "D30",
+              "D31",
+              "D32"
+            ]
+          }
+        ],
+        "mismatches": [
+          {
+            "chain_id": "C_top",
+            "axis": "x",
+            "overall": 15.0,
+            "overall_id": "D1",
+            "segment_sum": 14.76,
+            "segment_ids": [
+              "D2",
+              "D3",
+              "D4",
+              "D5",
+              "D6",
+              "D7",
+              "D8",
+              "D9",
+              "D10"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "stage": "0_reading",
+      "check": "reading.stroke_dimension_consistency",
+      "message": "6 plan wall stroke coordinate(s) coincide with dimension-chain cumulative positions; verify each is a real room-bounding wall",
+      "evidence": {
+        "tolerance_m": 0.01,
+        "offenders": [
+          {
+            "stroke_id": "S5",
+            "axis": "y",
+            "coord_m": 3.0,
+            "matching_dimension_ids": [
+              "D23",
+              "D24"
+            ],
+            "matching_positions": [
+              {
+                "coord": 3.0,
+                "dimension_ids": [
+                  "D23"
+                ],
+                "chain_id": "C_left"
+              },
+              {
+                "coord": 3.0,
+                "dimension_ids": [
+                  "D24"
+                ],
+                "chain_id": "C_left"
+              }
+            ],
+            "joins_walls": {
+              "p1": true,
+              "p2": true,
+              "both_endpoints_join": true
+            },
+            "bounds_rooms_inferable": true
+          },
+          {
+            "stroke_id": "S6",
+            "axis": "y",
+            "coord_m": 5.0,
+            "matching_dimension_ids": [
+              "D23",
+              "D24",
+              "D25",
+              "D26",
+              "D27"
+            ],
+            "matching_positions": [
+              {
+                "coord": 5.0,
+                "dimension_ids": [
+                  "D26"
+                ],
+                "chain_id": "C_left"
+              },
+              {
+                "coord": 5.0,
+                "dimension_ids": [
+                  "D23",
+                  "D24",
+                  "D25",
+                  "D26"
+                ],
+                "chain_id": "C_left"
+              },
+              {
+                "coord": 5.0,
+                "dimension_ids": [
+                  "D27"
+                ],
+                "chain_id": "C_left"
+              }
+            ],
+            "joins_walls": {
+              "p1": true,
+              "p2": true,
+              "both_endpoints_join": true
+            },
+            "bounds_rooms_inferable": true
+          },
+          {
+            "stroke_id": "S7",
+            "axis": "x",
+            "coord_m": 5.0,
+            "matching_dimension_ids": [
+              "D11",
+              "D12",
+              "D13",
+              "D14",
+              "D15",
+              "D16"
+            ],
+            "matching_positions": [
+              {
+                "coord": 5.0,
+                "dimension_ids": [
+                  "D15"
+                ],
+                "chain_id": "C_bottom"
+              },
+              {
+                "coord": 5.0,
+                "dimension_ids": [
+                  "D11",
+                  "D12",
+                  "D13",
+                  "D14",
+                  "D15"
+                ],
+                "chain_id": "C_bottom"
+              },
+              {
+                "coord": 5.0,
+                "dimension_ids": [
+                  "D16"
+                ],
+                "chain_id": "C_bottom"
+              }
+            ],
+            "joins_walls": {
+              "p1": true,
+              "p2": true,
+              "both_endpoints_join": true
+            },
+            "bounds_rooms_inferable": true
+          },
+          {
+            "stroke_id": "S8",
+            "axis": "x",
+            "coord_m": 10.0,
+            "matching_dimension_ids": [
+              "D11",
+              "D12",
+              "D13",
+              "D14",
+              "D15",
+              "D16",
+              "D17",
+              "D18",
+              "D19"
+            ],
+            "matching_positions": [
+              {
+                "coord": 10.0,
+                "dimension_ids": [
+                  "D18"
+                ],
+                "chain_id": "C_bottom"
+              },
+              {
+                "coord": 10.0,
+                "dimension_ids": [
+                  "D11",
+                  "D12",
+                  "D13",
+                  "D14",
+                  "D15",
+                  "D16",
+                  "D17",
+                  "D18"
+                ],
+                "chain_id": "C_bottom"
+              },
+              {
+                "coord": 10.0,
+                "dimension_ids": [
+                  "D19"
+                ],
+                "chain_id": "C_bottom"
+              }
+            ],
+            "joins_walls": {
+              "p1": true,
+              "p2": true,
+              "both_endpoints_join": true
+            },
+            "bounds_rooms_inferable": true
+          },
+          {
+            "stroke_id": "S9",
+            "axis": "x",
+            "coord_m": 5.0,
+            "matching_dimension_ids": [
+              "D11",
+              "D12",
+              "D13",
+              "D14",
+              "D15",
+              "D16"
+            ],
+            "matching_positions": [
+              {
+                "coord": 5.0,
+                "dimension_ids": [
+                  "D15"
+                ],
+                "chain_id": "C_bottom"
+              },
+              {
+                "coord": 5.0,
+                "dimension_ids": [
+                  "D11",
+                  "D12",
+                  "D13",
+                  "D14",
+                  "D15"
+                ],
+                "chain_id": "C_bottom"
+              },
+              {
+                "coord": 5.0,
+                "dimension_ids": [
+                  "D16"
+                ],
+                "chain_id": "C_bottom"
+              }
+            ],
+            "joins_walls": {
+              "p1": true,
+              "p2": true,
+              "both_endpoints_join": true
+            },
+            "bounds_rooms_inferable": true
+          },
+          {
+            "stroke_id": "S10",
+            "axis": "x",
+            "coord_m": 10.0,
+            "matching_dimension_ids": [
+              "D11",
+              "D12",
+              "D13",
+              "D14",
+              "D15",
+              "D16",
+              "D17",
+              "D18",
+              "D19"
+            ],
+            "matching_positions": [
+              {
+                "coord": 10.0,
+                "dimension_ids": [
+                  "D18"
+                ],
+                "chain_id": "C_bottom"
+              },
+              {
+                "coord": 10.0,
+                "dimension_ids": [
+                  "D11",
+                  "D12",
+                  "D13",
+                  "D14",
+                  "D15",
+                  "D16",
+                  "D17",
+                  "D18"
+                ],
+                "chain_id": "C_bottom"
+              },
+              {
+                "coord": 10.0,
+                "dimension_ids": [
+                  "D19"
+                ],
+                "chain_id": "C_bottom"
+              }
+            ],
+            "joins_walls": {
+              "p1": true,
+              "p2": true,
+              "both_endpoints_join": true
+            },
+            "bounds_rooms_inferable": true
+          }
+        ]
+      }
+    },
+    {
+      "stage": "0_reading",
+      "check": "reading.dimension_chain_closure",
+      "message": "dimension chain evidence is missing, incomplete, or non-closing",
+      "evidence": {
+        "dimensioned": true,
+        "raw_has_dimensions": true,
+        "raw_has_uncaptured": true,
+        "legacy_migrated": false,
+        "missing_chain_id": [],
+        "missing_axis": [],
+        "incomplete": [
+          {
+            "chain_id": "C_bottom",
+            "axis": "x",
+            "overall_count": 0,
+            "segment_count": 12,
+            "dimension_ids": [
+              "D8",
+              "D9",
+              "D10",
+              "D11",
+              "D12",
+              "D13",
+              "D14",
+              "D15",
+              "D16",
+              "D17",
+              "D18",
+              "D19"
+            ]
+          },
+          {
+            "chain_id": "C_right",
+            "axis": "y",
+            "overall_count": 0,
+            "segment_count": 5,
+            "dimension_ids": [
+              "D26",
+              "D27",
+              "D28",
+              "D29",
+              "D30"
+            ]
+          }
+        ],
+        "mismatches": [
+          {
+            "chain_id": "C_top",
+            "axis": "x",
+            "overall": 15.0,
+            "overall_id": "D1",
+            "segment_sum": 14.88,
+            "segment_ids": [
+              "D2",
+              "D3",
+              "D4",
+              "D5",
+              "D6",
+              "D7"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "stage": "0_reading",
+      "check": "reading.stroke_dimension_consistency",
+      "message": "6 plan wall stroke coordinate(s) coincide with dimension-chain cumulative positions; verify each is a real room-bounding wall",
+      "evidence": {
+        "tolerance_m": 0.01,
+        "offenders": [
+          {
+            "stroke_id": "S5",
+            "axis": "y",
+            "coord_m": 3.0,
+            "matching_dimension_ids": [
+              "D21",
+              "D22"
+            ],
+            "matching_positions": [
+              {
+                "coord": 3.0,
+                "dimension_ids": [
+                  "D21"
+                ],
+                "chain_id": "C_left"
+              },
+              {
+                "coord": 3.0,
+                "dimension_ids": [
+                  "D22"
+                ],
+                "chain_id": "C_left"
+              }
+            ],
+            "joins_walls": {
+              "p1": true,
+              "p2": true,
+              "both_endpoints_join": true
+            },
+            "bounds_rooms_inferable": true
+          },
+          {
+            "stroke_id": "S6",
+            "axis": "y",
+            "coord_m": 5.0,
+            "matching_dimension_ids": [
+              "D21",
+              "D22",
+              "D23",
+              "D24",
+              "D25"
+            ],
+            "matching_positions": [
+              {
+                "coord": 5.0,
+                "dimension_ids": [
+                  "D24"
+                ],
+                "chain_id": "C_left"
+              },
+              {
+                "coord": 5.0,
+                "dimension_ids": [
+                  "D21",
+                  "D22",
+                  "D23",
+                  "D24"
+                ],
+                "chain_id": "C_left"
+              },
+              {
+                "coord": 5.0,
+                "dimension_ids": [
+                  "D25"
+                ],
+                "chain_id": "C_left"
+              }
+            ],
+            "joins_walls": {
+              "p1": true,
+              "p2": true,
+              "both_endpoints_join": true
+            },
+            "bounds_rooms_inferable": true
+          },
+          {
+            "stroke_id": "S7",
+            "axis": "x",
+            "coord_m": 7.5,
+            "matching_dimension_ids": [
+              "D10",
+              "D11",
+              "D12",
+              "D13",
+              "D14",
+              "D8",
+              "D9"
+            ],
+            "matching_positions": [
+              {
+                "coord": 7.5,
+                "dimension_ids": [
+                  "D13"
+                ],
+                "chain_id": "C_bottom"
+              },
+              {
+                "coord": 7.5,
+                "dimension_ids": [
+                  "D10",
+                  "D11",
+                  "D12",
+                  "D13",
+                  "D8",
+                  "D9"
+                ],
+                "chain_id": "C_bottom"
+              },
+              {
+                "coord": 7.5,
+                "dimension_ids": [
+                  "D14"
+                ],
+                "chain_id": "C_bottom"
+              }
+            ],
+            "joins_walls": {
+              "p1": true,
+              "p2": true,
+              "both_endpoints_join": true
+            },
+            "bounds_rooms_inferable": true
+          },
+          {
+            "stroke_id": "S8",
+            "axis": "x",
+            "coord_m": 7.5,
+            "matching_dimension_ids": [
+              "D10",
+              "D11",
+              "D12",
+              "D13",
+              "D14",
+              "D8",
+              "D9"
+            ],
+            "matching_positions": [
+              {
+                "coord": 7.5,
+                "dimension_ids": [
+                  "D13"
+                ],
+                "chain_id": "C_bottom"
+              },
+              {
+                "coord": 7.5,
+                "dimension_ids": [
+                  "D10",
+                  "D11",
+                  "D12",
+                  "D13",
+                  "D8",
+                  "D9"
+                ],
+                "chain_id": "C_bottom"
+              },
+              {
+                "coord": 7.5,
+                "dimension_ids": [
+                  "D14"
+                ],
+                "chain_id": "C_bottom"
+              }
+            ],
+            "joins_walls": {
+              "p1": true,
+              "p2": true,
+              "both_endpoints_join": true
+            },
+            "bounds_rooms_inferable": true
+          },
+          {
+            "stroke_id": "S9",
+            "axis": "x",
+            "coord_m": 3.75,
+            "matching_dimension_ids": [
+              "D10",
+              "D11",
+              "D8",
+              "D9"
+            ],
+            "matching_positions": [
+              {
+                "coord": 3.75,
+                "dimension_ids": [
+                  "D10"
+                ],
+                "chain_id": "C_bottom"
+              },
+              {
+                "coord": 3.75,
+                "dimension_ids": [
+                  "D10",
+                  "D8",
+                  "D9"
+                ],
+                "chain_id": "C_bottom"
+              },
+              {
+                "coord": 3.75,
+                "dimension_ids": [
+                  "D11"
+                ],
+                "chain_id": "C_bottom"
+              }
+            ],
+            "joins_walls": {
+              "p1": true,
+              "p2": true,
+              "both_endpoints_join": true
+            },
+            "bounds_rooms_inferable": true
+          },
+          {
+            "stroke_id": "S10",
+            "axis": "x",
+            "coord_m": 11.25,
+            "matching_dimension_ids": [
+              "D10",
+              "D11",
+              "D12",
+              "D13",
+              "D14",
+              "D15",
+              "D16",
+              "D17",
+              "D8",
+              "D9"
+            ],
+            "matching_positions": [
+              {
+                "coord": 11.25,
+                "dimension_ids": [
+                  "D16"
+                ],
+                "chain_id": "C_bottom"
+              },
+              {
+                "coord": 11.25,
+                "dimension_ids": [
+                  "D10",
+                  "D11",
+                  "D12",
+                  "D13",
+                  "D14",
+                  "D15",
+                  "D16",
+                  "D8",
+                  "D9"
+                ],
+                "chain_id": "C_bottom"
+              },
+              {
+                "coord": 11.25,
+                "dimension_ids": [
+                  "D17"
+                ],
+                "chain_id": "C_bottom"
+              }
+            ],
+            "joins_walls": {
+              "p1": true,
+              "p2": true,
+              "both_endpoints_join": true
+            },
+            "bounds_rooms_inferable": true
+          }
+        ]
+      }
+    },
+    {
+      "stage": "0_reading",
+      "check": "reading.dimension_chain_closure",
+      "message": "dimension chain evidence is missing, incomplete, or non-closing",
+      "evidence": {
+        "dimensioned": true,
+        "raw_has_dimensions": true,
+        "raw_has_uncaptured": true,
+        "legacy_migrated": false,
+        "missing_chain_id": [],
+        "missing_axis": [
+          "D5",
+          "D6",
+          "D7",
+          "D8",
+          "D9",
+          "D10",
+          "D11",
+          "D12",
+          "D13"
+        ],
+        "incomplete": [],
+        "mismatches": []
+      }
+    },
+    {
+      "stage": "0_reading",
+      "check": "reading.dimension_chain_closure",
+      "message": "dimension chain evidence is missing, incomplete, or non-closing",
+      "evidence": {
+        "dimensioned": true,
+        "raw_has_dimensions": true,
+        "raw_has_uncaptured": true,
+        "legacy_migrated": false,
+        "missing_chain_id": [],
+        "missing_axis": [
+          "D15",
+          "D16",
+          "D17",
+          "D18",
+          "D19",
+          "D20",
+          "D21",
+          "D22",
+          "D23"
+        ],
+        "incomplete": [],
+        "mismatches": []
+      }
+    },
+    {
+      "stage": "0_reading",
+      "check": "reading.dimension_chain_closure",
+      "message": "dimension chain evidence is missing, incomplete, or non-closing",
+      "evidence": {
+        "dimensioned": true,
+        "raw_has_dimensions": true,
+        "raw_has_uncaptured": true,
+        "legacy_migrated": false,
+        "missing_chain_id": [],
+        "missing_axis": [
+          "D19",
+          "D20",
+          "D21",
+          "D22",
+          "D23",
+          "D24",
+          "D25",
+          "D26",
+          "D27",
+          "D28",
+          "D29",
+          "D30",
+          "D31",
+          "D32",
+          "D33"
+        ],
+        "incomplete": [],
+        "mismatches": []
+      }
+    },
+    {
+      "stage": "0_reading",
+      "check": "reading.dimension_chain_closure",
+      "message": "dimension chain evidence is missing, incomplete, or non-closing",
+      "evidence": {
+        "dimensioned": true,
+        "raw_has_dimensions": true,
+        "raw_has_uncaptured": true,
+        "legacy_migrated": false,
+        "missing_chain_id": [],
+        "missing_axis": [
+          "D5",
+          "D6",
+          "D7",
+          "D8",
+          "D9",
+          "D10",
+          "D11"
+        ],
+        "incomplete": [],
+        "mismatches": []
+      }
+    }
+  ],
+  "blocking": [],
+  "judge_verdicts": [
+    {
+      "stage": "0_reading",
+      "attempt": 1,
+      "rubric_id": "J0",
+      "blocking": false,
+      "root_stage": null
+    },
+    {
+      "stage": "1_correction",
+      "attempt": 1,
+      "rubric_id": "J1",
+      "blocking": false,
+      "root_stage": null
+    }
+  ],
+  "draws": {
+    "0_reading": 1,
+    "1_correction": 1,
+    "2_modelling": 1,
+    "3_split_pairing": 1,
+    "4_mep": 1,
+    "5_intakeoutput": 1
+  },
+  "orchestration": {
+    "0_reading": {
+      "stage": "0_reading",
+      "status": "awaiting_human_review",
+      "attempts_used": 1,
+      "accepted_attempt": 1,
+      "message": "stage passed — awaiting durable human review approval",
+      "gate1": {
+        "passed": true,
+        "block": 0,
+        "flag": 8
+      }
+    },
+    "1_correction": {
+      "stage": "1_correction",
+      "status": "awaiting_human_review",
+      "attempts_used": 1,
+      "accepted_attempt": 1,
+      "message": "stage passed — awaiting durable human review approval",
+      "gate1": {
+        "passed": true,
+        "block": 0,
+        "flag": 0
+      }
+    },
+    "2_modelling": {
+      "stage": "2_modelling",
+      "status": "deterministic_pass",
+      "attempts_used": 1,
+      "accepted_attempt": 1,
+      "message": "gate① passed — no enabled judge for this stage → advance",
+      "gate1": {
+        "passed": true,
+        "block": 0,
+        "flag": 0
+      }
+    },
+    "3_split_pairing": {
+      "stage": "3_split_pairing",
+      "status": "awaiting_geometry_approval",
+      "attempts_used": 1,
+      "accepted_attempt": 1,
+      "message": "geometry built + gate① passed — awaiting human geometry confirmation",
+      "gate1": {
+        "passed": true,
+        "block": 0,
+        "flag": 0
+      }
+    },
+    "4_mep": {
+      "stage": "4_mep",
+      "status": "deterministic_pass",
+      "attempts_used": 1,
+      "accepted_attempt": 1,
+      "message": "gate① passed — no enabled judge for this stage → advance",
+      "gate1": {
+        "passed": true,
+        "block": 0,
+        "flag": 0
+      }
+    },
+    "5_intakeoutput": {
+      "stage": "5_intakeoutput",
+      "status": "deterministic_pass",
+      "attempts_used": 1,
+      "accepted_attempt": 1,
+      "message": "gate① passed — no enabled judge for this stage → advance",
+      "gate1": {
+        "passed": true,
+        "block": 0,
+        "flag": 0
+      }
+    }
+  },
+  "stop_reason": null,
+  "ep": {
+    "completed": true,
+    "severe": 0,
+    "warnings": 6
+  },
+  "corrections_summary": {
+    "sidecar_path": "1_correction/corrections.json",
+    "present": true,
+    "parse_status": "ok",
+    "counts": {
+      "corrections": 34,
+      "conflicts": 2,
+      "unsupported": 0
+    },
+    "by_rule_id": {
+      "centerline_exterior": 1,
+      "deterministic_core.snap": 24,
+      "dimchain_closure_C_right_1F": 1,
+      "dimchain_closure_C_right_2F": 1,
+      "dimchain_closure_C_top_1F": 1,
+      "dimchain_closure_C_top_2F": 1,
+      "north_facade_inversion": 1,
+      "room_role_prior": 1,
+      "stroke_vs_elevation_dimension": 1,
+      "stroke_vs_elevation_dimension_2F": 1,
+      "west_facade_inversion": 1
+    },
+    "by_stage": {
+      "A1": 3,
+      "A2-detect": 6,
+      "A3-resolve": 3,
+      "core": 24
+    },
+    "corrections": {
+      "total": 34,
+      "shown": 20,
+      "cap": 20,
+      "rows": [
+        {
+          "id": "C1",
+          "rule_id": "centerline_exterior",
+          "source_ids": [
+            "1f_view.S1",
+            "1f_view.S2",
+            "1f_view.S3",
+            "1f_view.S4",
+            "2f_view.S1",
+            "2f_view.S2",
+            "2f_view.S3",
+            "2f_view.S4"
+          ],
+          "original_value": "footprint [0,15] x [0,8] (outer faces)",
+          "resolved_value": "footprint [0.12,14.88] x [0.12,7.88] (centerlines, half-thickness 0.12 m deduced from 240 mm ticks)",
+          "delta": "−0.12 m each boundary",
+          "changes_topology": false
+        },
+        {
+          "id": "C2",
+          "rule_id": "dimchain_closure_C_top_1F",
+          "source_ids": [
+            "1f_view.D1",
+            "1f_view.D2",
+            "1f_view.D3",
+            "1f_view.D4",
+            "1f_view.D5",
+            "1f_view.D6",
+            "1f_view.D7",
+            "1f_view.D8",
+            "1f_view.D9",
+            "1f_view.D10"
+          ],
+          "original_value": "chain C_top segments sum = 14.76 m, overall = 15.00 m",
+          "resolved_value": "insert 0.12 m gap each at x≈5.0 and x≈10.0 (interior partition thickness); canonical partition axes at x=5.00, x=10.00; chain closes",
+          "delta": "0.24 m added gap",
+          "changes_topology": false
+        },
+        {
+          "id": "C3",
+          "rule_id": "dimchain_closure_C_right_1F",
+          "source_ids": [
+            "1f_view.D28",
+            "1f_view.D29",
+            "1f_view.D30",
+            "1f_view.D31",
+            "1f_view.D32",
+            "1f_view.C_left"
+          ],
+          "original_value": "C_right segments sum 7.76 m, no overall printed; 0.24 m residual",
+          "resolved_value": "trust overall 8.00 m from C_left and testdata; 0.24 m unlabeled gaps at y≈3.0 and y≈5.0 (horizontal partition thicknesses); canonical partition axes at y=3.00, y=5.00",
+          "delta": "0.24 m gap inserted",
+          "changes_topology": false
+        },
+        {
+          "id": "C4",
+          "rule_id": "dimchain_closure_C_top_2F",
+          "source_ids": [
+            "2f_view.D1",
+            "2f_view.D2",
+            "2f_view.D3",
+            "2f_view.D4",
+            "2f_view.D5",
+            "2f_view.D6",
+            "2f_view.D7"
+          ],
+          "original_value": "chain C_top segments sum = 14.88 m, overall = 15.00 m",
+          "resolved_value": "insert 0.12 m gap at x≈7.5 (central partition thickness); canonical axis at x=7.50; chain closes",
+          "delta": "0.12 m gap",
+          "changes_topology": false
+        },
+        {
+          "id": "C5",
+          "rule_id": "dimchain_closure_C_right_2F",
+          "source_ids": [
+            "2f_view.D26",
+            "2f_view.D27",
+            "2f_view.D28",
+            "2f_view.D29",
+            "2f_view.D30",
+            "2f_view.C_left"
+          ],
+          "original_value": "C_right segments sum 7.76 m, no overall; 0.24 m residual",
+          "resolved_value": "trust overall 8.00 m; unlabeled gaps at y=3.0, y=5.0 (partition thicknesses); canonical axes at 3.00, 5.00",
+          "delta": "0.24 m gap",
+          "changes_topology": false
+        },
+        {
+          "id": "C6",
+          "rule_id": "stroke_vs_elevation_dimension",
+          "source_ids": [
+            "1f_view.S17",
+            "East_view.S4",
+            "East_view.D8",
+            "East_view.D9",
+            "East_view.D10",
+            "East_view.D11",
+            "East_view.D12",
+            "East_view.D13"
+          ],
+          "original_value": "plan stroke y=[3.40,4.60] (pixel); dimension chain implied y=[3.28,4.48]",
+          "resolved_value": "z=[1.00,2.80] from East elevation C_left_fine chain (sil of 1.00, height 1.80); along‑facade span y=[3.40,4.60] from elevation window local‑x mapping (3.40–4.60)",
+          "delta": "adopted elevation values (chain closes exactly)",
+          "changes_topology": false
+        },
+        {
+          "id": "C7",
+          "rule_id": "stroke_vs_elevation_dimension_2F",
+          "source_ids": [
+            "2f_view.S18",
+            "East_view.S3",
+            "East_view.D8",
+            "East_view.D9",
+            "East_view.D10",
+            "East_view.D11",
+            "East_view.D12",
+            "East_view.D13"
+          ],
+          "original_value": "plan stroke y=[3.40,4.60]; dimension chain implied y=[3.28,4.48]",
+          "resolved_value": "z=[4.00,5.80] from East elevation, span y=[3.40,4.60]",
+          "delta": "adopted elevation values",
+          "changes_topology": false
+        },
+        {
+          "id": "C8",
+          "rule_id": "north_facade_inversion",
+          "source_ids": [
+            "North_view.S3",
+            "North_view.S4",
+            "North_view.S5",
+            "North_view.S6",
+            "North_view.S7"
+          ],
+          "original_value": "North elevation local‑x spans",
+          "resolved_value": "world x = 15.00 − local‑x (upper side left→right maps to east→west)",
+          "delta": "inverted span direction",
+          "changes_topology": false
+        },
+        {
+          "id": "C9",
+          "rule_id": "west_facade_inversion",
+          "source_ids": [
+            "West_view.S3"
+          ],
+          "original_value": "West elevation local‑x [3.40, 4.60]",
+          "resolved_value": "world y = 8.00 − local‑x → [3.40, 4.60]",
+          "delta": "inverted",
+          "changes_topology": false
+        },
+        {
+          "id": "C10",
+          "rule_id": "room_role_prior",
+          "source_ids": [],
+          "original_value": "no OCR room labels; roles unknown",
+          "resolved_value": "perimeter rooms → office; two large upper‑floor rooms → meeting; centre strip → corridor",
+          "delta": null,
+          "changes_topology": false
+        },
+        {
+          "rule_id": "deterministic_core.snap",
+          "target": "F1_office_1.x[0]",
+          "original_value": 0.12,
+          "resolved_value": 0.1,
+          "delta": -0.02
+        },
+        {
+          "rule_id": "deterministic_core.snap",
+          "target": "F1_office_1.y[0]",
+          "original_value": 0.12,
+          "resolved_value": 0.1,
+          "delta": -0.02
+        },
+        {
+          "rule_id": "deterministic_core.snap",
+          "target": "F1_office_2.y[0]",
+          "original_value": 0.12,
+          "resolved_value": 0.1,
+          "delta": -0.02
+        },
+        {
+          "rule_id": "deterministic_core.snap",
+          "target": "F1_office_3.x[1]",
+          "original_value": 14.88,
+          "resolved_value": 14.9,
+          "delta": 0.02
+        },
+        {
+          "rule_id": "deterministic_core.snap",
+          "target": "F1_office_3.y[0]",
+          "original_value": 0.12,
+          "resolved_value": 0.1,
+          "delta": -0.02
+        },
+        {
+          "rule_id": "deterministic_core.snap",
+          "target": "F1_office_4.x[0]",
+          "original_value": 0.12,
+          "resolved_value": 0.1,
+          "delta": -0.02
+        },
+        {
+          "rule_id": "deterministic_core.snap",
+          "target": "F1_office_4.y[1]",
+          "original_value": 7.88,
+          "resolved_value": 7.9,
+          "delta": 0.02
+        },
+        {
+          "rule_id": "deterministic_core.snap",
+          "target": "F1_office_5.y[1]",
+          "original_value": 7.88,
+          "resolved_value": 7.9,
+          "delta": 0.02
+        },
+        {
+          "rule_id": "deterministic_core.snap",
+          "target": "F1_office_6.x[1]",
+          "original_value": 14.88,
+          "resolved_value": 14.9,
+          "delta": 0.02
+        },
+        {
+          "rule_id": "deterministic_core.snap",
+          "target": "F1_office_6.y[1]",
+          "original_value": 7.88,
+          "resolved_value": 7.9,
+          "delta": 0.02
+        }
+      ]
+    },
+    "conflicts": [
+      {
+        "id": "CONF1",
+        "stage": "A2-detect",
+        "method_profile": "room_identity",
+        "entity_type": "axis",
+        "entity_id": "1F_right_chain",
+        "floor_id": "1f_view",
+        "coordinate_frame": "world",
+        "conflict_type": "checksum_failure",
+        "claim_type": "numeric",
+        "candidates": [
+          {
+            "value": "8.00 m overall (C_left, testdata)",
+            "source_ids": [
+              "1f_view.D22",
+              "testdata_prompt"
+            ],
+            "evidence_grade": "direct_measurement",
+            "confidence": "high"
+          },
+          {
+            "value": "7.76 m segment sum (C_right)",
+            "source_ids": [
+              "1f_view.D28",
+              "1f_view.D29",
+              "1f_view.D30",
+              "1f_view.D31",
+              "1f_view.D32"
+            ],
+            "evidence_grade": "transcribed_dimension",
+            "confidence": "high"
+          }
+        ],
+        "reason_unresolved": "evidence debt check 1f_view.reading.dimension_chain_closure – chain incomplete, but resolved by adopting overall and inserting partition thickness gaps (see corrections C3).",
+        "fallback_action": "resolved per C3; recorded as conflict to preserve original evidence mismatch."
+      },
+      {
+        "id": "CONF2",
+        "stage": "A2-detect",
+        "method_profile": "room_identity",
+        "entity_type": "axis",
+        "entity_id": "2F_right_chain",
+        "floor_id": "2f_view",
+        "coordinate_frame": "world",
+        "conflict_type": "checksum_failure",
+        "claim_type": "numeric",
+        "candidates": [
+          {
+            "value": "8.00 m overall (C_left, testdata)",
+            "source_ids": [
+              "2f_view.D20",
+              "testdata_prompt"
+            ],
+            "evidence_grade": "direct_measurement",
+            "confidence": "high"
+          },
+          {
+            "value": "7.76 m segment sum (C_right)",
+            "source_ids": [
+              "2f_view.D26",
+              "2f_view.D27",
+              "2f_view.D28",
+              "2f_view.D29",
+              "2f_view.D30"
+            ],
+            "evidence_grade": "transcribed_dimension",
+            "confidence": "high"
+          }
+        ],
+        "reason_unresolved": "evidence debt check 2f_view.reading.dimension_chain_closure – chain incomplete, resolved via partition gaps (correction C5).",
+        "fallback_action": "resolved per C5; recorded as conflict."
+      }
+    ],
+    "unsupported": []
+  },
+  "evidence_index": [
+    {
+      "id": "E:gate:0_reading::1f_view:reading.dimension_chain_closure",
+      "kind": "gate",
+      "source": "0_reading::1f_view",
+      "payload": {
+        "report_key": "0_reading::1f_view",
+        "stage": "0_reading",
+        "check_id": "reading.dimension_chain_closure",
+        "status": "fail",
+        "layer": "cross_check",
+        "disposition": "flag",
+        "message": "dimension chain evidence is missing, incomplete, or non-closing",
+        "evidence": {
+          "dimensioned": true,
+          "raw_has_dimensions": true,
+          "raw_has_uncaptured": true,
+          "legacy_migrated": false,
+          "missing_chain_id": [],
+          "missing_axis": [],
+          "incomplete": [
+            {
+              "chain_id": "C_bottom",
+              "axis": "x",
+              "overall_count": 0,
+              "segment_count": 11,
+              "dimension_ids": [
+                "D11",
+                "D12",
+                "D13",
+                "D14",
+                "D15",
+                "D16",
+                "D17",
+                "D18",
+                "D19",
+                "D20",
+                "D21"
+              ]
+            },
+            {
+              "chain_id": "C_right",
+              "axis": "y",
+              "overall_count": 0,
+              "segment_count": 5,
+              "dimension_ids": [
+                "D28",
+                "D29",
+                "D30",
+                "D31",
+                "D32"
+              ]
+            }
+          ],
+          "mismatches": [
+            {
+              "chain_id": "C_top",
+              "axis": "x",
+              "overall": 15.0,
+              "overall_id": "D1",
+              "segment_sum": 14.76,
+              "segment_ids": [
+                "D2",
+                "D3",
+                "D4",
+                "D5",
+                "D6",
+                "D7",
+                "D8",
+                "D9",
+                "D10"
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "E:gate:0_reading::1f_view:reading.stroke_dimension_consistency",
+      "kind": "gate",
+      "source": "0_reading::1f_view",
+      "payload": {
+        "report_key": "0_reading::1f_view",
+        "stage": "0_reading",
+        "check_id": "reading.stroke_dimension_consistency",
+        "status": "fail",
+        "layer": "cross_check",
+        "disposition": "flag",
+        "message": "6 plan wall stroke coordinate(s) coincide with dimension-chain cumulative positions; verify each is a real room-bounding wall",
+        "evidence": {
+          "tolerance_m": 0.01,
+          "offenders": [
+            {
+              "stroke_id": "S5",
+              "axis": "y",
+              "coord_m": 3.0,
+              "matching_dimension_ids": [
+                "D23",
+                "D24"
+              ],
+              "matching_positions": [
+                {
+                  "coord": 3.0,
+                  "dimension_ids": [
+                    "D23"
+                  ],
+                  "chain_id": "C_left"
+                },
+                {
+                  "coord": 3.0,
+                  "dimension_ids": [
+                    "D24"
+                  ],
+                  "chain_id": "C_left"
+                }
+              ],
+              "joins_walls": {
+                "p1": true,
+                "p2": true,
+                "both_endpoints_join": true
+              },
+              "bounds_rooms_inferable": true
+            },
+            {
+              "stroke_id": "S6",
+              "axis": "y",
+              "coord_m": 5.0,
+              "matching_dimension_ids": [
+                "D23",
+                "D24",
+                "D25",
+                "D26",
+                "D27"
+              ],
+              "matching_positions": [
+                {
+                  "coord": 5.0,
+                  "dimension_ids": [
+                    "D26"
+                  ],
+                  "chain_id": "C_left"
+                },
+                {
+                  "coord": 5.0,
+                  "dimension_ids": [
+                    "D23",
+                    "D24",
+                    "D25",
+                    "D26"
+                  ],
+                  "chain_id": "C_left"
+                },
+                {
+                  "coord": 5.0,
+                  "dimension_ids": [
+                    "D27"
+                  ],
+                  "chain_id": "C_left"
+                }
+              ],
+              "joins_walls": {
+                "p1": true,
+                "p2": true,
+                "both_endpoints_join": true
+              },
+              "bounds_rooms_inferable": true
+            },
+            {
+              "stroke_id": "S7",
+              "axis": "x",
+              "coord_m": 5.0,
+              "matching_dimension_ids": [
+                "D11",
+                "D12",
+                "D13",
+                "D14",
+                "D15",
+                "D16"
+              ],
+              "matching_positions": [
+                {
+                  "coord": 5.0,
+                  "dimension_ids": [
+                    "D15"
+                  ],
+                  "chain_id": "C_bottom"
+                },
+                {
+                  "coord": 5.0,
+                  "dimension_ids": [
+                    "D11",
+                    "D12",
+                    "D13",
+                    "D14",
+                    "D15"
+                  ],
+                  "chain_id": "C_bottom"
+                },
+                {
+                  "coord": 5.0,
+                  "dimension_ids": [
+                    "D16"
+                  ],
+                  "chain_id": "C_bottom"
+                }
+              ],
+              "joins_walls": {
+                "p1": true,
+                "p2": true,
+                "both_endpoints_join": true
+              },
+              "bounds_rooms_inferable": true
+            },
+            {
+              "stroke_id": "S8",
+              "axis": "x",
+              "coord_m": 10.0,
+              "matching_dimension_ids": [
+                "D11",
+                "D12",
+                "D13",
+                "D14",
+                "D15",
+                "D16",
+                "D17",
+                "D18",
+                "D19"
+              ],
+              "matching_positions": [
+                {
+                  "coord": 10.0,
+                  "dimension_ids": [
+                    "D18"
+                  ],
+                  "chain_id": "C_bottom"
+                },
+                {
+                  "coord": 10.0,
+                  "dimension_ids": [
+                    "D11",
+                    "D12",
+                    "D13",
+                    "D14",
+                    "D15",
+                    "D16",
+                    "D17",
+                    "D18"
+                  ],
+                  "chain_id": "C_bottom"
+                },
+                {
+                  "coord": 10.0,
+                  "dimension_ids": [
+                    "D19"
+                  ],
+                  "chain_id": "C_bottom"
+                }
+              ],
+              "joins_walls": {
+                "p1": true,
+                "p2": true,
+                "both_endpoints_join": true
+              },
+              "bounds_rooms_inferable": true
+            },
+            {
+              "stroke_id": "S9",
+              "axis": "x",
+              "coord_m": 5.0,
+              "matching_dimension_ids": [
+                "D11",
+                "D12",
+                "D13",
+                "D14",
+                "D15",
+                "D16"
+              ],
+              "matching_positions": [
+                {
+                  "coord": 5.0,
+                  "dimension_ids": [
+                    "D15"
+                  ],
+                  "chain_id": "C_bottom"
+                },
+                {
+                  "coord": 5.0,
+                  "dimension_ids": [
+                    "D11",
+                    "D12",
+                    "D13",
+                    "D14",
+                    "D15"
+                  ],
+                  "chain_id": "C_bottom"
+                },
+                {
+                  "coord": 5.0,
+                  "dimension_ids": [
+                    "D16"
+                  ],
+                  "chain_id": "C_bottom"
+                }
+              ],
+              "joins_walls": {
+                "p1": true,
+                "p2": true,
+                "both_endpoints_join": true
+              },
+              "bounds_rooms_inferable": true
+            },
+            {
+              "stroke_id": "S10",
+              "axis": "x",
+              "coord_m": 10.0,
+              "matching_dimension_ids": [
+                "D11",
+                "D12",
+                "D13",
+                "D14",
+                "D15",
+                "D16",
+                "D17",
+                "D18",
+                "D19"
+              ],
+              "matching_positions": [
+                {
+                  "coord": 10.0,
+                  "dimension_ids": [
+                    "D18"
+                  ],
+                  "chain_id": "C_bottom"
+                },
+                {
+                  "coord": 10.0,
+                  "dimension_ids": [
+                    "D11",
+                    "D12",
+                    "D13",
+                    "D14",
+                    "D15",
+                    "D16",
+                    "D17",
+                    "D18"
+                  ],
+                  "chain_id": "C_bottom"
+                },
+                {
+                  "coord": 10.0,
+                  "dimension_ids": [
+                    "D19"
+                  ],
+                  "chain_id": "C_bottom"
+                }
+              ],
+              "joins_walls": {
+                "p1": true,
+                "p2": true,
+                "both_endpoints_join": true
+              },
+              "bounds_rooms_inferable": true
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "E:gate:0_reading::2f_view:reading.dimension_chain_closure",
+      "kind": "gate",
+      "source": "0_reading::2f_view",
+      "payload": {
+        "report_key": "0_reading::2f_view",
+        "stage": "0_reading",
+        "check_id": "reading.dimension_chain_closure",
+        "status": "fail",
+        "layer": "cross_check",
+        "disposition": "flag",
+        "message": "dimension chain evidence is missing, incomplete, or non-closing",
+        "evidence": {
+          "dimensioned": true,
+          "raw_has_dimensions": true,
+          "raw_has_uncaptured": true,
+          "legacy_migrated": false,
+          "missing_chain_id": [],
+          "missing_axis": [],
+          "incomplete": [
+            {
+              "chain_id": "C_bottom",
+              "axis": "x",
+              "overall_count": 0,
+              "segment_count": 12,
+              "dimension_ids": [
+                "D8",
+                "D9",
+                "D10",
+                "D11",
+                "D12",
+                "D13",
+                "D14",
+                "D15",
+                "D16",
+                "D17",
+                "D18",
+                "D19"
+              ]
+            },
+            {
+              "chain_id": "C_right",
+              "axis": "y",
+              "overall_count": 0,
+              "segment_count": 5,
+              "dimension_ids": [
+                "D26",
+                "D27",
+                "D28",
+                "D29",
+                "D30"
+              ]
+            }
+          ],
+          "mismatches": [
+            {
+              "chain_id": "C_top",
+              "axis": "x",
+              "overall": 15.0,
+              "overall_id": "D1",
+              "segment_sum": 14.88,
+              "segment_ids": [
+                "D2",
+                "D3",
+                "D4",
+                "D5",
+                "D6",
+                "D7"
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "E:gate:0_reading::2f_view:reading.stroke_dimension_consistency",
+      "kind": "gate",
+      "source": "0_reading::2f_view",
+      "payload": {
+        "report_key": "0_reading::2f_view",
+        "stage": "0_reading",
+        "check_id": "reading.stroke_dimension_consistency",
+        "status": "fail",
+        "layer": "cross_check",
+        "disposition": "flag",
+        "message": "6 plan wall stroke coordinate(s) coincide with dimension-chain cumulative positions; verify each is a real room-bounding wall",
+        "evidence": {
+          "tolerance_m": 0.01,
+          "offenders": [
+            {
+              "stroke_id": "S5",
+              "axis": "y",
+              "coord_m": 3.0,
+              "matching_dimension_ids": [
+                "D21",
+                "D22"
+              ],
+              "matching_positions": [
+                {
+                  "coord": 3.0,
+                  "dimension_ids": [
+                    "D21"
+                  ],
+                  "chain_id": "C_left"
+                },
+                {
+                  "coord": 3.0,
+                  "dimension_ids": [
+                    "D22"
+                  ],
+                  "chain_id": "C_left"
+                }
+              ],
+              "joins_walls": {
+                "p1": true,
+                "p2": true,
+                "both_endpoints_join": true
+              },
+              "bounds_rooms_inferable": true
+            },
+            {
+              "stroke_id": "S6",
+              "axis": "y",
+              "coord_m": 5.0,
+              "matching_dimension_ids": [
+                "D21",
+                "D22",
+                "D23",
+                "D24",
+                "D25"
+              ],
+              "matching_positions": [
+                {
+                  "coord": 5.0,
+                  "dimension_ids": [
+                    "D24"
+                  ],
+                  "chain_id": "C_left"
+                },
+                {
+                  "coord": 5.0,
+                  "dimension_ids": [
+                    "D21",
+                    "D22",
+                    "D23",
+                    "D24"
+                  ],
+                  "chain_id": "C_left"
+                },
+                {
+                  "coord": 5.0,
+                  "dimension_ids": [
+                    "D25"
+                  ],
+                  "chain_id": "C_left"
+                }
+              ],
+              "joins_walls": {
+                "p1": true,
+                "p2": true,
+                "both_endpoints_join": true
+              },
+              "bounds_rooms_inferable": true
+            },
+            {
+              "stroke_id": "S7",
+              "axis": "x",
+              "coord_m": 7.5,
+              "matching_dimension_ids": [
+                "D10",
+                "D11",
+                "D12",
+                "D13",
+                "D14",
+                "D8",
+                "D9"
+              ],
+              "matching_positions": [
+                {
+                  "coord": 7.5,
+                  "dimension_ids": [
+                    "D13"
+                  ],
+                  "chain_id": "C_bottom"
+                },
+                {
+                  "coord": 7.5,
+                  "dimension_ids": [
+                    "D10",
+                    "D11",
+                    "D12",
+                    "D13",
+                    "D8",
+                    "D9"
+                  ],
+                  "chain_id": "C_bottom"
+                },
+                {
+                  "coord": 7.5,
+                  "dimension_ids": [
+                    "D14"
+                  ],
+                  "chain_id": "C_bottom"
+                }
+              ],
+              "joins_walls": {
+                "p1": true,
+                "p2": true,
+                "both_endpoints_join": true
+              },
+              "bounds_rooms_inferable": true
+            },
+            {
+              "stroke_id": "S8",
+              "axis": "x",
+              "coord_m": 7.5,
+              "matching_dimension_ids": [
+                "D10",
+                "D11",
+                "D12",
+                "D13",
+                "D14",
+                "D8",
+                "D9"
+              ],
+              "matching_positions": [
+                {
+                  "coord": 7.5,
+                  "dimension_ids": [
+                    "D13"
+                  ],
+                  "chain_id": "C_bottom"
+                },
+                {
+                  "coord": 7.5,
+                  "dimension_ids": [
+                    "D10",
+                    "D11",
+                    "D12",
+                    "D13",
+                    "D8",
+                    "D9"
+                  ],
+                  "chain_id": "C_bottom"
+                },
+                {
+                  "coord": 7.5,
+                  "dimension_ids": [
+                    "D14"
+                  ],
+                  "chain_id": "C_bottom"
+                }
+              ],
+              "joins_walls": {
+                "p1": true,
+                "p2": true,
+                "both_endpoints_join": true
+              },
+              "bounds_rooms_inferable": true
+            },
+            {
+              "stroke_id": "S9",
+              "axis": "x",
+              "coord_m": 3.75,
+              "matching_dimension_ids": [
+                "D10",
+                "D11",
+                "D8",
+                "D9"
+              ],
+              "matching_positions": [
+                {
+                  "coord": 3.75,
+                  "dimension_ids": [
+                    "D10"
+                  ],
+                  "chain_id": "C_bottom"
+                },
+                {
+                  "coord": 3.75,
+                  "dimension_ids": [
+                    "D10",
+                    "D8",
+                    "D9"
+                  ],
+                  "chain_id": "C_bottom"
+                },
+                {
+                  "coord": 3.75,
+                  "dimension_ids": [
+                    "D11"
+                  ],
+                  "chain_id": "C_bottom"
+                }
+              ],
+              "joins_walls": {
+                "p1": true,
+                "p2": true,
+                "both_endpoints_join": true
+              },
+              "bounds_rooms_inferable": true
+            },
+            {
+              "stroke_id": "S10",
+              "axis": "x",
+              "coord_m": 11.25,
+              "matching_dimension_ids": [
+                "D10",
+                "D11",
+                "D12",
+                "D13",
+                "D14",
+                "D15",
+                "D16",
+                "D17",
+                "D8",
+                "D9"
+              ],
+              "matching_positions": [
+                {
+                  "coord": 11.25,
+                  "dimension_ids": [
+                    "D16"
+                  ],
+                  "chain_id": "C_bottom"
+                },
+                {
+                  "coord": 11.25,
+                  "dimension_ids": [
+                    "D10",
+                    "D11",
+                    "D12",
+                    "D13",
+                    "D14",
+                    "D15",
+                    "D16",
+                    "D8",
+                    "D9"
+                  ],
+                  "chain_id": "C_bottom"
+                },
+                {
+                  "coord": 11.25,
+                  "dimension_ids": [
+                    "D17"
+                  ],
+                  "chain_id": "C_bottom"
+                }
+              ],
+              "joins_walls": {
+                "p1": true,
+                "p2": true,
+                "both_endpoints_join": true
+              },
+              "bounds_rooms_inferable": true
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "E:gate:0_reading::East_view:reading.dimension_chain_closure",
+      "kind": "gate",
+      "source": "0_reading::East_view",
+      "payload": {
+        "report_key": "0_reading::East_view",
+        "stage": "0_reading",
+        "check_id": "reading.dimension_chain_closure",
+        "status": "fail",
+        "layer": "cross_check",
+        "disposition": "flag",
+        "message": "dimension chain evidence is missing, incomplete, or non-closing",
+        "evidence": {
+          "dimensioned": true,
+          "raw_has_dimensions": true,
+          "raw_has_uncaptured": true,
+          "legacy_migrated": false,
+          "missing_chain_id": [],
+          "missing_axis": [
+            "D5",
+            "D6",
+            "D7",
+            "D8",
+            "D9",
+            "D10",
+            "D11",
+            "D12",
+            "D13"
+          ],
+          "incomplete": [],
+          "mismatches": []
+        }
+      }
+    },
+    {
+      "id": "E:gate:0_reading::North_view:reading.dimension_chain_closure",
+      "kind": "gate",
+      "source": "0_reading::North_view",
+      "payload": {
+        "report_key": "0_reading::North_view",
+        "stage": "0_reading",
+        "check_id": "reading.dimension_chain_closure",
+        "status": "fail",
+        "layer": "cross_check",
+        "disposition": "flag",
+        "message": "dimension chain evidence is missing, incomplete, or non-closing",
+        "evidence": {
+          "dimensioned": true,
+          "raw_has_dimensions": true,
+          "raw_has_uncaptured": true,
+          "legacy_migrated": false,
+          "missing_chain_id": [],
+          "missing_axis": [
+            "D15",
+            "D16",
+            "D17",
+            "D18",
+            "D19",
+            "D20",
+            "D21",
+            "D22",
+            "D23"
+          ],
+          "incomplete": [],
+          "mismatches": []
+        }
+      }
+    },
+    {
+      "id": "E:gate:0_reading::South_view:reading.dimension_chain_closure",
+      "kind": "gate",
+      "source": "0_reading::South_view",
+      "payload": {
+        "report_key": "0_reading::South_view",
+        "stage": "0_reading",
+        "check_id": "reading.dimension_chain_closure",
+        "status": "fail",
+        "layer": "cross_check",
+        "disposition": "flag",
+        "message": "dimension chain evidence is missing, incomplete, or non-closing",
+        "evidence": {
+          "dimensioned": true,
+          "raw_has_dimensions": true,
+          "raw_has_uncaptured": true,
+          "legacy_migrated": false,
+          "missing_chain_id": [],
+          "missing_axis": [
+            "D19",
+            "D20",
+            "D21",
+            "D22",
+            "D23",
+            "D24",
+            "D25",
+            "D26",
+            "D27",
+            "D28",
+            "D29",
+            "D30",
+            "D31",
+            "D32",
+            "D33"
+          ],
+          "incomplete": [],
+          "mismatches": []
+        }
+      }
+    },
+    {
+      "id": "E:gate:0_reading::West_view:reading.dimension_chain_closure",
+      "kind": "gate",
+      "source": "0_reading::West_view",
+      "payload": {
+        "report_key": "0_reading::West_view",
+        "stage": "0_reading",
+        "check_id": "reading.dimension_chain_closure",
+        "status": "fail",
+        "layer": "cross_check",
+        "disposition": "flag",
+        "message": "dimension chain evidence is missing, incomplete, or non-closing",
+        "evidence": {
+          "dimensioned": true,
+          "raw_has_dimensions": true,
+          "raw_has_uncaptured": true,
+          "legacy_migrated": false,
+          "missing_chain_id": [],
+          "missing_axis": [
+            "D5",
+            "D6",
+            "D7",
+            "D8",
+            "D9",
+            "D10",
+            "D11"
+          ],
+          "incomplete": [],
+          "mismatches": []
+        }
+      }
+    },
+    {
+      "id": "E:judge:0_reading:001:c1",
+      "kind": "judge",
+      "source": "0_reading/attempts/001/judge.json",
+      "payload": {
+        "stage": "0_reading",
+        "attempt": "001",
+        "criterion_ordinal": 1,
+        "criterion": {
+          "criterion": "missed real element",
+          "status": "pass",
+          "recoverability": null,
+          "evidence": "gt reconciliation: walls 9/9 hit (1f 4/4, 2f 5/5), windows 15/15 hit (1f 7/7, 2f 8/8), 0 missed on both plans, max offset 0.0 m. Envelope 15.00x8.00, both corridor walls, and every per-facade window present. No under-tracing."
+        },
+        "root_stage": null,
+        "rubric_id": "J0"
+      }
+    },
+    {
+      "id": "E:judge:0_reading:001:c2",
+      "kind": "judge",
+      "source": "0_reading/attempts/001/judge.json",
+      "payload": {
+        "stage": "0_reading",
+        "attempt": "001",
+        "criterion_ordinal": 2,
+        "criterion": {
+          "criterion": "clutter traced as structure",
+          "status": "pass",
+          "recoverability": null,
+          "evidence": "0 extra walls / 0 extra windows vs gt on both plans (no_oversplit criterion: extra_vwalls+extra_hwalls=0). Furniture (18 symbols on 1f), dimension ticks, and healed door leaves are all logged in uncaptured, not traced as strokes. The prior sm21 south-band over-segmentation failure mode did NOT recur."
+        },
+        "root_stage": null,
+        "rubric_id": "J0"
+      }
+    },
+    {
+      "id": "E:judge:0_reading:001:c3",
+      "kind": "judge",
+      "source": "0_reading/attempts/001/judge.json",
+      "payload": {
+        "stage": "0_reading",
+        "attempt": "001",
+        "criterion_ordinal": 3,
+        "criterion": {
+          "criterion": "pen misclassified",
+          "status": "pass",
+          "recoverability": null,
+          "evidence": "Walls vs windows cleanly separated on both plans (distinct wall/window pens). On elevations wall_fill (2 bands per facade) vs window pen are distinct; the South/West facade doors are logged in uncaptured, NOT emitted as window strokes (verified South_view render: 7 blue windows = 3 F1 + 4 F2, door not drawn blue)."
+        },
+        "root_stage": null,
+        "rubric_id": "J0"
+      }
+    },
+    {
+      "id": "E:judge:0_reading:001:c4",
+      "kind": "judge",
+      "source": "0_reading/attempts/001/judge.json",
+      "payload": {
+        "stage": "0_reading",
+        "attempt": "001",
+        "criterion_ordinal": 4,
+        "criterion": {
+          "criterion": "number copied wrong",
+          "status": "pass",
+          "recoverability": null,
+          "evidence": "Every gt wall + window matched at 0.0 m offset, which is only possible if the transcribed dimension chains are numerically faithful. Spot-checked overall 15000x8000, F1 height 3000 / F2 3600 / roof 6600, north/south window chains — all match the drawings. The unlabeled ~0.24 m (C_right) and ~0.12 m (C_top) residuals were honestly NOT fabricated (documented in self_check), and the real stroke coords still hit gt exactly."
+        },
+        "root_stage": null,
+        "rubric_id": "J0"
+      }
+    },
+    {
+      "id": "E:judge:0_reading:001:c5",
+      "kind": "judge",
+      "source": "0_reading/attempts/001/judge.json",
+      "payload": {
+        "stage": "0_reading",
+        "attempt": "001",
+        "criterion_ordinal": 5,
+        "criterion": {
+          "criterion": "image-local orientation self-consistent",
+          "status": "pass",
+          "recoverability": null,
+          "evidence": "Per-facade window attribution matches gt exactly (1f N3/S3/E1, 2f N2/S4/E1/W1). Elevations declare the correct facade (South_view labeled 'South elevation') with F1/F2 bands stacked correctly; declaration-level orientation self-consistent. World translation left to J1 per rubric."
+        },
+        "root_stage": null,
+        "rubric_id": "J0"
+      }
+    },
+    {
+      "id": "E:judge:0_reading:001:c6",
+      "kind": "judge",
+      "source": "0_reading/attempts/001/judge.json",
+      "payload": {
+        "stage": "0_reading",
+        "attempt": "001",
+        "criterion_ordinal": 6,
+        "criterion": {
+          "criterion": "door healing wrong",
+          "status": "pass",
+          "recoverability": null,
+          "evidence": "Door openings healed into continuous walls and logged in uncaptured (1f 8 healed, 2f 6 healed, South/West elevation doors logged). No real opening wrongly healed shut: window/wall gt counts are complete. Discipline followed (unlike the prior run where uncaptured door logs were empty)."
+        },
+        "root_stage": null,
+        "rubric_id": "J0"
+      }
+    },
+    {
+      "id": "E:judge:0_reading:001:c7",
+      "kind": "judge",
+      "source": "0_reading/attempts/001/judge.json",
+      "payload": {
+        "stage": "0_reading",
+        "attempt": "001",
+        "criterion_ordinal": 7,
+        "criterion": {
+          "criterion": "whole-region missing / misplaced",
+          "status": "pass",
+          "recoverability": null,
+          "evidence": "All bands/floors present and correctly placed: 1f = 3 north rooms + corridor + 3 south rooms = 7 regions; 2f = 2 conference + corridor + 4 offices = 7 regions; both match testdata thermal_zones=7. Overlay confirms red reading walls seat exactly on gt gray cell boundaries."
+        },
+        "root_stage": null,
+        "rubric_id": "J0"
+      }
+    },
+    {
+      "id": "E:judge:1_correction:001:c1",
+      "kind": "judge",
+      "source": "1_correction/attempts/001/judge.json",
+      "payload": {
+        "stage": "1_correction",
+        "attempt": "001",
+        "criterion_ordinal": 1,
+        "criterion": {
+          "criterion": "zonification fidelity",
+          "status": "pass",
+          "recoverability": null,
+          "evidence": "Filled zone plan vs original + gt: Floor 1 = 3 north rooms + corridor + 3 south rooms (7 regions); Floor 2 = 2 conference + corridor + 4 offices (7 regions). No rooms wrongly merged, split, missing, or invented. gt reconciliation: walls 9/9 (interior partitions x=5/10 on 1f, x=3.75/7.5/11.25 on 2f; corridor y=3/5), 0 extra walls, 0.0 m offset. Overlay confirms red correction cells seat exactly on gt gray cells."
+        },
+        "root_stage": null,
+        "rubric_id": "J1"
+      }
+    },
+    {
+      "id": "E:judge:1_correction:001:c2",
+      "kind": "judge",
+      "source": "1_correction/attempts/001/judge.json",
+      "payload": {
+        "stage": "1_correction",
+        "attempt": "001",
+        "criterion_ordinal": 2,
+        "criterion": {
+          "criterion": "cross-floor consistency",
+          "status": "pass",
+          "recoverability": null,
+          "evidence": "Corridor walls at y=3.0 / y=5.0 align exactly across Floor 1 and Floor 2 (both 0.0 m offset vs gt); no ~5 cm jitter class. Envelope 15x8 shared. The cross-floor reconcile in the deterministic core had nothing to fix — reading already gave identical corridor axes both floors."
+        },
+        "root_stage": null,
+        "rubric_id": "J1"
+      }
+    },
+    {
+      "id": "E:judge:1_correction:001:c3",
+      "kind": "judge",
+      "source": "1_correction/attempts/001/judge.json",
+      "payload": {
+        "stage": "1_correction",
+        "attempt": "001",
+        "criterion_ordinal": 3,
+        "criterion": {
+          "criterion": "window position fidelity",
+          "status": "pass",
+          "recoverability": null,
+          "evidence": "windows 15/15 land on the correct facade/floor/position vs gt, all centre_delta 0.0 m: 1f N3/S3/E1, 2f N2/S4/E1/W1. Overlay window ticks align with gt facade windows."
+        },
+        "root_stage": null,
+        "rubric_id": "J1"
+      }
+    },
+    {
+      "id": "E:judge:1_correction:001:c4",
+      "kind": "judge",
+      "source": "1_correction/attempts/001/judge.json",
+      "payload": {
+        "stage": "1_correction",
+        "attempt": "001",
+        "criterion_ordinal": 4,
+        "criterion": {
+          "criterion": "count vs reference",
+          "status": "pass",
+          "recoverability": null,
+          "evidence": "Zone regions 7+7 match testdata thermal_zones=7 per floor; window count 15 matches gt (1f 7 + 2f 8). Deterministic zone-count tripwire did not fire (gate① 0 block / 0 flag). No merge/split to adjudicate."
+        },
+        "root_stage": null,
+        "rubric_id": "J1"
+      }
+    },
+    {
+      "id": "E:judge:1_correction:001:c5",
+      "kind": "judge",
+      "source": "1_correction/attempts/001/judge.json",
+      "payload": {
+        "stage": "1_correction",
+        "attempt": "001",
+        "criterion_ordinal": 5,
+        "criterion": {
+          "criterion": "overall redraw",
+          "status": "pass",
+          "recoverability": null,
+          "evidence": "The original building can be redrawn from this corrected geometry with no qualitative error: envelope, both corridors, all interior partitions, and every per-facade window are present and correctly placed against both the originals and gt. gate① correction checks passed clean (coverage/closure/zstack/window-on-wall all pass)."
+        },
+        "root_stage": null,
+        "rubric_id": "J1"
+      }
+    },
+    {
+      "id": "E:debt:1f_view_reading.dimension_chain_closure_1",
+      "kind": "evidence_debt",
+      "source": "1_correction/evidence_debt.json",
+      "payload": {
+        "ordinal": 1,
+        "row": {
+          "check_id": "1f_view.reading.dimension_chain_closure",
+          "canonical_check_id": "reading.dimension_chain_closure",
+          "view": "1f_view",
+          "status": "fail",
+          "layer": "cross_check",
+          "disposition": "flag",
+          "message": "dimension chain evidence is missing, incomplete, or non-closing",
+          "evidence": {
+            "dimensioned": true,
+            "raw_has_dimensions": true,
+            "raw_has_uncaptured": true,
+            "legacy_migrated": false,
+            "missing_chain_id": [],
+            "missing_axis": [],
+            "incomplete": [
+              {
+                "chain_id": "C_bottom",
+                "axis": "x",
+                "overall_count": 0,
+                "segment_count": 11,
+                "dimension_ids": [
+                  "D11",
+                  "D12",
+                  "D13",
+                  "D14",
+                  "D15",
+                  "D16",
+                  "D17",
+                  "D18",
+                  "D19",
+                  "D20",
+                  "D21"
+                ]
+              },
+              {
+                "chain_id": "C_right",
+                "axis": "y",
+                "overall_count": 0,
+                "segment_count": 5,
+                "dimension_ids": [
+                  "D28",
+                  "D29",
+                  "D30",
+                  "D31",
+                  "D32"
+                ]
+              }
+            ],
+            "mismatches": [
+              {
+                "chain_id": "C_top",
+                "axis": "x",
+                "overall": 15.0,
+                "overall_id": "D1",
+                "segment_sum": 14.76,
+                "segment_ids": [
+                  "D2",
+                  "D3",
+                  "D4",
+                  "D5",
+                  "D6",
+                  "D7",
+                  "D8",
+                  "D9",
+                  "D10"
+                ]
+              }
+            ]
+          },
+          "scope": "view_global",
+          "offender_ids": []
+        }
+      }
+    },
+    {
+      "id": "E:debt:2f_view_reading.dimension_chain_closure_2",
+      "kind": "evidence_debt",
+      "source": "1_correction/evidence_debt.json",
+      "payload": {
+        "ordinal": 2,
+        "row": {
+          "check_id": "2f_view.reading.dimension_chain_closure",
+          "canonical_check_id": "reading.dimension_chain_closure",
+          "view": "2f_view",
+          "status": "fail",
+          "layer": "cross_check",
+          "disposition": "flag",
+          "message": "dimension chain evidence is missing, incomplete, or non-closing",
+          "evidence": {
+            "dimensioned": true,
+            "raw_has_dimensions": true,
+            "raw_has_uncaptured": true,
+            "legacy_migrated": false,
+            "missing_chain_id": [],
+            "missing_axis": [],
+            "incomplete": [
+              {
+                "chain_id": "C_bottom",
+                "axis": "x",
+                "overall_count": 0,
+                "segment_count": 12,
+                "dimension_ids": [
+                  "D8",
+                  "D9",
+                  "D10",
+                  "D11",
+                  "D12",
+                  "D13",
+                  "D14",
+                  "D15",
+                  "D16",
+                  "D17",
+                  "D18",
+                  "D19"
+                ]
+              },
+              {
+                "chain_id": "C_right",
+                "axis": "y",
+                "overall_count": 0,
+                "segment_count": 5,
+                "dimension_ids": [
+                  "D26",
+                  "D27",
+                  "D28",
+                  "D29",
+                  "D30"
+                ]
+              }
+            ],
+            "mismatches": [
+              {
+                "chain_id": "C_top",
+                "axis": "x",
+                "overall": 15.0,
+                "overall_id": "D1",
+                "segment_sum": 14.88,
+                "segment_ids": [
+                  "D2",
+                  "D3",
+                  "D4",
+                  "D5",
+                  "D6",
+                  "D7"
+                ]
+              }
+            ]
+          },
+          "scope": "view_global",
+          "offender_ids": []
+        }
+      }
+    },
+    {
+      "id": "E:debt:East_view_reading.dimension_chain_closure_3",
+      "kind": "evidence_debt",
+      "source": "1_correction/evidence_debt.json",
+      "payload": {
+        "ordinal": 3,
+        "row": {
+          "check_id": "East_view.reading.dimension_chain_closure",
+          "canonical_check_id": "reading.dimension_chain_closure",
+          "view": "East_view",
+          "status": "fail",
+          "layer": "cross_check",
+          "disposition": "flag",
+          "message": "dimension chain evidence is missing, incomplete, or non-closing",
+          "evidence": {
+            "dimensioned": true,
+            "raw_has_dimensions": true,
+            "raw_has_uncaptured": true,
+            "legacy_migrated": false,
+            "missing_chain_id": [],
+            "missing_axis": [
+              "D5",
+              "D6",
+              "D7",
+              "D8",
+              "D9",
+              "D10",
+              "D11",
+              "D12",
+              "D13"
+            ],
+            "incomplete": [],
+            "mismatches": []
+          },
+          "scope": "view_global",
+          "offender_ids": []
+        }
+      }
+    },
+    {
+      "id": "E:debt:North_view_reading.dimension_chain_closure_4",
+      "kind": "evidence_debt",
+      "source": "1_correction/evidence_debt.json",
+      "payload": {
+        "ordinal": 4,
+        "row": {
+          "check_id": "North_view.reading.dimension_chain_closure",
+          "canonical_check_id": "reading.dimension_chain_closure",
+          "view": "North_view",
+          "status": "fail",
+          "layer": "cross_check",
+          "disposition": "flag",
+          "message": "dimension chain evidence is missing, incomplete, or non-closing",
+          "evidence": {
+            "dimensioned": true,
+            "raw_has_dimensions": true,
+            "raw_has_uncaptured": true,
+            "legacy_migrated": false,
+            "missing_chain_id": [],
+            "missing_axis": [
+              "D15",
+              "D16",
+              "D17",
+              "D18",
+              "D19",
+              "D20",
+              "D21",
+              "D22",
+              "D23"
+            ],
+            "incomplete": [],
+            "mismatches": []
+          },
+          "scope": "view_global",
+          "offender_ids": []
+        }
+      }
+    },
+    {
+      "id": "E:debt:South_view_reading.dimension_chain_closure_5",
+      "kind": "evidence_debt",
+      "source": "1_correction/evidence_debt.json",
+      "payload": {
+        "ordinal": 5,
+        "row": {
+          "check_id": "South_view.reading.dimension_chain_closure",
+          "canonical_check_id": "reading.dimension_chain_closure",
+          "view": "South_view",
+          "status": "fail",
+          "layer": "cross_check",
+          "disposition": "flag",
+          "message": "dimension chain evidence is missing, incomplete, or non-closing",
+          "evidence": {
+            "dimensioned": true,
+            "raw_has_dimensions": true,
+            "raw_has_uncaptured": true,
+            "legacy_migrated": false,
+            "missing_chain_id": [],
+            "missing_axis": [
+              "D19",
+              "D20",
+              "D21",
+              "D22",
+              "D23",
+              "D24",
+              "D25",
+              "D26",
+              "D27",
+              "D28",
+              "D29",
+              "D30",
+              "D31",
+              "D32",
+              "D33"
+            ],
+            "incomplete": [],
+            "mismatches": []
+          },
+          "scope": "view_global",
+          "offender_ids": []
+        }
+      }
+    },
+    {
+      "id": "E:debt:West_view_reading.dimension_chain_closure_6",
+      "kind": "evidence_debt",
+      "source": "1_correction/evidence_debt.json",
+      "payload": {
+        "ordinal": 6,
+        "row": {
+          "check_id": "West_view.reading.dimension_chain_closure",
+          "canonical_check_id": "reading.dimension_chain_closure",
+          "view": "West_view",
+          "status": "fail",
+          "layer": "cross_check",
+          "disposition": "flag",
+          "message": "dimension chain evidence is missing, incomplete, or non-closing",
+          "evidence": {
+            "dimensioned": true,
+            "raw_has_dimensions": true,
+            "raw_has_uncaptured": true,
+            "legacy_migrated": false,
+            "missing_chain_id": [],
+            "missing_axis": [
+              "D5",
+              "D6",
+              "D7",
+              "D8",
+              "D9",
+              "D10",
+              "D11"
+            ],
+            "incomplete": [],
+            "mismatches": []
+          },
+          "scope": "view_global",
+          "offender_ids": []
+        }
+      }
+    },
+    {
+      "id": "E:corr:corrections:C1",
+      "kind": "correction",
+      "source": "1_correction/corrections.json",
+      "payload": {
+        "kind": "corrections",
+        "ordinal": 1,
+        "raw_id": "C1",
+        "row": {
+          "id": "C1",
+          "stage": "A1",
+          "method_profile": "room_identity",
+          "entity_type": "axis",
+          "entity_id": "footprint_extents",
+          "floor_id": null,
+          "coordinate_frame": "world",
+          "rule_id": "centerline_exterior",
+          "claim_type": "numeric",
+          "conflict_type": null,
+          "source_ids": [
+            "1f_view.S1",
+            "1f_view.S2",
+            "1f_view.S3",
+            "1f_view.S4",
+            "2f_view.S1",
+            "2f_view.S2",
+            "2f_view.S3",
+            "2f_view.S4"
+          ],
+          "original_value": "footprint [0,15] x [0,8] (outer faces)",
+          "resolved_value": "footprint [0.12,14.88] x [0.12,7.88] (centerlines, half-thickness 0.12 m deduced from 240 mm ticks)",
+          "value_type": "polygon",
+          "tolerance_name": "OUTPUT_PRECISION",
+          "tolerance_value": 0.01,
+          "delta": "−0.12 m each boundary",
+          "evidence_grade": "estimated_stroke",
+          "confidence_before": "high",
+          "confidence_after": "high",
+          "changes_topology": false,
+          "prior_id": null,
+          "note": "Exterior wall thickness 0.24 m → centerline offset 0.12 m. Outer face coordinates from dimension chains (15.00 m, 8.00 m) trusted; centerlines computed."
+        }
+      }
+    },
+    {
+      "id": "E:corr:corrections:C2",
+      "kind": "correction",
+      "source": "1_correction/corrections.json",
+      "payload": {
+        "kind": "corrections",
+        "ordinal": 2,
+        "raw_id": "C2",
+        "row": {
+          "id": "C2",
+          "stage": "A2-detect",
+          "method_profile": "room_identity",
+          "entity_type": "axis",
+          "entity_id": "1F_partition_x5",
+          "floor_id": "1f_view",
+          "coordinate_frame": "world",
+          "rule_id": "dimchain_closure_C_top_1F",
+          "claim_type": "numeric",
+          "conflict_type": "checksum_failure",
+          "source_ids": [
+            "1f_view.D1",
+            "1f_view.D2",
+            "1f_view.D3",
+            "1f_view.D4",
+            "1f_view.D5",
+            "1f_view.D6",
+            "1f_view.D7",
+            "1f_view.D8",
+            "1f_view.D9",
+            "1f_view.D10"
+          ],
+          "original_value": "chain C_top segments sum = 14.76 m, overall = 15.00 m",
+          "resolved_value": "insert 0.12 m gap each at x≈5.0 and x≈10.0 (interior partition thickness); canonical partition axes at x=5.00, x=10.00; chain closes",
+          "value_type": "scalar",
+          "tolerance_name": "DIMCHAIN_CLOSE_TOL",
+          "tolerance_value": 0.01,
+          "delta": "0.24 m added gap",
+          "evidence_grade": "transcribed_dimension",
+          "confidence_before": "medium",
+          "confidence_after": "high",
+          "changes_topology": false,
+          "prior_id": null,
+          "note": "Unlabeled gaps correspond to 0.12 m drawn wall thickness; dimension chain closure recovered."
+        }
+      }
+    },
+    {
+      "id": "E:corr:corrections:C3",
+      "kind": "correction",
+      "source": "1_correction/corrections.json",
+      "payload": {
+        "kind": "corrections",
+        "ordinal": 3,
+        "raw_id": "C3",
+        "row": {
+          "id": "C3",
+          "stage": "A2-detect",
+          "method_profile": "room_identity",
+          "entity_type": "axis",
+          "entity_id": "1F_partition_y3_y5",
+          "floor_id": "1f_view",
+          "coordinate_frame": "world",
+          "rule_id": "dimchain_closure_C_right_1F",
+          "claim_type": "numeric",
+          "conflict_type": "checksum_failure",
+          "source_ids": [
+            "1f_view.D28",
+            "1f_view.D29",
+            "1f_view.D30",
+            "1f_view.D31",
+            "1f_view.D32",
+            "1f_view.C_left"
+          ],
+          "original_value": "C_right segments sum 7.76 m, no overall printed; 0.24 m residual",
+          "resolved_value": "trust overall 8.00 m from C_left and testdata; 0.24 m unlabeled gaps at y≈3.0 and y≈5.0 (horizontal partition thicknesses); canonical partition axes at y=3.00, y=5.00",
+          "value_type": "scalar",
+          "tolerance_name": "DIMCHAIN_CLOSE_TOL",
+          "tolerance_value": 0.01,
+          "delta": "0.24 m gap inserted",
+          "evidence_grade": "transcribed_dimension",
+          "confidence_before": "medium",
+          "confidence_after": "high",
+          "changes_topology": false,
+          "prior_id": null,
+          "note": "C_right residual identical to C_top pattern; resolved using independent 8.00 m overall from C_left chain and drawing."
+        }
+      }
+    },
+    {
+      "id": "E:corr:corrections:C4",
+      "kind": "correction",
+      "source": "1_correction/corrections.json",
+      "payload": {
+        "kind": "corrections",
+        "ordinal": 4,
+        "raw_id": "C4",
+        "row": {
+          "id": "C4",
+          "stage": "A2-detect",
+          "method_profile": "room_identity",
+          "entity_type": "axis",
+          "entity_id": "2F_partition_x7.5",
+          "floor_id": "2f_view",
+          "coordinate_frame": "world",
+          "rule_id": "dimchain_closure_C_top_2F",
+          "claim_type": "numeric",
+          "conflict_type": "checksum_failure",
+          "source_ids": [
+            "2f_view.D1",
+            "2f_view.D2",
+            "2f_view.D3",
+            "2f_view.D4",
+            "2f_view.D5",
+            "2f_view.D6",
+            "2f_view.D7"
+          ],
+          "original_value": "chain C_top segments sum = 14.88 m, overall = 15.00 m",
+          "resolved_value": "insert 0.12 m gap at x≈7.5 (central partition thickness); canonical axis at x=7.50; chain closes",
+          "value_type": "scalar",
+          "tolerance_name": "DIMCHAIN_CLOSE_TOL",
+          "tolerance_value": 0.01,
+          "delta": "0.12 m gap",
+          "evidence_grade": "transcribed_dimension",
+          "confidence_before": "medium",
+          "confidence_after": "high",
+          "changes_topology": false,
+          "prior_id": null,
+          "note": "Unlabeled double‑tick gap coincides with partition wall thickness; closure recovered."
+        }
+      }
+    },
+    {
+      "id": "E:corr:corrections:C5",
+      "kind": "correction",
+      "source": "1_correction/corrections.json",
+      "payload": {
+        "kind": "corrections",
+        "ordinal": 5,
+        "raw_id": "C5",
+        "row": {
+          "id": "C5",
+          "stage": "A2-detect",
+          "method_profile": "room_identity",
+          "entity_type": "axis",
+          "entity_id": "2F_partition_y3_y5",
+          "floor_id": "2f_view",
+          "coordinate_frame": "world",
+          "rule_id": "dimchain_closure_C_right_2F",
+          "claim_type": "numeric",
+          "conflict_type": "checksum_failure",
+          "source_ids": [
+            "2f_view.D26",
+            "2f_view.D27",
+            "2f_view.D28",
+            "2f_view.D29",
+            "2f_view.D30",
+            "2f_view.C_left"
+          ],
+          "original_value": "C_right segments sum 7.76 m, no overall; 0.24 m residual",
+          "resolved_value": "trust overall 8.00 m; unlabeled gaps at y=3.0, y=5.0 (partition thicknesses); canonical axes at 3.00, 5.00",
+          "value_type": "scalar",
+          "tolerance_name": "DIMCHAIN_CLOSE_TOL",
+          "tolerance_value": 0.01,
+          "delta": "0.24 m gap",
+          "evidence_grade": "transcribed_dimension",
+          "confidence_before": "medium",
+          "confidence_after": "high",
+          "changes_topology": false,
+          "prior_id": null,
+          "note": "Same pattern as 1F C_right; resolved with independent overall from C_left."
+        }
+      }
+    },
+    {
+      "id": "E:corr:corrections:C6",
+      "kind": "correction",
+      "source": "1_correction/corrections.json",
+      "payload": {
+        "kind": "corrections",
+        "ordinal": 6,
+        "raw_id": "C6",
+        "row": {
+          "id": "C6",
+          "stage": "A3-resolve",
+          "method_profile": "room_identity",
+          "entity_type": "window",
+          "entity_id": "W07",
+          "floor_id": "1f_view",
+          "coordinate_frame": "world",
+          "rule_id": "stroke_vs_elevation_dimension",
+          "claim_type": "numeric",
+          "conflict_type": "stroke_vs_dimension",
+          "source_ids": [
+            "1f_view.S17",
+            "East_view.S4",
+            "East_view.D8",
+            "East_view.D9",
+            "East_view.D10",
+            "East_view.D11",
+            "East_view.D12",
+            "East_view.D13"
+          ],
+          "original_value": "plan stroke y=[3.40,4.60] (pixel); dimension chain implied y=[3.28,4.48]",
+          "resolved_value": "z=[1.00,2.80] from East elevation C_left_fine chain (sil of 1.00, height 1.80); along‑facade span y=[3.40,4.60] from elevation window local‑x mapping (3.40–4.60)",
+          "value_type": "point",
+          "tolerance_name": "DIMCHAIN_CLOSE_TOL",
+          "tolerance_value": 0.01,
+          "delta": "adopted elevation values (chain closes exactly)",
+          "evidence_grade": "direct_measurement",
+          "confidence_before": "medium",
+          "confidence_after": "high",
+          "changes_topology": false,
+          "prior_id": null,
+          "note": "Elevation dimension chain (East_view C_left_fine) trusted over plan pixel estimate; conflicts resolved."
+        }
+      }
+    },
+    {
+      "id": "E:corr:corrections:C7",
+      "kind": "correction",
+      "source": "1_correction/corrections.json",
+      "payload": {
+        "kind": "corrections",
+        "ordinal": 7,
+        "raw_id": "C7",
+        "row": {
+          "id": "C7",
+          "stage": "A3-resolve",
+          "method_profile": "room_identity",
+          "entity_type": "window",
+          "entity_id": "W14",
+          "floor_id": "2f_view",
+          "coordinate_frame": "world",
+          "rule_id": "stroke_vs_elevation_dimension_2F",
+          "claim_type": "numeric",
+          "conflict_type": "stroke_vs_dimension",
+          "source_ids": [
+            "2f_view.S18",
+            "East_view.S3",
+            "East_view.D8",
+            "East_view.D9",
+            "East_view.D10",
+            "East_view.D11",
+            "East_view.D12",
+            "East_view.D13"
+          ],
+          "original_value": "plan stroke y=[3.40,4.60]; dimension chain implied y=[3.28,4.48]",
+          "resolved_value": "z=[4.00,5.80] from East elevation, span y=[3.40,4.60]",
+          "value_type": "point",
+          "tolerance_name": "DIMCHAIN_CLOSE_TOL",
+          "tolerance_value": 0.01,
+          "delta": "adopted elevation values",
+          "evidence_grade": "direct_measurement",
+          "confidence_before": "medium",
+          "confidence_after": "high",
+          "changes_topology": false,
+          "prior_id": null,
+          "note": "Same resolution as 1F right‑wall window; elevation trusted."
+        }
+      }
+    },
+    {
+      "id": "E:corr:corrections:C8",
+      "kind": "correction",
+      "source": "1_correction/corrections.json",
+      "payload": {
+        "kind": "corrections",
+        "ordinal": 8,
+        "raw_id": "C8",
+        "row": {
+          "id": "C8",
+          "stage": "A1",
+          "method_profile": "room_identity",
+          "entity_type": "window",
+          "entity_id": "W04,W05,W06,W12,W13",
+          "floor_id": null,
+          "coordinate_frame": "world",
+          "rule_id": "north_facade_inversion",
+          "claim_type": "numeric",
+          "conflict_type": null,
+          "source_ids": [
+            "North_view.S3",
+            "North_view.S4",
+            "North_view.S5",
+            "North_view.S6",
+            "North_view.S7"
+          ],
+          "original_value": "North elevation local‑x spans",
+          "resolved_value": "world x = 15.00 − local‑x (upper side left→right maps to east→west)",
+          "value_type": "line",
+          "tolerance_name": "OUTPUT_PRECISION",
+          "tolerance_value": 0.01,
+          "delta": "inverted span direction",
+          "evidence_grade": "estimated_stroke",
+          "confidence_before": "high",
+          "confidence_after": "high",
+          "changes_topology": false,
+          "prior_id": null,
+          "note": "Per A1 §2.2, North facade local‑x increasing leads to world ‑x; spans inverted accordingly."
+        }
+      }
+    },
+    {
+      "id": "E:corr:corrections:C9",
+      "kind": "correction",
+      "source": "1_correction/corrections.json",
+      "payload": {
+        "kind": "corrections",
+        "ordinal": 9,
+        "raw_id": "C9",
+        "row": {
+          "id": "C9",
+          "stage": "A1",
+          "method_profile": "room_identity",
+          "entity_type": "window",
+          "entity_id": "W15",
+          "floor_id": null,
+          "coordinate_frame": "world",
+          "rule_id": "west_facade_inversion",
+          "claim_type": "numeric",
+          "conflict_type": null,
+          "source_ids": [
+            "West_view.S3"
+          ],
+          "original_value": "West elevation local‑x [3.40, 4.60]",
+          "resolved_value": "world y = 8.00 − local‑x → [3.40, 4.60]",
+          "value_type": "line",
+          "tolerance_name": "OUTPUT_PRECISION",
+          "tolerance_value": 0.01,
+          "delta": "inverted",
+          "evidence_grade": "estimated_stroke",
+          "confidence_before": "high",
+          "confidence_after": "high",
+          "changes_topology": false,
+          "prior_id": null,
+          "note": "West facade: local‑x increasing → world ‑y (A1 §2.2)."
+        }
+      }
+    },
+    {
+      "id": "E:corr:corrections:C10",
+      "kind": "correction",
+      "source": "1_correction/corrections.json",
+      "payload": {
+        "kind": "corrections",
+        "ordinal": 10,
+        "raw_id": "C10",
+        "row": {
+          "id": "C10",
+          "stage": "A3-resolve",
+          "method_profile": "room_identity",
+          "entity_type": "cell",
+          "entity_id": "F1_office_1..F1_office_6, F2_office_1..F2_office_4, F2_meeting_1, F2_meeting_2",
+          "floor_id": null,
+          "coordinate_frame": "world",
+          "rule_id": "room_role_prior",
+          "claim_type": "semantic",
+          "conflict_type": null,
+          "source_ids": [],
+          "original_value": "no OCR room labels; roles unknown",
+          "resolved_value": "perimeter rooms → office; two large upper‑floor rooms → meeting; centre strip → corridor",
+          "value_type": "scalar",
+          "tolerance_name": null,
+          "tolerance_value": null,
+          "delta": null,
+          "evidence_grade": "prior",
+          "confidence_before": "low",
+          "confidence_after": "medium",
+          "changes_topology": false,
+          "prior_id": "office_area_pp, single_office_area, office_corridor_w",
+          "note": "Layout‑based role assignment using commonsense priors; no contradictory label exists."
+        }
+      }
+    },
+    {
+      "id": "E:corr:corrections:r11",
+      "kind": "correction",
+      "source": "1_correction/corrections.json",
+      "payload": {
+        "kind": "corrections",
+        "ordinal": 11,
+        "raw_id": null,
+        "row": {
+          "rule_id": "deterministic_core.snap",
+          "stage": "core",
+          "target": "F1_office_1.x[0]",
+          "axis": "x",
+          "original_value": 0.12,
+          "resolved_value": 0.1,
+          "delta": -0.02,
+          "tolerance_name": "AXIS_JITTER_TOL+SNAP_GRID+MIN_EDGE_LENGTH"
+        }
+      }
+    },
+    {
+      "id": "E:corr:corrections:r12",
+      "kind": "correction",
+      "source": "1_correction/corrections.json",
+      "payload": {
+        "kind": "corrections",
+        "ordinal": 12,
+        "raw_id": null,
+        "row": {
+          "rule_id": "deterministic_core.snap",
+          "stage": "core",
+          "target": "F1_office_1.y[0]",
+          "axis": "y",
+          "original_value": 0.12,
+          "resolved_value": 0.1,
+          "delta": -0.02,
+          "tolerance_name": "AXIS_JITTER_TOL+SNAP_GRID+MIN_EDGE_LENGTH"
+        }
+      }
+    },
+    {
+      "id": "E:corr:corrections:r13",
+      "kind": "correction",
+      "source": "1_correction/corrections.json",
+      "payload": {
+        "kind": "corrections",
+        "ordinal": 13,
+        "raw_id": null,
+        "row": {
+          "rule_id": "deterministic_core.snap",
+          "stage": "core",
+          "target": "F1_office_2.y[0]",
+          "axis": "y",
+          "original_value": 0.12,
+          "resolved_value": 0.1,
+          "delta": -0.02,
+          "tolerance_name": "AXIS_JITTER_TOL+SNAP_GRID+MIN_EDGE_LENGTH"
+        }
+      }
+    },
+    {
+      "id": "E:corr:corrections:r14",
+      "kind": "correction",
+      "source": "1_correction/corrections.json",
+      "payload": {
+        "kind": "corrections",
+        "ordinal": 14,
+        "raw_id": null,
+        "row": {
+          "rule_id": "deterministic_core.snap",
+          "stage": "core",
+          "target": "F1_office_3.x[1]",
+          "axis": "x",
+          "original_value": 14.88,
+          "resolved_value": 14.9,
+          "delta": 0.02,
+          "tolerance_name": "AXIS_JITTER_TOL+SNAP_GRID+MIN_EDGE_LENGTH"
+        }
+      }
+    },
+    {
+      "id": "E:corr:corrections:r15",
+      "kind": "correction",
+      "source": "1_correction/corrections.json",
+      "payload": {
+        "kind": "corrections",
+        "ordinal": 15,
+        "raw_id": null,
+        "row": {
+          "rule_id": "deterministic_core.snap",
+          "stage": "core",
+          "target": "F1_office_3.y[0]",
+          "axis": "y",
+          "original_value": 0.12,
+          "resolved_value": 0.1,
+          "delta": -0.02,
+          "tolerance_name": "AXIS_JITTER_TOL+SNAP_GRID+MIN_EDGE_LENGTH"
+        }
+      }
+    },
+    {
+      "id": "E:corr:corrections:r16",
+      "kind": "correction",
+      "source": "1_correction/corrections.json",
+      "payload": {
+        "kind": "corrections",
+        "ordinal": 16,
+        "raw_id": null,
+        "row": {
+          "rule_id": "deterministic_core.snap",
+          "stage": "core",
+          "target": "F1_office_4.x[0]",
+          "axis": "x",
+          "original_value": 0.12,
+          "resolved_value": 0.1,
+          "delta": -0.02,
+          "tolerance_name": "AXIS_JITTER_TOL+SNAP_GRID+MIN_EDGE_LENGTH"
+        }
+      }
+    },
+    {
+      "id": "E:corr:corrections:r17",
+      "kind": "correction",
+      "source": "1_correction/corrections.json",
+      "payload": {
+        "kind": "corrections",
+        "ordinal": 17,
+        "raw_id": null,
+        "row": {
+          "rule_id": "deterministic_core.snap",
+          "stage": "core",
+          "target": "F1_office_4.y[1]",
+          "axis": "y",
+          "original_value": 7.88,
+          "resolved_value": 7.9,
+          "delta": 0.02,
+          "tolerance_name": "AXIS_JITTER_TOL+SNAP_GRID+MIN_EDGE_LENGTH"
+        }
+      }
+    },
+    {
+      "id": "E:corr:corrections:r18",
+      "kind": "correction",
+      "source": "1_correction/corrections.json",
+      "payload": {
+        "kind": "corrections",
+        "ordinal": 18,
+        "raw_id": null,
+        "row": {
+          "rule_id": "deterministic_core.snap",
+          "stage": "core",
+          "target": "F1_office_5.y[1]",
+          "axis": "y",
+          "original_value": 7.88,
+          "resolved_value": 7.9,
+          "delta": 0.02,
+          "tolerance_name": "AXIS_JITTER_TOL+SNAP_GRID+MIN_EDGE_LENGTH"
+        }
+      }
+    },
+    {
+      "id": "E:corr:corrections:r19",
+      "kind": "correction",
+      "source": "1_correction/corrections.json",
+      "payload": {
+        "kind": "corrections",
+        "ordinal": 19,
+        "raw_id": null,
+        "row": {
+          "rule_id": "deterministic_core.snap",
+          "stage": "core",
+          "target": "F1_office_6.x[1]",
+          "axis": "x",
+          "original_value": 14.88,
+          "resolved_value": 14.9,
+          "delta": 0.02,
+          "tolerance_name": "AXIS_JITTER_TOL+SNAP_GRID+MIN_EDGE_LENGTH"
+        }
+      }
+    },
+    {
+      "id": "E:corr:corrections:r20",
+      "kind": "correction",
+      "source": "1_correction/corrections.json",
+      "payload": {
+        "kind": "corrections",
+        "ordinal": 20,
+        "raw_id": null,
+        "row": {
+          "rule_id": "deterministic_core.snap",
+          "stage": "core",
+          "target": "F1_office_6.y[1]",
+          "axis": "y",
+          "original_value": 7.88,
+          "resolved_value": 7.9,
+          "delta": 0.02,
+          "tolerance_name": "AXIS_JITTER_TOL+SNAP_GRID+MIN_EDGE_LENGTH"
+        }
+      }
+    },
+    {
+      "id": "E:corr:corrections:r21",
+      "kind": "correction",
+      "source": "1_correction/corrections.json",
+      "payload": {
+        "kind": "corrections",
+        "ordinal": 21,
+        "raw_id": null,
+        "row": {
+          "rule_id": "deterministic_core.snap",
+          "stage": "core",
+          "target": "F1_corridor.x[0]",
+          "axis": "x",
+          "original_value": 0.12,
+          "resolved_value": 0.1,
+          "delta": -0.02,
+          "tolerance_name": "AXIS_JITTER_TOL+SNAP_GRID+MIN_EDGE_LENGTH"
+        }
+      }
+    },
+    {
+      "id": "E:corr:corrections:r22",
+      "kind": "correction",
+      "source": "1_correction/corrections.json",
+      "payload": {
+        "kind": "corrections",
+        "ordinal": 22,
+        "raw_id": null,
+        "row": {
+          "rule_id": "deterministic_core.snap",
+          "stage": "core",
+          "target": "F1_corridor.x[1]",
+          "axis": "x",
+          "original_value": 14.88,
+          "resolved_value": 14.9,
+          "delta": 0.02,
+          "tolerance_name": "AXIS_JITTER_TOL+SNAP_GRID+MIN_EDGE_LENGTH"
+        }
+      }
+    },
+    {
+      "id": "E:corr:corrections:r23",
+      "kind": "correction",
+      "source": "1_correction/corrections.json",
+      "payload": {
+        "kind": "corrections",
+        "ordinal": 23,
+        "raw_id": null,
+        "row": {
+          "rule_id": "deterministic_core.snap",
+          "stage": "core",
+          "target": "F2_office_1.x[0]",
+          "axis": "x",
+          "original_value": 0.12,
+          "resolved_value": 0.1,
+          "delta": -0.02,
+          "tolerance_name": "AXIS_JITTER_TOL+SNAP_GRID+MIN_EDGE_LENGTH"
+        }
+      }
+    },
+    {
+      "id": "E:corr:corrections:r24",
+      "kind": "correction",
+      "source": "1_correction/corrections.json",
+      "payload": {
+        "kind": "corrections",
+        "ordinal": 24,
+        "raw_id": null,
+        "row": {
+          "rule_id": "deterministic_core.snap",
+          "stage": "core",
+          "target": "F2_office_1.y[0]",
+          "axis": "y",
+          "original_value": 0.12,
+          "resolved_value": 0.1,
+          "delta": -0.02,
+          "tolerance_name": "AXIS_JITTER_TOL+SNAP_GRID+MIN_EDGE_LENGTH"
+        }
+      }
+    },
+    {
+      "id": "E:corr:corrections:r25",
+      "kind": "correction",
+      "source": "1_correction/corrections.json",
+      "payload": {
+        "kind": "corrections",
+        "ordinal": 25,
+        "raw_id": null,
+        "row": {
+          "rule_id": "deterministic_core.snap",
+          "stage": "core",
+          "target": "F2_office_2.y[0]",
+          "axis": "y",
+          "original_value": 0.12,
+          "resolved_value": 0.1,
+          "delta": -0.02,
+          "tolerance_name": "AXIS_JITTER_TOL+SNAP_GRID+MIN_EDGE_LENGTH"
+        }
+      }
+    },
+    {
+      "id": "E:corr:corrections:r26",
+      "kind": "correction",
+      "source": "1_correction/corrections.json",
+      "payload": {
+        "kind": "corrections",
+        "ordinal": 26,
+        "raw_id": null,
+        "row": {
+          "rule_id": "deterministic_core.snap",
+          "stage": "core",
+          "target": "F2_office_3.y[0]",
+          "axis": "y",
+          "original_value": 0.12,
+          "resolved_value": 0.1,
+          "delta": -0.02,
+          "tolerance_name": "AXIS_JITTER_TOL+SNAP_GRID+MIN_EDGE_LENGTH"
+        }
+      }
+    },
+    {
+      "id": "E:corr:corrections:r27",
+      "kind": "correction",
+      "source": "1_correction/corrections.json",
+      "payload": {
+        "kind": "corrections",
+        "ordinal": 27,
+        "raw_id": null,
+        "row": {
+          "rule_id": "deterministic_core.snap",
+          "stage": "core",
+          "target": "F2_office_4.x[1]",
+          "axis": "x",
+          "original_value": 14.88,
+          "resolved_value": 14.9,
+          "delta": 0.02,
+          "tolerance_name": "AXIS_JITTER_TOL+SNAP_GRID+MIN_EDGE_LENGTH"
+        }
+      }
+    },
+    {
+      "id": "E:corr:corrections:r28",
+      "kind": "correction",
+      "source": "1_correction/corrections.json",
+      "payload": {
+        "kind": "corrections",
+        "ordinal": 28,
+        "raw_id": null,
+        "row": {
+          "rule_id": "deterministic_core.snap",
+          "stage": "core",
+          "target": "F2_office_4.y[0]",
+          "axis": "y",
+          "original_value": 0.12,
+          "resolved_value": 0.1,
+          "delta": -0.02,
+          "tolerance_name": "AXIS_JITTER_TOL+SNAP_GRID+MIN_EDGE_LENGTH"
+        }
+      }
+    },
+    {
+      "id": "E:corr:corrections:r29",
+      "kind": "correction",
+      "source": "1_correction/corrections.json",
+      "payload": {
+        "kind": "corrections",
+        "ordinal": 29,
+        "raw_id": null,
+        "row": {
+          "rule_id": "deterministic_core.snap",
+          "stage": "core",
+          "target": "F2_meeting_1.x[0]",
+          "axis": "x",
+          "original_value": 0.12,
+          "resolved_value": 0.1,
+          "delta": -0.02,
+          "tolerance_name": "AXIS_JITTER_TOL+SNAP_GRID+MIN_EDGE_LENGTH"
+        }
+      }
+    },
+    {
+      "id": "E:corr:corrections:r30",
+      "kind": "correction",
+      "source": "1_correction/corrections.json",
+      "payload": {
+        "kind": "corrections",
+        "ordinal": 30,
+        "raw_id": null,
+        "row": {
+          "rule_id": "deterministic_core.snap",
+          "stage": "core",
+          "target": "F2_meeting_1.y[1]",
+          "axis": "y",
+          "original_value": 7.88,
+          "resolved_value": 7.9,
+          "delta": 0.02,
+          "tolerance_name": "AXIS_JITTER_TOL+SNAP_GRID+MIN_EDGE_LENGTH"
+        }
+      }
+    },
+    {
+      "id": "E:corr:corrections:r31",
+      "kind": "correction",
+      "source": "1_correction/corrections.json",
+      "payload": {
+        "kind": "corrections",
+        "ordinal": 31,
+        "raw_id": null,
+        "row": {
+          "rule_id": "deterministic_core.snap",
+          "stage": "core",
+          "target": "F2_meeting_2.x[1]",
+          "axis": "x",
+          "original_value": 14.88,
+          "resolved_value": 14.9,
+          "delta": 0.02,
+          "tolerance_name": "AXIS_JITTER_TOL+SNAP_GRID+MIN_EDGE_LENGTH"
+        }
+      }
+    },
+    {
+      "id": "E:corr:corrections:r32",
+      "kind": "correction",
+      "source": "1_correction/corrections.json",
+      "payload": {
+        "kind": "corrections",
+        "ordinal": 32,
+        "raw_id": null,
+        "row": {
+          "rule_id": "deterministic_core.snap",
+          "stage": "core",
+          "target": "F2_meeting_2.y[1]",
+          "axis": "y",
+          "original_value": 7.88,
+          "resolved_value": 7.9,
+          "delta": 0.02,
+          "tolerance_name": "AXIS_JITTER_TOL+SNAP_GRID+MIN_EDGE_LENGTH"
+        }
+      }
+    },
+    {
+      "id": "E:corr:corrections:r33",
+      "kind": "correction",
+      "source": "1_correction/corrections.json",
+      "payload": {
+        "kind": "corrections",
+        "ordinal": 33,
+        "raw_id": null,
+        "row": {
+          "rule_id": "deterministic_core.snap",
+          "stage": "core",
+          "target": "F2_corridor.x[0]",
+          "axis": "x",
+          "original_value": 0.12,
+          "resolved_value": 0.1,
+          "delta": -0.02,
+          "tolerance_name": "AXIS_JITTER_TOL+SNAP_GRID+MIN_EDGE_LENGTH"
+        }
+      }
+    },
+    {
+      "id": "E:corr:corrections:r34",
+      "kind": "correction",
+      "source": "1_correction/corrections.json",
+      "payload": {
+        "kind": "corrections",
+        "ordinal": 34,
+        "raw_id": null,
+        "row": {
+          "rule_id": "deterministic_core.snap",
+          "stage": "core",
+          "target": "F2_corridor.x[1]",
+          "axis": "x",
+          "original_value": 14.88,
+          "resolved_value": 14.9,
+          "delta": 0.02,
+          "tolerance_name": "AXIS_JITTER_TOL+SNAP_GRID+MIN_EDGE_LENGTH"
+        }
+      }
+    },
+    {
+      "id": "E:corr:conflicts:CONF1",
+      "kind": "correction",
+      "source": "1_correction/corrections.json",
+      "payload": {
+        "kind": "conflicts",
+        "ordinal": 1,
+        "raw_id": "CONF1",
+        "row": {
+          "id": "CONF1",
+          "stage": "A2-detect",
+          "method_profile": "room_identity",
+          "entity_type": "axis",
+          "entity_id": "1F_right_chain",
+          "floor_id": "1f_view",
+          "coordinate_frame": "world",
+          "conflict_type": "checksum_failure",
+          "claim_type": "numeric",
+          "candidates": [
+            {
+              "value": "8.00 m overall (C_left, testdata)",
+              "source_ids": [
+                "1f_view.D22",
+                "testdata_prompt"
+              ],
+              "evidence_grade": "direct_measurement",
+              "confidence": "high"
+            },
+            {
+              "value": "7.76 m segment sum (C_right)",
+              "source_ids": [
+                "1f_view.D28",
+                "1f_view.D29",
+                "1f_view.D30",
+                "1f_view.D31",
+                "1f_view.D32"
+              ],
+              "evidence_grade": "transcribed_dimension",
+              "confidence": "high"
+            }
+          ],
+          "reason_unresolved": "evidence debt check 1f_view.reading.dimension_chain_closure – chain incomplete, but resolved by adopting overall and inserting partition thickness gaps (see corrections C3).",
+          "fallback_action": "resolved per C3; recorded as conflict to preserve original evidence mismatch."
+        }
+      }
+    },
+    {
+      "id": "E:corr:conflicts:CONF2",
+      "kind": "correction",
+      "source": "1_correction/corrections.json",
+      "payload": {
+        "kind": "conflicts",
+        "ordinal": 2,
+        "raw_id": "CONF2",
+        "row": {
+          "id": "CONF2",
+          "stage": "A2-detect",
+          "method_profile": "room_identity",
+          "entity_type": "axis",
+          "entity_id": "2F_right_chain",
+          "floor_id": "2f_view",
+          "coordinate_frame": "world",
+          "conflict_type": "checksum_failure",
+          "claim_type": "numeric",
+          "candidates": [
+            {
+              "value": "8.00 m overall (C_left, testdata)",
+              "source_ids": [
+                "2f_view.D20",
+                "testdata_prompt"
+              ],
+              "evidence_grade": "direct_measurement",
+              "confidence": "high"
+            },
+            {
+              "value": "7.76 m segment sum (C_right)",
+              "source_ids": [
+                "2f_view.D26",
+                "2f_view.D27",
+                "2f_view.D28",
+                "2f_view.D29",
+                "2f_view.D30"
+              ],
+              "evidence_grade": "transcribed_dimension",
+              "confidence": "high"
+            }
+          ],
+          "reason_unresolved": "evidence debt check 2f_view.reading.dimension_chain_closure – chain incomplete, resolved via partition gaps (correction C5).",
+          "fallback_action": "resolved per C5; recorded as conflict."
+        }
+      }
+    },
+    {
+      "id": "E:ep:result",
+      "kind": "ep",
+      "source": "EP/EP_run/eplusout.end",
+      "payload": {
+        "ep": {
+          "completed": true,
+          "severe": 0,
+          "warnings": 6
+        }
+      }
+    },
+    {
+      "id": "E:geom:digest",
+      "kind": "geometry",
+      "source": "2_modelling/building_geometry.json",
+      "payload": {
+        "geometry_digest": "f683752da9ddf2e4ae11666d81ed91e35ccd0bf6e2dfd073736f736adff4e34c",
+        "geometry_approved": true
+      }
+    },
+    {
+      "id": "E:eyeball:1_correction_zones.png",
+      "kind": "eyeball",
+      "source": "report/eyeball/1_correction_zones.png",
+      "payload": {
+        "filename": "1_correction_zones.png",
+        "path": "report/eyeball/1_correction_zones.png",
+        "producer": "correction_zones",
+        "source": "1_correction/zones.png",
+        "status": "copied"
+      }
+    },
+    {
+      "id": "E:eyeball:1_correction_elev.png",
+      "kind": "eyeball",
+      "source": "report/eyeball/1_correction_elev.png",
+      "payload": {
+        "filename": "1_correction_elev.png",
+        "path": "report/eyeball/1_correction_elev.png",
+        "producer": "correction_elev",
+        "source": "1_correction/elev.png",
+        "status": "copied"
+      }
+    },
+    {
+      "id": "E:eyeball:0_reading_1f_view_render.png",
+      "kind": "eyeball",
+      "source": "report/eyeball/0_reading_1f_view_render.png",
+      "payload": {
+        "filename": "0_reading_1f_view_render.png",
+        "path": "report/eyeball/0_reading_1f_view_render.png",
+        "producer": "reading_render",
+        "source": "0_reading/1f_view_render.png",
+        "status": "copied"
+      }
+    },
+    {
+      "id": "E:eyeball:0_reading_2f_view_render.png",
+      "kind": "eyeball",
+      "source": "report/eyeball/0_reading_2f_view_render.png",
+      "payload": {
+        "filename": "0_reading_2f_view_render.png",
+        "path": "report/eyeball/0_reading_2f_view_render.png",
+        "producer": "reading_render",
+        "source": "0_reading/2f_view_render.png",
+        "status": "copied"
+      }
+    },
+    {
+      "id": "E:eyeball:0_reading_East_view_render.png",
+      "kind": "eyeball",
+      "source": "report/eyeball/0_reading_East_view_render.png",
+      "payload": {
+        "filename": "0_reading_East_view_render.png",
+        "path": "report/eyeball/0_reading_East_view_render.png",
+        "producer": "reading_render",
+        "source": "0_reading/East_view_render.png",
+        "status": "copied"
+      }
+    },
+    {
+      "id": "E:eyeball:0_reading_North_view_render.png",
+      "kind": "eyeball",
+      "source": "report/eyeball/0_reading_North_view_render.png",
+      "payload": {
+        "filename": "0_reading_North_view_render.png",
+        "path": "report/eyeball/0_reading_North_view_render.png",
+        "producer": "reading_render",
+        "source": "0_reading/North_view_render.png",
+        "status": "copied"
+      }
+    },
+    {
+      "id": "E:eyeball:0_reading_South_view_render.png",
+      "kind": "eyeball",
+      "source": "report/eyeball/0_reading_South_view_render.png",
+      "payload": {
+        "filename": "0_reading_South_view_render.png",
+        "path": "report/eyeball/0_reading_South_view_render.png",
+        "producer": "reading_render",
+        "source": "0_reading/South_view_render.png",
+        "status": "copied"
+      }
+    },
+    {
+      "id": "E:eyeball:0_reading_West_view_render.png",
+      "kind": "eyeball",
+      "source": "report/eyeball/0_reading_West_view_render.png",
+      "payload": {
+        "filename": "0_reading_West_view_render.png",
+        "path": "report/eyeball/0_reading_West_view_render.png",
+        "producer": "reading_render",
+        "source": "0_reading/West_view_render.png",
+        "status": "copied"
+      }
+    },
+    {
+      "id": "E:eyeball:case_data_1f_view.png",
+      "kind": "eyeball",
+      "source": "report/eyeball/case_data_1f_view.png",
+      "payload": {
+        "filename": "case_data_1f_view.png",
+        "path": "report/eyeball/case_data_1f_view.png",
+        "producer": "case_data_view",
+        "source": "../case_data/1f_view.png",
+        "status": "copied"
+      }
+    },
+    {
+      "id": "E:eyeball:case_data_2f_view.png",
+      "kind": "eyeball",
+      "source": "report/eyeball/case_data_2f_view.png",
+      "payload": {
+        "filename": "case_data_2f_view.png",
+        "path": "report/eyeball/case_data_2f_view.png",
+        "producer": "case_data_view",
+        "source": "../case_data/2f_view.png",
+        "status": "copied"
+      }
+    },
+    {
+      "id": "E:eyeball:case_data_East_view.png",
+      "kind": "eyeball",
+      "source": "report/eyeball/case_data_East_view.png",
+      "payload": {
+        "filename": "case_data_East_view.png",
+        "path": "report/eyeball/case_data_East_view.png",
+        "producer": "case_data_view",
+        "source": "../case_data/East_view.png",
+        "status": "copied"
+      }
+    },
+    {
+      "id": "E:eyeball:case_data_North_view.png",
+      "kind": "eyeball",
+      "source": "report/eyeball/case_data_North_view.png",
+      "payload": {
+        "filename": "case_data_North_view.png",
+        "path": "report/eyeball/case_data_North_view.png",
+        "producer": "case_data_view",
+        "source": "../case_data/North_view.png",
+        "status": "copied"
+      }
+    },
+    {
+      "id": "E:eyeball:case_data_South_view.png",
+      "kind": "eyeball",
+      "source": "report/eyeball/case_data_South_view.png",
+      "payload": {
+        "filename": "case_data_South_view.png",
+        "path": "report/eyeball/case_data_South_view.png",
+        "producer": "case_data_view",
+        "source": "../case_data/South_view.png",
+        "status": "copied"
+      }
+    },
+    {
+      "id": "E:eyeball:case_data_West_view.png",
+      "kind": "eyeball",
+      "source": "report/eyeball/case_data_West_view.png",
+      "payload": {
+        "filename": "case_data_West_view.png",
+        "path": "report/eyeball/case_data_West_view.png",
+        "producer": "case_data_view",
+        "source": "../case_data/West_view.png",
+        "status": "copied"
+      }
+    }
+  ],
+  "blocked": false
+}

@@ -1,0 +1,41 @@
+{
+  "stage": "1_correction",
+  "rubric_id": "J1",
+  "criteria": [
+    {
+      "criterion": "zonification fidelity",
+      "status": "pass",
+      "recoverability": null,
+      "evidence": "Filled zone plan vs original + gt: Floor 1 = 3 north rooms + corridor + 3 south rooms (7 regions); Floor 2 = 2 conference + corridor + 4 offices (7 regions). No rooms wrongly merged, split, missing, or invented. gt reconciliation: walls 9/9 (interior partitions x=5/10 on 1f, x=3.75/7.5/11.25 on 2f; corridor y=3/5), 0 extra walls, 0.0 m offset. Overlay confirms red correction cells seat exactly on gt gray cells."
+    },
+    {
+      "criterion": "cross-floor consistency",
+      "status": "pass",
+      "recoverability": null,
+      "evidence": "Corridor walls at y=3.0 / y=5.0 align exactly across Floor 1 and Floor 2 (both 0.0 m offset vs gt); no ~5 cm jitter class. Envelope 15x8 shared. The cross-floor reconcile in the deterministic core had nothing to fix — reading already gave identical corridor axes both floors."
+    },
+    {
+      "criterion": "window position fidelity",
+      "status": "pass",
+      "recoverability": null,
+      "evidence": "windows 15/15 land on the correct facade/floor/position vs gt, all centre_delta 0.0 m: 1f N3/S3/E1, 2f N2/S4/E1/W1. Overlay window ticks align with gt facade windows."
+    },
+    {
+      "criterion": "count vs reference",
+      "status": "pass",
+      "recoverability": null,
+      "evidence": "Zone regions 7+7 match testdata thermal_zones=7 per floor; window count 15 matches gt (1f 7 + 2f 8). Deterministic zone-count tripwire did not fire (gate① 0 block / 0 flag). No merge/split to adjudicate."
+    },
+    {
+      "criterion": "overall redraw",
+      "status": "pass",
+      "recoverability": null,
+      "evidence": "The original building can be redrawn from this corrected geometry with no qualitative error: envelope, both corridors, all interior partitions, and every per-facade window are present and correctly placed against both the originals and gt. gate① correction checks passed clean (coverage/closure/zstack/window-on-wall all pass)."
+    }
+  ],
+  "root_stage": null,
+  "root_confidence": 0.0,
+  "retriable": true,
+  "judge_disabled": false,
+  "notes": "PASS on all 5 J1 criteria. Correction (DeepSeek + deterministic core) faithfully carried the above-floor J0 reading through with zero degradation: correction↔gt = walls 9/9, windows 15/15, 0 extra, 0.0 m offset on both floors; gate① 0 block / 0 flag. No J0 pass-through defect to confirm (J0 was clean). Out-of-band commentary only."
+}

@@ -1,0 +1,155 @@
+{
+  "stage": "4_mep",
+  "capability_profile": "rectangular",
+  "run_profile": "exploratory",
+  "artifact_hash": "d822c4d1867b5bff6e7638ed4d9c30e62e23fd4cb362874620a4c18401fb9483",
+  "attempt_hash": "d822c4d1867b5bff6e7638ed4d9c30e62e23fd4cb362874620a4c18401fb9483",
+  "report_schema_version": "2.1",
+  "results": [
+    {
+      "check_id": "mep.idf_parse",
+      "status": "pass",
+      "layer": "invariant",
+      "check_version": "1",
+      "message": "",
+      "evidence": {}
+    },
+    {
+      "check_id": "mep.placeholder_ban",
+      "status": "pass",
+      "layer": "invariant",
+      "check_version": "1",
+      "message": "",
+      "evidence": {
+        "scanned_surface": "parsed IDF fragment field values plus structured building/site string fields",
+        "guards": "case-insensitive token/phrase patterns use non-word boundaries; ellipsis requires literal ... or …; angle placeholders require placeholder/tbd/todo/insert/replace text inside <>"
+      }
+    },
+    {
+      "check_id": "mep.name_charset",
+      "status": "pass",
+      "layer": "cross_check",
+      "check_version": "1",
+      "message": "",
+      "evidence": {
+        "allowed_charset": "letters, digits, underscore, hyphen, and space",
+        "allowed_pattern": "^[A-Za-z0-9_ -]+$",
+        "scanned_object_types": [
+          "CONSTRUCTION",
+          "MATERIAL",
+          "MATERIAL:AIRGAP",
+          "MATERIAL:INFRAREDTRANSPARENT",
+          "MATERIAL:NOMASS",
+          "SCHEDULE:COMPACT",
+          "SCHEDULETYPELIMITS",
+          "WINDOWMATERIAL:BLIND",
+          "WINDOWMATERIAL:GAS",
+          "WINDOWMATERIAL:GLAZING",
+          "WINDOWMATERIAL:SIMPLEGLAZINGSYSTEM"
+        ]
+      }
+    },
+    {
+      "check_id": "mep.site_matches_testdata",
+      "status": "not_applicable",
+      "layer": "cross_check",
+      "check_version": "1",
+      "message": "no comparable structured site fields in testdata (latitude/longitude/time_zone/elevation)",
+      "evidence": {
+        "testdata_schema": "none supplied",
+        "structured_site_fields": [],
+        "location_string_fields": [],
+        "tolerances": {
+          "latitude": 0.01,
+          "longitude": 0.01,
+          "time_zone": 0.1,
+          "elevation": 1.0
+        }
+      }
+    },
+    {
+      "check_id": "mep.construction_coverage",
+      "status": "pass",
+      "layer": "invariant",
+      "check_version": "1",
+      "message": "",
+      "evidence": {
+        "used": 6
+      }
+    },
+    {
+      "check_id": "mep.construction_to_material",
+      "status": "pass",
+      "layer": "invariant",
+      "check_version": "1",
+      "message": "",
+      "evidence": {}
+    },
+    {
+      "check_id": "mep.schedule_type_refs",
+      "status": "pass",
+      "layer": "invariant",
+      "check_version": "1",
+      "message": "",
+      "evidence": {}
+    },
+    {
+      "check_id": "mep.schedule_completeness",
+      "status": "pass",
+      "layer": "invariant",
+      "check_version": "1",
+      "message": "",
+      "evidence": {}
+    },
+    {
+      "check_id": "mep.load_to_zone",
+      "status": "pass",
+      "layer": "invariant",
+      "check_version": "1",
+      "message": "",
+      "evidence": {}
+    },
+    {
+      "check_id": "mep.load_to_schedule",
+      "status": "pass",
+      "layer": "invariant",
+      "check_version": "1",
+      "message": "",
+      "evidence": {}
+    },
+    {
+      "check_id": "mep.per_zone_coverage",
+      "status": "pass",
+      "layer": "cross_check",
+      "check_version": "1",
+      "message": "",
+      "evidence": {
+        "zones": 14
+      }
+    },
+    {
+      "check_id": "mep.simpleglazing_standalone",
+      "status": "pass",
+      "layer": "invariant",
+      "check_version": "1",
+      "message": "",
+      "evidence": {}
+    },
+    {
+      "check_id": "mep.nomass_positive_resistance",
+      "status": "pass",
+      "layer": "invariant",
+      "check_version": "1",
+      "message": "",
+      "evidence": {}
+    },
+    {
+      "check_id": "mep.reasonability_bands",
+      "status": "not_applicable",
+      "layer": "cross_check",
+      "check_version": "1",
+      "message": "reasonability bands deferred until MEP input is richer (§5.2)",
+      "evidence": {}
+    }
+  ]
+}

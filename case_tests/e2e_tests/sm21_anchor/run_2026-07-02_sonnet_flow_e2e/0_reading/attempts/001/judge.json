@@ -1,0 +1,53 @@
+{
+  "stage": "0_reading",
+  "rubric_id": "J0",
+  "criteria": [
+    {
+      "criterion": "missed real element",
+      "status": "pass",
+      "recoverability": null,
+      "evidence": "gt reconciliation: walls 9/9 hit (1f 4/4, 2f 5/5), windows 15/15 hit (1f 7/7, 2f 8/8), 0 missed on both plans, max offset 0.0 m. Envelope 15.00x8.00, both corridor walls, and every per-facade window present. No under-tracing."
+    },
+    {
+      "criterion": "clutter traced as structure",
+      "status": "pass",
+      "recoverability": null,
+      "evidence": "0 extra walls / 0 extra windows vs gt on both plans (no_oversplit criterion: extra_vwalls+extra_hwalls=0). Furniture (18 symbols on 1f), dimension ticks, and healed door leaves are all logged in uncaptured, not traced as strokes. The prior sm21 south-band over-segmentation failure mode did NOT recur."
+    },
+    {
+      "criterion": "pen misclassified",
+      "status": "pass",
+      "recoverability": null,
+      "evidence": "Walls vs windows cleanly separated on both plans (distinct wall/window pens). On elevations wall_fill (2 bands per facade) vs window pen are distinct; the South/West facade doors are logged in uncaptured, NOT emitted as window strokes (verified South_view render: 7 blue windows = 3 F1 + 4 F2, door not drawn blue)."
+    },
+    {
+      "criterion": "number copied wrong",
+      "status": "pass",
+      "recoverability": null,
+      "evidence": "Every gt wall + window matched at 0.0 m offset, which is only possible if the transcribed dimension chains are numerically faithful. Spot-checked overall 15000x8000, F1 height 3000 / F2 3600 / roof 6600, north/south window chains — all match the drawings. The unlabeled ~0.24 m (C_right) and ~0.12 m (C_top) residuals were honestly NOT fabricated (documented in self_check), and the real stroke coords still hit gt exactly."
+    },
+    {
+      "criterion": "image-local orientation self-consistent",
+      "status": "pass",
+      "recoverability": null,
+      "evidence": "Per-facade window attribution matches gt exactly (1f N3/S3/E1, 2f N2/S4/E1/W1). Elevations declare the correct facade (South_view labeled 'South elevation') with F1/F2 bands stacked correctly; declaration-level orientation self-consistent. World translation left to J1 per rubric."
+    },
+    {
+      "criterion": "door healing wrong",
+      "status": "pass",
+      "recoverability": null,
+      "evidence": "Door openings healed into continuous walls and logged in uncaptured (1f 8 healed, 2f 6 healed, South/West elevation doors logged). No real opening wrongly healed shut: window/wall gt counts are complete. Discipline followed (unlike the prior run where uncaptured door logs were empty)."
+    },
+    {
+      "criterion": "whole-region missing / misplaced",
+      "status": "pass",
+      "recoverability": null,
+      "evidence": "All bands/floors present and correctly placed: 1f = 3 north rooms + corridor + 3 south rooms = 7 regions; 2f = 2 conference + corridor + 4 offices = 7 regions; both match testdata thermal_zones=7. Overlay confirms red reading walls seat exactly on gt gray cell boundaries."
+    }
+  ],
+  "root_stage": null,
+  "root_confidence": 0.0,
+  "retriable": true,
+  "judge_disabled": false,
+  "notes": "PASS on all 7 criteria — a clean, above-floor reading (walls 9/9, windows 15/15, over-split 0, all offsets 0.0 m; exceeds the sm21_pre floor of windows 14/15). This is a strong Sonnet draw; window placement variance (the known model-side weakness) landed well this run. gate① flags are benign: dimension_chain_closure (unlabeled ~0.24/0.12 m residuals, honestly surfaced) and stroke_dimension_consistency (6 wall coords coincide with dim-chain cumulatives) — the gt reconciliation confirms all 9 walls are real room-bounding walls at 0.0 m offset, so both flags are false-positive advisories here, not defects. Out-of-band commentary only; not injected into any prompt."
+}

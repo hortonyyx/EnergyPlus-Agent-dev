@@ -1,0 +1,153 @@
+# 识图（0_reading）提升方法论 —— 从一次高质量样本反推
+
+> **本文 = reading 提升的方法论参考主文档**（2026-07-02 立，用户定）。缘起：`sm21_anchor/run_2026-07-02_sonnet_flow_e2e`
+> 一次冷启 Sonnet 5 reading **几乎完美还原**（墙 9/9·窗 15/15·过度分割 0·全 0.0m 偏移，超 sm21_pre 地板），
+> 这是**难得的高质量样本**。本文把「这次为什么好」的 forensics + 之前设计的 **Phase B（双通道+算术下沉）** +
+> **Phase C（OCR/CV）** 统一整理成一份，作为后续 reading 提升方案设计的地基。
+>
+> 关联：[proposals/reading_evolution_dual_channel_cv.md](../proposals/reading_evolution_dual_channel_cv.md)（原始三档提案 + Phase A 落地轨迹，本文是其 capability 侧的整理与实证补强，不取代其决策记录）·
+> [recognition_modeling_capability.md](recognition_modeling_capability.md)（识图→建模质量主线）·[[reading-quality-investigation-2026-06-24]]·[[judge-gt-authoritative-images-auxiliary]]·[[run-provenance-recording-requirement]]。
+
+---
+
+## 0. 一句话
+
+**这次 reading 好，主因不是「Sonnet 5 眼睛更准」，而是模型自发写代码（PIL 灰度投影 + numpy + scipy 连通域）
+把识图做成了一套轻量经典 CV——它在「量」而不是「看」。** 这既印证了原提案「像素忠实的正解是经典 CV、别把 VLM
+逼成肉眼像素尺」的判断，又给出更可操作的形态：**把这套经典 CV 做成 reading 阶段的显式工具箱**，让模型直接调、
+省掉自己发明配方的成本，且弱/开源 VLM 也能借这根拐杖量准。这是连接 Phase B（算术下沉）与 Phase C（CV 前端）的桥。
+
+**⚠️ 两个未排除的混杂（结论要打折）**：① reading 用的是 **Sonnet 5**（`claude-sonnet-5`），历史 sm21 实验全是
+Sonnet 4.6——"5 更倾向于写代码去量" vs "5 感知更强"未隔离（4.6 也会写 PIL/scipy）；② **n=1** 单次抽样。
+∴ 下一步计划里有「Sonnet 4.6 再测一次干净流程」+ 多抽几次验方差。
+
+---
+
+## 1. 实证样本 forensics（run_2026-07-02_sonnet_flow_e2e）
+
+**数据来源**：冷启 Sonnet 5 子代理完整 transcript（112 次工具调用：60 Bash / 45 Read / 7 Write）。
+
+### 1.1 模型做了什么（技法）
+
+reading 全程几乎是一套**自己临时搭的经典 CV 流水线**，不是"看图填坐标"：
+
+1. **裁图放大**（PIL `crop`）：先躲开「整张满家具平面一眼看花」的老失败模式（sm21 南带过度分割的历史病根，
+   见 [[reading-quality-investigation-2026-06-24]]）。
+2. **灰度掩膜 + 行/列投影定位墙线**：`R≈G≈B 且 60<v<230` 的掩膜隔离灰色墙体像素（排除黑色 tick、白底、绿色尺寸字），
+   对行/列求和取峰值 = 墙的**精确像素位置**。
+3. **像素→米标定**：以总尺寸（15000mm = 图宽像素跨度）反推 px/m，把像素位置换算成米。
+   → 9 条墙**全中 0.0m**（肉眼绝无可能全 0，这是「量」出来的直接证据）。
+4. **scipy 连通域**（`ndimage.label`）在立面上框窗、数窗 → 窗 **15/15**。
+
+**没用 OCR**：印刷尺寸数字是模型自己 VLM 读的（提供标定锚），几何坐标是像素量的。
+
+### 1.2 时间线（坐实"第一张慢、后面快"）
+
+| 图 | tool 次数 | 耗时 | PIL/像素操作 | 备注 |
+|---|---|---|---|---|
+| **1f（第一张/pilot）** | 37 | **~30 min** | 30 | **发明并调 CV 配方**（灰度阈值/标定/投影方式的试错） |
+| 2f | 13 | 12.3 min | 11 | 复用配方，平面 |
+| South | 10 | 13.9 min | 6 | 立面新类型，重建窗检测（scipy） |
+| North | 5 | 3.6 min | 3 | 复用立面配方 |
+| East | 3 | 4.0 min | 1 | |
+| West | 2 | 0.7 min | 1 | 配方完全成型 |
+
+**读法**：第一张图那 30 分钟、30 次 PIL 绝大部分是在**试错、把 CV 配方调出来**；配方一旦成型，后 5 张直接复用、
+越来越快（West 仅 0.7 min）。**"慢"的成本几乎全在"发明配方"这一次性开销上**——这正是固化工具箱能省掉的部分。
+
+### 1.3 方法论结论
+
+- **精度来自「量」不来自「看」**：0.0m 偏移 = 像素测量的产物，不是 VLM 感知的产物。这与 0-5 铁律
+  「LLM 感知、代码算几何」**同向**——只不过这次是模型自发用代码算，而非脚手架提供的确定性代码算。
+- **过度分割被裁图 + 投影抑制**：裁图放大 + 灰度投影让"窗 jamb / 尺寸 tick 不是贯穿墙"变得可判（历史病根被这套技法直接压住）。
+- **"发明配方"是一次性大头**：固化 = 把这次性成本从每个强模型 run 里省掉，且给弱模型免费用。
+
+---
+
+## 2. 核心洞察：经典 CV 工具箱当 VLM 的"看图小工具"
+
+**原提案 §1 的判断得到实证并可细化**：原文说「对 VLM 按像素算最不可靠（肉眼像素定位是弱项），像素忠实的正解是
+经典 CV / 专用模型」。这次证明：**VLM 一旦有代码工具，会自己把经典 CV 写出来并拿到像素级精度**——所以对立轴不是
+"VLM vs CV"，而是**"VLM 肉眼估像素（弱）" vs "VLM 调经典 CV 工具量像素（强）"**。
+
+**∴ 提升杠杆 = 给 reading 阶段一套显式、经典（非训练）CV 工具箱**，模型作为工具调用：
+
+| 工具 | 作用 | 这次模型的临时实现 |
+|---|---|---|
+| **crop / zoom** | 局部放大躲过满图杂物 | PIL `crop` |
+| **wall-line profiler** | 灰度掩膜 + 行/列投影 → 候选墙线像素位置 | numpy 掩膜 + `sum(axis)` 取峰 |
+| **px↔m calibrator** | 用尺寸锚（overall/链）标定比例尺 + 换算 | 手写 15000mm↔图宽 |
+| **window/opening detector** | 立面连通域 → 窗框 bbox + 计数 | `scipy.ndimage.label` |
+| **（补充）OCR** | 尺寸数字值源，降 misread、兜"碰巧闭合" | 未用（VLM 自读） |
+
+**为什么是经典 CV 不是训练模型**（正好绕开用户当初 defer CV 的顾虑「自训泛化差」）：阈值 / 投影 / 连通域 / Hough
+都是**古典算法**，跨画风相对稳、零训练、可审、确定性。**caveat**：这套灰度阈值吃的是 sm21 这种**干净 CAD 导出 PNG**；
+扫描件 / 手绘 / 噪声图上阈值要更鲁棒（形态学去噪、自适应阈值），得单独处理——所以工具箱要分「干净矢量图（现在能做）」
+与「噪声图（后续）」两档鲁棒性。
+
+**与 0-5 铁律的关系**：模型自发在黑箱子代理里做 ad-hoc CV，**强大但非确定性、不可复现、不可审**（每 run 重发明、
+配方随机）。把它变成脚手架里的**一等工具**（确定性、留痕）才既拿精度又守铁律。这就是 Phase B / Phase C 要做的正事。
+
+---
+
+## 3. 整理后的 reading 提升路线（Phase A 已落地 / B / C）
+
+> 三档来自 [proposals/reading_evolution_dual_channel_cv.md](../proposals/reading_evolution_dual_channel_cv.md)（决策记录以那份为准）；
+> 本节按「这次样本的实证」重新组织优先级与形态。
+
+### Phase A（✅ 已落地，2026-06-30 `6.30_ReadingEvidenceGateHardening` + A8）
+证据完整性门硬化：让 reading 弱**可见**、尺寸错**变响**、"pipeline 绿"不再掩盖"reading 弱"。链闭合门
+（`(chain_id,axis)` 分组）· `dimension_derived⇒refs` · run_profile 四信号 · dimensioned manifest 门 ·
+provenance 升级 · window-jamb advisory · E/W sign 翻正 · A8 correction 证据债前后卡门。**reading↔correction 契约未动。**
+
+> 注：本次 run 的 8 个 `dimension_chain_closure` flag 就是 Phase A 门在起作用——但在**完美 reading 上误报**
+> （C_top 15.0 vs 分段和 14.76 = 内隔墙厚未标注；C_bottom/C_right 无 overall 只有分段）。**证据门无法区分
+> "诚实的无-overall/墙厚残差" 与 "真识图债"** → 把 run 自动状态误判成 `reading_evidence_debt`。这是 Phase A 的
+> 一个已知精化点（宜并 Phase B 双通道时给残差正规通道），已记 run report 的脚手架建议桶。
+
+### Phase B（后续·根治）：双通道 reading + 算术下沉代码
+- **双通道 schema**：每元素带 `visual{anchor_px|null, relative, confidence}` + `metric{dimension_refs, raw_segments,
+  confidence}` + provenance；**reading 不吐最终米制坐标**。
+- **确定性尺寸约束求解器**算几何（"尺寸驱动重建"）；再拓扑用 Shapely `polygonize`。
+- correction 分**确定性**（吸附/闭合/共面）vs **语义**（窗属哪房间）。
+- 接线 `derive_facade_frame` + 锁 E/W sign（守 [[derive-facade-frame-unwired-ew-sign-trap]]）= 确定性 local→world 可审变换。
+- **本次样本的补强**：`anchor_px` 通道**不该空着让 VLM 用尺寸链累加算**（历史过度分割根因），而应由 **§2 的
+  wall-line profiler 工具**把像素 anchor 填实——这次模型自发做了，Phase B 要把它变成脚手架提供的确定性工具。
+  **∴ Phase B 的"算术下沉"具体形态 = §2 CV 工具箱**：不是纯符号求解，而是「CV 量像素 anchor + 尺寸链标定 + 约束求解」。
+
+### Phase C（远期·并行）：OCR + CV 前端
+- **C1 OCR**（PaddleOCR，中文图开箱不训练）当尺寸数字值源——降 misread、兜"碰巧仍闭合"的残余不可恢复错。
+  （原决策：闭合门优先、OCR 暂不起；本次样本显示 VLM 自读尺寸够用，OCR 优先级仍可后置。）
+- **C2 CV 前端**：起手式 = DXF→(PNG, 逐层掩膜) 数据工厂（复用 CAD→gt 基建）→ 经典 CV（LSD/Hough 抽墙线 +
+  形态学 wall_fill + 线宽剥尺寸层 + 比例尺=尺寸文字↔延伸线像素距）。
+- **本次样本的意义**：§2 工具箱就是 C2 的**轻量前置版**——先把这次模型手写的 crop/投影/连通域/标定做成工具，
+  比一步到位建完整 CV 前端**更快见效、风险更低、且保 VLM 在环做语义判断**。
+
+---
+
+## 4. 从这次样本能固化进脚手架的具体项（候选，待设计）
+
+1. **CV 工具箱四件套**（§2 表）：crop / wall-line profiler / px↔m calibrator / window connected-components，
+   做成 reading 阶段可调的确定性脚本或函数（干净矢量图档先行）。
+2. **配方即工具**：把"灰度阈值 60-230 隔离墙体、行列投影取峰、总尺寸标定 px/m"写成默认 recipe，省掉第一张图的 30 分钟发明成本。
+3. **anchor_px 强制填实**（接 Phase B 双通道）：禁止内墙 x 纯尺寸链累加、要求像素 anchor 由 profiler 工具产出。
+4. **裁图纪律工具化**：把"满图先裁带放大再判隔墙"从 prose 纪律升级为工具默认动作（压过度分割）。
+5. **鲁棒性分档**：干净 CAD PNG（阈值 CV 够）vs 噪声/扫描/手绘（形态学 + 自适应阈值），工具箱声明适用档。
+
+> 这些**都还没落地、待设计**。落地路径 = 走正规提案（Claude 方案→Fable5/Codex 审→执行→复核），
+> 并与 Phase B 的双通道 schema 一并设计（工具箱是双通道 `metric.anchor_px` 通道的产出器）。
+
+---
+
+## 5. 未决 / 待验（诚实清单）
+
+- **Sonnet 4.6 对照**：同图干净流程再跑 4.6，隔离"模型行为（倾向写 CV）" vs "感知强度"。（下一步计划已含）
+- **方差**：n=1 → 多抽几次 Sonnet 5 看 15/15 是否稳定，还是这次运气好。
+- **弱 VLM 可用性**：CV 工具箱能否让弱/开源 VLM（北极星目标）也读到接近的精度——需实测。
+- **噪声图鲁棒性**：灰度阈值在非干净图上的失效边界。
+- **Phase A 误报精化**：证据门在完美 reading 上把无-overall/墙厚残差误判成 debt（本 run 已见），并 Phase B 解。
+
+---
+
+_2026-07-02 立。缘起 run_2026-07-02_sonnet_flow_e2e 高质量 reading 样本 forensics（用户观察"模型一直裁小图仔细看"+
+"第一张特别久、批量快" → transcript 坐实 = 模型自发经典 CV）。整理 Phase B/C 于一处，作 reading 提升方案设计地基。_
