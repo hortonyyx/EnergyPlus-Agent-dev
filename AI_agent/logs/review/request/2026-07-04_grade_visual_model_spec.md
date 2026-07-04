@@ -146,6 +146,17 @@ product_cov = 交集面积 / 产品盒面积
 
 ---
 
+## 8b. 待单独设计的开放问题（2026-07-04 用户提，**搁置·Sonnet 4.6 之后再正经设计一版**）
+
+耦合成一个大题 = **"判卷里'一道墙'如何定义 / 如何计数 / 打分粒度"**。缘起：sm21 x=5 竖墙被走廊(全宽 zone `[0,3,15,5]`)物理切成两段 `[0,3]+[5,8]`，现 scorer 存成**一个元素带两段 interval**（审 #4 interval-set 为不重复计数而聚类）。当只把下段横移 0.2m 时，**上段虽精确命中 gt 也跟着整道染橙**（元素级单一 status 的坍缩）。
+
+- **Q1 定位 = 判卷 scorer 局限、非全架构**：几何**内核本就按 zone 邻接建墙**（走廊上/下 = 两独立 surface），不受影响；只是 judge 侧 scorer 把"同轴、gap 隔开的两段"聚成一个元素。但"一道墙如何定义"概念横跨 reading(描边)/gt(zone 边)/scorer(聚类)。
+- **Q2 打分从 status → 命中比例（用户倾向，值得做）**：与其给一道墙贴单一 label（complete/within_tol/miss），改报**分段占比**（matched/绿 %、within_tol/橙 %、missing/缺 %、extra/多 %）。更诚实、绕开"混合墙硬贴一个标签"，pieces 数据现成、只是上层坍缩了。改则 advisory criteria 从计数→比例。
+- **Q3 墙计数粒度未定死**：现按"元素/聚类"计（x=5 = 1 道），非纯最小段也非纯最长线。决定 `wall_hits N/M` 与"墙命中"的含义。
+- **难点/约束**：按 gap 切成独立墙 → 恢复 per-段横向保真，但"reader 一笔穿走廊 `[0,8]`"的归属会**重新引入 #4 重复计数**，须连穿-gap 归属一起设计；interval-set 在**连续单段内**仍要保留（处理拆笔/合笔）。
+- **影响范围**：结构上 sm21 每道穿走廊墙(x=5/x=10)都是两段；但"上段染橙"artifact **仅在两段被画在不同 x 时触发**（正常同 x → 整道 complete 绿、不触发）。
+- **计划**：Sonnet 4.6 对照之后，连同判卷其余 backlog（立面窗 within_tol 区分移位/变尺寸、Hungarian 配对、ambiguous 阈值 config、非方形 segment/polyline）一起，出**单独方案 → Codex 方案审**再改。
+
 ## 9. 审阅采纳记录（Codex 方案审 2026-07-04，APPROVE-WITH-CHANGES，10 findings 全采纳）
 
 `logs/review/review/2026-07-04_grade_visual_model_spec_review.md`。已折进上文：#1 两侧覆盖率(§3)·#2 miss 注记例外(§0/§1)·#3 横线 extra/no-data/序列化(§4)·#4 interval-set 拓扑(§2)·#5 容差序 + complete 抑制(§2/§5)·#6 翻转归一(§0)·#7 竖边界序列化(§4)·#8 平面窗车道口径(§2)·#9 v1 范围(§8)·#10 renderer 红线测试(Batch 2)。Batch 1 需按 #1/#3/#4/#5/#6/#7 返工。
