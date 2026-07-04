@@ -3,6 +3,7 @@ from __future__ import annotations
 import pytest
 
 from src.agent.execution.run_config import load_run_config
+from src.agent.execution.run_config import GradeConfig
 
 
 def test_run_config_missing_soft_defaults(tmp_path):
@@ -15,6 +16,16 @@ def test_run_config_missing_soft_defaults(tmp_path):
     assert cfg.grade_for("0_reading").as_tolerances() == {
         "wall_tol_m": 0.3,
         "window_centre_tol_m": 0.4,
+        "elevation_along_tol_m": 0.4,
+        "sill_tol_m": 0.3,
+        "head_tol_m": 0.3,
+        "width_tol_m": 0.4,
+        "position_tol_m": 0.3,
+        "extent_tol_m": 0.3,
+        "complete_eps_m": 0.05,
+        "overlap_accept": 0.75,
+        "overlap_complete": 0.95,
+        "floor_line_tol_m": 0.3,
     }
 
 
@@ -35,6 +46,16 @@ def test_run_config_loads_scope_review_models_and_grade(tmp_path):
                 "  reading:",
                 "    wall_tol_m: 0.2",
                 "    window_centre_tol_m: 0.25",
+                "    elevation_along_tol_m: 0.35",
+                "    sill_tol_m: 0.15",
+                "    head_tol_m: 0.16",
+                "    width_tol_m: 0.5",
+                "    position_tol_m: 0.21",
+                "    extent_tol_m: 0.22",
+                "    complete_eps_m: 0.04",
+                "    overlap_accept: 0.8",
+                "    overlap_complete: 0.97",
+                "    floor_line_tol_m: 0.28",
             ]
         ),
         encoding="utf-8",
@@ -50,8 +71,39 @@ def test_run_config_loads_scope_review_models_and_grade(tmp_path):
     assert cfg.grade_for("0_reading").as_tolerances() == {
         "wall_tol_m": 0.2,
         "window_centre_tol_m": 0.25,
+        "elevation_along_tol_m": 0.35,
+        "sill_tol_m": 0.15,
+        "head_tol_m": 0.16,
+        "width_tol_m": 0.5,
+        "position_tol_m": 0.21,
+        "extent_tol_m": 0.22,
+        "complete_eps_m": 0.04,
+        "overlap_accept": 0.8,
+        "overlap_complete": 0.97,
+        "floor_line_tol_m": 0.28,
     }
     assert cfg.grade_for("1_correction").as_tolerances() == {
         "wall_tol_m": 0.3,
         "window_centre_tol_m": 0.4,
+        "elevation_along_tol_m": 0.4,
+        "sill_tol_m": 0.3,
+        "head_tol_m": 0.3,
+        "width_tol_m": 0.4,
+        "position_tol_m": 0.3,
+        "extent_tol_m": 0.3,
+        "complete_eps_m": 0.05,
+        "overlap_accept": 0.75,
+        "overlap_complete": 0.95,
+        "floor_line_tol_m": 0.3,
     }
+
+
+def test_grade_config_rejects_invalid_tolerance_ordering():
+    with pytest.raises(ValueError, match="complete_eps_m"):
+        GradeConfig(complete_eps_m=0.4, extent_tol_m=0.3)
+    with pytest.raises(ValueError, match="overlap_accept"):
+        GradeConfig(overlap_accept=0.96, overlap_complete=0.95)
+    with pytest.raises(ValueError, match="overlap_complete"):
+        GradeConfig(overlap_complete=1.1)
+    with pytest.raises(ValueError, match="wall_tol_m"):
+        GradeConfig(wall_tol_m=-0.1)

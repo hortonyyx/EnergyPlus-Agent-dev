@@ -13,15 +13,33 @@ import re
 from src.agent.correction.schema import CorrectedGeometry
 
 from .reading_score import (
+    DEFAULT_COMPLETE_EPS_M,
+    DEFAULT_EXTENT_TOL_M,
+    DEFAULT_POSITION_TOL_M,
     DEFAULT_WALL_TOL_M,
     DEFAULT_WIN_CENTRE_TOL_M,
     FloorScore,
+    WallSegment,
     _dedupe,
+    _dedupe_segments,
     _match_lines,
-    _match_windows,
+    _match_wall_segments,
+    _match_window_segments,
     derive_gt_walls,
+    derive_gt_wall_segments,
     derive_gt_windows,
     match_boundary,
+)
+from .elevation_score import (
+    DEFAULT_ELEVATION_ALONG_TOL_M,
+    DEFAULT_FLOOR_LINE_TOL_M,
+    DEFAULT_OVERLAP_ACCEPT,
+    DEFAULT_OVERLAP_COMPLETE,
+    DEFAULT_HEAD_TOL_M,
+    DEFAULT_SILL_TOL_M,
+    DEFAULT_WIDTH_TOL_M,
+    ElevationScoreResult,
+    score_correction_elevation_windows,
 )
 
 _BOUNDARY_EPS_M = 0.30
@@ -32,6 +50,7 @@ class CorrectionScoreResult:
     scores: dict[str, FloorScore]
     evidence: list[dict] = field(default_factory=list)
     floor_map: dict[str, str] = field(default_factory=dict)
+    elevation: ElevationScoreResult | None = None
 
 
 def _floor_number(name: str) -> int | None:
@@ -102,17 +121,26 @@ def _map_floors(geom: CorrectedGeometry, gt: dict) -> tuple[dict[str, str], list
     return mapping, evidence
 
 
-def _extract_correction_walls(floor, W: float, D: float) -> tuple[list[float], list[float]]:
-    vx: list[float] = []
-    hy: list[float] = []
+def _extract_correction_wall_segments(floor, W: float, D: float) -> tuple[list[WallSegment], list[WallSegment]]:
+    vx: list[WallSegment] = []
+    hy: list[WallSegment] = []
     for cell in floor.cells:
-        for x in cell.x:
+        if len(cell.x) != 2 or len(cell.y) != 2:
+            continue
+        x0, x1 = sorted(float(x) for x in cell.x)
+        y0, y1 = sorted(float(y) for y in cell.y)
+        for x in (x0, x1):
             if _BOUNDARY_EPS_M < float(x) < W - _BOUNDARY_EPS_M:
-                vx.append(round(float(x), 2))
-        for y in cell.y:
+                vx.append(WallSegment("v", round(float(x), 2), round(y0, 2), round(y1, 2)))
+        for y in (y0, y1):
             if _BOUNDARY_EPS_M < float(y) < D - _BOUNDARY_EPS_M:
-                hy.append(round(float(y), 2))
-    return _dedupe(vx), _dedupe(hy)
+                hy.append(WallSegment("h", round(float(y), 2), round(x0, 2), round(x1, 2)))
+    return _dedupe_segments(vx), _dedupe_segments(hy)
+
+
+def _extract_correction_walls(floor, W: float, D: float) -> tuple[list[float], list[float]]:
+    vx, hy = _extract_correction_wall_segments(floor, W, D)
+    return [s.coord for s in vx], [s.coord for s in hy]
 
 
 def _valid_pair(vals) -> tuple[float, float] | None:
@@ -218,6 +246,16 @@ def score_correction_geometry(
     *,
     wall_tol: float = DEFAULT_WALL_TOL_M,
     win_tol: float = DEFAULT_WIN_CENTRE_TOL_M,
+    position_tol: float | None = None,
+    extent_tol: float = DEFAULT_EXTENT_TOL_M,
+    complete_eps: float = DEFAULT_COMPLETE_EPS_M,
+    elevation_along_tol_m: float = DEFAULT_ELEVATION_ALONG_TOL_M,
+    sill_tol_m: float = DEFAULT_SILL_TOL_M,
+    head_tol_m: float = DEFAULT_HEAD_TOL_M,
+    width_tol_m: float = DEFAULT_WIDTH_TOL_M,
+    overlap_accept: float = DEFAULT_OVERLAP_ACCEPT,
+    overlap_complete: float = DEFAULT_OVERLAP_COMPLETE,
+    floor_line_tol_m: float = DEFAULT_FLOOR_LINE_TOL_M,
 ) -> CorrectionScoreResult:
     geom = (
         geom_data
@@ -240,18 +278,37 @@ def score_correction_geometry(
                 {"type": "unmatched_floor", "floor": fl.name, "mapped_gt_floor": gt_name}
             )
             continue
-        gvx, ghy = derive_gt_walls(gt_floor["zones"], W, D)
+        position_tol = wall_tol if position_tol is None else position_tol
+        gvx, ghy = derive_gt_wall_segments(gt_floor["zones"], W, D)
         gwin = derive_gt_windows(gt, gt_name)
-        rvx, rhy = _extract_correction_walls(fl, W, D)
+        rvx, rhy = _extract_correction_wall_segments(fl, W, D)
         rwin = _extract_correction_windows(geom, gt_name, gt, floor_map)
         rbnd = _extract_correction_boundary(geom, fl)
 
         sc = FloorScore(floor=gt_name)
-        sc.vwalls, sc.extra_vwalls = _match_lines(rvx, gvx, wall_tol)
-        sc.hwalls, sc.extra_hwalls = _match_lines(rhy, ghy, wall_tol)
+        sc.vwalls, sc.extra_vwalls = _match_wall_segments(
+            rvx,
+            gvx,
+            position_tol=position_tol,
+            extent_tol=extent_tol,
+            complete_eps=complete_eps,
+        )
+        sc.hwalls, sc.extra_hwalls = _match_wall_segments(
+            rhy,
+            ghy,
+            position_tol=position_tol,
+            extent_tol=extent_tol,
+            complete_eps=complete_eps,
+        )
         sc.boundary = match_boundary(rbnd, W, D, wall_tol)
         for facade in ("N", "S", "E", "W"):
-            ms, extra = _match_windows(rwin[facade], gwin[facade], win_tol)
+            ms, extra = _match_window_segments(
+                facade,
+                rwin[facade],
+                gwin[facade],
+                extent_tol=extent_tol,
+                complete_eps=complete_eps,
+            )
             sc.windows[facade] = ms
             sc.extra_windows[facade] = extra
         scores[fl.name] = sc
@@ -268,4 +325,23 @@ def score_correction_geometry(
                 "reason": "window floor not present in CorrectedGeometry.floors",
             }
         )
-    return CorrectionScoreResult(scores=scores, evidence=evidence, floor_map=floor_map)
+    elevation_evidence: list[dict] = []
+    elevation = score_correction_elevation_windows(
+        geom,
+        gt,
+        floor_map=floor_map,
+        evidence=elevation_evidence,
+        elevation_along_tol_m=elevation_along_tol_m,
+        sill_tol_m=sill_tol_m,
+        head_tol_m=head_tol_m,
+        width_tol_m=width_tol_m,
+        overlap_accept=overlap_accept,
+        overlap_complete=overlap_complete,
+        floor_line_tol_m=floor_line_tol_m,
+    )
+    return CorrectionScoreResult(
+        scores=scores,
+        evidence=evidence,
+        floor_map=floor_map,
+        elevation=elevation,
+    )

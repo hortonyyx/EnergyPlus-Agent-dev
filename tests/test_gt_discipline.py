@@ -60,3 +60,14 @@ def test_executors_do_not_reference_gt():
     executors.extend(sorted(Path("src/agent/correction").rglob("*.py")))
     hits = _scan(executors)
     assert not hits, f"executors / gate① capstone must not reference gt: {hits}"
+
+
+def test_judge_side_gt_readers_remain_confined_to_judge_package():
+    judge_gt_readers = [
+        Path("src/agent/judge/reading_score.py"),
+        Path("src/agent/judge/elevation_score.py"),
+    ]
+    for path in judge_gt_readers:
+        text = path.read_text(encoding="utf-8")
+        assert "load_gt" in text or ".gt import" in text
+        assert path.is_relative_to(Path("src/agent/judge"))

@@ -20,6 +20,20 @@ from _grade_transform import plan_transform  # noqa: E402
 
 
 _SM21 = Path("case_tests/e2e_tests/sm21_anchor")
+_DEFAULT_TOLERANCES = {
+    "wall_tol_m": 0.3,
+    "window_centre_tol_m": 0.4,
+    "elevation_along_tol_m": 0.4,
+    "sill_tol_m": 0.3,
+    "head_tol_m": 0.3,
+    "width_tol_m": 0.4,
+    "position_tol_m": 0.3,
+    "extent_tol_m": 0.3,
+    "complete_eps_m": 0.05,
+    "overlap_accept": 0.75,
+    "overlap_complete": 0.95,
+    "floor_line_tol_m": 0.3,
+}
 
 
 def _pass_report(stage: str) -> CheckReport:
@@ -71,7 +85,12 @@ def test_judge_packet_scores_accepted_reading_attempt_not_mutable_flat(tmp_path,
     assert sidecar["source"] == "attempt_output"
     assert sidecar["scorer_schema"] == rs.SCORER_SCHEMA
     assert sidecar["output_hash"] == rec.output_hash
-    assert sidecar["tolerances"] == {"wall_tol_m": 0.3, "window_centre_tol_m": 0.4}
+    assert sidecar["tolerances"] == _DEFAULT_TOLERANCES
+    assert "elevation" in sidecar
+    assert "floor_lines" in sidecar["elevation"]
+    first_score = next(iter(sidecar["scores"].values()))
+    assert "vwall_records" in first_score and "hwall_records" in first_score
+    assert {c["criterion"] for c in sidecar["score_criteria"]} >= {"elevation_windows_placed"}
     assert packet["grade"] == str(run_dir / "0_reading" / "attempts" / "002" / "grade.png")
     assert Path(packet["grade"]).exists()
     assert packet["score_criteria"] == sidecar["score_criteria"]
@@ -88,7 +107,7 @@ def test_judge_packet_scores_accepted_reading_attempt_not_mutable_flat(tmp_path,
                 "stage": "0_reading",
                 "rubric_id": "J0",
                 "criteria": [],
-                "suggested_status": "pass",
+                "elevation_windows_placed": "pass",
             }
         )
 
@@ -108,7 +127,7 @@ def test_judge_packet_scores_accepted_reading_attempt_not_mutable_flat(tmp_path,
     assert sidecar2["output_hash"] == rec.output_hash
     assert sidecar2["scores"]
 
-    sidecar2["tolerances"] = {"wall_tol_m": 9.9, "window_centre_tol_m": 9.9}
+    sidecar2["tolerances"] = {**_DEFAULT_TOLERANCES, "wall_tol_m": 9.9}
     sidecar_path.write_text(json.dumps(sidecar2), encoding="utf-8")
     packet3 = rs._judge_packet(
         "0_reading",
@@ -119,7 +138,7 @@ def test_judge_packet_scores_accepted_reading_attempt_not_mutable_flat(tmp_path,
         _pass_report("0_reading"),
     )
     sidecar3 = json.loads(Path(packet3["score_vs_gt"]).read_text(encoding="utf-8"))
-    assert sidecar3["tolerances"] == {"wall_tol_m": 0.3, "window_centre_tol_m": 0.4}
+    assert sidecar3["tolerances"] == _DEFAULT_TOLERANCES
 
 
 def test_correction_scorer_maps_f1_f2_to_gt_floors():
@@ -134,10 +153,10 @@ def test_correction_scorer_maps_f1_f2_to_gt_floors():
     assert result.floor_map == {"F1": "Floor 1", "F2": "Floor 2"}
     assert result.evidence == []
     assert set(result.scores) == {"F1", "F2"}
-    assert result.scores["F1"].wall_hits() == (4, 4)
+    assert result.scores["F1"].wall_hits() == (2, 4)
     assert result.scores["F2"].wall_hits() == (5, 5)
-    assert result.scores["F1"].window_hits() == (7, 7)
-    assert result.scores["F2"].window_hits() == (8, 8)
+    assert result.scores["F1"].window_hits() == (3, 3)
+    assert result.scores["F2"].window_hits() == (4, 4)
     assert result.scores["F1"].boundary_hits() == (4, 4)
     assert result.scores["F2"].boundary_hits() == (4, 4)
 
@@ -200,6 +219,44 @@ def test_correction_boundary_falls_back_to_cells_bbox_when_footprint_missing():
     result = score_correction_geometry(output, gt)
 
     assert result.scores["Floor 1"].boundary_hits() == (4, 4)
+
+
+def test_correction_half_length_wall_scores_missing_piece():
+    gt = {
+        "footprint": {"W_m": 10.0, "D_m": 4.0},
+        "floors": [
+            {
+                "name": "Floor 1",
+                "zones": [
+                    {"rect_m": [0, 0, 5, 4]},
+                    {"rect_m": [5, 0, 10, 4]},
+                ],
+            },
+        ],
+        "windows": [],
+    }
+    output = {
+        "footprint_x": [0, 10],
+        "footprint_y": [0, 4],
+        "floors": [
+            {
+                "name": "Floor 1",
+                "z_floor": 0.0,
+                "ceiling_height": 3.0,
+                "cells": [{"id": "A", "role": "office", "x": [0, 5], "y": [0, 2]}],
+            }
+        ],
+        "windows": [],
+    }
+
+    result = score_correction_geometry(output, gt)
+    match = result.scores["Floor 1"].vwalls[0]
+
+    assert match.status == "miss"
+    assert match.read is not None and (match.read.coord, match.read.start, match.read.end) == (5.0, 0.0, 2.0)
+    assert match.truth is not None and (match.truth.coord, match.truth.start, match.truth.end) == (5.0, 0.0, 4.0)
+    assert [p.kind for p in match.pieces] == ["matched", "missing"]
+    assert match.pieces[-1].span == (2.0, 4.0)
 
 
 def test_old_score_sidecar_schema_triggers_recompute_with_boundary(tmp_path):
@@ -275,7 +332,14 @@ def test_judge_packet_scores_correction_attempt_and_records_floor_map(tmp_path, 
     assert sidecar["stage"] == "1_correction"
     assert sidecar["source"] == "attempt_output"
     assert sidecar["scorer_schema"] == rs.SCORER_SCHEMA
-    assert sidecar["tolerances"] == {"wall_tol_m": 0.3, "window_centre_tol_m": 0.4}
+    assert sidecar["tolerances"] == _DEFAULT_TOLERANCES
+    assert sidecar["elevation"]["summary"]["complete_total"] == 14
+    assert sidecar["elevation"]["summary"]["miss_total"] == 1
+    assert sidecar["elevation"]["summary"]["extra_total"] == 1
+    assert "floor_lines" in sidecar["elevation"]
+    assert sidecar["elevation"]["floor_lines"]["North"]["matches"]
+    assert sidecar["elevation"]["boundary"]["North"]["floors"]["Floor 1"]["side_left"]["source_boundary"] == "W"
+    assert sidecar["elevation"]["boundary"]["East"]["floors"]["Floor 1"]["side_right"]["source_boundary"] == "N"
     assert sidecar["floor_map"] == {"F1": "Floor 1", "F2": "Floor 2"}
     assert sidecar["evidence"] == []
     assert Path(packet["grade"]).exists()
@@ -311,7 +375,7 @@ def test_judge_side_renders_every_attempt_and_promotes_accepted_grade(tmp_path):
         sidecar = json.loads((adir / "score_vs_gt.json").read_text(encoding="utf-8"))
         assert sidecar["attempt"] == attempt
         assert sidecar["scorer_schema"] == rs.SCORER_SCHEMA
-        assert sidecar["tolerances"] == {"wall_tol_m": 0.3, "window_centre_tol_m": 0.4}
+        assert sidecar["tolerances"] == _DEFAULT_TOLERANCES
 
     accepted = run_dir / "0_reading" / "attempts" / "002" / "grade.png"
     assert (run_dir / "0_reading" / "grade.png").read_bytes() == accepted.read_bytes()
@@ -339,16 +403,43 @@ def test_grade_uses_shared_metric_transform_for_gt_and_sidecar_pixels():
         "stage": "1_correction",
         "attempt": 1,
         "source": "attempt_output",
-        "tolerances": {"wall_tol_m": 0.3, "window_centre_tol_m": 0.4},
+        "scorer_schema": "7",
+        "tolerances": {
+            "wall_tol_m": 0.3,
+            "window_centre_tol_m": 0.4,
+            "position_tol_m": 0.3,
+            "extent_tol_m": 0.3,
+            "complete_eps_m": 0.05,
+            "overlap_accept": 0.75,
+            "overlap_complete": 0.95,
+            "floor_line_tol_m": 0.3,
+        },
         "scores": {
             "Floor 1": {
                 "floor": "Floor 1",
                 "vwalls": [{"truth": 5.0, "read": 5.0, "delta": 0.0}],
                 "hwalls": [],
-                "extra_vwalls": [],
-                "extra_hwalls": [],
+                "vwall_records": [
+                    {
+                        "status": "complete",
+                        "orientation": "v",
+                        "truth": 5.0,
+                        "read": 5.0,
+                        "delta": 0.0,
+                        "lateral_drift": False,
+                        "extent_drift": False,
+                        "extent_start_drift": False,
+                        "extent_end_drift": False,
+                        "product": [5.0, 0.0, 4.0],
+                        "gt": [5.0, 0.0, 4.0],
+                        "product_intervals": [[5.0, 0.0, 4.0]],
+                        "gt_intervals": [[5.0, 0.0, 4.0]],
+                        "pieces": [],
+                    }
+                ],
+                "hwall_records": [],
                 "windows": {"N": [], "S": [], "E": [], "W": []},
-                "extra_windows": {"N": [], "S": [], "E": [], "W": []},
+                "extra_window_records": {"N": [], "S": [], "E": [], "W": []},
             }
         },
     }

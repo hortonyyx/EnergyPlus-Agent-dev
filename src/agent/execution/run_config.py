@@ -24,17 +24,59 @@ DEFAULT_STAGES = (
 RUN_CONFIG_NAME = "run_config.yaml"
 DEFAULT_WALL_TOL_M = 0.30
 DEFAULT_WINDOW_CENTRE_TOL_M = 0.40
+DEFAULT_ELEVATION_ALONG_TOL_M = 0.40
+DEFAULT_SILL_TOL_M = 0.30
+DEFAULT_HEAD_TOL_M = 0.30
+DEFAULT_WIDTH_TOL_M = 0.40
+DEFAULT_POSITION_TOL_M = DEFAULT_WALL_TOL_M
+DEFAULT_EXTENT_TOL_M = 0.30
+DEFAULT_COMPLETE_EPS_M = 0.05
+DEFAULT_OVERLAP_ACCEPT = 0.75
+DEFAULT_OVERLAP_COMPLETE = 0.95
+DEFAULT_FLOOR_LINE_TOL_M = 0.30
 
 
 @dataclass(frozen=True)
 class GradeConfig:
     wall_tol_m: float = DEFAULT_WALL_TOL_M
     window_centre_tol_m: float = DEFAULT_WINDOW_CENTRE_TOL_M
+    elevation_along_tol_m: float = DEFAULT_ELEVATION_ALONG_TOL_M
+    sill_tol_m: float = DEFAULT_SILL_TOL_M
+    head_tol_m: float = DEFAULT_HEAD_TOL_M
+    width_tol_m: float = DEFAULT_WIDTH_TOL_M
+    position_tol_m: float = DEFAULT_POSITION_TOL_M
+    extent_tol_m: float = DEFAULT_EXTENT_TOL_M
+    complete_eps_m: float = DEFAULT_COMPLETE_EPS_M
+    overlap_accept: float = DEFAULT_OVERLAP_ACCEPT
+    overlap_complete: float = DEFAULT_OVERLAP_COMPLETE
+    floor_line_tol_m: float = DEFAULT_FLOOR_LINE_TOL_M
+
+    def __post_init__(self) -> None:
+        vals = self.as_tolerances()
+        for name, value in vals.items():
+            if value < 0:
+                raise ValueError(f"{name} must be nonnegative")
+        if self.complete_eps_m > self.extent_tol_m:
+            raise ValueError("complete_eps_m must be <= extent_tol_m")
+        if self.overlap_accept > self.overlap_complete:
+            raise ValueError("overlap_accept must be <= overlap_complete")
+        if self.overlap_complete > 1:
+            raise ValueError("overlap_complete must be <= 1")
 
     def as_tolerances(self) -> dict[str, float]:
         return {
             "wall_tol_m": float(self.wall_tol_m),
             "window_centre_tol_m": float(self.window_centre_tol_m),
+            "elevation_along_tol_m": float(self.elevation_along_tol_m),
+            "sill_tol_m": float(self.sill_tol_m),
+            "head_tol_m": float(self.head_tol_m),
+            "width_tol_m": float(self.width_tol_m),
+            "position_tol_m": float(self.position_tol_m),
+            "extent_tol_m": float(self.extent_tol_m),
+            "complete_eps_m": float(self.complete_eps_m),
+            "overlap_accept": float(self.overlap_accept),
+            "overlap_complete": float(self.overlap_complete),
+            "floor_line_tol_m": float(self.floor_line_tol_m),
         }
 
 
@@ -161,13 +203,25 @@ def _parse_grade(grade: object, key: str, path: Path) -> GradeConfig:
     sec = grade.get(key)
     if not isinstance(sec, dict):
         return GradeConfig()
-    try:
-        return GradeConfig(
-            wall_tol_m=float(sec.get("wall_tol_m", DEFAULT_WALL_TOL_M)),
-            window_centre_tol_m=float(
-                sec.get("window_centre_tol_m", DEFAULT_WINDOW_CENTRE_TOL_M)
-            ),
-        )
-    except (TypeError, ValueError):
-        warnings.warn(f"{path} grade.{key} has invalid tolerances; using defaults", RuntimeWarning)
-        return GradeConfig()
+    return GradeConfig(
+        wall_tol_m=float(sec.get("wall_tol_m", DEFAULT_WALL_TOL_M)),
+        window_centre_tol_m=float(
+            sec.get("window_centre_tol_m", DEFAULT_WINDOW_CENTRE_TOL_M)
+        ),
+        elevation_along_tol_m=float(
+            sec.get("elevation_along_tol_m", DEFAULT_ELEVATION_ALONG_TOL_M)
+        ),
+        sill_tol_m=float(sec.get("sill_tol_m", DEFAULT_SILL_TOL_M)),
+        head_tol_m=float(sec.get("head_tol_m", DEFAULT_HEAD_TOL_M)),
+        width_tol_m=float(sec.get("width_tol_m", DEFAULT_WIDTH_TOL_M)),
+        position_tol_m=float(
+            sec.get("position_tol_m", sec.get("wall_tol_m", DEFAULT_POSITION_TOL_M))
+        ),
+        extent_tol_m=float(sec.get("extent_tol_m", DEFAULT_EXTENT_TOL_M)),
+        complete_eps_m=float(sec.get("complete_eps_m", DEFAULT_COMPLETE_EPS_M)),
+        overlap_accept=float(
+            sec.get("overlap_accept", sec.get("elevation_overlap_min", DEFAULT_OVERLAP_ACCEPT))
+        ),
+        overlap_complete=float(sec.get("overlap_complete", DEFAULT_OVERLAP_COMPLETE)),
+        floor_line_tol_m=float(sec.get("floor_line_tol_m", DEFAULT_FLOOR_LINE_TOL_M)),
+    )

@@ -71,7 +71,7 @@ from src.validator.checks.schema import CheckLayer, CheckReport, CheckStatus  # 
 
 _STAGES = ["0_reading", "1_correction", "2_modelling", "3_split_pairing",
            "4_mep", "5_intakeoutput"]
-SCORER_SCHEMA = "2"
+SCORER_SCHEMA = "7"
 FLOW_EXIT_OK = 0
 FLOW_EXIT_CHECKPOINT = 10
 FLOW_EXIT_STOP = 20
@@ -405,9 +405,218 @@ def _line_match_dict(m) -> dict:
     return {"truth": m.truth, "read": m.read, "delta": m.delta}
 
 
+def _piece_dict(piece) -> dict:
+    return {
+        "kind": piece.kind,
+        "span": [round(float(piece.span[0]), 3), round(float(piece.span[1]), 3)],
+        "within_tol": bool(piece.within_tol),
+    }
+
+
+def _wall_segment_dict(seg) -> list[float] | None:
+    if seg is None:
+        return None
+    return [
+        round(float(seg.coord), 3),
+        round(float(seg.start), 3),
+        round(float(seg.end), 3),
+    ]
+
+
+def _wall_match_dict(m) -> dict:
+    truth_coord = m.truth.coord if m.truth is not None else None
+    read_coord = m.read.coord if m.read is not None else None
+    return {
+        "status": m.status,
+        "orientation": m.orientation,
+        "truth": round(float(truth_coord), 3) if truth_coord is not None else None,
+        "read": round(float(read_coord), 3) if read_coord is not None else None,
+        "delta": m.delta,
+        "lateral_drift": bool(getattr(m, "lateral_drift", False)),
+        "extent_drift": bool(getattr(m, "extent_drift", False)),
+        "extent_start_drift": bool(getattr(m, "extent_start_drift", False)),
+        "extent_end_drift": bool(getattr(m, "extent_end_drift", False)),
+        "product": _wall_segment_dict(m.read),
+        "gt": _wall_segment_dict(m.truth),
+        "product_intervals": [_wall_segment_dict(seg) for seg in getattr(m, "read_intervals", [])],
+        "gt_intervals": [_wall_segment_dict(seg) for seg in getattr(m, "truth_intervals", [])],
+        "pieces": [_piece_dict(p) for p in m.pieces],
+    }
+
+
 def _win_match_dict(m) -> dict:
-    return {"truth": list(m.truth), "read": list(m.read) if m.read else None,
-            "centre_delta": m.centre_delta}
+    return {
+        "status": m.status,
+        "facade": m.facade,
+        "truth": list(m.truth) if m.truth else None,
+        "read": list(m.read) if m.read else None,
+        "product": list(m.read) if m.read else None,
+        "gt": list(m.truth) if m.truth else None,
+        "product_intervals": [list(span) for span in getattr(m, "read_intervals", [])],
+        "gt_intervals": [list(span) for span in getattr(m, "truth_intervals", [])],
+        "centre_delta": m.centre_delta,
+        "pieces": [_piece_dict(p) for p in m.pieces],
+    }
+
+
+def _elevation_box_dict(box) -> dict | None:
+    if box is None:
+        return None
+    out = {
+        "span": [round(float(box.span[0]), 3), round(float(box.span[1]), 3)],
+        "z": [round(float(box.z[0]), 3), round(float(box.z[1]), 3)],
+        "center": round(float(box.center), 3),
+        "width": round(float(box.width), 3),
+    }
+    if getattr(box, "source_id", None) is not None:
+        out["source_id"] = box.source_id
+    if getattr(box, "original_span", None) is not None:
+        out["source_span"] = [
+            round(float(box.original_span[0]), 3),
+            round(float(box.original_span[1]), 3),
+        ]
+    return out
+
+
+def _elevation_truth_dict(truth) -> dict | None:
+    if truth is None:
+        return None
+    return {
+        "id": truth.id,
+        "span": [round(float(truth.span[0]), 3), round(float(truth.span[1]), 3)],
+        "z": [round(float(truth.z[0]), 3), round(float(truth.z[1]), 3)],
+        "center": round(float(truth.center), 3),
+        "width": round(float(truth.width), 3),
+    }
+
+
+def _elevation_match_dict(match) -> dict:
+    return {
+        "status": match.status,
+        "facade": match.facade,
+        "floor": match.floor,
+        "orientation": match.orientation,
+        "source_id": match.source_id,
+        "truth": _elevation_truth_dict(match.truth),
+        "read": _elevation_box_dict(match.read),
+        "product_box": _elevation_box_dict(match.read),
+        "gt_box": _elevation_truth_dict(match.truth),
+        "deltas": match.deltas,
+        "overlap_ratio": match.overlap_ratio,
+        "overlap_fraction": match.overlap_ratio,
+        "gt_coverage": getattr(match, "gt_coverage", None),
+        "product_coverage": getattr(match, "product_coverage", None),
+    }
+
+
+def _floor_line_match_dict(line) -> dict:
+    return {
+        "facade": line.facade,
+        "gt_z": round(float(line.gt_z), 3),
+        "product_z": round(float(line.product_z), 3) if line.product_z is not None else None,
+        "status": line.status,
+        "delta": round(float(line.delta), 3) if line.delta is not None else None,
+    }
+
+
+def _floor_line_extra_dict(line) -> dict:
+    return {
+        "facade": line.facade,
+        "product_z": round(float(line.product_z), 3),
+        "status": line.status,
+    }
+
+
+def _floor_line_score_dict(score) -> dict:
+    return {
+        "facade": score.facade,
+        "gt_floor_lines": [round(float(z), 3) for z in score.gt_floor_lines],
+        "product_floor_lines": [round(float(z), 3) for z in score.product_floor_lines],
+        "matches": [_floor_line_match_dict(line) for line in score.matches],
+        "extras": [_floor_line_extra_dict(line) for line in score.extras],
+        "no_data": bool(score.no_data),
+        "no_data_reason": score.no_data_reason,
+    }
+
+
+def _boundary_match_dict(match, source_side: str) -> dict:
+    if match is None:
+        return {"source_boundary": source_side, "status": "no_data", "truth": None, "product": None, "delta": None}
+    return {
+        "source_boundary": source_side,
+        "status": "complete" if match.read is not None else "miss",
+        "truth": match.truth,
+        "product": match.read,
+        "delta": match.delta,
+    }
+
+
+def _elevation_boundary_dict(scores: dict) -> dict:
+    mapping = {
+        "North": ("W", "E"),
+        "South": ("W", "E"),
+        "East": ("S", "N"),
+        "West": ("S", "N"),
+    }
+    scores_by_floor = {score.floor: score for score in scores.values()}
+    out: dict[str, dict] = {}
+    for facade, (left_side, right_side) in mapping.items():
+        floors = {}
+        for floor_name, score in scores_by_floor.items():
+            boundary = score.boundary or {}
+            floors[floor_name] = {
+                "side_left": _boundary_match_dict(boundary.get(left_side), left_side),
+                "side_right": _boundary_match_dict(boundary.get(right_side), right_side),
+            }
+            if score.boundary is None:
+                floors[floor_name]["side_left"]["status"] = "no_data"
+                floors[floor_name]["side_right"]["status"] = "no_data"
+        out[facade] = {"floors": floors}
+    return out
+
+
+def _elevation_score_dict(result, gt: dict, scores: dict | None = None) -> dict:
+    facades = {}
+    for facade, by_floor in result.scores.items():
+        floors = {}
+        for floor, score in by_floor.items():
+            placed, gt_total = score.placed_hits()
+            matched, _ = score.matched_hits()
+            complete = sum(1 for m in score.matches if m.status == "complete")
+            within = sum(1 for m in score.matches if m.status == "within_tol")
+            floors[floor] = {
+                "facade": facade,
+                "floor": floor,
+                "orientation": score.orientation,
+                "no_data": score.no_data,
+                "gt_count": score.gt_count,
+                "read_count": score.read_count,
+                "matched_total": matched,
+                "placed_hit_total": placed,
+                "complete_total": complete,
+                "within_tol_total": within,
+                "matches": [_elevation_match_dict(m) for m in score.matches],
+                "extras": [_elevation_match_dict(m) for m in score.extras],
+            }
+        facades[facade] = {
+            "orientation": result.orientation_by_facade.get(facade, "aligned"),
+            "span_limit_m": (
+                float(gt["footprint"]["W_m"])
+                if facade in {"North", "South"}
+                else float(gt["footprint"]["D_m"])
+            ),
+            "floors": floors,
+        }
+    return {
+        "summary": result.summary(),
+        "facades": facades,
+        "floor_lines": {
+            facade: _floor_line_score_dict(score)
+            for facade, score in getattr(result, "floor_lines", {}).items()
+        },
+        "boundary": _elevation_boundary_dict(scores or {}),
+        "evidence": result.evidence,
+    }
 
 
 def _floor_score_dict(score) -> dict:
@@ -420,17 +629,23 @@ def _floor_score_dict(score) -> dict:
         "window_hits": winh,
         "window_total": wint,
         "max_wall_offset_m": score.max_wall_offset(),
-        "vwalls": [_line_match_dict(m) for m in score.vwalls],
-        "hwalls": [_line_match_dict(m) for m in score.hwalls],
-        "extra_vwalls": score.extra_vwalls,
-        "extra_hwalls": score.extra_hwalls,
+        "vwalls": [_wall_match_dict(m) for m in score.vwalls],
+        "hwalls": [_wall_match_dict(m) for m in score.hwalls],
+        "extra_vwalls": [m.read.coord for m in score.extra_vwalls if m.read is not None],
+        "extra_hwalls": [m.read.coord for m in score.extra_hwalls if m.read is not None],
+        "vwall_records": [_wall_match_dict(m) for m in score.vwalls + score.extra_vwalls],
+        "hwall_records": [_wall_match_dict(m) for m in score.hwalls + score.extra_hwalls],
         "windows": {
             facade: [_win_match_dict(m) for m in matches]
             for facade, matches in score.windows.items()
         },
         "extra_windows": {
-            facade: [list(span) for span in spans]
-            for facade, spans in score.extra_windows.items()
+            facade: [list(m.read) for m in matches if m.read is not None]
+            for facade, matches in score.extra_windows.items()
+        },
+        "extra_window_records": {
+            facade: [_win_match_dict(m) for m in matches]
+            for facade, matches in score.extra_windows.items()
         },
     }
     if score.boundary is not None:
@@ -441,7 +656,16 @@ def _floor_score_dict(score) -> dict:
     return out
 
 
-def _score_reading_attempt_output(output: dict, gt: dict, *, wall_tol: float, win_tol: float):
+def _score_reading_attempt_output(
+    output: dict,
+    gt: dict,
+    *,
+    wall_tol: float,
+    win_tol: float,
+    position_tol: float,
+    extent_tol: float,
+    complete_eps: float,
+):
     from src.agent.judge.reading_score import floor_name_for_image, score_floor
 
     scores = {}
@@ -456,7 +680,16 @@ def _score_reading_attempt_output(output: dict, gt: dict, *, wall_tol: float, wi
                  "reason": "could not map view stem to gt floor"}
             )
             continue
-        scores[stem] = score_floor(view, gt, floor_name, wall_tol=wall_tol, win_tol=win_tol)
+        scores[stem] = score_floor(
+            view,
+            gt,
+            floor_name,
+            wall_tol=wall_tol,
+            win_tol=win_tol,
+            position_tol=position_tol,
+            extent_tol=extent_tol,
+            complete_eps=complete_eps,
+        )
     return scores, evidence, {}
 
 
@@ -468,27 +701,70 @@ def _score_attempt_output(
     grade: GradeConfig,
 ):
     from src.agent.judge.correction_score import score_correction_geometry
+    from src.agent.judge.elevation_score import score_reading_elevation_views
     from src.agent.judge.score_policy import reading_score_criteria
 
     wall_tol = grade.wall_tol_m
     win_tol = grade.window_centre_tol_m
+    elevation = None
     if stage == "0_reading":
         scores, evidence, floor_map = _score_reading_attempt_output(
-            output, gt, wall_tol=wall_tol, win_tol=win_tol
+            output,
+            gt,
+            wall_tol=wall_tol,
+            win_tol=win_tol,
+            position_tol=grade.position_tol_m,
+            extent_tol=grade.extent_tol_m,
+            complete_eps=grade.complete_eps_m,
+        )
+        elevation = score_reading_elevation_views(
+            output,
+            gt,
+            elevation_along_tol_m=grade.elevation_along_tol_m,
+            sill_tol_m=grade.sill_tol_m,
+            head_tol_m=grade.head_tol_m,
+            width_tol_m=grade.width_tol_m,
+            overlap_accept=grade.overlap_accept,
+            overlap_complete=grade.overlap_complete,
+            floor_line_tol_m=grade.floor_line_tol_m,
         )
     elif stage == "1_correction":
-        result = score_correction_geometry(output, gt, wall_tol=wall_tol, win_tol=win_tol)
+        result = score_correction_geometry(
+            output,
+            gt,
+            wall_tol=wall_tol,
+            win_tol=win_tol,
+            position_tol=grade.position_tol_m,
+            extent_tol=grade.extent_tol_m,
+            complete_eps=grade.complete_eps_m,
+            elevation_along_tol_m=grade.elevation_along_tol_m,
+            sill_tol_m=grade.sill_tol_m,
+            head_tol_m=grade.head_tol_m,
+            width_tol_m=grade.width_tol_m,
+            overlap_accept=grade.overlap_accept,
+            overlap_complete=grade.overlap_complete,
+            floor_line_tol_m=grade.floor_line_tol_m,
+        )
         scores, evidence, floor_map = result.scores, result.evidence, result.floor_map
+        elevation = result.elevation
     else:
         return None
     return {
         "scores": scores,
+        "elevation": elevation,
         "evidence": evidence,
         "floor_map": floor_map,
         "score_criteria": reading_score_criteria(
             scores,
             wall_tol_m=wall_tol,
             window_centre_tol_m=win_tol,
+            elevation=elevation,
+            elevation_along_tol_m=grade.elevation_along_tol_m,
+            sill_tol_m=grade.sill_tol_m,
+            head_tol_m=grade.head_tol_m,
+            width_tol_m=grade.width_tol_m,
+            overlap_accept=grade.overlap_accept,
+            overlap_complete=grade.overlap_complete,
             extra_evidence=evidence,
         ),
     }
@@ -606,6 +882,9 @@ def _grade_attempt_artifacts(
                 key: _floor_score_dict(score)
                 for key, score in scored["scores"].items()
             },
+            "elevation": _elevation_score_dict(scored["elevation"], gt, scored["scores"])
+            if scored.get("elevation") is not None
+            else None,
             "floor_map": scored["floor_map"],
             "evidence": scored["evidence"],
             "score_criteria": scored["score_criteria"],

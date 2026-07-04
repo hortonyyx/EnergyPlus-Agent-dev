@@ -14,6 +14,8 @@
 0–5 管线 + 逐段校验架构（gate① 确定性 + gate② judge）已落地，sm20/sm21 两份 golden baseline 在册。
 **当前在把"逐段 judge-in-the-loop 编排"真跑起来、出第一份带 judge 的规范 baseline**，并扫尾两步法/评测的残留。
 
+> **[2026-07-04] 判卷可视化统一模型重构已落地（468 绿·SCORER_SCHEMA→7·详 CLAUDE.md §2 + [[standardize-test-flow-and-judge-arch]]）**：立面判卷 + 平面判卷改造成一套 diff 模型（gt 灰底 / 产品自画不借 gt / 绿橙红三档 / 平面 piece-level interval-set 双轴 / 立面窗两侧覆盖率 / 屋顶地面横线 / 半透明容差带 / 自适应虚线）。方案审 10 findings 全采纳。权威 spec `logs/review/request/2026-07-04_grade_visual_model_spec.md`。**下一步 = Sonnet 4.6 干净流程对照**（立面判卷是其前置、现就绪）→ 之后 **Fable5 项目大审**（用户定：流程 / 0-5 脚手架迁移 / reading 提升 / 建筑复杂度各阶段脚手架）。
+
 > **🔴 [P0 最高优先级 · 2026-06-25 用户定] reading 能力提升**——第一阶段目标 = **Sonnet 干净读出 sm21**。
 > 2026-06-24/25 系列受控实验已把方向收敛（详 [N1e](#n1e-p0-sonnet-怎么顶--reading-退化2026-06-24下次起点)）：
 > ① prompt 强度非杠杆 ② schema 非杠杆 ③ 杂物只是次要帮凶 ④ **完整老脚手架让 Sonnet r1 达 sm21_pre 级**（墙9/9·0.0m·过度分割+1）

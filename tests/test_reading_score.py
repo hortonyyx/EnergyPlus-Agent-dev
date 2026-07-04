@@ -59,8 +59,8 @@ def test_perfect_reading_all_hit():
         _wall("window", [15, 3.4], [15, 4.6]),
     ]}
     sc = rs.score_floor(reading, _GT, "Floor 1")
-    assert sc.wall_hits() == (4, 4)        # 2 vert + 2 horiz
-    assert sc.window_hits() == (3, 3)
+    assert sc.wall_hits() == (4, 4)        # 2 vertical coordinate clusters + 2 horizontal clusters
+    assert sc.window_hits() == (2, 2)      # one interval-set record per occupied facade lane
     assert sc.max_wall_offset() == 0.0
     assert not sc.extra_vwalls and not sc.extra_hwalls
     assert sc.boundary_hits() == (4, 4)
@@ -119,8 +119,13 @@ def test_rect_geometry_scores_like_equivalent_line():
         {"pen": "window", "geometry": {"kind": "rect", "x_range_m": [14.9, 15.0], "y_range_m": [3.4, 4.6]}},
     ]}
     sc = rs.score_floor(rect_reading, _GT, "Floor 1")
-    assert sc.wall_hits() == (4, 4)
-    assert sc.window_hits() == (3, 3)
+    assert sc.wall_hits() == (2, 4)
+    assert sc.window_hits() == (2, 2)
+    assert sc.vwalls[1].pieces == [
+        rs.LinearPiece("matched", (0, 3.0), True),
+        rs.LinearPiece("extra", (3.0, 5.0), False),
+        rs.LinearPiece("matched", (5.0, 8), True),
+    ]
 
 
 def test_offset_within_tol_counts_as_hit_with_delta():
@@ -129,7 +134,7 @@ def test_offset_within_tol_counts_as_hit_with_delta():
         _wall("wall", [0, 2.94], [15, 2.94]), _wall("wall", [0, 4.82], [15, 4.82]),
     ]}
     sc = rs.score_floor(reading, _GT, "Floor 1")
-    assert sc.wall_hits() == (4, 4)
+    assert sc.wall_hits() == (2, 4)
     assert sc.max_wall_offset() == 0.24  # the 10→9.76 line
 
 
@@ -140,8 +145,124 @@ def test_displaced_wall_beyond_tol_is_miss_plus_extra():
         _wall("wall", [0, 3], [15, 3]), _wall("wall", [0, 5], [15, 5]),
     ]}
     sc = rs.score_floor(reading, _GT, "Floor 1")
-    assert sc.wall_hits() == (2, 4)              # verticals missed, horizontals hit
-    assert sorted(sc.extra_vwalls) == [4.64, 9.64]
+    assert sc.wall_hits() == (2, 4)              # vertical clusters missed, horizontals hit
+    assert sorted(m.read.coord for m in sc.extra_vwalls if m.read) == [4.64, 9.64]
+
+
+def test_half_length_wall_scores_missing_piece_not_clean_hit():
+    reading = {"strokes": [
+        _wall("wall", [5, 0], [5, 1.5]),
+    ]}
+
+    sc = rs.score_floor(reading, _GT, "Floor 1")
+    match = sc.vwalls[0]
+
+    assert match.status == "miss"
+    assert match.read is not None and (match.read.coord, match.read.start, match.read.end) == (5.0, 0, 1.5)
+    assert match.truth is not None and (match.truth.coord, match.truth.start, match.truth.end) == (5.0, 0.0, 3.0)
+    assert [p.kind for p in match.pieces] == ["matched", "missing", "missing"]
+    assert match.pieces[1].span == (1.5, 3.0)
+    assert match.pieces[1].within_tol is False
+    assert match.pieces[-1].span == (5.0, 8.0)
+
+
+def test_double_width_plan_window_scores_extra_piece():
+    reading = {"strokes": [
+        _wall("window", [1.24, 8], [6.04, 8]),
+    ]}
+
+    sc = rs.score_floor(reading, _GT, "Floor 1")
+    match = sc.windows["N"][0]
+
+    assert match.status == "miss"
+    assert match.read == (1.24, 6.04)
+    assert match.truth == (1.24, 3.64)
+    assert [p.kind for p in match.pieces] == ["matched", "extra", "missing"]
+    assert match.pieces[1].span == (3.64, 6.04)
+    assert match.pieces[1].within_tol is False
+    assert match.pieces[-1].span == (6.3, 8.7)
+
+
+def test_product_wall_crossing_gt_gap_is_not_missing_next_segment():
+    reading = {"strokes": [_wall("wall", [5, 0], [5, 8])]}
+
+    sc = rs.score_floor(reading, _GT, "Floor 1")
+    match = sc.vwalls[0]
+
+    assert match.status == "miss"
+    assert [(p.kind, p.span) for p in match.pieces] == [
+        ("matched", (0, 3.0)),
+        ("extra", (3.0, 5.0)),
+        ("matched", (5.0, 8)),
+    ]
+    assert "missing" not in [p.kind for p in match.pieces]
+
+
+def test_two_product_wall_strokes_cover_one_gt_segment_as_complete():
+    gt = {
+        "footprint": {"W_m": 10.0, "D_m": 4.0},
+        "floors": [
+            {
+                "name": "Floor 1",
+                "zones": [{"rect_m": [0, 0, 5, 4]}, {"rect_m": [5, 0, 10, 4]}],
+            }
+        ],
+        "windows": [],
+    }
+    reading = {"strokes": [_wall("wall", [5, 0], [5, 2]), _wall("wall", [5, 2], [5, 4])]}
+
+    sc = rs.score_floor(reading, gt, "Floor 1")
+    match = sc.vwalls[0]
+
+    assert match.status == "complete"
+    assert match.pieces == []
+    assert match.read_intervals == [
+        rs.WallSegment("v", 5.0, 0, 2),
+        rs.WallSegment("v", 5.0, 2, 4),
+    ]
+
+
+def test_near_exact_wall_complete_suppresses_tiny_pieces():
+    gt = {
+        "footprint": {"W_m": 10.0, "D_m": 4.0},
+        "floors": [
+            {
+                "name": "Floor 1",
+                "zones": [{"rect_m": [0, 0, 5, 4]}, {"rect_m": [5, 0, 10, 4]}],
+            }
+        ],
+        "windows": [],
+    }
+    reading = {"strokes": [_wall("wall", [5, 0.03], [5, 4.04])]}
+
+    sc = rs.score_floor(reading, gt, "Floor 1")
+    match = sc.vwalls[0]
+
+    assert match.status == "complete"
+    assert match.pieces == []
+
+
+def test_exact_length_lateral_offset_wall_is_within_tol_not_complete():
+    gt = {
+        "footprint": {"W_m": 10.0, "D_m": 4.0},
+        "floors": [
+            {
+                "name": "Floor 1",
+                "zones": [{"rect_m": [0, 0, 5, 4]}, {"rect_m": [5, 0, 10, 4]}],
+            }
+        ],
+        "windows": [],
+    }
+    reading = {"strokes": [_wall("wall", [5.2, 0.0], [5.2, 4.0])]}
+
+    sc = rs.score_floor(reading, gt, "Floor 1")
+    match = sc.vwalls[0]
+
+    assert match.status == "within_tol"
+    assert match.delta == 0.2
+    assert match.lateral_drift is True
+    assert match.extent_drift is False
+    assert match.pieces == []
 
 
 def test_floor_name_mapping():
@@ -167,6 +288,6 @@ def test_sm21_phase1_reading_score_regression_floor():
         window_total += nt
 
     assert wall_hits == wall_total == 9
-    assert window_total == 15
-    assert window_hits >= 14
+    assert window_total == 7
+    assert window_hits >= 6
     assert gt is not None and gt["case"] == "sm21_anchor"

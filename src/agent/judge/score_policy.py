@@ -14,6 +14,15 @@ from .reading_score import (
     DEFAULT_WIN_CENTRE_TOL_M,
     FloorScore,
 )
+from .elevation_score import (
+    DEFAULT_ELEVATION_ALONG_TOL_M,
+    DEFAULT_OVERLAP_ACCEPT,
+    DEFAULT_OVERLAP_COMPLETE,
+    DEFAULT_HEAD_TOL_M,
+    DEFAULT_SILL_TOL_M,
+    DEFAULT_WIDTH_TOL_M,
+    ElevationScoreResult,
+)
 
 EXTRA_MINOR_MAX = 2
 WINDOW_MINOR_RATIO = 0.80
@@ -24,6 +33,13 @@ def reading_score_criteria(
     *,
     wall_tol_m: float = DEFAULT_WALL_TOL_M,
     window_centre_tol_m: float = DEFAULT_WIN_CENTRE_TOL_M,
+    elevation=None,
+    elevation_along_tol_m: float = DEFAULT_ELEVATION_ALONG_TOL_M,
+    sill_tol_m: float = DEFAULT_SILL_TOL_M,
+    head_tol_m: float = DEFAULT_HEAD_TOL_M,
+    width_tol_m: float = DEFAULT_WIDTH_TOL_M,
+    overlap_accept: float = DEFAULT_OVERLAP_ACCEPT,
+    overlap_complete: float = DEFAULT_OVERLAP_COMPLETE,
     extra_evidence: list[dict] | None = None,
 ) -> list[dict]:
     """Return suggested criterion evidence derived from FloorScore objects."""
@@ -40,6 +56,11 @@ def reading_score_criteria(
         bh, bt = score.boundary_hits()
         ew = len(score.extra_vwalls) + len(score.extra_hwalls)
         exwin = sum(len(v) for v in score.extra_windows.values())
+        wall_status_counts = _status_counts(score.vwalls + score.hwalls + score.extra_vwalls + score.extra_hwalls)
+        window_status_counts = _status_counts(
+            [m for matches in score.windows.values() for m in matches]
+            + [m for matches in score.extra_windows.values() for m in matches]
+        )
         total_wall_hits += wh
         total_walls += wt
         total_windows_hit += winh
@@ -64,6 +85,8 @@ def reading_score_criteria(
                 "window_total": wint,
                 "extra_walls": ew,
                 "extra_windows": exwin,
+                "wall_status_counts": wall_status_counts,
+                "window_status_counts": window_status_counts,
                 "max_wall_offset_m": score.max_wall_offset(),
             }
         )
@@ -141,6 +164,18 @@ def reading_score_criteria(
             "floors": floors,
         },
     ]
+    if elevation is not None:
+        criteria.append(
+            elevation_windows_placed_criterion(
+                elevation,
+                elevation_along_tol_m=elevation_along_tol_m,
+                sill_tol_m=sill_tol_m,
+                head_tol_m=head_tol_m,
+                width_tol_m=width_tol_m,
+                overlap_accept=overlap_accept,
+                overlap_complete=overlap_complete,
+            )
+        )
     if extra_evidence:
         criteria.append(
             {
@@ -151,3 +186,110 @@ def reading_score_criteria(
             }
         )
     return criteria
+
+
+def elevation_windows_placed_criterion(
+    elevation,
+    *,
+    elevation_along_tol_m: float = DEFAULT_ELEVATION_ALONG_TOL_M,
+    sill_tol_m: float = DEFAULT_SILL_TOL_M,
+    head_tol_m: float = DEFAULT_HEAD_TOL_M,
+    width_tol_m: float = DEFAULT_WIDTH_TOL_M,
+    overlap_accept: float = DEFAULT_OVERLAP_ACCEPT,
+    overlap_complete: float = DEFAULT_OVERLAP_COMPLETE,
+) -> dict:
+    """Advisory status from elevation section only.
+
+    Misses, z-drifts, extras, and no-data facade/floor cells all count against
+    accurate elevation placement.  This remains score evidence only and is never
+    a ``StageVerdict`` field.
+    """
+
+    if isinstance(elevation, ElevationScoreResult):
+        summary = elevation.summary()
+        floors = []
+        for facade, by_floor in elevation.scores.items():
+            for floor, score in by_floor.items():
+                placed, gt_total = score.placed_hits()
+                matched, _ = score.matched_hits()
+                complete = sum(1 for m in score.matches if m.status == "complete")
+                within = sum(1 for m in score.matches if m.status == "within_tol")
+                floors.append(
+                    {
+                        "facade": facade,
+                        "floor": floor,
+                        "orientation": score.orientation,
+                        "no_data": score.no_data,
+                        "gt_count": score.gt_count,
+                        "read_count": score.read_count,
+                        "matched_total": matched,
+                        "placed_hit_total": placed,
+                        "complete_total": complete,
+                        "within_tol_total": within,
+                        "miss_total": sum(1 for m in score.matches if m.status == "miss"),
+                        "extra_total": len(score.extras),
+                    }
+                )
+    else:
+        summary = dict(elevation.get("summary", {})) if isinstance(elevation, Mapping) else {}
+        floors = []
+        if isinstance(elevation, Mapping):
+            for facade, facade_data in (elevation.get("facades") or {}).items():
+                for floor, score in (facade_data.get("floors") or {}).items():
+                    matches = score.get("matches") or []
+                    floors.append(
+                        {
+                            "facade": facade,
+                            "floor": floor,
+                            "orientation": score.get("orientation"),
+                            "no_data": bool(score.get("no_data")),
+                            "gt_count": int(score.get("gt_count", 0)),
+                            "read_count": int(score.get("read_count", 0)),
+                            "matched_total": int(score.get("matched_total", 0)),
+                            "placed_hit_total": int(score.get("placed_hit_total", 0)),
+                            "complete_total": int(score.get("complete_total", 0)),
+                            "within_tol_total": int(score.get("within_tol_total", 0)),
+                            "miss_total": sum(1 for m in matches if m.get("status") == "miss"),
+                            "extra_total": len(score.get("extras") or []),
+                        }
+                    )
+
+    gt_total = int(summary.get("gt_total", 0))
+    complete = int(summary.get("complete_total", summary.get("placed_hit_total", 0)))
+    within = int(summary.get("within_tol_total", 0))
+    placed = complete + within
+    misses = int(summary.get("miss_total", 0))
+    extras = int(summary.get("extra_total", 0))
+    no_data = int(summary.get("no_data_floor_facades", 0))
+    failures = max(0, gt_total - placed) + extras + no_data
+    ratio = 1.0 if gt_total == 0 else placed / gt_total
+
+    if failures == 0:
+        status = "pass"
+    elif ratio >= WINDOW_MINOR_RATIO and no_data == 0:
+        status = "minor"
+    else:
+        status = "severe"
+
+    return {
+        "criterion": "elevation_windows_placed",
+        "suggested_status": status,
+        "evidence": (
+            f"elevation_placed={placed}/{gt_total}; "
+            f"complete={complete}; within_tol={within}; missed={misses}; extra={extras}; "
+            f"no_data_floor_facades={no_data}; hit_ratio={round(ratio, 3)}; "
+            f"along_tol_m={elevation_along_tol_m}; sill_tol_m={sill_tol_m}; "
+            f"head_tol_m={head_tol_m}; width_tol_m={width_tol_m}; "
+            f"overlap_accept={overlap_accept}; overlap_complete={overlap_complete}"
+        ),
+        "floors": floors,
+    }
+
+
+def _status_counts(records: list[object]) -> dict[str, int]:
+    out = {"complete": 0, "within_tol": 0, "miss": 0, "extra": 0}
+    for record in records:
+        status = getattr(record, "status", None)
+        if status in out:
+            out[status] += 1
+    return out
