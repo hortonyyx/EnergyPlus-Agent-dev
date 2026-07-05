@@ -15,8 +15,8 @@
 > [proposals/cad_to_gt_extraction_plan.md](../proposals/cad_to_gt_extraction_plan.md)（DXF 基建复用，Phase C 数据工厂）·
 > [[reading-quality-investigation-2026-06-24]]·[[judge-gt-authoritative-images-auxiliary]]·[[run-provenance-recording-requirement]]·
 > [[reading-cv-toolkit-methodology]]·[[reading-scaffold-restore-policy]]。
-> 落地轨迹（Phase A）：`logs/review/2026-06-30_reading_scaffold_restore_validation/`（实测）+
-> `logs/review/review/2026-06-30_reading_phase_a_spec_review.md`（Codex 审）。
+> 落地轨迹（Phase A）：`logs/experiments/2026-06-30_reading_scaffold_restore_validation/`（实测）+
+> `logs/reviews/verdict/2026-06-30_reading_phase_a_spec_review.md`（Codex 审）。
 
 ---
 

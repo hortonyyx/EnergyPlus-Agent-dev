@@ -44,7 +44,7 @@ Claude 出方案 → Codex 审方案（adversarial，落 review/）→ Claude �
 - **执行结果不逐次全审**：Claude 把 Codex 当**可靠执行工具**，由 Codex 在简报「审阅需求」里**自决**哪些要 Claude 再核；Claude 只复核被 escalate 的处，**routine spec'd 执行直接采信**（逐次全审会抵消省消耗的初衷）。
 - **大节点才全面审**：里程碑 commit 前的实质改动、集成接缝、碰 5 条铁律/IntakeOutput 契约的改动、或 Codex escalate 不确定时 → Claude 全面审（含自跑 pytest + 逐行审 + 端到端回归）。
 - **方案类决策双审后再派**：Claude 拟方案 + Codex 审 + Claude 裁决（= 双审），无 BLOCKER 才 dispatch 给执行 Agent。
-- **审计留痕**：`logs/review/request/<date>_<topic>_request.md` = Claude 方案（含 v2/v2.1 revise 演进）；`logs/review/review/<date>_<topic>_review.md` = Codex 审（含二审）。
+- **审计留痕**：`logs/reviews/request/<date>_<topic>_request.md` = Claude 方案（含 v2/v2.1 revise 演进）；`logs/reviews/verdict/<date>_<topic>_review.md` = Codex 审（含二审）。
 - 方案 revise 多轮时用 `codex-reply` 续同会话二审（Codex 已加载方案+代码，省上下文）。
 
 ## 6. 信任边界：Codex 当可靠执行工具，escalation + 大节点驱动复核

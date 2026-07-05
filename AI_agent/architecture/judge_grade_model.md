@@ -1,8 +1,9 @@
 # 判卷 + 画法 统一模型（定稿规格）
 
-> 状态：**用户逐轮共定、2026-07-04 收敛完成**，作为 Codex 重构 scorer+renderer 的权威 build spec。
-> 取代 `2026-07-03_elevation_grade_proposal.md` 的 §3–§9 画法细节（该文动机/红线/协作仍有效）。
-> 覆盖 reading grade + correction grade，平面 + 立面。
+> 状态：**判卷（gate② grade）子系统活规格**（2026-07-05 从 `logs/reviews/request/` 抽出归位 architecture/，
+> 因它是被前向引用的权威设计、非某次开发快照）。用户逐轮共定、2026-07-04 收敛完成，Codex 据此重构 scorer+renderer。
+> 取代 `logs/reviews/request/2026-07-03_elevation_grade_proposal.md` 的 §3–§9 画法细节（该文动机/红线/协作仍有效）。
+> 覆盖 reading grade + correction grade，平面 + 立面。**§8b = 开放 backlog**（墙粒度定义/计数/打分等，见 plan.md N2b）。
 
 ---
 
@@ -159,4 +160,4 @@ product_cov = 交集面积 / 产品盒面积
 
 ## 9. 审阅采纳记录（Codex 方案审 2026-07-04，APPROVE-WITH-CHANGES，10 findings 全采纳）
 
-`logs/review/review/2026-07-04_grade_visual_model_spec_review.md`。已折进上文：#1 两侧覆盖率(§3)·#2 miss 注记例外(§0/§1)·#3 横线 extra/no-data/序列化(§4)·#4 interval-set 拓扑(§2)·#5 容差序 + complete 抑制(§2/§5)·#6 翻转归一(§0)·#7 竖边界序列化(§4)·#8 平面窗车道口径(§2)·#9 v1 范围(§8)·#10 renderer 红线测试(Batch 2)。Batch 1 需按 #1/#3/#4/#5/#6/#7 返工。
+`logs/reviews/verdict/2026-07-04_grade_visual_model_spec_review.md`。已折进上文：#1 两侧覆盖率(§3)·#2 miss 注记例外(§0/§1)·#3 横线 extra/no-data/序列化(§4)·#4 interval-set 拓扑(§2)·#5 容差序 + complete 抑制(§2/§5)·#6 翻转归一(§0)·#7 竖边界序列化(§4)·#8 平面窗车道口径(§2)·#9 v1 范围(§8)·#10 renderer 红线测试(Batch 2)。Batch 1 需按 #1/#3/#4/#5/#6/#7 返工。

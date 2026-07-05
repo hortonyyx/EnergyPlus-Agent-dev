@@ -12,13 +12,13 @@
 > - **再拓扑 = 仅指 zonification**（在 phase1 平面上新划热区）。
 > - **切配**（把面切成 EP 一一对应）= **独立、确定性、与两条线无关**，已摘出为 leg-agnostic 轨，**下游另有人做、不归本项目管**（技术参考 [../reference/split_pairing_kernel_reference.md](../reference/split_pairing_kernel_reference.md)）。本文 §1-§4 的「确定性几何内核 / 升起+相交+匹配+切分+配对」即切配，读时按此归位。
 > - **两条线（忠实建模 / 热区再拓扑）只在 zonification 的方式与粒度上分叉**；校正 / 几何建模 / 切配均两线共用。
-> - zonification 怎么做（算法 vs LLM vs 范式）的开放调研 = [../logs/review/request/2026-06-07_zonification_approach_request.md](../logs/review/request/2026-06-07_zonification_approach_request.md)。
+> - zonification 怎么做（算法 vs LLM vs 范式）的开放调研 = [../logs/reviews/request/2026-06-07_zonification_approach_request.md](../logs/reviews/request/2026-06-07_zonification_approach_request.md)。
 
 ---
 
 ## 0. 研究结论与状态（2026-06-07，本文为本线唯一汇总文档）
 
-> **本文 = 热区再拓扑 leg 的唯一汇总文档**。设计骨架（§1-§9，注意按顶部 banner 把"确定性几何内核 / split-pairing"重映射为已独立的切配）+ 本节研究结论。**状态：支线休眠，确定开展时再重启；当前专注主线（识图建模质量 partA 校正）。** 调研全文 = [../logs/review/review/2026-06-07_zonification_approach_review.md](../logs/review/review/2026-06-07_zonification_approach_review.md)（Codex），请求 = [../logs/review/request/2026-06-07_zonification_approach_request.md](../logs/review/request/2026-06-07_zonification_approach_request.md)。
+> **本文 = 热区再拓扑 leg 的唯一汇总文档**。设计骨架（§1-§9，注意按顶部 banner 把"确定性几何内核 / split-pairing"重映射为已独立的切配）+ 本节研究结论。**状态：支线休眠，确定开展时再重启；当前专注主线（识图建模质量 partA 校正）。** 调研全文 = [../logs/reviews/verdict/2026-06-07_zonification_approach_review.md](../logs/reviews/verdict/2026-06-07_zonification_approach_review.md)（Codex），请求 = [../logs/reviews/request/2026-06-07_zonification_approach_request.md](../logs/reviews/request/2026-06-07_zonification_approach_request.md)。
 
 ### 0.1 调研裁决
 

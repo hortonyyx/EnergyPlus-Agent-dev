@@ -8,7 +8,7 @@
 >
 > _建档 2026-05-28。首轮内容 = sm21 三模型 phase2 诊断 + 容差重生成设计讨论（讨论已捕获，未落地实现）。_
 >
-> **⚠️ 术语对齐（2026-06-07，与用户锁定）**：**两条线（忠实建模 / 热区再拓扑）只在 zonification 的方式与粒度上分叉**——忠实 = 房间=zone（需把图纸校正到高精度）；热区再拓扑 = 平面上先划少而大的热区再建模（省校正精度）。**校正（partA）/ 几何建模 / 切配 三段两线共用**。**切配**（面切成 EP 一一对应）= **独立、确定性、与两条线无关**（下游另有人做，技术参考 [../reference/split_pairing_kernel_reference.md](../reference/split_pairing_kernel_reference.md)）。因此本文 §8 早期把"A 类水密装配"当作两腿差异点的框架**已被 §8 表下的更正注修正**：水密=切配，对两腿是同一个确定性算法，不是差异点。zonification 实现的开放调研 = [../logs/review/request/2026-06-07_zonification_approach_request.md](../logs/review/request/2026-06-07_zonification_approach_request.md)。
+> **⚠️ 术语对齐（2026-06-07，与用户锁定）**：**两条线（忠实建模 / 热区再拓扑）只在 zonification 的方式与粒度上分叉**——忠实 = 房间=zone（需把图纸校正到高精度）；热区再拓扑 = 平面上先划少而大的热区再建模（省校正精度）。**校正（partA）/ 几何建模 / 切配 三段两线共用**。**切配**（面切成 EP 一一对应）= **独立、确定性、与两条线无关**（下游另有人做，技术参考 [../reference/split_pairing_kernel_reference.md](../reference/split_pairing_kernel_reference.md)）。因此本文 §8 早期把"A 类水密装配"当作两腿差异点的框架**已被 §8 表下的更正注修正**：水密=切配，对两腿是同一个确定性算法，不是差异点。zonification 实现的开放调研 = [../logs/reviews/request/2026-06-07_zonification_approach_request.md](../logs/reviews/request/2026-06-07_zonification_approach_request.md)。
 
 ---
 
@@ -88,7 +88,7 @@ phase1 在 1f 把同一道隔墙估成 **4.90/10.10**、2f 估成 **4.95/10.05**
 
 ## 5. partA 容差校正约束集（设计定稿，2026-06-07 审阅后）
 
-> 取代原"四条改进方向"（用户初步想法）。Codex 审阅 verdict = **整体 sound，3 处修正后逐篇落地**，8 条 finding **全部采纳**。请求 [request](../logs/review/request/2026-06-07_partA_correction_constraint_set_request.md) + 审阅 [review](../logs/review/review/2026-06-07_partA_correction_constraint_set_review.md)。**partA = 校正层**：phase1 噪声/矛盾感知 → 干净自洽、EP 友好的几何基元，并记录每次修正。
+> 取代原"四条改进方向"（用户初步想法）。Codex 审阅 verdict = **整体 sound，3 处修正后逐篇落地**，8 条 finding **全部采纳**。请求 [request](../logs/reviews/request/2026-06-07_partA_correction_constraint_set_request.md) + 审阅 [review](../logs/reviews/verdict/2026-06-07_partA_correction_constraint_set_review.md)。**partA = 校正层**：phase1 噪声/矛盾感知 → 干净自洽、EP 友好的几何基元，并记录每次修正。
 
 ### 5.1 切割轴：确定性 vs 判断（= 未来 codify 接缝）
 

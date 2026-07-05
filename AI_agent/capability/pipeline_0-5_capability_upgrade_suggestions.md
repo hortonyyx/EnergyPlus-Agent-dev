@@ -1,6 +1,6 @@
 # 0–5 管线各环节 capability 升级建议（活文档）
 
-> **定位**：记录 0–5 管线**六个子环节**各自的 capability（能力/质量）升级建议，供后续依次升级。**不是硬伤清单**——硬伤走 [review/request/2026-06-10_pipeline_0-5_full_audit_request.md](../logs/review/request/2026-06-10_pipeline_0-5_full_audit_request.md) → review 闭环。
+> **定位**：记录 0–5 管线**六个子环节**各自的 capability（能力/质量）升级建议，供后续依次升级。**不是硬伤清单**——硬伤走 [review/request/2026-06-10_pipeline_0-5_full_audit_request.md](../logs/reviews/request/2026-06-10_pipeline_0-5_full_audit_request.md) → review 闭环。
 >
 > **状态（2026-06-10）**：骨架 + 当前已知建议（Opus 起草）。明天 Fable 5 做完整体检时，顺手发现的 capability 想法往这里加。**这些升级先不实施**，按用户路线（§ 路线图）在 test_baseline + 国产 VLM 接通后，**依次提升建筑复杂度时**再逐项落地。
 >
@@ -17,7 +17,7 @@
 ## 1_correction（校正，LLM）
 
 - **稳定性**（2026-06-10 已加重试 + 窗自检兜底，commit `fd3d4bf`）：进一步可加——结构化输出约束 / 更细的自检（区数 vs testdata、楼层 z-stack 连续性、外包闭合）。
-- **多层 z-stack 合成**：2 层已验证，**3 层（sm20）2026-06-11 audit 实证通过**（0/3.6/7.2 连续、各层窗 z 落位正确、一发即中）；facade_local→world 的逐层 z 偏移仍是易错点（z 连续性确定性守卫属硬伤修复，见 [audit review H2](../logs/review/review/2026-06-11_pipeline_0-5_full_audit_review.md)）。
+- **多层 z-stack 合成**：2 层已验证，**3 层（sm20）2026-06-11 audit 实证通过**（0/3.6/7.2 连续、各层窗 z 落位正确、一发即中）；facade_local→world 的逐层 z 偏移仍是易错点（z 连续性确定性守卫属硬伤修复，见 [audit review H2](../logs/reviews/verdict/2026-06-11_pipeline_0-5_full_audit_review.md)）。
 - **仲裁/先验丰富度**：A3 仲裁 + A4 几何先验目前偏薄，复杂图（凹形/退台）下需要更强的常识仲裁。
 
 ## 2_modelling（建模·几何，确定性）

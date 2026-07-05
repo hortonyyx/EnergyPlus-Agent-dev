@@ -17,7 +17,7 @@ from src.validator.checks.schema import CheckLayer, CheckReport, CheckStatus, EV
 _ANCHOR = Path("case_tests/e2e_tests/sm20_anchor")
 _RUN = _ANCHOR / "run_2026-06-15_baseline"
 _FIX = Path("tests/fixtures/validation")
-_RESTORE_READINGS = Path("AI_agent/logs/review/2026-06-30_reading_scaffold_restore_validation/readings")
+_RESTORE_READINGS = Path("AI_agent/logs/experiments/2026-06-30_reading_scaffold_restore_validation/readings")
 
 
 def _ids(rep):
