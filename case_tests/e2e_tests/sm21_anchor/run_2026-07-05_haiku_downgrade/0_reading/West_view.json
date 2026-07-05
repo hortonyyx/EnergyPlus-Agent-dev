@@ -1,0 +1,299 @@
+{
+  "image_label": "West elevation view",
+  "image_kind": "elevation",
+
+  "facade": {
+    "view_facade": "West",
+    "local_x_positive": "image_left_to_right",
+    "mirrored": "false",
+    "orientation_evidence": [
+      {"source": "image_name", "detail": "labeled 'West_view.png'", "confidence": "high"},
+      {"source": "testdata_prompt", "detail": "image dimensions (8m width) match building depth", "confidence": "high"}
+    ]
+  },
+
+  "strokes": [
+    {
+      "id": "S1",
+      "pen": "outline",
+      "provenance": "seen",
+      "confidence": "high",
+      "dimension_refs": ["D1"],
+      "geometry": {
+        "kind": "line",
+        "p1": [0.00, 0.00],
+        "p2": [8.00, 0.00],
+        "thickness_m": null
+      },
+      "note": "West facade outline - ground level (base)"
+    },
+    {
+      "id": "S2",
+      "pen": "outline",
+      "provenance": "seen",
+      "confidence": "high",
+      "dimension_refs": ["D10"],
+      "geometry": {
+        "kind": "line",
+        "p1": [8.00, 0.00],
+        "p2": [8.00, 6.00],
+        "thickness_m": null
+      },
+      "note": "West facade outline - right vertical edge"
+    },
+    {
+      "id": "S3",
+      "pen": "outline",
+      "provenance": "seen",
+      "confidence": "high",
+      "dimension_refs": ["D1"],
+      "geometry": {
+        "kind": "line",
+        "p1": [8.00, 6.00],
+        "p2": [0.00, 6.00],
+        "thickness_m": null
+      },
+      "note": "West facade outline - roof/parapet top"
+    },
+    {
+      "id": "S4",
+      "pen": "outline",
+      "provenance": "seen",
+      "confidence": "high",
+      "dimension_refs": ["D10"],
+      "geometry": {
+        "kind": "line",
+        "p1": [0.00, 6.00],
+        "p2": [0.00, 0.00],
+        "thickness_m": null
+      },
+      "note": "West facade outline - left vertical edge"
+    },
+
+    {
+      "id": "S5",
+      "pen": "wall_fill",
+      "provenance": "seen",
+      "confidence": "high",
+      "dimension_refs": [],
+      "geometry": {
+        "kind": "rect",
+        "x_range_m": [0.38, 7.62],
+        "y_range_m": [0.00, 3.00]
+      },
+      "note": "West facade - Floor 1 wall body (lower zone)"
+    },
+
+    {
+      "id": "S6",
+      "pen": "wall_fill",
+      "provenance": "seen",
+      "confidence": "high",
+      "dimension_refs": [],
+      "geometry": {
+        "kind": "rect",
+        "x_range_m": [0.38, 7.62],
+        "y_range_m": [3.00, 6.00]
+      },
+      "note": "West facade - Floor 2 wall body (upper zone)"
+    },
+
+    {
+      "id": "S7",
+      "pen": "window",
+      "provenance": "seen",
+      "confidence": "high",
+      "dimension_refs": [],
+      "geometry": {
+        "kind": "rect",
+        "x_range_m": [3.20, 4.80],
+        "y_range_m": [4.50, 5.70]
+      },
+      "note": "West facade - F2 window (upper center)"
+    },
+
+    {
+      "id": "S8",
+      "pen": "window",
+      "provenance": "seen",
+      "confidence": "high",
+      "dimension_refs": [],
+      "geometry": {
+        "kind": "rect",
+        "x_range_m": [2.40, 5.60],
+        "y_range_m": [1.00, 2.50]
+      },
+      "note": "West facade - F1 window (lower center, 4-pane grid visible)"
+    }
+  ],
+
+  "dimensions": [
+    {
+      "id": "D1",
+      "text_verbatim": "8000",
+      "value_m": 8.00,
+      "from": [0.00, 6.20],
+      "to": [8.00, 6.20],
+      "axis": "x",
+      "chain_id": "C_top_width",
+      "role": "overall",
+      "order": 0,
+      "anchor": null,
+      "note": "top horizontal total width (building depth)"
+    },
+    {
+      "id": "D2",
+      "text_verbatim": "3400",
+      "value_m": 3.40,
+      "from": [0.00, 6.30],
+      "to": [3.40, 6.30],
+      "axis": "x",
+      "chain_id": "C_top_width_seg",
+      "role": "segment",
+      "order": 0,
+      "anchor": null,
+      "note": "top width segment 1"
+    },
+    {
+      "id": "D3",
+      "text_verbatim": "1200",
+      "value_m": 1.20,
+      "from": [3.40, 6.30],
+      "to": [4.60, 6.30],
+      "axis": "x",
+      "chain_id": "C_top_width_seg",
+      "role": "segment",
+      "order": 1,
+      "anchor": null,
+      "note": "top width segment 2 (center)"
+    },
+    {
+      "id": "D4",
+      "text_verbatim": "3400",
+      "value_m": 3.40,
+      "from": [4.60, 6.30],
+      "to": [8.00, 6.30],
+      "axis": "x",
+      "chain_id": "C_top_width_seg",
+      "role": "segment",
+      "order": 2,
+      "anchor": null,
+      "note": "top width segment 3"
+    },
+
+    {
+      "id": "D5",
+      "text_verbatim": "8000",
+      "value_m": 8.00,
+      "from": [0.00, -0.40],
+      "to": [8.00, -0.40],
+      "axis": "x",
+      "chain_id": "C_bottom_width",
+      "role": "overall",
+      "order": 0,
+      "anchor": null,
+      "note": "bottom horizontal total width (building depth)"
+    },
+
+    {
+      "id": "D6",
+      "text_verbatim": "6000",
+      "value_m": 6.00,
+      "from": [-0.50, 0.00],
+      "to": [-0.50, 6.00],
+      "axis": "z",
+      "chain_id": "C_left_height",
+      "role": "overall",
+      "order": 0,
+      "anchor": null,
+      "note": "left vertical total building height (ground to roof)"
+    },
+    {
+      "id": "D7",
+      "text_verbatim": "3000",
+      "value_m": 3.00,
+      "from": [-0.60, 0.00],
+      "to": [-0.60, 3.00],
+      "axis": "z",
+      "chain_id": "C_left_height_seg",
+      "role": "segment",
+      "order": 0,
+      "anchor": null,
+      "note": "left height segment 1 (Floor 1)"
+    },
+    {
+      "id": "D8",
+      "text_verbatim": "3000",
+      "value_m": 3.00,
+      "from": [-0.60, 3.00],
+      "to": [-0.60, 6.00],
+      "axis": "z",
+      "chain_id": "C_left_height_seg",
+      "role": "segment",
+      "order": 1,
+      "anchor": null,
+      "note": "left height segment 2 (Floor 2)"
+    },
+
+    {
+      "id": "D9",
+      "text_verbatim": "6000",
+      "value_m": 6.00,
+      "from": [8.50, 0.00],
+      "to": [8.50, 6.00],
+      "axis": "z",
+      "chain_id": "C_right_height",
+      "role": "overall",
+      "order": 0,
+      "anchor": null,
+      "note": "right vertical total building height"
+    },
+    {
+      "id": "D10",
+      "text_verbatim": "3000",
+      "value_m": 3.00,
+      "from": [8.60, 0.00],
+      "to": [8.60, 3.00],
+      "axis": "z",
+      "chain_id": "C_right_height_seg",
+      "role": "segment",
+      "order": 0,
+      "anchor": null,
+      "note": "right height segment 1 (Floor 1)"
+    },
+    {
+      "id": "D11",
+      "text_verbatim": "3000",
+      "value_m": 3.00,
+      "from": [8.60, 3.00],
+      "to": [8.60, 6.00],
+      "axis": "z",
+      "chain_id": "C_right_height_seg",
+      "role": "segment",
+      "order": 1,
+      "anchor": null,
+      "note": "right height segment 2 (Floor 2)"
+    }
+  ],
+
+  "ocr_texts": [],
+
+  "uncaptured": [],
+
+  "self_check": {
+    "all_dimensions_transcribed": true,
+    "all_visible_strokes_captured": true,
+    "no_topology_inferred": true,
+    "pens_used": ["outline", "wall_fill", "window"],
+    "unknowns_noted": [
+      "building height evenly split: 3.00m per floor",
+      "floor divider at z=3.0 (mid-height)",
+      "West facade shows building depth (8m), representing the building's y-dimension in plan",
+      "only 2 windows visible on West facade: 1 per floor",
+      "F1 window shows internal 4-pane grid/mullion pattern (traced as single window rectangle)",
+      "all windows traced as cyan rectangles visible in elevation",
+      "no level-marker altitude annotations visible; dimensions provide z-range",
+      "window placement within each floor estimated from visible positions (image-local x,y); correction stage will map to world coordinates"
+    ]
+  }
+}

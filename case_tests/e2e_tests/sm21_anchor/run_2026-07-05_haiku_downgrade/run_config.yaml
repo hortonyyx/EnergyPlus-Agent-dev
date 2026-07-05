@@ -1,0 +1,46 @@
+# =====================================================================
+# run_config.yaml — run_2026-07-05_haiku_downgrade (sm21_anchor)
+# Registered downgrade test: reading on Haiku 4.5 under the IDENTICAL
+# restored scaffold as the Sonnet 5 baseline (run_2026-07-02_sonnet_flow_e2e).
+# Reading model = the only variable. Grade tolerances held at defaults
+# (same as the Sonnet 5 baseline sidecar) so the A/B is clean.
+# =====================================================================
+
+scope:
+  stages:
+    - 0_reading
+    - 1_correction
+    - 2_modelling
+    - 3_split_pairing
+    - 4_mep
+    - 5_intakeoutput
+
+judge:
+  mode: stop            # judge-in-the-loop (J0/J1), Opus 4.8 as judge②
+
+review:
+  reading: true         # human review point after J0
+  correction: true      # human review point after J1
+  geometry: true        # geometry gate required — user reviews the 3D viewer
+
+models:
+  reading:
+    role: 0_reading
+    model_id: claude-haiku-4-5-20251001
+    provider: anthropic
+    effort: default
+    source: cold-start Agent-tool sub-agent (model="haiku"), isolated
+  orchestrator:
+    role: judge2+orchestration
+    model_id: claude-opus-4-8
+  correction:
+    role: 1_correction
+    model_id: deepseek-v4-pro
+    effort: high
+  mep:
+    role: 4_mep
+    model_id: deepseek-v4-pro
+    effort: high
+
+# grade: omitted → judge-side default tolerances (wall 0.30 / window_centre
+# 0.40 / elevation defaults), identical to the Sonnet 5 baseline sidecar.
