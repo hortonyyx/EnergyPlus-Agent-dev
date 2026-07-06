@@ -49,6 +49,10 @@ def _jamb_result(rep):
     return next(r for r in rep.results if r.check_id == "reading.partition_on_window_jamb")
 
 
+def _result(rep, check_id):
+    return next(r for r in rep.results if r.check_id == check_id)
+
+
 def _load_restore_reading(path: Path) -> ReadingView:
     data = json.loads(path.read_text(encoding="utf-8"))
     for dim in data.get("dimensions", []):
@@ -725,6 +729,104 @@ def test_correction_residual_soft_checks_are_explicitly_deferred():
     ):
         assert deferred[check_id].layer == CheckLayer.CROSS_CHECK
         assert deferred[check_id].message == "deferred until evidence is richer"
+
+
+def _facade_window_view(facade: str, span=(3.4, 4.6)) -> ReadingView:
+    return ReadingView.model_validate({
+        "image_label": f"{facade} elevation",
+        "image_kind": "elevation",
+        "facade": {
+            "view_facade": facade,
+            "local_x_positive": "image_left_to_right",
+            "mirrored": "false",
+            "orientation_evidence": [{"source": "image_name"}],
+        },
+        "uncaptured": [],
+        "strokes": [
+            {
+                "id": "W_read",
+                "pen": "window",
+                "provenance": "seen",
+                "confidence": "high",
+                "geometry": {
+                    "kind": "rect",
+                    "x_range_m": list(span),
+                    "y_range_m": [1.0, 2.0],
+                },
+            }
+        ],
+    })
+
+
+def _geom_with_window(facade="South", span=(3.4, 4.6)) -> CorrectedGeometry:
+    return CorrectedGeometry.model_validate({
+        "footprint_x": [0, 10],
+        "footprint_y": [0, 8],
+        "floors": [
+            {
+                "name": "F1",
+                "z_floor": 0,
+                "ceiling_height": 3,
+                "cells": [{"id": "A", "x": [0, 10], "y": [0, 8]}],
+            }
+        ],
+        "windows": [
+            {
+                "id": "W_llm",
+                "floor": "F1",
+                "facade": facade,
+                "span": list(span),
+                "z": [1.0, 2.0],
+                "room": "A",
+            }
+        ],
+    })
+
+
+def test_facade_frame_cross_check_consistent_synthetic_passes():
+    rep = check_correction(
+        _geom_with_window("South", (3.4, 4.6)),
+        reading_views=[_facade_window_view("South", (3.4, 4.6))],
+    )
+    result = _result(rep, "correction.facade_frame_cross_check")
+    assert result.status == CheckStatus.PASS
+    assert result.evidence["matches_checked"] == 1
+
+
+def test_facade_frame_cross_check_displaced_llm_window_flags_with_evidence():
+    rep = check_correction(
+        _geom_with_window("South", (4.1, 5.3)),
+        reading_views=[_facade_window_view("South", (3.4, 4.6))],
+    )
+    result = _result(rep, "correction.facade_frame_cross_check")
+    assert result.status == CheckStatus.FAIL
+    assert result.layer == CheckLayer.CROSS_CHECK
+    mismatch = result.evidence["mismatches"][0]
+    assert mismatch["reading_local_span"] == [3.4, 4.6]
+    assert mismatch["deterministic_world_span"] == [3.4, 4.6]
+    assert mismatch["llm_world_span"] == [4.1, 5.3]
+    assert mismatch["abs_delta_m"] > result.evidence["tolerance_m"]
+    assert result in rep.flagged()
+    assert rep.passed
+
+
+def test_facade_frame_cross_check_without_elevation_data_not_applicable():
+    rep = check_correction(_geom_with_window("South", (3.4, 4.6)), reading_views=[])
+    result = _result(rep, "correction.facade_frame_cross_check")
+    assert result.status == CheckStatus.NOT_APPLICABLE
+    assert result.layer == CheckLayer.CROSS_CHECK
+
+
+def test_facade_frame_cross_check_west_flipped_facade_matches_frame_convention():
+    # West uses the E/W flipped sign from derive_facade_frame: local [3.4, 4.6]
+    # on an 8m-deep footprint maps to world-y [3.4, 4.6].
+    rep = check_correction(
+        _geom_with_window("West", (3.4, 4.6)),
+        reading_views=[_facade_window_view("West", (3.4, 4.6))],
+    )
+    result = _result(rep, "correction.facade_frame_cross_check")
+    assert result.status == CheckStatus.PASS
+    assert result.evidence["matches_checked"] == 1
 
 
 # --------------------------------------------------------------------------- #

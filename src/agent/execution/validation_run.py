@@ -125,12 +125,14 @@ def validate_case(
                 stage_key, profile, run_profile, f"required artifact missing: {where}")
 
     # ---- 0_reading ----
+    reading_views = []
     if has_reading:
         from src.agent.reading import load_reading_view
 
         dimensioned_views = dimensioned_view_names(case_dir)
         for vj in sorted(rdir.glob("*_view.json")):
             view = load_reading_view(vj)
+            reading_views.append(view)
             rep = check_reading_view(
                 view,
                 capability_profile=profile,
@@ -158,6 +160,7 @@ def validate_case(
             capability_profile=profile,
             run_profile=run_profile,
             evidence_debt=evidence_debt,
+            reading_views=reading_views,
         )
         res.reports["1_correction"] = crep
         if write_reports:

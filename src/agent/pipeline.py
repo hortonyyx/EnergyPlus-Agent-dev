@@ -822,6 +822,12 @@ def run_pipeline(
         capability_profile=capability_profile,
         dimensioned_views=dimensioned_views,
     )
+    from src.agent.reading import load_reading_view
+
+    reading_views = [
+        load_reading_view(path)
+        for path in sorted(Path(vector_dir).glob("*_view.json"))
+    ]
     s0 = _stage("0_reading")
     if s0 is not None:
         (s0 / "reading_checks.json").write_text(
@@ -930,6 +936,7 @@ def run_pipeline(
         capability_profile=capability_profile,
         run_profile=run_profile,
         evidence_debt=evidence_debt,
+        reading_views=reading_views,
     )
     _gate_self_check_report(
         stage_name="1_correction",

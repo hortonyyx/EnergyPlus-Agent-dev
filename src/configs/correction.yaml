@@ -99,6 +99,15 @@ correction:
   # 0.30 = 容一个偏厚外墙(~0.24)+余量；调小→偏厚墙吸不动，调大→可能吞真实尺寸差。
   # boundary_attach_tol 当前显式等同此值：只移动距旧 footprint 外边界 ≤ 此值的 cell 边。
 
+  facade_frame_cross_check_tol_m: 0.300
+  # 约束：gate① cross-check only。用 derive_facade_frame 把 0_reading 立面
+  #       window 的 image-local x span 投到 world along-facade 坐标后，与
+  #       correction LLM 输出的同立面 window span center 比较；偏差 > 此值则
+  #       FLAG，不 block，不改几何。
+  # 依据：这是跨 reading/correction 两产物的立面落位核对，主要吸收外包/中线与墙厚
+  #       基准差，故与 ENVELOPE_RECONCILE_TOL 同量级；窗自身吸附仍用更细的
+  #       window_snap_grid_m。
+
   # ====== 连接性补缝(端点→边界，#2.4) ======
   # 【与轴吸附是两类操作】轴吸附(structural_snap_grid)问"两坐标是不是同一道墙"
   # (身份，颗粒 50mm)；补缝问"一条墙线该不该接到边界上"(连接性，颗粒 300mm)。

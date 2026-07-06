@@ -23,10 +23,12 @@ from src.agent.correction.geometry_validator import (
     GeometryFinding,
     validate_corrected_geometry,
 )
+from src.agent.correction.config import load_core_tolerances
 from src.agent.correction.envelope import (
     envelope_candidates_from_elevation_widths,
     resolve_authoritative_envelope,
 )
+from src.agent.correction.facade import derive_facade_frame
 from src.agent.correction.schema import CorrectedGeometry
 from src.agent.geometry.capability import (
     CHECK_CAPABILITY_PROFILE_SHAPES,
@@ -52,6 +54,7 @@ _INVARIANT_CHECKS = {
 _CROSSCHECK_CHECKS = {
     "correction.zone_count_tripwire",
     "correction.window_on_wall",
+    "correction.facade_frame_cross_check",
 }
 _DEFERRED_RESIDUAL_CHECKS = (
     "correction.facade_area_residuals",
@@ -84,6 +87,7 @@ def check_correction(
     raw_geom: CorrectedGeometry | None = None,
     relied_on_testdata: bool = False,
     elevation_widths: dict[str, float] | None = None,
+    reading_views: list[Any] | None = None,
     capability_profile: str = "rectangular",
     run_profile: RunProfile = "exploratory",
     evidence_debt: EvidenceDebt | dict | None = None,
@@ -99,6 +103,7 @@ def check_correction(
         _add_finding(rep, f)
 
     _cross_image_reconcile(rep, geom, elevation_widths)
+    _facade_frame_cross_check(rep, geom, reading_views)
     _audit_completeness(rep, geom, raw_geom, relied_on_testdata)
     _evidence_debt_coverage(rep, geom, evidence_debt)
     _deferred_residual_placeholders(rep)
@@ -209,6 +214,239 @@ def _cross_image_reconcile(
                          "facades_checked": len(elevation_widths),
                          "authoritative_envelope": envelope.to_dict(),
                      })
+
+
+def _facade_name(value: Any) -> str | None:
+    if not isinstance(value, str):
+        return None
+    facade = value.strip().capitalize()
+    return facade if facade in {"North", "South", "East", "West"} else None
+
+
+def _reading_elevation_windows(reading_views: list[Any] | None) -> tuple[list[dict], list[str]]:
+    windows: list[dict] = []
+    unusable: list[str] = []
+    if not reading_views:
+        return windows, unusable
+
+    for view_index, view in enumerate(reading_views):
+        if str(getattr(view, "image_kind", "")).lower() != "elevation":
+            continue
+        facade_info = getattr(view, "facade", None)
+        facade = _facade_name(getattr(facade_info, "view_facade", None))
+        if facade is None:
+            unusable.append(getattr(view, "image_label", None) or f"view[{view_index}]")
+            continue
+        for stroke in getattr(view, "strokes", []):
+            if str(getattr(stroke, "pen", "")).lower() != "window":
+                continue
+            geom = getattr(stroke, "geometry", {}) or {}
+            x_range = geom.get("x_range_m") if isinstance(geom, dict) else None
+            if (
+                not isinstance(x_range, list)
+                or len(x_range) != 2
+                or x_range[0] is None
+                or x_range[1] is None
+            ):
+                unusable.append(getattr(stroke, "id", None) or f"view[{view_index}].window")
+                continue
+            try:
+                local_span = sorted([float(x_range[0]), float(x_range[1])])
+            except (TypeError, ValueError):
+                unusable.append(getattr(stroke, "id", None) or f"view[{view_index}].window")
+                continue
+            windows.append(
+                {
+                    "view": getattr(view, "image_label", None) or f"view[{view_index}]",
+                    "stroke_id": getattr(stroke, "id", None),
+                    "facade": facade,
+                    "local_span": local_span,
+                    "local_x_positive": getattr(
+                        facade_info, "local_x_positive", "image_left_to_right"
+                    ),
+                    "mirrored": getattr(facade_info, "mirrored", "unknown"),
+                }
+            )
+    return windows, unusable
+
+
+def _footprint_bounds(geom: CorrectedGeometry) -> tuple[list[float], list[float]] | None:
+    try:
+        fx = [float(v) for v in geom.footprint_x]
+        fy = [float(v) for v in geom.footprint_y]
+    except (TypeError, ValueError):
+        return None
+    if len(fx) < 2 or len(fy) < 2 or min(fx) == max(fx) or min(fy) == max(fy):
+        return None
+    return fx, fy
+
+
+def _window_center(span: list[float]) -> float:
+    return (float(span[0]) + float(span[1])) / 2.0
+
+
+def _facade_frame_cross_check(
+    rep: CheckReport,
+    geom: CorrectedGeometry,
+    reading_views: list[Any] | None,
+) -> None:
+    check_id = "correction.facade_frame_cross_check"
+    reading_windows, unusable = _reading_elevation_windows(reading_views)
+    if not reading_views:
+        rep.add(
+            check_id,
+            CheckStatus.NOT_APPLICABLE,
+            CheckLayer.CROSS_CHECK,
+            message="no elevation reading artifacts supplied",
+        )
+        return
+    if not reading_windows:
+        rep.add(
+            check_id,
+            CheckStatus.NOT_APPLICABLE,
+            CheckLayer.CROSS_CHECK,
+            message="no usable elevation reading window local-x data",
+            evidence={"unusable": unusable},
+        )
+        return
+    bounds = _footprint_bounds(geom)
+    if bounds is None:
+        rep.add(
+            check_id,
+            CheckStatus.NOT_APPLICABLE,
+            CheckLayer.CROSS_CHECK,
+            message="no usable footprint bounds for facade frame",
+        )
+        return
+    if not geom.windows:
+        rep.add(
+            check_id,
+            CheckStatus.NOT_APPLICABLE,
+            CheckLayer.CROSS_CHECK,
+            message="no correction windows to compare",
+            evidence={"reading_windows": len(reading_windows), "unusable": unusable},
+        )
+        return
+
+    fx, fy = bounds
+    tol = load_core_tolerances().facade_frame_cross_check_tol_m
+    predicted: list[dict] = []
+    for item in reading_windows:
+        frame = derive_facade_frame(
+            view_facade=item["facade"],
+            footprint_x=fx,
+            footprint_y=fy,
+            mirrored=item["mirrored"],
+            local_x_positive=item["local_x_positive"],
+        )
+        world_span = sorted([frame.to_world_along(v) for v in item["local_span"]])
+        predicted.append(
+            {
+                **item,
+                "world_axis": frame.world_axis,
+                "deterministic_world_span": [round(v, 6) for v in world_span],
+                "deterministic_world_center": round(_window_center(world_span), 6),
+            }
+        )
+
+    correction_by_facade: dict[str, list[dict]] = {}
+    for win in geom.windows:
+        facade = _facade_name(getattr(win, "facade", None))
+        if facade is None or not getattr(win, "span", None):
+            continue
+        try:
+            llm_span = [float(v) for v in win.span]
+        except (TypeError, ValueError):
+            continue
+        correction_by_facade.setdefault(facade, []).append(
+            {
+                "window_id": getattr(win, "id", None),
+                "facade": facade,
+                "llm_world_span": [round(v, 6) for v in llm_span],
+                "llm_world_center": round(_window_center(llm_span), 6),
+            }
+        )
+    if not correction_by_facade:
+        rep.add(
+            check_id,
+            CheckStatus.NOT_APPLICABLE,
+            CheckLayer.CROSS_CHECK,
+            message="no usable correction window spans to compare",
+            evidence={"reading_windows": len(reading_windows), "unusable": unusable},
+        )
+        return
+
+    matches: list[dict] = []
+    unmatched_reading: list[dict] = []
+    unmatched_correction: list[dict] = []
+    mismatches: list[dict] = []
+    for facade in sorted({item["facade"] for item in predicted} | set(correction_by_facade)):
+        reads = [item for item in predicted if item["facade"] == facade]
+        corrs = list(correction_by_facade.get(facade, []))
+        used: set[int] = set()
+        for read in reads:
+            available = [
+                (idx, corr)
+                for idx, corr in enumerate(corrs)
+                if idx not in used
+            ]
+            if not available:
+                unmatched_reading.append(read)
+                continue
+            idx, corr = min(
+                available,
+                key=lambda pair: abs(
+                    pair[1]["llm_world_center"] - read["deterministic_world_center"]
+                ),
+            )
+            used.add(idx)
+            delta = round(
+                corr["llm_world_center"] - read["deterministic_world_center"], 6
+            )
+            row = {
+                "facade": facade,
+                "reading_view": read["view"],
+                "reading_stroke_id": read["stroke_id"],
+                "correction_window_id": corr["window_id"],
+                "reading_local_span": read["local_span"],
+                "deterministic_world_span": read["deterministic_world_span"],
+                "deterministic_world_center": read["deterministic_world_center"],
+                "llm_world_span": corr["llm_world_span"],
+                "llm_world_center": corr["llm_world_center"],
+                "delta_m": delta,
+                "abs_delta_m": round(abs(delta), 6),
+            }
+            matches.append(row)
+            if abs(delta) > tol:
+                mismatches.append(row)
+        for idx, corr in enumerate(corrs):
+            if idx not in used:
+                unmatched_correction.append(corr)
+
+    evidence = {
+        "tolerance_m": tol,
+        "matches": matches,
+        "unusable": unusable,
+        "unmatched_reading": unmatched_reading,
+        "unmatched_correction": unmatched_correction,
+    }
+    if mismatches or unmatched_reading or unmatched_correction:
+        rep.add_fail(
+            check_id,
+            CheckLayer.CROSS_CHECK,
+            "facade-frame deterministic placement disagrees with correction windows",
+            evidence={**evidence, "mismatches": mismatches},
+        )
+    else:
+        rep.add_pass(
+            check_id,
+            CheckLayer.CROSS_CHECK,
+            evidence={
+                "tolerance_m": tol,
+                "matches_checked": len(matches),
+                "unusable": unusable,
+            },
+        )
 
 
 def _geom_signature(geom: CorrectedGeometry) -> list:

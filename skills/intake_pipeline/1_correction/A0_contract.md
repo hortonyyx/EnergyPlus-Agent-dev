@@ -184,6 +184,7 @@ emit `unsupported`.
 | `AREA_REL_TOL` | ±5 | % | calibrated | all | warn / accept | BEM QA; `GB 50189-2015` 3.4.3 |
 | `WWR_REL_TOL` | ±5% or ±0.02 | ratio | calibrated | all | warn / accept | `GB 50189-2015` 3.2.2 / 3.3.1 |
 | `ENVELOPE_RECONCILE_TOL` | 0.30 | m | calibrated | all | auto-reconcile / unsupported | facade outer-envelope bounds may override a wall-centerline footprint only within wall-thickness scale; the same value is the boundary-attach tolerance for moving old-perimeter cell edges |
+| `FACADE_FRAME_CROSS_CHECK_TOL` | 0.30 | m | calibrated | all | flag | gate① cross-check: deterministic `derive_facade_frame` placement from reading elevation local-x vs correction LLM window world span; wall-thickness/envelope-basis scale, never a blocking transform tolerance |
 | `PERIMETER_DEPTH` | 4.6 (range 2.4–6.1) | m | calibrated | — (downstream zoning, **not** PartA) | n/a | `ASHRAE 90.1-2019 Add. ag`; listed for reference, PartA rules must not consume it |
 
 **Precedence (axis identity vs gap closing vs output).** These are distinct
