@@ -267,6 +267,53 @@ def test_run_pipeline_golden_blocks_on_non_pairing_kernel_invariant(
     assert not (out_dir / "3_split_pairing" / "geometry_specs.md").exists()
 
 
+def test_run_pipeline_golden_blocks_on_mep_invariant_after_clean_correction(
+    tmp_path, monkeypatch
+):
+    vector_dir = _patch_llm_stages(monkeypatch, tmp_path, bad_mep=True)
+
+    exploratory_warnings: list[str] = []
+    sink_id = pipeline.logger.add(
+        lambda message: exploratory_warnings.append(str(message)),
+        level="WARNING",
+    )
+    try:
+        intake = pipeline.run_pipeline(
+            vector_dir,
+            "{}",
+            out_dir=tmp_path / "out_exploratory",
+            run_profile="exploratory",
+        )
+    finally:
+        pipeline.logger.remove(sink_id)
+
+    assert isinstance(intake, IntakeOutput)
+    exploratory_mep = _report(tmp_path / "out_exploratory" / "4_mep" / "mep_checks.json")
+    assert "mep.schedule_completeness" in _statuses(exploratory_mep)
+    assert "mep.schedule_completeness" in [
+        result.check_id for result in exploratory_mep.blocking()
+    ]
+    assert any(
+        "4_mep self-check reported" in warning
+        and "continuing" in warning
+        and "mep.schedule_completeness" in warning
+        for warning in exploratory_warnings
+    )
+
+    with pytest.raises(
+        RuntimeError,
+        match="4_mep self-check blocked under run_profile=golden",
+    ) as exc:
+        pipeline.run_pipeline(
+            vector_dir,
+            "{}",
+            out_dir=tmp_path / "out_golden",
+            run_profile="golden",
+        )
+
+    assert "mep.schedule_completeness" in str(exc.value)
+
+
 def test_run_pipeline_exploratory_warns_and_continues_on_non_pairing_kernel_invariant(
     tmp_path, monkeypatch
 ):

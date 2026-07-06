@@ -18,7 +18,9 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
+import subprocess
 import warnings
 from collections import Counter
 from pathlib import Path
@@ -43,6 +45,101 @@ from report_assembly import (
 )
 
 BASELINE_NAME = "baseline.json"
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
+_GIT_DIRTY_PATHS_CAP = 50
+
+
+def _hash_directory_contents(root: Path) -> str:
+    """Deterministic sha256 over sorted relative paths and file bytes."""
+    root = Path(root)
+    h = hashlib.sha256()
+    files = []
+    for path in root.rglob("*"):
+        if not path.is_file():
+            continue
+        rel = path.relative_to(root)
+        if "__pycache__" in rel.parts or path.suffix == ".pyc":
+            continue
+        files.append(path)
+    for path in sorted(files, key=lambda p: p.relative_to(root).as_posix()):
+        rel = path.relative_to(root).as_posix().encode("utf-8")
+        h.update(rel)
+        h.update(b"\0")
+        h.update(path.read_bytes())
+    return h.hexdigest()
+
+
+def _hash_file_contents(path: Path) -> str:
+    return hashlib.sha256(Path(path).read_bytes()).hexdigest()
+
+
+def _git_output(args: list[str]) -> str:
+    return subprocess.run(
+        ["git", "-C", str(PROJECT_ROOT), *args],
+        check=True,
+        capture_output=True,
+        text=True,
+    ).stdout
+
+
+def _collect_git_provenance() -> tuple[dict, str | None]:
+    try:
+        git_sha = _git_output(["rev-parse", "HEAD"]).strip()
+        status = _git_output(["status", "--porcelain", "--untracked-files=all"])
+    except Exception as e:  # noqa: BLE001 — provenance is best-effort metadata
+        return (
+            {
+                "git_sha": None,
+                "git_dirty": None,
+                "git_dirty_paths": None,
+                "git_dirty_paths_total": None,
+                "git_dirty_paths_cap": _GIT_DIRTY_PATHS_CAP,
+            },
+            f"git provenance unavailable: {e}",
+        )
+
+    dirty_paths = []
+    for line in status.splitlines():
+        path = line[3:] if len(line) > 3 else line
+        dirty_paths.append(path.split(" -> ", 1)[-1])
+    return (
+        {
+            "git_sha": git_sha,
+            "git_dirty": bool(dirty_paths),
+            "git_dirty_paths": dirty_paths[:_GIT_DIRTY_PATHS_CAP],
+            "git_dirty_paths_total": len(dirty_paths),
+            "git_dirty_paths_cap": _GIT_DIRTY_PATHS_CAP,
+        },
+        None,
+    )
+
+
+def _collect_provenance() -> dict:
+    # Future golden exact re-record comparisons must normalize/exclude
+    # environment-dependent provenance fields such as git dirtiness.
+    provenance, git_error = _collect_git_provenance()
+    errors = [git_error] if git_error else []
+    targets = {
+        "skills_intake_hash": PROJECT_ROOT / "skills" / "intake_pipeline",
+        "reading_src_hash": PROJECT_ROOT / "src" / "agent" / "reading",
+        "correction_src_hash": PROJECT_ROOT / "src" / "agent" / "correction",
+    }
+    for key, path in targets.items():
+        try:
+            provenance[key] = _hash_directory_contents(path)
+        except Exception as e:  # noqa: BLE001 — provenance is best-effort metadata
+            provenance[key] = None
+            errors.append(f"{key} unavailable: {e}")
+    try:
+        provenance["correction_config_hash"] = _hash_file_contents(
+            PROJECT_ROOT / "src" / "configs" / "correction.yaml"
+        )
+    except Exception as e:  # noqa: BLE001 — provenance is best-effort metadata
+        provenance["correction_config_hash"] = None
+        errors.append(f"correction_config_hash unavailable: {e}")
+    if errors:
+        provenance["collection_error"] = "; ".join(errors)
+    return provenance
 
 
 def _load_llm_yaml(run_dir: Path) -> dict:
@@ -425,6 +522,7 @@ def record_baseline(
         "ep": ep,
         "corrections_summary": corr_summary,
         "evidence_index": evidence_index,
+        "provenance": _collect_provenance(),
         "blocked": res.blocked,
     }
     report_context = {

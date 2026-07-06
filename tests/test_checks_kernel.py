@@ -86,6 +86,85 @@ def test_declared_zone_with_no_surfaces_blocks():
     assert "kernel.zone_closure" in _blocking_ids(rep)
 
 
+def test_zone_closure_blocks_on_numeric_floor_area_mismatch():
+    """All required surface types exist, but floor area must still reconcile."""
+    from shapely.geometry import Polygon
+
+    from src.agent.geometry.modelling import BuildingGeometry, Surface, ZoneVolume
+
+    zone = "Z1"
+    bg = BuildingGeometry(
+        zones=[zone],
+        surfaces=[
+            Surface(
+                "Z1_Floor",
+                zone,
+                "Floor",
+                [(0, 0, 0), (0, 4, 0), (4, 4, 0), (4, 0, 0)],
+                "Ground",
+            ),
+            Surface(
+                "Z1_Ceiling",
+                zone,
+                "Ceiling",
+                [(0, 0, 3), (5, 0, 3), (5, 4, 3), (0, 4, 3)],
+                "Outdoors",
+            ),
+            Surface(
+                "Z1_Wall_South",
+                zone,
+                "Wall",
+                [(0, 0, 0), (5, 0, 0), (5, 0, 3), (0, 0, 3)],
+                "Outdoors",
+            ),
+            Surface(
+                "Z1_Wall_East",
+                zone,
+                "Wall",
+                [(5, 0, 0), (5, 4, 0), (5, 4, 3), (5, 0, 3)],
+                "Outdoors",
+            ),
+            Surface(
+                "Z1_Wall_North",
+                zone,
+                "Wall",
+                [(0, 4, 0), (0, 4, 3), (5, 4, 3), (5, 4, 0)],
+                "Outdoors",
+            ),
+            Surface(
+                "Z1_Wall_West",
+                zone,
+                "Wall",
+                [(0, 0, 0), (0, 0, 3), (0, 4, 3), (0, 4, 0)],
+                "Outdoors",
+            ),
+        ],
+        windows=[],
+        zone_volumes=[
+            ZoneVolume(
+                zone,
+                "C1",
+                Polygon([(0, 0), (5, 0), (5, 4), (0, 4)]),
+                0.0,
+                3.0,
+                0,
+            )
+        ],
+    )
+
+    rep = check_kernel(bg)
+
+    assert "kernel.zone_closure" in _blocking_ids(rep)
+    closure = next(r for r in rep.results if r.check_id == "kernel.zone_closure")
+    assert closure.status == CheckStatus.FAIL
+    assert {
+        "zone": zone,
+        "floor_area": 16.0,
+        "footprint_area": 20.0,
+    } in closure.evidence["offenders"]
+    assert all("missing" not in offender for offender in closure.evidence["offenders"])
+
+
 def test_undefined_zone_blocks():
     """A surface whose zone is not in bg.zones/zone_volumes must block (Codex M2)."""
     bg = build_geometry(_anchor_geom())

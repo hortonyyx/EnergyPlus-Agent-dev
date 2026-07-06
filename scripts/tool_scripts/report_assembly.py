@@ -728,6 +728,33 @@ def _format_models(models: dict) -> list[str]:
     return lines
 
 
+def _short_hash(value: object, length: int = 12) -> str:
+    return str(value)[:length] if value else "null"
+
+
+def _format_provenance_summary(provenance: dict) -> str:
+    if not provenance:
+        return "- provenance: `unavailable`"
+    dirty = provenance.get("git_dirty")
+    if dirty is True:
+        dirty_marker = "dirty"
+    elif dirty is False:
+        dirty_marker = "clean"
+    else:
+        dirty_marker = "unknown"
+    total = provenance.get("git_dirty_paths_total")
+    dirty_suffix = f":{total}" if dirty is True and total is not None else ""
+    parts = [
+        f"git={_short_hash(provenance.get('git_sha'))}",
+        f"dirty={dirty_marker}{dirty_suffix}",
+        f"skills={_short_hash(provenance.get('skills_intake_hash'))}",
+        f"reading={_short_hash(provenance.get('reading_src_hash'))}",
+        f"correction={_short_hash(provenance.get('correction_src_hash'))}",
+        f"corr_cfg={_short_hash(provenance.get('correction_config_hash'))}",
+    ]
+    return f"- provenance: `{' '.join(parts)}`"
+
+
 def _render_model_config(baseline: dict) -> str:
     lines = [
         f"# {baseline['case']} / {baseline.get('run', '')} REPORT",
@@ -739,6 +766,7 @@ def _render_model_config(baseline: dict) -> str:
         f"- recorded: `{baseline.get('recorded', '')}`",
         f"- orchestrator: `{baseline.get('orchestrator', '')}`",
         f"- 自动状态: `{_status_tldr(baseline)}`",
+        _format_provenance_summary(baseline.get("provenance", {})),
         *_format_models(baseline.get("models", {})),
         *_format_signals(baseline.get("signals", {})),
     ]
