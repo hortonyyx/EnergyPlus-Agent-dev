@@ -361,7 +361,7 @@ missing CV anchor:exploratory=warn、golden/regression=等工具箱转正为默�
 8. **plan.md"候选 17 留下轮"已过时**——guide §4 世界轴冲突实际已在 6.27 批次闭合,可勾掉(D2)。
 9. **"64k 截断"历史顾虑未兑现且发现未被记录的架构优点**——LLM 侧负载随区数不随面数扩展,确定性内核吸收了面数爆炸(D1-4)。
 
-### 收尾建议(流程性,非本报告执行)
+### 收尾建议(流程性,非本报告执行时点的记录,落地情况见文末附录)
 
 管理文档待同步项:撤旧 caveat 换记 A2-1/A2-2;plan.md 勾掉候选 17;memory `derive-facade-frame` 条目更新(已做);uncaptured 空列表观察点、win_tol 死参数、阈值 config 化、A0 反向漂移三容差并入 §8b/相应 backlog;skill README 卫生清理。
 
@@ -371,3 +371,20 @@ missing CV anchor:exploratory=warn、golden/regression=等工具箱转正为默�
 - **批次二(口径收口)**=风险#1/#3/#8 用 check registry 一把解;D2-2/D2-3 两个小 check 顺批并入(都是 check_mep 加叶子)。
 - **批次三(小测试补丁)**=风险#7 三件。
 - C2 相关(风险#4/#5)按 B1 开工序走;git 分叉收敛按既定"批次重录后合并 main"计划,勿再拖大。
+
+---
+
+## 附录:修复落地记录(2026-07-06,报告交付后同日执行;本节只记进展,不改上文诊断)
+
+用户授权用剩余额度按报告修复批次开工,Claude 编排/Codex 双审执行,四个模块落地(测试 468→489 绿 + 9 xfail 不变,commit `fea6981`/`2661fd4`/`41f842d`):
+
+| 模块 | 对应风险 | 落地内容 |
+|---|---|---|
+| M1 口径收口 | #1/#3 | run_pipeline 内联完整 S0 `check_reading_view`(聚合 `0_reading/reading_checks.json`+profile 分档门,A8 sidecar 时序保留);S5 `check_assembly` 接入分档门(contract 保持全 profile 硬 raise、单次计算);**`tests/test_check_parity.py` parity 锁**(豁免表显式登记) |
+| M2 三道门+批次零 | #6/#9 | `DIMCHAIN_CLOSE_TOL_M=0.010` 对齐 A0(执行前实证扫描:(10,50]mm 区间 0 条=收紧免费);新 `mep.construction_thermal_mass` + `mep.hvac_schedule_refs`(非空引用必须可解析;heating/cooling availability 字段 defer——旧 run 存在字段错位,记 backlog);pyproject 补 ezdxf/python-dotenv/openai/attrs、删 click/aiohttp、`testpaths=["tests"]`、删残缺 `.venv` |
+| M3 provenance | #2 之一 | `_run/baseline.json` 新顶层 `provenance` 块(git_sha/git_dirty/dirty_paths + skills_intake/reading_src/correction_src 目录哈希 + correction_config 哈希;git -C 仓库根锚定;软降级;**无时间戳字段保幂等**);REPORT GEN 加摘要;删零消费 `RunPolicy.reading_runner_ladder` |
+| M4 测试补丁 | #7 | 4_mep golden fail-closed(自然违规)、zone_closure 面积数值分支、report_assembly 三个 evidence 抓取器 + viewer smoke |
+
+**过程发现(自证价值)**:pytest 一直在收集 `backup/` 里的备份副本(无 testpaths)——执行器的"目标测试绿"曾部分测在备份副本上;`testpaths` 钉死后现形 2 个真失败(M2 新门正确抓住 M1 测试 fixture 的全 NoMass 构造)并修复。这正是风险#3"两路/双份漂移"病根的又一实例,也反证 parity 锁的必要性。
+
+**仍未做**(需用户拍板/后续轮次):风险#2 其余两件(污染硬隔离=要专门设计轮;盲抽真端到端)、INVARIANT 全档硬 raise(政策)、check registry 全量重构(parity 锁已降低紧迫度)、判卷 §8b 批(用户既定 Sonnet 4.6 后)、C2 开工序。**同日续批**:CV 工具箱 C0+C1(报告 B2 的第一落地批)已开工,轨迹见 `logs/reviews/{request,verdict,execution}/2026-07-06_cv_toolbox_*`。
