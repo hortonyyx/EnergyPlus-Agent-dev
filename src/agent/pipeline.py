@@ -676,7 +676,10 @@ def run_mep(
 # orchestration
 # --------------------------------------------------------------------------- #
 def materialize_kernel_geometry(
-    geom: CorrectedGeometry, out_dir: Path | None
+    geom: CorrectedGeometry,
+    out_dir: Path | None,
+    *,
+    capability_profile: str = "rectangular",
 ) -> tuple["BuildingGeometry | None", list[str]]:
     """Run the deterministic geometry kernel (2_modelling -> 3_split_pairing) on
     the snapped CorrectedGeometry and materialize the result + a gate report.
@@ -696,7 +699,7 @@ def materialize_kernel_geometry(
 
         # build_geometry is read-only on `geom` (it constructs new ZoneVolumes /
         # polygons), so the same `geom` is safe to hand to later stages.
-        bg = build_geometry(geom)
+        bg = build_geometry(geom, capability_profile=capability_profile)
         issues = validate_interzone_surface_pairs(building_to_idf(bg))
     except Exception as e:  # noqa: BLE001 — advisory build, never fatal here
         logger.warning("kernel: geometry build/gate failed: {}", e)
@@ -859,6 +862,7 @@ def run_pipeline(
     coverage_report = check_evidence_debt_coverage(
         geom,
         evidence_debt,
+        capability_profile=capability_profile,
         run_profile=run_profile,
     )
     if coverage_report.results and s1 is not None:
@@ -888,6 +892,7 @@ def run_pipeline(
         geom,
         tol,
         authoritative_envelope=authoritative_envelope,
+        capability_profile=capability_profile,
     )
     logger.info(
         "core: deterministic snap added {} correction(s), {} unsupported",
@@ -938,7 +943,9 @@ def run_pipeline(
     # is authoritative; we serialize it into the geometry specs.
     s2 = _stage("2_modelling")
     s3 = _stage("3_split_pairing")
-    bg, kernel_issues = materialize_kernel_geometry(geom, s2)
+    bg, kernel_issues = materialize_kernel_geometry(
+        geom, s2, capability_profile=capability_profile
+    )
     if kernel_issues:
         hint = "" if s2 is None else "; see 2_modelling/kernel_gate_report.json"
         logger.warning(

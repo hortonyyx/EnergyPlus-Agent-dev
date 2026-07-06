@@ -210,7 +210,35 @@ tolerances.
 
 ---
 
-## 5. Method profiles
+## 5. Geometry schema/profile registry
+
+`CorrectedGeometry.schema_version` is the data-shape capability declaration, not
+a code release number. Missing `schema_version` defaults to
+`CORRECTION_SCHEMA_V1`. Unknown versions fail gate ① as
+`correction.schema_version_supported`; they must not silently downgrade to the
+rectangular path.
+
+| name | value | meaning |
+|---|---|---|
+| `CORRECTION_SCHEMA_V1` | `"1"` | current rectangular correction contract |
+| `SHAPE_RECTANGULAR` | `rectangular` | axis-aligned rectangular cell contract |
+| `SHAPE_ORTHOGONAL_POLYGON` | `orthogonal_polygon` | future orthogonal polygon-capable contract |
+| `CAPABILITY_PROFILE_RECTANGULAR` | `rectangular` | allows `SHAPE_RECTANGULAR` |
+| `CAPABILITY_PROFILE_ORTHOGONAL_POLYGON` | `orthogonal_polygon` | allows `SHAPE_RECTANGULAR` and `SHAPE_ORTHOGONAL_POLYGON` |
+
+Profile rule: the active capability profile's allowed shapes must be a superset
+of the shapes declared by the artifact schema version, else gate ① fails as
+`correction.capability_profile_shapes`.
+
+Bump rule: any newly added geometry slot that changes the data shape contract
+(for example cell polygons, per-floor footprints, z spans, facade segment
+tables, or future non-rectangular primitives) must introduce a new
+`CorrectedGeometry.schema_version` and register its declared shapes here before
+producers emit it.
+
+---
+
+## 6. Method profiles
 
 Correction strictness depends on the downstream zoning target. Each rule in
 `A1`–`A4` states the profiles it applies under and how strict it is.
@@ -224,7 +252,7 @@ Correction strictness depends on the downstream zoning target. Each rule in
 
 ---
 
-## 6. Upstream input contract (perception)
+## 7. Upstream input contract (perception)
 
 For correction to be safe, perception input should:
 
@@ -239,7 +267,7 @@ existence evidence and numeric `estimated_stroke` (not `direct_measurement`);
 `dimension_refs`; `estimated` = low-confidence `estimated_stroke`;
 `unknown`/missing = legacy/unknown.
 
-### 6.1 Provenance mode and coverage
+### 7.1 Provenance mode and coverage
 
 ```
 provenance_mode      full | partial | legacy
@@ -251,7 +279,7 @@ to `estimated_stroke` / `unknown`, their confidence lowered, and more
 `conflicts[]` emitted. Low-provenance input must not become high-confidence
 output.
 
-### 6.2 Profile-specific stop conditions
+### 7.2 Profile-specific stop conditions
 
 - `room_identity`: fail / mark `unsupported` when internal-wall provenance is too sparse.
 - `use_grouped_rooms`: fail / mark `unsupported` when room-cell closure or labels are too sparse.

@@ -17,6 +17,8 @@ window-on-wall/zone-count/reconcile = CROSS_CHECK (flag).
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING, Any
+
 from src.agent.correction.geometry_validator import (
     GeometryFinding,
     validate_corrected_geometry,
@@ -26,8 +28,20 @@ from src.agent.correction.envelope import (
     resolve_authoritative_envelope,
 )
 from src.agent.correction.schema import CorrectedGeometry
-from src.agent.execution.evidence_preflight import EvidenceDebt
+from src.agent.geometry.capability import (
+    CHECK_CAPABILITY_PROFILE_SHAPES,
+    CHECK_SCHEMA_VERSION_SUPPORTED,
+    SUPPORTED_SCHEMA_VERSIONS,
+    allowed_shapes,
+    capability_profile_allows,
+    declared_shapes,
+    schema_version_of,
+    schema_version_supported,
+)
 from src.validator.checks.schema import CheckLayer, CheckReport, CheckStatus, RunProfile
+
+if TYPE_CHECKING:
+    from src.agent.execution.evidence_preflight import EvidenceDebt
 
 # Which geometry findings are hard invariants vs soft cross-checks.
 _INVARIANT_CHECKS = {
@@ -80,6 +94,7 @@ def check_correction(
         run_profile=run_profile,
     )
 
+    _schema_profile_compatibility(rep, geom, capability_profile)
     for f in validate_corrected_geometry(geom, expected_zone_total=expected_zone_total):
         _add_finding(rep, f)
 
@@ -88,6 +103,53 @@ def check_correction(
     _evidence_debt_coverage(rep, geom, evidence_debt)
     _deferred_residual_placeholders(rep)
     return rep
+
+
+def _schema_profile_compatibility(
+    rep: CheckReport, geom: CorrectedGeometry, capability_profile: str
+) -> None:
+    version = schema_version_of(geom)
+    if not schema_version_supported(geom):
+        rep.add_fail(
+            CHECK_SCHEMA_VERSION_SUPPORTED,
+            CheckLayer.INVARIANT,
+            f"unsupported correction schema_version {version!r}",
+            evidence={
+                "schema_version": version,
+                "supported_versions": sorted(SUPPORTED_SCHEMA_VERSIONS),
+            },
+        )
+        return
+    rep.add_pass(
+        CHECK_SCHEMA_VERSION_SUPPORTED,
+        CheckLayer.INVARIANT,
+        evidence={"schema_version": version},
+    )
+
+    data_shapes = declared_shapes(geom)
+    profile_shapes = allowed_shapes(capability_profile)
+    if not capability_profile_allows(geom, capability_profile):
+        rep.add_fail(
+            CHECK_CAPABILITY_PROFILE_SHAPES,
+            CheckLayer.INVARIANT,
+            "capability_profile does not allow all shapes declared by "
+            "correction schema_version",
+            evidence={
+                "capability_profile": capability_profile,
+                "declared_shapes": sorted(data_shapes),
+                "allowed_shapes": sorted(profile_shapes),
+            },
+        )
+        return
+    rep.add_pass(
+        CHECK_CAPABILITY_PROFILE_SHAPES,
+        CheckLayer.INVARIANT,
+        evidence={
+            "capability_profile": capability_profile,
+            "declared_shapes": sorted(data_shapes),
+            "allowed_shapes": sorted(profile_shapes),
+        },
+    )
 
 
 def check_evidence_debt_coverage(
@@ -204,9 +266,11 @@ def _audit_completeness(
                      evidence={"audit_entries": len(audit_entries)})
 
 
-def _coerce_debt(evidence_debt: EvidenceDebt | dict | None) -> EvidenceDebt | None:
+def _coerce_debt(evidence_debt: EvidenceDebt | dict | None) -> Any | None:
     if evidence_debt is None:
         return None
+    from src.agent.execution.evidence_preflight import EvidenceDebt
+
     if isinstance(evidence_debt, EvidenceDebt):
         return evidence_debt
     if isinstance(evidence_debt, dict):

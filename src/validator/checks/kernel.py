@@ -27,6 +27,7 @@ from __future__ import annotations
 
 import numpy as np
 
+from src.agent.geometry.adjacency import expected_internal_interface_area
 from src.agent.geometry.modelling import BuildingGeometry, Surface
 from src.validator.checks.schema import CheckLayer, CheckReport, CheckStatus, RunProfile
 
@@ -233,30 +234,9 @@ def _coverage_completeness(
                 CheckLayer.INVARIANT, message="no zone_volumes to derive adjacency")
         return
 
-    expected = 0.0
-    # vertical interior walls: same-floor adjacent cells sharing an edge
-    by_fi: dict[int, list] = {}
-    for zv in zvs:
-        by_fi.setdefault(zv.fi, []).append(zv)
-    for group in by_fi.values():
-        for i in range(len(group)):
-            for j in range(i + 1, len(group)):
-                a, b = group[i], group[j]
-                shared = a.polygon.boundary.intersection(b.polygon.boundary)
-                length = getattr(shared, "length", 0.0)
-                if length >= _MIN_SHARE:
-                    height = min(a.zt - a.zf, b.zt - b.zf)
-                    expected += length * height
-    # horizontal floor/ceiling: vertically adjacent cells whose polygons overlap
-    fis = sorted(by_fi)
-    for lo_fi, hi_fi in zip(fis, fis[1:]):
-        for a in by_fi[lo_fi]:
-            for b in by_fi[hi_fi]:
-                if abs(a.zt - b.zf) > 0.05:
-                    continue
-                ov = a.polygon.intersection(b.polygon).area
-                if ov >= _MIN_SHARE:
-                    expected += ov
+    expected = expected_internal_interface_area(
+        zvs, min_share_m=_MIN_SHARE, z_tol_m=0.05
+    )
 
     realised = sum(_poly_area_3d(s.verts) for s in bg.surfaces if s.obc == "Surface")
     realised_half = realised / 2.0  # each interface counted on both sides

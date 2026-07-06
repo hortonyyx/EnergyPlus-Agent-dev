@@ -174,7 +174,7 @@ def validate_case(
                 serialize_geometry,
             )
 
-            bg = build_geometry(geom)
+            bg = build_geometry(geom, capability_profile=profile)
             zone_specs, surface_specs, fen_specs, used_constructions = serialize_geometry(bg)
             zone_names = set(dict.fromkeys(bg.zones))
 

@@ -16,6 +16,8 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
+from src.agent.correction.constants import SCHEMA_VERSION_V1
+
 # Case-insensitive aliases the facade validator accepts; anything else (e.g.
 # "Northeast", a typo) is rejected so the geometry stages never silently treat
 # an unknown facade as North/South.
@@ -68,6 +70,7 @@ class CorrectedGeometry(BaseModel):
     """Corrected, world-frame, centerline geometry primitives — the correction-stage output."""
 
     model_config = ConfigDict(extra="allow")
+    schema_version: str = SCHEMA_VERSION_V1
     footprint_x: list[float]  # [min, max]
     footprint_y: list[float]  # [min, max]
     floors: list[Floor]

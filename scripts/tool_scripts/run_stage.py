@@ -178,7 +178,9 @@ def _draw_correction(
             rep.add_fail("correction.draw_quality", CheckLayer.INVARIANT, msg)
         return geom, rep
 
-    geom = apply_deterministic_core(geom)
+    geom = apply_deterministic_core(
+        geom, capability_profile=policy.capability_profile
+    )
     (s1 / "correction_geometry_snapped.json").write_text(
         geom.model_dump_json(indent=2), encoding="utf-8")
     # Mirror run_pipeline's post-core audit artifact (stage-dir shape parity).
@@ -203,7 +205,7 @@ def _load_snapped(run_dir: Path):
     return CorrectedGeometry.model_validate_json(p.read_text(encoding="utf-8"))
 
 
-def _draw_modelling(run_dir: Path):
+def _draw_modelling(run_dir: Path, policy: RunPolicy):
     from src.agent.geometry.specs import building_geometry_dict
     from src.agent.pipeline import materialize_kernel_geometry
     from src.validator.checks.kernel import check_kernel
@@ -211,17 +213,24 @@ def _draw_modelling(run_dir: Path):
     geom = _load_snapped(run_dir)
     s2 = run_dir / "2_modelling"
     s2.mkdir(parents=True, exist_ok=True)
-    bg, issues = materialize_kernel_geometry(geom, s2)
+    bg, issues = materialize_kernel_geometry(
+        geom, s2, capability_profile=policy.capability_profile
+    )
     if bg is None:
         rep = CheckReport(stage="2_modelling")
         rep.add("kernel.build", CheckStatus.ERROR, CheckLayer.INVARIANT,
                 message="geometry kernel build failed: " + "; ".join(issues))
         return {}, rep
-    rep = check_kernel(bg, interzone_issues=issues)
+    rep = check_kernel(
+        bg,
+        capability_profile=policy.capability_profile,
+        interzone_issues=issues,
+        run_profile=policy.run_profile,
+    )
     return building_geometry_dict(bg), rep
 
 
-def _draw_split_pairing(run_dir: Path):
+def _draw_split_pairing(run_dir: Path, policy: RunPolicy):
     from src.agent.geometry import build_geometry
     from src.agent.geometry.specs import (
         building_geometry_dict,
@@ -230,7 +239,7 @@ def _draw_split_pairing(run_dir: Path):
     )
 
     geom = _load_snapped(run_dir)
-    bg = build_geometry(geom)
+    bg = build_geometry(geom, capability_profile=policy.capability_profile)
     zone_specs, surface_specs, fen_specs, _ = serialize_geometry(bg)
     md = geometry_specs_markdown(zone_specs, surface_specs, fen_specs)
     s3 = run_dir / "3_split_pairing"
@@ -248,31 +257,37 @@ def _draw_split_pairing(run_dir: Path):
     return md, rep
 
 
-def _geometry_zone_meta(run_dir: Path):
+def _geometry_zone_meta(run_dir: Path, policy: RunPolicy):
     """Rebuild zone_specs + used_constructions + zone_names for 4_mep / 5."""
     from src.agent.geometry import build_geometry
     from src.agent.geometry.specs import serialize_geometry
 
     geom = _load_snapped(run_dir)
-    bg = build_geometry(geom)
+    bg = build_geometry(geom, capability_profile=policy.capability_profile)
     zone_specs, surface_specs, fen_specs, used = serialize_geometry(bg)
     zone_names = set(dict.fromkeys(bg.zones))
     return zone_specs, surface_specs, fen_specs, used, zone_names
 
 
-def _draw_mep(run_dir: Path, testdata_text: str):
+def _draw_mep(run_dir: Path, testdata_text: str, policy: RunPolicy):
     from src.agent.pipeline import run_mep
     from src.validator.checks.mep import check_mep
 
-    zone_specs, _, _, used, zone_names = _geometry_zone_meta(run_dir)
+    zone_specs, _, _, used, zone_names = _geometry_zone_meta(run_dir, policy)
     s4 = run_dir / "4_mep"
     s4.mkdir(parents=True, exist_ok=True)
     mep = run_mep(zone_specs, used, testdata_text, out_dir=s4, feedback=None)
-    rep = check_mep(mep.model_dump(), used_constructions=used, zone_names=zone_names)
+    rep = check_mep(
+        mep.model_dump(),
+        used_constructions=used,
+        zone_names=zone_names,
+        capability_profile=policy.capability_profile,
+        run_profile=policy.run_profile,
+    )
     return mep, rep
 
 
-def _draw_assembly(run_dir: Path):
+def _draw_assembly(run_dir: Path, policy: RunPolicy):
     from src.agent._share import ensure_schema_initialized
     from src.agent.intakeoutput import (
         MepOutput,
@@ -286,7 +301,7 @@ def _draw_assembly(run_dir: Path):
     # the IDD; this stepwise driver must do the same before deserializing them.
     ensure_schema_initialized()
 
-    zone_specs, surface_specs, fen_specs, used, _ = _geometry_zone_meta(run_dir)
+    zone_specs, surface_specs, fen_specs, used, _ = _geometry_zone_meta(run_dir, policy)
     mep_path = run_dir / "4_mep" / "mep_output.json"
     if not mep_path.exists():
         rep = CheckReport(stage="5_intakeoutput")
@@ -316,13 +331,13 @@ def _make_draw_fn(stage: str, run_dir: Path, testdata_text: str, td_path: Path, 
         relied = td_path.exists()
         return lambda _fb: _draw_correction(run_dir, testdata_text, ez, relied, policy)
     if stage == "2_modelling":
-        return lambda _fb: _draw_modelling(run_dir)
+        return lambda _fb: _draw_modelling(run_dir, policy)
     if stage == "3_split_pairing":
-        return lambda _fb: _draw_split_pairing(run_dir)
+        return lambda _fb: _draw_split_pairing(run_dir, policy)
     if stage == "4_mep":
-        return lambda _fb: _draw_mep(run_dir, testdata_text)
+        return lambda _fb: _draw_mep(run_dir, testdata_text, policy)
     if stage == "5_intakeoutput":
-        return lambda _fb: _draw_assembly(run_dir)
+        return lambda _fb: _draw_assembly(run_dir, policy)
     raise SystemExit(f"unknown stage '{stage}'; known: {', '.join(_STAGES)}")
 
 
@@ -1027,6 +1042,7 @@ def _make_policy(
     *,
     reading_runner_available: bool = False,
     run_profile: str = "exploratory",
+    capability_profile: str = "rectangular",
     judge_enabled: bool = True,
     confirmation_policy: ConfirmationPolicy = ConfirmationPolicy.REQUIRED,
 ) -> RunPolicy:
@@ -1036,6 +1052,7 @@ def _make_policy(
         judge_enabled=judge_enabled,
         reading_runner_available=reading_runner_available,
         run_profile=run_profile,
+        capability_profile=capability_profile,
     )
 
 
@@ -1258,6 +1275,7 @@ def cmd_run(args) -> int:
     policy = _make_policy(
         reading_runner_available=args.reading_runner_available,
         run_profile=args.run_profile,
+        capability_profile=getattr(args, "capability_profile", "rectangular"),
     )
     manifest = RunManifest.load(run_dir)
     runner = StageRunner(run_dir, manifest)
@@ -1325,6 +1343,7 @@ def cmd_judge(args) -> int:
     policy = _make_policy(
         reading_runner_available=args.reading_runner_available,
         run_profile=args.run_profile,
+        capability_profile=getattr(args, "capability_profile", "rectangular"),
     )
     stage = args.stage
     stage_dir = run_dir / stage
@@ -1407,6 +1426,7 @@ def cmd_flow(args) -> int:
     policy = _make_policy(
         reading_runner_available=args.reading_runner_available,
         run_profile=args.run_profile,
+        capability_profile=getattr(args, "capability_profile", "rectangular"),
         judge_enabled=(judge_mode != "off"),
         confirmation_policy=ConfirmationPolicy.REQUIRED,
     )
@@ -1620,6 +1640,12 @@ def main() -> int:
         choices=("exploratory", "dev", "golden", "regression"),
         default="exploratory",
         help="evidence gate policy: exploratory/dev flag, golden/regression block",
+    )
+    ap.add_argument(
+        "--capability-profile",
+        choices=("rectangular", "orthogonal_polygon"),
+        default="rectangular",
+        help="geometry capability profile for correction/kernel gates",
     )
     sub = ap.add_subparsers(dest="verb", required=True)
 

@@ -21,6 +21,7 @@ from shapely.geometry import Point
 from shapely.geometry import LineString, MultiLineString, Polygon
 
 from src.agent.correction.schema import Cell, CorrectedGeometry
+from src.agent.geometry.capability import require_supported_geometry_contract
 
 # Shared tolerances (single source; split_pairing imports these).
 _MIN_EDGE = 0.10      # m — below this a face is a degenerate sliver (gate floor)
@@ -308,7 +309,8 @@ def _find_parent_wall(surfaces: list[Surface], zone: str, w) -> Surface | None:
     span = sorted(float(s) for s in w.span)
     axis = _facade_axis(w.facade)
     want = _FACADE_NORMAL[w.facade.strip().lower()]
-    best = None
+    matches: list[Surface] = []
+    seam_hits: list[dict] = []
     for s in surfaces:
         if s.zone != zone or s.stype != "Wall" or s.obc != "Outdoors":
             continue
@@ -321,20 +323,38 @@ def _find_parent_wall(surfaces: list[Surface], zone: str, w) -> Surface | None:
         if axis == "y":  # N/S facade: wall runs along x, ~constant y
             if max(ys) - min(ys) > 0.05:
                 continue
-            if min(xs) - 0.05 <= span[0] and max(xs) + 0.05 >= span[1]:
-                best = s
+            seg = (min(xs), max(xs))
         else:            # E/W facade: wall runs along y, ~constant x
             if max(xs) - min(xs) > 0.05:
                 continue
-            if min(ys) - 0.05 <= span[0] and max(ys) + 0.05 >= span[1]:
-                best = s
-    return best
+            seg = (min(ys), max(ys))
+        on_lower_seam = abs(span[0] - seg[0]) <= 0.05 or abs(span[0] - seg[1]) <= 0.05
+        on_upper_seam = abs(span[1] - seg[0]) <= 0.05 or abs(span[1] - seg[1]) <= 0.05
+        if on_lower_seam or on_upper_seam:
+            seam_hits.append({"surface": s.name, "segment_span": seg})
+            continue
+        if seg[0] + 0.05 < span[0] and span[1] < seg[1] - 0.05:
+            matches.append(s)
+    if seam_hits:
+        raise ValueError(
+            f"window {w.id}: ambiguous parent wall on {w.facade} for {w.room}; "
+            f"window span {span} lands on wall segment seam(s): {seam_hits}"
+        )
+    if len(matches) > 1:
+        raise ValueError(
+            f"window {w.id}: ambiguous parent wall on {w.facade} for {w.room}; "
+            f"window span {span} falls inside {len(matches)} same-orientation "
+            f"wall segment spans: {[s.name for s in matches]}"
+        )
+    return matches[0] if matches else None
 
 
 # --------------------------------------------------------------------------- #
 # zone volumes + window attachment (geometry realization, not topology)
 # --------------------------------------------------------------------------- #
-def build_zone_volumes(geom: CorrectedGeometry) -> tuple[list[ZoneVolume], list[str]]:
+def build_zone_volumes(
+    geom: CorrectedGeometry, *, capability_profile: str = "rectangular"
+) -> tuple[list[ZoneVolume], list[str]]:
     """Cells -> zone volumes, returned in deterministic public-name order. Also returns tiling
     guard notes: same-floor cells must not overlap (a correction stage defect — e.g. a
     corridor placed over the rooms it should sit between produces same-side walls
@@ -348,6 +368,8 @@ def build_zone_volumes(geom: CorrectedGeometry) -> tuple[list[ZoneVolume], list[
         tolerance would silently model an internal floor interface as Roof +
         exposed Floor (mid-building outdoors) with zero gate issues.
     """
+    require_supported_geometry_contract(geom, capability_profile)
+
     # ---- source-id uniqueness guard ----
     floor_of_id: dict[str, str] = {}
     for fl in geom.floors:

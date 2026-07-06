@@ -41,6 +41,7 @@ from src.agent.correction.config import CoreTolerances, load_core_tolerances
 from src.agent.correction.envelope import AuthoritativeEnvelope, EnvelopeAxisResolution
 from src.agent.correction.geometry_validator import validate_corrected_geometry
 from src.agent.correction.schema import CorrectedGeometry
+from src.agent.geometry.capability import require_supported_geometry_contract
 
 
 _EPS = 1e-9
@@ -703,6 +704,7 @@ def apply_deterministic_core(
     tol: CoreTolerances | None = None,
     *,
     authoritative_envelope: AuthoritativeEnvelope | None = None,
+    capability_profile: str = "rectangular",
 ) -> CorrectedGeometry:
     """Snap all geometry onto a global canonical axis set; append audit entries.
 
@@ -711,6 +713,7 @@ def apply_deterministic_core(
     """
     if tol is None:
         tol = load_core_tolerances()
+    require_supported_geometry_contract(geom, capability_profile)
 
     corrections = list(geom.corrections)
     unsupported = list(geom.unsupported)

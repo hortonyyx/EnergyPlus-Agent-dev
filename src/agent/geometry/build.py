@@ -28,18 +28,22 @@ from src.agent.geometry.split_pairing import pair_surfaces
 __all__ = ["BuildingGeometry", "Surface", "Window", "build_geometry"]
 
 
-def build_geometry(geom: CorrectedGeometry) -> BuildingGeometry:
+def build_geometry(
+    geom: CorrectedGeometry, *, capability_profile: str = "rectangular"
+) -> BuildingGeometry:
     out = BuildingGeometry()
 
     # 建模·几何: cells -> zone volumes (+ tiling guard notes)
-    zvs, overlap_notes = build_zone_volumes(geom)
+    zvs, overlap_notes = build_zone_volumes(
+        geom, capability_profile=capability_profile
+    )
     out.zones = [zv.zone for zv in zvs]
     out.zone_volumes = zvs
     out.notes.extend(overlap_notes)
 
     # 切配·仿真: zone volumes -> cut + paired surfaces
     registry = NameRegistry()
-    out.surfaces = pair_surfaces(zvs, registry)
+    out.surfaces = pair_surfaces(zvs, registry, capability_profile=capability_profile)
 
     # windows -> sub-surface on the room's exterior wall on that facade
     zv_by_cell = {zv.cell_id: zv for zv in zvs}

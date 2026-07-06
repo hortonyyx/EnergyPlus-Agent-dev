@@ -24,6 +24,7 @@ import math
 from shapely.geometry import LineString, Polygon
 from shapely.ops import unary_union
 
+from src.agent.geometry.adjacency import zone_volumes_by_floor
 from src.agent.geometry.modelling import (
     _AREA_MIN,
     _Z_TOL,
@@ -39,9 +40,17 @@ from src.agent.geometry.modelling import (
     _ring_verts,
     _wall_verts,
 )
+from src.agent.geometry.capability import CAPABILITY_PROFILE_SHAPES
 
 
-def pair_surfaces(zvs: list[ZoneVolume], registry: NameRegistry) -> list[Surface]:
+def pair_surfaces(
+    zvs: list[ZoneVolume],
+    registry: NameRegistry,
+    *,
+    capability_profile: str = "rectangular",
+) -> list[Surface]:
+    if capability_profile not in CAPABILITY_PROFILE_SHAPES:
+        raise ValueError(f"unknown capability_profile {capability_profile!r}")
     surfaces: list[Surface] = []
     pair_refs: list[tuple[Surface, Surface]] = []
 
@@ -51,9 +60,10 @@ def pair_surfaces(zvs: list[ZoneVolume], registry: NameRegistry) -> list[Surface
         return s
 
     zv_by_id: dict[str, ZoneVolume] = {zv.cell_id: zv for zv in zvs}
-    by_floor: dict[int, list[str]] = {}
-    for zv in zvs:
-        by_floor.setdefault(zv.fi, []).append(zv.cell_id)
+    by_floor = {
+        fi: [zv.cell_id for zv in group]
+        for fi, group in zone_volumes_by_floor(zvs).items()
+    }
 
     # ---- 1. vertical walls + same-floor interzone pairing ----
     shared_acc: dict[str, list] = {zv.cell_id: [] for zv in zvs}
