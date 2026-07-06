@@ -228,7 +228,12 @@ def validate_case(
     if intake_path.exists():
         intake = IntakeOutput.model_validate_json(intake_path.read_text())
         if used_constructions:
-            arep = check_assembly(intake, used_constructions, capability_profile=profile)
+            arep = check_assembly(
+                intake,
+                used_constructions,
+                capability_profile=profile,
+                run_profile=run_profile,
+            )
         else:
             # intake present but no construction set to backstop against (upstream
             # geometry missing) — record an explicit error, do not skip silently.

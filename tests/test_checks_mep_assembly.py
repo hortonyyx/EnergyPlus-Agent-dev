@@ -71,6 +71,95 @@ def test_empty_construction_blocks():
     assert "mep.construction_to_material" in _blocking(rep)
 
 
+def _construction_thermal_mass_mep(material_specs: str, construction_specs: str) -> dict:
+    return {
+        "building": {"name": "B", "north_axis": 0.0, "terrain": "City"},
+        "site_location": {"name": "S", "latitude": 22.5, "longitude": 114.0,
+                          "time_zone": 8.0, "elevation": 5.0},
+        "material_specs": material_specs,
+        "construction_specs": construction_specs,
+        "schedule_specs": "", "hvac_specs": "", "people_specs": "", "lights_specs": "",
+    }
+
+
+def test_opaque_construction_with_exact_material_mass_layer_passes():
+    mep = _construction_thermal_mass_mep(
+        "Material,\n"
+        "  Concrete,\n"
+        "  MediumRough,\n"
+        "  0.1,\n"
+        "  1.4,\n"
+        "  2200,\n"
+        "  900,\n"
+        "  0.9,\n"
+        "  0.7,\n"
+        "  0.7;\n\n"
+        "Material:NoMass,\n"
+        "  Insulation,\n"
+        "  Rough,\n"
+        "  2.0,\n"
+        "  0.9,\n"
+        "  0.7,\n"
+        "  0.7;\n",
+        "Construction,\n"
+        "  Wall,\n"
+        "  Insulation,\n"
+        "  Concrete;\n",
+    )
+    result = next(r for r in check_mep(mep).results
+                  if r.check_id == "mep.construction_thermal_mass")
+    assert result.status == CheckStatus.PASS
+
+
+def test_opaque_construction_with_only_non_mass_layers_blocks():
+    mep = _construction_thermal_mass_mep(
+        "Material:NoMass,\n"
+        "  NoMassLayer,\n"
+        "  Rough,\n"
+        "  2.0,\n"
+        "  0.9,\n"
+        "  0.7,\n"
+        "  0.7;\n\n"
+        "Material:AirGap,\n"
+        "  AirGapLayer,\n"
+        "  0.18;\n\n"
+        "Material:InfraredTransparent,\n"
+        "  IRLayer;\n",
+        "Construction,\n"
+        "  Wall,\n"
+        "  NoMassLayer,\n"
+        "  AirGapLayer,\n"
+        "  IRLayer;\n",
+    )
+    rep = check_mep(mep)
+    assert "mep.construction_thermal_mass" in _blocking(rep)
+    result = next(r for r in rep.results if r.check_id == "mep.construction_thermal_mass")
+    assert result.evidence["offenders"][0]["construction"] == "Wall"
+
+
+def test_fenestration_and_air_boundary_are_out_of_thermal_mass_scope():
+    mep = _construction_thermal_mass_mep(
+        "WindowMaterial:SimpleGlazingSystem,\n"
+        "  SimpleWindow,\n"
+        "  2.5,\n"
+        "  0.5,\n"
+        "  0.4;\n",
+        "Construction,\n"
+        "  WindowCons,\n"
+        "  SimpleWindow;\n\n"
+        "Construction:AirBoundary,\n"
+        "  AirBoundaryCons,\n"
+        "  Air Mixing,\n"
+        "  SimpleMixing,\n"
+        "  0.5;\n",
+    )
+    result = next(r for r in check_mep(mep).results
+                  if r.check_id == "mep.construction_thermal_mass")
+    assert result.status == CheckStatus.PASS
+    assert result.evidence["checked_opaque_constructions"] == 0
+    assert result.evidence["skipped_fenestration_constructions"] == ["WindowCons"]
+
+
 def test_missing_construction_coverage_blocks():
     mep = _anchor_mep()
     rep = check_mep(mep, used_constructions={"Cons_DoesNotExist"})
@@ -252,6 +341,141 @@ def test_people_primary_and_activity_schedules_pass_load_to_schedule():
     mep = _people_activity_mep(",\n  Activity", include_activity_schedule=True)
     rep = check_mep(mep, zone_names={"Z1"})
     result = next(r for r in rep.results if r.check_id == "mep.load_to_schedule")
+    assert result.status == CheckStatus.PASS
+
+
+def _hvac_schedule_mep(hvac_specs: str) -> dict:
+    return {
+        "building": {"name": "B", "north_axis": 0.0, "terrain": "City"},
+        "site_location": {"name": "S", "latitude": 22.5, "longitude": 114.0,
+                          "time_zone": 8.0, "elevation": 5.0},
+        "material_specs": "", "construction_specs": "",
+        "schedule_specs": "ScheduleTypeLimits,\n"
+                          "  Fraction,\n"
+                          "  0,\n"
+                          "  1,\n"
+                          "  Continuous;\n\n"
+                          "ScheduleTypeLimits,\n"
+                          "  Temperature,\n"
+                          "  ,\n"
+                          "  ,\n"
+                          "  Continuous;\n\n"
+                          "Schedule:Compact,\n"
+                          "  ControlSch,\n"
+                          "  Fraction,\n"
+                          "  Through: 12/31,\n"
+                          "  For: AllDays,\n"
+                          "  Until: 24:00,4;\n\n"
+                          "Schedule:Compact,\n"
+                          "  HeatSet,\n"
+                          "  Temperature,\n"
+                          "  Through: 12/31,\n"
+                          "  For: AllDays,\n"
+                          "  Until: 24:00,20;\n\n"
+                          "Schedule:Compact,\n"
+                          "  CoolSet,\n"
+                          "  Temperature,\n"
+                          "  Through: 12/31,\n"
+                          "  For: AllDays,\n"
+                          "  Until: 24:00,24;\n\n"
+                          "Schedule:Compact,\n"
+                          "  Avail,\n"
+                          "  Fraction,\n"
+                          "  Through: 12/31,\n"
+                          "  For: AllDays,\n"
+                          "  Until: 24:00,1;\n",
+        "hvac_specs": hvac_specs,
+        "people_specs": "", "lights_specs": "",
+    }
+
+
+def test_hvac_schedule_refs_cover_table_and_blank_optional_fields_pass():
+    hvac_specs = (
+        "ZoneControl:Thermostat,\n"
+        "  ZT,\n"
+        "  Z1,\n"
+        "  ControlSch,\n"
+        "  ThermostatSetpoint:DualSetpoint,\n"
+        "  Dual;\n\n"
+        "ThermostatSetpoint:DualSetpoint,\n"
+        "  Dual,\n"
+        "  HeatSet,\n"
+        "  CoolSet;\n\n"
+        "ThermostatSetpoint:SingleHeating,\n"
+        "  SingleHeat,\n"
+        "  HeatSet;\n\n"
+        "ThermostatSetpoint:SingleCooling,\n"
+        "  SingleCool,\n"
+        "  CoolSet;\n\n"
+        "ThermostatSetpoint:SingleHeatingOrCooling,\n"
+        "  SingleHeatCool,\n"
+        "  HeatSet;\n\n"
+        "ZoneHVAC:IdealLoadsAirSystem,\n"
+        "  Ideal,\n"
+        "  Avail;\n\n"
+        "HVACTemplate:Zone:IdealLoadsAirSystem,\n"
+        "  Z1,\n"
+        "  TemplateTstat,\n"
+        "  Avail;\n\n"
+        "HVACTemplate:Thermostat,\n"
+        "  TemplateTstat,\n"
+        "  HeatSet,\n"
+        "  ,\n"
+        "  CoolSet;\n\n"
+        "HVACTemplate:Thermostat,\n"
+        "  BlankTemplateTstat,\n"
+        "  ,\n"
+        "  20,\n"
+        "  ,\n"
+        "  24;\n"
+    )
+    result = next(r for r in check_mep(_hvac_schedule_mep(hvac_specs)).results
+                  if r.check_id == "mep.hvac_schedule_refs")
+    assert result.status == CheckStatus.PASS
+    assert result.evidence["checked_fields"] == 12
+
+
+def test_hvac_schedule_refs_block_non_empty_missing_schedule():
+    hvac_specs = (
+        "ThermostatSetpoint:DualSetpoint,\n"
+        "  Dual,\n"
+        "  MissingHeat,\n"
+        "  CoolSet;\n"
+    )
+    rep = check_mep(_hvac_schedule_mep(hvac_specs))
+    assert "mep.hvac_schedule_refs" in _blocking(rep)
+    result = next(r for r in rep.results if r.check_id == "mep.hvac_schedule_refs")
+    assert result.evidence["offenders"] == [{
+        "object_type": "THERMOSTATSETPOINT:DUALSETPOINT",
+        "object": "Dual",
+        "field": "Heating_Setpoint_Temperature_Schedule_Name",
+        "schedule_ref": "MissingHeat",
+    }]
+
+
+def test_hvac_schedule_refs_ignore_deferred_heating_cooling_availability_fields():
+    hvac_specs = (
+        "ZoneHVAC:IdealLoadsAirSystem,\n"
+        "  Ideal,\n"
+        "  Avail,\n"
+        "  ,\n"
+        "  ,\n"
+        "  ,\n"
+        "  50,\n"
+        "  13,\n"
+        "  0.015,\n"
+        "  0.008,\n"
+        "  NoLimit,\n"
+        "  ,\n"
+        "  ,\n"
+        "  NoLimit,\n"
+        "  ,\n"
+        "  ,\n"
+        "  DeferredHeatAvail,\n"
+        "  DeferredCoolAvail;\n"
+    )
+    result = next(r for r in check_mep(_hvac_schedule_mep(hvac_specs)).results
+                  if r.check_id == "mep.hvac_schedule_refs")
     assert result.status == CheckStatus.PASS
 
 

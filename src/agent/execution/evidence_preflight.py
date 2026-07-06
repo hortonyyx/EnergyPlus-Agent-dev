@@ -173,6 +173,23 @@ def compute_evidence_debt_from_vector_dir(
     dimensioned_views: set[str] | None = None,
 ) -> EvidenceDebt:
     """Run reading checks and project only evidence debt for correction."""
+    report = compute_reading_report_from_vector_dir(
+        vector_dir,
+        run_profile=run_profile,
+        capability_profile=capability_profile,
+        dimensioned_views=dimensioned_views,
+    )
+    return project_evidence_debt(report, run_profile=run_profile)
+
+
+def compute_reading_report_from_vector_dir(
+    vector_dir: Path,
+    *,
+    run_profile: RunProfile = "exploratory",
+    capability_profile: str = "rectangular",
+    dimensioned_views: set[str] | None = None,
+) -> CheckReport:
+    """Run the full S0 reading checks once and aggregate per-view results."""
     vector_dir = Path(vector_dir)
     dimensioned_views = dimensioned_views or set()
     merged = CheckReport(
@@ -192,7 +209,7 @@ def compute_evidence_debt_from_vector_dir(
             merged.results.append(
                 result.model_copy(update={"check_id": f"{path.stem}.{result.check_id}"})
             )
-    return project_evidence_debt(merged, run_profile=run_profile)
+    return merged
 
 
 def write_evidence_debt(path: Path, debt: EvidenceDebt) -> None:

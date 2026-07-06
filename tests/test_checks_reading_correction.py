@@ -380,6 +380,13 @@ def test_non_closing_dimension_chain_is_evidence_debt():
     assert "reading.dimension_chain_closure" in {r.check_id for r in rep.flagged()}
 
 
+def test_dimension_chain_closure_flags_49mm_gap():
+    rep = check_reading_view(_dimensioned_chain_view(overall=5.049, segments=[2.0, 3.0]))
+    result = next(r for r in rep.results if r.check_id == "reading.dimension_chain_closure")
+    assert result.status == CheckStatus.FAIL
+    assert result.evidence["mismatches"][0]["overall"] == 5.049
+
+
 def test_dimensioned_view_with_empty_dimensions_is_evidence_debt():
     v = ReadingView.model_validate({"image_kind": "plan", "uncaptured": [], "dimensions": []})
     rep = check_reading_view(v, dimensioned=True)

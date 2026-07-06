@@ -37,7 +37,24 @@ _MATERIAL_TYPES = (
     "WINDOWMATERIAL:SIMPLEGLAZINGSYSTEM", "WINDOWMATERIAL:GLAZING",
     "WINDOWMATERIAL:GAS", "WINDOWMATERIAL:BLIND", "MATERIAL:INFRAREDTRANSPARENT",
 )
+_WINDOW_MATERIAL_TYPES = tuple(t for t in _MATERIAL_TYPES if t.startswith("WINDOWMATERIAL:"))
 _LOAD_TYPES = ("PEOPLE", "LIGHTS", "ELECTRICEQUIPMENT")
+_HVAC_SCHEDULE_REF_FIELDS = {
+    "ZONECONTROL:THERMOSTAT": ("Control_Type_Schedule_Name",),
+    "THERMOSTATSETPOINT:DUALSETPOINT": (
+        "Heating_Setpoint_Temperature_Schedule_Name",
+        "Cooling_Setpoint_Temperature_Schedule_Name",
+    ),
+    "THERMOSTATSETPOINT:SINGLEHEATING": ("Setpoint_Temperature_Schedule_Name",),
+    "THERMOSTATSETPOINT:SINGLECOOLING": ("Setpoint_Temperature_Schedule_Name",),
+    "THERMOSTATSETPOINT:SINGLEHEATINGORCOOLING": ("Setpoint_Temperature_Schedule_Name",),
+    "ZONEHVAC:IDEALLOADSAIRSYSTEM": ("Availability_Schedule_Name",),
+    "HVACTEMPLATE:ZONE:IDEALLOADSAIRSYSTEM": ("System_Availability_Schedule_Name",),
+    "HVACTEMPLATE:THERMOSTAT": (
+        "Heating_Setpoint_Schedule_Name",
+        "Cooling_Setpoint_Schedule_Name",
+    ),
+}
 _NAME_CHARSET_TYPES = _MATERIAL_TYPES + ("CONSTRUCTION", "SCHEDULE:COMPACT", "SCHEDULETYPELIMITS")
 _NAME_CHARSET_RE = re.compile(r"^[A-Za-z0-9_ -]+$")
 _SITE_FIELD_ALIASES = {
@@ -97,9 +114,11 @@ def check_mep(
     _site_matches_testdata(rep, mep, testdata)
     _construction_coverage(rep, idx, used_constructions)
     _construction_to_material(rep, idx)
+    _construction_thermal_mass(rep, idx)
     _schedule_type_refs(rep, idx)
     _schedule_completeness(rep, idx)
     _load_refs(rep, idx, zone_names)
+    _hvac_schedule_refs(rep, idx)
     _per_zone_coverage(rep, idx, zone_names)
     _simpleglazing_standalone(rep, idx)
     _nomass_positive_resistance(rep, idx)
@@ -109,6 +128,21 @@ def check_mep(
 
 def _material_names(idx: IdfFragmentIndex) -> set[str]:
     return idx.has_name(*_MATERIAL_TYPES)
+
+
+def _material_types_by_name(idx: IdfFragmentIndex) -> dict[str, set[str]]:
+    by_name: dict[str, set[str]] = {}
+    for obj in idx.of_type(*_MATERIAL_TYPES):
+        by_name.setdefault(obj.name, set()).add(obj.obj_type)
+    return by_name
+
+
+def _construction_layers(obj) -> list[str]:
+    # Strip trailing empties (eppy pads optional layer fields) before judging.
+    layers = [str(layer or "").strip() for layer in obj.fields[1:]]
+    while layers and not layers[-1]:
+        layers.pop()
+    return layers
 
 
 def _placeholder_ban(rep: CheckReport, mep: dict | object, idx: IdfFragmentIndex) -> None:
@@ -356,10 +390,7 @@ def _construction_to_material(rep: CheckReport, idx: IdfFragmentIndex) -> None:
     mats = _material_names(idx)
     bad = []
     for c in idx.of_type("CONSTRUCTION"):
-        # Strip trailing empties (eppy pads optional layer fields) before judging.
-        layers = list(c.fields[1:])
-        while layers and not str(layers[-1]).strip():
-            layers.pop()
+        layers = _construction_layers(c)
         if not layers:
             bad.append({"construction": c.name, "reason": "no layers (empty construction)"})
             continue
@@ -374,6 +405,57 @@ def _construction_to_material(rep: CheckReport, idx: IdfFragmentIndex) -> None:
                      evidence={"offenders": bad})
     else:
         rep.add_pass("mep.construction_to_material", CheckLayer.INVARIANT)
+
+
+def _construction_thermal_mass(rep: CheckReport, idx: IdfFragmentIndex) -> None:
+    layer_types = _material_types_by_name(idx)
+    bad = []
+    skipped_fenestration = []
+    checked = 0
+    for c in idx.of_type("CONSTRUCTION"):
+        layers = _construction_layers(c)
+        resolved = [
+            {"layer": layer, "types": sorted(layer_types.get(layer, set()))}
+            for layer in layers
+            if layer
+        ]
+        if any(
+            obj_type in _WINDOW_MATERIAL_TYPES
+            for item in resolved
+            for obj_type in item["types"]
+        ):
+            skipped_fenestration.append(c.name)
+            continue
+        checked += 1
+        has_mass_layer = any(layer_types.get(layer, set()) == {"MATERIAL"} for layer in layers)
+        if not has_mass_layer:
+            bad.append(
+                {
+                    "construction": c.name,
+                    "layers": layers,
+                    "resolved_layer_types": resolved,
+                }
+            )
+    evidence = {
+        "checked_opaque_constructions": checked,
+        "skipped_fenestration_constructions": skipped_fenestration,
+        "mass_layer_type": "MATERIAL",
+        "non_mass_layer_types": [
+            "MATERIAL:NOMASS",
+            "MATERIAL:AIRGAP",
+            "MATERIAL:INFRAREDTRANSPARENT",
+        ],
+        "out_of_scope_object_types": ["CONSTRUCTION:AIRBOUNDARY"],
+    }
+    if bad:
+        rep.add_fail(
+            "mep.construction_thermal_mass",
+            CheckLayer.INVARIANT,
+            f"{len(bad)} opaque construction(s) have no exact Material mass layer",
+            evidence=evidence | {"offenders": bad},
+        )
+    else:
+        rep.add_pass("mep.construction_thermal_mass", CheckLayer.INVARIANT, evidence=evidence)
 
 
 def _schedule_type_refs(rep: CheckReport, idx: IdfFragmentIndex) -> None:
@@ -439,6 +521,57 @@ def _load_refs(
                      evidence={"offenders": sched_bad})
     else:
         rep.add_pass("mep.load_to_schedule", CheckLayer.INVARIANT)
+
+
+def _hvac_schedule_refs(rep: CheckReport, idx: IdfFragmentIndex) -> None:
+    sched_names = idx.has_name("SCHEDULE:COMPACT")
+    bad = []
+    checked = 0
+    for obj_type, field_names in _HVAC_SCHEDULE_REF_FIELDS.items():
+        for obj in idx.of_type(obj_type):
+            for field_name in field_names:
+                checked += 1
+                schedule_ref = _raw_field_value(obj, field_name)
+                if schedule_ref and schedule_ref not in sched_names:
+                    bad.append(
+                        {
+                            "object_type": obj.obj_type,
+                            "object": obj.name,
+                            "field": field_name,
+                            "schedule_ref": schedule_ref,
+                        }
+                    )
+    evidence = {
+        "checked_fields": checked,
+        "field_table": _HVAC_SCHEDULE_REF_FIELDS,
+        "blank_reference_policy": "pass",
+        "resolved_schedule_type": "SCHEDULE:COMPACT",
+        "deferred_fields": [
+            "ZoneHVAC:IdealLoadsAirSystem.Heating_Availability_Schedule_Name",
+            "ZoneHVAC:IdealLoadsAirSystem.Cooling_Availability_Schedule_Name",
+            "HVACTemplate:Zone:IdealLoadsAirSystem.Heating_Availability_Schedule_Name",
+            "HVACTemplate:Zone:IdealLoadsAirSystem.Cooling_Availability_Schedule_Name",
+        ],
+    }
+    if bad:
+        rep.add_fail(
+            "mep.hvac_schedule_refs",
+            CheckLayer.INVARIANT,
+            f"{len(bad)} HVAC schedule reference(s) are undefined",
+            evidence=evidence | {"offenders": bad},
+        )
+    else:
+        rep.add_pass("mep.hvac_schedule_refs", CheckLayer.INVARIANT, evidence=evidence)
+
+
+def _raw_field_value(obj, field_name: str) -> str:
+    raw = getattr(obj, "raw", None)
+    if raw is not None:
+        try:
+            return str(getattr(raw, field_name, "") or "").strip()
+        except Exception:  # noqa: BLE001 - missing/invalid raw fields count as blank
+            return ""
+    return ""
 
 
 def _people_activity_schedule_name(obj) -> str:

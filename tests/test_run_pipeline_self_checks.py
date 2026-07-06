@@ -113,9 +113,17 @@ def _mep_dict(
     return {
         "building": {"name": "B", "north_axis": 0.0, "terrain": "City"},
         "site_location": {"name": "S", **_SITE},
-        "material_specs": "Material:NoMass,\n  Mat_R,\n  Rough,\n  1.0;\n",
+        "material_specs": (
+            "Material,\n"
+            "  Mat_Mass,\n"
+            "  MediumRough,\n"
+            "  0.1,\n"
+            "  1.4,\n"
+            "  2200,\n"
+            "  880;\n"
+        ),
         "construction_specs": "".join(
-            f"Construction,\n  {name},\n  Mat_R;\n\n"
+            f"Construction,\n  {name},\n  Mat_Mass;\n\n"
             for name in sorted(used_constructions)
         ),
         "schedule_specs": (
@@ -326,6 +334,150 @@ def test_run_pipeline_golden_fail_closed_after_writing_correction_report(
         result.check_id for result in _report(correction_path).blocking()
     }
     assert not (out_dir / "4_mep" / "mep_checks.json").exists()
+
+
+def test_run_pipeline_golden_blocks_on_reading_invariant_after_sidecars(
+    tmp_path, monkeypatch
+):
+    vector_dir = tmp_path / "0_reading"
+    _write_reading(
+        vector_dir,
+        {
+            "image_kind": "plan",
+            "uncaptured": [],
+            "strokes": [
+                {
+                    "id": "S1",
+                    "pen": "wall",
+                    "provenance": "seen",
+                    "confidence": "high",
+                    "geometry": {"kind": "line", "p1": [0, 0], "p2": [2, 0]},
+                },
+                {
+                    "id": "S2",
+                    "pen": "not_a_pen",
+                    "provenance": "seen",
+                    "confidence": "high",
+                    "geometry": {"kind": "line", "p1": [0, 0], "p2": [2, 0]},
+                }
+            ],
+        },
+    )
+    _patch_llm_stages(monkeypatch, tmp_path)
+    out_dir = tmp_path / "out"
+
+    with pytest.raises(
+        RuntimeError,
+        match="0_reading self-check blocked under run_profile=golden",
+    ) as exc:
+        pipeline.run_pipeline(vector_dir, "{}", out_dir=out_dir, run_profile="golden")
+
+    assert "1f_view.reading.pen_kind_valid" in str(exc.value)
+    reading = _report(out_dir / "0_reading" / "reading_checks.json")
+    assert "1f_view.reading.pen_kind_valid" in {
+        result.check_id for result in reading.blocking()
+    }
+    debt = json.loads((out_dir / "1_correction" / "evidence_debt.json").read_text())
+    assert debt["debts"] == []
+    assert not (out_dir / "1_correction" / "correction_checks.json").exists()
+
+
+def test_run_pipeline_exploratory_warns_and_continues_on_reading_invariant(
+    tmp_path, monkeypatch
+):
+    vector_dir = tmp_path / "0_reading"
+    _write_reading(
+        vector_dir,
+        {
+            "image_kind": "plan",
+            "uncaptured": [],
+            "strokes": [
+                {
+                    "id": "S1",
+                    "pen": "wall",
+                    "provenance": "seen",
+                    "confidence": "high",
+                    "geometry": {"kind": "line", "p1": [0, 0], "p2": [2, 0]},
+                },
+                {
+                    "id": "S2",
+                    "pen": "not_a_pen",
+                    "provenance": "seen",
+                    "confidence": "high",
+                    "geometry": {"kind": "line", "p1": [0, 0], "p2": [2, 0]},
+                }
+            ],
+        },
+    )
+    _patch_llm_stages(monkeypatch, tmp_path)
+    out_dir = tmp_path / "out"
+    warnings: list[str] = []
+    sink = pipeline.logger.add(lambda msg: warnings.append(str(msg)), level="WARNING")
+    try:
+        intake = pipeline.run_pipeline(
+            vector_dir, "{}", out_dir=out_dir, run_profile="exploratory"
+        )
+    finally:
+        pipeline.logger.remove(sink)
+
+    assert isinstance(intake, IntakeOutput)
+    reading = _report(out_dir / "0_reading" / "reading_checks.json")
+    assert "1f_view.reading.pen_kind_valid" in {
+        result.check_id for result in reading.blocking()
+    }
+    assert any("0_reading self-check" in msg for msg in warnings)
+    assert any("1f_view.reading.pen_kind_valid" in msg for msg in warnings)
+    assert (out_dir / "5_intakeoutput" / "intake_output.json").exists()
+
+
+def test_run_pipeline_golden_blocks_on_future_assembly_invariant(
+    tmp_path, monkeypatch
+):
+    vector_dir = _patch_llm_stages(monkeypatch, tmp_path)
+    out_dir = tmp_path / "out"
+
+    import src.validator.checks.assembly as assembly_checks
+
+    def fake_check_assembly(
+        _intake,
+        used_constructions,
+        *,
+        capability_profile: str = "rectangular",
+        run_profile: str = "exploratory",
+    ) -> CheckReport:
+        rep = CheckReport(
+            stage="5_intakeoutput",
+            capability_profile=capability_profile,
+            run_profile=run_profile,
+        )
+        rep.add_pass(
+            "assembly.contract_backstop",
+            CheckLayer.INVARIANT,
+            evidence={"checked": len(used_constructions)},
+        )
+        rep.add_fail(
+            "assembly.future_blocker",
+            CheckLayer.INVARIANT,
+            "injected assembly invariant",
+            evidence={"source": "test"},
+        )
+        return rep
+
+    monkeypatch.setattr(assembly_checks, "check_assembly", fake_check_assembly)
+
+    with pytest.raises(
+        RuntimeError,
+        match="5_intakeoutput self-check blocked under run_profile=golden",
+    ) as exc:
+        pipeline.run_pipeline(vector_dir, "{}", out_dir=out_dir, run_profile="golden")
+
+    assert "assembly.future_blocker" in str(exc.value)
+    assembly = _report(out_dir / "5_intakeoutput" / "assembly_checks.json")
+    assert "assembly.future_blocker" in {
+        result.check_id for result in assembly.blocking()
+    }
+    assert not (out_dir / "5_intakeoutput" / "contract_issues.json").exists()
+    assert not (out_dir / "5_intakeoutput" / "intake_output.json").exists()
 
 
 def test_run_pipeline_inline_reports_match_validate_case(tmp_path, monkeypatch):

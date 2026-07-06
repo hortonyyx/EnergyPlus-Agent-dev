@@ -48,8 +48,9 @@ from src.agent.correction.config import load_core_tolerances
 from src.agent.correction.envelope import extract_authoritative_envelope
 from src.agent.execution.evidence_preflight import (
     EvidenceDebt,
-    compute_evidence_debt_from_vector_dir,
+    compute_reading_report_from_vector_dir,
     dimensioned_view_names_from_testdata_text,
+    project_evidence_debt,
     write_evidence_debt,
 )
 from src.agent.llm import load_llm_section, resolve_llm_config_path
@@ -804,12 +805,6 @@ def run_pipeline(
         d.mkdir(parents=True, exist_ok=True)
         return d
 
-    s1 = _stage("1_correction")
-    s2 = _stage("2_modelling")
-    s3 = _stage("3_split_pairing")
-    s4 = _stage("4_mep")
-    s5 = _stage("5_intakeoutput")
-
     logger.info("1_correction: correcting from {}", vector_dir)
     from src.agent.execution.case_metadata import (
         expected_zone_total_from_testdata,
@@ -818,12 +813,22 @@ def run_pipeline(
 
     parsed_testdata = parse_testdata_text(testdata_text)
     dimensioned_views = dimensioned_view_names_from_testdata_text(testdata_text)
-    evidence_debt = compute_evidence_debt_from_vector_dir(
+    reading_report = compute_reading_report_from_vector_dir(
         vector_dir,
         run_profile=run_profile,
         capability_profile=capability_profile,
         dimensioned_views=dimensioned_views,
     )
+    s0 = _stage("0_reading")
+    if s0 is not None:
+        (s0 / "reading_checks.json").write_text(
+            reading_report.model_dump_json(indent=2), encoding="utf-8"
+        )
+    evidence_debt = project_evidence_debt(
+        reading_report,
+        run_profile=run_profile,
+    )
+    s1 = _stage("1_correction")
     if s1 is not None:
         write_evidence_debt(s1 / "evidence_debt.json", evidence_debt)
     if evidence_debt.blocking:
@@ -832,6 +837,13 @@ def run_pipeline(
             "1_correction preflight blocked by reading evidence debt "
             f"under run_profile={run_profile}: {checks}"
         )
+    _gate_self_check_report(
+        stage_name="0_reading",
+        report=reading_report,
+        stage_dir=None,
+        filename="reading_checks.json",
+        run_profile=run_profile,
+    )
     geom = run_correction(
         vector_dir,
         testdata_text,
@@ -924,6 +936,8 @@ def run_pipeline(
 
     # Deterministic geometry kernel (2_modelling -> 3_split_pairing). This geometry
     # is authoritative; we serialize it into the geometry specs.
+    s2 = _stage("2_modelling")
+    s3 = _stage("3_split_pairing")
     bg, kernel_issues = materialize_kernel_geometry(geom, s2)
     if kernel_issues:
         hint = "" if s2 is None else "; see 2_modelling/kernel_gate_report.json"
@@ -960,7 +974,7 @@ def run_pipeline(
 
     # 3_split_pairing (serialization): kernel geometry -> specs text.
     from src.agent.geometry.specs import geometry_specs_markdown, serialize_geometry
-    from src.agent.intakeoutput import assemble_intake_output, validate_contract
+    from src.agent.intakeoutput import assemble_intake_output
 
     zone_specs, surface_specs, fenestration_specs, used_constructions = (
         serialize_geometry(bg)
@@ -978,6 +992,7 @@ def run_pipeline(
         len(dict.fromkeys(bg.zones)),
         len(used_constructions),
     )
+    s4 = _stage("4_mep")
     mep = run_mep(
         zone_specs, used_constructions, testdata_text, out_dir=s4, feedback=feedback
     )
@@ -1008,14 +1023,24 @@ def run_pipeline(
     )
     from src.validator.checks.assembly import check_assembly
 
+    s5 = _stage("5_intakeoutput")
     assembly_report = check_assembly(
-        intake, used_constructions, capability_profile=capability_profile
+        intake,
+        used_constructions,
+        capability_profile=capability_profile,
+        run_profile=run_profile,
     )
     if s5 is not None:
         (s5 / "assembly_checks.json").write_text(
             assembly_report.model_dump_json(indent=2), encoding="utf-8"
         )
-    contract_issues = validate_contract(intake, used_constructions)
+    contract_issues = []
+    for result in assembly_report.results:
+        if result.check_id != "assembly.contract_backstop":
+            continue
+        issues = result.evidence.get("issues")
+        if isinstance(issues, list):
+            contract_issues.extend(issues)
     if contract_issues:
         if s5 is not None:
             (s5 / "contract_issues.json").write_text(
@@ -1026,6 +1051,13 @@ def run_pipeline(
             "5_intakeoutput contract check failed (4_mep omitted geometry-"
             "referenced definitions):\n- " + "\n- ".join(contract_issues)
         )
+    _gate_self_check_report(
+        stage_name="5_intakeoutput",
+        report=assembly_report,
+        stage_dir=None,
+        filename="assembly_checks.json",
+        run_profile=run_profile,
+    )
 
     if s5 is not None:
         (s5 / "intake_output.json").write_text(

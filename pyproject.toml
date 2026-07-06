@@ -5,12 +5,11 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
-    "aiohttp>=3.13.3",
-    "click>=8.3.2",
+    "attrs>=25.4.0",
     "eppy>=0.5.63",
+    "ezdxf>=1.4.3",
     "fastmcp>=2.14.1",
     "idfpy>=26.1.0.post2",
-    "pillow>=11.0.0",
     "google-genai>=1.68.0",
     "langchain>=1.2.13",
     "langchain-anthropic>=1.4.0",
@@ -19,7 +18,10 @@ dependencies = [
     "loguru>=0.7.3",
     "numpy>=2.3.4",
     "omegaconf>=2.3.0",
+    "openai>=2.11.0",
+    "pillow>=11.0.0",
     "pydantic>=2.11.7",
+    "python-dotenv>=1.2.1",
     "python-dateutil>=2.9.0.post0",
     "pyyaml>=6.0.2",
     "qdrant-client>=1.17.1",
@@ -42,6 +44,7 @@ packages = ["src"]
 
 [tool.pytest.ini_options]
 pythonpath = ["."]
+testpaths = ["tests"]
 
 [tool.ruff]
 line-length = 88

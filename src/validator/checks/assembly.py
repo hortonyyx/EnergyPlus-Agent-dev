@@ -17,7 +17,7 @@ from pathlib import Path
 
 from src.agent.intakeoutput import validate_contract
 from src.agent.state import IntakeOutput
-from src.validator.checks.schema import CheckLayer, CheckReport, CheckStatus
+from src.validator.checks.schema import CheckLayer, CheckReport, CheckStatus, RunProfile
 
 
 def check_assembly(
@@ -25,11 +25,16 @@ def check_assembly(
     used_constructions: set[str],
     *,
     capability_profile: str = "rectangular",
+    run_profile: RunProfile = "exploratory",
 ) -> CheckReport:
     """Backstop: re-run the contract check (defense-in-depth) on the assembled
     IntakeOutput. A failure here means 4_mep's owner check was bypassed — still
     block, but attribution stays with 4_mep."""
-    rep = CheckReport(stage="5_intakeoutput", capability_profile=capability_profile)
+    rep = CheckReport(
+        stage="5_intakeoutput",
+        capability_profile=capability_profile,
+        run_profile=run_profile,
+    )
     issues = validate_contract(intake, used_constructions)
     if issues:
         rep.add_fail("assembly.contract_backstop", CheckLayer.INVARIANT,
