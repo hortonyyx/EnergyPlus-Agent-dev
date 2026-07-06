@@ -14,7 +14,7 @@
 0–5 管线 + 逐段校验架构（gate① 确定性 + gate② judge）已落地，sm20/sm21 两份 golden baseline 在册。
 **当前在把"逐段 judge-in-the-loop 编排"真跑起来、出第一份带 judge 的规范 baseline**，并扫尾两步法/评测的残留。
 
-> **[2026-07-06] Fable5 项目大审收官 + 审计修复 M1–M4 已落地（`fea6981`+`2661fd4`，489 绿 + 9 xfail，详 CLAUDE.md §2）**：体检报告 `logs/experiments/2026-07-05_fable5_project_audit/FABLE5_REPORT.md`。已修=M1 口径收口（S0 内联+S5 门+parity 锁）/M2 三道门+依赖卫生/M3 provenance 自动采集/M4 测试补丁。**体检遗留待拍板**：污染硬隔离（设计）、INVARIANT 全档硬 raise（政策）、check registry 全量重构、判卷 §8b 批、C2 开工序（第一步=schema_version 落地）；Haiku+CV 工具箱复测=北极星判决性实验（报告 B2/C1）。
+> **[2026-07-06] Fable5 项目大审收官 + 审计修复 M1–M4 已落地（`fea6981`+`2661fd4`，489 绿 + 9 xfail，详 CLAUDE.md §2）**：体检报告 `logs/experiments/2026-07-05_fable5_project_audit/FABLE5_REPORT.md`。已修=M1 口径收口（S0 内联+S5 门+parity 锁）/M2 三道门+依赖卫生/M3 provenance 自动采集/M4 测试补丁。**体检遗留待拍板**：污染硬隔离（设计）、INVARIANT 全档硬 raise（政策）、check registry 全量重构、判卷 §8b 批、C2 开工序（第一步=schema_version 落地）。**同日续批=CV 工具箱 C0+C1 已落地**（`e3ec9ae`，496 绿；详 [capability/reading_improvement_methodology.md §5](capability/reading_improvement_methodology.md)）→ **下一步=Haiku 4.5 复测（北极星判决性实验,跑前用户拍配置）**。
 
 > **[2026-07-04] 判卷可视化统一模型重构已落地（468 绿·SCORER_SCHEMA→7·详 CLAUDE.md §2 + [[standardize-test-flow-and-judge-arch]]）**：立面判卷 + 平面判卷改造成一套 diff 模型（gt 灰底 / 产品自画不借 gt / 绿橙红三档 / 平面 piece-level interval-set 双轴 / 立面窗两侧覆盖率 / 屋顶地面横线 / 半透明容差带 / 自适应虚线）。方案审 10 findings 全采纳。权威 spec `architecture/judge_grade_model.md`。**下一步 = Sonnet 4.6 干净流程对照**（立面判卷是其前置、现就绪）→ 之后 **Fable5 项目大审**（用户定：流程 / 0-5 脚手架迁移 / reading 提升 / 建筑复杂度各阶段脚手架）。
 

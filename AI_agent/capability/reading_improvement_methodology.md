@@ -178,8 +178,14 @@ legacy provenance"曾**不设硬门**，所以 reading 弱仍结构性通过、c
 4. **裁图纪律工具化**：把"满图先裁带放大再判隔墙"从 prose 纪律升级为工具默认动作（压过度分割）。
 5. **鲁棒性分档**：干净 CAD PNG（阈值 CV 够）vs 噪声/扫描/手绘（形态学 + 自适应阈值），工具箱声明适用档。
 
-> 这些**都还没落地、待设计**。落地路径 = 走正规提案（Claude 方案→Fable5/Codex 审→执行→复核），并与 Phase B 的双通道
-> schema 一并设计（工具箱是双通道 `metric.anchor_px` 通道的产出器）。
+> **✅ 工具箱 C0+C1 已落地（2026-07-06，Fable5 方案→Codex 审 APPROVE-WITH-CHANGES→Codex 执行→Fable5 复核，496 绿，commit `e3ec9ae`）**：
+> `src/agent/reading/cv_toolbox/`（6 工具：crop_zoom / wall_line_profiler / px_m_calibrator / window_cc_detector /
+> storey_line_profiler / overlay_logger，确定性零 RNG）+ CLI `scripts/tool_scripts/cv_probe.py` + sidecar
+> `0_reading/cv_evidence/`（`cv_schema="1"`·append-only·crop_chain 可逆·**预留 Phase B anchor_px/visual/metric 槽位**）
+> + skill 文档 [0_reading/cv_toolbox.md](../../skills/intake_pipeline/0_reading/cv_toolbox.md) + kickoff 指针；
+> gt-discipline 扫描扩到 `src/agent/reading/**`+CLI。上表候选 **1/2/4 即此批**；**3**（anchor_px 强制）归 Phase B、
+> **5**（鲁棒性分档）归 C5,均未做。审轨 `logs/reviews/{request,verdict,execution}/2026-07-06_cv_toolbox_c0c1_*`。
+> **下一步 = Haiku 4.5 复测**（同 case 同判卷尺、唯一变量=工具箱有无 = 北极星判决性实验，跑前须用户拍配置）。
 
 ---
 
