@@ -58,6 +58,8 @@ def test_executors_do_not_reference_gt():
     executors = [Path("src/agent/pipeline.py")]
     executors.extend(sorted(Path("src/agent/execution").rglob("*.py")))
     executors.extend(sorted(Path("src/agent/correction").rglob("*.py")))
+    executors.extend(sorted(Path("src/agent/reading").rglob("*.py")))
+    executors.append(Path("scripts/tool_scripts/cv_probe.py"))
     hits = _scan(executors)
     assert not hits, f"executors / gate① capstone must not reference gt: {hits}"
 
