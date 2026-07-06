@@ -32,7 +32,7 @@ def test_gt_loader_absent_returns_none(tmp_path):
 # --------------------------------------------------------------------------- #
 # discipline: gate① + executors must not import gt
 # --------------------------------------------------------------------------- #
-_FORBIDDEN = ("judge.gt", "judge import gt", "load_gt", "test_baseline/gt")
+_FORBIDDEN = ("judge.gt", "judge import gt", "load_gt", "test_baseline/gt", "gt.json", "/gt/")
 
 
 def _scan(paths: list[Path]) -> list[str]:

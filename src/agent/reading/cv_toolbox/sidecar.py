@@ -3,10 +3,13 @@
 from __future__ import annotations
 
 import json
+import re
 from copy import deepcopy
 from hashlib import sha256
 from pathlib import Path
 from typing import Any
+
+_SIDECAR_NAME_RE = re.compile(r"^\d{3}_[A-Za-z0-9_-]+(\.json)?$")
 
 
 def sha256_short(path: str | Path, length: int = 12) -> str:
@@ -43,6 +46,8 @@ def allocate_sidecar_path(
                 return candidate
         raise RuntimeError(f"no free sidecar slot under {root}")
 
+    if not _SIDECAR_NAME_RE.fullmatch(sidecar_name):
+        raise ValueError("sidecar_name must match NNN_tool or NNN_tool.json")
     name = sidecar_name if sidecar_name.endswith(".json") else f"{sidecar_name}.json"
     path = root / name
     if path.exists():
@@ -61,8 +66,6 @@ def write_sidecar(
     """Write a cv_schema=1 sidecar without overwriting existing evidence."""
 
     path = Path(sidecar_path)
-    if path.exists():
-        raise FileExistsError(f"sidecar already exists: {path}")
     path.parent.mkdir(parents=True, exist_ok=True)
 
     source_hash = sha256_short(source_image)
@@ -93,5 +96,6 @@ def write_sidecar(
     }
     # Future attempts collection may archive cv_evidence beside output/checks;
     # current behavior is a flat-stage audit sidecar only.
-    path.write_text(json.dumps(sidecar, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    with path.open("x", encoding="utf-8") as fh:
+        fh.write(json.dumps(sidecar, indent=2, sort_keys=True) + "\n")
     return path

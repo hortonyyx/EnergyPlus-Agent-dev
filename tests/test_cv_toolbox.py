@@ -11,6 +11,7 @@ from PIL import Image, ImageDraw
 from src.agent.reading.cv_toolbox import (
     allocate_sidecar_path,
     crop_zoom,
+    get_recipe,
     overlay_logger,
     px_m_calibrator,
     storey_line_profiler,
@@ -18,6 +19,7 @@ from src.agent.reading.cv_toolbox import (
     window_cc_detector,
     write_sidecar,
 )
+from src.agent.reading.cv_toolbox.tools import _mask_clean_vector
 
 
 GRAY = (128, 128, 128)
@@ -129,6 +131,37 @@ def test_crop_round_trip_sidecar_schema_and_append_only(tmp_path: Path):
         write_sidecar(sidecar, image, payload, crop_chain=crop_chain)
 
 
+def test_sidecar_rejects_path_escape_and_uses_exclusive_create(tmp_path: Path):
+    image = _save_plan(tmp_path / "plan.png")
+    payload, _crop, crop_chain = crop_zoom(image, [50, 20, 150, 100], source_name=image.name)
+
+    with pytest.raises(ValueError):
+        allocate_sidecar_path(tmp_path / "out", image, "crop_zoom", "../../../escaped")
+    with pytest.raises(ValueError):
+        allocate_sidecar_path(tmp_path / "out", image, "crop_zoom", "/tmp/escaped")
+
+    sidecar = allocate_sidecar_path(tmp_path / "out", image, "crop_zoom", "001_crop_zoom")
+    sidecar.parent.mkdir(parents=True, exist_ok=True)
+    sidecar.write_text("existing", encoding="utf-8")
+    with pytest.raises(FileExistsError):
+        write_sidecar(sidecar, image, payload, crop_chain=crop_chain)
+    assert sidecar.read_text(encoding="utf-8") == "existing"
+
+
+def test_fractional_crop_chain_uses_actual_integer_crop_bounds():
+    img = Image.new("RGB", (20, 20), "white")
+    img.putpixel((1, 2), GRAY)
+
+    _payload, crop, crop_chain = crop_zoom(img, [1.9, 2.9, 11.1, 12.1], scale=1)
+
+    assert crop.getpixel((0, 0)) == GRAY
+    step = crop_chain[0]
+    assert step["bbox_px"] == [1.0, 2.0, 12.0, 13.0]
+    source_x = step["bbox_px"][0] + 0 / step["scale"]
+    source_y = step["bbox_px"][1] + 0 / step["scale"]
+    assert (source_x, source_y) == (1.0, 2.0)
+
+
 def test_overlay_logger_smoke(tmp_path: Path):
     image = _save_plan(tmp_path / "plan.png")
     out = tmp_path / "overlay.png"
@@ -152,6 +185,26 @@ def test_overlay_logger_smoke(tmp_path: Path):
     )
     assert out.exists()
     assert payload["diagnostics"]["decisions"][1]["status"] == "rejected"
+
+
+def test_overlay_logger_rejects_candidate_without_drawable_geometry(tmp_path: Path):
+    image = _save_plan(tmp_path / "plan.png")
+    with pytest.raises(ValueError, match="drawable geometry"):
+        overlay_logger(
+            image,
+            [{"candidate_id": "c1", "status": "undecided", "reason": "missing geometry"}],
+            output_path=tmp_path / "overlay.png",
+        )
+
+
+def test_transparent_gray_rgba_is_not_clean_vector_mask():
+    img = Image.new("RGBA", (4, 4), (128, 128, 128, 0))
+
+    mask = _mask_clean_vector(img, get_recipe())
+    payload, _ = wall_line_profiler(img, axis="col")
+
+    assert int(mask.sum()) == 0
+    assert payload["results"] == []
 
 
 def test_real_sm21_case_data_plan_smoke():

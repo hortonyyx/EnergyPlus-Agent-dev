@@ -18,8 +18,14 @@ TOOL_VERSION = "1"
 
 def _load_rgb(image: str | Path | Image.Image) -> Image.Image:
     if isinstance(image, Image.Image):
-        return image.convert("RGB")
-    return Image.open(image).convert("RGB")
+        img = image
+    else:
+        img = Image.open(image)
+    if img.mode in {"RGBA", "LA"} or (img.mode == "P" and "transparency" in img.info):
+        rgba = img.convert("RGBA")
+        bg = Image.new("RGBA", rgba.size, (255, 255, 255, 255))
+        return Image.alpha_composite(bg, rgba).convert("RGB")
+    return img.convert("RGB")
 
 
 def _recipe(recipe_id: str | dict[str, Any]) -> dict[str, Any]:
@@ -29,7 +35,7 @@ def _recipe(recipe_id: str | dict[str, Any]) -> dict[str, Any]:
 
 
 def _mask_clean_vector(img: Image.Image, recipe: dict[str, Any]) -> np.ndarray:
-    arr = np.asarray(img.convert("RGB"), dtype=np.int16)
+    arr = np.asarray(_load_rgb(img), dtype=np.int16)
     mean = arr.mean(axis=2)
     spread = arr.max(axis=2) - arr.min(axis=2)
     return (
@@ -134,13 +140,14 @@ def _prepare_image(
         return src, [], (0.0, 0.0, 1.0)
 
     x0, y0, x1, y1 = [float(v) for v in bbox_px]
-    if not (0 <= x0 < x1 <= src.width and 0 <= y0 < y1 <= src.height):
+    x0i, y0i, x1i, y1i = math.floor(x0), math.floor(y0), math.ceil(x1), math.ceil(y1)
+    if not (0 <= x0i < x1i <= src.width and 0 <= y0i < y1i <= src.height):
         raise ValueError("bbox_px must be half-open and inside the source image")
-    crop = src.crop((int(x0), int(y0), int(x1), int(y1)))
+    crop = src.crop((x0i, y0i, x1i, y1i))
     if scale != 1:
         crop = crop.resize((round(crop.width * scale), round(crop.height * scale)), Image.Resampling.NEAREST)
-    step = _crop_step(src.size, (x0, y0, x1, y1), scale, crop.size)
-    return crop, [step], (x0, y0, scale)
+    step = _crop_step(src.size, (float(x0i), float(y0i), float(x1i), float(y1i)), scale, crop.size)
+    return crop, [step], (float(x0i), float(y0i), scale)
 
 
 def _source_coord(local: float, offset: float, scale: float) -> float:
@@ -670,6 +677,8 @@ def overlay_logger(
             raise ValueError("overlay candidates must include candidate_id and reason")
         color = colors[status]
         geometry = _candidate_geometry(candidate)
+        if geometry is None:
+            raise ValueError("overlay candidate must carry drawable geometry (geometry or anchor_px)")
         if geometry:
             kind = geometry.get("kind")
             if kind == "bbox":
