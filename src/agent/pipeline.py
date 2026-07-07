@@ -48,6 +48,7 @@ from src.agent.correction.config import load_core_tolerances
 from src.agent.correction.envelope import extract_authoritative_envelope
 from src.agent.execution.evidence_preflight import (
     EvidenceDebt,
+    compute_evidence_debt_from_vector_dir,
     compute_reading_report_from_vector_dir,
     dimensioned_view_names_from_testdata_text,
     project_evidence_debt,

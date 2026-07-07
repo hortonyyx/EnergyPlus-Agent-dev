@@ -1,0 +1,187 @@
+{
+  "applicability": "clean_vector",
+  "crop_chain": [],
+  "cv_schema": "1",
+  "diagnostics": {
+    "decisions": [
+      {
+        "candidate_id": "East_view:storey_line_profiler:001:row173",
+        "geometry": {
+          "axis": "row",
+          "kind": "line",
+          "y_px": 173.49890829694323
+        },
+        "reason": "outline top edge at y=6.60",
+        "status": "accepted"
+      },
+      {
+        "candidate_id": "East_view:storey_line_profiler:002:row381",
+        "geometry": {
+          "axis": "row",
+          "kind": "line",
+          "y_px": 381.0
+        },
+        "reason": "storey line (2F floor) at y=3.00",
+        "status": "accepted"
+      },
+      {
+        "candidate_id": "East_view:storey_line_profiler:003:row554",
+        "geometry": {
+          "axis": "row",
+          "kind": "line",
+          "y_px": 553.5
+        },
+        "reason": "ground line at y=0",
+        "status": "accepted"
+      },
+      {
+        "candidate_id": "East_view:window:F2_W1",
+        "geometry": {
+          "bbox_px": [
+            481,
+            221,
+            551,
+            324
+          ],
+          "kind": "bbox"
+        },
+        "reason": "2F window: chain 3400-4600 x, y 4.0-5.8 (crop 005)",
+        "status": "accepted"
+      },
+      {
+        "candidate_id": "East_view:window:F1_W1",
+        "geometry": {
+          "bbox_px": [
+            481,
+            393,
+            551,
+            496
+          ],
+          "kind": "bbox"
+        },
+        "reason": "1F window: chain 3400-4600 x, y 1.0-2.8 (crop 005)",
+        "status": "accepted"
+      }
+    ]
+  },
+  "overlay_path": "case_tests/e2e_tests/sm21_anchor/run_2026-07-07_haiku_cv_retest/0_reading/cv_evidence/East_view/001_overlay_logger_overlay.png",
+  "params": {
+    "candidate_count": 5,
+    "output_path": "case_tests/e2e_tests/sm21_anchor/run_2026-07-07_haiku_cv_retest/0_reading/cv_evidence/East_view/001_overlay_logger_overlay.png"
+  },
+  "recipe_id": "clean_vector_v1",
+  "results": [
+    {
+      "anchor_px": {
+        "kind": "bbox",
+        "value": {
+          "bbox_px": [
+            0,
+            0,
+            945,
+            741
+          ]
+        }
+      },
+      "candidate_id": "East_view:overlay_logger:001:overlay",
+      "candidate_kind": "overlay",
+      "coord_space": "source_px",
+      "decisions": [
+        {
+          "candidate_id": "East_view:storey_line_profiler:001:row173",
+          "geometry": {
+            "axis": "row",
+            "kind": "line",
+            "y_px": 173.49890829694323
+          },
+          "reason": "outline top edge at y=6.60",
+          "status": "accepted"
+        },
+        {
+          "candidate_id": "East_view:storey_line_profiler:002:row381",
+          "geometry": {
+            "axis": "row",
+            "kind": "line",
+            "y_px": 381.0
+          },
+          "reason": "storey line (2F floor) at y=3.00",
+          "status": "accepted"
+        },
+        {
+          "candidate_id": "East_view:storey_line_profiler:003:row554",
+          "geometry": {
+            "axis": "row",
+            "kind": "line",
+            "y_px": 553.5
+          },
+          "reason": "ground line at y=0",
+          "status": "accepted"
+        },
+        {
+          "candidate_id": "East_view:window:F2_W1",
+          "geometry": {
+            "bbox_px": [
+              481,
+              221,
+              551,
+              324
+            ],
+            "kind": "bbox"
+          },
+          "reason": "2F window: chain 3400-4600 x, y 4.0-5.8 (crop 005)",
+          "status": "accepted"
+        },
+        {
+          "candidate_id": "East_view:window:F1_W1",
+          "geometry": {
+            "bbox_px": [
+              481,
+              393,
+              551,
+              496
+            ],
+            "kind": "bbox"
+          },
+          "reason": "1F window: chain 3400-4600 x, y 1.0-2.8 (crop 005)",
+          "status": "accepted"
+        }
+      ],
+      "metric": {
+        "confidence": "low",
+        "dimension_refs": [],
+        "raw_segments": [],
+        "residuals": [],
+        "scale_px_per_m": null
+      },
+      "overlay_path": "case_tests/e2e_tests/sm21_anchor/run_2026-07-07_haiku_cv_retest/0_reading/cv_evidence/East_view/001_overlay_logger_overlay.png",
+      "provenance": {
+        "crop_chain_id": "",
+        "recipe_id": "clean_vector_v1",
+        "source_image_sha256": "d09983ef9bdd",
+        "tool": "overlay_logger",
+        "tool_version": "1"
+      },
+      "visual": {
+        "anchor_px": {
+          "kind": "bbox",
+          "value": {
+            "bbox_px": [
+              0,
+              0,
+              945,
+              741
+            ]
+          }
+        },
+        "confidence": "high",
+        "relative": {}
+      }
+    }
+  ],
+  "source_image": {
+    "name": "East_view.png",
+    "sha256": "d09983ef9bdd"
+  },
+  "tool": "overlay_logger",
+  "tool_version": "1"
+}

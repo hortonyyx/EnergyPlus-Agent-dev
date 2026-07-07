@@ -1,0 +1,294 @@
+{
+  "applicability": "clean_vector",
+  "crop_chain": [],
+  "cv_schema": "1",
+  "diagnostics": {
+    "anchor_count": 4,
+    "overlay_decisions": [
+      {
+        "candidate_id": "West_view:px_m_calibrator:001:scale:1",
+        "geometry": {
+          "axis": "col",
+          "kind": "line",
+          "x_px": 350.1
+        },
+        "reason": "calibration anchor",
+        "status": "accepted"
+      },
+      {
+        "candidate_id": "West_view:px_m_calibrator:001:scale:2",
+        "geometry": {
+          "axis": "col",
+          "kind": "line",
+          "x_px": 349.0
+        },
+        "reason": "calibration anchor",
+        "status": "accepted"
+      },
+      {
+        "candidate_id": "West_view:px_m_calibrator:001:scale:3",
+        "geometry": {
+          "axis": "row",
+          "kind": "line",
+          "y_px": 253.0
+        },
+        "reason": "calibration anchor",
+        "status": "accepted"
+      },
+      {
+        "candidate_id": "West_view:px_m_calibrator:001:scale:4",
+        "geometry": {
+          "axis": "row",
+          "kind": "line",
+          "y_px": 253.0
+        },
+        "reason": "calibration anchor",
+        "status": "accepted"
+      }
+    ],
+    "warnings": []
+  },
+  "overlay_path": "case_tests/e2e_tests/sm24_anchor/run_2026-07-07_haiku_cv_probe/0_reading/cv_evidence/West_view/001_px_m_calibrator_overlay.png",
+  "params": {
+    "anchors": [
+      {
+        "axis": "x",
+        "dimension_ref": "W_top_overall_20000",
+        "px_a": 350.1,
+        "px_b": 2239.5,
+        "value_m": 20.0
+      },
+      {
+        "axis": "x",
+        "dimension_ref": "W_bottom_overall_20000",
+        "px_a": 349.0,
+        "px_b": 2240.0,
+        "value_m": 20.0
+      },
+      {
+        "axis": "y",
+        "dimension_ref": "W_left_overall_4500",
+        "px_a": 253.0,
+        "px_b": 678.3,
+        "value_m": 4.5
+      },
+      {
+        "axis": "y",
+        "dimension_ref": "W_right_overall_4500",
+        "px_a": 253.0,
+        "px_b": 678.3,
+        "value_m": 4.5
+      }
+    ],
+    "residual_warn_m": 0.05,
+    "residual_warn_px": 2.0
+  },
+  "recipe_id": "clean_vector_v1",
+  "results": [
+    {
+      "anchor_px": {
+        "kind": "span",
+        "value": {
+          "anchors": [
+            {
+              "axis": "x",
+              "dimension_ref": "W_top_overall_20000",
+              "px_a": 350.1,
+              "px_b": 2239.5,
+              "value_m": 20.0
+            },
+            {
+              "axis": "x",
+              "dimension_ref": "W_bottom_overall_20000",
+              "px_a": 349.0,
+              "px_b": 2240.0,
+              "value_m": 20.0
+            },
+            {
+              "axis": "y",
+              "dimension_ref": "W_left_overall_4500",
+              "px_a": 253.0,
+              "px_b": 678.3,
+              "value_m": 4.5
+            },
+            {
+              "axis": "y",
+              "dimension_ref": "W_right_overall_4500",
+              "px_a": 253.0,
+              "px_b": 678.3,
+              "value_m": 4.5
+            }
+          ]
+        }
+      },
+      "candidate_id": "West_view:px_m_calibrator:001:scale",
+      "candidate_kind": "calibration",
+      "coord_space": "source_px",
+      "m_per_px": 0.010580884916983167,
+      "metric": {
+        "confidence": "high",
+        "dimension_refs": [
+          "W_top_overall_20000",
+          "W_bottom_overall_20000",
+          "W_left_overall_4500",
+          "W_right_overall_4500"
+        ],
+        "raw_segments": [
+          {
+            "axis": "x",
+            "dimension_ref": "W_top_overall_20000",
+            "px_a": 350.1,
+            "px_b": 2239.5,
+            "value_m": 20.0
+          },
+          {
+            "axis": "x",
+            "dimension_ref": "W_bottom_overall_20000",
+            "px_a": 349.0,
+            "px_b": 2240.0,
+            "value_m": 20.0
+          },
+          {
+            "axis": "y",
+            "dimension_ref": "W_left_overall_4500",
+            "px_a": 253.0,
+            "px_b": 678.3,
+            "value_m": 4.5
+          },
+          {
+            "axis": "y",
+            "dimension_ref": "W_right_overall_4500",
+            "px_a": 253.0,
+            "px_b": 678.3,
+            "value_m": 4.5
+          }
+        ],
+        "residuals": [
+          {
+            "axis": "x",
+            "dimension_ref": "W_top_overall_20000",
+            "residual_m": -0.008476037852001796,
+            "residual_px": -0.8010707911960253,
+            "span_px": 1889.4,
+            "value_m": 20.0
+          },
+          {
+            "axis": "x",
+            "dimension_ref": "W_bottom_overall_20000",
+            "residual_m": 0.008453378015170309,
+            "residual_px": 0.7989292088038837,
+            "span_px": 1891.0,
+            "value_m": 20.0
+          },
+          {
+            "axis": "y",
+            "dimension_ref": "W_left_overall_4500",
+            "residual_m": 5.0355192941084796e-05,
+            "residual_px": 0.004759071980856788,
+            "span_px": 425.29999999999995,
+            "value_m": 4.5
+          },
+          {
+            "axis": "y",
+            "dimension_ref": "W_right_overall_4500",
+            "residual_m": 5.0355192941084796e-05,
+            "residual_px": 0.004759071980856788,
+            "span_px": 425.29999999999995,
+            "value_m": 4.5
+          }
+        ],
+        "scale_px_per_m": 94.5100535395598
+      },
+      "provenance": {
+        "crop_chain_id": "",
+        "recipe_id": "clean_vector_v1",
+        "source_image_sha256": "04d7deea75c8",
+        "tool": "px_m_calibrator",
+        "tool_version": "1"
+      },
+      "px_per_m": 94.5100535395598,
+      "residuals": [
+        {
+          "axis": "x",
+          "dimension_ref": "W_top_overall_20000",
+          "residual_m": -0.008476037852001796,
+          "residual_px": -0.8010707911960253,
+          "span_px": 1889.4,
+          "value_m": 20.0
+        },
+        {
+          "axis": "x",
+          "dimension_ref": "W_bottom_overall_20000",
+          "residual_m": 0.008453378015170309,
+          "residual_px": 0.7989292088038837,
+          "span_px": 1891.0,
+          "value_m": 20.0
+        },
+        {
+          "axis": "y",
+          "dimension_ref": "W_left_overall_4500",
+          "residual_m": 5.0355192941084796e-05,
+          "residual_px": 0.004759071980856788,
+          "span_px": 425.29999999999995,
+          "value_m": 4.5
+        },
+        {
+          "axis": "y",
+          "dimension_ref": "W_right_overall_4500",
+          "residual_m": 5.0355192941084796e-05,
+          "residual_px": 0.004759071980856788,
+          "span_px": 425.29999999999995,
+          "value_m": 4.5
+        }
+      ],
+      "rmse_m": 0.005985563649875511,
+      "rmse_px": 0.5656959410141776,
+      "visual": {
+        "anchor_px": {
+          "kind": "span",
+          "value": {
+            "anchors": [
+              {
+                "axis": "x",
+                "dimension_ref": "W_top_overall_20000",
+                "px_a": 350.1,
+                "px_b": 2239.5,
+                "value_m": 20.0
+              },
+              {
+                "axis": "x",
+                "dimension_ref": "W_bottom_overall_20000",
+                "px_a": 349.0,
+                "px_b": 2240.0,
+                "value_m": 20.0
+              },
+              {
+                "axis": "y",
+                "dimension_ref": "W_left_overall_4500",
+                "px_a": 253.0,
+                "px_b": 678.3,
+                "value_m": 4.5
+              },
+              {
+                "axis": "y",
+                "dimension_ref": "W_right_overall_4500",
+                "px_a": 253.0,
+                "px_b": 678.3,
+                "value_m": 4.5
+              }
+            ]
+          }
+        },
+        "confidence": "high",
+        "relative": {}
+      },
+      "warnings": []
+    }
+  ],
+  "source_image": {
+    "name": "West_view.png",
+    "sha256": "04d7deea75c8"
+  },
+  "tool": "px_m_calibrator",
+  "tool_version": "1"
+}

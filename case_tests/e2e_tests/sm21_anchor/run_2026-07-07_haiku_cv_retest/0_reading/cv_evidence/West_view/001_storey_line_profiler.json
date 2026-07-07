@@ -1,0 +1,241 @@
+{
+  "applicability": "clean_vector",
+  "crop_chain": [
+    {
+      "bbox_px": [
+        380.0,
+        178.0,
+        839.0,
+        562.0
+      ],
+      "crop_size_px": [
+        459,
+        384
+      ],
+      "local_to_source": {
+        "source_x": "380.0 + local_x / 1.0",
+        "source_y": "178.0 + local_y / 1.0"
+      },
+      "op": "crop_zoom",
+      "scale": 1.0,
+      "source_size_px": [
+        1077,
+        773
+      ],
+      "source_to_local": {
+        "local_x": "(source_x - 380.0) * 1.0",
+        "local_y": "(source_y - 178.0) * 1.0"
+      }
+    }
+  ],
+  "cv_schema": "1",
+  "diagnostics": {
+    "crop_chain": [
+      {
+        "bbox_px": [
+          380.0,
+          178.0,
+          839.0,
+          562.0
+        ],
+        "crop_size_px": [
+          459,
+          384
+        ],
+        "local_to_source": {
+          "source_x": "380.0 + local_x / 1.0",
+          "source_y": "178.0 + local_y / 1.0"
+        },
+        "op": "crop_zoom",
+        "scale": 1.0,
+        "source_size_px": [
+          1077,
+          773
+        ],
+        "source_to_local": {
+          "local_x": "(source_x - 380.0) * 1.0",
+          "local_y": "(source_y - 178.0) * 1.0"
+        }
+      }
+    ],
+    "image_size_px": [
+      459,
+      384
+    ],
+    "mask_pixels": 2115,
+    "overlay_decisions": [
+      {
+        "candidate_id": "West_view:storey_line_profiler:001:row180",
+        "geometry": {
+          "axis": "row",
+          "kind": "line",
+          "y_px": 180.49890829694323
+        },
+        "reason": "cv_probe automatic overlay",
+        "status": "undecided"
+      },
+      {
+        "candidate_id": "West_view:storey_line_profiler:002:row388",
+        "geometry": {
+          "axis": "row",
+          "kind": "line",
+          "y_px": 388.0
+        },
+        "reason": "cv_probe automatic overlay",
+        "status": "undecided"
+      }
+    ],
+    "peak_count": 2,
+    "projection_axis": "row",
+    "projection_length": 384,
+    "prominence_threshold": 0.04
+  },
+  "overlay_path": "case_tests/e2e_tests/sm21_anchor/run_2026-07-07_haiku_cv_retest/0_reading/cv_evidence/West_view/001_storey_line_profiler_overlay.png",
+  "params": {
+    "axis": "row",
+    "bbox_px": [
+      380.0,
+      178.0,
+      839.0,
+      562.0
+    ],
+    "scale": 1.0
+  },
+  "recipe_id": "clean_vector_v1",
+  "results": [
+    {
+      "anchor_px": {
+        "kind": "line",
+        "value": {
+          "axis": "row",
+          "position_px": 180.49890829694323
+        }
+      },
+      "axis": "row",
+      "candidate_id": "West_view:storey_line_profiler:001:row180",
+      "candidate_kind": "storey_line",
+      "coord_space": "source_px",
+      "fwhm_support_px": [
+        179.5,
+        181.49781181619255
+      ],
+      "geometry": {
+        "axis": "row",
+        "kind": "line",
+        "y_px": 180.49890829694323
+      },
+      "local_fwhm_support_px": [
+        1.5,
+        3.49781181619256
+      ],
+      "local_peak_index_px": 2,
+      "local_position_px": 2.4989082969432315,
+      "local_width_px": 1.9978118161925602,
+      "metric": {
+        "confidence": "high",
+        "dimension_refs": [],
+        "raw_segments": [
+          {
+            "axis": "row",
+            "position_px": 180.49890829694323,
+            "width_px": 1.9978118161925602
+          }
+        ],
+        "residuals": [],
+        "scale_px_per_m": null
+      },
+      "peak_index_px": 180.0,
+      "position_px": 180.49890829694323,
+      "provenance": {
+        "crop_chain_id": "",
+        "recipe_id": "clean_vector_v1",
+        "source_image_sha256": "88972f24bf72",
+        "tool": "storey_line_profiler",
+        "tool_version": "1"
+      },
+      "strength": 1.0,
+      "visual": {
+        "anchor_px": {
+          "kind": "line",
+          "value": {
+            "axis": "row",
+            "position_px": 180.49890829694323
+          }
+        },
+        "confidence": "high",
+        "relative": {}
+      },
+      "width_px": 1.9978118161925602
+    },
+    {
+      "anchor_px": {
+        "kind": "line",
+        "value": {
+          "axis": "row",
+          "position_px": 388.0
+        }
+      },
+      "axis": "row",
+      "candidate_id": "West_view:storey_line_profiler:002:row388",
+      "candidate_kind": "storey_line",
+      "coord_space": "source_px",
+      "fwhm_support_px": [
+        387.5,
+        388.5
+      ],
+      "geometry": {
+        "axis": "row",
+        "kind": "line",
+        "y_px": 388.0
+      },
+      "local_fwhm_support_px": [
+        209.5,
+        210.5
+      ],
+      "local_peak_index_px": 210,
+      "local_position_px": 210.0,
+      "local_width_px": 1.0,
+      "metric": {
+        "confidence": "high",
+        "dimension_refs": [],
+        "raw_segments": [
+          {
+            "axis": "row",
+            "position_px": 388.0,
+            "width_px": 1.0
+          }
+        ],
+        "residuals": [],
+        "scale_px_per_m": null
+      },
+      "peak_index_px": 388.0,
+      "position_px": 388.0,
+      "provenance": {
+        "crop_chain_id": "",
+        "recipe_id": "clean_vector_v1",
+        "source_image_sha256": "88972f24bf72",
+        "tool": "storey_line_profiler",
+        "tool_version": "1"
+      },
+      "strength": 1.0,
+      "visual": {
+        "anchor_px": {
+          "kind": "line",
+          "value": {
+            "axis": "row",
+            "position_px": 388.0
+          }
+        },
+        "confidence": "high",
+        "relative": {}
+      },
+      "width_px": 1.0
+    }
+  ],
+  "source_image": {
+    "name": "West_view.png",
+    "sha256": "88972f24bf72"
+  },
+  "tool": "storey_line_profiler",
+  "tool_version": "1"
+}

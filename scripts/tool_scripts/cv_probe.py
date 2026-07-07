@@ -16,6 +16,8 @@ from src.agent.reading.cv_toolbox import (  # noqa: E402
     allocate_sidecar_path,
     crop_zoom,
     overlay_logger,
+    prescan_elevation,
+    prescan_plan,
     px_m_calibrator,
     storey_line_profiler,
     wall_line_profiler,
@@ -115,6 +117,16 @@ def main(argv: list[str] | None = None) -> int:
     _common(p)
     p.add_argument("--candidates-json", required=True, type=_json_arg)
 
+    p = subparsers.add_parser("prescan-plan")
+    _common(p)
+    p.add_argument("--capability-profile", default="orthogonal_polygon")
+    p.add_argument("--no-cc", action="store_true")
+
+    p = subparsers.add_parser("prescan-elevation")
+    _common(p)
+    p.add_argument("--capability-profile", default="rectangular")
+    p.add_argument("--no-cc", action="store_true")
+
     args = parser.parse_args(argv)
     if args.tool == "crop_zoom":
         if args.bbox is None:
@@ -206,6 +218,22 @@ def main(argv: list[str] | None = None) -> int:
             source_name=args.image.name,
         )
         write_sidecar(sidecar_path, args.image, payload, crop_chain=[], overlay_path=overlay_path)
+    elif args.tool == "prescan-plan":
+        prescan_plan(
+            args.image,
+            out_dir=args.out_dir,
+            recipe_id=args.recipe,
+            capability_profile=args.capability_profile,
+            include_cc=not args.no_cc,
+        )
+    elif args.tool == "prescan-elevation":
+        prescan_elevation(
+            args.image,
+            out_dir=args.out_dir,
+            recipe_id=args.recipe,
+            capability_profile=args.capability_profile,
+            include_cc=not args.no_cc,
+        )
     else:
         parser.error(f"unknown tool: {args.tool}")
     return 0

@@ -133,7 +133,11 @@ judge/tooling 侧）；**gate① 与执行器绝不 import**（gate① 随上线
 ### 2.1 reading（0_reading）来源
 `flow` **默认复用现有 `<run>/0_reading/`**（本项目 reading = 冷启子 Agent 产，非 flow 自动化）。`--from
 1_correction` 起（显式声明复用已判 reading）。若 reading 缺/未过，flow 停并打印子代理 reading/reread 协议
-（不在 flow 内起子代理）。启动 prompt 见 [附录 A](#附录-a--识图0_reading-子-agent-启动-prompt)。
+（不在 flow 内起子代理）。主控在冷启子 Agent 前，对 clean vector CAD PNG 先确定性运行
+`cv_probe.py prescan-plan` / `prescan-elevation`，把产出的
+`0_reading/cv_evidence/<stem>/prescan/candidates.json` 和 `combined_overlay.png` 作为子 Agent 输入。prescan
+只给机械像素候选；语义接受仍由 VLM 判定，并按现行 reading/sidecar 纪律记录 accept/reject 及理由。子 Agent
+仍可自行追加 `cv_probe.py` 调用做 crop 核验。启动 prompt 见 [附录 A](#附录-a--识图0_reading-子-agent-启动-prompt)。
 
 ### 2.2 `flow` 命令矩阵（一条命令覆盖两种典型跑法）
 
@@ -257,7 +261,10 @@ python scripts/tool_scripts/run_stage.py --base-dir $BD approve-review   <case> 
 ```
 Read skills/intake_pipeline/0_reading/session_kickoff.md and follow it for case <CASE>.
 The drawings are at <CASE>/case_data/ (or the path I give you); fill the image table in the kickoff
-before tracing. Do the pilot first, then stop and wait for my review.
+before tracing. I have provided deterministic prescan candidates and combined overlays under
+<RUN>/0_reading/cv_evidence/<stem>/prescan/ for each clean vector CAD PNG; use them as advisory inputs,
+record semantic accept/reject decisions with reasons, and make additional cv_probe crop checks where
+verification is needed. Do the pilot first, then stop and wait for my review.
 ```
 
 `session_kickoff.md` 自身指引读三件套 + 填图名表 + pilot→review→batch 流程 + 边界。改纪律请改 `guide.md`

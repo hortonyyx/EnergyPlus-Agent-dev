@@ -1,0 +1,255 @@
+{
+  "applicability": "clean_vector",
+  "crop_chain": [],
+  "cv_schema": "1",
+  "diagnostics": {
+    "decisions": [
+      {
+        "candidate_id": "s:win_w",
+        "geometry": {
+          "bbox_px": [
+            549,
+            573,
+            778,
+            848
+          ],
+          "kind": "bbox"
+        },
+        "reason": "window rect; chain-pinned x 0.54-2.04 (540+1500) z 1.00-2.80 (1000/1800); cyan bbox agrees <=1px",
+        "status": "accepted"
+      },
+      {
+        "candidate_id": "s:win_e",
+        "geometry": {
+          "bbox_px": [
+            1683,
+            573,
+            1912,
+            848
+          ],
+          "kind": "bbox"
+        },
+        "reason": "window rect; chain-pinned x 7.96-9.46 z 1.00-2.80",
+        "status": "accepted"
+      },
+      {
+        "candidate_id": "s:door",
+        "geometry": {
+          "bbox_px": [
+            1160,
+            603,
+            1298,
+            970
+          ],
+          "kind": "bbox"
+        },
+        "reason": "door assembly (single leaf + handle + transom light, crop 001): recognized as door -> logged, never drawn with window pen",
+        "status": "rejected"
+      },
+      {
+        "candidate_id": "s:storey_313",
+        "geometry": {
+          "axis": "row",
+          "kind": "line",
+          "y_px": 313.0
+        },
+        "reason": "outline top = wall_fill top edge (z 4.50)",
+        "status": "accepted"
+      },
+      {
+        "candidate_id": "s:storey_1001",
+        "geometry": {
+          "axis": "row",
+          "kind": "line",
+          "y_px": 1001.0
+        },
+        "reason": "ground line = wall_fill bottom edge (z 0.00)",
+        "status": "accepted"
+      },
+      {
+        "candidate_id": "s:storey_698",
+        "geometry": {
+          "axis": "row",
+          "kind": "line",
+          "y_px": 698.5
+        },
+        "reason": "not a storey line: window-head/transom alignment row",
+        "status": "rejected"
+      },
+      {
+        "candidate_id": "s:storey_1086",
+        "geometry": {
+          "axis": "row",
+          "kind": "line",
+          "y_px": 1085.9
+        },
+        "reason": "below-ground dimension chain row, outside facade",
+        "status": "rejected"
+      },
+      {
+        "candidate_id": "s:storey_1130",
+        "geometry": {
+          "axis": "row",
+          "kind": "line",
+          "y_px": 1129.8
+        },
+        "reason": "below-ground dimension chain row",
+        "status": "rejected"
+      }
+    ]
+  },
+  "overlay_path": "case_tests/e2e_tests/sm24_anchor/run_2026-07-07_haiku_cv_probe/0_reading/cv_evidence/South_view/001_overlay_logger_overlay.png",
+  "params": {
+    "candidate_count": 8,
+    "output_path": "case_tests/e2e_tests/sm24_anchor/run_2026-07-07_haiku_cv_probe/0_reading/cv_evidence/South_view/001_overlay_logger_overlay.png"
+  },
+  "recipe_id": "clean_vector_v1",
+  "results": [
+    {
+      "anchor_px": {
+        "kind": "bbox",
+        "value": {
+          "bbox_px": [
+            0,
+            0,
+            2434,
+            1457
+          ]
+        }
+      },
+      "candidate_id": "South_view:overlay_logger:001:overlay",
+      "candidate_kind": "overlay",
+      "coord_space": "source_px",
+      "decisions": [
+        {
+          "candidate_id": "s:win_w",
+          "geometry": {
+            "bbox_px": [
+              549,
+              573,
+              778,
+              848
+            ],
+            "kind": "bbox"
+          },
+          "reason": "window rect; chain-pinned x 0.54-2.04 (540+1500) z 1.00-2.80 (1000/1800); cyan bbox agrees <=1px",
+          "status": "accepted"
+        },
+        {
+          "candidate_id": "s:win_e",
+          "geometry": {
+            "bbox_px": [
+              1683,
+              573,
+              1912,
+              848
+            ],
+            "kind": "bbox"
+          },
+          "reason": "window rect; chain-pinned x 7.96-9.46 z 1.00-2.80",
+          "status": "accepted"
+        },
+        {
+          "candidate_id": "s:door",
+          "geometry": {
+            "bbox_px": [
+              1160,
+              603,
+              1298,
+              970
+            ],
+            "kind": "bbox"
+          },
+          "reason": "door assembly (single leaf + handle + transom light, crop 001): recognized as door -> logged, never drawn with window pen",
+          "status": "rejected"
+        },
+        {
+          "candidate_id": "s:storey_313",
+          "geometry": {
+            "axis": "row",
+            "kind": "line",
+            "y_px": 313.0
+          },
+          "reason": "outline top = wall_fill top edge (z 4.50)",
+          "status": "accepted"
+        },
+        {
+          "candidate_id": "s:storey_1001",
+          "geometry": {
+            "axis": "row",
+            "kind": "line",
+            "y_px": 1001.0
+          },
+          "reason": "ground line = wall_fill bottom edge (z 0.00)",
+          "status": "accepted"
+        },
+        {
+          "candidate_id": "s:storey_698",
+          "geometry": {
+            "axis": "row",
+            "kind": "line",
+            "y_px": 698.5
+          },
+          "reason": "not a storey line: window-head/transom alignment row",
+          "status": "rejected"
+        },
+        {
+          "candidate_id": "s:storey_1086",
+          "geometry": {
+            "axis": "row",
+            "kind": "line",
+            "y_px": 1085.9
+          },
+          "reason": "below-ground dimension chain row, outside facade",
+          "status": "rejected"
+        },
+        {
+          "candidate_id": "s:storey_1130",
+          "geometry": {
+            "axis": "row",
+            "kind": "line",
+            "y_px": 1129.8
+          },
+          "reason": "below-ground dimension chain row",
+          "status": "rejected"
+        }
+      ],
+      "metric": {
+        "confidence": "low",
+        "dimension_refs": [],
+        "raw_segments": [],
+        "residuals": [],
+        "scale_px_per_m": null
+      },
+      "overlay_path": "case_tests/e2e_tests/sm24_anchor/run_2026-07-07_haiku_cv_probe/0_reading/cv_evidence/South_view/001_overlay_logger_overlay.png",
+      "provenance": {
+        "crop_chain_id": "",
+        "recipe_id": "clean_vector_v1",
+        "source_image_sha256": "bfcf0489abe0",
+        "tool": "overlay_logger",
+        "tool_version": "1"
+      },
+      "visual": {
+        "anchor_px": {
+          "kind": "bbox",
+          "value": {
+            "bbox_px": [
+              0,
+              0,
+              2434,
+              1457
+            ]
+          }
+        },
+        "confidence": "high",
+        "relative": {}
+      }
+    }
+  ],
+  "source_image": {
+    "name": "South_view.png",
+    "sha256": "bfcf0489abe0"
+  },
+  "tool": "overlay_logger",
+  "tool_version": "1"
+}

@@ -20,7 +20,7 @@ Read it as a style/format anchor only; **do not rewrite it**.
   it outputs only semantic-category labels
 - `skills/intake_pipeline/0_reading/pen_library.md` — what to *do* with each recognized category:
   which pen to use, what to keep/log, and when door-healing applies
-- Optional CV evidence tools: `skills/intake_pipeline/0_reading/cv_toolbox.md` — deterministic pixel probes and sidecar logging discipline
+- CV evidence tools: `skills/intake_pipeline/0_reading/cv_toolbox.md` — deterministic pixel probes; see that file for when the toolbox is required or deferred
 
 ## Non-negotiables — a checklist of WHAT to read, not a second copy of the rules
 

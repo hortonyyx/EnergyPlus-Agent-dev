@@ -1,0 +1,53 @@
+{
+  "stage": "0_reading",
+  "rubric_id": "J0",
+  "criteria": [
+    {
+      "criterion": "missed real element",
+      "status": "pass",
+      "recoverability": null,
+      "evidence": "gt reconciliation (authoritative scorer): walls 9/9 hit (1f 4/4, 2f 5/5), plan windows 7/7, elevation windows 15/15 all 'complete', boundary 8/8, max wall offset 0.0 m. Envelope 15.00x8.00 exact. No under-tracing."
+    },
+    {
+      "criterion": "clutter traced as structure",
+      "status": "pass",
+      "recoverability": null,
+      "evidence": "no_oversplit: extra walls+windows = 0 vs gt on both plans; grade.png shows zero red strokes. 44 profiler candidates were explicitly REJECTED with logged reasons in cv_evidence overlay_logger (furniture edges, dimension text rows/cols, second face-lines of wall bands). The control arm's +9 phantom partitions did not recur; the pilot-r1 over-segmentation (19 walls) was caught at the pilot review and eliminated by crop-verify discipline."
+    },
+    {
+      "criterion": "pen misclassified",
+      "status": "pass",
+      "recoverability": null,
+      "evidence": "Walls vs windows cleanly separated on both plans; elevations use wall_fill bands + window pens distinctly; renders show no pen bleed. Healed door openings are noted in stroke notes + uncaptured, not emitted as windows."
+    },
+    {
+      "criterion": "number copied wrong",
+      "status": "pass",
+      "recoverability": null,
+      "evidence": "32 verbatim dimension entries on 1f alone; chain sums close at 15.00/8.00 (with the unlabeled 120 mm wall-band double-tick segments honestly documented rather than fabricated). Every stroke coordinate that the chains pin lands on gt at 0.0 m — only possible with numerically faithful transcription. Basis for keeping OCR in Phase C (data-driven call): digit transcription on clean CAD PNGs is not the weak link for Haiku 4.5 WITH the toolbox."
+    },
+    {
+      "criterion": "image-local orientation self-consistent",
+      "status": "pass",
+      "recoverability": null,
+      "evidence": "Each view is image-local; no world-axis invention. North/East/West orientation graded 'ambiguous' by the elevation scorer — same known backlog item as the Sonnet 5 baseline (orientation arbitration belongs to correction), not a reading defect."
+    },
+    {
+      "criterion": "door healing wrong",
+      "status": "pass",
+      "recoverability": null,
+      "evidence": "8 door openings healed into continuous walls on 1f (S/W perimeter + 6 corridor doors), each paired with an uncaptured entry citing the door-symbol trigger and crop evidence. Corridor walls score 'complete' against gt full-width intervals, confirming healing produced the right continuous extents."
+    },
+    {
+      "criterion": "whole-region missing / misplaced",
+      "status": "pass",
+      "recoverability": null,
+      "evidence": "Both floors fully traced (boundary 8/8, all interior partitions present); all four elevations traced with storey lines matching gt floor lines. No region omitted."
+    }
+  ],
+  "root_stage": null,
+  "root_confidence": 0.0,
+  "retriable": true,
+  "judge_disabled": false,
+  "notes": "PASS on all 7 criteria — Haiku 4.5 WITH the CV toolbox reproduces the Sonnet 5 baseline scoreline exactly (9/9 walls, 7/7 plan windows, 15/15 elevation windows complete, oversplit 0, all offsets 0.0 m) vs the 07-05 no-toolbox control arm's total collapse (0/9, 0/7, 0/15, +9 oversplit). Decisive positive for the north-star experiment: the toolbox turns 'look and guess' into 'calibrate and measure', and the measurement chain is fully auditable in cv_evidence sidecars (tick anchors -> px/m 92.6945, residuals <2mm -> per-element measurements, windows double-pinned by CC gaps vs chain values). Caveats recorded in run provenance: (1) toolbox usage was DIRECTED by the per-run spawn prompt (measure-before-draw), not spontaneously adopted — the A/B claim is 'toolbox available + usage directed'; (2) one pilot-review rework round was needed (calibration anchor + candidate-verification discipline), so orchestrated process discipline is part of the recipe; (3) prompt-level isolation only (hard isolation still backlog) — supporting evidence of no gt contamination: pilot r1 failed in a characteristic non-gt-shaped way (14.52x8.90 envelope) before discipline correction, and every final coordinate carries a pixel-measurement audit trail. gate1 dimension_chain_closure flags on all 6 views are benign grouping/residual advisories (unlabeled 120mm band segments surfaced honestly); gt reconciliation confirms no numeric defect. Out-of-band commentary only; not injected into any prompt."
+}

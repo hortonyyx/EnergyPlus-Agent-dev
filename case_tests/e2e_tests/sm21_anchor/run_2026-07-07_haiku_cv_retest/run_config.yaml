@@ -1,0 +1,52 @@
+# =====================================================================
+# run_config.yaml — run_2026-07-07_haiku_cv_retest (sm21_anchor)
+# CV TOOLBOX DECISIVE RETEST. Control arm = run_2026-07-05_haiku_downgrade
+# (same Haiku 4.5 reading, same scaffold WITHOUT the CV toolbox → total
+# collapse 0/9 · 0/7 · 0/15). Only variable = CV toolbox (available + usage
+# directed, measure-before-draw). Grade tolerances held at defaults, same
+# as both the control arm and the Sonnet 5 baseline sidecar.
+# Config stamped by user 2026-07-07: Haiku ×1 · push to correction+kernel ·
+# J0 on + blind-resample ladder open (budget 3) · no record, no EP.
+# =====================================================================
+
+scope:
+  stages:
+    - 0_reading
+    - 1_correction
+    - 2_modelling
+    - 3_split_pairing
+  # 4_mep / 5_intakeoutput / EP intentionally OUT of scope (user stamp).
+
+judge:
+  mode: stop            # judge-in-the-loop (J0/J1), Fable 5 as judge②
+  resample_ladder: open # JUDGE_BLOCK → blind re-read via fresh cold-start
+                        # sub-agent, budget 3 (user stamp 2026-07-07)
+
+review:
+  reading: false        # no mid-run human checkpoints (non-interactive push
+  correction: false     # to kernel per user stamp); user reviews artifacts
+  geometry: true        # geometry gate required = natural final stop
+
+models:
+  reading:
+    role: 0_reading
+    model_id: claude-haiku-4-5-20251001
+    provider: anthropic
+    effort: default
+    source: cold-start Agent-tool sub-agent (model="haiku"), isolated;
+      per-run directive = cv_toolbox.md required, measure-before-draw
+  orchestrator:
+    role: judge2+orchestration
+    model_id: claude-fable-5
+  correction:
+    role: 1_correction
+    model_id: deepseek-v4-pro
+    effort: high
+  mep:
+    role: 4_mep
+    model_id: deepseek-v4-pro
+    effort: high
+    note: out of scope this run
+
+# grade: omitted → judge-side default tolerances (wall 0.30 / window_centre
+# 0.40 / elevation defaults), identical to control arm + Sonnet 5 baseline.

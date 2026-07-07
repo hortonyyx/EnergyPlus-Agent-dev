@@ -1,6 +1,6 @@
 # CV Toolbox For Reading Evidence
 
-Use the CV toolbox when a clean vector PNG needs pixel evidence before you draw semantic reading JSON. The tools measure image-local candidates only. They do not classify building elements, write reading JSON, or produce final geometry.
+Use the CV toolbox before drawing semantic reading JSON for clean vector CAD PNGs. On noisy scans, hand drawings, or other degraded inputs, defer the required/optional judgment until a robustness profile exists. The tools measure image-local candidates only. They do not classify building elements, write reading JSON, or produce final geometry.
 
 ## Tools
 
@@ -10,6 +10,7 @@ Use the CV toolbox when a clean vector PNG needs pixel evidence before you draw 
 - `window_cc_detector`: label 8-connected clean-vector components, filter by area/shape, merge nearby boxes, and return window-rectangle candidates.
 - `storey_line_profiler`: row-projection wrapper for horizontal storey-line candidates.
 - `overlay_logger`: draw accepted, rejected, and undecided candidates and preserve each decision reason.
+- `prescan-plan` / `prescan-elevation`: macro probes that emit mechanically neutral pixel candidates and one combined numbered overlay for cold-start triage.
 
 ## Invocation Examples
 
@@ -46,8 +47,12 @@ Sidecars are written under `0_reading/cv_evidence/<image_stem>/NNN_<tool>.json` 
 
 ## Disciplines
 
-- Tools measure; you still classify semantics with `reading_guide.md`. A gray peak is a candidate, not automatically a wall.
-- Prefer empty hands over wrong anchors. Low-confidence candidates should stay out of reading JSON rather than becoming false wall/window anchors.
-- Log accepted and rejected candidates with reasons. Rejections are useful evidence: mark them `rejected` in `overlay_logger` instead of deleting them from the audit trail.
+- Calibrate first. Before any meter coordinate is written, establish px-to-m scale for that drawing. Calibration anchors must be dimension-chain extension lines or ticks located with high-zoom `crop_zoom`, not wall endpoints or text baselines. Target residual is at most 1 px; if residuals exceed that, refine the anchors before writing meter geometry.
+- Measure before drawing. Wall lines, window boxes, storey lines, and similar coordinates must come from tool measurement such as projection, connected components, tick candidates, or verified crop measurements. Do not write pure eyeballed coordinates when the clean-vector toolbox applies.
+- Use one px-to-m formula and leave enough provenance to reproduce it: `v_m=(px-origin_px)/px_per_m`. Notes for measured strokes should include the source pixel coordinate, origin, converted result, and sidecar/candidate reference. Non-reproducible numbers are invalid data.
+- Treat prescan and profiler outputs as candidates. Classify semantics with `reading_guide.md`, then log accept/reject decisions with reasons using `overlay_logger` or the reading sidecar. Rejected candidates are evidence, not clutter to delete.
+- Verify candidate crops before accepting them. For each material candidate set, inspect crops or overlays, accept only the semantically correct elements, and record rejected candidates with a reason. The recognition and pen rules remain in `guide.md` §0.1 and `pen_library.md`; this file only adds the CV measurement discipline.
+- For un-dimensioned elements, calibrated pixel measurement is measurement, not guessing. Record honest provenance such as `pixel-measured`, leave `dimension_refs` empty, and cite the relevant CV sidecar/candidate.
+- `dimensions[].anchor` is a flat pixel bbox list: `[x0,y0,x1,y1]`. Do not replace it with a custom object shape.
 
 This batch does not test weak-VLM dimension transcription or OCR robustness. Dimension text remains a reading responsibility unless a later OCR tool is added.

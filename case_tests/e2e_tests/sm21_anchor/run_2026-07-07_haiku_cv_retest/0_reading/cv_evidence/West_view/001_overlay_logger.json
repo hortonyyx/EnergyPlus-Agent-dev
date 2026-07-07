@@ -1,0 +1,167 @@
+{
+  "applicability": "clean_vector",
+  "crop_chain": [],
+  "cv_schema": "1",
+  "diagnostics": {
+    "decisions": [
+      {
+        "candidate_id": "West_view:storey_line_profiler:001:row180",
+        "geometry": {
+          "axis": "row",
+          "kind": "line",
+          "y_px": 180.49890829694323
+        },
+        "reason": "outline top edge at y=6.60",
+        "status": "accepted"
+      },
+      {
+        "candidate_id": "West_view:storey_line_profiler:002:row388",
+        "geometry": {
+          "axis": "row",
+          "kind": "line",
+          "y_px": 388.0
+        },
+        "reason": "storey line (2F floor) at y=3.00",
+        "status": "accepted"
+      },
+      {
+        "candidate_id": "West_view:window:F2_W1",
+        "geometry": {
+          "bbox_px": [
+            574,
+            226,
+            644,
+            331
+          ],
+          "kind": "bbox"
+        },
+        "reason": "2F window: chain 3400-4600 x, y 4.0-5.8 (crop 005)",
+        "status": "accepted"
+      },
+      {
+        "candidate_id": "West_view:door:entrance",
+        "geometry": {
+          "bbox_px": [
+            567,
+            439,
+            653,
+            561
+          ],
+          "kind": "bbox"
+        },
+        "reason": "1F double entrance door (two leaves+handles, crop 005): elevation door NOT drawn, note only; x=[3.26,4.76], head 2.11",
+        "status": "rejected"
+      }
+    ]
+  },
+  "overlay_path": "case_tests/e2e_tests/sm21_anchor/run_2026-07-07_haiku_cv_retest/0_reading/cv_evidence/West_view/001_overlay_logger_overlay.png",
+  "params": {
+    "candidate_count": 4,
+    "output_path": "case_tests/e2e_tests/sm21_anchor/run_2026-07-07_haiku_cv_retest/0_reading/cv_evidence/West_view/001_overlay_logger_overlay.png"
+  },
+  "recipe_id": "clean_vector_v1",
+  "results": [
+    {
+      "anchor_px": {
+        "kind": "bbox",
+        "value": {
+          "bbox_px": [
+            0,
+            0,
+            1077,
+            773
+          ]
+        }
+      },
+      "candidate_id": "West_view:overlay_logger:001:overlay",
+      "candidate_kind": "overlay",
+      "coord_space": "source_px",
+      "decisions": [
+        {
+          "candidate_id": "West_view:storey_line_profiler:001:row180",
+          "geometry": {
+            "axis": "row",
+            "kind": "line",
+            "y_px": 180.49890829694323
+          },
+          "reason": "outline top edge at y=6.60",
+          "status": "accepted"
+        },
+        {
+          "candidate_id": "West_view:storey_line_profiler:002:row388",
+          "geometry": {
+            "axis": "row",
+            "kind": "line",
+            "y_px": 388.0
+          },
+          "reason": "storey line (2F floor) at y=3.00",
+          "status": "accepted"
+        },
+        {
+          "candidate_id": "West_view:window:F2_W1",
+          "geometry": {
+            "bbox_px": [
+              574,
+              226,
+              644,
+              331
+            ],
+            "kind": "bbox"
+          },
+          "reason": "2F window: chain 3400-4600 x, y 4.0-5.8 (crop 005)",
+          "status": "accepted"
+        },
+        {
+          "candidate_id": "West_view:door:entrance",
+          "geometry": {
+            "bbox_px": [
+              567,
+              439,
+              653,
+              561
+            ],
+            "kind": "bbox"
+          },
+          "reason": "1F double entrance door (two leaves+handles, crop 005): elevation door NOT drawn, note only; x=[3.26,4.76], head 2.11",
+          "status": "rejected"
+        }
+      ],
+      "metric": {
+        "confidence": "low",
+        "dimension_refs": [],
+        "raw_segments": [],
+        "residuals": [],
+        "scale_px_per_m": null
+      },
+      "overlay_path": "case_tests/e2e_tests/sm21_anchor/run_2026-07-07_haiku_cv_retest/0_reading/cv_evidence/West_view/001_overlay_logger_overlay.png",
+      "provenance": {
+        "crop_chain_id": "",
+        "recipe_id": "clean_vector_v1",
+        "source_image_sha256": "88972f24bf72",
+        "tool": "overlay_logger",
+        "tool_version": "1"
+      },
+      "visual": {
+        "anchor_px": {
+          "kind": "bbox",
+          "value": {
+            "bbox_px": [
+              0,
+              0,
+              1077,
+              773
+            ]
+          }
+        },
+        "confidence": "high",
+        "relative": {}
+      }
+    }
+  ],
+  "source_image": {
+    "name": "West_view.png",
+    "sha256": "88972f24bf72"
+  },
+  "tool": "overlay_logger",
+  "tool_version": "1"
+}

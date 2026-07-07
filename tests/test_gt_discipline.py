@@ -64,6 +64,19 @@ def test_executors_do_not_reference_gt():
     assert not hits, f"executors / gate① capstone must not reference gt: {hits}"
 
 
+def test_prescan_entry_points_stay_gt_blind():
+    paths = [
+        Path("src/agent/reading/cv_toolbox/recipes.py"),
+        Path("scripts/tool_scripts/cv_probe.py"),
+    ]
+    for path in paths:
+        text = path.read_text(encoding="utf-8")
+        assert "prescan-plan" in text or "prescan_plan" in text
+        assert "prescan-elevation" in text or "prescan_elevation" in text
+    hits = _scan(paths)
+    assert not hits, f"prescan entry points must not reference gt: {hits}"
+
+
 def test_judge_side_gt_readers_remain_confined_to_judge_package():
     judge_gt_readers = [
         Path("src/agent/judge/reading_score.py"),

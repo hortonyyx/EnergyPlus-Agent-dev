@@ -1,0 +1,93 @@
+{
+  "image_label": "South view of the building",
+  "image_kind": "elevation",
+  "facade": {
+    "view_facade": "South",
+    "local_x_positive": "image_left_to_right",
+    "mirrored": "unknown",
+    "orientation_evidence": [
+      {"source": "image_name", "detail": "file South_view.png; testdata key 'South view path of the building'", "confidence": "high"},
+      {"source": "ocr_label", "detail": "bottom chain reads 540/1500/2500/900/2520/1500/540 left-to-right (image-local record; plan matching is correction's job)", "confidence": "medium"}
+    ]
+  },
+  "calibration_note": "px_per_m=152.773 (cv_evidence/South_view/001_px_m_calibrator.json, RMSE 0.38px=2.5mm, 4 anchors, zero warnings). Local frame: x=0 at left outline/tick px 466.6, y=0 at ground line py 1000.4; x_m=(px-466.6)/152.773, y_m=(1000.4-py)/152.773. Elevation y = height above drawn ground line (image-local, no world z claim).",
+
+  "strokes": [
+    {
+      "id": "S1",
+      "pen": "wall_fill",
+      "provenance": "dimension_derived",
+      "confidence": "high",
+      "dimension_refs": ["D1", "D2", "D3", "D4"],
+      "geometry": {"kind": "rect", "x_range_m": [0.00, 10.00], "y_range_m": [0.00, 4.50]},
+      "note": "Single-storey wall body, one wall_fill for the whole facade. No explicit fill is drawn (hollow facade): wall body inferred from the drawn outline rect (white border, cols px 466/1995, top py 313, ground py 1000) per reading_guide wall_fill card. Outline coincides with wall_fill edges -> not traced separately (logged in uncaptured). Openings: 2 windows (S2, S3, kept as window strokes) + 1 door (logged, not drawn)."
+    },
+    {
+      "id": "S2",
+      "pen": "window",
+      "provenance": "dimension_derived",
+      "confidence": "high",
+      "dimension_refs": ["D6", "D13", "D14"],
+      "geometry": {"kind": "rect", "x_range_m": [0.54, 2.04], "y_range_m": [1.00, 2.80]},
+      "note": "West window: x from bottom chain 540+1500 -> 0.54-2.04; z from left chain 1000 sill / 1800 height -> 1.00-2.80. Cyan rect bbox px x[549,778] y[573,848] -> x 0.54-2.04, y 1.00-2.80 (agrees <=1px). Accepted in 001_overlay_logger.json."
+    },
+    {
+      "id": "S3",
+      "pen": "window",
+      "provenance": "dimension_derived",
+      "confidence": "high",
+      "dimension_refs": ["D10", "D19", "D20"],
+      "geometry": {"kind": "rect", "x_range_m": [7.96, 9.46], "y_range_m": [1.00, 2.80]},
+      "note": "East window: x from bottom chain -> 7.96-9.46; z from right chain 1000/1800 -> 1.00-2.80. Cyan rect bbox px x[1683,1912] y[573,848] (agrees <=1px)."
+    }
+  ],
+
+  "dimensions": [
+    {"id": "D1", "text_verbatim": "10000", "value_m": 10.00, "from": [0.00, 4.50], "to": [10.00, 4.50], "axis": "x", "chain_id": "C_s_top_overall", "role": "overall", "order": 0, "anchor": [466.6, 128.0, 1994.5, 128.0], "note": "top overall facade width; calibration anchor"},
+    {"id": "D2", "text_verbatim": "10000", "value_m": 10.00, "from": [0.00, 0.00], "to": [10.00, 0.00], "axis": "x", "chain_id": "C_s_bottom_overall", "role": "overall", "order": 0, "anchor": [466.6, 1325.0, 1994.6, 1325.0], "note": "bottom overall facade width; calibration anchor"},
+    {"id": "D3", "text_verbatim": "4500", "value_m": 4.50, "from": [0.00, 0.00], "to": [0.00, 4.50], "axis": "z", "chain_id": "C_s_left_overall", "role": "overall", "order": 0, "anchor": [120.0, 313.5, 120.0, 1000.4], "note": "left overall facade height; calibration anchor"},
+    {"id": "D4", "text_verbatim": "4500", "value_m": 4.50, "from": [10.00, 0.00], "to": [10.00, 4.50], "axis": "z", "chain_id": "C_s_right_overall", "role": "overall", "order": 0, "anchor": [2325.0, 313.1, 2325.0, 1000.4], "note": "right overall facade height; calibration anchor"},
+
+    {"id": "D5", "text_verbatim": "540", "value_m": 0.54, "from": [0.00, 0.00], "to": [0.54, 0.00], "axis": "x", "chain_id": "C_s_bottom_inner", "role": "segment", "order": 1, "anchor": [466.6, 1150.0, 548.6, 1150.0], "note": "left corner pier"},
+    {"id": "D6", "text_verbatim": "1500", "value_m": 1.50, "from": [0.54, 0.00], "to": [2.04, 0.00], "axis": "x", "chain_id": "C_s_bottom_inner", "role": "segment", "order": 2, "anchor": [548.6, 1150.0, 778.0, 1150.0], "note": "west window width (S2)"},
+    {"id": "D7", "text_verbatim": "2500", "value_m": 2.50, "from": [2.04, 0.00], "to": [4.54, 0.00], "axis": "x", "chain_id": "C_s_bottom_inner", "role": "segment", "order": 3, "anchor": [778.0, 1150.0, 1160.5, 1150.0], "note": ""},
+    {"id": "D8", "text_verbatim": "900", "value_m": 0.90, "from": [4.54, 0.00], "to": [5.44, 0.00], "axis": "x", "chain_id": "C_s_bottom_inner", "role": "segment", "order": 4, "anchor": [1160.5, 1150.0, 1298.0, 1150.0], "note": "door assembly width (door logged in uncaptured, not drawn)"},
+    {"id": "D9", "text_verbatim": "2520", "value_m": 2.52, "from": [5.44, 0.00], "to": [7.96, 0.00], "axis": "x", "chain_id": "C_s_bottom_inner", "role": "segment", "order": 5, "anchor": [1298.0, 1150.0, 1683.0, 1150.0], "note": ""},
+    {"id": "D10", "text_verbatim": "1500", "value_m": 1.50, "from": [7.96, 0.00], "to": [9.46, 0.00], "axis": "x", "chain_id": "C_s_bottom_inner", "role": "segment", "order": 6, "anchor": [1683.0, 1150.0, 1912.5, 1150.0], "note": "east window width (S3)"},
+    {"id": "D11", "text_verbatim": "540", "value_m": 0.54, "from": [9.46, 0.00], "to": [10.00, 0.00], "axis": "x", "chain_id": "C_s_bottom_inner", "role": "segment", "order": 7, "anchor": [1912.5, 1150.0, 1994.6, 1150.0], "note": "right corner pier; closure 540+1500+2500+900+2520+1500+540=10000"},
+
+    {"id": "D12", "text_verbatim": "1700", "value_m": 1.70, "from": [0.00, 2.80], "to": [0.00, 4.50], "axis": "z", "chain_id": "C_s_left_inner", "role": "segment", "order": 1, "anchor": [301.0, 313.5, 301.0, 573.0], "note": "window head to facade top; chain order top->bottom"},
+    {"id": "D13", "text_verbatim": "1800", "value_m": 1.80, "from": [0.00, 1.00], "to": [0.00, 2.80], "axis": "z", "chain_id": "C_s_left_inner", "role": "segment", "order": 2, "anchor": [301.0, 573.0, 301.0, 848.0], "note": "window height"},
+    {"id": "D14", "text_verbatim": "1000", "value_m": 1.00, "from": [0.00, 0.00], "to": [0.00, 1.00], "axis": "z", "chain_id": "C_s_left_inner", "role": "segment", "order": 3, "anchor": [301.0, 848.0, 301.0, 1000.6], "note": "window sill height; closure 1700+1800+1000=4500"},
+
+    {"id": "D15", "text_verbatim": "1900", "value_m": 1.90, "from": [4.99, 2.60], "to": [4.99, 4.50], "axis": "z", "chain_id": "C_s_door", "role": "segment", "order": 1, "anchor": [1048.0, 313.5, 1048.0, 603.5], "note": "door head to facade top; chain drawn at px x 1048, from/to x uses door centerline 4.99"},
+    {"id": "D16", "text_verbatim": "2400", "value_m": 2.40, "from": [4.99, 0.20], "to": [4.99, 2.60], "axis": "z", "chain_id": "C_s_door", "role": "segment", "order": 2, "anchor": [1048.0, 603.5, 1048.0, 970.5], "note": "door assembly height (leaf + transom light)"},
+    {"id": "D17", "text_verbatim": "200", "value_m": 0.20, "from": [4.99, 0.00], "to": [4.99, 0.20], "axis": "z", "chain_id": "C_s_door", "role": "segment", "order": 3, "anchor": [1048.0, 970.5, 1048.0, 1000.4], "note": "door assembly bottom sits 200 above drawn ground line (verbatim as drawn); closure 1900+2400+200=4500"},
+
+    {"id": "D18", "text_verbatim": "1700", "value_m": 1.70, "from": [10.00, 2.80], "to": [10.00, 4.50], "axis": "z", "chain_id": "C_s_right_inner", "role": "segment", "order": 1, "anchor": [2153.0, 313.4, 2153.0, 572.5], "note": ""},
+    {"id": "D19", "text_verbatim": "1800", "value_m": 1.80, "from": [10.00, 1.00], "to": [10.00, 2.80], "axis": "z", "chain_id": "C_s_right_inner", "role": "segment", "order": 2, "anchor": [2153.0, 572.5, 2153.0, 848.0], "note": "east window height"},
+    {"id": "D20", "text_verbatim": "1000", "value_m": 1.00, "from": [10.00, 0.00], "to": [10.00, 1.00], "axis": "z", "chain_id": "C_s_right_inner", "role": "segment", "order": 3, "anchor": [2153.0, 848.0, 2153.0, 1000.5], "note": "closure 1700+1800+1000=4500"}
+  ],
+
+  "ocr_texts": [],
+
+  "uncaptured": [
+    "door assembly at x 4.54-5.44, z 0.20-2.60 (single leaf + round handle + transom light; crop cv_evidence/South_view/001_crop_zoom; door recognized -> logged, never drawn with window pen per pen_library)",
+    "outline (white border rect) coincides with wall_fill edges -> not traced as a separate outline stroke (guide.md §6 checklist)",
+    "no intermediate storey lines: single-storey facade (storey_line_profiler candidates: top 313 / ground 1001 accepted as wall_fill edges; 698.5 = window-head alignment row and 1085.9/1129.8 = below-ground chain rows, rejected - see 001_overlay_logger.json)",
+    "green dimension ticks / extension lines (chain furniture, routed to dimensions[])"
+  ],
+
+  "self_check": {
+    "all_dimensions_transcribed": true,
+    "all_visible_strokes_captured": true,
+    "no_topology_inferred": true,
+    "pens_used": ["wall_fill", "window"],
+    "unknowns_noted": [
+      "no explicit wall fill drawn -> single wall_fill inferred from outline rect (single storey)",
+      "door z chain 1900/2400/200 transcribed verbatim: the 200 bottom segment means the door assembly bottom is drawn 200mm above the ground line",
+      "mirrored = unknown: nothing in the image itself declares mirroring; chain order recorded as evidence for correction",
+      "every element on this facade is chain-pinned: no pixel-only (un-dimensioned) elements"
+    ]
+  }
+}

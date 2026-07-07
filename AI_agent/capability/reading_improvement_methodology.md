@@ -185,7 +185,13 @@ legacy provenance"曾**不设硬门**，所以 reading 弱仍结构性通过、c
 > + skill 文档 [0_reading/cv_toolbox.md](../../skills/intake_pipeline/0_reading/cv_toolbox.md) + kickoff 指针；
 > gt-discipline 扫描扩到 `src/agent/reading/**`+CLI。上表候选 **1/2/4 即此批**；**3**（anchor_px 强制）归 Phase B、
 > **5**（鲁棒性分档）归 C5,均未做。审轨 `logs/reviews/{request,verdict,execution}/2026-07-06_cv_toolbox_c0c1_*`。
-> **下一步 = Haiku 4.5 复测**（同 case 同判卷尺、唯一变量=工具箱有无 = 北极星判决性实验，跑前须用户拍配置）。
+> **✅ 北极星判决性实验已判（2026-07-07）= 阳性满分**：Haiku 4.5+工具箱在 sm21 判卷与 Sonnet 5 基线逐项相同
+> （9/9·7/7·15/15·0.0m）vs 无工具箱对照全崩；失败模式从"看错"（感知）迁移为"量了不筛"（流程纪律可托）。
+> 三限定（指令要求使用/pilot 打回一轮/prompt 级隔离）+ sm24 非方形探针（无标注构件=标定后像素直测正解、
+> schema 写作=弱 VLM 稳定短板→Phase B 证据）+ **E 效率批**（纪律固化进 skill / prescan 宏工具〔有界线段·中性
+> 命名·profile 声明〕/ 预扫前置化 SOP，517 绿）详 `logs/experiments/2026-07-07_haiku_cv_retest/`。
+> §7 "弱 VLM 可用性"已验证；"OCR 时机"数据驱动维持 Phase C（触发器=跨模型标定/读数失败即提级,先 advisory）。
+> **下一步 = GPT-5.4-mini 交叉测试**（迁移性验证，交接单在实验目录 HANDOFF_gpt54mini_crosstest.md）。
 
 ---
 

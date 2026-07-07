@@ -13,6 +13,8 @@ from src.agent.reading.cv_toolbox import (
     crop_zoom,
     get_recipe,
     overlay_logger,
+    prescan_elevation,
+    prescan_plan,
     px_m_calibrator,
     storey_line_profiler,
     wall_line_profiler,
@@ -45,6 +47,25 @@ def _save_windows(path: Path) -> Path:
     # Two close pieces should merge into one bbox.
     draw.rectangle((45, 50, 54, 68), fill=GRAY)
     draw.rectangle((56, 50, 65, 68), fill=GRAY)
+    img.save(path)
+    return path
+
+
+def _save_l_mask(path: Path) -> Path:
+    img = Image.new("RGB", (100, 100), "white")
+    draw = ImageDraw.Draw(img)
+    draw.rectangle((18, 10, 22, 90), fill=GRAY)
+    draw.rectangle((20, 18, 70, 22), fill=GRAY)
+    img.save(path)
+    return path
+
+
+def _save_dimension_ticks(path: Path) -> Path:
+    img = Image.new("RGB", (120, 80), "white")
+    draw = ImageDraw.Draw(img)
+    draw.rectangle((10, 58, 100, 62), fill=GRAY)
+    draw.rectangle((8, 52, 12, 68), fill=GRAY)
+    draw.rectangle((98, 52, 102, 68), fill=GRAY)
     img.save(path)
     return path
 
@@ -236,3 +257,97 @@ def test_cv_probe_cli_end_to_end(tmp_path: Path):
     assert data["tool"] == "wall_line_profiler"
     assert data["results"]
     assert data["diagnostics"]["overlay_decisions"][0]["reason"] == "cv_probe automatic overlay"
+
+
+def test_prescan_plan_schema_and_combined_overlay(tmp_path: Path):
+    image = _save_plan(tmp_path / "plan.png")
+
+    candidates_path, overlay_path = prescan_plan(image, out_dir=tmp_path / "reading")
+
+    assert candidates_path == tmp_path / "reading" / "cv_evidence" / "plan" / "prescan" / "candidates.json"
+    assert overlay_path.exists()
+    data = json.loads(candidates_path.read_text(encoding="utf-8"))
+    assert data["cv_schema"] == "1"
+    assert data["tool"] == "prescan-plan"
+    assert data["params"]["advisory_only"] is True
+    assert data["capability_profile"]["requested"] == "orthogonal_polygon"
+    assert {"rectangular", "orthogonal_polygon"} <= set(data["capability_profile"]["supported"])
+    assert data["results"]
+    allowed = {"line_band_candidate", "cc_box_candidate", "tick_candidate"}
+    assert {result["kind"] for result in data["results"]} <= allowed
+    for result in data["results"]:
+        assert not result["kind"].startswith(("wall_", "window_"))
+        if result["kind"] == "cc_box_candidate":
+            assert len(result["bbox_px"]) == 4
+        else:
+            assert len(result["p1_px"]) == 2
+            assert len(result["p2_px"]) == 2
+            assert "strength" in result
+            assert "fwhm_px" in result
+
+
+def test_prescan_bounded_segments_do_not_span_full_l_mask(tmp_path: Path):
+    image = _save_l_mask(tmp_path / "l_shape.png")
+    candidates_path, _overlay_path = prescan_plan(image, out_dir=tmp_path / "reading", include_cc=False)
+    data = json.loads(candidates_path.read_text(encoding="utf-8"))
+
+    row_segments = [
+        result
+        for result in data["results"]
+        if result["kind"] == "line_band_candidate"
+        and result["axis"] == "row"
+        and abs(result["p1_px"][1] - 20) <= 2
+    ]
+    assert row_segments
+    assert any(15 <= seg["p1_px"][0] <= 25 and 65 <= seg["p2_px"][0] <= 75 for seg in row_segments)
+    assert all(not (seg["p1_px"][0] <= 1 and seg["p2_px"][0] >= 99) for seg in row_segments)
+
+
+def test_prescan_idempotent_candidates_json(tmp_path: Path):
+    image = _save_l_mask(tmp_path / "stable.png")
+
+    candidates_path, _overlay_path = prescan_plan(image, out_dir=tmp_path / "reading")
+    first = candidates_path.read_bytes()
+    candidates_path, _overlay_path = prescan_plan(image, out_dir=tmp_path / "reading")
+    second = candidates_path.read_bytes()
+
+    assert first == second
+
+
+def test_prescan_unsupported_capability_profile_raises(tmp_path: Path):
+    image = _save_plan(tmp_path / "plan.png")
+
+    with pytest.raises(NotImplementedError, match="capability_profile"):
+        prescan_plan(image, out_dir=tmp_path / "reading", capability_profile="sloped_polygon")
+
+
+def test_prescan_tick_detection_on_dimension_line(tmp_path: Path):
+    image = _save_dimension_ticks(tmp_path / "dimension.png")
+    candidates_path, _overlay_path = prescan_plan(image, out_dir=tmp_path / "reading", include_cc=False)
+    data = json.loads(candidates_path.read_text(encoding="utf-8"))
+
+    ticks = [result for result in data["results"] if result["kind"] == "tick_candidate"]
+    assert ticks
+    assert any(result["axis"] == "col" and 6 <= abs(result["p2_px"][1] - result["p1_px"][1]) <= 25 for result in ticks)
+
+
+def test_prescan_elevation_cli_writes_candidates_and_overlay(tmp_path: Path):
+    image = _save_dimension_ticks(tmp_path / "elevation.png")
+    cmd = [
+        sys.executable,
+        "scripts/tool_scripts/cv_probe.py",
+        "prescan-elevation",
+        "--image",
+        str(image),
+        "--out-dir",
+        str(tmp_path / "reading"),
+    ]
+    subprocess.run(cmd, check=True)
+
+    candidates = tmp_path / "reading" / "cv_evidence" / "elevation" / "prescan" / "candidates.json"
+    overlay = tmp_path / "reading" / "cv_evidence" / "elevation" / "prescan" / "combined_overlay.png"
+    assert candidates.exists()
+    assert overlay.exists()
+    data = json.loads(candidates.read_text(encoding="utf-8"))
+    assert data["tool"] == "prescan-elevation"
+    assert data["capability_profile"]["requested"] == "rectangular"
