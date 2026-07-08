@@ -23,6 +23,7 @@ from src.agent.correction.geometry_validator import (
     GeometryFinding,
     validate_corrected_geometry,
 )
+from src.agent.correction.cell_geometry import cell_polygon_vertices
 from src.agent.correction.config import load_core_tolerances
 from src.agent.correction.envelope import (
     envelope_candidates_from_elevation_widths,
@@ -47,6 +48,7 @@ if TYPE_CHECKING:
 
 # Which geometry findings are hard invariants vs soft cross-checks.
 _INVARIANT_CHECKS = {
+    "correction.cell_polygon_contract",
     "correction.coverage",
     "correction.nondegenerate",
     "correction.zstack_continuity",
@@ -451,9 +453,18 @@ def _facade_frame_cross_check(
 
 def _geom_signature(geom: CorrectedGeometry) -> list:
     """Coordinate signature for detecting whether the core changed geometry."""
+    def cell_sig(c) -> list:
+        try:
+            poly = cell_polygon_vertices(c)
+        except ValueError as exc:
+            polygon_sig = [["INVALID", str(exc)]]
+        else:
+            polygon_sig = [] if poly is None else [[float(x), float(y)] for x, y in poly]
+        return [c.id, *map(float, c.x), *map(float, c.y), polygon_sig]
+
     return [
         [fl.name, fl.z_floor, fl.ceiling_height,
-         sorted([c.id, *map(float, c.x), *map(float, c.y)] for c in fl.cells)]
+         sorted(cell_sig(c) for c in fl.cells)]
         for fl in sorted(geom.floors, key=lambda f: f.name)
     ]
 

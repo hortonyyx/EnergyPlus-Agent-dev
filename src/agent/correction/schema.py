@@ -5,9 +5,9 @@ it; the modeling/MEP stages (LLM modeling) consumes it to produce `IntakeOutput`
 artifact explicit decouples the stages (swap a model per stage) and makes the
 correction checkpoint verifiable and diffable for evaluation.
 
-Geometry is rectangular cells for the current regime (one cell = one room/zone
-footprint, world meters). Polygon cells are a future extension; `extra="allow"`
-keeps the schema forward-compatible without breaking older artifacts.
+Geometry is rectangular cells in schema v1 (one cell = one room/zone footprint,
+world meters). Schema v2 may use orthogonal polygon cells; `x`/`y` remain
+required and are the polygon bbox projection.
 """
 
 from __future__ import annotations
@@ -37,6 +37,7 @@ class Cell(BaseModel):
     role: str = "office"
     x: list[float]  # [min, max]
     y: list[float]  # [min, max]
+    polygon: list[list[float]] | None = None  # exterior ring, CCW, not closed
 
 
 class Window(BaseModel):

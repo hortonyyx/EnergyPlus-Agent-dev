@@ -103,6 +103,12 @@ def collect_eyeball_assets(run_dir: Path) -> dict:
         ("correction_zones", run_dir / "1_correction" / "zones.png", "1_correction_zones.png"),
         ("correction_elev", run_dir / "1_correction" / "elev.png", "1_correction_elev.png"),
     ]
+    for src in sorted((run_dir / "1_correction").glob("plan_*_render.png")):
+        explicit.append((f"correction_{src.stem}", src, f"1_correction_{src.name}"))
+    for src in sorted((run_dir / "1_correction").glob("roles_*.png")):
+        explicit.append((f"correction_{src.stem}", src, f"1_correction_{src.name}"))
+    for src in sorted((run_dir / "1_correction").glob("elev_*_render.png")):
+        explicit.append((f"correction_{src.stem}", src, f"1_correction_{src.name}"))
     for producer, src, target_name in explicit:
         if src.exists():
             copied = _copy_asset(src, out_dir, target_name, used)

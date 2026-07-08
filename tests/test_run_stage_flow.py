@@ -50,6 +50,52 @@ def _fake_make_draw_fn(stage, run_dir, *_args, **_kwargs):
     return draw
 
 
+def test_cmd_run_judge_off_still_writes_correction_renders(tmp_path, monkeypatch):
+    def fake_make_draw_fn(stage, run_dir, *_args, **_kwargs):
+        def draw(_fb):
+            corr = run_dir / "1_correction"
+            corr.mkdir(parents=True, exist_ok=True)
+            (corr / "correction_geometry_snapped.json").write_text(
+                json.dumps(
+                    {
+                        "footprint_x": [0.0, 10.0],
+                        "footprint_y": [0.0, 8.0],
+                        "floors": [
+                            {
+                                "name": "Floor 1",
+                                "z_floor": 0.0,
+                                "ceiling_height": 3.0,
+                                "cells": [
+                                    {"id": "A", "role": "office", "x": [0.0, 10.0], "y": [0.0, 8.0]}
+                                ],
+                            }
+                        ],
+                        "windows": [],
+                    }
+                ),
+                encoding="utf-8",
+            )
+            return {"stage": stage}, _pass_report(stage)
+
+        return draw
+
+    monkeypatch.setattr(rs, "_make_draw_fn", fake_make_draw_fn)
+
+    args = _args(
+        tmp_path,
+        stage="1_correction",
+        force=False,
+        capability_profile="rectangular",
+    )
+    code = rs.cmd_run(args)
+
+    assert code == 0
+    corr = tmp_path / "case" / "run" / "1_correction"
+    assert (corr / "zones_Floor_1.png").exists()
+    assert not (corr / "plan_Floor_1_render.png").exists()
+    assert not (corr / "elev_North_render.png").exists()
+
+
 def test_cmd_resample_invalidates_downstream_before_force_run(tmp_path, monkeypatch):
     run_dir = tmp_path / "case" / "run"
     manifest = RunManifest(case="run")

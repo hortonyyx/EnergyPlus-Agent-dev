@@ -78,10 +78,20 @@ def pair_surfaces(
                     # same-floor cells share a z-range, but use each wall's own
                     # zone volume so the code stays correct if that ever changes
                     wa = _wall_verts(
-                        p1, p2, za.zf, za.zt, za.polygon.representative_point().coords[0]
+                        p1,
+                        p2,
+                        za.zf,
+                        za.zt,
+                        za.polygon.representative_point().coords[0],
+                        za.polygon,
                     )
                     wb = _wall_verts(
-                        p1, p2, zb.zf, zb.zt, zb.polygon.representative_point().coords[0]
+                        p1,
+                        p2,
+                        zb.zf,
+                        zb.zt,
+                        zb.polygon.representative_point().coords[0],
+                        zb.polygon,
                     )
                     sa = add(za.zone, "Wall", wa, "Surface")
                     sb = add(zb.zone, "Wall", wb, "Surface")
@@ -98,7 +108,12 @@ def pair_surfaces(
             ext = boundary
         for p1, p2 in _iter_segments(ext):
             wv = _wall_verts(
-                p1, p2, zv.zf, zv.zt, zv.polygon.representative_point().coords[0]
+                p1,
+                p2,
+                zv.zf,
+                zv.zt,
+                zv.polygon.representative_point().coords[0],
+                zv.polygon,
             )
             add(zv.zone, "Wall", wv, "Outdoors")
 

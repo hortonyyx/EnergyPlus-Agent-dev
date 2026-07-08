@@ -38,10 +38,19 @@ from collections import defaultdict
 from dataclasses import dataclass, field
 
 from src.agent.correction.config import CoreTolerances, load_core_tolerances
+from src.agent.correction.cell_geometry import (
+    cell_axis_values,
+    cell_has_polygon,
+    cell_polygon_vertices,
+    normalized_ccw_polygon,
+    set_cell_polygon_vertices,
+    validate_cell_polygon,
+)
 from src.agent.correction.envelope import AuthoritativeEnvelope, EnvelopeAxisResolution
 from src.agent.correction.geometry_validator import validate_corrected_geometry
 from src.agent.correction.schema import CorrectedGeometry
 from src.agent.geometry.capability import require_supported_geometry_contract
+from src.agent.geometry.capability import schema_version_of
 
 
 _EPS = 1e-9
@@ -591,6 +600,19 @@ def _apply_envelope_reconcile(
     fy = list(map(float, geom.footprint_y))
     if authoritative_envelope is None:
         return fx, fy
+    if any(cell_has_polygon(c) for fl in geom.floors for c in fl.cells):
+        unsupported.append(
+            {
+                "target": "footprint",
+                "reason": (
+                    "authoritative envelope reconcile for polygon cells is not "
+                    "implemented in schema v2 B1; refusing to move bbox-only "
+                    "cell edges without moving polygon vertices"
+                ),
+                "regime_assumption_violated": "rectangular envelope reconcile",
+            }
+        )
+        return fx, fy
 
     accepted_any = False
     for axis, old_bounds in (("x", (fx[0], fx[1])), ("y", (fy[0], fy[1]))):
@@ -726,8 +748,30 @@ def apply_deterministic_core(
         xs: list[float] = []
         ys: list[float] = []
         for c in fl.cells:
-            xs += [c.x[0], c.x[1]]
-            ys += [c.y[0], c.y[1]]
+            if cell_has_polygon(c) and schema_version_of(geom) != "2":
+                raise ValueError(
+                    f"cell {c.id}: polygon requires CorrectedGeometry.schema_version '2'"
+                )
+            ccw = normalized_ccw_polygon(c)
+            if ccw is not None:
+                # Ring encoding (winding / explicit closure) is not geometry:
+                # canonicalize to an open CCW ring instead of failing the draw.
+                c.polygon = ccw
+                corrections.append(
+                    {
+                        "rule_id": "POLYGON_WINDING_CCW",
+                        "stage": "core",
+                        "target": f"cell:{c.id}",
+                        "axis": "xy",
+                        "original_value": "non_canonical_ring(cw_or_closed)",
+                        "resolved_value": "ccw_open_ring",
+                        "delta": 0.0,
+                        "tolerance_name": "NONE(encoding-only rewrite)",
+                    }
+                )
+            validate_cell_polygon(c, min_edge_length_m=tol.min_edge_length_m)
+            xs += cell_axis_values(c, "x")
+            ys += cell_axis_values(c, "y")
         per_floor_x[fl.name] = xs
         per_floor_y[fl.name] = ys
 
@@ -797,25 +841,35 @@ def apply_deterministic_core(
         """Axis-identity snap, then connectivity-close to a footprint boundary."""
         snapped = _snap(orig, amap)
         reached = _close_to_boundary(snapped, lo, hi, gthr)
-        log(f"{cid}.{label}", label[0], orig, snapped, "deterministic_core.snap")
-        log(f"{cid}.{label}", label[0], snapped, reached, "deterministic_core.gap_close")
+        axis_name = "x" if label.startswith("x") or label.endswith(".x") else "y"
+        log(f"{cid}.{label}", axis_name, orig, snapped, "deterministic_core.snap")
+        log(f"{cid}.{label}", axis_name, snapped, reached, "deterministic_core.gap_close")
         return reached
 
     for fl in geom.floors:
         for c in fl.cells:
-            x0 = axis_then_reach(c.id, "x[0]", c.x[0], xmap, fx[0], fx[1])
-            x1 = axis_then_reach(c.id, "x[1]", c.x[1], xmap, fx[0], fx[1])
-            y0 = axis_then_reach(c.id, "y[0]", c.y[0], ymap, fy[0], fy[1])
-            y1 = axis_then_reach(c.id, "y[1]", c.y[1], ymap, fy[0], fy[1])
-            if (x1 - x0) < tol.min_edge_length_m or (y1 - y0) < tol.min_edge_length_m:
-                unsupported.append(
-                    {
-                        "target": c.id,
-                        "reason": "cell collapsed below min_edge_length after snap",
-                        "regime_assumption_violated": "non-degenerate room cell",
-                    }
-                )
-            c.x, c.y = [x0, x1], [y0, y1]
+            if cell_has_polygon(c):
+                snapped_vertices: list[tuple[float, float]] = []
+                for idx, (x, y) in enumerate(cell_polygon_vertices(c) or []):
+                    sx = axis_then_reach(c.id, f"polygon[{idx}].x", x, xmap, fx[0], fx[1])
+                    sy = axis_then_reach(c.id, f"polygon[{idx}].y", y, ymap, fy[0], fy[1])
+                    snapped_vertices.append((sx, sy))
+                set_cell_polygon_vertices(c, snapped_vertices)
+                validate_cell_polygon(c, min_edge_length_m=tol.min_edge_length_m)
+            else:
+                x0 = axis_then_reach(c.id, "x[0]", c.x[0], xmap, fx[0], fx[1])
+                x1 = axis_then_reach(c.id, "x[1]", c.x[1], xmap, fx[0], fx[1])
+                y0 = axis_then_reach(c.id, "y[0]", c.y[0], ymap, fy[0], fy[1])
+                y1 = axis_then_reach(c.id, "y[1]", c.y[1], ymap, fy[0], fy[1])
+                if (x1 - x0) < tol.min_edge_length_m or (y1 - y0) < tol.min_edge_length_m:
+                    unsupported.append(
+                        {
+                            "target": c.id,
+                            "reason": "cell collapsed below min_edge_length after snap",
+                            "regime_assumption_violated": "non-degenerate room cell",
+                        }
+                    )
+                c.x, c.y = [x0, x1], [y0, y1]
 
     # ---- windows: finer grid + clamp into parent cell/floor (no structural grid) ----
     wgrid = tol.window_snap_grid_m

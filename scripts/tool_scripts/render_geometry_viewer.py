@@ -193,8 +193,49 @@ _APP_JS = r"""
   // ---- build meshes (keep ALL faces; reciprocal dup hidden at rest, windows popped out) ----
   const surfMeshes=[], winMeshes=[], edgeSegs=[];
   const root=new THREE.Group(); scene.add(root);
-  function ringGeom(ring){ const pos=[],idx=[]; ring.forEach(v=>pos.push(v[0],v[1],v[2]));
-    for(let i=1;i<ring.length-1;i++) idx.push(0,i,i+1);
+  function fanTriangulate(n){ const idx=[]; for(let i=1;i<n-1;i++) idx.push(0,i,i+1); return idx; }
+  function projectRing(ring){
+    let nx=0,ny=0,nz=0;
+    for(let i=0;i<ring.length;i++){ const a=ring[i],b=ring[(i+1)%ring.length];
+      nx+=(a[1]-b[1])*(a[2]+b[2]); ny+=(a[2]-b[2])*(a[0]+b[0]); nz+=(a[0]-b[0])*(a[1]+b[1]); }
+    const ax=Math.abs(nx), ay=Math.abs(ny), az=Math.abs(nz);
+    if(ax>=ay && ax>=az) return ring.map(v=>[v[1],v[2]]);
+    if(ay>=ax && ay>=az) return ring.map(v=>[v[0],v[2]]);
+    return ring.map(v=>[v[0],v[1]]);
+  }
+  function signedArea2D(pts){ let a=0; for(let i=0;i<pts.length;i++){ const p=pts[i],q=pts[(i+1)%pts.length]; a+=p[0]*q[1]-q[0]*p[1]; } return a/2; }
+  function pointInTri(p,a,b,c){
+    const v0=[c[0]-a[0],c[1]-a[1]], v1=[b[0]-a[0],b[1]-a[1]], v2=[p[0]-a[0],p[1]-a[1]];
+    const dot00=v0[0]*v0[0]+v0[1]*v0[1], dot01=v0[0]*v1[0]+v0[1]*v1[1], dot02=v0[0]*v2[0]+v0[1]*v2[1];
+    const dot11=v1[0]*v1[0]+v1[1]*v1[1], dot12=v1[0]*v2[0]+v1[1]*v2[1];
+    const den=dot00*dot11-dot01*dot01; if(Math.abs(den)<1e-12) return false;
+    const u=(dot11*dot02-dot01*dot12)/den, v=(dot00*dot12-dot01*dot02)/den;
+    return u>-1e-9 && v>-1e-9 && u+v<1+1e-9;
+  }
+  function earTriangulate(ring){
+    const n=ring.length; if(n<5) return fanTriangulate(n);
+    const pts=projectRing(ring); const area=signedArea2D(pts);
+    if(Math.abs(area)<1e-9) return fanTriangulate(n);
+    const ccw=area>0, verts=[...Array(n).keys()], idx=[]; let guard=0;
+    function cross(a,b,c){ return (b[0]-a[0])*(c[1]-a[1])-(b[1]-a[1])*(c[0]-a[0]); }
+    while(verts.length>3 && guard++<n*n){
+      let clipped=false;
+      for(let vi=0;vi<verts.length;vi++){
+        const ia=verts[(vi-1+verts.length)%verts.length], ib=verts[vi], ic=verts[(vi+1)%verts.length];
+        const a=pts[ia], b=pts[ib], c=pts[ic]; const cr=cross(a,b,c);
+        if(ccw ? cr<=1e-10 : cr>=-1e-10) continue;
+        let contains=false;
+        for(const j of verts){ if(j===ia||j===ib||j===ic) continue; if(pointInTri(pts[j],a,b,c)){ contains=true; break; } }
+        if(contains) continue;
+        idx.push(ia,ib,ic); verts.splice(vi,1); clipped=true; break;
+      }
+      if(!clipped) return fanTriangulate(n);
+    }
+    if(verts.length===3) idx.push(verts[0],verts[1],verts[2]);
+    return idx.length ? idx : fanTriangulate(n);
+  }
+  function ringGeom(ring){ const pos=[]; ring.forEach(v=>pos.push(v[0],v[1],v[2]));
+    const idx=earTriangulate(ring);
     const g=new THREE.BufferGeometry(); g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));
     g.setIndex(idx); g.computeVertexNormals(); return g; }
   function edgeGeom(ring){ const pos=[]; for(let i=0;i<ring.length;i++){const a=ring[i],b=ring[(i+1)%ring.length];

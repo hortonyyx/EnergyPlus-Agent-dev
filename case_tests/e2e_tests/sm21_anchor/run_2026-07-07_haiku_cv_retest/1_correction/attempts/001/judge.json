@@ -1,0 +1,35 @@
+{
+  "stage": "1_correction",
+  "rubric_id": "J1",
+  "criteria": [
+    {
+      "criterion": "zonification fidelity",
+      "status": "pass",
+      "recoverability": null,
+      "evidence": "zones_1F/2F vs originals + gt scorer: Floor 1 = 3 north offices + corridor + 3 south offices (7); Floor 2 = 2 meetings + corridor + 4 south offices (7); 14 zones total matching the sm21 authoritative layout. No merge/split/missing/invented rooms. score_correction_vs_gt: walls 9/9 complete, max_offset 0.0m, 0 extra, no_oversplit pass."
+    },
+    {
+      "criterion": "cross-floor consistency",
+      "status": "pass",
+      "recoverability": null,
+      "evidence": "Corridor band aligned across floors (grade overlay both floors green on identical corridor axes); shared envelope; boundary_complete 8/8 with the centerline-to-exterior conversion (gt wall_thickness_m=0.24) — first correction judged under the converted boundary lane, zero shrink artifact."
+    },
+    {
+      "criterion": "window position fidelity",
+      "status": "pass",
+      "recoverability": null,
+      "evidence": "Plan windows 7/7 complete; elevation windows 15/15 complete, 0 miss / 0 extra / 0 within-tol (all exact); grade.png all-green on North/South/East/West panels. Corridor end windows on E/W facades present on both floors as drawn."
+    },
+    {
+      "criterion": "audit discipline",
+      "status": "pass",
+      "recoverability": null,
+      "evidence": "gate① 0 block 0 flag (evidence-debt coverage clean this draw); corrections[] carries centerline derivation from 240mm ticks (footprint centerlines preserved at 0.12 by the 10mm snap grid); no unlogged geometry changes surfaced by the scorer."
+    }
+  ],
+  "root_stage": null,
+  "root_confidence": 0.0,
+  "retriable": true,
+  "judge_disabled": false,
+  "notes": "Judge② J1 by orchestrator (Fable 5), gt-authoritative per discipline: verdict rests on score_correction_vs_gt (5/5 criteria pass, all-green grade.png); images used as auxiliary confirmation only. Reading model = Haiku 4.5 + CV toolbox (07-07 decisive retest arm); correction = deepseek-v4-pro first draw."
+}

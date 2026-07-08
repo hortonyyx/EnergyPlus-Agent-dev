@@ -7,7 +7,7 @@ world position, so the result can be eyeballed against the original elevation
 drawing: did windows land on the right facade / floor / position? — the elevation
 analogue of render_corrected_geometry.py's filled plan (`*_zones.png`).
 
-Output: one panel per facade that has windows, stacked vertically → `*_elev.png`.
+Output: one panel per facade; legacy `render()` still stacks panels into one PNG.
 Pure PIL, no other deps (mirrors render_corrected_geometry.py).
 
 Usage:
@@ -22,14 +22,14 @@ from pathlib import Path
 
 from PIL import Image, ImageDraw
 
-SCALE = 26          # px per metre
-MARGIN = 28
+SCALE = 45          # px per metre; match render_vector_to_png.py
+MARGIN = 68
 GAP = 30
 HEADER = 44
 TITLE = 18
 
-WALL_FILL = "#e8e4dc"
-WALL_EDGE = "#444444"
+WALL_FILL = "#fafafa"
+WALL_EDGE = "#222222"
 WINDOW = "#1f77b4"
 WINDOW_EDGE = "#0d3b66"
 TEXT = "#222222"
@@ -57,6 +57,57 @@ def _z_extent(data: dict) -> tuple[float, float]:
 
 def _facade_windows(data: dict, facade: str) -> list[dict]:
     return [w for w in (data.get("windows") or []) if w.get("facade") == facade]
+
+
+def render_facade(data: dict, facade: str) -> Image.Image:
+    a0, a1 = _along_extent(data, facade)
+    z0, z1 = _z_extent(data)
+    aspan = max(a1 - a0, 0.1)
+    zspan = max(z1 - z0, 0.1)
+    W = int(aspan * SCALE) + 2 * MARGIN
+    H = int(zspan * SCALE) + 2 * MARGIN
+    img = Image.new("RGB", (max(W, 360), max(H, 180)), (250, 250, 250))
+    d = ImageDraw.Draw(img)
+
+    def ax(world_along: float) -> float:
+        return MARGIN + (world_along - a0) * SCALE
+
+    def az(world_z: float) -> float:
+        return MARGIN + (z1 - world_z) * SCALE
+
+    gx = int(a0)
+    while gx <= a1:
+        d.line([(ax(gx), az(z0)), (ax(gx), az(z1))], fill=GRID, width=1)
+        gx += 1
+    gz = int(z0)
+    while gz <= z1:
+        d.line([(ax(a0), az(gz)), (ax(a1), az(gz))], fill=GRID, width=1)
+        gz += 1
+
+    d.rectangle([ax(a0), az(z1), ax(a1), az(z0)], fill=WALL_FILL, outline=WALL_EDGE, width=4)
+    for fl in data.get("floors") or []:
+        zf = float(fl["z_floor"])
+        zt = zf + float(fl["ceiling_height"])
+        d.line([(ax(a0), az(zf)), (ax(a1), az(zf))], fill=WALL_EDGE, width=3)
+        d.line([(ax(a0), az(zt)), (ax(a1), az(zt))], fill=WALL_EDGE, width=2)
+    for w in _facade_windows(data, facade):
+        s = sorted(float(v) for v in w["span"])
+        zz = sorted(float(v) for v in w["z"])
+        d.rectangle([ax(s[0]), az(zz[1]), ax(s[1]), az(zz[0])],
+                    fill=WINDOW, outline=WINDOW_EDGE, width=2)
+        d.text((ax(s[0]) + 2, az(zz[1]) + 2), str(w.get("id", "")), fill="white")
+    d.text((6, 6), f"correction elevation | {facade}", fill=(60, 60, 60))
+    return img
+
+
+def render_all_to_dir(data: dict, out_dir: Path) -> list[Path]:
+    out_dir.mkdir(parents=True, exist_ok=True)
+    paths: list[Path] = []
+    for facade in _FACADES:
+        out = out_dir / f"elev_{facade}_render.png"
+        render_facade(data, facade).save(out)
+        paths.append(out)
+    return paths
 
 
 def render(data: dict) -> Image.Image:
@@ -113,9 +164,14 @@ def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("json", help="correction_geometry_snapped.json")
     ap.add_argument("--out", help="output PNG (default: <json>_elev.png)")
+    ap.add_argument("--out-dir", help="write per-facade elevation renders to this directory")
     args = ap.parse_args()
     j = Path(args.json)
     data = json.loads(j.read_text(encoding="utf-8"))
+    if args.out_dir:
+        for p in render_all_to_dir(data, Path(args.out_dir)):
+            print(f"wrote {p}")
+        return
     out = Path(args.out) if args.out else j.with_name(j.stem + "_elev.png")
     render(data).save(out)
     print(f"wrote {out}")

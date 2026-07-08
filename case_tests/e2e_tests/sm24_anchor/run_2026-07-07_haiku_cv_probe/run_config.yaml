@@ -1,0 +1,43 @@
+# =====================================================================
+# run_config.yaml — run_2026-07-07_haiku_cv_probe (sm24_anchor)
+# Two-phase run:
+#   Phase 1 (2026-07-07): reading-only generalization probe. Haiku 4.5
+#     cold-start sub-agent + CV toolbox, outside the flow harness
+#     (view JSONs written directly; see llm.yaml provenance). No gt.
+#   Phase 2 (2026-07-08, user stamp): push correction + geometry kernel
+#     to see the L-shaped corridor as ONE coherent polygon zone in the
+#     3D viewer (C2 B1 Cell.polygon first real-case exercise). Judge OFF
+#     (user already eyeballed reading renders, quality high); probe
+#     nature — deterministic gates only + human geometry review.
+# =====================================================================
+
+scope:
+  stages:
+    - 0_reading
+    - 1_correction
+    - 2_modelling
+    - 3_split_pairing
+  # 4_mep / 5_intakeoutput / EP intentionally OUT of scope (user stamp
+  # 2026-07-08: probe, geometry-first; corridor coherence is the target).
+
+judge:
+  mode: "off"           # user stamp 2026-07-08: no judge this run —
+                        # reading already human-reviewed, sm24 has no gt,
+                        # geometry quality judged via viewer HTML by user.
+
+review:
+  reading: false
+  correction: false
+  geometry: true        # geometry gate required = natural final stop;
+                        # deliverable of this push IS the viewer HTML.
+
+models:
+  reading: claude-haiku-4-5-20251001   # done 2026-07-07 (see llm.yaml)
+  correction: deepseek-v4-pro          # baseline intake_correction section
+  mep: null                            # out of scope
+
+capability_profile: orthogonal_polygon # C2 B1: allow Cell.polygon (L corridor)
+
+run_profile: exploratory               # probe — artifacts + warn, no fail-closed
+
+record_baseline: false                 # probe run, not an anchor baseline

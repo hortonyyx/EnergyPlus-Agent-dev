@@ -193,6 +193,84 @@ def test_correction_boundary_uses_footprint_and_records_miss_delta():
     assert result.scores["Floor 1"].boundary_hits() == (3, 4)
 
 
+def test_correction_boundary_expands_centerline_to_gt_outer_skin_when_wall_thickness_declared():
+    gt = {
+        "footprint": {"W_m": 15.0, "D_m": 8.0},
+        "wall_thickness_m": 0.24,
+        "floors": [
+            {"name": "Floor 1", "zones": [{"rect_m": [0, 0, 15, 8]}]},
+        ],
+        "windows": [],
+    }
+    output = {
+        "footprint_x": [0.12, 14.88],
+        "footprint_y": [0.12, 7.88],
+        "floors": [
+            {
+                "name": "Floor 1",
+                "z_floor": 0.0,
+                "ceiling_height": 3.0,
+                "cells": [{"id": "A", "role": "office", "x": [0.12, 14.88], "y": [0.12, 7.88]}],
+            }
+        ],
+        "windows": [],
+    }
+
+    result = score_correction_geometry(output, gt)
+    boundary = result.scores["Floor 1"].boundary
+
+    assert boundary is not None
+    assert {side: match.delta for side, match in boundary.items()} == {
+        "S": 0.0,
+        "N": 0.0,
+        "W": 0.0,
+        "E": 0.0,
+    }
+    assert result.scores["Floor 1"].boundary_hits() == (4, 4)
+
+
+def test_correction_edge_wall_spans_expand_to_gt_outer_skin_when_wall_thickness_declared():
+    gt = {
+        "footprint": {"W_m": 10.0, "D_m": 5.0},
+        "wall_thickness_m": 0.24,
+        "floors": [
+            {
+                "name": "Floor 1",
+                "zones": [
+                    {"rect_m": [0.0, 0.0, 5.0, 5.0]},
+                    {"rect_m": [5.0, 0.0, 10.0, 5.0]},
+                ],
+            },
+        ],
+        "windows": [],
+    }
+    output = {
+        "footprint_x": [0.12, 9.88],
+        "footprint_y": [0.12, 4.88],
+        "floors": [
+            {
+                "name": "Floor 1",
+                "z_floor": 0.0,
+                "ceiling_height": 3.0,
+                "cells": [
+                    {"id": "A", "role": "office", "x": [0.12, 5.0], "y": [0.12, 4.88]},
+                    {"id": "B", "role": "office", "x": [5.0, 9.88], "y": [0.12, 4.88]},
+                ],
+            }
+        ],
+        "windows": [],
+    }
+
+    result = score_correction_geometry(output, gt)
+    match = result.scores["Floor 1"].vwalls[0]
+
+    assert match.status == "complete"
+    assert match.read is not None
+    assert match.read.coord == 5.0
+    assert match.read.start == 0.0
+    assert match.read.end == 5.0
+
+
 def test_correction_boundary_falls_back_to_cells_bbox_when_footprint_missing():
     gt = {
         "footprint": {"W_m": 15.0, "D_m": 8.0},

@@ -1,0 +1,76 @@
+{
+  "stage": "2_modelling",
+  "capability_profile": "orthogonal_polygon",
+  "run_profile": "exploratory",
+  "artifact_hash": "44acefd3644bdbf3b7b52078dcf4a0ecdb276a5320dc3261513712a70a48e806",
+  "attempt_hash": "44acefd3644bdbf3b7b52078dcf4a0ecdb276a5320dc3261513712a70a48e806",
+  "report_schema_version": "2.1",
+  "results": [
+    {
+      "check_id": "kernel.zone_closure",
+      "status": "pass",
+      "layer": "invariant",
+      "check_version": "1",
+      "message": "",
+      "evidence": {
+        "zones": 8
+      }
+    },
+    {
+      "check_id": "kernel.normals",
+      "status": "fail",
+      "layer": "invariant",
+      "check_version": "1",
+      "message": "3 surface(s) with wrong normal orientation",
+      "evidence": {
+        "offenders": [
+          {
+            "surface": "Z06_W2",
+            "type": "Wall",
+            "reason": "inward normal"
+          },
+          {
+            "surface": "Z06_W6",
+            "type": "Wall",
+            "reason": "inward normal"
+          },
+          {
+            "surface": "Z06_W7",
+            "type": "Wall",
+            "reason": "inward normal"
+          }
+        ],
+        "count": 3
+      }
+    },
+    {
+      "check_id": "kernel.pairing_gate",
+      "status": "fail",
+      "layer": "invariant",
+      "check_version": "1",
+      "message": "1 InterZone pairing issue(s)",
+      "evidence": {
+        "issues": [
+          "InterZone pair 'Z04_W1' <-> 'Z06_W5' normals not opposite (unit-normal dot 1.000; expected <= -0.99)"
+        ],
+        "count": 1
+      }
+    },
+    {
+      "check_id": "kernel.spec_self_consistency",
+      "status": "pass",
+      "layer": "invariant",
+      "check_version": "1",
+      "message": "",
+      "evidence": {}
+    },
+    {
+      "check_id": "kernel.coverage_completeness",
+      "status": "not_applicable",
+      "layer": "invariant",
+      "check_version": "1",
+      "message": "profile=orthogonal_polygon: B5 generalises non-rect",
+      "evidence": {}
+    }
+  ]
+}

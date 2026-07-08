@@ -196,10 +196,37 @@ def _draw_correction(
     return geom, rep
 
 
+def _accepted_output_path(run_dir: Path, stage: str) -> Path | None:
+    """Path to the manifest-accepted attempt's archived output for a stage, or
+    None when the run has no manifest / no accepted attempt (standalone use)."""
+    from src.agent.execution.run_meta import run_meta_path
+
+    mpath = run_meta_path(run_dir, "run_manifest.json")
+    if not mpath.exists():
+        return None
+    try:
+        m = json.loads(mpath.read_text(encoding="utf-8"))
+        rec = (m.get("stages") or {}).get(stage) or {}
+        idx = rec.get("accepted_attempt")
+        if not idx:
+            return None
+        p = run_dir / stage / "attempts" / f"{int(idx):03d}" / "output.json"
+        return p if p.exists() else None
+    except (json.JSONDecodeError, OSError, ValueError):
+        return None
+
+
 def _load_snapped(run_dir: Path):
     from src.agent.correction.schema import CorrectedGeometry
 
-    p = run_dir / "1_correction" / "correction_geometry_snapped.json"
+    # Manifest-first: stage-root files mirror the LAST draw, which may be a
+    # blocked one (a failed resample still overwrote them before its gate①
+    # verdict). Downstream stages must consume the ACCEPTED attempt's archived
+    # output — 2026-07-08 the sm24 resample fed a blocked draw's geometry into
+    # the kernel through this loader.
+    p = _accepted_output_path(run_dir, "1_correction") or (
+        run_dir / "1_correction" / "correction_geometry_snapped.json"
+    )
     if not p.exists():
         raise SystemExit(f"missing {p}; run 1_correction first")
     return CorrectedGeometry.model_validate_json(p.read_text(encoding="utf-8"))
@@ -363,12 +390,15 @@ def _render_stage(stage: str, run_dir: Path, case_dir: Path) -> list[str]:
                 _save(rv.render(data), run_dir / "0_reading" / f"{vj.stem}_render.png")
         elif stage == "1_correction":
             import render_corrected_geometry as rc
-            import render_elevation_windows as re_
-            snapped = run_dir / "1_correction" / "correction_geometry_snapped.json"
-            if snapped.exists():
-                data = json.loads(snapped.read_text(encoding="utf-8"))
-                _save(rc.render(data), run_dir / "1_correction" / "zones.png")
-                _save(re_.render(data), run_dir / "1_correction" / "elev.png")
+            # User-stamped artifact set (2026-07-08): grade (via the gt-gated
+            # grade artifacts pass) + per-floor zones_<floor>.png only.
+            src = _accepted_output_path(run_dir, "1_correction") or (
+                run_dir / "1_correction" / "correction_geometry_snapped.json"
+            )
+            if src.exists():
+                data = json.loads(src.read_text(encoding="utf-8"))
+                for path in rc.render_all_to_dir(data, run_dir / "1_correction"):
+                    produced.append(str(path))
         # 2_modelling / 3_split_pairing geometry is handled by the dedicated
         # offline 3D viewer at the confirmation gate (_render_geometry_viewer),
         # not here — those are not judge stages.
@@ -383,7 +413,9 @@ def _render_geometry_viewer(run_dir: Path, case_dir: Path) -> str | None:
     The GLB exporter (render_building_3d.py) is kept as a tool but no longer wired
     into the main flow."""
     sys.path.insert(0, str(_REPO_ROOT / "scripts" / "tool_scripts"))
-    bg = run_dir / "2_modelling" / "building_geometry.json"
+    bg = _accepted_output_path(run_dir, "2_modelling") or (
+        run_dir / "2_modelling" / "building_geometry.json"
+    )
     if not bg.exists():
         return None
     try:
@@ -1045,15 +1077,23 @@ def _make_policy(
     capability_profile: str = "rectangular",
     judge_enabled: bool = True,
     confirmation_policy: ConfirmationPolicy = ConfirmationPolicy.REQUIRED,
+    budget_draws: int | None = None,
 ) -> RunPolicy:
     # dev baseline: judge on, geometry confirmation REQUIRED (blocking human gate)
-    return RunPolicy(
+    policy = RunPolicy(
         confirmation_policy=confirmation_policy,
         judge_enabled=judge_enabled,
         reading_runner_available=reading_runner_available,
         run_profile=run_profile,
         capability_profile=capability_profile,
     )
+    if budget_draws is not None:
+        # Human-triage affordance: a quarantined stage counts EXISTING attempt
+        # dirs against per_stage_draws, so granting more draws after a code fix
+        # requires an explicit, provenance-visible budget raise (not attempt
+        # deletion — the manifest is append-only history).
+        policy.budget.per_stage_draws = int(budget_draws)
+    return policy
 
 
 def _stage_index(stage: str) -> int:
@@ -1276,6 +1316,7 @@ def cmd_run(args) -> int:
         reading_runner_available=args.reading_runner_available,
         run_profile=args.run_profile,
         capability_profile=getattr(args, "capability_profile", "rectangular"),
+        budget_draws=getattr(args, "budget_draws", None),
     )
     manifest = RunManifest.load(run_dir)
     runner = StageRunner(run_dir, manifest)
@@ -1302,6 +1343,7 @@ def cmd_run(args) -> int:
         stage_dir_for=lambda target: run_dir / target,
     )
     manifest.save(run_dir)
+    _render_stage(stage, run_dir, case_dir)
     _render_stage_grade_artifacts(
         stage,
         args.case,
@@ -1344,6 +1386,7 @@ def cmd_judge(args) -> int:
         reading_runner_available=args.reading_runner_available,
         run_profile=args.run_profile,
         capability_profile=getattr(args, "capability_profile", "rectangular"),
+        budget_draws=getattr(args, "budget_draws", None),
     )
     stage = args.stage
     stage_dir = run_dir / stage
@@ -1429,6 +1472,7 @@ def cmd_flow(args) -> int:
         capability_profile=getattr(args, "capability_profile", "rectangular"),
         judge_enabled=(judge_mode != "off"),
         confirmation_policy=ConfirmationPolicy.REQUIRED,
+        budget_draws=getattr(args, "budget_draws", None),
     )
     manifest = RunManifest.load(run_dir)
     start_stage = (
@@ -1481,6 +1525,7 @@ def cmd_flow(args) -> int:
         )
         force_next.discard(stage)
         manifest.save(run_dir)
+        _render_stage(stage, run_dir, case_dir)
         _render_stage_grade_artifacts(
             stage,
             args.case,
@@ -1632,6 +1677,8 @@ def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--base-dir", default="case_tests/e2e_tests")
+    ap.add_argument("--budget-draws", type=int, default=None,
+                    help="override per-stage draw budget (default 3) — explicit human-triage knob to grant extra draws after a quarantine")
     ap.add_argument("--date", default="", help="ISO date stamp for state/approval")
     ap.add_argument("--reading-runner-available", action="store_true",
                     help="enable awaiting_reread decisions; the main Agent still runs the sub-agent protocol")

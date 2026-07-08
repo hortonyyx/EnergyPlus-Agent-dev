@@ -1,0 +1,402 @@
+{
+  "schema_version": "1",
+  "producer": "src.agent.execution.evidence_preflight",
+  "run_profile": "exploratory",
+  "capability_profile": "orthogonal_polygon",
+  "source_stage": "0_reading",
+  "debts": [
+    {
+      "check_id": "1f_view.reading.dimension_chain_closure",
+      "canonical_check_id": "reading.dimension_chain_closure",
+      "view": "1f_view",
+      "status": "fail",
+      "layer": "cross_check",
+      "disposition": "flag",
+      "message": "dimension chain evidence is missing, incomplete, or non-closing",
+      "evidence": {
+        "dimensioned": false,
+        "raw_has_dimensions": true,
+        "raw_has_uncaptured": true,
+        "legacy_migrated": false,
+        "missing_chain_id": [],
+        "missing_axis": [],
+        "incomplete": [
+          {
+            "chain_id": "C_top_overall",
+            "axis": "x",
+            "overall_count": 1,
+            "segment_count": 0,
+            "dimension_ids": [
+              "D1"
+            ]
+          },
+          {
+            "chain_id": "C_top_inner",
+            "axis": "x",
+            "overall_count": 0,
+            "segment_count": 5,
+            "dimension_ids": [
+              "D2",
+              "D3",
+              "D4",
+              "D5",
+              "D6"
+            ]
+          },
+          {
+            "chain_id": "C_bottom_overall",
+            "axis": "x",
+            "overall_count": 1,
+            "segment_count": 0,
+            "dimension_ids": [
+              "D7"
+            ]
+          },
+          {
+            "chain_id": "C_bottom_mid",
+            "axis": "x",
+            "overall_count": 0,
+            "segment_count": 3,
+            "dimension_ids": [
+              "D8",
+              "D9",
+              "D10"
+            ]
+          },
+          {
+            "chain_id": "C_bottom_inner",
+            "axis": "x",
+            "overall_count": 0,
+            "segment_count": 7,
+            "dimension_ids": [
+              "D11",
+              "D12",
+              "D13",
+              "D14",
+              "D15",
+              "D16",
+              "D17"
+            ]
+          },
+          {
+            "chain_id": "C_left_overall",
+            "axis": "y",
+            "overall_count": 1,
+            "segment_count": 0,
+            "dimension_ids": [
+              "D18"
+            ]
+          },
+          {
+            "chain_id": "C_left_mid",
+            "axis": "y",
+            "overall_count": 0,
+            "segment_count": 4,
+            "dimension_ids": [
+              "D19",
+              "D20",
+              "D21",
+              "D22"
+            ]
+          },
+          {
+            "chain_id": "C_left_inner",
+            "axis": "y",
+            "overall_count": 0,
+            "segment_count": 11,
+            "dimension_ids": [
+              "D23",
+              "D24",
+              "D25",
+              "D26",
+              "D27",
+              "D28",
+              "D29",
+              "D30",
+              "D31",
+              "D32",
+              "D33"
+            ]
+          },
+          {
+            "chain_id": "C_right_mid",
+            "axis": "y",
+            "overall_count": 0,
+            "segment_count": 5,
+            "dimension_ids": [
+              "D34",
+              "D35",
+              "D36",
+              "D37",
+              "D38"
+            ]
+          },
+          {
+            "chain_id": "C_right_inner",
+            "axis": "y",
+            "overall_count": 0,
+            "segment_count": 9,
+            "dimension_ids": [
+              "D39",
+              "D40",
+              "D41",
+              "D42",
+              "D43",
+              "D44",
+              "D45",
+              "D46",
+              "D47"
+            ]
+          },
+          {
+            "chain_id": "C_thickness_callouts",
+            "axis": "y",
+            "overall_count": 0,
+            "segment_count": 2,
+            "dimension_ids": [
+              "D48",
+              "D51"
+            ]
+          },
+          {
+            "chain_id": "C_thickness_callouts",
+            "axis": "x",
+            "overall_count": 0,
+            "segment_count": 2,
+            "dimension_ids": [
+              "D49",
+              "D50"
+            ]
+          }
+        ],
+        "mismatches": []
+      },
+      "scope": "view_global",
+      "offender_ids": []
+    },
+    {
+      "check_id": "East_view.reading.dimension_chain_closure",
+      "canonical_check_id": "reading.dimension_chain_closure",
+      "view": "East_view",
+      "status": "fail",
+      "layer": "cross_check",
+      "disposition": "flag",
+      "message": "dimension chain evidence is missing, incomplete, or non-closing",
+      "evidence": {
+        "dimensioned": false,
+        "raw_has_dimensions": true,
+        "raw_has_uncaptured": true,
+        "legacy_migrated": false,
+        "missing_chain_id": [],
+        "missing_axis": [],
+        "incomplete": [
+          {
+            "chain_id": "C_e_top_overall",
+            "axis": "x",
+            "overall_count": 1,
+            "segment_count": 0,
+            "dimension_ids": [
+              "D1"
+            ]
+          },
+          {
+            "chain_id": "C_e_bottom_overall",
+            "axis": "x",
+            "overall_count": 1,
+            "segment_count": 0,
+            "dimension_ids": [
+              "D2"
+            ]
+          },
+          {
+            "chain_id": "C_e_bottom_inner",
+            "axis": "x",
+            "overall_count": 0,
+            "segment_count": 9,
+            "dimension_ids": [
+              "D5",
+              "D6",
+              "D7",
+              "D8",
+              "D9",
+              "D10",
+              "D11",
+              "D12",
+              "D13"
+            ]
+          }
+        ],
+        "mismatches": []
+      },
+      "scope": "view_global",
+      "offender_ids": []
+    },
+    {
+      "check_id": "North_view.reading.dimension_chain_closure",
+      "canonical_check_id": "reading.dimension_chain_closure",
+      "view": "North_view",
+      "status": "fail",
+      "layer": "cross_check",
+      "disposition": "flag",
+      "message": "dimension chain evidence is missing, incomplete, or non-closing",
+      "evidence": {
+        "dimensioned": false,
+        "raw_has_dimensions": true,
+        "raw_has_uncaptured": true,
+        "legacy_migrated": false,
+        "missing_chain_id": [],
+        "missing_axis": [],
+        "incomplete": [
+          {
+            "chain_id": "C_n_top_overall",
+            "axis": "x",
+            "overall_count": 1,
+            "segment_count": 0,
+            "dimension_ids": [
+              "D1"
+            ]
+          },
+          {
+            "chain_id": "C_n_bottom_overall",
+            "axis": "x",
+            "overall_count": 1,
+            "segment_count": 0,
+            "dimension_ids": [
+              "D2"
+            ]
+          },
+          {
+            "chain_id": "C_n_bottom_inner",
+            "axis": "x",
+            "overall_count": 0,
+            "segment_count": 5,
+            "dimension_ids": [
+              "D5",
+              "D6",
+              "D7",
+              "D8",
+              "D9"
+            ]
+          }
+        ],
+        "mismatches": []
+      },
+      "scope": "view_global",
+      "offender_ids": []
+    },
+    {
+      "check_id": "South_view.reading.dimension_chain_closure",
+      "canonical_check_id": "reading.dimension_chain_closure",
+      "view": "South_view",
+      "status": "fail",
+      "layer": "cross_check",
+      "disposition": "flag",
+      "message": "dimension chain evidence is missing, incomplete, or non-closing",
+      "evidence": {
+        "dimensioned": false,
+        "raw_has_dimensions": true,
+        "raw_has_uncaptured": true,
+        "legacy_migrated": false,
+        "missing_chain_id": [],
+        "missing_axis": [],
+        "incomplete": [
+          {
+            "chain_id": "C_s_top_overall",
+            "axis": "x",
+            "overall_count": 1,
+            "segment_count": 0,
+            "dimension_ids": [
+              "D1"
+            ]
+          },
+          {
+            "chain_id": "C_s_bottom_overall",
+            "axis": "x",
+            "overall_count": 1,
+            "segment_count": 0,
+            "dimension_ids": [
+              "D2"
+            ]
+          },
+          {
+            "chain_id": "C_s_bottom_inner",
+            "axis": "x",
+            "overall_count": 0,
+            "segment_count": 7,
+            "dimension_ids": [
+              "D5",
+              "D6",
+              "D7",
+              "D8",
+              "D9",
+              "D10",
+              "D11"
+            ]
+          }
+        ],
+        "mismatches": []
+      },
+      "scope": "view_global",
+      "offender_ids": []
+    },
+    {
+      "check_id": "West_view.reading.dimension_chain_closure",
+      "canonical_check_id": "reading.dimension_chain_closure",
+      "view": "West_view",
+      "status": "fail",
+      "layer": "cross_check",
+      "disposition": "flag",
+      "message": "dimension chain evidence is missing, incomplete, or non-closing",
+      "evidence": {
+        "dimensioned": false,
+        "raw_has_dimensions": true,
+        "raw_has_uncaptured": true,
+        "legacy_migrated": false,
+        "missing_chain_id": [],
+        "missing_axis": [],
+        "incomplete": [
+          {
+            "chain_id": "C_w_top_overall",
+            "axis": "x",
+            "overall_count": 1,
+            "segment_count": 0,
+            "dimension_ids": [
+              "D1"
+            ]
+          },
+          {
+            "chain_id": "C_w_bottom_overall",
+            "axis": "x",
+            "overall_count": 1,
+            "segment_count": 0,
+            "dimension_ids": [
+              "D2"
+            ]
+          },
+          {
+            "chain_id": "C_w_bottom_inner",
+            "axis": "x",
+            "overall_count": 0,
+            "segment_count": 11,
+            "dimension_ids": [
+              "D5",
+              "D6",
+              "D7",
+              "D8",
+              "D9",
+              "D10",
+              "D11",
+              "D12",
+              "D13",
+              "D14",
+              "D15"
+            ]
+          }
+        ],
+        "mismatches": []
+      },
+      "scope": "view_global",
+      "offender_ids": []
+    }
+  ]
+}

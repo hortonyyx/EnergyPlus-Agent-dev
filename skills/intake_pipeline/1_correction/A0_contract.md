@@ -174,13 +174,13 @@ emit `unsupported`.
 | name | value | unit | status | profiles | hard/warn | basis |
 |---|---|---|---|---|---|---|
 | `OUTPUT_PRECISION` | 10 | mm | calibrated | all | format | M/10 submodule (`GB/T 50002-2013` 3.1.2) |
-| `SNAP_GRID` | 50 | mm | calibrated | all | transform | M/2 submodule (`GB/T 50002-2013`); matches partition-thickness granularity |
+| `SNAP_GRID` | 10 | mm | calibrated | all | transform | final structural regularization grid; preserves dimensioned wall-centerline truth such as 0.12 m half-thickness offsets |
 | `MIN_EDGE_LENGTH` | 0.10 | m | calibrated | all | hard_fail | EP very-small-vertex warning (~0.01 m) + sliver safety gate; below → merge/re-snap/unsupported |
 | `DIMCHAIN_CLOSE_TOL` | 10 | mm | calibrated | all | close / conflict | `\|Σsegments − total\|`; = M/10 |
 | `GAP_CLOSE_THRESHOLD` | ≤300 | mm | calibrated | all | auto-close (connectivity) | a thermal zone needs a closed enclosure (an unclosed gap forms no EP zone); intentional sub-300mm gaps are vanishingly rare and must close for BEM anyway. The fail-to-close cost (no zone) dominates the wrong-close cost at this size, so the threshold sits well above the wall-thickness series (`GB/T 50002-2013` 4.3.2) |
 | `GAP_CONFLICT_BAND` | 300–1000 | mm | calibrated | all | escalate → A3 | doorway/opening scale: the wall LINE still closes (door = sub-surface, zone boundary continuous), but whether a real opening means one merged space vs two needs judgment |
 | `GAP_UNSUPPORTED` | ≥1000 | mm | calibrated | all | unsupported / A3 / zonification | open-boundary scale; likely a real open-plan edge or void — do not silently wall it; the one-zone-vs-two call is zonification, not gap-closing |
-| `AXIS_JITTER_TOL` | 50 | mm | calibrated | all | same-axis only with identity evidence | = `SNAP_GRID`; beyond, or if topology says distinct → `reference_or_identity_ambiguity` → A3 |
+| `AXIS_JITTER_TOL` | 50 | mm | calibrated | all | same-axis only with identity evidence | clustering tolerance, intentionally coarser than `SNAP_GRID`; beyond, or if topology says distinct → `reference_or_identity_ambiguity` → A3 |
 | `AREA_REL_TOL` | ±5 | % | calibrated | all | warn / accept | BEM QA; `GB 50189-2015` 3.4.3 |
 | `WWR_REL_TOL` | ±5% or ±0.02 | ratio | calibrated | all | warn / accept | `GB 50189-2015` 3.2.2 / 3.3.1 |
 | `ENVELOPE_RECONCILE_TOL` | 0.30 | m | calibrated | all | auto-reconcile / unsupported | facade outer-envelope bounds may override a wall-centerline footprint only within wall-thickness scale; the same value is the boundary-attach tolerance for moving old-perimeter cell edges |
@@ -221,9 +221,10 @@ rectangular path.
 
 | name | value | meaning |
 |---|---|---|
-| `CORRECTION_SCHEMA_V1` | `"1"` | current rectangular correction contract |
+| `CORRECTION_SCHEMA_V1` | `"1"` | rectangular correction contract |
+| `CORRECTION_SCHEMA_V2` | `"2"` | polygon-capable correction contract |
 | `SHAPE_RECTANGULAR` | `rectangular` | axis-aligned rectangular cell contract |
-| `SHAPE_ORTHOGONAL_POLYGON` | `orthogonal_polygon` | future orthogonal polygon-capable contract |
+| `SHAPE_ORTHOGONAL_POLYGON` | `orthogonal_polygon` | orthogonal polygon cell fallback contract |
 | `CAPABILITY_PROFILE_RECTANGULAR` | `rectangular` | allows `SHAPE_RECTANGULAR` |
 | `CAPABILITY_PROFILE_ORTHOGONAL_POLYGON` | `orthogonal_polygon` | allows `SHAPE_RECTANGULAR` and `SHAPE_ORTHOGONAL_POLYGON` |
 
@@ -236,6 +237,14 @@ Bump rule: any newly added geometry slot that changes the data shape contract
 tables, or future non-rectangular primitives) must introduce a new
 `CorrectedGeometry.schema_version` and register its declared shapes here before
 producers emit it.
+
+Cell polygon rule: each room is exactly one cell, and a single room must never
+be split into multiple cells just to keep cells rectangular. Most rooms are
+rectangles and stay rectangular cells; only a room whose own shape is not a
+single rectangle (e.g. an L-shaped corridor) may schema v2 give `Cell.polygon`:
+a CCW, exterior-only orthogonal ring with no repeated closing vertex. Polygon
+is the exception, not the default. `Cell.x` and `Cell.y` remain required and
+must exactly equal the polygon bbox projection.
 
 ---
 

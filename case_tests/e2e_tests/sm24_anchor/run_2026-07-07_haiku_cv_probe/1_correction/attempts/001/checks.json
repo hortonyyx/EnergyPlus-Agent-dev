@@ -1,0 +1,179 @@
+{
+  "stage": "1_correction",
+  "capability_profile": "orthogonal_polygon",
+  "run_profile": "exploratory",
+  "artifact_hash": "d22c2cbc56524557906258d8d15530ae69d7d48ab3acf938b61c96a27eba12ba",
+  "attempt_hash": "d22c2cbc56524557906258d8d15530ae69d7d48ab3acf938b61c96a27eba12ba",
+  "report_schema_version": "2.1",
+  "results": [
+    {
+      "check_id": "correction.schema_version_supported",
+      "status": "pass",
+      "layer": "invariant",
+      "check_version": "1",
+      "message": "",
+      "evidence": {
+        "schema_version": "2"
+      }
+    },
+    {
+      "check_id": "correction.capability_profile_shapes",
+      "status": "pass",
+      "layer": "invariant",
+      "check_version": "1",
+      "message": "",
+      "evidence": {
+        "capability_profile": "orthogonal_polygon",
+        "declared_shapes": [
+          "orthogonal_polygon",
+          "rectangular"
+        ],
+        "allowed_shapes": [
+          "orthogonal_polygon",
+          "rectangular"
+        ]
+      }
+    },
+    {
+      "check_id": "correction.cell_polygon_contract",
+      "status": "pass",
+      "layer": "invariant",
+      "check_version": "1",
+      "message": "",
+      "evidence": {}
+    },
+    {
+      "check_id": "correction.coverage",
+      "status": "pass",
+      "layer": "invariant",
+      "check_version": "1",
+      "message": "",
+      "evidence": {
+        "floor": "Floor 1",
+        "covered_m2": 194.04
+      }
+    },
+    {
+      "check_id": "correction.nondegenerate",
+      "status": "pass",
+      "layer": "invariant",
+      "check_version": "1",
+      "message": "",
+      "evidence": {}
+    },
+    {
+      "check_id": "correction.zstack_continuity",
+      "status": "pass",
+      "layer": "invariant",
+      "check_version": "1",
+      "message": "",
+      "evidence": {}
+    },
+    {
+      "check_id": "correction.zone_count_tripwire",
+      "status": "pass",
+      "layer": "cross_check",
+      "check_version": "1",
+      "message": "",
+      "evidence": {
+        "actual": 8,
+        "expected": 8,
+        "per_floor": {
+          "Floor 1": 8
+        }
+      }
+    },
+    {
+      "check_id": "correction.window_on_wall",
+      "status": "pass",
+      "layer": "cross_check",
+      "check_version": "1",
+      "message": "",
+      "evidence": {
+        "windows": 11
+      }
+    },
+    {
+      "check_id": "correction.cross_image_reconcile",
+      "status": "not_applicable",
+      "layer": "cross_check",
+      "check_version": "1",
+      "message": "no elevation widths supplied",
+      "evidence": {}
+    },
+    {
+      "check_id": "correction.facade_frame_cross_check",
+      "status": "not_applicable",
+      "layer": "cross_check",
+      "check_version": "1",
+      "message": "no elevation reading artifacts supplied",
+      "evidence": {}
+    },
+    {
+      "check_id": "correction.audit_completeness",
+      "status": "pass",
+      "layer": "invariant",
+      "check_version": "1",
+      "message": "",
+      "evidence": {
+        "audit_entries": 40
+      }
+    },
+    {
+      "check_id": "correction.evidence_debt_coverage",
+      "status": "fail",
+      "layer": "cross_check",
+      "check_version": "1",
+      "message": "2 view/global evidence debt item(s) were not mentioned in correction audit",
+      "evidence": {
+        "scope": "view_global",
+        "missing": [
+          {
+            "check_id": "1f_view.reading.dimension_chain_closure",
+            "canonical_check_id": "reading.dimension_chain_closure",
+            "view": "1f_view",
+            "message": "dimension chain evidence is missing, incomplete, or non-closing"
+          },
+          {
+            "check_id": "South_view.reading.dimension_chain_closure",
+            "canonical_check_id": "reading.dimension_chain_closure",
+            "view": "South_view",
+            "message": "dimension chain evidence is missing, incomplete, or non-closing"
+          }
+        ]
+      }
+    },
+    {
+      "check_id": "correction.facade_area_residuals",
+      "status": "not_applicable",
+      "layer": "cross_check",
+      "check_version": "1",
+      "message": "deferred until evidence is richer",
+      "evidence": {}
+    },
+    {
+      "check_id": "correction.wwr_residuals",
+      "status": "not_applicable",
+      "layer": "cross_check",
+      "check_version": "1",
+      "message": "deferred until evidence is richer",
+      "evidence": {}
+    },
+    {
+      "check_id": "correction.area_residuals",
+      "status": "not_applicable",
+      "layer": "cross_check",
+      "check_version": "1",
+      "message": "deferred until evidence is richer",
+      "evidence": {}
+    },
+    {
+      "check_id": "correction.unsupported_count_by_severity",
+      "status": "not_applicable",
+      "layer": "cross_check",
+      "check_version": "1",
+      "message": "deferred until evidence is richer",
+      "evidence": {}
+    }
+  ]
+}

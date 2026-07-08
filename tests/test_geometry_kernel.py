@@ -11,8 +11,10 @@ from src.agent.geometry.to_idf import building_to_idf
 from src.validator.interzone import validate_interzone_surface_pairs
 
 
-def _gate(geom: CorrectedGeometry) -> list[str]:
-    return validate_interzone_surface_pairs(building_to_idf(build_geometry(geom)))
+def _gate(geom: CorrectedGeometry, *, capability_profile: str = "rectangular") -> list[str]:
+    return validate_interzone_surface_pairs(
+        building_to_idf(build_geometry(geom, capability_profile=capability_profile))
+    )
 
 
 def test_single_floor_multiroom_clean():
@@ -83,6 +85,7 @@ def test_setback_clean():
 def test_lshape_polygon_clean():
     """Non-rectangular (L-shaped) room via explicit polygon — kernel is polygon-native."""
     g = CorrectedGeometry(
+        schema_version="2",
         footprint_x=[0, 10], footprint_y=[0, 10],
         floors=[{"name": "F1", "z_floor": 0.0, "ceiling_height": 3.0, "cells": [
             {"id": "L", "x": [0, 10], "y": [0, 10],
@@ -91,7 +94,7 @@ def test_lshape_polygon_clean():
              "polygon": [[6, 6], [10, 6], [10, 10], [6, 10]]},
         ]}],
     )
-    assert _gate(g) == []
+    assert _gate(g, capability_profile="orthogonal_polygon") == []
 
 
 def test_overlap_is_flagged():

@@ -10,6 +10,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 import re
 
+from src.agent.correction.cell_geometry import cell_bbox, cell_polygon
 from src.agent.correction.schema import CorrectedGeometry
 
 from .reading_score import (
@@ -121,20 +122,68 @@ def _map_floors(geom: CorrectedGeometry, gt: dict) -> tuple[dict[str, str], list
     return mapping, evidence
 
 
-def _extract_correction_wall_segments(floor, W: float, D: float) -> tuple[list[WallSegment], list[WallSegment]]:
+def _expand_boundary_span(
+    lo: float,
+    hi: float,
+    bounds: tuple[float, float],
+    *,
+    wall_thickness_m: float | None,
+) -> tuple[float, float]:
+    if wall_thickness_m is None or wall_thickness_m <= 0:
+        return lo, hi
+    half = float(wall_thickness_m) / 2.0
+    blo, bhi = bounds
+    if abs(lo - blo) <= _BOUNDARY_EPS_M:
+        lo = lo - half
+    if abs(hi - bhi) <= _BOUNDARY_EPS_M:
+        hi = hi + half
+    return lo, hi
+
+
+def _extract_correction_wall_segments(
+    floor,
+    W: float,
+    D: float,
+    *,
+    boundary_bounds: tuple[tuple[float, float], tuple[float, float]] | None = None,
+    wall_thickness_m: float | None = None,
+) -> tuple[list[WallSegment], list[WallSegment]]:
     vx: list[WallSegment] = []
     hy: list[WallSegment] = []
+    if boundary_bounds is None:
+        boundary_bounds = _floor_cells_bbox(floor)
     for cell in floor.cells:
-        if len(cell.x) != 2 or len(cell.y) != 2:
+        try:
+            coords = list(cell_polygon(cell).exterior.coords)
+        except ValueError:
             continue
-        x0, x1 = sorted(float(x) for x in cell.x)
-        y0, y1 = sorted(float(y) for y in cell.y)
-        for x in (x0, x1):
-            if _BOUNDARY_EPS_M < float(x) < W - _BOUNDARY_EPS_M:
-                vx.append(WallSegment("v", round(float(x), 2), round(y0, 2), round(y1, 2)))
-        for y in (y0, y1):
-            if _BOUNDARY_EPS_M < float(y) < D - _BOUNDARY_EPS_M:
-                hy.append(WallSegment("h", round(float(y), 2), round(x0, 2), round(x1, 2)))
+        for a, b in zip(coords, coords[1:]):
+            x0, y0 = float(a[0]), float(a[1])
+            x1, y1 = float(b[0]), float(b[1])
+            if abs(x0 - x1) <= 1e-6:
+                x = round(x0, 2)
+                if _BOUNDARY_EPS_M < x0 < W - _BOUNDARY_EPS_M:
+                    lo, hi = sorted((y0, y1))
+                    if boundary_bounds is not None:
+                        lo, hi = _expand_boundary_span(
+                            lo,
+                            hi,
+                            boundary_bounds[1],
+                            wall_thickness_m=wall_thickness_m,
+                        )
+                    vx.append(WallSegment("v", x, round(lo, 2), round(hi, 2)))
+            elif abs(y0 - y1) <= 1e-6:
+                y = round(y0, 2)
+                if _BOUNDARY_EPS_M < y0 < D - _BOUNDARY_EPS_M:
+                    lo, hi = sorted((x0, x1))
+                    if boundary_bounds is not None:
+                        lo, hi = _expand_boundary_span(
+                            lo,
+                            hi,
+                            boundary_bounds[0],
+                            wall_thickness_m=wall_thickness_m,
+                        )
+                    hy.append(WallSegment("h", y, round(lo, 2), round(hi, 2)))
     return _dedupe_segments(vx), _dedupe_segments(hy)
 
 
@@ -157,10 +206,12 @@ def _floor_cells_bbox(floor) -> tuple[tuple[float, float], tuple[float, float]] 
     xs: list[float] = []
     ys: list[float] = []
     for cell in floor.cells:
-        if len(cell.x) == 2:
-            xs.extend([float(cell.x[0]), float(cell.x[1])])
-        if len(cell.y) == 2:
-            ys.extend([float(cell.y[0]), float(cell.y[1])])
+        try:
+            minx, miny, maxx, maxy = cell_bbox(cell)
+        except ValueError:
+            continue
+        xs.extend([minx, maxx])
+        ys.extend([miny, maxy])
     if not xs or not ys:
         return None
     return (min(xs), max(xs)), (min(ys), max(ys))
@@ -198,7 +249,26 @@ def _normalise_raw_geom_for_scoring(data: dict) -> dict:
     return out
 
 
-def _extract_correction_boundary(geom: CorrectedGeometry, floor) -> dict[str, float] | None:
+def _boundary_centerline_to_outer(
+    boundary: dict[str, float], wall_thickness_m: float | None
+) -> dict[str, float]:
+    if wall_thickness_m is None or wall_thickness_m <= 0:
+        return boundary
+    half = float(wall_thickness_m) / 2.0
+    return {
+        "S": boundary["S"] - half,
+        "N": boundary["N"] + half,
+        "W": boundary["W"] - half,
+        "E": boundary["E"] + half,
+    }
+
+
+def _extract_correction_boundary(
+    geom: CorrectedGeometry,
+    floor,
+    *,
+    wall_thickness_m: float | None = None,
+) -> dict[str, float] | None:
     fx = _valid_pair(getattr(geom, "footprint_x", None))
     fy = _valid_pair(getattr(geom, "footprint_y", None))
     if fx is None or fy is None:
@@ -206,7 +276,10 @@ def _extract_correction_boundary(geom: CorrectedGeometry, floor) -> dict[str, fl
         if bbox is None:
             return None
         fx, fy = bbox
-    return {"S": fy[0], "N": fy[1], "W": fx[0], "E": fx[1]}
+    return _boundary_centerline_to_outer(
+        {"S": fy[0], "N": fy[1], "W": fx[0], "E": fx[1]},
+        wall_thickness_m,
+    )
 
 
 def _gt_floor_for_label(label: str, gt: dict, floor_map: dict[str, str]) -> str | None:
@@ -264,6 +337,11 @@ def score_correction_geometry(
     )
     fp = gt["footprint"]
     W, D = float(fp["W_m"]), float(fp["D_m"])
+    wall_thickness_m = gt.get("wall_thickness_m")
+    try:
+        wall_thickness_m = float(wall_thickness_m) if wall_thickness_m is not None else None
+    except (TypeError, ValueError):
+        wall_thickness_m = None
     gt_floor_by_name = {str(f["name"]): f for f in gt.get("floors", [])}
     floor_map, evidence = _map_floors(geom, gt)
     scores: dict[str, FloorScore] = {}
@@ -281,9 +359,20 @@ def score_correction_geometry(
         position_tol = wall_tol if position_tol is None else position_tol
         gvx, ghy = derive_gt_wall_segments(gt_floor["zones"], W, D)
         gwin = derive_gt_windows(gt, gt_name)
-        rvx, rhy = _extract_correction_wall_segments(fl, W, D)
+        centerline_bounds = _floor_cells_bbox(fl)
+        rvx, rhy = _extract_correction_wall_segments(
+            fl,
+            W,
+            D,
+            boundary_bounds=centerline_bounds,
+            wall_thickness_m=wall_thickness_m,
+        )
         rwin = _extract_correction_windows(geom, gt_name, gt, floor_map)
-        rbnd = _extract_correction_boundary(geom, fl)
+        rbnd = _extract_correction_boundary(
+            geom,
+            fl,
+            wall_thickness_m=wall_thickness_m,
+        )
 
         sc = FloorScore(floor=gt_name)
         sc.vwalls, sc.extra_vwalls = _match_wall_segments(

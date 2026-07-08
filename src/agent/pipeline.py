@@ -314,7 +314,13 @@ def _build_correction_messages(
         "each elevation window fall entirely within one room); complete missing "
         "values; log every material change in `corrections`, unresolved ambiguity "
         "in `conflicts`, and anything unsafe to fix in `unsupported`.\n\n"
-        "Each room is one rectangular cell {id, role, x:[min,max], y:[min,max]}. "
+        "Each room is exactly one cell; never split a single room into several "
+        "cells just to keep them rectangular. A rectangular room is a "
+        "rectangular cell {id, role, x:[min,max], y:[min,max]}. Only when a "
+        "room's own shape is not a single rectangle (e.g. an L-shaped corridor), "
+        "emit schema_version \"2\" and give that cell a CCW orthogonal `polygon` "
+        "(exterior ring, first vertex not repeated); keep `x`/`y` as the exact "
+        "polygon bbox projection. Polygon is the exception, not the default. "
         "For `role`, prefer the image-observed role from room_labels; fall back "
         "to layout priors ONLY when no observation covers a room. "
         "Each floor gives z_floor + ceiling_height. Each window gives facade, "
@@ -440,8 +446,14 @@ def correction_draw_issues(
     then becomes a counted, append-only attempt + a blind resample), instead of
     being silently retried inside the LLM call and bypassing the per-stage budget.
     """
+    from src.agent.correction.cell_geometry import (
+        cell_has_polygon,
+        validate_cell_polygon,
+    )
     from src.agent.correction.config import load_core_tolerances
+    from src.agent.geometry.capability import schema_version_of
 
+    tol = load_core_tolerances()
     issues: list[str] = []
     if expected_window_strokes > 0 and not geom.windows:
         issues.append(
@@ -461,8 +473,26 @@ def correction_draw_issues(
                 )
             else:
                 seen[cell.id] = floor.name
-
-    tol = load_core_tolerances()
+            # Polygon crimes are LLM draw defects, not code defects: mirror the
+            # deterministic core's polygon raises here (winding-tolerant — the
+            # core canonicalizes CW→CCW) so a bad polygon blocks THIS draw and
+            # blind-resamples instead of crashing the flow inside the core.
+            if cell_has_polygon(cell):
+                if schema_version_of(geom) != "2":
+                    issues.append(
+                        f"cell '{cell.id}' has a polygon but schema_version is "
+                        f"not '2' — polygon cells require the v2 contract"
+                    )
+                    continue
+                try:
+                    validate_cell_polygon(
+                        cell,
+                        min_edge_length_m=tol.min_edge_length_m,
+                        allow_cw=True,
+                        allow_closed=True,
+                    )
+                except ValueError as exc:
+                    issues.append(f"invalid cell polygon in this draw: {exc}")
     gap_limit = tol.gap_close_threshold_m
     sorted_floors = sorted(geom.floors, key=lambda f: f.z_floor)
     for prev, cur in zip(sorted_floors, sorted_floors[1:]):

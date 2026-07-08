@@ -52,7 +52,9 @@ score_criteria 五项全 pass（walls_complete/windows_placed/boundary_complete/
 ## 过程中抓到的真 bug（额外收获）
 
 - **pipeline.py import 回归（M1 `fea6981` 引入）**：`run_correction` 调 `compute_evidence_debt_from_vector_dir` 但该名字被 M1 重写 import 块时漏掉 → 真实 run 一进 correction 就 NameError；509 绿没盖住（无测试走 `evidence_debt is None` 路径）。**已修**（import 补回）+ **Codex 已补回归测试** `tests/test_pipeline_evidence_debt_import.py`（stub LLM 边界、走真 evidence-debt 分支；单测过，全 suite 509+1 绿）。
-- **环境注记**：本容器网络仅白名单 Anthropic API（DeepSeek 000/fake-IP 段），correction(DeepSeek) 无法在容器内推进 → **本 run 停在 0_reading judge_pass，correction+kernel 待宿主侧续跑**：`python scripts/tool_scripts/run_stage.py --base-dir case_tests/e2e_tests --date 2026-07-07 flow sm21_anchor run_2026-07-07_haiku_cv_retest --judge stop --to 3_split_pairing --geometry required`。顺带发现 `tests/test_zone_agent.py` 有真网络依赖（此环境必挂,pre-existing）。
+- **环境注记**：本容器网络仅白名单 Anthropic API（DeepSeek 000/fake-IP 段），correction(DeepSeek) 无法在容器内推进 → **本 run 停在 0_reading judge_pass，correction+kernel 待宿主侧续跑**：
+  **⚠️ 更正（2026-07-08 实测翻案）**：容器内 DeepSeek 已可达（`api.deepseek.com` 200 OK + deepseek-v4-pro 正常回复，.env key 生效）——07-07 的"不通"是当日临时故障或网络配置后来变更。correction 续跑**不再需要宿主侧**。
+  **✅ 续跑完成（2026-07-08）**：correction（DeepSeek 首抽）gate① 0 block 0 flag → score_correction_vs_gt 五项全 pass（墙 9/9·窗 7/7·边界 8/8〔中心线→外皮换算后零缩圈〕·立面窗 15/15 全 complete）→ J1 judge_pass（verdict_004）→ 2_modelling/3_split_pairing 首抽全净 → 停几何门待用户 approve。**Haiku+CV 工具箱线至此全链贯通到内核**。产物走当日新规格：grade.png + zones_1F/2F.png。`python scripts/tool_scripts/run_stage.py --base-dir case_tests/e2e_tests --date 2026-07-07 flow sm21_anchor run_2026-07-07_haiku_cv_retest --judge stop --to 3_split_pairing --geometry required`。顺带发现 `tests/test_zone_agent.py` 有真网络依赖（此环境必挂,pre-existing）。
 
 ## sm24 泛化探针（同日，reading-only，无 gt 人工肉检）
 
@@ -60,6 +62,8 @@ score_criteria 五项全 pass（walls_complete/windows_placed/boundary_complete/
 - pilot r1：同"首抽散漫"模式复现（标定 RMSE 86mm 锚粗、只描"主要墙"违完整性、窗未描、一处 px→m 换算自相矛盾）→ 已打回返工（锚收紧到 ±1px、全墙完整描、单一换算公式留痕）。**注**：此图分辨率 36.6 px/m（1px≈27mm），精度物理上限低于 sm21（92.7 px/m）。
 - pilot r2：**内容达标**（标定 RMSE 9.2mm；14 墙全 px→m 算术留痕、38 候选拒收留理由；11 窗链值+CC 双通道；51 尺寸 verbatim 全链精确闭合；**无标注 H6 墙像素直测口径完美执行**=provenance 诚实+空 dimension_refs+引 sidecar；L 形走廊拓扑正确解析），但 **schema 违规打回一次**：51 条 `dimensions[].anchor` 写成自创 dict（schema 要求 flat list）→ 坐实"弱 VLM 残留短板含 schema 写作（纯机械翻译活）"，是 Phase B 双通道/schema 外包方向的直接证据。
 - **收口（5/5 图）**：anchor 修正 loader 全过；四立面独立标定 RMSE 1.5-6.0mm 零 warning；立面 facade 块严格 image-local（mirrored=unknown+链序证据留给 correction 仲裁）；门组件 crop 核验全记 door 不混窗。gate① 五图 blocking 全空（唯一 flag=chain_closure 良性分组 advisory 同 sm21）。**探针结论：非方形内部布局对 reading+工具箱无实质新难度（行列投影对正交多边形天然适用），"部分构件无标注"由标定后像素直测正解；弱 VLM 首抽散漫+schema 写作错是跨 case 复现的稳定短板（流程纪律可拉回）。**
+
+- **⚠️ 登记（2026-07-08 用户肉检）**：sm24 correction 把若干处**正确的 reading 值改偏了**（好 reading 被 correction 降级）。sm24 无 gt 暂无法逐项定位清单，**gt 补录后对账定位+解决**。旁注：07-08 探针推进轮 correction 首轮重抽即出两个坏 draw（cells 不铺满/闭环 ring），DeepSeek 在 sm24 上的 draw 方差明显高于 sm21，与该登记同向。
 
 ## 效率数据（E 批动机与基线）
 

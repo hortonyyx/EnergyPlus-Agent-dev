@@ -144,10 +144,7 @@ def _zone_closure(rep: CheckReport, bg: BuildingGeometry) -> None:
 
 
 def _normals(rep: CheckReport, bg: BuildingGeometry) -> None:
-    centroids: dict[str, np.ndarray] = {}
-    for zone, surfs in _by_zone(bg).items():
-        pts = [v for s in surfs for v in s.verts]
-        centroids[zone] = np.mean(np.asarray(pts, float), axis=0)
+    zone_poly = {zv.zone: zv.polygon for zv in bg.zone_volumes}
     bad = []
     for s in bg.surfaces:
         n = _unit(_newell(s.verts))
@@ -162,9 +159,26 @@ def _normals(rep: CheckReport, bg: BuildingGeometry) -> None:
                 bad.append({"surface": s.name, "type": s.stype, "reason": "wall not vertical",
                             "nz": round(float(n[2]), 3)})
                 continue
-            mid = np.mean(np.asarray(s.verts, float), axis=0)
-            outward = mid - centroids[s.zone]
-            if float(n[0] * outward[0] + n[1] * outward[1]) <= 0:
+            poly = zone_poly.get(s.zone)
+            if poly is None:
+                bad.append({"surface": s.name, "type": s.stype, "reason": "zone polygon missing"})
+                continue
+            pts = []
+            for v in s.verts:
+                xy = (float(v[0]), float(v[1]))
+                if xy not in pts:
+                    pts.append(xy)
+            if len(pts) < 2:
+                bad.append({"surface": s.name, "type": s.stype, "reason": "degenerate wall"})
+                continue
+            mid = np.asarray([(pts[0][0] + pts[1][0]) / 2.0, (pts[0][1] + pts[1][1]) / 2.0])
+            nxy = np.asarray([float(n[0]), float(n[1])])
+            eps = 1e-4
+            from shapely.geometry import Point
+
+            inward_probe = Point(*(mid - nxy * eps))
+            outward_probe = Point(*(mid + nxy * eps))
+            if not poly.covers(inward_probe) or poly.covers(outward_probe):
                 bad.append({"surface": s.name, "type": s.stype, "reason": "inward normal"})
     if bad:
         rep.add_fail("kernel.normals", CheckLayer.INVARIANT,

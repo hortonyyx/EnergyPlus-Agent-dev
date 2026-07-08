@@ -20,8 +20,12 @@ import numpy as np
 from shapely.geometry import Point
 from shapely.geometry import LineString, MultiLineString, Polygon
 
+from src.agent.correction.cell_geometry import (
+    cell_has_polygon,
+    cell_polygon as _validated_cell_polygon,
+)
 from src.agent.correction.schema import Cell, CorrectedGeometry
-from src.agent.geometry.capability import require_supported_geometry_contract
+from src.agent.geometry.capability import require_supported_geometry_contract, schema_version_of
 
 # Shared tolerances (single source; split_pairing imports these).
 _MIN_EDGE = 0.10      # m — below this a face is a degenerate sliver (gate floor)
@@ -162,23 +166,8 @@ def _zone_quadrant(poly: Polygon, footprint_x: list[float], footprint_y: list[fl
 
 
 def _cell_polygon(c: Cell) -> Polygon:
-    """Cell -> CCW shapely Polygon. Prefer an explicit `polygon`; else x/y rect."""
-    poly = getattr(c, "polygon", None) or (
-        c.__pydantic_extra__ or {}
-    ).get("polygon")
-    if poly:
-        ring = [(float(p[0]), float(p[1])) for p in poly]
-    else:
-        x0, x1 = float(c.x[0]), float(c.x[1])
-        y0, y1 = float(c.y[0]), float(c.y[1])
-        ring = [(x0, y0), (x1, y0), (x1, y1), (x0, y1)]
-    p = Polygon(ring)
-    if not p.is_valid:
-        p = p.buffer(0)
-    # normalize to CCW exterior
-    if p.exterior is not None and not _is_ccw(list(p.exterior.coords)):
-        p = Polygon(list(p.exterior.coords)[::-1])
-    return p
+    """Cell -> validated CCW shapely Polygon. Prefer explicit polygon."""
+    return _validated_cell_polygon(c, min_edge_length_m=_MIN_EDGE)
 
 
 def _is_ccw(coords: list) -> bool:
@@ -246,7 +235,31 @@ def _polys(geom):
 # --------------------------------------------------------------------------- #
 # face vertex synthesis
 # --------------------------------------------------------------------------- #
-def _wall_verts(p1, p2, zf, zt, interior_pt) -> list:
+def _local_outward_normal(p1, p2, owner_poly: Polygon) -> np.ndarray | None:
+    """Return the wall's local outward XY normal for a segment on owner_poly.
+
+    A single zone centroid/representative point is not enough for concave cells:
+    a boundary edge in one wing can have the global representative point on the
+    other side of the edge. Probe both sides of the segment midpoint and pick
+    the side outside the owning polygon.
+    """
+    dx, dy = p2[0] - p1[0], p2[1] - p1[1]
+    length = float(np.hypot(dx, dy))
+    if length <= 1e-12:
+        return None
+    mid = np.array([(p1[0] + p2[0]) / 2.0, (p1[1] + p2[1]) / 2.0], dtype=float)
+    n1 = np.array([dy / length, -dx / length], dtype=float)
+    eps = min(1e-4, max(length / 1000.0, 1e-7))
+    inside1 = owner_poly.covers(Point(*(mid + n1 * eps)))
+    inside2 = owner_poly.covers(Point(*(mid - n1 * eps)))
+    if inside1 and not inside2:
+        return np.array([-n1[0], -n1[1], 0.0])
+    if inside2 and not inside1:
+        return np.array([n1[0], n1[1], 0.0])
+    return None
+
+
+def _wall_verts(p1, p2, zf, zt, interior_pt, owner_poly: Polygon | None = None) -> list:
     """Vertical wall rectangle, oriented so the outward normal points away from
     `interior_pt` (the owning zone's centroid)."""
     v = [
@@ -258,10 +271,12 @@ def _wall_verts(p1, p2, zf, zt, interior_pt) -> list:
     # outward horizontal direction: perpendicular to (p2-p1), away from interior
     dx, dy = p2[0] - p1[0], p2[1] - p1[1]
     mx, my = (p1[0] + p2[0]) / 2, (p1[1] + p2[1]) / 2
-    nrm = np.array([dy, -dx, 0.0])  # one perpendicular
-    inward = np.array([interior_pt[0] - mx, interior_pt[1] - my, 0.0])
-    if float(np.dot(nrm, inward)) > 0:  # points toward interior -> flip desired
-        nrm = -nrm
+    nrm = _local_outward_normal(p1, p2, owner_poly) if owner_poly is not None else None
+    if nrm is None:
+        nrm = np.array([dy, -dx, 0.0])  # one perpendicular
+        inward = np.array([interior_pt[0] - mx, interior_pt[1] - my, 0.0])
+        if float(np.dot(nrm, inward)) > 0:  # points toward interior -> flip desired
+            nrm = -nrm
     return _orient(v, nrm)
 
 
@@ -374,6 +389,10 @@ def build_zone_volumes(
     floor_of_id: dict[str, str] = {}
     for fl in geom.floors:
         for c in fl.cells:
+            if cell_has_polygon(c) and schema_version_of(geom) != "2":
+                raise ValueError(
+                    f"cell {c.id}: polygon requires CorrectedGeometry.schema_version '2'"
+                )
             if c.id in floor_of_id:
                 raise ValueError(
                     f"duplicate cell id '{c.id}' on floors '{floor_of_id[c.id]}' "

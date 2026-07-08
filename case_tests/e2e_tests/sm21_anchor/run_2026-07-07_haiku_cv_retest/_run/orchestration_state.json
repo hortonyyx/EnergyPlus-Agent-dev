@@ -11,8 +11,44 @@
         "block": 0,
         "flag": 6
       }
+    },
+    "1_correction": {
+      "stage": "1_correction",
+      "status": "judge_pass",
+      "attempts_used": 1,
+      "accepted_attempt": 1,
+      "message": "judge verdict non-blocking (pass/minor) → advance",
+      "gate1": {
+        "passed": true,
+        "block": 0,
+        "flag": 0
+      }
+    },
+    "2_modelling": {
+      "stage": "2_modelling",
+      "status": "deterministic_pass",
+      "attempts_used": 1,
+      "accepted_attempt": 1,
+      "message": "gate① passed — no enabled judge for this stage → advance",
+      "gate1": {
+        "passed": true,
+        "block": 0,
+        "flag": 0
+      }
+    },
+    "3_split_pairing": {
+      "stage": "3_split_pairing",
+      "status": "awaiting_geometry_approval",
+      "attempts_used": 1,
+      "accepted_attempt": 1,
+      "message": "geometry built + gate① passed — awaiting human geometry confirmation",
+      "gate1": {
+        "passed": true,
+        "block": 0,
+        "flag": 0
+      }
     }
   },
-  "stop_reason": null,
-  "updated": ""
+  "stop_reason": "awaiting_geometry_approval@3_split_pairing",
+  "updated": "2026-07-08"
 }

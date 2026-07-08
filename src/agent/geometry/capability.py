@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from src.agent.correction.constants import SCHEMA_VERSION_V1
+from src.agent.correction.constants import SCHEMA_VERSION_V1, SCHEMA_VERSION_V2
 SHAPE_RECTANGULAR = "rectangular"
 SHAPE_ORTHOGONAL_POLYGON = "orthogonal_polygon"
 
@@ -18,9 +18,10 @@ CAPABILITY_PROFILE_ORTHOGONAL_POLYGON = "orthogonal_polygon"
 CHECK_SCHEMA_VERSION_SUPPORTED = "correction.schema_version_supported"
 CHECK_CAPABILITY_PROFILE_SHAPES = "correction.capability_profile_shapes"
 
-SUPPORTED_SCHEMA_VERSIONS = frozenset({SCHEMA_VERSION_V1})
+SUPPORTED_SCHEMA_VERSIONS = frozenset({SCHEMA_VERSION_V1, SCHEMA_VERSION_V2})
 SCHEMA_VERSION_SHAPES = {
     SCHEMA_VERSION_V1: frozenset({SHAPE_RECTANGULAR}),
+    SCHEMA_VERSION_V2: frozenset({SHAPE_RECTANGULAR, SHAPE_ORTHOGONAL_POLYGON}),
 }
 CAPABILITY_PROFILE_SHAPES = {
     CAPABILITY_PROFILE_RECTANGULAR: frozenset({SHAPE_RECTANGULAR}),

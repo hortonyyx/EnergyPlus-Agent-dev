@@ -178,7 +178,9 @@ python scripts/tool_scripts/run_stage.py --base-dir $BD approve-review   <case> 
   human_redraw / awaiting_reread（handoff 见 §2.1 + 附录 A）。
 - **S1 1_correction**（DeepSeek 独立调用）：执行器 `run_correction`（只喂 reading+testdata+规则、看不到 judge/gt）
   → 确定性核吸附 `apply_deterministic_core`；gate① `check_correction`（coverage/closure/zstack + 区数 tripwire
-  + 窗位落墙 + evidence 覆盖）；**gate② J1**（你看原图 + `zones.png`/`elev.png` + `grade.png` +
+  + 窗位落墙 + evidence 覆盖）；人工肉检产物包含 reading 对齐的 `plan_<floor>_render.png`、
+  `elev_<facade>_render.png`，以及 correction-only 房间角色图 `roles_<floor>.png`（legacy `zones.png`/`elev.png`
+  仍保留）；**gate② J1**（你看原图 + correction renders + `grade.png` +
   `score_vs_gt.json`，rubric=`1_correction/judge_rubric.md`）severe/fatal→盲重抽。
 - **S2+S3 几何内核**（代码，确定性，无 per-run judge）：`materialize_kernel_geometry` 造面+切配；gate①
   `check_kernel`（封闭/法向/pairing-gate/矩形 coverage/spec 自洽），block=**代码缺陷 fail-closed**；过 gate① 后
@@ -256,7 +258,37 @@ python scripts/tool_scripts/run_stage.py --base-dir $BD approve-review   <case> 
 > ——durable 纪律不贴这里（根因=非版本化启动 prompt 会悄悄退化），规则真身在
 > `skills/intake_pipeline/0_reading/` 三件套，运行时读取。
 
-把下面**单行**作首条消息（按 case 改占位）：
+正式协议：0_reading 重读/盲重抽必须通过隔离工作区启动，不再直接冷启一个有全仓可读权限的子
+Agent。
+
+1. 构建 clean-room staging（repo 外）：
+
+```
+python scripts/tool_scripts/spawn_isolated_reader.py build --case-dir <CASE> --run-dir <RUN>
+```
+
+2. 在 staging 内冷启 reader。默认只打印 `claude -p ... --settings ...` 命令；由主控在需要时执行，不用
+`--resume`，pilot→batch 通过 feedback 文件传递无污染 review 文本：
+
+```
+python scripts/tool_scripts/spawn_isolated_reader.py spawn --staging-root <STAGING> --model <MODEL>
+python scripts/tool_scripts/spawn_isolated_reader.py feedback --staging-root <STAGING> --text "<NO-GT/NO-JUDGE feedback>"
+```
+
+3. reader 只能读 staging 内 `case_data/`、0_reading skill（不含 `judge_rubric.md`）、cv toolbox
+wrapper 和 prescan 产物；只能写 `out/`。如需 CV probe，只能写 staging 内 request JSON，再通过
+`python tools/run_cv_probe.py --request <request.json>` 调用。
+
+4. 完成后由主控串行 merge，归档 `MANIFEST.json`、settings、guard、access_log 和
+`isolation_provenance.json` 到 attempt：
+
+```
+python scripts/tool_scripts/spawn_isolated_reader.py merge --staging-root <STAGING> --run-dir <RUN> --output <STAGING>/out/output.json
+```
+
+旧 prompt 级启动串已废弃，仅保留历史指针：子 Agent 不得只靠“不要看 gt/attempts/judge”的文字约束运行。
+
+旧串如下（不要用于新重读/盲重抽）：
 
 ```
 Read skills/intake_pipeline/0_reading/session_kickoff.md and follow it for case <CASE>.

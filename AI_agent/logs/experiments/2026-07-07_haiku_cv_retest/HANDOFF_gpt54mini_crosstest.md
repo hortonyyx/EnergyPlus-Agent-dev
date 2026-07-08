@@ -22,6 +22,6 @@
 
 ## 顺延事项（不阻塞交叉测试）
 
-- sm21 Haiku run 的 correction+内核推进：容器网络不通 DeepSeek，宿主侧跑 `python scripts/tool_scripts/run_stage.py --base-dir case_tests/e2e_tests --date 2026-07-07 flow sm21_anchor run_2026-07-07_haiku_cv_retest --judge stop --to 3_split_pairing --geometry required`。
+- ~~sm21 Haiku run 的 correction+内核推进~~ **✅ 2026-07-08 容器内跑完**（DeepSeek 可达翻案后）：correction 首抽 J1 pass（judge 判据=score_correction_vs_gt 五项全 pass，grade 全绿零红，边界走 gt `wall_thickness_m` 中心线→外皮换算）→ 内核全净 → 停几何门待 approve。交叉测试的 sm21 对照数据链完整。
 - 开源/国产 VLM api 首次验收（用户已知悉建议提前；等交叉测试结论后拍）。
 - C2 B1（Cell.polygon）排队单顺延。

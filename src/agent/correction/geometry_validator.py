@@ -27,10 +27,17 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
-from shapely.geometry import box
 from shapely.ops import unary_union
 
+from src.agent.correction.cell_geometry import (
+    cell_bbox,
+    cell_facade_span,
+    cell_polygon,
+    cell_has_polygon,
+    validate_cell_polygon,
+)
 from src.agent.correction.schema import CorrectedGeometry
+from src.agent.geometry.capability import schema_version_of
 
 _AREA_TOL = 0.05      # m^2 — ignore coverage gaps/overlaps below this
 _Z_TOL = 0.02         # m — z-stack contiguity tolerance (matches kernel _Z_TOL)
@@ -47,17 +54,52 @@ class GeometryFinding:
 
 
 def _cell_box(c) -> object:
-    return box(min(c.x), min(c.y), max(c.x), max(c.y))
+    return cell_polygon(c)
+
+
+def check_cell_polygon_contract(geom: CorrectedGeometry) -> GeometryFinding:
+    bad = []
+    for fl in geom.floors:
+        for c in fl.cells:
+            try:
+                if cell_has_polygon(c) and schema_version_of(geom) != "2":
+                    raise ValueError(
+                        f"cell {c.id}: polygon requires CorrectedGeometry.schema_version '2'"
+                    )
+                validate_cell_polygon(c, min_edge_length_m=_MIN_EXTENT)
+            except ValueError as exc:
+                bad.append({"floor": fl.name, "cell": c.id, "reason": str(exc)})
+    if bad:
+        return GeometryFinding(
+            "correction.cell_polygon_contract",
+            False,
+            f"{len(bad)} invalid polygon cell contract violation(s)",
+            {"offenders": bad},
+        )
+    return GeometryFinding("correction.cell_polygon_contract", True)
 
 
 def check_coverage(geom: CorrectedGeometry) -> list[GeometryFinding]:
     """Per floor: cells must tile the footprint — no holes, no overlaps."""
     findings: list[GeometryFinding] = []
     fx, fy = geom.footprint_x, geom.footprint_y
+    from shapely.geometry import box
+
     foot = box(min(fx), min(fy), max(fx), max(fy))
     foot_area = foot.area
     for fl in geom.floors:
-        boxes = [_cell_box(c) for c in fl.cells]
+        try:
+            boxes = [_cell_box(c) for c in fl.cells]
+        except ValueError as exc:
+            findings.append(
+                GeometryFinding(
+                    "correction.coverage",
+                    False,
+                    f"floor '{fl.name}' has invalid cell geometry: {exc}",
+                    {"floor": fl.name, "reason": str(exc)},
+                )
+            )
+            continue
         if not boxes:
             findings.append(GeometryFinding(
                 "correction.coverage", False,
@@ -94,7 +136,12 @@ def check_nondegenerate(geom: CorrectedGeometry) -> GeometryFinding:
     bad = []
     for fl in geom.floors:
         for c in fl.cells:
-            if abs(max(c.x) - min(c.x)) < _MIN_EXTENT or abs(max(c.y) - min(c.y)) < _MIN_EXTENT:
+            try:
+                minx, miny, maxx, maxy = cell_bbox(c)
+            except ValueError:
+                bad.append({"floor": fl.name, "cell": c.id})
+                continue
+            if abs(maxx - minx) < _MIN_EXTENT or abs(maxy - miny) < _MIN_EXTENT:
                 bad.append({"floor": fl.name, "cell": c.id})
     if bad:
         return GeometryFinding(
@@ -147,7 +194,11 @@ def check_windows_on_wall(geom: CorrectedGeometry) -> GeometryFinding:
             bad.append({"window": w.id, "reason": f"room '{w.room}' not found"})
             continue
         # along-facade axis: N/S → x, E/W → y
-        rng = (min(c.x), max(c.x)) if w.facade in ("North", "South") else (min(c.y), max(c.y))
+        try:
+            rng = cell_facade_span(c, w.facade)
+        except ValueError as exc:
+            bad.append({"window": w.id, "reason": str(exc)})
+            continue
         s0, s1 = min(w.span), max(w.span)
         if s0 < rng[0] - _SPAN_TOL or s1 > rng[1] + _SPAN_TOL:
             bad.append({"window": w.id, "facade": w.facade, "span": [s0, s1],
@@ -166,6 +217,7 @@ def validate_corrected_geometry(
 ) -> list[GeometryFinding]:
     """Run all A0 §7 + cross-check geometry validations."""
     findings: list[GeometryFinding] = []
+    findings.append(check_cell_polygon_contract(geom))
     findings.extend(check_coverage(geom))
     findings.append(check_nondegenerate(geom))
     findings.append(check_zstack(geom))

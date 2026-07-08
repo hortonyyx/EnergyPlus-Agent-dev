@@ -1,0 +1,232 @@
+#!/usr/bin/env python3
+"""PreToolUse guard for isolated reading workspaces.
+
+This file is copied into the staging root as ``guard.py``. It is intentionally
+stdlib-only because it runs before tool execution.
+"""
+
+from __future__ import annotations
+
+import hashlib
+import json
+import shlex
+import sys
+from datetime import datetime, timezone
+from pathlib import Path
+
+GUARD_VERSION = "1"
+DENY_TOKENS = (
+    "/workspaces/EnergyPlus-Agent-dev",
+    "case_tests",
+    "test_baseline",
+    "gt" + ".json",
+    "attempts",
+    "judge.json",
+    "judge_rubric.md",
+    "verdict",
+    "grade",
+)
+COMPOUND_TOKENS = (";", "|", "&&", "||", "`", "$(", ">", "<")
+READ_ONLY_COMMANDS = {"ls", "file"}
+TOOL_INPUT_EXCERPT_LIMIT = 500
+
+
+def _staging_root() -> Path:
+    return Path(__file__).resolve().parent
+
+
+def _hash_text(text: str) -> str:
+    return hashlib.sha256(text.encode("utf-8")).hexdigest()
+
+
+def _under(path: Path, root: Path) -> bool:
+    try:
+        path.resolve(strict=False).relative_to(root.resolve(strict=True))
+        return True
+    except (FileNotFoundError, ValueError):
+        return False
+
+
+def _path_arg(value: str, root: Path) -> Path:
+    if value.startswith("~"):
+        raise ValueError("home-relative paths are forbidden")
+    p = Path(value)
+    if not p.is_absolute():
+        p = root / p
+    resolved = p.resolve(strict=False)
+    if not _under(resolved, root):
+        raise ValueError(f"path escapes staging: {value}")
+    if p.exists():
+        target = p.resolve(strict=True)
+        if not _under(target, root):
+            raise ValueError(f"symlink target escapes staging: {value}")
+    return resolved
+
+
+def _serialized(payload: dict) -> str:
+    return json.dumps(payload, sort_keys=True, ensure_ascii=False)
+
+
+def _excerpt(value) -> str:
+    text = json.dumps(value, sort_keys=True, ensure_ascii=False)
+    if len(text) <= TOOL_INPUT_EXCERPT_LIMIT:
+        return text
+    return text[:TOOL_INPUT_EXCERPT_LIMIT] + "...<truncated>"
+
+
+def _lexical_check(text: str, root: Path) -> tuple[bool, str]:
+    if ".." in text:
+        return False, "parent traversal token is forbidden"
+    if "~" in text:
+        return False, "home token is forbidden"
+    for token in DENY_TOKENS:
+        if token in text:
+            return False, f"forbidden token: {token}"
+    for part in text.replace('"', " ").replace("'", " ").split():
+        if part.startswith("/") and not _under(Path(part), root):
+            return False, f"absolute path outside staging: {part}"
+    return True, "ok"
+
+
+def _validate_request_file(path: Path, root: Path) -> list[str]:
+    data = json.loads(path.read_text(encoding="utf-8"))
+    normalized = [str(path.resolve(strict=True))]
+    for value in _walk_values(data):
+        if isinstance(value, str):
+            ok, reason = _lexical_check(value, root)
+            if not ok:
+                raise ValueError(f"request contains forbidden token: {reason}")
+            if _looks_like_path(value):
+                normalized.append(str(_path_arg(value, root)))
+    return sorted(set(normalized))
+
+
+def _walk_values(value):
+    if isinstance(value, dict):
+        for item in value.values():
+            yield from _walk_values(item)
+    elif isinstance(value, list):
+        for item in value:
+            yield from _walk_values(item)
+    else:
+        yield value
+
+
+def _looks_like_path(value: str) -> bool:
+    return (
+        "/" in value
+        or value.startswith(".")
+        or value.endswith((".json", ".png", ".jpg", ".jpeg", ".txt", ".md"))
+    )
+
+
+def _check_bash(command: str, root: Path) -> tuple[bool, str, list[str]]:
+    ok, reason = _lexical_check(command, root)
+    if not ok:
+        return False, reason, []
+    for token in COMPOUND_TOKENS:
+        if token in command:
+            return False, f"compound shell token forbidden: {token}", []
+    try:
+        parts = shlex.split(command)
+    except ValueError as exc:
+        return False, f"invalid shell syntax: {exc}", []
+    if not parts:
+        return False, "empty command", []
+    if parts[0] in {"cd", "env"}:
+        return False, f"{parts[0]} is forbidden", []
+    if parts[0] in READ_ONLY_COMMANDS:
+        normalized = []
+        for arg in parts[1:]:
+            if arg.startswith("-"):
+                continue
+            try:
+                normalized.append(str(_path_arg(arg, root)))
+            except ValueError as exc:
+                return False, str(exc), normalized
+        return True, "allowed read-only command", normalized
+    if Path(parts[0]).name not in {"python", "python3"}:
+        return False, f"command is not allowlisted: {parts[0]}", []
+    if len(parts) != 4:
+        return False, "python command must be exactly: python tools/run_cv_probe.py --request <json>", []
+    script = Path(parts[1])
+    expected = root / "tools" / "run_cv_probe.py"
+    if script.is_absolute():
+        if script.resolve(strict=False) != expected.resolve(strict=True):
+            return False, "only tools/run_cv_probe.py may be executed", []
+    elif parts[1] != "tools/run_cv_probe.py":
+        return False, "only tools/run_cv_probe.py may be executed", []
+    if parts[2] != "--request":
+        return False, "run_cv_probe must use --request", []
+    if parts[3] == "-c":
+        return False, "python -c is forbidden", []
+    try:
+        request_path = _path_arg(parts[3], root)
+        if request_path.suffix != ".json":
+            return False, "request must be a JSON file", [str(request_path)]
+        normalized = _validate_request_file(request_path, root)
+    except (OSError, ValueError, json.JSONDecodeError) as exc:
+        return False, str(exc), []
+    return True, "allowed run_cv_probe request", normalized
+
+
+def evaluate(payload: dict) -> tuple[str, str, list[str]]:
+    root = _staging_root()
+    tool = payload.get("tool_name") or payload.get("tool") or ""
+    tool_input = payload.get("tool_input") or {}
+    if tool == "Bash":
+        command = tool_input.get("command") if isinstance(tool_input, dict) else None
+        if not isinstance(command, str):
+            return "deny", "Bash command missing", []
+        ok, reason, paths = _check_bash(command, root)
+        return ("allow" if ok else "deny"), reason, paths
+    paths = []
+    for value in _walk_values(tool_input):
+        if not isinstance(value, str):
+            continue
+        ok, reason = _lexical_check(value, root)
+        if not ok:
+            return "deny", reason, paths
+        if _looks_like_path(value):
+            try:
+                paths.append(str(_path_arg(value, root)))
+            except ValueError as exc:
+                return "deny", str(exc), paths
+    return "allow", "allowed", sorted(set(paths))
+
+
+def _append_log(payload: dict, decision: str, reason: str, paths: list[str]) -> None:
+    root = _staging_root()
+    entry = {
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "guard_version": GUARD_VERSION,
+        "tool": payload.get("tool_name") or payload.get("tool") or "",
+        "input_hash": _hash_text(_serialized(payload)),
+        "normalized_paths": paths,
+        "decision": decision,
+        "reason": reason,
+    }
+    if decision == "deny":
+        entry["tool_input_excerpt"] = _excerpt(payload.get("tool_input") or {})
+    log_path = root / "access_log.jsonl"
+    with log_path.open("a", encoding="utf-8") as fh:
+        fh.write(json.dumps(entry, sort_keys=True, ensure_ascii=False) + "\n")
+
+
+def main() -> int:
+    try:
+        payload = json.loads(sys.stdin.read() or "{}")
+    except json.JSONDecodeError as exc:
+        payload = {}
+        decision, reason, paths = "deny", f"invalid hook JSON: {exc}", []
+    else:
+        decision, reason, paths = evaluate(payload)
+    _append_log(payload, decision, reason, paths)
+    if decision == "deny":
+        print(reason, file=sys.stderr)
+        return 2
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
