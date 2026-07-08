@@ -18,7 +18,7 @@
 
 ## 0. 研究结论与状态（2026-06-07，本文为本线唯一汇总文档）
 
-> **本文 = 热区再拓扑 leg 的唯一汇总文档**。设计骨架（§1-§9，注意按顶部 banner 把"确定性几何内核 / split-pairing"重映射为已独立的切配）+ 本节研究结论。**状态：支线休眠，确定开展时再重启；当前专注主线（识图建模质量 partA 校正）。** 调研全文 = [../logs/reviews/verdict/2026-06-07_zonification_approach_review.md](../logs/reviews/verdict/2026-06-07_zonification_approach_review.md)（Codex），请求 = [../logs/reviews/request/2026-06-07_zonification_approach_request.md](../logs/reviews/request/2026-06-07_zonification_approach_request.md)。
+> **本文 = 热区再拓扑 leg 的唯一汇总文档**。设计骨架（§1-§9，注意按顶部 banner 把"确定性几何内核 / split-pairing"重映射为已独立的切配）+ 本节研究结论。**状态：支线休眠，确定开展时再重启；当前专注主线（识图建模质量 partA 校正）。**（🔄 2026-07-06 Fable5 B3 更新了纳入方案与启动条件——绑 C2 开工、stage 1.5、`method` run_config、比原设想更易落地，详见 §9。） 调研全文 = [../logs/reviews/verdict/2026-06-07_zonification_approach_review.md](../logs/reviews/verdict/2026-06-07_zonification_approach_review.md)（Codex），请求 = [../logs/reviews/request/2026-06-07_zonification_approach_request.md](../logs/reviews/request/2026-06-07_zonification_approach_request.md)。
 
 ### 0.1 调研裁决
 
@@ -224,7 +224,14 @@ shapely 与 idfpy **互补**：idfpy 出干净 surface 多边形，shapely 做 f
 
 ## 9. 落地时机 + 待决策点
 
-**时机**：与 **idfpy 切换 + B5 非方形** 同期做最省力，三件事一锅端：① 验证原生化（idfpy validate）② 几何内核（再拓扑+升起+配对）③ 非方形支持（不同剖分）。当前矩形机制下不急，覆盖洞是理论风险。
+> **🔄 Fable5 B3 更新（2026-07-06，体检报告 [../logs/experiments/2026-07-05_fable5_project_audit/FABLE5_REPORT.md](../logs/experiments/2026-07-05_fable5_project_audit/FABLE5_REPORT.md) B3）——纳入方案细化 + 启动时机前移绑 C2 + 比原设想更易落地**：
+> - **定位裁决**：再拓扑 = **kernel 策略替换、非架构推翻**（本文已自洽）。当前「房间即 zone」就是谱系里 `room_identity` 端点，故启动 ≠ 新架构 = 把 zonification 从隐式恒等映射升级为**显式可选步骤**。
+> - **纳入位置**：可选 **stage 1.5**（`1_correction` 后、`2_modelling` 前）；输入=snapped CorrectedGeometry，输出=`zonification_output.json` sidecar（zone 底面剖分 + `source_room_attribution` 分数归属），**不改 IntakeOutput 契约**；`method` 提为一等参数（`room_identity`=现状默认 / `perimeter_core` / `use_grouped_rooms`），进 `run_config.yaml`（同 per-case 配置纪律）。
+> - **分阶段（补三工程锚）**：**P0 觉醒探针**（现有矩形 case 跑**非阻塞** shapely 覆盖校验——**与 C2 覆盖门是同一件代码**，先 advisory、C2 时提 block，一件投资两条线）→ **P1 sidecar+渲染**（复用 grade 灰底-产品叠画模型，2D 剖分是最理想 gt/diff 目标）→ **P2 perimeter_core MVP**（简单矩形+正交 L/U，凹形显式 unsupported）→ **P3 BEM 保真残差层**（楼层/立面外墙面积/WWR/源房→热区映射）→ **P4 use_grouped_rooms**（依赖 role phase-2 确定性绑定）。
+> - **启动时机前移 = 绑 C2 开工**（原判「B5 非方形开工时」仍成立）：C2 时先落 P0/P1（几天量级），perimeter_core 与 C2 内核**并行不阻塞**；`method` 默认切换（room_identity→perimeter_core）等双路径对照（沿 sm20/21 纪律）证明不劣后再动。再拓扑**不消灭** C3 的 z 维工程，替代的是「覆盖门」不是「切配」。
+> - **比原设想更易落地**（下方「时机=idfpy+B5 同期」口径已部分过时）：切配内核**已在本项目侧**，当年「surface 节点归协作者」的契约跨界顾虑（§7.1）已被 0-5 重构消化——唯一跨所有权风险在此纳入方式下不存在。
+
+**时机（原始，2026-05-29，部分被上方 B3 更新取代）**：与 **idfpy 切换 + B5 非方形** 同期做最省力，三件事一锅端：① 验证原生化（idfpy validate）② 几何内核（再拓扑+升起+配对）③ 非方形支持（不同剖分）。当前矩形机制下不急，覆盖洞是理论风险。
 
 **待决策点**（动手前拍板）：
 1. **再拓扑放 phase2a 独立步 vs 并进 phase2 重写**——本文倾向独立 phase2a（判断/机械分离更干净）。

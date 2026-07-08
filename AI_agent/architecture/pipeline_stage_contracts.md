@@ -320,6 +320,28 @@
 ### 5.5 连接性补缝（#2.4，2026-06-09 部分落地）
 "内墙没顶到外墙、留小缝" → 闭包不连续就形不成 zone（BEM fatal）。与轴吸附是**两类操作**（身份 50mm vs 连接性 300mm，A0 §4 分开）。**已落**：核加连接性 pass——cell 边落 footprint 内侧 ≤ `gap_close_threshold`(300mm) → 吸到边界封口（[deterministic.py](../../src/agent/correction/deterministic.py) `_close_to_boundary`，方向性、仅内墙→外墙）。**残留**：① 内墙→内墙连接性（风险更高暂不做）② 300–1000mm 走 A3（门洞判断）、≥1000mm 走 zonification（开放边界）——属判断，非确定性核。
 
+### 5.6 版本化 schema 接缝 ✅ B0 把纸面承诺补成真机制（2026-07-06，Fable5 报告 C3 证伪 → 同轮落地）
+**报告 C3 证伪**：不变量 #6 的「版本化 schema 是留好的接缝」曾在**代码层是未开工的承诺**——`CorrectedGeometry`/`BuildingGeometry` 均无 `schema_version` 字段，`capability_profile` 全仓库仅一处按值分支（[kernel.py:226](../../src/validator/checks/kernel.py#L226) 非矩形→NOT_APPLICABLE），几何内核三件对它一无所知。**已落地**（`802822f` C2 B0 + `df6f249` C2 B1）：`schema_version` 真机制（根字段缺省 `"1"` + gate① `correction.schema_version_supported` INVARIANT 拒绝静默降级）+ `capability_profile` 线程化内核全入口（新 [geometry/capability.py](../../src/agent/geometry/capability.py)·profile 形状 ⊇ 数据声明·档 `rectangular`/`orthogonal_polygon`）；schema v2 + `Cell.polygon` 落地（[cell_geometry.py](../../src/agent/correction/cell_geometry.py) 单一 helper 贯穿 core/validator/modelling/judge）。**残留（C2 深化）**：见 5.7 烤死点位——`schema_version` 机制在，但 Facade Literal 多段立面、per-floor footprint 等**数据源侧**接缝尚未开。
+
+### 5.7 非矩形烤死假设点位清单（C2/C3 松动路线，Fable5 报告 C3 取证，2026-07-06）
+**关键裁决（报告 C3）**：真正卡死「矩形」的**不是内核算法**（`modelling.py`/`split_pairing.py` 核心运算本就 shapely polygon-native、L 形合成测试在 [test_geometry_kernel.py](../../tests/test_geometry_kernel.py)；[interzone.py](../../src/validator/interzone.py) 已 Newell 法向+任意平面距离、为 C4 备好），**是喂给它的数据源**（schema 必填 x/y、prompt 只教矩形、correction 核只吸附 bbox 角点——`polygon` 曾是「没人会填的后门」，B1 已打通）。烤死点位（按松动难度，供 C2/C3 开工序参照）：
+
+| # | 点位 | 假设 | 首撞档 | 状态 |
+|---|---|---|---|---|
+| 1 | [reading/schema.py](../../src/agent/reading/schema.py) `Facade=Literal["North/South/East/West"]`（correction 复用同 Literal） | 每朝向单一立面+轴对齐，**全管线最上游类型根** | **C2** | ⏳ 开着（正交多边形需「每朝向多段立面」，不必等斜交） |
+| 2 | [correction/facade.py](../../src/agent/correction/facade.py) `derive_facade_frame` 一朝向只返回一个 `base_world` 平面 | 全楼每朝向唯一外墙面 | C2 | ⏳（1/2/5 同根、一起动） |
+| 3 | [correction/schema.py](../../src/agent/correction/schema.py) `footprint_x/y` 单一全局 bbox + `deterministic.py` 跨层 reconcile 以它为硬锚 | 各层共用 footprint | **C3**（退台后上层外墙偏离全局 footprint） | ⏳（B1 建议 per-floor footprint 提前到 C2 落，免 C3 再动契约） |
+| 4 | `Cell.x/y` 必填矩形 + prompt 令矩形 cell | 矩形 cell（bbox 思维） | C2 | ✅ B1 已开 polygon 槽（`Cell.polygon` 可选、x/y=bbox 投影） |
+| 5 | [modelling.py](../../src/agent/geometry/modelling.py) `_facade_axis`/`_window_verts`/`_find_parent_wall`：外墙恒 x/y，同朝向多墙**静默选最后 match** | 轴对齐+单立面 | **C2 即触发隐藏 bug**（L 形房间同朝向两段外墙） | ⏳（B0 已把 `_find_parent_wall` 改唯一归属 raise、缓解静默；窗挂载改线段投影仍待 B5） |
+| 6 | [split_pairing.py](../../src/agent/geometry/split_pairing.py) 竖直墙配对仅同 `by_floor` 组内两两求交 | 墙配对 by_floor | C3（z 区间重叠跨层邻接查不到→静默变外墙） | ⏳（= B1 C3 的 z 区间驱动） |
+| 7 | `split_pairing._coverage` 只查 `fi±1` + [kernel.py](../../src/validator/checks/kernel.py) `_coverage_completeness` **独立重写同一套相邻-fi 逻辑** | 紧邻楼层索引=竖向邻接 | C3 | ⚠️ 双写隐患（改一处漏另一处）；B0 `geometry/adjacency.py` 已部分收敛覆盖门 helper，全量收敛待 check registry（5.8） |
+| 8 | [geometry_validator.py](../../src/agent/correction/geometry_validator.py) `_cell_box` 曾用 min/max 建 box 无视 polygon | 矩形（gate① 层） | C2 | ✅ B1 改走 `cell_polygon` |
+
+**判卷层硬前置（报告 C2/#4，最紧迫）**：判卷打分器对非矩形**零 capability 感知**（gt/产物墙抽取只认常量 x/常量 y 边、立面化简为单一 `span_limit`、judge 层零处出现 `capability_profile`/`polygon`）——内核对非矩形至少有显式 NOT_APPLICABLE 豁免，判卷层连豁免分支都没有。∴ **C2 第一个非矩形 case 的判卷输出是「未定义行为」而非诚实降级**。C2 往下走前必须落 §8b 的 segment/polyline 判卷模型 + 判卷 capability 感知（B1 表格「判卷与内核并行设计」是硬前置非锦上添花）。
+
+### 5.8 校验体系两路消费无单一真源 ⚠️ parity 锁临时兜住，check registry 待建（Fable5 报告 A1-2/A2）
+同一批 check 函数被 `validate_case`(capstone) 与 `run_pipeline`(inline) **各自独立接线**，接线清单靠人手维护、已漂移三处（报告 A2：0_reading 段 6/15 投影缺口、S5 门禁死代码、coverage/盲抽双写）。**M1 已收口**（`fea6981`）：run_pipeline 内联完整 `check_reading_view`+`check_assembly` 分档门 + `tests/test_check_parity.py` **parity 锁**（断言两路检查集合相等、豁免项显式登记）。**残留**：结构解 = check registry（每 stage 声明检查集+分档策略，两路都从注册表驱动）——parity 锁降低了「桶③再次打开」的紧迫度，全量重构未做；`retry_stage_draw`（[step_orchestrator.py](../../src/agent/execution/step_orchestrator.py) 生产盲抽自己重写一份）、`_coverage_completeness`（5.7#7）等双写副本同源、待一并收敛。
+
 ---
 
 ## 6. 范围说明

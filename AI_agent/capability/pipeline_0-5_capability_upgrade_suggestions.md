@@ -65,7 +65,14 @@
 | **C4** | **斜交墙**(非轴对齐,仍直墙棱柱) | 斜向尺寸链/角度 | 核:旋转系吸附 | 窗挂墙投影化 | (shapely 本就支持) | 核+窗挂载是主工作 |
 | **C5** | 异形远期:曲墙、坡屋顶、非棱柱体量 | — | — | — | — | 远期,不展开 |
 
+> **⚠️ 报告 B1 补全（2026-07-06 Fable5，本表此前只覆盖 0–3 + 少量 4_mep）——每档还须同步升级三个子系统**，否则新档 case **没有自动判据**（2026-07-04 竖向盲区教训会每档重演）：
+> - **gt/答案模型**：gt.json 从矩形 footprint+轴对齐墙 → 线段/多边形原生；**CAD→gt 工具链（`gt_from_dxf`）天然支持任意折线、是现成升级路径**——先扩 gt schema 再扩判卷。
+> - **gate② 判卷模型（C2 硬前置、报告 #4/C2 最紧迫）**：判卷 v1 明示只支持轴对齐矩形（[judge_grade_model.md](../architecture/judge_grade_model.md) §8），**打分器对非矩形零 capability 感知**（gt/产物墙抽取只认常量 x/常量 y 边、立面单一 `span_limit`、judge 层零处 `polygon`/`capability_profile`）→ **C2 第一个非矩形 case 的判卷是「未定义行为」而非诚实降级**。C2 往下走前必须落 §8b 的 **segment/polyline 判卷模型**（gt 墙=线段集、按线段邻近关联；立面改沿面局部坐标）+ 判卷 capability 感知（不支持档显式 NA、对齐内核诚实姿态）。「判卷与内核并行设计」是硬前置、非锦上添花。
+> - **5_intakeoutput 契约**：IntakeOutput 11 字段**不动**（几何仍序列化为 specs 文本、顶点数 4→N 下游誊写协议无须变）——这条是**减轻情节**（报告 D1-4：LLM 侧负载随区数不随面数扩展、确定性内核吸收了面数爆炸）。
+
 ### C2 — 正交多边形 + 多平面立面（第一战役,建议下一档就打这个）
+
+> **进展（2026-07-06/08）**：C2 已按 `proposals/c2_orthogonal_polygon_design.md` 的 B0–B6 批次序开工——**B0 已落**（schema_version 真机制 + capability_profile 线程化内核全入口，`802822f`）；**B1 已落**（`Cell.polygon` + schema v2 + `orthogonal_polygon` profile，`df6f249`：sm24 走廊做成 8 顶点 C 形单区、修 CW/闭环规范化+凹形墙法向局部探针+manifest-first 防污染）。**下一批 B2–B6** + 上方 B1 补全的**判卷 segment 模型是继续往下的硬前置**。
 
 **为什么先打**:L/U 形是真实办公楼最常见的非矩形;且**内核已经半就绪**——`modelling.py` 是 shapely 多边形原生(`_cell_polygon` 已优先读 cell 的 `polygon` 字段,矩形只是特例),`split_pairing` 的墙配对(boundary.intersection)和楼板配对(polygon.intersection)对任意多边形本来就成立。缺口集中在 0/1 和守卫:
 
@@ -102,10 +109,12 @@
 | ③ 切配内核 | 墙竖向 z-cut(C3)+ 带洞分解(C3);楼板/墙配对算法本体 shapely 已通用 | C3 |
 | ④ 门与守卫 | shapely 覆盖完整性门(C2 落地,全档受益);多边形合法性守卫(C2);z 区间守卫升级(C3);fenestration 门(audit M2 遗留,复杂立面后必要性升高) | 全部 |
 | ⑤ 0_reading 输入类型 | 剖面图 image_kind(C3);立面分翼/进深标注(C2);角度/斜向尺寸(C4) | C2/C3/C4 |
+| ⑥ gate② 判卷模型（报告 B1 补） | segment/polyline 判卷（**C2 硬前置**）+ 判卷 capability 感知（不支持档 NA）+ 立面沿面局部坐标；每档新几何都要有自动判据 | C2/C3/C4 |
+| ⑦ gt/答案模型（报告 B1 补） | gt.json 线段/多边形原生（CAD→gt `gt_from_dxf` 已支持）+ z_span/洞（C3）；**先扩 gt 再扩判卷** | C2/C3/C4 |
 
 ### 节奏建议
 
-**C2 → C3(退台先收、挑空后攻) → C4**,每档节奏固定:**合成用例升内核(确定性,先行)→ schema+correction 文档演化 → 真实图纸 anchor case → 守卫/门补齐 → 入 test_baseline**。C2 内核现成度最高、真实需求最广,test_baseline + VLM 接通后建议直接开 C2。
+**C2 → C3(退台先收、挑空后攻) → C4**,每档节奏固定:**合成用例升内核(确定性,先行)→ schema+correction 文档演化 → gt 模型+判卷模型同步升级〔不可省，否则新档无自动判据〕→ 真实图纸 anchor case → 守卫/门补齐 → 入 test_baseline**。C2 内核现成度最高、真实需求最广,test_baseline + VLM 接通后建议直接开 C2。
 
 ## 路线图锚点（用户定，2026-06-10）
 
