@@ -1,0 +1,61 @@
+# =====================================================================
+# run_config.yaml — run_2026-07-08_gpt54mini_cv_retest (sm21_anchor)
+# GPT-5.4-mini CROSS-TEST (migration verification). Question: is the CV
+# toolbox recipe Haiku-specific, or does it transfer to another weak VLM?
+# Reference ceiling = run_2026-07-02_sonnet_flow_e2e (Sonnet 5: 9/9·7/7·15/15·0.0m).
+# Haiku peer = run_2026-07-07_haiku_cv_retest (Haiku 4.5 + toolbox: same
+# perfect band). gpt-5.4-mini no-toolbox prior = run_2026-06-23_gpt54mini_reading
+# (plan clean but South-F2 4→2 windows merged + 2f missing 1 partition).
+# Config stamped by user 2026-07-08: sm21 reading-only ·对账 gt · non-interactive
+# (I drive to a score report; pilot审 by orchestrator) · J0 on + resample open.
+# Also verifies the E-efficiency batch (prescan pre-staged + skill-固化: prompt
+# no longer carries measure-before-draw, cv_toolbox.md self-declares required).
+# =====================================================================
+
+scope:
+  stages:
+    - 0_reading
+  # 1_correction..EP intentionally OUT of scope: cross-test judged on reading
+  # vs gt only (user stamp 2026-07-08). Downstream not the variable here.
+
+judge:
+  mode: stop            # J0 (reading judge, gt对账 authoritative via
+                        # score_reading_vs_gt); orchestrator = judge②
+  resample_ladder: open # JUDGE_BLOCK → blind re-read, budget 3
+
+review:
+  reading: false        # non-interactive: orchestrator drives to a score report,
+  correction: false     # user reviews the final artifacts (user stamp 2026-07-08).
+  geometry: false       # pilot(1f)审 is orchestrator-side, not a user checkpoint.
+
+models:
+  reading:
+    role: 0_reading
+    model_id: gpt-5.4-mini
+    provider: openai
+    effort: default
+    source: >-
+      codex CLI `codex exec -m gpt-5.4-mini -i <png>` (OpenAI provider; Anthropic
+      Agent tool cannot reach non-Claude models). Isolated via clean-room staging
+      (spawn_isolated_reader build; gt/attempts/judge physically outside staging,
+      cwd=staging). NOTE: the Claude Code PreToolUse guard layer does NOT apply to
+      codex — isolation here is L1 physical staging + cwd + danger-full-access
+      (weaker than the claude -p guard, but gt is physically excluded, stronger
+      than the pre-2026-07-08 prompt-level protocol). Per-run directive = E-batch
+      固化: cv_toolbox.md self-declares required + prescan candidates pre-staged
+      (E3), so the spawn prompt does NOT repeat measure-before-draw — verifying
+      the固化 holds on a new model.
+  orchestrator:
+    role: judge2+orchestration
+    model_id: claude-opus-4-8
+  correction:
+    role: 1_correction
+    model_id: deepseek-v4-pro
+    note: out of scope this run
+  mep:
+    role: 4_mep
+    model_id: deepseek-v4-pro
+    note: out of scope this run
+
+# grade: omitted → judge-side default tolerances (wall 0.30 / window_centre 0.40
+# / elevation defaults), identical to Haiku peer + Sonnet 5 baseline.

@@ -1,0 +1,204 @@
+{
+  "applicability": "clean_vector",
+  "crop_chain": [],
+  "cv_schema": "1",
+  "diagnostics": {
+    "anchor_count": 2,
+    "overlay_decisions": [
+      {
+        "candidate_id": "South_view:px_m_calibrator:001:scale:1",
+        "geometry": {
+          "axis": "col",
+          "kind": "line",
+          "x_px": 319
+        },
+        "reason": "calibration anchor",
+        "status": "accepted"
+      },
+      {
+        "candidate_id": "South_view:px_m_calibrator:001:scale:2",
+        "geometry": {
+          "axis": "row",
+          "kind": "line",
+          "y_px": 189
+        },
+        "reason": "calibration anchor",
+        "status": "accepted"
+      }
+    ],
+    "warnings": [
+      {
+        "axis": "y",
+        "dimension_ref": "overall_height",
+        "residual_m": -0.040493636714230535,
+        "residual_px": -2.345844504021443,
+        "span_px": 380.0,
+        "type": "residual_exceeds_threshold",
+        "value_m": 6.6
+      }
+    ]
+  },
+  "overlay_path": "out/cv_evidence/South_view/001_px_m_calibrator_overlay.png",
+  "params": {
+    "anchors": [
+      {
+        "axis": "x",
+        "dimension_ref": "overall_width",
+        "px_a": 319,
+        "px_b": 1189,
+        "value_m": 15.0
+      },
+      {
+        "axis": "y",
+        "dimension_ref": "overall_height",
+        "px_a": 189,
+        "px_b": 569,
+        "value_m": 6.6
+      }
+    ],
+    "residual_warn_m": 0.05,
+    "residual_warn_px": 2.0
+  },
+  "recipe_id": "clean_vector_v1",
+  "results": [
+    {
+      "anchor_px": {
+        "kind": "span",
+        "value": {
+          "anchors": [
+            {
+              "axis": "x",
+              "dimension_ref": "overall_width",
+              "px_a": 319,
+              "px_b": 1189,
+              "value_m": 15.0
+            },
+            {
+              "axis": "y",
+              "dimension_ref": "overall_height",
+              "px_a": 189,
+              "px_b": 569,
+              "value_m": 6.6
+            }
+          ]
+        }
+      },
+      "candidate_id": "South_view:px_m_calibrator:001:scale",
+      "candidate_kind": "calibration",
+      "coord_space": "source_px",
+      "m_per_px": 0.017261858850752026,
+      "metric": {
+        "confidence": "medium",
+        "dimension_refs": [
+          "overall_width",
+          "overall_height"
+        ],
+        "raw_segments": [
+          {
+            "axis": "x",
+            "dimension_ref": "overall_width",
+            "px_a": 319,
+            "px_b": 1189,
+            "value_m": 15.0
+          },
+          {
+            "axis": "y",
+            "dimension_ref": "overall_height",
+            "px_a": 189,
+            "px_b": 569,
+            "value_m": 6.6
+          }
+        ],
+        "residuals": [
+          {
+            "axis": "x",
+            "dimension_ref": "overall_width",
+            "residual_m": 0.017817200154260415,
+            "residual_px": 1.0321715817693757,
+            "span_px": 870.0,
+            "value_m": 15.0
+          },
+          {
+            "axis": "y",
+            "dimension_ref": "overall_height",
+            "residual_m": -0.040493636714230535,
+            "residual_px": -2.345844504021443,
+            "span_px": 380.0,
+            "value_m": 6.6
+          }
+        ],
+        "scale_px_per_m": 57.93118856121537
+      },
+      "provenance": {
+        "crop_chain_id": "",
+        "recipe_id": "clean_vector_v1",
+        "source_image_sha256": "6c69efe4699b",
+        "tool": "px_m_calibrator",
+        "tool_version": "1"
+      },
+      "px_per_m": 57.93118856121537,
+      "residuals": [
+        {
+          "axis": "x",
+          "dimension_ref": "overall_width",
+          "residual_m": 0.017817200154260415,
+          "residual_px": 1.0321715817693757,
+          "span_px": 870.0,
+          "value_m": 15.0
+        },
+        {
+          "axis": "y",
+          "dimension_ref": "overall_height",
+          "residual_m": -0.040493636714230535,
+          "residual_px": -2.345844504021443,
+          "span_px": 380.0,
+          "value_m": 6.6
+        }
+      ],
+      "rmse_m": 0.031282481005197274,
+      "rmse_px": 1.8122313057747215,
+      "visual": {
+        "anchor_px": {
+          "kind": "span",
+          "value": {
+            "anchors": [
+              {
+                "axis": "x",
+                "dimension_ref": "overall_width",
+                "px_a": 319,
+                "px_b": 1189,
+                "value_m": 15.0
+              },
+              {
+                "axis": "y",
+                "dimension_ref": "overall_height",
+                "px_a": 189,
+                "px_b": 569,
+                "value_m": 6.6
+              }
+            ]
+          }
+        },
+        "confidence": "high",
+        "relative": {}
+      },
+      "warnings": [
+        {
+          "axis": "y",
+          "dimension_ref": "overall_height",
+          "residual_m": -0.040493636714230535,
+          "residual_px": -2.345844504021443,
+          "span_px": 380.0,
+          "type": "residual_exceeds_threshold",
+          "value_m": 6.6
+        }
+      ]
+    }
+  ],
+  "source_image": {
+    "name": "South_view.png",
+    "sha256": "6c69efe4699b"
+  },
+  "tool": "px_m_calibrator",
+  "tool_version": "1"
+}

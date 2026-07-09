@@ -76,8 +76,8 @@
 
 **为什么先打**:L/U 形是真实办公楼最常见的非矩形;且**内核已经半就绪**——`modelling.py` 是 shapely 多边形原生(`_cell_polygon` 已优先读 cell 的 `polygon` 字段,矩形只是特例),`split_pairing` 的墙配对(boundary.intersection)和楼板配对(polygon.intersection)对任意多边形本来就成立。缺口集中在 0/1 和守卫:
 
-- **1_correction schema**(接缝①,最小演化):`Cell` 增可选 `polygon: [[x,y],…]`(有则优先,无则退回 x/y 矩形——`extra="allow"` 已前向兼容);`footprint_x/y` 单矩形 → **per-floor footprint 多边形**(退台在 C3 也要用它)。1_correction 文档教 LLM 何时必须出多边形(房间本身 L 形)vs 何时拆成多个矩形 cell(优先拆,多边形兜底)。
-- **确定性核**:现在只吸 `c.x/c.y` 四个值——升级为**收集全部多边形顶点坐标进轴聚类**(正交前提下仍是 x/y 两组一维问题,算法不变);gap_close 的"footprint 边界"从全局矩形改成 per-floor footprint 多边形(点到边吸附)。
+- **1_correction schema**(接缝①,最小演化):✅ B1 已落 `schema_version="2"` + `Cell.polygon: [[x,y],…]`（有则优先、无则退回 x/y 矩形；`x`/`y` 仍必填且等于 polygon bbox 投影；一房一 cell，非矩形房间才用 polygon）。剩余：`footprint_x/y` 单矩形 → **per-floor footprint 多边形**（退台在 C3 也要用它）+ 继续细化 1_correction 文档的多平面立面/窗归翼仲裁。
+- **确定性核**:✅ B1 已把 polygon 顶点坐标纳入轴聚类/吸附（正交前提下仍是 x/y 两组一维问题，算法不变）并规范化 CW/闭环 ring；剩余：gap_close 的"footprint 边界"从全局矩形改成 per-floor footprint 多边形（点到边吸附）。
 - **多平面立面**(同一朝向不共面,L 形天然出现):内核侧**已经能干**——`_find_parent_wall` 按"窗所属 room + 朝向 + 外法向"找墙,room 定了平面就定了(2026-06-11 H4 修复后法向匹配可靠)。真正的难点在 **0/1**:南立面图上前翼和退进翼的窗混在一张图里,**窗归翼**(哪扇窗属于哪个进深的房间)是 A3 仲裁新课题——0_reading 需要给立面分段/进深线索(翼分界标注),1_correction 用平面房间布局做对位仲裁。
 - **守卫同步**:cell 多边形合法性(自交/退化/非 CCW → raise);**shapely 覆盖完整性门落地**(B5 计划提前到这档——非矩形后"漏一块墙/楼板"靠肉眼查不住了):per-floor cell 并集 vs footprint、层间界面 interzone 配对面并集 vs footprint 交集,差集非空即 issue。
 - **测试锚**:手搓 L 形/凹形合成用例打内核 → 新增 1 个 L 形真实图纸 case(sm2x)端到端。
@@ -104,7 +104,7 @@
 
 | 接缝 | 内容 | 影响档 |
 |---|---|---|
-| ① `CorrectedGeometry` schema 演化 | cell.polygon / per-floor footprint / cell.z_span / window.wall_ref;每次演化 = schema + 1_correction 文档 + 核 + draw 级校验**四处同步**(audit 教训);`extra="allow"` 保证旧 case 兼容,建议加 `schema_version` 字段 | C2/C3/C4 |
+| ① `CorrectedGeometry` schema 演化 | ✅ B0/B1 已落 `schema_version` 机制 + `cell.polygon`；剩余 per-floor footprint / cell.z_span / window.wall_ref。每次演化 = schema + 1_correction 文档 + 核 + draw 级校验**四处同步**（audit 教训）；`extra="allow"` 保证旧 case 兼容 | C2/C3/C4 |
 | ② 确定性核算法 | 顶点级吸附(C2)→ z 区间(C3)→ 旋转系(C4);容差全部进 correction.yaml,不硬编码 | 全部 |
 | ③ 切配内核 | 墙竖向 z-cut(C3)+ 带洞分解(C3);楼板/墙配对算法本体 shapely 已通用 | C3 |
 | ④ 门与守卫 | shapely 覆盖完整性门(C2 落地,全档受益);多边形合法性守卫(C2);z 区间守卫升级(C3);fenestration 门(audit M2 遗留,复杂立面后必要性升高) | 全部 |

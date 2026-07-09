@@ -1,0 +1,111 @@
+{
+  "applicability": "clean_vector",
+  "crop_chain": [],
+  "cv_schema": "1",
+  "diagnostics": {
+    "anchor_count": 1,
+    "overlay_decisions": [
+      {
+        "candidate_id": "North_view:px_m_calibrator:001:scale:1",
+        "geometry": {
+          "axis": "col",
+          "kind": "line",
+          "x_px": 289.0
+        },
+        "reason": "calibration anchor",
+        "status": "accepted"
+      }
+    ],
+    "warnings": []
+  },
+  "overlay_path": "out/cv_evidence/North_view/004_north_cal_overlay.png",
+  "params": {
+    "anchors": [
+      {
+        "axis": "x",
+        "dimension_ref": "overall_width",
+        "px_a": 289.0,
+        "px_b": 1155.0,
+        "value_m": 15.0
+      }
+    ],
+    "residual_warn_m": 0.05,
+    "residual_warn_px": 2.0
+  },
+  "recipe_id": "clean_vector_v1",
+  "results": [
+    {
+      "anchor_px": {
+        "kind": "span",
+        "value": {
+          "anchors": [
+            {
+              "axis": "x",
+              "dimension_ref": "overall_width",
+              "px_a": 289.0,
+              "px_b": 1155.0,
+              "value_m": 15.0
+            }
+          ]
+        }
+      },
+      "candidate_id": "North_view:px_m_calibrator:001:scale",
+      "candidate_kind": "calibration",
+      "coord_space": "source_px",
+      "m_per_px": 0.017321016166281754,
+      "metric": {
+        "confidence": "high",
+        "dimension_refs": [
+          "overall_width"
+        ],
+        "raw_segments": [
+          {
+            "axis": "x",
+            "dimension_ref": "overall_width",
+            "px_a": 289.0,
+            "px_b": 1155.0,
+            "value_m": 15.0
+          }
+        ],
+        "residuals": null,
+        "scale_px_per_m": 57.733333333333334
+      },
+      "provenance": {
+        "crop_chain_id": "",
+        "recipe_id": "clean_vector_v1",
+        "source_image_sha256": "3eea6a31223f",
+        "tool": "px_m_calibrator",
+        "tool_version": "1"
+      },
+      "px_per_m": 57.733333333333334,
+      "residuals": null,
+      "rmse_m": null,
+      "rmse_px": null,
+      "visual": {
+        "anchor_px": {
+          "kind": "span",
+          "value": {
+            "anchors": [
+              {
+                "axis": "x",
+                "dimension_ref": "overall_width",
+                "px_a": 289.0,
+                "px_b": 1155.0,
+                "value_m": 15.0
+              }
+            ]
+          }
+        },
+        "confidence": "high",
+        "relative": {}
+      },
+      "warnings": []
+    }
+  ],
+  "source_image": {
+    "name": "North_view.png",
+    "sha256": "3eea6a31223f"
+  },
+  "tool": "px_m_calibrator",
+  "tool_version": "1"
+}

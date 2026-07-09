@@ -1,0 +1,96 @@
+# ============================================================================
+# RUN PROVENANCE — run_2026-07-08_gpt54mini_cv_retest (sm21_anchor)
+# ----------------------------------------------------------------------------
+# Purpose : GPT-5.4-mini CROSS-TEST (migration verification + E-batch check).
+#           Q1: is the classic-CV toolbox recipe Haiku-specific, or does it
+#           transfer to ANOTHER weak VLM (gpt-5.4-mini)? Q2: does the E-batch
+#           固化 hold — i.e. with prescan pre-staged (E3) and cv_toolbox.md
+#           self-declaring required, does a run still measure-before-draw
+#           WITHOUT the prompt spelling it out?
+# References:
+#   - Haiku peer   run_2026-07-07_haiku_cv_retest (Haiku 4.5 + toolbox):
+#                  plan walls 9/9 · plan windows 7/7 · elevation 15/15 · 0.0m.
+#   - Sonnet ceil  run_2026-07-02_sonnet_flow_e2e (Sonnet 5): same perfect band.
+#   - gpt54mini prior (NO toolbox) run_2026-06-23_gpt54mini_reading: plan clean
+#                  BUT South-F2 4 windows merged→2 + 2f missing 1 partition
+#                  (6 zones). ← the two failure points the toolbox should fix
+#                  (window CC + chain-value dual channel targets exactly these).
+# Variable : reading model Haiku 4.5 → gpt-5.4-mini, ON the CURRENT best recipe
+#           (E-batch new baseline). This is NOT the same scaffold as the Haiku
+#           07-07 run — E batch (prescan宏工具 + 纪律固化 skill) landed after it.
+#           Recorded honestly as the intended new baseline (交接单): the test
+#           is "current best recipe × new model", not a byte-identical scaffold
+#           A/B. Grade tolerances at defaults (same as Haiku peer + Sonnet base).
+# Reading  : gpt-5.4-mini via codex CLI (`codex exec -m gpt-5.4-mini -i <png>`,
+#           OpenAI provider — Anthropic Agent tool cannot reach it). Vision
+#           channel pre-verified (probe: East_view → "two narrow vertical
+#           windows", IMAGE_VISIBLE=yes). Isolation: clean-room staging
+#           (spawn_isolated_reader build) — case_data/*.png + testdata +
+#           0_reading skill (session_kickoff.md, cv_toolbox.md) + cv_toolbox +
+#           prescan candidates + out/; gt / prior attempts / judge notes / other
+#           runs PHYSICALLY EXCLUDED, cwd=staging. NOTE: the Claude Code
+#           PreToolUse guard layer does NOT apply to codex; codex-side isolation
+#           = L1 physical staging + cwd + danger-full-access (no guard layer —
+#           weaker than a claude -p sub-agent, but gt is physically outside
+#           staging, stronger than the pre-2026-07-08 prompt-level protocol).
+#           Per-run directive = E-batch固化 test: cv_toolbox.md required is
+#           self-declared, prescan candidates pre-staged (E3), and the spawn
+#           prompt does NOT repeat measure-before-draw. pilot(1f) reviewed by
+#           orchestrator before batch (pilot门 kept — Haiku needed one打回).
+# Orchestrator / judge② : Claude Opus 4.8 (claude-opus-4-8). Authoritative
+#           verdict = deterministic gt scorer (score_reading_vs_gt), judge② is
+#           characterization/routing only.
+# Scaffold state : git HEAD ebddada (clean tree at run start);
+#           0_reading skill sha256[:16]=0e795c74e854e5a5 ;
+#           src/agent/reading sha256[:16]=cb5c68bf1861d591
+#           (Haiku 07-07 peer: d4c8a9bf6f53d1d8 / 02eecb894a77a503 @ 723b0f9;
+#            delta = E-batch prescan宏工具 + 纪律固化 — the intended new baseline).
+# Switches : reading-only cross-test (scope stamped 0_reading). J0 gt对账 +
+#           blind-resample ladder OPEN budget 3. NO downstream, NO --record,
+#           NO EP (experiment). Non-interactive to a score report (user stamp).
+# Downstream / correction / mep : DeepSeek v4-pro (sections below) — OUT OF
+#           SCOPE this run, retained for config parity / possible later push.
+# ============================================================================
+#
+# Multi-section LLM config. Resolution: section matching node_name else default.
+# (Downstream sections below are unused in this reading-only run.)
+
+default:
+  provider: openai
+  base_url: ${oc.env:DEEPSEEK_BASE_URL,https://api.deepseek.com}
+  api_key: ${oc.env:DEEPSEEK_API_KEY,null}
+  model_name: deepseek-v4-pro
+  temperature: 0.7
+  max_tokens: 64000
+  extra_body:
+    thinking:
+      type: disabled
+
+intake_correction:
+  provider: openai
+  base_url: ${oc.env:DEEPSEEK_BASE_URL,https://api.deepseek.com}
+  api_key: ${oc.env:DEEPSEEK_API_KEY,null}
+  model_name: deepseek-v4-pro
+  temperature: 0.3
+  max_tokens: 64000
+  reasoning_effort: high
+  extra_body:
+    thinking:
+      type: enabled
+
+zone: &flash
+  provider: openai
+  base_url: ${oc.env:DEEPSEEK_BASE_URL,https://api.deepseek.com}
+  api_key: ${oc.env:DEEPSEEK_API_KEY,null}
+  model_name: deepseek-v4-flash
+  temperature: 0.7
+  max_tokens: 64000
+  extra_body:
+    thinking:
+      type: disabled
+
+material: *flash
+schedule: *flash
+hvac: *flash
+people: *flash
+lights: *flash

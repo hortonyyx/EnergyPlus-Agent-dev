@@ -1,0 +1,163 @@
+{
+  "applicability": "clean_vector",
+  "crop_chain": [
+    {
+      "bbox_px": [
+        240.0,
+        40.0,
+        430.0,
+        640.0
+      ],
+      "crop_size_px": [
+        570,
+        1800
+      ],
+      "local_to_source": {
+        "source_x": "240.0 + local_x / 3.0",
+        "source_y": "40.0 + local_y / 3.0"
+      },
+      "op": "crop_zoom",
+      "scale": 3.0,
+      "source_size_px": [
+        1354,
+        812
+      ],
+      "source_to_local": {
+        "local_x": "(source_x - 240.0) * 3.0",
+        "local_y": "(source_y - 40.0) * 3.0"
+      }
+    }
+  ],
+  "cv_schema": "1",
+  "diagnostics": {
+    "crop_chain": [
+      {
+        "bbox_px": [
+          240.0,
+          40.0,
+          430.0,
+          640.0
+        ],
+        "crop_size_px": [
+          570,
+          1800
+        ],
+        "local_to_source": {
+          "source_x": "240.0 + local_x / 3.0",
+          "source_y": "40.0 + local_y / 3.0"
+        },
+        "op": "crop_zoom",
+        "scale": 3.0,
+        "source_size_px": [
+          1354,
+          812
+        ],
+        "source_to_local": {
+          "local_x": "(source_x - 240.0) * 3.0",
+          "local_y": "(source_y - 40.0) * 3.0"
+        }
+      }
+    ],
+    "overlay_decisions": [
+      {
+        "candidate_id": "North_view:crop_zoom:001:crop",
+        "geometry": {
+          "bbox_px": [
+            240.0,
+            40.0,
+            430.0,
+            640.0
+          ],
+          "kind": "bbox"
+        },
+        "reason": "crop region",
+        "status": "accepted"
+      }
+    ]
+  },
+  "overlay_path": "out/cv_evidence/North_view/005_north_leftdim_overlay.png",
+  "params": {
+    "bbox_px": [
+      240.0,
+      40.0,
+      430.0,
+      640.0
+    ],
+    "output_path": "out/cv_evidence/North_view/005_north_leftdim_crop.png",
+    "scale": 3.0
+  },
+  "recipe_id": "clean_vector_v1",
+  "results": [
+    {
+      "anchor_px": {
+        "kind": "bbox",
+        "value": {
+          "bbox_px": [
+            240.0,
+            40.0,
+            430.0,
+            640.0
+          ]
+        }
+      },
+      "bbox_px": [
+        240.0,
+        40.0,
+        430.0,
+        640.0
+      ],
+      "candidate_id": "North_view:crop_zoom:001:crop",
+      "candidate_kind": "crop",
+      "coord_space": "source_px",
+      "crop_size_px": [
+        570,
+        1800
+      ],
+      "geometry": {
+        "bbox_px": [
+          240.0,
+          40.0,
+          430.0,
+          640.0
+        ],
+        "kind": "bbox"
+      },
+      "metric": {
+        "confidence": "high",
+        "dimension_refs": [],
+        "raw_segments": [],
+        "residuals": [],
+        "scale_px_per_m": null
+      },
+      "output_image": "out/cv_evidence/North_view/005_north_leftdim_crop.png",
+      "provenance": {
+        "crop_chain_id": "",
+        "recipe_id": "clean_vector_v1",
+        "source_image_sha256": "3eea6a31223f",
+        "tool": "crop_zoom",
+        "tool_version": "1"
+      },
+      "visual": {
+        "anchor_px": {
+          "kind": "bbox",
+          "value": {
+            "bbox_px": [
+              240.0,
+              40.0,
+              430.0,
+              640.0
+            ]
+          }
+        },
+        "confidence": "high",
+        "relative": {}
+      }
+    }
+  ],
+  "source_image": {
+    "name": "North_view.png",
+    "sha256": "3eea6a31223f"
+  },
+  "tool": "crop_zoom",
+  "tool_version": "1"
+}

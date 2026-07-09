@@ -1,0 +1,53 @@
+{
+  "stage": "0_reading",
+  "rubric_id": "J0",
+  "criteria": [
+    {
+      "criterion": "missed real element",
+      "status": "minor",
+      "recoverability": null,
+      "evidence": "gt reconciliation (authoritative scorer): walls 9/9 (1f 4/4, 2f 5/5) all max offset 0.0 m; elevation windows 15/15 all 'complete'. Plan windows 6/7 — 1f one South window centre off 0.53 m (> 0.40 tol); the other 6 plan + all 15 elevation windows hit. Single weak-model perception wobble on one opening, not a systematic under-trace."
+    },
+    {
+      "criterion": "clutter traced as structure",
+      "status": "pass",
+      "recoverability": null,
+      "evidence": "no_oversplit: extra walls = 0 vs gt on both plans; grade.png shows zero red extra strokes. The 06-23 no-toolbox failure (2f missing 1 partition -> 6 zones) did NOT recur: 2f walls 5/5 at 0.0 m = 7 zones. window_cc_detector + prescan candidates let gpt-5.4-mini reject clutter rather than fabricate partitions."
+    },
+    {
+      "criterion": "pen misclassified",
+      "status": "pass",
+      "recoverability": null,
+      "evidence": "walls vs windows cleanly separated on both plans; elevations 15/15 complete with no door-as-window. South F2's 4 windows are resolved distinctly (the 06-23 no-toolbox arm merged them 4->2; now 4/4 complete)."
+    },
+    {
+      "criterion": "number copied wrong",
+      "status": "minor",
+      "recoverability": null,
+      "evidence": "gate① flags dimension_chain_closure (5 views) + dimension_derived_refs (North: 5 strokes empty refs) + stroke_dimension_consistency (1f/2f: 6 coords) — gpt-5.4-mini's dimension-evidence chain is less complete than a full transcription. BUT every wall coordinate lands on gt at 0.0 m, so the numbers it DID use are faithful; the flags are evidence-completeness advisories, not coordinate errors. minor = record-quality gap; correction-tolerant (walls already pinned). OCR stays Phase C (digit transcription is not the weak link here either)."
+    },
+    {
+      "criterion": "image-local orientation self-consistent",
+      "status": "pass",
+      "recoverability": null,
+      "evidence": "each view is image-local; no world-axis invention. N/E/W graded 'ambiguous' by the elevation scorer = same known backlog as the Sonnet 5 baseline / Haiku 07-07 (orientation arbitration belongs to correction), South 'aligned'. Legacy facade_axis_note/scale_origin fields copied from the worked-example's old format are harmless under extra=allow."
+    },
+    {
+      "criterion": "door healing wrong",
+      "status": "pass",
+      "recoverability": null,
+      "evidence": "self_check documents door symbols healed into continuous walls and logged in uncaptured, not emitted as windows. Corridor/perimeter walls score 'complete' against gt full-width intervals."
+    },
+    {
+      "criterion": "whole-region missing / misplaced",
+      "status": "pass",
+      "recoverability": null,
+      "evidence": "both floors + all four elevations fully traced; boundary matches gt; storey lines present. No region omitted."
+    }
+  ],
+  "root_stage": null,
+  "root_confidence": 0.0,
+  "retriable": true,
+  "judge_disabled": false,
+  "notes": "PASS with 2 minor (one plan window off 0.53m; dimension-evidence chain less complete than full transcription — both flag+pass, correction-tolerant). CROSS-TEST POSITIVE: gpt-5.4-mini + CV toolbox reproduces the Haiku 07-07 / Sonnet 5 perfect band on the decisive metrics (walls 9/9 at 0.0m, elevation windows 15/15 complete, oversplit 0), differing only by one plan window (6/7 vs 7/7). => the toolbox recipe is model-agnostic, NOT Haiku-specific. Both 06-23 no-toolbox failure points fixed (South-F2 4-merged-to-2 -> 4/4 complete; 2f missing partition -> 7 zones). E-batch固化 verified on a NEW model: the spawn prompt did NOT contain measure-before-draw; gpt-5.4-mini read cv_toolbox.md (self-declared required) and measured with cv_probe (13 tool calls on pilot, dozens/image in batch). Efficiency ~0.90M tokens/case (~1.5x Haiku, weak-model trial-and-error). Provenance caveats: reading via codex CLI (OpenAI provider); isolation = clean-room staging (gt physically excluded) but codex has NO Claude Code guard layer (weaker than a claude -p sub-agent, recorded honestly); toolbox usage固化 not per-run-directed; pilot review round kept. Out-of-band commentary only; not injected into any prompt."
+}

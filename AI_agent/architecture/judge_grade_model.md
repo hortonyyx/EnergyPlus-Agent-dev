@@ -156,6 +156,8 @@ product_cov = 交集面积 / 产品盒面积
 - **Q3 墙计数粒度未定死**：现按"元素/聚类"计（x=5 = 1 道），非纯最小段也非纯最长线。决定 `wall_hits N/M` 与"墙命中"的含义。
 - **难点/约束**：按 gap 切成独立墙 → 恢复 per-段横向保真，但"reader 一笔穿走廊 `[0,8]`"的归属会**重新引入 #4 重复计数**，须连穿-gap 归属一起设计；interval-set 在**连续单段内**仍要保留（处理拆笔/合笔）。
 - **影响范围**：结构上 sm21 每道穿走廊墙(x=5/x=10)都是两段；但"上段染橙"artifact **仅在两段被画在不同 x 时触发**（正常同 x → 整道 complete 绿、不触发）。
+- **C2 非矩形硬前置（2026-07-08 补）**：当前 scorer 仍是 v1 正交矩形判卷模型，对非矩形**零 capability 感知**；gt/产品墙抽取仍按常量 x/常量 y 的线段和单一 footprint span 工作，judge/score 层没有 `capability_profile` 分支。因此 C2 第一个 `Cell.polygon` 非矩形 case 的判卷属于**未定义行为**，不是诚实降级。继续推进 C2 前必须单独设计 **segment/polyline 判卷模型**：gt 墙=线段集、产品墙=从 cell polygon 边提取的线段集、按线段邻近/覆盖关联；不支持 profile 时显式 NA。
+- **W5 墙厚换算现状（2026-07-08 补）**：correction scorer 读取 gt `wall_thickness_m` 后，只把外包/贴边边界从 centerline 扩到 outer-skin：footprint 边界整体外扩半墙厚，贴边墙段的 span 端点在 floor bbox 边界上时才外扩；内部墙轴线和窗 span 不换算。这个换算只是判卷适配，不改变 correction 几何本体。
 - **计划**：Sonnet 4.6 对照之后，连同判卷其余 backlog（立面窗 within_tol 区分移位/变尺寸、Hungarian 配对、ambiguous 阈值 config、非方形 segment/polyline）一起，出**单独方案 → Codex 方案审**再改。
 
 ## 9. 审阅采纳记录（Codex 方案审 2026-07-04，APPROVE-WITH-CHANGES，10 findings 全采纳）

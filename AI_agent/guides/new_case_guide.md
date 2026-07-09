@@ -178,10 +178,14 @@ python scripts/tool_scripts/run_stage.py --base-dir $BD approve-review   <case> 
   human_redraw / awaiting_reread（handoff 见 §2.1 + 附录 A）。
 - **S1 1_correction**（DeepSeek 独立调用）：执行器 `run_correction`（只喂 reading+testdata+规则、看不到 judge/gt）
   → 确定性核吸附 `apply_deterministic_core`；gate① `check_correction`（coverage/closure/zstack + 区数 tripwire
-  + 窗位落墙 + evidence 覆盖）；人工肉检产物包含 reading 对齐的 `plan_<floor>_render.png`、
-  `elev_<facade>_render.png`，以及 correction-only 房间角色图 `roles_<floor>.png`（legacy `zones.png`/`elev.png`
-  仍保留）；**gate② J1**（你看原图 + correction renders + `grade.png` +
-  `score_vs_gt.json`，rubric=`1_correction/judge_rubric.md`）severe/fatal→盲重抽。
+  + 窗位落墙 + evidence 覆盖）；`CorrectedGeometry` 默认为 `schema_version="1"` 矩形契约；C2 v2 允许
+  `Cell.polygon` 表达一房一 cell 的非矩形正交房间（polygon 仅用于房间本身不是单一矩形的场景，`x`/`y`
+  仍必填且等于 polygon bbox 投影），并由 `capability_profile=rectangular|orthogonal_polygon` 控制可消费形状。
+  当前 flow 的人工肉检产物包含 per-attempt/accepted `grade.png` + `score_vs_gt.json`，以及
+  `zones_<floor>.png`（post-snap cells 按角色着色）；`render_elevation_windows.py --out-dir` 可生成
+  `elev_<facade>_render.png` 供额外肉检，report collector 仍兼容 legacy `zones.png`/`elev.png` 和额外
+  `plan_*_render.png`/`roles_*.png`/`elev_*_render.png`。**gate② J1**（你看原图 + correction renders +
+  `grade.png` + `score_vs_gt.json`，rubric=`1_correction/judge_rubric.md`）severe/fatal→盲重抽。
 - **S2+S3 几何内核**（代码，确定性，无 per-run judge）：`materialize_kernel_geometry` 造面+切配；gate①
   `check_kernel`（封闭/法向/pairing-gate/矩形 coverage/spec 自洽），block=**代码缺陷 fail-closed**；过 gate① 后
   生成 **`manual_review/geometry_viewer.html`**（three.js 离线交互：orbit/半透明/截面/爆炸/量距/着色）→ 几何
@@ -287,6 +291,13 @@ python scripts/tool_scripts/spawn_isolated_reader.py merge --staging-root <STAGI
 ```
 
 旧 prompt 级启动串已废弃，仅保留历史指针：子 Agent 不得只靠“不要看 gt/attempts/judge”的文字约束运行。
+
+非 Claude 模型 reading（例如 gpt-5.4-mini）经 `codex exec` 启动时，仍先用
+`spawn_isolated_reader build` 生成 clean-room staging：repo 外物理裁剪、gt/attempts/judge/grade 等不进入输入树，
+这是跨模型通用的硬隔离兜底。差异是 Claude Code 的 `--settings`/PreToolUse guard 只约束 Claude 子进程，
+不适用于 codex CLI，因此 codex 路径弱一层，必须依赖 staging 物理排除 + 主控只传 staging 内素材。另一个实操坑：
+codex 的 `-i` 是可变参数，可能吞掉尾随位置 prompt；prompt 一律走 stdin，例如
+`codex exec -m <model> -i <png> < prompt.txt`。
 
 旧串如下（不要用于新重读/盲重抽）：
 
