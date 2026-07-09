@@ -121,11 +121,17 @@ def main(argv: list[str] | None = None) -> int:
     _common(p)
     p.add_argument("--capability-profile", default="orthogonal_polygon")
     p.add_argument("--no-cc", action="store_true")
+    p.add_argument("--min-strength", type=float)
+    p.add_argument("--min-line-len-px", type=float)
+    p.add_argument("--label", default="prescan")
 
     p = subparsers.add_parser("prescan-elevation")
     _common(p)
     p.add_argument("--capability-profile", default="rectangular")
     p.add_argument("--no-cc", action="store_true")
+    p.add_argument("--min-strength", type=float)
+    p.add_argument("--min-line-len-px", type=float)
+    p.add_argument("--label", default="prescan")
 
     args = parser.parse_args(argv)
     if args.tool == "crop_zoom":
@@ -225,6 +231,9 @@ def main(argv: list[str] | None = None) -> int:
             recipe_id=args.recipe,
             capability_profile=args.capability_profile,
             include_cc=not args.no_cc,
+            min_strength=args.min_strength,
+            min_line_len_px=args.min_line_len_px,
+            label=args.label,
         )
     elif args.tool == "prescan-elevation":
         prescan_elevation(
@@ -233,6 +242,9 @@ def main(argv: list[str] | None = None) -> int:
             recipe_id=args.recipe,
             capability_profile=args.capability_profile,
             include_cc=not args.no_cc,
+            min_strength=args.min_strength,
+            min_line_len_px=args.min_line_len_px,
+            label=args.label,
         )
     else:
         parser.error(f"unknown tool: {args.tool}")

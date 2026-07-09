@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import math
+import re
 from copy import deepcopy
 from pathlib import Path
 from typing import Any
@@ -246,6 +247,45 @@ def _draw_prescan_overlay(image: Image.Image, candidates: list[dict[str, Any]], 
     out.save(overlay_path)
 
 
+_PRESCAN_LABEL_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_.-]*$")
+
+
+def _candidate_len_px(candidate: dict[str, Any]) -> float:
+    x0, y0 = candidate["p1_px"]
+    x1, y1 = candidate["p2_px"]
+    return math.hypot(x1 - x0, y1 - y0)
+
+
+def _axis_summary(
+    peaks: list[dict[str, Any]], candidates: list[dict[str, Any]]
+) -> list[dict[str, Any]]:
+    """Per projection-peak triage summary over the emitted line-band candidates.
+
+    Lets a reader verify one axis band per peak instead of one crop per segment;
+    purely derived from the payload, adds no new detection."""
+    summary = []
+    for peak in sorted(peaks, key=lambda p: (p["axis"], p["position_px"])):
+        coord_idx = 1 if peak["axis"] == "row" else 0
+        members = [
+            c for c in candidates
+            if c["kind"] == "line_band_candidate"
+            and c["axis"] == peak["axis"]
+            and c["p1_px"][coord_idx] == float(peak["position_px"])
+        ]
+        summary.append(
+            {
+                "axis": peak["axis"],
+                "position_px": float(peak["position_px"]),
+                "strength": peak["strength"],
+                "fwhm_px": peak["fwhm_px"],
+                "run_count": len(members),
+                "coverage_px": round(sum(_candidate_len_px(c) for c in members), 1),
+                "candidate_ids": [c["candidate_id"] for c in members],
+            }
+        )
+    return summary
+
+
 def _prescan(
     image: str | Path,
     *,
@@ -254,19 +294,33 @@ def _prescan(
     recipe_id: str = "clean_vector_v1",
     capability_profile: str = "orthogonal_polygon",
     include_cc: bool = True,
+    min_strength: float | None = None,
+    min_line_len_px: float | None = None,
+    label: str = "prescan",
 ) -> tuple[Path, Path]:
     if capability_profile not in SUPPORTED_PRESCAN_CAPABILITY_PROFILES:
         supported = ", ".join(SUPPORTED_PRESCAN_CAPABILITY_PROFILES)
         raise NotImplementedError(
             f"prescan capability_profile {capability_profile!r} is not implemented; supported: {supported}"
         )
+    if not _PRESCAN_LABEL_RE.match(label):
+        raise ValueError(f"prescan label must match {_PRESCAN_LABEL_RE.pattern}, got {label!r}")
     recipe = get_recipe(recipe_id)
     source = Path(image)
     img = _load_rgb(source)
     mask = _mask_clean_vector(img, recipe)
     line_candidates, peaks = _line_band_candidates(mask, recipe)
     cc_candidates = _cc_box_candidates(mask, recipe) if include_cc else []
+    # Ticks are calibration anchors: always derived from the unfiltered line
+    # candidates so a triage filter can never drop dimension ticks.
     tick_candidates = _tick_candidates(line_candidates, recipe)
+    prefilter_line_count = len(line_candidates)
+    if min_strength is not None:
+        line_candidates = [c for c in line_candidates if c["strength"] >= float(min_strength)]
+    if min_line_len_px is not None:
+        line_candidates = [
+            c for c in line_candidates if _candidate_len_px(c) >= float(min_line_len_px)
+        ]
     raw_candidates = line_candidates + cc_candidates + tick_candidates
 
     candidates = []
@@ -285,7 +339,7 @@ def _prescan(
         }
         candidates.append(item)
 
-    prescan_dir = evidence_dir(out_dir, source) / "prescan"
+    prescan_dir = evidence_dir(out_dir, source) / label
     candidates_path = prescan_dir / "candidates.json"
     overlay_path = prescan_dir / "combined_overlay.png"
     _draw_prescan_overlay(img, candidates, overlay_path)
@@ -307,6 +361,9 @@ def _prescan(
             "capability_profile": capability_profile,
             "include_cc": include_cc,
             "advisory_only": True,
+            "min_strength": min_strength,
+            "min_line_len_px": min_line_len_px,
+            "label": label,
         },
         "results": candidates,
         "diagnostics": {
@@ -314,8 +371,10 @@ def _prescan(
             "mask_pixels": int(mask.sum()),
             "projection_peak_count": len(peaks),
             "line_band_candidate_count": len(line_candidates),
+            "line_band_candidate_count_prefilter": prefilter_line_count,
             "cc_box_candidate_count": len(cc_candidates),
             "tick_candidate_count": len(tick_candidates),
+            "axis_summary": _axis_summary(peaks, candidates),
         },
     }
     payload_text = json.dumps(payload, indent=2, sort_keys=True) + "\n"
@@ -335,6 +394,9 @@ def prescan_plan(
     recipe_id: str = "clean_vector_v1",
     capability_profile: str = "orthogonal_polygon",
     include_cc: bool = True,
+    min_strength: float | None = None,
+    min_line_len_px: float | None = None,
+    label: str = "prescan",
 ) -> tuple[Path, Path]:
     """Write deterministic plan prescan candidates and a combined overlay."""
 
@@ -345,6 +407,9 @@ def prescan_plan(
         recipe_id=recipe_id,
         capability_profile=capability_profile,
         include_cc=include_cc,
+        min_strength=min_strength,
+        min_line_len_px=min_line_len_px,
+        label=label,
     )
 
 
@@ -355,6 +420,9 @@ def prescan_elevation(
     recipe_id: str = "clean_vector_v1",
     capability_profile: str = "rectangular",
     include_cc: bool = True,
+    min_strength: float | None = None,
+    min_line_len_px: float | None = None,
+    label: str = "prescan",
 ) -> tuple[Path, Path]:
     """Write deterministic elevation prescan candidates and a combined overlay."""
 
@@ -365,4 +433,7 @@ def prescan_elevation(
         recipe_id=recipe_id,
         capability_profile=capability_profile,
         include_cc=include_cc,
+        min_strength=min_strength,
+        min_line_len_px=min_line_len_px,
+        label=label,
     )

@@ -321,6 +321,72 @@ def test_prescan_unsupported_capability_profile_raises(tmp_path: Path):
         prescan_plan(image, out_dir=tmp_path / "reading", capability_profile="sloped_polygon")
 
 
+def test_prescan_triage_filters_line_bands_but_never_ticks(tmp_path: Path):
+    image = _save_dimension_ticks(tmp_path / "dimension.png")
+
+    full_path, _ = prescan_plan(image, out_dir=tmp_path / "reading", include_cc=False)
+    triage_path, _ = prescan_plan(
+        image,
+        out_dir=tmp_path / "reading",
+        include_cc=False,
+        min_strength=0.08,
+        min_line_len_px=50,
+        label="prescan_triage",
+    )
+
+    assert triage_path != full_path
+    full = json.loads(full_path.read_text(encoding="utf-8"))
+    triage = json.loads(triage_path.read_text(encoding="utf-8"))
+    full_lines = [r for r in full["results"] if r["kind"] == "line_band_candidate"]
+    triage_lines = [r for r in triage["results"] if r["kind"] == "line_band_candidate"]
+    assert len(triage_lines) < len(full_lines)
+    for cand in triage_lines:
+        x0, y0 = cand["p1_px"]
+        x1, y1 = cand["p2_px"]
+        assert cand["strength"] >= 0.08
+        assert ((x1 - x0) ** 2 + (y1 - y0) ** 2) ** 0.5 >= 50
+    # Ticks are calibration anchors: identical geometry with and without the filter.
+    tick_geoms = lambda data: [  # noqa: E731
+        (r["p1_px"], r["p2_px"]) for r in data["results"] if r["kind"] == "tick_candidate"
+    ]
+    assert tick_geoms(triage) == tick_geoms(full)
+    assert triage["params"]["min_strength"] == 0.08
+    assert triage["params"]["min_line_len_px"] == 50
+    assert triage["params"]["label"] == "prescan_triage"
+    diag = triage["diagnostics"]
+    assert diag["line_band_candidate_count_prefilter"] == len(full_lines)
+    assert diag["line_band_candidate_count"] == len(triage_lines)
+
+
+def test_prescan_axis_summary_groups_candidates_per_peak(tmp_path: Path):
+    image = _save_plan(tmp_path / "plan.png")
+
+    candidates_path, _ = prescan_plan(image, out_dir=tmp_path / "reading", include_cc=False)
+
+    data = json.loads(candidates_path.read_text(encoding="utf-8"))
+    summary = data["diagnostics"]["axis_summary"]
+    assert len(summary) == data["diagnostics"]["projection_peak_count"]
+    by_id = {r["candidate_id"]: r for r in data["results"]}
+    line_ids = {cid for cid, r in by_id.items() if r["kind"] == "line_band_candidate"}
+    seen: set[str] = set()
+    for entry in summary:
+        assert entry["axis"] in {"row", "col"}
+        assert entry["run_count"] == len(entry["candidate_ids"])
+        for cid in entry["candidate_ids"]:
+            assert cid in line_ids
+            assert by_id[cid]["axis"] == entry["axis"]
+        seen.update(entry["candidate_ids"])
+    # Every emitted line-band candidate is reachable from exactly one peak group.
+    assert seen == line_ids
+
+
+def test_prescan_rejects_unsafe_label(tmp_path: Path):
+    image = _save_plan(tmp_path / "plan.png")
+
+    with pytest.raises(ValueError, match="label"):
+        prescan_plan(image, out_dir=tmp_path / "reading", label="../escape")
+
+
 def test_prescan_tick_detection_on_dimension_line(tmp_path: Path):
     image = _save_dimension_ticks(tmp_path / "dimension.png")
     candidates_path, _overlay_path = prescan_plan(image, out_dir=tmp_path / "reading", include_cc=False)
