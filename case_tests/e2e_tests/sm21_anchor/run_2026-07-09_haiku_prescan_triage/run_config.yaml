@@ -1,0 +1,92 @@
+# =====================================================================
+# run_config.yaml — run_2026-07-09_haiku_prescan_triage (sm21_anchor)
+# PRESCAN TRIAGE EFFICIENCY RETEST. Baseline arm = run_2026-07-07_haiku_cv_retest
+# (same Haiku 4.5 reading + CV toolbox, prescan WITHOUT triage filters →
+# quality full marks, cost 0.4-0.65M tokens/case). Reference for candidate
+# explosion = run_2026-07-08_gpt54mini_cv_retest (1f 825 candidates, 86 cv
+# calls in pilot).
+# Variable = prescan triage batch (`20749ff` 7.09_PrescanTriageBudget):
+#   - orchestrator-side prescan run with --min-strength 0.08
+#     --min-line-len-px 30 (+ --no-cc on elevations); candidates
+#     3183 -> 1521 total, line-bands 1f 370->64 / 2f 544->92
+#   - diagnostics.axis_summary (per-peak grouping, 1f 48 axes)
+#   - cv_toolbox.md new disciplines: candidate budget / elevation --no-cc /
+#     within-group calibration reuse (plan ~91 px/m vs elevation ~58 px/m)
+#   Recipe DEFAULTS unchanged; gt differential-survival validation showed
+#   zero element loss (AI_agent/logs/experiments/2026-07-09_prescan_narrowing/).
+# Success = quality holds the 07-07 full-mark band (walls 9/9 · plan windows
+# 7/7 · elevation windows 15/15 · oversplit 0) at materially lower cost
+# (tokens / wall-time / cv calls / crop verifications).
+# Known A/B caveats (recorded, accepted by design):
+#   1) isolation upgraded since 07-07: this run uses spawn_isolated_reader
+#      clean-room (07-08 mechanism); 07-07 used Agent-tool sub-agent spawn.
+#   2) no per-run measure-before-draw directive this time: cv_toolbox.md is
+#      self-declared REQUIRED since the 07-07 E-batch, and the 07-08
+#      gpt54mini run already validated the E-batch hold (spontaneous tool
+#      use). So this arm = "skill-doc-driven" like 07-08, not "directed"
+#      like 07-07.
+#   3) orchestrator/judge② = Fable 5 on both arms (same as 07-07).
+# Config stamped by user 2026-07-09: reading-only today · J0 on · no
+# correction/EP · no record · metrics vs 07-07.
+# =====================================================================
+
+scope:
+  stages:
+    - 0_reading
+  # 1_correction..5 + EP intentionally OUT of scope (user stamp 2026-07-09:
+  # efficiency comparison target is the reading stage).
+
+judge:
+  mode: stop            # J0 in the loop, Fable 5 as judge②
+  resample_ladder: open # budget 3 (same policy as 07-07)
+
+review:
+  reading: false        # user reviews grade.png after J0 (no mid-run stop)
+  correction: false
+  geometry: false       # out of scope (reading-only)
+
+models:
+  reading:
+    role: 0_reading
+    model_id: claude-haiku-4-5-20251001
+    provider: anthropic
+    effort: default
+    source: cold-start via spawn_isolated_reader (clean-room staging +
+      isolation_settings + PreToolUse guard, 07-08 hard-isolation protocol);
+      prescan candidates pre-run by orchestrator with triage flags (see
+      header), copied into staging by build
+  orchestrator:
+    role: judge2+orchestration
+    model_id: claude-fable-5
+  correction:
+    role: 1_correction
+    model_id: deepseek-v4-pro
+    effort: high
+    note: out of scope this run (llm.yaml kept identical to 07-07 for parity)
+  mep:
+    role: 4_mep
+    model_id: deepseek-v4-pro
+    effort: high
+    note: out of scope this run
+
+provenance:
+  git_head: 0e28520 (clean tree at run start except this run dir)
+  reading_skill_sha256_16: 07d601d61d3ee583   # includes 7.09 cv_toolbox.md disciplines
+  src_agent_reading_sha256_16: 1b32314160803c46  # includes 7.09 prescan triage params
+  baseline_arm: run_2026-07-07_haiku_cv_retest (skill d4c8a9bf6f53d1d8 /
+    reading 02eecb894a77a503 at 723b0f9)
+
+# grade: omitted -> judge-side default tolerances, identical to 07-07 arm.
+
+# ---------------------------------------------------------------------
+# DISPOSITION (2026-07-09, orchestrator): TERMINATED at pilot after 4
+# review rounds (budget 3 exhausted; calibration systematically wrong,
+# hallucinated corridor stubs kept, windows mistraced). No output merged;
+# attempts untouched (zero contamination). Full log =
+# AI_agent/logs/experiments/2026-07-09_prescan_narrowing/HAIKU_RETEST_LOG.md
+# Findings: prescan triage itself POSITIVE (pilot cv calls 86 -> 2-6);
+# dominating cost = stateless respawn loop (~1.03M new tokens, 5 sessions)
+# because the hard-isolation protocol lacks the two 07-07 crutches
+# (per-run directive slot + session continuity). Re-run after the spawn
+# --directive fix, in 07-07 directed mode.
+# ---------------------------------------------------------------------
