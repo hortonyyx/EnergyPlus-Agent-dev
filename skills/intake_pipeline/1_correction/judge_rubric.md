@@ -1,9 +1,9 @@
 # J1 — 1_correction VLM judge rubric (gate ②)
 
 Runs **after** the deterministic checks (`correction_checks.json`) pass. The judge
-sees **[original drawings + reading-aligned correction plans `plan_<floor>_render.png`
-+ correction elevations `elev_<facade>_render.png` + role-coloured room plans
-`roles_<floor>.png` + reference answer]** and rules each criterion `pass | minor | severe
+sees **[original drawings + role-coloured zone plans `zones_<floor>.png` + gt-overlay
+`grade.png` + machine gt reconciliation `score_vs_gt` + reference answer]** (the
+`judge_packet.json` the flow assembles) and rules each criterion `pass | minor | severe
 | fatal | not_applicable | insufficient_evidence` with **structured evidence, not a
 numeric score**.
 

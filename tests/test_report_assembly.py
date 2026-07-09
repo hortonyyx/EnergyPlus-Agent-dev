@@ -34,6 +34,19 @@ def test_collect_eyeball_assets_collects_stage_grades(tmp_path):
     assert (run_dir / "report" / "eyeball" / "1_correction_grade.png").exists()
 
 
+def test_collect_eyeball_assets_collects_per_floor_zones(tmp_path):
+    run_dir = tmp_path / "run"
+    _png(run_dir / "1_correction" / "zones_1f.png")
+    _png(run_dir / "1_correction" / "zones_2f.png")
+
+    result = collect_eyeball_assets(run_dir)
+
+    names = {asset["filename"] for asset in result["assets"]}
+    assert {"1_correction_zones_1f.png", "1_correction_zones_2f.png"} <= names
+    assert (run_dir / "report" / "eyeball" / "1_correction_zones_1f.png").exists()
+    assert (run_dir / "report" / "eyeball" / "1_correction_zones_2f.png").exists()
+
+
 def test_gate_entries_indexes_blocking_and_flagged_results():
     report = CheckReport(stage="4_mep", run_profile="golden")
     report.add_fail(

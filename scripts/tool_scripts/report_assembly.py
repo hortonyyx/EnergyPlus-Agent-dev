@@ -103,6 +103,11 @@ def collect_eyeball_assets(run_dir: Path) -> dict:
         ("correction_zones", run_dir / "1_correction" / "zones.png", "1_correction_zones.png"),
         ("correction_elev", run_dir / "1_correction" / "elev.png", "1_correction_elev.png"),
     ]
+    # Current flow producer: per-floor role-coloured zone plans (render_all_to_dir).
+    # The single-file zones.png/elev.png and per-view plan_*/roles_*/elev_* entries
+    # below are legacy producers kept so reports can be regenerated on old runs.
+    for src in sorted((run_dir / "1_correction").glob("zones_*.png")):
+        explicit.append((f"correction_{src.stem}", src, f"1_correction_{src.name}"))
     for src in sorted((run_dir / "1_correction").glob("plan_*_render.png")):
         explicit.append((f"correction_{src.stem}", src, f"1_correction_{src.name}"))
     for src in sorted((run_dir / "1_correction").glob("roles_*.png")):
