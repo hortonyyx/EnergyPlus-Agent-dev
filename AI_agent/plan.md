@@ -14,6 +14,8 @@
 0–5 管线 + 逐段校验架构（gate① 确定性 + gate② judge）已落地，sm20/sm21 两份 golden baseline 在册。
 **当前在把"逐段 judge-in-the-loop 编排"真跑起来、出第一份带 judge 的规范 baseline**，并扫尾两步法/评测的残留。
 
+> **🔜 下一轮开场（用户 2026-07-09 收工定，做完再回正常排期）**：① **GPT-5.6 发布 → 双模型家族协作模式修订**（codex_execution_protocol + CLAUDE §5#8/#10 对齐新模型家族，用户参与一起改）；② **C2 实现状态白话对齐讨论**（用户要建底图，基于 `proposals/c2_full_unlock_design.md` + B0/B1 现状）。之后正常排期 = C2 双审续办（重置后 resume 双子会话或 Codex 首审）→ Codex 施工 B2/B2b/B3 → directed 复跑（配置已拍 reading-only）→ 用户出 sm25-L/sm26-U。
+>
 > **📍 [2026-07-09 Fable5 主控] C2 收官冲刺（用户定：把 C2 直接上完=完全解锁非方形）+ 当日三件落地**：
 > ① **W2 三条接线债已修**（`9ea0a2e`：J1 rubric 件名对齐实产 zones_<floor>.png/grade/score_vs_gt；collect_eyeball_assets 补收 zones_<floor>.png 真 bug；correction.yaml 两处 stale 注释）——plan backlog 对应条目关闭。
 > ② **prescan 候选收窄已落地**（`20749ff`：min_strength/min_line_len_px/label 参数+axis_summary 按峰聚合+cv_toolbox.md 候选预算/立面 --no-cc/组内标定复用纪律；gt 差分幸存验证零构件丢失，line_band 候选 -83~-95%，分析在 [logs/experiments/2026-07-09_prescan_narrowing/](logs/experiments/2026-07-09_prescan_narrowing/ANALYSIS.md)；**默认值不动**保满分带配方；待 Haiku 对比重跑验收益；codex effort 下调=下次跑测实验变量）。
