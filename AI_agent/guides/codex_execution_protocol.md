@@ -1,72 +1,93 @@
-# Codex 执行协作规约（Claude 编排 / Codex 执行）
+# 双模型家族协作规约（主控编排 / 分档执行 / 交叉评审）
 
-> **目的**：用户有 Claude + Codex 两个订阅、各自 5h 重置窗口。本项目坚持 **Claude 主控开发**（保质量 + 记忆单一权威），但把**执行**尽量派 Codex——Codex 的模型推理算在 **Codex 额度**上，Claude 只花在「写 spec + 审 diff + 读简报」，从而省 Claude 上下文 + 拉长每周期可开发时间。
-> 本文 = 操作手册；核心约定同时收录在 [../CLAUDE.md](../CLAUDE.md) §5。换主控模型读此接手。
+> **目的**：用户有 Claude + Codex(GPT) 两个订阅、各自 5h 重置窗口。**主控恒为 Claude 家族开对话模型**（保质量 + memory 单一权威），
+> 其余角色按「角色 × 档位」矩阵在两家族间分派；**跨厂商交叉评审 = 质量核心机制（谁写谁不批）**。
+> 本文 = 操作手册；核心约定同时收录在 [../CLAUDE.md](../CLAUDE.md) §5#8/#10。换主控模型读此接手。
+> **2026-07-10 修订**：GPT-5.6 家族发布（有限预览）+ Fable 5 订阅 07-12 到期 → 从「Claude 编排 / Codex 执行」两方模式升级为**完整双模型家族分工**（用户 2026-07-10 拍）。文件名沿用 `codex_execution_protocol.md` 保链接稳定。
 
-## 1. 分工
+## 1. 家族版图（2026-07-10 现状）
 
-- **Claude 主控（judgment 重、上下文便宜）**：架构决策、任务拆解、写 spec、审 git diff、judge②、改 memory + 管理文档、碰 5 条铁律/IntakeOutput 契约的判断题、git commit。
-- **Codex 执行（已 spec 清楚、上下文重）**：按 spec 改代码 + 跑 pytest、为具体问题做探索式 read/grep（回 digest）、CLI 看图出 0_reading、per-stage 管线执行（run_stage）。**派不派、派哪个模型/sandbox 由主控按任务动态决定**（目标=保质量 + 减 Claude 消耗，非定死规则）。
+| 档位 | Claude 家族 | GPT 家族（Codex 通道） | 说明 |
+|---|---|---|---|
+| 旗舰 | **Fable 5**（07-12 订阅到期退场）→ **Opus 4.8** | **gpt-5.6-sol**（$5/$30） | sol=Terminal-Bench 2.1 SOTA、长程 agent；Opus=工程秩序/长期协作 |
+| 主力 | **Sonnet 5**（$3/$15，08-31 前 $2/$10） | **gpt-5.6-terra**（$2.5/$15） | everyday work，执行主力 |
+| 轻档 | **Haiku 4.5** | **gpt-5.6-luna**（$1/$6） | 批量机械/提取/预处理 |
 
-## 2. 省上下文的四条机制（决定省得多不省）
+- **GPT-5.6 = 有限预览**（少量受邀组织，无公开申请入口/GA 日期；本账号 Codex 已可用，CLI ≥0.144）。三型号：~105 万 ctx / 128K 输出 / 截止 2026-02；effort `low→ultra` 六档（**luna 无 ultra**）；`ultra`≈多智能体并行（消耗大）；另有 fast 速度档（1.5x 速度多耗额度）。5.5/5.4/5.4-mini 仍可用（5.4-mini 交叉测试交接单不作废）。
+- **通道**：Claude 侧=主控会话 + Agent 子代理（`model` 参数 sonnet/opus/haiku）；GPT 侧=MCP `mcp__codex__codex` / CLI `codex exec`。
 
-1. **不在 prompt 里塞大文件**——给 Codex 文件路径，让它自己读盘；Claude 基本不再亲自 Read 大文件。
-2. **产出走磁盘**——Codex 直接改工作树 + 详细日志/报告写文件；**回主对话只给简报**（X passed / 改了哪几个文件 / 关键结论 / 偏差 / **审阅需求**）。明确要求「Reply INLINE with ONLY a terse report, do NOT paste diffs/file contents」，且**简报必含「审阅需求(review-ask)」段**：Codex 自报哪些处它没把握 / 做了判断取舍 / 动了风险点或不变量、建议 Claude 复核（无则注明「none — routine spec'd execution」），并诚实标注不确定、不得过度自信。
-3. **Claude 审 `git diff`**（自己跑，便宜），不让 Codex 回贴文件内容。
-4. **多步迭代用 `codex-reply` 续同一 session**——context 留 Codex 侧，Claude 只发短追问。
+## 2. 角色分工矩阵（用户 2026-07-10 拍）
 
-## 3. 通道与参数
+| 角色 | 模型 | 备注 |
+|---|---|---|
+| **主控（开对话）** | Claude 家族：现 Fable 5，07-12 后 **Opus 4.8** | 编排/裁决/judge/memory+管理文档/commit；**不亲手改 src** |
+| **规划 / 方向** | 现：Fable 5；Fable 退场后：**Opus 与 sol 双独立出案 →（互不可见）→ 新开 Opus 会话复核统一产出** | **保质量，不受额度约束** |
+| **工程推理 / 架构落地**（具体模块实现方案） | Opus 4.8、sol | |
+| **执行**（按 spec 改代码 + 跑测） | **Sonnet 5、terra** | 旗舰不当日常执行器 |
+| **批量机械 / 预处理** | Haiku 4.5、luna | digest/提取/格式转换/测试补全 |
+| **方案评审（对抗性）** | **交叉最顶**：Claude 侧产物→**sol**；GPT 侧产物→**Fable/Opus** | **保质量**；effort=最高两档（max/ultra）主控择一 |
+| **大节点工程评审（执行完复核）** | **交叉中档**：Claude 侧执行→**terra**；GPT 侧执行→**Opus** | routine spec'd 执行仍按 §6 采信 |
+| **疑难杂症**（连续修复失败/跨系统边界/并发一致性/高错误代价） | 交叉最顶 | 卡壳升档，不默认旗舰 |
+
+**四条原则（用户拍）**：
+1. **谁写谁不批**——跨厂商交叉评审是必须不是可选；批准者只看**原始需求 + diff + 测试输出 + 必要架构上下文**，不看执行者长篇自述（防叙事带偏）。
+2. **推理强度不写死**——主控按任务需求动态定；「最顶」= 该模型最高两档（max/ultra），选哪档也归主控。
+3. **额度动态平衡**——不预设偏烧哪边；**派批次活前看两边窗口余量、问用户拍额度侧**（免得老撞顶等重置）。规划/方向与方案评审**保质量不降档**，其余角色可按额度换侧/降档。
+4. **主控家族恒 Claude**——memory + 管理文档 + commit 单一权威不动摇（§7）。
+
+## 3. 省上下文的四条机制（决定省得多不省）
+
+1. **不在 prompt 里塞大文件**——给执行器文件路径，让它自己读盘；主控基本不亲自 Read 大文件。
+2. **产出走磁盘**——执行器直接改工作树 + 详细日志/报告写文件；**回主对话只给简报**（X passed / 改了哪几个文件 / 关键结论 / 偏差 / **审阅需求**）。明确要求「Reply INLINE with ONLY a terse report, do NOT paste diffs/file contents」，且**简报必含「审阅需求(review-ask)」段**：执行器自报哪些处没把握 / 做了判断取舍 / 动了风险点或不变量、建议主控复核（无则注明「none — routine spec'd execution」），诚实标注不确定、不得过度自信。
+3. **主控审 `git diff`**（自己跑，便宜），不让执行器回贴文件内容。
+4. **多步迭代续同一 session**——GPT 侧用 `codex-reply`（context 留 Codex 侧）；Claude 侧用 SendMessage 续子代理。
+
+## 4. 通道与参数
 
 - **MCP `mcp__codex__codex` / `mcp__codex__codex-reply`**（主力）：session 持久（`threadId` 续），适合「写代码+跑测」多步执行 + 方案审阅。
-- **CLI `codex exec -i <图>`**（看图专用）：MCP 无图像参数，识图/读平面立面必须走 CLI；大输出 redirect 到文件读 tail；坑=后台进程 stdin 不 EOF 致 codex 死等干耗（额度不掉），用 `echo "" | codex …` 喂 EOF。
-- **模型/effort（按角色分档，不一股脑全开最高，2026-06-23 用户定）**：Codex 额度虽充裕，但 effort 按角色定，避免无谓烧最高档——
-  - **方案审阅（adversarial review）→ `gpt-5.5` + `xhigh`**：方案对错是质量命门，审阅吃满推理。
-  - **执行 → `gpt-5.5` + `medium` / `high`，主控按任务复杂度定**：spec 极清的机械执行用 `medium`；接缝多 / 判断密 / 碰不变量的执行用 `high`。**默认不再 xhigh**。
-  - **机制**：本机 `~/.codex/config.toml` 默认 `model=gpt-5.5` + `model_reasoning_effort=xhigh` + `trust_level=trusted`；per-call 降档经 MCP `config={"model_reasoning_effort":"medium"|"high"}` 覆盖（直接继承默认会是 xhigh，对执行偏高）。
+- **CLI `codex exec -i <图>`**（看图专用）：MCP 无图像参数，识图/读平面立面必须走 CLI；大输出 redirect 到文件读 tail；坑① 后台进程 stdin 不 EOF 致 codex 死等干耗，用 `echo "" | codex …` 喂 EOF；坑② `-i` 是可变参数会吞尾随位置 prompt → prompt 走 stdin。
+- **⚠️ 调用必须显式传 model + effort**：`~/.codex/config.toml` **已不钉模型默认**（只剩 trust_level），裸调用会落 CLI 内置默认 = **sol + low**（旗舰最低档，不伦不类）——**禁止裸调用**。MCP 经 `config={"model":"gpt-5.6-…","model_reasoning_effort":"…"}`；CLI 经 `-m <model> -c model_reasoning_effort=<effort>`。
+- **Claude 侧执行器** = Agent 工具 `model` 参数（sonnet/haiku/opus）；隔离读图一律走 `spawn_isolated_reader.py`（污染硬隔离，new_case_guide 附录 A）。
 
-## 4. 本机沙箱校准（硬坑，2026-06-21 实测）
+## 5. 本机沙箱校准（硬坑，2026-06-21 实测）+ sol 执行护栏
 
-- **read-only / workspace-write 两档不可用**：会去起 bwrap 沙箱，本机内核禁 userns 起不来，于是**静默回退去读 GitHub @main**（给的行号是远端、与本地分支不一致、不可信）。
-  → **凡需碰本地文件的 Codex MCP 调用，一律 `sandbox=danger-full-access`**（它跳过沙箱、不走 bwrap）。这也是 review 一直用 full-access 的原因。
-- **sandbox 在建 thread 时定死**：`codex-reply` 续会话**不能改 sandbox**（参数里没有）。想换权限→**新开 `codex` 会话**。
-- 全自主执行：`approval-policy=never`（不打断），靠 Claude 审 diff 兜底。
+- **read-only / workspace-write 两档不可用**：会去起 bwrap 沙箱，本机内核禁 userns 起不来，于是**静默回退去读 GitHub @main**（行号是远端、与本地分支不一致、不可信）。
+  → **凡需碰本地文件的 Codex MCP 调用，一律 `sandbox=danger-full-access`**（跳过沙箱、不走 bwrap）。
+- **sandbox 在建 thread 时定死**：`codex-reply` 续会话不能改 sandbox。想换权限 → 新开 `codex` 会话。
+- **⚠️ CLI `codex exec resume` 不继承原会话 sandbox（2026-07-10 实测）**：resume 会**静默落回 workspace-write**（= 走 bwrap，本机即踩上面的静默回退坑），且**不吃 `--sandbox` 旗**（报 unexpected argument）——resume 续会话必须带 **`--dangerously-bypass-approvals-and-sandbox`**；发射后 **`grep sandbox <exec log>` 核实生效**再走开。
+- 全自主执行：`approval-policy=never`（不打断），靠主控审 diff 兜底。
+- **⚠️ sol 执行护栏（系统卡风险）**：sol 相比 5.5 在 agentic coding 中更易**过度追求目标**（替换用户指定资源/声称完成未验证工作等，绝对率低但需防护）。故 **sol 原则上不当执行器**（矩阵已排 terra/Sonnet）；确需 sol 执行（疑难终端任务）时三条硬护栏：① 删除/覆盖/推送/外发必须单独授权 ② 每阶段给可验证证据（测试输出/diff/实际状态）③ 限单次变更范围，完成一个工作包重新审视计划。
 
-## 5. 节点审阅方向（反转，替代旧 §5#8「Codex 审 Claude」）
-
-现以 Claude 主导出方案、Codex 主执行，故审阅链反转：
+## 6. 审阅流程与信任边界
 
 ```
-Claude 出方案 → Codex 审方案（adversarial，落 review/）→ Claude 裁决（不盲从）
-  → 派 Codex 执行器实现（简报含「审阅需求」自报需复核处）
-  → Claude 按 review-ask 复核 + 大节点全面审 → commit
+主控出方案（规划档参与，见 §2）
+  → 交叉最顶对抗审（落 logs/reviews/verdict/）→ 主控裁决（不盲从）
+  → 派执行档实现（简报含「审阅需求」自报需复核处）
+  → routine 采信简报；大节点 → 交叉中档复核 + 主控全面审 → 主控 commit
 ```
 
-- **执行结果不逐次全审**：Claude 把 Codex 当**可靠执行工具**，由 Codex 在简报「审阅需求」里**自决**哪些要 Claude 再核；Claude 只复核被 escalate 的处，**routine spec'd 执行直接采信**（逐次全审会抵消省消耗的初衷）。
-- **大节点才全面审**：里程碑 commit 前的实质改动、集成接缝、碰 5 条铁律/IntakeOutput 契约的改动、或 Codex escalate 不确定时 → Claude 全面审（含自跑 pytest + 逐行审 + 端到端回归）。
-- **方案类决策双审后再派**：Claude 拟方案 + Codex 审 + Claude 裁决（= 双审），无 BLOCKER 才 dispatch 给执行 Agent。
-- **审计留痕**：`logs/reviews/request/<date>_<topic>_request.md` = Claude 方案（含 v2/v2.1 revise 演进）；`logs/reviews/verdict/<date>_<topic>_review.md` = Codex 审（含二审）。
-- 方案 revise 多轮时用 `codex-reply` 续同会话二审（Codex 已加载方案+代码，省上下文）。
-
-## 6. 信任边界：Codex 当可靠执行工具，escalation + 大节点驱动复核
-
-核心：**把 Codex 当一个可靠的执行工具**，常规执行直接采信、由它自报哪些需复核；Claude 的核验集中在「判断题」和「大节点」，不摊到每一步（否则不省消耗）。
-
-- **执行结果不逐次审**：采信 Codex 简报的测试数字与结论；只复核它「审阅需求」里 escalate 的处。**大节点**（里程碑 commit 前实质改动 / 碰铁律/契约 / Codex 报不确定）才全面审（自跑 pytest + 逐行审 diff + 端到端回归，如 sm21 面数）。
-- **判断题仍 Claude 自持**（这些便宜且是质量命门，不外包）：① 方案地基事实（根因定位、不变量）动方案前 Claude 亲自**聚焦** read 确认；② Codex 给 REWORK/critique 时逐条裁决（采纳/校准/反驳），不照单全收（例：本轮把 tol 0.20 校准为 0.11、flag 路由 unsupported→advisory）。
-- **让 Codex 诚实自报**：执行 prompt 要求简报含「审阅需求」段，明令标注不确定/判断取舍/动了风险点，不得过度自信——Claude 的复核精度取决于此。
+- **执行结果不逐次全审**：把执行器当**可靠执行工具**，由它在「审阅需求」里自决哪些要 escalate；主控只复核被 escalate 的处（逐次全审抵消省消耗初衷）。
+- **大节点才全面审**：里程碑 commit 前实质改动、集成接缝、碰 5 条铁律/IntakeOutput 契约、或执行器报不确定 → 交叉中档复核 + 主控全面审（自跑 pytest + 逐行 diff + 端到端回归）。
+- **方案类决策双审后再派**：主控拟方案 + 交叉最顶审 + 主控裁决，无 BLOCKER 才 dispatch。
+- **双独立规划**（Fable 退场后）：Opus 与 sol **各自独立**出方案（互不可见对方产出）→ 新开 Opus 复核会话统一 → 主控采纳；沿用「不与之并行自查以保独立性」纪律。
+- **判断题仍主控自持**（便宜且是质量命门，不外包）：① 方案地基事实（根因定位、不变量）动方案前主控亲自聚焦 read 确认；② 评审给 REWORK/critique 时逐条裁决（采纳/校准/反驳），不照单全收。
+- **审计留痕**：`logs/reviews/request/<date>_<topic>_request.md` = 方案（含 revise 演进）；`logs/reviews/verdict/<date>_<topic>_review.md` = 评审（含二审）；多轮 revise 用 `codex-reply`/SendMessage 续同会话。
 
 ## 7. 守质量 + 记忆一致的铁律
 
-- **memory + 管理文档只 Claude 写**（CLAUDE.md §5#1）→ Codex 永不碰，杜绝「各自记忆不同步」。
-- **git commit 只 Claude**（§5#7）；Codex 改工作树**绝不** commit/push。
-- **改 src 前 Claude 先备份**（§5#4，`backup/src_history/<date>_<reason>/`），git clean 之外再加一层。
-- Codex 只做**已 spec 清楚的执行**，不做开放式设计；碰铁律/契约/judge verdict 的判断题留 Claude。
+- **memory + 管理文档只主控写**（CLAUDE.md §5#1）→ 执行器/评审器永不碰，杜绝「各自记忆不同步」。
+- **git commit 只主控**（§5#7）；执行器改工作树**绝不** commit/push。
+- **改 src 前主控先备份**（§5#4，`backup/src_history/<date>_<reason>/`），git clean 之外再加一层。
+- 执行器只做**已 spec 清楚的执行**，不做开放式设计；碰铁律/契约/judge verdict 的判断题留主控。
 
-## 8. 一轮完整范例（P0#1 跨层墙对齐，2026-06-21）
+## 8. 一轮完整范例（P0#1 跨层墙对齐，2026-06-21，两方模式旧例、流程骨架仍适用）
 
 1. Claude 兜底读 `deterministic.py` 核实根因 → 写方案落 `request/`。
-2. Codex full-access 审方案 → REWORK（3 DISAGREE + 2 BLOCKER，落 `review/`）。
+2. Codex full-access 审方案 → REWORK（3 DISAGREE + 2 BLOCKER，落 `verdict/`）。
 3. Claude 裁决采纳 + 校准 → v2.1 spec；`codex-reply` 二审 → APPROVE-WITH-CHANGES 无 BLOCKER。
-4. Claude 备份 src → 派 Codex full-access 执行器实现（默认 gpt-5.5/xhigh）→ 回简报 281 passed。
-5. Claude 自验：审 diff 逐行 + 自跑 pytest 281 + 读新测非空 + sm21 端到端 112→100。
+4. Claude 备份 src → 派执行器实现 → 回简报 281 passed。
+5. Claude 自验：审 diff 逐行 + 自跑 pytest + 读新测非空 + sm21 端到端 112→100。
 6. Claude 同步 plan/decision_log/memory + commit。
+
+（新矩阵下的对应替换：步骤 2 评审 = 交叉最顶 sol+max/ultra；步骤 4 执行 = terra/Sonnet medium-high；大节点另加交叉中档复核。首个新矩阵实测 = C2 收官设计首审，见 plan.md。）

@@ -14,7 +14,15 @@
 0–5 管线 + 逐段校验架构（gate① 确定性 + gate② judge）已落地，sm20/sm21 两份 golden baseline 在册。
 **当前在把"逐段 judge-in-the-loop 编排"真跑起来、出第一份带 judge 的规范 baseline**，并扫尾两步法/评测的残留。
 
-> **🔜 下一轮开场（用户 2026-07-09 收工定，做完再回正常排期）**：① **GPT-5.6 发布 → 双模型家族协作模式修订**（codex_execution_protocol + CLAUDE §5#8/#10 对齐新模型家族，用户参与一起改）；② **C2 实现状态白话对齐讨论**（用户要建底图，基于 `proposals/c2_full_unlock_design.md` + B0/B1 现状）。之后正常排期 = C2 双审续办（重置后 resume 双子会话或 Codex 首审）→ Codex 施工 B2/B2b/B3 → directed 复跑（配置已拍 reading-only）→ 用户出 sm25-L/sm26-U。
+> **✅ [2026-07-10 Fable5 主控] 开场两项完成 + C2 收官设计定稿 v2.2 + E4 真北定案(详 decision_log 顶条)**:
+> ① **双模型家族协作规约大修订落档**(GPT-5.6 sol/terra/luna 到账 + Fable 07-12 退订):角色矩阵进 [guides/codex_execution_protocol.md](guides/codex_execution_protocol.md) + CLAUDE §5#8/#10/#13(新增「用户拍板必须白话」);
+> ② **C2 白话对齐完成** + 设计三轮 sol 对抗审(REWORK 16→REWORK 5→**APPROVE-WITH-CHANGES,21/21 闭合**),[proposals/c2_full_unlock_design.md](proposals/c2_full_unlock_design.md) **v2.2 定稿**(用户新定案:E2' 实体要证据·属性可补默认+标记/回字形出 C2/sm26 内壁窗平面必画/E4 真北一起上=Relative 路线,EP 探针五条全过 [logs/experiments/2026-07-10_e4_relative_north_axis_probe](logs/experiments/2026-07-10_e4_relative_north_axis_probe/RESULTS.md))。
+>
+> **🔜 正常排期(v2.2 DAG,放行细稿阶段·不放行连续施工)**:
+> 1. **B2 细稿**(schema v3 冻结 + per-floor footprint 槽位 + floor_footprint helper + 双路径 finalize)——根节点,先行;
+> 2. **B-M 细稿**(受信视图清单,0_reading 前生成)可并行;之后按 DAG:B3→B2b / E4-output-contract→B-O / Vg→Va→B4a→B4b→B5→B5b→B6;
+> 3. **用户出图 sm25-L/sm26-U**(画法按 §T' 新验收器:sm26 内壁窗平面必画 + 总平/指北针若有一并给);
+> 4. **directed 复跑**(配置已拍 reading-only)排 B2 细稿之后;**07-12 Fable 退订→主控切 Opus**(规划改 Opus+sol 双独立)。
 >
 > **📍 [2026-07-09 Fable5 主控] C2 收官冲刺（用户定：把 C2 直接上完=完全解锁非方形）+ 当日三件落地**：
 > ① **W2 三条接线债已修**（`9ea0a2e`：J1 rubric 件名对齐实产 zones_<floor>.png/grade/score_vs_gt；collect_eyeball_assets 补收 zones_<floor>.png 真 bug；correction.yaml 两处 stale 注释）——plan backlog 对应条目关闭。
