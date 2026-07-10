@@ -18,11 +18,13 @@
 > ① **双模型家族协作规约大修订落档**(GPT-5.6 sol/terra/luna 到账 + Fable 07-12 退订):角色矩阵进 [guides/codex_execution_protocol.md](guides/codex_execution_protocol.md) + CLAUDE §5#8/#10/#13(新增「用户拍板必须白话」);
 > ② **C2 白话对齐完成** + 设计三轮 sol 对抗审(REWORK 16→REWORK 5→**APPROVE-WITH-CHANGES,21/21 闭合**),[proposals/c2_full_unlock_design.md](proposals/c2_full_unlock_design.md) **v2.2 定稿**(用户新定案:E2' 实体要证据·属性可补默认+标记/回字形出 C2/sm26 内壁窗平面必画/E4 真北一起上=Relative 路线,EP 探针五条全过 [logs/experiments/2026-07-10_e4_relative_north_axis_probe](logs/experiments/2026-07-10_e4_relative_north_axis_probe/RESULTS.md))。
 >
-> **🔜 正常排期(v2.2 DAG,放行细稿阶段·不放行连续施工)**:
-> 1. **B2 细稿**(schema v3 冻结 + per-floor footprint 槽位 + floor_footprint helper + 双路径 finalize)——根节点,先行;
-> 2. **B-M 细稿**(受信视图清单,0_reading 前生成)可并行;之后按 DAG:B3→B2b / E4-output-contract→B-O / Vg→Va→B4a→B4b→B5→B5b→B6;
-> 3. **用户出图 sm25-L/sm26-U**(画法按 §T' 新验收器:sm26 内壁窗平面必画 + 总平/指北针若有一并给);
-> 4. **directed 复跑**(配置已拍 reading-only)排 B2 细稿之后;**07-12 Fable 退订→主控切 Opus**(规划改 Opus+sol 双独立)。
+> **✅ [2026-07-10 午后 Fable5 主控] B2+B-M 细稿出稿并五轮 sol 对抗审至 APPROVE-WITH-CHANGES（v6 定稿候选）**：
+> 主控亲手出稿([proposals/c2_b2_detail_spec.md](proposals/c2_b2_detail_spec.md) + [proposals/c2_bm_view_manifest_spec.md](proposals/c2_bm_view_manifest_spec.md))→ sol+max 同会话五轮(r1 REWORK 16→r2 REWORK 13→r3 REWORK 7→r4 REWORK 4→**r5 双 APPROVE-WITH-CHANGES 零 BLOCKER**,verdicts 在 [logs/reviews/verdict/](logs/reviews/verdict/) `2026-07-10_c2_b2_bm_detail_review*.md`)→ r5 两补丁已机械并入=v6。**关键定案**:①strict v3 = 子类族(legacy 类零字段改动)+ ensure 信任边界无 no-op 快路+draw/final 两把尺;②生产 target 矩阵 rectangular→v1、orthogonal_polygon→v3、v2 只读 legacy;③v3 随 B2 生产发射(非 B5);④RunManifestV2/StageRecordV2 共同 wire(run_id+artifact_contract+artifact_hashes)归 **B-M 唯一规范 owner,B-M 先落、B2 消费(DAG 加 B-M→B2 边)**;⑤evidence-debt debt_id 主键化+typed resolution 进 B2;⑥B-M=CompletenessAssertion strict wire+isolation run 绑定+grandfather 只读。**过程教训:细稿必须累计式自包含**(v3 期"v2 不变"引用被同路径覆写判 BLOCKER,v4 起全文累计)。**r6 短文字复核 = 双 APPROVE(两补丁 CLOSED·交叉一致·"可进入既定施工顺序、无需 r7")——两稿定稿**,六轮共审 32 findings 全闭合。
+>
+> **🔜 正常排期(v2.2 DAG,细稿已过审·施工待派)**:
+> 1. ~~B2 细稿~~ ~~B-M 细稿~~ ✅ **v6 双定稿(r6 APPROVE)**;**施工顺序 = B-M 先落(共同 RunManifestV2/StageRecordV2 wire+claims.py+manifest/isolation/gate)→B2 消费**——**派执行档前按 §5#8 问用户额度侧拍板**;之后按 DAG:B3→B2b / E4-output-contract→B-O / Vg→Va→B4a→B4b→B5→B5b→B6;
+> 2. **用户出图 sm25-L/sm26-U**(画法按 §T' 新验收器:sm26 内壁窗平面必画 + 总平/指北针若有一并给);
+> 3. **directed 复跑**(配置已拍 reading-only)排 B2 细稿之后;**07-12 Fable 退订→主控切 Opus**(规划改 Opus+sol 双独立)。
 >
 > **📍 [2026-07-09 Fable5 主控] C2 收官冲刺（用户定：把 C2 直接上完=完全解锁非方形）+ 当日三件落地**：
 > ① **W2 三条接线债已修**（`9ea0a2e`：J1 rubric 件名对齐实产 zones_<floor>.png/grade/score_vs_gt；collect_eyeball_assets 补收 zones_<floor>.png 真 bug；correction.yaml 两处 stale 注释）——plan backlog 对应条目关闭。
