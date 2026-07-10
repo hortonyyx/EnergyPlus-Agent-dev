@@ -219,9 +219,21 @@ def spawn_command(
     *,
     model: str | None = None,
     execute: bool = False,
+    directive: str | Path | None = None,
 ) -> list[str]:
     staging_root = Path(staging_root).resolve()
     prompt = (staging_root / "kickoff_prompt.md").read_text(encoding="utf-8")
+    if directive is not None:
+        text = Path(directive).read_text(encoding="utf-8")
+        # Same contamination bar as feedback: the directive is a prompt channel.
+        check_feedback_text(text)
+        (staging_root / "directive.md").write_text(text, encoding="utf-8")
+        prompt += "\n## Per-run directive (binding for this run)\n" + text
+    if (staging_root / "feedback.md").exists():
+        prompt += (
+            "\nIMPORTANT: A review of your previous output exists at feedback.md — "
+            "read it FIRST and follow it exactly before doing anything else.\n"
+        )
     cmd = ["claude", "-p", prompt, "--settings", str(staging_root / "isolation_settings.json")]
     if model:
         cmd.extend(["--model", model])
@@ -284,7 +296,9 @@ def _copy_prescan(run_dir: Path | None, staging_root: Path, manifest: WorkspaceM
     src = run_dir / "0_reading" / "cv_evidence"
     if not src.exists():
         return
-    dest_root = staging_root / "prescan"
+    # Layout parity with staging-direct generation (--out-dir <staging>/prescan):
+    # prescan/cv_evidence/<stem>/prescan/... either way.
+    dest_root = staging_root / "prescan" / "cv_evidence"
     for path in sorted(src.glob("*/prescan/**/*")):
         if path.is_file():
             _assert_source_allowed(path)
@@ -299,6 +313,12 @@ def _write_kickoff(case_dir: Path, staging_root: Path, manifest: WorkspaceManife
         "Use tools/run_cv_probe.py only through request JSON files inside this workspace. "
         "Do the pilot first, then stop and wait for review feedback if provided.\n"
     )
+    if (staging_root / "prescan").exists():
+        text += (
+            "Deterministic prescan candidates are provided under "
+            "prescan/cv_evidence/<image_stem>/prescan/ (candidates.json + "
+            "combined_overlay.png); consume them per the cv_toolbox discipline.\n"
+        )
     _write_generated(staging_root / "kickoff_prompt.md", text, "kickoff", manifest)
 
 
@@ -365,6 +385,22 @@ def _assert_source_allowed(path: Path) -> None:
     _assert_rel_allowed(rel)
 
 
+def _is_run_prescan_path(rel: Path) -> bool:
+    """Only run-dir subtree readable by the builder: orchestrator-produced
+    prescan candidates at run_*/0_reading/cv_evidence/<stem>/prescan/**."""
+    parts = rel.parts
+    for i, part in enumerate(parts[:-1]):
+        if part.startswith("run_"):
+            tail = parts[i + 1 :]
+            return (
+                len(tail) >= 5
+                and tail[0] == "0_reading"
+                and tail[1] == "cv_evidence"
+                and tail[3] == "prescan"
+            )
+    return False
+
+
 def _assert_rel_allowed(rel: Path) -> None:
     parts = set(rel.parts)
     name = rel.name
@@ -372,7 +408,7 @@ def _assert_rel_allowed(rel: Path) -> None:
         raise ValueError(f"forbidden source file: {rel}")
     if "test_baseline" in parts and "gt" in parts:
         raise ValueError(f"forbidden gt source path: {rel}")
-    if any(part.startswith("run_") for part in rel.parts[:-1]):
+    if any(part.startswith("run_") for part in rel.parts[:-1]) and not _is_run_prescan_path(rel):
         raise ValueError(f"forbidden run source path: {rel}")
     if parts & HARD_BLOCK_PARTS:
         raise ValueError(f"forbidden source path component: {rel}")

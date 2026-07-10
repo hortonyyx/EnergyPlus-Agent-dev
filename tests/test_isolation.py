@@ -12,6 +12,7 @@ from src.agent.execution.isolation import (
     build_isolation_workspace,
     check_feedback_text,
     merge_isolated_output,
+    spawn_command,
 )
 from src.agent.execution.manifest import RunManifest, hash_file, hash_text
 
@@ -79,6 +80,64 @@ def test_build_isolation_workspace_copies_whitelist_and_manifest(tmp_path: Path)
 def test_forbidden_source_paths_are_rejected(path: str):
     with pytest.raises(ValueError):
         _assert_source_allowed(Path(path))
+
+
+def test_run_prescan_source_path_is_allowed():
+    _assert_source_allowed(
+        Path("case_tests/e2e_tests/sm21_anchor/run_x/0_reading/cv_evidence/1f_view/prescan/candidates.json")
+    )
+    # Judgment artifacts stay blocked even inside a prescan folder.
+    with pytest.raises(ValueError):
+        _assert_source_allowed(
+            Path("case_tests/e2e_tests/sm21_anchor/run_x/0_reading/cv_evidence/1f_view/prescan/grade.png")
+        )
+    # Non-prescan run paths stay blocked.
+    with pytest.raises(ValueError):
+        _assert_source_allowed(
+            Path("case_tests/e2e_tests/sm21_anchor/run_x/0_reading/cv_evidence/1f_view/001_crop_zoom.json")
+        )
+
+
+def test_build_copies_run_prescan_and_kickoff_mentions_it(tmp_path: Path):
+    run_dir = tmp_path / "run_probe"
+    src = run_dir / "0_reading" / "cv_evidence" / "1f_view" / "prescan"
+    src.mkdir(parents=True)
+    (src / "candidates.json").write_text("{}", encoding="utf-8")
+
+    manifest = build_isolation_workspace(
+        CASE_DIR, run_dir=run_dir, staging_root=tmp_path / "staging"
+    )
+    staging = manifest.staging_root
+
+    copied = staging / "prescan" / "cv_evidence" / "1f_view" / "prescan" / "candidates.json"
+    assert copied.exists()
+    kickoff = (staging / "kickoff_prompt.md").read_text(encoding="utf-8")
+    assert "prescan/cv_evidence/<image_stem>/prescan/" in kickoff
+
+
+def test_spawn_command_appends_directive_and_feedback_pointer(tmp_path: Path):
+    staging = tmp_path / "staging"
+    staging.mkdir()
+    (staging / "kickoff_prompt.md").write_text("KICKOFF\n", encoding="utf-8")
+    directive = tmp_path / "directive.md"
+    directive.write_text("Measure before drawing. Calibrate first.\n", encoding="utf-8")
+
+    cmd = spawn_command(staging, directive=directive)
+    prompt = cmd[2]
+    assert prompt.startswith("KICKOFF")
+    assert "Per-run directive" in prompt
+    assert "Measure before drawing" in prompt
+    assert "feedback.md" not in prompt
+    assert (staging / "directive.md").read_text(encoding="utf-8").startswith("Measure before")
+
+    (staging / "feedback.md").write_text("redo", encoding="utf-8")
+    prompt2 = spawn_command(staging, directive=directive)[2]
+    assert "feedback.md" in prompt2 and "read it FIRST" in prompt2
+
+    bad = tmp_path / "bad_directive.md"
+    bad.write_text("compare against gt" + ".json please", encoding="utf-8")
+    with pytest.raises(ValueError):
+        spawn_command(staging, directive=bad)
 
 
 def test_staging_run_cv_probe_smoke(tmp_path: Path):

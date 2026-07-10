@@ -32,7 +32,12 @@ def _cmd_build(args: argparse.Namespace) -> int:
 
 
 def _cmd_spawn(args: argparse.Namespace) -> int:
-    cmd = spawn_command(args.staging_root, model=args.model, execute=args.execute)
+    cmd = spawn_command(
+        args.staging_root,
+        model=args.model,
+        execute=args.execute,
+        directive=args.directive,
+    )
     if not args.execute:
         print(shlex.join(cmd))
     return 0
@@ -72,6 +77,7 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--staging-root", required=True, type=Path)
     p.add_argument("--model")
     p.add_argument("--execute", action="store_true")
+    p.add_argument("--directive", type=Path, help="per-run directive file appended to the spawn prompt (contamination-checked, persisted as staging/directive.md)")
     p.set_defaults(func=_cmd_spawn)
 
     p = sub.add_parser("feedback")

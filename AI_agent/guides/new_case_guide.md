@@ -275,9 +275,17 @@ python scripts/tool_scripts/spawn_isolated_reader.py build --case-dir <CASE> --r
 `--resume`，pilot→batch 通过 feedback 文件传递无污染 review 文本：
 
 ```
-python scripts/tool_scripts/spawn_isolated_reader.py spawn --staging-root <STAGING> --model <MODEL>
+python scripts/tool_scripts/spawn_isolated_reader.py spawn --staging-root <STAGING> --model <MODEL> [--directive <FILE>]
 python scripts/tool_scripts/spawn_isolated_reader.py feedback --staging-root <STAGING> --text "<NO-GT/NO-JUDGE feedback>"
 ```
+
+- `--directive <FILE>` = **per-run 指令槽**（弱 VLM 用 07-07 directed 模式必配：cv_toolbox required +
+  measure-before-draw + 完整性清单）：内容过 feedback 同款污染检查后附加进 spawn prompt，并落
+  `<STAGING>/directive.md` 留痕——不改 manifested kickoff。
+- staging 内存在 `feedback.md` 时，spawn 自动在 prompt 末尾附"先读 feedback.md"指针（打回→重 spawn 的
+  新会话不再对 review 无感知）；重 spawn 是无状态全量重跑，弱 VLM 每轮成本 ≈ 一次冷启，控制打回轮数。
+- prescan 候选的正规路径：主控跑 `cv_probe prescan-*` 落 `<RUN>/0_reading/cv_evidence/<stem>/prescan/`，
+  `build` 自动拷进 `<STAGING>/prescan/cv_evidence/...`（守卫只放行该 run 子树）并在 kickoff 里给 reader 指路。
 
 3. reader 只能读 staging 内 `case_data/`、0_reading skill（不含 `judge_rubric.md`）、cv toolbox
 wrapper 和 prescan 产物；只能写 `out/`。如需 CV probe，只能写 staging 内 request JSON，再通过
