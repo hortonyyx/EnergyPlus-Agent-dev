@@ -40,6 +40,11 @@ _EXCLUDED_VALIDATE_CHECKS = {
     ("downstream", "ep.warning_threshold"): (
         "EP baseline is downstream, not run_pipeline"
     ),
+    ("0_reading", "reading.view_manifest_coverage"): (
+        "C2 B-M §4.4: validate_case-only read-only view-manifest audit "
+        "(verify_view_manifest); run_pipeline has no view-manifest wiring yet "
+        "— that is a separate, later batch, not this one"
+    ),
 }
 
 

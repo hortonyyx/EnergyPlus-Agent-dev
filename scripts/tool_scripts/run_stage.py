@@ -104,14 +104,39 @@ def _expected_zone_total(testdata_path: Path) -> int | None:
 # stage executors — each returns (output_obj, gate①_report)
 # --------------------------------------------------------------------------- #
 def _draw_reading(run_dir: Path, policy: RunPolicy, dimensioned_views: set[str]):
-    """0_reading is MANUAL: validate the already-produced view JSONs (no LLM)."""
-    from src.agent.reading import load_reading_view
-    from src.validator.checks.reading import check_reading_view
+    """0_reading is MANUAL: validate the already-produced view JSONs (no LLM).
+
+    Gate① now also runs `reading.view_manifest_coverage` (C2 B-M §6, INVARIANT,
+    always BLOCK): the run's trusted view manifest is auto-provisioned here (the
+    "0_reading preflight", §4.4 — idempotent, raises only on a genuine case_data
+    change mid-run) and every produced `*_view.json` is checked against its
+    `expected_output_id` set — a required view with no matching artifact is a
+    miss, an artifact outside the expected set is an identity error, both BLOCK
+    regardless of run_profile.
+    """
+    from src.agent.execution.view_manifest import provision_view_manifest
+    from src.validator.checks.view_manifest import check_reading_stage
 
     rdir = run_dir / "0_reading"
+    case_dir = run_dir.parent
     views = sorted(rdir.glob("*_view.json"))
-    rep = CheckReport(
-        stage="0_reading",
+
+    manifest = None
+    manifest_missing_reason = "view manifest missing or unreadable"
+    try:
+        manifest = provision_view_manifest(case_dir, run_dir)
+    except ValueError as exc:
+        manifest_missing_reason = f"could not provision view manifest: {exc}"
+
+    out: dict = {}
+    for vj in views:
+        out[vj.stem] = json.loads(vj.read_text(encoding="utf-8"))
+
+    rep = check_reading_stage(
+        manifest,
+        out,
+        dimensioned_stems=dimensioned_views,
+        manifest_missing_reason=manifest_missing_reason,
         capability_profile=policy.capability_profile,
         run_profile=policy.run_profile,
     )
@@ -119,18 +144,6 @@ def _draw_reading(run_dir: Path, policy: RunPolicy, dimensioned_views: set[str])
         rep.add("reading.present", CheckStatus.ERROR, CheckLayer.INVARIANT,
                 message="no 0_reading/*_view.json found — produce reading first")
         return {}, rep
-    out: dict = {}
-    for vj in views:
-        view = load_reading_view(vj)
-        out[vj.stem] = json.loads(vj.read_text(encoding="utf-8"))
-        sub = check_reading_view(
-            view,
-            capability_profile=policy.capability_profile,
-            run_profile=policy.run_profile,
-            view_metadata={"dimensioned": vj.stem in dimensioned_views},
-        )
-        for r in sub.results:  # merge per-view results under one stage report
-            rep.results.append(r.model_copy(update={"check_id": f"{vj.stem}.{r.check_id}"}))
     return out, rep
 
 
@@ -1673,6 +1686,32 @@ def cmd_status(args) -> int:
     return 0
 
 
+def cmd_provision(args) -> int:
+    """`provision <case> <run>` — provision (or re-verify) this run's trusted
+    view manifest (§4.4, the "唯一 emitter" for `<run>/_run/view_manifest.json`).
+
+    `--migrate` is the ONE explicit write-path exception (§5.1): migrates this
+    run's `run_manifest.json` from v1 to v2 in place (backfilling every
+    accepted stage's artifact_hashes from the real on-disk attempt files).
+    Never invoked automatically — a v1 (grandfathered) run stays read-only for
+    new 0_reading attempts until an operator runs this explicitly.
+    """
+    from src.agent.execution.manifest import migrate_run_to_v2
+    from src.agent.execution.view_manifest import provision_view_manifest
+
+    case_dir, run_dir, _td = _resolve(args.base_dir, args.case, args.run)
+    if args.migrate:
+        v2 = migrate_run_to_v2(case_dir, run_dir)
+        print(json.dumps({"migrated": True, "run_id": v2.run_id, "stages": sorted(v2.stages)}, sort_keys=True))
+        return 0
+    manifest = provision_view_manifest(case_dir, run_dir)
+    print(json.dumps(
+        {"provisioned": True, "content_sha256": manifest.content_sha256, "entries": len(manifest.entries)},
+        sort_keys=True,
+    ))
+    return 0
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -1734,6 +1773,11 @@ def main() -> int:
     ps = sub.add_parser("status")
     ps.add_argument("case"); ps.add_argument("run")
 
+    pp = sub.add_parser("provision")
+    pp.add_argument("case"); pp.add_argument("run")
+    pp.add_argument("--migrate", action="store_true",
+                     help="explicit v1->v2 run manifest migration (the only other write path besides normal provisioning)")
+
     args = ap.parse_args()
     if not hasattr(args, "force"):
         args.force = False
@@ -1743,6 +1787,7 @@ def main() -> int:
         "approve-review": cmd_approve_review,
         "flow": cmd_flow,
         "status": cmd_status,
+        "provision": cmd_provision,
     }[args.verb](args)
 
 

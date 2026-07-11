@@ -1,0 +1,136 @@
+"""gate① check ``reading.view_manifest_coverage`` (C2 B-M §6).
+
+CheckLayer.INVARIANT, always BLOCK on fail regardless of ``run_profile`` — r1
+裁决: input identity/completeness gets no run_profile carve-out, the same
+precedent as ``reading.present`` (both plain INVARIANT check_ids, outside
+``EVIDENCE_CHECK_IDS``, so :func:`src.validator.checks.schema.disposition`
+already maps every FAIL to BLOCK unconditionally — no special-casing needed
+here).
+
+Reused by both the flat-flow reader (``run_stage._draw_reading``, one call per
+attempt) and isolation's merge writer (the "merge 同门" checker, §5.2) so both
+paths judge honesty against the identical rule: a required_view's declared
+``expected_output_id`` must have a matching produced artifact, and no produced
+artifact may claim a stem outside the expected set. Denominator-level scoring
+(what fraction of *claims* were actually answered) belongs to B4b; this check
+only guards honesty/identity (miss, extra, manifest drift).
+"""
+
+from __future__ import annotations
+
+from src.agent.execution.view_manifest import ViewManifest
+from src.validator.checks.schema import CheckLayer, CheckReport, RunProfile
+
+CHECK_ID = "reading.view_manifest_coverage"
+
+
+def check_reading_stage(
+    manifest: ViewManifest | None,
+    produced: dict[str, dict],
+    *,
+    dimensioned_stems: set[str] | None = None,
+    manifest_missing_reason: str = "view manifest missing or unreadable",
+    capability_profile: str = "rectangular",
+    run_profile: RunProfile = "exploratory",
+) -> CheckReport:
+    """The "merge 同门" checker (§5.2): coverage (:func:`check_view_manifest_coverage`)
+    + per-view schema linting (:func:`src.validator.checks.reading.check_reading_view`)
+    against the SAME rule, whether the caller is the flat-flow reader (one
+    ``*_view.json`` file per call) or isolation's merge writer (one aggregate
+    ``{"views": {stem: {...}}}`` payload). ``produced`` is ``{stem: raw dict}``.
+
+    ``dimensioned_stems``, if given, overrides the manifest-derived dimensioned
+    set for the per-view schema check — the flat-flow caller passes its
+    existing ``dimensioned_view_names()`` result so this refactor does not
+    silently change that pre-existing check's behavior; it defaults to the
+    manifest's own ``dimensioned`` flags (isolation's merge path, which has no
+    other source)."""
+    from src.agent.reading import parse_reading_view
+    from src.validator.checks.reading import check_reading_view
+
+    rep = check_view_manifest_coverage(
+        manifest,
+        set(produced),
+        manifest_missing_reason=manifest_missing_reason,
+        capability_profile=capability_profile,
+        run_profile=run_profile,
+    )
+    if dimensioned_stems is None:
+        dimensioned_stems = set()
+        if manifest is not None:
+            dimensioned_stems = {
+                e.expected_output_id for e in manifest.required_entries() if e.dimensioned
+            }
+
+    for stem in sorted(produced):
+        raw = produced[stem]
+        if not isinstance(raw, dict):
+            rep.add_fail(
+                f"{stem}.reading.view_payload_shape", CheckLayer.INVARIANT,
+                f"produced view {stem!r} is not a JSON object",
+            )
+            continue
+        try:
+            view = parse_reading_view(raw)
+        except Exception as exc:  # noqa: BLE001 — a malformed view is a gate①-visible fact
+            rep.add_fail(
+                f"{stem}.reading.view_payload_valid", CheckLayer.INVARIANT,
+                f"produced view {stem!r} failed schema validation: {exc}",
+            )
+            continue
+        sub = check_reading_view(
+            view,
+            capability_profile=capability_profile,
+            run_profile=run_profile,
+            view_metadata={"dimensioned": stem in dimensioned_stems},
+        )
+        for r in sub.results:
+            rep.results.append(r.model_copy(update={"check_id": f"{stem}.{r.check_id}"}))
+    return rep
+
+
+def check_view_manifest_coverage(
+    manifest: ViewManifest | None,
+    produced_stems: set[str],
+    *,
+    manifest_missing_reason: str = "view manifest missing or unreadable",
+    capability_profile: str = "rectangular",
+    run_profile: RunProfile = "exploratory",
+) -> CheckReport:
+    """``manifest=None`` covers both "never provisioned" and "on-disk manifest
+    failed verification" (hash drift / corrupt) — callers resolve that via
+    :func:`src.agent.execution.view_manifest.verify_view_manifest` /
+    :func:`~src.agent.execution.view_manifest.provision_view_manifest` and pass
+    the reason through for the evidence trail."""
+    rep = CheckReport(stage="0_reading", capability_profile=capability_profile, run_profile=run_profile)
+    if manifest is None:
+        rep.add_fail(CHECK_ID, CheckLayer.INVARIANT, manifest_missing_reason)
+        return rep
+
+    expected = manifest.expected_output_ids()  # expected_output_id -> input_id
+    expected_ids = set(expected)
+    missing = sorted(expected_ids - produced_stems)
+    extra = sorted(produced_stems - expected_ids)
+
+    if missing or extra:
+        parts = []
+        if missing:
+            parts.append(f"{len(missing)} required view(s) have no matching produced artifact")
+        if extra:
+            parts.append(f"{len(extra)} produced artifact(s) do not match any expected_output_id")
+        rep.add_fail(
+            CHECK_ID,
+            CheckLayer.INVARIANT,
+            "; ".join(parts),
+            evidence={"missing_expected_output_ids": missing, "extra_stems": extra},
+        )
+    else:
+        rep.add_pass(
+            CHECK_ID,
+            CheckLayer.INVARIANT,
+            evidence={"expected_output_ids": sorted(expected_ids)},
+        )
+    return rep
+
+
+__all__ = ["CHECK_ID", "check_view_manifest_coverage"]

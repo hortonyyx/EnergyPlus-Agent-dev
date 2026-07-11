@@ -21,8 +21,10 @@
 > **✅ [2026-07-10 午后 Fable5 主控] B2+B-M 细稿出稿并五轮 sol 对抗审至 APPROVE-WITH-CHANGES（v6 定稿候选）**：
 > 主控亲手出稿([proposals/c2_b2_detail_spec.md](proposals/c2_b2_detail_spec.md) + [proposals/c2_bm_view_manifest_spec.md](proposals/c2_bm_view_manifest_spec.md))→ sol+max 同会话五轮(r1 REWORK 16→r2 REWORK 13→r3 REWORK 7→r4 REWORK 4→**r5 双 APPROVE-WITH-CHANGES 零 BLOCKER**,verdicts 在 [logs/reviews/verdict/](logs/reviews/verdict/) `2026-07-10_c2_b2_bm_detail_review*.md`)→ r5 两补丁已机械并入=v6。**关键定案**:①strict v3 = 子类族(legacy 类零字段改动)+ ensure 信任边界无 no-op 快路+draw/final 两把尺;②生产 target 矩阵 rectangular→v1、orthogonal_polygon→v3、v2 只读 legacy;③v3 随 B2 生产发射(非 B5);④RunManifestV2/StageRecordV2 共同 wire(run_id+artifact_contract+artifact_hashes)归 **B-M 唯一规范 owner,B-M 先落、B2 消费(DAG 加 B-M→B2 边)**;⑤evidence-debt debt_id 主键化+typed resolution 进 B2;⑥B-M=CompletenessAssertion strict wire+isolation run 绑定+grandfather 只读。**过程教训:细稿必须累计式自包含**(v3 期"v2 不变"引用被同路径覆写判 BLOCKER,v4 起全文累计)。**r6 短文字复核 = 双 APPROVE(两补丁 CLOSED·交叉一致·"可进入既定施工顺序、无需 r7")——两稿定稿**,六轮共审 32 findings 全闭合。
 >
-> **🔜 正常排期(v2.2 DAG,细稿已过审·施工待派)**:
-> 1. ~~B2 细稿~~ ~~B-M 细稿~~ ✅ **v6 双定稿(r6 APPROVE)**;**施工顺序 = B-M 先落(共同 RunManifestV2/StageRecordV2 wire+claims.py+manifest/isolation/gate)→B2 消费**——**派执行档前按 §5#8 问用户额度侧拍板**;之后按 DAG:B3→B2b / E4-output-contract→B-O / Vg→Va→B4a→B4b→B5→B5b→B6;
+> **✅ [2026-07-11 Fable5 主控] B-M 批施工完成（Sonnet 5 执行档·用户拍派发·570→678 绿+9 xfail 零回归·主控独立复跑确认+四要害亲核）**：claims.py + view_manifest.py(808 行 schema/generator/provision·verify API) + checks/view_manifest.py(gate① 恒 BLOCK) + manifest.py V1/V2 wire(artifact_contract 合同表+双 hash 不变量+migrate commit 协议) + isolation 闭环(run 绑定+merge 同门+blocking 压制 accept+staging 只读投影) + validation_run 只读比对(老 anchor NOT_APPLICABLE 零新 BLOCK) + 137 新测试。执行简报=[logs/reviews/execution/2026-07-11_bm_construction_brief.md](logs/reviews/execution/2026-07-11_bm_construction_brief.md)(8 条留白判断主控全接受)。**登记接缝两条**:①flow/resample 一般路径的 V2-by-default + `reading_attempt_allowed` 接线**并入 B2 施工范围**(B2 attempt writer 本就要发 StageRecordV2;现状缓解=\_draw_reading 已自动 provision+coverage 恒 BLOCK,缺的是 run 级 hash 登记与 v1 拒新 attempt 的 flow 侧字面执行);②completeness 断言的**生成器触发通路**(metadata→negative claims 开启)未实现,strict wire 本体已全测,归 Va/B4b 或首个需要负证据的 case。**下一步=B2 施工待派 + terra 交叉中档复核(§5#8 大节点,派前看 Codex 窗口问用户)**。
+>
+> **🔜 正常排期(v2.2 DAG)**:
+> 1. ~~B-M 施工~~ ✅;**B2 施工待派**(消费共同 wire;含接缝①);之后按 DAG:B3→B2b / E4-output-contract→B-O / Vg→Va→B4a→B4b→B5→B5b→B6;
 > 2. **用户出图 sm25-L/sm26-U**(画法按 §T' 新验收器:sm26 内壁窗平面必画 + 总平/指北针若有一并给);
 > 3. **directed 复跑**(配置已拍 reading-only)排 B2 细稿之后;**07-12 Fable 退订→主控切 Opus**(规划改 Opus+sol 双独立)。
 >

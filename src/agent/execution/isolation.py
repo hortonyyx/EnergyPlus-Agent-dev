@@ -17,14 +17,23 @@ from importlib import resources
 from pathlib import Path
 
 from src.agent.execution.manifest import (
-    MANIFEST_NAME,
-    RunManifest,
-    StageRecord,
+    RunManifestV2,
+    StageRecordV2,
+    ensure_run_manifest_v2,
     hash_file,
     hash_text,
+    load_run_manifest,
+    reading_attempt_allowed,
+    save_run_manifest,
 )
-from src.agent.execution.run_meta import run_meta_path
-from src.validator.checks.schema import CheckLayer, CheckReport
+from src.agent.execution.view_manifest import (
+    ViewManifest,
+    build_view_manifest,
+    derive_input_inventory,
+    verify_view_manifest,
+)
+from src.validator.checks.schema import CheckLayer
+from src.validator.checks.view_manifest import check_reading_stage
 
 ISOLATION_SCHEMA_VERSION = "1"
 STAGE = "0_reading"
@@ -61,6 +70,11 @@ class WorkspaceManifest:
     run_dir: Path | None
     files: list[ManifestEntry] = field(default_factory=list)
     warnings: list[str] = field(default_factory=list)
+    # §2 reader-visibility ledger: images that were classified `excluded_input`
+    # by the view manifest and therefore deliberately NOT copied into staging
+    # (not a warning — this is the expected, audited shape of a clean build).
+    excluded_from_staging: list[dict] = field(default_factory=list)
+    merge_eligible: bool = False
 
     @property
     def manifest_path(self) -> Path:
@@ -76,7 +90,11 @@ class WorkspaceManifest:
             "staging_root": str(self.staging_root),
             "case_dir": _repo_relative(self.case_dir),
             "run_dir": _repo_relative(self.run_dir) if self.run_dir else None,
+            "merge_eligible": self.merge_eligible,
             "files": [entry.__dict__ for entry in sorted(self.files, key=lambda item: item.path)],
+            "excluded_from_staging": sorted(
+                self.excluded_from_staging, key=lambda item: item["input_id"]
+            ),
             "warnings": sorted(set(self.warnings)),
         }
 
@@ -93,7 +111,29 @@ def build_isolation_workspace(
     run_dir: Path | None = None,
     staging_root: Path | None = None,
 ) -> WorkspaceManifest:
-    """Build a clean-room staging tree for an isolated 0_reading executor."""
+    """Build a clean-room staging tree for an isolated 0_reading executor.
+
+    Two modes (§5.2):
+
+    - **preview/unbound** (``run_dir=None``): no run to bind to yet. The build
+      always produces ``merge_eligible: false`` — :func:`merge_isolated_output`
+      refuses unconditionally for a workspace built this way, no matter what
+      target run_dir is later supplied.
+    - **formal** (``run_dir`` given): the caller must have already provisioned
+      this run's view manifest (``provision_view_manifest`` / the
+      ``provision`` CLI) — this function only *verifies* it and refuses to
+      build otherwise (fail closed, never silently provisions here). On
+      success it binds/creates the run's v2 identity (:func:`ensure_run_manifest_v2`)
+      and records immutable provenance (run_id, case_id, view_manifest_sha256,
+      case_metadata_sha256, per-image hashes) that :func:`merge_isolated_output`
+      re-checks before ever accepting.
+
+    In both modes, only ``required_view``-classified images are copied into
+    ``case_data/`` — an image the view manifest classifies ``excluded_input``
+    is never reader-visible (§2); a derived ``input_inventory.json`` projection
+    (denominator-free: no negative-evidence/completeness content) tells the
+    reader what to read and what to name its output.
+    """
     case_dir = Path(case_dir).resolve()
     run_dir = Path(run_dir).resolve() if run_dir else None
     if staging_root is None:
@@ -104,17 +144,48 @@ def build_isolation_workspace(
         staging_root.mkdir(parents=True, exist_ok=True)
     _require_outside_repo(staging_root)
 
-    manifest = WorkspaceManifest(staging_root=staging_root, case_dir=case_dir, run_dir=run_dir)
+    view_manifest = build_view_manifest(case_dir)
+    binding: dict = {"merge_eligible": False}
+
+    if run_dir is not None:
+        verification = verify_view_manifest(case_dir, run_dir)
+        if not verification.ok:
+            raise ValueError(
+                "cannot build a formal (run-bound) isolation workspace: "
+                f"{verification.reason} — provision this run's view manifest first "
+                "(`provision_view_manifest` / the `provision` CLI)"
+            )
+        view_manifest = verification.on_disk  # the committed one is authoritative
+        run_manifest_v2 = ensure_run_manifest_v2(
+            run_dir, view_manifest_sha256=view_manifest.content_sha256
+        )
+        binding = {
+            "merge_eligible": True,
+            "run_id": run_manifest_v2.run_id,
+            "case_id": view_manifest.case_id,
+            "case_dir": _repo_relative(case_dir),
+            "run_dir": _repo_relative(run_dir),
+            "view_manifest_sha256": view_manifest.content_sha256,
+            "case_metadata_sha256": view_manifest.case_metadata_sha256,
+            "image_sha256": {e.input_id: e.image_sha256 for e in view_manifest.required_entries()},
+        }
+
+    manifest = WorkspaceManifest(
+        staging_root=staging_root, case_dir=case_dir, run_dir=run_dir,
+        merge_eligible=bool(binding["merge_eligible"]),
+    )
     (staging_root / "out").mkdir(parents=True, exist_ok=True)
     (staging_root / "tools").mkdir(parents=True, exist_ok=True)
 
-    _copy_case_data(case_dir, staging_root, manifest)
+    _copy_case_data(case_dir, staging_root, manifest, view_manifest)
     _copy_reading_skill(staging_root, manifest)
     _copy_cv_toolbox(staging_root, manifest)
     _copy_prescan(run_dir, staging_root, manifest)
     _write_kickoff(case_dir, staging_root, manifest)
     _write_guard_and_wrappers(staging_root, manifest)
     _write_settings(staging_root, manifest)
+    _write_input_inventory(staging_root, manifest, view_manifest)
+    _write_binding(staging_root, manifest, binding)
     manifest.save()
     _assert_manifest_clean(manifest)
     return manifest
@@ -154,7 +225,20 @@ def merge_isolated_output(
     output_path: Path | None = None,
     accept: bool = True,
 ) -> Path:
-    """Merge isolated output into ``<run>/0_reading/attempts`` with provenance."""
+    """Merge isolated output into ``<run>/0_reading/attempts`` with provenance.
+
+    §5.2 "merge 同门": before ever touching the manifest, this (1) refuses a
+    workspace that was not built ``merge_eligible`` (preview/unbound, or built
+    for a different run_dir); (2) refuses a target run whose *current* identity
+    (run_id / view_manifest_sha256 / case_metadata_sha256) no longer matches
+    what was bound at build time — covers a tampered image, a directly-edited
+    view manifest, a run manifest replaced/swapped, or a workspace built for
+    run A merged into run B; (3) refuses a v1 (grandfathered) target run
+    outright; (4) runs the identical coverage/schema checker the flat-flow
+    reader uses against the aggregate payload — ``report.blocking()`` non-empty
+    means ``accept=True`` is silently downgraded to a filed-but-not-accepted
+    attempt (the caller's ``accept=True`` can never override a blocking gate①).
+    """
     staging_root = Path(staging_root).resolve()
     run_dir = Path(run_dir).resolve()
     output_path = Path(output_path) if output_path else staging_root / "out" / "output.json"
@@ -163,39 +247,96 @@ def merge_isolated_output(
     output_path = output_path.resolve(strict=True)
     _require_under(output_path, staging_root)
 
+    binding = _read_binding(staging_root)
+    if not binding.get("merge_eligible"):
+        raise ValueError(
+            "this staging workspace is not merge-eligible — it was built without a "
+            "bound run_dir (preview/unbound mode never merges, §5.2)"
+        )
+    case_dir = _repo_root() / binding["case_dir"]
+    bound_run_dir = _repo_root() / binding["run_dir"]
+    if bound_run_dir.resolve() != run_dir.resolve():
+        raise ValueError(
+            f"this staging workspace was bound to {bound_run_dir}, not {run_dir} — a "
+            "workspace built for one run cannot be merged into another (even the same "
+            "case/images with only run_id differing)"
+        )
+
+    allowed, reason = reading_attempt_allowed(run_dir)
+    if not allowed:
+        raise ValueError(f"merge refused: {reason}")
+
+    current_manifest = load_run_manifest(run_dir)
+    if not isinstance(current_manifest, RunManifestV2) or current_manifest.run_id != binding["run_id"]:
+        raise ValueError(
+            "merge refused: the target run's identity has changed since this "
+            "workspace was built (run_id mismatch, or the run manifest was replaced)"
+        )
+
+    verification = verify_view_manifest(case_dir, run_dir)
+    if (
+        not verification.ok
+        or verification.on_disk.content_sha256 != binding["view_manifest_sha256"]
+        or verification.on_disk.case_metadata_sha256 != binding["case_metadata_sha256"]
+    ):
+        raise ValueError(
+            "merge refused: the view manifest has drifted since this workspace was "
+            "built (case_data image(s) or the committed view manifest changed)"
+        )
+
+    out_text = output_path.read_text(encoding="utf-8")
+    try:
+        payload = json.loads(out_text)
+    except json.JSONDecodeError as exc:
+        raise ValueError(f"aggregate output.json is not valid JSON: {exc}") from exc
+    views = payload.get("views") if isinstance(payload, dict) else None
+    if not isinstance(views, dict):
+        raise ValueError(
+            "aggregate output.json must be shaped {'views': {<expected_output_id>: "
+            "<ReadingView JSON>, ...}}"
+        )
+
+    report = check_reading_stage(verification.on_disk, views)
+
     with _merge_lock(run_dir):
         stage_dir = run_dir / STAGE
         attempt_dir = _new_attempt_dir_retry(stage_dir)
-        out_text = output_path.read_text(encoding="utf-8")
         (attempt_dir / "output.json").write_text(out_text, encoding="utf-8")
         output_hash = hash_text(out_text)
 
         provenance = _build_provenance(staging_root, output_hash)
+        provenance.update(
+            {
+                "run_id": binding["run_id"],
+                "case_id": binding["case_id"],
+                "view_manifest_sha256": binding["view_manifest_sha256"],
+            }
+        )
         prov_path = attempt_dir / "isolation_provenance.json"
         prov_path.write_text(
             json.dumps(provenance, indent=2, sort_keys=True, ensure_ascii=False),
             encoding="utf-8",
         )
         provenance_hash = hash_file(prov_path)
-
-        report = CheckReport(stage=STAGE)
         report.add_pass(
             "reading.isolation_provenance_bound",
             CheckLayer.INVARIANT,
             evidence={"isolation_provenance_hash": provenance_hash},
         )
+
         report.attempt_hash = output_hash
         report.artifact_hash = output_hash
-        (attempt_dir / "checks.json").write_text(
-            report.model_dump_json(indent=2),
-            encoding="utf-8",
-        )
+        checks_path = attempt_dir / "checks.json"
+        checks_path.write_text(report.model_dump_json(indent=2), encoding="utf-8")
+        checks_hash = hash_file(checks_path)
 
         _archive_isolation_artifacts(staging_root, attempt_dir)
-        if accept:
-            manifest = RunManifest.load(run_dir)
-            manifest.accept(
-                StageRecord(
+
+        blocking = report.blocking()
+        do_accept = bool(accept) and not blocking  # accept=True can never override a block
+        if do_accept:
+            current_manifest.accept(
+                StageRecordV2(
                     stage=STAGE,
                     accepted_attempt=int(attempt_dir.name),
                     output_hash=output_hash,
@@ -207,10 +348,16 @@ def merge_isolated_output(
                         "isolation_access_log": provenance.get("access_log_sha256", ""),
                     },
                     capability="manual",
-                    check_passed=True,
+                    check_passed=not blocking,
+                    artifact_contract="reading_isolated_v2",
+                    artifact_hashes={
+                        "output": output_hash,
+                        "checks": checks_hash,
+                        "isolation_provenance": provenance_hash,
+                    },
                 )
             )
-            _atomic_save_manifest(manifest, run_dir)
+            save_run_manifest(current_manifest, run_dir)
         return attempt_dir
 
 
@@ -249,15 +396,72 @@ def clean_spawn_env(staging_root: Path) -> dict[str, str]:
     return env
 
 
-def _copy_case_data(case_dir: Path, staging_root: Path, manifest: WorkspaceManifest) -> None:
+def _copy_case_data(
+    case_dir: Path, staging_root: Path, manifest: WorkspaceManifest, view_manifest: ViewManifest
+) -> None:
+    """Copy only what the reader is entitled to see (§2 reader-visibility
+    铁律): every ``required_view`` image + ``testdata_prompt.json``. An image
+    the view manifest classifies ``excluded_input`` (derived working copy /
+    non-drawing asset) is never copied — it is logged in
+    ``excluded_from_staging`` instead, not silently dropped."""
     src = case_dir / "case_data"
     if not src.exists():
         src = case_dir
     dest = staging_root / "case_data"
     dest.mkdir(parents=True, exist_ok=True)
+    excluded_by_basename = {
+        e.source_image.rsplit("/", 1)[-1]: e for e in view_manifest.excluded_entries()
+    }
     for path in sorted(src.iterdir()):
-        if path.is_file() and (path.suffix.lower() == ".png" or path.name == "testdata_prompt.json"):
+        if not path.is_file():
+            continue
+        if path.name == "testdata_prompt.json":
             _copy_file(path, dest / path.name, "case_data", manifest)
+            continue
+        if path.suffix.lower() != ".png":
+            continue
+        excluded = excluded_by_basename.get(path.name)
+        if excluded is not None:
+            manifest.excluded_from_staging.append(
+                {
+                    "input_id": excluded.input_id,
+                    "source_image": excluded.source_image,
+                    "excluded_reason": excluded.excluded_reason,
+                }
+            )
+            continue
+        _copy_file(path, dest / path.name, "case_data", manifest)
+
+
+def _write_input_inventory(
+    staging_root: Path, manifest: WorkspaceManifest, view_manifest: ViewManifest
+) -> None:
+    """§2 staging projection: reader-visible identity only (input_id, file,
+    view_type, declared_direction_token, floor_ref, expected_output_id) — no
+    denominator/negative-evidence content. Lives at staging ROOT (not under
+    ``out/``), so the existing Write-allow list already makes it read-only to
+    the reader without any additional guard logic."""
+    payload = derive_input_inventory(view_manifest)
+    text = json.dumps(payload, indent=2, sort_keys=True, ensure_ascii=False)
+    _write_generated(staging_root / "input_inventory.json", text, "input_inventory", manifest)
+
+
+def _write_binding(staging_root: Path, manifest: WorkspaceManifest, binding: dict) -> None:
+    """Immutable staging-provenance binding (§5.2). Never copied from — and
+    never visible to — anything but :func:`merge_isolated_output`'s own
+    re-verification; lives at staging root so the reader cannot write it."""
+    text = json.dumps(binding, indent=2, sort_keys=True, ensure_ascii=False)
+    _write_generated(staging_root / "binding.json", text, "binding", manifest)
+
+
+def _read_binding(staging_root: Path) -> dict:
+    path = Path(staging_root) / "binding.json"
+    if not path.exists():
+        raise ValueError(
+            f"no binding.json under {staging_root} — this staging workspace was not "
+            "built by build_isolation_workspace (or predates the isolation run-binding wire)"
+        )
+    return json.loads(path.read_text(encoding="utf-8"))
 
 
 def _copy_reading_skill(staging_root: Path, manifest: WorkspaceManifest) -> None:
@@ -509,19 +713,6 @@ def _merge_lock(run_dir: Path):
             yield
         finally:
             fcntl.flock(fh, fcntl.LOCK_UN)
-
-
-def _atomic_save_manifest(manifest: RunManifest, run_dir: Path) -> Path:
-    path = run_meta_path(run_dir, MANIFEST_NAME, for_write=True)
-    fd, tmp_name = tempfile.mkstemp(prefix=f".{MANIFEST_NAME}.", dir=path.parent)
-    try:
-        with os.fdopen(fd, "w", encoding="utf-8") as fh:
-            fh.write(manifest.model_dump_json(indent=2))
-        os.replace(tmp_name, path)
-    finally:
-        if os.path.exists(tmp_name):
-            os.unlink(tmp_name)
-    return path
 
 
 def _require_under(path: Path, root: Path) -> None:

@@ -1,0 +1,808 @@
+"""Trusted view manifest — schema v1 (strict typed models) + strict generator.
+
+Per C2 B-M (``AI_agent/proposals/c2_bm_view_manifest_spec.md``, v6 定稿): the
+manifest is generated **deterministically from case metadata**, before
+0_reading runs, by the orchestration side — never by the product (reader /
+correction LLM). It is the single trusted record of "what input images exist,
+what each one is declared to be, and whether a reader's silence about it is
+honest 'unobserved' or a dishonest 'miss'" (§0 core invariant).
+
+Two entry points cover the whole lifecycle:
+
+  - :func:`provision_view_manifest` — the **only** writer. Called by run
+    provisioning / the 0_reading preflight. Idempotent: a second call with an
+    unchanged case_data returns the existing on-disk manifest; a changed
+    case_data raises (mid-run case_data swap is an INVARIANT violation).
+  - :func:`verify_view_manifest` — **never writes**. Called by ``validate_case``,
+    judge-only/replay paths, and isolation build/merge to compare the on-disk
+    manifest against an in-memory rebuild.
+
+Everything else in this module is the typed schema (§3) and the strict
+generator internals (§4) those two functions wrap.
+"""
+
+from __future__ import annotations
+
+import json
+import math
+import os
+import tempfile
+from dataclasses import dataclass
+from pathlib import Path
+from typing import Annotated, Literal, Union
+
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
+
+from src.agent.correction.claims import (
+    CLAIMS_VOCAB_VERSION,
+    ELEVATION_POTENTIALLY_OBSERVABLE_CLAIMS,
+    PLAN_POTENTIALLY_OBSERVABLE_CLAIMS,
+    WINDOW_CLAIMS,
+)
+from src.agent.execution.case_metadata import testdata_path
+from src.agent.execution.manifest import Hex64, hash_bytes, hash_file, hash_obj
+from src.agent.execution.run_meta import run_meta_path
+
+VIEW_MANIFEST_NAME = "view_manifest.json"
+VIEW_MANIFEST_SCHEMA_VERSION = "1"
+GENERATOR_VERSION = "1"
+COMPLETENESS_RULESET_VERSION = "1"
+
+# Known metadata keys for declared "supplementary" drawings that are neither a
+# per-floor plan nor a cardinal elevation. §4.2: "映射表写死" — an explicit,
+# hardcoded table per known key, not a stem-guessing heuristic. Today's corpus
+# has exactly one such key (sm20's supp_plan); classified as ``detail`` because
+# metadata never supplies a floor_ref for it (floor_ref is forbidden on
+# non-plan kinds, so this side-steps a spurious floor_ref requirement).
+_SUPPLEMENTARY_KEYS: dict[str, dict] = {
+    "Path of the supplementary plan example drawing for the building": {"view_type": "detail"},
+}
+_ELEVATION_KEYS: dict[str, str] = {
+    "South view path of the building": "South",
+    "North view path of the building": "North",
+    "East view path of the building": "East",
+    "West view path of the building": "West",
+}
+_DIRECTION_SEMANTICS_VALUES = ("building_axis", "true_azimuth", "unknown")
+
+
+# --------------------------------------------------------------------------- #
+# §3.6 CompletenessAssertion strict wire (frozen, r4 R4-BM-01)
+# --------------------------------------------------------------------------- #
+class CaseMetadataSourceRef(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    source: Literal["case_metadata"]
+    json_pointer: str
+    case_metadata_sha256: Hex64
+
+
+class UserSourceRef(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    source: Literal["user"]
+    content_sha256: Hex64
+
+
+class DatasetSourceRef(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    source: Literal["dataset_ref"]
+    dataset_id: str
+    dataset_version: str
+    contract_id: str
+    content_sha256: Hex64
+
+
+CompletenessSourceRef = Annotated[
+    Union[CaseMetadataSourceRef, UserSourceRef, DatasetSourceRef],
+    Field(discriminator="source"),
+]
+
+
+class CompletenessAssertion(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    assertion_id: str
+    source_ref: CompletenessSourceRef
+
+
+# --------------------------------------------------------------------------- #
+# §3.3 coverage typed domain
+# --------------------------------------------------------------------------- #
+_FRAME_REGION_PAIRS = {
+    "plan_floor_region": "full_floor",
+    "elevation_local_along": "full_facade",
+}
+
+
+class Coverage(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    frame: Literal["plan_floor_region", "elevation_local_along"]
+    region: Literal["full_floor", "full_facade"]
+    completeness_assertion_id: str
+
+
+# --------------------------------------------------------------------------- #
+# §3.2 opening_evidence
+# --------------------------------------------------------------------------- #
+class OpeningEvidence(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    potentially_observable_claims: list[str] = Field(default_factory=list)
+    negative_evidence_capable_claims: list[str] = Field(default_factory=list)
+    coverage: Coverage | None = None
+    completeness_assertion: CompletenessAssertion | None = None
+
+    @field_validator("potentially_observable_claims", "negative_evidence_capable_claims")
+    @classmethod
+    def _claims_in_vocab_dedup_sorted(cls, v: list[str]) -> list[str]:
+        bad = sorted(set(v) - WINDOW_CLAIMS)
+        if bad:
+            raise ValueError(f"claim(s) outside claims vocabulary: {bad}")
+        return sorted(set(v))
+
+    @model_validator(mode="after")
+    def _linked_constraints(self) -> "OpeningEvidence":
+        # 1. negative_evidence_capable_claims ⊆ potentially_observable_claims
+        extra = set(self.negative_evidence_capable_claims) - set(self.potentially_observable_claims)
+        if extra:
+            raise ValueError(
+                f"negative_evidence_capable_claims not a subset of "
+                f"potentially_observable_claims: {sorted(extra)}"
+            )
+        # 2. negative non-empty <=> coverage and completeness_assertion both present
+        has_negative = bool(self.negative_evidence_capable_claims)
+        has_coverage = self.coverage is not None
+        has_assertion = self.completeness_assertion is not None
+        if has_coverage != has_assertion:
+            raise ValueError(
+                "coverage and completeness_assertion must be both present or both absent"
+            )
+        if has_negative != has_coverage:
+            raise ValueError(
+                "negative_evidence_capable_claims non-empty iff coverage/"
+                "completeness_assertion are present"
+            )
+        # 3. coverage.completeness_assertion_id references completeness_assertion.assertion_id
+        if has_coverage and self.coverage.completeness_assertion_id != self.completeness_assertion.assertion_id:
+            raise ValueError(
+                "coverage.completeness_assertion_id must reference "
+                "completeness_assertion.assertion_id (no dangling reference)"
+            )
+        # 4. frame-region pairing (C2 domain)
+        if has_coverage and _FRAME_REGION_PAIRS.get(self.coverage.frame) != self.coverage.region:
+            raise ValueError(
+                f"coverage frame/region pairing invalid for C2: "
+                f"{self.coverage.frame} requires region="
+                f"{_FRAME_REGION_PAIRS.get(self.coverage.frame)!r}, got {self.coverage.region!r}"
+            )
+        return self
+
+
+def _opening_evidence_for(view_type: str) -> OpeningEvidence:
+    if view_type == "plan":
+        claims = sorted(PLAN_POTENTIALLY_OBSERVABLE_CLAIMS)
+    elif view_type == "elevation":
+        claims = sorted(ELEVATION_POTENTIALLY_OBSERVABLE_CLAIMS)
+    else:
+        claims = []
+    return OpeningEvidence(potentially_observable_claims=claims)
+
+
+# --------------------------------------------------------------------------- #
+# §3.2 ManifestEntry — discriminated union on `kind`
+# --------------------------------------------------------------------------- #
+class _EntryBase(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    input_id: str
+    source_image: str
+    image_sha256: Hex64
+
+    @field_validator("input_id")
+    @classmethod
+    def _input_id_nonempty(cls, v: str) -> str:
+        if not v:
+            raise ValueError("input_id must be non-empty")
+        return v
+
+    @field_validator("source_image")
+    @classmethod
+    def _source_image_normalized(cls, v: str) -> str:
+        if (
+            not v.startswith("case_data/")
+            or v.startswith("/")
+            or ".." in Path(v).parts
+            or len(Path(v).parts) != 2
+        ):
+            raise ValueError(
+                f"source_image must be a normalized 'case_data/<name>' relative "
+                f"path (no absolute paths, no '..'): {v!r}"
+            )
+        return v
+
+
+class RequiredViewEntry(_EntryBase):
+    kind: Literal["required_view"] = "required_view"
+
+    view_type: Literal["plan", "elevation", "site_plan", "detail"]
+    view_kind: Literal["full"] = "full"
+    floor_ref: int | None = None
+    declared_direction_token: str | None = None
+    direction_source: Literal["standard_assumption", "title_hint", "matcher", "user"]
+    direction_semantics: Literal["building_axis", "true_azimuth", "unknown"]
+    semantics_source: Literal["standard_assumption", "case_metadata", "user"]
+    azimuth_deg: float | None = None
+    building_view_direction: str | None = None
+    dimensioned: bool
+    expected_output_id: str
+    reader_output_required: Literal[True] = True
+    opening_evidence: OpeningEvidence
+
+    @model_validator(mode="after")
+    def _conditional_constraints(self) -> "RequiredViewEntry":
+        if self.view_type == "plan":
+            if self.floor_ref is None:
+                raise ValueError("floor_ref is required when view_type=plan")
+        elif self.floor_ref is not None:
+            raise ValueError(f"floor_ref is forbidden when view_type={self.view_type!r}")
+
+        if self.view_type == "elevation" and not self.declared_direction_token:
+            raise ValueError("declared_direction_token is required when view_type=elevation")
+
+        if self.direction_semantics == "true_azimuth":
+            if self.azimuth_deg is None or not math.isfinite(self.azimuth_deg) or not (0.0 <= self.azimuth_deg < 360.0):
+                raise ValueError(
+                    "azimuth_deg is required, finite, and in [0,360) when "
+                    "direction_semantics=true_azimuth"
+                )
+        elif self.azimuth_deg is not None:
+            raise ValueError(
+                f"azimuth_deg is forbidden when direction_semantics={self.direction_semantics!r}"
+            )
+
+        if self.direction_semantics != "building_axis" and self.building_view_direction is not None:
+            raise ValueError(
+                "building_view_direction must be null when direction_semantics is "
+                "true_azimuth or unknown"
+            )
+
+        if not self.expected_output_id:
+            raise ValueError("expected_output_id must be non-empty")
+
+        return self
+
+
+class ExcludedInputEntry(_EntryBase):
+    kind: Literal["excluded_input"] = "excluded_input"
+
+    excluded_reason: Literal["derived_working_copy", "non_drawing_asset"]
+    parent_input_id: str | None = None
+
+    @model_validator(mode="after")
+    def _conditional_constraints(self) -> "ExcludedInputEntry":
+        if self.excluded_reason == "derived_working_copy" and not self.parent_input_id:
+            raise ValueError("parent_input_id is required when excluded_reason=derived_working_copy")
+        if self.excluded_reason == "non_drawing_asset" and self.parent_input_id is not None:
+            raise ValueError("parent_input_id is forbidden when excluded_reason=non_drawing_asset")
+        return self
+
+
+ManifestEntry = Annotated[
+    Union[RequiredViewEntry, ExcludedInputEntry],
+    Field(discriminator="kind"),
+]
+
+
+# --------------------------------------------------------------------------- #
+# §3.0 top-level ViewManifest
+# --------------------------------------------------------------------------- #
+class ViewManifest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    view_manifest_schema_version: Literal["1"] = VIEW_MANIFEST_SCHEMA_VERSION
+    claims_vocab_version: str
+    generator_version: Literal["1"] = GENERATOR_VERSION
+    completeness_ruleset_version: Literal["1"] = COMPLETENESS_RULESET_VERSION
+    case_id: str
+    case_metadata_sha256: Hex64
+    entries: list[ManifestEntry] = Field(default_factory=list)
+    content_sha256: Hex64
+
+    @model_validator(mode="after")
+    def _entries_canonical(self) -> "ViewManifest":
+        ids = [e.input_id for e in self.entries]
+        if len(set(ids)) != len(ids):
+            dupes = sorted({i for i in ids if ids.count(i) > 1})
+            raise ValueError(f"duplicate input_id in entries: {dupes}")
+        if ids != sorted(ids):
+            raise ValueError("entries must be sorted by input_id (canonical order)")
+        return self
+
+    # ---- accessors ----
+    def required_entries(self) -> list[RequiredViewEntry]:
+        return [e for e in self.entries if e.kind == "required_view"]
+
+    def excluded_entries(self) -> list[ExcludedInputEntry]:
+        return [e for e in self.entries if e.kind == "excluded_input"]
+
+    def entry_by_input_id(self, input_id: str) -> "RequiredViewEntry | ExcludedInputEntry | None":
+        for e in self.entries:
+            if e.input_id == input_id:
+                return e
+        return None
+
+    def expected_output_ids(self) -> dict[str, str]:
+        """``expected_output_id -> input_id`` for every required_view entry."""
+        return {e.expected_output_id: e.input_id for e in self.required_entries()}
+
+
+def compute_content_hash(manifest: ViewManifest) -> str:
+    """Canonicalized-payload hash (excludes ``content_sha256`` itself, §3.0)."""
+    payload = manifest.model_dump(mode="json", exclude={"content_sha256"})
+    return hash_obj(payload)
+
+
+# --------------------------------------------------------------------------- #
+# §4.1 strict loader helpers
+# --------------------------------------------------------------------------- #
+def _dimensioned_stems_declared(data: dict) -> set[str]:
+    stems: set[str] = set()
+    for v in data.get("dimensioned_views") or []:
+        if isinstance(v, str) and v:
+            p = Path(v)
+            stems.add(p.stem if p.suffix else v)
+    return stems
+
+
+def _normalize_declared_path(case_dir: Path, declared: object) -> tuple[str, str, str]:
+    """Normalize a declared metadata path to ``case_data/<basename>``.
+
+    Single algorithm for both case_data-relative and legacy full-repo-relative
+    declarations (§4.1): only the basename is trusted, and it must resolve to a
+    real file *inside* ``<case_dir>/case_data`` — this cannot escape the case
+    input root by construction (directory components of the declared path are
+    discarded, never followed).
+    """
+    if not isinstance(declared, str) or not declared:
+        raise ValueError(f"declared path is empty or not a string: {declared!r}")
+    basename = Path(declared).name
+    if not basename:
+        raise ValueError(f"declared path has no filename component: {declared!r}")
+    case_data_root = (case_dir / "case_data").resolve(strict=False)
+    candidate = case_dir / "case_data" / basename
+    resolved = candidate.resolve(strict=False)
+    try:
+        resolved.relative_to(case_data_root)
+    except ValueError as exc:
+        raise ValueError(f"declared path escapes case input root: {declared!r}") from exc
+    if not resolved.is_file():
+        raise ValueError(f"declared path does not exist or is unreadable: {declared!r} (resolved {candidate})")
+    if resolved.suffix.lower() != ".png":
+        raise ValueError(f"declared path is not a PNG: {declared!r}")
+    return f"case_data/{basename}", basename, hash_file(candidate)
+
+
+def _expected_output_id(input_id: str) -> str:
+    """§4.2: reading always emits ``<stem>_view.json``; a source stem that
+    already ends in ``_view`` (the common case: ``1f_view``, ``South_view``)
+    maps to itself, a bare stem (``supp_plan``) gets the suffix appended
+    (``supp_plan_view``) — matching the reading skill's documented convention
+    (skills/intake_pipeline/0_reading/session_kickoff.md)."""
+    return input_id if input_id.endswith("_view") else f"{input_id}_view"
+
+
+def _resolve_semantics(overlay: dict) -> tuple[str, str, float | None]:
+    """§4.2 ``views:{}`` per-view override row for direction_semantics/azimuth_deg.
+    Absent an override, C2's uniform default applies: building_axis +
+    standard_assumption (no case currently declares true geographic azimuth)."""
+    if "direction_semantics" in overlay:
+        semantics = overlay["direction_semantics"]
+        if semantics not in _DIRECTION_SEMANTICS_VALUES:
+            raise ValueError(f"invalid direction_semantics override: {semantics!r}")
+        azimuth = overlay.get("azimuth_deg")
+        if semantics == "true_azimuth":
+            if not isinstance(azimuth, (int, float)) or isinstance(azimuth, bool) or not math.isfinite(azimuth) or not (0.0 <= azimuth < 360.0):
+                raise ValueError(
+                    f"views{{}} override: azimuth_deg is required, finite, and in "
+                    f"[0,360) when direction_semantics=true_azimuth (got {azimuth!r})"
+                )
+            return semantics, "case_metadata", float(azimuth)
+        if azimuth is not None:
+            raise ValueError(
+                f"views{{}} override: azimuth_deg is only valid with "
+                f"direction_semantics=true_azimuth (semantics={semantics!r})"
+            )
+        return semantics, "case_metadata", None
+    return "building_axis", "standard_assumption", None
+
+
+def _resolve_view_kind(overlay: dict) -> str:
+    kind = overlay.get("view_kind", "full")
+    if kind == "partial":
+        raise ValueError("view_kind=partial declared — partial views not supported in C2")
+    if kind != "full":
+        raise ValueError(f"unsupported view_kind override: {kind!r}")
+    return "full"
+
+
+def _register(
+    entries: dict[str, "RequiredViewEntry | ExcludedInputEntry"],
+    expected_ids: dict[str, str],
+    classified_files: set[str],
+    entry: "RequiredViewEntry | ExcludedInputEntry",
+    basename: str,
+) -> None:
+    if entry.input_id in entries:
+        raise ValueError(f"duplicate input_id: {entry.input_id}")
+    if isinstance(entry, RequiredViewEntry):
+        if entry.expected_output_id in expected_ids:
+            raise ValueError(
+                f"duplicate expected_output_id: {entry.expected_output_id} "
+                f"(from {expected_ids[entry.expected_output_id]!r} and {entry.input_id!r})"
+            )
+        expected_ids[entry.expected_output_id] = entry.input_id
+    entries[entry.input_id] = entry
+    classified_files.add(basename)
+
+
+def _verify_derived_copy_relation(
+    entries: dict[str, "RequiredViewEntry | ExcludedInputEntry"], entry: ExcludedInputEntry
+) -> None:
+    parent = entries.get(entry.parent_input_id or "")
+    if parent is None or parent.image_sha256 != entry.image_sha256:
+        raise ValueError(
+            f"derived_working_copy {entry.input_id!r}: hash relation with parent "
+            f"{entry.parent_input_id!r} does not hold (parent not found or bytes differ)"
+        )
+
+
+# --------------------------------------------------------------------------- #
+# §4 generator (pure, in-memory — no I/O side effects beyond reading case_data)
+# --------------------------------------------------------------------------- #
+def build_view_manifest(case_dir: Path | str) -> ViewManifest:
+    """Deterministically rebuild the expected view manifest for a case,
+    entirely from ``case_data/testdata_prompt.json`` + the images physically
+    present under ``case_data/`` — never from any product artifact. Raises on
+    every §4.3 hard gate violation (fail closed)."""
+    case_dir = Path(case_dir)
+    case_data_root = case_dir / "case_data"
+    meta_path = testdata_path(case_dir)
+    if meta_path is None:
+        raise ValueError(
+            f"no case metadata found under {case_dir} "
+            "(case_data/testdata_prompt.json or testdata_prompt.json)"
+        )
+    raw_bytes = meta_path.read_bytes()
+    try:
+        data = json.loads(raw_bytes.decode("utf-8"))
+    except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+        raise ValueError(f"case metadata is not valid JSON: {meta_path}: {exc}") from exc
+    if not isinstance(data, dict):
+        raise ValueError(f"case metadata root must be a JSON object: {meta_path}")
+    case_metadata_sha256 = hash_bytes(raw_bytes)
+
+    if not case_data_root.is_dir():
+        raise ValueError(f"case_data directory not found: {case_data_root}")
+
+    views_overlay = data.get("views") if isinstance(data.get("views"), dict) else {}
+    dimensioned_declared = "dimensioned_views" in data
+    dimensioned_stems = _dimensioned_stems_declared(data)
+
+    entries: dict[str, "RequiredViewEntry | ExcludedInputEntry"] = {}
+    expected_ids: dict[str, str] = {}
+    classified_files: set[str] = set()
+    floor_refs_seen: set[int] = set()
+    direction_tokens_seen: set[str] = set()
+
+    def _overlay_for(stem: str) -> dict:
+        o = views_overlay.get(stem)
+        return o if isinstance(o, dict) else {}
+
+    # 1. Floor plans[] -> required_view(view_type=plan)
+    for item in data.get("Floor plans") or []:
+        if not isinstance(item, dict) or "path" not in item:
+            raise ValueError(f"malformed 'Floor plans' entry: {item!r}")
+        source_rel, basename, image_hash = _normalize_declared_path(case_dir, item.get("path"))
+        input_id = Path(basename).stem
+        floor = item.get("floor")
+        if not isinstance(floor, int) or isinstance(floor, bool):
+            raise ValueError(f"'Floor plans' entry missing integer 'floor': {item!r}")
+        if floor in floor_refs_seen:
+            raise ValueError(f"duplicate floor_ref in 'Floor plans': {floor}")
+        floor_refs_seen.add(floor)
+
+        per_plan_flag = item.get("dimensioned")
+        in_top_list = input_id in dimensioned_stems
+        if isinstance(per_plan_flag, bool) and dimensioned_declared and per_plan_flag != in_top_list:
+            raise ValueError(
+                f"dimensioned contradiction for {input_id!r}: 'Floor plans'.dimensioned="
+                f"{per_plan_flag} vs top-level dimensioned_views membership={in_top_list}"
+            )
+        dimensioned = bool(per_plan_flag) or in_top_list
+
+        overlay = _overlay_for(input_id)
+        direction_semantics, semantics_source, azimuth_deg = _resolve_semantics(overlay)
+        view_kind = _resolve_view_kind(overlay)
+        if "dimensioned" in overlay:
+            dimensioned = bool(overlay["dimensioned"])
+
+        entry = RequiredViewEntry(
+            input_id=input_id,
+            source_image=source_rel,
+            image_sha256=image_hash,
+            view_type="plan",
+            view_kind=view_kind,
+            floor_ref=floor,
+            declared_direction_token=None,
+            direction_source="standard_assumption",
+            direction_semantics=direction_semantics,
+            semantics_source=semantics_source,
+            azimuth_deg=azimuth_deg,
+            building_view_direction=None,
+            dimensioned=dimensioned,
+            expected_output_id=_expected_output_id(input_id),
+            opening_evidence=_opening_evidence_for("plan"),
+        )
+        _register(entries, expected_ids, classified_files, entry, basename)
+
+    # 2. "<Dir> view path of the building" -> required_view(view_type=elevation)
+    for key, token in _ELEVATION_KEYS.items():
+        if key not in data:
+            continue
+        source_rel, basename, image_hash = _normalize_declared_path(case_dir, data.get(key))
+        input_id = Path(basename).stem
+        if token in direction_tokens_seen:
+            raise ValueError(f"duplicate elevation direction: {token}")
+        direction_tokens_seen.add(token)
+        dimensioned = input_id in dimensioned_stems
+
+        overlay = _overlay_for(input_id)
+        direction_semantics, semantics_source, azimuth_deg = _resolve_semantics(overlay)
+        view_kind = _resolve_view_kind(overlay)
+        if "dimensioned" in overlay:
+            dimensioned = bool(overlay["dimensioned"])
+        building_view_direction = token if direction_semantics == "building_axis" else None
+
+        entry = RequiredViewEntry(
+            input_id=input_id,
+            source_image=source_rel,
+            image_sha256=image_hash,
+            view_type="elevation",
+            view_kind=view_kind,
+            floor_ref=None,
+            declared_direction_token=token,
+            direction_source="user",
+            direction_semantics=direction_semantics,
+            semantics_source=semantics_source,
+            azimuth_deg=azimuth_deg,
+            building_view_direction=building_view_direction,
+            dimensioned=dimensioned,
+            expected_output_id=_expected_output_id(input_id),
+            opening_evidence=_opening_evidence_for("elevation"),
+        )
+        _register(entries, expected_ids, classified_files, entry, basename)
+
+    # 3. known supplementary/site/detail metadata keys -> typed required_view
+    for key, spec in _SUPPLEMENTARY_KEYS.items():
+        if key not in data:
+            continue
+        source_rel, basename, image_hash = _normalize_declared_path(case_dir, data.get(key))
+        input_id = Path(basename).stem
+        dimensioned = input_id in dimensioned_stems
+        overlay = _overlay_for(input_id)
+        direction_semantics, semantics_source, azimuth_deg = _resolve_semantics(overlay)
+        view_kind = _resolve_view_kind(overlay)
+        if "dimensioned" in overlay:
+            dimensioned = bool(overlay["dimensioned"])
+        view_type = spec["view_type"]
+
+        entry = RequiredViewEntry(
+            input_id=input_id,
+            source_image=source_rel,
+            image_sha256=image_hash,
+            view_type=view_type,
+            view_kind=view_kind,
+            floor_ref=None,
+            declared_direction_token=None,
+            direction_source="standard_assumption",
+            direction_semantics=direction_semantics,
+            semantics_source=semantics_source,
+            azimuth_deg=azimuth_deg,
+            building_view_direction=None,
+            dimensioned=dimensioned,
+            expected_output_id=_expected_output_id(input_id),
+            opening_evidence=_opening_evidence_for(view_type),
+        )
+        _register(entries, expected_ids, classified_files, entry, basename)
+
+    # 4. explicit `views{}` overlay exclusions (non_drawing_asset / derived_working_copy
+    #    declared by stem, not auto-detected — the only machine-readable path to mark a
+    #    stray image excluded without inventing an undeclared-file loophole, §2)
+    for stem, overlay in views_overlay.items():
+        if not isinstance(overlay, dict) or "excluded_reason" not in overlay:
+            continue
+        declared_file = overlay.get("file") or f"{stem}.png"
+        source_rel, basename, image_hash = _normalize_declared_path(case_dir, declared_file)
+        entry = ExcludedInputEntry(
+            input_id=stem,
+            source_image=source_rel,
+            image_sha256=image_hash,
+            excluded_reason=overlay["excluded_reason"],
+            parent_input_id=overlay.get("parent_input_id"),
+        )
+        if entry.excluded_reason == "derived_working_copy":
+            _verify_derived_copy_relation(entries, entry)
+        _register(entries, expected_ids, classified_files, entry, basename)
+
+    # 5. auto-detected `<stem>_source.png` derived working copies (byte-identical
+    #    to a classified parent — the existing `_source.png` convention, §2)
+    for png in sorted(case_data_root.glob("*.png")):
+        if png.name in classified_files or not png.stem.endswith("_source"):
+            continue
+        parent_stem = png.stem[: -len("_source")]
+        parent_basename = f"{parent_stem}.png"
+        parent_path = case_data_root / parent_basename
+        image_hash = hash_file(png)
+        if not parent_path.is_file():
+            raise ValueError(
+                f"derived_working_copy {png.name!r}: parent image {parent_basename!r} not found"
+            )
+        if hash_file(parent_path) != image_hash:
+            raise ValueError(
+                f"derived_working_copy {png.name!r}: byte mismatch against parent {parent_basename!r}"
+            )
+        entry = ExcludedInputEntry(
+            input_id=png.stem,
+            source_image=f"case_data/{png.name}",
+            image_sha256=image_hash,
+            excluded_reason="derived_working_copy",
+            parent_input_id=parent_stem,
+        )
+        _register(entries, expected_ids, classified_files, entry, png.name)
+
+    # 6. unclassified image hard gate ("audit-only undeclared" concept is dead)
+    for png in sorted(case_data_root.glob("*.png")):
+        if png.name not in classified_files:
+            raise ValueError(
+                f"unclassified image in case_data: {png.name!r} — declare it in case "
+                "metadata ('Floor plans' / '<Dir> view path of the building' / a known "
+                "supplementary key / a `views{}` override) or mark it excluded"
+            )
+
+    ordered = [entries[k] for k in sorted(entries)]
+    provisional = ViewManifest(
+        claims_vocab_version=CLAIMS_VOCAB_VERSION,
+        case_id=case_dir.name,
+        case_metadata_sha256=case_metadata_sha256,
+        entries=ordered,
+        content_sha256="0" * 64,
+    )
+    content_hash = compute_content_hash(provisional)
+    return provisional.model_copy(update={"content_sha256": content_hash})
+
+
+# --------------------------------------------------------------------------- #
+# §4.4 provision / verify API (no double-emitter)
+# --------------------------------------------------------------------------- #
+def _atomic_write_text(path: Path, text: str) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    fd, tmp_name = tempfile.mkstemp(prefix=f".{path.name}.", dir=path.parent)
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as fh:
+            fh.write(text)
+            fh.flush()
+            os.fsync(fh.fileno())
+        os.replace(tmp_name, path)
+    finally:
+        if os.path.exists(tmp_name):
+            os.unlink(tmp_name)
+
+
+def provision_view_manifest(case_dir: Path | str, run_dir: Path | str) -> ViewManifest:
+    """The **only** emitter of ``<run>/_run/view_manifest.json``. Idempotent —
+    a second call with byte-identical case_data returns the existing manifest;
+    a case_data change mid-run raises (INVARIANT: prevents a swapped-out case
+    from silently re-scoping an in-flight run)."""
+    case_dir = Path(case_dir)
+    run_dir = Path(run_dir)
+    expected = build_view_manifest(case_dir)
+    path = run_meta_path(run_dir, VIEW_MANIFEST_NAME, for_write=True)
+    if path.exists():
+        try:
+            existing = ViewManifest.model_validate_json(path.read_text(encoding="utf-8"))
+        except Exception as exc:  # noqa: BLE001 — fail closed on a corrupt on-disk manifest
+            raise ValueError(f"existing view manifest at {path} is corrupt: {exc}") from exc
+        if existing.content_sha256 != expected.content_sha256:
+            raise ValueError(
+                "view manifest drift: case_data (or testdata_prompt.json) changed after "
+                f"this run was provisioned (on-disk content_sha256={existing.content_sha256}, "
+                f"recomputed={expected.content_sha256}) — case_data must not change mid-run"
+            )
+        return existing
+    _atomic_write_text(path, expected.model_dump_json(indent=2))
+    return expected
+
+
+@dataclass
+class ViewManifestVerification:
+    ok: bool
+    reason: str = ""
+    expected: ViewManifest | None = None
+    on_disk: ViewManifest | None = None
+
+
+def verify_view_manifest(case_dir: Path | str, run_dir: Path | str) -> ViewManifestVerification:
+    """Read-only comparison of the on-disk manifest against an in-memory
+    rebuild. Never writes. Used by ``validate_case``, judge-only/replay, and
+    isolation build/merge."""
+    case_dir = Path(case_dir)
+    run_dir = Path(run_dir)
+    try:
+        expected = build_view_manifest(case_dir)
+    except ValueError as exc:
+        return ViewManifestVerification(ok=False, reason=f"cannot rebuild expected manifest: {exc}")
+    path = run_meta_path(run_dir, VIEW_MANIFEST_NAME)
+    if not path.exists():
+        return ViewManifestVerification(ok=False, reason="view_manifest.json missing", expected=expected)
+    try:
+        on_disk = ViewManifest.model_validate_json(path.read_text(encoding="utf-8"))
+    except Exception as exc:  # noqa: BLE001 — a corrupt on-disk manifest is a verification failure
+        return ViewManifestVerification(
+            ok=False, reason=f"on-disk view manifest is corrupt: {exc}", expected=expected
+        )
+    if on_disk.content_sha256 != expected.content_sha256:
+        return ViewManifestVerification(
+            ok=False,
+            reason="view manifest drift (content_sha256 mismatch between on-disk and rebuilt)",
+            expected=expected,
+            on_disk=on_disk,
+        )
+    return ViewManifestVerification(ok=True, expected=expected, on_disk=on_disk)
+
+
+# --------------------------------------------------------------------------- #
+# §2 staging input_inventory.json projection (reader-visible, denominator-free)
+# --------------------------------------------------------------------------- #
+def derive_input_inventory(manifest: ViewManifest) -> list[dict]:
+    """Every required-view entry's reader-visible identity — "read this,
+    produce that name" — with no negative-evidence/completeness content."""
+    return [
+        {
+            "input_id": e.input_id,
+            "file": e.source_image,
+            "view_type": e.view_type,
+            "declared_direction_token": e.declared_direction_token,
+            "floor_ref": e.floor_ref,
+            "expected_output_id": e.expected_output_id,
+        }
+        for e in manifest.required_entries()
+    ]
+
+
+__all__ = [
+    "VIEW_MANIFEST_NAME",
+    "VIEW_MANIFEST_SCHEMA_VERSION",
+    "GENERATOR_VERSION",
+    "COMPLETENESS_RULESET_VERSION",
+    "Hex64",
+    "CaseMetadataSourceRef",
+    "UserSourceRef",
+    "DatasetSourceRef",
+    "CompletenessSourceRef",
+    "CompletenessAssertion",
+    "Coverage",
+    "OpeningEvidence",
+    "RequiredViewEntry",
+    "ExcludedInputEntry",
+    "ManifestEntry",
+    "ViewManifest",
+    "ViewManifestVerification",
+    "compute_content_hash",
+    "build_view_manifest",
+    "provision_view_manifest",
+    "verify_view_manifest",
+    "derive_input_inventory",
+]

@@ -161,10 +161,18 @@ def migrate_view(view: dict) -> ReadingView:
     return attach_raw_metadata(migrated, _raw_metadata(view, legacy_migrated=True))
 
 
-def load_reading_view(path: Path | str) -> ReadingView:
-    """Load a reading-view JSON, migrating legacy artifacts transparently."""
-    data = json.loads(Path(path).read_text(encoding="utf-8"))
+def parse_reading_view(data: dict) -> ReadingView:
+    """Parse an already-loaded reading-view dict, migrating legacy artifacts
+    transparently — the path-independent core of :func:`load_reading_view`, so
+    an aggregate payload (e.g. isolation's ``{"views": {stem: {...}}}``) can be
+    checked without a per-view file on disk."""
     if _is_legacy(data):
         return migrate_view(data)
     view = ReadingView.model_validate(data)
     return attach_raw_metadata(view, _raw_metadata(data, legacy_migrated=False))
+
+
+def load_reading_view(path: Path | str) -> ReadingView:
+    """Load a reading-view JSON, migrating legacy artifacts transparently."""
+    data = json.loads(Path(path).read_text(encoding="utf-8"))
+    return parse_reading_view(data)

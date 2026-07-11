@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import io
 import json
+import shutil
 import subprocess
 import sys
 from pathlib import Path
@@ -14,14 +16,58 @@ from src.agent.execution.isolation import (
     merge_isolated_output,
     spawn_command,
 )
-from src.agent.execution.manifest import RunManifest, hash_file, hash_text
+from src.agent.execution.manifest import (
+    RunManifest,
+    RunManifestV2,
+    StageRecord,
+    hash_file,
+    hash_text,
+    load_run_manifest,
+    migrate_run_to_v2,
+)
+from src.agent.execution.view_manifest import provision_view_manifest
 
 
 CASE_DIR = Path("case_tests/e2e_tests/sm21_anchor")
+_REAL_VIEWS_PATH = Path(
+    "case_tests/e2e_tests/sm21_anchor/run_2026-06-20_gpt54_reading/0_reading/attempts/002/output.json"
+)
+
+
+def _real_views() -> dict:
+    """A real, gate①-clean six-view sm21 aggregate (reused as a fixture, not
+    re-derived per test — matches what `_draw_reading`'s flat-flow glob would
+    have produced for this run)."""
+    return json.loads(_REAL_VIEWS_PATH.read_text(encoding="utf-8"))
 
 
 def _build(tmp_path: Path):
+    """Preview/unbound build (no run_dir) — never merge-eligible."""
     return build_isolation_workspace(CASE_DIR, staging_root=tmp_path / "staging")
+
+
+def _formal_build(case_dir: Path, run_dir: Path, staging_root: Path):
+    """Formal (run-bound) build. `build_isolation_workspace` only *verifies*
+    the view manifest (§4.4/§5.2) — it never provisions — so every formal-build
+    test provisions first, exactly as an operator/CLI must."""
+    provision_view_manifest(case_dir, run_dir)
+    return build_isolation_workspace(case_dir, run_dir=run_dir, staging_root=staging_root)
+
+
+def _case_copy(tmp_path: Path, *, name: str = "sm21_anchor") -> Path:
+    """A private copy of sm21_anchor so tamper tests never touch the real
+    checked-in fixture (golden byte discipline)."""
+    dest = tmp_path / name
+    shutil.copytree(CASE_DIR, dest)
+    return dest
+
+
+def _tiny_png_bytes() -> bytes:
+    from PIL import Image
+
+    buf = io.BytesIO()
+    Image.new("RGB", (2, 2), color=(255, 255, 255)).save(buf, format="PNG")
+    return buf.getvalue()
 
 
 def _request(staging: Path, payload: dict, name: str = "request.json") -> Path:
@@ -61,6 +107,8 @@ def test_build_isolation_workspace_copies_whitelist_and_manifest(tmp_path: Path)
 
     data = json.loads((staging / "MANIFEST.json").read_text(encoding="utf-8"))
     assert data["schema_version"] == "1"
+    assert data["merge_eligible"] is False
+    assert data["excluded_from_staging"] == []
     assert all(not item["source_path"].startswith("/") for item in data["files"] if not item["source_path"].startswith("<generated>"))
     first_png = next(item for item in data["files"] if item["path"] == "case_data/1f_view.png")
     assert first_png["sha256"] == hash_file(staging / "case_data/1f_view.png")
@@ -100,19 +148,55 @@ def test_run_prescan_source_path_is_allowed():
 
 def test_build_copies_run_prescan_and_kickoff_mentions_it(tmp_path: Path):
     run_dir = tmp_path / "run_probe"
+    run_dir.mkdir()
     src = run_dir / "0_reading" / "cv_evidence" / "1f_view" / "prescan"
     src.mkdir(parents=True)
     (src / "candidates.json").write_text("{}", encoding="utf-8")
 
-    manifest = build_isolation_workspace(
-        CASE_DIR, run_dir=run_dir, staging_root=tmp_path / "staging"
-    )
+    manifest = _formal_build(CASE_DIR, run_dir, tmp_path / "staging")
     staging = manifest.staging_root
 
     copied = staging / "prescan" / "cv_evidence" / "1f_view" / "prescan" / "candidates.json"
     assert copied.exists()
     kickoff = (staging / "kickoff_prompt.md").read_text(encoding="utf-8")
     assert "prescan/cv_evidence/<image_stem>/prescan/" in kickoff
+
+
+def test_formal_build_requires_view_manifest_already_provisioned(tmp_path: Path):
+    """§5.2: `build_isolation_workspace` only *verifies* — it never provisions.
+    A run_dir with no view_manifest.json yet must be refused, not silently
+    auto-provisioned (that would smuggle a write into a "just build" call)."""
+    run_dir = tmp_path / "run_unprovisioned"
+    run_dir.mkdir()
+    with pytest.raises(ValueError, match="provision"):
+        build_isolation_workspace(CASE_DIR, run_dir=run_dir, staging_root=tmp_path / "staging")
+
+
+def test_formal_build_writes_binding_and_input_inventory(tmp_path: Path):
+    run_dir = tmp_path / "run_formal"
+    run_dir.mkdir()
+    manifest = _formal_build(CASE_DIR, run_dir, tmp_path / "staging")
+    staging = manifest.staging_root
+
+    assert manifest.merge_eligible is True
+    binding = json.loads((staging / "binding.json").read_text(encoding="utf-8"))
+    assert binding["merge_eligible"] is True
+    assert binding["case_id"] == "sm21_anchor"
+    assert set(binding) == {
+        "merge_eligible", "run_id", "case_id", "case_dir", "run_dir",
+        "view_manifest_sha256", "case_metadata_sha256", "image_sha256",
+    }
+    run_manifest = load_run_manifest(run_dir)
+    assert isinstance(run_manifest, RunManifestV2)
+    assert binding["run_id"] == run_manifest.run_id
+
+    inventory = json.loads((staging / "input_inventory.json").read_text(encoding="utf-8"))
+    assert len(inventory) == 6
+    assert {"input_id", "file", "view_type", "declared_direction_token", "floor_ref", "expected_output_id"} <= set(inventory[0])
+    # denominator/completeness content never leaks into the reader-visible projection
+    for entry in inventory:
+        assert "opening_evidence" not in entry
+        assert "negative_evidence_capable_claims" not in entry
 
 
 def test_spawn_command_appends_directive_and_feedback_pointer(tmp_path: Path):
@@ -283,11 +367,17 @@ def test_guard_rejects_symlink_and_request_paths_outside_staging(tmp_path: Path)
     assert proc.returncode == 2
 
 
-def test_merge_archives_provenance_and_binds_hash(tmp_path: Path):
-    staging = _build(tmp_path).staging_root
-    output = staging / "out/output.json"
-    output.write_text('{"views":[]}', encoding="utf-8")
+# --------------------------------------------------------------------------- #
+# §5.2 merge — the "merge 同门" acceptance path + the eight negative examples
+# --------------------------------------------------------------------------- #
+def test_merge_accepts_real_matching_views_and_binds_hash(tmp_path: Path):
     run_dir = tmp_path / "case_run"
+    run_dir.mkdir()
+    manifest = _formal_build(CASE_DIR, run_dir, tmp_path / "staging")
+    staging = manifest.staging_root
+    output = staging / "out/output.json"
+    payload = json.dumps({"views": _real_views()})
+    output.write_text(payload, encoding="utf-8")
 
     attempt_dir = merge_isolated_output(staging, run_dir, output_path=output)
 
@@ -296,17 +386,48 @@ def test_merge_archives_provenance_and_binds_hash(tmp_path: Path):
     assert (attempt_dir / "isolation_archive/MANIFEST.json").exists()
     assert (attempt_dir / "isolation_archive/isolation_settings.json").exists()
     assert (attempt_dir / "isolation_archive/guard.py").exists()
-    rec = RunManifest.load(run_dir).accepted("0_reading")
+    rec = load_run_manifest(run_dir).accepted("0_reading")
     assert rec is not None
-    assert rec.output_hash == hash_text('{"views":[]}')
+    assert rec.output_hash == hash_text(payload)
+    assert rec.artifact_contract == "reading_isolated_v2"
+    assert rec.artifact_hashes["output"] == rec.output_hash
     assert rec.input_hashes["isolation_provenance"] == hash_file(attempt_dir / "isolation_provenance.json")
+    checks = json.loads((attempt_dir / "checks.json").read_text(encoding="utf-8"))
+    # Zero BLOCK-disposition (invariant) fails — this fixture is a real, older
+    # reading run predating some provenance/dimension conventions, so a few
+    # advisory cross_check fails are expected and don't prevent acceptance.
+    assert not any(r["status"] == "fail" and r["layer"] == "invariant" for r in checks["results"])
+
+
+def test_merge_empty_views_is_filed_but_not_accepted(tmp_path: Path):
+    """Negative example #1 (empty views) — and the flagged behavior reversal:
+    under the old (pre-B-M) contract this used to be silently ACCEPTED; under
+    the trusted-manifest contract a required view with no matching artifact is
+    a miss, so it is filed (audit trail preserved) but never promoted to
+    accepted, regardless of `accept=True`."""
+    run_dir = tmp_path / "case_run"
+    run_dir.mkdir()
+    manifest = _formal_build(CASE_DIR, run_dir, tmp_path / "staging")
+    staging = manifest.staging_root
+    output = staging / "out/output.json"
+    output.write_text(json.dumps({"views": {}}), encoding="utf-8")
+
+    attempt_dir = merge_isolated_output(staging, run_dir, output_path=output, accept=True)
+
+    assert attempt_dir.name == "001"
+    assert (attempt_dir / "output.json").exists()
+    checks = json.loads((attempt_dir / "checks.json").read_text(encoding="utf-8"))
+    assert any(r["check_id"] == "reading.view_manifest_coverage" and r["status"] == "fail" for r in checks["results"])
+    assert load_run_manifest(run_dir).accepted("0_reading") is None
 
 
 def test_merge_retries_next_attempt_without_overwrite(tmp_path: Path):
-    staging = _build(tmp_path).staging_root
-    output = staging / "out/output.json"
-    output.write_text('{"views":[1]}', encoding="utf-8")
     run_dir = tmp_path / "case_run"
+    run_dir.mkdir()
+    manifest = _formal_build(CASE_DIR, run_dir, tmp_path / "staging")
+    staging = manifest.staging_root
+    output = staging / "out/output.json"
+    output.write_text(json.dumps({"views": {}}), encoding="utf-8")
     existing = run_dir / "0_reading/attempts/001"
     existing.mkdir(parents=True)
     (existing / "output.json").write_text("existing", encoding="utf-8")
@@ -315,6 +436,204 @@ def test_merge_retries_next_attempt_without_overwrite(tmp_path: Path):
 
     assert attempt_dir.name == "002"
     assert (existing / "output.json").read_text(encoding="utf-8") == "existing"
+
+
+def test_merge_missing_entry_is_rejected(tmp_path: Path):
+    """Negative example #2 (missing entry)."""
+    run_dir = tmp_path / "case_run"
+    run_dir.mkdir()
+    manifest = _formal_build(CASE_DIR, run_dir, tmp_path / "staging")
+    staging = manifest.staging_root
+    output = staging / "out/output.json"
+    views = _real_views()
+    del views["South_view"]
+    output.write_text(json.dumps({"views": views}), encoding="utf-8")
+
+    attempt_dir = merge_isolated_output(staging, run_dir, output_path=output)
+    checks = json.loads((attempt_dir / "checks.json").read_text(encoding="utf-8"))
+    cov = next(r for r in checks["results"] if r["check_id"] == "reading.view_manifest_coverage")
+    assert cov["status"] == "fail"
+    assert "South_view" in cov["evidence"]["missing_expected_output_ids"]
+    assert load_run_manifest(run_dir).accepted("0_reading") is None
+
+
+def test_merge_extra_stem_is_rejected(tmp_path: Path):
+    """Negative example #3 (extra stem)."""
+    run_dir = tmp_path / "case_run"
+    run_dir.mkdir()
+    manifest = _formal_build(CASE_DIR, run_dir, tmp_path / "staging")
+    staging = manifest.staging_root
+    output = staging / "out/output.json"
+    views = _real_views()
+    views["bogus_extra_view"] = views["South_view"]
+    output.write_text(json.dumps({"views": views}), encoding="utf-8")
+
+    attempt_dir = merge_isolated_output(staging, run_dir, output_path=output)
+    checks = json.loads((attempt_dir / "checks.json").read_text(encoding="utf-8"))
+    cov = next(r for r in checks["results"] if r["check_id"] == "reading.view_manifest_coverage")
+    assert cov["status"] == "fail"
+    assert "bogus_extra_view" in cov["evidence"]["extra_stems"]
+    assert load_run_manifest(run_dir).accepted("0_reading") is None
+
+
+def test_merge_tampered_image_is_rejected(tmp_path: Path):
+    """Negative example #4 (tampered image, after build before merge)."""
+    case_dir = _case_copy(tmp_path)
+    run_dir = tmp_path / "case_run"
+    run_dir.mkdir()
+    manifest = _formal_build(case_dir, run_dir, tmp_path / "staging")
+    staging = manifest.staging_root
+    output = staging / "out/output.json"
+    output.write_text(json.dumps({"views": {}}), encoding="utf-8")
+
+    img = case_dir / "case_data" / "1f_view.png"
+    data = bytearray(img.read_bytes())
+    data[0] ^= 0xFF
+    img.write_bytes(bytes(data))
+
+    with pytest.raises(ValueError, match="drift"):
+        merge_isolated_output(staging, run_dir, output_path=output)
+
+
+def test_merge_changed_view_manifest_is_rejected(tmp_path: Path):
+    """Negative example #5 (the committed view manifest file itself directly
+    edited between build and merge)."""
+    case_dir = _case_copy(tmp_path)
+    run_dir = tmp_path / "case_run"
+    run_dir.mkdir()
+    manifest = _formal_build(case_dir, run_dir, tmp_path / "staging")
+    staging = manifest.staging_root
+    output = staging / "out/output.json"
+    output.write_text(json.dumps({"views": {}}), encoding="utf-8")
+
+    vm_path = run_dir / "_run" / "view_manifest.json"
+    vm = json.loads(vm_path.read_text(encoding="utf-8"))
+    vm["content_sha256"] = "0" * 64  # corrupt the self-identity hash directly
+    vm_path.write_text(json.dumps(vm), encoding="utf-8")
+
+    with pytest.raises(ValueError, match="drift"):
+        merge_isolated_output(staging, run_dir, output_path=output)
+
+
+def test_merge_unbound_preview_workspace_always_rejected(tmp_path: Path):
+    """Negative example #6 (a workspace built with no run_dir is never
+    merge-eligible — not even into a real, provisioned run)."""
+    run_dir = tmp_path / "case_run"
+    run_dir.mkdir()
+    provision_view_manifest(CASE_DIR, run_dir)
+    staging = _build(tmp_path).staging_root
+    output = staging / "out/output.json"
+    output.write_text(json.dumps({"views": {}}), encoding="utf-8")
+
+    with pytest.raises(ValueError, match="merge-eligible"):
+        merge_isolated_output(staging, run_dir, output_path=output)
+
+
+def test_merge_built_for_run_a_rejected_into_run_b(tmp_path: Path):
+    """Negative example #7: same case, same images, same view manifest — only
+    run_id differs (r3's specific A->B example, not just "different case")."""
+    case_dir = _case_copy(tmp_path)
+    run_a = tmp_path / "run_a"
+    run_b = tmp_path / "run_b"
+    run_a.mkdir()
+    run_b.mkdir()
+    provision_view_manifest(case_dir, run_a)
+    provision_view_manifest(case_dir, run_b)
+    manifest = _formal_build(case_dir, run_a, tmp_path / "staging")  # already provisioned; re-provision is idempotent
+    staging = manifest.staging_root
+    output = staging / "out/output.json"
+    output.write_text(json.dumps({"views": {}}), encoding="utf-8")
+
+    with pytest.raises(ValueError, match="bound to"):
+        merge_isolated_output(staging, run_b, output_path=output)
+
+
+def test_merge_target_manifest_replaced_after_build_is_rejected(tmp_path: Path):
+    """Negative example #8: the target run's manifest is replaced with a
+    different (still-v2) identity after the workspace was built."""
+    case_dir = _case_copy(tmp_path)
+    run_dir = tmp_path / "case_run"
+    run_dir.mkdir()
+    manifest = _formal_build(case_dir, run_dir, tmp_path / "staging")
+    staging = manifest.staging_root
+    output = staging / "out/output.json"
+    output.write_text(json.dumps({"views": {}}), encoding="utf-8")
+
+    from src.agent.execution.manifest import ensure_run_manifest_v2
+    from src.agent.execution.view_manifest import verify_view_manifest
+
+    (run_dir / "_run" / "run_manifest.json").unlink()
+    verification = verify_view_manifest(case_dir, run_dir)
+    ensure_run_manifest_v2(run_dir, view_manifest_sha256=verification.on_disk.content_sha256)
+
+    with pytest.raises(ValueError, match="identity has changed"):
+        merge_isolated_output(staging, run_dir, output_path=output)
+
+
+def test_merge_refuses_grandfathered_v1_run(tmp_path: Path):
+    """§5.1/§9 flagged behavior change: a v1 (grandfathered) run — one whose
+    run_manifest.json already persists at manifest_version=1 — is read-only for
+    new 0_reading attempts; isolation merge must refuse outright, even with a
+    workspace built (and hand-wired) against it."""
+    case_dir = _case_copy(tmp_path)
+    run_dir = tmp_path / "case_run"
+    run_dir.mkdir()
+    provision_view_manifest(case_dir, run_dir)
+    manifest = build_isolation_workspace(case_dir, run_dir=run_dir, staging_root=tmp_path / "staging")
+    staging = manifest.staging_root
+
+    # Simulate a legacy v1 manifest landing on this (already-verified) run dir —
+    # e.g. a stale v1 run reused before its formal v2 identity commit.
+    v1 = RunManifest(case=case_dir.name)
+    v1.accept(StageRecord(stage="1_correction", accepted_attempt=1, output_hash="a" * 64))
+    v1.save(run_dir)
+
+    output = staging / "out/output.json"
+    output.write_text(json.dumps({"views": {}}), encoding="utf-8")
+    with pytest.raises(ValueError, match="grandfathered"):
+        merge_isolated_output(staging, run_dir, output_path=output)
+
+    migrate_run_to_v2(case_dir, run_dir)
+    # Post-migration the SAME staging workspace's binding.json run_id predates
+    # the migration's freshly generated run_id, so identity re-check (by
+    # design — migration always mints a new run_id, §5.1) still refuses; the
+    # operator must re-build the isolation workspace against the migrated run.
+    with pytest.raises(ValueError, match="identity has changed"):
+        merge_isolated_output(staging, run_dir, output_path=output)
+
+
+def test_excluded_input_never_copied_into_staging(tmp_path: Path):
+    """Reader-visibility negative example: an image the view manifest
+    classifies `excluded_input` never becomes reader-visible — not copied into
+    `case_data/`, absent from `input_inventory.json`, logged instead in
+    `excluded_from_staging`."""
+    case_dir = tmp_path / "synth_case"
+    (case_dir / "case_data").mkdir(parents=True)
+    (case_dir / "case_data" / "1f_view.png").write_bytes(_tiny_png_bytes())
+    (case_dir / "case_data" / "detail_x.png").write_bytes(_tiny_png_bytes())
+    (case_dir / "case_data" / "testdata_prompt.json").write_text(
+        json.dumps(
+            {
+                "TestName": "synth_case",
+                "Floor plans": [
+                    {"floor": 1, "path": "case_data/1f_view.png", "thermal_zones": 1}
+                ],
+                "views": {"detail_x": {"excluded_reason": "non_drawing_asset"}},
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    manifest = build_isolation_workspace(case_dir, staging_root=tmp_path / "staging")
+    staging = manifest.staging_root
+
+    assert (staging / "case_data" / "1f_view.png").exists()
+    assert not (staging / "case_data" / "detail_x.png").exists()
+    assert manifest.excluded_from_staging == [
+        {"input_id": "detail_x", "source_image": "case_data/detail_x.png", "excluded_reason": "non_drawing_asset"}
+    ]
+    inventory = json.loads((staging / "input_inventory.json").read_text(encoding="utf-8"))
+    assert {e["input_id"] for e in inventory} == {"1f_view"}
 
 
 def test_feedback_rejects_contamination_tokens():

@@ -33,7 +33,7 @@ from src.validator.checks.correction import check_correction
 from src.validator.checks.kernel import check_kernel
 from src.validator.checks.mep import check_mep
 from src.validator.checks.reading import check_reading_view
-from src.validator.checks.schema import CheckLayer, CheckReport
+from src.validator.checks.schema import CheckLayer, CheckReport, CheckStatus
 
 
 @dataclass
@@ -142,6 +142,37 @@ def validate_case(
             res.reports[f"0_reading::{vj.stem}"] = rep
             if write_reports:
                 _write(rdir / f"{vj.stem}_checks.json", rep)
+
+        # C2 B-M §4.4: validate_case only ever *reads* the view manifest
+        # (never provisions). A run that predates this wire — including every
+        # existing golden anchor — simply has no `_run/view_manifest.json`;
+        # that is reported NOT_APPLICABLE (non-invasive: no new BLOCK for an
+        # old anchor that never opted in), not silently skipped. A run that
+        # HAS a view manifest is held to it: `reading.view_manifest_coverage`
+        # is INVARIANT/always-BLOCK on a genuine miss/extra/drift (§6).
+        from src.agent.execution.run_meta import run_meta_path
+        from src.agent.execution.view_manifest import VIEW_MANIFEST_NAME, verify_view_manifest
+        from src.validator.checks.view_manifest import check_view_manifest_coverage
+
+        vm_rep = CheckReport(stage="0_reading", capability_profile=profile, run_profile=run_profile)
+        if not run_meta_path(run_dir, VIEW_MANIFEST_NAME).exists():
+            vm_rep.add(
+                "reading.view_manifest_coverage", CheckStatus.NOT_APPLICABLE, CheckLayer.INVARIANT,
+                message="run predates the view manifest wire (never provisioned)",
+            )
+        else:
+            verification = verify_view_manifest(case_dir, run_dir)
+            produced_stems = {vj.stem for vj in rdir.glob("*_view.json")}
+            vm_rep = check_view_manifest_coverage(
+                verification.on_disk if verification.ok else None,
+                produced_stems,
+                manifest_missing_reason=verification.reason,
+                capability_profile=profile,
+                run_profile=run_profile,
+            )
+        res.reports["0_reading::view_manifest"] = vm_rep
+        if write_reports:
+            _write(rdir / "view_manifest_checks.json", vm_rep)
 
     # ---- 1_correction (+ rebuild kernel for 2/3) ----
     bg = None

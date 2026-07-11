@@ -21,14 +21,21 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
+import secrets
+import tempfile
 from pathlib import Path
+from typing import Annotated, Literal
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, StringConstraints, model_validator
 
 from src.agent.execution.run_meta import run_meta_path
 
 MANIFEST_NAME = "run_manifest.json"
 ATTEMPTS_DIRNAME = "attempts"
+
+Hex64 = Annotated[str, StringConstraints(pattern=r"^[0-9a-f]{64}$")]
+Hex32 = Annotated[str, StringConstraints(pattern=r"^[0-9a-f]{32}$")]
 
 
 # --------------------------------------------------------------------------- #
@@ -131,9 +138,12 @@ class RunManifest(BaseModel):
         return cls.model_validate_json(p.read_text(encoding="utf-8"))
 
     def save(self, case_dir: Path, *, filename: str = MANIFEST_NAME) -> Path:
-        p = run_meta_path(case_dir, filename, for_write=True)
-        p.write_text(self.model_dump_json(indent=2), encoding="utf-8")
-        return p
+        # Delegates to the shared versioned serializer (§5.1: "普通 save() 与
+        # isolation _atomic_save_manifest() 共用同一 versioned serializer") so a
+        # V1 write and a V2 write can never drift onto two code paths. Byte
+        # shape for a V1 instance is unchanged (same model, same
+        # indent=2 model_dump_json — only the write mechanics gained atomicity).
+        return save_run_manifest(self, case_dir, filename=filename)
 
     # ---- mutation ----
     def accept(self, record: StageRecord) -> None:
@@ -143,3 +153,310 @@ class RunManifest(BaseModel):
 
     def accepted(self, stage: str) -> StageRecord | None:
         return self.stages.get(stage)
+
+
+# --------------------------------------------------------------------------- #
+# §5.1 RunManifestV1/V2 + StageRecordV1/V2 wire (C2 B-M, r4/r5 裁决: this module
+# is the single regulatory owner of this wire; B2 consumes StageRecordV2 later).
+#
+# StageRecordV1/RunManifestV1 are literal aliases of the two classes above —
+# "现类原封" is satisfied by construction (same class object, not a re-declared
+# lookalike), so load/save bytes for any V1 run are provably unchanged.
+# --------------------------------------------------------------------------- #
+StageRecordV1 = StageRecord
+RunManifestV1 = RunManifest
+
+ArtifactKey = Literal["output", "checks", "audit", "feature_states", "isolation_provenance"]
+ArtifactContract = Literal["migrated_v1", "base_v2", "reading_isolated_v2", "correction_b2_v1"]
+
+# Keys a writer for this contract MUST have populated (loader-enforced).
+_CONTRACT_REQUIRED_KEYS: dict[str, frozenset[str]] = {
+    "migrated_v1": frozenset(),  # only whatever a backfill found on disk — no fixed floor
+    "base_v2": frozenset({"output", "checks"}),
+    "reading_isolated_v2": frozenset({"output", "checks", "isolation_provenance"}),
+    "correction_b2_v1": frozenset({"output", "checks", "audit", "feature_states"}),
+}
+# Keys a writer for this contract is even PERMITTED to have populated. A v1->v2
+# migration backfill can only observe what a pre-B2 attempt directory could
+# possibly contain (output.json + checks.json — the "audit"/"feature_states"/
+# "isolation_provenance" sidecars are version-specific artifacts that did not
+# exist yet) — so a `migrated_v1` record carrying e.g. "audit" is structurally
+# impossible for a real migration and is rejected as a forged/mislabeled record
+# whose provenance does not match its claimed contract.
+_CONTRACT_ALLOWED_KEYS: dict[str, frozenset[str]] = {
+    "migrated_v1": frozenset({"output", "checks"}),
+    "base_v2": frozenset({"output", "checks"}),
+    "reading_isolated_v2": frozenset({"output", "checks", "isolation_provenance"}),
+    "correction_b2_v1": frozenset({"output", "checks", "audit", "feature_states"}),
+}
+
+
+class StageRecordV2(BaseModel):
+    """StageRecordV1's fields, unchanged, plus the v2 artifact-contract wire."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    stage: str
+    accepted_attempt: int
+    output_hash: str
+    input_hashes: dict[str, str] = Field(default_factory=dict)
+    stage_version: str = "1"
+    check_version: str = "1"
+    capability: str = "deterministic"
+    check_passed: bool = True
+
+    record_schema_version: Literal["2"] = "2"
+    artifact_contract: ArtifactContract
+    artifact_hashes: dict[ArtifactKey, Hex64] = Field(default_factory=dict)
+
+    @model_validator(mode="after")
+    def _contract_keys_and_output_identity(self) -> "StageRecordV2":
+        keys = set(self.artifact_hashes)
+        required = _CONTRACT_REQUIRED_KEYS[self.artifact_contract]
+        allowed = _CONTRACT_ALLOWED_KEYS[self.artifact_contract]
+        missing = required - keys
+        if missing:
+            raise ValueError(
+                f"artifact_contract={self.artifact_contract!r} is missing required "
+                f"artifact_hashes key(s): {sorted(missing)}"
+            )
+        forbidden = keys - allowed
+        if forbidden:
+            raise ValueError(
+                f"artifact_contract={self.artifact_contract!r} may not carry "
+                f"artifact_hashes key(s) {sorted(forbidden)} — provenance does not "
+                "match the claimed contract"
+            )
+        if "output" in self.artifact_hashes and self.artifact_hashes["output"] != self.output_hash:
+            raise ValueError(
+                "StageRecordV2.output_hash and artifact_hashes['output'] disagree — "
+                "two accepted-identity fields must never contradict each other"
+            )
+        return self
+
+
+class RunInputs(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    view_manifest_sha256: Hex64
+
+
+class RunManifestV2(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    case: str = ""
+    manifest_version: Literal["2"] = "2"
+    run_id: Hex32
+    run_inputs: RunInputs
+    stages: dict[str, StageRecordV2] = Field(default_factory=dict)
+
+    def accept(self, record: StageRecordV2) -> None:
+        self.stages[record.stage] = record
+
+    def accepted(self, stage: str) -> StageRecordV2 | None:
+        return self.stages.get(stage)
+
+
+def new_run_id() -> str:
+    """128-bit random hex run identity — immutable, never derived from the run
+    directory's name/path (§5.1 r3 裁决: a moved/copied run must not change
+    identity, or silently share identity with another run)."""
+    return secrets.token_hex(16)
+
+
+def save_run_manifest(
+    manifest: "RunManifestV1 | RunManifestV2", run_dir: Path, *, filename: str = MANIFEST_NAME
+) -> Path:
+    """The single versioned serializer both the plain V1 ``save()`` path and
+    isolation's merge writer use (§5.1: "消灭双 writer 漂移"). Atomic
+    temp+fsync+replace, matching the M0 append-only-attempts write discipline."""
+    path = run_meta_path(run_dir, filename, for_write=True)
+    fd, tmp_name = tempfile.mkstemp(prefix=f".{filename}.", dir=path.parent)
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as fh:
+            fh.write(manifest.model_dump_json(indent=2))
+            fh.flush()
+            os.fsync(fh.fileno())
+        os.replace(tmp_name, path)
+    finally:
+        if os.path.exists(tmp_name):
+            os.unlink(tmp_name)
+    return path
+
+
+def load_run_manifest(
+    run_dir: Path, *, filename: str = MANIFEST_NAME
+) -> "RunManifestV1 | RunManifestV2 | None":
+    """Version dispatcher. Returns ``None`` when no manifest file exists yet —
+    a genuinely unprovisioned run; callers that need a definite identity
+    (isolation's formal builder) go through :func:`ensure_run_manifest_v2`
+    instead of fabricating a default here. Never writes."""
+    p = run_meta_path(run_dir, filename)
+    if not p.exists():
+        return None
+    raw = p.read_text(encoding="utf-8")
+    try:
+        obj = json.loads(raw)
+    except json.JSONDecodeError as exc:
+        raise ValueError(f"run manifest at {p} is not valid JSON: {exc}") from exc
+    version = obj.get("manifest_version") if isinstance(obj, dict) else None
+    if version == "2":
+        return RunManifestV2.model_validate_json(raw)
+    if version in (None, "1"):
+        return RunManifestV1.model_validate_json(raw)
+    raise ValueError(f"run manifest at {p} has unknown manifest_version: {version!r}")
+
+
+def reading_attempt_allowed(run_dir: Path) -> tuple[bool, str]:
+    """Grandfather guard (§5.1): a run whose *persisted* manifest is already v1
+    is read-only for NEW 0_reading attempts — flow reading / resample /
+    isolation merge must all refuse and point at explicit migration. A run with
+    no manifest yet, or an already-v2 run, is unaffected."""
+    existing = load_run_manifest(run_dir)
+    if existing is None or isinstance(existing, RunManifestV2):
+        return True, ""
+    return False, (
+        "run manifest is v1 (grandfathered legacy run) — new 0_reading attempts "
+        "are blocked; migrate explicitly first (`provision --migrate`)"
+    )
+
+
+def ensure_run_manifest_v2(run_dir: Path, *, view_manifest_sha256: str) -> RunManifestV2:
+    """Bind (or create) a run's v2 identity — the "run 绑定 + ensure 前置" half
+    of isolation's formal-builder contract (§5.2). Creates a fresh v2 manifest
+    (new run_id) when the run has no manifest yet; returns the existing v2
+    manifest unchanged when inputs match; raises on an inputs mismatch or on an
+    already-persisted v1 (grandfathered) manifest — a v1 run is never silently
+    upgraded, only explicitly migrated (:func:`migrate_run_to_v2`)."""
+    existing = load_run_manifest(run_dir)
+    if existing is None:
+        fresh = RunManifestV2(
+            case=Path(run_dir).name,
+            run_id=new_run_id(),
+            run_inputs=RunInputs(view_manifest_sha256=view_manifest_sha256),
+        )
+        save_run_manifest(fresh, run_dir)
+        return fresh
+    if isinstance(existing, RunManifestV2):
+        if existing.run_inputs.view_manifest_sha256 != view_manifest_sha256:
+            raise ValueError(
+                "run manifest run_inputs.view_manifest_sha256 does not match this "
+                "build's view manifest — inputs drifted for an already-provisioned run"
+            )
+        return existing
+    raise ValueError(
+        "run manifest is v1 (grandfathered legacy run) — migrate explicitly via "
+        "`provision --migrate` before binding a formal isolated build to it"
+    )
+
+
+def migrate_run_to_v2(case_dir: Path, run_dir: Path) -> RunManifestV2:
+    """Explicit v1->v2 migration (§5.1) — the *only* other write path besides
+    :func:`~src.agent.execution.view_manifest.provision_view_manifest` and
+    :func:`ensure_run_manifest_v2`, invoked only via the ``provision --migrate``
+    CLI flag (never automatically).
+
+    Commit protocol: (1) build the view manifest fully in memory, write it to
+    disk FIRST (an orphan view_manifest.json with no matching v2 run_manifest is
+    inert — the v1 loader never looks at it); (2) backfill every v1 accepted
+    stage into a StageRecordV2 by re-hashing the *real* on-disk attempt
+    artifacts (never fabricating a hash) with ``artifact_contract="migrated_v1"``;
+    a legacy sidecar that never existed (audit/feature_states) is a legal
+    omission, not an error; (3) write RunManifestV2 LAST — the single commit
+    point. Any failure before step 3 leaves the run's semantics exactly V1
+    (re-running migration is idempotent: an already-v2 run short-circuits, an
+    orphan view_manifest is reused if content-identical or overwritten if not).
+    """
+    from src.agent.execution.view_manifest import (  # local import: avoids a
+        VIEW_MANIFEST_NAME,                          # manifest.py <-> view_manifest.py
+        ViewManifest,                                # import cycle (view_manifest.py
+        build_view_manifest,                         # imports hash_* from this module).
+    )
+
+    case_dir = Path(case_dir)
+    run_dir = Path(run_dir)
+    existing = load_run_manifest(run_dir)
+    if isinstance(existing, RunManifestV2):
+        return existing  # already migrated — idempotent no-op
+    v1: RunManifestV1 = existing or RunManifestV1(case=case_dir.name)
+
+    # --- step 1: view_manifest.json first ---
+    expected_vm = build_view_manifest(case_dir)
+    vm_path = run_meta_path(run_dir, VIEW_MANIFEST_NAME, for_write=True)
+    write_vm = True
+    if vm_path.exists():
+        try:
+            on_disk_vm = ViewManifest.model_validate_json(vm_path.read_text(encoding="utf-8"))
+            write_vm = on_disk_vm.content_sha256 != expected_vm.content_sha256
+        except Exception:  # noqa: BLE001 — an unreadable orphan is overwritten
+            write_vm = True
+    if write_vm:
+        fd, tmp_name = tempfile.mkstemp(prefix=f".{VIEW_MANIFEST_NAME}.", dir=vm_path.parent)
+        try:
+            with os.fdopen(fd, "w", encoding="utf-8") as fh:
+                fh.write(expected_vm.model_dump_json(indent=2))
+                fh.flush()
+                os.fsync(fh.fileno())
+            os.replace(tmp_name, vm_path)
+        finally:
+            if os.path.exists(tmp_name):
+                os.unlink(tmp_name)
+
+    # --- step 2 (in-memory): backfill every accepted stage ---
+    stages_v2: dict[str, StageRecordV2] = {}
+    for stage, rec in v1.stages.items():
+        attempt_dir = run_dir / stage / "attempts" / f"{rec.accepted_attempt:03d}"
+        artifact_hashes: dict[str, str] = {}
+        output_path = attempt_dir / "output.json"
+        if output_path.is_file():
+            real_hash = hash_file(output_path)
+            if real_hash != rec.output_hash:
+                raise ValueError(
+                    f"migration backfill for stage {stage!r}: on-disk output.json hash "
+                    f"({real_hash}) does not match the v1 manifest's accepted pointer "
+                    f"({rec.output_hash}) — the attempt file changed since acceptance"
+                )
+            artifact_hashes["output"] = real_hash
+        checks_path = attempt_dir / "checks.json"
+        if checks_path.is_file():
+            artifact_hashes["checks"] = hash_file(checks_path)
+        stages_v2[stage] = StageRecordV2(
+            stage=rec.stage,
+            accepted_attempt=rec.accepted_attempt,
+            output_hash=rec.output_hash,
+            input_hashes=rec.input_hashes,
+            stage_version=rec.stage_version,
+            check_version=rec.check_version,
+            capability=rec.capability,
+            check_passed=rec.check_passed,
+            artifact_contract="migrated_v1",
+            artifact_hashes=artifact_hashes,
+        )
+
+    v2 = RunManifestV2(
+        case=v1.case or case_dir.name,
+        run_id=new_run_id(),
+        run_inputs=RunInputs(view_manifest_sha256=expected_vm.content_sha256),
+        stages=stages_v2,
+    )
+
+    # --- step 3: RunManifestV2 last — the single commit point ---
+    save_run_manifest(v2, run_dir)
+    return v2
+
+
+def assert_stage_artifact_contracts(
+    manifest: RunManifestV2, allowed_contracts_by_stage: dict[str, frozenset[str]]
+) -> None:
+    """Cross-check a v2 manifest's per-stage ``artifact_contract`` against a
+    caller-supplied allowlist (e.g. "1_correction may only be
+    correction_b2_v1 or migrated_v1"). B-M owns the *mechanism*; the concrete
+    per-stage table is a B2-era business rule this module does not invent —
+    B2's correction writer supplies its own mapping when it lands."""
+    for stage, rec in manifest.stages.items():
+        allowed = allowed_contracts_by_stage.get(stage)
+        if allowed is not None and rec.artifact_contract not in allowed:
+            raise ValueError(
+                f"stage {stage!r} record has artifact_contract="
+                f"{rec.artifact_contract!r}, not in the allowed set {sorted(allowed)}"
+            )
