@@ -478,15 +478,26 @@ def test_cmd_judge_drifted_view_manifest_fails_without_writing(tmp_path, capsys)
 # V2-by-default for new runs (B-M §5.1)
 # --------------------------------------------------------------------------- #
 def test_cmd_run_refuses_persisted_v1_run(tmp_path, monkeypatch):
+    import src.agent.execution.manifest as manifest_module
+
     case_dir = _seed_case_data(tmp_path)
     run_dir = case_dir / "run"
     run_dir.mkdir()
     _seed_v1_legacy_run(run_dir)
     monkeypatch.setattr(rs, "_make_draw_fn", _fake_make_draw_fn)
+    calls = []
+    real_guard = manifest_module.reading_attempt_allowed
+
+    def recording_guard(path):
+        calls.append(path)
+        return real_guard(path)
+
+    monkeypatch.setattr(manifest_module, "reading_attempt_allowed", recording_guard)
 
     with pytest.raises(SystemExit, match="grandfathered"):
         rs.cmd_run(_args(tmp_path, stage="1_correction", force=False))
 
+    assert calls == [run_dir]
     # no new attempt was created anywhere
     assert not (run_dir / "1_correction").exists()
 

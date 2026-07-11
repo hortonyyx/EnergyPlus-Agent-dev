@@ -29,9 +29,12 @@
 > **接缝登记(不变)**:completeness 的 user/dataset 两 source 生成通路归 Va/B4b(case_metadata source 已通)。
 >
 > **🔜 正常排期(v2.2 DAG)**:
-> 1. **B-M 返工 r2 收尾三件(见上⏳)→terra r3 复验→收录**;然后 **B2 施工待派**(消费共同 wire;B2 correction writer 只剩自己的 correction_b2_v1 合同,base_v2 通用 writer 已由 B-M 落);之后按 DAG:B3→B2b / E4-output-contract→B-O / Vg→Va→B4a→B4b→B5→B5b→B6;
+> 1. ✅**B-M 批 CLOSED(07-11 晨,详下条)**;**B2 施工已派 terra**(消费共同 wire;B2 correction writer 只剩自己的 correction_b2_v1 合同,base_v2 通用 writer 已由 B-M 落);之后按 DAG:B3→B2b / E4-output-contract→B-O / Vg→Va→B4a→B4b→B5→B5b→B6;
 > 2. **用户出图 sm25-L/sm26-U**(画法按 §T' 新验收器:sm26 内壁窗平面必画 + 总平/指北针若有一并给);
-> 3. **directed 复跑**(配置已拍 reading-only)排 B2 细稿之后;**07-12 Fable 退订→主控切 Opus**(规划改 Opus+sol 双独立)。
+> 3. **directed 复跑**(配置已拍 reading-only)排 B2 细稿之后;**07-12 Fable 退订→主控切 Opus**(规划改 Opus+sol 双独立);
+> 4. **总平/真北进管线专场讨论(用户 07-11 提出,定档=C2 施工全落地后、case 测试前)**:总平图怎么进 B-M 视图清单(新声明家族?)/reading 对总平出什么/逐层平面不标注朝向时怎么对齐。**本批不阻塞**:现况只需识别一次朝向定全楼总旋转(E4 单 θ Relative 路线),本批测试 case 逐层平面均会标注旋转,总平/指北针有则一并给作 E4 证据、无则 default 0+assumed(§T' 已含)。
+>
+> **✅ [2026-07-11 晨 Fable5 主控] B-M 返工 r2 收口 = B-M 批 CLOSED(方案A 改派首战)**:用户晨会拍**方案A**(GPT 侧频繁重置期=施工优先派 terra、终审翻 Claude 侧、取消 terra r3;B2 原拍 Sonnet 作废改派 terra)+令分工强化落 CLAUDE §5#8(返工/复核修复/探针执行=实质改动一律派执行档)。terra 转执行档续原复核线程(坑注:MCP "Session not found"≠线程丢失,rollout 在 `~/.codex/sessions/`,CLI `codex exec resume <id>` 可续;resume 子命令不认 `--sandbox`,走 `-c sandbox_mode=`):核出 **EOD 收工态其实已含三入口硬门语义+CR-03 双-temp 协议全量**(上条"未落三件"记保守了,真欠的只有 policy helper 真接线+简报节)→本批=`_manifest_for_attempts()` 首调 `reading_attempt_allowed()`(policy 权威单一化,原类型判别降为防御 fail-closed 分支)+recording monkeypatch 断言+简报"返工 r2"节(review-ask 4 条)。**主控终审**=独立全量 pytest 703 绿+9 xfail(两次复跑)+逐行 diff+review-ask 四条逐一亲核(三入口门前零写入/resample 拒绝先于 invalidate·save/base_v2 双实 hash/双-temp 故障注入零半成品)。执行痕迹=[logs/reviews/execution/2026-07-11_bm_rework_r2_terra_exec.log](logs/reviews/execution/2026-07-11_bm_rework_r2_terra_exec.log)。
 >
 > **📍 [2026-07-09 Fable5 主控] C2 收官冲刺（用户定：把 C2 直接上完=完全解锁非方形）+ 当日三件落地**：
 > ① **W2 三条接线债已修**（`9ea0a2e`：J1 rubric 件名对齐实产 zones_<floor>.png/grade/score_vs_gt；collect_eyeball_assets 补收 zones_<floor>.png 真 bug；correction.yaml 两处 stale 注释）——plan backlog 对应条目关闭。

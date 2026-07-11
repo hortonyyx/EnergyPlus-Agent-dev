@@ -225,3 +225,52 @@ sm21/sm20/sm24 `build_view_manifest` 干跑全部成功（无 raise）。
 ## R4. 返工轮未决/偏离
 
 无新增未决事项。两处按稿内既有原则做的小判断已在上文注明：① `migrated_v1` 的 wire 级必填键保持空集（强制移到 migrator，理由=稿字面"只登记真实存在"）；② `save_run_manifest` 不改 canonical 排序（V1 字节冻结优先，terra 未点名）。
+
+---
+
+# 返工 r2（2026-07-11 晨 · terra 转执行档）
+
+> 用户采纳 terra r2 判词后，取消 terra r3 复验，改由本执行档完成其 APPROVE 前置条件；终审交 Claude/主控。基线为 `8d8ace4`（`7.11_BM_CrossReviewReworkR1_R2Partial_EOD`），不新建 commit，工作树交主控审。
+
+## R2.1 交接核实与本轮改动
+
+动手前核对 `git show 8d8ace4 --stat` 及相关 diff。该提交已包含 r2 判词所要求的大部分实现与测试：
+
+- **V2-by-default / versioned writer**：`src/agent/execution/stage_runner.py` 能对 `RunManifestV2` 写 `StageRecordV2(artifact_contract="base_v2")`，以实际 `output.json`/`checks.json` 字节计算 artifact hashes；`scripts/tool_scripts/run_stage.py` 的 attempt 获取路径为新 run provision view manifest 后建立 V2 identity，已有 V2 run 复用同一 identity。
+- **CR-02 三入口硬门**：`cmd_run`、`cmd_flow`、`cmd_resample` 共用 `_manifest_for_attempts()`；persisted V1 拒绝且信息指向 `run_stage.py provision <case> <run> --migrate`，resample 在 `invalidate()`/`save()` 前退出。新 run flow smoke、V1 显式 migration 后恢复、三入口 V1 拒绝均已有测试。
+- **CR-03 双-temp 协议**：`migrate_run_to_v2()` 先完成内存 backfill、预序列化并 fsync VM/V2 manifest 两个同目录 temp，之后才按 VM → V2 manifest 顺序 replace；第二个 temp 写入故障注入断言 VM 未 replace、V1 bytes 不变、无临时文件残留。
+
+本执行轮发现上述门语义已经成立，但 `_manifest_for_attempts()` 直接重复了 V1 判别，未按用户本批明示要求实际调用 `reading_attempt_allowed()`。为使 policy authority 单一且可审：
+
+- `scripts/tool_scripts/run_stage.py`：在 `_manifest_for_attempts()` 首先调用 `reading_attempt_allowed(run_dir)`；拒绝时保留该 helper 的 grandfather 原因并追加显式 migration 命令。后续 `load_run_manifest()` 的类型判断仅为防未来 policy 放宽后的 fail-closed defensive branch。
+- `tests/test_run_stage_flow.py`：在 `test_cmd_run_refuses_persisted_v1_run` 对 helper 进行 recording monkeypatch，锁定实际委托发生，同时保持“无新 attempt”断言。
+
+此最小接线不改变已落 V2-by-default 行为：无 persisted manifest 时 helper 返回允许；首次 attempt 后为 V2；V1 唯一解锁路径仍是显式 migration。
+
+## R2.2 备份、范围与测试
+
+按本批纪律，改动前核对备份目录 `backup/src_history/2026-07-11_bm_view_manifest/`：已有 `scripts/tool_scripts/run_stage.py` 与 `src/agent/execution/manifest.py` 副本；本轮将改的 `tests/test_run_stage_flow.py` 与 `tests/test_run_manifest_v2.py` 原始 `8d8ace4` 内容已补入同目录并保持相对路径。没有修改 case anchor、golden、case_data 或任何 gt 文件。
+
+- 改前全量基线：**703 passed + 9 xfailed**。
+- 本轮 targeted：`tests/test_run_stage_flow.py tests/test_run_manifest_v2.py` → **41 passed**。
+- 改后全量：`PYTHONDONTWRITEBYTECODE=1 python -m pytest -q -p no:cacheprovider` → **703 passed, 9 xfailed, 120 warnings, 0 failed**（293.76s）。计数不变；本轮为既有测试增加 helper-delegation 断言而非新增 test node。
+
+本轮工作树的源码/测试改动仅为：
+
+```text
+scripts/tool_scripts/run_stage.py
+tests/test_run_stage_flow.py
+```
+
+另有本简报更新；备份目录受既有 ignore 规则保护，不进入提交。
+
+## R2.3 未决 / 偏离
+
+无未决事项、无稿外形态选择、无已知偏离。双-temp 的具体 helper、V2 writer、三入口及故障注入测试均在 `8d8ace4` 中已存在；本轮只把明示的 `reading_attempt_allowed()` policy helper 接为实际入口，并记录事实。
+
+## R2.4 review-ask（主控/Claude 重点复核）
+
+1. `run_stage.py::_manifest_for_attempts()` 是否在 `cmd_run`、`cmd_flow`、`cmd_resample` 三个创建 attempt 的入口都位于任何 attempt/manifest mutation 之前；特别核 `cmd_resample` 的 `invalidate()`/`save()` 前序。
+2. StageRunner 的 V2 `base_v2` record 是否确实写入 output/checks 两个真实 hash，并保持 `output_hash == artifact_hashes["output"]`；新 run、已存在 V2 run、显式 migration 后 V1 run 三条路径均须检查。
+3. `migrate_run_to_v2()` 的两个 temp 是否都写入+fsync 成功后才发生第一个 replace；第二 temp fault injection 是否覆盖 VM 未 replace、V1 bytes 不变与 temp 清理。
+4. 本轮新增的 policy-helper 调用是否只是消除判别重复，未改变无 persisted manifest 的新 run V2 provisioning、也未放宽 persisted V1 grandfather gate。

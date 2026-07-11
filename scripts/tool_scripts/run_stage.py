@@ -126,14 +126,26 @@ def _manifest_for_attempts(case_dir: Path, run_dir: Path):
     - **no manifest yet** → new runs are V2-by-default: provision the trusted
       view manifest and atomically mint the run's V2 identity.
     """
-    from src.agent.execution.manifest import ensure_run_manifest_v2, load_run_manifest
+    from src.agent.execution.manifest import (
+        ensure_run_manifest_v2,
+        load_run_manifest,
+        reading_attempt_allowed,
+    )
     from src.agent.execution.view_manifest import provision_view_manifest
 
+    allowed, refusal_reason = reading_attempt_allowed(run_dir)
+    if not allowed:
+        raise SystemExit(
+            f"✗ {refusal_reason}; invoke explicitly: "
+            "run_stage.py provision <case> <run> --migrate"
+        )
     existing = load_run_manifest(run_dir)
+    # `reading_attempt_allowed()` is the policy authority. This defensive
+    # branch keeps the version-dispatched writer fail-closed if a future policy
+    # change ever makes the helper more permissive than its current V1 rule.
     if existing is not None and not isinstance(existing, RunManifestV2):
         raise SystemExit(
-            "✗ run manifest is v1 (grandfathered legacy run) — new attempts are "
-            "blocked; migrate explicitly first: "
+            "✗ run manifest is not a writable V2 manifest; migrate explicitly: "
             "run_stage.py provision <case> <run> --migrate"
         )
     vm = provision_view_manifest(case_dir, run_dir)
