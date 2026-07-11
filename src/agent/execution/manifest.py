@@ -256,12 +256,38 @@ class RunManifestV2(BaseModel):
     def accepted(self, stage: str) -> StageRecordV2 | None:
         return self.stages.get(stage)
 
+    def save(self, run_dir: Path, *, filename: str = MANIFEST_NAME) -> Path:
+        """Same call shape as :meth:`RunManifest.save`, so version-dispatched
+        command flows (`run`/`flow`/`resample`) can hold either manifest and
+        persist it identically — both delegate to the one versioned serializer."""
+        return save_run_manifest(self, run_dir, filename=filename)
+
 
 def new_run_id() -> str:
     """128-bit random hex run identity — immutable, never derived from the run
     directory's name/path (§5.1 r3 裁决: a moved/copied run must not change
     identity, or silently share identity with another run)."""
     return secrets.token_hex(16)
+
+
+def _fsync_temp_write(dir_path: Path, name: str, text: str) -> str:
+    """Create + write + fsync a same-directory temp file; return its path.
+
+    The caller owns the eventual ``os.replace`` (and cleanup on a later
+    failure); this helper cleans up its own temp only if the write itself
+    fails. Split out so the dual-temp migration commit protocol (CR-03) can
+    prepare BOTH final files' temps before replacing either."""
+    fd, tmp_name = tempfile.mkstemp(prefix=f".{name}.", dir=dir_path)
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as fh:
+            fh.write(text)
+            fh.flush()
+            os.fsync(fh.fileno())
+    except BaseException:
+        if os.path.exists(tmp_name):
+            os.unlink(tmp_name)
+        raise
+    return tmp_name
 
 
 def save_run_manifest(
@@ -271,12 +297,8 @@ def save_run_manifest(
     isolation's merge writer use (§5.1: "消灭双 writer 漂移"). Atomic
     temp+fsync+replace, matching the M0 append-only-attempts write discipline."""
     path = run_meta_path(run_dir, filename, for_write=True)
-    fd, tmp_name = tempfile.mkstemp(prefix=f".{filename}.", dir=path.parent)
+    tmp_name = _fsync_temp_write(path.parent, filename, manifest.model_dump_json(indent=2))
     try:
-        with os.fdopen(fd, "w", encoding="utf-8") as fh:
-            fh.write(manifest.model_dump_json(indent=2))
-            fh.flush()
-            os.fsync(fh.fileno())
         os.replace(tmp_name, path)
     finally:
         if os.path.exists(tmp_name):
@@ -356,21 +378,28 @@ def migrate_run_to_v2(case_dir: Path, run_dir: Path) -> RunManifestV2:
     :func:`ensure_run_manifest_v2`, invoked only via the ``provision --migrate``
     CLI flag (never automatically).
 
-    Commit protocol: (1) build the view manifest fully in memory, write it to
-    disk FIRST (an orphan view_manifest.json with no matching v2 run_manifest is
-    inert — the v1 loader never looks at it); (2) backfill every v1 accepted
-    stage into a StageRecordV2 by re-hashing the *real* on-disk attempt
-    artifacts (never fabricating a hash) with ``artifact_contract="migrated_v1"``;
-    a legacy sidecar that never existed (audit/feature_states) is a legal
-    omission, not an error; (3) write RunManifestV2 LAST — the single commit
-    point. Any failure before step 3 leaves the run's semantics exactly V1
-    (re-running migration is idempotent: an already-v2 run short-circuits, an
-    orphan view_manifest is reused if content-identical or overwritten if not).
+    Commit protocol (§5.1, frozen order — CR-03 r2 double-temp): (1)
+    **everything in memory first**: run_id generation, view-manifest build,
+    and the FULL stages backfill — each accepted pointer's ``output.json`` AND
+    ``checks.json`` must exist on disk with ``output.json`` matching the
+    accepted hash (M0 discipline: an accepted attempt always filed both; only
+    version-specific sidecars that never existed pre-B2 — audit /
+    feature_states — are legal omissions). Any backfill failure aborts BEFORE
+    any final file is written, including view_manifest.json. (2) pre-serialize
+    BOTH final texts and write BOTH same-directory temps with fsync — neither
+    final path is touched until *both* temps are safely on disk. (3) commit in
+    the frozen order: replace view_manifest.json first (an orphan with no v2
+    run_manifest is inert — the v1 loader never looks at it), replace
+    RunManifestV2 LAST — the single commit point. Any failure before the final
+    replace leaves the run's semantics exactly V1 (re-running is idempotent:
+    an already-v2 run short-circuits, an orphan view_manifest is reused if
+    content-identical or overwritten if not).
     """
     from src.agent.execution.view_manifest import (  # local import: avoids a
         VIEW_MANIFEST_NAME,                          # manifest.py <-> view_manifest.py
         ViewManifest,                                # import cycle (view_manifest.py
         build_view_manifest,                         # imports hash_* from this module).
+        canonical_view_manifest_json,
     )
 
     case_dir = Path(case_dir)
@@ -380,46 +409,35 @@ def migrate_run_to_v2(case_dir: Path, run_dir: Path) -> RunManifestV2:
         return existing  # already migrated — idempotent no-op
     v1: RunManifestV1 = existing or RunManifestV1(case=case_dir.name)
 
-    # --- step 1: view_manifest.json first ---
+    # --- step 1 (ALL in memory, nothing written yet) ---
     expected_vm = build_view_manifest(case_dir)
-    vm_path = run_meta_path(run_dir, VIEW_MANIFEST_NAME, for_write=True)
-    write_vm = True
-    if vm_path.exists():
-        try:
-            on_disk_vm = ViewManifest.model_validate_json(vm_path.read_text(encoding="utf-8"))
-            write_vm = on_disk_vm.content_sha256 != expected_vm.content_sha256
-        except Exception:  # noqa: BLE001 — an unreadable orphan is overwritten
-            write_vm = True
-    if write_vm:
-        fd, tmp_name = tempfile.mkstemp(prefix=f".{VIEW_MANIFEST_NAME}.", dir=vm_path.parent)
-        try:
-            with os.fdopen(fd, "w", encoding="utf-8") as fh:
-                fh.write(expected_vm.model_dump_json(indent=2))
-                fh.flush()
-                os.fsync(fh.fileno())
-            os.replace(tmp_name, vm_path)
-        finally:
-            if os.path.exists(tmp_name):
-                os.unlink(tmp_name)
 
-    # --- step 2 (in-memory): backfill every accepted stage ---
     stages_v2: dict[str, StageRecordV2] = {}
     for stage, rec in v1.stages.items():
         attempt_dir = run_dir / stage / "attempts" / f"{rec.accepted_attempt:03d}"
-        artifact_hashes: dict[str, str] = {}
         output_path = attempt_dir / "output.json"
-        if output_path.is_file():
-            real_hash = hash_file(output_path)
-            if real_hash != rec.output_hash:
-                raise ValueError(
-                    f"migration backfill for stage {stage!r}: on-disk output.json hash "
-                    f"({real_hash}) does not match the v1 manifest's accepted pointer "
-                    f"({rec.output_hash}) — the attempt file changed since acceptance"
-                )
-            artifact_hashes["output"] = real_hash
+        if not output_path.is_file():
+            raise ValueError(
+                f"migration backfill for stage {stage!r}: accepted attempt "
+                f"{rec.accepted_attempt} has no output.json on disk — a v1 accepted "
+                "pointer without its artifact cannot be migrated (M0 append-only "
+                "attempts always file it); repair or drop the pointer first"
+            )
+        real_hash = hash_file(output_path)
+        if real_hash != rec.output_hash:
+            raise ValueError(
+                f"migration backfill for stage {stage!r}: on-disk output.json hash "
+                f"({real_hash}) does not match the v1 manifest's accepted pointer "
+                f"({rec.output_hash}) — the attempt file changed since acceptance"
+            )
         checks_path = attempt_dir / "checks.json"
-        if checks_path.is_file():
-            artifact_hashes["checks"] = hash_file(checks_path)
+        if not checks_path.is_file():
+            raise ValueError(
+                f"migration backfill for stage {stage!r}: accepted attempt "
+                f"{rec.accepted_attempt} has no checks.json on disk — gate① reports "
+                "are mandatory attempt artifacts under the M0 discipline (only "
+                "audit/feature_states-class version-specific sidecars may be absent)"
+            )
         stages_v2[stage] = StageRecordV2(
             stage=rec.stage,
             accepted_attempt=rec.accepted_attempt,
@@ -430,7 +448,7 @@ def migrate_run_to_v2(case_dir: Path, run_dir: Path) -> RunManifestV2:
             capability=rec.capability,
             check_passed=rec.check_passed,
             artifact_contract="migrated_v1",
-            artifact_hashes=artifact_hashes,
+            artifact_hashes={"output": real_hash, "checks": hash_file(checks_path)},
         )
 
     v2 = RunManifestV2(
@@ -440,8 +458,37 @@ def migrate_run_to_v2(case_dir: Path, run_dir: Path) -> RunManifestV2:
         stages=stages_v2,
     )
 
-    # --- step 3: RunManifestV2 last — the single commit point ---
-    save_run_manifest(v2, run_dir)
+    # --- step 2: pre-serialize BOTH final texts; write BOTH temps + fsync ---
+    vm_path = run_meta_path(run_dir, VIEW_MANIFEST_NAME, for_write=True)
+    manifest_path = run_meta_path(run_dir, MANIFEST_NAME, for_write=True)
+    write_vm = True
+    if vm_path.exists():
+        try:
+            on_disk_vm = ViewManifest.model_validate_json(vm_path.read_text(encoding="utf-8"))
+            write_vm = on_disk_vm.content_sha256 != expected_vm.content_sha256
+        except Exception:  # noqa: BLE001 — an unreadable orphan is overwritten
+            write_vm = True
+
+    vm_tmp: str | None = None
+    v2_tmp: str | None = None
+    try:
+        if write_vm:
+            vm_tmp = _fsync_temp_write(
+                vm_path.parent, VIEW_MANIFEST_NAME, canonical_view_manifest_json(expected_vm)
+            )
+        v2_tmp = _fsync_temp_write(
+            manifest_path.parent, MANIFEST_NAME, v2.model_dump_json(indent=2)
+        )
+        # --- step 3: frozen commit order — view_manifest first, V2 last ---
+        if vm_tmp is not None:
+            os.replace(vm_tmp, vm_path)
+            vm_tmp = None
+        os.replace(v2_tmp, manifest_path)
+        v2_tmp = None
+    finally:
+        for leftover in (vm_tmp, v2_tmp):
+            if leftover is not None and os.path.exists(leftover):
+                os.unlink(leftover)
     return v2
 
 

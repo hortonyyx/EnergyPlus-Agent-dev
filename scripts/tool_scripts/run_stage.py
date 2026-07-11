@@ -39,6 +39,7 @@ if str(_REPO_ROOT) not in sys.path:
 
 from src.agent.execution import (  # noqa: E402
     RunManifest,
+    RunManifestV2,
     RunPolicy,
     StageRunner,
     StageOutcome,
@@ -98,6 +99,45 @@ def _expected_zone_total(testdata_path: Path) -> int | None:
     except json.JSONDecodeError:
         return None
     return expected_zone_total_from_testdata(data) if isinstance(data, dict) else None
+
+
+# --------------------------------------------------------------------------- #
+# run-manifest acquisition (C2 B-M §5.1, CR-02)
+# --------------------------------------------------------------------------- #
+def _load_manifest_readonly(run_dir: Path):
+    """Version-dispatched read-only load for report/replay/judge consumers:
+    V1 and V2 both load as their own wire type (a V2 file parsed by the V1
+    class would crash on extra=forbid); an absent manifest degrades to an
+    empty V1 shell exactly as ``RunManifest.load`` always did."""
+    from src.agent.execution.manifest import load_run_manifest
+
+    return load_run_manifest(run_dir) or RunManifest(case=Path(run_dir).name)
+
+
+def _manifest_for_attempts(case_dir: Path, run_dir: Path):
+    """Version-dispatched manifest for the attempt-creating commands
+    (`run` / `flow` / `resample`) — B-M §5.1:
+
+    - persisted **V1** run → refuse before ANY write ("grandfather" hard gate:
+      a v1 run is read-only for validation/replay/report; every new attempt is
+      blocked until an explicit migration);
+    - persisted **V2** run → verify + return it (`ensure` re-checks the bound
+      view-manifest inputs, raising on drift);
+    - **no manifest yet** → new runs are V2-by-default: provision the trusted
+      view manifest and atomically mint the run's V2 identity.
+    """
+    from src.agent.execution.manifest import ensure_run_manifest_v2, load_run_manifest
+    from src.agent.execution.view_manifest import provision_view_manifest
+
+    existing = load_run_manifest(run_dir)
+    if existing is not None and not isinstance(existing, RunManifestV2):
+        raise SystemExit(
+            "✗ run manifest is v1 (grandfathered legacy run) — new attempts are "
+            "blocked; migrate explicitly first: "
+            "run_stage.py provision <case> <run> --migrate"
+        )
+    vm = provision_view_manifest(case_dir, run_dir)
+    return ensure_run_manifest_v2(run_dir, view_manifest_sha256=vm.content_sha256)
 
 
 # --------------------------------------------------------------------------- #
@@ -871,7 +911,7 @@ def _judge_gt_artifacts(
     if stage not in {"0_reading", "1_correction"}:
         return {"score_vs_gt": None, "grade": None, "score_criteria": []}
 
-    active_manifest = manifest or RunManifest.load(run_dir)
+    active_manifest = manifest or _load_manifest_readonly(run_dir)
     rec = active_manifest.accepted(stage)
     attempt = attempt_index_of(attempt_dir)
     if rec is None or rec.accepted_attempt != attempt:
@@ -1331,7 +1371,9 @@ def cmd_run(args) -> int:
         capability_profile=getattr(args, "capability_profile", "rectangular"),
         budget_draws=getattr(args, "budget_draws", None),
     )
-    manifest = RunManifest.load(run_dir)
+    # CR-02: attempt-creating entrance — grandfather V1 refusal + V2-by-default
+    # provisioning happen here, BEFORE any attempt/manifest write.
+    manifest = _manifest_for_attempts(case_dir, run_dir)
     runner = StageRunner(run_dir, manifest)
     stage = args.stage
     stage_dir = run_dir / stage
@@ -1383,8 +1425,11 @@ def cmd_run(args) -> int:
 
 
 def cmd_resample(args) -> int:
-    _case_dir, run_dir, _td = _resolve(args.base_dir, args.case, args.run)
-    manifest = RunManifest.load(run_dir)
+    case_dir, run_dir, _td = _resolve(args.base_dir, args.case, args.run)
+    # CR-02 (terra r1 点名): the grandfather refusal must fire BEFORE this
+    # command's invalidate()/save() — a persisted-V1 run's manifest bytes are
+    # never touched by a refused resample.
+    manifest = _manifest_for_attempts(case_dir, run_dir)
     dropped = invalidate(manifest, args.stage)
     manifest.save(run_dir)
     if dropped:
@@ -1394,7 +1439,26 @@ def cmd_resample(args) -> int:
 
 
 def cmd_judge(args) -> int:
-    _case_dir, run_dir, _td = _resolve(args.base_dir, args.case, args.run)
+    case_dir, run_dir, _td = _resolve(args.base_dir, args.case, args.run)
+    # CR-06: judge-only replay is a read-only consumer of the trusted view
+    # manifest (§4.4). Missing manifest = NOT_APPLICABLE (a run that predates
+    # the wire is judged as before); present-but-drifted/corrupt = INVARIANT
+    # fail (the inputs this run was judged against are no longer trustworthy).
+    # NEVER provisions — provisioning belongs to run provisioning / 0_reading
+    # preflight only.
+    from src.agent.execution.run_meta import run_meta_path as _rmp
+    from src.agent.execution.view_manifest import (
+        VIEW_MANIFEST_NAME,
+        verify_view_manifest,
+    )
+
+    if _rmp(run_dir, VIEW_MANIFEST_NAME).exists():
+        verification = verify_view_manifest(case_dir, run_dir)
+        if not verification.ok:
+            print(f"✗ view manifest INVARIANT fail (judge-only path is read-only): {verification.reason}")
+            return 2
+    else:
+        print("  view manifest: NOT_APPLICABLE (run predates the view-manifest wire)")
     policy = _make_policy(
         reading_runner_available=args.reading_runner_available,
         run_profile=args.run_profile,
@@ -1403,7 +1467,9 @@ def cmd_judge(args) -> int:
     )
     stage = args.stage
     stage_dir = run_dir / stage
-    manifest = RunManifest.load(run_dir)
+    # read-only version-dispatched load: judge/replay stays allowed on a
+    # grandfathered V1 run (validation/replay/report are its permitted uses).
+    manifest = _load_manifest_readonly(run_dir)
     accepted = manifest.accepted(stage)
     if accepted is None:
         raise SystemExit(f"{stage} has no gate①-accepted attempt; run it first")
@@ -1447,7 +1513,7 @@ def cmd_approve_geometry(args) -> int:
 
 def cmd_approve_review(args) -> int:
     _case_dir, run_dir, _td = _resolve(args.base_dir, args.case, args.run)
-    manifest = RunManifest.load(run_dir)
+    manifest = _load_manifest_readonly(run_dir)
     rec = manifest.accepted(args.stage)
     if rec is None:
         raise SystemExit(f"{args.stage} has no accepted attempt; run it first")
@@ -1487,7 +1553,9 @@ def cmd_flow(args) -> int:
         confirmation_policy=ConfirmationPolicy.REQUIRED,
         budget_draws=getattr(args, "budget_draws", None),
     )
-    manifest = RunManifest.load(run_dir)
+    # CR-02: attempt-creating entrance — same gate as cmd_run (grandfather V1
+    # refusal + V2-by-default provisioning), before any stage is touched.
+    manifest = _manifest_for_attempts(case_dir, run_dir)
     start_stage = (
         _auto_start_stage(
             manifest=manifest,

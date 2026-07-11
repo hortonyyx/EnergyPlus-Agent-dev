@@ -3,10 +3,13 @@ conditional constraints, and the §3.6 CompletenessAssertion wire (frozen)."""
 
 from __future__ import annotations
 
+import json
+
 import pytest
 from pydantic import ValidationError
 
 from src.agent.correction.claims import CLAIMS_VOCAB_VERSION
+from src.agent.execution.manifest import hash_obj
 from src.agent.execution.view_manifest import (
     CaseMetadataSourceRef,
     CompletenessAssertion,
@@ -185,41 +188,87 @@ def test_opening_evidence_dedups_and_sorts_claims():
 
 
 # --------------------------------------------------------------------------- #
-# ViewManifest top-level: canonical sort + dup detection
+# ViewManifest top-level: canonical sort + dup detection + hash self-check
 # --------------------------------------------------------------------------- #
-def _minimal_manifest(entries: list) -> dict:
-    return dict(
+def _manifest_payload(entries: list) -> dict:
+    """Payload with the CORRECT content hash (the model now self-verifies it,
+    CR-01) — mirrors the generator's payload→hash→strict-parse construction."""
+    payload = dict(
+        view_manifest_schema_version="1",
         claims_vocab_version=CLAIMS_VOCAB_VERSION,
+        generator_version="1",
+        completeness_ruleset_version="1",
         case_id="synth",
         case_metadata_sha256=HEX64_A,
-        entries=entries,
-        content_sha256=HEX64_B,
+        entries=[e.model_dump(mode="json") for e in entries],
     )
+    payload["content_sha256"] = hash_obj(payload)
+    return payload
+
+
+def _valid_manifest(entries: list) -> ViewManifest:
+    return ViewManifest.model_validate(_manifest_payload(entries))
 
 
 def test_entries_must_be_sorted_by_input_id():
     a = _plan_entry(input_id="b_view", expected_output_id="b_view")
     b = _plan_entry(input_id="a_view", expected_output_id="a_view", floor_ref=2)
-    with pytest.raises(ValidationError):
-        ViewManifest(**_minimal_manifest([a, b]))
-    ViewManifest(**_minimal_manifest([b, a]))  # sorted order is fine
+    with pytest.raises(ValidationError, match="sorted"):
+        ViewManifest.model_validate(_manifest_payload([a, b]))
+    _valid_manifest([b, a])  # sorted order is fine
 
 
 def test_duplicate_input_id_rejected():
     a = _plan_entry(input_id="1f_view")
     b = _plan_entry(input_id="1f_view", floor_ref=2)
+    with pytest.raises(ValidationError, match="duplicate input_id"):
+        ViewManifest.model_validate(_manifest_payload([a, b]))
+
+
+def test_content_hash_self_verified_on_parse():
+    """CR-01: a successfully parsed manifest ALWAYS satisfies
+    content_sha256 == compute_content_hash(payload)."""
+    m = _valid_manifest([_plan_entry()])
+    assert compute_content_hash(m) == m.content_sha256
+
+
+def test_tampered_field_with_stale_hash_rejected_dict_entrypoint():
+    """CR-01 regression: modify any field, keep the old hash → parse rejects."""
+    m = _valid_manifest([_plan_entry()])
+    d = m.model_dump(mode="json")
+    d["case_id"] = "different_case"  # stale content_sha256 retained
+    with pytest.raises(ValidationError, match="content_sha256"):
+        ViewManifest.model_validate(d)
+
+
+def test_tampered_entry_with_stale_hash_rejected_json_entrypoint():
+    """CR-01 regression (terra's exact reproduction shape): forge an entry's
+    expected_output_id in the serialized JSON, keep the old content_sha256 —
+    model_validate_json must reject."""
+    m = _valid_manifest([_plan_entry()])
+    d = json.loads(m.model_dump_json())
+    d["entries"][0]["expected_output_id"] = "1f_view_forged"
+    with pytest.raises(ValidationError, match="content_sha256"):
+        ViewManifest.model_validate_json(json.dumps(d))
+
+
+def test_unknown_claims_vocab_version_rejected():
+    """CR-01: claims_vocab_version is a frozen Literal — an unknown vocab
+    version fails closed at parse even with a self-consistent content hash."""
+    payload = _manifest_payload([_plan_entry()])
+    payload["claims_vocab_version"] = "99"
+    payload["content_sha256"] = hash_obj(
+        {k: v for k, v in payload.items() if k != "content_sha256"}
+    )
     with pytest.raises(ValidationError):
-        ViewManifest(**_minimal_manifest([a, b]))
+        ViewManifest.model_validate(payload)
 
 
-def test_content_hash_excludes_itself_and_is_recomputable():
-    m = ViewManifest(**_minimal_manifest([_plan_entry()]))
-    recomputed = compute_content_hash(m)
-    tampered = m.model_copy(update={"case_id": "different"})
-    assert compute_content_hash(tampered) != recomputed
-    # content_sha256 field itself never participates in its own hash
-    same_except_hash = m.model_copy(update={"content_sha256": "f" * 64})
-    assert compute_content_hash(same_except_hash) == recomputed
+def test_wrong_but_wellformed_content_hash_rejected():
+    payload = _manifest_payload([_plan_entry()])
+    payload["content_sha256"] = HEX64_B  # well-formed hex64, wrong value
+    with pytest.raises(ValidationError, match="content_sha256"):
+        ViewManifest.model_validate(payload)
 
 
 # --------------------------------------------------------------------------- #

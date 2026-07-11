@@ -118,3 +118,110 @@ sm21/sm20/sm24 `build_view_manifest` 干跑全部成功（无 raise）。
 - 未改 `src/agent/correction/{schema.py, deterministic.py, config.py, geometry_validator.py, facade.py}`、`src/agent/pipeline.py`、`src/agent/judge/*`、任何 render 脚本、任何 gt 文件——`claims.py`（B-M 先落创建，内容锁定于 B2 §2.8）为唯一例外，符合"不碰 B2 领地"红线。
 - 未执行任何 LLM case 跑测；全部验证走确定性单测 + 干跑 `build_view_manifest`。
 - 未 `git commit`/`push`，工作树留待主控审 diff 后统一处理。
+
+---
+
+# 返工轮（terra 交叉复核 REWORK · 主控裁决 CR-01/03/04/05/06 本轮必修 · CR-02 并入 B2）
+
+> verdict：`AI_agent/logs/reviews/verdict/2026-07-11_bm_construction_crossreview.md`。基线 = commit `b14af01`（首轮已提交），本轮改动直接留工作树，不 commit。首轮简报 §6 的未决事项 #5（completeness 生成通路）与 #7（映射表）经本轮 CR-04/CR-05 裁决落地关闭；#1（flow/resample V1 拒绝）由主控裁决维持并入 B2（= CR-02）。
+
+## R1. CR 编号 → 修法落点 → 新测试
+
+### CR-01（BLOCKER）：manifest 可"改字段不改 hash"骗过 verify
+**修法**（`src/agent/execution/view_manifest.py`）：
+- `ViewManifest` 顶层 validator 增 content-hash 自校验：parse 成功 ⇒ `content_sha256 == compute_content_hash(payload)`（新内部 `_content_hash_of_payload()`，排除自身键后 `hash_obj`）。所有消费者入口（provision 幂等复用、verify、isolation build/merge、migration 孤儿复用、cmd_judge）都经 `model_validate_json`/`model_validate` → 只可能拿到 hash 一致的对象。
+- `claims_vocab_version: str` → `Literal["1"]` 冻结；其余三个版本字段核对确认首轮已是 `Literal["1"]`，未再改。未知 vocab 版本 parse 即拒。
+- `build_view_manifest` 尾部改 terra 指定形态：**构造 payload dict → 算 hash → 一次最终严格 parse**（`ViewManifest.model_validate(payload)`），删除原 `model_copy(update=...)` 绕 validator 构造。
+
+**新测试**：
+- `tests/test_view_manifest_schema.py::test_content_hash_self_verified_on_parse`
+- `::test_tampered_field_with_stale_hash_rejected_dict_entrypoint`
+- `::test_tampered_entry_with_stale_hash_rejected_json_entrypoint`（terra 复现原样：改 `expected_output_id` 留旧 hash，`model_validate_json` 入口）
+- `::test_unknown_claims_vocab_version_rejected`
+- `::test_wrong_but_wellformed_content_hash_rejected`
+- `tests/test_view_manifest_generator.py::test_verify_rejects_on_disk_field_tamper_with_stale_hash`（verify 入口，terra 复现磁盘版）
+- `::test_provision_reuse_rejects_tampered_existing_manifest`（provision 幂等复用入口）
+- 既有 schema 测试同步改为"正确 hash 构造"（`_manifest_payload`/`_valid_manifest` helper，镜像生成器 payload→hash→parse 构造法；原 `model_copy` 式 hash 测试删除重写）。
+
+### CR-03（HIGH）：migration 未按冻结 commit 协议 + 接受缺 artifact 的指针
+**修法**（`src/agent/execution/manifest.py::migrate_run_to_v2` 重排）：
+- 步骤 1 = **全部在内存**：build VM + 逐 accepted pointer backfill；`output.json` 不存在 → raise；hash 不符 → raise；`checks.json` 不存在 → raise（M0 纪律下 accepted attempt 必有 gate① 报告；仅 audit/feature_states 类版本专属 sidecar 合法缺省）。任何 backfill 失败发生在**任何最终文件落盘之前**（含 view_manifest.json）。
+- 步骤 2 = VM 落盘（temp+fsync+replace，孤儿复用/覆盖逻辑不变）；步骤 3 = RunManifestV2 最后落 = 唯一 commit point。
+- `migrated_v1` 的 wire 级 `_CONTRACT_REQUIRED_KEYS` 保持空集（稿字面"只登记迁移时真实存在的键"）——output/checks 的强制在 migrator 侧执行，不改 loader 合同。
+
+**新测试**（`tests/test_run_manifest_v2.py`）：
+- `::test_migration_missing_output_fails_before_any_write`（缺 output → 失败且 VM 未落盘）
+- `::test_migration_missing_checks_fails_before_any_write`
+- `::test_backfill_failure_leaves_run_semantics_v1`（失败后 load 仍 V1、grandfather block 仍生效）
+- `::test_migration_rejects_pointer_whose_output_changed_since_accept` 追加"VM 未落盘"断言
+- `tests/test_isolation.py::test_merge_refuses_grandfathered_v1_run` 的 v1 seed 补真实 attempt 文件（适配新硬门，测试意图不变）。
+
+### CR-04（HIGH）：`views:{}` completeness 断言生成通路（主控本轮冻结 metadata 形状）
+**修法**（`src/agent/execution/view_manifest.py::_opening_evidence_for` 重写；冻结形状已写进代码注释与测试）：
+- `testdata_prompt.json` 形状：`views.<stem>.completeness = {"assertion_id": "<非空 str>", "claims": ["existence", ...]}`；
+- claims ⊄ 该图种 `potentially_observable_claims` → 生成期 raise；非 plan/elevation 图种带 completeness → raise；未知键/空 id/空或非字符串 claims/非 object → raise；
+- 产出 `CompletenessAssertion{assertion_id, source_ref=CaseMetadataSourceRef{source:"case_metadata", json_pointer:"/views/<stem>/completeness", case_metadata_sha256:<顶层已有值>}}` + `Coverage{plan→(plan_floor_region,full_floor) / elevation→(elevation_local_along,full_facade), completeness_assertion_id=同 id}` + `negative_evidence_capable_claims = sorted(set(claims))`；
+- 三条生成 loop（plan/elevation/supplementary）全部改传 `stem + overlay + case_metadata_sha256`；
+- 新增 6b 硬门：`views{}` overlay 引用不存在于任何 entry 的 stem = raise（消灭"用户以为声明了 completeness/排除但被静默丢弃"的信任洞）。
+
+**新测试**（`tests/test_view_manifest_generator.py`）：
+- `::test_completeness_assertion_end_to_end_from_metadata`（真实合成 metadata fixture → 最终 manifest，plan+elevation 双通道，断言 json_pointer/metadata hash 绑定 + 全清单严格 parse 往返）
+- `::test_completeness_claim_out_of_bounds_raises`
+- `::test_completeness_on_non_plan_elevation_view_type_raises`
+- `::test_completeness_malformed_shapes_raise`（5 种畸形逐个 raise）
+
+### CR-05（HIGH）：expected_output_id 显式声明家族映射表
+**修法**（`src/agent/execution/view_manifest.py`）：
+- 删除通用 `_expected_output_id`（stem 后缀猜测）；建 `_DECLARATION_FAMILIES` 文档表 + 三家族行 `_FLOOR_PLAN_FAMILY` / `_ELEVATION_FAMILY` / `_SUPPLEMENTARY_KEYS`（每行显式 `view_type + output_id_transform`：floor_plans / cardinal_elevations = identity；supplementary_plan = append `_view`，即稿内 sm20 写死示例）；`_family_expected_output_id()` 只认表内 transform，未知 transform raise；
+- 不属于任何声明家族的输入没有生成路径：PNG 在盘 → unclassified 硬门 raise；仅 overlay 提及 → 6b dangling 硬门 raise。两边都 hard-fail，永不猜测。未来新声明 key = 加表行，唯一入口。
+
+**新测试**：
+- `::test_overlay_declared_but_no_family_hard_fails`（两半：dangling overlay 无文件 / overlay+PNG 在盘，均 raise 而非猜测）
+- `::test_family_table_transforms_are_explicit`（sm21 全 identity + sm20 supp append `_view`，真实 corpus 锁行为）
+
+### CR-06（MEDIUM）：canonical 序列化 + judge-only verify
+**修法①**（canonical serializer，`view_manifest.py` + `manifest.py`）：
+- 新 `canonical_view_manifest_json()` = `json.dumps(payload, indent=2, sort_keys=True, separators=(",", ": "), ensure_ascii=False)`；provision 与 migration 的 VM 写步共用（migration 原 `model_dump_json(indent=2)` 一并替换）；
+- **hash 不受影响已核实**（主控点名核实项）：`content_sha256` 来自 `hash_obj(payload)`（独立的 compact+sorted 形态），与落盘排版无关——返工后三 anchor 的 content_sha256 与首轮完全一致（sm21 `f52ca79c…`、sm20 `fc44e9d4…`、sm24 `459513f1…`），无任何已存 fixture 的 hash 期望需要重算；
+- `save_run_manifest`（run_manifest.json 的 V1/V2 serializer）**保持原样**：V1 load-save 字节不变是 §5.1 明文冻结项，terra 亦未点名该文件。
+
+**修法②**（judge-only verify，`scripts/tool_scripts/run_stage.py::cmd_judge`）：
+- 入口接只读 verify：`view_manifest.json` 不存在 → 打印 NOT_APPLICABLE 照常判卷（老 run 兼容）；存在但 verify 失败（漂移/篡改/损坏）→ 打印 INVARIANT fail、exit 2、不写 verdict、绝不 provision。
+
+**新测试**：
+- `tests/test_view_manifest_generator.py::test_on_disk_view_manifest_bytes_are_canonical_key_sorted`（字节级键序断言：文件字节 == 排序重序列化）
+- `::test_migration_written_view_manifest_is_canonical_and_identical_to_provision`（两条写路径字节一致）
+- `tests/test_run_stage_flow.py::test_cmd_judge_missing_view_manifest_is_not_applicable`（NA + 未 provision）
+- `::test_cmd_judge_drifted_view_manifest_fails_without_writing`（exit 2 + 无 judge.json + manifest 字节未被"修复"）
+
+## R2. 主控点名登记项
+
+- **binding 逐图 hash 未逐项比对（terra 顺带项，本轮不改）**：经主控核定维持现状。判断依据：merge 前的 `verify_view_manifest` 是"重建-比对"链——重建必然从当下磁盘图像逐张重算 `image_sha256` 进 entries，任一图变 → entry 变 → content_sha256 变 → 与 binding 锁定的 `view_manifest_sha256` 不等 → 拒；单图篡改经传递性已被覆盖（`test_merge_tampered_image_is_rejected` 实测该路径）。binding 内 `image_sha256` 逐图表保留为审计冗余。
+- **CR-02 不在本轮**：flow/resample/StageRunner 的 V1 拒绝 + V2-by-default writer 并入 B2（主控裁决；与首轮简报 §6#1 分析一致）。
+
+## R3. 返工轮测试计数
+
+- 返工前基线（首轮 commit `b14af01`）：**678 passed + 9 xfailed**
+- 返工后全量：**697 passed + 9 xfailed + 0 failed**（净增 19 条；xfailed 不变，零回归）
+  - 分布：schema 27→31（+4，另有 1 删 2 增的重写）、generator 26→36（+10）、run_manifest_v2 22→25（+3）、run_stage_flow +2、isolation 37→37（1 条 seed 适配改写，计数不变）
+
+全量输出尾部：
+```
+697 passed, 9 xfailed, 116 warnings in 243.56s (0:04:03)
+```
+
+改动面（相对 b14af01，全部留工作树）：
+```
+ scripts/tool_scripts/run_stage.py     |  21 ++-
+ src/agent/execution/manifest.py       | 102 +++++++------
+ src/agent/execution/view_manifest.py  | 260 ++++++++++++++++++++++++------
+ tests/test_isolation.py               |  11 +-
+ tests/test_run_manifest_v2.py         |  52 ++++++
+ tests/test_run_stage_flow.py          |  74 +++++++++
+ tests/test_view_manifest_generator.py | 201 ++++++++++++++++++++++
+ tests/test_view_manifest_schema.py    |  83 +++++++---
+```
+
+## R4. 返工轮未决/偏离
+
+无新增未决事项。两处按稿内既有原则做的小判断已在上文注明：① `migrated_v1` 的 wire 级必填键保持空集（强制移到 migrator，理由=稿字面"只登记真实存在"）；② `save_run_manifest` 不改 canonical 排序（V1 字节冻结优先，terra 未点名）。

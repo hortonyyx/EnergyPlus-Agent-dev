@@ -48,14 +48,56 @@ VIEW_MANIFEST_SCHEMA_VERSION = "1"
 GENERATOR_VERSION = "1"
 COMPLETENESS_RULESET_VERSION = "1"
 
-# Known metadata keys for declared "supplementary" drawings that are neither a
-# per-floor plan nor a cardinal elevation. §4.2: "映射表写死" — an explicit,
-# hardcoded table per known key, not a stem-guessing heuristic. Today's corpus
-# has exactly one such key (sm20's supp_plan); classified as ``detail`` because
-# metadata never supplies a floor_ref for it (floor_ref is forbidden on
-# non-plan kinds, so this side-steps a spurious floor_ref requirement).
+# --------------------------------------------------------------------------- #
+# §4.2 declaration families — the EXPLICIT mapping table (CR-05).
+#
+# Every trusted input reaches the manifest through exactly one *declaration
+# family* (a metadata declaration shape); each family row fixes both the
+# ``view_type`` and the ``expected_output_id`` transform. There is NO generic
+# stem-suffix guessing fallback: an input that does not arrive through a known
+# family is the §4.3 unclassified-image hard gate's problem (raise), never a
+# guessed entry.
+#
+# | family                | declaration source                          | view_type | expected_output_id  |
+# |-----------------------|---------------------------------------------|-----------|---------------------|
+# | floor_plans           | `Floor plans[]` rows                        | plan      | stem (identity)     |
+# | cardinal_elevations   | `"<Dir> view path of the building"` keys    | elevation | stem (identity)     |
+# | supplementary_plan    | `"Path of the supplementary plan ..."` key  | detail    | stem + "_view"      |
+#
+# The identity transform for floor_plans/cardinal_elevations matches the whole
+# observed corpus (stems `1f_view`/`South_view`/... already ARE the produced
+# artifact stems); `supp_plan -> supp_plan_view` is the spec's written-out
+# supplementary example (B-M §3.2/§4.2). A future declaration key gets its own
+# table row here — extending the table is the only sanctioned way in.
+_TRANSFORM_IDENTITY = "identity"
+_TRANSFORM_APPEND_VIEW = "append_view"
+
+
+def _family_expected_output_id(transform: str, input_id: str) -> str:
+    if transform == _TRANSFORM_IDENTITY:
+        return input_id
+    if transform == _TRANSFORM_APPEND_VIEW:
+        return f"{input_id}_view"
+    raise ValueError(f"unknown declaration-family output-id transform: {transform!r}")
+
+
+# Supplementary/site/detail declaration keys (one row per known metadata key).
 _SUPPLEMENTARY_KEYS: dict[str, dict] = {
-    "Path of the supplementary plan example drawing for the building": {"view_type": "detail"},
+    "Path of the supplementary plan example drawing for the building": {
+        "family": "supplementary_plan",
+        "view_type": "detail",
+        "output_id_transform": _TRANSFORM_APPEND_VIEW,
+    },
+}
+_FLOOR_PLAN_FAMILY = {
+    "family": "floor_plans",
+    "view_type": "plan",
+    "output_id_transform": _TRANSFORM_IDENTITY,
+}
+_ELEVATION_FAMILY = {
+    "family": "cardinal_elevations",
+    "view_type": "elevation",
+    "output_id_transform": _TRANSFORM_IDENTITY,
 }
 _ELEVATION_KEYS: dict[str, str] = {
     "South view path of the building": "South",
@@ -181,14 +223,87 @@ class OpeningEvidence(BaseModel):
         return self
 
 
-def _opening_evidence_for(view_type: str) -> OpeningEvidence:
+def _observable_claims_for(view_type: str) -> list[str]:
     if view_type == "plan":
-        claims = sorted(PLAN_POTENTIALLY_OBSERVABLE_CLAIMS)
-    elif view_type == "elevation":
-        claims = sorted(ELEVATION_POTENTIALLY_OBSERVABLE_CLAIMS)
-    else:
-        claims = []
-    return OpeningEvidence(potentially_observable_claims=claims)
+        return sorted(PLAN_POTENTIALLY_OBSERVABLE_CLAIMS)
+    if view_type == "elevation":
+        return sorted(ELEVATION_POTENTIALLY_OBSERVABLE_CLAIMS)
+    return []
+
+
+# CR-04 (主控 2026-07-11 冻结的 metadata 形状 — 写死于此，测试同步断言):
+#   testdata_prompt.json:  "views": { "<stem>": { "completeness": {
+#       "assertion_id": "<non-empty str>",
+#       "claims": ["existence", ...]          # ⊆ 该图种 potentially_observable_claims
+#   } } }
+# 生成规则:
+#   - claims 必须是该图种 observable 集的子集，越界 = 生成期 raise;
+#   - source_ref = CaseMetadataSourceRef{source:"case_metadata",
+#       json_pointer:"/views/<stem>/completeness", case_metadata_sha256:<顶层值>};
+#   - Coverage 按 view_type: plan→(plan_floor_region, full_floor)、
+#       elevation→(elevation_local_along, full_facade);
+#   - negative_evidence_capable_claims = claims;
+#   - 非 plan/elevation 图种带 completeness = raise（C2 域无其余 frame）。
+_COMPLETENESS_FRAME_BY_VIEW_TYPE = {
+    "plan": ("plan_floor_region", "full_floor"),
+    "elevation": ("elevation_local_along", "full_facade"),
+}
+
+
+def _opening_evidence_for(
+    view_type: str,
+    *,
+    stem: str,
+    overlay: dict,
+    case_metadata_sha256: str,
+) -> OpeningEvidence:
+    observable = _observable_claims_for(view_type)
+    completeness = overlay.get("completeness")
+    if completeness is None:
+        return OpeningEvidence(potentially_observable_claims=observable)
+
+    if view_type not in _COMPLETENESS_FRAME_BY_VIEW_TYPE:
+        raise ValueError(
+            f"views{{}} completeness assertion on {stem!r}: view_type={view_type!r} "
+            "has no C2 coverage frame (only plan/elevation may carry one)"
+        )
+    if not isinstance(completeness, dict):
+        raise ValueError(f"views{{}} completeness on {stem!r} must be an object")
+    assertion_id = completeness.get("assertion_id")
+    if not isinstance(assertion_id, str) or not assertion_id:
+        raise ValueError(
+            f"views{{}} completeness on {stem!r}: assertion_id must be a non-empty string"
+        )
+    claims = completeness.get("claims")
+    if not isinstance(claims, list) or not claims or not all(isinstance(c, str) for c in claims):
+        raise ValueError(
+            f"views{{}} completeness on {stem!r}: claims must be a non-empty list of strings"
+        )
+    unknown_keys = set(completeness) - {"assertion_id", "claims"}
+    if unknown_keys:
+        raise ValueError(
+            f"views{{}} completeness on {stem!r}: unknown key(s) {sorted(unknown_keys)}"
+        )
+    out_of_bounds = sorted(set(claims) - set(observable))
+    if out_of_bounds:
+        raise ValueError(
+            f"views{{}} completeness on {stem!r}: claim(s) {out_of_bounds} are not "
+            f"potentially observable on a {view_type} (allowed: {observable})"
+        )
+    frame, region = _COMPLETENESS_FRAME_BY_VIEW_TYPE[view_type]
+    return OpeningEvidence(
+        potentially_observable_claims=observable,
+        negative_evidence_capable_claims=sorted(set(claims)),
+        coverage=Coverage(frame=frame, region=region, completeness_assertion_id=assertion_id),
+        completeness_assertion=CompletenessAssertion(
+            assertion_id=assertion_id,
+            source_ref=CaseMetadataSourceRef(
+                source="case_metadata",
+                json_pointer=f"/views/{stem}/completeness",
+                case_metadata_sha256=case_metadata_sha256,
+            ),
+        ),
+    )
 
 
 # --------------------------------------------------------------------------- #
@@ -300,10 +415,18 @@ ManifestEntry = Annotated[
 # §3.0 top-level ViewManifest
 # --------------------------------------------------------------------------- #
 class ViewManifest(BaseModel):
+    """A successfully-parsed ViewManifest is self-verified: schema versions are
+    frozen Literals (unknown version = fail closed, §3.0) and the model
+    validator recomputes ``content_sha256`` over the canonical payload — so a
+    tampered field with a stale hash can NEVER survive ``model_validate_json``
+    (CR-01: every consumer entry point — provision reuse, verify, isolation
+    build/merge, migration orphan reuse — parses through this model and
+    therefore only ever handles hash-consistent objects)."""
+
     model_config = ConfigDict(extra="forbid")
 
     view_manifest_schema_version: Literal["1"] = VIEW_MANIFEST_SCHEMA_VERSION
-    claims_vocab_version: str
+    claims_vocab_version: Literal["1"] = CLAIMS_VOCAB_VERSION
     generator_version: Literal["1"] = GENERATOR_VERSION
     completeness_ruleset_version: Literal["1"] = COMPLETENESS_RULESET_VERSION
     case_id: str
@@ -312,13 +435,20 @@ class ViewManifest(BaseModel):
     content_sha256: Hex64
 
     @model_validator(mode="after")
-    def _entries_canonical(self) -> "ViewManifest":
+    def _entries_canonical_and_hash_consistent(self) -> "ViewManifest":
         ids = [e.input_id for e in self.entries]
         if len(set(ids)) != len(ids):
             dupes = sorted({i for i in ids if ids.count(i) > 1})
             raise ValueError(f"duplicate input_id in entries: {dupes}")
         if ids != sorted(ids):
             raise ValueError("entries must be sorted by input_id (canonical order)")
+        recomputed = _content_hash_of_payload(self.model_dump(mode="json"))
+        if self.content_sha256 != recomputed:
+            raise ValueError(
+                "content_sha256 does not match the canonical payload hash "
+                f"(declared {self.content_sha256}, recomputed {recomputed}) — "
+                "manifest bytes were modified without recomputing the hash"
+            )
         return self
 
     # ---- accessors ----
@@ -339,10 +469,29 @@ class ViewManifest(BaseModel):
         return {e.expected_output_id: e.input_id for e in self.required_entries()}
 
 
+def _content_hash_of_payload(payload: dict) -> str:
+    """Hash of the canonical JSON payload, excluding ``content_sha256`` itself."""
+    return hash_obj({k: v for k, v in payload.items() if k != "content_sha256"})
+
+
 def compute_content_hash(manifest: ViewManifest) -> str:
     """Canonicalized-payload hash (excludes ``content_sha256`` itself, §3.0)."""
-    payload = manifest.model_dump(mode="json", exclude={"content_sha256"})
-    return hash_obj(payload)
+    return _content_hash_of_payload(manifest.model_dump(mode="json"))
+
+
+def canonical_view_manifest_json(manifest: ViewManifest) -> str:
+    """The single canonical on-disk serialization (CR-06: sorted keys, fixed
+    separators, UTF-8, 2-space indent) shared by provision and migration. The
+    content hash itself is computed over ``hash_obj``'s compact sorted form of
+    the payload, NOT over these display bytes — so this formatting choice does
+    not participate in (and cannot drift) ``content_sha256``."""
+    return json.dumps(
+        manifest.model_dump(mode="json"),
+        indent=2,
+        sort_keys=True,
+        separators=(",", ": "),
+        ensure_ascii=False,
+    )
 
 
 # --------------------------------------------------------------------------- #
@@ -383,15 +532,6 @@ def _normalize_declared_path(case_dir: Path, declared: object) -> tuple[str, str
     if resolved.suffix.lower() != ".png":
         raise ValueError(f"declared path is not a PNG: {declared!r}")
     return f"case_data/{basename}", basename, hash_file(candidate)
-
-
-def _expected_output_id(input_id: str) -> str:
-    """§4.2: reading always emits ``<stem>_view.json``; a source stem that
-    already ends in ``_view`` (the common case: ``1f_view``, ``South_view``)
-    maps to itself, a bare stem (``supp_plan``) gets the suffix appended
-    (``supp_plan_view``) — matching the reading skill's documented convention
-    (skills/intake_pipeline/0_reading/session_kickoff.md)."""
-    return input_id if input_id.endswith("_view") else f"{input_id}_view"
 
 
 def _resolve_semantics(overlay: dict) -> tuple[str, str, float | None]:
@@ -543,8 +683,13 @@ def build_view_manifest(case_dir: Path | str) -> ViewManifest:
             azimuth_deg=azimuth_deg,
             building_view_direction=None,
             dimensioned=dimensioned,
-            expected_output_id=_expected_output_id(input_id),
-            opening_evidence=_opening_evidence_for("plan"),
+            expected_output_id=_family_expected_output_id(
+                _FLOOR_PLAN_FAMILY["output_id_transform"], input_id
+            ),
+            opening_evidence=_opening_evidence_for(
+                "plan", stem=input_id, overlay=overlay,
+                case_metadata_sha256=case_metadata_sha256,
+            ),
         )
         _register(entries, expected_ids, classified_files, entry, basename)
 
@@ -580,8 +725,13 @@ def build_view_manifest(case_dir: Path | str) -> ViewManifest:
             azimuth_deg=azimuth_deg,
             building_view_direction=building_view_direction,
             dimensioned=dimensioned,
-            expected_output_id=_expected_output_id(input_id),
-            opening_evidence=_opening_evidence_for("elevation"),
+            expected_output_id=_family_expected_output_id(
+                _ELEVATION_FAMILY["output_id_transform"], input_id
+            ),
+            opening_evidence=_opening_evidence_for(
+                "elevation", stem=input_id, overlay=overlay,
+                case_metadata_sha256=case_metadata_sha256,
+            ),
         )
         _register(entries, expected_ids, classified_files, entry, basename)
 
@@ -613,8 +763,13 @@ def build_view_manifest(case_dir: Path | str) -> ViewManifest:
             azimuth_deg=azimuth_deg,
             building_view_direction=None,
             dimensioned=dimensioned,
-            expected_output_id=_expected_output_id(input_id),
-            opening_evidence=_opening_evidence_for(view_type),
+            expected_output_id=_family_expected_output_id(
+                spec["output_id_transform"], input_id
+            ),
+            opening_evidence=_opening_evidence_for(
+                view_type, stem=input_id, overlay=overlay,
+                case_metadata_sha256=case_metadata_sha256,
+            ),
         )
         _register(entries, expected_ids, classified_files, entry, basename)
 
@@ -672,16 +827,34 @@ def build_view_manifest(case_dir: Path | str) -> ViewManifest:
                 "supplementary key / a `views{}` override) or mark it excluded"
             )
 
+    # 6b. dangling `views{}` overlay stems: an overlay row that never bound to a
+    #     registered entry would otherwise be a silent no-op — a completeness
+    #     assertion (CR-04) or exclusion the operator believes they declared but
+    #     that never landed anywhere. Fail closed, never guess an entry (CR-05).
+    for stem in views_overlay:
+        if stem not in entries:
+            raise ValueError(
+                f"views{{}} overlay references unknown input {stem!r} — it does not "
+                "match any declared floor plan / cardinal elevation / supplementary "
+                "input, nor a registered excluded input (no declaration family; "
+                "inputs are never invented from an overlay row)"
+            )
+
+    # CR-01: build the canonical payload as plain data, hash it, then run ONE
+    # final strict parse — the returned object has passed the full validator
+    # stack including the content-hash self-check (no model_copy bypass).
     ordered = [entries[k] for k in sorted(entries)]
-    provisional = ViewManifest(
-        claims_vocab_version=CLAIMS_VOCAB_VERSION,
-        case_id=case_dir.name,
-        case_metadata_sha256=case_metadata_sha256,
-        entries=ordered,
-        content_sha256="0" * 64,
-    )
-    content_hash = compute_content_hash(provisional)
-    return provisional.model_copy(update={"content_sha256": content_hash})
+    payload = {
+        "view_manifest_schema_version": VIEW_MANIFEST_SCHEMA_VERSION,
+        "claims_vocab_version": CLAIMS_VOCAB_VERSION,
+        "generator_version": GENERATOR_VERSION,
+        "completeness_ruleset_version": COMPLETENESS_RULESET_VERSION,
+        "case_id": case_dir.name,
+        "case_metadata_sha256": case_metadata_sha256,
+        "entries": [e.model_dump(mode="json") for e in ordered],
+    }
+    payload["content_sha256"] = _content_hash_of_payload(payload)
+    return ViewManifest.model_validate(payload)
 
 
 # --------------------------------------------------------------------------- #
@@ -722,7 +895,7 @@ def provision_view_manifest(case_dir: Path | str, run_dir: Path | str) -> ViewMa
                 f"recomputed={expected.content_sha256}) — case_data must not change mid-run"
             )
         return existing
-    _atomic_write_text(path, expected.model_dump_json(indent=2))
+    _atomic_write_text(path, canonical_view_manifest_json(expected))
     return expected
 
 
@@ -801,6 +974,7 @@ __all__ = [
     "ViewManifest",
     "ViewManifestVerification",
     "compute_content_hash",
+    "canonical_view_manifest_json",
     "build_view_manifest",
     "provision_view_manifest",
     "verify_view_manifest",

@@ -139,6 +139,58 @@ def test_migration_rejects_pointer_whose_output_changed_since_accept(tmp_path: P
     )
     with pytest.raises(ValueError, match="does not match"):
         migrate_run_to_v2(case_dir, run_dir)
+    # CR-03: backfill failure precedes ANY final-file write — no orphan VM
+    assert not (run_dir / "_run" / VIEW_MANIFEST_NAME).exists()
+
+
+def test_migration_missing_output_fails_before_any_write(tmp_path: Path):
+    """CR-03 negative: a v1 accepted pointer whose output.json is gone cannot
+    be migrated — the failure happens during the in-memory backfill, so
+    view_manifest.json is never written either."""
+    case_dir = Path("case_tests/e2e_tests/sm21_anchor")
+    run_dir = tmp_path / "run"
+    run_dir.mkdir()
+    _seed_v1_run(run_dir)
+    (run_dir / "0_reading" / "attempts" / "001" / "output.json").unlink()
+
+    with pytest.raises(ValueError, match="no output.json"):
+        migrate_run_to_v2(case_dir, run_dir)
+
+    assert not (run_dir / "_run" / VIEW_MANIFEST_NAME).exists()
+
+
+def test_migration_missing_checks_fails_before_any_write(tmp_path: Path):
+    """CR-03: checks.json is equally mandatory (M0 discipline — an accepted
+    attempt always filed its gate① report; only audit/feature_states-class
+    version-specific sidecars are legal omissions)."""
+    case_dir = Path("case_tests/e2e_tests/sm21_anchor")
+    run_dir = tmp_path / "run"
+    run_dir.mkdir()
+    _seed_v1_run(run_dir)
+    (run_dir / "0_reading" / "attempts" / "001" / "checks.json").unlink()
+
+    with pytest.raises(ValueError, match="no checks.json"):
+        migrate_run_to_v2(case_dir, run_dir)
+
+    assert not (run_dir / "_run" / VIEW_MANIFEST_NAME).exists()
+
+
+def test_backfill_failure_leaves_run_semantics_v1(tmp_path: Path):
+    """CR-03 negative: after a failed migration the run is still, in every
+    observable way, a V1 run — V1 loader semantics and the grandfather block
+    both unchanged."""
+    case_dir = Path("case_tests/e2e_tests/sm21_anchor")
+    run_dir = tmp_path / "run"
+    run_dir.mkdir()
+    _seed_v1_run(run_dir)
+    (run_dir / "0_reading" / "attempts" / "001" / "output.json").unlink()
+    with pytest.raises(ValueError):
+        migrate_run_to_v2(case_dir, run_dir)
+
+    loaded = load_run_manifest(run_dir)
+    assert isinstance(loaded, RunManifestV1) and not isinstance(loaded, RunManifestV2)
+    allowed, reason = reading_attempt_allowed(run_dir)
+    assert not allowed and "grandfathered" in reason
 
 
 def test_migration_of_run_with_no_accepted_stages_is_legal(tmp_path: Path):
@@ -305,3 +357,51 @@ def test_load_run_manifest_dispatches_by_version(tmp_path: Path):
     run_dir2.mkdir()
     save_run_manifest(RunManifestV2(run_id=new_run_id(), run_inputs=RunInputs(view_manifest_sha256=HEX64)), run_dir2)
     assert isinstance(load_run_manifest(run_dir2), RunManifestV2)
+
+
+# --------------------------------------------------------------------------- #
+# CR-03 r2: double-temp commit protocol fault injection
+# --------------------------------------------------------------------------- #
+def test_migration_second_temp_failure_leaves_vm_unreplaced(tmp_path: Path, monkeypatch):
+    """§5.1 frozen protocol: BOTH temps must be written+fsynced before either
+    final replace. Inject a failure into the SECOND temp write (the V2
+    manifest's) — the already-prepared VM temp must NOT have been promoted to
+    view_manifest.json, the run's semantics stay V1, and no temp litter
+    remains."""
+    import src.agent.execution.manifest as mf
+
+    case_dir = Path("case_tests/e2e_tests/sm21_anchor")
+    run_dir = tmp_path / "run"
+    run_dir.mkdir()
+    _seed_v1_run(run_dir)
+    v1_bytes = (run_dir / "_run" / "run_manifest.json").read_text(encoding="utf-8")
+
+    real_write = mf._fsync_temp_write
+    calls = {"n": 0}
+
+    def failing_second_write(dir_path, name, text):
+        calls["n"] += 1
+        if calls["n"] == 2:
+            raise OSError("simulated crash writing the second (run-manifest) temp")
+        return real_write(dir_path, name, text)
+
+    monkeypatch.setattr(mf, "_fsync_temp_write", failing_second_write)
+
+    with pytest.raises(OSError, match="second"):
+        migrate_run_to_v2(case_dir, run_dir)
+
+    assert calls["n"] == 2  # VM temp was written first, V2 temp then failed
+    # neither final file moved: no view_manifest.json, run manifest bytes intact
+    assert not (run_dir / "_run" / VIEW_MANIFEST_NAME).exists()
+    assert (run_dir / "_run" / "run_manifest.json").read_text(encoding="utf-8") == v1_bytes
+    loaded = load_run_manifest(run_dir)
+    assert isinstance(loaded, RunManifestV1) and not isinstance(loaded, RunManifestV2)
+    # no orphan temp files left in _run/
+    leftovers = [p.name for p in (run_dir / "_run").iterdir() if p.name.startswith(".")]
+    assert leftovers == []
+
+    # recovery: the same migration succeeds once the fault is gone (idempotent)
+    monkeypatch.setattr(mf, "_fsync_temp_write", real_write)
+    v2 = migrate_run_to_v2(case_dir, run_dir)
+    assert isinstance(v2, RunManifestV2)
+    assert (run_dir / "_run" / VIEW_MANIFEST_NAME).exists()

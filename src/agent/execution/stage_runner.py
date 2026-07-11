@@ -28,7 +28,9 @@ from pydantic import BaseModel, ConfigDict
 
 from src.agent.execution.manifest import (
     RunManifest,
+    RunManifestV2,
     StageRecord,
+    StageRecordV2,
     hash_obj,
     hash_text,
     new_attempt_dir,
@@ -115,9 +117,19 @@ class StageRunner:
       - deterministic / manual: accepted iff the report does not block;
       - stochastic: the caller decides (a retry may supersede), default accept
         iff the report does not block.
+
+    Versioned writer (C2 B-M §5.1, CR-02): the record's wire type follows the
+    manifest the runner was constructed with. A :class:`RunManifestV2` gets a
+    :class:`StageRecordV2` with ``artifact_contract="base_v2"`` and real,
+    recomputed ``artifact_hashes`` for the two files this method just wrote
+    (all six stages — this IS the "StageRunner 通用 attempt writer" of the
+    contract table). The V1 branch remains only for read-only/legacy paths;
+    normal command flows always arrive here holding a V2 manifest because
+    run provisioning is V2-by-default and persisted-V1 runs are refused at the
+    command entrances (grandfather hard gate).
     """
 
-    def __init__(self, case_dir: Path, manifest: RunManifest) -> None:
+    def __init__(self, case_dir: Path, manifest: "RunManifest | RunManifestV2") -> None:
         self.case_dir = Path(case_dir)
         self.manifest = manifest
 
@@ -149,9 +161,8 @@ class StageRunner:
         report.attempt_hash = output_hash
         if report.artifact_hash is None:
             report.artifact_hash = output_hash
-        (adir / "checks.json").write_text(
-            report.model_dump_json(indent=2), encoding="utf-8"
-        )
+        checks_text = report.model_dump_json(indent=2)
+        (adir / "checks.json").write_text(checks_text, encoding="utf-8")
 
         check_passed = report.passed
         do_accept = check_passed if accept is None else accept
@@ -164,20 +175,31 @@ class StageRunner:
             check_passed=check_passed,
         )
         if do_accept:
-            self.manifest.accept(
-                StageRecord(
-                    stage=stage,
-                    accepted_attempt=rec.attempt_index,
-                    output_hash=output_hash,
-                    input_hashes=input_hashes or {},
-                    stage_version=stage_version,
-                    check_version=report.results[0].check_version
-                    if report.results
-                    else "1",
-                    capability=spec.capability.value,
-                    check_passed=check_passed,
-                )
+            common = dict(
+                stage=stage,
+                accepted_attempt=rec.attempt_index,
+                output_hash=output_hash,
+                input_hashes=input_hashes or {},
+                stage_version=stage_version,
+                check_version=report.results[0].check_version
+                if report.results
+                else "1",
+                capability=spec.capability.value,
+                check_passed=check_passed,
             )
+            if isinstance(self.manifest, RunManifestV2):
+                self.manifest.accept(
+                    StageRecordV2(
+                        **common,
+                        artifact_contract="base_v2",
+                        artifact_hashes={
+                            "output": output_hash,
+                            "checks": hash_text(checks_text),
+                        },
+                    )
+                )
+            else:
+                self.manifest.accept(StageRecord(**common))
         return rec
 
 

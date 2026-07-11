@@ -451,3 +451,204 @@ def test_plan_and_elevation_claim_sets_are_disjoint_where_expected():
     assert "sill" not in plan.opening_evidence.potentially_observable_claims
     assert "existence" in plan.opening_evidence.potentially_observable_claims
     assert "existence" in elevation.opening_evidence.potentially_observable_claims
+
+
+# --------------------------------------------------------------------------- #
+# CR-04: `views{}.completeness` trusted-metadata generation path
+# (metadata shape frozen by 主控 2026-07-11:
+#   views.<stem>.completeness = {"assertion_id": "<non-empty str>", "claims": [...]})
+# --------------------------------------------------------------------------- #
+def test_completeness_assertion_end_to_end_from_metadata(tmp_path: Path):
+    """From a real synthetic testdata_prompt.json all the way to the final
+    manifest: negative_evidence_capable_claims opened per claim, coverage frame
+    per view_type, assertion bound to the metadata hash + JSON pointer."""
+    case_dir = tmp_path / "case"
+    testdata = _sm21_style_testdata(views={
+        "1f_view": {"completeness": {"assertion_id": "CA-plan-1", "claims": ["existence", "along"]}},
+        "South_view": {"completeness": {"assertion_id": "CA-elev-1", "claims": ["existence", "sill"]}},
+    })
+    _write_case(case_dir, testdata)
+    m = build_view_manifest(case_dir)
+
+    plan_ev = m.entry_by_input_id("1f_view").opening_evidence
+    assert plan_ev.negative_evidence_capable_claims == ["along", "existence"]
+    assert plan_ev.coverage.frame == "plan_floor_region"
+    assert plan_ev.coverage.region == "full_floor"
+    assert plan_ev.coverage.completeness_assertion_id == "CA-plan-1"
+    assert plan_ev.completeness_assertion.assertion_id == "CA-plan-1"
+    ref = plan_ev.completeness_assertion.source_ref
+    assert ref.source == "case_metadata"
+    assert ref.json_pointer == "/views/1f_view/completeness"
+    assert ref.case_metadata_sha256 == m.case_metadata_sha256
+
+    elev_ev = m.entry_by_input_id("South_view").opening_evidence
+    assert elev_ev.negative_evidence_capable_claims == ["existence", "sill"]
+    assert elev_ev.coverage.frame == "elevation_local_along"
+    assert elev_ev.coverage.region == "full_facade"
+    assert elev_ev.completeness_assertion.source_ref.json_pointer == "/views/South_view/completeness"
+
+    # the whole thing still round-trips the strict parse (hash self-check incl.)
+    from src.agent.execution.view_manifest import ViewManifest
+
+    ViewManifest.model_validate_json(m.model_dump_json())
+
+
+def test_completeness_claim_out_of_bounds_raises(tmp_path: Path):
+    """CR-04 negative: a claim outside the view type's potentially-observable
+    set (sill on a plan) is a generation-time hard failure."""
+    case_dir = tmp_path / "case"
+    testdata = _sm21_style_testdata(views={
+        "1f_view": {"completeness": {"assertion_id": "CA-1", "claims": ["sill"]}},
+    })
+    _write_case(case_dir, testdata)
+    with pytest.raises(ValueError, match="not.*observable"):
+        build_view_manifest(case_dir)
+
+
+def test_completeness_on_non_plan_elevation_view_type_raises(tmp_path: Path):
+    """CR-04: a detail/site_plan view type has no C2 coverage frame — a
+    completeness assertion on it is a hard failure, not a silent drop."""
+    case_dir = tmp_path / "case"
+    testdata = _sm21_style_testdata(**{
+        "Path of the supplementary plan example drawing for the building": "case_data/supp_plan.png",
+        "views": {"supp_plan": {"completeness": {"assertion_id": "CA-1", "claims": ["existence"]}}},
+    })
+    _write_case(case_dir, testdata)
+    with pytest.raises(ValueError, match="no C2 coverage frame"):
+        build_view_manifest(case_dir)
+
+
+def test_completeness_malformed_shapes_raise(tmp_path: Path):
+    case_dir = tmp_path / "case"
+    for bad in (
+        {"assertion_id": "", "claims": ["existence"]},        # empty id
+        {"assertion_id": "CA-1", "claims": []},                # empty claims
+        {"assertion_id": "CA-1"},                              # missing claims
+        {"assertion_id": "CA-1", "claims": ["existence"], "extra": 1},  # unknown key
+        ["not", "an", "object"],                               # wrong type
+    ):
+        testdata = _sm21_style_testdata(views={"1f_view": {"completeness": bad}})
+        _write_case(case_dir, testdata)
+        with pytest.raises(ValueError, match="completeness"):
+            build_view_manifest(case_dir)
+
+
+# --------------------------------------------------------------------------- #
+# CR-05: declaration-family mapping table — no guessing outside a family
+# --------------------------------------------------------------------------- #
+def test_overlay_declared_but_no_family_hard_fails(tmp_path: Path):
+    """CR-05 fixture: an input "declared" only through a views{} overlay row
+    (no Floor plans / elevation / supplementary declaration, no exclusion) has
+    no declaration family — it must hard-fail, never be guessed into an entry.
+    Both halves fail closed: the overlay row itself (dangling) and, if the file
+    also exists on disk, the unclassified-image gate."""
+    # (a) overlay row with no matching declaration and no file → dangling raise
+    case_dir = tmp_path / "case_a"
+    testdata = _sm21_style_testdata(views={"mystery_view": {"dimensioned": True}})
+    _write_case(case_dir, testdata)
+    with pytest.raises(ValueError, match="unknown input"):
+        build_view_manifest(case_dir)
+
+    # (b) overlay row + the PNG physically present → still a hard fail
+    #     (unclassified image), NOT a guessed required_view
+    case_dir_b = tmp_path / "case_b"
+    _write_case(case_dir_b, testdata)
+    (case_dir_b / "case_data" / "mystery_view.png").write_bytes(_tiny_png())
+    with pytest.raises(ValueError, match="unclassified image"):
+        build_view_manifest(case_dir_b)
+
+
+def test_family_table_transforms_are_explicit():
+    """The three family rows produce exactly the table's transforms on the real
+    corpus — floor plans and cardinal elevations map identity, the
+    supplementary key appends `_view` (spec's written-out sm20 example)."""
+    m21 = build_view_manifest(SM21)
+    for e in m21.required_entries():
+        assert e.expected_output_id == e.input_id  # identity families only in sm21
+    m20 = build_view_manifest(SM20)
+    assert m20.entry_by_input_id("supp_plan").expected_output_id == "supp_plan_view"
+    assert m20.entry_by_input_id("1f_view").expected_output_id == "1f_view"
+
+
+# --------------------------------------------------------------------------- #
+# CR-06①: canonical on-disk serialization (sorted keys, fixed separators)
+# --------------------------------------------------------------------------- #
+def test_on_disk_view_manifest_bytes_are_canonical_key_sorted(tmp_path: Path):
+    case_dir = tmp_path / "case"
+    _write_case(case_dir, _sm21_style_testdata())
+    run_dir = tmp_path / "run"
+    run_dir.mkdir()
+    provision_view_manifest(case_dir, run_dir)
+
+    text = (run_dir / "_run" / VIEW_MANIFEST_NAME).read_text(encoding="utf-8")
+    # byte-level canonical-form assertion: re-serializing the parsed JSON with
+    # sorted keys + the fixed separators reproduces the file exactly
+    assert text == json.dumps(
+        json.loads(text), indent=2, sort_keys=True, separators=(",", ": "), ensure_ascii=False
+    )
+
+
+def test_migration_written_view_manifest_is_canonical_and_identical_to_provision(tmp_path: Path):
+    """provision and migration share ONE canonical serializer — same case must
+    produce byte-identical view_manifest.json through either write path."""
+    import shutil as _shutil
+
+    from src.agent.execution.manifest import migrate_run_to_v2
+
+    case_dir = tmp_path / "case"
+    _write_case(case_dir, _sm21_style_testdata())
+
+    run_a = tmp_path / "run_a"
+    run_a.mkdir()
+    provision_view_manifest(case_dir, run_a)
+
+    run_b = tmp_path / "run_b"
+    run_b.mkdir()
+    migrate_run_to_v2(case_dir, run_b)  # empty v1 → v2, writes VM via migration path
+
+    text_a = (run_a / "_run" / VIEW_MANIFEST_NAME).read_text(encoding="utf-8")
+    text_b = (run_b / "_run" / VIEW_MANIFEST_NAME).read_text(encoding="utf-8")
+    assert text_a == text_b
+
+
+# --------------------------------------------------------------------------- #
+# CR-01: on-disk tamper with stale hash — both consumer entry points reject
+# --------------------------------------------------------------------------- #
+def test_verify_rejects_on_disk_field_tamper_with_stale_hash(tmp_path: Path):
+    """terra's exact reproduction: forge one required entry's
+    expected_output_id in the on-disk file, keep the original content_sha256 —
+    verify_view_manifest must come back not-ok (parse-level self-check)."""
+    case_dir = tmp_path / "case"
+    _write_case(case_dir, _sm21_style_testdata())
+    run_dir = tmp_path / "run"
+    run_dir.mkdir()
+    provision_view_manifest(case_dir, run_dir)
+
+    vm_path = run_dir / "_run" / VIEW_MANIFEST_NAME
+    doc = json.loads(vm_path.read_text(encoding="utf-8"))
+    for entry in doc["entries"]:
+        if entry["input_id"] == "1f_view":
+            entry["expected_output_id"] = "1f_view_forged"
+    vm_path.write_text(json.dumps(doc), encoding="utf-8")  # stale content_sha256
+
+    result = verify_view_manifest(case_dir, run_dir)
+    assert not result.ok
+    assert "corrupt" in result.reason
+
+
+def test_provision_reuse_rejects_tampered_existing_manifest(tmp_path: Path):
+    """The provision-idempotence path parses the existing file through the
+    self-verifying model too — a tampered file can't be 'reused'."""
+    case_dir = tmp_path / "case"
+    _write_case(case_dir, _sm21_style_testdata())
+    run_dir = tmp_path / "run"
+    run_dir.mkdir()
+    provision_view_manifest(case_dir, run_dir)
+
+    vm_path = run_dir / "_run" / VIEW_MANIFEST_NAME
+    doc = json.loads(vm_path.read_text(encoding="utf-8"))
+    doc["case_id"] = "forged_case"
+    vm_path.write_text(json.dumps(doc), encoding="utf-8")
+
+    with pytest.raises(ValueError, match="corrupt"):
+        provision_view_manifest(case_dir, run_dir)

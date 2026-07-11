@@ -583,9 +583,16 @@ def test_merge_refuses_grandfathered_v1_run(tmp_path: Path):
     staging = manifest.staging_root
 
     # Simulate a legacy v1 manifest landing on this (already-verified) run dir —
-    # e.g. a stale v1 run reused before its formal v2 identity commit.
+    # e.g. a stale v1 run reused before its formal v2 identity commit. The
+    # accepted pointer's real attempt artifacts exist on disk (M0 discipline —
+    # CR-03's migration backfill now hard-requires output.json + checks.json).
+    attempt_dir = run_dir / "1_correction" / "attempts" / "001"
+    attempt_dir.mkdir(parents=True)
+    out_text = json.dumps({"legacy": True})
+    (attempt_dir / "output.json").write_text(out_text, encoding="utf-8")
+    (attempt_dir / "checks.json").write_text(json.dumps({"ok": True}), encoding="utf-8")
     v1 = RunManifest(case=case_dir.name)
-    v1.accept(StageRecord(stage="1_correction", accepted_attempt=1, output_hash="a" * 64))
+    v1.accept(StageRecord(stage="1_correction", accepted_attempt=1, output_hash=hash_text(out_text)))
     v1.save(run_dir)
 
     output = staging / "out/output.json"
