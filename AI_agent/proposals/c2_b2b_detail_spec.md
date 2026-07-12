@@ -2,7 +2,7 @@
 
 > **版本史**：v1（基座 `bac689b`）→ Fable 最高档 r1 **APPROVE-WITH-CHANGES：1 MAJOR + 1 MINOR + 1 NIT**（[判词](../logs/reviews/verdict/2026-07-12_c2_b2b_spec_review_r1.md)）→ v2 全部采纳：拆开 B3 开工前置门与 B2b 三容差施工后自检；冻结 topology guard 的候选模拟评估时点；移除 endpoint chain helper 的 tol 默认值；并把现状对账更新到 B3 `20da78a` + Vg 收录后基座。
 >
-> **状态**：v2 修订稿，待主控对 r1 changes 做 closure 复核；谁写谁不批。本稿只放行 B2b 施工，不放行 B3、Vg、B4、B5 或 E4 的顺带施工。B3 已收录于 `20da78a`；Vg 当前已施工待复核，B2b **只能在 Vg 复核收录后 rebase 到该 commit 再施工**。
+> **状态**：v2 **定稿**（2026-07-12 主控 closure 复核通过：R1=§0.2/§0.3 拆分落实、R2=#7 移 Phase B post-simulation/pre-commit+防御纵深说明、R3=`close_tol_m` 无默认+`inspect.signature` 测试锁）；谁写谁不批。本稿只放行 B2b 施工，不放行 B3、Vg、B4、B5 或 E4 的顺带施工。B3 已收录于 `20da78a`；Vg 已复核收录（`9da9ad4`），B2b 施工基座 = 当前 main 线 HEAD（`153e5bd` 或其后）。
 >
 > **唯一目标**：把 schema v3 非矩形 `Floor.footprint` 的 envelope reconcile 从“整轴 unsupported”窄化为有证据、可回滚的逐共享轴原子变形；保持 v1/v2 legacy 行为不变。
 >
