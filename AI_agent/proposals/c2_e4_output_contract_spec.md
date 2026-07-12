@@ -1,7 +1,7 @@
-# C2 E4-output-contract 代码级施工细稿 v1：Relative 出口 + Zone 零原点 + 真北 θ 唯一 owner
+# C2 E4-output-contract 代码级施工细稿 v2：Relative 出口 + Zone 零原点 + 真北 θ 唯一 owner
 
-> **状态**：2026-07-12 次高档细稿；Fable 独立交叉审 **APPROVE**（零残余 BLOCKER/HIGH）。唯一上位定案为 [c2_full_unlock_design.md](c2_full_unlock_design.md) v2.2 §E4，实证基线为 [E4 probe RESULTS](../logs/experiments/2026-07-10_e4_relative_north_axis_probe/RESULTS.md)。
-> **基座**：commit `bac689b`。本文是累计式、自包含施工合同；新执行者只读本文即可施工，无需回读评审对话。现状行号只用于定位，若施工时漂移，以本文点名的符号和不变量为准。
+> **版本史（只记已发生事实，不预填未来判定）**：v1 2026-07-12 次高档出稿 → Fable 最高档 r1 [判词](../logs/reviews/verdict/2026-07-12_c2_e4oc_spec_review_r1.md) **APPROVE-WITH-CHANGES（3 MAJOR）** → **v2 2026-07-12**：E4-R1 真实版本史、E4-R2 prior_fill assumed-0 确定性生产通路、E4-R3 E4 helper release-map 注册三条全采纳；v2 尚无后续审判词。唯一上位定案为 [c2_full_unlock_design.md](c2_full_unlock_design.md) v2.2 §E4，实证基线为 [E4 probe RESULTS](../logs/experiments/2026-07-10_e4_relative_north_axis_probe/RESULTS.md)。
+> **现基座**：commit `20da78a`（B3 已收录）+ 尚在工作树的 Vg 实码；`src/agent/correction/feature_state.py` 已有 `_CORRECTION_STAGE_VERSION_BY_RELEASE` 与 `correction_stage_version()`。本文是累计式、自包含施工合同；新执行者只读本文即可施工，无需回读评审对话。现状行号只用于定位，若施工时漂移，以本文点名的符号和不变量为准。
 > **批次边界**：本稿只冻结 `E4-output-contract` 的施工方案与 B-O 消费合同；实际接线仍由后续 **B-O** 批执行。本轮不改代码、不改测试、不改 golden。
 
 ---
@@ -24,6 +24,8 @@ E4 是 **EP 出口坐标声明迁移**，不是几何旋转：
 
 - 内部 `OutputCoordinateContract` strict 类型、派生器、持久 sidecar、加载/校验入口；不扩 `IntakeOutput` 11 字段；
 - accepted correction schema/digest 绑定，integrated 与 stepwise 两路径同一派生/校验；
+- `completion_mode=prior_fill` + 受信 orientation 零证据时，由 enrichment finalize 确定性生成 `NorthAxisEvidence(0.0, assumed)`，同批进入 accepted correction；
+- E4 orientation helper claims 在集中 correction release map 注册为 release `"4"`，writer 只经 `correction_stage_version()` 派生；
 - S4 MEP 占位 0 硬门与 S5 无条件 θ override；
 - intake seed 的 `GlobalGeometryRules` 确定性设置；
 - Zone Origin/Direction 的代码级归零、迁移门和最终 IDF 门；
@@ -36,7 +38,7 @@ E4 是 **EP 出口坐标声明迁移**，不是几何旋转：
 
 - 不旋转 correction、kernel、`BuildingGeometry` 或 specs 顶点；
 - 不把 N/S/E/W facade 标签改成真北方位；
-- 不改变 `NorthAxisEvidence` 的证据采集、优先级、sanity 或 provenance 政策；这些由 correction orientation 批产出，本批只消费 accepted typed value；
+- 不改变 observed/derived `NorthAxisEvidence` 的证据采集、优先级、sanity 或 provenance 政策；唯一新增 producer 是上位 §T' 已裁定的零证据 prior_fill policy default，由 §3.2bis 确定性生成 assumed-0；
 - 不给 v1/v2 伪造 `NorthAxisEvidence`，不迁写历史 IntakeOutput/IDF/golden；
 - 不新增 shading/daylighting 功能；只做 registry、显式分类和“若将来出现则必须受合同管理”的门；
 - 不改变 11 字段 IntakeOutput wire，不移除 `MepOutput.building.north_axis`；breaking MEP schema 留未来版本；
@@ -81,7 +83,7 @@ E4 是 **EP 出口坐标声明迁移**，不是几何旋转：
 
 ---
 
-## 2. 现状对账（`bac689b`）
+## 2. 现状对账（`20da78a` + Vg 工作树）
 
 | # | 现状事实 | 代码落点 / 风险 |
 |---|---|---|
@@ -99,6 +101,7 @@ E4 是 **EP 出口坐标声明迁移**，不是几何旋转：
 | 12 | integrated `run_pipeline` 与 stepwise `run_stage.py` 各自装配；downstream 另有 `--intake-from` short-circuit | `src/agent/pipeline.py`、`scripts/tool_scripts/run_stage.py`、`src/agent/nodes/intake.py`、`src/agent/runner.py`；三入口都必须携带同一内部合同 |
 | 13 | stepwise correction accepted identity 已有 `RunManifestV2`、`StageRecordV2.output_hash/artifact_hashes`、`correction_b2_v1` | `src/agent/execution/manifest.py`；E4 直接绑定，不另造“最新 root 文件”权威 |
 | 14 | 最终 IDF 由 ConfigState→YAML→ConverterManager 生成；pre-EP gate 目前只查 interzone/schedule | `src/mcp/tools/workflow.py`；坐标合同必须在 YAML 前与 IDF 后各验一次 |
+| 15 | Vg 已把所有 v3 correction finalize 的 `facade_segments` 变为必 populated；claims helper tuple 为 `("floor_footprint_v1", "facade_visibility_v1")`，集中 release map 派生 `stage_version="3"`，未知 helper/state 组合 INVARIANT | `src/agent/correction/feature_state.py:_CORRECTION_STAGE_VERSION_BY_RELEASE/correction_stage_version`；E4 enrichment 必须注册新 helper 组合，writer 禁写版本字面量 |
 
 ---
 
@@ -254,42 +257,134 @@ def legacy_contract_for_unversioned_intake(
 
 上述两个 API 共同构成 explicit dispatch 的唯一 owner：有 correction 身份必须走 derive；只有 §3.4 第 4 条的无版本历史文件可走 factory。全仓禁止重复写 `schema_version == "3"` 来决定坐标模式；其他模块只消费派生后的 `contract.mode`。
 
-### 3.2bis orientation-enriched correction 的唯一生产路径
+### 3.2bis orientation-enriched correction 的唯一生产路径（含 prior_fill default-0）
 
-`bac689b` 的 B2 合同故意要求 `north_axis is None`，并把 `typed_north_axis` 固定为 `declared_unpopulated`。B-O 不得直接翻这个布尔或手改旧 output；新增一个**确定性 augment phase**，只丰富 metadata，不重抽/重写几何：
+B2 合同故意要求 `north_axis is None`；现 Vg 工作树又要求所有 v3 final 的 `facade_segments="populated"`、`typed_north_axis="declared_unpopulated"`。B-O 不得直接翻 claim 或手改旧 output；新增一个**确定性 augment phase**，只丰富 orientation metadata，不重抽/重写几何。该 phase 同时是 §T'“没有总平/指北针 → default 0 + assumed”的唯一机械 owner，不另等未来批次。
 
 ```python
+class OrientationConflictV1(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True)
+    conflict_id: Hex64
+    reason: str
+    source_ids: tuple[str, ...]
+
+class OrientationResolutionInputV1(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True)
+    schema_version: Literal["1"] = "1"
+    base_correction_sha256: Hex64
+    evidence_set_sha256: Hex64              # 绑定已核的 orientation evidence set；空集也有 canonical hash
+    accepted_candidates: tuple[NorthAxisEvidence, ...]
+    conflicts: tuple[OrientationConflictV1, ...]
+    completion_mode: Literal["interactive", "prior_fill"]
+
 class OrientationEnrichmentV1(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True)
     schema_version: Literal["1"] = "1"
     base_correction_sha256: Hex64
-    orientation_evidence_sha256: Hex64
+    orientation_resolution_sha256: Hex64    # 上述 input + 最终 resolution 的 canonical hash
+    resolution_kind: Literal[
+        "accepted_evidence", "prior_fill_assumed_zero"
+    ]
     north_axis: NorthAxisEvidence
+
+@dataclass(frozen=True)
+class VerifiedOrientationResolution:
+    raw_resolution_input_bytes: bytes
+    raw_evidence_set_bytes: bytes
+    raw_run_config_bytes: bytes
+    # verifier 已重算三者 hash、fresh parse，并证明 completion_mode/evidence
+    # 与 OrientationResolutionInputV1 一致；只留 immutable bytes。
 
 def finalize_orientation_enrichment(
     base: VerifiedAcceptedCorrection,
-    enrichment: OrientationEnrichmentV1,
+    resolution: VerifiedOrientationResolution,
 ) -> FinalizeResult:
-    # base 必须是 v3 + correction_b2_v1（或已 enriched 后显式 replacement）；
+    # 每次从三份 raw bytes fresh strict parse，不能信任可 mutation nested model；
+    # base 必须是 accepted v3 + correction_b2_v1，且继承 Vg release claims；
+    # conflicts 非空恒 BLOCK；accepted_candidates >1 恒 BLOCK；
+    # ==1：使用该 accepted typed evidence；
+    # ==0 且 interactive：NEEDS_INPUT，不生成 attempt；
+    # ==0 且 prior_fill：由本函数确定性生成 assumed-0（见下）；
     # 从 base.raw_output_bytes fresh parse，只替换顶层 north_axis；
     # 用 CorrectedGeometryV3.model_validate fresh rebuild，不用 model_copy(update=...)；
-    # 除 north_axis 外逐字段 canonical dump 与 geometry-coordinate digest 必须不变；
-    # feature claims 仅 typed_north_axis: declared_unpopulated→populated，
-    # 其余 claims/helper_versions 原样 carry forward并复验。
+    # 除 north_axis + 对应 audit 外逐字段 canonical dump 与 geometry-coordinate digest 必须不变。
 ```
 
-输入 `OrientationEnrichmentV1` 必须来自**恰一份 accepted orientation evidence**；零份、两份、hash 不一致或 evidence sanity/conflict 未闭合均 BLOCK。历史 attempt 可有多份，但同一时刻 manifest 只能有一个 current accepted correction 与一个被它绑定的 orientation evidence；“多份冲突”不把 append-only history 误判成冲突。
+受信 evidence set 必须无论有无候选都写成 canonical、content-addressed artifact：`<run>/1_correction/orientation_evidence_sets/<sha256>.json`；缺文件不等于空集。verifier 证明 `OrientationResolutionInputV1` 的 candidates/conflicts 与该 raw artifact fresh strict parse 逐字段相等、`evidence_set_sha256` 等于 raw hash、completion_mode 等于 hash-bound RunConfig，然后才构造 `VerifiedOrientationResolution`；attempt 只在 `input_hashes` 引用这些权威输入，不复制/改写。
 
-writer 合同冻结：
+`accepted_candidates` 是上游按 E4.3 优先级/sanity **归并后的候选真值**，不是每枚原始北针各占一条；多枚在 uncertainty 内一致时合成一条并保留全部 `source_ids`，只有无法归并的多真值才进入 multiple/conflict BLOCK。
 
-- `CorrectionTarget.phase_contract` 扩为 `"b2" | "e4_orientation"`；`b2` 继续强制 north_axis 空，`e4_orientation` 强制 v3、north_axis 非空且只允许上述 augment API；不得走全几何 LLM redraw；
-- 新 attempt 仍落 `1_correction/attempts/NNN/`，`StageRecordV2.stage_version="3"`、`artifact_contract="correction_e4_orientation_v1"`；
-- required/allowed artifact keys = `output/checks/audit/feature_states`；若 accepted orientation evidence 是独立 sidecar，则再以 `input_hashes["orientation_evidence"]` 绑定其 raw hash，不复制成第二权威；
-- `input_hashes` 至少含 `base_correction` 与 `orientation_evidence`；accept 新 attempt 后按既有 DAG invalidate 2–5，使 geometry/specs/MEP/S5 都重新绑定新 correction digest；
-- `derive_feature_state_claims`/`artifact_feature_state` 的允许矩阵加入 `correction_e4_orientation_v1`；typed north 必为 populated，其他 feature state 与 base 相等；
-- 重复执行且 base/orientation hash 相同可复用现 accepted attempt；证据 hash 变化必须新建 append-only attempt，不原位改写。
+**零证据 prior_fill 的唯一值**：`finalize_orientation_enrichment` 在 `accepted_candidates == ()`、`conflicts == ()`、`completion_mode == "prior_fill"` 三条件同时成立时机械构造：
 
-验收：augment 前后 `footprints/cells/windows/facade_segments/corrections/conflicts/unsupported` 逐字段相等，kernel canonical coordinate snapshot hash 相等；唯一允许差异是 `north_axis`、对应 orientation audit、feature-state transition 与 artifact identity。
+```python
+NorthAxisEvidence(
+    value_deg=0.0,
+    provenance="assumed",
+    source_ids=[],
+    uncertainty_deg=None,
+    method="prior_fill_default_zero_v1",
+    frame_transform_hash=None,
+)
+```
+
+对应 audit wire 同节冻结：
+
+```python
+class NorthAxisAssumptionAuditV1(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True)
+    kind: Literal["north_axis_assumption"] = "north_axis_assumption"
+    value_deg: FiniteFloat                  # validator: == 0.0
+    completion_mode: Literal["prior_fill"] = "prior_fill"
+    evidence_candidate_count: Literal[0] = 0
+    policy_ref: Literal[
+        "c2_e4.north_axis.default_zero.v1"
+    ] = "c2_e4.north_axis.default_zero.v1"
+    knowledge_ref: None = None
+    knowledge_ref_na_reason: Literal[
+        "policy_default_not_knowledge_lookup"
+    ] = "policy_default_not_knowledge_lookup"
+```
+
+- 这里的“零证据”指受信 evidence-set artifact 明确为空，不是 loader 缺文件、解析失败或 conflict 被吞；缺 artifact/hash 漂移仍 BLOCK。
+- assumed-0 是产品 policy default，不是知识表候选：`NorthAxisEvidence` strict wire 无 `knowledge_ref`，不得塞 extra 或伪造知识条目。correction audit 写上述 strict record；最终 REPORT assumed 桶机械收录同一 `policy_ref`、`knowledge_ref: null` 与同一 N/A reason。
+- interactive 零证据不得偷走 prior_fill 分支；返回 `NEEDS_INPUT`。任何 conflict、损坏证据或多份 accepted candidate 都不得降级 assumed 0。
+- B-O 同批固定先后：**orientation resolution/finalize → accepted enriched correction → invalidate/rebuild 2–5 → S4/S5/EP 出口**。因此 B-O 激活 Relative BLOCK 的同时已经交付 default-0 通路；所有无总平/指北针的 prior_fill v3 case 都能在 S5 前得到 populated typed north，不依赖另一个未来批。
+
+历史 attempt 可有多份，但同一时刻 manifest 只能有一个 current accepted correction 与一个被它绑定的 resolution；“多份冲突”不把 append-only history 误判成冲突。重复执行且 base/resolution hash 相同可复用现 accepted attempt；证据或 completion_mode hash 变化必须新建 append-only attempt，不原位改写。
+
+#### E4 helper release-map 注册（E4-R3；对齐 Vg 实码）
+
+`stage_version` 禁止在 enrichment、StageRunner 或 CLI 写字面量。`src/agent/correction/feature_state.py` 是 release-map/派生机制的唯一代码 owner；本文是下列 E4 release tuple 及状态语义的规范 owner：
+
+Vg 已在当前工作树成为所有 v3 finalize 的必经 helper，因此 B-O 的 base 必须是现有 Vg release tuple（stage release `"3"`）而不是早期只含 `floor_footprint_v1` 的 B2 release；这是对现基座的消费，不再等待未来 Vg 批。
+
+```python
+HELPER_NORTH_AXIS_ORIENTATION_V1 = "north_axis_orientation_v1"
+
+_CORRECTION_STAGE_VERSION_BY_RELEASE = {
+    ("floor_footprint_v1",): "2",
+    ("floor_footprint_v1", "facade_visibility_v1"): "3",
+    (
+        "floor_footprint_v1",
+        "facade_visibility_v1",
+        HELPER_NORTH_AXIS_ORIENTATION_V1,
+    ): "4",  # E4 orientation-enriched v3 release；字面量只准在集中 map
+}
+```
+
+E4 claims 精确为：`target_schema_version="3"`、`phase_contract="e4_orientation"`、helper tuple 按上述依赖顺序、`cell_polygon/per_floor_footprint/facade_segments/typed_north_axis` 四项全 `populated`。`derive_feature_state_claims()` 必须由 final geom + phase 重派生此 tuple；不能把 Vg tuple 原样 carry forward后只改 state。
+
+`correction_stage_version()` 为新 helper tuple 增加状态交叉门：该 tuple 只接受 `phase_contract=="e4_orientation"`、`facade_segments=="populated"`、`typed_north_axis=="populated"`；Vg tuple 继续要求 facade populated 且 typed north declared_unpopulated。guard 按 exact helper tuple 选，不在函数中另写 `version == "4"`；wire release 值 `"4"` 的唯一生产字面量仍只在集中 map。未知 helper tuple、错顺序、已 populated north 却仍报 Vg tuple、caller/StageRunner 传任意 version override 全部 INVARIANT。StageRunner 在 accepted writer 边界重派生 expected claims 后只调用 `correction_stage_version(expected)`；不得出现 correction release 的 `"4"` 字面量。
+
+writer 合同其余冻结：
+
+- `CorrectionTarget.phase_contract` 扩为 `"b2" | "e4_orientation"`；`b2`/Vg final 继续 north_axis 空，`e4_orientation` 强制 v3、north_axis 非空且只允许上述 augment API；不得走全几何 LLM redraw；
+- 新 attempt 仍落 `1_correction/attempts/NNN/`，`artifact_contract="correction_e4_orientation_v1"`；`stage_version` 只由上述 map 派生为 `"4"`，调用方不传/不硬写；
+- required/allowed artifact keys = `output/checks/audit/feature_states`；`input_hashes` 至少绑定 `base_correction`、`orientation_evidence_set`、`orientation_resolution` 与 `run_config`（completion_mode 身份）；
+- `artifact_feature_state()` 的允许 contract 集合加入 `correction_e4_orientation_v1`，仍先验四产物 hash chain，才读取 populated typed north；
+- accept 新 attempt 后按既有 DAG invalidate 2–5，使 geometry/specs/MEP/S5 都重新绑定新 correction digest。
+
+验收：augment 前后 `footprints/cells/windows/facade_segments` 及非 orientation audit 逐字段相等，kernel canonical coordinate snapshot hash 相等；唯一允许差异是 `north_axis`、对应 orientation/assumption audit、feature-state helper/state transition 与 artifact identity。
 
 ### 3.3 内存落点：AgentState，不进 IntakeOutput
 
@@ -452,7 +547,7 @@ pass iff type(value) in numeric path and value == 0.0
 
 **真正硬冲突只有**：
 
-- accepted correction orientation 缺失或 feature-state 非 populated；
+- §3.2bis resolution/finalize 完成后 accepted correction orientation 仍缺失或 feature-state 非 populated（零 evidence prior_fill 必须先机械补 assumed-0，不能在这里误报缺失）；
 - 同一 run 出现多份 current accepted correction identity；
 - correction ref 的 schema/digest/attempt/run_id/artifact contract 不匹配；
 - θ 或 typed evidence 非法；
@@ -519,8 +614,11 @@ WorkflowTool(config, output_coordinates=contract, validation_context=context)
 
 | correction/输入身份 | sidecar | 合同 mode | GGR A3/A4/A5 | Zone frame | Building North Axis |
 |---|---|---|---|---|---|
-| accepted v3 + populated orientation | 必须有 | `relative_north_axis` | Relative/Relative/Relative | 四字段全 0 | correction θ |
-| v3 但 orientation 缺失 | 不得生成 | BLOCK | — | — | — |
+| v3 + 恰一 accepted orientation evidence | §3.2bis enrichment 后必须有 | `relative_north_axis` | Relative/Relative/Relative | 四字段全 0 | evidence θ |
+| v3 + 零 evidence + `prior_fill` | finalize 机械生成 assumed-0 后必须有 | `relative_north_axis` | Relative/Relative/Relative | 四字段全 0 | 0.0（assumed） |
+| v3 + 零 evidence + `interactive` | 不得生成 | `NEEDS_INPUT` | — | — | — |
+| v3 + conflict/多份 accepted candidate/证据 artifact 损坏 | 不得生成 | BLOCK | — | — | — |
+| v3 B2/Vg artifact 尚未走 enrichment | 不得生成 E4 sidecar | BLOCK at E4 boundary | — | — | — |
 | v3 但 sidecar 丢失/坏 hash | 缺/坏 | BLOCK | — | — | — |
 | v1/v2 accepted legacy | 可显式生成 | `world_legacy` | World/Relative/Relative | 保持旧行为 | 0 placeholder |
 | standalone 历史 11 字段、无 v3 身份 | 无 | `world_legacy` | World/Relative/Relative | 保持旧行为 | 0 placeholder |
@@ -714,17 +812,19 @@ issue code 固定词汇：`CONTRACT_IDENTITY`、`MODE_SCHEMA_MISMATCH`、`BUILDI
 
 B-O 按顺序消费本文：
 
-1. orientation 产物进入新的 v3 correction attempt，`typed_north_axis` feature-state=populated；
-2. 建 `output_coordinates.py` 类型/derive/sidecar/registry；
-3. S4 placeholder gate；
-4. S5 bundle assembly + θ override + accepted sidecar；
-5. AgentState/loader/CLI 携带合同；
-6. GGR A4/A5 schema/converter；
-7. seed/Zone postprocess/final gate；
-8. IDF runtime audit；
-9. 单测→路径 parity→EP 五条 E2E。
+1. 读取 hash-bound orientation evidence set + RunConfig.completion_mode；恰一 evidence 采用、零 evidence prior_fill 机械生成 assumed-0、interactive 零 evidence 停 `NEEDS_INPUT`、conflict/multiple BLOCK；
+2. `finalize_orientation_enrichment` 形成新 v3 correction attempt；claims 四项 populated，helper tuple 注册 `+north_axis_orientation_v1`，writer 由 release map 派生 stage version `"4"`；
+3. accept enriched correction 并 invalidate/rebuild 2–5，确保所有后续 artifact 绑定新 digest；
+4. 建 `output_coordinates.py` 类型/derive/sidecar/registry；
+5. S4 placeholder gate；
+6. S5 bundle assembly + θ override + accepted sidecar；
+7. AgentState/loader/CLI 携带合同；
+8. GGR A4/A5 schema/converter；
+9. seed/Zone postprocess/final gate；
+10. IDF runtime audit；
+11. 单测→路径 parity→EP 五条 E2E。
 
-B-O 不得简化为“给 `Building.north_axis` 赋值”或“只改 prompt”；缺 sidecar、Zone 迁移、对象审计、legacy 分派、两路径 parity 任一项都算未完成。
+B-O 不得简化为“给 `Building.north_axis` 赋值”或“只改 prompt”；prior_fill producer、release-map 注册、sidecar、Zone 迁移、对象审计、legacy 分派、两路径 parity 任一项缺失都算未完成。B-O 不依赖未来 orientation 批：§3.2bis enrichment（含 assumed-0）就是 B-O 的首个施工子件。
 
 ---
 
@@ -767,6 +867,8 @@ B-O 不得简化为“给 `Building.north_axis` 赋值”或“只改 prompt”�
 - strict wire：缺字段/extra/坏 digest/NaN/inf/θ=360/负角拒；
 - mode 组合矩阵：Relative+v1、World+v3、Relative+preserve origins、legacy+orientation metadata 全拒；
 - v3 θ=0 observed 与 assumed 都派生 Relative，provenance 保持可区分；
+- orientation resolution 四表：零 evidence+prior_fill 精确生成 §3.2bis 六字段 assumed-0；零 evidence+interactive=`NEEDS_INPUT`；conflict/multiple=BLOCK；evidence artifact 缺失/坏 hash不得冒充零证据；
+- assumed-0 audit/REPORT 断言 `policy_ref` 一致、`knowledge_ref is None`、N/A reason 精确，且没有知识表伪引用；
 - v1/v2 即使 legacy extra 或 Building 非零也只能派生 World/0，不读 extra；
 - 未知 schema、v3 north_axis None、feature-state 未 populated、digest/run_id/attempt 漂移拒；
 - 禁用模式哨兵：θ=0/90 都由同一 mode 字段分派，不走 truthiness。
@@ -790,6 +892,9 @@ B-O 不得简化为“给 `Building.north_axis` 赋值”或“只改 prompt”�
 
 ### 10.4 accepted identity/sidecar（扩 manifest/stage runner 测试）
 
+- correction release map 锁定三条 exact tuple：B2→`"2"`、Vg→`"3"`、Vg+`north_axis_orientation_v1`且四 claims populated/phase=e4_orientation→`"4"`；错顺序、漏 helper、north state/phase 错配、未知组合均 INVARIANT；
+- enrichment accepted writer 即使 caller 传 `"1"/"3"/"9"` 也只经 `correction_stage_version(expected)` 记 `"4"`；`stage_runner.py`/enrichment writer 无 correction release `"4"` 字面量；
+- `correction_e4_orientation_v1` 四 artifact hash 齐全，input hashes 同时绑定 base/evidence-set/resolution/run-config；augment 前后 geometry snapshot digest 相等；
 - S5 `assembly_e4_v1` 五个 required artifact hash 逐名齐全：`output/checks/audit/output_coordinate_contract/output_coordinate_snapshot`，output hash 不变式继续成立；
 - accepted 001→blocked 002：loader 仍只读 001 contract；root mirror 被 002 污染也不影响权威且验证报漂移；
 - 篡改 contract sidecar/output/correction output/manifest 任一处均断链；
@@ -827,23 +932,26 @@ B-O 不得简化为“给 `Building.north_axis` 赋值”或“只改 prompt”�
 - 现有 tests 全绿，9 个 strict xfail 数量与 reason 不变；
 - 零 golden 修改，零探针基线重录；
 - 新容差仅用 `e4_azimuth_zero_tol_deg=1e-6`、`e4_azimuth_rotation_tol_deg=1e-3`、`e4_area_volume_tol=1e-6`，不得复用几何 min-edge/snap 容差；配置/A0 同步登记。
+- A0 同步登记 `phase_contract=e4_orientation`、helper `north_axis_orientation_v1`、集中 release-map 条目→`"4"`、`OrientationResolutionInputV1/NorthAxisAssumptionAuditV1`、method `prior_fill_default_zero_v1`、policy_ref 与 REPORT 的 `knowledge_ref:null` N/A 口径；assumed-0 不引入新数值容差。
 
 ---
 
 ## 11. 施工顺序与逐步放行门
 
-1. strict contract/ref/bundle 类型 + derive 单测；
-2. accepted identity 与 `assembly_e4_v1` sidecar writer/loader；
-3. S4 placeholder gate + S5 fresh Building override；
-4. AgentState、intake node、CLI bundle 贯穿；
-5. GGR A4/A5 schema/converter + seed application；
-6. Zone prompt/tool 文案 + postprocess + late-write gate；
-7. registry/IDD completeness + ConfigState/IDF validator；
-8. integrated/stepwise parity；
-9. EP 四变体五断言；
-10. 全量回归与 zero-golden 对账。
+1. orientation resolution + prior_fill assumed-0 + strict audit/REPORT；
+2. `e4_orientation` finalize + feature claims + release-map `"4"` 注册 + accepted identity；
+3. strict contract/ref/bundle 类型 + derive 单测；
+4. `assembly_e4_v1` sidecar writer/loader；
+5. S4 placeholder gate + S5 fresh Building override；
+6. AgentState、intake node、CLI bundle 贯穿；
+7. GGR A4/A5 schema/converter + seed application；
+8. Zone prompt/tool 文案 + postprocess + late-write gate；
+9. registry/IDD completeness + ConfigState/IDF validator；
+10. integrated/stepwise parity；
+11. EP 四变体五断言；
+12. 全量回归与 zero-golden 对账。
 
-每步先跑本节对应小测试，再跑全量；第 2、4、7、9 步各保留独立 diff/测试记录供复核。任何一步不得用 prompt 替代代码 invariant，也不得为让 EP 通过而直接旋转顶点。
+每步先跑本节对应小测试，再跑全量；第 1、2、4、6、9、11 步各保留独立 diff/测试记录供复核。任何一步不得用 prompt 替代代码 invariant，也不得为让 EP 通过而直接旋转顶点。
 
 ---
 
@@ -852,6 +960,8 @@ B-O 不得简化为“给 `Building.north_axis` 赋值”或“只改 prompt”�
 B-O 只有同时满足以下条件才可声明 E4 完成：
 
 - `OutputCoordinateContract` 已作为 strict、hash-bound 内部 artifact 落盘且不扩 11 字段；
+- 无总平/指北针的 prior_fill v3 case 已在 enrichment finalize 机械生成 assumed-0、形成 audit/REPORT 并于 S5 前 accepted；interactive/conflict 分支没有被 default 吞掉；
+- E4 helper exact tuple 已在 `_CORRECTION_STAGE_VERSION_BY_RELEASE` 注册为 release `"4"`，claims/state/phase 交叉门与 writer 派生测试全过，StageRunner 无散落版本字面量；
 - v3 θ=0/90/270 都显式派生 Relative，v1/v2 明确 World；仓库无按 θ 猜分支；
 - MEP 只产 0 placeholder，S5 从 accepted correction 无条件 override；
 - ConfigState/YAML/IDF 的 GGR A3/A4/A5、Building θ、全部 Zone frame 三层一致；

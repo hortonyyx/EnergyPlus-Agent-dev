@@ -29,6 +29,11 @@ def _tol(**over) -> CoreTolerances:
         coverage_area_tol_m2=0.05,
         gap_close_threshold_m=0.30,
         gap_arbitration_band_m=1.00,
+        # Vg rework CR5 (§10.1): these two carry no dataclass default any
+        # more — every helper must pass them explicitly; override via `over`
+        # when a test needs a different value.
+        facade_visibility_depth_epsilon_m=1e-9,
+        facade_visibility_endpoint_epsilon_m=1e-9,
     )
     base.update(over)
     t = CoreTolerances(**base)
@@ -412,3 +417,54 @@ def test_default_config_loads():
     tol = load_core_tolerances()
     tol.validate()
     assert tol.structural_snap_grid_m <= tol.min_edge_length_m
+
+
+def test_default_config_loads_facade_visibility_epsilons():
+    """C2 Vg (§10.1): the shipped two epsilons load exactly and validate."""
+    tol = load_core_tolerances()
+    assert tol.facade_visibility_depth_epsilon_m == 1e-9
+    assert tol.facade_visibility_endpoint_epsilon_m == 1e-9
+    tol.validate()
+
+
+@pytest.mark.parametrize("bad_depth_eps", [0.0, -1e-9, float("nan"), float("inf"), 1.0])
+def test_invariant_facade_visibility_depth_epsilon_bounds(bad_depth_eps):
+    """Must be strictly inside (0, structural_snap_grid_m) — a degeneracy
+    guard, never a measurement tolerance (§10.1)."""
+    with pytest.raises(ValueError):
+        _tol(facade_visibility_depth_epsilon_m=bad_depth_eps)
+
+
+@pytest.mark.parametrize("bad_endpoint_eps", [0.0, -1e-9, float("nan"), 1.0])
+def test_invariant_facade_visibility_endpoint_epsilon_bounds(bad_endpoint_eps):
+    """Must be strictly inside (0, min_edge_length_m)."""
+    with pytest.raises(ValueError):
+        _tol(facade_visibility_endpoint_epsilon_m=bad_endpoint_eps)
+
+
+def test_facade_visibility_epsilons_have_no_dataclass_default():
+    """C2 Vg rework CR5 (§10.1): the two Vg epsilons must NOT carry a
+    dataclass default — omitting either one at the Python construction
+    boundary raises `TypeError` immediately, never a silent 1e-9 fallback.
+    This replaces the pre-rework test that asserted the opposite (that the
+    `_tol()` helper could omit them and still get a valid instance); every
+    direct `CoreTolerances(...)` call site, including test helpers, must now
+    pass both explicitly (see the updated `_tol()` helper above and its
+    siblings in test_c2_b1_cell_polygon.py / test_kernel_guards.py)."""
+    base = dict(
+        axis_jitter_tol_m=0.05, cross_floor_align_tol_m=0.11, structural_snap_grid_m=0.05,
+        min_edge_length_m=0.10, output_precision_m=0.01, window_snap_grid_m=0.01,
+        window_clamp_to_parent=True, envelope_reconcile_tol_m=0.30, coverage_area_tol_m2=0.05,
+        gap_close_threshold_m=0.30, gap_arbitration_band_m=1.00,
+    )
+    with pytest.raises(TypeError):
+        CoreTolerances(**base)  # both epsilons omitted
+    with pytest.raises(TypeError):
+        CoreTolerances(**base, facade_visibility_depth_epsilon_m=1e-9)  # endpoint epsilon omitted
+    with pytest.raises(TypeError):
+        CoreTolerances(**base, facade_visibility_endpoint_epsilon_m=1e-9)  # depth epsilon omitted
+    # both supplied: constructs and validates fine (sanity check the
+    # rewritten field order in config.py did not break normal construction).
+    tol = CoreTolerances(**base, facade_visibility_depth_epsilon_m=1e-9,
+                         facade_visibility_endpoint_epsilon_m=1e-9)
+    tol.validate()

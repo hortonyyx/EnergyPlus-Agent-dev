@@ -150,7 +150,16 @@ class StageRunner:
         adir = new_attempt_dir(stage_dir)
 
         from src.agent.correction.finalize import FinalizeResult
-        from src.agent.correction.feature_state import FeatureStatesArtifactV1, derive_feature_state_claims
+        from src.agent.correction.feature_state import (
+            FeatureStatesArtifactV1,
+            correction_stage_version,
+            derive_feature_state_claims,
+        )
+        from src.agent.correction.config import load_core_tolerances
+        from src.agent.correction.facade_visibility import (
+            VisibilityTolerances,
+            validate_materialized_facade_segments,
+        )
 
         is_b2_correction = isinstance(output_obj, FinalizeResult)
         if is_b2_correction and stage != "1_correction":
@@ -175,6 +184,25 @@ class StageRunner:
             expected = derive_feature_state_claims(target, output_obj.geom)
             if expected != output_obj.feature_state_claims:
                 raise ValueError("INVARIANT: FinalizeResult feature-state claims were altered")
+            if output_obj.geom.schema_version == "3":
+                # Vg rework CR1 (writer fail-closed, verdict VG-CR1): do not
+                # trust that `output_obj.geom.facade_segments` is what
+                # `finalize_correction_draw` actually produced — a caller
+                # could bypass that function entirely, tamper a real result
+                # via `model_copy`, and re-derive `feature_state_claims` from
+                # the tampered geom (the claims check above only looks at
+                # shape — non-empty, full floor coverage — not values, so it
+                # would not catch e.g. a mutated `depth`). Independently
+                # recompute every floor's segments straight from the
+                # authoritative `floor_footprint` ring and reject on any
+                # item-for-item mismatch before this attempt is ever
+                # accepted.
+                tol = load_core_tolerances()
+                visibility_tol = VisibilityTolerances(
+                    depth_epsilon_m=tol.facade_visibility_depth_epsilon_m,
+                    endpoint_epsilon_m=tol.facade_visibility_endpoint_epsilon_m,
+                )
+                validate_materialized_facade_segments(output_obj.geom, tolerances=visibility_tol)
             audit_text = _to_json(output_obj.audit_payload)
             (adir / "audit.json").write_text(audit_text, encoding="utf-8")
             states = FeatureStatesArtifactV1(output_sha256=output_hash, claims=expected)
@@ -194,7 +222,19 @@ class StageRunner:
         )
         if do_accept:
             if is_b2_correction:
-                stage_version = "2"
+                # Vg rework CR2 (§9.2 central release-map policy): re-derive
+                # the wire's stage_version from the same `expected` claims
+                # re-derived above for the tamper check — never trust a
+                # caller-supplied value, and never hardcode ANY correction
+                # stage_version literal here (not "2", not "3"). The release
+                # map in feature_state.py is now a single, explicit,
+                # fail-closed table over the FULL claims state (schema +
+                # helper_versions + all four feature states), so it already
+                # has a registered legacy-v1 entry
+                # (`("1", (), "not_declared"x4) -> "2"`) — there is no longer
+                # a schema-version branch to collapse to a literal here; an
+                # unregistered combination raises INVARIANT unconditionally.
+                stage_version = correction_stage_version(expected)
             common = dict(
                 stage=stage,
                 accepted_attempt=rec.attempt_index,

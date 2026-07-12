@@ -56,6 +56,15 @@ class CoreTolerances:
     gap_close_threshold_m: float  # auto-close a cell edge this close to the footprint
     gap_arbitration_band_m: float  # above gap_close, escalate to A3 (doc/A3; not code)
     coverage_area_tol_m2: float  # B3 cells-union vs footprint area-conservation threshold
+    # Vg (C2 §10.1, rework CR5): these two carry NO dataclass default — every
+    # direct `CoreTolerances(...)` construction (shipped-config loader or a
+    # test helper) must pass them explicitly; a silent 1e-9 fallback here
+    # would let a caller run Vg's degeneracy guards without ever having
+    # chosen a value. They must sit ahead of any defaulted field below
+    # (dataclass field-ordering rule: non-default fields cannot follow a
+    # defaulted one).
+    facade_visibility_depth_epsilon_m: float  # Vg same-depth tie / negative-depth INVARIANT guard
+    facade_visibility_endpoint_epsilon_m: float  # Vg half-open sweep near-endpoint/short-edge INVARIANT guard
     facade_frame_cross_check_tol_m: float = 0.30  # reading facade-frame vs LLM window placement flag threshold
 
     def validate(self) -> None:
@@ -76,6 +85,19 @@ class CoreTolerances:
             raise ValueError("facade_frame_cross_check_tol_m must be positive")
         if self.coverage_area_tol_m2 <= 0:
             raise ValueError("coverage_area_tol_m2 must be positive")
+        # Vg (C2 §10.1): numeric-equivalence/degeneracy guards only, never a
+        # measurement tolerance — must sit strictly inside the finer of the two
+        # snap/edge floors so they never mask or duplicate that guard's job.
+        if not (0 < self.facade_visibility_depth_epsilon_m < self.structural_snap_grid_m):
+            raise ValueError(
+                "facade_visibility_depth_epsilon_m must be in (0, structural_snap_grid_m); got "
+                f"{self.facade_visibility_depth_epsilon_m} vs {self.structural_snap_grid_m}"
+            )
+        if not (0 < self.facade_visibility_endpoint_epsilon_m < self.min_edge_length_m):
+            raise ValueError(
+                "facade_visibility_endpoint_epsilon_m must be in (0, min_edge_length_m); got "
+                f"{self.facade_visibility_endpoint_epsilon_m} vs {self.min_edge_length_m}"
+            )
         # cross-floor identity is coarser than per-floor jitter, and connectivity
         # is coarser still but below the arbitration band.
         if not (self.axis_jitter_tol_m < self.cross_floor_align_tol_m
@@ -108,6 +130,8 @@ def _load_cached(path_str: str) -> CoreTolerances:
         gap_close_threshold_m=float(c["gap_close_threshold_m"]),
         gap_arbitration_band_m=float(c["gap_arbitration_band_m"]),
         coverage_area_tol_m2=float(c["coverage_area_tol_m2"]),
+        facade_visibility_depth_epsilon_m=float(c["facade_visibility_depth_epsilon_m"]),
+        facade_visibility_endpoint_epsilon_m=float(c["facade_visibility_endpoint_epsilon_m"]),
     )
     tol.validate()
     return tol

@@ -1,6 +1,8 @@
-# C2 B2b 细稿（2026-07-12）：E3' envelope 权威矩阵安全变形批
+# C2 B2b 细稿 v2（2026-07-12）：E3' envelope 权威矩阵安全变形批
 
-> **状态**：待 sol 最高档 Fable 交叉审；本稿只放行 B2b 施工，不放行 B3、Vg、B4、B5 或 E4 的顺带施工。基座固定为 `bac689b`。施工依赖固定为 **B2 已合入且 B3 覆盖门已合入并复核**。
+> **版本史**：v1（基座 `bac689b`）→ Fable 最高档 r1 **APPROVE-WITH-CHANGES：1 MAJOR + 1 MINOR + 1 NIT**（[判词](../logs/reviews/verdict/2026-07-12_c2_b2b_spec_review_r1.md)）→ v2 全部采纳：拆开 B3 开工前置门与 B2b 三容差施工后自检；冻结 topology guard 的候选模拟评估时点；移除 endpoint chain helper 的 tol 默认值；并把现状对账更新到 B3 `20da78a` + Vg 收录后基座。
+>
+> **状态**：v2 修订稿，待主控对 r1 changes 做 closure 复核；谁写谁不批。本稿只放行 B2b 施工，不放行 B3、Vg、B4、B5 或 E4 的顺带施工。B3 已收录于 `20da78a`；Vg 当前已施工待复核，B2b **只能在 Vg 复核收录后 rebase 到该 commit 再施工**。
 >
 > **唯一目标**：把 schema v3 非矩形 `Floor.footprint` 的 envelope reconcile 从“整轴 unsupported”窄化为有证据、可回滚的逐共享轴原子变形；保持 v1/v2 legacy 行为不变。
 >
@@ -8,27 +10,65 @@
 
 ---
 
-## 0. 权威输入、开工门与结论
+## 0. 权威输入、现状对账与分阶段开工门
 
 权威顺序如下：
 
 1. `c2_full_unlock_design.md` v2.2 的 §E3'、B2b 批次行、验收三层和 C-01..C-05 开工门；
 2. `c2_b2_detail_spec.md` v6 定稿及其已施工的 schema v3、per-floor footprint、单一 finalize、身份快照与 feature-state 合同；
-3. 基座 `bac689b` 的 `src/agent/correction/{deterministic,envelope,footprint,finalize,parse,schema}.py`；
-4. B3 已复核后的覆盖门公开合同（§2.3），B2b 只调用，不复制其实现。
+3. B3 收录 commit `20da78a` 的 coverage 门公开合同（§2.3），B2b 只调用，不复制其实现；
+4. Vg 复核收录后的 `facade_visibility.py`、`facade.py` frame split、`finalize.py` materialize 接线、`feature_state.py` release map 和 `stage_runner.py` writer 派生逻辑；
+5. B2b 施工时的 `src/agent/correction/{deterministic,envelope,footprint,finalize,parse,schema,feature_state,facade_visibility}.py` rebase 后实码。
 
-开工前必须机械断言：
+### 0.1 Vg 后基座现状（v2 对账）
+
+Vg 收录后，v3 correction finalize 的唯一顺序必须是：
+
+```text
+parse/ensure
+→ B2 identity snapshot
+→ load one CoreTolerances
+→ extract_authoritative_envelope(..., tol=同一对象)
+→ apply_deterministic_core（B2b 原子事务位于此处）
+→ B2 identity snapshot compare
+→ Vg materialize_all_facade_segments(post-core rings)
+→ Vg validate_materialized_facade_segments
+→ validate_final_corrected_geometry
+→ derive_feature_state_claims
+```
+
+因此 B2b 事务运行时，draw contract 保证 `facade_segments == []` 且所有 `facade_segment_id is None`；B2b commit 后由 Vg 基于 **post-core 最终 rings** 首次 materialize segments。accepted v3 artifact 随后必须是 `facade_segments="populated"`，`helper_versions=("floor_footprint_v1", "facade_visibility_v1")`，并由 `correction_stage_version(...)` 映射到 Vg release 的 correction `stage_version="3"`。B2b 不回写已 accepted 的 post-Vg artifact，不在 Vg 之后原地改 ring，也不改变上述 feature-state/helper tuple、artifact contract 或 release-map 值。
+
+Vg 工作树当前接点是：`finalize.py` 在 core 后身份比对成功后构造 `VisibilityTolerances`，再 materialize/validate；`feature_state.py` 对 v3 空段或跨层段不全报 INVARIANT；`stage_runner.py` 只对 v3 走 release-map 派生、legacy v1 保持既有 writer 分支。B2b rebase 时必须保留这些语义和测试，不得用 v1 的 pre-Vg `finalize.py` 覆盖它们。
+
+### 0.2 施工前置门：只检查已收录依赖
+
+在修改 B2b 文件前，只执行 B2/B3/Vg 已存在条件的机械断言：
 
 ```python
 assert correction_target("orthogonal_polygon").schema_version == "3"
-assert hasattr(load_core_tolerances(), "coverage_area_tol_m2")       # B3 已落
-assert hasattr(load_core_tolerances(), "envelope_axis_attach_tol_m")
-assert hasattr(load_core_tolerances(), "envelope_endpoint_match_tol_m")
-assert hasattr(load_core_tolerances(), "envelope_candidate_agreement_tol_m")
+assert hasattr(load_core_tolerances(), "coverage_area_tol_m2")
 assert "correction.coverage" in {f.check_id for f in validate_corrected_geometry(v3_fixture)}
+assert Path("src/agent/correction/facade_visibility.py").is_file()
+assert correction_stage_version(vg_finalized_result.feature_state_claims) == "3"
+assert vg_finalized_result.feature_state_claims.facade_segments == "populated"
 ```
 
-若 B3 尚未提供 `coverage_area_tol_m2` 与 `correction.coverage` 的面积守恒语义，B2b **不得以现有 `_AREA_TOL` 或任何临时常数开工**。
+其中 `vg_finalized_result` 必须由真实 `finalize_correction_draw` 的 v3 fixture 产生，不能手填 claims。若 `coverage_area_tol_m2`、`correction.coverage` 面积守恒语义或 Vg post-core materialize/release-map 任一条件不成立，B2b 不得开工，也不得以 `_AREA_TOL`、临时 segment builder 或硬编码 stage version 替代。
+
+### 0.3 施工步骤 1 完成后的 B2b 自检
+
+以下三个字段由 **B2b 自己在 §8.1/§9 的施工步骤 1 新增**，不是开工前置条件。只有步骤 1 修改 config/YAML/A0 后才执行：
+
+```python
+tol = load_core_tolerances()
+assert tol.envelope_axis_attach_tol_m == 0.010
+assert tol.envelope_endpoint_match_tol_m == 0.050
+assert tol.envelope_candidate_agreement_tol_m == 0.050
+tol.validate()
+```
+
+缺字段、值非法或 config/A0 名称不一致时停止步骤 2；不得靠 dataclass 默认值或测试 fixture 注入绕过 shipped config。
 
 本批结论：
 
@@ -36,7 +76,7 @@ assert "correction.coverage" in {f.check_id for f in validate_corrected_geometry
 - v3 矩形和 v3 非矩形统一走同一原子事务，禁止再保留“矩形直接改、非矩形一律 unsupported”的双实现；
 - overall facade 证据只能移动对应投影轴的全楼外包边；明确翼分界端点证据只能移动该立面的 world-along 共享轴；任何证据都不得据正投影猜测 cross-axis/notch depth；
 - 事务边界是：**全部层的 rings + 所有受影响 cells + 所有 windows + 派生 bbox + 审计**。候选副本通过全部硬门后一次提交；任一门失败整事务回滚并记一条 conflict；
-- B2b 阶段不拥有 `FacadeSegment` 的生成与稳定 id 重映射。输入若已填充 `facade_segments` 或任一窗已有 `facade_segment_id`，变形整体拒绝，不能留下 stale ref。
+- B2b 阶段不拥有 `FacadeSegment` 的生成与稳定 id 重映射。正常 production path 在 B2b 后运行 Vg，故事务输入为空段；若有人把已 materialized 的 post-Vg artifact 直送 private 事务，变形整体拒绝，不能留下 stale ref。
 
 C-01/C-02 属 E4-output-contract，C-03/C-04 属 B-M/Vg/Va，C-05 属知识表 loader；B2b 不消费这些后批合同，也不得借本批修改真北、view manifest、applicability 或知识表。
 
@@ -301,7 +341,7 @@ def dimension_chain_is_closed_for_endpoint(
     *,
     chain_id: str,
     axis: Literal["x", "y"],
-    close_tol_m: float = DIMCHAIN_CLOSE_TOL_M,
+    close_tol_m: float,
 ) -> bool: ...
 
 def resolve_envelope_move_intents(
@@ -404,8 +444,8 @@ Reading `Dimension` 维持 legacy `extra="allow"`，本批不加会污染 serial
 1. view 是 elevation 且 facade 可确定为 N/S/E/W；
 2. dimension `role == "segment"`，`chain_id` 非空，`order` 为整数，`from_pt/to/value_m` 均有限；
 3. exact extras 三字段齐全且 `boundary_ref` 非空；
-4. 该 chain 有 overall/baseline 且 reading 的 dimension-chain closure 已通过；B2b 不绕过上游失败；
-5. 用 `derive_facade_frame(...)` 把标记端点 local-x 转成 world-along；frame 使用**已接受 overall bounds 覆写后的候选 bbox**，并把输入 facade/mirror/local convention/候选 bbox 的 canonical hash 写入 `frame_transform_hash`；
+4. 该 chain 有 overall/baseline 且 reading 的 dimension-chain closure 已通过；调用必须显式写 `dimension_chain_is_closed_for_endpoint(view, chain_id=..., axis=..., close_tol_m=DIMCHAIN_CLOSE_TOL_M)`，B2b 不绕过上游失败，也不给 helper 留隐式默认；
+5. 复用 Vg 已收录的 `derive_view_projection_frame(...)`/`ViewProjectionFrame.to_world_along(...)` 把标记端点 local-x 转成 world-along；**禁止再用只适合矩形 cross-check 的 legacy `derive_facade_frame/FacadeWorldFrame`**。builder 的 `vertices` 使用只供证据投影的 `projection_extent_vertices`：取当前权威 ring extent，并在内存中用本次已 accepted overall lo/hi 覆写相应全局极值；它不写回 geometry、不代替 §5 transaction。mirror 必须是 resolved bool。把 facade family、world axis、sign、along origin、mirror/local convention、投影 extent 的 canonical hash 写入 `frame_transform_hash`；
 6. world value 在 `envelope_endpoint_match_tol_m` 内只匹配一个该轴 footprint shared-axis component；零/多匹配均 skipped/conflict，不任选；
 7. source facade 的 world-along 轴必须等于 intent axis：N/S→x，E/W→y；因此端点证据永远不能生成 cross-axis intent；
 8. 同 `boundary_ref` 的高权威候选若相差超过 `envelope_endpoint_match_tol_m`，整 claim conflict；
@@ -489,35 +529,44 @@ for endpoint in (span_lo, span_hi):
 
 ### 5.5 FacadeSegment/引用边界
 
-B2b 在 Vg/B5 之前，唯一可接受的 feature state 是 facade segments declared-unpopulated。前置硬门：
+批次收录顺序是 Vg 先、B2b 后 rebase；**运行时顺序**则是 B2b 事务位于 core 内，Vg materialize 位于 core 返回之后。故进入 B2b 时尚未派生 accepted feature-state，wire 必须是 draw contract 的空段状态：
 
 ```python
 assert geom.facade_segments == []
 assert all(window.facade_segment_id is None for window in geom.windows)
 ```
 
-若不满足，不能仅改 `p1/p2` 或 fingerprint，因为 segment id 的 canonical 几何输入已改变，窗 ref 也需稳定重映射；这些 owner 属 Vg/B5。B2b 必须以 gate id `correction.facade_segment_binding` 整事务拒绝，并在 conflict evidence 中列出 segment/window ids。这样“段 ref 重验”的结果是明确拒绝，而不是留下 stale ref。
+若不满足，说明调用方把 post-Vg/accepted artifact 错送到 pre-Vg private transaction。不能仅改 `p1/p2` 或 fingerprint，因为 segment id 的 canonical 几何输入已改变，窗 ref 也会 stale；B2b 必须以 gate id `correction.facade_segment_binding` 整事务拒绝，并在 conflict evidence 中列出 segment/window ids。
 
-后续若需要对 Vg-populated artifact 再做 envelope transform，必须另出细稿定义“重跑 Vg→旧新 segment id 映射→window ref 重绑”；不得在本批预埋半实现。
+正常 production finalize 不需要旧新 segment id 映射：B2b 先提交最终 ring，随后现有 Vg 只基于该 post-core ring **首次** materialize ids/segments，再由 feature-state 标 `populated`。禁止原地修改已 accepted 的 Vg-populated artifact；若未来授权这种编辑，须另出细稿，不在本批预埋半实现。
 
 ---
 
 ## 6. 前置守卫、硬门与门 id
 
-### 6.1 变形前守卫
+### 6.1 分时点前置/候选模拟守卫
 
-在候选副本写值前依次执行：
+守卫分两阶段，执行者不得把需要 candidate 的检查提前到 coordinate mutation 之前。
+
+**Phase A：plan/pre-mutation**。在候选副本写任何 ring/cell/window/bbox 坐标前，按序执行：
 
 1. `correction.envelope_schema_scope`：strict v3、orthogonal_polygon profile、相同 per-floor footprint；
 2. `correction.envelope_evidence_scope`：§4 claim/source facade/along-axis 合法，无 cross-axis；
 3. `correction.envelope_intent_consistency`：无一轴多值、反转、交叉、collapse；
 4. `correction.facade_segment_binding`：segments 为空、segment refs 全 None；
 5. `correction.window_host_unique`：所有 pre window 恰一宿主；
-6. `correction.envelope_axis_attachment`：每 intent 在每层唯一 shared component，ring+cell attachment 闭合；
+6. `correction.envelope_axis_attachment`：每 intent 在每层唯一 shared component，ring+cell attachment 闭合。
+
+Phase A 全过后，才在 deep-copy `candidate` 上应用 §5.3/§5.4 坐标映射并重派生 bbox；原 `before` 始终不写。
+
+**Phase B：post-simulation/pre-commit**。candidate 已完成模拟写值，但尚未提交、尚未追加成功 audit；按序执行：
+
 7. `correction.envelope_topology_preserved`：候选模拟后无洞、connected component 数不变、按 cell id 的邻接 pair 集不变、turn/reflex 顺序不变；
 8. `correction.envelope_ring_valid`：所有候选 ring/cell 正交、简单、绕向非零且保持 CCW；
 9. `correction.envelope_min_edge`：所有 materialized/最终 edge 均 `>= min_edge_length_m`，没有 edge/segment 消失；
 10. `correction.envelope_notch_depth_authority`：每 intent 只动 source facade 的 world-along 分量；候选中所有未列入 component 的 cross-axis 坐标逐值等于 before。
+
+Phase B 任一失败即丢弃 candidate 并按 §7.3 回滚。§6.2 在完整 candidate 上再次运行 ring/topology 等门是刻意的防御纵深：Phase B 检查局部 transform 模拟刚完成的状态；§6.2 检查 window/bbox/序列化合同全部写齐后的最终候选。二者时点不同，不允许删去其中一层或把 #7 写回 Phase A。
 
 这里 `min_edge_length_m` 只做它本来的物理最短边硬门；不得拿它作 axis attachment、endpoint matching、coverage area 或浮点 epsilon。
 
@@ -670,16 +719,19 @@ transaction_id = sha256(canonical_json({
 
 ### 8.1 `src/agent/correction/config.py`
 
-`CoreTolerances` 在 B3 已有面积字段之上新增三个 B2b-owned 字段：
+`CoreTolerances` 在 B3 已有面积字段之后、Vg/legacy 的首个带默认字段之前，新增三个**无默认值**的 B2b-owned 字段；位置写死以满足 dataclass 的 required-before-default 规则：
 
 ```python
 @dataclass(frozen=True)
 class CoreTolerances:
     # existing fields...
+    coverage_area_tol_m2: float              # B3 contract；已存在，B2b 只读
     envelope_axis_attach_tol_m: float
     envelope_endpoint_match_tol_m: float
     envelope_candidate_agreement_tol_m: float
-    coverage_area_tol_m2: float              # B3 contract；B2b 只读
+    facade_frame_cross_check_tol_m: float = 0.30
+    facade_visibility_depth_epsilon_m: float = 1e-9
+    facade_visibility_endpoint_epsilon_m: float = 1e-9
 ```
 
 loader 必填读取。validate 新增：
@@ -694,11 +746,11 @@ if coverage_area_tol_m2 <= 0:
     raise ValueError(...)
 ```
 
-不得给 dataclass 默认值掩盖漏配；所有手工构造 `CoreTolerances(...)` 的测试 fixture 必须显式补齐。
+不得给三个 B2b 字段加 dataclass 默认值掩盖漏配；Vg 已收录的两个 epsilon 字段及其默认/校验语义原样保留。所有手工构造 `CoreTolerances(...)` 的测试 fixture 必须显式补齐三个 B2b 字段。
 
 ### 8.2 `src/configs/correction.yaml` 与 A0
 
-新增配置见 §9。B3 的面积项若已在并行施工中加入，本批只消费并解决合并冲突，不重复定义 owner。
+新增 B2b 配置见 §9。B3 的 `coverage_area_tol_m2: 0.050` 已由 `20da78a` 收录，本批只消费；rebase/merge 时不得重复定义 owner或改其值/语义。
 
 ### 8.2bis `src/agent/reading/constants.py` 与 reading guide
 
@@ -717,6 +769,7 @@ DIMCHAIN_CLOSE_TOL_M: float = 0.010  # A0 DIMCHAIN_CLOSE_TOL；迁移既有值
 3. `extract_authoritative_envelope(...)` 在 v3 footprint 时附 endpoint resolutions；legacy footprint 不解析 endpoint，保证行为不变；
 4. `AuthoritativeEnvelope.to_dict()` 空 endpoint 时保持原 shape；
 5. 删除 `_SMALL_TOL_M`，所有 overall candidate/value/bounds agreement 改用 `envelope_candidate_agreement_tol_m`；阈值保持 0.05m，legacy resolution 逐 fixture 等价；本批新增代码不得引入 `1e-9` 一类裸容差。
+6. endpoint world mapping 从 Vg 后 `facade.py` import `derive_view_projection_frame`；不得改动该 builder，不得 import legacy `derive_facade_frame` 服务非矩形 endpoint。
 
 overall 相关函数统一收同一 tol，精确签名：
 
@@ -787,7 +840,8 @@ def _apply_envelope_reconcile(
 
 - `geometry_validator.py`：按 B3 已发布签名调用 `check_coverage(geom)`；该函数从同一 active correction config 读取 `coverage_area_tol_m2`。B2b 不改其签名或复制实现。新增 shared-boundary helper 可放本文件或新 `envelope_transform.py`，但只能有一个 owner；
 - `parse.py`：schema/draw/final ring 合同不变；B2b 不放宽 strict v3；
-- `finalize.py`：仍按 parse/ensure→身份快照→同一 tol→extract envelope→core→身份比对→validate final；只补 `tol=tol` 传给 extraction；
+- `finalize.py`：以 Vg 收录后的实码为底，顺序固定为 `parse/ensure→身份快照→同一 tol→extract envelope→core(B2b)→身份比对→Vg materialize→Vg validate→validate_final→derive feature state`。B2b 只给 `extract_authoritative_envelope(..., tol=tol)` 接入同一 tol 并让 core 内 v3 dispatch 走事务；不得移动、删除或复制 Vg block；
+- `feature_state.py` / `stage_runner.py`：B2b 不新增 feature、不改 helper tuple、不改 `_CORRECTION_STAGE_VERSION_BY_RELEASE`；v3 accepted 仍由 `("floor_footprint_v1", "facade_visibility_v1") -> "3"` 派生，legacy v1 writer 分支保持；
 - `schema.py`：零 wire 字段变化。
 
 复杂度建议：把 §3、§5–§7 的新事务实现放 `src/agent/correction/envelope_transform.py`，`deterministic.py` 只负责 dispatch；避免继续扩大千行核文件。此为文件组织定案，不改变公共 import surface。
@@ -1018,10 +1072,19 @@ s = finalize_via_stepwise(payload, vector_dir, target, tol)
 assert p.geom.model_dump() == s.geom.model_dump()
 assert p.audit_payload == s.audit_payload
 assert p.feature_state_claims == s.feature_state_claims
-assert _identity_snapshot(p.geom) == _identity_snapshot(parse_correction_draw(payload, target))
+draw = parse_correction_draw(payload, target)
+assert tuple(f.id for f in p.geom.floors) == tuple(f.id for f in draw.floors)
+assert tuple((w.id, w.floor_id, w.facade_segment_id) for w in p.geom.windows) == \
+       tuple((w.id, w.floor_id, w.facade_segment_id) for w in draw.windows)
+assert p.geom.facade_segments                           # Vg 在 core 后首次填充
+assert p.feature_state_claims.facade_segments == "populated"
+assert p.feature_state_claims.helper_versions == \
+       ("floor_footprint_v1", "facade_visibility_v1")
 ```
 
-promote 后仍按 B2 attempt writer 断言 output/audit/feature_states hash 身份；B2b 不改 artifact contract 或 stage_version。
+不得比较 `_identity_snapshot(final_geom)` 与 draw snapshot：Vg 后该 private snapshot 有意包含 newly-materialized segment component，二者必然不同。身份时序的可执行断言是在 `finalize_correction_draw` 内 core 返回后、Vg 调用前完成 existing `_identity_snapshot(before) == _identity_snapshot(post_core)`；另用 spy 断言 Vg 收到 segments 为空且 rings 已是 B2b post-core 值。
+
+promote 后仍按 Vg 后 attempt writer 断言 output/audit/feature_states hash 身份；B2b 不改 `artifact_contract="correction_b2_v1"`，不改 Vg helper tuple/release map，v3 `stage_version` 仍由现 map 派生为 `"3"`，不得回退硬编码 `"2"` 或另造 `"4"`。
 
 ---
 
@@ -1029,21 +1092,22 @@ promote 后仍按 B2 attempt writer 断言 output/audit/feature_states hash 身�
 
 建议新增 `tests/test_c2_b2b_envelope_transform.py`，并扩 `test_envelope_extraction.py`、`test_c2_b2_v3.py`、`test_deterministic_core.py`：
 
-1. **evidence parser**：exact marker 正例；缺三字段各一；错误 enum；note-only 不触发；非 elevation；未知 facade；坏 chain；nan/inf；frame mirror/N/W sign；frame hash 稳定；
+1. **evidence parser**：exact marker 正例；缺三字段各一；错误 enum；note-only 不触发；非 elevation；未知 facade；坏 chain；nan/inf；frame mirror/N/W sign；frame hash 稳定；`inspect.signature` 断言 `close_tol_m` 无 default，漏传抛 `TypeError`，显式传 `DIMCHAIN_CLOSE_TOL_M` 才运行；
 2. **intent resolver**：overall lo/hi；N/S→x、E/W→y；cross-axis 拒绝；endpoint 零/唯一/多 axis match；同 claim 冲突；delta over tol；多 intent 排序与冲突；
 3. **graph**：L/U；断开的同坐标 edge 不串联；T-junction planarization；overlap interval；跨层同构/某层缺 component；x+y 交点交换；
 4. **ring/cell**：矩形 v3 与非矩形 v3 同事务；polygon/bbox cell；必要时 rectangle→polygon；CW/closed 不泄漏；self-intersection、cross、min-edge、edge disappear 全拒；
 5. **authority**：overall 只移 bbox side；wing 只移 world-along；全部未受影响 cross-axis/notch depth 坐标逐值不变；topology signature 不变；
 6. **windows**：沿轴 endpoint 跟随、normal-plane no wire move、非 component no-op、跨 break、room/floor/facade 错、零/多 host、span collapse；
 7. **segments/refs**：空表通过；非空表、非空 ref 各自 fail-closed；
-8. **hard gates**：ring、B3 coverage、shared boundary、window host、segment binding、identity、bbox/fingerprint、topology 每门至少一负例；
+8. **hard gates**：ring、B3 coverage、shared boundary、window host、segment binding、identity、bbox/fingerprint、topology 每门至少一负例；spy 断言 Phase A 不调用 topology/ring/min-edge candidate guard，Phase B 调用时 candidate 坐标已与 before 不同且尚未 commit；
 9. **fault injection**：plan、ring write、cell write、window write、bbox derive、每个 post gate；受控拒绝回 conflict，非预期异常传播且入参零 mutation；
 10. **原两拒绝分支**：legacy exact entry；v3 eligible 解锁 + unsafe narrowed reject；
 11. **legacy 矩阵**：v1/v2 × none/accepted/skipped/conflict/over-tol，built geometry/specs/audit 语义等价；
 12. **B3 接口**：monkeypatch `correction.coverage` fail，断言整事务回滚；断言使用 `coverage_area_tol_m2`，静态 grep 不出现 B2b 自建面积阈值；
-13. **config/A0**：缺字段、零/负、attach>endpoint、endpoint>reconcile、candidate-agreement>reconcile；环境 override；所有手工 `CoreTolerances` 构造完整；
+13. **config/A0**：施工前 dependency probe 不读取三个 B2b 字段；步骤 1 后自检三字段；缺字段、零/负、attach>endpoint、endpoint>reconcile、candidate-agreement>reconcile；环境 override；所有手工 `CoreTolerances` 构造完整；
 14. **双路径 E2E**：真实 v3 producer payload→parse→finalize→attempt writer，pipeline/stepwise 语义和 artifact 一致；
-15. **零 golden**：现有 golden 与 strict xfail 不改；新增 fixture 独立存放。
+15. **Vg 后接线回归**：B2b 成功改变 ring 后，Vg segments 必须从 post-core fingerprint/materialize；accepted claims 为 `facade_segments="populated"`、helper tuple 固定、stage version `"3"`；post-Vg artifact 直调 private transaction 按 segment gate 拒绝；
+16. **零 golden**：现有 golden 与 strict xfail 不改；新增 fixture 独立存放。
 
 静态纪律断言建议：
 
@@ -1058,14 +1122,15 @@ rg -n "1e-9|1e-6|buffer\([^)]*[0-9]|_SMALL_TOL_M|_AREA_TOL|MIN_EDGE.*attach|MIN_
 
 ## 12. 施工顺序与复核切片
 
-1. B3 dependency probe + config/A0 三个 B2b 容差；
+0. Vg 复核收录后 rebase；执行 §0.2 B2/B3/Vg 前置断言；
+1. config/A0 三个 B2b 容差；执行 §0.3 自检，通过后才继续；
 2. endpoint evidence types/parser/resolution（只测，不接 core）；
 3. intent consistency + shared-axis planar graph；
 4. candidate ring/cell/window transform；
-5. pre/post gates 与 audit/rollback；
+5. 分时点 Phase A/Phase B、post gates 与 audit/rollback；
 6. deterministic v3 dispatch，删除 blanket reject，保留 legacy branch；
-7. finalize 同 tol 接线与双路径 E2E；
-8. legacy、故障注入、两拒绝分支、全量测试；
+7. 在 Vg 后 `finalize.py` 上接同 tol，锁 post-core Vg materialize + 双路径 E2E；
+8. legacy、故障注入、两拒绝分支、Vg release-map、全量测试；
 9. 执行简报逐项列变更文件、测试命令、baseline 数、未改 golden，并交最高档 Fable 复核。
 
 建议在步骤 2、4、6、8 各出独立 diff 供审；不得把 B3/Vg/B5 实现混入 B2b diff。
@@ -1074,4 +1139,4 @@ rg -n "1e-9|1e-6|buffer\([^)]*[0-9]|_SMALL_TOL_M|_AREA_TOL|MIN_EDGE.*attach|MIN_
 
 ## 13. 开放问题
 
-无。B2b 对已填充 facade segments 采用 fail-closed；其后再变形所需的 segment 重生成/id 重映射明确留给 Vg/B5 后续独立细稿，不构成本批待裁决项。
+无。正常 production path 固定为 B2b core 事务后由现有 Vg 首次 materialize；对已填充 facade segments 的 post-Vg artifact 直调 private transaction 采用 fail-closed。Vg 收录 commit 是施工 rebase 前置事实，不是本稿架构待裁决项。

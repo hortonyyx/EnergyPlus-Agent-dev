@@ -1,6 +1,6 @@
-# C2 Vg 代码级细稿 v2：E1' 立面可见性纯几何函数批
+# C2 Vg 代码级细稿 v3：E1' 立面可见性纯几何函数批
 
-> **版本史**：v1 2026-07-12（sol 次高档出稿）→ Fable 最高档交叉审 `APPROVE-WITH-CHANGES` → **v2 2026-07-12**：冻结 core 身份快照在 materialize 前复核、stage version 按 strict helper-version release map 派生、双翻转按 XOR；全文累计自包含。
+> **版本史**：v1 2026-07-12（sol 次高档出稿）→ Fable 最高档交叉审 `APPROVE-WITH-CHANGES` → v2 2026-07-12（冻结 core 身份快照在 materialize 前复核、stage version 按 strict helper-version release map 派生、双翻转按 XOR）→ sol 施工交叉审 `REWORK` → **v3 2026-07-12**：中央 release map 纳入 legacy v1 完整状态、删除不可构造的单段双 visible-islands 验收项、禁止两个 visibility epsilon 的 dataclass 默认；全文累计自包含。
 >
 > **日期 / 档位 / 主控**：2026-07-12；Claude/Fable5 主控，Fable 交叉审。
 >
@@ -443,24 +443,45 @@ attempt writer 继续使用 `artifact_contract="correction_b2_v1"` 的四产物�
 `stage_version` 的唯一 owner 仍是 accepted attempt writer，但版本选择移到 `feature_state.py` 的集中策略：
 
 ```python
-_CORRECTION_STAGE_VERSION_BY_RELEASE = {
-    ("floor_footprint_v1",): "2",
-    ("floor_footprint_v1", "facade_visibility_v1"): "3",
+ReleaseKey = tuple[
+    str,                    # target_schema_version
+    tuple[str, ...],        # helper_versions, canonical dependency order
+    FeatureState,           # cell_polygon
+    FeatureState,           # per_floor_footprint
+    FeatureState,           # facade_segments
+    FeatureState,           # typed_north_axis
+]
+
+_CORRECTION_STAGE_VERSION_BY_RELEASE: dict[ReleaseKey, str] = {
+    # legacy v1 lineage: no v3 feature/helper is declared
+    ("1", (),
+     "not_declared", "not_declared", "not_declared", "not_declared"): "2",
+
+    # B2 v3 lineage: footprint features populated; facade/north only declared
+    ("3", ("floor_footprint_v1",),
+     "populated", "populated", "declared_unpopulated", "declared_unpopulated"): "2",
+
+    # Vg v3 lineage: facade visibility is now populated; north remains pending
+    ("3", ("floor_footprint_v1", "facade_visibility_v1"),
+     "populated", "populated", "populated", "declared_unpopulated"): "3",
 }
 
 def correction_stage_version(claims: FeatureStateClaimsV1) -> str:
-    helpers = claims.helper_versions  # 已是 canonical tuple
-    version = _CORRECTION_STAGE_VERSION_BY_RELEASE.get(helpers)
-    if version is None:
-        raise ValueError("INVARIANT: unknown correction helper release")
-    if version == "2" and claims.facade_segments != "declared_unpopulated":
-        raise ValueError("INVARIANT: B2 helper release/state mismatch")
-    if version == "3" and claims.facade_segments != "populated":
-        raise ValueError("INVARIANT: Vg helper release/state mismatch")
-    return version
+    key: ReleaseKey = (
+        claims.target_schema_version,
+        claims.helper_versions,
+        claims.cell_polygon,
+        claims.per_floor_footprint,
+        claims.facade_segments,
+        claims.typed_north_axis,
+    )
+    try:
+        return _CORRECTION_STAGE_VERSION_BY_RELEASE[key]
+    except KeyError as exc:
+        raise ValueError("INVARIANT: unknown correction helper/state release") from exc
 ```
 
-字符串 `"2"/"3"` 必须存在于这个**单一、显式、fail-closed 的 release map**，因为 stage wire 需要稳定协议标签，无法从 helper 名数学推导；禁止在 `stage_runner.py` 再散落版本字面量。`StageRunner.record()` 在 writer 边界重派生并核对 `expected` claims 后，把基座 accepted 分支的 `if is_b2_correction: stage_version="2"` 替换为 `stage_version = correction_stage_version(expected)`。未知/新增 helper 组合必须先显式登记新 release，不能静默沿用 `"3"`，也不能信任 caller 传入的 `stage_version` 覆盖 correction release。
+legacy v1 的合法 claims 精确为 `helper_versions=()` 且四项 feature 全 `not_declared`；禁止为迁就版本表伪填 `floor_footprint_v1`。字符串 `"2"/"3"` 必须只存在于这个**单一、显式、fail-closed 的完整状态 release map**，因为 stage wire 需要稳定协议标签，无法从 helper 名数学推导；version `"2"` 同时覆盖 legacy v1 与 B2 v3，但由不同完整 key 区分，不再用“version 2 必须 `facade_segments=declared_unpopulated`”这种会误拒 legacy 的事后条件。禁止在 `stage_runner.py` 散落任何 correction 版本字面量或 schema 分支。`StageRunner.record()` 对**所有** `FinalizeResult` 在 writer 边界重派生并核对 `expected` claims 后，无条件执行 `stage_version = correction_stage_version(expected)`；未知 schema/helper/state 组合必须先显式登记新 release，不能静默沿用 `"2"/"3"`，也不能信任 caller 传入的 `stage_version` 覆盖 correction release。
 
 ## 10. 配置与 A0 登记
 
@@ -473,7 +494,7 @@ facade_visibility_depth_epsilon_m: 1.0e-9
 facade_visibility_endpoint_epsilon_m: 1.0e-9
 ```
 
-`CoreTolerances` 增同名 finite positive float；loader 必填读取，不给 silent default。`validate()` 墕：
+`CoreTolerances` 增同名 finite positive float，**两个 dataclass 字段均禁止默认值**；YAML loader 必填读取，所有生产代码与测试中的直接 `CoreTolerances(...)` 构造点也必须显式传入两值。不得为既有 test helper 设置例外：helper 的 base dict/fixture 必须显式加入 `facade_visibility_depth_epsilon_m=1.0e-9` 与 `facade_visibility_endpoint_epsilon_m=1.0e-9`，需要覆盖时再由测试逐项 override。缺任一参数在 Python 构造边界直接 `TypeError`，缺 YAML key 在 loader 边界 fail closed；两条路径都不得 silent default。`validate()` 增：
 
 ```python
 0 < facade_visibility_depth_epsilon_m < structural_snap_grid_m
@@ -533,7 +554,7 @@ FULL_OCCLUDE = [(0,0),(6,0),(6,2),(2,2),(2,4),(6,4),(6,6),(0,6)]
 2. **L/U/Z/T 全方向**：每 shape × 四个 90° rotation × x reflection × 四 directions，几何同构去重后全跑；基础实例用手写 expected intervals，变换实例用独立坐标变换后的 expected，不调用被测 skyline 造 oracle。
 3. **编码不变性**：每实例的 cyclic start 全枚举、open/closed、CW/CCW；最终 `model_dump_json()`、ids、排序逐字节相同。
 4. **全遮挡**：`FULL_OCCLUDE` 及四旋转；深段仍在 list、visible 空，浅段 full。
-5. **部分遮挡**：`Z` 及旋转/反射；深段只保留未被浅段覆盖的精确半开 residual；另造一段被两个更浅段遮成两个 visible islands 的 fixture。
+5. **部分遮挡 / 双端与 merge 机制**：`Z` 及其镜像/旋转分别覆盖深段左端被遮、右端被遮（“双端遮挡”指两组 mirrored fixtures 各遮一端，不声称同一物理段同时留下两岛），深段保留精确半开 residual；另对 `_merge_adjacent_atoms` 做 leaf 单测，精确相邻 atoms 必合并、存在正宽真 gap 必保持两个 intervals。单一无洞简单环下，同一物理 edge 不可构造左右两个 visible islands：4×4 cell lattice 的 4,111 个单 Polygon × 四方向独立探针为零反例，故删除该不可实现的 end-to-end 字面验收项，仅保留真-gap merge 机制覆盖。
 6. **同深 INVARIANT**：直接对 internal skyline leaf 注入两个同深正宽重叠 candidates；覆盖 exact equal、差 `epsilon/2`、差 `epsilon` 均 raise；差 `2*epsilon` 唯一浅者胜；再测 tie 在更深层也 raise。
 7. **端点半开**：`[0,2)` 与 `[2,4)` 只接触不竞争；三段同点 begin/end；最右端不生成零宽 atom；精确相邻 visible atoms 合并；真实 gap 不桥接。
 8. **端点 epsilon**：edge length 等于/小于 epsilon 拒；两个 distinct events 差 epsilon/2 与 epsilon 拒，差 `2*epsilon` 保留；不得观察到坐标被 snap。

@@ -25,6 +25,9 @@ correction.py) catch a wrong sign downstream.
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import Literal
+
+FacadeFamily = Literal["North", "South", "East", "West"]
 
 # Standard convention: (world_axis, base_plane_side, sign) when NOT mirrored.
 # base_plane_side picks which footprint extreme is the wall plane.
@@ -106,4 +109,103 @@ def derive_facade_frame(
         base_world=base_world,
         along_origin=along_origin,
         normal=FACADE_NORMAL[view_facade],
+    )
+
+
+# ---------------------------------------------------------------------------
+# C2 Vg/Va frame split (proposals/c2_vg_detail_spec.md §3.2).
+#
+# `FacadeWorldFrame`/`derive_facade_frame` above stay a legacy compatibility
+# wrapper for the existing rectangular cross-check only: it conflates a view's
+# local->world sign with a single bbox-extreme wall plane, which cannot
+# express a concave multi-segment facade. Vg/Va new code must use the two
+# frames below instead and must not import the aggregate legacy type.
+# ---------------------------------------------------------------------------
+
+
+@dataclass(frozen=True)
+class ViewProjectionFrame:
+    """One elevation view's local-along -> world-along projection only.
+
+    One instance per view. It owns *only* the mapping from an image-local
+    along-facade x to a world coordinate — no wall plane, segment id, or
+    visibility (that is `FacadeSegmentFrame`'s job). A view is not one wall
+    plane: several `FacadeSegmentFrame`s at different depths may share one
+    `ViewProjectionFrame`.
+    """
+
+    facade_family: FacadeFamily
+    world_axis: Literal["x", "y"]
+    sign: Literal[-1, 1]
+    along_origin: float
+    mirrored: bool
+    local_x_positive: Literal["image_left_to_right", "image_right_to_left"]
+
+    def to_world_along(self, local_x: float) -> float:
+        return self.along_origin + self.sign * local_x
+
+
+@dataclass(frozen=True)
+class FacadeSegmentFrame:
+    """One boundary-ring candidate edge's world geometry, pre-visibility.
+
+    One instance per candidate edge (before the Vg skyline decides what part
+    of it is visible). It owns *only* world geometry — no local image, mirror,
+    manifest, or claim data (that is `ViewProjectionFrame`'s / Va's job).
+    """
+
+    facade_family: FacadeFamily
+    p1: tuple[float, float]
+    p2: tuple[float, float]
+    base_world: float
+    outward_normal: tuple[Literal[-1, 0, 1], Literal[-1, 0, 1]]
+    world_along_interval: tuple[float, float]
+    depth: float
+
+
+def derive_view_projection_frame(
+    *,
+    vertices,
+    facade_family: FacadeFamily,
+    mirrored: bool = False,
+    local_x_positive: Literal["image_left_to_right", "image_right_to_left"] = "image_left_to_right",
+) -> ViewProjectionFrame:
+    """Derive one elevation view's local-along -> world-along projection.
+
+    `along_lo/along_hi` come only from `vertices`' extent on the family's
+    world axis (§3.1); this builder does not read a manifest or reading
+    artifact — direction/mirror validity is the caller's job. It only accepts
+    a *resolved* bool `mirrored`; an unresolved ("unknown") mirror flag must
+    fail closed before calling this, not be silently treated as `False`.
+
+    The two flip bits (`mirrored` and a right-to-left local convention)
+    combine by XOR (v2 §3.2): both non-default at once cancels out and
+    restores the standard `base_sign`.
+    """
+    if facade_family not in _CONVENTION:
+        raise ValueError(f"unknown facade_family {facade_family!r}")
+    if not isinstance(mirrored, bool):
+        raise ValueError(
+            "derive_view_projection_frame requires a resolved bool 'mirrored' "
+            "flag; an unresolved value must fail closed before this call"
+        )
+    if local_x_positive not in ("image_left_to_right", "image_right_to_left"):
+        raise ValueError(f"unknown local_x_positive {local_x_positive!r}")
+
+    axis, _base_side, base_sign = _CONVENTION[facade_family]
+    xs = [float(p[0]) for p in vertices]
+    ys = [float(p[1]) for p in vertices]
+    lo, hi = (min(xs), max(xs)) if axis == "x" else (min(ys), max(ys))
+
+    effective_flip = mirrored ^ (local_x_positive == "image_right_to_left")
+    sign = -base_sign if effective_flip else base_sign
+    along_origin = lo if sign > 0 else hi
+
+    return ViewProjectionFrame(
+        facade_family=facade_family,
+        world_axis=axis,
+        sign=sign,
+        along_origin=along_origin,
+        mirrored=mirrored,
+        local_x_positive=local_x_positive,
     )

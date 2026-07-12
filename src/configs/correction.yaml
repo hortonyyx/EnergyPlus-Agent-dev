@@ -121,6 +121,23 @@ correction:
   #       约等于 10mm 坐标精度下、约 5m 边界的一侧量化带面积。独立于
   #       min_edge_length_m（线性长度），不得复用后者。
 
+  # ====== Vg 立面可见性(纯几何,#E1')：数值退化门,非测量容差 ======
+  facade_visibility_depth_epsilon_m: 1.0e-9
+  # 约束：同一方向、同一正宽 along 原子区间内，两个不同 segment 的 depth 差
+  #       ≤ 此值 → 判为同深冲突(INVARIANT，不选赢家)；depth 绝对值 ≤ 此值时
+  #       序列化为精确 0.0(同时消除 -0.0)；raw depth < -此值 → INVARIANT。
+  # 作用：只吸收 IEEE-754 浮点运算噪声，不是可测量的建模精度/吸附半径。
+  #       比 structural_snap_grid_m(10mm)小七个数量级，二者不得混用/复用。
+  # 对应 A0：FACADE_VISIBILITY_DEPTH_EPSILON。
+
+  facade_visibility_endpoint_epsilon_m: 1.0e-9
+  # 约束：half-open 1D skyline sweep 中，(a) 边长 ≤ 此值的边判退化拒绝；
+  #       (b) 两个不同 along-axis event 的正差 ≤ 此值 → INVARIANT(拒绝，不
+  #       桥接、不吸附、不合并)。
+  # 作用：纯数值拓扑门，只拒绝、不移动坐标；与 min_edge_length_m(结构碎片
+  #       地板,10cm)分属不同层级，不得互相替代。
+  # 对应 A0：FACADE_VISIBILITY_ENDPOINT_EPSILON。
+
   # ====== 连接性补缝(端点→边界，#2.4) ======
   # 【与轴聚类是两类操作】轴聚类(axis_jitter_tol)问"两坐标是不是同一道墙"
   # (身份，颗粒 50mm)；补缝问"一条墙线该不该接到边界上"(连接性，颗粒 300mm)。

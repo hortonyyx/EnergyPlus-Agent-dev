@@ -7,6 +7,11 @@ from pathlib import Path
 from src.agent.correction.config import CoreTolerances, load_core_tolerances
 from src.agent.correction.deterministic import apply_deterministic_core
 from src.agent.correction.envelope import extract_authoritative_envelope
+from src.agent.correction.facade_visibility import (
+    VisibilityTolerances,
+    materialize_all_facade_segments,
+    validate_materialized_facade_segments,
+)
 from src.agent.correction.feature_state import FeatureStateClaimsV1, derive_feature_state_claims
 from src.agent.correction.parse import CorrectionTarget, ensure_corrected_geometry, parse_correction_draw, validate_final_corrected_geometry
 from src.agent.correction.schema import CorrectedGeometry
@@ -55,6 +60,18 @@ def finalize_correction_draw(
     )
     if before != _identity_snapshot(geom):
         raise ValueError("finalize invariant: v3 floor/reference identities changed during core")
+    if geom.schema_version == "3":
+        # Vg (C2 §E1'/§9.1): the ONLY writer of `facade_segments`. Runs on the
+        # core-final ring (not the producer's pre-core one) and strictly after
+        # the identity snapshot compare above — an empty->populated facade
+        # list here is the batch's intended write, not an identity drift.
+        visibility_tol = VisibilityTolerances(
+            depth_epsilon_m=tol.facade_visibility_depth_epsilon_m,
+            endpoint_epsilon_m=tol.facade_visibility_endpoint_epsilon_m,
+        )
+        segments = materialize_all_facade_segments(geom, tolerances=visibility_tol)
+        geom = geom.model_copy(update={"facade_segments": list(segments)})
+        validate_materialized_facade_segments(geom, tolerances=visibility_tol)
     geom = validate_final_corrected_geometry(geom)
     return FinalizeResult(
         geom=geom,

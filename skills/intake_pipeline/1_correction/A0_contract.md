@@ -186,7 +186,16 @@ emit `unsupported`.
 | `WWR_REL_TOL` | ±5% or ±0.02 | ratio | calibrated | all | warn / accept | `GB 50189-2015` 3.2.2 / 3.3.1 |
 | `ENVELOPE_RECONCILE_TOL` | 0.30 | m | calibrated | all | auto-reconcile / unsupported | facade outer-envelope bounds may override a wall-centerline footprint only within wall-thickness scale; the same value is the boundary-attach tolerance for moving old-perimeter cell edges |
 | `FACADE_FRAME_CROSS_CHECK_TOL` | 0.30 | m | calibrated | all | flag | gate① cross-check: deterministic `derive_facade_frame` placement from reading elevation local-x vs correction LLM window world span; wall-thickness/envelope-basis scale, never a blocking transform tolerance |
+| `FACADE_VISIBILITY_DEPTH_EPSILON` | `1e-9` | m | provisional | orthogonal_polygon/v3 | INVARIANT tie/negative-depth guard | Vg (C2 §E1') same-depth-atom tie and negative-depth degeneracy guard; absorbs only IEEE-754 arithmetic noise, seven orders of magnitude below `SNAP_GRID` — not a physical resolution and never reused as one |
+| `FACADE_VISIBILITY_ENDPOINT_EPSILON` | `1e-9` | m | provisional | orthogonal_polygon/v3 | INVARIANT short-edge/near-endpoint guard | Vg half-open 1D-skyline sweep's numeric topology gate: rejects degenerate short edges and near-collision along-axis events; never snaps or bridges a real gap |
 | `PERIMETER_DEPTH` | 4.6 (range 2.4–6.1) | m | calibrated | — (downstream zoning, **not** PartA) | n/a | `ASHRAE 90.1-2019 Add. ag`; listed for reference, PartA rules must not consume it |
+
+`WorldInterval` (Vg/Va) is always the half-open interval `[lo, hi)`; a shared
+right endpoint between two segments is a touch, not an overlap, and forms no
+positive-width visible span. A same-depth tie inside one along-axis atom is
+always `INVARIANT` (no id/ring-order/sort tiebreak). Both `FACADE_VISIBILITY_*`
+epsilons are provisional pending future cross-case numeric probes; they must
+not be recalibrated ad hoc against a single case's output.
 
 **Precedence (axis identity vs gap closing vs output).** These are distinct
 operations and must not be conflated:

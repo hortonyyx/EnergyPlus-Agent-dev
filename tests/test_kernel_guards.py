@@ -25,6 +25,11 @@ def _tol(**over) -> CoreTolerances:
         coverage_area_tol_m2=0.05,
         gap_close_threshold_m=0.30,
         gap_arbitration_band_m=1.00,
+        # Vg rework CR5 (§10.1): these two carry no dataclass default any
+        # more — every helper must pass them explicitly; override via `over`
+        # when a test needs a different value.
+        facade_visibility_depth_epsilon_m=1e-9,
+        facade_visibility_endpoint_epsilon_m=1e-9,
     )
     base.update(over)
     t = CoreTolerances(**base)
