@@ -37,7 +37,9 @@ from src.agent.correction.cell_geometry import (
     validate_cell_polygon,
 )
 from src.agent.correction.schema import CorrectedGeometry
-from src.agent.geometry.capability import schema_version_of
+from src.agent.correction.footprint import floor_footprint
+from src.agent.correction.parse import ensure_corrected_geometry
+from src.agent.geometry.capability import FEATURE_CELL_POLYGON, schema_supports
 
 _AREA_TOL = 0.05      # m^2 — ignore coverage gaps/overlaps below this
 _Z_TOL = 0.02         # m — z-stack contiguity tolerance (matches kernel _Z_TOL)
@@ -62,9 +64,9 @@ def check_cell_polygon_contract(geom: CorrectedGeometry) -> GeometryFinding:
     for fl in geom.floors:
         for c in fl.cells:
             try:
-                if cell_has_polygon(c) and schema_version_of(geom) != "2":
+                if cell_has_polygon(c) and not schema_supports(geom, FEATURE_CELL_POLYGON):
                     raise ValueError(
-                        f"cell {c.id}: polygon requires CorrectedGeometry.schema_version '2'"
+                        f"cell {c.id}: polygon requires schema_version '2' or a schema version with feature '{FEATURE_CELL_POLYGON}'"
                     )
                 validate_cell_polygon(c, min_edge_length_m=_MIN_EXTENT)
             except ValueError as exc:
@@ -82,12 +84,14 @@ def check_cell_polygon_contract(geom: CorrectedGeometry) -> GeometryFinding:
 def check_coverage(geom: CorrectedGeometry) -> list[GeometryFinding]:
     """Per floor: cells must tile the footprint — no holes, no overlaps."""
     findings: list[GeometryFinding] = []
-    fx, fy = geom.footprint_x, geom.footprint_y
-    from shapely.geometry import box
-
-    foot = box(min(fx), min(fy), max(fx), max(fy))
-    foot_area = foot.area
+    from shapely.geometry import Polygon
     for fl in geom.floors:
+        try:
+            foot = Polygon(floor_footprint(geom, fl))
+            foot_area = foot.area
+        except ValueError as exc:
+            findings.append(GeometryFinding("correction.coverage", False, str(exc), {"floor": fl.name}))
+            continue
         try:
             boxes = [_cell_box(c) for c in fl.cells]
         except ValueError as exc:
@@ -216,6 +220,7 @@ def validate_corrected_geometry(
     geom: CorrectedGeometry, *, expected_zone_total: int | None = None
 ) -> list[GeometryFinding]:
     """Run all A0 §7 + cross-check geometry validations."""
+    geom = ensure_corrected_geometry(geom)
     findings: list[GeometryFinding] = []
     findings.append(check_cell_polygon_contract(geom))
     findings.extend(check_coverage(geom))

@@ -269,9 +269,10 @@ def _extract_correction_boundary(
     *,
     wall_thickness_m: float | None = None,
 ) -> dict[str, float] | None:
-    fx = _valid_pair(getattr(geom, "footprint_x", None))
-    fy = _valid_pair(getattr(geom, "footprint_y", None))
-    if fx is None or fy is None:
+    from src.agent.correction.footprint import footprint_bbox
+    try:
+        fx, fy = footprint_bbox(geom, floor)
+    except ValueError:
         bbox = _floor_cells_bbox(floor)
         if bbox is None:
             return None
@@ -330,10 +331,10 @@ def score_correction_geometry(
     overlap_complete: float = DEFAULT_OVERLAP_COMPLETE,
     floor_line_tol_m: float = DEFAULT_FLOOR_LINE_TOL_M,
 ) -> CorrectionScoreResult:
-    geom = (
-        geom_data
-        if isinstance(geom_data, CorrectedGeometry)
-        else CorrectedGeometry.model_validate(_normalise_raw_geom_for_scoring(geom_data))
+    from src.agent.correction.parse import ensure_corrected_geometry
+    geom = ensure_corrected_geometry(
+        geom_data if isinstance(geom_data, CorrectedGeometry)
+        else _normalise_raw_geom_for_scoring(geom_data)
     )
     fp = gt["footprint"]
     W, D = float(fp["W_m"]), float(fp["D_m"])

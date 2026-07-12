@@ -47,13 +47,35 @@ from src.agent.correction.cell_geometry import (
     validate_cell_polygon,
 )
 from src.agent.correction.envelope import AuthoritativeEnvelope, EnvelopeAxisResolution
+from src.agent.correction.footprint import floor_footprint, floor_key, footprint_bbox
 from src.agent.correction.geometry_validator import validate_corrected_geometry
-from src.agent.correction.schema import CorrectedGeometry
+from src.agent.correction.parse import ensure_corrected_geometry, validate_final_corrected_geometry
+from src.agent.correction.schema import CorrectedGeometry, FootprintRing
 from src.agent.geometry.capability import require_supported_geometry_contract
-from src.agent.geometry.capability import schema_version_of
+from src.agent.geometry.capability import FEATURE_CELL_POLYGON, schema_supports, schema_version_of
 
 
 _EPS = 1e-9
+
+
+def _v3_rectangular_ring(floor) -> bool:
+    pts = list(floor.footprint.vertices)
+    return len(pts) == 4 and len({p[0] for p in pts}) == 2 and len({p[1] for p in pts}) == 2
+
+
+def _set_v3_ring_bounds(floor, axis: str, bounds: tuple[float, float]) -> None:
+    """Move a rectangular v3 ring with its attached perimeter cells as one transaction."""
+    lo, hi = bounds
+    pts = []
+    old = floor.footprint.vertices
+    old_lo, old_hi = ((min(p[0] for p in old), max(p[0] for p in old)) if axis == "x"
+                      else (min(p[1] for p in old), max(p[1] for p in old)))
+    for x, y in old:
+        if axis == "x":
+            pts.append((lo if x == old_lo else hi if x == old_hi else x, y))
+        else:
+            pts.append((x, lo if y == old_lo else hi if y == old_hi else y))
+    floor.footprint = FootprintRing(vertices=pts)
 
 
 @dataclass(frozen=True)
@@ -600,7 +622,9 @@ def _apply_envelope_reconcile(
     fy = list(map(float, geom.footprint_y))
     if authoritative_envelope is None:
         return fx, fy
-    if any(cell_has_polygon(c) for fl in geom.floors for c in fl.cells):
+    # Preserve B1's legacy safety guard exactly: polygon-cell vertices are the
+    # authority, so a bbox-only envelope move must never mutate only x/y.
+    if schema_version_of(geom) != "3" and any(cell_has_polygon(c) for fl in geom.floors for c in fl.cells):
         unsupported.append(
             {
                 "target": "footprint",
@@ -608,6 +632,20 @@ def _apply_envelope_reconcile(
                     "authoritative envelope reconcile for polygon cells is not "
                     "implemented in schema v2 B1; refusing to move bbox-only "
                     "cell edges without moving polygon vertices"
+                ),
+                "regime_assumption_violated": "rectangular envelope reconcile",
+            }
+        )
+        return fx, fy
+    # V3 has a different owner: floor ring vertices.  Rectangle moves are
+    # transactional (ring + attached cells); non-rectangular deformation is B2b.
+    if schema_version_of(geom) == "3" and not all(_v3_rectangular_ring(fl) for fl in geom.floors):
+        unsupported.append(
+            {
+                "target": "footprint",
+                "reason": (
+                    "authoritative envelope reconcile for non-rectangular v3 "
+                    "footprints is unsupported; vertex-level deformation belongs to B2b"
                 ),
                 "regime_assumption_violated": "rectangular envelope reconcile",
             }
@@ -684,6 +722,9 @@ def _apply_envelope_reconcile(
         else:
             fy = [new_bounds[0], new_bounds[1]]
             geom.footprint_y = fy
+        if schema_version_of(geom) == "3":
+            for floor in geom.floors:
+                _set_v3_ring_bounds(floor, axis, new_bounds)
 
         source = resolution.source
         corrections.append(
@@ -733,6 +774,7 @@ def apply_deterministic_core(
     Mutates and returns `geom` (corrections / unsupported appended). `tol`
     defaults to the active `correction.yaml` (overridable for testing).
     """
+    geom = ensure_corrected_geometry(geom)
     if tol is None:
         tol = load_core_tolerances()
     require_supported_geometry_contract(geom, capability_profile)
@@ -748,9 +790,9 @@ def apply_deterministic_core(
         xs: list[float] = []
         ys: list[float] = []
         for c in fl.cells:
-            if cell_has_polygon(c) and schema_version_of(geom) != "2":
+            if cell_has_polygon(c) and not schema_supports(geom, FEATURE_CELL_POLYGON):
                 raise ValueError(
-                    f"cell {c.id}: polygon requires CorrectedGeometry.schema_version '2'"
+                    f"cell {c.id}: polygon requires schema_version '2' or a schema version with feature '{FEATURE_CELL_POLYGON}'"
                 )
             ccw = normalized_ccw_polygon(c)
             if ccw is not None:
@@ -772,13 +814,49 @@ def apply_deterministic_core(
             validate_cell_polygon(c, min_edge_length_m=tol.min_edge_length_m)
             xs += cell_axis_values(c, "x")
             ys += cell_axis_values(c, "y")
-        per_floor_x[fl.name] = xs
-        per_floor_y[fl.name] = ys
+        # V3 footprint vertices participate in the same identity buckets as
+        # cell axes.  Legacy remains byte-for-byte on its old bbox branch.
+        if schema_version_of(geom) == "3":
+            ring_cell = type("FloorRing", (), {
+                "id": f"floor:{fl.id}", "polygon": [list(p) for p in fl.footprint.vertices],
+                "x": list(geom.footprint_x), "y": list(geom.footprint_y),
+            })()
+            canonical = normalized_ccw_polygon(ring_cell)
+            if canonical is not None:
+                fl.footprint = FootprintRing(vertices=[tuple(p) for p in canonical])
+                corrections.append({"rule_id": "POLYGON_WINDING_CCW", "stage": "core",
+                                    "target": f"floor:{fl.id}", "axis": "xy",
+                                    "original_value": "non_canonical_ring(cw_or_closed)",
+                                    "resolved_value": "ccw_open_ring", "delta": 0.0,
+                                    "tolerance_name": "NONE(encoding-only rewrite)"})
+            ring = floor_footprint(geom, fl)
+            xs.extend(point[0] for point in ring)
+            ys.extend(point[1] for point in ring)
+        per_floor_x[floor_key(geom, fl)] = xs
+        per_floor_y[floor_key(geom, fl)] = ys
+
+    if schema_version_of(geom) == "3":
+        # Top-level bbox is a compatibility projection only; producer values are
+        # auditable but cannot override floor-owned geometry.
+        (xmin, xmax), (ymin, ymax) = footprint_bbox(geom)
+        if list(map(float, geom.footprint_x)) != [xmin, xmax] or list(map(float, geom.footprint_y)) != [ymin, ymax]:
+            corrections.append({"rule_id": "deterministic_core.v3_bbox_projection", "stage": "core",
+                                "target": "footprint_x/y", "original_value": [geom.footprint_x, geom.footprint_y],
+                                "resolved_value": [[xmin, xmax], [ymin, ymax]], "delta": 0.0,
+                                "tolerance_name": "NONE(exact derived projection)"})
+        geom.footprint_x, geom.footprint_y = [xmin, xmax], [ymin, ymax]
 
     xmap, x_audit = _reconcile_cross_floor(per_floor_x, geom.footprint_x, tol, "x")
     ymap, y_audit = _reconcile_cross_floor(per_floor_y, geom.footprint_y, tol, "y")
     corrections.extend(x_audit)
     corrections.extend(y_audit)
+
+    if schema_version_of(geom) == "3":
+        for fl in geom.floors:
+            snapped = [(_snap(x, xmap), _snap(y, ymap)) for x, y in floor_footprint(geom, fl)]
+            fl.footprint = FootprintRing(vertices=snapped)
+        (xmin, xmax), (ymin, ymax) = footprint_bbox(geom)
+        geom.footprint_x, geom.footprint_y = [xmin, xmax], [ymin, ymax]
 
     def log(target: str, axis: str, before: float, after: float, rule: str) -> None:
         if abs(after - before) > tol.output_precision_m:
@@ -933,4 +1011,8 @@ def apply_deterministic_core(
     geom.corrections = corrections
     geom.conflicts = conflicts
     geom.unsupported = unsupported
+    if schema_version_of(geom) == "3":
+        (xmin, xmax), (ymin, ymax) = footprint_bbox(geom)
+        geom.footprint_x, geom.footprint_y = [xmin, xmax], [ymin, ymax]
+        return validate_final_corrected_geometry(geom)
     return geom

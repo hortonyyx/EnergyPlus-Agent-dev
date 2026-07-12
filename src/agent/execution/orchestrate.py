@@ -46,12 +46,14 @@ def file_stage_attempt(
 ) -> RecordedAttempt:
     """File one draw as an append-only attempt; persist the judge verdict beside
     it. Returns the RecordedAttempt (carries the attempt dir + accepted flag)."""
+    stage_version = "2" if stage == "1_correction" and output_obj.__class__.__name__ == "FinalizeResult" else "1"
     rec = runner.record(
         stage=stage,
         stage_dir=stage_dir,
         output_obj=output_obj,
         report=report,
         input_hashes=input_hashes,
+        stage_version=stage_version,
         accept=accept,
     )
     if verdict is not None:

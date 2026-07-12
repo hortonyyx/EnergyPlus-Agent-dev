@@ -11,7 +11,9 @@ import json
 from pathlib import Path
 from typing import Any
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
+
+from src.agent.execution.manifest import hash_obj
 
 from src.agent.reading import load_reading_view
 from src.validator.checks.reading import check_reading_view
@@ -23,7 +25,7 @@ from src.validator.checks.schema import (
     is_evidence_check_id,
 )
 
-EVIDENCE_DEBT_SCHEMA_VERSION = "1"
+EVIDENCE_DEBT_SCHEMA_VERSION = "2"
 EVIDENCE_DEBT_PRODUCER = "src.agent.execution.evidence_preflight"
 
 
@@ -40,6 +42,20 @@ class EvidenceDebtItem(BaseModel):
     evidence: dict[str, Any] = Field(default_factory=dict)
     scope: str = "view_global"
     offender_ids: list[str] = Field(default_factory=list)
+    debt_id: str = ""
+
+    @model_validator(mode="after")
+    def _stable_id(self):
+        payload = {
+            "check_id": self.check_id, "canonical_check_id": self.canonical_check_id,
+            "view": self.view, "scope": self.scope,
+            "offender_ids": sorted(self.offender_ids),
+        }
+        computed = hash_obj(payload)
+        if self.debt_id and self.debt_id != computed:
+            raise ValueError("debt_id does not match canonical evidence-debt identity")
+        self.debt_id = computed
+        return self
 
 
 class EvidenceDebt(BaseModel):

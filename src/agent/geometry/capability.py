@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from src.agent.correction.constants import SCHEMA_VERSION_V1, SCHEMA_VERSION_V2
+from src.agent.correction.constants import SCHEMA_VERSION_V1, SCHEMA_VERSION_V2, SCHEMA_VERSION_V3
 SHAPE_RECTANGULAR = "rectangular"
 SHAPE_ORTHOGONAL_POLYGON = "orthogonal_polygon"
 
@@ -18,10 +18,24 @@ CAPABILITY_PROFILE_ORTHOGONAL_POLYGON = "orthogonal_polygon"
 CHECK_SCHEMA_VERSION_SUPPORTED = "correction.schema_version_supported"
 CHECK_CAPABILITY_PROFILE_SHAPES = "correction.capability_profile_shapes"
 
-SUPPORTED_SCHEMA_VERSIONS = frozenset({SCHEMA_VERSION_V1, SCHEMA_VERSION_V2})
+FEATURE_CELL_POLYGON = "cell_polygon"
+FEATURE_PER_FLOOR_FOOTPRINT = "per_floor_footprint"
+FEATURE_FACADE_SEGMENTS = "facade_segments"
+FEATURE_TYPED_NORTH_AXIS = "typed_north_axis"
+
+SUPPORTED_SCHEMA_VERSIONS = frozenset({SCHEMA_VERSION_V1, SCHEMA_VERSION_V2, SCHEMA_VERSION_V3})
 SCHEMA_VERSION_SHAPES = {
     SCHEMA_VERSION_V1: frozenset({SHAPE_RECTANGULAR}),
     SCHEMA_VERSION_V2: frozenset({SHAPE_RECTANGULAR, SHAPE_ORTHOGONAL_POLYGON}),
+    SCHEMA_VERSION_V3: frozenset({SHAPE_RECTANGULAR, SHAPE_ORTHOGONAL_POLYGON}),
+}
+SCHEMA_VERSION_FEATURES = {
+    SCHEMA_VERSION_V1: frozenset(),
+    SCHEMA_VERSION_V2: frozenset({FEATURE_CELL_POLYGON}),
+    SCHEMA_VERSION_V3: frozenset({
+        FEATURE_CELL_POLYGON, FEATURE_PER_FLOOR_FOOTPRINT,
+        FEATURE_FACADE_SEGMENTS, FEATURE_TYPED_NORTH_AXIS,
+    }),
 }
 CAPABILITY_PROFILE_SHAPES = {
     CAPABILITY_PROFILE_RECTANGULAR: frozenset({SHAPE_RECTANGULAR}),
@@ -37,6 +51,12 @@ def schema_version_of(geom: Any) -> str:
 
 def schema_version_supported(geom: Any) -> bool:
     return schema_version_of(geom) in SUPPORTED_SCHEMA_VERSIONS
+
+
+def schema_supports(version_or_geom: Any, feature: str) -> bool:
+    """Whether a known schema statically declares ``feature`` (unknown = false)."""
+    version = version_or_geom if isinstance(version_or_geom, str) else schema_version_of(version_or_geom)
+    return feature in SCHEMA_VERSION_FEATURES.get(str(version), frozenset())
 
 
 def declared_shapes(geom: Any) -> frozenset[str]:

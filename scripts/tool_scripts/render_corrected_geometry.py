@@ -21,6 +21,7 @@ import json
 from pathlib import Path
 
 from PIL import Image, ImageColor, ImageDraw
+from src.agent.correction.footprint import floor_footprint_from_payload
 
 SCALE = 45          # px per metre; match render_vector_to_png.py
 MARGIN_M = 1.5
@@ -67,10 +68,10 @@ def _floor_bounds(data: dict, floor: dict) -> tuple[float, float, float, float]:
     pts: list[tuple[float, float]] = []
     for c in floor.get("cells") or []:
         pts.extend(_ring(c))
-    fx = data.get("footprint_x") or []
-    fy = data.get("footprint_y") or []
-    if len(fx) == 2 and len(fy) == 2:
-        pts.extend([(float(fx[0]), float(fy[0])), (float(fx[1]), float(fy[1]))])
+    try:
+        pts.extend((float(x), float(y)) for x, y in floor_footprint_from_payload(data, floor))
+    except ValueError:
+        raise
     if not pts:
         return 0.0, 0.0, 1.0, 1.0
     xs = [p[0] for p in pts]
@@ -112,12 +113,11 @@ def _floor_canvas(data: dict, floor: dict):
 
 
 def _draw_windows_on_plan(d, data: dict, floor: dict, tx, ty) -> None:
-    fx = data.get("footprint_x") or [0, 0]
-    fy = data.get("footprint_y") or [0, 0]
-    minx, maxx = min(float(fx[0]), float(fx[1])), max(float(fx[0]), float(fx[1]))
-    miny, maxy = min(float(fy[0]), float(fy[1])), max(float(fy[0]), float(fy[1]))
+    ring = floor_footprint_from_payload(data, floor)
+    minx, maxx = min(p[0] for p in ring), max(p[0] for p in ring)
+    miny, maxy = min(p[1] for p in ring), max(p[1] for p in ring)
     floor_name = floor.get("name", "")
-    for w in _floor_windows(data, floor_name):
+    for w in _floor_windows(data, floor_name, floor.get("id")):
         facade = str(w.get("facade", "")).lower()
         span = sorted(float(v) for v in (w.get("span") or [0, 0]))
         if facade.startswith("n"):
@@ -138,6 +138,8 @@ def render_plan_floor(data: dict, floor: dict) -> Image.Image:
         pts = [(tx(x), ty(y)) for x, y in _ring(c)]
         if len(pts) >= 2:
             d.line(pts + [pts[0]], fill=ImageColor.getrgb(CELL_EDGE), width=6)
+    footprint = [(tx(x), ty(y)) for x, y in floor_footprint_from_payload(data, floor)]
+    d.line(footprint + [footprint[0]], fill=ImageColor.getrgb(FOOTPRINT), width=3)
     _draw_windows_on_plan(d, data, floor, tx, ty)
     d.text((6, 6), f"correction plan | {floor.get('name', '')}", fill=(60, 60, 60))
     return img
@@ -157,6 +159,8 @@ def render_roles_floor(data: dict, floor: dict) -> Image.Image:
             d.text((x0 + 4, y0 + 4), str(c.get("id", "")), fill=TEXT)
             d.text((x0 + 4, y0 + 16), str(c.get("role", "")), fill=SUBTLE)
     _draw_windows_on_plan(d, data, floor, tx, ty)
+    footprint = [(tx(x), ty(y)) for x, y in floor_footprint_from_payload(data, floor)]
+    d.line(footprint + [footprint[0]], fill=ImageColor.getrgb(FOOTPRINT), width=3)
     d.text((6, 6), f"correction roles | {floor.get('name', '')}", fill=(60, 60, 60))
     return img
 
@@ -178,8 +182,9 @@ def render_all_to_dir(data: dict, out_dir: Path) -> list[Path]:
     return paths
 
 
-def _floor_windows(data: dict, floor_name: str) -> list[dict]:
-    return [w for w in (data.get("windows") or []) if w.get("floor") == floor_name]
+def _floor_windows(data: dict, floor_name: str, floor_id: str | None = None) -> list[dict]:
+    return [w for w in (data.get("windows") or [])
+            if (w.get("floor_id") == floor_id if floor_id is not None else w.get("floor") == floor_name)]
 
 
 def render(data: dict) -> Image.Image:

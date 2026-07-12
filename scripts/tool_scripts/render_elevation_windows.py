@@ -21,6 +21,7 @@ import json
 from pathlib import Path
 
 from PIL import Image, ImageDraw
+from src.agent.correction.footprint import floor_footprint_from_payload
 
 SCALE = 45          # px per metre; match render_vector_to_png.py
 MARGIN = 68
@@ -41,9 +42,10 @@ _FACADES = ("South", "North", "East", "West")
 
 def _along_extent(data: dict, facade: str) -> tuple[float, float]:
     """The world extent of the building along the given facade."""
-    fx = data.get("footprint_x") or [0, 0]
-    fy = data.get("footprint_y") or [0, 0]
-    return (min(fx), max(fx)) if facade in ("South", "North") else (min(fy), max(fy))
+    floor = (data.get("floors") or [None])[0]
+    ring = floor_footprint_from_payload(data, floor)
+    values = [p[0] for p in ring] if facade in ("South", "North") else [p[1] for p in ring]
+    return min(values), max(values)
 
 
 def _z_extent(data: dict) -> tuple[float, float]:

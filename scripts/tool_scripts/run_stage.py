@@ -206,7 +206,8 @@ def _draw_correction(
     relied,
     policy: RunPolicy,
 ):
-    from src.agent.correction.deterministic import apply_deterministic_core
+    from src.agent.correction.finalize import finalize_correction_draw
+    from src.agent.correction.parse import correction_target
     from src.agent.execution.evidence_preflight import load_evidence_debt
     from src.agent.pipeline import (
         _reading_window_stroke_count,
@@ -222,12 +223,23 @@ def _draw_correction(
     # Inner retry handles ONLY schema/format robustness; semantic draw quality is
     # gate①'s job (so a content-bad draw is counted + filed, not silently re-drawn
     # inside the LLM call, bypassing the per-stage budget — review 2026-06-19 High-2).
+    target = correction_target(policy.capability_profile)
     geom = run_correction(rdir, testdata_text, out_dir=s1, feedback=None,
                           draw_validate=_schema_only_correction_validator,
                           run_profile=policy.run_profile,
                           capability_profile=policy.capability_profile,
-                          dimensioned_views=dimensioned_view_names(run_dir.parent))
+                          dimensioned_views=dimensioned_view_names(run_dir.parent), target=target)
     evidence_debt = load_evidence_debt(s1 / "evidence_debt.json")
+
+    # Keep flow aligned with pipeline: evidence debt is evaluated before any
+    # deterministic mutation, and a blocked draw is still filed as an attempt.
+    from src.validator.checks.correction import check_evidence_debt_coverage
+    pre_core_debt = check_evidence_debt_coverage(
+        geom, evidence_debt, capability_profile=policy.capability_profile,
+        run_profile=policy.run_profile,
+    )
+    if any(result.status == CheckStatus.FAIL for result in pre_core_debt.results):
+        return geom, pre_core_debt
 
     # Semantic checks on the PRE-core draw. If bad, THIS draw blocks gate① → the
     # outer loop files it as an append-only attempt, counts it, and blind-resamples.
@@ -243,22 +255,14 @@ def _draw_correction(
             rep.add_fail("correction.draw_quality", CheckLayer.INVARIANT, msg)
         return geom, rep
 
-    geom = apply_deterministic_core(
-        geom, capability_profile=policy.capability_profile
-    )
-    (s1 / "correction_geometry_snapped.json").write_text(
-        geom.model_dump_json(indent=2), encoding="utf-8")
-    # Mirror run_pipeline's post-core audit artifact (stage-dir shape parity).
-    (s1 / "corrections.json").write_text(
-        json.dumps({"corrections": geom.corrections, "conflicts": geom.conflicts,
-                    "unsupported": geom.unsupported}, indent=2, ensure_ascii=False),
-        encoding="utf-8")
+    result = finalize_correction_draw(geom, vector_dir=rdir, target=target)
+    geom = result.geom
     rep = check_correction(geom, expected_zone_total=expected_zones,
                            relied_on_testdata=relied,
                            capability_profile=policy.capability_profile,
                            run_profile=policy.run_profile,
                            evidence_debt=evidence_debt)
-    return geom, rep
+    return result, rep
 
 
 def _accepted_output_path(run_dir: Path, stage: str) -> Path | None:
@@ -282,7 +286,7 @@ def _accepted_output_path(run_dir: Path, stage: str) -> Path | None:
 
 
 def _load_snapped(run_dir: Path):
-    from src.agent.correction.schema import CorrectedGeometry
+    from src.agent.correction.parse import ensure_corrected_geometry
 
     # Manifest-first: stage-root files mirror the LAST draw, which may be a
     # blocked one (a failed resample still overwrote them before its gate①
@@ -294,7 +298,7 @@ def _load_snapped(run_dir: Path):
     )
     if not p.exists():
         raise SystemExit(f"missing {p}; run 1_correction first")
-    return CorrectedGeometry.model_validate_json(p.read_text(encoding="utf-8"))
+    return ensure_corrected_geometry(json.loads(p.read_text(encoding="utf-8")))
 
 
 def _draw_modelling(run_dir: Path, policy: RunPolicy):

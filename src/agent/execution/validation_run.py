@@ -182,7 +182,8 @@ def validate_case(
     if snapped.exists():
         from src.agent.execution.evidence_preflight import load_evidence_debt
 
-        geom = CorrectedGeometry.model_validate_json(snapped.read_text())
+        from src.agent.correction.parse import ensure_corrected_geometry
+        geom = ensure_corrected_geometry(json.loads(snapped.read_text()))
         relied = (case_dir / "case_data" / "testdata_prompt.json").exists()
         evidence_debt = load_evidence_debt(run_dir / "1_correction" / "evidence_debt.json")
         crep = check_correction(

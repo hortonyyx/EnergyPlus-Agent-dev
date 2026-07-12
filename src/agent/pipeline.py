@@ -292,14 +292,14 @@ def _build_correction_messages(
     *,
     feedback: str | None = None,
     evidence_debt: EvidenceDebt | None = None,
+    target=None,
 ) -> tuple[str, str]:
     correction_docs = _load_correction_docs()
     reading_guide = _read(_SKILL_DIR / "0_reading" / "guide.md")
     reading_pens = _read(_SKILL_DIR / "0_reading" / "pen_library.md")
     summary = _read(vector_dir / "reading_summary.md")
-    geom_schema = json.dumps(
-        CorrectedGeometry.model_json_schema(), indent=2, ensure_ascii=False
-    )
+    target = target or __import__("src.agent.correction.parse", fromlist=["correction_target"]).correction_target("rectangular")
+    geom_schema = json.dumps(target.schema_model.model_json_schema(), indent=2, ensure_ascii=False)
 
     system_prompt = (
         "You are running the CORRECTION stage (1_correction) of a staged "
@@ -318,7 +318,7 @@ def _build_correction_messages(
         "cells just to keep them rectangular. A rectangular room is a "
         "rectangular cell {id, role, x:[min,max], y:[min,max]}. Only when a "
         "room's own shape is not a single rectangle (e.g. an L-shaped corridor), "
-        "emit schema_version \"2\" and give that cell a CCW orthogonal `polygon` "
+        f"emit the selected schema_version {target.schema_version!r} and give that cell a CCW orthogonal `polygon` "
         "(exterior ring, first vertex not repeated); keep `x`/`y` as the exact "
         "polygon bbox projection. Polygon is the exception, not the default. "
         "For `role`, prefer the image-observed role from room_labels; fall back "
@@ -451,7 +451,7 @@ def correction_draw_issues(
         validate_cell_polygon,
     )
     from src.agent.correction.config import load_core_tolerances
-    from src.agent.geometry.capability import schema_version_of
+    from src.agent.geometry.capability import FEATURE_CELL_POLYGON, schema_supports
 
     tol = load_core_tolerances()
     issues: list[str] = []
@@ -478,7 +478,7 @@ def correction_draw_issues(
             # core canonicalizes CW→CCW) so a bad polygon blocks THIS draw and
             # blind-resamples instead of crashing the flow inside the core.
             if cell_has_polygon(cell):
-                if schema_version_of(geom) != "2":
+                if not schema_supports(geom, FEATURE_CELL_POLYGON):
                     issues.append(
                         f"cell '{cell.id}' has a polygon but schema_version is "
                         f"not '2' — polygon cells require the v2 contract"
@@ -507,16 +507,18 @@ def correction_draw_issues(
     return issues
 
 
-def _schema_only_correction_validator(parsed: dict) -> None:
+def _schema_only_correction_validator(parsed: dict, target=None) -> None:
     """Inner-retry validator for stepwise mode: accept any draw that parses into a
     valid CorrectedGeometry (schema/format robustness only). Semantic draw quality
     is judged by the OUTER gate① (correction_draw_issues), so a content-bad draw is
     counted + filed, not silently re-drawn inside `_call_json_llm`."""
-    CorrectedGeometry.model_validate(parsed)
+    from src.agent.correction.parse import correction_target, parse_correction_draw
+    parse_correction_draw(parsed, target or correction_target("rectangular"))
 
 
 def _make_correction_validator(
     expected_window_strokes: int,
+    target=None,
 ) -> Callable[[dict], None]:
     """Full inner-retry validator (legacy ``run_pipeline`` path): reject a draw on
     Pydantic schema violation OR any semantic draw issue (0-window / duplicate cell
@@ -526,8 +528,11 @@ def _make_correction_validator(
     Stepwise mode uses ``_schema_only_correction_validator`` instead and routes the
     semantic checks through gate① — see ``correction_draw_issues``.
     """
+    from src.agent.correction.parse import correction_target
+    target = target or correction_target("rectangular")
     def _validate(parsed: dict) -> None:
-        geom = CorrectedGeometry.model_validate(parsed)  # schema/format
+        from src.agent.correction.parse import parse_correction_draw
+        geom = parse_correction_draw(parsed, target)
         issues = correction_draw_issues(geom, expected_window_strokes)
         if issues:
             raise ValueError(issues[0])
@@ -550,6 +555,7 @@ def run_correction(
     evidence_debt: EvidenceDebt | None = None,
     dimensioned_views: set[str] | None = None,
     fail_closed_evidence_debt: bool = False,
+    target=None,
 ) -> CorrectedGeometry:
     """1_correction LLM stage → CorrectedGeometry (pre-core).
 
@@ -560,7 +566,9 @@ def run_correction(
     only schema/format, leaving semantic draw quality to gate① (so a content-bad
     draw is counted + filed as an attempt, not silently re-drawn). Pass ``None`` to
     disable the inner validator entirely."""
+    from src.agent.correction.parse import correction_target, parse_correction_draw
     ensure_schema_initialized()  # safe for standalone stage calls (idempotent)
+    target = target or correction_target(capability_profile)
     if evidence_debt is None:
         evidence_debt = compute_evidence_debt_from_vector_dir(
             vector_dir,
@@ -578,12 +586,13 @@ def run_correction(
             f"under run_profile={run_profile}: {checks}"
         )
     system_prompt, human = _build_correction_messages(
-        vector_dir, testdata_text, feedback=feedback, evidence_debt=evidence_debt
+        vector_dir, testdata_text, feedback=feedback, evidence_debt=evidence_debt, target=target
     )
     validator = (
-        _make_correction_validator(_reading_window_stroke_count(vector_dir))
+        _make_correction_validator(_reading_window_stroke_count(vector_dir), target)
         if draw_validate is _UNSET_VALIDATOR
-        else draw_validate
+        else None if draw_validate is None
+        else (lambda parsed: draw_validate(parsed, target))
     )
     parsed = _call_json_llm(
         _section("correction"),
@@ -595,7 +604,7 @@ def run_correction(
         validate=validator,
     )
     try:
-        geom = CorrectedGeometry.model_validate(parsed)
+        geom = parse_correction_draw(parsed, target)
     except Exception as e:
         if out_dir is not None:
             (out_dir / "correction_geometry_unvalidated.json").write_text(
@@ -918,19 +927,13 @@ def run_pipeline(
             + "; ".join(f"{r.check_id}: {r.message}" for r in blocking_coverage)
         )
 
+    from src.agent.correction.finalize import finalize_correction_draw
+    from src.agent.correction.parse import correction_target
     n_corr_before = len(geom.corrections)
-    tol = load_core_tolerances()
-    authoritative_envelope = extract_authoritative_envelope(
-        vector_dir,
-        footprint=geom,
-        footprint_tolerance_m=tol.envelope_reconcile_tol_m,
+    finalized = finalize_correction_draw(
+        geom, vector_dir=vector_dir, target=correction_target(capability_profile),
     )
-    geom = apply_deterministic_core(
-        geom,
-        tol,
-        authoritative_envelope=authoritative_envelope,
-        capability_profile=capability_profile,
-    )
+    geom = finalized.geom
     logger.info(
         "core: deterministic snap added {} correction(s), {} unsupported",
         len(geom.corrections) - n_corr_before,

@@ -223,10 +223,19 @@ rectangular path.
 |---|---|---|
 | `CORRECTION_SCHEMA_V1` | `"1"` | rectangular correction contract |
 | `CORRECTION_SCHEMA_V2` | `"2"` | polygon-capable correction contract |
+| `CORRECTION_SCHEMA_V3` | `"3"` | strict per-floor-footprint correction wire; v1/v2 remain legacy read contracts |
 | `SHAPE_RECTANGULAR` | `rectangular` | axis-aligned rectangular cell contract |
 | `SHAPE_ORTHOGONAL_POLYGON` | `orthogonal_polygon` | orthogonal polygon cell fallback contract |
 | `CAPABILITY_PROFILE_RECTANGULAR` | `rectangular` | allows `SHAPE_RECTANGULAR` |
 | `CAPABILITY_PROFILE_ORTHOGONAL_POLYGON` | `orthogonal_polygon` | allows `SHAPE_RECTANGULAR` and `SHAPE_ORTHOGONAL_POLYGON` |
+
+Schema-v3 registry: `Floor.id` and `Floor.footprint` are required, authoritative
+floor-owned geometry; top-level `footprint_x/y` are their exact compatibility
+projection. `Window.floor_id` is the primary floor reference. `FeatureStateClaimsV1`
+and output-bound `FeatureStatesArtifactV1` record declared versus populated
+features; `EvidenceDebtItem.debt_id` is the canonical debt primary key and a
+v3 `debt_resolution` audit entry may resolve it exactly once. These are schema
+registrations, not new numeric tolerances.
 
 Profile rule: the active capability profile's allowed shapes must be a superset
 of the shapes declared by the artifact schema version, else gate ① fails as

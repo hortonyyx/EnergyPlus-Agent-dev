@@ -31,6 +31,8 @@ from src.agent.correction.envelope import (
 )
 from src.agent.correction.facade import derive_facade_frame
 from src.agent.correction.schema import CorrectedGeometry
+from src.agent.correction.parse import ensure_corrected_geometry
+from src.agent.correction.footprint import footprint_bbox
 from src.agent.geometry.capability import (
     CHECK_CAPABILITY_PROFILE_SHAPES,
     CHECK_SCHEMA_VERSION_SUPPORTED,
@@ -99,6 +101,13 @@ def check_correction(
         capability_profile=capability_profile,
         run_profile=run_profile,
     )
+    try:
+        geom = ensure_corrected_geometry(geom)
+    except ValueError as exc:
+        # A check adapter reports malformed/unknown input as a gate failure;
+        # mutation/build entry points still raise at their trust boundary.
+        rep.add_fail(CHECK_SCHEMA_VERSION_SUPPORTED, CheckLayer.INVARIANT, str(exc))
+        return rep
 
     _schema_profile_compatibility(rep, geom, capability_profile)
     for f in validate_corrected_geometry(geom, expected_zone_total=expected_zone_total):
@@ -185,12 +194,12 @@ def _cross_image_reconcile(
         rep.add("correction.cross_image_reconcile", CheckStatus.NOT_APPLICABLE,
                 CheckLayer.CROSS_CHECK, message="no elevation widths supplied")
         return
-    width = abs(max(geom.footprint_x) - min(geom.footprint_x))   # N/S facade width
-    depth = abs(max(geom.footprint_y) - min(geom.footprint_y))   # E/W facade width
+    (xmin, xmax), (ymin, ymax) = footprint_bbox(geom)
+    width = abs(xmax - xmin)   # N/S facade width
+    depth = abs(ymax - ymin)   # E/W facade width
     envelope = resolve_authoritative_envelope(
         envelope_candidates_from_elevation_widths(elevation_widths),
-        footprint={"x": (min(geom.footprint_x), max(geom.footprint_x)),
-                   "y": (min(geom.footprint_y), max(geom.footprint_y))},
+        footprint={"x": (xmin, xmax), "y": (ymin, ymax)},
         footprint_tolerance_m=0.10,
     )
     expected = {"North": width, "South": width, "East": depth, "West": depth}
@@ -274,8 +283,8 @@ def _reading_elevation_windows(reading_views: list[Any] | None) -> tuple[list[di
 
 def _footprint_bounds(geom: CorrectedGeometry) -> tuple[list[float], list[float]] | None:
     try:
-        fx = [float(v) for v in geom.footprint_x]
-        fy = [float(v) for v in geom.footprint_y]
+        (x0, x1), (y0, y1) = footprint_bbox(geom)
+        fx, fy = [x0, x1], [y0, y1]
     except (TypeError, ValueError):
         return None
     if len(fx) < 2 or len(fy) < 2 or min(fx) == max(fx) or min(fy) == max(fy):
@@ -527,10 +536,6 @@ def _coerce_debt(evidence_debt: EvidenceDebt | dict | None) -> Any | None:
     return None
 
 
-def _row_text(row: dict) -> str:
-    return str(row)
-
-
 def _audit_rows(geom: CorrectedGeometry) -> list[dict]:
     return [
         row
@@ -539,21 +544,29 @@ def _audit_rows(geom: CorrectedGeometry) -> list[dict]:
     ]
 
 
-def _mentions(row: dict, values: list[str]) -> bool:
-    text = _row_text(row)
-    return any(value and value in text for value in values)
+def _resolved_debt_ids(rows: list[dict]) -> list[str]:
+    """Only typed LLM/A3 resolution entries can settle an input debt.
+
+    Core audit rows have no ``resolves_debt_id`` field, so deterministic cleanup
+    can never accidentally wash away an evidence obligation.
+    """
+    from src.agent.correction.schema import DebtResolutionAuditEntry
+    ids = []
+    for row in rows:
+        if row.get("kind") == "debt_resolution":
+            ids.append(DebtResolutionAuditEntry.model_validate(row).resolves_debt_id)
+    return ids
 
 
-def _covered_by_audit(item, rows: list[dict]) -> bool:
+def _legacy_covered_by_audit(item, rows: list[dict]) -> bool:
+    """Compatibility reader for V1/V2 artifacts; V3 is strict below."""
+    def mentions(row, values):
+        text = str(row)
+        return any(value and value in text for value in values)
     if item.scope == "element_local":
-        return bool(item.offender_ids) and all(
-            any(_mentions(row, [offender]) for row in rows)
-            for offender in item.offender_ids
-        )
-    needles = [item.check_id, item.canonical_check_id]
-    if item.view:
-        needles.append(item.view)
-    return any(_mentions(row, needles) for row in rows)
+        return bool(item.offender_ids) and all(any(mentions(row, [offender]) for row in rows)
+                                               for offender in item.offender_ids)
+    return any(mentions(row, [item.check_id, item.canonical_check_id, item.view]) for row in rows)
 
 
 def _evidence_debt_coverage(
@@ -572,10 +585,14 @@ def _evidence_debt_coverage(
         return
 
     rows = _audit_rows(geom)
+    resolved = _resolved_debt_ids(rows)
+    duplicate_ids = {value for value in resolved if resolved.count(value) > 1}
     element_missing = []
     advisory_missing = []
     for item in debt.debts:
-        if _covered_by_audit(item, rows):
+        is_covered = (item.debt_id in resolved and item.debt_id not in duplicate_ids
+                      if geom.schema_version == "3" else _legacy_covered_by_audit(item, rows))
+        if is_covered:
             continue
         payload = {
             "check_id": item.check_id,
@@ -588,6 +605,10 @@ def _evidence_debt_coverage(
         else:
             advisory_missing.append(payload)
 
+    if duplicate_ids:
+        rep.add_fail("correction.evidence_debt_coverage", CheckLayer.CROSS_CHECK,
+                     "evidence debt may be resolved at most once",
+                     evidence={"duplicate_resolves_debt_ids": sorted(duplicate_ids)})
     if element_missing:
         rep.add_fail(
             "correction.evidence_debt_coverage",

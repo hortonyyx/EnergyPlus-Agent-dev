@@ -149,11 +149,14 @@ class StageRunner:
         stage_dir.mkdir(parents=True, exist_ok=True)
         adir = new_attempt_dir(stage_dir)
 
-        out_text = (
-            output_obj
-            if isinstance(output_obj, str)
-            else _to_json(output_obj)
-        )
+        from src.agent.correction.finalize import FinalizeResult
+        from src.agent.correction.feature_state import FeatureStatesArtifactV1, derive_feature_state_claims
+
+        is_b2_correction = isinstance(output_obj, FinalizeResult)
+        if is_b2_correction and stage != "1_correction":
+            raise ValueError("FinalizeResult may only be written by 1_correction")
+        out_text = (output_obj.geom.model_dump_json(indent=2) if is_b2_correction else
+                    output_obj if isinstance(output_obj, str) else _to_json(output_obj))
         (adir / "output.json").write_text(out_text, encoding="utf-8")
         output_hash = hash_text(out_text)
 
@@ -163,6 +166,21 @@ class StageRunner:
             report.artifact_hash = output_hash
         checks_text = report.model_dump_json(indent=2)
         (adir / "checks.json").write_text(checks_text, encoding="utf-8")
+        artifact_hashes = {"output": output_hash, "checks": hash_text(checks_text)}
+        if is_b2_correction:
+            # Re-derive at the writer boundary; a frozen dataclass does not make
+            # nested caller data trustworthy.
+            from src.agent.correction.parse import CorrectionTarget
+            target = CorrectionTarget(output_obj.geom.schema_version, type(output_obj.geom), report.capability_profile)
+            expected = derive_feature_state_claims(target, output_obj.geom)
+            if expected != output_obj.feature_state_claims:
+                raise ValueError("INVARIANT: FinalizeResult feature-state claims were altered")
+            audit_text = _to_json(output_obj.audit_payload)
+            (adir / "audit.json").write_text(audit_text, encoding="utf-8")
+            states = FeatureStatesArtifactV1(output_sha256=output_hash, claims=expected)
+            states_text = states.model_dump_json(indent=2)
+            (adir / "feature_states.json").write_text(states_text, encoding="utf-8")
+            artifact_hashes.update({"audit": hash_text(audit_text), "feature_states": hash_text(states_text)})
 
         check_passed = report.passed
         do_accept = check_passed if accept is None else accept
@@ -175,6 +193,8 @@ class StageRunner:
             check_passed=check_passed,
         )
         if do_accept:
+            if is_b2_correction:
+                stage_version = "2"
             common = dict(
                 stage=stage,
                 accepted_attempt=rec.attempt_index,
@@ -191,13 +211,14 @@ class StageRunner:
                 self.manifest.accept(
                     StageRecordV2(
                         **common,
-                        artifact_contract="base_v2",
-                        artifact_hashes={
-                            "output": output_hash,
-                            "checks": hash_text(checks_text),
-                        },
+                        artifact_contract="correction_b2_v1" if is_b2_correction else "base_v2",
+                        artifact_hashes=artifact_hashes,
                     )
                 )
+                if is_b2_correction:
+                    # Convenience copies are promoted only after gate acceptance.
+                    (stage_dir / "correction_geometry_snapped.json").write_text(out_text, encoding="utf-8")
+                    (stage_dir / "corrections.json").write_text(_to_json(output_obj.audit_payload), encoding="utf-8")
             else:
                 self.manifest.accept(StageRecord(**common))
         return rec
@@ -206,6 +227,9 @@ class StageRunner:
 def _to_json(obj) -> str:
     import json
 
+    from src.agent.correction.finalize import FinalizeResult
+    if isinstance(obj, FinalizeResult):
+        raise TypeError("FinalizeResult requires the explicit correction writer")
     if hasattr(obj, "model_dump_json"):  # pydantic
         return obj.model_dump_json(indent=2)
     return json.dumps(obj, indent=2, ensure_ascii=False)

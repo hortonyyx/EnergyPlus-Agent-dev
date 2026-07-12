@@ -25,7 +25,8 @@ from src.agent.correction.cell_geometry import (
     cell_polygon as _validated_cell_polygon,
 )
 from src.agent.correction.schema import Cell, CorrectedGeometry
-from src.agent.geometry.capability import require_supported_geometry_contract, schema_version_of
+from src.agent.correction.footprint import footprint_bbox
+from src.agent.geometry.capability import FEATURE_CELL_POLYGON, require_supported_geometry_contract, schema_supports
 
 # Shared tolerances (single source; split_pairing imports these).
 _MIN_EDGE = 0.10      # m — below this a face is a degenerate sliver (gate floor)
@@ -389,9 +390,9 @@ def build_zone_volumes(
     floor_of_id: dict[str, str] = {}
     for fl in geom.floors:
         for c in fl.cells:
-            if cell_has_polygon(c) and schema_version_of(geom) != "2":
+            if cell_has_polygon(c) and not schema_supports(geom, FEATURE_CELL_POLYGON):
                 raise ValueError(
-                    f"cell {c.id}: polygon requires CorrectedGeometry.schema_version '2'"
+                    f"cell {c.id}: polygon requires schema_version '2' or a schema version with feature '{FEATURE_CELL_POLYGON}'"
                 )
             if c.id in floor_of_id:
                 raise ValueError(
@@ -455,7 +456,8 @@ def build_zone_volumes(
     for idx, zv in enumerate(zvs, start=1):
         zv.handle = f"Z{idx:0{width}d}"
         role = _role_token(zv.role)
-        quadrant = _zone_quadrant(zv.polygon, geom.footprint_x, geom.footprint_y)
+        (fx0, fx1), (fy0, fy1) = footprint_bbox(geom, geom.floors[zv.fi])
+        quadrant = _zone_quadrant(zv.polygon, [fx0, fx1], [fy0, fy1])
         zv.zone = f"{zv.handle}_F{zv.fi + 1}_{role}_{quadrant}"
 
     by_fi: dict[int, list[ZoneVolume]] = {}

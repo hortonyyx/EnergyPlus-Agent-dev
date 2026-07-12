@@ -266,9 +266,11 @@ def _footprint_bounds(geom: CorrectedGeometry | dict[EnvelopeAxis, tuple[float, 
     if geom is None:
         return {}
     if isinstance(geom, CorrectedGeometry):
+        from src.agent.correction.footprint import footprint_bbox
+        x, y = footprint_bbox(geom)
         return {
-            "x": (float(geom.footprint_x[0]), float(geom.footprint_x[1])),
-            "y": (float(geom.footprint_y[0]), float(geom.footprint_y[1])),
+            "x": x,
+            "y": y,
         }
     return geom
 
