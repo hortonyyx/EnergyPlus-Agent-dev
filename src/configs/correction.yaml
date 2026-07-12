@@ -121,6 +121,16 @@ correction:
   #       约等于 10mm 坐标精度下、约 5m 边界的一侧量化带面积。独立于
   #       min_edge_length_m（线性长度），不得复用后者。
 
+  # ====== B2b envelope shared-axis transform ======
+  envelope_axis_attach_tol_m: 0.010
+  # canonical ring/cell/window endpoint shared-axis attachment only.
+
+  envelope_endpoint_match_tol_m: 0.050
+  # wing_break world endpoint -> unique footprint shared-axis match only.
+
+  envelope_candidate_agreement_tol_m: 0.050
+  # overall candidates and dimension value-vs-endpoint-span agreement only.
+
   # ====== Vg 立面可见性(纯几何,#E1')：数值退化门,非测量容差 ======
   facade_visibility_depth_epsilon_m: 1.0e-9
   # 约束：同一方向、同一正宽 along 原子区间内，两个不同 segment 的 depth 差

@@ -610,7 +610,7 @@ def _guard_envelope_axis_move(
     return None
 
 
-def _apply_envelope_reconcile(
+def _apply_legacy_envelope_reconcile(
     geom: CorrectedGeometry,
     tol: CoreTolerances,
     authoritative_envelope: AuthoritativeEnvelope | None,
@@ -637,19 +637,9 @@ def _apply_envelope_reconcile(
             }
         )
         return fx, fy
-    # V3 has a different owner: floor ring vertices.  Rectangle moves are
-    # transactional (ring + attached cells); non-rectangular deformation is B2b.
-    if schema_version_of(geom) == "3" and not all(_v3_rectangular_ring(fl) for fl in geom.floors):
-        unsupported.append(
-            {
-                "target": "footprint",
-                "reason": (
-                    "authoritative envelope reconcile for non-rectangular v3 "
-                    "footprints is unsupported; vertex-level deformation belongs to B2b"
-                ),
-                "regime_assumption_violated": "rectangular envelope reconcile",
-            }
-        )
+    # B2b owns every v3 ring shape (rectangle and non-rectangle alike) as one
+    # late candidate transaction.  The legacy path below remains untouched.
+    if schema_version_of(geom) == "3":
         return fx, fy
 
     accepted_any = False
@@ -760,6 +750,31 @@ def _apply_envelope_reconcile(
             messages = "; ".join(f"{f.check_id}: {f.message}" for f in failed)
             raise ValueError(f"envelope reconcile violated corrected-geometry invariant: {messages}")
     return fx, fy
+
+
+def _apply_envelope_reconcile(
+    geom: CorrectedGeometry,
+    tol: CoreTolerances,
+    authoritative_envelope: AuthoritativeEnvelope | None,
+) -> CorrectedGeometry:
+    """Apply an envelope reconcile without leaking mutable audit side channels.
+
+    Legacy geometry keeps the historical B1 routine verbatim; schema v3 uses
+    B2b's fresh-copy transaction.  This is intentionally a small private
+    dispatcher so callers cannot accidentally commit ring/cell changes while
+    retaining audit from a rejected candidate.
+    """
+    geom = ensure_corrected_geometry(geom)
+    if schema_version_of(geom) == "3":
+        if authoritative_envelope is None:
+            return geom
+        from src.agent.correction.envelope_transform import apply_v3_envelope_transaction
+        return apply_v3_envelope_transaction(geom, tol, authoritative_envelope).geom
+    corrections, unsupported, conflicts = list(geom.corrections), list(geom.unsupported), list(geom.conflicts)
+    fx, fy = _apply_legacy_envelope_reconcile(geom, tol, authoritative_envelope, corrections, unsupported, conflicts)
+    geom.footprint_x, geom.footprint_y = fx, fy
+    geom.corrections, geom.unsupported, geom.conflicts = corrections, unsupported, conflicts
+    return geom
 
 
 def apply_deterministic_core(
@@ -876,14 +891,13 @@ def apply_deterministic_core(
     fx = [_snap(geom.footprint_x[0], xmap), _snap(geom.footprint_x[1], xmap)]
     fy = [_snap(geom.footprint_y[0], ymap), _snap(geom.footprint_y[1], ymap)]
     geom.footprint_x, geom.footprint_y = fx, fy
-    fx, fy = _apply_envelope_reconcile(
-        geom,
-        tol,
-        authoritative_envelope,
-        corrections,
-        unsupported,
-        conflicts,
-    )
+    if schema_version_of(geom) == "3":
+        # B2b runs after canonical cell/window preparation below.
+        fx, fy = geom.footprint_x, geom.footprint_y
+    else:
+        fx, fy = _apply_legacy_envelope_reconcile(
+            geom, tol, authoritative_envelope, corrections, unsupported, conflicts,
+        )
     gthr = tol.gap_close_threshold_m
 
     # ---- z-stack continuity: close small inter-floor gaps (the z counterpart of
@@ -1008,11 +1022,21 @@ def apply_deterministic_core(
         kept_windows.append(w)
     geom.windows = kept_windows
 
-    geom.corrections = corrections
-    geom.conflicts = conflicts
-    geom.unsupported = unsupported
     if schema_version_of(geom) == "3":
+        # The B2b candidate transaction runs only after canonical ring/cell and
+        # window snapping.  It receives the complete current audit state so a
+        # rejection can return a fresh, unmodified geometry plus one conflict.
+        geom.corrections = corrections
+        geom.conflicts = conflicts
+        geom.unsupported = unsupported
+        if authoritative_envelope is not None:
+            # Same late (post canonical cell/window) timing as B2b §5.1; the
+            # dispatcher is also the only private reconciliation entry point.
+            geom = _apply_envelope_reconcile(geom, tol, authoritative_envelope)
         (xmin, xmax), (ymin, ymax) = footprint_bbox(geom)
         geom.footprint_x, geom.footprint_y = [xmin, xmax], [ymin, ymax]
         return validate_final_corrected_geometry(geom)
+    geom.corrections = corrections
+    geom.conflicts = conflicts
+    geom.unsupported = unsupported
     return geom

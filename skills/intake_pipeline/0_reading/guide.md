@@ -207,6 +207,11 @@ In EnergyPlus a zone is enclosed by **surfaces (2D faces)**; a wall has no thick
   // number; group a chain with a shared chain_id; role = overall | segment | baseline; order = its
   // position along the chain. text_verbatim = the literal characters as drawn (truth); value_m = parsed metres.
   "dimensions": [
+    // For a clearly drawn wing-break endpoint only, a segment dimension may
+    // additionally carry all three exact keys below. Never infer these from
+    // OCR/note wording or ordinary segmentation dimensions.
+    // "boundary_kind": "wing_break", "boundary_endpoint": "from" | "to",
+    // "boundary_ref": "south-wing-a"
     {
       "id": "D1",
       "text_verbatim": "15000",             // literal OCR string exactly as drawn (truth — keep units/format)

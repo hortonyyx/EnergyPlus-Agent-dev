@@ -21,6 +21,7 @@ import math
 
 from src.agent.reading.legacy import parse_value_m, reading_raw_metadata
 from src.agent.reading.schema import ReadingView
+from src.agent.reading.constants import DIMCHAIN_CLOSE_TOL_M
 from src.agent.roles import CANONICAL_ROLES, normalize
 from src.validator.checks.schema import CheckLayer, CheckReport, CheckStatus, RunProfile
 
@@ -43,7 +44,6 @@ _FORBIDDEN_STROKE_KEYS = {
 _ROOM_LABEL_BASES = {"label", "furniture", "ocr"}
 _MIN_EXTENT = 0.05  # m — below this a line/rect is degenerate
 _OUTPUT_PRECISION_M = 0.01  # A0 OUTPUT_PRECISION scale
-DIMCHAIN_CLOSE_TOL_M = 0.010  # A0 §4 dimension-chain closure tolerance
 _PROVENANCE_PENS = {"wall", "window", "wall_fill", "outline"}
 _WINDOW_JAMB_TOLERANCE_M = 0.20
 

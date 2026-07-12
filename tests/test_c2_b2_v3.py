@@ -99,20 +99,18 @@ def test_f1_legacy_polygon_envelope_rejection_is_preserved():
                     "cells": [{"id": "L", "x": [0, 10], "y": [0, 8],
                                "polygon": [[0, 0], [10, 0], [10, 3], [4, 3], [4, 8], [0, 8]]}]}],
     })
-    unsupported: list[dict] = []
-    fx, fy = _apply_envelope_reconcile(geom, load_core_tolerances(), _accepted_x_envelope(), [], unsupported, [])
-    assert (fx, fy) == ([0.0, 10.0], [0.0, 8.0])
-    assert unsupported[0]["reason"] == (
+    out = _apply_envelope_reconcile(geom, load_core_tolerances(), _accepted_x_envelope())
+    assert (out.footprint_x, out.footprint_y) == ([0.0, 10.0], [0.0, 8.0])
+    assert out.unsupported[0]["reason"] == (
         "authoritative envelope reconcile for polygon cells is not implemented in schema v2 B1; "
         "refusing to move bbox-only cell edges without moving polygon vertices"
     )
 
 
-def test_f1_v3_nonrectangular_ring_envelope_rejection_is_preserved():
+def test_f1_v3_nonrectangular_ring_blanket_rejection_is_removed():
     geom = ensure_corrected_geometry(_payload(ring=[[0, 0], [10, 0], [10, 3], [4, 3], [4, 8], [0, 8]]))
-    unsupported: list[dict] = []
-    _apply_envelope_reconcile(geom, load_core_tolerances(), _accepted_x_envelope(), [], unsupported, [])
-    assert "non-rectangular v3 footprints is unsupported" in unsupported[0]["reason"]
+    out = apply_deterministic_core(geom, load_core_tolerances(), authoritative_envelope=_accepted_x_envelope(), capability_profile="orthogonal_polygon")
+    assert not any("vertex-level deformation belongs to B2b" in row.get("reason", "") for row in out.unsupported)
 
 
 def test_f2_facade_segment_binds_floor_footprint_digest():

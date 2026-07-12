@@ -53,7 +53,7 @@ def finalize_correction_draw(
     before = _identity_snapshot(geom)
     tol = tol or load_core_tolerances()
     envelope = extract_authoritative_envelope(
-        Path(vector_dir), footprint=geom, footprint_tolerance_m=tol.envelope_reconcile_tol_m,
+        Path(vector_dir), footprint=geom, footprint_tolerance_m=tol.envelope_reconcile_tol_m, tol=tol,
     )
     geom = apply_deterministic_core(
         geom, tol, authoritative_envelope=envelope, capability_profile=target.capability_profile,

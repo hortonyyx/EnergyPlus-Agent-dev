@@ -56,6 +56,11 @@ class CoreTolerances:
     gap_close_threshold_m: float  # auto-close a cell edge this close to the footprint
     gap_arbitration_band_m: float  # above gap_close, escalate to A3 (doc/A3; not code)
     coverage_area_tol_m2: float  # B3 cells-union vs footprint area-conservation threshold
+    # B2b envelope transform contracts.  Required deliberately: a missing
+    # shipped-config value must fail before a v3 transform can run.
+    envelope_axis_attach_tol_m: float
+    envelope_endpoint_match_tol_m: float
+    envelope_candidate_agreement_tol_m: float
     # Vg (C2 §10.1, rework CR5): these two carry NO dataclass default — every
     # direct `CoreTolerances(...)` construction (shipped-config loader or a
     # test helper) must pass them explicitly; a silent 1e-9 fallback here
@@ -85,6 +90,17 @@ class CoreTolerances:
             raise ValueError("facade_frame_cross_check_tol_m must be positive")
         if self.coverage_area_tol_m2 <= 0:
             raise ValueError("coverage_area_tol_m2 must be positive")
+        if not (0 < self.envelope_axis_attach_tol_m <= self.envelope_endpoint_match_tol_m
+                <= self.envelope_reconcile_tol_m):
+            raise ValueError(
+                "must hold 0 < envelope_axis_attach_tol_m <= "
+                "envelope_endpoint_match_tol_m <= envelope_reconcile_tol_m"
+            )
+        if not (0 < self.envelope_candidate_agreement_tol_m <= self.envelope_reconcile_tol_m):
+            raise ValueError(
+                "envelope_candidate_agreement_tol_m must be in "
+                "(0, envelope_reconcile_tol_m]"
+            )
         # Vg (C2 §10.1): numeric-equivalence/degeneracy guards only, never a
         # measurement tolerance — must sit strictly inside the finer of the two
         # snap/edge floors so they never mask or duplicate that guard's job.
@@ -130,6 +146,9 @@ def _load_cached(path_str: str) -> CoreTolerances:
         gap_close_threshold_m=float(c["gap_close_threshold_m"]),
         gap_arbitration_band_m=float(c["gap_arbitration_band_m"]),
         coverage_area_tol_m2=float(c["coverage_area_tol_m2"]),
+        envelope_axis_attach_tol_m=float(c["envelope_axis_attach_tol_m"]),
+        envelope_endpoint_match_tol_m=float(c["envelope_endpoint_match_tol_m"]),
+        envelope_candidate_agreement_tol_m=float(c["envelope_candidate_agreement_tol_m"]),
         facade_visibility_depth_epsilon_m=float(c["facade_visibility_depth_epsilon_m"]),
         facade_visibility_endpoint_epsilon_m=float(c["facade_visibility_endpoint_epsilon_m"]),
     )

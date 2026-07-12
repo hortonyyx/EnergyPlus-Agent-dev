@@ -27,6 +27,9 @@ def _tol(**over) -> CoreTolerances:
         window_clamp_to_parent=True,
         envelope_reconcile_tol_m=0.30,
         coverage_area_tol_m2=0.05,
+        envelope_axis_attach_tol_m=0.01,
+        envelope_endpoint_match_tol_m=0.05,
+        envelope_candidate_agreement_tol_m=0.05,
         gap_close_threshold_m=0.30,
         gap_arbitration_band_m=1.00,
         # Vg rework CR5 (§10.1): these two carry no dataclass default any
@@ -455,6 +458,8 @@ def test_facade_visibility_epsilons_have_no_dataclass_default():
         axis_jitter_tol_m=0.05, cross_floor_align_tol_m=0.11, structural_snap_grid_m=0.05,
         min_edge_length_m=0.10, output_precision_m=0.01, window_snap_grid_m=0.01,
         window_clamp_to_parent=True, envelope_reconcile_tol_m=0.30, coverage_area_tol_m2=0.05,
+        envelope_axis_attach_tol_m=0.01, envelope_endpoint_match_tol_m=0.05,
+        envelope_candidate_agreement_tol_m=0.05,
         gap_close_threshold_m=0.30, gap_arbitration_band_m=1.00,
     )
     with pytest.raises(TypeError):

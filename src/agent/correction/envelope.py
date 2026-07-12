@@ -8,12 +8,19 @@ facade-priority rules have one implementation.
 
 from __future__ import annotations
 
+import hashlib
+import json
+import math
 import re
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Literal
 
-from src.agent.correction.schema import CorrectedGeometry
+from src.agent.correction.config import CoreTolerances, load_core_tolerances
+from src.agent.correction.schema import CorrectedGeometry, CorrectedGeometryV3
+from src.agent.correction.facade import derive_view_projection_frame
+from src.agent.correction.footprint import floor_footprint
+from src.agent.reading.constants import DIMCHAIN_CLOSE_TOL_M
 from src.agent.reading import ReadingView, load_reading_view
 
 EnvelopeAxis = Literal["x", "y"]
@@ -21,7 +28,6 @@ EnvelopeAxis = Literal["x", "y"]
 _OVERALL_RE = re.compile(r"(overall|total|总)", re.IGNORECASE)
 _NUM_RE = re.compile(r"[-+]?\d{1,3}(?:,\d{3})*(?:\.\d+)?|\d+(?:\.\d+)?")
 _FACADE_RE = re.compile(r"\b(north|south|east|west)\b", re.IGNORECASE)
-_SMALL_TOL_M = 0.05
 
 
 @dataclass(frozen=True)
@@ -92,14 +98,50 @@ class EnvelopeAxisResolution:
 
 
 @dataclass(frozen=True)
+class WingBoundaryEvidence:
+    facade: Literal["North", "South", "East", "West"]
+    world_axis: EnvelopeAxis
+    world_value: float
+    view: str
+    source_id: str
+    chain_id: str
+    order: int
+    boundary_ref: str
+    boundary_endpoint: Literal["from", "to"]
+    frame_transform_hash: str
+
+
+@dataclass(frozen=True)
+class EnvelopeEndpointResolution:
+    status: Literal["accepted", "skipped", "conflict"]
+    evidence: WingBoundaryEvidence | None
+    corroborating_sources: tuple[str, ...] = ()
+    candidates: tuple[WingBoundaryEvidence, ...] = ()
+    reason: str | None = None
+
+
+@dataclass(frozen=True)
 class AuthoritativeEnvelope:
     axes: dict[EnvelopeAxis, EnvelopeAxisResolution] = field(default_factory=dict)
+    endpoint_resolutions: tuple[EnvelopeEndpointResolution, ...] = ()
 
     def axis(self, axis: EnvelopeAxis) -> EnvelopeAxisResolution | None:
         return self.axes.get(axis)
 
     def to_dict(self) -> dict:
-        return {axis: resolution.to_dict() for axis, resolution in self.axes.items()}
+        out = {axis: resolution.to_dict() for axis, resolution in self.axes.items()}
+        if self.endpoint_resolutions:
+            out["endpoint_resolutions"] = [
+                {
+                    "status": r.status,
+                    "evidence": None if r.evidence is None else r.evidence.__dict__,
+                    "corroborating_sources": list(r.corroborating_sources),
+                    "candidates": [c.__dict__ for c in r.candidates],
+                    "reason": r.reason,
+                }
+                for r in self.endpoint_resolutions
+            ]
+        return out
 
 
 def _axis_for_facade(facade: str | None) -> EnvelopeAxis | None:
@@ -129,6 +171,99 @@ def _view_facade(view: ReadingView) -> str | None:
         if f in {"North", "South", "East", "West"}:
             return f
     return None
+
+
+def dimension_chain_is_closed_for_endpoint(
+    view: ReadingView, *, chain_id: str, axis: Literal["x", "y"], close_tol_m: float,
+) -> bool:
+    """The endpoint path consumes the same explicit closure rule as reading.
+
+    It intentionally does not import the validator's private implementation:
+    this is a small, pure re-expression over the public reading wire.
+    """
+    if close_tol_m <= 0:
+        return False
+    dims = [d for d in view.dimensions if d.chain_id == chain_id and (d.axis or "").lower() == axis]
+    overall = [d for d in dims if getattr(d.role, "value", d.role) in {"overall", "baseline"}]
+    segments = [d for d in dims if getattr(d.role, "value", d.role) == "segment"]
+    if not overall or not segments or any(d.order is None for d in segments):
+        return False
+    try:
+        values = [float(d.value_m) for d in segments]
+        target = float(overall[0].value_m)
+    except (TypeError, ValueError):
+        return False
+    return all(math.isfinite(v) for v in [*values, target]) and abs(sum(values) - target) <= close_tol_m
+
+
+def _projection_extent_vertices(footprint: CorrectedGeometryV3) -> list[tuple[float, float]]:
+    # All floors must be topology-identical before a transaction; endpoint
+    # evidence only needs the current authoritative extent for its projection.
+    return [tuple(map(float, p)) for p in floor_footprint(footprint, footprint.floors[0])]
+
+
+def extract_wing_boundary_evidence_from_view(
+    view: ReadingView, *, view_name: str | None, footprint: CorrectedGeometryV3,
+) -> list[WingBoundaryEvidence]:
+    facade = _view_facade(view)
+    if facade is None or str(view.image_kind).lower() != "elevation":
+        return []
+    orientation = view.facade
+    mirrored = getattr(orientation, "mirrored", "unknown") if orientation else "unknown"
+    if not isinstance(mirrored, bool):
+        if str(mirrored).lower() not in {"true", "false"}:
+            return []
+        mirrored = str(mirrored).lower() == "true"
+    local_x_positive = getattr(orientation, "local_x_positive", "image_left_to_right") if orientation else "image_left_to_right"
+    try:
+        frame = derive_view_projection_frame(
+            vertices=_projection_extent_vertices(footprint), facade_family=facade,
+            mirrored=mirrored, local_x_positive=local_x_positive,
+        )
+    except ValueError:
+        return []
+    projection_vertices = _projection_extent_vertices(footprint)
+    projection_extent = {
+        "x": [min(p[0] for p in projection_vertices), max(p[0] for p in projection_vertices)],
+        "y": [min(p[1] for p in projection_vertices), max(p[1] for p in projection_vertices)],
+    }
+    frame_hash = hashlib.sha256(json.dumps({
+        "facade": frame.facade_family, "axis": frame.world_axis, "sign": frame.sign,
+        "along_origin": frame.along_origin, "mirrored": frame.mirrored,
+        "local_x_positive": frame.local_x_positive,
+        "projection_extent": projection_extent,
+    }, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
+    out: list[WingBoundaryEvidence] = []
+    for dim in view.dimensions:
+        extra = getattr(dim, "model_extra", None) or {}
+        if (getattr(dim.role, "value", dim.role) != "segment" or not dim.chain_id
+                or not isinstance(dim.order, int) or not isinstance(extra.get("boundary_ref"), str)
+                or not extra["boundary_ref"] or extra.get("boundary_kind") != "wing_break"
+                or extra.get("boundary_endpoint") not in {"from", "to"}):
+            continue
+        endpoint = extra["boundary_endpoint"]
+        point = dim.from_pt if endpoint == "from" else dim.to
+        if not point or len(point) < 2 or dim.value_m is None:
+            continue
+        try:
+            local_x = float(point[0])
+            value = float(dim.value_m)
+        except (TypeError, ValueError):
+            continue
+        if not math.isfinite(local_x) or not math.isfinite(value):
+            continue
+        if not dimension_chain_is_closed_for_endpoint(
+            view, chain_id=dim.chain_id, axis="x", close_tol_m=DIMCHAIN_CLOSE_TOL_M,
+        ):
+            continue
+        out.append(WingBoundaryEvidence(
+            facade=facade, world_axis=frame.world_axis,
+            world_value=round(frame.to_world_along(local_x), 6),
+            view=view_name or facade, source_id=dim.id, chain_id=dim.chain_id,
+            order=dim.order, boundary_ref=extra["boundary_ref"],
+            boundary_endpoint=endpoint, frame_transform_hash=frame_hash,
+        ))
+    return out
 
 
 def _bounds_from_points(a: list[float] | None, b: list[float] | None, idx: int) -> tuple[float, float] | None:
@@ -165,17 +300,20 @@ def _candidate_rank(c: EnvelopeCandidate) -> tuple[int, float, float]:
     return (rank, c.confidence, c.span)
 
 
-def _within(a: float, b: float, tol_m: float = _SMALL_TOL_M) -> bool:
-    return abs(a - b) <= tol_m + 1e-9
+def _within(a: float, b: float, *, tol_m: float) -> bool:
+    return abs(a - b) <= tol_m
 
 
-def _bounds_agree(a: tuple[float, float] | None, b: tuple[float, float] | None) -> bool:
+def _bounds_agree(a: tuple[float, float] | None, b: tuple[float, float] | None, *, tol_m: float) -> bool:
     if a is None or b is None:
         return False
-    return _within(a[0], b[0]) and _within(a[1], b[1])
+    return _within(a[0], b[0], tol_m=tol_m) and _within(a[1], b[1], tol_m=tol_m)
 
 
-def extract_envelope_candidates_from_view(view: ReadingView, *, view_name: str | None = None) -> list[EnvelopeCandidate]:
+def extract_envelope_candidates_from_view(
+    view: ReadingView, *, view_name: str | None = None, tol: CoreTolerances | None = None,
+) -> list[EnvelopeCandidate]:
+    tol = tol or load_core_tolerances()
     facade = _view_facade(view)
     axis = _axis_for_facade(facade)
     if axis is None or str(view.image_kind).lower() != "elevation":
@@ -193,7 +331,7 @@ def extract_envelope_candidates_from_view(view: ReadingView, *, view_name: str |
         if bounds is not None:
             span = round(bounds[1] - bounds[0], 6)
             confidence = 0.95 if (role == "overall" or _OVERALL_RE.search(note or "")) else 0.70
-            if dim.value_m is not None and abs(float(dim.value_m) - span) > _SMALL_TOL_M:
+            if dim.value_m is not None and abs(float(dim.value_m) - span) > tol.envelope_candidate_agreement_tol_m:
                 note = f"{note or ''}; ignored inconsistent value_m={dim.value_m}".strip("; ")
             candidates.append(
                 EnvelopeCandidate(
@@ -254,11 +392,14 @@ def extract_envelope_candidates_from_view(view: ReadingView, *, view_name: str |
     return candidates
 
 
-def extract_envelope_candidates_from_dir(vector_dir: Path | str) -> list[EnvelopeCandidate]:
+def extract_envelope_candidates_from_dir(
+    vector_dir: Path | str, *, tol: CoreTolerances | None = None,
+) -> list[EnvelopeCandidate]:
+    tol = tol or load_core_tolerances()
     out: list[EnvelopeCandidate] = []
     for path in sorted(Path(vector_dir).glob("*_view.json")):
         view = load_reading_view(path)
-        out.extend(extract_envelope_candidates_from_view(view, view_name=path.stem))
+        out.extend(extract_envelope_candidates_from_view(view, view_name=path.stem, tol=tol))
     return out
 
 
@@ -287,11 +428,11 @@ def _passes_footprint_gate(
     return abs(candidate.span - old_span) <= tolerance_m + 1e-9
 
 
-def _near_matches(candidates: list[EnvelopeCandidate], candidate: EnvelopeCandidate) -> list[EnvelopeCandidate]:
+def _near_matches(candidates: list[EnvelopeCandidate], candidate: EnvelopeCandidate, *, tol_m: float) -> list[EnvelopeCandidate]:
     return [
         c for c in candidates
-        if c is not candidate and _within(c.span, candidate.span) and (
-            candidate.bounds is None or c.bounds is None or _bounds_agree(candidate.bounds, c.bounds)
+        if c is not candidate and _within(c.span, candidate.span, tol_m=tol_m) and (
+            candidate.bounds is None or c.bounds is None or _bounds_agree(candidate.bounds, c.bounds, tol_m=tol_m)
         )
     ]
 
@@ -301,7 +442,9 @@ def resolve_authoritative_envelope(
     *,
     footprint: CorrectedGeometry | dict[EnvelopeAxis, tuple[float, float]] | None = None,
     footprint_tolerance_m: float = 0.30,
+    tol: CoreTolerances | None = None,
 ) -> AuthoritativeEnvelope:
+    tol = tol or load_core_tolerances()
     fp = _footprint_bounds(footprint)
     axes: dict[EnvelopeAxis, EnvelopeAxisResolution] = {}
     for axis in ("x", "y"):
@@ -322,7 +465,7 @@ def resolve_authoritative_envelope(
             first = authoritative_by_view[0]
             disagree = [
                 c for c in authoritative_by_view[1:]
-                if not _within(c.span, first.span) or (first.bounds and c.bounds and not _bounds_agree(first.bounds, c.bounds))
+                if not _within(c.span, first.span, tol_m=tol.envelope_candidate_agreement_tol_m) or (first.bounds and c.bounds and not _bounds_agree(first.bounds, c.bounds, tol_m=tol.envelope_candidate_agreement_tol_m))
             ]
             if disagree:
                 axes[axis] = EnvelopeAxisResolution(
@@ -334,7 +477,7 @@ def resolve_authoritative_envelope(
                 continue
 
         selected = axis_candidates[0]
-        corroborating = _near_matches(axis_candidates, selected)
+        corroborating = _near_matches(axis_candidates, selected, tol_m=tol.envelope_candidate_agreement_tol_m)
         distinct_views = {c.view for c in [selected, *corroborating]}
         has_opposite_view_agreement = len(distinct_views) >= 2
         has_same_view_stroke_agreement = any(
@@ -400,13 +543,57 @@ def extract_authoritative_envelope(
     *,
     footprint: CorrectedGeometry | dict[EnvelopeAxis, tuple[float, float]] | None = None,
     footprint_tolerance_m: float = 0.30,
+    tol: CoreTolerances | None = None,
 ) -> AuthoritativeEnvelope:
-    candidates = extract_envelope_candidates_from_dir(vector_dir)
-    return resolve_authoritative_envelope(
+    tol = tol or load_core_tolerances()
+    candidates = extract_envelope_candidates_from_dir(vector_dir, tol=tol)
+    overall = resolve_authoritative_envelope(
         candidates,
         footprint=footprint,
         footprint_tolerance_m=footprint_tolerance_m,
+        tol=tol,
     )
+    if not isinstance(footprint, CorrectedGeometryV3):
+        return overall
+    # Endpoint projection may use this call's already-accepted overall bounds,
+    # but only in-memory and only for the frame extent; B2b still owns the
+    # later atomic geometry mutation.
+    projection_footprint = footprint.model_copy(deep=True)
+    old_bbox = _footprint_bounds(footprint)
+    for axis in ("x", "y"):
+        resolution = overall.axis(axis)
+        if resolution is None or resolution.status != "accepted" or resolution.bounds is None:
+            continue
+        old_lo, old_hi = old_bbox[axis]
+        new_lo, new_hi = resolution.bounds
+        index = 0 if axis == "x" else 1
+        for floor in projection_footprint.floors:
+            changed = []
+            for point in floor.footprint.vertices:
+                values = list(point)
+                if values[index] == old_lo:
+                    values[index] = new_lo
+                elif values[index] == old_hi:
+                    values[index] = new_hi
+                changed.append(tuple(values))
+            floor.footprint.vertices = changed
+    evidences: list[WingBoundaryEvidence] = []
+    for path in sorted(Path(vector_dir).glob("*_view.json")):
+        evidences.extend(extract_wing_boundary_evidence_from_view(
+            load_reading_view(path), view_name=path.stem, footprint=projection_footprint,
+        ))
+    by_ref: dict[str, list[WingBoundaryEvidence]] = {}
+    for evidence in evidences:
+        by_ref.setdefault(evidence.boundary_ref, []).append(evidence)
+    resolutions: list[EnvelopeEndpointResolution] = []
+    for ref, values in sorted(by_ref.items()):
+        values.sort(key=lambda v: (v.world_value, v.source_id))
+        first = values[0]
+        if any(abs(v.world_value - first.world_value) > tol.envelope_endpoint_match_tol_m for v in values[1:]):
+            resolutions.append(EnvelopeEndpointResolution("conflict", None, candidates=tuple(values), reason=f"wing boundary {ref!r} candidates disagree"))
+        else:
+            resolutions.append(EnvelopeEndpointResolution("accepted", first, tuple(v.source_id for v in values[1:]), tuple(values), "accepted wing_break endpoint"))
+    return AuthoritativeEnvelope(axes=overall.axes, endpoint_resolutions=tuple(resolutions))
 
 
 def envelope_candidates_from_elevation_widths(elevation_widths: dict[str, float]) -> list[EnvelopeCandidate]:
