@@ -26,6 +26,7 @@ def _tol(**over) -> CoreTolerances:
         window_snap_grid_m=0.01,
         window_clamp_to_parent=True,
         envelope_reconcile_tol_m=0.30,
+        coverage_area_tol_m2=0.05,
         gap_close_threshold_m=0.30,
         gap_arbitration_band_m=1.00,
     )

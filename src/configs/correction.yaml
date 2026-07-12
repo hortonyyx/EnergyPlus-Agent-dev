@@ -111,6 +111,16 @@ correction:
   #       基准差，故与 ENVELOPE_RECONCILE_TOL 同量级；窗自身吸附仍用更细的
   #       window_snap_grid_m。
 
+  # ====== B3 覆盖硬门 v2：逐层面积守恒 ======
+  coverage_area_tol_m2: 0.050
+  # 约束：每层 cells 的几何并集面积与该层权威 footprint ring 的面积之差，以及
+  #       重叠、洞、越界各自的面积残差，均不得超过此值；超过即 BLOCK。
+  # 口径：面积由正交 polygon/ring 计算，绝不以 footprint bbox 近似。v1/v2
+  #       仍经 floor_footprint 的 legacy bbox ring；v3 经各 Floor.footprint。
+  # 依据：沿用 B3 前 correction.coverage 的 0.05m² 容差，故 legacy 行为不放宽；
+  #       约等于 10mm 坐标精度下、约 5m 边界的一侧量化带面积。独立于
+  #       min_edge_length_m（线性长度），不得复用后者。
+
   # ====== 连接性补缝(端点→边界，#2.4) ======
   # 【与轴聚类是两类操作】轴聚类(axis_jitter_tol)问"两坐标是不是同一道墙"
   # (身份，颗粒 50mm)；补缝问"一条墙线该不该接到边界上"(连接性，颗粒 300mm)。

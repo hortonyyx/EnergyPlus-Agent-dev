@@ -37,11 +37,11 @@ from src.agent.correction.cell_geometry import (
     validate_cell_polygon,
 )
 from src.agent.correction.schema import CorrectedGeometry
+from src.agent.correction.config import load_core_tolerances
 from src.agent.correction.footprint import floor_footprint
 from src.agent.correction.parse import ensure_corrected_geometry
 from src.agent.geometry.capability import FEATURE_CELL_POLYGON, schema_supports
 
-_AREA_TOL = 0.05      # m^2 — ignore coverage gaps/overlaps below this
 _Z_TOL = 0.02         # m — z-stack contiguity tolerance (matches kernel _Z_TOL)
 _MIN_EXTENT = 0.05    # m — degenerate cell threshold
 _SPAN_TOL = 0.10      # m — window-span-within-room tolerance
@@ -82,13 +82,33 @@ def check_cell_polygon_contract(geom: CorrectedGeometry) -> GeometryFinding:
 
 
 def check_coverage(geom: CorrectedGeometry) -> list[GeometryFinding]:
-    """Per floor: cells must tile the footprint — no holes, no overlaps."""
+    """B3 v2: cells tile each floor's authoritative footprint, no holes/overlaps.
+
+    ``floor_footprint`` is deliberately the only footprint entry point: legacy
+    geometry gets its equivalent bbox ring and v3 gets its per-floor polygon.
+    Shapely receives those rings directly, so non-rectangular orthogonal areas
+    are measured as polygons rather than approximated by their bounding boxes.
+
+    ``area_delta`` (below) is a recorded conservation *bookkeeping* figure, not
+    an independent gate: since ``union_area = covered_in_footprint +
+    outside_area`` and ``footprint_area = covered_in_footprint + hole_area``,
+    ``area_delta = |union_area - footprint_area| = |outside_area - hole_area|
+    <= max(outside_area, hole_area)``. So area_delta can never exceed ``tol``
+    unless hole or outside already does — it is always accompanied by one of
+    them in ``problems``, never the sole offender. (Overlap area nets out of
+    ``union_area`` before this identity, which is why it needs its own guard.)
+    The actual conservation enforcers are the three separate guards below:
+    hole / outside / overlap.
+    """
     findings: list[GeometryFinding] = []
     from shapely.geometry import Polygon
+    tol = load_core_tolerances().coverage_area_tol_m2
     for fl in geom.floors:
         try:
             foot = Polygon(floor_footprint(geom, fl))
-            foot_area = foot.area
+            if foot.is_empty or not foot.is_valid or foot.area <= 0:
+                raise ValueError("floor footprint is invalid or has zero area")
+            footprint_area = foot.area
         except ValueError as exc:
             findings.append(GeometryFinding("correction.coverage", False, str(exc), {"floor": fl.name}))
             continue
@@ -111,28 +131,49 @@ def check_coverage(geom: CorrectedGeometry) -> list[GeometryFinding]:
                 {"floor": fl.name}))
             continue
         union = unary_union(boxes)
-        covered = union.area
+        union_area = union.area
         sum_areas = sum(b.area for b in boxes)
-        overlap_area = sum_areas - covered            # >0 ⇒ cells overlap
-        hole_area = foot_area - union.intersection(foot).area  # uncovered footprint
+        overlap_area = sum_areas - union_area         # >0 ⇒ cells overlap
+        covered_in_footprint = union.intersection(foot).area
+        hole_area = footprint_area - covered_in_footprint
+        outside_area = union.difference(foot).area
+        area_delta = abs(union_area - footprint_area)
         problems = {}
-        if overlap_area > _AREA_TOL:
-            problems["overlap_m2"] = round(overlap_area, 3)
-        if hole_area > _AREA_TOL:
-            problems["hole_m2"] = round(hole_area, 3)
-        # cells outside footprint
-        outside = union.difference(foot).area
-        if outside > _AREA_TOL:
-            problems["outside_footprint_m2"] = round(outside, 3)
+        # area_delta is recorded for the conservation account (see docstring);
+        # it is bounded by max(hole, outside) and so never independently trips
+        # this gate — whichever of hole/outside caused it also appears below.
+        if area_delta > tol:
+            problems["area_delta_m2"] = round(area_delta, 6)
+        # Keep the prior gate's separate non-overlap and exact-domain guards.
+        # Area conservation alone would not catch equal-area hole/outside swaps
+        # or duplicate cells whose union still has the correct total area.
+        if overlap_area > tol:
+            problems["overlap_m2"] = round(overlap_area, 6)
+        if hole_area > tol:
+            problems["hole_m2"] = round(hole_area, 6)
+        if outside_area > tol:
+            problems["outside_footprint_m2"] = round(outside_area, 6)
+        evidence = {
+            "floor": fl.name,
+            "coverage_gate_version": "v2",
+            "footprint_source": "floor_footprint",
+            "footprint_area_m2": round(footprint_area, 6),
+            "cells_union_area_m2": round(union_area, 6),
+            "area_delta_m2": round(area_delta, 6),
+            "coverage_area_tol_m2": tol,
+            "overlap_m2": round(overlap_area, 6),
+            "hole_m2": round(hole_area, 6),
+            "outside_footprint_m2": round(outside_area, 6),
+        }
         if problems:
             findings.append(GeometryFinding(
                 "correction.coverage", False,
-                f"floor '{fl.name}' cells do not tile the footprint cleanly",
-                {"floor": fl.name, **problems}))
+                f"floor '{fl.name}' violates coverage area conservation",
+                {**evidence, **problems}))
         else:
             findings.append(GeometryFinding(
                 "correction.coverage", True, "",
-                {"floor": fl.name, "covered_m2": round(covered, 3)}))
+                evidence))
     return findings
 
 

@@ -236,4 +236,9 @@ def test_run_pipeline_and_validate_case_check_id_parity(tmp_path, monkeypatch):
 
     pipeline.run_pipeline(vector_dir, json.dumps(testdata), out_dir=run_dir)
 
-    assert _artifact_check_ids(run_dir) == _validate_case_check_ids(run_dir, case_dir)
+    artifact_ids = _artifact_check_ids(run_dir)
+    validated_ids = _validate_case_check_ids(run_dir, case_dir)
+    # B3 retains the established correction check_id while upgrading its
+    # semantics to area-conservation v2; both paths must continue to expose it.
+    assert ("1_correction", "correction.coverage") in artifact_ids
+    assert artifact_ids == validated_ids

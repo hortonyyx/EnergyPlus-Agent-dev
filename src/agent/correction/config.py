@@ -55,6 +55,7 @@ class CoreTolerances:
     envelope_reconcile_tol_m: float  # facade-envelope vs footprint basis correction threshold
     gap_close_threshold_m: float  # auto-close a cell edge this close to the footprint
     gap_arbitration_band_m: float  # above gap_close, escalate to A3 (doc/A3; not code)
+    coverage_area_tol_m2: float  # B3 cells-union vs footprint area-conservation threshold
     facade_frame_cross_check_tol_m: float = 0.30  # reading facade-frame vs LLM window placement flag threshold
 
     def validate(self) -> None:
@@ -73,6 +74,8 @@ class CoreTolerances:
             )
         if self.facade_frame_cross_check_tol_m <= 0:
             raise ValueError("facade_frame_cross_check_tol_m must be positive")
+        if self.coverage_area_tol_m2 <= 0:
+            raise ValueError("coverage_area_tol_m2 must be positive")
         # cross-floor identity is coarser than per-floor jitter, and connectivity
         # is coarser still but below the arbitration band.
         if not (self.axis_jitter_tol_m < self.cross_floor_align_tol_m
@@ -104,6 +107,7 @@ def _load_cached(path_str: str) -> CoreTolerances:
         facade_frame_cross_check_tol_m=float(c["facade_frame_cross_check_tol_m"]),
         gap_close_threshold_m=float(c["gap_close_threshold_m"]),
         gap_arbitration_band_m=float(c["gap_arbitration_band_m"]),
+        coverage_area_tol_m2=float(c["coverage_area_tol_m2"]),
     )
     tol.validate()
     return tol
