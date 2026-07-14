@@ -200,6 +200,35 @@ always `INVARIANT` (no id/ring-order/sort tiebreak). Both `FACADE_VISIBILITY_*`
 epsilons are provisional pending future cross-case numeric probes; they must
 not be recalibrated ad hoc against a single case's output.
 
+### 4.1 Va applicability contract
+
+`FACADE_APPLICABILITY_SCHEMA_VERSION = "1"` and
+`FACADE_APPLICABILITY_HELPER_VERSION = "facade_applicability_v1"` are owned by
+Va. Va consumes the existing `CLAIMS_VOCAB_VERSION = "1"` and emits exactly the
+seven claims in its fixed wire order. Its intervals are always half-open
+`[lo, hi)` with exact endpoint algebra and no new tolerance/config input.
+
+`FacadeVisibilityLedgerV1.facade_segments_sha256` is SHA-256 over compact,
+UTF-8, `sort_keys=true` JSON of a JSON array. Each array member is the complete
+`FacadeSegment.model_dump(mode="json")` object, including `id`, `floor_id`,
+`facade_family`, `p1`, `p2`, `outward_normal`, `world_along_interval`, `depth`,
+`visible_intervals` (the complete ordered interval list), and
+`source_footprint_fingerprint`; no field is omitted or projected. Members are
+sorted by `(floor_id, family_rank, world_along_interval.lo,
+world_along_interval.hi, depth, id)`, where family rank is North=0, South=1,
+East=2, West=3. JSON uses separators `(',', ':')` and `ensure_ascii=false`.
+This is the frozen v1 preimage for accepted-correction and judge adapters.
+
+Va is a gt-blind, in-memory adapter: plan evidence bypasses Vg visibility;
+elevation evidence maps local-to-world, intersects the opening target, then
+intersects the already materialized Vg-visible interval. A visible existence
+fragment is `applicable`; other incomplete positive coverage is
+`partially_applicable`; no positive coverage is `not_applicable/unobserved`.
+Completeness never gates positive applicability: it only authorizes recorded
+negative-evidence intervals. Schema/helper, claim-order, enum, aggregate, or
+canonical-hash changes require a new version. Va must not read
+`correction.yaml` or introduce a tolerance.
+
 **Precedence (axis identity vs gap closing vs output).** These are distinct
 operations and must not be conflated:
 
