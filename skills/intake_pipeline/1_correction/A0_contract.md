@@ -191,6 +191,13 @@ emit `unsupported`.
 | `FACADE_FRAME_CROSS_CHECK_TOL` | 0.30 | m | calibrated | all | flag | gate① cross-check: deterministic `derive_facade_frame` placement from reading elevation local-x vs correction LLM window world span; wall-thickness/envelope-basis scale, never a blocking transform tolerance |
 | `FACADE_VISIBILITY_DEPTH_EPSILON` | `1e-9` | m | provisional | orthogonal_polygon/v3 | INVARIANT tie/negative-depth guard | Vg (C2 §E1') same-depth-atom tie and negative-depth degeneracy guard; absorbs only IEEE-754 arithmetic noise, seven orders of magnitude below `SNAP_GRID` — not a physical resolution and never reused as one |
 | `FACADE_VISIBILITY_ENDPOINT_EPSILON` | `1e-9` | m | provisional | orthogonal_polygon/v3 | INVARIANT short-edge/near-endpoint guard | Vg half-open 1D-skyline sweep's numeric topology gate: rejects degenerate short edges and near-collision along-axis events; never snaps or bridges a real gap |
+| `GT_DXF_NODE_JOIN_TOLERANCE` | `0.001` | m | provisional | gt-v3/C2 | hard snap-or-block | judge② tooling only; DXF endpoint numeric split clustering before polygonize, component diameter over limit blocks |
+| `GT_DXF_AXIS_ALIGNMENT_TOLERANCE` | `0.001` | m | provisional | gt-v3/C2 | hard project-or-block | judge② tooling only; near-horizontal/vertical export noise projects only to a uniquely closer axis |
+| `GT_DXF_TOPOLOGY_AREA_TOLERANCE` | `0.000001` | m² | provisional | gt-v3/C2 | hard topology | judge② tooling only; polygonize sliver and zone-union area residual, never geometry repair |
+| `GT_OPENING_BOUNDARY_MAX_DISTANCE` | `0.400` | m | provisional | gt-v3/C2 | hard candidate gate | judge② tooling only; legal opening-boundary candidate gate, not a tie breaker |
+| `GT_OPENING_ASSIGNMENT_TIE_EPSILON` | `1e-9` | m | provisional | gt-v3/C2 | INVARIANT | judge② tooling only; equal nearest legal opening-segment solutions reject |
+| `GT_ELEVATION_MATCH_MAX_DISTANCE` | `0.400` | m | provisional | gt-v3/C2 | hard candidate gate | judge② tooling only; plan/elevation along-endpoint candidate gate, pending real-source calibration |
+| `GT_ELEVATION_MATCH_TIE_EPSILON` | `1e-9` | m | provisional | gt-v3/C2 | INVARIANT | judge② tooling only; equal global elevation matching solutions reject |
 | `PERIMETER_DEPTH` | 4.6 (range 2.4–6.1) | m | calibrated | — (downstream zoning, **not** PartA) | n/a | `ASHRAE 90.1-2019 Add. ag`; listed for reference, PartA rules must not consume it |
 
 `WorldInterval` (Vg/Va) is always the half-open interval `[lo, hi)`; a shared
