@@ -67,10 +67,20 @@ def test_run_full_pipeline_intake_from_preserves_flat_no_simulate_layout(
     intake.parent.mkdir()
     intake.write_text("{}", encoding="utf-8")
     fake_intake = SimpleNamespace(building=SimpleNamespace(name="B"))
+    # E4 (spec §3.4 item 7): the CLI --intake-from entrance loads through
+    # load_intake_bundle so the output-coordinate contract travels with the
+    # IntakeOutput; the fake bundle stubs a world_legacy-mode contract.
+    fake_bundle = SimpleNamespace(
+        intake=fake_intake,
+        output_coordinates=SimpleNamespace(mode="world_legacy"),
+        coordinate_snapshot=None,
+        validation_context=SimpleNamespace(),
+    )
     seen = {}
     monkeypatch.setattr(rfp, "setup_logger", lambda **_kwargs: None)
     monkeypatch.setattr(rfp, "AgentState", _FakeAgentState)
-    monkeypatch.setattr(rfp, "load_intake_from", lambda path: fake_intake)
+    monkeypatch.setattr(rfp, "ensure_schema_initialized", lambda: None)
+    monkeypatch.setattr(rfp, "load_intake_bundle", lambda path, run_dir=None: fake_bundle)
     monkeypatch.setattr(
         rfp,
         "run_downstream_ep",
@@ -98,3 +108,4 @@ def test_run_full_pipeline_intake_from_preserves_flat_no_simulate_layout(
     assert seen["run_simulate"] is False
     assert seen["initial_state"].intake_output is fake_intake
     assert seen["initial_state"].pipeline_out_dir is None
+    assert seen["initial_state"].output_coordinate_contract is fake_bundle.output_coordinates

@@ -84,3 +84,16 @@
 - **BO-CR1**：执行器自报事实+合同 §0.2 六入口对等为 In 边界，fail-closed ≠ 交付，无争议。
 - 主控独立全量 pytest = **1011 passed + 9 xfailed**（903→1011）；绿不抵消 CR1-CR7 结构缺口，与 sol 结论一致。
 - 处置：返工单发原施工代理（同上下文续跑），CR1-CR7+CR8/CR9+CR10-CR12 全修，§10.1-§10.8 缺失测试族按判词清单补齐；返工后 sol 复核 r2 + 主控再全量。
+
+---
+
+## r2 闭案（主控终审返工，2026-07-14）
+
+**结论:CLOSED —— CR1-CR12 全闭,B-O 批收录。**
+
+- 返工执行:两执行档接力(Sonnet 修 CR1-CR6+CR7 半程,两次限额中断;**用户拍改派 terra 冷启接手**——terra 不信自报、按判词锚点+攻击负例复核前任工作,再补 CR7 尾/CR8-CR12/全部缺失测试族)。
+- **主控独立全量 pytest = 1021 passed + 9 xfailed 零失败**(基线 1011→1021)。
+- **CR4/CR5/CR6 亲核坐实**:verify 走 `derive_feature_state_claims()` fresh 重派生+S5 五件/hash 链核,伪 claims 攻击负例锁死;终门读 live IDF 实字段(Building 轴/GGR A3-A5/全 Zone 四字段/顶点对 snapshot),tampered-IDF 负例锁死;registry ghost 豁免清零改双空断言、`or True` 假断言移除。
+- CR1 stepwise 接线(enrichment 子步+AssemblyE4Write 同链)、CR2 六入口 sidecar/无合同硬失败、CR3 content-addressed 证据 artifact+run config completion mode(缺文件≠空集)、CR7 审计链(integrated/stepwise S5 strict audit+zone normalization 经 AgentState 到 export+simulate EP audit+validate_case replay 重算)、CR8/CR9/CR10-12 逐条对 terra 返工表与定向组核过。
+- **新 review-ask #1 裁决 = ACCEPT**:单次生产 simulate 无第二变体可比,跨变体 azimuth/area/volume 五断言归专用 e2e 测试族、生产 ep_audit 绑本次 IDF/EIO/ERR+World-warning 断言,职责划分正确。
+- A0 E4 登记(phase Literal/helper `north_axis_orientation_v1`/release "4" 中央 map/两 artifact contract/`prior_fill_default_zero_v1`+policy ref/registry `ep25.1-v1`/出口契约+禁 θ 分支)由主控收口(首轮既定归属)。

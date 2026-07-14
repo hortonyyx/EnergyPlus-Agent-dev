@@ -180,11 +180,18 @@ class SettingsConverter(BaseConverter):
         self.logger.success("Added setting 'RunPeriod' to IDF.")
 
     def _global_geometry_rules_apply(self, model: GlobalGeometryRulesSchema) -> None:
+        # A4/A5 written explicitly (E4-output-contract spec v2 §5.1) — never
+        # left to the EP IDD default, so World vs Relative is self-evident
+        # from the emitted IDF regardless of which contract mode produced it.
         self.idf.newidfobject(
             "GlobalGeometryRules",
             Starting_Vertex_Position=model.starting_vertex_position,
             Vertex_Entry_Direction=model.vertex_entry_direction,
             Coordinate_System=model.coordinate_system,
+            Daylighting_Reference_Point_Coordinate_System=(
+                model.daylighting_reference_point_coordinate_system
+            ),
+            Rectangular_Surface_Coordinate_System=model.rectangular_surface_coordinate_system,
         )
         self.logger.success("Added setting 'GlobalGeometryRules' to IDF.")
 

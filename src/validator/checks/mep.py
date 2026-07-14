@@ -111,6 +111,7 @@ def check_mep(
 
     _placeholder_ban(rep, mep, idx)
     _name_charset(rep, idx)
+    _north_axis_placeholder(rep, mep)
     _site_matches_testdata(rep, mep, testdata)
     _construction_coverage(rep, idx, used_constructions)
     _construction_to_material(rep, idx)
@@ -244,6 +245,37 @@ def _name_charset(rep: CheckReport, idx: IdfFragmentIndex) -> None:
 
 def _name_char_allowed(char: str) -> bool:
     return char.isascii() and (char.isalnum() or char in {"_", "-", " "})
+
+
+def _north_axis_placeholder(rep: CheckReport, mep: dict | object) -> None:
+    """S4 (E4-output-contract spec v2 §4.1): 4_MEP's `building.north_axis` is a
+    compatibility placeholder ONLY — the single authoritative owner of the
+    final `Building.North Axis` is the accepted correction's orientation
+    evidence (S5 override, §4.2). MEP may never author a real value here;
+    `0.0` (the BuildingSchema default) is the only legal placeholder, for
+    every schema_version/capability_profile, so a non-zero LLM guess is
+    caught here rather than silently "corrected" downstream. `-0.0` compares
+    equal to `0.0` in Python and is accepted."""
+    building = _get_value(mep, "building")
+    value = _get_value(building, "north_axis")
+    evidence = {
+        "field": "building.north_axis",
+        "required_placeholder": 0.0,
+        "observed": value,
+        "owner": (
+            "the accepted correction's NorthAxisEvidence (S5 unconditional override); "
+            "4_mep may not author a real value"
+        ),
+    }
+    is_numeric_zero = isinstance(value, (int, float)) and not isinstance(value, bool) and float(value) == 0.0
+    if not is_numeric_zero:
+        rep.add_fail(
+            "mep.building_north_axis_placeholder", CheckLayer.INVARIANT,
+            f"building.north_axis must be the 0.0 compatibility placeholder, got {value!r}",
+            evidence=evidence,
+        )
+    else:
+        rep.add_pass("mep.building_north_axis_placeholder", CheckLayer.INVARIANT, evidence=evidence)
 
 
 def _site_matches_testdata(

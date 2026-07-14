@@ -525,3 +525,130 @@ def test_ep_baseline_severe_blocks(tmp_path):
     )
     rep = check_ep_baseline(tmp_path)
     assert "ep.zero_severe" in _blocking(rep)
+
+
+# --------------------------------------------------------------------------- #
+# E4 §10.2 — S4 MEP placeholder gate + S5 unconditional theta override
+# --------------------------------------------------------------------------- #
+def _minimal_mep_dict(north_axis: float) -> dict:
+    return {
+        "building": {"name": "B", "north_axis": north_axis, "terrain": "City"},
+        "site_location": {"name": "S", "latitude": 22.5, "longitude": 114.0,
+                          "time_zone": 8.0, "elevation": 5.0},
+        "material_specs": "", "construction_specs": "",
+        "schedule_specs": "", "hvac_specs": "", "people_specs": "", "lights_specs": "",
+    }
+
+
+def test_mep_north_axis_placeholder_zero_passes():
+    rep = check_mep(_minimal_mep_dict(0.0))
+    result = next(r for r in rep.results if r.check_id == "mep.building_north_axis_placeholder")
+    assert result.status == CheckStatus.PASS
+
+
+def test_mep_north_axis_negative_zero_passes():
+    rep = check_mep(_minimal_mep_dict(-0.0))
+    result = next(r for r in rep.results if r.check_id == "mep.building_north_axis_placeholder")
+    assert result.status == CheckStatus.PASS
+
+
+import pytest as _pytest
+
+
+@_pytest.mark.parametrize("theta", [90.0, 270.0, 0.0001])
+def test_mep_north_axis_nonzero_blocks(theta):
+    rep = check_mep(_minimal_mep_dict(theta))
+    assert "mep.building_north_axis_placeholder" in _blocking(rep)
+
+
+def _mep_model(north_axis: float = 0.0) -> "MepOutput":
+    from src.agent.intakeoutput import MepOutput
+    from src.validator import BuildingSchema, SiteLocationSchema
+
+    return MepOutput(
+        building=BuildingSchema(name="T", north_axis=north_axis),
+        site_location=SiteLocationSchema(
+            name="S", latitude=22.5, longitude=114.0, time_zone=8.0, elevation=5.0),
+        material_specs="m", construction_specs="c", schedule_specs="s",
+        hvac_specs="h", people_specs="p", lights_specs="l",
+    )
+
+
+def _contract_with_theta(theta: float):
+    from src.agent.output_coordinates import AcceptedCorrectionRef, OutputCoordinateContract
+
+    if theta == 0.0:
+        provenance = "assumed"
+    else:
+        provenance = "observed"
+    return OutputCoordinateContract(
+        mode="relative_north_axis",
+        source=AcceptedCorrectionRef(
+            schema_version="3", output_sha256="a" * 64,
+            acceptance="integrated_gate1",
+            artifact_contract="correction_e4_orientation_v1",
+        ),
+        geometry_frame="building_axis_absolute_values",
+        global_geometry_coordinate_system="Relative",
+        daylighting_reference_point_coordinate_system="Relative",
+        rectangular_surface_coordinate_system="Relative",
+        zone_origin_policy="all_zero", zone_direction_policy="all_zero",
+        north_axis_owner="accepted_correction_orientation",
+        north_axis_deg=theta, orientation_provenance=provenance,
+        orientation_source_ids=("s1",) if provenance == "observed" else (),
+        geometry_snapshot_sha256="b" * 64,
+    )
+
+
+@_pytest.mark.parametrize("theta", [0.0, 90.0, 270.0])
+def test_s5_unconditional_override_all_thetas(theta):
+    from src.agent.intakeoutput import assemble_intake_output
+
+    mep = _mep_model(0.0)
+    intake = assemble_intake_output(
+        zone_specs="z", surface_specs="s", fenestration_specs="f",
+        mep=mep, output_coordinates=_contract_with_theta(theta),
+    )
+    assert intake.building.north_axis == theta
+    # input MepOutput must NOT have been mutated
+    assert mep.building.north_axis == 0.0
+
+
+def test_s5_mep_zero_vs_theta_ninety_is_not_a_conflict():
+    from src.agent.intakeoutput import assemble_intake_output
+
+    intake = assemble_intake_output(
+        zone_specs="z", surface_specs="s", fenestration_specs="f",
+        mep=_mep_model(0.0), output_coordinates=_contract_with_theta(90.0),
+    )
+    assert intake.building.north_axis == 90.0
+
+
+def test_s5_nonzero_mep_fails_even_when_equal_to_theta():
+    from src.agent.intakeoutput import assemble_intake_output
+
+    with _pytest.raises(ValueError, match="placeholder"):
+        assemble_intake_output(
+            zone_specs="z", surface_specs="s", fenestration_specs="f",
+            mep=_mep_model(90.0), output_coordinates=_contract_with_theta(90.0),
+        )
+
+
+def test_s5_model_copy_injected_bad_angle_rejected_by_strict_rebuild():
+    from src.agent.intakeoutput import assemble_intake_output
+
+    bad_contract = _contract_with_theta(90.0).model_copy(update={"north_axis_deg": 400.0})
+    with _pytest.raises(Exception):
+        assemble_intake_output(
+            zone_specs="z", surface_specs="s", fenestration_specs="f",
+            mep=_mep_model(0.0), output_coordinates=bad_contract,
+        )
+
+
+def test_s5_without_contract_is_byte_identical_legacy():
+    from src.agent.intakeoutput import assemble_intake_output
+
+    mep = _mep_model(0.0)
+    legacy = assemble_intake_output(
+        zone_specs="z", surface_specs="s", fenestration_specs="f", mep=mep)
+    assert legacy.building is mep.building  # verbatim copy, no rebuild

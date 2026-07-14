@@ -250,6 +250,27 @@ features; `EvidenceDebtItem.debt_id` is the canonical debt primary key and a
 v3 `debt_resolution` audit entry may resolve it exactly once. These are schema
 registrations, not new numeric tolerances.
 
+E4 orientation registry (B-O batch): `FeatureStateClaimsV1.phase_contract` is the
+strict `"b2" | "e4_orientation"` literal. The orientation-enriched v3 lineage adds
+helper `north_axis_orientation_v1` to the release tuple
+(`floor_footprint_v1`, `facade_visibility_v1`, `north_axis_orientation_v1`) and maps
+to correction release `"4"` in the central release map only — no producer may write
+the literal release number. Artifact contracts `correction_e4_orientation_v1`
+(orientation-enriched accepted correction) and `assembly_e4_v1` (S5 assembly with
+`OutputCoordinateContract` schema `"1"` + coordinate snapshot sidecars) are the E4
+wire types. `prior_fill` completion is the deterministic method
+`prior_fill_default_zero_v1` under policy `c2_e4.north_axis.default_zero.v1`
+(`NorthAxisEvidence(0.0, assumed)`); completion mode comes from the run config as a
+content-addressed `OrientationRunConfigV1` artifact and a missing evidence-set file
+is never an empty set. The building-bound coordinate object registry is version
+`ep25.1-v1` (IDD/schema/converter/producer route diffs must all be empty). The EP
+exit contract is `GlobalGeometryRules=Relative` + all Zone origins/Direction of
+Relative North zeroed + `Building.North Axis = θ`; v1/v2 and provably standalone
+legacy intake stay on the `World` path, and no code may branch coordinate mode on
+θ's numeric value. These are contract registrations, not numeric tolerances (the
+e2e azimuth comparison bands live with the EP e2e tests as assertion tolerances,
+not here).
+
 Profile rule: the active capability profile's allowed shapes must be a superset
 of the shapes declared by the artifact schema version, else gate ① fails as
 `correction.capability_profile_shapes`.

@@ -166,8 +166,14 @@ class RunManifest(BaseModel):
 StageRecordV1 = StageRecord
 RunManifestV1 = RunManifest
 
-ArtifactKey = Literal["output", "checks", "audit", "feature_states", "isolation_provenance"]
-ArtifactContract = Literal["migrated_v1", "base_v2", "reading_isolated_v2", "correction_b2_v1"]
+ArtifactKey = Literal[
+    "output", "checks", "audit", "feature_states", "isolation_provenance",
+    "output_coordinate_contract", "output_coordinate_snapshot",
+]
+ArtifactContract = Literal[
+    "migrated_v1", "base_v2", "reading_isolated_v2", "correction_b2_v1",
+    "correction_e4_orientation_v1", "assembly_e4_v1",
+]
 
 # Keys a writer for this contract MUST have populated (loader-enforced).
 _CONTRACT_REQUIRED_KEYS: dict[str, frozenset[str]] = {
@@ -175,6 +181,15 @@ _CONTRACT_REQUIRED_KEYS: dict[str, frozenset[str]] = {
     "base_v2": frozenset({"output", "checks"}),
     "reading_isolated_v2": frozenset({"output", "checks", "isolation_provenance"}),
     "correction_b2_v1": frozenset({"output", "checks", "audit", "feature_states"}),
+    # E4-output-contract spec v2 §3.4: two new versioned artifact contracts.
+    # `correction_e4_orientation_v1` is the orientation-enrichment attempt
+    # written on top of a `correction_b2_v1` base (same 4 keys, different
+    # geom content — north_axis is now populated); `assembly_e4_v1` is the S5
+    # attempt that additionally carries the two output-coordinate sidecars.
+    "correction_e4_orientation_v1": frozenset({"output", "checks", "audit", "feature_states"}),
+    "assembly_e4_v1": frozenset({
+        "output", "checks", "audit", "output_coordinate_contract", "output_coordinate_snapshot",
+    }),
 }
 # Keys a writer for this contract is even PERMITTED to have populated. A v1->v2
 # migration backfill can only observe what a pre-B2 attempt directory could
@@ -188,6 +203,10 @@ _CONTRACT_ALLOWED_KEYS: dict[str, frozenset[str]] = {
     "base_v2": frozenset({"output", "checks"}),
     "reading_isolated_v2": frozenset({"output", "checks", "isolation_provenance"}),
     "correction_b2_v1": frozenset({"output", "checks", "audit", "feature_states"}),
+    "correction_e4_orientation_v1": frozenset({"output", "checks", "audit", "feature_states"}),
+    "assembly_e4_v1": frozenset({
+        "output", "checks", "audit", "output_coordinate_contract", "output_coordinate_snapshot",
+    }),
 }
 
 

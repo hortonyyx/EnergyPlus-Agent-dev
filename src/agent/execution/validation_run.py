@@ -287,6 +287,13 @@ def validate_case(
     # (missing EP with require_ep=True is already a blocking ERROR above; with
     #  require_ep=False the EP baseline is intentionally not validated.)
 
+    # E4 §7.4: audits are evidence, not decorative logs.  When an E4 export
+    # elected to write them, replay/validate must strict-parse the wires and
+    # recompute every available raw hash from the current run tree.
+    audit_rep = _validate_coordinate_audits(run_dir, profile, run_profile)
+    if audit_rep is not None:
+        res.reports["downstream::output_coordinate_audit"] = audit_rep
+
     # ---- geometry approval digest + confirmation policy ----
     # Only compute a digest from the REAL on-disk geometry artifacts, and ONLY
     # after they passed the consistency check — never bind an approval to stale /
@@ -344,6 +351,74 @@ def _validate_downstream_only(
         rep.add("assembly.pydantic", CheckStatus.ERROR, CheckLayer.INVARIANT,
                 message="no intake_output.json found")
     res.reports["5_intakeoutput"] = rep
+
+
+def _matching_raw_hash(paths: list[Path], expected: str) -> bool:
+    from src.agent.output_coordinates import sha256_bytes
+
+    return any(path.is_file() and sha256_bytes(path.read_bytes()) == expected for path in paths)
+
+
+def _validate_coordinate_audits(run_dir: Path, profile: str, run_profile: str) -> CheckReport | None:
+    """Read-only §7.4 replay verifier for accepted export/simulation audits."""
+    export_path = run_dir / "EP" / "output_coordinate_audit.json"
+    ep_path = run_dir / "EP" / "EP_run" / "output_coordinate_ep_audit.json"
+    if not export_path.is_file() and not ep_path.is_file():
+        return None
+
+    from src.agent.output_coordinates import canonical_json_bytes, sha256_bytes
+    from src.validator.output_coordinates import (
+        EpCoordinateAuditV1,
+        ExportCoordinateAuditV1,
+        registry_candidate_sha256,
+    )
+
+    rep = CheckReport(stage="downstream", capability_profile=profile, run_profile=run_profile)
+    ep_dir = run_dir / "EP" / "EP_run"
+    idf_paths = sorted((run_dir / "EP").glob("*.idf"))
+    yaml_paths = sorted((run_dir / "EP").glob("*.yaml"))
+    if export_path.is_file():
+        try:
+            audit = ExportCoordinateAuditV1.model_validate_json(export_path.read_text(encoding="utf-8"))
+            failures: list[str] = []
+            if not _matching_raw_hash(idf_paths, audit.idf_sha256):
+                failures.append("no current EP/*.idf hashes to output_coordinate_audit.idf_sha256")
+            if not _matching_raw_hash(yaml_paths, audit.yaml_sha256):
+                failures.append("no current EP/*.yaml hashes to output_coordinate_audit.yaml_sha256")
+            if audit.registry_candidate_sha256 != registry_candidate_sha256():
+                failures.append("registry candidate set hash drifted since export")
+            if failures:
+                rep.add_fail("output_coordinates.export_audit_replay", CheckLayer.INVARIANT, "; ".join(failures))
+            else:
+                rep.add_pass("output_coordinates.export_audit_replay", CheckLayer.INVARIANT)
+        except Exception as exc:  # noqa: BLE001 - malformed evidence is a finding
+            rep.add_fail("output_coordinates.export_audit_replay", CheckLayer.INVARIANT,
+                         f"invalid/tampered output_coordinate_audit.json: {exc}")
+    if ep_path.is_file():
+        try:
+            audit = EpCoordinateAuditV1.model_validate_json(ep_path.read_text(encoding="utf-8"))
+            failures = []
+            if not _matching_raw_hash(idf_paths, audit.idf_sha256):
+                failures.append("no current EP/*.idf hashes to EP audit idf_sha256")
+            for filename, expected in (("eplusout.eio", audit.eio_sha256), ("eplusout.err", audit.err_sha256)):
+                path = ep_dir / filename
+                if expected is None:
+                    if path.is_file():
+                        failures.append(f"EP audit omits hash for present {filename}")
+                elif not path.is_file() or sha256_bytes(path.read_bytes()) != expected:
+                    failures.append(f"EP audit {filename} hash mismatch")
+            if audit.ignored_warning_hits != 0:
+                failures.append("EP audit records forbidden World-coordinate ignored warning")
+            if not audit.completed:
+                failures.append("EP audit is not marked completed")
+            if failures:
+                rep.add_fail("output_coordinates.ep_audit_replay", CheckLayer.INVARIANT, "; ".join(failures))
+            else:
+                rep.add_pass("output_coordinates.ep_audit_replay", CheckLayer.INVARIANT)
+        except Exception as exc:  # noqa: BLE001
+            rep.add_fail("output_coordinates.ep_audit_replay", CheckLayer.INVARIANT,
+                         f"invalid/tampered output_coordinate_ep_audit.json: {exc}")
+    return rep
 
 
 def _error_report(stage: str, profile: str, run_profile: str, message: str) -> CheckReport:

@@ -690,6 +690,18 @@ class GlobalGeometryRulesSchema(BaseSchema):
         "Counterclockwise", alias="Vertex Entry Direction"
     )
     coordinate_system: str = Field("World", alias="Coordinate System")
+    # A4/A5 (E4-output-contract spec v2 §5.1): previously left to the EP IDD
+    # default (Relative for both). E4 must write them explicitly rather than
+    # rely on the default, so a legacy World writer and an E4 Relative writer
+    # are each self-evident from the emitted IDF; the field default here
+    # preserves the IDD's own default so a pre-E4 caller that never sets these
+    # two fields still emits byte-identical IDF to before.
+    daylighting_reference_point_coordinate_system: str = Field(
+        "Relative", alias="Daylighting Reference Point Coordinate System"
+    )
+    rectangular_surface_coordinate_system: str = Field(
+        "Relative", alias="Rectangular Surface Coordinate System"
+    )
 
     @field_validator("starting_vertex_position")
     def validate_starting_vertex_position(cls, v):
@@ -711,6 +723,24 @@ class GlobalGeometryRulesSchema(BaseSchema):
     def validate_coordinate_system(cls, v):
         valid_systems = cls._idf_field.GlobalGeometryRules.Coordinate_System.key
         return cls.validate_choice_field(v, valid_systems, "Coordinate System")
+
+    @field_validator("daylighting_reference_point_coordinate_system")
+    def validate_daylighting_reference_point_coordinate_system(cls, v):
+        valid_systems = (
+            cls._idf_field.GlobalGeometryRules.Daylighting_Reference_Point_Coordinate_System.key
+        )
+        return cls.validate_choice_field(
+            v, valid_systems, "Daylighting Reference Point Coordinate System"
+        )
+
+    @field_validator("rectangular_surface_coordinate_system")
+    def validate_rectangular_surface_coordinate_system(cls, v):
+        valid_systems = (
+            cls._idf_field.GlobalGeometryRules.Rectangular_Surface_Coordinate_System.key
+        )
+        return cls.validate_choice_field(
+            v, valid_systems, "Rectangular Surface Coordinate System"
+        )
 
     def to_yaml_dict(self) -> dict[str, Any]:
         return {"GlobalGeometryRules": self.model_dump(by_alias=True)}

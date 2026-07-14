@@ -42,8 +42,10 @@ from pathlib import Path
 from loguru import logger
 
 from src.agent import AgentState
+from src.agent._share import ensure_schema_initialized
 from src.agent.nodes import intake_node
-from src.agent.runner import load_intake_from, run_downstream_ep
+from src.agent.output_coordinates import load_intake_bundle, resolve_run_dir_for_intake
+from src.agent.runner import load_intake_from, run_downstream_ep  # noqa: F401 — load_intake_from kept for back-compat importers
 from src.agent.state import IntakeOutput
 from src.utils.logging import setup_logger
 
@@ -230,15 +232,32 @@ def main() -> None:
         )
 
     pre_intake: IntakeOutput | None = None
+    pre_contract = None
+    pre_context = None
     if args.intake_from is not None:
         intake_path = args.intake_from
         if not intake_path.is_absolute():
             intake_path = case_dir / intake_path
-        pre_intake = load_intake_from(intake_path)
+        # E4 (spec §3.4/§8.2): every downstream-graph entrance loads through
+        # the bundle API so the output-coordinate contract travels with the
+        # IntakeOutput. A pure-historical 11-field file (no sidecars, no v3
+        # run identity) gets a world_legacy contract from the loader.
+        #
+        # BO-CR2: the run identity dir is resolved from the intake file's OWN
+        # location — a nested stepwise layout (`<case>/<run>/5_intakeoutput/
+        # intake_output.json`) binds to `<run>`'s manifest, not the case root.
+        ensure_schema_initialized()
+        run_dir = resolve_run_dir_for_intake(intake_path, default=case_dir)
+        bundle = load_intake_bundle(intake_path, run_dir=run_dir)
+        pre_intake = bundle.intake
+        pre_contract = bundle.output_coordinates
+        pre_context = bundle.validation_context
         logger.info(
-            "intake_from={} (skipping intake LLM call; building={})",
+            "intake_from={} (skipping intake LLM call; building={}; coordinate_mode={}; run_dir={})",
             intake_path,
             pre_intake.building.name,
+            pre_contract.mode,
+            run_dir,
         )
 
     reading_vector_dir: str | None = None
@@ -282,6 +301,8 @@ def main() -> None:
         reading_vector_dir=reading_vector_dir,
         testdata_text=testdata_raw,
         pipeline_out_dir=pipeline_out_dir,
+        output_coordinate_contract=pre_contract,
+        output_coordinate_context=pre_context,
     )
 
     if args.intake_only:
@@ -297,6 +318,22 @@ def main() -> None:
         out_path = output_dir / "intake_output.json"
         out_path.write_text(intake_output.model_dump_json(indent=2), encoding="utf-8")
         logger.info("intake_output -> {}", out_path)
+        # BO-CR2: the flat deliverable carries its two output-coordinate
+        # sidecars alongside (spec §3.4 "flat --intake-only: 与
+        # intake_output.json 同目录并列") — without them the file would
+        # reload as an unverifiable orphan.
+        contract = update.get("output_coordinate_contract")
+        context = update.get("output_coordinate_context")
+        if contract is None or context is None or context.raw_snapshot_bytes is None:
+            raise RuntimeError(
+                "--intake-only produced no output-coordinate contract/snapshot — a new "
+                "E4 run may not emit a bare IntakeOutput (E4-oc v2 §3.4)"
+            )
+        (output_dir / "output_coordinate_contract.json").write_text(
+            contract.model_dump_json(indent=2), encoding="utf-8"
+        )
+        (output_dir / "output_coordinate_snapshot.json").write_bytes(context.raw_snapshot_bytes)
+        logger.info("output-coordinate sidecars -> {}", output_dir)
         return
 
     epw = Path(args.epw)

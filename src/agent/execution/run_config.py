@@ -80,6 +80,10 @@ class GradeConfig:
         }
 
 
+DEFAULT_ORIENTATION_COMPLETION_MODE = "prior_fill"
+_ORIENTATION_COMPLETION_MODES = ("prior_fill", "interactive")
+
+
 @dataclass(frozen=True)
 class RunConfig:
     path: Path | None = None
@@ -96,6 +100,13 @@ class RunConfig:
             "correction": GradeConfig(),
         }
     )
+    # E4 (BO-CR3): run-level orientation completion mode consumed by the
+    # §3.2bis resolution step. `prior_fill` (default) mechanically produces
+    # the assumed-0 NorthAxisEvidence on a genuinely empty trusted evidence
+    # set; `interactive` stops with NEEDS_INPUT instead. The pipeline persists
+    # this value as the hash-bound orientation_run_config.json artifact — it
+    # never hardcodes a mode literal (BO-CR3).
+    orientation_completion_mode: str = DEFAULT_ORIENTATION_COMPLETION_MODE
 
     @classmethod
     def defaults(cls, *, path: Path | None = None, present: bool = False) -> "RunConfig":
@@ -151,6 +162,7 @@ def _parse_run_config(raw: dict, path: Path) -> RunConfig:
         "reading": _parse_grade(raw.get("grade"), "reading", path),
         "correction": _parse_grade(raw.get("grade"), "correction", path),
     }
+    orientation_completion_mode = _parse_orientation_completion_mode(raw.get("orientation"), path)
     return RunConfig(
         path=path,
         present=True,
@@ -159,7 +171,22 @@ def _parse_run_config(raw: dict, path: Path) -> RunConfig:
         review=review,
         models=dict(models),
         grade=grade,
+        orientation_completion_mode=orientation_completion_mode,
     )
+
+
+def _parse_orientation_completion_mode(orientation: object, path: Path) -> str:
+    if not isinstance(orientation, dict):
+        return DEFAULT_ORIENTATION_COMPLETION_MODE
+    mode = str(orientation.get("completion_mode", DEFAULT_ORIENTATION_COMPLETION_MODE))
+    if mode not in _ORIENTATION_COMPLETION_MODES:
+        warnings.warn(
+            f"{path} orientation.completion_mode={mode!r} is invalid; using "
+            f"{DEFAULT_ORIENTATION_COMPLETION_MODE}",
+            RuntimeWarning,
+        )
+        return DEFAULT_ORIENTATION_COMPLETION_MODE
+    return mode
 
 
 def _parse_scope_stages(scope: object, path: Path) -> tuple[str, ...]:

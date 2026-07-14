@@ -151,15 +151,42 @@ def _xy_range(bg_zone_volume) -> tuple[float, float, float, float]:
     return minx, miny, maxx, maxy
 
 
+# Frame-label text (E4-output-contract spec v2 §6.2 item 1). The kernel never
+# rotates/translates a single vertex either way — this only changes the prose
+# a downstream LLM agent reads, so a v3/E4 (Relative) run doesn't call these
+# "world coordinates" (which they no longer are, once Zone frame is all-zero
+# and Building.North Axis carries theta) while a legacy v1/v2 (World) run's
+# text and bytes stay pixel-for-pixel identical to pre-E4.
+_FRAME_LABEL_TEXT = {
+    "world": "world coordinates",
+    "building_axis": "building-axis coordinates; values are absolute within the project building frame",
+}
+_FRAME_LABEL_SURFACE_TEXT = {
+    "world": "absolute world coordinates",
+    "building_axis": "absolute building-axis coordinates (values are absolute within the project building frame)",
+}
+
+
 def serialize_geometry(
     bg: BuildingGeometry,
+    *,
+    frame_label: str = "world",
 ) -> tuple[str, str, str, set[str]]:
-    """Return (zone_specs, surface_specs, fenestration_specs, used_constructions)."""
+    """Return (zone_specs, surface_specs, fenestration_specs, used_constructions).
+
+    ``frame_label``: ``"world"`` (default — byte-identical to pre-E4 text) or
+    ``"building_axis"`` (v3/E4 Relative runs). Selects prose only; the
+    vertex/coordinate VALUES emitted below are identical either way — this
+    function never rotates or translates geometry.
+    """
+    if frame_label not in _FRAME_LABEL_TEXT:
+        raise ValueError(f"serialize_geometry: unknown frame_label {frame_label!r}")
+    frame_words = _FRAME_LABEL_TEXT[frame_label]
     surf_by_name = {s.name: s for s in bg.surfaces}
 
     # ---- zone_specs ----
     z_lines = [
-        "Zones (world coordinates, meters, two decimals). Every zone name below "
+        f"Zones ({frame_words}, meters, two decimals). Every zone name below "
         "is referenced literally by surface_specs / fenestration_specs / "
         "people_specs / lights_specs / hvac_specs.",
     ]
@@ -183,7 +210,7 @@ def serialize_geometry(
     # ---- surface_specs ----
     used: set[str] = set()
     s_lines = [
-        "Surfaces (vertices CCW from outside, absolute world coordinates in "
+        f"Surfaces (vertices CCW from outside, {_FRAME_LABEL_SURFACE_TEXT[frame_label]} in "
         "meters). Construction names and adjacent zone names are authoritative — "
         "transcribe them verbatim. Interzone faces are pre-paired: the named "
         "adjacent surface is its reciprocal partner.",

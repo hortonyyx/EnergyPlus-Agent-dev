@@ -2,11 +2,17 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, Literal
 
 from src.agent.correction.cell_geometry import normalized_ccw_polygon, validate_cell_polygon
 from src.agent.correction.config import load_core_tolerances
 from src.agent.correction.schema import CorrectedGeometry, CorrectedGeometryV3
+
+# E4-output-contract spec v2 §3.2bis writer contract: the frozen phase
+# vocabulary. `b2` = draw/Vg finalize (north_axis must stay None);
+# `e4_orientation` = the deterministic orientation-enrichment augment
+# (BO-CR10: narrowed from bare `str` to the contract Literal).
+PhaseContract = Literal["b2", "e4_orientation"]
 
 
 @dataclass(frozen=True)
@@ -14,7 +20,14 @@ class CorrectionTarget:
     schema_version: str
     schema_model: type[CorrectedGeometry]
     capability_profile: str
-    phase_contract: str = "b2"
+    phase_contract: PhaseContract = "b2"
+
+    def __post_init__(self) -> None:
+        if self.phase_contract not in ("b2", "e4_orientation"):
+            raise ValueError(
+                f"unknown correction phase_contract {self.phase_contract!r}; "
+                "frozen vocabulary is 'b2' | 'e4_orientation'"
+            )
 
 
 def correction_target(capability_profile: str) -> CorrectionTarget:

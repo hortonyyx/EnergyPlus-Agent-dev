@@ -60,6 +60,7 @@ from src.validator.checks.schema import Disposition, RunProfile
 
 if TYPE_CHECKING:
     from src.agent.geometry.modelling import BuildingGeometry
+    from src.agent.output_coordinates import IntakeArtifactBundle
 
 _SKILL_DIR = Path(__file__).resolve().parents[2] / "skills" / "intake_pipeline"
 _CORRECTION_DIR = _SKILL_DIR / "1_correction"
@@ -818,12 +819,40 @@ def run_pipeline(
     run_profile: RunProfile = "exploratory",
     capability_profile: str = "rectangular",
 ) -> IntakeOutput:
+    """Compatibility wrapper (E4-output-contract spec v2 §3.5): identical to
+    the historical signature/return, but implemented on top of
+    :func:`run_pipeline_artifacts` so a legacy caller and the bundle-aware
+    `intake_node` mainline can never drift onto two assembly code paths."""
+    intake, _bundle = run_pipeline_artifacts(
+        vector_dir, testdata_text, out_dir=out_dir, feedback=feedback,
+        run_profile=run_profile, capability_profile=capability_profile,
+    )
+    return intake
+
+
+def run_pipeline_artifacts(
+    vector_dir: Path,
+    testdata_text: str,
+    *,
+    out_dir: Path | None = None,
+    feedback: str | None = None,
+    run_profile: RunProfile = "exploratory",
+    capability_profile: str = "rectangular",
+) -> "tuple[IntakeOutput, IntakeArtifactBundle | None]":
     """Staged intake: 1_correction -> deterministic core -> deterministic geometry
     kernel (2_modelling + 3_split_pairing) -> 4_mep (LLM) -> 5_intakeoutput assembly.
 
     Geometry is deterministic: the kernel builds + the serializer emits
     zone/surface/fenestration specs; 4_mep authors only the 8 non-geometry fields;
     assembly stitches them and runs a contract check.
+
+    Returns ``(intake, bundle)``. ``bundle`` is the E4
+    :class:`~src.agent.output_coordinates.IntakeArtifactBundle` (IntakeOutput +
+    OutputCoordinateContract + coordinate snapshot + validation context) and is
+    present whenever gate① accepted the correction; it is ``None`` only for
+    the exploratory-profile edge case where a blocking correction result was
+    warned-through (no accepted-correction identity exists to bind a contract
+    to — assembly then behaves exactly as pre-E4).
 
     When `out_dir` is given, artifacts are filed into stage-numbered subdirs that
     mirror the 0–5 pipeline:
@@ -835,6 +864,8 @@ def run_pipeline(
       out_dir/3_split_pairing/ geometry_specs.md (serialized cut+paired specs)
       out_dir/4_mep/           mep_output.json + mep raw/thinking
       out_dir/5_intakeoutput/  intake_output.json (final) + contract_issues.json
+                               + output_coordinate_contract.json/_snapshot.json
+                               sidecars when a contract was derived
     ``run_profile`` defaults to exploratory for backward compatibility.
     ``feedback`` is routed to both 1_correction (geometry) and 4_mep (physics)
     repair.
@@ -980,6 +1011,108 @@ def run_pipeline(
         run_profile=run_profile,
     )
 
+    # ----------------------------------------------------------------- #
+    # E4 (C2 E4-output-contract spec v2 §3.2bis/§11 steps 1-4): build the
+    # verified accepted-correction identity, and for a v3/orthogonal_polygon
+    # draw, run orientation resolution unconditionally (this batch's only
+    # producer is the trusted-empty evidence-set artifact — B-O does not add
+    # any total-plan/north-arrow evidence collector; see spec §0.3). v1/v2
+    # rectangular corrections have no orientation concept at all and are
+    # verified straight through (they derive `world_legacy` at S5).
+    #
+    # BO-CR2 (review-ask #1 REJECT): a blocking gate① correction leaves this
+    # run with NO accepted identity to bind a contract to — a new E4 run
+    # without a contract is a HARD failure under every profile; there is no
+    # fall-back to pre-E4 contract-less assembly.
+    # ----------------------------------------------------------------- #
+    if correction_report.blocking():
+        raise RuntimeError(
+            "1_correction gate① reported blocking result(s) — no accepted correction "
+            "identity exists to bind the E4 output-coordinate contract, and a new run "
+            "may not assemble without one (E4-oc v2 §3.4): "
+            + "; ".join(f"{r.check_id}: {r.message}" for r in correction_report.blocking())
+        )
+
+    from src.agent.correction.feature_state import (
+        FeatureStatesArtifactV1,
+        derive_feature_state_claims,
+    )
+    from src.agent.output_coordinates import (
+        sha256_bytes,
+        verify_integrated_gate1_correction,
+    )
+
+    if geom.schema_version == "3":
+        from src.agent.correction.orientation import resolve_orientation_from_run_dir
+        from src.agent.execution.run_config import load_run_config
+
+        pre_raw = geom.model_dump_json(indent=2).encode("utf-8")
+        pre_hash = sha256_bytes(pre_raw)
+        pre_claims = derive_feature_state_claims(correction_target(capability_profile), geom)
+        pre_verified = verify_integrated_gate1_correction(
+            raw_output_bytes=pre_raw,
+            correction_report=correction_report,
+            feature_states=FeatureStatesArtifactV1(output_sha256=pre_hash, claims=pre_claims),
+        )
+
+        # BO-CR3: completion mode comes from the run's REAL configuration
+        # (run_config.yaml `orientation.completion_mode`, default prior_fill),
+        # and the evidence set is a content-addressed on-disk artifact — the
+        # canonical empty set is explicitly materialized, then re-loaded and
+        # hash-verified before resolution. Nothing here is an in-memory
+        # pipeline literal.
+        if s1 is not None:
+            correction_dir = s1
+        else:
+            import tempfile
+
+            correction_dir = Path(tempfile.mkdtemp(prefix="e4_orientation_"))
+        run_config_dir = out_dir if out_dir is not None else correction_dir
+        run_cfg = load_run_config(run_config_dir)
+        orientation_result, _orientation_artifacts = resolve_orientation_from_run_dir(
+            correction_dir=correction_dir,
+            base=pre_verified,
+            completion_mode=run_cfg.orientation_completion_mode,
+            capability_profile=capability_profile,
+        )
+        geom = orientation_result.geom
+        logger.info(
+            "1_correction (E4): orientation resolved via {} -> north_axis={}deg "
+            "(completion_mode={})",
+            orientation_result.audit_payload["orientation"]["resolution_kind"],
+            geom.north_axis.value_deg,
+            run_cfg.orientation_completion_mode,
+        )
+        if s1 is not None:
+            (s1 / "correction_geometry_snapped.json").write_text(
+                geom.model_dump_json(indent=2), encoding="utf-8",
+            )
+            (s1 / "corrections.json").write_text(
+                json.dumps(orientation_result.audit_payload, indent=2, ensure_ascii=False),
+                encoding="utf-8",
+            )
+            (s1 / "orientation_audit.json").write_text(
+                json.dumps(orientation_result.audit_payload["orientation"], indent=2, ensure_ascii=False),
+                encoding="utf-8",
+            )
+
+        enriched_raw = geom.model_dump_json(indent=2).encode("utf-8")
+        enriched_hash = sha256_bytes(enriched_raw)
+        verified_correction = verify_integrated_gate1_correction(
+            raw_output_bytes=enriched_raw,
+            correction_report=correction_report,
+            feature_states=FeatureStatesArtifactV1(
+                output_sha256=enriched_hash, claims=orientation_result.feature_state_claims,
+            ),
+        )
+    else:
+        raw_bytes = geom.model_dump_json(indent=2).encode("utf-8")
+        claims = derive_feature_state_claims(correction_target(capability_profile), geom)
+        verified_correction = verify_integrated_gate1_correction(
+            raw_output_bytes=raw_bytes, correction_report=correction_report,
+            feature_states=FeatureStatesArtifactV1(output_sha256=sha256_bytes(raw_bytes), claims=claims),
+        )
+
     # Deterministic geometry kernel (2_modelling -> 3_split_pairing). This geometry
     # is authoritative; we serialize it into the geometry specs.
     s2 = _stage("2_modelling")
@@ -1024,8 +1157,8 @@ def run_pipeline(
     from src.agent.geometry.specs import geometry_specs_markdown, serialize_geometry
     from src.agent.intakeoutput import assemble_intake_output
 
-    zone_specs, surface_specs, fenestration_specs, used_constructions = (
-        serialize_geometry(bg)
+    zone_specs, surface_specs, fenestration_specs, used_constructions = serialize_geometry(
+        bg, frame_label="building_axis" if geom.schema_version == "3" else "world",
     )
     if s3 is not None:
         (s3 / "geometry_specs.md").write_text(
@@ -1063,12 +1196,34 @@ def run_pipeline(
     )
 
     # 5_intakeoutput (assembly): stitch + deterministic contract check.
-    intake = assemble_intake_output(
+    #
+    # E4 (spec §3.5/§11 step 6): when this run has a verified accepted
+    # correction (gate① clean — see the E4 block above), assemble through
+    # `assemble_intake_artifacts` so the final Building.North Axis is the
+    # unconditional S5 override from the derived OutputCoordinateContract
+    # (0.0/world_legacy for v1/v2, theta/relative_north_axis for v3).
+    # `verified_correction is None` (a blocking-gate① exploratory edge case)
+    # falls through to the exact pre-E4 call — no output_coordinates at all.
+    # BO-CR2: every integrated run reaching S5 has a verified correction (the
+    # gate above raised otherwise) — there is no contract-less assembly path.
+    from src.agent.output_coordinates import (
+        assemble_intake_artifacts,
+        build_assembly_coordinate_audit,
+        build_output_coordinate_snapshot,
+        canonical_json_bytes,
+    )
+
+    coordinate_snapshot = build_output_coordinate_snapshot(bg)
+    bundle = assemble_intake_artifacts(
         zone_specs=zone_specs,
         surface_specs=surface_specs,
         fenestration_specs=fenestration_specs,
         mep=mep,
+        correction=verified_correction,
+        coordinate_snapshot=coordinate_snapshot,
     )
+    intake = bundle.intake
+    output_coordinate_contract = bundle.output_coordinates
     from src.validator.checks.assembly import check_assembly
 
     s5 = _stage("5_intakeoutput")
@@ -1112,4 +1267,21 @@ def run_pipeline(
             intake.model_dump_json(indent=2, by_alias=False), encoding="utf-8"
         )
         logger.success("5_intakeoutput: wrote {}", s5 / "intake_output.json")
-    return intake
+        (s5 / "output_coordinate_contract.json").write_text(
+            output_coordinate_contract.model_dump_json(indent=2), encoding="utf-8",
+        )
+        snapshot_bytes = canonical_json_bytes(coordinate_snapshot)
+        (s5 / "output_coordinate_snapshot.json").write_bytes(snapshot_bytes)
+        # BO-CR7: integrated S5 also files the strict assembly coordinate
+        # audit (stepwise files it as the accepted attempt's audit.json).
+        assembly_audit = build_assembly_coordinate_audit(
+            verified=verified_correction,
+            contract=output_coordinate_contract,
+            snapshot_bytes=snapshot_bytes,
+            mep_placeholder_north_axis=float(mep.building.north_axis),
+            final_building_north_axis=float(intake.building.north_axis),
+        )
+        (s5 / "assembly_coordinate_audit.json").write_text(
+            assembly_audit.model_dump_json(indent=2), encoding="utf-8",
+        )
+    return intake, bundle

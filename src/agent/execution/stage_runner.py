@@ -150,6 +150,7 @@ class StageRunner:
         adir = new_attempt_dir(stage_dir)
 
         from src.agent.correction.finalize import FinalizeResult
+        from src.agent.correction.orientation import OrientationEnrichmentResult
         from src.agent.correction.feature_state import (
             FeatureStatesArtifactV1,
             correction_stage_version,
@@ -160,12 +161,35 @@ class StageRunner:
             VisibilityTolerances,
             validate_materialized_facade_segments,
         )
+        from src.agent.output_coordinates import AssemblyE4Write
 
-        is_b2_correction = isinstance(output_obj, FinalizeResult)
-        if is_b2_correction and stage != "1_correction":
-            raise ValueError("FinalizeResult may only be written by 1_correction")
-        out_text = (output_obj.geom.model_dump_json(indent=2) if is_b2_correction else
-                    output_obj if isinstance(output_obj, str) else _to_json(output_obj))
+        # E4-output-contract spec v2 §3.2bis writer contract + §3.4: two new
+        # marker types distinguish an orientation-enrichment `1_correction`
+        # attempt (`OrientationEnrichmentResult`, a `FinalizeResult` subclass
+        # — checked FIRST so it is never mistaken for a plain B2/Vg draw) and
+        # an `assembly_e4_v1` `5_intakeoutput` attempt (`AssemblyE4Write`,
+        # unrelated to `FinalizeResult`) from the existing B2/Vg
+        # `FinalizeResult` and the generic `base_v2` catch-all.
+        is_orientation_enrichment = isinstance(output_obj, OrientationEnrichmentResult)
+        is_b2_correction = isinstance(output_obj, FinalizeResult) and not is_orientation_enrichment
+        is_assembly_e4 = isinstance(output_obj, AssemblyE4Write)
+        is_correction_write = is_b2_correction or is_orientation_enrichment
+
+        if is_correction_write and stage != "1_correction":
+            raise ValueError(
+                "FinalizeResult/OrientationEnrichmentResult may only be written by 1_correction"
+            )
+        if is_assembly_e4 and stage != "5_intakeoutput":
+            raise ValueError("AssemblyE4Write may only be written by 5_intakeoutput")
+
+        if is_correction_write:
+            out_text = output_obj.geom.model_dump_json(indent=2)
+        elif is_assembly_e4:
+            out_text = output_obj.intake.model_dump_json(indent=2)
+        elif isinstance(output_obj, str):
+            out_text = output_obj
+        else:
+            out_text = _to_json(output_obj)
         (adir / "output.json").write_text(out_text, encoding="utf-8")
         output_hash = hash_text(out_text)
 
@@ -176,11 +200,17 @@ class StageRunner:
         checks_text = report.model_dump_json(indent=2)
         (adir / "checks.json").write_text(checks_text, encoding="utf-8")
         artifact_hashes = {"output": output_hash, "checks": hash_text(checks_text)}
-        if is_b2_correction:
+
+        expected = None
+        if is_correction_write:
             # Re-derive at the writer boundary; a frozen dataclass does not make
             # nested caller data trustworthy.
             from src.agent.correction.parse import CorrectionTarget
-            target = CorrectionTarget(output_obj.geom.schema_version, type(output_obj.geom), report.capability_profile)
+            phase_contract = "e4_orientation" if is_orientation_enrichment else "b2"
+            target = CorrectionTarget(
+                output_obj.geom.schema_version, type(output_obj.geom),
+                report.capability_profile, phase_contract,
+            )
             expected = derive_feature_state_claims(target, output_obj.geom)
             if expected != output_obj.feature_state_claims:
                 raise ValueError("INVARIANT: FinalizeResult feature-state claims were altered")
@@ -196,7 +226,9 @@ class StageRunner:
                 # recompute every floor's segments straight from the
                 # authoritative `floor_footprint` ring and reject on any
                 # item-for-item mismatch before this attempt is ever
-                # accepted.
+                # accepted. (Applies equally to an orientation-enrichment
+                # write: `finalize_orientation_enrichment` must not have
+                # touched facade_segments either.)
                 tol = load_core_tolerances()
                 visibility_tol = VisibilityTolerances(
                     depth_epsilon_m=tol.facade_visibility_depth_epsilon_m,
@@ -209,9 +241,29 @@ class StageRunner:
             states_text = states.model_dump_json(indent=2)
             (adir / "feature_states.json").write_text(states_text, encoding="utf-8")
             artifact_hashes.update({"audit": hash_text(audit_text), "feature_states": hash_text(states_text)})
+        elif is_assembly_e4:
+            audit_text = output_obj.audit.model_dump_json(indent=2)
+            (adir / "audit.json").write_text(audit_text, encoding="utf-8")
+            contract_text = output_obj.contract.model_dump_json(indent=2)
+            (adir / "output_coordinate_contract.json").write_text(contract_text, encoding="utf-8")
+            snapshot_text = output_obj.snapshot.model_dump_json(indent=2)
+            (adir / "output_coordinate_snapshot.json").write_text(snapshot_text, encoding="utf-8")
+            artifact_hashes.update({
+                "audit": hash_text(audit_text),
+                "output_coordinate_contract": hash_text(contract_text),
+                "output_coordinate_snapshot": hash_text(snapshot_text),
+            })
 
         check_passed = report.passed
         do_accept = check_passed if accept is None else accept
+        if is_assembly_e4 and output_obj.input_hashes:
+            # E4 (spec §3.5): the S5 record's identity bindings travel with
+            # the write payload so orchestration layers that call record()
+            # without explicit input hashes still bind the accepted
+            # correction; explicit caller-supplied hashes win per key.
+            merged = dict(output_obj.input_hashes)
+            merged.update(input_hashes or {})
+            input_hashes = merged
         rec = RecordedAttempt(
             stage=stage,
             attempt_index=int(adir.name),
@@ -221,18 +273,15 @@ class StageRunner:
             check_passed=check_passed,
         )
         if do_accept:
-            if is_b2_correction:
+            if is_correction_write:
                 # Vg rework CR2 (§9.2 central release-map policy): re-derive
                 # the wire's stage_version from the same `expected` claims
                 # re-derived above for the tamper check — never trust a
                 # caller-supplied value, and never hardcode ANY correction
-                # stage_version literal here (not "2", not "3"). The release
-                # map in feature_state.py is now a single, explicit,
+                # stage_version literal here (not 2, not 3, not 4). The
+                # release map in feature_state.py is now a single, explicit,
                 # fail-closed table over the FULL claims state (schema +
-                # helper_versions + all four feature states), so it already
-                # has a registered legacy-v1 entry
-                # (`("1", (), "not_declared"x4) -> "2"`) — there is no longer
-                # a schema-version branch to collapse to a literal here; an
+                # helper_versions + all four feature states) — an
                 # unregistered combination raises INVARIANT unconditionally.
                 stage_version = correction_stage_version(expected)
             common = dict(
@@ -248,17 +297,28 @@ class StageRunner:
                 check_passed=check_passed,
             )
             if isinstance(self.manifest, RunManifestV2):
+                if is_orientation_enrichment:
+                    artifact_contract = "correction_e4_orientation_v1"
+                elif is_b2_correction:
+                    artifact_contract = "correction_b2_v1"
+                elif is_assembly_e4:
+                    artifact_contract = "assembly_e4_v1"
+                else:
+                    artifact_contract = "base_v2"
                 self.manifest.accept(
                     StageRecordV2(
                         **common,
-                        artifact_contract="correction_b2_v1" if is_b2_correction else "base_v2",
+                        artifact_contract=artifact_contract,
                         artifact_hashes=artifact_hashes,
                     )
                 )
-                if is_b2_correction:
+                if is_correction_write:
                     # Convenience copies are promoted only after gate acceptance.
                     (stage_dir / "correction_geometry_snapped.json").write_text(out_text, encoding="utf-8")
                     (stage_dir / "corrections.json").write_text(_to_json(output_obj.audit_payload), encoding="utf-8")
+                elif is_assembly_e4:
+                    (stage_dir / "output_coordinate_contract.json").write_text(contract_text, encoding="utf-8")
+                    (stage_dir / "output_coordinate_snapshot.json").write_text(snapshot_text, encoding="utf-8")
             else:
                 self.manifest.accept(StageRecord(**common))
         return rec

@@ -49,7 +49,15 @@ def simulate_node(state: AgentState, runtime: Runtime[SimContext]) -> AgentState
     config = state.config_state.model_copy(deep=True)
     _ensure_default_output_variables(config)
 
-    workflow = WorkflowTool(config)
+    # E4 (spec §5.2 call point 5 / §8.2): hand the contract + context through
+    # EXPLICITLY. WorkflowTool re-validates at the pre-export and post-convert
+    # gates; a missing contract means the explicit legacy_unbound policy.
+    workflow = WorkflowTool(
+        config,
+        output_coordinates=state.output_coordinate_contract,
+        validation_context=state.output_coordinate_context,
+        zone_frame_normalizations=state.zone_frame_normalizations,
+    )
     if ctx.run_simulate:
         response = workflow.run_simulation(
             epw_path=str(ctx.epw_path.resolve().absolute()),

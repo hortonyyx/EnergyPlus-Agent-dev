@@ -12,11 +12,15 @@ would fatal. We catch that here, by name, not at EP.
 from __future__ import annotations
 
 import re
+from typing import TYPE_CHECKING
 
 from pydantic import BaseModel, Field
 
 from src.agent.state import IntakeOutput
 from src.validator import BuildingSchema, SiteLocationSchema
+
+if TYPE_CHECKING:
+    from src.agent.output_coordinates import OutputCoordinateContract
 
 
 class MepOutput(BaseModel):
@@ -39,11 +43,41 @@ def assemble_intake_output(
     surface_specs: str,
     fenestration_specs: str,
     mep: MepOutput,
+    output_coordinates: "OutputCoordinateContract | None" = None,
 ) -> IntakeOutput:
     """Stitch the deterministic geometry specs and the MEP specs into one
-    IntakeOutput. Pure mechanical merge — no field is invented here."""
-    return IntakeOutput(
-        building=mep.building,
+    IntakeOutput. Pure mechanical merge — no field is invented here, with one
+    deliberate exception: `building.north_axis`.
+
+    E4-output-contract spec v2 §4.2 — S5 unconditional override. When
+    ``output_coordinates`` is given, `Building.North Axis` is UNCONDITIONALLY
+    replaced by `output_coordinates.north_axis_deg` (0.0 for `world_legacy`,
+    the accepted correction's theta for `relative_north_axis`); MEP's own
+    `north_axis` (checked elsewhere to be the 0.0 compatibility placeholder,
+    `mep.building_north_axis_placeholder`) never reaches the final IntakeOutput
+    and is never compared against theta for a "conflict" — 0 carries no
+    evidentiary weight, so `0 != theta` is not a disagreement. `mep` itself is
+    never mutated (the caller's object stays exactly what it was); a fresh
+    `BuildingSchema` is rebuilt through validation so this cannot be bypassed
+    via `model_copy(update=...)`.
+
+    ``output_coordinates=None`` (the default) preserves the exact pre-E4
+    behavior byte-for-byte — `building` is copied verbatim from `mep` — so
+    every existing legacy caller/test is unaffected.
+    """
+    building = mep.building
+    if output_coordinates is not None:
+        if float(mep.building.north_axis) != 0.0:
+            raise ValueError(
+                "assemble_intake_output: mep.building.north_axis must be the 0.0 "
+                f"compatibility placeholder, got {mep.building.north_axis!r} "
+                "(S4's mep.building_north_axis_placeholder gate should have caught this)"
+            )
+        building = BuildingSchema.model_validate(
+            {**mep.building.model_dump(by_alias=True), "North Axis": output_coordinates.north_axis_deg}
+        )
+    intake = IntakeOutput(
+        building=building,
         site_location=mep.site_location,
         zone_specs=zone_specs,
         material_specs=mep.material_specs,
@@ -55,6 +89,15 @@ def assemble_intake_output(
         people_specs=mep.people_specs,
         lights_specs=mep.lights_specs,
     )
+    if output_coordinates is not None:
+        intake = IntakeOutput.model_validate_json(intake.model_dump_json())
+        if intake.building.north_axis != output_coordinates.north_axis_deg:
+            raise ValueError(
+                "assemble_intake_output: post round-trip intake.building.north_axis "
+                f"({intake.building.north_axis}) does not equal "
+                f"output_coordinates.north_axis_deg ({output_coordinates.north_axis_deg})"
+            )
+    return intake
 
 
 def _defines(text: str, name: str) -> bool:

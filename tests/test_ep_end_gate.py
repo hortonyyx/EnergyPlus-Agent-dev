@@ -104,6 +104,10 @@ def test_run_simulation_ep_failure_returns_false(tmp_path: Path) -> None:
     mock_state.validate_references.return_value = []  # no validation errors
     mock_state.export_yaml.return_value = None
     mock_state.get_summary.return_value = MagicMock(model_dump=lambda: {})
+    # E4 legacy_unbound gate reads these two concrete values (a bare MagicMock
+    # floats to 1.0 and would trip the nonzero-North-Axis legacy gate)
+    mock_state.building.north_axis = 0.0
+    mock_state.global_geometry_rules.coordinate_system = "World"
 
     # --- minimal manager stub with empty IDF objects ---
     mock_manager = MagicMock()
@@ -144,6 +148,10 @@ def test_run_simulation_ep_run_subdir_nests(tmp_path: Path) -> None:
     mock_state.validate_references.return_value = []
     mock_state.export_yaml.return_value = None
     mock_state.get_summary.return_value = MagicMock(model_dump=lambda: {})
+    # E4 legacy_unbound gate reads these two concrete values (a bare MagicMock
+    # floats to 1.0 and would trip the nonzero-North-Axis legacy gate)
+    mock_state.building.north_axis = 0.0
+    mock_state.global_geometry_rules.coordinate_system = "World"
 
     mock_manager = MagicMock()
     mock_manager.convert_all.return_value = None

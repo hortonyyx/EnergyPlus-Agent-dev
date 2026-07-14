@@ -11,6 +11,11 @@ from pydantic import BaseModel, Field
 from typing_extensions import TypedDict
 
 from src.agent._share import DEFAULT_OUTPUT_DIR, MAX_RETRIES
+from src.agent.output_coordinates import (
+    OutputCoordinateContract,
+    OutputCoordinateValidationContext,
+    ZoneFrameNormalizationEntryV1,
+)
 from src.mcp.state import ConfigState
 from src.validator import (
     BuildingSchema,
@@ -214,6 +219,25 @@ class AgentState(BaseModel):
     )
     intake_output: IntakeOutput | None = None
 
+    output_coordinate_contract: OutputCoordinateContract | None = None
+    """E4 output-coordinate contract (World legacy vs Relative+theta), carried
+    verbatim from `intake_node` through to `simulate_node`/export. NOT part of
+    `ConfigState` (so `merge_config_state` never touches it) and NOT part of
+    `IntakeOutput`'s 11-field wire — it is internal dispatch metadata only.
+    Any node that has this set must not mutate it; a re-run of correction
+    invalidates and re-derives it, it is never patched in place."""
+    output_coordinate_context: OutputCoordinateValidationContext | None = None
+    """Hash-chain verification context paired with `output_coordinate_contract`
+    (raw accepted-correction bytes + raw snapshot bytes) — carried so the
+    pre-export/post-convert gates can re-verify without re-reading disk state
+    that may have moved."""
+    zone_frame_normalizations: tuple[ZoneFrameNormalizationEntryV1, ...] = ()
+    """Immutable §7.4 zone-frame normalizations made by the zone node.
+
+    This is runtime/export evidence only: it is deliberately outside both the
+    eleven-field IntakeOutput wire and ConfigState's merge reducer.
+    """
+
     validation_errors: list[str] = Field(default_factory=list)
     retry_count: int = 0
     max_retries: int = MAX_RETRIES
@@ -230,5 +254,8 @@ class AgentStateUpdate(TypedDict, total=False):
     pipeline_out_dir: str | None
     config_state: ConfigState
     intake_output: IntakeOutput | None
+    output_coordinate_contract: OutputCoordinateContract | None
+    output_coordinate_context: OutputCoordinateValidationContext | None
+    zone_frame_normalizations: tuple[ZoneFrameNormalizationEntryV1, ...]
     validation_errors: list[str]
     retry_count: int

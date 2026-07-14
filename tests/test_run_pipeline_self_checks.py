@@ -338,31 +338,36 @@ def test_run_pipeline_exploratory_warns_and_continues_on_non_pairing_kernel_inva
     assert (out_dir / "5_intakeoutput" / "intake_output.json").exists()
 
 
-def test_run_pipeline_exploratory_writes_and_warns_but_continues(
+def test_run_pipeline_exploratory_correction_blocking_fails_closed_without_contract(
     tmp_path, monkeypatch
 ):
+    """BO-CR2 (E4-oc v2 §3.4, review-ask #1 REJECT): a blocking gate①
+    correction leaves the run without an accepted identity to bind the
+    output-coordinate contract — even under `exploratory` the pipeline must
+    HARD FAIL rather than fall back to contract-less pre-E4 assembly. The
+    correction report is still persisted first (attribution evidence), and
+    the exploratory warn is still logged; nothing downstream runs."""
     vector_dir = _patch_llm_stages(monkeypatch, tmp_path, bad_mep=True)
     out_dir = tmp_path / "out"
     testdata = json.dumps({"Floor plans": [{"thermal_zones": 1}], "site_location": _SITE})
     warnings: list[str] = []
     sink = pipeline.logger.add(lambda msg: warnings.append(str(msg)), level="WARNING")
     try:
-        intake = pipeline.run_pipeline(
-            vector_dir, testdata, out_dir=out_dir, run_profile="exploratory"
-        )
+        with pytest.raises(RuntimeError, match="output-coordinate contract"):
+            pipeline.run_pipeline(
+                vector_dir, testdata, out_dir=out_dir, run_profile="exploratory"
+            )
     finally:
         pipeline.logger.remove(sink)
 
-    assert isinstance(intake, IntakeOutput)
     correction = _report(out_dir / "1_correction" / "correction_checks.json")
-    mep = _report(out_dir / "4_mep" / "mep_checks.json")
     assert "correction.audit_completeness" in {
         result.check_id for result in correction.blocking()
     }
-    assert "mep.schedule_completeness" in {result.check_id for result in mep.blocking()}
-    assert (out_dir / "5_intakeoutput" / "intake_output.json").exists()
     assert any("1_correction self-check" in msg for msg in warnings)
-    assert any("4_mep self-check" in msg for msg in warnings)
+    # nothing downstream of the identity gate may exist
+    assert not (out_dir / "4_mep" / "mep_checks.json").exists()
+    assert not (out_dir / "5_intakeoutput" / "intake_output.json").exists()
 
 
 def test_run_pipeline_golden_fail_closed_after_writing_correction_report(

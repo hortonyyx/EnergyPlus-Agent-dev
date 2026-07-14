@@ -34,16 +34,18 @@ def _load_anchor_intake() -> IntakeOutput:
 def test_two_step_passes_raw_testdata_and_feedback(monkeypatch):
     captured = {}
 
-    def fake_run_pipeline(vector_dir, testdata_text, *, out_dir=None, feedback=None):
+    def fake_run_pipeline_artifacts(vector_dir, testdata_text, *, out_dir=None, feedback=None):
         captured.update(
             vector_dir=vector_dir,
             testdata_text=testdata_text,
             out_dir=out_dir,
             feedback=feedback,
         )
-        return _load_anchor_intake()
+        # E4: intake_node consumes the bundle-returning API; bundle=None is
+        # the no-contract edge case (behaves exactly as pre-E4).
+        return _load_anchor_intake(), None
 
-    monkeypatch.setattr(pipeline_mod, "run_pipeline", fake_run_pipeline)
+    monkeypatch.setattr(pipeline_mod, "run_pipeline_artifacts", fake_run_pipeline_artifacts)
 
     state = AgentState(
         user_input="HUMAN SUMMARY (must NOT reach the pipeline)",
@@ -68,11 +70,11 @@ def test_two_step_passes_raw_testdata_and_feedback(monkeypatch):
 def test_two_step_no_feedback_when_clean(monkeypatch):
     captured = {}
 
-    def fake_run_pipeline(vector_dir, testdata_text, *, out_dir=None, feedback=None):
+    def fake_run_pipeline_artifacts(vector_dir, testdata_text, *, out_dir=None, feedback=None):
         captured["feedback"] = feedback
-        return _load_anchor_intake()
+        return _load_anchor_intake(), None
 
-    monkeypatch.setattr(pipeline_mod, "run_pipeline", fake_run_pipeline)
+    monkeypatch.setattr(pipeline_mod, "run_pipeline_artifacts", fake_run_pipeline_artifacts)
 
     state = AgentState(
         testdata_text="{}",
@@ -88,6 +90,7 @@ def test_prefilled_intake_output_short_circuits(monkeypatch):
         raise AssertionError("run_pipeline should not be called on short-circuit")
 
     monkeypatch.setattr(pipeline_mod, "run_pipeline", boom)
+    monkeypatch.setattr(pipeline_mod, "run_pipeline_artifacts", boom)
     state = AgentState(
         intake_output=_load_anchor_intake(),
         reading_vector_dir="/some/0_reading",  # present, but short-circuit wins

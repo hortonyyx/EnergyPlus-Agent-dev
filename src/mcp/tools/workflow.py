@@ -1,5 +1,6 @@
 import time
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 from src.converter_manager import ConverterManager
 from src.mcp.interface import ToolResponse
@@ -11,6 +12,12 @@ from src.validator.interzone import (
     validate_interzone_surface_pairs,
 )
 from src.validator.schedules import validate_schedule_completeness
+
+if TYPE_CHECKING:
+    from src.agent.output_coordinates import (
+        OutputCoordinateContract,
+        OutputCoordinateValidationContext,
+    )
 
 logger = get_logger(__name__)
 
@@ -66,8 +73,144 @@ class WorkflowTool:
     on the entire configuration rather than individual components.
     """
 
-    def __init__(self, state: ConfigState):
+    def __init__(
+        self,
+        state: ConfigState,
+        *,
+        output_coordinates: "OutputCoordinateContract | None" = None,
+        validation_context: "OutputCoordinateValidationContext | None" = None,
+        zone_frame_normalizations=(),
+    ):
         self.state = state
+        # E4-output-contract spec v2 §5.2 call point 6 / §8.2: the contract is
+        # handed in EXPLICITLY by the caller (simulate_node passes it from
+        # AgentState); this tool never reverse-engineers a mode from GGR or
+        # Building field values. `None` = the explicit `legacy_unbound`
+        # standalone-MCP policy: only a World / North-Axis-0 legacy config may
+        # be exported, and a Relative ConfigState without a contract is a hard
+        # gate failure (a field value cannot "claim" E4 membership).
+        self.output_coordinates = output_coordinates
+        self.validation_context = validation_context
+        # §7.4 evidence is immutable before it reaches this boundary.  Keep a
+        # tuple even when callers hand us a list so a later caller mutation
+        # cannot alter an already-decided export audit.
+        self.zone_frame_normalizations = tuple(zone_frame_normalizations)
+
+    def _coordinate_gate(self, *, idf=None) -> list[str]:
+        """Output-coordinate gate, run pre-YAML-export (idf=None) and again
+        post-convert (idf=<live eppy IDF>). Returns human-readable issue
+        strings in the same shape as the interzone/schedule gates."""
+        contract = self.output_coordinates
+        if contract is None:
+            issues: list[str] = []
+            ggr = self.state.global_geometry_rules
+            if ggr.coordinate_system == "Relative":
+                issues.append(
+                    "output-coordinates: ConfigState declares GlobalGeometryRules "
+                    "Coordinate System=Relative but no OutputCoordinateContract was "
+                    "provided — a Relative export requires the explicit E4 contract "
+                    "(field values cannot claim E4 membership)"
+                )
+            building = self.state.building
+            if building is not None and float(building.north_axis) != 0.0:
+                issues.append(
+                    "output-coordinates: standalone/legacy export requires "
+                    f"Building.North Axis == 0.0, got {building.north_axis!r} — a "
+                    "nonzero World-mode North Axis is ignored by EnergyPlus and "
+                    "would only manufacture a false authority value"
+                )
+            return issues
+        if self.validation_context is None:
+            return [
+                "output-coordinates: an OutputCoordinateContract was provided "
+                "without its OutputCoordinateValidationContext — the hash-chain "
+                "cannot be re-verified, refusing to export"
+            ]
+        from src.validator.output_coordinates import validate_output_coordinate_contract
+
+        found = validate_output_coordinate_contract(
+            self.state, contract, self.validation_context, idf=idf,
+        )
+        return [f"output-coordinates[{i.code}]: {i.message}" for i in found]
+
+    def _write_coordinate_audit(self, output_dir: Path, *, yaml_path: Path, idf_path: Path, manager) -> None:
+        """Downstream export audit (spec §7.4): bind the contract + snapshot
+        hashes to the ACTUAL exported YAML/IDF raw bytes. Written only when an
+        E4 contract is present; legacy standalone exports have no contract to
+        bind. Best-effort content, but a write failure is loud."""
+        from src.agent.output_coordinates import canonical_json_bytes, sha256_bytes
+        from src.validator.output_coordinates import (
+            COORDINATE_REGISTRY_VERSION,
+            ExportCoordinateAuditV1,
+            registry_candidate_sha256,
+        )
+
+        contract = self.output_coordinates
+        if contract is None:
+            return
+        config_counts = sorted(
+            (alias, len(getattr(self.state, name)))
+            for name, alias in (("zones", "Zone"), ("surfaces", "BuildingSurface:Detailed"),
+                                 ("fenestrations", "FenestrationSurface:Detailed"))
+        )
+        idf_counts = sorted(
+            (obj_type, len(objs))
+            for obj_type, objs in manager._idf.idfobjects.items()
+            if objs
+        )
+        snapshot_bytes = (
+            self.validation_context.raw_snapshot_bytes if self.validation_context is not None else None
+        )
+        audit = ExportCoordinateAuditV1(
+            contract_sha256=sha256_bytes(canonical_json_bytes(contract)),
+            snapshot_sha256=sha256_bytes(snapshot_bytes) if snapshot_bytes is not None else None,
+            yaml_sha256=sha256_bytes(Path(yaml_path).read_bytes()),
+            idf_sha256=sha256_bytes(Path(idf_path).read_bytes()),
+            registry_version=COORDINATE_REGISTRY_VERSION,
+            registry_candidate_sha256=registry_candidate_sha256(),
+            config_counts=tuple(config_counts),
+            idf_counts=tuple(idf_counts),
+            zone_normalizations=self.zone_frame_normalizations,
+            # This writer is reached only after both coordinate gates have
+            # accepted the config and live IDF. A failed gate returns before
+            # any accepted audit is written, so the tuple is exactly empty.
+            offenders=(),
+        )
+        destination = Path(output_dir) / "output_coordinate_audit.json"
+        temporary = destination.with_suffix(".json.tmp")
+        temporary.write_text(audit.model_dump_json(indent=2), encoding="utf-8")
+        temporary.replace(destination)
+
+    def _write_ep_coordinate_audit(self, *, ep_run_dir: Path, idf_path: Path, completed: bool) -> None:
+        """Bind the accepted export to actual post-EP bytes (§7.4).
+
+        Export-only intentionally never calls this.  The generic workflow can
+        attest the final IDF/EIO/ERR hashes and the forbidden World warning;
+        the cross-variant azimuth/area assertions remain the dedicated E4 EP
+        fixture's responsibility.
+        """
+        from src.agent.output_coordinates import canonical_json_bytes, sha256_bytes
+        from src.validator.output_coordinates import EpCoordinateAuditV1
+
+        contract = self.output_coordinates
+        if contract is None:
+            return
+        eio = ep_run_dir / "eplusout.eio"
+        err = ep_run_dir / "eplusout.err"
+        err_bytes = err.read_bytes() if err.is_file() else None
+        warning = b"Any non-zero Building/Zone North Axes or non-zero Zone Origins are ignored"
+        audit = EpCoordinateAuditV1(
+            contract_sha256=sha256_bytes(canonical_json_bytes(contract)),
+            idf_sha256=sha256_bytes(idf_path.read_bytes()),
+            eio_sha256=sha256_bytes(eio.read_bytes()) if eio.is_file() else None,
+            err_sha256=sha256_bytes(err_bytes) if err_bytes is not None else None,
+            ignored_warning_hits=(err_bytes or b"").count(warning),
+            completed=completed,
+        )
+        destination = ep_run_dir / "output_coordinate_ep_audit.json"
+        temporary = destination.with_suffix(".json.tmp")
+        temporary.write_text(audit.model_dump_json(indent=2), encoding="utf-8")
+        temporary.replace(destination)
 
     def export_yaml(self, output_path: str) -> ToolResponse:
         """Export the current configuration state to a YAML file.
@@ -157,6 +300,17 @@ class WorkflowTool:
                     data=validation.data,
                 )
 
+            pre_coord_issues = self._coordinate_gate(idf=None)
+            if pre_coord_issues:
+                return ToolResponse(
+                    success=False,
+                    message=(
+                        f"Pre-export output-coordinate gate failed: "
+                        f"{len(pre_coord_issues)} issue(s). YAML not exported."
+                    ),
+                    data={"output_coordinate_issues": pre_coord_issues},
+                )
+
             timestamp = time.strftime("%Y%m%d_%H%M%S")
             temp_yaml = Path(output_dir) / f"temp_{timestamp}.yaml"
             temp_idf = Path(output_dir) / f"temp_{timestamp}.idf"
@@ -167,24 +321,30 @@ class WorkflowTool:
 
             pair_issues = _check_interzone_pairs(manager)
             schedule_issues = _check_schedules(manager)
-            if pair_issues or schedule_issues:
+            coord_issues = self._coordinate_gate(idf=manager._idf)
+            if pair_issues or schedule_issues or coord_issues:
                 manager.save_idf(temp_idf)  # keep artifact for inspection
-                gate_total = len(pair_issues) + len(schedule_issues)
+                gate_total = len(pair_issues) + len(schedule_issues) + len(coord_issues)
                 return ToolResponse(
                     success=False,
                     message=(
                         f"Pre-EnergyPlus gate failed: {gate_total} issue(s) "
                         f"({len(pair_issues)} interzone, {len(schedule_issues)} "
-                        f"schedule). IDF not accepted."
+                        f"schedule, {len(coord_issues)} output-coordinate). "
+                        f"IDF not accepted."
                     ),
                     data={
                         "interzone_pair_issues": pair_issues,
                         "schedule_issues": schedule_issues,
+                        "output_coordinate_issues": coord_issues,
                         "idf_path": str(temp_idf.absolute()),
                     },
                 )
 
             manager.save_idf(temp_idf)
+            self._write_coordinate_audit(
+                Path(output_dir), yaml_path=temp_yaml, idf_path=temp_idf, manager=manager,
+            )
 
             logger.info("IDF exported (no simulation): {}", temp_idf)
             return ToolResponse(
@@ -232,6 +392,17 @@ class WorkflowTool:
             output_dir_path = Path(output_dir)
             output_dir_path.mkdir(parents=True, exist_ok=True)
 
+            pre_coord_issues = self._coordinate_gate(idf=None)
+            if pre_coord_issues:
+                return ToolResponse(
+                    success=False,
+                    message=(
+                        f"Pre-export output-coordinate gate failed: "
+                        f"{len(pre_coord_issues)} issue(s). Simulation not started."
+                    ),
+                    data={"output_coordinate_issues": pre_coord_issues},
+                )
+
             timestamp = time.strftime("%Y%m%d_%H%M%S")
             temp_yaml = output_dir_path / f"temp_{timestamp}.yaml"
             temp_idf = output_dir_path / f"temp_{timestamp}.idf"
@@ -243,24 +414,30 @@ class WorkflowTool:
 
             pair_issues = _check_interzone_pairs(manager)
             schedule_issues = _check_schedules(manager)
-            if pair_issues or schedule_issues:
+            coord_issues = self._coordinate_gate(idf=manager._idf)
+            if pair_issues or schedule_issues or coord_issues:
                 manager.save_idf(temp_idf)  # keep artifact for inspection
-                gate_total = len(pair_issues) + len(schedule_issues)
+                gate_total = len(pair_issues) + len(schedule_issues) + len(coord_issues)
                 return ToolResponse(
                     success=False,
                     message=(
                         f"Pre-EnergyPlus gate failed: {gate_total} issue(s) "
                         f"({len(pair_issues)} interzone, {len(schedule_issues)} "
-                        f"schedule). Simulation not started."
+                        f"schedule, {len(coord_issues)} output-coordinate). "
+                        f"Simulation not started."
                     ),
                     data={
                         "interzone_pair_issues": pair_issues,
                         "schedule_issues": schedule_issues,
+                        "output_coordinate_issues": coord_issues,
                         "idf_path": str(temp_idf.absolute()),
                     },
                 )
 
             manager.save_idf(temp_idf)
+            self._write_coordinate_audit(
+                output_dir_path, yaml_path=temp_yaml, idf_path=temp_idf, manager=manager,
+            )
 
             # IDF stays in output_dir; EP run artifacts optionally nest in a
             # subdir so the assembled IDF and the simulation outputs separate.
@@ -306,6 +483,9 @@ class WorkflowTool:
                 end["severe"],
                 end["warnings"],
                 output_dir_path,
+            )
+            self._write_ep_coordinate_audit(
+                ep_run_dir=ep_run_dir, idf_path=temp_idf, completed=True,
             )
 
             return ToolResponse(

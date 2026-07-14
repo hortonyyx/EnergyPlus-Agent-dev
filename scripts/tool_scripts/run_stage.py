@@ -383,12 +383,77 @@ def _draw_mep(run_dir: Path, testdata_text: str, policy: RunPolicy):
     return mep, rep
 
 
-def _draw_assembly(run_dir: Path, policy: RunPolicy):
+def _ensure_orientation_enriched(run_dir: Path, policy: RunPolicy, manifest):
+    """BO-CR1 (E4-oc v2 §8.3 steps 1-3): make the run's accepted correction
+    orientation-ready before S5 assembly.
+
+    - accepted `correction_e4_orientation_v1` (or legacy v1/v2): nothing to do;
+    - accepted v3 `correction_b2_v1` (a Vg release): run the deterministic
+      orientation resolution (content-addressed evidence-set artifact +
+      run-config completion mode) + `finalize_orientation_enrichment`, and
+      record the result as a NEW accepted 1_correction attempt (release "4"
+      via the central map; input hashes bind base/evidence/resolution/config).
+
+    Returns the (possibly refreshed) verified accepted correction."""
+    from src.agent.correction.orientation import resolve_orientation_from_run_dir
+    from src.agent.execution.stage_runner import StageRunner
+    from src.agent.output_coordinates import (
+        load_verified_accepted_correction,
+        sha256_bytes,
+    )
+
+    verified = load_verified_accepted_correction(run_dir=run_dir, manifest=manifest)
+    if verified.ref.schema_version != "3" or verified.ref.artifact_contract == "correction_e4_orientation_v1":
+        return verified
+
+    run_config = load_run_config(run_dir)
+    result, artifacts = resolve_orientation_from_run_dir(
+        correction_dir=run_dir / "1_correction",
+        base=verified,
+        completion_mode=run_config.orientation_completion_mode,
+        capability_profile=policy.capability_profile,
+    )
+    enrich_rep = CheckReport(stage="1_correction", capability_profile=policy.capability_profile)
+    enrich_rep.add_pass(
+        "correction.e4_orientation_enrichment", CheckLayer.INVARIANT,
+        evidence={
+            "resolution_kind": result.audit_payload["orientation"]["resolution_kind"],
+            "north_axis_deg": result.geom.north_axis.value_deg,
+            "completion_mode": run_config.orientation_completion_mode,
+        },
+    )
+    StageRunner(run_dir, manifest).record(
+        stage="1_correction", stage_dir=run_dir / "1_correction",
+        output_obj=result, report=enrich_rep,
+        input_hashes={
+            "base_correction": verified.ref.output_sha256,
+            "orientation_evidence_set": sha256_bytes(artifacts.raw_evidence_set_bytes),
+            "orientation_resolution": sha256_bytes(artifacts.raw_resolution_input_bytes),
+            "run_config": sha256_bytes(artifacts.raw_run_config_bytes),
+        },
+    )
+    manifest.save(run_dir)
+    (run_dir / "1_correction" / "orientation_audit.json").write_text(
+        json.dumps(result.audit_payload["orientation"], indent=2, ensure_ascii=False),
+        encoding="utf-8",
+    )
+    return load_verified_accepted_correction(run_dir=run_dir, manifest=manifest)
+
+
+def _draw_assembly(run_dir: Path, policy: RunPolicy, manifest=None):
     from src.agent._share import ensure_schema_initialized
-    from src.agent.intakeoutput import (
-        MepOutput,
-        assemble_intake_output,
-        validate_contract,
+    from src.agent.correction.orientation import OrientationNeedsInputError
+    from src.agent.correction.parse import ensure_corrected_geometry
+    from src.agent.execution.manifest import RunManifestV2
+    from src.agent.geometry import build_geometry
+    from src.agent.geometry.specs import serialize_geometry
+    from src.agent.intakeoutput import MepOutput, validate_contract
+    from src.agent.output_coordinates import (
+        AssemblyE4Write,
+        assemble_intake_artifacts,
+        build_assembly_coordinate_audit,
+        build_output_coordinate_snapshot,
+        canonical_json_bytes,
     )
     from src.validator.checks.assembly import check_assembly
 
@@ -397,29 +462,65 @@ def _draw_assembly(run_dir: Path, policy: RunPolicy):
     # the IDD; this stepwise driver must do the same before deserializing them.
     ensure_schema_initialized()
 
-    zone_specs, surface_specs, fen_specs, used, _ = _geometry_zone_meta(run_dir, policy)
+    def _err(check_id: str, message: str):
+        rep = CheckReport(stage="5_intakeoutput", capability_profile=policy.capability_profile)
+        rep.add(check_id, CheckStatus.ERROR, CheckLayer.INVARIANT, message=message)
+        return {}, rep
+
+    # BO-CR1: stepwise S5 consumes the ACCEPTED correction through the same
+    # E4 chain as integrated — no contract-less assembly path exists.
+    if not isinstance(manifest, RunManifestV2):
+        return _err("assembly.manifest_v2_required",
+                    "5_intakeoutput requires a v2 run manifest (E4 output-coordinate contract)")
+    if manifest.accepted("1_correction") is None:
+        return _err("assembly.correction_accepted_required",
+                    "no accepted 1_correction record; run 1_correction first")
+    try:
+        verified = _ensure_orientation_enriched(run_dir, policy, manifest)
+    except OrientationNeedsInputError as exc:
+        return _err("assembly.orientation_needs_input", f"NEEDS_INPUT: {exc}")
+
     mep_path = run_dir / "4_mep" / "mep_output.json"
     if not mep_path.exists():
-        rep = CheckReport(stage="5_intakeoutput")
-        rep.add("assembly.mep_present", CheckStatus.ERROR, CheckLayer.INVARIANT,
-                message="missing 4_mep/mep_output.json; run 4_mep first")
-        return {}, rep
+        return _err("assembly.mep_present", "missing 4_mep/mep_output.json; run 4_mep first")
     mep = MepOutput.model_validate_json(mep_path.read_text(encoding="utf-8"))
-    intake = assemble_intake_output(zone_specs=zone_specs, surface_specs=surface_specs,
-                                    fenestration_specs=fen_specs, mep=mep)
+
+    # geometry from the VERIFIED accepted bytes (never a stage-root mirror)
+    geom = ensure_corrected_geometry(json.loads(verified.raw_output_bytes.decode("utf-8")))
+    bg = build_geometry(geom, capability_profile=policy.capability_profile)
+    frame_label = "building_axis" if verified.ref.schema_version == "3" else "world"
+    zone_specs, surface_specs, fen_specs, used = serialize_geometry(bg, frame_label=frame_label)
+
+    snapshot = build_output_coordinate_snapshot(bg)
+    bundle = assemble_intake_artifacts(
+        zone_specs=zone_specs, surface_specs=surface_specs, fenestration_specs=fen_specs,
+        mep=mep, correction=verified, coordinate_snapshot=snapshot,
+    )
+    audit = build_assembly_coordinate_audit(
+        verified=verified, contract=bundle.output_coordinates,
+        snapshot_bytes=canonical_json_bytes(snapshot),
+        mep_placeholder_north_axis=float(mep.building.north_axis),
+        final_building_north_axis=float(bundle.intake.building.north_axis),
+    )
     s5 = run_dir / "5_intakeoutput"
     s5.mkdir(parents=True, exist_ok=True)
-    issues = validate_contract(intake, used)
+    issues = validate_contract(bundle.intake, used)
     if issues:
         (s5 / "contract_issues.json").write_text(
             json.dumps(issues, indent=2, ensure_ascii=False), encoding="utf-8")
     (s5 / "intake_output.json").write_text(
-        intake.model_dump_json(indent=2, by_alias=False), encoding="utf-8")
-    rep = check_assembly(intake, used)
-    return intake, rep
+        bundle.intake.model_dump_json(indent=2, by_alias=False), encoding="utf-8")
+    rep = check_assembly(bundle.intake, used)
+    write = AssemblyE4Write(
+        intake=bundle.intake, contract=bundle.output_coordinates,
+        snapshot=snapshot, audit=audit,
+        input_hashes=(("1_correction", verified.ref.output_sha256),),
+    )
+    return write, rep
 
 
-def _make_draw_fn(stage: str, run_dir: Path, testdata_text: str, td_path: Path, policy: RunPolicy):
+def _make_draw_fn(stage: str, run_dir: Path, testdata_text: str, td_path: Path, policy: RunPolicy,
+                  manifest=None):
     if stage == "0_reading":
         return lambda _fb: _draw_reading(run_dir, policy, dimensioned_view_names(run_dir.parent))
     if stage == "1_correction":
@@ -433,7 +534,7 @@ def _make_draw_fn(stage: str, run_dir: Path, testdata_text: str, td_path: Path, 
     if stage == "4_mep":
         return lambda _fb: _draw_mep(run_dir, testdata_text, policy)
     if stage == "5_intakeoutput":
-        return lambda _fb: _draw_assembly(run_dir, policy)
+        return lambda _fb: _draw_assembly(run_dir, policy, manifest)
     raise SystemExit(f"unknown stage '{stage}'; known: {', '.join(_STAGES)}")
 
 
@@ -1307,7 +1408,15 @@ def _flow_ep(run_dir: Path, testdata_text: str, args, case_dir: Path) -> int:
         print(f"✗ missing intake output: {intake_path}")
         return FLOW_EXIT_EP_RECORD
     try:
-        intake = load_intake_from(intake_path)
+        # E4 (spec §8.2): the flow EP entrance loads through the bundle API so
+        # the output-coordinate contract travels with the IntakeOutput into
+        # the downstream graph (same gate as integrated/--intake-from paths).
+        from src.agent._share import ensure_schema_initialized
+        from src.agent.output_coordinates import load_intake_bundle
+
+        ensure_schema_initialized()
+        bundle = load_intake_bundle(intake_path, run_dir=run_dir)
+        intake = bundle.intake
         initial = AgentState(
             user_input="",
             image_paths=[],
@@ -1315,6 +1424,8 @@ def _flow_ep(run_dir: Path, testdata_text: str, args, case_dir: Path) -> int:
             reading_vector_dir=None,
             testdata_text=testdata_text,
             pipeline_out_dir=None,
+            output_coordinate_contract=bundle.output_coordinates,
+            output_coordinate_context=bundle.validation_context,
         )
 
         def on_event(node: str, update: dict) -> None:
@@ -1393,7 +1504,7 @@ def cmd_run(args) -> int:
     runner = StageRunner(run_dir, manifest)
     stage = args.stage
     stage_dir = run_dir / stage
-    draw_fn = _make_draw_fn(stage, run_dir, testdata_text, td_path, policy)
+    draw_fn = _make_draw_fn(stage, run_dir, testdata_text, td_path, policy, manifest=manifest)
 
     def _packet_fn(adir: Path, rep: CheckReport) -> dict:
         return _judge_packet(
@@ -1595,7 +1706,7 @@ def cmd_flow(args) -> int:
     while i <= end:
         stage = _STAGES[i]
         stage_dir = run_dir / stage
-        draw_fn = _make_draw_fn(stage, run_dir, testdata_text, td_path, policy)
+        draw_fn = _make_draw_fn(stage, run_dir, testdata_text, td_path, policy, manifest=manifest)
 
         def _packet_fn(adir: Path, rep: CheckReport, *, _stage=stage) -> dict:
             return _judge_packet(

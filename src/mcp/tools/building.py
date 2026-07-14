@@ -1,8 +1,17 @@
 from typing import Any
 
+from src.mcp.interface import ToolResponse
 from src.mcp.state import ConfigState
 from src.mcp.tools.base import BaseTool
 from src.validator.data_model import BuildingSchema
+
+
+def _requested_north_axis(data: dict[str, Any]) -> float | None:
+    """Read either API spelling without inferring any coordinate mode."""
+    for key in ("North Axis", "north_axis"):
+        if key in data and data[key] is not None:
+            return float(data[key])
+    return None
 
 
 class BuildingTool(BaseTool):
@@ -12,8 +21,32 @@ class BuildingTool(BaseTool):
     singleton object (only one building per configuration).
     """
 
-    def __init__(self, state: ConfigState):
+    def __init__(self, state: ConfigState, *, output_coordinates=None):
         super().__init__(state, "Building")
+        self.output_coordinates = output_coordinates
+
+    def update(self, name: str, data: dict[str, Any]):
+        """Reject direct North-Axis ownership writes before they mutate state.
+
+        An E4 run may only retain the already-derived contract value.  A
+        standalone tool has no accepted correction identity, so it may not
+        write a non-zero placeholder that EP would ignore in World mode.
+        """
+        requested = _requested_north_axis(data)
+        if requested is not None:
+            expected = (
+                float(self.output_coordinates.north_axis_deg)
+                if self.output_coordinates is not None else 0.0
+            )
+            if requested != expected:
+                return ToolResponse(
+                    success=False,
+                    message=(
+                        "Building.North Axis is owned by the output-coordinate contract "
+                        f"(expected {expected!r}); direct update to {requested!r} rejected"
+                    ),
+                )
+        return super().update(name, data)
 
     @property
     def storage(self) -> dict[str, BuildingSchema]:
