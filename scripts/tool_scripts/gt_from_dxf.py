@@ -37,6 +37,7 @@ import ezdxf
 from ezdxf import bbox
 
 GT_DIR = Path("case_tests/test_baseline/gt")
+GT_SOURCES_DIR = Path("case_tests/test_baseline/gt_sources")   # human-controlled source DXFs (outside the gt root)
 PLAN_BAND_Y = -9000.0     # model y above this = plan views, below = elevations
 EDGE_TOL = 400.0          # mm: proximity to a perimeter wall = "on" that facade
 WALL_MIN = 800.0          # mm: a "structural" wall line is at least this long
@@ -259,7 +260,7 @@ def build(case: str) -> dict:
     """Build the gt purely from the DXF (+ the auxiliary roles map). No dependence on
     any prior human-read gt — the DXF is the sole geometric source of truth."""
     bundle = GT_DIR / case
-    dxf_path = bundle / "source.dxf"
+    dxf_path = GT_SOURCES_DIR / case / "source.dxf"
 
     doc = ezdxf.readfile(str(dxf_path))
     msp = doc.modelspace()

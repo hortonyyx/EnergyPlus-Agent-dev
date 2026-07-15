@@ -209,13 +209,15 @@ def test_tampered_archived_tolerance_without_hash_is_rejected(tmp_path):
 def test_candidate_writer_rejects_protected_roots_cwd_and_symlink_escape(monkeypatch, tmp_path):
     gt_sources = REPO_ROOT / "case_tests/test_baseline/gt_sources"
     brand_new_case_data = REPO_ROOT / "case_tests/e2e_tests/brand_new_case/case_data"
-    assert not gt_sources.exists()
+    # gt_sources/ legitimately exists (sm21_anchor source.dxf lives there); the
+    # no-side-effect probe pins the not-yet-existing subpaths instead.
+    assert not (gt_sources / "synthetic").exists()
     assert not brand_new_case_data.exists()
     for out in (REPO_ROOT / "case_tests/test_baseline/gt/nope.json", gt_sources / "synthetic" / "gt.json", brand_new_case_data / "candidate.json"):
         with pytest.raises(GtValidationError) as exc:
             write_gt_v3_candidate(_document(), out)
         assert _issue(exc) == "gt_candidate_protected_path"
-    assert not gt_sources.exists()
+    assert not (gt_sources / "synthetic").exists()
     assert not brand_new_case_data.exists()
     monkeypatch.chdir(tmp_path)
     with pytest.raises(GtValidationError):

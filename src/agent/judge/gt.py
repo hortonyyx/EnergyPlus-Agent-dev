@@ -39,7 +39,7 @@ def gt_path(case: str, *, gt_dir: Path | str = DEFAULT_GT_DIR) -> Path:
 
 
 def case_gt_dir(case: str, *, gt_dir: Path | str = DEFAULT_GT_DIR) -> Path:
-    """The per-case gt bundle dir holding gt.json + source.dxf + renders/."""
+    """The per-case gt bundle dir holding gt.json + renders/ (source DXFs live in gt_sources/<case>/)."""
     _validate_case(case)
     root = Path(gt_dir).resolve()
     path = (root / case).resolve()

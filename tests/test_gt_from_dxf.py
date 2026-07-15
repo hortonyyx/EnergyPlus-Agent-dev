@@ -16,7 +16,7 @@ import pytest
 sys.path.insert(0, str(Path("scripts/tool_scripts").resolve()))
 import gt_from_dxf as gfd  # noqa: E402
 
-_HAS_DXF = (gfd.GT_DIR / "sm21_anchor" / "source.dxf").exists()
+_HAS_DXF = (gfd.GT_SOURCES_DIR / "sm21_anchor" / "source.dxf").exists()
 pytestmark = pytest.mark.skipif(not _HAS_DXF, reason="sm21_anchor/source.dxf not present")
 
 
