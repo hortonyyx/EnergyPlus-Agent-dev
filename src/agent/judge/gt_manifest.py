@@ -246,6 +246,24 @@ def compute_manifest_sha256(manifest: GtExtractionManifestV1) -> str:
     return hashlib.sha256(json.dumps(payload, sort_keys=True, separators=(",", ":"), ensure_ascii=False, allow_nan=False).encode("utf-8") + b"\n").hexdigest()
 
 
+def validate_manifest_view_clips(manifest: GtExtractionManifestV1, *, topology_area_tolerance_m2: float) -> None:
+    """Fail closed when source-space view clips overlap beyond the active profile.
+
+    The manifest wire intentionally carries no tolerance profile; callers at the
+    tooling boundary supply the resolved profile rather than hiding a default in
+    the manifest model.
+    """
+    views = sorted(manifest.views, key=lambda view: view.id)
+    scale2 = manifest.metres_per_unit ** 2
+    for index, left in enumerate(views):
+        for right in views[index + 1:]:
+            a, b = left.clip_box_dxf, right.clip_box_dxf
+            overlap_x = min(a.xmax, b.xmax) - max(a.xmin, b.xmin)
+            overlap_y = min(a.ymax, b.ymax) - max(a.ymin, b.ymin)
+            if overlap_x > 0 and overlap_y > 0 and overlap_x * overlap_y * scale2 > topology_area_tolerance_m2:
+                raise ValueError("dxf_view_clip_overlap")
+
+
 def _raw_sha256(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 

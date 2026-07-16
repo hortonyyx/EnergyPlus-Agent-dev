@@ -7,6 +7,7 @@ import json
 from pathlib import Path
 
 import pytest
+from omegaconf import OmegaConf
 
 from src.agent.correction.facade_visibility import VisibilityTolerances, vg_for_direction
 from src.agent.correction.footprint import footprint_fingerprint
@@ -16,6 +17,7 @@ from src.agent.judge.gt_manifest import GtExtractionManifestV1, load_gt_tooling_
 from src.agent.judge.gt_schema import (GroundTruthV3, GtValidationError,
                                        REPO_ROOT,
                                        canonical_gt_v3_bytes,
+                                       compute_gt_implementation_hashes,
                                        compute_gt_v3_content_sha256,
                                        validate_gt_v3, write_gt_v3_candidate)
 
@@ -126,6 +128,28 @@ def test_v3_strict_wire_rejects_bad_shapes(mutate, wire_only):
             validate_gt_v3(document, tolerances=document.generator.tolerances)
 
 
+@pytest.mark.parametrize("mutate,wire_only", [
+    (lambda p: p["floors"][0].update({"ceiling_height_m": True}), True),
+    (lambda p: p["floors"][0]["boundary_segments"][0].pop("wall_thickness_m"), True),
+    (lambda p: p["floors"][0]["footprint"]["exterior"]["vertices"].__setitem__(1, [float("nan"), 0.0]), True),
+    (lambda p: p["floors"][0]["footprint"]["exterior"]["vertices"].__setitem__(1, [float("inf"), 0.0]), True),
+    (lambda p: p["floors"][0]["footprint"]["exterior"].update({"vertices": [[0.0, 0.0], [0.0, 3.0], [4.0, 3.0], [4.0, 0.0]]}), False),
+    (lambda p: p["floors"][0]["footprint"]["exterior"].update({"vertices": [[0.0, 0.0], [4.0, 1.0], [4.0, 3.0], [0.0, 3.0]]}), False),
+    (lambda p: p["floors"][0]["footprint"]["exterior"].update({"vertices": [[0.0, 0.0], [4.0, 0.0], [4.0, 3.0], [2.0, 3.0], [2.0, 1.0], [0.0, 1.0], [0.0, 3.0]]}), False),
+    (lambda p: p["floors"][0]["footprint"].update({"interior_rings": [{"vertices": [[0.5, 0.5], [0.5, 1.0], [1.0, 1.0], [1.0, 0.5]]}]}), False),
+    (lambda p: p["floors"][0]["footprint"].update({"multipolygon": []}), True),
+])
+def test_phase_a_strict_rejection_family(mutate, wire_only):
+    payload = _payload(); mutate(payload)
+    if wire_only:
+        with pytest.raises(Exception):
+            GroundTruthV3.model_validate(payload)
+    else:
+        document = GroundTruthV3.model_validate(payload)
+        with pytest.raises(GtValidationError):
+            validate_gt_v3(document, tolerances=document.generator.tolerances)
+
+
 def test_validator_rejects_hash_ring_and_segment_drift():
     payload = _payload()
     payload["floors"][0]["boundary_segments"][0]["depth"] = 1.0
@@ -172,6 +196,12 @@ def test_unknown_version_missing_and_path_traversal_fail(tmp_path):
             load_gt_file(path)
     with pytest.raises(GtValidationError):
         load_gt("../escape", gt_dir=tmp_path)
+    assert load_gt("missing", gt_dir=tmp_path) is None
+    malformed = tmp_path / "malformed.json"
+    malformed.write_text("{")
+    with pytest.raises(GtValidationError) as exc:
+        load_gt_file(malformed)
+    assert _issue(exc) == "gt_wire_decode_failed"
 
 
 def test_loader_uses_archived_tolerances_without_current_config(monkeypatch, tmp_path):
@@ -187,6 +217,7 @@ def test_loader_uses_archived_tolerances_without_current_config(monkeypatch, tmp
             raise AssertionError("typed loader read tooling config")
         return original_read_bytes(path_obj)
     monkeypatch.setattr(gt_module.Path, "read_bytes", guarded_read_bytes)
+    monkeypatch.setattr(OmegaConf, "load", lambda *_args, **_kwargs: (_ for _ in ()).throw(AssertionError("typed loader read OmegaConf")))
     assert isinstance(load_gt_file(path), GroundTruthV3)
     case_path = tmp_path / "root" / "synthetic" / "gt.json"
     case_path.parent.mkdir(parents=True)
@@ -298,6 +329,33 @@ def test_elevation_relevance_and_view_contract_rejections(mutate, code):
     assert _issue(exc) == code
 
 
+def test_plan_only_mismatch_and_duplicate_projection_key_are_rejected():
+    payload = _opening_payload(observed=False)
+    payload["openings"][0]["z_interval"] = {"lo": 1.0, "hi": 2.0}
+    document = GroundTruthV3.model_validate(payload)
+    with pytest.raises(GtValidationError) as exc:
+        validate_gt_v3(document, tolerances=document.generator.tolerances)
+    assert _issue(exc) == "gt_opening_plan_only_evidence_mismatch"
+    payload = _opening_payload(observed=True)
+    duplicate = copy.deepcopy(payload["sources"][0]["views"][0]); duplicate["id"] = "elev-S2"
+    payload["sources"][0]["views"] = [payload["sources"][0]["views"][0], duplicate, payload["sources"][0]["views"][1]]
+    document = GroundTruthV3.model_validate(payload)
+    with pytest.raises(GtValidationError) as exc:
+        validate_gt_v3(document, tolerances=document.generator.tolerances)
+    assert _issue(exc) == "gt_source_duplicate_projection_surface_key"
+
+
+def test_opening_host_with_two_positive_boundary_zone_matches_is_rejected():
+    payload = _opening_payload(observed=False)
+    zone = payload["floors"][0]["zones"][0]
+    zone["polygon"]["exterior"]["vertices"] = [[0.0, 0.0], [2.0, 0.0], [2.0, 3.0], [0.0, 3.0]]
+    payload["floors"][0]["zones"].append(copy.deepcopy(zone) | {"id": "Z2", "name": "Zone 2", "polygon": {"exterior": {"vertices": [[2.0, 0.0], [4.0, 0.0], [4.0, 3.0], [2.0, 3.0]]}, "interior_rings": []}})
+    document = GroundTruthV3.model_validate(payload)
+    with pytest.raises(GtValidationError) as exc:
+        validate_gt_v3(document, tolerances=document.generator.tolerances)
+    assert _issue(exc) == "gt_opening_host_zone_boundary_mismatch"
+
+
 def test_noncanonical_persisted_list_is_rejected():
     payload = _payload()
     payload["floors"][0]["boundary_segments"].reverse()
@@ -323,6 +381,11 @@ def test_tooling_config_has_all_seven_values_and_vg_provenance():
     assert config.tolerances.profile_version == 1
     assert config.tolerances.vg_depth_epsilon_m == 1e-9
     assert config.tolerances.opening_boundary_max_distance_m == 0.4
+
+
+def test_implementation_hashes_are_available_once_phase_b_extractor_exists():
+    hashes = compute_gt_implementation_hashes(REPO_ROOT)
+    assert all(len(value) == 64 and value != "0" * 64 for value in hashes.model_dump().values())
 
 
 def _manifest_payload() -> dict:

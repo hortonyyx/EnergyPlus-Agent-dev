@@ -182,7 +182,7 @@ class GtBoundarySegmentV3(_StrictModel):
     visible_intervals: list[GtWorldIntervalV3]
     source_footprint_fingerprint: Hex64
     projection_surface_keys: list[StableId] = Field(default_factory=list)
-    wall_thickness_m: PositiveFiniteFloat | None = None
+    wall_thickness_m: PositiveFiniteFloat | None
     source_refs: list[GtEntityRefV3] = Field(min_length=1)
 
 
@@ -443,8 +443,6 @@ def validate_gt_v3(doc: GroundTruthV3, *, tolerances: GtResolvedToolingTolerance
             date.fromisoformat(doc.verification.reviewed_on)
         except ValueError:
             _fail("gt_wire_verified_date_invalid", "/verification/reviewed_on")
-    if doc.verification.methods != sorted(set(doc.verification.methods), key=expected_methods.index):
-        _fail("gt_wire_noncanonical_order", "/verification/methods")
     source_ids: set[str] = set()
     view_by_id: dict[str, GtSourceViewV3] = {}
     view_source_by_id: dict[str, str] = {}
@@ -462,7 +460,8 @@ def validate_gt_v3(doc: GroundTruthV3, *, tolerances: GtResolvedToolingTolerance
             view_source_by_id[view.id] = source.id
             if view.kind == "elevation":
                 key = view.projection_surface_key
-                assert key is not None  # guaranteed by the wire model
+                if key is None:
+                    _fail("gt_source_elevation_surface_missing", "/sources")
                 if key in projection_view_by_key:
                     _fail("gt_source_duplicate_projection_surface_key", "/sources")
                 projection_view_by_key[key] = view

@@ -27,12 +27,21 @@ from __future__ import annotations
 import argparse
 import json
 import re
+import os
+import tempfile
 from collections import Counter, defaultdict
 from pathlib import Path
 
 import ezdxf
 from ezdxf import bbox
 from ezdxf.entities import DXFTagStorage  # unsupported/custom (e.g. un-exploded 天正) entities
+
+from src.agent.judge.gt_extraction import (DxfInspectionReportV1,
+                                            InspectionInputs,
+                                            inspect_extraction_inputs)
+from src.agent.judge.gt_manifest import (GtExtractionManifestV1,
+                                          load_gt_tooling_config)
+from src.agent.judge.gt_schema import REPO_ROOT, compute_gt_implementation_hashes
 
 # 图名 patterns: 天正 view titles. 「图」is optional — 一层平面 / 首层平面 / 南立面 / 1-1剖面
 # all occur without it (Codex Low: title detection missed these). 平面/立面/剖面 as substrings
@@ -226,16 +235,75 @@ def _print_report(rep: dict) -> None:
         print(f"  bbox={r['bbox']}  entities={r['entity_count']}")
 
 
+def _protected_output(path: Path) -> bool:
+    """Inspection reports are diagnostics, never baseline/case assets."""
+    candidate = path if path.is_absolute() else Path.cwd() / path
+    suffix = []
+    parent = candidate.parent
+    while not parent.exists():
+        suffix.append(parent.name)
+        parent = parent.parent
+    resolved = parent.resolve(strict=True).joinpath(*reversed(suffix), candidate.name)
+    roots = (REPO_ROOT / "case_tests/test_baseline/gt", REPO_ROOT / "case_tests/test_baseline/gt_sources")
+    if any(resolved.is_relative_to(root.resolve()) for root in roots):
+        return True
+    try:
+        relative = resolved.relative_to(REPO_ROOT)
+    except ValueError:
+        return False
+    return len(relative.parts) >= 4 and relative.parts[:2] == ("case_tests", "e2e_tests") and relative.parts[3] == "case_data"
+
+
+def _protected_dxf_input(path: Path) -> bool:
+    resolved = path.resolve()
+    if resolved.is_relative_to((REPO_ROOT / "case_tests/test_baseline/gt").resolve()):
+        return True
+    try:
+        relative = resolved.relative_to(REPO_ROOT)
+    except ValueError:
+        return False
+    return len(relative.parts) >= 4 and relative.parts[:2] == ("case_tests", "e2e_tests") and relative.parts[3] == "case_data"
+
+
+def _write_report(path: Path, report: DxfInspectionReportV1) -> None:
+    if path.exists() or _protected_output(path):
+        raise ValueError("--json-out must be new and outside protected asset roots")
+    path.parent.mkdir(parents=True, exist_ok=True)
+    fd, temporary = tempfile.mkstemp(prefix=f".{path.name}.", dir=path.parent)
+    try:
+        with os.fdopen(fd, "wb") as handle:
+            handle.write((json.dumps(report.model_dump(mode="json"), sort_keys=True, separators=(",", ":"), ensure_ascii=False) + "\n").encode())
+            handle.flush(); os.fsync(handle.fileno())
+        os.replace(temporary, path)
+    finally:
+        if os.path.exists(temporary):
+            os.unlink(temporary)
+
+
 def main() -> None:
-    ap = argparse.ArgumentParser(description="Inspect a DXF's layers / proxies / titles / view regions.")
-    ap.add_argument("dxf", help="path to a .dxf file")
-    ap.add_argument("--json", help="also write the full report as JSON to this path")
+    ap = argparse.ArgumentParser(description="Read-only manifest-bound DXF preflight.")
+    ap.add_argument("--dxf", required=True, help="DXF source outside GT asset roots")
+    ap.add_argument("--manifest", help="signed extraction manifest JSON")
+    ap.add_argument("--config", required=True, help="judge GT tolerance profile")
+    ap.add_argument("--vg-config", required=True, help="registered correction Vg profile")
+    ap.add_argument("--json-out", help="new diagnostic report path")
     args = ap.parse_args()
-    rep = inspect(Path(args.dxf))
-    _print_report(rep)
-    if args.json:
-        Path(args.json).write_text(json.dumps(rep, ensure_ascii=False, indent=2), encoding="utf-8")
-        print(f"\nwrote {args.json}")
+    try:
+        if _protected_dxf_input(Path(args.dxf)):
+            raise ValueError("--dxf must be outside GT and e2e case-data roots")
+        manifest = GtExtractionManifestV1.model_validate_json(Path(args.manifest).read_bytes()) if args.manifest else None
+        tooling = load_gt_tooling_config(Path(args.config), Path(args.vg_config))
+        hashes = compute_gt_implementation_hashes(REPO_ROOT)
+        report = inspect_extraction_inputs(InspectionInputs(Path(args.dxf), manifest, tooling, hashes))
+        if args.json_out:
+            _write_report(Path(args.json_out), report)
+        print(json.dumps(report.model_dump(mode="json"), sort_keys=True, ensure_ascii=False))
+        raise SystemExit({"PASS": 0, "BLOCKED": 1, "UNBOUND": 2}[report.status])
+    except SystemExit:
+        raise
+    except Exception as exc:
+        print(f"inspection error: {exc}", file=__import__("sys").stderr)
+        raise SystemExit(3)
 
 
 if __name__ == "__main__":
