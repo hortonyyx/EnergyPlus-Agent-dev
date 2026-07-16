@@ -226,6 +226,43 @@ world_along_interval.hi, depth, id)`, where family rank is North=0, South=1,
 East=2, West=3. JSON uses separators `(',', ':')` and `ensure_ascii=false`.
 This is the frozen v1 preimage for accepted-correction and judge adapters.
 
+### 4.1.1 B4b Phase A score-input registrations
+
+The judge-only score contract is versioned independently of correction output:
+`SCORER_SCHEMA="8"`, `JUDGE_SCORE_CONFIG_SCHEMA="1"`,
+`JUDGE_SCORE_BINDINGS_SCHEMA="1"`, and
+`JUDGE_COMPLETENESS_OVERLAY_SCHEMA="1"`.  Its only C2 tolerance profile is
+`src/configs/judge_score.yaml`, canonicalized as sorted-key compact JSON,
+UTF-8, `ensure_ascii=false`, then lower-case SHA-256.  The registered v1 values
+are `plan_axis_alignment_tol_m=0.05`, `plan_position_tol_m=0.30`,
+`plan_extent_tol_m=0.30`, `claim_complete_epsilon_m=0.05`,
+`opening_match_center_tol_m=0.40`, `opening_assignment_tie_epsilon=1e-9`,
+`along_claim_tol_m=0.40`, `width_claim_tol_m=0.40`, `sill_claim_tol_m=0.30`,
+`head_claim_tol_m=0.30`, and `floor_line_tol_m=0.30`.  Complete epsilon is no
+greater than every claim tolerance and tie epsilon is below every geometric
+tolerance; no correction config, environment value, or grade config may fill a
+missing score value.  The frozen v1 profile hash is
+`ac2c14705bbfc285b489f7eeb593baf712cdc46de57a5457317103f36a3c4a06`.
+
+`view_projection_binding_v1` has exactly these nine fields in its hash
+preimage: `input_id`, `resolved_building_direction`,
+`source_footprint_fingerprint`, `world_axis`, `sign`, `along_origin`,
+`mirrored`, and `local_x_positive`, plus `schema="view_projection_binding_v1"`.
+The same sorted-key compact UTF-8 SHA-256 rule applies.  Manifest identity,
+resolution source, orientation hash, adapter version, scope, and GT source refs
+are deliberately excluded.  B4b recomputes this preimage and the facade-segment
+preimage locally; it does not import Va private hash helpers.
+
+The following Phase-A fixture vectors are frozen byte anchors (each uses
+`input_id="south"`, South, fingerprint `"a" * 64`, axis `x`, origin `0.0`):
+
+| sign | mirrored | local_x_positive | SHA-256 |
+|---:|:---:|---|---|
+| 1 | false | `image_left_to_right` | `db2e25cf576ef104bb7cd39afc89026857f9860aba42bbdf2c6c52057e88dade` |
+| -1 | true | `image_left_to_right` | `b2d733bed5cabbc2acdcaccfebeb177b79100425af8ad6a7a9608b436a20e970` |
+| -1 | false | `image_right_to_left` | `741f28f3fa20a9231c71ea8ae0403f0e629bf7839aa67bc5d9234406021684c5` |
+| 1 | true | `image_right_to_left` | `88c1c19d22be6d95750ae737bd26312f92733598d183ebc5f44a43331af81daf` |
+
 Va is a gt-blind, in-memory adapter: plan evidence bypasses Vg visibility;
 elevation evidence maps local-to-world, intersects the opening target, then
 intersects the already materialized Vg-visible interval. A visible existence

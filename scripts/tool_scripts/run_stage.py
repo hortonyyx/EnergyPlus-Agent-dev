@@ -72,6 +72,8 @@ from src.validator.checks.schema import CheckLayer, CheckReport, CheckStatus  # 
 
 _STAGES = ["0_reading", "1_correction", "2_modelling", "3_split_pairing",
            "4_mep", "5_intakeoutput"]
+# Legacy writer remains schema-7 until Phase D installs the schema-8 writer.
+# B4b Phase A's judge-only NA/REJECTED skeleton has its own frozen "8" wire.
 SCORER_SCHEMA = "7"
 FLOW_EXIT_OK = 0
 FLOW_EXIT_CHECKPOINT = 10
