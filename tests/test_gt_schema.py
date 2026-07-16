@@ -172,6 +172,15 @@ def test_canonical_hash_changes_for_coordinates_and_write_round_trips(tmp_path):
         write_gt_v3_candidate(document, out)
 
 
+def test_candidate_writer_recomputes_tampered_content_hash(tmp_path):
+    tampered = _document().model_copy(update={"content_sha256": "d" * 64})
+    out = tmp_path / "candidate.json"
+    write_gt_v3_candidate(tampered, out)
+    written = load_gt_file(out, allow_legacy=False)
+    assert written.content_sha256 == compute_gt_v3_content_sha256(written)
+    assert written.content_sha256 != "d" * 64
+
+
 def test_dual_read_v2_raw_equality_and_v3_compatibility_gate(tmp_path):
     sm21_path = Path("case_tests/test_baseline/gt/sm21_anchor/gt.json")
     assert hashlib.sha256(sm21_path.read_bytes()).hexdigest() == "a9be379b1735163528396c36d96653cdf71a67ffe54dde6f942c7c86f53f3f8a"
@@ -374,6 +383,11 @@ def test_default_root_candidate_prohibition(monkeypatch, tmp_path):
     with pytest.raises(GtValidationError) as exc:
         load_gt_document("synthetic", gt_dir=gt_module.DEFAULT_GT_DIR)
     assert _issue(exc) == "gt_default_root_candidate_forbidden"
+    blocked = root / "new-case" / "candidate.json"
+    with pytest.raises(GtValidationError) as exc:
+        write_gt_v3_candidate(_document(), blocked)
+    assert _issue(exc) == "gt_candidate_protected_path"
+    assert not blocked.exists()
 
 
 def test_tooling_config_has_all_seven_values_and_vg_provenance():

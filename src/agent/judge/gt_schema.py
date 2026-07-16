@@ -678,7 +678,11 @@ def _protected_candidate_path(out: Path) -> bool:
         suffix.append(parent.name)
         parent = parent.parent
     resolved = parent.resolve(strict=True).joinpath(*reversed(suffix), candidate.name)
-    protected = [REPO_ROOT / "case_tests/test_baseline/gt", REPO_ROOT / "case_tests/test_baseline/gt_sources"]
+    # Keep the candidate writer aligned with the active default root even in
+    # isolated tooling tests that replace it.  The local import avoids the
+    # schema/loader import cycle at module import time.
+    from .gt import DEFAULT_GT_DIR
+    protected = [Path(DEFAULT_GT_DIR), REPO_ROOT / "case_tests/test_baseline/gt_sources"]
     if any(resolved.is_relative_to(path.resolve()) for path in protected):
         return True
     try:
