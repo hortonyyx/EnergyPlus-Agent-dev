@@ -332,6 +332,92 @@ class ScoreIdentityV8(StrictWire):
     absence_applicability_sha256: Hex64 | None
 
 
+# Phase-B per-claim wire.  Kept here with the other public judge wires so a
+# later sidecar assembler cannot silently invent a second representation.
+class IntervalV1(StrictWire):
+    lo: FiniteFloat
+    hi: FiniteFloat
+
+    @model_validator(mode="after")
+    def _ordered(self):
+        if self.lo >= self.hi:
+            raise ValueError("interval requires lo < hi")
+        return self
+
+
+class ClaimApplicabilityRefV8(StrictWire):
+    ledger_content_sha256: Hex64
+    opening_id: StableId
+    claim: ClaimName
+    target_world_interval: IntervalV1
+    status: Literal["applicable", "partially_applicable", "not_applicable"]
+    reason: Literal["full_observable_coverage", "existence_observable_fragment", "partial_observable_coverage", "unobserved"]
+    applicable_intervals: tuple[IntervalV1, ...]
+    unobserved_intervals: tuple[IntervalV1, ...]
+    considered_source_view_ids: tuple[StableId, ...]
+    supporting_source_view_ids: tuple[StableId, ...]
+    facade_segment_ids: tuple[StableId, ...]
+
+
+class ClaimValueErrorV8(StrictWire):
+    metric: Literal["binary", "masked_interval_endpoint", "masked_interval_length", "scalar_absolute"]
+    value: NonNegativeFloat | None
+    tolerance: NonNegativeFloat | None
+
+
+class ClaimOutcomeSliceV8(StrictWire):
+    slice_id: StableId
+    applicable_intervals: tuple[IntervalV1, ...]
+    units: Annotated[float, Field(strict=True, ge=0.0, le=1.0, allow_inf_nan=False)]
+    result: Literal["complete", "within_tolerance", "miss", "conflict"]
+    error: ClaimValueErrorV8
+    evidence_source_ids: tuple[StableId, ...]
+
+
+class KnowledgeRefAuditV8(StrictWire):
+    dataset_id: StableId
+    dataset_version: StableId
+    entry_id: StableId
+    candidate_id: StableId
+    content_sha256: Hex64
+
+
+class ClaimProvenanceAuditV8(StrictWire):
+    claim: ClaimName
+    provenance: Literal["observed", "derived", "assumed"]
+    source_ids: tuple[StableId, ...]
+    method: StableId | None
+    knowledge_ref: KnowledgeRefAuditV8 | None
+
+
+class ClaimScoreRowV8(StrictWire):
+    target_id: StableId
+    target_kind: Literal["window", "door"]
+    claim: ClaimName
+    applicability: ClaimApplicabilityRefV8
+    eligible_units: Annotated[float, Field(strict=True, ge=0.0, le=1.0, allow_inf_nan=False)]
+    result: Literal["complete", "within_tolerance", "miss", "conflict", "not_applicable"]
+    na_reason: StableId | None
+    outcome_slices: tuple[ClaimOutcomeSliceV8, ...]
+    matched_observation_ids: tuple[StableId, ...]
+    evidence_source_ids: tuple[StableId, ...]
+    product_provenance: tuple[ClaimProvenanceAuditV8, ...]
+
+
+class ClaimSummaryV8(StrictWire):
+    claim: ClaimName
+    target_count: NonNegativeInt
+    eligible_target_count: NonNegativeInt
+    partial_target_count: NonNegativeInt
+    denominator_units: NonNegativeFloat
+    complete_units: NonNegativeFloat
+    within_tolerance_units: NonNegativeFloat
+    miss_units: NonNegativeFloat
+    conflict_units: NonNegativeFloat
+    not_applicable_target_count: NonNegativeInt
+    na_reasons: dict[StableId, NonNegativeInt]
+
+
 class NotApplicablePayloadV8(StrictWire):
     kind: Literal["not_applicable"]
     reason: Literal["unsupported_product_schema", "unsupported_gt_profile", "unsupported_view_contract", "no_supported_targets"]
