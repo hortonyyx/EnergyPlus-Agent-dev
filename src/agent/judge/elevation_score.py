@@ -14,7 +14,13 @@ from dataclasses import dataclass, field
 from math import inf
 from pathlib import Path
 import json
-from typing import Iterable
+from typing import Iterable, Literal
+
+# Deliberately import Va's binding, not the similarly named DXF extraction
+# binding from gt_manifest.  This adapter is a judge-side consumer of the
+# reviewed frame trust root.
+from src.agent.correction.facade_applicability import ElevationViewBindingV1
+from src.agent.judge.score_schema import ScoreContractError
 
 from .gt import load_gt
 
@@ -39,6 +45,84 @@ _FACADE_ALIASES = {
     "west": "West",
     "w": "West",
 }
+
+
+@dataclass(frozen=True)
+class TypedElevationObservation:
+    """A normalized product rectangle before its trusted-frame projection.
+
+    Product supplied mirror/local-x fields intentionally do not exist here.
+    The only permitted coordinate transform is the reviewed Va binding.
+    """
+
+    observation_id: str
+    source_input_id: str
+    floor_id: str
+    kind: Literal["window", "door"]
+    facade_family: Literal["North", "South", "East", "West"]
+    local_x_interval: tuple[float, float]
+    z_interval: tuple[float, float] | None
+
+
+@dataclass(frozen=True)
+class ProjectedElevationObservation:
+    """World-frame evidence handed to the B4b opening scorer."""
+
+    observation_id: str
+    source_input_id: str
+    floor_id: str
+    kind: Literal["window", "door"]
+    facade_family: Literal["North", "South", "East", "West"]
+    world_along_interval: tuple[float, float]
+    z_interval: tuple[float, float] | None
+
+
+def project_typed_elevation_observation(*, observation: TypedElevationObservation,
+                                        binding: ElevationViewBindingV1,
+                                        direction_semantics: Literal["building_axis", "true_azimuth", "unknown"] = "building_axis") -> ProjectedElevationObservation:
+    """Project actual local-x geometry through the reviewed forward map.
+
+    ``true_azimuth`` and ``unknown`` inputs require the reviewed external
+    direction sidecar.  No product declaration can substitute for it.  This
+    intentionally does *not* clip against Vg visible intervals: Va remains the
+    sole applicability engine and performs that later on its public path.
+    """
+    if (direction_semantics in {"true_azimuth", "unknown"}
+            and binding.resolution_source != "resolved_direction_sidecar"):
+        raise ScoreContractError("score_direction_unresolved", "scoring.view_bindings",
+                                 context={"input_id": binding.input_id,
+                                          "direction_semantics": direction_semantics})
+    if observation.source_input_id != binding.input_id or observation.facade_family != binding.resolved_building_direction:
+        raise ScoreContractError("score_view_binding_invalid", "scoring.view_bindings",
+                                 context={"observation_id": observation.observation_id})
+    lo, hi = observation.local_x_interval
+    if not lo < hi:
+        raise ScoreContractError("score_product_identity_invalid", "scoring.input_identity",
+                                 context={"observation_id": observation.observation_id, "reason": "invalid_local_interval"})
+    a = binding.along_origin + binding.sign * lo
+    b = binding.along_origin + binding.sign * hi
+    return ProjectedElevationObservation(
+        observation_id=observation.observation_id, source_input_id=observation.source_input_id,
+        floor_id=observation.floor_id, kind=observation.kind, facade_family=observation.facade_family,
+        world_along_interval=(min(a, b), max(a, b)), z_interval=observation.z_interval,
+    )
+
+
+def score_typed_elevation_floor_lines(*, binding: ElevationViewBindingV1,
+                                      gt_floor_zs: Iterable[float], product_zs: Iterable[float] | None,
+                                      tolerance_m: float) -> "FloorLineScore":
+    """Judge-only typed adapter for absolute elevation floor-line evidence.
+
+    z is already in the building world frame; unlike along it has no mirror or
+    local-x transform.  The binding still establishes that this is a trusted
+    elevation source for the requested facade.
+    """
+    if tolerance_m < 0:
+        raise ScoreContractError("score_product_identity_invalid", "scoring.input_identity",
+                                 context={"reason": "negative_floor_line_tolerance"})
+    return _score_floor_lines(binding.resolved_building_direction,
+                              None if product_zs is None else list(product_zs), list(gt_floor_zs),
+                              tol=tolerance_m)
 
 
 @dataclass(frozen=True)

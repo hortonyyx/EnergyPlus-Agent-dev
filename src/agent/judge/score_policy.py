@@ -8,6 +8,7 @@ checklist decision.
 from __future__ import annotations
 
 from collections.abc import Mapping
+from typing import Iterable, Literal
 
 from .reading_score import (
     DEFAULT_WALL_TOL_M,
@@ -23,9 +24,113 @@ from .elevation_score import (
     DEFAULT_WIDTH_TOL_M,
     ElevationScoreResult,
 )
+from .score_schema import NonNegativeFloat, NonNegativeInt, StrictWire, StrictBool, StableId
 
 EXTRA_MINOR_MAX = 2
 WINDOW_MINOR_RATIO = 0.80
+
+
+class V3Criterion(StrictWire):
+    """Denominator-aware machine criterion for the typed C2 score path."""
+
+    criterion_id: StableId
+    eligible: StrictBool
+    denominator_units: NonNegativeFloat
+    passing_units: NonNegativeFloat
+    failing_units: NonNegativeFloat
+    na_reasons: dict[StableId, NonNegativeInt]
+    verdict: Literal["pass", "fail", "not_applicable", "insufficient_evidence"]
+
+
+class V3PolicyVerdict(StrictWire):
+    """Typed policy result; callers keep REJECTED outside StageVerdict."""
+
+    verdict: Literal["pass", "fail", "not_applicable", "rejected"]
+    criteria: tuple[V3Criterion, ...]
+    rejection_code: str | None = None
+
+
+def _criterion_from_rows(*, criterion_id: str, rows: Iterable[object], max_failing_units: float = 0.0) -> V3Criterion:
+    """Construct a conserving criterion from ClaimScoreRowV8-like inputs."""
+    rows = tuple(rows)
+    def amounts(row) -> tuple[float, float, float]:
+        pieces = getattr(row, "outcome_slices", ())
+        if pieces:
+            denominator = float(getattr(row, "eligible_units", sum(piece.units for piece in pieces)))
+            return denominator, sum(piece.units for piece in pieces if piece.result in {"complete", "within_tolerance"}), sum(piece.units for piece in pieces if piece.result in {"miss", "conflict"})
+        denominator = float(getattr(row, "eligible_units", 1.0))
+        result = getattr(row, "result", getattr(row, "status", "not_applicable"))
+        if result == "not_applicable":
+            return 0.0, 0.0, 0.0
+        return denominator, (denominator if result in {"complete", "within_tolerance"} else 0.0), (denominator if result in {"miss", "conflict", "extra"} else 0.0)
+    values = tuple(amounts(row) for row in rows)
+    denominator = sum(item[0] for item in values)
+    passing = sum(item[1] for item in values)
+    failing = sum(item[2] for item in values)
+    reasons: dict[str, int] = {}
+    for row in rows:
+        reason = getattr(row, "na_reason", None)
+        if reason:
+            reasons[reason] = reasons.get(reason, 0) + 1
+    if abs((passing + failing) - denominator) > 1e-9:
+        raise ValueError("score_denominator_nonconserving")
+    if denominator == 0:
+        return V3Criterion(criterion_id=criterion_id, eligible=False, denominator_units=0.0,
+                           passing_units=0.0, failing_units=0.0, na_reasons=reasons,
+                           verdict="not_applicable")
+    return V3Criterion(criterion_id=criterion_id, eligible=True, denominator_units=denominator,
+                       passing_units=passing, failing_units=failing, na_reasons=reasons,
+                       verdict="fail" if failing > max_failing_units else "pass")
+
+
+def c2_v3_score_policy(*, claim_rows: Iterable[object],
+                       segment_rows: Iterable[object] = (), floor_line_rows: Iterable[object] = (),
+                       identity_valid: bool = True, totality_valid: bool = True,
+                       max_failing_units: float = 0.0) -> V3PolicyVerdict:
+    """Apply §9.2 without changing the legacy advisory policy.
+
+    Identity and conservation are terminal machine rejections.  They do not
+    become a misleading StageVerdict aggregation.  The generic row shape keeps
+    this helper judge-only and lets Phase D assemble its sidecar independently.
+    """
+    if not identity_valid:
+        return V3PolicyVerdict(verdict="rejected", criteria=(), rejection_code="score_gt_identity_invalid")
+    if not totality_valid:
+        return V3PolicyVerdict(verdict="rejected", criteria=(), rejection_code="score_denominator_nonconserving")
+    claims = tuple(claim_rows)
+    segments = tuple(segment_rows)
+    def boundary_row(row: object) -> bool:
+        """SegmentScore/SegmentScoreRow adapters expose topology on target/obs."""
+        segment = getattr(row, "target", None) or getattr(row, "observation", None)
+        return bool(getattr(segment, "exterior", False))
+    # PlanSegment.exterior is the Phase-B topology discriminator: exterior
+    # boundary and interior wall rows must not silently share a denominator.
+    wall_rows = tuple(row for row in segments if not boundary_row(row))
+    boundary_rows = tuple(row for row in segments if boundary_row(row))
+    by_claim = {name: tuple(row for row in claims if row.claim == name)
+                for name in ("existence", "host", "along", "width", "sill", "head", "appearance")}
+    # The segment/floor-line inputs use the same narrow row protocol.  Empty
+    # inputs become explicit NA instead of an invented zero score.
+    criteria = (
+        _criterion_from_rows(criterion_id="walls_complete", rows=wall_rows, max_failing_units=max_failing_units),
+        _criterion_from_rows(criterion_id="boundary_complete", rows=boundary_rows, max_failing_units=max_failing_units),
+        _criterion_from_rows(criterion_id="windows_placed", rows=by_claim["existence"], max_failing_units=max_failing_units),
+        _criterion_from_rows(criterion_id="window_plan_geometry", rows=by_claim["along"] + by_claim["width"], max_failing_units=max_failing_units),
+        # A C2 ClaimScoreRow fuses plan/elevation along+width into one row, so
+        # only separable elevation scalars enter here.  Keep this explicit debt
+        # until a later phase adds channel-separated geometry rows.
+        _criterion_from_rows(criterion_id="window_elevation_geometry", rows=by_claim["sill"] + by_claim["head"], max_failing_units=max_failing_units),
+        _criterion_from_rows(criterion_id="floor_lines_complete", rows=floor_line_rows, max_failing_units=max_failing_units),
+        # Phase C has no oversplit/negative-evidence aggregate scorer yet;
+        # retain explicit NA rather than fabricate a zero-denominator pass.
+        _criterion_from_rows(criterion_id="no_oversplit", rows=(), max_failing_units=max_failing_units),
+        _criterion_from_rows(criterion_id="negative_evidence_complete", rows=(), max_failing_units=max_failing_units),
+    )
+    eligible = tuple(item for item in criteria if item.eligible)
+    if not eligible:
+        return V3PolicyVerdict(verdict="not_applicable", criteria=criteria)
+    return V3PolicyVerdict(verdict="fail" if any(item.verdict == "fail" for item in eligible) else "pass",
+                           criteria=criteria)
 
 
 def reading_score_criteria(

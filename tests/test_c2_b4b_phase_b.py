@@ -39,7 +39,7 @@ def claim(*, name="along", status="partially_applicable", intervals=((0., .1),),
         unobserved_intervals=(), considered_source_view_ids=(), supporting_source_view_ids=(), facade_segment_ids=(), source_evidence=())
 
 
-def real_va_context(*, complete_plan=False):
+def real_va_context(*, complete_plan=False, complete_elevation=False, negative_only_elevation=False):
     """Typed GT + reviewed bindings + real Va context; no ledger doubles."""
     gt = make_b4b_gt_document()
     H = "a" * 64
@@ -47,21 +47,28 @@ def real_va_context(*, complete_plan=False):
     elevation_claims = ["existence", "along", "width", "sill", "head", "appearance"]
     def evidence(kind, complete=False):
         if complete:
-            return OpeningEvidence(potentially_observable_claims=plan_claims, negative_evidence_capable_claims=plan_claims,
-                coverage=Coverage(frame="plan_floor_region", region="full_floor", completeness_assertion_id="complete"),
+            claims = plan_claims if kind == "plan" else elevation_claims
+            return OpeningEvidence(potentially_observable_claims=claims, negative_evidence_capable_claims=claims,
+                coverage=Coverage(frame="plan_floor_region" if kind == "plan" else "elevation_local_along",
+                                  region="full_floor" if kind == "plan" else "full_facade", completeness_assertion_id="complete"),
                 completeness_assertion=CompletenessAssertion(assertion_id="complete", source_ref=UserSourceRef(source="user", content_sha256="1" * 64)))
         return OpeningEvidence(potentially_observable_claims=plan_claims if kind == "plan" else elevation_claims)
     plan_meta = dict(declared_direction_token=None, direction_source="standard_assumption", direction_semantics="building_axis", semantics_source="case_metadata", azimuth_deg=None, building_view_direction=None)
     entries = [RequiredViewEntry(input_id="plan-F1", source_image="case_data/p1.png", image_sha256=H, view_type="plan", floor_ref=1, dimensioned=True, expected_output_id="plan-F1", opening_evidence=evidence("plan", complete_plan), **plan_meta),
         RequiredViewEntry(input_id="plan-F2", source_image="case_data/p2.png", image_sha256=H, view_type="plan", floor_ref=2, dimensioned=True, expected_output_id="plan-F2", opening_evidence=evidence("plan"), **plan_meta)]
-    for ident, family in (("elev-N", "North"), ("elev-N-detail", "North"), ("elev-S", "South")):
-        entries.append(RequiredViewEntry(input_id=ident, source_image="case_data/%s.png" % ident, image_sha256=H, view_type="elevation", floor_ref=None, declared_direction_token=family, direction_source="standard_assumption", direction_semantics="building_axis", semantics_source="case_metadata", azimuth_deg=None, building_view_direction=family, dimensioned=True, expected_output_id=ident, opening_evidence=evidence("elevation")))
+    elevation_inputs = [("elev-N", "North"), ("elev-N-detail", "North"), ("elev-S", "South")]
+    if negative_only_elevation:
+        # Reviewed manifest/binding source with completeness but no GT opening
+        # source ref: it is the real §8.6.1 item-2 absence-witness fixture.
+        elevation_inputs.append(("elev-N-absence", "North"))
+    for ident, family in elevation_inputs:
+        entries.append(RequiredViewEntry(input_id=ident, source_image="case_data/%s.png" % ident, image_sha256=H, view_type="elevation", floor_ref=None, declared_direction_token=family, direction_source="standard_assumption", direction_semantics="building_axis", semantics_source="case_metadata", azimuth_deg=None, building_view_direction=family, dimensioned=True, expected_output_id=ident, opening_evidence=evidence("elevation", complete_elevation)))
     entries.sort(key=lambda item: item.input_id)
     payload = {"view_manifest_schema_version":"1", "claims_vocab_version":"1", "generator_version":"1", "completeness_ruleset_version":"1", "case_id":gt.case, "case_metadata_sha256":H, "entries":[item.model_dump(mode="json") for item in entries]}
     manifest = ViewManifest(**payload, content_sha256=hash_obj(payload))
     segments = {segment.id:segment for floor in gt.floors for segment in floor.boundary_segments}
     bindings = [PlanScoreViewBindingV1(kind="plan", input_id="plan-F1", floor_id="F1", gt_source_view_ids=("plan-F1",)), PlanScoreViewBindingV1(kind="plan", input_id="plan-F2", floor_id="F2", gt_source_view_ids=("plan-F2",))]
-    for ident, family in (("elev-N", "North"), ("elev-N-detail", "North"), ("elev-S", "South")):
+    for ident, family in elevation_inputs:
         span = [segment.world_along_interval for segment in segments.values() if segment.facade_family == family]
         sign = -1 if family == "North" else 1
         proto = ElevationScoreViewBindingV1(kind="elevation", input_id=ident, floor_ids=("F1", "F2"), facade_family=family, gt_source_view_ids=(ident,), resolved_building_direction=family, resolution_source="manifest_building_axis", orientation_output_hash=None, adapter_version=None, source_footprint_fingerprint=gt.floors[0].footprint_fingerprint, world_axis="x", sign=sign, along_origin=max(x.hi for x in span) if sign == -1 else min(x.lo for x in span), mirrored=False, local_x_positive="image_left_to_right", frame_transform_sha256="0" * 64)
@@ -229,7 +236,22 @@ def test_b4b_real_multisource_fusion_is_scored_without_dropping_evidence():
     assert len(along.matched_observation_ids) == 2 and along.result == "complete"
 
 
-def test_b4b_real_trusted_negative_conflict_is_scored_from_va():
+def test_b4b_phase_b_twin_redundant_gt_positive_sources_do_not_make_correct_plan_conflict():
+    """MAJOR-1 twin probe: Phase-B must exclude GT-positive negative intervals."""
+    gt, manifest, bindings = real_va_context(complete_plan=True, complete_elevation=True)
+    reference = derive_reference_ledger(gt=gt, bindings=bindings, effective_manifest=manifest)
+    target = next(item for item in gt.openings if item.kind == "window")
+    span = (target.world_along_interval.lo, target.world_along_interval.hi)
+    observation = OpeningObservation("plan-only", "F1", "window", target.boundary_segment_id, span, "plan-F1")
+    assigned = assign_openings(targets=(target,), observations=(observation,), config=config(),
+                               product_to_gt_segment={target.boundary_segment_id: target.boundary_segment_id})
+    along = next(row for row in score_plan_claims(gt=gt, ledger=reference, assignment=assigned,
+                                                   config=config(), host_results={target.id: "complete"})
+                 if row.target_id == target.id and row.claim == "along")
+    assert along.result == "complete"
+
+
+def test_b4b_phase_b_gt_positive_source_is_not_treated_as_trusted_negative_conflict():
     gt, manifest, bindings = real_va_context(complete_plan=True)
     reference = derive_reference_ledger(gt=gt, bindings=bindings, effective_manifest=manifest)
     target = next(item for item in gt.openings if item.kind == "window")
@@ -237,7 +259,7 @@ def test_b4b_real_trusted_negative_conflict_is_scored_from_va():
     observation = OpeningObservation("elev-only", "F1", "window", target.boundary_segment_id, span, "elev-N")
     assigned = assign_openings(targets=(target,), observations=(observation,), config=config(), product_to_gt_segment={target.boundary_segment_id:target.boundary_segment_id})
     rows = score_plan_claims(gt=gt, ledger=reference, assignment=assigned, config=config(), host_results={target.id:"complete"})
-    assert next(row for row in rows if row.target_id == target.id and row.claim == "along").result == "conflict"
+    assert next(row for row in rows if row.target_id == target.id and row.claim == "along").result == "complete"
 
 
 def test_b4b_r2_source_view_id_is_distinct_from_manifest_input_id():

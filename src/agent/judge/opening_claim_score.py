@@ -39,6 +39,7 @@ class OpeningObservation:
     source_view_id: str
     room_id: str | None = None
     z_interval: tuple[float, float] | None = None
+    channel: Literal["plan", "elevation"] = "plan"
 
 
 @dataclass(frozen=True)
@@ -418,7 +419,14 @@ def score_plan_claims(*, gt: GroundTruthV3, ledger: OpeningApplicabilityLedgerV1
                 source_results.append("complete" if error_value <= config.claim_complete_epsilon_m else ("within_tolerance" if error_value <= tolerance else "miss"))
             positive_result = fuse_source_results(source_results) if units else "not_applicable"
             positive_sources = {(source_view_to_input or {}).get(item.source_view_id, item.source_view_id) for item in matched_for_claim}
-            negative_sources = {decision.source_input_id for decision in claim.source_evidence if decision.negative_evidence_intervals}
+            # A reference source that declared this opening positive cannot also
+            # be used as an absence witness merely because completeness made Va
+            # expose a negative interval.  §8.6.1 item 1 keeps that reference
+            # inconsistency out of product miss/conflict accounting.
+            negative_sources = {decision.source_input_id for decision in claim.source_evidence
+                                if decision.negative_evidence_intervals
+                                and not decision.positive_evidence_declared
+                                and not decision.applicable_intervals}
             if negative_sources - positive_sources:
                 source_results.append("conflict" if positive_sources else "miss")
             result = fuse_source_results(source_results) if units else "not_applicable"
@@ -436,6 +444,199 @@ def score_plan_claims(*, gt: GroundTruthV3, ledger: OpeningApplicabilityLedgerV1
                 outcome_slices=slices, matched_observation_ids=tuple(item.id for item in observed_rows), evidence_source_ids=claim.supporting_source_view_ids,
                 product_provenance=()))
     return tuple(rows)
+
+
+def _source_channel(observation: OpeningObservation, source_channels: dict[str, Literal["plan", "elevation"]] | None) -> Literal["plan", "elevation"]:
+    """Resolve channel only from normalized judge evidence, never product flags."""
+    return observation.channel if source_channels is None else source_channels.get(observation.source_view_id, observation.channel)
+
+
+def _v3_source_result(*, claim_name: str, target: GtOpeningV3, observation: OpeningObservation,
+                      intervals: tuple[tuple[float, float], ...], config: JudgeScoreConfigV1,
+                      host_result: Literal["complete", "miss"] = "miss") -> tuple[str, float | None, float | None]:
+    """Compare one trusted source against the Va intervals it made observable."""
+    predicted = observation.world_along_interval
+    span = (target.world_along_interval.lo, target.world_along_interval.hi)
+    if claim_name == "existence":
+        error, tolerance = (0.0 if any(_overlap(predicted, interval) > 0 for interval in intervals) else 1.0), 0.0
+    elif claim_name == "host":
+        error, tolerance = (0.0 if host_result == "complete" else 1.0), 0.0
+    elif claim_name == "along":
+        if len(intervals) == 1 and intervals[0] == span:
+            error = max(abs(predicted[0] - span[0]), abs(predicted[1] - span[1]))
+        else:
+            error = max((interval[1] - interval[0]) - _overlap(predicted, interval) for interval in intervals)
+        tolerance = config.along_claim_tol_m
+    elif claim_name == "width":
+        if len(intervals) == 1 and intervals[0] == span:
+            error = abs((predicted[1] - predicted[0]) - (span[1] - span[0]))
+        else:
+            error = _length(intervals) - sum(_overlap(predicted, interval) for interval in intervals)
+        tolerance = config.width_claim_tol_m
+    elif claim_name in {"sill", "head"}:
+        if target.z_interval is None or observation.z_interval is None:
+            return "miss", None, config.sill_claim_tol_m if claim_name == "sill" else config.head_claim_tol_m
+        expected = target.z_interval.lo if claim_name == "sill" else target.z_interval.hi
+        actual = observation.z_interval[0] if claim_name == "sill" else observation.z_interval[1]
+        error, tolerance = abs(actual - expected), (config.sill_claim_tol_m if claim_name == "sill" else config.head_claim_tol_m)
+    else:
+        return "not_applicable", None, None
+    return ("complete" if error <= config.claim_complete_epsilon_m else
+            ("within_tolerance" if error <= tolerance else "miss"), error, tolerance)
+
+
+def _decision_intervals(decision) -> tuple[tuple[float, float], ...]:
+    return _merge((part.lo, part.hi) for part in decision.applicable_intervals)
+
+
+def _explicit_product_absence_sources(*, product_ledger: OpeningApplicabilityLedgerV1 | None,
+                                      opening_id: str, claim_name: str) -> set[str]:
+    """Return only absence declarations explicitly represented by product Va.
+
+    A missing observation is not a declaration that a source saw no opening.
+    The caller must supply the independently-derived product ledger to enable
+    §8.6.1 item 2; without it v3 deliberately has no trusted-negative conflict.
+    """
+    if product_ledger is None:
+        return set()
+    opening = next((item for item in product_ledger.openings if item.opening_id == opening_id), None)
+    if opening is None:
+        return set()
+    claim = next((item for item in opening.claims if item.claim == claim_name), None)
+    if claim is None:
+        return set()
+    return {decision.source_input_id for decision in claim.source_evidence
+            if not decision.positive_evidence_declared and decision.negative_evidence_intervals}
+
+
+def score_opening_claims_v3(*, gt: GroundTruthV3, reference_ledger: OpeningApplicabilityLedgerV1,
+                            assignment: OpeningAssignment, config: JudgeScoreConfigV1,
+                            source_view_to_input: dict[str, str] | None = None,
+                            source_channels: dict[str, Literal["plan", "elevation"]] | None = None,
+                            product_ledger: OpeningApplicabilityLedgerV1 | None = None,
+                            host_resolver: Callable[[GtOpeningV3, OpeningObservation], Literal["complete", "miss"]] | None = None) -> tuple[ClaimScoreRowV8, ...]:
+    """Score C2 claims from the Va reference ledger and normalized evidence.
+
+    This is intentionally a new typed path.  The legacy plan-only function is
+    not changed.  Every denominator and per-source observable interval is read
+    from ``reference_ledger`` produced by Va; the scorer neither clips with Vg
+    nor invents a visibility test.
+    """
+    by_target = {opening.id: opening for opening in gt.openings}
+    matched: dict[str, list[OpeningObservation]] = {}
+    for target, observation in assignment.matched:
+        matched.setdefault(target.id, []).append(observation)
+    plan_claims = {"existence", "host", "along", "width"}
+    elevation_claims = {"existence", "along", "width", "sill", "head"}
+    output: list[ClaimScoreRowV8] = []
+    for entry in reference_ledger.openings:
+        target = by_target.get(entry.opening_id)
+        if target is None:
+            raise ScoreContractError("score_claim_applicability_invalid", "scoring.applicability")
+        observations = tuple(matched.get(target.id, ()))
+        for claim in entry.claims:
+            units, na_reason, applicable = eligible_units(
+                claim=claim, target_kind=target.kind, has_reference_value=target.z_interval is not None,
+            )
+            # Appearance is an explicit capability NA, before Va coverage.
+            if claim.claim == "appearance":
+                units, na_reason, applicable = 0.0, "reference_value_unavailable", ()
+            source_rows: dict[str, list[OpeningObservation]] = {}
+            for observation in observations:
+                input_id = (source_view_to_input or {}).get(observation.source_view_id, observation.source_view_id)
+                if input_id not in claim.considered_source_view_ids:
+                    continue
+                channel = _source_channel(observation, source_channels)
+                if claim.claim not in (plan_claims if channel == "plan" else elevation_claims):
+                    continue
+                source_rows.setdefault(input_id, []).append(observation)
+            decisions = {decision.source_input_id: decision for decision in claim.source_evidence}
+            source_results: list[tuple[str, str, float | None, float | None]] = []
+            for input_id, observations_for_source in sorted(source_rows.items()):
+                decision = decisions.get(input_id)
+                if decision is None:
+                    continue
+                intervals = _decision_intervals(decision)
+                if not intervals:
+                    continue
+                # A source may contain several product observations, but it is
+                # one independent witness.  Its best observation is its result.
+                candidates = [_v3_source_result(
+                    claim_name=claim.claim, target=target, observation=observation,
+                    intervals=intervals, config=config,
+                    host_result=(host_resolver(target, observation) if host_resolver else "miss"),
+                ) for observation in observations_for_source]
+                order = {"complete": 3, "within_tolerance": 2, "miss": 1, "not_applicable": 0}
+                result, value, tolerance = max(candidates, key=lambda item: order[item[0]])
+                source_results.append((input_id, result, value, tolerance))
+            if units == 0:
+                result, slices = "not_applicable", ()
+            else:
+                visible_results = [item[1] for item in source_results if item[1] != "not_applicable"]
+                # Independent positive sources that disagree beyond tolerance
+                # are a conflict, rather than a convenient best-of fusion.
+                positive_conflict = (any(item in {"complete", "within_tolerance"} for item in visible_results)
+                                     and "miss" in visible_results)
+                # Va certified negative coverage only matters when a different
+                # source supplied a product positive *and* product Va explicitly
+                # declared that source absent.  It never subtracts A, and an
+                # omitted product observation is never inferred to be absence.
+                positive_inputs = {item[0] for item in source_results}
+                declared_absences = _explicit_product_absence_sources(
+                    product_ledger=product_ledger, opening_id=target.id, claim_name=claim.claim,
+                )
+                negative_inputs = {source_id for source_id, decision in decisions.items()
+                                   if source_id in declared_absences and source_id not in positive_inputs
+                                   and decision.negative_evidence_intervals
+                                   and not decision.positive_evidence_declared
+                                   and not decision.applicable_intervals}
+                negative_intervals = _merge(
+                    (part.lo, part.hi) for source_id, decision in decisions.items() if source_id in negative_inputs
+                    for part in decision.negative_evidence_intervals
+                )
+                negative_conflict = bool(source_results) and any(
+                    _overlap(applicable_part, negative_part) > 0
+                    for applicable_part in applicable for negative_part in negative_intervals
+                )
+                base_result = ("conflict" if positive_conflict or negative_conflict else
+                               (fuse_source_results(visible_results) if visible_results else "miss"))
+                span = (target.world_along_interval.lo, target.world_along_interval.hi)
+                if claim.claim in {"along", "width"}:
+                    pieces = split_applicable_by_trusted_negative(applicable=applicable, claim=claim)
+                    # Only negatives belonging to absent product sources cause
+                    # conflict; positive declarations in their own source don't.
+                    pieces = tuple((piece, covered and any(_overlap(piece, n) > 0 for n in negative_intervals))
+                                   for piece, covered in pieces)
+                else:
+                    pieces = (((applicable[0] if applicable else span), False),)
+                error_value = next((item[2] for item in source_results if item[2] is not None), None)
+                tolerance = next((item[3] for item in source_results if item[3] is not None), None)
+                slices = tuple(ClaimOutcomeSliceV8(
+                    slice_id=f"v3:{claim.claim}:{index}",
+                    applicable_intervals=(IntervalV1(lo=piece[0], hi=piece[1]),),
+                    units=((piece[1] - piece[0]) / (span[1] - span[0])
+                           if claim.status == "partially_applicable" and claim.claim in {"along", "width"}
+                           else units / len(pieces)),
+                    result=("conflict" if conflict and source_results else base_result),
+                    error=ClaimValueErrorV8(
+                        metric=("binary" if claim.claim in {"existence", "host"} else
+                                ("scalar_absolute" if claim.claim in {"sill", "head"} else "masked_interval_length")),
+                        value=None if base_result == "conflict" else error_value,
+                        tolerance=tolerance,
+                    ), evidence_source_ids=claim.supporting_source_view_ids,
+                ) for index, (piece, conflict) in enumerate(pieces))
+                results = [item.result for item in slices]
+                result = "conflict" if "conflict" in results else base_result
+            output.append(ClaimScoreRowV8(
+                target_id=target.id, target_kind=target.kind, claim=claim.claim,
+                applicability=_app_ref(reference_ledger, target.id, claim), eligible_units=units,
+                result=result, na_reason=na_reason, outcome_slices=slices,
+                matched_observation_ids=tuple(item.id for item in observations),
+                evidence_source_ids=claim.supporting_source_view_ids, product_provenance=(),
+            ))
+    # Totality is a construction gate, not a best-effort sidecar condition.
+    summarize_claim_rows(output)
+    return tuple(output)
 
 
 def summarize_claim_rows(rows: Iterable[ClaimScoreRowV8]) -> tuple[ClaimSummaryV8, ...]:
