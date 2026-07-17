@@ -18,11 +18,22 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
+import os
+import re
+import shutil
+import tempfile
 from pathlib import Path
+from typing import Mapping
 
 import numpy as np
 from PIL import Image, ImageDraw, ImageEnhance, ImageFont
+from src.agent.judge.gt import load_gt_file
+from src.agent.judge.gt_manifest import (ElevationViewBindingV1, GtExtractionManifestV1,
+                                          PlanViewBindingV1)
+from src.agent.judge.gt_render_model import gt_to_render_model
+from src.agent.judge.gt_schema import GroundTruthV3
 
 DIM = 0.38     # original drawing dimmed to this brightness so the gt overlay stands out
 
@@ -184,10 +195,180 @@ def overlay_elev(case, gt, cd, facade):
     return out
 
 
+def _inverse_affine(transform, x: float, y: float) -> tuple[float, float]:
+    determinant = transform.m00 * transform.m11 - transform.m01 * transform.m10
+    if determinant == 0:
+        raise ValueError("gt_overlay_singular_affine")
+    dx, dy = x - transform.m02, y - transform.m12
+    return ((transform.m11 * dx - transform.m01 * dy) / determinant,
+            (-transform.m10 * dx + transform.m00 * dy) / determinant)
+
+
+def _apply_affine(transform, x: float, y: float) -> tuple[float, float]:
+    return (transform.m00 * x + transform.m01 * y + transform.m02,
+            transform.m10 * x + transform.m11 * y + transform.m12)
+
+
+def _pixel_for_world_plan(view: PlanViewBindingV1, binding, world: tuple[float, float]) -> tuple[float, float]:
+    source = _inverse_affine(view.world_from_source_m, *world)
+    return _inverse_affine(binding.pixel_to_source_m, *source)
+
+
+def _pixel_for_world_elevation(view: ElevationViewBindingV1, binding, along: float, z: float) -> tuple[float, float]:
+    source = {view.world_along_from_source_m.source_axis: (along - view.world_along_from_source_m.offset) / view.world_along_from_source_m.scale,
+              view.world_z_from_source_m.source_axis: (z - view.world_z_from_source_m.offset) / view.world_z_from_source_m.scale}
+    return _inverse_affine(binding.pixel_to_source_m, source["x"], source["y"])
+
+
+def _along_extent(segment) -> tuple[float, float]:
+    axis = 0 if segment.facade_family in {"North", "South"} else 1
+    return tuple(sorted((segment.p1[axis], segment.p2[axis])))
+
+
+def _safe_raster(raster_root: Path, label: str) -> Path:
+    if Path(label).name != label or ".." in Path(label).parts:
+        raise ValueError("gt_overlay_raster_label_invalid")
+    root = raster_root.resolve()
+    raw_candidate = root / label
+    candidate = raw_candidate.resolve()
+    if not candidate.is_relative_to(root) or raw_candidate.is_symlink() or not candidate.is_file():
+        raise ValueError("gt_overlay_raster_escape")
+    return candidate
+
+
+def _within(image: Image.Image, point: tuple[float, float], epsilon: float = 1e-6) -> None:
+    if not (-epsilon <= point[0] <= image.width - 1 + epsilon and -epsilon <= point[1] <= image.height - 1 + epsilon):
+        raise ValueError("gt_overlay_projection_out_of_bounds")
+
+
+def _candidate_stamp(image: Image.Image, document: GroundTruthV3) -> None:
+    draw = ImageDraw.Draw(image)
+    draw.rectangle((0, image.height - 28, image.width, image.height), fill=(80, 0, 0, 255))
+    draw.text((8, image.height - 24), f"CANDIDATE — NOT BASELINE  {document.content_sha256[:12]}", fill=(255,255,255,255), font=_font(15))
+
+
+def _sanitized_view_id(view_id: str) -> str:
+    result = re.sub(r"[^A-Za-z0-9_.-]+", "-", view_id).strip(".-")
+    if not result:
+        raise ValueError("gt_overlay_view_id_unsanitisable")
+    return result
+
+
+def build_gt_overlay_images_v3(
+    doc: GroundTruthV3,
+    manifest: GtExtractionManifestV1,
+    *,
+    raster_root: Path,
+) -> Mapping[str, Image.Image]:
+    """Project typed v3 geometry via the manifest's declared affine bindings."""
+    if doc.case != manifest.case:
+        raise ValueError("gt_overlay_case_mismatch")
+    if doc.generator.manifest_sha256 != manifest.manifest_sha256:
+        raise ValueError("gt_overlay_manifest_hash_mismatch")
+    model = gt_to_render_model(doc)
+    overlays = sorted(manifest.raster_overlays, key=lambda item: (item.view_id, item.id))
+    if len({item.view_id for item in overlays}) != len(overlays):
+        raise ValueError("gt_overlay_competing_bindings")
+    views = {view.id: view for view in manifest.views}
+    floors = {floor.floor_id: floor for floor in model.floors}
+    images: dict[str, Image.Image] = {}
+    for binding in overlays:
+        raster = _safe_raster(Path(raster_root), binding.source_label)
+        if hashlib.sha256(raster.read_bytes()).hexdigest() != binding.source_sha256:
+            raise ValueError("gt_overlay_raster_hash_mismatch")
+        view = views.get(binding.view_id)
+        if view is None:
+            raise ValueError("gt_overlay_view_missing")
+        base = Image.open(raster).convert("RGBA")
+        image = ImageEnhance.Brightness(base.convert("RGB")).enhance(DIM).convert("RGBA")
+        draw = ImageDraw.Draw(image)
+        if isinstance(view, PlanViewBindingV1):
+            floor = floors.get(view.floor_id)
+            if floor is None:
+                raise ValueError("gt_overlay_floor_missing")
+            for polygon, colour in [(floor.footprint_exterior, (20,20,20,255)), *( (zone.exterior, ROLE.get(zone.role, (150,150,150)) + (255,)) for zone in floor.zone_polygons )]:
+                points = [_pixel_for_world_plan(view, binding, point) for point in polygon]
+                for point in points: _within(image, point)
+                draw.line(points + [points[0]], fill=colour, width=3)
+            segments = {segment.id: segment for segment in floor.boundary_segments}
+            for opening in floor.openings:
+                segment = segments[opening.segment_id]
+                a,b = opening.world_along_interval
+                def locate(value):
+                    return (value, segment.p1[1]) if segment.facade_family in {"North", "South"} else (segment.p1[0], value)
+                points = [_pixel_for_world_plan(view,binding,locate(a)), _pixel_for_world_plan(view,binding,locate(b))]
+                for point in points: _within(image, point)
+                draw.line(points, fill=WIN + (255,) if opening.kind == "window" else DOOR + (255,), width=7)
+        elif isinstance(view, ElevationViewBindingV1):
+            surface = next((item for item in model.elevation_surfaces if item.key == view.projection_surface_key), None)
+            if surface is None:
+                raise ValueError("gt_overlay_surface_missing")
+            for segment in surface.segments:
+                low, high = _along_extent(segment)
+                z_floor = next(item.z_floor_m for item in model.floors if item.floor_id == segment.floor_id)
+                for step in range(0, 13, 2):
+                    a, b = low+(high-low)*step/12, low+(high-low)*min(1., (step+1)/12)
+                    points = [_pixel_for_world_elevation(view,binding,a,z_floor), _pixel_for_world_elevation(view,binding,b,z_floor)]
+                    for point in points: _within(image, point)
+                    draw.line(points, fill=(150,0,0,255), width=1)
+                for visible_low, visible_high in segment.visible_intervals:
+                    points = [_pixel_for_world_elevation(view,binding,visible_low,z_floor), _pixel_for_world_elevation(view,binding,visible_high,z_floor)]
+                    for point in points: _within(image, point)
+                    draw.line(points, fill=(20,20,20,255), width=3)
+            for opening in surface.openings:
+                if opening.z_interval is None: continue
+                a,b = opening.world_along_interval; z0,z1 = opening.z_interval
+                corners = [_pixel_for_world_elevation(view,binding,a,z0), _pixel_for_world_elevation(view,binding,b,z1)]
+                for point in corners: _within(image, point)
+                draw.rectangle((corners[0], corners[1]), outline=WIN + (255,) if opening.kind == "window" else DOOR + (255,), width=3)
+        else:  # pragma: no cover - strict manifest union protects this.
+            raise ValueError("gt_overlay_view_kind_invalid")
+        if doc.verification.status == "candidate": _candidate_stamp(image, doc)
+        images[binding.view_id] = image.convert("RGB")
+    return dict(sorted(images.items()))
+
+
+def write_gt_overlay_images_v3(images: Mapping[str, Image.Image], out_dir: Path) -> tuple[Path, ...]:
+    out_dir = Path(out_dir)
+    if out_dir.exists():
+        raise FileExistsError("gt_overlay_output_exists")
+    names = [_sanitized_view_id(view_id) for view_id in images]
+    if len(set(names)) != len(names):
+        raise ValueError("gt_overlay_sanitized_name_collision")
+    out_dir.parent.mkdir(parents=True, exist_ok=True)
+    temporary = Path(tempfile.mkdtemp(prefix=f".{out_dir.name}.tmp-", dir=out_dir.parent))
+    try:
+        written: list[Path] = []
+        for view_id, name in sorted(zip(images, names), key=lambda item: item[1]):
+            path = temporary / f"overlay_{name}.png"; images[view_id].save(path); written.append(path)
+        os.replace(temporary, out_dir)
+        return tuple(out_dir / item.name for item in written)
+    except Exception:
+        shutil.rmtree(temporary, ignore_errors=True)
+        raise
+
+
 def main():
     ap = argparse.ArgumentParser(description="Overlay DXF-built gt onto the original drawing PNGs.")
-    ap.add_argument("case")
+    ap.add_argument("case", nargs="?", help="legacy v2 case")
+    ap.add_argument("--gt-file")
+    ap.add_argument("--manifest")
+    ap.add_argument("--raster-root")
+    ap.add_argument("--out-dir")
     args = ap.parse_args()
+    v3 = any((args.gt_file, args.manifest, args.raster_root, args.out_dir))
+    if v3:
+        if args.case or not all((args.gt_file, args.manifest, args.raster_root, args.out_dir)):
+            ap.error("v3 requires --gt-file --manifest --raster-root --out-dir and no positional case")
+        document = load_gt_file(Path(args.gt_file), allow_legacy=False)
+        if not isinstance(document, GroundTruthV3):
+            ap.error("--gt-file must be schema v3")
+        manifest = GtExtractionManifestV1.model_validate(json.loads(Path(args.manifest).read_text(encoding="utf-8")))
+        for path in write_gt_overlay_images_v3(build_gt_overlay_images_v3(document, manifest, raster_root=Path(args.raster_root)), Path(args.out_dir)):
+            print(f"wrote {path}")
+        return
+    if not args.case:
+        ap.error("legacy positional case is required")
     gt, cd = _load(args.case)
     out_dir = GT_DIR / args.case / "renders"
     out_dir.mkdir(parents=True, exist_ok=True)

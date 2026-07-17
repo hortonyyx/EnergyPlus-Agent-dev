@@ -9,6 +9,9 @@ scanning those modules' source for any gt reference.
 from __future__ import annotations
 
 from pathlib import Path
+import inspect
+
+from src.agent.judge import gt_render_model
 
 from src.agent.judge.gt import has_gt, load_gt
 
@@ -86,3 +89,30 @@ def test_judge_side_gt_readers_remain_confined_to_judge_package():
         text = path.read_text(encoding="utf-8")
         assert "load_gt" in text or ".gt import" in text
         assert path.is_relative_to(Path("src/agent/judge"))
+
+
+def test_v3_renderer_path_has_no_fixed_four_panel_or_gate_vocabulary():
+    """B-03: dynamic surface keys stay isolated from legacy v2's four facades."""
+    source = (inspect.getsource(gt_render_model.gt_to_render_model) +
+              inspect.getsource(gt_render_model.render_plan_model) +
+              inspect.getsource(gt_render_model.render_elevation_model))
+    forbidden = ("range(4)", "_FLOOR_OF", "_ROLES", "PLAN_BAND_Y", "largest bbox")
+    assert not [token for token in forbidden if token in source]
+    assert "elevation_surfaces" in source and "sorted" in source
+
+
+def test_v3_render_adapter_is_judge_side_and_schema_free_in_renderer():
+    source = inspect.getsource(gt_render_model.render_plan_model) + inspect.getsource(gt_render_model.render_elevation_model)
+    assert "footprint\", {}" not in source and ".get(\"W_m\")" not in source
+
+
+def test_render_gt_v3_entry_branch_has_no_fixed_four_or_gate_vocabulary():
+    source = Path("scripts/tool_scripts/render_gt.py").read_text(encoding="utf-8")
+    v3 = source[source.index("def _model_for_render"):]
+    assert not [token for token in ("range(4)", "_FLOOR_OF", "_ROLES", "PLAN_BAND_Y", "largest bbox") if token in v3]
+
+
+def test_v3_overlay_path_has_no_legacy_density_or_fixed_panel_vocabulary():
+    source = Path("scripts/tool_scripts/render_gt_overlay.py").read_text(encoding="utf-8")
+    v3 = source[source.index("def build_gt_overlay_images_v3"):source.index("def write_gt_overlay_images_v3")]
+    assert not [token for token in ("_calibrate", "_FLOOR_PNG", "_FACADE_PNG", "range(4)", "largest bbox") if token in v3]

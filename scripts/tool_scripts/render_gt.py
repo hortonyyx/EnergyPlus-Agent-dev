@@ -35,6 +35,10 @@ import json
 from pathlib import Path
 
 from PIL import Image, ImageColor, ImageDraw, ImageFont
+from src.agent.judge.gt import DEFAULT_GT_DIR, load_gt_file, load_gt_document
+from src.agent.judge.gt_render_model import (GtRenderModel, gt_to_render_model,
+                                               render_elevation_model, render_plan_model)
+from src.agent.judge.gt_schema import GroundTruthV3
 
 GT_DIR = Path("case_tests/test_baseline/gt")
 
@@ -316,7 +320,7 @@ def _draw_plan_openings(d: ImageDraw.ImageDraw, gt: dict, fl: dict, tx, ty,
                    "DOOR", font=_font(12), fill=DOOR)
 
 
-def render_plan(gt: dict) -> Image.Image:
+def _render_plan_v2(gt: dict) -> Image.Image:
     w_m = float(gt["footprint"]["W_m"])
     d_m = float(gt["footprint"]["D_m"])
     floors = gt.get("floors", [])
@@ -439,7 +443,7 @@ def _draw_elev_panel(img: Image.Image, d: ImageDraw.ImageDraw, ox: int, oy: int,
         _dim_v(img, d, tz(zf + h), tz(zf), ox + E_LEFT - 30, _fmt(h))
 
 
-def render_elev(gt: dict) -> Image.Image:
+def _render_elev_v2(gt: dict) -> Image.Image:
     facades = ["South", "North", "East", "West"]
     ht = _total_height(gt)
     ph = E_TOP + int(ht * SCALE) + E_BOTTOM
@@ -474,20 +478,53 @@ def _resolve_gt(arg: str) -> tuple[str, dict]:
     return case, data
 
 
+def _model_for_render(value) -> GtRenderModel | None:
+    """Return a typed render model for v3 documents only.
+
+    Raw v2 dictionaries deliberately retain the pixel-stable legacy renderer;
+    the CLI loads them through the typed legacy adapter before reaching it.
+    """
+    if isinstance(value, GtRenderModel):
+        return value
+    if isinstance(value, GroundTruthV3):
+        return gt_to_render_model(value)
+    if isinstance(value, dict) and value.get("schema_version") == 3:
+        return gt_to_render_model(GroundTruthV3.model_validate(value))
+    return None
+
+
+def render_plan(gt) -> Image.Image:
+    model = _model_for_render(gt)
+    return render_plan_model(model) if model is not None else _render_plan_v2(gt)
+
+
+def render_elev(gt) -> Image.Image:
+    model = _model_for_render(gt)
+    return render_elevation_model(model) if model is not None else _render_elev_v2(gt)
+
+
 def main() -> None:
     ap = argparse.ArgumentParser(description="Render a gt JSON to annotated plan + elevation PNGs.")
     ap.add_argument("gt", help="case name (e.g. sm21_anchor) or path to a gt JSON")
     ap.add_argument("--out-dir", help="output directory (default: <gt_dir>/<case>/renders)")
     args = ap.parse_args()
 
-    case, gt = _resolve_gt(args.gt)
+    path = Path(args.gt)
+    is_case = not path.suffix
+    if not is_case and args.out_dir is None:
+        ap.error("--out-dir is required for an explicit gt JSON path")
+    document = load_gt_document(args.gt, gt_dir=DEFAULT_GT_DIR) if is_case else load_gt_file(path)
+    if document is None:
+        ap.error(f"no gt found for case {args.gt!r}")
+    case = document.case
     out_dir = Path(args.out_dir) if args.out_dir else GT_DIR / case / "renders"
     out_dir.mkdir(parents=True, exist_ok=True)
 
     plan_path = out_dir / "gt_plan.png"
     elev_path = out_dir / "gt_elev.png"
-    render_plan(gt).save(plan_path)
-    render_elev(gt).save(elev_path)
+    model = gt_to_render_model(document)
+    render_plan_model(model).save(plan_path)
+    render_elevation_model(model).save(elev_path)
     print(f"wrote {plan_path}")
     print(f"wrote {elev_path}")
 
