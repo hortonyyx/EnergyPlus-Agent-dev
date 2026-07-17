@@ -103,10 +103,10 @@ def test_helper_identity_literals_are_required_without_contract_defaults():
         HelperIdentityV8(va_helper="facade_applicability_v1", vg_helper="facade_visibility_v1", claims_contract="1")
 
 
-def test_phase_a_v8_skeleton_and_legacy_writer_labels_are_explicitly_separate():
+def test_phase_d_converges_legacy_writer_and_v8_contract_labels():
     import scripts.tool_scripts.run_stage as run_stage
     from src.agent.judge.score_schema import SCORER_SCHEMA
-    assert run_stage.SCORER_SCHEMA == "7"
+    assert run_stage.SCORER_SCHEMA == "8"
     assert SCORER_SCHEMA == "8"
 
 

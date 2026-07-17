@@ -8,7 +8,9 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 from pathlib import Path
+import tempfile
 from typing import Annotated, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, StrictBool, StrictStr, StringConstraints, ValidationError, model_validator
@@ -418,6 +420,46 @@ class ClaimSummaryV8(StrictWire):
     na_reasons: dict[StableId, NonNegativeInt]
 
 
+class SegmentScoreRowV8(StrictWire):
+    """Serialized adapter for the Phase-B actual-polygon segment result."""
+    target_id: StableId | None
+    observation_id: StableId | None
+    floor_id: StableId
+    exterior: StrictBool
+    status: Literal["complete", "within_tolerance", "miss", "extra"]
+    axis_alignment_error_m: NonNegativeFloat | None
+    position_error_m: NonNegativeFloat | None
+    extent_symmetric_difference_m: NonNegativeFloat | None
+
+
+class SegmentExtraV8(StrictWire):
+    observation_id: StableId
+    floor_id: StableId
+    reason: StableId
+
+
+class ExtraObservationV8(StrictWire):
+    observation_id: StableId
+    result: Literal["extra", "not_applicable"]
+    reason: StableId | None
+
+
+class C2ScoredPayloadV8(StrictWire):
+    kind: Literal["c2_scored"]
+    segment_rows: tuple[SegmentScoreRowV8, ...]
+    segment_extras: tuple[SegmentExtraV8, ...]
+    claim_rows: tuple[ClaimScoreRowV8, ...]
+    claim_summaries: tuple[ClaimSummaryV8, ...]
+    extras: tuple[ExtraObservationV8, ...]
+    score_criteria: tuple[dict[StableId, object], ...]
+    # Ledgers stay their public strict types in the scoring service.  Their
+    # canonical digests/counts are repeated in the artifact contract, avoiding
+    # a second near-wire in this schema module.
+    reference_ledger_sha256: Hex64
+    product_ledger_sha256: Hex64 | None
+    absence_ledger_sha256: Hex64 | None
+
+
 class NotApplicablePayloadV8(StrictWire):
     kind: Literal["not_applicable"]
     reason: Literal["unsupported_product_schema", "unsupported_gt_profile", "unsupported_view_contract", "no_supported_targets"]
@@ -438,7 +480,7 @@ class RejectedPayloadV8(StrictWire):
         return self
 
 
-ScorePayloadV8 = Annotated[NotApplicablePayloadV8 | RejectedPayloadV8, Field(discriminator="kind")]
+ScorePayloadV8 = Annotated[C2ScoredPayloadV8 | NotApplicablePayloadV8 | RejectedPayloadV8, Field(discriminator="kind")]
 
 
 class EmbeddedLedgerContractV1(StrictWire):
@@ -451,18 +493,15 @@ class ScoreArtifactContractV1(StrictWire):
     contract_version: Literal["1"]
     output_sha256: Hex64
     sidecar_schema_version: Literal["8"]
-    grade_kind: Literal["not_applicable_board", "rejected_board"]
+    grade_kind: Literal["c2_grade", "not_applicable_board", "rejected_board"]
     grade_png_sha256: Hex64
     embedded_ledgers: tuple[EmbeddedLedgerContractV1, ...]
 
     @model_validator(mode="after")
-    def _empty_ledgers(self):
+    def _ledger_shape(self):
         expected = ("reference", "product", "absence")
         if tuple(item.ledger_kind for item in self.embedded_ledgers) != expected:
             raise ValueError("embedded ledgers must be reference/product/absence in order")
-        empty = canonical_sha256([])
-        if any(item.ledger_count != 0 or item.aggregate_sha256 != empty for item in self.embedded_ledgers):
-            raise ValueError("Phase A NA/REJECTED skeleton must contain empty ledgers")
         return self
 
 
@@ -477,9 +516,17 @@ class ScoreSidecarV8(StrictWire):
     def _contract(self):
         if self.content_sha256 != hash_model_without(self, "content_sha256"):
             raise ValueError("sidecar content_sha256 mismatch")
-        expected_kind = "not_applicable_board" if self.payload.kind == "not_applicable" else "rejected_board"
+        expected_kind = {
+            "c2_scored": "c2_grade",
+            "not_applicable": "not_applicable_board",
+            "rejected": "rejected_board",
+        }[self.payload.kind]
         if self.artifact_contract.output_sha256 != self.identity.product.output_sha256 or self.artifact_contract.grade_kind != expected_kind:
             raise ValueError("sidecar artifact contract disagrees with identity/payload")
+        if self.payload.kind in {"not_applicable", "rejected"}:
+            empty = canonical_sha256([])
+            if any(item.ledger_count != 0 or item.aggregate_sha256 != empty for item in self.artifact_contract.embedded_ledgers):
+                raise ValueError("NA/REJECTED sidecar must contain empty ledgers")
         return self
 
 
@@ -546,6 +593,8 @@ def build_product_identity(*, stage: Literal["reading", "correction"], attempt: 
 
 
 def build_phase_a_sidecar(*, identity: ScoreIdentityV8, payload: ScorePayloadV8, grade_png_sha256: str) -> ScoreSidecarV8:
+    if payload.kind == "c2_scored":
+        raise ValueError("use finalize_score_sidecar for c2 payload")
     empty = canonical_sha256([])
     artifact = ScoreArtifactContractV1(contract_version="1", output_sha256=identity.product.output_sha256,
         sidecar_schema_version="8", grade_kind=("not_applicable_board" if payload.kind == "not_applicable" else "rejected_board"),
@@ -559,6 +608,30 @@ def build_phase_a_sidecar(*, identity: ScoreIdentityV8, payload: ScorePayloadV8,
         content_sha256=canonical_sha256(raw))
 
 
+def finalize_score_sidecar(*, identity: ScoreIdentityV8, payload: ScorePayloadV8,
+                           grade_png: bytes, ledger_counts: tuple[int, int, int] = (0, 0, 0)) -> ScoreSidecarV8:
+    """Finalize the typed v8 sidecar only after scorer and PNG success."""
+    if payload.kind != "c2_scored":
+        return build_phase_a_sidecar(identity=identity, payload=payload,
+                                     grade_png_sha256=hashlib.sha256(grade_png).hexdigest())
+    aggregate = (
+        payload.reference_ledger_sha256,
+        payload.product_ledger_sha256 or canonical_sha256([]),
+        payload.absence_ledger_sha256 or canonical_sha256([]),
+    )
+    artifact = ScoreArtifactContractV1(
+        contract_version="1", output_sha256=identity.product.output_sha256,
+        sidecar_schema_version="8", grade_kind="c2_grade",
+        grade_png_sha256=hashlib.sha256(grade_png).hexdigest(),
+        embedded_ledgers=tuple(EmbeddedLedgerContractV1(ledger_kind=kind, ledger_count=count, aggregate_sha256=digest)
+                               for kind, count, digest in zip(("reference", "product", "absence"), ledger_counts, aggregate)),
+    )
+    raw = {"schema_version": "8", "identity": identity.model_dump(mode="json"),
+           "artifact_contract": artifact.model_dump(mode="json"), "payload": payload.model_dump(mode="json")}
+    return ScoreSidecarV8(schema_version="8", identity=identity, artifact_contract=artifact,
+                           payload=payload, content_sha256=canonical_sha256(raw))
+
+
 def load_cached_score(path: Path | str, *, grade_path: Path | str,
                       expected_identity: ScoreIdentityV8) -> ScoreSidecarV8 | None:
     """Schema 0--7 and every identity mismatch are deliberate cache misses."""
@@ -570,4 +643,100 @@ def load_cached_score(path: Path | str, *, grade_path: Path | str,
         grade_sha256 = hashlib.sha256(Path(grade_path).read_bytes()).hexdigest()
     except OSError:
         return None
-    return result if result.identity == expected_identity and result.artifact_contract.grade_png_sha256 == grade_sha256 else None
+    # Identity is deliberately a complete strict-wire comparison.  Do not
+    # replace this with a selected-field comparison: every member represents a
+    # score input (including accepted-state and helper versions).
+    if result.identity != expected_identity:
+        return None
+    if result.artifact_contract.output_sha256 != expected_identity.product.output_sha256:
+        return None
+    if result.artifact_contract.grade_png_sha256 != grade_sha256:
+        return None
+    return result
+
+
+def commit_score_artifacts(*, sidecar_path: Path | str, grade_path: Path | str,
+                           sidecar: ScoreSidecarV8, grade_png: bytes) -> None:
+    """Commit the grade pair with the sidecar as its commit marker.
+
+    Both payloads are fully validated before touching the published names.  A
+    controlled replace failure restores the previous complete pair; temporary
+    files are in the destination directory and are never cache candidates.
+    This intentionally accepts an already-complete old pair and never promotes
+    an invalid/candidate sidecar as a cache hit.
+    """
+    score = Path(sidecar_path)
+    grade = Path(grade_path)
+    if score.parent != grade.parent:
+        raise ScoreContractError("score_atomic_write_failed", "scoring.sidecar_identity",
+                                 context={"reason": "artifacts_must_share_directory"})
+    if hashlib.sha256(grade_png).hexdigest() != sidecar.artifact_contract.grade_png_sha256:
+        raise ScoreContractError("score_sidecar_invalid", "scoring.sidecar_identity",
+                                 context={"reason": "grade_digest_mismatch"})
+    # A strict round trip catches an accidentally assembled but invalid model
+    # before the PNG is made visible.
+    try:
+        strict_sidecar = ScoreSidecarV8.model_validate_json(sidecar.model_dump_json())
+        if strict_sidecar != sidecar:
+            raise ValidationError.from_exception_data("ScoreSidecarV8", [])
+    except Exception as exc:
+        raise ScoreContractError("score_sidecar_invalid", "scoring.sidecar_identity") from exc
+
+    score.parent.mkdir(parents=True, exist_ok=True)
+    old_score = score.read_bytes() if score.exists() else None
+    old_grade = grade.read_bytes() if grade.exists() else None
+    temp_paths: list[Path] = []
+    try:
+        def _temp(target: Path, data: bytes) -> Path:
+            fd, raw = tempfile.mkstemp(prefix=f".{target.name}.", suffix=".tmp", dir=target.parent)
+            tmp = Path(raw); temp_paths.append(tmp)
+            with os.fdopen(fd, "wb") as handle:
+                handle.write(data); handle.flush(); os.fsync(handle.fileno())
+            return tmp
+
+        png_tmp = _temp(grade, grade_png)
+        # Verify the exact bytes can be read before commit.  Pillow is imported
+        # lazily to keep schema loading judge-wire-only.
+        from PIL import Image
+        with Image.open(png_tmp) as probe:
+            probe.verify()
+        sidecar_tmp = _temp(score, strict_sidecar.model_dump_json().encode("utf-8"))
+        ScoreSidecarV8.model_validate_json(sidecar_tmp.read_text(encoding="utf-8"))
+        # PNG first; the JSON is the commit marker.  If either replace throws,
+        # restore the last complete pair before surfacing the stable error.
+        os.replace(png_tmp, grade)
+        temp_paths.remove(png_tmp)
+        os.replace(sidecar_tmp, score)
+        temp_paths.remove(sidecar_tmp)
+        directory_fd = os.open(score.parent, os.O_RDONLY)
+        try:
+            os.fsync(directory_fd)
+        finally:
+            os.close(directory_fd)
+    except Exception as exc:
+        try:
+            if old_grade is None:
+                if grade.exists():
+                    grade.unlink()
+            else:
+                rollback = _temp(grade, old_grade)
+                os.replace(rollback, grade)
+                temp_paths.remove(rollback)
+            if old_score is None:
+                if score.exists():
+                    score.unlink()
+            else:
+                rollback = _temp(score, old_score)
+                os.replace(rollback, score)
+                temp_paths.remove(rollback)
+        except Exception:
+            # The primary exception remains the stable boundary result; a
+            # subsequent cache read rejects any digest mismatch.
+            pass
+        raise ScoreContractError("score_atomic_write_failed", "scoring.sidecar_identity") from exc
+    finally:
+        for tmp in temp_paths:
+            try:
+                tmp.unlink(missing_ok=True)
+            except OSError:
+                pass

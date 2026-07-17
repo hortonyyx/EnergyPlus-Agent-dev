@@ -29,6 +29,7 @@ import json
 import os
 import shutil
 import sys
+import tempfile
 from pathlib import Path
 
 # Be robust to CWD: make `import src...` work whether or not the package is
@@ -72,9 +73,9 @@ from src.validator.checks.schema import CheckLayer, CheckReport, CheckStatus  # 
 
 _STAGES = ["0_reading", "1_correction", "2_modelling", "3_split_pairing",
            "4_mep", "5_intakeoutput"]
-# Legacy writer remains schema-7 until Phase D installs the schema-8 writer.
-# B4b Phase A's judge-only NA/REJECTED skeleton has its own frozen "8" wire.
-SCORER_SCHEMA = "7"
+# Phase D convergence: schema 0--7 artifacts are never cache candidates.
+# v2 keeps its exact legacy projection below, but its sidecar label is v8.
+SCORER_SCHEMA = "8"
 FLOW_EXIT_OK = 0
 FLOW_EXIT_CHECKPOINT = 10
 FLOW_EXIT_STOP = 20
@@ -912,7 +913,7 @@ def _score_reading_attempt_output(
     return scores, evidence, {}
 
 
-def _score_attempt_output(
+def _legacy_score_attempt_output(
     stage: str,
     output: dict,
     gt: dict,
@@ -987,6 +988,56 @@ def _score_attempt_output(
             extra_evidence=evidence,
         ),
     }
+
+
+def _score_attempt_output(stage: str, output: dict, gt: dict, *, grade: GradeConfig):
+    """Run-stage reaches scoring through the shared judge service seam."""
+    from src.agent.judge.score_service import score_attempt_service
+    return score_attempt_service(stage=stage, output=output, gt=gt, grade=grade,
+                                 legacy_evaluator=_legacy_score_attempt_output)
+
+
+def _commit_legacy_grade_pair(*, score_path: Path, grade_path: Path, sidecar: dict, grade_png: bytes) -> None:
+    """Atomic rollback pair for legacy v2 projection artifacts.
+
+    This is intentionally separate from the v8 strict sidecar committer: v2
+    retains its historical projection wire, while still using the same
+    temporary/fsync/replace/rollback publication discipline.
+    """
+    old_score = score_path.read_bytes() if score_path.exists() else None
+    old_grade = grade_path.read_bytes() if grade_path.exists() else None
+    temporary: list[Path] = []
+    def write_temp(path: Path, data: bytes) -> Path:
+        fd, name = tempfile.mkstemp(prefix=f".{path.name}.", suffix=".tmp", dir=path.parent)
+        tmp = Path(name); temporary.append(tmp)
+        with os.fdopen(fd, "wb") as handle:
+            handle.write(data); handle.flush(); os.fsync(handle.fileno())
+        return tmp
+    try:
+        png_temp = write_temp(grade_path, grade_png)
+        from PIL import Image
+        with Image.open(png_temp) as image:
+            image.verify()
+        score_temp = write_temp(score_path, json.dumps(sidecar, indent=2, ensure_ascii=False).encode("utf-8"))
+        json.loads(score_temp.read_text(encoding="utf-8"))
+        os.replace(png_temp, grade_path); temporary.remove(png_temp)
+        os.replace(score_temp, score_path); temporary.remove(score_temp)
+    except Exception as exc:
+        try:
+            if old_grade is None:
+                grade_path.unlink(missing_ok=True)
+            else:
+                restore = write_temp(grade_path, old_grade); os.replace(restore, grade_path); temporary.remove(restore)
+            if old_score is None:
+                score_path.unlink(missing_ok=True)
+            else:
+                restore = write_temp(score_path, old_score); os.replace(restore, score_path); temporary.remove(restore)
+        except Exception:
+            pass
+        raise RuntimeError("score_atomic_write_failed") from exc
+    finally:
+        for path in temporary:
+            path.unlink(missing_ok=True)
 
 
 def _load_valid_score_sidecar(
@@ -1108,14 +1159,15 @@ def _grade_attempt_artifacts(
             "evidence": scored["evidence"],
             "score_criteria": scored["score_criteria"],
         }
-        score_path.write_text(json.dumps(sidecar, indent=2, ensure_ascii=False), encoding="utf-8")
-
     grade_path = attempt_dir / "grade.png"
     if render_needed or not grade_path.exists():
         sys.path.insert(0, str(_REPO_ROOT / "scripts" / "tool_scripts"))
         import render_grade
-
-        render_grade.render_grade_to_path(stage, sidecar, gt, grade_path)
+        from io import BytesIO
+        image = render_grade.render_grade(stage, sidecar, gt)
+        buffer = BytesIO(); image.save(buffer, format="PNG")
+        _commit_legacy_grade_pair(score_path=score_path, grade_path=grade_path,
+                                  sidecar=sidecar, grade_png=buffer.getvalue())
 
     return {
         "score_vs_gt": str(score_path),
@@ -1171,10 +1223,16 @@ def _render_stage_grade_artifacts(
 ) -> dict[int, dict]:
     if stage not in {"0_reading", "1_correction"}:
         return {}
-    from src.agent.judge.gt import has_gt, load_gt
+    from src.agent.judge.gt import gt_path, has_gt, load_gt, load_gt_document
+    from src.agent.judge.gt_schema import GroundTruthV3
 
     if not has_gt(case):
         return {}
+    document = load_gt_document(case)
+    if isinstance(document, GroundTruthV3):
+        return _render_all_typed_attempt_grades(stage, case, run_dir, document,
+                                                manifest=manifest, grade=run_config.grade_for(stage),
+                                                gt_file=gt_path(case))
     gt = load_gt(case)
     if gt is None:
         return {}
@@ -1188,19 +1246,106 @@ def _render_stage_grade_artifacts(
     )
 
 
+def _typed_score_input_paths(run_dir: Path) -> tuple[Path, Path, Path | None]:
+    """Judge-owned sidecars; base ViewManifest remains execution's emitter."""
+    meta = run_dir / "_run"
+    return meta / "view_manifest.json", meta / "judge_score_bindings.json", meta / "judge_completeness_overlay.json"
+
+
+def _grade_typed_attempt_artifacts(stage: str, case: str, attempt_dir: Path, document, *,
+                                   gt_file: Path, manifest: RunManifest, grade: GradeConfig) -> dict:
+    """Real v3 run-stage assembler: all scorer policy stays in score_service."""
+    from src.agent.execution.manifest import attempt_index_of, hash_text
+    from src.agent.execution.view_manifest import ViewManifest
+    from src.agent.judge.score_config import load_judge_score_config
+    from src.agent.judge.score_inputs import load_completeness_overlay, load_score_view_bindings
+    from src.agent.judge.score_schema import (build_product_identity, commit_score_artifacts,
+                                               load_cached_score, load_score_gt_identity)
+    from src.agent.judge.score_service import score_attempt_service
+
+    output_path = attempt_dir / "output.json"
+    if not output_path.exists():
+        return {"score_vs_gt": None, "grade": None, "score_criteria": []}
+    output_text = output_path.read_text(encoding="utf-8")
+    output = json.loads(output_text)
+    if not isinstance(output, dict):
+        return {"score_vs_gt": None, "grade": None, "score_criteria": []}
+    attempt = attempt_index_of(attempt_dir)
+    accepted = manifest.accepted(stage)
+    accepted_record = accepted if accepted is not None and accepted.accepted_attempt == attempt else None
+    output_hash = hash_text(output_text)
+    if accepted_record is not None:
+        record_output = getattr(accepted_record, "output_hash", None)
+        artifact_output = getattr(accepted_record, "artifact_hashes", {}).get("output", record_output)
+        if record_output != output_hash or artifact_output != output_hash:
+            from src.agent.judge.score_schema import ScoreContractError
+            raise ScoreContractError("score_product_identity_invalid", "scoring.input_identity",
+                                     context={"reason": "accepted_stage_record_output_mismatch"})
+    product = build_product_identity(stage="reading" if stage == "0_reading" else "correction", attempt=attempt,
+        output_sha256=output_hash, output_schema=str(output.get("schema_version", "3")), source="attempt_output",
+        accepted_stage_record=accepted_record)
+    base_path, bindings_path, overlay_path = _typed_score_input_paths(attempt_dir.parents[2])
+    # Inputs are strict judge sidecars.  Missing/invalid identity inputs do not
+    # publish a cacheable artifact (the caller leaves the attempt untouched).
+    if not base_path.exists() or not bindings_path.exists():
+        return {"score_vs_gt": None, "grade": None, "score_criteria": []}
+    base = ViewManifest.model_validate_json(base_path.read_text(encoding="utf-8"))
+    gt_identity, typed_gt = load_score_gt_identity(gt_file)
+    if typed_gt is None:
+        return {"score_vs_gt": None, "grade": None, "score_criteria": []}
+    bindings = load_score_view_bindings(bindings_path, expected_case_id=document.case,
+        expected_gt_content_sha256=gt_identity.content_sha256, expected_case_metadata_sha256=base.case_metadata_sha256,
+        expected_base_view_manifest_sha256=base.content_sha256)
+    overlay = load_completeness_overlay(overlay_path if overlay_path.exists() else None,
+        expected_case_id=document.case, expected_gt_content_sha256=gt_identity.content_sha256,
+        expected_base_view_manifest_sha256=base.content_sha256)
+    request = {"gt_identity": gt_identity, "gt": typed_gt, "stage": product.stage,
+        "product_payload": output, "product_identity": product, "base_view_manifest": base,
+        "score_bindings": bindings, "completeness_overlay": overlay,
+        "c2_config": load_judge_score_config(_REPO_ROOT / "src/configs/judge_score.yaml")}
+    result = score_attempt_service(typed_request=request)
+    score_path, grade_path = attempt_dir / "score_vs_gt.json", attempt_dir / "grade.png"
+    cached = load_cached_score(score_path, grade_path=grade_path, expected_identity=result.identity)
+    if cached is None:
+        commit_score_artifacts(sidecar_path=score_path, grade_path=grade_path,
+                               sidecar=result.sidecar, grade_png=result.grade_png)
+    return {"score_vs_gt": str(score_path), "grade": str(grade_path),
+            "score_criteria": list(result.payload.score_criteria)}
+
+
+def _render_all_typed_attempt_grades(stage: str, case: str, run_dir: Path, document, *,
+                                     manifest: RunManifest, grade: GradeConfig, gt_file: Path) -> dict[int, dict]:
+    if stage not in {"0_reading", "1_correction"}:
+        return {}
+    attempts = run_dir / stage / "attempts"
+    if not attempts.exists():
+        return {}
+    result: dict[int, dict] = {}
+    for attempt_dir in sorted(path for path in attempts.iterdir() if path.is_dir() and path.name.isdigit()):
+        result[int(attempt_dir.name)] = _grade_typed_attempt_artifacts(stage, case, attempt_dir, document,
+            gt_file=gt_file, manifest=manifest, grade=grade)
+    return result
+
+
 def _judge_packet(stage: str, case: str, case_dir: Path, run_dir: Path,
                   attempt_dir: Path, report: CheckReport,
                   *, manifest: RunManifest | None = None,
                   run_config: RunConfig | None = None) -> dict:
     # gt is judge-only — import it inside the judge path, never at module load.
-    from src.agent.judge.gt import gt_path, has_gt, load_gt
+    from src.agent.judge.gt import gt_path, has_gt, load_gt, load_gt_document
+    from src.agent.judge.gt_schema import GroundTruthV3
 
     reg = rubric_for(stage)
     rubric_id = reg[0] if reg else "none"
     renders = _render_stage(stage, run_dir, case_dir)
-    gt = load_gt(case) if has_gt(case) else None
     cfg = run_config or RunConfig.defaults(path=run_dir / "run_config.yaml", present=False)
-    gt_artifacts = (
+    document = load_gt_document(case) if has_gt(case) else None
+    if isinstance(document, GroundTruthV3):
+        gt_artifacts = _grade_typed_attempt_artifacts(stage, case, attempt_dir, document,
+            gt_file=gt_path(case), manifest=manifest or _load_manifest_readonly(run_dir), grade=cfg.grade_for(stage))
+    else:
+        gt = load_gt(case) if has_gt(case) else None
+        gt_artifacts = (
         _judge_gt_artifacts(
             stage,
             case,
@@ -1212,7 +1357,7 @@ def _judge_packet(stage: str, case: str, case_dir: Path, run_dir: Path,
         )
         if gt is not None
         else {"score_vs_gt": None, "grade": None, "score_criteria": []}
-    )
+        )
     pkt = {
         "stage": stage,
         "rubric_id": rubric_id,

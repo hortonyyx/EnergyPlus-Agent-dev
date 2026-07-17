@@ -9,6 +9,7 @@ annotations.
 from __future__ import annotations
 
 import argparse
+import io
 import json
 from pathlib import Path
 
@@ -1013,6 +1014,174 @@ def render_grade_to_path(stage: str, score_sidecar: dict, gt: dict, out_path: Pa
     out.parent.mkdir(parents=True, exist_ok=True)
     render_grade(stage, score_sidecar, gt).save(out)
     return out
+
+
+# ---------------------------------------------------------------------------
+# B4b v3 typed grade path.  The legacy functions above intentionally remain
+# byte-for-byte on their old W/D/four-facade contract; this path is selected
+# only by the schema-8 score service.
+NA_FILL_RGBA = (224, 224, 224, 192)
+NA_LINE_RGBA = (107, 114, 128, 224)
+NA_LINE_WIDTH = 2
+NA_HATCH_SPACING = 8
+
+
+def _typed_hatch(image: Image.Image, box: tuple[int, int, int, int]) -> None:
+    """Frozen lower-left to upper-right 45 degree NA hatch."""
+    x0, y0, x1, y1 = box
+    layer = Image.new("RGBA", image.size, (0, 0, 0, 0))
+    draw = ImageDraw.Draw(layer)
+    draw.rectangle(box, fill=NA_FILL_RGBA)
+    # Image y increases downward: x/y both increasing produces the specified
+    # lower-left -> upper-right visual diagonal after screen inversion.
+    for start in range(x0 - (y1 - y0), x1 + 1, NA_HATCH_SPACING):
+        draw.line((start, y1, start + (y1 - y0), y0), fill=NA_LINE_RGBA, width=NA_LINE_WIDTH)
+    image.alpha_composite(layer)
+
+
+def _typed_payload_dict(payload: object) -> dict:
+    if hasattr(payload, "model_dump"):
+        payload = payload.model_dump(mode="json")
+    return payload if isinstance(payload, dict) else {}
+
+
+def _typed_claim_rows(payload: dict) -> tuple[dict, ...]:
+    rows = payload.get("claim_rows", ())
+    return tuple(row for row in rows if isinstance(row, dict)) if isinstance(rows, (list, tuple)) else ()
+
+
+def validate_typed_render_totality(*, model, payload: object, audit_map: dict[str, str]) -> None:
+    """Require one deterministic audit location for every real target/claim.
+
+    The renderer has no permission to invent bbox/facade targets.  Unknown row
+    targets and missing real segment/opening audit locations are contract
+    failures, rather than silently omitted pixels.
+    """
+    from src.agent.judge.score_schema import ScoreContractError
+
+    targets = {segment.id for floor in model.floors for segment in floor.boundary_segments}
+    targets.update(opening.id for floor in model.floors for opening in floor.openings)
+    rows = _typed_claim_rows(_typed_payload_dict(payload))
+    row_targets = {str(row.get("target_id")) for row in rows}
+    if not row_targets.issubset(targets):
+        raise ScoreContractError("score_sidecar_invalid", "scoring.render_totality",
+                                 context={"reason": "unknown_render_target"})
+    if not targets.issubset(audit_map):
+        raise ScoreContractError("score_sidecar_invalid", "scoring.render_totality",
+                                 context={"reason": "target_not_rendered"})
+    claims_by_target: dict[str, set[str]] = {}
+    for row in rows:
+        target, claim = str(row.get("target_id")), str(row.get("claim"))
+        if claim:
+            claims_by_target.setdefault(target, set()).add(claim)
+    # c2 rows are complete only when every reported row has one rail/audit
+    # location.  (Segments have plan geometry locations, openings claim rails.)
+    for target, claims in claims_by_target.items():
+        for claim in claims:
+            if f"{target}:{claim}" not in audit_map:
+                raise ScoreContractError("score_sidecar_invalid", "scoring.render_totality",
+                                         context={"reason": "claim_not_rendered"})
+
+
+def render_typed_grade(*, gt_document, payload: object, score_bindings: object | None = None) -> tuple[Image.Image, dict[str, str]]:
+    """Render validated v3 polygons without the legacy rectangular transform.
+
+    World geometry and elevation projection are already normalized by the
+    judge's reviewed bindings.  This renderer deliberately does not read any
+    product mirror/local-x flags; it only records bindings as an audited input.
+    """
+    from src.agent.judge.gt_render_model import gt_to_render_model
+    from src.agent.judge.gt_schema import GroundTruthV3
+
+    if not isinstance(gt_document, GroundTruthV3):
+        raise ValueError("typed grade renderer requires GroundTruthV3")
+    model = gt_to_render_model(gt_document)
+    floors = model.floors
+    if not floors:
+        raise ValueError("typed grade renderer requires floors")
+    width, height, margin, gap = 420, 360, 36, 28
+    image = Image.new("RGBA", (max(500, len(floors) * (width + gap)), height + 110), (*BG, 255))
+    draw = ImageDraw.Draw(image)
+    draw.text((14, 12), "C2 typed grade — actual polygons", font=_font(18), fill=TEXT)
+    if score_bindings is not None:
+        draw.text((14, 38), "projection: reviewed score bindings", font=_font(11), fill=SUBTLE)
+    audit: dict[str, str] = {}
+    payload_dict = _typed_payload_dict(payload)
+    rows_by_target: dict[str, list[dict]] = {}
+    for row in _typed_claim_rows(payload_dict):
+        rows_by_target.setdefault(str(row.get("target_id")), []).append(row)
+
+    for index, floor in enumerate(floors):
+        points = floor.footprint_exterior
+        xs, ys = zip(*points)
+        min_x, max_x, min_y, max_y = min(xs), max(xs), min(ys), max(ys)
+        scale = min((width - 2 * margin) / max(max_x - min_x, .1), (height - 2 * margin) / max(max_y - min_y, .1))
+        ox, oy = index * (width + gap), 82
+        def px(point):
+            return (ox + margin + (point[0] - min_x) * scale,
+                    oy + margin + (max_y - point[1]) * scale)
+        draw.text((ox + 12, 62), f"{floor.floor_id}  polygon", font=_font(13), fill=TEXT)
+        for polygon in floor.zone_polygons:
+            draw.polygon([px(point) for point in polygon.exterior], fill=GT_FILL, outline=GT_EDGE, width=1)
+            draw.text(px(polygon.exterior[0]), polygon.id[-14:], font=_font(10), fill=SUBTLE)
+        outline = [px(point) for point in points]
+        draw.line(outline + [outline[0]], fill=REFERENCE, width=3)
+        segments = {segment.id: segment for segment in floor.boundary_segments}
+        for segment in floor.boundary_segments:
+            draw.line((px(segment.p1), px(segment.p2)), fill=TRUTH, width=3)
+            midpoint = ((px(segment.p1)[0] + px(segment.p2)[0]) / 2, (px(segment.p1)[1] + px(segment.p2)[1]) / 2)
+            draw.text(midpoint, segment.id[-10:], font=_font(9), fill=SUBTLE)
+            audit[segment.id] = f"plan:{floor.floor_id}:{segment.id}"
+        rail_y = oy + height - 18
+        for n, opening in enumerate(floor.openings):
+            segment = segments[opening.segment_id]
+            # Segment endpoints provide the actual polygon boundary geometry;
+            # along is canonical world coordinate, never a W/D surrogate.
+            if segment.facade_family in {"North", "South"}:
+                p0, p1 = (opening.world_along_interval[0], segment.p1[1]), (opening.world_along_interval[1], segment.p1[1])
+            else:
+                p0, p1 = (segment.p1[0], opening.world_along_interval[0]), (segment.p1[0], opening.world_along_interval[1])
+            draw.line((px(p0), px(p1)), fill=GREEN, width=5)
+            draw.text(px(p0), opening.id[-12:], font=_font(9), fill=TEXT)
+            audit[opening.id] = f"plan:{floor.floor_id}:{opening.id}"
+            for claim_index, row in enumerate(rows_by_target.get(opening.id, ())):
+                claim = str(row.get("claim"))
+                x0 = int(ox + 10 + (claim_index % 7) * 55)
+                y0 = int(rail_y - (n * 20))
+                box = (x0, y0, x0 + 48, y0 + 14)
+                result = row.get("result")
+                na_reason = row.get("na_reason")
+                if result == "not_applicable" or na_reason:
+                    _typed_hatch(image, box)
+                    draw.text((x0, y0 - 10), "PLAN-ONLY · z NA" if claim in {"sill", "head"} and opening.z_interval is None else str(na_reason or "NA")[:12], font=_font(7), fill=SUBTLE)
+                else:
+                    draw.rectangle(box, fill=GREEN if result == "complete" else ORANGE if result == "within_tolerance" else RED)
+                audit[f"{opening.id}:{claim}"] = f"rail:{floor.floor_id}:{opening.id}:{claim}"
+
+    # Explicit top-level NA/REJECTED boards are gray/red information surfaces,
+    # never fake geometric score colours.
+    if payload_dict.get("kind") == "not_applicable":
+        _typed_hatch(image, (0, 0, image.width - 1, image.height - 1))
+        draw.text((20, image.height - 34), f"NOT APPLICABLE · {payload_dict.get('reason', 'unknown')}", font=_font(16), fill=TEXT)
+    elif payload_dict.get("kind") == "rejected":
+        draw.rectangle((0, image.height - 48, image.width, image.height), fill=(255, 235, 235, 255))
+        draw.text((20, image.height - 34), f"REJECTED · {payload_dict.get('gate_id', '')} · {payload_dict.get('error_code', '')}", font=_font(14), fill=RED)
+    validate_typed_render_totality(model=model, payload=payload_dict, audit_map=audit)
+    return image.convert("RGB"), audit
+
+
+def render_score_grade_png(*, gt, identity, payload) -> bytes:
+    """Shared score-service render entry; v2 continues through ``render_grade``."""
+    from src.agent.judge.gt_schema import GroundTruthV3
+    if isinstance(gt, GroundTruthV3):
+        image, _audit = render_typed_grade(gt_document=gt, payload=payload)
+    else:
+        # The service only sends legacy dictionaries here.  Keeping this call
+        # preserves legacy renderer pixels exactly.
+        body = _typed_payload_dict(payload)
+        image = render_grade(str(body.get("stage", "0_reading")), body, gt)
+    buffer = io.BytesIO(); image.save(buffer, format="PNG")
+    return buffer.getvalue()
 
 
 def main() -> None:
