@@ -73,4 +73,14 @@ B4/B5 真实路径测试确实走完整真实链：typed `GroundTruthV3`（`make
 - **bug 修活体自证（主控亲手抽查）**：临时把 `_lies_on_exterior` 改 `return False` → `test_b4b_r1_gt_interior_pairing_and_invariant_raises` 变红（tiled exterior 边误落 `invalid_interior_edge_pair` at segment_score.py:112）→ **修必要、测试真锁**；随后还原、工作树零残留。判 8 行局部几何 helper + 亲核 + 探针 + 测试锁充分，不需再起 Opus 定向复审。
 - **独立全量 pytest**：**1193 passed + 9 xfailed**（Phase B 交付基线 1190 + 返工 +3）。
 
-**裁决：B4b Phase B CLOSED**（出口 gate B4B-B1..B5 全落真断言）。伪 ledger 假绿风险在头号审已排除+返工补齐未测轴；升一档审首轮抓 2 MAJOR shipped-untested + 返工暴露 1 真 bug = **审阶梯价值又一次实证**；返工 1 轮全闭（MINOR-2/NIT 登记挂账）。**下一站 B4b Phase C 依赖 REC-C**（Va 公共合同保持 v1 + B4a elevation/source refs 已落，REC-C 待做）。
+**裁决：B4b Phase B CLOSED**（出口 gate B4B-B1..B5 全落真断言）。伪 ledger 假绿风险在头号审已排除+返工补齐未测轴；升一档审首轮抓 2 MAJOR shipped-untested + 返工暴露 1 真 bug = **审阶梯价值又一次实证**。**下一站 B4b Phase C 依赖 REC-C**（Va 公共合同保持 v1 + B4a elevation/source refs 已落，REC-C 待做）。
+
+---
+
+## 返工 r2（2026-07-17，用户拍「本轮收掉挂账」，纯测试侧零生产改动）
+
+用户定本轮收掉 r1 登记的 MINOR-2 + NIT 残留（不留挂账）。terra 续线程补，主控轻门核。
+- **MINOR-2 ✅ 闭**：`test_b4b_r2_product_declaration_deletion_repushes_reference_ledger_and_changes_only_product`(:252)——由原 `before==after` 同对象空转改为**两次独立 `derive_reference_ledger` 调用**：删 product declaration 后断 reference 的 `content_sha256` + **denominator units**（`eligible_units` 逐 claim）均不变、product `content_sha256` 变。主控亲核=真重推非 x==x，且 `derive_reference_ledger` 签名只吃 `(gt,bindings,manifest)`、结构上拿不到 product → 守恒有确定性断言 + 签名级隔离双保。
+- **NIT-1 ✅ 闭**：`derive_product_ledger` 补真断言路径。
+- **NIT-2 ✅ 闭**：新增 GT view id ≠ manifest input_id fixture，区分性验证 `source_view_to_input` 映射真实分支。
+- **主控轻门**：改动仅 `tests/test_c2_b4b_phase_b.py`（生产零改，git 确认）；独立全量 **1194 passed + 9 xfailed**。定向 84 passed。**B4b Phase B 零残留挂账**。

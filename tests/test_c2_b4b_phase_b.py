@@ -11,8 +11,8 @@ from src.agent.correction.facade_applicability import (
 from src.agent.execution.manifest import hash_obj
 from src.agent.execution.view_manifest import CompletenessAssertion, Coverage, OpeningEvidence, RequiredViewEntry, UserSourceRef, ViewManifest
 from src.agent.judge.opening_claim_score import (
-    OpeningObservation, assign_openings, bind_correction_window_segment, build_absence_opening_claims, classify_extra_observation,
-    build_correction_host_resolver, derive_absence_ledger, derive_product_ledger, derive_reference_ledger, eligible_units, gt_to_va_visibility, fuse_source_results, score_plan_claims, summarize_claim_rows,
+    OpeningAssignment, OpeningObservation, assign_openings, bind_correction_window_segment, build_absence_opening_claims, classify_extra_observation,
+    build_correction_host_resolver, derive_absence_ledger, derive_product_ledger, derive_reference_ledger, eligible_units, gt_openings_to_va_claims, gt_to_va_visibility, fuse_source_results, score_plan_claims, summarize_claim_rows,
 )
 from src.agent.judge.score_inputs import frame_transform_sha256, materialize_va_elevation_bindings
 from src.agent.judge.score_schema import CLAIM_ORDER, ElevationScoreViewBindingV1, JudgeScoreConfigV1, JudgeScoreViewBindingsV1, PlanScoreViewBindingV1, ScoreContractError, canonical_sha256
@@ -240,18 +240,27 @@ def test_b4b_real_trusted_negative_conflict_is_scored_from_va():
     assert next(row for row in rows if row.target_id == target.id and row.claim == "along").result == "conflict"
 
 
-def test_b4b_b4_product_declaration_deletion_changes_only_product_va_not_reference_denominator():
-    from test_c2_va_applicability import fixture, invoke, opening
-    vm, visibility, elevation = fixture(visible=((0., 1.),))
-    reference = invoke(vm, visibility, (elevation,), (opening(elevation=("along",)),))
-    before = eligible_units(claim=reference.openings[0].claims[2], target_kind="window")[0]
-    # Product's declaration is deliberately a separate Va call.  Removing it
-    # may alter that product ledger, but cannot mutate the reference object.
-    declared = invoke(vm, visibility, (elevation,), (opening(elevation=("along",)),))
-    deleted = invoke(vm, visibility, (elevation,), (opening(elevation=()),))
-    after = eligible_units(claim=reference.openings[0].claims[2], target_kind="window")[0]
-    assert before == after == pytest.approx(.5)
-    assert declared.content_sha256 != deleted.content_sha256
+def test_b4b_r2_source_view_id_is_distinct_from_manifest_input_id():
+    gt, manifest, bindings = real_va_context(); reference = derive_reference_ledger(gt=gt, bindings=bindings, effective_manifest=manifest)
+    target = next(item for item in gt.openings if item.kind == "window")
+    observation = OpeningObservation("alias", "F1", "window", target.boundary_segment_id, (target.world_along_interval.lo, target.world_along_interval.hi), "gt-plan-view")
+    assignment = OpeningAssignment(matched=((target, observation),), unmatched_targets=(), unmatched_observations=())
+    rows = score_plan_claims(gt=gt, ledger=reference, assignment=assignment, config=config(), host_results={target.id:"complete"}, source_view_to_input={"gt-plan-view":"plan-F1"})
+    assert next(row for row in rows if row.target_id == target.id and row.claim == "host").result == "complete"
+
+
+def test_b4b_r2_product_declaration_deletion_repushes_reference_ledger_and_changes_only_product():
+    gt, manifest, bindings = real_va_context(); visibility = gt_to_va_visibility(gt)
+    views = materialize_va_elevation_bindings(score_bindings=bindings, effective_manifest=manifest)
+    declared = gt_openings_to_va_claims(gt=gt, bindings=bindings, effective_manifest=manifest)
+    reference_before = derive_reference_ledger(gt=gt, bindings=bindings, effective_manifest=manifest)
+    product_before = derive_product_ledger(visibility=visibility, manifest=manifest, elevation_views=views, openings=declared)
+    deleted = tuple(row.model_copy(update={"claims":tuple(item.model_copy(update={"positive_evidence":()}) for item in row.claims)}) for row in declared)
+    product_after = derive_product_ledger(visibility=visibility, manifest=manifest, elevation_views=views, openings=deleted)
+    reference_after = derive_reference_ledger(gt=gt, bindings=bindings, effective_manifest=manifest)
+    units = lambda ledger: tuple((item.opening_id, claim.claim, eligible_units(claim=claim, target_kind="window" if item.opening_id == "O1" else "door")[0]) for item in ledger.openings for claim in item.claims)
+    assert reference_before.content_sha256 == reference_after.content_sha256 and units(reference_before) == units(reference_after)
+    assert product_before.content_sha256 != product_after.content_sha256
 
 
 def test_b4b_b3_gt_to_va_uses_public_vg_and_preserves_concave_multisegment_fixture():

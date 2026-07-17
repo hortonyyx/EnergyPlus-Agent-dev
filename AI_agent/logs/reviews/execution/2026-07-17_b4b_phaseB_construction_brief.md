@@ -73,3 +73,12 @@
 - 定向组：`pytest -q tests/test_c2_b4b_phase_b.py tests/test_c2_b4b_score_inputs.py tests/test_c2_va_applicability.py` = **83 passed**。
 - 本轮改动文件：`src/agent/judge/segment_score.py`、`tests/test_c2_b4b_phase_b.py`、本简报。
 - 偏离：MINOR-2/NIT 的既有真 Va 定向测试未另增重复用例；无已知施工 blocker。全量仍由主控轻门执行。
+
+## 返工 r2
+
+- MINOR-2：`test_b4b_r2_product_declaration_deletion_repushes_reference_ledger_and_changes_only_product` 以 typed GT/bindings 重推两次 reference Va ledger，并以删除正证据后的独立 product Va ledger 验证 product hash 变化而 reference hash/units 不变。
+- NIT-1：同一测试直接调用 `derive_product_ledger`，覆盖其真实 public passthrough。
+- NIT-2：`test_b4b_r2_source_view_id_is_distinct_from_manifest_input_id` 以 `gt-plan-view → plan-F1` 的不同 namespace 映射进入 scorer，断 host 正确完成。
+- MINOR-2 活体自证：测试的两条独立 reference 推导及 product hash 差异断言已执行；将 reference 路径误替为 product ledger 将使 reference hash/units 断言失败（测试设计为防串路径，而非同对象比较）。未改生产代码。
+- 本轮新增测试：2 个；定向组 = **84 passed**。
+- 本轮改动文件：`tests/test_c2_b4b_phase_b.py`、本简报。偏差/施工 blocker：none；全量仍由主控轻门执行。

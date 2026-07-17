@@ -77,11 +77,11 @@ EnergyPlus 经 `WorkflowTool.run_simulation`（eppy + ConverterManager，idfpy �
 
 ## 2. 当前开发状态
 
-- **分支** `6.15_ValidationArchM0toM4`（已推 origin）；测试 **1193 绿 + 9 strict xfail**（golden 精确重建待 sm21 批次重录、xfail 带 reason；2 个 legacy golden〔sm20/run_2026-06-15、sm21/run_2026-06-16_opus〕无编排账本→run_state=incomplete，待批次重录自愈）。
+- **分支** `6.15_ValidationArchM0toM4`（已推 origin）；测试 **1194 绿 + 9 strict xfail**（golden 精确重建待 sm21 批次重录、xfail 带 reason；2 个 legacy golden〔sm20/run_2026-06-15、sm21/run_2026-06-16_opus〕无编排账本→run_state=incomplete，待批次重录自愈）。
 - **最新里程碑** = **C2 B4a Phase D + B4b Phase B 双 CLOSED**（B4a 全系列 A–D 收官 + 段级 plan scorer，2026-07-17 Opus 主控续场，1148→1193 绿；同日 REC-B PASS + CLAUDE 状态巨行整理）。**完整里程碑史（倒序、含每轮 commits / 审轨 / 产物指针）看 [decision_log.md §A](decision_log.md)；本节不再叠加历史。**
 - **主控 / 协作现状**：主控 = **Opus 4.8**（整场不切模型）；Fable5 降三类点射（规划出稿 / 工程细稿最高档交叉审 / 大节点复核会诊）；执行审升一档交叉、排工拍板制、谁写谁不批（详 §5 + [decision_log.md](decision_log.md) 07-16「主控降档拍板」条）。
 - **已落地能力盘面**（详见 [decision_log.md §A](decision_log.md)）：0–5 校验架构 M0–M4 + 逐段 judge-in-the-loop 编排 + 离线 3D 几何查看器 + 自包含 baseline（anchor+gt）+ 单一 `flow` 编排 SOP + 判卷可视化统一模型（gt 逐元素对账）+ CV 工具箱（弱 VLM「量而非看」迁移性坐实）+ 污染硬隔离机制化 + 命名/外包确定性化 + report/ 策展汇报 + 双模型家族协作规约。C2 收官批陆续 CLOSED：B0 / B1（Cell.polygon）/ B2 / B2b / B3 / B-M（view_manifest）/ B-O（真北 Relative 出口契约）/ Vg（立面可见性）/ Va（opening 适用性）/ **B4a Phase A–D 收官**（GT schema v3 strict wire + DXF round-trip 提取 + 统一 render model/overlay v3）/ **B4b Phase A–B**（score identity/config/sidecar v8 + 段级 plan scorer〔segment/opening/Va 计分/精确 denominator〕）；strict v3 子类族 + floor footprint 单一权威 + 统一 finalize 已就位；GT-to-Va 计分侧 judge-only、Va 唯一 applicability 引擎。
-- **下一步**（滚动计划见 [plan.md](plan.md)）：① 排工表待拍——候选 **B4b Phase C 施工**（elevation projection/fusion/policy-verdict/capability 完整面，**依赖 REC-C**〔Va 公共合同保持 v1 + B4a elevation/source refs 已落、逐字对账门待做〕）；之后 B4b Phase D → B5 → B5b → B6；等用户 sm25-L/sm26-U 图 + sm24 DXF。**B4b Phase B 残留挂账**：MINOR-2 declaration-deletion 守恒 guard 弱 + NIT product-ledger/view-id 区分，下批碰 reference/product 路径时收紧。② **standing gate**：sm21 批次重跑（reading-honest + judge 两轴 recoverability + auto re-read + 新命名攒齐一次性跑）→ 同时重录 sm20/sm21 golden（撤 9 个 xfail、strict→XPASS 会提醒）→ 结果不错则可合并 main。
+- **下一步**（滚动计划见 [plan.md](plan.md)）：① 排工表待拍——候选 **B4b Phase C 施工**（elevation projection/fusion/policy-verdict/capability 完整面，**依赖 REC-C**〔Va 公共合同保持 v1 + B4a elevation/source refs 已落、逐字对账门待做〕）；之后 B4b Phase D → B5 → B5b → B6；等用户 sm25-L/sm26-U 图 + sm24 DXF。（B4b Phase B 零残留挂账——MINOR-2 守恒 guard + NIT 已于 2026-07-17 返工 r2 收掉。）② **standing gate**：sm21 批次重跑（reading-honest + judge 两轴 recoverability + auto re-read + 新命名攒齐一次性跑）→ 同时重录 sm20/sm21 golden（撤 9 个 xfail、strict→XPASS 会提醒）→ 结果不错则可合并 main。
 
 ---
 
