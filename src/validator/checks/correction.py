@@ -21,6 +21,7 @@ from typing import TYPE_CHECKING, Any
 
 from src.agent.correction.geometry_validator import (
     GeometryFinding,
+    check_window_host_resolution,
     validate_corrected_geometry,
 )
 from src.agent.correction.cell_geometry import cell_polygon_vertices
@@ -54,6 +55,7 @@ _INVARIANT_CHECKS = {
     "correction.coverage",
     "correction.nondegenerate",
     "correction.zstack_continuity",
+    "correction.window_host_resolution",
 }
 _CROSSCHECK_CHECKS = {
     "correction.zone_count_tripwire",
@@ -87,6 +89,8 @@ def _add_finding(rep: CheckReport, f: GeometryFinding) -> None:
 def check_correction(
     geom: CorrectedGeometry,
     *,
+    window_host_proof=None,
+    window_evidence=None,
     expected_zone_total: int | None = None,
     raw_geom: CorrectedGeometry | None = None,
     relied_on_testdata: bool = False,
@@ -112,6 +116,15 @@ def check_correction(
     _schema_profile_compatibility(rep, geom, capability_profile)
     for f in validate_corrected_geometry(geom, expected_zone_total=expected_zone_total):
         _add_finding(rep, f)
+    if str(geom.schema_version) == "3":
+        _add_finding(
+            rep,
+            check_window_host_resolution(
+                geom,
+                proof=window_host_proof,
+                evidence=window_evidence,
+            ),
+        )
 
     _cross_image_reconcile(rep, geom, elevation_widths)
     _facade_frame_cross_check(rep, geom, reading_views)

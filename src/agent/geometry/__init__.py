@@ -13,6 +13,15 @@ per-floor footprint, voids, openness) upstream in correction; this kernel only
 realizes that intent deterministically.
 """
 
-from src.agent.geometry.build import BuildingGeometry, Surface, Window, build_geometry
+from src.agent.geometry.build import (
+    BuildingGeometry,
+    Surface,
+    VerifiedWindowHostProof,
+    Window,
+    build_geometry,
+)
 
-__all__ = ["BuildingGeometry", "Surface", "Window", "build_geometry"]
+__all__ = [
+    "BuildingGeometry", "Surface", "VerifiedWindowHostProof", "Window",
+    "build_geometry",
+]

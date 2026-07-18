@@ -59,6 +59,7 @@ def _unit(n: np.ndarray) -> np.ndarray:
 def check_kernel(
     bg: BuildingGeometry,
     *,
+    window_host_proof=None,
     capability_profile: str = "rectangular",
     interzone_issues: list[str] | None = None,
     run_profile: RunProfile = "exploratory",
@@ -72,6 +73,7 @@ def check_kernel(
     _normals(rep, bg)
     _pairing_gate(rep, bg, interzone_issues)
     _spec_self_consistency(rep, bg)
+    _window_parent_binding(rep, bg, window_host_proof)
     _coverage_completeness(rep, bg, capability_profile)
     return rep
 
@@ -231,6 +233,147 @@ def _spec_self_consistency(rep: CheckReport, bg: BuildingGeometry) -> None:
                      f"{len(bad)} spec reference defect(s)", evidence={"offenders": bad})
     else:
         rep.add_pass("kernel.spec_self_consistency", CheckLayer.INVARIANT)
+
+
+def _window_parent_binding(rep: CheckReport, bg: BuildingGeometry, proof) -> None:
+    check_id = "kernel.window_parent_binding"
+    if bg.geometry_contract == "legacy":
+        if proof is not None:
+            rep.add_fail(
+                check_id,
+                CheckLayer.INVARIANT,
+                "legacy built geometry must not carry B5 proof",
+            )
+        else:
+            rep.add(
+                check_id,
+                CheckStatus.NOT_APPLICABLE,
+                CheckLayer.INVARIANT,
+                message="legacy geometry contract",
+            )
+        return
+    if bg.geometry_contract != "c2_b5_v1":
+        rep.add_fail(check_id, CheckLayer.INVARIANT, "unknown building geometry contract")
+        return
+    if proof is None:
+        rep.add_fail(check_id, CheckLayer.INVARIANT, "B5 built geometry requires host proof")
+        return
+
+    from src.agent.correction.config import load_core_tolerances
+    from src.agent.correction.window_host import WindowHostClaimsV1, WindowHostsArtifactV1
+    from src.agent.geometry.build import VerifiedWindowHostProof
+    from src.agent.geometry.modelling import (
+        SegmentLine2D,
+        _v3_parent_candidates,
+        window_verts_on_line,
+    )
+
+    if isinstance(proof, VerifiedWindowHostProof):
+        try:
+            claims = WindowHostsArtifactV1.model_validate_json(
+                proof.raw_window_hosts_bytes,
+            ).claims
+        except ValueError as exc:
+            rep.add_fail(
+                check_id,
+                CheckLayer.INVARIANT,
+                "B5 proof artifact is invalid",
+                evidence={"reason": str(exc)},
+            )
+            return
+    elif isinstance(proof, WindowHostClaimsV1):
+        claims = proof
+    else:
+        rep.add_fail(check_id, CheckLayer.INVARIANT, "unsupported B5 proof type")
+        return
+
+    issues: list[dict] = []
+    resolution_ids = [row.window_id for row in claims.resolutions]
+    built_ids = [window.source_window_id for window in bg.windows]
+    if (
+        any(value is None for value in built_ids)
+        or len(built_ids) != len(set(built_ids))
+        or set(built_ids) != set(resolution_ids)
+    ):
+        issues.append({
+            "reason": "window_totality",
+            "built_ids": sorted(str(value) for value in built_ids),
+            "resolution_ids": sorted(resolution_ids),
+        })
+    built_by_id = {window.source_window_id: window for window in bg.windows}
+    surfaces = {surface.name: surface for surface in bg.surfaces}
+    zone_by_cell = {volume.cell_id: volume.zone for volume in bg.zone_volumes}
+    tolerances = load_core_tolerances()
+    for resolution in claims.resolutions:
+        built = built_by_id.get(resolution.window_id)
+        if built is None:
+            continue
+        prefix = {"window_id": resolution.window_id}
+        if (
+            built.facade_segment_id != resolution.facade_segment_id
+            or built.host_resolution_sha256 != resolution.resolution_sha256
+        ):
+            issues.append({**prefix, "reason": "built_identity"})
+        parent = surfaces.get(built.parent)
+        if parent is None:
+            issues.append({**prefix, "reason": "parent_missing"})
+            continue
+        zone = zone_by_cell.get(resolution.room_id)
+        if zone is None:
+            issues.append({**prefix, "reason": "room_zone_missing"})
+            continue
+        try:
+            candidates = _v3_parent_candidates(
+                surfaces=bg.surfaces,
+                zone=zone,
+                resolution=resolution,
+                plane_epsilon=tolerances.window_host_plane_epsilon_m,
+                span_epsilon=tolerances.window_host_span_epsilon_m,
+            )
+        except ValueError as exc:
+            issues.append({**prefix, "reason": "parent_geometry", "detail": str(exc)})
+            continue
+        candidate_names = [surface.name for surface, _line in candidates]
+        if candidate_names != [built.parent]:
+            issues.append({
+                **prefix,
+                "reason": "parent_unique",
+                "declared_parent": built.parent,
+                "candidate_parents": sorted(candidate_names),
+            })
+        try:
+            fresh_vertices = window_verts_on_line(
+                host_line=SegmentLine2D(
+                    (resolution.segment_p1.x, resolution.segment_p1.y),
+                    (resolution.segment_p2.x, resolution.segment_p2.y),
+                ),
+                parameter_interval=(
+                    resolution.segment_parameter_interval.lo,
+                    resolution.segment_parameter_interval.hi,
+                ),
+                z_interval=(resolution.z_interval.lo, resolution.z_interval.hi),
+                outward_normal_xy=tuple(
+                    float(value) for value in resolution.segment_outward_normal
+                ),
+            )
+        except ValueError as exc:
+            issues.append({**prefix, "reason": "line_geometry", "detail": str(exc)})
+        else:
+            if built.verts != fresh_vertices:
+                issues.append({**prefix, "reason": "built_vertices"})
+    if issues:
+        rep.add_fail(
+            check_id,
+            CheckLayer.INVARIANT,
+            f"{len(issues)} built window parent-binding defect(s)",
+            evidence={"offenders": issues},
+        )
+    else:
+        rep.add_pass(
+            check_id,
+            CheckLayer.INVARIANT,
+            evidence={"windows": len(resolution_ids)},
+        )
 
 
 def _coverage_completeness(

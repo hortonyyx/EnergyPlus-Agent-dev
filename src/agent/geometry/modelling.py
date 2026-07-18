@@ -13,8 +13,10 @@ L-shaped rooms need no rewrite.
 
 from __future__ import annotations
 
+import math
 import re
 from dataclasses import dataclass, field
+from typing import Literal
 
 import numpy as np
 from shapely.geometry import Point
@@ -53,6 +55,9 @@ class Window:
     name: str
     parent: str             # parent wall surface name
     verts: list[tuple[float, float, float]]
+    source_window_id: str | None = None
+    facade_segment_id: str | None = None
+    host_resolution_sha256: str | None = None
 
 
 @dataclass
@@ -79,6 +84,49 @@ class BuildingGeometry:
     windows: list[Window] = field(default_factory=list)
     notes: list[str] = field(default_factory=list)
     zone_volumes: list[ZoneVolume] = field(default_factory=list)  # for serialization
+    geometry_contract: Literal["legacy", "c2_b5_v1"] = "legacy"
+
+
+@dataclass(frozen=True)
+class SegmentLine2D:
+    """A finite, directed 2-D host line.
+
+    The direction is part of the contract: callers must preserve ``p1 -> p2``
+    when materialising parameter intervals, including negative world axes.
+    """
+
+    p1: tuple[float, float]
+    p2: tuple[float, float]
+
+    def __post_init__(self) -> None:
+        values = (*self.p1, *self.p2)
+        if not all(math.isfinite(float(value)) for value in values):
+            raise ValueError("host line coordinates must be finite")
+        if self.p1 == self.p2:
+            raise ValueError("host line must have positive length")
+
+    def point_at(self, t: float) -> tuple[float, float]:
+        if not math.isfinite(float(t)):
+            raise ValueError("host line parameter must be finite")
+        return (
+            float(self.p1[0]) + (float(self.p2[0]) - float(self.p1[0])) * float(t),
+            float(self.p1[1]) + (float(self.p2[1]) - float(self.p1[1])) * float(t),
+        )
+
+    def parameter_of(self, point: tuple[float, float]) -> float:
+        if len(point) != 2 or not all(math.isfinite(float(value)) for value in point):
+            raise ValueError("host line point must contain two finite coordinates")
+        dx = float(self.p2[0]) - float(self.p1[0])
+        dy = float(self.p2[1]) - float(self.p1[1])
+        denom = dx * dx + dy * dy
+        t = (
+            (float(point[0]) - float(self.p1[0])) * dx
+            + (float(point[1]) - float(self.p1[1])) * dy
+        ) / denom
+        qx, qy = self.point_at(t)
+        if abs(qx - float(point[0])) > 1e-12 or abs(qy - float(point[1])) > 1e-12:
+            raise ValueError("point is not on host line")
+        return t
 
 
 class NameRegistry:
@@ -300,7 +348,7 @@ _FACADE_NORMAL = {
 }
 
 
-def _window_verts(w, parent: Surface) -> list:
+def _legacy_cardinal_window_verts(w, parent: Surface) -> list:
     """Window rectangle on the parent wall's plane, CCW from outside."""
     span = sorted(float(s) for s in w.span)
     z0, z1 = sorted(float(z) for z in w.z)
@@ -313,6 +361,66 @@ def _window_verts(w, parent: Surface) -> list:
         v = [(x, span[0], z0), (x, span[1], z0), (x, span[1], z1), (x, span[0], z1)]
     # orient to match the parent wall's outward normal
     return _orient(v, _newell(parent.verts))
+
+
+def _validate_window_line_inputs(
+    *,
+    host_line: SegmentLine2D,
+    parameter_interval: tuple[float, float],
+    z_interval: tuple[float, float],
+    outward_normal_xy: tuple[float, float],
+) -> None:
+    if len(parameter_interval) != 2:
+        raise ValueError("parameter_interval must contain exactly two values")
+    if len(z_interval) != 2:
+        raise ValueError("z_interval must contain exactly two values")
+    if len(outward_normal_xy) != 2:
+        raise ValueError("outward_normal_xy must contain exactly two values")
+    t0, t1 = (float(value) for value in parameter_interval)
+    z0, z1 = (float(value) for value in z_interval)
+    nx, ny = (float(value) for value in outward_normal_xy)
+    if not all(math.isfinite(value) for value in (t0, t1, z0, z1, nx, ny)):
+        raise ValueError("window line inputs must be finite")
+    if not 0.0 <= t0 < t1 <= 1.0:
+        raise ValueError("parameter_interval requires 0 <= t0 < t1 <= 1")
+    if not z0 < z1:
+        raise ValueError("z_interval requires z0 < z1")
+    normal_length = math.hypot(nx, ny)
+    if abs(normal_length - 1.0) > 1e-12:
+        raise ValueError("outward_normal_xy must be a unit vector")
+    dx = float(host_line.p2[0]) - float(host_line.p1[0])
+    dy = float(host_line.p2[1]) - float(host_line.p1[1])
+    line_length = math.hypot(dx, dy)
+    if abs((dx * nx + dy * ny) / line_length) > 1e-12:
+        raise ValueError("outward_normal_xy must be perpendicular to host_line")
+
+
+def window_verts_on_line(
+    *,
+    host_line: SegmentLine2D,
+    parameter_interval: tuple[float, float],
+    z_interval: tuple[float, float],
+    outward_normal_xy: tuple[float, float],
+) -> list[tuple[float, float, float]]:
+    """Materialise a window rectangle from only line, parameters, z and normal."""
+    _validate_window_line_inputs(
+        host_line=host_line,
+        parameter_interval=parameter_interval,
+        z_interval=z_interval,
+        outward_normal_xy=outward_normal_xy,
+    )
+    t0, t1 = parameter_interval
+    z0, z1 = z_interval
+    q0x, q0y = host_line.point_at(t0)
+    q1x, q1y = host_line.point_at(t1)
+    v = [
+        (q0x, q0y, z0),
+        (q1x, q1y, z0),
+        (q1x, q1y, z1),
+        (q0x, q0y, z1),
+    ]
+    nx, ny = outward_normal_xy
+    return _orient(v, np.array([nx, ny, 0.0], dtype=float))
 
 
 def _find_parent_wall(surfaces: list[Surface], zone: str, w) -> Surface | None:
@@ -498,7 +606,7 @@ def attach_windows(
         if parent is None:
             notes.append(f"window {w.id}: no exterior wall on {w.facade} for {w.room}")
             continue
-        verts = _window_verts(w, parent)
+        verts = _legacy_cardinal_window_verts(w, parent)
         if verts:
             win = Window("", parent.name, verts)
             windows.append(win)
@@ -526,3 +634,249 @@ def attach_windows(
             win.name = f"{parent}_Win{idx}"
             named.append(win)
     return named, notes
+
+
+class WindowParentBindingError(ValueError):
+    """Typed, blocking B5 geometry-realisation failure."""
+
+    def __init__(self, code: str, *, window_id: str, context: dict | None = None):
+        self.code = code
+        self.window_id = window_id
+        self.context = dict(context or {})
+        super().__init__(f"{code}: window={window_id}: {self.context}")
+
+
+def _surface_base_line(surface: Surface, *, window_id: str) -> SegmentLine2D:
+    points: list[tuple[float, float]] = []
+    for vertex in surface.verts:
+        point = (float(vertex[0]), float(vertex[1]))
+        if point not in points:
+            points.append(point)
+    if len(points) != 2:
+        raise WindowParentBindingError(
+            "invalid_host_line",
+            window_id=window_id,
+            context={"surface": surface.name, "xy_point_count": len(points)},
+        )
+    try:
+        return SegmentLine2D(points[0], points[1])
+    except ValueError as exc:
+        raise WindowParentBindingError(
+            "invalid_host_line",
+            window_id=window_id,
+            context={"surface": surface.name},
+        ) from exc
+
+
+def _point_line_residual(point: tuple[float, float], line: SegmentLine2D) -> float:
+    dx = float(line.p2[0]) - float(line.p1[0])
+    dy = float(line.p2[1]) - float(line.p1[1])
+    return abs(
+        dx * (float(line.p1[1]) - float(point[1]))
+        - (float(line.p1[0]) - float(point[0])) * dy
+    ) / math.hypot(dx, dy)
+
+
+def _line_contains_point(
+    line: SegmentLine2D,
+    point: tuple[float, float],
+    *,
+    plane_epsilon: float,
+    span_epsilon: float,
+) -> bool:
+    if _point_line_residual(point, line) > plane_epsilon:
+        return False
+    dx = float(line.p2[0]) - float(line.p1[0])
+    dy = float(line.p2[1]) - float(line.p1[1])
+    denom = dx * dx + dy * dy
+    t = (
+        (float(point[0]) - float(line.p1[0])) * dx
+        + (float(point[1]) - float(line.p1[1])) * dy
+    ) / denom
+    parameter_epsilon = span_epsilon / math.sqrt(denom)
+    return -parameter_epsilon <= t <= 1.0 + parameter_epsilon
+
+
+def _polygon_area_3d(verts: list[tuple[float, float, float]]) -> float:
+    if len(verts) < 3:
+        return 0.0
+    origin = np.asarray(verts[0], dtype=float)
+    area_vector = np.zeros(3, dtype=float)
+    for index in range(1, len(verts) - 1):
+        area_vector += np.cross(
+            np.asarray(verts[index], dtype=float) - origin,
+            np.asarray(verts[index + 1], dtype=float) - origin,
+        )
+    return float(np.linalg.norm(area_vector)) / 2.0
+
+
+def _v3_parent_candidates(
+    *,
+    surfaces: list[Surface],
+    zone: str,
+    resolution,
+    plane_epsilon: float,
+    span_epsilon: float,
+) -> list[tuple[Surface, SegmentLine2D]]:
+    segment_line = SegmentLine2D(
+        (resolution.segment_p1.x, resolution.segment_p1.y),
+        (resolution.segment_p2.x, resolution.segment_p2.y),
+    )
+    endpoints = tuple(
+        (point.x, point.y)
+        for point in resolution.clamped_plan_endpoints_p1_to_p2
+    )
+    want_nx, want_ny = resolution.segment_outward_normal
+    matches: list[tuple[Surface, SegmentLine2D]] = []
+    for surface in surfaces:
+        if surface.zone != zone or surface.stype != "Wall" or surface.obc != "Outdoors":
+            continue
+        line = _surface_base_line(surface, window_id=resolution.window_id)
+        if (
+            _point_line_residual(line.p1, segment_line) > plane_epsilon
+            or _point_line_residual(line.p2, segment_line) > plane_epsilon
+        ):
+            continue
+        normal = _newell(surface.verts)
+        if (
+            abs(float(normal[0]) - float(want_nx)) > plane_epsilon
+            or abs(float(normal[1]) - float(want_ny)) > plane_epsilon
+            or abs(float(normal[2])) > plane_epsilon
+        ):
+            continue
+        if not all(
+            _line_contains_point(
+                line,
+                endpoint,
+                plane_epsilon=plane_epsilon,
+                span_epsilon=span_epsilon,
+            )
+            for endpoint in endpoints
+        ):
+            continue
+        matches.append((surface, line))
+    return matches
+
+
+def attach_windows_v3(
+    geom: CorrectedGeometry,
+    surfaces: list[Surface],
+    zv_by_cell: dict[str, ZoneVolume],
+    registry: NameRegistry,
+    *,
+    host_claims,
+    tolerances,
+) -> list[Window]:
+    """Attach B5 windows from verified resolution records, never facade guesses."""
+    source_ids = [str(window.id) for window in geom.windows]
+    resolution_ids = [str(row.window_id) for row in host_claims.resolutions]
+    if len(source_ids) != len(set(source_ids)) or set(source_ids) != set(resolution_ids):
+        raise WindowParentBindingError(
+            "resolver_output_tampered",
+            window_id=next(iter(source_ids), "<none>"),
+            context={"source_window_ids": sorted(source_ids), "resolution_ids": sorted(resolution_ids)},
+        )
+    windows_by_id = {str(window.id): window for window in geom.windows}
+    pending: list[tuple[Window, str]] = []
+    for resolution in host_claims.resolutions:
+        source = windows_by_id[resolution.window_id]
+        if (
+            source.room != resolution.room_id
+            or source.facade_segment_id != resolution.facade_segment_id
+            or tuple(float(value) for value in source.span)
+            != (resolution.clamped_span.lo, resolution.clamped_span.hi)
+        ):
+            raise WindowParentBindingError(
+                "resolver_output_tampered",
+                window_id=resolution.window_id,
+                context={"reason": "final window identity disagrees with resolution"},
+            )
+        zone_volume = zv_by_cell.get(resolution.room_id)
+        if zone_volume is None:
+            raise WindowParentBindingError(
+                "parent_wall_zero_candidates",
+                window_id=resolution.window_id,
+                context={"reason": "resolved room has no built zone"},
+            )
+        candidates = _v3_parent_candidates(
+            surfaces=surfaces,
+            zone=zone_volume.zone,
+            resolution=resolution,
+            plane_epsilon=tolerances.window_host_plane_epsilon_m,
+            span_epsilon=tolerances.window_host_span_epsilon_m,
+        )
+        if len(candidates) != 1:
+            raise WindowParentBindingError(
+                "parent_wall_zero_candidates" if not candidates else "parent_wall_multiple_candidates",
+                window_id=resolution.window_id,
+                context={"candidate_surfaces": sorted(surface.name for surface, _line in candidates)},
+            )
+        parent, _parent_line = candidates[0]
+        host_line = SegmentLine2D(
+            (resolution.segment_p1.x, resolution.segment_p1.y),
+            (resolution.segment_p2.x, resolution.segment_p2.y),
+        )
+        verts = window_verts_on_line(
+            host_line=host_line,
+            parameter_interval=(
+                resolution.segment_parameter_interval.lo,
+                resolution.segment_parameter_interval.hi,
+            ),
+            z_interval=(resolution.z_interval.lo, resolution.z_interval.hi),
+            outward_normal_xy=tuple(float(value) for value in resolution.segment_outward_normal),
+        )
+        record_verts = [
+            (point.x, point.y, point.z) for point in resolution.clamped_vertices
+        ]
+        if verts != record_verts:
+            raise WindowParentBindingError(
+                "resolver_output_tampered",
+                window_id=resolution.window_id,
+                context={"reason": "record vertices disagree with fresh line recompute"},
+            )
+        parent_z = [float(vertex[2]) for vertex in parent.verts]
+        if (
+            min(vertex[2] for vertex in verts) < min(parent_z) - tolerances.window_host_span_epsilon_m
+            or max(vertex[2] for vertex in verts) > max(parent_z) + tolerances.window_host_span_epsilon_m
+        ):
+            raise WindowParentBindingError(
+                "parent_wall_zero_candidates",
+                window_id=resolution.window_id,
+                context={"reason": "window z interval lies outside parent"},
+            )
+        window_area = _polygon_area_3d(verts)
+        parent_area = _polygon_area_3d(parent.verts)
+        if not 0.0 < window_area < parent_area:
+            raise WindowParentBindingError(
+                "parent_wall_zero_candidates",
+                window_id=resolution.window_id,
+                context={"reason": "window area must be positive and smaller than parent"},
+            )
+        built = Window(
+            "",
+            parent.name,
+            verts,
+            source_window_id=resolution.window_id,
+            facade_segment_id=resolution.facade_segment_id,
+            host_resolution_sha256=resolution.resolution_sha256,
+        )
+        pending.append((built, resolution.window_id))
+
+    by_parent: dict[str, list[tuple[Window, str]]] = {}
+    for built, source_id in pending:
+        by_parent.setdefault(built.parent, []).append((built, source_id))
+
+    def key(item: tuple[Window, str]) -> tuple:
+        built, source_id = item
+        xs = [vertex[0] for vertex in built.verts]
+        ys = [vertex[1] for vertex in built.verts]
+        zs = [vertex[2] for vertex in built.verts]
+        along = (min(xs), max(xs)) if max(xs) - min(xs) >= max(ys) - min(ys) else (min(ys), max(ys))
+        return (_q(along[0]), _q(along[1]), _q(min(zs)), _q(max(zs)), _safe(source_id))
+
+    named: list[Window] = []
+    for parent in sorted(by_parent):
+        for index, (built, _source_id) in enumerate(sorted(by_parent[parent], key=key), start=1):
+            built.name = registry.uname(f"{parent}_Win{index}")
+            named.append(built)
+    return named

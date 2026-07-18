@@ -6,6 +6,7 @@ observations are projected exclusively through reviewed score bindings.
 """
 from __future__ import annotations
 
+import hashlib
 from dataclasses import dataclass
 from typing import Callable, Literal
 
@@ -102,7 +103,8 @@ def _opening_observations(*, payload: dict, score_bindings: object):
 
 def score_typed_attempt(*, gt_identity, gt, stage: Literal["reading", "correction"],
                         product_payload: dict, product_identity: ProductIdentityV8,
-                        base_view_manifest, score_bindings, completeness_overlay, c2_config) -> TypedScoreResult:
+                        base_view_manifest, score_bindings, completeness_overlay, c2_config,
+                        window_host_proof=None) -> TypedScoreResult:
     """Assemble the Phase A/B/C engines into the one real C2 score service."""
     from src.agent.correction.facade_applicability import FACADE_APPLICABILITY_HELPER_VERSION
     from src.agent.correction.claims import CLAIMS_VOCAB_VERSION
@@ -123,7 +125,8 @@ def score_typed_attempt(*, gt_identity, gt, stage: Literal["reading", "correctio
     effective = build_effective_view_manifest(base=base_view_manifest, overlay=completeness_overlay)
     capability = decide_score_capability(gt_identity=gt_identity, stage=stage,
                                           product_schema=product_identity.output_schema,
-                                          view_manifest=effective)
+                                          view_manifest=effective,
+                                          product_artifact_contract=product_identity.artifact_contract)
     if capability.path != "c2_v3":
         raise ScoreContractError("score_unsupported_combination", "scoring.capability",
                                  context={"reason": capability.reason or capability.path})
@@ -148,7 +151,39 @@ def score_typed_attempt(*, gt_identity, gt, stage: Literal["reading", "correctio
     geometry = None
     if stage == "correction":
         from src.agent.correction.schema import CorrectedGeometryV3
-        geometry = CorrectedGeometryV3.model_validate(product_payload)
+        from src.agent.geometry.build import (
+            VerifiedWindowHostProof,
+            _reverify_window_host_proof,
+        )
+        if not product_identity.accepted or not isinstance(
+            window_host_proof, VerifiedWindowHostProof,
+        ):
+            raise ScoreContractError(
+                "score_product_identity_invalid",
+                "scoring.input_identity",
+                context={"reason": "official_b5_requires_verified_six_artifact_input"},
+            )
+        try:
+            verified_proof = _reverify_window_host_proof(window_host_proof)
+        except ValueError as exc:
+            raise ScoreContractError(
+                "score_product_identity_invalid",
+                "scoring.input_identity",
+                context={"reason": "b5_window_host_proof_invalid"},
+            ) from exc
+        if hashlib.sha256(verified_proof.raw_output_bytes).hexdigest() != product_identity.output_sha256:
+            raise ScoreContractError(
+                "score_product_identity_invalid",
+                "scoring.input_identity",
+                context={"reason": "b5_output_hash_mismatch"},
+            )
+        geometry = CorrectedGeometryV3.model_validate_json(verified_proof.raw_output_bytes)
+        if geometry.model_dump(mode="json") != CorrectedGeometryV3.model_validate(product_payload).model_dump(mode="json"):
+            raise ScoreContractError(
+                "score_product_identity_invalid",
+                "scoring.input_identity",
+                context={"reason": "b5_product_payload_differs_from_verified_output"},
+            )
         plan_observations = extract_correction_plan_segments(geometry)
     else:
         plan_observations = coerce_plan_observations(product_payload.get("segments", ()))
@@ -177,7 +212,11 @@ def score_typed_attempt(*, gt_identity, gt, stage: Literal["reading", "correctio
                         if getattr(item, "kind", None) == "plan"}
         converted: list[OpeningObservation] = []
         for window in geometry.windows:
-            segment, _method = bind_correction_window_segment(window=window, segments=geometry.facade_segments)
+            segment, _method = bind_correction_window_segment(
+                window=window,
+                segments=geometry.facade_segments,
+                allow_temporary_binding=False,
+            )
             source = plan_sources.get(window.floor_id)
             if source is None:
                 raise ScoreContractError("score_view_binding_invalid", "scoring.view_bindings",
@@ -200,8 +239,21 @@ def score_typed_attempt(*, gt_identity, gt, stage: Literal["reading", "correctio
     }) for claim in row.claims)}) for row in reference_claims)
     va_bindings = materialize_va_elevation_bindings(score_bindings=score_bindings, effective_manifest=effective)
     product = derive_product_ledger(visibility=visibility, manifest=effective, elevation_views=va_bindings, openings=product_claims)
+    host_resolver = None
+    if geometry is not None:
+        from src.agent.judge.opening_claim_score import (
+            build_correction_host_resolver,
+            map_product_cells_to_gt_zones,
+        )
+        host_resolver = build_correction_host_resolver(
+            geometry=geometry,
+            product_to_gt_segment=product_to_gt,
+            product_to_gt_zone=map_product_cells_to_gt_zones(geometry=geometry, gt=gt),
+            allow_temporary_binding=False,
+        )
     rows = score_opening_claims_v3(gt=gt, reference_ledger=reference, product_ledger=product,
-                                   assignment=opening_assignment, config=c2_config)
+                                   assignment=opening_assignment, config=c2_config,
+                                   host_resolver=host_resolver)
     summaries = summarize_claim_rows(rows)
 
     floors = {floor.id: index + 1 for index, floor in enumerate(gt.floors)}

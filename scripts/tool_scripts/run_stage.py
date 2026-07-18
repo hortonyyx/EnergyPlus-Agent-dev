@@ -260,7 +260,10 @@ def _draw_correction(
 
     result = finalize_correction_draw(geom, vector_dir=rdir, target=target)
     geom = result.geom
-    rep = check_correction(geom, expected_zone_total=expected_zones,
+    rep = check_correction(geom,
+                           window_host_proof=result.window_host_claims,
+                           window_evidence=result.window_evidence_ledger,
+                           expected_zone_total=expected_zones,
                            relied_on_testdata=relied,
                            capability_profile=policy.capability_profile,
                            run_profile=policy.run_profile,

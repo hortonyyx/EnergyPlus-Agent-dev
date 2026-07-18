@@ -17,6 +17,7 @@ from __future__ import annotations
 
 import json
 import re
+from typing import Literal
 
 from src.agent.geometry.modelling import BuildingGeometry, Surface, Window
 
@@ -54,13 +55,35 @@ def _window_sort_key(bg: BuildingGeometry):
     return key
 
 
-def building_geometry_dict(bg: BuildingGeometry) -> dict:
+GeometryContract = Literal["legacy", "c2_b5_v1"]
+
+
+def _selected_contract(
+    bg: BuildingGeometry,
+    geometry_contract: GeometryContract | None,
+) -> GeometryContract:
+    selected = bg.geometry_contract if geometry_contract is None else geometry_contract
+    if selected not in {"legacy", "c2_b5_v1"}:
+        raise ValueError(f"unknown geometry_contract {selected!r}")
+    if selected != bg.geometry_contract:
+        raise ValueError(
+            "serializer geometry_contract must match the built geometry contract"
+        )
+    return selected
+
+
+def building_geometry_dict(
+    bg: BuildingGeometry,
+    *,
+    geometry_contract: GeometryContract | None = None,
+) -> dict:
     """Canonical JSON-able form of a BuildingGeometry — the single source of truth
     for the ``2_modelling/building_geometry.json`` artifact. The pipeline writer
     and the validator (validation_run.consistency check) both use this so the
     on-disk artifact can be reconciled against a deterministic rebuild."""
+    contract = _selected_contract(bg, geometry_contract)
     zones = _zone_order(bg)
-    return {
+    payload = {
         "zones": zones,
         "zone_meta": [
             {"name": zv.zone, "role": zv.role, "cell_id": zv.cell_id, "fi": zv.fi}
@@ -77,25 +100,59 @@ def building_geometry_dict(bg: BuildingGeometry) -> dict:
             }
             for s in sorted(bg.surfaces, key=_surface_sort_key(bg))
         ],
-        "windows": [
-            {"name": w.name, "parent": w.parent, "verts": [list(v) for v in w.verts]}
-            for w in sorted(bg.windows, key=_window_sort_key(bg))
-        ],
+        "windows": [],
     }
+    for window in sorted(bg.windows, key=_window_sort_key(bg)):
+        row = {
+            "name": window.name,
+            "parent": window.parent,
+            "verts": [list(vertex) for vertex in window.verts],
+        }
+        if contract == "c2_b5_v1":
+            if not all((
+                window.source_window_id,
+                window.facade_segment_id,
+                window.host_resolution_sha256,
+            )):
+                raise ValueError("c2_b5_v1 windows require source/segment/host proof identity")
+            row.update({
+                "source_window": window.source_window_id,
+                "facade_segment": window.facade_segment_id,
+                "host_resolution_sha256": window.host_resolution_sha256,
+            })
+        payload["windows"].append(row)
+    if contract == "c2_b5_v1":
+        payload["geometry_contract"] = contract
+    return payload
 
 
 def geometry_specs_markdown(
-    zone_specs: str, surface_specs: str, fenestration_specs: str
+    zone_specs: str,
+    surface_specs: str,
+    fenestration_specs: str,
+    *,
+    geometry_contract: GeometryContract = "legacy",
 ) -> str:
     """Canonical text of the ``3_split_pairing/geometry_specs.md`` artifact."""
+    if geometry_contract not in {"legacy", "c2_b5_v1"}:
+        raise ValueError(f"unknown geometry_contract {geometry_contract!r}")
     return (
         f"# zone_specs\n\n{zone_specs}\n\n# surface_specs\n\n{surface_specs}\n\n"
         f"# fenestration_specs\n\n{fenestration_specs}\n"
     )
 
 
-def building_geometry_json(bg: BuildingGeometry, *, indent: int = 2) -> str:
-    return json.dumps(building_geometry_dict(bg), indent=indent, ensure_ascii=False)
+def building_geometry_json(
+    bg: BuildingGeometry,
+    *,
+    indent: int = 2,
+    geometry_contract: GeometryContract | None = None,
+) -> str:
+    return json.dumps(
+        building_geometry_dict(bg, geometry_contract=geometry_contract),
+        indent=indent,
+        ensure_ascii=False,
+    )
 
 # Fixed construction vocabulary — the seam between the geometry serializer and
 # the 4_MEP author. Both reference these exact names.
@@ -171,6 +228,7 @@ def serialize_geometry(
     bg: BuildingGeometry,
     *,
     frame_label: str = "world",
+    geometry_contract: GeometryContract | None = None,
 ) -> tuple[str, str, str, set[str]]:
     """Return (zone_specs, surface_specs, fenestration_specs, used_constructions).
 
@@ -181,6 +239,7 @@ def serialize_geometry(
     """
     if frame_label not in _FRAME_LABEL_TEXT:
         raise ValueError(f"serialize_geometry: unknown frame_label {frame_label!r}")
+    contract = _selected_contract(bg, geometry_contract)
     frame_words = _FRAME_LABEL_TEXT[frame_label]
     surf_by_name = {s.name: s for s in bg.surfaces}
 
@@ -268,11 +327,58 @@ def serialize_geometry(
     used.add(CONSTRUCTION_VOCAB["window"])
     for w in sorted(bg.windows, key=_window_sort_key(bg)):
         zs = [v[2] for v in w.verts]
+        identity = ""
+        if contract == "c2_b5_v1":
+            if not all((
+                w.source_window_id,
+                w.facade_segment_id,
+                w.host_resolution_sha256,
+            )):
+                raise ValueError("c2_b5_v1 fenestration specs require proof identity")
+            identity = (
+                f"source_window={w.source_window_id}, "
+                f"segment={w.facade_segment_id}, "
+                f"host_proof={w.host_resolution_sha256}, "
+            )
         f_lines.append(
             f"- {w.name}: parent={w.parent}, "
+            f"{identity}"
             f"Construction={CONSTRUCTION_VOCAB['window']}, "
             f"z={min(zs):.2f}-{max(zs):.2f}, vertices: {_fmt_verts(w.verts)}"
         )
     fenestration_specs = "\n".join(f_lines)
 
     return zone_specs, surface_specs, fenestration_specs, used
+
+
+def check_geometry_specs_consistency(
+    bg: BuildingGeometry,
+    *,
+    building_geometry: dict,
+    geometry_specs: str,
+    frame_label: str = "world",
+    geometry_contract: GeometryContract | None = None,
+) -> None:
+    """Fail closed unless both downstream artifacts equal a fresh built projection."""
+    contract = _selected_contract(bg, geometry_contract)
+    expected_building = building_geometry_dict(bg, geometry_contract=contract)
+    zone_specs, surface_specs, fenestration_specs, _used = serialize_geometry(
+        bg,
+        frame_label=frame_label,
+        geometry_contract=contract,
+    )
+    expected_specs = geometry_specs_markdown(
+        zone_specs,
+        surface_specs,
+        fenestration_specs,
+        geometry_contract=contract,
+    )
+    issues = []
+    if building_geometry != expected_building:
+        issues.append("building_geometry")
+    if geometry_specs != expected_specs:
+        issues.append("geometry_specs")
+    if issues:
+        raise ValueError(
+            "geometry artifact consistency failed for: " + ", ".join(issues)
+        )

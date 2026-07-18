@@ -49,7 +49,12 @@ class OpeningAssignment:
     unmatched_observations: tuple[OpeningObservation, ...]
 
 
-def bind_correction_window_segment(*, window, segments: Iterable[FacadeSegment]) -> tuple[FacadeSegment, str]:
+def bind_correction_window_segment(
+    *,
+    window,
+    segments: Iterable[FacadeSegment],
+    allow_temporary_binding: bool = True,
+) -> tuple[FacadeSegment, str]:
     """Validate an explicit segment id or make the permitted temporary span binding.
 
     This is scoring-only evidence.  It never writes a canonical host back into
@@ -63,7 +68,7 @@ def bind_correction_window_segment(*, window, segments: Iterable[FacadeSegment])
         explicit = tuple(segment for segment in candidates if segment.id == window.facade_segment_id)
         if len(explicit) == 1:
             return explicit[0], "declared_segment_binding"
-    elif len(candidates) == 1:
+    elif allow_temporary_binding and len(candidates) == 1:
         return candidates[0], "temporary_unique_span_binding"
     raise ScoreContractError("score_product_segment_unresolved", "scoring.matching", context={"window_id": window.id})
 
@@ -79,22 +84,29 @@ def resolve_correction_window_host(*, geometry, window, product_segment: FacadeS
     if window.room is None:
         return "miss"
     span = tuple(window.span)
-    adjacent: list[str] = []
+    adjacent: set[str] = set()
     for cell in floor.cells:
         ring = cell.polygon if cell.polygon is not None else ((cell.x[0], cell.y[0]), (cell.x[1], cell.y[0]), (cell.x[1], cell.y[1]), (cell.x[0], cell.y[1]))
         for p1, p2 in zip(ring, tuple(ring[1:]) + (ring[0],)):
             same_line = ((p1[0] == p2[0] == product_segment.p1[0] == product_segment.p2[0]) or
                          (p1[1] == p2[1] == product_segment.p1[1] == product_segment.p2[1]))
             axis = 1 if p1[0] == p2[0] else 0
-            if same_line and min(p1[axis], p2[axis]) <= span[0] and span[1] <= max(p1[axis], p2[axis]):
-                adjacent.append(cell.id)
+            dx, dy = float(p2[0]) - float(p1[0]), float(p2[1]) - float(p1[1])
+            length = abs(dx) + abs(dy)
+            outward = None if length == 0 else (int(dy / length), int(-dx / length))
+            if (same_line and outward == tuple(product_segment.outward_normal)
+                    and min(p1[axis], p2[axis]) <= span[0]
+                    and span[1] <= max(p1[axis], p2[axis])):
+                adjacent.add(cell.id)
     if len(adjacent) != 1:
         raise ScoreContractError("score_product_segment_unresolved", "scoring.matching", context={"window_id": window.id})
-    return "complete" if window.room == adjacent[0] and product_to_gt_segment.get(product_segment.id) == gt_segment_id and product_to_gt_zone.get(adjacent[0]) == gt_zone_id else "miss"
+    adjacent_room = next(iter(adjacent))
+    return "complete" if window.room == adjacent_room and product_to_gt_segment.get(product_segment.id) == gt_segment_id and product_to_gt_zone.get(adjacent_room) == gt_zone_id else "miss"
 
 
 def build_correction_host_resolver(*, geometry, product_to_gt_segment: dict[str, str],
-                                   product_to_gt_zone: dict[str, str]) -> Callable[[GtOpeningV3, OpeningObservation], Literal["complete", "miss"]]:
+                                   product_to_gt_zone: dict[str, str],
+                                   allow_temporary_binding: bool = True) -> Callable[[GtOpeningV3, OpeningObservation], Literal["complete", "miss"]]:
     """Connect the judge-only §8.4.1 resolver to ``score_plan_claims``."""
     windows = {window.id: window for window in geometry.windows}
     segments = tuple(geometry.facade_segments)
@@ -102,13 +114,39 @@ def build_correction_host_resolver(*, geometry, product_to_gt_segment: dict[str,
         window = windows.get(observation.id)
         if window is None:
             return "miss"
-        product_segment, _ = bind_correction_window_segment(window=window, segments=segments)
+        product_segment, _ = bind_correction_window_segment(
+            window=window,
+            segments=segments,
+            allow_temporary_binding=allow_temporary_binding,
+        )
         if target.host_zone_id is None:
             return "miss"
         return resolve_correction_window_host(geometry=geometry, window=window, product_segment=product_segment,
             gt_segment_id=target.boundary_segment_id, gt_zone_id=target.host_zone_id,
             product_to_gt_segment=product_to_gt_segment, product_to_gt_zone=product_to_gt_zone)
     return resolve
+
+
+def map_product_cells_to_gt_zones(*, geometry, gt: GroundTruthV3) -> dict[str, str]:
+    """Map zones only by full polygon equality; never by center or id."""
+    from shapely.geometry import Polygon
+    from src.agent.correction.cell_geometry import cell_polygon
+
+    gt_by_floor = {
+        floor.id: tuple(
+            (zone.id, Polygon(zone.polygon.exterior.vertices)) for zone in floor.zones
+        )
+        for floor in gt.floors
+    }
+    mapping: dict[str, str] = {}
+    for floor in geometry.floors:
+        targets = gt_by_floor.get(floor.id, ())
+        for cell in floor.cells:
+            polygon = cell_polygon(cell)
+            candidates = [zone_id for zone_id, target in targets if polygon.equals(target)]
+            if len(candidates) == 1:
+                mapping[cell.id] = candidates[0]
+    return mapping
 
 
 def _interval(raw) -> ApplicabilityIntervalV1:

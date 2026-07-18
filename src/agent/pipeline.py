@@ -991,6 +991,8 @@ def run_pipeline_artifacts(
 
     correction_report = check_correction(
         geom,
+        window_host_proof=finalized.window_host_claims,
+        window_evidence=finalized.window_evidence_ledger,
         expected_zone_total=(
             expected_zone_total_from_testdata(parsed_testdata)
             if parsed_testdata is not None
@@ -1162,7 +1164,12 @@ def run_pipeline_artifacts(
     )
     if s3 is not None:
         (s3 / "geometry_specs.md").write_text(
-            geometry_specs_markdown(zone_specs, surface_specs, fenestration_specs),
+            geometry_specs_markdown(
+                zone_specs,
+                surface_specs,
+                fenestration_specs,
+                geometry_contract=bg.geometry_contract,
+            ),
             encoding="utf-8",
         )
 

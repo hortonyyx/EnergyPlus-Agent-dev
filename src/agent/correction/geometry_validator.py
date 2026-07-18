@@ -25,6 +25,7 @@ Returns plain ``GeometryFinding`` lists; severity→layer mapping is the adapter
 
 from __future__ import annotations
 
+import hashlib
 from dataclasses import dataclass, field
 
 from shapely.ops import unary_union
@@ -257,6 +258,152 @@ def check_windows_on_wall(geom: CorrectedGeometry) -> GeometryFinding:
                            evidence={"windows": len(geom.windows)})
 
 
+def check_window_host_resolution(
+    geom: CorrectedGeometry,
+    *,
+    proof=None,
+    evidence=None,
+) -> GeometryFinding:
+    """B5 hard gate; legacy retains the original bbox cross-check unchanged."""
+    if str(geom.schema_version) != "3":
+        return check_windows_on_wall(geom)
+    check_id = "correction.window_host_resolution"
+    conflicts = [
+        row for row in geom.conflicts
+        if isinstance(row, dict) and row.get("kind") == "window_host_conflict"
+    ]
+    if conflicts:
+        return GeometryFinding(
+            check_id,
+            False,
+            "v3 geometry contains blocking window-host conflicts",
+            {"conflicts": conflicts},
+        )
+    if proof is None or evidence is None:
+        return GeometryFinding(
+            check_id,
+            False,
+            "v3 window host proof and evidence are both required",
+            {"proof_present": proof is not None, "evidence_present": evidence is not None},
+        )
+
+    from src.agent.correction.feature_state import (
+        FeatureStatesArtifactV1,
+        derive_feature_state_claims,
+    )
+    from src.agent.correction.finalize import PreparedCandidateIdentity
+    from src.agent.correction.parse import CorrectionTarget
+    from src.agent.correction.schema import CorrectedGeometryV3
+    from src.agent.correction.window_host import (
+        WindowEvidenceLedgerV1,
+        WindowHostClaimsV1,
+        WindowHostsArtifactV1,
+        derive_window_evidence_ledger,
+        window_host_claim_issues,
+    )
+    from src.agent.correction.window_sources import (
+        VerifiedWindowResolverInputs,
+        WindowResolverInputsV1,
+        verify_window_resolver_inputs,
+    )
+    from src.agent.geometry.build import VerifiedWindowHostProof
+
+    assert isinstance(geom, CorrectedGeometryV3)
+    verified_inputs = None
+    artifact_evidence = None
+    if isinstance(proof, VerifiedWindowHostProof):
+        try:
+            raw_artifact = WindowHostsArtifactV1.model_validate_json(proof.raw_window_hosts_bytes)
+            inputs = WindowResolverInputsV1.model_validate_json(proof.raw_resolver_inputs_bytes)
+            verify_window_resolver_inputs(inputs)
+        except ValueError as exc:
+            return GeometryFinding(check_id, False, "window host proof wire is invalid", {"reason": str(exc)})
+        claims = raw_artifact.claims
+        artifact_evidence = raw_artifact.evidence
+        verified_inputs = VerifiedWindowResolverInputs(
+            inputs=inputs,
+            raw_inputs_bytes=proof.raw_resolver_inputs_bytes,
+            producer_draw_canonical_bytes=b"",
+            raw_view_manifest_bytes=b"",
+            raw_reading_artifacts=(),
+        )
+    elif isinstance(proof, WindowHostClaimsV1):
+        claims = proof
+    else:
+        return GeometryFinding(check_id, False, "unsupported window host proof type")
+    if not isinstance(evidence, WindowEvidenceLedgerV1):
+        return GeometryFinding(check_id, False, "window evidence has the wrong wire type")
+    if artifact_evidence is not None and evidence != artifact_evidence:
+        return GeometryFinding(check_id, False, "window evidence differs from verified proof artifact")
+
+    issues = window_host_claim_issues(
+        geom,
+        claims=claims,
+        tolerances=load_core_tolerances(),
+    )
+    claim_ids = tuple(sorted(row.window_id for row in claims.resolutions))
+    evidence_ids = tuple(row.window_id for row in evidence.decisions)
+    if claim_ids != evidence_ids:
+        issues.append({
+            "reason": "evidence_totality",
+            "claim_ids": list(claim_ids),
+            "evidence_ids": list(evidence_ids),
+        })
+    if (
+        claims.resolver_inputs_sha256 != evidence.resolver_inputs_sha256
+        or claims.view_manifest_sha256 != evidence.view_manifest_sha256
+        or claims.facade_segments_sha256 != evidence.facade_segments_sha256
+    ):
+        issues.append({"reason": "evidence_host_identity"})
+
+    output_bytes = geom.model_dump_json(indent=2).encode("utf-8")
+    output_sha256 = hashlib.sha256(output_bytes).hexdigest()
+    phase = "e4_orientation" if geom.north_axis is not None else "b2"
+    target = CorrectionTarget("3", CorrectedGeometryV3, "orthogonal_polygon", phase)
+    feature_claims = derive_feature_state_claims(target, geom)
+    feature_bytes = FeatureStatesArtifactV1(
+        output_sha256=output_sha256,
+        claims=feature_claims,
+    ).model_dump_json(indent=2).encode("utf-8")
+    feature_sha256 = hashlib.sha256(feature_bytes).hexdigest()
+    if evidence.output_sha256 != output_sha256:
+        issues.append({"reason": "evidence_output_identity"})
+    if evidence.feature_states_sha256 != feature_sha256:
+        issues.append({"reason": "evidence_feature_identity"})
+    if verified_inputs is not None and not issues:
+        identity = PreparedCandidateIdentity(
+            output_bytes=output_bytes,
+            output_sha256=output_sha256,
+            feature_states_bytes=feature_bytes,
+            feature_states_sha256=feature_sha256,
+        )
+        try:
+            recomputed_evidence = derive_window_evidence_ledger(
+                geom,
+                host_claims=claims,
+                verified_inputs=verified_inputs,
+                candidate_identity=identity,
+                tolerances=load_core_tolerances(),
+            )
+        except (ValueError, RuntimeError) as exc:
+            issues.append({"reason": "evidence_recompute", "detail": str(exc)})
+        else:
+            if recomputed_evidence != evidence:
+                issues.append({"reason": "evidence_relation"})
+    if issues:
+        return GeometryFinding(
+            check_id,
+            False,
+            f"{len(issues)} window host proof defect(s)",
+            {"offenders": issues},
+        )
+    return GeometryFinding(
+        check_id,
+        True,
+        evidence={"windows": len(geom.windows), "aggregate_sha256": claims.aggregate_sha256},
+    )
+
+
 def validate_corrected_geometry(
     geom: CorrectedGeometry, *, expected_zone_total: int | None = None
 ) -> list[GeometryFinding]:
@@ -268,5 +415,6 @@ def validate_corrected_geometry(
     findings.append(check_nondegenerate(geom))
     findings.append(check_zstack(geom))
     findings.append(check_zone_count(geom, expected_zone_total))
-    findings.append(check_windows_on_wall(geom))
+    if str(geom.schema_version) != "3":
+        findings.append(check_windows_on_wall(geom))
     return findings

@@ -275,6 +275,7 @@ class ProductIdentityV8(StrictWire):
     accepted: StrictBool
     accepted_stage_record_sha256: Hex64 | None
     source: StableId
+    artifact_contract: StableId | None = None
 
     @model_validator(mode="after")
     def _accepted_record(self):
@@ -568,19 +569,30 @@ def compute_facade_segments_sha256(segments: tuple[object, ...] | list[object]) 
 
 
 def decide_score_capability(*, gt_identity: GtIdentityV8, stage: Literal["reading", "correction"],
-                            product_schema: str, view_manifest: ViewManifest) -> CapabilityDecisionV8:
+                            product_schema: str, view_manifest: ViewManifest,
+                            product_artifact_contract: str | None = None) -> CapabilityDecisionV8:
     """Phase-A dispatch only; it makes unsupported inputs explicit, never raw."""
     from src.agent.correction.facade_applicability import FACADE_APPLICABILITY_SCHEMA_VERSION
     segment_geometry_capability = "c2" if gt_identity.profile == "c2_simple_orthogonal_no_holes" else "legacy_rectangular"
     key = (str(gt_identity.schema_version), gt_identity.profile or "legacy", stage, product_schema,
            view_manifest.view_manifest_schema_version, view_manifest.completeness_ruleset_version,
-           FACADE_APPLICABILITY_SCHEMA_VERSION, segment_geometry_capability)
+           FACADE_APPLICABILITY_SCHEMA_VERSION, segment_geometry_capability,
+           product_artifact_contract or "no_artifact_contract")
     if gt_identity.schema_version == 2:
         return CapabilityDecisionV8(path="legacy_v2", capability_key=key, reason=None, gate_id="scoring.capability")
     if gt_identity.profile != "c2_simple_orthogonal_no_holes":
         return CapabilityDecisionV8(path="not_applicable", capability_key=key, reason="unsupported_gt_profile", gate_id="scoring.capability")
     if stage == "correction" and product_schema not in {"3", "v3"}:
         return CapabilityDecisionV8(path="not_applicable", capability_key=key, reason="unsupported_product_schema", gate_id="scoring.capability")
+    if stage == "correction" and product_artifact_contract not in {
+        "correction_b5_v1", "correction_b5_orientation_v1",
+    }:
+        return CapabilityDecisionV8(
+            path="not_applicable",
+            capability_key=key,
+            reason="unsupported_product_contract",
+            gate_id="scoring.capability",
+        )
     return CapabilityDecisionV8(path="c2_v3", capability_key=key, reason=None, gate_id="scoring.capability")
 
 
@@ -589,7 +601,8 @@ def build_product_identity(*, stage: Literal["reading", "correction"], attempt: 
     record_sha = None if accepted_stage_record is None else canonical_sha256(accepted_stage_record.model_dump(mode="json")
         if hasattr(accepted_stage_record, "model_dump") else accepted_stage_record)
     return ProductIdentityV8(stage=stage, attempt=attempt, output_sha256=output_sha256, output_schema=output_schema,
-        accepted=accepted_stage_record is not None, accepted_stage_record_sha256=record_sha, source=source)
+        accepted=accepted_stage_record is not None, accepted_stage_record_sha256=record_sha, source=source,
+        artifact_contract=None if accepted_stage_record is None else accepted_stage_record.artifact_contract)
 
 
 def build_phase_a_sidecar(*, identity: ScoreIdentityV8, payload: ScorePayloadV8, grade_png_sha256: str) -> ScoreSidecarV8:

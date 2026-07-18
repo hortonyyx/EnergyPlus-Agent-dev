@@ -7,6 +7,7 @@ an output-bound sidecar and can never rewrite the accepted geometry.
 from __future__ import annotations
 
 import hashlib
+import json
 from typing import TYPE_CHECKING, Annotated, Literal, Mapping
 
 from pydantic import AllowInfNan, BaseModel, ConfigDict, Field, Strict, StringConstraints, model_validator
@@ -37,6 +38,7 @@ from src.agent.correction.window_sources import (
     canonical_sha256,
     materialize_current_ring_va_elevation_bindings,
 )
+from src.agent.geometry.modelling import SegmentLine2D, window_verts_on_line
 
 if TYPE_CHECKING:
     from src.agent.correction.finalize import PreparedCandidateIdentity
@@ -143,6 +145,12 @@ class WindowHostResolutionV1(BaseModel):
     def _shape_and_hash(self):
         if self.segment_outward_normal not in {(0, 1), (0, -1), (1, 0), (-1, 0)}:
             raise ValueError("C2 host normal must be one cardinal unit vector")
+        expected_normal = {
+            "North": (0, 1), "South": (0, -1),
+            "East": (1, 0), "West": (-1, 0),
+        }[self.facade_family]
+        if self.segment_outward_normal != expected_normal:
+            raise ValueError("segment normal disagrees with facade family")
         if self.branch == "plan" and self.visible_overlap_intervals:
             raise ValueError("plan branch visible_overlap_intervals must be empty")
         if self.branch == "elevation" and not self.visible_overlap_intervals:
@@ -238,6 +246,18 @@ class WindowHostsArtifactV1(BaseModel):
 
     @model_validator(mode="after")
     def _hash(self):
+        if self.output_sha256 != self.evidence.output_sha256:
+            raise ValueError("window-host artifact output identity mismatch")
+        claim_ids = tuple(sorted(row.window_id for row in self.claims.resolutions))
+        evidence_ids = tuple(row.window_id for row in self.evidence.decisions)
+        if claim_ids != evidence_ids:
+            raise ValueError("host claims and evidence window ids must be exactly equal")
+        if (
+            self.claims.resolver_inputs_sha256 != self.evidence.resolver_inputs_sha256
+            or self.claims.view_manifest_sha256 != self.evidence.view_manifest_sha256
+            or self.claims.facade_segments_sha256 != self.evidence.facade_segments_sha256
+        ):
+            raise ValueError("host claims and evidence identities disagree")
         if self.content_sha256 != canonical_sha256(_payload_without(self, "content_sha256")):
             raise ValueError("content_sha256 does not match canonical window hosts artifact")
         return self
@@ -412,6 +432,155 @@ def _room_intervals(
         else:
             merged.append([room_id, lo, hi])
     return tuple((str(room_id), float(lo), float(hi)) for room_id, lo, hi in merged)
+
+
+def window_host_claim_issues(
+    geom: CorrectedGeometryV3,
+    *,
+    claims: WindowHostClaimsV1,
+    tolerances,
+) -> list[dict[str, object]]:
+    """Freshly audit final geometry against host records without source trust.
+
+    This is shared by the correction/build/kernel boundaries.  It never feeds
+    record vertices back into the line helper as an input.
+    """
+    issues: list[dict[str, object]] = []
+    source_ids = [window.id for window in geom.windows]
+    resolution_ids = [row.window_id for row in claims.resolutions]
+    if len(source_ids) != len(set(source_ids)) or set(source_ids) != set(resolution_ids):
+        issues.append({
+            "reason": "window_resolution_totality",
+            "source_window_ids": sorted(source_ids),
+            "resolution_ids": sorted(resolution_ids),
+        })
+    if claims.facade_segments_sha256 != _facade_segments_sha256(geom):
+        issues.append({"reason": "facade_segments_sha256"})
+    windows = {window.id: window for window in geom.windows}
+    segments = {segment.id: segment for segment in geom.facade_segments}
+    floors = {floor.id: floor for floor in geom.floors}
+    for resolution in claims.resolutions:
+        window = windows.get(resolution.window_id)
+        segment = segments.get(resolution.facade_segment_id)
+        floor = floors.get(resolution.floor_id)
+        prefix = {"window_id": resolution.window_id}
+        if window is None:
+            continue
+        if (
+            window.floor_id != resolution.floor_id
+            or window.room != resolution.room_id
+            or window.facade != resolution.facade_family
+            or window.facade_segment_id != resolution.facade_segment_id
+            or tuple(float(value) for value in window.span)
+            != (resolution.clamped_span.lo, resolution.clamped_span.hi)
+            or tuple(float(value) for value in window.z)
+            != (resolution.z_interval.lo, resolution.z_interval.hi)
+        ):
+            issues.append({**prefix, "reason": "final_window_identity"})
+        if floor is None or floor.name != window.floor:
+            issues.append({**prefix, "reason": "floor_identity"})
+        if segment is None:
+            issues.append({**prefix, "reason": "segment_missing"})
+            continue
+        if (
+            tuple(float(value) for value in segment.p1)
+            != (resolution.segment_p1.x, resolution.segment_p1.y)
+            or tuple(float(value) for value in segment.p2)
+            != (resolution.segment_p2.x, resolution.segment_p2.y)
+            or tuple(segment.outward_normal) != tuple(resolution.segment_outward_normal)
+            or segment.facade_family != resolution.facade_family
+        ):
+            issues.append({**prefix, "reason": "segment_geometry"})
+            continue
+        intervals = _room_intervals(
+            geom,
+            segment,
+            plane_eps=tolerances.window_host_plane_epsilon_m,
+            span_eps=tolerances.window_host_span_epsilon_m,
+        )
+        complete = [
+            row for row in intervals
+            if resolution.clamped_span.lo >= row[1] - tolerances.window_host_span_epsilon_m
+            and resolution.clamped_span.hi <= row[2] + tolerances.window_host_span_epsilon_m
+        ]
+        if complete != [(
+            resolution.room_id,
+            resolution.room_boundary_interval.lo,
+            resolution.room_boundary_interval.hi,
+        )]:
+            issues.append({**prefix, "reason": "room_boundary_interval"})
+        try:
+            line = SegmentLine2D(
+                (resolution.segment_p1.x, resolution.segment_p1.y),
+                (resolution.segment_p2.x, resolution.segment_p2.y),
+            )
+            dx = resolution.segment_p2.x - resolution.segment_p1.x
+            dy = resolution.segment_p2.y - resolution.segment_p1.y
+            if (dx == 0) == (dy == 0):
+                raise ValueError("C2 host line must be axis-aligned")
+            t = (
+                resolution.segment_parameter_interval.lo,
+                resolution.segment_parameter_interval.hi,
+            )
+            q0 = line.point_at(t[0])
+            q1 = line.point_at(t[1])
+            declared_endpoints = tuple(
+                (point.x, point.y)
+                for point in resolution.clamped_plan_endpoints_p1_to_p2
+            )
+            if declared_endpoints != (q0, q1):
+                raise ValueError("p1->p2 endpoints")
+            projected = (q0[0], q1[0]) if dy == 0 else (q0[1], q1[1])
+            lo = projected[0] if projected[0] < projected[1] else projected[1]
+            hi = projected[1] if projected[0] < projected[1] else projected[0]
+            if (lo, hi) != (resolution.clamped_span.lo, resolution.clamped_span.hi):
+                raise ValueError("world span")
+            fresh_vertices = window_verts_on_line(
+                host_line=line,
+                parameter_interval=t,
+                z_interval=(resolution.z_interval.lo, resolution.z_interval.hi),
+                outward_normal_xy=tuple(float(value) for value in resolution.segment_outward_normal),
+            )
+            declared_vertices = [
+                (point.x, point.y, point.z) for point in resolution.clamped_vertices
+            ]
+            if fresh_vertices != declared_vertices:
+                raise ValueError("vertices")
+        except ValueError as exc:
+            issues.append({**prefix, "reason": "line_geometry", "detail": str(exc)})
+    audit_rows: list[WindowHostResolutionAuditV1] = []
+    for raw in geom.corrections:
+        if isinstance(raw, dict) and raw.get("kind") == "window_host_resolution":
+            try:
+                audit_rows.append(WindowHostResolutionAuditV1.model_validate_json(
+                    json.dumps(raw, separators=(",", ":"), ensure_ascii=False),
+                ))
+            except ValueError as exc:
+                issues.append({"reason": "audit_wire", "detail": str(exc)})
+    audit_by_window: dict[str, list[WindowHostResolutionAuditV1]] = {}
+    for row in audit_rows:
+        audit_by_window.setdefault(row.window_id, []).append(row)
+    for resolution in claims.resolutions:
+        rows = audit_by_window.get(resolution.window_id, [])
+        if len(rows) != 1:
+            issues.append({"window_id": resolution.window_id, "reason": "audit_totality"})
+            continue
+        row = rows[0]
+        if (
+            row.floor_id != resolution.floor_id
+            or row.resolved_room_id != resolution.room_id
+            or row.resolved_facade_segment_id != resolution.facade_segment_id
+            or (row.resolved_span.lo, row.resolved_span.hi)
+            != (resolution.clamped_span.lo, resolution.clamped_span.hi)
+            or row.source_ids != resolution.source_locators
+            or row.branch != resolution.branch
+            or row.resolution_sha256 != resolution.resolution_sha256
+        ):
+            issues.append({"window_id": resolution.window_id, "reason": "audit_relation"})
+    extra_audit = set(audit_by_window) - set(resolution_ids)
+    if extra_audit:
+        issues.append({"reason": "audit_extra", "window_ids": sorted(extra_audit)})
+    return issues
 
 
 def _visibility_tolerances(tolerances) -> VisibilityTolerances:
@@ -632,25 +801,35 @@ def resolve_window_hosts(geom: CorrectedGeometryV3, *, verified_inputs: Verified
                                        source_input_ids=source_inputs))
             continue
         p1, p2 = segment.p1, segment.p2
-        axis = 0 if p1[1] == p2[1] else 1
-        denom = p2[axis] - p1[axis]
-        if denom == 0:
+        try:
+            host_line = SegmentLine2D(tuple(p1), tuple(p2))
+            if window.facade in {"North", "South"}:
+                world_lo_point = (span.lo, float(p1[1]))
+                world_hi_point = (span.hi, float(p1[1]))
+            else:
+                world_lo_point = (float(p1[0]), span.lo)
+                world_hi_point = (float(p1[0]), span.hi)
+            world_lo_t = host_line.parameter_of(world_lo_point)
+            world_hi_t = host_line.parameter_of(world_hi_point)
+            if world_lo_t < world_hi_t:
+                tlo, thi = world_lo_t, world_hi_t
+            else:
+                tlo, thi = world_hi_t, world_lo_t
+            if not (0 <= tlo < thi <= 1):
+                raise ValueError("parameter interval lies outside host line")
+            q0 = host_line.point_at(tlo)
+            q1 = host_line.point_at(thi)
+            fresh_vertices = window_verts_on_line(
+                host_line=host_line,
+                parameter_interval=(tlo, thi),
+                z_interval=(z0, z1),
+                outward_normal_xy=tuple(float(value) for value in segment.outward_normal),
+            )
+        except ValueError:
             conflicts.append(_conflict(window, "invalid_host_line", branch=branch, candidates=[segment.id],
                                        raw_span=raw, source_input_ids=source_inputs))
             continue
-        ta = (span.lo - p1[axis]) / denom
-        tb = (span.hi - p1[axis]) / denom
-        tlo, thi = sorted((ta, tb))
-        if not (0 <= tlo < thi <= 1):
-            conflicts.append(_conflict(window, "invalid_host_line", branch=branch, candidates=[segment.id],
-                                       raw_span=raw, source_input_ids=source_inputs))
-            continue
-        q0 = (p1[0] + (p2[0] - p1[0]) * tlo, p1[1] + (p2[1] - p1[1]) * tlo)
-        q1 = (p1[0] + (p2[0] - p1[0]) * thi, p1[1] + (p2[1] - p1[1]) * thi)
-        verts = (
-            Point3V1(x=q0[0], y=q0[1], z=z0), Point3V1(x=q1[0], y=q1[1], z=z0),
-            Point3V1(x=q1[0], y=q1[1], z=z1), Point3V1(x=q0[0], y=q0[1], z=z1),
-        )
+        verts = tuple(Point3V1(x=x, y=y, z=z) for x, y, z in fresh_vertices)
         payload = dict(
             host_schema_version="1", helper_version=WINDOW_HOST_HELPER_VERSION, window_id=window.id,
             floor_id=window.floor_id, room_id=room[0], branch=branch, facade_family=window.facade,
@@ -750,6 +929,39 @@ def apply_window_host_resolutions(
         audit_rows.append(audit.model_dump())
     candidate.corrections = [*candidate.corrections, *audit_rows]
     return CorrectedGeometryV3.model_validate(candidate.model_dump())
+
+
+def recompute_window_host_claims(
+    geom: CorrectedGeometryV3,
+    *,
+    verified_inputs: VerifiedWindowResolverInputs,
+    tolerances,
+) -> WindowHostClaimsV1:
+    """Fresh-recompute final B5 claims without trusting persisted refs/vertices."""
+    candidate = geom.model_copy(deep=True)
+    for window in candidate.windows:
+        window.facade_segment_id = None
+    recomputed = resolve_window_hosts(
+        candidate,
+        verified_inputs=verified_inputs,
+        tolerances=tolerances,
+        commit=False,
+    )
+    issues = window_host_claim_issues(geom, claims=recomputed, tolerances=tolerances)
+    if issues:
+        windows = {window.id: window for window in geom.windows}
+        conflicts = tuple(
+            _conflict(
+                windows[window_id],
+                "resolver_output_tampered",
+                fallback_action="invariant_no_geometry_commit",
+            )
+            for window_id in sorted(windows)
+        )
+        if conflicts:
+            raise WindowHostResolutionError(conflicts, context={"issues": issues})
+        raise RuntimeError(f"INVARIANT: empty-window host claims are inconsistent: {issues}")
+    return recomputed
 
 
 def map_va_applicability_error(
@@ -1053,5 +1265,6 @@ __all__ = [
     "WindowEvidenceDecisionV1", "WindowEvidenceLedgerV1", "WindowHostClaimsV1", "WindowHostConflictV1",
     "WindowHostResolutionAuditV1", "WindowHostResolutionError", "WindowHostResolutionV1", "WindowHostsArtifactV1",
     "apply_window_host_resolutions", "derive_window_evidence_ledger", "map_direction_binding_error",
-    "map_va_applicability_error", "resolve_window_hosts",
+    "map_va_applicability_error", "recompute_window_host_claims", "resolve_window_hosts",
+    "window_host_claim_issues",
 ]
