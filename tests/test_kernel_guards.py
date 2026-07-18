@@ -33,6 +33,9 @@ def _tol(**over) -> CoreTolerances:
         # when a test needs a different value.
         facade_visibility_depth_epsilon_m=1e-9,
         facade_visibility_endpoint_epsilon_m=1e-9,
+        window_segment_endpoint_clamp_tol_m=0.01,
+        window_host_span_epsilon_m=1e-9,
+        window_host_plane_epsilon_m=1e-9,
     )
     base.update(over)
     t = CoreTolerances(**base)

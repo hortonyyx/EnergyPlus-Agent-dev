@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+import hashlib
 from pathlib import Path
 
 from src.agent.correction.config import CoreTolerances, load_core_tolerances
@@ -12,9 +13,45 @@ from src.agent.correction.facade_visibility import (
     materialize_all_facade_segments,
     validate_materialized_facade_segments,
 )
-from src.agent.correction.feature_state import FeatureStateClaimsV1, derive_feature_state_claims
+from src.agent.correction.feature_state import (
+    FeatureStateClaimsV1,
+    FeatureStatesArtifactV1,
+    derive_feature_state_claims,
+)
 from src.agent.correction.parse import CorrectionTarget, ensure_corrected_geometry, parse_correction_draw, validate_final_corrected_geometry
 from src.agent.correction.schema import CorrectedGeometry
+from src.agent.correction.window_host import (
+    WindowEvidenceLedgerV1,
+    WindowHostClaimsV1,
+    WindowHostResolutionError,
+    apply_window_host_resolutions,
+    derive_window_evidence_ledger,
+    map_direction_binding_error,
+    resolve_window_hosts,
+)
+from src.agent.correction.window_sources import (
+    VerifiedWindowResolverInputs,
+    WindowDirectionBindingError,
+    WindowResolverInputError,
+    canonical_json_bytes,
+)
+
+
+@dataclass(frozen=True)
+class PreparedCandidateIdentity:
+    output_bytes: bytes
+    output_sha256: str
+    feature_states_bytes: bytes
+    feature_states_sha256: str
+
+    def __post_init__(self) -> None:
+        if hashlib.sha256(self.output_bytes).hexdigest() != self.output_sha256:
+            raise ValueError("candidate_output_identity_drift")
+        if hashlib.sha256(self.feature_states_bytes).hexdigest() != self.feature_states_sha256:
+            raise ValueError("candidate_feature_states_identity_drift")
+        artifact = FeatureStatesArtifactV1.model_validate_json(self.feature_states_bytes)
+        if artifact.output_sha256 != self.output_sha256:
+            raise ValueError("candidate_feature_states_output_identity_drift")
 
 
 @dataclass(frozen=True)
@@ -22,6 +59,10 @@ class FinalizeResult:
     geom: CorrectedGeometry
     audit_payload: dict
     feature_state_claims: FeatureStateClaimsV1
+    window_host_claims: WindowHostClaimsV1 | None = None
+    window_evidence_ledger: WindowEvidenceLedgerV1 | None = None
+    verified_window_resolver_inputs: VerifiedWindowResolverInputs | None = None
+    prepared_candidate_identity: PreparedCandidateIdentity | None = None
 
 
 def _identity_snapshot(geom: CorrectedGeometry):
@@ -38,6 +79,7 @@ def finalize_correction_draw(
     geom_or_payload,
     *,
     vector_dir: Path,
+    verified_window_inputs: VerifiedWindowResolverInputs | None = None,
     tol: CoreTolerances | None = None,
     target: CorrectionTarget,
 ) -> FinalizeResult:
@@ -50,13 +92,26 @@ def finalize_correction_draw(
             if isinstance(geom_or_payload, dict) else ensure_corrected_geometry(geom_or_payload))
     if geom.schema_version != target.schema_version:
         raise ValueError("finalize input does not match correction target")
+    if geom.schema_version != "3" and verified_window_inputs is not None:
+        raise ValueError("legacy v1/v2 finalize forbids verified_window_inputs")
     before = _identity_snapshot(geom)
+    if geom.schema_version == "3" and verified_window_inputs is not None:
+        producer_bytes = canonical_json_bytes(geom.model_dump(mode="json"))
+        if producer_bytes != verified_window_inputs.producer_draw_canonical_bytes:
+            raise WindowResolverInputError(
+                "source_identity_invalid", {"artifact": "producer_draw_canonical_bytes"},
+            )
+    if geom.schema_version == "3" and geom.windows and verified_window_inputs is None:
+        raise WindowResolverInputError(
+            "source_identity_invalid", {"artifact": "verified_window_resolver_inputs"},
+        )
     tol = tol or load_core_tolerances()
     envelope = extract_authoritative_envelope(
         Path(vector_dir), footprint=geom, footprint_tolerance_m=tol.envelope_reconcile_tol_m, tol=tol,
     )
     geom = apply_deterministic_core(
         geom, tol, authoritative_envelope=envelope, capability_profile=target.capability_profile,
+        verified_window_inputs=verified_window_inputs,
     )
     if before != _identity_snapshot(geom):
         raise ValueError("finalize invariant: v3 floor/reference identities changed during core")
@@ -71,10 +126,66 @@ def finalize_correction_draw(
         )
         segments = materialize_all_facade_segments(geom, tolerances=visibility_tol)
         geom = geom.model_copy(update={"facade_segments": list(segments)})
-        validate_materialized_facade_segments(geom, tolerances=visibility_tol)
+        # For B5, the final-ring resolver's current-ring helper is the typed
+        # validation boundary.  Empty-window compatibility still has no B5
+        # marker, so retain the Vg validator for that narrow case.
+        if verified_window_inputs is None:
+            validate_materialized_facade_segments(geom, tolerances=visibility_tol)
+    window_host_claims = None
+    if geom.schema_version == "3" and verified_window_inputs is not None:
+        try:
+            window_host_claims = resolve_window_hosts(
+                geom, verified_inputs=verified_window_inputs, tolerances=tol, commit=False,
+            )
+            geom = apply_window_host_resolutions(
+                geom, claims=window_host_claims,
+                verified_inputs=verified_window_inputs, tolerances=tol,
+            )
+        except WindowDirectionBindingError as exc:
+            raise WindowHostResolutionError(
+                map_direction_binding_error(
+                    exc, geom=geom, verified_inputs=verified_window_inputs, phase="final",
+                ),
+                phase="final",
+                context=exc.context,
+            ) from exc
     geom = validate_final_corrected_geometry(geom)
+    feature_state_claims = derive_feature_state_claims(target, geom)
+    prepared_identity = None
+    window_evidence = None
+    if geom.schema_version == "3" and verified_window_inputs is not None:
+        output_bytes = geom.model_dump_json(indent=2).encode("utf-8")
+        output_sha256 = hashlib.sha256(output_bytes).hexdigest()
+        feature_states = FeatureStatesArtifactV1(
+            output_sha256=output_sha256, claims=feature_state_claims,
+        )
+        feature_states_bytes = feature_states.model_dump_json(indent=2).encode("utf-8")
+        prepared_identity = PreparedCandidateIdentity(
+            output_bytes=output_bytes,
+            output_sha256=output_sha256,
+            feature_states_bytes=feature_states_bytes,
+            feature_states_sha256=hashlib.sha256(feature_states_bytes).hexdigest(),
+        )
+        try:
+            window_evidence = derive_window_evidence_ledger(
+                geom, host_claims=window_host_claims,
+                verified_inputs=verified_window_inputs,
+                candidate_identity=prepared_identity, tolerances=tol,
+            )
+        except WindowDirectionBindingError as exc:
+            raise WindowHostResolutionError(
+                map_direction_binding_error(
+                    exc, geom=geom, verified_inputs=verified_window_inputs, phase="final",
+                ),
+                phase="final",
+                context=exc.context,
+            ) from exc
     return FinalizeResult(
         geom=geom,
         audit_payload={"corrections": geom.corrections, "conflicts": geom.conflicts, "unsupported": geom.unsupported},
-        feature_state_claims=derive_feature_state_claims(target, geom),
+        feature_state_claims=feature_state_claims,
+        window_host_claims=window_host_claims,
+        window_evidence_ledger=window_evidence,
+        verified_window_resolver_inputs=verified_window_inputs,
+        prepared_candidate_identity=prepared_identity,
     )

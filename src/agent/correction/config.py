@@ -70,6 +70,11 @@ class CoreTolerances:
     # defaulted one).
     facade_visibility_depth_epsilon_m: float  # Vg same-depth tie / negative-depth INVARIANT guard
     facade_visibility_endpoint_epsilon_m: float  # Vg half-open sweep near-endpoint/short-edge INVARIANT guard
+    # B5 window-host resolver.  These deliberately have no defaults: B5 must
+    # never silently borrow a Vg or legacy window tolerance.
+    window_segment_endpoint_clamp_tol_m: float
+    window_host_span_epsilon_m: float
+    window_host_plane_epsilon_m: float
     facade_frame_cross_check_tol_m: float = 0.30  # reading facade-frame vs LLM window placement flag threshold
 
     def validate(self) -> None:
@@ -114,6 +119,16 @@ class CoreTolerances:
                 "facade_visibility_endpoint_epsilon_m must be in (0, min_edge_length_m); got "
                 f"{self.facade_visibility_endpoint_epsilon_m} vs {self.min_edge_length_m}"
             )
+        if not (0 < self.window_host_plane_epsilon_m <= self.window_host_span_epsilon_m):
+            raise ValueError(
+                "must hold 0 < window_host_plane_epsilon_m <= window_host_span_epsilon_m"
+            )
+        if not (self.window_host_span_epsilon_m < self.window_segment_endpoint_clamp_tol_m
+                <= self.min_edge_length_m):
+            raise ValueError(
+                "must hold window_host_span_epsilon_m < "
+                "window_segment_endpoint_clamp_tol_m <= min_edge_length_m"
+            )
         # cross-floor identity is coarser than per-floor jitter, and connectivity
         # is coarser still but below the arbitration band.
         if not (self.axis_jitter_tol_m < self.cross_floor_align_tol_m
@@ -151,6 +166,9 @@ def _load_cached(path_str: str) -> CoreTolerances:
         envelope_candidate_agreement_tol_m=float(c["envelope_candidate_agreement_tol_m"]),
         facade_visibility_depth_epsilon_m=float(c["facade_visibility_depth_epsilon_m"]),
         facade_visibility_endpoint_epsilon_m=float(c["facade_visibility_endpoint_epsilon_m"]),
+        window_segment_endpoint_clamp_tol_m=float(c["window_segment_endpoint_clamp_tol_m"]),
+        window_host_span_epsilon_m=float(c["window_host_span_epsilon_m"]),
+        window_host_plane_epsilon_m=float(c["window_host_plane_epsilon_m"]),
     )
     tol.validate()
     return tol

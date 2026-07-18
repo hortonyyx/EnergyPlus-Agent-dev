@@ -85,10 +85,20 @@ correction:
   #   warning / 求解异常)，都要求细颗粒。默认 = output_precision_m(10mm)。
 
   window_clamp_to_parent: true
-  # 约束：吸附后，把窗 span 钳进其所属 cell 在该立面方向的边界、把窗 z[sill,head]
+  # Legacy v1/v2 only：吸附后，把窗 span 钳进其所属 cell 在该立面方向的边界、把窗 z[sill,head]
   #       钳进所在楼层的 [z_floor, z_floor + ceiling_height]。
   # 作用：防"窗顶冒出墙顶 / 窗边伸出墙外"那类 CHKSBS partial-overlap。
   #       false 时只吸附不钳制(调试用，便于观察 LLM 原始越界程度)。
+
+  # ====== B5 v3 source-aware window host resolver ======
+  # These are separate owners from min-edge and Vg numeric tolerances.
+  window_segment_endpoint_clamp_tol_m: 0.010
+  # Only after a unique facade segment is selected, permit this much physical
+  # endpoint overrun to clamp back to the segment endpoint.
+  window_host_span_epsilon_m: 1.0e-9
+  # Numeric containment/positive-width/half-open endpoint guard; never clamp.
+  window_host_plane_epsilon_m: 1.0e-9
+  # Numeric collinearity/parent-plane guard; never an angular tolerance.
 
   # ====== 立面外包权威吸收(外包→footprint 基准，#2.3) ======
   envelope_reconcile_tol_m: 0.300

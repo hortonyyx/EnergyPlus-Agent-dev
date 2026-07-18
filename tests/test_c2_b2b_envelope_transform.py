@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import hashlib
 import inspect
+import json
 
 import pytest
 
@@ -17,6 +19,12 @@ from src.agent.correction.envelope_transform import (
 from src.agent.correction.footprint import floor_footprint_fingerprint
 from src.agent.correction.parse import ensure_corrected_geometry
 from src.agent.correction.schema import CorrectedGeometry
+from src.agent.correction.window_sources import (
+    build_verified_window_resolver_inputs,
+    source_locator,
+)
+from src.agent.execution.manifest import hash_obj
+from src.agent.execution.view_manifest import OpeningEvidence, RequiredViewEntry, ViewManifest
 from src.agent.reading import parse_reading_view
 from src.agent.reading.constants import DIMCHAIN_CLOSE_TOL_M
 
@@ -47,6 +55,55 @@ def _u_geom(*, floors: int = 1, windows=None):
                                {"id": f"bottom-{number}", "x": [3, 7], "y": [0, 3]}]})
     return ensure_corrected_geometry({"schema_version": "3", "footprint_x": [0, 10], "footprint_y": [0, 8],
                                      "floors": rows, "windows": windows or []})
+
+
+def _with_plan_marker(geom):
+    """Build a real plan-source marker for the single-window B2b fixture."""
+    window = geom.windows[0]
+    reading = json.dumps({
+        "image_kind": "plan",
+        "strokes": [{
+            "id": "P-W", "pen": "window",
+            "geometry": {
+                "x_range": list(window.span), "y_range": [0.0, 0.1],
+            },
+        }],
+        "uncaptured": [],
+    }, separators=(",", ":")).encode("utf-8")
+    locator = source_locator(
+        input_id="plan", observation_id="P-W",
+        output_sha256=hashlib.sha256(reading).hexdigest(),
+    )
+    payload = geom.model_dump(mode="json")
+    payload["windows"][0]["provenance"] = {
+        "existence": {"provenance": "observed", "source_ids": [locator]},
+    }
+    with_provenance = ensure_corrected_geometry(payload)
+    entry = RequiredViewEntry(
+        input_id="plan", source_image="case_data/plan.png", image_sha256="a" * 64,
+        view_type="plan", floor_ref=1,
+        direction_source="standard_assumption", direction_semantics="building_axis",
+        semantics_source="case_metadata", dimensioned=True,
+        expected_output_id="plan",
+        opening_evidence=OpeningEvidence(
+            potentially_observable_claims=["existence", "host", "along", "width"],
+        ),
+    )
+    manifest_payload = {
+        "view_manifest_schema_version": "1", "claims_vocab_version": "1",
+        "generator_version": "1", "completeness_ruleset_version": "1",
+        "case_id": "b2b", "case_metadata_sha256": "a" * 64,
+        "entries": [entry.model_dump(mode="json")],
+    }
+    manifest = ViewManifest(
+        **manifest_payload, content_sha256=hash_obj(manifest_payload),
+    )
+    marker = build_verified_window_resolver_inputs(
+        producer_draw=with_provenance,
+        raw_view_manifest_bytes=manifest.model_dump_json().encode("utf-8"),
+        raw_reading_artifacts={"plan": reading}, elevation_direction_facts=(),
+    )
+    return with_provenance, marker
 
 
 def _wing(value: float):
@@ -89,12 +146,22 @@ def test_t_junction_cell_edge_is_in_component_successfully():
 def test_post_transform_window_min_width_and_wing_crossing_reject():
     narrow = _u_geom(windows=[{"id": "narrow", "floor": "F1", "floor_id": "f1", "facade": "South",
                                "span": [2.85, 3.0], "z": [1, 2], "room": "left-0"}])
-    result = apply_v3_envelope_transaction(narrow, load_core_tolerances(), _wing(2.9))
+    narrow, narrow_marker = _with_plan_marker(narrow)
+    result = apply_v3_envelope_transaction(
+        narrow, load_core_tolerances(), _wing(2.9),
+        verified_window_inputs=narrow_marker,
+    )
     assert not result.committed and result.failed_gate_id == "correction.window_host_unique"
+    assert "falls below min_edge_length_m" in result.geom.conflicts[-1]["reason_unresolved"]
     crossing = _u_geom(windows=[{"id": "crossing", "floor": "F1", "floor_id": "f1", "facade": "South",
                                  "span": [3.05, 3.2], "z": [1, 2], "room": "bottom-0"}])
-    result = apply_v3_envelope_transaction(crossing, load_core_tolerances(), _wing(3.1))
+    crossing, crossing_marker = _with_plan_marker(crossing)
+    result = apply_v3_envelope_transaction(
+        crossing, load_core_tolerances(), _wing(3.1),
+        verified_window_inputs=crossing_marker,
+    )
     assert not result.committed and result.failed_gate_id == "correction.window_host_unique"
+    assert "window span crosses wing break" in result.geom.conflicts[-1]["reason_unresolved"]
 
 
 def test_post_vg_segment_binding_is_fail_closed_and_rolls_back():

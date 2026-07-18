@@ -12,9 +12,23 @@ from src.agent.correction.cell_geometry import cell_has_polygon, cell_polygon, c
 from src.agent.correction.config import CoreTolerances
 from src.agent.correction.envelope import AuthoritativeEnvelope, _FACADE_RE
 from src.agent.correction.footprint import floor_footprint, floor_footprint_fingerprint, footprint_bbox
-from src.agent.correction.geometry_validator import GeometryFinding, validate_corrected_geometry
+from src.agent.correction.geometry_validator import validate_corrected_geometry
 from src.agent.correction.parse import ensure_corrected_geometry, validate_final_corrected_geometry
-from src.agent.correction.schema import CorrectedGeometryV3, FootprintRing, WindowV3
+from src.agent.correction.schema import CorrectedGeometryV3, FootprintRing
+from src.agent.correction.facade_visibility import (
+    VisibilityTolerances,
+    materialize_all_facade_segments,
+)
+from src.agent.correction.window_host import (
+    WindowHostClaimsV1,
+    WindowHostResolutionError,
+    map_direction_binding_error,
+    resolve_window_hosts,
+)
+from src.agent.correction.window_sources import (
+    VerifiedWindowResolverInputs,
+    WindowDirectionBindingError,
+)
 
 EnvelopeClaimKind = Literal["overall_bound", "wing_break_endpoint"]
 EnvelopeAxis = Literal["x", "y"]
@@ -56,15 +70,6 @@ class SharedAxisComponent:
     new_value: float
     intervals: tuple[AxisInterval, ...]
     vertices: tuple[VertexRef, ...]
-
-
-@dataclass(frozen=True)
-class WindowHost:
-    floor_id: str
-    room_id: str
-    facade: Literal["North", "South", "East", "West"]
-    edge_key: str
-    along_interval: tuple[float, float]
 
 
 @dataclass(frozen=True)
@@ -267,45 +272,6 @@ def build_shared_axis_component(geom: CorrectedGeometryV3, intent: EnvelopeMoveI
     return SharedAxisComponent(intent.axis, intent.old_value, intent.new_value, intervals, tuple(refs))
 
 
-def _cell_edges(cell):
-    pts = cell_polygon_vertices(cell)
-    if pts is None:
-        pts = [(cell.x[0], cell.y[0]), (cell.x[1], cell.y[0]), (cell.x[1], cell.y[1]), (cell.x[0], cell.y[1])]
-    return _edges(pts)
-
-
-def resolve_unique_window_host(geom: CorrectedGeometryV3, window: WindowV3, tol: CoreTolerances) -> WindowHost:
-    floors = [f for f in geom.floors if f.id == window.floor_id and f.name == window.floor]
-    if len(floors) != 1 or not window.room:
-        raise EnvelopeTransformRejected("correction.window_host_unique", "window floor identity is not unique", {"window": window.id})
-    floor = floors[0]
-    rooms = [c for c in floor.cells if c.id == window.room]
-    if len(rooms) != 1:
-        raise EnvelopeTransformRejected("correction.window_host_unique", "window room identity is not unique", {"window": window.id})
-    normal = {"North": (0, 1), "South": (0, -1), "East": (1, 0), "West": (-1, 0)}[window.facade]
-    ring = _edges([tuple(p) for p in floor.footprint.vertices])
-    matches: list[WindowHost] = []
-    for a, b in _cell_edges(rooms[0]):
-        for p, q in ring:
-            if a[0] == b[0] == p[0] == q[0]:
-                along = sorted((a[1], b[1]))
-                # The open footprint ring is CCW: interior is to an edge's
-                # left, therefore its exterior normal is to the right.
-                sign = (1, 0) if q[1] > p[1] else (-1, 0)
-            elif a[1] == b[1] == p[1] == q[1]:
-                along = sorted((a[0], b[0]))
-                sign = (0, -1) if q[0] > p[0] else (0, 1)
-            else:
-                continue
-            ring_along = sorted((p[1], q[1])) if p[0] == q[0] else sorted((p[0], q[0]))
-            if sign == normal and max(along[0], ring_along[0]) <= min(along[1], ring_along[1]) + tol.envelope_axis_attach_tol_m and window.span[0] >= along[0] - tol.envelope_axis_attach_tol_m and window.span[1] <= along[1] + tol.envelope_axis_attach_tol_m:
-                matches.append(WindowHost(floor.id, rooms[0].id, window.facade, f"{floor.id}:{rooms[0].id}:{a}:{b}:{normal}", tuple(along)))
-    unique = {m.edge_key: m for m in matches}
-    if len(unique) != 1:
-        raise EnvelopeTransformRejected("correction.window_host_unique", "window has zero or multiple exterior hosts", {"window": window.id, "hosts": len(unique)})
-    return next(iter(unique.values()))
-
-
 def cell_adjacency_signature(geom: CorrectedGeometryV3, tol: CoreTolerances) -> tuple[tuple[str, str, str], ...]:
     pairs = []
     for floor in geom.floors:
@@ -331,12 +297,15 @@ def check_shared_boundary_consistency(before: CorrectedGeometryV3, candidate: Co
     return EnvelopeGateFinding("correction.shared_boundary_consistency", ok, "cell adjacency changed" if not ok else "")
 
 
-def run_envelope_hard_gates(before: CorrectedGeometryV3, candidate: CorrectedGeometryV3, *, intents: tuple[EnvelopeMoveIntent, ...], tol: CoreTolerances) -> tuple[EnvelopeGateFinding, ...]:
+def run_envelope_hard_gates(before: CorrectedGeometryV3, candidate: CorrectedGeometryV3, *,
+                            intents: tuple[EnvelopeMoveIntent, ...], tol: CoreTolerances,
+                            window_host_ok: bool,
+                            window_host_message: str = "") -> tuple[EnvelopeGateFinding, ...]:
     findings: list[EnvelopeGateFinding] = []
     try:
         validate_final_corrected_geometry(candidate)
         findings.append(EnvelopeGateFinding("correction.envelope_ring_valid", True))
-    except Exception as exc:
+    except ValueError as exc:
         return (EnvelopeGateFinding("correction.envelope_ring_valid", False, str(exc)),)
     coverage = [f for f in validate_corrected_geometry(candidate) if f.check_id == "correction.coverage" and not f.ok]
     findings.append(EnvelopeGateFinding("correction.coverage", not coverage, "; ".join(f.message for f in coverage)))
@@ -346,13 +315,10 @@ def run_envelope_hard_gates(before: CorrectedGeometryV3, candidate: CorrectedGeo
     findings.append(shared)
     if not shared.ok:
         return tuple(findings)
-    try:
-        before_hosts = {w.id: resolve_unique_window_host(before, w, tol) for w in before.windows}
-        after_hosts = {w.id: resolve_unique_window_host(candidate, w, tol) for w in candidate.windows}
-        host_ok = all((before_hosts[k].floor_id, before_hosts[k].room_id, before_hosts[k].facade) == (after_hosts[k].floor_id, after_hosts[k].room_id, after_hosts[k].facade) for k in before_hosts)
-        findings.append(EnvelopeGateFinding("correction.window_host_unique", host_ok, "window host changed" if not host_ok else ""))
-    except EnvelopeTransformRejected as exc:
-        findings.append(EnvelopeGateFinding("correction.window_host_unique", False, str(exc), exc.evidence))
+    findings.append(EnvelopeGateFinding(
+        "correction.window_host_unique", window_host_ok,
+        window_host_message if not window_host_ok else "",
+    ))
     if not findings[-1].ok:
         return tuple(findings)
     binding_ok = not candidate.facade_segments and all(w.facade_segment_id is None for w in candidate.windows)
@@ -484,14 +450,64 @@ def _append_evidence_audit(geom: CorrectedGeometryV3, envelope: AuthoritativeEnv
 
 
 def _conflict_shape(gate_id: str) -> tuple[str, str]:
-    if gate_id in {"correction.window_host_unique", "correction.envelope_identity_snapshot", "correction.envelope_axis_attachment", "correction.envelope_schema_scope", "correction.envelope_evidence_scope"}:
+    if gate_id in {"correction.window_host_unique", "correction.window_host_resolution", "correction.envelope_identity_snapshot", "correction.envelope_axis_attachment", "correction.envelope_schema_scope", "correction.envelope_evidence_scope"}:
         return "reference_or_identity_ambiguity", "numeric"
     if gate_id in {"correction.envelope_topology_preserved", "correction.envelope_ring_valid", "correction.shared_boundary_consistency", "correction.envelope_min_edge", "correction.envelope_notch_depth_authority"}:
         return "unsupported_geometry", "topology_identity"
     return "facade_plan_mismatch", "numeric"
 
 
-def apply_v3_envelope_transaction(geom: CorrectedGeometryV3, tol: CoreTolerances, authoritative_envelope: AuthoritativeEnvelope) -> EnvelopeTransactionResult:
+def _dry_resolve_current_ring(
+    geom: CorrectedGeometryV3,
+    *,
+    verified_window_inputs: VerifiedWindowResolverInputs,
+    tol: CoreTolerances,
+    phase: Literal["dry_pre_transform", "dry_post_transform"],
+) -> WindowHostClaimsV1:
+    visibility_tolerances = VisibilityTolerances(
+        depth_epsilon_m=tol.facade_visibility_depth_epsilon_m,
+        endpoint_epsilon_m=tol.facade_visibility_endpoint_epsilon_m,
+    )
+    transient_segments = materialize_all_facade_segments(
+        geom, tolerances=visibility_tolerances,
+    )
+    dry_geom = geom.model_copy(
+        deep=True, update={"facade_segments": list(transient_segments)},
+    )
+    try:
+        return resolve_window_hosts(
+            dry_geom, verified_inputs=verified_window_inputs,
+            tolerances=tol, commit=False,
+        )
+    except WindowDirectionBindingError as exc:
+        raise WindowHostResolutionError(
+            map_direction_binding_error(
+                exc, geom=dry_geom, verified_inputs=verified_window_inputs, phase=phase,
+            ),
+            phase=phase,
+            context=exc.context,
+        ) from exc
+
+
+def _host_parity(before: WindowHostClaimsV1, after: WindowHostClaimsV1) -> bool:
+    before_rows = {
+        row.window_id: (row.floor_id, row.room_id, row.branch, row.facade_family)
+        for row in before.resolutions
+    }
+    after_rows = {
+        row.window_id: (row.floor_id, row.room_id, row.branch, row.facade_family)
+        for row in after.resolutions
+    }
+    return before_rows == after_rows
+
+
+def apply_v3_envelope_transaction(
+    geom: CorrectedGeometryV3,
+    tol: CoreTolerances,
+    authoritative_envelope: AuthoritativeEnvelope,
+    *,
+    verified_window_inputs: VerifiedWindowResolverInputs | None = None,
+) -> EnvelopeTransactionResult:
     before = CorrectedGeometryV3.model_validate(geom.model_dump())
     intent_ids: tuple[str, ...] = ()
     transaction_id: str | None = None
@@ -512,18 +528,29 @@ def apply_v3_envelope_transaction(geom: CorrectedGeometryV3, tol: CoreTolerances
         # Phase A #4: reject post-Vg bindings before any candidate write.
         if before.facade_segments or any(w.facade_segment_id is not None for w in before.windows):
             raise EnvelopeTransformRejected("correction.facade_segment_binding", "post-Vg facade bindings cannot enter B2b transaction", {"segments": [s.id for s in before.facade_segments], "windows": [w.id for w in before.windows if w.facade_segment_id is not None]})
+        if before.windows and verified_window_inputs is None:
+            raise EnvelopeTransformRejected(
+                "correction.window_host_resolution",
+                "v3 windows require verified source-aware resolver inputs",
+            )
+        pre_hosts = (_dry_resolve_current_ring(
+            before, verified_window_inputs=verified_window_inputs, tol=tol,
+            phase="dry_pre_transform",
+        ) if verified_window_inputs is not None else None)
+        pre_host_by_window = {
+            row.window_id: row for row in pre_hosts.resolutions
+        } if pre_hosts is not None else {}
         # Phase A #5 then #6.
-        for window in before.windows: resolve_unique_window_host(before, window, tol)
         components = {i.intent_id: build_shared_axis_component(before, i, tol) for i in intents}
         candidate = before.model_copy(deep=True)
         moved = _apply_components(candidate, components, tol)
         for window in candidate.windows:
-            host = resolve_unique_window_host(before, next(w for w in before.windows if w.id == window.id), tol)
+            host = pre_host_by_window[window.id]
             for component in components.values():
                 if component.axis == ("x" if window.facade in {"North", "South"} else "y"):
                     for n, endpoint in enumerate(window.span):
                         if (abs(endpoint - component.old_value) <= tol.envelope_axis_attach_tol_m
-                                and host.along_interval[0] - tol.envelope_axis_attach_tol_m <= endpoint <= host.along_interval[1] + tol.envelope_axis_attach_tol_m
+                                and host.room_boundary_interval.lo - tol.envelope_axis_attach_tol_m <= endpoint <= host.room_boundary_interval.hi + tol.envelope_axis_attach_tol_m
                                 and any(i.lo - tol.envelope_axis_attach_tol_m <= endpoint <= i.hi + tol.envelope_axis_attach_tol_m for i in component.intervals)):
                             window.span[n] = component.new_value; moved["window_span_refs"].append(f"{window.id}:span[{n}]")
         for window in candidate.windows:
@@ -545,7 +572,29 @@ def apply_v3_envelope_transaction(geom: CorrectedGeometryV3, tol: CoreTolerances
         # Phase B deliberately happens after coordinate simulation and before audit.
         if topology_signature(before, tol) != topology_signature(candidate, tol):
             raise EnvelopeTransformRejected("correction.envelope_topology_preserved", "candidate topology changed")
-        findings = run_envelope_hard_gates(before, candidate, intents=intents, tol=tol)
+        post_hosts = None
+        if verified_window_inputs is not None:
+            try:
+                post_hosts = _dry_resolve_current_ring(
+                    candidate, verified_window_inputs=verified_window_inputs,
+                    tol=tol, phase="dry_post_transform",
+                )
+            except WindowHostResolutionError as exc:
+                if any(
+                    row.fallback_action == "invariant_no_geometry_commit" for row in exc.conflicts
+                ):
+                    raise
+                raise EnvelopeTransformRejected(
+                    "correction.window_host_resolution",
+                    "post-transform source-aware host resolution failed",
+                    {"conflicts": [row.model_dump(mode="json") for row in exc.conflicts]},
+                ) from exc
+        host_ok = pre_hosts is None or (post_hosts is not None and _host_parity(pre_hosts, post_hosts))
+        findings = run_envelope_hard_gates(
+            before, candidate, intents=intents, tol=tol,
+            window_host_ok=host_ok,
+            window_host_message="window source/room/facade host changed",
+        )
         failed = next((f for f in findings if not f.ok), None)
         if failed:
             raise EnvelopeTransformRejected(failed.check_id, failed.message, failed.evidence)

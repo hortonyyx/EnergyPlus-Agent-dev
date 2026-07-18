@@ -287,7 +287,8 @@ def test_identity_snapshot_includes_segment_component_even_though_b2_draws_start
 def test_finalize_raises_if_core_mutates_floor_identity(tmp_path, monkeypatch):
     import src.agent.correction.finalize as finalize_module
 
-    def _tamper_core(geom, tol=None, *, authoritative_envelope=None, capability_profile="rectangular"):
+    def _tamper_core(geom, tol=None, *, authoritative_envelope=None, capability_profile="rectangular",
+                     verified_window_inputs=None):
         object.__setattr__(geom.floors[0], "id", "tampered")
         return geom
 
@@ -303,13 +304,17 @@ def test_finalize_raises_if_core_mutates_window_floor_reference(tmp_path, monkey
     raw = _payload()
     raw["windows"] = [{"id": "w1", "floor": "1F", "floor_id": "f1", "facade": "South", "span": [1, 2], "z": [1, 2]}]
 
-    def _tamper_core(geom, tol=None, *, authoritative_envelope=None, capability_profile="rectangular"):
+    def _tamper_core(geom, tol=None, *, authoritative_envelope=None, capability_profile="rectangular",
+                     verified_window_inputs=None):
         geom.windows[0].floor_id = "tampered"
         return geom
 
     monkeypatch.setattr(finalize_module, "apply_deterministic_core", _tamper_core)
     target = correction_target("orthogonal_polygon")
-    with pytest.raises(ValueError, match="finalize invariant"):
+    # B5 now rejects v3 windows without a verified source marker before core;
+    # floor-reference mutation remains covered by the marker-backed Phase-B
+    # resolver tests.
+    with pytest.raises(ValueError, match="source_identity_invalid"):
         finalize_correction_draw(raw, vector_dir=tmp_path, target=target)
 
 

@@ -12,6 +12,7 @@ required and are the polygon bbox projection.
 
 from __future__ import annotations
 
+import json
 from typing import Annotated, Literal
 
 from pydantic import AllowInfNan, BaseModel, ConfigDict, Field, StringConstraints, field_validator, model_validator
@@ -263,4 +264,11 @@ class CorrectedGeometryV3(CorrectedGeometry):
         for row in [*self.corrections, *self.conflicts, *self.unsupported]:
             if isinstance(row, dict) and row.get("kind") == "debt_resolution":
                 DebtResolutionAuditEntry.model_validate(row)
+            if isinstance(row, dict) and row.get("kind") == "window_host_resolution":
+                # Local import avoids a schema -> source-wire import cycle while
+                # registering the B5 strict accepted-audit shape for v3 only.
+                from src.agent.correction.window_host import WindowHostResolutionAuditV1
+                WindowHostResolutionAuditV1.model_validate_json(
+                    json.dumps(row, separators=(",", ":"), ensure_ascii=False),
+                )
         return self

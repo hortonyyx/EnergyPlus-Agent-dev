@@ -442,6 +442,15 @@ class ViewManifest(BaseModel):
             raise ValueError(f"duplicate input_id in entries: {dupes}")
         if ids != sorted(ids):
             raise ValueError("entries must be sorted by input_id (canonical order)")
+        # B5's floor mapping is intentionally not OCR/name based.  The B-M
+        # manifest contract defines plan floor_ref as a 1-based, ascending
+        # sequence, so gaps cannot be deferred to a resolver guess.
+        plan_refs = [e.floor_ref for e in self.entries
+                     if isinstance(e, RequiredViewEntry) and e.view_type == "plan"]
+        if plan_refs:
+            expected = list(range(1, max(plan_refs) + 1))
+            if sorted(plan_refs) != expected:
+                raise ValueError("manifest_floor_ref_non_contiguous")
         recomputed = _content_hash_of_payload(self.model_dump(mode="json"))
         if self.content_sha256 != recomputed:
             raise ValueError(

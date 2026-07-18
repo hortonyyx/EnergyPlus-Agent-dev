@@ -950,6 +950,8 @@ def test_bad_epsilon_values_rejected_by_validate(field, bad_value):
         envelope_candidate_agreement_tol_m=0.05,
         gap_close_threshold_m=0.30, gap_arbitration_band_m=1.00,
         facade_visibility_depth_epsilon_m=1e-9, facade_visibility_endpoint_epsilon_m=1e-9,
+        window_segment_endpoint_clamp_tol_m=0.01, window_host_span_epsilon_m=1e-9,
+        window_host_plane_epsilon_m=1e-9,
     )
     base[field] = bad_value
     tol = CoreTolerances(**base)

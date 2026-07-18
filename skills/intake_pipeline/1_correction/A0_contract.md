@@ -191,6 +191,9 @@ emit `unsupported`.
 | `FACADE_FRAME_CROSS_CHECK_TOL` | 0.30 | m | calibrated | all | flag | gate① cross-check: deterministic `derive_facade_frame` placement from reading elevation local-x vs correction LLM window world span; wall-thickness/envelope-basis scale, never a blocking transform tolerance |
 | `FACADE_VISIBILITY_DEPTH_EPSILON` | `1e-9` | m | provisional | orthogonal_polygon/v3 | INVARIANT tie/negative-depth guard | Vg (C2 §E1') same-depth-atom tie and negative-depth degeneracy guard; absorbs only IEEE-754 arithmetic noise, seven orders of magnitude below `SNAP_GRID` — not a physical resolution and never reused as one |
 | `FACADE_VISIBILITY_ENDPOINT_EPSILON` | `1e-9` | m | provisional | orthogonal_polygon/v3 | INVARIANT short-edge/near-endpoint guard | Vg half-open 1D-skyline sweep's numeric topology gate: rejects degenerate short edges and near-collision along-axis events; never snaps or bridges a real gap |
+| `WINDOW_SEGMENT_ENDPOINT_CLAMP_TOL` | `0.010` | m | provisional | B5/v3 | hard clamp bound | Only after unique facade-segment selection, caps physical endpoint return to that segment; never selects a segment or crosses a room seam. |
+| `WINDOW_HOST_SPAN_EPSILON` | `1e-9` | m | provisional | B5/v3 | INVARIANT numeric guard | Positive-width, containment, half-open endpoint, and coverage residual arithmetic only; never a physical clamp or visibility replacement. |
+| `WINDOW_HOST_PLANE_EPSILON` | `1e-9` | m | provisional | B5/v3 | INVARIANT numeric guard | Room-edge/segment/parent-wall collinearity and vertex-on-plane arithmetic only; never angle or wall-thickness tolerance. |
 | `GT_DXF_NODE_JOIN_TOLERANCE` | `0.001` | m | provisional | gt-v3/C2 | hard snap-or-block | judge② tooling only; DXF endpoint numeric split clustering before polygonize, component diameter over limit blocks |
 | `GT_DXF_AXIS_ALIGNMENT_TOLERANCE` | `0.001` | m | provisional | gt-v3/C2 | hard project-or-block | judge② tooling only; near-horizontal/vertical export noise projects only to a uniquely closer axis |
 | `GT_DXF_TOPOLOGY_AREA_TOLERANCE` | `0.000001` | m² | provisional | gt-v3/C2 | hard topology | judge② tooling only; polygonize sliver and zone-union area residual, never geometry repair |
@@ -322,6 +325,25 @@ and output-bound `FeatureStatesArtifactV1` record declared versus populated
 features; `EvidenceDebtItem.debt_id` is the canonical debt primary key and a
 v3 `debt_resolution` audit entry may resolve it exactly once. These are schema
 registrations, not new numeric tolerances.
+
+B5 Phase-A registration: resolver-input schema `window_resolver_inputs_v1`,
+host-sidecar schema `window_hosts_v1`, resolver helper
+`window_host_resolver_v1`, and current-ring direction helper
+`window_direction_frame_v1` are strict v3-only wires.  Their artifact-contract
+names are `correction_b5_v1` and `correction_b5_orientation_v1` (the writer
+integration lands in B5 Phase D).  `manifest_floor_order_v1` means a plan
+`floor_ref` is 1-based ascending `Floor.z_floor`, with no gaps; names/OCR are
+not a floor identity fallback.  `window_anchor_validation` means the complete
+segment + room + parent + proof-totality relation, not a window center/bbox.
+For the plan branch, `window_host_resolver_v1` may filter same-floor/family
+segments only by the authenticated plan source interval perpendicular to the
+facade plane (North/South: `world_y_interval`; East/West: `world_x_interval`),
+using `WINDOW_HOST_PLANE_EPSILON`.  This is a source-plane identity filter, not
+a center/nearest-wall rule: every coplanar segment remains eligible, so a
+positive-width span over two coplanar segments still blocks as
+`cross_segment_boundary`.  A window-host audit `original_span` is the
+resolver-entry post-snap span; verification replays deterministic snap from
+the authenticated producer bytes before comparing it.
 
 E4 orientation registry (B-O batch): `FeatureStateClaimsV1.phase_contract` is the
 strict `"b2" | "e4_orientation"` literal. The orientation-enriched v3 lineage adds

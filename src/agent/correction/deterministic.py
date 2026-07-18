@@ -24,8 +24,9 @@ so an internal wall that stops short of the exterior seals the enclosure (an
 unclosed enclosure forms no EnergyPlus zone). Connectivity is a coarser,
 distinct operation from axis identity (A0 §4) — bigger threshold, directional,
 footprint-only for now. Windows are tiered finer and are NOT placed on the
-structural grid (no cross-floor identity / sliver role); they snap to
-`window_snap_grid_m` and clamp into their parent cell/floor.
+structural grid (no cross-floor identity / sliver role). Legacy windows retain
+their parent-cell clamp; v3 windows only snap and floor-z clamp before B5's
+source-aware host resolver owns span/topology decisions.
 
 All tolerances come from `src/configs/correction.yaml` (basis: A0_contract.md §4),
 loaded via `src.agent.correction.config` — not hardcoded here, so there is one
@@ -36,6 +37,7 @@ from __future__ import annotations
 
 from collections import defaultdict
 from dataclasses import dataclass, field
+from typing import TYPE_CHECKING
 
 from src.agent.correction.config import CoreTolerances, load_core_tolerances
 from src.agent.correction.cell_geometry import (
@@ -53,6 +55,9 @@ from src.agent.correction.parse import ensure_corrected_geometry, validate_final
 from src.agent.correction.schema import CorrectedGeometry, FootprintRing
 from src.agent.geometry.capability import require_supported_geometry_contract
 from src.agent.geometry.capability import FEATURE_CELL_POLYGON, schema_supports, schema_version_of
+
+if TYPE_CHECKING:
+    from src.agent.correction.window_sources import VerifiedWindowResolverInputs
 
 
 _EPS = 1e-9
@@ -756,6 +761,7 @@ def _apply_envelope_reconcile(
     geom: CorrectedGeometry,
     tol: CoreTolerances,
     authoritative_envelope: AuthoritativeEnvelope | None,
+    verified_window_inputs: "VerifiedWindowResolverInputs | None" = None,
 ) -> CorrectedGeometry:
     """Apply an envelope reconcile without leaking mutable audit side channels.
 
@@ -769,7 +775,10 @@ def _apply_envelope_reconcile(
         if authoritative_envelope is None:
             return geom
         from src.agent.correction.envelope_transform import apply_v3_envelope_transaction
-        return apply_v3_envelope_transaction(geom, tol, authoritative_envelope).geom
+        return apply_v3_envelope_transaction(
+            geom, tol, authoritative_envelope,
+            verified_window_inputs=verified_window_inputs,
+        ).geom
     corrections, unsupported, conflicts = list(geom.corrections), list(geom.unsupported), list(geom.conflicts)
     fx, fy = _apply_legacy_envelope_reconcile(geom, tol, authoritative_envelope, corrections, unsupported, conflicts)
     geom.footprint_x, geom.footprint_y = fx, fy
@@ -783,6 +792,7 @@ def apply_deterministic_core(
     *,
     authoritative_envelope: AuthoritativeEnvelope | None = None,
     capability_profile: str = "rectangular",
+    verified_window_inputs: "VerifiedWindowResolverInputs | None" = None,
 ) -> CorrectedGeometry:
     """Snap all geometry onto a global canonical axis set; append audit entries.
 
@@ -963,7 +973,7 @@ def apply_deterministic_core(
                     )
                 c.x, c.y = [x0, x1], [y0, y1]
 
-    # ---- windows: finer grid + clamp into parent cell/floor (no structural grid) ----
+    # ---- windows: legacy parent clamp; v3 pre-host snap + floor-z clamp ----
     wgrid = tol.window_snap_grid_m
     cell_by_id: dict[str, tuple] = {}
     for fl in geom.floors:
@@ -981,6 +991,22 @@ def apply_deterministic_core(
     for w in geom.windows:
         s0, s1 = _snap_to_grid(w.span[0], wgrid), _snap_to_grid(w.span[1], wgrid)
         z0, z1 = _snap_to_grid(w.z[0], wgrid), _snap_to_grid(w.z[1], wgrid)
+        if schema_version_of(geom) == "3":
+            floor = next((floor for floor in geom.floors if floor.id == w.floor_id), None)
+            if floor is None:
+                raise ValueError(f"window {w.id}: unknown floor_id during pre-host core")
+            zlo, zhi = floor.z_floor, floor.z_floor + floor.ceiling_height
+            z0, z1 = _clamp(z0, zlo, zhi), _clamp(z1, zlo, zhi)
+            log(f"{w.id}.span[0]", "span", w.span[0], s0, "deterministic_core.window")
+            log(f"{w.id}.span[1]", "span", w.span[1], s1, "deterministic_core.window")
+            log(f"{w.id}.z[0]", "z", w.z[0], z0, "deterministic_core.window")
+            log(f"{w.id}.z[1]", "z", w.z[1], z1, "deterministic_core.window")
+            # B5 source-aware resolution owns plan-span clamp and all topology
+            # rejection.  Pre-host core never clamps a v3 span to a room/cell
+            # bbox and never drops a window before resolver totality can see it.
+            w.span, w.z = [s0, s1], [z0, z1]
+            kept_windows.append(w)
+            continue
         clamped = tol.window_clamp_to_parent and w.room in cell_by_id
         if clamped:
             fl, c = cell_by_id[w.room]
@@ -1032,7 +1058,10 @@ def apply_deterministic_core(
         if authoritative_envelope is not None:
             # Same late (post canonical cell/window) timing as B2b §5.1; the
             # dispatcher is also the only private reconciliation entry point.
-            geom = _apply_envelope_reconcile(geom, tol, authoritative_envelope)
+            geom = _apply_envelope_reconcile(
+                geom, tol, authoritative_envelope,
+                verified_window_inputs=verified_window_inputs,
+            )
         (xmin, xmax), (ymin, ymax) = footprint_bbox(geom)
         geom.footprint_x, geom.footprint_y = [xmin, xmax], [ymin, ymax]
         return validate_final_corrected_geometry(geom)

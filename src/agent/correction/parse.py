@@ -77,6 +77,18 @@ def _ring_checks(geom: CorrectedGeometry, *, canonical: bool) -> None:
 
 
 def parse_correction_draw(payload: dict, target: CorrectionTarget) -> CorrectedGeometry:
+    # B5 producer draw is intentionally unmounted.  Check the raw payload
+    # before strict V3 model validation so a prefilled reference receives its
+    # stable source-trust code instead of an incidental "unknown segment".
+    if target.schema_version == "3" and isinstance(payload, dict):
+        windows = payload.get("windows")
+        if isinstance(windows, list) and any(isinstance(item, dict) and item.get("facade_segment_id") is not None for item in windows):
+            from src.agent.correction.window_sources import WindowResolverInputError
+            raise WindowResolverInputError("producer_segment_ref_prefilled")
+        audit_rows = [payload.get(name) for name in ("corrections", "conflicts", "unsupported")]
+        if any(isinstance(rows, list) and any(isinstance(item, dict) and item.get("kind") == "window_host_resolution" for item in rows) for rows in audit_rows):
+            from src.agent.correction.window_sources import WindowResolverInputError
+            raise WindowResolverInputError("producer_resolver_audit_prefilled")
     geom = ensure_corrected_geometry(payload)
     if geom.schema_version != target.schema_version:
         raise ValueError("correction draw schema_version does not match selected target")

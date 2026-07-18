@@ -1,0 +1,516 @@
+"""B5 Phase-A source trust and current-ring direction bindings.
+
+This module is deliberately the sole production owner of the source locator
+catalogue and the ephemeral, ring-dependent Va elevation bindings.  It imports
+no judge code: score bindings are an oracle for tests only.
+"""
+from __future__ import annotations
+
+import hashlib
+import json
+from dataclasses import dataclass
+from typing import Annotated, Literal, Mapping, Union
+
+from pydantic import AllowInfNan, BaseModel, ConfigDict, Field, Strict, StringConstraints, model_validator
+
+from src.agent.correction.claims import CLAIMS_VOCAB_VERSION, WINDOW_CLAIMS
+from src.agent.correction.facade_applicability import ElevationViewBindingV1 as VaElevationViewBindingV1
+from src.agent.correction.facade_visibility import FacadeVisibilityInvariantError, VisibilityTolerances, validate_materialized_facade_segments
+from src.agent.correction.footprint import floor_footprint_fingerprint
+from src.agent.correction.schema import CorrectedGeometryV3
+from src.agent.execution.view_manifest import RequiredViewEntry, ViewManifest
+from src.agent.reading import parse_reading_view
+
+WINDOW_RESOLVER_INPUT_SCHEMA_VERSION = "1"
+SOURCE_LOCATOR_PREFIX = "src:"
+CURRENT_RING_BINDING_HELPER_VERSION = "window_direction_frame_v1"
+
+FiniteFloat = Annotated[float, Strict(), AllowInfNan(False)]
+StableId = Annotated[str, Strict(), StringConstraints(min_length=1)]
+Hex64 = Annotated[str, Strict(), StringConstraints(pattern=r"^[0-9a-f]{64}$")]
+SourceLocator = Annotated[str, Strict(), StringConstraints(pattern=r"^src:[0-9a-f]{64}$")]
+ClaimName = Literal["existence", "host", "along", "width", "sill", "head", "appearance"]
+CardinalFamily = Literal["North", "South", "East", "West"]
+_CFG = ConfigDict(extra="forbid", frozen=True, strict=True)
+_AXIS = {"North": "x", "South": "x", "East": "y", "West": "y"}
+_BASE_SIGN = {"North": -1, "South": 1, "East": 1, "West": -1}
+
+
+def canonical_json_bytes(value: object) -> bytes:
+    return json.dumps(value, sort_keys=True, separators=(",", ":"), ensure_ascii=False, allow_nan=False).encode("utf-8")
+
+
+def canonical_sha256(value: object) -> str:
+    return hashlib.sha256(canonical_json_bytes(value)).hexdigest()
+
+
+def _without_hash(model: BaseModel) -> dict:
+    data = model.model_dump(mode="json")
+    data.pop("content_sha256", None)
+    return data
+
+
+class WindowResolverInputError(ValueError):
+    """Typed, stable B5 draw/source-input rejection."""
+
+    def __init__(self, code: str, context: Mapping[str, object] | None = None):
+        self.code = code
+        self.context = dict(context or {})
+        super().__init__(f"{code}: {self.context}")
+
+
+class SourceIntervalV1(BaseModel):
+    model_config = _CFG
+    lo: FiniteFloat
+    hi: FiniteFloat
+
+    @model_validator(mode="after")
+    def _ordered(self):
+        if self.lo >= self.hi:
+            raise ValueError("source interval requires lo < hi")
+        return self
+
+
+class PlanSourceWindowV1(BaseModel):
+    model_config = _CFG
+    channel: Literal["plan"]
+    source_locator: SourceLocator
+    source_input_id: StableId
+    source_output_sha256: Hex64
+    observation_id: StableId
+    floor_ref: Annotated[int, Strict(), Field(gt=0)]
+    world_x_interval: SourceIntervalV1
+    world_y_interval: SourceIntervalV1
+    positive_claims: tuple[ClaimName, ...]
+
+
+class ElevationSourceWindowV1(BaseModel):
+    model_config = _CFG
+    channel: Literal["elevation"]
+    source_locator: SourceLocator
+    source_input_id: StableId
+    source_output_sha256: Hex64
+    observation_id: StableId
+    local_along_interval: SourceIntervalV1
+    local_z_interval: SourceIntervalV1 | None
+    positive_claims: tuple[ClaimName, ...]
+
+
+SourceWindowV1 = Annotated[Union[PlanSourceWindowV1, ElevationSourceWindowV1], Field(discriminator="channel")]
+
+
+class WindowClaimSourceLinkV1(BaseModel):
+    model_config = _CFG
+    window_id: StableId
+    claim: ClaimName
+    source_locator: SourceLocator
+
+
+class ReadingArtifactIdentityV1(BaseModel):
+    model_config = _CFG
+    input_id: StableId
+    expected_output_id: StableId
+    output_sha256: Hex64
+
+
+class ElevationDirectionFactV1(BaseModel):
+    model_config = _CFG
+    input_id: StableId
+    resolved_building_direction: CardinalFamily
+    resolution_source: Literal["manifest_building_axis", "resolved_direction_sidecar"]
+    mirrored: Annotated[bool, Strict()]
+    local_x_positive: Literal["image_left_to_right", "image_right_to_left"]
+    orientation_output_hash: Hex64 | None
+    adapter_version: StableId | None
+    view_manifest_sha256: Hex64
+
+
+class WindowResolverInputsV1(BaseModel):
+    model_config = _CFG
+    schema_version: Literal["1"]
+    claims_vocab_version: Literal["1"]
+    producer_draw_sha256: Hex64
+    view_manifest: ViewManifest
+    reading_artifacts: tuple[ReadingArtifactIdentityV1, ...]
+    elevation_direction_facts: tuple[ElevationDirectionFactV1, ...]
+    source_windows: tuple[SourceWindowV1, ...]
+    claim_links: tuple[WindowClaimSourceLinkV1, ...]
+    content_sha256: Hex64
+
+    @model_validator(mode="after")
+    def _hash(self):
+        if tuple(item.input_id for item in self.reading_artifacts) != tuple(sorted(item.input_id for item in self.reading_artifacts)):
+            raise ValueError("reading_artifacts must be sorted by input_id")
+        if tuple(item.input_id for item in self.elevation_direction_facts) != tuple(sorted(item.input_id for item in self.elevation_direction_facts)):
+            raise ValueError("elevation_direction_facts must be sorted by input_id")
+        if tuple((item.channel, item.source_input_id, item.observation_id) for item in self.source_windows) != tuple(sorted((item.channel, item.source_input_id, item.observation_id) for item in self.source_windows)):
+            raise ValueError("source_windows must be canonical sorted")
+        rank = {claim: index for index, claim in enumerate(("existence", "host", "along", "width", "sill", "head", "appearance"))}
+        if tuple((item.window_id, rank[item.claim], item.source_locator) for item in self.claim_links) != tuple(sorted((item.window_id, rank[item.claim], item.source_locator) for item in self.claim_links)):
+            raise ValueError("claim_links must be canonical sorted")
+        if self.content_sha256 != canonical_sha256(_without_hash(self)):
+            raise ValueError("content_sha256 does not match canonical resolver inputs")
+        return self
+
+
+class WindowSourceOfferV1(BaseModel):
+    model_config = _CFG
+    schema_version: Literal["1"]
+    view_manifest_sha256: Hex64
+    source_windows: tuple[SourceWindowV1, ...]
+    allowed_claims_by_locator: tuple[tuple[SourceLocator, tuple[ClaimName, ...]], ...]
+    content_sha256: Hex64
+
+    @model_validator(mode="after")
+    def _hash(self):
+        if tuple((item.channel, item.source_input_id, item.observation_id) for item in self.source_windows) != tuple(sorted((item.channel, item.source_input_id, item.observation_id) for item in self.source_windows)):
+            raise ValueError("source_windows must be canonical sorted")
+        if self.content_sha256 != canonical_sha256(_without_hash(self)):
+            raise ValueError("content_sha256 does not match canonical source offer")
+        return self
+
+
+@dataclass(frozen=True)
+class VerifiedWindowResolverInputs:
+    """Opaque-in-practice marker; only builders in this module create it."""
+
+    inputs: WindowResolverInputsV1
+    raw_inputs_bytes: bytes
+    producer_draw_canonical_bytes: bytes
+    raw_view_manifest_bytes: bytes
+    raw_reading_artifacts: tuple[tuple[str, bytes], ...]
+
+
+def source_locator(*, input_id: str, observation_id: str, output_sha256: str) -> str:
+    return SOURCE_LOCATOR_PREFIX + canonical_sha256({
+        "input_id": input_id, "observation_id": observation_id,
+        "output_sha256": output_sha256, "schema": "window_source_locator_v1",
+    })
+
+
+def _parse_manifest(raw: bytes) -> ViewManifest:
+    try:
+        return ViewManifest.model_validate_json(raw)
+    except (UnicodeDecodeError, json.JSONDecodeError, ValueError) as exc:
+        raise WindowResolverInputError("source_identity_invalid", {"artifact": "view_manifest"}) from exc
+
+
+def _interval(raw: object, *, observation_id: str, field: str) -> SourceIntervalV1:
+    if not isinstance(raw, (list, tuple)) or len(raw) != 2:
+        raise WindowResolverInputError("source_identity_invalid", {"observation_id": observation_id, "field": field})
+    try:
+        return SourceIntervalV1(lo=raw[0], hi=raw[1])
+    except ValueError as exc:
+        raise WindowResolverInputError("source_identity_invalid", {"observation_id": observation_id, "field": field}) from exc
+
+
+def _window_strokes(raw: bytes, entry: RequiredViewEntry):
+    try:
+        payload = json.loads(raw.decode("utf-8"))
+        view = parse_reading_view(payload)
+    except (UnicodeDecodeError, json.JSONDecodeError, ValueError) as exc:
+        raise WindowResolverInputError("source_identity_invalid", {"input_id": entry.input_id, "artifact": "reading"}) from exc
+    output_sha = hashlib.sha256(raw).hexdigest()
+    for stroke in view.strokes:
+        if stroke.pen != "window":
+            continue
+        geometry = stroke.geometry
+        locator = source_locator(input_id=entry.input_id, observation_id=stroke.id, output_sha256=output_sha)
+        if entry.view_type == "plan":
+            yield PlanSourceWindowV1(channel="plan", source_locator=locator, source_input_id=entry.input_id,
+                source_output_sha256=output_sha, observation_id=stroke.id, floor_ref=entry.floor_ref,
+                world_x_interval=_interval(geometry.get("x_range"), observation_id=stroke.id, field="x_range"),
+                world_y_interval=_interval(geometry.get("y_range"), observation_id=stroke.id, field="y_range"),
+                positive_claims=("existence", "host", "along", "width"))
+        elif entry.view_type == "elevation":
+            z = geometry.get("z_range")
+            yield ElevationSourceWindowV1(channel="elevation", source_locator=locator, source_input_id=entry.input_id,
+                source_output_sha256=output_sha, observation_id=stroke.id,
+                local_along_interval=_interval(geometry.get("x_range"), observation_id=stroke.id, field="x_range"),
+                local_z_interval=None if z is None else _interval(z, observation_id=stroke.id, field="z_range"),
+                positive_claims=("existence", "along", "width", "sill", "head", "appearance"))
+
+
+def _catalog(*, manifest: ViewManifest, raw_reading_artifacts: Mapping[str, bytes]) -> tuple[SourceWindowV1, ...]:
+    required = {entry.input_id: entry for entry in manifest.required_entries()}
+    if set(raw_reading_artifacts) != set(required):
+        raise WindowResolverInputError("source_identity_invalid", {"reading_inputs": sorted(raw_reading_artifacts), "required_inputs": sorted(required)})
+    rows: list[SourceWindowV1] = []
+    for input_id in sorted(required):
+        entry = required[input_id]
+        if entry.view_type in ("plan", "elevation"):
+            rows.extend(_window_strokes(raw_reading_artifacts[input_id], entry))
+    _validate_catalog(rows, raw_parser=True)
+    return tuple(sorted(rows, key=lambda item: (item.channel, item.source_input_id, item.observation_id)))
+
+
+def _validate_catalog(rows: tuple[SourceWindowV1, ...] | list[SourceWindowV1], *, raw_parser: bool = False) -> None:
+    locators = [item.source_locator for item in rows]
+    observations = [(item.source_input_id, item.observation_id) for item in rows]
+    if raw_parser and len(observations) != len(set(observations)):
+        raise WindowResolverInputError("duplicate_source_observation")
+    if len(locators) != len(set(locators)):
+        raise WindowResolverInputError("duplicate_source_locator")
+    if not raw_parser and len(observations) != len(set(observations)):
+        raise WindowResolverInputError("duplicate_source_observation")
+
+
+def verify_window_resolver_inputs(inputs: WindowResolverInputsV1) -> None:
+    """Narrow verifier for already-parsed untrusted input wire (test/loader seam).
+
+    It deliberately returns no verified marker: only the raw-artifact builder
+    below can issue one.  Keeping this seam public lets loaders reject a
+    syntactically valid but duplicate catalog before any marker exists.
+    """
+    if inputs.content_sha256 != canonical_sha256(_without_hash(inputs)):
+        raise WindowResolverInputError("source_identity_invalid", {"artifact": "resolver_inputs"})
+    _validate_catalog(inputs.source_windows)
+    by_locator = {row.source_locator: row for row in inputs.source_windows}
+    for link in inputs.claim_links:
+        row = by_locator.get(link.source_locator)
+        if row is None:
+            raise WindowResolverInputError("source_identity_invalid", {"source_locator": link.source_locator})
+        entry = inputs.view_manifest.entry_by_input_id(row.source_input_id)
+        if not isinstance(entry, RequiredViewEntry):
+            raise WindowResolverInputError("source_identity_invalid", {"input_id": row.source_input_id})
+        # Permission is intentionally checked before declaration/manifest
+        # observability: it is a channel hard boundary, not a missing claim.
+        permitted = ((row.channel == "plan" and link.claim in {"existence", "host", "along", "width"}) or
+                     (row.channel == "elevation" and link.claim in {"existence", "along", "width", "sill", "head", "appearance"}))
+        if not permitted:
+            raise WindowResolverInputError("claim_permission_invalid", {"window_id": link.window_id, "claim": link.claim})
+        if link.claim not in row.positive_claims:
+            raise WindowResolverInputError("source_claim_undeclared", {"window_id": link.window_id, "claim": link.claim})
+        if link.claim not in entry.opening_evidence.potentially_observable_claims:
+            raise WindowResolverInputError("manifest_claim_not_observable", {"window_id": link.window_id, "claim": link.claim})
+
+
+def build_window_source_offer(*, raw_view_manifest_bytes: bytes,
+                              raw_reading_artifacts: Mapping[str, bytes]) -> WindowSourceOfferV1:
+    manifest = _parse_manifest(raw_view_manifest_bytes)
+    rows = _catalog(manifest=manifest, raw_reading_artifacts=raw_reading_artifacts)
+    allowed = tuple((row.source_locator, row.positive_claims) for row in rows)
+    payload = {"schema_version": "1", "view_manifest_sha256": manifest.content_sha256,
+               "source_windows": [row.model_dump(mode="json") for row in rows],
+               "allowed_claims_by_locator": [[loc, list(claims)] for loc, claims in allowed]}
+    return WindowSourceOfferV1(schema_version="1", view_manifest_sha256=manifest.content_sha256,
+        source_windows=rows, allowed_claims_by_locator=allowed, content_sha256=canonical_sha256(payload))
+
+
+def _check_direction_facts(manifest: ViewManifest, facts: tuple[ElevationDirectionFactV1, ...],
+                           raw_reading_artifacts: Mapping[str, bytes]) -> tuple[ElevationDirectionFactV1, ...]:
+    expected = {entry.input_id: entry for entry in manifest.required_entries() if entry.view_type == "elevation"}
+    got = {fact.input_id: fact for fact in facts}
+    if len(got) != len(facts) or set(got) != set(expected):
+        raise WindowResolverInputError("direction_fact_invalid", {"declared": sorted(got), "required": sorted(expected)})
+    out = []
+    for input_id, entry in expected.items():
+        fact = got[input_id]
+        if fact.view_manifest_sha256 != manifest.content_sha256:
+            raise WindowResolverInputError("direction_fact_invalid", {"input_id": input_id, "field": "view_manifest_sha256"})
+        try:
+            reading = parse_reading_view(json.loads(raw_reading_artifacts[input_id].decode("utf-8")))
+        except (UnicodeDecodeError, json.JSONDecodeError, ValueError) as exc:
+            raise WindowResolverInputError("direction_fact_invalid", {"input_id": input_id, "artifact": "reading"}) from exc
+        if reading.facade is not None:
+            mirrored = reading.facade.mirrored
+            if isinstance(mirrored, bool) and (fact.mirrored != mirrored or fact.local_x_positive != reading.facade.local_x_positive):
+                raise WindowResolverInputError("direction_fact_invalid", {"input_id": input_id, "field": "reading_facade"})
+        if fact.resolution_source == "manifest_building_axis":
+            if (entry.direction_semantics != "building_axis" or
+                    fact.resolved_building_direction != entry.building_view_direction or
+                    fact.orientation_output_hash is not None or fact.adapter_version is not None):
+                raise WindowResolverInputError("direction_fact_invalid", {"input_id": input_id})
+        elif (entry.direction_semantics not in ("true_azimuth", "unknown") or
+              fact.orientation_output_hash is None or fact.adapter_version is None):
+            raise WindowResolverInputError("direction_fact_invalid", {"input_id": input_id})
+        out.append(fact)
+    return tuple(sorted(out, key=lambda item: item.input_id))
+
+
+def _producer_preflight(producer: CorrectedGeometryV3) -> None:
+    if producer.facade_segments or any(window.facade_segment_id is not None for window in producer.windows):
+        raise WindowResolverInputError("producer_segment_ref_prefilled")
+    if any(isinstance(row, dict) and row.get("kind") == "window_host_resolution"
+           for rows in (producer.corrections, producer.conflicts, producer.unsupported) for row in rows):
+        raise WindowResolverInputError("producer_resolver_audit_prefilled")
+
+
+def _claim_links(producer: CorrectedGeometryV3, rows: tuple[SourceWindowV1, ...], manifest: ViewManifest) -> tuple[WindowClaimSourceLinkV1, ...]:
+    by_locator = {row.source_locator: row for row in rows}
+    used_existence: set[str] = set()
+    links: list[WindowClaimSourceLinkV1] = []
+    for window in producer.windows:
+        provenance = window.provenance or {}
+        existence = provenance.get("existence")
+        if existence is None or not existence.source_ids or existence.provenance == "assumed":
+            raise WindowResolverInputError("source_identity_invalid", {"window_id": window.id, "claim": "existence"})
+        for claim, detail in provenance.items():
+            for locator in detail.source_ids:
+                source = by_locator.get(locator)
+                if source is None:
+                    raise WindowResolverInputError("source_identity_invalid", {"window_id": window.id, "source_locator": locator})
+                if claim not in source.positive_claims:
+                    raise WindowResolverInputError("source_claim_undeclared", {"window_id": window.id, "claim": claim})
+                entry = manifest.entry_by_input_id(source.source_input_id)
+                if not isinstance(entry, RequiredViewEntry):
+                    raise WindowResolverInputError("source_identity_invalid", {
+                        "window_id": window.id, "input_id": source.source_input_id,
+                    })
+                if claim not in entry.opening_evidence.potentially_observable_claims:
+                    raise WindowResolverInputError("manifest_claim_not_observable", {"window_id": window.id, "claim": claim})
+                permitted = ((source.channel == "plan" and claim in {"existence", "host", "along", "width"}) or
+                             (source.channel == "elevation" and claim in {"existence", "along", "width", "sill", "head", "appearance"}))
+                if not permitted:
+                    raise WindowResolverInputError("claim_permission_invalid", {"window_id": window.id, "claim": claim})
+                if claim == "existence":
+                    if locator in used_existence:
+                        raise WindowResolverInputError("source_identity_invalid", {"source_locator": locator, "reason": "multiple_windows"})
+                    used_existence.add(locator)
+                links.append(WindowClaimSourceLinkV1(window_id=window.id, claim=claim, source_locator=locator))
+    order = {claim: index for index, claim in enumerate(("existence", "host", "along", "width", "sill", "head", "appearance"))}
+    return tuple(sorted(links, key=lambda link: (link.window_id, order[link.claim], link.source_locator)))
+
+
+def _check_floor_order(manifest: ViewManifest, producer: CorrectedGeometryV3,
+                       rows: tuple[SourceWindowV1, ...], links: tuple[WindowClaimSourceLinkV1, ...]) -> None:
+    refs = sorted({entry.floor_ref for entry in manifest.required_entries() if entry.view_type == "plan"})
+    if refs != list(range(1, len(refs) + 1)) or len(refs) != len(producer.floors):
+        raise WindowResolverInputError("manifest_floor_ref_non_contiguous")
+    floor_by_id = {floor.id: floor for floor in producer.floors}
+    rank = {floor.id: index for index, floor in enumerate(sorted(producer.floors, key=lambda floor: floor.z_floor), start=1)}
+    windows = {window.id: window for window in producer.windows}
+    for row in rows:
+        if isinstance(row, PlanSourceWindowV1):
+            for link in (link for link in links if link.source_locator == row.source_locator):
+                if rank[windows[link.window_id].floor_id] != row.floor_ref:
+                    raise WindowResolverInputError("floor_ref_window_mismatch", {"window_id": link.window_id})
+        elif isinstance(row, ElevationSourceWindowV1) and row.local_z_interval is not None:
+            candidates = [floor for floor in producer.floors
+                          if row.local_z_interval.lo >= floor.z_floor and row.local_z_interval.hi <= floor.z_floor + floor.ceiling_height]
+            for link in (link for link in links if link.source_locator == row.source_locator):
+                if len(candidates) != 1 or windows[link.window_id].floor_id != candidates[0].id:
+                    raise WindowResolverInputError("elevation_floor_mismatch", {"window_id": link.window_id,
+                        "candidate_floors": [floor.id for floor in candidates]})
+    if set(floor_by_id) != set(rank):  # defensive, makes the mapping invariant explicit
+        raise WindowResolverInputError("floor_ref_window_mismatch")
+
+
+def build_verified_window_resolver_inputs(*, producer_draw: CorrectedGeometryV3,
+                                          raw_view_manifest_bytes: bytes,
+                                          raw_reading_artifacts: Mapping[str, bytes],
+                                          elevation_direction_facts: tuple[ElevationDirectionFactV1, ...]) -> VerifiedWindowResolverInputs:
+    producer = CorrectedGeometryV3.model_validate(producer_draw.model_dump(mode="json"))
+    _producer_preflight(producer)
+    manifest = _parse_manifest(raw_view_manifest_bytes)
+    rows = _catalog(manifest=manifest, raw_reading_artifacts=raw_reading_artifacts)
+    facts = _check_direction_facts(manifest, elevation_direction_facts, raw_reading_artifacts)
+    links = _claim_links(producer, rows, manifest)
+    _check_floor_order(manifest, producer, rows, links)
+    producer_bytes = canonical_json_bytes(producer.model_dump(mode="json"))
+    artifacts = tuple(ReadingArtifactIdentityV1(input_id=entry.input_id, expected_output_id=entry.expected_output_id,
+        output_sha256=hashlib.sha256(raw_reading_artifacts[entry.input_id]).hexdigest())
+        for entry in sorted(manifest.required_entries(), key=lambda item: item.input_id))
+    payload = {"schema_version": "1", "claims_vocab_version": CLAIMS_VOCAB_VERSION,
+               "producer_draw_sha256": hashlib.sha256(producer_bytes).hexdigest(),
+               "view_manifest": manifest.model_dump(mode="json"),
+               "reading_artifacts": [item.model_dump(mode="json") for item in artifacts],
+               "elevation_direction_facts": [item.model_dump(mode="json") for item in facts],
+               "source_windows": [item.model_dump(mode="json") for item in rows],
+               "claim_links": [item.model_dump(mode="json") for item in links]}
+    inputs = WindowResolverInputsV1(schema_version="1", claims_vocab_version=CLAIMS_VOCAB_VERSION,
+        producer_draw_sha256=payload["producer_draw_sha256"], view_manifest=manifest,
+        reading_artifacts=artifacts, elevation_direction_facts=facts, source_windows=rows,
+        claim_links=links, content_sha256=canonical_sha256(payload))
+    raw_inputs = canonical_json_bytes(inputs.model_dump(mode="json"))
+    return VerifiedWindowResolverInputs(inputs=inputs, raw_inputs_bytes=raw_inputs,
+        producer_draw_canonical_bytes=producer_bytes, raw_view_manifest_bytes=raw_view_manifest_bytes,
+        raw_reading_artifacts=tuple((key, raw_reading_artifacts[key]) for key in sorted(raw_reading_artifacts)))
+
+
+DirectionBindingErrorCode = Literal["direction_binding_ring_invalid", "direction_binding_ring_incompatible"]
+
+
+class WindowDirectionBindingError(ValueError):
+    def __init__(self, code: DirectionBindingErrorCode, context: Mapping[str, object]):
+        self.code = code
+        self.context = dict(context)
+        super().__init__(f"{code}: {self.context}")
+
+
+def _frame_hash(*, input_id: str, family: str, fingerprint: str, axis: str, sign: int,
+                origin: float, mirrored: bool, local: str) -> str:
+    return canonical_sha256({"schema": "view_projection_binding_v1", "input_id": input_id,
+        "resolved_building_direction": family, "source_footprint_fingerprint": fingerprint,
+        "world_axis": axis, "sign": sign, "along_origin": origin, "mirrored": mirrored,
+        "local_x_positive": local})
+
+
+def materialize_current_ring_va_elevation_bindings(*, geom: CorrectedGeometryV3, manifest: ViewManifest,
+                                                    direction_facts: tuple[ElevationDirectionFactV1, ...],
+                                                    visibility_tolerances: VisibilityTolerances) -> tuple[VaElevationViewBindingV1, ...]:
+    """Fresh, non-cached 13-field Va bindings for exactly ``geom``'s ring."""
+    try:
+        validate_materialized_facade_segments(geom, tolerances=visibility_tolerances)
+    except FacadeVisibilityInvariantError as exc:
+        raise WindowDirectionBindingError("direction_binding_ring_invalid", {"upstream_error": exc.code, **exc.context}) from exc
+    # Facts are authenticated by ``build_verified_window_resolver_inputs``.
+    # This helper deliberately rechecks only totality/manifest identity and
+    # derives every ring-dependent field afresh from ``geom``.
+    facts = tuple(sorted(direction_facts, key=lambda item: item.input_id))
+    expected = {entry.input_id: entry for entry in manifest.required_entries() if entry.view_type == "elevation"}
+    if {fact.input_id for fact in facts} != set(expected) or len({fact.input_id for fact in facts}) != len(facts):
+        raise WindowDirectionBindingError("direction_binding_ring_invalid", {"reason": "direction_fact_totality"})
+    for fact in facts:
+        entry = expected[fact.input_id]
+        if fact.view_manifest_sha256 != manifest.content_sha256:
+            raise WindowDirectionBindingError("direction_binding_ring_invalid", {"input_id": fact.input_id, "reason": "manifest_identity"})
+        if fact.resolution_source == "manifest_building_axis":
+            valid = (entry.direction_semantics == "building_axis" and
+                     fact.resolved_building_direction == entry.building_view_direction and
+                     fact.orientation_output_hash is None and fact.adapter_version is None)
+        else:
+            valid = (entry.direction_semantics in ("true_azimuth", "unknown") and
+                     fact.orientation_output_hash is not None and fact.adapter_version is not None)
+        if not valid:
+            raise WindowDirectionBindingError("direction_binding_ring_invalid", {"input_id": fact.input_id, "reason": "direction_fact_invalid"})
+    floors = {floor.id: floor for floor in geom.floors}
+    output = []
+    for fact in facts:
+        family = fact.resolved_building_direction
+        per_floor = []
+        for floor_id, floor in sorted(floors.items()):
+            fingerprint = floor_footprint_fingerprint(geom, floor)
+            segments = [segment for segment in geom.facade_segments if segment.floor_id == floor_id and segment.facade_family == family]
+            if not segments:
+                raise WindowDirectionBindingError("direction_binding_ring_invalid", {"floor_id": floor_id, "input_id": fact.input_id})
+            if any(segment.source_footprint_fingerprint != fingerprint for segment in segments):
+                raise WindowDirectionBindingError("direction_binding_ring_invalid", {"floor_id": floor_id, "input_id": fact.input_id,
+                    "declared_fingerprint": [segment.source_footprint_fingerprint for segment in segments], "recomputed_fingerprint": fingerprint})
+            per_floor.append((floor_id, fingerprint, (min(s.world_along_interval.lo for s in segments), max(s.world_along_interval.hi for s in segments))))
+        fingerprints = {item[1] for item in per_floor}; extents = {item[2] for item in per_floor}
+        if len(fingerprints) != 1 or len(extents) != 1:
+            raise WindowDirectionBindingError("direction_binding_ring_incompatible", {"input_id": fact.input_id,
+                "floor_ids": [item[0] for item in per_floor], "fingerprints": [item[1] for item in per_floor], "family_extents": [item[2] for item in per_floor]})
+        fingerprint = per_floor[0][1]; lo, hi = per_floor[0][2]
+        axis = _AXIS[family]
+        flip = fact.mirrored ^ (fact.local_x_positive == "image_right_to_left")
+        sign = -_BASE_SIGN[family] if flip else _BASE_SIGN[family]
+        origin = lo if sign == 1 else hi
+        output.append(VaElevationViewBindingV1(input_id=fact.input_id, resolved_building_direction=family,
+            resolution_source=fact.resolution_source, view_manifest_sha256=manifest.content_sha256,
+            orientation_output_hash=fact.orientation_output_hash, adapter_version=fact.adapter_version,
+            source_footprint_fingerprint=fingerprint, world_axis=axis, sign=sign, along_origin=origin,
+            mirrored=fact.mirrored, local_x_positive=fact.local_x_positive,
+            frame_transform_sha256=_frame_hash(input_id=fact.input_id, family=family, fingerprint=fingerprint,
+                axis=axis, sign=sign, origin=origin, mirrored=fact.mirrored, local=fact.local_x_positive)))
+    return tuple(sorted(output, key=lambda item: item.input_id))
+
+
+__all__ = [
+    "CURRENT_RING_BINDING_HELPER_VERSION", "ElevationDirectionFactV1", "ElevationSourceWindowV1",
+    "PlanSourceWindowV1", "ReadingArtifactIdentityV1", "SourceIntervalV1", "VerifiedWindowResolverInputs",
+    "WindowClaimSourceLinkV1", "WindowDirectionBindingError", "WindowResolverInputError", "WindowResolverInputsV1",
+    "WindowSourceOfferV1", "build_verified_window_resolver_inputs", "build_window_source_offer",
+    "materialize_current_ring_va_elevation_bindings", "source_locator", "verify_window_resolver_inputs",
+]
