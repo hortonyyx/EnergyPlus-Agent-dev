@@ -258,7 +258,21 @@ def _draw_correction(
             rep.add_fail("correction.draw_quality", CheckLayer.INVARIANT, msg)
         return geom, rep
 
-    result = finalize_correction_draw(geom, vector_dir=rdir, target=target)
+    verified_window_inputs = None
+    if geom.schema_version == "3":
+        from src.agent.correction.window_sources import build_verified_window_inputs_from_run
+
+        verified_window_inputs = build_verified_window_inputs_from_run(
+            producer_draw=geom,
+            run_dir=run_dir,
+            reading_dir=rdir,
+        )
+    result = finalize_correction_draw(
+        geom,
+        vector_dir=rdir,
+        target=target,
+        verified_window_inputs=verified_window_inputs,
+    )
     geom = result.geom
     rep = check_correction(geom,
                            window_host_proof=result.window_host_claims,
@@ -307,16 +321,33 @@ def _load_snapped(run_dir: Path):
     return ensure_corrected_geometry(json.loads(p.read_text(encoding="utf-8")))
 
 
+def _load_snapped_with_proof(run_dir: Path):
+    """Load accepted correction bytes and its B5 proof as one boundary."""
+    from src.agent.correction.parse import ensure_corrected_geometry
+    from src.agent.execution.manifest import RunManifestV2, load_run_manifest
+    from src.agent.output_coordinates import load_verified_accepted_correction
+
+    manifest = load_run_manifest(run_dir)
+    if isinstance(manifest, RunManifestV2) and manifest.accepted("1_correction") is not None:
+        verified = load_verified_accepted_correction(run_dir=run_dir, manifest=manifest)
+        geom = ensure_corrected_geometry(json.loads(verified.raw_output_bytes.decode("utf-8")))
+        return geom, verified.window_host_proof
+    return _load_snapped(run_dir), None
+
+
 def _draw_modelling(run_dir: Path, policy: RunPolicy):
     from src.agent.geometry.specs import building_geometry_dict
     from src.agent.pipeline import materialize_kernel_geometry
     from src.validator.checks.kernel import check_kernel
 
-    geom = _load_snapped(run_dir)
+    geom, window_host_proof = _load_snapped_with_proof(run_dir)
     s2 = run_dir / "2_modelling"
     s2.mkdir(parents=True, exist_ok=True)
     bg, issues = materialize_kernel_geometry(
-        geom, s2, capability_profile=policy.capability_profile
+        geom,
+        s2,
+        capability_profile=policy.capability_profile,
+        window_host_proof=window_host_proof,
     )
     if bg is None:
         rep = CheckReport(stage="2_modelling")
@@ -325,6 +356,7 @@ def _draw_modelling(run_dir: Path, policy: RunPolicy):
         return {}, rep
     rep = check_kernel(
         bg,
+        window_host_proof=window_host_proof,
         capability_profile=policy.capability_profile,
         interzone_issues=issues,
         run_profile=policy.run_profile,
@@ -340,8 +372,12 @@ def _draw_split_pairing(run_dir: Path, policy: RunPolicy):
         serialize_geometry,
     )
 
-    geom = _load_snapped(run_dir)
-    bg = build_geometry(geom, capability_profile=policy.capability_profile)
+    geom, window_host_proof = _load_snapped_with_proof(run_dir)
+    bg = build_geometry(
+        geom,
+        capability_profile=policy.capability_profile,
+        window_host_proof=window_host_proof,
+    )
     zone_specs, surface_specs, fen_specs, _ = serialize_geometry(bg)
     md = geometry_specs_markdown(zone_specs, surface_specs, fen_specs)
     s3 = run_dir / "3_split_pairing"
@@ -364,8 +400,12 @@ def _geometry_zone_meta(run_dir: Path, policy: RunPolicy):
     from src.agent.geometry import build_geometry
     from src.agent.geometry.specs import serialize_geometry
 
-    geom = _load_snapped(run_dir)
-    bg = build_geometry(geom, capability_profile=policy.capability_profile)
+    geom, window_host_proof = _load_snapped_with_proof(run_dir)
+    bg = build_geometry(
+        geom,
+        capability_profile=policy.capability_profile,
+        window_host_proof=window_host_proof,
+    )
     zone_specs, surface_specs, fen_specs, used = serialize_geometry(bg)
     zone_names = set(dict.fromkeys(bg.zones))
     return zone_specs, surface_specs, fen_specs, used, zone_names
@@ -493,7 +533,11 @@ def _draw_assembly(run_dir: Path, policy: RunPolicy, manifest=None):
 
     # geometry from the VERIFIED accepted bytes (never a stage-root mirror)
     geom = ensure_corrected_geometry(json.loads(verified.raw_output_bytes.decode("utf-8")))
-    bg = build_geometry(geom, capability_profile=policy.capability_profile)
+    bg = build_geometry(
+        geom,
+        capability_profile=policy.capability_profile,
+        window_host_proof=verified.window_host_proof,
+    )
     frame_label = "building_axis" if verified.ref.schema_version == "3" else "world"
     zone_specs, surface_specs, fen_specs, used = serialize_geometry(bg, frame_label=frame_label)
 

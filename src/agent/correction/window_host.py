@@ -12,6 +12,7 @@ from typing import TYPE_CHECKING, Annotated, Literal, Mapping
 
 from pydantic import AllowInfNan, BaseModel, ConfigDict, Field, Strict, StringConstraints, model_validator
 
+from src.agent.correction.artifact_serialization import serialize_correction_output
 from src.agent.correction.cell_geometry import cell_polygon_vertices
 from src.agent.correction.facade import ViewProjectionFrame
 from src.agent.correction.facade_applicability import (
@@ -261,6 +262,28 @@ class WindowHostsArtifactV1(BaseModel):
         if self.content_sha256 != canonical_sha256(_payload_without(self, "content_sha256")):
             raise ValueError("content_sha256 does not match canonical window hosts artifact")
         return self
+
+
+def build_window_hosts_artifact(
+    *,
+    output_sha256: str,
+    claims: WindowHostClaimsV1,
+    evidence: WindowEvidenceLedgerV1,
+) -> WindowHostsArtifactV1:
+    """Construct the sole output-bound B5 host artifact projection."""
+    payload = {
+        "artifact_version": WINDOW_HOST_ARTIFACT_VERSION,
+        "output_sha256": output_sha256,
+        "claims": claims.model_dump(mode="json"),
+        "evidence": evidence.model_dump(mode="json"),
+    }
+    return WindowHostsArtifactV1(
+        artifact_version=WINDOW_HOST_ARTIFACT_VERSION,
+        output_sha256=output_sha256,
+        claims=claims,
+        evidence=evidence,
+        content_sha256=canonical_sha256(payload),
+    )
 
 
 HostConflictReason = Literal[
@@ -1113,7 +1136,7 @@ def derive_window_evidence_ledger(
     tolerances,
 ) -> WindowEvidenceLedgerV1:
     """Derive Va and trusted-negative decisions from real candidate bytes."""
-    output_bytes = geom.model_dump_json(indent=2).encode("utf-8")
+    output_bytes = serialize_correction_output(geom)
     if (candidate_identity.output_bytes != output_bytes
             or candidate_identity.output_sha256 != hashlib.sha256(output_bytes).hexdigest()
             or candidate_identity.feature_states_sha256
@@ -1264,7 +1287,7 @@ __all__ = [
     "WINDOW_HOST_ARTIFACT_VERSION", "WINDOW_HOST_HELPER_VERSION", "WINDOW_HOST_SCHEMA_VERSION",
     "WindowEvidenceDecisionV1", "WindowEvidenceLedgerV1", "WindowHostClaimsV1", "WindowHostConflictV1",
     "WindowHostResolutionAuditV1", "WindowHostResolutionError", "WindowHostResolutionV1", "WindowHostsArtifactV1",
-    "apply_window_host_resolutions", "derive_window_evidence_ledger", "map_direction_binding_error",
+    "apply_window_host_resolutions", "build_window_hosts_artifact", "derive_window_evidence_ledger", "map_direction_binding_error",
     "map_va_applicability_error", "recompute_window_host_claims", "resolve_window_hosts",
     "window_host_claim_issues",
 ]

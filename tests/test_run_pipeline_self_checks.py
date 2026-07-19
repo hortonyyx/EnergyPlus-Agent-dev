@@ -221,10 +221,12 @@ def _patch_kernel_check_non_pairing_blocker(
     def fake_check_kernel(
         _bg,
         *,
+        window_host_proof=None,
         capability_profile: str = "rectangular",
         interzone_issues: list[str] | None = None,
         run_profile: str = "exploratory",
     ) -> CheckReport:
+        assert window_host_proof is None
         assert not interzone_issues
         rep = CheckReport(
             stage="2_modelling",

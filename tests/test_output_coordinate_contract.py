@@ -9,6 +9,7 @@ from pathlib import Path
 import pytest
 from pydantic import ValidationError
 
+from b5_test_helpers import finalize_empty_window_v3
 from src.agent.correction.feature_state import FeatureStatesArtifactV1
 from src.agent.correction.finalize import finalize_correction_draw
 from src.agent.correction.orientation import (
@@ -23,6 +24,8 @@ from src.agent.correction.orientation import (
 )
 from src.agent.correction.parse import correction_target
 from src.agent.correction.schema import NorthAxisEvidence
+from src.agent.correction.window_host import build_window_hosts_artifact
+from src.agent.correction.window_sources import serialize_window_resolver_inputs_artifact
 from src.agent.output_coordinates import (
     AcceptedCorrectionRef,
     LegacyStandaloneIntakeRef,
@@ -61,9 +64,7 @@ def _v3_vg_finalized():
         "windows": [],
     }
     with tempfile.TemporaryDirectory() as td:
-        return finalize_correction_draw(
-            payload, vector_dir=Path(td), target=correction_target("orthogonal_polygon")
-        )
+        return finalize_empty_window_v3(payload, vector_dir=Path(td))
 
 
 def _verified_base(finalized) -> VerifiedAcceptedCorrection:
@@ -71,8 +72,20 @@ def _verified_base(finalized) -> VerifiedAcceptedCorrection:
     fs = FeatureStatesArtifactV1(
         output_sha256=sha256_bytes(raw), claims=finalized.feature_state_claims
     )
+    resolver_bytes = serialize_window_resolver_inputs_artifact(
+        finalized.verified_window_resolver_inputs
+    )
+    hosts_bytes = build_window_hosts_artifact(
+        output_sha256=finalized.prepared_candidate_identity.output_sha256,
+        claims=finalized.window_host_claims,
+        evidence=finalized.window_evidence_ledger,
+    ).model_dump_json(indent=2).encode("utf-8")
     return verify_integrated_gate1_correction(
-        raw_output_bytes=raw, correction_report=_clean_report(), feature_states=fs
+        raw_output_bytes=raw,
+        correction_report=_clean_report(),
+        feature_states=fs,
+        raw_window_resolver_inputs_bytes=resolver_bytes,
+        raw_window_hosts_bytes=hosts_bytes,
     )
 
 
@@ -99,8 +112,19 @@ def _enriched_verified(mode="prior_fill", evidence_set=None) -> VerifiedAccepted
     fs = FeatureStatesArtifactV1(
         output_sha256=sha256_bytes(raw), claims=enriched.feature_state_claims
     )
+    hosts_bytes = build_window_hosts_artifact(
+        output_sha256=enriched.prepared_candidate_identity.output_sha256,
+        claims=enriched.window_host_claims,
+        evidence=enriched.window_evidence_ledger,
+    ).model_dump_json(indent=2).encode("utf-8")
     return verify_integrated_gate1_correction(
-        raw_output_bytes=raw, correction_report=_clean_report(), feature_states=fs
+        raw_output_bytes=raw,
+        correction_report=_clean_report(),
+        feature_states=fs,
+        raw_window_resolver_inputs_bytes=(
+            enriched.verified_window_resolver_inputs.raw_inputs_bytes
+        ),
+        raw_window_hosts_bytes=hosts_bytes,
     )
 
 

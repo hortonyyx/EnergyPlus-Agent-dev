@@ -301,12 +301,10 @@ def check_window_host_resolution(
         derive_window_evidence_ledger,
         window_host_claim_issues,
     )
-    from src.agent.correction.window_sources import (
-        VerifiedWindowResolverInputs,
-        WindowResolverInputsV1,
-        verify_window_resolver_inputs,
+    from src.agent.geometry.build import (
+        VerifiedWindowHostProof,
+        _resolver_inputs_from_verified_proof,
     )
-    from src.agent.geometry.build import VerifiedWindowHostProof
 
     assert isinstance(geom, CorrectedGeometryV3)
     verified_inputs = None
@@ -314,19 +312,11 @@ def check_window_host_resolution(
     if isinstance(proof, VerifiedWindowHostProof):
         try:
             raw_artifact = WindowHostsArtifactV1.model_validate_json(proof.raw_window_hosts_bytes)
-            inputs = WindowResolverInputsV1.model_validate_json(proof.raw_resolver_inputs_bytes)
-            verify_window_resolver_inputs(inputs)
+            verified_inputs = _resolver_inputs_from_verified_proof(proof)
         except ValueError as exc:
             return GeometryFinding(check_id, False, "window host proof wire is invalid", {"reason": str(exc)})
         claims = raw_artifact.claims
         artifact_evidence = raw_artifact.evidence
-        verified_inputs = VerifiedWindowResolverInputs(
-            inputs=inputs,
-            raw_inputs_bytes=proof.raw_resolver_inputs_bytes,
-            producer_draw_canonical_bytes=b"",
-            raw_view_manifest_bytes=b"",
-            raw_reading_artifacts=(),
-        )
     elif isinstance(proof, WindowHostClaimsV1):
         claims = proof
     else:
@@ -356,15 +346,20 @@ def check_window_host_resolution(
     ):
         issues.append({"reason": "evidence_host_identity"})
 
-    output_bytes = geom.model_dump_json(indent=2).encode("utf-8")
+    from src.agent.correction.artifact_serialization import (
+        serialize_correction_output,
+        serialize_feature_states,
+    )
+
+    output_bytes = serialize_correction_output(geom)
     output_sha256 = hashlib.sha256(output_bytes).hexdigest()
     phase = "e4_orientation" if geom.north_axis is not None else "b2"
     target = CorrectionTarget("3", CorrectedGeometryV3, "orthogonal_polygon", phase)
     feature_claims = derive_feature_state_claims(target, geom)
-    feature_bytes = FeatureStatesArtifactV1(
+    feature_bytes = serialize_feature_states(FeatureStatesArtifactV1(
         output_sha256=output_sha256,
         claims=feature_claims,
-    ).model_dump_json(indent=2).encode("utf-8")
+    ))
     feature_sha256 = hashlib.sha256(feature_bytes).hexdigest()
     if evidence.output_sha256 != output_sha256:
         issues.append({"reason": "evidence_output_identity"})

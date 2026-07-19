@@ -22,7 +22,10 @@ cross-stage routing or invalidation — that belongs to the orchestrator
 from __future__ import annotations
 
 from enum import Enum
+import json
 from pathlib import Path
+import os
+import tempfile
 
 from pydantic import BaseModel, ConfigDict
 
@@ -34,6 +37,7 @@ from src.agent.execution.manifest import (
     hash_obj,
     hash_text,
     new_attempt_dir,
+    next_attempt_index,
 )
 from src.validator.checks.schema import CheckReport
 
@@ -147,7 +151,6 @@ class StageRunner:
         spec = stage_spec(stage)
         stage_dir = Path(stage_dir)
         stage_dir.mkdir(parents=True, exist_ok=True)
-        adir = new_attempt_dir(stage_dir)
 
         from src.agent.correction.finalize import FinalizeResult
         from src.agent.correction.orientation import OrientationEnrichmentResult
@@ -174,6 +177,25 @@ class StageRunner:
         is_b2_correction = isinstance(output_obj, FinalizeResult) and not is_orientation_enrichment
         is_assembly_e4 = isinstance(output_obj, AssemblyE4Write)
         is_correction_write = is_b2_correction or is_orientation_enrichment
+        b5_fields = (
+            output_obj.window_host_claims,
+            output_obj.window_evidence_ledger,
+            output_obj.verified_window_resolver_inputs,
+            output_obj.prepared_candidate_identity,
+        ) if is_correction_write else ()
+        is_b5_correction = bool(
+            is_correction_write
+            and str(output_obj.geom.schema_version) == "3"
+            and all(value is not None for value in b5_fields)
+        )
+        if (
+            is_correction_write
+            and str(output_obj.geom.schema_version) == "3"
+            and not is_b5_correction
+        ):
+            raise ValueError(
+                "v3 FinalizeResult must carry all four B5 trust-root fields, including zero-window output"
+            )
 
         if is_correction_write and stage != "1_correction":
             raise ValueError(
@@ -183,14 +205,15 @@ class StageRunner:
             raise ValueError("AssemblyE4Write may only be written by 5_intakeoutput")
 
         if is_correction_write:
-            out_text = output_obj.geom.model_dump_json(indent=2)
+            from src.agent.correction.artifact_serialization import serialize_correction_output
+
+            out_text = serialize_correction_output(output_obj.geom).decode("utf-8")
         elif is_assembly_e4:
             out_text = output_obj.intake.model_dump_json(indent=2)
         elif isinstance(output_obj, str):
             out_text = output_obj
         else:
             out_text = _to_json(output_obj)
-        (adir / "output.json").write_text(out_text, encoding="utf-8")
         output_hash = hash_text(out_text)
 
         # Stamp the report with the hashes it was computed against, then persist.
@@ -198,10 +221,10 @@ class StageRunner:
         if report.artifact_hash is None:
             report.artifact_hash = output_hash
         checks_text = report.model_dump_json(indent=2)
-        (adir / "checks.json").write_text(checks_text, encoding="utf-8")
         artifact_hashes = {"output": output_hash, "checks": hash_text(checks_text)}
 
         expected = None
+        extra_artifacts: dict[str, str] = {}
         if is_correction_write:
             # Re-derive at the writer boundary; a frozen dataclass does not make
             # nested caller data trustworthy.
@@ -235,24 +258,222 @@ class StageRunner:
                     endpoint_epsilon_m=tol.facade_visibility_endpoint_epsilon_m,
                 )
                 validate_materialized_facade_segments(output_obj.geom, tolerances=visibility_tol)
+            if is_b5_correction:
+                import hashlib
+
+                from src.agent.correction.artifact_serialization import serialize_feature_states
+                from src.agent.correction import window_host as window_host_module
+                from src.agent.correction.schema import CorrectedGeometryV3
+                from src.agent.correction.window_host import build_window_hosts_artifact
+                from src.agent.correction.window_sources import (
+                    serialize_window_resolver_inputs_artifact,
+                    verify_window_resolver_inputs_artifact,
+                )
+
+                marker = output_obj.verified_window_resolver_inputs
+                prepared = output_obj.prepared_candidate_identity
+                assert marker is not None and prepared is not None
+                output_bytes = out_text.encode("utf-8")
+                if output_bytes != prepared.output_bytes or output_hash != prepared.output_sha256:
+                    raise ValueError("candidate_output_identity_drift")
+
+                # Persist a self-contained raw-source artifact.  Base
+                # finalization carries the full marker; orientation carries
+                # the already-verified artifact bytes through its narrow proof
+                # view.  In both cases the writer rebuilds a fresh marker from
+                # the embedded producer/manifest/readings and independently
+                # re-derives ring-free direction facts.
+                if hasattr(marker, "producer_draw_canonical_bytes"):
+                    resolver_artifact_bytes = serialize_window_resolver_inputs_artifact(marker)
+                else:
+                    resolver_artifact_bytes = marker.raw_inputs_bytes
+                rebuilt_marker = verify_window_resolver_inputs_artifact(
+                    resolver_artifact_bytes
+                )
+                if rebuilt_marker.inputs != marker.inputs:
+                    raise ValueError("resolver_input_identity_drift")
+
+                fresh_geom = CorrectedGeometryV3.model_validate_json(output_bytes)
+                # Deliberately module-qualified and imported inside the writer:
+                # patching finalize.resolve_window_hosts cannot capture this root.
+                recomputed_claims = window_host_module.recompute_window_host_claims(
+                    fresh_geom,
+                    verified_inputs=rebuilt_marker,
+                    tolerances=tol,
+                )
+                if recomputed_claims != output_obj.window_host_claims:
+                    raise ValueError("writer_window_host_claims_drift")
+
+                # Replay producer -> structural/window core from embedded raw
+                # sources, then bind every accepted audit row to that pre-host
+                # state and to the independently recomputed final claim.
+                from src.agent.correction.deterministic import apply_deterministic_core
+                from src.agent.correction.envelope import extract_authoritative_envelope
+                from src.agent.correction.window_host import WindowHostResolutionAuditV1
+                from src.agent.correction.window_sources import SourceIntervalV1
+
+                producer = CorrectedGeometryV3.model_validate_json(
+                    rebuilt_marker.producer_draw_canonical_bytes
+                )
+                with tempfile.TemporaryDirectory(prefix="b5_writer_replay_") as replay_dir_text:
+                    replay_dir = Path(replay_dir_text)
+                    reading_by_id = dict(rebuilt_marker.raw_reading_artifacts)
+                    for identity in rebuilt_marker.inputs.reading_artifacts:
+                        (replay_dir / f"{identity.expected_output_id}.json").write_bytes(
+                            reading_by_id[identity.input_id]
+                        )
+                    envelope = extract_authoritative_envelope(
+                        replay_dir,
+                        footprint=producer,
+                        footprint_tolerance_m=tol.envelope_reconcile_tol_m,
+                        tol=tol,
+                    )
+                    replayed = apply_deterministic_core(
+                        producer,
+                        tol,
+                        authoritative_envelope=envelope,
+                        capability_profile=report.capability_profile,
+                        verified_window_inputs=rebuilt_marker,
+                    )
+                audit_core = {
+                    key: output_obj.audit_payload.get(key)
+                    for key in ("corrections", "conflicts", "unsupported")
+                }
+                geom_core = {
+                    "corrections": fresh_geom.corrections,
+                    "conflicts": fresh_geom.conflicts,
+                    "unsupported": fresh_geom.unsupported,
+                }
+                if json.loads(_to_json(audit_core)) != json.loads(_to_json(geom_core)):
+                    raise ValueError("writer_audit_output_drift")
+                audit_rows = {
+                    row.window_id: row
+                    for row in (
+                        WindowHostResolutionAuditV1.model_validate_json(
+                            json.dumps(item, separators=(",", ":"), ensure_ascii=False)
+                        )
+                        for item in fresh_geom.corrections
+                        if isinstance(item, dict)
+                        and item.get("kind") == "window_host_resolution"
+                    )
+                }
+                replay_windows = {window.id: window for window in replayed.windows}
+                claim_rows = {row.window_id: row for row in recomputed_claims.resolutions}
+                if set(audit_rows) != set(replay_windows) or set(audit_rows) != set(claim_rows):
+                    raise ValueError("writer_window_audit_totality_drift")
+                for window_id in sorted(audit_rows):
+                    audit = audit_rows[window_id]
+                    original = replay_windows[window_id]
+                    claim = claim_rows[window_id]
+                    expected_original_span = SourceIntervalV1(
+                        lo=float(original.span[0]), hi=float(original.span[1])
+                    )
+                    if (
+                        audit.floor_id != original.floor_id
+                        or audit.original_room_id != original.room
+                        or audit.original_span != expected_original_span
+                        or audit.resolved_room_id != claim.room_id
+                        or audit.resolved_facade_segment_id != claim.facade_segment_id
+                        or audit.resolved_span != claim.clamped_span
+                        or audit.source_ids != claim.source_locators
+                        or audit.branch != claim.branch
+                        or audit.resolution_sha256 != claim.resolution_sha256
+                    ):
+                        raise ValueError("writer_window_audit_replay_drift")
+
+                states_for_identity = FeatureStatesArtifactV1(
+                    output_sha256=output_hash,
+                    claims=expected,
+                )
+                feature_bytes = serialize_feature_states(states_for_identity)
+                feature_sha = hashlib.sha256(feature_bytes).hexdigest()
+                if (
+                    feature_bytes != prepared.feature_states_bytes
+                    or feature_sha != prepared.feature_states_sha256
+                ):
+                    raise ValueError("candidate_feature_states_identity_drift")
+                recomputed_evidence = window_host_module.derive_window_evidence_ledger(
+                    fresh_geom,
+                    host_claims=recomputed_claims,
+                    verified_inputs=rebuilt_marker,
+                    candidate_identity=prepared,
+                    tolerances=tol,
+                )
+                if recomputed_evidence != output_obj.window_evidence_ledger:
+                    raise ValueError("writer_window_evidence_drift")
+                host_artifact = build_window_hosts_artifact(
+                    output_sha256=output_hash,
+                    claims=recomputed_claims,
+                    evidence=recomputed_evidence,
+                )
+                extra_artifacts["window_resolver_inputs.json"] = resolver_artifact_bytes.decode("utf-8")
+                extra_artifacts["window_hosts.json"] = host_artifact.model_dump_json(indent=2)
             audit_text = _to_json(output_obj.audit_payload)
-            (adir / "audit.json").write_text(audit_text, encoding="utf-8")
             states = FeatureStatesArtifactV1(output_sha256=output_hash, claims=expected)
             states_text = states.model_dump_json(indent=2)
-            (adir / "feature_states.json").write_text(states_text, encoding="utf-8")
             artifact_hashes.update({"audit": hash_text(audit_text), "feature_states": hash_text(states_text)})
+            if is_b5_correction:
+                artifact_hashes.update({
+                    "window_resolver_inputs": hash_text(extra_artifacts["window_resolver_inputs.json"]),
+                    "window_hosts": hash_text(extra_artifacts["window_hosts.json"]),
+                })
         elif is_assembly_e4:
             audit_text = output_obj.audit.model_dump_json(indent=2)
-            (adir / "audit.json").write_text(audit_text, encoding="utf-8")
             contract_text = output_obj.contract.model_dump_json(indent=2)
-            (adir / "output_coordinate_contract.json").write_text(contract_text, encoding="utf-8")
             snapshot_text = output_obj.snapshot.model_dump_json(indent=2)
-            (adir / "output_coordinate_snapshot.json").write_text(snapshot_text, encoding="utf-8")
             artifact_hashes.update({
                 "audit": hash_text(audit_text),
                 "output_coordinate_contract": hash_text(contract_text),
                 "output_coordinate_snapshot": hash_text(snapshot_text),
             })
+
+        # No attempt directory exists until every B5 independent recomputation
+        # above has succeeded.  The accepted pointer is moved only after the
+        # complete bundle is written and re-read below.
+        final_attempt_dir = None
+        if is_b5_correction:
+            attempts_root = stage_dir / "attempts"
+            attempts_root.mkdir(parents=True, exist_ok=True)
+            attempt_index = next_attempt_index(stage_dir)
+            final_attempt_dir = attempts_root / f"{attempt_index:03d}"
+            adir = Path(tempfile.mkdtemp(
+                prefix=f".{attempt_index:03d}.",
+                dir=attempts_root,
+            ))
+        else:
+            adir = new_attempt_dir(stage_dir)
+        files = {"output.json": out_text, "checks.json": checks_text}
+        if is_correction_write:
+            files.update({"audit.json": audit_text, "feature_states.json": states_text})
+            files.update(extra_artifacts)
+        elif is_assembly_e4:
+            files.update({
+                "audit.json": audit_text,
+                "output_coordinate_contract.json": contract_text,
+                "output_coordinate_snapshot.json": snapshot_text,
+            })
+        for filename, text in files.items():
+            (adir / filename).write_text(text, encoding="utf-8")
+
+        if is_b5_correction:
+            from src.agent.correction.feature_state import FeatureStatesArtifactV1
+            from src.agent.correction.schema import CorrectedGeometryV3
+            from src.agent.correction.window_host import WindowHostsArtifactV1
+            from src.agent.correction.window_sources import WindowResolverInputsArtifactV1
+
+            CorrectedGeometryV3.model_validate_json((adir / "output.json").read_bytes())
+            CheckReport.model_validate_json((adir / "checks.json").read_bytes())
+            audit_reload = json.loads((adir / "audit.json").read_text(encoding="utf-8"))
+            if not isinstance(audit_reload, dict):
+                raise ValueError("B5 audit artifact must be an object")
+            FeatureStatesArtifactV1.model_validate_json((adir / "feature_states.json").read_bytes())
+            WindowResolverInputsArtifactV1.model_validate_json(
+                (adir / "window_resolver_inputs.json").read_bytes()
+            )
+            WindowHostsArtifactV1.model_validate_json((adir / "window_hosts.json").read_bytes())
+            assert final_attempt_dir is not None
+            os.replace(adir, final_attempt_dir)
+            adir = final_attempt_dir
 
         check_passed = report.passed
         do_accept = check_passed if accept is None else accept
@@ -297,8 +518,12 @@ class StageRunner:
                 check_passed=check_passed,
             )
             if isinstance(self.manifest, RunManifestV2):
-                if is_orientation_enrichment:
+                if is_orientation_enrichment and is_b5_correction:
+                    artifact_contract = "correction_b5_orientation_v1"
+                elif is_orientation_enrichment:
                     artifact_contract = "correction_e4_orientation_v1"
+                elif is_b5_correction:
+                    artifact_contract = "correction_b5_v1"
                 elif is_b2_correction:
                     artifact_contract = "correction_b2_v1"
                 elif is_assembly_e4:

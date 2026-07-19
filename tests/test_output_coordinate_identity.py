@@ -17,6 +17,8 @@ from src.agent.correction.feature_state import (
     correction_stage_version,
 )
 from src.agent.correction.finalize import finalize_correction_draw
+from src.agent.correction.window_host import build_window_hosts_artifact
+from src.agent.correction.window_sources import build_verified_window_resolver_inputs
 from src.agent.correction.orientation import (
     OrientationEvidenceSetV1,
     OrientationRunConfigV1,
@@ -25,7 +27,8 @@ from src.agent.correction.orientation import (
     verify_orientation_resolution,
 )
 from src.agent.correction.parse import correction_target
-from src.agent.execution.manifest import RunInputs, RunManifestV2, hash_bytes, new_run_id
+from src.agent.execution.manifest import RunInputs, RunManifestV2, hash_bytes, hash_obj, new_run_id
+from src.agent.execution.view_manifest import OpeningEvidence, RequiredViewEntry, ViewManifest
 from src.agent.execution.stage_runner import StageRunner
 from src.agent.intakeoutput import MepOutput
 from src.agent.output_coordinates import (
@@ -134,9 +137,54 @@ def _v3_finalized():
         }],
         "windows": [],
     }
+    entry = RequiredViewEntry(
+        input_id="plan",
+        source_image="case_data/plan.png",
+        image_sha256="a" * 64,
+        view_type="plan",
+        floor_ref=1,
+        declared_direction_token=None,
+        direction_source="standard_assumption",
+        direction_semantics="building_axis",
+        semantics_source="case_metadata",
+        building_view_direction=None,
+        dimensioned=True,
+        expected_output_id="plan",
+        opening_evidence=OpeningEvidence(
+            potentially_observable_claims=["existence", "host", "along", "width"],
+        ),
+    )
+    manifest_payload = {
+        "view_manifest_schema_version": "1",
+        "claims_vocab_version": "1",
+        "generator_version": "1",
+        "completeness_ruleset_version": "1",
+        "case_id": "e4-b5",
+        "case_metadata_sha256": "a" * 64,
+        "entries": [entry.model_dump(mode="json")],
+    }
+    view_manifest = ViewManifest(
+        **manifest_payload,
+        content_sha256=hash_obj(manifest_payload),
+    )
+    raw_manifest = view_manifest.model_dump_json().encode("utf-8")
+    raw_reading = b'{"image_kind":"plan","strokes":[],"uncaptured":[]}'
+    from src.agent.correction.schema import CorrectedGeometryV3
+
+    producer = CorrectedGeometryV3.model_validate(payload)
+    verified_inputs = build_verified_window_resolver_inputs(
+        producer_draw=producer,
+        raw_view_manifest_bytes=raw_manifest,
+        raw_reading_artifacts={"plan": raw_reading},
+        elevation_direction_facts=(),
+    )
     with tempfile.TemporaryDirectory() as td:
         return finalize_correction_draw(
-            payload, vector_dir=Path(td), target=correction_target("orthogonal_polygon"))
+            producer,
+            vector_dir=Path(td),
+            target=correction_target("orthogonal_polygon"),
+            verified_window_inputs=verified_inputs,
+        )
 
 
 def _clean_report(stage="1_correction"):
@@ -163,13 +211,25 @@ def _stepwise_e4_run(run_dir: Path):
     from src.agent.geometry.specs import serialize_geometry
     from src.agent.output_coordinates import assemble_intake_artifacts
 
+    finalized = _v3_finalized()
+    assert finalized.verified_window_resolver_inputs is not None
+    marker = finalized.verified_window_resolver_inputs
     manifest = RunManifestV2(
         case=run_dir.name, run_id=new_run_id(),
-        run_inputs=RunInputs(view_manifest_sha256="f" * 64),
+        run_inputs=RunInputs(
+            view_manifest_sha256=marker.inputs.view_manifest.content_sha256,
+        ),
     )
     runner = StageRunner(run_dir, manifest)
 
-    finalized = _v3_finalized()
+    meta = run_dir / "_run"
+    meta.mkdir(parents=True, exist_ok=True)
+    (meta / "view_manifest.json").write_bytes(marker.raw_view_manifest_bytes)
+    reading_dir = run_dir / "0_reading"
+    reading_dir.mkdir(parents=True, exist_ok=True)
+    for input_id, raw in marker.raw_reading_artifacts:
+        identity = next(row for row in marker.inputs.reading_artifacts if row.input_id == input_id)
+        (reading_dir / f"{identity.expected_output_id}.json").write_bytes(raw)
     runner.record(
         stage="1_correction", stage_dir=run_dir / "1_correction",
         output_obj=finalized, report=_clean_report(),
@@ -206,7 +266,11 @@ def _stepwise_e4_run(run_dir: Path):
     )
 
     verified = load_verified_accepted_correction(run_dir=run_dir, manifest=manifest)
-    bg = build_geometry(enrichment.geom, capability_profile="orthogonal_polygon")
+    bg = build_geometry(
+        enrichment.geom,
+        capability_profile="orthogonal_polygon",
+        window_host_proof=verified.window_host_proof,
+    )
     zone_specs, surface_specs, fen_specs, _used = serialize_geometry(
         bg, frame_label="building_axis")
     snapshot = build_output_coordinate_snapshot(bg)
@@ -241,16 +305,18 @@ def _stepwise_e4_run(run_dir: Path):
     return manifest, bundle, enrichment
 
 
-@pytest.mark.xfail(strict=True, reason="B5 Phase C 令 build_geometry v3 强制 VerifiedWindowHostProof (spec §8.1)；E4 stepwise→build→loader→assembly 的 proof 接线在 Phase D 落地 (gate B5-D3 e4-rebind + MINOR-2 pipeline/check_kernel proof)。Phase D 须重写本测试以构造/传 proof，届时 strict xfail 会 XPASS 提醒清除标记。")
 def test_stepwise_enrichment_and_assembly_identity(tmp_path):
     run_dir = tmp_path / "run"
     run_dir.mkdir()
     manifest, bundle, _enrichment = _stepwise_e4_run(run_dir)
 
     corr = manifest.accepted("1_correction")
-    assert corr.artifact_contract == "correction_e4_orientation_v1"
+    assert corr.artifact_contract == "correction_b5_orientation_v1"
     assert corr.stage_version == "4"  # derived, not the caller's bogus "9"
-    assert set(corr.artifact_hashes) == {"output", "checks", "audit", "feature_states"}
+    assert set(corr.artifact_hashes) == {
+        "output", "checks", "audit", "feature_states",
+        "window_resolver_inputs", "window_hosts",
+    }
     assert set(corr.input_hashes) == {
         "base_correction", "orientation_evidence_set", "orientation_resolution", "run_config",
     }
@@ -272,7 +338,6 @@ def test_stepwise_enrichment_and_assembly_identity(tmp_path):
         assert s5.artifact_hashes[key] == hash_bytes((attempt / filename).read_bytes())
 
 
-@pytest.mark.xfail(strict=True, reason="B5 Phase C 令 build_geometry v3 强制 VerifiedWindowHostProof (spec §8.1)；E4 stepwise→build→loader→assembly 的 proof 接线在 Phase D 落地 (gate B5-D3 e4-rebind + MINOR-2 pipeline/check_kernel proof)。Phase D 须重写本测试以构造/传 proof，届时 strict xfail 会 XPASS 提醒清除标记。")
 def test_loader_reads_accepted_attempt_and_round_trips(tmp_path):
     run_dir = tmp_path / "run"
     run_dir.mkdir()
@@ -286,7 +351,6 @@ def test_loader_reads_accepted_attempt_and_round_trips(tmp_path):
     assert loaded.intake.building.north_axis == 0.0
 
 
-@pytest.mark.xfail(strict=True, reason="B5 Phase C 令 build_geometry v3 强制 VerifiedWindowHostProof (spec §8.1)；E4 stepwise→build→loader→assembly 的 proof 接线在 Phase D 落地 (gate B5-D3 e4-rebind + MINOR-2 pipeline/check_kernel proof)。Phase D 须重写本测试以构造/传 proof，届时 strict xfail 会 XPASS 提醒清除标记。")
 def test_loader_ignores_blocked_later_attempt(tmp_path):
     run_dir = tmp_path / "run"
     run_dir.mkdir()
@@ -315,7 +379,6 @@ def test_loader_ignores_blocked_later_attempt(tmp_path):
     assert loaded.output_coordinates == bundle.output_coordinates
 
 
-@pytest.mark.xfail(strict=True, reason="B5 Phase C 令 build_geometry v3 强制 VerifiedWindowHostProof (spec §8.1)；E4 stepwise→build→loader→assembly 的 proof 接线在 Phase D 落地 (gate B5-D3 e4-rebind + MINOR-2 pipeline/check_kernel proof)。Phase D 须重写本测试以构造/传 proof，届时 strict xfail 会 XPASS 提醒清除标记。")
 def test_tampered_contract_sidecar_breaks_the_chain(tmp_path):
     run_dir = tmp_path / "run"
     run_dir.mkdir()
@@ -328,7 +391,6 @@ def test_tampered_contract_sidecar_breaks_the_chain(tmp_path):
         load_intake_bundle(run_dir / "5_intakeoutput" / "intake_output.json", run_dir=run_dir)
 
 
-@pytest.mark.xfail(strict=True, reason="B5 Phase C 令 build_geometry v3 强制 VerifiedWindowHostProof (spec §8.1)；E4 stepwise→build→loader→assembly 的 proof 接线在 Phase D 落地 (gate B5-D3 e4-rebind + MINOR-2 pipeline/check_kernel proof)。Phase D 须重写本测试以构造/传 proof，届时 strict xfail 会 XPASS 提醒清除标记。")
 def test_tampered_correction_output_breaks_the_chain(tmp_path):
     run_dir = tmp_path / "run"
     run_dir.mkdir()
@@ -410,7 +472,6 @@ def test_partial_sidecar_pair_is_never_valid(tmp_path):
 # --------------------------------------------------------------------------- #
 # §10.6 subset — integrated vs manifest coordinate-semantic parity
 # --------------------------------------------------------------------------- #
-@pytest.mark.xfail(strict=True, reason="B5 Phase C 令 build_geometry v3 强制 VerifiedWindowHostProof (spec §8.1)；E4 stepwise→build→loader→assembly 的 proof 接线在 Phase D 落地 (gate B5-D3 e4-rebind + MINOR-2 pipeline/check_kernel proof)。Phase D 须重写本测试以构造/传 proof，届时 strict xfail 会 XPASS 提醒清除标记。")
 def test_integrated_and_manifest_refs_project_identically(tmp_path):
     run_dir = tmp_path / "run"
     run_dir.mkdir()
@@ -421,7 +482,18 @@ def test_integrated_and_manifest_refs_project_identically(tmp_path):
     fs = FeatureStatesArtifactV1(
         output_sha256=sha256_bytes(raw), claims=enrichment.feature_state_claims)
     integrated_verified = verify_integrated_gate1_correction(
-        raw_output_bytes=raw, correction_report=_clean_report(), feature_states=fs)
+        raw_output_bytes=raw,
+        correction_report=_clean_report(),
+        feature_states=fs,
+        raw_window_resolver_inputs_bytes=(
+            enrichment.verified_window_resolver_inputs.raw_inputs_bytes
+        ),
+        raw_window_hosts_bytes=build_window_hosts_artifact(
+            output_sha256=enrichment.prepared_candidate_identity.output_sha256,
+            claims=enrichment.window_host_claims,
+            evidence=enrichment.window_evidence_ledger,
+        ).model_dump_json(indent=2).encode("utf-8"),
+    )
 
     snap_hash = bundle.output_coordinates.geometry_snapshot_sha256
     manifest_contract = derive_output_coordinate_contract(

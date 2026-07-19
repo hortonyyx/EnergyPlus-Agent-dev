@@ -30,6 +30,8 @@ from src.agent.correction.window_host import (
 from src.agent.correction.window_sources import (
     build_verified_window_resolver_inputs,
     canonical_sha256,
+    derive_manifest_direction_facts,
+    serialize_window_resolver_inputs_artifact,
     source_locator,
 )
 from src.agent.execution.manifest import hash_obj
@@ -82,7 +84,7 @@ SOUTH_SEGMENT_ID = "f1:facade:c7548828ff8ea141abc4467ff1c4c3e20b54949eb08b3690b1
 SOUTH_RESOLUTION_SHA256 = "2e3e3683c5493c6c4939053489b100689bd1812478aa1869fcf1d7a28d72e2cb"
 
 
-def _manifest() -> tuple[ViewManifest, bytes]:
+def _manifest(*, include_elevation: bool = False) -> tuple[ViewManifest, bytes]:
     entry = RequiredViewEntry(
         input_id="plan",
         source_image="case_data/plan.png",
@@ -100,6 +102,27 @@ def _manifest() -> tuple[ViewManifest, bytes]:
             potentially_observable_claims=["existence", "host", "along", "width"],
         ),
     )
+    entries = [entry]
+    if include_elevation:
+        entries.append(RequiredViewEntry(
+            input_id="south",
+            source_image="case_data/south.png",
+            image_sha256=H,
+            view_type="elevation",
+            floor_ref=None,
+            declared_direction_token="South",
+            direction_source="standard_assumption",
+            direction_semantics="building_axis",
+            semantics_source="case_metadata",
+            building_view_direction="South",
+            dimensioned=True,
+            expected_output_id="south",
+            opening_evidence=OpeningEvidence(
+                potentially_observable_claims=[
+                    "existence", "along", "width", "sill", "head", "appearance",
+                ],
+            ),
+        ))
     payload = {
         "view_manifest_schema_version": "1",
         "claims_vocab_version": "1",
@@ -107,7 +130,7 @@ def _manifest() -> tuple[ViewManifest, bytes]:
         "completeness_ruleset_version": "1",
         "case_id": "phase-c",
         "case_metadata_sha256": H,
-        "entries": [entry.model_dump(mode="json")],
+        "entries": [row.model_dump(mode="json") for row in entries],
     }
     manifest = ViewManifest(**payload, content_sha256=hash_obj(payload))
     return manifest, manifest.model_dump_json().encode("utf-8")
@@ -122,8 +145,14 @@ def _plan_geometry(facade: str) -> dict[str, list[float]]:
     }[facade]
 
 
-def _bundle(tmp_path: Path, *, facade: str = "South", include_window: bool = True):
-    manifest, raw_manifest = _manifest()
+def _bundle(
+    tmp_path: Path,
+    *,
+    facade: str = "South",
+    include_window: bool = True,
+    include_elevation: bool = False,
+):
+    manifest, raw_manifest = _manifest(include_elevation=include_elevation)
     reading = json.dumps(
         {
             "image_kind": "plan",
@@ -173,11 +202,26 @@ def _bundle(tmp_path: Path, *, facade: str = "South", include_window: bool = Tru
         }] if include_window else []),
         "facade_segments": [],
     })
+    readings = {"plan": reading}
+    if include_elevation:
+        readings["south"] = json.dumps({
+            "image_kind": "elevation",
+            "strokes": [],
+            "uncaptured": [],
+            "facade": {
+                "mirrored": False,
+                "local_x_positive": "image_left_to_right",
+            },
+        }, separators=(",", ":")).encode("utf-8")
+    facts = derive_manifest_direction_facts(
+        raw_view_manifest_bytes=raw_manifest,
+        raw_reading_artifacts=readings,
+    )
     verified = build_verified_window_resolver_inputs(
         producer_draw=geom,
         raw_view_manifest_bytes=raw_manifest,
-        raw_reading_artifacts={"plan": reading},
-        elevation_direction_facts=(),
+        raw_reading_artifacts=readings,
+        elevation_direction_facts=facts,
     )
     result = finalize_correction_draw(
         geom,
@@ -199,7 +243,7 @@ def _bundle(tmp_path: Path, *, facade: str = "South", include_window: bool = Tru
         content_sha256=canonical_sha256(artifact_payload),
     )
     proof = _issue_verified_window_host_proof(
-        raw_resolver_inputs_bytes=verified.raw_inputs_bytes,
+        raw_resolver_inputs_bytes=serialize_window_resolver_inputs_artifact(verified),
         raw_window_hosts_bytes=artifact.model_dump_json(indent=2).encode("utf-8"),
         raw_output_bytes=result.prepared_candidate_identity.output_bytes,
     )
@@ -409,7 +453,9 @@ def test_line_7_negative_axis_world_sorted_endpoint_tamper_is_rejected(tmp_path:
     )
     with pytest.raises(ValueError, match="claims disagree"):
         _issue_verified_window_host_proof(
-            raw_resolver_inputs_bytes=bundle.verified.raw_inputs_bytes,
+            raw_resolver_inputs_bytes=serialize_window_resolver_inputs_artifact(
+                bundle.verified
+            ),
             raw_window_hosts_bytes=tampered_artifact.model_dump_json(indent=2).encode("utf-8"),
             raw_output_bytes=bundle.result.prepared_candidate_identity.output_bytes,
         )
@@ -939,7 +985,9 @@ def test_judge_1_tampered_output_relation_fails_proof_before_scoring(tmp_path: P
     tampered_bytes = CorrectedGeometryV3.model_validate(output).model_dump_json(indent=2).encode("utf-8")
     with pytest.raises(ValueError):
         _issue_verified_window_host_proof(
-            raw_resolver_inputs_bytes=bundle.verified.raw_inputs_bytes,
+            raw_resolver_inputs_bytes=serialize_window_resolver_inputs_artifact(
+                bundle.verified
+            ),
             raw_window_hosts_bytes=bundle.artifact.model_dump_json(indent=2).encode("utf-8"),
             raw_output_bytes=tampered_bytes,
         )

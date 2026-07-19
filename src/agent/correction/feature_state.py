@@ -181,10 +181,10 @@ def artifact_feature_state(attempt_dir, record, feature: str) -> FeatureState:
     path = Path(attempt_dir)
     if getattr(record, "artifact_contract", None) not in (
         "correction_b2_v1", "correction_e4_orientation_v1",
+        "correction_b5_v1", "correction_b5_orientation_v1",
     ):
         raise ValueError(
-            "feature state requires a correction_b2_v1 or "
-            "correction_e4_orientation_v1 accepted record"
+            "feature state requires a versioned correction artifact contract"
         )
     output = path / "output.json"
     sidecar = path / "feature_states.json"

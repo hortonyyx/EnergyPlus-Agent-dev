@@ -372,15 +372,20 @@ def _judge_entries(run_dir: Path) -> list[dict]:
 
 def _correction_entries(run_dir: Path) -> list[dict]:
     entries: list[dict] = []
-    sidecar = run_dir / "1_correction" / "corrections.json"
-    if not sidecar.exists():
-        return entries
+    from src.agent.execution.correction_audit import load_reportable_correction_audit
+
     try:
-        data = json.loads(sidecar.read_text(encoding="utf-8"))
-    except Exception:  # noqa: BLE001 - malformed audit sidecar is reported elsewhere
+        accepted = load_reportable_correction_audit(run_dir)
+    except (OSError, ValueError, json.JSONDecodeError):
+        from src.agent.execution.manifest import RunManifestV2, load_run_manifest
+
+        if isinstance(load_run_manifest(run_dir), RunManifestV2):
+            raise
         return entries
-    if not isinstance(data, dict):
+    if accepted is None:
         return entries
+    sidecar = accepted.path
+    data = accepted.payload
     for kind in _AUDIT_KINDS:
         rows = data.get(kind, [])
         if not isinstance(rows, list):
@@ -395,6 +400,24 @@ def _correction_entries(run_dir: Path) -> list[dict]:
                 "raw_id": raw_id,
                 "row": row,
             })
+    for ordinal, row in enumerate(accepted.window_host_rows, start=1):
+        _add_entry(
+            entries,
+            f"E:corr:window_host:{_slug(row['window_id'])}",
+            "correction",
+            _rel(sidecar, run_dir),
+            {"kind": "window_host", "ordinal": ordinal, "row": row},
+        )
+    for ordinal, row in enumerate(
+        accepted.rejected_window_host_conflicts, start=1
+    ):
+        _add_entry(
+            entries,
+            f"E:corr:rejected_window_host:{row['attempt']}:{_slug(row['window_id'])}",
+            "correction",
+            row["audit_path"],
+            {"kind": "rejected_window_host_conflict", "ordinal": ordinal, "row": row},
+        )
     return entries
 
 

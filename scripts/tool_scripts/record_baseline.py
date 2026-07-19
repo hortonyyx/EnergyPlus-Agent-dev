@@ -376,19 +376,29 @@ def _corrections_summary(run_dir: Path) -> dict:
     deterministic-core entries are narrower, and legacy/bad entries should not make
     baseline recording fail.
     """
-    sidecar = run_dir / "1_correction" / "corrections.json"
-    rel = sidecar.relative_to(run_dir).as_posix()
-    if not sidecar.exists():
-        return _empty_corrections_summary(rel, present=False, parse_status="missing")
+    from src.agent.execution.correction_audit import load_reportable_correction_audit
+
     try:
-        data = json.loads(sidecar.read_text(encoding="utf-8"))
-    except Exception as e:  # noqa: BLE001 — attribution sidecar is best-effort metadata
+        accepted = load_reportable_correction_audit(run_dir)
+    except (OSError, ValueError, json.JSONDecodeError) as exc:
+        from src.agent.execution.manifest import RunManifestV2, load_run_manifest
+
+        # A manifest-bound/B5 identity failure is load-bearing and must abort
+        # report generation; legacy root summaries remain best-effort.
+        if isinstance(load_run_manifest(run_dir), RunManifestV2):
+            raise
         return _empty_corrections_summary(
-            rel, present=True, parse_status="malformed_json", parse_error=str(e))
-    if not isinstance(data, dict):
-        return _empty_corrections_summary(
-            rel, present=True, parse_status="invalid_shape",
-            parse_error="root JSON value is not an object")
+            "1_correction/corrections.json",
+            present=True,
+            parse_status="malformed_json",
+            parse_error=str(exc),
+        )
+    if accepted is None:
+        rel = "1_correction/corrections.json"
+        return _empty_corrections_summary(rel, present=False, parse_status="missing")
+    sidecar = accepted.path
+    rel = sidecar.relative_to(run_dir).as_posix()
+    data = accepted.payload
 
     corrections = _as_list(data.get("corrections", []))
     conflicts = _as_list(data.get("conflicts", []))
@@ -408,6 +418,10 @@ def _corrections_summary(run_dir: Path) -> dict:
         "corrections": _summarize_correction_rows(corrections),
         "conflicts": conflicts,
         "unsupported": unsupported,
+        "window_hosts": list(accepted.window_host_rows),
+        "rejected_window_host_conflicts": list(
+            accepted.rejected_window_host_conflicts
+        ),
     }
 
 

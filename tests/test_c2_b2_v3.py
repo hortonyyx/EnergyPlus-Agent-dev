@@ -1,9 +1,12 @@
 from __future__ import annotations
 
+import dataclasses
 import json
 from pathlib import Path
 
 import pytest
+
+from b5_test_helpers import finalize_empty_window_v3
 
 from src.agent.correction.feature_state import (
     FeatureStateClaimsV1,
@@ -55,20 +58,23 @@ def test_v3_footprint_is_floor_owned_and_helper_uses_it():
         ensure_corrected_geometry(broken)
 
 
-def test_correction_writer_emits_b2_contract(tmp_path: Path):
+def test_correction_writer_emits_b5_contract_with_verified_empty_marker(tmp_path: Path):
     # Vg is mandatory for every v3 finalize now: route through the real
     # finalize pipeline (not a bare ensure_corrected_geometry) so
     # facade_segments is actually populated before the writer records it.
     target = correction_target("orthogonal_polygon")
-    result = finalize_correction_draw(_payload(), vector_dir=tmp_path, target=target)
+    result = finalize_empty_window_v3(_payload(), vector_dir=tmp_path)
     manifest = RunManifestV2(run_id="0" * 32, run_inputs=RunInputs(view_manifest_sha256="1" * 64))
     report = CheckReport(stage="1_correction", capability_profile="orthogonal_polygon")
     rec = StageRunner(tmp_path, manifest).record(stage="1_correction", stage_dir=tmp_path / "1_correction", output_obj=result, report=report)
     assert rec.accepted
     stage = manifest.accepted("1_correction")
-    assert stage.artifact_contract == "correction_b2_v1"
+    assert stage.artifact_contract == "correction_b5_v1"
     assert stage.stage_version == "3"
-    assert set(stage.artifact_hashes) == {"output", "checks", "audit", "feature_states"}
+    assert set(stage.artifact_hashes) == {
+        "output", "checks", "audit", "feature_states",
+        "window_resolver_inputs", "window_hosts",
+    }
     assert artifact_feature_state(tmp_path / "1_correction" / "attempts" / "001", stage, "per_floor_footprint") == "populated"
     assert artifact_feature_state(tmp_path / "1_correction" / "attempts" / "001", stage, "facade_segments") == "populated"
     output = json.loads((tmp_path / "1_correction" / "attempts" / "001" / "output.json").read_text())
@@ -80,7 +86,7 @@ def test_v3_finalize_derives_legacy_bbox_from_floor_footprint(tmp_path: Path):
     raw = _payload()
     raw["footprint_x"] = [-99, 99]
     raw["footprint_y"] = [-99, 99]
-    result = finalize_correction_draw(raw, vector_dir=tmp_path, target=correction_target("orthogonal_polygon"))
+    result = finalize_empty_window_v3(raw, vector_dir=tmp_path)
     assert result.geom.footprint_x == [0.0, 10.0]
     assert result.geom.footprint_y == [0.0, 8.0]
     assert any(row["rule_id"] == "deterministic_core.v3_bbox_projection" for row in result.geom.corrections)
@@ -173,7 +179,7 @@ def test_f3_tampered_v3_and_feature_state_fail_closed(tmp_path: Path):
     assert not check_correction(loose, capability_profile="orthogonal_polygon").passed
 
     target = correction_target("orthogonal_polygon")
-    result = finalize_correction_draw(_payload(), vector_dir=tmp_path, target=target)
+    result = finalize_empty_window_v3(_payload(), vector_dir=tmp_path)
     manifest = RunManifestV2(run_id="0" * 32, run_inputs=RunInputs(view_manifest_sha256="1" * 64))
     rec = StageRunner(tmp_path, manifest).record(
         stage="1_correction", stage_dir=tmp_path / "1_correction",
@@ -252,7 +258,7 @@ def test_v3_finalize_vg_uses_post_core_ring_not_producer_ring(tmp_path: Path):
     # the PRE-core producer ring would see 10.003, not 10.0.
     raw = _payload(ring=[[0, 0], [10.003, 0], [10.003, 8], [0, 8]])
     target = correction_target("orthogonal_polygon")
-    result = finalize_correction_draw(raw, vector_dir=tmp_path, target=target)
+    result = finalize_empty_window_v3(raw, vector_dir=tmp_path)
     floor = result.geom.floors[0]
     assert floor_footprint(result.geom, floor) == [[0.0, 0.0], [10.0, 0.0], [10.0, 8.0], [0.0, 8.0]]
     east = next(s for s in result.geom.facade_segments if s.facade_family == "East")
@@ -295,7 +301,7 @@ def test_finalize_raises_if_core_mutates_floor_identity(tmp_path, monkeypatch):
     monkeypatch.setattr(finalize_module, "apply_deterministic_core", _tamper_core)
     target = correction_target("orthogonal_polygon")
     with pytest.raises(ValueError, match="finalize invariant"):
-        finalize_correction_draw(_payload(), vector_dir=tmp_path, target=target)
+        finalize_empty_window_v3(_payload(), vector_dir=tmp_path)
 
 
 def test_finalize_raises_if_core_mutates_window_floor_reference(tmp_path, monkeypatch):
@@ -325,9 +331,9 @@ def test_v3_finalize_parity_dict_vs_parsed_geom_and_feature_state(tmp_path: Path
     and feature-state claims regardless of entry convention."""
     target = correction_target("orthogonal_polygon")
     payload = _payload()
-    result_from_dict = finalize_correction_draw(payload, vector_dir=tmp_path, target=target)
+    result_from_dict = finalize_empty_window_v3(payload, vector_dir=tmp_path)
     parsed = parse_correction_draw(payload, target)
-    result_from_geom = finalize_correction_draw(parsed, vector_dir=tmp_path, target=target)
+    result_from_geom = finalize_empty_window_v3(parsed, vector_dir=tmp_path)
     assert result_from_dict.geom.model_dump_json() == result_from_geom.geom.model_dump_json()
     assert result_from_dict.feature_state_claims == result_from_geom.feature_state_claims
     assert result_from_dict.feature_state_claims.facade_segments == "populated"
@@ -392,7 +398,7 @@ def test_correction_stage_version_from_helper_versions():
 
 def test_vg_attempt_uses_derived_stage_version(tmp_path: Path):
     target = correction_target("orthogonal_polygon")
-    result = finalize_correction_draw(_payload(), vector_dir=tmp_path, target=target)
+    result = finalize_empty_window_v3(_payload(), vector_dir=tmp_path)
     manifest = RunManifestV2(run_id="0" * 32, run_inputs=RunInputs(view_manifest_sha256="1" * 64))
     report = CheckReport(stage="1_correction", capability_profile="orthogonal_polygon")
     rec = StageRunner(tmp_path, manifest).record(
@@ -458,13 +464,15 @@ def test_writer_rejects_tampered_facade_segment_wire(tmp_path: Path):
     full floor coverage) does not catch it, so the writer must independently
     recompute the whole per-floor wire from the authoritative ring."""
     target = correction_target("orthogonal_polygon")
-    result = finalize_correction_draw(_payload(), vector_dir=tmp_path, target=target)
+    result = finalize_empty_window_v3(_payload(), vector_dir=tmp_path)
     tampered_segments = list(result.geom.facade_segments)
     tampered_segments[0] = tampered_segments[0].model_copy(update={"depth": 99.0})
     tampered_geom = result.geom.model_copy(update={"facade_segments": tampered_segments})
     tampered_claims = derive_feature_state_claims(target, tampered_geom)
-    tampered_result = FinalizeResult(
-        geom=tampered_geom, audit_payload=result.audit_payload, feature_state_claims=tampered_claims,
+    tampered_result = dataclasses.replace(
+        result,
+        geom=tampered_geom,
+        feature_state_claims=tampered_claims,
     )
 
     manifest = RunManifestV2(run_id="0" * 32, run_inputs=RunInputs(view_manifest_sha256="1" * 64))
@@ -496,9 +504,9 @@ def test_v3_finalize_parity_promoted_artifacts_and_feature_sidecar_hash(tmp_path
     dict_dir.mkdir()
     geom_dir.mkdir()
 
-    result_from_dict = finalize_correction_draw(payload, vector_dir=dict_dir, target=target)
+    result_from_dict = finalize_empty_window_v3(payload, vector_dir=dict_dir)
     parsed = parse_correction_draw(payload, target)
-    result_from_geom = finalize_correction_draw(parsed, vector_dir=geom_dir, target=target)
+    result_from_geom = finalize_empty_window_v3(parsed, vector_dir=geom_dir)
 
     manifest_a = RunManifestV2(run_id="0" * 32, run_inputs=RunInputs(view_manifest_sha256="1" * 64))
     manifest_b = RunManifestV2(run_id="1" * 32, run_inputs=RunInputs(view_manifest_sha256="1" * 64))
@@ -550,7 +558,7 @@ def test_identity_snapshot_compare_happens_only_before_materialize_exactly_once(
     monkeypatch.setattr(finalize_module, "_identity_snapshot", _spy_snapshot)
     monkeypatch.setattr(finalize_module, "materialize_all_facade_segments", _spy_materialize)
     target = correction_target("orthogonal_polygon")
-    finalize_correction_draw(_payload(), vector_dir=tmp_path, target=target)
+    finalize_empty_window_v3(_payload(), vector_dir=tmp_path)
     assert call_log == ["snapshot", "snapshot", "materialize"]
 
 
@@ -560,7 +568,7 @@ def test_append_only_second_attempt_blocked_downstream_still_bound_to_first(tmp_
     dirs persist (append-only), and the manifest's accepted pointer + output
     hash stay bound to attempt 001 throughout."""
     target = correction_target("orthogonal_polygon")
-    result1 = finalize_correction_draw(_payload(), vector_dir=tmp_path, target=target)
+    result1 = finalize_empty_window_v3(_payload(), vector_dir=tmp_path)
     manifest = RunManifestV2(run_id="0" * 32, run_inputs=RunInputs(view_manifest_sha256="1" * 64))
     rec1 = StageRunner(tmp_path, manifest).record(
         stage="1_correction", stage_dir=tmp_path / "1_correction", output_obj=result1,
@@ -570,8 +578,9 @@ def test_append_only_second_attempt_blocked_downstream_still_bound_to_first(tmp_
     first_hash = manifest.accepted("1_correction").output_hash
     assert manifest.accepted("1_correction").accepted_attempt == 1
 
-    result2 = finalize_correction_draw(
-        _payload(ring=[[0, 0], [12, 0], [12, 8], [0, 8]]), vector_dir=tmp_path, target=target,
+    result2 = finalize_empty_window_v3(
+        _payload(ring=[[0, 0], [12, 0], [12, 8], [0, 8]]),
+        vector_dir=tmp_path,
     )
     rec2 = StageRunner(tmp_path, manifest).record(
         stage="1_correction", stage_dir=tmp_path / "1_correction", output_obj=result2,

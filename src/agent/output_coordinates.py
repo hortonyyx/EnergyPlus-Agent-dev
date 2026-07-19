@@ -75,6 +75,7 @@ class AcceptedCorrectionRef(BaseModel):
     accepted_attempt: Annotated[int, Field(ge=1)] | None = None
     artifact_contract: Literal[
         "correction_b2_v1", "correction_e4_orientation_v1",
+        "correction_b5_v1", "correction_b5_orientation_v1",
         "base_v2", "migrated_v1",
     ] | None = None
 
@@ -115,6 +116,9 @@ class VerifiedAcceptedCorrection:
     ref: AcceptedCorrectionRef
     raw_output_bytes: bytes
     raw_feature_states_bytes: bytes | None
+    raw_window_resolver_inputs_bytes: bytes | None = None
+    raw_window_hosts_bytes: bytes | None = None
+    window_host_proof: object | None = None
 
 
 class OutputCoordinateContract(BaseModel):
@@ -156,10 +160,16 @@ class OutputCoordinateContract(BaseModel):
         elif self.mode == "relative_north_axis":
             if not isinstance(self.source, AcceptedCorrectionRef):
                 raise ValueError("relative_north_axis requires an accepted_correction source")
-            if self.source.schema_version != "3" or self.source.artifact_contract != "correction_e4_orientation_v1":
+            if (
+                self.source.schema_version != "3"
+                or self.source.artifact_contract not in {
+                    "correction_e4_orientation_v1",
+                    "correction_b5_orientation_v1",
+                }
+            ):
                 raise ValueError(
                     "relative_north_axis requires schema_version=='3' and "
-                    "artifact_contract=='correction_e4_orientation_v1'"
+                    "an orientation artifact contract"
                 )
             if self.geometry_snapshot_sha256 is None:
                 raise ValueError("relative_north_axis contract requires geometry_snapshot_sha256")
@@ -264,6 +274,99 @@ def _contract_for_expected_claims(geom) -> str:
     return "correction_e4_orientation_v1" if geom.north_axis is not None else "correction_b2_v1"
 
 
+def _verify_b5_bundle(
+    *,
+    raw_output_bytes: bytes,
+    raw_feature_states_bytes: bytes,
+    raw_window_resolver_inputs_bytes: bytes,
+    raw_window_hosts_bytes: bytes,
+):
+    """Strictly verify the complete B5 output/feature/resolver/host chain."""
+    from src.agent.correction.artifact_serialization import (
+        serialize_correction_output,
+        serialize_feature_states,
+    )
+    from src.agent.correction.config import load_core_tolerances
+    from src.agent.correction.facade_visibility import (
+        VisibilityTolerances,
+        validate_materialized_facade_segments,
+    )
+    from src.agent.correction.feature_state import FeatureStatesArtifactV1
+    from src.agent.correction.finalize import PreparedCandidateIdentity
+    from src.agent.correction.schema import CorrectedGeometryV3
+    from src.agent.correction.window_host import (
+        WindowHostsArtifactV1,
+        derive_window_evidence_ledger,
+        recompute_window_host_claims,
+    )
+    from src.agent.correction.window_sources import (
+        verify_window_resolver_inputs_artifact,
+    )
+    from src.agent.geometry.build import (
+        _issue_verified_window_host_proof,
+        _resolver_inputs_from_verified_proof,
+    )
+
+    output_hash = sha256_bytes(raw_output_bytes)
+    geom = CorrectedGeometryV3.model_validate_json(raw_output_bytes)
+    if raw_output_bytes != serialize_correction_output(geom):
+        raise ValueError("B5 correction output artifact bytes are not canonical")
+    verified_source_inputs = verify_window_resolver_inputs_artifact(
+        raw_window_resolver_inputs_bytes
+    )
+    inputs = verified_source_inputs.inputs
+    hosts = WindowHostsArtifactV1.model_validate_json(raw_window_hosts_bytes)
+    if hosts.output_sha256 != output_hash:
+        raise ValueError("window_hosts.output_sha256 does not bind output.json")
+    if hosts.claims.resolver_inputs_sha256 != inputs.content_sha256:
+        raise ValueError("window host resolver-input identity mismatch")
+
+    tol = load_core_tolerances()
+    validate_materialized_facade_segments(
+        geom,
+        tolerances=VisibilityTolerances(
+            depth_epsilon_m=tol.facade_visibility_depth_epsilon_m,
+            endpoint_epsilon_m=tol.facade_visibility_endpoint_epsilon_m,
+        ),
+    )
+    feature_states = FeatureStatesArtifactV1.model_validate_json(raw_feature_states_bytes)
+    if feature_states.output_sha256 != output_hash:
+        raise ValueError("feature-state sidecar does not bind B5 output bytes")
+    _require_exact_claims(feature_states, geom)
+    if raw_feature_states_bytes != serialize_feature_states(feature_states):
+        raise ValueError("feature-state artifact bytes are not canonical")
+
+    proof = _issue_verified_window_host_proof(
+        raw_resolver_inputs_bytes=raw_window_resolver_inputs_bytes,
+        raw_window_hosts_bytes=raw_window_hosts_bytes,
+        raw_output_bytes=raw_output_bytes,
+    )
+    verified_inputs = _resolver_inputs_from_verified_proof(proof)
+    recomputed_claims = recompute_window_host_claims(
+        geom,
+        verified_inputs=verified_inputs,
+        tolerances=tol,
+    )
+    if recomputed_claims != hosts.claims:
+        raise ValueError("window host claims disagree with accepted output")
+    identity = PreparedCandidateIdentity(
+        output_bytes=raw_output_bytes,
+        output_sha256=output_hash,
+        feature_states_bytes=raw_feature_states_bytes,
+        feature_states_sha256=sha256_bytes(raw_feature_states_bytes),
+    )
+    recomputed_evidence = derive_window_evidence_ledger(
+        geom,
+        host_claims=recomputed_claims,
+        verified_inputs=verified_inputs,
+        candidate_identity=identity,
+        tolerances=tol,
+    )
+    if recomputed_evidence != hosts.evidence:
+        raise ValueError("window evidence disagrees with accepted artifacts")
+    return proof
+
+
 def load_verified_accepted_correction(*, run_dir: Path, manifest) -> VerifiedAcceptedCorrection:
     """Stepwise/manifest boundary: read ONLY the accepted `1_correction`
     attempt, cross-checking every artifact hash the manifest claims for it
@@ -290,11 +393,16 @@ def load_verified_accepted_correction(*, run_dir: Path, manifest) -> VerifiedAcc
         raise ValueError("accepted 1_correction output.json hash does not match manifest record")
     raw_output_bytes = output_path.read_bytes()
 
-    # every artifact hash the record carries must match the on-disk bytes
-    for key, filename in (
+    artifact_files = (
+        ("output", "output.json"),
         ("checks", "checks.json"), ("audit", "audit.json"),
         ("feature_states", "feature_states.json"),
-    ):
+        ("window_resolver_inputs", "window_resolver_inputs.json"),
+        ("window_hosts", "window_hosts.json"),
+    )
+    # Every claimed artifact must exist and hash-match.  Contract validation on
+    # StageRecordV2 has already enforced the exact allowed/required key set.
+    for key, filename in artifact_files:
         claimed = record.artifact_hashes.get(key)
         if claimed is None:
             continue
@@ -311,7 +419,17 @@ def load_verified_accepted_correction(*, run_dir: Path, manifest) -> VerifiedAcc
         raise ValueError(f"unsupported accepted correction schema_version {schema_version!r}")
 
     raw_feature_states_bytes: bytes | None = None
-    if record.artifact_contract in ("correction_b2_v1", "correction_e4_orientation_v1"):
+    raw_window_resolver_inputs_bytes: bytes | None = None
+    raw_window_hosts_bytes: bytes | None = None
+    window_host_proof = None
+    feature_contracts = {
+        "correction_b2_v1",
+        "correction_e4_orientation_v1",
+        "correction_b5_v1",
+        "correction_b5_orientation_v1",
+    }
+    b5_contracts = {"correction_b5_v1", "correction_b5_orientation_v1"}
+    if record.artifact_contract in feature_contracts:
         fs_path = attempt_dir / "feature_states.json"
         if not fs_path.is_file() or "feature_states" not in record.artifact_hashes:
             raise ValueError(f"{record.artifact_contract} accepted attempt is missing feature_states.json")
@@ -322,11 +440,16 @@ def load_verified_accepted_correction(*, run_dir: Path, manifest) -> VerifiedAcc
             raise ValueError("feature-state sidecar does not bind the accepted output bytes")
         _require_exact_claims(feature_states, geom)
         # the record's claimed contract must agree with what the geom itself proves
-        expected_contract = _contract_for_expected_claims(geom)
-        if schema_version == "3" and record.artifact_contract != expected_contract:
+        expected_contracts = (
+            {"correction_b5_orientation_v1"}
+            if geom.north_axis is not None
+            else {"correction_b5_v1"}
+        )
+        if schema_version == "3" and record.artifact_contract not in expected_contracts:
             raise ValueError(
                 f"manifest artifact_contract {record.artifact_contract!r} disagrees with the "
-                f"accepted output bytes (which prove {expected_contract!r})"
+                "v3 B5 proof requirement "
+                f"(expected one of {sorted(expected_contracts)!r})"
             )
     elif record.artifact_contract not in ("base_v2", "migrated_v1"):
         raise ValueError(f"unrecognized 1_correction artifact_contract {record.artifact_contract!r}")
@@ -334,6 +457,46 @@ def load_verified_accepted_correction(*, run_dir: Path, manifest) -> VerifiedAcc
         raise ValueError(
             "a v3 accepted correction may not travel under a "
             f"{record.artifact_contract!r} record — feature-state sidecar is mandatory for v3"
+        )
+
+    if record.artifact_contract in b5_contracts:
+        resolver_path = attempt_dir / "window_resolver_inputs.json"
+        hosts_path = attempt_dir / "window_hosts.json"
+        raw_window_resolver_inputs_bytes = resolver_path.read_bytes()
+        raw_window_hosts_bytes = hosts_path.read_bytes()
+        from src.agent.correction.window_sources import (
+            WindowResolverInputsArtifactV1,
+            verify_window_resolver_inputs_against_raw_artifacts,
+        )
+        from src.agent.execution.run_meta import run_meta_path
+        from src.agent.execution.view_manifest import VIEW_MANIFEST_NAME
+
+        persisted_artifact = WindowResolverInputsArtifactV1.model_validate_json(
+            raw_window_resolver_inputs_bytes
+        )
+        persisted_inputs = persisted_artifact.inputs
+        if persisted_inputs.view_manifest.content_sha256 != manifest.run_inputs.view_manifest_sha256:
+            raise ValueError("B5 resolver manifest identity disagrees with RunManifestV2.run_inputs")
+        raw_manifest_path = run_meta_path(Path(run_dir), VIEW_MANIFEST_NAME)
+        if not raw_manifest_path.is_file():
+            raise ValueError("B5 accepted loader requires the run-bound view_manifest.json")
+        raw_readings: dict[str, bytes] = {}
+        for identity in persisted_inputs.reading_artifacts:
+            reading_path = Path(run_dir) / "0_reading" / f"{identity.expected_output_id}.json"
+            if not reading_path.is_file():
+                raise ValueError(f"B5 accepted loader missing raw reading artifact: {reading_path}")
+            raw_readings[identity.input_id] = reading_path.read_bytes()
+        verify_window_resolver_inputs_against_raw_artifacts(
+            persisted_inputs,
+            raw_view_manifest_bytes=raw_manifest_path.read_bytes(),
+            raw_reading_artifacts=raw_readings,
+        )
+        assert raw_feature_states_bytes is not None
+        window_host_proof = _verify_b5_bundle(
+            raw_output_bytes=raw_output_bytes,
+            raw_feature_states_bytes=raw_feature_states_bytes,
+            raw_window_resolver_inputs_bytes=raw_window_resolver_inputs_bytes,
+            raw_window_hosts_bytes=raw_window_hosts_bytes,
         )
 
     ref = AcceptedCorrectionRef(
@@ -345,13 +508,20 @@ def load_verified_accepted_correction(*, run_dir: Path, manifest) -> VerifiedAcc
         artifact_contract=record.artifact_contract,
     )
     return VerifiedAcceptedCorrection(
-        ref=ref, raw_output_bytes=raw_output_bytes, raw_feature_states_bytes=raw_feature_states_bytes,
+        ref=ref,
+        raw_output_bytes=raw_output_bytes,
+        raw_feature_states_bytes=raw_feature_states_bytes,
+        raw_window_resolver_inputs_bytes=raw_window_resolver_inputs_bytes,
+        raw_window_hosts_bytes=raw_window_hosts_bytes,
+        window_host_proof=window_host_proof,
     )
 
 
 def verify_integrated_gate1_correction(
     *, raw_output_bytes: bytes, correction_report: "CheckReport",
     feature_states: "FeatureStatesArtifactV1",
+    raw_window_resolver_inputs_bytes: bytes | None = None,
+    raw_window_hosts_bytes: bytes | None = None,
 ) -> VerifiedAcceptedCorrection:
     """Integrated boundary (``run_pipeline``): construct a verified bundle only
     after gate① reports no blocking result on the just-serialized bytes.
@@ -379,7 +549,28 @@ def verify_integrated_gate1_correction(
     if schema_version == "3":
         _require_exact_claims(feature_states, geom)
         raw_feature_states_bytes = canonical_json_bytes(feature_states)
-    artifact_contract = _contract_for_expected_claims(geom)
+    if (raw_window_resolver_inputs_bytes is None) != (raw_window_hosts_bytes is None):
+        raise ValueError("integrated B5 verification requires both window sidecars")
+    if schema_version == "3" and raw_window_resolver_inputs_bytes is None:
+        raise ValueError(
+            "integrated v3 correction requires the complete B5 resolver/host proof bundle"
+        )
+    window_host_proof = None
+    if schema_version == "3" and raw_window_resolver_inputs_bytes is not None:
+        assert raw_window_hosts_bytes is not None and raw_feature_states_bytes is not None
+        window_host_proof = _verify_b5_bundle(
+            raw_output_bytes=raw_output_bytes,
+            raw_feature_states_bytes=raw_feature_states_bytes,
+            raw_window_resolver_inputs_bytes=raw_window_resolver_inputs_bytes,
+            raw_window_hosts_bytes=raw_window_hosts_bytes,
+        )
+        artifact_contract = (
+            "correction_b5_orientation_v1"
+            if geom.north_axis is not None
+            else "correction_b5_v1"
+        )
+    else:
+        artifact_contract = _contract_for_expected_claims(geom)
 
     ref = AcceptedCorrectionRef(
         schema_version=schema_version,  # type: ignore[arg-type]
@@ -390,7 +581,12 @@ def verify_integrated_gate1_correction(
         artifact_contract=artifact_contract,  # type: ignore[arg-type]
     )
     return VerifiedAcceptedCorrection(
-        ref=ref, raw_output_bytes=raw_output_bytes, raw_feature_states_bytes=raw_feature_states_bytes,
+        ref=ref,
+        raw_output_bytes=raw_output_bytes,
+        raw_feature_states_bytes=raw_feature_states_bytes,
+        raw_window_resolver_inputs_bytes=raw_window_resolver_inputs_bytes,
+        raw_window_hosts_bytes=raw_window_hosts_bytes,
+        window_host_proof=window_host_proof,
     )
 
 
@@ -421,12 +617,24 @@ def derive_output_coordinate_contract(
 
     if ref.schema_version != "3":
         raise ValueError(f"unknown accepted correction schema_version {ref.schema_version!r}")
-    if ref.artifact_contract != "correction_e4_orientation_v1":
+    if ref.artifact_contract not in {
+        "correction_e4_orientation_v1",
+        "correction_b5_orientation_v1",
+    }:
         raise ValueError(
             "v3 accepted correction cannot derive relative_north_axis: artifact_contract is "
-            f"{ref.artifact_contract!r}, not 'correction_e4_orientation_v1' (a B2/Vg artifact "
+            f"{ref.artifact_contract!r}, not an orientation contract (a base artifact "
             "cannot masquerade as E4-ready)"
         )
+    if (
+        ref.artifact_contract == "correction_b5_orientation_v1"
+        and (
+            verified.raw_window_resolver_inputs_bytes is None
+            or verified.raw_window_hosts_bytes is None
+            or verified.window_host_proof is None
+        )
+    ):
+        raise ValueError("B5 output-coordinate derivation requires the verified six-artifact chain")
     if verified.raw_feature_states_bytes is None:
         raise ValueError("relative_north_axis derivation requires feature-state bytes")
     feature_states = FeatureStatesArtifactV1.model_validate_json(

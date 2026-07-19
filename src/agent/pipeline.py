@@ -721,6 +721,7 @@ def materialize_kernel_geometry(
     out_dir: Path | None,
     *,
     capability_profile: str = "rectangular",
+    window_host_proof=None,
 ) -> tuple["BuildingGeometry | None", list[str]]:
     """Run the deterministic geometry kernel (2_modelling -> 3_split_pairing) on
     the snapped CorrectedGeometry and materialize the result + a gate report.
@@ -740,7 +741,11 @@ def materialize_kernel_geometry(
 
         # build_geometry is read-only on `geom` (it constructs new ZoneVolumes /
         # polygons), so the same `geom` is safe to hand to later stages.
-        bg = build_geometry(geom, capability_profile=capability_profile)
+        bg = build_geometry(
+            geom,
+            capability_profile=capability_profile,
+            window_host_proof=window_host_proof,
+        )
         issues = validate_interzone_surface_pairs(building_to_idf(bg))
     except Exception as e:  # noqa: BLE001 — advisory build, never fatal here
         logger.warning("kernel: geometry build/gate failed: {}", e)
@@ -960,9 +965,21 @@ def run_pipeline_artifacts(
 
     from src.agent.correction.finalize import finalize_correction_draw
     from src.agent.correction.parse import correction_target
+    verified_window_inputs = None
+    if geom.schema_version == "3" and out_dir is not None:
+        from src.agent.correction.window_sources import build_verified_window_inputs_from_run
+
+        verified_window_inputs = build_verified_window_inputs_from_run(
+            producer_draw=geom,
+            run_dir=out_dir,
+            reading_dir=vector_dir,
+        )
     n_corr_before = len(geom.corrections)
     finalized = finalize_correction_draw(
-        geom, vector_dir=vector_dir, target=correction_target(capability_profile),
+        geom,
+        vector_dir=vector_dir,
+        target=correction_target(capability_profile),
+        verified_window_inputs=verified_window_inputs,
     )
     geom = finalized.geom
     logger.info(
@@ -1039,6 +1056,7 @@ def run_pipeline_artifacts(
         FeatureStatesArtifactV1,
         derive_feature_state_claims,
     )
+    from src.agent.correction.artifact_serialization import serialize_correction_output
     from src.agent.output_coordinates import (
         sha256_bytes,
         verify_integrated_gate1_correction,
@@ -1048,13 +1066,32 @@ def run_pipeline_artifacts(
         from src.agent.correction.orientation import resolve_orientation_from_run_dir
         from src.agent.execution.run_config import load_run_config
 
-        pre_raw = geom.model_dump_json(indent=2).encode("utf-8")
+        pre_raw = serialize_correction_output(geom)
         pre_hash = sha256_bytes(pre_raw)
         pre_claims = derive_feature_state_claims(correction_target(capability_profile), geom)
+        pre_resolver_bytes = None
+        pre_hosts_bytes = None
+        if finalized.verified_window_resolver_inputs is not None:
+            from src.agent.correction.window_host import build_window_hosts_artifact
+            from src.agent.correction.window_sources import serialize_window_resolver_inputs_artifact
+
+            assert finalized.prepared_candidate_identity is not None
+            assert finalized.window_host_claims is not None
+            assert finalized.window_evidence_ledger is not None
+            pre_resolver_bytes = serialize_window_resolver_inputs_artifact(
+                finalized.verified_window_resolver_inputs
+            )
+            pre_hosts_bytes = build_window_hosts_artifact(
+                output_sha256=finalized.prepared_candidate_identity.output_sha256,
+                claims=finalized.window_host_claims,
+                evidence=finalized.window_evidence_ledger,
+            ).model_dump_json(indent=2).encode("utf-8")
         pre_verified = verify_integrated_gate1_correction(
             raw_output_bytes=pre_raw,
             correction_report=correction_report,
             feature_states=FeatureStatesArtifactV1(output_sha256=pre_hash, claims=pre_claims),
+            raw_window_resolver_inputs_bytes=pre_resolver_bytes,
+            raw_window_hosts_bytes=pre_hosts_bytes,
         )
 
         # BO-CR3: completion mode comes from the run's REAL configuration
@@ -1098,17 +1135,33 @@ def run_pipeline_artifacts(
                 encoding="utf-8",
             )
 
-        enriched_raw = geom.model_dump_json(indent=2).encode("utf-8")
+        enriched_raw = serialize_correction_output(geom)
         enriched_hash = sha256_bytes(enriched_raw)
+        enriched_resolver_bytes = None
+        enriched_hosts_bytes = None
+        if orientation_result.verified_window_resolver_inputs is not None:
+            from src.agent.correction.window_host import build_window_hosts_artifact
+
+            assert orientation_result.prepared_candidate_identity is not None
+            assert orientation_result.window_host_claims is not None
+            assert orientation_result.window_evidence_ledger is not None
+            enriched_resolver_bytes = orientation_result.verified_window_resolver_inputs.raw_inputs_bytes
+            enriched_hosts_bytes = build_window_hosts_artifact(
+                output_sha256=orientation_result.prepared_candidate_identity.output_sha256,
+                claims=orientation_result.window_host_claims,
+                evidence=orientation_result.window_evidence_ledger,
+            ).model_dump_json(indent=2).encode("utf-8")
         verified_correction = verify_integrated_gate1_correction(
             raw_output_bytes=enriched_raw,
             correction_report=correction_report,
             feature_states=FeatureStatesArtifactV1(
                 output_sha256=enriched_hash, claims=orientation_result.feature_state_claims,
             ),
+            raw_window_resolver_inputs_bytes=enriched_resolver_bytes,
+            raw_window_hosts_bytes=enriched_hosts_bytes,
         )
     else:
-        raw_bytes = geom.model_dump_json(indent=2).encode("utf-8")
+        raw_bytes = serialize_correction_output(geom)
         claims = derive_feature_state_claims(correction_target(capability_profile), geom)
         verified_correction = verify_integrated_gate1_correction(
             raw_output_bytes=raw_bytes, correction_report=correction_report,
@@ -1120,7 +1173,10 @@ def run_pipeline_artifacts(
     s2 = _stage("2_modelling")
     s3 = _stage("3_split_pairing")
     bg, kernel_issues = materialize_kernel_geometry(
-        geom, s2, capability_profile=capability_profile
+        geom,
+        s2,
+        capability_profile=capability_profile,
+        window_host_proof=verified_correction.window_host_proof,
     )
     if kernel_issues:
         hint = "" if s2 is None else "; see 2_modelling/kernel_gate_report.json"
@@ -1143,6 +1199,7 @@ def run_pipeline_artifacts(
 
     kernel_report = check_kernel(
         bg,
+        window_host_proof=verified_correction.window_host_proof,
         capability_profile=capability_profile,
         interzone_issues=kernel_issues,
         run_profile=run_profile,

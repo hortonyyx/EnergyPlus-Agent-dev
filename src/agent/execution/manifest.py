@@ -169,10 +169,12 @@ RunManifestV1 = RunManifest
 ArtifactKey = Literal[
     "output", "checks", "audit", "feature_states", "isolation_provenance",
     "output_coordinate_contract", "output_coordinate_snapshot",
+    "window_resolver_inputs", "window_hosts",
 ]
 ArtifactContract = Literal[
     "migrated_v1", "base_v2", "reading_isolated_v2", "correction_b2_v1",
-    "correction_e4_orientation_v1", "assembly_e4_v1",
+    "correction_e4_orientation_v1", "correction_b5_v1",
+    "correction_b5_orientation_v1", "assembly_e4_v1",
 ]
 
 # Keys a writer for this contract MUST have populated (loader-enforced).
@@ -187,6 +189,14 @@ _CONTRACT_REQUIRED_KEYS: dict[str, frozenset[str]] = {
     # geom content — north_axis is now populated); `assembly_e4_v1` is the S5
     # attempt that additionally carries the two output-coordinate sidecars.
     "correction_e4_orientation_v1": frozenset({"output", "checks", "audit", "feature_states"}),
+    "correction_b5_v1": frozenset({
+        "output", "checks", "audit", "feature_states",
+        "window_resolver_inputs", "window_hosts",
+    }),
+    "correction_b5_orientation_v1": frozenset({
+        "output", "checks", "audit", "feature_states",
+        "window_resolver_inputs", "window_hosts",
+    }),
     "assembly_e4_v1": frozenset({
         "output", "checks", "audit", "output_coordinate_contract", "output_coordinate_snapshot",
     }),
@@ -204,6 +214,14 @@ _CONTRACT_ALLOWED_KEYS: dict[str, frozenset[str]] = {
     "reading_isolated_v2": frozenset({"output", "checks", "isolation_provenance"}),
     "correction_b2_v1": frozenset({"output", "checks", "audit", "feature_states"}),
     "correction_e4_orientation_v1": frozenset({"output", "checks", "audit", "feature_states"}),
+    "correction_b5_v1": frozenset({
+        "output", "checks", "audit", "feature_states",
+        "window_resolver_inputs", "window_hosts",
+    }),
+    "correction_b5_orientation_v1": frozenset({
+        "output", "checks", "audit", "feature_states",
+        "window_resolver_inputs", "window_hosts",
+    }),
     "assembly_e4_v1": frozenset({
         "output", "checks", "audit", "output_coordinate_contract", "output_coordinate_snapshot",
     }),

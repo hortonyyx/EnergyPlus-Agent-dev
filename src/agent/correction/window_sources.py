@@ -9,6 +9,7 @@ from __future__ import annotations
 import hashlib
 import json
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Annotated, Literal, Mapping, Union
 
 from pydantic import AllowInfNan, BaseModel, ConfigDict, Field, Strict, StringConstraints, model_validator
@@ -153,6 +154,41 @@ class WindowResolverInputsV1(BaseModel):
         return self
 
 
+class RawReadingArtifactV1(BaseModel):
+    """Exact raw reading bytes embedded in the persisted resolver artifact."""
+
+    model_config = _CFG
+    input_id: StableId
+    raw_bytes: bytes
+
+
+class WindowResolverInputsArtifactV1(BaseModel):
+    """Self-contained attempt artifact used by accepted and integrated loaders.
+
+    ``WindowResolverInputsV1`` remains the stable resolver-content wire and
+    hash root.  This outer artifact carries the immutable raw sources needed
+    to re-authenticate that wire without adding parameters to the integrated
+    verifier's frozen signature.
+    """
+
+    model_config = _CFG
+    artifact_version: Literal["window_resolver_inputs_v1"]
+    inputs: WindowResolverInputsV1
+    producer_draw_canonical_bytes: bytes
+    raw_view_manifest_bytes: bytes
+    raw_reading_artifacts: tuple[RawReadingArtifactV1, ...]
+    content_sha256: Hex64
+
+    @model_validator(mode="after")
+    def _canonical_and_hashed(self):
+        ids = tuple(row.input_id for row in self.raw_reading_artifacts)
+        if ids != tuple(sorted(ids)) or len(ids) != len(set(ids)):
+            raise ValueError("raw_reading_artifacts must have unique canonical input_id order")
+        if self.content_sha256 != canonical_sha256(_without_hash(self)):
+            raise ValueError("content_sha256 does not match resolver-input artifact")
+        return self
+
+
 class WindowSourceOfferV1(BaseModel):
     model_config = _CFG
     schema_version: Literal["1"]
@@ -179,6 +215,39 @@ class VerifiedWindowResolverInputs:
     producer_draw_canonical_bytes: bytes
     raw_view_manifest_bytes: bytes
     raw_reading_artifacts: tuple[tuple[str, bytes], ...]
+
+
+def build_window_resolver_inputs_artifact(
+    verified: VerifiedWindowResolverInputs,
+) -> WindowResolverInputsArtifactV1:
+    """Bind the resolver wire to the exact producer/manifest/reading bytes."""
+    readings = tuple(
+        RawReadingArtifactV1(input_id=input_id, raw_bytes=raw)
+        for input_id, raw in sorted(verified.raw_reading_artifacts)
+    )
+    payload = {
+        "artifact_version": "window_resolver_inputs_v1",
+        "inputs": verified.inputs.model_dump(mode="json"),
+        "producer_draw_canonical_bytes": verified.producer_draw_canonical_bytes.decode("utf-8"),
+        "raw_view_manifest_bytes": verified.raw_view_manifest_bytes.decode("utf-8"),
+        "raw_reading_artifacts": [row.model_dump(mode="json") for row in readings],
+    }
+    return WindowResolverInputsArtifactV1(
+        artifact_version="window_resolver_inputs_v1",
+        inputs=verified.inputs,
+        producer_draw_canonical_bytes=verified.producer_draw_canonical_bytes,
+        raw_view_manifest_bytes=verified.raw_view_manifest_bytes,
+        raw_reading_artifacts=readings,
+        content_sha256=canonical_sha256(payload),
+    )
+
+
+def serialize_window_resolver_inputs_artifact(
+    verified: VerifiedWindowResolverInputs,
+) -> bytes:
+    return canonical_json_bytes(
+        build_window_resolver_inputs_artifact(verified).model_dump(mode="json")
+    )
 
 
 def source_locator(*, input_id: str, observation_id: str, output_sha256: str) -> str:
@@ -285,6 +354,47 @@ def verify_window_resolver_inputs(inputs: WindowResolverInputsV1) -> None:
             raise WindowResolverInputError("manifest_claim_not_observable", {"window_id": link.window_id, "claim": link.claim})
 
 
+def verify_window_resolver_inputs_against_raw_artifacts(
+    inputs: WindowResolverInputsV1,
+    *,
+    raw_view_manifest_bytes: bytes,
+    raw_reading_artifacts: Mapping[str, bytes],
+) -> None:
+    """Re-authenticate persisted resolver inputs against accepted raw sources."""
+    verify_window_resolver_inputs(inputs)
+    manifest = _parse_manifest(raw_view_manifest_bytes)
+    if manifest != inputs.view_manifest:
+        raise WindowResolverInputError(
+            "source_identity_invalid", {"artifact": "view_manifest"}
+        )
+    rows = _catalog(manifest=manifest, raw_reading_artifacts=raw_reading_artifacts)
+    if rows != inputs.source_windows:
+        raise WindowResolverInputError(
+            "source_identity_invalid", {"artifact": "source_catalog"}
+        )
+    facts = _check_direction_facts(
+        manifest,
+        inputs.elevation_direction_facts,
+        raw_reading_artifacts,
+    )
+    if facts != inputs.elevation_direction_facts:
+        raise WindowResolverInputError(
+            "direction_fact_invalid", {"artifact": "direction_facts"}
+        )
+    identities = tuple(
+        ReadingArtifactIdentityV1(
+            input_id=entry.input_id,
+            expected_output_id=entry.expected_output_id,
+            output_sha256=hashlib.sha256(raw_reading_artifacts[entry.input_id]).hexdigest(),
+        )
+        for entry in sorted(manifest.required_entries(), key=lambda item: item.input_id)
+    )
+    if identities != inputs.reading_artifacts:
+        raise WindowResolverInputError(
+            "source_identity_invalid", {"artifact": "reading_artifacts"}
+        )
+
+
 def build_window_source_offer(*, raw_view_manifest_bytes: bytes,
                               raw_reading_artifacts: Mapping[str, bytes]) -> WindowSourceOfferV1:
     manifest = _parse_manifest(raw_view_manifest_bytes)
@@ -295,6 +405,93 @@ def build_window_source_offer(*, raw_view_manifest_bytes: bytes,
                "allowed_claims_by_locator": [[loc, list(claims)] for loc, claims in allowed]}
     return WindowSourceOfferV1(schema_version="1", view_manifest_sha256=manifest.content_sha256,
         source_windows=rows, allowed_claims_by_locator=allowed, content_sha256=canonical_sha256(payload))
+
+
+def derive_manifest_direction_facts(
+    *,
+    raw_view_manifest_bytes: bytes,
+    raw_reading_artifacts: Mapping[str, bytes],
+) -> tuple[ElevationDirectionFactV1, ...]:
+    """Derive ring-free facts for manifest-declared building-axis elevations.
+
+    True-azimuth/unknown entries require the separately verified orientation
+    sidecar and therefore fail closed here instead of inventing a direction.
+    """
+    manifest = _parse_manifest(raw_view_manifest_bytes)
+    facts: list[ElevationDirectionFactV1] = []
+    for entry in manifest.required_entries():
+        if entry.view_type != "elevation":
+            continue
+        if entry.direction_semantics != "building_axis" or entry.building_view_direction is None:
+            raise WindowResolverInputError(
+                "direction_fact_invalid",
+                {"input_id": entry.input_id, "reason": "verified_orientation_sidecar_required"},
+            )
+        try:
+            reading = parse_reading_view(
+                json.loads(raw_reading_artifacts[entry.input_id].decode("utf-8"))
+            )
+        except (KeyError, UnicodeDecodeError, json.JSONDecodeError, ValueError) as exc:
+            raise WindowResolverInputError(
+                "direction_fact_invalid", {"input_id": entry.input_id, "artifact": "reading"}
+            ) from exc
+        mirrored = False
+        local_x_positive = "image_left_to_right"
+        if reading.facade is not None:
+            if isinstance(reading.facade.mirrored, bool):
+                mirrored = reading.facade.mirrored
+            if reading.facade.local_x_positive in {
+                "image_left_to_right", "image_right_to_left",
+            }:
+                local_x_positive = reading.facade.local_x_positive
+        facts.append(ElevationDirectionFactV1(
+            input_id=entry.input_id,
+            resolved_building_direction=entry.building_view_direction,
+            resolution_source="manifest_building_axis",
+            mirrored=mirrored,
+            local_x_positive=local_x_positive,
+            orientation_output_hash=None,
+            adapter_version=None,
+            view_manifest_sha256=manifest.content_sha256,
+        ))
+    return tuple(sorted(facts, key=lambda fact: fact.input_id))
+
+
+def build_verified_window_inputs_from_run(
+    *,
+    producer_draw: CorrectedGeometryV3,
+    run_dir: Path,
+    reading_dir: Path,
+) -> VerifiedWindowResolverInputs:
+    """Production run-directory adapter for the unique raw-input builder."""
+    from src.agent.execution.run_meta import run_meta_path
+    from src.agent.execution.view_manifest import VIEW_MANIFEST_NAME
+
+    manifest_path = run_meta_path(Path(run_dir), VIEW_MANIFEST_NAME)
+    if not manifest_path.is_file():
+        raise WindowResolverInputError(
+            "source_identity_invalid", {"artifact": "view_manifest", "path": str(manifest_path)}
+        )
+    raw_manifest = manifest_path.read_bytes()
+    manifest = _parse_manifest(raw_manifest)
+    raw_readings: dict[str, bytes] = {}
+    for entry in manifest.required_entries():
+        path = Path(reading_dir) / f"{entry.expected_output_id}.json"
+        if not path.is_file():
+            raise WindowResolverInputError(
+                "source_identity_invalid", {"input_id": entry.input_id, "path": str(path)}
+            )
+        raw_readings[entry.input_id] = path.read_bytes()
+    facts = derive_manifest_direction_facts(
+        raw_view_manifest_bytes=raw_manifest,
+        raw_reading_artifacts=raw_readings,
+    )
+    return build_verified_window_resolver_inputs(
+        producer_draw=producer_draw,
+        raw_view_manifest_bytes=raw_manifest,
+        raw_reading_artifacts=raw_readings,
+        elevation_direction_facts=facts,
+    )
 
 
 def _check_direction_facts(manifest: ViewManifest, facts: tuple[ElevationDirectionFactV1, ...],
@@ -428,6 +625,45 @@ def build_verified_window_resolver_inputs(*, producer_draw: CorrectedGeometryV3,
         raw_reading_artifacts=tuple((key, raw_reading_artifacts[key]) for key in sorted(raw_reading_artifacts)))
 
 
+def verify_window_resolver_inputs_artifact(
+    raw_artifact_bytes: bytes,
+) -> VerifiedWindowResolverInputs:
+    """Rebuild a verified marker solely from a self-contained attempt artifact.
+
+    Direction facts for the currently supported production building-axis path
+    are independently re-derived from the raw manifest/readings.  A future
+    true-azimuth adapter must embed and verify its own raw orientation sidecar;
+    it may not fall back to trusting the persisted fact tuple.
+    """
+    artifact = WindowResolverInputsArtifactV1.model_validate_json(raw_artifact_bytes)
+    canonical = canonical_json_bytes(artifact.model_dump(mode="json"))
+    if raw_artifact_bytes != canonical:
+        raise WindowResolverInputError(
+            "source_identity_invalid", {"artifact": "window_resolver_inputs_canonical_bytes"},
+        )
+    raw_readings = {
+        row.input_id: bytes(row.raw_bytes) for row in artifact.raw_reading_artifacts
+    }
+    fresh_facts = derive_manifest_direction_facts(
+        raw_view_manifest_bytes=bytes(artifact.raw_view_manifest_bytes),
+        raw_reading_artifacts=raw_readings,
+    )
+    producer = CorrectedGeometryV3.model_validate_json(
+        bytes(artifact.producer_draw_canonical_bytes)
+    )
+    rebuilt = build_verified_window_resolver_inputs(
+        producer_draw=producer,
+        raw_view_manifest_bytes=bytes(artifact.raw_view_manifest_bytes),
+        raw_reading_artifacts=raw_readings,
+        elevation_direction_facts=fresh_facts,
+    )
+    if rebuilt.inputs != artifact.inputs:
+        raise WindowResolverInputError(
+            "source_identity_invalid", {"artifact": "resolver_inputs_replay"},
+        )
+    return rebuilt
+
+
 DirectionBindingErrorCode = Literal["direction_binding_ring_invalid", "direction_binding_ring_incompatible"]
 
 
@@ -509,8 +745,13 @@ def materialize_current_ring_va_elevation_bindings(*, geom: CorrectedGeometryV3,
 
 __all__ = [
     "CURRENT_RING_BINDING_HELPER_VERSION", "ElevationDirectionFactV1", "ElevationSourceWindowV1",
-    "PlanSourceWindowV1", "ReadingArtifactIdentityV1", "SourceIntervalV1", "VerifiedWindowResolverInputs",
+    "PlanSourceWindowV1", "RawReadingArtifactV1", "ReadingArtifactIdentityV1", "SourceIntervalV1", "VerifiedWindowResolverInputs",
     "WindowClaimSourceLinkV1", "WindowDirectionBindingError", "WindowResolverInputError", "WindowResolverInputsV1",
-    "WindowSourceOfferV1", "build_verified_window_resolver_inputs", "build_window_source_offer",
+    "WindowResolverInputsArtifactV1", "WindowSourceOfferV1", "build_verified_window_inputs_from_run",
+    "build_verified_window_resolver_inputs", "build_window_source_offer",
+    "build_window_resolver_inputs_artifact",
+    "derive_manifest_direction_facts",
     "materialize_current_ring_va_elevation_bindings", "source_locator", "verify_window_resolver_inputs",
+    "serialize_window_resolver_inputs_artifact", "verify_window_resolver_inputs_against_raw_artifacts",
+    "verify_window_resolver_inputs_artifact",
 ]

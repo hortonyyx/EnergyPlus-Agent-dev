@@ -59,18 +59,32 @@ class VerifiedWindowHostProof:
         object.__setattr__(self, "raw_output_bytes", bytes(raw_output_bytes))
 
 
+@dataclass(frozen=True)
+class _ArtifactAuthenticatedResolverInputs:
+    """Narrow final-output recheck view issued from a verified proof bundle.
+
+    This is intentionally not ``VerifiedWindowResolverInputs``: the latter
+    certifies producer/view/reading raw bytes and must never be forged with
+    empty placeholders.  Final-output recomputation needs only the already
+    hash-bound persisted resolver wire, so the proof verifier exposes exactly
+    that smaller authority.
+    """
+
+    inputs: object
+    raw_inputs_bytes: bytes
+
+
 def _proof_parts(proof: VerifiedWindowHostProof):
     from src.agent.correction.schema import CorrectedGeometryV3
     from src.agent.correction.window_host import WindowHostsArtifactV1
     from src.agent.correction.window_sources import (
-        WindowResolverInputsV1,
-        verify_window_resolver_inputs,
+        verify_window_resolver_inputs_artifact,
     )
 
     try:
         output = CorrectedGeometryV3.model_validate_json(proof.raw_output_bytes)
-        inputs = WindowResolverInputsV1.model_validate_json(proof.raw_resolver_inputs_bytes)
-        verify_window_resolver_inputs(inputs)
+        verified = verify_window_resolver_inputs_artifact(proof.raw_resolver_inputs_bytes)
+        inputs = verified.inputs
         artifact = WindowHostsArtifactV1.model_validate_json(proof.raw_window_hosts_bytes)
     except ValueError as exc:
         raise ValueError("window_host_proof artifact parsing failed") from exc
@@ -88,15 +102,11 @@ def _reverify_window_host_proof(
     """Recheck an already-issued marker at each production consumption boundary."""
     from src.agent.correction.config import load_core_tolerances
     from src.agent.correction.window_host import recompute_window_host_claims
-    from src.agent.correction.window_sources import VerifiedWindowResolverInputs
 
     output, inputs, artifact = _proof_parts(proof)
-    marker = VerifiedWindowResolverInputs(
+    marker = _ArtifactAuthenticatedResolverInputs(
         inputs=inputs,
         raw_inputs_bytes=proof.raw_resolver_inputs_bytes,
-        producer_draw_canonical_bytes=b"",
-        raw_view_manifest_bytes=b"",
-        raw_reading_artifacts=(),
     )
     recomputed = recompute_window_host_claims(
         output,
@@ -106,6 +116,17 @@ def _reverify_window_host_proof(
     if recomputed != artifact.claims:
         raise ValueError("window_host_proof claims disagree with fresh output recompute")
     return proof
+
+
+def _resolver_inputs_from_verified_proof(
+    proof: VerifiedWindowHostProof,
+) -> _ArtifactAuthenticatedResolverInputs:
+    """Return the proof-authenticated narrow resolver-input view."""
+    _output, inputs, _artifact = _proof_parts(_reverify_window_host_proof(proof))
+    return _ArtifactAuthenticatedResolverInputs(
+        inputs=inputs,
+        raw_inputs_bytes=proof.raw_resolver_inputs_bytes,
+    )
 
 
 def _issue_verified_window_host_proof(

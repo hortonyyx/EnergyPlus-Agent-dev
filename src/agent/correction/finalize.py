@@ -5,13 +5,16 @@ from dataclasses import dataclass
 import hashlib
 from pathlib import Path
 
+from src.agent.correction.artifact_serialization import (
+    serialize_correction_output,
+    serialize_feature_states,
+)
 from src.agent.correction.config import CoreTolerances, load_core_tolerances
 from src.agent.correction.deterministic import apply_deterministic_core
 from src.agent.correction.envelope import extract_authoritative_envelope
 from src.agent.correction.facade_visibility import (
     VisibilityTolerances,
     materialize_all_facade_segments,
-    validate_materialized_facade_segments,
 )
 from src.agent.correction.feature_state import (
     FeatureStateClaimsV1,
@@ -101,7 +104,7 @@ def finalize_correction_draw(
             raise WindowResolverInputError(
                 "source_identity_invalid", {"artifact": "producer_draw_canonical_bytes"},
             )
-    if geom.schema_version == "3" and geom.windows and verified_window_inputs is None:
+    if geom.schema_version == "3" and verified_window_inputs is None:
         raise WindowResolverInputError(
             "source_identity_invalid", {"artifact": "verified_window_resolver_inputs"},
         )
@@ -126,11 +129,8 @@ def finalize_correction_draw(
         )
         segments = materialize_all_facade_segments(geom, tolerances=visibility_tol)
         geom = geom.model_copy(update={"facade_segments": list(segments)})
-        # For B5, the final-ring resolver's current-ring helper is the typed
-        # validation boundary.  Empty-window compatibility still has no B5
-        # marker, so retain the Vg validator for that narrow case.
-        if verified_window_inputs is None:
-            validate_materialized_facade_segments(geom, tolerances=visibility_tol)
+        # The final-ring resolver is the typed validation boundary for every
+        # v3 artifact, including an empty but verified window set.
     window_host_claims = None
     if geom.schema_version == "3" and verified_window_inputs is not None:
         try:
@@ -154,12 +154,12 @@ def finalize_correction_draw(
     prepared_identity = None
     window_evidence = None
     if geom.schema_version == "3" and verified_window_inputs is not None:
-        output_bytes = geom.model_dump_json(indent=2).encode("utf-8")
+        output_bytes = serialize_correction_output(geom)
         output_sha256 = hashlib.sha256(output_bytes).hexdigest()
         feature_states = FeatureStatesArtifactV1(
             output_sha256=output_sha256, claims=feature_state_claims,
         )
-        feature_states_bytes = feature_states.model_dump_json(indent=2).encode("utf-8")
+        feature_states_bytes = serialize_feature_states(feature_states)
         prepared_identity = PreparedCandidateIdentity(
             output_bytes=output_bytes,
             output_sha256=output_sha256,

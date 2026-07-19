@@ -393,9 +393,10 @@ def finalize_orientation_enrichment(
     Vg-release attempt, or a base that already carries a populated
     `north_axis`).
     """
-    if base.ref.schema_version != "3" or base.ref.artifact_contract != "correction_b2_v1":
+    accepted_base_contracts = {"correction_b2_v1", "correction_b5_v1"}
+    if base.ref.schema_version != "3" or base.ref.artifact_contract not in accepted_base_contracts:
         raise ValueError(
-            "finalize_orientation_enrichment requires an accepted v3 correction_b2_v1 "
+            "finalize_orientation_enrichment requires an accepted v3 base correction "
             f"(Vg-release) base; got schema_version={base.ref.schema_version!r} "
             f"artifact_contract={base.ref.artifact_contract!r}"
         )
@@ -493,6 +494,73 @@ def finalize_orientation_enrichment(
             "assumption_audit" if resolution_kind == "prior_fill_assumed_zero" else "evidence_audit": orientation_audit,
         },
     }
+    if base.ref.artifact_contract == "correction_b5_v1":
+        import hashlib
+
+        from src.agent.correction.artifact_serialization import (
+            serialize_correction_output,
+            serialize_feature_states,
+        )
+        from src.agent.correction.config import load_core_tolerances
+        from src.agent.correction.feature_state import FeatureStatesArtifactV1
+        from src.agent.correction.finalize import PreparedCandidateIdentity
+        from src.agent.correction.window_host import (
+            WindowHostsArtifactV1,
+            derive_window_evidence_ledger,
+            recompute_window_host_claims,
+        )
+        from src.agent.geometry.build import _resolver_inputs_from_verified_proof
+
+        if (
+            base.window_host_proof is None
+            or base.raw_window_resolver_inputs_bytes is None
+            or base.raw_window_hosts_bytes is None
+        ):
+            raise ValueError("B5 orientation enrichment requires a verified six-artifact base")
+        verified_inputs = _resolver_inputs_from_verified_proof(base.window_host_proof)
+        base_hosts = WindowHostsArtifactV1.model_validate_json(base.raw_window_hosts_bytes)
+        tol = load_core_tolerances()
+        host_claims = recompute_window_host_claims(
+            new_geom,
+            verified_inputs=verified_inputs,
+            tolerances=tol,
+        )
+        if host_claims != base_hosts.claims:
+            raise ValueError("B5 orientation enrichment changed the host relationship")
+        output_bytes = serialize_correction_output(new_geom)
+        output_sha = hashlib.sha256(output_bytes).hexdigest()
+        feature_states = FeatureStatesArtifactV1(
+            output_sha256=output_sha,
+            claims=feature_state_claims,
+        )
+        feature_bytes = serialize_feature_states(feature_states)
+        prepared = PreparedCandidateIdentity(
+            output_bytes=output_bytes,
+            output_sha256=output_sha,
+            feature_states_bytes=feature_bytes,
+            feature_states_sha256=hashlib.sha256(feature_bytes).hexdigest(),
+        )
+        evidence = derive_window_evidence_ledger(
+            new_geom,
+            host_claims=host_claims,
+            verified_inputs=verified_inputs,
+            candidate_identity=prepared,
+            tolerances=tol,
+        )
+        return OrientationEnrichmentResult(
+            geom=new_geom,
+            audit_payload=audit_payload,
+            feature_state_claims=feature_state_claims,
+            window_host_claims=host_claims,
+            window_evidence_ledger=evidence,
+            verified_window_resolver_inputs=verified_inputs,
+            prepared_candidate_identity=prepared,
+        )
+
+    # Historical pre-B5 replay remains readable but is deliberately not
+    # labelled B5-ready.
     return OrientationEnrichmentResult(
-        geom=new_geom, audit_payload=audit_payload, feature_state_claims=feature_state_claims,
+        geom=new_geom,
+        audit_payload=audit_payload,
+        feature_state_claims=feature_state_claims,
     )
