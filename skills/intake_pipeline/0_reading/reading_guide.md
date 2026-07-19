@@ -120,6 +120,25 @@ guarantees (many drawings have no weight differentiation at all):
 - **Color** (when present) is a weak extra cue, not reliable: e.g. blue often = glazing/water, green
   = landscape — but never classify on color alone.
 
+### Dashed lines, hidden observations, and windows
+
+`line_style` and `visibility` record what is observed in this image; they do not assert topology or
+world geometry. Use `line_style="solid"` and `visibility="visible"` for a visible, solid-line window
+observation (either value may be left unset when the drawing makes it unambiguous). Use
+`line_style="dashed"` and `visibility="hidden"` for a dashed window-like line, hidden feature, or
+projection above the cut plane. A hidden observation is **not** an entity window for downstream use:
+record the marked stroke faithfully, or add an `uncaptured` entry with `source_id`,
+`kind: "hidden_window_candidate"`, and `reason` for conflict/audit.
+
+Apply these negative-case guardrails independently:
+
+1. A solid visible window is a normal visible-window observation.
+2. A dashed hidden window or upper-level projection stays hidden; do not make it an entity window.
+3. Never silently coerce a dashed line into `line_style="solid"`.
+4. At the same location, a solid line and a dashed line are two independent strokes with unique ids:
+   the solid observation is visible and the dashed observation is hidden. Do not merge them or let one
+   consume the other.
+
 ---
 
 ## C. Style and medium variation (read this as a lens over every card)
@@ -155,6 +174,25 @@ one thick line, two thin lines, or a black bar.
   don't close) · vs grid axis (dash-dot, passes *through* the wall center and extends past it).
 - **Positive test**: an interior wall bounds rooms and joins the perimeter / corridor wall network.
   Cumulative dimension positions or ticks outside the outline do not bound rooms and do not become walls.
+
+#### Plan outer envelope: non-rectangular polyline
+
+- **Stable cue**: the complete ordered outer ring of a non-rectangular plan. The decisive cue is a
+  **concave corner** (a reflex vertex): rectangles have none, while L- and U-shaped plans do. Preserve
+  every such vertex rather than flattening the envelope into a rectangle.
+- **Representation**: use the existing `wall` strokes as connected ring segments, or use one `wall`
+  stroke with `geometry.kind="polyline"` and `points=[[x, y], ...]`. Both are existing reading-schema
+  forms. The polyline/ring must include each concave vertex truthfully.
+- **Scope**: this records the overall envelope; it does not replace tracing individual room-bounding
+  walls.
+
+#### Wing division: explicit evidence only
+
+- **Stable cue**: an explicit drawing annotation that divides the two wings where the legs of an L- or
+  U-shaped plan meet: a labelled division, dimension, or axis line.
+- **Representation**: only when that annotation is present, record it with an existing `dimension`,
+  `grid-axis`-style stroke, or note. Do not invent a wing division from geometry alone; the concave
+  envelope already implies it. An explicit wing annotation may later corroborate or correct an elevation.
 
 ### Card · `column`
 - **Appears in**: P (and E occasionally)

@@ -34,7 +34,15 @@ ImageKind = Literal["plan", "elevation", "section", "supplementary", "other"]
 
 class Stroke(BaseModel):
     """One traced primitive. ``pen`` is the semantic category; ``geometry`` is a
-    free dict (line: p1/p2/thickness_m; rect: x_range_m/y_range_m)."""
+    free dict (line: p1/p2/thickness_m; rect: x_range_m/y_range_m).
+
+    ``line_style`` and ``visibility`` are image-local recognition attributes,
+    not topology or world fields. ``visibility="hidden"`` (or
+    ``line_style="dashed"``) records an observed dashed line, hidden feature,
+    or projection above the cut plane. Downstream correction must not promote a
+    hidden observation into an entity Window; reading records the observation
+    faithfully and leaves that decision to the later-stage contract.
+    """
 
     model_config = ConfigDict(extra="allow")
     id: str
@@ -42,6 +50,8 @@ class Stroke(BaseModel):
     geometry: dict = Field(default_factory=dict)
     provenance: Literal["seen", "dimension_derived", "estimated", "unknown"] | None = None
     confidence: Literal["high", "medium", "low"] | None = None
+    line_style: Literal["solid", "dashed", "dash_dot", "unknown"] | None = None
+    visibility: Literal["visible", "hidden"] | None = None
     dimension_refs: list[str] = Field(default_factory=list)
     note: str | None = None
 
