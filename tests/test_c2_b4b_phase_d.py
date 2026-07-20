@@ -206,6 +206,189 @@ def test_d1_d2_d3_runstage_and_cli_share_real_v3_service_byte_for_byte(tmp_path)
     assert (cli_out / "grade.png").read_bytes() == (attempt / "grade.png").read_bytes()
 
 
+def _correction_v3_runstage_fixture(tmp_path):
+    from src.agent._share import ensure_schema_initialized
+    from src.agent.execution.view_manifest import ViewManifest
+    from src.agent.judge.score_schema import (
+        JudgeScoreViewBindingsV1,
+        PlanScoreViewBindingV1,
+        canonical_sha256,
+    )
+    from tests.b4b_contract_fixture import make_b4b_gt_document
+    from tests.test_output_coordinate_identity import _stepwise_e4_run
+
+    ensure_schema_initialized()
+    gt = make_b4b_gt_document(observed_elevation=False)
+    run = tmp_path / "run"
+    run.mkdir()
+    manifest, _bundle, _enrichment = _stepwise_e4_run(run)
+    accepted = manifest.accepted("1_correction")
+    attempt = run / "1_correction" / "attempts" / f"{accepted.accepted_attempt:03d}"
+    meta = run / "_run"
+    base = ViewManifest.model_validate_json(
+        (meta / "view_manifest.json").read_text(encoding="utf-8")
+    )
+    gt_file = tmp_path / "gt.json"
+    gt_file.write_text(gt.model_dump_json(), encoding="utf-8")
+    binding = PlanScoreViewBindingV1(
+        kind="plan", input_id="plan", floor_id="F1", gt_source_view_ids=("plan-F1",)
+    )
+    raw_bindings = {
+        "schema_version": "1",
+        "case_id": gt.case,
+        "gt_content_sha256": gt.content_sha256,
+        "case_metadata_sha256": base.case_metadata_sha256,
+        "base_view_manifest_sha256": base.content_sha256,
+        "bindings": [binding.model_dump(mode="json")],
+    }
+    bindings = JudgeScoreViewBindingsV1(
+        schema_version="1",
+        case_id=gt.case,
+        gt_content_sha256=gt.content_sha256,
+        case_metadata_sha256=base.case_metadata_sha256,
+        base_view_manifest_sha256=base.content_sha256,
+        bindings=(binding,),
+        content_sha256=canonical_sha256(raw_bindings),
+    )
+    (meta / "judge_score_bindings.json").write_text(
+        bindings.model_dump_json(), encoding="utf-8"
+    )
+    return gt, run, manifest, gt_file
+
+
+def test_correction_v3_runstage_scoring_e2e_emits_real_grade(tmp_path):
+    """B4b MINOR-1: correction is a real typed scoring producer, not just reading."""
+    from scripts.tool_scripts import run_stage
+
+    gt, run, manifest, gt_file = _correction_v3_runstage_fixture(tmp_path)
+    accepted = manifest.accepted("1_correction")
+    attempt = run / "1_correction" / "attempts" / f"{accepted.accepted_attempt:03d}"
+
+    artifacts = run_stage._grade_typed_attempt_artifacts(
+        "1_correction", gt.case, attempt, gt, gt_file=gt_file,
+        manifest=manifest, grade=run_stage.GradeConfig(),
+    )
+
+    assert artifacts["score_vs_gt"] is not None
+    assert artifacts["grade"] is not None
+    sidecar = json.loads(Path(artifacts["score_vs_gt"]).read_text(encoding="utf-8"))
+    assert sidecar["payload"]["kind"] == "c2_scored"
+    assert sidecar["identity"]["product"]["stage"] == "correction"
+    assert Path(artifacts["grade"]).read_bytes().startswith(b"\x89PNG")
+
+
+def test_correction_v3_grade_loop_skips_nonaccepted_attempt_and_scores_accepted(tmp_path):
+    """F-R1/P7x: base 001 is unscored; accepted enrichment 002 gets a real score."""
+    from scripts.tool_scripts import run_stage
+
+    gt, run, manifest, gt_file = _correction_v3_runstage_fixture(tmp_path)
+    accepted = manifest.accepted("1_correction")
+    assert accepted.accepted_attempt == 2
+    assert sorted(path.name for path in (run / "1_correction" / "attempts").iterdir()) == [
+        "001", "002"
+    ]
+
+    artifacts = run_stage._render_all_typed_attempt_grades(
+        "1_correction",
+        gt.case,
+        run,
+        gt,
+        manifest=manifest,
+        grade=run_stage.GradeConfig(),
+        gt_file=gt_file,
+    )
+
+    assert artifacts[1] == {
+        "score_vs_gt": None,
+        "grade": None,
+        "score_criteria": [],
+    }
+    assert artifacts[2]["score_vs_gt"] is not None
+    assert artifacts[2]["grade"] is not None
+    assert Path(artifacts[2]["grade"]).read_bytes().startswith(b"\x89PNG")
+
+
+@pytest.mark.parametrize("run_profile", ["exploratory", "dev"])
+def test_v3_gt_missing_bindings_warns_loudly_in_non_strict_profiles(tmp_path, run_profile):
+    from scripts.tool_scripts import run_stage
+    from src.agent.execution.manifest import RunManifest
+    from tests.test_c2_b4b_phase_b import real_va_context
+
+    gt, base, bindings = real_va_context()
+    run = tmp_path / "run"
+    attempt = run / "0_reading" / "attempts" / "001"
+    attempt.mkdir(parents=True)
+    meta = run / "_run"
+    meta.mkdir()
+    gt_file = tmp_path / "gt.json"
+    gt_file.write_text(gt.model_dump_json(), encoding="utf-8")
+    (meta / "view_manifest.json").write_text(base.model_dump_json(), encoding="utf-8")
+    (attempt / "output.json").write_text(json.dumps(_typed_attempt_payload(gt, bindings)), encoding="utf-8")
+
+    with pytest.warns(RuntimeWarning, match="v3 GT.*judge sidecar.*missing"):
+        artifacts = run_stage._grade_typed_attempt_artifacts(
+            "0_reading", gt.case, attempt, gt, gt_file=gt_file,
+            manifest=RunManifest(case=gt.case), grade=run_stage.GradeConfig(),
+            run_profile=run_profile,
+        )
+
+    assert artifacts == {"score_vs_gt": None, "grade": None, "score_criteria": []}
+
+
+@pytest.mark.parametrize("run_profile", ["golden", "regression"])
+def test_v3_gt_missing_bindings_fails_closed_in_strict_profiles(tmp_path, run_profile):
+    from scripts.tool_scripts import run_stage
+    from src.agent.execution.manifest import RunManifest
+    from tests.test_c2_b4b_phase_b import real_va_context
+
+    gt, base, bindings = real_va_context()
+    run = tmp_path / "run"
+    attempt = run / "0_reading" / "attempts" / "001"
+    attempt.mkdir(parents=True)
+    meta = run / "_run"
+    meta.mkdir()
+    gt_file = tmp_path / "gt.json"
+    gt_file.write_text(gt.model_dump_json(), encoding="utf-8")
+    (meta / "view_manifest.json").write_text(base.model_dump_json(), encoding="utf-8")
+    (attempt / "output.json").write_text(json.dumps(_typed_attempt_payload(gt, bindings)), encoding="utf-8")
+
+    with pytest.raises(RuntimeError, match=f"run_profile={run_profile}"):
+        run_stage._grade_typed_attempt_artifacts(
+            "0_reading", gt.case, attempt, gt, gt_file=gt_file,
+            manifest=RunManifest(case=gt.case), grade=run_stage.GradeConfig(),
+            run_profile=run_profile,
+        )
+
+
+def test_missing_bindings_remains_silent_when_gt_is_not_v3(tmp_path, monkeypatch):
+    import warnings
+
+    from scripts.tool_scripts import run_stage
+    from src.agent.execution.manifest import RunManifest
+    from tests.test_c2_b4b_phase_b import real_va_context
+
+    gt, _base, bindings = real_va_context()
+    run = tmp_path / "run"
+    attempt = run / "0_reading" / "attempts" / "001"
+    attempt.mkdir(parents=True)
+    gt_file = tmp_path / "gt.json"
+    gt_file.write_text("{}", encoding="utf-8")
+    (attempt / "output.json").write_text(json.dumps(_typed_attempt_payload(gt, bindings)), encoding="utf-8")
+    monkeypatch.setattr(
+        "src.agent.judge.score_schema.load_score_gt_identity", lambda path: (None, None)
+    )
+
+    with warnings.catch_warnings(record=True) as caught:
+        artifacts = run_stage._grade_typed_attempt_artifacts(
+            "0_reading", gt.case, attempt, gt, gt_file=gt_file,
+            manifest=RunManifest(case=gt.case), grade=run_stage.GradeConfig(),
+            run_profile="golden",
+        )
+
+    assert caught == []
+    assert artifacts == {"score_vs_gt": None, "grade": None, "score_criteria": []}
+
+
 def test_d2_persisted_sigkill_half_pair_is_never_a_cache_hit(tmp_path):
     """Reader-side digest check rejects the deliberate PNG-new/JSON-old state."""
     old_png, new_png = _png_bytes((1, 2, 3)), _png_bytes((4, 5, 6))

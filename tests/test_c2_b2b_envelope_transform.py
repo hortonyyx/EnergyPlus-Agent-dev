@@ -18,7 +18,7 @@ from src.agent.correction.envelope_transform import (
 )
 from src.agent.correction.footprint import floor_footprint_fingerprint
 from src.agent.correction.parse import ensure_corrected_geometry
-from src.agent.correction.schema import CorrectedGeometry
+from src.agent.correction.schema import CorrectedGeometry, CorrectedGeometryV3
 from src.agent.correction.window_sources import (
     build_verified_window_resolver_inputs,
     source_locator,
@@ -121,6 +121,31 @@ def test_l_shape_overall_transform_is_atomic_and_preserves_coverage():
     row = result.geom.corrections[-1]
     assert row["rule_id"] == "deterministic_core.envelope_atomic_transform"
     assert all(gate["ok"] for gate in row["hard_gates"])
+
+
+def test_transaction_rejects_divergent_footprints_after_schema_is_bypassed(monkeypatch):
+    """Depth lock: the divergent object reaches B2b's own scope gate."""
+    before = _u_geom(floors=2)
+    vertices = list(before.floors[1].footprint.vertices)
+    vertices[1] = (9.0, vertices[1][1])
+    object.__setattr__(before.floors[1].footprint, "vertices", vertices)
+    calls = {"count": 0}
+
+    def bypass_schema(cls, value):
+        calls["count"] += 1
+        assert isinstance(value, dict)
+        return before
+
+    monkeypatch.setattr(CorrectedGeometryV3, "model_validate", classmethod(bypass_schema))
+
+    result = apply_v3_envelope_transaction(
+        before, load_core_tolerances(), _envelope()
+    )
+
+    assert calls["count"] == 1
+    assert not result.committed
+    assert result.failed_gate_id == "correction.envelope_schema_scope"
+    assert "per-floor footprints are not identical" in str(result.geom.conflicts[-1])
 
 
 def test_u_wing_break_cross_floor_moves_internal_axis_without_notch_depth_drift():

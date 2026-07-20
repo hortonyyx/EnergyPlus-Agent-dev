@@ -87,6 +87,22 @@ judge/tooling 侧）；**gate① 与执行器绝不 import**（gate① 随上线
 =照抄、误差预算崩）。机械守：[`tests/test_gt_discipline.py`](../../tests/test_gt_discipline.py)。详见
 [gt/README.md](../../case_tests/test_baseline/gt/README.md)。无 gt 的 case = 简单测试、判卷降级为纯看图、不上主线。
 
+### 0.3 v3 case 判卷必须 provision judge sidecar
+
+GroundTruthV3 case 除 `gt/<case>.json` 外，还必须有 judge-reviewed 的
+`gt/<case>/score_inputs/view_bindings.json`。该文件把 run 的 base `ViewManifest` 输入绑定到 GT floor / facade /
+source view；它是 judge-only 资产，不能由产品输出反推或自动生成。设计口径见
+[`c2_b4b_detail_spec.md` §6.3](../proposals/c2_b4b_detail_spec.md#63-judge-score-view-bindings)。
+
+当前 `run_stage.py` 尚无从 GT bundle 自动搬运 sidecar 到 run 的 provision bridge。建 run 时必须人工或由显式脚本：
+
+1. 让 reviewer 核对并定稿 `gt/<case>/score_inputs/view_bindings.json`；
+2. 在 base `view_manifest.json` 已 provision 后，把定稿文件复制到
+   `<run>/_run/judge_score_bindings.json`；
+3. 确认 bindings 内的 `case_id`、GT content hash、case metadata hash 与 base view-manifest hash 均匹配本 run；
+4. 再启动 J0/J1 判卷。exploratory/dev 缺 sidecar 会发出 loud warning；golden/regression 会 fail-closed，不能以
+   `score_vs_gt: None` 静默跑完。
+
 ## 1. 不污染原则（最重要，机械保证，别破）
 
 > 你既编排又当 judge，最大风险是把 judge 信息 / 下游信息 / gt 泄漏进某段输入，污染误差预算与训练数据。

@@ -82,6 +82,7 @@ class GradeConfig:
 
 DEFAULT_ORIENTATION_COMPLETION_MODE = "prior_fill"
 _ORIENTATION_COMPLETION_MODES = ("prior_fill", "interactive")
+_CAPABILITY_PROFILES = ("rectangular", "orthogonal_polygon")
 
 
 @dataclass(frozen=True)
@@ -107,6 +108,8 @@ class RunConfig:
     # this value as the hash-bound orientation_run_config.json artifact — it
     # never hardcodes a mode literal (BO-CR3).
     orientation_completion_mode: str = DEFAULT_ORIENTATION_COMPLETION_MODE
+    # ``None`` means the key was absent and the CLI value remains authoritative.
+    capability_profile: str | None = None
 
     @classmethod
     def defaults(cls, *, path: Path | None = None, present: bool = False) -> "RunConfig":
@@ -163,6 +166,7 @@ def _parse_run_config(raw: dict, path: Path) -> RunConfig:
         "correction": _parse_grade(raw.get("grade"), "correction", path),
     }
     orientation_completion_mode = _parse_orientation_completion_mode(raw.get("orientation"), path)
+    capability_profile = _parse_capability_profile(raw.get("capability_profile"), path)
     return RunConfig(
         path=path,
         present=True,
@@ -172,7 +176,21 @@ def _parse_run_config(raw: dict, path: Path) -> RunConfig:
         models=dict(models),
         grade=grade,
         orientation_completion_mode=orientation_completion_mode,
+        capability_profile=capability_profile,
     )
+
+
+def _parse_capability_profile(value: object, path: Path) -> str | None:
+    if value is None:
+        return None
+    profile = str(value)
+    if profile not in _CAPABILITY_PROFILES:
+        warnings.warn(
+            f"{path} capability_profile={profile!r} is invalid; using CLI/default",
+            RuntimeWarning,
+        )
+        return None
+    return profile
 
 
 def _parse_orientation_completion_mode(orientation: object, path: Path) -> str:

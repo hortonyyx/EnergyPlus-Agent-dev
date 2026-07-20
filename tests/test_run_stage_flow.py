@@ -261,6 +261,75 @@ def test_flow_uses_run_config_defaults_for_judge_and_review(tmp_path, monkeypatc
     assert load_state(run_dir)["stop_reason"] == "awaiting_human_review@1_correction"
 
 
+@pytest.mark.parametrize(
+    "config_line,cli_profile,expected",
+    [
+        ("capability_profile: orthogonal_polygon", "rectangular", "orthogonal_polygon"),
+        ("", "orthogonal_polygon", "orthogonal_polygon"),
+    ],
+)
+def test_flow_run_config_capability_profile_overrides_only_when_present(
+    tmp_path, monkeypatch, config_line, cli_profile, expected
+):
+    seen = []
+
+    def capture_draw_fn(stage, run_dir, testdata_text, td_path, policy, manifest=None):
+        seen.append(policy.capability_profile)
+        return _fake_make_draw_fn(
+            stage, run_dir, testdata_text, td_path, policy, manifest=manifest
+        )
+
+    monkeypatch.setattr(rs, "_make_draw_fn", capture_draw_fn)
+    _seed_case_data(tmp_path)
+    run_dir = tmp_path / "case" / "run"
+    run_dir.mkdir(parents=True)
+    (run_dir / "run_config.yaml").write_text(
+        "\n".join(filter(None, ["judge:", "  mode: off", config_line])),
+        encoding="utf-8",
+    )
+
+    assert rs.cmd_flow(
+        _args(tmp_path, capability_profile=cli_profile, judge="off")
+    ) == rs.FLOW_EXIT_OK
+    assert seen == [expected]
+
+
+@pytest.mark.parametrize(
+    "config_line,cli_profile,expected",
+    [
+        ("capability_profile: orthogonal_polygon", "rectangular", "orthogonal_polygon"),
+        ("", "orthogonal_polygon", "orthogonal_polygon"),
+    ],
+)
+def test_cmd_run_config_capability_profile_overrides_only_when_present(
+    tmp_path, monkeypatch, config_line, cli_profile, expected
+):
+    seen = []
+
+    def capture_draw_fn(stage, run_dir, testdata_text, td_path, policy, manifest=None):
+        seen.append(policy.capability_profile)
+        return _fake_make_draw_fn(
+            stage, run_dir, testdata_text, td_path, policy, manifest=manifest
+        )
+
+    monkeypatch.setattr(rs, "_make_draw_fn", capture_draw_fn)
+    monkeypatch.setattr(rs, "_render_stage", lambda *args, **kwargs: [])
+    _seed_case_data(tmp_path)
+    run_dir = tmp_path / "case" / "run"
+    run_dir.mkdir(parents=True)
+    (run_dir / "run_config.yaml").write_text(config_line, encoding="utf-8")
+
+    assert rs.cmd_run(
+        _args(
+            tmp_path,
+            stage="1_correction",
+            force=False,
+            capability_profile=cli_profile,
+        )
+    ) == 0
+    assert seen == [expected]
+
+
 def test_flow_first_pass_packet_has_gt_evidence_before_manifest_save(tmp_path, monkeypatch):
     # real sm21 case_data so the run can be V2-provisioned (CR-02)
     shutil.copytree(_SM21 / "case_data", tmp_path / "sm21_anchor" / "case_data")

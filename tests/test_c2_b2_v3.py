@@ -48,6 +48,19 @@ def test_v3_is_strict_and_final_ring_is_canonical():
         validate_final_corrected_geometry(draw)
 
 
+def test_v3_schema_rejects_divergent_per_floor_footprints():
+    payload = _payload()
+    second = json.loads(json.dumps(payload["floors"][0]))
+    second.update({"id": "f2", "name": "2F", "z_floor": 3.0})
+    second["footprint"]["vertices"][1][0] = 9.0
+    second["cells"][0]["id"] = "room-2"
+    second["cells"][0]["x"] = [0.0, 9.0]
+    payload["floors"].append(second)
+
+    with pytest.raises(ValueError, match="per-floor footprints must have identical geometry"):
+        ensure_corrected_geometry(payload)
+
+
 def test_v3_footprint_is_floor_owned_and_helper_uses_it():
     geom = ensure_corrected_geometry(_payload())
     assert floor_footprint(geom, geom.floors[0]) == [[0.0, 0.0], [10.0, 0.0], [10.0, 8.0], [0.0, 8.0]]

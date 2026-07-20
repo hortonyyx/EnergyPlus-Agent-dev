@@ -467,6 +467,7 @@ def build_verified_window_inputs_from_run(
     from src.agent.execution.run_meta import run_meta_path
     from src.agent.execution.view_manifest import VIEW_MANIFEST_NAME
 
+    verify_reading_stage_root_against_accepted_attempt(run_dir, reading_dir)
     manifest_path = run_meta_path(Path(run_dir), VIEW_MANIFEST_NAME)
     if not manifest_path.is_file():
         raise WindowResolverInputError(
@@ -492,6 +493,63 @@ def build_verified_window_inputs_from_run(
         raw_reading_artifacts=raw_readings,
         elevation_direction_facts=facts,
     )
+
+
+def verify_reading_stage_root_against_accepted_attempt(
+    run_dir: Path,
+    reading_dir: Path,
+) -> None:
+    """Bind flat reading inputs to 0_reading's accepted attempt when present.
+
+    ``StageRunner`` archives a reading draw as one JSON object keyed by each
+    ``*_view.json`` stem.  Flat files remain convenience mirrors of the latest
+    draw, so reconstruct that exact writer payload and compare its byte hash to
+    the accepted record.  Runs without an accepted reading attempt retain the
+    standalone/exploratory behavior.
+    """
+    from src.agent.execution.manifest import hash_bytes, hash_text, load_run_manifest
+
+    manifest = load_run_manifest(Path(run_dir))
+    if manifest is None:
+        return
+    accepted = manifest.accepted("0_reading")
+    if accepted is None:
+        return
+    attempt_path = (
+        Path(run_dir)
+        / "0_reading"
+        / "attempts"
+        / f"{accepted.accepted_attempt:03d}"
+        / "output.json"
+    )
+    if not attempt_path.is_file():
+        raise WindowResolverInputError(
+            "source_identity_invalid",
+            {"artifact": "accepted_reading", "path": str(attempt_path)},
+        )
+    try:
+        accepted_bytes = attempt_path.read_bytes()
+        if hash_bytes(accepted_bytes) != accepted.output_hash:
+            raise WindowResolverInputError(
+                "source_identity_invalid",
+                {"artifact": "accepted_reading", "reason": "output_hash_mismatch"},
+            )
+        current = {
+            path.stem: json.loads(path.read_text(encoding="utf-8"))
+            for path in sorted(Path(reading_dir).glob("*_view.json"))
+        }
+        current_text = json.dumps(current, indent=2, ensure_ascii=False)
+    except WindowResolverInputError:
+        raise
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError) as exc:
+        raise WindowResolverInputError(
+            "source_identity_invalid", {"artifact": "reading_stage_root"}
+        ) from exc
+    if hash_text(current_text) != accepted.output_hash:
+        raise WindowResolverInputError(
+            "source_identity_invalid",
+            {"artifact": "reading_stage_root", "reason": "accepted_attempt_mismatch"},
+        )
 
 
 def _check_direction_facts(manifest: ViewManifest, facts: tuple[ElevationDirectionFactV1, ...],

@@ -42,6 +42,7 @@ def test_run_config_loads_scope_review_models_and_grade(tmp_path):
                 "  correction: false",
                 "models:",
                 "  reading: claude-sonnet-5",
+                "capability_profile: orthogonal_polygon",
                 "grade:",
                 "  reading:",
                 "    wall_tol_m: 0.2",
@@ -68,6 +69,7 @@ def test_run_config_loads_scope_review_models_and_grade(tmp_path):
     assert cfg.judge_mode == "off"
     assert cfg.review_stages() == {"0_reading"}
     assert cfg.models["reading"] == "claude-sonnet-5"
+    assert cfg.capability_profile == "orthogonal_polygon"
     assert cfg.grade_for("0_reading").as_tolerances() == {
         "wall_tol_m": 0.2,
         "window_centre_tol_m": 0.25,
@@ -107,3 +109,14 @@ def test_grade_config_rejects_invalid_tolerance_ordering():
         GradeConfig(overlap_complete=1.1)
     with pytest.raises(ValueError, match="wall_tol_m"):
         GradeConfig(wall_tol_m=-0.1)
+
+
+def test_run_config_invalid_capability_profile_falls_back_to_cli_authority(tmp_path):
+    (tmp_path / "run_config.yaml").write_text(
+        "capability_profile: curved_polygon\n", encoding="utf-8"
+    )
+
+    with pytest.warns(RuntimeWarning, match="capability_profile"):
+        cfg = load_run_config(tmp_path)
+
+    assert cfg.capability_profile is None

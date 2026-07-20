@@ -30,6 +30,7 @@ import os
 import shutil
 import sys
 import tempfile
+import warnings
 from pathlib import Path
 
 # Be robust to CWD: make `import src...` work whether or not the package is
@@ -223,6 +224,11 @@ def _draw_correction(
     s1 = run_dir / "1_correction"
     s1.mkdir(parents=True, exist_ok=True)
     rdir = run_dir / "0_reading"
+    from src.agent.correction.window_sources import (
+        verify_reading_stage_root_against_accepted_attempt,
+    )
+
+    verify_reading_stage_root_against_accepted_attempt(run_dir, rdir)
     # Inner retry handles ONLY schema/format robustness; semantic draw quality is
     # gate①'s job (so a content-bad draw is counted + filed, not silently re-drawn
     # inside the LLM call, bypassing the per-stage budget — review 2026-06-19 High-2).
@@ -449,7 +455,10 @@ def _ensure_orientation_enriched(run_dir: Path, policy: RunPolicy, manifest):
     )
 
     verified = load_verified_accepted_correction(run_dir=run_dir, manifest=manifest)
-    if verified.ref.schema_version != "3" or verified.ref.artifact_contract == "correction_e4_orientation_v1":
+    if verified.ref.schema_version != "3" or verified.ref.artifact_contract in (
+        "correction_e4_orientation_v1",
+        "correction_b5_orientation_v1",
+    ):
         return verified
 
     run_config = load_run_config(run_dir)
@@ -526,10 +535,19 @@ def _draw_assembly(run_dir: Path, policy: RunPolicy, manifest=None):
     except OrientationNeedsInputError as exc:
         return _err("assembly.orientation_needs_input", f"NEEDS_INPUT: {exc}")
 
-    mep_path = run_dir / "4_mep" / "mep_output.json"
-    if not mep_path.exists():
-        return _err("assembly.mep_present", "missing 4_mep/mep_output.json; run 4_mep first")
-    mep = MepOutput.model_validate_json(mep_path.read_text(encoding="utf-8"))
+    mep_record = manifest.accepted("4_mep")
+    if mep_record is None:
+        return _err("assembly.mep_accepted_required",
+                    "no accepted 4_mep record; run 4_mep first")
+    mep_path = _accepted_output_path(run_dir, "4_mep")
+    if mep_path is None:
+        return _err("assembly.mep_present", "missing accepted 4_mep output; run 4_mep first")
+    mep_bytes = mep_path.read_bytes()
+    from src.agent.execution.manifest import hash_bytes
+    if hash_bytes(mep_bytes) != mep_record.output_hash:
+        return _err("assembly.mep_identity",
+                    "accepted 4_mep output hash does not match the run manifest")
+    mep = MepOutput.model_validate_json(mep_bytes)
 
     # geometry from the VERIFIED accepted bytes (never a stage-root mirror)
     geom = ensure_corrected_geometry(json.loads(verified.raw_output_bytes.decode("utf-8")))
@@ -564,7 +582,10 @@ def _draw_assembly(run_dir: Path, policy: RunPolicy, manifest=None):
     write = AssemblyE4Write(
         intake=bundle.intake, contract=bundle.output_coordinates,
         snapshot=snapshot, audit=audit,
-        input_hashes=(("1_correction", verified.ref.output_sha256),),
+        input_hashes=(
+            ("1_correction", verified.ref.output_sha256),
+            ("4_mep", mep_record.output_hash),
+        ),
     )
     return write, rep
 
@@ -1267,6 +1288,7 @@ def _render_stage_grade_artifacts(
     *,
     manifest: RunManifest,
     run_config: RunConfig,
+    run_profile: str = "exploratory",
 ) -> dict[int, dict]:
     if stage not in {"0_reading", "1_correction"}:
         return {}
@@ -1279,7 +1301,7 @@ def _render_stage_grade_artifacts(
     if isinstance(document, GroundTruthV3):
         return _render_all_typed_attempt_grades(stage, case, run_dir, document,
                                                 manifest=manifest, grade=run_config.grade_for(stage),
-                                                gt_file=gt_path(case))
+                                                gt_file=gt_path(case), run_profile=run_profile)
     gt = load_gt(case)
     if gt is None:
         return {}
@@ -1300,7 +1322,8 @@ def _typed_score_input_paths(run_dir: Path) -> tuple[Path, Path, Path | None]:
 
 
 def _grade_typed_attempt_artifacts(stage: str, case: str, attempt_dir: Path, document, *,
-                                   gt_file: Path, manifest: RunManifest, grade: GradeConfig) -> dict:
+                                   gt_file: Path, manifest: RunManifest, grade: GradeConfig,
+                                   run_profile: str = "exploratory") -> dict:
     """Real v3 run-stage assembler: all scorer policy stays in score_service."""
     from src.agent.execution.manifest import attempt_index_of, hash_text
     from src.agent.execution.view_manifest import ViewManifest
@@ -1320,6 +1343,12 @@ def _grade_typed_attempt_artifacts(stage: str, case: str, attempt_dir: Path, doc
     attempt = attempt_index_of(attempt_dir)
     accepted = manifest.accepted(stage)
     accepted_record = accepted if accepted is not None and accepted.accepted_attempt == attempt else None
+    # Official typed correction scoring is defined only for the manifest-
+    # accepted B5 six-artifact bundle.  Historical/blocked correction attempts
+    # remain auditable on disk but have no official score; reading attempts do
+    # not have this restriction and must continue through the scorer.
+    if stage == "1_correction" and accepted_record is None:
+        return {"score_vs_gt": None, "grade": None, "score_criteria": []}
     output_hash = hash_text(output_text)
     if accepted_record is not None:
         record_output = getattr(accepted_record, "output_hash", None)
@@ -1331,25 +1360,49 @@ def _grade_typed_attempt_artifacts(stage: str, case: str, attempt_dir: Path, doc
     product = build_product_identity(stage="reading" if stage == "0_reading" else "correction", attempt=attempt,
         output_sha256=output_hash, output_schema=str(output.get("schema_version", "3")), source="attempt_output",
         accepted_stage_record=accepted_record)
-    base_path, bindings_path, overlay_path = _typed_score_input_paths(attempt_dir.parents[2])
-    # Inputs are strict judge sidecars.  Missing/invalid identity inputs do not
-    # publish a cacheable artifact (the caller leaves the attempt untouched).
-    if not base_path.exists() or not bindings_path.exists():
-        return {"score_vs_gt": None, "grade": None, "score_criteria": []}
-    base = ViewManifest.model_validate_json(base_path.read_text(encoding="utf-8"))
     gt_identity, typed_gt = load_score_gt_identity(gt_file)
     if typed_gt is None:
         return {"score_vs_gt": None, "grade": None, "score_criteria": []}
+    base_path, bindings_path, overlay_path = _typed_score_input_paths(attempt_dir.parents[2])
+    # A typed GT makes these judge sidecars mandatory.  Only cases without a
+    # v3 GT may silently have no typed score layer.
+    if not base_path.exists() or not bindings_path.exists():
+        missing = [
+            name
+            for name, path in (("view_manifest.json", base_path),
+                              ("judge_score_bindings.json", bindings_path))
+            if not path.exists()
+        ]
+        message = (
+            "v3 GT is present but required judge sidecar(s) are missing "
+            f"({', '.join(missing)}); the v3 scoring layer was skipped"
+        )
+        if run_profile in {"golden", "regression"}:
+            raise RuntimeError(f"{message} under run_profile={run_profile}")
+        warnings.warn(message, RuntimeWarning, stacklevel=2)
+        return {"score_vs_gt": None, "grade": None, "score_criteria": []}
+    base = ViewManifest.model_validate_json(base_path.read_text(encoding="utf-8"))
     bindings = load_score_view_bindings(bindings_path, expected_case_id=document.case,
         expected_gt_content_sha256=gt_identity.content_sha256, expected_case_metadata_sha256=base.case_metadata_sha256,
         expected_base_view_manifest_sha256=base.content_sha256)
     overlay = load_completeness_overlay(overlay_path if overlay_path.exists() else None,
         expected_case_id=document.case, expected_gt_content_sha256=gt_identity.content_sha256,
         expected_base_view_manifest_sha256=base.content_sha256)
+    window_host_proof = None
+    if stage == "1_correction" and accepted_record is not None:
+        from src.agent.output_coordinates import load_verified_accepted_correction
+
+        verified = load_verified_accepted_correction(
+            run_dir=attempt_dir.parents[2], manifest=manifest
+        )
+        if verified.ref.accepted_attempt != attempt:
+            raise RuntimeError("typed correction scorer resolved a different accepted attempt")
+        window_host_proof = verified.window_host_proof
     request = {"gt_identity": gt_identity, "gt": typed_gt, "stage": product.stage,
         "product_payload": output, "product_identity": product, "base_view_manifest": base,
         "score_bindings": bindings, "completeness_overlay": overlay,
-        "c2_config": load_judge_score_config(_REPO_ROOT / "src/configs/judge_score.yaml")}
+        "c2_config": load_judge_score_config(_REPO_ROOT / "src/configs/judge_score.yaml"),
+        "window_host_proof": window_host_proof}
     result = score_attempt_service(typed_request=request)
     score_path, grade_path = attempt_dir / "score_vs_gt.json", attempt_dir / "grade.png"
     cached = load_cached_score(score_path, grade_path=grade_path, expected_identity=result.identity)
@@ -1361,7 +1414,8 @@ def _grade_typed_attempt_artifacts(stage: str, case: str, attempt_dir: Path, doc
 
 
 def _render_all_typed_attempt_grades(stage: str, case: str, run_dir: Path, document, *,
-                                     manifest: RunManifest, grade: GradeConfig, gt_file: Path) -> dict[int, dict]:
+                                     manifest: RunManifest, grade: GradeConfig, gt_file: Path,
+                                     run_profile: str = "exploratory") -> dict[int, dict]:
     if stage not in {"0_reading", "1_correction"}:
         return {}
     attempts = run_dir / stage / "attempts"
@@ -1370,14 +1424,15 @@ def _render_all_typed_attempt_grades(stage: str, case: str, run_dir: Path, docum
     result: dict[int, dict] = {}
     for attempt_dir in sorted(path for path in attempts.iterdir() if path.is_dir() and path.name.isdigit()):
         result[int(attempt_dir.name)] = _grade_typed_attempt_artifacts(stage, case, attempt_dir, document,
-            gt_file=gt_file, manifest=manifest, grade=grade)
+            gt_file=gt_file, manifest=manifest, grade=grade, run_profile=run_profile)
     return result
 
 
 def _judge_packet(stage: str, case: str, case_dir: Path, run_dir: Path,
                   attempt_dir: Path, report: CheckReport,
                   *, manifest: RunManifest | None = None,
-                  run_config: RunConfig | None = None) -> dict:
+                  run_config: RunConfig | None = None,
+                  run_profile: str = "exploratory") -> dict:
     # gt is judge-only — import it inside the judge path, never at module load.
     from src.agent.judge.gt import gt_path, has_gt, load_gt, load_gt_document
     from src.agent.judge.gt_schema import GroundTruthV3
@@ -1389,7 +1444,8 @@ def _judge_packet(stage: str, case: str, case_dir: Path, run_dir: Path,
     document = load_gt_document(case) if has_gt(case) else None
     if isinstance(document, GroundTruthV3):
         gt_artifacts = _grade_typed_attempt_artifacts(stage, case, attempt_dir, document,
-            gt_file=gt_path(case), manifest=manifest or _load_manifest_readonly(run_dir), grade=cfg.grade_for(stage))
+            gt_file=gt_path(case), manifest=manifest or _load_manifest_readonly(run_dir),
+            grade=cfg.grade_for(stage), run_profile=run_profile)
     else:
         gt = load_gt(case) if has_gt(case) else None
         gt_artifacts = (
@@ -1689,7 +1745,8 @@ def cmd_run(args) -> int:
     policy = _make_policy(
         reading_runner_available=args.reading_runner_available,
         run_profile=args.run_profile,
-        capability_profile=getattr(args, "capability_profile", "rectangular"),
+        capability_profile=(run_config.capability_profile
+                            or getattr(args, "capability_profile", "rectangular")),
         budget_draws=getattr(args, "budget_draws", None),
     )
     # CR-02: attempt-creating entrance — grandfather V1 refusal + V2-by-default
@@ -1710,6 +1767,7 @@ def cmd_run(args) -> int:
             rep,
             manifest=manifest,
             run_config=run_config,
+            run_profile=policy.run_profile,
         )
 
     outcome = run_one_stage(
@@ -1726,6 +1784,7 @@ def cmd_run(args) -> int:
         run_dir,
         manifest=manifest,
         run_config=run_config,
+        run_profile=policy.run_profile,
     )
     # 4_mep J4 is a disabled judge — record the explicit disabled verdict (not a PASS).
     if outcome.status == StepStatus.DETERMINISTIC_PASS and stage == "4_mep":
@@ -1869,7 +1928,8 @@ def cmd_flow(args) -> int:
     policy = _make_policy(
         reading_runner_available=args.reading_runner_available,
         run_profile=args.run_profile,
-        capability_profile=getattr(args, "capability_profile", "rectangular"),
+        capability_profile=(run_config.capability_profile
+                            or getattr(args, "capability_profile", "rectangular")),
         judge_enabled=(judge_mode != "off"),
         confirmation_policy=ConfirmationPolicy.REQUIRED,
         budget_draws=getattr(args, "budget_draws", None),
@@ -1912,6 +1972,7 @@ def cmd_flow(args) -> int:
                 rep,
                 manifest=manifest,
                 run_config=run_config,
+                run_profile=policy.run_profile,
             )
 
         outcome = run_one_stage(
@@ -1934,6 +1995,7 @@ def cmd_flow(args) -> int:
             run_dir,
             manifest=manifest,
             run_config=run_config,
+            run_profile=policy.run_profile,
         )
         if outcome.status == StepStatus.DETERMINISTIC_PASS and stage == "4_mep":
             run_judge("4_mep", {}, judge_fn=None, verdict_dir=run_dir / "verdicts")
