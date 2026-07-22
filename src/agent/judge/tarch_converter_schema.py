@@ -620,6 +620,12 @@ class TarchConversionRequestV1(_StrictModel):
     target_geometry_profile: Literal["c2_simple_orthogonal_no_holes"]
     native_units: Literal["m", "mm", "cm", "in", "ft", "unitless"]
     metres_per_unit: PositiveFiniteFloat
+    # Building-domain LEGAL wall-thickness range (default [0.06, 0.50] m).  This is a
+    # sanity FILTER for jamb-cap identification (plan §2.1), NEVER the *source* of a
+    # thickness — every thickness value still carries a six-kind ThicknessEvidenceV1.
+    # Optional with the documented default so P0-built requests still construct.
+    wall_thickness_range_m: list[StrictFiniteFloat] = Field(
+        default=[0.06, 0.50], min_length=2, max_length=2)
     floors: list["FloorIntentV1"] = Field(min_length=1)
     plan_views: list[PlanViewIntentV1] = Field(min_length=1)
     elevation_views: list[ElevationViewIntentV1] = Field(default_factory=list)
@@ -634,6 +640,13 @@ class TarchConversionRequestV1(_StrictModel):
     def _label_basename(self):
         if "/" in self.source_dxf_label or "\\" in self.source_dxf_label or ".." in self.source_dxf_label:
             raise ValueError("source label must be a basename")
+        return self
+
+    @model_validator(mode="after")
+    def _wall_thickness_range_ordered(self):
+        lo, hi = self.wall_thickness_range_m
+        if not (0.0 < lo < hi):
+            raise ValueError("wall_thickness_range_m must be [lo, hi] with 0 < lo < hi")
         return self
 
 

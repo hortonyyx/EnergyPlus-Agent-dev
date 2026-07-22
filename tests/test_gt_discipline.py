@@ -38,7 +38,7 @@ def test_gt_loader_absent_returns_none(tmp_path):
 # opus §8.5: the tarch converter (judge-side answer generator) and its CLIs must
 # not be imported by gate① or executor runtime — Tianzheng dialect stays judge-side.
 _FORBIDDEN = ("judge.gt", "judge import gt", "load_gt", "test_baseline/gt", "gt.json", "/gt/",
-              "tarch_converter", "normalize_tarch_dxf", "tarch_to_gtv3")
+              "tarch_converter", "tarch_normalize", "normalize_tarch_dxf", "tarch_to_gtv3")
 
 
 def _scan(paths: list[Path]) -> list[str]:
