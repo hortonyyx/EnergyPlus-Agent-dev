@@ -14,6 +14,9 @@
 0–5 管线 + 逐段校验架构（gate① 确定性 + gate② judge）已落地，sm20/sm21 两份 golden baseline 在册。
 **当前在把"逐段 judge-in-the-loop 编排"真跑起来、出第一份带 judge 的规范 baseline**，并扫尾两步法/评测的残留。
 
+> **⚠️ [2026-07-22 Opus 主控·当前实时卡点] 天正→GT v3 转换器 P0–P2 已施工、sol 对抗审判 ⛔REWORK、返工规划待下轮**:
+> GLM 全程施工三批(P0 契约 `edf1477`/P1 S0–S4 `d5e57e3`/P2 S5–S9 `a0c2a6c`·1456→1508 绿·sm24 端到端跑通 8 区·§6.1 主控裁方案 A·P2 验证暴露并修上轮 4 个未验 bug)→ 三批均过主控轻门 + GLM 自验 → **sol(gpt-5.6-sol max·GPT 侧·谁写谁不批)活体探针对抗审 = REWORK·3 BLOCKER+8 MAJOR+2 MINOR**([verdict](logs/reviews/verdict/2026-07-22_tarch_converter_p0p2_sol.md)):**B-01 G8 主保险假绿**(名义只读 zones、实回放正向 offset 不读 basis/thickness→逼近恒等式·GLM 必红夹具因同改 offset 而假锁)/B-02 三承重门两道摆设(G10 candidate 即 passed·report 不验全门)/B-03 源图 hash 运行时零校验 + 8 MAJOR(九门大面积 false-lock·neuter 7 门 35 测全绿仅 G6 真绑/S7 采样非精确/厚度没绑六类证据/17 码没接线/契约冻结被破/写死 mm 单层方向)。**治理数据点=主控轻门+GLM 自验双漏、sol 活体探针独抓⇒升一档交叉对抗审价值再证、轻门非替代**(轻门已标"G8 待 sol 深究"·路由对)。**返工 9 条出口见裁决书 §6**(G8 从 basis+thickness 独立重算/三门真承重/接 hash gate/S7 事件坐标精确/真门级变异测试/接头矩阵/恢复 fail-closed/契约版本+去烤死/失败人核件)。**用户拍板=先收工、下轮开新会话专门规划返工(尤其 G8 重设计=架构活先想清)再施工**(施工家族/额度重新排工拍板·GLM 一路撞 5h 额度墙)。P0–P2 三 commit 在 feature 分支 WIP·sm24 gt bundle 当前不可信·**转换器落地/sm24 收官被此 REWORK 阻断**。sol 验真的正确项:测试基线/sm24 数字/S3 门排除/S9 hash/原句柄保留/gt 隔离/4 bug 里 #1#3#4 修到根因。
+>
 > **✅ [2026-07-10 Fable5 主控] 开场两项完成 + C2 收官设计定稿 v2.2 + E4 真北定案(详 decision_log 顶条)**:
 > ① **双模型家族协作规约大修订落档**(GPT-5.6 sol/terra/luna 到账 + Fable 07-12 退订):角色矩阵进 [guides/codex_execution_protocol.md](guides/codex_execution_protocol.md) + CLAUDE §5#8/#10/#13(新增「用户拍板必须白话」);
 > ② **C2 白话对齐完成** + 设计三轮 sol 对抗审(REWORK 16→REWORK 5→**APPROVE-WITH-CHANGES,21/21 闭合**),[proposals/c2_full_unlock_design.md](proposals/c2_full_unlock_design.md) **v2.2 定稿**(用户新定案:E2' 实体要证据·属性可补默认+标记/回字形出 C2/sm26 内壁窗平面必画/E4 真北一起上=Relative 路线,EP 探针五条全过 [logs/experiments/2026-07-10_e4_relative_north_axis_probe](logs/experiments/2026-07-10_e4_relative_north_axis_probe/RESULTS.md))。
