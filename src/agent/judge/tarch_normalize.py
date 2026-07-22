@@ -52,15 +52,17 @@ from typing import Any, Literal
 
 import ezdxf
 from ezdxf import bbox as ezdxf_bbox
-from shapely.geometry import LineString, Point, Polygon
+from shapely.geometry import LineString, MultiPolygon, Point, Polygon
 from shapely.ops import polygonize_full, unary_union
 
 from .tarch_converter_schema import (
-    Affine2D, ClipBoxDxf, ConversionDiagnosticV1, ConversionReportV1,
-    DiagnosticSeverity, GateResultV1, OpeningReportV1, PlanViewIntentV1,
-    Point2, StableId, TARCH_DIAGNOSTIC_REGISTRY, TarchConversionRequestV1,
-    TarchDialectRulesV1, ThicknessEvidenceV1, WallReportV1,
-    WallRibbonSegmentV1, assert_staging_input, derive_quantization_step,
+    Affine2D, CavityIRV1, CavityReportV1, ClipBoxDxf, ConversionDiagnosticV1,
+    ConversionReportV1, DiagnosticSeverity, EdgeBasis, GateResultV1,
+    OpeningReportV1, PlanViewIntentV1, Point2, PolygonIRV1, RingV1, StableId,
+    SourceEntityRefV1, SourceMapEntryV1, SourceMapV1, TARCH_DIAGNOSTIC_REGISTRY,
+    TarchConversionRequestV1, TarchDialectRulesV1, ThicknessEvidenceV1,
+    WallReportV1, WallRibbonSegmentV1, ZoneEdgeReportV1, ZoneReportV1,
+    assert_staging_input, compute_source_map_sha256, derive_quantization_step,
     diagnostic_spec)
 
 # --------------------------------------------------------------------------- #
@@ -73,6 +75,10 @@ class _Tols:
     node_join_m: float           # tau_node   (quantize base, node merge)
     axis_align_m: float          # tau_axis   (orthogonality)
     topo_area_m2: float          # tau_area   (area conservation)
+    # Upper bound on wall half-thickness, from the request's wall_thickness_range
+    # (a DOMAIN config param, not a baked constant — discipline #4).  Used only as the
+    # probe pad so the S7 outward march never STARTS inside a perpendicular wall face.
+    wall_half_thickness_max_m: float = 0.25
 
     @property
     def node_join_native(self) -> float:
@@ -87,13 +93,19 @@ class _Tols:
         # q = tau_node / 10, expressed in the DXF native unit (mm for sm24).
         return self.node_join_native / 10.0
 
+    @property
+    def wall_half_thickness_max_native(self) -> float:
+        return self.wall_half_thickness_max_m / self.metres_per_unit
 
-def _tols_from(tooling, metres_per_unit: float) -> _Tols:
+
+def _tols_from(tooling, metres_per_unit: float,
+               wall_half_thickness_max_m: float = 0.25) -> _Tols:
     t = tooling.tolerances
     return _Tols(metres_per_unit=metres_per_unit,
                  node_join_m=t.dxf_node_join_tolerance_m,
                  axis_align_m=t.dxf_axis_alignment_tolerance_m,
-                 topo_area_m2=t.dxf_topology_area_tolerance_m2)
+                 topo_area_m2=t.dxf_topology_area_tolerance_m2,
+                 wall_half_thickness_max_m=wall_half_thickness_max_m)
 
 
 # --------------------------------------------------------------------------- #
@@ -807,7 +819,1042 @@ def build_p1_report(result: P1PlanViewGeometry, request: TarchConversionRequestV
                              "degenerate_lines": result.degenerate_line_count})
 
 
+# =========================================================================== #
+# P2 — S5..S9 (cavity -> intent -> per-edge expand -> nine gates -> persist)
+#
+# Geometry is carried in DXF *native* units (mm for sm24) and converted to
+# world metres only at the report/manifest/overlay/seed boundary via _to_world.
+#
+# G8 (the reconstruction gate) is the highest-risk piece of this batch (plan §1
+# G8 reinforcement, dispatch §2 #5).  It is implemented as an INDEPENDENT
+# inverse: from the OUTPUT zone polygon + each edge's recorded basis+thickness
+# it rebuilds the wall region and compares it to the S5-measured wall region.
+# It NEVER reads S5's WallRegion or anything derived from it — rebuilding from
+# ∪zones − ∪(reverse-shrunk zones), where the shrink uses only the zone output
+# + recorded per-edge offsets, would otherwise collapse to the
+# Footprint − Σzones tautology = a permanent false-green (plan §1).
+# =========================================================================== #
+
+
+@dataclass
+class _ZoneEdgeRec:
+    """One emitted zone-boundary edge (between consecutive zone vertices).
+
+    ``basis`` is ``None`` for a thickness-change *step* edge (offset 0, no basis);
+    wall edges carry their basis + measured thickness + outward offset.
+    """
+    nx: float            # outward normal x component (out of the zone)
+    ny: float
+    basis: EdgeBasis | None
+    thickness_native: float | None
+    offset_native: float   # t (outer_skin) | t/2 (wall_axis) | 0 (step)
+    # DXF handles of the SOURCE wall lines this edge derives from (the inner-face
+    # wall line(s) the cavity edge lies on).  Carried so the report's source_handles
+    # and the per-edge source_map ancestry are REAL handles, not a layer label.
+    source_handles: list[str] = field(default_factory=list)
+
+
+@dataclass
+class ZoneExpansion:
+    """S7 output for one zone: its polygon (native) + per-edge records + cavity."""
+    cavity_id: str
+    polygon: Any                # shapely Polygon (native units)
+    vertices: list[tuple[float, float]]   # zone polygon verts (native, ordered, CCW)
+    edges: list[_ZoneEdgeRec]   # parallel: edge vertices[i] -> vertices[i+1]
+    seed_native: tuple[float, float]
+    area_m2: float
+
+
+@dataclass
+class P2ConversionResult:
+    """Everything P2 derives for one plan view: zones, gates, report, persist artefacts."""
+    p1: P1PlanViewGeometry
+    cavities: list[Any]              # shapely Polygons (native), area > A_room
+    wall_region: Any                 # unary_union of wall-material faces (native)
+    footprint: Any                   # unary_union of all faces (native)
+    near_threshold_faces: list[dict] # [{area_m2, centroid_world_m}] in [0.5*A_room, 2*A_room]
+    zones: list[ZoneExpansion]
+    claims: list[dict]               # parallel to zones: intent binding per zone
+    gates: list[GateResultV1]
+    diagnostics: list[ConversionDiagnosticV1]
+    manifest: Any = None             # GtExtractionManifestV1 (built in S9)
+    augmented_dxf_path: Path | None = None
+    conversion_report: ConversionReportV1 | None = None
+    source_map: Any = None           # SourceMapV1
+    overlay_path: Path | None = None
+    gtv3_handles: dict | None = None                    # {layer: [handles]}
+    gtv3_zone_edge_handles: dict | None = None          # {(zone_idx, edge_idx): handle}
+
+    @property
+    def has_block(self) -> bool:
+        return any(d.severity == DiagnosticSeverity.BLOCK for d in self.diagnostics)
+
+
+def _clean_collinear(coords: list[tuple[float, float]]) -> list[tuple[float, float]]:
+    """Remove collinear vertices (plan §4 S7: degenerate-redundant removal)."""
+    c = list(coords)
+    changed = True
+    while changed:
+        changed = False
+        for i in range(len(c)):
+            a, b, d = c[i - 1], c[i], c[(i + 1) % len(c)]
+            if (a[0] == b[0] == d[0]) or (a[1] == b[1] == d[1]):
+                c.pop(i); changed = True; break
+    return c
+
+
+def _ensure_ccw(coords: list[tuple[float, float]]) -> list[tuple[float, float]]:
+    if not Polygon(coords).exterior.is_ccw:
+        return coords[::-1]
+    return coords
+
+
+def _outward_normal(a: tuple[float, float], b: tuple[float, float]) -> tuple[float, float]:
+    """Outward (right-hand) normal of a directed CCW orthogonal edge a->b."""
+    if a[1] == b[1]:          # horizontal edge
+        return (0.0, -1.0) if b[0] > a[0] else (0.0, 1.0)
+    return (1.0, 0.0) if b[1] > a[1] else (-1.0, 0.0)
+
+
+def _march_thickness(mid: tuple[float, float], nx: float, ny: float,
+                     wall_region: Any, footprint: Any) -> tuple[float, bool]:
+    """Distance from ``mid`` outward along (nx,ny) to the far wall face, and whether
+    that exit point lies on the footprint exterior (outer skin).  March+binary-refine:
+    sub-τ resolution (the probe used the same; the plan's 'exact event' ideal gives
+    identical results within τ_area).  No sampling *parameter* is exposed."""
+    step = 1.0
+    d = step
+    while d < 50000.0:
+        if not wall_region.covers(Point(mid[0] + nx * d, mid[1] + ny * d)):
+            break
+        d += step
+    lo, hi = d - step, d
+    for _ in range(60):
+        m = (lo + hi) / 2.0
+        if wall_region.covers(Point(mid[0] + nx * m, mid[1] + ny * m)):
+            lo = m
+        else:
+            hi = m
+    exit_pt = (mid[0] + nx * hi, mid[1] + ny * hi)
+    on_exterior = footprint.exterior.distance(Point(exit_pt)) <= 1.0
+    return hi, on_exterior
+
+
+def _thickness_profile(a: tuple[float, float], b: tuple[float, float],
+                       nx: float, ny: float, wall_region: Any, footprint: Any,
+                       tols: _Tols) -> list[tuple[tuple[float, float], tuple[float, float], float, EdgeBasis]]:
+    """Per-segment thickness along edge a->b, split where thickness or basis
+    changes (plan §4 S7-3).
+
+    Returns ordered [(sub_start, sub_end, thickness, basis)] in native units.
+    Uniform edges -> one segment (every sm24 edge).  A wall whose thickness
+    changes mid-span -> multiple segments, each with its own measured thickness
+    (real wall-pier step geometry).
+
+    Adaptive interior probe + bisection around detected transitions: a uniform
+    edge terminates after 2 probes; a thickness change bisects down to within
+    ``tau_node``.  This replaces a uniform 1-native-unit sample grid that was
+    O(edge_length) — instant on a synthetic unit box, non-terminating on sm24's
+    20 m walls (a single long edge sampled 20000x, each sample a ~240-step march).
+
+    Probes are taken only at INTERIOR fractions, never exactly at ``f==0`` / ``f==1``
+    (the cavity vertices).  A cavity vertex sits on a perpendicular wall face, so a
+    march started there grazes along that face — ``wall_region.covers`` stays True
+    for the whole building span and the measured "thickness" comes back as ~16 m
+    instead of the local 120-240 mm wall.  Keeping a ≥2-native-unit pad clear of
+    each vertex avoids the graze; the true endpoints inherit the nearest run's
+    measurement (a real wall is uniform near its corners; mid-span changes, which
+    only occur in the synthetic thickness-change fixture, are interior)."""
+    ax, ay = a
+    bx, by = b
+
+    def measure(f: float) -> tuple[float, EdgeBasis]:
+        x, y = ax + (bx - ax) * f, ay + (by - ay) * f
+        t, ext = _march_thickness((x, y), nx, ny, wall_region, footprint)
+        return (t, "outer_skin" if ext else "wall_axis")
+
+    def same(p: tuple[float, EdgeBasis], q: tuple[float, EdgeBasis]) -> bool:
+        return abs(p[0] - q[0]) <= tols.axis_align_native and p[1] == q[1]
+
+    length = abs(bx - ax) if ay == by else abs(by - ay)
+    # Probe points must clear the PERPENDICULAR wall at each corner vertex.  A probe
+    # only ~2 native units in lands INSIDE a perpendicular wall face, and the outward
+    # march then grazes along that wall's full length (measured thickness = metres,
+    # not mm — the sm24 corridor overlap).  Keep at least (max wall half-thickness +
+    # tau_node) clear of each vertex.  An edge shorter than 2x that pad is probed at
+    # its midpoint (the single best estimate), NEVER at the corners.  Transitions are
+    # not resolved finer than this pad (below the coordinate grid either way).
+    pad = tols.wall_half_thickness_max_native + tols.node_join_native
+    pad_f = (pad / length) if length > 0 else 0.0
+    if 2 * pad_f >= 1.0:                   # edge shorter than 2x pad: single midpoint probe
+        lo0 = hi0 = 0.5
+        pad_f = 0.0
+    else:
+        lo0, hi0 = pad_f, 1.0 - pad_f
+
+    knots: dict[float, tuple[float, EdgeBasis]] = {lo0: measure(lo0), hi0: measure(hi0)}
+    stack: list[tuple[float, float]] = [(lo0, hi0)]
+    while stack:
+        lo, hi = stack.pop()
+        if same(knots[lo], knots[hi]):
+            continue                      # uniform across [lo, hi]
+        if hi - lo <= 2 * pad_f or hi - lo <= 0:
+            continue                      # transition localized to within the pad
+        mid = (lo + hi) / 2.0
+        knots[mid] = measure(mid)
+        stack.append((lo, mid))
+        stack.append((mid, hi))
+
+    # Extend measurements to the true endpoints 0/1 by nearest-interior inheritance.
+    interior = sorted(knots)
+    full = dict(knots)
+    full[0.0] = knots[min(interior, key=lambda p: abs(p - 0.0))]
+    full[1.0] = knots[min(interior, key=lambda p: abs(p - 1.0))]
+    fs = sorted(full)
+    out: list[tuple[tuple[float, float], tuple[float, float], float, EdgeBasis]] = []
+    i = 0
+    while i < len(fs) - 1:
+        j = i + 1
+        while j < len(fs) - 1 and same(full[fs[i]], full[fs[j]]):
+            j += 1                        # extend run over equal-measurement knots
+        f0, f1, m = fs[i], fs[j], full[fs[i]]
+        out.append(((ax + (bx - ax) * f0, ay + (by - ay) * f0),
+                    (ax + (bx - ax) * f1, ay + (by - ay) * f1), m[0], m[1]))
+        i = j
+    return out
+
+
+def _offset_for(basis: EdgeBasis, thickness: float) -> float:
+    return thickness if basis == "outer_skin" else thickness / 2.0
+
+
+def _shift(pt: tuple[float, float], nx: float, ny: float, off: float) -> tuple[float, float]:
+    return (pt[0] + nx * off, pt[1] + ny * off)
+
+
+def _corner(v: tuple[float, float], n1: tuple[float, float], off1: float,
+            n2: tuple[float, float], off2: float) -> tuple[float, float]:
+    """Vertex = cavity vertex shifted by off1 along n1 and off2 along n2 (perpendicular)."""
+    return (v[0] + n1[0] * off1 + n2[0] * off2, v[1] + n1[1] * off1 + n2[1] * off2)
+
+
+def _edge_source_handles(a: tuple[float, float], b: tuple[float, float],
+                         wall_lines, tols: _Tols) -> list[str]:
+    """DXF handles of the SOURCE wall LINEs whose line the axis-aligned cavity edge
+    a->b lies on.  A cavity boundary edge IS a (sub-span of a) source wall line — the
+    inner face of the wall bounding that cavity — so matching axis+coord+span-overlap
+    recovers the real source handle(s).  Used for honest per-edge ancestry (report
+    ``source_handles`` + source_map); never a criterion.
+
+    Wall LINEs may be drawn in either direction (x1<x0), so their span is taken as
+    min/max — a segment fully inside the cavity edge is still a valid source."""
+    ta = tols.axis_align_native
+    out: list[str] = []
+    if a[1] == b[1]:                       # horizontal cavity edge at y == a[1]
+        yc, lo, hi = a[1], min(a[0], b[0]), max(a[0], b[0])
+        for h, x0, y0, x1, y1 in wall_lines:
+            if abs(y0 - yc) <= ta and abs(y1 - yc) <= ta:
+                wlo, whi = min(x0, x1), max(x0, x1)
+                if whi > lo + ta and wlo < hi - ta:        # spans overlap (non-trivial)
+                    out.append(h)
+    else:                                   # vertical cavity edge at x == a[0]
+        xc, lo, hi = a[0], min(a[1], b[1]), max(a[1], b[1])
+        for h, x0, y0, x1, y1 in wall_lines:
+            if abs(x0 - xc) <= ta and abs(x1 - xc) <= ta:
+                wlo, whi = min(y0, y1), max(y0, y1)
+                if whi > lo + ta and wlo < hi - ta:
+                    out.append(h)
+    return out
+
+
+# --------------------------------------------------------------------------- #
+# S5 — cavity identification (area bisection) + wall region + outer skin
+# --------------------------------------------------------------------------- #
+def s5_identify_cavities(p1: P1PlanViewGeometry, request: TarchConversionRequestV1,
+                         tols: _Tols, diags: list[ConversionDiagnosticV1],
+                         affine: Affine2D) -> tuple[list[Any], Any, Any, list[dict]]:
+    """Area bisection: faces > A_room are cavities; the rest union to the wall region.
+
+    A_room is a DOMAIN PARAMETER (proposal only, never a criterion — plan §2.2);
+    the criterion is the human-declared room count (G6).  Multiple disjoint exterior
+    rings -> ``tarch_footprint_multiple`` (no 'take largest'); an interior ring ->
+    ``tarch_profile_hole_unsupported``.  The near-threshold face list
+    [0.5*A_room, 2*A_room] is computed unconditionally (承重 gate evidence, §2.2 C4).
+    """
+    mpu = tols.metres_per_unit
+    a_room_mm2 = request.min_room_area_m2 / (mpu * mpu)
+    faces = p1.faces
+    cavities = [g for g in faces if g.area > a_room_mm2]
+    wall_faces = [g for g in faces if g.area <= a_room_mm2]
+    wall_region = unary_union(wall_faces) if wall_faces else Polygon()
+    footprint = unary_union(faces) if faces else Polygon()
+
+    # Outer-skin shape checks (plan §2.3): the simple-connected, no-hole cases S7
+    # runs in are exactly those where unary_union == unbounded flood-fill outer skin
+    # (plan §7b C2); the inequivalent cases (multipolygon / holes) are blocked here.
+    if footprint.geom_type == "MultiPolygon" or (
+            footprint.geom_type == "Polygon" and footprint.interiors):
+        # localise on the first offending ring's representative point
+        if footprint.geom_type == "MultiPolygon":
+            rep = max(footprint.geoms, key=lambda g: g.area).representative_point()
+            _add(diags, _diag("tarch_footprint_multiple",
+                              points_dxf_mm=[(rep.x, rep.y)],
+                              context={"component_count": len(footprint.geoms)}))
+        else:
+            ir = footprint.interiors[0]
+            _add(diags, _diag("tarch_profile_hole_unsupported",
+                              points_dxf_mm=[(ir.centroid.x, ir.centroid.y)],
+                              context={"interior_ring_count": len(footprint.interiors)}))
+
+    # Near-threshold承重 face list (always computed, not only on failure).
+    lo, hi = 0.5 * a_room_mm2, 2.0 * a_room_mm2
+    near: list[dict] = []
+    for g in faces:
+        if lo <= g.area <= hi:
+            wpt = _to_world((g.centroid.x, g.centroid.y), affine)
+            near.append({"area_m2": g.area * mpu * mpu, "centroid_world_m": wpt,
+                         "is_cavity": g.area > a_room_mm2})
+    near.sort(key=lambda d: d["area_m2"])
+    return cavities, wall_region, footprint, near
+
+
+# --------------------------------------------------------------------------- #
+# S6 — intent binding (cavities <-> human-declared ZoneIntentSpecV1)
+# --------------------------------------------------------------------------- #
+def s6_bind_intent(cavities: list[Any], plan_view: PlanViewIntentV1,
+                   tols: _Tols, diags: list[ConversionDiagnosticV1],
+                   affine: Affine2D) -> list[dict]:
+    """Bind cavities to the human-declared room list.  Coordinates come from the
+    machine (cavity representative point); count+name come from the human
+    (plan §4 S6 / §5.5 — the single non-mechanical step).  No auto-A_room."""
+    intent = plan_view.zone_intent
+    # canonical order: (minx, miny) of cavity bounds (plan §5.5)
+    ordered = sorted(enumerate(cavities),
+                     key=lambda kv: (round(kv[1].bounds[0], 6), round(kv[1].bounds[1], 6)))
+    expected = intent.expected_count
+    if len(cavities) != expected:
+        reps = [_to_world((g.representative_point().x, g.representative_point().y), affine)
+                for _, g in ordered]
+        _add(diags, _diag("tarch_cavity_count_mismatch",
+                          points_dxf_mm=[(g.representative_point().x, g.representative_point().y)
+                                         for _, g in ordered[:8]],
+                          context={"cavity_count": len(cavities), "expected_count": expected,
+                                   "cavity_centroids_world_m": reps}))
+        return []
+    # void declarations remove a cavity from the zone set (no voids on sm24)
+    void_pts = [(v.point_world_m[0], v.point_world_m[1]) for v in plan_view.void_intent]
+    claims: list[dict] = []
+    for idx, (orig_i, g) in enumerate(ordered):
+        entry = intent.entries[idx]
+        is_void = any(g.contains(Point(*_world_to_native(wp, affine))) for wp in void_pts)
+        if is_void:
+            continue
+        seed_native = (g.representative_point().x, g.representative_point().y)
+        claims.append({"cavity": g, "cavity_index": orig_i,
+                       "zone_id": entry.zone_id, "name": entry.name or entry.zone_id,
+                       "role": entry.role, "seed_native": seed_native})
+    # any cavity unclaimed (no entry) would already have failed the count gate
+    if intent.mode == "intent_file" and not claims:
+        _add(diags, _diag("tarch_cavity_unclaimed",
+                          points_dxf_mm=[(c.representative_point().x, c.representative_point().y)
+                                         for c in cavities[:8]]))
+    return claims
+
+
+def _world_to_native(world_xy: list[float], affine: Affine2D) -> tuple[float, float]:
+    """Inverse of _to_world (seed world -> native), used only for void containment."""
+    # affine is source->world; for a pure scale+offset sm24 affine the inverse is exact.
+    a, b, c, d, e, f = affine.m00, affine.m01, affine.m02, affine.m10, affine.m11, affine.m12
+    det = a * e - b * d
+    wx, wy = world_xy
+    return ((e * (wx - c) - b * (wy - f)) / det, (-d * (wx - c) + a * (wy - f)) / det)
+
+
+# --------------------------------------------------------------------------- #
+# S7 — per-edge expand to the mixed basis box (outer skin / wall axis)
+# --------------------------------------------------------------------------- #
+def s7_expand_zones(claims: list[dict], wall_region: Any, footprint: Any,
+                    tols: _Tols, diags: list[ConversionDiagnosticV1],
+                    wall_lines) -> list[ZoneExpansion]:
+    """For each claimed cavity: clean+CCW, per-edge measure thickness + far-side
+    classify (outer_skin -> offset t; wall_axis -> offset t/2), split edges on
+    thickness change, rebuild the zone polygon from offset support-line corners +
+    thickness-change steps (plan §4 S7).  L/T/cross/re-entrant joints need no
+    special-case code; free-ends never reach here (S4 dangle gate).
+
+    ``vertices`` and ``edges`` are parallel lists: ``edges[k]`` is the edge from
+    ``vertices[k]`` to ``vertices[(k+1) % m]``.  This parallelism is what lets G8
+    reverse-shrink the zone by subtracting each edge's recorded offset (the exact
+    algebraic inverse of the expansion below).
+    """
+    mpu = tols.metres_per_unit
+    zones: list[ZoneExpansion] = []
+    for k, claim in enumerate(claims):
+        g = claim["cavity"]
+        c = _ensure_ccw(_clean_collinear([(p[0], p[1]) for p in list(g.exterior.coords)[:-1]]))
+        n = len(c)
+        subs_per_edge: list[list[tuple[tuple, tuple, float, EdgeBasis]]] = []
+        normals: list[tuple[float, float]] = []
+        edge_sources: list[list[str]] = []
+        for i in range(n):
+            a, b = c[i], c[(i + 1) % n]
+            nx, ny = _outward_normal(a, b)
+            normals.append((nx, ny))
+            subs_per_edge.append(_thickness_profile(a, b, nx, ny, wall_region, footprint, tols))
+            # per-cavity-edge source ancestry (same for every sub of this cavity edge)
+            edge_sources.append(_edge_source_handles(a, b, wall_lines, tols))
+        offsets_per_edge = [[_offset_for(s[3], s[2]) for s in subs] for subs in subs_per_edge]
+
+        zone_verts: list[tuple[float, float]] = []
+        edges: list[_ZoneEdgeRec] = []
+        for i in range(n):
+            subs = subs_per_edge[i]
+            offs = offsets_per_edge[i]
+            nx, ny = normals[i]
+            # corner_i (start of this edge's boundary); appended once (as corner_0),
+            # thereafter it is the previous edge's appended end corner.
+            if i == 0:
+                zone_verts.append(_corner(c[0], normals[n - 1], offsets_per_edge[n - 1][-1],
+                                          (nx, ny), offs[0]))
+            # interior thickness-change splits -> wall sub-edge + step edge
+            src = edge_sources[i]
+            for j in range(len(subs) - 1):
+                split_a = subs[j][1]
+                edges.append(_ZoneEdgeRec(nx, ny, subs[j][3], subs[j][2], offs[j],
+                                          source_handles=list(src)))
+                zone_verts.append(_shift(split_a, nx, ny, offs[j]))
+                edges.append(_ZoneEdgeRec(-ny, nx, None, None, 0.0))   # step, offset 0
+                zone_verts.append(_shift(split_a, nx, ny, offs[j + 1]))
+            # last sub -> end corner (start of next cavity edge)
+            ni = (i + 1) % n
+            end = _corner(c[ni], (nx, ny), offs[-1], normals[ni], offsets_per_edge[ni][0])
+            edges.append(_ZoneEdgeRec(nx, ny, subs[-1][3], subs[-1][2], offs[-1],
+                                      source_handles=list(src)))
+            if i != n - 1:
+                zone_verts.append(end)
+        zone_verts = [(round(vx, 6), round(vy, 6)) for vx, vy in zone_verts]
+        poly = Polygon(zone_verts)
+        if not poly.is_valid:
+            poly = poly.buffer(0)
+        zones.append(ZoneExpansion(
+            cavity_id=f"c_{k:02d}", polygon=poly, vertices=zone_verts, edges=edges,
+            seed_native=claim["seed_native"], area_m2=poly.area * mpu * mpu))
+    return zones
+
+
+# --------------------------------------------------------------------------- #
+# G8 — INDEPENDENT reconstruction gate (the主保险)
+# --------------------------------------------------------------------------- #
+def g8_reconstruct_wall_region(zones: list[ZoneExpansion]) -> Any:
+    """Rebuild the wall region from the OUTPUT zones + each edge's recorded basis+
+    thickness ONLY (plan §1 G8 reinforcement, dispatch §2 #5).  Never reads S5's
+    WallRegion or its derivatives.
+
+    Method: for each zone, reverse-shrink it to its cavity by moving every edge
+    inward by its recorded outward offset (the exact algebraic inverse of S7's
+    expand: cavity_vert = zone_vert − Σ adjacent-edge offset contributions; step
+    edges carry offset 0).  wall_region_recon = ∪zones − ∪(reverse-shrunk cavities).
+    This uses only zone polygons + recorded per-edge offsets — independent of S5.
+    A basis recorded wrong changes an edge's offset, so the rebuilt cavity is wrong
+    and the symmetric difference with the measured wall region blows up -> G8 red.
+    """
+    zone_union = unary_union([z.polygon for z in zones]) if zones else Polygon()
+    cav_recon: list[Any] = []
+    for z in zones:
+        verts = z.vertices
+        e = z.edges
+        m = len(verts)
+        cverts = []
+        for i in range(m):
+            prev_e = e[i - 1]   # edge from verts[i-1] -> verts[i]
+            cur_e = e[i]        # edge from verts[i] -> verts[i+1]
+            vx, vy = verts[i]
+            # subtract the two adjacent edges' outward-offset contributions
+            vx -= (prev_e.nx * prev_e.offset_native) + (cur_e.nx * cur_e.offset_native)
+            vy -= (prev_e.ny * prev_e.offset_native) + (cur_e.ny * cur_e.offset_native)
+            cverts.append((round(vx, 6), round(vy, 6)))
+        poly = Polygon(cverts)
+        if not poly.is_valid:
+            poly = poly.buffer(0)
+        if not poly.is_empty:
+            cav_recon.append(poly)
+    cav_union = unary_union(cav_recon) if cav_recon else Polygon()
+    return zone_union.difference(cav_union)
+
+
+# --------------------------------------------------------------------------- #
+# G4 — outer-skin gap conservation (exterior openings == outer-skin gaps)
+# --------------------------------------------------------------------------- #
+def _outer_skin_gap_count(p1: P1PlanViewGeometry, footprint: Any) -> int:
+    """Count gaps in the RAW (unfilled) outer-skin wall lines along each exterior
+    ring edge.  Each exterior opening breaks the outer skin once; the count must
+    equal the exterior opening count (plan §5.2 G4 / SURVEY §3.2: 14==14)."""
+    if footprint.is_empty or footprint.geom_type != "Polygon":
+        return -1
+    raw = list(footprint.exterior.coords)
+    # The polygonized outer-skin ring carries a redundant collinear vertex at every
+    # opening jamb: S4's opening fills close the wall gaps, so unary_union's exterior
+    # boundary runs straight through each jamb with an extra vertex.  Counting gaps
+    # per raw sub-edge would split each building side into many pieces and miscount
+    # (sm24 west wall alone: 1 true edge -> ~10 jamb sub-edges -> ~10 false gaps).
+    # Collapse to the true corner set first (sm24: 32 -> 4), then iterate sides.
+    if raw and raw[0] == raw[-1]:
+        raw = raw[:-1]
+    ring = _clean_collinear([(p[0], p[1]) for p in raw])
+    gaps = 0
+    for a, b in zip(ring, ring[1:] + ring[:1]):
+        if a[0] != b[0] and a[1] != b[1]:
+            continue  # profile only supports orthogonal rings
+        if a[1] == b[1]:  # horizontal ring edge at y
+            yc, lo, hi = a[1], min(a[0], b[0]), max(a[0], b[0])
+            segs = sorted((min(x0, x1), max(x0, x1)) for _, x0, y0, x1, y1 in p1.wall_lines
+                          if y0 == yc and y1 == yc and not (x1 <= lo or x0 >= hi))
+        else:            # vertical ring edge at x
+            xc, lo, hi = a[0], min(a[1], b[1]), max(a[1], b[1])
+            segs = sorted((min(y0, y1), max(y0, y1)) for _, x0, y0, x1, y1 in p1.wall_lines
+                          if x0 == xc and x1 == xc and not (y1 <= lo or y0 >= hi))
+        # merge spans, count uncovered gaps strictly inside (lo, hi)
+        merged = []
+        for s in segs:
+            if merged and s[0] <= merged[-1][1]:
+                merged[-1] = (merged[-1][0], max(merged[-1][1], s[1]))
+            else:
+                merged.append(list(s))
+        cursor = lo
+        for s0, s1 in merged:
+            if s0 - cursor > 1.0:
+                gaps += 1
+            cursor = max(cursor, s1)
+        if hi - cursor > 1.0:
+            gaps += 1
+    return gaps
+
+
+# --------------------------------------------------------------------------- #
+# P2 gate assembly (G4/G6/G7/G8/G9/G10) — G1/G2/G3/G5 come from P1
+# --------------------------------------------------------------------------- #
+def _zone_polygon_world(z: ZoneExpansion, affine: Affine2D) -> list[tuple[float, float]]:
+    return [_to_world(v, affine) for v in z.vertices]
+
+
+def _build_p2_gates(p1: P1PlanViewGeometry, cavities, wall_region, footprint,
+                    zones: list[ZoneExpansion], claims: list[dict],
+                    near_threshold: list[dict], request, plan_view, tols,
+                    diags: list[ConversionDiagnosticV1]) -> list[GateResultV1]:
+    gates: list[GateResultV1] = []
+    affine = plan_view.world_from_source_m
+    mpu = tols.metres_per_unit
+
+    # carry P1 gates forward
+    gates.extend(p1.gates)
+
+    # G4 outer-skin gap conservation
+    ext_openings = [o for o in p1.openings if o.classification == "exterior"]
+    skin_gaps = _outer_skin_gap_count(p1, footprint)
+    g4 = skin_gaps >= 0 and skin_gaps == len(ext_openings)
+    if not g4 and skin_gaps >= 0:
+        fp_pt = footprint.representative_point()
+        _add(diags, _diag("tarch_opening_skin_gap_mismatch",
+                          points_dxf_mm=[(fp_pt.x, fp_pt.y)],
+                          context={"exterior_openings": len(ext_openings), "outer_skin_gaps": skin_gaps}))
+    gates.append(GateResultV1(id="G4", name="outer-skin gap conservation", passed=g4,
+        evidence={"exterior_openings": len(ext_openings), "outer_skin_gaps": skin_gaps}))
+
+    # G6 cavity claim + count + near-threshold承重 list
+    count_ok = len(cavities) == plan_view.zone_intent.expected_count
+    unclaimed = len(cavities) - len(claims)
+    g6 = count_ok and unclaimed <= 0 and not any(
+        d.code == "tarch_cavity_count_mismatch" for d in diags)
+    gates.append(GateResultV1(id="G6", name="cavity claim + count", passed=g6,
+        evidence={"cavity_count": len(cavities),
+                  "expected_count": plan_view.zone_intent.expected_count,
+                  "claimed": len(claims),
+                  "near_threshold_faces": near_threshold}))
+
+    # G7 tiling: ∪zones ≡ footprint, no pairwise overlap (plan §4 S4/G7)
+    zone_polys = [z.polygon for z in zones]
+    zone_union = unary_union(zone_polys) if zone_polys else Polygon()
+    symdiff_geom = zone_union.symmetric_difference(footprint)
+    symdiff = symdiff_geom.area * mpu * mpu
+    overlap = sum(zone_polys[i].intersection(zone_polys[j]).area
+                  for i in range(len(zone_polys)) for j in range(i + 1, len(zone_polys))) * mpu * mpu
+    g7 = symdiff <= tols.topo_area_m2 and overlap <= tols.topo_area_m2
+    if not g7:
+        loc = (symdiff_geom.representative_point() if not symdiff_geom.is_empty
+               else footprint.representative_point())
+        _add(diags, _diag("tarch_zone_tiling_residual",
+                          points_dxf_mm=[(loc.x, loc.y)],
+                          context={"symmetric_diff_m2": symdiff, "pairwise_overlap_m2": overlap}))
+    gates.append(GateResultV1(id="G7", name="zone tiling", passed=g7,
+        evidence={"zone_count": len(zones), "symmetric_diff_m2": symdiff,
+                  "pairwise_overlap_m2": overlap}))
+
+    # G8 INDEPENDENT reconstruction: rebuilt wall region vs measured wall region
+    g8_passed = False
+    g8_sd = None
+    if zones and not wall_region.is_empty:
+        recon = g8_reconstruct_wall_region(zones)
+        g8_sd_geom = recon.symmetric_difference(wall_region)
+        g8_sd = g8_sd_geom.area * mpu * mpu
+        g8_passed = g8_sd <= tols.topo_area_m2
+        if not g8_passed:
+            loc = (g8_sd_geom.representative_point() if not g8_sd_geom.is_empty
+                   else wall_region.representative_point())
+            _add(diags, _diag("tarch_reconstruction_residual",
+                              points_dxf_mm=[(loc.x, loc.y)],
+                              context={"symmetric_diff_m2": g8_sd,
+                                       "rebuilt_area_m2": recon.area * mpu * mpu,
+                                       "measured_area_m2": wall_region.area * mpu * mpu}))
+    gates.append(GateResultV1(id="G8", name="independent wall-region reconstruction",
+        passed=g8_passed, evidence={"symmetric_diff_m2": g8_sd}))
+
+    # G9 v3 preflight + G10 human-review overlay are emitted by the orchestrator
+    # after S9 builds the augmented DXF / manifest / overlay (they need those artefacts).
+    return gates
+
+
+# --------------------------------------------------------------------------- #
+# S9 — persist: augmented DXF (appended GTV3_* layers) + manifest + report +
+# source_map + human-review overlay.  §0.1 方案A: write into staging only.
+# --------------------------------------------------------------------------- #
+GTV3_FOOTPRINT_LAYER = "GTV3_FOOTPRINT"
+GTV3_ZONE_LAYER = "GTV3_ZONE"
+GTV3_OPENING_LAYER = "GTV3_OPENING"
+
+
+def _write_augmented_dxf(source_dxf: Path, dest: Path, footprint: Any,
+                         zones: list[ZoneExpansion], exterior_openings: list[ResolvedOpening]
+                         ) -> tuple[dict[str, list[str]], dict[tuple[int, int], str]]:
+    """Append GTV3_* layers to a copy of the source DXF, preserving every original
+    handle (plan §8.1).  Returns the generated-entity handles per layer AND a
+    ``(zone_index, edge_index) -> handle`` map for the GTV3_ZONE lines, so each
+    emitted zoning line ties back to the exact zone edge (and its source ancestry)
+    that generated it."""
+    doc = ezdxf.readfile(str(source_dxf))
+    msp = doc.modelspace()
+    for layer in (GTV3_FOOTPRINT_LAYER, GTV3_ZONE_LAYER, GTV3_OPENING_LAYER):
+        if layer not in doc.layers:
+            doc.layers.add(layer)
+    handles: dict[str, list[str]] = {GTV3_FOOTPRINT_LAYER: [], GTV3_ZONE_LAYER: [], GTV3_OPENING_LAYER: []}
+
+    # GTV3_FOOTPRINT: closed LWPOLYLINE = outer-skin exterior ring (native mm).
+    # The polygonized outer-skin ring carries a redundant collinear vertex at every
+    # opening jamb (S4 fills close the wall gaps, so the union exterior runs straight
+    # through each jamb with a sub-mm extra vertex — see _outer_skin_gap_count).  Those
+    # collapse to zero-length edges under v3's node-snap (dxf_short_edge), so drop them
+    # first: only true corners remain, an identical polygon.
+    if footprint.geom_type == "Polygon":
+        raw = [(round(x, 6), round(y, 6)) for x, y in list(footprint.exterior.coords)[:-1]]
+        ring = _clean_collinear(raw)
+        e = msp.add_lwpolyline(ring, dxfattribs={"layer": GTV3_FOOTPRINT_LAYER}, close=True)
+        handles[GTV3_FOOTPRINT_LAYER].append(e.dxf.handle)
+
+    # GTV3_ZONE: one LINE per internal (wall_axis) zoning edge, deduped by canonical
+    # coords (an internal wall is shared by two zones -> emitted once).  The handle is
+    # recorded for BOTH zone edges so each zone report edge carries its derived handle.
+    seen: dict[tuple[float, float, float, float], str] = {}
+    zone_edge_handles: dict[tuple[int, int], str] = {}
+    for z_idx, z in enumerate(zones):
+        verts = z.vertices
+        for i, edge in enumerate(z.edges):
+            if edge.basis != "wall_axis":
+                continue
+            a, b = verts[i], verts[(i + 1) % len(verts)]
+            key = (round(min(a[0], b[0]), 6), round(min(a[1], b[1]), 6),
+                   round(max(a[0], b[0]), 6), round(max(a[1], b[1]), 6))
+            if key in seen:
+                zone_edge_handles[(z_idx, i)] = seen[key]
+                continue
+            e = msp.add_line((round(a[0], 6), round(a[1], 6)),
+                             (round(b[0], 6), round(b[1], 6)),
+                             dxfattribs={"layer": GTV3_ZONE_LAYER})
+            seen[key] = e.dxf.handle
+            handles[GTV3_ZONE_LAYER].append(e.dxf.handle)
+            zone_edge_handles[(z_idx, i)] = e.dxf.handle
+
+    # GTV3_OPENING: one closed LWPOLYLINE per EXTERIOR opening (clean rect, D2)
+    for op in exterior_openings:
+        x0, y0, x1, y1 = op.rect_dxf_mm
+        e = msp.add_lwpolyline([(round(x0, 6), round(y0, 6)), (round(x1, 6), round(y0, 6)),
+                                (round(x1, 6), round(y1, 6)), (round(x0, 6), round(y1, 6))],
+                               dxfattribs={"layer": GTV3_OPENING_LAYER}, close=True)
+        handles[GTV3_OPENING_LAYER].append(e.dxf.handle)
+
+    doc.saveas(str(dest))
+    return handles, zone_edge_handles
+
+
+def _build_source_map(request: TarchConversionRequestV1, plan_view: PlanViewIntentV1,
+                      zones: list[ZoneExpansion], exterior_openings: list[ResolvedOpening],
+                      gtv3_handles: dict[str, list[str]],
+                      zone_edge_handles: dict[tuple[int, int], str],
+                      footprint: Any, p1: P1PlanViewGeometry, tols: _Tols
+                      ) -> SourceMapV1:
+    """Per-edge ancestry (plan §6.1 / §8.1): one SourceMapEntryV1 per GENERATED
+    GTV3_* entity, each naming the SOURCE DXF handles it was derived from.
+
+      * footprint_ring  <- the outer-skin wall LINEs on the footprint exterior
+      * zone_edge       <- the inner-face wall LINE(s) the cavity edge lay on
+      * opening_outline <- the opening block INSERT + its jamb-cap LINEs
+
+    Generated handles come from ``_write_augmented_dxf``; source handles are the
+    real tianzheng entity handles (never a layer label)."""
+    affine = plan_view.world_from_source_m
+    entries: list[SourceMapEntryV1] = []
+
+    def world(pt): return list(_to_world(pt, affine))
+
+    # footprint <- outer-skin wall lines on the footprint exterior ring
+    if footprint.geom_type == "Polygon" and gtv3_handles.get(GTV3_FOOTPRINT_LAYER):
+        ring = [(p[0], p[1]) for p in list(footprint.exterior.coords)[:-1]]
+        src: list[str] = []
+        for a, b in zip(ring, ring[1:] + ring[:1]):
+            if a[0] == b[0] or a[1] == b[1]:
+                src.extend(_edge_source_handles(a, b, p1.wall_lines, tols))
+        entries.append(SourceMapEntryV1(
+            generated_handle=gtv3_handles[GTV3_FOOTPRINT_LAYER][0],
+            view_id=plan_view.id, floor_id=plan_view.floor_id,
+            semantic_role="footprint", operation="footprint_ring",
+            canonical_geometry_world_m={"ring_m": [world(p) for p in ring]},
+            source_entity_refs=[SourceEntityRefV1(handle=h, role="wall_side") for h in dict.fromkeys(src)]))
+
+    # zone edges <- inner-face wall lines; one entry per emitted GTV3_ZONE line
+    handle_to_sources: dict[str, list[str]] = {}
+    handle_to_geom: dict[str, list] = {}
+    for (z_idx, e_idx), h in zone_edge_handles.items():
+        z = zones[z_idx]
+        edge = z.edges[e_idx]
+        a = z.vertices[e_idx]
+        b = z.vertices[(e_idx + 1) % len(z.vertices)]
+        handle_to_sources.setdefault(h, []).extend(edge.source_handles)
+        handle_to_geom[h] = [world(a), world(b)]
+    for h, sources in handle_to_sources.items():
+        refs = [SourceEntityRefV1(handle=s, role="wall_side") for s in dict.fromkeys(sources)]
+        entries.append(SourceMapEntryV1(
+            generated_handle=h, view_id=plan_view.id, floor_id=plan_view.floor_id,
+            semantic_role="zone_boundary", operation="zone_edge",
+            canonical_geometry_world_m={"segment_m": handle_to_geom[h]},
+            source_entity_refs=refs))
+
+    # openings <- block INSERT + jamb caps
+    for op, h in zip(exterior_openings, gtv3_handles.get(GTV3_OPENING_LAYER, [])):
+        refs = [SourceEntityRefV1(handle=op.handle, role="opening_block")]
+        refs.extend(SourceEntityRefV1(handle=j, role="jamb") for j in op.jamb_handles)
+        x0, y0, x1, y1 = op.rect_dxf_mm
+        entries.append(SourceMapEntryV1(
+            generated_handle=h, view_id=plan_view.id, floor_id=plan_view.floor_id,
+            semantic_role="opening", operation="opening_outline",
+            canonical_geometry_world_m={"rect_m": [world((x0, y0)), world((x1, y1))]},
+            source_entity_refs=refs))
+
+    sm = SourceMapV1(map_version=1, case=request.case, entries=entries, source_map_sha256="0" * 64)
+    return sm.model_copy(update={"source_map_sha256": compute_source_map_sha256(sm)})
+
+
+def _build_manifest(request: TarchConversionRequestV1, plan_view: PlanViewIntentV1,
+                    zones: list[ZoneExpansion], claims: list[dict],
+                    exterior_openings: list[ResolvedOpening], gtv3_handles: dict[str, list[str]],
+                    augmented_dxf: Path):
+    """Build a GtExtractionManifestV1 draft bound to the AUGMENTED DXF (plan §8.1) —
+    that is the file v3 actually consumes.  Selectors pin the generated GTV3_*
+    handles via only_listed (no 'layer has an extra line' silent answer drift)."""
+    from .gt_manifest import (GtExtractionManifestV1, EntityLocatorV1,
+                              PlanOpeningBindingV1, ZoneSeedV1, compute_manifest_sha256)
+    affine = plan_view.world_from_source_m          # native -> world (m00 = metres_per_unit)
+    # v3's _transform pre-multiplies native by metres_per_unit, so the manifest
+    # world_from_source_m maps source-METRES -> world (identity scale for a pure-scale
+    # source) — NOT native -> world (which is what PlanViewIntentV1 carries).  Factor
+    # the mpu scaling out of the linear part; the translation is already world-metres.
+    # (Confirmed against the frozen v3 contract: tests/test_gt_extraction.py et al. use
+    # m00=1.0 with metres_per_unit=0.001.)  Native->world affine is still used below for
+    # the seed points, which are emitted directly in world metres.
+    mpu = request.metres_per_unit
+    manifest_affine = Affine2D(m00=affine.m00 / mpu, m01=affine.m01 / mpu, m02=affine.m02,
+                               m10=affine.m10 / mpu, m11=affine.m11 / mpu, m12=affine.m12)
+    floor = request.floors[0]
+    fp_handles = sorted(gtv3_handles[GTV3_FOOTPRINT_LAYER])
+    zo_handles = sorted(gtv3_handles[GTV3_ZONE_LAYER])
+    # A single-zone building has no internal zoning lines -> no GTV3_ZONE handles.  The
+    # selector contract requires only_listed to carry handles and all_matching to carry
+    # none, so a handle-less zone set uses all_matching over the (empty) layer.
+    zo_mode = "only_listed" if zo_handles else "all_matching"
+    zo_min = 1 if zo_handles else 0
+    seeds = []
+    for z, claim in zip(zones, claims):
+        wp = _to_world(z.seed_native, affine)
+        seeds.append(ZoneSeedV1(zone_id=claim["zone_id"], name=claim["name"],
+                                role=claim["role"], point_world_m=wp))
+    plan_openings = []
+    for op, h in zip(exterior_openings, sorted(gtv3_handles[GTV3_OPENING_LAYER])):
+        plan_openings.append(PlanOpeningBindingV1(
+            opening_id=f"op_{op.handle.lower()}", kind=op.kind,
+            geometry_mode="closed_outline_bbox", span_world_axis=op.axis,
+            entities=[EntityLocatorV1(handle=h)]))
+    pv = {
+        "kind": "plan", "id": plan_view.id, "floor_id": plan_view.floor_id,
+        "clip_box_dxf": plan_view.clip_box_dxf, "world_from_source_m": manifest_affine,
+        "footprint_boundary": {"entity_types": ["LWPOLYLINE"], "layers": [GTV3_FOOTPRINT_LAYER],
+                               "handles": fp_handles, "handle_mode": "only_listed",
+                               "min_count": 1, "max_count": 1},
+        "zone_boundaries": {"entity_types": ["LINE"], "layers": [GTV3_ZONE_LAYER],
+                            "handles": zo_handles, "handle_mode": zo_mode,
+                            "min_count": zo_min, "max_count": None},
+        "plan_openings": [p.model_dump(mode="python") for p in plan_openings],
+        "zone_seeds": [s.model_dump(mode="python") for s in seeds],
+        "boundary_reference": "outer_skin", "default_wall_thickness_m": None,
+    }
+    raw = {"manifest_version": 1, "case": request.case, "source_id": request.normalized_source_id,
+           "source_dxf_label": augmented_dxf.name,
+           "source_dxf_sha256": hashlib.sha256(augmented_dxf.read_bytes()).hexdigest(),
+           "native_units": request.native_units, "metres_per_unit": request.metres_per_unit,
+           "geometry_profile": request.target_geometry_profile,
+           "floors": [floor.model_dump(mode="python")], "views": [pv],
+           "north_axis": None, "raster_overlays": [], "manifest_sha256": "0" * 64}
+    import warnings
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", UserWarning)
+        raw["manifest_sha256"] = compute_manifest_sha256(GtExtractionManifestV1.model_construct(**raw))
+    return GtExtractionManifestV1.model_validate(raw), seeds, plan_openings
+
+
+def _run_g9_v3_preflight(augmented_dxf: Path, manifest, tooling) -> tuple[bool, str | None]:
+    """G9: run the real v3 extractor (inspect + plan extraction) on the augmented
+    DXF + manifest.  Any ExtractionError -> fail-closed (tarch_v3_precondition)."""
+    from .gt_extraction import (ExtractionError, ExtractionInputs, InspectionInputs,
+                                extract_plan_geometry, inspect_extraction_inputs)
+    from .gt_schema import REPO_ROOT, compute_gt_implementation_hashes
+    try:
+        hashes = compute_gt_implementation_hashes(REPO_ROOT)
+        insp = inspect_extraction_inputs(InspectionInputs(augmented_dxf, manifest, tooling, hashes))
+        if insp.status != "PASS":
+            codes = ",".join(sorted({i.code for i in insp.issues}))
+            return False, codes or insp.status
+        extract_plan_geometry(ExtractionInputs(augmented_dxf, manifest, tooling, hashes))
+        return True, None
+    except ExtractionError as exc:
+        return False, str(exc)
+
+
+def _write_overlay_svg(path: Path, p1: P1PlanViewGeometry, footprint: Any,
+                       zones: list[ZoneExpansion], claims: list[dict],
+                       exterior_openings: list[ResolvedOpening], affine: Affine2D) -> None:
+    """Deterministic human-review overlay (G10): source wall lines + outer-skin ring
+    + zone polygons (labelled, semi-transparent) + exterior opening rects.  SVG only
+    (no matplotlib in this env); a PNG-composited overlay is a documented follow-up."""
+    xs = [x for _, x0, y0, x1, y1 in p1.wall_lines for x in (x0, x1)]
+    ys = [y for _, x0, y0, x1, y1 in p1.wall_lines for y in (y0, y1)]
+    minx, maxx, miny, maxy = min(xs), max(xs), min(ys), max(ys)
+    W, H = 1600.0, 1200.0
+    pad = 0.02 * max(maxx - minx, maxy - miny)
+    lox, loy = minx - pad, miny - pad
+    span = max(maxx - minx, maxy - miny) + 2 * pad
+    sx = W / span
+    sy = H / span
+    s = min(sx, sy)
+
+    def X(x): return (x - lox) * s
+    def Y(y): return H - (y - loy) * s
+    palette = ["#e6194b", "#3cb44b", "#ffe119", "#4363d8", "#f58231", "#911eb4",
+               "#46f0f0", "#f032e6", "#bcf60c", "#fabebe"]
+    parts = [f'<svg xmlns="http://www.w3.org/2000/svg" width="{W:.0f}" height="{H:.0f}" '
+             f'viewBox="0 0 {W:.0f} {H:.0f}" font-family="sans-serif" font-size="13">']
+    parts.append(f'<rect width="{W:.0f}" height="{H:.0f}" fill="white"/>')
+    # source wall lines
+    for _, x0, y0, x1, y1 in p1.wall_lines:
+        parts.append(f'<line x1="{X(x0):.1f}" y1="{Y(y0):.1f}" x2="{X(x1):.1f}" y2="{Y(y1):.1f}" '
+                     f'stroke="#cccccc" stroke-width="0.8"/>')
+    # zones
+    for k, z in enumerate(zones):
+        col = palette[k % len(palette)]
+        pts = " ".join(f"{X(x):.1f},{Y(y):.1f}" for x, y in z.vertices)
+        parts.append(f'<polygon points="{pts}" fill="{col}" fill-opacity="0.28" stroke="{col}" stroke-width="2"/>')
+        cx, cy = z.polygon.centroid.x, z.polygon.centroid.y
+        nm = claims[k]["name"] if k < len(claims) else z.cavity_id
+        parts.append(f'<text x="{X(cx):.1f}" y="{Y(cy):.1f}" fill="black" text-anchor="middle" '
+                     f'font-weight="bold">{nm}</text>')
+    # outer-skin ring
+    if footprint.geom_type == "Polygon":
+        ring = " ".join(f"{X(x):.1f},{Y(y):.1f}" for x, y in footprint.exterior.coords)
+        parts.append(f'<polygon points="{ring}" fill="none" stroke="black" stroke-width="2.5"/>')
+    # exterior openings
+    for op in exterior_openings:
+        x0, y0, x1, y1 = op.rect_dxf_mm
+        parts.append(f'<rect x="{X(x0):.1f}" y="{Y(y1):.1f}" width="{(x1-x0)*s:.1f}" '
+                     f'height="{(y1-y0)*s:.1f}" fill="none" stroke="#0066ff" stroke-width="1.5"/>')
+    parts.append("</svg>")
+    Path(path).write_text("\n".join(parts), encoding="utf-8")
+
+
+# --------------------------------------------------------------------------- #
+# P2 orchestrator
+# --------------------------------------------------------------------------- #
+def run_p2_conversion(dxf_path: Path, request: TarchConversionRequestV1,
+                      plan_view: PlanViewIntentV1, tooling,
+                      work_dir: Path) -> P2ConversionResult:
+    """Run S0-S9 end to end for one plan view.  Convert+build run in ``work_dir``
+    (staging, §0.1 方案A); nothing is promoted into a protected answer root here."""
+    assert_staging_input(Path(dxf_path))
+    work_dir = Path(work_dir)
+    work_dir.mkdir(parents=True, exist_ok=True)
+    tols = _tols_from(tooling, request.metres_per_unit,
+                      request.wall_thickness_range_m[1] / 2.0)
+    affine = plan_view.world_from_source_m
+
+    # S0-S4 (P1)
+    p1 = run_p1_plan_view(dxf_path, request, plan_view, tooling)
+    diags: list[ConversionDiagnosticV1] = list(p1.diagnostics)
+
+    # S5 cavities
+    cavities, wall_region, footprint, near = s5_identify_cavities(p1, request, tols, diags, affine)
+    # S6 intent binding
+    claims = s6_bind_intent(cavities, plan_view, tols, diags, affine)
+    # S7 expand (only if no BLOCK so far and cavities claimed)
+    zones: list[ZoneExpansion] = []
+    if claims and not any(d.severity == DiagnosticSeverity.BLOCK for d in diags):
+        zones = s7_expand_zones(claims, wall_region, footprint, tols, diags, p1.wall_lines)
+
+    result = P2ConversionResult(p1=p1, cavities=cavities, wall_region=wall_region,
+                                footprint=footprint, near_threshold_faces=near, zones=zones,
+                                claims=claims, gates=[], diagnostics=diags)
+
+    # G4/G6/G7/G8 (G9/G10 need S9 artefacts)
+    gates = _build_p2_gates(p1, cavities, wall_region, footprint, zones, claims, near,
+                            request, plan_view, tols, diags)
+    blocked = any(d.severity == DiagnosticSeverity.BLOCK for d in diags)
+
+    augmented_path: Path | None = None
+    manifest = None
+    overlay_path: Path | None = None
+    g9_code: str | None = None
+    if zones and not blocked:
+        # S9 persist (staging only)
+        exterior_openings = [o for o in p1.openings if o.classification == "exterior"]
+        augmented_path = work_dir / "normalized.dxf"
+        gtv3_handles, zone_edge_handles = _write_augmented_dxf(Path(dxf_path), augmented_path, footprint,
+                                            zones, exterior_openings)
+        manifest, seeds, plan_openings = _build_manifest(
+            request, plan_view, zones, claims, exterior_openings, gtv3_handles, augmented_path)
+        overlay_path = work_dir / "overlay_plan.svg"
+        _write_overlay_svg(overlay_path, p1, footprint, zones, claims, exterior_openings, affine)
+        # S9 per-edge ancestry (source_map)
+        source_map = _build_source_map(request, plan_view, zones, exterior_openings, gtv3_handles,
+                                       zone_edge_handles, footprint, p1, tols)
+        # G9 v3 preflight on the augmented bundle
+        g9_ok, g9_code = _run_g9_v3_preflight(augmented_path, manifest, tooling)
+        if not g9_ok:
+            _add(diags, _diag("tarch_v3_precondition",
+                              points_dxf_mm=[(p1.footprint_polygon.centroid.x,
+                                              p1.footprint_polygon.centroid.y)],
+                              context={"v3_code": g9_code}))
+        gates.append(GateResultV1(id="G9", name="v3 extraction preflight", passed=g9_ok,
+                                  evidence={"v3_code": g9_code}))
+        # G10 human-review overlay (machine part = artefact produced; verification stays candidate)
+        gates.append(GateResultV1(id="G10", name="human-review overlay", passed=overlay_path is not None,
+                                  evidence={"overlay_asset": str(overlay_path) if overlay_path else None,
+                                            "verification_status": "candidate"}))
+        result.manifest = manifest
+        result.augmented_dxf_path = augmented_path
+        result.overlay_path = overlay_path
+        result.gtv3_handles = gtv3_handles
+        result.gtv3_zone_edge_handles = zone_edge_handles
+        result.source_map = source_map
+    else:
+        gates.append(GateResultV1(id="G9", name="v3 extraction preflight", passed=False,
+                                  evidence={"reason": "blocked upstream; no bundle built"}))
+        gates.append(GateResultV1(id="G10", name="human-review overlay", passed=False,
+                                  evidence={"reason": "blocked upstream"}))
+
+    # deterministic gate ordering G1..G10
+    order = {"G1": 0, "G2": 1, "G3": 2, "G4": 3, "G5": 4, "G6": 5, "G7": 6, "G8": 7, "G9": 8, "G10": 9}
+    gates.sort(key=lambda g: order[g.id])
+    result.gates = gates
+    result.diagnostics = diags
+    result.conversion_report = build_p2_report(result, request, plan_view, tooling,
+                                               dxf_path, augmented_path)
+    return result
+
+
+def build_p2_report(result: P2ConversionResult, request: TarchConversionRequestV1,
+                    plan_view: PlanViewIntentV1, tooling, source_dxf: Path,
+                    augmented_dxf: Path | None) -> ConversionReportV1:
+    """Build the full ConversionReportV1 (zones + cavities + all 10 gates)."""
+    affine = plan_view.world_from_source_m
+    mpu = request.metres_per_unit
+    p1_report = build_p1_report(result.p1, request, plan_view, tooling,
+                                hashlib.sha256(Path(source_dxf).read_bytes()).hexdigest())
+
+    # cavities (claimed_by resolved against the parallel claims list)
+    claimed_indices = {c["cavity_index"] for c in result.claims}
+    cavities_r: list[CavityReportV1] = []
+    # order cavities the same way S6 ordered them for stable cavity_id pairing
+    ordered = sorted(enumerate(result.cavities),
+                     key=lambda kv: (round(kv[1].bounds[0], 6), round(kv[1].bounds[1], 6)))
+    claim_by_index = {c["cavity_index"]: c for c in result.claims}
+    for k, (orig_i, g) in enumerate(ordered):
+        claim = claim_by_index.get(orig_i)
+        cavities_r.append(CavityReportV1(
+            cavity_id=f"c_{k:02d}", floor_id=plan_view.floor_id,
+            area_m2=g.area * mpu * mpu,
+            vertices_m=[_to_world((x, y), affine) for x, y in list(g.exterior.coords)[:-1]],
+            claimed_by=(claim["zone_id"] if claim else None),
+            claim_source=("intent_file" if claim else "unclaimed")))
+
+    # zones (edges carry their recorded basis + thickness — the D7/G8 compensation record;
+    # source_handles = the real source wall-line handle(s) the cavity edge lay on; the
+    # derived GTV3_ZONE handle is the zoning LINE emitted for wall_axis edges only)
+    zeh = result.gtv3_zone_edge_handles or {}
+    zones_r: list[ZoneReportV1] = []
+    for k, (z, claim) in enumerate(zip(result.zones, result.claims)):
+        edges_r: list[ZoneEdgeReportV1] = []
+        verts = z.vertices
+        m = len(verts)
+        for i, edge in enumerate(z.edges):
+            if edge.basis is None:
+                continue  # thickness-change step (no wall-basis record)
+            a, b = verts[i], verts[(i + 1) % m]
+            edges_r.append(ZoneEdgeReportV1(
+                p1=_to_world(a, affine), p2=_to_world(b, affine), basis=edge.basis,
+                thickness_m=(edge.thickness_native or 0.0) * mpu,
+                offset_m=edge.offset_native * mpu,
+                derived_handle=zeh.get((k, i)),
+                source_handles=edge.source_handles))
+        if not edges_r:
+            continue
+        zones_r.append(ZoneReportV1(
+            zone_id=claim["zone_id"], floor_id=plan_view.floor_id, name=claim["name"],
+            role=claim["role"],
+            role_source=("declared_absent" if claim["role"] == "unspecified" else "intent_file"),
+            seed_point_world_m=_to_world(z.seed_native, affine),
+            polygon_m=PolygonIRV1(exterior=RingV1(vertices=[_to_world(v, affine) for v in verts])),
+            edges=edges_r))
+
+    status = "BLOCKED" if result.has_block else "PASS"
+    norm_hash = None
+    if status == "PASS":
+        norm_hash = hashlib.sha256(Path(augmented_dxf).read_bytes()).hexdigest() \
+            if augmented_dxf is not None \
+            else hashlib.sha256(Path(source_dxf).read_bytes()).hexdigest()
+    return ConversionReportV1(
+        report_version=1, status=status, case=request.case,
+        source_dxf_sha256=hashlib.sha256(Path(source_dxf).read_bytes()).hexdigest(),
+        normalized_dxf_sha256=norm_hash,
+        request_sha256=request.request_sha256,
+        judge_config_sha256=tooling.judge_config_sha256,
+        vg_config_sha256=tooling.vg_config_sha256,
+        converter_sha256=converter_sha256(),
+        profile_version=1, quantization_step_m=derive_quantization_step(tooling),
+        walls=p1_report.walls, openings=p1_report.openings, cavities=cavities_r, zones=zones_r,
+        gates=result.gates, diagnostics=result.diagnostics,
+        wall_proof_coverage=p1_report.wall_proof_coverage,
+        zone_intent_coverage={"expected_count": plan_view.zone_intent.expected_count,
+                              "cavity_count": len(result.cavities),
+                              "near_threshold_faces": result.near_threshold_faces})
+
+
 __all__ = [
     "run_p1_plan_view", "build_p1_report", "converter_sha256",
     "P1PlanViewGeometry", "ResolvedOpening", "WallBand",
+    "run_p2_conversion", "build_p2_report", "P2ConversionResult", "ZoneExpansion",
+    "g8_reconstruct_wall_region", "s5_identify_cavities", "s6_bind_intent",
+    "s7_expand_zones", "GTV3_FOOTPRINT_LAYER", "GTV3_ZONE_LAYER", "GTV3_OPENING_LAYER",
 ]

@@ -626,6 +626,13 @@ class TarchConversionRequestV1(_StrictModel):
     # Optional with the documented default so P0-built requests still construct.
     wall_thickness_range_m: list[StrictFiniteFloat] = Field(
         default=[0.06, 0.50], min_length=2, max_length=2)
+    # Building-domain cavity/wall bisection threshold A_room (plan §2.2 / §4 S5).
+    # Like wall_thickness_range_m this is a DOMAIN PARAMETER, not a tolerance:
+    # it ONLY proposes the cavity/wall bucket split; the criterion is the human-
+    # declared room count (G6), never A_room itself.  Plan §2.2 forbids auto-
+    # adjusting A_room until the count fits.  Optional with the documented default
+    # so P0/P1-built requests still construct.
+    min_room_area_m2: PositiveFiniteFloat = Field(default=2.0)
     floors: list["FloorIntentV1"] = Field(min_length=1)
     plan_views: list[PlanViewIntentV1] = Field(min_length=1)
     elevation_views: list[ElevationViewIntentV1] = Field(default_factory=list)
