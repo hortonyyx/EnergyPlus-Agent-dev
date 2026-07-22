@@ -35,7 +35,10 @@ def test_gt_loader_absent_returns_none(tmp_path):
 # --------------------------------------------------------------------------- #
 # discipline: gate① + executors must not import gt
 # --------------------------------------------------------------------------- #
-_FORBIDDEN = ("judge.gt", "judge import gt", "load_gt", "test_baseline/gt", "gt.json", "/gt/")
+# opus §8.5: the tarch converter (judge-side answer generator) and its CLIs must
+# not be imported by gate① or executor runtime — Tianzheng dialect stays judge-side.
+_FORBIDDEN = ("judge.gt", "judge import gt", "load_gt", "test_baseline/gt", "gt.json", "/gt/",
+              "tarch_converter", "normalize_tarch_dxf", "tarch_to_gtv3")
 
 
 def _scan(paths: list[Path]) -> list[str]:
@@ -65,6 +68,20 @@ def test_executors_do_not_reference_gt():
     executors.append(Path("scripts/tool_scripts/cv_probe.py"))
     hits = _scan(executors)
     assert not hits, f"executors / gate① capstone must not reference gt: {hits}"
+
+
+def test_case_data_has_no_dxf_or_dwg():
+    """opus §8.5.3: no DXF/DWG (incl. a future normalized.dxf) under any case_data/.
+
+    Convert + build run in staging (logs/experiments/<date>_<case>_gt/work/);
+    a case_data/ dir holding a DXF would let the judge-side answer generator be
+    reached from the e2e inputs the executors see.
+    """
+    offenders = []
+    for case_data in Path("case_tests").rglob("case_data"):
+        offenders.extend(str(p) for p in case_data.rglob("*.dxf"))
+        offenders.extend(str(p) for p in case_data.rglob("*.dwg"))
+    assert not offenders, f"case_data must hold no DXF/DWG (use staging): {offenders}"
 
 
 def test_prescan_entry_points_stay_gt_blind():
