@@ -138,6 +138,12 @@ def _add(diags: list[ConversionDiagnosticV1], d: ConversionDiagnosticV1) -> None
     diags.append(d)
 
 
+def _apply_test_neuter(gates: list[GateResultV1]) -> list[GateResultV1]:
+    """Fresh-process mutation seam used only by the canonical gate suite."""
+    target = os.environ.get("TARCH_NEUTER_GATE")
+    return [gate.model_copy(update={"passed": True}) if gate.id == target else gate for gate in gates]
+
+
 # --------------------------------------------------------------------------- #
 # P1 result (the geometry artefacts of S0-S4 for one plan view)
 # --------------------------------------------------------------------------- #
@@ -765,6 +771,7 @@ def _assemble_gates(result: P1PlanViewGeometry, s0_ok: bool, g2_ok: bool, tols: 
                   "cuts": result.cuts, "invalid": result.invalid,
                   "sum_area_m2": result.sum_area_m2,
                   "footprint_area_m2": result.footprint_area_m2}))
+    result.gates = _apply_test_neuter(result.gates)
 
 
 # --------------------------------------------------------------------------- #
@@ -1915,9 +1922,7 @@ def run_p2_conversion(dxf_path: Path, request: TarchConversionRequestV1,
     # Test-only mutation seam: the canonical mutation suite starts a fresh
     # process for each value and permits exactly one final gate to be neutered.
     # It is intentionally opt-in and never set by normal conversion callers.
-    neuter = os.environ.get("TARCH_NEUTER_GATE")
-    if neuter in order:
-        gates = [g.model_copy(update={"passed": True}) if g.id == neuter else g for g in gates]
+    gates = _apply_test_neuter(gates)
     result.gates = gates
     result.diagnostics = diags
     result.conversion_report = build_p2_report(result, request, plan_view, tooling,

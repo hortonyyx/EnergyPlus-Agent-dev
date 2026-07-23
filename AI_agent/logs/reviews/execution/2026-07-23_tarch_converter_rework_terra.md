@@ -24,7 +24,7 @@ BASE：`0023a88e7cbc0324b710c353b34964d943bd3bdb`
 - PASS 全门：新增 candidate→签字 ack 的活体测试；签字副本 10 门全绿且 PASS；source/request/overlay 三类 hash 各自篡改均保持 G10 红。
 - 无厚度证据：生产 S7 触发 `tarch_wall_thickness_unevidenced`；旧纯几何夹具现显式提供 cap proof。
 - sm24：机器门、8 区、G7/G8/G9 通过；无真人签字时 G10 红、报告 BLOCKED，不晋升。这是刻意的真实状态，未把 candidate 伪装成 PASS。
-- 定向测试：`65 passed`（P0/P1/P2 + gt discipline）。全仓首跑：`1510 passed, 9 xfailed, 1 failed`；唯一失败是 `test_record_baseline_marker_merge_preserves_agent_edits_and_is_idempotent`，运行期间本提交从未提交改为提交，报告中的 dirty 数由 4→3。工作树稳定后该单测复跑 `1 passed`。这是测试时序噪声，不能表述为全仓首跑纯绿。
+- 定向测试：`68 passed`（P0/P1/P2 + gt discipline）。全仓首次运行曾因施工过程中的提交使 dirty 计数变化而失败；随后在提交 `1b4b5ab`、工作树干净且本地忽略三份合法未跟踪派工/清单文档的条件下重跑：`1514 passed, 9 xfailed, 0 failed`（407.28s）。
 - GT 隔离：`tests/test_gt_discipline.py` 已在上述 65 测内通过。
 
 ## 诚实披露
