@@ -71,3 +71,10 @@ quantization conservation→P1 assembly；G4/G6/G7/G8 为生产 P2 gate assembly
 测试文件头已同步注明：自由端正例 deferred，T / 十字有冲突负例，厚度包含 no-proof fail-closed 路径；没有声称未实现的 free-end 放行。
 
 **残留更新**：九门 seam/mutation 覆盖完成；MX-01 的四类已具正负活体测试，自由端正例依裁定以 xfail defer §2.6。尚未有真人签字，sm24 仍为 G10=candidate/BLOCKED，不晋升。
+
+## HC-03 / HC-02 定点修复（2026-07-23 GLM APPROVE-WITH-CHANGES）
+
+- **HC-03 外皮 gap 端点方向不变性**：`_outer_skin_gap_count` 的水平与竖直过滤均先以 `min/max` 归一化 LINE 沿边坐标，再做与 ring span 的重叠判据；不再使用方向相关的原始 `x0/x1`、`y0/y1`。`test_g4_outer_skin_gap_and_gates_are_line_direction_invariant` 从恰有一个外皮 gap 的闭合单房间 DXF 出发，反转每条 modelspace LINE 的端点后重跑完整 P2：两次均为 1 gap，G1–G10 布尔向量相同，world zone union 对称差不超过 topology tolerance。
+- **HC-02 P1 report 单位**：`build_p1_report` 的 ribbon `coord_m`、`span_m` 与 thickness evidence 不再硬编码 `/1000.0`，统一乘 `request.metres_per_unit`。`test_report_wall_units_follow_declared_metres_per_unit` 对同一 native IR 比较 `mpu=0.001` 与 `mpu=1.0` 报告，三类世界单位字段严格按 1000 倍比例变化。
+- **定向回归**：`pytest -q tests/test_tarch_converter_p1_geometry.py tests/test_tarch_converter_p2_geometry.py` → `46 passed, 1 xfailed`。
+- **全仓最终结果**：在本轮 HC-03/HC-02 变更完成、合法未跟踪审查文档仅由本地 `.git/info/exclude` 排除的条件下运行 `pytest -q`：`1539 passed, 10 xfailed, 0 failed`（493.06s，146 warnings）。本轮未修改 HC-01/HC-04、FC-03/FC-04、H-03 或 S7 junction 等已登记 MINOR。

@@ -419,6 +419,23 @@ def test_report_pass_on_green_and_round_trip(tmp_path):
         assert o.jamb_handles
 
 
+def test_report_wall_units_follow_declared_metres_per_unit(tmp_path):
+    """HC-02: P1 report ribbons follow native-unit scale, not a baked-in mm scale."""
+    path = tmp_path / "green.dxf"; _make_dxf(path)
+    res, req, pv, tooling, sha = _run(path)
+    mm_report = tn.build_p1_report(res, req, pv, tooling, sha)
+    native_m_req = req.model_copy(update={"metres_per_unit": 1.0})
+    native_m_req = native_m_req.model_copy(
+        update={"request_sha256": compute_request_sha256(native_m_req)})
+    native_m_report = tn.build_p1_report(res, native_m_req, pv, tooling, sha)
+    for mm_wall, m_wall in zip(mm_report.walls, native_m_report.walls):
+        mm_seg, m_seg = mm_wall.segments[0], m_wall.segments[0]
+        assert m_seg.coord_m == pytest.approx(mm_seg.coord_m * 1000.0)
+        assert m_seg.span_m == pytest.approx([v * 1000.0 for v in mm_seg.span_m])
+        assert m_seg.thickness_evidence.value_m == pytest.approx(
+            mm_seg.thickness_evidence.value_m * 1000.0)
+
+
 def test_report_blocked_on_red_and_round_trip(tmp_path):
     path = tmp_path / "a.dxf"; _make_dxf(path, no_caps=True)
     res, req, pv, tooling, sha = _run(path)

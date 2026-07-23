@@ -369,6 +369,15 @@ def _make_dxf(path: Path, *, free_end: bool = False) -> None:
     doc.saveas(str(path))
 
 
+def _reverse_modelspace_line_endpoints(source: Path, dest: Path) -> None:
+    """Write an equivalent DXF whose every modelspace LINE has reversed endpoints."""
+    doc = ezdxf.readfile(str(source))
+    for line in doc.modelspace().query("LINE"):
+        start, end = line.dxf.start, line.dxf.end
+        line.dxf.start, line.dxf.end = end, start
+    doc.saveas(str(dest))
+
+
 def _syn_request(case: str, sha: str, expected_count: int = 1, min_room_area_m2: float = 2.0):
     aff = {"m00": 0.001, "m01": 0.0, "m02": -1.0, "m10": 0.0, "m11": 0.001, "m12": -1.0}
     clip = {"xmin": 200, "ymin": 200, "xmax": 5800, "ymax": 7800}
@@ -423,6 +432,36 @@ def test_synthetic_one_room_p2_all_green(tmp_path):
     assert not res.has_block
     assert res.conversion_report.status == "BLOCKED"
     assert res.augmented_dxf_path and res.manifest and res.source_map and res.overlay_path
+
+
+def test_g4_outer_skin_gap_and_gates_are_line_direction_invariant(tmp_path):
+    """HC-03: reversing every raw LINE keeps the one exterior gap and G1--G10 stable."""
+    forward = tmp_path / "forward.dxf"
+    reversed_path = tmp_path / "reversed.dxf"
+    _make_dxf(forward)
+    _reverse_modelspace_line_endpoints(forward, reversed_path)
+
+    tooling = resolve_converter_tooling(GT_CONFIG, VG_CONFIG)
+
+    def run(path: Path, work: Path):
+        sha = hashlib.sha256(path.read_bytes()).hexdigest()
+        req, pv = _syn_request("direction-invariant", sha, min_room_area_m2=5.0)
+        return tn.run_p2_conversion(path, req, pv, tooling, work), pv
+
+    normal, normal_pv = run(forward, tmp_path / "normal")
+    reversed_res, reversed_pv = run(reversed_path, tmp_path / "reversed")
+    assert tn._outer_skin_gap_count(normal.p1, normal.footprint) == 1
+    assert tn._outer_skin_gap_count(reversed_res.p1, reversed_res.footprint) == 1
+    assert [(g.id, g.passed) for g in normal.gates] == [
+        (g.id, g.passed) for g in reversed_res.gates]
+
+    def world_zone_union(result, pv):
+        return unary_union([Polygon([tn._to_world(v, pv.world_from_source_m) for v in z.vertices])
+                            for z in result.zones])
+
+    tols = tn._tols_from(tooling, 0.001)
+    assert world_zone_union(normal, normal_pv).symmetric_difference(
+        world_zone_union(reversed_res, reversed_pv)).area <= tols.topo_area_m2
 
 
 # --------------------------------------------------------------------------- #

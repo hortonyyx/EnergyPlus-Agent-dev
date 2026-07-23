@@ -792,16 +792,20 @@ def build_p1_report(result: P1PlanViewGeometry, request: TarchConversionRequestV
     by gates G1-G5.  ``normalized_dxf_sha256`` is therefore bound to the *source*
     bytes at this stage and rebound to the augmented normalized.dxf in P2.
     """
+    # WallBand field names retain the historical ``*_mm`` spelling, but P1 IR is
+    # always in request-native units.  Reports must use the declared conversion,
+    # not assume native DXF units are millimetres.
+    mpu = request.metres_per_unit
     walls = [
         WallReportV1(
             band_id=b.band_id, floor_id=result.floor_id, axis=b.axis,
             coord_mm=b.coord_mm, span_mm=[b.along_min_mm, b.along_max_mm],
             segments=[WallRibbonSegmentV1(
-                segment_id=b.band_id + "_s0", axis=b.axis, coord_m=b.coord_mm / 1000.0,
-                span_m=[b.along_min_mm / 1000.0, b.along_max_mm / 1000.0],
+                segment_id=b.band_id + "_s0", axis=b.axis, coord_m=b.coord_mm * mpu,
+                span_m=[b.along_min_mm * mpu, b.along_max_mm * mpu],
                 thickness_evidence=ThicknessEvidenceV1(
                     source_kind="wall_cap_or_opening_jamb",
-                    value_m=b.thickness_mm / 1000.0,
+                    value_m=b.thickness_mm * mpu,
                     proof_handles=b.cap_handles))],
             source_handles=b.cap_handles)
         for b in result.wall_bands]
@@ -1375,11 +1379,13 @@ def _outer_skin_gap_count(p1: P1PlanViewGeometry, footprint: Any) -> int:
         if a[1] == b[1]:  # horizontal ring edge at y
             yc, lo, hi = a[1], min(a[0], b[0]), max(a[0], b[0])
             segs = sorted((min(x0, x1), max(x0, x1)) for _, x0, y0, x1, y1 in p1.wall_lines
-                          if y0 == yc and y1 == yc and not (x1 <= lo or x0 >= hi))
+                          if y0 == yc and y1 == yc
+                          and not (max(x0, x1) <= lo or min(x0, x1) >= hi))
         else:            # vertical ring edge at x
             xc, lo, hi = a[0], min(a[1], b[1]), max(a[1], b[1])
             segs = sorted((min(y0, y1), max(y0, y1)) for _, x0, y0, x1, y1 in p1.wall_lines
-                          if x0 == xc and x1 == xc and not (y1 <= lo or y0 >= hi))
+                          if x0 == xc and x1 == xc
+                          and not (max(y0, y1) <= lo or min(y0, y1) >= hi))
         # merge spans, count uncovered gaps strictly inside (lo, hi)
         merged = []
         for s in segs:
