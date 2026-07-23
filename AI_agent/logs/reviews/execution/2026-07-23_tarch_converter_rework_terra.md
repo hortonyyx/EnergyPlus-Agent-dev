@@ -29,4 +29,31 @@ BASE：`0023a88e7cbc0324b710c353b34964d943bd3bdb`
 
 ## 诚实披露
 
-本轮尚未取得可归档的真人签字，故没有重生成或晋升 sm24 PASS bundle；不能声称 acceptance 的“真人签字后 sm24 晋升”已完成。九门 neuter 仍未补成逐门独立进程的 10/10 套测试；五类矩阵也未补齐每类正负各一。S7 的 junction event 采用“无独立 proof 的短交叉区间归并至相邻同证据段”规则，现新增 100→300→100 双事件与 range 不变性测试，但仍应由 GLM 用独立变厚几何重点复验。
+本轮尚未取得可归档的真人签字，故没有重生成或晋升 sm24 PASS bundle；不能声称 acceptance 的“真人签字后 sm24 晋升”已完成。五类矩阵也未补齐每类正负各一。S7 的 junction event 采用“无独立 proof 的短交叉区间归并至相邻同证据段”规则，现新增 100→300→100 双事件与 range 不变性测试，但仍应由 GLM 用独立变厚几何重点复验。
+
+## Gate mutation 自查（2026-07-23 续作）
+
+新增 `tests/test_tarch_converter_gate_mutations.py`：十个 canonical 夹具均读取生产
+`GateResultV1.passed`。其中 G1/G3/G5 为最小 DXF→P1 assembly；G2 为生产
+quantization conservation→P1 assembly；G4/G6/G7/G8 为生产 P2 gate assembly；G9
+为真实 v3 preflight；G10 为无 ack 的完整 P2 运行。G8 仅改 basis，保留
+`offset_native`。
+
+新进程命令：`pytest -q ... -k test_gate_must_red`，再对每门设置
+`TARCH_NEUTER_GATE=Gk`。实际结果：
+
+| neuter | canonical 结果 |
+|---|---|
+| baseline | 10 passed |
+| G1 | 1 failed, 9 passed（仅 G1） |
+| G2 | 1 failed, 9 passed（仅 G2） |
+| G3 | 1 failed, 9 passed（仅 G3） |
+| G4 | 1 failed, 9 passed（仅 G4） |
+| G5 | 1 failed, 9 passed（仅 G5） |
+| G6 | 1 failed, 9 passed（仅 G6） |
+| G7 | 1 failed, 9 passed（仅 G7） |
+| G8 | 1 failed, 9 passed（仅 G8） |
+| G9 | 1 failed, 9 passed（仅 G9） |
+| G10 | 1 failed, 9 passed（仅 G10） |
+
+**残留更新**：上述 seam/mutation 覆盖已完成；五类接头仍未达到“每类正负各一”标准，故本提交仍不宣称 MX-01 完成或可送审。

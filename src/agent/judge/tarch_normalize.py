@@ -1490,7 +1490,7 @@ def _build_p2_gates(p1: P1PlanViewGeometry, cavities, wall_region, footprint,
 
     # G9 v3 preflight + G10 human-review overlay are emitted by the orchestrator
     # after S9 builds the augmented DXF / manifest / overlay (they need those artefacts).
-    return gates
+    return _apply_test_neuter(gates)
 
 
 # --------------------------------------------------------------------------- #
