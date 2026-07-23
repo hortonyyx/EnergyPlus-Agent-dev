@@ -25,6 +25,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+from types import SimpleNamespace
 import shutil
 from pathlib import Path
 
@@ -97,7 +98,8 @@ def test_sm24_p2_exit_gate_all_green(tmp_path):
     # --- S5/S6: 8 cavities, all claimed (cross-checked vs probe) ---
     assert len(res.cavities) == 8
     assert len(res.zones) == 8
-    assert gmap["G6"].passed
+    assert not gmap["G6"].passed
+    assert gmap["G6"].evidence["human_confirmation_required"]
 
     # --- S7/G7: zones tile the footprint exactly, no pairwise overlap ---
     assert gmap["G7"].evidence["symmetric_diff_m2"] == pytest.approx(0.0, abs=1e-6)
@@ -524,11 +526,72 @@ def test_g10_requires_hash_bound_ack_and_then_all_gates_pass(tmp_path):
     overlay_sha = hashlib.sha256(candidate.overlay_path.read_bytes()).hexdigest()
     (tmp_path / "review_ack.json").write_text(json.dumps({
         "reviewer": "reviewer_1", "signed_at": "2026-07-23T00:00:00Z", "decision": "approved",
-        "source_dxf_sha256": sha, "request_sha256": req.request_sha256, "overlay_sha256": overlay_sha}),
+        "source_dxf_sha256": sha, "request_sha256": req.request_sha256, "overlay_sha256": overlay_sha,
+        "near_threshold_confirmed": True}),
         encoding="utf-8")
     signed = tn.run_p2_conversion(dst, req, pv, tooling, tmp_path)
     assert all(g.passed for g in signed.gates)
     assert signed.conversion_report.status == "PASS"
+
+
+def test_g10_ack_rejects_each_bound_hash_tamper(tmp_path):
+    """HR-03: source/request/overlay 任一 binding 变动均不能打开 G10。"""
+    dst = tmp_path / "source.dxf"; shutil.copyfile(SM24_SOURCE, dst)
+    sha = hashlib.sha256(dst.read_bytes()).hexdigest(); req, pv = _sm24_request(sha)
+    tooling = resolve_converter_tooling(GT_CONFIG, VG_CONFIG)
+    candidate = tn.run_p2_conversion(dst, req, pv, tooling, tmp_path)
+    base = {"reviewer": "reviewer_1", "signed_at": "2026-07-23T00:00:00Z", "decision": "approved",
+            "source_dxf_sha256": sha, "request_sha256": req.request_sha256,
+            "overlay_sha256": hashlib.sha256(candidate.overlay_path.read_bytes()).hexdigest(),
+            "near_threshold_confirmed": True}
+    for field in ("source_dxf_sha256", "request_sha256", "overlay_sha256"):
+        bad = dict(base); bad[field] = "0" * 64
+        (tmp_path / "review_ack.json").write_text(json.dumps(bad), encoding="utf-8")
+        out = tn.run_p2_conversion(dst, req, pv, tooling, tmp_path)
+        gate = next(g for g in out.gates if g.id == "G10")
+        assert not gate.passed and gate.evidence["verification_status"] == "hash_mismatch"
+
+
+def test_scenario_b_area_compensation_requires_human_confirmation():
+    """HR-01: 1.5/2.5/6.0 m² 的补偿误分不能靠 cavity count 静默通过。"""
+    tooling = _tooling(); tols = tn._tols_from(tooling, 1.0)
+    faces = [Polygon([(0, 0), (1.5, 0), (1.5, 1), (0, 1)]),
+             Polygon([(1.5, 0), (4, 0), (4, 1), (1.5, 1)]),
+             Polygon([(4, 0), (10, 0), (10, 1), (4, 1)])]
+    p1 = SimpleNamespace(faces=faces, gates=[], openings=[], wall_lines=[])
+    req, pv = _sm24_request("a" * 64, expected_count=2)
+    req = req.model_copy(update={"metres_per_unit": 1.0, "min_room_area_m2": 2.0})
+    # s5 only needs the affine conversion; identity is enough for this independent geometry.
+    from src.agent.judge.tarch_converter_schema import Affine2D
+    affine = Affine2D(m00=1, m01=0, m02=0, m10=0, m11=1, m12=0)
+    diags = []
+    cavities, walls, footprint, near = tn.s5_identify_cavities(p1, req, tols, diags, affine)
+    assert [x["area_m2"] for x in near] == pytest.approx([1.5, 2.5])
+    # The count is superficially correct (B+C), but G6 carries the pending human gate.
+    assert len(cavities) == 2
+    assert any(x["is_cavity"] for x in near) and any(not x["is_cavity"] for x in near)
+    claims = tn.s6_bind_intent(cavities, pv, tols, diags, affine)
+    gates = tn._build_p2_gates(p1, cavities, walls, footprint, [], claims, near,
+                               req, pv, tols, diags)
+    g6 = next(g for g in gates if g.id == "G6")
+    assert not g6.passed and g6.evidence["human_confirmation_required"]
+
+
+def test_s7_event_profile_detects_two_changes_and_is_range_invariant():
+    """MX thickness: 100→300→100 的两次事件必须精确保留，range 不参与测量。"""
+    tooling = _tooling()
+    wall = unary_union([Polygon([(0, -100), (4000, -100), (4000, 0), (0, 0)]),
+                        Polygon([(4000, -300), (6000, -300), (6000, 0), (4000, 0)]),
+                        Polygon([(6000, -100), (10000, -100), (10000, 0), (6000, 0)])])
+    footprint = Polygon([(0, -300), (10000, -300), (10000, 1000), (0, 1000)])
+    profiles = []
+    for ignored_range in (0.35, 0.50):
+        tols = tn._tols_from(tooling, 0.001, ignored_range)
+        profiles.append(tn._thickness_profile((0, 0), (10000, 0), 0, -1, wall, footprint, tols))
+    for profile in profiles:
+        assert [(round(a[0]), round(b[0]), round(t)) for a, b, t, _ in profile] == \
+            [(0, 4000, 100), (4000, 6000, 300), (6000, 10000, 100)]
+    assert profiles[0] == profiles[1]
 
 
 def test_same_wall_gate_splits_t_junction_overlaps_and_catches_conflicting_thickness():

@@ -19,9 +19,9 @@ BASE：`0023a88e7cbc0324b710c353b34964d943bd3bdb`
 ## 验收结果
 
 - 场景 A 同墙冲突：已实现并有丁字子区间冲突测试；尚未增加独立的“错轴线+360/120”完整 gate fixture。
-- 场景 B 面积补偿：candidate G10 会阻断；尚未增加独立 1.5/2.5/6.0 m² fixture。
+- 场景 B 面积补偿：新增独立 1.5/2.5/6.0 m² fixture；即使 cavity count 恰为 2，G6 也会列 `human_confirmation_required=true` 并阻断，只有签字 ack 的近阈值确认可放行。
 - source SHA 全零：新增活体测试，BLOCK、无 normalized/manifest/source_map，仅诊断 overlay。
-- PASS 全门：新增 candidate→签字 ack 的活体测试；签字副本 10 门全绿且 PASS。
+- PASS 全门：新增 candidate→签字 ack 的活体测试；签字副本 10 门全绿且 PASS；source/request/overlay 三类 hash 各自篡改均保持 G10 红。
 - 无厚度证据：生产 S7 触发 `tarch_wall_thickness_unevidenced`；旧纯几何夹具现显式提供 cap proof。
 - sm24：机器门、8 区、G7/G8/G9 通过；无真人签字时 G10 红、报告 BLOCKED，不晋升。这是刻意的真实状态，未把 candidate 伪装成 PASS。
 - 定向测试：`65 passed`（P0/P1/P2 + gt discipline）。全仓首跑：`1510 passed, 9 xfailed, 1 failed`；唯一失败是 `test_record_baseline_marker_merge_preserves_agent_edits_and_is_idempotent`，运行期间本提交从未提交改为提交，报告中的 dirty 数由 4→3。工作树稳定后该单测复跑 `1 passed`。这是测试时序噪声，不能表述为全仓首跑纯绿。
@@ -29,4 +29,4 @@ BASE：`0023a88e7cbc0324b710c353b34964d943bd3bdb`
 
 ## 诚实披露
 
-本轮尚未取得可归档的真人签字，故没有重生成或晋升 sm24 PASS bundle；不能声称 acceptance 的“真人签字后 sm24 晋升”已完成。九门 neuter 仍未补成逐门独立进程的 10/10 套测试；五类矩阵也未补齐每类正负各一。S7 的 junction event 采用“无独立 proof 的短交叉区间归并至相邻同证据段”规则，已覆盖 sm24 和现有 L/T/十字，但仍应由 GLM 用独立变厚几何重点复验。
+本轮尚未取得可归档的真人签字，故没有重生成或晋升 sm24 PASS bundle；不能声称 acceptance 的“真人签字后 sm24 晋升”已完成。九门 neuter 仍未补成逐门独立进程的 10/10 套测试；五类矩阵也未补齐每类正负各一。S7 的 junction event 采用“无独立 proof 的短交叉区间归并至相邻同证据段”规则，现新增 100→300→100 双事件与 range 不变性测试，但仍应由 GLM 用独立变厚几何重点复验。

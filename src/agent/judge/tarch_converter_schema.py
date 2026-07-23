@@ -811,6 +811,7 @@ class HumanReviewAckV1(_StrictModel):
     source_dxf_sha256: Hex64
     request_sha256: Hex64
     overlay_sha256: Hex64
+    near_threshold_confirmed: bool = False
 
 
 class WallReportV1(_StrictModel):

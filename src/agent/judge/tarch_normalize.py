@@ -46,6 +46,7 @@ Hard disciplines enforced here (dispatch §2 / plan §2):
 from __future__ import annotations
 
 import hashlib
+import os
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Literal
@@ -1422,13 +1423,15 @@ def _build_p2_gates(p1: P1PlanViewGeometry, cavities, wall_region, footprint,
     # G6 cavity claim + count + near-threshold承重 list
     count_ok = len(cavities) == plan_view.zone_intent.expected_count
     unclaimed = len(cavities) - len(claims)
-    g6 = count_ok and unclaimed <= 0 and not any(
+    near_pending = bool(near_threshold)
+    g6 = count_ok and unclaimed <= 0 and not near_pending and not any(
         d.code == "tarch_cavity_count_mismatch" for d in diags)
     gates.append(GateResultV1(id="G6", name="cavity claim + count", passed=g6,
         evidence={"cavity_count": len(cavities),
                   "expected_count": plan_view.zone_intent.expected_count,
                   "claimed": len(claims),
-                  "near_threshold_faces": near_threshold}))
+                  "near_threshold_faces": near_threshold,
+                  "human_confirmation_required": near_pending}))
 
     # G7 tiling: ∪zones ≡ footprint, no pairwise overlap (plan §4 S4/G7)
     zone_polys = [z.polygon for z in zones]
@@ -1782,6 +1785,7 @@ def _verify_human_review_ack(work_dir: Path, request: TarchConversionRequestV1,
               "overlay_hash": ack.overlay_sha256 == evidence["overlay_sha256"]}
     evidence.update({"verification_status": "signed" if all(checks.values()) else "hash_mismatch",
                      "reviewer": ack.reviewer, "signed_at": ack.signed_at, "ack_checks": checks})
+    evidence["near_threshold_confirmed"] = ack.near_threshold_confirmed
     return all(checks.values()), evidence
 
 
@@ -1881,6 +1885,14 @@ def run_p2_conversion(dxf_path: Path, request: TarchConversionRequestV1,
         g10_ok, g10_evidence = _verify_human_review_ack(work_dir, request, Path(dxf_path), overlay_path)
         gates.append(GateResultV1(id="G10", name="human-review overlay", passed=g10_ok,
                                   evidence=g10_evidence))
+        # A signed overlay acknowledgement is also the explicit human decision for
+        # the near-threshold face list.  It is the only path that may clear G6's
+        # otherwise fail-closed pending-review subcondition.
+        if g10_ok and g10_evidence.get("near_threshold_confirmed"):
+            gates = [g.model_copy(update={"passed": True,
+                                           "evidence": {**g.evidence, "human_confirmation": "signed"}})
+                     if g.id == "G6" and g.evidence.get("human_confirmation_required") else g
+                     for g in gates]
         result.manifest = manifest
         result.augmented_dxf_path = augmented_path
         result.overlay_path = overlay_path
@@ -1900,6 +1912,12 @@ def run_p2_conversion(dxf_path: Path, request: TarchConversionRequestV1,
     # deterministic gate ordering G1..G10
     order = {"G1": 0, "G2": 1, "G3": 2, "G4": 3, "G5": 4, "G6": 5, "G7": 6, "G8": 7, "G9": 8, "G10": 9}
     gates.sort(key=lambda g: order[g.id])
+    # Test-only mutation seam: the canonical mutation suite starts a fresh
+    # process for each value and permits exactly one final gate to be neutered.
+    # It is intentionally opt-in and never set by normal conversion callers.
+    neuter = os.environ.get("TARCH_NEUTER_GATE")
+    if neuter in order:
+        gates = [g.model_copy(update={"passed": True}) if g.id == neuter else g for g in gates]
     result.gates = gates
     result.diagnostics = diags
     result.conversion_report = build_p2_report(result, request, plan_view, tooling,
