@@ -57,12 +57,13 @@ from shapely.ops import polygonize_full, unary_union
 
 from .tarch_converter_schema import (
     Affine2D, CavityIRV1, CavityReportV1, ClipBoxDxf, ConversionDiagnosticV1,
-    ConversionReportV1, DiagnosticSeverity, EdgeBasis, GateResultV1,
+    ConversionReportV1, DiagnosticSeverity, EdgeBasis, GateResultV1, HumanReviewAckV1,
     OpeningReportV1, PlanViewIntentV1, Point2, PolygonIRV1, RingV1, StableId,
     SourceEntityRefV1, SourceMapEntryV1, SourceMapV1, TARCH_DIAGNOSTIC_REGISTRY,
     TarchConversionRequestV1, TarchDialectRulesV1, ThicknessEvidenceV1,
     WallReportV1, WallRibbonSegmentV1, ZoneEdgeReportV1, ZoneReportV1,
-    assert_staging_input, compute_source_map_sha256, derive_quantization_step,
+    assert_staging_input, assert_staging_work_dir, compute_request_sha256,
+    compute_source_map_sha256, derive_quantization_step,
     diagnostic_spec)
 
 # --------------------------------------------------------------------------- #
@@ -75,11 +76,6 @@ class _Tols:
     node_join_m: float           # tau_node   (quantize base, node merge)
     axis_align_m: float          # tau_axis   (orthogonality)
     topo_area_m2: float          # tau_area   (area conservation)
-    # Upper bound on wall half-thickness, from the request's wall_thickness_range
-    # (a DOMAIN config param, not a baked constant — discipline #4).  Used only as the
-    # probe pad so the S7 outward march never STARTS inside a perpendicular wall face.
-    wall_half_thickness_max_m: float = 0.25
-
     @property
     def node_join_native(self) -> float:
         return self.node_join_m / self.metres_per_unit
@@ -93,19 +89,12 @@ class _Tols:
         # q = tau_node / 10, expressed in the DXF native unit (mm for sm24).
         return self.node_join_native / 10.0
 
-    @property
-    def wall_half_thickness_max_native(self) -> float:
-        return self.wall_half_thickness_max_m / self.metres_per_unit
-
-
-def _tols_from(tooling, metres_per_unit: float,
-               wall_half_thickness_max_m: float = 0.25) -> _Tols:
+def _tols_from(tooling, metres_per_unit: float, _legacy_unused: float | None = None) -> _Tols:
     t = tooling.tolerances
     return _Tols(metres_per_unit=metres_per_unit,
                  node_join_m=t.dxf_node_join_tolerance_m,
                  axis_align_m=t.dxf_axis_alignment_tolerance_m,
-                 topo_area_m2=t.dxf_topology_area_tolerance_m2,
-                 wall_half_thickness_max_m=wall_half_thickness_max_m)
+                 topo_area_m2=t.dxf_topology_area_tolerance_m2)
 
 
 # --------------------------------------------------------------------------- #
@@ -463,12 +452,11 @@ def _build_wall_bands(collect: _WallCollect) -> list[WallBand]:
 # S3 — opening dual-evidence resolution
 # --------------------------------------------------------------------------- #
 def _classify_block(name: str, dialect: TarchDialectRulesV1) -> Literal["window", "door"] | None:
-    if name in dialect.window_block_names:
-        return "window"
-    for pref in dialect.door_block_prefixes:
-        if name.startswith(pref):
-            return "door"
-    return None
+    is_window = name in dialect.window_block_names
+    is_door = any(name.startswith(pref) for pref in dialect.door_block_prefixes)
+    if is_window == is_door:  # both true is ambiguous; both false is unresolved
+        return None
+    return "window" if is_window else "door"
 
 
 def _resolve_one(ext_x0: float, ext_y0: float, ext_x1: float, ext_y1: float,
@@ -685,6 +673,21 @@ def run_p1_plan_view(dxf_path: Path, request: TarchConversionRequestV1,
     assert_staging_input(Path(dxf_path))
     tols = _tols_from(tooling, request.metres_per_unit)
     diags: list[ConversionDiagnosticV1] = []
+    actual_sha = hashlib.sha256(Path(dxf_path).read_bytes()).hexdigest()
+    request_hash_ok = request.request_sha256 == compute_request_sha256(request)
+    ownership_ok = (plan_view.id in {v.id for v in request.plan_views}
+                    and any(f.id == plan_view.floor_id for f in request.floors)
+                    and any(v.id == plan_view.id and v.floor_id == plan_view.floor_id
+                            for v in request.plan_views))
+    if actual_sha != request.source_dxf_sha256 or not request_hash_ok or not ownership_ok:
+        _add(diags, _diag("tarch_input_source_hash_mismatch", points_dxf_mm=[(0.0, 0.0)], context={
+            "actual_source_sha256": actual_sha, "declared_source_sha256": request.source_dxf_sha256,
+            "request_hash_ok": request_hash_ok, "plan_view_id": plan_view.id,
+            "floor_id": plan_view.floor_id, "ownership_ok": ownership_ok}))
+        empty = P1PlanViewGeometry(plan_view.id, plan_view.floor_id, tols.quant_native,
+            [], 0, {}, {}, {}, {}, [], [], [], [], 0, 0, 0, 0.0, 0.0, Polygon(), diags)
+        _assemble_gates(empty, False, False, tols)
+        return empty
     doc = ezdxf.readfile(str(dxf_path))
     msp = doc.modelspace()
     cb = plan_view.clip_box_dxf
@@ -848,6 +851,9 @@ class _ZoneEdgeRec:
     basis: EdgeBasis | None
     thickness_native: float | None
     offset_native: float   # t (outer_skin) | t/2 (wall_axis) | 0 (step)
+    p1: tuple[float, float] | None = None
+    p2: tuple[float, float] | None = None
+    thickness_evidence: ThicknessEvidenceV1 | None = None
     # DXF handles of the SOURCE wall lines this edge derives from (the inner-face
     # wall line(s) the cavity edge lies on).  Carried so the report's source_handles
     # and the per-edge source_map ancestry are REAL handles, not a layer label.
@@ -916,28 +922,26 @@ def _outward_normal(a: tuple[float, float], b: tuple[float, float]) -> tuple[flo
     return (1.0, 0.0) if b[1] > a[1] else (-1.0, 0.0)
 
 
-def _march_thickness(mid: tuple[float, float], nx: float, ny: float,
-                     wall_region: Any, footprint: Any) -> tuple[float, bool]:
-    """Distance from ``mid`` outward along (nx,ny) to the far wall face, and whether
-    that exit point lies on the footprint exterior (outer skin).  March+binary-refine:
-    sub-τ resolution (the probe used the same; the plan's 'exact event' ideal gives
-    identical results within τ_area).  No sampling *parameter* is exposed."""
-    step = 1.0
-    d = step
-    while d < 50000.0:
-        if not wall_region.covers(Point(mid[0] + nx * d, mid[1] + ny * d)):
-            break
-        d += step
-    lo, hi = d - step, d
-    for _ in range(60):
-        m = (lo + hi) / 2.0
-        if wall_region.covers(Point(mid[0] + nx * m, mid[1] + ny * m)):
-            lo = m
-        else:
-            hi = m
-    exit_pt = (mid[0] + nx * hi, mid[1] + ny * hi)
-    on_exterior = footprint.exterior.distance(Point(exit_pt)) <= 1.0
-    return hi, on_exterior
+def _ray_thickness(mid: tuple[float, float], nx: float, ny: float,
+                   wall_region: Any, footprint: Any, tols: _Tols) -> tuple[float, bool] | None:
+    """Exact ray/boundary intersection; no native-unit march or range-derived pad."""
+    minx, miny, maxx, maxy = unary_union([wall_region, footprint]).bounds
+    reach = max(maxx - minx, maxy - miny) * 2.0 + tols.node_join_native
+    ray = LineString([mid, (mid[0] + nx * reach, mid[1] + ny * reach)])
+    hit = ray.intersection(wall_region.boundary)
+    pts = []
+    if hit.geom_type == "Point":
+        pts = [hit]
+    elif hasattr(hit, "geoms"):
+        pts = [g for g in hit.geoms if g.geom_type == "Point"]
+    eps = tols.node_join_native
+    ds = sorted((p.x - mid[0]) * nx + (p.y - mid[1]) * ny for p in pts)
+    ds = [d for d in ds if d > eps]
+    if not ds:
+        return None
+    thickness = ds[0]
+    exit_pt = Point(mid[0] + nx * thickness, mid[1] + ny * thickness)
+    return thickness, footprint.exterior.distance(exit_pt) <= tols.node_join_native
 
 
 def _thickness_profile(a: tuple[float, float], b: tuple[float, float],
@@ -951,76 +955,45 @@ def _thickness_profile(a: tuple[float, float], b: tuple[float, float],
     changes mid-span -> multiple segments, each with its own measured thickness
     (real wall-pier step geometry).
 
-    Adaptive interior probe + bisection around detected transitions: a uniform
-    edge terminates after 2 probes; a thickness change bisects down to within
-    ``tau_node``.  This replaces a uniform 1-native-unit sample grid that was
-    O(edge_length) — instant on a synthetic unit box, non-terminating on sm24's
-    20 m walls (a single long edge sampled 20000x, each sample a ~240-step march).
-
-    Probes are taken only at INTERIOR fractions, never exactly at ``f==0`` / ``f==1``
-    (the cavity vertices).  A cavity vertex sits on a perpendicular wall face, so a
-    march started there grazes along that face — ``wall_region.covers`` stays True
-    for the whole building span and the measured "thickness" comes back as ~16 m
-    instead of the local 120-240 mm wall.  Keeping a ≥2-native-unit pad clear of
-    each vertex avoids the graze; the true endpoints inherit the nearest run's
-    measurement (a real wall is uniform near its corners; mid-span changes, which
-    only occur in the synthetic thickness-change fixture, are interior)."""
+    Event coordinates are projections of WallRegion boundary vertices onto the
+    cavity edge.  Each open event interval is measured once at its midpoint, so
+    a thickness change is located at the actual CAD coordinate, not a sample pad.
+    """
     ax, ay = a
     bx, by = b
 
-    def measure(f: float) -> tuple[float, EdgeBasis]:
+    def measure(f: float) -> tuple[float, EdgeBasis] | None:
         x, y = ax + (bx - ax) * f, ay + (by - ay) * f
-        t, ext = _march_thickness((x, y), nx, ny, wall_region, footprint)
+        hit = _ray_thickness((x, y), nx, ny, wall_region, footprint, tols)
+        if hit is None:
+            return None
+        t, ext = hit
         return (t, "outer_skin" if ext else "wall_axis")
 
     def same(p: tuple[float, EdgeBasis], q: tuple[float, EdgeBasis]) -> bool:
         return abs(p[0] - q[0]) <= tols.axis_align_native and p[1] == q[1]
-
     length = abs(bx - ax) if ay == by else abs(by - ay)
-    # Probe points must clear the PERPENDICULAR wall at each corner vertex.  A probe
-    # only ~2 native units in lands INSIDE a perpendicular wall face, and the outward
-    # march then grazes along that wall's full length (measured thickness = metres,
-    # not mm — the sm24 corridor overlap).  Keep at least (max wall half-thickness +
-    # tau_node) clear of each vertex.  An edge shorter than 2x that pad is probed at
-    # its midpoint (the single best estimate), NEVER at the corners.  Transitions are
-    # not resolved finer than this pad (below the coordinate grid either way).
-    pad = tols.wall_half_thickness_max_native + tols.node_join_native
-    pad_f = (pad / length) if length > 0 else 0.0
-    if 2 * pad_f >= 1.0:                   # edge shorter than 2x pad: single midpoint probe
-        lo0 = hi0 = 0.5
-        pad_f = 0.0
-    else:
-        lo0, hi0 = pad_f, 1.0 - pad_f
-
-    knots: dict[float, tuple[float, EdgeBasis]] = {lo0: measure(lo0), hi0: measure(hi0)}
-    stack: list[tuple[float, float]] = [(lo0, hi0)]
-    while stack:
-        lo, hi = stack.pop()
-        if same(knots[lo], knots[hi]):
-            continue                      # uniform across [lo, hi]
-        if hi - lo <= 2 * pad_f or hi - lo <= 0:
-            continue                      # transition localized to within the pad
-        mid = (lo + hi) / 2.0
-        knots[mid] = measure(mid)
-        stack.append((lo, mid))
-        stack.append((mid, hi))
-
-    # Extend measurements to the true endpoints 0/1 by nearest-interior inheritance.
-    interior = sorted(knots)
-    full = dict(knots)
-    full[0.0] = knots[min(interior, key=lambda p: abs(p - 0.0))]
-    full[1.0] = knots[min(interior, key=lambda p: abs(p - 1.0))]
-    fs = sorted(full)
+    events = {0.0, 1.0}
+    for geom in getattr(wall_region.boundary, "geoms", [wall_region.boundary]):
+        for x, y in getattr(geom, "coords", []):
+            f = ((x - ax) * (bx - ax) + (y - ay) * (by - ay)) / (length * length)
+            if tols.node_join_native / length < f < 1.0 - tols.node_join_native / length:
+                # Only vertices in the normal wall slab can split this ray profile.
+                px, py = ax + (bx - ax) * f, ay + (by - ay) * f
+                if abs((x - px) * nx + (y - py) * ny) >= -tols.node_join_native:
+                    events.add(round(f, 12))
+    fs = sorted(events)
     out: list[tuple[tuple[float, float], tuple[float, float], float, EdgeBasis]] = []
-    i = 0
-    while i < len(fs) - 1:
-        j = i + 1
-        while j < len(fs) - 1 and same(full[fs[i]], full[fs[j]]):
-            j += 1                        # extend run over equal-measurement knots
-        f0, f1, m = fs[i], fs[j], full[fs[i]]
-        out.append(((ax + (bx - ax) * f0, ay + (by - ay) * f0),
-                    (ax + (bx - ax) * f1, ay + (by - ay) * f1), m[0], m[1]))
-        i = j
+    for f0, f1 in zip(fs, fs[1:]):
+        m = measure((f0 + f1) / 2.0)
+        if m is None:
+            continue
+        seg = ((ax + (bx - ax) * f0, ay + (by - ay) * f0),
+               (ax + (bx - ax) * f1, ay + (by - ay) * f1), m[0], m[1])
+        if out and same((out[-1][2], out[-1][3]), m):
+            out[-1] = (out[-1][0], seg[1], out[-1][2], out[-1][3])
+        else:
+            out.append(seg)
     return out
 
 
@@ -1173,9 +1146,20 @@ def _world_to_native(world_xy: list[float], affine: Affine2D) -> tuple[float, fl
 # --------------------------------------------------------------------------- #
 # S7 — per-edge expand to the mixed basis box (outer skin / wall axis)
 # --------------------------------------------------------------------------- #
+def _thickness_evidence_for(thickness_native: float, bands: list[WallBand],
+                            tols: _Tols) -> ThicknessEvidenceV1 | None:
+    """Resolve S7's measured value to an independent S2 cap/jamb proof."""
+    for band in bands:
+        if abs(band.thickness_mm - thickness_native) <= tols.axis_align_native and band.cap_handles:
+            return ThicknessEvidenceV1(source_kind="wall_cap_or_opening_jamb",
+                                       value_m=thickness_native * tols.metres_per_unit,
+                                       proof_handles=band.cap_handles)
+    return None
+
+
 def s7_expand_zones(claims: list[dict], wall_region: Any, footprint: Any,
                     tols: _Tols, diags: list[ConversionDiagnosticV1],
-                    wall_lines) -> list[ZoneExpansion]:
+                    wall_lines, wall_bands: list[WallBand] | None = None) -> list[ZoneExpansion]:
     """For each claimed cavity: clean+CCW, per-edge measure thickness + far-side
     classify (outer_skin -> offset t; wall_axis -> offset t/2), split edges on
     thickness change, rebuild the zone polygon from offset support-line corners +
@@ -1200,7 +1184,34 @@ def s7_expand_zones(claims: list[dict], wall_region: Any, footprint: Any,
             a, b = c[i], c[(i + 1) % n]
             nx, ny = _outward_normal(a, b)
             normals.append((nx, ny))
-            subs_per_edge.append(_thickness_profile(a, b, nx, ny, wall_region, footprint, tols))
+            raw_profile = _thickness_profile(a, b, nx, ny, wall_region, footprint, tols)
+            # A perpendicular T/cross wall can create a short ray interval through
+            # the junction material.  It is not a thickness event unless it has an
+            # independent S2 proof.  Collapse only such unproven junction runs into
+            # their proven continuation; a genuine change must carry its own proof.
+            proven = [_thickness_evidence_for(s[2], wall_bands or [], tols) is not None
+                      for s in raw_profile]
+            profile = list(raw_profile)
+            for j, ok in enumerate(proven):
+                if ok:
+                    continue
+                left = next((q for q in range(j - 1, -1, -1) if proven[q]), None)
+                right = next((q for q in range(j + 1, len(profile)) if proven[q]), None)
+                donor = left if right is None else right if left is None else (
+                    left if profile[left][2:] == profile[right][2:] else None)
+                if donor is None:
+                    _add(diags, _diag("tarch_wall_thickness_unevidenced", points_dxf_mm=[profile[j][0], profile[j][1]],
+                                      context={"thickness_native": profile[j][2], "reason": "event_interval_unproven"}))
+                    continue
+                profile[j] = (profile[j][0], profile[j][1], profile[donor][2], profile[donor][3])
+                proven[j] = True
+            merged: list[tuple[tuple, tuple, float, EdgeBasis]] = []
+            for sub in profile:
+                if merged and merged[-1][2:] == sub[2:]:
+                    merged[-1] = (merged[-1][0], sub[1], sub[2], sub[3])
+                else:
+                    merged.append(sub)
+            subs_per_edge.append(merged)
             # per-cavity-edge source ancestry (same for every sub of this cavity edge)
             edge_sources.append(_edge_source_handles(a, b, wall_lines, tols))
         offsets_per_edge = [[_offset_for(s[3], s[2]) for s in subs] for subs in subs_per_edge]
@@ -1220,22 +1231,37 @@ def s7_expand_zones(claims: list[dict], wall_region: Any, footprint: Any,
             src = edge_sources[i]
             for j in range(len(subs) - 1):
                 split_a = subs[j][1]
+                proof = _thickness_evidence_for(subs[j][2], wall_bands or [], tols)
+                if proof is None:
+                    _add(diags, _diag("tarch_wall_thickness_unevidenced", handles=list(src),
+                                      points_dxf_mm=[split_a],
+                                      context={"thickness_native": subs[j][2]}))
                 edges.append(_ZoneEdgeRec(nx, ny, subs[j][3], subs[j][2], offs[j],
-                                          source_handles=list(src)))
+                                          thickness_evidence=proof, source_handles=list(src)))
                 zone_verts.append(_shift(split_a, nx, ny, offs[j]))
                 edges.append(_ZoneEdgeRec(-ny, nx, None, None, 0.0))   # step, offset 0
                 zone_verts.append(_shift(split_a, nx, ny, offs[j + 1]))
             # last sub -> end corner (start of next cavity edge)
             ni = (i + 1) % n
             end = _corner(c[ni], (nx, ny), offs[-1], normals[ni], offsets_per_edge[ni][0])
+            proof = _thickness_evidence_for(subs[-1][2], wall_bands or [], tols)
+            if proof is None:
+                _add(diags, _diag("tarch_wall_thickness_unevidenced", handles=list(src),
+                                  points_dxf_mm=[a, b],
+                                  context={"thickness_native": subs[-1][2]}))
             edges.append(_ZoneEdgeRec(nx, ny, subs[-1][3], subs[-1][2], offs[-1],
-                                      source_handles=list(src)))
+                                      thickness_evidence=proof, source_handles=list(src)))
             if i != n - 1:
                 zone_verts.append(end)
         zone_verts = [(round(vx, 6), round(vy, 6)) for vx, vy in zone_verts]
         poly = Polygon(zone_verts)
-        if not poly.is_valid:
-            poly = poly.buffer(0)
+        if not poly.is_valid or poly.geom_type != "Polygon":
+            _add(diags, _diag("tarch_edge_thickness_inconsistent", points_dxf_mm=zone_verts,
+                              context={"reason": "expanded_polygon_invalid"}))
+            continue
+        for i, edge in enumerate(edges):
+            edge.p1 = zone_verts[i]
+            edge.p2 = zone_verts[(i + 1) % len(zone_verts)]
         zones.append(ZoneExpansion(
             cavity_id=f"c_{k:02d}", polygon=poly, vertices=zone_verts, edges=edges,
             seed_native=claim["seed_native"], area_m2=poly.area * mpu * mpu))
@@ -1250,36 +1276,69 @@ def g8_reconstruct_wall_region(zones: list[ZoneExpansion]) -> Any:
     thickness ONLY (plan §1 G8 reinforcement, dispatch §2 #5).  Never reads S5's
     WallRegion or its derivatives.
 
-    Method: for each zone, reverse-shrink it to its cavity by moving every edge
-    inward by its recorded outward offset (the exact algebraic inverse of S7's
-    expand: cavity_vert = zone_vert − Σ adjacent-edge offset contributions; step
-    edges carry offset 0).  wall_region_recon = ∪zones − ∪(reverse-shrunk cavities).
-    This uses only zone polygons + recorded per-edge offsets — independent of S5.
-    A basis recorded wrong changes an edge's offset, so the rebuilt cavity is wrong
-    and the symmetric difference with the measured wall region blows up -> G8 red.
+    The normal is recomputed from persisted output ``p1 -> p2`` and offset from
+    ``basis + thickness``.  In particular this function intentionally does not
+    read ``nx``, ``ny`` or ``offset_native``: those are forward-pass caches and
+    using either turns G8 into a tautological inverse.
     """
     zone_union = unary_union([z.polygon for z in zones]) if zones else Polygon()
     cav_recon: list[Any] = []
     for z in zones:
-        verts = z.vertices
         e = z.edges
-        m = len(verts)
+        m = len(e)
+        if not m or any(edge.p1 is None or edge.p2 is None for edge in e):
+            continue
+        normals = [_outward_normal(edge.p1, edge.p2) for edge in e]
+        offsets = [(_offset_for(edge.basis, edge.thickness_native)
+                    if edge.basis is not None and edge.thickness_native is not None else 0.0)
+                   for edge in e]
         cverts = []
         for i in range(m):
-            prev_e = e[i - 1]   # edge from verts[i-1] -> verts[i]
-            cur_e = e[i]        # edge from verts[i] -> verts[i+1]
-            vx, vy = verts[i]
-            # subtract the two adjacent edges' outward-offset contributions
-            vx -= (prev_e.nx * prev_e.offset_native) + (cur_e.nx * cur_e.offset_native)
-            vy -= (prev_e.ny * prev_e.offset_native) + (cur_e.ny * cur_e.offset_native)
+            vx, vy = e[i].p1
+            pn, cn = normals[i - 1], normals[i]
+            vx -= pn[0] * offsets[i - 1] + cn[0] * offsets[i]
+            vy -= pn[1] * offsets[i - 1] + cn[1] * offsets[i]
             cverts.append((round(vx, 6), round(vy, 6)))
         poly = Polygon(cverts)
-        if not poly.is_valid:
-            poly = poly.buffer(0)
-        if not poly.is_empty:
+        if poly.is_valid and poly.geom_type == "Polygon" and not poly.is_empty:
             cav_recon.append(poly)
     cav_union = unary_union(cav_recon) if cav_recon else Polygon()
     return zone_union.difference(cav_union)
+
+
+def _same_wall_consistency(zones: list[ZoneExpansion], tols: _Tols) -> tuple[bool, list[dict]]:
+    """Pair back-to-back output edges by *overlap subinterval*, never whole edge.
+
+    A long edge may face several shorter neighbour edges at T/cross junctions;
+    every positive collinear overlap becomes its own evidence item.
+    """
+    records = []
+    for zi, zone in enumerate(zones):
+        for ei, edge in enumerate(zone.edges):
+            if edge.basis is None or edge.thickness_native is None or edge.p1 is None or edge.p2 is None:
+                continue
+            nx, ny = _outward_normal(edge.p1, edge.p2)
+            axis = "x" if edge.p1[1] == edge.p2[1] else "y"
+            coord = edge.p1[1] if axis == "x" else edge.p1[0]
+            span = sorted((edge.p1[0], edge.p2[0])) if axis == "x" else sorted((edge.p1[1], edge.p2[1]))
+            records.append((zi, ei, edge, nx, ny, axis, coord, span))
+    pairs: list[dict] = []
+    for i, left in enumerate(records):
+        for right in records[i + 1:]:
+            zi, ei, e, nx, ny, axis, coord, span = left
+            zj, ej, f, fx, fy, faxis, fcoord, fspan = right
+            if zi == zj or axis != faxis or abs(coord - fcoord) > tols.axis_align_native:
+                continue
+            if abs(nx + fx) > 1e-12 or abs(ny + fy) > 1e-12:
+                continue
+            lo, hi = max(span[0], fspan[0]), min(span[1], fspan[1])
+            if hi - lo <= tols.node_join_native:
+                continue
+            ok = e.basis == f.basis and abs(e.thickness_native - f.thickness_native) <= tols.axis_align_native
+            pairs.append({"left": {"zone": zi, "edge": ei, "basis": e.basis, "thickness_native": e.thickness_native},
+                          "right": {"zone": zj, "edge": ej, "basis": f.basis, "thickness_native": f.thickness_native},
+                          "axis": axis, "coord_native": coord, "overlap_native": [lo, hi], "consistent": ok})
+    return all(p["consistent"] for p in pairs), pairs
 
 
 # --------------------------------------------------------------------------- #
@@ -1405,8 +1464,19 @@ def _build_p2_gates(p1: P1PlanViewGeometry, cavities, wall_region, footprint,
                               context={"symmetric_diff_m2": g8_sd,
                                        "rebuilt_area_m2": recon.area * mpu * mpu,
                                        "measured_area_m2": wall_region.area * mpu * mpu}))
+    walls_ok, wall_pairs = _same_wall_consistency(zones, tols)
+    conflicts = [p for p in wall_pairs if not p["consistent"]]
+    if conflicts:
+        first = conflicts[0]
+        _add(diags, _diag("tarch_edge_thickness_inconsistent",
+                          context={"reason": "back_to_back_zone_edge_mismatch",
+                                   "conflicts": conflicts},
+                          points_dxf_mm=[(first["coord_native"], first["overlap_native"][0])]))
+    g8_passed = g8_passed and walls_ok
     gates.append(GateResultV1(id="G8", name="independent wall-region reconstruction",
-        passed=g8_passed, evidence={"symmetric_diff_m2": g8_sd}))
+        passed=g8_passed, evidence={"symmetric_diff_m2": g8_sd,
+                                    "same_wall_pairs": wall_pairs,
+                                    "same_wall_conflict_count": len(conflicts)}))
 
     # G9 v3 preflight + G10 human-review overlay are emitted by the orchestrator
     # after S9 builds the augmented DXF / manifest / overlay (they need those artefacts).
@@ -1530,11 +1600,17 @@ def _build_source_map(request: TarchConversionRequestV1, plan_view: PlanViewInte
         handle_to_geom[h] = [world(a), world(b)]
     for h, sources in handle_to_sources.items():
         refs = [SourceEntityRefV1(handle=s, role="wall_side") for s in dict.fromkeys(sources)]
+        proof_ids = []
+        for z_idx, e_idx in zone_edge_handles:
+            if zone_edge_handles[(z_idx, e_idx)] == h:
+                ev = zones[z_idx].edges[e_idx].thickness_evidence
+                if ev is not None:
+                    proof_ids.extend(ev.proof_handles)
         entries.append(SourceMapEntryV1(
             generated_handle=h, view_id=plan_view.id, floor_id=plan_view.floor_id,
             semantic_role="zone_boundary", operation="zone_edge",
             canonical_geometry_world_m={"segment_m": handle_to_geom[h]},
-            source_entity_refs=refs))
+            source_entity_refs=refs, proof_ids=list(dict.fromkeys(proof_ids))))
 
     # openings <- block INSERT + jamb caps
     for op, h in zip(exterior_openings, gtv3_handles.get(GTV3_OPENING_LAYER, [])):
@@ -1668,7 +1744,8 @@ def _write_overlay_svg(path: Path, p1: P1PlanViewGeometry, footprint: Any,
         col = palette[k % len(palette)]
         pts = " ".join(f"{X(x):.1f},{Y(y):.1f}" for x, y in z.vertices)
         parts.append(f'<polygon points="{pts}" fill="{col}" fill-opacity="0.28" stroke="{col}" stroke-width="2"/>')
-        cx, cy = z.polygon.centroid.x, z.polygon.centroid.y
+        label_pt = z.polygon.representative_point()
+        cx, cy = label_pt.x, label_pt.y
         nm = claims[k]["name"] if k < len(claims) else z.cavity_id
         parts.append(f'<text x="{X(cx):.1f}" y="{Y(cy):.1f}" fill="black" text-anchor="middle" '
                      f'font-weight="bold">{nm}</text>')
@@ -1685,6 +1762,54 @@ def _write_overlay_svg(path: Path, p1: P1PlanViewGeometry, footprint: Any,
     Path(path).write_text("\n".join(parts), encoding="utf-8")
 
 
+def _verify_human_review_ack(work_dir: Path, request: TarchConversionRequestV1,
+                             source_dxf: Path, overlay: Path) -> tuple[bool, dict]:
+    """G10 accepts only an auditable, three-hash-bound external acknowledgement."""
+    ack_path = work_dir / "review_ack.json"
+    overlay_rel = overlay.name
+    evidence = {"overlay_asset": overlay_rel,
+                "overlay_sha256": hashlib.sha256(overlay.read_bytes()).hexdigest(),
+                "verification_status": "candidate", "ack_path": ack_path.name}
+    if not ack_path.is_file():
+        return False, evidence
+    try:
+        ack = HumanReviewAckV1.model_validate_json(ack_path.read_text(encoding="utf-8"))
+    except Exception as exc:
+        evidence["ack_error"] = type(exc).__name__
+        return False, evidence
+    checks = {"source_hash": ack.source_dxf_sha256 == hashlib.sha256(source_dxf.read_bytes()).hexdigest(),
+              "request_hash": ack.request_sha256 == request.request_sha256,
+              "overlay_hash": ack.overlay_sha256 == evidence["overlay_sha256"]}
+    evidence.update({"verification_status": "signed" if all(checks.values()) else "hash_mismatch",
+                     "reviewer": ack.reviewer, "signed_at": ack.signed_at, "ack_checks": checks})
+    return all(checks.values()), evidence
+
+
+def _write_diagnostic_overlay(path: Path, diagnostics: list[ConversionDiagnosticV1]) -> None:
+    """Small deterministic BLOCK artefact: locations + stable diagnostic codes."""
+    marks = []
+    for d in diagnostics:
+        for x, y in d.source_points_dxf_mm:
+            marks.append((x, y, d.code))
+    if marks:
+        minx, maxx = min(x for x, _, _ in marks), max(x for x, _, _ in marks)
+        miny, maxy = min(y for _, y, _ in marks), max(y for _, y, _ in marks)
+    else:
+        minx = miny = 0.0; maxx = maxy = 1.0
+    span = max(maxx - minx, maxy - miny, 1.0)
+    def X(x): return 40 + (x - minx) * 720 / span
+    def Y(y): return 760 - (y - miny) * 720 / span
+    lines = ['<svg xmlns="http://www.w3.org/2000/svg" width="800" height="800">',
+             '<rect width="800" height="800" fill="white"/>']
+    for x, y, code in marks:
+        lines.append(f'<circle cx="{X(x):.1f}" cy="{Y(y):.1f}" r="7" fill="#d00"/>')
+        lines.append(f'<text x="{X(x)+10:.1f}" y="{Y(y):.1f}" font-size="12">{code}</text>')
+    if not marks:
+        lines.append('<text x="20" y="40" font-size="14">BLOCK: no local geometry available</text>')
+    lines.append('</svg>')
+    path.write_text("\n".join(lines), encoding="utf-8")
+
+
 # --------------------------------------------------------------------------- #
 # P2 orchestrator
 # --------------------------------------------------------------------------- #
@@ -1695,23 +1820,27 @@ def run_p2_conversion(dxf_path: Path, request: TarchConversionRequestV1,
     (staging, §0.1 方案A); nothing is promoted into a protected answer root here."""
     assert_staging_input(Path(dxf_path))
     work_dir = Path(work_dir)
+    assert_staging_work_dir(work_dir)
     work_dir.mkdir(parents=True, exist_ok=True)
-    tols = _tols_from(tooling, request.metres_per_unit,
-                      request.wall_thickness_range_m[1] / 2.0)
+    tols = _tols_from(tooling, request.metres_per_unit)
     affine = plan_view.world_from_source_m
 
     # S0-S4 (P1)
     p1 = run_p1_plan_view(dxf_path, request, plan_view, tooling)
     diags: list[ConversionDiagnosticV1] = list(p1.diagnostics)
 
-    # S5 cavities
-    cavities, wall_region, footprint, near = s5_identify_cavities(p1, request, tols, diags, affine)
-    # S6 intent binding
-    claims = s6_bind_intent(cavities, plan_view, tols, diags, affine)
+    # A hash/ownership BLOCK is an entrance barrier: do not enter any geometry
+    # stage (and therefore do not manufacture secondary topology diagnostics).
+    if any(d.severity == DiagnosticSeverity.BLOCK for d in diags):
+        cavities, wall_region, footprint, near, claims = [], Polygon(), Polygon(), [], []
+    else:
+        cavities, wall_region, footprint, near = s5_identify_cavities(p1, request, tols, diags, affine)
+        claims = s6_bind_intent(cavities, plan_view, tols, diags, affine)
     # S7 expand (only if no BLOCK so far and cavities claimed)
     zones: list[ZoneExpansion] = []
     if claims and not any(d.severity == DiagnosticSeverity.BLOCK for d in diags):
-        zones = s7_expand_zones(claims, wall_region, footprint, tols, diags, p1.wall_lines)
+        zones = s7_expand_zones(claims, wall_region, footprint, tols, diags,
+                                p1.wall_lines, p1.wall_bands)
 
     result = P2ConversionResult(p1=p1, cavities=cavities, wall_region=wall_region,
                                 footprint=footprint, near_threshold_faces=near, zones=zones,
@@ -1748,10 +1877,10 @@ def run_p2_conversion(dxf_path: Path, request: TarchConversionRequestV1,
                               context={"v3_code": g9_code}))
         gates.append(GateResultV1(id="G9", name="v3 extraction preflight", passed=g9_ok,
                                   evidence={"v3_code": g9_code}))
-        # G10 human-review overlay (machine part = artefact produced; verification stays candidate)
-        gates.append(GateResultV1(id="G10", name="human-review overlay", passed=overlay_path is not None,
-                                  evidence={"overlay_asset": str(overlay_path) if overlay_path else None,
-                                            "verification_status": "candidate"}))
+        # G10 is deliberately not a file-exists check: candidate != signed.
+        g10_ok, g10_evidence = _verify_human_review_ack(work_dir, request, Path(dxf_path), overlay_path)
+        gates.append(GateResultV1(id="G10", name="human-review overlay", passed=g10_ok,
+                                  evidence=g10_evidence))
         result.manifest = manifest
         result.augmented_dxf_path = augmented_path
         result.overlay_path = overlay_path
@@ -1759,10 +1888,14 @@ def run_p2_conversion(dxf_path: Path, request: TarchConversionRequestV1,
         result.gtv3_zone_edge_handles = zone_edge_handles
         result.source_map = source_map
     else:
+        overlay_path = work_dir / "overlay_diagnostics.svg"
+        _write_diagnostic_overlay(overlay_path, diags)
         gates.append(GateResultV1(id="G9", name="v3 extraction preflight", passed=False,
                                   evidence={"reason": "blocked upstream; no bundle built"}))
         gates.append(GateResultV1(id="G10", name="human-review overlay", passed=False,
-                                  evidence={"reason": "blocked upstream"}))
+                                  evidence={"reason": "blocked upstream", "overlay_asset": overlay_path.name,
+                                            "verification_status": "blocked"}))
+        result.overlay_path = overlay_path
 
     # deterministic gate ordering G1..G10
     order = {"G1": 0, "G2": 1, "G3": 2, "G4": 3, "G5": 4, "G6": 5, "G7": 6, "G8": 7, "G9": 8, "G10": 9}
@@ -1817,7 +1950,8 @@ def build_p2_report(result: P2ConversionResult, request: TarchConversionRequestV
                 thickness_m=(edge.thickness_native or 0.0) * mpu,
                 offset_m=edge.offset_native * mpu,
                 derived_handle=zeh.get((k, i)),
-                source_handles=edge.source_handles))
+                source_handles=edge.source_handles,
+                thickness_evidence=edge.thickness_evidence))
         if not edges_r:
             continue
         zones_r.append(ZoneReportV1(
@@ -1828,7 +1962,9 @@ def build_p2_report(result: P2ConversionResult, request: TarchConversionRequestV
             polygon_m=PolygonIRV1(exterior=RingV1(vertices=[_to_world(v, affine) for v in verts])),
             edges=edges_r))
 
-    status = "BLOCKED" if result.has_block else "PASS"
+    all_gates_passed = {g.id for g in result.gates} == {f"G{i}" for i in range(1, 11)} and all(
+        g.passed for g in result.gates)
+    status = "PASS" if not result.has_block and all_gates_passed else "BLOCKED"
     norm_hash = None
     if status == "PASS":
         norm_hash = hashlib.sha256(Path(augmented_dxf).read_bytes()).hexdigest() \

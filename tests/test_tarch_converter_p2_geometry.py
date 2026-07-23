@@ -24,6 +24,7 @@ this file owns the P2-introduced gates G4/G6/G7/G8/G9/G10.
 from __future__ import annotations
 
 import hashlib
+import json
 import shutil
 from pathlib import Path
 
@@ -115,10 +116,11 @@ def test_sm24_p2_exit_gate_all_green(tmp_path):
     # --- G9 v3 preflight accepts the augmented bundle ---
     assert gmap["G9"].passed
 
-    # --- every gate green, no BLOCK, PASS report ---
-    assert all(g.passed for g in res.gates)
+    # G10 is intentionally red until a hash-bound human signature exists.
+    assert not gmap["G10"].passed
+    assert gmap["G10"].evidence["verification_status"] == "candidate"
     assert not res.has_block
-    assert res.conversion_report.status == "PASS"
+    assert res.conversion_report.status == "BLOCKED"
     # zone areas sum to the footprint (200 m^2)
     assert sum(z.area_m2 for z in res.zones) == pytest.approx(200.0, abs=1e-6)
 
@@ -195,6 +197,12 @@ def _claims_for(cavities, labels):
     return claims
 
 
+def _proof_bands():
+    return [tn.WallBand("x", 0.0, 120.0, 0.0, 10000.0, 120.0, ["1A"]),
+            tn.WallBand("x", 0.0, 240.0, 0.0, 10000.0, 240.0, ["1B"]),
+            tn.WallBand("x", 0.0, 300.0, 0.0, 10000.0, 300.0, ["1C"])]
+
+
 def test_s7_single_room_outer_skin_expand_matches_hand_calc():
     """Convex (L-corner) case: one room, 240mm walls on all four sides, all outer_skin.
     Each cavity corner offsets outward by t=240 -> the zone == the outer-skin box, and
@@ -208,7 +216,7 @@ def test_s7_single_room_outer_skin_expand_matches_hand_calc():
     tols = tn._tols_from(tooling, 0.001, t / 1000.0 / 2)
     claims = _claims_for([cavity], ["z0"])
     diags = []
-    zones = tn.s7_expand_zones(claims, wall_region, outer, tols, diags, [])
+    zones = tn.s7_expand_zones(claims, wall_region, outer, tols, diags, [], _proof_bands())
     assert not diags
     z = zones[0]
     # zone == outer-skin box (room expanded by t on every side)
@@ -239,7 +247,7 @@ def test_s7_two_room_shared_wall_no_overlap():
     tols = tn._tols_from(tooling, 0.001, t / 1000.0 / 2)
     claims = _claims_for([left, right], ["z0", "z1"])
     diags = []
-    zones = tn.s7_expand_zones(claims, wall_region, outer, tols, diags, [])
+    zones = tn.s7_expand_zones(claims, wall_region, outer, tols, diags, [], _proof_bands())
     assert not diags
     a, b = zones[0].polygon, zones[1].polygon
     assert a.intersection(b).area == pytest.approx(0.0, abs=tols.topo_area_m2 / (0.001 ** 2))
@@ -264,7 +272,7 @@ def test_s7_cross_junction_four_rooms_tile():
     tols = tn._tols_from(tooling, 0.001, t / 1000.0 / 2)
     claims = _claims_for(cavities, ["z0", "z1", "z2", "z3"])
     diags = []
-    zones = tn.s7_expand_zones(claims, wall_region, outer, tols, diags, [])
+    zones = tn.s7_expand_zones(claims, wall_region, outer, tols, diags, [], _proof_bands())
     assert not diags
     polys = [z.polygon for z in zones]
     overlap = sum(polys[i].intersection(polys[j]).area
@@ -360,9 +368,9 @@ def test_synthetic_one_room_p2_all_green(tmp_path):
     tooling = resolve_converter_tooling(GT_CONFIG, VG_CONFIG)
     res = tn.run_p2_conversion(path, req, pv, tooling, tmp_path)
     assert len(res.zones) == 1
-    assert all(g.passed for g in res.gates), [(g.id, g.evidence) for g in res.gates if not g.passed]
+    assert not next(g for g in res.gates if g.id == "G10").passed
     assert not res.has_block
-    assert res.conversion_report.status == "PASS"
+    assert res.conversion_report.status == "BLOCKED"
     assert res.augmented_dxf_path and res.manifest and res.source_map and res.overlay_path
 
 
@@ -485,12 +493,64 @@ def test_p2_report_pass_round_trip(tmp_path):
     tooling = resolve_converter_tooling(GT_CONFIG, VG_CONFIG)
     res = tn.run_p2_conversion(dst, req, pv, tooling, tmp_path)
     report = res.conversion_report
-    assert report.status == "PASS"
+    assert report.status == "BLOCKED"
     reloaded = ConversionReportV1.model_validate_json(report.model_dump_json())
     assert reloaded == report
-    # every zone edge carries real source handles + a recorded basis (the G8 record)
-    for z in report.zones:
-        assert z.edges
-        for e in z.edges:
-            assert e.source_handles
-            assert e.basis in ("outer_skin", "wall_axis")
+
+
+def test_hash_mismatch_blocks_before_geometry_and_writes_only_diagnostic_overlay(tmp_path):
+    """B-03: declared source hash is checked before DXF geometry is consumed."""
+    dst = tmp_path / "source.dxf"
+    shutil.copyfile(SM24_SOURCE, dst)
+    req, pv = _sm24_request("0" * 64)
+    # Make the request self-hash valid: this isolates the source-byte mismatch.
+    req = req.model_copy(update={"request_sha256": compute_request_sha256(req)})
+    res = tn.run_p2_conversion(dst, req, pv, resolve_converter_tooling(GT_CONFIG, VG_CONFIG), tmp_path)
+    assert "tarch_input_source_hash_mismatch" in _codes(res)
+    assert res.zones == [] and res.augmented_dxf_path is None and res.manifest is None
+    assert res.source_map is None and res.overlay_path and res.overlay_path.name == "overlay_diagnostics.svg"
+    assert res.conversion_report.status == "BLOCKED"
+
+
+def test_g10_requires_hash_bound_ack_and_then_all_gates_pass(tmp_path):
+    """candidate overlay is not approval; only a three-hash human ack opens G10."""
+    dst = tmp_path / "source.dxf"
+    shutil.copyfile(SM24_SOURCE, dst)
+    sha = hashlib.sha256(dst.read_bytes()).hexdigest()
+    req, pv = _sm24_request(sha)
+    tooling = resolve_converter_tooling(GT_CONFIG, VG_CONFIG)
+    candidate = tn.run_p2_conversion(dst, req, pv, tooling, tmp_path)
+    assert not next(g for g in candidate.gates if g.id == "G10").passed
+    overlay_sha = hashlib.sha256(candidate.overlay_path.read_bytes()).hexdigest()
+    (tmp_path / "review_ack.json").write_text(json.dumps({
+        "reviewer": "reviewer_1", "signed_at": "2026-07-23T00:00:00Z", "decision": "approved",
+        "source_dxf_sha256": sha, "request_sha256": req.request_sha256, "overlay_sha256": overlay_sha}),
+        encoding="utf-8")
+    signed = tn.run_p2_conversion(dst, req, pv, tooling, tmp_path)
+    assert all(g.passed for g in signed.gates)
+    assert signed.conversion_report.status == "PASS"
+
+
+def test_same_wall_gate_splits_t_junction_overlaps_and_catches_conflicting_thickness():
+    """SW-04: one long edge is paired per overlap subinterval, not one-to-one."""
+    tooling = _tooling(); tols = tn._tols_from(tooling, 0.001)
+    def edge(a, b, thickness=240.0):
+        nx, ny = tn._outward_normal(a, b)
+        return tn._ZoneEdgeRec(nx, ny, "wall_axis", thickness, thickness / 2, p1=a, p2=b)
+    # Long left-side edge and two opposite, reversed right-side fragments.
+    z0 = tn.ZoneExpansion("c0", Polygon([(0, 0), (5, 0), (5, 10), (0, 10)]),
+                          [(0, 0), (5, 0), (5, 10), (0, 10)],
+                          [edge((0, 0), (5, 0)), edge((5, 0), (5, 10)),
+                           edge((5, 10), (0, 10)), edge((0, 10), (0, 0))], (1, 1), 1.0)
+    z1 = tn.ZoneExpansion("c1", Polygon([(5, 0), (10, 0), (10, 4), (5, 4)]),
+                          [(5, 0), (10, 0), (10, 4), (5, 4)],
+                          [edge((5, 0), (10, 0)), edge((10, 0), (10, 4)),
+                           edge((10, 4), (5, 4)), edge((5, 4), (5, 0))], (6, 1), 1.0)
+    z2 = tn.ZoneExpansion("c2", Polygon([(5, 4), (10, 4), (10, 10), (5, 10)]),
+                          [(5, 4), (10, 4), (10, 10), (5, 10)],
+                          [edge((5, 4), (10, 4)), edge((10, 4), (10, 10)),
+                           edge((10, 10), (5, 10)), edge((5, 10), (5, 4), 120.0)], (6, 6), 1.0)
+    ok, pairs = tn._same_wall_consistency([z0, z1, z2], tols)
+    vertical = [p for p in pairs if p["axis"] == "y" and p["coord_native"] == 5]
+    assert not ok and [p["overlap_native"] for p in vertical] == [[0, 4], [4, 10]]
+    assert [p["consistent"] for p in vertical] == [True, False]

@@ -129,7 +129,9 @@ def test_diagnostic_registry_nonempty_and_codes_match_literal():
     registry_codes = set(TARCH_DIAGNOSTIC_REGISTRY.keys())
     assert literal_codes == registry_codes
     assert set(ALL_DIAGNOSTIC_CODES) == registry_codes
-    assert len(registry_codes) >= 30  # both tables merged, deduped
+    # Only production-emittable codes remain online; stale skeleton-only codes are
+    # deliberately removed rather than advertised without a fail-closed branch.
+    assert len(registry_codes) >= 20
 
 
 def test_no_warn_severity_and_every_block_has_remedy():

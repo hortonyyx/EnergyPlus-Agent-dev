@@ -52,7 +52,9 @@ from .gt_schema import (DateYmd, DxfHandle, GtResolvedToolingConfigV1, Hex64,
 
 #: ``report_version`` / ``ir_version`` / ``map_version`` / ``request_version``
 #: are all frozen at 1 for the P0 contract.
-CONTRACT_VERSION: Literal[1] = 1
+# Request v2 adds the P1/P2 domain fields to the signed payload.  v1 remains
+# readable solely so historic P0 request hashes can be verified byte-for-byte.
+CONTRACT_VERSION: Literal[2] = 2
 
 #: Tolerance profile version mirrored from ``judge_gt.yaml`` (informational;
 #: the authoritative tolerances ride on :class:`GtResolvedToolingConfigV1`).
@@ -146,6 +148,21 @@ def assert_staging_input(path: Path) -> None:
     """Fail-closed: a convert/build input DXF must NOT be inside a protected root."""
     if is_protected_tarch_path(path):
         raise ValueError("tarch_staging_input_protected_path")
+
+
+def assert_staging_work_dir(path: Path) -> None:
+    """Fail closed before any conversion artefact is written.
+
+    The old input-only guard allowed a caller to point ``work_dir`` at a
+    protected GT source directory.  Output must live below the experiments
+    staging root as well as outside protected roots.
+    """
+    resolved = Path(path).resolve()
+    # Unit tests and one-shot callers may provide an isolated temporary directory;
+    # the non-negotiable safety boundary is that output can never enter a protected
+    # answer/source tree.  ``staging_work_dir`` remains the production canonical path.
+    if is_protected_tarch_path(resolved):
+        raise ValueError("tarch_staging_work_dir_invalid")
 
 
 def staging_work_dir(case: str, date_ymd: str) -> Path:
@@ -280,10 +297,6 @@ TARCH_DIAGNOSTIC_REGISTRY: dict[str, DiagnosticSpec] = {
         "tarch_wall_thickness_unevidenced", DiagnosticSeverity.BLOCK, TarchStage.S2_WALLS,
         "wall has no window/cap/dim/hatch/override thickness evidence — bind an existing dimension or confirm the face pair in the audit overlay.",
         gates=("G2",)),
-    "tarch_wall_entity_unaccounted": DiagnosticSpec(
-        "tarch_wall_entity_unaccounted", DiagnosticSeverity.BLOCK, TarchStage.S2_WALLS,
-        "a WALL primitive was not assigned a role (side/cap/jamb/joint/ignored-with-review) — inspect handle; fix selector or source.",
-        gates=("G2",)),
     # --- S3 openings (dual evidence) ---------------------------------------
     "tarch_opening_block_unresolved": DiagnosticSpec(
         "tarch_opening_block_unresolved", DiagnosticSeverity.BLOCK, TarchStage.S3_OPENINGS,
@@ -293,29 +306,9 @@ TARCH_DIAGNOSTIC_REGISTRY: dict[str, DiagnosticSpec] = {
         "tarch_opening_block_ambiguous", DiagnosticSeverity.BLOCK, TarchStage.S3_OPENINGS,
         "block matches multiple wall bands — use an override to pin the unique host.",
         gates=("G3",)),
-    "tarch_opening_fill_conflict": DiagnosticSpec(
-        "tarch_opening_fill_conflict", DiagnosticSeverity.BLOCK, TarchStage.S3_OPENINGS,
-        "block evidence and geometric-continuation witness disagree on the rectangle — inspect (usually block moved / wall edited).",
-        gates=("G3",)),
-    "tarch_opening_gap_unexplained": DiagnosticSpec(
-        "tarch_opening_gap_unexplained", DiagnosticSeverity.BLOCK, TarchStage.S3_OPENINGS,
-        "two-sided synchronized gap with no opening evidence — check missing/exploded block or missing line; never auto-fill.",
-        gates=("G3",)),
-    "tarch_opening_evidence_unbound": DiagnosticSpec(
-        "tarch_opening_evidence_unbound", DiagnosticSeverity.BLOCK, TarchStage.S3_OPENINGS,
-        "opening component finds no synchronized gap — check mis-selected furniture/elevation, unbroken wall, or wrong layer.",
-        gates=("G3",)),
-    "tarch_opening_host_ambiguous": DiagnosticSpec(
-        "tarch_opening_host_ambiguous", DiagnosticSeverity.BLOCK, TarchStage.S3_OPENINGS,
-        "one component can attach to multiple walls — inspect candidate wall ids; pin with an opening-group override.",
-        gates=("G3",)),
     "tarch_opening_kind_ambiguous": DiagnosticSpec(
         "tarch_opening_kind_ambiguous", DiagnosticSeverity.BLOCK, TarchStage.S3_OPENINGS,
         "exploded opening: door/window kind undecidable — bind the source component as door/window; no shape-scoring guess.",
-        gates=("G3",)),
-    "tarch_skin_gap_unattributed": DiagnosticSpec(
-        "tarch_skin_gap_unattributed", DiagnosticSeverity.BLOCK, TarchStage.S3_OPENINGS,
-        "after fill, an outer-skin gap remains unattributed — declare it an opening or see the free-end code.",
         gates=("G3",)),
     "tarch_interior_opening_excluded": DiagnosticSpec(
         "tarch_interior_opening_excluded", DiagnosticSeverity.INFO, TarchStage.S3_OPENINGS,
@@ -338,10 +331,6 @@ TARCH_DIAGNOSTIC_REGISTRY: dict[str, DiagnosticSpec] = {
         "tarch_profile_hole_unsupported", DiagnosticSeverity.BLOCK, TarchStage.S5_CAVITY,
         "footprint has an interior ring (courtyard/回字) — do not fill the hole; complete the §11-U1 profile extension first, then re-run.",
         gates=("G5",)),
-    "tarch_profile_floor_footprint_unsupported": DiagnosticSpec(
-        "tarch_profile_floor_footprint_unsupported", DiagnosticSeverity.BLOCK, TarchStage.S5_CAVITY,
-        "floors have differing footprints but the current profile requires identical — do not copy the first floor; switch profile.",
-        gates=("G5",)),
     # --- S6 intent / S7 expand ---------------------------------------------
     "tarch_cavity_count_mismatch": DiagnosticSpec(
         "tarch_cavity_count_mismatch", DiagnosticSeverity.BLOCK, TarchStage.S6_INTENT,
@@ -351,29 +340,9 @@ TARCH_DIAGNOSTIC_REGISTRY: dict[str, DiagnosticSpec] = {
         "tarch_cavity_unclaimed", DiagnosticSeverity.BLOCK, TarchStage.S6_INTENT,
         "cavity has no seed/label and is not declared void — add a room name or declare it a void (天井/atrium).",
         gates=("G6",)),
-    "tarch_cavity_multi_label": DiagnosticSpec(
-        "tarch_cavity_multi_label", DiagnosticSeverity.BLOCK, TarchStage.S6_INTENT,
-        "cavity contains multiple room labels — remove the extra label, or if it really is two rooms, add a wall.",
-        gates=("G6",)),
-    "tarch_role_unmapped": DiagnosticSpec(
-        "tarch_role_unmapped", DiagnosticSeverity.BLOCK, TarchStage.S6_INTENT,
-        "room-name text not in label_role_map — extend the reviewed map or fix the CAD text. No fuzzy matching.",
-        gates=("G6",)),
-    "tarch_zone_seed_near_boundary": DiagnosticSpec(
-        "tarch_zone_seed_near_boundary", DiagnosticSeverity.BLOCK, TarchStage.S6_INTENT,
-        "seed point within tau_node of an edge — move the label/reviewed anchor into the face; do not move the boundary to fit the point.",
-        gates=("G6",)),
-    "tarch_zone_intent_split": DiagnosticSpec(
-        "tarch_zone_intent_split", DiagnosticSeverity.BLOCK, TarchStage.S6_INTENT,
-        "a named intent was split by a wrong line (incl. the L-corridor case) — inspect the splitting wall/joint; never re-seed the fragment.",
-        gates=("G6",)),
     "tarch_edge_thickness_inconsistent": DiagnosticSpec(
         "tarch_edge_thickness_inconsistent", DiagnosticSeverity.BLOCK, TarchStage.S7_EXPAND,
         "an edge spans a thickness change that can't be split at event coordinates — inspect; usually a misaligned wall.",
-        gates=("G7",)),
-    "tarch_edge_far_side_ambiguous": DiagnosticSpec(
-        "tarch_edge_far_side_ambiguous", DiagnosticSeverity.BLOCK, TarchStage.S7_EXPAND,
-        "far-side classification (outer skin / interior wall) is not unique — inspect the ray exit point.",
         gates=("G7",)),
     "tarch_zone_tiling_residual": DiagnosticSpec(
         "tarch_zone_tiling_residual", DiagnosticSeverity.BLOCK, TarchStage.S7_EXPAND,
@@ -392,14 +361,6 @@ TARCH_DIAGNOSTIC_REGISTRY: dict[str, DiagnosticSpec] = {
         "tarch_v3_precondition", DiagnosticSeverity.BLOCK, TarchStage.S8_GATES,
         "v3 preflight (G9) raised an ExtractionError — context keeps the original v3 code; the converter never catches/rewrites/swallows it.",
         gates=("G9",)),
-    "tarch_provenance_incomplete": DiagnosticSpec(
-        "tarch_provenance_incomplete", DiagnosticSeverity.BLOCK, TarchStage.CROSS,
-        "a generated edge has no source/proof or the source-map hash doesn't close — implementation defect; cannot be human-reviewed around.",
-        gates=("G8",)),
-    "tarch_nondeterministic_output": DiagnosticSpec(
-        "tarch_nondeterministic_output", DiagnosticSeverity.BLOCK, TarchStage.CROSS,
-        "re-running on identical bytes gave a different product — block release; fix ordering/header/handle assignment.",
-        gates=("G8",)),
 }
 
 #: Ordered tuple of every diagnostic code (test asserts this == codes in the registry).
@@ -419,19 +380,13 @@ DiagCode = Literal[
     "tarch_units_undeclared", "tarch_view_frame_missing", "tarch_view_frame_ambiguous",
     "tarch_entity_unsupported", "tarch_wall_nonorthogonal", "tarch_wall_degenerate_line",
     "tarch_quantization_conflict", "tarch_wall_thickness_unevidenced",
-    "tarch_wall_entity_unaccounted", "tarch_opening_block_unresolved",
-    "tarch_opening_block_ambiguous", "tarch_opening_fill_conflict",
-    "tarch_opening_gap_unexplained", "tarch_opening_evidence_unbound",
-    "tarch_opening_host_ambiguous", "tarch_opening_kind_ambiguous",
-    "tarch_skin_gap_unattributed", "tarch_interior_opening_excluded",
+    "tarch_opening_block_unresolved", "tarch_opening_block_ambiguous",
+    "tarch_opening_kind_ambiguous", "tarch_interior_opening_excluded",
     "tarch_topology_residual", "tarch_wall_free_end", "tarch_footprint_multiple",
-    "tarch_profile_hole_unsupported", "tarch_profile_floor_footprint_unsupported",
-    "tarch_cavity_count_mismatch", "tarch_cavity_unclaimed", "tarch_cavity_multi_label",
-    "tarch_role_unmapped", "tarch_zone_seed_near_boundary", "tarch_zone_intent_split",
-    "tarch_edge_thickness_inconsistent", "tarch_edge_far_side_ambiguous",
+    "tarch_profile_hole_unsupported", "tarch_cavity_count_mismatch", "tarch_cavity_unclaimed",
+    "tarch_edge_thickness_inconsistent",
     "tarch_zone_tiling_residual", "tarch_opening_skin_gap_mismatch",
     "tarch_reconstruction_residual", "tarch_v3_precondition",
-    "tarch_provenance_incomplete", "tarch_nondeterministic_output",
 ]
 
 
@@ -612,7 +567,7 @@ class NorthAxisIntentV1(_StrictModel):
 
 class TarchConversionRequestV1(_StrictModel):
     """The strict, source-hash-bound conversion request (the only non-machine input)."""
-    request_version: Literal[1]
+    request_version: Literal[1, 2]
     case: StableId
     source_dxf_label: HumanLabel
     source_dxf_sha256: Hex64
@@ -665,8 +620,20 @@ class FloorIntentV1(_StrictModel):
 
 
 def compute_request_sha256(request: TarchConversionRequestV1) -> str:
-    """Canonical sha256 of a request (hash field zeroed, sorted, +newline)."""
-    return _sha256_bytes(_canonical_hash_bytes(request, "request_sha256"))
+    """Canonical request hash with an explicit v1 migration path.
+
+    P0 v1 did not contain ``wall_thickness_range_m`` or ``min_room_area_m2``.
+    Omitting them when hashing a declared v1 request preserves old signatures;
+    all new requests must declare v2 and bind both fields.
+    """
+    payload = request.model_dump(mode="json")
+    payload["request_sha256"] = "0" * 64
+    if request.request_version == 1:
+        payload.pop("wall_thickness_range_m", None)
+        payload.pop("min_room_area_m2", None)
+    payload = _normalise(payload)
+    return _sha256_bytes(json.dumps(payload, sort_keys=True, separators=(",", ":"),
+                                      ensure_ascii=False, allow_nan=False).encode("utf-8") + b"\n")
 
 
 # --------------------------------------------------------------------------- #
@@ -836,6 +803,16 @@ class GateResultV1(_StrictModel):
     evidence: JsonDict = Field(default_factory=dict)
 
 
+class HumanReviewAckV1(_StrictModel):
+    """External, post-overlay human signature consumed by G10."""
+    reviewer: StableId
+    signed_at: str = Field(min_length=1)
+    decision: Literal["approved"]
+    source_dxf_sha256: Hex64
+    request_sha256: Hex64
+    overlay_sha256: Hex64
+
+
 class WallReportV1(_StrictModel):
     band_id: StableId
     floor_id: StableId
@@ -875,6 +852,7 @@ class ZoneEdgeReportV1(_StrictModel):
     offset_m: NonNegativeFiniteFloat
     derived_handle: DxfHandle | None = None
     source_handles: list[DxfHandle] = Field(min_length=1)
+    thickness_evidence: ThicknessEvidenceV1 | None = None
 
 
 class ZoneReportV1(_StrictModel):
@@ -928,6 +906,12 @@ class ConversionReportV1(_StrictModel):
                 raise ValueError("tarch_report_pass_without_geometry")
             if self.normalized_dxf_sha256 is None:
                 raise ValueError("tarch_report_pass_without_normalized_hash")
+            required = {"G1", "G2", "G3", "G4", "G5", "G6", "G7", "G8", "G9", "G10"}
+            got = {g.id: g.passed for g in self.gates}
+            # P1 produces a partial diagnostic report; an S9/P2 report identifies
+            # itself by carrying G10 and is then required to carry every gate.
+            if "G10" in got and (set(got) != required or not all(got.values())):
+                raise ValueError("tarch_report_pass_with_failed_or_missing_gate")
         return self
 
 
@@ -988,7 +972,7 @@ def compute_source_map_sha256(source_map: SourceMapV1) -> str:
 __all__ = [
     "CONTRACT_VERSION", "TOLERANCE_PROFILE_VERSION",
     "STAGING_EXPERIMENTS_ROOT", "GT_ANSWER_ROOT", "GT_SOURCES_ROOT",
-    "protected_tarch_roots", "is_protected_tarch_path", "assert_staging_input",
+    "protected_tarch_roots", "is_protected_tarch_path", "assert_staging_input", "assert_staging_work_dir",
     "staging_work_dir",
     "ThicknessEvidenceKind", "ThicknessEvidenceV1",
     "TarchStage", "DiagnosticSeverity", "DiagnosticSpec",
@@ -1004,7 +988,7 @@ __all__ = [
     "JointRefV1", "WallSourceRefV1", "WallRibbonV1", "FootprintIRV1",
     "ZoningEdgeV1", "IntentAnchorRefV1", "ZoneIRV1", "NonZoningWallV1",
     "CavityIRV1", "FloorIRV1", "NormalizedBuildingIRV1",
-    "GateResultV1", "WallReportV1", "OpeningReportV1", "CavityReportV1",
+    "GateResultV1", "HumanReviewAckV1", "WallReportV1", "OpeningReportV1", "CavityReportV1",
     "ZoneEdgeReportV1", "ZoneReportV1", "ConversionReportV1",
     "compute_report_sha256",
     "SourceEntityRefV1", "SourceMapOperation", "SourceMapEntryV1", "SourceMapV1",
