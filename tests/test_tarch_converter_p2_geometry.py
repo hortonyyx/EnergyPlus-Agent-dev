@@ -8,9 +8,11 @@ Scope (dispatch §1, P2 exit gate, brief §1-§2):
     the human-review overlay lands.  Every number below is THIS implementation's
     independent output (never copied from probes/ as an unverified expectation).
   * a controlled single-room + multi-room expand (S7) where the rebuilt zone vertices
-    are checked against a hand calculation, for the L / T / cross junctions.
-  * a free-end that S4 must block before S7 ever runs (free-ends never reach S7).
-  * a thickness-change-across-an-edge split (plan §4 S7-3).
+    are checked against a hand calculation, for L / T / cross junctions; T has a
+    split-overlap conflict negative, and cross has the corresponding conflict negative.
+  * a free-end negative that S4 blocks before S7; the non-zoning positive is explicitly
+    deferred by plan §2.6 (not silently treated as supported).
+  * one- and two-event thickness-change profiles plus the no-proof fail-closed path.
   * the nine-gate must-red fixtures (discipline #5): G4/G6/G7/G8/G9 each gets a negative
     case asserting the EXACT gate goes red.  G8's must-red flips one edge's recorded
     basis+thickness so the independent rebuild diverges from the measured wall region
@@ -205,6 +207,23 @@ def _proof_bands():
             tn.WallBand("x", 0.0, 300.0, 0.0, 10000.0, 300.0, ["1C"])]
 
 
+def _p2_g8_gate(zones, cavities, wall_region, footprint, tols):
+    """Run the production P2 gate assembly and return G8 plus its diagnostics.
+
+    The small matrix fixtures do not need a DXF, but they must still enter the
+    same G8 assembly used by ``run_p2_conversion`` rather than inspect a helper
+    result in isolation.
+    """
+    req, pv = _sm24_request("a" * 64)
+    diags = []
+    p1 = SimpleNamespace(gates=[], openings=[], wall_lines=[])
+    gates = tn._build_p2_gates(
+        p1, cavities, wall_region, footprint, zones,
+        _claims_for(cavities, [f"z{i}" for i in range(len(cavities))]), [],
+        req, pv, tols, diags)
+    return next(g for g in gates if g.id == "G8"), diags
+
+
 def test_s7_single_room_outer_skin_expand_matches_hand_calc():
     """Convex (L-corner) case: one room, 240mm walls on all four sides, all outer_skin.
     Each cavity corner offsets outward by t=240 -> the zone == the outer-skin box, and
@@ -232,6 +251,36 @@ def test_s7_single_room_outer_skin_expand_matches_hand_calc():
     # G8 rebuilds the wall region from zones+offsets only (independent of S5 wall_region)
     recon = tn.g8_reconstruct_wall_region(zones)
     assert recon.symmetric_difference(wall_region).area < tols.topo_area_m2 / (0.001 ** 2)
+
+
+def test_l_corner_self_intersection_blocks_g8():
+    """L negative: a bow-tie outer-corner record is rejected by the real G8 gate.
+
+    S7 first produces the hand-checked legal outer rectangle
+    ``(1000,1000)->(7000,1000)->(7000,5000)->(1000,5000)``.  Replacing the
+    recorded output boundary by the hand-written bow-tie
+    ``(1000,1000)->(7000,1000)->(1000,5000)->(7000,5000)`` creates an illegal
+    crossing at (4000,3000).  G8 must reconstruct a non-zero residual and BLOCK;
+    it may not silently repair that record.
+    """
+    t = 240.0
+    outer = Polygon([(1000, 1000), (7000, 1000), (7000, 5000), (1000, 5000)])
+    cavity = Polygon([(1000 + t, 1000 + t), (7000 - t, 1000 + t),
+                      (7000 - t, 5000 - t), (1000 + t, 5000 - t)])
+    wall_region = outer.difference(cavity)
+    tols = tn._tols_from(_tooling(), 0.001, t / 1000.0 / 2)
+    zones = tn.s7_expand_zones(_claims_for([cavity], ["z0"]), wall_region, outer,
+                               tols, [], [], _proof_bands())
+    assert zones[0].vertices == [(1000.0, 1000.0), (7000.0, 1000.0),
+                                 (7000.0, 5000.0), (1000.0, 5000.0)]
+    bow_tie = [(1000.0, 1000.0), (7000.0, 1000.0),
+               (1000.0, 5000.0), (7000.0, 5000.0)]
+    assert not Polygon(bow_tie).is_valid
+    for i, edge in enumerate(zones[0].edges):
+        edge.p1, edge.p2 = bow_tie[i], bow_tie[(i + 1) % len(bow_tie)]
+    g8, diags = _p2_g8_gate(zones, [cavity], wall_region, outer, tols)
+    assert not g8.passed and g8.evidence["symmetric_diff_m2"] > 0
+    assert "tarch_reconstruction_residual" in {d.code for d in diags}
 
 
 def test_s7_two_room_shared_wall_no_overlap():
@@ -594,6 +643,25 @@ def test_s7_event_profile_detects_two_changes_and_is_range_invariant():
     assert profiles[0] == profiles[1]
 
 
+def test_s7_thickness_without_independent_proof_emits_fail_closed_diagnostic():
+    """Thickness negative: 240mm is geometrically measurable but no S2 proof exists.
+
+    The hand geometry is the same 240mm outer-skin box as the L positive; omitting
+    every cap/jamb proof must therefore be reported as unevidenced, not inferred
+    from the wall region alone.
+    """
+    t = 240.0
+    outer = Polygon([(1000, 1000), (7000, 1000), (7000, 5000), (1000, 5000)])
+    cavity = Polygon([(1000 + t, 1000 + t), (7000 - t, 1000 + t),
+                      (7000 - t, 5000 - t), (1000 + t, 5000 - t)])
+    tols = tn._tols_from(_tooling(), 0.001, t / 1000.0 / 2)
+    diags = []
+    zones = tn.s7_expand_zones(_claims_for([cavity], ["z0"]), outer.difference(cavity),
+                               outer, tols, diags, [], [])
+    assert len(zones) == 1
+    assert "tarch_wall_thickness_unevidenced" in {d.code for d in diags}
+
+
 def test_same_wall_gate_splits_t_junction_overlaps_and_catches_conflicting_thickness():
     """SW-04: one long edge is paired per overlap subinterval, not one-to-one."""
     tooling = _tooling(); tols = tn._tols_from(tooling, 0.001)
@@ -617,3 +685,37 @@ def test_same_wall_gate_splits_t_junction_overlaps_and_catches_conflicting_thick
     vertical = [p for p in pairs if p["axis"] == "y" and p["coord_native"] == 5]
     assert not ok and [p["overlap_native"] for p in vertical] == [[0, 4], [4, 10]]
     assert [p["consistent"] for p in vertical] == [True, False]
+
+
+def test_cross_junction_conflicting_segment_blocks_same_wall_gate():
+    """Cross negative: one of the two opposite subsegments disagrees on thickness."""
+    tooling = _tooling(); tols = tn._tols_from(tooling, .001)
+    def edge(a, b, t=240.):
+        nx, ny = tn._outward_normal(a, b)
+        return tn._ZoneEdgeRec(nx, ny, "wall_axis", t, t / 2, p1=a, p2=b)
+    # Two independent cross arms: vertical shared edge is split around its centre.
+    left = tn.ZoneExpansion("left", Polygon([(0, 0), (5, 0), (5, 10), (0, 10)]),
+        [(0, 0), (5, 0), (5, 10), (0, 10)],
+        [edge((0,0),(5,0)), edge((5,0),(5,10)), edge((5,10),(0,10)), edge((0,10),(0,0))], (1,1), 1.)
+    low = tn.ZoneExpansion("low", Polygon([(5, 0), (10, 0), (10, 4), (5, 4)]),
+        [(5,0),(10,0),(10,4),(5,4)],
+        [edge((5,0),(10,0)),edge((10,0),(10,4)),edge((10,4),(5,4)),edge((5,4),(5,0))], (6,1),1.)
+    high = tn.ZoneExpansion("high", Polygon([(5, 6), (10, 6), (10, 10), (5, 10)]),
+        [(5,6),(10,6),(10,10),(5,10)],
+        [edge((5,6),(10,6)),edge((10,6),(10,10)),edge((10,10),(5,10)),edge((5,10),(5,6),120)], (6,8),1.)
+    ok, pairs = tn._same_wall_consistency([left, low, high], tols)
+    assert not ok
+    assert [p["overlap_native"] for p in pairs if p["axis"] == "y"] == [[0, 4], [6, 10]]
+    # Feed this exact split conflict to the real P2 gate, not merely the pairing helper.
+    footprint = Polygon([(0, 0), (10, 0), (10, 10), (0, 10)])
+    g8, diags = _p2_g8_gate([left, low, high], [left.polygon, low.polygon, high.polygon],
+                            footprint.difference(unary_union([left.polygon, low.polygon, high.polygon])),
+                            footprint, tols)
+    assert not g8.passed and g8.evidence["same_wall_conflict_count"] == 1
+    assert "tarch_edge_thickness_inconsistent" in {d.code for d in diags}
+
+
+@pytest.mark.xfail(reason="§2.6 free-end non_zoning proof path is deferred; current S4 blocks every dangle fail-closed")
+def test_free_end_non_zoning_with_proof_deferred():
+    """Documented deferred positive: do not turn this into a dangle bypass."""
+    pytest.fail("deferred by §2.6")
