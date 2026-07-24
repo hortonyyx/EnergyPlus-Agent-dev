@@ -354,12 +354,18 @@ def test_plan_only_mismatch_and_duplicate_projection_key_are_rejected():
     assert _issue(exc) == "gt_source_duplicate_projection_surface_key"
 
 
-def test_opening_host_with_two_positive_boundary_zone_matches_is_rejected():
+def test_opening_host_uses_its_span_and_true_crossing_is_rejected():
     payload = _opening_payload(observed=False)
     zone = payload["floors"][0]["zones"][0]
     zone["polygon"]["exterior"]["vertices"] = [[0.0, 0.0], [2.0, 0.0], [2.0, 3.0], [0.0, 3.0]]
     payload["floors"][0]["zones"].append(copy.deepcopy(zone) | {"id": "Z2", "name": "Zone 2", "polygon": {"exterior": {"vertices": [[2.0, 0.0], [4.0, 0.0], [4.0, 3.0], [2.0, 3.0]]}, "interior_rings": []}})
-    document = GroundTruthV3.model_validate(payload)
+    # O1 [1,2] is wholly covered by Z1; merely touching Z2 at the endpoint is
+    # not a second host even though both zones share the long South facade.
+    document = GroundTruthV3.model_validate(_rehash(payload))
+    validate_gt_v3(document, tolerances=document.generator.tolerances)
+    # A true cross-zone opening has no unique full-span host and remains red.
+    payload["openings"][0]["world_along_interval"]["hi"] = 3.0
+    document = GroundTruthV3.model_validate(_rehash(payload))
     with pytest.raises(GtValidationError) as exc:
         validate_gt_v3(document, tolerances=document.generator.tolerances)
     assert _issue(exc) == "gt_opening_host_zone_boundary_mismatch"

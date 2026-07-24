@@ -461,6 +461,30 @@ def _host_zones(floor: PlanFloorExtraction, segment: GtBoundarySegmentV3) -> lis
     return sorted(hits)
 
 
+def _host_zones_for_opening(floor: PlanFloorExtraction, segment: GtBoundarySegmentV3,
+                            interval: GtWorldIntervalV3) -> list[str]:
+    """Return zones whose exterior edge covers this opening's *entire* span.
+
+    Vg derives a facade segment from a footprint edge, so one long exterior
+    segment can legitimately face several zones.  Segment-level host matching is
+    therefore only a candidate filter; opening attachment must be decided at the
+    opening interval.  No tolerance expansion is applied here: a window touching
+    or crossing a zone join has no unique full-span host and must fail closed.
+    """
+    horizontal = _is_horizontal(tuple(segment.p1), tuple(segment.p2))
+    hits: list[str] = []
+    for zone in floor.zones:
+        vertices = [tuple(point) for point in zone.polygon.exterior.vertices]
+        for a, b in zip(vertices, vertices[1:] + vertices[:1]):
+            if not _positive_collinear_overlap(a, b, tuple(segment.p1), tuple(segment.p2)):
+                continue
+            lo, hi = sorted((a[0], b[0]) if horizontal else (a[1], b[1]))
+            if lo <= interval.lo and interval.hi <= hi:
+                hits.append(zone.id)
+                break
+    return sorted(hits)
+
+
 def _entity_by_locator(msp, locator: EntityLocatorV1):
     matches = [entity for entity in msp if _handle(entity) == locator.handle]
     if len(matches) != 1:
@@ -682,7 +706,7 @@ def extract_gt_v3(inputs: ExtractionInputs) -> GroundTruthV3:
                 _fail("opening_segment_assignment_no_candidate")
             if len(legal) > 1 and abs(legal[1][0] - legal[0][0]) <= inputs.tooling.tolerances.opening_assignment_tie_epsilon_m and abs(legal[1][1] - legal[0][1]) <= inputs.tooling.tolerances.opening_assignment_tie_epsilon_m:
                 _fail("opening_segment_assignment_ambiguous")
-            hosts = _host_zones(plan_floor, legal[0][2])
+            hosts = _host_zones_for_opening(plan_floor, legal[0][2], interval)
             if len(hosts) != 1:
                 _fail("opening_host_zone_ambiguous")
             openings.append(GtOpeningV3(id=binding.opening_id, kind=binding.kind, floor_id=plan_floor.id,

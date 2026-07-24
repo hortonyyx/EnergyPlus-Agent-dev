@@ -5,6 +5,7 @@ import hashlib
 import json
 import subprocess
 import sys
+from types import SimpleNamespace
 from pathlib import Path
 
 import ezdxf
@@ -19,7 +20,8 @@ from src.agent.judge.gt_manifest import (GtExtractionManifestV1,
                                           load_gt_tooling_config)
 from src.agent.judge.gt_schema import (REPO_ROOT, canonical_gt_v3_bytes,
                                        compute_gt_implementation_hashes,
-                                       compute_gt_v3_content_sha256)
+                                       compute_gt_v3_content_sha256,
+                                       GtWorldIntervalV3)
 from scripts.tool_scripts import gt_from_dxf as gfd
 
 
@@ -124,6 +126,50 @@ def test_opening_no_candidate_and_tie_fail_closed(tmp_path):
     _dxf(tie, ring=[(0, 0), (4, 0), (4, .6), (2, .6), (2, 3), (0, 3)], plan_box=(2.5, .25, 3.5, .35))
     with pytest.raises(ExtractionError, match="opening_segment_assignment_ambiguous"):
         _extract(tie, _manifest(tie))
+
+
+def test_opening_host_uses_its_interval_not_the_entire_shared_facade_segment():
+    """A shared facade has several candidate zones; a window may still have one host."""
+    def zone(zone_id, ring):
+        return SimpleNamespace(id=zone_id, polygon=SimpleNamespace(
+            exterior=SimpleNamespace(vertices=ring)))
+    floor = SimpleNamespace(zones=[
+        zone("Z1", [[0.0, 0.0], [5.0, 0.0], [5.0, 4.0], [0.0, 4.0]]),
+        zone("Z2", [[5.0, 0.0], [10.0, 0.0], [10.0, 4.0], [5.0, 4.0]]),
+    ])
+    segment = SimpleNamespace(p1=[0.0, 0.0], p2=[10.0, 0.0])
+    # Whole-segment matching sees both rooms, which is valid for a shared facade.
+    assert extraction_module._host_zones(floor, segment) == ["Z1", "Z2"]
+    assert extraction_module._host_zones_for_opening(
+        floor, segment, GtWorldIntervalV3(lo=1.0, hi=2.0)) == ["Z1"]
+    # A window genuinely crossing x=5 has no full-span host and remains fail-closed.
+    assert extraction_module._host_zones_for_opening(
+        floor, segment, GtWorldIntervalV3(lo=4.5, hi=5.5)) == []
+    # Overlapping/corrupt zone boundaries produce multiple hosts rather than a guess.
+    ambiguous_floor = SimpleNamespace(zones=[*floor.zones,
+        zone("Z3", [[0.0, 0.0], [5.0, 0.0], [5.0, 1.0], [0.0, 1.0]])])
+    assert extraction_module._host_zones_for_opening(
+        ambiguous_floor, segment, GtWorldIntervalV3(lo=1.0, hi=2.0)) == ["Z1", "Z3"]
+
+
+def test_sm24_converter_output_runs_full_v3_opening_attachment(tmp_path):
+    """Regression: G9 preflight is insufficient; run converter output through full v3 build."""
+    from tests import test_tarch_converter_p2_geometry as tarch_p2
+    from src.agent.judge import tarch_normalize as tarch
+
+    source = tmp_path / "source.dxf"
+    source.write_bytes(tarch_p2.SM24_SOURCE.read_bytes())
+    sha = hashlib.sha256(source.read_bytes()).hexdigest()
+    request, plan_view = tarch_p2._sm24_request(sha)
+    tooling = tarch_p2.resolve_converter_tooling(tarch_p2.GT_CONFIG, tarch_p2.VG_CONFIG)
+    converted = tarch.run_p2_conversion(source, request, plan_view, tooling, tmp_path / "conversion")
+    assert converted.augmented_dxf_path and converted.manifest
+    doc = extract_gt_v3(ExtractionInputs(converted.augmented_dxf_path, converted.manifest,
+                                          tooling, compute_gt_implementation_hashes(REPO_ROOT)))
+    assert len(doc.floors) == 1 and len(doc.floors[0].zones) == 8
+    assert len(doc.openings) == 14
+    zone_ids = {zone.id for zone in doc.floors[0].zones}
+    assert all(opening.host_zone_id in zone_ids for opening in doc.openings)
 
 
 def test_reordered_dxf_entity_iteration_has_identical_canonical_candidate(monkeypatch, tmp_path):

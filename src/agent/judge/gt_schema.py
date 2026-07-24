@@ -614,18 +614,20 @@ def validate_gt_v3(doc: GroundTruthV3, *, tolerances: GtResolvedToolingTolerance
                 _fail("gt_opening_elevation_evidence_mismatch", ptr)
         elif opening.z_interval is not None or observed_elevation_views:
             _fail("gt_opening_plan_only_evidence_mismatch", ptr)
-        def shares_positive_boundary_width(zone: GtZoneV3) -> bool:
+        def covers_opening_boundary_span(zone: GtZoneV3) -> bool:
             vertices = zone.polygon.exterior.vertices
             for start, end in zip(vertices, vertices[1:] + vertices[:1]):
                 if segment.p1[1] == segment.p2[1] == start[1] == end[1]:
-                    if min(max(segment.p1[0], segment.p2[0]), max(start[0], end[0])) > max(min(segment.p1[0], segment.p2[0]), min(start[0], end[0])):
+                    lo, hi = sorted((start[0], end[0]))
+                    if lo <= opening.world_along_interval.lo and opening.world_along_interval.hi <= hi:
                         return True
                 if segment.p1[0] == segment.p2[0] == start[0] == end[0]:
-                    if min(max(segment.p1[1], segment.p2[1]), max(start[1], end[1])) > max(min(segment.p1[1], segment.p2[1]), min(start[1], end[1])):
+                    lo, hi = sorted((start[1], end[1]))
+                    if lo <= opening.world_along_interval.lo and opening.world_along_interval.hi <= hi:
                         return True
             return False
         hosts = [zone_id for zone_id, (zone_floor_id, zone) in all_zones.items()
-                 if zone_floor_id == opening.floor_id and shares_positive_boundary_width(zone)]
+                 if zone_floor_id == opening.floor_id and covers_opening_boundary_span(zone)]
         if hosts != [opening.host_zone_id]:
             _fail("gt_opening_host_zone_boundary_mismatch", ptr)
     computed = compute_gt_v3_content_sha256(doc)
