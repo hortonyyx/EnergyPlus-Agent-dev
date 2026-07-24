@@ -62,6 +62,11 @@ request 中的命名立面 intent
 
 没有 datum 就没有 z；不能退回图框底、窗台标注、最小 y、相邻窗、楼层默认或 assumed knowledge。
 
+[S] 有向端点 gate 证明的是 request 内 along sign/along offset/endpoint 的一致性，
+不是独立立面框与平面之间真实手性的机器真值。三者同步一致重标是显式人信任边界；
+必须通过同 hash 的逐 opening `z_interval`/端点映射报告与标注 overlay 完成 G10
+人审。
+
 ---
 
 ## 1. 已核实的事实底座
@@ -90,8 +95,9 @@ request 中的命名立面 intent
 - 5 个 INSERT 的受校验结构轮廓按相接关系组成 3 个 facade door：
   北 2 块合 1 门、南 1 块为 1 门、东 2 块合 1 门；
 - 这 5 个 INSERT 均引用块 `$EWDLib$00000614`；块定义中 `LWPOLYLINE`
-  handle `112` 是唯一的闭合四边外轮廓，local bbox 为
-  `[0,900]×[0,2400]`；handle `11C` 是 CIRCLE，另有内部门扇/装饰线；
+  handle `112` 是经穷尽角色表指定的唯一**外**轮廓，local bbox 为
+  `[0,900]×[0,2400]`；`11A`/`11B` 也都是闭合四边 LWPOLYLINE，故不能靠
+  “闭合矩形”形状独自消歧；handle `11C` 是 CIRCLE，另有内部门扇/装饰线；
 - `11C` 这次恰好落在 `112` 内，故 raw virtual bbox 未被撑大；这只是样本侥幸，
   不能把整个 INSERT 的 virtual bbox 当结构门框或 z 证据；
 - 平面 GT opening 候选为 11 个 exterior window + 3 个 exterior door；另有 7 个 interior door 已由转换器 INFO 排除；
@@ -109,9 +115,11 @@ request 中的命名立面 intent
   window 子集严格镜像对称；
 - South 的 door 略偏心，故 typed 全集不严格对称。
 
-因此 opening assignment 不能承担 along 方向证明：只看 South 窗时，写反 sign
-仍可得到同一 interval 集并静默换窗。方向必须由与 opening 布局无关的有向 datum
-端点锚先行证明。
+因此 opening assignment 不能承担 along 方向的内部一致性检查：只看 South 窗时，
+单独写反 sign 仍可得到同一 interval 集并静默换窗。与 opening 布局无关的有向
+datum 端点锚能抓 along sign/endpoint/along offset 的非一致漂移；但若三者被同步
+一致重标，独立立面框与平面之间没有额外机器可读的手性联系，仍须由人审确认，见
+§2.5、§7.4。
 
 ### 1.3 sm21 交付形态
 
@@ -159,18 +167,39 @@ source.views[kind="elevation"]
 
 [S] 新请求使用 `request_version=3`。原因是：
 
-- `ElevationViewIntentV1` 从“有字段但无足够证据”升级为可实际计算；
+- 新增独立的 datum-bound named-elevation intent variant，不能原地给
+  `ElevationViewIntentV1` 增加必填字段；
 - raster overlay 不能继续只存 ID；
 - 新字段必须进入 request canonical hash；
 - 不能让旧 v1/v2 请求在未补 datum 的情况下突然产生 z。
 
-旧 v1/v2 仍按原语义解析：可以无 elevation，不能由默认值制造 elevation。
+[S] request schema 必须按顶层版本门控为 discriminated union：
+
+```text
+request_version = 1 | 2
+  elevation_views: list[ElevationViewIntentV1]   # 既有极简 legacy variant
+
+request_version = 3
+  elevation_views: list[DatumBoundNamedElevationViewIntentV3]
+```
+
+- `ElevationViewIntentV1` wire 与旧必填集保持不变；v1/v2 的已有极简 intent
+  不得因缺 `floor_datums`、有向端点或 selector 而校验失败；
+- v1/v2 转换路径不消费 legacy elevation intent 产生 z，不能通过默认 datum、
+  隐式升级或 duck typing 进入 E0–E8；
+- v3 只能接受带独立 discriminator 的 datum-bound variant；datum 缺失在 schema
+  或 G1 BLOCK，不能降级成 legacy intent 后静默产无 datum 的 elevation；
+- 两种 variant 不共享“新字段可选”的宽松模型，也不允许依据字段是否恰好存在来猜
+  版本。旧请求可以继续只产 plan，但不会暗产 elevation z。
 
 ### 2.2 命名立面 intent
 
-[S] `ElevationViewIntentV1` 至少扩成以下语义；字段名可在施工时按现有命名风格微调，但信息量不得减少：
+[S] 独立的 `DatumBoundNamedElevationViewIntentV3` 至少具有以下语义；字段名可在
+施工时按现有命名风格微调，但 discriminator 与信息量不得减少：
 
 ```text
+intent_version             Literal[3]
+intent_kind                Literal["named_datum_bound"]
 id                         StableId
 binding_source             Literal["named_title"]
 frame_title                HumanLabel
@@ -188,7 +217,10 @@ view_kind                  Literal["full"] in this batch
 segment_scope_mode         Literal["all_family_segments"] in this batch
 ```
 
-[S] 当前批只接受 `binding_source="named_title"`。字段使用 discriminator，未来 C2.1 可增加 `matched_sidecar` variant；不得把“所有 elevation 永远必须命名”写进下游 GT manifest schema。
+[S] 当前批只接受 `intent_kind="named_datum_bound"` 且
+`binding_source="named_title"`。未来 C2.1 可在 request v3+ 的 union 增加独立
+`matched_sidecar` variant；不得修改 legacy V1，也不得把“所有 elevation 永远必须
+命名”写进下游 GT manifest schema。
 
 ### 2.3 标题到 facade 的确定绑定
 
@@ -225,6 +257,13 @@ offset         = world metre；request 与 manifest 相同
 ```
 
 [S] request validator 必须要求两个 elevation scale 的绝对值都 exact 等于 `metres_per_unit`，source axes 不同；converter emit 后置条件与构造测试必须要求 manifest scale exact 为 `±1`。任意二次缩放、shear 或 `scale=0` BLOCK。本批不借机扩大为“所有外部手写 manifest 的 affine 全仓收紧”。
+
+[S] 显式假设 `A-ELEV-SCALE-1`：本批命名立面与平面使用同一个
+`metres_per_unit`，立面 along/z 两轴各向同性，且没有 view-local 绘图比例。上述
+`|request_scale| == metres_per_unit` 和 manifest `|scale| == 1` 只在该假设下成立，
+不是 GT v3 或所有天正立面的普适不变量。未来若支持各向异性或不同比例立面，必须
+新增显式 per-axis/view scale 证据与版本化 variant，并放松本批 validator；不得把
+比例差当畸形几何，也不得在当前 variant 内悄悄容忍。
 
 ### 2.5 z datum
 
@@ -277,6 +316,20 @@ converter 从实体本身读取 source coordinate，不允许 request 再抄一�
 这层人信任也机器化，输入图必须新增可定位的 elevation marker / floor-level 标注；
 不得在本批用最低线启发式冒充证明。
 
+[S] 有向端点也属于同一受信人工输入边界。命名立面是独立框视图，DXF 本身没有把
+“该 datum 的 start 就是 plan facade lo”编码成跨视图手性关系。机器能证明：
+
+- along sign、along offset、声明端点和 plan lo/hi 在当前 request 内部一致；
+- 只翻 sign、只换声明端点、只移 along offset，或翻 sign+调 along offset 但不换
+  端点时会失败。
+
+机器不能区分一份正确 request 与一份把 along sign、声明端点、along offset
+**三者同步一致重标**后的 request；后者可保持 span、端点关系和 assignment 全部
+自洽。这不是再加一个几何启发式能补的漏洞，而是与“datum handle 的人类语义”
+同级的信任边界。必须由 §7.4 的逐 opening 审核表和带 ID/z 标注 overlay 回看；
+不得把 declared-direction consistency gate 描述成 source handedness 的机器真值
+证明。
+
 [S] 禁止的 z 基准：
 
 - view clip 的 ymin/ymax；
@@ -300,7 +353,7 @@ converter 从实体本身读取 source coordinate，不允许 request 再抄一�
 plan facade 的投影 interval，但 span 相等只证明尺度，不证明方向；“靠逐窗失败
 暴露 sign”不得作为 gate。
 
-[S] 方向 gate 必须使用 §2.5 的有向 datum 端点：
+[S] declared-direction consistency gate 必须使用 §2.5 的有向 datum 端点：
 
 ```text
 source datum 指定端点
@@ -314,8 +367,10 @@ plan facade projection.hi
 
 该锚来自 DXF LINE 的 `start/end`（polyline 子段则来自有向顶点顺序）和 plan
 facade 投影端点，不引用任何 window/door。即使开窗完全中心对称，sign 写反且同步
-改 offset 以维持相同升序 span，两个端点也会对调并在 E1 BLOCK。不得自动交换
-`start/end`、自动改 sign，亦不得尝试“哪个方向 assignment cost 更小就选哪个”。
+改 along offset 以维持相同升序 span、但声明端点未同步改变时，两个端点也会对调
+并在 E1 BLOCK。不得自动交换 `start/end`、自动改 sign，亦不得尝试“哪个方向
+assignment cost 更小就选哪个”。若 along sign、along offset、声明端点三者同步
+一致重标，机器会判内部一致；该剩余风险按 §2.5 的人审边界处置。
 
 sm24 的已核实 intent 结果是 South/East 正向、North/West 反向；这只是该 request 的显式事实，不是转换器全局规则。
 
@@ -540,7 +595,7 @@ door geometry   = 量化后 structural-outline union 的 exact outer boundary
 
 [S] window 与 door 共用同一个 `NormalizedElevationOpening` 后置条件。保存并重开
 augmented DXF 后，每个 emitted outline 必须再次满足闭合、4 边、4 角、无 bulge、
-正交、正面积，且其 along/z interval 在 `tau_node` 内 exact 等于内存中的结构证据。
+正交、正面积，且其 along/z interval 与内存中的结构证据在 `tau_node` 内相等。
 两类任一失败均 BLOCK，不能只重验 generated handle 存在。
 
 [S] manifest 对这些生成实体使用：
@@ -564,9 +619,10 @@ entities = [generated EntityLocatorV1]
 | pairing | facade+floor+kind+along | facade+floor+kind+along | 同一全局唯一分配 |
 | provenance | 4 LINE handles | INSERT + block outline + excluded inventory | 同一 opening_id，缺项 BLOCK |
 
-[S] 同理，几何方向与 raster 方向都必须有有向证据：前者用 datum start/end，
-后者用 calibration lo/hi controls。任何分支若只有“总 span 一致”“不越界”或
-“最终看起来能匹配”而没有方向锚，一律不能宣称通过强校验。
+[S] 同理，几何与 raster 的**声明方向内部一致性**都必须有有向证据：前者用 datum
+start/end，后者用 calibration lo/hi controls。任何分支若只有“总 span 一致”、
+“不越界”或“最终看起来能匹配”而没有方向锚，一律不能通过机器 consistency gate；
+两套声明若被同步一致重标，则共同进入 §7.4 人工手性复核，不能升级措辞为机器真值。
 
 ---
 
@@ -619,7 +675,11 @@ exact block-definition outline，不能把 raw virtual bbox 填进结构证据�
 
 ### 4.4 唯一全局分配
 
-[S] 每个 view / floor / kind 分区内做一对一全局最小总代价 assignment，规则与 v3 §10.7 同构：
+[S] converter 的 pairing ledger 可按 view/floor/kind 组织候选与诊断，但施工不得据此
+另造“每个分区一个求解器”。现有 v3 `_assign_elevation` 的真实调用语义是**每个
+view 调用一次**：在该 view 的全部 relevant plan openings 与 evidence 上，先以
+facade/scope/floor/kind/along 候选谓词过滤边，再做一次一对一全局最小总代价
+assignment。规则与 v3 §10.7 同构：
 
 - 每个 evidence 恰好一个 plan opening；
 - 每个该 view 中 relevant 的 plan opening 恰好一个 evidence；
@@ -699,6 +759,11 @@ geometry_mode "closed_outline_bbox"
 entities      仅该生成 LWPOLYLINE locator
 ```
 
+[S] 对 kind=`door` 这是硬 wire 契约：`geometry_mode` 必须逐 evidence exact 为
+`"closed_outline_bbox"`。不得选择 v3 已存在的 `"virtual_entity_bbox"` 分支；
+后者会重新读取含 CIRCLE/注记的整个 INSERT virtual bbox，绕过 §3.5 的结构轮廓
+隔离。该约束同时在 manifest 构造、schema test 与 sm24 e2e 直接断言。
+
 当前 wire 不携带 plan `opening_id`。converter 内部 pairing ledger 必须保留
 `evidence_id → opening_id`，供完整提取后独立复核；不得仅因 v3 又会匹配一次就省掉 converter 链接。
 
@@ -713,10 +778,19 @@ entities      仅该生成 LWPOLYLINE locator
 改为：
 
 ```text
-"views": sorted(plan_bindings + elevation_bindings)
+"views": sorted(
+  plan_bindings + elevation_bindings,
+  key=(kind_rank(view.kind), view.id)
+)
+
+kind_rank("plan")      = 0
+kind_rank("elevation") = 1
 ```
 
-排序规则固定为 plan 在前，再按 elevation view id lexical；hash 与输出不得依赖 request 列表顺序或 DXF entity iteration 顺序。
+canonical 排序键固定为 `(kind_rank, view.id)`，其中 plan `kind_rank=0`、
+elevation `kind_rank=1`；同 kind 内一律按完整 `view.id` lexical，duplicate id 在
+排序前 BLOCK。这样多 plan view 的顺序也被钉死，manifest hash 与输出不得依赖
+request 列表顺序或 DXF entity iteration 顺序。
 
 ### 5.4 source-map
 
@@ -917,8 +991,40 @@ gt/renders/overlay_West_view.png
 
 - `gt_plan.png`；
 - `gt_elev.png`；
-- 四张 elevation overlay；
-- conversion report 中的 view / opening / pairing 摘要。
+- 四张带 opening ID、plan along interval、`z_interval` 标注的 elevation overlay；
+- conversion report 中逐 opening 的 elevation audit rows，不得只给聚合计数。
+
+[S] review bundle 与 conversion report 对每个 relevant opening（window 与 exterior
+door）必须逐行列出：
+
+```text
+opening_id
+evidence_id
+view_id / facade_family / floor_id / kind
+plan_world_along_interval
+elevation_source_along_interval
+world_along_interval
+z_interval
+datum_entity_handle
+datum_source_start_point / datum_source_end_point
+declared_world_along_lo_source_endpoint
+mapped_endpoint_pair，例如 start→plan.lo, end→plan.hi
+raw / structural source handles
+```
+
+四张 overlay 上至少直接标 `opening_id + z_interval`，并在每个 view 的固定 legend
+画出 datum handle、source start/end 箭头及其 `→ plan.lo/hi` 映射。audit rows、
+overlay 和 GT 必须绑定同一 candidate/manifest hash；不能让人拿一版表审另一版图。
+
+[S] 人审必须明确确认两件事：
+
+1. datum handle/楼层语义正确；
+2. source start/end 到 plan lo/hi 的手性声明正确，逐 opening 的 plan interval、
+   elevation evidence 与 `z_interval` 没有因整面镜像而换到另一扇窗。
+
+along sign、声明端点、along offset 三者同步一致重标可通过机器内部一致性门；
+上述逐 opening 表和标注 overlay 是该残余风险的强制 backstop，不是可省略的
+“辅助信息”。
 
 用户确认前保持 candidate；确认后才走既有签字 / promotion 纪律，不能由 converter 自签 `human_verified`。
 
@@ -958,7 +1064,7 @@ gt/renders/overlay_West_view.png
 
 [S] 不另造 G11；扩展既有门的证据：
 
-- G1：四个 named frame、exact title、datum、scale、有向 along 端点锚；
+- G1：四个 named frame、exact title、datum、scale、有向 along 端点锚的声明一致性；
 - G3：plan opening + elevation raw group 的分组/分类，以及门块 fingerprint /
   exhaustive roles / structural union；
 - G4：exterior 14、interior 7 的适用性对账；
@@ -968,6 +1074,7 @@ gt/renders/overlay_West_view.png
 conversion report 的 gate evidence 至少写：
 
 ```text
+active_assumptions: ["A-ELEV-SCALE-1"]
 elevation_view_count
 window_raw_entity_count
 window_group_count
@@ -979,7 +1086,22 @@ interior_opening_excluded_count
 openings_with_z_count
 raster_calibration_control_count
 render/overlay inventory hashes
+
+opening_elevation_audit_rows[]:
+  opening_id / evidence_id / view_id / facade / floor / kind
+  plan_world_along_interval
+  elevation_source_along_interval
+  world_along_interval
+  z_interval
+  datum handle + source start/end points
+  declared lo source endpoint + mapped start/end→plan lo/hi
+  raw/structural source handles
 ```
+
+[S] `opening_elevation_audit_rows` 必须覆盖 relevant 集合且与 pairing ledger 一一
+对应：缺行、重复 opening、空 `z_interval`、datum/mapping 与 view intent 不同，
+均使 G10 review bundle 不完整。report writer 必须按 `(view_id, floor_id, kind,
+opening_id)` canonical 排序并把 rows 纳入 review-bundle inventory hash。
 
 ### 8.3 失败产物
 
@@ -1003,7 +1125,14 @@ render/overlay inventory hashes
 - 删除一个 `elevation_views` 条目：对应 source view / projection key / overlay 必须消失或 acceptance profile BLOCK；
 - 篡改一个 facade title：G1 红；
 - 篡改 request elevation affine 但重算 request hash：datum gate 红；
-- 旧 v2 request：仍只产 plan，不暗产 elevation。
+- 真实旧 v1/v2 极简 `ElevationViewIntentV1` 无 `floor_datums`：schema 仍绿、仍只产
+  plan，不暗产 elevation；
+- 给 v1/v2 legacy intent 塞 v3-only datum/discriminator 字段：版本/extra-field
+  schema gate 红，不能据字段存在 duck-type 进入 E0–E8；
+- v3 使用 legacy discriminator，或 datum-bound variant 缺 `floor_datums` /
+  `intent_version` / `intent_kind`：schema/G1 红；
+- 同一语义分别走 v2 legacy 与 v3 datum-bound fixture：前者 opening z 保持 null，
+  后者才允许产 observed z。
 
 ### 9.2 frame / title
 
@@ -1036,15 +1165,24 @@ render/overlay inventory hashes
 
 [S]
 
-- South 保持两扇严格对称 window，只把 along sign 写反，并同步改 offset 使升序
-  span 仍为 `[0,10]`：有向 datum 端点 gate 红；
+- South 保持两扇严格对称 window，只翻 along sign：span/端点 gate 红；
+- 只调 along offset：span/端点 gate 红；
+- 只把声明的 lo endpoint 从 `start` 调成 `end`：有向端点 gate 红；
+- 翻 sign 并同步改 along offset 使升序 span 仍为 `[0,10]`、但不改声明端点：
+  有向端点 gate 红；
 - 同一 mutation 即使 window assignment 总成本仍为 0，也不得进入 E2/E4；
-- 对调 request 的 lo endpoint 而不改 source LINE：G1 红；
 - North/West 的负 sign 与表中端点锚原样：绿；
 - raster affine 做水平镜像且所有 opening 仍在图内：有向 calibration control 红。
 
-此组专门证明方向安全不依赖非对称 opening。不能用“sm24 typed 全集不对称”替代
-South window-only 必红夹具。
+[S] 另设一条**不可要求机器必红**的人审夹具：South 同步翻 sign、翻声明 lo
+endpoint、调 along offset，使 datum span/端点关系和 window assignment 全部内部自洽。
+机器 consistency gate 应绿；fixture 必须证明 conversion report/overlay 逐
+opening 行发生镜像换位，且 G10 在缺少或拒绝人工手性确认时不能 promotion。不得
+伪造一个机器错误码来声称解决了不可辨识性。
+
+此组只证明机器能抓非一致的单字段/部分字段漂移，不证明独立立面框与平面的真实
+手性。不能用“sm24 typed 全集不对称”替代 South window-only 夹具，也不能把
+assignment 恰好失败当方向真值证明。
 
 ### 9.5 window grouping
 
@@ -1075,10 +1213,15 @@ South window-only 必红夹具。
 - 删除 `112` 一边、给它加 bulge、复制第二个 structural outline：结构 gate 红；
 - 两个 module z 不同、正面积重叠、留缝、拼成 T 形：union gate 红；
 - raw virtual bbox 被非结构实体撑大但实现仍拿它产 z：anchor 断言红，不能静默得到
-  更高 head。
+  更高 head；
+- 对 manifest 中全部 kind=`door` 的 `ElevationOpeningEvidenceV1` 直接断言
+  `geometry_mode == "closed_outline_bbox"`；任一 door 使用
+  `virtual_entity_bbox`、`grouped_line_bbox` 或其他 mode 必红，即使最终 bbox/z
+  数值碰巧相同。
 
 这一组同时覆盖“安全 BLOCK”和“经显式角色表正确排除”两条路径；没有任何夹具允许
-raw whole-block bbox 成为 z 来源。
+raw whole-block bbox 成为 z 来源。`closed_outline_bbox` 是 v3 wire 的显式契约，
+不能只靠 converter 当前实现自律。
 
 ### 9.7 pairing
 
@@ -1088,7 +1231,8 @@ raw whole-block bbox 成为 z 来源。
 - 加一个合法矩形但无 plan window → unmatched evidence 红；
 - 平移超过 0.4m → no candidate 红；
 - 制造两个等代价 plan opening → ambiguous 红；
-- 镜像 sign 写反 → 在 E1 有向端点 gate 红，不等到 assignment 自动翻面；
+- 只写反镜像 sign（或 sign+along offset、声明端点不变）→ 在 E1 有向端点 gate
+  红，不等到 assignment 自动翻面；三字段同步一致重标按 §9.4 人审夹具处理；
 - 把 window evidence kind 改 door → v3 kind gate 红；
 - 只发 11 window、不发 3 relevant exterior door → 完整 GT validator 红；
 - 保留 7 interior door 且不发 elevation evidence → 绿；
@@ -1152,7 +1296,7 @@ raw whole-block bbox 成为 z 来源。
 
 | 文件 | 设计内改动 |
 |---|---|
-| `src/agent/judge/tarch_converter_schema.py` | request v3、named view/datum 有向端点、door block exact role map、raster controls、诊断码、source-map operation |
+| `src/agent/judge/tarch_converter_schema.py` | legacy V1 保持不变、request v3 独立 discriminated datum-bound variant、named view/datum 有向端点、door block exact role map、raster controls、诊断码、source-map operation |
 | `src/agent/judge/tarch_normalize.py` | E0–E8、door structural-outline extraction/union、generated elevation outlines、complete manifest、full G9 |
 | `src/agent/judge/gt_extraction.py` | elevation assignment 加 kind equality |
 | `tests/test_tarch_converter_*` | schema、分组、datum 有向锚、door block drift/shape、pairing、gate mutation、sm24 e2e |
@@ -1175,11 +1319,15 @@ raw whole-block bbox 成为 z 来源。
 
 [S] 功能施工不能只以 unit tests 绿或 manifest 看起来正确收工。必须同时满足：
 
-1. request v3 的四个 named elevation 真被消费；
+1. legacy v1/v2 极简 elevation intent 不回归，只有 request v3 的独立
+   `named_datum_bound` variant 能让四个 named elevation 进入 E0–E8；
 2. sm24 原 44 window LINE → 11 个规范化 window outlines；
 3. 5 door INSERT 只经 block `112` 结构轮廓 → 3 个 exterior-door outlines；
 4. 11 window 与 plan exterior window 一一链接，无 orphan / ambiguity；
-5. 四个 datum 的有向端点均绑定 plan lo/hi；South 对称窗 sign mutation 必红；
+5. 四个 datum 的有向端点均按 request 映射到 plan lo/hi；South 对称窗的
+   sign-only、endpoint-only、along-offset-only 及“sign+along-offset、端点不变”
+   mutation 必红；sign+endpoint+along-offset 同步一致重标不要求机器红，但必须
+   在逐 opening audit rows / overlay 中显露，并等待 G10 人工手性确认；
 6. sm24 CIRCLE `11C` 被 exact 排除，门 z 与 raw virtual bbox 无数据依赖；
 7. complete manifest 含 1 plan + 4 elevation bindings；
 8. G9 真跑 `extract_gt_v3`；
@@ -1188,8 +1336,10 @@ raw whole-block bbox 成为 z 来源。
 11. `gt_elev.png` 有四个真实 surface，不是 NO-BINDING 占位；
 12. 四张 `overlay_{East,North,South,West}_view.png` 经三点有向 calibration，在同一个
     `gt/renders/` 原子 bundle 中产生且不过界；
-13. 用户看同 hash review bundle 并签字后，才可锁定 / promotion；
-14. 全量测试无 v2、execution、reading、correction 回归。
+13. conversion report 与 overlay 对 14 个 relevant openings 逐项列
+    `z_interval` 和 datum start/end→plan lo/hi 映射，且绑定同一 inventory hash；
+14. 用户看同 hash review bundle、明确确认 datum 与手性后，才可锁定 / promotion；
+15. 全量测试无 v2、execution、reading、correction 回归。
 
 ---
 
@@ -1198,12 +1348,14 @@ raw whole-block bbox 成为 z 来源。
 [S] 本稿特意保留：
 
 - elevation view 数量开放，不在 GT schema 固定四张；
-- `binding_source` 是 discriminator，后续可加 matcher sidecar；
+- legacy V1 与 v3 datum-bound intent 分离；`intent_kind` 是 v3+ union discriminator，
+  后续可加独立 matcher sidecar variant；
 - `projection_surface_key` 不等于 facade 名；
 - `view_kind/coverage/scope` 继续留在 manifest；
 - pairing 输入是候选 facade 集与 canonical along interval，不依赖 DXF 框的左右顺序；
 - full-view 有向 anchor 是 intent variant 的证据字段；未来 partial/matched view 可换
-  locator 类型，但不得退回由 opening 分布猜方向；
+  locator 类型，但不得退回由 opening 分布猜方向，也不得把声明一致性冒充跨视图
+  手性真值；
 - `z_interval` 仍只有 observed source evidence；assumed-z 继续走未来知识/provenance 通道，不混进 GT observed truth；
 - normalized outline 与 source-map 分离，未来可支持 mullion/partial view 而不改 GT opening wire。
 
@@ -1215,6 +1367,8 @@ raw whole-block bbox 成为 z 来源。
 
 [M] 仅剩一个不影响几何算法的 wire 选择：G10 是升级现有 ack 为“逐文件 hash 列表”，还是新增一个 canonical review-index 文件并让 ack 只绑定 index hash。推荐后者，便于未来动态 view 数量；但施工者必须等主控拍板。
 
-[S] 其余核心设计——datum 句柄及有向端点来源、11 窗分组、门块 exact role map 与
-3 外门结构轮廓闭包、全局唯一链接、normalized closed-outline、v3 kind 修复、完整
-G9、三点有向 raster binding、四张 overlay——不留施工自由裁量。
+[S] 其余核心设计——legacy/v3 独立 intent variant、datum 句柄及有向端点声明、
+同步一致重标的人审边界、逐 opening z/端点映射审计、11 窗分组、门块 exact role
+map 与 3 外门结构轮廓闭包、door `closed_outline_bbox` 硬契约、全局唯一链接、
+normalized closed-outline、v3 kind 修复、完整 G9、三点有向 raster binding、四张
+overlay——不留施工自由裁量。
