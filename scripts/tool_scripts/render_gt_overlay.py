@@ -320,7 +320,9 @@ def build_gt_overlay_images_v3(
                 a,b = opening.world_along_interval; z0,z1 = opening.z_interval
                 corners = [_pixel_for_world_elevation(view,binding,a,z0), _pixel_for_world_elevation(view,binding,b,z1)]
                 for point in corners: _within(image, point)
-                draw.rectangle((corners[0], corners[1]), outline=WIN + (255,) if opening.kind == "window" else DOOR + (255,), width=3)
+                x0, y0 = corners[0]; x1, y1 = corners[1]
+                draw.rectangle((min(x0, x1), min(y0, y1), max(x0, x1), max(y0, y1)),
+                               outline=WIN + (255,) if opening.kind == "window" else DOOR + (255,), width=3)
         else:  # pragma: no cover - strict manifest union protects this.
             raise ValueError("gt_overlay_view_kind_invalid")
         if doc.verification.status == "candidate": _candidate_stamp(image, doc)

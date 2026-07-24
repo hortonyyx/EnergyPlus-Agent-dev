@@ -574,7 +574,7 @@ def _assign_elevation(evidence: list[tuple], openings: list[GtOpeningV3], view: 
                       segments: Mapping[str, GtBoundarySegmentV3], tolerance: float, tie_epsilon: float) -> list[tuple[int, int]]:
     """Return the unique global minimum-cost evidence→opening assignment."""
     options: list[list[tuple[int, float]]] = []
-    for _evidence, along, _z, _refs in evidence:
+    for item, along, _z, _refs in evidence:
         choices = []
         for index, opening in enumerate(openings):
             segment = segments[opening.boundary_segment_id]
@@ -582,7 +582,7 @@ def _assign_elevation(evidence: list[tuple], openings: list[GtOpeningV3], view: 
             visible = any(min(opening.world_along_interval.hi, interval.hi, coverage.hi) > max(opening.world_along_interval.lo, interval.lo, coverage.lo)
                           for interval in segment.visible_intervals)
             cost = max(abs(along.lo - opening.world_along_interval.lo), abs(along.hi - opening.world_along_interval.hi))
-            if (opening.floor_id in view.floor_ids and view.projection_surface_key in segment.projection_surface_keys
+            if ((item is None or item.kind == opening.kind) and opening.floor_id in view.floor_ids and view.projection_surface_key in segment.projection_surface_keys
                     and visible and cost <= tolerance):
                 choices.append((index, cost))
         if not choices:

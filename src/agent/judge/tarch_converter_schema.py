@@ -361,6 +361,23 @@ TARCH_DIAGNOSTIC_REGISTRY: dict[str, DiagnosticSpec] = {
         "tarch_v3_precondition", DiagnosticSeverity.BLOCK, TarchStage.S8_GATES,
         "v3 preflight (G9) raised an ExtractionError — context keeps the original v3 code; the converter never catches/rewrites/swallows it.",
         gates=("G9",)),
+    # --- named elevation (request v3 only) ---------------------------------
+    "tarch_elevation_title_mismatch": DiagnosticSpec("tarch_elevation_title_mismatch", DiagnosticSeverity.BLOCK, TarchStage.S0_INPUT, "named elevation frame/title/facade binding is not exact", gates=("G1",)),
+    "tarch_elevation_datum_missing": DiagnosticSpec("tarch_elevation_datum_missing", DiagnosticSeverity.BLOCK, TarchStage.S0_INPUT, "the request-bound floor datum was not found in the named view", gates=("G1",)),
+    "tarch_elevation_datum_invalid": DiagnosticSpec("tarch_elevation_datum_invalid", DiagnosticSeverity.BLOCK, TarchStage.S0_INPUT, "floor datum is not a full-span axis-aligned line", gates=("G1",)),
+    "tarch_elevation_z_transform_mismatch": DiagnosticSpec("tarch_elevation_z_transform_mismatch", DiagnosticSeverity.BLOCK, TarchStage.S0_INPUT, "datum-derived z offset or elevation scale differs from the signed request", gates=("G1",)),
+    "tarch_elevation_along_direction_mismatch": DiagnosticSpec("tarch_elevation_along_direction_mismatch", DiagnosticSeverity.BLOCK, TarchStage.S0_INPUT, "declared datum endpoint does not map to facade projection lo", gates=("G1",)),
+    "tarch_elevation_opening_component_invalid": DiagnosticSpec("tarch_elevation_opening_component_invalid", DiagnosticSeverity.BLOCK, TarchStage.S3_OPENINGS, "selected elevation window lines do not form one rectangle", gates=("G3",)),
+    "tarch_elevation_door_block_drift": DiagnosticSpec("tarch_elevation_door_block_drift", DiagnosticSeverity.BLOCK, TarchStage.S3_OPENINGS, "door block fingerprint or exhaustive role list drifted", gates=("G3",)),
+    "tarch_elevation_door_structure_invalid": DiagnosticSpec("tarch_elevation_door_structure_invalid", DiagnosticSeverity.BLOCK, TarchStage.S3_OPENINGS, "door structural outline or its union is not one rectangle", gates=("G3",)),
+    "tarch_elevation_normalized_outline_drift": DiagnosticSpec("tarch_elevation_normalized_outline_drift", DiagnosticSeverity.BLOCK, TarchStage.S9_PERSIST, "reopened normalized elevation outline differs from structural evidence", gates=("G3",)),
+    "tarch_elevation_opening_no_candidate": DiagnosticSpec("tarch_elevation_opening_no_candidate", DiagnosticSeverity.BLOCK, TarchStage.S8_GATES, "elevation opening has no matching exterior plan opening", gates=("G9",)),
+    "tarch_elevation_opening_assignment_ambiguous": DiagnosticSpec("tarch_elevation_opening_assignment_ambiguous", DiagnosticSeverity.BLOCK, TarchStage.S8_GATES, "elevation opening pairing has multiple optimum assignments", gates=("G9",)),
+    "tarch_elevation_opening_kind_mismatch": DiagnosticSpec("tarch_elevation_opening_kind_mismatch", DiagnosticSeverity.BLOCK, TarchStage.S8_GATES, "elevation and plan opening kinds differ", gates=("G9",)),
+    "tarch_elevation_pairing_drift": DiagnosticSpec("tarch_elevation_pairing_drift", DiagnosticSeverity.BLOCK, TarchStage.S8_GATES, "converter pairing ledger differs from extracted GT references", gates=("G9",)),
+    "tarch_interior_opening_elevation_not_applicable": DiagnosticSpec("tarch_interior_opening_elevation_not_applicable", DiagnosticSeverity.INFO, TarchStage.S3_OPENINGS, "interior opening has no elevation evidence obligation", gates=("G4",)),
+    "tarch_raster_overlay_unbound": DiagnosticSpec("tarch_raster_overlay_unbound", DiagnosticSeverity.BLOCK, TarchStage.S8_GATES, "required review raster binding is missing", gates=("G10",)),
+    "tarch_raster_calibration_invalid": DiagnosticSpec("tarch_raster_calibration_invalid", DiagnosticSeverity.BLOCK, TarchStage.S8_GATES, "raster calibration controls/affine are invalid", gates=("G10",)),
 }
 
 #: Ordered tuple of every diagnostic code (test asserts this == codes in the registry).
@@ -387,6 +404,14 @@ DiagCode = Literal[
     "tarch_edge_thickness_inconsistent",
     "tarch_zone_tiling_residual", "tarch_opening_skin_gap_mismatch",
     "tarch_reconstruction_residual", "tarch_v3_precondition",
+    "tarch_elevation_title_mismatch", "tarch_elevation_datum_missing",
+    "tarch_elevation_datum_invalid", "tarch_elevation_z_transform_mismatch",
+    "tarch_elevation_along_direction_mismatch", "tarch_elevation_opening_component_invalid",
+    "tarch_elevation_door_block_drift", "tarch_elevation_door_structure_invalid",
+    "tarch_elevation_normalized_outline_drift", "tarch_elevation_opening_no_candidate",
+    "tarch_elevation_opening_assignment_ambiguous", "tarch_elevation_opening_kind_mismatch",
+    "tarch_elevation_pairing_drift", "tarch_interior_opening_elevation_not_applicable",
+    "tarch_raster_overlay_unbound", "tarch_raster_calibration_invalid",
 ]
 
 
@@ -462,6 +487,24 @@ class TarchEntitySelectorV1(_StrictModel):
         return self
 
 
+class ElevationDoorBlockRoleV1(_StrictModel):
+    entity_handle: DxfHandle
+    role: Literal["structural_outline", "nonstructural_detail"]
+
+
+class ElevationDoorBlockRuleV1(_StrictModel):
+    block_name_exact: str = Field(min_length=1)
+    block_definition_sha256: Hex64
+    entity_roles: list[ElevationDoorBlockRoleV1] = Field(min_length=1)
+
+    @model_validator(mode="after")
+    def _roles_unique(self):
+        handles = [role.entity_handle for role in self.entity_roles]
+        if len(handles) != len(set(handles)):
+            raise ValueError("duplicate elevation door block role handle")
+        return self
+
+
 class TarchDialectRulesV1(_StrictModel):
     """Tianzheng-specific recognition rules — the ONLY place they may live.
 
@@ -472,6 +515,8 @@ class TarchDialectRulesV1(_StrictModel):
     window_block_names: list[str] = Field(min_length=1)
     door_block_prefixes: list[str] = Field(min_length=1)
     classifier_version: StableId
+    elevation_title_map: dict[str, Literal["North", "South", "East", "West"]] = Field(default_factory=dict)
+    elevation_door_block_rules: list[ElevationDoorBlockRuleV1] = Field(default_factory=list)
 
 
 class ZoneIntentEntryV1(_StrictModel):
@@ -559,6 +604,60 @@ class ElevationViewIntentV1(_StrictModel):
         return self
 
 
+class ElevationFloorDatumIntentV1(_StrictModel):
+    floor_id: StableId
+    entity_handle: DxfHandle
+    datum_kind: Literal["floor_line"]
+    world_along_lo_source_endpoint: Literal["start", "end"]
+
+
+class DatumBoundNamedElevationViewIntentV3(_StrictModel):
+    """Strict v3-only named-elevation contract; it is never duck-typed as v1."""
+    intent_version: Literal[3]
+    intent_kind: Literal["named_datum_bound"]
+    id: StableId
+    binding_source: Literal["named_title"]
+    frame_title: HumanLabel
+    frame_entity_handle: DxfHandle
+    title_entity_handle: DxfHandle
+    floor_ids: list[StableId] = Field(min_length=1)
+    facade_family: Literal["North", "South", "East", "West"]
+    clip_box_dxf: ClipBoxDxf
+    world_along_from_source_m: Affine1D
+    world_z_from_source_m: Affine1D
+    floor_datums: list[ElevationFloorDatumIntentV1] = Field(min_length=1)
+    window_selector: TarchEntitySelectorV1
+    door_selector: TarchEntitySelectorV1 | None = None
+    view_kind: Literal["full"]
+    segment_scope_mode: Literal["all_family_segments"]
+
+    @model_validator(mode="after")
+    def _v3_contract(self):
+        if self.floor_ids != sorted(set(self.floor_ids)):
+            raise ValueError("elevation floor IDs must be sorted unique")
+        if self.world_along_from_source_m.source_axis == self.world_z_from_source_m.source_axis:
+            raise ValueError("elevation source axes must differ")
+        if sorted(d.floor_id for d in self.floor_datums) != self.floor_ids:
+            raise ValueError("elevation datum floors must exactly match floor_ids")
+        return self
+
+
+class RasterCalibrationControlV1(_StrictModel):
+    entity_handle: DxfHandle
+    source_point_dxf: Point2
+    pixel_point: Point2
+    role: Literal["datum_lo", "datum_hi", "off_datum"]
+
+
+class RasterOverlayIntentV3(_StrictModel):
+    id: StableId
+    source_label: HumanLabel
+    source_sha256: Hex64
+    view_id: StableId
+    pixel_to_source_m: Affine2D
+    calibration_controls: list[RasterCalibrationControlV1] = Field(min_length=3)
+
+
 class NorthAxisIntentV1(_StrictModel):
     value_deg: Annotated[StrictFiniteFloat, Field(ge=0, lt=360)]
     source_view_id: StableId
@@ -567,7 +666,7 @@ class NorthAxisIntentV1(_StrictModel):
 
 class TarchConversionRequestV1(_StrictModel):
     """The strict, source-hash-bound conversion request (the only non-machine input)."""
-    request_version: Literal[1, 2]
+    request_version: Literal[1, 2, 3]
     case: StableId
     source_dxf_label: HumanLabel
     source_dxf_sha256: Hex64
@@ -590,9 +689,9 @@ class TarchConversionRequestV1(_StrictModel):
     min_room_area_m2: PositiveFiniteFloat = Field(default=2.0)
     floors: list["FloorIntentV1"] = Field(min_length=1)
     plan_views: list[PlanViewIntentV1] = Field(min_length=1)
-    elevation_views: list[ElevationViewIntentV1] = Field(default_factory=list)
+    elevation_views: list[ElevationViewIntentV1 | DatumBoundNamedElevationViewIntentV3] = Field(default_factory=list)
     north_axis: NorthAxisIntentV1 | None = None
-    raster_overlays: list[StableId] = Field(default_factory=list)
+    raster_overlays: list[StableId | RasterOverlayIntentV3] = Field(default_factory=list)
     label_role_map: dict[str, StableId] = Field(default_factory=dict)
     critical_dimensions: list[CriticalDimensionV1] = Field(default_factory=list)
     overrides: list[TarchOverrideV1] = Field(default_factory=list)
@@ -609,6 +708,17 @@ class TarchConversionRequestV1(_StrictModel):
         lo, hi = self.wall_thickness_range_m
         if not (0.0 < lo < hi):
             raise ValueError("wall_thickness_range_m must be [lo, hi] with 0 < lo < hi")
+        return self
+
+    @model_validator(mode="after")
+    def _request_version_elevation_contract(self):
+        if self.request_version == 3:
+            if any(not isinstance(view, DatumBoundNamedElevationViewIntentV3) for view in self.elevation_views):
+                raise ValueError("request v3 requires datum-bound elevation intents")
+            if any(not isinstance(item, RasterOverlayIntentV3) for item in self.raster_overlays):
+                raise ValueError("request v3 requires typed raster overlays")
+        elif any(isinstance(view, DatumBoundNamedElevationViewIntentV3) for view in self.elevation_views):
+            raise ValueError("legacy request cannot contain v3 elevation intent")
         return self
 
 
@@ -811,6 +921,7 @@ class HumanReviewAckV1(_StrictModel):
     source_dxf_sha256: Hex64
     request_sha256: Hex64
     overlay_sha256: Hex64
+    review_index_sha256: Hex64 | None = None
     near_threshold_confirmed: bool = False
 
 
@@ -895,6 +1006,8 @@ class ConversionReportV1(_StrictModel):
     opening_coverage: JsonDict = Field(default_factory=dict)
     wall_proof_coverage: JsonDict = Field(default_factory=dict)
     zone_intent_coverage: JsonDict = Field(default_factory=dict)
+    elevation_audit_rows: list[JsonDict] = Field(default_factory=list)
+    review_bundle_inventory_sha256: Hex64 | None = None
 
     @model_validator(mode="after")
     def _status_geom_contract(self):
@@ -936,12 +1049,12 @@ def compute_report_sha256(report: ConversionReportV1) -> str:
 class SourceEntityRefV1(_StrictModel):
     handle: DxfHandle
     subentity_index: StrictNonNegativeInt | None = None
-    role: Literal["wall_side", "cap", "jamb", "opening_block", "joint_return", "dimension", "hatch"]
+    role: Literal["wall_side", "cap", "jamb", "opening_block", "joint_return", "dimension", "hatch", "elevation_raw", "elevation_structural", "elevation_excluded"]
 
 
 SourceMapOperation = Literal[
     "outer_skin", "midline", "opening_bridge", "joint_connector",
-    "opening_outline", "footprint_ring", "zone_edge",
+    "opening_outline", "footprint_ring", "zone_edge", "elevation_opening_outline",
 ]
 
 
@@ -980,10 +1093,10 @@ __all__ = [
     "TARCH_DIAGNOSTIC_REGISTRY", "ALL_DIAGNOSTIC_CODES", "DiagCode",
     "diagnostic_spec", "ConversionDiagnosticV1",
     "resolve_converter_tooling", "derive_quantization_step",
-    "TarchEntitySelectorV1", "TarchDialectRulesV1", "ZoneIntentEntryV1",
+    "TarchEntitySelectorV1", "ElevationDoorBlockRoleV1", "ElevationDoorBlockRuleV1", "TarchDialectRulesV1", "ZoneIntentEntryV1",
     "ZoneIntentSpecV1", "VoidIntentAnchorV1", "CriticalDimensionV1",
     "TarchOverrideKind", "TarchOverrideV1", "PlanViewIntentV1",
-    "ElevationViewIntentV1", "NorthAxisIntentV1", "FloorIntentV1",
+    "ElevationViewIntentV1", "ElevationFloorDatumIntentV1", "DatumBoundNamedElevationViewIntentV3", "RasterCalibrationControlV1", "RasterOverlayIntentV3", "NorthAxisIntentV1", "FloorIntentV1",
     "TarchConversionRequestV1", "compute_request_sha256",
     "RingV1", "PolygonIRV1", "WallTrackV1", "WallRibbonSegmentV1",
     "JointRefV1", "WallSourceRefV1", "WallRibbonV1", "FootprintIRV1",

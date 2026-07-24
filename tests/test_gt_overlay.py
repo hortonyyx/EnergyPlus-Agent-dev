@@ -119,6 +119,29 @@ def test_v3_elevation_overlay_uses_declared_floor_z_and_affine(tmp_path):
     assert image.getpixel((100, 10)) != (255, 255, 255)
 
 
+def test_sm24_v3_elevation_overlays_normalise_y_down_rectangle_corners(tmp_path):
+    """Real y-down CAD screenshots make z0 map below z1; all four must render.
+
+    This is intentionally the production v3 builder path: before the narrow
+    PIL-corner ordering repair it raised ``y1 must be >= y0`` at the first
+    elevation opening despite correct calibration/projection math.
+    """
+    from src.agent.judge.tarch_converter_schema import TarchConversionRequestV1, resolve_converter_tooling
+    from src.agent.judge.tarch_normalize import run_p2_conversion
+    from src.agent.judge.gt_extraction import ExtractionInputs, extract_gt_v3
+    from src.agent.judge.gt_schema import REPO_ROOT, compute_gt_implementation_hashes
+    root = Path("logs/experiments/2026-07-24_sm24_gt_review")
+    request = TarchConversionRequestV1.model_validate_json((root / "request_v3_calibrated.json").read_text())
+    tooling = resolve_converter_tooling(Path("src/configs/judge_gt.yaml"), Path("src/configs/correction.yaml"))
+    conversion = run_p2_conversion(root / "source.dxf", request, request.plan_views[0], tooling, tmp_path)
+    document = extract_gt_v3(ExtractionInputs(conversion.augmented_dxf_path, conversion.manifest, tooling,
+                                               compute_gt_implementation_hashes(REPO_ROOT)))
+    images = ov.build_gt_overlay_images_v3(document, conversion.manifest,
+                                            raster_root=Path("case_tests/e2e_tests/sm24_anchor/case_data"))
+    assert list(images) == ["East_view", "North_view", "South_view", "West_view"]
+    assert all(image.mode == "RGB" and image.width > 0 and image.height > 0 for image in images.values())
+
+
 @pytest.mark.parametrize("label", ["../outside.png", "/tmp/outside.png", "nested/raster.png"])
 def test_v3_safe_raster_rejects_non_basename_paths(tmp_path, label):
     with pytest.raises(ValueError, match="raster_label_invalid"):

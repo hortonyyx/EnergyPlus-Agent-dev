@@ -46,6 +46,7 @@ Hard disciplines enforced here (dispatch §2 / plan §2):
 from __future__ import annotations
 
 import hashlib
+import json
 import os
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -58,6 +59,7 @@ from shapely.ops import polygonize_full, unary_union
 
 from .tarch_converter_schema import (
     Affine2D, CavityIRV1, CavityReportV1, ClipBoxDxf, ConversionDiagnosticV1,
+    DatumBoundNamedElevationViewIntentV3, ElevationDoorBlockRuleV1,
     ConversionReportV1, DiagnosticSeverity, EdgeBasis, GateResultV1, HumanReviewAckV1,
     OpeningReportV1, PlanViewIntentV1, Point2, PolygonIRV1, RingV1, StableId,
     SourceEntityRefV1, SourceMapEntryV1, SourceMapV1, TARCH_DIAGNOSTIC_REGISTRY,
@@ -902,6 +904,8 @@ class P2ConversionResult:
     overlay_path: Path | None = None
     gtv3_handles: dict | None = None                    # {layer: [handles]}
     gtv3_zone_edge_handles: dict | None = None          # {(zone_idx, edge_idx): handle}
+    elevation_records: list[_ElevationRecord] = field(default_factory=list)
+    elevation_audit_rows: list[dict] = field(default_factory=list)
 
     @property
     def has_block(self) -> bool:
@@ -1506,6 +1510,211 @@ def _build_p2_gates(p1: P1PlanViewGeometry, cavities, wall_region, footprint,
 GTV3_FOOTPRINT_LAYER = "GTV3_FOOTPRINT"
 GTV3_ZONE_LAYER = "GTV3_ZONE"
 GTV3_OPENING_LAYER = "GTV3_OPENING"
+GTV3_ELEV_OPENING_LAYER = "GTV3_ELEV_OPENING"
+
+
+@dataclass(frozen=True)
+class _ElevationRecord:
+    view_id: str
+    facade: str
+    kind: Literal["window", "door"]
+    rect: tuple[float, float, float, float]
+    raw_handles: tuple[str, ...]
+    structural_handles: tuple[str, ...]
+    datum_handle: str
+    datum_start: tuple[float, float]
+    datum_end: tuple[float, float]
+    declared_lo_endpoint: str
+    generated_handle: str = ""
+
+
+def elevation_block_definition_sha256(doc, name: str) -> str:
+    """Canonical, order-independent fingerprint of all direct block entities.
+
+    This deliberately includes non-structural entities: adding a CIRCLE/TEXT
+    cannot bypass the request-bound exhaustive role list merely because it is
+    excluded from structural extrema.
+    """
+    block = doc.blocks.get(name)
+    def freeze(value):
+        if hasattr(value, "x") and hasattr(value, "y"):
+            return [float(value.x), float(value.y), float(getattr(value, "z", 0.0))]
+        if isinstance(value, (list, tuple)):
+            return [freeze(v) for v in value]
+        if isinstance(value, dict):
+            return {str(k): freeze(v) for k, v in sorted(value.items()) if k not in {"owner", "handle"}}
+        return str(value) if not isinstance(value, (str, int, float, bool, type(None))) else value
+    entities = []
+    for entity in block:
+        data = entity.dxfattribs()
+        # ezdxf legitimately omits zero-valued optional defaults after a save;
+        # canonicalize that container representation, not the geometry.
+        if entity.dxftype() == "LWPOLYLINE":
+            data.setdefault("const_width", 0.0)
+        # dxfattribs omits polyline vertices; they are semantic geometry.
+        if entity.dxftype() == "LWPOLYLINE":
+            data["points"] = [list(map(float, p[:5])) for p in entity.get_points("xyseb")]
+        entities.append({"handle": entity.dxf.handle, "type": entity.dxftype(),
+                         "layer": entity.dxf.layer, "tags": freeze(data)})
+    payload = {"name": name, "base_point": freeze(block.block.dxf.base_point),
+               "entities": sorted(entities, key=lambda item: item["handle"])}
+    return hashlib.sha256(json.dumps(payload, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode() + b"\n").hexdigest()
+
+
+def _entity_text(entity) -> str:
+    return entity.plain_text() if entity.dxftype() == "MTEXT" else str(getattr(entity.dxf, "text", ""))
+
+
+def _inside(entity, clip: ClipBoxDxf) -> bool:
+    box = ezdxf_bbox.extents([entity], fast=True)
+    cx, cy = (box.extmin.x + box.extmax.x) / 2, (box.extmin.y + box.extmax.y) / 2
+    return clip.xmin < cx < clip.xmax and clip.ymin < cy < clip.ymax
+
+
+def _rect_from_lines(lines, q: float) -> tuple[float, float, float, float] | None:
+    """Strict four-edge rectangle check after the converter's q=tau_node/10 snap."""
+    edges = []
+    for line in lines:
+        a = (_quantize(float(line.dxf.start.x), q), _quantize(float(line.dxf.start.y), q))
+        b = (_quantize(float(line.dxf.end.x), q), _quantize(float(line.dxf.end.y), q))
+        if a == b or (a[0] != b[0] and a[1] != b[1]):
+            return None
+        edges.append((a, b))
+    if len(edges) != 4:
+        return None
+    degree: dict[tuple[float, float], int] = {}
+    for a, b in edges:
+        degree[a] = degree.get(a, 0) + 1; degree[b] = degree.get(b, 0) + 1
+    if len(degree) != 4 or set(degree.values()) != {2}:
+        return None
+    xs, ys = [p[0] for p in degree], [p[1] for p in degree]
+    x0, x1, y0, y1 = min(xs), max(xs), min(ys), max(ys)
+    expected = {tuple(sorted(((x0,y0),(x1,y0)))), tuple(sorted(((x1,y0),(x1,y1)))),
+                tuple(sorted(((x0,y1),(x1,y1)))), tuple(sorted(((x0,y0),(x0,y1))))}
+    return (x0, y0, x1, y1) if {tuple(sorted(edge)) for edge in edges} == expected and x0 < x1 and y0 < y1 else None
+
+
+def _line_components(lines, q: float) -> list[list[Any]]:
+    endpoints = [{(_quantize(float(e.dxf.start.x),q), _quantize(float(e.dxf.start.y),q)),
+                  (_quantize(float(e.dxf.end.x),q), _quantize(float(e.dxf.end.y),q))} for e in lines]
+    pending = set(range(len(lines))); groups = []
+    while pending:
+        todo = [pending.pop()]; group = []
+        while todo:
+            i = todo.pop(); group.append(lines[i]); neighbours = [j for j in pending if endpoints[i] & endpoints[j]]
+            for j in neighbours: pending.remove(j); todo.append(j)
+        groups.append(group)
+    return groups
+
+
+def _v3_elevation_records(augmented_dxf: Path, request: TarchConversionRequestV1,
+                          plan_gt, tols: _Tols) -> tuple[list[_ElevationRecord], list[ConversionDiagnosticV1]]:
+    """E0--E4: validate named views/datum anchors and produce normalized evidence.
+
+    It does not infer a datum or handedness: both are consumed only from the
+    signed v3 request and verified against the plan projection before opening
+    geometry is touched.
+    """
+    doc = ezdxf.readfile(str(augmented_dxf)); msp = doc.modelspace(); diags = []; records = []
+    segment_by_id = {s.id: s for floor in plan_gt.floors for s in floor.boundary_segments}
+    plan_openings = []
+    for opening in plan_gt.openings:
+        seg = segment_by_id[opening.boundary_segment_id]
+        plan_openings.append((opening, seg.facade_family))
+    for view in request.elevation_views:
+        if not isinstance(view, DatumBoundNamedElevationViewIntentV3):
+            continue
+        frame = next((e for e in msp if e.dxf.handle == view.frame_entity_handle), None)
+        title = next((e for e in msp if e.dxf.handle == view.title_entity_handle), None)
+        mapped = request.plan_views[0].dialect_rules.elevation_title_map.get(view.frame_title)
+        if frame is None or title is None or not _inside(title, view.clip_box_dxf) or _entity_text(title).strip() != view.frame_title or mapped != view.facade_family:
+            _add(diags, _diag("tarch_elevation_title_mismatch", handles=[view.frame_entity_handle], context={"view_id": view.id})); continue
+        facade_segments = [s for s in segment_by_id.values() if s.facade_family == view.facade_family and s.floor_id in view.floor_ids]
+        if not facade_segments:
+            _add(diags, _diag("tarch_elevation_datum_invalid", handles=[view.frame_entity_handle])); continue
+        plan_lo, plan_hi = min(s.world_along_interval.lo for s in facade_segments), max(s.world_along_interval.hi for s in facade_segments)
+        if abs(abs(view.world_along_from_source_m.scale) - request.metres_per_unit) != 0 or abs(abs(view.world_z_from_source_m.scale) - request.metres_per_unit) != 0:
+            _add(diags, _diag("tarch_elevation_z_transform_mismatch", handles=[view.frame_entity_handle])); continue
+        datum = view.floor_datums[0]
+        ent = next((e for e in msp if e.dxf.handle == datum.entity_handle), None)
+        if ent is None:
+            _add(diags, _diag("tarch_elevation_datum_missing", handles=[datum.entity_handle])); continue
+        if ent.dxftype() != "LINE":
+            _add(diags, _diag("tarch_elevation_datum_invalid", handles=[datum.entity_handle])); continue
+        start, end = (float(ent.dxf.start.x), float(ent.dxf.start.y)), (float(ent.dxf.end.x), float(ent.dxf.end.y))
+        axis = view.world_along_from_source_m.source_axis; z_axis = view.world_z_from_source_m.source_axis
+        a0, a1 = (start[0 if axis == "x" else 1], end[0 if axis == "x" else 1])
+        z0, z1 = (start[0 if z_axis == "x" else 1], end[0 if z_axis == "x" else 1])
+        transform_along = lambda value: value * view.world_along_from_source_m.scale + view.world_along_from_source_m.offset
+        floor = next(f for f in request.floors if f.id == datum.floor_id)
+        derived_offset = floor.z_floor_m - z0 * view.world_z_from_source_m.scale
+        declared = a0 if datum.world_along_lo_source_endpoint == "start" else a1
+        other = a1 if datum.world_along_lo_source_endpoint == "start" else a0
+        endpoint_bad = abs(transform_along(declared) - plan_lo) > tols.node_join_m or abs(transform_along(other) - plan_hi) > tols.node_join_m
+        if abs(z0 - z1) > tols.axis_align_native or abs(a0 - a1) <= tols.quant_native or abs(derived_offset - view.world_z_from_source_m.offset) > tols.node_join_m or endpoint_bad:
+            _add(diags, _diag("tarch_elevation_along_direction_mismatch" if endpoint_bad else "tarch_elevation_z_transform_mismatch", handles=[datum.entity_handle])); continue
+        lines = [e for e in msp if e.dxftype() == "LINE" and e.dxf.layer in view.window_selector.layers and _inside(e, view.clip_box_dxf)]
+        for group in _line_components(lines, tols.quant_native):
+            rect = _rect_from_lines(group, tols.quant_native)
+            if rect is None:
+                _add(diags, _diag("tarch_elevation_opening_component_invalid", handles=[group[0].dxf.handle])); continue
+            records.append(_ElevationRecord(view.id, view.facade_family, "window", rect, tuple(sorted(e.dxf.handle for e in group)), tuple(sorted(e.dxf.handle for e in group)), datum.entity_handle, start, end, datum.world_along_lo_source_endpoint))
+        if view.door_selector:
+            rules = {r.block_name_exact: r for r in request.plan_views[0].dialect_rules.elevation_door_block_rules}
+            modules = []
+            for ins in [e for e in msp if e.dxftype() == "INSERT" and e.dxf.layer in view.door_selector.layers and _inside(e, view.clip_box_dxf)]:
+                rule = rules.get(ins.dxf.name)
+                if rule is None or elevation_block_definition_sha256(doc, ins.dxf.name) != (rule.block_definition_sha256 if rule else ""):
+                    _add(diags, _diag("tarch_elevation_door_block_drift", handles=[ins.dxf.handle])); continue
+                block_entities = list(doc.blocks.get(ins.dxf.name)); roles = {x.entity_handle: x.role for x in rule.entity_roles}
+                if set(roles) != {x.dxf.handle for x in block_entities} or list(roles.values()).count("structural_outline") != 1:
+                    _add(diags, _diag("tarch_elevation_door_block_drift", handles=[ins.dxf.handle])); continue
+                index = next(i for i, x in enumerate(block_entities) if roles[x.dxf.handle] == "structural_outline")
+                structural = block_entities[index]
+                if structural.dxftype() != "LWPOLYLINE":
+                    _add(diags, _diag("tarch_elevation_door_structure_invalid", handles=[ins.dxf.handle])); continue
+                matrix = ins.matrix44()
+                pts = []
+                for point in structural.get_points("xyseb"):
+                    world = matrix.transform((point[0], point[1], 0.0))
+                    pts.append((world.x, world.y, point[2], point[3], point[4]))
+                pseudo = []
+                for i in range(len(pts)):
+                    a, b = pts[i], pts[(i + 1) % len(pts)]
+                    pseudo.append(type("L", (), {"dxf": type("D", (), {"start": type("P", (), {"x":a[0],"y":a[1]})(), "end": type("P", (), {"x":b[0],"y":b[1]})()})()})())
+                rect = _rect_from_lines(pseudo, tols.quant_native)
+                if rect is None:
+                    _add(diags, _diag("tarch_elevation_door_structure_invalid", handles=[ins.dxf.handle])); continue
+                modules.append((rect, ins.dxf.handle, block_entities[index].dxf.handle))
+            # Modules sharing a sill/head band declare one structural-door union.
+            # Do not silently split a gapped or overlapping pair into two doors:
+            # its bounding union must tile exactly, otherwise the G3 structural
+            # contract fails before pairing can hide the malformed geometry.
+            pending = set(range(len(modules)))
+            while pending:
+                i = pending.pop(); cluster = [i]; changed = True
+                while changed:
+                    changed = False
+                    for j in list(pending):
+                        if any(
+                            # Same z band is deliberately enough to join: a
+                            # positive gap/overlap must be inspected as one
+                            # claimed union rather than downgraded to doors.
+                            (abs(modules[j][0][1]-modules[k][0][1]) <= tols.quant_native
+                             and abs(modules[j][0][3]-modules[k][0][3]) <= tols.quant_native)
+                            # Different-z touching/intersecting modules are a
+                            # malformed T/step union and must share the check.
+                            or (modules[j][0][0] <= modules[k][0][2] + tols.quant_native
+                                and modules[j][0][2] + tols.quant_native >= modules[k][0][0]
+                                and modules[j][0][1] <= modules[k][0][3] + tols.quant_native
+                                and modules[j][0][3] + tols.quant_native >= modules[k][0][1])
+                            for k in cluster):
+                            pending.remove(j); cluster.append(j); changed = True
+                rects = [modules[k][0] for k in cluster]; x0,y0,x1,y1 = min(r[0] for r in rects),min(r[1] for r in rects),max(r[2] for r in rects),max(r[3] for r in rects)
+                if sum((r[2]-r[0])*(r[3]-r[1]) for r in rects) != (x1-x0)*(y1-y0):
+                    _add(diags, _diag("tarch_elevation_door_structure_invalid", handles=[modules[cluster[0]][1]])); continue
+                records.append(_ElevationRecord(view.id, view.facade_family, "door", (x0,y0,x1,y1), tuple(sorted(modules[k][1] for k in cluster)), tuple(sorted(modules[k][2] for k in cluster)), datum.entity_handle, start, end, datum.world_along_lo_source_endpoint))
+    return records, diags
 
 
 def _write_augmented_dxf(source_dxf: Path, dest: Path, footprint: Any,
@@ -1568,6 +1777,73 @@ def _write_augmented_dxf(source_dxf: Path, dest: Path, footprint: Any,
 
     doc.saveas(str(dest))
     return handles, zone_edge_handles
+
+
+def _append_elevation_outlines(path: Path, records: list[_ElevationRecord], q: float) -> list[_ElevationRecord]:
+    """E5: append only normalized structural rectangles, then reopen and verify."""
+    doc = ezdxf.readfile(str(path)); msp = doc.modelspace()
+    if GTV3_ELEV_OPENING_LAYER not in doc.layers:
+        doc.layers.add(GTV3_ELEV_OPENING_LAYER)
+    emitted = []
+    for rec in records:
+        x0, y0, x1, y1 = rec.rect
+        entity = msp.add_lwpolyline([(x0,y0), (x1,y0), (x1,y1), (x0,y1)], close=True,
+                                    dxfattribs={"layer": GTV3_ELEV_OPENING_LAYER})
+        emitted.append(_ElevationRecord(**{**rec.__dict__, "generated_handle": entity.dxf.handle}))
+    doc.saveas(str(path))
+    reopened = ezdxf.readfile(str(path)); rmsp = reopened.modelspace()
+    for rec in emitted:
+        entity = next((e for e in rmsp if e.dxf.handle == rec.generated_handle), None)
+        if entity is None or entity.dxftype() != "LWPOLYLINE":
+            raise ValueError("tarch_elevation_normalized_outline_drift")
+        pts = list(entity.get_points("xyseb"))
+        if len(pts) != 4 or any(p[4] != 0 for p in pts):
+            raise ValueError("tarch_elevation_normalized_outline_drift")
+        if not entity.closed:
+            raise ValueError("tarch_elevation_normalized_outline_drift")
+    return emitted
+
+
+def _validate_raster_intents(request: TarchConversionRequestV1, doc, tols: _Tols,
+                             diags: list[ConversionDiagnosticV1]) -> None:
+    """Validate signed v3 calibration facts; image bytes stay checked by overlay writer.
+
+    ``pixel_to_source_m`` is source-metres (the manifest convention), whereas
+    request control coordinates remain exact DXF-native values.  This boundary is
+    explicit so a mm affine cannot silently be consumed as a metre affine.
+    """
+    if request.request_version != 3:
+        return
+    intents = {item.id: item for item in request.elevation_views if isinstance(item, DatumBoundNamedElevationViewIntentV3)}
+    if len(request.raster_overlays) != len(intents):
+        _add(diags, _diag("tarch_raster_overlay_unbound", handles=[next(iter(intents.values())).frame_entity_handle])); return
+    for binding in request.raster_overlays:
+        intent = intents.get(binding.view_id)
+        if intent is None or Path(binding.source_label).name != binding.source_label:
+            _add(diags, _diag("tarch_raster_overlay_unbound", handles=[intent.frame_entity_handle if intent else request.plan_views[0].frame_title])); continue
+        controls = {control.role: control for control in binding.calibration_controls}
+        datum = intent.floor_datums[0]
+        entity = next((item for item in doc.modelspace() if item.dxf.handle == datum.entity_handle), None)
+        if set(controls) != {"datum_lo", "datum_hi", "off_datum"} or entity is None:
+            _add(diags, _diag("tarch_raster_calibration_invalid", handles=[datum.entity_handle])); continue
+        start, end = (float(entity.dxf.start.x), float(entity.dxf.start.y)), (float(entity.dxf.end.x), float(entity.dxf.end.y))
+        expected_lo = start if datum.world_along_lo_source_endpoint == "start" else end
+        expected_hi = end if datum.world_along_lo_source_endpoint == "start" else start
+        def close_native(actual, expected): return max(abs(actual[0]-expected[0]), abs(actual[1]-expected[1])) <= tols.node_join_native
+        pix = [controls[key].pixel_point for key in ("datum_lo", "datum_hi", "off_datum")]
+        area2 = abs((pix[1][0]-pix[0][0])*(pix[2][1]-pix[0][1]) - (pix[1][1]-pix[0][1])*(pix[2][0]-pix[0][0]))
+        def mapped(control):
+            a = binding.pixel_to_source_m
+            return (a.m00*control.pixel_point[0]+a.m01*control.pixel_point[1]+a.m02,
+                    a.m10*control.pixel_point[0]+a.m11*control.pixel_point[1]+a.m12)
+        residual_ok = all(max(abs(mapped(control)[0]-control.source_point_dxf[0]*request.metres_per_unit),
+                              abs(mapped(control)[1]-control.source_point_dxf[1]*request.metres_per_unit)) <= tols.node_join_m
+                          for control in controls.values())
+        if (not close_native(controls["datum_lo"].source_point_dxf, expected_lo)
+                or not close_native(controls["datum_hi"].source_point_dxf, expected_hi)
+                or area2 == 0 or not residual_ok):
+            _add(diags, _diag("tarch_raster_calibration_invalid", handles=[datum.entity_handle],
+                              context={"view_id": intent.id, "declared_lo_endpoint": datum.world_along_lo_source_endpoint})); continue
 
 
 def _build_source_map(request: TarchConversionRequestV1, plan_view: PlanViewIntentV1,
@@ -1646,12 +1922,13 @@ def _build_source_map(request: TarchConversionRequestV1, plan_view: PlanViewInte
 def _build_manifest(request: TarchConversionRequestV1, plan_view: PlanViewIntentV1,
                     zones: list[ZoneExpansion], claims: list[dict],
                     exterior_openings: list[ResolvedOpening], gtv3_handles: dict[str, list[str]],
-                    augmented_dxf: Path):
+                    augmented_dxf: Path, elevation_records: list[_ElevationRecord] | None = None):
     """Build a GtExtractionManifestV1 draft bound to the AUGMENTED DXF (plan §8.1) —
     that is the file v3 actually consumes.  Selectors pin the generated GTV3_*
     handles via only_listed (no 'layer has an extra line' silent answer drift)."""
     from .gt_manifest import (GtExtractionManifestV1, EntityLocatorV1,
-                              PlanOpeningBindingV1, ZoneSeedV1, compute_manifest_sha256)
+                              PlanOpeningBindingV1, PlanViewBindingV1, ElevationViewBindingV1,
+                              RasterOverlayBindingV1, ZoneSeedV1, compute_manifest_sha256)
     affine = plan_view.world_from_source_m          # native -> world (m00 = metres_per_unit)
     # v3's _transform pre-multiplies native by metres_per_unit, so the manifest
     # world_from_source_m maps source-METRES -> world (identity scale for a pure-scale
@@ -1695,13 +1972,33 @@ def _build_manifest(request: TarchConversionRequestV1, plan_view: PlanViewIntent
         "zone_seeds": [s.model_dump(mode="python") for s in seeds],
         "boundary_reference": "outer_skin", "default_wall_thickness_m": None,
     }
+    include_elevations = elevation_records is not None
+    elevation_records = elevation_records or []
+    elev_views = []
+    for intent in sorted((x for x in request.elevation_views if isinstance(x, DatumBoundNamedElevationViewIntentV3)), key=lambda x: x.id) if include_elevations else []:
+        evidence = []
+        for rec in sorted((r for r in elevation_records if r.view_id == intent.id), key=lambda r: (r.kind, r.raw_handles)):
+            evidence.append({"evidence_id": f"ev_{intent.id}_{min(rec.raw_handles).lower()}", "kind": rec.kind,
+                             "geometry_mode": "closed_outline_bbox", "entities": [{"handle": rec.generated_handle}]})
+        elev_views.append(ElevationViewBindingV1.model_validate({"kind": "elevation", "id": intent.id, "floor_ids": intent.floor_ids,
+                           "projection_surface_key": f"ps_{intent.id}", "facade_family": intent.facade_family,
+                           "view_kind": "full", "world_along_coverage": None, "direction_semantics": "building_axis", "azimuth_deg": None,
+                           "clip_box_dxf": intent.clip_box_dxf,
+                           "world_along_from_source_m": {"source_axis": intent.world_along_from_source_m.source_axis, "scale": intent.world_along_from_source_m.scale / mpu, "offset": intent.world_along_from_source_m.offset},
+                           "world_z_from_source_m": {"source_axis": intent.world_z_from_source_m.source_axis, "scale": intent.world_z_from_source_m.scale / mpu, "offset": intent.world_z_from_source_m.offset},
+                           "segment_scope_mode": "all_family_segments", "boundary_entities": [], "opening_entities": evidence}))
+    rasters = []
+    if request.request_version == 3 and include_elevations:
+        for binding in request.raster_overlays:
+            rasters.append(RasterOverlayBindingV1.model_validate({"id": binding.id, "source_label": binding.source_label, "source_sha256": binding.source_sha256,
+                            "view_id": binding.view_id, "pixel_to_source_m": binding.pixel_to_source_m.model_dump(mode="python")}))
     raw = {"manifest_version": 1, "case": request.case, "source_id": request.normalized_source_id,
            "source_dxf_label": augmented_dxf.name,
            "source_dxf_sha256": hashlib.sha256(augmented_dxf.read_bytes()).hexdigest(),
            "native_units": request.native_units, "metres_per_unit": request.metres_per_unit,
            "geometry_profile": request.target_geometry_profile,
-           "floors": [floor.model_dump(mode="python")], "views": [pv],
-           "north_axis": None, "raster_overlays": [], "manifest_sha256": "0" * 64}
+           "floors": [floor.model_dump(mode="python")], "views": [PlanViewBindingV1.model_validate(pv), *elev_views],
+           "north_axis": None, "raster_overlays": rasters, "manifest_sha256": "0" * 64}
     import warnings
     with warnings.catch_warnings():
         warnings.simplefilter("ignore", UserWarning)
@@ -1713,7 +2010,7 @@ def _run_g9_v3_preflight(augmented_dxf: Path, manifest, tooling) -> tuple[bool, 
     """G9: run the real v3 extractor (inspect + plan extraction) on the augmented
     DXF + manifest.  Any ExtractionError -> fail-closed (tarch_v3_precondition)."""
     from .gt_extraction import (ExtractionError, ExtractionInputs, InspectionInputs,
-                                extract_plan_geometry, inspect_extraction_inputs)
+                                extract_gt_v3, inspect_extraction_inputs)
     from .gt_schema import REPO_ROOT, compute_gt_implementation_hashes
     try:
         hashes = compute_gt_implementation_hashes(REPO_ROOT)
@@ -1721,9 +2018,14 @@ def _run_g9_v3_preflight(augmented_dxf: Path, manifest, tooling) -> tuple[bool, 
         if insp.status != "PASS":
             codes = ",".join(sorted({i.code for i in insp.issues}))
             return False, codes or insp.status
-        extract_plan_geometry(ExtractionInputs(augmented_dxf, manifest, tooling, hashes))
+        extract_gt_v3(ExtractionInputs(augmented_dxf, manifest, tooling, hashes))
         return True, None
     except ExtractionError as exc:
+        return False, str(exc)
+    except Exception as exc:
+        # validate_gt_v3 has its own typed validation error.  G9 is the outer
+        # fail-closed conversion gate, so it must turn that final-stage failure
+        # into a BLOCK result rather than leaking a green preflight or a crash.
         return False, str(exc)
 
 
@@ -1780,8 +2082,40 @@ def _write_overlay_svg(path: Path, p1: P1PlanViewGeometry, footprint: Any,
 
 def _verify_human_review_ack(work_dir: Path, request: TarchConversionRequestV1,
                              source_dxf: Path, overlay: Path) -> tuple[bool, dict]:
-    """G10 accepts only an auditable, three-hash-bound external acknowledgement."""
+    """G10 accepts only a hash-bound external acknowledgement.
+
+    Legacy requests retain the plan-overlay hash.  v3 acknowledges the canonical
+    review index, whose inventory binds GT, both renders, four overlays and the
+    per-opening audit table without fixing the future number of view files.
+    """
     ack_path = work_dir / "review_ack.json"
+    if request.request_version == 3:
+        index_path = work_dir / "review_index.json"
+        evidence = {"review_index_asset": index_path.name, "verification_status": "candidate", "ack_path": ack_path.name}
+        if not index_path.is_file():
+            evidence["review_index_status"] = "missing"
+            return False, evidence
+        try:
+            index = json.loads(index_path.read_text(encoding="utf-8"))
+            index_hash = index["inventory_sha256"]
+        except Exception as exc:
+            evidence["review_index_status"] = type(exc).__name__
+            return False, evidence
+        evidence["review_index_sha256"] = index_hash
+        if not ack_path.is_file():
+            return False, evidence
+        try:
+            ack = HumanReviewAckV1.model_validate_json(ack_path.read_text(encoding="utf-8"))
+        except Exception as exc:
+            evidence["ack_error"] = type(exc).__name__
+            return False, evidence
+        checks = {"source_hash": ack.source_dxf_sha256 == hashlib.sha256(source_dxf.read_bytes()).hexdigest(),
+                  "request_hash": ack.request_sha256 == request.request_sha256,
+                  "review_index_hash": ack.review_index_sha256 == index_hash}
+        evidence.update({"verification_status": "signed" if all(checks.values()) else "hash_mismatch",
+                         "reviewer": ack.reviewer, "signed_at": ack.signed_at, "ack_checks": checks,
+                         "near_threshold_confirmed": ack.near_threshold_confirmed})
+        return all(checks.values()), evidence
     overlay_rel = overlay.name
     evidence = {"overlay_asset": overlay_rel,
                 "overlay_sha256": hashlib.sha256(overlay.read_bytes()).hexdigest(),
@@ -1880,11 +2214,31 @@ def run_p2_conversion(dxf_path: Path, request: TarchConversionRequestV1,
                                             zones, exterior_openings)
         manifest, seeds, plan_openings = _build_manifest(
             request, plan_view, zones, claims, exterior_openings, gtv3_handles, augmented_path)
+        # v3 elevation consumes the already-certified plan projection solely to
+        # verify the signed datum endpoints and make the required global pairing;
+        # it never derives datum height or handedness from openings.
+        elevation_records: list[_ElevationRecord] = []
+        if request.request_version == 3:
+            from .gt_extraction import ExtractionInputs, extract_gt_v3
+            from .gt_schema import REPO_ROOT, compute_gt_implementation_hashes
+            plan_gt = extract_gt_v3(ExtractionInputs(augmented_path, manifest, tooling, compute_gt_implementation_hashes(REPO_ROOT)))
+            elevation_records, elevation_diags = _v3_elevation_records(augmented_path, request, plan_gt, tols)
+            diags.extend(elevation_diags)
+            if not any(d.severity == DiagnosticSeverity.BLOCK for d in elevation_diags):
+                try:
+                    elevation_records = _append_elevation_outlines(augmented_path, elevation_records, tols.quant_native)
+                except ValueError:
+                    _add(diags, _diag("tarch_elevation_normalized_outline_drift", handles=[elevation_records[0].raw_handles[0]] if elevation_records else [plan_view.id]))
+                else:
+                    manifest, seeds, plan_openings = _build_manifest(request, plan_view, zones, claims, exterior_openings,
+                                                                       gtv3_handles, augmented_path, elevation_records)
+            result.elevation_records = elevation_records
         overlay_path = work_dir / "overlay_plan.svg"
         _write_overlay_svg(overlay_path, p1, footprint, zones, claims, exterior_openings, affine)
         # S9 per-edge ancestry (source_map)
         source_map = _build_source_map(request, plan_view, zones, exterior_openings, gtv3_handles,
                                        zone_edge_handles, footprint, p1, tols)
+        _validate_raster_intents(request, ezdxf.readfile(str(augmented_path)), tols, diags)
         # G9 v3 preflight on the augmented bundle
         g9_ok, g9_code = _run_g9_v3_preflight(augmented_path, manifest, tooling)
         if not g9_ok:
@@ -1922,6 +2276,14 @@ def run_p2_conversion(dxf_path: Path, request: TarchConversionRequestV1,
                                             "verification_status": "blocked"}))
         result.overlay_path = overlay_path
 
+    # Elevation E0--E4 diagnostics are emitted after the legacy plan gates were
+    # assembled.  Fold their declared registry ownership back into those gates;
+    # otherwise a malformed v3 intent could leave G1/G3 nominally green.
+    blocked_gates = {gate for diag in diags if diag.severity == DiagnosticSeverity.BLOCK
+                     for gate in diagnostic_spec(diag.code).gates}
+    gates = [gate.model_copy(update={"passed": False,
+                                     "evidence": {**gate.evidence, "elevation_block": True}})
+             if gate.id in blocked_gates else gate for gate in gates]
     # deterministic gate ordering G1..G10
     order = {"G1": 0, "G2": 1, "G3": 2, "G4": 3, "G5": 4, "G6": 5, "G7": 6, "G8": 7, "G9": 8, "G10": 9}
     gates.sort(key=lambda g: order[g.id])
@@ -1999,6 +2361,20 @@ def build_p2_report(result: P2ConversionResult, request: TarchConversionRequestV
         norm_hash = hashlib.sha256(Path(augmented_dxf).read_bytes()).hexdigest() \
             if augmented_dxf is not None \
             else hashlib.sha256(Path(source_dxf).read_bytes()).hexdigest()
+    audit_rows = []
+    intents = {v.id: v for v in request.elevation_views if isinstance(v, DatumBoundNamedElevationViewIntentV3)}
+    for rec in sorted(result.elevation_records, key=lambda r: (r.view_id, r.kind, r.raw_handles)):
+        intent = intents[rec.view_id]; axis = intent.world_along_from_source_m.source_axis; zaxis = intent.world_z_from_source_m.source_axis
+        source_along = (rec.rect[0], rec.rect[2]) if axis == "x" else (rec.rect[1], rec.rect[3])
+        source_z = (rec.rect[0], rec.rect[2]) if zaxis == "x" else (rec.rect[1], rec.rect[3])
+        audit_rows.append({"evidence_id": f"ev_{rec.view_id}_{min(rec.raw_handles).lower()}", "view_id": rec.view_id,
+                           "facade_family": rec.facade, "floor_id": intent.floor_ids[0], "kind": rec.kind,
+                           "elevation_source_along_interval": list(source_along),
+                           "world_along_interval": sorted([x * intent.world_along_from_source_m.scale + intent.world_along_from_source_m.offset for x in source_along]),
+                           "z_interval": sorted([x * intent.world_z_from_source_m.scale + intent.world_z_from_source_m.offset for x in source_z]),
+                           "datum_entity_handle": rec.datum_handle, "datum_source_start_point": list(rec.datum_start), "datum_source_end_point": list(rec.datum_end),
+                           "declared_world_along_lo_source_endpoint": rec.declared_lo_endpoint,
+                           "mapped_endpoint_pair": f"{rec.declared_lo_endpoint}->plan.lo", "raw_source_handles": list(rec.raw_handles), "structural_source_handles": list(rec.structural_handles)})
     return ConversionReportV1(
         report_version=1, status=status, case=request.case,
         source_dxf_sha256=hashlib.sha256(Path(source_dxf).read_bytes()).hexdigest(),
@@ -2013,7 +2389,8 @@ def build_p2_report(result: P2ConversionResult, request: TarchConversionRequestV
         wall_proof_coverage=p1_report.wall_proof_coverage,
         zone_intent_coverage={"expected_count": plan_view.zone_intent.expected_count,
                               "cavity_count": len(result.cavities),
-                              "near_threshold_faces": result.near_threshold_faces})
+                              "near_threshold_faces": result.near_threshold_faces},
+        elevation_audit_rows=audit_rows)
 
 
 __all__ = [
@@ -2021,5 +2398,5 @@ __all__ = [
     "P1PlanViewGeometry", "ResolvedOpening", "WallBand",
     "run_p2_conversion", "build_p2_report", "P2ConversionResult", "ZoneExpansion",
     "g8_reconstruct_wall_region", "s5_identify_cavities", "s6_bind_intent",
-    "s7_expand_zones", "GTV3_FOOTPRINT_LAYER", "GTV3_ZONE_LAYER", "GTV3_OPENING_LAYER",
+    "s7_expand_zones", "GTV3_FOOTPRINT_LAYER", "GTV3_ZONE_LAYER", "GTV3_OPENING_LAYER", "GTV3_ELEV_OPENING_LAYER", "elevation_block_definition_sha256",
 ]
