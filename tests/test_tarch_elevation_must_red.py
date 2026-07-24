@@ -171,3 +171,23 @@ def test_raster_horizontal_mirror_in_bounds_makes_g10_calibration_red(tmp_path):
     result = _run(tmp_path, _rehash(request.model_copy(update={"raster_overlays": bindings})))
     assert not _gate(result, "G10").passed
     assert any(diag.code == "tarch_raster_calibration_invalid" for diag in result.diagnostics)
+
+
+def test_plan_footprint_control_swap_makes_g10_calibration_red(tmp_path):
+    """Plan calibration is typed too: a swapped outer-wall corner is not cosmetic."""
+    request = TarchConversionRequestV1.model_validate_json(
+        (ROOT / "request_v3_calibrated.json").read_text())
+    bindings = list(request.raster_overlays)
+    plan_index = next(i for i, item in enumerate(bindings) if item.view_id == "plan-F1")
+    binding = bindings[plan_index].model_copy(deep=True)
+    controls = list(binding.calibration_controls)
+    sw = next(i for i, item in enumerate(controls) if item.role == "footprint_sw")
+    se = next(i for i, item in enumerate(controls) if item.role == "footprint_se")
+    controls[sw], controls[se] = (
+        controls[sw].model_copy(update={"source_point_dxf": controls[se].source_point_dxf}),
+        controls[se].model_copy(update={"source_point_dxf": controls[sw].source_point_dxf}),
+    )
+    bindings[plan_index] = binding.model_copy(update={"calibration_controls": controls})
+    result = _run(tmp_path, _rehash(request.model_copy(update={"raster_overlays": bindings})))
+    assert not _gate(result, "G10").passed
+    assert any(diag.code == "tarch_raster_calibration_invalid" for diag in result.diagnostics)

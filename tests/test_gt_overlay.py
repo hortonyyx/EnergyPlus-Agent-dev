@@ -11,7 +11,7 @@ from pathlib import Path
 
 import numpy as np
 import pytest
-from PIL import Image
+from PIL import Image, ImageDraw
 import hashlib
 
 sys.path.insert(0, str(Path("scripts/tool_scripts").resolve()))
@@ -119,7 +119,7 @@ def test_v3_elevation_overlay_uses_declared_floor_z_and_affine(tmp_path):
     assert image.getpixel((100, 10)) != (255, 255, 255)
 
 
-def test_sm24_v3_elevation_overlays_normalise_y_down_rectangle_corners(tmp_path):
+def test_sm24_v3_plan_and_elevation_overlays_normalise_y_down_rectangle_corners(tmp_path, monkeypatch):
     """Real y-down CAD screenshots make z0 map below z1; all four must render.
 
     This is intentionally the production v3 builder path: before the narrow
@@ -136,10 +136,21 @@ def test_sm24_v3_elevation_overlays_normalise_y_down_rectangle_corners(tmp_path)
     conversion = run_p2_conversion(root / "source.dxf", request, request.plan_views[0], tooling, tmp_path)
     document = extract_gt_v3(ExtractionInputs(conversion.augmented_dxf_path, conversion.manifest, tooling,
                                                compute_gt_implementation_hashes(REPO_ROOT)))
+    rectangles = []
+    original_rectangle = ImageDraw.ImageDraw.rectangle
+    def capture_rectangle(self, xy, *args, **kwargs):
+        rectangles.append((xy, kwargs))
+        return original_rectangle(self, xy, *args, **kwargs)
+    monkeypatch.setattr(ImageDraw.ImageDraw, "rectangle", capture_rectangle)
     images = ov.build_gt_overlay_images_v3(document, conversion.manifest,
                                             raster_root=Path("case_tests/e2e_tests/sm24_anchor/case_data"))
-    assert list(images) == ["East_view", "North_view", "South_view", "West_view"]
+    assert list(images) == ["East_view", "North_view", "South_view", "West_view", "plan-F1"]
     assert all(image.mode == "RGB" and image.width > 0 and image.height > 0 for image in images.values())
+    # Four white rectangles are the declared facade envelopes; opening boxes use
+    # cyan/orange.  This proves the envelope branch adds draw-only review aid
+    # without altering the typed world→pixel projection functions.
+    assert sum(kwargs.get("outline") == (255, 255, 255, 255) and kwargs.get("width") == 3
+               for _, kwargs in rectangles) == 4
 
 
 @pytest.mark.parametrize("label", ["../outside.png", "/tmp/outside.png", "nested/raster.png"])

@@ -4,21 +4,23 @@
 
 - 施工前已备份 `tarch_converter_schema.py`、`tarch_normalize.py`、`gt_extraction.py` 至 `backup/src_history/2026-07-24_elevation/`。
 - 主控明示授权的一处窄例外：先备份 `scripts/tool_scripts/render_gt_overlay.py` 至 `backup/scripts_history/2026-07-24_elevation_overlay_corner_sort/`，仅修 line 323 的 PIL rectangle 两角点排序。根因是 v3 立面 z 向上投影到 y-down PNG 后，两个 y 反序，PIL 要求 `y1 >= y0`；修法仅在绘制前 `min/max`，`_pixel_for_world_elevation`、affine 与全部投影数学均未改。sm21 走 legacy 路径，故此前未触发。新增真实 sm24 四视图回归覆盖该路径。
+- 本轮主控明示授权第二处窄添加：在同一 `ElevationViewBindingV1` 绘制分支，只新增 facade envelope 矩形（plan projection `[lo,hi] × [z_floor, z_floor+ceiling_height]`）的白色描边。理由是让人核直观看到镜像/错位；未改 `_pixel_for_world_elevation`、affine 或任何投影数学，plan 分支的 footprint envelope 未改。修改前已再次备份该脚本到同一受控 backup 目录。
 - 未改 GT v3 wire、`GroundTruthV3` opening wire、v2 legacy adapter、scorer/Va/Vg、execution/reading/correction；未写 `case_tests/test_baseline/gt/`、`gt_sources/` 或 e2e `case_data/`。
 
 ## 实现与单位结论
 
 - 新增 request v3 的独立 `named_datum_bound` 立面契约、四个 datum 的有向端点、title map、门 block fingerprint/exhaustive role map、typed raster controls、E0--E8 diagnostics、完整 G9 `extract_gt_v3` preflight 及 G10 review-index acknowledgement。
 - sm24 事实底座按合同输入：North `125/start`、South `102/start`、West `144/end`、East `12F/end`；门 `112` 为唯一 structural outline，`11C` exact excluded。没有以最低线、窗台或“天正常规”推导 z。
-- 主控交付的控制点是 DXF-native mm；`world_from_source_m` 的 source 输入为 m。因此 request/manifest 的 `pixel_to_source_m` 把 main-control affine 的线性项及 offset 同乘 `0.001`，但 calibration controls 原样保存为 mm；converter 用 `metres_per_unit` 转换后复核三点残差、角色、非共线、lo/hi endpoint 与四角反投影。四视图均通过。
+- 主控交付的控制点是 DXF-native mm；`world_from_source_m` 的 source 输入为 m。因此 request/manifest 的 `pixel_to_source_m` 把 main-control affine 的线性项及 offset 同乘 `0.001`，但 calibration controls 原样保存为 mm；converter 用 `metres_per_unit` 转换后复核三点残差、角色、非共线、lo/hi endpoint 与四角反投影。四立面及 1F 平面均通过。
+- 1F 平面 binding 是 `plan-F1 / 1f_view.png`，控制点为 `footprint_sw/se/nw` 外墙角；它们由 `GTV3_FOOTPRINT` 的 SW/SE/NW source 点、非共线与 native-mm→source-m residual 校验，不以图像启发式猜测。
 
 ## sm24 review 产物
 
 - `logs/experiments/2026-07-24_sm24_gt_review/gt/gt.json`：14 个 relevant openings，均有 source-observed z（11 window、3 exterior door）。
 - `gt/renders/gt_plan.png`、`gt/renders/gt_elev.png`，后者含 4 个真实 elevation surface。
-- 同一原子 `gt/renders/` bundle 内：`overlay_East_view.png`、`overlay_North_view.png`、`overlay_South_view.png`、`overlay_West_view.png`。底图为 `case_tests/e2e_tests/sm24_anchor/case_data/*_view.png` 的调暗原图；每框直接标 `opening_id + z_interval`，每图固定 legend 标 datum handle、source start/end 及 `→plan.lo/hi`。
+- 同一原子 `gt/renders/` bundle 内共 7 张图：`gt_plan.png`、`gt_elev.png`、`overlay_1f_view.png`、四张 `overlay_{East,North,South,West}_view.png`。平面 overlay 是调暗 `1f_view.png` 加 footprint、8 个 zone 描边/id 与窗门线；立面 overlay 保留 opening id/z、datum legend，并新增白色 facade envelope。已与 `maincontrol_calibration_verify/plan_verify.png` 逐项对照落位一致。
 - `opening_elevation_audit.json` 有 14 行；每行含 `opening_id/evidence_id/view_id/facade_family/floor_id/kind/host_zone_id/plan_world_along_interval/elevation_source_along_interval/world_along_interval/z_interval/datum_entity_handle/datum_source_start_point/datum_source_end_point/declared_world_along_lo_source_endpoint/mapped_endpoint_pair/raw_source_handles/structural_source_handles`，并绑 candidate GT 与 manifest hash。South 的对称两窗、East 各 host zone 的 handness 由此供 G10 人核。
-- canonical `review_index.json` 以 inventory 绑定 `gt.json`、两张 GT render、四张 overlay、audit；inventory hash：`d1e3f9f7b2564e599f2917e6c9622e00452e3304aab1e793531c8f971b30e0a7`。v3 ack 只接受这一 index hash，不使用逐文件散绑。
+- canonical `review_index.json` 以 inventory 绑定 `gt.json`、两张 GT render、五张 overlay、audit（9 files）；新 inventory hash：`fa0ad58d95b1718c64b808fa34cf20e213f797db0c19f4a11057e28890539ccf`。v3 ack 只接受这一 index hash，不使用逐文件散绑。
 
 ## §9 必红夹具逐格自查
 
@@ -41,6 +43,7 @@
 | door union T-shape（非矩形闭包） | G3 / 同码 | 红 |
 | door union 两段不同 z | G3 / 同码 | 红 |
 | raster 水平镜像且四角仍图内 | G10 / `tarch_raster_calibration_invalid` | 红 |
+| plan footprint SW/SE control 对调 | G10 / `tarch_raster_calibration_invalid` | 红 |
 | 三字段同步一致重标 | G10 人审 | 机器不应必红；由 audit rows + overlay 暴露，待人工 datum/手性确认 |
 
 ## §11 完成定义逐条对账
@@ -65,9 +68,9 @@
 
 ## 测试
 
-- `pytest -q tests/test_tarch_elevation_must_red.py`：`13 passed`。其中 4 个 union 变异和 South in-bounds horizontal mirror 都由 production converter 真跑并命中目标 gate。
-- `pytest -q tests/test_tarch_elevation_must_red.py tests/test_gt_overlay.py`（union/mirror 前）：`21 passed`（12 个既有 Pydantic serializer warnings）。
-- 全仓最终回归：`1555 passed, 10 xfailed, 146 warnings`，`621.53s`；零 v2/execution/reading/correction 回归。
+- `pytest -q tests/test_tarch_elevation_must_red.py`：`14 passed`；新增 plan footprint control 对调，命中 G10。
+- `pytest -q tests/test_tarch_elevation_must_red.py tests/test_gt_overlay.py`：`27 passed`（12 个既有 Pydantic serializer warnings）；含真实 sm24 plan overlay、四立面、envelope 描边 capture。
+- 本轮全仓最终回归：`1556 passed, 10 xfailed, 146 warnings`，`576.92s`；零 v2/execution/reading/correction 回归。
 
 ## 诚实交接
 

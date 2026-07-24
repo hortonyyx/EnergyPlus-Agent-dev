@@ -286,10 +286,15 @@ def build_gt_overlay_images_v3(
             floor = floors.get(view.floor_id)
             if floor is None:
                 raise ValueError("gt_overlay_floor_missing")
-            for polygon, colour in [(floor.footprint_exterior, (20,20,20,255)), *( (zone.exterior, ROLE.get(zone.role, (150,150,150)) + (255,)) for zone in floor.zone_polygons )]:
+            for polygon, colour in [(floor.footprint_exterior, (20,20,20,255)), *( (zone.exterior, ROLE.get(zone.role, (0,200,255)) + (255,)) for zone in floor.zone_polygons )]:
                 points = [_pixel_for_world_plan(view, binding, point) for point in polygon]
                 for point in points: _within(image, point)
                 draw.line(points + [points[0]], fill=colour, width=3)
+            for zone in floor.zone_polygons:
+                xs, ys = zip(*zone.exterior)
+                point = _pixel_for_world_plan(view, binding, ((min(xs) + max(xs)) / 2, (min(ys) + max(ys)) / 2))
+                _within(image, point)
+                draw.text(point, zone.id, font=_font(14), fill=ROLE.get(zone.role, (0,200,255)) + (255,))
             segments = {segment.id: segment for segment in floor.boundary_segments}
             for opening in floor.openings:
                 segment = segments[opening.segment_id]
@@ -303,6 +308,18 @@ def build_gt_overlay_images_v3(
             surface = next((item for item in model.elevation_surfaces if item.key == view.projection_surface_key), None)
             if surface is None:
                 raise ValueError("gt_overlay_surface_missing")
+            floor_by_id = {item.floor_id: item for item in model.floors}
+            along_lo = min(_along_extent(segment)[0] for segment in surface.segments)
+            along_hi = max(_along_extent(segment)[1] for segment in surface.segments)
+            z_lo = min(floor_by_id[segment.floor_id].z_floor_m for segment in surface.segments)
+            z_hi = max(floor_by_id[segment.floor_id].z_floor_m + floor_by_id[segment.floor_id].ceiling_height_m
+                       for segment in surface.segments)
+            envelope = [_pixel_for_world_elevation(view, binding, along_lo, z_lo),
+                        _pixel_for_world_elevation(view, binding, along_hi, z_hi)]
+            for point in envelope: _within(image, point)
+            ex0, ey0 = envelope[0]; ex1, ey1 = envelope[1]
+            draw.rectangle((min(ex0, ex1), min(ey0, ey1), max(ex0, ex1), max(ey0, ey1)),
+                           outline=(255, 255, 255, 255), width=3)
             for segment in surface.segments:
                 low, high = _along_extent(segment)
                 z_floor = next(item.z_floor_m for item in model.floors if item.floor_id == segment.floor_id)

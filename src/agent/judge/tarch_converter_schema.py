@@ -646,7 +646,7 @@ class RasterCalibrationControlV1(_StrictModel):
     entity_handle: DxfHandle
     source_point_dxf: Point2
     pixel_point: Point2
-    role: Literal["datum_lo", "datum_hi", "off_datum"]
+    role: Literal["datum_lo", "datum_hi", "off_datum", "footprint_sw", "footprint_se", "footprint_nw"]
 
 
 class RasterOverlayIntentV3(_StrictModel):

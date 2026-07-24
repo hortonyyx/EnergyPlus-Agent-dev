@@ -1814,14 +1814,44 @@ def _validate_raster_intents(request: TarchConversionRequestV1, doc, tols: _Tols
     """
     if request.request_version != 3:
         return
-    intents = {item.id: item for item in request.elevation_views if isinstance(item, DatumBoundNamedElevationViewIntentV3)}
-    if len(request.raster_overlays) != len(intents):
-        _add(diags, _diag("tarch_raster_overlay_unbound", handles=[next(iter(intents.values())).frame_entity_handle])); return
+    elevation_intents = {item.id: item for item in request.elevation_views if isinstance(item, DatumBoundNamedElevationViewIntentV3)}
+    plan_intents = {item.id: item for item in request.plan_views}
+    expected_view_ids = set(elevation_intents) | set(plan_intents)
+    if {binding.view_id for binding in request.raster_overlays} != expected_view_ids or len(request.raster_overlays) != len(expected_view_ids):
+        fallback = next(iter(elevation_intents.values())).frame_entity_handle if elevation_intents else request.plan_views[0].wall_selector.layers[0]
+        _add(diags, _diag("tarch_raster_overlay_unbound", handles=[fallback])); return
     for binding in request.raster_overlays:
-        intent = intents.get(binding.view_id)
-        if intent is None or Path(binding.source_label).name != binding.source_label:
-            _add(diags, _diag("tarch_raster_overlay_unbound", handles=[intent.frame_entity_handle if intent else request.plan_views[0].frame_title])); continue
+        elevation_intent = elevation_intents.get(binding.view_id)
+        plan_intent = plan_intents.get(binding.view_id)
+        if (elevation_intent is None and plan_intent is None) or Path(binding.source_label).name != binding.source_label:
+            fallback = elevation_intent.frame_entity_handle if elevation_intent else next(iter(elevation_intents.values())).frame_entity_handle
+            _add(diags, _diag("tarch_raster_overlay_unbound", handles=[fallback])); continue
         controls = {control.role: control for control in binding.calibration_controls}
+        if len(controls) != len(binding.calibration_controls):
+            _add(diags, _diag("tarch_raster_calibration_invalid", handles=[binding.calibration_controls[0].entity_handle])); continue
+        if plan_intent is not None:
+            footprint = next((item for item in doc.modelspace()
+                              if item.dxftype() == "LWPOLYLINE" and item.dxf.layer == GTV3_FOOTPRINT_LAYER), None)
+            if set(controls) != {"footprint_sw", "footprint_se", "footprint_nw"} or footprint is None:
+                _add(diags, _diag("tarch_raster_calibration_invalid", handles=[binding.calibration_controls[0].entity_handle])); continue
+            vertices = [(float(point[0]), float(point[1])) for point in footprint.get_points("xy")]
+            min_x, max_x = min(point[0] for point in vertices), max(point[0] for point in vertices)
+            min_y, max_y = min(point[1] for point in vertices), max(point[1] for point in vertices)
+            expected = {"footprint_sw": (min_x, min_y), "footprint_se": (max_x, min_y), "footprint_nw": (min_x, max_y)}
+            pix = [controls[key].pixel_point for key in ("footprint_sw", "footprint_se", "footprint_nw")]
+            area2 = abs((pix[1][0]-pix[0][0])*(pix[2][1]-pix[0][1]) - (pix[1][1]-pix[0][1])*(pix[2][0]-pix[0][0]))
+            def mapped(control):
+                a = binding.pixel_to_source_m
+                return (a.m00*control.pixel_point[0]+a.m01*control.pixel_point[1]+a.m02,
+                        a.m10*control.pixel_point[0]+a.m11*control.pixel_point[1]+a.m12)
+            residual_ok = all(max(abs(mapped(control)[0]-control.source_point_dxf[0]*request.metres_per_unit),
+                                  abs(mapped(control)[1]-control.source_point_dxf[1]*request.metres_per_unit)) <= tols.node_join_m
+                              for control in controls.values())
+            def close_native(actual, expected_point): return max(abs(actual[0]-expected_point[0]), abs(actual[1]-expected_point[1])) <= tols.node_join_native
+            if area2 == 0 or not residual_ok or not all(close_native(controls[role].source_point_dxf, point) for role, point in expected.items()):
+                _add(diags, _diag("tarch_raster_calibration_invalid", handles=[binding.calibration_controls[0].entity_handle], context={"view_id": plan_intent.id})); continue
+            continue
+        intent = elevation_intent
         datum = intent.floor_datums[0]
         entity = next((item for item in doc.modelspace() if item.dxf.handle == datum.entity_handle), None)
         if set(controls) != {"datum_lo", "datum_hi", "off_datum"} or entity is None:
