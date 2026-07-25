@@ -568,7 +568,7 @@ def test_g9_must_red_v3_rejects_bad_bundle(tmp_path):
     v = bad_manifest.views[0]
     v.footprint_boundary = v.footprint_boundary.model_copy(
         update={"handles": ["DEADBE"]})
-    ok, code = tn._run_g9_v3_preflight(res.augmented_dxf_path, bad_manifest, tooling)
+    ok, code, _document = tn._run_g9_v3_preflight(res.augmented_dxf_path, bad_manifest, tooling)
     assert not ok and code
 
 

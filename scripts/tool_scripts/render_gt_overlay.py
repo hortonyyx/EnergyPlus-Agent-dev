@@ -29,13 +29,18 @@ from typing import Mapping
 
 import numpy as np
 from PIL import Image, ImageDraw, ImageEnhance, ImageFont
+from shapely.geometry import Polygon
+from shapely.ops import polylabel
 from src.agent.judge.gt import load_gt_file
 from src.agent.judge.gt_manifest import (ElevationViewBindingV1, GtExtractionManifestV1,
                                           PlanViewBindingV1)
 from src.agent.judge.gt_render_model import gt_to_render_model
 from src.agent.judge.gt_schema import GroundTruthV3
 
-DIM = 0.38     # original drawing dimmed to this brightness so the gt overlay stands out
+DIM = 0.38     # LEGACY v2 ONLY — original drawing dimmed so the gt overlay stands out.
+               # The committed sm21 renders are locked baseline assets, so neither this
+               # constant nor overlay_plan/overlay_elev may change (see R-01 lock in
+               # tests/test_gt_overlay.py::test_sm21_legacy_overlay_pipeline_is_unchanged).
 
 GT_DIR = Path("case_tests/test_baseline/gt")
 CASE_DATA = Path("case_tests/e2e_tests/{case}/case_data")
@@ -43,6 +48,97 @@ CASE_DATA = Path("case_tests/e2e_tests/{case}/case_data")
 ROLE = {"office": (90, 140, 220), "meeting": (70, 175, 90), "corridor": (220, 170, 40)}
 WIN = (0, 200, 255)
 DOOR = (255, 120, 0)
+
+# --- v3 review-render conventions ------------------------------------------- #
+# The drawing itself is drawn in cyan (openings), green (dimensions) and white/grey
+# (walls), so an overlay that also uses those hues is indistinguishable from the very
+# evidence the reviewer must compare against.  v3 therefore renders the base in
+# GREYSCALE and draws only saturated hues: every colour in the result belongs to gt.
+_REVIEW_BASE_GAIN = 0.75      # ink luma retained (vs 0.38 under the legacy multiply)
+_SM21_REFERENCE_WIDTH = 2133  # sm21 plan raster the stroke/label proportions were tuned on
+_ENVELOPE = (255, 60, 60)     # footprint / facade envelope
+_NEUTRAL_ROLE = (150, 150, 150)
+_V3_ROLE = {**ROLE, "reception": (200, 90, 200), "lobby": (0, 190, 190),
+            "unspecified": _NEUTRAL_ROLE}
+
+
+def _weights(image: Image.Image) -> dict[str, int]:
+    """Stroke widths / label size scaled to the raster, in sm21's proportions.
+
+    The 07-24 bundle used absolute constants, so the same 3 px outline was 0.12 % of a
+    2434 px elevation (hairline) while a 7 px plan bar was 0.9 % of a 790 px plan
+    (fat enough to bury the drawing underneath).  Everything is proportional now.
+    """
+    scale = image.width / _SM21_REFERENCE_WIDTH
+    return {"line": max(2, round(3 * scale)), "bar": max(2, round(9 * scale)),
+            "box": max(2, round(5 * scale)), "font": max(11, round(20 * scale))}
+
+
+def _review_base(base: Image.Image) -> Image.Image:
+    """Greyscale, mildly dimmed compositing base for v3 review overlays.
+
+    Legacy v2 is deliberately NOT routed through here.
+    """
+    grey = base.convert("L").point(lambda value: int(value * _REVIEW_BASE_GAIN))
+    return Image.merge("RGB", (grey, grey, grey)).convert("RGBA")
+
+
+def _label_anchor(exterior) -> tuple[float, float]:
+    """A world point GUARANTEED inside the zone polygon, for its label.
+
+    Neither a bbox corner nor a centroid is safe for the non-rectangular zones this
+    project exists to support.  Concretely, in the 07-24/07-25 sm24 bundle the anchor
+    was the bbox NW corner, and for z4 (6-vertex L) that corner lands inside z5's
+    corridor strip; because zones are painted z0..z7, z5's fill then covered z4's
+    label and the delivered plan showed only 7 of 8 zone labels — silently breaking
+    the one thing the human sign-off is supposed to confirm.
+
+    ``polylabel`` is the pole of inaccessibility (the most interior point, best for
+    text); ``representative_point`` is the guaranteed-inside fallback.
+    """
+    polygon = Polygon(list(exterior))
+    try:
+        point = polylabel(polygon, tolerance=max(polygon.length / 1000.0, 1e-9))
+        if not polygon.contains(point):
+            raise ValueError("polylabel escaped the polygon")
+    except Exception:
+        point = polygon.representative_point()
+    return (point.x, point.y)
+
+
+def _outline(draw, box, colour, width, dash=0):
+    """Four explicit equal-width edges, optionally dashed.
+
+    NOTE (verified 2026-07-25, Pillow 12.2.0): ``ImageDraw.rectangle(..., width=w)``
+    does render all four edges at the full width — the "PIL bottom edge is only 1 px"
+    premise does NOT hold in this version, so that is not why this helper exists.
+
+    It exists for ``dash``, which ``rectangle`` cannot do: an opening box drawn solid
+    sits exactly on top of the drawing's own opening frame and hides it, which is
+    precisely the evidence the reviewer must compare against.  Dashes keep the
+    coordinates exact while letting the drawing show through the gaps.
+    """
+    x0, y0, x1, y1 = box
+    for a, b in (((x0, y0), (x1, y0)), ((x1, y0), (x1, y1)),
+                 ((x1, y1), (x0, y1)), ((x0, y1), (x0, y0))):
+        if not dash:
+            draw.line([a, b], fill=colour, width=width)
+            continue
+        length = max(abs(b[0] - a[0]), abs(b[1] - a[1]))
+        steps = max(1, int(length // dash))
+        for step in range(0, steps, 2):
+            t0, t1 = step / steps, min((step + 1) / steps, 1.0)
+            draw.line([(a[0] + (b[0] - a[0]) * t0, a[1] + (b[1] - a[1]) * t0),
+                       (a[0] + (b[0] - a[0]) * t1, a[1] + (b[1] - a[1]) * t1)],
+                      fill=colour, width=width)
+
+
+def _label(draw, image, point, text, colour, size, anchor="la"):
+    """Draw a label clamped inside the image, with a dark halo for legibility."""
+    x = min(max(point[0], 2), max(image.width - 2, 2))
+    y = min(max(point[1], 2), max(image.height - 2, 2))
+    draw.text((x, y), text, font=_font(size), fill=colour, anchor=anchor,
+              stroke_width=max(1, size // 10), stroke_fill=(0, 0, 0, 255))
 # elevation x runs west→east for S, south→north for E; N & W are viewed mirrored.
 _MIRRORED = {"North", "West"}
 _FACADE_PNG = {"South": "South_view", "North": "North_view",
@@ -242,9 +338,14 @@ def _within(image: Image.Image, point: tuple[float, float], epsilon: float = 1e-
 
 
 def _candidate_stamp(image: Image.Image, document: GroundTruthV3) -> None:
+    size = _weights(image)["font"]
+    band = size + 10
     draw = ImageDraw.Draw(image)
-    draw.rectangle((0, image.height - 28, image.width, image.height), fill=(80, 0, 0, 255))
-    draw.text((8, image.height - 24), f"CANDIDATE — NOT BASELINE  {document.content_sha256[:12]}", fill=(255,255,255,255), font=_font(15))
+    draw.rectangle((0, image.height - band, image.width, image.height), fill=(80, 0, 0, 255))
+    draw.text((8, image.height - band + 4),
+              f"CANDIDATE — NOT BASELINE  {document.content_sha256[:12]}   "
+              f"[gt: cyan=window orange=door red=envelope; base greyscale]",
+              fill=(255,255,255,255), font=_font(size))
 
 
 def _sanitized_view_id(view_id: str) -> str:
@@ -259,8 +360,15 @@ def build_gt_overlay_images_v3(
     manifest: GtExtractionManifestV1,
     *,
     raster_root: Path,
+    review_annotations: Mapping[str, str] | None = None,
 ) -> Mapping[str, Image.Image]:
-    """Project typed v3 geometry via the manifest's declared affine bindings."""
+    """Project typed v3 geometry via the manifest's declared affine bindings.
+
+    ``review_annotations`` maps ``zone_id -> role`` and is **review-only**: it tints and
+    labels plan zones for the human reviewer.  It is never written to the GT, never
+    reaches a gate, and any zone it does not name stays neutral grey (no guessing).
+    """
+    annotations = dict(review_annotations or {})
     if doc.case != manifest.case:
         raise ValueError("gt_overlay_case_mismatch")
     if doc.generator.manifest_sha256 != manifest.manifest_sha256:
@@ -280,21 +388,32 @@ def build_gt_overlay_images_v3(
         if view is None:
             raise ValueError("gt_overlay_view_missing")
         base = Image.open(raster).convert("RGBA")
-        image = ImageEnhance.Brightness(base.convert("RGB")).enhance(DIM).convert("RGBA")
-        draw = ImageDraw.Draw(image)
+        image = _review_base(base)
+        weight = _weights(image)
+        # Everything is drawn into a transparent layer so translucent zone fills really
+        # blend with the drawing underneath (ImageDraw replaces rather than blends).
+        layer = Image.new("RGBA", image.size, (0, 0, 0, 0))
+        draw = ImageDraw.Draw(layer)
         if isinstance(view, PlanViewBindingV1):
             floor = floors.get(view.floor_id)
             if floor is None:
                 raise ValueError("gt_overlay_floor_missing")
-            for polygon, colour in [(floor.footprint_exterior, (20,20,20,255)), *( (zone.exterior, ROLE.get(zone.role, (0,200,255)) + (255,)) for zone in floor.zone_polygons )]:
-                points = [_pixel_for_world_plan(view, binding, point) for point in polygon]
-                for point in points: _within(image, point)
-                draw.line(points + [points[0]], fill=colour, width=3)
+            footprint = [_pixel_for_world_plan(view, binding, point) for point in floor.footprint_exterior]
+            for point in footprint: _within(image, point)
+            # Pass 1: every zone fill + outline.  Labels are deliberately NOT drawn here
+            # — a later zone's translucent fill would paint over an earlier zone's text.
+            pending_labels = []
             for zone in floor.zone_polygons:
-                xs, ys = zip(*zone.exterior)
-                point = _pixel_for_world_plan(view, binding, ((min(xs) + max(xs)) / 2, (min(ys) + max(ys)) / 2))
-                _within(image, point)
-                draw.text(point, zone.id, font=_font(14), fill=ROLE.get(zone.role, (0,200,255)) + (255,))
+                role = annotations.get(zone.id, zone.role)
+                colour = _V3_ROLE.get(role, _NEUTRAL_ROLE)
+                points = [_pixel_for_world_plan(view, binding, point) for point in zone.exterior]
+                for point in points: _within(image, point)
+                draw.polygon(points, fill=colour + (70,))
+                draw.line(points + [points[0]], fill=colour + (255,), width=weight["line"])
+                anchor = _pixel_for_world_plan(view, binding, _label_anchor(zone.exterior))
+                _within(image, anchor)
+                text = zone.id if zone.id not in annotations else f"{zone.id} {annotations[zone.id]}"
+                pending_labels.append((anchor, text, colour + (255,)))
             segments = {segment.id: segment for segment in floor.boundary_segments}
             for opening in floor.openings:
                 segment = segments[opening.segment_id]
@@ -303,7 +422,14 @@ def build_gt_overlay_images_v3(
                     return (value, segment.p1[1]) if segment.facade_family in {"North", "South"} else (segment.p1[0], value)
                 points = [_pixel_for_world_plan(view,binding,locate(a)), _pixel_for_world_plan(view,binding,locate(b))]
                 for point in points: _within(image, point)
-                draw.line(points, fill=WIN + (255,) if opening.kind == "window" else DOOR + (255,), width=7)
+                draw.line(points, fill=WIN + (255,) if opening.kind == "window" else DOOR + (255,), width=weight["bar"])
+            # last, so the outer-skin reference is never overdrawn by a zone edge that
+            # happens to run along it
+            draw.line(footprint + [footprint[0]], fill=_ENVELOPE + (255,), width=weight["line"])
+            # Pass 2: all zone labels, after every fill/outline/opening, so no zone can
+            # bury another zone's name.  Centred on the guaranteed-inside anchor.
+            for anchor, text, colour in pending_labels:
+                _label(draw, image, anchor, text, colour, weight["font"], anchor="mm")
         elif isinstance(view, ElevationViewBindingV1):
             surface = next((item for item in model.elevation_surfaces if item.key == view.projection_surface_key), None)
             if surface is None:
@@ -318,8 +444,8 @@ def build_gt_overlay_images_v3(
                         _pixel_for_world_elevation(view, binding, along_hi, z_hi)]
             for point in envelope: _within(image, point)
             ex0, ey0 = envelope[0]; ex1, ey1 = envelope[1]
-            draw.rectangle((min(ex0, ex1), min(ey0, ey1), max(ex0, ex1), max(ey0, ey1)),
-                           outline=(255, 255, 255, 255), width=3)
+            _outline(draw, (min(ex0, ex1), min(ey0, ey1), max(ex0, ex1), max(ey0, ey1)),
+                     _ENVELOPE + (255,), weight["line"])
             for segment in surface.segments:
                 low, high = _along_extent(segment)
                 z_floor = next(item.z_floor_m for item in model.floors if item.floor_id == segment.floor_id)
@@ -327,21 +453,29 @@ def build_gt_overlay_images_v3(
                     a, b = low+(high-low)*step/12, low+(high-low)*min(1., (step+1)/12)
                     points = [_pixel_for_world_elevation(view,binding,a,z_floor), _pixel_for_world_elevation(view,binding,b,z_floor)]
                     for point in points: _within(image, point)
-                    draw.line(points, fill=(150,0,0,255), width=1)
+                    draw.line(points, fill=(255,80,80,255), width=max(1, weight["line"] // 2))
                 for visible_low, visible_high in segment.visible_intervals:
                     points = [_pixel_for_world_elevation(view,binding,visible_low,z_floor), _pixel_for_world_elevation(view,binding,visible_high,z_floor)]
                     for point in points: _within(image, point)
-                    draw.line(points, fill=(20,20,20,255), width=3)
+                    draw.line(points, fill=(255,210,0,255), width=weight["line"])
             for opening in surface.openings:
                 if opening.z_interval is None: continue
                 a,b = opening.world_along_interval; z0,z1 = opening.z_interval
                 corners = [_pixel_for_world_elevation(view,binding,a,z0), _pixel_for_world_elevation(view,binding,b,z1)]
                 for point in corners: _within(image, point)
                 x0, y0 = corners[0]; x1, y1 = corners[1]
-                draw.rectangle((min(x0, x1), min(y0, y1), max(x0, x1), max(y0, y1)),
-                               outline=WIN + (255,) if opening.kind == "window" else DOOR + (255,), width=3)
+                colour = WIN + (255,) if opening.kind == "window" else DOOR + (255,)
+                box = (min(x0, x1), min(y0, y1), max(x0, x1), max(y0, y1))
+                _outline(draw, box, colour, weight["box"], dash=weight["box"] * 4)
+                # spec §7.4 [S]: each elevation overlay carries the opening ID, its plan
+                # along interval and its z interval, so the audit table can be checked
+                # against the picture without a second lookup.
+                _label(draw, image, (box[0], box[1] - weight["font"] - weight["box"]),
+                       f"{opening.id}  along=[{a:.2f},{b:.2f}]  z=[{z0:.2f},{z1:.2f}]",
+                       colour, weight["font"])
         else:  # pragma: no cover - strict manifest union protects this.
             raise ValueError("gt_overlay_view_kind_invalid")
+        image = Image.alpha_composite(image, layer)
         if doc.verification.status == "candidate": _candidate_stamp(image, doc)
         images[binding.view_id] = image.convert("RGB")
     return dict(sorted(images.items()))
@@ -374,8 +508,11 @@ def main():
     ap.add_argument("--manifest")
     ap.add_argument("--raster-root")
     ap.add_argument("--out-dir")
+    ap.add_argument("--review-annotations",
+                    help="review-only JSON {zone_id: role} used to tint/label plan zones; "
+                         "never written to the GT and never consulted by a gate")
     args = ap.parse_args()
-    v3 = any((args.gt_file, args.manifest, args.raster_root, args.out_dir))
+    v3 = any((args.gt_file, args.manifest, args.raster_root, args.out_dir, args.review_annotations))
     if v3:
         if args.case or not all((args.gt_file, args.manifest, args.raster_root, args.out_dir)):
             ap.error("v3 requires --gt-file --manifest --raster-root --out-dir and no positional case")
@@ -383,7 +520,11 @@ def main():
         if not isinstance(document, GroundTruthV3):
             ap.error("--gt-file must be schema v3")
         manifest = GtExtractionManifestV1.model_validate(json.loads(Path(args.manifest).read_text(encoding="utf-8")))
-        for path in write_gt_overlay_images_v3(build_gt_overlay_images_v3(document, manifest, raster_root=Path(args.raster_root)), Path(args.out_dir)):
+        annotations = None
+        if args.review_annotations:
+            payload = json.loads(Path(args.review_annotations).read_text(encoding="utf-8"))
+            annotations = {str(k): str(v) for k, v in payload.get("zone_roles", payload).items()}
+        for path in write_gt_overlay_images_v3(build_gt_overlay_images_v3(document, manifest, raster_root=Path(args.raster_root), review_annotations=annotations), Path(args.out_dir)):
             print(f"wrote {path}")
         return
     if not args.case:

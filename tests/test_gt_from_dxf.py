@@ -217,7 +217,11 @@ def test_elevation_global_assignment_tie_fails_closed(tmp_path):
     doc = _extract(dxf, manifest)
     view = next(view for view in manifest.views if view.kind == "elevation")
     opening = doc.openings[0]
-    evidence = [(None, opening.world_along_interval, opening.z_interval, [])]
+    # Real evidence binding, not None: the candidate predicate compares evidence.kind
+    # against the opening kind, so a None item would only exercise a branch that the
+    # production call path can never produce.
+    item = next(entry for entry in view.opening_entities if entry.kind == opening.kind)
+    evidence = [(item, opening.world_along_interval, opening.z_interval, [])]
     duplicate = opening.model_copy(update={"id": "O2"})
     segments = {segment.id: segment for floor in doc.floors for segment in floor.boundary_segments}
     with pytest.raises(ExtractionError, match="elevation_opening_assignment_ambiguous"):

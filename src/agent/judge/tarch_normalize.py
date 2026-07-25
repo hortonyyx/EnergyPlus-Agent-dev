@@ -906,6 +906,10 @@ class P2ConversionResult:
     gtv3_zone_edge_handles: dict | None = None          # {(zone_idx, edge_idx): handle}
     elevation_records: list[_ElevationRecord] = field(default_factory=list)
     elevation_audit_rows: list[dict] = field(default_factory=list)
+    # The GT that G9 actually extracted.  It is the AUTHORITATIVE source for the
+    # opening-side columns of the §7.4 audit table (opening id / host zone / plan-side
+    # along interval); the converter must not re-derive a second version of them.
+    elevation_document: Any = None   # GroundTruthV3 | None
 
     @property
     def has_block(self) -> bool:
@@ -1635,24 +1639,35 @@ def _v3_elevation_records(augmented_dxf: Path, request: TarchConversionRequestV1
         plan_lo, plan_hi = min(s.world_along_interval.lo for s in facade_segments), max(s.world_along_interval.hi for s in facade_segments)
         if abs(abs(view.world_along_from_source_m.scale) - request.metres_per_unit) != 0 or abs(abs(view.world_z_from_source_m.scale) - request.metres_per_unit) != 0:
             _add(diags, _diag("tarch_elevation_z_transform_mismatch", handles=[view.frame_entity_handle])); continue
-        datum = view.floor_datums[0]
-        ent = next((e for e in msp if e.dxf.handle == datum.entity_handle), None)
-        if ent is None:
-            _add(diags, _diag("tarch_elevation_datum_missing", handles=[datum.entity_handle])); continue
-        if ent.dxftype() != "LINE":
-            _add(diags, _diag("tarch_elevation_datum_invalid", handles=[datum.entity_handle])); continue
-        start, end = (float(ent.dxf.start.x), float(ent.dxf.start.y)), (float(ent.dxf.end.x), float(ent.dxf.end.y))
         axis = view.world_along_from_source_m.source_axis; z_axis = view.world_z_from_source_m.source_axis
-        a0, a1 = (start[0 if axis == "x" else 1], end[0 if axis == "x" else 1])
-        z0, z1 = (start[0 if z_axis == "x" else 1], end[0 if z_axis == "x" else 1])
         transform_along = lambda value: value * view.world_along_from_source_m.scale + view.world_along_from_source_m.offset
-        floor = next(f for f in request.floors if f.id == datum.floor_id)
-        derived_offset = floor.z_floor_m - z0 * view.world_z_from_source_m.scale
-        declared = a0 if datum.world_along_lo_source_endpoint == "start" else a1
-        other = a1 if datum.world_along_lo_source_endpoint == "start" else a0
-        endpoint_bad = abs(transform_along(declared) - plan_lo) > tols.node_join_m or abs(transform_along(other) - plan_hi) > tols.node_join_m
-        if abs(z0 - z1) > tols.axis_align_native or abs(a0 - a1) <= tols.quant_native or abs(derived_offset - view.world_z_from_source_m.offset) > tols.node_join_m or endpoint_bad:
-            _add(diags, _diag("tarch_elevation_along_direction_mismatch" if endpoint_bad else "tarch_elevation_z_transform_mismatch", handles=[datum.entity_handle])); continue
+        # EVERY declared datum is verified, not just floor_datums[0]: two datums that
+        # derive different offsets (spec §9.3) must BLOCK rather than let the first one
+        # silently win.  The first datum is what the records then carry.
+        datum_state: tuple | None = None
+        datum_bad: ConversionDiagnosticV1 | None = None
+        for candidate in view.floor_datums:
+            ent = next((e for e in msp if e.dxf.handle == candidate.entity_handle), None)
+            if ent is None:
+                datum_bad = _diag("tarch_elevation_datum_missing", handles=[candidate.entity_handle]); break
+            if ent.dxftype() != "LINE":
+                datum_bad = _diag("tarch_elevation_datum_invalid", handles=[candidate.entity_handle]); break
+            start, end = (float(ent.dxf.start.x), float(ent.dxf.start.y)), (float(ent.dxf.end.x), float(ent.dxf.end.y))
+            a0, a1 = (start[0 if axis == "x" else 1], end[0 if axis == "x" else 1])
+            z0, z1 = (start[0 if z_axis == "x" else 1], end[0 if z_axis == "x" else 1])
+            floor = next(f for f in request.floors if f.id == candidate.floor_id)
+            derived_offset = floor.z_floor_m - z0 * view.world_z_from_source_m.scale
+            declared = a0 if candidate.world_along_lo_source_endpoint == "start" else a1
+            other = a1 if candidate.world_along_lo_source_endpoint == "start" else a0
+            endpoint_bad = abs(transform_along(declared) - plan_lo) > tols.node_join_m or abs(transform_along(other) - plan_hi) > tols.node_join_m
+            if abs(z0 - z1) > tols.axis_align_native or abs(a0 - a1) <= tols.quant_native or abs(derived_offset - view.world_z_from_source_m.offset) > tols.node_join_m or endpoint_bad:
+                datum_bad = _diag("tarch_elevation_along_direction_mismatch" if endpoint_bad else "tarch_elevation_z_transform_mismatch",
+                                  handles=[candidate.entity_handle]); break
+            if datum_state is None:
+                datum_state = (candidate, start, end)
+        if datum_bad is not None:
+            _add(diags, datum_bad); continue
+        datum, start, end = datum_state
         lines = [e for e in msp if e.dxftype() == "LINE" and e.dxf.layer in view.window_selector.layers and _inside(e, view.clip_box_dxf)]
         for group in _line_components(lines, tols.quant_native):
             rect = _rect_from_lines(group, tols.quant_native)
@@ -1949,6 +1964,29 @@ def _build_source_map(request: TarchConversionRequestV1, plan_view: PlanViewInte
     return sm.model_copy(update={"source_map_sha256": compute_source_map_sha256(sm)})
 
 
+def _outer_skin_thickness_m(zones: list[ZoneExpansion], metres_per_unit: float) -> float | None:
+    """Evidence-backed exterior wall thickness for the manifest ``default_wall_thickness_m``.
+
+    Only S7 zone edges expanded on an ``outer_skin`` basis measure the *exterior* wall,
+    and each already carries its :class:`ThicknessEvidenceV1` proof (the G7/G8 evidence
+    system — a measured jamb cap, never a constant).  A value is emitted only when every
+    such edge is proven AND they all agree; a missing proof or any disagreement yields
+    ``None``.  Fail-closed: the extractor must never receive a guessed or averaged
+    thickness, and ``None`` simply leaves the downstream scorer on its existing
+    degraded-but-honest path (plan §2.1 — the legal range is a sanity bound, not a source).
+    """
+    outer = [edge for zone in zones for edge in zone.edges if edge.basis == "outer_skin"]
+    if not outer:
+        return None
+    if any(edge.thickness_evidence is None or not edge.thickness_native for edge in outer):
+        return None
+    values = {round(edge.thickness_native * metres_per_unit, 9) for edge in outer}
+    if len(values) != 1:
+        return None
+    value = values.pop()
+    return value if value > 0 else None
+
+
 def _build_manifest(request: TarchConversionRequestV1, plan_view: PlanViewIntentV1,
                     zones: list[ZoneExpansion], claims: list[dict],
                     exterior_openings: list[ResolvedOpening], gtv3_handles: dict[str, list[str]],
@@ -2000,7 +2038,8 @@ def _build_manifest(request: TarchConversionRequestV1, plan_view: PlanViewIntent
                             "min_count": zo_min, "max_count": None},
         "plan_openings": [p.model_dump(mode="python") for p in plan_openings],
         "zone_seeds": [s.model_dump(mode="python") for s in seeds],
-        "boundary_reference": "outer_skin", "default_wall_thickness_m": None,
+        "boundary_reference": "outer_skin",
+        "default_wall_thickness_m": _outer_skin_thickness_m(zones, mpu),
     }
     include_elevations = elevation_records is not None
     elevation_records = elevation_records or []
@@ -2036,27 +2075,113 @@ def _build_manifest(request: TarchConversionRequestV1, plan_view: PlanViewIntent
     return GtExtractionManifestV1.model_validate(raw), seeds, plan_openings
 
 
-def _run_g9_v3_preflight(augmented_dxf: Path, manifest, tooling) -> tuple[bool, str | None]:
-    """G9: run the real v3 extractor (inspect + plan extraction) on the augmented
-    DXF + manifest.  Any ExtractionError -> fail-closed (tarch_v3_precondition)."""
+# §6.5 compares two INDEPENDENT code paths that must agree exactly: the converter
+# audit z (request affine, native units, `_converter_elevation_z`) and the
+# authoritative GT z (manifest affine = request/mpu, then re-multiplied by mpu in
+# `gt_extraction._elevation_geometry`).  Algebraically identical, so the only
+# admissible difference is float re-association noise: for sm24 magnitudes (|z| <= 4 m)
+# that is O(1e-15).  1e-9 m = 1 nanometre sits ~6 orders below the mm quantisation
+# step and ~6 orders above the noise floor, so it can never absorb a real drift.
+_PAIRING_Z_TOLERANCE_M = 1e-9
+
+
+def _converter_elevation_z(rec: _ElevationRecord, intent) -> tuple[float, float]:
+    """Converter-side z interval for one ledger record (request affine, native units).
+
+    This is the single arithmetic used both for the human audit row and for the
+    §6.5 postcheck, so the reviewer signs exactly the number the gate compared.
+    """
+    z_axis = intent.world_z_from_source_m.source_axis
+    raw = (rec.rect[0], rec.rect[2]) if z_axis == "x" else (rec.rect[1], rec.rect[3])
+    lo, hi = sorted(value * intent.world_z_from_source_m.scale + intent.world_z_from_source_m.offset
+                    for value in raw)
+    return lo, hi
+
+
+def _verify_pairing_consistency(document, elevation_records: list[_ElevationRecord],
+                                request: TarchConversionRequestV1) -> list[str]:
+    """spec §6.5 [S]: converter pairing ledger <-> extracted GT ``opening_elevation`` refs.
+
+    Reverse-look-up every GT elevation source ref by its generated handle and compare
+    it with the converter ledger entry that produced it: view id, kind, z interval, and
+    exactly one ref group per relevant pair.  Without this the converter's pre-linking
+    is an unconsumed pseudo-check and the audited z may silently diverge from the
+    authoritative GT z (they are two independent affine paths).
+
+    Returns a sorted list of drift reasons; empty means consistent.
+    """
+    intents = {view.id: view for view in request.elevation_views
+               if isinstance(view, DatumBoundNamedElevationViewIntentV3)}
+    reasons: list[str] = []
+    ledger: dict[str, _ElevationRecord] = {}
+    for rec in elevation_records:
+        if not rec.generated_handle:
+            reasons.append(f"ledger_handle_missing:{rec.view_id}")
+            continue
+        if rec.generated_handle in ledger:
+            reasons.append(f"ledger_handle_duplicate:{rec.generated_handle}")
+            continue
+        ledger[rec.generated_handle] = rec
+    owners: dict[str, list[str]] = {}
+    for opening in document.openings:
+        for ref in opening.source_refs:
+            if ref.role != "opening_elevation":
+                continue
+            owners.setdefault(ref.entity_handle, []).append(opening.id)
+            rec = ledger.get(ref.entity_handle)
+            if rec is None:
+                reasons.append(f"gt_ref_not_in_ledger:{ref.entity_handle}")
+                continue
+            if ref.view_id != rec.view_id:
+                reasons.append(f"view_id_mismatch:{ref.entity_handle}:{ref.view_id}!={rec.view_id}")
+            if opening.kind != rec.kind:
+                reasons.append(f"kind_mismatch:{ref.entity_handle}:{opening.kind}!={rec.kind}")
+            intent = intents.get(rec.view_id)
+            if intent is None:
+                reasons.append(f"ledger_view_not_declared:{rec.view_id}")
+                continue
+            if opening.z_interval is None:
+                reasons.append(f"gt_z_missing:{opening.id}")
+                continue
+            lo, hi = _converter_elevation_z(rec, intent)
+            if (abs(opening.z_interval.lo - lo) > _PAIRING_Z_TOLERANCE_M
+                    or abs(opening.z_interval.hi - hi) > _PAIRING_Z_TOLERANCE_M):
+                reasons.append(f"z_interval_drift:{ref.entity_handle}")
+    # Exactly one ref group per relevant pair: 0 = converter evidence nobody consumed,
+    # >1 = one evidence claimed by several openings (or duplicated inside one).
+    for handle in sorted(ledger):
+        count = len(owners.get(handle, []))
+        if count != 1:
+            reasons.append(f"evidence_ref_group_count:{handle}:{count}")
+    return sorted(set(reasons))
+
+
+def _run_g9_v3_preflight(augmented_dxf: Path, manifest, tooling) -> tuple[bool, str | None, Any]:
+    """G9: run the real v3 extractor (inspect + full extract, which itself performs
+    validate_gt_v3 + canonical round-trip) on the augmented DXF + manifest.  Any typed
+    extraction/validation failure -> fail-closed (tarch_v3_precondition).
+
+    The extracted document is returned (third element) so the §6.5 pairing postcheck
+    consumes the real GT instead of re-deriving one; it is ``None`` when G9 failed.
+    """
+    from pydantic import ValidationError as PydanticValidationError
+
     from .gt_extraction import (ExtractionError, ExtractionInputs, InspectionInputs,
                                 extract_gt_v3, inspect_extraction_inputs)
-    from .gt_schema import REPO_ROOT, compute_gt_implementation_hashes
+    from .gt_schema import REPO_ROOT, GtValidationError, compute_gt_implementation_hashes
     try:
         hashes = compute_gt_implementation_hashes(REPO_ROOT)
         insp = inspect_extraction_inputs(InspectionInputs(augmented_dxf, manifest, tooling, hashes))
         if insp.status != "PASS":
             codes = ",".join(sorted({i.code for i in insp.issues}))
-            return False, codes or insp.status
-        extract_gt_v3(ExtractionInputs(augmented_dxf, manifest, tooling, hashes))
-        return True, None
-    except ExtractionError as exc:
-        return False, str(exc)
-    except Exception as exc:
-        # validate_gt_v3 has its own typed validation error.  G9 is the outer
-        # fail-closed conversion gate, so it must turn that final-stage failure
-        # into a BLOCK result rather than leaking a green preflight or a crash.
-        return False, str(exc)
+            return False, codes or insp.status, None
+        document = extract_gt_v3(ExtractionInputs(augmented_dxf, manifest, tooling, hashes))
+        return True, None, document
+    except (ExtractionError, GtValidationError, PydanticValidationError) as exc:
+        # Only the typed, expected fail-closed conditions become a BLOCK.  A genuine
+        # coding bug (KeyError/AttributeError/...) must keep propagating rather than
+        # be disguised as a legitimate gate result with an opaque message.
+        return False, str(exc), None
 
 
 def _write_overlay_svg(path: Path, p1: P1PlanViewGeometry, footprint: Any,
@@ -2248,20 +2373,37 @@ def run_p2_conversion(dxf_path: Path, request: TarchConversionRequestV1,
         # verify the signed datum endpoints and make the required global pairing;
         # it never derives datum height or handedness from openings.
         elevation_records: list[_ElevationRecord] = []
+        elevation_bound = False       # manifest actually carries elevation bindings
         if request.request_version == 3:
-            from .gt_extraction import ExtractionInputs, extract_gt_v3
-            from .gt_schema import REPO_ROOT, compute_gt_implementation_hashes
-            plan_gt = extract_gt_v3(ExtractionInputs(augmented_path, manifest, tooling, compute_gt_implementation_hashes(REPO_ROOT)))
-            elevation_records, elevation_diags = _v3_elevation_records(augmented_path, request, plan_gt, tols)
-            diags.extend(elevation_diags)
-            if not any(d.severity == DiagnosticSeverity.BLOCK for d in elevation_diags):
-                try:
-                    elevation_records = _append_elevation_outlines(augmented_path, elevation_records, tols.quant_native)
-                except ValueError:
-                    _add(diags, _diag("tarch_elevation_normalized_outline_drift", handles=[elevation_records[0].raw_handles[0]] if elevation_records else [plan_view.id]))
-                else:
-                    manifest, seeds, plan_openings = _build_manifest(request, plan_view, zones, claims, exterior_openings,
-                                                                       gtv3_handles, augmented_path, elevation_records)
+            from pydantic import ValidationError as PydanticValidationError
+
+            from .gt_extraction import ExtractionError, ExtractionInputs, extract_gt_v3
+            from .gt_schema import REPO_ROOT, GtValidationError, compute_gt_implementation_hashes
+            # This pre-pass extracts against the PLAN-ONLY manifest: the elevation
+            # bindings do not exist yet (they are derived from its own output), so it
+            # cannot be deduplicated against the G9 run on the complete manifest
+            # without inverting the gate order.  It is therefore kept, but no longer
+            # allowed to crash the conversion instead of returning a blocked report.
+            plan_gt = None
+            try:
+                plan_gt = extract_gt_v3(ExtractionInputs(augmented_path, manifest, tooling, compute_gt_implementation_hashes(REPO_ROOT)))
+            except (ExtractionError, GtValidationError, PydanticValidationError) as exc:
+                _add(diags, _diag("tarch_v3_precondition",
+                                  points_dxf_mm=[(p1.footprint_polygon.centroid.x,
+                                                  p1.footprint_polygon.centroid.y)],
+                                  context={"v3_code": str(exc), "stage": "elevation_plan_prepass"}))
+            if plan_gt is not None:
+                elevation_records, elevation_diags = _v3_elevation_records(augmented_path, request, plan_gt, tols)
+                diags.extend(elevation_diags)
+                if not any(d.severity == DiagnosticSeverity.BLOCK for d in elevation_diags):
+                    try:
+                        elevation_records = _append_elevation_outlines(augmented_path, elevation_records, tols.quant_native)
+                    except ValueError:
+                        _add(diags, _diag("tarch_elevation_normalized_outline_drift", handles=[elevation_records[0].raw_handles[0]] if elevation_records else [plan_view.id]))
+                    else:
+                        manifest, seeds, plan_openings = _build_manifest(request, plan_view, zones, claims, exterior_openings,
+                                                                           gtv3_handles, augmented_path, elevation_records)
+                        elevation_bound = True
             result.elevation_records = elevation_records
         overlay_path = work_dir / "overlay_plan.svg"
         _write_overlay_svg(overlay_path, p1, footprint, zones, claims, exterior_openings, affine)
@@ -2270,14 +2412,32 @@ def run_p2_conversion(dxf_path: Path, request: TarchConversionRequestV1,
                                        zone_edge_handles, footprint, p1, tols)
         _validate_raster_intents(request, ezdxf.readfile(str(augmented_path)), tols, diags)
         # G9 v3 preflight on the augmented bundle
-        g9_ok, g9_code = _run_g9_v3_preflight(augmented_path, manifest, tooling)
+        g9_ok, g9_code, g9_document = _run_g9_v3_preflight(augmented_path, manifest, tooling)
+        result.elevation_document = g9_document
+        pairing_drift: list[str] = []
         if not g9_ok:
             _add(diags, _diag("tarch_v3_precondition",
                               points_dxf_mm=[(p1.footprint_polygon.centroid.x,
                                               p1.footprint_polygon.centroid.y)],
                               context={"v3_code": g9_code}))
+        elif elevation_bound:
+            # spec §6.5 [S]: the converter pairing ledger must match the GT that was
+            # actually produced.  Without it the pre-linking is never consumed and the
+            # audited z can drift silently away from the authoritative GT z.
+            # Guarded by `elevation_bound`: when an E0--E4 gate already BLOCKed, the
+            # manifest carries no elevation bindings, so running the postcheck would
+            # only manufacture a secondary diagnostic for an already-reported failure.
+            pairing_drift = _verify_pairing_consistency(g9_document, elevation_records, request)
+            if pairing_drift:
+                g9_ok = False
+                g9_code = "elevation_pairing_drift"
+                _add(diags, _diag("tarch_elevation_pairing_drift",
+                                  handles=sorted({part for reason in pairing_drift for part in reason.split(":")[1:2]
+                                                  if part and all(c in "0123456789ABCDEF" for c in part)}),
+                                  context={"reasons": pairing_drift[:8]}))
         gates.append(GateResultV1(id="G9", name="v3 extraction preflight", passed=g9_ok,
-                                  evidence={"v3_code": g9_code}))
+                                  evidence={"v3_code": g9_code,
+                                            "pairing_drift": pairing_drift or None}))
         # G10 is deliberately not a file-exists check: candidate != signed.
         g10_ok, g10_evidence = _verify_human_review_ack(work_dir, request, Path(dxf_path), overlay_path)
         gates.append(GateResultV1(id="G10", name="human-review overlay", passed=g10_ok,
@@ -2393,15 +2553,33 @@ def build_p2_report(result: P2ConversionResult, request: TarchConversionRequestV
             else hashlib.sha256(Path(source_dxf).read_bytes()).hexdigest()
     audit_rows = []
     intents = {v.id: v for v in request.elevation_views if isinstance(v, DatumBoundNamedElevationViewIntentV3)}
+    # Join key: the GT's opening_elevation refs carry the generated handle that this
+    # ledger record produced — the same link §6.5 verifies.  Taking opening id / host
+    # zone / plan interval straight from the extracted GT keeps the human table and the
+    # authoritative document on ONE derivation (spec §7.4 [S] requires both the opening
+    # id and the plan-side interval; without them the mirror-residual cross-check the
+    # section mandates cannot be performed at all, and the table cannot be joined to the
+    # overlay, which labels openings by GT id).
+    opening_by_handle: dict[str, Any] = {}
+    if result.elevation_document is not None:
+        for opening in result.elevation_document.openings:
+            for ref in opening.source_refs:
+                if ref.role == "opening_elevation":
+                    opening_by_handle[ref.entity_handle] = opening
     for rec in sorted(result.elevation_records, key=lambda r: (r.view_id, r.kind, r.raw_handles)):
-        intent = intents[rec.view_id]; axis = intent.world_along_from_source_m.source_axis; zaxis = intent.world_z_from_source_m.source_axis
+        intent = intents[rec.view_id]; axis = intent.world_along_from_source_m.source_axis
         source_along = (rec.rect[0], rec.rect[2]) if axis == "x" else (rec.rect[1], rec.rect[3])
-        source_z = (rec.rect[0], rec.rect[2]) if zaxis == "x" else (rec.rect[1], rec.rect[3])
-        audit_rows.append({"evidence_id": f"ev_{rec.view_id}_{min(rec.raw_handles).lower()}", "view_id": rec.view_id,
+        opening = opening_by_handle.get(rec.generated_handle)
+        audit_rows.append({"opening_id": None if opening is None else opening.id,
+                           "evidence_id": f"ev_{rec.view_id}_{min(rec.raw_handles).lower()}", "view_id": rec.view_id,
                            "facade_family": rec.facade, "floor_id": intent.floor_ids[0], "kind": rec.kind,
+                           "host_zone_id": None if opening is None else opening.host_zone_id,
+                           "plan_world_along_interval": None if opening is None else
+                               [opening.world_along_interval.lo, opening.world_along_interval.hi],
                            "elevation_source_along_interval": list(source_along),
                            "world_along_interval": sorted([x * intent.world_along_from_source_m.scale + intent.world_along_from_source_m.offset for x in source_along]),
-                           "z_interval": sorted([x * intent.world_z_from_source_m.scale + intent.world_z_from_source_m.offset for x in source_z]),
+                           # identical call the §6.5 postcheck compares against the GT
+                           "z_interval": list(_converter_elevation_z(rec, intent)),
                            "datum_entity_handle": rec.datum_handle, "datum_source_start_point": list(rec.datum_start), "datum_source_end_point": list(rec.datum_end),
                            "declared_world_along_lo_source_endpoint": rec.declared_lo_endpoint,
                            "mapped_endpoint_pair": f"{rec.declared_lo_endpoint}->plan.lo", "raw_source_handles": list(rec.raw_handles), "structural_source_handles": list(rec.structural_handles)})

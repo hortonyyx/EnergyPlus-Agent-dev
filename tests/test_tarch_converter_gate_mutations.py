@@ -92,7 +92,7 @@ def _g9(tmp):
     res, _, _, tooling = _p2(tmp)
     bad = res.manifest.model_copy(deep=True); view = bad.views[0]
     view.footprint_boundary = view.footprint_boundary.model_copy(update={"handles": ["DEADBE"]})
-    ok, _ = tn._run_g9_v3_preflight(res.augmented_dxf_path, bad, tooling)
+    ok, _, _document = tn._run_g9_v3_preflight(res.augmented_dxf_path, bad, tooling)
     return tn._apply_test_neuter([tn.GateResultV1(id="G9", name="v3 extraction preflight", passed=ok)])[0]
 
 

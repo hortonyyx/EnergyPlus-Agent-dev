@@ -582,7 +582,10 @@ def _assign_elevation(evidence: list[tuple], openings: list[GtOpeningV3], view: 
             visible = any(min(opening.world_along_interval.hi, interval.hi, coverage.hi) > max(opening.world_along_interval.lo, interval.lo, coverage.lo)
                           for interval in segment.visible_intervals)
             cost = max(abs(along.lo - opening.world_along_interval.lo), abs(along.hi - opening.world_along_interval.hi))
-            if ((item is None or item.kind == opening.kind) and opening.floor_id in view.floor_ids and view.projection_surface_key in segment.projection_surface_keys
+            # `item` is always a real evidence binding on the live call path
+            # (`evidence.append((item, ...))`), so the former `item is None` guard was a
+            # permanently-false branch and is removed rather than left as fake defence.
+            if (item.kind == opening.kind and opening.floor_id in view.floor_ids and view.projection_surface_key in segment.projection_surface_keys
                     and visible and cost <= tolerance):
                 choices.append((index, cost))
         if not choices:
@@ -630,6 +633,12 @@ def extract_gt_v3(inputs: ExtractionInputs) -> GroundTruthV3:
                                          inputs.tooling.tolerances.vg_endpoint_epsilon_m)
     elevation_views = sorted((view for view in inputs.manifest.views if isinstance(view, ElevationViewBindingV1)), key=lambda view: view.id)
     all_segments: dict[str, GtBoundarySegmentV3] = {}
+    # Exterior wall thickness is a DECLARED manifest value (evidence-backed upstream by
+    # the converter's G7/G8 thickness proofs); the extractor only carries it onto the
+    # outer-skin boundary segments and never measures or defaults one itself.  A manifest
+    # that declares nothing leaves every segment at None.
+    thickness_by_floor = {view.floor_id: view.default_wall_thickness_m
+                          for view in inputs.manifest.views if isinstance(view, PlanViewBindingV1)}
     floors: list[GtFloorV3] = []
     for plan_floor in plans.floors:
         materialized: list[GtBoundarySegmentV3] = []
@@ -644,7 +653,7 @@ def extract_gt_v3(inputs: ExtractionInputs) -> GroundTruthV3:
                     world_along_interval=GtWorldIntervalV3(lo=frame.world_along_interval[0], hi=frame.world_along_interval[1]),
                     depth=frame.depth, visible_intervals=[GtWorldIntervalV3(lo=lo, hi=hi) for lo, hi in derived.visible_intervals],
                     source_footprint_fingerprint=plan_floor.footprint_fingerprint, projection_surface_keys=[],
-                    wall_thickness_m=None, source_refs=refs)
+                    wall_thickness_m=thickness_by_floor.get(plan_floor.id), source_refs=refs)
                 if segment.id in all_segments:
                     _fail("gt_boundary_segment_id_collision")
                 all_segments[segment.id] = segment; materialized.append(segment)

@@ -371,6 +371,18 @@ TARCH_DIAGNOSTIC_REGISTRY: dict[str, DiagnosticSpec] = {
     "tarch_elevation_door_block_drift": DiagnosticSpec("tarch_elevation_door_block_drift", DiagnosticSeverity.BLOCK, TarchStage.S3_OPENINGS, "door block fingerprint or exhaustive role list drifted", gates=("G3",)),
     "tarch_elevation_door_structure_invalid": DiagnosticSpec("tarch_elevation_door_structure_invalid", DiagnosticSeverity.BLOCK, TarchStage.S3_OPENINGS, "door structural outline or its union is not one rectangle", gates=("G3",)),
     "tarch_elevation_normalized_outline_drift": DiagnosticSpec("tarch_elevation_normalized_outline_drift", DiagnosticSeverity.BLOCK, TarchStage.S9_PERSIST, "reopened normalized elevation outline differs from structural evidence", gates=("G3",)),
+    # --- declared-but-not-emitted, by design (spec §6.4) ------------------------
+    # The next three name G9 *extraction* failure modes.  §6.4 mandates a single
+    # channel for those: the raw extractor code is carried verbatim in
+    # ``tarch_v3_precondition.context.v3_code`` (e.g. "elevation_opening_no_candidate"),
+    # never re-spelled into a converter code — re-spelling would let the converter's
+    # and the extractor's vocabularies drift apart silently.  They are retained as
+    # declared vocabulary (the P0 contract is frozen; narrowing DiagCode would be a
+    # contract change) and their non-emission is locked by
+    # ``test_declared_not_emitted_elevation_codes_stay_unemitted``.
+    # ``tarch_interior_opening_elevation_not_applicable`` is likewise a declared INFO
+    # with no emitter: interior openings are excluded at S3, so there is no G4 site
+    # that could observe the condition.
     "tarch_elevation_opening_no_candidate": DiagnosticSpec("tarch_elevation_opening_no_candidate", DiagnosticSeverity.BLOCK, TarchStage.S8_GATES, "elevation opening has no matching exterior plan opening", gates=("G9",)),
     "tarch_elevation_opening_assignment_ambiguous": DiagnosticSpec("tarch_elevation_opening_assignment_ambiguous", DiagnosticSeverity.BLOCK, TarchStage.S8_GATES, "elevation opening pairing has multiple optimum assignments", gates=("G9",)),
     "tarch_elevation_opening_kind_mismatch": DiagnosticSpec("tarch_elevation_opening_kind_mismatch", DiagnosticSeverity.BLOCK, TarchStage.S8_GATES, "elevation and plan opening kinds differ", gates=("G9",)),

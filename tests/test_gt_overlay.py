@@ -51,6 +51,29 @@ def test_overlays_render():
     assert ov.overlay_elev("sm21_anchor", gt, cd, "South").mode == "RGB"
 
 
+@pytest.mark.skipif(not _HAS, reason="sm21_anchor case_data / gt not present")
+def test_sm21_legacy_overlay_pipeline_is_unchanged():
+    """R-01: the sm21 legacy overlays are LOCKED baseline assets — pixel-identical.
+
+    ``DIM``, ``_calibrate``, ``overlay_plan`` and ``overlay_elev`` are shared history.
+    The v3 review path deliberately grew its own greyscale base, proportional stroke
+    weights and role annotations; this lock is what makes "v3 only" a checkable claim
+    rather than a promise.  Compared against the committed renders themselves, so any
+    drift in the legacy dimming / calibration / draw order fails here immediately.
+    """
+    gt, cd = ov._load("sm21_anchor")
+    renders = ov.GT_DIR / "sm21_anchor" / "renders"
+    produced = {f"overlay_{ov._FLOOR_PNG[floor]}.png": ov.overlay_plan("sm21_anchor", gt, cd, floor)
+                for floor in ("Floor 1", "Floor 2")}
+    produced.update({f"overlay_{ov._FACADE_PNG[facade]}.png": ov.overlay_elev("sm21_anchor", gt, cd, facade)
+                     for facade in ("South", "North", "East", "West")})
+    for name, image in produced.items():
+        reference = np.asarray(Image.open(renders / name).convert("RGB"))
+        fresh = np.asarray(image.convert("RGB"))
+        assert fresh.shape == reference.shape, name
+        assert int((fresh != reference).any(-1).sum()) == 0, name
+
+
 def _v3_plan_inputs(tmp_path):
     from test_gt_schema import _opening_payload, _rehash
     raw = _opening_payload(observed=True)
@@ -136,21 +159,45 @@ def test_sm24_v3_plan_and_elevation_overlays_normalise_y_down_rectangle_corners(
     conversion = run_p2_conversion(root / "source.dxf", request, request.plan_views[0], tooling, tmp_path)
     document = extract_gt_v3(ExtractionInputs(conversion.augmented_dxf_path, conversion.manifest, tooling,
                                                compute_gt_implementation_hashes(REPO_ROOT)))
-    rectangles = []
-    original_rectangle = ImageDraw.ImageDraw.rectangle
-    def capture_rectangle(self, xy, *args, **kwargs):
-        rectangles.append((xy, kwargs))
-        return original_rectangle(self, xy, *args, **kwargs)
-    monkeypatch.setattr(ImageDraw.ImageDraw, "rectangle", capture_rectangle)
+    lines = []
+    events = []
+    original_line = ImageDraw.ImageDraw.line
+    original_polygon = ImageDraw.ImageDraw.polygon
+    original_text = ImageDraw.ImageDraw.text
+    def capture_line(self, xy, *args, **kwargs):
+        lines.append((xy, kwargs)); events.append("line")
+        return original_line(self, xy, *args, **kwargs)
+    def capture_polygon(self, xy, *args, **kwargs):
+        events.append("polygon")
+        return original_polygon(self, xy, *args, **kwargs)
+    def capture_text(self, xy, *args, **kwargs):
+        events.append("text")
+        return original_text(self, xy, *args, **kwargs)
+    monkeypatch.setattr(ImageDraw.ImageDraw, "line", capture_line)
+    monkeypatch.setattr(ImageDraw.ImageDraw, "polygon", capture_polygon)
+    monkeypatch.setattr(ImageDraw.ImageDraw, "text", capture_text)
     images = ov.build_gt_overlay_images_v3(document, conversion.manifest,
                                             raster_root=Path("case_tests/e2e_tests/sm24_anchor/case_data"))
     assert list(images) == ["East_view", "North_view", "South_view", "West_view", "plan-F1"]
     assert all(image.mode == "RGB" and image.width > 0 and image.height > 0 for image in images.values())
-    # Four white rectangles are the declared facade envelopes; opening boxes use
-    # cyan/orange.  This proves the envelope branch adds draw-only review aid
-    # without altering the typed world→pixel projection functions.
-    assert sum(kwargs.get("outline") == (255, 255, 255, 255) and kwargs.get("width") == 3
-               for _, kwargs in rectangles) == 4
+    # Each of the four facade envelopes is drawn as FOUR explicit equal-width edges
+    # (PIL's rectangle renders a 1 px bottom edge), so the envelope colour must appear
+    # 4x4 times plus one closed footprint ring on the plan.  This still proves the
+    # y-down corner-ordering repair: every corner projects and renders without raising.
+    envelope_edges = [xy for xy, kwargs in lines if kwargs.get("fill") == ov._ENVELOPE + (255,)]
+    assert len(envelope_edges) == 4 * 4 + 1
+
+    # FIX-1 (draw order): on the plan, EVERY zone fill must be laid down before ANY
+    # zone label, otherwise a later zone's translucent fill buries an earlier zone's
+    # name — which is exactly how z4 lost its label in the 07-25 bundle.
+    # plan-F1 sorts last and is the only view that fills polygons, so the plan segment
+    # of the event log starts at the first polygon.
+    plan_events = events[events.index("polygon"):]
+    first_text = plan_events.index("text")
+    last_polygon = len(plan_events) - 1 - plan_events[::-1].index("polygon")
+    assert last_polygon < first_text, (last_polygon, first_text)
+    assert plan_events.count("polygon") == 8            # eight sm24 zone fills
+    assert plan_events.count("text") == 8 + 1           # eight zone labels + candidate stamp
 
 
 @pytest.mark.parametrize("label", ["../outside.png", "/tmp/outside.png", "nested/raster.png"])
@@ -183,3 +230,82 @@ def test_v3_overlay_rejects_competing_binding_empty_view_id_and_singular_affine(
     singular = Affine2D.model_construct(m00=1.0, m01=0.0, m02=0.0, m10=2.0, m11=0.0, m12=0.0)
     with pytest.raises(ValueError, match="singular_affine"):
         ov._inverse_affine(singular, 0.0, 0.0)
+
+
+# --------------------------------------------------------------------------- #
+# WI-5 — v3 review-render quality (07-24 bundle was unreviewable: hairline strokes
+# on elevations, fat strokes on the small plan, and gt drawn in the same cyan as the
+# drawing's own opening ink over a base dimmed to 0.38).
+# --------------------------------------------------------------------------- #
+_SM24_CD = Path("case_tests/e2e_tests/sm24_anchor/case_data")
+
+
+def test_v3_review_base_keeps_drawing_ink_readable_and_hue_free():
+    """Quantified criterion: ink luma retention >= 0.6 (legacy multiply gave 0.38),
+    and the base carries no hue at all, so every saturated pixel in the finished
+    overlay provably belongs to gt rather than to the drawing."""
+    base = Image.open(_SM24_CD / "South_view.png").convert("RGB")
+    source = np.asarray(base).astype(float)
+    result = np.asarray(ov._review_base(base).convert("RGB")).astype(float)
+    luma = source @ np.array([0.299, 0.587, 0.114])
+    ink = luma > 40                     # non-background pixels of the drawing
+    retention = (result[..., 0][ink]).mean() / luma[ink].mean()
+    assert retention >= 0.6, retention
+    assert retention / ov.DIM >= 1.9, retention   # ~2x the legacy 0.38 multiply
+    assert (result[..., 0] == result[..., 1]).all() and (result[..., 1] == result[..., 2]).all()
+
+
+def test_v3_stroke_weights_scale_with_raster_instead_of_being_absolute():
+    """The 07-24 defect: one absolute constant is a hairline on a 2434 px elevation
+    and a wall-burying slab on a 790 px plan."""
+    small = ov._weights(Image.new("RGB", (790, 1111)))
+    large = ov._weights(Image.new("RGB", (2434, 1457)))
+    assert large["bar"] > small["bar"] and large["box"] > small["box"]
+    assert large["font"] > small["font"]
+    assert all(value >= 2 for value in small.values())
+    # proportionally equal (that is the whole point), within integer rounding
+    assert abs(large["bar"] / 2434 - small["bar"] / 790) < 0.002
+
+
+def test_v3_outline_edges_are_equal_width_and_dashing_leaves_gaps():
+    """WI-5c/WI-5e.
+
+    Honest scope note: the review premise "PIL's rectangle bottom edge is only 1 px"
+    was CHECKED and does not hold on Pillow 12.2 (all four edges render at full width),
+    so the equal-width half of this test is a behavioural lock on ``_outline``, not
+    proof of a fixed PIL bug.  The load-bearing half is DASHING: a solid box hides the
+    drawing's own opening frame — the very evidence the reviewer compares against —
+    and ``ImageDraw.rectangle`` cannot dash at all.
+    """
+    def edges(dash):
+        image = Image.new("RGBA", (60, 40), (0, 0, 0, 255))
+        ov._outline(ImageDraw.Draw(image), (10, 10, 50, 30), (255, 0, 0, 255), 4, dash=dash)
+        pixels = np.asarray(image.convert("RGB"))
+        return (pixels[..., 0] > 200) & (pixels[..., 1] < 60)
+
+    solid = edges(0)
+    assert solid[8:14, 20:40].sum(0).max() == solid[26:34, 20:40].sum(0).max() == 4
+    # every column across the top edge is inked when solid ...
+    assert solid[8:16, 12:48].any(0).all()
+    dashed = edges(6)
+    # ... and provably NOT when dashed, which is what lets the drawing show through
+    assert not dashed[8:16, 12:48].any(0).all()
+    assert 0 < dashed[8:16, 12:48].any(0).sum() < solid[8:16, 12:48].any(0).sum()
+
+
+def test_v3_review_annotations_are_review_only_and_never_guess(tmp_path):
+    """The zone-role annotation tints and labels; it may not touch the GT, and any
+    zone it does not name stays neutral grey rather than being guessed."""
+    doc, manifest, _ = _v3_plan_inputs(tmp_path)
+    before = doc.model_dump_json()
+    zone_id = doc.floors[0].zones[0].id
+    annotated = ov.build_gt_overlay_images_v3(doc, manifest, raster_root=tmp_path,
+                                              review_annotations={zone_id: "meeting"})
+    plain = ov.build_gt_overlay_images_v3(doc, manifest, raster_root=tmp_path)
+    assert doc.model_dump_json() == before                      # GT untouched
+    assert np.asarray(annotated["plan-F1"]).shape == np.asarray(plain["plan-F1"]).shape
+    assert (np.asarray(annotated["plan-F1"]) != np.asarray(plain["plan-F1"])).any()
+    # A zone nobody annotated and whose GT role is unspecified falls back to neutral
+    # grey — the renderer must never invent a role colour.
+    assert ov._V3_ROLE["unspecified"] == ov._NEUTRAL_ROLE
+    assert ov._V3_ROLE.get("no_such_role", ov._NEUTRAL_ROLE) == ov._NEUTRAL_ROLE
