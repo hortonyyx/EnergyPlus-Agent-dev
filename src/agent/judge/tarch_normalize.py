@@ -48,12 +48,16 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+import uuid
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Literal
 
 import ezdxf
 from ezdxf import bbox as ezdxf_bbox
+from ezdxf.document import WRITTEN_BY_EZDXF
+from ezdxf.lldxf.const import DXF12
+from ezdxf.lldxf.tagwriter import TagWriter
 from shapely.geometry import LineString, MultiPolygon, Point, Polygon
 from shapely.ops import polygonize_full, unary_union
 
@@ -1732,8 +1736,63 @@ def _v3_elevation_records(augmented_dxf: Path, request: TarchConversionRequestV1
     return records, diags
 
 
+_DETERMINISTIC_DXF_JULIAN_EPOCH = 2451544.5  # 2000-01-01T00:00:00Z
+_DETERMINISTIC_DXF_GUID_NAMESPACE = uuid.UUID("cc8bd1cd-f1f1-5860-a932-aa9379bc773e")
+
+
+def _deterministic_dxf_metadata(source_sha256: str, request_sha256: str) -> dict[str, str | float]:
+    """Return write-time DXF metadata as a pure function of conversion inputs.
+
+    ``ezdxf.Drawing.write()`` replaces several fields during every save.  The
+    conversion artefact is hash-bound, so that normal editor metadata must not
+    introduce a second, clock-dependent input into the conversion result.
+    """
+    seed = f"{source_sha256.lower()}:{request_sha256.lower()}"
+    return {
+        "$TDCREATE": _DETERMINISTIC_DXF_JULIAN_EPOCH,
+        "$TDUCREATE": _DETERMINISTIC_DXF_JULIAN_EPOCH,
+        "$TDUPDATE": _DETERMINISTIC_DXF_JULIAN_EPOCH,
+        "$TDUUPDATE": _DETERMINISTIC_DXF_JULIAN_EPOCH,
+        "$FINGERPRINTGUID": "{" + str(uuid.uuid5(_DETERMINISTIC_DXF_GUID_NAMESPACE,
+                                                       f"fingerprint:{seed}")).upper() + "}",
+        "$VERSIONGUID": "{" + str(uuid.uuid5(_DETERMINISTIC_DXF_GUID_NAMESPACE,
+                                                   f"version:{seed}")).upper() + "}",
+        "written_by_ezdxf": f"{ezdxf.__version__} @ tarch-deterministic:{seed}",
+    }
+
+
+def _apply_deterministic_dxf_metadata(doc, source_sha256: str, request_sha256: str) -> None:
+    """Pin only converter-produced DXF save metadata after ezdxf updates it."""
+    metadata = _deterministic_dxf_metadata(source_sha256, request_sha256)
+    for name in ("$TDCREATE", "$TDUCREATE", "$TDUPDATE", "$TDUUPDATE",
+                 "$FINGERPRINTGUID", "$VERSIONGUID"):
+        doc.header[name] = metadata[name]
+    doc.ezdxf_metadata()[WRITTEN_BY_EZDXF] = metadata["written_by_ezdxf"]
+
+
+def _save_converter_augmented_dxf(doc, dest: Path, source_sha256: str,
+                                  request_sha256: str) -> None:
+    """Write a converter augmented DXF without global ezdxf state changes.
+
+    This deliberately mirrors ezdxf's ASCII writer up to ``update_all()``, then
+    replaces the four clock/GUID header values and the library write marker
+    before exporting sections.  It is used exclusively by the converter's
+    augmented-DXF path; DXF reading and all other ezdxf writers retain normal
+    library behaviour.
+    """
+    doc.commit_pending_changes()
+    if doc.dxfversion > DXF12:
+        doc.classes.add_required_classes(doc.dxfversion)
+    doc.update_all()
+    _apply_deterministic_dxf_metadata(doc, source_sha256, request_sha256)
+    handles = bool(doc.header.get("$HANDLING", 0)) if doc.dxfversion == DXF12 else True
+    with Path(dest).open("wt", encoding=doc.output_encoding, errors="dxfreplace") as stream:
+        doc.export_sections(TagWriter(stream, write_handles=handles, dxfversion=doc.dxfversion))
+
+
 def _write_augmented_dxf(source_dxf: Path, dest: Path, footprint: Any,
-                         zones: list[ZoneExpansion], exterior_openings: list[ResolvedOpening]
+                         zones: list[ZoneExpansion], exterior_openings: list[ResolvedOpening],
+                         source_sha256: str, request_sha256: str
                          ) -> tuple[dict[str, list[str]], dict[tuple[int, int], str]]:
     """Append GTV3_* layers to a copy of the source DXF, preserving every original
     handle (plan §8.1).  Returns the generated-entity handles per layer AND a
@@ -1790,11 +1849,12 @@ def _write_augmented_dxf(source_dxf: Path, dest: Path, footprint: Any,
                                dxfattribs={"layer": GTV3_OPENING_LAYER}, close=True)
         handles[GTV3_OPENING_LAYER].append(e.dxf.handle)
 
-    doc.saveas(str(dest))
+    _save_converter_augmented_dxf(doc, dest, source_sha256, request_sha256)
     return handles, zone_edge_handles
 
 
-def _append_elevation_outlines(path: Path, records: list[_ElevationRecord], q: float) -> list[_ElevationRecord]:
+def _append_elevation_outlines(path: Path, records: list[_ElevationRecord], q: float,
+                               source_sha256: str, request_sha256: str) -> list[_ElevationRecord]:
     """E5: append only normalized structural rectangles, then reopen and verify."""
     doc = ezdxf.readfile(str(path)); msp = doc.modelspace()
     if GTV3_ELEV_OPENING_LAYER not in doc.layers:
@@ -1805,7 +1865,7 @@ def _append_elevation_outlines(path: Path, records: list[_ElevationRecord], q: f
         entity = msp.add_lwpolyline([(x0,y0), (x1,y0), (x1,y1), (x0,y1)], close=True,
                                     dxfattribs={"layer": GTV3_ELEV_OPENING_LAYER})
         emitted.append(_ElevationRecord(**{**rec.__dict__, "generated_handle": entity.dxf.handle}))
-    doc.saveas(str(path))
+    _save_converter_augmented_dxf(doc, path, source_sha256, request_sha256)
     reopened = ezdxf.readfile(str(path)); rmsp = reopened.modelspace()
     for rec in emitted:
         entity = next((e for e in rmsp if e.dxf.handle == rec.generated_handle), None)
@@ -2365,8 +2425,9 @@ def run_p2_conversion(dxf_path: Path, request: TarchConversionRequestV1,
         # S9 persist (staging only)
         exterior_openings = [o for o in p1.openings if o.classification == "exterior"]
         augmented_path = work_dir / "normalized.dxf"
+        source_sha256 = hashlib.sha256(Path(dxf_path).read_bytes()).hexdigest()
         gtv3_handles, zone_edge_handles = _write_augmented_dxf(Path(dxf_path), augmented_path, footprint,
-                                            zones, exterior_openings)
+                                            zones, exterior_openings, source_sha256, request.request_sha256)
         manifest, seeds, plan_openings = _build_manifest(
             request, plan_view, zones, claims, exterior_openings, gtv3_handles, augmented_path)
         # v3 elevation consumes the already-certified plan projection solely to
@@ -2397,7 +2458,9 @@ def run_p2_conversion(dxf_path: Path, request: TarchConversionRequestV1,
                 diags.extend(elevation_diags)
                 if not any(d.severity == DiagnosticSeverity.BLOCK for d in elevation_diags):
                     try:
-                        elevation_records = _append_elevation_outlines(augmented_path, elevation_records, tols.quant_native)
+                        elevation_records = _append_elevation_outlines(
+                            augmented_path, elevation_records, tols.quant_native,
+                            source_sha256, request.request_sha256)
                     except ValueError:
                         _add(diags, _diag("tarch_elevation_normalized_outline_drift", handles=[elevation_records[0].raw_handles[0]] if elevation_records else [plan_view.id]))
                     else:

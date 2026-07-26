@@ -45,6 +45,9 @@ packages = ["src"]
 [tool.pytest.ini_options]
 pythonpath = ["."]
 testpaths = ["tests"]
+markers = [
+    "mutation: fresh-process source-mutation matrix; excluded from child pytest runs",
+]
 
 [tool.ruff]
 line-length = 88

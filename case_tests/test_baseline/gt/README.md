@@ -21,6 +21,24 @@ gt/
 `gt/<case>/gt.json` 这一个文件（**不 rglob**），DXF 安放其侧不会被误读；纪律真正要守的是**它绝不进
 `case_data/`**（执行器可读=识图作弊），由 `tests/test_gt_discipline.py` 机械守。
 
+## v3 答案与受控转正（2026-07-26 起）
+
+v2 手录答案（`sm21_anchor`）与 v3 转换器答案（`sm24_anchor`，首个）并存。**v3 答案不由人手写、也不许手工拼装**，只能走这条受控通道：
+
+```
+天正 DXF（gt_sources/<case>/）
+  → build_review_bundle   候选包（gt.json + renders/ + 审计表 + review_index.json），status=BLOCKED（近阈值门 G6 + 人核门 G10 未清）
+  → gt_review_sign.py     人看图后签名 → review_ack.json（绑 源图 / request / 清单 三个 hash）
+  → gt_review_rerun.py    带签名重跑 → 十门全绿 status=PASS（重跑产物必须与签字时逐字节相同，否则清单校验当场拒绝）
+  → gt_promote.py         受控写入本目录：翻 human_verified + 重算 content_sha256 + 原子落盘 + 写后重读自校
+```
+
+- **写入口只此一条**：`write_gt_v3_candidate` **拒绝**写受保护根且只肯写 `candidate`；`load_gt_document` **只认** `human_verified`。中间这段除 `promote_gt_v3` 外无路可走。
+- **转正只许动三处**：`verification.status` / `reviewer_id` / `reviewed_on`（+ 派生的 `content_sha256`）。几何、洞口、区、墙厚一律不得被 promote 触碰（有语义不变式门 + 变异矩阵锁）。
+- **v3 目录多一层 `review/`**：签名证据（`review_index.json` / `review_ack.json` / 审计表 / 用途注记 / 十门全绿的转换报告）与答案同库，**这样这份签名将来可被重新验证**——拿落盘的这批文件重算 hash 对签名即可。
+- **v3 的源 DXF 放 `case_tests/test_baseline/gt_sources/<case>/`**（不放本目录；上文「目录结构」里 `source.dxf` 与 `gt/<case>/` 同放是 v2 时代的安排）。
+- **可复现的准确口径 = 同代码 + 同输入 ⇒ 同字节**：答案的 `generator.*_sha256` 绑定九个源码文件的字节，故涉及那些文件的改动会改变答案指纹。签名的可验证性因此走「拿落盘文件重算」，而不是「从源图重新推导」。
+
 ## 铁律（谁能看）
 
 | 角色 | 看 gt? | 为什么 |
