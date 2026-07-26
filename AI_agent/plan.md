@@ -14,6 +14,13 @@
 0–5 管线 + 逐段校验架构（gate① 确定性 + gate② judge）已落地，sm20/sm21 两份 golden baseline 在册。
 **当前在把"逐段 judge-in-the-loop 编排"真跑起来、出第一份带 judge 的规范 baseline**，并扫尾两步法/评测的残留。
 
+> **📌 [2026-07-26 用户当场纠正排期 + 根目录纪律] 下一步 = 跑 sm24 端到端（不是 sm25-L 入仓）**：
+> - **排期口径（用户提，主控核实成立）**：本文 §N3 早已写死「**转换器唯一真实验收标准即 sm24 端到端跑通，两事合一**」；sm24 现在**材料全齐**（`case_tests/e2e_tests/sm24_anchor/case_data` 5 图 + **07-26 刚签字转正的 v3 答案** `case_tests/test_baseline/gt/sm24_anchor/{gt.json,renders/,review/}` + 两次历史 run〔06-24 opus reading / 07-07 haiku cv probe〕）；而 sm25-L 的图还没入仓（仓库 sm25 文件为 0，需用户 + 主控一起做）。⇒ **sm24 端到端在前、sm25-L 入仓在后**。主控此前照旧文档口径答"下一站 = sm25-L"，属**照抄过期行文**，已改。
+> - **顺带验收项**：① **07-07「E 效率批」**（`cv_probe prescan-plan/-elevation` 宏工具 + E3 预扫前置 SOP + skill 纪律）在**真 case** 上到底被用上没有、有没有用（此前只在 sm21/探针验过）；② **判卷链首次吃 sm24 v3 答案**（在此之前只有 sm21 有答案，v3 平面 + 四立面 + 窗高 + overlay 的判卷全链是首次真跑）；③ L 形 8 区 `no_oversplit` 永久 NA ⇒ **人工肉检 + 区数对账**兜底（写进跑测单）。
+> - **⚠️ 跑前硬规矩**：先读 [new_case_guide](guides/new_case_guide.md) 走单一 `flow` SOP（禁手搓判卷、禁 `run_pipeline` 直连），并**停下问用户拍配置**（识图模型 + effort / 范围 / judge 三档开关 / EP 开关 / record），别自走。
+> - **立面批状态更正**：立面批**已施工并过审**（07-24 施工 + 07-25「六笔债」CLOSED `28efe05`·GLM 0 BLOCKER/0 MAJOR），**不是**"待施工的剩余最重一块"；残留 = **§9.2 frame/title 六格诚实标未做**（下批「先补门、再补锁」立项，至少两格是缺门不是缺锁）。
+> - **根目录纪律（用户 2026-07-26 定，硬规矩）**：**未经授权不许在仓库根目录落文档/新目录**，过程痕迹一律 `AI_agent/logs/` 对应子目录。已清（`bd5b8dc`）：根 `logs/reviews/` 5 份 07-06 审轨 `git mv` 进 `AI_agent/logs/reviews/`（零引用破坏）+ `output/logs/` **478 个零字节**运行时日志删除（由 `main.py:24` loguru sink 每次 import 生成）。**两处未清、需独立立项**：① 根 `logs/experiments/` 15M 是 **6 个测试文件的活输入**（`test_gt_overlay`/`test_gt_promotion_path`/`test_tarch_converter_reproducibility`/`test_tarch_elevation_must_red`/`test_gt_discipline` 按仓库根相对路径读），**却不在版本控制内**（`.gitignore` 的 `20*_*/`）⇒ 新克隆上这些测试 skip 或红 = **第三次同型「关键输入不在 git 里」**；修法 = 输入挪进受控夹具位（`case_tests/test_baseline/gt_sources/sm24_anchor/` 或 `tests/fixtures/`）+ 改测试路径，**必须先改代码再搬**。② `main.py:24` 日志 sink 惰性化或改指 gitignored 运行时目录。
+>
 > **✅ [2026-07-26 Opus 5 主控·小批] 测试提速（pytest 并行）+「受影响子集」固定映射表 = CLOSED**（1656 → **1671 绿** + 10 xfail 零回归·未 push）：
 > - **派工（用户拍板）** = **GPT 侧 terra 施工 / GLM-5.2 验证性对抗审 / 主控轻门**。范围也由用户当场拍（并行 + 映射表一起做，不顺手砍慢测试）。
 > - **A 段 并行**：`pyproject.toml` 加 `pytest-xdist>=3.8` + `addopts = ["-n","auto","--dist","load"]`（`uv.lock` 只增 xdist + execnet 两包）。**主控独立实测 1135s（18:54）→ 261s（4:21）= 4.4×**；`--dist loadfile` 显式否决（会把 25 格变异矩阵压到同一 worker、提速报废）。**等价性验收 = 三份 `-q -rA`（串行 1 + 并行 2）抽 `^(PASSED|FAILED|ERROR|XFAIL|XPASS|SKIPPED) <nodeid>` 排序去重、两两 `diff` 空**（1679 行逐字节相等）——**只对计数不算过**，已写进 §7.5。
