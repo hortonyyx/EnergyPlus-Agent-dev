@@ -62,9 +62,14 @@ def ep_outputs(tmp_path_factory) -> dict[str, Path]:
     outs: dict[str, Path] = {}
     root = tmp_path_factory.mktemp("e4_ep")
     for variant in _VARIANTS:
-        out_dir = root / variant
+        variant_root = root / variant
+        input_idf = variant_root / f"{variant}.idf"
+        out_dir = variant_root / "output"
+        variant_root.mkdir()
+        shutil.copy2(_PROBE / f"{variant}.idf", input_idf)
         result = subprocess.run(
-            [_EXE, "-d", str(out_dir), "-x", "-w", str(_EPW), str(_PROBE / f"{variant}.idf")],
+            [_EXE, "-d", str(out_dir), "-x", "-w", str(_EPW), str(input_idf)],
+            cwd=variant_root,
             capture_output=True, text=True, timeout=300,
         )
         end = out_dir / "eplusout.end"

@@ -1,0 +1,38 @@
+# Dynamic resource couplings such as resources.files with dotted module names are a
+# known static-graph blind spot.  They require a broader no-cover allowlist, but
+# the selector fails closed to the full suite rather than silently missing tests.
+full_scope:
+  - pyproject.toml
+  - uv.lock
+  - conftest.py
+  - "**/conftest.py"
+  - "src/configs/**"
+  - scripts/tool_scripts/affected_tests.py
+  - scripts/tool_scripts/affected_tests_rules.yaml
+  - tests/b4b_contract_fixture.py
+  - tests/b5_test_helpers.py
+uncovered_allowlist:
+  scripts/tool_scripts/_grade_transform.py: "private render helper; no direct project test imports it"
+  scripts/tool_scripts/baseline_record.py: "maintenance CLI; no project-side test exercises it"
+  scripts/tool_scripts/gt_promote.py: "release-signoff CLI; covered only through manual promotion workflow"
+  scripts/tool_scripts/gt_review_rerun.py: "review rerun CLI; no project-side test exercises it"
+  scripts/tool_scripts/gt_review_sign.py: "review signing CLI; no project-side test exercises it"
+  scripts/tool_scripts/preprocess_images.py: "maintenance image-preprocessing CLI; no project-side test exercises it"
+  scripts/tool_scripts/record_baseline.py: "maintenance baseline-recording CLI; no project-side test exercises it"
+  scripts/tool_scripts/render_building_3d.py: "manual visualization CLI; no project-side test exercises it"
+  scripts/tool_scripts/render_geometry_viewer.py: "manual visualization CLI; no project-side test exercises it"
+  scripts/tool_scripts/render_grade.py: "manual render CLI; no project-side test exercises it"
+  scripts/tool_scripts/render_vector_to_png.py: "manual conversion CLI; no project-side test exercises it"
+  scripts/tool_scripts/render_vector_to_svg.py: "manual conversion CLI; no project-side test exercises it"
+  scripts/tool_scripts/spawn_isolated_reader.py: "isolation helper invoked outside the project test graph"
+  src/agent/execution/isolation_templates/__init__.py: "isolation-template package marker; no direct project test imports it"
+  src/agent/execution/isolation_templates/guard.py: "resources.files dynamically injects this into staging; test_isolation executes its copy inside isolated staging, which the static graph cannot capture, so no-cover falls back to FULL"
+  src/agent/execution/isolation_templates/run_cv_probe.py: "resources.files dynamically injects this into staging; test_isolation executes its copy inside isolated staging, which the static graph cannot capture, so no-cover falls back to FULL"
+  src/database/datatools/_share.py: "database tooling module; no project-side tests cover this legacy area"
+  src/database/datatools/constructions.py: "database tooling module; no project-side tests cover this legacy area"
+  src/database/datatools/datadescription.py: "database tooling module; no project-side tests cover this legacy area"
+  src/database/datatools/designday.py: "database tooling module; no project-side tests cover this legacy area"
+  src/database/datatools/nomass_materials.py: "database tooling module; no project-side tests cover this legacy area"
+  src/database/datatools/schedulecompact.py: "database tooling module; no project-side tests cover this legacy area"
+  src/database/datatools/scheduletypelimits.py: "database tooling module; no project-side tests cover this legacy area"
+  src/database/datatools/standard_materials.py: "database tooling module; no project-side tests cover this legacy area"

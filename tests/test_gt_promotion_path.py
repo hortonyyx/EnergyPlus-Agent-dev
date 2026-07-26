@@ -501,7 +501,7 @@ def _failed_test_names(output: str) -> set[str]:
 def test_precondition_is_one_to_one_bound(mutant, tmp_path):
     repo = _mirror_repo(tmp_path)
     _apply_mutation(repo, *MUTANTS[mutant])
-    out = subprocess.run([sys.executable, "-m", "pytest", "-q", "-p", "no:cacheprovider",
+    out = subprocess.run([sys.executable, "-m", "pytest", "-q", "-p", "no:cacheprovider", "-n0",
                           "-m", "not mutation", "tests/test_gt_promotion_path.py"],
                          cwd=repo, capture_output=True, text=True)
     failed = _failed_test_names(out.stdout + out.stderr)

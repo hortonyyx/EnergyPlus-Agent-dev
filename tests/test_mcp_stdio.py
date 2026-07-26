@@ -8,7 +8,7 @@ def test_mcp_stdio_startup_keeps_stdout_protocol_clean():
         input="",
         text=True,
         capture_output=True,
-        timeout=10,
+        timeout=120,
         check=False,
     )
 

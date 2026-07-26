@@ -101,6 +101,38 @@
 - **改 src 前主控先备份**（§5#4，`backup/src_history/<date>_<reason>/`），git clean 之外再加一层。
 - 执行器只做**已 spec 清楚的执行**，不做开放式设计；碰铁律/契约/judge verdict 的判断题留主控。
 
+## 7.5 跑测口径（2026-07-26 用户拍板 + 同日提速批落地）
+
+**三档节奏**（用户 2026-07-26 定）：施工方**中间轮只跑受影响子集** / 施工方**交付前跑一次全仓**（原始输出进执行日志，是审阅方判零回归的唯一依据）/ **主控轻门独立全量 = 唯一权威门**（不削）。
+
+**全仓默认并行**（`pyproject.toml` 的 `addopts = ["-n","auto","--dist","load"]`，依赖 `pytest-xdist`）：
+
+```bash
+python -m pytest -p no:cacheprovider -q            # 全仓，16 核 4.5–8 分钟（空机 ~4 分 20 秒）
+python -m pytest -p no:cacheprovider -q -n0        # 串行，15–26 分钟；调试单测/看清 traceback 时用
+```
+
+- **调试单文件加 `-n0`**：起 16 个 worker 有约 6 秒固定开销，小文件串行更快（实测单文件 3s vs 9s）。
+- **`--dist loadfile` 不要用**：会把 `test_gt_promotion_path.py` 那 25 格变异矩阵压到同一 worker，提速报废。
+- **嵌套 pytest 必须钉 `-n0`**：全仓唯一一处在 `tests/test_gt_promotion_path.py`（子进程会继承父进程并行参数 → 25 格 × 16 worker 压死机器）。以后再写「子进程起 pytest」的测试同此。
+- **并行安全铁律**：测试**不许**往仓库内固定路径写东西，也不许把仓库内固定文件喂给会在其目录旁建临时文件的外部程序（EnergyPlus 会在输入 idf 旁建 `in.idf`）——两个 worker 撞同一路径就随机爆。写外部程序的输入也要拷进 `tmp_path`。同理，**别用紧的 subprocess 超时**当断言（满载机器上启动慢是常态，`test_mcp_stdio` 的 10 秒就这么炸过 → 已放宽到 120 秒）。
+- **并行↔串行等价的验收方式**（改动跑测基础设施时必做）：三份 `-q -rA` 输出（串行 1 次 + 并行 2 次）各抽 `^(PASSED|FAILED|ERROR|XFAIL|XPASS|SKIPPED) <nodeid>` 排序去重，两两 `diff` 必须空。**只对计数不算过**。
+- **验锁用的临时 neuter 只在 `/tmp` 副本里做**，不许在工作树里改了再还原：主控/审阅方随时可能在跑门，工作树一旦短暂处于被改状态，双方数字与 hash 就互相打脸（2026-07-26 提速批实际撞过一次时间窗）。
+
+**「受影响子集」由工具算，不许自由裁量**：
+
+```bash
+python scripts/tool_scripts/affected_tests.py --changed <改动路径>...      # 常用
+python scripts/tool_scripts/affected_tests.py --since <git-ref>            # 只看已提交范围，忽略工作树未提交改动
+python scripts/tool_scripts/affected_tests.py --changed <路径> --explain    # 看每个测试是因哪条边被选中
+```
+
+- 首行 `SCOPE: FULL` / `SCOPE: SUBSET`，随后是可直接粘贴的 pytest 命令 + 一行**跑测声明**（执行日志里必须贴这行，声明你跑了哪些）。
+- 映射 = 静态 AST import 边（含相对导入）+ **字符串路径边**（捕获 `subprocess` 调脚本这种无 import 的耦合）的传递闭包；一等公民 = `src/**`、`scripts/**`、`tests/**` 的 `.py` 加仓库根 top-level `*.py`。
+- **fail-closed**：非 Python 路径 / 全仓触发器（`pyproject.toml`、`uv.lock`、`**/conftest.py`、`src/configs/**`、共享测试 helper、工具与规则表自身）/ 已删除文件 / 规则表坏掉 / 改动模块无覆盖测试 —— 一律回落 `SCOPE: FULL`。**过度选择安全、漏选不安全**，工具按这个方向设计。
+- 规则表 `scripts/tool_scripts/affected_tests_rules.yaml` 里的 `uncovered_allowlist` = **诚实的未覆盖清单**（每条带理由），由 `tests/test_affected_tests_map.py` 双向卡死（实算未覆盖集合必须与清单严格相等）：新模块没测试就得进清单，模块有了测试就得出清单。
+- **子集有多便宜，看改的是叶子还是枢纽**（2026-07-26 实测，共 93 个测试文件）：叶子模块很便宜（`judge/tarch_normalize.py` → 9 个、`tool_scripts/run_stage.py` → 6 个、`tool_scripts/cv_probe.py` → 3 个），但 `src/agent/**` 的枢纽接近全仓（`pipeline.py` → 85、`validator/schedules.py` → 86）。**根因不是工具保守过头**：`src/agent/__init__.py` 第一行就 `from src.agent.graph import build_graph`，于是 import 任何 `src.agent.*` 都会把整张图拉进来。要让枢纽子集真变小，得把那个包 `__init__` 改惰性（顺带能压掉每个测试的 import 开销）＝**登记跟进债，不在提速批范围**。另注：函数体内的 `import` 也算边（AST 不区分模块级/函数级）＝保守、宁多跑不漏跑。
+
 ## 8. 一轮完整范例（P0#1 跨层墙对齐，2026-06-21，两方模式旧例、流程骨架仍适用）
 
 1. Claude 兜底读 `deterministic.py` 核实根因 → 写方案落 `request/`。
