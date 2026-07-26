@@ -19,8 +19,8 @@ from src.agent.judge import tarch_normalize as tn
 from src.agent.judge.tarch_converter_schema import TarchConversionRequestV1, compute_request_sha256, resolve_converter_tooling
 
 
-ROOT = Path("logs/experiments/2026-07-24_sm24_gt_review")
-SOURCE = ROOT / "source.dxf"
+ROOT = Path("tests/fixtures/sm24_review/bundle_07_24")
+SOURCE = Path("case_tests/test_baseline/gt_sources/sm24_anchor/source.dxf")
 TOOLING = resolve_converter_tooling(Path("src/configs/judge_gt.yaml"), Path("src/configs/correction.yaml"))
 
 
@@ -34,7 +34,16 @@ def _rehash(request: TarchConversionRequestV1) -> TarchConversionRequestV1:
 
 
 def _run(tmp_path, request, source=SOURCE):
-    return tn.run_p2_conversion(source, request, request.plan_views[0], TOOLING, tmp_path)
+    # SOURCE is the canonical tracked DXF under a protected answer root
+    # (case_tests/test_baseline/gt_sources/); run_p2_conversion's
+    # ``assert_staging_input`` refuses protected inputs (§6.1), so stage a copy
+    # into the per-test work dir first — the sibling reproducibility test does
+    # the same. Callers passing their own already-staged tmp source are copied
+    # through byte-identical, so every downstream assertion is unchanged.
+    tmp_path.mkdir(parents=True, exist_ok=True)
+    staged = tmp_path / "source.dxf"
+    staged.write_bytes(Path(source).read_bytes())
+    return tn.run_p2_conversion(staged, request, request.plan_views[0], TOOLING, tmp_path)
 
 
 def _gate(result, gate):
@@ -52,8 +61,10 @@ def green_sm24(tmp_path_factory):
     from src.agent.judge.gt_extraction import ExtractionInputs, extract_gt_v3
     from src.agent.judge.gt_schema import REPO_ROOT, compute_gt_implementation_hashes
     request = _calibrated_request()
-    result = tn.run_p2_conversion(SOURCE, request, request.plan_views[0], TOOLING,
-                                  tmp_path_factory.mktemp("green_sm24"))
+    work = tmp_path_factory.mktemp("green_sm24")
+    staged = work / "source.dxf"
+    staged.write_bytes(SOURCE.read_bytes())  # SOURCE is protected (gt_sources/); stage into tmp (§6.1)
+    result = tn.run_p2_conversion(staged, request, request.plan_views[0], TOOLING, work)
     document = extract_gt_v3(ExtractionInputs(result.augmented_dxf_path, result.manifest, TOOLING,
                                               compute_gt_implementation_hashes(REPO_ROOT)))
     return request, result, document

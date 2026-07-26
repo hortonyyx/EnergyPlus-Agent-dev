@@ -153,10 +153,15 @@ def test_sm24_v3_plan_and_elevation_overlays_normalise_y_down_rectangle_corners(
     from src.agent.judge.tarch_normalize import run_p2_conversion
     from src.agent.judge.gt_extraction import ExtractionInputs, extract_gt_v3
     from src.agent.judge.gt_schema import REPO_ROOT, compute_gt_implementation_hashes
-    root = Path("logs/experiments/2026-07-24_sm24_gt_review")
+    root = Path("tests/fixtures/sm24_review/bundle_07_24")
     request = TarchConversionRequestV1.model_validate_json((root / "request_v3_calibrated.json").read_text())
     tooling = resolve_converter_tooling(Path("src/configs/judge_gt.yaml"), Path("src/configs/correction.yaml"))
-    conversion = run_p2_conversion(root / "source.dxf", request, request.plan_views[0], tooling, tmp_path)
+    # The canonical source DXF lives under a protected answer root (gt_sources/);
+    # run_p2_conversion's ``assert_staging_input`` refuses protected inputs (§6.1),
+    # so stage a byte-identical copy into the per-test tmp dir first.
+    staged_source = tmp_path / "source.dxf"
+    staged_source.write_bytes(Path("case_tests/test_baseline/gt_sources/sm24_anchor/source.dxf").read_bytes())
+    conversion = run_p2_conversion(staged_source, request, request.plan_views[0], tooling, tmp_path)
     document = extract_gt_v3(ExtractionInputs(conversion.augmented_dxf_path, conversion.manifest, tooling,
                                                compute_gt_implementation_hashes(REPO_ROOT)))
     lines = []
@@ -346,7 +351,7 @@ def test_sm21_legacy_type1_gt_renders_are_unchanged():
 # face. Real sm24 geometry (wall_thickness_m == 0.24 on every segment) is used
 # so the lock exercises the production data shape, not a synthetic stand-in.
 # --------------------------------------------------------------------------- #
-_SM24_REVIEW_BUNDLE = Path("logs/experiments/2026-07-25_sm24_gt_review")
+_SM24_REVIEW_BUNDLE = Path("tests/fixtures/sm24_review/bundle_07_25")
 
 
 def _sm24_plan_only(doc: GroundTruthV3, manifest: GtExtractionManifestV1):

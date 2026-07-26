@@ -18,10 +18,15 @@ from src.validator.data_model import BaseSchema
 load_dotenv()
 
 logger_time = time.strftime("%Y%m%d_%H%M%S")
+# Console-only at import time: a file sink here would ``mkdir ./output/logs/``
+# and create a timestamped log file on EVERY import (including test collection),
+# re-polluting the repo root with mostly-zero-byte files. The file sink is added
+# lazily under a gitignored runtime dir only when main.py is executed directly
+# (see the ``if __name__ == "__main__"`` block below). ``*.log`` in .gitignore
+# keeps that runtime file out of version control.
 setup_logger(
     level="INFO",
     console_output=True,
-    log_file_path=Path(f"./output/logs/{logger_time}.log"),
 )
 logger = get_logger(__name__)
 
@@ -147,4 +152,9 @@ def run_agent(
 
 
 if __name__ == "__main__":
+    setup_logger(
+        level="INFO",
+        console_output=True,
+        log_file_path=Path("./AI_agent/logs/runtime/app.log"),
+    )
     app()

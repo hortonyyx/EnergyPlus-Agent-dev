@@ -229,6 +229,11 @@ __marimo__/
 .streamlit/secrets.toml
 .claude/
 
+# `output/` dirs are regenerable run/test byproducts (e2e EnergyPlus output under
+# case_tests/ & backup/tests_history/, plus any future root output/). The root
+# output/ dir itself was removed and main.py no longer creates output/logs at
+# import (see main.py), so this ignore no longer hides an import-time mess — it
+# only keeps regenerable e2e output out of version control.
 output/
 
 # qdrant_storage

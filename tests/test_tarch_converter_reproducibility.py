@@ -18,8 +18,8 @@ from src.agent.judge.tarch_converter_schema import TarchConversionRequestV1, res
 
 REPO = Path(__file__).resolve().parents[1]
 SOURCE = REPO / "case_tests/test_baseline/gt_sources/sm24_anchor/source.dxf"
-REQUEST = REPO / "logs/experiments/2026-07-25_sm24_gt_review/request_v3_calibrated.json"
-ANNOTATIONS = REPO / "logs/experiments/2026-07-25_sm24_gt_review/review_annotations.json"
+REQUEST = REPO / "tests/fixtures/sm24_review/bundle_07_25/request_v3_calibrated.json"
+ANNOTATIONS = REPO / "tests/fixtures/sm24_review/bundle_07_25/review_annotations.json"
 RASTER_ROOT = REPO / "case_tests/e2e_tests/sm24_anchor/case_data"
 
 

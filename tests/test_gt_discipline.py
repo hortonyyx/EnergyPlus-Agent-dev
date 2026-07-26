@@ -73,8 +73,9 @@ def test_executors_do_not_reference_gt():
 def test_case_data_has_no_dxf_or_dwg():
     """opus §8.5.3: no DXF/DWG (incl. a future normalized.dxf) under any case_data/.
 
-    Convert + build run in staging (logs/experiments/<date>_<case>_gt/work/);
-    a case_data/ dir holding a DXF would let the judge-side answer generator be
+    Convert + build run in ephemeral per-run staging (a tmp work dir); the
+    canonical tracked DXF input lives in case_tests/test_baseline/gt_sources/.
+    A case_data/ dir holding a DXF would let the judge-side answer generator be
     reached from the e2e inputs the executors see.
     """
     offenders = []

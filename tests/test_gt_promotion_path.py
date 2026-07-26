@@ -21,8 +21,8 @@ from src.agent.judge.tarch_converter_schema import TarchConversionRequestV1
 
 REPO = Path(__file__).resolve().parents[1]
 SOURCE = REPO / "case_tests/test_baseline/gt_sources/sm24_anchor/source.dxf"
-REQUEST = REPO / "logs/experiments/2026-07-25_sm24_gt_review/request_v3_calibrated.json"
-ANNOTATIONS = REPO / "logs/experiments/2026-07-25_sm24_gt_review/review_annotations.json"
+REQUEST = REPO / "tests/fixtures/sm24_review/bundle_07_25/request_v3_calibrated.json"
+ANNOTATIONS = REPO / "tests/fixtures/sm24_review/bundle_07_25/review_annotations.json"
 RASTERS = REPO / "case_tests/e2e_tests/sm24_anchor/case_data"
 
 
@@ -467,20 +467,16 @@ def _mirror_repo(tmp_path: Path) -> Path:
     mirror.mkdir()
     for relative in ("src", "scripts", "tests"):
         shutil.copytree(REPO / relative, mirror / relative, ignore=shutil.ignore_patterns("__pycache__"))
-    # This module's fixed sm24 fixture is deliberately copied read-only; no
-    # baseline asset is ever mutated in the source checkout.
+    # This module's fixed sm24 fixtures are deliberately copied read-only; no
+    # baseline asset is ever mutated in the source checkout. The review-request
+    # fixtures (REQUEST / ANNOTATIONS) live under tests/fixtures/ and therefore
+    # ride along with the tests/ copytree above, so the mirror finds them at the
+    # same REPO-relative path the module references.
     for relative in (
         "case_tests/test_baseline/gt_sources/sm24_anchor",
         "case_tests/e2e_tests/sm24_anchor/case_data",
     ):
         shutil.copytree(REPO / relative, mirror / relative, ignore=shutil.ignore_patterns("__pycache__"))
-    for relative in (
-        "logs/experiments/2026-07-25_sm24_gt_review/request_v3_calibrated.json",
-        "logs/experiments/2026-07-25_sm24_gt_review/review_annotations.json",
-    ):
-        target = mirror / relative
-        target.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copy2(REPO / relative, target)
     shutil.copy2(REPO / "pyproject.toml", mirror / "pyproject.toml")
     return mirror
 
