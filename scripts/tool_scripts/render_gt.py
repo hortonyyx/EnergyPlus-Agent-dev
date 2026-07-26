@@ -507,6 +507,9 @@ def main() -> None:
     ap = argparse.ArgumentParser(description="Render a gt JSON to annotated plan + elevation PNGs.")
     ap.add_argument("gt", help="case name (e.g. sm21_anchor) or path to a gt JSON")
     ap.add_argument("--out-dir", help="output directory (default: <gt_dir>/<case>/renders)")
+    ap.add_argument("--review-annotations",
+                    help="review-only JSON {zone_id: role}; colours/names plan zones for "
+                         "the human reviewer, never written to the gt and never gated")
     args = ap.parse_args()
 
     path = Path(args.gt)
@@ -522,8 +525,12 @@ def main() -> None:
 
     plan_path = out_dir / "gt_plan.png"
     elev_path = out_dir / "gt_elev.png"
+    annotations = None
+    if args.review_annotations:
+        payload = json.loads(Path(args.review_annotations).read_text(encoding="utf-8"))
+        annotations = {str(k): str(v) for k, v in payload.get("zone_roles", payload).items()}
     model = gt_to_render_model(document)
-    render_plan_model(model).save(plan_path)
+    render_plan_model(model, review_annotations=annotations).save(plan_path)
     render_elevation_model(model).save(elev_path)
     print(f"wrote {plan_path}")
     print(f"wrote {elev_path}")

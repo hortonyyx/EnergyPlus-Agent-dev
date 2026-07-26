@@ -61,6 +61,14 @@ _NEUTRAL_ROLE = (150, 150, 150)
 _V3_ROLE = {**ROLE, "reception": (200, 90, 200), "lobby": (0, 190, 190),
             "unspecified": _NEUTRAL_ROLE}
 
+# FIX-7: openings are recorded on the boundary segment's outer-skin line (the drawing's
+# outermost wall edge), but the wall itself is a band `wall_thickness_m` wide running
+# INTO the building from there. Drawn on the outer-skin line, the opening bar floats on
+# the outside face of the wall instead of sitting on the band. Sign is which way is
+# "into the building" for each facade family (North's outer skin is the max-y edge, so
+# inward is -y; South's is min-y, so inward is +y; East max-x -> -x; West min-x -> +x).
+_INWARD_SIGN = {"North": -1.0, "South": 1.0, "East": -1.0, "West": 1.0}
+
 
 def _weights(image: Image.Image) -> dict[str, int]:
     """Stroke widths / label size scaled to the raster, in sm21's proportions.
@@ -70,7 +78,13 @@ def _weights(image: Image.Image) -> dict[str, int]:
     (fat enough to bury the drawing underneath).  Everything is proportional now.
     """
     scale = image.width / _SM21_REFERENCE_WIDTH
-    return {"line": max(2, round(3 * scale)), "bar": max(2, round(9 * scale)),
+    # `bar` (plan window/door) carries a higher absolute floor than the other strokes:
+    # pure proportional scaling put it at 3 px on sm24's 790 px plan raster, which is
+    # both too faint to read and too close to the zone outline weight.  6 px is still
+    # under the ~9 px the 240 mm wall occupies at that raster's 36.3 px/m, so the bar
+    # stays inside the wall band and cannot hide the drawing's own opening lines — the
+    # comparison object the reviewer needs.
+    return {"line": max(2, round(3 * scale)), "bar": max(6, round(9 * scale)),
             "box": max(2, round(5 * scale)), "font": max(11, round(20 * scale))}
 
 
@@ -417,11 +431,24 @@ def build_gt_overlay_images_v3(
             segments = {segment.id: segment for segment in floor.boundary_segments}
             for opening in floor.openings:
                 segment = segments[opening.segment_id]
-                a,b = opening.world_along_interval
-                def locate(value):
-                    return (value, segment.p1[1]) if segment.facade_family in {"North", "South"} else (segment.p1[0], value)
-                points = [_pixel_for_world_plan(view,binding,locate(a)), _pixel_for_world_plan(view,binding,locate(b))]
+                # a, b are the GT-authoritative along-wall interval endpoints — the
+                # coordinate a human reviewer checks the opening's plan position
+                # against. They are never touched below; only the perpendicular
+                # (across-wall) coordinate moves.
+                a, b = opening.world_along_interval
+                along_is_x = segment.facade_family in {"North", "South"}
+                fixed = segment.p1[1] if along_is_x else segment.p1[0]
+                if segment.wall_thickness_m is not None:
+                    fixed += _INWARD_SIGN[segment.facade_family] * (segment.wall_thickness_m / 2.0)
+                # else: no thickness on record — keep drawing on the outer-skin line
+                # rather than guess an offset.
+                points = [_pixel_for_world_plan(view, binding, (a, fixed) if along_is_x else (fixed, a)),
+                          _pixel_for_world_plan(view, binding, (b, fixed) if along_is_x else (fixed, b))]
                 for point in points: _within(image, point)
+                # Dark casing first, coloured core on top: separates the opening bar
+                # from the zone outline (similar weight, adjacent hues) without needing
+                # a wider bar that would swallow the drawing's own opening lines.
+                draw.line(points, fill=(0, 0, 0, 255), width=weight["bar"] + 4)
                 draw.line(points, fill=WIN + (255,) if opening.kind == "window" else DOOR + (255,), width=weight["bar"])
             # last, so the outer-skin reference is never overdrawn by a zone edge that
             # happens to run along it

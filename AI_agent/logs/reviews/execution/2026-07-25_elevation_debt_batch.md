@@ -11,10 +11,15 @@
 
 ```
 python -m pytest -q -p no:cacheprovider
-→ 1579 passed, 10 xfailed, 148 warnings in 536.29s (0:08:56)      ← FIX-3 返工后终态
+→ 1580 passed, 10 xfailed, 148 warnings in 498.52s (0:08:18)      ← FIX-4/FIX-5 返工后终态
 ```
-基线 `1556 passed, 10 xfailed` → **+23 passed（本批新增测试数，逐条见 §3/§4/§6.5/§6.6）、xfailed 不变、failed 0、无新 skip**。零回归。
-（演进：首轮 1577 → FIX-1 加锚点锁 1578 → FIX-3 加审计列锁 1579。）
+基线 `1556 passed, 10 xfailed` → **+24 passed、xfailed 不变、failed 0、无新 skip**。零回归。
+（演进：首轮 1577 → FIX-1 锚点锁 1578 → FIX-3 审计列锁 1579 → FIX-4 sm21 TYPE 1 逐像素锁 1580。）
+
+**最终交付 hash**（FIX-4/FIX-5 后重生成）
+- candidate GT `content_sha256`：`e6f112abcecb56475b3d614acfcd59e49e55bee2ab744d56e4e8a7b658fdf89e`
+- manifest `manifest_sha256`：`bed652dfd6b320de6126128095dbc5913e624236b3d9460154cf023f4d6f680f`
+- review-index `inventory_sha256`：`5675fa6d4e213d4035b505bb90ed22e778aa8888651e2beb77f32e2782783474`
 
 ⚠️ 过程纪律注记：本轮曾有一次全量跑与 neuter 探针**并发**（与 07-24 那次同款污染），该次结果**已作废**；上面这条是 neuter 全部还原、`diff -q` 确认工作区干净之后**重新干净单跑**的结果。
 
@@ -324,6 +329,75 @@ GT 全部 boundary segment 的 `wall_thickness_m` = **0.24**。
 **字段顺序差异属有意为之**：07-24 是 `sort_keys=True` 的**字母序**，我这版是**合同 §7.4 清单的逻辑顺序**（opening_id → evidence → view/facade/floor/kind → host zone → plan 区间 → 立面区间 → world → z → datum 溯源 → handles）。字段集合与 07-24 **完全相同（18/18，零缺零增）**，只是排序更贴合合同与人眼阅读。
 
 **交付实证**：18/18 字段齐备；14 行 `opening_id` 与 GT 14 个 opening **双向完全一致**；`host_zone_id` 全部落在 8 个 zone 内且等于 GT；`plan_world_along_interval` 与 GT 逐值相等。
+
+## 6.7 用户验收返工 FIX-4 / FIX-5（第四轮）
+
+### FIX-4 — `gt_plan.png` / `gt_elev.png` 对齐 sm21 形态
+
+**先定位代码边界（关键事实）**：sm21 的两张 TYPE 1 基线资产由 `render_gt.py` 的 **legacy v2 渲染器** `_render_plan_v2` / `_render_elev_v2` 产出，实测**今天仍逐像素可复现**；sm24 走的是完全独立的 `gt_render_model.render_plan_model` / `render_elevation_model`。**两条路径不共享代码**，所以改 v3 不可能动 sm21——但仍按要求补了逐像素锁。
+
+**plan 新增**：标题 + 两行图例；每层小标题 `F1 z=0 h=4.5m 8 zones`；**上方 x / 左侧 y 绿色尺寸链**（刻度取自 GT 的 zone 边界坐标，分段值 + 总值全部现算，无写死）；房间按用途填充 + 两行标签（`z3` / `reception`）；窗=粗蓝条、门=棕色 + `DOOR`；底部 `windows S:2+door N:1+door E:3+door W:5  sill-head z 1-2.8, 1-3.4`。**用途来自 review 注记**（`render_plan_model(model, *, review_annotations=...)`，review-only 规矩不变：不入 GT、不进门、未注记退中性灰），CLI 加 `--review-annotations`。
+
+**elev 新增**：标题 + 图例；**2×2 排布**、顺序改为 **South / North / East / West**（原为字母序）；每面标题 `South elevation 10 m wide  2 win (gt-exact x)`；**绿色宽度链 + 绿色层高链 + 蓝色 sill/窗高/head 链**；楼层分隔线；窗=浅蓝填充框、门=棕框 + `DOOR`；四面共用一个比例尺，画布按真实图元尺寸算（不再有裁字与大片死白）。
+
+**排版返工（我自己看图发现的，逐条修掉）**：单段尺寸链重复打印总值（`4.5/4.5`）→ 只在 ≥2 段时打总值；竖链总值压住分段数字 → 移到链顶端外侧；`N win` 文字压住 DOOR 框 → 移出外框到左栏；顶部尺寸链压住图例与楼层标题 → 重排上边距。
+
+**锁**：`test_sm21_legacy_type1_gt_renders_are_unchanged` —— 现场重渲 `_render_plan_v2` / `_render_elev_v2` 与两张committed 基线资产逐像素比对，**0 差异像素**。
+
+### FIX-5 — 平面 overlay 窗条看不清
+
+`bar` 由纯比例（790px 图上只有 3px）改为 **`max(6, round(9×scale))`**，并加**深色外描边**（`bar+4` 黑底 + 彩色芯）画在最上层。
+**取值理由**：6px 明显可辨，且**仍小于 240mm 墙在该图上占的约 9px**（36.3 px/m），所以窗条留在墙带内、**不会盖住图纸自己的窗洞线**（人核的对照物）。深色描边解决的是「窗条与区框描边同粗近色、糊在一起」。对比图：`diag/fix5_window_bar_compare_6x.png`（07-24 / 本版 / 原图 三行 6×）。
+
+**锁**：原比例锁拆成两半——`box` 仍验**纯比例**；`bar` 改为验**下限 ≥6 且 < 0.24×px_per_m**（即不得粗到吃掉墙带）。neuter（把下限改回 2）→ 红。
+
+### neuter 自查（本轮 3 格，全真）
+
+| neuter 了什么 | 跑了哪个测试 | 结果 |
+|---|---|---|
+| `_weights` 的 `bar` 下限 6 → 2（退回纯比例） | `test_v3_stroke_weights_scale_with_raster...` | 绿→**红** ✓ |
+| `render_gt.py` `SCALE = 46 → 47`（扰动 legacy v2 渲染器） | `test_sm21_legacy_type1_gt_renders_are_unchanged` | 绿→**红** ✓ |
+| `render_gt.py` `HEADER = 70 → 72` | 同上 | 绿→**红** ✓ |
+
+### ⚠️ GT `content_sha256` 变了 —— 已查明，**不是数据改动**
+
+主控要求「若 GT hash 变了就停下报告」。它确实变了，但我查到根因是 §6.2 已登记的那条债，**不是非预期数据改动**，证据三条：
+
+1. **我 FIX-4/FIX-5 改的三个文件（`gt_render_model.py` / `render_gt.py` / `render_gt_overlay.py`）都不在 `compute_gt_implementation_hashes` 的任何一组里**（extractor / validator / vg 三组均不含），结构上无法影响 GT hash。
+2. **同一份代码连跑两次，逐叶子 diff 只差 3 个叶子**，且全是从 augmented DXF 字节派生的哈希：`sources[0].content_sha256`、`generator.manifest_sha256`、`content_sha256`。**几何 / openings / zones / 厚度零差异。**
+3. 交付 GT 语义逐项复核**与上一版完全一致**：14 openings（11 窗 + 3 门）、窗 z 恰 {[1.0,2.8],[1.0,3.4]}、门 z [0.2,2.6]、8 个 zone 全 `unspecified`、`wall_thickness_m` 全 0.24、14 个 opening id 一字不差。
+
+⇒ 结论：GT 数据没动，hash 位移 100% 来自 ezdxf 每次写入新时间戳/GUID（§6.2）。**这也再次说明 §6.2 那条债会让「hash 没变 = 数据没变」这个直觉失效**，建议排期修。
+
+## 6.8 用户验收返工 FIX-6（第五轮）：TYPE 1 plan 两处标注缺陷
+
+### FIX-6a — `z5 corridor` 没有标签
+
+**根因**：我在 FIX-4 里写的 TYPE 1 标签锚点是 **bbox 中心**（`(min+max)/2`）。z5 是 8 顶点 C 形，其 bbox 中心落在邻室里，名字被画到别人家再被那家的填充盖掉 ⇒ 交付图 8 个区只有 7 个有名字。
+**这是 FIX-1 的同类缺陷换了一条代码路径**——我自己在简报里写过 TYPE 1 与 overlay 两个渲染器不共用代码，却没有把 polylabel 修法同步过来。
+
+**改法**：`gt_render_model` 增加本地 `_label_anchor()`（shapely `polylabel` + `representative_point` 兜底 + `contains` 显式校验），并改为**两遍绘制**（先全部填充/描边/开口条，最后统一画标签）。
+
+### FIX-6b — `DOOR` 文字被门条盖住（读成 `DO OR`）
+
+**改法**：`DOOR` 不再画在门条正中，而是沿该立面的**内法线偏到一侧**（N/S 上下 22px、E/W 左右 30px），三个门统一处理，不是只修东门。
+
+### 锁与 neuter 自查（4 格）
+
+新锁 `test_type1_plan_labels_every_zone_and_keeps_door_captions_clear`：8 个锚点各自**在本区内、且不在任何他区内**；8 个名字用「渲染两次 / 第二次抑制标签 / 逐像素求差」证明**活到最终合成图**；3 个 `DOOR` 锚点与自己门条中点距离 **≥12px**（门条宽 8px）；外加**结构性绘制顺序断言**（最后一个 polygon/line 必须早于第一个 label）。
+
+| neuter 了什么 | 结果 |
+|---|---|
+| 锚点改回 **bbox 中心**（即出厂缺陷本身） | 绿→**红** ✓ |
+| 锚点改成**质心** | 绿→**红** ✓ |
+| 两遍绘制改回**逐区内联画标签** | 绿→**红** ✓（见下方订正） |
+| `DOOR` 偏移改回 `(0,0)`（画回门条正中） | 绿→**红** ✓ |
+
+**⚠️ 自查订正（诚实记录）**：两遍绘制那一格**第一版是假锁**——我最初只写了「像素可见」这种结果型断言，把两遍改回内联后**仍然绿**。查因：**锚点修正之后，zone 之间互不重叠，后画的 zone 填充根本盖不到正确锚点上的字**，所以顺序对「zone 填充」这一面不承重。真正需要顺序保护的是**之后才画的门条与 footprint 外框**。处置：补一条**结构性顺序断言**（事件序列里最后一个 polygon/line 必须早于第一个 label），neuter 后由绿翻红 ✓。**结论：两遍绘制保留，但其理由是防门条/外框、不是防 zone 填充**——上一版简报里我对 overlay 那条的措辞把这点说宽了，一并在此订正。
+
+### GT 语义复核（改图前后逐项相同）
+
+14 openings（11 窗 + 3 门）/ 窗 z 恰 {[1.0,2.8],[1.0,3.4]} / 门 z [0.2,2.6] / 8 zone 全 `unspecified` / `wall_thickness_m` 全 0.24 / 14 个 opening id 一字不差 / 外包 10×20 / 审计 14 行 × 18 字段且自绑 hash 一致。GT hash 位移仍是 §6.2 的 ezdxf 债。
 
 ### 主控已处置、本轮未做的三条
 

@@ -8,9 +8,11 @@ from __future__ import annotations
 
 import json
 import hashlib
+import math
 from pathlib import Path
 
 import ezdxf
+import numpy as np
 import pytest
 
 from src.agent.judge import tarch_normalize as tn
@@ -608,3 +610,109 @@ def test_elevation_audit_rows_carry_the_contract_mandated_opening_columns(green_
     drawn = {opening.id for surface in gt_to_render_model(doc).elevation_surfaces
              for opening in surface.openings if opening.z_interval is not None}
     assert drawn and drawn <= set(row_ids)
+
+
+def test_type1_plan_labels_every_zone_and_keeps_door_captions_clear(green_sm24):
+    """FIX-6: the TYPE 1 plan is what the user signs, so every zone must be named and
+    every door caption legible.
+
+    Two defects this locks, both on the render_*_model path (which shares no code with
+    the overlay renderer, so the earlier overlay fix did not carry over):
+      a) the label anchor was the bbox centre, which for z5 (8-vertex C) lies in a
+         neighbouring room -- the name was drawn there and buried by that room's fill;
+      b) DOOR was printed on the centre of the solid door bar and read as "DO OR".
+    """
+    from PIL import ImageDraw
+    from src.agent.judge import gt_render_model as grm
+    from shapely.geometry import Point, Polygon
+
+    _request, _result, doc = green_sm24
+    annotations = {"z0": "meeting", "z3": "reception", "z5": "corridor"}
+    model = grm.gt_to_render_model(doc)
+    floor = model.floors[0]
+    shapes = {zone.id: Polygon(list(zone.exterior)) for zone in floor.zone_polygons}
+    assert len(shapes) == 8
+
+    # (a1) every anchor is strictly inside its OWN zone and inside no other
+    for zone_id, polygon in shapes.items():
+        anchor = Point(grm._label_anchor(tuple(polygon.exterior.coords[:-1])))
+        assert polygon.contains(anchor), f"{zone_id} label anchor escaped its polygon"
+        for other_id, other in shapes.items():
+            if other_id != zone_id:
+                assert not other.contains(anchor), f"{zone_id} anchor landed in {other_id}"
+    # the replaced rule really did fail for the C-shaped zone
+    c_shape = shapes["z5"]
+    xs, ys = zip(*c_shape.exterior.coords[:-1])
+    assert not c_shape.covers(Point((min(xs) + max(xs)) / 2, (min(ys) + max(ys)) / 2))
+
+    # (a2) all eight names survive to the finished image (render twice, suppress, diff)
+    drop = set(shapes) | set(annotations.values()) | {"unspecified"}
+    real_text = ImageDraw.ImageDraw.text
+    door_calls: list[tuple] = []
+
+    def capture(self, xy, text="", *args, **kwargs):
+        if text == "DOOR":
+            door_calls.append(tuple(xy))
+        return real_text(self, xy, text, *args, **kwargs)
+
+    events: list[str] = []
+    real_polygon, real_line = ImageDraw.ImageDraw.polygon, ImageDraw.ImageDraw.line
+
+    def capture_polygon(self, xy, *args, **kwargs):
+        events.append("polygon"); return real_polygon(self, xy, *args, **kwargs)
+
+    def capture_line(self, xy, *args, **kwargs):
+        events.append("line"); return real_line(self, xy, *args, **kwargs)
+
+    ImageDraw.ImageDraw.text = capture
+    ImageDraw.ImageDraw.polygon = capture_polygon
+    ImageDraw.ImageDraw.line = capture_line
+    try:
+        def capture_with_events(self, xy, text="", *args, **kwargs):
+            if text in (set(shapes) | {"DOOR"}):
+                events.append("label")
+            return capture(self, xy, text, *args, **kwargs)
+
+        ImageDraw.ImageDraw.text = capture_with_events
+        full = np.asarray(grm.render_plan_model(model, review_annotations=annotations).convert("RGB")).astype(int)
+        door_anchors = list(door_calls)
+        # Structural: labels are emitted only after every fill/outline/opening bar.  The
+        # zone fills alone cannot bury a correctly-anchored name (zones tile disjointly),
+        # but the door bars and the footprint ring are drawn later and can.
+        assert "label" in events and "polygon" in events
+        last_shape = max(index for index, name in enumerate(events) if name in {"polygon", "line"})
+        first_label = min(index for index, name in enumerate(events) if name == "label")
+        assert last_shape < first_label, (last_shape, first_label)
+        ImageDraw.ImageDraw.polygon, ImageDraw.ImageDraw.line = real_polygon, real_line
+
+        def without(self, xy, text="", *args, **kwargs):
+            if text in drop:
+                return
+            return real_text(self, xy, text, *args, **kwargs)
+
+        ImageDraw.ImageDraw.text = without
+        stripped = np.asarray(grm.render_plan_model(model, review_annotations=annotations).convert("RGB")).astype(int)
+    finally:
+        ImageDraw.ImageDraw.text = real_text
+        ImageDraw.ImageDraw.polygon, ImageDraw.ImageDraw.line = real_polygon, real_line
+
+    diff = np.abs(full - stripped).sum(-1) > 20
+    x0, y0, x1, y1 = grm._bounds(floor.footprint_exterior)
+    ppm = min(90., max(40., 620. / max(x1 - x0, y1 - y0, .1)))
+    for zone_id, polygon in shapes.items():
+        world = grm._label_anchor(tuple(polygon.exterior.coords[:-1]))
+        cx, cy = 132 + (world[0] - x0) * ppm, 150 + (y1 - world[1]) * ppm
+        patch = diff[max(int(cy) - 20, 0):int(cy) + 20, max(int(cx) - 60, 0):int(cx) + 60]
+        assert int(patch.sum()) > 30, f"{zone_id} label is not visible in the finished plan"
+
+    # (b) three door captions, each clear of its own bar (bar is 8 px wide -> >= 12 px)
+    assert len(door_anchors) == 3
+    bars = [(opening, next(item for item in floor.boundary_segments if item.id == opening.segment_id))
+            for opening in floor.openings if opening.kind == "door"]
+    assert len(bars) == 3
+    for opening, segment in bars:
+        lo, hi = opening.world_along_interval
+        mid = grm._world_point_at_along(segment, (lo + hi) / 2)
+        bar = (132 + (mid[0] - x0) * ppm, 150 + (y1 - mid[1]) * ppm)
+        nearest = min(math.dist(bar, anchor) for anchor in door_anchors)
+        assert nearest >= 12, f"DOOR caption sits on the {segment.facade_family} door bar"

@@ -263,8 +263,14 @@ def test_v3_stroke_weights_scale_with_raster_instead_of_being_absolute():
     assert large["bar"] > small["bar"] and large["box"] > small["box"]
     assert large["font"] > small["font"]
     assert all(value >= 2 for value in small.values())
-    # proportionally equal (that is the whole point), within integer rounding
-    assert abs(large["bar"] / 2434 - small["bar"] / 790) < 0.002
+    # `box` is purely proportional (that is the whole point), within integer rounding
+    assert abs(large["box"] / 2434 - small["box"] / 790) < 0.002
+    # `bar` (FIX-5) deliberately carries an absolute floor on top of the scaling: pure
+    # proportion gave 3 px on the 790 px plan raster, too faint to read.  The floor must
+    # still stay under the ~9 px the 240 mm wall spans at that raster's 36.3 px/m, so the
+    # bar cannot cover the drawing's own opening lines.
+    assert small["bar"] >= 6
+    assert small["bar"] < 0.24 * (790 / 10.0)
 
 
 def test_v3_outline_edges_are_equal_width_and_dashing_leaves_gaps():
@@ -309,3 +315,153 @@ def test_v3_review_annotations_are_review_only_and_never_guess(tmp_path):
     # grey — the renderer must never invent a role colour.
     assert ov._V3_ROLE["unspecified"] == ov._NEUTRAL_ROLE
     assert ov._V3_ROLE.get("no_such_role", ov._NEUTRAL_ROLE) == ov._NEUTRAL_ROLE
+
+
+@pytest.mark.skipif(not _HAS, reason="sm21_anchor case_data / gt not present")
+def test_sm21_legacy_type1_gt_renders_are_unchanged():
+    """R-01 (extended to TYPE 1): sm21's gt_plan.png / gt_elev.png are LOCKED assets.
+
+    They are produced by render_gt's legacy v2 renderers, which are a different code
+    path from the typed v3 `render_*_model` functions that sm24 uses.  FIX-4 reshaped
+    only the v3 path; this proves the legacy path did not move a single pixel.
+    """
+    import sys
+    sys.path.insert(0, str(Path("scripts/tool_scripts").resolve()))
+    import render_gt as rg
+
+    _case, raw = rg._resolve_gt("sm21_anchor")
+    assert raw.get("schema_version") == 2
+    renders = ov.GT_DIR / "sm21_anchor" / "renders"
+    for name, produced in (("gt_plan.png", rg._render_plan_v2(raw)),
+                           ("gt_elev.png", rg._render_elev_v2(raw))):
+        reference = np.asarray(Image.open(renders / name).convert("RGB"))
+        fresh = np.asarray(produced.convert("RGB"))
+        assert fresh.shape == reference.shape, name
+        assert int((fresh != reference).any(-1).sum()) == 0, name
+
+
+# --------------------------------------------------------------------------- #
+# FIX-7 — plan opening bars must sit ON the wall band (half wall_thickness_m
+# inward from the boundary segment's outer-skin line), not float on the outer
+# face. Real sm24 geometry (wall_thickness_m == 0.24 on every segment) is used
+# so the lock exercises the production data shape, not a synthetic stand-in.
+# --------------------------------------------------------------------------- #
+_SM24_REVIEW_BUNDLE = Path("logs/experiments/2026-07-25_sm24_gt_review")
+
+
+def _sm24_plan_only(doc: GroundTruthV3, manifest: GtExtractionManifestV1):
+    """Real sm24 doc/manifest, restricted to the plan-F1 raster binding only.
+
+    Dropping the 4 elevation bindings means every WIN/DOOR-coloured draw.line call
+    the builder makes is unambiguously a plan opening bar (the elevation branch is
+    never entered), so a monkeypatched capture needs no further disambiguation.
+    """
+    raw = manifest.model_dump(mode="json")
+    raw["raster_overlays"] = [item for item in raw["raster_overlays"] if item["view_id"] == "plan-F1"]
+    raw["manifest_sha256"] = "0" * 64
+    raw["manifest_sha256"] = compute_manifest_sha256(GtExtractionManifestV1.model_construct(**raw))
+    plan_manifest = GtExtractionManifestV1.model_validate(raw)
+    plan_doc = doc.model_copy(update={"generator": doc.generator.model_copy(
+        update={"manifest_sha256": plan_manifest.manifest_sha256})})
+    return plan_doc, plan_manifest
+
+
+def _capture_opening_bars(monkeypatch, doc, manifest):
+    """Build the (plan-only) overlay, returning the 2-point pixel pairs the builder
+    actually drew for every WIN/DOOR-coloured opening bar, in floor.openings order."""
+    lines = []
+    original_line = ImageDraw.ImageDraw.line
+    def capture_line(self, xy, *args, **kwargs):
+        lines.append((tuple(xy), kwargs.get("fill")))
+        return original_line(self, xy, *args, **kwargs)
+    monkeypatch.setattr(ImageDraw.ImageDraw, "line", capture_line)
+    images = ov.build_gt_overlay_images_v3(doc, manifest, raster_root=_SM24_CD)
+    assert list(images) == ["plan-F1"]
+    win_fill, door_fill = ov.WIN + (255,), ov.DOOR + (255,)
+    return [xy for xy, fill in lines if fill in (win_fill, door_fill)]
+
+
+def test_v3_plan_opening_bars_sit_on_wall_band_real_sm24(monkeypatch):
+    doc = GroundTruthV3.model_validate_json((_SM24_REVIEW_BUNDLE / "gt" / "gt.json").read_text())
+    manifest = GtExtractionManifestV1.model_validate_json((_SM24_REVIEW_BUNDLE / "manifest.json").read_text())
+    assert doc.generator.manifest_sha256 == manifest.manifest_sha256
+    plan_doc, plan_manifest = _sm24_plan_only(doc, manifest)
+
+    model = ov.gt_to_render_model(plan_doc)
+    floor = next(f for f in model.floors if f.floor_id == "F1")
+    assert len(floor.openings) == 14                      # sm24 acceptance: 11 windows + 3 doors
+    segments = {s.id: s for s in floor.boundary_segments}
+    plan_view = next(v for v in plan_manifest.views if v.id == "plan-F1")
+    plan_binding = next(b for b in plan_manifest.raster_overlays if b.view_id == "plan-F1")
+    # sign of "toward the building interior" per facade, spelled out independently of
+    # the module's own _INWARD_SIGN table so this lock cannot rubber-stamp a flipped sign.
+    inward_sign = {"North": -1.0, "South": 1.0, "East": -1.0, "West": 1.0}
+
+    def pixel(along_is_x, value, fixed):
+        world = (value, fixed) if along_is_x else (fixed, value)
+        return ov._pixel_for_world_plan(plan_view, plan_binding, world)
+
+    expected = []
+    for opening in floor.openings:
+        segment = segments[opening.segment_id]
+        assert segment.wall_thickness_m == pytest.approx(0.24)      # sm24 acceptance value
+        a, b = opening.world_along_interval
+        along_is_x = segment.facade_family in {"North", "South"}
+        outer_fixed = segment.p1[1] if along_is_x else segment.p1[0]
+        inner_fixed = outer_fixed + inward_sign[segment.facade_family] * (segment.wall_thickness_m / 2.0)
+        expected.append((along_is_x,
+                          (pixel(along_is_x, a, outer_fixed), pixel(along_is_x, b, outer_fixed)),
+                          (pixel(along_is_x, a, inner_fixed), pixel(along_is_x, b, inner_fixed))))
+
+    drawn = _capture_opening_bars(monkeypatch, plan_doc, plan_manifest)
+    assert len(drawn) == len(floor.openings)
+
+    for (drawn_a, drawn_b), (along_is_x, (outer_a, outer_b), (inner_a, inner_b)) in zip(drawn, expected):
+        along_idx = 0 if along_is_x else 1        # pixel x <-> world x, pixel y <-> world y (diagonal affine)
+        # (1) the actually-drawn bar sits at the half-wall-thickness-inward position …
+        assert drawn_a == pytest.approx(inner_a, abs=1e-6)
+        assert drawn_b == pytest.approx(inner_b, abs=1e-6)
+        # … and the offset is a REAL move (not a silent no-op / thickness-ignored bug).
+        assert inner_a[1 - along_idx] != pytest.approx(outer_a[1 - along_idx], abs=1e-6)
+        # (2) the along-wall pixel component — the GT-authoritative coordinate a human
+        # reviewer checks the opening's position against — is pixel-identical to the
+        # un-offset outer-skin position. Only the perpendicular component may move.
+        assert drawn_a[along_idx] == pytest.approx(outer_a[along_idx], abs=1e-6)
+        assert drawn_b[along_idx] == pytest.approx(outer_b[along_idx], abs=1e-6)
+
+
+def test_v3_plan_opening_bar_keeps_outer_skin_position_when_wall_thickness_is_none(monkeypatch):
+    """FIX-7 guard: no wall_thickness_m on record -> no offset (no guessing)."""
+    import json
+    doc = GroundTruthV3.model_validate_json((_SM24_REVIEW_BUNDLE / "gt" / "gt.json").read_text())
+    manifest = GtExtractionManifestV1.model_validate_json((_SM24_REVIEW_BUNDLE / "manifest.json").read_text())
+    plan_doc, plan_manifest = _sm24_plan_only(doc, manifest)
+
+    model = ov.gt_to_render_model(plan_doc)
+    floor = next(f for f in model.floors if f.floor_id == "F1")
+    target = floor.openings[0]
+    segments = {s.id: s for s in floor.boundary_segments}
+    segment = segments[target.segment_id]
+    plan_view = next(v for v in plan_manifest.views if v.id == "plan-F1")
+    plan_binding = next(b for b in plan_manifest.raster_overlays if b.view_id == "plan-F1")
+    a, b = target.world_along_interval
+    along_is_x = segment.facade_family in {"North", "South"}
+    outer_fixed = segment.p1[1] if along_is_x else segment.p1[0]
+
+    def pixel(value, fixed):
+        world = (value, fixed) if along_is_x else (fixed, value)
+        return ov._pixel_for_world_plan(plan_view, plan_binding, world)
+    outer_a, outer_b = pixel(a, outer_fixed), pixel(b, outer_fixed)
+
+    raw_doc = json.loads((_SM24_REVIEW_BUNDLE / "gt" / "gt.json").read_text())
+    raw_doc["generator"]["manifest_sha256"] = plan_manifest.manifest_sha256
+    for item in raw_doc["floors"][0]["boundary_segments"]:
+        if item["id"] == segment.id:
+            assert item["wall_thickness_m"] == pytest.approx(0.24)
+            item["wall_thickness_m"] = None
+    none_doc = GroundTruthV3.model_validate(raw_doc)
+
+    drawn = _capture_opening_bars(monkeypatch, none_doc, plan_manifest)
+    drawn_a, drawn_b = drawn[0]           # floor.openings[0] is still first after the edit
+    assert drawn_a == pytest.approx(outer_a, abs=1e-6)
+    assert drawn_b == pytest.approx(outer_b, abs=1e-6)
