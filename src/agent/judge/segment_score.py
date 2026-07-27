@@ -8,7 +8,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from itertools import product
 from math import hypot
-from typing import Iterable, Sequence
+from typing import Iterable, Mapping, Sequence
 
 from src.agent.correction.schema import CorrectedGeometryV3
 from src.agent.judge.gt_schema import GroundTruthV3
@@ -18,32 +18,113 @@ from src.agent.judge.score_schema import JudgeScoreConfigV1, ScoreContractError
 Point = tuple[float, float]
 
 
-# RW-1 (representation-layer canonicalization, NOT a geometric tolerance).
-# The scorer pairs edges by exact identity (==, <=).  Binary float spellings of
-# the same decimal seam differ by a few ulp (8.059999999999999 vs 8.06 on the GT
-# side; 0.1+0.2 vs 0.3 on the correction side), and that microscopic difference
-# used to be read as a topology break while the upstream validator stayed GREEN.
-# Canonicalization snaps every coordinate to the nearest multiple of this quantum
-# once, at the scorer entry, on BOTH the GT and correction sides with the same
-# function and parameter, so identical seams share one identity and every
-# comparison afterwards stays exact -- no fuzzy match, no tolerance in pairing.
+# W1 coordinate identity (representation-layer, NOT a geometric tolerance).
+# Coordinates are NOT snapped to a global grid: any total discretization has a
+# boundary, and a 1-ulp pair straddling it silently splits -- exactly the false
+# red this batch removes (the r2 quantum-boundary pair).  Instead, the values
+# actually appearing on each (side, floor, axis) are single-link clustered with
+# a guard band and a diameter guard, so a same-intent seam (8.059999999999999 vs
+# 8.06; 0.1+0.2 vs 0.3; a 1-ulp straddling pair) collapses to ONE atomic
+# representative, and an unresolvable gap or a chain bridge is a LOUD reject.
+# Pooling scope is per (side, floor, axis): GT and product pools never mix, so
+# the answer's atoms are a pure function of the answer bytes (C-1').  Cross-
+# document comparison happens only at the judge tolerance layer (plan_*_tol_m),
+# product -> answer one-way (never reverse).
 #
-# Separation (probe-verified, AI_agent/logs/reviews/execution/2026-07-27_plan_segment_tjunction.md):
-#   ulp at the 20 m survey range ~= 3.55e-15  ->  quantum / ulp ~= 281,
-#   so a few-ulp spelling is absorbed;
-#   a 1e-9 endpoint gap is 1000 quanta, so it stays a red topology break (L-c).
-# This mirrors FACADE_VISIBILITY_DEPTH_EPSILON (A0_contract.md): it absorbs only
-# IEEE-754 arithmetic noise, never a physical resolution.  Do not widen it.
-_COORDINATE_QUANTUM = 1e-12
+# Thresholds were MEASURED then chosen, not chosen then justified (R-2):
+#   - signed-off sm24 GT: ZERO intra-document drift (50 vertices, no near pair);
+#   - largest measured drift: 1 ulp at 8 m = 1.776357e-15 (13.0-4.94 vs 8.06);
+#   - binary64 single-ulp bound across 1..20 m: 3.552714e-15.
+# So merge sits 281x above the single-ulp bound (absorbs any arithmetic drift),
+# split sits 100x below the 1e-9 minimum red gap (a 1e-9 seam stays split), and
+# the open (merge, split) band is an explicit reject zone a grid cannot have.
+# See AI_agent/logs/reviews/execution/2026-07-27_judge_identity_metric_glm.md
+# for the full measurement table and two-sided headroom proof.
+_COORDINATE_MERGE_THRESHOLD = 1e-12     # gap below this: same intent -> merge.
+_COORDINATE_SPLIT_THRESHOLD = 1e-11     # gap above this: distinct intent -> split.
+_COORDINATE_DIAMETER_THRESHOLD = 1e-11  # cluster diameter cap (chain-bridge guard).
 
 
-def _canonical_coord(value: float) -> float:
+@dataclass(frozen=True)
+class _AxisIdentity:
+    """One axis of one (side, floor): raw float -> atomic cluster representative.
+
+    The representative is the cluster minimum, which is deterministic once the
+    value set is fixed (sorted-set order) and never depends on input ordering.
+    """
+    side: str
+    floor_id: str
+    axis: str
+    rep: Mapping[float, float]
+
+
+def _cluster_axis(raw_values: Iterable[float], *, side: str, floor_id: str, axis: str,
+                  identity_code: str) -> _AxisIdentity:
+    """Single-link cluster with guard band + diameter guard (C-1 / C-1' / C-1'').
+
+    Returns a raw -> representative mapping.  Raises ScoreContractError on a
+    non-finite value, a gap inside the guard band (unresolvable ambiguity), or a
+    cluster whose diameter exceeds the cap (a chain bridge).  Context always
+    carries the hex binary64 of every value involved so the decision is
+    reproducible from the sidecar alone.
+    """
+    values: list[float] = []
+    for raw in raw_values:
+        value = float(raw)
+        if value != value or value == float("inf") or value == float("-inf"):
+            raise ScoreContractError(identity_code, "scoring.input_identity",
+                context={"reason": "identity_non_finite_value", "side": side,
+                         "floor_id": floor_id, "axis": axis, "hex": float(value).hex()})
+        values.append(value)
+    unique = sorted(set(values))
+    rep: dict[float, float] = {}
+    if not unique:
+        return _AxisIdentity(side, floor_id, axis, rep)
+    clusters: list[tuple[float, float]] = []   # (cluster_min, cluster_max)
+    cur_min = cur_max = unique[0]
+    rep[unique[0]] = unique[0]
+    for index in range(1, len(unique)):
+        prev, value = unique[index - 1], unique[index]
+        gap = value - prev
+        if gap < _COORDINATE_MERGE_THRESHOLD:
+            rep[value] = cur_min
+            cur_max = value
+        elif gap > _COORDINATE_SPLIT_THRESHOLD:
+            clusters.append((cur_min, cur_max))
+            cur_min = cur_max = value
+            rep[value] = cur_min
+        else:
+            raise ScoreContractError(identity_code, "scoring.input_identity",
+                context={"reason": "identity_guard_band_ambiguity", "side": side,
+                    "floor_id": floor_id, "axis": axis, "gap": gap,
+                    "merge": _COORDINATE_MERGE_THRESHOLD, "split": _COORDINATE_SPLIT_THRESHOLD,
+                    "gap_hex": gap.hex(), "lo_hex": prev.hex(), "hi_hex": value.hex()})
+    clusters.append((cur_min, cur_max))
+    for lo, hi in clusters:
+        diameter = hi - lo
+        if diameter > _COORDINATE_DIAMETER_THRESHOLD:
+            raise ScoreContractError(identity_code, "scoring.input_identity",
+                context={"reason": "identity_chain_bridge_over_diameter", "side": side,
+                    "floor_id": floor_id, "axis": axis, "diameter": diameter,
+                    "diameter_threshold": _COORDINATE_DIAMETER_THRESHOLD,
+                    "diameter_hex": diameter.hex(), "lo_hex": lo.hex(), "hi_hex": hi.hex()})
+    return _AxisIdentity(side, floor_id, axis, rep)
+
+
+def _build_floor_identity(points: Iterable[Sequence[float]], *, side: str, floor_id: str,
+                          identity_code: str) -> tuple[_AxisIdentity, _AxisIdentity]:
+    """Build the (x, y) identity pair for one document side on one floor."""
+    materialized = tuple(points)
+    x_id = _cluster_axis((float(p[0]) for p in materialized), side=side, floor_id=floor_id,
+                         axis="x", identity_code=identity_code)
+    y_id = _cluster_axis((float(p[1]) for p in materialized), side=side, floor_id=floor_id,
+                         axis="y", identity_code=identity_code)
+    return x_id, y_id
+
+
+def _identify_point(point: Sequence[float], x_id: _AxisIdentity, y_id: _AxisIdentity) -> Point:
     # +0.0 collapses -0.0 to 0.0 so it can never poison a dict key or tuple compare.
-    return round(value / _COORDINATE_QUANTUM) * _COORDINATE_QUANTUM + 0.0
-
-
-def _canonical_point(point: Sequence[float]) -> Point:
-    return (_canonical_coord(float(point[0])), _canonical_coord(float(point[1])))
+    return (x_id.rep[float(point[0])] + 0.0, y_id.rep[float(point[1])] + 0.0)
 
 
 @dataclass(frozen=True)
@@ -73,25 +154,41 @@ class SegmentAssignment:
 class SegmentScore:
     target: PlanSegment | None
     observation: PlanSegment | None
-    status: str  # complete | within_tolerance | miss | extra
+    status: str  # complete | within_tolerance | miss | extra | duplicate
     axis_alignment_error_m: float | None
     position_error_m: float | None
     extent_symmetric_difference_m: float | None
+    # W4: length (m) this row contributes to its criterion denominator.  For a
+    # matched row, the overlap length on the target's support line; for a miss,
+    # the uncovered target length; for an extra, the observation length that
+    # covered no target; for a duplicate, the target length covered by >1 obs.
+    # Replaces the prior per-segment count of 1 (which over-weighted walls
+    # facing many rooms by up to 3.96x on real sm24).
+    eligible_units: float = 0.0
 
 
-def _points(vertices: Sequence[Sequence[float]]) -> tuple[Point, ...]:
-    # RW-1: canonicalize on entry so the same decimal seam (8.059999999999999 /
-    # 8.06, 0.1+0.2 / 0.3) shares one identity before any exact comparison.
-    out = tuple(_canonical_point(point) for point in vertices)
+def _points(vertices: Sequence[Sequence[float]], x_id: _AxisIdentity, y_id: _AxisIdentity,
+            *, identity_code: str) -> tuple[Point, ...]:
+    # W1: map raw vertices through the (side, floor) axis identities so the same
+    # decimal seam shares one atomic representative before any exact comparison.
+    out = tuple(_identify_point(point, x_id, y_id) for point in vertices)
     if len(out) > 1 and out[0] == out[-1]:
         out = out[:-1]
     if len(out) < 3:
-        raise ScoreContractError("score_gt_identity_invalid", "scoring.input_identity", context={"reason": "polygon_too_short"})
+        raise ScoreContractError(identity_code, "scoring.input_identity",
+            context={"reason": "polygon_too_short", "side": x_id.side, "floor_id": x_id.floor_id})
+    # C-1''(4): identity merge must not collapse adjacent vertices (zero-length edge).
+    for first, second in zip(out, out[1:] + out[:1]):
+        if first == second:
+            raise ScoreContractError(identity_code, "scoring.input_identity",
+                context={"reason": "identity_merge_edge_collapse", "side": x_id.side,
+                    "floor_id": x_id.floor_id, "axis": "xy", "hex": float(first[0]).hex()})
     return out
 
 
-def _edges(vertices: Sequence[Sequence[float]]) -> tuple[tuple[Point, Point], ...]:
-    ring = _points(vertices)
+def _edges(vertices: Sequence[Sequence[float]], x_id: _AxisIdentity, y_id: _AxisIdentity,
+           *, identity_code: str) -> tuple[tuple[Point, Point], ...]:
+    ring = _points(vertices, x_id, y_id, identity_code=identity_code)
     return tuple((ring[index], ring[(index + 1) % len(ring)]) for index in range(len(ring)))
 
 
@@ -256,21 +353,33 @@ def _pair_interior_edges(
 def extract_gt_plan_segments(gt: GroundTruthV3) -> tuple[PlanSegment, ...]:
     """Return exterior GT segments and exact-coverage interior zone edges.
 
-    Interior edges pair by exact collinear coverage so a T-junction (one long
-    wall faced by several collinear short walls) tiles into one segment per
-    facing zone instead of rejecting the document.  See ``_pair_interior_edges``
-    for the exactness contract.
+    Coordinates are mapped through a per-(side, floor, axis) identity (W1) so a
+    same-intent seam shares one atomic representative before any exact
+    comparison.  Interior edges pair by exact collinear coverage so a T-junction
+    tiles into one segment per facing zone.  See ``_pair_interior_edges``.
     """
     output: list[PlanSegment] = []
     for floor in gt.floors:
-        output.extend(PlanSegment(segment.id, floor.id, _canonical_point(segment.p1), _canonical_point(segment.p2), (),
-                                  tuple(ref.view_id for ref in segment.source_refs), True)
-                      for segment in floor.boundary_segments)
+        raw_points: list[Sequence[float]] = []
+        raw_points.extend(floor.footprint.exterior.vertices)
+        for zone in floor.zones:
+            raw_points.extend(zone.polygon.exterior.vertices)
+        for segment in floor.boundary_segments:
+            raw_points.append(segment.p1)
+            raw_points.append(segment.p2)
+        x_id, y_id = _build_floor_identity(raw_points, side="gt", floor_id=floor.id,
+                                           identity_code="score_gt_identity_invalid")
+        for segment in floor.boundary_segments:
+            output.append(PlanSegment(segment.id, floor.id, _identify_point(segment.p1, x_id, y_id),
+                _identify_point(segment.p2, x_id, y_id), (),
+                tuple(ref.view_id for ref in segment.source_refs), True))
         directed: dict[tuple[Point, Point], list[str]] = {}
         for zone in floor.zones:
-            for p1, p2 in _edges(zone.polygon.exterior.vertices):
+            for p1, p2 in _edges(zone.polygon.exterior.vertices, x_id, y_id,
+                                 identity_code="score_gt_identity_invalid"):
                 directed.setdefault(_edge_key(p1, p2), []).append(zone.id)
-        exterior_edges = _edges(floor.footprint.exterior.vertices)
+        exterior_edges = _edges(floor.footprint.exterior.vertices, x_id, y_id,
+                                identity_code="score_gt_identity_invalid")
         for p1, p2, zones in _pair_interior_edges(directed, exterior_edges, floor.id,
                                                    identity_code="score_gt_identity_invalid"):
             key = "interior:%s:%s:%s" % (floor.id, min(p1, p2), max(p1, p2))
@@ -288,21 +397,29 @@ def _cell_polygon(cell) -> Sequence[Sequence[float]]:
 def extract_correction_plan_segments(geometry: CorrectedGeometryV3) -> tuple[PlanSegment, ...]:
     """Extract correction footprint and cell topology without a bbox reduction.
 
-    Interior cell edges pair through the same exact-coverage helper as the GT
-    side (``_pair_interior_edges``), so a T-junction corridor wall enters the
-    observation set instead of being silently dropped.  A genuine topology break
-    (gap/overlap/imprecise endpoint) fails loudly with the product identity
-    error rather than discarding observations.
+    Coordinates are mapped through a per-(side, floor, axis) identity (W1), the
+    same contract as the GT side, so a same-intent seam shares one atomic
+    representative.  Interior cell edges pair through the same exact-coverage
+    helper (``_pair_interior_edges``); a genuine topology break fails loudly with
+    the product identity error rather than discarding observations.
     """
     output: list[PlanSegment] = []
     for floor in geometry.floors:
-        exterior_edges = _edges(floor.footprint.vertices)
+        raw_points: list[Sequence[float]] = []
+        raw_points.extend(floor.footprint.vertices)
+        for cell in floor.cells:
+            raw_points.extend(_cell_polygon(cell))
+        x_id, y_id = _build_floor_identity(raw_points, side="product", floor_id=floor.id,
+                                           identity_code="score_product_identity_invalid")
+        exterior_edges = _edges(floor.footprint.vertices, x_id, y_id,
+                                identity_code="score_product_identity_invalid")
         for number, (p1, p2) in enumerate(exterior_edges):
             output.append(PlanSegment("%s:footprint:%d" % (floor.id, number), floor.id, p1, p2,
                                       (), ("correction:%s" % floor.id,), True))
         directed: dict[tuple[Point, Point], list[str]] = {}
         for cell in floor.cells:
-            for p1, p2 in _edges(_cell_polygon(cell)):
+            for p1, p2 in _edges(_cell_polygon(cell), x_id, y_id,
+                                 identity_code="score_product_identity_invalid"):
                 directed.setdefault((p1, p2), []).append(cell.id)
         for p1, p2, zones in _pair_interior_edges(directed, exterior_edges, floor.id,
                                                    identity_code="score_product_identity_invalid"):
@@ -312,22 +429,37 @@ def extract_correction_plan_segments(geometry: CorrectedGeometryV3) -> tuple[Pla
 
 
 def coerce_plan_observations(observations: Iterable[PlanSegment | dict]) -> tuple[PlanSegment, ...]:
-    """Typed dispatch adapter for reading observations; no v3 branch in legacy code."""
-    rows: list[PlanSegment] = []
+    """Typed dispatch adapter for reading observations; no v3 branch in legacy code.
+
+    Observations are parsed with their raw coordinates, then mapped through a
+    per-(side, floor, axis) identity (W1) -- the same contract as the GT/
+    correction extraction paths -- so a same-intent seam shares one identity.
+    """
+    raw_rows: list[PlanSegment] = []
     for raw in observations:
         if isinstance(raw, PlanSegment):
-            # RW-1: re-canonicalize so an observation built upstream shares the
-            # same coordinate identity as the GT/correction extraction path.
-            rows.append(PlanSegment(raw.key, raw.floor_id, _canonical_point(raw.p1), _canonical_point(raw.p2),
-                                    raw.zone_ids, raw.source_ids, raw.exterior)); continue
+            raw_rows.append(PlanSegment(raw.key, raw.floor_id, raw.p1, raw.p2,
+                                        raw.zone_ids, raw.source_ids, raw.exterior)); continue
         try:
-            rows.append(PlanSegment(key=str(raw["id"]), floor_id=str(raw["floor_id"]),
-                p1=_canonical_point(raw["p1"]), p2=_canonical_point(raw["p2"]),
+            raw_rows.append(PlanSegment(key=str(raw["id"]), floor_id=str(raw["floor_id"]),
+                p1=(float(raw["p1"][0]), float(raw["p1"][1])), p2=(float(raw["p2"][0]), float(raw["p2"][1])),
                 zone_ids=tuple(str(x) for x in raw.get("zone_ids", ())),
                 source_ids=tuple(str(x) for x in raw.get("source_ids", ())), exterior=bool(raw.get("exterior", True))))
         except (KeyError, TypeError, ValueError) as exc:
             raise ScoreContractError("score_product_identity_invalid", "scoring.input_identity", context={"reason": "invalid_plan_observation"}) from exc
-    return tuple(rows)
+    # W1: build per-floor identities and map every observation through them.
+    by_floor: dict[str, list[PlanSegment]] = {}
+    for row in raw_rows:
+        by_floor.setdefault(row.floor_id, []).append(row)
+    output: list[PlanSegment] = []
+    for floor_id, group in by_floor.items():
+        points = [point for row in group for point in (row.p1, row.p2)]
+        x_id, y_id = _build_floor_identity(points, side="product", floor_id=floor_id,
+                                           identity_code="score_product_identity_invalid")
+        for row in group:
+            output.append(PlanSegment(row.key, row.floor_id, _identify_point(row.p1, x_id, y_id),
+                _identify_point(row.p2, x_id, y_id), row.zone_ids, row.source_ids, row.exterior))
+    return tuple(output)
 
 
 def _candidate(target: PlanSegment, observed: PlanSegment, config: JudgeScoreConfigV1) -> tuple[float, float, float] | None:
@@ -356,68 +488,119 @@ def _candidate(target: PlanSegment, observed: PlanSegment, config: JudgeScoreCon
     return overlap, position, symmetric_difference
 
 
+def match_plan_segments(*, targets: Iterable[PlanSegment], observations: Iterable[PlanSegment],
+                        config: JudgeScoreConfigV1) -> tuple[tuple[SegmentScore, ...], dict[str, tuple[str, ...]]]:
+    """Joint-cutpoint atomization (W3); coverage is a set operation with no tie.
+
+    For each target, candidate observations (``_candidate`` success at the judge
+    tolerance layer) are projected onto the target's support line; the union of
+    all endpoints cuts the target span into atomic intervals, each attributed to
+    the SET of observations covering it.  An interval covered by exactly one
+    observation becomes matched length on that (target, observation) pair; an
+    interval covered by none is a miss; an interval covered by more than one is
+    a duplicate (counted once toward the target, reported separately so policy
+    can route it to no_duplicate_wall_strokes without double-counting a wall).
+    Observation length covering no target is extra.  Cross-document registration
+    is product -> answer one-way via the judge tolerance (never reverse), and GT
+    and product identity pools stay separate (C-1').  Because every interval is
+    decided by set membership -- there is no assignment optimization and no tie
+    to break -- ``score_match_ambiguous`` is structurally unreachable on this
+    plan-wall path.  Returns (rows, observation_key -> sorted target keys it
+    covers) so the score service can rebuild a multi-cover product_to_gt.
+    """
+    target_list = tuple(sorted(targets, key=_canonical_geometry))
+    obs_list = tuple(sorted(observations, key=_canonical_geometry))
+    rows: list[SegmentScore] = []
+    obs_covered: dict[str, float] = {obs.key: 0.0 for obs in obs_list}
+    obs_to_targets: dict[str, set[str]] = {obs.key: set() for obs in obs_list}
+    for target in target_list:
+        length = target.length
+        if length == 0:
+            continue
+        dx, dy = target.p2[0] - target.p1[0], target.p2[1] - target.p1[1]
+        tx, ty = dx / length, dy / length
+        nx, ny = -ty, tx
+        t0, t1 = sorted((target.p1[0] * tx + target.p1[1] * ty, target.p2[0] * tx + target.p2[1] * ty))
+        candidates: list[tuple[PlanSegment, float, float, float, float]] = []
+        cuts = {t0, t1}
+        for obs in obs_list:
+            metric = _candidate(target, obs, config)
+            if metric is None:
+                continue
+            _overlap, position, _extent = metric
+            qdx, qdy = obs.p2[0] - obs.p1[0], obs.p2[1] - obs.p1[1]
+            axis_error = abs(qdx * nx + qdy * ny)
+            o_lo, o_hi = sorted((obs.p1[0] * tx + obs.p1[1] * ty, obs.p2[0] * tx + obs.p2[1] * ty))
+            lo, hi = max(o_lo, t0), min(o_hi, t1)
+            if hi <= lo:
+                continue
+            candidates.append((obs, lo, hi, axis_error, position))
+            cuts.add(lo)
+            cuts.add(hi)
+        exactly_one: dict[str, float] = {}
+        miss_length = 0.0
+        duplicate_length = 0.0
+        for a, b in zip(sorted(cuts), sorted(cuts)[1:]):
+            if b <= a:
+                continue
+            covering = [item for item in candidates if item[1] <= a and b <= item[2]]
+            if not covering:
+                miss_length += b - a
+                continue
+            for obs, _lo, _hi, _axis, _pos in covering:
+                obs_covered[obs.key] += b - a
+                obs_to_targets[obs.key].add(target.key)
+            if len(covering) == 1:
+                exactly_one[covering[0][0].key] = exactly_one.get(covering[0][0].key, 0.0) + (b - a)
+            else:
+                duplicate_length += b - a
+        for obs, lo, hi, axis_error, position in candidates:
+            cover = exactly_one.get(obs.key, 0.0)
+            if cover <= 0.0:
+                continue
+            complete = axis_error <= config.claim_complete_epsilon_m and position <= config.claim_complete_epsilon_m
+            within = axis_error <= config.plan_axis_alignment_tol_m and position <= config.plan_position_tol_m
+            status = "complete" if complete else ("within_tolerance" if within else "miss")
+            rows.append(SegmentScore(target, obs, status, axis_error, position, target.length - cover,
+                                     eligible_units=cover))
+        if miss_length > 0.0:
+            rows.append(SegmentScore(target, None, "miss", None, None, None, eligible_units=miss_length))
+        if duplicate_length > 0.0:
+            rows.append(SegmentScore(target, None, "duplicate", None, None, None, eligible_units=duplicate_length))
+    for obs in obs_list:
+        extra = obs.length - obs_covered[obs.key]
+        if extra > config.claim_complete_epsilon_m:
+            rows.append(SegmentScore(None, obs, "extra", None, None, None, eligible_units=extra))
+    observation_map = {key: tuple(sorted(values)) for key, values in obs_to_targets.items() if values}
+    return tuple(rows), observation_map
+
+
 def assign_plan_segments(*, targets: Iterable[PlanSegment], observations: Iterable[PlanSegment],
                          config: JudgeScoreConfigV1) -> SegmentAssignment:
-    """Solve the specified global objective and reject any equal optimum.
+    """Compatibility view of the joint-cutpoint match (W3).
 
-    The search is deliberately exhaustive: C2 plan fixtures are small, and this
-    makes the tie rule auditable rather than relying on a library's ordering.
+    Returns matched pairs plus fully-unmatched targets/observations.  A target
+    partially covered appears in ``matched`` (its covered pair), not in
+    ``unmatched_targets``; only a target with no covering observation is
+    unmatched.  ``score_match_ambiguous`` is structurally unreachable here.
     """
-    ts = tuple(sorted(targets, key=_canonical_geometry)); os = tuple(sorted(observations, key=_canonical_geometry))
-    choices: list[list[tuple[int, tuple[float, float, float]] | None]] = []
-    for target in ts:
-        choices.append([None] + [(index, metric) for index, observed in enumerate(os)
-                                 if (metric := _candidate(target, observed, config)) is not None])
-    solutions: list[tuple[tuple[int | None, ...], tuple[float, float, float, float]]] = []
-    def visit(index: int, used: frozenset[int], selected: list[int | None], metrics: tuple[float, float, float, float]) -> None:
-        if index == len(ts):
-            solutions.append((tuple(selected), metrics)); return
-        for choice in choices[index]:
-            if choice is None:
-                visit(index + 1, used, selected + [None], metrics); continue
-            observed_index, (overlap, position, extent) = choice
-            if observed_index not in used:
-                visit(index + 1, used | {observed_index}, selected + [observed_index],
-                      (metrics[0] + 1, metrics[1] + overlap, metrics[2] + position, metrics[3] + extent))
-    visit(0, frozenset(), [], (0, 0.0, 0.0, 0.0))
-    def equal(a, b):
-        eps = config.opening_assignment_tie_epsilon
-        return a[0] == b[0] and all(abs(a[i] - b[i]) <= eps for i in range(1, 4))
-    def better(a, b):
-        eps = config.opening_assignment_tie_epsilon
-        if a[0] != b[0]: return a[0] > b[0]
-        if abs(a[1] - b[1]) > eps: return a[1] > b[1]
-        if abs(a[2] - b[2]) > eps: return a[2] < b[2]
-        return a[3] < b[3] - eps
-    best_metric = solutions[0][1]
-    for _, metric in solutions[1:]:
-        if better(metric, best_metric): best_metric = metric
-    winners = [selection for selection, metric in solutions if equal(metric, best_metric)]
-    if len(winners) != 1:
-        raise ScoreContractError("score_match_ambiguous", "scoring.matching", context={"kind": "segment", "candidate_assignments": len(winners)})
-    selected = winners[0]
-    used = {index for index in selected if index is not None}
-    return SegmentAssignment(tuple((target, os[index]) for target, index in zip(ts, selected) if index is not None),
-                             tuple(target for target, index in zip(ts, selected) if index is None),
-                             tuple(observed for index, observed in enumerate(os) if index not in used))
+    target_list = tuple(sorted(targets, key=_canonical_geometry))
+    obs_list = tuple(sorted(observations, key=_canonical_geometry))
+    rows, _ = match_plan_segments(targets=target_list, observations=obs_list, config=config)
+    matched = tuple(sorted(((row.target, row.observation) for row in rows
+                            if row.target is not None and row.observation is not None),
+                           key=lambda pair: _canonical_geometry(pair[0])))
+    matched_target_keys = {row.target.key for row in rows if row.target is not None and row.observation is not None}
+    matched_obs_keys = {row.observation.key for row in rows if row.target is not None and row.observation is not None}
+    unmatched_targets = tuple(sorted((target for target in target_list if target.key not in matched_target_keys),
+                                     key=_canonical_geometry))
+    unmatched_observations = tuple(sorted((obs for obs in obs_list if obs.key not in matched_obs_keys),
+                                          key=_canonical_geometry))
+    return SegmentAssignment(matched, unmatched_targets, unmatched_observations)
 
 
 def score_plan_segments(*, targets: Iterable[PlanSegment], observations: Iterable[PlanSegment],
                         config: JudgeScoreConfigV1) -> tuple[SegmentScore, ...]:
-    """Materialize §8.3 complete/within/miss/extra states after assignment."""
-    assignment = assign_plan_segments(targets=targets, observations=observations, config=config)
-    rows: list[SegmentScore] = []
-    for target, observed in assignment.matched:
-        metric = _candidate(target, observed, config)
-        assert metric is not None
-        axis, position, extent = metric[0] * 0.0, metric[1], metric[2]
-        # axis was a candidate gate; recompute its metre value for audit.
-        dx, dy = target.p2[0] - target.p1[0], target.p2[1] - target.p1[1]
-        n = target.length; nx, ny = -dy / n, dx / n
-        axis = abs((observed.p2[0] - observed.p1[0]) * nx + (observed.p2[1] - observed.p1[1]) * ny)
-        complete = position <= config.claim_complete_epsilon_m and extent <= config.claim_complete_epsilon_m and axis <= config.claim_complete_epsilon_m
-        within = position <= config.plan_position_tol_m and extent <= config.plan_extent_tol_m and axis <= config.plan_axis_alignment_tol_m
-        rows.append(SegmentScore(target, observed, "complete" if complete else ("within_tolerance" if within else "miss"), axis, position, extent))
-    rows.extend(SegmentScore(target, None, "miss", None, None, None) for target in assignment.unmatched_targets)
-    rows.extend(SegmentScore(None, observation, "extra", None, None, None) for observation in assignment.unmatched_observations)
-    return tuple(rows)
+    """Materialize complete/within/miss/extra/duplicate rows via joint cutpoints (W3)."""
+    rows, _ = match_plan_segments(targets=targets, observations=observations, config=config)
+    return rows

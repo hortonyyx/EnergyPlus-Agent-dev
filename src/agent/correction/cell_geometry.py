@@ -12,7 +12,10 @@ from typing import Any, Iterable
 
 from shapely.geometry import Polygon
 
-_EPS = 1e-9
+# W5 (R-4): the orthogonality epsilon is shared with the judge through the
+# production/judge orthogonality module so the two never disagree on a near-axis
+# edge.  Behavior is unchanged (1e-9); only the source is centralized.
+from src.agent.correction.orthogonality import ORTHOGONALITY_EPSILON as _EPS
 _BBOX_TOL = 1e-6
 
 

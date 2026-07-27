@@ -101,6 +101,28 @@ def _opening_observations(*, payload: dict, score_bindings: object):
     return tuple(values)
 
 
+def _resolve_facade_product_to_gt(*, geometry, gt) -> dict[str, str]:
+    """Map product facade spans to GT facade spans (one-way, product -> answer).
+
+    §5-B: a product facade span maps only to the UNIQUE GT facade span that
+    contains it (floor + family + along-containment).  A span straddling two GT
+    facades has >1 candidate and is deliberately NOT mapped -- "take first" would
+    silently mis-bind a window to the wrong wall with no test going red.  No
+    mapping makes the window fail closed (unmatched), never silently wrong.
+    """
+    mapping: dict[str, str] = {}
+    gt_facades = tuple(segment for floor in gt.floors for segment in floor.boundary_segments)
+    for product_segment in geometry.facade_segments:
+        candidates = tuple(target for target in gt_facades
+            if target.floor_id == product_segment.floor_id
+            and target.facade_family == product_segment.facade_family
+            and target.world_along_interval.lo <= product_segment.world_along_interval.lo
+            and product_segment.world_along_interval.hi <= target.world_along_interval.hi)
+        if len(candidates) == 1:
+            mapping[product_segment.id] = candidates[0].id
+    return mapping
+
+
 def score_typed_attempt(*, gt_identity, gt, stage: Literal["reading", "correction"],
                         product_payload: dict, product_identity: ProductIdentityV8,
                         base_view_manifest, score_bindings, completeness_overlay, c2_config,
@@ -116,9 +138,9 @@ def score_typed_attempt(*, gt_identity, gt, stage: Literal["reading", "correctio
     )
     from src.agent.judge.score_inputs import build_effective_view_manifest, materialize_va_elevation_bindings
     from src.agent.judge.score_policy import c2_v3_score_policy
-    from src.agent.judge.segment_score import (assign_plan_segments, coerce_plan_observations,
+    from src.agent.judge.segment_score import (coerce_plan_observations,
                                                extract_correction_plan_segments, extract_gt_plan_segments,
-                                               score_plan_segments)
+                                               match_plan_segments)
 
     if gt is None:
         raise ScoreContractError("score_gt_identity_invalid", "scoring.input_identity")
@@ -141,7 +163,7 @@ def score_typed_attempt(*, gt_identity, gt, stage: Literal["reading", "correctio
         score_view_bindings_sha256=score_bindings.content_sha256,
     )
     helpers = HelperIdentityV8(
-        scorer_schema="8", segment_scorer="b4b_segment_score_v1", gt_to_va_adapter="b4b_gt_to_va_v1",
+        scorer_schema="8", segment_scorer="b4b_segment_score_v2", gt_to_va_adapter="b4b_gt_to_va_v1",
         denominator_helper="b4b_denominator_v1", grade_renderer="b4b_grade_png_v1",
         va_helper=FACADE_APPLICABILITY_HELPER_VERSION, vg_helper="facade_visibility_v1",
         claims_contract=CLAIMS_VOCAB_VERSION,
@@ -187,23 +209,25 @@ def score_typed_attempt(*, gt_identity, gt, stage: Literal["reading", "correctio
         plan_observations = extract_correction_plan_segments(geometry)
     else:
         plan_observations = coerce_plan_observations(product_payload.get("segments", ()))
-    segment_assignment = assign_plan_segments(targets=gt_segments, observations=plan_observations, config=c2_config)
-    segment_rows = score_plan_segments(targets=gt_segments, observations=plan_observations, config=c2_config)
-    product_to_gt = {observation.key: target.key for target, observation in segment_assignment.matched}
+    segment_rows, observation_to_targets = match_plan_segments(targets=gt_segments, observations=plan_observations, config=c2_config)
+    # §5-B: product_to_gt is rebuilt from the joint-cutpoint multi-cover result,
+    # NOT from a one-to-one assignment.  It is consumed only by window host
+    # resolution and opening matching, both of which look it up by
+    # facade_segment_id (a product facade span, mapped below to the unique GT
+    # facade that contains it).  Wall coverage scores through segment_rows
+    # (length denominator, W4), never through this map, so a product wall
+    # covering several GT walls cannot mis-bind a window -- the two consumers
+    # are deliberately separate.  A product segment covering one GT segment maps
+    # straight to it; one covering several (a long product wall over several GT
+    # walls) maps to its first sorted target -- it carries no window, so the
+    # choice is audit-only and pinned by a deterministic sort, never input order.
+    product_to_gt = {obs_key: target_keys[0] for obs_key, target_keys in observation_to_targets.items()}
     product_to_gt.update({item.key: item.key for item in plan_observations if item.key in {target.key for target in gt_segments}})
     if geometry is not None:
-        # Correction facade ids are product-local.  Bind them only where one
-        # real GT facade span contains the product span; ambiguity is a hard
-        # scorer error, never an id/name heuristic.
-        gt_facades = tuple(segment for floor in gt.floors for segment in floor.boundary_segments)
-        for product_segment in geometry.facade_segments:
-            candidates = tuple(target for target in gt_facades
-                if target.floor_id == product_segment.floor_id
-                and target.facade_family == product_segment.facade_family
-                and target.world_along_interval.lo <= product_segment.world_along_interval.lo
-                and product_segment.world_along_interval.hi <= target.world_along_interval.hi)
-            if len(candidates) == 1:
-                product_to_gt[product_segment.id] = candidates[0].id
+        # §5-B: facade spans are resolved by the one-way containment helper;
+        # a multi-span straddle is left unmapped (window fails closed), never
+        # silently bound to the first candidate.
+        product_to_gt.update(_resolve_facade_product_to_gt(geometry=geometry, gt=gt))
 
     if geometry is None:
         observations = _opening_observations(payload=product_payload, score_bindings=score_bindings)

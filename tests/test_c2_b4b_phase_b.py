@@ -148,16 +148,37 @@ def test_b4b_b2_assignment_is_order_and_id_rename_invariant():
     assert [(a.p1, b.p1) for a, b in one.matched] == [(a.p1, b.p1) for a, b in two.matched]
 
 
-def test_b4b_b2_exact_tie_is_rejected_without_id_tiebreak():
-    with pytest.raises(ScoreContractError, match="score_match_ambiguous"):
-        assign_plan_segments(targets=(seg("t", (0,0), (1,0)),), observations=(seg("a", (0,0), (1,0)), seg("z", (0,0), (1,0))), config=config())
+def test_b4b_b2_duplicate_coverage_routes_to_duplicate_not_ambiguous():
+    # W3: two observations covering the same target exactly are a duplicate
+    # stroke (reported once, length = target), not an ambiguous assignment.
+    # score_match_ambiguous is structurally unreachable on the plan-wall path:
+    # coverage is a set operation with no tie to break (it stays in use for
+    # openings -- see test_b4b_b2_opening_tie_and_duplicate_target_id_are_rejected).
+    rows = score_plan_segments(targets=(seg("t", (0,0), (1,0)),),
+        observations=(seg("a", (0,0), (1,0)), seg("z", (0,0), (1,0))), config=config())
+    duplicates = [row for row in rows if row.status == "duplicate"]
+    assert len(duplicates) == 1
+    assert duplicates[0].eligible_units == pytest.approx(1.0)
+    # neither observation is extra -- both cover the target, just redundantly.
+    assert all(row.status != "extra" for row in rows if row.observation is not None)
 
 
 def test_b4b_b2_segment_states_include_complete_within_miss_extra_and_extent():
+    # W3/W4: status reflects alignment quality (axis/position); length lives in
+    # eligible_units.  A wall drawn with a small perpendicular offset is within;
+    # an over-long observation no longer downgrades to within -- its overshoot is
+    # extra length and the covered target stays complete.
     rows = score_plan_segments(targets=(seg("a", (0,0), (1,0)), seg("b", (2,0), (3,0)), seg("miss", (8,0), (9,0))),
-        observations=(seg("exact", (0,0), (1,0)), seg("long", (2,0), (3.2,0)), seg("extra", (5,0), (6,0))), config=config())
-    assert {row.status for row in rows} == {"complete", "within_tolerance", "miss", "extra"}
-    assert next(row for row in rows if row.observation and row.observation.key == "long").extent_symmetric_difference_m == pytest.approx(.2)
+        observations=(seg("exact", (0,0), (1,0)), seg("offset", (2,0.1), (3,0.1)), seg("extra", (5,0), (6,0))), config=config())
+    assert {"complete", "within_tolerance", "miss", "extra"} <= {row.status for row in rows}
+    complete = next(row for row in rows if row.target and row.target.key == "a")
+    assert complete.status == "complete" and complete.eligible_units == pytest.approx(1.0)
+    within = next(row for row in rows if row.observation and row.observation.key == "offset")
+    assert within.status == "within_tolerance" and within.eligible_units == pytest.approx(1.0)
+    miss = next(row for row in rows if row.target and row.target.key == "miss")
+    assert miss.status == "miss" and miss.eligible_units == pytest.approx(1.0)
+    extra = next(row for row in rows if row.observation and row.observation.key == "extra")
+    assert extra.status == "extra" and extra.eligible_units == pytest.approx(1.0)
 
 
 def test_b4b_b2_opening_tie_and_duplicate_target_id_are_rejected():

@@ -83,6 +83,36 @@ def _criterion_from_rows(*, criterion_id: str, rows: Iterable[object], max_faili
                        verdict="fail" if failing > max_failing_units else "pass")
 
 
+def _segment_criterion(*, criterion_id: str, rows: Iterable[object], passing: frozenset[str],
+                       failing: frozenset[str], max_failing_units: float = 0.0) -> V3Criterion:
+    """W4: a length-denominator criterion over SegmentScore rows.
+
+    ``eligible_units`` is the length (m) a row contributes (overlap for a match,
+    uncovered target for a miss, uncovered observation for an extra, double-
+    covered target for a duplicate).  Passing/failing buckets are explicit per
+    criterion so the same row can be passing in one account (a duplicate counts
+    as target-covered for walls_complete) and failing in another (the same
+    duplicate fails no_duplicate_wall_strokes) without charging the same gap
+    twice.  Conservation (passing + failing == denominator) is enforced.
+    """
+    materialized = tuple(rows)
+    def units(row) -> float:
+        return float(getattr(row, "eligible_units", 1.0))
+    def status_of(row) -> str:
+        return getattr(row, "status", getattr(row, "result", "not_applicable"))
+    denominator = sum(units(row) for row in materialized)
+    passing_units = sum(units(row) for row in materialized if status_of(row) in passing)
+    failing_units = sum(units(row) for row in materialized if status_of(row) in failing)
+    if abs((passing_units + failing_units) - denominator) > 1e-9:
+        raise ValueError("score_denominator_nonconserving")
+    if denominator == 0:
+        return V3Criterion(criterion_id=criterion_id, eligible=False, denominator_units=0.0,
+                           passing_units=0.0, failing_units=0.0, na_reasons={}, verdict="not_applicable")
+    return V3Criterion(criterion_id=criterion_id, eligible=True, denominator_units=denominator,
+                       passing_units=passing_units, failing_units=failing_units, na_reasons={},
+                       verdict="fail" if failing_units > max_failing_units else "pass")
+
+
 def c2_v3_score_policy(*, claim_rows: Iterable[object],
                        segment_rows: Iterable[object] = (), floor_line_rows: Iterable[object] = (),
                        identity_valid: bool = True, totality_valid: bool = True,
@@ -109,10 +139,26 @@ def c2_v3_score_policy(*, claim_rows: Iterable[object],
     boundary_rows = tuple(row for row in segments if boundary_row(row))
     by_claim = {name: tuple(row for row in claims if row.claim == name)
                 for name in ("existence", "host", "along", "width", "sill", "head", "appearance")}
+    # W4 (R-3): walls split into three accounts -- miss / extra / duplicate.
+    # A duplicate counts as target-covered (passing) for walls_complete and as a
+    # failure only for no_duplicate_wall_strokes, so the same covered length is
+    # never charged twice.  walls_complete's denominator is answer length only
+    # (target rows): product over-draw feeds no_extra_walls, never walls, so a
+    # product that draws an extra wall cannot inflate its own pass denominator.
+    wall_target_rows = tuple(row for row in wall_rows if getattr(row, "target", None) is not None)
+    wall_extra_rows = tuple(row for row in wall_rows
+                            if getattr(row, "target", None) is None and getattr(row, "observation", None) is not None)
+    wall_duplicate_rows = tuple(row for row in wall_rows if getattr(row, "status", None) == "duplicate")
     # The segment/floor-line inputs use the same narrow row protocol.  Empty
     # inputs become explicit NA instead of an invented zero score.
     criteria = (
-        _criterion_from_rows(criterion_id="walls_complete", rows=wall_rows, max_failing_units=max_failing_units),
+        _segment_criterion(criterion_id="walls_complete", rows=wall_target_rows,
+            passing=frozenset({"complete", "within_tolerance", "duplicate"}), failing=frozenset({"miss"}),
+            max_failing_units=max_failing_units),
+        _segment_criterion(criterion_id="no_extra_walls", rows=wall_extra_rows,
+            passing=frozenset(), failing=frozenset({"extra"}), max_failing_units=max_failing_units),
+        _segment_criterion(criterion_id="no_duplicate_wall_strokes", rows=wall_duplicate_rows,
+            passing=frozenset(), failing=frozenset({"duplicate"}), max_failing_units=max_failing_units),
         _criterion_from_rows(criterion_id="boundary_complete", rows=boundary_rows, max_failing_units=max_failing_units),
         _criterion_from_rows(criterion_id="windows_placed", rows=by_claim["existence"], max_failing_units=max_failing_units),
         _criterion_from_rows(criterion_id="window_plan_geometry", rows=by_claim["along"] + by_claim["width"], max_failing_units=max_failing_units),
