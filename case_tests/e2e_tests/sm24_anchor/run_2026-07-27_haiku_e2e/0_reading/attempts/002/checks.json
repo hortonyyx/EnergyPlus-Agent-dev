@@ -1,0 +1,35 @@
+{
+  "stage": "0_reading",
+  "capability_profile": "orthogonal_polygon",
+  "run_profile": "regression",
+  "artifact_hash": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+  "attempt_hash": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+  "report_schema_version": "2.1",
+  "results": [
+    {
+      "check_id": "reading.view_manifest_coverage",
+      "status": "fail",
+      "layer": "invariant",
+      "check_version": "1",
+      "message": "5 required view(s) have no matching produced artifact",
+      "evidence": {
+        "missing_expected_output_ids": [
+          "1f_view",
+          "East_view",
+          "North_view",
+          "South_view",
+          "West_view"
+        ],
+        "extra_stems": []
+      }
+    },
+    {
+      "check_id": "reading.present",
+      "status": "error",
+      "layer": "invariant",
+      "check_version": "1",
+      "message": "no 0_reading/*_view.json found — produce reading first",
+      "evidence": {}
+    }
+  ]
+}

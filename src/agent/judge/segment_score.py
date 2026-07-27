@@ -18,6 +18,34 @@ from src.agent.judge.score_schema import JudgeScoreConfigV1, ScoreContractError
 Point = tuple[float, float]
 
 
+# RW-1 (representation-layer canonicalization, NOT a geometric tolerance).
+# The scorer pairs edges by exact identity (==, <=).  Binary float spellings of
+# the same decimal seam differ by a few ulp (8.059999999999999 vs 8.06 on the GT
+# side; 0.1+0.2 vs 0.3 on the correction side), and that microscopic difference
+# used to be read as a topology break while the upstream validator stayed GREEN.
+# Canonicalization snaps every coordinate to the nearest multiple of this quantum
+# once, at the scorer entry, on BOTH the GT and correction sides with the same
+# function and parameter, so identical seams share one identity and every
+# comparison afterwards stays exact -- no fuzzy match, no tolerance in pairing.
+#
+# Separation (probe-verified, AI_agent/logs/reviews/execution/2026-07-27_plan_segment_tjunction.md):
+#   ulp at the 20 m survey range ~= 3.55e-15  ->  quantum / ulp ~= 281,
+#   so a few-ulp spelling is absorbed;
+#   a 1e-9 endpoint gap is 1000 quanta, so it stays a red topology break (L-c).
+# This mirrors FACADE_VISIBILITY_DEPTH_EPSILON (A0_contract.md): it absorbs only
+# IEEE-754 arithmetic noise, never a physical resolution.  Do not widen it.
+_COORDINATE_QUANTUM = 1e-12
+
+
+def _canonical_coord(value: float) -> float:
+    # +0.0 collapses -0.0 to 0.0 so it can never poison a dict key or tuple compare.
+    return round(value / _COORDINATE_QUANTUM) * _COORDINATE_QUANTUM + 0.0
+
+
+def _canonical_point(point: Sequence[float]) -> Point:
+    return (_canonical_coord(float(point[0])), _canonical_coord(float(point[1])))
+
+
 @dataclass(frozen=True)
 class PlanSegment:
     """A judge observation/target; ``key`` is audit data, never a tie breaker."""
@@ -52,7 +80,9 @@ class SegmentScore:
 
 
 def _points(vertices: Sequence[Sequence[float]]) -> tuple[Point, ...]:
-    out = tuple((float(point[0]), float(point[1])) for point in vertices)
+    # RW-1: canonicalize on entry so the same decimal seam (8.059999999999999 /
+    # 8.06, 0.1+0.2 / 0.3) shares one identity before any exact comparison.
+    out = tuple(_canonical_point(point) for point in vertices)
     if len(out) > 1 and out[0] == out[-1]:
         out = out[:-1]
     if len(out) < 3:
@@ -83,35 +113,166 @@ def _canonical_geometry(segment: PlanSegment) -> tuple:
             tuple(sorted(segment.zone_ids)))
 
 
+def _tile_orthogonal_edges(
+    directed: dict[tuple[Point, Point], list[str]],
+    exterior_edges: tuple[tuple[Point, Point], ...],
+    floor_id: str,
+    *,
+    identity_code: str,
+) -> list[tuple[Point, Point, tuple[str, ...]]]:
+    """Tile axis-aligned shared edges into T-junction sub-intervals (exact coverage).
+
+    Every directed edge on a shared supporting line is tiled at the union of all
+    endpoints into elementary sub-intervals; each sub-interval is attributed to
+    the single zone on each side and becomes one paired segment.  Coverage must
+    be exact -- a gap, an overlap, or an endpoint that does not meet precisely
+    is a real topology break, not a T-junction, and is rejected.  Collinearity
+    and coverage both use exact equality with no snapping or tolerance, mirroring
+    ``_lies_on_exterior``: snapping would turn a nearby wall into a fictional
+    shared edge.  Coordinates are already canonicalized at the scorer entry (RW-1).
+    """
+    # Bucket directed edges by supporting orthogonal line and traversal side.
+    # CCW polygons on opposite sides of a wall traverse it in opposite
+    # directions, so the two sides land in forward/reverse separately.
+    lines: dict[tuple[str, float], dict[str, list[tuple[float, float, str]]]] = {}
+    for (p1, p2), owners in directed.items():
+        if p1[0] == p2[0]:
+            axis, const = "V", p1[0]
+            lo, hi = (p1[1], p2[1]) if p1[1] <= p2[1] else (p2[1], p1[1])
+            forward = p2[1] > p1[1]
+        else:
+            axis, const = "H", p1[1]
+            lo, hi = (p1[0], p2[0]) if p1[0] <= p2[0] else (p2[0], p1[0])
+            forward = p2[0] > p1[0]
+        side = "fwd" if forward else "rev"
+        for owner in owners:
+            lines.setdefault((axis, const), {"fwd": [], "rev": []})[side].append((lo, hi, owner))
+
+    pairs: list[tuple[Point, Point, tuple[str, ...]]] = []
+    for (axis, const), group in lines.items():
+        cuts = sorted({coord for span in (group["fwd"] + group["rev"]) for coord in span[:2]})
+        for lo, hi in zip(cuts, cuts[1:]):
+            if lo == hi:
+                continue
+            geometry = ((const, lo), (const, hi)) if axis == "V" else ((lo, const), (hi, const))
+            forward_owners = [owner for left, right, owner in group["fwd"] if left <= lo and hi <= right]
+            reverse_owners = [owner for left, right, owner in group["rev"] if left <= lo and hi <= right]
+            on_exterior = _lies_on_exterior(geometry, exterior_edges)
+            if forward_owners and reverse_owners:
+                if on_exterior:
+                    raise ScoreContractError(identity_code, "scoring.input_identity",
+                        context={"reason": "exterior_interior_topology_conflict", "floor_id": floor_id})
+                if len(forward_owners) != 1 or len(reverse_owners) != 1:
+                    raise ScoreContractError(identity_code, "scoring.input_identity",
+                        context={"reason": "invalid_interior_edge_pair", "floor_id": floor_id})
+                pairs.append((geometry[0], geometry[1], tuple(sorted((forward_owners[0], reverse_owners[0])))))
+            elif forward_owners or reverse_owners:
+                if on_exterior:
+                    # RW-3: a conforming tiling has exactly one owner per exterior
+                    # edge per side.  Two same-direction owners on one
+                    # exterior-only sub-interval means a zone is duplicated over
+                    # the footprint (the silent-green hole).  This catches that
+                    # specific shape -- it is NOT a claim that the helper detects
+                    # every overlap; area-level zone overlap is the upstream
+                    # coverage validator's job and a different layer.
+                    if len(forward_owners) > 1 or len(reverse_owners) > 1:
+                        raise ScoreContractError(identity_code, "scoring.input_identity",
+                            context={"reason": "exterior_duplicate_owner", "floor_id": floor_id})
+                    # single-owner exterior span: a legitimate boundary edge, not a wall
+                else:
+                    raise ScoreContractError(identity_code, "scoring.input_identity",
+                        context={"reason": "invalid_interior_edge_pair", "floor_id": floor_id})
+            # else: open span with no edge on either side (e.g. a corridor mouth)
+    return pairs
+
+
+def _pair_general_edges(
+    directed: dict[tuple[Point, Point], list[str]],
+    exterior_edges: tuple[tuple[Point, Point], ...],
+    floor_id: str,
+    *,
+    identity_code: str,
+) -> list[tuple[Point, Point, tuple[str, ...]]]:
+    """Pair non-axis-aligned edges by exact reverse (RW-2 general-segment seam).
+
+    The scorer must not reinterpret a near-orthogonal edge the upstream validator
+    accepted as a topology break: ``cell_geometry`` admits edges with dx<1e-9 as
+    orthogonal, so a legal correction can carry a dx=5e-10 exact-reverse seam that
+    the GT/exact axis check would otherwise reject.  Such an edge is paired only
+    with its exact reverse; a one-sided general edge with no reverse, or a
+    same-direction duplicate owner, is a real topology break.  Footprint/exterior
+    rings are axis-aligned (validated upstream), so a general edge is never on
+    the exterior here -- the exterior/interior conflict check is unreachable on
+    this path and intentionally omitted.  C2 enables orthogonal T-junction tiling
+    today; a future non-orthogonal profile extends here without rewriting the API
+    or the orthogonal path (invariant #6).
+    """
+    pairs: list[tuple[Point, Point, tuple[str, ...]]] = []
+    consumed: set[tuple[Point, Point]] = set()
+    for edge, owners in directed.items():
+        if edge in consumed:
+            continue
+        p1, p2 = edge
+        reverse = (p2, p1)
+        rev_owners = directed.get(reverse)
+        if rev_owners is None:
+            raise ScoreContractError(identity_code, "scoring.input_identity",
+                context={"reason": "invalid_interior_edge_pair", "floor_id": floor_id})
+        if len(owners) != 1 or len(rev_owners) != 1:
+            raise ScoreContractError(identity_code, "scoring.input_identity",
+                context={"reason": "invalid_interior_edge_pair", "floor_id": floor_id})
+        pairs.append((p1, p2, tuple(sorted((owners[0], rev_owners[0])))))
+        consumed.add(edge)
+        consumed.add(reverse)
+    return pairs
+
+
+def _pair_interior_edges(
+    directed: dict[tuple[Point, Point], list[str]],
+    exterior_edges: tuple[tuple[Point, Point], ...],
+    floor_id: str,
+    *,
+    identity_code: str,
+) -> list[tuple[Point, Point, tuple[str, ...]]]:
+    """Pair interior edges by exact coverage, T-junction aware (RW-1/2/3).
+
+    Axis-aligned edges are tiled at the union of all endpoints into elementary
+    sub-intervals (``_tile_orthogonal_edges``); non-axis-aligned edges pair only
+    with their exact reverse (``_pair_general_edges``).  All coordinates are
+    canonicalized at the scorer entry (RW-1), so every comparison below is exact
+    (``==`` / ``<=``); a gap, an overlap, or an imprecise endpoint is a real
+    topology break, not a T-junction, and is rejected.
+    """
+    ortho: dict[tuple[Point, Point], list[str]] = {}
+    general: dict[tuple[Point, Point], list[str]] = {}
+    for edge, owners in directed.items():
+        p1, p2 = edge
+        (ortho if p1[0] == p2[0] or p1[1] == p2[1] else general)[edge] = owners
+    pairs = _tile_orthogonal_edges(ortho, exterior_edges, floor_id, identity_code=identity_code)
+    pairs.extend(_pair_general_edges(general, exterior_edges, floor_id, identity_code=identity_code))
+    return pairs
+
+
 def extract_gt_plan_segments(gt: GroundTruthV3) -> tuple[PlanSegment, ...]:
-    """Return exterior GT segments and exact-reverse-paired interior zone edges."""
+    """Return exterior GT segments and exact-coverage interior zone edges.
+
+    Interior edges pair by exact collinear coverage so a T-junction (one long
+    wall faced by several collinear short walls) tiles into one segment per
+    facing zone instead of rejecting the document.  See ``_pair_interior_edges``
+    for the exactness contract.
+    """
     output: list[PlanSegment] = []
     for floor in gt.floors:
-        output.extend(PlanSegment(segment.id, floor.id, tuple(segment.p1), tuple(segment.p2), (),
+        output.extend(PlanSegment(segment.id, floor.id, _canonical_point(segment.p1), _canonical_point(segment.p2), (),
                                   tuple(ref.view_id for ref in segment.source_refs), True)
                       for segment in floor.boundary_segments)
-        # C2 validation already proved tiling.  Deliberately use exact tuples:
-        # snapping here would turn nearby walls into a fictional shared edge.
         directed: dict[tuple[Point, Point], list[str]] = {}
-        exterior_edges = _edges(floor.footprint.exterior.vertices)
         for zone in floor.zones:
             for p1, p2 in _edges(zone.polygon.exterior.vertices):
                 directed.setdefault(_edge_key(p1, p2), []).append(zone.id)
-        consumed: set[tuple[Point, Point]] = set()
-        for (p1, p2), owners in directed.items():
-            if (p1, p2) in consumed:
-                continue
-            reverse = directed.get((p2, p1), [])
-            if not reverse and _lies_on_exterior((p1, p2), exterior_edges):
-                continue
-            if reverse and _lies_on_exterior((p1, p2), exterior_edges):
-                raise ScoreContractError("score_gt_identity_invalid", "scoring.input_identity",
-                    context={"reason": "exterior_interior_topology_conflict", "floor_id": floor.id})
-            if len(owners) != 1 or len(reverse) != 1:
-                raise ScoreContractError("score_gt_identity_invalid", "scoring.input_identity",
-                    context={"reason": "invalid_interior_edge_pair", "floor_id": floor.id})
-            consumed.add((p1, p2)); consumed.add((p2, p1))
-            zones = tuple(sorted((owners[0], reverse[0])))
+        exterior_edges = _edges(floor.footprint.exterior.vertices)
+        for p1, p2, zones in _pair_interior_edges(directed, exterior_edges, floor.id,
+                                                   identity_code="score_gt_identity_invalid"):
             key = "interior:%s:%s:%s" % (floor.id, min(p1, p2), max(p1, p2))
             output.append(PlanSegment(key, floor.id, p1, p2, zones, (), False))
     return tuple(sorted(output, key=_canonical_geometry))
@@ -125,25 +286,28 @@ def _cell_polygon(cell) -> Sequence[Sequence[float]]:
 
 
 def extract_correction_plan_segments(geometry: CorrectedGeometryV3) -> tuple[PlanSegment, ...]:
-    """Extract correction footprint and cell topology without a bbox reduction."""
+    """Extract correction footprint and cell topology without a bbox reduction.
+
+    Interior cell edges pair through the same exact-coverage helper as the GT
+    side (``_pair_interior_edges``), so a T-junction corridor wall enters the
+    observation set instead of being silently dropped.  A genuine topology break
+    (gap/overlap/imprecise endpoint) fails loudly with the product identity
+    error rather than discarding observations.
+    """
     output: list[PlanSegment] = []
     for floor in geometry.floors:
-        for number, (p1, p2) in enumerate(_edges(floor.footprint.vertices)):
+        exterior_edges = _edges(floor.footprint.vertices)
+        for number, (p1, p2) in enumerate(exterior_edges):
             output.append(PlanSegment("%s:footprint:%d" % (floor.id, number), floor.id, p1, p2,
                                       (), ("correction:%s" % floor.id,), True))
         directed: dict[tuple[Point, Point], list[str]] = {}
         for cell in floor.cells:
             for p1, p2 in _edges(_cell_polygon(cell)):
                 directed.setdefault((p1, p2), []).append(cell.id)
-        consumed: set[tuple[Point, Point]] = set()
-        for edge, owners in directed.items():
-            reverse = directed.get((edge[1], edge[0]), [])
-            if edge in consumed or len(owners) != 1 or len(reverse) != 1:
-                continue
-            consumed.add(edge); consumed.add((edge[1], edge[0]))
-            output.append(PlanSegment("%s:interior:%s:%s" % (floor.id, min(edge), max(edge)), floor.id,
-                                      edge[0], edge[1], tuple(sorted((owners[0], reverse[0]))),
-                                      ("correction:%s" % floor.id,), False))
+        for p1, p2, zones in _pair_interior_edges(directed, exterior_edges, floor.id,
+                                                   identity_code="score_product_identity_invalid"):
+            output.append(PlanSegment("%s:interior:%s:%s" % (floor.id, min(p1, p2), max(p1, p2)), floor.id,
+                                      p1, p2, zones, ("correction:%s" % floor.id,), False))
     return tuple(sorted(output, key=_canonical_geometry))
 
 
@@ -152,10 +316,13 @@ def coerce_plan_observations(observations: Iterable[PlanSegment | dict]) -> tupl
     rows: list[PlanSegment] = []
     for raw in observations:
         if isinstance(raw, PlanSegment):
-            rows.append(raw); continue
+            # RW-1: re-canonicalize so an observation built upstream shares the
+            # same coordinate identity as the GT/correction extraction path.
+            rows.append(PlanSegment(raw.key, raw.floor_id, _canonical_point(raw.p1), _canonical_point(raw.p2),
+                                    raw.zone_ids, raw.source_ids, raw.exterior)); continue
         try:
             rows.append(PlanSegment(key=str(raw["id"]), floor_id=str(raw["floor_id"]),
-                p1=(float(raw["p1"][0]), float(raw["p1"][1])), p2=(float(raw["p2"][0]), float(raw["p2"][1])),
+                p1=_canonical_point(raw["p1"]), p2=_canonical_point(raw["p2"]),
                 zone_ids=tuple(str(x) for x in raw.get("zone_ids", ())),
                 source_ids=tuple(str(x) for x in raw.get("source_ids", ())), exterior=bool(raw.get("exterior", True))))
         except (KeyError, TypeError, ValueError) as exc:
