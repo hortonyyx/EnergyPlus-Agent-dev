@@ -170,3 +170,102 @@ neuter 在 /tmp 副本驱动（`cp` 备份 → 改 src → 跑 `test_judge_ident
 3. 三条出口：① `test_b_observation_map_records_multi_cover_per_key`（逐键契约锁：obs→("t1","t2") 多覆盖逐键）；② `test_b_facade_multi_span_straddle_fails_closed_not_first`（多段覆盖窗夹具：跨立面不映射、单包含正常映射）；③ 本简报。
 
 语义正确性根因：判卷器对 interior 多段覆盖用集合运算（W3，NA 式），对 facade 跨立面用 fail-closed（不 broken）—— 兑现 R-4「判卷只许说 unsupported，不许说 broken」。
+
+---
+
+## 8. r1 返工（2026-07-28 GLM 额度重置后续作）
+
+### 8.0 范围 + 开工/收工 git status
+
+本轮 = 主控代 commit r1 主体（`cc07997`）后，GLM 续作返工单 §4 硬要求的 **neuter 自查表重做** + 本执行日志。**施工主体（B-1 三步骨架 / R-5 六分码 / §2.1 diam 阈值 / §4 M-1 A8 重写 / §4 M-2 overlong 恢复）已由上轮落工作树并由主控代 commit，本轮不重做。** 本轮唯一代码改动 = neuter 自查抓到的 **1 条假锁补真**（M-4 GT 侧精确码，§8.4）—— 这是开工指令「neuter 发现假锁要补真锁、不要掩盖」的直接产物。
+
+**开工 git status**（HEAD `b764c9d`）：
+```
+On branch 6.15_ValidationArchM0toM4
+Your branch is ahead of 'origin/6.15_ValidationArchM0toM4' by 3 commits.
+nothing to commit, working tree clean
+```
+
+**收工 git status**：
+```
+ M tests/test_judge_identity_metric.py                                              (补 M-4 GT 侧精确码锁，§8.4)
+ M AI_agent/logs/reviews/execution/2026-07-27_judge_identity_metric_glm.md          (本日志续写 r1 节)
+```
+
+> **neuter 方法**：以 git HEAD 为干净备份（等价 /tmp 副本、且比 cp 更可靠——cp 可能漏文件，git checkout 逐文件精确还原），`Edit` 改工作树 → `pytest` → `git checkout -- <file>` 还原 → `git diff --stat` 验证空。7 次 neuter 每次还原后 `git diff` 均空，工作树逐字还原；补锁为唯一保留改动。`case_tests/test_baseline/gt/` 全程零 diff；`AI_agent/CLAUDE.md` 未碰；仓库根无新文件。
+
+### 8.1 对照返工单 §1–§6 的 r1 主体核实（本轮读码 + neuter 实证）
+
+| 返工单项 | r1 主体（`cc07997`）状态 | 本轮核实方式 |
+|---|---|---|
+| §1 B-1 三步骨架（单向注册 + ≥2 响亮拒绝 + 守恒硬门 **raise 非 clamp** + 负 extra 抛错） | ✅ 已落（[segment_score.py:598-688](../../../../src/agent/judge/segment_score.py#L598)；`_assert_obs_conservation` :556-567） | neuter ①②实证（§8.2） |
+| §2.1 diam 阈 ≤ merge | ✅ 已改（[segment_score.py:51](../../../../src/agent/judge/segment_score.py#L51) `=1e-12`；注释引 §2.1 裁定） | 读码确认 |
+| §3 R-5 六个稳定分码 | ✅ 已落（[score_schema.py:42-61](../../../../src/agent/judge/score_schema.py#L42)）；中性码（merge 失败）vs side 码（pairing 失败）精确区分 | 读码确认 |
+| §3.3 A2 两侧分别钉顶层精确 code | ⚠️ **仅产品侧钉**（[test_a2_product_side_1e9_gap...](../../../../tests/test_judge_identity_metric.py#L103) 断言 `code==score_product_identity_invalid`）；**GT 侧 interior pairing 未钉**（[phase_b:127](../../../../tests/test_c2_b4b_phase_b.py#L127) 只断言 `reason`） | neuter ⑤实证 0 红 ⇒ **假锁** ⇒ 本轮补真（§8.4） |
+| §4 M-1 A8 重写（不同 sub-merge 邻居 + `struct.pack` 字节相等 + 去 `approx`） | ✅ 已落（[test_a8_answer_denominator...](../../../../tests/test_judge_identity_metric.py#L326)） | neuter ③实证 |
+| §4 M-2 P-1(b) overlong 恢复（精确断言 `[("complete",1.0),("extra",0.2)]` + 状态集 `==`） | ✅ 已落（[phase_b:166](../../../../tests/test_c2_b4b_phase_b.py#L166)） | neuter ④实证 |
+| §5 M-3 W5 接线（生产/判卷**真调**共享判据 + advisory 运行时产物 + §5.3 R-4 反例锁） | ❌ **PARTIAL 未做**：[cell_geometry:18](../../../../src/agent/correction/cell_geometry.py#L18) 只 `import` 常量、[:164](../../../../src/agent/correction/cell_geometry.py#L164) 仍手写 `dx>_EPS and dy>_EPS`；判卷端 `segment_score` 零 import orthogonality；`classify`/`edge_is` 全仓调用数=0（仅单元测试直调） | neuter ⑥实证（0 生产路径红） |
+| §6 N-1 §5-B 出口 2 完整链路锁（correction window→facade→assign_openings→host_resolver） | ❌ **PARTIAL 未做**：仅 `test_b_facade_multi_span...` 单元锁直调 helper（不经 `score_service:230`） | neuter ⑦实证（0 红） |
+
+> 主控代 commit 的 r1 主体完成了返工单里最重的三项（B-1 / R-5 / diam）+ §4 的 M-1/M-2；但 **§3.3 GT 侧精确码、§5 W5 接线、§6 N-1 e2e 链路锁** 三项遗漏。全仓绿 ≠ 锁是真的（上轮 r0 栽的正是此处），本轮 neuter 把这三项遗漏逐一显形。
+
+### 8.2 neuter 自查表（§4 M-4 重做：逐条「摘哪行 → 哪几条红」，共用守卫归并披露）
+
+| # | neuter（摘掉的生产码） | 变红测试 | 绑定守卫 | 结论 |
+|---|---|---|---|---|
+| ① | [segment_score.py:564](../../../../src/agent/judge/segment_score.py#L564) `_assert_obs_conservation` 守恒 `if covered>obs_length+tol: raise` → `if False` | `test_b1_conservation_cover_exceeds_length_raises`（**DID NOT RAISE**）；另 2 条 B-1 锁不受影响（2 passed） | `_assert_obs_conservation`（步骤3 独立守卫） | ✅ 真锁 |
+| ② | [segment_score.py:611](../../../../src/agent/judge/segment_score.py#L611) match 步骤1 `if len(eligible_lines)>=2: raise` → `if False` | `test_b1_one_wall_cannot_charge_two_parallel_answer_walls`（**DID NOT RAISE**）；**探针**：摘后 sol 夹具产出 `complete=0.00 / miss=4.00`，**绝非 8m passing** | match 步骤1（≥2 拒绝）+ 步骤2 `obs_support` 隔离（双防线） | ✅ 真锁 |
+| ③ | `match_plan_segments` 开头注入 GT+产品坐标联合重新聚类（C-1′ 明令禁止） | `test_a8_answer_denominator_independent_of_product`（**字节不等**：δ=5e-13⇒`...\xfb\x9a` vs δ=9e-13⇒`...\xf8\x15`，index 6） | 池分离（extract_gt / extract_correction 各自 `_build_floor_identity` 建池，C-1′） | ✅ 真锁 |
+| ④ | [segment_score.py:686](../../../../src/agent/judge/segment_score.py#L686) extra 计算，注入 `if covered>0.0: extra=0.0`（覆盖过任一 target 就丢弃全部 overshoot） | `test_b4b_b2_segment_states_include_complete_within_miss_extra_and_extent`（`long_extra` 为空，`0==1`）；`test_w4_extra_and_duplicate_walls` 不受影响（extra obs `covered=0`，1 passed） | match 步骤3 extra（与 ①守恒 同在步骤3、不同代码行） | ✅ 真锁 |
+| ⑤ | `extract_gt_plan_segments` 的 `identity_code` 3 处 → 产品侧码 | **补锁前 0 红**（judge 子集 91 passed）⇒ r1 假锁；**补 `test_m4_gt_interior...` 后重 neuter ⇒ 该锁红**（`score_product_identity_invalid != score_gt_identity_invalid`），其余 24 测仍绿 | extract_gt 的 `identity_code` 字面量（3 处归并） | ❌ 假锁 → ✅ **本轮补真锁**（§8.4） |
+| ⑥ | [orthogonality.py:44](../../../../src/agent/correction/orthogonality.py#L44) `classify_edge_orthogonality` 首行 → `raise AssertionError` | 全仓**仅** `test_w5_classify_edge_orthogonality_three_classes` 红（单元直调），**1708 passed / 0 生产路径红** | 无生产守卫（生产/判卷零调用 = shipped-untested） | ❌ §5 **PARTIAL** |
+| ⑦ | [score_service.py:230](../../../../src/agent/judge/score_service.py#L230) `product_to_gt.update(_resolve_facade_product_to_gt(...))` → 只调 helper 不 update | 全仓 **1709 passed / 0 红** | 无 e2e 锁绑此线（单元锁直调 helper，不经 :230） | ❌ §6 **PARTIAL** |
+
+**共用守卫归并披露**（r2 教训：不许把共用一个守卫的多条锁记成多条独立承重锁）：
+- **①守恒 与 ②≥2拒绝** 是 `match_plan_segments` 内两个独立守卫（步骤3 `_assert_obs_conservation` vs 步骤1 ≥2 拒绝）；且 ②另有**步骤2 `obs_support` 隔离**作第二防线——探针实证：摘掉 ②的 ≥2 拒绝后，obs 仍被钉到单条支撑线（`next(iter(eligible_lines))`），cover 不会累加到 8，故产出仍非 8m passing。这正是返工单 §1 验收锁1「响亮拒绝或产生 4m miss，绝不允许 8m passing」的双防线设计。
+- **③A8** 绑 `extract_gt`/`extract_correction` 的池分离（C-1′，`_build_floor_identity` 各自 `side="gt"`/`side="product"`）；neuter 是在 match 入口注入联合聚类打破它。
+- **④overlong** 绑 match 步骤3 的 `extra = obs.length - covered`（与 ①守恒 同步骤3、不同行：①是 `_assert_obs_conservation` raise，④是 extra 计算）。
+- **⑤GT 侧码**（补后）绑 `extract_gt_plan_segments` 的 `identity_code` 字面量（3 处：zone `_edges` / footprint `_edges` / `_pair_interior_edges`，归并披露）。
+- **⑥W5**：`classify_edge_orthogonality` 全仓**仅**被 `test_w5_classify_edge_orthogonality_three_classes` 单元测试调用；`cell_geometry`（生产）只 `import ORTHOGONALITY_EPSILON as _EPS`、行 164 仍手写 `dx>_EPS and dy>_EPS`（逻辑等价 `not edge_is_axis_aligned` 但**非调用**）；`segment_score`（判卷）`_pair_general_edges` 自写近正交逻辑、**零 import** orthogonality。⇒ shipped-untested（非假锁，是接线缺失）。
+- **⑦N-1**：`score_service:230` 的 facade `update` 喂 `product_to_gt` → `assign_openings` → `build_correction_host_resolver` 链路**无任何 e2e 锁**；`test_b_facade_multi_span_straddle_fails_closed_not_first` 是单元锁直调 `_resolve_facade_product_to_gt`，不经 :230。
+
+**与 sol 四组 neuter 的对应**：sol 裁决书 §M-1/M-2/M-3/M-4 四组 neuter 即本表 ③/④/⑥/⑤。sol 用这四组证伪了 r0 自查表「21 锁全经 neuter、零 false-lock」。本表重做结论：**①②③④⑤(补后) = 5 真锁经指定 neuter 实证；⑥⑦ = 2 返工项 PARTIAL。不再宣称零 false-lock**——⑤ 是本轮新抓的 1 条假锁（r1 遗留：§3.3 GT 侧精确码未钉），已补真锁闭环。
+
+### 8.3 PARTIAL 项详述（交主控裁量，本轮不施工）
+
+**⑥ §5 M-3 W5 接线（shipped-untested）** — neuter ⑥实证：`classify_edge_orthogonality` 首行 raise 后全仓仅单元测试红、0 生产路径红。根因：共享模块造好了但没接进任何生产/判卷路径。修齐需（超本轮 neuter+日志范围）：
+1. 生产端 `cell_geometry.cell_polygon:164` 的 `if dx>_EPS and dy>_EPS` 改调 `edge_is_axis_aligned(dx,dy)`（真调用非复制逻辑）；
+2. 判卷端 `segment_score._pair_general_edges` 近正交判定改调 `classify_edge_orthogonality`，advisory 落运行时产物（被记录/传播/写结果，否则「加 advisory」是空话）；
+3. 补 §5.3 R-4 活体反例锁：sol 构造的 cell A 共享边（底 x=0.5、顶 x=0.5+5e-10）+ cell B 反向共享边（底 x=0.5、顶 x=0.5+4e-10）⇒ 生产 `validate_corrected_geometry` 五项全 GREEN 而 scorer 报 `score_product_identity_invalid` —— 此形态**必须走 unsupported/NA，不许报 product identity invalid**（判卷器拿自己的能力上限宣判上游几何非法 = 本批要根除的病的原型）。该锁当前缺失。
+
+**⑦ §6 N-1 §5-B 出口 2 完整链路锁** — neuter ⑦实证：`score_service:230` 改只调 helper 不喂消费端后全仓 0 红。`test_b_facade_multi_span_straddle_fails_closed_not_first` 是单元锁（直调 `_resolve_facade_product_to_gt`），不经 `product_to_gt.update` 这条消费链。返工单 §6 要的「correction window → facade multi-span → assign_openings → build_correction_host_resolver / claim」**完整链路锁缺失**。修齐需构造 correction geometry + `VerifiedWindowHostProof`（B5 六件套）+ `score_typed_attempt` 全链 e2e 夹具，断言 neuter :230 时窗 fail（重型夹具，超本轮范围）。
+
+> ⑥⑦ 均非「已存在假锁」（开工指令「补真锁」语境），而是「返工施工项遗漏」—— ⑥需改生产码、⑦需重型 e2e 夹具，二者都超出本轮「neuter 自查 + 日志」边界，如实标 PARTIAL 交主控，不自行降级为「等价」。
+
+### 8.4 补锁：M-4 GT 侧精确码（§3.3 假锁 → 真锁，本轮唯一代码改动）
+
+neuter ⑤发现：换 `extract_gt` 的 `identity_code`（3 处）为产品侧码，judge 子集 **91 passed / 0 红**。即 r0 旧病「把 GT 侧码改成产品侧码，三条相关测试仍全绿」**在 r1 复发** —— §3.3 要求的「A2 两侧分别钉顶层精确 code」只钉了产品侧（`test_a2_product_side_1e9_gap_still_red_code_unchanged`），GT 侧 interior pairing 路径（`test_b4b_r1_gt_interior_pairing_and_invariant_raises`）只断言 `reason`、不断言 `code`。这正是开工指令「摘掉守卫测试仍全绿 = 假锁，补真锁」的情形。
+
+**补真锁**（[tests/test_judge_identity_metric.py](../../../../tests/test_judge_identity_metric.py#L114) 新增 `test_m4_gt_interior_pairing_failure_code_is_gt_side_verbatim`）：构造 zone B 出 footprint 的 exterior/interior conflict 夹具（复用 phase_b:136 形态），断言 `exc.value.code == "score_gt_identity_invalid"`。
+
+**闭环验证**：补后干净状态该锁绿（1 passed，code 确为 GT 侧）；重 neuter（换 `identity_code`→产品码）⇒ 该锁红（`score_product_identity_invalid != score_gt_identity_invalid`），其余 24 测仍绿。M-4 neuter 自查表现在闭环（换码 → 真锁红）。
+
+### 8.5 全仓测试输出（补锁后）
+
+```
+1710 passed, 10 xfailed, 150 warnings in 246.39s (0:04:06)
+```
+
+- **1710 passed** = r1 基线 1709 + 本轮补 1 锁（M-4 GT 侧精确码）。
+- **10 xfailed** = 基线不变。
+- **0 failed / 0 regression**。`case_tests/test_baseline/gt/` 全程零 diff。
+
+### 8.6 诚实结论
+
+上轮 r0 自查表「21 锁全经 neuter、零 false-lock」是**伪造**（sol 四组 neuter 证伪，r0 栽在此处）。本轮重做不再宣称零 false-lock：
+- **5 真锁**经指定 neuter 实证：①B-1 守恒、②B-1 ≥2 拒绝（双防线，探针证实摘后非 8m）、③M-1 A8 联合建池（字节级）、④M-2 overlong、⑤M-4 GT 侧精确码（补后）。
+- **2 返工项 PARTIAL**（neuter 0 红证据已落）：⑥§5 W5 接线 shipped-untested、⑦§6 N-1 e2e 链路锁缺失。
+- **本轮新抓 1 假锁**（⑤：r1 遗留 §3.3 GT 侧未钉）并补真锁闭环 —— 这正是开工指令「neuter 要查的东西」。
+
+本批仍**未 CLOSED**：⑥⑦两项 PARTIAL 需主控裁量是否下轮施工（⑥改生产码接线 + 补 R-4 反例锁；⑦补 e2e 链路锁）。完成后方可派 sol 复审 → 主控轻门。
+

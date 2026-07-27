@@ -112,6 +112,22 @@ def test_a2_product_side_1e9_gap_still_red_code_unchanged():
     assert exc.value.context["reason"] == "invalid_interior_edge_pair"
 
 
+def test_m4_gt_interior_pairing_failure_code_is_gt_side_verbatim():
+    # M-4 / §3.3: a GT interior-pairing failure raises the GT-side top-level
+    # code verbatim (score_gt_identity_invalid), never the product-side code.
+    # r1 left the GT side un-pinned (only ``reason`` was asserted on this path),
+    # so swapping extract_gt's identity_code to the product code kept the whole
+    # suite green -- the false-lock shape M-4 names (r0's "three tests stay
+    # green"复发).  Neuter: swap that code -> this reds.  Product side is pinned
+    # by test_a2_product_side_1e9_gap_still_red_code_unchanged above.
+    floor = _gt_floor("F", [(0., 0.), (2., 0.), (2., 2.), (0., 2.)],
+                      [("A", [(0., 0.), (2., 0.), (2., 1.), (0., 1.)]),
+                       ("B", [(2., 0.), (0., 0.), (0., -1.), (2., -1.)])])  # zone B outside footprint
+    with pytest.raises(ScoreContractError) as exc:
+        extract_gt_plan_segments(SimpleNamespace(floors=[floor]))
+    assert exc.value.code == "score_gt_identity_invalid"
+
+
 def test_a3_guard_band_is_loud_reject_with_hex_context():
     # A3: a gap inside [merge, split] is unresolvable ambiguity -> loud reject,
     # neither merged nor split, with hex binary64 recorded for reproducibility.
