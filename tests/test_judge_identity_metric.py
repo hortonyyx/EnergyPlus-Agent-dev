@@ -19,6 +19,7 @@ from src.agent.judge.score_policy import c2_v3_score_policy
 from src.agent.judge.score_schema import JudgeScoreConfigV1, ScoreContractError
 from src.agent.judge.segment_score import (
     PlanSegment,
+    _assert_obs_conservation,
     _cluster_axis,
     extract_correction_plan_segments,
     extract_gt_plan_segments,
@@ -68,15 +69,13 @@ LONG_FACING_FOUR = {
 
 def test_a1_identity_merges_one_ulp_binary_spelling():
     # A1 / G-c.1: 8.059999999999999 vs 8.06 (1 ulp at 8) collapse to one atom.
-    identity = _cluster_axis([8.059999999999999, 8.06], side="gt", floor_id="F", axis="y",
-                             identity_code="score_gt_identity_invalid")
+    identity = _cluster_axis([8.059999999999999, 8.06], side="gt", floor_id="F", axis="y")
     assert identity.rep[8.059999999999999] == identity.rep[8.06]
 
 
 def test_a1_identity_merges_fp_sum_spelling():
     # A1 / G-c.2: 0.1+0.2 vs 0.3 collapse to one atom.
-    identity = _cluster_axis([0.1 + 0.2, 0.3], side="product", floor_id="F", axis="x",
-                             identity_code="score_product_identity_invalid")
+    identity = _cluster_axis([0.1 + 0.2, 0.3], side="product", floor_id="F", axis="x")
     assert identity.rep[0.1 + 0.2] == identity.rep[0.3]
 
 
@@ -91,15 +90,13 @@ def test_a1_quantum_boundary_pair_not_false_red():
     assert below != above and abs(above - below) < 1e-12
     # sanity: the retired 1e-12 quantum WOULD have split this pair.
     assert round(below / 1e-12) != round(above / 1e-12)
-    identity = _cluster_axis([below, above], side="gt", floor_id="F", axis="x",
-                             identity_code="score_gt_identity_invalid")
+    identity = _cluster_axis([below, above], side="gt", floor_id="F", axis="x")
     assert identity.rep[below] == identity.rep[above]
 
 
 def test_a2_identity_splits_1e9_gap():
     # A2: a 1e-9 endpoint gap (>> split) stays two distinct atoms.
-    identity = _cluster_axis([5.0, 5.0 + 1e-9], side="gt", floor_id="F", axis="x",
-                             identity_code="score_gt_identity_invalid")
+    identity = _cluster_axis([5.0, 5.0 + 1e-9], side="gt", floor_id="F", axis="x")
     assert identity.rep[5.0] != identity.rep[5.0 + 1e-9]
 
 
@@ -120,19 +117,21 @@ def test_a3_guard_band_is_loud_reject_with_hex_context():
     # neither merged nor split, with hex binary64 recorded for reproducibility.
     gap = 3e-12  # inside (1e-12, 1e-11)
     with pytest.raises(ScoreContractError) as exc:
-        _cluster_axis([5.0, 5.0 + gap], side="gt", floor_id="F", axis="x",
-                      identity_code="score_gt_identity_invalid")
+        _cluster_axis([5.0, 5.0 + gap], side="gt", floor_id="F", axis="x")
+    assert exc.value.code == "score_identity_guard_band_ambiguity"
     assert exc.value.context["reason"] == "identity_guard_band_ambiguity"
+    assert exc.value.context["side"] == "gt"
     assert "gap_hex" in exc.value.context and "lo_hex" in exc.value.context
 
 
 def test_a9_chain_bridge_over_diameter_rejects():
     # A9: many sub-merge gaps that chain-bridge past the diameter cap -> reject.
     # 13 values each 0.9e-12 apart (< merge, so single-link chains them) span
-    # 10.8e-12 > diameter 1e-11: distinct intents welded by chaining.
+    # 10.8e-12 > diameter 1e-12 (§2.1: cap <= merge): distinct intents welded.
     vals = [5.0 + i * 0.9e-12 for i in range(13)]
     with pytest.raises(ScoreContractError) as exc:
-        _cluster_axis(vals, side="gt", floor_id="F", axis="x", identity_code="score_gt_identity_invalid")
+        _cluster_axis(vals, side="gt", floor_id="F", axis="x")
+    assert exc.value.code == "score_identity_chain_bridge"
     assert exc.value.context["reason"] == "identity_chain_bridge_over_diameter"
     assert "diameter_hex" in exc.value.context
 
@@ -141,7 +140,8 @@ def test_a9_non_finite_value_rejects():
     # A9: non-finite coordinates are rejected with their hex recorded.
     for bad in (float("nan"), float("inf"), float("-inf")):
         with pytest.raises(ScoreContractError) as exc:
-            _cluster_axis([1.0, bad], side="gt", floor_id="F", axis="x", identity_code="score_gt_identity_invalid")
+            _cluster_axis([1.0, bad], side="gt", floor_id="F", axis="x")
+        assert exc.value.code == "score_identity_non_finite"
         assert exc.value.context["reason"] == "identity_non_finite_value"
 
 
@@ -153,7 +153,11 @@ def test_a9_identity_merge_edge_collapse_rejects():
                       [("Z", [(0., 0.), (0.5e-12, 0.), (1., 0.), (1., 1.), (0., 1.)])])
     with pytest.raises(ScoreContractError) as exc:
         extract_gt_plan_segments(SimpleNamespace(floors=[floor]))
+    assert exc.value.code == "score_identity_merge_collapse"
     assert exc.value.context["reason"] == "identity_merge_edge_collapse"
+    # R-5: the ORIGINAL merged binary64 pair and exact diameter are recorded.
+    assert "v1_hex" in exc.value.context and "v2_hex" in exc.value.context
+    assert "diameter_hex" in exc.value.context
 
 
 # ---------------------------------------------------------------------------
@@ -250,27 +254,110 @@ def test_w3_score_match_ambiguous_unreachable_on_plan_wall_path():
 
 
 # ---------------------------------------------------------------------------
+# B-1 dead-frame: one-way support-line registration + conservation (sol fixture)
+# ---------------------------------------------------------------------------
+
+
+def test_b1_one_wall_cannot_charge_two_parallel_answer_walls():
+    # B-1 (controller dead-frame, acceptance lock 1): the false-green root.  A
+    # 4 m product wall at x=1.1 sat within the 0.3 m position tolerance of TWO
+    # parallel answer walls (x=1.0 and x=1.2) and used to earn 8/8 -- 8 m of
+    # passing on a 4 m wall, with extra = 4-8 = -4 silently swallowed by
+    # ``extra > epsilon``.  It must now LOUD-reject: the judge's own position
+    # tolerance cannot separate the two answer walls, so per R-4 it says
+    # unsupported (score_identity_support_ambiguous), never scores 8 m.
+    footprint = [(0., 0.), (2., 0.), (2., 4.), (0., 4.)]
+    gt = SimpleNamespace(floors=[_gt_floor("F", footprint, [
+        ("L", [(0., 0.), (1., 0.), (1., 4.), (0., 4.)]),
+        ("M", [(1., 0.), (1.2, 0.), (1.2, 4.), (1., 4.)]),
+        ("R", [(1.2, 0.), (2., 0.), (2., 4.), (1.2, 4.)])])])
+    targets = [s for s in extract_gt_plan_segments(gt) if not s.exterior]
+    product = [s for s in extract_correction_plan_segments(_correction("F", footprint, [
+        ("P1", [(0., 0.), (1.1, 0.), (1.1, 4.), (0., 4.)]),
+        ("P2", [(1.1, 0.), (2., 0.), (2., 4.), (1.1, 4.)])])) if not s.exterior]
+    with pytest.raises(ScoreContractError) as exc:
+        match_plan_segments(targets=targets, observations=product, config=_config())
+    assert exc.value.code == "score_identity_support_ambiguous"
+    assert exc.value.context["reason"] == "observation_eligible_for_multiple_support_lines"
+
+
+def test_b1_conservation_cover_exceeds_length_raises():
+    # B-1 step 3 (conservation hard gate, acceptance lock 2): an observation's
+    # charged cover may never exceed its own length.  cover > length is the exact
+    # signature of the false-green bug.  Neuter: drop the raise in
+    # _assert_observation_conservation and this lock goes red.
+    with pytest.raises(ScoreContractError) as exc:
+        _assert_obs_conservation("obs", obs_length=4.0, covered=8.0, tol=1e-9)
+    assert exc.value.code == "score_denominator_nonconserving"
+    assert exc.value.context["reason"] == "observation_cover_exceeds_length"
+    # cover exactly at length (no double-charge) is fine -- the gate only fires
+    # on a real over-charge, not on geometric equality.
+    _assert_obs_conservation("obs", obs_length=4.0, covered=4.0, tol=1e-9)
+
+
+def test_b1_well_separated_walls_register_without_over_reject():
+    # B-1 acceptance lock 3: when two answer walls are > 2x the position
+    # tolerance apart, a product wall near ONE of them registers to that one
+    # line and scores normally -- step 1 does not over-reject.  Contrast with
+    # the parallel-wall case: there the walls were 0.2 m apart (< 2x tol), here
+    # they are 2.0 m apart.
+    footprint = [(0., 0.), (4., 0.), (4., 4.), (0., 4.)]
+    gt = SimpleNamespace(floors=[_gt_floor("F", footprint, [
+        ("A", [(0., 0.), (1., 0.), (1., 4.), (0., 4.)]),
+        ("B", [(1., 0.), (3., 0.), (3., 4.), (1., 4.)]),
+        ("C", [(3., 0.), (4., 0.), (4., 4.), (3., 4.)])])])
+    targets = [s for s in extract_gt_plan_segments(gt) if not s.exterior]
+    product = [s for s in extract_correction_plan_segments(_correction("F", footprint, [
+        ("P1", [(0., 0.), (1.05, 0.), (1.05, 4.), (0., 4.)]),
+        ("P2", [(1.05, 0.), (3.05, 0.), (3.05, 4.), (1.05, 4.)]),
+        ("P3", [(3.05, 0.), (4., 0.), (4., 4.), (3.05, 4.)])])) if not s.exterior]
+    rows, _ = match_plan_segments(targets=targets, observations=product, config=_config())
+    wc = _wall_criterion(rows)
+    assert wc.passing_units == pytest.approx(8.0)
+    assert wc.failing_units == pytest.approx(0.0)
+    assert wc.verdict == "pass"
+
+
+# ---------------------------------------------------------------------------
 # C-1' answer atoms are a pure function of answer bytes (A8)
 # ---------------------------------------------------------------------------
 
 
 def test_a8_answer_denominator_independent_of_product():
-    # A8 / C-1': the GT atom set and walls_complete denominator are a pure
-    # function of the answer bytes.  Same GT with two different products
-    # (one matching, one a single cell with no interior walls) yields the same
-    # denominator -- the GT identity pool never mixes with the product pool.
-    gt = SimpleNamespace(floors=[_gt_floor("F", LONG_FACING_FOUR["footprint"], LONG_FACING_FOUR["zones"])])
+    # A8 / C-1': the walls_complete denominator is a PURE function of the answer
+    # bytes -- the GT identity pool never mixes with the product pool.  This lock
+    # replaces a false-lock: the prior fixture gave both products the SAME
+    # relevant coordinates and compared with pytest.approx, so an illegal GT+
+    # product joint pool moved the answer representative by 5e-13 and the test
+    # still passed.  Here the two products carry DIFFERENT sub-merge neighbours
+    # of the GT x=4 endpoint, so a joint pool would shift the answer's x=4 atom
+    # (and hence the wall length / denominator) by a different last-bit amount in
+    # each product.  C-1' forbids that: the byte-identical denominator below can
+    # only hold if the answer never sees the product's values.
+    import struct
+    gt_foot = [(0., 0.), (4., 0.), (4., 2.), (0., 2.)]
+    gt_zones = [("B", [(0., 0.), (4., 0.), (4., 1.), (0., 1.)]),
+                ("T", [(0., 1.), (4., 1.), (4., 2.), (0., 2.)])]
+    gt = SimpleNamespace(floors=[_gt_floor("F", gt_foot, gt_zones)])
     targets = extract_gt_plan_segments(gt)
-    product_match = extract_correction_plan_segments(_correction("F", LONG_FACING_FOUR["footprint"], LONG_FACING_FOUR["zones"]))
-    product_single = extract_correction_plan_segments(_correction("F", LONG_FACING_FOUR["footprint"], [("only", LONG_FACING_FOUR["footprint"])]))
 
-    def wall_denominator(product):
+    def product_with_neighbour(delta: float):
+        # product footprint and cells pull their right edge to 4-delta, a sub-
+        # merge neighbour of the GT x=4 atom.  Cells stay closed (each edge has
+        # its reverse pair) so extraction is legal; only the right-wall x moves.
+        right = 4. - delta
+        foot = [(0., 0.), (right, 0.), (right, 2.), (0., 2.)]
+        return extract_correction_plan_segments(_correction("F", foot, [
+            ("B", [(0., 0.), (right, 0.), (right, 1.), (0., 1.)]),
+            ("T", [(0., 1.), (right, 1.), (right, 2.), (0., 2.)])]))
+
+    def wall_den_bytes(product):
         rows, _ = match_plan_segments(targets=targets, observations=product, config=_config())
-        return _wall_criterion(rows).denominator_units
-    # denominator identical despite radically different products.
-    assert wall_denominator(product_match) == pytest.approx(wall_denominator(product_single))
-    # GT extraction itself is product-independent (re-extract is byte-identical).
-    assert extract_gt_plan_segments(gt) == targets
+        return struct.pack(">d", _wall_criterion(rows).denominator_units)
+
+    # binary64-IDENTICAL across the two products (both 4.0 = 0x4010000000000000).
+    # pytest.approx would pass at 4.0 vs 3.9999999999995; byte equality does not.
+    assert wall_den_bytes(product_with_neighbour(5e-13)) == wall_den_bytes(product_with_neighbour(9e-13))
 
 
 # ---------------------------------------------------------------------------

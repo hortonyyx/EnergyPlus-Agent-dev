@@ -42,7 +42,20 @@ Point = tuple[float, float]
 # for the full measurement table and two-sided headroom proof.
 _COORDINATE_MERGE_THRESHOLD = 1e-12     # gap below this: same intent -> merge.
 _COORDINATE_SPLIT_THRESHOLD = 1e-11     # gap above this: distinct intent -> split.
-_COORDINATE_DIAMETER_THRESHOLD = 1e-11  # cluster diameter cap (chain-bridge guard).
+# §2.1 (controller ruling): the diameter cap MUST be <= the merge threshold.  A
+# cap larger than merge (the prior 1e-11) lets a single-link chain of sub-merge
+# gaps grow a cluster's diameter past the "same intent allowed spread" itself --
+# three adjacent gaps each < merge can total 1.8e-12 > merge and still weld into
+# one atom silently (contract ① violated, GREEN).  At diam = merge = 1e-12 a
+# cluster may never span more than the very spread that defines "same intent".
+_COORDINATE_DIAMETER_THRESHOLD = 1e-12  # cluster diameter cap (chain-bridge guard).
+
+# B-1 conservation slack: an observation's charged cover is bounded above by its
+# own projected length (<= obs.length) by geometry; this slack only absorbs
+# floating-point cut/sum rounding, so a real double-charge (cover > length --
+# e.g. one product wall earning length on two parallel answer walls) stays a
+# loud reject and is never silently clamped back to zero.
+_CONSERVATION_TOL = 1e-9
 
 
 @dataclass(frozen=True)
@@ -58,21 +71,23 @@ class _AxisIdentity:
     rep: Mapping[float, float]
 
 
-def _cluster_axis(raw_values: Iterable[float], *, side: str, floor_id: str, axis: str,
-                  identity_code: str) -> _AxisIdentity:
+def _cluster_axis(raw_values: Iterable[float], *, side: str, floor_id: str, axis: str) -> _AxisIdentity:
     """Single-link cluster with guard band + diameter guard (C-1 / C-1' / C-1'').
 
-    Returns a raw -> representative mapping.  Raises ScoreContractError on a
-    non-finite value, a gap inside the guard band (unresolvable ambiguity), or a
-    cluster whose diameter exceeds the cap (a chain bridge).  Context always
-    carries the hex binary64 of every value involved so the decision is
-    reproducible from the sidecar alone.
+    Returns a raw -> representative mapping.  Raises ScoreContractError (an R-5
+    neutral cause code) on a non-finite value, a gap inside the guard band
+    (unresolvable ambiguity), or a cluster whose diameter exceeds the cap (a
+    chain bridge).  Context always carries side/floor_id/axis and the hex
+    binary64 of every value involved so the decision is reproducible from the
+    sidecar alone.  The cause code is neutral (``score_identity_*``); the side
+    (gt/product) lives in context["side"], NOT in the code -- a pairing failure
+    (real topology break) still raises the side code score_*_identity_invalid.
     """
     values: list[float] = []
     for raw in raw_values:
         value = float(raw)
         if value != value or value == float("inf") or value == float("-inf"):
-            raise ScoreContractError(identity_code, "scoring.input_identity",
+            raise ScoreContractError("score_identity_non_finite", "scoring.input_identity",
                 context={"reason": "identity_non_finite_value", "side": side,
                          "floor_id": floor_id, "axis": axis, "hex": float(value).hex()})
         values.append(value)
@@ -94,7 +109,7 @@ def _cluster_axis(raw_values: Iterable[float], *, side: str, floor_id: str, axis
             cur_min = cur_max = value
             rep[value] = cur_min
         else:
-            raise ScoreContractError(identity_code, "scoring.input_identity",
+            raise ScoreContractError("score_identity_guard_band_ambiguity", "scoring.input_identity",
                 context={"reason": "identity_guard_band_ambiguity", "side": side,
                     "floor_id": floor_id, "axis": axis, "gap": gap,
                     "merge": _COORDINATE_MERGE_THRESHOLD, "split": _COORDINATE_SPLIT_THRESHOLD,
@@ -103,7 +118,7 @@ def _cluster_axis(raw_values: Iterable[float], *, side: str, floor_id: str, axis
     for lo, hi in clusters:
         diameter = hi - lo
         if diameter > _COORDINATE_DIAMETER_THRESHOLD:
-            raise ScoreContractError(identity_code, "scoring.input_identity",
+            raise ScoreContractError("score_identity_chain_bridge", "scoring.input_identity",
                 context={"reason": "identity_chain_bridge_over_diameter", "side": side,
                     "floor_id": floor_id, "axis": axis, "diameter": diameter,
                     "diameter_threshold": _COORDINATE_DIAMETER_THRESHOLD,
@@ -112,13 +127,11 @@ def _cluster_axis(raw_values: Iterable[float], *, side: str, floor_id: str, axis
 
 
 def _build_floor_identity(points: Iterable[Sequence[float]], *, side: str, floor_id: str,
-                          identity_code: str) -> tuple[_AxisIdentity, _AxisIdentity]:
+                          ) -> tuple[_AxisIdentity, _AxisIdentity]:
     """Build the (x, y) identity pair for one document side on one floor."""
     materialized = tuple(points)
-    x_id = _cluster_axis((float(p[0]) for p in materialized), side=side, floor_id=floor_id,
-                         axis="x", identity_code=identity_code)
-    y_id = _cluster_axis((float(p[1]) for p in materialized), side=side, floor_id=floor_id,
-                         axis="y", identity_code=identity_code)
+    x_id = _cluster_axis((float(p[0]) for p in materialized), side=side, floor_id=floor_id, axis="x")
+    y_id = _cluster_axis((float(p[1]) for p in materialized), side=side, floor_id=floor_id, axis="y")
     return x_id, y_id
 
 
@@ -171,18 +184,32 @@ def _points(vertices: Sequence[Sequence[float]], x_id: _AxisIdentity, y_id: _Axi
             *, identity_code: str) -> tuple[Point, ...]:
     # W1: map raw vertices through the (side, floor) axis identities so the same
     # decimal seam shares one atomic representative before any exact comparison.
+    raw = tuple((float(p[0]), float(p[1])) for p in vertices)
     out = tuple(_identify_point(point, x_id, y_id) for point in vertices)
-    if len(out) > 1 and out[0] == out[-1]:
-        out = out[:-1]
+    # Drop an EXPLICIT closing duplicate (first raw == last raw).  Keying this on
+    # the raw points (not the identified reps) keeps it a pure ring-shape fix; a
+    # genuine same-rep pair from two distinct vertices is the merge-collapse
+    # reject below, handled separately so its context can name the real pair.
+    if len(out) > 1 and raw[0] == raw[-1]:
+        out, raw = out[:-1], raw[:-1]
     if len(out) < 3:
         raise ScoreContractError(identity_code, "scoring.input_identity",
             context={"reason": "polygon_too_short", "side": x_id.side, "floor_id": x_id.floor_id})
-    # C-1''(4): identity merge must not collapse adjacent vertices (zero-length edge).
-    for first, second in zip(out, out[1:] + out[:1]):
+    # C-1''(4): identity merge must not collapse two distinct ring vertices into
+    # one representative (zero-length edge).  R-5: record the ORIGINAL binary64
+    # pair (both coords of both vertices) and the exact diameter, not just one
+    # representative hex, so the merge decision is reproducible from the sidecar.
+    ring_n = len(out)
+    for idx in range(ring_n):
+        first, second = out[idx], out[(idx + 1) % ring_n]
         if first == second:
-            raise ScoreContractError(identity_code, "scoring.input_identity",
+            v1, v2 = raw[idx], raw[(idx + 1) % ring_n]
+            diameter = hypot(v1[0] - v2[0], v1[1] - v2[1])
+            raise ScoreContractError("score_identity_merge_collapse", "scoring.input_identity",
                 context={"reason": "identity_merge_edge_collapse", "side": x_id.side,
-                    "floor_id": x_id.floor_id, "axis": "xy", "hex": float(first[0]).hex()})
+                    "floor_id": x_id.floor_id, "axis": "xy",
+                    "v1_hex": (v1[0].hex(), v1[1].hex()), "v2_hex": (v2[0].hex(), v2[1].hex()),
+                    "diameter": diameter, "diameter_hex": diameter.hex()})
     return out
 
 
@@ -367,11 +394,27 @@ def extract_gt_plan_segments(gt: GroundTruthV3) -> tuple[PlanSegment, ...]:
         for segment in floor.boundary_segments:
             raw_points.append(segment.p1)
             raw_points.append(segment.p2)
-        x_id, y_id = _build_floor_identity(raw_points, side="gt", floor_id=floor.id,
-                                           identity_code="score_gt_identity_invalid")
+        x_id, y_id = _build_floor_identity(raw_points, side="gt", floor_id=floor.id)
+        boundary_seen: set[tuple] = set()
         for segment in floor.boundary_segments:
-            output.append(PlanSegment(segment.id, floor.id, _identify_point(segment.p1, x_id, y_id),
-                _identify_point(segment.p2, x_id, y_id), (),
+            q1 = _identify_point(segment.p1, x_id, y_id)
+            q2 = _identify_point(segment.p2, x_id, y_id)
+            # C-1''(4): a boundary segment whose endpoints weld together is a
+            # zero-length exterior edge; two boundary segments that weld to the
+            # SAME geometry are a duplicate exterior owner.  Both are loud rejects.
+            if q1 == q2:
+                raise ScoreContractError("score_identity_merge_collapse", "scoring.input_identity",
+                    context={"reason": "identity_boundary_segment_collapse", "side": "gt",
+                        "floor_id": floor.id, "segment": segment.id,
+                        "v1_hex": (float(segment.p1[0]).hex(), float(segment.p1[1]).hex()),
+                        "v2_hex": (float(segment.p2[0]).hex(), float(segment.p2[1]).hex())})
+            geom = (floor.id, min(q1, q2), max(q1, q2))
+            if geom in boundary_seen:
+                raise ScoreContractError("score_identity_merge_collapse", "scoring.input_identity",
+                    context={"reason": "identity_boundary_duplicate_after_merge", "side": "gt",
+                        "floor_id": floor.id, "segment": segment.id})
+            boundary_seen.add(geom)
+            output.append(PlanSegment(segment.id, floor.id, q1, q2, (),
                 tuple(ref.view_id for ref in segment.source_refs), True))
         directed: dict[tuple[Point, Point], list[str]] = {}
         for zone in floor.zones:
@@ -409,8 +452,7 @@ def extract_correction_plan_segments(geometry: CorrectedGeometryV3) -> tuple[Pla
         raw_points.extend(floor.footprint.vertices)
         for cell in floor.cells:
             raw_points.extend(_cell_polygon(cell))
-        x_id, y_id = _build_floor_identity(raw_points, side="product", floor_id=floor.id,
-                                           identity_code="score_product_identity_invalid")
+        x_id, y_id = _build_floor_identity(raw_points, side="product", floor_id=floor.id)
         exterior_edges = _edges(floor.footprint.vertices, x_id, y_id,
                                 identity_code="score_product_identity_invalid")
         for number, (p1, p2) in enumerate(exterior_edges):
@@ -454,11 +496,20 @@ def coerce_plan_observations(observations: Iterable[PlanSegment | dict]) -> tupl
     output: list[PlanSegment] = []
     for floor_id, group in by_floor.items():
         points = [point for row in group for point in (row.p1, row.p2)]
-        x_id, y_id = _build_floor_identity(points, side="product", floor_id=floor_id,
-                                           identity_code="score_product_identity_invalid")
+        x_id, y_id = _build_floor_identity(points, side="product", floor_id=floor_id)
         for row in group:
-            output.append(PlanSegment(row.key, row.floor_id, _identify_point(row.p1, x_id, y_id),
-                _identify_point(row.p2, x_id, y_id), row.zone_ids, row.source_ids, row.exterior))
+            q1 = _identify_point(row.p1, x_id, y_id)
+            q2 = _identify_point(row.p2, x_id, y_id)
+            # C-1''(4): identity merge must not collapse a reading observation
+            # to a zero-length segment ((0,0)->(5e-13,0) welds to a point).  This
+            # is a loud reject, never a silent drop.
+            if q1 == q2:
+                raise ScoreContractError("score_identity_merge_collapse", "scoring.input_identity",
+                    context={"reason": "identity_reading_segment_collapse", "side": "product",
+                        "floor_id": floor_id, "observation": row.key,
+                        "v1_hex": (float(row.p1[0]).hex(), float(row.p1[1]).hex()),
+                        "v2_hex": (float(row.p2[0]).hex(), float(row.p2[1]).hex())})
+            output.append(PlanSegment(row.key, row.floor_id, q1, q2, row.zone_ids, row.source_ids, row.exterior))
     return tuple(output)
 
 
@@ -488,28 +539,83 @@ def _candidate(target: PlanSegment, observed: PlanSegment, config: JudgeScoreCon
     return overlap, position, symmetric_difference
 
 
+def _support_line_key(segment: PlanSegment) -> tuple[str, str, float]:
+    """The geometric supporting line of a segment: (floor_id, axis, const).
+
+    axis is "V" (vertical, x = const) when the segment runs more vertically,
+    "H" (horizontal, y = const) otherwise.  Coordinates are already clustered to
+    atomic representatives, so two targets on the same wall share an exactly
+    equal const.  A near-orthogonal edge never reaches this axis-aligned path:
+    it is resolved as unsupported (R-4 / W5) before pairing.
+    """
+    if abs(segment.p2[0] - segment.p1[0]) <= abs(segment.p2[1] - segment.p1[1]):
+        return (segment.floor_id, "V", segment.p1[0])
+    return (segment.floor_id, "H", segment.p1[1])
+
+
+def _assert_obs_conservation(obs_key: str, obs_length: float, covered: float, tol: float) -> None:
+    """B-1 conservation hard gate: an observation's charged cover may never
+    exceed its own length.  ``cover > length`` is the exact signature of a
+    product wall charging length on two parallel answer support lines (the 4 m
+    wall that earned 8 m); the resulting negative extra was previously swallowed
+    by ``extra > epsilon`` and turned a visible false red into a silent false
+    green.  This raises instead of clamping so the bug can never hide.
+    """
+    if covered > obs_length + tol:
+        raise ScoreContractError("score_denominator_nonconserving", "scoring.denominator_totality",
+            context={"reason": "observation_cover_exceeds_length", "observation": obs_key,
+                     "obs_length": obs_length, "covered": covered, "excess": covered - obs_length})
+
+
 def match_plan_segments(*, targets: Iterable[PlanSegment], observations: Iterable[PlanSegment],
                         config: JudgeScoreConfigV1) -> tuple[tuple[SegmentScore, ...], dict[str, tuple[str, ...]]]:
-    """Joint-cutpoint atomization (W3); coverage is a set operation with no tie.
+    """Joint-cutpoint atomization with one-way support-line registration (W3/B-1).
 
-    For each target, candidate observations (``_candidate`` success at the judge
-    tolerance layer) are projected onto the target's support line; the union of
-    all endpoints cuts the target span into atomic intervals, each attributed to
-    the SET of observations covering it.  An interval covered by exactly one
-    observation becomes matched length on that (target, observation) pair; an
-    interval covered by none is a miss; an interval covered by more than one is
-    a duplicate (counted once toward the target, reported separately so policy
-    can route it to no_duplicate_wall_strokes without double-counting a wall).
-    Observation length covering no target is extra.  Cross-document registration
-    is product -> answer one-way via the judge tolerance (never reverse), and GT
-    and product identity pools stay separate (C-1').  Because every interval is
-    decided by set membership -- there is no assignment optimization and no tie
-    to break -- ``score_match_ambiguous`` is structurally unreachable on this
-    plan-wall path.  Returns (rows, observation_key -> sorted target keys it
-    covers) so the score service can rebuild a multi-cover product_to_gt.
+    Coverage is a set operation with no tie, so ``score_match_ambiguous`` is
+    structurally unreachable on this plan-wall path.  Three ordered steps
+    (controller dead-frame, not advisory):
+
+    1. ONE-WAY REGISTRATION (product -> answer, never reverse): each observation
+       resolves the UNIQUE answer support line it belongs to.  Candidates are
+       answer support lines for which ``_candidate`` succeeds (judge tolerance +
+       positive projection overlap).  Exactly 1 -> registered.  0 -> the
+       observation covers nothing (extra).  >= 2 -> the judge's own position
+       tolerance cannot separate two parallel answer walls, so it LOUD-rejects
+       (score_identity_support_ambiguous) -- never "take nearest", never "count
+       both", never "first sorted": the ruler is being deformed by what it
+       measures, and R-4 says say unsupported, not decide for the user.
+    2. JOINT CUTPOINT per target (the existing set operation), but only the
+       observations registered to that target's support line may participate --
+       so one observation can never charge length on two parallel lines.
+    3. CONSERVATION hard gates: each observation's charged cover <= its length
+       (else raise), and a negative extra raises instead of being swallowed.
+
+    Returns (rows, observation_key -> sorted target keys it covers).
     """
     target_list = tuple(sorted(targets, key=_canonical_geometry))
     obs_list = tuple(sorted(observations, key=_canonical_geometry))
+    # B-1 step 1: register each observation to its UNIQUE answer support line.
+    obs_support: dict[str, tuple[str, str, float]] = {}
+    for obs in obs_list:
+        if obs.length == 0:
+            continue
+        eligible_lines: set[tuple[str, str, float]] = set()
+        for target in target_list:
+            if target.length == 0 or target.floor_id != obs.floor_id:
+                continue
+            if _candidate(target, obs, config) is None:
+                continue
+            eligible_lines.add(_support_line_key(target))
+        if not eligible_lines:
+            continue  # 0 candidate lines: observation covers no target -> extra
+        if len(eligible_lines) >= 2:
+            raise ScoreContractError("score_identity_support_ambiguous", "scoring.input_identity",
+                context={"reason": "observation_eligible_for_multiple_support_lines",
+                         "observation": obs.key, "side": "product",
+                         "support_lines": sorted(line for line in eligible_lines)})
+        obs_support[obs.key] = next(iter(eligible_lines))
+    # B-1 step 2: per-target joint cutpoint; only observations registered to this
+    # target's support line may participate.
     rows: list[SegmentScore] = []
     obs_covered: dict[str, float] = {obs.key: 0.0 for obs in obs_list}
     obs_to_targets: dict[str, set[str]] = {obs.key: set() for obs in obs_list}
@@ -517,6 +623,7 @@ def match_plan_segments(*, targets: Iterable[PlanSegment], observations: Iterabl
         length = target.length
         if length == 0:
             continue
+        target_line = _support_line_key(target)
         dx, dy = target.p2[0] - target.p1[0], target.p2[1] - target.p1[1]
         tx, ty = dx / length, dy / length
         nx, ny = -ty, tx
@@ -524,6 +631,8 @@ def match_plan_segments(*, targets: Iterable[PlanSegment], observations: Iterabl
         candidates: list[tuple[PlanSegment, float, float, float, float]] = []
         cuts = {t0, t1}
         for obs in obs_list:
+            if obs.length == 0 or obs_support.get(obs.key) != target_line:
+                continue
             metric = _candidate(target, obs, config)
             if metric is None:
                 continue
@@ -540,7 +649,8 @@ def match_plan_segments(*, targets: Iterable[PlanSegment], observations: Iterabl
         exactly_one: dict[str, float] = {}
         miss_length = 0.0
         duplicate_length = 0.0
-        for a, b in zip(sorted(cuts), sorted(cuts)[1:]):
+        sorted_cuts = sorted(cuts)
+        for a, b in zip(sorted_cuts, sorted_cuts[1:]):
             if b <= a:
                 continue
             covering = [item for item in candidates if item[1] <= a and b <= item[2]]
@@ -567,8 +677,13 @@ def match_plan_segments(*, targets: Iterable[PlanSegment], observations: Iterabl
             rows.append(SegmentScore(target, None, "miss", None, None, None, eligible_units=miss_length))
         if duplicate_length > 0.0:
             rows.append(SegmentScore(target, None, "duplicate", None, None, None, eligible_units=duplicate_length))
+    # B-1 step 3: conservation hard gates + extra rows.
     for obs in obs_list:
-        extra = obs.length - obs_covered[obs.key]
+        if obs.length == 0:
+            continue
+        covered = obs_covered[obs.key]
+        _assert_obs_conservation(obs.key, obs.length, covered, _CONSERVATION_TOL)
+        extra = obs.length - covered
         if extra > config.claim_complete_epsilon_m:
             rows.append(SegmentScore(None, obs, "extra", None, None, None, eligible_units=extra))
     observation_map = {key: tuple(sorted(values)) for key, values in obs_to_targets.items() if values}

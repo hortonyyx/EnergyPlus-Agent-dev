@@ -45,6 +45,19 @@ STABLE_ERROR_CODES = frozenset({
     "score_visibility_adapter_mismatch", "score_product_segment_unresolved", "score_claim_applicability_invalid",
     "score_match_ambiguous", "score_denominator_nonconserving", "score_sidecar_invalid",
     "score_unsupported_combination", "score_atomic_write_failed",
+    # R-5 identity-layer cause codes (which kind of identity failure), distinct
+    # from the side codes above.  An identity MERGE failure (non-finite value,
+    # guard-band gap, chain bridge, merge-induced collapse, contract mismatch,
+    # or a product segment eligible for >=2 answer support lines) raises one of
+    # these neutral codes; the side (gt/product) stays in context["side"].  A
+    # PAIRING failure (a real topology break such as a 1e-9 seam the production
+    # validator would also reject) still raises the side code
+    # score_gt_identity_invalid / score_product_identity_invalid, so A2's "1e-9
+    # gap stays red, code verbatim" holds.  Keeping the two failure classes on
+    # different codes is exactly R-5's "stable top-level cause code, not a
+    # context['reason'] string".
+    "score_identity_non_finite", "score_identity_guard_band_ambiguity", "score_identity_chain_bridge",
+    "score_identity_merge_collapse", "score_identity_contract_mismatch", "score_identity_support_ambiguous",
 })
 GATE_IDS = frozenset({
     "scoring.input_identity", "scoring.capability", "scoring.view_bindings", "scoring.completeness",

@@ -165,16 +165,30 @@ def test_b4b_b2_duplicate_coverage_routes_to_duplicate_not_ambiguous():
 
 def test_b4b_b2_segment_states_include_complete_within_miss_extra_and_extent():
     # W3/W4: status reflects alignment quality (axis/position); length lives in
-    # eligible_units.  A wall drawn with a small perpendicular offset is within;
-    # an over-long observation no longer downgrades to within -- its overshoot is
-    # extra length and the covered target stays complete.
-    rows = score_plan_segments(targets=(seg("a", (0,0), (1,0)), seg("b", (2,0), (3,0)), seg("miss", (8,0), (9,0))),
-        observations=(seg("exact", (0,0), (1,0)), seg("offset", (2,0.1), (3,0.1)), seg("extra", (5,0), (6,0))), config=config())
-    assert {"complete", "within_tolerance", "miss", "extra"} <= {row.status for row in rows}
+    # eligible_units.  An over-long observation (long covers target b [2,3] then
+    # overshoots to 3.2) keeps the covered target COMPLETE and reports the 0.2
+    # overshoot as a SEPARATE extra row -- the overshoot is never silently
+    # dropped just because the observation touched a target.  Neuter: change
+    # match's extra step to drop ALL overshoot whenever an obs covered any target
+    # -> the 0.2 extra row vanishes and this lock goes red.  The status SET is
+    # exactly these four (==, not <=): no extra status exists that <= would hide.
+    rows = score_plan_segments(
+        targets=(seg("a", (0, 0), (1, 0)), seg("b", (2, 0), (3, 0)),
+                 seg("c", (4, 0), (5, 0)), seg("miss", (8, 0), (9, 0))),
+        observations=(seg("exact", (0, 0), (1, 0)), seg("long", (2, 0), (3.2, 0)),
+                      seg("within", (4, 0.1), (5, 0.1)), seg("extra", (5.5, 0), (6.5, 0))),
+        config=config())
+    assert {"complete", "within_tolerance", "miss", "extra"} == {row.status for row in rows}
     complete = next(row for row in rows if row.target and row.target.key == "a")
     assert complete.status == "complete" and complete.eligible_units == pytest.approx(1.0)
-    within = next(row for row in rows if row.observation and row.observation.key == "offset")
+    within = next(row for row in rows if row.observation and row.observation.key == "within")
     assert within.status == "within_tolerance" and within.eligible_units == pytest.approx(1.0)
+    # over-long: target b fully covered -> complete 1.0; the 0.2 overshoot is a
+    # separate extra row on the SAME observation (not downgraded to within).
+    b_complete = next(row for row in rows if row.target and row.target.key == "b")
+    assert b_complete.status == "complete" and b_complete.eligible_units == pytest.approx(1.0)
+    long_extra = [row for row in rows if row.observation and row.observation.key == "long" and row.status == "extra"]
+    assert len(long_extra) == 1 and long_extra[0].eligible_units == pytest.approx(0.2)
     miss = next(row for row in rows if row.target and row.target.key == "miss")
     assert miss.status == "miss" and miss.eligible_units == pytest.approx(1.0)
     extra = next(row for row in rows if row.observation and row.observation.key == "extra")
