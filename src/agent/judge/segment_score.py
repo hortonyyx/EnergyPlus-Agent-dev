@@ -247,6 +247,7 @@ def _tile_orthogonal_edges(
     floor_id: str,
     *,
     identity_code: str,
+    diagnostics: list[_PairDiagnostic],
 ) -> list[tuple[Point, Point, tuple[str, ...]]]:
     """Tile axis-aligned shared edges into T-junction sub-intervals (exact coverage).
 
@@ -288,11 +289,15 @@ def _tile_orthogonal_edges(
             on_exterior = _lies_on_exterior(geometry, exterior_edges)
             if forward_owners and reverse_owners:
                 if on_exterior:
-                    raise ScoreContractError(identity_code, "scoring.input_identity",
-                        context={"reason": "exterior_interior_topology_conflict", "floor_id": floor_id})
+                    diagnostics.append(_PairDiagnostic(
+                        category="identity", code=identity_code, gate_id="scoring.input_identity",
+                        context={"reason": "exterior_interior_topology_conflict", "floor_id": floor_id}))
+                    continue
                 if len(forward_owners) != 1 or len(reverse_owners) != 1:
-                    raise ScoreContractError(identity_code, "scoring.input_identity",
-                        context={"reason": "invalid_interior_edge_pair", "floor_id": floor_id})
+                    diagnostics.append(_PairDiagnostic(
+                        category="identity", code=identity_code, gate_id="scoring.input_identity",
+                        context={"reason": "invalid_interior_edge_pair", "floor_id": floor_id}))
+                    continue
                 pairs.append((geometry[0], geometry[1], tuple(sorted((forward_owners[0], reverse_owners[0])))))
             elif forward_owners or reverse_owners:
                 if on_exterior:
@@ -304,12 +309,16 @@ def _tile_orthogonal_edges(
                     # every overlap; area-level zone overlap is the upstream
                     # coverage validator's job and a different layer.
                     if len(forward_owners) > 1 or len(reverse_owners) > 1:
-                        raise ScoreContractError(identity_code, "scoring.input_identity",
-                            context={"reason": "exterior_duplicate_owner", "floor_id": floor_id})
+                        diagnostics.append(_PairDiagnostic(
+                            category="identity", code=identity_code, gate_id="scoring.input_identity",
+                            context={"reason": "exterior_duplicate_owner", "floor_id": floor_id}))
+                        continue
                     # single-owner exterior span: a legitimate boundary edge, not a wall
                 else:
-                    raise ScoreContractError(identity_code, "scoring.input_identity",
-                        context={"reason": "invalid_interior_edge_pair", "floor_id": floor_id})
+                    diagnostics.append(_PairDiagnostic(
+                        category="identity", code=identity_code, gate_id="scoring.input_identity",
+                        context={"reason": "invalid_interior_edge_pair", "floor_id": floor_id}))
+                    continue
             # else: open span with no edge on either side (e.g. a corridor mouth)
     return pairs
 
@@ -320,6 +329,7 @@ def _pair_general_edges(
     floor_id: str,
     *,
     identity_code: str,
+    diagnostics: list[_PairDiagnostic],
 ) -> list[tuple[Point, Point, tuple[str, ...]]]:
     """Pair non-axis-aligned edges by exact reverse (RW-2 general-segment seam).
 
@@ -344,37 +354,72 @@ def _pair_general_edges(
         reverse = (p2, p1)
         rev_owners = directed.get(reverse)
         if rev_owners is None:
-            raise ScoreContractError(identity_code, "scoring.input_identity",
-                context={"reason": "invalid_interior_edge_pair", "floor_id": floor_id})
+            diagnostics.append(_PairDiagnostic(
+                category="identity", code=identity_code, gate_id="scoring.input_identity",
+                context={"reason": "invalid_interior_edge_pair", "floor_id": floor_id}))
+            continue
         if len(owners) != 1 or len(rev_owners) != 1:
-            raise ScoreContractError(identity_code, "scoring.input_identity",
-                context={"reason": "invalid_interior_edge_pair", "floor_id": floor_id})
+            diagnostics.append(_PairDiagnostic(
+                category="identity", code=identity_code, gate_id="scoring.input_identity",
+                context={"reason": "invalid_interior_edge_pair", "floor_id": floor_id}))
+            consumed.add(edge)
+            consumed.add(reverse)
+            continue
         pairs.append((p1, p2, tuple(sorted((owners[0], rev_owners[0])))))
         consumed.add(edge)
         consumed.add(reverse)
     return pairs
 
 
-def _log_advisory_hit(floor_id: str, p1: Point, p2: Point) -> None:
-    """Record a near-orthogonal advisory edge that paired by exact reverse (R-4).
+def _log_advisory_hit(floor_id: str, p1: Point, p2: Point, *, unpaired: bool = False) -> None:
+    """Record a near-orthogonal advisory edge in the runtime artifact (R-4 / §1.3).
 
     This is the runtime artifact for R-4's two-stage gating: a real run must be
     able to answer "did any near-orthogonal edge fire, and how many" before the
-    advisory is allowed to flip to blocking.  This batch only ADVISES (the edge
-    is paired and scored normally); the structured log carries the floor and the
-    binary64 hex of both endpoints for reproducibility.
+    advisory is allowed to flip to blocking.  A PAIRED advisory edge (exact
+    reverse) is recorded as ``near_orthogonal_advisory_hit`` -- this batch only
+    ADVISES (the edge is paired and scored normally).  An UNPAIRED advisory edge
+    -- the exact shape that resolves as capability NA and that the later flip-to-
+    blocking most needs to count -- is recorded as
+    ``near_orthogonal_advisory_unpaired``.  Before r3 only the paired hits were
+    logged, so the count was blind to precisely the edges that trigger NA.  The
+    structured log carries the floor and the binary64 hex of both endpoints for
+    reproducibility.
     """
+    event = "near_orthogonal_advisory_unpaired" if unpaired else "near_orthogonal_advisory_hit"
     _logger.info(
-        "near_orthogonal_advisory_hit",
-        extra={"event": "near_orthogonal_advisory_hit", "floor_id": floor_id,
+        event,
+        extra={"event": event, "floor_id": floor_id, "unpaired": unpaired,
                "p1_hex": (float(p1[0]).hex(), float(p1[1]).hex()),
                "p2_hex": (float(p2[0]).hex(), float(p2[1]).hex())},
     )
 
 
+@dataclass(frozen=True)
+class _PairDiagnostic:
+    """One problem found while pairing interior edges, collected not raised.
+
+    R2-B1: pairing problems are collected into a list and arbitrated AFTER all
+    three buckets (advisory / orthogonal tile / general) have run, so a real
+    topology break can never be masked by a capability NA (the r2 false-green:
+    advisory ran first and its NA hid a true seam on the same floor).  The
+    ``category`` is "identity" (a real topology break or a zone duplication) or
+    "capability" (a shape the judge cannot measure).  ``code`` / ``gate_id`` /
+    ``context`` reconstruct the exact ScoreContractError the prior raise would
+    have thrown, so the arbitrator's chosen diagnostic is byte-identical to the
+    pre-r2 behaviour for whichever diagnostic wins arbitration.
+    """
+    category: str
+    code: str
+    gate_id: str
+    context: dict
+
+
 def _pair_advisory_edges(
     advisory: dict[tuple[Point, Point], list[str]],
     floor_id: str,
+    *,
+    diagnostics: list[_PairDiagnostic],
 ) -> list[tuple[Point, Point, tuple[str, ...]]]:
     """Pair near-orthogonal advisory edges by exact reverse (W5 / R-4).
 
@@ -400,11 +445,21 @@ def _pair_advisory_edges(
         reverse = (p2, p1)
         rev_owners = advisory.get(reverse)
         if rev_owners is None or len(owners) != 1 or len(rev_owners) != 1:
-            raise ScoreContractError(
-                "score_unsupported_combination", "scoring.capability",
+            # R2-B1: collect, do not raise.  An unpaired advisory edge resolves
+            # as capability NA, but that NA must be arbitrated AFTER the
+            # orthogonal/general buckets so it can never mask a real seam on the
+            # same floor.  §1.3: an unpaired advisory is ALSO recorded in the
+            # runtime artifact -- the paired-hit-only log of r2 was blind to
+            # exactly the edges that trigger NA, which are the ones R-4's later
+            # flip-to-blocking most needs to count.
+            _log_advisory_hit(floor_id, p1, p2, unpaired=True)
+            diagnostics.append(_PairDiagnostic(
+                category="capability", code="score_unsupported_combination",
+                gate_id="scoring.capability",
                 context={"reason": "near_orthogonal_advisory_unpaired", "floor_id": floor_id,
                          "edge_hex": (float(p1[0]).hex(), float(p1[1]).hex(),
-                                      float(p2[0]).hex(), float(p2[1]).hex())})
+                                      float(p2[0]).hex(), float(p2[1]).hex())}))
+            continue
         _log_advisory_hit(floor_id, p1, p2)
         pairs.append((p1, p2, tuple(sorted((owners[0], rev_owners[0])))))
         consumed.add(edge)
@@ -449,17 +504,78 @@ def _pair_interior_edges(
             advisory[edge] = owners
         else:  # non_orthogonal
             general[edge] = owners
-    # R-4 ordering: advisory edges pair BEFORE the orthogonal tile.  A near-
-    # orthogonal edge the production validator admitted but the judge cannot
-    # exact-reverse-pair must resolve as capability NA BEFORE any axis-aligned
-    # seam whose endpoints the advisory edge perturbed (1e-10 level) is hauled in
-    # front of the exact tile and convicted as a duplicate owner -- same disease,
-    # two faces (the wall's near-axis lean and the exterior span it nudges); the
-    # judge says unsupported at the source rather than convicting a derivative.
-    pairs = list(_pair_advisory_edges(advisory, floor_id))
-    pairs.extend(_tile_orthogonal_edges(ortho, exterior_edges, floor_id, identity_code=identity_code))
-    pairs.extend(_pair_general_edges(general, exterior_edges, floor_id, identity_code=identity_code))
+    # R2-B1: COLLECT, then ARBITRATE (controller dead-frame, not a re-ordering).
+    # The three buckets run to completion appending diagnostics into one list;
+    # the arbitrator decides which diagnostic wins.  This is the only structure
+    # that closes both faces of the disease:
+    #   * advisory-first (r2) raised capability NA at the first unpaired
+    #     advisory edge, MASKING any real seam on the same floor -> false green.
+    #   * tile-first (the "obvious" swap) re-raises a DERIVATIVE
+    #     exterior_duplicate_owner the advisory lean perturbed onto a neighbour
+    #     span ("second face"); same disease, different code.
+    # Collect-then-arbitrate lets a real topology break outrank the NA without
+    # letting the derivative convict the wrong span.  See
+    # ``_arbitrate_pairing_diagnostics`` for the priority rule.
+    diagnostics: list[_PairDiagnostic] = []
+    pairs = list(_pair_advisory_edges(advisory, floor_id, diagnostics=diagnostics))
+    pairs.extend(_tile_orthogonal_edges(ortho, exterior_edges, floor_id,
+                                        identity_code=identity_code, diagnostics=diagnostics))
+    pairs.extend(_pair_general_edges(general, exterior_edges, floor_id,
+                                     identity_code=identity_code, diagnostics=diagnostics))
+    _arbitrate_pairing_diagnostics(diagnostics, identity_code=identity_code)
     return pairs
+
+
+# Reasons that are ALWAYS a real topology break, independent of any advisory
+# edge: an interior edge with no facing pair, or an exterior/interior conflict
+# on one span.  These outrank capability NA unconditionally (R2-B1 / §1.2).
+_REAL_BREAK_REASONS = ("invalid_interior_edge_pair", "exterior_interior_topology_conflict")
+
+
+def _arbitrate_pairing_diagnostics(diagnostics: list[_PairDiagnostic], *, identity_code: str) -> None:
+    """R2-B1 priority rule over collected pairing diagnostics (§1.2 dead-frame).
+
+    Hard rule: a real topology/identity break may NEVER be masked by a capability
+    NA -- "the judge cannot measure this" loses to "the geometry is genuinely
+    broken" every time.  Concretely:
+
+      1. ANY real-break identity diagnostic (``invalid_interior_edge_pair`` /
+         ``exterior_interior_topology_conflict``) wins -> the round ends red on
+         the side identity code.  Within this class the root-cause reason is
+         preferred (invalid_interior_edge_pair over exterior_interior_topology_
+         conflict) -- §1.2 step 3.
+      2. Else, if a capability NA exists, the round ends NA.  This is the ONLY
+         path a capability NA may take: zero real breaks.
+      3. Else an ``exterior_duplicate_owner`` with NO advisory present is a real
+         zone duplication over the footprint (RW-3 silent-green hole) and stays
+         red.
+
+    ``exterior_duplicate_owner`` is deliberately NOT a real-break reason: a near-
+    orthogonal advisory edge's lean (sub-1e-9) perturbs the endpoint of a
+    neighbour exterior span, and two cells whose shared advisory wall carries
+    different lean spellings (5e-10 vs 4e-10) then overlap on that exterior span
+    by ~1e-10 -- a derivative of the unpaired advisory, not an independent zone
+    duplication.  Routing that derivative to NA (step 2) is what keeps the R-4
+    live counter-example (production five-way GREEN, shared advisory wall)
+    resolving as capability NA while a TRUE seam plus the same advisory still
+    ends red (the real break in step 1 wins).  A genuine zone duplication has no
+    unpaired advisory on the floor, so it falls through to step 3.
+    """
+    real_breaks = [d for d in diagnostics if d.category == "identity"
+                   and d.context.get("reason") in _REAL_BREAK_REASONS]
+    if real_breaks:
+        for preferred in _REAL_BREAK_REASONS:
+            for diag in real_breaks:
+                if diag.context.get("reason") == preferred:
+                    raise ScoreContractError(identity_code, "scoring.input_identity", context=dict(diag.context))
+    capability = [d for d in diagnostics if d.category == "capability"]
+    if capability:
+        diag = capability[0]
+        raise ScoreContractError(diag.code, diag.gate_id, context=dict(diag.context))
+    ambiguous = [d for d in diagnostics if d.category == "identity"]
+    if ambiguous:
+        diag = ambiguous[0]
+        raise ScoreContractError(identity_code, "scoring.input_identity", context=dict(diag.context))
 
 
 def extract_gt_plan_segments(gt: GroundTruthV3) -> tuple[PlanSegment, ...]:

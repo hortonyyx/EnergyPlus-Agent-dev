@@ -560,3 +560,119 @@ def test_r4_advisory_hit_is_recorded_at_runtime(caplog):
     hits = [r for r in caplog.records if getattr(r, "event", None) == "near_orthogonal_advisory_hit"]
     assert len(hits) == 1
     assert hits[0].floor_id == "F"
+
+
+# ---------------------------------------------------------------------------
+# R2-B1: mixed-defect priority -- a real seam may never be masked by capability
+# NA (collect-then-arbitrate, NOT a re-ordering of the buckets).
+# ---------------------------------------------------------------------------
+# sol's live counter-example (footprint [0,4]x[0,10], three cells).  Cell A's
+# right edge is either EXACT or a near-vertical advisory (dx=5e-10); cells B/C
+# carry a 1e-9 seam (the real topology break).  r2 ran advisory-first and the
+# resulting capability NA hid the seam -- a true red washed into NA (the second
+# false-green of the batch).  The fix is structural (collect diagnostics, then
+# arbitrate), not a bucket swap: tile-first re-raises a DERIVATIVE
+# exterior_duplicate_owner the advisory lean perturbed onto a neighbour span.
+
+
+def test_r2b1_true_gap_only_is_identity_red_code_verbatim():
+    # R2-B1 acceptance lock 1: a real 1e-9 seam (B/C) with NO advisory edge is
+    # identity red, code verbatim.  A's right edge is EXACT here.  Production is
+    # five-way GREEN, so the red is not an echo of an upstream rejection.
+    geom = _typed_correction([
+        CellV3(id="A", role="office", x=[0., 2.], y=[0., 10.],
+               polygon=[[0., 0.], [2., 0.], [2., 10.], [0., 10.]]),
+        CellV3(id="B", role="office", x=[2., 4.], y=[0., 5.],
+               polygon=[[2., 0.], [4., 0.], [4., 5.], [2., 5.]]),
+        CellV3(id="C", role="office", x=[2., 4.], y=[5. + 1e-9, 10.],
+               polygon=[[2., 5. + 1e-9], [4., 5. + 1e-9], [4., 10.], [2., 10.]]),
+    ], [[0., 0.], [4., 0.], [4., 10.], [0., 10.]])
+    assert all(finding.ok for finding in validate_corrected_geometry(geom))
+    with pytest.raises(ScoreContractError) as exc:
+        extract_correction_plan_segments(geom)
+    assert exc.value.code == "score_product_identity_invalid"
+    assert exc.value.gate_id == "scoring.input_identity"
+    assert exc.value.context["reason"] == "invalid_interior_edge_pair"
+
+
+def test_r2b1_true_gap_plus_advisory_stays_identity_red_not_na():
+    # R2-B1 acceptance lock 2 (the r2 false-green root): the SAME 1e-9 seam with
+    # an UNPAIRED advisory edge added (A's right edge leans dx=5e-10) must STILL
+    # end identity red -- the advisory's capability NA may never mask the real
+    # seam.  r2 ran advisory-first and the NA hid this seam (whole round NA, no
+    # score).  Production is five-way GREEN.
+    geom = _typed_correction([
+        CellV3(id="A", role="office", x=[0., 2. + 5e-10], y=[0., 10.],
+               polygon=[[0., 0.], [2., 0.], [2. + 5e-10, 10.], [0., 10.]]),
+        CellV3(id="B", role="office", x=[2., 4.], y=[0., 5.],
+               polygon=[[2., 0.], [4., 0.], [4., 5.], [2., 5.]]),
+        CellV3(id="C", role="office", x=[2., 4.], y=[5. + 1e-9, 10.],
+               polygon=[[2., 5. + 1e-9], [4., 5. + 1e-9], [4., 10.], [2., 10.]]),
+    ], [[0., 0.], [4., 0.], [4., 10.], [0., 10.]])
+    assert all(finding.ok for finding in validate_corrected_geometry(geom))
+    with pytest.raises(ScoreContractError) as exc:
+        extract_correction_plan_segments(geom)
+    assert exc.value.code == "score_product_identity_invalid"
+    assert exc.value.gate_id == "scoring.input_identity"
+    # the root-cause real-break reason wins (invalid_interior_edge_pair), NOT
+    # the derivative exterior_duplicate_owner the advisory lean perturbed onto
+    # the neighbour top span (§1.2 step 3 -- closest-to-root within identity).
+    assert exc.value.context["reason"] == "invalid_interior_edge_pair"
+
+
+def test_r2b1_advisory_only_no_real_break_is_capability_na():
+    # R2-B1 acceptance lock 3 (no over-reject): a single unpaired advisory edge
+    # with NO real seam must still resolve as capability NA -- the priority rule
+    # must not slap every legal advisory shape with identity red.  Cell A alone
+    # has one near-vertical advisory right edge (no facing pair) and no other
+    # interior edge, so the only diagnostic is the capability NA.
+    geom = _typed_correction([
+        CellV3(id="A", role="office", x=[0., 2. + 5e-10], y=[0., 10.],
+               polygon=[[0., 0.], [2., 0.], [2. + 5e-10, 10.], [0., 10.]]),
+    ], [[0., 0.], [4., 0.], [4., 10.], [0., 10.]])
+    with pytest.raises(ScoreContractError) as exc:
+        extract_correction_plan_segments(geom)
+    assert exc.value.code == "score_unsupported_combination"
+    assert exc.value.gate_id == "scoring.capability"
+    assert exc.value.context["reason"] == "near_orthogonal_advisory_unpaired"
+
+
+def test_r2b1_arbitrator_real_break_outranks_capability_na():
+    # R2-B1 acceptance lock 4 (the priority rule is real, not dead code): given
+    # BOTH a real-break identity diagnostic and a capability NA on the same
+    # floor, the arbitrator raises the identity code -- the seam may never be
+    # masked.  Neuter: flip the arbitrator to capability-first (the r2 disease)
+    # and this lock goes red (it would raise score_unsupported_combination).
+    from src.agent.judge.segment_score import _arbitrate_pairing_diagnostics, _PairDiagnostic
+    diagnostics = [
+        _PairDiagnostic(category="capability", code="score_unsupported_combination",
+            gate_id="scoring.capability",
+            context={"reason": "near_orthogonal_advisory_unpaired", "floor_id": "F"}),
+        _PairDiagnostic(category="identity", code="score_product_identity_invalid",
+            gate_id="scoring.input_identity",
+            context={"reason": "invalid_interior_edge_pair", "floor_id": "F"}),
+    ]
+    with pytest.raises(ScoreContractError) as exc:
+        _arbitrate_pairing_diagnostics(diagnostics, identity_code="score_product_identity_invalid")
+    assert exc.value.code == "score_product_identity_invalid"
+    assert exc.value.gate_id == "scoring.input_identity"
+    assert exc.value.context["reason"] == "invalid_interior_edge_pair"
+
+
+def test_r2b1_unpaired_advisory_edge_is_recorded_at_runtime(caplog):
+    # R2-B1 / §1.3: an UNPAIRED advisory edge (the one that resolves as NA) is
+    # recorded in the runtime artifact too, not only paired hits -- r2's paired-
+    # hit-only log was blind to exactly the edges that trigger NA, which are the
+    # ones R-4's later flip-to-blocking most needs to count.
+    import logging
+    geom = _typed_correction([
+        CellV3(id="A", role="office", x=[0., 2. + 5e-10], y=[0., 10.],
+               polygon=[[0., 0.], [2., 0.], [2. + 5e-10, 10.], [0., 10.]]),
+    ], [[0., 0.], [4., 0.], [4., 10.], [0., 10.]])
+    with caplog.at_level(logging.INFO, logger="src.agent.judge.segment_score"):
+        with pytest.raises(ScoreContractError):
+            extract_correction_plan_segments(geom)
+    unpaired = [r for r in caplog.records if getattr(r, "event", None) == "near_orthogonal_advisory_unpaired"]
+    assert len(unpaired) == 1
+    assert unpaired[0].unpaired is True
+    assert unpaired[0].floor_id == "F"
