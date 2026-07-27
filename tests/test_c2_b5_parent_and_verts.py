@@ -68,8 +68,11 @@ from src.agent.judge.opening_claim_score import (
 )
 from src.agent.judge.score_schema import (
     GtIdentityV8,
+    JudgeScoreViewBindingsV1,
+    PlanScoreViewBindingV1,
     ProductIdentityV8,
     ScoreContractError,
+    canonical_sha256,
     decide_score_capability,
 )
 from src.agent.judge.score_config import load_judge_score_config
@@ -1172,3 +1175,87 @@ def test_line_helper_body_has_no_facade_axis_or_xy_plane_branch():
     assert "facade" not in source
     assert "_facade_axis" not in source
     assert "axis ==" not in source
+
+
+# ---------------------------------------------------------------------------
+# N-1 / §5-B exit 2: e2e window-host chain through score_service:230 (2026-07-27)
+# ---------------------------------------------------------------------------
+# The §5-B facade update at score_service:230 (_resolve_facade_product_to_gt) is
+# the ONLY path that maps a product facade segment into product_to_gt; the
+# downstream assign_openings consumes that map to route a real B5 correction
+# window to its GT host.  The prior unit lock (test_b_facade_multi_span_straddle
+# _fails_closed_not_first) calls the helper directly and never exercises :230, so
+# neutering :230 left the whole suite green.  This lock drives a real
+# VerifiedWindowHostProof six-artifact window through score_typed_attempt end to
+# end, so neutering :230 makes a window fail closed (score_product_segment_
+# unresolved) instead of silently mis-binding.
+
+
+def _n1_gt(geom):
+    """A GT structurally isomorphic to the bundle's corrected geometry: the same
+    finalized vg-derived facade segments become boundary_segments (so the judge's
+    own visibility adapter matches them exactly), one South opening sits on the
+    South span, and the generator/tolerances/content_sha256 the judge helpers read
+    are filled in."""
+    south = next(segment for segment in geom.facade_segments if segment.facade_family == "South")
+
+    def _wrap(segment):
+        return SimpleNamespace(
+            id=segment.id, floor_id=segment.floor_id, facade_family=segment.facade_family,
+            p1=tuple(segment.p1), p2=tuple(segment.p2), outward_normal=tuple(segment.outward_normal),
+            world_along_interval=segment.world_along_interval, depth=segment.depth,
+            source_footprint_fingerprint=segment.source_footprint_fingerprint, source_refs=())
+
+    floor = SimpleNamespace(
+        id="f1",
+        footprint=SimpleNamespace(exterior=SimpleNamespace(vertices=[[0.0, 0.0], [4.0, 0.0], [4.0, 4.0], [0.0, 4.0]])),
+        footprint_fingerprint=geom.facade_segments[0].source_footprint_fingerprint,
+        zones=[SimpleNamespace(id="r1", polygon=SimpleNamespace(exterior=SimpleNamespace(
+            vertices=[[0.0, 0.0], [4.0, 0.0], [4.0, 4.0], [0.0, 4.0]])))],
+        boundary_segments=[_wrap(segment) for segment in geom.facade_segments],
+    )
+    opening = SimpleNamespace(id="gt-w1", floor_id="f1", kind="window", boundary_segment_id=south.id,
+        host_zone_id="r1", world_along_interval=SimpleNamespace(lo=1.0, hi=3.0),
+        z_interval=SimpleNamespace(lo=1.0, hi=2.0), source_refs=())
+    return SimpleNamespace(
+        generator=SimpleNamespace(tolerances=SimpleNamespace(vg_depth_epsilon_m=0.3, vg_endpoint_epsilon_m=0.3)),
+        content_sha256="e" * 64, floors=[floor], openings=[opening])
+
+
+def _n1_bindings(bundle):
+    plan_binding = PlanScoreViewBindingV1(kind="plan", input_id="plan", floor_id="f1", gt_source_view_ids=("gt-plan",))
+    payload = {"schema_version": "1", "case_id": "case", "gt_content_sha256": "b" * 64,
+               "case_metadata_sha256": H, "base_view_manifest_sha256": bundle.manifest.content_sha256,
+               "bindings": [plan_binding.model_dump(mode="json")]}
+    return JudgeScoreViewBindingsV1(schema_version="1", case_id="case", gt_content_sha256="b" * 64,
+        case_metadata_sha256=H, base_view_manifest_sha256=bundle.manifest.content_sha256,
+        bindings=(plan_binding,), content_sha256=canonical_sha256(payload))
+
+
+def test_n1_facade_update_feeds_window_host_resolution_e2e(monkeypatch, tmp_path):
+    bundle = _bundle(tmp_path)
+    geom = bundle.result.geom
+    common = dict(gt_identity=_official_gt_identity(), gt=_n1_gt(geom), stage="correction",
+                  product_payload=geom.model_dump(mode="json"),
+                  product_identity=_official_product_identity(
+                      bundle, output_sha256=bundle.result.prepared_candidate_identity.output_sha256),
+                  base_view_manifest=bundle.manifest, score_bindings=_n1_bindings(bundle),
+                  completeness_overlay=None, c2_config=load_judge_score_config("src/configs/judge_score.yaml"),
+                  window_host_proof=bundle.proof)
+    # The grade PNG is a judge-side renderer; this lock pins the SCORING chain
+    # (assign_openings / host_resolver), not the paint, so stub the renderer.
+    import sys
+    scripts_dir = str(Path(__file__).resolve().parents[1] / "scripts" / "tool_scripts")
+    if scripts_dir not in sys.path:
+        sys.path.insert(0, scripts_dir)
+    import render_grade
+    monkeypatch.setattr(render_grade, "render_score_grade_png", lambda **kw: b"")
+    # The window routes through :230's facade map and resolves matched.
+    result = score_typed_attempt(**common)
+    assert result.payload.extras == ()
+    # NEUTER score_service:230 (the facade update feeds nothing) -> the window's
+    # facade_segment_id is absent from product_to_gt -> assign_openings rejects it.
+    monkeypatch.setattr("src.agent.judge.score_service._resolve_facade_product_to_gt", lambda **kw: {})
+    with pytest.raises(ScoreContractError) as exc:
+        score_typed_attempt(**common)
+    assert exc.value.code == "score_product_segment_unresolved"

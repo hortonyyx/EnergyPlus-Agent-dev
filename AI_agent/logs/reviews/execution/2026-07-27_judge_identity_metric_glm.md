@@ -269,3 +269,99 @@ neuter ⑤发现：换 `extract_gt` 的 `identity_code`（3 处）为产品侧�
 
 本批仍**未 CLOSED**：⑥⑦两项 PARTIAL 需主控裁量是否下轮施工（⑥改生产码接线 + 补 R-4 反例锁；⑦补 e2e 链路锁）。完成后方可派 sol 复审 → 主控轻门。
 
+---
+
+## 9. r2 收尾（2026-07-27 GLM 续作 · ⑥⑦ 两项 PARTIAL 清零）
+
+### 9.0 范围 + 开工/收工 git status
+
+主控裁定 **⑥⑦ 都做、不接受 PARTIAL 结项**。本轮 = r1 自查表里诚实标 PARTIAL 的两项。**施工主体（W1-W4 / B-1 / R-5 / diam）不重做**，只做 ⑥（W5 真接线）+ ⑦（N-1 e2e 链路锁）。
+
+**开工 git status**（HEAD `32c173a`，r1 已 commit）：
+```
+?? AI_agent/logs/reviews/request/2026-07-27_judge_identity_metric_rework_r2.md   (主控本单, 非本批施工)
+nothing else (工作树净)
+```
+
+**收工 git status**：
+```
+ M src/agent/correction/cell_geometry.py                  (⑥-1 生产端真调 edge_is_axis_aligned)
+ M src/agent/judge/segment_score.py                       (⑥-2/3 classify 分流 + _pair_advisory_edges + advisory 日志)
+ M tests/test_c2_b5_parent_and_verts.py                   (⑦ N-1 e2e 链路锁 + 2 helper)
+ M tests/test_judge_identity_metric.py                    (⑥ 4 条 R-4 验收锁 + _typed_correction helper)
+?? AI_agent/logs/reviews/request/2026-07-27_judge_identity_metric_rework_r2.md   (主控本单)
+ M AI_agent/logs/reviews/execution/2026-07-27_judge_identity_metric_glm.md       (本日志续写 r2 节)
+```
+
+> `case_tests/test_baseline/gt/` 全程零 diff（A5）；`AI_agent/CLAUDE.md` 未碰；仓库根无新文件；`orthogonality.py` / `score_service.py` 经两轮 neuter 后逐字还原（`git diff --stat` 空）。
+
+### 9.1 ⑥ W5 共享正交判据真接线（三步死骨架 + 关键突破）
+
+**步骤 1 · 生产端真调共享函数**（[cell_geometry.py:164](../../../../src/agent/correction/cell_geometry.py#L164)）：
+`if dx > _EPS and dy > _EPS:` → `if not edge_is_axis_aligned(dx, dy):`，并 import `edge_is_axis_aligned`（值不变 1e-9，判据来自共享模块而非本地重写）。
+
+**步骤 2 · 判卷端用共享判据分类，量不了 vs 非法彻底分开**（[segment_score.py `_pair_interior_edges`](../../../../src/agent/judge/segment_score.py)）：
+分流改用 `classify_edge_orthogonality`：
+- `axis_aligned`（精确 0，与原 `p1[0]==p2[0] or p1[1]==p2[1]` 逐字等价）→ 现有正交 T 切分路径，**不变**。
+- `near_orthogonal_advisory`（0 < min(dx,dy) ≤ 1e-9）→ 新 `_pair_advisory_edges`：**精确反向配对**，配不上抛 `score_unsupported_combination`（capability NA），**绝不抛 `score_*_identity_invalid`**。
+- `non_orthogonal`（两者都 > 1e-9）→ 现有 `_pair_general_edges`，配不上抛 identity_invalid（上游本就不该产出，**错误码逐字不变**）。
+
+**关键突破（同一病根两张脸）**：sol 活体反例（cell A 共享边 dx=5e-10 / cell B 反向 dx=4e-10）在**完整 extract** 下，最初实证发现判卷器先在 axis_aligned **外墙边**抛 `exterior_duplicate_owner`（identity_invalid），**到不了 advisory 路径**——根因是斜墙端点错位(1e-10级)传播到连接的 axis_aligned 外墙边，被精确 T 切定罪为 duplicate owner。这正是主控说的「同一病根连出两张脸」。**修法**：让 `_pair_advisory_edges` 在 `_tile_orthogonal_edges` **之前**执行——advisory 边配不上时在**源头**抛 unsupported，不给受扰动 的 axis-aligned 边定罪机会。调整顺序后探针实证：活体反例走 unsupported（非 identity_invalid），对照形态（A、B 相同 5e-10，精确反向）正常抽出 1 条内墙。
+
+**步骤 3 · advisory 运行时产物**：`_log_advisory_hit`（结构化日志 `logging.INFO`，event=`near_orthogonal_advisory_hit` + floor_id + 两端点 binary64 hex）。每条配上的 advisory 边记一条，run 后可回答「命中几条」（R-4 两阶段门控的翻 blocking 判据靠它；**本批仍只 advisory，不翻 blocking**）。
+
+### 9.2 ⑥ 验收锁 + ⑥-4 指定 neuter 实测
+
+**4 条 R-4 验收锁**（[test_judge_identity_metric.py](../../../../tests/test_judge_identity_metric.py)）：
+1. `test_r4_live_counterexample_is_unsupported_not_identity_invalid`：sol 活体反例（5e-10 vs 4e-10）→ 生产 `validate_corrected_geometry` 五项全 GREEN **且** 判卷抛 `score_unsupported_combination / near_orthogonal_advisory_unpaired`（非 identity_invalid）。**当前必红 → 改后绿**。
+2. `test_r4_control_exact_reverse_advisory_pairs_and_scores`：B 顶点改成与 A 相同 5e-10（精确反向）→ 正常抽出 1 条内墙 + GT mirror match 出分（passing=H）。
+3. `test_r4_non_orthogonal_edge_still_identity_invalid_verbatim`：non_orthogonal 斜墙（dx=0.5 vs 0.6）→ 判卷 `score_product_identity_invalid / invalid_interior_edge_pair`，**逐字不变**。
+4. `test_r4_advisory_hit_is_recorded_at_runtime`：对照形态 extract → caplog 捕获恰好 1 条 `near_orthogonal_advisory_hit`（floor_id="F"）。
+
+**⑥-4 指定 neuter 实测**（cp 备份 → 改 → 跑 → 还原 → `grep NEUTER` 验 0 残留 + `git diff --stat` 验空）：
+
+| neuter | 摘掉 | 实测变红 | 绑定守卫 |
+|---|---|---|---|
+| **edge_is_axis_aligned** 首行 → `raise AssertionError` | [orthogonality.py:59](../../../../src/agent/correction/orthogonality.py#L59) | **生产路径 8 红**：`test_c2_b1_cell_polygon.py` 全系（test_polygon_snap_updates_vertices_and_rederives_bbox / test_sm24_c_shape_corridor… / test_invalid_polygons_raise[polygon3-not orthogonal] / [polygon0-CCW] / test_polygon_bbox_mismatch… / test_l_shape_polygon… / test_v1_polygon_rejected… / [polygon1-invalid\|self-intersecting]） | cell_geometry.cell_polygon 调 edge_is_axis_aligned（生产合法性门） |
+| **classify_edge_orthogonality** 首行 → `raise AssertionError` | [orthogonality.py:44](../../../../src/agent/correction/orthogonality.py#L44) | **判卷路径 25 红**：`test_judge_identity_metric.py` + `test_c2_segment_tjunction.py` 所有调 extract 的测试（含 R-4 锁1/锁3、W3、B-1、A8、M-4、L-a/L-c/L-e/lock1/lock2/lock3…） | segment_score._pair_interior_edges 调 classify（判卷分流） |
+
+> r1 自查表 ⑥ 的实测是「全仓仅单元测试红、**0 生产路径红**」——本轮把这个 0 变成 **8（生产）+ 25（判卷）**。两端真接线坐实。
+
+### 9.3 ⑦ N-1 窗宿主 e2e 链路锁 + 指定 neuter 实测
+
+**夹具**（[test_c2_b5_parent_and_verts.py](../../../../tests/test_c2_b5_parent_and_verts.py)，复用既有 `_bundle` B5 六件套 + `_official_gt_identity` / `_official_product_identity`）：
+- `_bundle(tmp_path)` 造**正式 correction window**（VerifiedWindowHostProof 全链：finalize_correction_draw → WindowHostsArtifactV1 → `_issue_verified_window_host_proof`），窗 w1 在 South facade span[1,3]。
+- `_n1_gt(geom)`：与 bundle geom **同构**的 GT——把 bundle finalize 后的 vg-derived 4 facade_segments 包成 boundary_segments（保证 `gt_to_va_visibility` 的 expected/declared 集合逐项匹配），1 个 South opening 坐 South gt segment，generator/tolerances/content_sha256 补齐。
+- `_n1_bindings`：`PlanScoreViewBindingV1`（input_id="plan" 匹配 manifest 的 plan entry）。
+- renderer stub（monkeypatch `render_grade.render_score_grade_png`）：本锁钉的是**计分链路**（assign_openings / host_resolver），不是画图。
+
+**锁**（`test_n1_facade_update_feeds_window_host_resolution_e2e`）：`score_typed_attempt` 全链走到 `assign_openings`——:230 的 `_resolve_facade_product_to_gt` 把 product South facade segment 映射到 gt-south，窗 w1 经 `bind_correction_window_segment` + host_resolver 解析 **matched（extras 空）**。锁内再 monkeypatch `_resolve_facade_product_to_gt={}` 复验 neuter 逻辑。
+
+**⑦ 指定 neuter 实测**（cp 备份 score_service.py → 改 :230 → 跑 → 还原）：
+| neuter | 摘掉 | 实测变红 | 红在哪 |
+|---|---|---|---|
+| `score_service.py:230` `product_to_gt.update(_resolve_facade_product_to_gt(...))` → 只调 helper 不 update | [score_service.py:230](../../../../src/agent/judge/score_service.py#L230) | **`test_n1_…` 1 红** | `assign_openings` [opening_claim_score.py:352](../../../../src/agent/judge/opening_claim_score.py#L352) 抛 `score_product_segment_unresolved`（窗 w1 的 facade_segment_id 不在 product_to_gt）|
+
+> r1 自查表 ⑦ 的实测是「全仓 **0 红**」——本轮把这个 0 变成 **1（test_n1）**。:230 的 facade update 被消费端（assign_openings）真用到，neuter 它新锁即红。
+
+### 9.4 全仓测试输出
+
+```
+1715 passed, 10 xfailed, 150 warnings in 245.38s (0:04:05)
+```
+
+- **1715 passed** = r1 基线 1710 + 本批新增 5 锁（⑥ 4 条 R-4 + ⑦ 1 条 N-1 e2e）。
+- **10 xfailed** = 基线不变。
+- **0 failed / 0 regression**。`case_tests/test_baseline/gt/` 全程零 diff。
+
+### 9.5 诚实结论
+
+r1 的两项 PARTIAL 本轮**全部清零**，无新增假锁、无自行判定等价：
+- **⑥ W5 真接线**：生产端 `cell_geometry` 真调 `edge_is_axis_aligned`、判卷端 `_pair_interior_edges` 真调 `classify_edge_orthogonality` + 新 advisory 路径；**关键突破**是发现并堵死「斜墙端点错位传播到 axis_aligned 外墙边被判 duplicate owner」这第二张脸（让 advisory 配对先于 tile）。⑥-4 neuter 双路径红（生产 8 / 判卷 25）坐实两端接线。
+- **⑦ N-1 e2e 链路锁**：构造 B5 六件套正式窗 + 同构 GT，`score_typed_attempt` 全链走到 assign_openings，:230 facade 映射喂入、窗 matched；指定 neuter :230（外部改生产码）→ test_n1 红（`score_product_segment_unresolved`）。
+
+本批施工方未碰 gt / CLAUDE.md / 仓库根；两轮 neuter 工作树逐字还原；全仓 1715 绿零回归。**⑥⑦ 完成，可派 sol 复审 → 主控轻门。**
+
+> 一处主动设计决定已上文标注（非自行降级）：⑦ e2e 锁 monkeypatch 了 `render_grade.render_score_grade_png`（返回 b""），理由 = 本锁钉的是计分链路（assign_openings/host_resolver）而非画图；render_grade 期望 gt 为 dict（真实 GroundTruthV3 经 model_dump），SimpleNamespace gt 不兼容，而构造完整 GroundTruthV3 与构造一个真实 case 等价、超本批范围。 neuter :230 经**外部改生产码**（非锁内 monkeypatch）实测验证，符合派工单字面要求。
+
+

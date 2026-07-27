@@ -12,10 +12,13 @@ from typing import Any, Iterable
 
 from shapely.geometry import Polygon
 
-# W5 (R-4): the orthogonality epsilon is shared with the judge through the
-# production/judge orthogonality module so the two never disagree on a near-axis
-# edge.  Behavior is unchanged (1e-9); only the source is centralized.
-from src.agent.correction.orthogonality import ORTHOGONALITY_EPSILON as _EPS
+# W5 (R-4): production and the judge share ONE orthogonality yardstick through
+# the production/judge orthogonality module, so the two can never disagree about
+# a near-axis edge (the structural root of the false-red rounds: the judge used
+# its own exactness ceiling to convict legal upstream geometry).  The legitimacy
+# gate below CALLS the shared predicate -- it does not re-derive the condition --
+# so tightening the epsilon is one edit in one place (R-4 two-stage gating).
+from src.agent.correction.orthogonality import ORTHOGONALITY_EPSILON as _EPS, edge_is_axis_aligned
 _BBOX_TOL = 1e-6
 
 
@@ -161,7 +164,11 @@ def cell_polygon(
         length = math.hypot(dx, dy)
         if length <= _EPS:
             raise ValueError(f"cell {cid}: polygon edge {i} is degenerate")
-        if dx > _EPS and dy > _EPS:
+        # W5 (R-4): the legitimacy question is answered by the SHARED predicate
+        # (edge_is_axis_aligned), not a re-derived local condition -- the judge
+        # calls classify_edge_orthogonality on the same epsilon, so an edge this
+        # gate admits can never be branded a topology break downstream.
+        if not edge_is_axis_aligned(dx, dy):
             raise ValueError(f"cell {cid}: polygon edge {i} is not orthogonal")
         if min_edge_length_m is not None and length < min_edge_length_m - _EPS:
             raise ValueError(

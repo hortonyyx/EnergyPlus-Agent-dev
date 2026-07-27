@@ -7,15 +7,19 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from itertools import product
+import logging
 from math import hypot
 from typing import Iterable, Mapping, Sequence
 
+from src.agent.correction.orthogonality import classify_edge_orthogonality
 from src.agent.correction.schema import CorrectedGeometryV3
 from src.agent.judge.gt_schema import GroundTruthV3
 from src.agent.judge.score_schema import JudgeScoreConfigV1, ScoreContractError
 
 
 Point = tuple[float, float]
+
+_logger = logging.getLogger(__name__)
 
 
 # W1 coordinate identity (representation-layer, NOT a geometric tolerance).
@@ -351,6 +355,63 @@ def _pair_general_edges(
     return pairs
 
 
+def _log_advisory_hit(floor_id: str, p1: Point, p2: Point) -> None:
+    """Record a near-orthogonal advisory edge that paired by exact reverse (R-4).
+
+    This is the runtime artifact for R-4's two-stage gating: a real run must be
+    able to answer "did any near-orthogonal edge fire, and how many" before the
+    advisory is allowed to flip to blocking.  This batch only ADVISES (the edge
+    is paired and scored normally); the structured log carries the floor and the
+    binary64 hex of both endpoints for reproducibility.
+    """
+    _logger.info(
+        "near_orthogonal_advisory_hit",
+        extra={"event": "near_orthogonal_advisory_hit", "floor_id": floor_id,
+               "p1_hex": (float(p1[0]).hex(), float(p1[1]).hex()),
+               "p2_hex": (float(p2[0]).hex(), float(p2[1]).hex())},
+    )
+
+
+def _pair_advisory_edges(
+    advisory: dict[tuple[Point, Point], list[str]],
+    floor_id: str,
+) -> list[tuple[Point, Point, tuple[str, ...]]]:
+    """Pair near-orthogonal advisory edges by exact reverse (W5 / R-4).
+
+    Production admitted these edges (dx or dy in (0, 1e-9]) as axis-aligned, so
+    the judge may NEVER brand them as a topology break -- that was the structural
+    root of the false-red rounds (the judge convicting legal upstream geometry
+    with its own exactness ceiling).  Each advisory edge pairs only with its
+    EXACT reverse; a one-sided advisory edge, or one whose reverse carries a
+    different near-axis spelling (5e-10 vs 4e-10), is a shape the judge's exact
+    path cannot measure, so it resolves as capability NA
+    (``score_unsupported_combination``), never ``score_*_identity_invalid``.  A
+    successfully paired advisory edge is recorded (``_log_advisory_hit``) so
+    R-4's later flip-to-blocking has a real-run signal to count.  Footprint and
+    exterior rings are axis-aligned (validated upstream), so an advisory edge is
+    never on the exterior here and no exterior/interior conflict check is needed.
+    """
+    pairs: list[tuple[Point, Point, tuple[str, ...]]] = []
+    consumed: set[tuple[Point, Point]] = set()
+    for edge, owners in advisory.items():
+        if edge in consumed:
+            continue
+        p1, p2 = edge
+        reverse = (p2, p1)
+        rev_owners = advisory.get(reverse)
+        if rev_owners is None or len(owners) != 1 or len(rev_owners) != 1:
+            raise ScoreContractError(
+                "score_unsupported_combination", "scoring.capability",
+                context={"reason": "near_orthogonal_advisory_unpaired", "floor_id": floor_id,
+                         "edge_hex": (float(p1[0]).hex(), float(p1[1]).hex(),
+                                      float(p2[0]).hex(), float(p2[1]).hex())})
+        _log_advisory_hit(floor_id, p1, p2)
+        pairs.append((p1, p2, tuple(sorted((owners[0], rev_owners[0])))))
+        consumed.add(edge)
+        consumed.add(reverse)
+    return pairs
+
+
 def _pair_interior_edges(
     directed: dict[tuple[Point, Point], list[str]],
     exterior_edges: tuple[tuple[Point, Point], ...],
@@ -360,19 +421,43 @@ def _pair_interior_edges(
 ) -> list[tuple[Point, Point, tuple[str, ...]]]:
     """Pair interior edges by exact coverage, T-junction aware (RW-1/2/3).
 
-    Axis-aligned edges are tiled at the union of all endpoints into elementary
-    sub-intervals (``_tile_orthogonal_edges``); non-axis-aligned edges pair only
-    with their exact reverse (``_pair_general_edges``).  All coordinates are
-    canonicalized at the scorer entry (RW-1), so every comparison below is exact
-    (``==`` / ``<=``); a gap, an overlap, or an imprecise endpoint is a real
-    topology break, not a T-junction, and is rejected.
+    Edges are classified on the SHARED orthogonality yardstick (W5 / R-4) so the
+    judge and the production validator can never disagree about a near-axis edge:
+      * axis_aligned (exact 0) -- tiled at the union of all endpoints into
+        elementary sub-intervals (``_tile_orthogonal_edges``).
+      * near_orthogonal_advisory (0 < min(dx,dy) <= 1e-9) -- production admitted
+        it, so the judge pairs it by exact reverse only; an unpaired one is a
+        shape the judge cannot measure and resolves as capability NA, NEVER as a
+        topology break (``_pair_advisory_edges``).  Each hit is recorded so a
+        real run can answer "did this fire" (R-4 two-stage gating; advisory-only
+        now, not yet flipped to blocking).
+      * non_orthogonal (both > 1e-9) -- production rejects it, so a general-seam
+        failure here IS a real topology break (``_pair_general_edges``).
+    All coordinates are canonicalized at the scorer entry (RW-1), so every
+    comparison below is exact (``==`` / ``<=``); a gap, an overlap, or an
+    imprecise endpoint is a real topology break, not a T-junction, and is rejected.
     """
     ortho: dict[tuple[Point, Point], list[str]] = {}
     general: dict[tuple[Point, Point], list[str]] = {}
+    advisory: dict[tuple[Point, Point], list[str]] = {}
     for edge, owners in directed.items():
         p1, p2 = edge
-        (ortho if p1[0] == p2[0] or p1[1] == p2[1] else general)[edge] = owners
-    pairs = _tile_orthogonal_edges(ortho, exterior_edges, floor_id, identity_code=identity_code)
+        cls = classify_edge_orthogonality(p2[0] - p1[0], p2[1] - p1[1])
+        if cls == "axis_aligned":
+            ortho[edge] = owners
+        elif cls == "near_orthogonal_advisory":
+            advisory[edge] = owners
+        else:  # non_orthogonal
+            general[edge] = owners
+    # R-4 ordering: advisory edges pair BEFORE the orthogonal tile.  A near-
+    # orthogonal edge the production validator admitted but the judge cannot
+    # exact-reverse-pair must resolve as capability NA BEFORE any axis-aligned
+    # seam whose endpoints the advisory edge perturbed (1e-10 level) is hauled in
+    # front of the exact tile and convicted as a duplicate owner -- same disease,
+    # two faces (the wall's near-axis lean and the exterior span it nudges); the
+    # judge says unsupported at the source rather than convicting a derivative.
+    pairs = list(_pair_advisory_edges(advisory, floor_id))
+    pairs.extend(_tile_orthogonal_edges(ortho, exterior_edges, floor_id, identity_code=identity_code))
     pairs.extend(_pair_general_edges(general, exterior_edges, floor_id, identity_code=identity_code))
     return pairs
 

@@ -15,6 +15,8 @@ from types import SimpleNamespace
 
 import pytest
 
+from src.agent.correction.geometry_validator import validate_corrected_geometry
+from src.agent.correction.schema import CellV3, CorrectedGeometryV3, FloorV3, FootprintRing
 from src.agent.judge.score_policy import c2_v3_score_policy
 from src.agent.judge.score_schema import JudgeScoreConfigV1, ScoreContractError
 from src.agent.judge.segment_score import (
@@ -50,6 +52,17 @@ def _correction(fid, footprint, cells):
     floor = SimpleNamespace(id=fid, footprint=SimpleNamespace(vertices=footprint),
                             cells=[SimpleNamespace(id=cid, polygon=poly) for cid, poly in cells])
     return SimpleNamespace(floors=[floor])
+
+
+def _typed_correction(cells, footprint_vertices, fid="F"):
+    """Build a real CorrectedGeometryV3 so validate_corrected_geometry (the
+    production legitimacy authority) can run on the same fixture the judge sees."""
+    floor = FloorV3(id=fid, name=fid, z_floor=0.0, ceiling_height=3.0,
+                    footprint=FootprintRing(vertices=footprint_vertices), cells=cells)
+    xs = [float(v[0]) for v in footprint_vertices]
+    ys = [float(v[1]) for v in footprint_vertices]
+    return CorrectedGeometryV3(schema_version="3", footprint_x=[min(xs), max(xs)],
+                               footprint_y=[min(ys), max(ys)], floors=[floor])
 
 
 LONG_FACING_FOUR = {
@@ -456,3 +469,94 @@ def test_b_facade_multi_span_straddle_fails_closed_not_first():
         world_along_interval=SimpleNamespace(lo=0.5, hi=1.5))])
     # single-contained -> maps to gt-a.
     assert _resolve_facade_product_to_gt(geometry=contained, gt=gt) == {"prod-a": "gt-a"}
+
+
+# ---------------------------------------------------------------------------
+# R-4 / W5 wiring: production legality vs judge capability (live counter-example)
+# ---------------------------------------------------------------------------
+# Two cells share ONE near-vertical interior wall.  Cell A leans it dx_a; cell B
+# leans the reverse dx_b.  Production admits any dx <= 1e-9 (edge_is_axis_aligned),
+# so validate_corrected_geometry stays five-way GREEN for both spellings.  The
+# judge's question is separate: can its exact-reverse path MEASURE this wall?
+#   * dx_a == dx_b -> exact reverse pair -> extracts one interior wall, scores.
+#   * dx_a != dx_b (5e-10 vs 4e-10) -> not exact reverses -> capability NA
+#     (score_unsupported_combination), NEVER score_product_identity_invalid.
+# Before this batch the judge convicted the legal geometry with its own exactness
+# ceiling (exterior_duplicate_owner on the axis-aligned span the lean perturbed) --
+# the same disease in a second face, which is why R-4 routes the whole shape to
+# unsupported at the source instead of patching each face.
+
+
+def _shared_wall_cells(dx_a, dx_b, *, H=1.0):
+    return [
+        CellV3(id="A", role="office", x=[0.0, 0.5 + dx_a], y=[0.0, H],
+               polygon=[[0.0, 0.0], [0.5, 0.0], [0.5 + dx_a, H], [0.0, H]]),
+        CellV3(id="B", role="office", x=[0.5, 1.0], y=[0.0, H],
+               polygon=[[0.5, 0.0], [1.0, 0.0], [1.0, H], [0.5 + dx_b, H]]),
+    ]
+
+
+def test_r4_live_counterexample_is_unsupported_not_identity_invalid():
+    # R-4 acceptance lock 1 (controller: "currently red -> green"): sol's live
+    # counter-example.  Production is five-way GREEN; the judge resolves the
+    # un-measurable near-orthogonal wall as capability NA, never as a topology
+    # break.  This is the whole point of the batch.
+    geom = _typed_correction(_shared_wall_cells(5e-10, 4e-10),
+                             [[0.0, 0.0], [1.0, 0.0], [1.0, 1.0], [0.0, 1.0]])
+    assert all(finding.ok for finding in validate_corrected_geometry(geom))
+    with pytest.raises(ScoreContractError) as exc:
+        extract_correction_plan_segments(geom)
+    assert exc.value.code == "score_unsupported_combination"
+    assert exc.value.context["reason"] == "near_orthogonal_advisory_unpaired"
+
+
+def test_r4_control_exact_reverse_advisory_pairs_and_scores():
+    # R-4 acceptance lock 2 (control): with both lean spellings equal (exact
+    # reverse), the advisory wall pairs cleanly, extracts one interior wall, and
+    # scores end-to-end -- proving the advisory path did not slap every legal
+    # near-axis shape with NA.  A GT mirror (exact x=0.5 wall) is covered within
+    # the judge tolerance, so the shared wall scores complete.
+    H = 1.0
+    geom = _typed_correction(_shared_wall_cells(5e-10, 5e-10),
+                             [[0.0, 0.0], [1.0, 0.0], [1.0, H], [0.0, H]])
+    assert all(finding.ok for finding in validate_corrected_geometry(geom))
+    obs = [s for s in extract_correction_plan_segments(geom) if not s.exterior]
+    assert len(obs) == 1
+    gt = SimpleNamespace(floors=[_gt_floor("F", [[0.0, 0.0], [1.0, 0.0], [1.0, H], [0.0, H]],
+        [("A", [[0.0, 0.0], [0.5, 0.0], [0.5, H], [0.0, H]]),
+         ("B", [[0.5, 0.0], [1.0, 0.0], [1.0, H], [0.5, H]])])])
+    targets = [s for s in extract_gt_plan_segments(gt) if not s.exterior]
+    rows, _ = match_plan_segments(targets=targets, observations=obs, config=_config())
+    assert _wall_criterion(rows).passing_units == pytest.approx(H)
+
+
+def test_r4_non_orthogonal_edge_still_identity_invalid_verbatim():
+    # R-4 acceptance lock 3: a genuinely non-orthogonal edge (both dx, dy > 1e-9)
+    # is a real topology break and stays identity_invalid VERBATIM (general-seam
+    # path, unchanged).  cell A leans dx=0.5, cell B leans dx=0.6 -- not exact
+    # reverses, so the general seam cannot pair them.  Counterpart to advisory:
+    # advisory = production admitted -> judge NA; non-orthogonal = production
+    # rejects -> judge broken.  (Production rejection is pinned by
+    # test_invalid_polygons_raise[not orthogonal] via cell_polygon.)
+    footprint = [(0., 0.), (4., 0.), (4., 4.), (0., 4.)]
+    cells = [("A", [(0., 0.), (2., 0.), (2.5, 4.), (0., 4.)]),
+             ("B", [(2., 0.), (4., 0.), (4., 4.), (2.6, 4.)])]
+    with pytest.raises(ScoreContractError) as exc:
+        extract_correction_plan_segments(_correction("F", footprint, cells))
+    assert exc.value.code == "score_product_identity_invalid"
+    assert exc.value.context["reason"] == "invalid_interior_edge_pair"
+
+
+def test_r4_advisory_hit_is_recorded_at_runtime(caplog):
+    # R-4 step 3 (runtime artifact): a paired near-orthogonal advisory edge is
+    # recorded so a real run can answer "did this fire, how many" -- the signal
+    # the later flip-to-blocking counts.  The control shape pairs cleanly and the
+    # structured advisory log fires exactly once for the one shared wall.
+    import logging
+    geom = _typed_correction(_shared_wall_cells(5e-10, 5e-10),
+                             [[0.0, 0.0], [1.0, 0.0], [1.0, 1.0], [0.0, 1.0]])
+    with caplog.at_level(logging.INFO, logger="src.agent.judge.segment_score"):
+        extract_correction_plan_segments(geom)
+    hits = [r for r in caplog.records if getattr(r, "event", None) == "near_orthogonal_advisory_hit"]
+    assert len(hits) == 1
+    assert hits[0].floor_id == "F"
