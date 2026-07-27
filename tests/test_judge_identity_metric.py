@@ -22,6 +22,7 @@ from src.agent.judge.score_schema import JudgeScoreConfigV1, ScoreContractError
 from src.agent.judge.segment_score import (
     PlanSegment,
     _assert_obs_conservation,
+    _assert_target_conservation,
     _cluster_axis,
     extract_correction_plan_segments,
     extract_gt_plan_segments,
@@ -310,18 +311,73 @@ def test_b1_one_wall_cannot_charge_two_parallel_answer_walls():
     assert exc.value.context["reason"] == "observation_eligible_for_multiple_support_lines"
 
 
-def test_b1_conservation_cover_exceeds_length_raises():
-    # B-1 step 3 (conservation hard gate, acceptance lock 2): an observation's
-    # charged cover may never exceed its own length.  cover > length is the exact
-    # signature of the false-green bug.  Neuter: drop the raise in
-    # _assert_observation_conservation and this lock goes red.
+def test_b1_conservation_over_charge_raises_through_match_path():
+    # R2-M1 (replaces the prior direct-helper lock sol flagged): the over-charge
+    # gate must fire through the REAL match_plan_segments wiring, not a direct
+    # ``_assert_obs_conservation(8.0 > 4.0 + tol)`` call (the r0 false-lock shape:
+    # it pinned "8.0 > 4.0 + tol" without exercising registration / cut tiling,
+    # so a gate that never ran in production still passed).  Here two answer
+    # walls sit on the SAME support line with OVERLAPPING spans -- t1 [0,4] and
+    # t2 [1,3] both at x=2 -- so one product wall registers to a SINGLE line (no
+    # score_identity_support_ambiguous) yet covers BOTH targets, charging
+    # 4 m + 2 m = 6 m on a 4 m wall.  cover (6) > obs length (4) is the double-
+    # charge signature and must LOUD-reject.  Neuter: make the gate
+    # ``covered > obs_length + 1e9`` (or drop the raise) and this reds -- the
+    # wall would otherwise score 6 m passing on a 4 m wall (the false green).
+    targets = (seg("t1", (2, 0), (2, 4), exterior=False),   # answer wall [0,4] on x=2
+               seg("t2", (2, 1), (2, 3), exterior=False))   # answer wall [1,3] on x=2 (overlaps t1)
+    obs = (seg("wall", (2, 0), (2, 4), exterior=False),)    # product wall covers both -> 6 m on a 4 m wall
     with pytest.raises(ScoreContractError) as exc:
-        _assert_obs_conservation("obs", obs_length=4.0, covered=8.0, tol=1e-9)
+        match_plan_segments(targets=targets, observations=obs, config=_config())
     assert exc.value.code == "score_denominator_nonconserving"
+    assert exc.value.gate_id == "scoring.denominator_totality"
     assert exc.value.context["reason"] == "observation_cover_exceeds_length"
-    # cover exactly at length (no double-charge) is fine -- the gate only fires
-    # on a real over-charge, not on geometric equality.
-    _assert_obs_conservation("obs", obs_length=4.0, covered=4.0, tol=1e-9)
+    assert exc.value.context["obs_length"] == pytest.approx(4.0)
+    assert exc.value.context["covered"] == pytest.approx(6.0)
+    assert exc.value.context["excess"] == pytest.approx(2.0)
+
+
+def test_b1_obs_conservation_equality_boundary_does_not_fire():
+    # R2-M1: the over-charge gate is STRICT but only fires on a real over-charge,
+    # not on geometric equality.  cover == obs length (a single obs exactly
+    # spanning its registered target(s)) is the legitimate equality and must not
+    # raise -- otherwise every exactly-covered wall would false-red.  This is the
+    # direct boundary assertion (the match-path over-charge lock above covers the
+    # > side); a tiny FP over (1e-13) still fires because the gate has no window.
+    _assert_obs_conservation("obs", obs_length=4.0, covered=4.0)
+    _assert_obs_conservation("obs", obs_length=4.0, covered=4.0 - 1e-13)
+    with pytest.raises(ScoreContractError):
+        _assert_obs_conservation("obs", obs_length=4.0, covered=4.0 + 1e-13)
+
+
+def test_b1_per_target_conservation_tiles_target_length():
+    # R2-M1 #2: per-target sub-interval conservation.  The cut tiling partitions
+    # each target's [t0, t1] into matched / miss / duplicate sub-intervals, so
+    # matched + miss + duplicate == target.length must hold.  Verified two ways:
+    # (a) end-to-end -- a half-covered 4 m wall gives 2 m matched + 2 m miss, and
+    #     the policy invariant passing + failing == wall length holds (the gate
+    #     does not false-fire on real input);
+    # (b) the gate itself -- a non-tiling account raises.
+    # NOTE: the per-target gate is a defensive self-check; the cut loop partitions
+    # [t0, t1] exactly by construction, so NO valid match_plan_segments input can
+    # trigger it (unlike the obs over-charge gate, which has a real trigger via
+    # overlapping same-line targets).  It is therefore locked by a direct helper
+    # call -- disclosed here, not disguised as a match-path lock.
+    target = seg("wall", (2, 0), (2, 4), exterior=False)
+    obs = (seg("half", (2, 0), (2, 2), exterior=False),)
+    rows = score_plan_segments(targets=(target,), observations=obs, config=_config())
+    policy = c2_v3_score_policy(claim_rows=(), segment_rows=rows)
+    wc = next(c for c in policy.criteria if c.criterion_id == "walls_complete")
+    assert wc.passing_units == pytest.approx(2.0) and wc.failing_units == pytest.approx(2.0)
+    assert wc.passing_units + wc.failing_units == pytest.approx(4.0)
+    # the gate: a tiling account (2 + 2 + 0 == 4) passes; a non-tiling one raises.
+    _assert_target_conservation("wall", 4.0, matched_cover=2.0, miss_length=2.0, duplicate_length=0.0)
+    with pytest.raises(ScoreContractError) as exc:
+        _assert_target_conservation("wall", 4.0, matched_cover=2.0, miss_length=1.0, duplicate_length=0.0)
+    assert exc.value.code == "score_denominator_nonconserving"
+    assert exc.value.context["reason"] == "target_subintervals_do_not_tile"
+    assert exc.value.context["target_length"] == pytest.approx(4.0)
+    assert exc.value.context["accounted_length"] == pytest.approx(3.0)
 
 
 def test_b1_well_separated_walls_register_without_over_reject():
@@ -469,6 +525,61 @@ def test_b_facade_multi_span_straddle_fails_closed_not_first():
         world_along_interval=SimpleNamespace(lo=0.5, hi=1.5))])
     # single-contained -> maps to gt-a.
     assert _resolve_facade_product_to_gt(geometry=contained, gt=gt) == {"prod-a": "gt-a"}
+
+
+def test_b_facade_multi_candidate_gt_span_is_not_mapped():
+    # R2-M2 neuter ① (the :230 path): a product facade span contained in MORE
+    # THAN ONE GT facade span (>1 candidate) is NOT mapped.  This is the >1
+    # branch sol r2 said NO fixture reached -- the prior straddle lock above is
+    # 0 candidate (相邻 [0,2]/[2,4] 对产品 [0,4] 在"完整包含"定义下谁也不含),
+    # so weakening ``len(candidates) == 1`` to ``if candidates`` could not change
+    # it.  Here the GT South facade carries TWO spans (multi-span same facade):
+    # south-wide [0,4] and south-nested [1,3].  prod-full [0,4] is contained only
+    # in south-wide (single candidate -> mapped); prod-inner [1.5,2.5] is
+    # contained in BOTH (>1 candidate -> not mapped, never "take first").
+    # Neuter: ``len(candidates) == 1`` -> ``if candidates`` maps prod-inner to
+    # south-wide too, so the ``== {"prod-full": "south-wide"}`` assertion reds.
+    from src.agent.judge.score_service import _resolve_facade_product_to_gt
+    gt = SimpleNamespace(floors=[SimpleNamespace(id="F", boundary_segments=[
+        SimpleNamespace(id="south-wide", floor_id="F", facade_family="South",
+            world_along_interval=SimpleNamespace(lo=0., hi=4.)),
+        SimpleNamespace(id="south-nested", floor_id="F", facade_family="South",
+            world_along_interval=SimpleNamespace(lo=1., hi=3.)),
+    ])])
+    geometry = SimpleNamespace(facade_segments=[
+        SimpleNamespace(id="prod-full", floor_id="F", facade_family="South",
+            world_along_interval=SimpleNamespace(lo=0., hi=4.)),
+        SimpleNamespace(id="prod-inner", floor_id="F", facade_family="South",
+            world_along_interval=SimpleNamespace(lo=1.5, hi=2.5)),
+    ])
+    assert _resolve_facade_product_to_gt(geometry=geometry, gt=gt) == {"prod-full": "south-wide"}
+
+
+def test_b_facade_multi_candidate_window_temporary_binding_fails_closed():
+    # R2-M2 neuter ① (the bind path): a window whose span is contained in MORE
+    # THAN ONE product facade segment (temporary binding, facade_segment_id is
+    # None) fails closed -- it does NOT "take the first" segment.  The other
+    # ``len(candidates) == 1`` unique-candidate gate lives here in
+    # bind_correction_window_segment; weakening it to ``if candidates`` reds this.
+    # (The correction e2e path uses explicit facade_segment_id with
+    # allow_temporary_binding=False, so it bypasses this temporary gate; the
+    # temporary gate is the reading / direct-resolver path and is real code --
+    # exercised by build_correction_window_resolver's default allow_temporary=True.)
+    from src.agent.correction.schema import FacadeSegment, WorldInterval
+    from src.agent.judge.opening_claim_score import bind_correction_window_segment
+    H = "a" * 64
+    def facade(id, lo, hi):
+        return FacadeSegment(id=id, floor_id="F", facade_family="South", p1=(lo, 0.), p2=(hi, 0.),
+            outward_normal=(0, -1), world_along_interval=WorldInterval(lo=lo, hi=hi), depth=0.,
+            visible_intervals=[], source_footprint_fingerprint=H)
+    window = SimpleNamespace(id="w", floor_id="F", facade="South", span=(1.5, 2.5), facade_segment_id=None)
+    # two South segments both fully contain the window span [1.5,2.5] -> >1 candidate -> fail closed.
+    with pytest.raises(ScoreContractError) as exc:
+        bind_correction_window_segment(window=window, segments=(facade("s-wide", 0., 4.), facade("s-nested", 1., 3.)))
+    assert exc.value.code == "score_product_segment_unresolved"
+    # control: exactly one containing segment -> temporary_unique_span_binding succeeds.
+    bound, mode = bind_correction_window_segment(window=window, segments=(facade("s-only", 0., 4.),))
+    assert mode == "temporary_unique_span_binding" and bound.id == "s-only"
 
 
 # ---------------------------------------------------------------------------

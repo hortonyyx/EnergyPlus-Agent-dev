@@ -12,7 +12,7 @@ from src.agent.execution.manifest import hash_obj
 from src.agent.execution.view_manifest import CompletenessAssertion, Coverage, OpeningEvidence, RequiredViewEntry, UserSourceRef, ViewManifest
 from src.agent.judge.opening_claim_score import (
     OpeningAssignment, OpeningObservation, assign_openings, bind_correction_window_segment, build_absence_opening_claims, classify_extra_observation,
-    build_correction_host_resolver, derive_absence_ledger, derive_product_ledger, derive_reference_ledger, eligible_units, gt_openings_to_va_claims, gt_to_va_visibility, fuse_source_results, score_plan_claims, summarize_claim_rows,
+    build_correction_host_resolver, derive_absence_ledger, derive_product_ledger, derive_reference_ledger, eligible_units, gt_openings_to_va_claims, gt_to_va_visibility, fuse_source_results, score_opening_claims_v3, score_plan_claims, summarize_claim_rows,
 )
 from src.agent.judge.score_inputs import frame_transform_sha256, materialize_va_elevation_bindings
 from src.agent.judge.score_schema import CLAIM_ORDER, ElevationScoreViewBindingV1, JudgeScoreConfigV1, JudgeScoreViewBindingsV1, PlanScoreViewBindingV1, ScoreContractError, canonical_sha256
@@ -229,6 +229,34 @@ def test_b4b_r1_real_correction_host_resolver_scores_and_rejects_zero_multi_adja
         resolve_correction_window_host(geometry=geometry, window=window.model_copy(update={"span":[4.1,4.2]}), product_segment=product_segment, gt_segment_id=target.boundary_segment_id, gt_zone_id=target.host_zone_id, product_to_gt_segment=mapping, product_to_gt_zone={"C1":target.host_zone_id})
     with pytest.raises(ScoreContractError, match="score_product_segment_unresolved"):
         resolve_correction_window_host(geometry=geometry, window=window.model_copy(update={"span":[1.9,2.1]}), product_segment=product_segment, gt_segment_id=target.boundary_segment_id, gt_zone_id=target.host_zone_id, product_to_gt_segment=mapping, product_to_gt_zone={"C1":target.host_zone_id})
+
+
+def test_b4b_r2m2_v3_host_claim_complete_pinned_through_score_opening_claims_v3():
+    # R2-M2 neuter ② (sol r2 MAJOR): pin the v3 host CLAIM RESULT as "complete"
+    # through the production v3 scorer ``score_opening_claims_v3`` (the path
+    # score_typed_attempt wires at score_service:278), driven by
+    # build_correction_host_resolver.  The prior N-1 e2e only asserted
+    # ``extras == ()`` (opening routed); it never pinned the host claim, so
+    # neutering the resolver to always return "miss" left it green.  This asserts
+    # the claim result on a complete-manifest fixture (host is applicable with a
+    # trusted source), so neuter ② (resolver -> "miss") makes this red.  The
+    # plan-claim twin of this lock is test_b4b_r1_real_correction_host_resolver_
+    # scores_and_rejects_zero_multi_adjacency above (score_plan_claims path).
+    gt, manifest, bindings = real_va_context(complete_plan=True)
+    target = next(item for item in gt.openings if item.kind == "window")
+    geometry = correction_two_zone(window_span=(target.world_along_interval.lo, target.world_along_interval.hi))
+    reference = derive_reference_ledger(gt=gt, bindings=bindings, effective_manifest=manifest)
+    window = geometry.windows[0]
+    product_segment, _mode = bind_correction_window_segment(window=window, segments=geometry.facade_segments)
+    mapping = {product_segment.id: target.boundary_segment_id}
+    resolver = build_correction_host_resolver(geometry=geometry, product_to_gt_segment=mapping,
+                                             product_to_gt_zone={"C1": target.host_zone_id})
+    observation = OpeningObservation("W1", "F1", "window", product_segment.id, tuple(window.span), "plan-F1")
+    assignment = assign_openings(targets=(target,), observations=(observation,), config=config(), product_to_gt_segment=mapping)
+    rows = score_opening_claims_v3(gt=gt, reference_ledger=reference, assignment=assignment,
+                                   config=config(), host_resolver=resolver)
+    host_row = next(row for row in rows if row.target_id == target.id and row.claim == "host")
+    assert host_row.result == "complete"
 
 
 @pytest.mark.parametrize("ratio", [.1, .5, .9])

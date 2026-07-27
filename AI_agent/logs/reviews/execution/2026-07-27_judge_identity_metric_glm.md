@@ -365,3 +365,103 @@ r1 的两项 PARTIAL 本轮**全部清零**，无新增假锁、无自行判定�
 > 一处主动设计决定已上文标注（非自行降级）：⑦ e2e 锁 monkeypatch 了 `render_grade.render_score_grade_png`（返回 b""），理由 = 本锁钉的是计分链路（assign_openings/host_resolver）而非画图；render_grade 期望 gt 为 dict（真实 GroundTruthV3 经 model_dump），SimpleNamespace gt 不兼容，而构造完整 GroundTruthV3 与构造一个真实 case 等价、超本批范围。 neuter :230 经**外部改生产码**（非锁内 monkeypatch）实测验证，符合派工单字面要求。
 
 
+
+---
+
+## 10. r3 收尾（2026-07-27 GLM 续作 · R2-B1 仲裁器排序 + R2-M1 守恒 + R2-M2 N-1 两半）
+
+### 10.0 范围 + 开工/收工 git status
+
+派工单：[r3](../request/2026-07-27_judge_identity_metric_rework_r3.md)。前置 = `b005004`（WIP 已标红，全仓遗留 1 red）。本轮三件事：① 修遗留红（仲裁器同类内排序）；② R2-M1 守恒硬门补完整；③ R2-M2 N-1 链路锁补另外两半。R2-B2 来源身份合同仍移出本批（未碰）。
+
+**开工 git status**（基线快照，3 文件改动 = 本轮全部施工面）：
+```
+ M src/agent/judge/segment_score.py
+ M tests/test_c2_b4b_phase_b.py
+ M tests/test_judge_identity_metric.py
+```
+（`test_c2_b5_parent_and_verts.py` 一度过手加 host-claim 断言、后因 N-1 manifest 无 completeness（host claim 必 `not_applicable`）撤回，净零改动。）
+
+**收工 git status**（同上 3 文件，工作树 neuter 后逐字还原、零残留）：
+```
+ M src/agent/judge/segment_score.py
+ M tests/test_c2_b4b_phase_b.py
+ M tests/test_judge_identity_metric.py
+```
+
+### 10.1 ① R2-B1 仲裁器「同类内取最精确」排序（修遗留红）
+
+**遗留红**：`test_b4b_r1_gt_interior_pairing_and_invariant_raises` 期望 `reason == "exterior_interior_topology_conflict"`，实得 `"invalid_interior_edge_pair"`。
+
+**根因**：仲裁器 `_REAL_BREAK_REASONS = ("invalid_interior_edge_pair", "exterior_interior_topology_conflict")` 把 `invalid_interior_edge_pair` 排在前，同类 identity 裁决时它先命中。但那个夹具（footprint `[0,2]×[0,2]`、zone B 落在 footprint 外 y∈[-1,0]）的根因是 zone 越过 footprint 边界——其顶边 y=0 落在 footprint 边界且与 zone A 共享⇒`exterior_interior_topology_conflict`（结构性、定位精确）；其余 `invalid_interior_edge_pair` 是 zone B 错位后周边边的派生悬空症状。
+
+**修法**（`segment_score.py`，**未改测试**——派工单 §5 明令）：反转 `_REAL_BREAK_REASONS` 为 `("exterior_interior_topology_conflict", "invalid_interior_edge_pair")`，并在注释/docstring 写清原理：结构性定位精确的理由（zone 越 footprint 边界）优于泛化派生理由（悬空边），与 §1.2 例（真缝 `invalid_interior_edge_pair` 优于 advisory 扰动出的 `exterior_duplicate_owner`）同一原则——独立根因胜派生症状。**R2-B1 硬门未动**（identity 永远优先于 capability），只是同类内挑更贴近根因的那条。
+
+**安全性核实**：逐条排查全仓所有 `invalid_interior_edge_pair` 断言夹具（test_c2_b4b_phase_b / test_judge_identity_metric / test_c2_segment_tjunction 共 9 处）——均为内墙 gap/overlap/dangling（外墙单侧 owner），**不产生** `exterior_interior_topology_conflict`，反转排序后仍由 `invalid_interior_edge_pair` 兜底命中（首选项无匹配→次选项）。`test_m4` 同夹具只断言 `code`（GT 侧码），reason 变更不受影响。反转后该失败测试得 `exterior_interior_topology_conflict` ✓。
+
+### 10.2 ② R2-M1 守恒硬门补完整（零容差 + per-target + 走接线）
+
+r0/r1 的 obs 守恒门 `_assert_obs_conservation(obs_key, obs_length, covered, tol)` 允许 `covered <= obs_length + 1e-9`，随后 `extra = obs.length - covered; if extra > epsilon` ⇒ **容差窗内的负 extra 被吞**（sol 实测 `covered=4.0000000005 / extra_rows=0`）。本轮三件：
+
+1. **obs 过计门零容差**（`_assert_obs_conservation`）：去掉 `tol` 参数，改严格 `covered > obs_length` ⇒ raise。原理：`covered` 是 obs 自身投影的不相交子区间和，几何上不可能 > length（投影 ≤ length），任何超出都是「一墙赚两墙」签名；旧 1e-9 窗吞了 5e-10 真过计。`_CONSERVATION_TOL` 常量删除。
+2. **per-target 守恒门**（新 `_assert_target_conservation` helper，在 `match_plan_segments` cut 循环后调用）：`matched + miss + duplicate == target.length`（子区间铺满 [t0,t1]），否则 raise `target_subintervals_do_not_tile`。微容差 `_SUBINTERVAL_SUM_TOL=1e-9` **只吸三个累加器的 FP 漂移**（非过计窗——文档明写区分），catch cut 逻辑实现 bug。
+3. **锁走 `match_plan_segments` 接线**：旧 `test_b1_conservation_cover_exceeds_length_raises` 是直调 helper 钉 `8.0 > 4.0 + tol` 的假锁形状（sol 点名）。替换为 `test_b1_conservation_over_charge_raises_through_match_path`——「同支撑线两段重叠答案墙 t1[0,4]/t2[1,3] + 一条产品墙覆盖两者」走真 `match_plan_segments`，产品墙注册到唯一线（不触发 `score_identity_support_ambiguous`）但 covered=6 > length=4 ⇒ raise。配 `test_b1_obs_conservation_equality_boundary_does_not_fire`（边界 covered==length 放行、+1e-13 仍红）+ `test_b1_per_target_conservation_tiles_target_length`（e2e 半覆盖 2+2==4 + 直调 helper 验非铺满 raise）。
+
+**严格门在全仓真实几何（含 sm24 非整数坐标 8.06 等）零误伤**——几何论证成立（不相交子区间和 ≤ 投影 ≤ length，Sterbenz 精确减法 + 簇化坐标使合法情形 covered == obs.length 精确成立）。
+
+**per-target 门诚实披露**：cut 循环按构造精确铺满 [t0,t1]，**无任何合法 `match_plan_segments` 输入能触发** per-target 门（与 obs 过计门有真触发路径不同）。故 per-target 门按直调 helper 锁（`_assert_target_conservation`），非伪装成 match-path 锁——已在测试注释明写。
+
+### 10.3 ③ R2-M2 N-1 链路锁补另外两半（多 candidate + host claim）
+
+r2 的 `:230→assign_openings` 接线锁是真锁（保留），但「多 candidate 分支未钉 + host claim 假锁」两半未交付。本轮：
+
+**neuter ①（唯一候选门 `len(candidates)==1` → `if candidates`）双锁**：
+- `test_b_facade_multi_candidate_gt_span_is_not_mapped`（`:230` 路径 `_resolve_facade_product_to_gt`）：sol 指出旧 straddle 夹具是 **0 candidate**（相邻 [0,2]/[2,4] 对产品 [0,4] 谁也不含），不是 >1。本锁用 **同 facade 多 span 重叠 GT**（south-wide[0,4] + south-nested[1,3]）：prod-full[0,4]→单候选 south-wide（映射）；prod-inner[1.5,2.5]→**两候选**（>1）⇒不映射。assert `== {"prod-full":"south-wide"}`。
+- `test_b_facade_multi_candidate_window_temporary_binding_fails_closed`（bind 路径）：窗 span 在**两条重叠产品 South 段**内（>1 候选）+ `facade_segment_id=None`（临时绑定）⇒ raise（不「取第一个」）。附 control：唯一包含段→`temporary_unique_span_binding` 成功。
+
+**neuter ②（host resolver 恒 miss）双锁**：
+- `test_b4b_r2m2_v3_host_claim_complete_pinned_through_score_opening_claims_v3`：r2 N-1 e2e 只断言 `extras==()`，未钉 host claim ⇒ neuter ② 留绿。本锁用 `real_va_context(complete_plan=True)` 喂 **v3 生产路径** `score_opening_claims_v3`（score_typed_attempt:278 所用）+ `build_correction_host_resolver`，逐字断言 host claim `result=="complete"`。N-1 e2e manifest 无 completeness（host 必 `not_applicable`、不调 resolver），故无法在那断言 complete——本锁补这个真缺口。
+- 既有 `test_b4b_r1_real_correction_host_resolver_scores_and_rejects_zero_multi_adjacency`（score_plan_claims 路径，已断言 host complete + 用 resolver）同样被 neuter ② 变红——双路径互证。
+
+**关于「真正同 facade 多 span VerifiedWindowHostProof e2e」的诚实标注**：bundle 机制对 4×4 盒产出的产品 South 是整边 [0,4]（vg 按外墙边派生），与 GT 1:1 同构。要让 e2e 在窗所在 facade 上真多 span，需非矩形 footprint（凹角致南立面断成多段）= build 改动，超本批「补锁」范围。故 multi-span + 多 candidate 行为在**候选逻辑所在的 helper/resolver 层**钉死（`_resolve_facade_product_to_gt` 同 facade 多 span 重叠 GT + bind 多候选），host claim 在 v3 + plan 双生产路径钉死。两条指定 neuter 各自精确变红（见 §10.5）。renderer stub（sol 判可接受）未动。
+
+### 10.4 R2-B1 四验收锁 + §1.3 未配对 advisory 运行时产物（核实齐全）
+
+R2-B1 主体 + 四锁 + §1.3 均由 `b005004` 落地，本轮仅修仲裁器排序（§10.1），核实仍齐：
+1. `test_r2b1_true_gap_only_is_identity_red_code_verbatim`（只有真缝→identity 红，码逐字）✓
+2. `test_r2b1_true_gap_plus_advisory_stays_identity_red_not_na`（真缝+未配对 advisory→仍 identity 红，不降级 NA）✓
+3. `test_r2b1_advisory_only_no_real_break_is_capability_na`（只有 advisory→capability NA）✓
+4. `test_r2b1_arbitrator_real_break_outranks_capability_na`（反转优先级 neuter→第二条锁红）✓
+- §1.3 `test_r2b1_unpaired_advisory_edge_is_recorded_at_runtime`：未配对 advisory 进 `near_orthogonal_advisory_unpaired` 运行时日志（`_log_advisory_hit(unpaired=True)`）✓
+
+### 10.5 neuter 自查表（/tmp 副本 · 工作树逐字还原）
+
+每条「摘/改哪行 → 哪几条红」，全部在 `/tmp/r3_neuter/` 副本上做、跑完 `cp` 备份还原，`diff -q` 三源文件与备份逐字节相同：
+
+| neuter | 摘/改 | 独立结果 | 裁断 |
+|---|---|---:|---|
+| ① 反转 `_REAL_BREAK_REASONS` 回旧序 | segment_score.py | `test_b4b_r1_..._conflict` `1 failed`（得 invalid_interior_edge_pair）| 真锁（我的排序修复）|
+| ② R2-B1 优先级规则→capability 优先 | segment_score.py `if real_breaks:`→`if False:` | lock2 + lock4 `2 failed`（capability NA 掩盖真缝）| 真锁 |
+| ③ R2-M1 obs 过计门→禁 | `_assert_obs_conservation` `if covered>obs_length:`→`and False` | match-path + boundary `2 failed`（DID NOT RAISE）| 真锁 |
+| ④ R2-M1 per-target 门→禁 | `_assert_target_conservation` `if abs(...)>tol:`→`if False` | per-target `1 failed`（DID NOT RAISE）| 真锁 |
+| ⑤ R2-M2 ① `:230` `len(candidates)==1`→`if candidates` | score_service.py | multi-candidate-gt `1 failed`（prod-inner 误映射）| 真锁 |
+| ⑥ R2-M2 ① bind `len(candidates)==1`→`if candidates` | opening_claim_score.py | multi-candidate-bind `1 failed`（DID NOT RAISE）| 真锁 |
+| ⑦ R2-M2 ② host resolver 恒 `"miss"` | opening_claim_score.py 末 return | v3 host claim + plan host claim `2 failed`（complete→miss）| 真锁 |
+
+### 10.6 全仓测试输出（收尾权威门）
+
+```
+1725 passed, 10 xfailed, 150 warnings in 247.37s (0:04:07)
+```
+基线 `7c17998` = 1715 绿 + 10 xfail；本轮 **1725 绿 + 10 xfail，+10 测试零回归、零红**。严格 obs 守恒门在全仓真实几何（sm24 非整数坐标等）零误伤。`xfail` 仍为既有 10 个 legacy golden（与本批无关）。
+
+### 10.7 诚实结论
+
+三项全部交付，无新增假锁、无自行降级、未碰 gt/CLAUDE.md/仓库根：
+- **① R2-B1 仲裁器排序**：反转同类内优先级，结构性根因（`exterior_interior_topology_conflict`）胜泛化派生（`invalid_interior_edge_pair`），遗留红清零，硬门不动、未改测试。
+- **② R2-M1 守恒**：obs 过计门零容差（删 1e-9 窗）+ per-target 铺满硬门 + 锁走 `match_plan_segments` 真接线（替直调 helper 假锁）。per-target 门为防御性自检（合法输入不可触发）→ 直调 helper 锁，已披露。
+- **③ R2-M2 N-1 两半**：多 candidate 双锁（`:230` 同 facade 多 span 重叠 GT + bind 多候选临时绑定）+ host claim 双路径锁（v3 `score_opening_claims_v3` + plan `score_plan_claims`）。两条指定 neuter 各自精确变红。
+
+**一处诚实标注（非降级）**：「真正同 facade 多 span VerifiedWindowHostProof e2e」受 bundle 对 4×4 盒产出整边 South 的约束——真多 span 需非矩形 footprint/build 改动，超补锁范围；多 candidate + host claim 行为在候选逻辑所在层（helper/resolver）+ v3/plan 双生产路径钉死。R2-B2 来源身份合同按派工单 §4 移出本批、未碰。
+
+**全仓零红、neuter 7 项全过、工作树还原。可派 sol 复审 → 主控轻门。**

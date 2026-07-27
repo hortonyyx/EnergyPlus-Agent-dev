@@ -54,12 +54,22 @@ _COORDINATE_SPLIT_THRESHOLD = 1e-11     # gap above this: distinct intent -> spl
 # cluster may never span more than the very spread that defines "same intent".
 _COORDINATE_DIAMETER_THRESHOLD = 1e-12  # cluster diameter cap (chain-bridge guard).
 
-# B-1 conservation slack: an observation's charged cover is bounded above by its
-# own projected length (<= obs.length) by geometry; this slack only absorbs
-# floating-point cut/sum rounding, so a real double-charge (cover > length --
-# e.g. one product wall earning length on two parallel answer walls) stays a
-# loud reject and is never silently clamped back to zero.
-_CONSERVATION_TOL = 1e-9
+# R2-M1: per-target sub-interval sum tolerance.  The cut tiling partitions each
+# target's [t0, t1] into matched/miss/duplicate sub-intervals whose lengths sum
+# to target.length exactly in real arithmetic; the per-target conservation gate
+# in match_plan_segments raises if they do not.  This absorbs ONLY floating-
+# point accumulation in the three separate running sums (bounded by
+# n_cuts * eps * length, well under 1e-12 for any realistic floor), so a dropped
+# or inflated sub-interval -- a real cut-logic bug -- still lands as a loud
+# reject.  This is NOT the observation over-charge window R2-M1 removed: that
+# gate (_assert_obs_conservation) is strict (covered > obs_length, no window),
+# because cover > length is geometrically impossible -- a sum of disjoint pieces
+# of the observation's own projection can never exceed the projection, which is
+# itself <= the obs length -- so any excess, however small, is the double-charge
+# signature.  The prior 1e-9 slack there swallowed a real 5e-10 over-charge
+# (sol live probe: covered=4.0000000005 on a 4.0 m wall) and turned a visible
+# false red into a silent false green.  See R2-M1 in the r3 rework dispatch.
+_SUBINTERVAL_SUM_TOL = 1e-9
 
 
 @dataclass(frozen=True)
@@ -529,7 +539,22 @@ def _pair_interior_edges(
 # Reasons that are ALWAYS a real topology break, independent of any advisory
 # edge: an interior edge with no facing pair, or an exterior/interior conflict
 # on one span.  These outrank capability NA unconditionally (R2-B1 / §1.2).
-_REAL_BREAK_REASONS = ("invalid_interior_edge_pair", "exterior_interior_topology_conflict")
+#
+# Order = within-class precision (§1.2 step 3 "closest to root cause"): an
+# ``exterior_interior_topology_conflict`` is a STRUCTURAL, located violation --
+# a zone crossing the footprint boundary, so two zones claim an interior edge
+# that lies ON the exterior.  An ``invalid_interior_edge_pair`` is the generic
+# "this interior edge has no facing pair / wrong owner count", which is very
+# often a DOWNSTREAM SYMPTOM of that same misplaced zone (its other edges then
+# dangle).  When a zone is pushed outside the footprint BOTH fire -- the
+# boundary-crossing span raises the conflict, and the zone's dangling edges
+# raise invalid_interior_edge_pair -- so the located, structural reason must win
+# to report the root cause, not the derivative.  This is consistent with §1.2's
+# example (a real seam's invalid_interior_edge_pair outranks an advisory-
+# perturbed exterior_duplicate_owner): in both cases the independent root cause
+# beats the derivative symptom.  (exterior_duplicate_owner is NOT in this set --
+# it is advisory-derivative and routes to NA / step 3.)
+_REAL_BREAK_REASONS = ("exterior_interior_topology_conflict", "invalid_interior_edge_pair")
 
 
 def _arbitrate_pairing_diagnostics(diagnostics: list[_PairDiagnostic], *, identity_code: str) -> None:
@@ -539,11 +564,13 @@ def _arbitrate_pairing_diagnostics(diagnostics: list[_PairDiagnostic], *, identi
     NA -- "the judge cannot measure this" loses to "the geometry is genuinely
     broken" every time.  Concretely:
 
-      1. ANY real-break identity diagnostic (``invalid_interior_edge_pair`` /
-         ``exterior_interior_topology_conflict``) wins -> the round ends red on
-         the side identity code.  Within this class the root-cause reason is
-         preferred (invalid_interior_edge_pair over exterior_interior_topology_
-         conflict) -- §1.2 step 3.
+      1. ANY real-break identity diagnostic (``exterior_interior_topology_
+         conflict`` / ``invalid_interior_edge_pair``) wins -> the round ends red
+         on the side identity code.  Within this class the located, structural
+         reason is preferred over the generic one (``exterior_interior_topology_
+         conflict`` -- a zone crossing the footprint boundary -- beats
+         ``invalid_interior_edge_pair`` -- a dangling edge that is usually a
+         downstream symptom of that same misplaced zone) -- §1.2 step 3.
       2. Else, if a capability NA exists, the round ends NA.  This is the ONLY
          path a capability NA may take: zero real breaks.
       3. Else an ``exterior_duplicate_owner`` with NO advisory present is a real
@@ -754,15 +781,45 @@ def _support_line_key(segment: PlanSegment) -> tuple[str, str, float]:
     return (segment.floor_id, "H", segment.p1[1])
 
 
-def _assert_obs_conservation(obs_key: str, obs_length: float, covered: float, tol: float) -> None:
-    """B-1 conservation hard gate: an observation's charged cover may never
-    exceed its own length.  ``cover > length`` is the exact signature of a
-    product wall charging length on two parallel answer support lines (the 4 m
-    wall that earned 8 m); the resulting negative extra was previously swallowed
-    by ``extra > epsilon`` and turned a visible false red into a silent false
-    green.  This raises instead of clamping so the bug can never hide.
+def _assert_target_conservation(target_key: str, length: float, matched_cover: float,
+                                miss_length: float, duplicate_length: float) -> None:
+    """B-1 / R2-M1 #2 per-target conservation hard gate.
+
+    The cut tiling partitions each target's [t0, t1] into matched / miss /
+    duplicate sub-intervals, so matched_cover + miss_length + duplicate_length
+    must equal the target length exactly in real arithmetic.  A dropped or
+    inflated sub-interval -- a cut-logic bug that silently mis-accounts the
+    target's length (understating failing, or inventing passing/duplicate) --
+    lands here as a loud reject: the denominator may never be quietly reshaped.
+    The micro-tolerance absorbs ONLY FP accumulation in the three running sums;
+    it is not an over-charge slack (the obs-level gate is strict, no window).
     """
-    if covered > obs_length + tol:
+    accounted = matched_cover + miss_length + duplicate_length
+    if abs(accounted - length) > _SUBINTERVAL_SUM_TOL:
+        raise ScoreContractError("score_denominator_nonconserving", "scoring.denominator_totality",
+            context={"reason": "target_subintervals_do_not_tile", "target": target_key,
+                     "target_length": length, "accounted_length": accounted, "deficit": length - accounted})
+
+
+def _assert_obs_conservation(obs_key: str, obs_length: float, covered: float) -> None:
+    """B-1 / R2-M1 conservation hard gate: an observation's charged cover may
+    never exceed its own length -- STRICT, no tolerance window.
+
+    ``covered`` is a sum of disjoint sub-intervals of the observation's own
+    projection onto its registered support line, so in exact arithmetic it can
+    never exceed that projection, which is itself <= the obs length.  ``covered
+    > obs_length`` is therefore geometrically impossible -- it is the exact
+    signature of a product wall charging length on two OVERLAPPING answer spans
+    on the same support line (the 4 m wall that earned 6 m / 8 m).  R2-M1 removed
+    the prior ``+ tol`` window: that window (1e-9) swallowed a real 5e-10
+    over-charge (sol live probe: covered=4.0000000005 on a 4.0 m wall) and the
+    negative extra was then silently dropped by ``extra > epsilon``, turning a
+    visible false red into a silent false green.  The gate is now strict: any
+    excess, however small, raises.  ``covered == obs_length`` (a single obs
+    exactly spanning its registered targets) is the geometric equality and does
+    not fire.
+    """
+    if covered > obs_length:
         raise ScoreContractError("score_denominator_nonconserving", "scoring.denominator_totality",
             context={"reason": "observation_cover_exceeds_length", "observation": obs_key,
                      "obs_length": obs_length, "covered": covered, "excess": covered - obs_length})
@@ -788,8 +845,13 @@ def match_plan_segments(*, targets: Iterable[PlanSegment], observations: Iterabl
     2. JOINT CUTPOINT per target (the existing set operation), but only the
        observations registered to that target's support line may participate --
        so one observation can never charge length on two parallel lines.
-    3. CONSERVATION hard gates: each observation's charged cover <= its length
-       (else raise), and a negative extra raises instead of being swallowed.
+    3. CONSERVATION hard gates (R2-M1, both strict):
+       (a) PER-TARGET: matched + miss + duplicate == target.length (the cut
+           tiling partitions the target exactly) -- else raise.
+       (b) PER-OBSERVATION: charged cover <= obs length, STRICT with NO
+           tolerance window (cover > length is geometrically impossible -- the
+           double-charge signature); a negative extra can therefore never again
+           be swallowed by ``extra > epsilon`` (the r0 false-green shape).
 
     Returns (rows, observation_key -> sorted target keys it covers).
     """
@@ -865,6 +927,14 @@ def match_plan_segments(*, targets: Iterable[PlanSegment], observations: Iterabl
                 exactly_one[covering[0][0].key] = exactly_one.get(covering[0][0].key, 0.0) + (b - a)
             else:
                 duplicate_length += b - a
+        # R2-M1 #2: per-target sub-interval conservation hard gate.  The cut
+        # tiling partitions this target's [t0, t1] into matched (exactly_one) /
+        # miss / duplicate sub-intervals, so matched + miss + duplicate must equal
+        # target.length exactly in real arithmetic.  A dropped or inflated sub-
+        # interval (a cut-logic bug that silently mis-accounts the target's
+        # length, understating failing or inventing passing) lands here as a loud
+        # reject -- the denominator may never be quietly reshaped.
+        _assert_target_conservation(target.key, length, sum(exactly_one.values()), miss_length, duplicate_length)
         for obs, lo, hi, axis_error, position in candidates:
             cover = exactly_one.get(obs.key, 0.0)
             if cover <= 0.0:
@@ -878,12 +948,15 @@ def match_plan_segments(*, targets: Iterable[PlanSegment], observations: Iterabl
             rows.append(SegmentScore(target, None, "miss", None, None, None, eligible_units=miss_length))
         if duplicate_length > 0.0:
             rows.append(SegmentScore(target, None, "duplicate", None, None, None, eligible_units=duplicate_length))
-    # B-1 step 3: conservation hard gates + extra rows.
+    # B-1 step 3 / R2-M1: conservation hard gate (strict, no window) + extra rows.
+    # covered <= obs.length is guaranteed by the gate, so extra >= 0 here and a
+    # negative extra can never again be swallowed by ``extra > epsilon`` (the r0
+    # false-green shape: extra = 4 - 8 = -4 silently dropped).
     for obs in obs_list:
         if obs.length == 0:
             continue
         covered = obs_covered[obs.key]
-        _assert_obs_conservation(obs.key, obs.length, covered, _CONSERVATION_TOL)
+        _assert_obs_conservation(obs.key, obs.length, covered)
         extra = obs.length - covered
         if extra > config.claim_complete_epsilon_m:
             rows.append(SegmentScore(None, obs, "extra", None, None, None, eligible_units=extra))
