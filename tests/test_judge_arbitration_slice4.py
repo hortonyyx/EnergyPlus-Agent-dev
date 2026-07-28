@@ -116,6 +116,11 @@ def test_old_v3_helper_sidecar_is_a_cache_miss(tmp_path) -> None:
     )
     raw = sidecar.model_dump(mode="json")
     raw["identity"]["helpers"]["segment_scorer"] = "b4b_segment_score_v2"
+    raw["content_sha256"] = canonical_sha256({
+        key: value
+        for key, value in raw.items()
+        if key != "content_sha256"
+    })
     path = tmp_path / "score_vs_gt.json"
     path.write_text(json.dumps(raw), encoding="utf-8")
     assert load_cached_score(
