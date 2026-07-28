@@ -142,7 +142,29 @@ class JudgeDiagnostic:
     side: str = ""
     context: Mapping[str, object] = field(default_factory=dict)
     precertified: bool = False
-    exact_error_context: bool = False
+
+
+@dataclass(frozen=True)
+class _ExactErrorContextDiagnostic(JudgeDiagnostic):
+    """Internal admission diagnostic; no public policy bit exists to set."""
+
+
+def _with_exact_error_context(
+    diagnostic: JudgeDiagnostic,
+) -> JudgeDiagnostic:
+    """Convert only the audited admission bridge to the internal subtype."""
+    return _ExactErrorContextDiagnostic(
+        diagnostic_id=diagnostic.diagnostic_id,
+        requested_code=diagnostic.requested_code,
+        gate_id=diagnostic.gate_id,
+        reason=diagnostic.reason,
+        floor_id=diagnostic.floor_id,
+        witness=diagnostic.witness,
+        caused_by=diagnostic.caused_by,
+        side=diagnostic.side,
+        context=diagnostic.context,
+        precertified=diagnostic.precertified,
+    )
 
 
 @dataclass
@@ -344,7 +366,7 @@ def _error_context(
 ) -> dict[str, object]:
     witness = diagnostic.witness
     assert witness is not None
-    if diagnostic.exact_error_context:
+    if isinstance(diagnostic, _ExactErrorContextDiagnostic):
         return {"reason": diagnostic.reason}
     dependent = _dependent_facts(capabilities)
     fixed_edges = tuple(

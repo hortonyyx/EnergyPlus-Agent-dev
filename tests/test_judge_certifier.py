@@ -377,3 +377,55 @@ def test_identity_scorecontracterror_has_one_raise_origin_with_no_exceptions():
     ]
     assert len(arbiters) == 1
     assert sum(isinstance(node, ast.Raise) for node in ast.walk(arbiters[0])) >= 2
+
+
+def test_all_judge_input_identity_raise_origins_are_closed():
+    """Full-domain proof: no judge module can hide beyond a hand list."""
+    direct_raises: list[tuple[str, str, str]] = []
+    for path in sorted(Path("src/agent/judge").rglob("*.py")):
+        tree = ast.parse(path.read_text(encoding="utf-8"))
+        for function in (
+            node for node in ast.walk(tree)
+            if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))
+        ):
+            for node in ast.walk(function):
+                if not isinstance(node, ast.Raise) or node.exc is None:
+                    continue
+                call = node.exc
+                if not (
+                    isinstance(call, ast.Call)
+                    and isinstance(call.func, ast.Name)
+                    and call.func.id == "ScoreContractError"
+                    and len(call.args) >= 2
+                    and isinstance(call.args[0], ast.Constant)
+                    and isinstance(call.args[1], ast.Constant)
+                    and call.args[1].value == "scoring.input_identity"
+                ):
+                    continue
+                direct_raises.append((
+                    path.name,
+                    function.name,
+                    str(call.args[0].value),
+                ))
+    assert direct_raises == [
+        (
+            "elevation_score.py",
+            "project_typed_elevation_observation",
+            "score_product_identity_invalid",
+        ),
+        (
+            "elevation_score.py",
+            "score_typed_elevation_floor_lines",
+            "score_product_identity_invalid",
+        ),
+        (
+            "score_config.py",
+            "load_judge_score_config",
+            "score_gt_identity_invalid",
+        ),
+        (
+            "score_schema.py",
+            "load_score_gt_identity",
+            "score_gt_identity_invalid",
+        ),
+    ]

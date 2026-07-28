@@ -832,6 +832,48 @@ def test_r2b1_arbitrator_real_break_outranks_capability_na():
     assert exc.value.context["reason"] == "invalid_interior_edge_pair"
 
 
+def test_legacy_pairing_arbitrator_and_reason_fallback_are_production_unreachable():
+    """The retained historical helper has no source call site.
+
+    Production diagnostics can only be constructed by ``_pair_diagnostic``,
+    which supplies a typed witness; therefore ``as_judge_diagnostic`` never
+    enters its legacy reason-to-predicate fallback on a production path.
+    """
+    path = Path("src/agent/judge/segment_score.py")
+    tree = ast.parse(path.read_text(encoding="utf-8"))
+    calls = [
+        (function.name, call)
+        for function in (
+            node for node in ast.walk(tree)
+            if isinstance(node, ast.FunctionDef)
+        )
+        for call in (
+            node for node in ast.walk(function)
+            if isinstance(node, ast.Call)
+        )
+        if isinstance(call.func, ast.Name)
+    ]
+    assert [
+        function
+        for function, call in calls
+        if call.func.id == "_arbitrate_pairing_diagnostics"
+    ] == []
+    constructors = [
+        (function, call)
+        for function, call in calls
+        if call.func.id == "_PairDiagnostic"
+    ]
+    assert len(constructors) == 1
+    function, constructor = constructors[0]
+    assert function == "_pair_diagnostic"
+    assert any(
+        keyword.arg == "witness"
+        and isinstance(keyword.value, ast.Name)
+        and keyword.value.id == "witness"
+        for keyword in constructor.keywords
+    )
+
+
 def test_r2b1_unpaired_advisory_edge_is_recorded_at_runtime(caplog):
     # R2-B1 / §1.3: an UNPAIRED advisory edge (the one that resolves as NA) is
     # recorded in the runtime artifact too, not only paired hits -- r2's paired-

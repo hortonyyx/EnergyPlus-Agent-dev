@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import ast
-from dataclasses import replace
+from dataclasses import FrozenInstanceError, replace
 from fractions import Fraction
 import itertools
 import math
@@ -421,17 +421,28 @@ def test_production_match_path_has_no_scalar_conservation_branch_or_tolerance():
     tree = ast.parse(
         Path("src/agent/judge/segment_score.py").read_text(encoding="utf-8")
     )
-    match = next(
-        node for node in ast.walk(tree)
+    guarded = {
+        node.name: node
+        for node in ast.walk(tree)
         if isinstance(node, ast.FunctionDef)
-        and node.name == "match_plan_segments"
-    )
-    names = {
-        node.id for node in ast.walk(match) if isinstance(node, ast.Name)
+        and node.name in {
+            "match_plan_segments",
+            "_build_observation_ledger",
+        }
     }
-    assert "_assert_target_conservation" not in names
-    assert "_assert_obs_conservation" not in names
-    assert "_SUBINTERVAL_SUM_TOL" not in names
+    assert set(guarded) == {
+        "match_plan_segments",
+        "_build_observation_ledger",
+    }
+    for function in guarded.values():
+        names = {
+            node.id
+            for node in ast.walk(function)
+            if isinstance(node, ast.Name)
+        }
+        assert "_assert_target_conservation" not in names
+        assert "_assert_obs_conservation" not in names
+        assert "_SUBINTERVAL_SUM_TOL" not in names
 
 
 def test_exact_error_context_true_has_one_static_origin():
@@ -469,6 +480,63 @@ def test_exact_error_context_true_has_one_static_origin():
     # The sole string-key read is the closed admission bridge itself.  A future
     # ``**{"_exact_error_context": value}`` setter is therefore enumerated too.
     assert string_origins == ["identity_provenance.py"]
+
+
+def test_exact_error_context_has_no_public_dataclass_door():
+    from src.agent.judge.certifier import (
+        ConflictWitness,
+        JudgeDiagnostic,
+    )
+
+    arguments = {
+        "diagnostic_id": "direct-field-probe",
+        "requested_code": "score_product_identity_invalid",
+        "gate_id": "scoring.input_identity",
+        "reason": "direct_field_probe",
+        "floor_id": "F",
+        "witness": ConflictWitness(
+            predicate="typed_score_input_contract",
+            predicate_schema_version="1",
+        ),
+    }
+    with pytest.raises(TypeError, match="exact_error_context"):
+        JudgeDiagnostic(**arguments, exact_error_context=True)
+    diagnostic = JudgeDiagnostic(**arguments)
+    with pytest.raises(TypeError, match="exact_error_context"):
+        replace(diagnostic, exact_error_context=True)
+    with pytest.raises(FrozenInstanceError):
+        diagnostic.exact_error_context = True
+
+
+def test_internal_exact_context_subtype_has_one_closed_construction_path():
+    production = tuple(sorted(Path("src/agent/judge").rglob("*.py")))
+    subtype_constructors = []
+    converter_calls = []
+    for path in production:
+        tree = ast.parse(path.read_text(encoding="utf-8"))
+        for function in (
+            node for node in ast.walk(tree)
+            if isinstance(node, ast.FunctionDef)
+        ):
+            for call in (
+                node for node in ast.walk(function)
+                if isinstance(node, ast.Call)
+            ):
+                name = (
+                    call.func.id
+                    if isinstance(call.func, ast.Name)
+                    else None
+                )
+                if name == "_ExactErrorContextDiagnostic":
+                    subtype_constructors.append((path.name, function.name))
+                elif name == "_with_exact_error_context":
+                    converter_calls.append((path.name, function.name))
+    assert subtype_constructors == [
+        ("certifier.py", "_with_exact_error_context"),
+    ]
+    assert converter_calls == [
+        ("identity_provenance.py", "raise_identity_conflict"),
+    ]
 
 
 def test_score_input_exemption_hardcodes_only_typed_admission_predicate():

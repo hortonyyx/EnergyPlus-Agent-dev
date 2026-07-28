@@ -267,6 +267,7 @@ def raise_identity_conflict(
     from src.agent.judge.certifier import (
         ConflictWitness,
         JudgeDiagnostic,
+        _with_exact_error_context,
         canonical_diagnostic_id,
         report_identity_diagnostic,
     )
@@ -302,8 +303,9 @@ def raise_identity_conflict(
         side=side,
         context=context,
         precertified=True,
-        exact_error_context=exact_error_context,
     )
+    if exact_error_context:
+        diagnostic = _with_exact_error_context(diagnostic)
     report_identity_diagnostic(diagnostic)
 
 
