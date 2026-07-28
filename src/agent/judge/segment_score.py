@@ -6,6 +6,7 @@ or ``W/D`` fallback: callers must give typed GT or typed correction geometry.
 from __future__ import annotations
 
 from dataclasses import dataclass
+from fractions import Fraction
 from itertools import product
 import logging
 from math import hypot
@@ -14,6 +15,25 @@ from typing import Iterable, Mapping, Sequence
 from src.agent.correction.orthogonality import classify_edge_orthogonality
 from src.agent.correction.schema import CorrectedGeometryV3
 from src.agent.judge.gt_schema import GroundTruthV3
+from src.agent.judge.identity_provenance import (
+    AliasCertificate,
+    CoordinateOccurrence,
+    CoordinateSourceKey,
+    IdentityInputEnvelope,
+    OwnerIdentity,
+    SourceGeometryDocument,
+    SourceRing,
+    SourceSegment,
+    SourceTopologyIndex,
+    SourceVertex,
+    adapt_correction_floor,
+    adapt_gt_floor,
+    adapt_reading_floor,
+    certify_alias,
+    identity_error_context,
+    raise_identity_conflict,
+    validate_occurrence_shape,
+)
 from src.agent.judge.score_schema import JudgeScoreConfigV1, ScoreContractError
 
 
@@ -74,42 +94,46 @@ _SUBINTERVAL_SUM_TOL = 1e-9
 
 @dataclass(frozen=True)
 class _AxisIdentity:
-    """One axis of one (side, floor): raw float -> atomic cluster representative.
+    """One axis of one (side, floor): source slot -> atomic representative.
 
     The representative is the cluster minimum, which is deterministic once the
-    value set is fixed (sorted-set order) and never depends on input ordering.
+    occurrence set is fixed and never depends on input ordering.
     """
+    side: str
+    floor_id: str
+    axis: str
+    rep: Mapping[CoordinateSourceKey, float]
+    certificates: tuple[AliasCertificate, ...] = ()
+
+
+@dataclass(frozen=True)
+class _LegacyAxisIdentity:
+    """Quarantined direct-helper compatibility; no production adapter uses it."""
     side: str
     floor_id: str
     axis: str
     rep: Mapping[float, float]
 
 
-def _cluster_axis(raw_values: Iterable[float], *, side: str, floor_id: str, axis: str) -> _AxisIdentity:
-    """Single-link cluster with guard band + diameter guard (C-1 / C-1' / C-1'').
-
-    Returns a raw -> representative mapping.  Raises ScoreContractError (an R-5
-    neutral cause code) on a non-finite value, a gap inside the guard band
-    (unresolvable ambiguity), or a cluster whose diameter exceeds the cap (a
-    chain bridge).  Context always carries side/floor_id/axis and the hex
-    binary64 of every value involved so the decision is reproducible from the
-    sidecar alone.  The cause code is neutral (``score_identity_*``); the side
-    (gt/product) lives in context["side"], NOT in the code -- a pairing failure
-    (real topology break) still raises the side code score_*_identity_invalid.
-    """
+def _cluster_legacy_axis(
+    raw_values: Iterable[float], *, side: str, floor_id: str, axis: str
+) -> _LegacyAxisIdentity:
+    """Preserve pre-C direct helper locks while production uses source slots."""
     values: list[float] = []
     for raw in raw_values:
         value = float(raw)
         if value != value or value == float("inf") or value == float("-inf"):
-            raise ScoreContractError("score_identity_non_finite", "scoring.input_identity",
+            raise ScoreContractError(
+                "score_identity_non_finite", "scoring.input_identity",
                 context={"reason": "identity_non_finite_value", "side": side,
-                         "floor_id": floor_id, "axis": axis, "hex": float(value).hex()})
+                         "floor_id": floor_id, "axis": axis, "hex": value.hex()},
+            )
         values.append(value)
     unique = sorted(set(values))
     rep: dict[float, float] = {}
     if not unique:
-        return _AxisIdentity(side, floor_id, axis, rep)
-    clusters: list[tuple[float, float]] = []   # (cluster_min, cluster_max)
+        return _LegacyAxisIdentity(side, floor_id, axis, rep)
+    clusters: list[tuple[float, float]] = []
     cur_min = cur_max = unique[0]
     rep[unique[0]] = unique[0]
     for index in range(1, len(unique)):
@@ -123,35 +147,294 @@ def _cluster_axis(raw_values: Iterable[float], *, side: str, floor_id: str, axis
             cur_min = cur_max = value
             rep[value] = cur_min
         else:
-            raise ScoreContractError("score_identity_guard_band_ambiguity", "scoring.input_identity",
+            raise ScoreContractError(
+                "score_identity_guard_band_ambiguity", "scoring.input_identity",
                 context={"reason": "identity_guard_band_ambiguity", "side": side,
-                    "floor_id": floor_id, "axis": axis, "gap": gap,
-                    "merge": _COORDINATE_MERGE_THRESHOLD, "split": _COORDINATE_SPLIT_THRESHOLD,
-                    "gap_hex": gap.hex(), "lo_hex": prev.hex(), "hi_hex": value.hex()})
+                         "floor_id": floor_id, "axis": axis, "gap": gap,
+                         "merge": _COORDINATE_MERGE_THRESHOLD,
+                         "split": _COORDINATE_SPLIT_THRESHOLD,
+                         "gap_hex": gap.hex(), "lo_hex": prev.hex(),
+                         "hi_hex": value.hex()},
+            )
     clusters.append((cur_min, cur_max))
     for lo, hi in clusters:
         diameter = hi - lo
         if diameter > _COORDINATE_DIAMETER_THRESHOLD:
-            raise ScoreContractError("score_identity_chain_bridge", "scoring.input_identity",
-                context={"reason": "identity_chain_bridge_over_diameter", "side": side,
-                    "floor_id": floor_id, "axis": axis, "diameter": diameter,
-                    "diameter_threshold": _COORDINATE_DIAMETER_THRESHOLD,
-                    "diameter_hex": diameter.hex(), "lo_hex": lo.hex(), "hi_hex": hi.hex()})
-    return _AxisIdentity(side, floor_id, axis, rep)
+            raise ScoreContractError(
+                "score_identity_chain_bridge", "scoring.input_identity",
+                context={"reason": "identity_chain_bridge_over_diameter",
+                         "side": side, "floor_id": floor_id, "axis": axis,
+                         "diameter": diameter,
+                         "diameter_threshold": _COORDINATE_DIAMETER_THRESHOLD,
+                         "diameter_hex": diameter.hex(), "lo_hex": lo.hex(),
+                         "hi_hex": hi.hex()},
+            )
+    return _LegacyAxisIdentity(side, floor_id, axis, rep)
 
 
-def _build_floor_identity(points: Iterable[Sequence[float]], *, side: str, floor_id: str,
-                          ) -> tuple[_AxisIdentity, _AxisIdentity]:
-    """Build the (x, y) identity pair for one document side on one floor."""
-    materialized = tuple(points)
-    x_id = _cluster_axis((float(p[0]) for p in materialized), side=side, floor_id=floor_id, axis="x")
-    y_id = _cluster_axis((float(p[1]) for p in materialized), side=side, floor_id=floor_id, axis="y")
+def _source_key_audit(key: CoordinateSourceKey) -> tuple[object, ...]:
+    return key.audit_tuple()
+
+
+def _cluster_occurrences(
+    occurrences: tuple[CoordinateOccurrence, ...],
+    *,
+    side: str,
+    floor_id: str,
+    axis: str,
+    topology: SourceTopologyIndex,
+) -> _AxisIdentity:
+    """C-1..C-3: source consistency, numeric proposals, structural proof."""
+    grouped: dict[CoordinateSourceKey, list[CoordinateOccurrence]] = {}
+    for occurrence in occurrences:
+        key = occurrence.source_key
+        if key.axis != axis or key.side != side or key.floor_id != floor_id:
+            raise_identity_conflict(
+                "score_identity_contract_mismatch",
+                predicate="source_key_scope",
+                source_vertex_ids=(_source_key_audit(key),),
+                reason="identity_source_key_scope_mismatch",
+                side=side,
+                floor_id=floor_id,
+                axis=axis,
+            )
+        value = occurrence.value
+        if value != value or value == float("inf") or value == float("-inf"):
+            raise_identity_conflict(
+                "score_identity_non_finite",
+                predicate="finite_coordinate",
+                source_vertex_ids=(_source_key_audit(key),),
+                reason="identity_non_finite_value",
+                side=side,
+                floor_id=floor_id,
+                axis=axis,
+                hex=value.hex(),
+            )
+        grouped.setdefault(key, []).append(occurrence)
+
+    source_values: list[tuple[float, CoordinateSourceKey]] = []
+    for key, samples in sorted(grouped.items()):
+        values = sorted(sample.value for sample in samples)
+        diameter = values[-1] - values[0]
+        if diameter > _COORDINATE_MERGE_THRESHOLD:
+            raise_identity_conflict(
+                "score_identity_contract_mismatch",
+                predicate="same_source_coordinate_consistency",
+                source_vertex_ids=(_source_key_audit(key),),
+                reason="same_source_coordinate_spread",
+                side=side,
+                floor_id=floor_id,
+                axis=axis,
+                original_hex=tuple(value.hex() for value in values),
+                diameter=diameter,
+                diameter_hex=diameter.hex(),
+                merge=_COORDINATE_MERGE_THRESHOLD,
+            )
+        source_values.append((values[0], key))
+
+    ordered = sorted(source_values, key=lambda item: (item[0], item[1]))
+    if not ordered:
+        return _AxisIdentity(side, floor_id, axis, {})
+
+    clusters: list[list[tuple[float, CoordinateSourceKey]]] = [[ordered[0]]]
+    for item in ordered[1:]:
+        prev = clusters[-1][-1]
+        gap = item[0] - prev[0]
+        if gap < _COORDINATE_MERGE_THRESHOLD:
+            clusters[-1].append(item)
+        elif gap > _COORDINATE_SPLIT_THRESHOLD:
+            clusters.append([item])
+        else:
+            raise_identity_conflict(
+                "score_identity_guard_band_ambiguity",
+                predicate="coordinate_guard_band",
+                source_vertex_ids=(
+                    _source_key_audit(prev[1]), _source_key_audit(item[1])
+                ),
+                reason="identity_guard_band_ambiguity",
+                side=side,
+                floor_id=floor_id,
+                axis=axis,
+                gap=gap,
+                merge=_COORDINATE_MERGE_THRESHOLD,
+                split=_COORDINATE_SPLIT_THRESHOLD,
+                gap_hex=gap.hex(),
+                lo_hex=prev[0].hex(),
+                hi_hex=item[0].hex(),
+                source_keys=(
+                    _source_key_audit(prev[1]), _source_key_audit(item[1])
+                ),
+            )
+
+    rep: dict[CoordinateSourceKey, float] = {}
+    accepted: list[AliasCertificate] = []
+    for cluster in clusters:
+        lo, hi = cluster[0][0], cluster[-1][0]
+        diameter = hi - lo
+        if diameter > _COORDINATE_DIAMETER_THRESHOLD:
+            raise_identity_conflict(
+                "score_identity_chain_bridge",
+                predicate="coordinate_cluster_diameter",
+                source_vertex_ids=tuple(_source_key_audit(key) for _, key in cluster),
+                reason="identity_chain_bridge_over_diameter",
+                side=side,
+                floor_id=floor_id,
+                axis=axis,
+                diameter=diameter,
+                diameter_threshold=_COORDINATE_DIAMETER_THRESHOLD,
+                diameter_hex=diameter.hex(),
+                lo_hex=lo.hex(),
+                hi_hex=hi.hex(),
+            )
+
+        adjacency: dict[CoordinateSourceKey, set[CoordinateSourceKey]] = {
+            key: set() for _, key in cluster
+        }
+        for left_index, (left_value, left_key) in enumerate(cluster):
+            for right_value, right_key in cluster[left_index + 1:]:
+                if left_value == right_value:
+                    adjacency[left_key].add(right_key)
+                    adjacency[right_key].add(left_key)
+                    continue
+                certificate = certify_alias(left_key, right_key, axis, topology)
+                if certificate is not None:
+                    adjacency[left_key].add(right_key)
+                    adjacency[right_key].add(left_key)
+                    accepted.append(certificate)
+
+        anchor = min(adjacency)
+        reached = {anchor}
+        work = [anchor]
+        while work:
+            current = work.pop()
+            for neighbour in sorted(adjacency[current]):
+                if neighbour not in reached:
+                    reached.add(neighbour)
+                    work.append(neighbour)
+        if len(reached) != len(cluster):
+            unresolved = sorted(set(adjacency).difference(reached))
+            candidate_pair = (anchor, unresolved[0])
+            values_by_key = {key: value for value, key in cluster}
+            for ref in topology.half_edges:
+                endpoints = {
+                    key.element_index: key
+                    for _, key in cluster
+                    if key.owner_kind == ref.owner_kind
+                    and key.owner_id == ref.owner_id
+                    and key.ring_id == ref.ring_id
+                    and key.element_index in {
+                        ref.start_vertex_index, ref.end_vertex_index
+                    }
+                }
+                if set(endpoints) == {
+                    ref.start_vertex_index, ref.end_vertex_index
+                }:
+                    left = endpoints[ref.start_vertex_index]
+                    right = endpoints[ref.end_vertex_index]
+                    if right not in adjacency[left]:
+                        lo_value, hi_value = sorted(
+                            (values_by_key[left], values_by_key[right])
+                        )
+                        diameter = hi_value - lo_value
+                        raise_identity_conflict(
+                            "score_identity_merge_collapse",
+                            predicate="ring_identity_conflict",
+                            owner_ids=(ref.owner_id,),
+                            source_edge_ids=(ref.edge_id,),
+                            source_vertex_ids=(
+                                (left.side, left.floor_id, left.owner_kind,
+                                 left.owner_id, left.ring_id, left.endpoint_side,
+                                 left.element_index),
+                                (right.side, right.floor_id, right.owner_kind,
+                                 right.owner_id, right.ring_id, right.endpoint_side,
+                                 right.element_index),
+                            ),
+                            reason="identity_merge_edge_collapse",
+                            side=side,
+                            floor_id=floor_id,
+                            axis=axis,
+                            source_keys=(
+                                left.audit_tuple(), right.audit_tuple()
+                            ),
+                            v1_hex=lo_value.hex(),
+                            v2_hex=hi_value.hex(),
+                            diameter=diameter,
+                            diameter_hex=diameter.hex(),
+                        )
+            raise_identity_conflict(
+                "score_identity_contract_mismatch",
+                predicate="cross_source_alias",
+                owner_ids=tuple(sorted({
+                    (key.owner_kind, key.owner_id) for _, key in cluster
+                })),
+                source_vertex_ids=tuple(_source_key_audit(key) for _, key in cluster),
+                reason="unproven_cross_source_alias",
+                side=side,
+                floor_id=floor_id,
+                axis=axis,
+                candidate_pair=tuple(_source_key_audit(key) for key in candidate_pair),
+                candidate_hex=tuple(value.hex() for value, _ in cluster),
+                structural_relation="none",
+            )
+        for _, key in cluster:
+            rep[key] = lo + 0.0
+    return _AxisIdentity(
+        side, floor_id, axis, rep,
+        tuple(sorted(set(accepted), key=lambda cert: cert.certificate_id)),
+    )
+
+
+def _cluster_axis(
+    raw_values: Iterable[CoordinateOccurrence] | Iterable[float],
+    *,
+    side: str,
+    floor_id: str,
+    axis: str,
+    topology: SourceTopologyIndex | None = None,
+) -> _AxisIdentity | _LegacyAxisIdentity:
+    """Occurrence API in production; legacy floats are quarantined for old locks."""
+    materialized = tuple(raw_values)
+    if topology is None:
+        return _cluster_legacy_axis(
+            materialized, side=side, floor_id=floor_id, axis=axis
+        )
+    if any(not isinstance(item, CoordinateOccurrence) for item in materialized):
+        raise TypeError("production identity clustering requires CoordinateOccurrence")
+    return _cluster_occurrences(
+        materialized, side=side, floor_id=floor_id, axis=axis, topology=topology
+    )
+
+
+def _build_floor_identity(
+    envelope: IdentityInputEnvelope,
+) -> tuple[_AxisIdentity, _AxisIdentity]:
+    """Build source-key identities from one exact-version typed envelope."""
+    validate_occurrence_shape(envelope)
+    x_occurrences = tuple(
+        item for item in envelope.occurrences if item.source_key.axis == "x"
+    )
+    y_occurrences = tuple(
+        item for item in envelope.occurrences if item.source_key.axis == "y"
+    )
+    x_id = _cluster_axis(
+        x_occurrences, side=envelope.side, floor_id=envelope.floor_id, axis="x",
+        topology=envelope.topology,
+    )
+    y_id = _cluster_axis(
+        y_occurrences, side=envelope.side, floor_id=envelope.floor_id, axis="y",
+        topology=envelope.topology,
+    )
+    assert isinstance(x_id, _AxisIdentity) and isinstance(y_id, _AxisIdentity)
     return x_id, y_id
 
 
-def _identify_point(point: Sequence[float], x_id: _AxisIdentity, y_id: _AxisIdentity) -> Point:
-    # +0.0 collapses -0.0 to 0.0 so it can never poison a dict key or tuple compare.
-    return (x_id.rep[float(point[0])] + 0.0, y_id.rep[float(point[1])] + 0.0)
+def _identify_point(
+    point: SourceVertex, x_id: _AxisIdentity, y_id: _AxisIdentity
+) -> Point:
+    return (
+        x_id.rep[point.x_source] + 0.0,
+        y_id.rep[point.y_source] + 0.0,
+    )
 
 
 @dataclass(frozen=True)
@@ -194,43 +477,205 @@ class SegmentScore:
     eligible_units: float = 0.0
 
 
-def _points(vertices: Sequence[Sequence[float]], x_id: _AxisIdentity, y_id: _AxisIdentity,
-            *, identity_code: str) -> tuple[Point, ...]:
-    # W1: map raw vertices through the (side, floor) axis identities so the same
-    # decimal seam shares one atomic representative before any exact comparison.
-    raw = tuple((float(p[0]), float(p[1])) for p in vertices)
-    out = tuple(_identify_point(point, x_id, y_id) for point in vertices)
-    # Drop an EXPLICIT closing duplicate (first raw == last raw).  Keying this on
-    # the raw points (not the identified reps) keeps it a pure ring-shape fix; a
-    # genuine same-rep pair from two distinct vertices is the merge-collapse
-    # reject below, handled separately so its context can name the real pair.
-    if len(out) > 1 and raw[0] == raw[-1]:
-        out, raw = out[:-1], raw[:-1]
+def _exact_orientation(a: Point, b: Point, c: Point) -> int:
+    ax, ay = Fraction.from_float(a[0]), Fraction.from_float(a[1])
+    bx, by = Fraction.from_float(b[0]), Fraction.from_float(b[1])
+    cx, cy = Fraction.from_float(c[0]), Fraction.from_float(c[1])
+    cross = (bx - ax) * (cy - ay) - (by - ay) * (cx - ax)
+    return (cross > 0) - (cross < 0)
+
+
+def _on_exact_segment(a: Point, b: Point, point: Point) -> bool:
+    return (
+        _exact_orientation(a, b, point) == 0
+        and min(a[0], b[0]) <= point[0] <= max(a[0], b[0])
+        and min(a[1], b[1]) <= point[1] <= max(a[1], b[1])
+    )
+
+
+def _segments_intersect(a: Point, b: Point, c: Point, d: Point) -> bool:
+    oa, ob = _exact_orientation(a, b, c), _exact_orientation(a, b, d)
+    oc, od = _exact_orientation(c, d, a), _exact_orientation(c, d, b)
+    if oa * ob < 0 and oc * od < 0:
+        return True
+    return (
+        (oa == 0 and _on_exact_segment(a, b, c))
+        or (ob == 0 and _on_exact_segment(a, b, d))
+        or (oc == 0 and _on_exact_segment(c, d, a))
+        or (od == 0 and _on_exact_segment(c, d, b))
+    )
+
+
+def _ring_context(
+    ring: SourceRing,
+    *,
+    predicate: str,
+    source_vertex_ids: Iterable[object],
+    source_edge_ids: Iterable[object] = (),
+    reason: str,
+    **extra: object,
+) -> dict[str, object]:
+    return identity_error_context(
+        predicate=predicate,
+        owner_ids=(ring.owner_id,),
+        source_edge_ids=source_edge_ids,
+        source_vertex_ids=source_vertex_ids,
+        reason=reason,
+        side=ring.vertices[0].x_source.side if ring.vertices else "",
+        floor_id=ring.vertices[0].x_source.floor_id if ring.vertices else "",
+        owner_identities=(ring.owner,),
+        **extra,
+    )
+
+
+def _points(
+    ring: SourceRing,
+    x_id: _AxisIdentity,
+    y_id: _AxisIdentity,
+    *,
+    identity_code: str,
+) -> tuple[Point, ...]:
+    """Rebuild a ring by source key, then certify its generic exact topology."""
+    source_vertices = ring.vertices[:-1] if ring.explicit_closure else ring.vertices
+    out = tuple(_identify_point(point, x_id, y_id) for point in source_vertices)
+    raw = tuple(point.raw_point for point in source_vertices)
     if len(out) < 3:
-        raise ScoreContractError(identity_code, "scoring.input_identity",
-            context={"reason": "polygon_too_short", "side": x_id.side, "floor_id": x_id.floor_id})
-    # C-1''(4): identity merge must not collapse two distinct ring vertices into
-    # one representative (zero-length edge).  R-5: record the ORIGINAL binary64
-    # pair (both coords of both vertices) and the exact diameter, not just one
-    # representative hex, so the merge decision is reproducible from the sidecar.
+        raise ScoreContractError(
+            identity_code, "scoring.input_identity",
+            context=_ring_context(
+                ring, predicate="ring_identity_conflict",
+                source_vertex_ids=tuple(vertex.vertex_id for vertex in source_vertices),
+                reason="polygon_too_short",
+            ),
+        )
     ring_n = len(out)
     for idx in range(ring_n):
-        first, second = out[idx], out[(idx + 1) % ring_n]
-        if first == second:
-            v1, v2 = raw[idx], raw[(idx + 1) % ring_n]
+        next_index = (idx + 1) % ring_n
+        if out[idx] == out[next_index]:
+            v1, v2 = raw[idx], raw[next_index]
             diameter = hypot(v1[0] - v2[0], v1[1] - v2[1])
-            raise ScoreContractError("score_identity_merge_collapse", "scoring.input_identity",
-                context={"reason": "identity_merge_edge_collapse", "side": x_id.side,
-                    "floor_id": x_id.floor_id, "axis": "xy",
-                    "v1_hex": (v1[0].hex(), v1[1].hex()), "v2_hex": (v2[0].hex(), v2[1].hex()),
-                    "diameter": diameter, "diameter_hex": diameter.hex()})
+            raise ScoreContractError(
+                "score_identity_merge_collapse", "scoring.input_identity",
+                context=_ring_context(
+                    ring,
+                    predicate="ring_identity_conflict",
+                    source_vertex_ids=(
+                        source_vertices[idx].vertex_id,
+                        source_vertices[next_index].vertex_id,
+                    ),
+                    source_edge_ids=((ring.owner_kind, ring.owner_id, ring.ring_id, idx),),
+                    reason="identity_merge_edge_collapse",
+                    axis="xy",
+                    v1_hex=(v1[0].hex(), v1[1].hex()),
+                    v2_hex=(v2[0].hex(), v2[1].hex()),
+                    source_keys=(
+                        source_vertices[idx].x_source.audit_tuple(),
+                        source_vertices[idx].y_source.audit_tuple(),
+                        source_vertices[next_index].x_source.audit_tuple(),
+                        source_vertices[next_index].y_source.audit_tuple(),
+                    ),
+                    diameter=diameter,
+                    diameter_hex=diameter.hex(),
+                ),
+            )
+
+    for first in range(ring_n):
+        for second in range(first + 1, ring_n):
+            adjacent = second == first + 1 or (first == 0 and second == ring_n - 1)
+            if not adjacent and out[first] == out[second]:
+                raise ScoreContractError(
+                    identity_code, "scoring.input_identity",
+                    context=_ring_context(
+                        ring,
+                        predicate="ring_identity_conflict",
+                        source_vertex_ids=(
+                            source_vertices[first].vertex_id,
+                            source_vertices[second].vertex_id,
+                        ),
+                        reason="ring_nonadjacent_vertex_repeat",
+                    ),
+                )
+
+    edges = tuple((out[index], out[(index + 1) % ring_n]) for index in range(ring_n))
+    for first in range(ring_n):
+        for second in range(first + 1, ring_n):
+            adjacent = second == first + 1 or (first == 0 and second == ring_n - 1)
+            a, b = edges[first]
+            c, d = edges[second]
+            if adjacent:
+                # Adjacent edges may meet only at their declared endpoint; any
+                # collinear backtrack creates a positive overlap.
+                if _exact_orientation(a, b, c) == _exact_orientation(a, b, d) == 0:
+                    common = {a, b}.intersection({c, d})
+                    backtracks = False
+                    if len(common) == 1:
+                        shared = next(iter(common))
+                        first_other = a if b == shared else b
+                        second_other = c if d == shared else d
+                        backtracks = (
+                            _on_exact_segment(a, b, second_other)
+                            or _on_exact_segment(c, d, first_other)
+                        )
+                    if len(common) != 1 or backtracks:
+                        raise ScoreContractError(
+                            identity_code, "scoring.input_identity",
+                            context=_ring_context(
+                                ring, predicate="ring_identity_conflict",
+                                source_vertex_ids=tuple(
+                                    source_vertices[index].vertex_id
+                                    for index in {first, (first + 1) % ring_n,
+                                                  second, (second + 1) % ring_n}
+                                ),
+                                source_edge_ids=(
+                                    (ring.owner_kind, ring.owner_id, ring.ring_id, first),
+                                    (ring.owner_kind, ring.owner_id, ring.ring_id, second),
+                                ),
+                                reason="ring_adjacent_edge_backtrack",
+                            ),
+                        )
+                continue
+            if _segments_intersect(a, b, c, d):
+                raise ScoreContractError(
+                    identity_code, "scoring.input_identity",
+                    context=_ring_context(
+                        ring,
+                        predicate="ring_identity_conflict",
+                        source_vertex_ids=tuple(
+                            source_vertices[index].vertex_id
+                            for index in {first, (first + 1) % ring_n,
+                                          second, (second + 1) % ring_n}
+                        ),
+                        source_edge_ids=(
+                            (ring.owner_kind, ring.owner_id, ring.ring_id, first),
+                            (ring.owner_kind, ring.owner_id, ring.ring_id, second),
+                        ),
+                        reason="ring_nonadjacent_edge_intersection",
+                    ),
+                )
     return out
 
 
-def _edges(vertices: Sequence[Sequence[float]], x_id: _AxisIdentity, y_id: _AxisIdentity,
-           *, identity_code: str) -> tuple[tuple[Point, Point], ...]:
-    ring = _points(vertices, x_id, y_id, identity_code=identity_code)
-    return tuple((ring[index], ring[(index + 1) % len(ring)]) for index in range(len(ring)))
+def _edges(
+    ring: SourceRing,
+    x_id: _AxisIdentity,
+    y_id: _AxisIdentity,
+    *,
+    identity_code: str,
+) -> tuple[tuple[Point, Point], ...]:
+    identified = _points(ring, x_id, y_id, identity_code=identity_code)
+    return tuple(
+        (identified[index], identified[(index + 1) % len(identified)])
+        for index in range(len(identified))
+    )
+
+
+def _identify_segment(
+    segment: SourceSegment, x_id: _AxisIdentity, y_id: _AxisIdentity
+) -> tuple[Point, Point]:
+    return (
+        _identify_point(segment.p1, x_id, y_id),
+        _identify_point(segment.p2, x_id, y_id),
+    )
 
 
 def _edge_key(p1: Point, p2: Point) -> tuple[Point, Point]:
@@ -251,14 +696,35 @@ def _canonical_geometry(segment: PlanSegment) -> tuple:
             tuple(sorted(segment.zone_ids)))
 
 
+def _assert_owner_atom(
+    left_owner: OwnerIdentity,
+    right_owner: OwnerIdentity,
+    *,
+    floor_id: str,
+    source_edge_ids: Iterable[object] = (),
+) -> None:
+    """A reverse interior atom needs two distinct ``(owner_kind, owner_id)``."""
+    if left_owner == right_owner:
+        raise_identity_conflict(
+            "score_identity_contract_mismatch",
+            predicate="owner_atom_multiplicity",
+            owner_ids=(left_owner[1],),
+            source_edge_ids=source_edge_ids,
+            reason="interior_atom_same_owner_reverse",
+            side="",
+            floor_id=floor_id,
+            owner_identities=(left_owner, right_owner),
+        )
+
+
 def _tile_orthogonal_edges(
-    directed: dict[tuple[Point, Point], list[str]],
+    directed: dict[tuple[Point, Point], list[OwnerIdentity]],
     exterior_edges: tuple[tuple[Point, Point], ...],
     floor_id: str,
     *,
     identity_code: str,
     diagnostics: list[_PairDiagnostic],
-) -> list[tuple[Point, Point, tuple[str, ...]]]:
+) -> list[tuple[Point, Point, tuple[OwnerIdentity, ...]]]:
     """Tile axis-aligned shared edges into T-junction sub-intervals (exact coverage).
 
     Every directed edge on a shared supporting line is tiled at the union of all
@@ -273,7 +739,10 @@ def _tile_orthogonal_edges(
     # Bucket directed edges by supporting orthogonal line and traversal side.
     # CCW polygons on opposite sides of a wall traverse it in opposite
     # directions, so the two sides land in forward/reverse separately.
-    lines: dict[tuple[str, float], dict[str, list[tuple[float, float, str]]]] = {}
+    lines: dict[
+        tuple[str, float],
+        dict[str, list[tuple[float, float, OwnerIdentity]]],
+    ] = {}
     for (p1, p2), owners in directed.items():
         if p1[0] == p2[0]:
             axis, const = "V", p1[0]
@@ -287,7 +756,7 @@ def _tile_orthogonal_edges(
         for owner in owners:
             lines.setdefault((axis, const), {"fwd": [], "rev": []})[side].append((lo, hi, owner))
 
-    pairs: list[tuple[Point, Point, tuple[str, ...]]] = []
+    pairs: list[tuple[Point, Point, tuple[OwnerIdentity, ...]]] = []
     for (axis, const), group in lines.items():
         cuts = sorted({coord for span in (group["fwd"] + group["rev"]) for coord in span[:2]})
         for lo, hi in zip(cuts, cuts[1:]):
@@ -308,6 +777,12 @@ def _tile_orthogonal_edges(
                         category="identity", code=identity_code, gate_id="scoring.input_identity",
                         context={"reason": "invalid_interior_edge_pair", "floor_id": floor_id}))
                     continue
+                _assert_owner_atom(
+                    forward_owners[0],
+                    reverse_owners[0],
+                    floor_id=floor_id,
+                    source_edge_ids=((axis, const, lo, hi),),
+                )
                 pairs.append((geometry[0], geometry[1], tuple(sorted((forward_owners[0], reverse_owners[0])))))
             elif forward_owners or reverse_owners:
                 if on_exterior:
@@ -334,13 +809,13 @@ def _tile_orthogonal_edges(
 
 
 def _pair_general_edges(
-    directed: dict[tuple[Point, Point], list[str]],
+    directed: dict[tuple[Point, Point], list[OwnerIdentity]],
     exterior_edges: tuple[tuple[Point, Point], ...],
     floor_id: str,
     *,
     identity_code: str,
     diagnostics: list[_PairDiagnostic],
-) -> list[tuple[Point, Point, tuple[str, ...]]]:
+) -> list[tuple[Point, Point, tuple[OwnerIdentity, ...]]]:
     """Pair non-axis-aligned edges by exact reverse (RW-2 general-segment seam).
 
     The scorer must not reinterpret a near-orthogonal edge the upstream validator
@@ -355,7 +830,7 @@ def _pair_general_edges(
     today; a future non-orthogonal profile extends here without rewriting the API
     or the orthogonal path (invariant #6).
     """
-    pairs: list[tuple[Point, Point, tuple[str, ...]]] = []
+    pairs: list[tuple[Point, Point, tuple[OwnerIdentity, ...]]] = []
     consumed: set[tuple[Point, Point]] = set()
     for edge, owners in directed.items():
         if edge in consumed:
@@ -375,6 +850,10 @@ def _pair_general_edges(
             consumed.add(edge)
             consumed.add(reverse)
             continue
+        _assert_owner_atom(
+            owners[0], rev_owners[0], floor_id=floor_id,
+            source_edge_ids=((p1, p2), (p2, p1)),
+        )
         pairs.append((p1, p2, tuple(sorted((owners[0], rev_owners[0])))))
         consumed.add(edge)
         consumed.add(reverse)
@@ -426,11 +905,11 @@ class _PairDiagnostic:
 
 
 def _pair_advisory_edges(
-    advisory: dict[tuple[Point, Point], list[str]],
+    advisory: dict[tuple[Point, Point], list[OwnerIdentity]],
     floor_id: str,
     *,
     diagnostics: list[_PairDiagnostic],
-) -> list[tuple[Point, Point, tuple[str, ...]]]:
+) -> list[tuple[Point, Point, tuple[OwnerIdentity, ...]]]:
     """Pair near-orthogonal advisory edges by exact reverse (W5 / R-4).
 
     Production admitted these edges (dx or dy in (0, 1e-9]) as axis-aligned, so
@@ -446,7 +925,7 @@ def _pair_advisory_edges(
     exterior rings are axis-aligned (validated upstream), so an advisory edge is
     never on the exterior here and no exterior/interior conflict check is needed.
     """
-    pairs: list[tuple[Point, Point, tuple[str, ...]]] = []
+    pairs: list[tuple[Point, Point, tuple[OwnerIdentity, ...]]] = []
     consumed: set[tuple[Point, Point]] = set()
     for edge, owners in advisory.items():
         if edge in consumed:
@@ -470,6 +949,10 @@ def _pair_advisory_edges(
                          "edge_hex": (float(p1[0]).hex(), float(p1[1]).hex(),
                                       float(p2[0]).hex(), float(p2[1]).hex())}))
             continue
+        _assert_owner_atom(
+            owners[0], rev_owners[0], floor_id=floor_id,
+            source_edge_ids=((p1, p2), (p2, p1)),
+        )
         _log_advisory_hit(floor_id, p1, p2)
         pairs.append((p1, p2, tuple(sorted((owners[0], rev_owners[0])))))
         consumed.add(edge)
@@ -478,12 +961,12 @@ def _pair_advisory_edges(
 
 
 def _pair_interior_edges(
-    directed: dict[tuple[Point, Point], list[str]],
+    directed: dict[tuple[Point, Point], list[OwnerIdentity]],
     exterior_edges: tuple[tuple[Point, Point], ...],
     floor_id: str,
     *,
     identity_code: str,
-) -> list[tuple[Point, Point, tuple[str, ...]]]:
+) -> list[tuple[Point, Point, tuple[OwnerIdentity, ...]]]:
     """Pair interior edges by exact coverage, T-junction aware (RW-1/2/3).
 
     Edges are classified on the SHARED orthogonality yardstick (W5 / R-4) so the
@@ -502,9 +985,9 @@ def _pair_interior_edges(
     comparison below is exact (``==`` / ``<=``); a gap, an overlap, or an
     imprecise endpoint is a real topology break, not a T-junction, and is rejected.
     """
-    ortho: dict[tuple[Point, Point], list[str]] = {}
-    general: dict[tuple[Point, Point], list[str]] = {}
-    advisory: dict[tuple[Point, Point], list[str]] = {}
+    ortho: dict[tuple[Point, Point], list[OwnerIdentity]] = {}
+    general: dict[tuple[Point, Point], list[OwnerIdentity]] = {}
+    advisory: dict[tuple[Point, Point], list[OwnerIdentity]] = {}
     for edge, owners in directed.items():
         p1, p2 = edge
         cls = classify_edge_orthogonality(p2[0] - p1[0], p2[1] - p1[1])
@@ -615,44 +1098,92 @@ def extract_gt_plan_segments(gt: GroundTruthV3) -> tuple[PlanSegment, ...]:
     """
     output: list[PlanSegment] = []
     for floor in gt.floors:
-        raw_points: list[Sequence[float]] = []
-        raw_points.extend(floor.footprint.exterior.vertices)
-        for zone in floor.zones:
-            raw_points.extend(zone.polygon.exterior.vertices)
+        source_document = adapt_gt_floor(floor)
+        x_id, y_id = _build_floor_identity(source_document.envelope)
+        rings = {
+            (ring.owner_kind, ring.owner_id, ring.ring_id): ring
+            for ring in source_document.rings
+        }
+        source_segments = {
+            segment.segment_id: segment for segment in source_document.segments
+        }
+        boundary_seen: dict[tuple, SourceSegment] = {}
         for segment in floor.boundary_segments:
-            raw_points.append(segment.p1)
-            raw_points.append(segment.p2)
-        x_id, y_id = _build_floor_identity(raw_points, side="gt", floor_id=floor.id)
-        boundary_seen: set[tuple] = set()
-        for segment in floor.boundary_segments:
-            q1 = _identify_point(segment.p1, x_id, y_id)
-            q2 = _identify_point(segment.p2, x_id, y_id)
+            source_segment = source_segments[str(segment.id)]
+            q1, q2 = _identify_segment(source_segment, x_id, y_id)
             # C-1''(4): a boundary segment whose endpoints weld together is a
             # zero-length exterior edge; two boundary segments that weld to the
             # SAME geometry are a duplicate exterior owner.  Both are loud rejects.
             if q1 == q2:
-                raise ScoreContractError("score_identity_merge_collapse", "scoring.input_identity",
-                    context={"reason": "identity_boundary_segment_collapse", "side": "gt",
-                        "floor_id": floor.id, "segment": segment.id,
-                        "v1_hex": (float(segment.p1[0]).hex(), float(segment.p1[1]).hex()),
-                        "v2_hex": (float(segment.p2[0]).hex(), float(segment.p2[1]).hex())})
+                diameter = hypot(
+                    source_segment.p1.raw_point[0] - source_segment.p2.raw_point[0],
+                    source_segment.p1.raw_point[1] - source_segment.p2.raw_point[1],
+                )
+                raise_identity_conflict(
+                    "score_identity_merge_collapse",
+                    predicate="segment_identity_conflict",
+                    owner_ids=(source_segment.owner_id,),
+                    source_vertex_ids=(
+                        source_segment.p1.vertex_id, source_segment.p2.vertex_id
+                    ),
+                    reason="identity_boundary_segment_collapse",
+                    side="gt",
+                    floor_id=floor.id,
+                    segment=segment.id,
+                    source_keys=(
+                        source_segment.p1.x_source.audit_tuple(),
+                        source_segment.p1.y_source.audit_tuple(),
+                        source_segment.p2.x_source.audit_tuple(),
+                        source_segment.p2.y_source.audit_tuple(),
+                    ),
+                    v1_hex=tuple(value.hex() for value in source_segment.p1.raw_point),
+                    v2_hex=tuple(value.hex() for value in source_segment.p2.raw_point),
+                    diameter=diameter,
+                    diameter_hex=diameter.hex(),
+                )
             geom = (floor.id, min(q1, q2), max(q1, q2))
             if geom in boundary_seen:
-                raise ScoreContractError("score_identity_merge_collapse", "scoring.input_identity",
-                    context={"reason": "identity_boundary_duplicate_after_merge", "side": "gt",
-                        "floor_id": floor.id, "segment": segment.id})
-            boundary_seen.add(geom)
+                prior = boundary_seen[geom]
+                raise_identity_conflict(
+                    "score_identity_merge_collapse",
+                    predicate="segment_identity_conflict",
+                    owner_ids=(prior.owner_id, source_segment.owner_id),
+                    source_vertex_ids=(
+                        prior.p1.vertex_id, prior.p2.vertex_id,
+                        source_segment.p1.vertex_id, source_segment.p2.vertex_id,
+                    ),
+                    reason="identity_boundary_duplicate_after_merge",
+                    side="gt",
+                    floor_id=floor.id,
+                    segment_ids=(prior.segment_id, source_segment.segment_id),
+                    raw_endpoints=(prior.p1.raw_point, prior.p2.raw_point,
+                                   source_segment.p1.raw_point, source_segment.p2.raw_point),
+                    source_keys=tuple(
+                        key.audit_tuple()
+                        for vertex in (prior.p1, prior.p2, source_segment.p1, source_segment.p2)
+                        for key in (vertex.x_source, vertex.y_source)
+                    ),
+                    endpoint_hex=tuple(
+                        tuple(value.hex() for value in vertex.raw_point)
+                        for vertex in (prior.p1, prior.p2, source_segment.p1, source_segment.p2)
+                    ),
+                )
+            boundary_seen[geom] = source_segment
             output.append(PlanSegment(segment.id, floor.id, q1, q2, (),
                 tuple(ref.view_id for ref in segment.source_refs), True))
-        directed: dict[tuple[Point, Point], list[str]] = {}
+        directed: dict[tuple[Point, Point], list[OwnerIdentity]] = {}
         for zone in floor.zones:
-            for p1, p2 in _edges(zone.polygon.exterior.vertices, x_id, y_id,
+            source_ring = rings[("zone", str(zone.id), "exterior")]
+            for p1, p2 in _edges(source_ring, x_id, y_id,
                                  identity_code="score_gt_identity_invalid"):
-                directed.setdefault(_edge_key(p1, p2), []).append(zone.id)
-        exterior_edges = _edges(floor.footprint.exterior.vertices, x_id, y_id,
+                directed.setdefault(_edge_key(p1, p2), []).append(source_ring.owner)
+        exterior_edges = _edges(rings[("footprint", str(floor.id), "exterior")], x_id, y_id,
                                 identity_code="score_gt_identity_invalid")
-        for p1, p2, zones in _pair_interior_edges(directed, exterior_edges, floor.id,
-                                                   identity_code="score_gt_identity_invalid"):
+        for p1, p2, owners in _pair_interior_edges(
+            directed, exterior_edges, floor.id,
+            identity_code="score_gt_identity_invalid",
+        ):
+            zones = tuple(owner_id for _, owner_id in owners)
             key = "interior:%s:%s:%s" % (floor.id, min(p1, p2), max(p1, p2))
             output.append(PlanSegment(key, floor.id, p1, p2, zones, (), False))
     return tuple(sorted(output, key=_canonical_geometry))
@@ -676,23 +1207,29 @@ def extract_correction_plan_segments(geometry: CorrectedGeometryV3) -> tuple[Pla
     """
     output: list[PlanSegment] = []
     for floor in geometry.floors:
-        raw_points: list[Sequence[float]] = []
-        raw_points.extend(floor.footprint.vertices)
-        for cell in floor.cells:
-            raw_points.extend(_cell_polygon(cell))
-        x_id, y_id = _build_floor_identity(raw_points, side="product", floor_id=floor.id)
-        exterior_edges = _edges(floor.footprint.vertices, x_id, y_id,
+        source_document = adapt_correction_floor(floor)
+        x_id, y_id = _build_floor_identity(source_document.envelope)
+        rings = {
+            (ring.owner_kind, ring.owner_id, ring.ring_id): ring
+            for ring in source_document.rings
+        }
+        exterior_edges = _edges(rings[("footprint", str(floor.id), "exterior")], x_id, y_id,
                                 identity_code="score_product_identity_invalid")
         for number, (p1, p2) in enumerate(exterior_edges):
             output.append(PlanSegment("%s:footprint:%d" % (floor.id, number), floor.id, p1, p2,
                                       (), ("correction:%s" % floor.id,), True))
-        directed: dict[tuple[Point, Point], list[str]] = {}
+        directed: dict[tuple[Point, Point], list[OwnerIdentity]] = {}
         for cell in floor.cells:
-            for p1, p2 in _edges(_cell_polygon(cell), x_id, y_id,
+            owner_kind = "cell" if cell.polygon is not None else "cell_rect_v1"
+            source_ring = rings[(owner_kind, str(cell.id), "exterior")]
+            for p1, p2 in _edges(source_ring, x_id, y_id,
                                  identity_code="score_product_identity_invalid"):
-                directed.setdefault((p1, p2), []).append(cell.id)
-        for p1, p2, zones in _pair_interior_edges(directed, exterior_edges, floor.id,
-                                                   identity_code="score_product_identity_invalid"):
+                directed.setdefault((p1, p2), []).append(source_ring.owner)
+        for p1, p2, owners in _pair_interior_edges(
+            directed, exterior_edges, floor.id,
+            identity_code="score_product_identity_invalid",
+        ):
+            zones = tuple(owner_id for _, owner_id in owners)
             output.append(PlanSegment("%s:interior:%s:%s" % (floor.id, min(p1, p2), max(p1, p2)), floor.id,
                                       p1, p2, zones, ("correction:%s" % floor.id,), False))
     return tuple(sorted(output, key=_canonical_geometry))
@@ -723,20 +1260,62 @@ def coerce_plan_observations(observations: Iterable[PlanSegment | dict]) -> tupl
         by_floor.setdefault(row.floor_id, []).append(row)
     output: list[PlanSegment] = []
     for floor_id, group in by_floor.items():
-        points = [point for row in group for point in (row.p1, row.p2)]
-        x_id, y_id = _build_floor_identity(points, side="product", floor_id=floor_id)
+        source_document = adapt_reading_floor(floor_id, group)
+        x_id, y_id = _build_floor_identity(source_document.envelope)
+        source_segments = {
+            segment.segment_id: segment for segment in source_document.segments
+        }
+        seen_geometry: dict[tuple[Point, Point], SourceSegment] = {}
         for row in group:
-            q1 = _identify_point(row.p1, x_id, y_id)
-            q2 = _identify_point(row.p2, x_id, y_id)
+            source_segment = source_segments[row.key]
+            q1, q2 = _identify_segment(source_segment, x_id, y_id)
             # C-1''(4): identity merge must not collapse a reading observation
             # to a zero-length segment ((0,0)->(5e-13,0) welds to a point).  This
             # is a loud reject, never a silent drop.
             if q1 == q2:
-                raise ScoreContractError("score_identity_merge_collapse", "scoring.input_identity",
-                    context={"reason": "identity_reading_segment_collapse", "side": "product",
-                        "floor_id": floor_id, "observation": row.key,
-                        "v1_hex": (float(row.p1[0]).hex(), float(row.p1[1]).hex()),
-                        "v2_hex": (float(row.p2[0]).hex(), float(row.p2[1]).hex())})
+                diameter = hypot(
+                    source_segment.p1.raw_point[0] - source_segment.p2.raw_point[0],
+                    source_segment.p1.raw_point[1] - source_segment.p2.raw_point[1],
+                )
+                raise_identity_conflict(
+                    "score_identity_merge_collapse",
+                    predicate="segment_identity_conflict",
+                    owner_ids=(source_segment.owner_id,),
+                    source_vertex_ids=(
+                        source_segment.p1.vertex_id, source_segment.p2.vertex_id
+                    ),
+                    reason="identity_reading_segment_collapse",
+                    side="product",
+                    floor_id=floor_id,
+                    observation=row.key,
+                    source_keys=(
+                        source_segment.p1.x_source.audit_tuple(),
+                        source_segment.p1.y_source.audit_tuple(),
+                        source_segment.p2.x_source.audit_tuple(),
+                        source_segment.p2.y_source.audit_tuple(),
+                    ),
+                    v1_hex=tuple(value.hex() for value in source_segment.p1.raw_point),
+                    v2_hex=tuple(value.hex() for value in source_segment.p2.raw_point),
+                    diameter=diameter,
+                    diameter_hex=diameter.hex(),
+                )
+            geometry_key = min(q1, q2), max(q1, q2)
+            if geometry_key in seen_geometry:
+                prior = seen_geometry[geometry_key]
+                raise_identity_conflict(
+                    "score_identity_merge_collapse",
+                    predicate="segment_identity_conflict",
+                    owner_ids=(prior.owner_id, source_segment.owner_id),
+                    source_vertex_ids=(
+                        prior.p1.vertex_id, prior.p2.vertex_id,
+                        source_segment.p1.vertex_id, source_segment.p2.vertex_id,
+                    ),
+                    reason="identity_reading_duplicate_after_merge",
+                    side="product",
+                    floor_id=floor_id,
+                    segment_ids=(prior.segment_id, source_segment.segment_id),
+                )
+            seen_geometry[geometry_key] = source_segment
             output.append(PlanSegment(row.key, row.floor_id, q1, q2, row.zone_ids, row.source_ids, row.exterior))
     return tuple(output)
 
