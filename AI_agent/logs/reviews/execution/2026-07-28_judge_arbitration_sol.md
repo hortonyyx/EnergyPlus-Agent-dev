@@ -574,3 +574,552 @@ FAILED tests/test_judge_arbitration_slice0.py::test_c_l11_typed_envelope_version
 
 Slice 0 完成并停止。未修改生产代码，未开始 Slice 1。等待主控对
 `7071892944947e74f5687d87e9d2ae34fc80a6b9` 做轻门。
+
+---
+
+## 10. Slice 1 · 来源图与身份合同（C）
+
+### 10.1 提交与范围
+
+- Slice 1 源码/锁提交：
+  `c59e4bce048e963b7590580271210e9fef7643b8`
+- 提交标题：`7.28_JudgeArbitrationSlice1SourceIdentity`
+- 生产改动：
+  - 新建 `src/agent/judge/identity_provenance.py`；
+  - `segment_score.py` 的 GT / correction / reading 三类正式入口改为
+    `SourceGeometryDocument -> IdentityInputEnvelope -> CoordinateOccurrence`；
+  - `_AxisIdentity.rep` 的正式路径按 `CoordinateSourceKey` 查询；
+  - 落 exact-version、same-source、结构 alias、exact ring/segment topology 与
+    `(owner_kind, owner_id)` owner 合同。
+- 新增 `tests/test_judge_identity_provenance.py`，17 条锁。
+- 未进入 Slice 2；没有新增 `certifier.py`，没有改变 A 的仲裁行为。
+- 未进入 Slice 3；没有改变 interval ledger 或 conservation 行为。
+- 未进入 Slice 4；没有 bump helper/cache identity。
+
+### 10.2 `git status --short` 首尾快照
+
+Slice 1 开始（源码改动前）：
+
+```text
+?? AI_agent/logs/reviews/request/2026-07-28_judge_arbitration_construction_dispatch.md
+```
+
+Slice 1 源码提交后、追加本日志前：
+
+```text
+?? AI_agent/logs/reviews/request/2026-07-28_judge_arbitration_construction_dispatch.md
+```
+
+该 untracked 文件为主控拥有的 dispatch order，本轮未加入提交。两快照逐字节相同。
+
+### 10.3 Slice 0 锁的合法状态迁移
+
+| 锁 | Slice 1 后 | 证书 |
+|---|---|---|
+| A-L3 | RED | 仍为 `score_unsupported_combination`，留给 Slice 2 |
+| A-L9 | RED | 仍为 `ModuleNotFoundError: src.agent.judge.certifier`，留给 Slice 2 |
+| B-L4 | RED | 仍为原 1-ulp `score_denominator_nonconserving`，留给 Slice 3 |
+| C-L1 | **GREEN** | 三类正式 adapter 送入的均为 occurrence；rep key 为 source key |
+| C-L7 | **GREEN** | 非相邻重复/自触由 exact 通用 ring checker 产完整 certified witness |
+| C-L11 | **GREEN** | builder 对 contract version 做 exact-string `"1"` 门；`"2"` 与 `2` 均拒绝 |
+
+C-L1/C-L7/C-L11 已由行为级 neuter 重新证明，不再依赖 Slice 0 时的
+`ModuleNotFoundError` 或“未来 guard”弱信号。
+
+### 10.4 最终全仓
+
+命令：`pytest -q`（仓库默认并行）。
+
+尾部原文：
+
+```text
+=========================== short test summary info ============================
+FAILED tests/test_judge_arbitration_slice0.py::test_a_l3_genuine_duplicate_with_unrelated_advisory_is_certified_red
+FAILED tests/test_judge_arbitration_slice0.py::test_a_l9_missing_evaluator_is_counted_for_na_red_and_registered_paths
+FAILED tests/test_judge_arbitration_slice0.py::test_b_l4_three_adjacent_spans_do_not_false_red_and_have_exact_ledger
+3 failed, 1745 passed, 10 xfailed, 150 warnings in 259.81s (0:04:19)
+```
+
+状态守恒：
+
+- clean-tree baseline：`1725 passed, 10 xfailed`；
+- Slice 0：六锁红，`1725 passed`；
+- Slice 1：17 条新锁 + 三条转绿 C 锁 = 新增 20 passed；
+- 实测 `1745 - 1725 = 20`；
+- 除 A-L3/A-L9/B-L4 三条计划内红外，没有其他测试改变状态。
+
+B-L4 的失败仍发生在原 `_assert_obs_conservation`：
+
+```text
+obs_length = 20.861502717932574
+covered    = 20.861502717932577
+if covered > obs_length:
+    raise ScoreContractError("score_denominator_nonconserving", ...)
+```
+
+相对 `d20daef` 的 diff 中，`_SUBINTERVAL_SUM_TOL`、
+`_assert_target_conservation`、`_assert_obs_conservation`、`covered > obs_length`
+均无增删行；Slice 1 只因前方来源身份代码增加而把原函数移动到约第 1402 行，行为未改。
+
+### 10.5 sm24 受保护树 SHA-256 比较
+
+命令：
+
+```bash
+find case_tests/test_baseline/gt/sm24_anchor -type f -print0 \
+  | sort -z | xargs -0 sha256sum
+git diff --quiet -- case_tests/test_baseline/gt AI_agent/CLAUDE.md
+```
+
+Slice 1 结束 manifest 与 Slice 0 起始 manifest 逐项相同：
+
+```text
+5a8dcba5ab4f5b2b5dc30df91896eeee50e01f9a5bf06ec1b379101a4d16d420  gt.json
+7d4c1ed09f31377253838445733a130c11ff2fedf5ca95ddcdd231a7439abe03  renders/gt_elev.png
+2ba9dd15497dc935e9a5e6499ef632ae0034179edb0b44164bfbc5025e655bd7  renders/gt_plan.png
+135e2995a07e5acf6ed5d878f7e7d0acfc1baef1fdc3e8a687dd8fada705c675  renders/overlay_1f_view.png
+ae69b4276567305dfc9b9145a9a1f2b28593b399a28090d09004a626bd6ed366  renders/overlay_East_view.png
+d4a99cca3128e0335fed6bc7f76bb6c9bd700ab155a61eda7f2de5b8ed7be957  renders/overlay_North_view.png
+0e66297543fcaecb0899018af25715197538b37373d555c0fc47a46b3f83302e  renders/overlay_South_view.png
+a782dd82fa4c309c0893cdf16b8b1dd6a917825ba4ea0dde37ab893d6eba6375  renders/overlay_West_view.png
+25e7d077c169eb087f1c3b477a1f919e1d8d4a4ad76b3d4931c0894ce125873e  review/conversion_report.json
+bd1d7efea498e50ca47dd0144a0c9a1720d68f72e97fda3cd4faf78cf7fb6b70  review/opening_elevation_audit.json
+f602d80287e64264df2c724dcd9941c29aec93c920c38ece91d885df1ad7e470  review/review_ack.json
+9341cd4ee2fd122a27d41c75a03b92cb15b31f7e474334c1c57f07854c76e457  review/review_annotations.json
+edb99f09f97348a29d414d6bee81ac946a1afc619d297d6b88d0036d03413030  review/review_index.json
+b76c35c4ed215814f1f1a1c70e2cfeda65efc9e3b0f53054f48f082c97291a89  score_inputs/view_bindings.json
+```
+
+`git diff --quiet` 退出码为 `0`；`case_tests/test_baseline/gt/` 与
+`AI_agent/CLAUDE.md` 均零字节变化。
+
+## 11. Slice 1 实际执行的 neuter self-check
+
+所有 mutation 均只施加在
+`/tmp/judge-slice1-neuters.FqY44q/repo` 副本；工作树没有 neuter 状态。
+下表的“红数”是对应命令的真实 pytest 结果，不是源码目测。
+
+| 锁 | 实际 mutation | 真实结果 |
+|---|---|---:|
+| C-L1 | `_build_floor_identity` 退回 `_cluster_legacy_axis(float)` | 1 failed |
+| C-L2 | same-source 聚合键退回 raw value | 1 failed |
+| C-L3 | `_cluster_axis` 在正式入口剥离 occurrence | 1 failed |
+| C-L4 | `certify_alias` 对全部结构关系返回 `None` | 3 failed |
+| C-L5 | 无证书也连 candidate adjacency | 1 failed |
+| C-L6 | 跳过 post-merge ring validator | 1 failed |
+| C-L7 | ring validator 退回“只查相邻坍缩” | 1 failed |
+| C-L8 | exact edge-intersection predicate 恒 false | 1 failed |
+| C-L9 | 删除 `left_owner != right_owner` 守卫 | 1 failed |
+| C-L10 | boundary duplicate key 改用归并前 raw geometry | 1 failed |
+| C-L11 | 忽略 envelope version | 2 failed |
+| C-L12 | 给 duplicate reading id 放行 | 1 failed |
+| C-L13 | 相交检查限定为 H/V | 1 failed |
+| C-L14 | 在 matching 中非法联合 GT/product 坐标池 | 1 failed |
+| C-L15 | 把 sm21 legacy grade dispatch 接入新 adapter | 1 failed |
+| §8 owner 同名锁 | owner identity 退化为只剩 `owner_id` | 1 failed |
+
+合计：19 个真实 red test instances。
+
+一个重要的 mutation 观察：第一次只删除 C-L7 的“非相邻重复顶点”分支时，
+exact non-adjacent edge intersection 仍独立报同一固定冲突，故锁仍为
+`1 passed`；这不是完整的指定 neuter。把 validator 完整退化为“只保留相邻坍缩检查”
+后才得到 `1 failed`。表中记录的是后者。
+
+### 11.1 可执行 mutation patches
+
+以下 patch 均以 `c59e4bc` 为基线，可在独立 `/tmp` 副本用
+`apply_patch <<'PATCH' ... PATCH` 执行；每段后运行表中的单锁命令。
+
+#### C-L1 · 正式 builder 退回裸 float
+
+```bash
+apply_patch <<'PATCH'
+*** Begin Patch
+*** Update File: src/agent/judge/segment_score.py
+@@
+-    x_id = _cluster_axis(
+-        x_occurrences, side=envelope.side, floor_id=envelope.floor_id, axis="x",
+-        topology=envelope.topology,
+-    )
+-    y_id = _cluster_axis(
+-        y_occurrences, side=envelope.side, floor_id=envelope.floor_id, axis="y",
+-        topology=envelope.topology,
+-    )
++    x_id = _cluster_legacy_axis(
++        (item.value for item in x_occurrences),
++        side=envelope.side, floor_id=envelope.floor_id, axis="x",
++    )
++    y_id = _cluster_legacy_axis(
++        (item.value for item in y_occurrences),
++        side=envelope.side, floor_id=envelope.floor_id, axis="y",
++    )
+*** End Patch
+PATCH
+```
+
+命令：
+`pytest -q tests/test_judge_arbitration_slice0.py::test_c_l1_formal_adapters_preserve_source_keys_through_axis_identity`
+；实测 `1 failed`。
+
+#### C-L2 · same-source 聚合键退回 raw value
+
+```bash
+apply_patch <<'PATCH'
+*** Begin Patch
+*** Update File: src/agent/judge/segment_score.py
+@@
+-        grouped.setdefault(key, []).append(occurrence)
++        grouped.setdefault(occurrence.value, []).append(occurrence)
+*** End Patch
+PATCH
+```
+
+命令：
+`pytest -q tests/test_judge_identity_provenance.py::test_c_l2_same_source_spread_rejects_with_hex_and_diameter`
+；实测 `1 failed`。
+
+#### C-L3 · 正式 `_cluster_axis` 剥离 occurrence
+
+```bash
+apply_patch <<'PATCH'
+*** Begin Patch
+*** Update File: src/agent/judge/segment_score.py
+@@
+     materialized = tuple(raw_values)
++    if topology is not None:
++        materialized = tuple(item.value for item in materialized)
+     if topology is None:
+*** End Patch
+PATCH
+```
+
+命令：
+`pytest -q tests/test_judge_identity_provenance.py::test_c_l3_guard_band_names_both_source_keys`
+；实测 `1 failed`。
+
+#### C-L4 · 拒绝所有结构 alias
+
+```bash
+apply_patch <<'PATCH'
+*** Begin Patch
+*** Update File: src/agent/judge/identity_provenance.py
+@@
+-    if left.axis != axis or right.axis != axis:
+-        return None
+-    return topology.certificates.get(_pair_key(left, right))
++    return None
+*** End Patch
+PATCH
+```
+
+命令：
+`pytest -q tests/test_judge_identity_provenance.py::test_c_l4_sm24_drift_has_paired_certificate_and_extracts tests/test_judge_identity_provenance.py::test_c_l4_formal_reverse_edge_alias_is_structural_not_distance`
+；实测 `3 failed`。
+
+#### C-L5 · 近邻即 alias
+
+```bash
+apply_patch <<'PATCH'
+*** Begin Patch
+*** Update File: src/agent/judge/segment_score.py
+@@
+                 certificate = certify_alias(left_key, right_key, axis, topology)
++                adjacency[left_key].add(right_key)
++                adjacency[right_key].add(left_key)
+                 if certificate is not None:
+-                    adjacency[left_key].add(right_key)
+-                    adjacency[right_key].add(left_key)
+                     accepted.append(certificate)
+*** End Patch
+PATCH
+```
+
+命令：
+`pytest -q tests/test_judge_identity_provenance.py::test_c_l5_unrelated_submerge_sources_reject_without_structural_relation`
+；实测 `1 failed`（DID NOT RAISE）。
+
+#### C-L6 · 跳过 post-merge ring validator
+
+```bash
+apply_patch <<'PATCH'
+*** Begin Patch
+*** Update File: src/agent/judge/segment_score.py
+@@
+     out = tuple(_identify_point(point, x_id, y_id) for point in source_vertices)
+     raw = tuple(point.raw_point for point in source_vertices)
++    return out
+*** End Patch
+PATCH
+```
+
+命令：
+`pytest -q tests/test_judge_identity_provenance.py::test_c_l6_postmerge_ring_validator_is_independently_load_bearing`
+；实测 `1 failed`（DID NOT RAISE）。
+
+#### C-L7 · 退回只查相邻坍缩
+
+```bash
+apply_patch <<'PATCH'
+*** Begin Patch
+*** Update File: src/agent/judge/segment_score.py
+@@
+-    for first in range(ring_n):
++    return out
++    for first in range(ring_n):
+*** End Patch
+PATCH
+```
+
+命令：
+`pytest -q tests/test_judge_arbitration_slice0.py::test_c_l7_nonadjacent_duplicate_self_touch_is_certified_red`
+；实测 `1 failed`。
+
+#### C-L8 · exact intersection 恒 false
+
+```bash
+apply_patch <<'PATCH'
+*** Begin Patch
+*** Update File: src/agent/judge/segment_score.py
+@@
+ def _segments_intersect(a: Point, b: Point, c: Point, d: Point) -> bool:
++    return False
+*** End Patch
+PATCH
+```
+
+命令：
+`pytest -q tests/test_judge_identity_provenance.py::test_c_l8_bow_tie_from_formal_adapter_is_certified_red`
+；实测 `1 failed`。
+
+#### C-L9 · 删除 owner 不同守卫
+
+```bash
+apply_patch <<'PATCH'
+*** Begin Patch
+*** Update File: src/agent/judge/segment_score.py
+@@
+-    if left_owner == right_owner:
++    if False and left_owner == right_owner:
+*** End Patch
+PATCH
+```
+
+命令：
+`pytest -q tests/test_judge_identity_provenance.py::test_c_l9_same_owner_reverse_atom_is_contract_conflict`
+；实测 `1 failed`（DID NOT RAISE）。
+
+#### C-L10 · duplicate key 改用归并前几何
+
+```bash
+apply_patch <<'PATCH'
+*** Begin Patch
+*** Update File: src/agent/judge/segment_score.py
+@@
+-            geom = (floor.id, min(q1, q2), max(q1, q2))
++            geom = (
++                floor.id,
++                min(source_segment.p1.raw_point, source_segment.p2.raw_point),
++                max(source_segment.p1.raw_point, source_segment.p2.raw_point),
++            )
+*** End Patch
+PATCH
+```
+
+命令：
+`pytest -q tests/test_judge_identity_provenance.py::test_c_l10_boundary_duplicate_after_merge_carries_four_raw_endpoints`
+；实测 `1 failed`（DID NOT RAISE）。
+
+#### C-L11 · 忽略 exact-string version
+
+```bash
+apply_patch <<'PATCH'
+*** Begin Patch
+*** Update File: src/agent/judge/identity_provenance.py
+@@
+-    if (
++    if False and (
+         type(envelope.contract_version) is not str
+*** End Patch
+PATCH
+```
+
+命令：
+`pytest -q tests/test_judge_arbitration_slice0.py::test_c_l11_typed_envelope_version_two_is_rejected_by_version_one_builder tests/test_judge_identity_provenance.py::test_c_l11_contract_version_is_exact_string_without_coercion`
+；实测 `2 failed`。
+
+#### C-L12 · 放行 duplicate reading id
+
+```bash
+apply_patch <<'PATCH'
+*** Begin Patch
+*** Update File: src/agent/judge/identity_provenance.py
+@@
+-    if len(ids) != len(set(ids)):
++    if False and len(ids) != len(set(ids)):
+*** End Patch
+PATCH
+```
+
+命令：
+`pytest -q tests/test_judge_identity_provenance.py::test_c_l12_duplicate_reading_id_rejects_in_adapter`
+；实测 `1 failed`。
+
+#### C-L13 · 相交检查退化为 H/V only
+
+```bash
+apply_patch <<'PATCH'
+*** Begin Patch
+*** Update File: src/agent/judge/segment_score.py
+@@
+ def _segments_intersect(a: Point, b: Point, c: Point, d: Point) -> bool:
++    if (
++        a[0] != b[0] and a[1] != b[1]
++        and c[0] != d[0] and c[1] != d[1]
++    ):
++        return False
+*** End Patch
+PATCH
+```
+
+命令：
+`pytest -q tests/test_judge_identity_provenance.py::test_c_l13_generic_nonorthogonal_concave_passes_and_bow_tie_rejects`
+；实测 `1 failed`。
+
+#### C-L14 · 非法联合答案/产品池
+
+```bash
+apply_patch <<'PATCH'
+*** Begin Patch
+*** Update File: src/agent/judge/segment_score.py
+@@
+     target_list = tuple(sorted(targets, key=_canonical_geometry))
+     obs_list = tuple(sorted(observations, key=_canonical_geometry))
++    product_x = {v for o in obs_list for v in (o.p1[0], o.p2[0])}
++    product_y = {v for o in obs_list for v in (o.p1[1], o.p2[1])}
++    def pooled(point):
++        xs = [v for v in product_x if abs(v - point[0]) < _COORDINATE_MERGE_THRESHOLD]
++        ys = [v for v in product_y if abs(v - point[1]) < _COORDINATE_MERGE_THRESHOLD]
++        return min([point[0], *xs]), min([point[1], *ys])
++    target_list = tuple(
++        PlanSegment(row.key, row.floor_id, pooled(row.p1), pooled(row.p2),
++                    row.zone_ids, row.source_ids, row.exterior)
++        for row in target_list
++    )
+*** End Patch
+PATCH
+```
+
+命令：
+`pytest -q tests/test_judge_identity_metric.py::test_a8_answer_denominator_independent_of_product`
+；实测 `1 failed`（两次 denominator binary64 不同）。
+
+#### C-L15 · 把 sm21 legacy dispatch 接入 adapter
+
+```bash
+apply_patch <<'PATCH'
+*** Begin Patch
+*** Update File: scripts/tool_scripts/run_stage.py
+@@
+ def _grade_attempt_artifacts(
+@@
+ ) -> dict:
+     from src.agent.execution.manifest import attempt_index_of, hash_text
++    from src.agent.judge import segment_score as provenance_segment
+@@
+     if stage not in {"0_reading", "1_correction"}:
+         return {"score_vs_gt": None, "grade": None, "score_criteria": []}
++    provenance_segment.adapt_reading_floor("legacy-neuter", ())
+*** End Patch
+PATCH
+```
+
+命令：
+`pytest -q -n0 tests/test_judge_identity_provenance.py::test_c_l15_sm21_score_pixels_and_dispatch_do_not_instantiate_new_adapter`
+；实测 `1 failed`，bomb 在 adapter 调用处触发；未写入工作树。
+
+#### §8 owner 同名锁 · owner identity 退化为裸 id
+
+```bash
+apply_patch <<'PATCH'
+*** Begin Patch
+*** Update File: src/agent/judge/identity_provenance.py
+@@
+     @property
+     def owner(self) -> OwnerIdentity:
+-        return self.owner_kind, self.owner_id
++        return "", self.owner_id
+*** End Patch
+PATCH
+```
+
+命令：
+`pytest -q -n0 tests/test_judge_identity_provenance.py::test_owner_identity_uses_kind_and_id_when_cell_id_equals_floor_id`
+；实测 `1 failed`，footprint/cell 同名被错误判为 duplicate owner。
+
+## 12. 两项边界审计
+
+### 12.1 保留的 legacy float 路径不是一个封闭的长期合同
+
+本轮使用的枚举方法是仓库范围的静态文本调用点枚举：
+
+```bash
+rg -n "_cluster_axis\\(" --glob '*.py' --glob '!tests/**' --glob '!AI_agent/**'
+```
+
+实测只有：
+
+```text
+segment_score.py:387  def _cluster_axis(...)
+segment_score.py:419  x_id = _cluster_axis(...)
+segment_score.py:423  y_id = _cluster_axis(...)
+```
+
+即当前仓库内所有静态 production direct call 都汇聚到 `_build_floor_identity`，而该 builder
+只从 exact-version envelope 拆 occurrence，并显式传 `topology`。C-L1 spy 和
+`test_production_adapters_never_enter_legacy_float_cluster` 又覆盖了当前三类 adapter。
+
+但这不是 AST/call-graph 证明，也不能阻止未来代码直接调用
+`_cluster_axis(floats, topology=None)`；该测试只覆盖本轮已知且已接线的三类正式 adapter。
+因此保留的 legacy 分支是明确的再入口风险，不应宣称“总锁已封闭”。
+
+保留它的唯一原因是硬约束要求不重写已有裸 helper 测试。建议在主控允许迁移旧测试时：
+
+1. 把三条旧裸 float 历史夹具全部改成正式 source/topology C-L4 夹具；
+2. 删除 `_LegacyAxisIdentity`、`_cluster_legacy_axis` 和 `_cluster_axis` 的 union/dispatch；
+3. 令 `_cluster_axis` 的唯一签名为 occurrence + non-null topology；
+4. 加 AST 锁：production AST 中 `_cluster_axis` 的每个 call 必须传 `topology`，且参数来源于
+   `IdentityInputEnvelope.occurrences`；同时禁止 `float(...)` generator 作为该调用实参。
+
+### 12.2 B conservation 零行为变化
+
+Slice 1 没有改 `_SUBINTERVAL_SUM_TOL` 或两个 conservation helper 的任何一行。
+使用相对 Slice 0 日志提交 `d20daef` 的 diff 过滤：
+
+```bash
+git diff d20daef -- src/agent/judge/segment_score.py \
+  | rg '^[+-].*(_SUBINTERVAL_SUM_TOL|def _assert_target_conservation|def _assert_obs_conservation|covered > obs_length|abs\\(accounted - length\\))'
+```
+
+输出为空。最终 B-L4 也仍以原始 1-ulp 原因在原条件
+`covered > obs_length` 上红，不是来源改造造成的新错误。
+
+## 13. 写锁时新增暴露的欠规格边界
+
+1. **C-L6 与 C-L5 的先后语义存在文字张力。** C-L5 要求无结构证书的不同来源 sub-merge
+   在提交 representative 前拒绝；C-L6 又要求“既有相邻坍缩”由 post-merge validator
+   承重。一个普通短边的方向轴两端没有 C-3a–d alias 证书，因此严格执行 C-L5 时会先在
+   alias 门拒绝，不能自然到达 post-merge collapse。本实现：
+   - 正式入口对该形状发稳定的 `score_identity_merge_collapse` certified witness；
+   - 另加一个强制 representative collision 的独立 C-L6 锁，证明 post-merge checker
+     自身承重。
+   后续设计应明确“candidate merge 会坍缩 declared edge”是 C-3 前的独立合同 witness，
+   还是新增一种结构证书后再由 C-4 拒绝；不能让施工者自行选择。
+2. **C-4 claim 到 A 的过渡尚无 Slice 1 可用调用面。** 设计要求 topology/owner detector
+   产 claim 并交 §4 certifier，但 `certifier.py` 明定在 Slice 2 才落。Slice 1 对不含 capability
+   依赖的 exact 重复、自交、owner 冲突直接生成统一 flat certified context；capability-contingent
+   pairing 仍保留旧行为，等待 Slice 2 接管。该片间 seam 必须在 Slice 2 明确收口，避免形成
+   第二条本地 severity 路径。
+
+## 14. Slice 1 边界结论
+
+Slice 1 完成并停止。A-L3/A-L9/B-L4 保持计划内红；未开始 Slice 2。
