@@ -34,7 +34,7 @@ SCORE_SIDECAR_SCHEMA = "8"
 JUDGE_SCORE_CONFIG_SCHEMA = "1"
 JUDGE_SCORE_BINDINGS_SCHEMA = "1"
 JUDGE_COMPLETENESS_OVERLAY_SCHEMA = "1"
-SEGMENT_SCORER_HELPER_VERSION = "b4b_segment_score_v2"
+SEGMENT_SCORER_HELPER_VERSION = "b4b_segment_score_v3_ic1"
 GT_TO_VA_ADAPTER_VERSION = "b4b_gt_to_va_v1"
 DENOMINATOR_HELPER_VERSION = "b4b_denominator_v1"
 GRADE_RENDERER_VERSION = "b4b_grade_png_v1"
@@ -308,7 +308,7 @@ class ManifestIdentityV8(StrictWire):
 
 class HelperIdentityV8(StrictWire):
     scorer_schema: Literal["8"]
-    segment_scorer: Literal["b4b_segment_score_v2"]
+    segment_scorer: Literal["b4b_segment_score_v3_ic1"]
     gt_to_va_adapter: Literal["b4b_gt_to_va_v1"]
     denominator_helper: Literal["b4b_denominator_v1"]
     grade_renderer: Literal["b4b_grade_png_v1"]

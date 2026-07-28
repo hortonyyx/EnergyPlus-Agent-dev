@@ -122,72 +122,6 @@ class _AxisIdentity:
     certificates: tuple[AliasCertificate, ...] = ()
 
 
-@dataclass(frozen=True)
-class _LegacyAxisIdentity:
-    """Quarantined direct-helper compatibility; no production adapter uses it."""
-    side: str
-    floor_id: str
-    axis: str
-    rep: Mapping[float, float]
-
-
-def _cluster_legacy_axis(
-    raw_values: Iterable[float], *, side: str, floor_id: str, axis: str
-) -> _LegacyAxisIdentity:
-    """Preserve pre-C direct helper locks while production uses source slots."""
-    values: list[float] = []
-    for raw in raw_values:
-        value = float(raw)
-        if value != value or value == float("inf") or value == float("-inf"):
-            raise ScoreContractError(
-                "score_identity_non_finite", "scoring.input_identity",
-                context={"reason": "identity_non_finite_value", "side": side,
-                         "floor_id": floor_id, "axis": axis, "hex": value.hex()},
-            )
-        values.append(value)
-    unique = sorted(set(values))
-    rep: dict[float, float] = {}
-    if not unique:
-        return _LegacyAxisIdentity(side, floor_id, axis, rep)
-    clusters: list[tuple[float, float]] = []
-    cur_min = cur_max = unique[0]
-    rep[unique[0]] = unique[0]
-    for index in range(1, len(unique)):
-        prev, value = unique[index - 1], unique[index]
-        gap = value - prev
-        if gap < _COORDINATE_MERGE_THRESHOLD:
-            rep[value] = cur_min
-            cur_max = value
-        elif gap > _COORDINATE_SPLIT_THRESHOLD:
-            clusters.append((cur_min, cur_max))
-            cur_min = cur_max = value
-            rep[value] = cur_min
-        else:
-            raise ScoreContractError(
-                "score_identity_guard_band_ambiguity", "scoring.input_identity",
-                context={"reason": "identity_guard_band_ambiguity", "side": side,
-                         "floor_id": floor_id, "axis": axis, "gap": gap,
-                         "merge": _COORDINATE_MERGE_THRESHOLD,
-                         "split": _COORDINATE_SPLIT_THRESHOLD,
-                         "gap_hex": gap.hex(), "lo_hex": prev.hex(),
-                         "hi_hex": value.hex()},
-            )
-    clusters.append((cur_min, cur_max))
-    for lo, hi in clusters:
-        diameter = hi - lo
-        if diameter > _COORDINATE_DIAMETER_THRESHOLD:
-            raise ScoreContractError(
-                "score_identity_chain_bridge", "scoring.input_identity",
-                context={"reason": "identity_chain_bridge_over_diameter",
-                         "side": side, "floor_id": floor_id, "axis": axis,
-                         "diameter": diameter,
-                         "diameter_threshold": _COORDINATE_DIAMETER_THRESHOLD,
-                         "diameter_hex": diameter.hex(), "lo_hex": lo.hex(),
-                         "hi_hex": hi.hex()},
-            )
-    return _LegacyAxisIdentity(side, floor_id, axis, rep)
-
-
 def _source_key_audit(key: CoordinateSourceKey) -> tuple[object, ...]:
     return key.audit_tuple()
 
@@ -401,21 +335,17 @@ def _cluster_occurrences(
 
 
 def _cluster_axis(
-    raw_values: Iterable[CoordinateOccurrence] | Iterable[float],
+    occurrences: Iterable[CoordinateOccurrence],
     *,
     side: str,
     floor_id: str,
     axis: str,
-    topology: SourceTopologyIndex | None = None,
-) -> _AxisIdentity | _LegacyAxisIdentity:
-    """Occurrence API in production; legacy floats are quarantined for old locks."""
-    materialized = tuple(raw_values)
-    if topology is None:
-        return _cluster_legacy_axis(
-            materialized, side=side, floor_id=floor_id, axis=axis
-        )
+    topology: SourceTopologyIndex,
+) -> _AxisIdentity:
+    """Cluster source-bearing occurrences under an explicit topology contract."""
+    materialized = tuple(occurrences)
     if any(not isinstance(item, CoordinateOccurrence) for item in materialized):
-        raise TypeError("production identity clustering requires CoordinateOccurrence")
+        raise TypeError("identity clustering requires CoordinateOccurrence")
     return _cluster_occurrences(
         materialized, side=side, floor_id=floor_id, axis=axis, topology=topology
     )

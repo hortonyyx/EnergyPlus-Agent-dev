@@ -33,7 +33,7 @@ def identity():
         manifest=ManifestIdentityV8(base_view_manifest_sha256="d" * 64, effective_view_manifest_sha256="d" * 64,
             case_metadata_sha256="e" * 64, completeness_ruleset="1", completeness_overlay_sha256=None,
             score_view_bindings_sha256=None),
-        helpers=HelperIdentityV8(scorer_schema="8", segment_scorer="b4b_segment_score_v2",
+        helpers=HelperIdentityV8(scorer_schema="8", segment_scorer="b4b_segment_score_v3_ic1",
             gt_to_va_adapter="b4b_gt_to_va_v1", denominator_helper="b4b_denominator_v1",
             grade_renderer="b4b_grade_png_v1", va_helper="facade_applicability_v1",
             vg_helper="facade_visibility_v1", claims_contract="1"),

@@ -1,6 +1,8 @@
 """Slice 1 locks for source-preserving judge identity (C-L2..C-L13)."""
 from __future__ import annotations
 
+import ast
+
 import copy
 import hashlib
 import shutil
@@ -418,18 +420,49 @@ def test_owner_identity_uses_kind_and_id_when_cell_id_equals_floor_id():
     assert len(segment_score.extract_correction_plan_segments(geometry)) == 4
 
 
-def test_production_adapters_never_enter_legacy_float_cluster(monkeypatch):
-    def bomb(*_args, **_kwargs):
-        raise AssertionError("production collapsed back to raw float identity")
+def test_cluster_axis_has_no_legacy_branch_and_every_direct_call_passes_topology():
+    production = Path("src/agent/judge/segment_score.py")
+    tree = ast.parse(production.read_text(encoding="utf-8"))
+    cluster = next(
+        node for node in ast.walk(tree)
+        if isinstance(node, ast.FunctionDef) and node.name == "_cluster_axis"
+    )
+    assert "LegacyAxisIdentity" not in production.read_text(encoding="utf-8")
+    assert "_cluster_legacy_axis" not in production.read_text(encoding="utf-8")
+    topology_arg = next(
+        argument
+        for argument in cluster.args.kwonlyargs
+        if argument.arg == "topology"
+    )
+    assert topology_arg is not None
+    assert cluster.args.kw_defaults[
+        cluster.args.kwonlyargs.index(topology_arg)
+    ] is None
 
-    monkeypatch.setattr(segment_score, "_cluster_legacy_axis", bomb)
-    geometry = _paired_correction(0.1 + 0.2, 0.3)
-    segment_score.extract_correction_plan_segments(geometry)
-    segment_score.coerce_plan_observations([
-        {"id": "R", "floor_id": "F", "p1": [0.0, 0.0], "p2": [1.0, 0.0]}
-    ])
-    gt = load_gt_document("sm24_anchor")
-    segment_score.extract_gt_plan_segments(gt)
+    calls = []
+    for path in tuple(sorted(Path("src").rglob("*.py"))) + tuple(
+        sorted(Path("tests").rglob("*.py"))
+    ):
+        module = ast.parse(path.read_text(encoding="utf-8"))
+        for call in (
+            node for node in ast.walk(module) if isinstance(node, ast.Call)
+        ):
+            name = (
+                call.func.id
+                if isinstance(call.func, ast.Name)
+                else (
+                    call.func.attr
+                    if isinstance(call.func, ast.Attribute)
+                    else None
+                )
+            )
+            if name == "_cluster_axis":
+                calls.append((path, call))
+    assert calls
+    assert all(
+        any(keyword.arg == "topology" for keyword in call.keywords)
+        for _path, call in calls
+    )
 
 
 def test_c_l15_sm21_score_pixels_and_dispatch_do_not_instantiate_new_adapter(

@@ -18,11 +18,15 @@ from src.agent.judge.elevation_score import (
 from src.agent.judge.score_schema import (
     C2ScoredPayloadV8, C2ToleranceIdentityV8, ExtraObservationV8,
     HelperIdentityV8, ManifestIdentityV8, ProductIdentityV8, ScoreContractError,
-    ScoreIdentityV8, SegmentExtraV8, SegmentScoreRowV8, canonical_sha256,
-    decide_score_capability, finalize_score_sidecar,
+    ScoreIdentityV8, SegmentExtraV8, SegmentScoreRowV8,
+    SEGMENT_SCORER_HELPER_VERSION, canonical_sha256, decide_score_capability,
+    finalize_score_sidecar,
 )
 from src.agent.judge.score_schema import ElevationScoreViewBindingV1
-from src.agent.judge.identity_provenance import raise_identity_conflict
+from src.agent.judge.identity_provenance import (
+    identity_contract_for_segment_scorer,
+    raise_identity_conflict,
+)
 
 
 def _raise_score_input_contract(
@@ -202,7 +206,7 @@ def score_typed_attempt(*, gt_identity, gt, stage: Literal["reading", "correctio
         score_view_bindings_sha256=score_bindings.content_sha256,
     )
     helpers = HelperIdentityV8(
-        scorer_schema="8", segment_scorer="b4b_segment_score_v2", gt_to_va_adapter="b4b_gt_to_va_v1",
+        scorer_schema="8", segment_scorer=SEGMENT_SCORER_HELPER_VERSION, gt_to_va_adapter="b4b_gt_to_va_v1",
         denominator_helper="b4b_denominator_v1", grade_renderer="b4b_grade_png_v1",
         va_helper=FACADE_APPLICABILITY_HELPER_VERSION, vg_helper="facade_visibility_v1",
         claims_contract=CLAIMS_VOCAB_VERSION,
@@ -260,7 +264,8 @@ def score_typed_attempt(*, gt_identity, gt, stage: Literal["reading", "correctio
         request_key=(
             getattr(gt_identity, "content_sha256", None),
             product_identity.output_sha256,
-            "b4b_segment_score_v3_ic1",
+            SEGMENT_SCORER_HELPER_VERSION,
+            identity_contract_for_segment_scorer(SEGMENT_SCORER_HELPER_VERSION),
         ),
         identity_code="score_product_identity_invalid",
     )

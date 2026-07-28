@@ -8,9 +8,23 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from math import isfinite
+from types import MappingProxyType
 from typing import Iterable, Literal, Mapping, Sequence
 
+from src.agent.judge.score_schema import SEGMENT_SCORER_HELPER_VERSION
+
 IDENTITY_CONTRACT_VERSION = "1"
+SEGMENT_SCORER_IDENTITY_RELEASE_MAP: Mapping[str, str] = MappingProxyType({
+    SEGMENT_SCORER_HELPER_VERSION: IDENTITY_CONTRACT_VERSION,
+})
+
+
+def identity_contract_for_segment_scorer(helper_version: str) -> str:
+    """Return the exact identity contract released with a scorer helper."""
+    try:
+        return SEGMENT_SCORER_IDENTITY_RELEASE_MAP[helper_version]
+    except KeyError as exc:
+        raise ValueError(f"unknown segment scorer helper: {helper_version!r}") from exc
 
 # Controller-ratified flat fields.  Every certified identity conflict is built
 # through ``identity_error_context`` and is checked complete before raising.

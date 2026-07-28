@@ -336,12 +336,11 @@ def test_first_five_predicate_evaluators_are_registered():
     }
 
 
-def test_identity_scorecontracterror_has_one_raise_origin_except_slice4_legacy():
+def test_identity_scorecontracterror_has_one_raise_origin_with_no_exceptions():
     """Static proof: scoring identity raises originate only in the arbiter.
 
-    The three direct raises inside ``_cluster_legacy_axis`` are the controller's
-    explicit §9.1 scheduling exception and must disappear with that function in
-    Slice 4.  Denominator integrity is a different error class.
+    Slice 4 deleted the scheduled legacy exception.  Denominator integrity is a
+    different error class.
     """
     paths = (
         Path("src/agent/judge/identity_provenance.py"),
@@ -367,9 +366,7 @@ def test_identity_scorecontracterror_has_one_raise_origin_except_slice4_legacy()
                     and call.args[1].value == "scoring.input_identity"
                 ):
                     direct_raises.append((path.name, node.name))
-    assert set(direct_raises) == {
-        ("segment_score.py", "_cluster_legacy_axis"),
-    }
+    assert direct_raises == []
     certifier = ast.parse(
         Path("src/agent/judge/certifier.py").read_text(encoding="utf-8")
     )

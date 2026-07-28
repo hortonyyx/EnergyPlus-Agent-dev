@@ -19,6 +19,12 @@ from src.agent.correction.geometry_validator import validate_corrected_geometry
 from src.agent.correction.schema import CellV3, CorrectedGeometryV3, FloorV3, FootprintRing
 from src.agent.judge.score_policy import c2_v3_score_policy
 from src.agent.judge.score_schema import JudgeScoreConfigV1, ScoreContractError
+from src.agent.judge.identity_provenance import (
+    AliasCertificate,
+    CoordinateOccurrence,
+    CoordinateSourceKey,
+    SourceTopologyIndex,
+)
 from src.agent.judge.segment_score import (
     PlanSegment,
     _assert_obs_conservation,
@@ -40,6 +46,52 @@ def _config():
 
 def seg(key, p1, p2, *, floor="F", exterior=True):
     return PlanSegment(key, floor, p1, p2, exterior=exterior)
+
+
+def _cluster_values(values, *, side, floor_id, axis):
+    """Historical numeric counterexamples on source-bearing alias slots."""
+    keys = tuple(
+        CoordinateSourceKey(
+            side,
+            floor_id,
+            "historical_lock",
+            f"value-{index}",
+            "counterexample",
+            index,
+            None,
+            axis,
+        )
+        for index, _value in enumerate(values)
+    )
+    occurrences = tuple(
+        CoordinateOccurrence.make(key, value, f"historical:{index}")
+        for index, (key, value) in enumerate(zip(keys, values, strict=True))
+    )
+    certificates = {}
+    for index, left in enumerate(keys):
+        for right in keys[index + 1:]:
+            pair = (left, right) if left <= right else (right, left)
+            certificates[pair] = AliasCertificate(
+                "profile_axis_constraint",
+                left,
+                right,
+                support_slots=(("historical_counterexample",),),
+            )
+    topology = SourceTopologyIndex(
+        side=side,
+        floor_id=floor_id,
+        certificates=certificates,
+    )
+    return (
+        _cluster_axis(
+            occurrences,
+            side=side,
+            floor_id=floor_id,
+            axis=axis,
+            topology=topology,
+        ),
+        keys,
+    )
 
 
 def _gt_floor(fid, footprint, zones):
@@ -83,14 +135,18 @@ LONG_FACING_FOUR = {
 
 def test_a1_identity_merges_one_ulp_binary_spelling():
     # A1 / G-c.1: 8.059999999999999 vs 8.06 (1 ulp at 8) collapse to one atom.
-    identity = _cluster_axis([8.059999999999999, 8.06], side="gt", floor_id="F", axis="y")
-    assert identity.rep[8.059999999999999] == identity.rep[8.06]
+    identity, keys = _cluster_values(
+        [8.059999999999999, 8.06], side="gt", floor_id="F", axis="y"
+    )
+    assert identity.rep[keys[0]] == identity.rep[keys[1]]
 
 
 def test_a1_identity_merges_fp_sum_spelling():
     # A1 / G-c.2: 0.1+0.2 vs 0.3 collapse to one atom.
-    identity = _cluster_axis([0.1 + 0.2, 0.3], side="product", floor_id="F", axis="x")
-    assert identity.rep[0.1 + 0.2] == identity.rep[0.3]
+    identity, keys = _cluster_values(
+        [0.1 + 0.2, 0.3], side="product", floor_id="F", axis="x"
+    )
+    assert identity.rep[keys[0]] == identity.rep[keys[1]]
 
 
 def test_a1_quantum_boundary_pair_not_false_red():
@@ -104,14 +160,18 @@ def test_a1_quantum_boundary_pair_not_false_red():
     assert below != above and abs(above - below) < 1e-12
     # sanity: the retired 1e-12 quantum WOULD have split this pair.
     assert round(below / 1e-12) != round(above / 1e-12)
-    identity = _cluster_axis([below, above], side="gt", floor_id="F", axis="x")
-    assert identity.rep[below] == identity.rep[above]
+    identity, keys = _cluster_values(
+        [below, above], side="gt", floor_id="F", axis="x"
+    )
+    assert identity.rep[keys[0]] == identity.rep[keys[1]]
 
 
 def test_a2_identity_splits_1e9_gap():
     # A2: a 1e-9 endpoint gap (>> split) stays two distinct atoms.
-    identity = _cluster_axis([5.0, 5.0 + 1e-9], side="gt", floor_id="F", axis="x")
-    assert identity.rep[5.0] != identity.rep[5.0 + 1e-9]
+    identity, keys = _cluster_values(
+        [5.0, 5.0 + 1e-9], side="gt", floor_id="F", axis="x"
+    )
+    assert identity.rep[keys[0]] != identity.rep[keys[1]]
 
 
 def test_a2_product_side_1e9_gap_still_red_code_unchanged():
@@ -147,7 +207,9 @@ def test_a3_guard_band_is_loud_reject_with_hex_context():
     # neither merged nor split, with hex binary64 recorded for reproducibility.
     gap = 3e-12  # inside (1e-12, 1e-11)
     with pytest.raises(ScoreContractError) as exc:
-        _cluster_axis([5.0, 5.0 + gap], side="gt", floor_id="F", axis="x")
+        _cluster_values(
+            [5.0, 5.0 + gap], side="gt", floor_id="F", axis="x"
+        )
     assert exc.value.code == "score_identity_guard_band_ambiguity"
     assert exc.value.context["reason"] == "identity_guard_band_ambiguity"
     assert exc.value.context["side"] == "gt"
@@ -160,7 +222,7 @@ def test_a9_chain_bridge_over_diameter_rejects():
     # 10.8e-12 > diameter 1e-12 (§2.1: cap <= merge): distinct intents welded.
     vals = [5.0 + i * 0.9e-12 for i in range(13)]
     with pytest.raises(ScoreContractError) as exc:
-        _cluster_axis(vals, side="gt", floor_id="F", axis="x")
+        _cluster_values(vals, side="gt", floor_id="F", axis="x")
     assert exc.value.code == "score_identity_chain_bridge"
     assert exc.value.context["reason"] == "identity_chain_bridge_over_diameter"
     assert "diameter_hex" in exc.value.context
@@ -170,7 +232,7 @@ def test_a9_non_finite_value_rejects():
     # A9: non-finite coordinates are rejected with their hex recorded.
     for bad in (float("nan"), float("inf"), float("-inf")):
         with pytest.raises(ScoreContractError) as exc:
-            _cluster_axis([1.0, bad], side="gt", floor_id="F", axis="x")
+            _cluster_values([1.0, bad], side="gt", floor_id="F", axis="x")
         assert exc.value.code == "score_identity_non_finite"
         assert exc.value.context["reason"] == "identity_non_finite_value"
 

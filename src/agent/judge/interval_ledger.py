@@ -690,6 +690,10 @@ def build_observation_ledger(
                 excess=float(duplicate_charge),
                 atom_lo_exact=exact_bytes(lo),
                 atom_hi_exact=exact_bytes(hi),
+                trigger_atom_exact=(
+                    exact_bytes(lo),
+                    exact_bytes(hi),
+                ),
                 target_ids=owners,
                 multiplicity=len(owners),
                 domain_exact=exact_bytes(domain_exact),

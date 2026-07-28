@@ -85,6 +85,29 @@ def test_b_l1_l2_l3_observation_multiplicity_rejects_every_positive_overlap(
     assert error.context["mapping_certificate_ids"]
 
 
+def test_multiplicity_verdict_is_recomputable_from_context_with_global_gap():
+    targets = (
+        _segment("t1", (0.0, 0.0), (2.0, 0.0)),
+        _segment("t2", (1.0, 0.0), (3.0, 0.0)),
+    )
+    observation = _segment("obs", (0.0, 0.0), (10.0, 0.0))
+    with pytest.raises(ScoreContractError) as caught:
+        _match(targets, (observation,))
+    context = caught.value.context
+    lo, hi = (Fraction(value) for value in context["trigger_atom_exact"])
+    duplicate_charge = Fraction(context["duplicate_charge_exact"])
+    charged = Fraction(context["charged_exact"])
+    domain = Fraction(context["domain_exact"])
+    assert (lo, hi) == (Fraction(1), Fraction(2))
+    assert context["target_ids"] == ("t1", "t2")
+    assert context["multiplicity"] == len(context["target_ids"]) == 2
+    assert duplicate_charge == (hi - lo) * (context["multiplicity"] - 1)
+    assert duplicate_charge > 0
+    assert context["excess"] == float(duplicate_charge)
+    assert charged - domain < 0
+    assert context["excess"] > 0
+
+
 def _b_l4_fixture():
     from tests.test_judge_arbitration_slice0 import (
         _typed_correction,
