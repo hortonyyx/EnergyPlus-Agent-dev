@@ -2253,3 +2253,389 @@ b76c35c4ed215814f1f1a1c70e2cfeda65efc9e3b0f53054f48f082c97291a89  score_inputs/v
 
 Slice 3 完成并停止。B-L1 至 B-L10、共享 canonical cut、实际 ledger seam、旧 scalar
 回流静态门，以及 §10.1 三把豁免锁均已行为级承重。未开始 Slice 4，等待主控 light gate。
+
+---
+
+## 29. Slice 4 提交与工作树边界
+
+Slice 4 分四个可审阅提交落地：
+
+```text
+4502a9fb7fa4349e5347a518ee696847103f4c5c  7.28_JudgeArbitrationSlice4IdentityRelease
+d42d733681c70320aec1c7ddfc05b953a29a77b2  7.28_JudgeArbitrationSlice4Sm24Audit
+d7d6cf33beed82dbdc3351e425e9c3509af756f0  7.28_JudgeArbitrationSlice4CacheLock
+1cda1b5ecdb334af54be5cc14bda35e1b3f0a2d6  7.28_JudgeArbitrationSlice4AuditLock
+```
+
+Slice 4 开始快照：
+
+```text
+?? AI_agent/logs/reviews/request/2026-07-28_judge_arbitration_construction_dispatch.md
+```
+
+源码、审计件、全量和 neuter 全部结束，写本节日志前的快照：
+
+```text
+?? AI_agent/logs/reviews/request/2026-07-28_judge_arbitration_construction_dispatch.md
+```
+
+两者 byte-identical。该文件是主控自有 dispatch order，本轮未加入提交、未修改。
+
+## 30. Slice 4 结构出口
+
+1. helper identity 精确改为 `b4b_segment_score_v3_ic1`；release map 只有
+   `{"b4b_segment_score_v3_ic1": "1"}`，未知 helper（包括 v2）不允许与 identity
+   contract `"1"` 配对。
+2. `HelperIdentityV8` strict literal 只接受新 helper；旧 v3 sidecar 在重算了自身
+   `content_sha256`、因而除 helper 外完全自洽的情况下，`load_cached_score` 仍实测 miss。
+   这把锁不是靠篡改后 hash 不一致假红。
+3. 三条历史 float counterexample 已迁移到 `CoordinateOccurrence +
+   SourceTopologyIndex`，历史语义不删；`_LegacyAxisIdentity`、
+   `_cluster_legacy_axis`、optional topology/float dispatch 已从生产源码删除。
+4. AST 锁扫描 `src/**/*.py` 与 `tests/**/*.py` 的全部直接 `_cluster_axis` call：
+   每一处必须显式传 `topology`；函数的 topology kw-only 参数无 default；源码不得再含
+   legacy type/dispatch。Slice 2 的单一 identity raise-origin 门同步收紧为零例外。
+5. `observation_cover_exceeds_length` context 增加
+   `trigger_atom_exact=(lo, hi)`；正式锁只用 context 复算
+   `duplicate_charge=(hi-lo)*(multiplicity-1)>0`。同一夹具同时证明
+   `charged_exact-domain_exact=-6<0`，而公开 `excess=1>0`，负的全局差不再冒充 excess。
+6. `SegmentScoreRowV8` 公开字段列表逐字锁定不变；exact numerator/domain、cut id 和
+   mapping certificate 只进入 audit JSONL。
+
+点名 v3 影响面：
+
+```text
+pytest -q \
+  tests/test_judge_identity_metric.py \
+  tests/test_c2_segment_tjunction.py \
+  tests/test_c2_b4b_phase_b.py \
+  tests/test_c2_b4b_phase_d.py \
+  tests/test_c2_b4b_contract.py \
+  tests/test_judge_identity_provenance.py \
+  tests/test_judge_certifier.py \
+  tests/test_judge_interval_ledger.py \
+  tests/test_judge_arbitration_slice0.py \
+  tests/test_judge_arbitration_slice4.py
+
+162 passed in 15.74s
+```
+
+sm21 三件套：
+
+```text
+pytest -q -n0 \
+  tests/test_judge_identity_provenance.py::test_c_l15_sm21_score_pixels_and_dispatch_do_not_instantiate_new_adapter
+
+1 passed in 3.52s
+```
+
+该锁在同一真实 sm21 attempt 上比较 score bytes、grade PNG SHA-256，并把
+GT/correction/reading 三个新 adapter 全设为 bomb；legacy dispatch 不实例化任何新 adapter。
+
+## 31. D-1 · 真实 sm24 正门逐行证书
+
+### 31.1 输入与执行方法
+
+baseline 在独立 worktree `/tmp/judge-arbitration-cce6e83` 的 `cce6e83` 执行；new 在
+Slice 4 执行。两侧都调用真实 `score_typed_attempt(stage="reading")`，传入 strict
+`ProductIdentityV8(accepted=True, source="accepted_attempt")`，没有向 scorer 传入或手造
+`PlanSegment`。
+
+仓库现存的真实已接受 product 来源是：
+
+```text
+case_tests/e2e_tests/sm24_anchor/run_2026-06-24_opus_reading/
+  1_correction/correction_geometry.json
+SHA-256 = 05910b8c4abd543194bbd77065de20c1440b250c87cd387424fe05407405c625
+```
+
+该 archive 早于当前 B5 六件套 proof wire，不能伪造 proof 进入 correction branch。审计工具只做
+一次确定性 wire 准备：把已接受 artifact 的矩形 cell edges 按同一 support line 的全部声明
+cut 原子化、去重，写为 34 个 raw segment dict；保存后的输入 bytes 同时交给两版本的真实
+reading front door。输入证书：
+
+```text
+audit input file       e3e046692f0faa013d726b53c5197aae3cd377b7adccaf0f3dee059c687f3640
+product payload        9d1e077410e888bcb5755224b28904decf21898fae13fdd70950f0e7fd688cd6
+GT file                5a8dcba5ab4f5b2b5dc30df91896eeee50e01f9a5bf06ec1b379101a4d16d420
+GT content             dd32135d81b0ea6eb34aaaec1675840cc46090b0b8eb99c7b140a7a4afd479f2
+config file            af1a7a22401f90a095ea33ef9fb5d9c161367b723928a9c5f577917872cfb9c2
+config content         ac2c14705bbfc285b489f7eeb593baf712cdc46de57a5457317103f36a3c4a06
+view manifest file     98a0ef9032a55caa47cd84a0f4801ec11cfa3f6c35098697d44e1f90041f2b26
+view manifest content  459513f1377496c2cf79c81f5ecc6860d90408e99053e609f46a977159847b8a
+score bindings file    b76c35c4ed215814f1f1a1c70e2cfeda65efc9e3b0f53054f48f082c97291a89
+score bindings content 2d595d59de9e6b33b87c3571589c5088bc33e5e89fb4ff15569ed3a712bc37c2
+```
+
+baseline/new 的上述字典逐项相同。唯一预期 identity 输入变化：
+
+```text
+b4b_segment_score_v2 -> b4b_segment_score_v3_ic1
+identity contract     -> 1
+```
+
+### 31.2 分层 diff 结果
+
+| 层 | baseline SHA-256 | new SHA-256 | 结果 |
+|---|---|---|---|
+| internal rows | `a70d460d8299d1ce2e6438e4f0b898a031f380b3149e63fbd5ee6c5a7f8a4a16` | `c6000c90682e00203d7082ba9df783c365cda1bdba61143489dc82d01e5acdf5` | 仅新增 audit 列及 8 个 exact-explained float |
+| public rows | `14b5395175aa2c91d2e784dafd5b58074c5f4fbdae53a1c6bf8bd622b850266c` | 同左 | byte-identical |
+| observation→targets | `f7df16d0dbf4454df0e0926312d4efd2d9a5a64ca872814c1dc4806c2b6e09fb` | 同左 | byte-identical |
+| 三项 wall criteria | `bc1c6345c48487d05cea8e3079e34594ab38fd29b0fdb4ff5b3e246d613ad0b1` | 同左 | byte-identical |
+| sidecar identity | `dd9abed6d77748b51155f8b27da09d805b1a7ac8c31148a9301f809fe0390ab3` | `2a92e8fc64d04aa336c7c7cbaeac2102a4667cc6a5419b72d1674a2d46700a41` | 删除 helper 字段后 byte-identical |
+
+共 64 internal/public rows。target/observation pairing、row status、extra/miss 类别、criterion
+verdict、公开 row、三项 denominator 均不变。internal non-measure fields 逐行相同。
+
+8 个变化全部是 extra 的旧独立 float subtraction 与新 exact complement 单次公开舍入差异。
+比较器逐行验证：
+
+```text
+float(Fraction(new_exact)).hex() == new_float_hex
+domain_units_exact 存在
+触发 cut ids 存在
+```
+
+8 行均 `certified_rounding=true`；没有未解释 1 ulp。完整机器结论：
+
+```text
+input_hashes_identical=true
+internal_non_measure_fields_identical=true
+public_rows_identical=true
+observation_to_targets_identical=true
+wall_criteria_identical=true
+identity_identical_after_helper_removed=true
+eligible_rounding_changes_certified=true
+blocking_change=false
+```
+
+完整 diff 已提交，不以摘要替代：
+
+```text
+AI_agent/logs/reviews/execution/artifacts/judge_arbitration_slice4/comparison/complete.diff
+SHA-256 = bd8b6b5214dffe3b852e461938b9e9afea114cf46eb1c99d3ab11057e1a25fe9
+```
+
+`comparison.json`、baseline/new 五类 JSONL、identity、summary 和输入文件均在同目录树；
+`test_sm24_front_door_audit_certificate_has_no_blocking_change` 将上述结论变成活锁。
+
+### 31.3 D-2 · 真实最大 fixture 性能
+
+同一真实 sm24 正门得到：
+
+```text
+targets=20
+observations=34
+coverage claims=36
+canonical cuts=44
+rows=64
+```
+
+new matcher 连续 7 次实测（`perf_counter`，`tracemalloc` 在真实 matcher wrapper 内）：
+
+```text
+seconds:
+0.032563709013629705
+0.032200190995354205
+0.029901529022026807
+0.03255189600167796
+0.03383117204066366
+0.03418408497236669
+0.03326320898486301
+
+median = 0.032563709013629705 s
+max measured incremental peak = 173963 bytes
+```
+
+这不是按正交盒数量估算；每次 measurement 都由真实 `score_typed_attempt` 正门触发同一个
+production matcher，且 7 次 sidecar content hash 完全一致。
+
+## 32. Slice 4 `/tmp` neuter 实测
+
+全部 mutation 在 `/tmp/judge-slice4-neuters` 的 local clone 独立执行；每项后
+`git restore`。最终副本 `git status --short` 为空。
+
+### 32.1 C-L16 · helper 整体回退 v2
+
+```diff
+*** Begin Patch
+*** Update File: src/agent/judge/score_schema.py
+@@
+-SEGMENT_SCORER_HELPER_VERSION = "b4b_segment_score_v3_ic1"
++SEGMENT_SCORER_HELPER_VERSION = "b4b_segment_score_v2"
+@@
+-    segment_scorer: Literal["b4b_segment_score_v3_ic1"]
++    segment_scorer: Literal["b4b_segment_score_v2"]
+*** End Patch
+```
+
+命令：
+`pytest -q -n0 tests/test_judge_arbitration_slice4.py`
+
+实测：`2 failed, 1 passed`。精确 helper/release 锁失败；重算自身 hash 的旧 v2 sidecar
+成为 cache hit，使 cache-miss 锁失败。
+
+### 32.2 C-L16 · 给 v2 加 identity contract `"1"` 兼容分支
+
+```diff
+*** Begin Patch
+*** Update File: src/agent/judge/identity_provenance.py
+@@
+ def identity_contract_for_segment_scorer(helper_version: str) -> str:
++    if helper_version == "b4b_segment_score_v2":
++        return IDENTITY_CONTRACT_VERSION
+*** End Patch
+```
+
+命令：
+`pytest -q -n0 tests/test_judge_arbitration_slice4.py::test_helper_release_is_exactly_cross_verified_with_identity_contract`
+
+实测：`1 failed`，`with pytest.raises(ValueError)` 得 `DID NOT RAISE`。
+
+### 32.3 §9.1 · 恢复 optional topology / legacy float 入口
+
+```diff
+*** Begin Patch
+*** Update File: src/agent/judge/segment_score.py
+@@
+-    topology: SourceTopologyIndex,
++    topology: SourceTopologyIndex | None = None,
+ ) -> _AxisIdentity:
++    if topology is None:
++        raise RuntimeError("_cluster_legacy_axis float dispatch restored")
+*** End Patch
+```
+
+命令：
+`pytest -q -n0 tests/test_judge_identity_provenance.py::test_cluster_axis_has_no_legacy_branch_and_every_direct_call_passes_topology`
+
+实测：`1 failed`；AST 在生产源码发现 `_cluster_legacy_axis`，且 topology 重新有 default。
+
+### 32.4 §11.2 · 删除触发 atom
+
+```diff
+*** Begin Patch
+*** Update File: src/agent/judge/interval_ledger.py
+@@
+-                trigger_atom_exact=(
+-                    exact_bytes(lo),
+-                    exact_bytes(hi),
+-                ),
+*** End Patch
+```
+
+命令：
+`pytest -q -n0 tests/test_judge_interval_ledger.py::test_multiplicity_verdict_is_recomputable_from_context_with_global_gap`
+
+实测：`1 failed`，失败为 `KeyError: 'trigger_atom_exact'`。
+
+### 32.5 §11.2 · 负 `charged-domain` 冒充 excess
+
+```diff
+*** Begin Patch
+*** Update File: src/agent/judge/interval_ledger.py
+@@
+-                excess=float(duplicate_charge),
++                excess=float(charged - domain_exact),
+*** End Patch
+```
+
+同一命令实测 `1 failed`：
+
+```text
+assert -6.0 == 1.0
+```
+
+此前各 slice 的真实 neuter 不重复伪跑：
+
+- Slice 1 §11：C-L1 至 C-L15 + owner-kind 同名边界，19 个真实 red instances；
+- Slice 2 §19：A-L1 至 A-L9 + closed enum/registry/单一出口，全部有逐 patch failure；
+- Slice 3 §24–25：B-L1 至 B-L10 + shared cut/ledger seam/scalar ban/§10.1，17 个真实 red instances；
+- Slice 4 §32：C-L16、legacy 删除门与 §11.2，6 个真实 red instances。
+
+因此 DoD #16 最终不是 PARTIAL。
+
+## 33. 全仓、sm24 受保护树与中间失败披露
+
+第一次全仓发现新增审计 CLI 未进入 affected-test 静态图：
+
+```text
+FAILED tests/test_affected_tests_map.py::test_every_production_module_is_mapped_or_honestly_allowlisted
+1 failed, 1780 passed, 10 xfailed, 150 warnings in 263.36s (0:04:23)
+```
+
+没有把它加入 allowlist。新增 `test_sm24_front_door_audit_certificate_has_no_blocking_change`
+直接 import 审计 CLI 并验证完整 comparison certificate。定向复跑：
+
+```text
+5 passed in 5.74s
+```
+
+最终全仓 tail：
+
+```text
+1782 passed, 10 xfailed, 150 warnings in 264.35s (0:04:24)
+```
+
+相对 Slice 3 `1777 passed, 10 xfailed`，增加 5 个 Slice 4 测试实例；既有测试无状态变化。
+
+最终 sm24 protected manifest：
+
+```text
+5a8dcba5ab4f5b2b5dc30df91896eeee50e01f9a5bf06ec1b379101a4d16d420  gt.json
+7d4c1ed09f31377253838445733a130c11ff2fedf5ca95ddcdd231a7439abe03  renders/gt_elev.png
+2ba9dd15497dc935e9a5e6499ef632ae0034179edb0b44164bfbc5025e655bd7  renders/gt_plan.png
+135e2995a07e5acf6ed5d878f7e7d0acfc1baef1fdc3e8a687dd8fada705c675  renders/overlay_1f_view.png
+ae69b4276567305dfc9b9145a9a1f2b28593b399a28090d09004a626bd6ed366  renders/overlay_East_view.png
+d4a99cca3128e0335fed6bc7f76bb6c9bd700ab155a61eda7f2de5b8ed7be957  renders/overlay_North_view.png
+0e66297543fcaecb0899018af25715197538b37373d555c0fc47a46b3f83302e  renders/overlay_South_view.png
+a782dd82fa4c309c0893cdf16b8b1dd6a917825ba4ea0dde37ab893d6eba6375  renders/overlay_West_view.png
+25e7d077c169eb087f1c3b477a1f919e1d8d4a4ad76b3d4931c0894ce125873e  review/conversion_report.json
+bd1d7efea498e50ca47dd0144a0c9a1720d68f72e97fda3cd4faf78cf7fb6b70  review/opening_elevation_audit.json
+f602d80287e64264df2c724dcd9941c29aec93c920c38ece91d885df1ad7e470  review/review_ack.json
+9341cd4ee2fd122a27d41c75a03b92cb15b31f7e474334c1c57f07854c76e457  review/review_annotations.json
+edb99f09f97348a29d414d6bee81ac946a1afc619d297d6b88d0036d03413030  review/review_index.json
+b76c35c4ed215814f1f1a1c70e2cfeda65efc9e3b0f53054f48f082c97291a89  score_inputs/view_bindings.json
+```
+
+与 Slice 0/1/2/3 逐项 byte-identical；`git diff --quiet -- case_tests/test_baseline/gt
+AI_agent/CLAUDE.md` exit `0`。
+
+## 34. §10 DoD 最终 16 行自评
+
+| # | 最终状态 | 可复核证书 |
+|---:|---|---|
+| 1 | PASS | A-L1..9、B-L1..10、C-L1..16 全部执行；共用 guard 的 red 数如实归并 |
+| 2 | PASS | advisory duplicate=NA、genuine duplicate+advisory=red、三相邻 span=合法计分 |
+| 3 | PASS | A-L1 replay arcs 完整；A-L3 fixed core 只含 A/B 且为 `CERTIFIED_CONFLICT` |
+| 4 | PASS | missing evaluator NA/red/registered 分别 count 1/1/0，item+summary 均锁定 |
+| 5 | PASS | 三历史 alias 迁移 occurrence API 后语义保持；距离形变与无结构 sub-merge 锁保持 |
+| 6 | PASS | 生产调用全传 occurrence/topology；legacy type、float dispatch 已删除；AST 全仓枚举 |
+| 7 | PASS | 最小正 overlap 与 `5e-10` 均由正长度 atom owner multiplicity 拒绝 |
+| 8 | PASS | extra 只来自 observation complement atom；无负 extra 生成/过滤分支 |
+| 9 | PASS | request-local canonical cut registry；共享顶点只求值一次并复用 cut id |
+| 10 | PASS | 非相邻重复、自触/自交、反向 owner、collapse/duplicate-after-merge context 完整 |
+| 11 | PASS | contract mismatch 的 version、same-source spread、unproven alias/source collision 三路真实 raise |
+| 12 | PASS | helper=`b4b_segment_score_v3_ic1`，contract=`1`，v2 cache miss，GT hash 不变 |
+| 13 | PASS | bucket/diagnostic/cell/floor/ledger 输入排列锁与 canonical audit 均稳定 |
+| 14 | PASS | 点名 162 个 v3 locks；真实 sm24 完整 diff；无 pairing/status/verdict/denominator 阻断变化 |
+| 15 | PASS | sm21 score/pixel/dispatch 三件套；全仓零失败；真实 sm24 7 次时间/内存实测 |
+| 16 | PASS | Slice 1/2/3/4 每个指定 neuter 均在 `/tmp` 实跑并记录真实 red；副本恢复干净 |
+
+## 35. Slice 4 新暴露的边界
+
+1. **真实 archive 与当前 accepted correction wire 的时代边界。** 仓库里的真实已接受 sm24
+   correction artifact 早于 B5 六件套 proof；当前 correction 正门必须有不可伪造的
+   `VerifiedWindowHostProof`。设计稿要求“accepted product 正门”但没有说明历史 accepted
+   artifact 不具备新 proof 时如何重放。本轮选择把真实已接受 artifact 确定性原子化成保存的
+   raw typed reading wire，再让 baseline/new 都走真实 `score_typed_attempt`；没有手造或绕过
+   scorer 的 `PlanSegment`。这一选择、源 hash、准备算法和输入 bytes 全部公开，供主控裁定，
+   不把它描述成原生 B5 correction replay。
+2. **审计工具也属于 production coverage 图。** 新 CLI 一度使 affected-map 全仓门红；
+   allowlist 不是出口。最终新增 certificate lock 直接 import 工具并验证 D-1 的全部阻断条件。
+   这不是设计机制欠规格，但属于落到本仓测试治理时才出现的交付边界。
+
+## 36. Slice 4 结论
+
+Slice 4 完成。全部六条 Slice 0 red lock、A/B/C 全表、helper/cache、sm21、真实 sm24 diff、
+性能、protected manifest 和 DoD #16 均收口；未 push。
