@@ -45,6 +45,15 @@
 >   - **N-1**：§5-B 出口 2 未交付，**但施工方「interior 多段覆盖进不了窗宿主 lookup」的架构理由经 sol 独立验证成立**（interior key 与 facade id 集合交集实测为空）⇒ 不升 BLOCKER。
 > - **主控预扫命中率**：审阅单点名三处中 **P-1(b) / P-2 均被证实为 false-lock，P-3 理由成立但出口确未交付** ⇒ 预扫路由准确（对标 07-20 同型正面数据点）。
 > - **[返工单 r1](logs/reviews/request/2026-07-27_judge_identity_metric_rework_r1.md) 主控给死骨架**（不只把问题甩回施工方，因上轮三条最重缺陷均源于「机制选对、边界条件自己猜」）：**§1** 产品墙**单向注册到唯一答案支撑线**（0 条→算多画 / **≥2 条→响亮拒绝**〔理由 = 此时判卷尺本身分不开两道墙，按 R-4 只许说 unsupported，**不许选最近**〕）+ **三条守恒不变式必须在代码里 raise**（含**负 extra 必须抛错、不许静默归零**）；**§2** **「意图」= 来源身份**（polygon 顶点索引 / boundary segment 端点侧，**输入里本就有** ⇒ 不造新格式、不改 GT schema），**若实测无法机械验证须停下上报、禁再自行降级为假设**；**§2.1** **直径阈裁定必须 ≤ 合并阈**（原 `diam=1e-11 > merge=1e-12` ⇒ 守卫形同虚设），**merge/split 数字保留**（sol 独立复算余量成立：合并侧对实测漂移 562×、对 20 m 单 ulp 281×，分裂侧对 1e-9 缺口 100×）。
+> **✅ [2026-07-28] 窄设计轮闭环 ⇒ 施工基线就绪、派工待用户拍板**（打法用户拍板 = sol 出稿 / GLM 跨家族对抗审 / 主控终审；三条缺口并作一轮）：
+> - **产物**：[问题书](logs/reviews/request/2026-07-28_judge_arbitration_and_provenance_brief.md) → [设计稿 1380 行累计式自包含](../proposals/judge_arbitration_and_provenance_plan_sol.md) → [GLM 裁决 APPROVE-WITH-CHANGES](logs/reviews/verdict/2026-07-28_judge_arbitration_design_glm.md) → [主控终审](logs/reviews/verdict/2026-07-28_judge_arbitration_design_controller_final.md) → sol 补稿。
+> - **核心原则**：「判卷结论必须由**可复算的证书**支撑，不能由**执行顺序 / 错误文案 / 浮点偶合 / 未保留的语义前提**支撑」——四个禁止项与三轮失败的四个病因**一一对应**（主控独立复核）。
+> - **三条缺口 → 三条结构性判据**：A 证书式仲裁（`reason` 降为纯展示、永不参与严重性判定；只有在 capability 不确定域**所有可接受解释下仍成立**的冲突才 `CERTIFIED_CONFLICT`）/ B 区间原子账本 + exact-rational（重复记功 = **owner 重数**，不再比较两个浮点算路；`extra` 由未覆盖原子并集得出 ⇒ **结构上不可能为负**）/ C 来源保真 occurrence + alias 证书（**距离只提候选**，焊合需独立于距离的结构证书）。
+> - **GLM 审**：30 命题逐条判定 + 独立探针；**八条承重命题全成立**；探针数字与 sol 裁决书、与主控此前独立核实**三方逐位吻合**。两条 MAJOR = 两个新边界缺可机械判定算法。**清单外自主发现 E2**（predicate 集合可能退化成新白名单 = reason 白名单换皮）——**主控与 sol 均未预见**，本轮最尖锐发现。**GLM 结构化清单打法第三次奏效**。
+> - **⚠️ 主控终审关键纠正**：GLM 建议由施工方补写判定算法 ⇒ **主控不采纳，改由出案方 sol 补进设计稿本体**。理由 = 本批三次失败共同结构均为**「机制选对、边界留给施工方猜」**；MAJOR-1 后果**双向互斥**（做宽假绿/做窄假红）⇒ **设计决策非实现细节**，再下放即第四次重复。并把 E2 升级为必补第三条。
+> - **补稿三条落地**（主控复核）：C-1 闭包 worklist + **终止条件证明**；C-2 alias 改纯 wire 结构判据 + **独立于距离的可验证性质**（候选值差 1 m 也不改判定）；C-3 未知 predicate 有意 NA + 请求级计数 + histogram + A-L9 锁与 neuter。MINOR 1–5 并入。
+> - **⇒ 下一步 = 施工派工待用户拍板**（施工档已连续三轮 REWORK，须重新评估）；按 §7 拆 Slice 0–4，**Slice 0「先落会红的锁」优先**（A-L3/B-L4/C-L1/C-L7/C-L11 经 GLM 探针实证现码全红）。
+>
 > - **⛔ [2026-07-27 三轮] sol 复审 r2 再判 REWORK（2 BLOCKER / 2 MAJOR）⇒ r3 进行中（WIP `b005004` 带 1 red）·R2-B2 移出本批待用户拍板**：
 >   - **R2-B1 = 本批第二次假红改假绿**（第一次是 r0 的 4 m 墙拿 8/8）：r2 为修 R-4 把 advisory 配对提到正交门之前 ⇒ **产品额外画一条 5e-10 斜边即可让自己的 1e-9 真拓扑破洞整轮降级成 capability NA 不出分**（sol 在生产五项全绿的正式 `CorrectedGeometryV3` 上活体实证；只有真缝 = `score_product_identity_invalid`，真缝+未配对 advisory = `score_unsupported_combination`）。**该风险由主控预扫点名、sol 独立证实 ⇒ 主控预扫连续第二轮命中。** 同源缺口：`_log_advisory_hit` 只在配对成功后调用 ⇒ **真正触发 unsupported 的未配对 advisory 不进日志**，而 R-4 翻 blocking 的计数最需要它。
 >   - **R2-B2 = r1 §2 死骨架两轮均未落地**（主控独立核实：`_build_floor_identity` 把点展平成 `(float(p[0]) for p in materialized)` ⇒ **来源身份进 `_cluster_axis` 前即丢光**；`score_identity_contract_mismatch` **全仓只在码表出现一次**、零 raise 零输入版本零负锁；合同④ 非相邻重复顶点 / 归并后自触自交 / 同 owner 反向配对**全部静默接受**，sol 活体产出 `zone_ids=("Z","Z")` 的"内墙"）。
