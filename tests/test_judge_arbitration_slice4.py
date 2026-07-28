@@ -6,6 +6,7 @@ import json
 
 import pytest
 
+from scripts.tool_scripts import judge_arbitration_sm24_audit
 from src.agent.judge.identity_provenance import (
     IDENTITY_CONTRACT_VERSION,
     SEGMENT_SCORER_IDENTITY_RELEASE_MAP,
@@ -141,3 +142,26 @@ def test_exact_audit_values_do_not_widen_public_segment_row_v8() -> None:
         "position_error_m",
         "extent_symmetric_difference_m",
     )
+
+
+def test_sm24_front_door_audit_certificate_has_no_blocking_change() -> None:
+    artifact = (
+        judge_arbitration_sm24_audit.Path(
+            "AI_agent/logs/reviews/execution/artifacts/"
+            "judge_arbitration_slice4/comparison/comparison.json"
+        )
+    )
+    comparison = json.loads(artifact.read_text(encoding="utf-8"))
+    assert comparison["input_hashes_identical"] is True
+    assert comparison["internal_non_measure_fields_identical"] is True
+    assert comparison["public_rows_identical"] is True
+    assert comparison["observation_to_targets_identical"] is True
+    assert comparison["wall_criteria_identical"] is True
+    assert comparison["identity_identical_after_helper_removed"] is True
+    assert comparison["eligible_rounding_changes"]
+    assert comparison["eligible_rounding_changes_certified"] is True
+    assert comparison["helper_transition"] == [
+        "b4b_segment_score_v2",
+        "b4b_segment_score_v3_ic1",
+    ]
+    assert comparison["blocking_change"] is False
