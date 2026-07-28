@@ -2,11 +2,15 @@
 
 - 日期：2026-07-28
 - 出案：sol
-- 状态：待 GLM 跨家族对抗审、主控（Opus 5）终审
+- 版次：主控终审补稿（累计式、自包含全文）
+- 状态：GLM 跨家族对抗审 `APPROVE-WITH-CHANGES`、主控终审方向批准；待主控只核补正项后转施工基线
 - 权威 brief：`AI_agent/logs/reviews/request/2026-07-28_judge_arbitration_and_provenance_brief.md`
+- 唯一权威终审：`AI_agent/logs/reviews/verdict/2026-07-28_judge_arbitration_design_controller_final.md`
 - 本轮角色纪律：本文作者不参与本稿审阅
 
 > 本文是施工基线候选，不是代码补丁。本轮不修改任何生产码、测试或 GT。
+> 本版已把 CapabilityEnvelope 传播、alias 证书和未知 predicate 可见性三项补正写入设计本体；
+> 后文不依赖任何被覆盖旧版正文，一个新执行者只读本文即可施工。
 
 ---
 
@@ -34,6 +38,11 @@
 
 3. **缺口 C：来源保真、候选归并、拓扑举证。**
    GT、correction、reading 的适配器在浮点被送入聚类前，为每次坐标出现建立稳定的来源 key。聚类器改收 `CoordinateOccurrence`，代表映射按来源 key 查询，不能再用裸 `float` 当唯一键。距离只生成“可能归并”的候选；不同来源的两个不等值若要焊成同一原子，必须有来源/拓扑关系给出的 alias 证书，随后还要通过完整的归并后拓扑合同。版本、来源 key、原始 binary64、归并直径和 owner 关系全部进入审计上下文。
+
+4. **未知证明谓词有意 fail-safe，但不得静默。**
+   首批 evaluator 不是“获准判红的名字白名单”。任何诊断都可借已有通用谓词举证；真正出现新谓词而没有 evaluator 时，仍有意降级为
+   `diagnostic_evidence_incomplete` capability NA，因为 R-4 禁止判卷器在不会证明时定罪。这个取舍会漏放未知真破裂，故每个此类降级必须进入请求级
+   `missing_predicate_evaluator_count`，并通过与既有 advisory 同一类的结构化运行时产物发出逐项事件和汇总事件；即使同一请求最终因别的认证冲突判红，计数也不能丢。
 
 三条机制共享一个中间表示：
 
@@ -185,6 +194,7 @@ class AnalysisReport:
 @dataclass(frozen=True)
 class ConflictWitness:
     predicate: str
+    predicate_schema_version: str
     source_edge_ids: tuple[tuple, ...]
     source_vertex_ids: tuple[tuple, ...]
     owner_ids: tuple[str, ...]
@@ -193,6 +203,7 @@ class ConflictWitness:
 @dataclass(frozen=True)
 class ContractWitness:
     predicate: str
+    predicate_schema_version: str
     source_keys: tuple[CoordinateSourceKey, ...]
     observed_hex: tuple[str, ...]
     expected_contract_version: str | None
@@ -220,8 +231,10 @@ DISPROVED（丢弃）
 ```
 
 没有 witness 的冲突主张不得默认判红；证明器为其生成
-`diagnostic_evidence_incomplete` capability，并以 NA 收口。新增一个 reason
-而忘记补证明适配器，最坏结果是可见的能力降级，不会自动获得定罪权。
+`diagnostic_evidence_incomplete` capability，并以 NA 收口。witness 完整但
+`(predicate, predicate_schema_version)` 没有 evaluator 时也走同一 NA 出口，
+但必须按 §4.3.2 计入运行时产物。新增一个 reason 不会自动获得定罪权；
+新增一种判卷器还不会证明的真破裂也不会静默消失。
 
 ### 2.4 审计上下文最低字段
 
@@ -231,11 +244,14 @@ DISPROVED（丢弃）
 - `contract_version`；
 - `side`、`floor_id`；
 - `diagnostic_id`、`proof_status`；
+- `predicate`、`predicate_schema_version`、命中的 evaluator key；无 evaluator 时记录
+  `missing_predicate_evaluator=true`；
 - source vertex/edge/owner keys；
 - 发生区间两端的十进制值和 binary64 hex；
 - 涉及归并时的全部原值 hex、`diameter`、`diameter_hex`；
 - `depends_on_capability_ids`；
 - capability envelope 的种类和端点 hex。
+- 请求级 `missing_predicate_evaluator_count`、按 predicate 排序的 histogram 和最终请求出口。
 
 只记 `reason/floor_id` 不再满足合同。
 
@@ -257,7 +273,7 @@ DISPROVED（丢弃）
 
 | 输入位置 | 来源 key（另加 side、axis） |
 |---|---|
-| GT footprint 顶点 | `(floor_id, "footprint", "exterior"/hole_id, vertex_index)` |
+| GT footprint 顶点 | `(floor_id, "footprint", ring_id, vertex_index)` |
 | GT zone 顶点 | `(floor_id, "zone", zone_id, ring_id, vertex_index)` |
 | GT boundary 端点 | `(floor_id, "boundary", segment_id, "p1"/"p2")` |
 | correction footprint 顶点 | `(floor_id, "footprint", "exterior", vertex_index)` |
@@ -267,6 +283,9 @@ DISPROVED（丢弃）
 
 补充规则：
 
+- 当前 `c2_simple_orthogonal_no_holes` GT profile 强制 footprint/zone
+  `interior_rings` 为空，v1 的 `ring_id` 只会是 `"exterior"`；`hole_id`
+  是未来带洞 geometry profile 的扩展槽，不表示现有 GT 已支持洞。
 - 存在稳定 id 时不以列表 ordinal 代替 owner id；顶点索引仍是该 owner 内部来源的一部分。
 - 显式闭环尾点保留自己的来源记录，并以 `explicit_ring_closure` 关系连接首点；不能在记录来源前直接丢掉。
 - duplicate owner id、duplicate reading id 或同一 source key 指向两个不同 wire 槽位，均为
@@ -288,8 +307,28 @@ IdentityInputEnvelope(
 - 版本由现有 typed 分派得出，不要求上游传新字段。
 - `_build_floor_identity` 只接受单一、受支持的 contract version；缺失、混用或未知版本均发出
   `score_identity_contract_mismatch / identity_contract_version_mismatch`。
-- contract version 必须进入 v3 scorer identity/cache preimage，施工时按既有协议 bump
-  `SEGMENT_SCORER_HELPER_VERSION`。旧派生 sidecar 失效，GT 文件不失效。
+- contract version 进入 scorer identity 的方式在本文定死为**编码进 helper identity 串**，
+  不给 `ScoreIdentityV8` 新增字段：
+
+  ```python
+  IDENTITY_CONTRACT_VERSION = "1"
+  SEGMENT_SCORER_HELPER_VERSION = "b4b_segment_score_v3_ic1"
+  IDENTITY_CONTRACT_TO_SCORER = {
+      "1": "b4b_segment_score_v3_ic1",
+  }
+  ```
+
+  `HelperIdentityV8.segment_scorer` 的 Literal **只**改为
+  `Literal["b4b_segment_score_v3_ic1"]`（不保留 v2 union），
+  `score_typed_attempt` 的构造值同时改为该精确字符串。
+  builder 必须断言 envelope version 经上表映射后等于 helper identity；未来 identity
+  contract v2 必须换新 helper 串，不能继续冒充 `...ic1`。
+- 选择 helper 串而非 `ScoreIdentityV8` 新字段的后果是：`ScoreIdentityV8` 结构和 sidecar
+  schema version 保持不变，但 canonical identity/hash 因
+  `helpers.segment_scorer` 改变；所有旧 typed c2 v3 派生 sidecar/cache 都成为 cache miss。
+  旧 `"b4b_segment_score_v2"` typed c2 v3 sidecar 会在新 strict model validation 失败，
+  `load_cached_score` 按既有协议返回 cache miss；不得给当前 builder 加“仍接受 v2 helper”
+  分支。GT content hash、签字答案和产品 artifact hash 均不变化。
 - sm21 不创建 envelope，因此其 scorer identity、分数和渲染均不变。
 
 这使码表中已有的 `score_identity_contract_mismatch` 具有真实、可达的发射路径。
@@ -333,20 +372,135 @@ IdentityInputEnvelope(
 
 候选簇中，两个不同 source key 的值若逐位相等，不发生近似归并；它们共享同一个数值原子，并由 C-4 检查其拓扑用途。
 
-若值不等但因 `< merge` 落入同一候选簇，必须建立 alias 证书。允许的 v1 证书仅来自已有结构：
+若值不等但因 `< merge` 落入同一候选簇，必须建立 alias 证书。证书判定与距离候选判定在 API 上隔离：
 
-- `same_source_reuse`：同一 source key 的多 use site；
-- `explicit_ring_closure`：明确的首尾闭环；
-- `paired_edge_endpoint`：两个不同 owner 的反向边或 T-junction 原子要求端点共址；
-- `boundary_chain_endpoint`：同一已声明 boundary loop 的连续端点；
-- `profile_axis_constraint`：当前 geometry profile 明确要求某源边沿某轴恒定。
+```python
+def certify_alias(
+    left: CoordinateSourceKey,
+    right: CoordinateSourceKey,
+    axis: Literal["x", "y"],
+    topology: SourceTopologyIndex,
+) -> AliasCertificate | None:
+    ...
+```
 
-每张证书必须列出两端 source key、支撑它的 edge/owner 关系和原始 hex。候选簇内每个不等值来源都必须通过证书图连到该簇的一个已证成员。
+该函数收不到 `left.value/right.value`、gap、merge/split/diameter 阈值；实现模块也不得
+import 这些阈值。数值层只负责在证书判定前产生待证明的 key pair。证书层只回答：
+**不看这两个候选值相差多远，wire 是否把这两个坐标槽放进同一个拓扑接点。**
 
-若只有数值接近而没有上述任一关系，发出
+适配器在聚类前从 wire 建立下列结构索引，索引 id 均由字段位置和稳定 id 生成：
+
+```python
+RingHalfEdgeRef(
+    side, floor_id, owner_kind, owner_id, ring_id,
+    edge_index, start_vertex_index, end_vertex_index,
+    direction_axis, direction_sign,
+)
+
+BoundaryEndpointRef(
+    side, floor_id, boundary_loop_id, source_footprint_fingerprint,
+    facade_family, outward_normal, segment_id,
+    endpoint_side, interval_role, chain_rank,
+)
+```
+
+- `start_vertex_index=i`、`end_vertex_index=(i+1) % n` 只取自 ring 顶点序号；显式闭环尾点另以
+  `explicit_ring_closure` 连到序号 0。
+- `direction_axis/sign` 只比较**同一条 edge 自己的**两端：哪个分量逐位相等、另一个分量的正负号是什么。它不比较两个 owner 的距离。
+- boundary 的 `interval_role` 是 `"lo"` 或 `"hi"`。适配器用 segment 自己的
+  `p1/p2` 沿轴值与其 `world_along_interval.lo/hi` 的逐位相等关系确定角色；不允许近似匹配。
+  GT 的 `boundary_loop_id` 直接取 wire。correction facade segment 只有在
+  `source_footprint_fingerprint` 与该 floor 的显式 footprint fingerprint 相同且 profile
+  声明它属于 exterior loop 时，adapter 才可派生 `boundary_loop_id="exterior"`；否则没有
+  boundary-chain 证书。
+
+允许的 v1 证书及机械规则如下。
+
+##### C-3a · `same_source_reuse` / `explicit_ring_closure`
+
+- `same_source_reuse` 只适用于两个 use site 指向**同一个** source key；它先走 C-1，不是跨来源兜底。
+- `explicit_ring_closure` 只连接同一 owner/ring 中 wire 明确给出的闭环尾点与
+  `vertex_index=0`。普通的两个近邻顶点不能冒充 closure。
+
+##### C-3b · `paired_edge_endpoint`
+
+对正在证明的轴 `a`，令另一轴为 `b`。只有以下步骤全部成立才发证：
+
+1. 两个 key 必须分别是 half-edge `e/f` 的端点在轴 `a` 上的坐标槽；`e/f`
+   位于同一 `side/floor/profile`，owner id 不同，且 endpoint 与 edge 的归属由上述 ring
+   序号直接可查，不能拿任意近邻 vertex 拼边。
+2. `e/f` 各自在轴 `a` 上为常量边，在轴 `b` 上非零；两条边的
+   `direction_axis` 相同、`direction_sign` 相反。这里的“常量/方向”只读每条边内部的两个
+   source 槽，不读 `e` 与 `f` 在轴 `a` 上的间距。
+3. 用**已经独立解决**的轴 `b` 原子建立两条有向 span，取联合 cut 后原子化。某个正长度
+   atom 上必须恰有 `e` 所属的一个 forward owner 与 `f` 所属的一个 reverse owner；
+   owner 不同。完整反向边是一个 atom，长边对多短边的 T-junction 是多个 atom，规则相同。
+4. 在该 atom 的两端，endpoint 配对严格取 ring 序号给出的
+   `e.start ↔ f.end`、`e.end ↔ f.start`；T-junction 端可是一侧 edge endpoint 对另一侧
+   long-edge 的 cut，但 cut 必须由轴 `b` 上已有的 source endpoint token 产生。
+5. 该证明不得依赖正在证明的轴 `a` 的 representative，也不得经另一张 alias 证书绕回本
+   key pair。alias 证明依赖图必须可拓扑排序；环依赖一律视为无证。
+
+通过后，证书只授权 `e/f` 在轴 `a` 上参与该 paired atom 的常量端点槽互为 alias；
+不授权同 owner 的其他顶点，也不授权同 floor 上恰好接近的平行边。尤其禁止把
+`abs(const_e-const_f) < merge`、欧氏端点距离或“最近反向边”写进任一步。
+
+##### C-3c · `boundary_chain_endpoint`
+
+只有一个**已声明 boundary loop 的相邻槽位**可发证：
+
+1. key pair 必须是（a）同一声明 loop 上两个不同 segment 的 boundary endpoint，或
+   （b）一个 boundary endpoint 与该 chain junction 唯一映射到的 footprint ring vertex；
+   二者须同 `side/floor/boundary_loop_id/source_footprint_fingerprint`。相同 facade family
+   时 outward normal 必须相同；跨 corner 时 family/normal 必须与相邻 ring half-edge 的方向表一致。
+2. 对同一 ring half-edge/facade family，按
+   `(world_along_interval.lo, world_along_interval.hi, segment_id)` 的 exact 值排序。
+   仅排序后相邻的 `left.hi` 与 `right.lo` 是一个连续槽位；必须满足各 interval 自身有序、
+   不嵌套、不 exact-overlap，且中间没有第三个 segment。这里不检查
+   `abs(left.hi-right.lo)`，也不以阈值决定“相邻”。
+3. 对 corner，连续槽位只由 ring 序号
+   `edge[i].end_vertex_index == edge[(i+1)%n].start_vertex_index` 给出；闭环 junction 只由
+   `(n-1) -> 0` 给出。坐标接近不能创建、跳过或改写这个序号关系。
+4. 待证明 key 必须正是上述两个槽位在所求 axis 上的 source key。boundary↔ring 只可映到
+   同一 declared junction 的唯一 `vertex_index`；任一 endpoint 无法唯一映射到
+   `interval_role` 或 ring junction 时，不发证。
+
+`world_along_interval` 在这里用于确定 wire 已声明链上的**次序和端点角色**，不是用于测两端
+有多近。即使把两个候选值改成相差 1 m，只要 owner、ring 序号和 interval 槽位不变，证书层的
+结构关系仍应得到同一答案；只是 C-2 不会再把它们放入同一候选簇，C-4 随后会把真实大缝判成
+拓扑问题。这条变形性质是 C-L4 的必测断言。
+
+##### C-3d · `profile_axis_constraint`
+
+当前 profile 可以证明一条源 edge 的两个端点共享同一常量轴槽时，adapter 可发
+`profile_axis_constraint`；证书必须引用 profile version、edge id、ring 序号和被约束 axis。
+通用求解器不写死“所有建筑都正交”。未来非正交 profile 可以不注册它，改注册自己的结构关系证明。
+
+##### C-3e · 证书图求解与终止
+
+1. C-2 为每个不等值 candidate pair 建 proposal；proposal 只含结构条件和所依赖的其他-axis
+   atom/certificate id。
+2. `same_source_reuse`、wire 明示 closure 和不依赖其他 alias 的 boundary/ring relation
+   先进入 accepted set。
+3. 按 canonical proposal id 反复接纳“全部依赖已 accepted 且 C-3a–d 规则成立”的 proposal。
+   每轮至少接纳一项，否则停止；proposal 有限，故必终止。
+4. 停止后仍未解决的 proposal（包括 alias dependency SCC）没有证书，不能靠同一 SCC
+   互相背书。对每个 candidate cluster 检查：每个不等值 source node 都能沿 accepted
+   certificate edge 连到 canonical anchor；否则发 `unproven_cross_source_alias`。
+5. 仅在整簇通过后才提交 `source_key -> cluster minimum representative`；失败簇不得先局部
+   改写几何再报错。
+
+每张证书必须列出两端 source key、证书种类、支撑 edge/owner/ring/interval 槽、
+原始 hex 和证明依赖。候选簇内每个不等值来源必须通过**无环证书图**连到该簇的一个已证成员；
+只靠逐位相等形成的数值原子不替别的不等值 pair 背书。
+
+证书实现不可避免会读取三类数值：单条 edge 内的 exact 方向、单个 boundary segment 内
+`p1/p2` 与 `world_along_interval` 的 exact 自洽、以及非待证明轴上的 exact span 顺序。
+这些读取均不计算两个待 alias 坐标的距离，也不拿 merge 阈值推断意图；它们验证的是 wire
+自身角色和独立拓扑 join key，因此不构成“距离反推意图”的循环。
+
+若只有数值接近而没有上述任一结构关系，发出
 `score_identity_contract_mismatch / unproven_cross_source_alias`，不得静默归并。
-
-`profile_axis_constraint` 是 profile adapter 的能力，不写死在通用身份求解器里。未来非正交 profile 可以不注册它，改注册自己的几何关系证明；数据模型无需重写。
 
 #### C-4 · 归并后完整拓扑合同
 
@@ -386,6 +540,7 @@ C-4 的检查器统一**产出带 witness 的合同主张，不在本地立即 r
 |---|---|
 | 同 source key 多次读取，直径 `<= merge` | 合并 |
 | 同 source key 多次读取，直径 `> merge` | `score_identity_contract_mismatch` |
+| 不同来源、值逐位相等 | 共享数值原子但保留各自 source identity；继续走 C-4 |
 | 不同来源、差值在护带 | `score_identity_guard_band_ambiguity` |
 | 不同来源、不等值、sub-merge 且有 alias 证书、拓扑合同成立 | 合并 |
 | 不同来源、不等值、sub-merge 但无 alias 证书 | `score_identity_contract_mismatch` |
@@ -404,8 +559,8 @@ C-4 的检查器统一**产出带 witness 的合同主张，不在本地立即 r
 | C-L1 | GT、correction、reading 各取一个正式对象，断言 audit 中逐点 source key 与上表一致，且 `_AxisIdentity` 按 source key 查询 | 红：当前进聚类前只剩 float | 把适配器恢复成 `float(p[axis])` 生成器，或把 rep 改回 `Mapping[float,float]` |
 | C-L2 | 向身份求解器送同一 source key 的两个样本，间距 `> merge`，精确断言 contract mismatch、两值 hex、diameter | 红：当前无法表达来源组 | 聚合键改成 raw float，绕开 same-source diameter 门 |
 | C-L3 | 两个不同来源落护带，精确断言错误 context 同时含两 source key | 红：当前 context 无来源 | 在 `_cluster_axis` 入参处剥离 occurrence，只传 float |
-| C-L4 | 三个历史合法表示漂移各改成带真实 topology/source 的正式夹具，保持可提取和可计分 | 现有裸 helper 绿，但来源合同锁不存在 | 对所有“不同来源且数值不等”无条件拒绝，三锁必须红 |
-| C-L5 | 不相关的两个 sub-merge 不等值来源、没有 alias 关系，必须 `unproven_cross_source_alias` | 红：当前仅凭距离焊接 | 让 alias certifier 恒返回 true |
+| C-L4 | 三个历史表示漂移升级为正式夹具：sm24 `8.059999999999999↔8.06` 和 correction `0.1+0.2↔0.3` 必须各产 `paired_edge_endpoint`，1-ulp 量子边界对必须挂在真实 reverse/T-junction 或 boundary-chain 槽上产对应证书；三者生产校验、提取、计分仍绿。再把待 alias 轴差值改到 `>split` 而保持 owner/方向/ring/interval 槽不变，断言证书层关系不变、但数值层不归并 | 现有裸 helper 绿，但来源合同锁不存在 | 让证书层读取 `abs(left-right)<merge`，或对所有不等值来源无条件拒绝；至少一项变形/历史锁必须红 |
+| C-L5 | 两个不同 owner/source 的 sub-merge 不等值近邻，刻意不给 reverse span、连续 boundary slot、ring closure 或 profile relation，必须 `unproven_cross_source_alias`；context 列出候选 pair 和“无结构关系” | 红：当前仅凭距离焊接 | 让 alias certifier 恒返回 true，或把 candidate gap 直接当 `paired_edge_endpoint` |
 | C-L6 | 既有 polygon 相邻坍缩、boundary collapse、reading collapse 均断言原端点 source/hex/diameter 完整 | 部分红：context 不完整 | 跳过 post-merge segment/ring validator |
 | C-L7 | 非相邻重复顶点 + 自触活体必须拒绝，且不能产出 `zone_ids=("Z","Z")` | 红：当前静默接受 | 把 ring validator 退回只查相邻顶点 |
 | C-L8 | 单独构造 bow-tie（无重复顶点）走正式 source adapter，必须报 self-intersection | 红：当前无检查 | 令 exact non-adjacent edge-intersection predicate 恒 false |
@@ -416,14 +571,15 @@ C-4 的检查器统一**产出带 witness 的合同主张，不在本地立即 r
 | C-L13 | 非正交简单凹多边形通过通用 topology identity checker；非正交自交多边形拒绝 | 红：当前没有通用检查器 | 把相交检查限定为 H/V 分支 |
 | C-L14 | 既有答案纯函数锁继续比较答案原子规范字节和 denominator binary64 字节 | 已有锁绿 | 非法联合 GT/产品来源池 |
 | C-L15 | sm21：令新 identity adapter 一调用就 raise，既有分数字节、像素 hash、分派路径仍全绿 | 应绿 | 把 legacy 分派接入新 adapter |
+| C-L16 | 保存一份改造前真实 typed c2 v3 sidecar（helper v2）及 hash；改造后新 strict model 只接受 `...v3_ic1`，旧 sidecar 经 `load_cached_score` 必须 cache miss，新 identity/hash 与 baseline 不同，GT hash 不变。envelope version `"1"` 配非 `...ic1` helper 必须 contract mismatch | 红：当前 helper 仍是 v2 且无 version 映射 | 把 Literal/构造串恢复为 v2、给当前 builder 加 v2 兼容分支，或删掉 envelope-version/helper 交叉断言 |
 
 其中 C-L4 必须把现有三个“裸 float helper”历史锁升级成有 source/topology 的正式形态；不是删除历史反例。
 
 ### 3.7 C 的实施代价与风险
 
-- 预计：新建一个 judge-only identity/provenance 模块约 350–550 行；三类 adapter 和
-  `segment_score.py` 接线约 180–300 行；新增/改写约 18–26 条窄锁。
-- 工作量：约 5–8 个专注工程日，属本轮最高成本项。
+- 预计：新建一个 judge-only identity/provenance/structural-alias 模块约 450–700 行；三类
+  adapter 和 `segment_score.py` 接线约 200–350 行；新增/改写约 22–30 条窄锁。
+- 工作量：约 6–9 个专注工程日，属本轮最高成本项。
 - 主要风险：
   - alias 证书过窄导致过多评分合同拒绝；
   - alias 证书过宽退化成数值接近即同一；
@@ -454,23 +610,163 @@ C-4 的检查器统一**产出带 witness 的合同主张，不在本地立即 r
 
 每个量不了的形态必须给出 `CapabilityEnvelope`。它不是替上游“修正”坐标，也不虚构一个最可能的轴线；它只声明：**哪些来源事实不能用于当前判卷器的红色证明。**
 
-v1 首先覆盖 W5 的 unpaired near-orthogonal advisory。envelope 包含：
+v1 首先覆盖 W5 的 unpaired near-orthogonal advisory。实现必须保留下列可审计对象：
 
-- advisory 源边；
-- 它的两个源顶点；
-- 该边的小分量坐标（near-vertical 时为端点 x，near-horizontal 时为端点 y）；
-- ring 中与这两个顶点相邻、且 cut 端点由上述坐标决定的边端；
-- 由这些非固定端点产生的 pairing cut/owner 关系。
+```python
+@dataclass(frozen=True)
+class CapabilityEnvelope:
+    capability_id: str
+    kind: Literal["near_orthogonal_advisory_unpaired"]
+    source_edge_id: tuple
+    source_vertex_ids: tuple[tuple, tuple]
+    seed_coordinate_keys: tuple[CoordinateSourceKey, ...]
+    dependent_fact_ids: tuple[tuple, ...]
+    dependency_arcs: tuple[tuple[tuple, tuple], ...]
+    fixed_invariants: tuple[tuple, ...]
+    complete: bool
+```
 
-传播按 source data-dependency 做，不按整层打标签，也不围绕端点另造一个数值半径。证明器只可使用 envelope 之外的固定事实，或使用 capability 自身明确保证的不变量；W5 当前只保证“生产端接受这一 near-axis 类别”，并不保证某个具体 straightening 坐标。
+`complete=False` 的 envelope 没有红色证明资格，只能 NA。`dependency_arcs`
+必须允许从任何 dependent witness fact 反查到 seed，不能只存一个最终 bool。
 
-若一个冲突在去掉所有 capability-dependent 事实后，仍能由固定来源边和一个固定正长度子区间独立证明，它仍可认证为红。若做不到，就只能是 `CONTINGENT`。若未来 capability 类型不能给出完整依赖闭包，安全退化是把其来源连接分量标成未知，而不是猜一个较小影响域。
+#### 4.2.1 有限事实图
 
-paired advisory 因 exact reverse 已可计量，不产生 capability envelope；paired/unpaired 的既有可计数日志均保留。
+C 完成后、detector 运行前，为每个 `(side, floor)` 建一个有限、带 phase rank 的事实图。
+每个派生函数必须为输出 fact 声明直接 operand；禁止在图外偷读坐标。v1 至少有：
+
+1. `SOURCE_COORD(key)`、owner/ring/edge index 等 wire 结构事实；
+2. `EDGE_ENDPOINT(edge, side, axis)`；
+3. `EDGE_CLASS/EDGE_DIRECTION/EDGE_SUPPORT/EDGE_SPAN/EDGE_ON_EXTERIOR`；
+4. source-labelled `CUT_TOKEN`、`CUT_ORDER` 和 `CUT_GROUP`；
+5. `ATOM_SPAN`、`EDGE_COVERS_ATOM`、`OWNER_ON_ATOM`、reverse/pair slot；
+6. detector 的 predicate fact 与 witness fact。
+
+图的 rank 固定为
+`source -> edge -> support/cut -> atom/owner -> diagnostic`。alias 关系在 C
+已经求解，只能作为 `source -> semantic coordinate` 的前向边；cut/diagnostic
+不得反向改写 source 或 alias。因此事实图是 DAG。
+
+#### 4.2.2 seed 的机械选择
+
+对每条**未配对** advisory source edge `e=(v0,v1)`：
+
+1. 只采用生产与判卷已共享的 W5 classifier 结果，不增加阈值。
+2. near-vertical 的 small axis 为 `x`，near-horizontal 为 `y`。若两个非零分量都落入
+   advisory 范围、classifier 无法唯一给出 dominant axis，则该 edge 的 envelope
+   `complete=False`，其来源结构连接分量整体 NA；不得猜 axis。
+3. 令两个原始 small-axis 值为 `s0/s1`，建立 exact-rational 闭域
+   `H_e=[min(s0,s1), max(s0,s1)]`。两个 endpoint 的语义 small coordinate 各自是
+   `H_e` 上的符号变量；C 已证明 co-motion 的 key 共享同一个变量，其他 key 不共享。
+   这个 over-approximation 同时包含原始斜边写法和在两端之间的所有 straightening，
+   但不选择任何一个“修正值”，也不在端点外另造半径。若 future capability 不能给出完整、
+   有界且可做 exact enclosure 的 admissible domain，则 `complete=False`。
+4. seed 是 `v0/v1` 在 small axis 上的两个 `CoordinateSourceKey`，再沿 C 已认证的
+   **结构 co-motion alias**（同 source reuse、explicit closure、已证 paired/boundary
+   junction）取有限传递闭包。裸数值相等、sub-merge、同 floor 或“看起来同一直线”都不是 seed
+   传播边。
+5. edge 存在、owner id、ring/edge index、两个 large-axis source coordinate 均列入
+   `fixed_invariants`。把一个 advisory edge 放进 envelope 不等于把它的 owner 或整个 ring
+   都标成未知。
+
+paired advisory 已有 exact reverse，可计量，不建立 envelope；paired/unpaired 的既有
+可计数日志都保留。
+
+#### 4.2.3 闭包 worklist
+
+从 seed fact 开始执行下列单调算法：
+
+```text
+dependent := set(seed facts)
+queue := canonical_order(seed facts)
+
+while queue not empty:
+    fact := pop_smallest(queue)
+    for child in canonical_order(direct_dependents[fact]):
+        if child not in dependent and child_is_variable(child, dependent):
+            dependent.add(child)
+            dependency_arcs.add(fact -> child)
+            queue.add(child)
+
+stop when queue is empty
+```
+
+`child_is_variable` 不留给施工方自由解释，按以下规则：
+
+- copy、仿射值表达式、支撑坐标和 span 端点只要读取任一 dependent operand，输出值即
+  dependent，并携带由 exact interval arithmetic 得到的 enclosure。
+- 方向/共线/相交、cut order、bucket eligibility 等布尔比较，若所有 admissible 值都给出同一
+  结果，可用 exact enclosure 证明为固定；否则 dependent。禁止用抽样、浮点 epsilon 或“当前
+  这一次结果”代替全域证明。
+- 一个 half-edge endpoint 的某 axis 分量 dependent，当且仅当它绑定的 source key 在 seed
+  co-motion 闭包。对 advisory 顶点，前驱 edge 的 end endpoint、advisory edge 的 start/end、
+  后继 edge 的 start endpoint若读取同一 key，均入闭包；**只入该 axis 分量**。相邻 edge
+  的另一个顶点、该顶点的另一 axis、再下一条 ring edge不会因“相邻”自行传播。
+- edge 的 source 身份和 owner 始终固定；只有 support、direction、span、axis class、
+  exterior-membership 等确实读取 dependent endpoint 的派生事实入闭包。这样传播依赖数据读取，
+  不是沿 ring 无条件 flood fill。
+- 每个 cut 保留 source-labelled token，不能先按 float 去重后丢来源。endpoint cut 的 along
+  coordinate 或 producer edge 的 support-bucket membership dependent，则该
+  `CUT_TOKEN` dependent；edge/edge intersection cut 的任一支撑或交点参数 dependent，也同样
+  dependent。
+- pairing/cut 的潜在 interaction 不能只从当前 float bucket 枚举。对每个符号 support/cut
+  enclosure，与本 floor 的有限 fixed support/span 做 exact 相交测试：全域不相交则关系固定为
+  false；存在任一 admissible 相交则建立 candidate fact 并继续传播。由此 A-L1 的局部 cut 会
+  入图，远处 A-L2 真缝不会因“support 未知”被整层污染。
+- T-junction 的 long carrier 即使所有 source endpoint 固定，只要切它的 token dependent，
+  由该 token 产生的 `CUT_ORDER`、分割 atom 和 atom owner/pairing 关系都入闭包；carrier 的
+  source edge、固定 endpoints 和固定 full span **不**反向入闭包。
+- exact 值相同的 cut tokens 仍分别保留。`DOMAIN_START/DOMAIN_END` 或至少一个固定 token
+  可给当前位置一个固定 cut；dependent token 不会抹掉这个固定 cut，但它在其他可接受解释下可能
+  移动或新增 cut，因此凡依赖它的相对次序、分区或 owner membership 仍标 dependent。
+- `EDGE_COVERS_ATOM`、`OWNER_ON_ATOM`、reverse slot 或 absence 结论，只要所需 edge 的
+  support/span、atom boundary、cut order 或 pairing eligibility 任一 dependent，就入闭包。
+  仅 owner 字符串相同不传播 capability。
+- predicate/witness 的**必要事实**有任一 dependent 时，该份完整 witness 是
+  contingent；certifier 仍必须继续搜索不使用这些事实的最小固定核心。
+
+以上规则也回答“哪些边端由小分量坐标决定”：只有 source incidence 实际复用 seed small-axis
+key 的 endpoint 分量，以及读它而产生的派生 support/span/cut；不是整条相邻边，更不是整个
+owner/floor。
+
+#### 4.2.4 终止与未知依赖
+
+source key、half-edge incidence、potential edge pair 和 symbolic cut token 都由有限 wire
+笛卡尔上界枚举；连续 admissible domain 只保留 exact enclosure，不采样、不生成无限 token。
+每个 fact 最多入集合一次，且边只从低 rank 指向高 rank。因此 worklist 最多处理
+`|facts| + |dependency_arcs|`，queue 为空即终止。算法不按坐标半径发现新邻居，也不枚举连续的
+straightening 坐标。实现可用 exact AABB/sweep index 剪枝 potential pair，但结果集合必须与
+有限笛卡尔定义一致，不能靠当前 float bucket 漏项。
+
+若 future profile 的派生函数无法声明完整 operands，必须把该函数所有输出及其下游标成
+dependent；若连下游边界也无法枚举，则 envelope `complete=False`，整个来源结构连接分量
+NA。禁止以“目前没看见依赖”为由把它当固定。
+
+#### 4.2.5 固定核心与两只方向门
+
+certifier 不得把“当前 atom id 固定”当成唯一证明方式。对正向 owner 冲突，它从固定 source
+edge 的 exact support、方向和 span 直接求交：若两个非法 owner 在一个**固定正长度**
+interval 上恒并存，dependent cut 即使把它再细分也不能消灭冲突，故可
+`CERTIFIED_CONFLICT`。对 `missing_reverse_owner` 这类 absence 证明，只要任一
+capability edge 仍可能按 dependent support/span 覆盖所缺 interval，就只能
+`CONTINGENT`。
+
+由此机械得到两只关键出口：
+
+- A-L1 的 `5e-10` vs `4e-10` 两条 unpaired advisory 各自把 small-axis key 纳入 seed；
+  与它们共顶点的相邻 exterior edge endpoint 复用该 key，两个 T-junction cut 及其间的
+  derivative duplicate atom 都在闭包内。不存在固定正长度 duplicate 核心，故 NA。
+- A-L3 的 A/B 两个满幅 owner 的 source edges、端点、support 和正长度交集都不经 C cell
+  advisory 的 source-incidence/结构 alias 路径；数值相等或同 floor 不传播 capability。
+  A/B 本身构成固定核心，故必须 `CERTIFIED_CONFLICT` 判红。
+
+同理，A-L2 的 1e-9 真缝若来源边与 advisory 无依赖路径，或其 fixed support/span 与
+advisory exact enclosure 全域不相交，仍由固定事实认证为红。传播做宽到
+“同 floor 全未知”会使 A-L2/A-L3 红；传播做窄漏掉相邻 endpoint/T-junction cut 会使
+A-L1 红，这三锁共同钉死闭包边界。
 
 ### 4.3 冲突谓词
 
-首批 evaluator 至少覆盖现有三种 pairing 主张：
+首批 evaluator 覆盖下列五个通用拓扑/身份谓词；它们是启动集，不是穷尽清单：
 
 | 主张 | witness 必含 | 认证条件 |
 |---|---|---|
@@ -485,7 +781,8 @@ paired advisory 因 exact reverse 已可计量，不产生 capability envelope�
 - 能从 capability 之外的固定事实构造完整证书：`CERTIFIED_CONFLICT`；
 - 观察到症状，但任一必要 witness 事实依赖 capability：`CONTINGENT`；
 - 固定事实反证该症状：丢弃；
-- evaluator 缺失或无法完成证明：合成 capability，NA。
+- evaluator 已注册但 witness 不足以完成证明：合成 capability，NA；
+- evaluator 缺失：合成 `missing_predicate_evaluator` capability，NA，并强制走 §4.3.2 计数。
 
 证明器必须搜索**最小固定核心 witness**，不能因为同一大诊断还列有一个 contingent owner 就污染全部固定 owner。例如 owner multiplicity 只需找到两个固定、非法并存的 owner 和一个固定正长度子原子；第三个 capability-dependent owner 可以留在 audit，但不进入核心证书。反过来，absence 类证明必须证明所有 capability edge 都因固定的支撑、方向或区间事实不可能补上缺侧；做不到就只能 contingent。
 
@@ -495,6 +792,71 @@ paired advisory 因 exact reverse 已可计量，不产生 capability envelope�
 - 两个完整 footprint owner 的真实 duplicate + 独立 cell C advisory：duplicate witness 只引用 A/B 的固定来源边，与 C 的 envelope 无交，故在所有解释下恒真，为 `CERTIFIED_CONFLICT`。
 
 同理，B/C 的 1e-9 真缝 witness 与 A 的 advisory 来源无关，仍可认证为冲突。
+
+#### 4.3.1 predicate registry 的有意取舍
+
+registry 的 key 是 `(predicate, predicate_schema_version)`，value 是一个读取 typed witness、
+fact graph 与 capability closure 的 evaluator。detector 的 `reason` 可以新增而不改 registry；
+只要它能把证据归约到已有通用谓词，就复用对应 evaluator。只有证据的逻辑形态真的新增时才增加
+predicate/evaluator。
+
+必须正面承认：**一个真正全新的 predicate 若没有 evaluator，在该版本中不能判红。**
+这在逻辑效果上是 certifier 的已知不完备性。本文有意保留“无 evaluator ⇒ NA”，理由是：
+
+1. 自动把未知主张判红，会重新让 detector 名字/category 取得定罪权，违反 R-4；
+2. 一个所谓 catch-all evaluator 若不能给出机械 witness，只是把 reason 白名单改名；
+3. 在“可能漏放未知真破裂”和“可能冤判生产端合法形态”之间，本评分信任边界选择前者，
+   但必须用下节计数让漏口成为可运营发现的债务，而不是静默常态。
+
+因此“有 evaluator”本身不等于红：evaluator 还必须从 witness 得出固定核心并返回
+`CERTIFIED_CONFLICT`。反过来，predicate 集合长期不全也不允许凭“fail-safe”被掩盖。
+
+#### 4.3.2 无 evaluator 的运行时可见性
+
+每次 typed c2 v3 请求在进入分析前创建请求级 accumulator。计数单位是 canonical 去重后的
+`(diagnostic_id, predicate, predicate_schema_version)`；同一 detector 重复发同一 id
+不得重复计数，两个不同 diagnostic id 即使 predicate 相同仍各计一次。diagnostic id 冲突但
+witness 不同则是内部合同错误，不能靠去重吞掉。
+
+dispatch 找不到 evaluator 时必须原子地完成三件事：
+
+1. 把原诊断标成 `UNPROVEN`，合成
+   `diagnostic_evidence_incomplete / missing_predicate_evaluator` capability，最终按 NA 候选处理；
+2. accumulator 的 `missing_predicate_evaluator_count += 1`，并更新按
+   `(predicate, predicate_schema_version)` 排序的 histogram；
+3. 通过与 `near_orthogonal_advisory_*` 相同的结构化 runtime artifact/logger 通道发逐项事件：
+
+   ```text
+   event = "judge_certifier_missing_evaluator"
+   request_key
+   side, floor_id, diagnostic_id
+   predicate, predicate_schema_version
+   requested_code, resolution = "diagnostic_evidence_incomplete"
+   ```
+
+`request_key` 由本次 GT content hash、product output hash 和
+`"b4b_segment_score_v3_ic1"` 组成 canonical hash；不要求上游新增字段。
+per-floor detector 只把 missing-evaluator record 放入 `AnalysisReport`，不自行发 summary；
+typed 请求入口合并后统一计数。兼容 wrapper 若在 typed service 外被直接调用，则以
+`("compat", side, canonical SourceGeometryDocument audit hash, helper version)` 生成本地
+request key，并走同一 emitter，不能成为无计数旁路。
+
+请求级仲裁放在 `try/finally` 内；无论最终是 scored、NA、还是被另一条认证冲突判红，`finally`
+都恰好发一条：
+
+```text
+event = "judge_certifier_missing_evaluator_summary"
+request_key
+missing_predicate_evaluator_count
+predicate_histogram              # tuple[(predicate, version, count), ...]，canonical sorted
+diagnostic_ids                   # tuple[str, ...]，canonical sorted
+final_outcome = "scored" | "na" | "red"
+```
+
+count 为 0 也发 summary，方便真实 run 区分“零命中”与“根本没接 telemetry”。该计数是运行时
+可见性，不改变红/NA 优先级，也不写回 GT、产品或签字答案。没有 witness 是另一种
+`missing_witness` 证据缺失；它同样 NA，但不得冒充本计数。无法持久化 summary 的 run
+在运行审计中标为 telemetry incomplete，不能被用于声称 predicate 覆盖完整。
 
 ### 4.4 请求级裁决
 
@@ -519,6 +881,8 @@ return all_segments
   `(side, floor_id, locus canonical bytes, diagnostic_id)` 稳定排序。
 - 单一既有冲突的 code/gate/reason 保持逐字兼容；多冲突时不再靠 reason 排位推断根因。
 - capability 日志在最终判红时仍要保留，不能因红色出口丢掉运行时计数。
+- `finally` 中的 missing-evaluator summary 在选定最终出口后发出；红色 raise、NA raise 和正常
+  return 三条控制流都必须经过同一 emitter。
 
 ### 4.5 A 的边界行为
 
@@ -530,7 +894,8 @@ return all_segments
 | 认证冲突 + unrelated capability | 红，同时保留 capability audit/log |
 | 认证冲突 + 与它相交但不影响其恒真性的 capability | 红 |
 | 某 identity 症状的真伪依赖 capability 解释 | NA |
-| 新诊断有 reason、无 witness/evaluator | NA，并显式记 `diagnostic_evidence_incomplete` |
+| 新诊断有 reason、无 witness | NA，并显式记 `diagnostic_evidence_incomplete / missing_witness` |
+| witness 完整但无 `(predicate, version)` evaluator | 有意 NA；逐项事件 + 请求汇总计数必须进运行时产物 |
 | 不同楼层分别有红和 NA | 整次请求红 |
 
 这条边界允许保守 NA，但不允许在证据不足时制造假红，也不允许无关 NA 洗掉已经证明的评分冲突。
@@ -539,29 +904,32 @@ return all_segments
 
 | ID | 会红的锁 / 预期 | 现码状态 | 指定 neuter（实施后必须使该锁红） |
 |---|---|---|---|
-| A-L1 | R4 双 cell `5e-10` vs `4e-10` 活体：生产五项绿，最终必须 capability NA；audit 中 derivative duplicate 为 CONTINGENT 且列出 capability id | 结果已 NA，但无证书/audit，新增断言红 | 让 advisory envelope 不传播到相邻边端，或令 certifier 忽略依赖 |
-| A-L2 | 1e-9 真缝 + unpaired advisory：生产五项绿，仍精确为 product identity 红；witness 不依赖 advisory | 结果已红，但来源证书断言红 | 把同 floor 任一 capability 污染到所有 witness |
-| A-L3 | brief 的两个满幅 cell duplicate + unrelated advisory：生产五项绿，必须 `exterior_duplicate_owner` 红 | 红：现码会 NA | 同 A-L2；这是该“局部而非整层污染”门的第二个正式活体，共用 neuter 必须如实披露 |
+| A-L1 | R4 双 cell `5e-10` vs `4e-10` 活体：生产五项绿，最终必须 capability NA；audit 中 derivative duplicate 为 CONTINGENT，逐弧列出 small-axis seed → 相邻 edge endpoint → T-junction cut → owner atom 及 capability id | 结果已 NA，但无证书/audit，新增断言红 | 让 advisory envelope 不传播到相邻边端/T-junction cut，或令 certifier 忽略依赖 |
+| A-L2 | 1e-9 真缝 + unpaired advisory：生产五项绿，仍精确为 product identity 红；audit 证明真缝 fixed support/span 与 advisory admissible enclosure 全域不相交，witness 不依赖 advisory | 结果已红，但来源证书断言红 | 把同 floor 任一 capability 污染到所有 witness，或忽略 exact enclosure 的全域不相交证明 |
+| A-L3 | brief 的两个满幅 cell duplicate + unrelated advisory：生产五项绿，必须 `exterior_duplicate_owner` 红；fixed-core audit 只列 A/B 固定 edge/span，不含 C advisory facts | 红：现码会 NA | 同 A-L2；这是该“局部而非整层污染”门的第二个正式活体，共用 neuter 必须如实披露 |
 | A-L4 | A-L1 和 A-L3 分别交换 cell 输入顺序，结果及选中 diagnostic canonical bytes 不变 | 红：现结构无 canonical evidence | 恢复“第一个 diagnostics 元素获胜” |
 | A-L5 | floor F1 只有 advisory，F2 有独立 duplicate；两个 floor 顺序各跑一次，都必须红 | 红：当前 F1 可先抛 NA | 在 floor loop 内恢复立即 raise |
-| A-L6 | 构造一个新 reason 的 identity-like claim，但不给 witness/evaluator；必须 NA `diagnostic_evidence_incomplete`，不得凭 category 红 | 红：当前数据模型无法表达 | 对 `requested_code=score_*_identity_invalid` 的无证 claim 默认认证 |
+| A-L6 | 构造一个新 reason 的 identity-like claim，但不给 witness；必须 NA `diagnostic_evidence_incomplete / missing_witness`，不得凭 category 红，且不得误增 missing-evaluator count | 红：当前数据模型无法表达 | 对 `requested_code=score_*_identity_invalid` 的无证 claim 默认认证 |
 | A-L7 | 同时存在 located conflict 和其派生 dangling conflict；调换 detector 输出顺序，红/码不变，root 由 `caused_by` 图选 | 红：当前按 reason/list 顺序 | 删除 caused-by root 消解，改回列表首项 |
 | A-L8 | 最终红时 unpaired advisory 结构化日志仍包含 floor、端点 hex、capability id | 部分红：当前无 capability id | 仲裁红出口前清空/短路 capability audit |
+| A-L9 | 给一个完整 typed witness 和新 `(predicate, "1")` 但不注册 evaluator：单独运行必须 NA，逐项事件一次、summary 的 `missing_predicate_evaluator_count=1` 且 histogram 精确；再加 unrelated certified duplicate 后最终必须红而 count 仍为 1；临时注册 evaluator 后 count 必须为 0 | 红：当前无 registry/计数产物 | 在 missing-evaluator 分支只返回 NA 而跳过 accumulator/emitter，或在红色出口前清空 accumulator |
 
 A-L2/A-L3 是同一局部污染守卫的两个方向：一个防过宽导致假 NA，一个钉 brief 的第三张脸。施工日志不得把它们虚报成两个独立 guard。
 
 ### 4.7 A 的实施代价与风险
 
-- 预计：evidence graph/envelope/certifier 约 280–450 行；现有 pairing detector 改造约
-  180–280 行；请求级 report 接线约 80–140 行；新增约 10–14 条锁。
-- 工作量：约 4–6 个专注工程日。
+- 预计：finite fact graph/envelope/certifier 约 450–700 行；现有 pairing detector 改造约
+  180–280 行；请求级 report/telemetry 接线约 100–180 行；新增约 12–18 条锁。
+- 工作量：约 5–8 个专注工程日。
 - 主要风险：
   - envelope 过窄会让派生症状假红；
   - envelope 过宽会让独立冲突假 NA；
+  - evaluator registry 长期不全会把新型真破裂系统性降级为 NA；
   - 只改 `_pair_interior_edges` 而遗漏跨楼层/跨文档的第一次抛错；
   - 多诊断 root 展示变化误伤既有精确 reason 锁。
 - 控制：
   - A-L1 与 A-L2/A-L3 构成窄/宽双向门；
+  - A-L9 把 registry 不完备变成每个真实请求可累计、可分 predicate 查询的运行时债务；
   - A-L5 钉请求级而非 helper 级收集；
   - 单诊断保持旧 reason，多诊断才走证据图 root。
 
@@ -629,6 +997,14 @@ Dyadic.from_float(value)  # 基于 value.as_integer_ratio()
 - audit 保存 exact numerator/denominator 或等价 canonical bytes。
 
 标准库 `Fraction.from_float` 可作为首版正确性实现；若性能实测需要，可换专用 exact-rational 表示，但输出 canonical bytes 必须相同。任何性能替换都不得在 ledger 内重新引入中间 binary64 投影。
+
+这里有一项有意保留的精度边界：exact ledger 在公开
+`eligible_units` 处 correctly-round 成 binary64；下游用来判
+`complete/within_tolerance/miss` 的 axis/position/extent 残差也仍是 binary64，并按既有
+float `claim_complete_epsilon_m` 比较。恰落政策边界的输入可能因 1 ulp 改变 criterion 分类。
+本轮不把评分政策改成 rational，也不声称 exact ledger 消除了这项历史精度债；它只保证该
+float 决策不能回流到 conservation、owner multiplicity 或 extra 非负性。audit 同时保留
+`eligible_units_exact` 与公开 float hex，供 §8.3 的逐行 diff 识别这种边界。
 
 ### 5.4 target 原子账本
 
@@ -740,12 +1116,15 @@ B-L1/2/3 是同一个 multiplicity guard 的大额、小额和最小可表示正
 - 工作量：约 3–5 个专注工程日。
 - 主要风险：
   - observation 弧长反投影改变少量 v3 extra 的最后 1 ulp；
+  - `eligible_units` 公开 float 在 `claim_complete_epsilon_m` 恰好边界仍有 1-ulp criterion
+    抖动；这是记录在案的既有评分精度债，不是 conservation 漏口；
   - exact accumulator 的大整数性能；
   - 下游再次用普通顺序 sum 破坏 canonical 总量；
   - 把 observation 重复收费与 target duplicate criterion 混为一类。
 - 控制：
   - exact measure 在行聚合前只 round 一次；
-  - 对真实 sm24 v3 记录改造前后逐行差异，任何语义变化须能由新账本解释；
+  - 对真实 sm24 v3 按 §8.3 记录改造前后逐行差异；任何 float 变化须列 hex/exact 来源，
+    status/verdict 变化不得仅以“已知 1 ulp”带过；
   - 基准测试以实际最大 floor edge/cut 数测量，不预设“只会有几个盒子”；
   - 两本账分别以 target ids 和 observation ids 做 owner 集。
 
@@ -789,9 +1168,12 @@ exact target/observation ledgers
 ### 6.3 为什么不会在下一个位置再破一次
 
 - 新 pairing reason 没有证书时没有红色资格；严重性不随字符串集合增长。
-- capability 的影响是来源/区间局部的，且请求级统一仲裁；换 bucket、floor 或输入顺序不改变结论。
+- 无 evaluator 的新谓词有意 NA，但逐诊断和请求汇总计数强制进入运行时产物；证明能力缺口不会静默积累。
+- capability 的影响由有限 source fact DAG 和明确 T-junction cut 传播求闭包，且请求级统一仲裁；
+  换 bucket、floor 或输入顺序不改变结论。
 - 守恒由区间 owner 重数和精确分区成立，不依赖累加顺序或另选一个数值窗口。
-- 数值聚类只提出 alias 候选；来源一致性和拓扑证书才建立意图原子。
+- 数值聚类只提出 alias 候选；证书 API 收不到待 alias 值或阈值，只有 owner/方向、
+  `world_along_interval` 槽和 ring 序号能建立意图原子。
 - 新 geometry profile 只需提供来源 adapter、alias relation 和 capability envelope；仲裁器、账本和 exact measure 不需要改成“只认正交盒子”的第二套。
 
 ---
@@ -803,6 +1185,7 @@ exact target/observation ledgers
 先提交本稿三张核心活体锁，确认现码：
 
 - A-L3 红（duplicate + unrelated advisory 被洗成 NA）；
+- A-L9 红（当前没有 missing-evaluator 请求级计数产物）；
 - B-L4 红（三相邻 span 的 1-ulp 假红）；
 - C-L1/C-L7/C-L11 红（来源丢失、完整拓扑、版本门）。
 
@@ -812,21 +1195,27 @@ exact target/observation ledgers
 
 1. 建 `SourceGeometryDocument` 和三类 adapter。
 2. 改 `_cluster_axis` / `_build_floor_identity` 为 occurrence API。
-3. 落 contract version、same-source、alias certificates。
+3. 按 C-3a 至 C-3d 落 contract version、same-source 和结构 alias certificates；先跑
+   C-L4/C-L5 的距离独立双向门。
 4. 落通用 post-merge topology/owner claims。
 5. 保住三历史绿、答案纯函数和 sm21。
 
-**不可半交付：**只传 source key 但聚类后又回到 `raw float -> rep`，视为未实施。
+**不可半交付：**只传 source key 但聚类后又回到 `raw float -> rep`；或
+`paired_edge_endpoint/boundary_chain_endpoint` 读取待 alias 差值、最近邻或 merge 阈值，
+均视为未实施。
 
 ### Slice 2 · 证明式仲裁（A）
 
 1. 把 pairing 诊断改成 source witness。
-2. 建 W5 unpaired advisory envelope。
-3. 建三个现有冲突 predicate evaluator。
+2. 按 §4.2 的 finite fact DAG/worklist 建 W5 unpaired advisory envelope，含相邻 edge
+   endpoint 与 T-junction cut 传播。
+3. 建首批五个通用冲突 predicate evaluator。
 4. 所有 floor 先报告后请求级仲裁。
-5. 保留结构化 advisory 日志。
+5. 保留结构化 advisory 日志，并落
+   `missing_predicate_evaluator_count` 的逐项/summary 运行时产物。
 
-**不可半交付：**仅扩大现有诊断 context、但仍由 detector category/reason 直接定红，视为未实施。
+**不可半交付：**仅扩大现有诊断 context、但仍由 detector category/reason 直接定红；
+或未知 evaluator 虽 NA 却不计数/红色出口丢计数，均视为未实施。
 
 ### Slice 3 · exact interval ledgers（B）
 
@@ -836,24 +1225,30 @@ exact target/observation ledgers
 4. 删除旧 scalar conservation 分支与 `_SUBINTERVAL_SUM_TOL` 在本通路的职责。
 5. exact audit 接入错误 context 和 canonical row aggregation。
 
-**不可半交付：**只把普通 `sum` 换成 `math.fsum`、但仍以两个独立浮点总量比较定案，视为未实施。
+**不可半交付：**以下任一项成立都视为未实施：
+
+- 只把普通 `sum` 换成 `math.fsum`，仍以两个独立浮点总量比较定案；
+- 对每条 target 独立重算同一个 observation 上的共享顶点，不复用 canonical cut id；
+- target/observation 两域不是由同一对 cut token 和 mapping certificate 生成。
 
 ### Slice 4 · 版本、缓存与全链回归
 
-- bump v3 segment scorer helper identity；
+- 把 v3 segment scorer helper 精确 bump 为
+  `"b4b_segment_score_v3_ic1"`，并验证 envelope version/helper release map；
 - 失效旧 v3 派生 sidecar/cache，不动 GT；
-- 跑受影响子集、全仓、sm21 三件套、sm24 受保护树 hash；
+- 跑全部 v3 segment 计分锁、全仓、sm21 三件套、sm24 受保护树 hash；
+- 对真实 sm24 typed c2 v3 按 §8.3 产出改造前/后 canonical JSONL 并逐行 diff；
 - 每个 neuter 仅在临时副本执行并还原。
 
 ### 7.1 总成本估计
 
 | 项 | 专注工程日 | 主要影响文件 |
 |---|---:|---|
-| C 来源身份与拓扑合同 | 5–8 | 新 judge-only 模块、`segment_score.py`、score identity |
-| A 证书与请求级仲裁 | 4–6 | 新 evidence/certifier 模块、`segment_score.py`、`score_service.py` |
+| C 来源身份与拓扑合同 | 6–9 | 新 judge-only 模块、`segment_score.py`、score identity |
+| A 证书与请求级仲裁 | 5–8 | 新 evidence/certifier 模块、`segment_score.py`、`score_service.py` |
 | B exact interval ledgers | 3–5 | 新 measure/ledger 模块、`segment_score.py` |
-| 集成、neuter、全仓与性能 | 2–3 | tests、执行日志 |
-| **合计** | **14–22** | 不含审阅返工 |
+| 集成、neuter、全仓与性能 | 3–4 | tests、执行日志 |
+| **合计** | **17–26** | 不含审阅返工 |
 
 建议按上述 slice 独立提交、最终一次性启用新 v3 scorer identity；不得把未完成的 source 传递或 capability envelope 单独作为可发布状态。
 
@@ -881,12 +1276,32 @@ exact target/observation ledgers
 
 ### 8.3 影响面估计
 
-预计直接受影响：
+这是**全部 typed c2 v3 segment 计分路径**的改造，不得按“少量 score service 锁”估算。必跑影响面至少包括：
 
-- `tests/test_judge_identity_metric.py`；
-- `tests/test_c2_segment_tjunction.py`；
-- 少量 v3 score service / score identity contract 锁；
-- 新增独立 provenance、arbitration、measure ledger 测试文件。
+- `tests/test_judge_identity_metric.py` 的 identity、matching、denominator、criterion 全部锁；
+- `tests/test_c2_segment_tjunction.py` 的 GT/product 提取、T-junction、advisory 和正式计分锁；
+- `tests/test_c2_b4b_phase_b.py` 中所有消费 `SegmentScore/eligible_units` 的锁；
+- `tests/test_c2_b4b_phase_d.py`、`tests/test_c2_b4b_contract.py` 的 typed scorer
+  identity、sidecar hash/cache 和正式服务接线锁；
+- 新增独立 provenance、alias、capability closure、predicate telemetry、exact measure ledger 锁。
+
+施工前后对**真实 sm24 typed c2 v3** 的逐行 diff 是必跑项，步骤定为：
+
+1. 改造前通过真实 `score_typed_attempt`/accepted product 正门生成 baseline，不用手造
+   `PlanSegment` 代替。按稳定 key
+   `(floor_id, target_id, observation_id, exterior, status)` 排序，写 canonical JSONL；
+   每行保存公开字段、`eligible_units` 十进制与 binary64 hex、observation-to-target map。
+2. 改造后用同一 GT/product/config 重跑；另存每行的 exact numerator/denominator、
+   public float hex、cut ids 和 mapping certificate id。输入 GT/product/config hash 必须逐位相同，
+   唯一预期 identity 输入变化是 helper
+   `"b4b_segment_score_v3_ic1"`。
+3. 对 internal segment rows、公开 `SegmentScoreRowV8`、三项 wall criteria 和 sidecar
+   identity 分别逐行 diff；把 baseline/new 文件 hash 与完整 diff 附进施工日志。
+4. helper identity 与由它派生的 sidecar/content hash 变化是预期。`eligible_units` 或 extra
+   最后 1 ulp 的变化只有在 diff 同行给出 exact ledger/mapping 解释时可接受。
+   target/observation 配对、row status、extra/duplicate/miss 类别、criterion verdict
+   或 denominator 语义变化一律阻断，不得以 MINOR-4 的“已知 1 ulp”概括放行；若确需这种变化，
+   先回到设计审新增裁定。
 
 预计不应变化：
 
@@ -919,23 +1334,36 @@ exact target/observation ledgers
 
 ## 10. Definition of Done
 
-GLM 审后若本文获主控批准，施工只有同时满足以下条件才可报完成：
+本文经主控补稿复核并转为施工基线后，施工只有同时满足以下条件才可报完成：
 
-1. A-L1 至 A-L8、B-L1 至 B-L10、C-L1 至 C-L15 全部按表执行；共用 guard 如实归并计数。
+1. A-L1 至 A-L9、B-L1 至 B-L10、C-L1 至 C-L16 全部按表执行；共用 guard 如实归并计数。
 2. 三张核心活体分别得到：
    - advisory 派生 duplicate：NA；
    - genuine duplicate + unrelated advisory：红；
    - 三相邻 span：合法计分。
-3. 最小可表示正重叠与 `5e-10` 重叠均被 observation multiplicity 结构门拒绝。
-4. `extra` 只来自 observation complement atoms；生产路径中不存在负 extra 的生成和过滤分支。
-5. `_cluster_axis` 的生产调用点全部传 occurrence，不存在先展平 float 再“补来源”的旁路。
-6. 非相邻重复、自触/自交、同 owner 反向配对、boundary/reading collapse 与 duplicate-after-merge 均有完整 source/hex/diameter context。
-7. `score_identity_contract_mismatch` 至少有版本、same-source spread、unproven alias/source collision 三类真实 raise 路径。
-8. 任意调换 bucket、diagnostic、cell、floor 输入顺序，出口与 canonical audit 不变。
-9. sm24 受保护答案树一个字节不变；答案原子与分母纯函数锁仍绿。
-10. sm21 三件套零变化；全仓零新增非预期 red。
-11. 新增 exact/topology 结构在真实最大 fixture 上给出时间和内存实测；不得以正交盒子数量估算代替。
-12. 每个指定 neuter 在临时副本中至少使点名锁变红，副本还原后工作树干净。
+3. A-L1 audit 能从 derivative duplicate/T-junction cut 逐弧回放到 small-axis seed；A-L3
+   的 fixed core 不含 unrelated advisory fact，且得到 `CERTIFIED_CONFLICT`。
+4. missing evaluator 单独出现时 NA、与 unrelated 红并存时整请求红；两条路径都发
+   `missing_predicate_evaluator_count=1` summary，注册 evaluator 后为 0。
+5. 三历史 alias 正式夹具仍绿；证书对待 alias 差值的远近变形不变；无结构关系 sub-merge 必红。
+6. `_cluster_axis` 的生产调用点全部传 occurrence，不存在先展平 float 再“补来源”的旁路；
+   alias certifier API/实现不能读取待 alias 值、gap 或三个 identity 阈值。
+7. 最小可表示正重叠与 `5e-10` 重叠均被 observation multiplicity 结构门拒绝。
+8. `extra` 只来自 observation complement atoms；生产路径中不存在负 extra 的生成和过滤分支。
+9. 相邻 target 对同一 observation 的共享顶点只求值一次并复用 canonical cut id；不存在
+   per-target 独立反投影旁路。
+10. 非相邻重复、自触/自交、同 owner 反向配对、boundary/reading collapse 与
+    duplicate-after-merge 均有完整 source/hex/diameter context。
+11. `score_identity_contract_mismatch` 至少有版本、same-source spread、unproven
+    alias/source collision 三类真实 raise 路径。
+12. helper identity 精确为 `"b4b_segment_score_v3_ic1"`，identity contract `"1"`
+    与其交叉验证；旧 typed c2 v3 sidecar/cache miss，GT hash 不变。
+13. 任意调换 bucket、diagnostic、cell、floor 输入顺序，出口与 canonical audit 不变。
+14. §8.3 点名的全部 v3 segment 锁和真实 sm24 逐行 diff 完成；无未解释 row/status/verdict
+    变化。sm24 受保护答案树一个字节不变，答案原子与分母纯函数锁仍绿。
+15. sm21 三件套零变化；全仓零新增非预期 red。新增 exact/topology 结构在真实最大 fixture
+    上给出时间和内存实测，不得以正交盒子数量估算代替。
+16. 每个指定 neuter 在临时副本中至少使点名锁变红，副本还原后工作树干净。
 
 ---
 
@@ -947,4 +1375,6 @@ GLM 审后若本文获主控批准，施工只有同时满足以下条件才可�
 - B 把“有没有多收钱”改成区间 owner 重数；
 - C 把“这两个数为什么能焊”改成来源身份与拓扑 alias 证书。
 
-三者共同把判卷器的立足点从隐含假设变成可重放证据。本文若通过 GLM 对抗审和主控终审，可直接按 §7 拆施工，不需要施工方再自行补边界裁定。
+三者共同把判卷器的立足点从隐含假设变成可重放证据；未知证明能力则以有意 NA +
+强制运行时计数公开其代价。本文已经过 GLM 对抗审和主控方向终审，待主控完成本补稿的窄复核后，
+可直接按 §7 拆施工，不需要施工方再自行补 CapabilityEnvelope、alias 或 predicate 完整性边界。
