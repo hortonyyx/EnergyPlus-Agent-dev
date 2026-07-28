@@ -19,6 +19,17 @@ from src.agent.correction.orthogonality import (
 )
 from src.agent.correction.schema import CorrectedGeometryV3
 from src.agent.judge.gt_schema import GroundTruthV3
+from src.agent.judge.interval_ledger import (
+    CanonicalCutRegistry,
+    CoverageClaim,
+    ObservationLedger,
+    TargetLedger,
+    build_coverage_claim,
+    build_observation_ledger,
+    build_target_ledger,
+    claims_by_key,
+    exact_float,
+)
 from src.agent.judge.certifier import (
     AnalysisCollector,
     CapabilityEnvelope,
@@ -91,21 +102,9 @@ _COORDINATE_SPLIT_THRESHOLD = 1e-11     # gap above this: distinct intent -> spl
 # cluster may never span more than the very spread that defines "same intent".
 _COORDINATE_DIAMETER_THRESHOLD = 1e-12  # cluster diameter cap (chain-bridge guard).
 
-# R2-M1: per-target sub-interval sum tolerance.  The cut tiling partitions each
-# target's [t0, t1] into matched/miss/duplicate sub-intervals whose lengths sum
-# to target.length exactly in real arithmetic; the per-target conservation gate
-# in match_plan_segments raises if they do not.  This absorbs ONLY floating-
-# point accumulation in the three separate running sums (bounded by
-# n_cuts * eps * length, well under 1e-12 for any realistic floor), so a dropped
-# or inflated sub-interval -- a real cut-logic bug -- still lands as a loud
-# reject.  This is NOT the observation over-charge window R2-M1 removed: that
-# gate (_assert_obs_conservation) is strict (covered > obs_length, no window),
-# because cover > length is geometrically impossible -- a sum of disjoint pieces
-# of the observation's own projection can never exceed the projection, which is
-# itself <= the obs length -- so any excess, however small, is the double-charge
-# signature.  The prior 1e-9 slack there swallowed a real 5e-10 over-charge
-# (sol live probe: covered=4.0000000005 on a 4.0 m wall) and turned a visible
-# false red into a silent false green.  See R2-M1 in the r3 rework dispatch.
+# Historical scalar-helper compatibility only.  Production matching no longer
+# calls this tolerance or either scalar conservation helper: Slice 3 proves
+# conservation from the exact atom partitions in ``interval_ledger``.
 _SUBINTERVAL_SUM_TOL = 1e-9
 
 
@@ -492,6 +491,10 @@ class SegmentScore:
     # Replaces the prior per-segment count of 1 (which over-weighted walls
     # facing many rooms by up to 3.96x on real sm24).
     eligible_units: float = 0.0
+    # Exact source for ``eligible_units``.  Production rows set this from the
+    # ledger before the one public binary64 rounding; canonical audit must not
+    # reconstruct it from the public float.
+    eligible_units_exact: Fraction = Fraction(0)
 
 
 def _exact_orientation(a: Point, b: Point, c: Point) -> int:
@@ -1887,7 +1890,46 @@ def _assert_obs_conservation(obs_key: str, obs_length: float, covered: float) ->
     if covered > obs_length:
         raise ScoreContractError("score_denominator_nonconserving", "scoring.denominator_totality",
             context={"reason": "observation_cover_exceeds_length", "observation": obs_key,
-                     "obs_length": obs_length, "covered": covered, "excess": covered - obs_length})
+                         "obs_length": obs_length, "covered": covered, "excess": covered - obs_length})
+
+
+def _build_target_ledger(
+    *,
+    target: PlanSegment,
+    claims: Iterable[CoverageClaim],
+) -> TargetLedger:
+    """Production seam: target rows consume the returned exact ledger."""
+    return build_target_ledger(
+        target_key=target.key,
+        domain_exact=exact_float(target.length),
+        claims=claims,
+    )
+
+
+def _build_observation_ledger(
+    *,
+    observation: PlanSegment,
+    claims: Iterable[CoverageClaim],
+) -> ObservationLedger:
+    """Production seam: extra rows and multiplicity consume this exact ledger."""
+    return build_observation_ledger(
+        observation_key=observation.key,
+        domain_exact=exact_float(observation.length),
+        claims=claims,
+    )
+
+
+def _canonical_score_row(row: SegmentScore) -> tuple[object, ...]:
+    """Canonical audit bytes for deterministic row aggregation."""
+    exact = row.eligible_units_exact
+    return (
+        "" if row.target is None else row.target.floor_id,
+        "" if row.target is None else row.target.key,
+        "" if row.observation is None else row.observation.key,
+        row.status,
+        f"{exact.numerator}/{exact.denominator}",
+        row.eligible_units.hex(),
+    )
 
 
 def match_plan_segments(*, targets: Iterable[PlanSegment], observations: Iterable[PlanSegment],
@@ -1947,22 +1989,20 @@ def match_plan_segments(*, targets: Iterable[PlanSegment], observations: Iterabl
                 support_lines=sorted(line for line in eligible_lines),
             )
         obs_support[obs.key] = next(iter(eligible_lines))
-    # B-1 step 2: per-target joint cutpoint; only observations registered to this
-    # target's support line may participate.
-    rows: list[SegmentScore] = []
-    obs_covered: dict[str, float] = {obs.key: 0.0 for obs in obs_list}
-    obs_to_targets: dict[str, set[str]] = {obs.key: set() for obs in obs_list}
+    # B exact ledgers: construct every dual-domain claim before either ledger.
+    # One request-local registry evaluates a shared geometry cut once per
+    # observation; target and observation domains then consume the same claim
+    # and mapping certificate.
+    cut_registry = CanonicalCutRegistry.empty()
+    claims: list[CoverageClaim] = []
     for target in target_list:
-        length = target.length
-        if length == 0:
+        if target.length == 0:
             continue
         target_line = _support_line_key(target)
+        length = target.length
         dx, dy = target.p2[0] - target.p1[0], target.p2[1] - target.p1[1]
         tx, ty = dx / length, dy / length
         nx, ny = -ty, tx
-        t0, t1 = sorted((target.p1[0] * tx + target.p1[1] * ty, target.p2[0] * tx + target.p2[1] * ty))
-        candidates: list[tuple[PlanSegment, float, float, float, float]] = []
-        cuts = {t0, t1}
         for obs in obs_list:
             if obs.length == 0 or obs_support.get(obs.key) != target_line:
                 continue
@@ -1970,68 +2010,116 @@ def match_plan_segments(*, targets: Iterable[PlanSegment], observations: Iterabl
             if metric is None:
                 continue
             _overlap, position, _extent = metric
-            qdx, qdy = obs.p2[0] - obs.p1[0], obs.p2[1] - obs.p1[1]
+            qdx = obs.p2[0] - obs.p1[0]
+            qdy = obs.p2[1] - obs.p1[1]
             axis_error = abs(qdx * nx + qdy * ny)
-            o_lo, o_hi = sorted((obs.p1[0] * tx + obs.p1[1] * ty, obs.p2[0] * tx + obs.p2[1] * ty))
-            lo, hi = max(o_lo, t0), min(o_hi, t1)
-            if hi <= lo:
+            claim = build_coverage_claim(
+                target=target,
+                observation=obs,
+                axis_error_m=axis_error,
+                position_error_m=position,
+                cut_registry=cut_registry,
+            )
+            if claim is not None:
+                claims.append(claim)
+
+    canonical_claims = tuple(sorted(
+        claims,
+        key=lambda claim: claim.mapping_certificate.certificate_id,
+    ))
+    target_claims = claims_by_key(canonical_claims, "target_key")
+    observation_claims = claims_by_key(canonical_claims, "observation_key")
+    observation_by_key = {obs.key: obs for obs in obs_list}
+
+    rows: list[SegmentScore] = []
+    for target in target_list:
+        if target.length == 0:
+            continue
+        local_claims = target_claims.get(target.key, ())
+        ledger = _build_target_ledger(target=target, claims=local_claims)
+        matched = dict(ledger.matched_exact)
+        for claim in local_claims:
+            cover_exact = matched.get(claim.observation_key, Fraction(0))
+            if cover_exact <= 0:
                 continue
-            candidates.append((obs, lo, hi, axis_error, position))
-            cuts.add(lo)
-            cuts.add(hi)
-        exactly_one: dict[str, float] = {}
-        miss_length = 0.0
-        duplicate_length = 0.0
-        sorted_cuts = sorted(cuts)
-        for a, b in zip(sorted_cuts, sorted_cuts[1:]):
-            if b <= a:
-                continue
-            covering = [item for item in candidates if item[1] <= a and b <= item[2]]
-            if not covering:
-                miss_length += b - a
-                continue
-            for obs, _lo, _hi, _axis, _pos in covering:
-                obs_covered[obs.key] += b - a
-                obs_to_targets[obs.key].add(target.key)
-            if len(covering) == 1:
-                exactly_one[covering[0][0].key] = exactly_one.get(covering[0][0].key, 0.0) + (b - a)
-            else:
-                duplicate_length += b - a
-        # R2-M1 #2: per-target sub-interval conservation hard gate.  The cut
-        # tiling partitions this target's [t0, t1] into matched (exactly_one) /
-        # miss / duplicate sub-intervals, so matched + miss + duplicate must equal
-        # target.length exactly in real arithmetic.  A dropped or inflated sub-
-        # interval (a cut-logic bug that silently mis-accounts the target's
-        # length, understating failing or inventing passing) lands here as a loud
-        # reject -- the denominator may never be quietly reshaped.
-        _assert_target_conservation(target.key, length, sum(exactly_one.values()), miss_length, duplicate_length)
-        for obs, lo, hi, axis_error, position in candidates:
-            cover = exactly_one.get(obs.key, 0.0)
-            if cover <= 0.0:
-                continue
-            complete = axis_error <= config.claim_complete_epsilon_m and position <= config.claim_complete_epsilon_m
-            within = axis_error <= config.plan_axis_alignment_tol_m and position <= config.plan_position_tol_m
-            status = "complete" if complete else ("within_tolerance" if within else "miss")
-            rows.append(SegmentScore(target, obs, status, axis_error, position, target.length - cover,
-                                     eligible_units=cover))
-        if miss_length > 0.0:
-            rows.append(SegmentScore(target, None, "miss", None, None, None, eligible_units=miss_length))
-        if duplicate_length > 0.0:
-            rows.append(SegmentScore(target, None, "duplicate", None, None, None, eligible_units=duplicate_length))
-    # B-1 step 3 / R2-M1: conservation hard gate (strict, no window) + extra rows.
-    # covered <= obs.length is guaranteed by the gate, so extra >= 0 here and a
-    # negative extra can never again be swallowed by ``extra > epsilon`` (the r0
-    # false-green shape: extra = 4 - 8 = -4 silently dropped).
+            obs = observation_by_key[claim.observation_key]
+            complete = (
+                claim.axis_error_m <= config.claim_complete_epsilon_m
+                and claim.position_error_m <= config.claim_complete_epsilon_m
+            )
+            within = (
+                claim.axis_error_m <= config.plan_axis_alignment_tol_m
+                and claim.position_error_m <= config.plan_position_tol_m
+            )
+            status = (
+                "complete"
+                if complete
+                else ("within_tolerance" if within else "miss")
+            )
+            cover = float(cover_exact)
+            rows.append(SegmentScore(
+                target,
+                obs,
+                status,
+                claim.axis_error_m,
+                claim.position_error_m,
+                float(ledger.domain_exact - cover_exact),
+                eligible_units=cover,
+                eligible_units_exact=cover_exact,
+            ))
+        if ledger.miss_exact > 0:
+            rows.append(SegmentScore(
+                target,
+                None,
+                "miss",
+                None,
+                None,
+                None,
+                eligible_units=float(ledger.miss_exact),
+                eligible_units_exact=ledger.miss_exact,
+            ))
+        if ledger.duplicate_exact > 0:
+            rows.append(SegmentScore(
+                target,
+                None,
+                "duplicate",
+                None,
+                None,
+                None,
+                eligible_units=float(ledger.duplicate_exact),
+                eligible_units_exact=ledger.duplicate_exact,
+            ))
+
     for obs in obs_list:
         if obs.length == 0:
             continue
-        covered = obs_covered[obs.key]
-        _assert_obs_conservation(obs.key, obs.length, covered)
-        extra = obs.length - covered
-        if extra > config.claim_complete_epsilon_m:
-            rows.append(SegmentScore(None, obs, "extra", None, None, None, eligible_units=extra))
-    observation_map = {key: tuple(sorted(values)) for key, values in obs_to_targets.items() if values}
-    return tuple(rows), observation_map
+        ledger = _build_observation_ledger(
+            observation=obs,
+            claims=observation_claims.get(obs.key, ()),
+        )
+        # ``extra_exact`` is a complement atom measure and can never be
+        # negative.  The existing epsilon is only the public row-emission
+        # policy; it has no role in conservation or multiplicity.
+        if float(ledger.extra_exact) > config.claim_complete_epsilon_m:
+            rows.append(SegmentScore(
+                None,
+                obs,
+                "extra",
+                None,
+                None,
+                None,
+                eligible_units=float(ledger.extra_exact),
+                eligible_units_exact=ledger.extra_exact,
+            ))
+
+    observation_map = {
+        observation_key: tuple(sorted(
+            claim.target_key for claim in local_claims
+        ))
+        for observation_key, local_claims in observation_claims.items()
+    }
+
+    return tuple(sorted(rows, key=_canonical_score_row)), observation_map
 
 
 def assign_plan_segments(*, targets: Iterable[PlanSegment], observations: Iterable[PlanSegment],
