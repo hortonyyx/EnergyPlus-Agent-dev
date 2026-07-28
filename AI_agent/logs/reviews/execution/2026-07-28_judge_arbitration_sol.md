@@ -2639,3 +2639,139 @@ AI_agent/CLAUDE.md` exit `0`。
 
 Slice 4 完成。全部六条 Slice 0 red lock、A/B/C 全表、helper/cache、sm21、真实 sm24 diff、
 性能、protected manifest 和 DoD #16 均收口；未 push。
+
+---
+
+## 37. GLM 对抗审 MAJOR-1 窄返工
+
+源码提交：
+
+```text
+ce2342605b345aa4f23f4c83e523910c11b648da  7.28_JudgeArbitrationMajor1ClosedDoor
+```
+
+### 37.1 MAJOR-1 · 删除 public policy bit
+
+选择出口 **(a)**。`exact_error_context` 不是诊断事实，而是 admission wire 的内部输出策略；
+让它作为 `JudgeDiagnostic` 的 public dataclass field，等于给每个未来 detector 一个绕过
+certificate-field completeness 的合法构造参数。故本轮没有为这扇门继续堆 watcher，而是：
+
+1. 从 `JudgeDiagnostic` 完全删除 `exact_error_context` 字段；
+2. 增加 certifier 内部私有子类型 `_ExactErrorContextDiagnostic`；
+3. 唯一转换函数 `_with_exact_error_context` 只在 certifier 内构造该子类型；
+4. 唯一调用点是 `identity_provenance.raise_identity_conflict` 的既有 audited bridge；
+5. `_error_context` 只用私有类型身份选择 reason-only context，不再读取任何 public bool。
+
+活锁同时证明：
+
+- `JudgeDiagnostic(..., exact_error_context=True)` 必须 `TypeError`；
+- `dataclasses.replace(diagnostic, exact_error_context=True)` 必须 `TypeError`；
+- frozen instance 的事后属性赋值必须 `FrozenInstanceError`；
+- 私有子类型构造点精确为
+  `certifier.py::_with_exact_error_context`；
+- 私有转换调用点精确为
+  `identity_provenance.py::raise_identity_conflict`；
+- 原 `_exact_error_context=True` bridge 仍精确只有
+  `score_service.py::_raise_score_input_contract`。
+
+既有 B5 admission context 锁保持 `{"reason": ...}`，severity 仍由 arbiter 决定。
+
+### 37.2 指定 neuter 实测
+
+副本：`/tmp/judge-major1-neuter`。实际施加：
+
+```diff
+*** Begin Patch
+*** Update File: src/agent/judge/certifier.py
+@@
+ class JudgeDiagnostic:
+@@
+     context: Mapping[str, object] = field(default_factory=dict)
+     precertified: bool = False
++    exact_error_context: bool = False
+@@
+-    if isinstance(diagnostic, _ExactErrorContextDiagnostic):
++    if (
++        diagnostic.exact_error_context
++        or isinstance(diagnostic, _ExactErrorContextDiagnostic)
++    ):
+         return {"reason": diagnostic.reason}
+*** End Patch
+```
+
+命令：
+
+```text
+pytest -q -n0 \
+  tests/test_judge_interval_ledger.py::test_exact_error_context_has_no_public_dataclass_door
+```
+
+真实结果：
+
+```text
+FAILED tests/test_judge_interval_ledger.py::test_exact_error_context_has_no_public_dataclass_door
+E Failed: DID NOT RAISE <class 'TypeError'>
+1 failed in 1.04s
+```
+
+红点正是 GLM 演示的 direct-field construction door。逐项 restore 后副本
+`git status --short` 为空；主工作树从未带入 neuter。
+
+### 37.3 三个 MINOR 收口
+
+**MINOR-1（raise-origin domain）**：新增全目录 AST 枚举，不再使用三个文件的手写 domain。
+扫描 `src/agent/judge/**/*.py` 的全部直接
+`ScoreContractError(..., "scoring.input_identity")`，封闭枚举四个既有 strict-admission
+origin：
+
+```text
+elevation_score.py::project_typed_elevation_observation
+elevation_score.py::score_typed_elevation_floor_lines
+score_config.py::load_judge_score_config
+score_schema.py::load_score_gt_identity
+```
+
+除这四个 typed loader/projector admission 外，scorer identity severity 仍只有 certifier
+arbiter；未来任何 judge module 新增直接 identity raise 都会使全目录锁变红。
+
+**MINOR-2（dormant pairing helper）**：选择允许的“证明不可达”出口，不删除既有历史
+counterexample 测试。AST 锁证明：
+
+- production source 对 `_arbitrate_pairing_diagnostics` 的调用数严格为 0；
+- `_PairDiagnostic` 的 production 构造点严格只有 `_pair_diagnostic`；
+- 该唯一构造点必须显式传 typed `witness`，故 reason→predicate fallback 在 production
+  不可达。
+
+**MINOR-3（scalar-reflow surface）**：原 scalar/tolerance ban 从单独
+`match_plan_segments` 扩为同时检查
+`match_plan_segments` 与 `_build_observation_ledger`；两者都不得引用
+`_assert_target_conservation`、`_assert_obs_conservation` 或
+`_SUBINTERVAL_SUM_TOL`。
+
+### 37.4 回归与保护树
+
+相关影响面：
+
+```text
+178 passed in 16.04s
+```
+
+最终全仓 tail：
+
+```text
+1786 passed, 10 xfailed, 150 warnings in 279.93s (0:04:39)
+```
+
+相对返工前 `1782 passed, 10 xfailed`，新增四把锁，零既有测试状态变化。
+
+施工前与源码/测试/全仓结束后的 `git status --short` 均为空。最终：
+
+```text
+git diff --quiet -- case_tests/test_baseline/gt AI_agent/CLAUDE.md
+exit 0
+
+sm24 protected manifest aggregate SHA-256:
+e78c6e7e015746c14d8f70521551a71ee77b6e726259000ecf6133f91d61771f
+```
+
+`case_tests/test_baseline/gt/` 与 `AI_agent/CLAUDE.md` 零字节变化；未 push。
