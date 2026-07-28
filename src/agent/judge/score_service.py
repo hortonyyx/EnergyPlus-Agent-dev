@@ -22,23 +22,49 @@ from src.agent.judge.score_schema import (
     decide_score_capability, finalize_score_sidecar,
 )
 from src.agent.judge.score_schema import ElevationScoreViewBindingV1
+from src.agent.judge.identity_provenance import raise_identity_conflict
+
+
+def _raise_score_input_contract(
+    code: str,
+    *,
+    reason: str,
+    **context: object,
+) -> None:
+    """Send pure schema/cryptographic identity facts through the arbiter."""
+    raise_identity_conflict(
+        code,
+        predicate="typed_score_input_contract",
+        reason=reason,
+        side=str(context.pop("side", "product")),
+        floor_id=str(context.pop("floor_id", "")),
+        _exact_error_context=True,
+        **context,
+    )
 
 
 def normalize_typed_elevation_observations(*, payload: object, score_bindings: object) -> tuple[ProjectedElevationObservation, ...]:
     """Normalize the CLI/product boundary before scoring (never trust product mirror)."""
     if not isinstance(payload, dict):
-        raise ScoreContractError("score_product_identity_invalid", "scoring.input_identity",
-                                 context={"reason": "elevation_payload_not_object"})
+        _raise_score_input_contract(
+            "score_product_identity_invalid",
+            reason="elevation_payload_not_object",
+        )
     raw_items = payload.get("elevation_observations", ())
     if not isinstance(raw_items, list):
-        raise ScoreContractError("score_product_identity_invalid", "scoring.input_identity",
-                                 context={"reason": "elevation_observations_not_list"})
+        _raise_score_input_contract(
+            "score_product_identity_invalid",
+            reason="elevation_observations_not_list",
+        )
     bindings = getattr(score_bindings, "bindings", ())
     by_input = {item.input_id: item for item in bindings if isinstance(item, ElevationScoreViewBindingV1)}
     projected: list[ProjectedElevationObservation] = []
     for raw in raw_items:
         if not isinstance(raw, dict):
-            raise ScoreContractError("score_product_identity_invalid", "scoring.input_identity")
+            _raise_score_input_contract(
+                "score_product_identity_invalid",
+                reason="elevation_observation_not_object",
+            )
         try:
             local = raw["local_x_interval"]
             z = raw.get("z_interval")
@@ -50,8 +76,11 @@ def normalize_typed_elevation_observations(*, payload: object, score_bindings: o
             )
             binding = by_input[observation.source_input_id]
         except (KeyError, TypeError, ValueError) as exc:
-            raise ScoreContractError("score_product_identity_invalid", "scoring.input_identity",
-                                     context={"reason": "invalid_typed_elevation_observation"}) from exc
+            _raise_score_input_contract(
+                "score_product_identity_invalid",
+                reason="invalid_typed_elevation_observation",
+                parse_error_type=type(exc).__name__,
+            )
         projected.append(project_typed_elevation_observation(
             observation=observation, binding=binding,
             direction_semantics=raw.get("direction_semantics", "building_axis"),
@@ -73,7 +102,10 @@ def _opening_observations(*, payload: dict, score_bindings: object):
     values: list[OpeningObservation] = []
     for raw in payload.get("openings", ()):
         if not isinstance(raw, dict):
-            raise ScoreContractError("score_product_identity_invalid", "scoring.input_identity")
+            _raise_score_input_contract(
+                "score_product_identity_invalid",
+                reason="opening_observation_not_object",
+            )
         try:
             span = raw["world_along_interval"]
             z = raw.get("z_interval")
@@ -85,8 +117,11 @@ def _opening_observations(*, payload: dict, score_bindings: object):
                 channel=raw.get("channel", "plan"),
             ))
         except (KeyError, TypeError, ValueError) as exc:
-            raise ScoreContractError("score_product_identity_invalid", "scoring.input_identity",
-                                     context={"reason": "invalid_opening_observation"}) from exc
+            _raise_score_input_contract(
+                "score_product_identity_invalid",
+                reason="invalid_opening_observation",
+                parse_error_type=type(exc).__name__,
+            )
     for projected in normalize_typed_elevation_observations(payload=payload, score_bindings=score_bindings):
         # C2 input carries a declared product segment; the projection helper
         # owns coordinates only and intentionally does not infer a host.
@@ -143,7 +178,11 @@ def score_typed_attempt(*, gt_identity, gt, stage: Literal["reading", "correctio
                                                match_plan_segments)
 
     if gt is None:
-        raise ScoreContractError("score_gt_identity_invalid", "scoring.input_identity")
+        _raise_score_input_contract(
+            "score_gt_identity_invalid",
+            reason="missing_ground_truth",
+            side="gt",
+        )
     effective = build_effective_view_manifest(base=base_view_manifest, overlay=completeness_overlay)
     capability = decide_score_capability(gt_identity=gt_identity, stage=stage,
                                           product_schema=product_identity.output_schema,
@@ -169,7 +208,13 @@ def score_typed_attempt(*, gt_identity, gt, stage: Literal["reading", "correctio
         claims_contract=CLAIMS_VOCAB_VERSION,
     )
 
-    gt_segments = extract_gt_plan_segments(gt)
+    from src.agent.judge.certifier import (
+        AnalysisCollector,
+        DEFAULT_EVALUATOR_REGISTRY,
+        certify_and_arbitrate_request,
+    )
+    identity_analysis = AnalysisCollector()
+    gt_segments = extract_gt_plan_segments(gt, _analysis=identity_analysis)
     geometry = None
     if stage == "correction":
         from src.agent.correction.schema import CorrectedGeometryV3
@@ -180,35 +225,45 @@ def score_typed_attempt(*, gt_identity, gt, stage: Literal["reading", "correctio
         if not product_identity.accepted or not isinstance(
             window_host_proof, VerifiedWindowHostProof,
         ):
-            raise ScoreContractError(
+            _raise_score_input_contract(
                 "score_product_identity_invalid",
-                "scoring.input_identity",
-                context={"reason": "official_b5_requires_verified_six_artifact_input"},
+                reason="official_b5_requires_verified_six_artifact_input",
             )
         try:
             verified_proof = _reverify_window_host_proof(window_host_proof)
         except ValueError as exc:
-            raise ScoreContractError(
+            _raise_score_input_contract(
                 "score_product_identity_invalid",
-                "scoring.input_identity",
-                context={"reason": "b5_window_host_proof_invalid"},
-            ) from exc
+                reason="b5_window_host_proof_invalid",
+                proof_error_type=type(exc).__name__,
+            )
         if hashlib.sha256(verified_proof.raw_output_bytes).hexdigest() != product_identity.output_sha256:
-            raise ScoreContractError(
+            _raise_score_input_contract(
                 "score_product_identity_invalid",
-                "scoring.input_identity",
-                context={"reason": "b5_output_hash_mismatch"},
+                reason="b5_output_hash_mismatch",
             )
         geometry = CorrectedGeometryV3.model_validate_json(verified_proof.raw_output_bytes)
         if geometry.model_dump(mode="json") != CorrectedGeometryV3.model_validate(product_payload).model_dump(mode="json"):
-            raise ScoreContractError(
+            _raise_score_input_contract(
                 "score_product_identity_invalid",
-                "scoring.input_identity",
-                context={"reason": "b5_product_payload_differs_from_verified_output"},
+                reason="b5_product_payload_differs_from_verified_output",
             )
-        plan_observations = extract_correction_plan_segments(geometry)
+        plan_observations = extract_correction_plan_segments(
+            geometry, _analysis=identity_analysis
+        )
     else:
         plan_observations = coerce_plan_observations(product_payload.get("segments", ()))
+    certify_and_arbitrate_request(
+        diagnostics=identity_analysis.diagnostics,
+        capabilities=identity_analysis.capabilities,
+        evaluator_registry=DEFAULT_EVALUATOR_REGISTRY,
+        request_key=(
+            getattr(gt_identity, "content_sha256", None),
+            product_identity.output_sha256,
+            "b4b_segment_score_v3_ic1",
+        ),
+        identity_code="score_product_identity_invalid",
+    )
     segment_rows, observation_to_targets = match_plan_segments(targets=gt_segments, observations=plan_observations, config=c2_config)
     # §5-B: product_to_gt is rebuilt from the joint-cutpoint multi-cover result,
     # NOT from a one-to-one assignment.  It is consumed only by window host

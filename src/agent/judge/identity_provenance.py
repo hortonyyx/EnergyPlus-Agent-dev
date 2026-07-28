@@ -10,9 +10,6 @@ from dataclasses import dataclass, field
 from math import isfinite
 from typing import Iterable, Literal, Mapping, Sequence
 
-from src.agent.judge.score_schema import ScoreContractError
-
-
 IDENTITY_CONTRACT_VERSION = "1"
 
 # Controller-ratified flat fields.  Every certified identity conflict is built
@@ -239,6 +236,7 @@ def raise_identity_conflict(
     depends_on_capability_ids: Iterable[str] = (),
     **extra: object,
 ) -> None:
+    exact_error_context = bool(extra.pop("_exact_error_context", False))
     context = identity_error_context(
         predicate=predicate,
         owner_ids=owner_ids,
@@ -248,7 +246,51 @@ def raise_identity_conflict(
         **extra,
     )
     assert IDENTITY_ERROR_CONTEXT_KEYS.issubset(context)
-    raise ScoreContractError(code, "scoring.input_identity", context=context)
+    # Lazy import keeps the source model independent of the certifier module
+    # while ensuring even pure C-0..C-3 contract facts take the one severity
+    # route.  These facts are pre-certified because their truth is read directly
+    # from the typed input contract and does not depend on a capability domain.
+    from src.agent.judge.certifier import (
+        ConflictWitness,
+        JudgeDiagnostic,
+        canonical_diagnostic_id,
+        report_identity_diagnostic,
+    )
+
+    witness = ConflictWitness(
+        predicate=predicate,
+        predicate_schema_version="1",
+        source_edge_ids=tuple(
+            edge if isinstance(edge, tuple) else (edge,)
+            for edge in context["source_edge_ids"]
+        ),
+        source_vertex_ids=tuple(
+            vertex if isinstance(vertex, tuple) else (vertex,)
+            for vertex in context["source_vertex_ids"]
+        ),
+        owner_ids=tuple(context["owner_ids"]),
+    )
+    side = str(extra.get("side", ""))
+    floor_id = str(extra.get("floor_id", ""))
+    reason = str(extra.get("reason", predicate))
+    diagnostic = JudgeDiagnostic(
+        diagnostic_id=canonical_diagnostic_id(
+            side=side,
+            floor_id=floor_id,
+            reason=reason,
+            witness=witness,
+        ),
+        requested_code=code,
+        gate_id="scoring.input_identity",
+        reason=reason,
+        floor_id=floor_id,
+        witness=witness,
+        side=side,
+        context=context,
+        precertified=True,
+        exact_error_context=exact_error_context,
+    )
+    report_identity_diagnostic(diagnostic)
 
 
 def certify_alias(
