@@ -1663,3 +1663,593 @@ b76c35c4ed215814f1f1a1c70e2cfeda65efc9e3b0f53054f48f082c97291a89  score_inputs/v
 
 Slice 2 完成并停止。A-L1 至 A-L9 及 §9 附加门全部承重；B-L4 保持 Slice 3 原始红。
 未开始 Slice 3，等待主控 light gate。
+
+---
+
+## 23. Slice 3 · exact interval ledgers（B）
+
+### 23.1 提交
+
+源码与锁提交：
+
+```text
+21937487979fee95908ae4d52684382b90e6759e
+7.28_JudgeArbitrationSlice3ExactLedgers
+```
+
+提交内容仅有：
+
+```text
+M  src/agent/judge/segment_score.py
+A  src/agent/judge/interval_ledger.py
+A  tests/test_judge_interval_ledger.py
+```
+
+没有 push。
+
+### 23.2 起止 `git status --short`
+
+Slice 3 开始（源码动工前）：
+
+```text
+?? AI_agent/logs/reviews/request/2026-07-28_judge_arbitration_construction_dispatch.md
+```
+
+源码提交、全套和 neuter 完成后，写本日志前：
+
+```text
+?? AI_agent/logs/reviews/request/2026-07-28_judge_arbitration_construction_dispatch.md
+```
+
+两者 byte-identical。该 untracked dispatch 是主控自有文件，本轮未加入提交、未修改。
+
+### 23.3 实施结果
+
+1. `build_coverage_claim` 从输入 binary64 叶子无损提升为 `Fraction`，先在 exact
+   target 参数域 clip，再由同一对 `GeometryCutToken` 和单调仿射
+   `MappingCertificate` 生成 observation-native 参数域。中间 dot/multiply/divide/cut
+   排序均不回落 binary64。
+2. 一个 request-local `CanonicalCutRegistry` 供全部 target 共用；共享 target 顶点在同一
+   observation 参数函数上只求值一次。生产锁枚举 `CanonicalCutRegistry.empty()` 调用次数，
+   不是只测 registry 自身。
+3. target ledger 按 exact cuts 原子化，结构性生成 `matched/miss/duplicate`；observation
+   ledger 从同一组 claims 原子化，结构性生成 `covered/extra`，任一正长度原子上
+   `len(target_ids)>1` 立即 denominator red。
+4. 两本 ledger checker 都复核 domain sentinel、连续性、状态、原子摘要和 exact 总量。
+   `extra_exact` 是 owner 数为 0 的原子和，不再是 `obs.length-covered`。
+5. 生产 `match_plan_segments` 不再引用 `_assert_target_conservation`、
+   `_assert_obs_conservation` 或 `_SUBINTERVAL_SUM_TOL`。三个旧符号只因不可改写的历史
+   direct-helper 锁保留为 compatibility surface；AST 锁禁止其重新进入生产 matching。
+6. `SegmentScore.eligible_units_exact` 保存公开 float 的 exact 来源；公开
+   `eligible_units` 只在发 row 时 round 一次。canonical row key 同时包含 exact
+   numerator/denominator 与公开 float hex。
+7. `_build_observation_ledger` 的返回对象是 scoring 实际读取的对象；扰动其
+   `extra_exact` 会改变公开 extra row。
+8. §10.1 三锁已交付：全 `src/agent/judge/**/*.py` 枚举 `_exact_error_context` 设置点及
+   string-key 注入口；helper predicate 固定为 `typed_score_input_contract`；行为锁证明该
+   豁免路径仍进入 `certify_and_arbitrate_request`。
+
+### 23.4 Slice 0 锁状态
+
+本轮合法转绿者只有 **B-L4**：
+
+- 旧代码把三个相邻 target span 的独立 float 差顺序累加为
+  `20.861502717932577`，而 observation length 为
+  `20.861502717932574`，出现 1 ulp 级假 over-charge；
+- 新代码由共同 cut token 在 observation-native exact 域原子化，
+  `covered_exact == domain_exact`、`extra_exact == 0`，不做两份独立 float total 比较；
+- 同一夹具的完整、未过滤 target 集先执行并同样进入 scoring，无 conservation-class
+  error，故筛选 `y=1` 不是绿的原因。
+
+Slice 0 六锁最终全绿：
+
+```text
+A-L3 GREEN
+A-L9 GREEN
+B-L4 GREEN
+C-L1 GREEN
+C-L7 GREEN
+C-L11 GREEN
+```
+
+### 23.5 定向回归
+
+最终源码态：
+
+```text
+python -m pytest -q -n0 \
+  tests/test_judge_interval_ledger.py \
+  tests/test_judge_arbitration_slice0.py \
+  tests/test_judge_identity_metric.py
+
+62 passed in 3.85s
+```
+
+扩大影响面（在最终 checker 加固前运行，随后由上面的最终定向回归与最终全仓再次覆盖）：
+
+```text
+python -m pytest -q -n0 \
+  tests/test_judge_interval_ledger.py \
+  tests/test_judge_arbitration_slice0.py \
+  tests/test_judge_identity_provenance.py \
+  tests/test_judge_identity_metric.py \
+  tests/test_c2_segment_tjunction.py \
+  tests/test_c2_b4b_phase_b.py \
+  tests/test_c2_b4b_phase_d.py \
+  tests/test_c2_b4b_contract.py
+
+146 passed in 12.59s
+```
+
+### 23.6 最终全仓 tail
+
+最终提交态重新跑全仓；tail 原样：
+
+```text
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+1777 passed, 10 xfailed, 150 warnings in 259.34s (0:04:19)
+```
+
+与 Slice 2 主控基线 `1 failed, 1758 passed, 10 xfailed` 比较：
+
+- 唯一旧 failure B-L4 转 pass；
+- 新增 Slice 3 测试实例 18 个；
+- `1758 + 1 + 18 = 1777`；
+- 没有其他既有测试改变状态。
+
+## 24. Slice 3 /tmp neuter 自检总表
+
+所有 patch 均实际施加在 `/tmp/judge-slice3-neuter.4F2bAG/repo` 的独立 local clone；
+逐项还原后再做下一项，主工作树没有进入任何 neuter 状态。
+
+| 锁 / guard | 实际命令目标 | 实测 |
+|---|---|---:|
+| B-L1/B-L2/B-L3 共用 observation atom multiplicity | parametrized 三实例 | `3 failed` |
+| B-L4 正式锁 + 未过滤全集伴随锁 | 两测试 | `2 failed` |
+| B-L5 exact/order canonical | 单测试 | `1 failed` |
+| B-L6 domain sentinel / 双账本分区 | 单测试 | `1 failed` |
+| B-L7 nonnegative structural extra | 单测试 | `1 failed` |
+| B-L8 observation-native domain | 三实例 | `1 failed, 2 passed` |
+| B-L9 checker | 单测试 | `1 failed` |
+| B-L10 mapping certificate admission | 单测试 | `1 failed` |
+| 共享 cut 的生产单 registry | 单测试 | `1 failed` |
+| observation ledger seam 实际消费 | 单测试 | `1 failed` |
+| 旧 scalar/tolerance 不得回生产 | 单测试 | `1 failed` |
+| §10.1 exact-context 唯一设置点 | 单测试 | `1 failed` |
+| §10.1 admission predicate 封闭 | 单测试 | `1 failed` |
+| §10.1 severity 仍来自 arbiter | 单测试 | `1 failed` |
+
+合计实测 **17 个 red 实例**。B-L1/2/3 是一个共用 multiplicity guard 的三张脸；
+B-L8 的 target-projection neuter 由 full tilted 实例承重，partial/reversed 两实例仍绿，
+如实登记，不把它虚报成三个独立 guard。
+
+## 25. Slice 3 实际执行的 neuter patches
+
+以下均是实际施加过、可由 `apply_patch` 执行的 patch。
+
+### 25.1 B-L1/B-L2/B-L3 · 关闭正长度多 target owner 门
+
+```diff
+*** Begin Patch
+*** Update File: src/agent/judge/interval_ledger.py
+@@
+-        if len(owners) > 1:
++        if False and len(owners) > 1:
+*** End Patch
+```
+
+命令：
+
+```bash
+python -m pytest -q -n0 \
+  tests/test_judge_interval_ledger.py::test_b_l1_l2_l3_observation_multiplicity_rejects_every_positive_overlap
+```
+
+实测三实例均为：
+
+```text
+E Failed: DID NOT RAISE <class 'src.agent.judge.score_schema.ScoreContractError'>
+3 failed in 1.06s
+```
+
+### 25.2 B-L4 · 恢复旧 target 投影差的顺序 float 累加与 strict compare
+
+```diff
+*** Begin Patch
+*** Update File: src/agent/judge/segment_score.py
+@@
+     for obs in obs_list:
+         if obs.length == 0:
+             continue
++        covered = 0.0
++        charged_targets = {
++            claim.target_key
++            for claim in observation_claims.get(obs.key, ())
++        }
++        for target in target_list:
++            if target.key not in charged_targets:
++                continue
++            length = target.length
++            tx = (target.p2[0] - target.p1[0]) / length
++            ty = (target.p2[1] - target.p1[1]) / length
++            t0, t1 = sorted((
++                target.p1[0] * tx + target.p1[1] * ty,
++                target.p2[0] * tx + target.p2[1] * ty,
++            ))
++            o0, o1 = sorted((
++                obs.p1[0] * tx + obs.p1[1] * ty,
++                obs.p2[0] * tx + obs.p2[1] * ty,
++            ))
++            covered += min(o1, t1) - max(o0, t0)
++        _assert_obs_conservation(obs.key, obs.length, covered)
+         ledger = _build_observation_ledger(
+*** End Patch
+```
+
+正式锁与未过滤伴随锁均 red，关键原样输出：
+
+```text
+obs_length = 20.861502717932574, covered = 20.861502717932577
+E src.agent.judge.score_schema.ScoreContractError:
+E score_denominator_nonconserving at scoring.denominator_totality
+2 failed in 0.96s
+```
+
+并把伴随锁改为先跑 `all_targets` 后单独复跑，确认未过滤调用本身承重：
+
+```text
+>       all_rows, _ = _match(all_targets, observations)
+E       score_denominator_nonconserving at scoring.denominator_totality
+1 failed in 0.96s
+```
+
+### 25.3 B-L5 · 用输入顺序普通 float 总量替换 exact observation accumulator
+
+```diff
+*** Begin Patch
+*** Update File: src/agent/judge/interval_ledger.py
+@@
+-    result = ObservationLedger(
++    covered_float = 0.0
++    for claim in materialized:
++        covered_float += float(
++            claim.target_interval[1]
++            - claim.target_interval[0]
++        )
++    covered = Fraction.from_float(covered_float)
++    extra = domain_exact - covered
++    result = ObservationLedger(
+*** End Patch
+```
+
+命令：
+
+```bash
+python -m pytest -q -n0 \
+  tests/test_judge_interval_ledger.py::test_b_l5_target_permutations_have_identical_rows_and_exact_ledger_bytes
+```
+
+实测：
+
+```text
+E score_denominator_nonconserving at scoring.denominator_totality
+E reason = observation_ledger_summary_mismatch
+1 failed in 0.87s
+```
+
+该锁同时保留正式 match 的六种 target 排列，并新增直接以六种 claim 顺序调用 ledger 的比较；
+否则生产入口预先 canonical-sort targets 会让“输入排列锁”无法单独证明 accumulator 承重。
+
+### 25.4 B-L6 · 删除 domain 末端 sentinel
+
+```diff
+*** Begin Patch
+*** Update File: src/agent/judge/interval_ledger.py
+@@
+     cuts: dict[Exact, set[str]] = {
+         Fraction(0): {"DOMAIN_START"},
+-        domain: {"DOMAIN_END"},
+     }
+*** End Patch
+```
+
+实测：
+
+```text
+E reason = interval_ledger_wrong_domain_end
+E expected_hi_exact = 4/1
+E actual_hi_exact = 2/1
+1 failed in 0.94s
+```
+
+### 25.5 B-L7 · 恢复 `extra = obs.length - covered`
+
+```diff
+*** Begin Patch
+*** Update File: src/agent/judge/segment_score.py
+@@
+ def _build_observation_ledger(
+@@
+-    return build_observation_ledger(
++    ledger = build_observation_ledger(
+         observation_key=observation.key,
+         domain_exact=exact_float(observation.length),
+         claims=claims,
+     )
++    covered = 0.0
++    for claim in claims:
++        covered += float(
++            claim.target_interval[1] - claim.target_interval[0]
++        )
++    return ObservationLedger(
++        ledger.observation_key,
++        ledger.domain_exact,
++        ledger.atoms,
++        Fraction.from_float(covered),
++        Fraction.from_float(observation.length - covered),
++    )
+*** End Patch
+```
+
+实测：
+
+```text
+E AssertionError: assert Fraction(-1, 281474976710656) == 0
+1 failed in 0.89s
+```
+
+锁使用两个严格相邻、但独立 float 长度和比 observation 长 1 ulp 的 span；正常 exact atom
+ledger 为 `extra_exact == 0`，旧减法得到负数。
+
+### 25.6 B-L8 · 用 target 参数直接冒充 observation-native 参数
+
+```diff
+*** Begin Patch
+*** Update File: src/agent/judge/interval_ledger.py
+@@
+-        observation_value = (
+-            (target_value - obs_start_t)
+-            * obs_length
+-            / (obs_end_t - obs_start_t)
+-        )
++        observation_value = target_value
+*** End Patch
+```
+
+实测：
+
+```text
+E AssertionError: assert Fraction(4, 1) == Fraction(4503599627370637, 1125899906842624)
+1 failed, 2 passed in 0.89s
+```
+
+### 25.7 B-L9 · checker 恒 return
+
+```diff
+*** Begin Patch
+*** Update File: src/agent/judge/interval_ledger.py
+@@
+ def check_target_ledger(ledger: TargetLedger) -> None:
++    return
+     _check_partition(
+*** End Patch
+```
+
+实测：
+
+```text
+E Failed: DID NOT RAISE <class 'src.agent.judge.score_schema.ScoreContractError'>
+1 failed in 0.87s
+```
+
+### 25.8 B-L10 · 跳过两域 cut/mapping certificate admission
+
+```diff
+*** Begin Patch
+*** Update File: src/agent/judge/interval_ledger.py
+@@
+ def accept_coverage_claim(
+@@
+ ) -> CoverageClaim:
+     """Validate the two-domain clip and mapping certificate before ledger use."""
++    return claim
+     t_lo, t_hi = claim.target_interval
+*** End Patch
+```
+
+实测：
+
+```text
+E Failed: DID NOT RAISE <class 'src.agent.judge.score_schema.ScoreContractError'>
+1 failed in 0.93s
+```
+
+### 25.9 不可半交付门 · 每 target 重建 registry
+
+```diff
+*** Begin Patch
+*** Update File: src/agent/judge/segment_score.py
+@@
+     claims: list[CoverageClaim] = []
+     for target in target_list:
++        cut_registry = CanonicalCutRegistry.empty()
+         if target.length == 0:
+*** End Patch
+```
+
+实测：
+
+```text
+E AssertionError: assert ['empty', 'empty', 'empty'] == ['empty']
+1 failed in 0.88s
+```
+
+这把锁走正式 `_match`，不是手工把一个 shared registry 传给 builder。
+
+### 25.10 §8.1(2) · 丢弃 observation seam 返回值
+
+```diff
+*** Begin Patch
+*** Update File: src/agent/judge/segment_score.py
+@@
+         ledger = _build_observation_ledger(
+             observation=obs,
+             claims=observation_claims.get(obs.key, ()),
+         )
++        ledger = build_observation_ledger(
++            observation_key=obs.key,
++            domain_exact=exact_float(obs.length),
++            claims=observation_claims.get(obs.key, ()),
++        )
+*** End Patch
+```
+
+实测：
+
+```text
+>       assert len(extras) == 1
+E       assert 0 == 1
+1 failed in 0.86s
+```
+
+### 25.11 旧 scalar/tolerance 回流生产 AST 门
+
+```diff
+*** Begin Patch
+*** Update File: src/agent/judge/segment_score.py
+@@
+ def match_plan_segments(...):
+@@
++    _assert_obs_conservation
+     target_list = tuple(sorted(targets, key=_canonical_geometry))
+*** End Patch
+```
+
+实测：
+
+```text
+E AssertionError: assert '_assert_obs_conservation' not in names
+1 failed in 0.87s
+```
+
+### 25.12 §10.1(1) · 新增第二个 `_exact_error_context=True` 设置点
+
+```diff
+*** Begin Patch
+*** Update File: src/agent/judge/score_service.py
+@@
+         _raise_score_input_contract(
+             "score_product_identity_invalid",
+             reason="elevation_payload_not_object",
++            _exact_error_context=True,
+         )
+*** End Patch
+```
+
+实测 AST 精确列出新增 origin：
+
+```text
+Left contains one more item:
+('score_service.py', 'normalize_typed_elevation_observations', 'Constant(value=True)')
+1 failed in 1.09s
+```
+
+### 25.13 §10.1(2) · 把 admission exemption 改绑其他 predicate
+
+```diff
+*** Begin Patch
+*** Update File: src/agent/judge/score_service.py
+@@
+-        predicate="typed_score_input_contract",
++        predicate="owner_multiplicity",
+*** End Patch
+```
+
+实测：
+
+```text
+E AssertionError: assert 'owner_multiplicity' == 'typed_score_input_contract'
+1 failed in 0.81s
+```
+
+### 25.14 §10.1(3) · 摘掉 direct compatibility path 的 arbiter 调用
+
+```diff
+*** Begin Patch
+*** Update File: src/agent/judge/certifier.py
+@@
+-    certify_and_arbitrate_request(
++    return
++    certify_and_arbitrate_request(
+*** End Patch
+```
+
+实测：
+
+```text
+E Failed: DID NOT RAISE <class '...ArbiterReached'>
+1 failed in 0.85s
+```
+
+## 26. sm24 受保护树 SHA-256
+
+最终命令：
+
+```bash
+find case_tests/test_baseline/gt/sm24_anchor -type f -print0 \
+  | sort -z | xargs -0 sha256sum
+git diff --quiet -- case_tests/test_baseline/gt AI_agent/CLAUDE.md
+```
+
+结果：
+
+```text
+5a8dcba5ab4f5b2b5dc30df91896eeee50e01f9a5bf06ec1b379101a4d16d420  gt.json
+7d4c1ed09f31377253838445733a130c11ff2fedf5ca95ddcdd231a7439abe03  renders/gt_elev.png
+2ba9dd15497dc935e9a5e6499ef632ae0034179edb0b44164bfbc5025e655bd7  renders/gt_plan.png
+135e2995a07e5acf6ed5d878f7e7d0acfc1baef1fdc3e8a687dd8fada705c675  renders/overlay_1f_view.png
+ae69b4276567305dfc9b9145a9a1f2b28593b399a28090d09004a626bd6ed366  renders/overlay_East_view.png
+d4a99cca3128e0335fed6bc7f76bb6c9bd700ab155a61eda7f2de5b8ed7be957  renders/overlay_North_view.png
+0e66297543fcaecb0899018af25715197538b37373d555c0fc47a46b3f83302e  renders/overlay_South_view.png
+a782dd82fa4c309c0893cdf16b8b1dd6a917825ba4ea0dde37ab893d6eba6375  renders/overlay_West_view.png
+25e7d077c169eb087f1c3b477a1f919e1d8d4a4ad76b3d4931c0894ce125873e  review/conversion_report.json
+bd1d7efea498e50ca47dd0144a0c9a1720d68f72e97fda3cd4faf78cf7fb6b70  review/opening_elevation_audit.json
+f602d80287e64264df2c724dcd9941c29aec93c920c38ece91d885df1ad7e470  review/review_ack.json
+9341cd4ee2fd122a27d41c75a03b92cb15b31f7e474334c1c57f07854c76e457  review/review_annotations.json
+edb99f09f97348a29d414d6bee81ac946a1afc619d297d6b88d0036d03413030  review/review_index.json
+b76c35c4ed215814f1f1a1c70e2cfeda65efc9e3b0f53054f48f082c97291a89  score_inputs/view_bindings.json
+```
+
+与 Slice 0/1/2 manifest 逐项 byte-identical；`git diff --quiet` exit 0。
+`case_tests/test_baseline/gt/` 与 `AI_agent/CLAUDE.md` 均未修改。
+
+## 27. 本轮暴露的欠规格边界
+
+1. **B-L5 的“target 输入排列”不足以单独证明 exact accumulator。**
+   生产入口在建 claims 前已有 `_canonical_geometry` 排序，所以即便把 ledger 内部改回普通顺序
+   float sum，只排列 API 输入也可能继续绿。施工时没有把这个判断留给猜测：保留正式六排列锁，
+   并增加同一真实 B-L4 claims 的六种直接顺序，使 ordinary float accumulator neuter 实际红。
+   设计稿写了 rows/ledger bytes 与 target 排列不变，但未明确入口预排序会遮蔽 accumulator
+   neuter；这是本轮最实质的锁边界补强。
+2. **B-L7 的整数相邻 fixture 对指定旧减法 neuter 不敏感。**
+   `[0,2]+[2,4]` 在 binary64 中仍精确为 4，恢复
+   `extra=obs.length-covered` 也会绿。最终锁使用两个结构上严格相邻、但独立 float 长度和多
+   1 ulp 的真实坐标，正常 ledger 得 `extra_exact=0`，旧减法得
+   `-1/281474976710656`。设计稿指定机制但未指定必须选一个能让该 neuter 红的坐标。
+3. **“exact audit 接入 canonical row aggregation”的公开边界未精确定义。**
+   本轮选择在内部 `SegmentScore` 保存 `eligible_units_exact: Fraction`，canonical row key
+   同时含 exact fraction 与 public float hex；没有在 Slice 3 擅自改变现有公开
+   `SegmentScoreRowV8` wire schema。Slice 4 若要求真实 sm24 canonical JSONL 对外包含 exact
+   字段，需要随 helper/version bump 明确是扩展 audit sidecar，还是 bump public row schema。
+4. **结构 multiplicity 与旧 reason 名称的语义有一处未写清。**
+   新规则在任一局部正长度 atom 上 `target_ids>1` 就拒绝；即使 observation 其他位置有 extra，
+   全局“收费总和”也未必大于整条 domain。为保既有 reason 锁，仍输出
+   `observation_cover_exceeds_length`；context 的 `excess` 定义为该 duplicate atom 的正
+   multiplicity charge，并另存 `charged_exact` / `duplicate_charge_exact`，不再允许一个
+   负 `charged-domain` 冒充 excess。设计稿定义了结构判据，但没有裁定这一历史 reason 在
+   “局部重复 + 全局仍有空白”时是否应改名。
+
+## 28. Slice 3 边界结论
+
+Slice 3 完成并停止。B-L1 至 B-L10、共享 canonical cut、实际 ledger seam、旧 scalar
+回流静态门，以及 §10.1 三把豁免锁均已行为级承重。未开始 Slice 4，等待主控 light gate。
