@@ -1123,3 +1123,543 @@ git diff d20daef -- src/agent/judge/segment_score.py \
 ## 14. Slice 1 边界结论
 
 Slice 1 完成并停止。A-L3/A-L9/B-L4 保持计划内红；未开始 Slice 2。
+
+---
+
+# Slice 2 · 证明式仲裁（A）
+
+## 15. 提交与工作树边界
+
+Slice 2 主体提交：
+
+```text
+0b62a49656023060cab394188045308353464181
+7.28_JudgeArbitrationSlice2ProofArbitration
+```
+
+本 slice 开工前 `git status --short`：
+
+```text
+?? AI_agent/logs/reviews/request/2026-07-28_judge_arbitration_construction_dispatch.md
+```
+
+收工（本日志提交后复核）`git status --short`：
+
+```text
+?? AI_agent/logs/reviews/request/2026-07-28_judge_arbitration_construction_dispatch.md
+```
+
+两份快照逐字相同。派工单是主控在开工前已有且本轮追加 §9 的 untracked 文件；施工未修改、
+未暂存、未提交该文件。`case_tests/test_baseline/gt/` 与 `AI_agent/CLAUDE.md` 均无 diff。
+
+## 16. Slice 2 实施面
+
+本轮只实施设计 §7 Slice 2：
+
+1. 新增 `src/agent/judge/certifier.py`：闭合四态 `ProofStatus`、typed
+   `ConflictWitness`/`JudgeDiagnostic`/`CapabilityEnvelope`、有限 phase-ranked fact DAG、
+   五个首批 predicate evaluator、请求级 root selection 与唯一 severity 出口。
+2. pairing 不再只传 `category/reason`；每条 source half-edge 保留 edge id、vertex ids、
+   owner、locus、ring 相邻关系，并据此形成 witness。
+3. W5 unpaired advisory 形成 exact small-axis enclosure；依赖闭包可逐弧回放
+   `source_coordinate -> edge_endpoint -> cut_token -> owner_atom`，运行日志带
+   `capability_id`。
+4. GT/product 正式 score service 共用一个 `AnalysisCollector`，两侧报告完成后只调用一次
+   `certify_and_arbitrate_request`；兼容 extract wrapper 在全部 floor 后调用同一 arbiter。
+5. missing evaluator 按 canonical
+   `(diagnostic_id, predicate, predicate_schema_version)` 去重，逐项事件与零命中也发的 summary
+   均由 `finally` 保证；注册 evaluator 返回闭集外值会抛 `ValueError`。
+6. §9.2 的静态门覆盖 `identity_provenance.py`、`segment_score.py` 与
+   `score_service.py`：除主控明确延期至 Slice 4 删除的 `_cluster_legacy_axis` 外，
+   `scoring.input_identity` 不存在直接 `ScoreContractError` raise；所有新评分身份严重度均由
+   arbiter 决定。
+
+没有实施 Slice 3；`_SUBINTERVAL_SUM_TOL`、两个 conservation helper 与
+`covered > obs_length` 未改。
+
+## 17. A 锁实测
+
+命令：
+
+```bash
+python -m pytest -q \
+  tests/test_judge_certifier.py \
+  tests/test_judge_arbitration_slice0.py \
+  -k 'not b_l4'
+```
+
+最终窄测：`16 passed`。逐锁结果：
+
+| 锁 | 实测 | 证书出口 |
+|---|---|---|
+| A-L1 | GREEN | advisory-only 为 NA；context 带 `w5:*` capability、complete enclosure 和 seed→相邻 endpoint→cut→owner atom arcs；derivative audit 为 `CONTINGENT` |
+| A-L2 | GREEN | 1e-9 真缝为 `missing_reverse_owner / CERTIFIED_CONFLICT`；fixed edge 不含 A advisory，capability 依赖为空 |
+| A-L3 | GREEN | A/B 满幅 duplicate 为 `owner_multiplicity / CERTIFIED_CONFLICT`；最小固定核心只列 A/B，不含 C |
+| A-L4 | GREEN（2 参数实例） | advisory 与 duplicate 各自交换 cell 顺序，完整错误 context 字节不变 |
+| A-L5 | GREEN | F1 advisory + F2 duplicate 两种楼层顺序均为 F2 identity red |
+| A-L6 | GREEN | 无 witness 为 `diagnostic_evidence_incomplete / missing_witness` NA，missing-evaluator count 为 0 |
+| A-L7 | GREEN | `caused_by` 去掉 dangling 派生节点；detector 顺序不改变 located root |
+| A-L8 | GREEN | 最终 red 仍保留 unpaired advisory 日志的 floor、endpoint hex、capability id |
+| A-L9 | GREEN | unknown evaluator 的 NA/red/registered 三路分别为 count 1/1/0；item 与 summary 均实发 |
+
+附加绑定锁：
+
+| 锁 | 实测 |
+|---|---|
+| 注册 evaluator 返回值为闭合四态；垃圾值必须 raise | GREEN |
+| 五个首批 `(predicate, "1")` evaluator 精确注册 | GREEN |
+| identity `ScoreContractError` 单一 raise origin AST 门 | GREEN |
+
+Slice 0 六锁在 Slice 2 结束时：
+
+| 锁 | 状态 | 原因 |
+|---|---|---|
+| A-L3 | GREEN | 固定核心 evaluator 已落地，无关 C capability 不能污染 A/B |
+| A-L9 | GREEN | certifier 模块、registry 缺口计数、item/summary telemetry 均已落地 |
+| B-L4 | RED | 仍为 Slice 3 的原始 1-ulp `observation_cover_exceeds_length` |
+| C-L1 | GREEN | Slice 1 来源 occurrence 路径保持 |
+| C-L7 | GREEN | Slice 1 ring identity checker 保持，且 predicate 精确为 `ring_identity_conflict` |
+| C-L11 | GREEN | Slice 1 exact-string contract version 保持 |
+
+因此本 slice 合法转绿的是 A-L3、A-L9；C 三锁是上个 slice 已转绿并保持；B-L4 未提前处理。
+
+## 18. 全仓实测与回归修正
+
+第一次全仓在主体收敛前实测：
+
+```text
+4 failed, 1755 passed, 10 xfailed, 150 warnings in 265.49s (0:04:25)
+```
+
+除计划内 B-L4 外，三条既有 B5 admission 锁因 context 从历史
+`{"reason": ...}` 被扩成证书 context 而失败：
+
+```text
+tests/test_c2_b5_parent_and_verts.py::test_judge_official_score_service_requires_verified_artifact_input
+tests/test_c2_b5_parent_and_verts.py::test_judge_rejects_verified_output_hash_different_from_product_identity
+tests/test_c2_b5_parent_and_verts.py::test_judge_rejects_payload_different_from_verified_output
+```
+
+修正方式不是恢复本地 severity：这三条纯 schema/cryptographic admission fact 仍调用同一
+arbiter，但 arbiter 按既有合同保留 reason-only context。三条及全部新锁窄回归：
+
+```text
+19 passed
+```
+
+修正后第二次全仓最终 tail：
+
+```text
+=========================== short test summary info ============================
+FAILED tests/test_judge_arbitration_slice0.py::test_b_l4_three_adjacent_spans_do_not_false_red_and_have_exact_ledger
+1 failed, 1758 passed, 10 xfailed, 150 warnings in 259.00s (0:04:19)
+```
+
+B-L4 的 verbatim 数值与失败条件：
+
+```text
+obs_length = 20.861502717932574
+covered    = 20.861502717932577
+if covered > obs_length:
+    raise ScoreContractError(
+        "score_denominator_nonconserving",
+        "scoring.denominator_totality",
+        context={
+            "reason": "observation_cover_exceeds_length",
+            ...
+            "excess": 3.552713678800501e-15,
+        },
+    )
+```
+
+相对 Slice 1 `3 failed, 1745 passed, 10 xfailed`：
+
+- A-L3、A-L9 从 failed 转 passed；
+- 新增 11 个 Slice 2 测试实例全部 passed；
+- B-L4 保持同原因 failed；
+- 其余 1745 个既有 passed 与 10 个 xfailed 均未改变状态。
+
+## 19. `/tmp` neuter 自检
+
+执行副本：
+
+```text
+/tmp/judge-slice2-neuters.XBHh6A/repo
+```
+
+该副本从 `0b62a49656023060cab394188045308353464181` clone；每项 patch 后只跑指定锁，
+随后 `git restore`。全部执行结束后副本 `git status --short` 为空，工作树从未带入 neuter
+状态。
+
+### 19.1 A-L1 · 切断相邻 endpoint / T-junction cut 传播
+
+实际执行 patch：
+
+```diff
+*** Begin Patch
+*** Update File: src/agent/judge/segment_score.py
+@@
+     endpoint_ids: list[tuple[object, ...]] = []
+     for edge_id, endpoint, seed, value in endpoint_rows:
+         fact_id = ("edge_endpoint", edge_id, endpoint, small_axis)
++        operands = (seed,) if edge_id == claim.edge_id else ()
+         graph.add(
+             FactNode(
+                 fact_id,
+                 "edge",
+-                (seed,),
++                operands,
+                 enclosure,
+             )
+         )
+*** End Patch
+```
+
+命令：
+
+```bash
+python -m pytest -q -n0 \
+  tests/test_judge_certifier.py::test_a_l1_advisory_derivative_is_contingent_with_replayable_fact_arcs
+```
+
+实测：`1 failed`；失败在
+`assert ("edge_endpoint", "cut_token") in tags`，实际只剩
+`source_coordinate -> edge_endpoint`。
+
+### 19.2 A-L2/A-L3 · 同 floor 任一 capability 污染所有 witness（共享 guard）
+
+实际执行 patch：
+
+```diff
+*** Begin Patch
+*** Update File: src/agent/judge/certifier.py
+@@
+     dependent = _dependent_facts(capabilities)
++    if capabilities:
++        return ProofStatus.CONTINGENT
+@@
+ def evaluate_owner_multiplicity(
+@@
+     dependent = _dependent_facts(capabilities)
++    if capabilities:
++        return ProofStatus.CONTINGENT
+*** End Patch
+```
+
+命令：
+
+```bash
+python -m pytest -q -n0 \
+  tests/test_judge_certifier.py::test_a_l2_fixed_gap_witness_is_disjoint_from_advisory_enclosure \
+  tests/test_judge_arbitration_slice0.py::test_a_l3_genuine_duplicate_with_unrelated_advisory_is_certified_red
+```
+
+实测：`2 failed`；两锁都从预期 identity red 退化为
+`score_unsupported_combination`。按设计如实记为一个局部污染 guard，不虚报两个独立机制。
+
+### 19.3 A-L4 · 恢复 detector/list 首项决定证书
+
+实际执行 patch：
+
+```diff
+*** Begin Patch
+*** Update File: src/agent/judge/certifier.py
+@@
+-    ordered_diagnostics = tuple(sorted(diagnostics, key=_diagnostic_sort_key))
++    ordered_diagnostics = tuple(diagnostics)
+@@
+-            selected = min(roots or [item for item, _ in certified], key=_diagnostic_sort_key)
++            selected = (roots or [item for item, _ in certified])[0]
+*** Update File: src/agent/judge/segment_score.py
+@@
+-    selected = tuple(sorted(claims, key=lambda item: repr(item.edge_id)))
++    selected = tuple(claims)
+*** End Patch
+```
+
+命令：
+
+```bash
+python -m pytest -q -n0 \
+  tests/test_judge_certifier.py::test_a_l4_cell_order_does_not_change_selected_certificate
+```
+
+实测：`2 failed`；advisory 与 duplicate 两个参数实例的完整 context 都随 cell 顺序变化。
+
+### 19.4 A-L5 · 恢复 floor loop 内立即仲裁
+
+实际执行 patch：
+
+```diff
+*** Begin Patch
+*** Update File: src/agent/judge/segment_score.py
+@@
+         analysis.extend(
+             (item.as_judge_diagnostic() for item in diagnostics),
+             capabilities,
+         )
++        certify_and_arbitrate_request(
++            diagnostics=analysis.diagnostics,
++            capabilities=analysis.capabilities,
++            evaluator_registry=DEFAULT_EVALUATOR_REGISTRY,
++            request_key=("neuter", "per-floor"),
++            identity_code="score_product_identity_invalid",
++        )
+         for p1, p2, owners in pairs:
+*** End Patch
+```
+
+该 patch 实际施加于 `extract_correction_plan_segments` 的 product block。命令：
+
+```bash
+python -m pytest -q -n0 \
+  tests/test_judge_certifier.py::test_a_l5_all_floors_report_before_request_arbitration
+```
+
+实测：`1 failed`；F1 先出现时立即抛 NA，洗掉 F2 的认证 duplicate。
+
+### 19.5 A-L6 · 无 witness 默认定罪
+
+实际执行 patch：
+
+```diff
+*** Begin Patch
+*** Update File: src/agent/judge/certifier.py
+@@
+             witness = diagnostic.witness
+             if witness is None:
+-                uncertain.append(diagnostic)
++                raise ScoreContractError(
++                    diagnostic.requested_code,
++                    diagnostic.gate_id,
++                    context={"reason": diagnostic.reason},
++                )
+*** End Patch
+```
+
+命令：
+
+```bash
+python -m pytest -q -n0 \
+  tests/test_judge_certifier.py::test_a_l6_missing_witness_is_na_without_missing_evaluator_count
+```
+
+实测：`1 failed`；实际 code 从预期 unsupported 变成
+`score_product_identity_invalid`。
+
+### 19.6 A-L7 · 删除 caused-by root 消解并恢复列表首项
+
+实际执行 patch：
+
+```diff
+*** Begin Patch
+*** Update File: src/agent/judge/certifier.py
+@@
+ def _root_diagnostics(
+     certified: list[JudgeDiagnostic],
+ ) -> list[JudgeDiagnostic]:
+-    ids = {item.diagnostic_id for item in certified}
+-    derivative_ids = {
+-        item.diagnostic_id
+-        for item in certified
+-        if any(parent in ids for parent in item.caused_by)
+-    }
+-    return [item for item in certified if item.diagnostic_id not in derivative_ids]
++    return certified
+@@
+-    ordered_diagnostics = tuple(sorted(diagnostics, key=_diagnostic_sort_key))
++    ordered_diagnostics = tuple(diagnostics)
+@@
+-            selected = min(roots or [item for item, _ in certified], key=_diagnostic_sort_key)
++            selected = (roots or [item for item, _ in certified])[0]
+*** End Patch
+```
+
+命令：
+
+```bash
+python -m pytest -q -n0 \
+  tests/test_judge_certifier.py::test_a_l7_caused_by_root_is_stable_under_detector_order
+```
+
+实测：`1 failed`；交换输入后 root 从 located conflict 变为 dangling derivative。
+
+### 19.7 A-L8 · 丢弃 unpaired advisory 运行日志
+
+实际执行 patch：
+
+```diff
+*** Begin Patch
+*** Update File: src/agent/judge/segment_score.py
+@@
+ def _log_advisory_hit(
+@@
+ ) -> None:
+@@
+-    event = "near_orthogonal_advisory_unpaired" if unpaired else "near_orthogonal_advisory_hit"
++    if unpaired:
++        return
++    event = "near_orthogonal_advisory_unpaired" if unpaired else "near_orthogonal_advisory_hit"
+*** End Patch
+```
+
+命令：
+
+```bash
+python -m pytest -q -n0 \
+  tests/test_judge_certifier.py::test_a_l8_red_request_keeps_advisory_log_with_capability_id
+```
+
+实测：`1 failed`；结构化 event 列表为空。
+
+### 19.8 A-L9 · missing evaluator 只 NA、不累计也不发逐项事件
+
+实际执行 patch：
+
+```diff
+*** Begin Patch
+*** Update File: src/agent/judge/certifier.py
+@@
+             evaluator = evaluator_registry.get(key)
+             if evaluator is None:
+-                missing.append((diagnostic, key[0], key[1]))
+                 uncertain.append(diagnostic)
+@@
+-                _logger.info(
+-                    "judge_certifier_missing_evaluator",
+-                    extra={
+-                        "event": "judge_certifier_missing_evaluator",
+-                        "request_key": request_key,
+-                        "side": diagnostic.side,
+-                        "floor_id": diagnostic.floor_id,
+-                        "diagnostic_id": diagnostic.diagnostic_id,
+-                        "predicate": key[0],
+-                        "predicate_schema_version": key[1],
+-                        "requested_code": diagnostic.requested_code,
+-                        "resolution": "diagnostic_evidence_incomplete",
+-                    },
+-                )
+                 continue
+*** End Patch
+```
+
+命令：
+
+```bash
+python -m pytest -q -n0 \
+  tests/test_judge_arbitration_slice0.py::test_a_l9_missing_evaluator_is_counted_for_na_red_and_registered_paths
+```
+
+实测：`1 failed`；逐项事件从 1 变 0。此为行为级 neuter，已消除 Slice 0
+`ModuleNotFoundError` 弱信号。
+
+### 19.9 闭 enum、五 evaluator 与单一 raise origin 附加门
+
+闭 enum neuter：
+
+```diff
+*** Begin Patch
+*** Update File: src/agent/judge/certifier.py
+@@
+     except (TypeError, ValueError) as exc:
+-        raise ValueError(f"registered evaluator returned invalid proof status: {value!r}") from exc
++        return ProofStatus.UNPROVEN
+*** End Patch
+```
+
+命令：
+`python -m pytest -q -n0 tests/test_judge_certifier.py::test_registered_evaluator_result_is_a_closed_enum`
+；实测 `1 failed`，垃圾状态降为 unsupported，没有抛预期 `ValueError`。
+
+五 evaluator registry neuter：
+
+```diff
+*** Begin Patch
+*** Update File: src/agent/judge/certifier.py
+@@
+-    ("segment_merge_conflict", "1"): evaluate_segment_merge_conflict,
+*** End Patch
+```
+
+命令：
+`python -m pytest -q -n0 tests/test_judge_certifier.py::test_first_five_predicate_evaluators_are_registered`
+；实测 `1 failed`，缺少 `segment_merge_conflict`。
+
+单一出口 AST neuter：
+
+```diff
+*** Begin Patch
+*** Update File: src/agent/judge/segment_score.py
+@@
+ def _arbitrate_pairing_diagnostics(diagnostics: list[_PairDiagnostic], *, identity_code: str) -> None:
+@@
++    if diagnostics and diagnostics[0].category == "identity":
++        raise ScoreContractError(
++            identity_code,
++            "scoring.input_identity",
++            context=diagnostics[0].context,
++        )
+     claims = tuple(
+*** End Patch
+```
+
+命令：
+`python -m pytest -q -n0 tests/test_judge_certifier.py::test_identity_scorecontracterror_has_one_raise_origin_except_slice4_legacy`
+；实测 `1 failed`，AST 精确报出额外
+`("segment_score.py", "_arbitrate_pairing_diagnostics")`。
+
+## 20. sm24 受保护树 manifest
+
+命令：
+
+```bash
+find case_tests/test_baseline/gt/sm24_anchor -type f -print0 \
+  | sort -z | xargs -0 sha256sum
+git diff --quiet -- case_tests/test_baseline/gt AI_agent/CLAUDE.md
+```
+
+Slice 2 结束值与 Slice 0/1 起始 manifest 逐项相同：
+
+```text
+5a8dcba5ab4f5b2b5dc30df91896eeee50e01f9a5bf06ec1b379101a4d16d420  gt.json
+7d4c1ed09f31377253838445733a130c11ff2fedf5ca95ddcdd231a7439abe03  renders/gt_elev.png
+2ba9dd15497dc935e9a5e6499ef632ae0034179edb0b44164bfbc5025e655bd7  renders/gt_plan.png
+135e2995a07e5acf6ed5d878f7e7d0acfc1baef1fdc3e8a687dd8fada705c675  renders/overlay_1f_view.png
+ae69b4276567305dfc9b9145a9a1f2b28593b399a28090d09004a626bd6ed366  renders/overlay_East_view.png
+d4a99cca3128e0335fed6bc7f76bb6c9bd700ab155a61eda7f2de5b8ed7be957  renders/overlay_North_view.png
+0e66297543fcaecb0899018af25715197538b37373d555c0fc47a46b3f83302e  renders/overlay_South_view.png
+a782dd82fa4c309c0893cdf16b8b1dd6a917825ba4ea0dde37ab893d6eba6375  renders/overlay_West_view.png
+25e7d077c169eb087f1c3b477a1f919e1d8d4a4ad76b3d4931c0894ce125873e  review/conversion_report.json
+bd1d7efea498e50ca47dd0144a0c9a1720d68f72e97fda3cd4faf78cf7fb6b70  review/opening_elevation_audit.json
+f602d80287e64264df2c724dcd9941c29aec93c920c38ece91d885df1ad7e470  review/review_ack.json
+9341cd4ee2fd122a27d41c75a03b92cb15b31f7e474334c1c57f07854c76e457  review/review_annotations.json
+edb99f09f97348a29d414d6bee81ac946a1afc619d297d6b88d0036d03413030  review/review_index.json
+b76c35c4ed215814f1f1a1c70e2cfeda65efc9e3b0f53054f48f082c97291a89  score_inputs/view_bindings.json
+```
+
+比较结论：manifest byte-identical；保护树和 `AI_agent/CLAUDE.md` 均未修改。
+
+## 21. 写锁时暴露的欠规格边界
+
+1. **既有 B5 admission error 的 context 与 §8 flat identity context 的适用域有冲突。**
+   三条不可改旧锁逐字要求 `{"reason": ...}`，而 §8.4 说 identity raise 的 minimum fields
+   必须集中定义且 raise 时完整。实际施工只能同时保住“单一 severity 出口”和旧锁：
+   schema/cryptographic admission fact 仍由 arbiter raise，但 arbiter 对这三条保留 exact
+   reason-only context；拓扑/owner/scoring-identity 证书出口继续强制完整 flat key set。
+   设计稿没有明确 admission fact 是否属于 §8.4 的“identity-class”范围；本轮不静默扩大旧
+   context，需主控裁定长期是否把 admission 与 scoring-identity evidence 分成两个命名合同。
+2. **“所有 floor 先报告”对 C-0..C-3 纯输入合同失败的继续扫描边界没有写清。**
+   pairing/C-4 的所有 floor 及正式 GT+product 已先报告后仲裁；但 adapter version、来源碰撞、
+   护带等纯输入合同 fact 在 helper 内会立即调用同一个 arbiter，不会在一个已经不可重建的
+   floor 上继续跑后续 detector。severity 决定仍只有 arbiter 一处，因此不构成第二条本地
+   severity 路径；但若“所有 floor”也要求在 C-0..C-3 失败后容错扫描剩余 floor，则需要设计
+   一个 typed abort/report boundary，不能让施工者猜测是否在不完整 source document 上继续。
+3. **§9.2 AST 门与 §9.1 legacy float 延期存在有意例外。** 当前 AST 明确只放行
+   `_cluster_legacy_axis` 的 direct identity raises，并把例外写进测试说明；它不是已解决。
+   Slice 4 必须按主控 deadline 迁移三条历史锁、删除整个 legacy type/dispatch，再把 AST 预期
+   收紧为零例外。
+
+## 22. Slice 2 边界结论
+
+Slice 2 完成并停止。A-L1 至 A-L9 及 §9 附加门全部承重；B-L4 保持 Slice 3 原始红。
+未开始 Slice 3，等待主控 light gate。
