@@ -1,0 +1,34 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "hooks": [
+          {
+            "command": "/opt/venv/bin/python /tmp/claude-0/-workspaces-EnergyPlus-Agent-dev/c02036eb-681e-4abb-8620-709bcd18989a/scratchpad/sm24_reading_staging/guard.py",
+            "type": "command"
+          }
+        ],
+        "matcher": ""
+      }
+    ]
+  },
+  "permissions": {
+    "allow": [
+      "Read(//tmp/claude-0/-workspaces-EnergyPlus-Agent-dev/c02036eb-681e-4abb-8620-709bcd18989a/scratchpad/sm24_reading_staging/**)",
+      "Write(//tmp/claude-0/-workspaces-EnergyPlus-Agent-dev/c02036eb-681e-4abb-8620-709bcd18989a/scratchpad/sm24_reading_staging/out/**)",
+      "Edit(//tmp/claude-0/-workspaces-EnergyPlus-Agent-dev/c02036eb-681e-4abb-8620-709bcd18989a/scratchpad/sm24_reading_staging/out/**)",
+      "Bash"
+    ],
+    "defaultMode": "default",
+    "deny": [
+      "Read(//workspaces/EnergyPlus-Agent-dev/**)",
+      "Read(//root/**)",
+      "Read(//home/**)",
+      "WebFetch",
+      "WebSearch",
+      "Agent",
+      "Task",
+      "mcp__*"
+    ]
+  }
+}

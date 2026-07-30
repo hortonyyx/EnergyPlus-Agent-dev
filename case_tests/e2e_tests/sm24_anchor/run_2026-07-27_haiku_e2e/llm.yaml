@@ -35,6 +35,24 @@
 #     src/agent/reading                   = d112ce3f31333498
 #     src/agent/correction                = 2910600698296041
 #     src/agent/geometry                  = 72eb72b7b916dc70
+#
+# ⚠️ 该 run 于 2026-07-27 铺好配置后原地挂起（识图一张未出），2026-07-30 才真正开跑。
+#    以下为**实际 reading 启动时刻**的脚手架状态（上方 07-27 块保留为历史留痕）：
+#   git HEAD = 0342f66 (7.28_JudgeArbitrationBatchClosed)，工作树 CLEAN
+#   —— 07-27 记录的两项未提交内容均已入库（plan.md + 判卷侧车 view_bindings.json）。
+#   自 4e4da34 起对本 run 相关脚手架的**全部** git 级改动（`git diff --stat`）:
+#     src/agent/correction/cell_geometry.py  (+12/−2)
+#     src/agent/correction/orthogonality.py  (+59/−0)   ← 判卷批 W5 共享正交模块
+#     其余四目录（0_reading skill / 1_correction skill / src/agent/reading /
+#     src/agent/geometry）自 4e4da34 起**零改动**，识图侧脚手架与 07-27 记录逐字节相同。
+#   内容哈希（本次重算，方法 = 逐文件 sha256 → 升序排序 → 拼接再 sha256 取前 16;
+#             与上方 07-27 数字**不可直接比对**，当时的实现细节未随记录落盘 ——
+#             权威结论以上面的 git 级 diff 为准，哈希仅供本 run 之后复算）:
+#     skills/intake_pipeline/0_reading    = d9f1b78de9712c39
+#     skills/intake_pipeline/1_correction = 267dba21418a93bb
+#     src/agent/reading                   = 106a22cb2d6af740
+#     src/agent/correction                = b9ad8151c66a0007
+#     src/agent/geometry                  = dee12815b1a5a719
 # ----------------------------------------------------------------------------
 # 判卷侧车（v3 case 强制，new_case_guide §0.3）:
 #   来源 = case_tests/test_baseline/gt/sm24_anchor/score_inputs/view_bindings.json
