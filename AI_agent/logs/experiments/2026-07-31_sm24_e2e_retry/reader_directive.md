@@ -49,6 +49,29 @@ Concretely:
   You do **not** need to write a request file first. Measuring should cost you one call, not two —
   measure often.
 
+- For a measurement sweep, do **not** issue those one-off calls sequentially. Put up to 32 ordinary
+  probe requests into one bounded batch file under `requests/`, give every request a short stable
+  `id`, and run the whole sweep with one command:
+
+  ```json
+  {
+    "requests": [
+      {"id": "plan_rows", "tool": "wall_line_profiler", "args": {"image": "case_data/1f_view.png", "out_dir": "out/cv", "axis": "row"}},
+      {"id": "plan_cols", "tool": "wall_line_profiler", "args": {"image": "case_data/1f_view.png", "out_dir": "out/cv", "axis": "col"}}
+    ]
+  }
+  ```
+
+  ```
+  python tools/run_cv_probe.py --batch requests/plan_sweep.json
+  ```
+
+  The command returns one JSON document whose `results` are keyed by those IDs, so consume the
+  sweep from that single response. Every logical probe also writes its normal individual sidecar
+  under `out/**`; batching changes latency, not evidence or measurement count. The guard validates
+  the entire batch before anything runs, and one invalid request refuses the whole call. A normal
+  20-probe sweep should therefore cost one `Write` plus one `Bash`, not 20 sequential probe calls.
+
   The rules for this form: arguments are strictly `--key value` pairs (no bare arguments, no repeated
   keys, no key left without a value), `--tool` and `--image` are required, `--out-dir` must be inside
   `out/`, and only the options `tools/cv_probe.py` actually declares are accepted. If you pass an
@@ -114,10 +137,12 @@ Do not start the elevations until the pilot has been reviewed.
 
 ## 6. Effort logging
 
-At the end of `reading_summary.md`, add a heading `## effort log` with: how many probe calls you made
-in total, broken down by recipe; how many rounds of self-correction you needed; and which parts of
-the work were still guesswork rather than measurement. Be honest — an accurate low number is more
-useful than a flattering one.
+At the end of `reading_summary.md`, add a heading `## effort log` with: how many **logical probes**
+you ran in total, broken down by recipe; how many batch Bash calls and one-off Bash calls carried
+those probes; how many rounds of self-correction you needed; and which parts of the work were still
+guesswork rather than measurement. Do not count a 20-request batch as one probe — batching reduces
+round trips, never the amount of measurement. Be honest: an accurate low number is more useful than
+a flattering one.
 
 ## 7. Workspace writing rules (revised — the previous run's constraints no longer apply)
 
@@ -132,9 +157,10 @@ What the guard does enforce:
 - **A probe's output directory must be inside `out/`.** If you use the optional request-file form,
   the request JSON goes in `requests/`.
 - **Shell**: one command per call, no chaining, no redirects, no pipes. The only executable command
-  is the probe wrapper, in either of its two forms (see §2):
+  is the probe wrapper, in one of its three forms (see §2):
   `python tools/run_cv_probe.py --tool <name> --image <path> --out-dir out/... [--key value ...]`
-  or `python tools/run_cv_probe.py --request <file.json>`.
+  or `python tools/run_cv_probe.py --request <file.json>`
+  or `python tools/run_cv_probe.py --batch <file.json>`.
   To inspect a file, use the Read tool.
 - Absolute paths outside this workspace are refused.
 

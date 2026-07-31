@@ -98,7 +98,8 @@ def _write(args: argparse.Namespace, payload: dict, crop_chain: list[dict] | Non
     return write_sidecar(sidecar_path, args.image, payload, crop_chain=crop_chain, overlay_path=overlay_path)
 
 
-def main(argv: list[str] | None = None) -> int:
+def build_parser() -> argparse.ArgumentParser:
+    """Build the canonical parser used by both single and batch execution."""
     parser = argparse.ArgumentParser(description=__doc__)
     subparsers = parser.add_subparsers(dest="tool", required=True)
 
@@ -151,10 +152,29 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--min-line-len-px", type=float)
     p.add_argument("--label", default="prescan")
 
+    return parser
+
+
+def parse_probe_args(
+    argv: list[str] | None = None,
+) -> tuple[argparse.Namespace, argparse.ArgumentParser]:
+    """Parse one probe without executing it or creating evidence files.
+
+    The isolation batch wrapper parses *every* request through this function
+    before it executes the first one.  Tool-specific argparse failures can
+    therefore never leave a partly executed, partly invalid batch.
+    """
+    parser = build_parser()
     args = parser.parse_args(argv)
+    if args.tool == "crop_zoom" and args.bbox is None:
+        parser.error("crop_zoom requires --bbox")
+    return args, parser
+
+
+def execute_probe(args: argparse.Namespace, parser: argparse.ArgumentParser) -> Path:
+    """Execute one already-parsed probe and return its JSON evidence path."""
+
     if args.tool == "crop_zoom":
-        if args.bbox is None:
-            parser.error("crop_zoom requires --bbox")
         sidecar_path = allocate_sidecar_path(args.out_dir, args.image, "crop_zoom", args.sidecar_name)
         crop_path = sidecar_path.with_name(f"{sidecar_path.stem}_crop.png")
         payload, _crop, crop_chain = crop_zoom(
@@ -174,7 +194,13 @@ def main(argv: list[str] | None = None) -> int:
             source_name=args.image.name,
         )
         payload.setdefault("diagnostics", {})["overlay_decisions"] = overlay_payload["diagnostics"]["decisions"]
-        write_sidecar(sidecar_path, args.image, payload, crop_chain=crop_chain, overlay_path=overlay_path)
+        return write_sidecar(
+            sidecar_path,
+            args.image,
+            payload,
+            crop_chain=crop_chain,
+            overlay_path=overlay_path,
+        )
     elif args.tool == "wall_line_profiler":
         payload, crop_chain = wall_line_profiler(
             args.image,
@@ -184,7 +210,7 @@ def main(argv: list[str] | None = None) -> int:
             scale=args.scale,
             source_name=args.image.name,
         )
-        _write(args, payload, crop_chain, _overlay_candidates(payload))
+        return _write(args, payload, crop_chain, _overlay_candidates(payload))
     elif args.tool == "storey_line_profiler":
         payload, crop_chain = storey_line_profiler(
             args.image,
@@ -193,7 +219,7 @@ def main(argv: list[str] | None = None) -> int:
             scale=args.scale,
             source_name=args.image.name,
         )
-        _write(args, payload, crop_chain, _overlay_candidates(payload))
+        return _write(args, payload, crop_chain, _overlay_candidates(payload))
     elif args.tool == "px_m_calibrator":
         payload = px_m_calibrator(
             args.anchors_json,
@@ -211,7 +237,7 @@ def main(argv: list[str] | None = None) -> int:
             else:
                 geometry = {"kind": "line", "axis": "row", "y_px": anchor["px_a"]}
             candidates.append({"candidate_id": f"{payload['results'][0]['candidate_id']}:{len(candidates)+1}", "geometry": geometry, "status": "accepted", "reason": "calibration anchor"})
-        _write(args, payload, [], candidates)
+        return _write(args, payload, [], candidates)
     elif args.tool == "window_cc_detector":
         payload, crop_chain = window_cc_detector(
             args.image,
@@ -230,7 +256,7 @@ def main(argv: list[str] | None = None) -> int:
             merge_iou=args.merge_iou,
             source_name=args.image.name,
         )
-        _write(args, payload, crop_chain, _overlay_candidates(payload))
+        return _write(args, payload, crop_chain, _overlay_candidates(payload))
     elif args.tool == "overlay_logger":
         sidecar_path = allocate_sidecar_path(args.out_dir, args.image, "overlay_logger", args.sidecar_name)
         overlay_path = sidecar_path.with_name(f"{sidecar_path.stem}_overlay.png")
@@ -241,14 +267,19 @@ def main(argv: list[str] | None = None) -> int:
             recipe_id=args.recipe,
             source_name=args.image.name,
         )
-        write_sidecar(sidecar_path, args.image, payload, crop_chain=[], overlay_path=overlay_path)
+        return write_sidecar(
+            sidecar_path,
+            args.image,
+            payload,
+            crop_chain=[],
+            overlay_path=overlay_path,
+        )
     elif args.tool in ("prescan-plan", "prescan-elevation"):
         # F-1: reject a nested --out-dir (caller already appended a layer the tool
         # adds itself) before writing anything, then echo the final landing path.
         reason = _reject_nested_prescan_out_dir(args.out_dir)
         if reason:
-            print(reason, file=sys.stderr)
-            return 2
+            parser.error(reason)
         prescan_fn = prescan_plan if args.tool == "prescan-plan" else prescan_elevation
         candidates_path, _overlay_path = prescan_fn(
             args.image,
@@ -260,9 +291,20 @@ def main(argv: list[str] | None = None) -> int:
             min_line_len_px=args.min_line_len_px,
             label=args.label,
         )
-        print(str(Path(candidates_path).resolve()))
+        return Path(candidates_path)
     else:
         parser.error(f"unknown tool: {args.tool}")
+    raise AssertionError("argparse accepted an unhandled cv_probe tool")
+
+
+def main(argv: list[str] | None = None) -> int:
+    args, parser = parse_probe_args(argv)
+    result_path = execute_probe(args, parser)
+    # Preserve the established single-prescan CLI contract: only prescan echoes
+    # its copy-guard-recognized landing path.  Batch aggregation calls
+    # execute_probe directly and emits one JSON result document instead.
+    if args.tool in ("prescan-plan", "prescan-elevation"):
+        print(str(result_path.resolve()))
     return 0
 
 

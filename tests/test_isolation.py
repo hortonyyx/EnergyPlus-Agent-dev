@@ -1392,6 +1392,40 @@ def _run_helper_direct(staging: Path, args: str) -> subprocess.CompletedProcess[
     )
 
 
+def _batch(staging: Path, entries: list[dict], name: str = "requests/batch.json") -> Path:
+    return _request(staging, {"requests": entries}, name=name)
+
+
+def _batch_entry(
+    request_id: str,
+    *,
+    tool: str = "crop_zoom",
+    out_dir: str = "out/cv",
+    **args,
+) -> dict:
+    return {
+        "id": request_id,
+        "tool": tool,
+        "args": {
+            "image": "case_data/1f_view.png",
+            "out_dir": out_dir,
+            **args,
+        },
+    }
+
+
+def _run_helper_batch(
+    staging: Path, batch_rel: str = "requests/batch.json"
+) -> subprocess.CompletedProcess[str]:
+    return subprocess.run(
+        [sys.executable, "tools/run_cv_probe.py", "--batch", batch_rel],
+        cwd=staging,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+
+
 def test_staging_run_cv_probe_direct_form_smoke(tmp_path: Path):
     """P1-2 wrapper side: one call, no request file anywhere, real sidecar under
     `out/`."""
@@ -1619,6 +1653,234 @@ def test_wrapper_direct_form_independently_refuses_outside_output(tmp_path: Path
     assert not (staging / "tools" / "cv_evidence").exists()
     assert helper.returncode != 0, helper.stdout
     assert "out/" in (helper.stderr + helper.stdout)
+
+
+# --------------------------------------------------------------------------- #
+# L1 — bounded batch probing.  A normal ~20-probe measurement sweep now pays
+# one Write + one Bash round trip, while every inner request still passes the
+# exact validator used by the legacy single-request form before anything runs.
+# --------------------------------------------------------------------------- #
+def test_guard_allows_bounded_probe_batch_and_logs_every_request_path(tmp_path: Path):
+    staging = _build(tmp_path).staging_root
+    _batch(
+        staging,
+        [
+            _batch_entry("crop_nw", bbox="0,0,20,20", sidecar_name="041_crop_zoom"),
+            _batch_entry(
+                "vertical_bands",
+                tool="wall_line_profiler",
+                axis="col",
+                sidecar_name="043_wall_cols",
+            ),
+        ],
+    )
+
+    proc = _hook(staging, "python tools/run_cv_probe.py --batch requests/batch.json")
+
+    assert proc.returncode == 0, proc.stderr
+    log = json.loads((staging / "access_log.jsonl").read_text(encoding="utf-8").splitlines()[-1])
+    assert log["decision"] == "allow"
+    assert log["reason"] == "allowed run_cv_probe batch"
+    assert any(path.endswith("requests/batch.json") for path in log["normalized_paths"])
+    assert any(path.endswith("case_data/1f_view.png") for path in log["normalized_paths"])
+    assert any(path.endswith("out/cv") for path in log["normalized_paths"])
+
+
+def test_probe_batch_returns_one_document_with_stable_ids_and_own_sidecars(tmp_path: Path):
+    """The Bash result is the one-read aggregate, while the ordinary per-probe
+    append-only evidence files remain the audit source of truth."""
+    staging = _build(tmp_path).staging_root
+    _batch(
+        staging,
+        [
+            _batch_entry("crop_nw", bbox="0,0,20,20", sidecar_name="041_crop_zoom"),
+            _batch_entry(
+                "vertical_bands",
+                tool="wall_line_profiler",
+                axis="col",
+                sidecar_name="043_wall_cols",
+            ),
+        ],
+    )
+
+    helper = _run_helper_batch(staging)
+
+    assert helper.returncode == 0, helper.stderr
+    aggregate = json.loads(helper.stdout)
+    assert aggregate["batch_schema"] == "1"
+    assert aggregate["request_count"] == 2
+    assert [item["id"] for item in aggregate["results"]] == [
+        "crop_nw",
+        "vertical_bands",
+    ]
+    assert [item["tool"] for item in aggregate["results"]] == [
+        "crop_zoom",
+        "wall_line_profiler",
+    ]
+    for item in aggregate["results"]:
+        sidecar = staging / item["sidecar"]
+        assert sidecar.is_file(), item
+        assert item["result"] == json.loads(sidecar.read_text(encoding="utf-8"))
+    assert len(list((staging / "out/cv/cv_evidence/1f_view").glob("*.json"))) == 2
+
+
+def test_probe_batch_sidecars_are_byte_identical_to_legacy_single_requests(tmp_path: Path):
+    staging = _build(tmp_path).staging_root
+    entries = [
+        _batch_entry("crop_nw", bbox="0,0,20,20", sidecar_name="041_crop_zoom"),
+        _batch_entry(
+            "vertical_bands",
+            tool="wall_line_profiler",
+            axis="col",
+            sidecar_name="043_wall_cols",
+        ),
+    ]
+    _batch(staging, entries)
+    assert _run_helper_batch(staging).returncode == 0
+    sidecar_dir = staging / "out/cv/cv_evidence/1f_view"
+    batch_bytes = {
+        path.name: path.read_bytes() for path in sorted(sidecar_dir.glob("*.json"))
+    }
+
+    shutil.rmtree(staging / "out/cv")
+    for index, entry in enumerate(entries):
+        _request(
+            staging,
+            {"tool": entry["tool"], "args": entry["args"]},
+            name=f"requests/single_{index}.json",
+        )
+        single = _run_helper(staging, f"requests/single_{index}.json")
+        assert single.returncode == 0, single.stderr
+
+    single_bytes = {
+        path.name: path.read_bytes() for path in sorted(sidecar_dir.glob("*.json"))
+    }
+    assert single_bytes == batch_bytes
+
+
+@pytest.mark.parametrize(
+    ("label", "bad_entry"),
+    [
+        ("lexical", _batch_entry("bad", bbox="0,0,20,20", label="gt" + ".json")),
+        ("output_role", _batch_entry("bad", out_dir="tools", bbox="0,0,20,20")),
+        (
+            "path_role_bare_symlink",
+            {
+                "id": "bad",
+                "tool": "crop_zoom",
+                "args": {"image": "escape", "out_dir": "out/cv", "bbox": "0,0,20,20"},
+            },
+        ),
+    ],
+)
+def test_guard_refuses_whole_batch_when_any_request_fails_single_request_validator(
+    tmp_path: Path, label: str, bad_entry: dict
+):
+    staging = _build(tmp_path).staging_root
+    (staging / "escape").symlink_to("/etc/passwd")
+    _batch(
+        staging,
+        [
+            _batch_entry("good_first", bbox="0,0,20,20", sidecar_name="040_crop_zoom"),
+            bad_entry,
+        ],
+    )
+    before = _staging_snapshot(staging)
+
+    hook = _hook(staging, "python tools/run_cv_probe.py --batch requests/batch.json")
+
+    after = _staging_snapshot(staging)
+    assert hook.returncode == 2, (label, hook.stdout, hook.stderr)
+    assert _protected_tree_diff(before, after) == []
+    assert not list((staging / "out").rglob("*.json")), label
+
+
+@pytest.mark.parametrize(
+    ("label", "bad_entry"),
+    [
+        ("outside_output", _batch_entry("bad", out_dir="tools", bbox="0,0,20,20")),
+        ("tool_specific_unknown_option", _batch_entry("bad", bbox="0,0,20,20", nope="1")),
+        ("tool_specific_missing_bbox", _batch_entry("bad")),
+    ],
+)
+def test_wrapper_preflights_entire_batch_before_first_probe_executes(
+    tmp_path: Path, label: str, bad_entry: dict
+):
+    """Bypass the hook: both wrapper path validation and cv_probe argparse
+    validation happen for request 2 before valid request 1 may write."""
+    staging = _build(tmp_path).staging_root
+    _batch(
+        staging,
+        [
+            _batch_entry("good_first", bbox="0,0,20,20", sidecar_name="040_crop_zoom"),
+            bad_entry,
+        ],
+    )
+    before = _staging_snapshot(staging)
+
+    helper = _run_helper_batch(staging)
+
+    after = _staging_snapshot(staging)
+    assert helper.returncode != 0, (label, helper.stdout, helper.stderr)
+    assert _protected_tree_diff(before, after) == []
+    assert not list((staging / "out").rglob("*.json")), label
+
+
+def test_guard_enforces_finite_probe_batch_bound(tmp_path: Path):
+    staging = _build(tmp_path).staging_root
+    maximum = _guard_module().MAX_PROBE_BATCH_SIZE
+    assert 20 <= maximum <= 64, "bound must cover a real sweep without becoming unbounded"
+    entries = [
+        _batch_entry(f"probe_{index:02d}", bbox="0,0,20,20")
+        for index in range(maximum + 1)
+    ]
+    _batch(staging, entries)
+
+    proc = _hook(staging, "python tools/run_cv_probe.py --batch requests/batch.json")
+
+    assert proc.returncode == 2, proc.stderr
+    assert f"maximum is {maximum}" in proc.stderr
+
+
+def test_wrapper_independently_enforces_shared_probe_batch_bound(tmp_path: Path):
+    staging = _build(tmp_path).staging_root
+    maximum = _guard_module().MAX_PROBE_BATCH_SIZE
+    _batch(
+        staging,
+        [
+            _batch_entry(f"probe_{index:02d}", bbox="0,0,20,20")
+            for index in range(maximum + 1)
+        ],
+    )
+
+    helper = _run_helper_batch(staging)
+
+    assert helper.returncode != 0
+    assert f"maximum is {maximum}" in (helper.stdout + helper.stderr)
+    assert not list((staging / "out").rglob("*.json"))
+
+
+@pytest.mark.parametrize(
+    "entries",
+    [
+        [],
+        [
+            _batch_entry("duplicate", bbox="0,0,20,20"),
+            _batch_entry("duplicate", bbox="20,0,40,20"),
+        ],
+        [_batch_entry("contains space", bbox="0,0,20,20")],
+    ],
+    ids=["empty", "duplicate_ids", "invalid_id"],
+)
+def test_guard_rejects_ambiguous_probe_batch_envelopes(
+    tmp_path: Path, entries: list[dict]
+):
+    staging = _build(tmp_path).staging_root
+    _batch(staging, entries)
+
+    proc = _hook(staging, "python tools/run_cv_probe.py --batch requests/batch.json")
+
+    assert proc.returncode == 2, proc.stderr
 
 
 # --------------------------------------------------------------------------- #

@@ -90,6 +90,20 @@ def _writable_root(root: Path, name: str) -> Path:
     return writable_root(root, name)
 
 
+def _parse_batch(data, root: Path) -> list[tuple[str, dict]]:
+    """Use guard.py's canonical bounded-envelope parser.
+
+    Sharing this parser keeps the batch-size cap, stable-id rule, and exact
+    envelope shape identical at the authorization and execution layers.  As
+    with :func:`_writable_root`, a missing policy owner fails closed.
+    """
+    if str(root) not in sys.path:
+        sys.path.insert(0, str(root))
+    from guard import parse_probe_batch  # noqa: WPS433 — staged next to tools/
+
+    return parse_probe_batch(data)
+
+
 def _resolve_output(value: str, root: Path) -> Path:
     resolved = _resolve(value, root)
     # Outside the try: a tampered/absent writable root must surface with the
@@ -179,6 +193,64 @@ def _direct_to_request(argv: list[str]) -> dict:
     return {"tool": args.pop("tool"), "args": args}
 
 
+def _run_batch(batch_data, root: Path) -> int:
+    """Preflight every request, then execute and emit one aggregate result.
+
+    No probe is executed until the complete envelope has passed the shared
+    batch parser, path/output resolution, tool allowlist, and cv_probe's
+    tool-specific argparse parser.  A partly invalid batch therefore produces
+    no sidecars, including when this wrapper is invoked without the hook.
+    """
+    entries = _parse_batch(batch_data, root)
+    cv_argvs = [
+        (request_id, request["tool"], _request_to_argv(request, root))
+        for request_id, request in entries
+    ]
+
+    if str(root / "tools") not in sys.path:
+        sys.path.insert(0, str(root / "tools"))
+    from cv_probe import execute_probe, parse_probe_args  # noqa: WPS433
+
+    # Parse ALL requests before executing the first.  Keep each parser beside
+    # its Namespace because parser.error remains the canonical tool error path.
+    planned = [
+        (request_id, tool, *parse_probe_args(cv_argv))
+        for request_id, tool, cv_argv in cv_argvs
+    ]
+
+    results = []
+    for request_id, tool, args, parser in planned:
+        sidecar_path = Path(execute_probe(args, parser)).resolve(strict=True)
+        try:
+            sidecar_rel = sidecar_path.relative_to(root.resolve(strict=True))
+        except ValueError:
+            raise ValueError(
+                f"cv_probe returned evidence outside staging: {sidecar_path}"
+            ) from None
+        result = json.loads(sidecar_path.read_text(encoding="utf-8"))
+        results.append(
+            {
+                "id": request_id,
+                "tool": tool,
+                "sidecar": sidecar_rel.as_posix(),
+                "result": result,
+            }
+        )
+
+    print(
+        json.dumps(
+            {
+                "batch_schema": "1",
+                "request_count": len(results),
+                "results": results,
+            },
+            indent=2,
+            sort_keys=True,
+        )
+    )
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     argv = list(sys.argv[1:] if argv is None else argv)
     root = _staging_root()
@@ -189,6 +261,17 @@ def main(argv: list[str] | None = None) -> int:
         ns = parser.parse_args(argv)
         request_path = _resolve(str(ns.request), root)
         request = json.loads(request_path.read_text(encoding="utf-8"))
+    elif any(arg == "--batch" or arg.startswith("--batch=") for arg in argv):
+        # Form C — one bounded batch file.  Parse the option exactly so it
+        # cannot be mixed with direct arguments or the legacy request form.
+        parser = argparse.ArgumentParser(description=__doc__)
+        parser.add_argument("--batch", required=True, type=Path)
+        ns = parser.parse_args(argv)
+        batch_path = _resolve(str(ns.batch), root)
+        if batch_path.suffix != ".json":
+            raise ValueError("batch must be a JSON file")
+        batch_data = json.loads(batch_path.read_text(encoding="utf-8"))
+        return _run_batch(batch_data, root)
     else:
         # Form B (P1-1/P1-2) — direct `--key value` arguments.
         request = _direct_to_request(argv)

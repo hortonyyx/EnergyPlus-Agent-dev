@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import re
 import shlex
 import sys
 from datetime import datetime, timezone
@@ -111,6 +112,12 @@ PROBE_DIRECT_PARAM_KEYS = (
 # `python tools/run_cv_probe.py` (denied before this batch by the length rule)
 # denied afterwards, so the deny->allow surface is exactly the authorized form.
 PROBE_DIRECT_REQUIRED_KEYS = ("tool", "image")
+# L1: one batch covers a normal measurement sweep (the good reference run used
+# 19 probes) while refusing unbounded work.  The wrapper imports the batch
+# envelope parser below from this module, so the hook and the executable cannot
+# drift on the bound, request-id syntax, or envelope shape.
+MAX_PROBE_BATCH_SIZE = 32
+PROBE_BATCH_ID_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_.-]{0,63}$")
 # Helper output must resolve into the WRITABLE ROOT, not merely "somewhere inside
 # staging" — the latter let a legal-looking request make the one allowlisted
 # executable write real files under `tools/**` (sol MAJOR-1, reproduced by the
@@ -312,12 +319,80 @@ def _validate_probe_params(items, root: Path) -> list[str]:
     return normalized
 
 
+def _validate_probe_request_data(data, root: Path) -> list[str]:
+    """Validate one probe request's values through the shared role policy.
+
+    Both legacy ``--request`` and every entry of ``--batch`` call this exact
+    function.  Keeping the loop outside the validator is intentional: there is
+    one security policy for one request, applied N times before a batch is
+    authorized, rather than a second batch-specific approximation.
+    """
+    return _validate_probe_params(_walk_items(data), root)
+
+
 def _validate_request_file(path: Path, root: Path) -> list[str]:
     """Form A (`--request <json>`): unchanged behaviour, now expressed on top of
     the shared :func:`_validate_probe_params`."""
     data = json.loads(path.read_text(encoding="utf-8"))
     normalized = [str(path.resolve(strict=True))]
-    normalized.extend(_validate_probe_params(_walk_items(data), root))
+    normalized.extend(_validate_probe_request_data(data, root))
+    return sorted(set(normalized))
+
+
+def parse_probe_batch(data) -> list[tuple[str, dict]]:
+    """Parse the bounded batch envelope shared by the hook and wrapper.
+
+    A batch entry is the ordinary single-request object plus a stable ``id``::
+
+        {"requests": [{"id": "north_cols", "tool": "...", "args": {...}}]}
+
+    The envelope is deliberately exact and IDs are unique, short filesystem-
+    neutral tokens.  This parser does *not* replace request validation; callers
+    must pass every returned request to the same validator/executor used for a
+    single request.
+    """
+    if not isinstance(data, dict) or set(data) != {"requests"}:
+        raise ValueError("probe batch must be an object containing only 'requests'")
+    entries = data["requests"]
+    if not isinstance(entries, list):
+        raise ValueError("probe batch requests must be an array")
+    if not entries:
+        raise ValueError("probe batch must contain at least one request")
+    if len(entries) > MAX_PROBE_BATCH_SIZE:
+        raise ValueError(
+            f"probe batch has {len(entries)} requests; maximum is "
+            f"{MAX_PROBE_BATCH_SIZE}"
+        )
+
+    parsed = []
+    seen_ids = set()
+    for index, entry in enumerate(entries, start=1):
+        if not isinstance(entry, dict) or set(entry) != {"id", "tool", "args"}:
+            raise ValueError(
+                f"probe batch request {index} must contain exactly id, tool, args"
+            )
+        request_id = entry["id"]
+        if not isinstance(request_id, str) or not PROBE_BATCH_ID_RE.fullmatch(
+            request_id
+        ):
+            raise ValueError(
+                f"probe batch request {index} id must match "
+                f"{PROBE_BATCH_ID_RE.pattern}"
+            )
+        if request_id in seen_ids:
+            raise ValueError(f"duplicate probe batch request id: {request_id}")
+        seen_ids.add(request_id)
+        parsed.append((request_id, {"tool": entry["tool"], "args": entry["args"]}))
+    return parsed
+
+
+def _validate_batch_file(path: Path, root: Path) -> list[str]:
+    """Validate an entire batch before the hook authorizes any execution."""
+    data = json.loads(path.read_text(encoding="utf-8"))
+    normalized = [str(path.resolve(strict=True))]
+    for _request_id, request in parse_probe_batch(data):
+        # The security-critical reuse: exactly the single-request validator.
+        normalized.extend(_validate_probe_request_data(request, root))
     return sorted(set(normalized))
 
 
@@ -607,6 +682,18 @@ def _check_bash(command: str, root: Path) -> tuple[bool, str, list[str]]:
         except (OSError, ValueError, json.JSONDecodeError) as exc:
             return False, str(exc), []
         return True, "allowed run_cv_probe request", normalized
+    # Form C — a bounded batch file.  The whole file is parsed and every inner
+    # request passes the exact Form-A validator before this call is authorized;
+    # one bad entry therefore prevents the wrapper from starting at all.
+    if len(parts) == 4 and parts[2] == "--batch":
+        try:
+            batch_path = _path_arg(parts[3], root)
+            if batch_path.suffix != ".json":
+                return False, "batch must be a JSON file", [str(batch_path)]
+            normalized = _validate_batch_file(batch_path, root)
+        except (OSError, ValueError, json.JSONDecodeError) as exc:
+            return False, str(exc), []
+        return True, "allowed run_cv_probe batch", normalized
     # Form B — direct `--key value` arguments (P1-1).
     try:
         normalized = _parse_direct_probe_args(parts[2:], root)
