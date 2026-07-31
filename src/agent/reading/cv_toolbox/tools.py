@@ -364,6 +364,33 @@ def px_m_calibrator(
     values = np.array([float(anchor["value_m"]) for anchor in anchors], dtype=float)
     if np.any(values <= 0):
         raise ValueError("anchor value_m must be positive")
+    if np.any(spans <= 0):
+        raise ValueError("anchor pixel span must be positive")
+
+    axis_px_per_m = {}
+    for axis in ("x", "y"):
+        axis_indices = [index for index, anchor in enumerate(anchors) if anchor["axis"] == axis]
+        if axis_indices:
+            axis_values = values[axis_indices]
+            axis_spans = spans[axis_indices]
+            axis_px_per_m[axis] = float(
+                np.sum(axis_values * axis_spans) / np.sum(axis_values**2)
+            )
+    axis_relative_deviation = None
+    max_axis_relative_deviation = float(
+        recipe["calibration_max_axis_relative_deviation"]
+    )
+    if set(axis_px_per_m) == {"x", "y"}:
+        x_scale = axis_px_per_m["x"]
+        y_scale = axis_px_per_m["y"]
+        axis_relative_deviation = abs(x_scale - y_scale) / ((x_scale + y_scale) / 2.0)
+        if axis_relative_deviation > max_axis_relative_deviation:
+            raise ValueError(
+                "cross-axis calibration disagreement: "
+                f"x={x_scale:.9g} px/m, y={y_scale:.9g} px/m, "
+                f"relative_deviation={axis_relative_deviation:.6%} exceeds "
+                f"{max_axis_relative_deviation:.6%}; verify dimension extension-line intersections"
+            )
     px_per_m = float(np.sum(values * spans) / np.sum(values**2))
     m_per_px = 1.0 / px_per_m
     residuals: list[dict[str, Any]] | None
@@ -422,6 +449,9 @@ def px_m_calibrator(
             "dimension_refs": dimension_refs,
             "raw_segments": raw_segments,
             "scale_px_per_m": px_per_m,
+            "axis_px_per_m": axis_px_per_m,
+            "axis_relative_deviation": axis_relative_deviation,
+            "axis_relative_deviation_limit": max_axis_relative_deviation,
             "residuals": residuals,
         },
     )
@@ -433,12 +463,20 @@ def px_m_calibrator(
             "rmse_m": rmse_m,
             "residuals": residuals,
             "warnings": warnings,
+            "axis_px_per_m": axis_px_per_m,
+            "axis_relative_deviation": axis_relative_deviation,
+            "axis_relative_deviation_limit": max_axis_relative_deviation,
         }
     )
     return _make_payload(
         "px_m_calibrator",
         recipe,
-        {"anchors": anchors, "residual_warn_px": warn_px, "residual_warn_m": warn_m},
+        {
+            "anchors": anchors,
+            "residual_warn_px": warn_px,
+            "residual_warn_m": warn_m,
+            "max_axis_relative_deviation": max_axis_relative_deviation,
+        },
         [result],
         {"anchor_count": len(anchors), "warnings": warnings},
     )

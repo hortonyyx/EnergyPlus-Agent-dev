@@ -98,11 +98,13 @@ def test_px_m_calibrator_exact_and_residuals():
     assert result["m_per_px"] == pytest.approx(0.01, abs=1e-12)
     assert result["rmse_px"] == pytest.approx(0.0, abs=1e-9)
     assert all(abs(r["residual_px"]) < 1e-9 for r in result["residuals"])
+    assert result["axis_px_per_m"] == {"x": 100.0, "y": 100.0}
+    assert result["axis_relative_deviation"] == pytest.approx(0.0, abs=1e-12)
 
     residual = px_m_calibrator(
         [
             {"axis": "x", "px_a": 0, "px_b": 300, "value_m": 3.0},
-            {"axis": "y", "px_a": 0, "px_b": 520, "value_m": 5.0},
+            {"axis": "x", "px_a": 0, "px_b": 520, "value_m": 5.0},
         ],
         residual_warn_px=1,
     )
@@ -112,6 +114,25 @@ def test_px_m_calibrator_exact_and_residuals():
     single = px_m_calibrator([{"axis": "x", "px_a": 0, "px_b": 250, "value_m": 2.5}])
     assert single["results"][0]["residuals"] is None
     assert single["results"][0]["rmse_px"] is None
+
+
+def test_px_m_calibrator_rejects_cross_axis_anisotropy_before_blending():
+    accepted = px_m_calibrator(
+        [
+            {"axis": "x", "px_a": 247.5, "px_b": 611.5, "value_m": 10.0},
+            {"axis": "y", "px_a": 150.5, "px_b": 877.5, "value_m": 20.0},
+        ]
+    )["results"][0]
+    assert accepted["axis_relative_deviation"] == pytest.approx(0.00137457, rel=1e-5)
+    assert accepted["axis_relative_deviation_limit"] == pytest.approx(0.003)
+
+    with pytest.raises(ValueError, match="cross-axis calibration disagreement"):
+        px_m_calibrator(
+            [
+                {"axis": "x", "px_a": 245, "px_b": 620, "value_m": 10.0},
+                {"axis": "y", "px_a": 54, "px_b": 872, "value_m": 20.0},
+            ]
+        )
 
 
 def test_window_cc_detector_count_bbox_and_merge(tmp_path: Path):
@@ -278,11 +299,17 @@ def test_prescan_plan_schema_and_combined_overlay(tmp_path: Path):
         "cc_boxes": "cc_box_candidates.json",
         "ticks": "tick_candidates.json",
     }
+    assert data["derived_candidate_files"] == {
+        "calibration_spans": "calibration_span_candidates.json",
+    }
     assert data["overlay_paths"] == {
         "default_structural": "combined_overlay.png",
         "all": "all_candidates_overlay.png",
         "cc_boxes": "cc_box_overlay.png",
         "ticks": "tick_overlay.png",
+    }
+    assert data["derived_overlay_paths"] == {
+        "calibration_spans": "calibration_span_overlay.png",
     }
     assert data["capability_profile"]["requested"] == "orthogonal_polygon"
     assert {"rectangular", "orthogonal_polygon"} <= set(data["capability_profile"]["supported"])
@@ -414,6 +441,8 @@ def test_prescan_same_image_is_byte_identical_across_output_roots(tmp_path: Path
     second = snapshot(second_path.parent)
     assert set(first) == {
         "all_candidates_overlay.png",
+        "calibration_span_candidates.json",
+        "calibration_span_overlay.png",
         "candidates.json",
         "cc_box_candidates.json",
         "cc_box_overlay.png",
@@ -423,6 +452,42 @@ def test_prescan_same_image_is_byte_identical_across_output_roots(tmp_path: Path
         "tick_overlay.png",
     }
     assert first == second
+
+
+def test_prescan_sm24_calibration_spans_find_extension_line_intersections(tmp_path: Path):
+    image = Path("case_tests/e2e_tests/sm24_anchor/case_data/1f_view.png")
+    candidates_path, _ = prescan_plan(image, out_dir=tmp_path / "reading", include_cc=False)
+    master = json.loads(candidates_path.read_text(encoding="utf-8"))
+    derived = json.loads(
+        (candidates_path.parent / master["derived_candidate_files"]["calibration_spans"])
+        .read_text(encoding="utf-8")
+    )
+    spans = derived["results"]
+
+    overall_x = next(
+        item
+        for item in spans
+        if item["axis"] == "x"
+        and item["px_a"] == pytest.approx(247.5)
+        and item["px_b"] == pytest.approx(611.5)
+    )
+    overall_y = next(
+        item
+        for item in spans
+        if item["axis"] == "y"
+        and item["px_a"] == pytest.approx(150.5)
+        and item["px_b"] == pytest.approx(878.0)
+    )
+    assert overall_x["span_px"] == pytest.approx(364.0)
+    assert overall_y["span_px"] == pytest.approx(727.5)
+
+    calibrated = px_m_calibrator(
+        [
+            {"axis": "x", "px_a": overall_x["px_a"], "px_b": overall_x["px_b"], "value_m": 10.0},
+            {"axis": "y", "px_a": overall_y["px_a"], "px_b": overall_y["px_b"], "value_m": 20.0},
+        ]
+    )["results"][0]
+    assert calibrated["axis_relative_deviation"] < 0.003
 
 
 def test_prescan_unsupported_capability_profile_raises(tmp_path: Path):

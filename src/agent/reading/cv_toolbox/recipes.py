@@ -35,6 +35,16 @@ CLEAN_VECTOR_V1 = {
     "merge_iou": 0.2,
     "calibration_warn_residual_px": 2.0,
     "calibration_warn_residual_m": 0.05,
+    # Measured clean-vector ceiling: accepted two-axis sidecars top out at
+    # 0.138%, while an independently valid 1 px endpoint convention measured
+    # 0.28%.  The rounded-up 0.30% ceiling still rejects the confirmed 1.92%
+    # wrong-control-point case (execution log, 2026-07-31 G-2).
+    "calibration_max_axis_relative_deviation": 0.003,
+    "calibration_foreground_delta": 24,
+    "calibration_min_line_px": 12,
+    "calibration_min_span_px": 30,
+    "calibration_intersection_tolerance_px": 2,
+    "calibration_intersection_merge_px": 4,
     "prescan_min_run_px": 4,
     "prescan_min_tick_len_px": 6,
     "prescan_max_tick_len_px": 40,
@@ -80,6 +90,138 @@ def _mask_clean_vector(img: Image.Image, recipe: dict[str, Any]) -> np.ndarray:
         & (mean <= recipe["gray_hi"])
         & (spread <= recipe["rgb_tol"])
     )
+
+
+def _foreground_mask(img: Image.Image, recipe: dict[str, Any]) -> np.ndarray:
+    """Clean-vector ink mask relative to the image-border background.
+
+    Dimension ink is chromatic in the CAD anchors but gray in some exports, so
+    hue is deliberately not part of the contract.  The median border colour is
+    deterministic and handles the two supported clean-vector conventions
+    (black canvas with light ink, or white canvas with dark ink).
+    """
+
+    arr = np.asarray(_load_rgb(img), dtype=np.int16)
+    border = np.concatenate((arr[0], arr[-1], arr[:, 0], arr[:, -1]), axis=0)
+    background = np.median(border, axis=0)
+    delta = np.max(np.abs(arr - background), axis=2)
+    return delta >= int(recipe["calibration_foreground_delta"])
+
+
+def _opened_line_boxes(
+    mask: np.ndarray, *, axis: str, min_line_px: int
+) -> list[tuple[int, int, int, int]]:
+    structure = (
+        np.ones((1, min_line_px), dtype=bool)
+        if axis == "row"
+        else np.ones((min_line_px, 1), dtype=bool)
+    )
+    opened = ndimage.binary_opening(mask, structure=structure)
+    labels, count = ndimage.label(opened, structure=np.ones((3, 3), dtype=np.uint8))
+    boxes: list[tuple[int, int, int, int]] = []
+    for component_id in range(1, count + 1):
+        ys, xs = np.nonzero(labels == component_id)
+        if not len(xs):
+            continue
+        # Inclusive pixel bounds keep a one-pixel extension line centred on its
+        # actual source coordinate and a two-pixel antialiased line at x + 0.5.
+        boxes.append((int(xs.min()), int(ys.min()), int(xs.max()), int(ys.max())))
+    return sorted(boxes, key=lambda box: (box[1], box[0], box[3], box[2]))
+
+
+def _cluster_positions(values: list[float], merge_px: float) -> list[float]:
+    groups: list[list[float]] = []
+    for value in sorted(values):
+        if not groups or value - groups[-1][-1] > merge_px:
+            groups.append([value])
+        else:
+            groups[-1].append(value)
+    return [float(sum(group) / len(group)) for group in groups]
+
+
+def _calibration_span_candidates(
+    img: Image.Image, recipe: dict[str, Any]
+) -> list[dict[str, Any]]:
+    """Find line endpoints at perpendicular extension-line intersections.
+
+    These are mechanically neutral candidates: a reader still verifies that a
+    candidate is a dimension chain before supplying its endpoints and text
+    value to ``px_m_calibrator``.  No OCR or wall/dimension semantics enter the
+    detector.
+    """
+
+    mask = _foreground_mask(img, recipe)
+    min_line = int(recipe["calibration_min_line_px"])
+    min_span = float(recipe["calibration_min_span_px"])
+    tolerance = float(recipe["calibration_intersection_tolerance_px"])
+    merge_px = float(recipe["calibration_intersection_merge_px"])
+    rows = _opened_line_boxes(mask, axis="row", min_line_px=min_line)
+    cols = _opened_line_boxes(mask, axis="col", min_line_px=min_line)
+    raw: list[dict[str, Any]] = []
+
+    for axis, targets, perpendiculars in (("x", rows, cols), ("y", cols, rows)):
+        for x0, y0, x1, y1 in targets:
+            target_start, target_end = (x0, x1) if axis == "x" else (y0, y1)
+            if target_end - target_start < min_span:
+                continue
+            line_position = (y0 + y1) / 2.0 if axis == "x" else (x0 + x1) / 2.0
+            intersections: list[float] = []
+            for px0, py0, px1, py1 in perpendiculars:
+                perpendicular_position = (
+                    (px0 + px1) / 2.0 if axis == "x" else (py0 + py1) / 2.0
+                )
+                crosses_line = (
+                    py0 - tolerance <= line_position <= py1 + tolerance
+                    if axis == "x"
+                    else px0 - tolerance <= line_position <= px1 + tolerance
+                )
+                if (
+                    crosses_line
+                    and target_start - tolerance
+                    <= perpendicular_position
+                    <= target_end + tolerance
+                ):
+                    intersections.append(perpendicular_position)
+            intersections = _cluster_positions(intersections, merge_px)
+            if len(intersections) < 2:
+                continue
+            px_a, px_b = intersections[0], intersections[-1]
+            if px_b - px_a < min_span:
+                continue
+            p1 = [px_a, line_position] if axis == "x" else [line_position, px_a]
+            p2 = [px_b, line_position] if axis == "x" else [line_position, px_b]
+            raw.append(
+                {
+                    "kind": "calibration_span_candidate",
+                    "axis": axis,
+                    "p1_px": p1,
+                    "p2_px": p2,
+                    "px_a": px_a,
+                    "px_b": px_b,
+                    "span_px": px_b - px_a,
+                    "dimension_line_position_px": line_position,
+                    "extension_line_intersections_px": intersections,
+                }
+            )
+
+    # Multiple parallel dimension baselines can carry the same endpoint pair.
+    # Keep the first in stable scan order; the endpoint evidence is identical.
+    deduplicated: list[dict[str, Any]] = []
+    seen: set[tuple[str, float, float]] = set()
+    for candidate in sorted(
+        raw,
+        key=lambda item: (
+            item["axis"],
+            item["dimension_line_position_px"],
+            item["px_a"],
+            item["px_b"],
+        ),
+    ):
+        key = (candidate["axis"], round(candidate["px_a"], 3), round(candidate["px_b"], 3))
+        if key not in seen:
+            seen.add(key)
+            deduplicated.append(candidate)
+    return deduplicated
 
 
 def _runs(flags: np.ndarray, *, min_len: int) -> list[tuple[int, int]]:
@@ -229,6 +371,7 @@ def _draw_prescan_overlay(image: Image.Image, candidates: list[dict[str, Any]], 
         "line_band_candidate": "orange",
         "cc_box_candidate": "cyan",
         "tick_candidate": "magenta",
+        "calibration_span_candidate": "lime",
     }
     for idx, candidate in enumerate(candidates, start=1):
         color = colors[candidate["kind"]]
@@ -258,6 +401,8 @@ _PRESCAN_OVERLAY_FILES = {
     "tick_candidate": "tick_overlay.png",
 }
 _PRESCAN_ALL_OVERLAY_FILE = "all_candidates_overlay.png"
+_CALIBRATION_SPAN_FILE = "calibration_span_candidates.json"
+_CALIBRATION_SPAN_OVERLAY_FILE = "calibration_span_overlay.png"
 
 
 def _write_reproducible_json(path: Path, payload: dict[str, Any]) -> None:
@@ -295,6 +440,26 @@ def _kind_payload(
         "candidate_count": len(candidates),
         "source_candidates": "candidates.json",
         "overlay_path": _PRESCAN_OVERLAY_FILES[kind],
+        "results": candidates,
+    }
+
+
+def _derived_candidate_payload(
+    payload: dict[str, Any], kind: str, candidates: list[dict[str, Any]], overlay_path: str
+) -> dict[str, Any]:
+    return {
+        "cv_schema": payload["cv_schema"],
+        "source_image": payload["source_image"],
+        "tool": payload["tool"],
+        "tool_version": payload["tool_version"],
+        "recipe_id": payload["recipe_id"],
+        "applicability": payload["applicability"],
+        "advisory_only": True,
+        "candidate_kind": kind,
+        "candidate_count": len(candidates),
+        "derived_from": "source_image_orthogonal_ink_intersections",
+        "source_candidates": None,
+        "overlay_path": overlay_path,
         "results": candidates,
     }
 
@@ -363,6 +528,7 @@ def _prescan(
     mask = _mask_clean_vector(img, recipe)
     line_candidates, peaks = _line_band_candidates(mask, recipe)
     cc_candidates = _cc_box_candidates(mask, recipe) if include_cc else []
+    calibration_spans = _calibration_span_candidates(img, recipe)
     # Ticks are calibration anchors: always derived from the unfiltered line
     # candidates so a triage filter can never drop dimension ticks.
     tick_candidates = _tick_candidates(line_candidates, recipe)
@@ -391,6 +557,18 @@ def _prescan(
         }
         candidates.append(item)
 
+    for idx, candidate in enumerate(calibration_spans, start=1):
+        candidate["candidate_id"] = f"{source.stem}:{tool}:calibration_span:{idx:03d}"
+        candidate["coord_space"] = "source_px"
+        candidate["geometry"] = _geometry(candidate)
+        candidate["provenance"] = {
+            "tool": tool,
+            "tool_version": TOOL_VERSION,
+            "recipe_id": recipe["recipe_id"],
+            "source_image_sha256": source_hash,
+            "crop_chain_id": "root",
+        }
+
     prescan_dir = evidence_dir(out_dir, source) / label
     candidates_path = prescan_dir / "candidates.json"
     overlay_path = prescan_dir / _PRESCAN_OVERLAY_FILES["line_band_candidate"]
@@ -414,11 +592,17 @@ def _prescan(
             "cc_boxes": _PRESCAN_CANDIDATE_FILES["cc_box_candidate"],
             "ticks": _PRESCAN_CANDIDATE_FILES["tick_candidate"],
         },
+        "derived_candidate_files": {
+            "calibration_spans": _CALIBRATION_SPAN_FILE,
+        },
         "overlay_paths": {
             "default_structural": overlay_path.name,
             "all": all_overlay_path.name,
             "cc_boxes": _PRESCAN_OVERLAY_FILES["cc_box_candidate"],
             "ticks": _PRESCAN_OVERLAY_FILES["tick_candidate"],
+        },
+        "derived_overlay_paths": {
+            "calibration_spans": _CALIBRATION_SPAN_OVERLAY_FILE,
         },
         "tool": tool,
         "tool_version": TOOL_VERSION,
@@ -445,6 +629,7 @@ def _prescan(
             "line_band_candidate_count_prefilter": prefilter_line_count,
             "cc_box_candidate_count": len(cc_candidates),
             "tick_candidate_count": len(tick_candidates),
+            "calibration_span_candidate_count": len(calibration_spans),
             "axis_summary": _axis_summary(peaks, candidates),
         },
     }
@@ -459,6 +644,15 @@ def _prescan(
             prescan_dir / filename,
             _kind_payload(payload, kind, candidates_by_kind[kind]),
         )
+    _write_reproducible_json(
+        prescan_dir / _CALIBRATION_SPAN_FILE,
+        _derived_candidate_payload(
+            payload,
+            "calibration_span_candidate",
+            calibration_spans,
+            _CALIBRATION_SPAN_OVERLAY_FILE,
+        ),
+    )
 
     _draw_prescan_overlay(img, candidates_by_kind["line_band_candidate"], overlay_path)
     _draw_prescan_overlay(img, candidates, all_overlay_path)
@@ -468,6 +662,11 @@ def _prescan(
             candidates_by_kind[kind],
             prescan_dir / _PRESCAN_OVERLAY_FILES[kind],
         )
+    _draw_prescan_overlay(
+        img,
+        calibration_spans,
+        prescan_dir / _CALIBRATION_SPAN_OVERLAY_FILE,
+    )
     return candidates_path, overlay_path
 
 

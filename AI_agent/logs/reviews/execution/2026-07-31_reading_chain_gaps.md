@@ -50,7 +50,83 @@
 
 ## G-2 · 标定可靠性
 
-待施工。
+### 两轴阈值：先量后定，双向论证
+
+可复算定义：先对 x/y 各自做过原点最小二乘
+`s_axis = Σ(value_m × span_px) / Σ(value_m²)`，再算
+`d = |s_x-s_y| / ((s_x+s_y)/2)`。实测在选阈值之前完成：
+
+- 仓内 **11** 份无 residual warning、x/y 齐全的已接受 clean-vector 标定：
+  `d = 0.0012%–0.1376%`；最大值为 sm24 07-07 plan 的 `36.30 vs 36.35 px/m`。
+- 07-25 已独立验真的 sm24 同图另一合法 1 px 控制点取法为 **0.28%**；
+  亚像素质心修正后为 **0.121%**。
+- 已确认错控制点的最小前科为 **1.92%**；sm21 废弃迭代为
+  `13.96%–88.86%`；本轮 pilot `37.5 vs 40.9 px/m` 为 **8.673%**。
+
+因此把「合法 0.28% 实测上界向上取到两位小数百分点」作为
+**0.30%** 阈值（recipe = `0.003`），而不是先拍数字。
+
+- **不误拒方向**：全部 11 份已接受产品 + 0.28% 合法人工取点均在门内。
+- **不误放方向**：1.92% 最小已知错例为阈值 6.4×，pilot 为 28.9×，
+  均在混合前失败。对 20 m 跨度，门内两轴任一标尺相对另一标尺
+  的最坏差异 `< 0.003/(1-0.0015)×20 = 0.0601 m`，只占 judge `0.30 m`
+  墙容差的 20.1%；阈值本身不会允许标定误差先吃完判卷容差。
+
+### 施工
+
+- `px_m_calibrator`：先独立拟合 x/y；`d > 0.003` 立即 `ValueError`，
+  错误文本带 x/y px/m、实测 d、阈值与「重查 extension-line intersections」；
+  不再产出混合尺。合格结果附 `axis_px_per_m` / `axis_relative_deviation`
+  / `axis_relative_deviation_limit`。单轴多锚点仍可做 residual 评估，不伪造跨轴检查。
+- prescan 新增派生、advisory-only 的 `calibration_span_candidates.json` +
+  `calibration_span_overlay.png`：用边界背景差分提取墨迹，正交开运算找长尺寸线，
+  以垂直 extension-line 交点确定 `px_a/px_b`。它不做尺寸/墙语义，
+  读图者仍须核 overlay + 图上尺寸文本。原 `candidates.json` 与三个 kind view
+  对象/ID/可达性不变，新视图不塞入 master 改号。
+- sm24 实图检出 x 交点 **247.5→611.5 = 364.0 px**，y 交点
+  **150.5→878.0 = 727.5 px**；配 10/20 m 后两轴为 `36.40 vs 36.375 px/m`，
+  `d = 0.0687%`，在门内且与 07-25 独立测量一致；不再用 pilot 的
+  `245→620` / `54→872` 目测锚点。
+
+### residual warn 改 fail-closed 的影响面（待主控裁决）
+
+口径：扫描 `case_tests/**` 内 `tool == "px_m_calibrator"` 的已存 sidecar，
+按各 sidecar 已记录的 `warnings` 重放当前
+`calibration_warn_residual_px=2.0` / `_m=0.05`。
+
+- 已存 sidecar **17**；无 warning **12/17**；若 warn 升为 raise，新失败
+  **5/17 = 29.4%**。
+- 其中 4 份是 sm21 1f_view `001`–`004` 废弃的迭代试探（RMSE
+  `0.725–5.895 m`）；升级后会中止且无 sidecar，改变「先产诊断再细化锚点」工作流。
+- 第 5 份是 `run_2026-07-08_gpt54mini_cv_retest/South_view/001`：只有 y 锚点
+  `-2.346 px / -0.0405 m`（米残差未超 0.05，像素残差超 2），但该轮最终
+  **elevation windows 15/15 complete**。因此 fail-closed 会新阻断至少一条历史上
+  产出正确产品的路径，不只是阻断废弃试探。
+- 本轮 pilot `RMSE 0.474 m` 也会被阻断（正向收益）；但新增的
+  0.30% 跨轴门已会更早阻断它，所以 residual 升级的边际收益主要在
+  「同轴多锚点不一致」，而兼容代价是上述 5/17。
+
+本席未改 residual warning 语义；请主控裁决保持 warn、全面 fail-closed，
+或仅对「最终接受/落笔」模式 fail-closed。
+
+### 锁与 neuter
+
+| 锁 | 定点破坏 | 实跑变红测试 | 还原后 |
+|---|---|---|---|
+| 两轴不一致在 blend 前失败 | `tools.py` 把 raise 分支定点改为 `if False and axis_relative_deviation > ...` | `tests/test_cv_toolbox.py::test_px_m_calibrator_rejects_cross_axis_anisotropy_before_blending`，实跑 `1 failed`，`Failed: DID NOT RAISE <class 'ValueError'>` | 还原后受影响子集 `246 passed` |
+| extension-line 交点端点助手 | `recipes.py::_foreground_mask` 定点返回全 False mask | `tests/test_cv_toolbox.py::test_prescan_sm24_calibration_spans_find_extension_line_intersections`，实跑 `1 failed` / `StopIteration` | 还原后受影响子集 `246 passed` |
+
+受影响子集由下列命令算定：
+
+```bash
+python scripts/tool_scripts/affected_tests.py --changed \
+  src/agent/reading/cv_toolbox/recipes.py \
+  src/agent/reading/cv_toolbox/tools.py \
+  tests/test_cv_toolbox.py --explain
+```
+
+输出 `SCOPE: SUBSET` = `tests/test_affected_tests_map.py tests/test_cv_toolbox.py
+tests/test_gt_discipline.py tests/test_isolation.py`；实跑 **246 passed**。
 
 ## G-3 · 预扫共线长线视图
 
