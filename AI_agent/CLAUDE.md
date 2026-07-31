@@ -72,6 +72,20 @@ EnergyPlus 经 `WorkflowTool.run_simulation`（eppy + ConverterManager，idfpy �
 4. **gt 铁律**：评测答案 `case_tests/test_baseline/gt/<case>/gt.json` **只 gate② judge / 人 可读**，gate①/执行器绝不 import（dev/prod 一致 + 防照抄）。
 5. **精确坐标容差带由确定性层判**（核坍缩规范值 + gate① 带容差不变量），gt/judge 只判布局/计数/窗位定性。
 6. **建筑复杂度可扩展性铁律（2026-07-03 用户定，硬约束所有决策）**：**每个决策必须为未来建筑复杂度升级留路**——现架构（正交·**共底面盒子**）刻意保留了升级到复杂体量（**非方形 / 退台 / 挑空双层高 / 中庭竖井**）的可能：不变量 #1 判断-几何分工、#2 单一世界坐标、版本化 schema、#3 稳定契约都是为此设的**接缝**；复杂体量 = schema 加槽位（per-floor footprint / 变高区 / void）+ kernel 实现扩展（含休眠支线 [proposals/geometry_first_zonification.md](proposals/geometry_first_zonification.md) 热区积木 = kernel 策略替换、**非架构推翻**），都在接缝内长。**不得**把"共用 footprint / 每层满铺楼板 / 固定层高"这类**当前简化假设烤死到无法松动**——纯只适用当前情况（不能长到复杂体量）的方案**没有意义**。复杂体量本身是远期 defer，但**任何当下决策都要过一遍"这条路以后能不能长到复杂体量"**。风险不在架构、在"烤死的假设"，本条即那道保险。
+7. **主控不得进入产品本身（2026-07-31 用户定，硬约束）**：**主控 agent 的定位 = 项目开发的助手**——
+   dev 期间可以辅助编排、查报错、迭代开发、写方案与派工；**但原则上不得进入项目本身的任何一个环节和步骤**。
+   即使将来产品本身要用到高级模型，那是**单独的另一件事、与主控无关，主控不能代劳**。
+   **判据**：把主控整个拿掉，产品必须仍然能跑完并保证质量；凡是「拿掉主控就断」的地方，都是违反本条的接缝。
+   **⚠️ 已知违反点（2026-07-31 自查，明日重设计时逐条清）**：
+   ① **per-run directive** = 主控看着上轮失败现调、随轮投喂给识图子代理（合法形态 = 沉淀进 standing 文档随产品发布）；
+   ② **pilot → 主控反馈 → 返工**（`isolation.py` 的 `write_feedback` / `feedback.md` 是机制化注入点，
+      `spawn_command` 会并进 prompt 并提示 read it FIRST）—— **07-07 的 8/8 北极星成绩正由此而来** ⇒ 该成绩非无监督基线；
+   ③ **judge② 目前由主控担任**（`new_case_guide` §1 明写「你既编排又当 judge」）⇒ 应代码化，用 gt 直接核；
+   ④ **预扫参数由主控临时挑**（预扫本身是确定性代码、不违规，但参数选择必须是随产品发布的固定档）。
+   **允许的形态**：judge（最终应为代码）判定不过 ⇒ **整轮盲重抽，零提示**；
+   **禁止的形态**：告诉执行环节「哪里错了、该怎么改」，或按子部分打回 —— 那是在监督弱模型把任务做好。
+   详 [logs/experiments/2026-07-31_sm24_e2e_retry/SUPERVISION_CONTAMINATION.md](logs/experiments/2026-07-31_sm24_e2e_retry/SUPERVISION_CONTAMINATION.md)。
+
 
 ---
 
