@@ -891,6 +891,74 @@ def test_guard_r1_bash_command_with_case_tests_still_denied(tmp_path: Path):
     assert "forbidden token: case_tests" in proc.stderr
 
 
+# --------------------------------------------------------------------------- #
+# R2-1 — the parameter-role classifier is a TOTAL function. r1 kept
+# `_looks_like_path` as a pre-gate for every non-content string, so a bare,
+# slash-less, extension-less value slipped past the checks even when its key was
+# explicitly `file_path`. Bare `case_tests` regressed DENY -> ALLOW against the
+# pre-batch commit; the r1 fixture only ever used `case_tests/x`, so the lock was
+# green purely because of the fixture's SHAPE. These locks pin both shapes side
+# by side and pin the fail-closed default for unknown keys.
+# --------------------------------------------------------------------------- #
+@pytest.mark.parametrize("value", ["case_tests", "case_tests/x"])
+def test_guard_r2_bare_and_slashed_forbidden_path_both_denied(tmp_path: Path, value: str):
+    """R2-1 lock 1: a DENY_TOKEN in a path-role parameter is denied whether or
+    not the value happens to contain a '/'. The bare form is the regression the
+    controller reproduced (DENY at f98d248 -> ALLOW at r1)."""
+    staging = _build(tmp_path).staging_root
+    proc = _hook_payload(staging, {"tool_name": "Read", "tool_input": {"file_path": value}})
+    assert proc.returncode == 2, (value, proc.stdout, proc.stderr)
+    assert "forbidden token: case_tests" in proc.stderr
+
+
+@pytest.mark.parametrize("value", ["escape", "./escape"])
+def test_guard_r2_bare_extensionless_escaping_symlink_denied(tmp_path: Path, value: str):
+    """R2-1 lock 2: a top-level symlink out of staging is denied even when the
+    parameter value is bare and extension-less. Under r1 only `./escape` was
+    denied (it starts with '.'), so the symlink property depended on string
+    surface shape rather than on the parameter being a path."""
+    staging = _build(tmp_path).staging_root
+    (staging / "escape").symlink_to("/etc/passwd")
+    proc = _hook_payload(staging, {"tool_name": "Read", "tool_input": {"file_path": value}})
+    assert proc.returncode == 2, (value, proc.stdout, proc.stderr)
+    assert "escapes staging" in proc.stderr
+
+
+@pytest.mark.parametrize(
+    ("label", "tool_input"),
+    [
+        ("unknown_key_bare_deny_token", {"mystery_param": "case_tests"}),
+        ("unknown_key_bare_escaping_symlink", {"mystery_param": "escape"}),
+        ("unknown_nested_key_bare_deny_token", {"opts": {"deeply": {"nested": "case_tests"}}}),
+    ],
+)
+def test_guard_r2_unknown_key_defaults_to_path_role(tmp_path: Path, label: str, tool_input: dict):
+    """R2-1 lock 3: an unknown/unanticipated key is treated as a path role
+    (fail-closed default), so a future tool parameter cannot reopen this hole in
+    a fourth shape. All three payloads use bare, slash-less values that r1's
+    `_looks_like_path` pre-gate would have skipped entirely."""
+    staging = _build(tmp_path).staging_root
+    (staging / "escape").symlink_to("/etc/passwd")
+    proc = _hook_payload(staging, {"tool_name": "Read", "tool_input": tool_input})
+    assert proc.returncode == 2, (label, proc.stdout, proc.stderr)
+
+
+def test_guard_r2_param_role_is_total_over_keys():
+    """R2-1 structural lock: `_param_role` is total — exactly two outcomes, and
+    every key that is not a declared content-role key (including `None`, the
+    key-less leaf) resolves to the checked side. Supplements, does not replace,
+    the live locks above."""
+    sys.path.insert(0, str(Path("src/agent/execution/isolation_templates").resolve()))
+    try:
+        import guard as guard_mod  # the very file that is copied into staging
+    finally:
+        sys.path.pop(0)
+    roles = {guard_mod._param_role(k) for k in guard_mod.CONTENT_ROLE_KEYS}
+    assert roles == {"content"}
+    for key in (*guard_mod.PATH_ROLE_KEYS, None, "", "mystery_param", "edits", "cell_id"):
+        assert guard_mod._param_role(key) == "path", key
+
+
 @pytest.mark.parametrize(
     ("label", "payload"),
     [

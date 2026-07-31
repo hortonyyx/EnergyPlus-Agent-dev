@@ -20,13 +20,39 @@ GUARD_VERSION = "1"
 WRITE_TOOLS = ("Write", "Edit", "MultiEdit", "NotebookEdit")
 WRITE_TARGET_KEYS = ("file_path", "notebook_path")
 WRITE_ALLOWED_DIRS = ("out", "requests")
-# S2b r1: judge by PARAMETER ROLE, not by string shape. These text-body
-# parameters are excluded from the path-token scan ENTIRELY (not one character
-# scanned). Where a write lands is governed by _write_target (real file_path), so
-# scanning the body adds zero security value while the false-positive cost is
-# twice demonstrated live (content containing any '/' — a date like 2026/07/31
-# is enough — plus a domain term such as 'grade line'). See evaluate().
+# S2b r2 (R2-1): the parameter-role classifier is a TOTAL function over keys.
+# Exactly two roles exist and every key lands in one of them — there is no third
+# "guess by string shape" branch:
+#
+#   content role  -> not one character is scanned (CONTENT_ROLE_KEYS below)
+#   path role     -> UNCONDITIONAL _lexical_check + _path_arg
+#   everything else, INCLUDING UNKNOWN KEYS -> path role (fail-closed default)
+#
+# Rationale (r1 shipped the third branch and it was a real deny->allow
+# regression): r1 kept `_looks_like_path(value)` as a pre-gate for every
+# non-content string, so a bare, slash-less, extension-less value slipped
+# through even when its key was explicitly `file_path` —
+# `Read {"file_path": "case_tests"}` went DENY (pre-batch) -> ALLOW, and a bare
+# top-level escaping symlink (`{"file_path": "escape"}`, escape -> /etc/passwd)
+# was never handed to _path_arg at all. Security must not depend on what a
+# string looks like. Making the default path-role means any parameter added by a
+# future tool is safe by default; exempting one requires adding it to
+# CONTENT_ROLE_KEYS by name, so this hole cannot come back in a fourth shape.
+#
+# Content role = text-body parameters. Where a write lands is governed by
+# _write_targets (the real file_path), so scanning the body adds zero security
+# value while the false-positive cost is twice demonstrated live (content
+# containing any '/' — a date like 2026/07/31 is enough — plus a domain term
+# such as 'grade line'). See evaluate().
 CONTENT_ROLE_KEYS = ("content", "old_string", "new_string", "new_source")
+# Documentation-only enumeration of the keys that are *known* to carry paths
+# (Read/Write/Edit/NotebookEdit/Glob/Grep). It is NOT the gate: _param_role
+# returns "path" for anything outside CONTENT_ROLE_KEYS, so this tuple can never
+# be the reason a value goes unchecked. It exists so the role table is readable
+# and so a test can pin that every listed key really classifies as "path".
+# (Glob/Grep also take `pattern`; it reaches the same treatment via the
+# fail-closed default, which is why this tuple does not have to be exhaustive.)
+PATH_ROLE_KEYS = ("file_path", "notebook_path", "path", "glob")
 DENY_TOKENS = (
     "/workspaces/EnergyPlus-Agent-dev",
     "case_tests",
@@ -141,7 +167,25 @@ def _walk_items(value, key=None):
         yield key, value
 
 
+def _param_role(key) -> str:
+    """R2-1: TOTAL classifier over parameter keys — returns ``"content"`` or
+    ``"path"``, never anything else and never "undecided".
+
+    ``None`` (a leaf that sits under no dict key at all) and every unknown key
+    classify as ``"path"``: the default is the *checked* side, so a parameter
+    nobody anticipated is scanned rather than skipped. The only way to be
+    unscanned is to appear in CONTENT_ROLE_KEYS by name.
+    """
+    return "content" if key in CONTENT_ROLE_KEYS else "path"
+
+
 def _looks_like_path(value: str) -> bool:
+    """String-shape heuristic. R2-1: this is NO LONGER a gate for tool
+    parameters — ``evaluate`` classifies by key role instead. It survives only
+    inside :func:`_validate_request_file`, where the CV-probe request JSON has
+    no fixed key schema for its non-output values and a shape test is used to
+    decide which values additionally get *normalized* (the lexical scan there is
+    already unconditional over every string)."""
     return (
         "/" in value
         or value.startswith(".")
@@ -252,23 +296,25 @@ def evaluate(payload: dict) -> tuple[str, str, list[str]]:
         ok, reason = _check_write_target(target, root)
         if not ok:
             return "deny", reason, []
-    # S2b r1: judge by PARAMETER ROLE, not by string shape. Content-role
-    # parameters (CONTENT_ROLE_KEYS) are excluded from the path-token scan
-    # ENTIRELY — not one character scanned. The write protection above
-    # (_write_target / _check_write_target) already governs WHERE a write lands,
-    # keyed on the real file_path, so scanning the text body adds zero security
-    # value; the false-positive cost is twice demonstrated live (content
-    # containing any '/' — a date like 2026/07/31 is enough — plus a domain term
-    # such as 'grade line'). The original S2b `_looks_like_path` judged the WHOLE
-    # string, so such content was still treated as a path and still denied.
+    # S2b r2 (R2-1): judge by PARAMETER ROLE — a TOTAL function, no third
+    # branch. Content-role parameters are skipped entirely (not one character
+    # scanned); EVERY other key, known or unknown, is treated as a path and gets
+    # the lexical scan plus _path_arg UNCONDITIONALLY. No string-shape test
+    # stands between a parameter and its check any more: r1's `_looks_like_path`
+    # pre-gate let bare `file_path="case_tests"` and a bare extension-less
+    # escaping symlink through, a real deny->allow regression.
+    #
+    # The write protection above (_write_targets / _check_write_target) governs
+    # WHERE a write lands, keyed on the real file_path, so skipping the text
+    # body adds no risk; the false-positive cost of scanning it is twice
+    # demonstrated live (any '/' in the content — a date like 2026/07/31 is
+    # enough — plus a domain term such as 'grade line').
     # Bash `command` is unchanged: it still goes through the full strict check.
     paths = []
     for key, value in _walk_items(tool_input):
         if not isinstance(value, str):
             continue
-        if key in CONTENT_ROLE_KEYS:
-            continue
-        if not _looks_like_path(value):
+        if _param_role(key) == "content":
             continue
         ok, reason = _lexical_check(value, root)
         if not ok:
