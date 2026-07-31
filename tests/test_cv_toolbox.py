@@ -301,6 +301,7 @@ def test_prescan_plan_schema_and_combined_overlay(tmp_path: Path):
     }
     assert data["derived_candidate_files"] == {
         "calibration_spans": "calibration_span_candidates.json",
+        "long_structural_lines": "long_structural_lines.json",
     }
     assert data["overlay_paths"] == {
         "default_structural": "combined_overlay.png",
@@ -310,6 +311,7 @@ def test_prescan_plan_schema_and_combined_overlay(tmp_path: Path):
     }
     assert data["derived_overlay_paths"] == {
         "calibration_spans": "calibration_span_overlay.png",
+        "long_structural_lines": "long_structural_overlay.png",
     }
     assert data["capability_profile"]["requested"] == "orthogonal_polygon"
     assert {"rectangular", "orthogonal_polygon"} <= set(data["capability_profile"]["supported"])
@@ -447,6 +449,8 @@ def test_prescan_same_image_is_byte_identical_across_output_roots(tmp_path: Path
         "cc_box_candidates.json",
         "cc_box_overlay.png",
         "combined_overlay.png",
+        "long_structural_lines.json",
+        "long_structural_overlay.png",
         "structural_candidates.json",
         "tick_candidates.json",
         "tick_overlay.png",
@@ -488,6 +492,53 @@ def test_prescan_sm24_calibration_spans_find_extension_line_intersections(tmp_pa
         ]
     )["results"][0]
     assert calibrated["axis_relative_deviation"] < 0.003
+
+
+def test_prescan_sm24_long_structural_view_yields_four_exterior_wall_lines(tmp_path: Path):
+    image = Path("case_tests/e2e_tests/sm24_anchor/case_data/1f_view.png")
+    candidates_path, _ = prescan_plan(image, out_dir=tmp_path / "reading", include_cc=False)
+    master = json.loads(candidates_path.read_text(encoding="utf-8"))
+    structural = json.loads(
+        (candidates_path.parent / master["candidate_files"]["structural"])
+        .read_text(encoding="utf-8")
+    )["results"]
+    merged = json.loads(
+        (candidates_path.parent / master["derived_candidate_files"]["long_structural_lines"])
+        .read_text(encoding="utf-8")
+    )["results"]
+
+    # Additive view: every merge cites original fragments and no original
+    # candidate is removed or renumbered in the structural kind view.
+    structural_ids = {item["candidate_id"] for item in structural}
+    assert len(structural) == 348
+    assert structural[0]["candidate_id"] == "1f_view:prescan-plan:001"
+    assert structural[-1]["candidate_id"] == "1f_view:prescan-plan:348"
+    assert all(set(item["source_candidate_ids"]) <= structural_ids for item in merged)
+
+    expected = [
+        ("row", 155.283, 252.105, 606.883),
+        ("row", 873.428, 252.105, 606.883),
+        ("col", 252.105, 155.283, 873.428),
+        ("col", 606.883, 155.283, 873.428),
+    ]
+    exterior = []
+    for axis, position, start, end in expected:
+        matches = [
+            item
+            for item in merged
+            if item["axis"] == axis
+            and (item["p1_px"][1] if axis == "row" else item["p1_px"][0])
+            == pytest.approx(position, abs=0.01)
+            and (item["p1_px"][0] if axis == "row" else item["p1_px"][1])
+            == pytest.approx(start, abs=0.01)
+            and (item["p2_px"][0] if axis == "row" else item["p2_px"][1])
+            == pytest.approx(end, abs=0.01)
+        ]
+        assert len(matches) == 1
+        assert matches[0]["source_fragment_count"] >= 3
+        assert matches[0]["bridged_gaps_px"]
+        exterior.extend(matches)
+    assert len(exterior) == 4
 
 
 def test_prescan_unsupported_capability_profile_raises(tmp_path: Path):

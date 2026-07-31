@@ -48,6 +48,9 @@ CLEAN_VECTOR_V1 = {
     "prescan_min_run_px": 4,
     "prescan_min_tick_len_px": 6,
     "prescan_max_tick_len_px": 40,
+    "prescan_long_line_strength_multiple": 3.0,
+    "prescan_long_line_min_px": 100,
+    "prescan_long_line_intersection_tolerance_px": 2,
 }
 
 _RECIPES = {
@@ -372,6 +375,7 @@ def _draw_prescan_overlay(image: Image.Image, candidates: list[dict[str, Any]], 
         "cc_box_candidate": "cyan",
         "tick_candidate": "magenta",
         "calibration_span_candidate": "lime",
+        "long_line_candidate": "red",
     }
     for idx, candidate in enumerate(candidates, start=1):
         color = colors[candidate["kind"]]
@@ -403,6 +407,8 @@ _PRESCAN_OVERLAY_FILES = {
 _PRESCAN_ALL_OVERLAY_FILE = "all_candidates_overlay.png"
 _CALIBRATION_SPAN_FILE = "calibration_span_candidates.json"
 _CALIBRATION_SPAN_OVERLAY_FILE = "calibration_span_overlay.png"
+_LONG_STRUCTURAL_FILE = "long_structural_lines.json"
+_LONG_STRUCTURAL_OVERLAY_FILE = "long_structural_overlay.png"
 
 
 def _write_reproducible_json(path: Path, payload: dict[str, Any]) -> None:
@@ -503,6 +509,145 @@ def _axis_summary(
     return summary
 
 
+def _line_interval(candidate: dict[str, Any]) -> tuple[float, float]:
+    if candidate["axis"] == "row":
+        return float(candidate["p1_px"][0]), float(candidate["p2_px"][0])
+    return float(candidate["p1_px"][1]), float(candidate["p2_px"][1])
+
+
+def _covers_position(
+    candidates: list[dict[str, Any]], position: float, tolerance: float
+) -> bool:
+    return any(
+        start - tolerance <= position <= end + tolerance
+        for start, end in (_line_interval(candidate) for candidate in candidates)
+    )
+
+
+def _clipped_interval_union(
+    candidates: list[dict[str, Any]], start: float, end: float
+) -> list[tuple[float, float]]:
+    intervals = sorted(
+        (max(start, lo), min(end, hi))
+        for lo, hi in (_line_interval(candidate) for candidate in candidates)
+        if hi > start and lo < end
+    )
+    merged: list[tuple[float, float]] = []
+    for lo, hi in intervals:
+        if not merged or lo > merged[-1][1]:
+            merged.append((lo, hi))
+        else:
+            merged[-1] = (merged[-1][0], max(merged[-1][1], hi))
+    return merged
+
+
+def _merged_long_line_candidates(
+    line_candidates: list[dict[str, Any]], recipe: dict[str, Any]
+) -> list[dict[str, Any]]:
+    """Bridge fragmented strong bands between reciprocal line intersections.
+
+    Endpoint support is deliberately two-sided: a row band and a column band
+    must each reach their shared intersection.  This clamps the merged segment
+    to structural junctions instead of extending it through nearby annotation
+    fragments.  Source candidates remain untouched and addressable.
+    """
+
+    min_strength = (
+        float(recipe["prominence"])
+        * float(recipe["prescan_long_line_strength_multiple"])
+    )
+    min_length = float(recipe["prescan_long_line_min_px"])
+    tolerance = float(recipe["prescan_long_line_intersection_tolerance_px"])
+    grouped: dict[tuple[str, float], list[dict[str, Any]]] = {}
+    for candidate in line_candidates:
+        if float(candidate["strength"]) < min_strength:
+            continue
+        position = (
+            float(candidate["p1_px"][1])
+            if candidate["axis"] == "row"
+            else float(candidate["p1_px"][0])
+        )
+        grouped.setdefault((candidate["axis"], position), []).append(candidate)
+
+    rows = {
+        position: candidates
+        for (axis, position), candidates in grouped.items()
+        if axis == "row"
+    }
+    cols = {
+        position: candidates
+        for (axis, position), candidates in grouped.items()
+        if axis == "col"
+    }
+    row_intersections: dict[float, list[float]] = {position: [] for position in rows}
+    col_intersections: dict[float, list[float]] = {position: [] for position in cols}
+    for row_position, row_candidates in sorted(rows.items()):
+        for col_position, col_candidates in sorted(cols.items()):
+            if _covers_position(
+                row_candidates, col_position, tolerance
+            ) and _covers_position(col_candidates, row_position, tolerance):
+                row_intersections[row_position].append(col_position)
+                col_intersections[col_position].append(row_position)
+
+    merged_candidates: list[dict[str, Any]] = []
+    for axis, groups, intersections in (
+        ("row", rows, row_intersections),
+        ("col", cols, col_intersections),
+    ):
+        for position, source_group in sorted(groups.items()):
+            supports = sorted(set(intersections[position]))
+            if len(supports) < 2:
+                continue
+            start, end = supports[0], supports[-1]
+            if end - start < min_length:
+                continue
+            source_candidates = [
+                candidate
+                for candidate in source_group
+                if _line_interval(candidate)[1] > start
+                and _line_interval(candidate)[0] < end
+            ]
+            intervals = _clipped_interval_union(source_candidates, start, end)
+            coverage = sum(hi - lo for lo, hi in intervals)
+            gaps = [
+                [intervals[index][1], intervals[index + 1][0]]
+                for index in range(len(intervals) - 1)
+                if intervals[index + 1][0] > intervals[index][1]
+            ]
+            p1 = [start, position] if axis == "row" else [position, start]
+            p2 = [end, position] if axis == "row" else [position, end]
+            merged_candidates.append(
+                {
+                    "kind": "long_line_candidate",
+                    "axis": axis,
+                    "p1_px": p1,
+                    "p2_px": p2,
+                    "length_px": end - start,
+                    "strength": float(source_group[0]["strength"]),
+                    "fwhm_px": float(source_group[0]["fwhm_px"]),
+                    "source_candidate_ids": [
+                        candidate["candidate_id"] for candidate in source_candidates
+                    ],
+                    "source_fragment_count": len(source_candidates),
+                    "support_coverage_px": coverage,
+                    "support_ratio": coverage / (end - start),
+                    "bridged_gaps_px": gaps,
+                    "orthogonal_intersections_px": supports,
+                    "merge_method": "reciprocal_orthogonal_intersections_v1",
+                }
+            )
+    return sorted(
+        merged_candidates,
+        key=lambda candidate: (
+            candidate["axis"],
+            candidate["p1_px"][1],
+            candidate["p1_px"][0],
+            candidate["p2_px"][1],
+            candidate["p2_px"][0],
+        ),
+    )
+
+
 def _prescan(
     image: str | Path,
     *,
@@ -569,6 +714,26 @@ def _prescan(
             "crop_chain_id": "root",
         }
 
+    long_structural_lines = _merged_long_line_candidates(
+        [
+            candidate
+            for candidate in candidates
+            if candidate["kind"] == "line_band_candidate"
+        ],
+        recipe,
+    )
+    for idx, candidate in enumerate(long_structural_lines, start=1):
+        candidate["candidate_id"] = f"{source.stem}:{tool}:long_line:{idx:03d}"
+        candidate["coord_space"] = "source_px"
+        candidate["geometry"] = _geometry(candidate)
+        candidate["provenance"] = {
+            "tool": tool,
+            "tool_version": TOOL_VERSION,
+            "recipe_id": recipe["recipe_id"],
+            "source_image_sha256": source_hash,
+            "crop_chain_id": "root",
+        }
+
     prescan_dir = evidence_dir(out_dir, source) / label
     candidates_path = prescan_dir / "candidates.json"
     overlay_path = prescan_dir / _PRESCAN_OVERLAY_FILES["line_band_candidate"]
@@ -594,6 +759,7 @@ def _prescan(
         },
         "derived_candidate_files": {
             "calibration_spans": _CALIBRATION_SPAN_FILE,
+            "long_structural_lines": _LONG_STRUCTURAL_FILE,
         },
         "overlay_paths": {
             "default_structural": overlay_path.name,
@@ -603,6 +769,7 @@ def _prescan(
         },
         "derived_overlay_paths": {
             "calibration_spans": _CALIBRATION_SPAN_OVERLAY_FILE,
+            "long_structural_lines": _LONG_STRUCTURAL_OVERLAY_FILE,
         },
         "tool": tool,
         "tool_version": TOOL_VERSION,
@@ -630,6 +797,7 @@ def _prescan(
             "cc_box_candidate_count": len(cc_candidates),
             "tick_candidate_count": len(tick_candidates),
             "calibration_span_candidate_count": len(calibration_spans),
+            "long_structural_line_count": len(long_structural_lines),
             "axis_summary": _axis_summary(peaks, candidates),
         },
     }
@@ -653,6 +821,15 @@ def _prescan(
             _CALIBRATION_SPAN_OVERLAY_FILE,
         ),
     )
+    _write_reproducible_json(
+        prescan_dir / _LONG_STRUCTURAL_FILE,
+        _derived_candidate_payload(
+            payload,
+            "long_line_candidate",
+            long_structural_lines,
+            _LONG_STRUCTURAL_OVERLAY_FILE,
+        ),
+    )
 
     _draw_prescan_overlay(img, candidates_by_kind["line_band_candidate"], overlay_path)
     _draw_prescan_overlay(img, candidates, all_overlay_path)
@@ -666,6 +843,11 @@ def _prescan(
         img,
         calibration_spans,
         prescan_dir / _CALIBRATION_SPAN_OVERLAY_FILE,
+    )
+    _draw_prescan_overlay(
+        img,
+        long_structural_lines,
+        prescan_dir / _LONG_STRUCTURAL_OVERLAY_FILE,
     )
     return candidates_path, overlay_path
 

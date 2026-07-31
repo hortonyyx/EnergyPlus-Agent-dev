@@ -130,7 +130,67 @@ tests/test_gt_discipline.py tests/test_isolation.py`；实跑 **246 passed**。
 
 ## G-3 · 预扫共线长线视图
 
-待实测确认根因后施工。
+### 根因实测（先于施工）
+
+源：本轮 pilot 未筛的
+`0_reading/cv_evidence/1f_view/prescan/{candidates,structural_candidates}.json`
++ `case_data/1f_view.png`；以 structural peak band 的原 `p1_px/p2_px` 计数，并在
+FWHM 带内对每个 gap 做 RGB 分类，未用 GT。
+
+| 外墙 peak | 交点夹定跨度 | 原碎片数 | 最长碎片 | gap 数/长度 px | gap 像素证据 |
+|---|---:|---:|---:|---|---|
+| North row `y=155.283` | `x=252.105→606.883` (354.8) | 3 | 92 | 2: 56,176 | 56 px 深色门洞；176 px `72.1%` cyan 窗带 |
+| South row `y=873.428` | 同上 | 4 | 91 | 3: 57,31,57 | 两个 gap 各 `54.9%` cyan 窗；31 px `78.7%` 深色门洞 |
+| West col `x=252.105` | `y=155.283→873.428` (718.1) | 6 | 111 | 5: 55,44,56,59,175 | 5 个 gap 的 cyan 占比 `69.4%–73.0%`，全是窗带 |
+| East col `x=606.883` | 同上 | 5 | 203.4 | 4: 55,44,175,56 | 前三个 cyan `72.1%–72.6%`；末个 `94.1%` 深色门洞 |
+
+合计：四条外墙被分成 **18** 碎片，中间正好 **14** 个洞口 =
+**11 window + 3 door**，与图上开口类型/数量逐一吻合。
+
+对派工单根因推测的校正：
+
+- **确认**：灰度 mask 主动排除 cyan 窗线，门洞是背景色，所以 `_runs`
+  必然在每个窗/门处分段；之后确实**没有任何结构线重组层**。
+- **否证两个细节**：`merge_gap_px=2` 只在 `window_cc_detector` 的 bbox merge 路径使用，
+  prescan line-band 从未读该参数；`min_run_px=4` 只删小于 4 px 的噪声，上述
+  18 段均存活，不是造成断点的原因。四墙夹定跨度内的 gap 也没有一个
+  由 dimension-line crossing 造成；尺寸注记造成的碎片在建筑跨度外。
+
+因此核心根因「开口使 mask 断段 + 无重组」得到实测确认，但不把
+`merge_gap_px` / dimension crossing 的原推测写成事实。
+
+### 施工
+
+- 新增派生视图 `long_structural_lines.json` + `long_structural_overlay.png`；
+  原 `candidates.json` / `structural_candidates.json` 对象、ID、顺序原样保留。
+- 合并法是确定性 `reciprocal_orthogonal_intersections_v1`：只看 strength 至少
+  `3 × recipe prominence`、长度至少 100 px 的带；row/col 必须各自有原碎片到达
+  同一交点，再用最远两个双向交点夹定长线端点。这使图外尺寸文字碎片
+  不能把墙无限外伸，同时能跨过任意宽的窗/门洞。
+- 每条长线带 `source_candidate_ids`、`source_fragment_count`、
+  `support_coverage_px/support_ratio`、`bridged_gaps_px`、正交交点列表与 method；
+  所有证据可反查回原碎片。
+
+### sm24 验收
+
+实跑 `prescan_plan(case_tests/e2e_tests/sm24_anchor/case_data/1f_view.png,
+include_cc=False)`：长线视图共 10 条（含内部结构线），其中四条外墙为：
+
+| candidate | 像素长线 | 原碎片 | coverage / ratio | 跨过 gap |
+|---|---|---:|---:|---|
+| `long_line:001` | col `(252.105,155.283)→(252.105,873.428)` | 6 | 329.1 / 0.4583 | 5 |
+| `long_line:003` | col `(606.883,155.283)→(606.883,873.428)` | 5 | 388.1 / 0.5405 | 4 |
+| `long_line:005` | row `(252.105,155.283)→(606.883,155.283)` | 3 | 122.8 / 0.3461 | 2 |
+| `long_line:010` | row `(252.105,873.428)→(606.883,873.428)` | 4 | 209.8 / 0.5913 | 3 |
+
+**验收结论：sm24 plan 已产出 4/4 连续外墙线**，四线端点在互证角点
+精确闭合；它们的 18 个原碎片全部仍可由 `source_candidate_ids` 达到。
+
+### 锁与 neuter
+
+| 锁 | 定点破坏 | 实跑变红测试 | 还原后 |
+|---|---|---|---|
+| sm24 4/4 外墙长线 + 原 348 碎片不改号且可达 | `_prescan` 在呼叫 `_merged_long_line_candidates` 的定点把 `long_structural_lines` 改为 `[]` | `tests/test_cv_toolbox.py::test_prescan_sm24_long_structural_view_yields_four_exterior_wall_lines`，实跑 `1 failed`，首条预期外墙 `len(matches) == 0` | 还原后受影响子集 `247 passed` |
 
 ## 最终验证
 
