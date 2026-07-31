@@ -12,8 +12,8 @@
 |---|---|---|
 | Item 1 · bounded batch probing | 已完成 | `ef45bda` `7.31_BoundedBatchProbing` |
 | Item 2 · prescan split presentation | 已实现、受影响子集与 10 个 neuter 均通过 | 待本 item 边界提交 |
-| 70-shape DENY/ALLOW differential | 待两 item 完成后执行 | — |
-| 全仓 | 待交付前唯一一次全仓 | — |
+| 70-shape DENY/ALLOW differential | 已完成：core 70 零变化；batch extension 仅授权 legal batch 一处 D→A | 见 §3.2 |
+| 全仓 | **1968 passed / 10 xfailed / 0 failed** | 见 §3.1 |
 
 ## 1. Item 1 · bounded batch probing
 
@@ -185,8 +185,99 @@ split views 的两段守恒；P10 同一破坏复跑后已真红。
 
 ## 3. 最终安全差分、全仓与受保护资产
 
-待两 item 完成后填写。
+### 3.1 全仓
+
+命令：`python -m pytest -q`
+
+结果：**1968 passed / 10 xfailed / 0 failed**，150 warnings，298.59s。相对控制器确认的
+1951 / 10 / 0 基线净增 **17 passed**，零回归。`tests/test_gt_discipline.py` 的 lexical gate 已由
+这次全仓实际覆盖，不以 affected subset 代替。
+
+### 3.2 real-subprocess guard differential
+
+方法完全复用前任留下的 70-shape matrix 与 runner：由当前 production
+`build_isolation_workspace` 建真 staging，seed 真 request/symlink 夹具；`git show` 取本单基线
+`cd074a9:src/agent/execution/isolation_templates/guard.py` 放在**同一 staging 根**为
+`guard_base.py`，base/HEAD 对每个 payload 均以真实 Python subprocess 驱动。
+
+Core 70 结果：
+
+```text
+cd074a9 -> HEAD (70 shapes)
+DENY -> ALLOW : 0
+ALLOW -> DENY : 0
+unchanged     : 70 (deny/deny=56, allow/allow=14)
+```
+
+为避免“原 70 没有 batch，故量不到本单授权面”的空证明，另跑 10-shape batch extension：合法
+2-request batch、第二项 output-role 越界、第二项裸 symlink 越界、33 项超界、重复 ID、entry 多 key、
+坏 JSON、非 JSON suffix、compound pipe、other script。逐项结果：
+
+```text
+DENY -> ALLOW  X01 legal bounded batch                 （本单唯一授权）
+DENY -> DENY   X02 invalid second output role
+DENY -> DENY   X03 invalid second bare symlink
+DENY -> DENY   X04 above size bound
+DENY -> DENY   X05 duplicate stable id
+DENY -> DENY   X06 extra entry key
+DENY -> DENY   X07 malformed JSON
+DENY -> DENY   X08 non-JSON suffix
+DENY -> DENY   X09 compound shell token
+DENY -> DENY   X10 other executable script
+```
+
+结论：**未经授权 DENY→ALLOW = 0**。唯一 D→A 是本单明确授权的合法 bounded batch form；已有
+single direct / legacy request / write/read/path-role / compound-token 边界在 core 70 上逐项不变。
+
+### 3.3 提交、文件范围与受保护资产
+
+提交：
+
+- `ef45bda` `7.31_BoundedBatchProbing`
+- `afa73cf` `7.31_PrescanKindSplit`
+
+相对 `cd074a9` 的改动文件全集（最终 audit-log commit 仍只会改下列既有 log）：
+
+```text
+AI_agent/logs/experiments/2026-07-31_sm24_e2e_retry/reader_directive.md
+AI_agent/logs/reviews/execution/2026-07-31_reading_latency.md
+scripts/tool_scripts/cv_probe.py
+src/agent/execution/isolation_templates/guard.py
+src/agent/execution/isolation_templates/run_cv_probe.py
+src/agent/reading/cv_toolbox/recipes.py
+tests/test_cv_toolbox.py
+tests/test_isolation.py
+```
+
+`git diff --quiet cd074a9..HEAD -- src/agent/judge case_tests/test_baseline/gt AI_agent/CLAUDE.md`
+→ exit 0。即 `src/agent/judge/**`、`case_tests/test_baseline/gt/**`、`AI_agent/CLAUDE.md` 相对本单
+基线 byte-stable。`AI_agent/CLAUDE.md` SHA-256 =
+`57c5b3ab922bec27e07802fb856bcff332fe4aeac19cac520b567dc1f0f9f101`；judge + protected GT 整树
+组合 hash = `c91460e17fc2a0fc1659daedcb6f6d77461e6e1301c3c436c0c99aff33e9aaa0`。
+
+`src/agent/execution/isolation.py` 生产码未改；copy-guard 兼容由真 build test 实证。
+
+### 3.4 latency 估算
+
+在前任 direct-form 已落地的 HEAD，一个 20-probe sweep = **20 个顺序 Bash round trips**。
+现在典型流程 = **1 个 Write（整份 batch JSON）+ 1 个 Bash（一次返回 20 份完整结果）= 2 个顺序
+round trips**，约 **10× 减少**；若 batch file 已由 executor/staging 预置，则只需 **1**。每项仍真跑、
+仍有自己的 ordinary sidecar，logical probe 数仍是 20，不是 1。
 
 ## 4. Review-ask
 
-待最终填写。
+1. **请重点审 guard 的复用链**：`--request` 与每个 `--batch` inner request 是否都确实只经
+   `_validate_probe_request_data` → `_validate_probe_params` 一条链；尤其确认没有把 stable `id`
+   混成自由路径参数，也没有让 batch envelope 绕过 path-role/output-root。
+2. **请审 wrapper 的 all-before-any 边界**：`cv_argvs` 与 `planned` 必须保持 eager list；neuter
+   改 lazy 后第二项非法时第一项确实落了 sidecar，锁已抓住。这里未来“为了省内存改 generator”会
+   直接破坏 atomic validation。
+3. **请裁定 stdout full-result trade-off**：batch 一次回完整 N 个 sidecar JSON，满足 one-read 且
+   wall-clock 优先，但对 prescan-heavy batch 会放大 token payload。当前按用户已拍板的 latency > token
+   cost 取舍；若以后改成只回 manifest path，会多一个 Read round trip，不能无声更改。
+4. **请审 prescan compatibility naming**：`candidates.json` 保留全量、旧 all-overlay 改名为
+   `all_candidates_overlay.png`，而旧名 `combined_overlay.png` 现在按要求只画 structural。master
+   `overlay_path` 改为相对文件名以满足跨 output-root byte identity；若有未被测试覆盖的外部 consumer
+   把它当 cwd-relative 而不是 candidates-file-relative，需要在合并前点名。
+5. **请复核 anti-drop 三段守恒**：detector diagnostics → master counts → 三 kind views。P10 已实抓
+   一把“master 与 split 一起少所以仍相等”的假锁；这条断言是 Item 2 最关键的非空证明。
