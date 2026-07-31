@@ -129,7 +129,7 @@
 |---|---|---|
 | 缺件 fail-closed | 删 `_load_isolated_views` 里 missing 检查块 | `test_merge_per_image_missing_is_rejected` **FAILED**（KeyError，非 ValueError "missing"） |
 | 多件 fail-closed | 删 extra 检查块 | `test_merge_per_image_extra_is_rejected` **FAILED**（DID NOT RAISE，多件被静默忽略、merge 推进） |
-| 正例聚合 | `glob("*_view.json")` 改 `glob("*_NOPE.json")` | `test_merge_assembles_per_image_views_byte_equal_and_accepts` **FAILED**（ValueError: missing all） |
+| 正例聚合 / glob 枚举 | `glob("*_view.json")` 改 `glob("*_NOPE.json")` | **2 FAILED**：`test_merge_assembles_per_image_views_byte_equal_and_accepts`（ValueError: missing all）+ `test_merge_per_image_extra_is_rejected`（预期 `unexpected`，实得 `missing`） |
 | 零内容改动（==） | 聚合时给每个 view 注入 `{"_mutated": True, **…}` | 同正例测试 **FAILED**（`assembled["views"][eid] == view` AssertionError） |
 
 四 neuter 均工作树临时破坏→跑→还原（isolation.py 回到 +53/−12 S4 态、无残留），还原后正例 **1 passed**。
@@ -162,7 +162,7 @@
 | S3 | 落点↔守卫 | `_is_run_prescan_path` 强制 `return False` | 2 FAILED（parity 锁 + 既有 isolation 测试） |
 | S4 | 缺件 | 删 missing 检查块 | 1 FAILED（KeyError 非 ValueError） |
 | S4 | 多件 | 删 extra 检查块 | 1 FAILED（DID NOT RAISE） |
-| S4 | 正例聚合 | `glob("*_view.json")`→`glob("*_NOPE.json")` | 1 FAILED（missing all） |
+| S4 | 正例聚合 / glob 枚举 | `glob("*_view.json")`→`glob("*_NOPE.json")` | **2 FAILED**：`test_merge_assembles_per_image_views_byte_equal_and_accepts` + `test_merge_per_image_extra_is_rejected` |
 | S4 | 零改动(==) | 聚合时注入 `{"_mutated":True,**…}` | 1 FAILED（== AssertionError） |
 
 全部 neuter 工作树临时破坏→跑→还原（每 Slice commit 前文件回净、无残留）。
@@ -217,3 +217,165 @@
 - `tests/test_isolation.py`（4 把 r1 锁）
 - 本执行日志（本节）
 
+
+## 返工 r2 · sol 对抗审四项 MAJOR + 三项 MINOR 收口 — DONE
+
+> 返工单：`AI_agent/logs/reviews/request/2026-07-31_isolation_scaffold_rework_r2.md`
+> 施工交接：前一施工席完成并提交 R2-1～R2-5 后额度中断；sol 经主控明确切换为 builder，续做 R2-2 E2E 锁、R2-6、全轮 neuter 复核与本日志。独立验收仍由主控执行。
+> r2 起点：`6da9136`（`40e1470^`）；提交：`40e1470`、`141f019`、`e3f3a3a`、`05ae23e`、`eb6c9e2`、`2676e04`、`5ecebb9`。
+
+### R2-1 · 参数角色全函数（MAJOR-2）
+
+**实现**
+- `guard.py` 的 `_param_role(key)` 只有 `content` / `path` 两种结果：`CONTENT_ROLE_KEYS` 明列的文本体参数完全免扫；其余 key（包括未知 key、`None`）全部按 path 角色处理。
+- `evaluate()` 对 path 角色无条件执行 `_lexical_check` + `_path_arg`，不再以 `_looks_like_path()` 猜形状；`_looks_like_path()` 只留在 CV request 的非输出参数规范化分支。
+- 新锁覆盖 `file_path="case_tests"` 与 `case_tests/x`、`escape` 与 `./escape`、未知/嵌套未知 key，以及 `_param_role` 的结构全函数；r1 的 prose ALLOW 锁保留。
+
+**定点 neuter 实跑**
+- 复原 r1 的形状门（path 角色先走 `_looks_like_path()`）后运行：
+
+```text
+pytest -q tests/test_isolation.py -k 'guard_r2_bare or guard_r2_unknown or guard_r2_param_role or guard_r1_allows_reading_summary or guard_r1_excludes_content'
+```
+
+结果 **5 failed, 9 passed**；真实变红：
+`test_guard_r2_bare_and_slashed_forbidden_path_both_denied[case_tests]`、
+`test_guard_r2_bare_extensionless_escaping_symlink_denied[escape]`、
+`test_guard_r2_unknown_key_defaults_to_path_role[unknown_key_bare_deny_token-tool_input0]`、
+`test_guard_r2_unknown_key_defaults_to_path_role[unknown_key_bare_escaping_symlink-tool_input1]`、
+`test_guard_r2_unknown_key_defaults_to_path_role[unknown_nested_key_bare_deny_token-tool_input2]`。
+带斜杠的对照形状与 r1 prose ALLOW 锁保持绿，准确复现原洞而非泛化破坏。
+- 再把 `_param_role()` 定点 neuter 为恒 `return "content"`，同命令结果 **8 failed, 6 passed**：上述三个 live 测试族的 2+2+3 个参数全部红，另有 `test_guard_r2_param_role_is_total_over_keys` 红。证明结构锁和每种 live 形状都不是空锁。
+
+### R2-2 · helper 输出副作用约束 + 真 E2E 锁（MAJOR-1）
+
+**实现**
+- 审计 `run_cv_probe.py` 的全部 `ALLOWED_TOOLS` 后，确认唯一输出落点参数是 `out_dir`；guard 的 `_validate_request_file()` 对该角色执行 `_path_arg` 后再要求落入真实 `out/**`，`requests/**` 只承载 request JSON，不是 helper 输出根。
+- staged wrapper `isolation_templates/run_cv_probe.py` 独立执行同一 `out/**` 边界；输入参数仍只要求在 staging 内。
+- E2E 锁 `_staging_snapshot()` 对整棵 staging 的目录、文件内容哈希与 symlink target 建签名；`_protected_tree_diff()` 同时抓 added / removed / rewritten。唯一显式豁免为：
+  - `_E2E_WRITABLE_PREFIXES = ("out/", "requests/")`
+  - `_E2E_EXEMPT_NAMES = ("access_log.jsonl",)`
+  - `_E2E_EXEMPT_PARTS = ("__pycache__",)`
+- `test_e2e_hook_then_helper_changes_only_writable_tree` 构造真实 staging/request，先跑 hook，只对 hook ALLOW 的形状执行真实 helper，再比较全树。`inside_out` 还要求 helper 真在 `out/**` 新增文件，防止“不执行 helper 也绿”的空锁。`test_wrapper_independently_refuses_outside_output_and_tree_is_unchanged` 绕过 hook 直接核 wrapper。
+
+**正常态实跑**
+
+```text
+pytest -q tests/test_isolation.py -k 'request_output_dir_outside_writable_root or wrapper_independently_refuses_outside_output or e2e_hook_then_helper_changes_only_writable_tree'
+```
+
+结果 **11 passed**。
+
+**定点 neuter 实跑**
+
+| 破坏点 | 命令 / 结果 | 真实变红测试 |
+|---|---|---|
+| guard `_check_output_target()` 恒 ALLOW | 上述 11-test 命令：**9 failed, 2 passed** | `test_guard_denies_request_output_dir_outside_writable_root` 的 7 参数 + `test_e2e_hook_then_helper_changes_only_writable_tree[outside_tools-tools-False]` + `[outside_reference-reference-False]` |
+| wrapper `_resolve_output()` 退回普通 `_resolve()` | 上述 11-test 命令：**1 failed, 10 passed** | `test_wrapper_independently_refuses_outside_output_and_tree_is_unchanged`；全树 diff 真看到 `added:tools/**`（共 5 个受保护条目），不是只看返回码 |
+| wrapper 在 `cv_main(cv_argv)` 调用点直接 `return 0`（成功但不执行） | `pytest -q tests/test_isolation.py -k 'e2e_hook_then_helper_changes_only_writable_tree'`：**1 failed, 2 passed** | `test_e2e_hook_then_helper_changes_only_writable_tree[inside_out-out/cv-True]`，报 `the helper wrote no files under out/ — the E2E diff would be vacuous` |
+
+### R2-3 · 可写根必须是真目录且自解析（MAJOR-3）
+
+**实现**
+- `_writable_root()` 要求 `out/`、`requests/` 均为真实目录、非 symlink、`resolve(strict=True)` 等于字面路径且仍在 staging 内。
+- `_assert_writable_roots()` 每次 `evaluate()` 都重验授权根；任一异常时整次调用 fail-closed，不能跳过坏根后继续。
+- 锁同时覆盖 build 前预置 `out -> tools` / `requests -> tools`，以及正常 build 后把 `out` 换成 symlink。
+
+**定点 neuter 实跑**：把 `_writable_root()` 退回 `(root / name).resolve(strict=False)` 后：
+
+```text
+pytest -q tests/test_isolation.py -k 'allowed_root_is_a_symlink or allowed_root_symlinked_after_build'
+```
+
+结果 **3 failed**：
+`test_guard_denies_writes_when_an_allowed_root_is_a_symlink[out]`、
+`test_guard_denies_writes_when_an_allowed_root_is_a_symlink[requests]`、
+`test_guard_denies_writes_when_allowed_root_symlinked_after_build`。
+
+### R2-4 · kickoff 指针一致性锁改为解析实值（MAJOR-4）
+
+**实现**
+- `test_build_kickoff_points_at_staged_worked_example_path` 用 `_KICKOFF_POINTER_RE.search()` 从 kickoff 的 `Canonical worked-example file:` 语法槽解析实际路径，随后对解析值执行 `is_file()` 与字节同一性检查，不再拿测试常量自证。
+
+**定点 neuter 实跑**：仅把生产 kickoff 指针改成 `WORKED_EXAMPLE_STAGED + ".missing"` 后：
+
+```text
+pytest -q tests/test_isolation.py -k 'build_stages_worked_example_byte_identical_and_in_manifest or build_kickoff_points_at_staged_worked_example_path or worked_example_staged_path_is_not_guard_denied'
+```
+
+结果 **1 failed, 2 passed**；唯一变红为 `test_build_kickoff_points_at_staged_worked_example_path`，错误明确指向解析出的 `reference/worked_example_plan.json.missing` 不存在。
+
+### R2-5 · 多个 write target key 一律拒绝（MINOR-1）
+
+**实现**
+- `_write_targets()` 先收集所有 present target key；出现两个或以上即报 `ambiguous write target`，单目标才解析和校验，不能再由首个 key 遮蔽另一个落点。
+- 参数锁覆盖合法 `file_path` 遮蔽非法 `notebook_path`、反向顺序、以及两个目标都合法但调用语义仍歧义。
+
+**定点 neuter 实跑**：删除 `len(present) > 1` 拒绝，并退回只返回 `present[0]` 后：
+
+```text
+pytest -q tests/test_isolation.py -k 'guard_denies_ambiguous_multiple_write_targets'
+```
+
+结果 **3 failed**：
+`test_guard_denies_ambiguous_multiple_write_targets[decoy_file_path_masks_notebook_path-tool_input0]`、
+`test_guard_denies_ambiguous_multiple_write_targets[decoy_notebook_path_masks_file_path-tool_input1]`、
+`test_guard_denies_ambiguous_multiple_write_targets[both_targets_legal_still_ambiguous-tool_input2]`。
+第一、第三形状直接变 ALLOW；第二形状虽由非法 `file_path` 得到 DENY，但理由退化为 `write target must be under out/ or requests/`，仍被锁要求的歧义拒绝语义抓住。
+
+### R2-6 · 既存损坏 aggregate 必须响亮失败 + S4 表更正（MINOR-2 / MINOR-3）
+
+**实现**
+- `_load_isolated_views()` 只在 `out/output.json` **不存在**时进入 per-image assembly。
+- 文件存在时只读一次：非法 JSON 报 `aggregate output.json is not valid JSON`；外形不是 `{"views": dict}` 报 `aggregate output.json must be shaped ...`。即使所有 per-image 文件齐全，也不把 corruption 解释成 absence。
+- 新锁 `test_merge_existing_corrupt_aggregate_is_rejected_instead_of_assembled` 参数化 `invalid_json` / `wrong_shape`，并断言失败前不创建 attempt。
+
+**正常态实跑**
+
+```text
+pytest -q tests/test_isolation.py -k 'merge_existing_corrupt_aggregate or merge_assembles_per_image or merge_per_image_missing or merge_per_image_extra or merge_single_aggregate'
+```
+
+结果 **6 passed**。
+
+**定点 neuter 实跑**
+- 把 aggregate 存在分支改成 `if False and output_path.exists():`，同一 6-test 命令结果 **2 failed, 4 passed**：
+  - `test_merge_existing_corrupt_aggregate_is_rejected_instead_of_assembled[invalid_json]`
+  - `test_merge_existing_corrupt_aggregate_is_rejected_instead_of_assembled[wrong_shape]`
+  两者均为 `DID NOT RAISE`。
+- 独立复跑旧 S4 glob neuter：
+
+```text
+pytest -q tests/test_isolation.py -k 'merge_assembles_per_image_views_byte_equal_and_accepts or merge_per_image_missing_is_rejected or merge_per_image_extra_is_rejected or merge_single_aggregate_still_accepted_alongside_per_image'
+```
+
+把 `glob("*_view.json")` 改为 `glob("*_NOPE.json")` 后结果 **2 failed, 2 passed**，真实红测是：
+`test_merge_assembles_per_image_views_byte_equal_and_accepts` 与
+`test_merge_per_image_extra_is_rejected`。前面 S4 局部表和总账现已一并从“1 FAILED”更正为“2 FAILED”。
+
+### r2 跑测、范围与交付
+
+- 受影响映射：
+
+```text
+python scripts/tool_scripts/affected_tests.py --changed src/agent/execution/isolation.py tests/test_isolation.py
+```
+
+输出 `tests/test_affected_tests_map.py tests/test_cv_toolbox.py tests/test_isolation.py`；实跑 **144 passed**。
+- 最终全仓只跑一次：
+
+```text
+pytest -q
+```
+
+结果 **1908 passed / 10 xfailed / 0 failed**（291.12s），相对主控 r2 基线 `1881 passed / 10 xfailed / 0 failed` 净增 27 tests，零回归。
+- 范围核：
+
+```text
+git diff --quiet 40e1470^..HEAD -- src/agent/judge case_tests/test_baseline/gt AI_agent/CLAUDE.md
+```
+
+退出码 **0**；r2 未改判卷批、受保护人签 GT 树或 `AI_agent/CLAUDE.md`。
+- r2 改动文件：`src/agent/execution/isolation.py`、`src/agent/execution/isolation_templates/guard.py`、`src/agent/execution/isolation_templates/run_cv_probe.py`、`tests/test_isolation.py`、本执行日志。`scripts/tool_scripts/cv_probe.py` 无 r2 改动。
+- 所有 neuter 均只在 `/tmp/isolation-scaffold-r2-neuter.lXmNfo/repo` 做；结束时 `isolation.py`、`guard.py`、`run_cv_probe.py`、`tests/test_isolation.py` 分别与主工作树 `cmp` 一致。主工作树未做实验性破坏，未写 `case_tests/test_baseline/gt/**`。
+- **偏差 / review-ask（r2）**：none。四个已确认 MAJOR 出口、MINOR-1、R2-2 E2E lock 与 R2-6 均按返工单闭合；请主控按既定独立 gate 复跑。
