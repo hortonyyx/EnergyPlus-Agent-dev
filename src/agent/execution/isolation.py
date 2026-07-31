@@ -6,6 +6,7 @@ import fcntl
 import hashlib
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -63,6 +64,39 @@ SEMANTIC_WARNING_TOKENS = (
     "grade",
     "score",
     "attempt",
+)
+
+FEEDBACK_FORBIDDEN_SUBSTRINGS = (
+    "gt" + ".json",
+    "test_baseline",
+    "case_tests",
+    "/workspaces/energyplus-agent-dev",
+    "attempts/",
+    "judge.json",
+    "judge_rubric.md",
+    "verdict",
+)
+
+# Concrete judge artifacts produced by run_stage/report assembly and named in
+# judge packets/score sidecars. Keep these shapes narrow: ``grade line`` and
+# other architectural prose are reader input, while these names expose
+# controller-only judgment material.
+FEEDBACK_FORBIDDEN_PATTERNS = (
+    (
+        "grade artifact filename",
+        re.compile(r"(?<![a-z0-9_])grade\.(?:png|json)(?![a-z0-9_])"),
+    ),
+    ("grade path segment", re.compile(r"(?:^|[/\\])grade(?:[/\\]|$)")),
+    ("stage grade artifact", re.compile(r"[a-z0-9]+_grade\.(?:png|json)(?![a-z0-9_])")),
+    ("grade artifact field", re.compile(r'''["']grade["']\s*:''')),
+    (
+        "grade sidecar field",
+        re.compile(r"(?<![a-z0-9_])grade_(?:kind|png_sha256|renderer)(?![a-z0-9_])"),
+    ),
+    (
+        "report grade field",
+        re.compile(r"(?<![a-z0-9_])(?:reading|correction)_grade(?![a-z0-9_])"),
+    ),
 )
 
 
@@ -209,19 +243,12 @@ def build_isolation_workspace(
 
 def check_feedback_text(text: str) -> None:
     lowered = text.lower()
-    for token in (
-        "gt" + ".json",
-        "test_baseline",
-        "case_tests",
-        "/workspaces/energyplus-agent-dev",
-        "attempts/",
-        "judge.json",
-        "judge_rubric.md",
-        "verdict",
-        "grade",
-    ):
+    for token in FEEDBACK_FORBIDDEN_SUBSTRINGS:
         if token in lowered:
             raise ValueError(f"feedback contains forbidden token: {token}")
+    for label, pattern in FEEDBACK_FORBIDDEN_PATTERNS:
+        if pattern.search(lowered):
+            raise ValueError(f"feedback contains forbidden pattern: {label}")
 
 
 def write_feedback(staging_root: Path, text: str, *, name: str = "feedback.md") -> Path:

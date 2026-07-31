@@ -304,3 +304,32 @@ Verification:
 - affected subset: 205 passed
 - full suite: 1969 passed, 10 xfailed, 0 failed (150 warnings)
 - commit title: `7.31_KickoffMatchesLiveProbeForms`
+
+## 6. Feedback prompt-channel `grade` false positive
+
+`check_feedback_text()` no longer treats bare architectural `grade` prose as contamination. The
+replacement names concrete judge-output shapes found in the repository: per-attempt/per-stage
+`grade.png`, report `<stage>_grade.png`, grade path segments, the judge-packet `"grade"` field,
+score-sidecar `grade_{kind,png_sha256,renderer}` fields, and report `{reading,correction}_grade`
+fields. `grade.json` remains covered as the existing generated-judgment filename shape. The prior
+non-grade tokens remain unchanged; review found no other architectural domain word among them.
+Bare `verdict` is intentionally retained because it denotes judge/review role material, while the
+others are repository paths or artifact filenames/path fragments.
+
+Locks include a real `spawn_command(directive=...)` containing “exterior grade line”, artifact
+refusals, all prior refusal tokens in one parameter table, and a paired parameterized neuter-clean
+test that removes only the intended matcher for every refusal fixture. Explicit production
+mutations also proved the three requested locks fail when bare `grade`, the `grade.png` pattern, or
+the retained `verdict` protection is respectively altered.
+
+Known limitation (registered only; not fixed in this batch): this prompt-channel control remains
+lexical/shape-based. It cannot detect a controller pasting bare ground-truth answer coordinates
+without any telltale answer, judge, path, filename, or field token. That protection gap requires a
+separate later design batch.
+
+Verification before the final full-suite run: affected subset selected by `affected_tests.py` =
+233 passed; focused feedback/directive locks = 30 passed.
+
+Final full suite: 1997 passed, 10 xfailed, 0 failed (150 warnings). The +28 passes from the
+1969-pass baseline are the net expansion from one prior feedback test to 29 focused/parameterized
+locks.

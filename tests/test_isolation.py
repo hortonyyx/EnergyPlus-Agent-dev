@@ -10,6 +10,7 @@ from pathlib import Path
 
 import pytest
 
+from src.agent.execution import isolation
 from src.agent.execution.isolation import (
     _assert_source_allowed,
     build_isolation_workspace,
@@ -299,13 +300,17 @@ def test_spawn_command_appends_directive_and_feedback_pointer(tmp_path: Path):
     staging.mkdir()
     (staging / "kickoff_prompt.md").write_text("KICKOFF\n", encoding="utf-8")
     directive = tmp_path / "directive.md"
-    directive.write_text("Measure before drawing. Calibrate first.\n", encoding="utf-8")
+    directive.write_text(
+        "Measure before drawing. Treat the exterior grade line as interior floor ±0.000.\n",
+        encoding="utf-8",
+    )
 
     cmd = spawn_command(staging, directive=directive)
     prompt = cmd[2]
     assert prompt.startswith("KICKOFF")
     assert "Per-run directive" in prompt
     assert "Measure before drawing" in prompt
+    assert "exterior grade line" in prompt
     assert "feedback.md" not in prompt
     assert (staging / "directive.md").read_text(encoding="utf-8").startswith("Measure before")
 
@@ -748,9 +753,62 @@ def test_excluded_input_never_copied_into_staging(tmp_path: Path):
     assert {e["input_id"] for e in inventory} == {"1f_view"}
 
 
-def test_feedback_rejects_contamination_tokens():
-    with pytest.raises(ValueError):
-        check_feedback_text("please compare against gt.json")
+FEEDBACK_REFUSAL_CASES = (
+    ("token", "gt.json", "please compare against gt.json"),
+    ("token", "test_baseline", "open test_baseline for the answer"),
+    ("token", "case_tests", "inspect case_tests before revising"),
+    (
+        "token",
+        "/workspaces/energyplus-agent-dev",
+        "read /workspaces/EnergyPlus-Agent-dev/private-result.json",
+    ),
+    ("token", "attempts/", "copy the accepted attempts/003/output.json"),
+    ("token", "judge.json", "use judge.json as your source"),
+    ("token", "judge_rubric.md", "follow judge_rubric.md"),
+    ("token", "verdict", "the verdict says this answer is wrong"),
+    ("pattern", "grade artifact filename", "compare against grade.png"),
+    ("pattern", "grade path segment", "read private/grade/result.txt"),
+    ("pattern", "stage grade artifact", "open report/0_reading_grade.png"),
+    ("pattern", "grade artifact field", 'the packet says "grade": "result.png"'),
+    ("pattern", "grade sidecar field", "copy grade_png_sha256 from the score sidecar"),
+    ("pattern", "report grade field", "use the reading_grade report asset"),
+)
+
+
+def test_feedback_allows_architectural_grade_prose():
+    check_feedback_text(
+        "Treat the exterior grade line as interior floor ±0.000. "
+        "Describe below-grade walls and ordinary drawing evidence plainly."
+    )
+
+
+@pytest.mark.parametrize("kind, reason, text", FEEDBACK_REFUSAL_CASES)
+def test_feedback_rejects_every_contamination_token(kind: str, reason: str, text: str):
+    message = f"feedback contains forbidden {kind}: {reason}"
+    with pytest.raises(ValueError, match=re.escape(message)):
+        check_feedback_text(text)
+
+
+@pytest.mark.parametrize("kind, reason, text", FEEDBACK_REFUSAL_CASES)
+def test_feedback_refusal_fixtures_are_neuter_clean(
+    monkeypatch: pytest.MonkeyPatch, kind: str, reason: str, text: str
+):
+    """Each refusal fixture passes when only its intended protection is removed."""
+    if kind == "token":
+        monkeypatch.setattr(
+            isolation,
+            "FEEDBACK_FORBIDDEN_SUBSTRINGS",
+            tuple(token for token in isolation.FEEDBACK_FORBIDDEN_SUBSTRINGS if token != reason),
+        )
+    else:
+        monkeypatch.setattr(
+            isolation,
+            "FEEDBACK_FORBIDDEN_PATTERNS",
+            tuple(
+                item for item in isolation.FEEDBACK_FORBIDDEN_PATTERNS if item[0] != reason
+            ),
+        )
+    check_feedback_text(text)
 
 
 # --------------------------------------------------------------------------- #
