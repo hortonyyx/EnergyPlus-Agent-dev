@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import io
 import json
+import re
 import shutil
 import subprocess
 import sys
@@ -678,16 +679,29 @@ def test_build_stages_worked_example_byte_identical_and_in_manifest(tmp_path: Pa
     assert entry["sha256"] == hash_file(staged)
 
 
+_KICKOFF_POINTER_RE = re.compile(r"Canonical worked-example file:\s*`([^`]+)`")
+
+
 def test_build_kickoff_points_at_staged_worked_example_path(tmp_path: Path):
-    """S1 consistency lock: the worked-example path named in the staged kickoff
-    text actually exists in staging — a real stat, not a hardcoded string compare,
-    so a 'kickoff says A, file at B' second-order drift cannot pass."""
+    """S1 consistency lock (R2-4 rebuild). The previous version asserted
+    `str(WORKED_EXAMPLE_STAGED) in kickoff` and stat'd `staging /
+    WORKED_EXAMPLE_STAGED` — both against the test's own constant, so pointing
+    the kickoff at `<staged>.missing` left it green (the constant is a substring
+    of the broken pointer, and the stat never saw the broken pointer at all).
+
+    This version PARSES the path the kickoff actually names out of its syntactic
+    slot and stats *that*, so a pointer-only drift is caught."""
     staging = _build(tmp_path).staging_root
     kickoff = (staging / "skills/intake_pipeline/0_reading/session_kickoff.md").read_text(encoding="utf-8")
     assert str(WORKED_EXAMPLE_SOURCE) not in kickoff, "kickoff still names the denied repo path"
-    assert str(WORKED_EXAMPLE_STAGED) in kickoff
-    # Real stat of the path the kickoff actually names:
-    assert (staging / WORKED_EXAMPLE_STAGED).exists()
+
+    match = _KICKOFF_POINTER_RE.search(kickoff)
+    assert match is not None, "kickoff no longer names a canonical worked-example file"
+    named = match.group(1)
+    # The file the kickoff names must really be there — stat the PARSED path.
+    assert (staging / named).is_file(), f"kickoff names {named!r}, which does not exist in staging"
+    # ...and it must be the staged copy, byte-identical to the repo source.
+    assert (staging / named).read_bytes() == WORKED_EXAMPLE_SOURCE.read_bytes()
     # The denied repo path the kickoff used to name must NOT be reader-reachable:
     assert not (staging / "case_tests").exists()
 
