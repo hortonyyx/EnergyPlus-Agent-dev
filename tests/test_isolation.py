@@ -1363,9 +1363,18 @@ def test_e2e_hook_then_helper_changes_only_writable_tree(
 # `--key value` only, keys from an enumerated allowlist, every value through the
 # same `_validate_probe_params` the request path uses.
 # --------------------------------------------------------------------------- #
+# `--sidecar-name 042_crop_zoom` is deliberately a name the tool's own
+# auto-numbering can never produce (it starts at 001). A neuter that silently
+# drops one direct-form argument on the way to cv_probe therefore CHANGES the
+# landing path instead of coincidentally reproducing it — with `001_crop_zoom`
+# here, dropping `--sidecar-name` was invisible and every lock below stayed
+# green. Every other argument in this string is load-bearing on its own:
+# cv_probe declares `--image`/`--out-dir` required and errors without `--bbox`.
+_DIRECT_SIDECAR_NAME = "042_crop_zoom"
+_DIRECT_SIDECAR_REL = f"out/cv/cv_evidence/1f_view/{_DIRECT_SIDECAR_NAME}.json"
 _DIRECT_PROBE_ARGS = (
     "--tool crop_zoom --image case_data/1f_view.png --out-dir out/cv "
-    "--bbox 0,0,20,20 --sidecar-name 001_crop_zoom"
+    f"--bbox 0,0,20,20 --sidecar-name {_DIRECT_SIDECAR_NAME}"
 )
 
 
@@ -1389,7 +1398,7 @@ def test_staging_run_cv_probe_direct_form_smoke(tmp_path: Path):
     staging = _build(tmp_path).staging_root
     helper = _run_helper_direct(staging, _DIRECT_PROBE_ARGS)
     assert helper.returncode == 0, helper.stderr
-    assert (staging / "out/cv/cv_evidence/1f_view/001_crop_zoom.json").exists()
+    assert (staging / _DIRECT_SIDECAR_REL).exists()
     assert not list((staging / "requests").glob("*.json")), (
         "the direct form must need no request file at all — that second call is "
         "the whole cost this item removes"
@@ -1415,7 +1424,7 @@ def test_direct_and_request_forms_produce_identical_output(tmp_path: Path):
     probe — not a second, differently-behaving entry point. Same tool, same
     arguments, byte-identical sidecar."""
     staging = _build(tmp_path).staging_root
-    sidecar = staging / "out/cv/cv_evidence/1f_view/001_crop_zoom.json"
+    sidecar = staging / _DIRECT_SIDECAR_REL
 
     _request(
         staging,
@@ -1425,7 +1434,7 @@ def test_direct_and_request_forms_produce_identical_output(tmp_path: Path):
                 "image": "case_data/1f_view.png",
                 "out_dir": "out/cv",
                 "bbox": "0,0,20,20",
-                "sidecar_name": "001_crop_zoom",
+                "sidecar_name": _DIRECT_SIDECAR_NAME,
             },
         },
         name="requests/probe.json",
@@ -1441,9 +1450,7 @@ def test_direct_and_request_forms_produce_identical_output(tmp_path: Path):
     assert sidecar.read_bytes() == via_request
 
 
-@pytest.mark.parametrize(
-    ("label", "args"),
-    [
+_DIRECT_DENY_SHAPES = [
         # output-role parameter outside the writable root — the R2-2 rule, reached
         # through the new form, via the SHARED implementation
         ("out_dir_tools", "--tool crop_zoom --image case_data/1f_view.png --out-dir tools"),
@@ -1461,7 +1468,14 @@ def test_direct_and_request_forms_produce_identical_output(tmp_path: Path):
         ("bare_positional", "--tool crop_zoom --image case_data/1f_view.png stray.json"),
         ("repeated_key", "--tool crop_zoom --tool wall_line_profiler --image case_data/1f_view.png"),
         ("missing_value_at_end", "--tool crop_zoom --image"),
-        ("missing_value_before_next_key", "--tool crop_zoom --image --out-dir out/cv"),
+        # The value slot holds another `--key`. Note the EVEN token count: with
+        # `--out-dir out/cv` appended, neutering the "next token is a key" half of
+        # the check merely shifts the pairing and `out/cv` lands as a bare
+        # positional, so the call is still refused — by a different rule. The
+        # shape below leaves nothing over, so it is the only one that really pins
+        # this half.
+        ("missing_value_taken_from_next_key", "--tool crop_zoom --image --out-dir"),
+        ("missing_value_shifts_the_pairing", "--tool crop_zoom --image --out-dir out/cv"),
         ("missing_tool", "--image case_data/1f_view.png --out-dir out/cv"),
         ("missing_image", "--tool crop_zoom --out-dir out/cv"),
         ("no_arguments_at_all", ""),
@@ -1470,7 +1484,13 @@ def test_direct_and_request_forms_produce_identical_output(tmp_path: Path):
         ("parent_traversal_in_out_dir", "--tool crop_zoom --image case_data/1f_view.png --out-dir out/../tools"),
         # `--request` may not be smuggled in as a direct parameter
         ("request_key_in_direct_form", "--tool crop_zoom --request requests/probe.json"),
-    ],
+]
+
+
+@pytest.mark.parametrize(
+    ("label", "args"),
+    _DIRECT_DENY_SHAPES,
+    ids=[case[0] for case in _DIRECT_DENY_SHAPES],
 )
 def test_guard_denies_illegal_direct_probe_shapes(tmp_path: Path, label: str, args: str):
     """P1-3 negative locks for the direct form. Fail-closed on every axis: role
@@ -1485,9 +1505,7 @@ def test_guard_denies_illegal_direct_probe_shapes(tmp_path: Path, label: str, ar
     assert log["decision"] == "deny", label
 
 
-@pytest.mark.parametrize(
-    ("label", "command"),
-    [
+_DIRECT_BASH_BOUNDARY_SHAPES = [
         ("other_script_direct_form",
          "python tools/cv_probe.py --tool crop_zoom --image case_data/1f_view.png --out-dir out/cv"),
         ("other_script_request_form", "python tools/other.py --request requests/probe.json"),
@@ -1498,7 +1516,13 @@ def test_guard_denies_illegal_direct_probe_shapes(tmp_path: Path, label: str, ar
         ("redirect_after_direct_form",
          "python tools/run_cv_probe.py --tool crop_zoom --image case_data/1f_view.png --out-dir out/cv > out/log"),
         ("not_allowlisted_command", "cat case_data/1f_view.png"),
-    ],
+]
+
+
+@pytest.mark.parametrize(
+    ("label", "command"),
+    _DIRECT_BASH_BOUNDARY_SHAPES,
+    ids=[case[0] for case in _DIRECT_BASH_BOUNDARY_SHAPES],
 )
 def test_guard_direct_form_does_not_loosen_bash_boundary(tmp_path: Path, label: str, command: str):
     """P1-3: replacing the token-count rule must not let anything else through.
