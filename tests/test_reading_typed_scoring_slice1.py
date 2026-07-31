@@ -260,6 +260,133 @@ def test_component_applicability_separates_status_from_denominator_disposition()
         )
 
 
+def test_v9_row_contracts_reject_incoherent_na_and_target_shapes():
+    from src.agent.judge.score_schema import (
+        OpeningSourceScoreRowV1,
+        ReadingSegmentScoreRowV1,
+    )
+
+    segment = {
+        "row_contract": "reading_segment_v1",
+        "target_id": "wall-1",
+        "observation_id": None,
+        "floor_id": "F1",
+        "target_exterior": True,
+        "status": "miss",
+        "eligible_units": 1.0,
+        "axis_alignment_error_m": None,
+        "position_error_m": None,
+        "extent_symmetric_difference_m": None,
+        "na_reason": None,
+    }
+    ReadingSegmentScoreRowV1.model_validate(segment)
+    with pytest.raises(ValidationError):
+        ReadingSegmentScoreRowV1.model_validate(
+            {
+                **segment,
+                "status": "not_applicable",
+                "eligible_units": 1.0,
+                "na_reason": "plan_frame_unavailable",
+            }
+        )
+    with pytest.raises(ValidationError):
+        ReadingSegmentScoreRowV1.model_validate(
+            {
+                **segment,
+                "target_id": None,
+                "target_exterior": True,
+            }
+        )
+
+    source_row = {
+        "target_id": "window-1",
+        "target_kind": "window",
+        "claim": "existence",
+        "source_input_id": "elev",
+        "channel": "elevation",
+        "eligible_units": 0.0,
+        "result": "not_applicable",
+        "na_reason": "elevation_local_x_sense_disagreement",
+        "matched_observation_ids": (),
+        "expected_intervals": (),
+        "observed_interval": None,
+        "expected_scalar": None,
+        "observed_scalar": None,
+        "error_metric": "not_applicable",
+        "error_value": None,
+        "tolerance": None,
+        "source_applicability_sha256": "a" * 64,
+    }
+    OpeningSourceScoreRowV1.model_validate(source_row)
+    with pytest.raises(ValidationError):
+        OpeningSourceScoreRowV1.model_validate(
+            {
+                **source_row,
+                "eligible_units": 1.0,
+            }
+        )
+    with pytest.raises(ValidationError):
+        OpeningSourceScoreRowV1.model_validate(
+            {
+                **source_row,
+                "result": "miss",
+                "na_reason": None,
+            }
+        )
+
+
+def test_v9_rejection_and_absent_certificate_payloads_cross_validate(tmp_path):
+    from scripts.tool_scripts import run_stage
+    from src.agent.judge.score_schema import (
+        RejectedPayloadV9,
+        ScoreSidecarV9,
+        canonical_sha256,
+    )
+    from tests.test_c2_b4b_phase_d import _correction_v3_runstage_fixture
+
+    with pytest.raises(ValidationError):
+        RejectedPayloadV9(
+            kind="rejected",
+            error_code="invented_error",
+            cause_code=None,
+            gate_id="invented_gate",
+            detail="invented_error",
+            channel_applicability=(),
+            unmeasurable_observations=0,
+            visibility_counts={
+                "nonzero_plan_origins": 0,
+                "project_convention_vertical_datums": 0,
+                "multiple_plan_view_floor_components": 0,
+                "elevation_local_x_sense_disagreements": 0,
+                "scorer_internal_failures": 0,
+            },
+        )
+
+    gt, run, manifest, gt_file = _correction_v3_runstage_fixture(tmp_path)
+    accepted = manifest.accepted("1_correction")
+    attempt = (
+        run / "1_correction/attempts" / f"{accepted.accepted_attempt:03d}"
+    )
+    artifacts = run_stage._grade_typed_attempt_artifacts(
+        "1_correction",
+        gt.case,
+        attempt,
+        gt,
+        gt_file=gt_file,
+        manifest=manifest,
+        grade=run_stage.GradeConfig(),
+    )
+    raw = json.loads(
+        Path(artifacts["score_vs_gt"]).read_text(encoding="utf-8")
+    )
+    raw["payload"]["unmeasurable_observations"] = 1
+    raw["content_sha256"] = canonical_sha256(
+        {key: value for key, value in raw.items() if key != "content_sha256"}
+    )
+    with pytest.raises(ValidationError):
+        ScoreSidecarV9.model_validate_json(json.dumps(raw))
+
+
 def test_denominator_constructor_accepts_only_canonical_trusted_exclusions():
     from src.agent.judge.reading_typed_adapter import (
         derive_reading_denominator_v1,
