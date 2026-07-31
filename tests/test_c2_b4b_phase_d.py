@@ -157,6 +157,7 @@ def test_projection_normalizer_uses_reviewed_binding_not_product_mirror_flags():
 
 
 def _typed_attempt_payload(gt, bindings):
+    # This GT-echo fixture tests run-stage/CLI byte parity only, not reading scoring.
     target = next(item for item in gt.openings if item.id == "O1")
     elevation = next(item for item in bindings.bindings if getattr(item, "input_id", "") == "elev-N")
     local = sorted((value - elevation.along_origin) / elevation.sign
@@ -176,8 +177,8 @@ def _typed_attempt_payload(gt, bindings):
     }
 
 
-def test_d1_d2_d3_runstage_and_cli_share_real_v3_service_byte_for_byte(tmp_path):
-    """E2E: run-stage emits v8+typed grade and CLI emits identical artifacts."""
+def test_gt_echo_fixture_preserves_runstage_cli_byte_parity(tmp_path):
+    """Run-stage and CLI emit byte-identical artifacts for the parity fixture."""
     from scripts.tool_scripts import run_stage
     from src.agent.execution.manifest import RunManifest
     from tests.test_c2_b4b_phase_b import config, real_va_context
