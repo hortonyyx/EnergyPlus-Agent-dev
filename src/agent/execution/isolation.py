@@ -605,15 +605,26 @@ def _write_kickoff(case_dir: Path, staging_root: Path, manifest: WorkspaceManife
         f"for case {case_dir.name}.\n"
         "The drawings are at case_data/. Write reading outputs (per-image "
         "<name>_view.json and reading_summary.md) under out/, and write CV-probe "
-        "request JSON files under requests/. Run tools/run_cv_probe.py only via "
-        "'python tools/run_cv_probe.py --request requests/<name>.json'. "
+        "request JSON files under requests/. The normal probe form is "
+        "`python tools/run_cv_probe.py --tool <tool> --image <path> --out-dir "
+        "out/<name> [--<key> <value> ...]`; use "
+        "`python tools/run_cv_probe.py --batch requests/<name>.json` for sweeps "
+        "(maximum 32 requests, all validated before any run). The legacy "
+        "`python tools/run_cv_probe.py --request requests/<name>.json` form is "
+        "also available. "
         "Do the pilot first, then stop and wait for review feedback if provided.\n"
     )
     if (staging_root / "prescan").exists():
         text += (
             "Deterministic prescan candidates are provided under "
-            "prescan/cv_evidence/<image_stem>/prescan/ (candidates.json + "
-            "combined_overlay.png); consume them per the cv_toolbox discipline.\n"
+            "prescan/cv_evidence/<image_stem>/prescan/: `candidates.json` (all "
+            "candidates); kind views `structural_candidates.json`, "
+            "`cc_box_candidates.json`, and `tick_candidates.json`; overlays "
+            "`combined_overlay.png` (structural-only), `cc_box_overlay.png`, "
+            "`tick_overlay.png`, and `all_candidates_overlay.png` (all "
+            "candidates). Nothing is dropped: every candidate remains reachable "
+            "through `candidates.json` and the kind views; consume them per the "
+            "cv_toolbox discipline.\n"
         )
     _write_generated(staging_root / "kickoff_prompt.md", text, "kickoff", manifest)
 

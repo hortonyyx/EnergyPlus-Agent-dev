@@ -281,3 +281,26 @@ round trips**，约 **10× 减少**；若 batch file 已由 executor/staging 预
    把它当 cwd-relative 而不是 candidates-file-relative，需要在合并前点名。
 5. **请复核 anti-drop 三段守恒**：detector diagnostics → master counts → 三 kind views。P10 已实抓
    一把“master 与 split 一起少所以仍相等”的假锁；这条断言是 Item 2 最关键的非空证明。
+
+## 5. Kickoff matches live probe forms
+
+`_write_kickoff()` now names the guard's three live probe forms: direct arguments as the normal
+single-probe path, bounded `--batch` for sweeps (maximum 32, all-before-any validation), and the
+legacy `--request` form. Its prescan note now names the master and three kind JSON views plus all
+four overlays, and states that `combined_overlay.png` is structural-only while the lossless master
+and kind views remain reachable.
+
+The new `test_build_kickoff_probe_forms_match_live_guard` parses the three command templates and
+batch limit from the generated `kickoff_prompt.md`, materializes the commands, and submits them to
+the staged production guard. It exercises the batch boundary at 32/33. The prescan copy test parses
+the generated artifact names and requires exact equality with the copied artifact set.
+
+Neuter self-check: at the named production point for the direct template, changing `--image` to
+`--source` made `test_build_kickoff_probe_forms_match_live_guard` fail on the real guard invocation;
+restoring `--image` made it pass.
+
+Verification:
+
+- affected subset: 205 passed
+- full suite: 1969 passed, 10 xfailed, 0 failed (150 warnings)
+- commit title: `7.31_KickoffMatchesLiveProbeForms`

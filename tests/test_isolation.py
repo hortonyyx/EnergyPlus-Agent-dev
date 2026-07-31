@@ -174,6 +174,87 @@ def test_build_copies_run_prescan_and_kickoff_mentions_it(tmp_path: Path):
         assert (copied_root / name).read_bytes() == (src / name).read_bytes()
     kickoff = (staging / "kickoff_prompt.md").read_text(encoding="utf-8")
     assert "prescan/cv_evidence/<image_stem>/prescan/" in kickoff
+    prescan_line = next(
+        line for line in kickoff.splitlines() if line.startswith("Deterministic prescan candidates")
+    )
+    named_files = set(re.findall(r"`([^`]+\.(?:json|png))`", prescan_line))
+    assert named_files, "no prescan artifacts were parsed from the generated kickoff"
+    assert named_files == prescan_files
+    assert "`combined_overlay.png` (structural-only)" in prescan_line
+    assert "`candidates.json` (all candidates)" in prescan_line
+    assert "Nothing is dropped" in prescan_line
+
+
+_KICKOFF_PROBE_FORMS_RE = re.compile(
+    r"The normal probe form is `(?P<direct>[^`]+)`; use "
+    r"`(?P<batch>[^`]+)` for sweeps \(maximum (?P<limit>\d+) requests, "
+    r"all validated before any run\)\. The legacy `(?P<request>[^`]+)` "
+    r"form is also available\."
+)
+
+
+def test_build_kickoff_probe_forms_match_live_guard(tmp_path: Path):
+    """The command shapes parsed from the generated kickoff are real guard
+    inputs, not test-side copies of what the kickoff was meant to say.
+
+    Each parsed template is materialized into a legal command and submitted to
+    the staged production guard.  The batch limit is likewise parsed from the
+    prose, checked against the live guard constant, and exercised at both sides
+    of the boundary so neither the prose parse nor the mechanism check can be
+    vacuous.
+    """
+    staging = _build(tmp_path).staging_root
+    kickoff = (staging / "kickoff_prompt.md").read_text(encoding="utf-8")
+    match = _KICKOFF_PROBE_FORMS_RE.search(kickoff)
+    assert match is not None, "generated kickoff no longer exposes all three probe forms"
+
+    direct = (
+        match.group("direct")
+        .replace("<tool>", "crop_zoom")
+        .replace("<path>", "case_data/1f_view.png")
+        .replace("out/<name>", "out/kickoff_direct")
+        .replace("[--<key> <value> ...]", "--bbox 0,0,20,20")
+    )
+    request = match.group("request").replace("<name>", "kickoff_request")
+    batch = match.group("batch").replace("<name>", "kickoff_batch")
+    assert all("<" not in command and ">" not in command for command in (direct, request, batch))
+
+    request_payload = {
+        "tool": "crop_zoom",
+        "args": {
+            "image": "case_data/1f_view.png",
+            "out_dir": "out/kickoff_request",
+            "bbox": "0,0,20,20",
+        },
+    }
+    _request(staging, request_payload, name="requests/kickoff_request.json")
+    batch_entry = {"id": "probe_001", **request_payload}
+    _request(staging, {"requests": [batch_entry]}, name="requests/kickoff_batch.json")
+
+    expected_reasons = {
+        direct: "allowed run_cv_probe direct arguments",
+        batch: "allowed run_cv_probe batch",
+        request: "allowed run_cv_probe request",
+    }
+    assert len(expected_reasons) == 3, "parsed kickoff forms unexpectedly collapsed together"
+    for command, expected_reason in expected_reasons.items():
+        proc = _hook(staging, command)
+        assert proc.returncode == 0, (command, proc.stdout, proc.stderr)
+        log = json.loads((staging / "access_log.jsonl").read_text(encoding="utf-8").splitlines()[-1])
+        assert log["reason"] == expected_reason
+
+    stated_limit = int(match.group("limit"))
+    guard_limit = _guard_module().MAX_PROBE_BATCH_SIZE
+    assert stated_limit == guard_limit
+    at_limit = [{"id": f"probe_{i:03d}", **request_payload} for i in range(stated_limit)]
+    _request(staging, {"requests": at_limit}, name="requests/kickoff_batch.json")
+    assert _hook(staging, batch).returncode == 0
+
+    over_limit = at_limit + [{"id": "probe_over_limit", **request_payload}]
+    _request(staging, {"requests": over_limit}, name="requests/kickoff_batch.json")
+    denied = _hook(staging, batch)
+    assert denied.returncode == 2, (denied.stdout, denied.stderr)
+    assert f"maximum is {stated_limit}" in denied.stderr
 
 
 def test_formal_build_requires_view_manifest_already_provisioned(tmp_path: Path):
