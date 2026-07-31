@@ -37,6 +37,17 @@ from src.validator.checks.view_manifest import check_reading_stage
 
 ISOLATION_SCHEMA_VERSION = "1"
 STAGE = "0_reading"
+
+# The worked-example reading-view JSON the kickoff tells the reader to read as a
+# style/format anchor (session_kickoff.md §"First"). It is a *different* building
+# (smalloffice_20) containing none of the target case's information, so staging it
+# is not contamination — `_assert_source_allowed` passes for it (verified). The
+# repo path is denied by the guard (DENY_TOKENS contains `case_tests`) and is not
+# copied by default, so build must stage it at a non-denied path and rewrite the
+# kickoff pointer to that staging path (F-2). Both sides must agree on this path.
+WORKED_EXAMPLE_SOURCE = "case_tests/e2e_tests/smalloffice_20/0_reading/1f_view.json"
+WORKED_EXAMPLE_STAGED = "reference/worked_example_plan.json"
+
 HARD_BLOCK_FILENAMES = {
     "gt" + ".json",
     "judge.json",
@@ -179,6 +190,7 @@ def build_isolation_workspace(
 
     _copy_case_data(case_dir, staging_root, manifest, view_manifest)
     _copy_reading_skill(staging_root, manifest)
+    _copy_worked_example(staging_root, manifest)
     _copy_cv_toolbox(staging_root, manifest)
     _copy_prescan(run_dir, staging_root, manifest)
     _write_kickoff(case_dir, staging_root, manifest)
@@ -474,7 +486,35 @@ def _copy_reading_skill(staging_root: Path, manifest: WorkspaceManifest) -> None
             continue
         _assert_source_allowed(path)
         rel = path.relative_to(skill_root)
+        if path.name == "session_kickoff.md":
+            # F-2: the kickoff names the worked-example by its (denied) repo path.
+            # Rewrite the pointer to the staged copy so the reader is never sent at
+            # a wall-outside file the guard will refuse. Both sides agree on
+            # WORKED_EXAMPLE_STAGED (the consistency lock stats this path in staging).
+            _copy_skill_kickoff(path, dest_root / rel, manifest)
+            continue
         _copy_file(path, dest_root / rel, "skill", manifest)
+
+
+def _copy_skill_kickoff(src: Path, dest: Path, manifest: WorkspaceManifest) -> None:
+    text = src.read_text(encoding="utf-8")
+    if WORKED_EXAMPLE_SOURCE in text:
+        text = text.replace(WORKED_EXAMPLE_SOURCE, WORKED_EXAMPLE_STAGED)
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    dest.write_text(text, encoding="utf-8")
+    _add_manifest_entry(dest, src, "skill", manifest)
+
+
+def _copy_worked_example(staging_root: Path, manifest: WorkspaceManifest) -> None:
+    """Stage the kickoff's worked-example reading-view JSON (F-2).
+
+    Staged at a path that trips no DENY_TOKEN and registered in MANIFEST — the
+    07-30 hand-staged copy was *not* in MANIFEST, so the merge provenance ledger
+    missed it. Recording it here is this slice's primary value, not a side effect.
+    """
+    src = _repo_root() / WORKED_EXAMPLE_SOURCE
+    dest = staging_root / WORKED_EXAMPLE_STAGED
+    _copy_file(src, dest, "reference", manifest)
 
 
 def _copy_cv_toolbox(staging_root: Path, manifest: WorkspaceManifest) -> None:

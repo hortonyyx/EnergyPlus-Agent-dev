@@ -646,3 +646,61 @@ def test_excluded_input_never_copied_into_staging(tmp_path: Path):
 def test_feedback_rejects_contamination_tokens():
     with pytest.raises(ValueError):
         check_feedback_text("please compare against gt.json")
+
+
+# --------------------------------------------------------------------------- #
+# F-2 / S1 — worked-example staged at a non-denied path, in MANIFEST, and the
+# kickoff pointer agrees with the actual staged file
+# --------------------------------------------------------------------------- #
+WORKED_EXAMPLE_SOURCE = Path("case_tests/e2e_tests/smalloffice_20/0_reading/1f_view.json")
+WORKED_EXAMPLE_STAGED = Path("reference/worked_example_plan.json")
+
+
+def test_build_stages_worked_example_byte_identical_and_in_manifest(tmp_path: Path):
+    """S1 positive lock: the kickoff's worked-example is staged at a non-denied
+    path, byte-identical to the repo source, and recorded in MANIFEST (the 07-30
+    hand-staged copy was absent from MANIFEST, which broke the merge ledger)."""
+    from src.agent.execution.isolation import WORKED_EXAMPLE_STAGED as staged_rel
+
+    staging = _build(tmp_path).staging_root
+
+    staged = staging / WORKED_EXAMPLE_STAGED
+    assert staged.exists(), "worked-example was not staged"
+    assert staged.read_bytes() == WORKED_EXAMPLE_SOURCE.read_bytes(), "staged bytes drifted from source"
+    assert staged.read_bytes() == WORKED_EXAMPLE_SOURCE.read_bytes()  # parity with stated rel path
+    assert str(staged.relative_to(staging)) == str(staged_rel)
+
+    manifest = json.loads((staging / "MANIFEST.json").read_text(encoding="utf-8"))
+    entry = next((e for e in manifest["files"] if e["path"] == str(WORKED_EXAMPLE_STAGED)), None)
+    assert entry is not None, "worked-example missing from MANIFEST"
+    assert entry["category"] == "reference"
+    assert entry["source_path"] == str(WORKED_EXAMPLE_SOURCE)
+    assert entry["sha256"] == hash_file(staged)
+
+
+def test_build_kickoff_points_at_staged_worked_example_path(tmp_path: Path):
+    """S1 consistency lock: the worked-example path named in the staged kickoff
+    text actually exists in staging — a real stat, not a hardcoded string compare,
+    so a 'kickoff says A, file at B' second-order drift cannot pass."""
+    staging = _build(tmp_path).staging_root
+    kickoff = (staging / "skills/intake_pipeline/0_reading/session_kickoff.md").read_text(encoding="utf-8")
+    assert str(WORKED_EXAMPLE_SOURCE) not in kickoff, "kickoff still names the denied repo path"
+    assert str(WORKED_EXAMPLE_STAGED) in kickoff
+    # Real stat of the path the kickoff actually names:
+    assert (staging / WORKED_EXAMPLE_STAGED).exists()
+    # The denied repo path the kickoff used to name must NOT be reader-reachable:
+    assert not (staging / "case_tests").exists()
+
+
+def test_worked_example_staged_path_is_not_guard_denied(tmp_path: Path):
+    """The staged worked-example path trips no DENY_TOKEN, so a Read of it is
+    allowed by the guard (the reader is sent there by the kickoff)."""
+    staging = _build(tmp_path).staging_root
+    proc = _hook_payload(
+        staging,
+        {
+            "tool_name": "Read",
+            "tool_input": {"file_path": str(staging / WORKED_EXAMPLE_STAGED)},
+        },
+    )
+    assert proc.returncode == 0, proc.stderr
