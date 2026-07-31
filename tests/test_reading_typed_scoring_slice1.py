@@ -100,6 +100,47 @@ def test_detector_and_capability_use_reading_views_contract_not_schema_default()
     assert rejected.reason == "unsupported_reading_contract"
 
 
+@pytest.mark.parametrize(
+    ("raw", "contract_id", "reason"),
+    [
+        ([], "unrecognized", "reading_output_not_object"),
+        ({}, "unrecognized", "reading_views_missing"),
+        ({"views": []}, "unrecognized", "reading_views_not_object"),
+        ({"views": {1: {}}}, "unrecognized", "reading_view_id_invalid"),
+        (
+            {
+                "schema_version": "3",
+                "segments": [],
+                "openings": [],
+                "elevation_observations": [],
+            },
+            "unrecognized",
+            "reading_views_missing",
+        ),
+        ({"views": {"plan": None}}, "reading_views_v1", None),
+    ],
+)
+def test_detector_is_total_and_leaves_per_view_shape_to_adapter(
+    raw, contract_id, reason
+):
+    from src.agent.judge.reading_typed_adapter import identify_reading_contract
+
+    decision = identify_reading_contract(raw)
+    assert decision.contract_id == contract_id
+    assert decision.reason == reason
+
+
+def test_non_object_reading_product_still_gets_total_na_artifacts(tmp_path):
+    sidecar, artifacts = _grade_payload(
+        tmp_path,
+        [],
+        name="non_object_reading",
+    )
+    assert sidecar["payload"]["kind"] == "not_applicable"
+    assert sidecar["payload"]["reason"] == "unsupported_reading_contract"
+    assert Path(artifacts["grade"]).read_bytes().startswith(b"\x89PNG")
+
+
 def test_component_applicability_separates_status_from_denominator_disposition():
     from src.agent.judge.score_schema import ReadingComponentApplicabilityV1
 
@@ -212,10 +253,11 @@ def test_v9_cache_hits_exact_identity_and_treats_v8_as_miss(tmp_path):
     )
     score = Path(artifacts["score_vs_gt"])
     grade = Path(artifacts["grade"])
-    raw = json.loads(score.read_text(encoding="utf-8"))
     from src.agent.judge.score_schema import ScoreSidecarV9
 
-    sidecar = ScoreSidecarV9.model_validate(raw)
+    sidecar = ScoreSidecarV9.model_validate_json(
+        score.read_text(encoding="utf-8")
+    )
     assert load_cached_score(
         score, grade_path=grade, expected_identity=sidecar.identity
     ) == sidecar
@@ -244,7 +286,7 @@ def test_v9_cache_hits_exact_identity_and_treats_v8_as_miss(tmp_path):
 
 def test_totalizer_emits_internal_na_and_trusted_rejected(monkeypatch):
     import src.agent.judge.score_service as service
-    from src.agent.judge.score_schema import ScoreContractError
+    from src.agent.judge.score_schema import ScoreContractError, ScoreSidecarV9
 
     request = _trusted_request(_real_payload())
 
@@ -261,6 +303,10 @@ def test_totalizer_emits_internal_na_and_trusted_rejected(monkeypatch):
     assert internal.payload.visibility_counts.scorer_internal_failures == 1
     assert "test-only" not in internal.sidecar.model_dump_json()
     assert internal.grade_png.startswith(b"\x89PNG")
+    assert (
+        ScoreSidecarV9.model_validate_json(internal.sidecar.model_dump_json())
+        == internal.sidecar
+    )
 
     def explode_trusted(**_kwargs):
         raise ScoreContractError(
@@ -273,6 +319,29 @@ def test_totalizer_emits_internal_na_and_trusted_rejected(monkeypatch):
     assert rejected.payload.kind == "rejected"
     assert rejected.payload.error_code == "score_view_binding_invalid"
     assert rejected.grade_png.startswith(b"\x89PNG")
+    assert (
+        ScoreSidecarV9.model_validate_json(rejected.sidecar.model_dump_json())
+        == rejected.sidecar
+    )
+
+    def explode_unmapped_contract(**_kwargs):
+        raise ScoreContractError(
+            "score_identity_chain_bridge",
+            "scoring.input_identity",
+        )
+
+    monkeypatch.setattr(
+        service,
+        "score_typed_attempt",
+        explode_unmapped_contract,
+    )
+    with pytest.warns(RuntimeWarning, match="internal failure"):
+        unmapped = service.score_attempt_service(
+            typed_request={**request, "run_profile": "dev"}
+        )
+    assert unmapped.payload.kind == "not_applicable"
+    assert unmapped.payload.reason == "scorer_internal_failure"
+    assert unmapped.payload.visibility_counts.scorer_internal_failures == 1
 
 
 @pytest.mark.parametrize("run_profile", ["golden", "regression"])

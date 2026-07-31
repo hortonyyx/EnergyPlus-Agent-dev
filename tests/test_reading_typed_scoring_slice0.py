@@ -45,7 +45,7 @@ def _real_payload() -> dict:
 
 def _grade_payload(
     tmp_path: Path,
-    payload: dict,
+    payload: object,
     *,
     name: str,
     run_profile: str = "exploratory",
