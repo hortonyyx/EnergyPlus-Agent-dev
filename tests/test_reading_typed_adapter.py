@@ -4,7 +4,10 @@ from __future__ import annotations
 
 import copy
 
-from src.agent.judge.score_schema import ElevationScoreViewBindingV1
+from src.agent.judge.score_schema import (
+    ElevationScoreViewBindingV1,
+    PlanScoreViewBindingV1,
+)
 from tests.test_reading_typed_scoring_slice0 import _real_payload
 from tests.test_reading_typed_scoring_slice1 import _trusted_request
 
@@ -572,3 +575,68 @@ def test_adapter_has_no_typed_gt_import():
         "src/agent/judge/reading_typed_adapter.py"
     ).read_text(encoding="utf-8")
     assert "src.agent.judge.gt_schema" not in source
+
+
+def test_multiple_plan_inputs_for_one_floor_are_trusted_filtered():
+    payload = _real_payload()
+    payload["views"]["1f_view_copy"] = copy.deepcopy(
+        payload["views"]["1f_view"]
+    )
+    request = _trusted_request(payload)
+    original_entry = next(
+        item
+        for item in request["base_view_manifest"].required_entries()
+        if item.input_id == "1f_view"
+    )
+    copied_entry = original_entry.model_copy(
+        update={
+            "input_id": "1f_view_copy",
+            "expected_output_id": "1f_view_copy",
+            "source_image": "case_data/1f_view_copy.png",
+        }
+    )
+    manifest = request["base_view_manifest"].model_copy(
+        update={
+            "entries": sorted(
+                (*request["base_view_manifest"].entries, copied_entry),
+                key=lambda item: item.input_id,
+            )
+        }
+    )
+    original_binding = next(
+        item
+        for item in request["score_bindings"].bindings
+        if isinstance(item, PlanScoreViewBindingV1)
+    )
+    copied_binding = original_binding.model_copy(
+        update={"input_id": "1f_view_copy"}
+    )
+    bindings = request["score_bindings"].model_copy(
+        update={
+            "bindings": tuple(
+                sorted(
+                    (*request["score_bindings"].bindings, copied_binding),
+                    key=lambda item: item.input_id,
+                )
+            )
+        }
+    )
+    from src.agent.judge.reading_typed_adapter import normalize_reading_attempt
+
+    outcome = normalize_reading_attempt(
+        raw=payload,
+        source_output_sha256="e" * 64,
+        base_manifest=manifest,
+        score_bindings=bindings,
+    )
+    applicability = _applicability(outcome)
+    for source in ("1f_view", "1f_view_copy"):
+        for component in ("plan_segments", "plan_openings"):
+            row = applicability[(source, component)]
+            assert row.status == "not_applicable"
+            assert row.reasons == (
+                "multiple_plan_views_per_floor_unsupported",
+            )
+            assert row.cause_class == "trusted_input"
+            assert row.denominator_disposition == "filter"
+    assert len(outcome.trusted_capability_dispositions) == 4
