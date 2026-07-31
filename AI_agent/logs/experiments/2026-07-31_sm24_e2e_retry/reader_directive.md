@@ -86,6 +86,28 @@ Concretely:
 is a **failure of this directive**, not a valid result. Say so explicitly in your notes and go back
 and measure. Report the counts per image in `reading_summary.md`.
 
+## 2b. Start from the long structural lines — they are the reliable scale anchor
+
+The prescan now emits `long_structural_lines.json` plus `long_structural_overlay.png`: fragmented
+wall bands bridged back into continuous lines, each citing the fragments it was built from. Read this
+view FIRST.
+
+Two things follow from it, and both matter more than anything else in this file after §2:
+
+- **Calibrate from the building, not from the dimension chain.** The outermost long lines give you
+  the building's own pixel bounding box. A dimension chain sits OUTSIDE the building and its extent
+  is not the building's extent — anchoring on it is the single most common calibration error, and it
+  silently corrupts every coordinate you go on to write. Derive px/m from the outer long lines, then
+  cross-check against the dimension chain totals. If your two axes disagree, stop and re-anchor:
+  the calibrator will now refuse to blend two disagreeing axis scales rather than average them.
+- **The long lines are candidates, not answers.** They tell you where continuous structure exists.
+  Whether a given line is an exterior wall, an interior partition, a grid line, or an artefact is
+  still entirely your call, and §2 still applies: probe before you draw.
+
+`calibration_span_candidates.json` additionally gives span endpoints found at perpendicular
+extension-line intersections — use it when you need a dimension span's true endpoints rather than
+eyeballing two pixel coordinates.
+
 ## 3. Deterministic prescan candidates — advisory input, and you must show your work
 
 Prescan output is provided under `prescan/cv_evidence/<image_stem>/prescan/`, now split by the

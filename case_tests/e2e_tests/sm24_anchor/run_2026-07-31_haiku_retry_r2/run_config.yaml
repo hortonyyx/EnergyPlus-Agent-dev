@@ -1,0 +1,65 @@
+# =====================================================================
+# run_config.yaml — run_2026-07-31_haiku_retry (sm24_anchor)
+#
+# sm24 端到端【复验轮】。承 07-30 第一次尝试（卡在 F-6 判卷门，用户拍板「先停，修好再跑」）。
+# 用户拍板配置（2026-07-31）= 沿用 07-27 原配置；相对上轮四处机制变更见文末。
+#   识图   = 重跑 Haiku 4.5 冷启隔离子代理 + CV 预扫工具（顺带实测 07-07 E 效率批）
+#   范围   = 全链含真跑 EnergyPlus
+#   judge  = 拦停；人工校验只开几何
+#   严格度 = regression（fail-closed）+ 录基线
+#   形状档 = orthogonal_polygon（L 形走廊必须是一个多边形区，总 8 区）
+#
+# 本 run 三个首次（承上轮，上轮未走到）：
+#   ① 校正阶段第一次真出 schema v3（orthogonal_polygon ⇒ CorrectedGeometryV3）
+#   ② 判卷链第一次吃 v3 签字答案（sm24 07-26 转正）
+#   ③ v3 判卷侧车 view_bindings.json 第一次在真实 case 上生效
+#
+# 相对 07-30 尝试轮的四处机制变更（均已过独立对抗审 + 主控轻门，全仓 1968 绿）：
+#   ① 判卷层：v3 对识图阶段的生产投影 + 能力守卫（修 F-6 BLOCKER）
+#   ② 硬隔离脚手架：样板件进 staging+MANIFEST / 守卫按参数角色免扫散文 + 补真写保护 /
+#      预扫落点 fail-closed / merge 侧自聚合
+#   ③ 识图 directive 重写：provenance 反转（测量产生笔画、尺寸链只佐证）+ 缺席必证
+#   ④ 提速：探针单调用 + bounded batch（上限 32）/ 预扫按 kind 拆分（零丢弃）
+# =====================================================================
+
+scope:
+  stages:
+    - 0_reading
+    - 1_correction
+    - 2_modelling
+    - 3_split_pairing
+    - 4_mep
+    - 5_intakeoutput
+
+judge:
+  mode: "stop"          # 每段 J0/J1 停下等主控 verdict（用户拍板：验收跑不是探针）
+
+review:
+  reading: false        # 用户拍板：识图质量交给判卷自动判
+  correction: false
+  geometry: true        # 几何 3D 门必看 —— L 形 8 区的 no_oversplit 永久 NA，
+                        # 只能靠人眼看 viewer + 区数对账兜底（写进跑测单）
+
+models:
+  reading: claude-haiku-4-5-20251001   # 冷启隔离子代理 + CV 工具箱
+  correction: deepseek-v4-pro          # 管线内既有角色，不动（有 baseline 沉淀）
+  mep: deepseek-v4-pro
+
+capability_profile: orthogonal_polygon  # 不切到多边形档 = 原样重演 06-24 的 11 区
+
+orientation_completion_mode: prior_fill  # 五视图 direction_semantics 全 building_axis，
+                                         # 无真北证据 ⇒ 机械产出 assumed-0（非交互停）
+
+# 判卷容差 = judge 侧两把独立尺，本 run 用默认（reading 0.30/0.40 = correction）。
+# 纪律：reading 尺是准确度真闸门，永不设得比 correction 松。
+grade:
+  reading:
+    wall_tol_m: 0.30
+    window_centre_tol_m: 0.40
+  correction:
+    wall_tol_m: 0.30
+    window_centre_tol_m: 0.40
+
+# 以下两项由 CLI 承载（非 RunConfig 字段），记录于此备查：
+#   run_profile    = regression   （--run-profile regression，fail-closed）
+#   record_baseline = true        （--record --orchestrator claude-opus-5）
