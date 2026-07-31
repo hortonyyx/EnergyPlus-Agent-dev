@@ -15,6 +15,11 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 GUARD_VERSION = "1"
+# S2: tools that write a file. Their target path may only land under out/ or
+# requests/ (write protection, F-4/K); everything else under staging is denied.
+WRITE_TOOLS = ("Write", "Edit", "MultiEdit", "NotebookEdit")
+WRITE_TARGET_KEYS = ("file_path", "notebook_path")
+WRITE_ALLOWED_DIRS = ("out", "requests")
 DENY_TOKENS = (
     "/workspaces/EnergyPlus-Agent-dev",
     "case_tests",
@@ -120,6 +125,36 @@ def _looks_like_path(value: str) -> bool:
     )
 
 
+def _write_target(tool_input, root: Path) -> Path | None:
+    """S2a: extract + resolve the target path of a write tool. Returns the
+    resolved target (already checked to be under staging, symlink-resolved) or
+    None if no recognizable target key is present (caller denies, fail-closed)."""
+    if not isinstance(tool_input, dict):
+        return None
+    for key in WRITE_TARGET_KEYS:
+        raw = tool_input.get(key)
+        if isinstance(raw, str) and raw:
+            return _path_arg(raw, root)  # raises ValueError on escape / symlink-escape
+    return None
+
+
+def _check_write_target(target: Path, root: Path) -> tuple[bool, str]:
+    """S2a: a write tool's resolved target may only land under out/ or requests/.
+    `tools/**`, `guard.py`, `isolation_settings.json`, `MANIFEST.json`,
+    `skills/**`, `src/**`, `case_data/**`, `prescan/**`, `reference/**` and the
+    staging root are all denied — closing the F-4/K escape where a reader could
+    overwrite tools/run_cv_probe.py and then execute arbitrary code via the one
+    Bash-allowlisted executable."""
+    for name in WRITE_ALLOWED_DIRS:
+        allowed_root = (root / name).resolve(strict=False)
+        try:
+            target.relative_to(allowed_root)
+            return True, f"allowed write under {name}/"
+        except ValueError:
+            continue
+    return False, "write target must be under out/ or requests/"
+
+
 def _check_bash(command: str, root: Path) -> tuple[bool, str, list[str]]:
     ok, reason = _lexical_check(command, root)
     if not ok:
@@ -180,18 +215,37 @@ def evaluate(payload: dict) -> tuple[str, str, list[str]]:
             return "deny", "Bash command missing", []
         ok, reason, paths = _check_bash(command, root)
         return ("allow" if ok else "deny"), reason, paths
+    # S2a: write protection — Write/Edit/MultiEdit/NotebookEdit may only target
+    # out/** or requests/**; everything else (tools/, guard.py, MANIFEST.json,
+    # skills/, src/, case_data/, prescan/, reference/, staging root) is denied.
+    if tool in WRITE_TOOLS:
+        try:
+            target = _write_target(tool_input, root)
+        except ValueError as exc:
+            return "deny", str(exc), []
+        if target is None:
+            return "deny", f"{tool} requires a file_path/notebook_path", []
+        ok, reason = _check_write_target(target, root)
+        if not ok:
+            return "deny", reason, []
+    # S2b: the path-like forbidden checks (DENY_TOKENS / ~ / ..) apply only to
+    # strings _looks_like_path() judges as paths. Non-path prose (Write/Edit
+    # `content`, notes, …) is NOT scanned for these — that is the F-4 fix (a
+    # reading summary using '~' or the domain term 'grade line' is legitimate).
+    # Bash `command` is unchanged: it still goes through the full strict check.
     paths = []
     for value in _walk_values(tool_input):
         if not isinstance(value, str):
             continue
+        if not _looks_like_path(value):
+            continue
         ok, reason = _lexical_check(value, root)
         if not ok:
             return "deny", reason, paths
-        if _looks_like_path(value):
-            try:
-                paths.append(str(_path_arg(value, root)))
-            except ValueError as exc:
-                return "deny", str(exc), paths
+        try:
+            paths.append(str(_path_arg(value, root)))
+        except ValueError as exc:
+            return "deny", str(exc), paths
     return "allow", "allowed", sorted(set(paths))
 
 

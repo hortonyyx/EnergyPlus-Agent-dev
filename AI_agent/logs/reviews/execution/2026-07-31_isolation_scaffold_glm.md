@@ -41,3 +41,43 @@
 
 **偏差 / review-ask（S1）**：none——派工单给的两条出口里选 (b)，理由见上「先读三件套」。
 
+
+## S2 · 守卫：收紧写保护 + 放松散文扫描（F-4 + K）— DONE
+
+**做了什么（两半配对，净效果更严 + 更好用）**
+
+2a 写保护（收紧）：
+- `guard.py`：加 `WRITE_TOOLS`/`WRITE_TARGET_KEYS`/`WRITE_ALLOWED_DIRS`；新增 `_write_target`（取 file_path/notebook_path 并经 `_path_arg` 解析+越界+symlink 校验）+ `_check_write_target`（resolved target 必须落在 `out/` 或 `requests/` 下，否则 deny）；`evaluate` 对 Write/Edit/MultiEdit/NotebookEdit 先做写保护门。
+- `isolation.py`：build 预建 `requests/` 目录；`_write_kickoff` 改写明「reading 输出写 out/、CV probe 请求 JSON 写 requests/、经 `python tools/run_cv_probe.py --request requests/<name>.json` 调用」；`_write_settings` 的 allow 列表加 `Write/Edit(requests/**)`（否则子代理写 requests/ 到不了 guard，与 out/ 对称）。
+
+2b 放松散文扫描（放松）：
+- `guard.py`：`evaluate` 非 Bash 分支只对 `_looks_like_path(value)==True` 的串跑 `_lexical_check`（DENY_TOKENS/`~`/`..`）；非路径散文（Write/Edit 的 content、note）不扫这三类。
+- **不动**：`_lexical_check` 本身（仍严格）、`_check_bash`（Bash command 整串仍严格：COMPOUND_TOKENS/命令白名单/`python -c`/`_validate_request_file` 全保留）、`DENY_TOKENS` 表（对路径仍有效，未删条目）。
+
+**新增锁（S2）**
+- `test_build_precreates_requests_dir_and_kickoff_mentions_it`：build 建 requests/、kickoff 含 requests/ 与 out/、settings allow 含 requests 写权限。
+- `test_guard_denies_write_outside_out_or_requests`（参数化 12 目标）：tools/run_cv_probe.py、tools/cv_probe.py、guard.py、isolation_settings.json、MANIFEST.json、binding.json、skills/**、src/**、case_data/**、prescan/**、reference/**、staging 根文件 —— 全 deny。
+- `test_guard_denies_overwrite_of_tools_run_cv_probe`：F-4/K 头条洞（改造前 allow）现 deny。
+- `test_guard_allows_write_under_out_or_requests`（参数化 4）：out/、out/sub/、requests/、requests/sub/ 全 allow。
+- `test_guard_allows_reading_summary_with_prose_forbidden_tokens`：可用性正例（content 含 `~`、`grade line`、`..`、分号 ⇒ allow）—— 直击 07-30 三连拒。
+- `test_guard_security_properties_stay_denied`（参数化 6）：gt.json Read deny / case_tests Read deny / 越界绝对路径 deny / 非白名单命令 deny / `python -c` deny / 复合 token deny。
+- `test_guard_denies_read_of_symlink_escaping_staging`：性质 4（越界 symlink）非 Bash 侧 deny。
+- `test_guard_denies_bash_request_file_with_forbidden_token`：性质 8（请求 JSON 含禁词）deny（`_validate_request_file` 严格扫描不动）。
+  - 性质 4 的 Bash 侧 = 既有 `test_guard_rejects_symlink_and_request_paths_outside_staging`（未动，仍绿）。
+
+**八条安全性质清单（改造前后均红→deny）**：①gt.json ②case_tests ③越界绝对路径 ④越界 symlink（Bash 既有 + 非 Bash 新增）⑤非白名单命令 ⑥python -c ⑦复合 token ⑧请求 JSON 禁词 —— 八条均有锁钉死。
+
+**neuter 自查（S2）**
+| 锁族 | neuter（生产码定点） | 变红的测试 |
+|---|---|---|
+| 2a 写保护 | 删 `evaluate` 里 `if tool in WRITE_TOOLS:` 整块 | `test_guard_denies_overwrite_of_tools_run_cv_probe` + `test_guard_denies_write_outside_out_or_requests`（全部 12 参数）= **13 FAILED**（Write 到 tools/ 等变 allow，K 洞复现）；4 个 allow-under 测试仍绿（与 neuter 无关） |
+| 2b 放松扫描 | 去掉 `if not _looks_like_path(value): continue`（退回对全部非 Bash 串严格扫描） | `test_guard_allows_reading_summary_with_prose_forbidden_tokens` **FAILED**（content 里 `..` 触发 "parent traversal token is forbidden"）；八条安全性质 + allow-under 全绿（严格更严，不翻 allow） |
+
+两 neuter 均经工作树临时破坏→跑→还原（guard.py diff 始终 +59/−5 无残留），还原后 `tests/test_isolation.py` 全量 **67 passed**。
+
+**跑了哪些测试 + 数字**：`tests/test_isolation.py` 全量 **67 passed**（40 既有 + 27 新）；受影响子集（`affected_tests.py --changed isolation.py guard.py`）= `tests/test_isolation.py`。
+
+**偏差 / review-ask（S2）**
+- **settings.json 加 requests/ 写权限**：派工单 §3-S2a 只明列「build 预建 requests/ + kickoff 写明」，未提 settings.json。但 fact F 证明 guard 会触发 Write 工具（out/ 写被 guard 拒 3 次），故子代理写 requests/ 要真到 guard，settings.json 的 allow 必须含 requests/**（与 out/ 对称）。这是为让该功能可用而做的最小一致改动，非放松安全（guard 仍是权威写保护门）。
+- **S2b 路径判定的边界**：`_looks_like_path` 对「整串」判定（含 `/`/起首 `.`/末尾扩展名）。故 content 整串不含 `/` 时才免扫；若 reading 摘要或立面 JSON 整串里恰好含 `/`（如备注 "south/north"），仍会被当路径扫到 `grade` 等。派工单给的就是这条规则（"只作用于被 `_looks_like_path` 判定为路径的字符串"），我照搬；现实 reading 产物整串含 `/` 罕见（坐标/中文 note 无 `/`），fact F 的 `grade line`/`~` 场景正好命中免扫。如实登记，未自行加宽。
+

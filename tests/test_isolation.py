@@ -704,3 +704,141 @@ def test_worked_example_staged_path_is_not_guard_denied(tmp_path: Path):
         },
     )
     assert proc.returncode == 0, proc.stderr
+
+
+# --------------------------------------------------------------------------- #
+# F-4 / K / S2 — guard: tighten write protection (out/ + requests/ only) AND
+# relax prose scanning (path-like checks only on path-looking strings). Net
+# effect is a stricter guard with better usability. Both halves are required.
+# --------------------------------------------------------------------------- #
+def test_build_precreates_requests_dir_and_kickoff_mentions_it(tmp_path: Path):
+    staging = _build(tmp_path).staging_root
+    assert (staging / "requests").is_dir()
+    kickoff = (staging / "kickoff_prompt.md").read_text(encoding="utf-8")
+    assert "requests/" in kickoff and "out/" in kickoff
+    settings = json.loads((staging / "isolation_settings.json").read_text(encoding="utf-8"))
+    allow = settings["permissions"]["allow"]
+    assert any("requests" in entry and entry.startswith("Write") for entry in allow)
+
+
+@pytest.mark.parametrize(
+    "target",
+    [
+        "tools/run_cv_probe.py",
+        "tools/cv_probe.py",
+        "guard.py",
+        "isolation_settings.json",
+        "MANIFEST.json",
+        "binding.json",
+        "skills/intake_pipeline/0_reading/guide.md",
+        "src/agent/reading/cv_toolbox/tools.py",
+        "case_data/1f_view.png",
+        "prescan/cv_evidence/1f_view/prescan/candidates.json",
+        "reference/worked_example_plan.json",
+        "stray_root_file.txt",  # directly at staging root
+    ],
+)
+def test_guard_denies_write_outside_out_or_requests(tmp_path: Path, target: str):
+    """S2a negative locks: every sensitive location is denied to write tools."""
+    staging = _build(tmp_path).staging_root
+    proc = _hook_payload(
+        staging,
+        {"tool_name": "Write", "tool_input": {"file_path": target, "content": "# replaced"}},
+    )
+    assert proc.returncode == 2, (target, proc.stderr)
+    assert "out/" in proc.stderr and "requests/" in proc.stderr
+
+
+def test_guard_denies_overwrite_of_tools_run_cv_probe(tmp_path: Path):
+    """S2a / K negative lock: the F-4/K escape — overwriting the one
+    Bash-allowlisted executable then running arbitrary code — must be closed.
+    (This was `allow` before this batch; the explicit, headline new lock.)"""
+    staging = _build(tmp_path).staging_root
+    proc = _hook_payload(
+        staging,
+        {"tool_name": "Write", "tool_input": {"file_path": "tools/run_cv_probe.py", "content": "# replaced"}},
+    )
+    assert proc.returncode == 2
+    assert "out/" in proc.stderr and "requests/" in proc.stderr
+
+
+@pytest.mark.parametrize(
+    "target",
+    [
+        "out/reading_summary.md",
+        "out/sub/1f_view.json",
+        "requests/probe.json",
+        "requests/sub/x.json",
+    ],
+)
+def test_guard_allows_write_under_out_or_requests(tmp_path: Path, target: str):
+    """S2a positive: legitimate write targets under out/ or requests/ are allowed."""
+    staging = _build(tmp_path).staging_root
+    proc = _hook_payload(
+        staging,
+        {"tool_name": "Write", "tool_input": {"file_path": target, "content": "ok"}},
+    )
+    assert proc.returncode == 0, (target, proc.stderr)
+
+
+def test_guard_allows_reading_summary_with_prose_forbidden_tokens(tmp_path: Path):
+    """S2b usability positive (the F-4 fix): a reading summary whose PROSE uses
+    '~' (约等号), the domain term 'grade line' (室外地坪线), '..', and a semicolon
+    is allowed — these are not paths. Before this batch this was denied 3x."""
+    staging = _build(tmp_path).staging_root
+    content = "Grade line (室外地坪线) at ~0.000; the .. range and ; semicolons are fine in prose"
+    proc = _hook_payload(
+        staging,
+        {"tool_name": "Write", "tool_input": {"file_path": "out/reading_summary.md", "content": content}},
+    )
+    assert proc.returncode == 0, proc.stderr
+    log = json.loads((staging / "access_log.jsonl").read_text(encoding="utf-8").splitlines()[-1])
+    assert log["decision"] == "allow"
+
+
+@pytest.mark.parametrize(
+    ("label", "payload"),
+    [
+        ("read_gt_json", {"tool_name": "Read", "tool_input": {"file_path": "case_tests/test_baseline/gt/x/gt.json"}}),
+        ("read_case_tests", {"tool_name": "Read", "tool_input": {"file_path": "case_tests/e2e_tests/sm21_anchor/case_data/1f_view.png"}}),
+        ("abs_outside", {"tool_name": "Read", "tool_input": {"file_path": "/etc/passwd"}}),
+        ("non_allowlisted_cmd", {"tool_name": "Bash", "tool_input": {"command": "rm -rf out"}}),
+        ("python_c", {"tool_name": "Bash", "tool_input": {"command": "python -c 'print(1)'"}}),
+        ("compound_token", {"tool_name": "Bash", "tool_input": {"command": "ls; whoami"}}),
+    ],
+)
+def test_guard_security_properties_stay_denied(tmp_path: Path, label: str, payload: dict):
+    """S2b regression locks: six of the eight required security properties stay
+    red->deny through the prose-scan relaxation. (Property 4 symlink escape and
+    property 8 request-file forbidden token have dedicated tests below.)"""
+    staging = _build(tmp_path).staging_root
+    proc = _hook_payload(staging, payload)
+    assert proc.returncode == 2, (label, proc.stderr)
+
+
+def test_guard_denies_read_of_symlink_escaping_staging(tmp_path: Path):
+    """S2b regression lock (property 4, non-Bash side): a Read of a symlink whose
+    target escapes staging is denied even though the path itself looks in-bounds."""
+    staging = _build(tmp_path).staging_root
+    outside = tmp_path / "outside_secret.png"
+    outside.write_bytes((staging / "case_data/1f_view.png").read_bytes())
+    (staging / "case_data/escape.png").symlink_to(outside)
+    proc = _hook_payload(
+        staging,
+        {"tool_name": "Read", "tool_input": {"file_path": "case_data/escape.png"}},
+    )
+    assert proc.returncode == 2
+
+
+def test_guard_denies_bash_request_file_with_forbidden_token(tmp_path: Path):
+    """S2b regression lock (property 8): a CV-probe request JSON whose value
+    contains a DENY_TOKEN is denied — `_validate_request_file` keeps the strict
+    scan (unchanged by the prose relaxation)."""
+    staging = _build(tmp_path).staging_root
+    _request(
+        staging,
+        {"tool": "crop_zoom", "args": {"image": "case_data/1f_view.png", "out_dir": "out/cv", "bbox": "0,0,20,20", "note": "see grade line"}},
+        name="requests/req.json",
+    )
+    proc = _hook(staging, "python tools/run_cv_probe.py --request requests/req.json")
+    assert proc.returncode == 2

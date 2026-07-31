@@ -187,6 +187,10 @@ def build_isolation_workspace(
     )
     (staging_root / "out").mkdir(parents=True, exist_ok=True)
     (staging_root / "tools").mkdir(parents=True, exist_ok=True)
+    # S2a: dedicated dir for CV-probe request JSONs — the only other place (with
+    # out/) the guard lets a write tool land. Pre-created so the kickoff's
+    # instruction to write here is immediately actionable.
+    (staging_root / "requests").mkdir(parents=True, exist_ok=True)
 
     _copy_case_data(case_dir, staging_root, manifest, view_manifest)
     _copy_reading_skill(staging_root, manifest)
@@ -553,8 +557,10 @@ def _write_kickoff(case_dir: Path, staging_root: Path, manifest: WorkspaceManife
     text = (
         "Read skills/intake_pipeline/0_reading/session_kickoff.md and follow it "
         f"for case {case_dir.name}.\n"
-        "The drawings are at case_data/. Write all outputs under out/. "
-        "Use tools/run_cv_probe.py only through request JSON files inside this workspace. "
+        "The drawings are at case_data/. Write reading outputs (per-image "
+        "<name>_view.json and reading_summary.md) under out/, and write CV-probe "
+        "request JSON files under requests/. Run tools/run_cv_probe.py only via "
+        "'python tools/run_cv_probe.py --request requests/<name>.json'. "
         "Do the pilot first, then stop and wait for review feedback if provided.\n"
     )
     if (staging_root / "prescan").exists():
@@ -584,6 +590,8 @@ def _write_settings(staging_root: Path, manifest: WorkspaceManifest) -> None:
                 f"Read({_claude_abs(staging_root)}/**)",
                 f"Write({_claude_abs(staging_root / 'out')}/**)",
                 f"Edit({_claude_abs(staging_root / 'out')}/**)",
+                f"Write({_claude_abs(staging_root / 'requests')}/**)",
+                f"Edit({_claude_abs(staging_root / 'requests')}/**)",
                 "Bash",
             ],
             "deny": [
