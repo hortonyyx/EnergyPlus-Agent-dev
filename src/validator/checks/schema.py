@@ -52,11 +52,26 @@ EVIDENCE_CHECK_IDS = frozenset(
 _EVIDENCE_BLOCK_PROFILES = {"golden", "regression"}
 _CORRECTION_EVIDENCE_DEBT_COVERAGE = "correction.evidence_debt_coverage"
 
+# A plan view that does not declare a usable local→world frame cannot be scored
+# at all: gate② rebuilds that frame only from `scale_origin.world_x_m/world_y_m`,
+# and without it the whole plan channel comes back `plan_frame_unavailable` (a
+# silent zero, indistinguishable from bad tracing). An acceptance run must refuse
+# such a reading rather than score it zero; an exploratory/dev run only warns, so
+# historical artifacts predating the instruction contract stay replayable. Same
+# profile split as the missing-judge-sidecar gap (2026-07-20).
+PLAN_FRAME_CHECK_ID = "reading.plan_scale_origin_usable"
+_PLAN_FRAME_BLOCK_PROFILES = {"golden", "regression"}
+
 
 def is_evidence_check_id(check_id: str) -> bool:
     return check_id in EVIDENCE_CHECK_IDS or any(
         check_id.endswith(f".{canonical}") for canonical in EVIDENCE_CHECK_IDS
     )
+
+
+def is_plan_frame_check_id(check_id: str) -> bool:
+    """Aggregating callers prefix per-view results with ``<stem>.``; match both."""
+    return check_id == PLAN_FRAME_CHECK_ID or check_id.endswith(f".{PLAN_FRAME_CHECK_ID}")
 
 
 class CheckStatus(str, Enum):
@@ -127,6 +142,13 @@ def disposition(
         # clean, so we must not let it pass silently.
         return Disposition.BLOCK
     # status == FAIL
+    if is_plan_frame_check_id(result.check_id):
+        # No legacy/grandfather carve-out here: an unscorable plan is unscorable
+        # regardless of how the artifact was produced. The only relief is the
+        # profile split.
+        if run_profile in _PLAN_FRAME_BLOCK_PROFILES:
+            return Disposition.BLOCK
+        return Disposition.FLAG
     if result.check_id == _CORRECTION_EVIDENCE_DEBT_COVERAGE:
         if (
             result.evidence.get("scope") == "element_local"

@@ -90,6 +90,7 @@ def _patch_pipeline_to_inject_interzone_issue(tmp_path, monkeypatch):
         {
             "image_kind": "plan",
             "uncaptured": [],
+            "scale_origin": {"world_x_m": 0.0, "world_y_m": 0.0, "world_z_m": None},
             "strokes": [
                 {
                     "id": "S1",
@@ -249,6 +250,7 @@ def test_run_pipeline_writes_projection_in_exploratory_before_llm(tmp_path, monk
         {
             "image_kind": "plan",
             "uncaptured": [],
+            "scale_origin": {"world_x_m": 0.0, "world_y_m": 0.0, "world_z_m": None},
             "strokes": [
                 {
                     "id": "S1",
@@ -282,6 +284,7 @@ def test_run_pipeline_fail_closed_for_regression_evidence_debt(tmp_path):
         {
             "image_kind": "plan",
             "uncaptured": [],
+            "scale_origin": {"world_x_m": 0.0, "world_y_m": 0.0, "world_z_m": None},
             "strokes": [
                 {
                     "id": "S1",

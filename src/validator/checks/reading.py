@@ -2,7 +2,11 @@
 
 Per contracts §1 0_reading and the pen library, this is a *per-image* linter: it
 asks only "is this one drawing structurally well-formed and self-consistent",
-never topology / cross-image / world placement (those belong to 1_correction).
+never topology / cross-image placement (those belong to 1_correction). The one
+world-placement datum it does look at is the plan's own ``scale_origin`` — a
+per-image declaration of how that drawing's local frame sits in the single world
+frame, required by guide.md §1 and consumed by gate②; it assigns no rooms,
+surfaces or facades, so the no-topology discipline is intact.
 
 Layers (§0.2):
   - INVARIANT (block): unique stroke/dimension ids, legal pen × kind for the
@@ -11,6 +15,8 @@ Layers (§0.2):
     uncaptured present as a list (NOT required non-empty — clean drawing → []).
   - CROSS_CHECK (flag): single-image dimension-chain closure (Σ segments ==
     overall), low-confidence internal stroke↔dimension consistency, out-of-bounds.
+  - CROSS_CHECK, profile-gated to BLOCK under golden/regression: plan
+    ``scale_origin`` usable (see :func:`_plan_scale_origin`).
 
 Returns a :class:`CheckReport`; policy (block vs flag) is applied by the report.
 """
@@ -23,7 +29,13 @@ from src.agent.reading.legacy import parse_value_m, reading_raw_metadata
 from src.agent.reading.schema import ReadingView
 from src.agent.reading.constants import DIMCHAIN_CLOSE_TOL_M
 from src.agent.roles import CANONICAL_ROLES, normalize
-from src.validator.checks.schema import CheckLayer, CheckReport, CheckStatus, RunProfile
+from src.validator.checks.schema import (
+    PLAN_FRAME_CHECK_ID,
+    CheckLayer,
+    CheckReport,
+    CheckStatus,
+    RunProfile,
+)
 
 # Legal pen sets by image kind (pen_library.md §2).
 _PLAN_PENS = {"wall", "window"}
@@ -118,6 +130,9 @@ def check_reading_view(
 
     # ---- INVARIANT: elevation facade image-local fields present ----
     _facade_fields(rep, view)
+
+    # ---- profile-gated: plan views declare a usable local→world frame ----
+    _plan_scale_origin(rep, view)
 
     # ---- INVARIANT: uncaptured present as a list (not required non-empty) ----
     unc = _uncaptured_list(view)
@@ -593,6 +608,86 @@ def _facade_fields(rep: CheckReport, view: ReadingView) -> None:
     else:
         rep.add_pass("reading.facade_fields", CheckLayer.INVARIANT,
                      evidence={"view_facade": f.view_facade, "mirrored": str(f.mirrored)})
+
+
+def _strict_number(value) -> bool:
+    """A value gate② can actually use as a coordinate: a real finite number.
+
+    Mirrors the consumer's own strictness — ``bool`` is an ``int`` subclass in
+    Python but is not a coordinate, and ``"0.0"`` / ``None`` / ``NaN`` are not
+    either. A present-but-unusable value must be treated exactly like a missing
+    one, otherwise the gate passes an artifact the scorer will still reject.
+    """
+    return (
+        not isinstance(value, bool)
+        and isinstance(value, (int, float))
+        and math.isfinite(float(value))
+    )
+
+
+def _plan_scale_origin(rep: CheckReport, view: ReadingView) -> None:
+    """Plan views must declare a usable ``scale_origin`` (guide.md §1/§2/§6).
+
+    gate② rebuilds the plan-local → world frame from ``scale_origin.world_x_m``
+    + ``world_y_m`` and from nothing else; when either is absent or non-numeric
+    it emits ``plan_frame_unavailable`` and the entire plan channel scores zero
+    no matter how accurate the tracing was — a silent zero that reads exactly
+    like a bad drawing. So this refuses such a reading outright under the
+    acceptance profiles (``golden`` / ``regression``) while ``exploratory`` /
+    ``dev`` only flag it, keeping historical artifacts that predate the
+    instruction contract replayable (policy lives in
+    :func:`src.validator.checks.schema.disposition`).
+
+    The free-prose ``note`` field is deliberately not evidence of anything: it
+    is never read by the consumer.
+    """
+    if (view.image_kind or "").lower() != "plan":
+        rep.add(
+            PLAN_FRAME_CHECK_ID, CheckStatus.NOT_APPLICABLE, CheckLayer.CROSS_CHECK,
+            message="not a plan",
+        )
+        return
+
+    origin = view.scale_origin
+    if not isinstance(origin, dict):
+        rep.add_fail(
+            PLAN_FRAME_CHECK_ID, CheckLayer.CROSS_CHECK,
+            "plan view declares no scale_origin object; its local→world frame "
+            "cannot be rebuilt and the plan channel would score zero",
+            evidence={
+                "scale_origin_present": origin is not None,
+                "scale_origin_type": type(origin).__name__,
+                "unusable_fields": ["world_x_m", "world_y_m"],
+            },
+        )
+        return
+
+    unusable = [
+        key for key in ("world_x_m", "world_y_m")
+        if not _strict_number(origin.get(key))
+    ]
+    if unusable:
+        rep.add_fail(
+            PLAN_FRAME_CHECK_ID, CheckLayer.CROSS_CHECK,
+            f"plan scale_origin has no usable {' + '.join(unusable)}; its "
+            "local→world frame cannot be rebuilt and the plan channel would "
+            "score zero",
+            evidence={
+                "scale_origin_present": True,
+                "scale_origin_type": "dict",
+                "unusable_fields": unusable,
+                "values": {key: repr(origin.get(key)) for key in unusable},
+            },
+        )
+        return
+
+    rep.add_pass(
+        PLAN_FRAME_CHECK_ID, CheckLayer.CROSS_CHECK,
+        evidence={
+            "world_x_m": float(origin["world_x_m"]),
+            "world_y_m": float(origin["world_y_m"]),
+        },
+    )
 
 
 def _chain_closure(rep: CheckReport, view: ReadingView, meta: dict) -> None:

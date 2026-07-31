@@ -2,8 +2,10 @@
 
 You are running the **reading stage** of the staged intake pipeline: redraw each architectural drawing
 with semantic pens. Trace every visible structural stroke by type (wall / window / wall_fill / outline
-pen) and the dimension chains. Do **no spatial-topology reasoning** and **no world placement** — that
-is downstream's job.
+pen) and the dimension chains. Do **no spatial-topology placement** — assigning rooms, surfaces, zone
+adjacency or facade world axes is downstream's job. The single exception is the plan-frame datum:
+every plan view **must** declare `scale_origin` (`guide.md` §1/§2), which states where that plan's own
+local (0,0) sits in the world frame and nothing else.
 
 This file is the single kickoff command. The durable rules are NOT duplicated here — they live in the
 three rule docs below; the recap section is only a pointer so nothing here can silently drift from them.
@@ -32,9 +34,10 @@ to go read:
   redundant-dimension-channel escape hatch; prefer `null` over guessing; anchor against the testdata totals).
 - **One stroke per continuous wall; no over-segmentation** → `guide.md` §5 (window jambs / dimension
   ticks / furniture are NOT partitions — the #1 failure mode on cluttered plans).
-- **No topology, no world placement** → `guide.md` §1/§3/§4 (forbidden fields; for elevations fill the
-  facade-orientation fields exactly as the schema + `guide.md` define them — do not invent your own
-  world-axis convention here).
+- **No topology placement; plans declare `scale_origin`** → `guide.md` §1/§2/§3/§4 (forbidden fields;
+  every plan states its `scale_origin.world_x_m` + `world_y_m` — the one world datum you do give; for
+  elevations fill the facade-orientation fields exactly as the schema + `guide.md` define them — do not
+  invent your own world-axis convention here).
 - **Pens & healing** → `pen_library.md` (legal pen set per image kind; heal door openings into one
   continuous wall; one `wall_fill` per floor; recognize-then-log clutter in `uncaptured`).
 - **Verbatim & null** → `guide.md` §1 (OCR verbatim; plan walls `thickness_m` = null; `null` when not found).

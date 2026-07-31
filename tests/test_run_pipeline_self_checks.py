@@ -31,6 +31,9 @@ def _write_reading(vector_dir: Path, payload: dict | None = None) -> None:
             or {
                 "image_kind": "plan",
                 "uncaptured": [],
+                # a plan must declare its world frame to clear gate① under the
+                # acceptance profiles (7.31 plan-frame gate)
+                "scale_origin": {"world_x_m": 0.0, "world_y_m": 0.0, "world_z_m": None},
                 "strokes": [
                     {
                         "id": "S1",
@@ -399,6 +402,7 @@ def test_run_pipeline_golden_blocks_on_reading_invariant_after_sidecars(
         {
             "image_kind": "plan",
             "uncaptured": [],
+            "scale_origin": {"world_x_m": 0.0, "world_y_m": 0.0, "world_z_m": None},
             "strokes": [
                 {
                     "id": "S1",
@@ -445,6 +449,7 @@ def test_run_pipeline_exploratory_warns_and_continues_on_reading_invariant(
         {
             "image_kind": "plan",
             "uncaptured": [],
+            "scale_origin": {"world_x_m": 0.0, "world_y_m": 0.0, "world_z_m": None},
             "strokes": [
                 {
                     "id": "S1",
@@ -578,6 +583,7 @@ def test_run_pipeline_a8_pre_core_coverage_still_enters_correction_report(
         {
             "image_kind": "plan",
             "uncaptured": [],
+            "scale_origin": {"world_x_m": 0.0, "world_y_m": 0.0, "world_z_m": None},
             "strokes": [
                 {
                     "id": "S1",

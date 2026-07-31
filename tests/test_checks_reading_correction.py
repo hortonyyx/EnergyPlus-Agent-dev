@@ -5,6 +5,8 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+import pytest
+
 from src.agent.correction.facade import derive_facade_frame
 from src.agent.correction.schema import CorrectedGeometry
 from src.agent.execution import RouteAction, route_stage_failure
@@ -292,6 +294,9 @@ def test_partition_on_window_jamb_flags_advisory_only():
     v = ReadingView.model_validate({
         "image_kind": "plan",
         "uncaptured": [],
+        # a plan run under an acceptance profile must declare its world frame
+        # (7.31 plan-frame gate); unrelated to what this test asserts.
+        "scale_origin": {"world_x_m": 0.0, "world_y_m": 0.0, "world_z_m": None},
         "strokes": [
             {"id": "S1", "pen": "wall", "provenance": "seen", "geometry": {"kind": "line", "p1": [0, 0], "p2": [15, 0]}},
             {"id": "S2", "pen": "wall", "provenance": "seen", "geometry": {"kind": "line", "p1": [0, 8], "p2": [15, 8]}},
@@ -438,7 +443,13 @@ def test_run_profile_blocks_evidence_debt_only_in_regression():
 
 
 def test_legacy_migrated_evidence_debt_never_blocks():
-    v = ReadingView.model_validate({"image_kind": "plan", "uncaptured": [], "dimensions": []})
+    # scale_origin is supplied so the only thing this total `not rep.blocking()`
+    # assertion can trip on is evidence debt — the 7.31 plan-frame gate has no
+    # legacy carve-out by design and is covered by its own tests below.
+    v = ReadingView.model_validate({
+        "image_kind": "plan", "uncaptured": [], "dimensions": [],
+        "scale_origin": {"world_x_m": 0.0, "world_y_m": 0.0, "world_z_m": None},
+    })
     rep = check_reading_view(
         v,
         run_profile="regression",
@@ -907,3 +918,173 @@ def test_clean_report_routes_proceed():
     rep = CheckReport(stage="1_correction")
     rep.add_pass("correction.coverage", CheckLayer.INVARIANT)
     assert route_stage_failure("1_correction", rep) == RouteAction.PROCEED
+
+
+# --------------------------------------------------------------------------- #
+# 7.31 plan-frame gate: a plan gate② cannot score is refused under the
+# acceptance profiles and only flagged under the lenient ones.
+# --------------------------------------------------------------------------- #
+
+_PLAN_FRAME_CHECK = "reading.plan_scale_origin_usable"
+_OMIT = object()
+_ALL_PROFILES = ["exploratory", "dev", "golden", "regression"]
+_ACCEPTANCE_PROFILES = ["golden", "regression"]
+_LENIENT_PROFILES = ["exploratory", "dev"]
+_USABLE_ORIGIN = {
+    "world_x_m": 1.5,
+    "world_y_m": -2.0,
+    "world_z_m": None,
+    "note": "plan-local (0,0) measured at the SW inner corner",
+}
+
+
+def _clean_plan_payload(scale_origin=_OMIT) -> dict:
+    """A plan that passes every other reading check under EVERY run profile, so
+    a refusal in these tests can only come from the plan-frame gate."""
+    payload = {
+        "image_kind": "plan",
+        "uncaptured": [],
+        "strokes": [
+            {"id": "S1", "pen": "wall", "provenance": "seen", "confidence": "high",
+             "geometry": {"kind": "line", "p1": [0, 0], "p2": [10, 0]}},
+            {"id": "S2", "pen": "wall", "provenance": "seen", "confidence": "high",
+             "geometry": {"kind": "line", "p1": [0, 8], "p2": [10, 8]}},
+        ],
+        "dimensions": [],
+    }
+    if scale_origin is not _OMIT:
+        payload["scale_origin"] = scale_origin
+    return payload
+
+
+def _clean_plan(scale_origin=_OMIT) -> ReadingView:
+    return ReadingView.model_validate(_clean_plan_payload(scale_origin))
+
+
+def test_clean_plan_fixture_is_clean_apart_from_the_plan_frame_gate():
+    """Guards the three tests below against the false-lock family where the
+    fixture satisfies (or breaks) the assertion for some unrelated reason."""
+    for profile in _ALL_PROFILES:
+        rep = check_reading_view(_clean_plan(_USABLE_ORIGIN), run_profile=profile)
+        assert rep.passed, [(r.check_id, r.message) for r in rep.blocking()]
+        assert not rep.flagged(), [r.check_id for r in rep.flagged()]
+
+
+@pytest.mark.parametrize("run_profile", _ACCEPTANCE_PROFILES)
+def test_plan_without_scale_origin_is_refused_under_acceptance_profiles(run_profile):
+    rep = check_reading_view(_clean_plan(), run_profile=run_profile)
+    assert not rep.passed
+    # equality, not membership: the gate is the ONLY reason this run was refused
+    assert _ids(rep) == {_PLAN_FRAME_CHECK}
+    result = _result(rep, _PLAN_FRAME_CHECK)
+    assert result.status is CheckStatus.FAIL
+    assert result.evidence["unusable_fields"] == ["world_x_m", "world_y_m"]
+
+
+@pytest.mark.parametrize("run_profile", _LENIENT_PROFILES)
+def test_plan_without_scale_origin_only_warns_under_lenient_profiles(run_profile):
+    rep = check_reading_view(_clean_plan(), run_profile=run_profile)
+    assert rep.passed
+    assert _PLAN_FRAME_CHECK not in _ids(rep)
+    assert _PLAN_FRAME_CHECK in {r.check_id for r in rep.flagged()}
+    assert _result(rep, _PLAN_FRAME_CHECK).status is CheckStatus.FAIL
+
+
+@pytest.mark.parametrize("run_profile", _ALL_PROFILES)
+def test_plan_with_usable_scale_origin_passes_under_every_profile(run_profile):
+    rep = check_reading_view(_clean_plan(_USABLE_ORIGIN), run_profile=run_profile)
+    assert rep.passed
+    result = _result(rep, _PLAN_FRAME_CHECK)
+    assert result.status is CheckStatus.PASS
+    assert result.evidence == {"world_x_m": 1.5, "world_y_m": -2.0}
+
+
+@pytest.mark.parametrize(
+    "unusable_origin",
+    [
+        pytest.param({"world_x_m": None, "world_y_m": 0.0}, id="null_x"),
+        pytest.param({"world_x_m": 0.0}, id="y_key_absent"),
+        pytest.param({"world_x_m": "0.0", "world_y_m": "0.0"}, id="numeric_strings"),
+        pytest.param({"world_x_m": True, "world_y_m": False}, id="booleans"),
+        pytest.param({"world_x_m": float("nan"), "world_y_m": 0.0}, id="nan_x"),
+        pytest.param({"world_x_m": float("inf"), "world_y_m": 0.0}, id="inf_x"),
+        pytest.param({"world_x_m": [0.0], "world_y_m": [0.0]}, id="lists"),
+        pytest.param(
+            {"note": "plan-local (0,0) measured at the SW inner corner"},
+            id="prose_note_only",
+        ),
+        pytest.param({}, id="empty_object"),
+        pytest.param(None, id="explicit_null_object"),
+    ],
+)
+def test_present_but_unusable_scale_origin_is_treated_exactly_like_missing(unusable_origin):
+    strict = check_reading_view(_clean_plan(unusable_origin), run_profile="golden")
+    assert _ids(strict) == {_PLAN_FRAME_CHECK}
+
+    lenient = check_reading_view(_clean_plan(unusable_origin), run_profile="exploratory")
+    assert lenient.passed
+    assert _PLAN_FRAME_CHECK in {r.check_id for r in lenient.flagged()}
+
+
+@pytest.mark.parametrize("run_profile", _ALL_PROFILES)
+def test_plan_frame_gate_does_not_reach_non_plan_views(run_profile):
+    elevation = ReadingView.model_validate({
+        "image_kind": "elevation",
+        "uncaptured": [],
+        "facade": {"view_facade": "South", "local_x_positive": "image_left_to_right",
+                   "mirrored": "false"},
+        "strokes": [
+            {"id": "S1", "pen": "outline", "provenance": "seen", "confidence": "high",
+             "geometry": {"kind": "line", "p1": [0, 0], "p2": [10, 0]}},
+        ],
+    })
+    rep = check_reading_view(elevation, run_profile=run_profile)
+    assert _result(rep, _PLAN_FRAME_CHECK).status is CheckStatus.NOT_APPLICABLE
+    assert rep.passed
+
+
+@pytest.mark.parametrize("run_profile", _ACCEPTANCE_PROFILES)
+def test_plan_frame_gate_survives_the_aggregating_per_view_prefix(tmp_path, run_profile):
+    """The production wiring (`compute_reading_report_from_vector_dir`, the merge
+    checker) renames every per-view result to `<stem>.<check_id>`; the policy has
+    to still recognise it or the gate silently degrades to a flag."""
+    from src.agent.execution.evidence_preflight import compute_reading_report_from_vector_dir
+
+    vector_dir = tmp_path / "0_reading"
+    vector_dir.mkdir(parents=True)
+    (vector_dir / "1f_view.json").write_text(
+        json.dumps(_clean_plan_payload()), encoding="utf-8"
+    )
+
+    strict = compute_reading_report_from_vector_dir(vector_dir, run_profile=run_profile)
+    assert _ids(strict) == {f"1f_view.{_PLAN_FRAME_CHECK}"}
+
+    lenient = compute_reading_report_from_vector_dir(vector_dir, run_profile="exploratory")
+    assert lenient.passed
+    assert f"1f_view.{_PLAN_FRAME_CHECK}" in {r.check_id for r in lenient.flagged()}
+
+
+@pytest.mark.parametrize("run_profile", _ACCEPTANCE_PROFILES)
+def test_plan_frame_gate_reaches_the_flow_stage_gate(run_profile):
+    """The acceptance-run gate① for 0_reading is `check_reading_stage`
+    (scripts/tool_scripts/run_stage.py `_read_reading`). Locking the policy only
+    through the per-view entry point would leave that wiring untested."""
+    from src.validator.checks.view_manifest import check_reading_stage
+
+    produced = {"1f_view": _clean_plan_payload()}
+    prefixed = f"1f_view.{_PLAN_FRAME_CHECK}"
+
+    # manifest=None also raises reading.view_manifest_coverage; assert on the
+    # specific check id, never on rep.passed, so that cannot stand in for this.
+    strict = check_reading_stage(None, produced, run_profile=run_profile)
+    assert prefixed in _ids(strict)
+
+    lenient = check_reading_stage(None, produced, run_profile="exploratory")
+    assert prefixed not in _ids(lenient)
+    assert prefixed in {r.check_id for r in lenient.flagged()}
+
+    usable = check_reading_stage(
+        None, {"1f_view": _clean_plan_payload(_USABLE_ORIGIN)}, run_profile=run_profile
+    )
+    assert prefixed not in _ids(usable)
+    assert _result(usable, prefixed).status is CheckStatus.PASS
