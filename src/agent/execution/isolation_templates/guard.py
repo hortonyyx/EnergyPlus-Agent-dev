@@ -20,6 +20,26 @@ GUARD_VERSION = "1"
 WRITE_TOOLS = ("Write", "Edit", "MultiEdit", "NotebookEdit")
 WRITE_TARGET_KEYS = ("file_path", "notebook_path")
 WRITE_ALLOWED_DIRS = ("out", "requests")
+# R2-2: request parameters the CV helper uses as an OUTPUT LANDING POINT.
+# Enumerated by auditing every tool in run_cv_probe.ALLOWED_TOOLS:
+#   crop_zoom / wall_line_profiler / storey_line_profiler / px_m_calibrator /
+#   window_cc_detector / overlay_logger -> allocate_sidecar_path(out_dir, ...)
+#   prescan-plan / prescan-elevation    -> evidence_dir(out_dir, ...)/label
+# `out_dir` is therefore the ONLY output-role parameter; every other file the
+# helper writes (crop png, overlay png, candidates.json, sidecar json) is derived
+# from it. The two name components that also shape the landing path are pinned to
+# non-traversing tokens by their own regexes and cannot escape out_dir:
+# `sidecar_name` (sidecar.py `_SIDECAR_NAME_RE`) and `label` (recipes.py
+# `_PRESCAN_LABEL_RE`). `image` / `anchors_json` / `candidates_json` are inputs
+# and keep the existing "inside staging" rule.
+REQUEST_OUTPUT_ROLE_KEYS = ("out_dir",)
+# Helper output must resolve into the WRITABLE ROOT, not merely "somewhere inside
+# staging" — the latter let a legal-looking request make the one allowlisted
+# executable write real files under `tools/**` (sol MAJOR-1, reproduced by the
+# controller). `requests/` holds the request file itself and is never an output
+# root. run_cv_probe.py enforces the identical rule so there is no guard/wrapper
+# policy gap.
+OUTPUT_ROOT_DIR = "out"
 # S2b r2 (R2-1): the parameter-role classifier is a TOTAL function over keys.
 # Exactly two roles exist and every key lands in one of them — there is no third
 # "guess by string shape" branch:
@@ -127,27 +147,31 @@ def _lexical_check(text: str, root: Path) -> tuple[bool, str]:
 
 
 def _validate_request_file(path: Path, root: Path) -> list[str]:
+    """Validate a CV-probe request JSON *by parameter role* (R2-2).
+
+    Every string still gets the unconditional lexical scan. On top of that, a
+    value sitting under an output-role key (REQUEST_OUTPUT_ROLE_KEYS) must
+    resolve into the writable root — "still inside staging" is not enough,
+    because the helper this request drives writes real files wherever that
+    parameter points.
+    """
     data = json.loads(path.read_text(encoding="utf-8"))
     normalized = [str(path.resolve(strict=True))]
-    for value in _walk_values(data):
-        if isinstance(value, str):
-            ok, reason = _lexical_check(value, root)
+    for key, value in _walk_items(data):
+        if not isinstance(value, str):
+            continue
+        ok, reason = _lexical_check(value, root)
+        if not ok:
+            raise ValueError(f"request contains forbidden token: {reason}")
+        if key in REQUEST_OUTPUT_ROLE_KEYS:
+            resolved = _path_arg(value, root)
+            ok, reason = _check_output_target(resolved, root)
             if not ok:
-                raise ValueError(f"request contains forbidden token: {reason}")
-            if _looks_like_path(value):
-                normalized.append(str(_path_arg(value, root)))
+                raise ValueError(f"{reason}: {value}")
+            normalized.append(str(resolved))
+        elif _looks_like_path(value):
+            normalized.append(str(_path_arg(value, root)))
     return sorted(set(normalized))
-
-
-def _walk_values(value):
-    if isinstance(value, dict):
-        for item in value.values():
-            yield from _walk_values(item)
-    elif isinstance(value, list):
-        for item in value:
-            yield from _walk_values(item)
-    else:
-        yield value
 
 
 def _walk_items(value, key=None):
@@ -214,13 +238,32 @@ def _check_write_target(target: Path, root: Path) -> tuple[bool, str]:
     overwrite tools/run_cv_probe.py and then execute arbitrary code via the one
     Bash-allowlisted executable."""
     for name in WRITE_ALLOWED_DIRS:
-        allowed_root = (root / name).resolve(strict=False)
         try:
-            target.relative_to(allowed_root)
+            target.relative_to(_writable_root(root, name))
             return True, f"allowed write under {name}/"
         except ValueError:
             continue
     return False, "write target must be under out/ or requests/"
+
+
+def _writable_root(root: Path, name: str) -> Path:
+    """The single definition of "a root the reader may write into". Both the
+    Write/Edit target check and the CV-request output check go through here, so
+    the two can never drift apart."""
+    return (root / name).resolve(strict=False)
+
+
+def _check_output_target(target: Path, root: Path) -> tuple[bool, str]:
+    """R2-2: a CV-request output-role parameter must land in the writable root.
+
+    Same bar as a direct Write, minus `requests/` (that dir carries the request
+    file, not helper output). Without this, `{"out_dir": "tools"}` passed the
+    hook, the helper ran, and three files really appeared under `tools/**`."""
+    try:
+        target.relative_to(_writable_root(root, OUTPUT_ROOT_DIR))
+        return True, f"allowed output under {OUTPUT_ROOT_DIR}/"
+    except ValueError:
+        return False, f"request output path must land under {OUTPUT_ROOT_DIR}/"
 
 
 def _check_bash(command: str, root: Path) -> tuple[bool, str, list[str]]:

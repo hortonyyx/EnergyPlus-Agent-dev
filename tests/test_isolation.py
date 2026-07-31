@@ -993,6 +993,133 @@ def test_guard_denies_read_of_symlink_escaping_staging(tmp_path: Path):
     assert proc.returncode == 2
 
 
+# --------------------------------------------------------------------------- #
+# R2-2 — the one helper the guard lets the reader execute writes wherever the
+# request's `out_dir` points. Before this item, both the hook and the wrapper
+# only required "somewhere inside staging", so `{"out_dir": "tools"}` was allowed
+# and the helper really created three files under `tools/**`. Output-role
+# parameters must now resolve into the writable root, enforced in BOTH places,
+# and the E2E locks below actually run the helper and diff the staging tree.
+# --------------------------------------------------------------------------- #
+_E2E_WRITABLE_PREFIXES = ("out/", "requests/")
+# Explicit, named exemptions — never a silent ignore:
+_E2E_EXEMPT_NAMES = ("access_log.jsonl",)  # the guard's own append-only audit log
+_E2E_EXEMPT_PARTS = ("__pycache__",)  # interpreter byte-cache of the staged tools
+
+
+def _staging_snapshot(root: Path) -> dict[str, str]:
+    """content hash of every regular file in the staging tree."""
+    return {
+        p.relative_to(root).as_posix(): hash_file(p)
+        for p in sorted(root.rglob("*"))
+        if p.is_file() and not p.is_symlink()
+    }
+
+
+def _protected_tree_diff(before: dict[str, str], after: dict[str, str]) -> list[str]:
+    """Files added or rewritten OUTSIDE out/ and requests/, excluding the two
+    named exemptions above."""
+    changed = []
+    for rel, digest in after.items():
+        if before.get(rel) == digest:
+            continue
+        if rel.startswith(_E2E_WRITABLE_PREFIXES):
+            continue
+        parts = Path(rel).parts
+        if parts[-1] in _E2E_EXEMPT_NAMES or any(p in _E2E_EXEMPT_PARTS for p in parts):
+            continue
+        changed.append(rel)
+    return sorted(changed)
+
+
+def _run_helper(staging: Path, request_rel: str) -> subprocess.CompletedProcess[str]:
+    return subprocess.run(
+        [sys.executable, "tools/run_cv_probe.py", "--request", request_rel],
+        cwd=staging,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+
+
+@pytest.mark.parametrize(
+    "out_dir",
+    [
+        "tools",  # the reproduced escape: overwrite-adjacent to the one allowlisted exe
+        "tools/cv_evidence",
+        "requests/evidence",  # requests/ carries the request file, never helper output
+        "prescan",
+        "reference",
+        "case_data",
+        ".",  # staging root
+    ],
+)
+def test_guard_denies_request_output_dir_outside_writable_root(tmp_path: Path, out_dir: str):
+    """R2-2 hook side: an output-role parameter that resolves anywhere but the
+    writable root is refused before the helper is ever started."""
+    staging = _build(tmp_path).staging_root
+    _request(
+        staging,
+        {"tool": "crop_zoom", "args": {"image": "case_data/1f_view.png", "out_dir": out_dir, "bbox": "0,0,20,20"}},
+        name="requests/probe.json",
+    )
+    proc = _hook(staging, "python tools/run_cv_probe.py --request requests/probe.json")
+    assert proc.returncode == 2, (out_dir, proc.stdout, proc.stderr)
+
+
+def test_e2e_request_writing_outside_out_is_refused_and_tree_is_unchanged(tmp_path: Path):
+    """R2-2 core lock — real E2E. Uses the exact request the reviewer used to
+    land three files under `tools/**`: the hook must refuse it, the wrapper must
+    refuse it independently (no guard/wrapper policy gap), and a before/after
+    hash diff of the WHOLE staging tree must show zero additions and zero
+    rewrites outside out/ and requests/."""
+    staging = _build(tmp_path).staging_root
+    _request(
+        staging,
+        {"tool": "crop_zoom", "args": {"image": "case_data/1f_view.png", "out_dir": "tools", "bbox": "0,0,20,20"}},
+        name="requests/write_tools.json",
+    )
+    before = _staging_snapshot(staging)
+
+    hook = _hook(staging, "python tools/run_cv_probe.py --request requests/write_tools.json")
+    assert hook.returncode == 2, hook.stderr
+    assert "out/" in hook.stderr
+
+    # Independently of the hook, the wrapper itself must refuse the same request.
+    helper = _run_helper(staging, "requests/write_tools.json")
+    assert helper.returncode != 0, helper.stdout
+    assert "out/" in (helper.stderr + helper.stdout)
+
+    after = _staging_snapshot(staging)
+    assert _protected_tree_diff(before, after) == []
+    assert not (staging / "tools" / "cv_evidence").exists()
+
+
+def test_e2e_allowed_request_writes_only_under_out(tmp_path: Path):
+    """R2-2 companion lock: the same machinery on a LEGAL request. The hook
+    allows it, the helper really runs and really writes, new files appear under
+    out/ — which is what proves the tree diff above is not vacuous — and nothing
+    outside out/ / requests/ is added or rewritten."""
+    staging = _build(tmp_path).staging_root
+    _request(
+        staging,
+        {"tool": "crop_zoom", "args": {"image": "case_data/1f_view.png", "out_dir": "out/cv", "bbox": "0,0,20,20"}},
+        name="requests/probe.json",
+    )
+    before = _staging_snapshot(staging)
+
+    hook = _hook(staging, "python tools/run_cv_probe.py --request requests/probe.json")
+    assert hook.returncode == 0, hook.stderr
+
+    helper = _run_helper(staging, "requests/probe.json")
+    assert helper.returncode == 0, helper.stderr
+
+    after = _staging_snapshot(staging)
+    produced = sorted(rel for rel in after if rel not in before and rel.startswith("out/"))
+    assert produced, "the helper wrote nothing under out/ — the diff would be vacuous"
+    assert _protected_tree_diff(before, after) == []
+
+
 def test_guard_denies_bash_request_file_with_forbidden_token(tmp_path: Path):
     """S2b regression lock (property 8): a CV-probe request JSON whose value
     contains a DENY_TOKEN is denied — `_validate_request_file` keeps the strict

@@ -19,6 +19,16 @@ ALLOWED_TOOLS = {
     "prescan-elevation",
 }
 PATH_KEYS = {"image", "out_dir", "anchors_json", "candidates_json"}
+# R2-2: parameters this wrapper turns into an OUTPUT LANDING POINT. `out_dir` is
+# the only one across all of ALLOWED_TOOLS (sidecar/crop/overlay/prescan paths
+# are all derived from it; `sidecar_name` and `label` are regex-pinned name
+# components that cannot traverse). It must resolve into the writable root —
+# "inside staging" is not enough, or a request can make this wrapper write into
+# the read-only parts of the tree such as `tools/**`.
+# This mirrors guard.py's REQUEST_OUTPUT_ROLE_KEYS / OUTPUT_ROOT_DIR on purpose:
+# the hook and the wrapper must never disagree about where output may land.
+OUTPUT_ROLE_KEYS = {"out_dir"}
+OUTPUT_ROOT_DIR = "out"
 
 
 def _staging_root() -> Path:
@@ -47,6 +57,21 @@ def _resolve(value: str, root: Path) -> Path:
     return resolved
 
 
+def _writable_root(root: Path, name: str) -> Path:
+    return (root / name).resolve(strict=False)
+
+
+def _resolve_output(value: str, root: Path) -> Path:
+    resolved = _resolve(value, root)
+    try:
+        resolved.relative_to(_writable_root(root, OUTPUT_ROOT_DIR))
+    except ValueError:
+        raise ValueError(
+            f"output path must land under {OUTPUT_ROOT_DIR}/, not {value!r}"
+        ) from None
+    return resolved
+
+
 def _request_to_argv(request: dict, root: Path) -> list[str]:
     tool = request.get("tool")
     args = request.get("args")
@@ -61,7 +86,11 @@ def _request_to_argv(request: dict, root: Path) -> list[str]:
             if value:
                 argv.append(opt)
             continue
-        if key in PATH_KEYS:
+        if key in OUTPUT_ROLE_KEYS:
+            if not isinstance(value, str):
+                raise ValueError(f"{key} must be a path string")
+            value = str(_resolve_output(value, root))
+        elif key in PATH_KEYS:
             if not isinstance(value, str):
                 raise ValueError(f"{key} must be a path string")
             value = str(_resolve(value, root))
