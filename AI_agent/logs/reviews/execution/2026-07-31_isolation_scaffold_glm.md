@@ -140,3 +140,38 @@
 - 多件扫描用 `*_view.json`（派工单给定）。对当前语料成立（floor/cardinal 的 expected_output_id=identity 保留 `_view` 词干、supplementary 的 append_view 加 `_view`）。若未来某 family 的 expected_output_id 不以 `_view` 结尾，其 per-image 件不会被多件扫描命中、也不会被正例聚合命中（缺件报错）——派工单的口径即此，未自行改成 `*.json`（那会误伤 output.json/其他）。如实登记。
 - 损坏的 `output.json`（非法 JSON）现在落 assembly 而非硬报「not valid JSON」（原老路径会报）。理由：assembly 是新主路径，损坏聚合件不该阻断「per-image 件齐」的正常聚合；若 per-image 也缺 ⇒ missing 报错 fail-closed。这是比原行为更宽容但仍 fail-closed 的取舍，如实登记。
 
+
+## 全仓交付前自跑 + neuter 总账
+
+**全仓（HEAD，含并行 sol 席位的 judge WIP）**：1823 passed / 10 xfailed / **6 failed**。
+- 6 failed 全在 `tests/test_reading_typed_scoring_slice0.py`（reading 类型化判卷层）。
+- **归因核实（不是我）**：该文件在 baseline `f98d248` **不存在**，6 个失败用例名 baseline 全部**缺席**；文件仅由 sol 的两个并行 commit（`e355654 ReadingTypedScoringSlice0RedLocks` / `6ed37a9 ReadingTypedScoringSlice0U13Correction`）创建/修改；`git diff f98d248..HEAD -- src/ scripts/ skills/` 显示**除我 3 个文件外 sol 零源码改动**（sol 在 TDD red-lock 阶段：给尚未实现的判卷代码写会红的锁）⇒ 6 failed 是 sol 的并行 WIP、派工单明令我不得碰的判卷层，非本批回归。
+- 并行交错如实登记：sol 在我跑测期间提交了两次（`e355654` 插在我 S2 与 S3 之间、`6ed37a9` 在我 S4 之后=当前 HEAD）；我 4 个 commit（`78967eb/c42de85/f2a4efb/c9974fd`）完整在册、未受影响。
+
+**全仓（忽略 sol WIP 文件）= 本批净验证**：`--ignore=tests/test_reading_typed_scoring_slice0.py` → **1823 passed / 10 xfailed / 0 failed**。
+- = baseline 1786 + 本批新增 37（S1×3 + S2×27 + S3×3 + S4×4）⇒ **零回归**。
+
+**neuter 自查总账（每把新锁经实跑核）**
+
+| Slice | 锁族 | neuter（生产码定点） | 变红测试（实跑） |
+|---|---|---|---|
+| S1 | 正例+一致性 | 注释 `_copy_worked_example(...)` 调用 | 2 FAILED（staged 件存在 / kickoff 路径 stat） |
+| S2a | 写保护 | 删 `evaluate` 的 `if tool in WRITE_TOOLS:` 块 | 13 FAILED（12 deny-write 参数 + K 头条） |
+| S2b | 散文放松 | 去掉 `if not _looks_like_path(value): continue` | 1 FAILED（reading_summary 散文锁） |
+| S3 | 套娃拒绝 | `_reject_nested_prescan_out_dir` 返回常空串 | 2 FAILED（cv_evidence/prescan 两参数） |
+| S3 | 落点↔守卫 | `_is_run_prescan_path` 强制 `return False` | 2 FAILED（parity 锁 + 既有 isolation 测试） |
+| S4 | 缺件 | 删 missing 检查块 | 1 FAILED（KeyError 非 ValueError） |
+| S4 | 多件 | 删 extra 检查块 | 1 FAILED（DID NOT RAISE） |
+| S4 | 正例聚合 | `glob("*_view.json")`→`glob("*_NOPE.json")` | 1 FAILED（missing all） |
+| S4 | 零改动(==) | 聚合时注入 `{"_mutated":True,**…}` | 1 FAILED（== AssertionError） |
+
+全部 neuter 工作树临时破坏→跑→还原（每 Slice commit 前文件回净、无残留）。
+
+**改了哪些文件（生产码 + 测试 + 文档）**
+- `src/agent/execution/isolation.py`（S1 worked-example 拷入+改写 kickoff 路径 / S2 build 预建 requests+settings+ kickoff 文本 / S4 merge 自聚合）
+- `src/agent/execution/isolation_templates/guard.py`（S2 写保护 + 散文放松）
+- `scripts/tool_scripts/cv_probe.py`（S3 prescan 套娃拒绝 + 回显落点）
+- `tests/test_isolation.py`（S1+S2+S4 锁）、`tests/test_cv_toolbox.py`（S3 锁）
+- `AI_agent/guides/new_case_guide.md`（S3 §2.1 命令样例写死）
+- 本执行日志
+
