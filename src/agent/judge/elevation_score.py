@@ -96,7 +96,7 @@ def project_typed_elevation_observation(*, observation: TypedElevationObservatio
         raise ScoreContractError("score_view_binding_invalid", "scoring.view_bindings",
                                  context={"observation_id": observation.observation_id})
     lo, hi = observation.local_x_interval
-    if not lo < hi:
+    if lo > hi:
         raise ScoreContractError("score_product_identity_invalid", "scoring.input_identity",
                                  context={"observation_id": observation.observation_id, "reason": "invalid_local_interval"})
     a = binding.along_origin + binding.sign * lo

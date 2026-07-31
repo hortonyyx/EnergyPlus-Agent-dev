@@ -480,10 +480,12 @@ class ReadingElevationOpeningAuditV1(StrictWire):
     local_x_interval: ClosedIntervalV1
     local_y_interval: ClosedIntervalV1
     world_along_interval: ClosedIntervalV1
-    z_interval: ClosedIntervalV1
+    # Null exactly when horizontal evidence is usable but the product's
+    # non-null vertical datum is malformed and the z component is NA.
+    z_interval: ClosedIntervalV1 | None
     source_geometry_sha256: Hex64
     horizontal_transform_sha256: Hex64
-    vertical_transform_sha256: Hex64
+    vertical_transform_sha256: Hex64 | None
 
 ReadingObservationAuditV1 = Annotated[
     ReadingPlanSegmentAuditV1

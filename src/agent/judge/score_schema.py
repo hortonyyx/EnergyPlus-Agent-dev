@@ -750,10 +750,18 @@ class ReadingElevationOpeningAuditV1(StrictWire):
     local_x_interval: ClosedIntervalV1
     local_y_interval: ClosedIntervalV1
     world_along_interval: ClosedIntervalV1
-    z_interval: ClosedIntervalV1
+    z_interval: ClosedIntervalV1 | None
     source_geometry_sha256: Hex64
     horizontal_transform_sha256: Hex64
-    vertical_transform_sha256: Hex64
+    vertical_transform_sha256: Hex64 | None
+
+    @model_validator(mode="after")
+    def _vertical_pair(self):
+        if (self.z_interval is None) != (
+            self.vertical_transform_sha256 is None
+        ):
+            raise ValueError("elevation z interval and transform must pair")
+        return self
 
 
 ReadingObservationAuditV1 = Annotated[

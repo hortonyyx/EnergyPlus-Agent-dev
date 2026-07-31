@@ -291,3 +291,66 @@ Both completed with no output.
 Slice 2 begins with elevation adapter RED locks. Slice 1 deliberately does not
 manufacture reading geometry or certificates; the remaining Slice 0 reds stay red
 until those evidence paths land.
+
+## Slice 2 — elevation ReadingView adapter
+
+### RED locks
+
+`431f01d` commits eight elevation locks before implementation. Reproducible command:
+
+```bash
+python -m pytest -p no:cacheprovider -q \
+  tests/test_reading_typed_adapter.py
+```
+
+Result on that committed tree: `8 failed`, all at the absent
+`normalize_reading_attempt` seam.
+
+`635f7b4` adds the horizontal-only lock for a malformed non-null vertical datum.
+From a detached worktree at that commit, the focused test is `1 failed`; it proves the
+accepted combined elevation audit row could not yet represent applicable horizontal
+evidence with an NA z component.
+
+### Implementation
+
+- The adapter joins expected output IDs to trusted manifest input IDs and reviewed
+  bindings without importing typed GT.
+- It strictly consumes rect/line/polyline metre geometry, filters hidden/dashed
+  strokes, namespaces observation IDs with the full output/input/stroke/component
+  tuple, and permits finite point intervals.
+- East/South use the reviewed projection. North/West emit input-scoped
+  `trusted_frame` NA plus exact raw/effective declaration witnesses; neither product
+  declaration enters the coordinate transform.
+- Missing/malformed views and geometry are product-side retain-as-miss outcomes.
+  Empty supported inputs remain applicable with zero observations.
+- Single-floor null/missing z uses the ruled
+  `project_convention_2026_07_25` datum; declared finite z is distinct; multi-floor is
+  trusted-filtered; malformed non-null z leaves horizontal observations present and
+  makes only the z component NA.
+- To represent that last ruled branch without fabricating a z coordinate,
+  `ReadingElevationOpeningAuditV1.z_interval` and
+  `vertical_transform_sha256` are a validated nullable pair. The cumulative spec now
+  states this exact wire boundary.
+
+### GREEN evidence
+
+```bash
+python -m pytest -p no:cacheprovider -q \
+  tests/test_reading_typed_adapter.py \
+  tests/test_elevation_score.py \
+  tests/test_c2_b4b_phase_c.py
+```
+
+Result: `46 passed`.
+
+Mechanical checks:
+
+```bash
+python -m py_compile \
+  src/agent/judge/reading_typed_adapter.py \
+  src/agent/judge/score_schema.py \
+  src/agent/judge/elevation_score.py
+git diff --check
+```
+
+Both completed with no output.
