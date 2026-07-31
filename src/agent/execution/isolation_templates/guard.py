@@ -103,7 +103,8 @@ CONTENT_ROLE_KEYS = (
 )
 # R3-1: exemptions that hold for ONE tool only. `pattern` is a regex for Grep
 # (free text: `wall_..[0-9]`, `z ~ 0.0`) but a path glob for Glob, where
-# `**/gt.json` must stay denied. Classifying by key name alone cannot separate
+# a `**/`-prefixed answer-file name must stay denied. Classifying by key name
+# alone cannot separate
 # them, so the tool name participates in the decision. Fail-closed as before: an
 # unlisted tool gets no tool-scoped exemption at all, only the global table
 # above, so an unanticipated tool that happens to take a `pattern` is scanned.
@@ -115,8 +116,9 @@ TOOL_FREE_TEXT_KEYS = {
 # returns "path" for anything outside CONTENT_ROLE_KEYS, so this tuple can never
 # be the reason a value goes unchecked. It exists so the role table is readable
 # and so a test can pin that every listed key really classifies as "path".
-# (Glob/Grep also take `pattern`; it reaches the same treatment via the
-# fail-closed default, which is why this tuple does not have to be exhaustive.)
+# (Glob also takes `pattern`; it reaches the same treatment via the fail-closed
+# default — R3-1 exempts `pattern` for Grep only — which is why this tuple does
+# not have to be exhaustive.)
 PATH_ROLE_KEYS = ("file_path", "notebook_path", "path", "glob")
 DENY_TOKENS = (
     "/workspaces/EnergyPlus-Agent-dev",

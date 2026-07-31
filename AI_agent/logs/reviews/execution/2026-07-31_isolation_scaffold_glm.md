@@ -484,3 +484,83 @@ N4 是 **R2-1 fail-closed 缺省未被本项削弱的活体证明**：缺省一�
 
 **N10 是「确实共享同一份实现」的判决性证据**：破坏 guard 一侧的定义，wrapper 侧的锁同时变红 ——
 两个执行点走的是同一个函数对象，不是两份长得像的代码。
+
+### r3 跑测、范围与交付
+
+- **中间轮受影响子集（工具算，非手挑）**：
+
+```text
+python scripts/tool_scripts/affected_tests.py --changed \
+    src/agent/execution/isolation_templates/guard.py \
+    src/agent/execution/isolation_templates/run_cv_probe.py \
+    tests/test_isolation.py
+```
+
+输出 `SCOPE: SUBSET` → `python -m pytest -p no:cacheprovider -q tests/test_isolation.py`；
+实跑 **115 passed**（r2 尾态 106 → R3-1 新增 8 参数 + R3-2 新增 1 = 115）。
+
+- **交付前全仓**：
+
+```text
+python -m pytest -q
+```
+
+结果 **1917 passed / 10 xfailed / 0 failed**（287.25s）。相对主控基线
+`1908 passed / 10 xfailed / 0 failed` 净增 **+9**，零回归。
+
+- ⚠️ **首次全仓跑抓到一条子集看不见的红**（如实登记，非事后修饰）：
+  `tests/test_gt_discipline.py::test_executors_do_not_reference_gt` 变红，原因是我在
+  `guard.py` 的 R3-1 注释里把答案文件名**逐字写了出来**（生产码本体一直用 `"gt" + ".json"` 拼接来规避）。
+  已改写注释措辞，复跑全绿。**这条纪律门是词法扫描执行器源码文件，与 `guard.py` 之间没有 import 边也没有字符串路径边**，
+  所以 `affected_tests.py` 结构上路由不到它 —— 登记为跟进债（见下）。
+
+- **范围核**：
+
+```text
+git diff --quiet 85b6695..HEAD -- src/agent/judge case_tests/test_baseline/gt AI_agent/CLAUDE.md
+```
+
+退出码 **0**。受保护人签答案树逐字节未动：
+
+```text
+find case_tests/test_baseline/gt/sm24_anchor -type f -print0 | sort -z | xargs -0 sha256sum | sha256sum
+e78c6e7e015746c14d8f70521551a71ee77b6e726259000ecf6133f91d61771f  -   （14 个文件）
+```
+
+与复审裁决书 §6 的基准值逐字相同。
+
+- **r3 改动文件（4 个）**：`src/agent/execution/isolation_templates/guard.py`、
+  `src/agent/execution/isolation_templates/run_cv_probe.py`、`tests/test_isolation.py`、本执行日志。
+  **`scripts/tool_scripts/cv_probe.py` 无 r3 改动**（见下方偏差第 1 条）。
+- 全部 neuter 只在 `/tmp/.../scratchpad/neuter/repo` 的 `git clone` 副本上做；主工作树未做任何实验性破坏，
+  未写 `case_tests/test_baseline/gt/**`。
+
+### 偏差 / review-ask（r3）
+
+1. **返工单 R3-2 的文件指向有一处笔误**（不影响执行）：单里写「`scripts/tool_scripts/cv_probe.py` 侧
+   （staging 内为 `tools/run_cv_probe.py`）的 `_writable_root`」。实际上
+   `scripts/tool_scripts/cv_probe.py` 里**没有** `_writable_root`，它被拷成 staging 的 `tools/cv_probe.py`；
+   带 `_writable_root` 的是 `src/agent/execution/isolation_templates/run_cv_probe.py`（拷成 `tools/run_cv_probe.py`），
+   也正是复审裁决书 §4 MINOR-1 逐行引用的那个文件。**我改的是后者**，`scripts/tool_scripts/cv_probe.py` 一行未动。
+2. **R3-1 的枚举依据，盘上实际能拿到的比骨架描述的窄** —— 如实登记，未自行改骨架：
+   `access_log.jsonl` **只在 deny 条目记参数名**，那一轮出现过的参数名只有 `command` 与 `content`；
+   `_write_settings` 的 allow 表只点名 `Read`/`Write`/`Edit`/`Bash` 四个工具、不列参数。
+   ⇒ 单靠这两处**推不出** `activeForm` / `pattern` 这些名字，它们来自骨架自己给的显式最低清单
+   与对应工具的参数表（也正是复审方活体探针实测被拒的那些形状）。两处依据我都据实写进了 `guard.py` 注释。
+3. **判断取舍：`pattern` 做成按工具豁免，而不是全局豁免。** 骨架写的是「补进 `CONTENT_ROLE_KEYS`」，
+   但 `Grep.pattern` 是正则、`Glob.pattern` 是路径 glob，同名不同义；全局豁免会让
+   `Glob {"pattern": "**/<答案文件名>"}` 从 DENY 变 ALLOW ——
+   那是复审裁决书 §1/§3.2 已验证的安全性质，属于「削弱既有断言」。
+   故新增 `TOOL_FREE_TEXT_KEYS` 只对 `Grep` 生效，并补了 `glob_pattern_is_still_a_path` 负锁 + N3 neuter 钉住。
+   **这是严格加强、不是放宽**，但确实偏离了骨架字面的「一张表」写法，请主控确认。
+4. **共享实现的落法：让 wrapper 反向 import guard，而不是新起第三个共享模块。**
+   理由 = 不必往 staging 多塞一个文件/多一条 MANIFEST 条目，且语义上「策略归守卫所有」更直白；
+   代价 = wrapper 对 `guard.py` 有了硬依赖（缺失即 `ImportError` ⇒ 拒绝执行 ⇒ fail-closed）。
+   若主控更希望是中立的第三方模块，这是一处可返工的形状选择。
+5. **跟进债（不阻断，本轮未做）**：`test_gt_discipline` 这类**词法扫描生产码**的纪律门，
+   与被扫文件之间没有 import/字符串路径边 ⇒ `affected_tests.py` 结构上算不进子集，
+   只有全仓跑才会暴露。本轮已被它抓到一次真红。
+6. **未纳入豁免表的残留自由文本参数**（刻意不做，避免超出骨架）：`ExitPlanMode.plan`、
+   `Skill.args` 之类。这些工具不在 `_write_settings` 的 allow 表内、也未在 07-30 的 access log 出现，
+   按「枚举依据不许靠猜」的要求就不该进表；将来若识图子代理真用到，会以 fail-closed 缺省被拒并在
+   `access_log.jsonl` 留痕 ⇒ **复验轮读拒绝计数时可直接发现**。
