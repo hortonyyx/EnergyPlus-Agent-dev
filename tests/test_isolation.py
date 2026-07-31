@@ -1022,28 +1022,48 @@ _E2E_EXEMPT_PARTS = ("__pycache__",)  # interpreter byte-cache of the staged too
 
 
 def _staging_snapshot(root: Path) -> dict[str, str]:
-    """content hash of every regular file in the staging tree."""
-    return {
-        p.relative_to(root).as_posix(): hash_file(p)
-        for p in sorted(root.rglob("*"))
-        if p.is_file() and not p.is_symlink()
-    }
+    """Type + content/target signature for every entry in the staging tree.
+
+    Directories and symlinks are included, not merely regular files, so the
+    R2-2 E2E assertion really diffs the whole tree.
+    """
+    snapshot = {}
+    for path in sorted(root.rglob("*")):
+        rel = path.relative_to(root).as_posix()
+        if path.is_symlink():
+            snapshot[rel] = f"symlink:{path.readlink()}"
+        elif path.is_dir():
+            snapshot[rel] = "directory"
+        elif path.is_file():
+            snapshot[rel] = f"file:{hash_file(path)}"
+        else:
+            snapshot[rel] = "other"
+    return snapshot
 
 
 def _protected_tree_diff(before: dict[str, str], after: dict[str, str]) -> list[str]:
-    """Files added or rewritten OUTSIDE out/ and requests/, excluding the two
-    named exemptions above."""
+    """Entries added, removed, or rewritten outside the writable roots.
+
+    The two exemption collections above are the complete named allowlist; no
+    path is silently skipped.
+    """
     changed = []
-    for rel, digest in after.items():
-        if before.get(rel) == digest:
+    for rel in sorted(set(before) | set(after)):
+        if before.get(rel) == after.get(rel):
             continue
         if rel.startswith(_E2E_WRITABLE_PREFIXES):
             continue
         parts = Path(rel).parts
         if parts[-1] in _E2E_EXEMPT_NAMES or any(p in _E2E_EXEMPT_PARTS for p in parts):
             continue
-        changed.append(rel)
-    return sorted(changed)
+        if rel not in before:
+            change = "added"
+        elif rel not in after:
+            change = "removed"
+        else:
+            change = "rewritten"
+        changed.append(f"{change}:{rel}")
+    return changed
 
 
 def _run_helper(staging: Path, request_rel: str) -> subprocess.CompletedProcess[str]:
@@ -1081,12 +1101,10 @@ def test_guard_denies_request_output_dir_outside_writable_root(tmp_path: Path, o
     assert proc.returncode == 2, (out_dir, proc.stdout, proc.stderr)
 
 
-def test_e2e_request_writing_outside_out_is_refused_and_tree_is_unchanged(tmp_path: Path):
-    """R2-2 core lock — real E2E. Uses the exact request the reviewer used to
-    land three files under `tools/**`: the hook must refuse it, the wrapper must
-    refuse it independently (no guard/wrapper policy gap), and a before/after
-    hash diff of the WHOLE staging tree must show zero additions and zero
-    rewrites outside out/ and requests/."""
+def test_wrapper_independently_refuses_outside_output_and_tree_is_unchanged(tmp_path: Path):
+    """R2-2 wrapper lock. Invoke the helper without the hook and prove its
+    independent output-root policy refuses the exact `out_dir="tools"` escape
+    without changing the protected tree."""
     staging = _build(tmp_path).staging_root
     _request(
         staging,
@@ -1095,43 +1113,63 @@ def test_e2e_request_writing_outside_out_is_refused_and_tree_is_unchanged(tmp_pa
     )
     before = _staging_snapshot(staging)
 
-    hook = _hook(staging, "python tools/run_cv_probe.py --request requests/write_tools.json")
-    assert hook.returncode == 2, hook.stderr
-    assert "out/" in hook.stderr
-
-    # Independently of the hook, the wrapper itself must refuse the same request.
     helper = _run_helper(staging, "requests/write_tools.json")
-    assert helper.returncode != 0, helper.stdout
-    assert "out/" in (helper.stderr + helper.stdout)
-
     after = _staging_snapshot(staging)
     assert _protected_tree_diff(before, after) == []
     assert not (staging / "tools" / "cv_evidence").exists()
+    assert helper.returncode != 0, helper.stdout
+    assert "out/" in (helper.stderr + helper.stdout)
 
 
-def test_e2e_allowed_request_writes_only_under_out(tmp_path: Path):
-    """R2-2 companion lock: the same machinery on a LEGAL request. The hook
-    allows it, the helper really runs and really writes, new files appear under
-    out/ — which is what proves the tree diff above is not vacuous — and nothing
-    outside out/ / requests/ is added or rewritten."""
+@pytest.mark.parametrize(
+    ("label", "out_dir", "hook_should_allow"),
+    [
+        ("outside_tools", "tools", False),
+        ("outside_reference", "reference", False),
+        ("inside_out", "out/cv", True),
+    ],
+)
+def test_e2e_hook_then_helper_changes_only_writable_tree(
+    tmp_path: Path, label: str, out_dir: str, hook_should_allow: bool
+):
+    """R2-2 core E2E lock.
+
+    Build a real staging workspace, run the real hook, execute the real helper
+    exactly when the hook allows the shape, then diff every staging entry. The
+    legal shape proves the helper branch and tree diff are non-vacuous; the two
+    outside shapes pin the refusal boundary.
+    """
     staging = _build(tmp_path).staging_root
     _request(
         staging,
-        {"tool": "crop_zoom", "args": {"image": "case_data/1f_view.png", "out_dir": "out/cv", "bbox": "0,0,20,20"}},
+        {"tool": "crop_zoom", "args": {"image": "case_data/1f_view.png", "out_dir": out_dir, "bbox": "0,0,20,20"}},
         name="requests/probe.json",
     )
     before = _staging_snapshot(staging)
 
     hook = _hook(staging, "python tools/run_cv_probe.py --request requests/probe.json")
-    assert hook.returncode == 0, hook.stderr
-
-    helper = _run_helper(staging, "requests/probe.json")
-    assert helper.returncode == 0, helper.stderr
+    helper = _run_helper(staging, "requests/probe.json") if hook.returncode == 0 else None
 
     after = _staging_snapshot(staging)
-    produced = sorted(rel for rel in after if rel not in before and rel.startswith("out/"))
-    assert produced, "the helper wrote nothing under out/ — the diff would be vacuous"
-    assert _protected_tree_diff(before, after) == []
+    assert _protected_tree_diff(before, after) == [], label
+
+    if hook_should_allow:
+        assert hook.returncode == 0, (label, hook.stdout, hook.stderr)
+        assert helper is not None and helper.returncode == 0, (
+            label,
+            None if helper is None else helper.stdout,
+            None if helper is None else helper.stderr,
+        )
+        produced = sorted(
+            rel
+            for rel in after
+            if rel not in before and rel.startswith("out/") and after[rel].startswith("file:")
+        )
+        assert produced, "the helper wrote no files under out/ — the E2E diff would be vacuous"
+    else:
+        assert hook.returncode == 2, (label, hook.stdout, hook.stderr)
+        assert "out/" in hook.stderr
+        assert helper is None, "the helper must run only for hook-allowed shapes"
 
 
 # --------------------------------------------------------------------------- #
