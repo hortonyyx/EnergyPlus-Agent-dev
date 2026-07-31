@@ -1085,10 +1085,13 @@ class OpeningSourceScoreRowV1(StrictWire):
             self.eligible_units == 0.0
             or self.na_reason is not None
             or self.error_metric == "not_applicable"
-            or self.error_value is None
             or self.tolerance is None
         ):
             raise ValueError("invalid eligible source row")
+        if self.error_value is None and self.matched_observation_ids:
+            raise ValueError(
+                "matched eligible source row requires a numeric error"
+            )
         return self
 
 

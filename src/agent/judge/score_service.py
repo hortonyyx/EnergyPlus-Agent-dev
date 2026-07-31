@@ -222,6 +222,55 @@ def score_typed_attempt(*, gt_identity, gt, stage: Literal["reading", "correctio
         reading_adapter="reading_typed_adapter_v1",
         reading_source_applicability="reading_source_applicability_v1",
     )
+    if stage == "reading":
+        from src.agent.judge.reading_typed_score import (
+            assemble_reading_score,
+        )
+
+        assembly = assemble_reading_score(
+            gt_identity=gt_identity,
+            gt=gt,
+            product_payload=product_payload,
+            product_identity=product_identity,
+            base_view_manifest=base_view_manifest,
+            effective_view_manifest=effective,
+            score_bindings=score_bindings,
+            c2_config=c2_config,
+            capability=capability,
+            tolerance=tolerance,
+            manifest_identity=manifest_identity,
+            helpers=helpers,
+        )
+        # The renderer consumes only typed judge rows and GT geometry.  Product
+        # facade declarations and raw stroke coordinates are not reachable.
+        import sys
+        from pathlib import Path
+
+        scripts = str(
+            Path(__file__).resolve().parents[3] / "scripts" / "tool_scripts"
+        )
+        if scripts not in sys.path:
+            sys.path.insert(0, scripts)
+        from render_grade import render_score_grade_png
+
+        png = render_score_grade_png(
+            gt=gt,
+            identity=assembly.identity,
+            payload=assembly.payload,
+        )
+        sidecar = finalize_score_sidecar_v9(
+            identity=assembly.identity,
+            payload=assembly.payload,
+            grade_png=png,
+            certificates=assembly.certificates,
+            ledger_counts=assembly.ledger_counts,
+        )
+        return TypedScoreResult(
+            identity=assembly.identity,
+            payload=assembly.payload,
+            sidecar=sidecar,
+            grade_png=png,
+        )
 
     from src.agent.judge.certifier import (
         AnalysisCollector,

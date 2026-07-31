@@ -26,6 +26,7 @@ from .score_schema import (
     JudgeCompletenessOverlayV1,
     JudgeScoreViewBindingsV1,
     PlanScoreViewBindingV1,
+    ReadingFilteredComponentBasisV1,
     ScoreContractError,
     canonical_sha256,
 )
@@ -261,6 +262,77 @@ def build_effective_view_manifest(*, base: ViewManifest, overlay: JudgeCompleten
         return ViewManifest.model_validate(payload)
     except ValidationError as exc:
         raise ScoreContractError("score_completeness_input_invalid", "scoring.completeness") from exc
+
+
+def build_reading_score_manifest(
+    *,
+    effective: ViewManifest,
+    trusted_capability_dispositions: tuple[
+        ReadingFilteredComponentBasisV1, ...
+    ],
+) -> ViewManifest:
+    """Remove only trusted-input-filtered claims from the in-memory Va input.
+
+    Attempt bytes are intentionally absent from this boundary.  A malformed or
+    empty attempt source keeps both its positive denominator and any reviewed
+    negative-evidence capability; only a strict trusted-input disposition may
+    edit this score-only manifest.
+    """
+    component_claims = {
+        "plan_segments": frozenset(),
+        "plan_openings": frozenset({"existence", "along", "width"}),
+        "elevation_opening_xy": frozenset(
+            {"existence", "along", "width"}
+        ),
+        "elevation_opening_z": frozenset({"sill", "head"}),
+    }
+    removals: dict[str, set[str]] = {}
+    for raw in trusted_capability_dispositions:
+        try:
+            item = (
+                raw
+                if isinstance(raw, ReadingFilteredComponentBasisV1)
+                else ReadingFilteredComponentBasisV1.model_validate(raw)
+            )
+        except ValidationError as exc:
+            raise ScoreContractError(
+                "score_view_manifest_invalid",
+                "scoring.applicability",
+            ) from exc
+        removals.setdefault(item.source_input_id, set()).update(
+            component_claims[item.component]
+        )
+
+    entries: list[dict[str, Any]] = []
+    for entry in effective.entries:
+        payload = entry.model_dump(mode="json")
+        removed = removals.get(entry.input_id, set())
+        if not removed or not isinstance(entry, RequiredViewEntry):
+            entries.append(payload)
+            continue
+        evidence = payload["opening_evidence"]
+        evidence["potentially_observable_claims"] = sorted(
+            set(evidence["potentially_observable_claims"]) - removed
+        )
+        evidence["negative_evidence_capable_claims"] = sorted(
+            set(evidence["negative_evidence_capable_claims"]) - removed
+        )
+        if not evidence["negative_evidence_capable_claims"]:
+            evidence["coverage"] = None
+            evidence["completeness_assertion"] = None
+        entries.append(payload)
+
+    payload = effective.model_dump(mode="json")
+    payload["entries"] = entries
+    payload.pop("content_sha256")
+    payload["content_sha256"] = canonical_sha256(payload)
+    try:
+        return ViewManifest.model_validate(payload)
+    except ValidationError as exc:
+        raise ScoreContractError(
+            "score_view_manifest_invalid",
+            "scoring.applicability",
+        ) from exc
 
 
 def materialize_va_elevation_bindings(*, score_bindings: JudgeScoreViewBindingsV1,

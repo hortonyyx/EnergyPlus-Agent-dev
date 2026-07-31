@@ -122,8 +122,8 @@ def test_plan_input_id_maps_through_binding_gt_view_set_and_host_stays_na(
             "pen": "window",
             "geometry": {
                 "kind": "line",
-                "p1": [0.54, 20.0],
-                "p2": [2.14, 20.0],
+                "p1": [4.66, 20.0],
+                "p2": [9.46, 20.0],
             },
         }
     )

@@ -115,6 +115,7 @@ def _segment_criterion(*, criterion_id: str, rows: Iterable[object], passing: fr
 
 def c2_v3_score_policy(*, claim_rows: Iterable[object],
                        segment_rows: Iterable[object] = (), floor_line_rows: Iterable[object] = (),
+                       opening_source_rows: Iterable[object] = (),
                        identity_valid: bool = True, totality_valid: bool = True,
                        max_failing_units: float = 0.0) -> V3PolicyVerdict:
     """Apply §9.2 without changing the legacy advisory policy.
@@ -129,8 +130,12 @@ def c2_v3_score_policy(*, claim_rows: Iterable[object],
         return V3PolicyVerdict(verdict="rejected", criteria=(), rejection_code="score_denominator_nonconserving")
     claims = tuple(claim_rows)
     segments = tuple(segment_rows)
+    source_rows = tuple(opening_source_rows)
     def boundary_row(row: object) -> bool:
         """SegmentScore/SegmentScoreRow adapters expose topology on target/obs."""
+        target_exterior = getattr(row, "target_exterior", None)
+        if target_exterior is not None:
+            return bool(target_exterior)
         segment = getattr(row, "target", None) or getattr(row, "observation", None)
         return bool(getattr(segment, "exterior", False))
     # PlanSegment.exterior is the Phase-B topology discriminator: exterior
@@ -145,10 +150,38 @@ def c2_v3_score_policy(*, claim_rows: Iterable[object],
     # never charged twice.  walls_complete's denominator is answer length only
     # (target rows): product over-draw feeds no_extra_walls, never walls, so a
     # product that draws an extra wall cannot inflate its own pass denominator.
-    wall_target_rows = tuple(row for row in wall_rows if getattr(row, "target", None) is not None)
+    wall_target_rows = tuple(
+        row
+        for row in wall_rows
+        if (
+            getattr(row, "target", None) is not None
+            or getattr(row, "target_id", None) is not None
+        )
+    )
     wall_extra_rows = tuple(row for row in wall_rows
-                            if getattr(row, "target", None) is None and getattr(row, "observation", None) is not None)
+                            if getattr(row, "target", None) is None
+                            and getattr(row, "target_id", None) is None
+                            and (
+                                getattr(row, "observation", None) is not None
+                                or getattr(row, "observation_id", None) is not None
+                            ))
     wall_duplicate_rows = tuple(row for row in wall_rows if getattr(row, "status", None) == "duplicate")
+    if source_rows:
+        plan_geometry_rows = tuple(
+            row
+            for row in source_rows
+            if row.channel == "plan" and row.claim in {"along", "width"}
+        )
+        elevation_geometry_rows = tuple(
+            row
+            for row in source_rows
+            if row.channel == "elevation"
+            and row.claim in {"along", "width", "sill", "head"}
+        )
+    else:
+        # Preserve correction-v3's public criterion bytes exactly.
+        plan_geometry_rows = by_claim["along"] + by_claim["width"]
+        elevation_geometry_rows = by_claim["sill"] + by_claim["head"]
     # The segment/floor-line inputs use the same narrow row protocol.  Empty
     # inputs become explicit NA instead of an invented zero score.
     criteria = (
@@ -161,11 +194,8 @@ def c2_v3_score_policy(*, claim_rows: Iterable[object],
             passing=frozenset(), failing=frozenset({"duplicate"}), max_failing_units=max_failing_units),
         _criterion_from_rows(criterion_id="boundary_complete", rows=boundary_rows, max_failing_units=max_failing_units),
         _criterion_from_rows(criterion_id="windows_placed", rows=by_claim["existence"], max_failing_units=max_failing_units),
-        _criterion_from_rows(criterion_id="window_plan_geometry", rows=by_claim["along"] + by_claim["width"], max_failing_units=max_failing_units),
-        # A C2 ClaimScoreRow fuses plan/elevation along+width into one row, so
-        # only separable elevation scalars enter here.  Keep this explicit debt
-        # until a later phase adds channel-separated geometry rows.
-        _criterion_from_rows(criterion_id="window_elevation_geometry", rows=by_claim["sill"] + by_claim["head"], max_failing_units=max_failing_units),
+        _criterion_from_rows(criterion_id="window_plan_geometry", rows=plan_geometry_rows, max_failing_units=max_failing_units),
+        _criterion_from_rows(criterion_id="window_elevation_geometry", rows=elevation_geometry_rows, max_failing_units=max_failing_units),
         _criterion_from_rows(criterion_id="floor_lines_complete", rows=floor_line_rows, max_failing_units=max_failing_units),
         # Phase C has no oversplit/negative-evidence aggregate scorer yet;
         # retain explicit NA rather than fabricate a zero-denominator pass.

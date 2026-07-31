@@ -1435,39 +1435,45 @@ def derive_reading_denominator_v1(
         if isinstance(item, ElevationScoreViewBindingV1)
     )
     atoms: list[ReadingDenominatorAtomV1] = []
-    for floor in gt.floors:
-        for segment in floor.boundary_segments:
-            source_views = {item.view_id for item in segment.source_refs}
-            source_ids = tuple(
-                sorted(
-                    item.input_id
-                    for item in plan_bindings
-                    if item.floor_id == floor.id
-                    and source_views.intersection(item.gt_source_view_ids)
-                    and not _filtered(
-                        exclusions,
-                        source_input_id=item.input_id,
-                        component="plan_segments",
-                        floor_id=floor.id,
-                    )
+    # Import inside the pure helper so this adapter does not acquire a second
+    # GT wire dependency.  The extractor is the scorer's one authoritative
+    # boundary+interior target constructor; deriving atoms from
+    # ``floor.boundary_segments`` alone would silently omit every interior-wall
+    # denominator.
+    from src.agent.judge.segment_score import extract_gt_plan_segments
+
+    for segment in extract_gt_plan_segments(gt):
+        source_views = set(segment.source_ids)
+        source_ids = tuple(
+            sorted(
+                item.input_id
+                for item in plan_bindings
+                if item.floor_id == segment.floor_id
+                and (
+                    not source_views
+                    or source_views.intersection(item.gt_source_view_ids)
                 )
-            )
-            if not source_ids:
-                continue
-            atoms.append(
-                _atom(
-                    target_id=segment.id,
-                    target_kind="plan_segment",
+                and not _filtered(
+                    exclusions,
+                    source_input_id=item.input_id,
                     component="plan_segments",
-                    claim=None,
-                    floor_id=floor.id,
-                    source_input_ids=source_ids,
-                    eligible_units=math.hypot(
-                        segment.p2[0] - segment.p1[0],
-                        segment.p2[1] - segment.p1[1],
-                    ),
+                    floor_id=segment.floor_id,
                 )
             )
+        )
+        if not source_ids:
+            continue
+        atoms.append(
+            _atom(
+                target_id=segment.key,
+                target_kind="plan_segment",
+                component="plan_segments",
+                claim=None,
+                floor_id=segment.floor_id,
+                source_input_ids=source_ids,
+                eligible_units=segment.length,
+            )
+        )
 
     component_claims = {
         "plan_openings": ("existence", "along", "width"),

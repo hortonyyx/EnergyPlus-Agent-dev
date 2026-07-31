@@ -297,14 +297,24 @@ def _opening_key(opening: GtOpeningV3) -> tuple:
 
 def _assign_openings_for_source(*, targets: Iterable[GtOpeningV3], observations: Iterable[OpeningObservation],
                                 source_view_id: str, config: JudgeScoreConfigV1,
-                                product_to_gt_segment: dict[str, str]) -> OpeningAssignment:
+                                product_to_gt_segment: dict[str, str],
+                                source_view_to_gt_view_ids: dict[
+                                    str, tuple[str, ...]
+                                ] | None = None) -> OpeningAssignment:
     """One source-view global assignment; a target can be corroborated elsewhere."""
     ts = tuple(sorted(targets, key=_opening_key)); os = tuple(sorted(observations, key=lambda o: (o.floor_id, o.kind, o.facade_segment_id, o.world_along_interval, o.source_view_id, o.id)))
     choices = []
     for target in ts:
         possible = [None]
         references = getattr(target, "source_refs", ())
-        if references and source_view_id not in {ref.view_id for ref in references}:
+        trusted_gt_views = set(
+            (source_view_to_gt_view_ids or {}).get(
+                source_view_id, (source_view_id,)
+            )
+        )
+        if references and not trusted_gt_views.intersection(
+            ref.view_id for ref in references
+        ):
             choices.append(possible); continue
         for index, observed in enumerate(os):
             span = (target.world_along_interval.lo, target.world_along_interval.hi)
@@ -333,14 +343,25 @@ def _assign_openings_for_source(*, targets: Iterable[GtOpeningV3], observations:
         if better(metric, best): best = metric
     winners = [picked for picked, metric in all_solutions if metric[0] == best[0] and all(abs(metric[i]-best[i]) <= eps for i in range(1, 4))]
     if len(winners) != 1:
-        raise ScoreContractError("score_match_ambiguous", "scoring.matching", context={"kind": "opening", "candidate_assignments": len(winners)})
+        raise ScoreContractError(
+            "score_match_ambiguous",
+            "scoring.matching",
+            context={
+                "kind": "opening",
+                "source_view_id": source_view_id,
+                "candidate_assignments": len(winners),
+            },
+        )
     selected = winners[0]; used = {value for value in selected if value is not None}
     return OpeningAssignment(tuple((target, os[index]) for target, index in zip(ts, selected) if index is not None),
         tuple(target for target, index in zip(ts, selected) if index is None), tuple(value for index, value in enumerate(os) if index not in used))
 
 
 def assign_openings(*, targets: Iterable[GtOpeningV3], observations: Iterable[OpeningObservation],
-                    config: JudgeScoreConfigV1, product_to_gt_segment: dict[str, str]) -> OpeningAssignment:
+                    config: JudgeScoreConfigV1, product_to_gt_segment: dict[str, str],
+                    source_view_to_gt_view_ids: dict[
+                        str, tuple[str, ...]
+                    ] | None = None) -> OpeningAssignment:
     """Run §8.4's global objective independently for every source view."""
     ts = tuple(targets); by_source: dict[str, list[OpeningObservation]] = {}
     for observation in observations:
@@ -351,7 +372,8 @@ def assign_openings(*, targets: Iterable[GtOpeningV3], observations: Iterable[Op
         if any(row.facade_segment_id not in product_to_gt_segment for row in rows):
             raise ScoreContractError("score_product_segment_unresolved", "scoring.matching", context={"source_view_id": source})
         result = _assign_openings_for_source(targets=ts, observations=rows, source_view_id=source, config=config,
-                                             product_to_gt_segment=product_to_gt_segment)
+                                             product_to_gt_segment=product_to_gt_segment,
+                                             source_view_to_gt_view_ids=source_view_to_gt_view_ids)
         matched.extend(result.matched); unmatched_observations.extend(result.unmatched_observations)
     matched_target_ids = {target.id for target, _ in matched}
     return OpeningAssignment(tuple(matched), tuple(target for target in ts if target.id not in matched_target_ids), tuple(unmatched_observations))

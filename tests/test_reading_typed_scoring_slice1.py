@@ -216,7 +216,9 @@ def test_reading_score_error_does_not_abort_later_attempts_in_exploratory(
         Path(results[2]["score_vs_gt"]).read_text(encoding="utf-8")
     )
     assert first["payload"]["reason"] == "scorer_internal_failure"
-    assert second["payload"]["kind"] == "not_applicable"
+    assert second["payload"]["kind"] == "c2_scored"
+    assert second["certificates"]["reading_normalization"] is not None
+    assert second["certificates"]["source_applicability"] is not None
     assert Path(results[2]["grade"]).read_bytes().startswith(b"\x89PNG")
 
 
