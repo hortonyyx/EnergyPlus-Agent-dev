@@ -14,6 +14,7 @@ from src.agent.judge.elevation_score import (
     project_typed_elevation_observation,
 )
 from src.agent.judge.score_schema import (
+    Affine2DV1,
     READING_ADAPTER_VERSION,
     READING_DENOMINATOR_VERSION,
     READING_PRODUCT_CONTRACT,
@@ -22,6 +23,8 @@ from src.agent.judge.score_schema import (
     ElevationFrameDisagreementWitnessV1,
     ElevationScoreViewBindingV1,
     PlanScoreViewBindingV1,
+    PlanFrameCertificateV1,
+    Point2V1,
     ReadingComponentApplicabilityV1,
     ReadingDenominatorAtomV1,
     ReadingDenominatorBasisV1,
@@ -29,6 +32,8 @@ from src.agent.judge.score_schema import (
     ReadingFilteredComponentBasisV1,
     ReadingMetadataFindingV1,
     ReadingNormalizationCertificateV1,
+    ReadingPlanOpeningAuditV1,
+    ReadingPlanSegmentAuditV1,
     UnmeasurableObservationWitnessV1,
     VerticalDatumCertificateV1,
     canonical_sha256,
@@ -88,6 +93,16 @@ def _strict_point(value: object) -> tuple[float, float]:
     if not isinstance(value, list) or len(value) != 2:
         raise ValueError("point requires two coordinates")
     return _strict_finite(value[0]), _strict_finite(value[1])
+
+
+def apply_affine_2d(
+    frame: Affine2DV1,
+    point: tuple[float, float],
+) -> tuple[float, float]:
+    return (
+        frame.xx * point[0] + frame.xy * point[1] + frame.x0,
+        frame.yx * point[0] + frame.yy * point[1] + frame.y0,
+    )
 
 
 def _audit_sha(value: object) -> str:
@@ -219,6 +234,42 @@ def _vertical_datum(
     )
 
 
+def _plan_frame(
+    *,
+    input_id: str,
+    floor_id: str,
+    x0: float,
+    y0: float,
+) -> PlanFrameCertificateV1:
+    affine = Affine2DV1(
+        xx=1.0,
+        xy=0.0,
+        x0=x0,
+        yx=0.0,
+        yy=1.0,
+        y0=y0,
+    )
+    raw = {
+        "input_id": input_id,
+        "floor_id": floor_id,
+        "source": "reading_scale_origin_v1",
+        "units": "metre",
+        "local_axes": "drawing_right_up",
+        "affine": affine.model_dump(mode="json"),
+        "nonzero_origin": x0 != 0.0 or y0 != 0.0,
+    }
+    return PlanFrameCertificateV1(
+        input_id=input_id,
+        floor_id=floor_id,
+        source="reading_scale_origin_v1",
+        units="metre",
+        local_axes="drawing_right_up",
+        affine=affine,
+        nonzero_origin=raw["nonzero_origin"],
+        preimage_sha256=canonical_sha256(raw),
+    )
+
+
 def _facade_sense(
     raw_view: dict,
 ) -> tuple[
@@ -289,8 +340,366 @@ def _elevation_bounds(
     return str(kind), (min(xs), max(xs)), (min(ys), max(ys))
 
 
+def _plan_wall_edges(
+    geometry: object,
+) -> tuple[str, tuple[tuple[tuple[float, float], tuple[float, float]], ...]]:
+    if not isinstance(geometry, dict):
+        raise ValueError("geometry must be an object")
+    kind = geometry.get("kind")
+    if kind == "line":
+        return "line", (
+            (
+                _strict_point(geometry.get("p1")),
+                _strict_point(geometry.get("p2")),
+            ),
+        )
+    if kind == "polyline":
+        raw_points = geometry.get("points")
+        if not isinstance(raw_points, list) or len(raw_points) < 2:
+            raise ValueError("wall polyline requires at least two points")
+        points = tuple(_strict_point(point) for point in raw_points)
+        edges = list(zip(points, points[1:]))
+        if geometry.get("closed") is True:
+            edges.append((points[-1], points[0]))
+        return "polyline", tuple(edges)
+    raise ValueError("unsupported wall geometry")
+
+
+def _plan_opening_vertices(
+    geometry: object,
+) -> tuple[str, tuple[tuple[float, float], ...]]:
+    if not isinstance(geometry, dict):
+        raise ValueError("geometry must be an object")
+    kind = geometry.get("kind")
+    if kind == "line":
+        return "line", (
+            _strict_point(geometry.get("p1")),
+            _strict_point(geometry.get("p2")),
+        )
+    if kind == "rect":
+        raw_x = geometry.get("x_range_m")
+        raw_y = geometry.get("y_range_m")
+        if (
+            not isinstance(raw_x, list)
+            or len(raw_x) != 2
+            or not isinstance(raw_y, list)
+            or len(raw_y) != 2
+        ):
+            raise ValueError("rect ranges invalid")
+        x0, x1 = sorted(
+            (_strict_finite(raw_x[0]), _strict_finite(raw_x[1]))
+        )
+        y0, y1 = sorted(
+            (_strict_finite(raw_y[0]), _strict_finite(raw_y[1]))
+        )
+        return "rect", ((x0, y0), (x1, y0), (x1, y1), (x0, y1))
+    if kind == "polyline":
+        raw_points = geometry.get("points")
+        if not isinstance(raw_points, list) or not raw_points:
+            raise ValueError("opening polyline requires a point")
+        return "polyline", tuple(_strict_point(point) for point in raw_points)
+    raise ValueError("unsupported opening geometry")
+
+
 def _metadata_hash(value: object) -> str:
     return canonical_sha256("missing" if value is _MISSING else value)
+
+
+def _plan_result(
+    *,
+    entry: RequiredViewEntry,
+    binding: PlanScoreViewBindingV1,
+    raw_view: object,
+    source_output_sha256: str,
+) -> tuple[
+    tuple[ReadingComponentApplicabilityV1, ...],
+    tuple[ReadingPlanSegmentAuditV1 | ReadingPlanOpeningAuditV1, ...],
+    tuple[PlanFrameCertificateV1, ...],
+    tuple[UnmeasurableObservationWitnessV1, ...],
+    tuple[ReadingMetadataFindingV1, ...],
+]:
+    floor_ids = (binding.floor_id,)
+    if raw_view is _MISSING:
+        return (
+            _na_components(
+                source_input_id=binding.input_id,
+                channel="plan",
+                components=_PLAN_COMPONENTS,
+                floor_ids=floor_ids,
+                reason="reading_view_missing",
+                cause_class="product_content",
+                denominator_disposition="retain_as_miss",
+            ),
+            (),
+            (),
+            (),
+            (),
+        )
+    if not isinstance(raw_view, dict):
+        return (
+            _na_components(
+                source_input_id=binding.input_id,
+                channel="plan",
+                components=_PLAN_COMPONENTS,
+                floor_ids=floor_ids,
+                reason="reading_view_schema_unsupported",
+                cause_class="product_content",
+                denominator_disposition="retain_as_miss",
+            ),
+            (),
+            (),
+            (),
+            (),
+        )
+    try:
+        ReadingView.model_validate(raw_view)
+    except ValidationError:
+        return (
+            _na_components(
+                source_input_id=binding.input_id,
+                channel="plan",
+                components=_PLAN_COMPONENTS,
+                floor_ids=floor_ids,
+                reason="reading_view_schema_unsupported",
+                cause_class="product_content",
+                denominator_disposition="retain_as_miss",
+            ),
+            (),
+            (),
+            (),
+            (),
+        )
+    findings: list[ReadingMetadataFindingV1] = []
+    if raw_view.get("image_kind", _MISSING) != "plan":
+        findings.append(
+            ReadingMetadataFindingV1(
+                source_input_id=binding.input_id,
+                code="image_kind_declaration_mismatch",
+                declared_sha256=_metadata_hash(
+                    raw_view.get("image_kind", _MISSING)
+                ),
+                trusted_sha256=_metadata_hash("plan"),
+            )
+        )
+    origin = raw_view.get("scale_origin")
+    try:
+        if not isinstance(origin, dict):
+            raise ValueError("plan scale origin missing")
+        x0 = _strict_finite(origin.get("world_x_m", _MISSING))
+        y0 = _strict_finite(origin.get("world_y_m", _MISSING))
+        frame = _plan_frame(
+            input_id=binding.input_id,
+            floor_id=binding.floor_id,
+            x0=x0,
+            y0=y0,
+        )
+    except ValueError:
+        return (
+            _na_components(
+                source_input_id=binding.input_id,
+                channel="plan",
+                components=_PLAN_COMPONENTS,
+                floor_ids=floor_ids,
+                reason="plan_frame_unavailable",
+                cause_class="product_content",
+                denominator_disposition="retain_as_miss",
+            ),
+            (),
+            (),
+            (),
+            tuple(findings),
+        )
+    raw_strokes = raw_view.get("strokes")
+    if not isinstance(raw_strokes, list):
+        return (
+            _na_components(
+                source_input_id=binding.input_id,
+                channel="plan",
+                components=_PLAN_COMPONENTS,
+                floor_ids=floor_ids,
+                reason="reading_view_schema_unsupported",
+                cause_class="product_content",
+                denominator_disposition="retain_as_miss",
+            ),
+            (),
+            (frame,),
+            (),
+            tuple(findings),
+        )
+
+    segment_observations: list[ReadingPlanSegmentAuditV1] = []
+    opening_observations: list[ReadingPlanOpeningAuditV1] = []
+    witnesses: list[UnmeasurableObservationWitnessV1] = []
+    malformed_segments = False
+    malformed_openings = False
+    for raw_stroke in raw_strokes:
+        if not isinstance(raw_stroke, dict):
+            continue
+        if raw_stroke.get("visibility") == "hidden" or raw_stroke.get(
+            "line_style"
+        ) in {"dashed", "dash_dot"}:
+            continue
+        pen = raw_stroke.get("pen")
+        if pen not in {"wall", "window"}:
+            continue
+        stroke_id = raw_stroke.get("id")
+        if not isinstance(stroke_id, str) or not stroke_id:
+            stroke_id = "invalid-stroke-id"
+        geometry = raw_stroke.get("geometry", _MISSING)
+        if (
+            pen == "wall"
+            and isinstance(geometry, dict)
+            and geometry.get("kind") == "rect"
+        ):
+            witnesses.append(
+                UnmeasurableObservationWitnessV1(
+                    source_input_id=binding.input_id,
+                    source_stroke_id=stroke_id,
+                    component="plan_segments",
+                    reason="plan_wall_rect_has_no_centerline_contract",
+                    cause_class="product_content",
+                    source_geometry_sha256=_audit_sha(geometry),
+                )
+            )
+            continue
+        if pen == "wall":
+            try:
+                _geometry_kind, edges = _plan_wall_edges(geometry)
+            except ValueError:
+                malformed_segments = True
+                witnesses.append(
+                    UnmeasurableObservationWitnessV1(
+                        source_input_id=binding.input_id,
+                        source_stroke_id=stroke_id,
+                        component="plan_segments",
+                        reason="consumed_geometry_malformed",
+                        cause_class="product_content",
+                        source_geometry_sha256=_audit_sha(geometry),
+                    )
+                )
+                continue
+            for primitive_index, (local_p1, local_p2) in enumerate(edges):
+                world_p1 = apply_affine_2d(frame.affine, local_p1)
+                world_p2 = apply_affine_2d(frame.affine, local_p2)
+                segment_observations.append(
+                    ReadingPlanSegmentAuditV1(
+                        kind="plan_segment",
+                        observation_id=_normalized_observation_id(
+                            output_sha256=source_output_sha256,
+                            input_id=binding.input_id,
+                            stroke_id=stroke_id,
+                            component="plan_segments",
+                            primitive_index=primitive_index,
+                        ),
+                        source_input_id=binding.input_id,
+                        source_stroke_id=stroke_id,
+                        primitive_index=primitive_index,
+                        floor_id=binding.floor_id,
+                        local_p1=Point2V1(x=local_p1[0], y=local_p1[1]),
+                        local_p2=Point2V1(x=local_p2[0], y=local_p2[1]),
+                        world_p1=Point2V1(x=world_p1[0], y=world_p1[1]),
+                        world_p2=Point2V1(x=world_p2[0], y=world_p2[1]),
+                        source_geometry_sha256=_audit_sha(geometry),
+                        transform_sha256=frame.preimage_sha256,
+                        topology="unknown",
+                    )
+                )
+            continue
+        try:
+            geometry_kind, local_vertices = _plan_opening_vertices(geometry)
+        except ValueError:
+            malformed_openings = True
+            witnesses.append(
+                UnmeasurableObservationWitnessV1(
+                    source_input_id=binding.input_id,
+                    source_stroke_id=stroke_id,
+                    component="plan_openings",
+                    reason="consumed_geometry_malformed",
+                    cause_class="product_content",
+                    source_geometry_sha256=_audit_sha(geometry),
+                )
+            )
+            continue
+        world_vertices = tuple(
+            apply_affine_2d(frame.affine, point) for point in local_vertices
+        )
+        opening_observations.append(
+            ReadingPlanOpeningAuditV1(
+                kind="plan_opening",
+                observation_id=_normalized_observation_id(
+                    output_sha256=source_output_sha256,
+                    input_id=binding.input_id,
+                    stroke_id=stroke_id,
+                    component="plan_openings",
+                    primitive_index=0,
+                ),
+                source_input_id=binding.input_id,
+                source_stroke_id=stroke_id,
+                floor_id=binding.floor_id,
+                geometry_kind=geometry_kind,
+                local_vertices=tuple(
+                    Point2V1(x=point[0], y=point[1])
+                    for point in local_vertices
+                ),
+                world_vertices=tuple(
+                    Point2V1(x=point[0], y=point[1])
+                    for point in world_vertices
+                ),
+                source_geometry_sha256=_audit_sha(geometry),
+                transform_sha256=frame.preimage_sha256,
+            )
+        )
+    if malformed_segments:
+        segment_component = _component(
+            source_input_id=binding.input_id,
+            channel="plan",
+            component="plan_segments",
+            floor_ids=floor_ids,
+            status="not_applicable",
+            reasons=("plan_geometry_unsupported",),
+            cause_class="product_content",
+            denominator_disposition="retain_as_miss",
+        )
+        segment_observations = []
+    else:
+        segment_component = _component(
+            source_input_id=binding.input_id,
+            channel="plan",
+            component="plan_segments",
+            floor_ids=floor_ids,
+            status="applicable",
+            observation_count=len(segment_observations),
+            transform_sha256=frame.preimage_sha256,
+        )
+    if malformed_openings:
+        opening_component = _component(
+            source_input_id=binding.input_id,
+            channel="plan",
+            component="plan_openings",
+            floor_ids=floor_ids,
+            status="not_applicable",
+            reasons=("plan_opening_geometry_unsupported",),
+            cause_class="product_content",
+            denominator_disposition="retain_as_miss",
+        )
+        opening_observations = []
+    else:
+        opening_component = _component(
+            source_input_id=binding.input_id,
+            channel="plan",
+            component="plan_openings",
+            floor_ids=floor_ids,
+            status="applicable",
+            observation_count=len(opening_observations),
+            transform_sha256=frame.preimage_sha256,
+        )
+    return (
+        (segment_component, opening_component),
+        tuple(segment_observations) + tuple(opening_observations),
+        (frame,),
+        tuple(witnesses),
+        tuple(findings),
+    )
 
 
 def _elevation_result(
@@ -689,16 +1098,60 @@ def normalize_reading_attempt(
     }
     bindings = {item.input_id: item for item in score_bindings.bindings}
     component_rows: list[ReadingComponentApplicabilityV1] = []
-    elevation_observations: list[ReadingElevationOpeningAuditV1] = []
+    normalized_observations: list[
+        ReadingPlanSegmentAuditV1
+        | ReadingPlanOpeningAuditV1
+        | ReadingElevationOpeningAuditV1
+    ] = []
+    plan_frames: list[PlanFrameCertificateV1] = []
     vertical_datums: list[VerticalDatumCertificateV1] = []
     unmeasurable: list[UnmeasurableObservationWitnessV1] = []
     disagreements: list[ElevationFrameDisagreementWitnessV1] = []
     findings: list[ReadingMetadataFindingV1] = []
     exclusions: list[ReadingFilteredComponentBasisV1] = []
+    plan_inputs_by_floor: dict[str, list[str]] = {}
+    for input_id, entry in entries.items():
+        binding = bindings.get(input_id)
+        if entry.view_type == "plan" and isinstance(
+            binding, PlanScoreViewBindingV1
+        ):
+            plan_inputs_by_floor.setdefault(binding.floor_id, []).append(
+                input_id
+            )
+    duplicate_plan_inputs = {
+        input_id
+        for input_ids in plan_inputs_by_floor.values()
+        if len(input_ids) > 1
+        for input_id in input_ids
+    }
 
     for input_id, entry in sorted(entries.items()):
         binding = bindings.get(input_id)
         raw_view = views.get(entry.expected_output_id, _MISSING)
+        if input_id in duplicate_plan_inputs and isinstance(
+            binding, PlanScoreViewBindingV1
+        ):
+            components = _na_components(
+                source_input_id=input_id,
+                channel="plan",
+                components=_PLAN_COMPONENTS,
+                floor_ids=(binding.floor_id,),
+                reason="multiple_plan_views_per_floor_unsupported",
+                cause_class="trusted_input",
+                denominator_disposition="filter",
+            )
+            component_rows.extend(components)
+            exclusions.extend(
+                ReadingFilteredComponentBasisV1(
+                    source_input_id=input_id,
+                    component=component,
+                    floor_ids=(binding.floor_id,),
+                    cause_class="trusted_input",
+                    reasons=("multiple_plan_views_per_floor_unsupported",),
+                )
+                for component in _PLAN_COMPONENTS
+            )
+            continue
         if entry.view_type == "elevation" and isinstance(
             binding, ElevationScoreViewBindingV1
         ):
@@ -717,7 +1170,7 @@ def normalize_reading_attempt(
                 source_output_sha256=source_output_sha256,
             )
             component_rows.extend(components)
-            elevation_observations.extend(observations)
+            normalized_observations.extend(observations)
             vertical_datums.extend(datums)
             unmeasurable.extend(witnesses)
             disagreements.extend(frame_witnesses)
@@ -727,17 +1180,23 @@ def normalize_reading_attempt(
         if entry.view_type == "plan" and isinstance(
             binding, PlanScoreViewBindingV1
         ):
-            component_rows.extend(
-                _na_components(
-                    source_input_id=input_id,
-                    channel="plan",
-                    components=_PLAN_COMPONENTS,
-                    floor_ids=(binding.floor_id,),
-                    reason="plan_geometry_unsupported",
-                    cause_class="product_content",
-                    denominator_disposition="retain_as_miss",
-                )
+            (
+                components,
+                observations,
+                frames,
+                witnesses,
+                metadata,
+            ) = _plan_result(
+                entry=entry,
+                binding=binding,
+                raw_view=raw_view,
+                source_output_sha256=source_output_sha256,
             )
+            component_rows.extend(components)
+            normalized_observations.extend(observations)
+            plan_frames.extend(frames)
+            unmeasurable.extend(witnesses)
+            findings.extend(metadata)
             continue
         floor_ids = (
             (binding.floor_id,)
@@ -793,7 +1252,7 @@ def normalize_reading_attempt(
     )
     observations = tuple(
         sorted(
-            elevation_observations,
+            normalized_observations,
             key=lambda item: (
                 item.source_input_id,
                 item.source_stroke_id,
@@ -802,6 +1261,7 @@ def normalize_reading_attempt(
             ),
         )
     )
+    plan_frames.sort(key=lambda item: (item.input_id, item.floor_id))
     vertical_datums.sort(key=lambda item: (item.input_id, item.floor_ids))
     unmeasurable.sort(
         key=lambda item: (
@@ -828,7 +1288,9 @@ def normalize_reading_attempt(
         "product_contract": READING_PRODUCT_CONTRACT,
         "base_view_manifest_sha256": base_manifest.content_sha256,
         "score_view_bindings_sha256": score_bindings.content_sha256,
-        "plan_frames": (),
+        "plan_frames": tuple(
+            item.model_dump(mode="json") for item in plan_frames
+        ),
         "vertical_datums": tuple(
             item.model_dump(mode="json") for item in vertical_datums
         ),
@@ -856,7 +1318,7 @@ def normalize_reading_attempt(
         product_contract=READING_PRODUCT_CONTRACT,
         base_view_manifest_sha256=base_manifest.content_sha256,
         score_view_bindings_sha256=score_bindings.content_sha256,
-        plan_frames=(),
+        plan_frames=tuple(plan_frames),
         vertical_datums=tuple(vertical_datums),
         component_applicability=tuple(component_rows),
         observations=observations,

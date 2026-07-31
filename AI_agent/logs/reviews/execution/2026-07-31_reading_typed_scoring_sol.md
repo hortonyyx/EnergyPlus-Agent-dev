@@ -286,6 +286,58 @@ git diff --check
 
 Both completed with no output.
 
+## Slice 3 — plan affine and topology-neutral normalization
+
+### RED locks
+
+`4691d96` commits the plan frame/translation/prose-independence, wall
+decomposition, U-05 per-stroke exclusion, applicable-zero, malformed-component,
+plan-opening, and no-GT-import locks. Before implementation:
+
+```bash
+python -m pytest -p no:cacheprovider -q \
+  tests/test_reading_typed_adapter.py
+```
+
+Result: `7 failed, 10 passed`; every failure was on the former
+`plan_geometry_unsupported` placeholder.
+
+`0174b97` adds the duplicate-plan-input capability lock. A detached focused run was
+`1 failed`, proving the placeholder did not yet make the per-floor trusted capability
+decision.
+
+### Implementation
+
+- A single `apply_affine_2d` helper applies the strict structured x/y origin.
+  `scale_origin.note` and `world_z_m` never supply plan coefficients.
+- Line walls produce one audit segment; polylines produce consecutive edges plus only
+  a raw `closed is True` closing edge. Finite zero-length edges remain measurable.
+- A rect wall is excluded alone with one
+  `plan_wall_rect_has_no_centerline_contract` witness; other walls remain applicable.
+  Malformed consumed wall geometry instead makes only the segment component
+  product-side NA/retain-as-miss. Empty supported components stay applicable-zero.
+- Plan line/rect/polyline windows preserve and transform their vertices. Malformed
+  consumed opening geometry affects only `plan_openings`.
+- All normalized plan segments carry `topology="unknown"`; no product observation is
+  marked exterior.
+- Multiple trusted plan inputs bound to one floor filter both components for each
+  affected input and produce strict trusted-only denominator exclusions.
+- The adapter has no typed-GT import.
+
+### GREEN evidence
+
+```bash
+python -m pytest -p no:cacheprovider -q \
+  tests/test_reading_typed_adapter.py \
+  tests/test_reading_schema.py \
+  tests/test_checks_reading_correction.py \
+  tests/test_elevation_score.py \
+  tests/test_c2_b4b_phase_c.py \
+  tests/test_judge_identity_metric.py
+```
+
+Result: `156 passed`.
+
 ## Next boundary
 
 Slice 2 begins with elevation adapter RED locks. Slice 1 deliberately does not
