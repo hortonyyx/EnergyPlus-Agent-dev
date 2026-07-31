@@ -26,7 +26,9 @@ PATH_KEYS = {"image", "out_dir", "anchors_json", "candidates_json"}
 # "inside staging" is not enough, or a request can make this wrapper write into
 # the read-only parts of the tree such as `tools/**`.
 # This mirrors guard.py's REQUEST_OUTPUT_ROLE_KEYS / OUTPUT_ROOT_DIR on purpose:
-# the hook and the wrapper must never disagree about where output may land.
+# the hook and the wrapper must never disagree about where output may land. The
+# rule for what counts as a writable root is not mirrored but SHARED — see
+# _writable_root below (R3-2).
 OUTPUT_ROLE_KEYS = {"out_dir"}
 OUTPUT_ROOT_DIR = "out"
 
@@ -58,13 +60,36 @@ def _resolve(value: str, root: Path) -> Path:
 
 
 def _writable_root(root: Path, name: str) -> Path:
-    return (root / name).resolve(strict=False)
+    """R3-2: delegate to guard.py — the ONE implementation of "a root the reader
+    may write into".
+
+    This function used to be `(root / name).resolve(strict=False)`, i.e. exactly
+    the definition R2-3 removed from the guard because it lets a symlinked root
+    reverse-authorize its target. The two enforcement points therefore disagreed:
+    with `out -> tools` pre-seeded, the hook refused every call while this
+    wrapper, invoked directly, really wrote six entries under `tools/**`. Rather
+    than copy the pinned rule (which is how policies drift), the wrapper now
+    calls the guard's `writable_root`, so there is a single implementation.
+
+    The import is deliberately unguarded: `guard.py` always sits at the staging
+    root next to `tools/`, and if it is missing or unimportable the ImportError
+    propagates and this wrapper refuses to run — fail-closed, which is the only
+    safe reading of "the policy owner is gone".
+    """
+    if str(root) not in sys.path:
+        sys.path.insert(0, str(root))
+    from guard import writable_root  # noqa: WPS433 — staged next to tools/
+
+    return writable_root(root, name)
 
 
 def _resolve_output(value: str, root: Path) -> Path:
     resolved = _resolve(value, root)
+    # Outside the try: a tampered/absent writable root must surface with the
+    # guard's own reason, not be re-labelled as an out-of-root output path.
+    allowed = _writable_root(root, OUTPUT_ROOT_DIR)
     try:
-        resolved.relative_to(_writable_root(root, OUTPUT_ROOT_DIR))
+        resolved.relative_to(allowed)
     except ValueError:
         raise ValueError(
             f"output path must land under {OUTPUT_ROOT_DIR}/, not {value!r}"

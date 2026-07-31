@@ -316,7 +316,7 @@ def _check_write_target(target: Path, root: Path) -> tuple[bool, str]:
     Bash-allowlisted executable."""
     for name in WRITE_ALLOWED_DIRS:
         try:
-            allowed = _writable_root(root, name)
+            allowed = writable_root(root, name)
         except ValueError as exc:
             # R2-3 fail-closed: a tampered root refuses the CALL; we do not fall
             # through to the next root and we do not "skip" it.
@@ -329,10 +329,17 @@ def _check_write_target(target: Path, root: Path) -> tuple[bool, str]:
     return False, "write target must be under out/ or requests/"
 
 
-def _writable_root(root: Path, name: str) -> Path:
-    """The single definition of "a root the reader may write into". Both the
-    Write/Edit target check and the CV-request output check go through here, so
-    the two can never drift apart.
+def writable_root(root: Path, name: str) -> Path:
+    """The single definition of "a root the reader may write into".
+
+    PUBLIC ON PURPOSE (R3-2). Three call sites go through this one function: the
+    Write/Edit target check, the CV-request output check, and — by importing this
+    module — ``tools/run_cv_probe.py``. The wrapper used to carry its own
+    ``(root / name).resolve(strict=False)``, i.e. exactly the definition R2-3
+    removed from here, so the two enforcement points disagreed: with
+    ``out -> tools`` pre-seeded the hook refused while the wrapper, invoked
+    directly, really wrote six entries under ``tools/**``. There is now one
+    implementation and no second policy to drift.
 
     R2-3: the root is *pinned*, not resolved. Deriving the authorized set by
     resolving a path the reader could replace is backwards — if ``out`` is itself
@@ -362,7 +369,7 @@ def _assert_writable_roots(root: Path) -> None:
     tool is judged, so a tampered root denies even a read — the authorization set
     itself is untrustworthy at that point."""
     for name in WRITE_ALLOWED_DIRS:
-        _writable_root(root, name)
+        writable_root(root, name)
 
 
 def _check_output_target(target: Path, root: Path) -> tuple[bool, str]:
@@ -372,7 +379,7 @@ def _check_output_target(target: Path, root: Path) -> tuple[bool, str]:
     file, not helper output). Without this, `{"out_dir": "tools"}` passed the
     hook, the helper ran, and three files really appeared under `tools/**`."""
     try:
-        allowed = _writable_root(root, OUTPUT_ROOT_DIR)
+        allowed = writable_root(root, OUTPUT_ROOT_DIR)
     except ValueError as exc:
         return False, str(exc)  # R2-3 fail-closed
     try:

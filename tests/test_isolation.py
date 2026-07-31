@@ -1257,6 +1257,40 @@ def test_wrapper_independently_refuses_outside_output_and_tree_is_unchanged(tmp_
     assert "out/" in (helper.stderr + helper.stdout)
 
 
+def test_wrapper_refuses_when_the_writable_root_is_a_symlink(tmp_path: Path):
+    """R3-2 lock: the wrapper and the guard now SHARE one writable-root rule.
+
+    Pre-seed `out -> tools`, then bypass the hook entirely and drive the helper
+    directly — the exact shape that used to slip past the wrapper's private
+    `(root/name).resolve(strict=False)` and really wrote six entries under
+    `tools/**` while the hook was refusing the same call. The wrapper must now
+    refuse with the guard's own reason and leave the protected tree untouched.
+    """
+    staging_root = tmp_path / "staging"
+    staging_root.mkdir()
+    (staging_root / "tools").mkdir()
+    (staging_root / "out").symlink_to("tools")
+
+    staging = build_isolation_workspace(CASE_DIR, staging_root=staging_root).staging_root
+    assert (staging / "out").is_symlink(), "fixture precondition: the root stayed a symlink"
+    _request(
+        staging,
+        {"tool": "crop_zoom", "args": {"image": "case_data/1f_view.png", "out_dir": "out/cv", "bbox": "0,0,20,20"}},
+        name="requests/probe.json",
+    )
+    before = _staging_snapshot(staging)
+
+    helper = _run_helper(staging, "requests/probe.json")
+    after = _staging_snapshot(staging)
+
+    # The tree assertion goes FIRST so a regression reports what really landed:
+    # `out` is a symlink, so anything written "under out/" shows up as tools/**.
+    assert _protected_tree_diff(before, after) == []
+    assert not (staging / "tools" / "cv").exists()
+    assert helper.returncode != 0, helper.stdout
+    assert "real directory" in (helper.stderr + helper.stdout), helper.stderr
+
+
 @pytest.mark.parametrize(
     ("label", "out_dir", "hook_should_allow"),
     [

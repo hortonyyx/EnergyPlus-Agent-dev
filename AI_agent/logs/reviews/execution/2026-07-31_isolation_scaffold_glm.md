@@ -452,3 +452,35 @@ N4 是 **R2-1 fail-closed 缺省未被本项削弱的活体证明**：缺省一�
     `_sole_write_target` 恒 `return None` ⇒ **20 failed**（写保护 12 条负锁 + 4 条正例 + 散文正例 + 歧义 3 条）。
 - **NIT-2**（`__pycache__` 豁免不限深度）：r2 已授权，本轮**只登记**，
   在 `tests/test_isolation.py` 的 `_E2E_EXEMPT_PARTS` 处注明语义与为何可接受，零行为改动。
+
+### R3-2 · MINOR-1 · 可写根语义抽成一处共享实现
+
+**实现**
+
+- `guard.py` 的 `_writable_root` 改名为**公开** `writable_root`（R2-3 钉死语义一字未改：
+  必须是 staging 内的真实目录、非 symlink、`resolve(strict=True)` 等于自身字面路径）。
+  guard 内三处调用（`_check_write_target` / `_assert_writable_roots` / `_check_output_target`）同步改名。
+- `isolation_templates/run_cv_probe.py` 的 `_writable_root` **不再自带实现**，
+  改为把 staging root 加进 `sys.path` 后 `from guard import writable_root` 并转调。
+  ⇒ **全仓只有一个可写根实现**，不存在「照抄一遍再各自漂移」的第二份策略。
+  `guard.py` 缺失/不可导入时 `ImportError` 直接冒出、wrapper 拒绝执行 = fail-closed。
+- 顺手修一处会掩盖真因的写法：`_resolve_output` 把 `writable_root(...)` 调用移出 `try`，
+  否则「可写根本身被换掉」会被 `except ValueError` 重贴成
+  `output path must land under out/` 的错误标签。
+
+**新增锁**：`test_wrapper_refuses_when_the_writable_root_is_a_symlink`
+= 预置 `out -> tools` 正式 build → **绕过 hook 直调 `tools/run_cv_probe.py`** ⇒
+受保护树零变化 + `tools/cv` 不存在 + 退出码非零 + 理由含 `real directory`。
+断言顺序刻意把**树差分放在第一条**，回归时报出的是真实落盘清单而不是退出码。
+
+**neuter 自查**（同一 `/tmp` 副本，子集
+`-k 'wrapper or e2e_hook or run_cv_probe or output_dir or symlink'`，基线 **29 passed**）
+
+| # | 定点破坏 | 结果 | 实际变红测试名 |
+|---|---|---|---|
+| N8 | wrapper 的 `_writable_root` 退回自带的 `(root / name).resolve(strict=False)`（= 本项修复前形状） | 1 failed, 28 passed | `test_wrapper_refuses_when_the_writable_root_is_a_symlink`，失败信息 = `assert ['added:tools/cv', … 共 6 项] == []` ⇒ **复审方 MINOR-1 的「真在 tools/** 下落了 6 个条目」被本锁逐条抓住** |
+| N9 | wrapper 的 `_resolve_output` 退回普通 `_resolve`（R2-2b 复核） | 2 failed, 27 passed | `test_wrapper_independently_refuses_outside_output_and_tree_is_unchanged`；新锁 |
+| N10 | **只破坏 guard 的 `writable_root`**（退回 `resolve(strict=False)`） | 4 failed, 25 passed | `test_wrapper_refuses_when_the_writable_root_is_a_symlink`；`test_guard_denies_writes_when_an_allowed_root_is_a_symlink[out]`、`[requests]`；`test_guard_denies_writes_when_allowed_root_symlinked_after_build` |
+
+**N10 是「确实共享同一份实现」的判决性证据**：破坏 guard 一侧的定义，wrapper 侧的锁同时变红 ——
+两个执行点走的是同一个函数对象，不是两份长得像的代码。
