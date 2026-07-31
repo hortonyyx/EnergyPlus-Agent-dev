@@ -379,3 +379,76 @@ git diff --quiet 40e1470^..HEAD -- src/agent/judge case_tests/test_baseline/gt A
 - r2 改动文件：`src/agent/execution/isolation.py`、`src/agent/execution/isolation_templates/guard.py`、`src/agent/execution/isolation_templates/run_cv_probe.py`、`tests/test_isolation.py`、本执行日志。`scripts/tool_scripts/cv_probe.py` 无 r2 改动。
 - 所有 neuter 均只在 `/tmp/isolation-scaffold-r2-neuter.lXmNfo/repo` 做；结束时 `isolation.py`、`guard.py`、`run_cv_probe.py`、`tests/test_isolation.py` 分别与主工作树 `cmp` 一致。主工作树未做实验性破坏，未写 `case_tests/test_baseline/gt/**`。
 - **偏差 / review-ask（r2）**：none。四个已确认 MAJOR 出口、MINOR-1、R2-2 E2E lock 与 R2-6 均按返工单闭合；请主控按既定独立 gate 复跑。
+
+---
+
+## 返工 r3 · r2 复审的 2 MINOR + 3 NIT 收口 — DONE
+
+> 施工席 · 2026-07-31 · 依据 [返工单 r3](../request/2026-07-31_isolation_scaffold_rework_r3.md)
+> 基线 = **1908 passed / 10 xfailed / 0 failed**（主控已独立复核）
+
+### R3-1 · MINOR-2 · 把自由文本参数按名枚举进豁免表（缺省仍 fail-closed）
+
+**枚举依据（不靠猜，两侧取并集，逐条落进 `guard.py` 注释）**
+
+- `isolation._write_settings` 的 `permissions.allow` 实际只放行
+  `Read(<staging>/**)` / `Write(out|requests/**)` / `Edit(out|requests/**)` / `Bash`；
+  `deny` 里是 `WebFetch` / `WebSearch` / `Agent` / `Task` / `mcp__*`。
+  免权限的常驻工具（`Glob` / `Grep` / `TodoWrite`）不在 allow 表里但 hook 的 `"matcher": ""` 一样拦得到。
+- 07-30 那轮 `access_log.jsonl`（attempt 003，82 条）实际出现的 `tool_name` =
+  `Read` 37 / `Bash` 26 / `Write` 18 / `Edit` 1；日志只在 deny 条目记参数名，
+  出现过的参数名 = `command` 与 `content`。该轮全部非 Bash 拒绝理由
+  （`forbidden token: grade`、`home token is forbidden`）**都落在自由文本参数上，没有一条落在路径参数上**。
+
+**落地**
+
+- `CONTENT_ROLE_KEYS` 由 4 个文本体扩到 8 个：新增 `activeForm`（TodoWrite）、
+  `description`（Bash / Agent）、`prompt`（Agent / WebFetch）、`query`（WebSearch）。
+  收录判据 = **该名字在所有用到它的工具下都是自由文本**，所以豁免这个名字不可能让某个路径漏检。
+- 新增 `TOOL_FREE_TEXT_KEYS = {"Grep": ("pattern",)}` = **按工具生效的豁免**。
+  `pattern` 在 `Grep` 是正则（`wall_..[0-9]`、`z ~ 0.0`），在 `Glob` 是路径 glob（`**/gt.json` 必须继续拒），
+  只按 key 名分不开这两者 ⇒ `_param_role(key, tool)` 增加 `tool` 参数。
+  未登记的工具拿不到任何按工具豁免（仍 fail-closed）。
+- `Bash` 的 `command` **不进任何豁免表**，仍走 `_check_bash` 全串严格检查（结构锁里显式钉住）。
+- **缺省方向零改动**：`_param_role` 仍是「不在两张表里 ⇒ path 角色 ⇒ 无条件 `_lexical_check` + `_path_arg`」。
+
+**新增锁**
+
+- `test_guard_r3_free_text_params_of_non_write_tools_are_allowed`（3 参数）——可用性正例：
+  `TodoWrite.activeForm`（禁词只放在 `activeForm`，`content` 保持无辜，锁才真绑新表项）、
+  `Grep.pattern`、非 Bash 工具的 `description`，均含 `grade line` / `..` / `~` ⇒ **ALLOW**。
+- `test_guard_r3_default_stays_fail_closed_after_free_text_exemptions`（5 参数）——负锁：
+  未知 key 携带越界绝对路径 / 禁词 / `..`，`file_path="case_tests"`，
+  以及 `Glob {"pattern": "**/gt.json"}` ⇒ 全部 **DENY**。
+- `test_guard_r2_param_role_is_total_over_keys` 改造见 R3-3 ①。
+
+**neuter 自查（全部在 `/tmp/.../scratchpad/neuter/repo` 的 `git clone` 副本上做）**
+
+子集命令：`python -m pytest -q -n0 tests/test_isolation.py -k 'guard_r3 or param_role or guard_r2 or guard_r1 or security_properties'`，
+基线 **30 passed**。
+
+| # | 定点破坏 | 结果 | 实际变红测试名 |
+|---|---|---|---|
+| N0 | 不打破坏，直接把 **r2 的 HEAD `guard.py`（85b6695）** 换回来（= 本项修复前的生产码） | 4 failed, 26 passed | `test_guard_r2_param_role_is_total_over_keys`；`test_guard_r3_free_text_params_of_non_write_tools_are_allowed` 全 3 参数 |
+| N1 | `CONTENT_ROLE_KEYS` 删掉 `"activeForm"` | 2 failed, 28 passed | `test_guard_r2_param_role_is_total_over_keys`；`…free_text_params…[todowrite_activeform-payload0]`（**只红这一格，Grep/description 两格保持绿 ⇒ 锁精确绑到该表项**）|
+| N2 | `TOOL_FREE_TEXT_KEYS = {}` | 2 failed, 28 passed | `test_guard_r2_param_role_is_total_over_keys`；`…free_text_params…[grep_regex_pattern-payload1]` |
+| N3 | 把 `"pattern"` 从按工具表挪进全局 `CONTENT_ROLE_KEYS`（即取消按工具作用域） | 2 failed, 28 passed | `test_guard_r2_param_role_is_total_over_keys`；`…default_stays_fail_closed…[glob_pattern_is_still_a_path-payload4]`（**证明按工具作用域是承重的、不是装饰**）|
+| N4 | `_param_role` 恒 `return "content"` | 16 failed, 14 passed | R2-1 老锁 7 条（`bare_and_slashed…` ×2、`bare_extensionless_escaping_symlink…` ×2、`unknown_key_defaults_to_path_role` ×3）+ `param_role` 结构锁 + R3-1 新负锁全 5 格 + `security_properties_stay_denied[read_gt_json / read_case_tests / abs_outside]` |
+
+N4 是 **R2-1 fail-closed 缺省未被本项削弱的活体证明**：缺省一旦被改成豁免，老负锁与新负锁同时红。
+
+### R3-3 ① / ③ · 两条 NIT 随 R3-1 一起清
+
+- **NIT-1**：`test_guard_r2_param_role_is_total_over_keys` 首条断言
+  `{_param_role(k) for k in CONTENT_ROLE_KEYS} == {"content"}` 是同义反复（`_param_role` 的实现就是
+  「在不在这个元组里」）⇒ 改成**逐字面量**断言 8 个豁免名 + `pattern` 的两种工具语义 +
+  `command`/`file_path` 必须是 path 角色。现在从生产元组里删任一名字该测试就红（N1/N2/N3 实证）。
+- **NIT-3**：`_write_targets` 返回 list、`evaluate()` 逐 target 循环，而 `len(present) > 1` 直接 raise
+  ⇒ 多元素分支按构造不可达 ⇒ 改名 `_sole_write_target`，返回 `Path | None`，签名即结论；
+  歧义拒绝规则原地不动。
+  - neuter（子集 `-k 'ambiguous or write_target or denies_write or allows_write'`，基线 **23 passed**）：
+    删掉 `len(present) > 1` 的 raise ⇒ **3 failed** =
+    `test_guard_denies_ambiguous_multiple_write_targets` 全 3 参数（**R2-5 性质未被这次重构削弱**）；
+    `_sole_write_target` 恒 `return None` ⇒ **20 failed**（写保护 12 条负锁 + 4 条正例 + 散文正例 + 歧义 3 条）。
+- **NIT-2**（`__pycache__` 豁免不限深度）：r2 已授权，本轮**只登记**，
+  在 `tests/test_isolation.py` 的 `_E2E_EXEMPT_PARTS` 处注明语义与为何可接受，零行为改动。

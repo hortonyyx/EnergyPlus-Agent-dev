@@ -957,20 +957,149 @@ def test_guard_r2_unknown_key_defaults_to_path_role(tmp_path: Path, label: str, 
     assert proc.returncode == 2, (label, proc.stdout, proc.stderr)
 
 
-def test_guard_r2_param_role_is_total_over_keys():
-    """R2-1 structural lock: `_param_role` is total — exactly two outcomes, and
-    every key that is not a declared content-role key (including `None`, the
-    key-less leaf) resolves to the checked side. Supplements, does not replace,
-    the live locks above."""
+def _guard_module():
+    """Import the very guard.py file that is copied into staging."""
     sys.path.insert(0, str(Path("src/agent/execution/isolation_templates").resolve()))
     try:
-        import guard as guard_mod  # the very file that is copied into staging
+        import guard as guard_mod
+
+        return guard_mod
     finally:
         sys.path.pop(0)
-    roles = {guard_mod._param_role(k) for k in guard_mod.CONTENT_ROLE_KEYS}
-    assert roles == {"content"}
+
+
+def test_guard_r2_param_role_is_total_over_keys():
+    """R2-1 structural lock: `_param_role` is total — exactly two outcomes, and
+    every key that is not a declared free-text key (including `None`, the
+    key-less leaf) resolves to the checked side. Supplements, does not replace,
+    the live locks above.
+
+    R3-3 NIT-1: the first assertion used to be `{_param_role(k) for k in
+    CONTENT_ROLE_KEYS} == {"content"}`, which is true under *any* implementation
+    of `_param_role` because the implementation is literally "is the key in that
+    tuple" — a tautology. The exempt names are now spelled out as literals, so
+    dropping one from the production tuple turns this test red.
+    """
+    guard_mod = _guard_module()
+    for key in (
+        "content",
+        "old_string",
+        "new_string",
+        "new_source",
+        "activeForm",
+        "description",
+        "prompt",
+        "query",
+    ):
+        assert guard_mod._param_role(key, "Write") == "content", key
+    # tool-scoped: the same name is free text for one tool and a path for another
+    assert guard_mod._param_role("pattern", "Grep") == "content"
+    assert guard_mod._param_role("pattern", "Glob") == "path"
+    assert guard_mod._param_role("pattern", "") == "path"
+    # never exempt, whatever else moves
+    assert guard_mod._param_role("command", "Bash") == "path"
+    assert guard_mod._param_role("file_path", "Write") == "path"
     for key in (*guard_mod.PATH_ROLE_KEYS, None, "", "mystery_param", "edits", "cell_id"):
-        assert guard_mod._param_role(key) == "path", key
+        assert guard_mod._param_role(key, "Read") == "path", key
+
+
+# --------------------------------------------------------------------------- #
+# R3-1 — the r2 fail-closed default was correct but the exempt table only listed
+# Write/Edit text bodies, so the F-4 friction this whole batch exists to remove
+# simply MOVED: `TodoWrite {"activeForm": "... grade line ..."}` and
+# `Grep {"pattern": "z ~ 0.0"}` were refused with zero safety value. The named
+# free-text parameters of the tools the reader can actually reach are now exempt.
+# The default itself is untouched — the deny locks below pin that.
+# --------------------------------------------------------------------------- #
+@pytest.mark.parametrize(
+    ("label", "payload"),
+    [
+        (
+            "todowrite_activeform",
+            {
+                "tool_name": "TodoWrite",
+                "tool_input": {
+                    "todos": [
+                        {
+                            # the tokens live ONLY in activeForm, so this case is
+                            # red unless `activeForm` itself is exempt
+                            "content": "Trace the interior partitions",
+                            "status": "in_progress",
+                            "activeForm": "Marking the grade line at ~0.000, .. range on North",
+                        }
+                    ]
+                },
+            },
+        ),
+        (
+            "grep_regex_pattern",
+            {
+                "tool_name": "Grep",
+                "tool_input": {"pattern": "grade line|wall_..[0-9]|z ~ 0.0", "path": "out"},
+            },
+        ),
+        (
+            "bash_style_description_on_non_bash_tool",
+            {
+                "tool_name": "Glob",
+                "tool_input": {"pattern": "out/*.json", "description": "list the ~1.2 m .. sills near the grade line"},
+            },
+        ),
+    ],
+)
+def test_guard_r3_free_text_params_of_non_write_tools_are_allowed(
+    tmp_path: Path, label: str, payload: dict
+):
+    """R3-1 availability positive. A non-Write/Edit tool carrying `grade line`,
+    `..` or `~` in a FREE-TEXT parameter must be ALLOWed — these were ALLOW at r1,
+    DENY at r2, and every one of them is a path-free string. Live through the real
+    staged guard, decision read back out of the audit log."""
+    staging = _build(tmp_path).staging_root
+    proc = _hook_payload(staging, payload)
+    assert proc.returncode == 0, (label, proc.stdout, proc.stderr)
+    log = json.loads((staging / "access_log.jsonl").read_text(encoding="utf-8").splitlines()[-1])
+    assert log["decision"] == "allow", label
+
+
+@pytest.mark.parametrize(
+    ("label", "payload"),
+    [
+        # the fail-closed default for unknown keys (R2-1) must survive R3-1
+        (
+            "unknown_key_absolute_escape",
+            {"tool_name": "TodoWrite", "tool_input": {"scratch_note": "/etc/passwd"}},
+        ),
+        (
+            "unknown_key_deny_token",
+            {"tool_name": "Grep", "tool_input": {"pattern": "anything", "context_note": "case_tests"}},
+        ),
+        (
+            "unknown_key_parent_traversal",
+            {"tool_name": "Grep", "tool_input": {"pattern": "anything", "extra_root": "../../etc"}},
+        ),
+        # a path-role parameter is untouched by the free-text exemptions
+        (
+            "path_key_bare_deny_token",
+            {"tool_name": "Read", "tool_input": {"file_path": "case_tests"}},
+        ),
+        # tool-scoped: `pattern` is free text for Grep only, never for Glob
+        (
+            "glob_pattern_is_still_a_path",
+            {"tool_name": "Glob", "tool_input": {"pattern": "**/gt" + ".json"}},
+        ),
+    ],
+)
+def test_guard_r3_default_stays_fail_closed_after_free_text_exemptions(
+    tmp_path: Path, label: str, payload: dict
+):
+    """R3-1 negative locks. Adding named free-text parameters to the exempt table
+    must not weaken anything else: an UNKNOWN key carrying an out-of-workspace
+    path is still refused (the R2-1 hard requirement), a real path parameter is
+    still refused, and `pattern` — free text for Grep — is still a scanned path
+    for Glob. Each payload's only offending value sits in the named key."""
+    staging = _build(tmp_path).staging_root
+    proc = _hook_payload(staging, payload)
+    assert proc.returncode == 2, (label, proc.stdout, proc.stderr)
 
 
 @pytest.mark.parametrize(
@@ -1018,6 +1147,13 @@ def test_guard_denies_read_of_symlink_escaping_staging(tmp_path: Path):
 _E2E_WRITABLE_PREFIXES = ("out/", "requests/")
 # Explicit, named exemptions — never a silent ignore:
 _E2E_EXEMPT_NAMES = ("access_log.jsonl",)  # the guard's own append-only audit log
+# R3-3 NIT-2 (registered, not changed — the rework order authorized this
+# exemption): the match is by PATH PART, so `__pycache__` is exempt at ANY depth,
+# including `tools/__pycache__/**`. A change written into a protected directory's
+# byte-cache is therefore invisible to this E2E diff. Acceptable because (a) the
+# reader cannot author a .pyc — the write gate refuses every target outside
+# out//requests/, and (b) `tools/**` is independently protected by that same
+# gate, which has its own negative locks.
 _E2E_EXEMPT_PARTS = ("__pycache__",)  # interpreter byte-cache of the staged tools
 
 

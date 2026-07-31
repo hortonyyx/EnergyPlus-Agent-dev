@@ -44,7 +44,9 @@ OUTPUT_ROOT_DIR = "out"
 # Exactly two roles exist and every key lands in one of them — there is no third
 # "guess by string shape" branch:
 #
-#   content role  -> not one character is scanned (CONTENT_ROLE_KEYS below)
+#   content role  -> not one character is scanned (CONTENT_ROLE_KEYS below, plus
+#                    TOOL_FREE_TEXT_KEYS for names that are free text under one
+#                    tool and a path under another)
 #   path role     -> UNCONDITIONAL _lexical_check + _path_arg
 #   everything else, INCLUDING UNKNOWN KEYS -> path role (fail-closed default)
 #
@@ -59,12 +61,55 @@ OUTPUT_ROOT_DIR = "out"
 # future tool is safe by default; exempting one requires adding it to
 # CONTENT_ROLE_KEYS by name, so this hole cannot come back in a fourth shape.
 #
-# Content role = text-body parameters. Where a write lands is governed by
-# _write_targets (the real file_path), so scanning the body adds zero security
-# value while the false-positive cost is twice demonstrated live (content
-# containing any '/' — a date like 2026/07/31 is enough — plus a domain term
-# such as 'grade line'). See evaluate().
-CONTENT_ROLE_KEYS = ("content", "old_string", "new_string", "new_source")
+# Content role = parameters that carry FREE TEXT rather than a path. Where a
+# write lands is governed by _sole_write_target (the real file_path), so scanning
+# free text adds zero security value while the false-positive cost is repeatedly
+# demonstrated live (text containing any '/' — a date like 2026/07/31 is enough —
+# plus a domain term such as 'grade line'). See evaluate().
+#
+# R3-1: r2 shipped only the four Write/Edit/NotebookEdit text BODIES here, so the
+# fail-closed default relocated the very friction this batch exists to remove:
+# `TodoWrite {"activeForm": "Marking the grade line"}` and
+# `Grep {"pattern": "z ~ 0.0"}` were both refused, with zero safety value. The
+# enumeration below is derived, not guessed:
+#
+#   (a) isolation._write_settings permits exactly Read / Write / Edit / Bash
+#       (plus the always-available no-permission tools Glob / Grep / TodoWrite;
+#       WebFetch / WebSearch / Agent / Task / mcp__* are denied outright).
+#   (b) The 07-30 run's access_log.jsonl (attempt 003, 82 entries) shows the
+#       reader really used Read (37) / Bash (26) / Write (18) / Edit (1); the log
+#       records parameter names only on deny entries, where `command` and
+#       `content` appear. Both of that run's non-Bash refusal reasons
+#       ("forbidden token: grade", "home token is forbidden") were free-text
+#       parameters, never paths.
+#
+# Union of (a) and (b), keeping only parameters that are free text under EVERY
+# tool that uses the name — so exempting the name can never unscan a path:
+#   activeForm  TodoWrite       description  Bash / Agent
+#   prompt      Agent/WebFetch  query        WebSearch
+# Bash `command` is deliberately absent: it stays under the full strict check.
+# A name that is free text under one tool but a path under another (Grep's regex
+# `pattern` vs Glob's path `pattern`) does NOT belong here — see
+# TOOL_FREE_TEXT_KEYS.
+CONTENT_ROLE_KEYS = (
+    "content",
+    "old_string",
+    "new_string",
+    "new_source",
+    "activeForm",
+    "description",
+    "prompt",
+    "query",
+)
+# R3-1: exemptions that hold for ONE tool only. `pattern` is a regex for Grep
+# (free text: `wall_..[0-9]`, `z ~ 0.0`) but a path glob for Glob, where
+# `**/gt.json` must stay denied. Classifying by key name alone cannot separate
+# them, so the tool name participates in the decision. Fail-closed as before: an
+# unlisted tool gets no tool-scoped exemption at all, only the global table
+# above, so an unanticipated tool that happens to take a `pattern` is scanned.
+TOOL_FREE_TEXT_KEYS = {
+    "Grep": ("pattern",),
+}
 # Documentation-only enumeration of the keys that are *known* to carry paths
 # (Read/Write/Edit/NotebookEdit/Glob/Grep). It is NOT the gate: _param_role
 # returns "path" for anything outside CONTENT_ROLE_KEYS, so this tuple can never
@@ -191,16 +236,22 @@ def _walk_items(value, key=None):
         yield key, value
 
 
-def _param_role(key) -> str:
+def _param_role(key, tool: str) -> str:
     """R2-1: TOTAL classifier over parameter keys — returns ``"content"`` or
     ``"path"``, never anything else and never "undecided".
 
     ``None`` (a leaf that sits under no dict key at all) and every unknown key
     classify as ``"path"``: the default is the *checked* side, so a parameter
-    nobody anticipated is scanned rather than skipped. The only way to be
-    unscanned is to appear in CONTENT_ROLE_KEYS by name.
+    nobody anticipated is scanned rather than skipped. R3-1 does not touch that
+    default; it only moves named free-text parameters onto the exempt side. The
+    only two ways to be unscanned are to appear in CONTENT_ROLE_KEYS by name, or
+    in TOOL_FREE_TEXT_KEYS under this exact ``tool``.
     """
-    return "content" if key in CONTENT_ROLE_KEYS else "path"
+    if key in CONTENT_ROLE_KEYS:
+        return "content"
+    if key in TOOL_FREE_TEXT_KEYS.get(tool, ()):
+        return "content"
+    return "path"
 
 
 def _looks_like_path(value: str) -> bool:
@@ -217,12 +268,12 @@ def _looks_like_path(value: str) -> bool:
     )
 
 
-def _write_targets(tool_input, root: Path) -> list[Path]:
-    """S2a / R2-5: resolve the target path(s) of a write tool.
+def _sole_write_target(tool_input, root: Path) -> Path | None:
+    """S2a / R2-5: resolve THE target path of a write tool.
 
-    Returns every present target key's resolved path (each already checked to be
-    under staging and symlink-resolved), or an empty list when none is present
-    (caller denies, fail-closed).
+    Returns the single present target key's resolved path (already checked to be
+    under staging and symlink-resolved), or ``None`` when no target key is
+    present (caller denies, fail-closed).
 
     R2-5: the previous version returned the FIRST match in WRITE_TARGET_KEYS
     order, so a decoy `file_path: "out/decoy.txt"` masked the real
@@ -231,9 +282,15 @@ def _write_targets(tool_input, root: Path) -> list[Path]:
     write lands, so it is refused outright rather than guessed; a single present
     key is validated as before. Raises ValueError, which the caller turns into a
     deny.
+
+    R3-3 NIT-3: r2 returned a list and the caller looped over it, but the raise
+    above means the list can never hold more than one element — the loop's
+    multi-element branch was unreachable by construction and read as if two rules
+    ran at once. The signature now states what the code actually guarantees: at
+    most one target, or a refusal.
     """
     if not isinstance(tool_input, dict):
-        return []
+        return None
     present = [
         key
         for key in WRITE_TARGET_KEYS
@@ -244,8 +301,10 @@ def _write_targets(tool_input, root: Path) -> list[Path]:
             "ambiguous write target: more than one target key present "
             f"({', '.join(present)}) — refusing rather than guessing which one lands"
         )
+    if not present:
+        return None
     # raises ValueError on escape / symlink-escape
-    return [_path_arg(tool_input[key], root) for key in present]
+    return _path_arg(tool_input[present[0]], root)
 
 
 def _check_write_target(target: Path, root: Path) -> tuple[bool, str]:
@@ -395,15 +454,14 @@ def evaluate(payload: dict) -> tuple[str, str, list[str]]:
     # skills/, src/, case_data/, prescan/, reference/, staging root) is denied.
     if tool in WRITE_TOOLS:
         try:
-            targets = _write_targets(tool_input, root)
-        except ValueError as exc:
+            target = _sole_write_target(tool_input, root)
+        except ValueError as exc:  # ambiguous target, or escape/symlink-escape
             return "deny", str(exc), []
-        if not targets:
+        if target is None:
             return "deny", f"{tool} requires a file_path/notebook_path", []
-        for target in targets:  # R2-5: every present target key, not just the first
-            ok, reason = _check_write_target(target, root)
-            if not ok:
-                return "deny", reason, []
+        ok, reason = _check_write_target(target, root)
+        if not ok:
+            return "deny", reason, []
     # S2b r2 (R2-1): judge by PARAMETER ROLE — a TOTAL function, no third
     # branch. Content-role parameters are skipped entirely (not one character
     # scanned); EVERY other key, known or unknown, is treated as a path and gets
@@ -412,17 +470,22 @@ def evaluate(payload: dict) -> tuple[str, str, list[str]]:
     # pre-gate let bare `file_path="case_tests"` and a bare extension-less
     # escaping symlink through, a real deny->allow regression.
     #
-    # The write protection above (_write_targets / _check_write_target) governs
-    # WHERE a write lands, keyed on the real file_path, so skipping the text
-    # body adds no risk; the false-positive cost of scanning it is twice
+    # The write protection above (_sole_write_target / _check_write_target)
+    # governs WHERE a write lands, keyed on the real file_path, so skipping free
+    # text adds no risk; the false-positive cost of scanning it is repeatedly
     # demonstrated live (any '/' in the content — a date like 2026/07/31 is
     # enough — plus a domain term such as 'grade line').
+    # R3-1: the exempt set is now the named free-text parameters of the tools
+    # this reader can actually reach, not just Write/Edit bodies — otherwise the
+    # fail-closed default simply relocates the F-4 friction onto TodoWrite's
+    # activeForm and Grep's pattern. The DEFAULT IS UNCHANGED: every unlisted
+    # key, known or unknown, is still scanned unconditionally.
     # Bash `command` is unchanged: it still goes through the full strict check.
     paths = []
     for key, value in _walk_items(tool_input):
         if not isinstance(value, str):
             continue
-        if _param_role(key) == "content":
+        if _param_role(key, tool) == "content":
             continue
         ok, reason = _lexical_check(value, root)
         if not ok:
