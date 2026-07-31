@@ -63,6 +63,24 @@ def _overlay_candidates(payload: dict, default_status: str = "undecided") -> lis
     return candidates
 
 
+def _reject_nested_prescan_out_dir(out_dir: Path) -> str:
+    """F-1: the prescan tool itself appends ``cv_evidence/<stem>/prescan/`` to
+    ``--out-dir``. If the caller already concatenated either of those layers
+    (``--out-dir`` ends in ``cv_evidence`` or ``prescan``), the result is a nested
+    ``.../cv_evidence/.../cv_evidence/...`` that the isolation copy-guard does
+    NOT recognize, so it silently never reaches staging. Fail-closed here with
+    the correct example rather than writing files in the wrong place. Returns an
+    error message when nested, else an empty string."""
+    last = Path(out_dir).name
+    if last in ("cv_evidence", "prescan"):
+        return (
+            f"--out-dir must be the reading root; the tool appends "
+            f"cv_evidence/<stem>/prescan/ itself, so a path ending in {last!r} "
+            f"would nest and never reach staging. Example: --out-dir <RUN>/0_reading"
+        )
+    return ""
+
+
 def _write(args: argparse.Namespace, payload: dict, crop_chain: list[dict] | None, overlay_candidates: list[dict]) -> Path:
     sidecar_path = allocate_sidecar_path(args.out_dir, args.image, payload["tool"], args.sidecar_name)
     overlay_path = sidecar_path.with_name(f"{sidecar_path.stem}_overlay.png")
@@ -224,8 +242,15 @@ def main(argv: list[str] | None = None) -> int:
             source_name=args.image.name,
         )
         write_sidecar(sidecar_path, args.image, payload, crop_chain=[], overlay_path=overlay_path)
-    elif args.tool == "prescan-plan":
-        prescan_plan(
+    elif args.tool in ("prescan-plan", "prescan-elevation"):
+        # F-1: reject a nested --out-dir (caller already appended a layer the tool
+        # adds itself) before writing anything, then echo the final landing path.
+        reason = _reject_nested_prescan_out_dir(args.out_dir)
+        if reason:
+            print(reason, file=sys.stderr)
+            return 2
+        prescan_fn = prescan_plan if args.tool == "prescan-plan" else prescan_elevation
+        candidates_path, _overlay_path = prescan_fn(
             args.image,
             out_dir=args.out_dir,
             recipe_id=args.recipe,
@@ -235,17 +260,7 @@ def main(argv: list[str] | None = None) -> int:
             min_line_len_px=args.min_line_len_px,
             label=args.label,
         )
-    elif args.tool == "prescan-elevation":
-        prescan_elevation(
-            args.image,
-            out_dir=args.out_dir,
-            recipe_id=args.recipe,
-            capability_profile=args.capability_profile,
-            include_cc=not args.no_cc,
-            min_strength=args.min_strength,
-            min_line_len_px=args.min_line_len_px,
-            label=args.label,
-        )
+        print(str(Path(candidates_path).resolve()))
     else:
         parser.error(f"unknown tool: {args.tool}")
     return 0

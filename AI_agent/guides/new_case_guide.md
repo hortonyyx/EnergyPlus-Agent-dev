@@ -155,6 +155,14 @@ source view；它是 judge-only 资产，不能由产品输出反推或自动生
 只给机械像素候选；语义接受仍由 VLM 判定，并按现行 reading/sidecar 纪律记录 accept/reject 及理由。子 Agent
 仍可自行追加 `cv_probe.py` 调用做 crop 核验。启动 prompt 见 [附录 A](#附录-a--识图0_reading-子-agent-启动-prompt)。
 
+prescan 命令行 `--out-dir` **写死成 reading 根**（工具自行追加 `cv_evidence/<stem>/prescan/`，不要把该后缀拼进 `--out-dir`，否则套娃、产物不进 staging、CLI 会 fail-closed 拒绝）：
+
+```
+python scripts/tool_scripts/cv_probe.py prescan-plan    --image <RUN>/0_reading/<stem>.png --out-dir <RUN>/0_reading
+python scripts/tool_scripts/cv_probe.py prescan-elevation --image <RUN>/0_reading/<stem>.png --out-dir <RUN>/0_reading
+# 落点（CLI 会回显该绝对路径）：<RUN>/0_reading/cv_evidence/<stem>/prescan/candidates.json + combined_overlay.png
+```
+
 ### 2.2 `flow` 命令矩阵（一条命令覆盖两种典型跑法）
 
 ```bash

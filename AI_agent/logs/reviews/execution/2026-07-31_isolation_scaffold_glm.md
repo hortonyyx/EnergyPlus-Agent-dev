@@ -81,3 +81,29 @@
 - **settings.json 加 requests/ 写权限**：派工单 §3-S2a 只明列「build 预建 requests/ + kickoff 写明」，未提 settings.json。但 fact F 证明 guard 会触发 Write 工具（out/ 写被 guard 拒 3 次），故子代理写 requests/ 要真到 guard，settings.json 的 allow 必须含 requests/**（与 out/ 对称）。这是为让该功能可用而做的最小一致改动，非放松安全（guard 仍是权威写保护门）。
 - **S2b 路径判定的边界**：`_looks_like_path` 对「整串」判定（含 `/`/起首 `.`/末尾扩展名）。故 content 整串不含 `/` 时才免扫；若 reading 摘要或立面 JSON 整串里恰好含 `/`（如备注 "south/north"），仍会被当路径扫到 `grade` 等。派工单给的就是这条规则（"只作用于被 `_looks_like_path` 判定为路径的字符串"），我照搬；现实 reading 产物整串含 `/` 罕见（坐标/中文 note 无 `/`），fact F 的 `grade line`/`~` 场景正好命中免扫。如实登记，未自行加宽。
 
+
+## S3 · prescan 落点语义收口（F-1）— DONE
+
+**做了什么**
+- `scripts/tool_scripts/cv_probe.py`：新增 `_reject_nested_prescan_out_dir`（`--out-dir` 末级目录名 ∈ {`cv_evidence`,`prescan`} ⇒ 返回错误信息）；合并 prescan-plan/prescan-elevation 两分支为一条：先查 nested（命中则 stderr 打错误样例 + `return 2`，**不写任何文件**），再调库函数，最后 `print` 落点绝对路径（candidates.json）。
+- `AI_agent/guides/new_case_guide.md` §2.1：写死命令行样例 `--out-dir <RUN>/0_reading`，注明工具自行追加 `cv_evidence/<stem>/prescan/`、套娃会 fail-closed、CLI 会回显落点。
+- 库函数 `prescan_plan/elevation`（recipes.py）与 `evidence_dir`（sidecar.py）**不动**——派工单指明改 cv_probe.py（唯一生产调用方），库层无其他生产 caller。
+
+**新增锁（S3）**
+1. `test_cv_probe_rejects_nested_prescan_out_dir`（参数化 `cv_evidence`/`prescan`）：套娃 `--out-dir` ⇒ 非零退出 + `run_x` 下零 `candidates.json` + 不建套娃目录。
+2. `test_cv_probe_prescan_echoes_landing_matching_copy_guard`：正常 `--out-dir=<RUN>/0_reading` ⇒ 退出 0 + stdout 落点存在且 `_is_run_prescan_path(落点)==True`（**真正要防的回归**：CLI 落点与隔离拷贝守卫口径一致）。
+
+**neuter 自查（S3）**
+| 锁 | neuter（生产码定点） | 变红的测试 |
+|---|---|---|
+| 套娃拒绝 | `cv_probe.py` 把 `_reject_nested_prescan_out_dir(args.out_dir)` 改为常空串（跳过拒绝门） | `test_cv_probe_rejects_nested_prescan_out_dir[cv_evidence]` + `[prescan]` 均 **FAILED**（退出 0、stdout 现套娃路径 `.../prescan/cv_evidence/plan/prescan/candidates.json`） |
+| 落点↔守卫口径一致 | `isolation.py` `_is_run_prescan_path` 强制 `return False`（关 oracle） | `test_cv_probe_prescan_echoes_landing_matching_copy_guard` **FAILED** + 既有 `test_run_prescan_source_path_is_allowed` **FAILED**（证明 parity 锁真耦合 oracle、非空套） |
+
+两 neuter 均工作树临时破坏→跑→还原（cv_probe.py +28/−13；isolation.py 还原到 S2 态无残留）。
+
+**跑了哪些测试 + 数字**：受影响子集（`affected_tests.py --changed cv_probe.py isolation.py`）= `test_affected_tests_map + test_cv_toolbox + test_gt_discipline + test_isolation` → **90 passed**。
+
+**偏差 / review-ask（S3）**
+- 锁 #2 的 neuter 在 **oracle 侧**（`_is_run_prescan_path` 关掉）而非改 CLI 落点布局。理由：锁本质是「CLI 实际落点 ↔ 拷贝守卫」的跨模块一致性断言，oracle-side neuter 证明锁真耦合守卫、非空套；CLI 落点由 `evidence_dir`+`label` 独立算出并 print，两侧独立 ⇒ 锁确在交叉核。如实登记。
+- 嵌套检测只查末级目录名 ∈ {`cv_evidence`,`prescan`}（派工单给定的判定）。若调用方传 `<RUN>/0_reading/cv_evidence/1f_view`（末级是 stem）仍会套娃但不被本门拦——派工单只要求这两类，未扩；现实手册已写死 `--out-dir <RUN>/0_reading`，照搬未自行加宽。
+

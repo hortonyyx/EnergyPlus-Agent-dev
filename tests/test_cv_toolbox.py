@@ -417,3 +417,56 @@ def test_prescan_elevation_cli_writes_candidates_and_overlay(tmp_path: Path):
     data = json.loads(candidates.read_text(encoding="utf-8"))
     assert data["tool"] == "prescan-elevation"
     assert data["capability_profile"]["requested"] == "rectangular"
+
+
+# --------------------------------------------------------------------------- #
+# F-1 / S3 — prescan --out-dir semantics: the tool appends cv_evidence/<stem>/
+# prescan/ itself, so a caller who pre-concatenated either layer must be rejected
+# fail-closed (else the nested landing is never copied into staging). On success
+# the CLI echoes the final landing absolute path, which must agree with the
+# isolation copy-guard `_is_run_prescan_path`.
+# --------------------------------------------------------------------------- #
+@pytest.mark.parametrize("nested_last", ["cv_evidence", "prescan"])
+def test_cv_probe_rejects_nested_prescan_out_dir(tmp_path: Path, nested_last: str):
+    image = _save_plan(tmp_path / "plan.png")
+    out_dir = tmp_path / "run_x" / "0_reading" / nested_last
+    cmd = [
+        sys.executable,
+        "scripts/tool_scripts/cv_probe.py",
+        "prescan-plan",
+        "--image", str(image),
+        "--out-dir", str(out_dir),
+        "--no-cc",
+    ]
+    proc = subprocess.run(cmd, capture_output=True, text=True, check=False)
+    assert proc.returncode != 0, "nested --out-dir must be rejected (nonzero exit)"
+    # fail-closed: nothing is written anywhere under the run root
+    assert not any((tmp_path / "run_x").rglob("candidates.json"))
+    assert not (out_dir / "cv_evidence").exists()
+
+
+def test_cv_probe_prescan_echoes_landing_matching_copy_guard(tmp_path: Path):
+    """S3 headline lock: a normal --out-dir (= the reading root) lands at a path
+    the isolation copy-guard `_is_run_prescan_path` accepts — i.e. the landing
+    semantics and the staging copy rule agree. This is the real regression: if
+    either side drifts, prescan files silently stop entering staging."""
+    from src.agent.execution.isolation import _is_run_prescan_path
+
+    image = _save_plan(tmp_path / "plan.png")
+    run_root = tmp_path / "run_x"
+    out_dir = run_root / "0_reading"
+    cmd = [
+        sys.executable,
+        "scripts/tool_scripts/cv_probe.py",
+        "prescan-plan",
+        "--image", str(image),
+        "--out-dir", str(out_dir),
+        "--no-cc",
+    ]
+    proc = subprocess.run(cmd, capture_output=True, text=True, check=False)
+    assert proc.returncode == 0, proc.stderr
+    landing = Path(proc.stdout.strip())
+    assert landing.exists(), f"echoed landing not written: {landing}"
+    assert landing.name == "candidates.json"
+    # the echoed landing must be recognized by the staging copy-guard
+    assert _is_run_prescan_path(landing), f"landing not copy-guard-recognized: {landing}"
