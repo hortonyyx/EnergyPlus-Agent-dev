@@ -20,6 +20,13 @@ GUARD_VERSION = "1"
 WRITE_TOOLS = ("Write", "Edit", "MultiEdit", "NotebookEdit")
 WRITE_TARGET_KEYS = ("file_path", "notebook_path")
 WRITE_ALLOWED_DIRS = ("out", "requests")
+# S2b r1: judge by PARAMETER ROLE, not by string shape. These text-body
+# parameters are excluded from the path-token scan ENTIRELY (not one character
+# scanned). Where a write lands is governed by _write_target (real file_path), so
+# scanning the body adds zero security value while the false-positive cost is
+# twice demonstrated live (content containing any '/' — a date like 2026/07/31
+# is enough — plus a domain term such as 'grade line'). See evaluate().
+CONTENT_ROLE_KEYS = ("content", "old_string", "new_string", "new_source")
 DENY_TOKENS = (
     "/workspaces/EnergyPlus-Agent-dev",
     "case_tests",
@@ -115,6 +122,23 @@ def _walk_values(value):
             yield from _walk_values(item)
     else:
         yield value
+
+
+def _walk_items(value, key=None):
+    """Yield (key, value) for every leaf, tracking the dict key each leaf sits
+    under. List elements inherit their enclosing dict key, so MultiEdit's `edits`
+    list recurses into the per-edit dicts and old_string/new_string are picked up
+    by name. Used by evaluate() to identify content-role parameters by NAME
+    (CONTENT_ROLE_KEYS) — the F-4 r1 fix: a text-body parameter is excluded from
+    the path-token scan regardless of whether its text happens to contain '/'."""
+    if isinstance(value, dict):
+        for k, item in value.items():
+            yield from _walk_items(item, k)
+    elif isinstance(value, list):
+        for item in value:
+            yield from _walk_items(item, key)
+    else:
+        yield key, value
 
 
 def _looks_like_path(value: str) -> bool:
@@ -228,14 +252,21 @@ def evaluate(payload: dict) -> tuple[str, str, list[str]]:
         ok, reason = _check_write_target(target, root)
         if not ok:
             return "deny", reason, []
-    # S2b: the path-like forbidden checks (DENY_TOKENS / ~ / ..) apply only to
-    # strings _looks_like_path() judges as paths. Non-path prose (Write/Edit
-    # `content`, notes, …) is NOT scanned for these — that is the F-4 fix (a
-    # reading summary using '~' or the domain term 'grade line' is legitimate).
+    # S2b r1: judge by PARAMETER ROLE, not by string shape. Content-role
+    # parameters (CONTENT_ROLE_KEYS) are excluded from the path-token scan
+    # ENTIRELY — not one character scanned. The write protection above
+    # (_write_target / _check_write_target) already governs WHERE a write lands,
+    # keyed on the real file_path, so scanning the text body adds zero security
+    # value; the false-positive cost is twice demonstrated live (content
+    # containing any '/' — a date like 2026/07/31 is enough — plus a domain term
+    # such as 'grade line'). The original S2b `_looks_like_path` judged the WHOLE
+    # string, so such content was still treated as a path and still denied.
     # Bash `command` is unchanged: it still goes through the full strict check.
     paths = []
-    for value in _walk_values(tool_input):
+    for key, value in _walk_items(tool_input):
         if not isinstance(value, str):
+            continue
+        if key in CONTENT_ROLE_KEYS:
             continue
         if not _looks_like_path(value):
             continue

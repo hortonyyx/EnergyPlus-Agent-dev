@@ -175,3 +175,45 @@
 - `AI_agent/guides/new_case_guide.md`（S3 §2.1 命令样例写死）
 - 本执行日志
 
+
+## 返工 r1 · S2b 路径判定改「按参数角色」而非「按整串形状」（主控轻门裁定）— DONE
+
+> 返工单：`AI_agent/logs/reviews/request/2026-07-31_isolation_scaffold_rework_r1.md`
+> 主控裁定：我在 S2 review-ask 里登记的 S2b 边界（`_looks_like_path` 对「整串」判定）比我估计的更差——主控用活体探针实证推翻「现实 reading 产物整串含 `/` 罕见」：content 里同时出现任意一个 `/`（一个日期 `2026/07/31` 即足）与任意一个禁词 ⇒ 仍被当路径扫到、`grade line` 仍被拒、F-4 在真实产物上仍复发。这是主控骨架写窄、非我施工错。
+> 裁定（修到根因、不再加豁免词）：**按参数角色判，不按字符串长相判**。content 角色参数整个排除出路径形状扫描、一个字符都不扫。
+
+**做了什么（`guard.py`）**
+- 新增常量 `CONTENT_ROLE_KEYS = ("content", "old_string", "new_string", "new_source")`（content 角色参数名；`new_source`=NotebookEdit 同类文本体参数）。
+- 新增 `_walk_items(value, key=None)`：键感知遍历器，yield `(key, value)`；list 元素继承外层 dict key（MultiEdit 的 `edits` 列表递归进每个 edit dict、按名命中 `old_string`/`new_string`）。原 `_walk_values`（无键）保留给 `_validate_request_file`（cv_probe 请求 JSON 是另一攻击面、严格扫描不动）。
+- `evaluate()` 的 S2b 扫描循环：由「`_walk_values` + `_looks_like_path` 整串门」改为「`_walk_items` + 按 key 跳过 content 角色 + 再 `_looks_like_path`」。即 content 角色参数**在 `_looks_like_path` 之前**就被排除，一个字符都不扫。
+- 不动：`_lexical_check`（仍严格）/`_check_bash`（Bash command 整串仍严格）/`_write_target`+`_check_write_target`（S2a 写保护仍权威）/`_validate_request_file`（请求 JSON 仍全扫）/`DENY_TOKENS` 表（对路径仍有效、未删条目）。
+
+**新增锁（r1，4 把）**
+1. `test_guard_r1_allows_reading_summary_content_with_slash_and_grade_line`：主控活体探针 case —— content = `"Windows on 2026/07/31: grade line at z=0, span 1.2 m."` 写 out/reading_summary.md ⇒ **ALLOW**（原 S2b 整串 `_looks_like_path` 命中 `/`→扫到 `grade`→DENY）。**返工单锁 1**。
+2. `test_guard_r1_excludes_content_role_params_from_path_scan`（参数化 5：Write `content` / Edit `old_string` / Edit `new_string` / MultiEdit `edits[]` / NotebookEdit `new_source`）：每个 payload 文本体都同时含 `/` 与一个 DENY_TOKEN（`grade`/`case_tests`）⇒ 全 **ALLOW**。钉死「按参数角色」跨工具、非 `content` 一刀切特例。
+3. `test_guard_r1_denies_write_to_tools_with_innocent_prose_content`：写 `tools/run_cv_probe.py` 且 content 是纯净散文（无 `/` 无禁词）⇒ 仍 **DENY**（`write target must be under out/ or requests/`）。证明放松的是内容扫描、不是写保护。**返工单锁 2**。
+4. `test_guard_r1_bash_command_with_case_tests_still_denied`：Bash `ls case_tests/x` ⇒ **DENY**（`forbidden token: case_tests`）。证明 content-role 放松不沾 Bash 路径。**返工单锁 3**。
+
+**neuter 自查（r1，每把新锁经实跑核；工作树临时破坏→跑→还原、diff 无残留）**
+| 锁 | neuter（生产码定点） | 变红的测试（实跑） |
+|---|---|---|
+| 锁 1+2（角色排除） | `evaluate` 里 `if key in CONTENT_ROLE_KEYS:` 改 `and False`（恢复扫 content 串） | **6 FAILED**：锁 1（date+grade line）+ 参数化 5（write_content/edit_old/edit_new/multiedit/notebook）全 DENY；既有散文锁（content 无 `/`）仍绿——**精确坐实原 S2b 边界**（无 `/` 的散文原就过、含 `/` 的才崩） |
+| 锁 3（写保护） | `_check_write_target` 首行强 `return True,"neutered"`（写保护门全开） | **14 FAILED**：锁 3（tools/run_cv_probe.py 写变 allow）+ S2a 头条（denies_overwrite_of_tools_run_cv_probe）+ 12 参数（denies_write_outside_out_or_requests）；4 个 allows_write_under 仍绿（out//requests 本就 allow、不受影响） |
+| 锁 4（Bash 严格） | `_check_bash` 首行 `ok,reason = _lexical_check(...)` 改 `True,"neutered"`（跳过 Bash 整串扫） | **1 FAILED**：锁 4（`ls case_tests/x` 变 allow）；其余 Bash DENY 测试（非白名单命令/`python -c`/复合 token/请求 JSON 禁词/symlink 越界）**全仍红**——它们由 Bash 的**其他**独立防线（命令白名单/COMPOUND_TOKENS/`_validate_request_file`/`_path_arg` 越界）兜住 ⇒ 锁 4 是 Bash 命令里 DENY_TOKEN 的**唯一**锁、精确无冗余 |
+
+还原后 `diff` guard.py 与修好态逐字节相同（`grep -c NEUTER` = 0）。
+
+**跑了哪些测试 + 数字**
+- 受影响子集（`affected_tests.py --changed guard.py test_isolation.py`）= `tests/test_isolation.py` → **79 passed**（71 S4 尾态 + 8 r1 新）。
+- **全仓 = 1880 passed / 10 xfailed / 0 failed**（5:02）。= baseline 1786 + 本批 45（S1×3+S2×27+S3×3+S4×4=37 + r1×8）+ sol 并行 reading-typed-scoring Slice0–5 净增 ≈49。**零回归**。
+- ⚠️ 主控告并行 sol 席位正改 judge/scoring 测试；本轮全仓 **judge/scoring 零 failed**（两批当前态不撞）；工作树里 sol-scope 文件（`src/agent/judge/opening_claim_score.py`·`reading_typed_score.py`·`tests/test_c2_b4b_score_inputs.py`·`tests/test_reading_typed_scoring_slice1.py`）有未提交改动——**我未触碰、未 stage、未 commit**，commit 只含我自己的两个文件 + 本日志。
+
+**偏差 / review-ask（r1）**
+- `CONTENT_ROLE_KEYS` 含 `new_source`（NotebookEdit 的文本体参数），返工单只点名 `content`/`new_string`/`old_string` +「同类文本体参数」。`new_source` 即同类、纳入排除（不扫）；如主控认为 NotebookEdit 不在隔离 reader 的工具面、不该纳入，可删该 key——但纳入是「按角色」的自然结果、且更严（少一个误伤面）非放松安全。如实登记。
+- 非 content 角色串仍走 `_looks_like_path` 整串门（仅作 secondary filter、扫 file_path 等路径角色串）。返工单裁定的是「content 角色整个排除」，未要求删 `_looks_like_path`；保留它对 file_path 等仍提供 DENY_TOKEN 兜底（如 `out/case_tests/x` 写名仍被拦）。`_looks_like_path` 同时仍被 `_validate_request_file` 用、未动。如实登记。
+
+**改了哪些文件（r1）**
+- `src/agent/execution/isolation_templates/guard.py`（`CONTENT_ROLE_KEYS` + `_walk_items` + `evaluate` S2b 循环改键感知）
+- `tests/test_isolation.py`（4 把 r1 锁）
+- 本执行日志（本节）
+

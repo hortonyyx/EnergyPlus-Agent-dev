@@ -796,6 +796,101 @@ def test_guard_allows_reading_summary_with_prose_forbidden_tokens(tmp_path: Path
     assert log["decision"] == "allow"
 
 
+def test_guard_r1_allows_reading_summary_content_with_slash_and_grade_line(tmp_path: Path):
+    """S2b r1 (F-4 fix on realistic content) — controller live-probe case. The
+    original S2b `_looks_like_path` judged the WHOLE string, so any content
+    containing '/' (a date like 2026/07/31, m/s, N/A) was treated as a path and
+    scanned for DENY_TOKENS — the domain term 'grade line' was then denied and
+    the required summary could not be written. r1 judges by PARAMETER ROLE: a
+    content-role parameter is excluded from the scan entirely. This is lock 1."""
+    staging = _build(tmp_path).staging_root
+    content = "Windows on 2026/07/31: grade line at z=0, span 1.2 m."
+    proc = _hook_payload(
+        staging,
+        {"tool_name": "Write", "tool_input": {"file_path": "out/reading_summary.md", "content": content}},
+    )
+    assert proc.returncode == 0, proc.stderr
+    log = json.loads((staging / "access_log.jsonl").read_text(encoding="utf-8").splitlines()[-1])
+    assert log["decision"] == "allow"
+
+
+@pytest.mark.parametrize(
+    ("label", "payload"),
+    [
+        (
+            "write_content",
+            {"tool_name": "Write", "tool_input": {"file_path": "out/reading_summary.md",
+                "content": "Windows on 2026/07/31: grade line at z=0, span 1.2 m."}},
+        ),
+        (
+            "edit_old_string",
+            {"tool_name": "Edit", "tool_input": {"file_path": "out/reading_summary.md",
+                "old_string": "ratio 3/4 by the grade line", "new_string": "fixed"}},
+        ),
+        (
+            "edit_new_string",
+            {"tool_name": "Edit", "tool_input": {"file_path": "out/reading_summary.md",
+                "old_string": "fixed", "new_string": "Windows on 2026/07/31: grade line at z=0"}},
+        ),
+        (
+            "multiedit_edits",
+            {"tool_name": "MultiEdit", "tool_input": {"file_path": "out/reading_summary.md",
+                "edits": [
+                    {"old_string": "grade line at 3/4", "new_string": "Windows on 2026/07/31"},
+                    {"old_string": "wind 1.2 m/s", "new_string": "case_tests is just prose here"},
+                ]}},
+        ),
+        (
+            "notebookedit_new_source",
+            {"tool_name": "NotebookEdit", "tool_input": {"notebook_path": "requests/nb.ipynb",
+                "cell_id": "c1", "cell_type": "code", "edit_mode": "replace",
+                "new_source": "Windows on 2026/07/31: grade line; case_tests mention"}},
+        ),
+    ],
+)
+def test_guard_r1_excludes_content_role_params_from_path_scan(tmp_path: Path, label: str, payload: dict):
+    """S2b r1 — PARAMETER ROLE lock. Every content-role parameter name
+    (content / old_string / new_string / MultiEdit edits[] / NotebookEdit
+    new_source) is excluded from the path-token scan entirely. Each payload's
+    text body contains both a '/' and a DENY_TOKEN ('grade' / 'case_tests'),
+    which the original whole-string `_looks_like_path` would have caught — they
+    must now all ALLOW. Proves the exclusion is by key name across tools, not a
+    one-off `content` special case."""
+    staging = _build(tmp_path).staging_root
+    proc = _hook_payload(staging, payload)
+    assert proc.returncode == 0, (label, proc.stderr)
+    log = json.loads((staging / "access_log.jsonl").read_text(encoding="utf-8").splitlines()[-1])
+    assert log["decision"] == "allow", label
+
+
+def test_guard_r1_denies_write_to_tools_with_innocent_prose_content(tmp_path: Path):
+    """S2b r1 — lock 2 (write protection survives the body-scan loosening).
+    Loosening the *content* scan must NOT loosen the *write-target* protection.
+    A Write to tools/run_cv_probe.py is still DENIED even though its content is
+    perfectly innocent prose (no '/', no DENY_TOKEN) — proves we relaxed the body
+    scan, not the write protection (S2a `_check_write_target` still governs)."""
+    staging = _build(tmp_path).staging_root
+    proc = _hook_payload(
+        staging,
+        {"tool_name": "Write", "tool_input": {"file_path": "tools/run_cv_probe.py",
+            "content": "innocent prose with no forbidden tokens or slashes here"}},
+    )
+    assert proc.returncode == 2, proc.stderr
+    assert "write target must be under out/ or requests/" in proc.stderr
+
+
+def test_guard_r1_bash_command_with_case_tests_still_denied(tmp_path: Path):
+    """S2b r1 — lock 3 (Bash unchanged). The Bash `command` still goes through
+    the full strict whole-string check; the content-role relaxation never touches
+    the Bash path. A command containing `case_tests` is still DENIED — even an
+    otherwise-read-only `ls` is denied because the lexical token check fires
+    first on the whole string."""
+    staging = _build(tmp_path).staging_root
+    proc = _hook(staging, "ls case_tests/x")
+    assert proc.returncode == 2, proc.stderr
+    assert "forbidden token: case_tests" in proc.stderr
+
+
 @pytest.mark.parametrize(
     ("label", "payload"),
     [
