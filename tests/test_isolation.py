@@ -1120,6 +1120,56 @@ def test_e2e_allowed_request_writes_only_under_out(tmp_path: Path):
     assert _protected_tree_diff(before, after) == []
 
 
+# --------------------------------------------------------------------------- #
+# R2-3 — a writable root that is ITSELF a symlink used to reverse-authorize its
+# target: `(root/"out").resolve()` yielded `tools`, so `tools/**` became an
+# allowed root and `Write out/run_cv_probe.py` was allowed. The roots are now
+# pinned to real directories that resolve to themselves.
+# --------------------------------------------------------------------------- #
+@pytest.mark.parametrize("root_name", ["out", "requests"])
+def test_guard_denies_writes_when_an_allowed_root_is_a_symlink(tmp_path: Path, root_name: str):
+    """R2-3 lock: with `<root_name> -> tools` pre-seeded, the supported explicit
+    `--staging-root` build still succeeds, but the guard must refuse — writing
+    "under out/" would really land in the protected `tools/`."""
+    staging_root = tmp_path / "staging"
+    staging_root.mkdir()
+    (staging_root / "tools").mkdir()
+    (staging_root / root_name).symlink_to("tools")
+
+    staging = build_isolation_workspace(CASE_DIR, staging_root=staging_root).staging_root
+    assert (staging / root_name).is_symlink(), "fixture precondition: the root stayed a symlink"
+    assert (staging / root_name / "run_cv_probe.py").resolve() == (
+        staging / "tools" / "run_cv_probe.py"
+    ).resolve()
+
+    proc = _hook_payload(
+        staging,
+        {"tool_name": "Write", "tool_input": {"file_path": f"{root_name}/run_cv_probe.py", "content": "overwrite"}},
+    )
+    assert proc.returncode == 2, proc.stdout
+    assert "real directory" in proc.stderr
+
+    # fail-closed: while the authorization set is untrustworthy, even a read is refused
+    proc = _hook_payload(staging, {"tool_name": "Read", "tool_input": {"file_path": "case_data/1f_view.png"}})
+    assert proc.returncode == 2, proc.stdout
+
+
+def test_guard_denies_writes_when_allowed_root_symlinked_after_build(tmp_path: Path):
+    """R2-3 companion: the same refusal when the root is swapped for a symlink
+    *after* a normal build, i.e. the check is re-run per decision rather than
+    once at build time."""
+    staging = _build(tmp_path).staging_root
+    shutil.rmtree(staging / "out")
+    (staging / "out").symlink_to("tools")
+
+    proc = _hook_payload(
+        staging,
+        {"tool_name": "Write", "tool_input": {"file_path": "out/run_cv_probe.py", "content": "overwrite"}},
+    )
+    assert proc.returncode == 2, proc.stdout
+    assert "real directory" in proc.stderr
+
+
 def test_guard_denies_bash_request_file_with_forbidden_token(tmp_path: Path):
     """S2b regression lock (property 8): a CV-probe request JSON whose value
     contains a DENY_TOKEN is denied — `_validate_request_file` keeps the strict

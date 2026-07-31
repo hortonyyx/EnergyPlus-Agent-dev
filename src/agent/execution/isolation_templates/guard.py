@@ -239,7 +239,13 @@ def _check_write_target(target: Path, root: Path) -> tuple[bool, str]:
     Bash-allowlisted executable."""
     for name in WRITE_ALLOWED_DIRS:
         try:
-            target.relative_to(_writable_root(root, name))
+            allowed = _writable_root(root, name)
+        except ValueError as exc:
+            # R2-3 fail-closed: a tampered root refuses the CALL; we do not fall
+            # through to the next root and we do not "skip" it.
+            return False, str(exc)
+        try:
+            target.relative_to(allowed)
             return True, f"allowed write under {name}/"
         except ValueError:
             continue
@@ -249,8 +255,37 @@ def _check_write_target(target: Path, root: Path) -> tuple[bool, str]:
 def _writable_root(root: Path, name: str) -> Path:
     """The single definition of "a root the reader may write into". Both the
     Write/Edit target check and the CV-request output check go through here, so
-    the two can never drift apart."""
-    return (root / name).resolve(strict=False)
+    the two can never drift apart.
+
+    R2-3: the root is *pinned*, not resolved. Deriving the authorized set by
+    resolving a path the reader could replace is backwards — if ``out`` is itself
+    a symlink to ``tools``, ``(root/"out").resolve()`` yields ``tools`` and the
+    protected directory becomes the allowed root, so writing ``out/run_cv_probe.py``
+    was allowed (sol MAJOR-3). A writable root must therefore be a real directory
+    that resolves to its own literal path inside staging; anything else raises and
+    the caller denies the whole call.
+    """
+    path = root / name
+    if path.is_symlink() or not path.is_dir():
+        raise ValueError(
+            f"writable root {name}/ must be a real directory inside staging "
+            "(symlinked or missing root: refusing the call)"
+        )
+    resolved = path.resolve(strict=True)
+    if resolved != path or not _under(resolved, root):
+        raise ValueError(
+            f"writable root {name}/ must resolve to its own path inside staging "
+            "(refusing the call)"
+        )
+    return path
+
+
+def _assert_writable_roots(root: Path) -> None:
+    """R2-3: re-validate every writable root on every decision. Runs before any
+    tool is judged, so a tampered root denies even a read — the authorization set
+    itself is untrustworthy at that point."""
+    for name in WRITE_ALLOWED_DIRS:
+        _writable_root(root, name)
 
 
 def _check_output_target(target: Path, root: Path) -> tuple[bool, str]:
@@ -260,7 +295,11 @@ def _check_output_target(target: Path, root: Path) -> tuple[bool, str]:
     file, not helper output). Without this, `{"out_dir": "tools"}` passed the
     hook, the helper ran, and three files really appeared under `tools/**`."""
     try:
-        target.relative_to(_writable_root(root, OUTPUT_ROOT_DIR))
+        allowed = _writable_root(root, OUTPUT_ROOT_DIR)
+    except ValueError as exc:
+        return False, str(exc)  # R2-3 fail-closed
+    try:
+        target.relative_to(allowed)
         return True, f"allowed output under {OUTPUT_ROOT_DIR}/"
     except ValueError:
         return False, f"request output path must land under {OUTPUT_ROOT_DIR}/"
@@ -318,6 +357,13 @@ def _check_bash(command: str, root: Path) -> tuple[bool, str, list[str]]:
 
 def evaluate(payload: dict) -> tuple[str, str, list[str]]:
     root = _staging_root()
+    # R2-3: the authorization set must be trustworthy before anything is judged.
+    # If a writable root is not a real directory resolving to itself inside
+    # staging, refuse this call outright — including reads.
+    try:
+        _assert_writable_roots(root)
+    except ValueError as exc:
+        return "deny", str(exc), []
     tool = payload.get("tool_name") or payload.get("tool") or ""
     tool_input = payload.get("tool_input") or {}
     if tool == "Bash":
