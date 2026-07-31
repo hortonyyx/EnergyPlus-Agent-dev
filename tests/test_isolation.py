@@ -1168,6 +1168,36 @@ def test_guard_denies_writes_when_an_allowed_root_is_a_symlink(tmp_path: Path, r
     assert proc.returncode == 2, proc.stdout
 
 
+@pytest.mark.parametrize(
+    ("label", "tool_input"),
+    [
+        (
+            "decoy_file_path_masks_notebook_path",
+            {"file_path": "out/decoy.txt", "notebook_path": "tools/protected.ipynb", "new_source": "x"},
+        ),
+        (
+            "decoy_notebook_path_masks_file_path",
+            {"notebook_path": "out/decoy.ipynb", "file_path": "tools/protected.py", "content": "x"},
+        ),
+        (
+            "both_targets_legal_still_ambiguous",
+            {"file_path": "out/a.txt", "notebook_path": "out/b.ipynb", "new_source": "x"},
+        ),
+    ],
+)
+def test_guard_denies_ambiguous_multiple_write_targets(tmp_path: Path, label: str, tool_input: dict):
+    """R2-5 (sol MINOR-1): `_write_target` used to take the first key in
+    WRITE_TARGET_KEYS order, so an innocuous `file_path` masked the real
+    `notebook_path` and the write was allowed. Two target keys in one call is
+    ambiguous about where the write lands and is now refused outright — including
+    when both would individually be legal, so the rule is about the ambiguity,
+    not about the destination."""
+    staging = _build(tmp_path).staging_root
+    proc = _hook_payload(staging, {"tool_name": "NotebookEdit", "tool_input": tool_input})
+    assert proc.returncode == 2, (label, proc.stdout, proc.stderr)
+    assert "ambiguous write target" in proc.stderr
+
+
 def test_guard_denies_writes_when_allowed_root_symlinked_after_build(tmp_path: Path):
     """R2-3 companion: the same refusal when the root is swapped for a symlink
     *after* a normal build, i.e. the check is re-run per decision rather than

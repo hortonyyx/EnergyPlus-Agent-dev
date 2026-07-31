@@ -217,17 +217,35 @@ def _looks_like_path(value: str) -> bool:
     )
 
 
-def _write_target(tool_input, root: Path) -> Path | None:
-    """S2a: extract + resolve the target path of a write tool. Returns the
-    resolved target (already checked to be under staging, symlink-resolved) or
-    None if no recognizable target key is present (caller denies, fail-closed)."""
+def _write_targets(tool_input, root: Path) -> list[Path]:
+    """S2a / R2-5: resolve the target path(s) of a write tool.
+
+    Returns every present target key's resolved path (each already checked to be
+    under staging and symlink-resolved), or an empty list when none is present
+    (caller denies, fail-closed).
+
+    R2-5: the previous version returned the FIRST match in WRITE_TARGET_KEYS
+    order, so a decoy `file_path: "out/decoy.txt"` masked the real
+    `notebook_path: "tools/protected.ipynb"` and the call was allowed. Two
+    different target keys in one call is inherently ambiguous about where the
+    write lands, so it is refused outright rather than guessed; a single present
+    key is validated as before. Raises ValueError, which the caller turns into a
+    deny.
+    """
     if not isinstance(tool_input, dict):
-        return None
-    for key in WRITE_TARGET_KEYS:
-        raw = tool_input.get(key)
-        if isinstance(raw, str) and raw:
-            return _path_arg(raw, root)  # raises ValueError on escape / symlink-escape
-    return None
+        return []
+    present = [
+        key
+        for key in WRITE_TARGET_KEYS
+        if isinstance(tool_input.get(key), str) and tool_input.get(key)
+    ]
+    if len(present) > 1:
+        raise ValueError(
+            "ambiguous write target: more than one target key present "
+            f"({', '.join(present)}) — refusing rather than guessing which one lands"
+        )
+    # raises ValueError on escape / symlink-escape
+    return [_path_arg(tool_input[key], root) for key in present]
 
 
 def _check_write_target(target: Path, root: Path) -> tuple[bool, str]:
@@ -377,14 +395,15 @@ def evaluate(payload: dict) -> tuple[str, str, list[str]]:
     # skills/, src/, case_data/, prescan/, reference/, staging root) is denied.
     if tool in WRITE_TOOLS:
         try:
-            target = _write_target(tool_input, root)
+            targets = _write_targets(tool_input, root)
         except ValueError as exc:
             return "deny", str(exc), []
-        if target is None:
+        if not targets:
             return "deny", f"{tool} requires a file_path/notebook_path", []
-        ok, reason = _check_write_target(target, root)
-        if not ok:
-            return "deny", reason, []
+        for target in targets:  # R2-5: every present target key, not just the first
+            ok, reason = _check_write_target(target, root)
+            if not ok:
+                return "deny", reason, []
     # S2b r2 (R2-1): judge by PARAMETER ROLE — a TOTAL function, no third
     # branch. Content-role parameters are skipped entirely (not one character
     # scanned); EVERY other key, known or unknown, is treated as a path and gets
