@@ -155,3 +155,139 @@ python -m pytest -p no:cacheprovider -q \
 Result: `6 failed` on the same intended pre-implementation boundaries. The U-13
 failure is the absent pure constructor; the U-10 integration failure is the live
 `elevation_observations_not_list` crash before the strengthened assertions.
+
+## Slice 1 — contract, v9 wire, and total-result boundary
+
+### RED locks
+
+The Slice 1 locks were committed without production changes in:
+
+- `8923be4` — initial detector/wire/cache/total-result locks;
+- `e66174d` — total detector matrix, non-object artifact, strict round-trip, and
+  unmapped-stable-error locks;
+- `2419bed` — later-attempt continuation lock; and
+- `fb331ce` — detector/adapter helper-version capability lock; and
+- `f9095f2` — v9 row, rejection-code, and certificate/count cross-validation locks.
+
+Each was re-run from a detached worktree containing only its committed test state.
+The initial matrix was `8 failed`; the expanded matrix was `15 failed`. The
+continuation lock independently failed because the first injected scorer exception
+escaped the attempt loop and emitted no warning. The version lock independently
+failed before a reviewed detector/helper tuple could be supplied. The focused wire
+invariant run was `2 failed` because no v9 types existed.
+
+These reds prove the pre-Slice-1 tree had no structural reading detector, no strict
+v9 result envelope, no v9 cache path, no total scorer boundary, no post-commit strict
+profile failure, and no independent-attempt continuation after a scorer exception.
+
+Reproduce any committed RED state without the later implementation:
+
+```bash
+red_worktree=$(mktemp -d -p /tmp reading-slice1-red.XXXXXX)
+git worktree add --detach "$red_worktree" e66174d
+(cd "$red_worktree" && python -m pytest -p no:cacheprovider -q \
+  tests/test_reading_typed_scoring_slice1.py)
+git worktree remove --force "$red_worktree"
+```
+
+Substitute `8923be4` for the initial `8 failed` matrix. For the focused continuation,
+version, and wire runs, substitute respectively `2419bed`, `fb331ce`, or `f9095f2`
+and append the exact test node(s) named by those lock descriptions.
+
+### Implementation
+
+- Reading identity now comes from a total structural detector. It never reads or
+  synthesizes `schema_version`; a JSON-readable non-object reaches an explicit
+  `unsupported_reading_contract` artifact rather than the former silent early
+  return.
+- The capability decision accepts only `reading_views_v1` with the reviewed detector
+  and adapter versions. The production capability identity also includes the typed
+  GT, effective manifest, and score-binding hashes.
+- Strict v9 scored/NA/rejected wires, certificate slots, visibility counts, additive
+  reading rows, artifact contracts, finalization, and v8-as-cache-miss behavior are
+  present. Correction scoring writes v9 while preserving all pinned public judgment
+  values.
+- `score_typed_attempt_total` uses a frozen-code ownership table. Product/capability
+  failures become NA, trusted request failures become rejected, and unexpected or
+  unmapped failures become counted `scorer_internal_failure` NA with a stack log.
+  Exploratory/dev warns; golden/regression commits the artifact and then raises the
+  stable top-level exception.
+- The denominator helper is a pure four-trusted-input function. Its filtered basis
+  accepts only `cause_class="trusted_input"`; no product payload, geometry, or facade
+  declaration is in its signature or preimage.
+- Run-stage and the score CLI use the same detector and payload-kind-safe criteria
+  access. One internally failed exploratory attempt no longer aborts the next
+  attempt.
+
+### GREEN evidence
+
+```bash
+python -m pytest -p no:cacheprovider -q \
+  tests/test_reading_typed_scoring_slice1.py
+```
+
+Result: `18 passed`.
+
+The existing scorer/correction regression set:
+
+```bash
+python -m pytest -p no:cacheprovider -q \
+  tests/test_reading_typed_scoring_slice1.py \
+  tests/test_c2_b2_v3.py \
+  tests/test_c2_b2b_envelope_transform.py \
+  tests/test_c2_b4b_contract.py \
+  tests/test_c2_b4b_phase_b.py \
+  tests/test_c2_b4b_phase_d.py \
+  tests/test_c2_b5_parent_and_verts.py \
+  tests/test_c2_b5_source_routing.py \
+  tests/test_c2_vg_visibility.py
+```
+
+Result: `335 passed`, with the pre-existing Pydantic serializer warning in
+`test_f3_tampered_v3_and_feature_state_fail_closed`.
+
+The Slice 0 integration locks now report `3 passed, 3 failed`. The three remaining
+reds are intentionally the Slice 2/3 geometry-certificate boundaries: U-13 integrated
+certificate publication, U-05 per-stroke unmeasurable evidence/count, and U-10
+input-scoped NA/witness plus retained misses. The real reading boundary, F8 guard,
+and correction preservation locks are green.
+
+### U-03 D-1 before/after proof
+
+Reproducible command:
+
+```bash
+python -m pytest -p no:cacheprovider -q -s -n0 \
+  tests/test_reading_typed_scoring_slice0.py::\
+test_correction_public_judgment_sha_matches_pre_v9_baseline
+```
+
+Output:
+
+```text
+public_rows.before_sha256=ee2a4d0d3de034417acd76420a9222899d2585d23bbff6f390ebe0ce09b6635b
+public_rows.after_sha256=ee2a4d0d3de034417acd76420a9222899d2585d23bbff6f390ebe0ce09b6635b
+wall_criteria.before_sha256=65cf6dfb5136df7195b8cfb7811f7a7f666c90084e8743dc3bcbbf68f9a17025
+wall_criteria.after_sha256=65cf6dfb5136df7195b8cfb7811f7a7f666c90084e8743dc3bcbbf68f9a17025
+blocking_change=false
+```
+
+### Mechanical checks
+
+```bash
+python -m py_compile \
+  src/agent/judge/score_schema.py \
+  src/agent/judge/reading_typed_adapter.py \
+  src/agent/judge/score_service.py \
+  scripts/tool_scripts/run_stage.py \
+  scripts/tool_scripts/score_reading_vs_gt.py
+git diff --check
+```
+
+Both completed with no output.
+
+## Next boundary
+
+Slice 2 begins with elevation adapter RED locks. Slice 1 deliberately does not
+manufacture reading geometry or certificates; the remaining Slice 0 reds stay red
+until those evidence paths land.

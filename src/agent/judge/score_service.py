@@ -7,6 +7,8 @@ observations are projected exclusively through reviewed score bindings.
 from __future__ import annotations
 
 import hashlib
+import logging
+import warnings
 from dataclasses import dataclass
 from typing import Callable, Literal
 
@@ -16,17 +18,20 @@ from src.agent.judge.elevation_score import (
     project_typed_elevation_observation,
 )
 from src.agent.judge.score_schema import (
-    C2ScoredPayloadV8, C2ToleranceIdentityV8, ExtraObservationV8,
-    HelperIdentityV8, ManifestIdentityV8, ProductIdentityV8, ScoreContractError,
-    ScoreIdentityV8, SegmentExtraV8, SegmentScoreRowV8,
+    C2ScoredPayloadV9, C2ToleranceIdentityV8, ExtraObservationV8,
+    HelperIdentityV9, ManifestIdentityV8, NotApplicablePayloadV9,
+    ProductIdentityV8, RejectedPayloadV9, ScoreContractError,
+    ScoreCriterionV9, ScoreIdentityV9, ScorePayloadV9, SegmentScoreRowV8,
     SEGMENT_SCORER_HELPER_VERSION, canonical_sha256, decide_score_capability,
-    finalize_score_sidecar,
+    empty_visibility_counts_v1, finalize_score_sidecar_v9,
 )
 from src.agent.judge.score_schema import ElevationScoreViewBindingV1
 from src.agent.judge.identity_provenance import (
     identity_contract_for_segment_scorer,
     raise_identity_conflict,
 )
+
+_logger = logging.getLogger(__name__)
 
 
 def _raise_score_input_contract(
@@ -94,8 +99,8 @@ def normalize_typed_elevation_observations(*, payload: object, score_bindings: o
 
 @dataclass(frozen=True)
 class TypedScoreResult:
-    identity: ScoreIdentityV8
-    payload: C2ScoredPayloadV8
+    identity: ScoreIdentityV9
+    payload: ScorePayloadV9
     sidecar: object
     grade_png: bytes
 
@@ -191,7 +196,8 @@ def score_typed_attempt(*, gt_identity, gt, stage: Literal["reading", "correctio
     capability = decide_score_capability(gt_identity=gt_identity, stage=stage,
                                           product_schema=product_identity.output_schema,
                                           view_manifest=effective,
-                                          product_artifact_contract=product_identity.artifact_contract)
+                                          product_artifact_contract=product_identity.artifact_contract,
+                                          score_view_bindings_sha256=score_bindings.content_sha256)
     if capability.path != "c2_v3":
         raise ScoreContractError("score_unsupported_combination", "scoring.capability",
                                  context={"reason": capability.reason or capability.path})
@@ -205,11 +211,16 @@ def score_typed_attempt(*, gt_identity, gt, stage: Literal["reading", "correctio
         completeness_overlay_sha256=None if completeness_overlay is None else completeness_overlay.content_sha256,
         score_view_bindings_sha256=score_bindings.content_sha256,
     )
-    helpers = HelperIdentityV8(
-        scorer_schema="8", segment_scorer=SEGMENT_SCORER_HELPER_VERSION, gt_to_va_adapter="b4b_gt_to_va_v1",
-        denominator_helper="b4b_denominator_v1", grade_renderer="b4b_grade_png_v1",
+    helpers = HelperIdentityV9(
+        scorer_schema="9", segment_scorer=SEGMENT_SCORER_HELPER_VERSION,
+        opening_matcher="reading_opening_global_assignment_v1",
+        gt_to_va_adapter="b4b_gt_to_va_v1",
+        denominator_helper="b4b_denominator_v1", grade_renderer="b4b_grade_png_v2",
         va_helper=FACADE_APPLICABILITY_HELPER_VERSION, vg_helper="facade_visibility_v1",
         claims_contract=CLAIMS_VOCAB_VERSION,
+        reading_contract_detector="reading_contract_detector_v1",
+        reading_adapter="reading_typed_adapter_v1",
+        reading_source_applicability="reading_source_applicability_v1",
     )
 
     from src.agent.judge.certifier import (
@@ -356,8 +367,11 @@ def score_typed_attempt(*, gt_identity, gt, stage: Literal["reading", "correctio
                 output_sha256=product_identity.output_sha256, gt_segment_id=product_to_gt.get(item.facade_segment_id, item.facade_segment_id)),
             reason=None) for item in unmatched)
     policy = c2_v3_score_policy(claim_rows=rows, segment_rows=segment_rows)
-    identity = ScoreIdentityV8(gt=gt_identity, product=product_identity, manifest=manifest_identity,
+    identity = ScoreIdentityV9(gt=gt_identity, product=product_identity, manifest=manifest_identity,
         helpers=helpers, capability=capability, tolerances=tolerance,
+        reading_normalization_sha256=None, source_applicability_sha256=None,
+        score_manifest_sha256=effective.content_sha256,
+        denominator_basis_sha256=None, denominator_sha256=None,
         reference_applicability_sha256=reference.content_sha256, product_applicability_sha256=product.content_sha256,
         absence_applicability_sha256=None if absence is None else absence.content_sha256)
     serial_segments = tuple(SegmentScoreRowV8(
@@ -365,9 +379,19 @@ def score_typed_attempt(*, gt_identity, gt, stage: Literal["reading", "correctio
         floor_id=(row.target or row.observation).floor_id, exterior=(row.target or row.observation).exterior,
         status=row.status, axis_alignment_error_m=row.axis_alignment_error_m, position_error_m=row.position_error_m,
         extent_symmetric_difference_m=row.extent_symmetric_difference_m) for row in segment_rows)
-    payload = C2ScoredPayloadV8(kind="c2_scored", segment_rows=serial_segments, segment_extras=(),
+    payload = C2ScoredPayloadV9(
+        kind="c2_scored",
+        channel_applicability=(),
+        unmeasurable_observations=0,
+        visibility_counts=empty_visibility_counts_v1(),
+        segment_rows=serial_segments,
+        segment_extras=(),
+        opening_source_rows=(),
         claim_rows=rows, claim_summaries=summaries, extras=extras,
-        score_criteria=tuple(item.model_dump(mode="json") for item in policy.criteria),
+        score_criteria=tuple(
+            ScoreCriterionV9.model_validate(item.model_dump(mode="json"))
+            for item in policy.criteria
+        ),
         reference_ledger_sha256=reference.content_sha256, product_ledger_sha256=product.content_sha256,
         absence_ledger_sha256=None if absence is None else absence.content_sha256)
     # The renderer is a judge-side script and consumes the typed document; no
@@ -379,9 +403,253 @@ def score_typed_attempt(*, gt_identity, gt, stage: Literal["reading", "correctio
         sys.path.insert(0, scripts)
     from render_grade import render_score_grade_png
     png = render_score_grade_png(gt=gt, identity=identity, payload=payload)
-    sidecar = finalize_score_sidecar(identity=identity, payload=payload, grade_png=png,
+    sidecar = finalize_score_sidecar_v9(identity=identity, payload=payload, grade_png=png,
         ledger_counts=(len(reference.openings), len(product.openings), 0 if absence is None else len(absence.openings)))
     return TypedScoreResult(identity=identity, payload=payload, sidecar=sidecar, grade_png=png)
+
+
+class TopLevelNotApplicableError(RuntimeError):
+    """Raised by strict-profile callers only after NA artifacts are committed."""
+
+    def __init__(self, reason: str):
+        self.reason = reason
+        super().__init__(f"top_level_not_applicable:{reason}")
+
+
+def score_criteria_for_payload(payload: ScorePayloadV9) -> tuple[ScoreCriterionV9, ...]:
+    values = getattr(payload, "score_criteria", ())
+    return tuple(values)
+
+
+def _failure_identity(*, typed_request: dict, capability) -> ScoreIdentityV9:
+    from src.agent.correction.claims import CLAIMS_VOCAB_VERSION
+    from src.agent.correction.facade_applicability import (
+        FACADE_APPLICABILITY_HELPER_VERSION,
+    )
+    from src.agent.judge.score_inputs import build_effective_view_manifest
+
+    base = typed_request["base_view_manifest"]
+    overlay = typed_request["completeness_overlay"]
+    effective = build_effective_view_manifest(base=base, overlay=overlay)
+    config = typed_request["c2_config"]
+    tolerance = C2ToleranceIdentityV8(
+        profile_kind="judge_score_config_v1",
+        values=config,
+        content_sha256=canonical_sha256(config.model_dump(mode="json")),
+    )
+    manifest = ManifestIdentityV8(
+        base_view_manifest_sha256=base.content_sha256,
+        effective_view_manifest_sha256=effective.content_sha256,
+        case_metadata_sha256=base.case_metadata_sha256,
+        completeness_ruleset=effective.completeness_ruleset_version,
+        completeness_overlay_sha256=(
+            None if overlay is None else overlay.content_sha256
+        ),
+        score_view_bindings_sha256=typed_request["score_bindings"].content_sha256,
+    )
+    helpers = HelperIdentityV9(
+        scorer_schema="9",
+        segment_scorer=SEGMENT_SCORER_HELPER_VERSION,
+        opening_matcher="reading_opening_global_assignment_v1",
+        gt_to_va_adapter="b4b_gt_to_va_v1",
+        denominator_helper="b4b_denominator_v1",
+        grade_renderer="b4b_grade_png_v2",
+        va_helper=FACADE_APPLICABILITY_HELPER_VERSION,
+        vg_helper="facade_visibility_v1",
+        claims_contract=CLAIMS_VOCAB_VERSION,
+        reading_contract_detector="reading_contract_detector_v1",
+        reading_adapter="reading_typed_adapter_v1",
+        reading_source_applicability="reading_source_applicability_v1",
+    )
+    return ScoreIdentityV9(
+        gt=typed_request["gt_identity"],
+        product=typed_request["product_identity"],
+        manifest=manifest,
+        helpers=helpers,
+        capability=capability,
+        tolerances=tolerance,
+        reading_normalization_sha256=None,
+        source_applicability_sha256=None,
+        score_manifest_sha256=effective.content_sha256,
+        denominator_basis_sha256=None,
+        denominator_sha256=None,
+        reference_applicability_sha256=None,
+        product_applicability_sha256=None,
+        absence_applicability_sha256=None,
+    )
+
+
+def _total_failure_result(
+    *,
+    typed_request: dict,
+    error: BaseException,
+    disposition: Literal["not_applicable", "rejected", "internal"],
+) -> TypedScoreResult:
+    from src.agent.judge.score_inputs import build_effective_view_manifest
+
+    base = typed_request["base_view_manifest"]
+    effective = build_effective_view_manifest(
+        base=base,
+        overlay=typed_request["completeness_overlay"],
+    )
+    product = typed_request["product_identity"]
+    capability = decide_score_capability(
+        gt_identity=typed_request["gt_identity"],
+        stage=typed_request["stage"],
+        product_schema=product.output_schema,
+        view_manifest=effective,
+        product_artifact_contract=product.artifact_contract,
+        score_view_bindings_sha256=typed_request[
+            "score_bindings"
+        ].content_sha256,
+    )
+    identity = _failure_identity(
+        typed_request=typed_request,
+        capability=capability,
+    )
+    counts = empty_visibility_counts_v1(
+        scorer_internal_failures=1 if disposition == "internal" else 0
+    )
+    if disposition == "rejected":
+        assert isinstance(error, ScoreContractError)
+        payload: ScorePayloadV9 = RejectedPayloadV9(
+            kind="rejected",
+            error_code=error.code,
+            cause_code=error.cause_code,
+            gate_id=error.gate_id,
+            detail=error.code,
+            channel_applicability=(),
+            unmeasurable_observations=0,
+            visibility_counts=counts,
+        )
+    else:
+        if disposition == "internal":
+            reason = "scorer_internal_failure"
+        elif capability.reason == "unsupported_reading_contract":
+            reason = "unsupported_reading_contract"
+        elif capability.reason == "unsupported_gt_profile":
+            reason = "unsupported_gt_profile"
+        else:
+            reason = "unsupported_view_contract"
+        payload = NotApplicablePayloadV9(
+            kind="not_applicable",
+            reason=reason,
+            detail=reason,
+            channel_applicability=(),
+            unmeasurable_observations=0,
+            visibility_counts=counts,
+            score_criteria=(),
+        )
+    import sys
+    from pathlib import Path
+
+    scripts = str(Path(__file__).resolve().parents[3] / "scripts" / "tool_scripts")
+    if scripts not in sys.path:
+        sys.path.insert(0, scripts)
+    from render_grade import render_score_grade_png
+
+    png = render_score_grade_png(
+        gt=typed_request["gt"],
+        identity=identity,
+        payload=payload,
+    )
+    sidecar = finalize_score_sidecar_v9(
+        identity=identity,
+        payload=payload,
+        grade_png=png,
+    )
+    return TypedScoreResult(
+        identity=identity,
+        payload=payload,
+        sidecar=sidecar,
+        grade_png=png,
+    )
+
+
+def _score_contract_disposition(
+    error: ScoreContractError,
+    *,
+    stage: Literal["reading", "correction"],
+) -> Literal["not_applicable", "rejected", "internal"]:
+    """Classify only frozen codes and structured ownership fields."""
+    trusted_rejections = {
+        "score_gt_identity_invalid",
+        "score_view_manifest_invalid",
+        "score_view_binding_invalid",
+        "score_direction_unresolved",
+        "score_completeness_input_invalid",
+        "score_visibility_adapter_mismatch",
+        "score_claim_applicability_invalid",
+        "score_denominator_nonconserving",
+    }
+    product_or_capability_na = {
+        "score_product_segment_unresolved",
+        "score_match_ambiguous",
+        "score_unsupported_combination",
+    }
+    neutral_identity_codes = {
+        "score_identity_non_finite",
+        "score_identity_guard_band_ambiguity",
+        "score_identity_chain_bridge",
+        "score_identity_merge_collapse",
+        "score_identity_contract_mismatch",
+        "score_identity_support_ambiguous",
+    }
+    if error.code in trusted_rejections:
+        return "rejected"
+    if error.code == "score_product_identity_invalid":
+        return "rejected" if stage == "correction" else "not_applicable"
+    if error.code in product_or_capability_na:
+        return "not_applicable"
+    if error.code in neutral_identity_codes:
+        side = error.context.get("side")
+        if side == "gt":
+            return "rejected"
+        if side == "product":
+            return "not_applicable"
+    return "internal"
+
+
+def _report_internal_failure(*, run_profile: str) -> None:
+    _logger.exception(
+        "reading_typed_scorer_internal_failure",
+        extra={"event": "reading_typed_scorer_internal_failure"},
+    )
+    if run_profile not in {"golden", "regression"}:
+        warnings.warn(
+            "typed scorer internal failure; emitted not_applicable",
+            RuntimeWarning,
+            stacklevel=3,
+        )
+
+
+def score_typed_attempt_total(
+    *,
+    run_profile: str = "exploratory",
+    **typed_request,
+) -> TypedScoreResult:
+    """Total typed boundary; profile-specific raising happens after persistence."""
+    try:
+        return score_typed_attempt(**typed_request)
+    except ScoreContractError as exc:
+        disposition = _score_contract_disposition(
+            exc,
+            stage=typed_request["stage"],
+        )
+        if disposition == "internal":
+            _report_internal_failure(run_profile=run_profile)
+        return _total_failure_result(
+            typed_request=typed_request,
+            error=exc,
+            disposition=disposition,
+        )
+    except Exception as exc:  # noqa: BLE001 - explicit total boundary
+        _report_internal_failure(run_profile=run_profile)
+        return _total_failure_result(
+            typed_request=typed_request,
+            error=exc,
+            disposition="internal",
+        )
 
 
 def score_attempt_service(*, stage: Literal["0_reading", "1_correction"] | None = None, output: dict | None = None,
@@ -395,7 +663,12 @@ def score_attempt_service(*, stage: Literal["0_reading", "1_correction"] | None 
     the C2 scorer; no raw-dict fallback is available there.
     """
     if typed_request is not None:
-        return score_typed_attempt(**typed_request)
+        request = dict(typed_request)
+        run_profile = str(request.pop("run_profile", "exploratory"))
+        return score_typed_attempt_total(
+            run_profile=run_profile,
+            **request,
+        )
     if legacy_evaluator is None or stage is None or output is None or gt is None:
         raise ValueError("score service requires either typed_request or legacy evaluator inputs")
     return legacy_evaluator(stage, output, gt, grade=grade)

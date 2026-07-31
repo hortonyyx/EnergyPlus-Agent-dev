@@ -1535,26 +1535,23 @@ Neuters:
 Tests:
 
 1. strict detector table for object/list/missing/flat/real envelopes;
-2. capability decision rejects unrecognized reading and accepts only
-   `reading_views_v1`;
+2. capability decision rejects unrecognized reading or detector/adapter version
+   mismatch and accepts only the reviewed `reading_views_v1` helper tuple;
 3. component applicability validator distinguishes applicable-zero from NA-zero;
-4. normalization/source certificate hashes change for every score-affecting field and
-   are order-invariant after canonical sort;
-5. v8 cache is a miss, exact v9 is a hit, altered certificate is a miss;
+4. denominator construction accepts only canonical `trusted_input` exclusions and
+   exposes no product parameter;
+5. v8 cache is a miss, exact v9 is a hit, and an altered v9 identity is a miss;
 6. stable error mapping: product shape→NA, trusted identity→rejected, unexpected
-   exception→internal NA;
+   exception or unmapped `ScoreContractError`→internal NA;
 7. scored/NA/rejected result variants all render and round-trip strictly.
-8. `test_product_invalid_plan_frame_is_na_but_denominator_retained` removes the
-   structured plan origin and requires product-content NA plus unchanged denominator
-   misses;
-9. `test_supported_empty_plan_component_is_scored_as_miss` requires
-   applicable-zero plus real target misses;
-10. `test_reading_score_error_does_not_abort_later_attempts_in_exploratory` injects an
+8. a non-object but JSON-readable reading product still receives explicit NA
+   sidecar/PNG artifacts;
+9. `test_reading_score_error_does_not_abort_later_attempts_in_exploratory` injects an
     internal adapter exception, requires a counted/warned NA artifact, then requires
     the later attempt's artifacts;
-11. `test_na_payload_never_reads_c2_only_member` routes top-level NA through the real
+10. `test_na_payload_never_reads_c2_only_member` routes top-level NA through the real
     caller without unconditional C2-field access;
-12. golden/regression commit each top-level NA artifact and then fail closed.
+11. golden/regression commit each top-level NA artifact and then fail closed.
 
 Current RED defects proved: there is no reading guard (F1), schema identity is guessed
 (F8), v8 cannot carry channel reasons/certificates, and result callers assume C2.
@@ -1565,10 +1562,10 @@ Neuters:
 - remove NA-reason nonempty validation → applicability lock red;
 - omit normalization hash from score identity → cache lock red;
 - map an unexpected exception to re-raise → totality lock red.
-- replace product-content NA with trusted filtering → lock 8 red;
-- turn applicable-zero into NA → lock 9 red;
-- remove per-attempt exploratory totalization → lock 10 red;
-- read a C2-only member unconditionally → lock 11 red;
+- accept an unmapped stable code as an ordinary product NA → error-map lock red;
+- restore the non-dictionary early return → total-artifact lock red;
+- remove per-attempt exploratory totalization → lock 9 red;
+- read a C2-only member unconditionally → lock 10 red;
 
 Stop after Slice 1 and re-read this cumulative specification before geometry
 construction.
@@ -1595,6 +1592,8 @@ Tests:
    distinct and counted; multi-floor is trusted-filtered NA;
 9. line/rect/polyline bounds and degenerate point observations follow §8.2;
 10. unique assignment scores coordinates; assignment ambiguity returns source NA.
+11. normalization certificate hashes change for every elevation score-affecting field
+    and are order-invariant after canonical sort.
 
 Current RED defects proved: no production shape adapter exists (F3/F5); the current
 normalizer requires flat rows and an invented segment ID; missing keys have misleading
@@ -1632,6 +1631,13 @@ Tests:
     counted;
 12. nonzero structured origins are explicitly counted on sidecar and grade board;
 13. static import test proves adapter/GT imports remain judge-only.
+14. `test_product_invalid_plan_frame_is_na_but_denominator_retained` removes the
+    structured plan origin and requires product-content NA plus unchanged denominator
+    misses.
+15. `test_supported_empty_plan_component_is_scored_as_miss` requires
+    applicable-zero plus real target misses.
+16. normalization certificate hashes change for every plan score-affecting field and
+    are order-invariant after canonical sort.
 
 Current RED defects proved: `scale_origin` has no consumer (F6), coordinates are
 currently taken as world implicitly, reading observations default exterior, and host
@@ -1667,6 +1673,8 @@ Tests:
 11. normal versus all-malformed products have byte-identical denominator preimage,
     bytes, and hashes but different unmeasurable evidence;
 12. correction-v3 public rows and wall criteria retain the pinned pre-v9 byte hashes.
+13. source-applicability certificate hashes change for every score-affecting field and
+    are order-invariant after canonical sort.
 
 Current RED defects proved: the current reference ledger has no cause-split capability
 mask, NA and applicable-zero cannot be distinguished, source IDs are conflated,

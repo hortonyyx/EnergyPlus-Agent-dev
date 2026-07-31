@@ -1331,14 +1331,19 @@ def _grade_typed_attempt_artifacts(stage: str, case: str, attempt_dir: Path, doc
     from src.agent.judge.score_inputs import load_completeness_overlay, load_score_view_bindings
     from src.agent.judge.score_schema import (build_product_identity, commit_score_artifacts,
                                                load_cached_score, load_score_gt_identity)
-    from src.agent.judge.score_service import score_attempt_service
+    from src.agent.judge.reading_typed_adapter import identify_reading_contract
+    from src.agent.judge.score_service import (
+        TopLevelNotApplicableError,
+        score_attempt_service,
+        score_criteria_for_payload,
+    )
 
     output_path = attempt_dir / "output.json"
     if not output_path.exists():
         return {"score_vs_gt": None, "grade": None, "score_criteria": []}
     output_text = output_path.read_text(encoding="utf-8")
     output = json.loads(output_text)
-    if not isinstance(output, dict):
+    if stage != "0_reading" and not isinstance(output, dict):
         return {"score_vs_gt": None, "grade": None, "score_criteria": []}
     attempt = attempt_index_of(attempt_dir)
     accepted = manifest.accepted(stage)
@@ -1357,8 +1362,17 @@ def _grade_typed_attempt_artifacts(stage: str, case: str, attempt_dir: Path, doc
             from src.agent.judge.score_schema import ScoreContractError
             raise ScoreContractError("score_product_identity_invalid", "scoring.input_identity",
                                      context={"reason": "accepted_stage_record_output_mismatch"})
+    if stage == "0_reading":
+        output_schema = identify_reading_contract(output).contract_id
+    else:
+        declared_schema = output.get("schema_version")
+        output_schema = (
+            str(declared_schema)
+            if declared_schema is not None
+            else "unrecognized"
+        )
     product = build_product_identity(stage="reading" if stage == "0_reading" else "correction", attempt=attempt,
-        output_sha256=output_hash, output_schema=str(output.get("schema_version", "3")), source="attempt_output",
+        output_sha256=output_hash, output_schema=output_schema, source="attempt_output",
         accepted_stage_record=accepted_record)
     gt_identity, typed_gt = load_score_gt_identity(gt_file)
     if typed_gt is None:
@@ -1402,15 +1416,23 @@ def _grade_typed_attempt_artifacts(stage: str, case: str, attempt_dir: Path, doc
         "product_payload": output, "product_identity": product, "base_view_manifest": base,
         "score_bindings": bindings, "completeness_overlay": overlay,
         "c2_config": load_judge_score_config(_REPO_ROOT / "src/configs/judge_score.yaml"),
-        "window_host_proof": window_host_proof}
+        "window_host_proof": window_host_proof, "run_profile": run_profile}
     result = score_attempt_service(typed_request=request)
     score_path, grade_path = attempt_dir / "score_vs_gt.json", attempt_dir / "grade.png"
     cached = load_cached_score(score_path, grade_path=grade_path, expected_identity=result.identity)
     if cached is None:
         commit_score_artifacts(sidecar_path=score_path, grade_path=grade_path,
                                sidecar=result.sidecar, grade_png=result.grade_png)
+    if (
+        result.payload.kind == "not_applicable"
+        and run_profile in {"golden", "regression"}
+    ):
+        raise TopLevelNotApplicableError(result.payload.reason)
     return {"score_vs_gt": str(score_path), "grade": str(grade_path),
-            "score_criteria": list(result.payload.score_criteria)}
+            "score_criteria": [
+                item.model_dump(mode="json")
+                for item in score_criteria_for_payload(result.payload)
+            ]}
 
 
 def _render_all_typed_attempt_grades(stage: str, case: str, run_dir: Path, document, *,

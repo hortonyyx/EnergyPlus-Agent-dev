@@ -77,6 +77,11 @@ def main() -> int:
     ap.add_argument("--completeness-overlay", help="optional reviewed C2 completeness overlay")
     ap.add_argument("--attempt", type=int, default=0, help="attempt identity for C2 sidecar")
     ap.add_argument("--out-dir", help="write C2 score_vs_gt.json + grade.png atomically")
+    ap.add_argument(
+        "--run-profile",
+        default="exploratory",
+        choices=("exploratory", "dev", "golden", "regression"),
+    )
     args = ap.parse_args()
 
     target = Path(args.target)
@@ -107,18 +112,29 @@ def main() -> int:
                 expected_gt_content_sha256=gt_identity.content_sha256,
                 expected_base_view_manifest_sha256=base.content_sha256)
             from src.agent.execution.manifest import hash_text
+            from src.agent.judge.reading_typed_adapter import (
+                identify_reading_contract,
+            )
+            from src.agent.judge.score_service import TopLevelNotApplicableError
             product_identity = build_product_identity(stage="reading", attempt=args.attempt,
-                output_sha256=hash_text(payload_text), output_schema=str(payload.get("schema_version", "3")),
+                output_sha256=hash_text(payload_text),
+                output_schema=identify_reading_contract(payload).contract_id,
                 source="attempt_output", accepted_stage_record=None)
             result = score_attempt_service(typed_request={"gt_identity": gt_identity, "gt": gt_document,
                 "stage": "reading", "product_payload": payload, "product_identity": product_identity,
                 "base_view_manifest": base, "score_bindings": bindings, "completeness_overlay": overlay,
-                "c2_config": load_judge_score_config(args.judge_config)})
+                "c2_config": load_judge_score_config(args.judge_config),
+                "run_profile": args.run_profile})
             if args.out_dir:
                 out = Path(args.out_dir); out.mkdir(parents=True, exist_ok=True)
                 commit_score_artifacts(sidecar_path=out / "score_vs_gt.json", grade_path=out / "grade.png",
                     sidecar=result.sidecar, grade_png=result.grade_png)
             print(result.sidecar.model_dump_json(indent=2))
+            if (
+                result.payload.kind == "not_applicable"
+                and args.run_profile in {"golden", "regression"}
+            ):
+                raise TopLevelNotApplicableError(result.payload.reason)
             return 0
         except Exception as exc:  # boundary prints no raw exception details
             print(f"typed elevation rejected: {getattr(exc, 'code', 'score_product_identity_invalid')}", file=sys.stderr)

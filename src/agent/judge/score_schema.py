@@ -544,6 +544,830 @@ class ScoreSidecarV8(StrictWire):
         return self
 
 
+# Reading typed-score wire.  V8 remains available above for strict legacy
+# loading; typed service writers emit V9.
+READING_PRODUCT_CONTRACT = "reading_views_v1"
+READING_CONTRACT_DETECTOR_VERSION = "reading_contract_detector_v1"
+READING_ADAPTER_VERSION = "reading_typed_adapter_v1"
+READING_SOURCE_APPLICABILITY_VERSION = "reading_source_applicability_v1"
+READING_DENOMINATOR_VERSION = "reading_denominator_v1"
+
+ReadingComponent = Literal[
+    "plan_segments",
+    "plan_openings",
+    "elevation_opening_xy",
+    "elevation_opening_z",
+]
+
+
+class Affine2DV1(StrictWire):
+    xx: FiniteFloat
+    xy: FiniteFloat
+    x0: FiniteFloat
+    yx: FiniteFloat
+    yy: FiniteFloat
+    y0: FiniteFloat
+
+    @model_validator(mode="after")
+    def _invertible(self):
+        if self.xx * self.yy - self.xy * self.yx == 0.0:
+            raise ValueError("affine transform must be invertible")
+        return self
+
+
+class PlanFrameCertificateV1(StrictWire):
+    input_id: StableId
+    floor_id: StableId
+    source: Literal["reading_scale_origin_v1"]
+    units: Literal["metre"]
+    local_axes: Literal["drawing_right_up"]
+    affine: Affine2DV1
+    nonzero_origin: StrictBool
+    preimage_sha256: Hex64
+
+    @model_validator(mode="after")
+    def _hash(self):
+        if self.nonzero_origin != (
+            self.affine.x0 != 0.0 or self.affine.y0 != 0.0
+        ):
+            raise ValueError("nonzero_origin disagrees with affine translation")
+        if self.preimage_sha256 != hash_model_without(self, "preimage_sha256"):
+            raise ValueError("plan frame preimage hash mismatch")
+        return self
+
+
+class VerticalDatumCertificateV1(StrictWire):
+    input_id: StableId
+    floor_ids: tuple[StableId, ...]
+    status: Literal["applicable", "not_applicable"]
+    source: Literal[
+        "product_declared",
+        "project_convention_2026_07_25",
+        "multi_floor_unavailable",
+    ]
+    units: Literal["metre"]
+    local_axis: Literal["drawing_up"]
+    z_sign: Literal[1] | None
+    z_origin: FiniteFloat | None
+    authority: Literal[
+        "reading_scale_origin_world_z_m",
+        "user_ruling_grade_line_equals_interior_floor_zero",
+        "reviewed_binding_multiple_floors",
+    ]
+    reason: Literal["elevation_floor_partition_unresolved"] | None
+    preimage_sha256: Hex64
+
+    @model_validator(mode="after")
+    def _contract(self):
+        if not self.floor_ids or tuple(sorted(self.floor_ids)) != self.floor_ids:
+            raise ValueError("vertical datum floor_ids must be non-empty and sorted")
+        if self.source == "multi_floor_unavailable":
+            if (
+                len(self.floor_ids) < 2
+                or self.status != "not_applicable"
+                or self.z_sign is not None
+                or self.z_origin is not None
+                or self.authority != "reviewed_binding_multiple_floors"
+                or self.reason != "elevation_floor_partition_unresolved"
+            ):
+                raise ValueError("invalid unavailable multi-floor vertical datum")
+        else:
+            authority = {
+                "product_declared": "reading_scale_origin_world_z_m",
+                "project_convention_2026_07_25": (
+                    "user_ruling_grade_line_equals_interior_floor_zero"
+                ),
+            }[self.source]
+            if (
+                len(self.floor_ids) != 1
+                or self.status != "applicable"
+                or self.z_sign != 1
+                or self.z_origin is None
+                or self.authority != authority
+                or self.reason is not None
+            ):
+                raise ValueError("invalid applicable vertical datum")
+        if self.preimage_sha256 != hash_model_without(self, "preimage_sha256"):
+            raise ValueError("vertical datum preimage hash mismatch")
+        return self
+
+
+class ReadingComponentApplicabilityV1(StrictWire):
+    source_input_id: StableId
+    channel: Literal["plan", "elevation"]
+    component: ReadingComponent
+    floor_ids: tuple[StableId, ...]
+    status: Literal["applicable", "not_applicable"]
+    reasons: tuple[StableId, ...]
+    cause_class: Literal[
+        "none",
+        "trusted_input",
+        "trusted_frame",
+        "product_content",
+        "judge_ambiguity",
+    ]
+    denominator_disposition: Literal["score", "filter", "retain_as_miss"]
+    observation_count: NonNegativeInt
+    transform_sha256: Hex64 | None
+
+    @model_validator(mode="after")
+    def _status_contract(self):
+        if tuple(sorted(set(self.floor_ids))) != self.floor_ids:
+            raise ValueError("component floor_ids must be unique and sorted")
+        if self.status == "applicable":
+            if (
+                self.reasons
+                or self.cause_class != "none"
+                or self.denominator_disposition != "score"
+            ):
+                raise ValueError("applicable component has NA metadata")
+            return self
+        if not self.reasons or tuple(sorted(set(self.reasons))) != self.reasons:
+            raise ValueError("NA reasons must be non-empty, unique, and sorted")
+        expected = (
+            "filter"
+            if self.cause_class == "trusted_input"
+            else "retain_as_miss"
+        )
+        if self.cause_class == "none" or self.denominator_disposition != expected:
+            raise ValueError("NA cause and denominator disposition disagree")
+        return self
+
+
+class Point2V1(StrictWire):
+    x: FiniteFloat
+    y: FiniteFloat
+
+
+class ClosedIntervalV1(StrictWire):
+    lo: FiniteFloat
+    hi: FiniteFloat
+
+    @model_validator(mode="after")
+    def _ordered(self):
+        if self.lo > self.hi:
+            raise ValueError("closed interval requires lo <= hi")
+        return self
+
+
+class ReadingPlanSegmentAuditV1(StrictWire):
+    kind: Literal["plan_segment"]
+    observation_id: StableId
+    source_input_id: StableId
+    source_stroke_id: StableId
+    primitive_index: NonNegativeInt
+    floor_id: StableId
+    local_p1: Point2V1
+    local_p2: Point2V1
+    world_p1: Point2V1
+    world_p2: Point2V1
+    source_geometry_sha256: Hex64
+    transform_sha256: Hex64
+    topology: Literal["unknown"]
+
+
+class ReadingPlanOpeningAuditV1(StrictWire):
+    kind: Literal["plan_opening"]
+    observation_id: StableId
+    source_input_id: StableId
+    source_stroke_id: StableId
+    floor_id: StableId
+    geometry_kind: Literal["line", "rect", "polyline"]
+    local_vertices: tuple[Point2V1, ...]
+    world_vertices: tuple[Point2V1, ...]
+    source_geometry_sha256: Hex64
+    transform_sha256: Hex64
+
+
+class ReadingElevationOpeningAuditV1(StrictWire):
+    kind: Literal["elevation_opening"]
+    observation_id: StableId
+    source_input_id: StableId
+    source_stroke_id: StableId
+    floor_id: StableId
+    facade_family: CardinalFamily
+    geometry_kind: Literal["line", "rect", "polyline"]
+    local_x_interval: ClosedIntervalV1
+    local_y_interval: ClosedIntervalV1
+    world_along_interval: ClosedIntervalV1
+    z_interval: ClosedIntervalV1
+    source_geometry_sha256: Hex64
+    horizontal_transform_sha256: Hex64
+    vertical_transform_sha256: Hex64
+
+
+ReadingObservationAuditV1 = Annotated[
+    ReadingPlanSegmentAuditV1
+    | ReadingPlanOpeningAuditV1
+    | ReadingElevationOpeningAuditV1,
+    Field(discriminator="kind"),
+]
+
+
+class ReadingMetadataFindingV1(StrictWire):
+    source_input_id: StableId
+    code: Literal[
+        "image_kind_declaration_mismatch",
+        "orientation_declaration_mismatch",
+        "unbound_reading_view",
+    ]
+    declared_sha256: Hex64
+    trusted_sha256: Hex64
+
+
+class ReadingAmbiguityWitnessV1(StrictWire):
+    source_input_id: StableId
+    component: ReadingComponent
+    floor_ids: tuple[StableId, ...]
+    observation_ids: tuple[StableId, ...]
+    candidate_target_ids: tuple[StableId, ...]
+    objective_preimage_sha256: Hex64
+    reason: Literal[
+        "multiple_support_lines",
+        "multiple_equal_opening_assignments",
+        "coordinate_identity_unresolved",
+    ]
+
+
+class UnmeasurableObservationWitnessV1(StrictWire):
+    source_input_id: StableId
+    source_stroke_id: StableId
+    component: ReadingComponent
+    reason: Literal[
+        "plan_wall_rect_has_no_centerline_contract",
+        "consumed_geometry_malformed",
+    ]
+    cause_class: Literal["product_content"]
+    source_geometry_sha256: Hex64
+
+
+class ElevationFrameDisagreementWitnessV1(StrictWire):
+    source_input_id: StableId
+    binding_local_x_positive: Literal[
+        "image_left_to_right", "image_right_to_left"
+    ]
+    product_local_x_positive_raw: Literal[
+        "image_left_to_right", "image_right_to_left", "missing"
+    ]
+    product_local_x_positive_effective: Literal[
+        "image_left_to_right", "image_right_to_left"
+    ] | None
+    binding_mirrored: StrictBool
+    product_mirrored_raw: StrictBool | Literal[
+        "true", "false", "unknown", "missing"
+    ]
+    product_mirrored_effective: StrictBool | None
+    binding_frame_transform_sha256: Hex64
+    product_facade_sha256: Hex64
+    reason: Literal["elevation_local_x_sense_disagreement"]
+
+
+class ReadingNormalizationCertificateV1(StrictWire):
+    schema_version: Literal["1"]
+    helper_version: Literal["reading_typed_adapter_v1"]
+    contract_detector_version: Literal["reading_contract_detector_v1"]
+    source_output_sha256: Hex64
+    product_contract: Literal["reading_views_v1"]
+    base_view_manifest_sha256: Hex64
+    score_view_bindings_sha256: Hex64
+    plan_frames: tuple[PlanFrameCertificateV1, ...]
+    vertical_datums: tuple[VerticalDatumCertificateV1, ...]
+    component_applicability: tuple[ReadingComponentApplicabilityV1, ...]
+    observations: tuple[ReadingObservationAuditV1, ...]
+    unmeasurable_observation_witnesses: tuple[
+        UnmeasurableObservationWitnessV1, ...
+    ]
+    elevation_frame_disagreements: tuple[
+        ElevationFrameDisagreementWitnessV1, ...
+    ]
+    metadata_findings: tuple[ReadingMetadataFindingV1, ...]
+    content_sha256: Hex64
+
+    @model_validator(mode="after")
+    def _canonical(self):
+        keys = [
+            (item.source_input_id, item.component, item.floor_ids)
+            for item in self.component_applicability
+        ]
+        if keys != sorted(keys) or len(keys) != len(set(keys)):
+            raise ValueError("component applicability must be canonical")
+        observation_keys = [
+            (
+                item.source_input_id,
+                item.source_stroke_id,
+                item.kind,
+                getattr(item, "primitive_index", 0),
+            )
+            for item in self.observations
+        ]
+        if observation_keys != sorted(observation_keys):
+            raise ValueError("observations must be canonical")
+        if self.content_sha256 != hash_model_without(self, "content_sha256"):
+            raise ValueError("normalization certificate hash mismatch")
+        return self
+
+
+class ReadingFilteredComponentBasisV1(StrictWire):
+    source_input_id: StableId
+    component: ReadingComponent
+    floor_ids: tuple[StableId, ...]
+    cause_class: Literal["trusted_input"]
+    reasons: tuple[StableId, ...]
+
+
+class ReadingDenominatorBasisV1(StrictWire):
+    helper_version: Literal["reading_denominator_v1"]
+    gt_content_sha256: Hex64
+    base_view_manifest_sha256: Hex64
+    score_view_bindings_sha256: Hex64
+    filtered_components: tuple[ReadingFilteredComponentBasisV1, ...]
+    content_sha256: Hex64
+
+    @model_validator(mode="after")
+    def _canonical(self):
+        keys = [
+            (item.source_input_id, item.component, item.floor_ids, item.reasons)
+            for item in self.filtered_components
+        ]
+        if keys != sorted(keys) or len(keys) != len(set(keys)):
+            raise ValueError("filtered components must be canonical")
+        if self.content_sha256 != hash_model_without(self, "content_sha256"):
+            raise ValueError("denominator basis hash mismatch")
+        return self
+
+
+class ReadingDenominatorAtomV1(StrictWire):
+    atom_id: StableId
+    target_id: StableId
+    target_kind: Literal["plan_segment", "window"]
+    component: ReadingComponent
+    claim: ClaimName | None
+    floor_id: StableId
+    source_input_ids: tuple[StableId, ...]
+    eligible_units: NonNegativeFloat
+
+
+class SourceApplicabilityCertificateV1(StrictWire):
+    schema_version: Literal["1"]
+    helper_version: Literal["reading_source_applicability_v1"]
+    normalization_sha256: Hex64
+    gt_content_sha256: Hex64
+    score_manifest_sha256: Hex64
+    denominator_basis: ReadingDenominatorBasisV1
+    denominator_atoms: tuple[ReadingDenominatorAtomV1, ...]
+    denominator_basis_sha256: Hex64
+    denominator_sha256: Hex64
+    component_applicability: tuple[ReadingComponentApplicabilityV1, ...]
+    ambiguity_witnesses: tuple[ReadingAmbiguityWitnessV1, ...]
+    content_sha256: Hex64
+
+    @model_validator(mode="after")
+    def _canonical(self):
+        atom_keys = [
+            (
+                item.target_id,
+                item.component,
+                item.claim or "",
+                item.source_input_ids,
+            )
+            for item in self.denominator_atoms
+        ]
+        if atom_keys != sorted(atom_keys) or len(atom_keys) != len(set(atom_keys)):
+            raise ValueError("denominator atoms must be canonical")
+        if self.denominator_basis_sha256 != self.denominator_basis.content_sha256:
+            raise ValueError("denominator basis digest mismatch")
+        if self.denominator_sha256 != canonical_sha256(
+            [item.model_dump(mode="json") for item in self.denominator_atoms]
+        ):
+            raise ValueError("denominator digest mismatch")
+        if self.content_sha256 != hash_model_without(self, "content_sha256"):
+            raise ValueError("source applicability certificate hash mismatch")
+        return self
+
+
+class ReadingChannelSummaryV1(StrictWire):
+    channel: Literal["plan", "elevation"]
+    status: Literal["applicable", "partially_applicable", "not_applicable"]
+    source_input_ids: tuple[StableId, ...]
+    applicable_components: tuple[ReadingComponent, ...]
+    not_applicable_components: tuple[ReadingComponent, ...]
+    reasons: tuple[StableId, ...]
+
+
+class ReadingVisibilityCountsV1(StrictWire):
+    nonzero_plan_origins: NonNegativeInt
+    project_convention_vertical_datums: NonNegativeInt
+    multiple_plan_view_floor_components: NonNegativeInt
+    elevation_local_x_sense_disagreements: NonNegativeInt
+    scorer_internal_failures: NonNegativeInt
+
+
+class HelperIdentityV9(StrictWire):
+    scorer_schema: Literal["9"]
+    segment_scorer: StableId
+    opening_matcher: Literal["reading_opening_global_assignment_v1"]
+    gt_to_va_adapter: StableId
+    denominator_helper: StableId
+    grade_renderer: Literal["b4b_grade_png_v2"]
+    va_helper: StableId
+    vg_helper: StableId
+    claims_contract: StableId
+    reading_contract_detector: Literal["reading_contract_detector_v1"]
+    reading_adapter: Literal["reading_typed_adapter_v1"]
+    reading_source_applicability: Literal["reading_source_applicability_v1"]
+
+
+class ScoreIdentityV9(StrictWire):
+    gt: GtIdentityV8
+    product: ProductIdentityV8
+    manifest: ManifestIdentityV8
+    helpers: HelperIdentityV9
+    capability: CapabilityDecisionV8
+    tolerances: C2ToleranceIdentityV8
+    reading_normalization_sha256: Hex64 | None
+    source_applicability_sha256: Hex64 | None
+    score_manifest_sha256: Hex64
+    denominator_basis_sha256: Hex64 | None
+    denominator_sha256: Hex64 | None
+    reference_applicability_sha256: Hex64 | None
+    product_applicability_sha256: Hex64 | None
+    absence_applicability_sha256: Hex64 | None
+
+
+class ReadingSegmentScoreRowV1(StrictWire):
+    row_contract: Literal["reading_segment_v1"]
+    target_id: StableId | None
+    observation_id: StableId | None
+    floor_id: StableId
+    target_exterior: StrictBool | None
+    status: Literal[
+        "complete",
+        "within_tolerance",
+        "miss",
+        "extra",
+        "duplicate",
+        "not_applicable",
+    ]
+    eligible_units: NonNegativeFloat
+    axis_alignment_error_m: NonNegativeFloat | None
+    position_error_m: NonNegativeFloat | None
+    extent_symmetric_difference_m: NonNegativeFloat | None
+    na_reason: StableId | None
+
+    @model_validator(mode="after")
+    def _row_contract(self):
+        is_na = self.status == "not_applicable"
+        if is_na != (self.na_reason is not None):
+            raise ValueError("segment NA status and reason disagree")
+        if is_na and self.eligible_units != 0.0:
+            raise ValueError("segment NA row must have zero eligible units")
+        if (self.target_id is None) != (self.target_exterior is None):
+            raise ValueError("segment target identity and topology disagree")
+        return self
+
+
+class OpeningSourceScoreRowV1(StrictWire):
+    target_id: StableId
+    target_kind: Literal["window", "door"]
+    claim: ClaimName
+    source_input_id: StableId
+    channel: Literal["plan", "elevation"]
+    eligible_units: Annotated[
+        float, Field(strict=True, ge=0.0, le=1.0, allow_inf_nan=False)
+    ]
+    result: Literal[
+        "complete",
+        "within_tolerance",
+        "miss",
+        "conflict",
+        "not_applicable",
+    ]
+    na_reason: StableId | None
+    matched_observation_ids: tuple[StableId, ...]
+    expected_intervals: tuple[ClosedIntervalV1, ...]
+    observed_interval: ClosedIntervalV1 | None
+    expected_scalar: FiniteFloat | None
+    observed_scalar: FiniteFloat | None
+    error_metric: Literal[
+        "binary",
+        "endpoint_max_abs",
+        "length_abs",
+        "masked_interval_length",
+        "scalar_abs",
+        "not_applicable",
+    ]
+    error_value: NonNegativeFloat | None
+    tolerance: NonNegativeFloat | None
+    source_applicability_sha256: Hex64
+
+    @model_validator(mode="after")
+    def _row_contract(self):
+        is_na = self.result == "not_applicable"
+        if is_na:
+            if (
+                self.eligible_units != 0.0
+                or self.na_reason is None
+                or self.error_metric != "not_applicable"
+                or self.error_value is not None
+                or self.tolerance is not None
+            ):
+                raise ValueError("invalid not-applicable source row")
+            return self
+        if (
+            self.eligible_units == 0.0
+            or self.na_reason is not None
+            or self.error_metric == "not_applicable"
+            or self.error_value is None
+            or self.tolerance is None
+        ):
+            raise ValueError("invalid eligible source row")
+        return self
+
+
+class ScoreCriterionV9(StrictWire):
+    criterion_id: StableId
+    eligible: StrictBool
+    denominator_units: NonNegativeFloat
+    passing_units: NonNegativeFloat
+    failing_units: NonNegativeFloat
+    na_reasons: dict[StableId, NonNegativeInt]
+    verdict: Literal[
+        "pass", "fail", "not_applicable", "insufficient_evidence"
+    ]
+
+
+class C2ScoredPayloadV9(StrictWire):
+    kind: Literal["c2_scored"]
+    channel_applicability: tuple[ReadingChannelSummaryV1, ...]
+    unmeasurable_observations: NonNegativeInt
+    visibility_counts: ReadingVisibilityCountsV1
+    segment_rows: tuple[SegmentScoreRowV8 | ReadingSegmentScoreRowV1, ...]
+    segment_extras: tuple[SegmentExtraV8, ...]
+    opening_source_rows: tuple[OpeningSourceScoreRowV1, ...]
+    claim_rows: tuple[ClaimScoreRowV8, ...]
+    claim_summaries: tuple[ClaimSummaryV8, ...]
+    extras: tuple[ExtraObservationV8, ...]
+    score_criteria: tuple[ScoreCriterionV9, ...]
+    reference_ledger_sha256: Hex64
+    product_ledger_sha256: Hex64 | None
+    absence_ledger_sha256: Hex64 | None
+
+
+class NotApplicablePayloadV9(StrictWire):
+    kind: Literal["not_applicable"]
+    reason: Literal[
+        "unsupported_reading_contract",
+        "unsupported_gt_profile",
+        "unsupported_view_contract",
+        "no_scorable_reading_channel",
+        "scorer_internal_failure",
+    ]
+    detail: StableId
+    channel_applicability: tuple[ReadingChannelSummaryV1, ...]
+    unmeasurable_observations: NonNegativeInt
+    visibility_counts: ReadingVisibilityCountsV1
+    score_criteria: tuple[ScoreCriterionV9, ...]
+
+
+class RejectedPayloadV9(StrictWire):
+    kind: Literal["rejected"]
+    error_code: StableId
+    cause_code: StableId | None
+    gate_id: StableId
+    detail: StableId
+    channel_applicability: tuple[ReadingChannelSummaryV1, ...]
+    unmeasurable_observations: NonNegativeInt
+    visibility_counts: ReadingVisibilityCountsV1
+
+    @model_validator(mode="after")
+    def _stable_error(self):
+        if self.error_code not in STABLE_ERROR_CODES or self.gate_id not in GATE_IDS:
+            raise ValueError(
+                "rejected payload requires a frozen error code and gate id"
+            )
+        return self
+
+
+ScorePayloadV9 = Annotated[
+    C2ScoredPayloadV9 | NotApplicablePayloadV9 | RejectedPayloadV9,
+    Field(discriminator="kind"),
+]
+
+
+class ScoreCertificatesV1(StrictWire):
+    reading_normalization: ReadingNormalizationCertificateV1 | None
+    source_applicability: SourceApplicabilityCertificateV1 | None
+    aggregate_sha256: Hex64
+
+    @model_validator(mode="after")
+    def _hash(self):
+        expected = canonical_sha256(
+            {
+                "reading_normalization": (
+                    "absent"
+                    if self.reading_normalization is None
+                    else self.reading_normalization.content_sha256
+                ),
+                "source_applicability": (
+                    "absent"
+                    if self.source_applicability is None
+                    else self.source_applicability.content_sha256
+                ),
+            }
+        )
+        if self.aggregate_sha256 != expected:
+            raise ValueError("certificate aggregate digest mismatch")
+        return self
+
+
+class EmbeddedCertificateContractV1(StrictWire):
+    certificate_kind: Literal[
+        "reading_normalization", "source_applicability"
+    ]
+    present: StrictBool
+    aggregate_sha256: Hex64
+
+
+class ScoreArtifactContractV2(StrictWire):
+    contract_version: Literal["2"]
+    output_sha256: Hex64
+    sidecar_schema_version: Literal["9"]
+    grade_kind: Literal[
+        "c2_grade", "not_applicable_board", "rejected_board"
+    ]
+    grade_png_sha256: Hex64
+    embedded_ledgers: tuple[EmbeddedLedgerContractV1, ...]
+    embedded_certificates: tuple[EmbeddedCertificateContractV1, ...]
+
+    @model_validator(mode="after")
+    def _shape(self):
+        if tuple(item.ledger_kind for item in self.embedded_ledgers) != (
+            "reference", "product", "absence"
+        ):
+            raise ValueError("embedded ledgers must have canonical order")
+        if tuple(
+            item.certificate_kind for item in self.embedded_certificates
+        ) != ("reading_normalization", "source_applicability"):
+            raise ValueError("embedded certificates must have canonical order")
+        return self
+
+
+class ScoreSidecarV9(StrictWire):
+    schema_version: Literal["9"]
+    identity: ScoreIdentityV9
+    certificates: ScoreCertificatesV1
+    artifact_contract: ScoreArtifactContractV2
+    payload: ScorePayloadV9
+    content_sha256: Hex64
+
+    @model_validator(mode="after")
+    def _contract(self):
+        if self.content_sha256 != hash_model_without(self, "content_sha256"):
+            raise ValueError("sidecar content_sha256 mismatch")
+        expected_kind = {
+            "c2_scored": "c2_grade",
+            "not_applicable": "not_applicable_board",
+            "rejected": "rejected_board",
+        }[self.payload.kind]
+        if (
+            self.artifact_contract.output_sha256
+            != self.identity.product.output_sha256
+            or self.artifact_contract.grade_kind != expected_kind
+        ):
+            raise ValueError("sidecar artifact contract disagrees with result")
+        normalization = self.certificates.reading_normalization
+        applicability = self.certificates.source_applicability
+        if self.identity.reading_normalization_sha256 != (
+            None if normalization is None else normalization.content_sha256
+        ):
+            raise ValueError("normalization identity mismatch")
+        if self.identity.source_applicability_sha256 != (
+            None if applicability is None else applicability.content_sha256
+        ):
+            raise ValueError("source applicability identity mismatch")
+        if applicability is not None and (
+            self.identity.denominator_basis_sha256
+            != applicability.denominator_basis_sha256
+            or self.identity.denominator_sha256
+            != applicability.denominator_sha256
+        ):
+            raise ValueError("denominator identity mismatch")
+        if applicability is None and (
+            self.identity.denominator_basis_sha256 is not None
+            or self.identity.denominator_sha256 is not None
+        ):
+            raise ValueError("absent applicability has denominator identity")
+        if self.identity.product.stage == "correction" and (
+            normalization is not None
+            or applicability is not None
+            or self.payload.channel_applicability
+            or self.payload.unmeasurable_observations != 0
+            or self.payload.visibility_counts
+            != empty_visibility_counts_v1()
+        ):
+            raise ValueError("correction sidecar contains reading-only evidence")
+        if self.identity.product.stage == "reading":
+            if self.payload.kind == "c2_scored" and (
+                normalization is None or applicability is None
+            ):
+                raise ValueError("scored reading sidecar requires both certificates")
+            if (
+                self.payload.kind == "not_applicable"
+                and self.payload.reason == "no_scorable_reading_channel"
+                and (normalization is None or applicability is None)
+            ):
+                raise ValueError(
+                    "normalized channel NA requires both certificates"
+                )
+        expected_unmeasurable = (
+            0
+            if normalization is None
+            else len(normalization.unmeasurable_observation_witnesses)
+        )
+        if self.payload.unmeasurable_observations != expected_unmeasurable:
+            raise ValueError("unmeasurable observation count mismatch")
+        counts = self.payload.visibility_counts
+        expected_certificate_counts = {
+            "nonzero_plan_origins": (
+                0
+                if normalization is None
+                else sum(item.nonzero_origin for item in normalization.plan_frames)
+            ),
+            "project_convention_vertical_datums": (
+                0
+                if normalization is None
+                else sum(
+                    item.source == "project_convention_2026_07_25"
+                    for item in normalization.vertical_datums
+                )
+            ),
+            "multiple_plan_view_floor_components": (
+                0
+                if normalization is None
+                else sum(
+                    "multiple_plan_views_per_floor_unsupported" in item.reasons
+                    for item in normalization.component_applicability
+                )
+            ),
+            "elevation_local_x_sense_disagreements": (
+                0
+                if normalization is None
+                else len(normalization.elevation_frame_disagreements)
+            ),
+        }
+        for field, expected in expected_certificate_counts.items():
+            if getattr(counts, field) != expected:
+                raise ValueError(f"{field} count mismatch")
+        expected_internal = (
+            1
+            if (
+                self.payload.kind == "not_applicable"
+                and self.payload.reason == "scorer_internal_failure"
+            )
+            else 0
+        )
+        if counts.scorer_internal_failures != expected_internal:
+            raise ValueError("scorer internal failure count mismatch")
+        empty = canonical_sha256([])
+        embedded_ledgers = self.artifact_contract.embedded_ledgers
+        if self.payload.kind in {"not_applicable", "rejected"}:
+            if any(
+                item.ledger_count != 0 or item.aggregate_sha256 != empty
+                for item in embedded_ledgers
+            ):
+                raise ValueError("NA/REJECTED sidecar must contain empty ledgers")
+        else:
+            expected_ledger_hashes = (
+                self.payload.reference_ledger_sha256,
+                self.payload.product_ledger_sha256 or empty,
+                self.payload.absence_ledger_sha256 or empty,
+            )
+            if tuple(
+                item.aggregate_sha256 for item in embedded_ledgers
+            ) != expected_ledger_hashes:
+                raise ValueError("embedded ledger digest mismatch")
+        expected_certificate_hashes = (
+            "absent" if normalization is None else normalization.content_sha256,
+            "absent" if applicability is None else applicability.content_sha256,
+        )
+        for item, expected in zip(
+            self.artifact_contract.embedded_certificates,
+            expected_certificate_hashes,
+        ):
+            if (
+                item.present != (expected != "absent")
+                or item.aggregate_sha256
+                != canonical_sha256(
+                    {
+                        "certificate_kind": item.certificate_kind,
+                        "content_sha256": expected,
+                    }
+                )
+            ):
+                raise ValueError("embedded certificate contract mismatch")
+        return self
+
+
 def load_score_gt_identity(path: Path | str) -> tuple[GtIdentityV8, GtDocument | None]:
     """Typed-only GT identity loading; v3 never calls legacy ``load_gt``."""
     source = Path(path)
@@ -583,7 +1407,10 @@ def compute_facade_segments_sha256(segments: tuple[object, ...] | list[object]) 
 
 def decide_score_capability(*, gt_identity: GtIdentityV8, stage: Literal["reading", "correction"],
                             product_schema: str, view_manifest: ViewManifest,
-                            product_artifact_contract: str | None = None) -> CapabilityDecisionV8:
+                            product_artifact_contract: str | None = None,
+                            reading_contract_detector_version: str = READING_CONTRACT_DETECTOR_VERSION,
+                            reading_adapter_version: str = READING_ADAPTER_VERSION,
+                            score_view_bindings_sha256: str | None = None) -> CapabilityDecisionV8:
     """Phase-A dispatch only; it makes unsupported inputs explicit, never raw."""
     from src.agent.correction.facade_applicability import FACADE_APPLICABILITY_SCHEMA_VERSION
     segment_geometry_capability = "c2" if gt_identity.profile == "c2_simple_orthogonal_no_holes" else "legacy_rectangular"
@@ -591,10 +1418,30 @@ def decide_score_capability(*, gt_identity: GtIdentityV8, stage: Literal["readin
            view_manifest.view_manifest_schema_version, view_manifest.completeness_ruleset_version,
            FACADE_APPLICABILITY_SCHEMA_VERSION, segment_geometry_capability,
            product_artifact_contract or "no_artifact_contract")
+    if stage == "reading":
+        key += (
+            gt_identity.content_sha256,
+            view_manifest.content_sha256,
+            score_view_bindings_sha256 or "no_score_view_bindings",
+            reading_contract_detector_version,
+            reading_adapter_version,
+        )
     if gt_identity.schema_version == 2:
         return CapabilityDecisionV8(path="legacy_v2", capability_key=key, reason=None, gate_id="scoring.capability")
     if gt_identity.profile != "c2_simple_orthogonal_no_holes":
         return CapabilityDecisionV8(path="not_applicable", capability_key=key, reason="unsupported_gt_profile", gate_id="scoring.capability")
+    if stage == "reading" and (
+        product_schema != READING_PRODUCT_CONTRACT
+        or reading_contract_detector_version
+        != READING_CONTRACT_DETECTOR_VERSION
+        or reading_adapter_version != READING_ADAPTER_VERSION
+    ):
+        return CapabilityDecisionV8(
+            path="not_applicable",
+            capability_key=key,
+            reason="unsupported_reading_contract",
+            gate_id="scoring.capability",
+        )
     if stage == "correction" and product_schema not in {"3", "v3"}:
         return CapabilityDecisionV8(path="not_applicable", capability_key=key, reason="unsupported_product_schema", gate_id="scoring.capability")
     if stage == "correction" and product_artifact_contract not in {
@@ -658,11 +1505,123 @@ def finalize_score_sidecar(*, identity: ScoreIdentityV8, payload: ScorePayloadV8
                            payload=payload, content_sha256=canonical_sha256(raw))
 
 
+def empty_visibility_counts_v1(
+    *, scorer_internal_failures: int = 0
+) -> ReadingVisibilityCountsV1:
+    return ReadingVisibilityCountsV1(
+        nonzero_plan_origins=0,
+        project_convention_vertical_datums=0,
+        multiple_plan_view_floor_components=0,
+        elevation_local_x_sense_disagreements=0,
+        scorer_internal_failures=scorer_internal_failures,
+    )
+
+
+def empty_score_certificates_v1() -> ScoreCertificatesV1:
+    raw = {
+        "reading_normalization": "absent",
+        "source_applicability": "absent",
+    }
+    return ScoreCertificatesV1(
+        reading_normalization=None,
+        source_applicability=None,
+        aggregate_sha256=canonical_sha256(raw),
+    )
+
+
+def finalize_score_sidecar_v9(
+    *,
+    identity: ScoreIdentityV9,
+    payload: ScorePayloadV9,
+    grade_png: bytes,
+    certificates: ScoreCertificatesV1 | None = None,
+    ledger_counts: tuple[int, int, int] = (0, 0, 0),
+) -> ScoreSidecarV9:
+    """Finalize a strict V9 sidecar while retaining V8 public correction rows."""
+    certs = certificates or empty_score_certificates_v1()
+    empty = canonical_sha256([])
+    if payload.kind == "c2_scored":
+        ledger_hashes = (
+            payload.reference_ledger_sha256,
+            payload.product_ledger_sha256 or empty,
+            payload.absence_ledger_sha256 or empty,
+        )
+    else:
+        ledger_counts = (0, 0, 0)
+        ledger_hashes = (empty, empty, empty)
+    certificate_models = (
+        certs.reading_normalization,
+        certs.source_applicability,
+    )
+    artifact = ScoreArtifactContractV2(
+        contract_version="2",
+        output_sha256=identity.product.output_sha256,
+        sidecar_schema_version="9",
+        grade_kind={
+            "c2_scored": "c2_grade",
+            "not_applicable": "not_applicable_board",
+            "rejected": "rejected_board",
+        }[payload.kind],
+        grade_png_sha256=hashlib.sha256(grade_png).hexdigest(),
+        embedded_ledgers=tuple(
+            EmbeddedLedgerContractV1(
+                ledger_kind=kind,
+                ledger_count=count,
+                aggregate_sha256=digest,
+            )
+            for kind, count, digest in zip(
+                ("reference", "product", "absence"),
+                ledger_counts,
+                ledger_hashes,
+            )
+        ),
+        embedded_certificates=tuple(
+            EmbeddedCertificateContractV1(
+                certificate_kind=kind,
+                present=model is not None,
+                aggregate_sha256=canonical_sha256(
+                    {
+                        "certificate_kind": kind,
+                        "content_sha256": (
+                            "absent" if model is None else model.content_sha256
+                        ),
+                    }
+                ),
+            )
+            for kind, model in zip(
+                ("reading_normalization", "source_applicability"),
+                certificate_models,
+            )
+        ),
+    )
+    raw = {
+        "schema_version": "9",
+        "identity": identity.model_dump(mode="json"),
+        "certificates": certs.model_dump(mode="json"),
+        "artifact_contract": artifact.model_dump(mode="json"),
+        "payload": payload.model_dump(mode="json"),
+    }
+    return ScoreSidecarV9(
+        schema_version="9",
+        identity=identity,
+        certificates=certs,
+        artifact_contract=artifact,
+        payload=payload,
+        content_sha256=canonical_sha256(raw),
+    )
+
+
 def load_cached_score(path: Path | str, *, grade_path: Path | str,
-                      expected_identity: ScoreIdentityV8) -> ScoreSidecarV8 | None:
+                      expected_identity: ScoreIdentityV8 | ScoreIdentityV9
+                      ) -> ScoreSidecarV8 | ScoreSidecarV9 | None:
     """Schema 0--7 and every identity mismatch are deliberate cache misses."""
+    model = (
+        ScoreSidecarV9
+        if isinstance(expected_identity, ScoreIdentityV9)
+        else ScoreSidecarV8
+    )
     try:
-        result = ScoreSidecarV8.model_validate_json(Path(path).read_text(encoding="utf-8"))
+        result = model.model_validate_json(Path(path).read_text(encoding="utf-8"))
     except (OSError, UnicodeDecodeError, json.JSONDecodeError, ValidationError):
         return None
     try:
@@ -682,7 +1641,8 @@ def load_cached_score(path: Path | str, *, grade_path: Path | str,
 
 
 def commit_score_artifacts(*, sidecar_path: Path | str, grade_path: Path | str,
-                           sidecar: ScoreSidecarV8, grade_png: bytes) -> None:
+                           sidecar: ScoreSidecarV8 | ScoreSidecarV9,
+                           grade_png: bytes) -> None:
     """Commit the grade pair with the sidecar as its commit marker.
 
     Both payloads are fully validated before touching the published names.  A
@@ -702,7 +1662,8 @@ def commit_score_artifacts(*, sidecar_path: Path | str, grade_path: Path | str,
     # A strict round trip catches an accidentally assembled but invalid model
     # before the PNG is made visible.
     try:
-        strict_sidecar = ScoreSidecarV8.model_validate_json(sidecar.model_dump_json())
+        model = ScoreSidecarV9 if isinstance(sidecar, ScoreSidecarV9) else ScoreSidecarV8
+        strict_sidecar = model.model_validate_json(sidecar.model_dump_json())
         if strict_sidecar != sidecar:
             raise ValidationError.from_exception_data("ScoreSidecarV8", [])
     except Exception as exc:
@@ -727,7 +1688,7 @@ def commit_score_artifacts(*, sidecar_path: Path | str, grade_path: Path | str,
         with Image.open(png_tmp) as probe:
             probe.verify()
         sidecar_tmp = _temp(score, strict_sidecar.model_dump_json().encode("utf-8"))
-        ScoreSidecarV8.model_validate_json(sidecar_tmp.read_text(encoding="utf-8"))
+        model.model_validate_json(sidecar_tmp.read_text(encoding="utf-8"))
         # PNG first; the JSON is the commit marker.  If either replace throws,
         # restore the last complete pair before surfacing the stable error.
         os.replace(png_tmp, grade)
