@@ -31,6 +31,13 @@ PATH_KEYS = {"image", "out_dir", "anchors_json", "candidates_json"}
 # _writable_root below (R3-2).
 OUTPUT_ROLE_KEYS = {"out_dir"}
 OUTPUT_ROOT_DIR = "out"
+# P1-2: cv_probe options declared with `action="store_true"` — they take no value
+# on the cv_probe command line. The direct form still spells them as a PAIR
+# (`--no-cc true`) because the guard's parser is strictly paired; this is where
+# the pair is folded back into the flag, exactly as the request JSON's boolean
+# values already were (`_request_to_argv`'s bool branch).
+BOOLEAN_FLAG_KEYS = {"no_cc"}
+_BOOLEAN_WORDS = {"true": True, "false": False}
 
 
 def _staging_root() -> Path:
@@ -127,13 +134,64 @@ def _request_to_argv(request: dict, root: Path) -> list[str]:
     return argv
 
 
+def _direct_to_request(argv: list[str]) -> dict:
+    """P1-2: fold the direct one-call form into the SAME request shape the JSON
+    path already uses, so both forms converge on ``_request_to_argv``.
+
+    Nothing about *where files may land* is decided twice: the tool allowlist,
+    the path resolution and — critically — the ``out_dir`` writable-root
+    constraint all keep running in exactly one place. This function only does the
+    shape conversion, and it applies the same strict pairing the guard's parser
+    does so a call that somehow reaches the wrapper without passing the hook
+    (direct invocation, the TOCTOU shape) is refused on the same grounds.
+
+    The per-parameter allowlist is deliberately NOT duplicated here: cv_probe's
+    own argparse rejects an option that its subparser does not declare, and it
+    does so per tool, which is strictly finer than a flat list. Copying the
+    guard's 27-key tuple into a second file would only create a drift surface.
+    """
+    args: dict = {}
+    index = 0
+    while index < len(argv):
+        token = argv[index]
+        if not token.startswith("--"):
+            raise ValueError(
+                "probe arguments must be paired --key value; "
+                f"unexpected bare argument: {token}"
+            )
+        spelling = token[2:]
+        key = spelling.replace("-", "_")
+        if not key:
+            raise ValueError("probe parameter name is empty")
+        if index + 1 >= len(argv) or argv[index + 1].startswith("--"):
+            raise ValueError(f"probe parameter --{spelling} is missing its value")
+        if key in args:
+            raise ValueError(f"repeated probe parameter --{spelling}")
+        value = argv[index + 1]
+        if key in BOOLEAN_FLAG_KEYS:
+            if value.lower() not in _BOOLEAN_WORDS:
+                raise ValueError(f"--{spelling} takes true or false, not {value!r}")
+            value = _BOOLEAN_WORDS[value.lower()]
+        args[key] = value
+        index += 2
+    if "tool" not in args:
+        raise ValueError("direct probe form requires --tool")
+    return {"tool": args.pop("tool"), "args": args}
+
+
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--request", required=True, type=Path)
-    ns = parser.parse_args(argv)
+    argv = list(sys.argv[1:] if argv is None else argv)
     root = _staging_root()
-    request_path = _resolve(str(ns.request), root)
-    request = json.loads(request_path.read_text(encoding="utf-8"))
+    if any(arg == "--request" or arg.startswith("--request=") for arg in argv):
+        # Form A — unchanged: same parser, same required flag, same errors.
+        parser = argparse.ArgumentParser(description=__doc__)
+        parser.add_argument("--request", required=True, type=Path)
+        ns = parser.parse_args(argv)
+        request_path = _resolve(str(ns.request), root)
+        request = json.loads(request_path.read_text(encoding="utf-8"))
+    else:
+        # Form B (P1-1/P1-2) — direct `--key value` arguments.
+        request = _direct_to_request(argv)
     cv_argv = _request_to_argv(request, root)
     sys.path.insert(0, str(root / "tools"))
     from cv_probe import main as cv_main  # noqa: WPS433

@@ -33,6 +33,84 @@ WRITE_ALLOWED_DIRS = ("out", "requests")
 # `_PRESCAN_LABEL_RE`). `image` / `anchors_json` / `candidates_json` are inputs
 # and keep the existing "inside staging" rule.
 REQUEST_OUTPUT_ROLE_KEYS = ("out_dir",)
+# P1-1: cv_probe parameters whose value is a FILE PATH INPUT, classified BY NAME.
+# Mirrors run_cv_probe.PATH_KEYS minus its output-role member. Name-based, not
+# shape-based, for the R2-1 reason: `--image escape` (a bare, slash-less,
+# extension-less symlink to /etc/passwd) IS a path, and `_looks_like_path` says
+# it is not. Before this batch that value never reached `_path_arg` on either
+# invocation form; it now does on both, since they share `_validate_probe_params`.
+# The `_looks_like_path` fallback survives only for keys nobody enumerated, which
+# is all the request JSON's free-form nesting can offer.
+PROBE_PATH_ROLE_KEYS = ("image", "anchors_json", "candidates_json")
+# P1-1: the parameter allowlist for the DIRECT (one-call) probe form
+#   python tools/run_cv_probe.py --tool <name> --image <path> [--key value ...]
+# which exists so a measurement costs ONE tool call instead of two (Write the
+# request JSON, then Bash it). The 07-30 run paid that 2x tax on exactly the
+# action this project's reading methodology depends on: probe invocations fell
+# 19 -> 8 and reading quality collapsed with them.
+#
+# The list is ENUMERATED FROM scripts/tool_scripts/cv_probe.py (staged as
+# tools/cv_probe.py) — every subparser's options, read off the file, not guessed:
+#   _common() on all eight tools     --image --out-dir --recipe --bbox --scale
+#                                    --sidecar-name
+#   wall_line_profiler               --axis
+#   px_m_calibrator                  --anchors-json --residual-warn-px
+#                                    --residual-warn-m
+#   window_cc_detector               --min-area --min-width --min-height
+#                                    --max-width --max-height --min-aspect
+#                                    --max-aspect --merge-gap
+#                                    --merge-overlap-ratio --merge-iou
+#   overlay_logger                   --candidates-json
+#   prescan-plan / prescan-elevation --capability-profile --no-cc
+#                                    --min-strength --min-line-len-px --label
+# plus `--tool`, which selects the subparser (it is the request JSON's top-level
+# "tool" field).
+#
+# Keys are canonicalized to the request JSON's underscore spelling before the
+# lookup, so `--out-dir` and `--out_dir` are the SAME enumerated key and get the
+# identical role treatment — there is no spelling under which a key escapes its
+# role. An unlisted key is DENIED (fail-closed), which is what makes an
+# enumeration safe: this list never has to anticipate anything, and a future
+# cv_probe option is simply refused until it is added here on purpose.
+#
+# `--no-cc` is a store_true flag in cv_probe. The direct form still spells it as
+# a PAIR (`--no-cc true`) because "strictly paired" is what makes the parser
+# unambiguous; tools/run_cv_probe.py converts the pair back into the flag.
+PROBE_DIRECT_PARAM_KEYS = (
+    "tool",
+    "image",
+    "out_dir",
+    "recipe",
+    "bbox",
+    "scale",
+    "sidecar_name",
+    "axis",
+    "anchors_json",
+    "residual_warn_px",
+    "residual_warn_m",
+    "min_area",
+    "min_width",
+    "min_height",
+    "max_width",
+    "max_height",
+    "min_aspect",
+    "max_aspect",
+    "merge_gap",
+    "merge_overlap_ratio",
+    "merge_iou",
+    "candidates_json",
+    "capability_profile",
+    "no_cc",
+    "min_strength",
+    "min_line_len_px",
+    "label",
+)
+# The direct form is not optional about WHAT it runs and WHAT it runs on; both
+# are required by cv_probe itself (`--tool` selects the subparser, `--image` is
+# `required=True` in `_common`). Requiring them here also keeps the degenerate
+# `python tools/run_cv_probe.py` (denied before this batch by the length rule)
+# denied afterwards, so the deny->allow surface is exactly the authorized form.
+PROBE_DIRECT_REQUIRED_KEYS = ("tool", "image")
 # Helper output must resolve into the WRITABLE ROOT, not merely "somewhere inside
 # staging" — the latter let a legal-looking request make the one allowlisted
 # executable write real files under `tools/**` (sol MAJOR-1, reproduced by the
@@ -193,32 +271,112 @@ def _lexical_check(text: str, root: Path) -> tuple[bool, str]:
     return True, "ok"
 
 
-def _validate_request_file(path: Path, root: Path) -> list[str]:
-    """Validate a CV-probe request JSON *by parameter role* (R2-2).
+def _validate_probe_params(items, root: Path) -> list[str]:
+    """Validate CV-probe parameters *by parameter role* (R2-2).
 
-    Every string still gets the unconditional lexical scan. On top of that, a
-    value sitting under an output-role key (REQUEST_OUTPUT_ROLE_KEYS) must
-    resolve into the writable root — "still inside staging" is not enough,
-    because the helper this request drives writes real files wherever that
-    parameter points.
+    THE single implementation, shared by both invocation forms (P1-1): the
+    request-JSON path feeds it ``_walk_items(data)``, the direct-argument path
+    feeds it the parsed ``--key value`` pairs. Neither form gets its own copy of
+    the rule, so the writable-root constraint on output-role parameters cannot
+    drift between them — which is the whole reason the direct form is allowed to
+    exist at all.
+
+    Three roles, decided by KEY NAME first and only then by string shape:
+
+    * output role (REQUEST_OUTPUT_ROLE_KEYS) — must resolve into the writable
+      root via :func:`_check_output_target`. "Still inside staging" is not
+      enough, because the helper these parameters drive writes real files
+      wherever that parameter points.
+    * path role (PROBE_PATH_ROLE_KEYS) — unconditional :func:`_path_arg`,
+      whatever the value looks like.
+    * everything else — :func:`_looks_like_path` decides whether the value is
+      additionally normalized. Only keys nobody enumerated land here.
+
+    Every string, in every role, gets the unconditional lexical scan first.
     """
-    data = json.loads(path.read_text(encoding="utf-8"))
-    normalized = [str(path.resolve(strict=True))]
-    for key, value in _walk_items(data):
+    normalized = []
+    for key, value in items:
         if not isinstance(value, str):
             continue
         ok, reason = _lexical_check(value, root)
         if not ok:
-            raise ValueError(f"request contains forbidden token: {reason}")
+            raise ValueError(f"probe parameters contain a forbidden token: {reason}")
         if key in REQUEST_OUTPUT_ROLE_KEYS:
             resolved = _path_arg(value, root)
             ok, reason = _check_output_target(resolved, root)
             if not ok:
                 raise ValueError(f"{reason}: {value}")
             normalized.append(str(resolved))
-        elif _looks_like_path(value):
+        elif key in PROBE_PATH_ROLE_KEYS or _looks_like_path(value):
             normalized.append(str(_path_arg(value, root)))
+    return normalized
+
+
+def _validate_request_file(path: Path, root: Path) -> list[str]:
+    """Form A (`--request <json>`): unchanged behaviour, now expressed on top of
+    the shared :func:`_validate_probe_params`."""
+    data = json.loads(path.read_text(encoding="utf-8"))
+    normalized = [str(path.resolve(strict=True))]
+    normalized.extend(_validate_probe_params(_walk_items(data), root))
     return sorted(set(normalized))
+
+
+def _parse_direct_probe_args(args: list[str], root: Path) -> list[str]:
+    """Form B (P1-1): STRICT parser for the direct one-call probe form.
+
+    ``args`` is everything after ``python tools/run_cv_probe.py``. This REPLACES
+    the old "the command must be exactly four tokens" rule; it is not a relaxed
+    token count. Rules, in order, all fail-closed:
+
+    * strictly paired ``--key value``. A bare positional argument, a repeated
+      key, or a ``--key`` whose value slot is missing (end of argv, or another
+      ``--key`` sitting there) is refused. The parser never guesses which token
+      was meant as what — ambiguity is a denial, not a heuristic.
+    * every key must be in :data:`PROBE_DIRECT_PARAM_KEYS`; unknown keys are
+      denied. ``--request`` is called out by name only to give a useful reason.
+    * ``--tool`` and ``--image`` must both be present.
+    * every value goes through :func:`_validate_probe_params` — the SAME rule
+      the request-JSON path applies. So the lexical scan is unconditional and
+      ``--out-dir`` still has to land in the writable root.
+    """
+    pairs = []
+    seen = set()
+    index = 0
+    while index < len(args):
+        token = args[index]
+        if not token.startswith("--"):
+            raise ValueError(
+                "probe arguments must be paired --key value; "
+                f"unexpected bare argument: {token}"
+            )
+        spelling = token[2:]
+        key = spelling.replace("-", "_")
+        if not key:
+            raise ValueError("probe parameter name is empty")
+        if key == "request":
+            raise ValueError(
+                "the --request form must be exactly: "
+                "python tools/run_cv_probe.py --request <json>"
+            )
+        if key not in PROBE_DIRECT_PARAM_KEYS:
+            allowed = " ".join(
+                "--" + name.replace("_", "-") for name in PROBE_DIRECT_PARAM_KEYS
+            )
+            raise ValueError(f"unknown probe parameter --{spelling}; allowed: {allowed}")
+        if key in seen:
+            raise ValueError(f"repeated probe parameter --{spelling}")
+        if index + 1 >= len(args) or args[index + 1].startswith("--"):
+            raise ValueError(f"probe parameter --{spelling} is missing its value")
+        seen.add(key)
+        pairs.append((key, args[index + 1]))
+        index += 2
+    missing = [key for key in PROBE_DIRECT_REQUIRED_KEYS if key not in seen]
+    if missing:
+        raise ValueError(
+            "direct probe form requires "
+            + " ".join("--" + name.replace("_", "-") for name in missing)
+        )
+    return sorted(set(_validate_probe_params(pairs, root)))
 
 
 def _walk_items(value, key=None):
@@ -418,8 +576,18 @@ def _check_bash(command: str, root: Path) -> tuple[bool, str, list[str]]:
         return True, "allowed read-only command", normalized
     if Path(parts[0]).name not in {"python", "python3"}:
         return False, f"command is not allowlisted: {parts[0]}", []
-    if len(parts) != 4:
-        return False, "python command must be exactly: python tools/run_cv_probe.py --request <json>", []
+    # P1-1: the "exactly four tokens" rule is gone, replaced by the strict
+    # argument parser below. The checks it used to absorb are now explicit and
+    # run in their own right, so nothing that used to be denied by the token
+    # count is denied only by accident:
+    #   `python`            -> no script argument at all
+    #   `python -c '...'`   -> named check, kept ahead of the script check so the
+    #                          reason stays precise
+    #   `python other.py …` -> the argv[1] identity check, unchanged
+    if len(parts) < 2:
+        return False, "python must run tools/run_cv_probe.py", []
+    if parts[1] == "-c":
+        return False, "python -c is forbidden", []
     script = Path(parts[1])
     expected = root / "tools" / "run_cv_probe.py"
     if script.is_absolute():
@@ -427,18 +595,24 @@ def _check_bash(command: str, root: Path) -> tuple[bool, str, list[str]]:
             return False, "only tools/run_cv_probe.py may be executed", []
     elif parts[1] != "tools/run_cv_probe.py":
         return False, "only tools/run_cv_probe.py may be executed", []
-    if parts[2] != "--request":
-        return False, "run_cv_probe must use --request", []
-    if parts[3] == "-c":
-        return False, "python -c is forbidden", []
+    # Form A — `--request <json>`, byte-for-byte the previous behaviour.
+    if len(parts) == 4 and parts[2] == "--request":
+        if parts[3] == "-c":
+            return False, "python -c is forbidden", []
+        try:
+            request_path = _path_arg(parts[3], root)
+            if request_path.suffix != ".json":
+                return False, "request must be a JSON file", [str(request_path)]
+            normalized = _validate_request_file(request_path, root)
+        except (OSError, ValueError, json.JSONDecodeError) as exc:
+            return False, str(exc), []
+        return True, "allowed run_cv_probe request", normalized
+    # Form B — direct `--key value` arguments (P1-1).
     try:
-        request_path = _path_arg(parts[3], root)
-        if request_path.suffix != ".json":
-            return False, "request must be a JSON file", [str(request_path)]
-        normalized = _validate_request_file(request_path, root)
-    except (OSError, ValueError, json.JSONDecodeError) as exc:
+        normalized = _parse_direct_probe_args(parts[2:], root)
+    except (OSError, ValueError) as exc:
         return False, str(exc), []
-    return True, "allowed run_cv_probe request", normalized
+    return True, "allowed run_cv_probe direct arguments", normalized
 
 
 def evaluate(payload: dict) -> tuple[str, str, list[str]]:

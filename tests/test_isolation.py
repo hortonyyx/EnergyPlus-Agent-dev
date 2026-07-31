@@ -367,6 +367,16 @@ def test_guard_rejects_symlink_and_request_paths_outside_staging(tmp_path: Path)
     proc = _hook(staging, "python tools/run_cv_probe.py --request outside_request.json")
     assert proc.returncode == 2
 
+    # P1-1: the same escape spelled as a BARE, extension-less name. Before the
+    # shared validator classified path-role parameters by NAME, this value was
+    # handed to `_looks_like_path`, which does not recognize `escape` as a path,
+    # so it never reached `_path_arg` at all — the R2-1 hole, surviving in the
+    # request JSON. Both invocation forms now go through one rule.
+    (staging / "escape").symlink_to(outside)
+    _request(staging, {"tool": "crop_zoom", "args": {"image": "escape", "out_dir": "out/cv"}}, "bare_request.json")
+    proc = _hook(staging, "python tools/run_cv_probe.py --request bare_request.json")
+    assert proc.returncode == 2, proc.stdout
+
 
 # --------------------------------------------------------------------------- #
 # §5.2 merge — the "merge 同门" acceptance path + the eight negative examples
@@ -1340,6 +1350,251 @@ def test_e2e_hook_then_helper_changes_only_writable_tree(
         assert hook.returncode == 2, (label, hook.stdout, hook.stderr)
         assert "out/" in hook.stderr
         assert helper is None, "the helper must run only for hook-allowed shapes"
+
+
+# --------------------------------------------------------------------------- #
+# P1-1/P1-2 — the DIRECT one-call probe form.
+#
+# The guard used to require a probe command to be exactly four tokens
+# (`python tools/run_cv_probe.py --request <json>`), so every measurement cost
+# two tool calls: Write the request JSON, then Bash it. The 07-30 run paid that
+# 2x tax on the one action the reading methodology depends on — probe calls fell
+# 19 -> 8. The token count is now a STRICT ARGUMENT PARSER instead: paired
+# `--key value` only, keys from an enumerated allowlist, every value through the
+# same `_validate_probe_params` the request path uses.
+# --------------------------------------------------------------------------- #
+_DIRECT_PROBE_ARGS = (
+    "--tool crop_zoom --image case_data/1f_view.png --out-dir out/cv "
+    "--bbox 0,0,20,20 --sidecar-name 001_crop_zoom"
+)
+
+
+def _direct_command(args: str = _DIRECT_PROBE_ARGS) -> str:
+    return f"python tools/run_cv_probe.py {args}"
+
+
+def _run_helper_direct(staging: Path, args: str) -> subprocess.CompletedProcess[str]:
+    return subprocess.run(
+        [sys.executable, "tools/run_cv_probe.py", *args.split()],
+        cwd=staging,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+
+
+def test_staging_run_cv_probe_direct_form_smoke(tmp_path: Path):
+    """P1-2 wrapper side: one call, no request file anywhere, real sidecar under
+    `out/`."""
+    staging = _build(tmp_path).staging_root
+    helper = _run_helper_direct(staging, _DIRECT_PROBE_ARGS)
+    assert helper.returncode == 0, helper.stderr
+    assert (staging / "out/cv/cv_evidence/1f_view/001_crop_zoom.json").exists()
+    assert not list((staging / "requests").glob("*.json")), (
+        "the direct form must need no request file at all — that second call is "
+        "the whole cost this item removes"
+    )
+
+
+def test_guard_allows_direct_probe_form_and_logs(tmp_path: Path):
+    """P1-1 hook side: the legal direct shape is ALLOWED and its path arguments
+    are normalized into the audit log (so the log stays a usable read of what the
+    reader actually touched)."""
+    staging = _build(tmp_path).staging_root
+    proc = _hook(staging, _direct_command())
+    assert proc.returncode == 0, proc.stderr
+    log = json.loads((staging / "access_log.jsonl").read_text(encoding="utf-8").splitlines()[-1])
+    assert log["decision"] == "allow"
+    assert log["reason"] == "allowed run_cv_probe direct arguments"
+    assert any(path.endswith("case_data/1f_view.png") for path in log["normalized_paths"])
+    assert any(path.endswith("out/cv") for path in log["normalized_paths"])
+
+
+def test_direct_and_request_forms_produce_identical_output(tmp_path: Path):
+    """P1-3: the old `--request` form is unchanged, and the new form is the same
+    probe — not a second, differently-behaving entry point. Same tool, same
+    arguments, byte-identical sidecar."""
+    staging = _build(tmp_path).staging_root
+    sidecar = staging / "out/cv/cv_evidence/1f_view/001_crop_zoom.json"
+
+    _request(
+        staging,
+        {
+            "tool": "crop_zoom",
+            "args": {
+                "image": "case_data/1f_view.png",
+                "out_dir": "out/cv",
+                "bbox": "0,0,20,20",
+                "sidecar_name": "001_crop_zoom",
+            },
+        },
+        name="requests/probe.json",
+    )
+    assert _hook(staging, "python tools/run_cv_probe.py --request requests/probe.json").returncode == 0
+    assert _run_helper(staging, "requests/probe.json").returncode == 0
+    via_request = sidecar.read_bytes()
+
+    shutil.rmtree(staging / "out/cv")
+    assert _hook(staging, _direct_command()).returncode == 0
+    assert _run_helper_direct(staging, _DIRECT_PROBE_ARGS).returncode == 0
+
+    assert sidecar.read_bytes() == via_request
+
+
+@pytest.mark.parametrize(
+    ("label", "args"),
+    [
+        # output-role parameter outside the writable root — the R2-2 rule, reached
+        # through the new form, via the SHARED implementation
+        ("out_dir_tools", "--tool crop_zoom --image case_data/1f_view.png --out-dir tools"),
+        ("out_dir_underscore_spelling", "--tool crop_zoom --image case_data/1f_view.png --out_dir tools"),
+        ("out_dir_reference", "--tool crop_zoom --image case_data/1f_view.png --out-dir reference"),
+        # path-role parameter escaping staging, INCLUDING the bare extension-less
+        # symlink that no string-shape test recognizes as a path
+        ("image_bare_escaping_symlink", "--tool crop_zoom --image escape --out-dir out/cv"),
+        ("image_slashed_escaping_symlink", "--tool crop_zoom --image case_data/escape.png --out-dir out/cv"),
+        ("image_absolute_outside", "--tool crop_zoom --image /etc/passwd --out-dir out/cv"),
+        ("candidates_json_bare_escaping_symlink",
+         "--tool overlay_logger --image case_data/1f_view.png --candidates-json escape --out-dir out/cv"),
+        # parser shape rules
+        ("unknown_key", "--tool crop_zoom --image case_data/1f_view.png --out-dir out/cv --nope 1"),
+        ("bare_positional", "--tool crop_zoom --image case_data/1f_view.png stray.json"),
+        ("repeated_key", "--tool crop_zoom --tool wall_line_profiler --image case_data/1f_view.png"),
+        ("missing_value_at_end", "--tool crop_zoom --image"),
+        ("missing_value_before_next_key", "--tool crop_zoom --image --out-dir out/cv"),
+        ("missing_tool", "--image case_data/1f_view.png --out-dir out/cv"),
+        ("missing_image", "--tool crop_zoom --out-dir out/cv"),
+        ("no_arguments_at_all", ""),
+        # the lexical scan still runs on every value, in every role
+        ("deny_token_in_free_text_value", "--tool crop_zoom --image case_data/1f_view.png --label gt.json"),
+        ("parent_traversal_in_out_dir", "--tool crop_zoom --image case_data/1f_view.png --out-dir out/../tools"),
+        # `--request` may not be smuggled in as a direct parameter
+        ("request_key_in_direct_form", "--tool crop_zoom --request requests/probe.json"),
+    ],
+)
+def test_guard_denies_illegal_direct_probe_shapes(tmp_path: Path, label: str, args: str):
+    """P1-3 negative locks for the direct form. Fail-closed on every axis: role
+    violations, escaping paths, unknown keys and every ambiguous argument shape.
+    """
+    staging = _build(tmp_path).staging_root
+    (staging / "escape").symlink_to("/etc/passwd")
+    (staging / "case_data" / "escape.png").symlink_to("/etc/passwd")
+    proc = _hook(staging, _direct_command(args))
+    assert proc.returncode == 2, (label, proc.stdout, proc.stderr)
+    log = json.loads((staging / "access_log.jsonl").read_text(encoding="utf-8").splitlines()[-1])
+    assert log["decision"] == "deny", label
+
+
+@pytest.mark.parametrize(
+    ("label", "command"),
+    [
+        ("other_script_direct_form",
+         "python tools/cv_probe.py --tool crop_zoom --image case_data/1f_view.png --out-dir out/cv"),
+        ("other_script_request_form", "python tools/other.py --request requests/probe.json"),
+        ("python_dash_c", "python -c 'print(1)'"),
+        ("python_alone", "python"),
+        ("compound_token_after_direct_form",
+         "python tools/run_cv_probe.py --tool crop_zoom --image case_data/1f_view.png --out-dir out/cv | tee x"),
+        ("redirect_after_direct_form",
+         "python tools/run_cv_probe.py --tool crop_zoom --image case_data/1f_view.png --out-dir out/cv > out/log"),
+        ("not_allowlisted_command", "cat case_data/1f_view.png"),
+    ],
+)
+def test_guard_direct_form_does_not_loosen_bash_boundary(tmp_path: Path, label: str, command: str):
+    """P1-3: replacing the token-count rule must not let anything else through.
+    argv[1] identity, `python -c`, the compound-token scan and the command
+    allowlist all still apply, and are now denied on their own merits rather than
+    incidentally by a length check."""
+    staging = _build(tmp_path).staging_root
+    proc = _hook(staging, command)
+    assert proc.returncode == 2, (label, proc.stdout, proc.stderr)
+
+
+def test_direct_param_allowlist_matches_cv_probe_options(tmp_path: Path):
+    """P1-1 anti-drift lock: the allowlist must be the real enumeration of
+    cv_probe's options, not a guess and not a stale copy.
+
+    Read straight out of `scripts/tool_scripts/cv_probe.py` — the file staged as
+    `tools/cv_probe.py` — so adding an option there without deciding whether the
+    isolated reader may pass it turns this red instead of silently shipping a key
+    the guard refuses (or, worse, a stale list nobody rechecks).
+    """
+    guard_mod = _guard_module()
+    source = Path("scripts/tool_scripts/cv_probe.py").read_text(encoding="utf-8")
+    declared = {
+        name.replace("-", "_")
+        for name in re.findall(r'add_argument\(\s*"--([a-z0-9-]+)"', source)
+    }
+    assert declared, "fixture precondition: options were parsed out of cv_probe.py"
+    # `tool` is the subparser selector (the request JSON's top-level "tool"), so
+    # it is the one key with no add_argument line.
+    assert set(guard_mod.PROBE_DIRECT_PARAM_KEYS) == declared | {"tool"}
+    # Roles are a subset of the allowlist, by name, and out_dir is not both.
+    assert set(guard_mod.PROBE_PATH_ROLE_KEYS) < set(guard_mod.PROBE_DIRECT_PARAM_KEYS)
+    assert set(guard_mod.REQUEST_OUTPUT_ROLE_KEYS) < set(guard_mod.PROBE_DIRECT_PARAM_KEYS)
+    assert not set(guard_mod.PROBE_PATH_ROLE_KEYS) & set(guard_mod.REQUEST_OUTPUT_ROLE_KEYS)
+
+
+@pytest.mark.parametrize(
+    ("label", "out_dir", "hook_should_allow"),
+    [
+        ("outside_tools", "tools", False),
+        ("outside_reference", "reference", False),
+        ("inside_out", "out/cv", True),
+    ],
+)
+def test_e2e_direct_form_hook_then_helper_changes_only_writable_tree(
+    tmp_path: Path, label: str, out_dir: str, hook_should_allow: bool
+):
+    """P1-3 E2E lock for the direct form, same discipline as the request-form
+    one: real hook, real helper (only when the hook allows), whole-tree diff.
+    The legal shape additionally asserts the helper really produced files, so the
+    diff cannot pass by being vacuous.
+    """
+    staging = _build(tmp_path).staging_root
+    args = f"--tool crop_zoom --image case_data/1f_view.png --out-dir {out_dir} --bbox 0,0,20,20"
+    before = _staging_snapshot(staging)
+
+    hook = _hook(staging, _direct_command(args))
+    helper = _run_helper_direct(staging, args) if hook.returncode == 0 else None
+
+    after = _staging_snapshot(staging)
+    assert _protected_tree_diff(before, after) == [], label
+
+    if hook_should_allow:
+        assert hook.returncode == 0, (label, hook.stdout, hook.stderr)
+        assert helper is not None and helper.returncode == 0, (
+            label,
+            None if helper is None else helper.stderr,
+        )
+        produced = sorted(
+            rel
+            for rel in after
+            if rel not in before and rel.startswith("out/") and after[rel].startswith("file:")
+        )
+        assert produced, "the helper wrote no files under out/ — the E2E diff would be vacuous"
+    else:
+        assert hook.returncode == 2, (label, hook.stdout, hook.stderr)
+        assert "out/" in hook.stderr
+        assert helper is None, "the helper must run only for hook-allowed shapes"
+
+
+def test_wrapper_direct_form_independently_refuses_outside_output(tmp_path: Path):
+    """P1-2: the wrapper is an independent defence for the direct form too —
+    bypass the hook entirely and it still refuses `--out-dir tools`, leaving the
+    protected tree untouched."""
+    staging = _build(tmp_path).staging_root
+    before = _staging_snapshot(staging)
+
+    helper = _run_helper_direct(
+        staging, "--tool crop_zoom --image case_data/1f_view.png --out-dir tools --bbox 0,0,20,20"
+    )
+    after = _staging_snapshot(staging)
+
+    assert _protected_tree_diff(before, after) == []
+    assert not (staging / "tools" / "cv_evidence").exists()
+    assert helper.returncode != 0, helper.stdout
+    assert "out/" in (helper.stderr + helper.stdout)
 
 
 # --------------------------------------------------------------------------- #
