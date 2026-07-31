@@ -111,8 +111,10 @@ Result: `6 failed`.
 ### D-1 parity preservation
 
 The GT-echo helper now has the required one-line parity-only comment, and the test is
-renamed so it is not presented as a reading-scoring E2E. Its substantive assertion is
-unchanged.
+renamed so it is not presented as a reading-scoring E2E. Its transport byte-parity
+assertion is unchanged. Its payload-kind assertion changed from `c2_scored` to
+`not_applicable` with `unsupported_reading_contract`, because the fixture's flat
+reading payload is not the ruled `reading_views_v1` contract.
 
 Command:
 

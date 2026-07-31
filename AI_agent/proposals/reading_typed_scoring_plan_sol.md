@@ -1779,8 +1779,9 @@ scope expansion, not an adapter implementation detail.
 
 ### 13.3 Ruled treatment of existing assertions
 
-C8 forbids rewriting tests to fit implementation. Exactly two existing test edits are
-authorized, with their substantive assertions preserved:
+C8 forbids rewriting tests to fit implementation. Four existing test edits are
+authorized; the load-bearing transport/parity and no-legacy-downgrade assertions
+remain preserved:
 
 1. `tests/test_c2_b4b_phase_d.py::_typed_attempt_payload` manufactures flat reading
    `segments/openings/elevation_observations`, including GT-derived coordinates and a
@@ -1795,6 +1796,21 @@ authorized, with their substantive assertions preserved:
    validity assertions remain. Independently, the correction fixture's canonical
    `public_rows` and `wall_criteria` bytes are pinned before construction and must have
    identical SHA-256 values after migration.
+3. The parity test's payload-kind assertion migrates from `c2_scored` to
+   `not_applicable` with reason `unsupported_reading_contract`. Exact false premise:
+   the original assertion presumed its flat
+   `segments/openings/elevation_observations` reading payload dispatches to `c2_v3`
+   and therefore yields `c2_scored`; U-11 and the F8 structural-contract ruling
+   instead require that flat shape to be rejected as an unsupported reading
+   contract. The run-stage/CLI sidecar and PNG byte-parity assertions remain.
+4. `tests/test_c2_b4b_contract.py::`
+   `test_typed_capability_dispatch_never_downgrades_v3_to_legacy` changes the
+   reading expectation for `product_schema="3"` from `c2_v3` to
+   `not_applicable` with reason `unsupported_reading_contract`. Exact false
+   premise: the original assertion presumed the flat-reading schema label `"3"`
+   was sufficient to dispatch that product to `c2_v3`; U-11 and F8 require the
+   structurally detected `reading_views_v1` contract instead. The assertion that
+   v3 never falls back to the legacy path remains unchanged.
 
 No other current assertion may be weakened. If a new failure requires changing one,
 record it separately with the exact false premise and obtain controller approval.

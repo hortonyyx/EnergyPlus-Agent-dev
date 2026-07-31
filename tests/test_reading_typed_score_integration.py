@@ -121,6 +121,9 @@ def test_plan_input_id_maps_through_binding_gt_view_set_and_host_stays_na(
     tmp_path,
 ):
     payload = _real_payload()
+    # Hand-picked window literals on the north boundary support line. They are
+    # not derived from GT at runtime: if GT changes, this test should go red,
+    # and the fix is to re-derive them by hand, never to copy them from GT.
     payload["views"]["1f_view"]["strokes"].append(
         {
             "id": "independent-plan-window",
