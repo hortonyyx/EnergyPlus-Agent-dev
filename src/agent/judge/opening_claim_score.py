@@ -206,6 +206,16 @@ def gt_openings_to_va_claims(*, gt: GroundTruthV3, bindings: JudgeScoreViewBindi
                              effective_manifest: ViewManifest) -> tuple[OpeningClaimsV1, ...]:
     """Build exact seven-claim GT positive evidence for one Va reference call."""
     by_gt_view = {view: binding for binding in bindings.bindings for view in binding.gt_source_view_ids}
+    observable_by_input = {
+        entry.input_id: frozenset(
+            getattr(
+                getattr(entry, "opening_evidence", None),
+                "potentially_observable_claims",
+                (),
+            )
+        )
+        for entry in effective_manifest.required_entries()
+    }
     segments = {segment.id: segment for floor in gt.floors for segment in floor.boundary_segments}
     floor_order = {floor.id: index + 1 for index, floor in enumerate(gt.floors)}
     rows: list[OpeningClaimsV1] = []
@@ -226,13 +236,21 @@ def gt_openings_to_va_claims(*, gt: GroundTruthV3, bindings: JudgeScoreViewBindi
             if marker in seen: continue
             seen.add(marker)
             if binding.kind == "plan":
-                for claim in plan_claims:
+                for claim in sorted(
+                    plan_claims.intersection(
+                        observable_by_input.get(binding.input_id, ())
+                    )
+                ):
                     evidence[claim].append(PlanClaimEvidenceV1(source_input_id=binding.input_id, world_interval=target))
             else:
                 u0 = (target.lo - binding.along_origin) / binding.sign
                 u1 = (target.hi - binding.along_origin) / binding.sign
                 local = ApplicabilityIntervalV1(lo=min(u0, u1), hi=max(u0, u1))
-                for claim in elevation_claims:
+                for claim in sorted(
+                    elevation_claims.intersection(
+                        observable_by_input.get(binding.input_id, ())
+                    )
+                ):
                     evidence[claim].append(ElevationClaimEvidenceV1(source_input_id=binding.input_id, local_interval=local))
         rows.append(OpeningClaimsV1(opening_id=opening.id, floor_id=opening.floor_id, floor_ref=floor_order[opening.floor_id],
             facade_segment_id=segment.id, facade_family=segment.facade_family,

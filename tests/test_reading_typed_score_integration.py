@@ -182,6 +182,35 @@ def test_reading_policy_uses_channel_specific_source_rows(tmp_path):
     assert criteria["window_elevation_geometry"]["denominator_units"] > 0
 
 
+def test_trusted_filter_removes_va_evidence_without_aborting_reading_score():
+    from src.agent.judge.score_schema import ElevationScoreViewBindingV1
+    from src.agent.judge.score_service import score_attempt_service
+    from tests.test_reading_typed_scoring_slice1 import _trusted_request
+
+    payload = _real_payload()
+    request = _trusted_request(payload)
+    bindings = tuple(
+        item.model_copy(update={"floor_ids": ("F1", "F2")})
+        if isinstance(item, ElevationScoreViewBindingV1)
+        and item.input_id == "East_view"
+        else item
+        for item in request["score_bindings"].bindings
+    )
+    score_bindings = request["score_bindings"].model_copy(
+        update={"bindings": bindings}
+    )
+    result = score_attempt_service(
+        typed_request={**request, "score_bindings": score_bindings}
+    )
+
+    assert result.payload.kind == "c2_scored"
+    assert any(
+        row.result == "not_applicable"
+        and row.na_reason == "elevation_floor_partition_unresolved"
+        for row in result.payload.claim_rows
+    )
+
+
 def test_real_views_cli_and_runstage_artifacts_are_byte_identical(tmp_path):
     _sidecar, artifacts = _grade_payload(
         tmp_path,

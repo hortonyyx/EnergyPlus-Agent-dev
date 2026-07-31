@@ -286,6 +286,62 @@ git diff --check
 
 Both completed with no output.
 
+## Post-Slice-5 trusted-filter join and lock audit
+
+The U-13 neuter (incorrectly granting `trusted_frame` denominator-filter rights)
+exposed a separate trusted-filter join defect: `build_reading_score_manifest`
+removed answer-side negative evidence, but `gt_openings_to_va_claims` still emitted
+positive Va evidence for the filtered input. A partial trusted exclusion could
+therefore reach an inconsistent reference ledger instead of a total score.
+
+The repaired join now uses the effective score manifest for both positive and
+negative source evidence. Claim finalization resolves a filtered reason through the
+trusted binding's GT-view set, component, floor, and claim rather than through an
+already-filtered considered-source list. Two locks cover the seam:
+
+- `test_reading_trusted_filter_removes_positive_and_negative_va_evidence`
+  asserts that a filtered xy component supplies neither positive nor negative Va
+  evidence while the same input's unfiltered z evidence remains.
+- `test_trusted_filter_removes_va_evidence_without_aborting_reading_score`
+  exercises a real partial trusted exclusion through the total reading scorer and
+  requires a scored result with the explicit trusted-filter reason.
+
+The neuter audit also found two false-positive `pytest.raises` assertions. They
+serialized strict tuple fields with `model_dump(mode="json")`, so list/tuple
+rejection could satisfy the lock before the intended invariant validator ran. Both
+now use Python-mode values. The absent-certificate count lock also now validates
+through `model_validate_json`; it independently goes red when only the v9
+unmeasurable-count cross-check is bypassed.
+
+Focused verification:
+
+```bash
+python -m pytest -p no:cacheprovider -q -n0 \
+  tests/test_reading_typed_scoring_slice1.py \
+  tests/test_c2_b4b_score_inputs.py::\
+test_reading_trusted_filter_removes_positive_and_negative_va_evidence
+```
+
+Result: `19 passed`.
+
+The post-fix affected selector:
+
+```bash
+python scripts/tool_scripts/affected_tests.py --changed \
+  src/agent/judge/opening_claim_score.py \
+  src/agent/judge/reading_typed_score.py \
+  tests/test_c2_b4b_score_inputs.py \
+  tests/test_reading_typed_scoring_slice1.py
+```
+
+selected 19 modules. Its exact emitted pytest command reported:
+
+```text
+332 passed, 11 warnings in 40.08s
+```
+
+The warnings are run-config fallback warnings in `test_run_stage_flow.py`.
+
 ## Mid-batch affected-test gate
 
 The first selector call included this non-Python execution log and therefore

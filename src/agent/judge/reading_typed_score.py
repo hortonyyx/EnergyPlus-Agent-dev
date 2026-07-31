@@ -985,6 +985,7 @@ def _claim_rows(
     reference,
     source_rows: tuple[OpeningSourceScoreRowV1, ...],
     components,
+    score_bindings,
 ) -> tuple[ClaimScoreRowV8, ...]:
     by_source_key: dict[
         tuple[str, str], list[OpeningSourceScoreRowV1]
@@ -995,6 +996,16 @@ def _claim_rows(
         item.opening_id: item for item in reference.openings
     }
     component_rows = tuple(components)
+    bindings_by_input = {
+        item.input_id: item for item in score_bindings.bindings
+    }
+    component_claims = {
+        "plan_openings": frozenset({"existence", "along", "width"}),
+        "elevation_opening_xy": frozenset(
+            {"existence", "along", "width"}
+        ),
+        "elevation_opening_z": frozenset({"sill", "head"}),
+    }
     output: list[ClaimScoreRowV8] = []
     for target in gt.openings:
         reference_opening = reference_openings[target.id]
@@ -1013,12 +1024,21 @@ def _claim_rows(
             elif claim_name in {"sill", "head"} and target.z_interval is None:
                 reason = "reference_value_unavailable"
             elif not rows:
+                target_source_views = {
+                    item.view_id for item in target.source_refs
+                }
                 relevant = tuple(
                     item
                     for item in component_rows
                     if item.denominator_disposition == "filter"
-                    and item.source_input_id
-                    in claim.considered_source_view_ids
+                    and claim_name
+                    in component_claims.get(item.component, ())
+                    and target.floor_id in item.floor_ids
+                    and target_source_views.intersection(
+                        bindings_by_input[
+                            item.source_input_id
+                        ].gt_source_view_ids
+                    )
                 )
                 reason = (
                     relevant[0].reasons[0] if relevant else "unobserved"
@@ -1252,6 +1272,7 @@ def assemble_reading_score(
         reference=reference,
         source_rows=source_rows,
         components=components,
+        score_bindings=score_bindings,
     )
     summaries = summarize_claim_rows(claim_rows)
     from src.agent.judge.score_policy import c2_v3_score_policy

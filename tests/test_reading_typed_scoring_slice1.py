@@ -256,7 +256,7 @@ def test_component_applicability_separates_status_from_denominator_disposition()
             update={"denominator_disposition": "filter"}
         ).__class__.model_validate(
             {
-                **frame_na.model_dump(mode="json"),
+                **frame_na.model_dump(mode="python"),
                 "denominator_disposition": "filter",
             }
         )
@@ -364,6 +364,22 @@ def test_v9_rejection_and_absent_certificate_payloads_cross_validate(tmp_path):
             },
         )
 
+    reading_raw, _artifacts = _grade_payload(
+        tmp_path,
+        [],
+        name="absent_reading_certificate_count",
+    )
+    reading_raw["payload"]["unmeasurable_observations"] = 1
+    reading_raw["content_sha256"] = canonical_sha256(
+        {
+            key: value
+            for key, value in reading_raw.items()
+            if key != "content_sha256"
+        }
+    )
+    with pytest.raises(ValidationError):
+        ScoreSidecarV9.model_validate_json(json.dumps(reading_raw))
+
     gt, run, manifest, gt_file = _correction_v3_runstage_fixture(tmp_path)
     accepted = manifest.accepted("1_correction")
     attempt = (
@@ -430,7 +446,7 @@ def test_denominator_constructor_accepts_only_canonical_trusted_exclusions():
     with pytest.raises(ValidationError):
         ReadingFilteredComponentBasisV1.model_validate(
             {
-                **first.model_dump(mode="json"),
+                **first.model_dump(mode="python"),
                 "cause_class": "trusted_frame",
             }
         )

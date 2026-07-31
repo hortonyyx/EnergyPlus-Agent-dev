@@ -11,7 +11,8 @@ import pytest
 from src.agent.execution.manifest import hash_obj
 from src.agent.execution.view_manifest import OpeningEvidence, RequiredViewEntry, ViewManifest
 from src.agent.judge.score_inputs import (
-    build_effective_view_manifest, frame_transform_preimage, frame_transform_sha256,
+    build_effective_view_manifest, build_reading_score_manifest,
+    frame_transform_preimage, frame_transform_sha256,
     frame_transform_sha256_from_preimage, load_completeness_overlay, materialize_va_elevation_bindings,
     resolve_dataset_declaration, validate_score_view_bindings,
     validate_score_view_bindings_against_gt,
@@ -19,7 +20,8 @@ from src.agent.judge.score_inputs import (
 from src.agent.judge.score_schema import (
     DatasetCompletenessDeclarationV1, DatasetDeclarationBodyV1, ElevationFullFacadeCoverageV1,
     ElevationScoreViewBindingV1, JudgeCompletenessOverlayV1, JudgeScoreViewBindingsV1,
-    PlanFullFloorCoverageV1, PlanScoreViewBindingV1, ScoreContractError, UserCompletenessDeclarationV1,
+    PlanFullFloorCoverageV1, PlanScoreViewBindingV1,
+    ReadingFilteredComponentBasisV1, ScoreContractError, UserCompletenessDeclarationV1,
     UserDeclarationBodyV1, canonical_sha256,
 )
 
@@ -155,6 +157,62 @@ def test_va_bindings_use_effective_manifest_identity():
     effective = build_effective_view_manifest(base=base, overlay=overlay(base, user_declaration()))
     va = materialize_va_elevation_bindings(score_bindings=bindings(base), effective_manifest=effective)
     assert va[0].view_manifest_sha256 == effective.content_sha256
+
+
+def test_reading_trusted_filter_removes_positive_and_negative_va_evidence():
+    from src.agent.judge.opening_claim_score import (
+        derive_reference_ledger,
+        gt_openings_to_va_claims,
+    )
+    from tests.test_c2_b4b_phase_b import real_va_context
+
+    gt, base, reviewed = real_va_context(
+        complete_plan=True,
+        complete_elevation=True,
+    )
+    exclusion = ReadingFilteredComponentBasisV1(
+        source_input_id="elev-N",
+        component="elevation_opening_xy",
+        floor_ids=("F1", "F2"),
+        cause_class="trusted_input",
+        reasons=("trusted_elevation_capability_unavailable",),
+    )
+    score_manifest = build_reading_score_manifest(
+        effective=base,
+        trusted_capability_dispositions=(exclusion,),
+    )
+    claims = gt_openings_to_va_claims(
+        gt=gt,
+        bindings=reviewed,
+        effective_manifest=score_manifest,
+    )
+    filtered_claims = {"existence", "along", "width"}
+    assert any(
+        evidence.source_input_id == "elev-N"
+        for opening in claims
+        for claim in opening.claims
+        if claim.claim == "sill"
+        for evidence in claim.positive_evidence
+    )
+    assert not any(
+        evidence.source_input_id == "elev-N"
+        for opening in claims
+        for claim in opening.claims
+        if claim.claim in filtered_claims
+        for evidence in claim.positive_evidence
+    )
+    ledger = derive_reference_ledger(
+        gt=gt,
+        bindings=reviewed,
+        effective_manifest=score_manifest,
+    )
+    assert not any(
+        decision.source_input_id == "elev-N"
+        for opening in ledger.openings
+        for claim in opening.claims
+        if claim.claim in filtered_claims
+        for decision in claim.source_evidence
+    )
 
 
 def test_gt_binding_cross_validation_checks_floor_facade_and_actual_source_refs():
