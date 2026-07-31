@@ -86,9 +86,12 @@ In EnergyPlus a zone is enclosed by **surfaces (2D faces)**; a wall has no thick
 ## 1. Global constraints
 
 - **Units**: meters, two decimals
-- **Each image is read in its OWN local 2D frame — the reading stage does NO world placement**:
+- **Each image is read in its OWN local 2D frame — the reading stage does no topology placement**.
+  The one required plan-frame datum is `scale_origin`; it declares how the measured plan-local frame
+  translates into the single world frame, but does not assign rooms, surfaces, or facade topology:
   - `image_kind="plan"`: x = horizontal (drawing right), y = vertical (drawing up). A plan is already
-    drawn in plan orientation, so these read directly as the building's plan axes.
+    drawn in plan orientation, so these read directly as the building's plan axes. Every plan view
+    **must** declare `scale_origin` as specified below.
   - `image_kind="elevation"`: x = horizontal along that facade (purely in-image), y = height (up
     positive). Record WHICH facade this is and which screen direction local-x increases in the
     image-local `facade` block (§4); do NOT state a world axis / sign / base here — the correction
@@ -109,6 +112,18 @@ In EnergyPlus a zone is enclosed by **surfaces (2D faces)**; a wall has no thick
   // ===== metadata =====
   "image_label": "Floor 1 plan view",       // use the official label from testdata_prompt.json
   "image_kind": "plan | elevation | section | supplementary | other",
+  // scale_origin: REQUIRED for every plan (non-plan views may use null). It gives the world-metre
+  // coordinates of this plan's local (0,0). The one world origin is the SW inner corner of the
+  // overall projected maximum building boundary (A1 invariant #2); never create a per-floor origin.
+  // Prefer measuring that SW inner corner as plan-local (0,0), which makes world_x_m/world_y_m zero.
+  // If plan-local (0,0) is elsewhere, record its signed measured offset from that SW inner corner.
+  // Plan drawings carry no z datum, so world_z_m stays null. Do not guess any value.
+  "scale_origin": {
+    "world_x_m": 0.00,
+    "world_y_m": 0.00,
+    "world_z_m": null,
+    "note": "plan-local (0,0) measured at overall projected maximum boundary SW inner corner"
+  },
   // facade: IMAGE-LOCAL elevation orientation (elevation only; plan → null). Records which facade
   // this view shows and which screen direction local-x increases. NO world axis / sign / base — the
   // correction stage derives world placement from the plan footprint + this block (§4).
@@ -384,6 +399,8 @@ coordinates); the correction stage maps them into the world frame.
 - [ ] every dimension-chain number is in the dimensions array
 - [ ] text labels transcribed verbatim
 - [ ] not-found fields filled with null
+- [ ] every plan declares `scale_origin.world_x_m` + `world_y_m`; the world origin is the overall
+      projected maximum boundary SW inner corner, shared by every floor (plan `world_z_m` = null)
 - [ ] elevation `facade` block filled image-local (view_facade + local_x_positive + mirrored); no world axis / sign here
 - [ ] elevation outline: not drawn separately if it coincides with wall_fill edges (see pen library); confirmed for this image
 - [ ] self_check.pens_used lists the pen set used in this image

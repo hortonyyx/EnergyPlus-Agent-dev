@@ -18,6 +18,19 @@ from src.agent.reading import (
 _ANCHOR = Path("case_tests/e2e_tests/sm20_anchor/run_2026-06-15_baseline/0_reading")
 
 
+def test_plan_scale_origin_is_a_locked_reader_instruction_contract():
+    guide = Path("skills/intake_pipeline/0_reading/guide.md").read_text(encoding="utf-8")
+    pens = Path("skills/intake_pipeline/0_reading/pen_library.md").read_text(encoding="utf-8")
+
+    assert 'Every plan view\n    **must** declare `scale_origin`' in guide
+    assert '"world_x_m": 0.00' in guide
+    assert '"world_y_m": 0.00' in guide
+    assert "overall projected maximum building boundary" in guide
+    assert "every plan declares `scale_origin.world_x_m` + `world_y_m`" in guide
+    assert "For every plan, calibration also has a mandatory container action" in pens
+    assert "all floors share that datum" in pens
+
+
 def test_parse_value_m():
     assert parse_value_m("15.00") == 15.0
     assert parse_value_m("8") == 8.0
