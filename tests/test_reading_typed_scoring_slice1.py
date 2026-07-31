@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import shutil
 from pathlib import Path
 
 import pytest
@@ -139,6 +140,62 @@ def test_non_object_reading_product_still_gets_total_na_artifacts(tmp_path):
     assert sidecar["payload"]["kind"] == "not_applicable"
     assert sidecar["payload"]["reason"] == "unsupported_reading_contract"
     assert Path(artifacts["grade"]).read_bytes().startswith(b"\x89PNG")
+
+
+def test_reading_score_error_does_not_abort_later_attempts_in_exploratory(
+    tmp_path, monkeypatch
+):
+    from scripts.tool_scripts import run_stage
+    from src.agent.execution.manifest import RunManifest
+    from src.agent.judge.score_schema import load_score_gt_identity
+    import src.agent.judge.score_service as service
+
+    run = tmp_path / "attempt_totality"
+    meta = run / "_run"
+    meta.mkdir(parents=True)
+    for filename in ("view_manifest.json", "judge_score_bindings.json"):
+        shutil.copyfile(REAL_RUN / "_run" / filename, meta / filename)
+    payload = _real_payload()
+    for attempt in (1, 2):
+        attempt_dir = run / f"0_reading/attempts/{attempt:03d}"
+        attempt_dir.mkdir(parents=True)
+        (attempt_dir / "output.json").write_text(
+            json.dumps(payload, sort_keys=True),
+            encoding="utf-8",
+        )
+
+    original = service.score_typed_attempt
+
+    def fail_first_attempt(**request):
+        if request["product_identity"].attempt == 1:
+            raise RuntimeError("test-only first-attempt fault")
+        return original(**request)
+
+    monkeypatch.setattr(service, "score_typed_attempt", fail_first_attempt)
+    _identity, document = load_score_gt_identity(GT_FILE)
+    assert document is not None
+    with pytest.warns(RuntimeWarning, match="internal failure"):
+        results = run_stage._render_all_typed_attempt_grades(
+            "0_reading",
+            document.case,
+            run,
+            document,
+            manifest=RunManifest(case=document.case),
+            grade=run_stage.GradeConfig(),
+            gt_file=GT_FILE,
+            run_profile="exploratory",
+        )
+
+    assert tuple(results) == (1, 2)
+    first = json.loads(
+        Path(results[1]["score_vs_gt"]).read_text(encoding="utf-8")
+    )
+    second = json.loads(
+        Path(results[2]["score_vs_gt"]).read_text(encoding="utf-8")
+    )
+    assert first["payload"]["reason"] == "scorer_internal_failure"
+    assert second["payload"]["kind"] == "not_applicable"
+    assert Path(results[2]["grade"]).read_bytes().startswith(b"\x89PNG")
 
 
 def test_component_applicability_separates_status_from_denominator_disposition():
