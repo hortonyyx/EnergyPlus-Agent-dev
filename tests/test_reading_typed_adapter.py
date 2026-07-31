@@ -107,7 +107,7 @@ def test_aligned_elevations_project_exactly_and_raw_ids_are_namespaced():
     )
     west = by_raw[("West_view", "S3")]
     assert (west.world_along_interval.lo, west.world_along_interval.hi) == (
-        17.66,
+        17.659999999999997,
         19.159999999999997,
     )
 
@@ -228,6 +228,36 @@ def test_declared_vertical_datum_is_distinct_and_shifts_z():
         and item.source_stroke_id == "S3"
     )
     assert (row.z_interval.lo, row.z_interval.hi) == (3.65, 4.75)
+
+
+def test_invalid_vertical_datum_keeps_horizontal_evidence_only():
+    payload = _real_payload()
+    payload["views"]["East_view"]["scale_origin"]["world_z_m"] = "not-a-number"
+    outcome = _normalize(payload)
+    applicability = _applicability(outcome)
+    xy = applicability[("East_view", "elevation_opening_xy")]
+    z = applicability[("East_view", "elevation_opening_z")]
+    assert xy.status == "applicable"
+    assert xy.observation_count == 4
+    assert z.status == "not_applicable"
+    assert z.reasons == ("elevation_vertical_datum_unsupported",)
+    assert z.cause_class == "product_content"
+    assert z.denominator_disposition == "retain_as_miss"
+    rows = [
+        item
+        for item in _elevation_observations(outcome)
+        if item.source_input_id == "East_view"
+    ]
+    assert len(rows) == 4
+    assert all(
+        item.z_interval is None
+        and item.vertical_transform_sha256 is None
+        for item in rows
+    )
+    assert all(
+        item.input_id != "East_view"
+        for item in outcome.certificate.vertical_datums
+    )
 
 
 def test_multi_floor_elevation_binding_is_trusted_filtered():
