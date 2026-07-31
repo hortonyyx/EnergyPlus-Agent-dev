@@ -3,10 +3,15 @@
 from __future__ import annotations
 
 import copy
+import subprocess
+import sys
+from pathlib import Path
 
 from tests.test_reading_typed_scoring_slice0 import (
+    GT_FILE,
     _denominator_wire,
     _grade_payload,
+    _reading_grade_status_lines,
     _real_payload,
 )
 
@@ -175,3 +180,70 @@ def test_reading_policy_uses_channel_specific_source_rows(tmp_path):
         row["eligible_units"] for row in elevation_rows
     )
     assert criteria["window_elevation_geometry"]["denominator_units"] > 0
+
+
+def test_real_views_cli_and_runstage_artifacts_are_byte_identical(tmp_path):
+    _sidecar, artifacts = _grade_payload(
+        tmp_path,
+        _real_payload(),
+        name="real_cli_parity",
+    )
+    run = tmp_path / "real_cli_parity"
+    attempt = run / "0_reading/attempts/003"
+    output = attempt / "output.json"
+    meta = run / "_run"
+    cli_out = tmp_path / "real_cli_output"
+    completed = subprocess.run(
+        [
+            sys.executable,
+            "scripts/tool_scripts/score_reading_vs_gt.py",
+            str(output),
+            "--case",
+            "sm24_anchor",
+            "--typed-elevation-json",
+            str(output),
+            "--gt-file",
+            str(GT_FILE),
+            "--view-manifest",
+            str(meta / "view_manifest.json"),
+            "--bindings",
+            str(meta / "judge_score_bindings.json"),
+            "--attempt",
+            "3",
+            "--out-dir",
+            str(cli_out),
+        ],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+
+    assert completed.returncode == 0
+    assert (cli_out / "score_vs_gt.json").read_bytes() == Path(
+        artifacts["score_vs_gt"]
+    ).read_bytes()
+    assert (cli_out / "grade.png").read_bytes() == Path(
+        artifacts["grade"]
+    ).read_bytes()
+
+
+def test_reading_grade_status_lines_publish_all_six_first_class_counts():
+    payload = {
+        "unmeasurable_observations": 1,
+        "visibility_counts": {
+            "nonzero_plan_origins": 2,
+            "project_convention_vertical_datums": 3,
+            "multiple_plan_view_floor_components": 4,
+            "elevation_local_x_sense_disagreements": 5,
+            "scorer_internal_failures": 6,
+        },
+        "channel_applicability": [],
+    }
+    assert _reading_grade_status_lines(payload)[:6] == (
+        "Unmeasurable observations: 1",
+        "Nonzero plan origins: 2",
+        "Project-convention vertical datums: 3",
+        "Multiple-plan floor components: 4",
+        "Elevation local-x disagreements: 5",
+        "Scorer internal failures: 6",
+    )

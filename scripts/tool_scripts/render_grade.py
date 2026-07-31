@@ -1050,6 +1050,47 @@ def _typed_claim_rows(payload: dict) -> tuple[dict, ...]:
     return tuple(row for row in rows if isinstance(row, dict)) if isinstance(rows, (list, tuple)) else ()
 
 
+def reading_grade_status_lines(payload: object) -> tuple[str, ...]:
+    """Return the exact reading-status strings painted onto every grade board."""
+    body = _typed_payload_dict(payload)
+    counts = body.get("visibility_counts")
+    if not isinstance(counts, dict):
+        counts = {}
+    lines = [
+        f"Unmeasurable observations: {int(body.get('unmeasurable_observations', 0))}",
+        f"Nonzero plan origins: {int(counts.get('nonzero_plan_origins', 0))}",
+        "Project-convention vertical datums: "
+        f"{int(counts.get('project_convention_vertical_datums', 0))}",
+        "Multiple-plan floor components: "
+        f"{int(counts.get('multiple_plan_view_floor_components', 0))}",
+        "Elevation local-x disagreements: "
+        f"{int(counts.get('elevation_local_x_sense_disagreements', 0))}",
+        "Scorer internal failures: "
+        f"{int(counts.get('scorer_internal_failures', 0))}",
+    ]
+    channels = body.get("channel_applicability")
+    if isinstance(channels, (list, tuple)):
+        for item in channels:
+            if not isinstance(item, dict):
+                continue
+            channel = str(item.get("channel", "unknown")).capitalize()
+            status = str(item.get("status", "not_applicable"))
+            lines.append(f"{channel} channel: {status}")
+            components = item.get("not_applicable_components")
+            reasons = item.get("reasons")
+            if isinstance(components, (list, tuple)):
+                reason_text = (
+                    ", ".join(str(value) for value in reasons)
+                    if isinstance(reasons, (list, tuple)) and reasons
+                    else "unspecified"
+                )
+                for component in components:
+                    lines.append(
+                        f"{channel} {component}: N/A: {reason_text}"
+                    )
+    return tuple(lines)
+
+
 def validate_typed_render_totality(*, model, payload: object, audit_map: dict[str, str]) -> None:
     """Require one deterministic audit location for every real target/claim.
 
@@ -1083,7 +1124,9 @@ def validate_typed_render_totality(*, model, payload: object, audit_map: dict[st
                                          context={"reason": "claim_not_rendered"})
 
 
-def render_typed_grade(*, gt_document, payload: object, score_bindings: object | None = None) -> tuple[Image.Image, dict[str, str]]:
+def render_typed_grade(*, gt_document, payload: object,
+                       score_bindings: object | None = None,
+                       reading_stage: bool = False) -> tuple[Image.Image, dict[str, str]]:
     """Render validated v3 polygons without the legacy rectangular transform.
 
     World geometry and elevation projection are already normalized by the
@@ -1100,13 +1143,24 @@ def render_typed_grade(*, gt_document, payload: object, score_bindings: object |
     if not floors:
         raise ValueError("typed grade renderer requires floors")
     width, height, margin, gap = 420, 360, 36, 28
-    image = Image.new("RGBA", (max(500, len(floors) * (width + gap)), height + 110), (*BG, 255))
+    payload_dict = _typed_payload_dict(payload)
+    status_lines = (
+        reading_grade_status_lines(payload_dict) if reading_stage else ()
+    )
+    status_height = 18 + len(status_lines) * 15 if status_lines else 0
+    image = Image.new(
+        "RGBA",
+        (
+            max(500, len(floors) * (width + gap)),
+            height + 110 + status_height,
+        ),
+        (*BG, 255),
+    )
     draw = ImageDraw.Draw(image)
     draw.text((14, 12), "C2 typed grade — actual polygons", font=_font(18), fill=TEXT)
     if score_bindings is not None:
         draw.text((14, 38), "projection: reviewed score bindings", font=_font(11), fill=SUBTLE)
     audit: dict[str, str] = {}
-    payload_dict = _typed_payload_dict(payload)
     rows_by_target: dict[str, list[dict]] = {}
     for row in _typed_claim_rows(payload_dict):
         rows_by_target.setdefault(str(row.get("target_id")), []).append(row)
@@ -1160,12 +1214,28 @@ def render_typed_grade(*, gt_document, payload: object, score_bindings: object |
 
     # Explicit top-level NA/REJECTED boards are gray/red information surfaces,
     # never fake geometric score colours.
+    result_footer_bottom = height + 102 if status_lines else image.height
     if payload_dict.get("kind") == "not_applicable":
         _typed_hatch(image, (0, 0, image.width - 1, image.height - 1))
-        draw.text((20, image.height - 34), f"NOT APPLICABLE · {payload_dict.get('reason', 'unknown')}", font=_font(16), fill=TEXT)
+        draw.text((20, result_footer_bottom - 34), f"NOT APPLICABLE · {payload_dict.get('reason', 'unknown')}", font=_font(16), fill=TEXT)
     elif payload_dict.get("kind") == "rejected":
-        draw.rectangle((0, image.height - 48, image.width, image.height), fill=(255, 235, 235, 255))
-        draw.text((20, image.height - 34), f"REJECTED · {payload_dict.get('gate_id', '')} · {payload_dict.get('error_code', '')}", font=_font(14), fill=RED)
+        draw.rectangle((0, result_footer_bottom - 48, image.width, result_footer_bottom), fill=(255, 235, 235, 255))
+        draw.text((20, result_footer_bottom - 34), f"REJECTED · {payload_dict.get('gate_id', '')} · {payload_dict.get('error_code', '')}", font=_font(14), fill=RED)
+    if status_lines:
+        panel_top = height + 102
+        draw.rectangle(
+            (8, panel_top, image.width - 8, image.height - 8),
+            fill=(244, 244, 240, 255),
+            outline=GT_EDGE,
+            width=1,
+        )
+        for index, line in enumerate(status_lines):
+            draw.text(
+                (16, panel_top + 8 + index * 15),
+                line,
+                font=_font(10),
+                fill=TEXT,
+            )
     validate_typed_render_totality(model=model, payload=payload_dict, audit_map=audit)
     return image.convert("RGB"), audit
 
@@ -1174,7 +1244,14 @@ def render_score_grade_png(*, gt, identity, payload) -> bytes:
     """Shared score-service render entry; v2 continues through ``render_grade``."""
     from src.agent.judge.gt_schema import GroundTruthV3
     if isinstance(gt, GroundTruthV3):
-        image, _audit = render_typed_grade(gt_document=gt, payload=payload)
+        image, _audit = render_typed_grade(
+            gt_document=gt,
+            payload=payload,
+            reading_stage=(
+                getattr(getattr(identity, "product", None), "stage", None)
+                == "reading"
+            ),
+        )
     else:
         # The service only sends legacy dictionaries here.  Keeping this call
         # preserves legacy renderer pixels exactly.
