@@ -1348,3 +1348,32 @@ def test_merge_single_aggregate_still_accepted_alongside_per_image(tmp_path: Pat
     attempt_dir = merge_isolated_output(staging, run_dir)
     # the attempt's output.json is the aggregate bytes verbatim (not re-dumped)
     assert (attempt_dir / "output.json").read_text(encoding="utf-8") == payload
+
+
+@pytest.mark.parametrize(
+    ("aggregate_text", "error"),
+    [
+        ("{this is not valid JSON", "aggregate output.json is not valid JSON"),
+        (json.dumps({"views": []}), "aggregate output.json must be shaped"),
+    ],
+    ids=["invalid_json", "wrong_shape"],
+)
+def test_merge_existing_corrupt_aggregate_is_rejected_instead_of_assembled(
+    tmp_path: Path, aggregate_text: str, error: str
+):
+    """R2-6: only an absent aggregate activates per-image assembly.
+
+    A present but corrupt aggregate retains the old fail-loud contract even when
+    every per-image file is complete; corruption must never be reinterpreted as
+    absence.
+    """
+    manifest, run_dir = _formal_sm21(tmp_path)
+    staging = manifest.staging_root
+    _write_per_image_views(staging, _real_views())
+    (staging / "out" / "output.json").write_text(aggregate_text, encoding="utf-8")
+
+    with pytest.raises(ValueError, match=error):
+        merge_isolated_output(staging, run_dir)
+    assert not (run_dir / "0_reading" / "attempts").exists() or not list(
+        (run_dir / "0_reading" / "attempts").iterdir()
+    )

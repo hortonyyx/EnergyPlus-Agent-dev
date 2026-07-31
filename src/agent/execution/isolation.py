@@ -482,7 +482,7 @@ def _load_isolated_views(
     Old path (unchanged, F-5 keeps it working): ``output.json`` shaped
     ``{'views': {<expected_output_id>: <ReadingView>, ...}}`` — accepted verbatim.
 
-    S4 path: if there is no valid single aggregate, mechanically assemble the
+    S4 path: if there is no single aggregate, mechanically assemble the
     per-image ``<expected_output_id>.json`` files under ``out/`` (one JSON per
     source drawing, exactly what session_kickoff.md tells the reader to write)
     into ``{'views': {...}}``. Assembly is pure搬运 — no normalization, no
@@ -492,12 +492,17 @@ def _load_isolated_views(
     gap nobody owned (F-5), now owned by merge, not by the LLM's memory.
     """
     if output_path.exists():
+        out_text = output_path.read_text(encoding="utf-8")
         try:
-            candidate = json.loads(output_path.read_text(encoding="utf-8"))
-        except json.JSONDecodeError:
-            candidate = None  # not a usable aggregate -> try per-image assembly
-        if isinstance(candidate, dict) and isinstance(candidate.get("views"), dict):
-            return candidate, output_path.read_text(encoding="utf-8")
+            candidate = json.loads(out_text)
+        except json.JSONDecodeError as exc:
+            raise ValueError(f"aggregate output.json is not valid JSON: {exc}") from exc
+        if not isinstance(candidate, dict) or not isinstance(candidate.get("views"), dict):
+            raise ValueError(
+                "aggregate output.json must be shaped {'views': {<expected_output_id>: "
+                "<ReadingView JSON>, ...}}"
+            )
+        return candidate, out_text
 
     expected_ids = set(view_manifest.expected_output_ids())
     per_image = {p.stem: p for p in sorted(out_dir.glob("*_view.json"))}
