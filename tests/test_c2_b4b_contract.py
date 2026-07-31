@@ -125,6 +125,13 @@ def test_typed_capability_dispatch_never_downgrades_v3_to_legacy():
     payload = {"view_manifest_schema_version": "1", "claims_vocab_version": "1", "generator_version": "1",
         "completeness_ruleset_version": "1", "case_id": "case", "case_metadata_sha256": H, "entries": []}
     view_manifest = ViewManifest(**payload, content_sha256=hash_obj(payload))
-    assert decide_score_capability(gt_identity=gt, stage="reading", product_schema="3", view_manifest=view_manifest).path == "c2_v3"
+    reading = decide_score_capability(
+        gt_identity=gt,
+        stage="reading",
+        product_schema="3",
+        view_manifest=view_manifest,
+    )
+    assert reading.path == "not_applicable"
+    assert reading.reason == "unsupported_reading_contract"
     assert decide_score_capability(gt_identity=gt, stage="correction", product_schema="2", view_manifest=view_manifest).path == "not_applicable"
     assert "load_gt(" not in Path("src/agent/judge/score_schema.py").read_text(encoding="utf-8")

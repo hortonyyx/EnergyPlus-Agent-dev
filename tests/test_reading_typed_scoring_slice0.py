@@ -43,7 +43,13 @@ def _real_payload() -> dict:
     return json.loads(REAL_OUTPUT.read_text(encoding="utf-8"))
 
 
-def _grade_payload(tmp_path: Path, payload: dict, *, name: str) -> tuple[dict, dict]:
+def _grade_payload(
+    tmp_path: Path,
+    payload: dict,
+    *,
+    name: str,
+    run_profile: str = "exploratory",
+) -> tuple[dict, dict]:
     from scripts.tool_scripts import run_stage
     from src.agent.execution.manifest import RunManifest
     from src.agent.judge.score_schema import load_score_gt_identity
@@ -69,7 +75,7 @@ def _grade_payload(tmp_path: Path, payload: dict, *, name: str) -> tuple[dict, d
         gt_file=GT_FILE,
         manifest=RunManifest(case=document.case),
         grade=run_stage.GradeConfig(),
-        run_profile="exploratory",
+        run_profile=run_profile,
     )
     assert artifacts["score_vs_gt"] is not None
     assert artifacts["grade"] is not None

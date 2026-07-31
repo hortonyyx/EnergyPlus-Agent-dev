@@ -193,7 +193,9 @@ def test_gt_echo_fixture_preserves_runstage_cli_byte_parity(tmp_path):
     artifacts = run_stage._grade_typed_attempt_artifacts("0_reading", gt.case, attempt, gt,
         gt_file=gt_file, manifest=RunManifest(case=gt.case), grade=run_stage.GradeConfig())
     sidecar = json.loads(Path(artifacts["score_vs_gt"]).read_text(encoding="utf-8"))
-    assert sidecar["schema_version"] == "8" and sidecar["payload"]["kind"] == "c2_scored"
+    assert sidecar["schema_version"] == "9"
+    assert sidecar["payload"]["kind"] == "not_applicable"
+    assert sidecar["payload"]["reason"] == "unsupported_reading_contract"
     assert Path(artifacts["grade"]).read_bytes().startswith(b"\x89PNG")
     cli_out = tmp_path / "cli"
     completed = subprocess.run([
