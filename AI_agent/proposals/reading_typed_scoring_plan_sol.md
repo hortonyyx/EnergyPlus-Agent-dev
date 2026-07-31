@@ -46,8 +46,9 @@ The two drawing channels are intentionally not treated as symmetric:
   `project_typed_elevation_observation` (brief F5). The missing step is a strict
   `ReadingView` stroke-to-observation adapter. The reviewed binding owns coordinates,
   but a product/binding disagreement on `local_x_positive` or `mirrored` makes only
-  that input's elevation components NA with a two-sided witness. The judge never
-  projects both ways and selects the result closest to GT.
+  that input's elevation components NA with a two-sided witness while retaining its
+  answer targets as misses. The judge never projects both ways and selects the result
+  closest to GT.
 - **Plan is a frame-contract job.** There is no current plan transform consumer and no
   transform in `PlanScoreViewBindingV1` (brief F6). The proposal makes the present
   metre/right-up/origin convention one explicit replaceable affine transform sourced
@@ -108,10 +109,11 @@ their v8 baseline.
 6. **Every score-affecting decision is certified.** Product bytes, manifest, bindings,
    transform preimages, normalized coordinates, source applicability, helper versions,
    and tolerances participate in strict wire hashes.
-7. **Denominator eligibility is independent of product geometry bytes.** Applicable
-   zero observations and product-side unmeasurable geometry both leave targets in the
-   denominator as misses. Only a trusted-input/frame-capability NA may filter, and it
-   carries a stable reason and witness.
+7. **Denominator eligibility is independent of every product byte.** Applicable zero
+   observations, product-side unmeasurable geometry, and product/binding frame
+   disagreement all leave targets in the denominator as misses. Only a cause derived
+   exclusively from trusted manifest/binding/GT capability may filter, and it carries
+   a stable reason and witness.
 
 ## 2. Current defect and required behavioral matrix
 
@@ -129,8 +131,9 @@ The replacement behavior is:
 | Real reading envelope, measurable component, no relevant strokes | applicable with zero observations; target rows are real misses |
 | One product wall stroke is a rect | exclude only that stroke, increment `unmeasurable_observations`, retain the component and target denominator |
 | Product geometry/view is malformed | explicit product-side unmeasurable status; target denominator is retained and missing evidence scores miss |
-| Trusted/frame capability makes one component unmeasurable | partial `c2_scored`; that component is NA, carries a witness, and may be filtered |
-| Every component has trusted-input/frame disposition `filter` | top-level `not_applicable/no_scorable_reading_channel` with all component reasons |
+| Trusted-input-only capability makes one component unmeasurable | partial `c2_scored`; that component is NA, carries a witness, and may be filtered |
+| Product/binding local-x or mirror disagreement | input elevation components NA with witness/count; targets remain and score as misses |
+| Every component has trusted-input-only disposition `filter` | top-level `not_applicable/no_scorable_reading_channel` with all component reasons |
 | Every component is product-side unmeasurable | component/channel NA remains visible, but payload is `c2_scored`; unchanged target denominators score as misses |
 | Missing/invalid outer `views` | top-level `not_applicable/unsupported_reading_contract` |
 | Trusted binding/GT/manifest identity is corrupt or mismatched | typed `rejected` judge-input result; never a product-quality verdict |
@@ -391,9 +394,10 @@ Validation:
 
 - `applicable` requires `reasons == ()`, `cause_class=="none"`, and
   `denominator_disposition=="score"`;
-- trusted-input or trusted-frame `not_applicable` requires a reason and
+- trusted-input `not_applicable` requires a reason and
   `denominator_disposition=="filter"`;
-- product-content or product-coordinate-dependent judge-ambiguity
+- trusted-frame (reporting label only), product-content, or
+  product-coordinate-dependent judge-ambiguity
   `not_applicable` requires a reason and
   `denominator_disposition=="retain_as_miss"`;
 - `observation_count == 0` is legal in both statuses and is never itself an NA reason;
@@ -409,6 +413,8 @@ Channel summaries are derived, never independently asserted:
 Channel summaries report measurement status. Denominators obey
 `denominator_disposition`, not status alone. Thus a product-side component can be
 visibly unmeasurable while its targets remain and miss; only `filter` removes targets.
+`cause_class=="trusted_frame"` names the two-sided U-10 reporting boundary; because
+the disagreement is triggered by product declarations, it confers no filtering right.
 A top-level `c2_scored` payload is produced whenever at least one component disposition
 is `score` or `retain_as_miss`, even if every channel's measurement summary is
 `not_applicable`. `no_scorable_reading_channel` is reserved for the case where every
@@ -574,7 +580,7 @@ class ReadingFilteredComponentBasisV1(StrictWire):
     source_input_id: StableId
     component: ReadingComponent
     floor_ids: tuple[StableId, ...]
-    cause_class: Literal["trusted_input", "trusted_frame"]
+    cause_class: Literal["trusted_input"]
     reasons: tuple[StableId, ...]
 
 class ReadingDenominatorBasisV1(StrictWire):
@@ -631,9 +637,10 @@ reference atoms, not product-derived extra/duplicate accounts. The basis and ato
 exclude every stroke geometry, coordinate, stroke ID, observation/registration result,
 and unmeasurable-observation witness. Only
 `denominator_disposition=="filter"` appears in `filtered_components` and removes
-mapped sources/atoms. Two products with identical trusted/frame declarations but
-arbitrary geometry-byte differences must therefore have byte-identical serialized
-bases, atom tuples, and hashes.
+mapped sources/atoms. The basis excludes product facade declarations as well as
+product geometry. Any two products under identical trusted GT/manifest/bindings must
+therefore have byte-identical serialized bases, atom tuples, and hashes even when
+their geometry, `facade.local_x_positive`, and `facade.mirrored` bytes differ.
 
 ### 5.5 Score wire v9
 
@@ -905,15 +912,16 @@ Per-view outcomes:
 - elevation `view_facade` mismatch alone → record
   `orientation_declaration_mismatch`; reviewed binding controls facade selection;
 - elevation `local_x_positive` or `mirrored` disagreement → both elevation components
-  for that input are trusted-frame NA/filter
+  for that input are trusted-frame NA/retain-as-miss
   `elevation_local_x_sense_disagreement` with the exact witness defined in §8.1;
 - unexpected view key → audit finding `unbound_reading_view`, never a score source.
 
 Missing/malformed product views cannot shrink the reference denominator. The
 local-x/mirror case is deliberately different: it is a ruled frame-contract
-disagreement about how to interpret every coordinate, so it filters only that input's
-elevation component and is visibly counted. No numeric coordinate or GT target is
-examined to reach that decision.
+disagreement about how to interpret every coordinate, so it produces no positive
+observation and is visibly counted. Because the triggering declarations are product
+bytes, its answer targets remain in the denominator and miss. No numeric coordinate or
+GT target is examined to reach that decision.
 
 ### 6.2 Visibility filter
 
@@ -1085,7 +1093,7 @@ binding, without looking at a coordinate or GT:
 4. any invalid raw facade value has already made the view product-schema NA under
    §6.1; it is not coerced for this comparison;
 5. if either effective declaration is unknown or differs from the binding, set both
-   elevation components for that input to trusted-frame NA/filter reason
+   elevation components for that input to trusted-frame NA/retain-as-miss reason
    `elevation_local_x_sense_disagreement`, append a witness containing both binding
    values, both product raw/effective values, and both hashes, then increment
    `visibility_counts.elevation_local_x_sense_disagreements`;
@@ -1101,7 +1109,8 @@ interpretation.
 The real sm24 attempt exercises this gate: East and South agree; North and West
 declare `image_right_to_left` while their reviewed bindings declare
 `image_left_to_right` (the same two bindings have `sign=-1`). Thus North and West are
-expected input-scoped elevation NA with witnesses, not silently mirrored score rows.
+expected input-scoped elevation NA with witnesses and answer-target misses, not
+silently mirrored score rows or filtered denominator atoms.
 The reproducible four-input comparison is in §15.
 
 ### 8.2 Window stroke conversion
@@ -1198,7 +1207,7 @@ Capability is split by cause before changing a single reference atom:
 | Cause/disposition | Examples | Reference denominator and Va treatment |
 |---|---|---|
 | trusted input / `filter` | binding absent, unsupported trusted view kind, multi-floor binding, multiple plan inputs per floor | remove only that source/component's mapped positive claims and negative completeness |
-| ruled trusted-frame reconciliation / `filter` | product/binding local-x or mirror disagreement | same input/component filtering, with the two-sided frame witness |
+| trusted-frame reporting / `retain_as_miss` | product/binding local-x or mirror disagreement | component NA with two-sided witness/count; keep its answer targets and score them as misses |
 | product content / `retain_as_miss` | missing/malformed view, bad scale origin, bad stroke/range, rect wall exclusion | keep the base positive denominator and trusted negative-capability declarations; absent measurable evidence produces misses |
 | product-coordinate-dependent judge ambiguity / `retain_as_miss` | equal support/assignment candidates caused by an observation coordinate | keep the denominator; the affected source supplies no passing observation and therefore misses |
 | applicable / `score` | valid zero or nonzero observations | keep the denominator; zero observations produce misses |
@@ -1224,32 +1233,36 @@ Mappings:
 Doors remain target-kind NA; reading never fabricates a door pen.
 
 The derived manifest is strictly revalidated and canonically hashed. Its hash and the
-source applicability certificate are in score identity. A trusted-input/frame-filtered
-source creates neither a target miss nor trusted negative evidence. A supported-zero
-source and a product-content-unmeasurable source both retain reference evidence and
-create real misses; the latter also exposes its NA reason and
-`unmeasurable_observations`.
+source applicability certificate are in score identity. Only a trusted-input-filtered
+source creates neither a target miss nor trusted negative evidence. Supported-zero,
+trusted-frame-disagreement, and product-content-unmeasurable sources retain reference
+evidence and create real misses; the latter two also expose their NA reason and
+witness/count.
 
 The denominator constructor is a pure function named
-`derive_reading_denominator_v1(gt, base_manifest, bindings, capability_dispositions)`.
+`derive_reading_denominator_v1(gt, base_manifest, bindings,
+trusted_capability_dispositions)`.
 Its preimage contains target IDs/claim/unit atoms, trusted manifest and binding
-identity, helper version, and the ruled frame-reconciliation disposition. It contains
+identity, helper version, and trusted-input-only capability exclusions. The fourth
+argument is a strict tuple of `ReadingFilteredComponentBasisV1`; its cause literal can
+only be `trusted_input`. It contains
 no stroke ID, pen, geometry kind, coordinate, observation ID, registration result, or
-unmeasurable witness. The U-10 local-x/mirror declaration is admitted only to the
-frame-reconciliation disposition; no projected number is admitted. It emits both the
-strict `ReadingDenominatorBasisV1`, the canonical
+unmeasurable witness. It receives neither U-10 product declaration; those values affect
+normalization/applicability evidence only. It emits the strict
+`ReadingDenominatorBasisV1`, the canonical
 `tuple[ReadingDenominatorAtomV1, ...]`, and their SHA-256 values. Callers serialize
 those strict values with the repository's canonical JSON helper; the pure function
-does no I/O and never receives raw product strokes.
+does no I/O and never receives any raw product value.
 
 The blocking purity lock runs the constructor twice under byte-identical GT,
-manifest, bindings, and product frame declarations: once with the real normal
-geometry and once with every product stroke geometry replaced by a malformed value.
+manifest, and bindings: once with the real product and once with every product stroke
+geometry malformed **and** every elevation product `facade.local_x_positive` and
+`facade.mirrored` declaration flipped.
 It asserts byte equality of the canonical denominator preimages, byte equality of the
 canonical denominator outputs, and equality of both hashes—not merely equal numeric
-totals. Both attempts must still expose different normalization/unmeasurable evidence,
-proving the mutation reached the adapter. This lock is not satisfied by returning no
-denominator for the malformed product.
+totals. Both attempts must expose different normalization/unmeasurable and frame-
+disagreement evidence, proving both mutation classes reached the adapter. This lock is
+not satisfied by returning no denominator for either product.
 
 ### 9.2 Input ID versus GT view ID
 
@@ -1279,8 +1292,9 @@ Target-level claim rows are then fused deterministically from source rows:
 
 - only trusted-filtered source rows → target claim NA with the source capability
   reason(s);
-- a product-content or product-coordinate-ambiguity NA component → an eligible miss
-  row plus the separate component NA/witness; it does not become a zero-unit NA row;
+- a trusted-frame, product-content, or product-coordinate-ambiguity NA component → an
+  eligible miss row plus the separate component NA/witness; it does not become a
+  zero-unit NA row;
 - eligible rows and no product observation → miss;
 - agreeing passing rows → best passing class;
 - passing and miss from independent positive sources → conflict;
@@ -1477,11 +1491,12 @@ precede broader unit coverage:
    symbol is absent and the runner supplies `"3"`. This proves the F8 guard is not a
    permanently true product-schema check.
 3. `test_product_geometry_bytes_cannot_change_denominator` sends byte-distinct normal
-   and all-malformed-stroke products under identical trusted inputs and frame
-   declarations. It requires byte-identical denominator preimages/outputs/hashes and
-   distinct normalization/unmeasurable hashes. Current RED: the real envelope crashes
-   and no denominator certificate exists. This is the blocking U-13 pure-function
-   lock.
+   and mutated products under identical trusted inputs. The second product has every
+   stroke geometry malformed and every elevation `local_x_positive`/`mirrored`
+   declaration flipped. It requires byte-identical denominator
+   preimages/outputs/hashes plus distinct normalization, unmeasurable, and
+   frame-disagreement evidence. Current RED: the real envelope crashes and no
+   denominator certificate exists. This is the blocking U-13 pure-function lock.
 4. `test_rect_wall_is_per_stroke_unmeasurable_and_counted` changes exactly one real
    plan wall line to a rect, keeps the other strokes, and requires the plan component
    applicable, exactly one `plan_wall_rect_has_no_centerline_contract` witness,
@@ -1490,10 +1505,11 @@ precede broader unit coverage:
    (the real envelope currently crashes first). This proves U-05 is per-stroke rather
    than whole-component NA.
 5. `test_sm24_local_x_disagreement_is_input_scoped_na_with_raw_witness` requires
-   North/West elevation xy+z trusted-frame NA/filter, East/South free of that reason,
-   exactly two witnesses containing the raw declarations, and visible count `2`.
-   Current RED: no reading adapter/applicability/witness exists. This is the blocking
-   U-10/D-2 lock.
+   North/West elevation xy+z trusted-frame NA/retain-as-miss, East/South free of that
+   reason, exactly two witnesses containing the raw declarations, visible count `2`,
+   denominator bytes identical to a product whose declarations agree, and eligible
+   North/West miss rows. Current RED: no reading adapter/applicability/witness exists.
+   This is the blocking U-10/D-2 lock.
 6. `test_correction_public_judgment_sha_matches_pre_v9_baseline` runs the existing
    correction-v3 fixture and requires schema 9 plus exact pre-construction
    `public_rows` and `wall_criteria` byte hashes. Current RED: current output is schema
@@ -1508,9 +1524,10 @@ Neuters:
 
 - restore the `"3"` default → lock 2 red;
 - restore the tuple default for missing elevation observations → lock 1 red;
-- let product geometry filter reference atoms → lock 3 red;
+- let any product geometry or facade declaration filter reference atoms → lock 3 red;
 - make one rect wall invalidate the component → lock 4 red;
 - silently project North/West with the binding → lock 5 red;
+- mark North/West NA but filter their targets → locks 3 and 5 red;
 - change a correction public row/criterion value → lock 6 red;
 
 ### Slice 1 — contract detector, v9 wire, and total result
@@ -1844,12 +1861,14 @@ duplicates. Count every affected component visibly.
 
 The reviewed binding remains the sole coordinate transform. If effective product
 `local_x_positive` or `mirrored` disagrees/is unknown, both elevation components for
-that input are trusted-frame NA/filter
+that input are trusted-frame NA/retain-as-miss
 `elevation_local_x_sense_disagreement`. Preserve both raw/effective product
 declarations and both binding declarations in a witness and count it. Never project
 both ways or use coordinate/GT plausibility to disambiguate. In real sm24,
 East/South agree and North/West disagree; the latter two must be NA, not silently
-mirrored.
+mirrored. Because the disagreement is triggered by product bytes, North/West answer
+targets stay in the denominator and score as misses; `trusted_frame` is reporting
+granularity only and grants no filtering right.
 
 ### U-11 — Flat reading compatibility and the GT-echo test
 
@@ -1867,13 +1886,14 @@ exterior flag.
 
 ### U-13 — Cause-split denominator control
 
-Trusted-input causes and the ruled U-10 frame disagreement may filter mapped positive
-and negative reference capability. Product-side causes—including malformed/missing
-views, origins, strokes, ranges, and rect wall exclusions—must retain the denominator
-and produce misses; coordinate-dependent judge ambiguity also retains it. The
-mandatory normal-versus-all-malformed lock asserts byte-identical denominator
-preimages, bytes, and hashes under the same trusted/frame declarations, while proving
-the product normalization evidence differs.
+Only causes computed exclusively from trusted GT/manifest/bindings may filter mapped
+positive and negative reference capability. Product-side causes—including U-10 frame
+disagreement, malformed/missing views, origins, strokes, ranges, and rect wall
+exclusions—must retain the denominator and produce misses; coordinate-dependent judge
+ambiguity also retains it. The mandatory normal-versus-mutated lock changes every
+geometry and flips `facade.local_x_positive`/`mirrored`, yet requires byte-identical
+denominator preimages, atoms, and hashes while proving normalization, unmeasurable, and
+frame-disagreement evidence differs.
 
 ### U-14 — Failure taxonomy and profile behavior
 
@@ -2115,7 +2135,7 @@ Existing unrelated untracked request files are not to be altered.
 - [ ] Every excluded/malformed product stroke increments the first-class
       `unmeasurable_observations` field and the board displays it.
 - [ ] North/West sm24 elevation components are NA with raw two-sided local-x witnesses;
-      East/South are not.
+      East/South are not; North/West targets remain as eligible misses.
 - [ ] Vertical project-convention fallback and nonzero plan origins are certified,
       counted, and rendered.
 - [ ] Coordinate rows expose plan walls and plan/elevation windows separately.
@@ -2137,10 +2157,10 @@ Existing unrelated untracked request files are not to be altered.
 No boundary remains open and no ruling conflicts with another. Construction should be
 reviewed most closely at four invariant-touching seams:
 
-1. the denominator constructor must be byte-independent of product geometry while
-   still allowing the explicitly ruled local-x frame filter;
-2. product-content NA must remain visible while producing retained-denominator misses,
-   whereas trusted/frame NA filters—these statuses must never be collapsed;
+1. the denominator constructor must be byte-independent of all product bytes,
+   including local-x/mirror declarations;
+2. product-content and trusted-frame-reporting NA must remain visible while producing
+   retained-denominator misses; only trusted-input-only NA filters;
 3. v9 must not change one correction public-judgment byte; and
 4. no plan calibration, multi-floor vertical partition, host/topology, or numerical
    local-x disambiguation may be invented.

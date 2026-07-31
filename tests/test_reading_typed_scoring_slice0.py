@@ -142,7 +142,7 @@ def test_product_geometry_bytes_cannot_change_denominator(tmp_path):
         "gt",
         "base_manifest",
         "bindings",
-        "capability_dispositions",
+        "trusted_capability_dispositions",
     )
 
     normal = _real_payload()
@@ -150,6 +150,22 @@ def test_product_geometry_bytes_cannot_change_denominator(tmp_path):
     for view in malformed["views"].values():
         for stroke in view.get("strokes", []):
             stroke["geometry"] = {}
+        if view.get("image_kind") != "elevation":
+            continue
+        facade = view["facade"]
+        facade["local_x_positive"] = (
+            "image_right_to_left"
+            if facade["local_x_positive"] == "image_left_to_right"
+            else "image_left_to_right"
+        )
+        mirrored = facade["mirrored"]
+        facade["mirrored"] = {
+            False: True,
+            True: False,
+            "false": "true",
+            "true": "false",
+            "unknown": "true",
+        }[mirrored]
 
     normal_sidecar, _ = _grade_payload(tmp_path, normal, name="normal")
     malformed_sidecar, _ = _grade_payload(
@@ -169,6 +185,18 @@ def test_product_geometry_bytes_cannot_change_denominator(tmp_path):
     assert (
         malformed_sidecar["payload"]["unmeasurable_observations"]
         > normal_sidecar["payload"]["unmeasurable_observations"]
+    )
+    assert (
+        normal_sidecar["payload"]["visibility_counts"][
+            "elevation_local_x_sense_disagreements"
+        ]
+        == 2
+    )
+    assert (
+        malformed_sidecar["payload"]["visibility_counts"][
+            "elevation_local_x_sense_disagreements"
+        ]
+        == 4
     )
 
 
@@ -218,8 +246,19 @@ def test_rect_wall_is_per_stroke_unmeasurable_and_counted(tmp_path):
 
 
 def test_sm24_local_x_disagreement_is_input_scoped_na_with_raw_witness(tmp_path):
+    conflict = _real_payload()
+    aligned = copy.deepcopy(conflict)
+    for source in ("North_view", "West_view"):
+        aligned["views"][source]["facade"]["local_x_positive"] = (
+            "image_left_to_right"
+        )
+        aligned["views"][source]["facade"]["mirrored"] = "false"
+
     sidecar, _artifacts = _grade_payload(
-        tmp_path, _real_payload(), name="local_x"
+        tmp_path, conflict, name="local_x_conflict"
+    )
+    aligned_sidecar, _ = _grade_payload(
+        tmp_path, aligned, name="local_x_aligned"
     )
     certificate = sidecar["certificates"]["reading_normalization"]
     applicability = {
@@ -239,7 +278,7 @@ def test_sm24_local_x_disagreement_is_input_scoped_na_with_raw_witness(tmp_path)
             item = applicability[(source, component)]
             assert item["status"] == "not_applicable"
             assert item["cause_class"] == "trusted_frame"
-            assert item["denominator_disposition"] == "filter"
+            assert item["denominator_disposition"] == "retain_as_miss"
             assert item["reasons"] == ["elevation_local_x_sense_disagreement"]
     for source in ("East_view", "South_view"):
         assert all(
@@ -272,6 +311,33 @@ def test_sm24_local_x_disagreement_is_input_scoped_na_with_raw_witness(tmp_path)
     assert "Elevation local-x disagreements: 2" in _reading_grade_status_lines(
         sidecar["payload"]
     )
+    assert (
+        aligned_sidecar["payload"]["visibility_counts"][
+            "elevation_local_x_sense_disagreements"
+        ]
+        == 0
+    )
+    assert _denominator_wire(sidecar) == _denominator_wire(aligned_sidecar)
+    denominator_atoms = sidecar["certificates"]["source_applicability"][
+        "denominator_atoms"
+    ]
+    for source in ("North_view", "West_view"):
+        assert any(
+            source in atom["source_input_ids"]
+            and atom["component"]
+            in {"elevation_opening_xy", "elevation_opening_z"}
+            for atom in denominator_atoms
+        )
+        source_rows = [
+            row
+            for row in sidecar["payload"]["opening_source_rows"]
+            if row["source_input_id"] == source
+        ]
+        assert source_rows
+        assert all(
+            row["result"] == "miss" and row["eligible_units"] > 0
+            for row in source_rows
+        )
 
 
 def test_correction_public_judgment_sha_matches_pre_v9_baseline(tmp_path):
