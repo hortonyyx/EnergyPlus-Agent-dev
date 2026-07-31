@@ -22,6 +22,7 @@ from src.agent.reading.cv_toolbox import (
     write_sidecar,
 )
 from src.agent.reading.cv_toolbox.tools import _mask_clean_vector
+from src.agent.reading.cv_toolbox.recipes import _draw_prescan_overlay
 
 
 GRAY = (128, 128, 128)
@@ -270,6 +271,19 @@ def test_prescan_plan_schema_and_combined_overlay(tmp_path: Path):
     assert data["cv_schema"] == "1"
     assert data["tool"] == "prescan-plan"
     assert data["params"]["advisory_only"] is True
+    assert data["overlay_path"] == "combined_overlay.png"
+    assert data["candidate_files"] == {
+        "all": "candidates.json",
+        "structural": "structural_candidates.json",
+        "cc_boxes": "cc_box_candidates.json",
+        "ticks": "tick_candidates.json",
+    }
+    assert data["overlay_paths"] == {
+        "default_structural": "combined_overlay.png",
+        "all": "all_candidates_overlay.png",
+        "cc_boxes": "cc_box_overlay.png",
+        "ticks": "tick_overlay.png",
+    }
     assert data["capability_profile"]["requested"] == "orthogonal_polygon"
     assert {"rectangular", "orthogonal_polygon"} <= set(data["capability_profile"]["supported"])
     assert data["results"]
@@ -284,6 +298,68 @@ def test_prescan_plan_schema_and_combined_overlay(tmp_path: Path):
             assert len(result["p2_px"]) == 2
             assert "strength" in result
             assert "fwhm_px" in result
+
+
+def test_prescan_kind_views_are_lossless_and_separately_addressable(tmp_path: Path):
+    image = _save_dimension_ticks(tmp_path / "dimension.png")
+    candidates_path, _overlay_path = prescan_plan(image, out_dir=tmp_path / "reading")
+    root = candidates_path.parent
+    master = json.loads(candidates_path.read_text(encoding="utf-8"))
+    emitted_counts = {
+        kind: sum(item["kind"] == kind for item in master["results"])
+        for kind in ("line_band_candidate", "cc_box_candidate", "tick_candidate")
+    }
+    diagnostics = master["diagnostics"]
+    assert emitted_counts == {
+        "line_band_candidate": diagnostics["line_band_candidate_count"],
+        "cc_box_candidate": diagnostics["cc_box_candidate_count"],
+        "tick_candidate": diagnostics["tick_candidate_count"],
+    }
+    assert all(emitted_counts.values()), "fixture must exercise every kind"
+
+    views = []
+    for key, kind in [
+        ("structural", "line_band_candidate"),
+        ("cc_boxes", "cc_box_candidate"),
+        ("ticks", "tick_candidate"),
+    ]:
+        view_path = root / master["candidate_files"][key]
+        assert view_path.is_file()
+        view = json.loads(view_path.read_text(encoding="utf-8"))
+        assert view["candidate_kind"] == kind
+        assert view["candidate_count"] == len(view["results"])
+        assert {item["kind"] for item in view["results"]} <= {kind}
+        views.extend(view["results"])
+
+    # No filtering, dropping, duplication, renumbering, or re-encoding: because
+    # the master order is kind-grouped, concatenating the three addressable views
+    # reconstructs every emitted candidate object exactly.
+    assert views == master["results"]
+    assert len({item["candidate_id"] for item in views}) == len(views)
+
+
+def test_prescan_default_overlay_is_structural_only_and_other_kinds_remain_visible(
+    tmp_path: Path,
+):
+    image = _save_dimension_ticks(tmp_path / "dimension.png")
+    candidates_path, overlay_path = prescan_plan(image, out_dir=tmp_path / "reading")
+    root = candidates_path.parent
+    master = json.loads(candidates_path.read_text(encoding="utf-8"))
+    structural = json.loads(
+        (root / master["candidate_files"]["structural"]).read_text(encoding="utf-8")
+    )["results"]
+    assert structural
+    assert any(item["kind"] != "line_band_candidate" for item in master["results"])
+
+    expected = tmp_path / "expected_structural.png"
+    _draw_prescan_overlay(Image.open(image).convert("RGB"), structural, expected)
+    assert overlay_path.read_bytes() == expected.read_bytes()
+
+    all_overlay = root / master["overlay_paths"]["all"]
+    cc_overlay = root / master["overlay_paths"]["cc_boxes"]
+    tick_overlay = root / master["overlay_paths"]["ticks"]
+    assert all_overlay.is_file() and cc_overlay.is_file() and tick_overlay.is_file()
+    assert all_overlay.read_bytes() != overlay_path.read_bytes()
 
 
 def test_prescan_bounded_segments_do_not_span_full_l_mask(tmp_path: Path):
@@ -307,10 +383,45 @@ def test_prescan_idempotent_candidates_json(tmp_path: Path):
     image = _save_l_mask(tmp_path / "stable.png")
 
     candidates_path, _overlay_path = prescan_plan(image, out_dir=tmp_path / "reading")
-    first = candidates_path.read_bytes()
+    first = {
+        path.relative_to(candidates_path.parent).as_posix(): path.read_bytes()
+        for path in sorted(candidates_path.parent.iterdir())
+        if path.is_file()
+    }
     candidates_path, _overlay_path = prescan_plan(image, out_dir=tmp_path / "reading")
-    second = candidates_path.read_bytes()
+    second = {
+        path.relative_to(candidates_path.parent).as_posix(): path.read_bytes()
+        for path in sorted(candidates_path.parent.iterdir())
+        if path.is_file()
+    }
 
+    assert first == second
+
+
+def test_prescan_same_image_is_byte_identical_across_output_roots(tmp_path: Path):
+    image = _save_dimension_ticks(tmp_path / "stable.png")
+    first_path, _ = prescan_plan(image, out_dir=tmp_path / "run_a")
+    second_path, _ = prescan_plan(image, out_dir=tmp_path / "run_b")
+
+    def snapshot(root: Path) -> dict[str, bytes]:
+        return {
+            path.relative_to(root).as_posix(): path.read_bytes()
+            for path in sorted(root.iterdir())
+            if path.is_file()
+        }
+
+    first = snapshot(first_path.parent)
+    second = snapshot(second_path.parent)
+    assert set(first) == {
+        "all_candidates_overlay.png",
+        "candidates.json",
+        "cc_box_candidates.json",
+        "cc_box_overlay.png",
+        "combined_overlay.png",
+        "structural_candidates.json",
+        "tick_candidates.json",
+        "tick_overlay.png",
+    }
     assert first == second
 
 

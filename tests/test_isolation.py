@@ -152,13 +152,26 @@ def test_build_copies_run_prescan_and_kickoff_mentions_it(tmp_path: Path):
     run_dir.mkdir()
     src = run_dir / "0_reading" / "cv_evidence" / "1f_view" / "prescan"
     src.mkdir(parents=True)
-    (src / "candidates.json").write_text("{}", encoding="utf-8")
+    prescan_files = {
+        "candidates.json",
+        "structural_candidates.json",
+        "cc_box_candidates.json",
+        "tick_candidates.json",
+        "combined_overlay.png",
+        "all_candidates_overlay.png",
+        "cc_box_overlay.png",
+        "tick_overlay.png",
+    }
+    for name in prescan_files:
+        (src / name).write_bytes(name.encode("utf-8"))
 
     manifest = _formal_build(CASE_DIR, run_dir, tmp_path / "staging")
     staging = manifest.staging_root
 
-    copied = staging / "prescan" / "cv_evidence" / "1f_view" / "prescan" / "candidates.json"
-    assert copied.exists()
+    copied_root = staging / "prescan" / "cv_evidence" / "1f_view" / "prescan"
+    assert {path.name for path in copied_root.iterdir()} == prescan_files
+    for name in prescan_files:
+        assert (copied_root / name).read_bytes() == (src / name).read_bytes()
     kickoff = (staging / "kickoff_prompt.md").read_text(encoding="utf-8")
     assert "prescan/cv_evidence/<image_stem>/prescan/" in kickoff
 

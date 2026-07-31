@@ -88,14 +88,22 @@ and measure. Report the counts per image in `reading_summary.md`.
 
 ## 3. Deterministic prescan candidates — advisory input, and you must show your work
 
-Prescan output is provided under `prescan/cv_evidence/<image_stem>/prescan/`
-(`candidates.json` + `combined_overlay.png`). It is **machine-produced pixel evidence only**, with
-no semantics: it does not know which bands are walls, which are dimension lines, which are furniture,
-or which are text. Semantic acceptance is entirely your call.
+Prescan output is provided under `prescan/cv_evidence/<image_stem>/prescan/`, now split by the
+toolbox's existing mechanical `kind` classification:
 
-Be warned that the signal-to-noise is low — on the previous run the plan produced roughly eight
-hundred candidates, a large share of them dimension ticks and furniture outlines. **Prescan is a
-place to look, never a reason to draw.** A candidate becomes a stroke only after §2's measurement.
+- start with `structural_candidates.json` and `combined_overlay.png`; these contain/render only
+  `line_band_candidate` entries and are the default low-noise presentation;
+- `cc_box_candidates.json` / `cc_box_overlay.png` and
+  `tick_candidates.json` / `tick_overlay.png` keep boxes and known dimension-tick candidates
+  separately addressable when you need them;
+- `candidates.json` plus `all_candidates_overlay.png` remain the lossless all-candidate view.
+  Nothing was filtered or dropped; do not start with this noisy view unless the split views leave a
+  specific question unanswered.
+
+All of this remains **machine-produced pixel evidence only**. “Structural” is a presentation bucket
+for line bands, not a semantic claim that a band is a wall; boxes may be furniture, text, or useful
+openings. Semantic acceptance is entirely your call. **Prescan is a place to look, never a reason to
+draw.** A candidate becomes a stroke only after §2's measurement.
 
 For this run record your decisions explicitly, per image:
 

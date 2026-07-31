@@ -247,6 +247,58 @@ def _draw_prescan_overlay(image: Image.Image, candidates: list[dict[str, Any]], 
     out.save(overlay_path)
 
 
+_PRESCAN_CANDIDATE_FILES = {
+    "line_band_candidate": "structural_candidates.json",
+    "cc_box_candidate": "cc_box_candidates.json",
+    "tick_candidate": "tick_candidates.json",
+}
+_PRESCAN_OVERLAY_FILES = {
+    "line_band_candidate": "combined_overlay.png",
+    "cc_box_candidate": "cc_box_overlay.png",
+    "tick_candidate": "tick_overlay.png",
+}
+_PRESCAN_ALL_OVERLAY_FILE = "all_candidates_overlay.png"
+
+
+def _write_reproducible_json(path: Path, payload: dict[str, Any]) -> None:
+    """Append-once JSON writer used by every prescan presentation.
+
+    A repeated run at the same landing may reuse byte-identical evidence, but
+    never overwrite a differing document.  ``sort_keys`` plus relative
+    presentation paths makes the same image/configuration byte-identical even
+    when two runs use different output roots.
+    """
+    text = json.dumps(payload, indent=2, sort_keys=True) + "\n"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    if path.exists():
+        if path.read_text(encoding="utf-8") != text:
+            raise FileExistsError(
+                f"prescan candidates already exist with different content: {path}"
+            )
+        return
+    path.write_text(text, encoding="utf-8")
+
+
+def _kind_payload(
+    payload: dict[str, Any], kind: str, candidates: list[dict[str, Any]]
+) -> dict[str, Any]:
+    """Small, independently readable view over one candidate kind."""
+    return {
+        "cv_schema": payload["cv_schema"],
+        "source_image": payload["source_image"],
+        "tool": payload["tool"],
+        "tool_version": payload["tool_version"],
+        "recipe_id": payload["recipe_id"],
+        "applicability": payload["applicability"],
+        "advisory_only": True,
+        "candidate_kind": kind,
+        "candidate_count": len(candidates),
+        "source_candidates": "candidates.json",
+        "overlay_path": _PRESCAN_OVERLAY_FILES[kind],
+        "results": candidates,
+    }
+
+
 _PRESCAN_LABEL_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_.-]*$")
 
 
@@ -341,14 +393,33 @@ def _prescan(
 
     prescan_dir = evidence_dir(out_dir, source) / label
     candidates_path = prescan_dir / "candidates.json"
-    overlay_path = prescan_dir / "combined_overlay.png"
-    _draw_prescan_overlay(img, candidates, overlay_path)
+    overlay_path = prescan_dir / _PRESCAN_OVERLAY_FILES["line_band_candidate"]
+    all_overlay_path = prescan_dir / _PRESCAN_ALL_OVERLAY_FILE
+    candidates_by_kind = {
+        kind: [candidate for candidate in candidates if candidate["kind"] == kind]
+        for kind in _PRESCAN_CANDIDATE_FILES
+    }
 
     payload = {
         "cv_schema": "1",
         "source_image": {"name": source.name, "sha256": source_hash},
         "crop_chain": [],
-        "overlay_path": str(overlay_path),
+        # Presentation paths are relative to this document.  Besides being
+        # portable inside staging, this is what makes output bytes independent
+        # of the caller's absolute out_dir.
+        "overlay_path": overlay_path.name,
+        "candidate_files": {
+            "all": candidates_path.name,
+            "structural": _PRESCAN_CANDIDATE_FILES["line_band_candidate"],
+            "cc_boxes": _PRESCAN_CANDIDATE_FILES["cc_box_candidate"],
+            "ticks": _PRESCAN_CANDIDATE_FILES["tick_candidate"],
+        },
+        "overlay_paths": {
+            "default_structural": overlay_path.name,
+            "all": all_overlay_path.name,
+            "cc_boxes": _PRESCAN_OVERLAY_FILES["cc_box_candidate"],
+            "ticks": _PRESCAN_OVERLAY_FILES["tick_candidate"],
+        },
         "tool": tool,
         "tool_version": TOOL_VERSION,
         "recipe_id": recipe["recipe_id"],
@@ -377,13 +448,26 @@ def _prescan(
             "axis_summary": _axis_summary(peaks, candidates),
         },
     }
-    payload_text = json.dumps(payload, indent=2, sort_keys=True) + "\n"
-    candidates_path.parent.mkdir(parents=True, exist_ok=True)
-    if candidates_path.exists():
-        if candidates_path.read_text(encoding="utf-8") != payload_text:
-            raise FileExistsError(f"prescan candidates already exist with different content: {candidates_path}")
-    else:
-        candidates_path.write_text(payload_text, encoding="utf-8")
+    # The legacy candidates.json remains the lossless all-candidate source.
+    # Kind views only change addressability; their concatenated IDs are exactly
+    # the master IDs (locked in tests).  The old all-candidate overlay likewise
+    # remains reachable under a precise name, while combined_overlay.png now
+    # defaults to structural line bands only.
+    _write_reproducible_json(candidates_path, payload)
+    for kind, filename in _PRESCAN_CANDIDATE_FILES.items():
+        _write_reproducible_json(
+            prescan_dir / filename,
+            _kind_payload(payload, kind, candidates_by_kind[kind]),
+        )
+
+    _draw_prescan_overlay(img, candidates_by_kind["line_band_candidate"], overlay_path)
+    _draw_prescan_overlay(img, candidates, all_overlay_path)
+    for kind in ("cc_box_candidate", "tick_candidate"):
+        _draw_prescan_overlay(
+            img,
+            candidates_by_kind[kind],
+            prescan_dir / _PRESCAN_OVERLAY_FILES[kind],
+        )
     return candidates_path, overlay_path
 
 
