@@ -107,3 +107,36 @@
 - 锁 #2 的 neuter 在 **oracle 侧**（`_is_run_prescan_path` 关掉）而非改 CLI 落点布局。理由：锁本质是「CLI 实际落点 ↔ 拷贝守卫」的跨模块一致性断言，oracle-side neuter 证明锁真耦合守卫、非空套；CLI 落点由 `evidence_dir`+`label` 独立算出并 print，两侧独立 ⇒ 锁确在交叉核。如实登记。
 - 嵌套检测只查末级目录名 ∈ {`cv_evidence`,`prescan`}（派工单给定的判定）。若调用方传 `<RUN>/0_reading/cv_evidence/1f_view`（末级是 stem）仍会套娃但不被本门拦——派工单只要求这两类，未扩；现实手册已写死 `--out-dir <RUN>/0_reading`，照搬未自行加宽。
 
+
+## S4 · merge 目录形态自聚合（F-5）— DONE
+
+**做了什么**
+- `isolation.py`：新增 `_load_isolated_views(output_path, out_dir, view_manifest) -> (payload, out_text)`：
+  - 老路径（不破）：`out/output.json` 形如 `{"views": {<expected_output_id>: <ReadingView>}}` ⇒ 原样用（逐字节 out_text）。
+  - 新路径（S4）：无有效聚合件时，按 view_manifest 的 `expected_output_ids()` 机械搬运 `out/` 下 `<expected_output_id>.json`（即 `*_view.json`，对当前语料 expected_output_id 全 `_view` 结尾成立）为 `{"views": {…}}`。纯搬运（`json.loads` 每个源文件、不规范化/不补默认/不排序）。
+  - fail-closed：缺件（manifest 某 id 无文件）⇒ ValueError("missing …")；多件（`*_view.json` 不在 manifest）⇒ ValueError("unexpected …")。
+- `merge_isolated_output`：`output_path.resolve(strict=False)`（assembly 路径无 output.json）；用 `_load_isolated_views` 替换原硬要求单一聚合件的块。
+- 定为 merge 侧自聚合（非 kickoff 多要一个文件）——对齐不变量「强制约束别交给 LLM 记得」（派工单明令）。
+
+**新增锁（S4）**
+1. `test_merge_assembles_per_image_views_byte_equal_and_accepts`：正例——五+图目录（sm21 六图）无聚合件 ⇒ 自聚合；每个 view `== json.loads(源文件)` 且 `== 原始 view`（零改动）；accepted、artifact_contract、output_hash 钉死。
+2. `test_merge_per_image_missing_is_rejected`：缺件 ⇒ ValueError("missing") + 不落 attempt。
+3. `test_merge_per_image_extra_is_rejected`：多件（`rogue_view.json`）⇒ ValueError("unexpected")。
+4. `test_merge_single_aggregate_still_accepted_alongside_per_image`：老路径不破——有有效聚合件时原样用（per-image 件被忽略、不聚合），attempt 的 output.json 与聚合件逐字节相同。
+
+**neuter 自查（S4）**
+| 锁 | neuter（生产码定点） | 变红的测试 |
+|---|---|---|
+| 缺件 fail-closed | 删 `_load_isolated_views` 里 missing 检查块 | `test_merge_per_image_missing_is_rejected` **FAILED**（KeyError，非 ValueError "missing"） |
+| 多件 fail-closed | 删 extra 检查块 | `test_merge_per_image_extra_is_rejected` **FAILED**（DID NOT RAISE，多件被静默忽略、merge 推进） |
+| 正例聚合 | `glob("*_view.json")` 改 `glob("*_NOPE.json")` | `test_merge_assembles_per_image_views_byte_equal_and_accepts` **FAILED**（ValueError: missing all） |
+| 零内容改动（==） | 聚合时给每个 view 注入 `{"_mutated": True, **…}` | 同正例测试 **FAILED**（`assembled["views"][eid] == view` AssertionError） |
+
+四 neuter 均工作树临时破坏→跑→还原（isolation.py 回到 +53/−12 S4 态、无残留），还原后正例 **1 passed**。
+
+**跑了哪些测试 + 数字**：`tests/test_isolation.py` 全量 **71 passed**（67 既含 S2 + 4 S4 新）；既有 11 个 merge 老路径测试全绿（老路径不破）。
+
+**偏差 / review-ask（S4）**
+- 多件扫描用 `*_view.json`（派工单给定）。对当前语料成立（floor/cardinal 的 expected_output_id=identity 保留 `_view` 词干、supplementary 的 append_view 加 `_view`）。若未来某 family 的 expected_output_id 不以 `_view` 结尾，其 per-image 件不会被多件扫描命中、也不会被正例聚合命中（缺件报错）——派工单的口径即此，未自行改成 `*.json`（那会误伤 output.json/其他）。如实登记。
+- 损坏的 `output.json`（非法 JSON）现在落 assembly 而非硬报「not valid JSON」（原老路径会报）。理由：assembly 是新主路径，损坏聚合件不该阻断「per-image 件齐」的正常聚合；若 per-image 也缺 ⇒ missing 报错 fail-closed。这是比原行为更宽容但仍 fail-closed 的取舍，如实登记。
+

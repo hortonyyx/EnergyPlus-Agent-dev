@@ -260,7 +260,8 @@ def merge_isolated_output(
     output_path = Path(output_path) if output_path else staging_root / "out" / "output.json"
     if not output_path.is_absolute():
         output_path = staging_root / output_path
-    output_path = output_path.resolve(strict=True)
+    # strict=False: in the S4 per-image-assembly path there is no output.json.
+    output_path = output_path.resolve(strict=False)
     _require_under(output_path, staging_root)
 
     binding = _read_binding(staging_root)
@@ -300,17 +301,10 @@ def merge_isolated_output(
             "built (case_data image(s) or the committed view manifest changed)"
         )
 
-    out_text = output_path.read_text(encoding="utf-8")
-    try:
-        payload = json.loads(out_text)
-    except json.JSONDecodeError as exc:
-        raise ValueError(f"aggregate output.json is not valid JSON: {exc}") from exc
-    views = payload.get("views") if isinstance(payload, dict) else None
-    if not isinstance(views, dict):
-        raise ValueError(
-            "aggregate output.json must be shaped {'views': {<expected_output_id>: "
-            "<ReadingView JSON>, ...}}"
-        )
+    payload, out_text = _load_isolated_views(
+        output_path, staging_root / "out", verification.on_disk
+    )
+    views = payload["views"]
 
     report = check_reading_stage(verification.on_disk, views)
 
@@ -478,6 +472,53 @@ def _read_binding(staging_root: Path) -> dict:
             "built by build_isolation_workspace (or predates the isolation run-binding wire)"
         )
     return json.loads(path.read_text(encoding="utf-8"))
+
+
+def _load_isolated_views(
+    output_path: Path, out_dir: Path, view_manifest: ViewManifest
+) -> tuple[dict, str]:
+    """Return ``(payload, out_text)`` where ``payload`` is ``{'views': {...}}``.
+
+    Old path (unchanged, F-5 keeps it working): ``output.json`` shaped
+    ``{'views': {<expected_output_id>: <ReadingView>, ...}}`` — accepted verbatim.
+
+    S4 path: if there is no valid single aggregate, mechanically assemble the
+    per-image ``<expected_output_id>.json`` files under ``out/`` (one JSON per
+    source drawing, exactly what session_kickoff.md tells the reader to write)
+    into ``{'views': {...}}``. Assembly is pure搬运 — no normalization, no
+    defaults, no reordering; each view is ``json.loads`` of its source file.
+    Fail-closed on missing (a manifest id with no file) or extra (a
+    ``*_view.json`` not declared in the manifest) — the kickoff/merge contract
+    gap nobody owned (F-5), now owned by merge, not by the LLM's memory.
+    """
+    if output_path.exists():
+        try:
+            candidate = json.loads(output_path.read_text(encoding="utf-8"))
+        except json.JSONDecodeError:
+            candidate = None  # not a usable aggregate -> try per-image assembly
+        if isinstance(candidate, dict) and isinstance(candidate.get("views"), dict):
+            return candidate, output_path.read_text(encoding="utf-8")
+
+    expected_ids = set(view_manifest.expected_output_ids())
+    per_image = {p.stem: p for p in sorted(out_dir.glob("*_view.json"))}
+    missing = sorted(eid for eid in expected_ids if eid not in per_image)
+    if missing:
+        raise ValueError(
+            "no aggregate output.json and missing per-image view files for "
+            f"expected_output_ids: {missing}"
+        )
+    extra = sorted(stem for stem in per_image if stem not in expected_ids)
+    if extra:
+        raise ValueError(
+            "merge refused: unexpected per-image view files not declared in the "
+            f"view manifest: {extra}"
+        )
+    views = {
+        eid: json.loads(per_image[eid].read_text(encoding="utf-8"))
+        for eid in sorted(expected_ids)
+    }
+    payload = {"views": views}
+    return payload, json.dumps(payload, ensure_ascii=False)
 
 
 def _copy_reading_skill(staging_root: Path, manifest: WorkspaceManifest) -> None:

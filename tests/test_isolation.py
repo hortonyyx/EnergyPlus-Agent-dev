@@ -842,3 +842,87 @@ def test_guard_denies_bash_request_file_with_forbidden_token(tmp_path: Path):
     )
     proc = _hook(staging, "python tools/run_cv_probe.py --request requests/req.json")
     assert proc.returncode == 2
+
+
+# --------------------------------------------------------------------------- #
+# F-5 / S4 — merge auto-assembles per-image <expected_output_id>.json files
+# (the kickoff tells the reader to write one JSON per drawing; merge used to
+# require a single aggregate nobody produced). Pure mechanical搬运; fail-closed
+# on missing/extra; the single-aggregate old path still works.
+# --------------------------------------------------------------------------- #
+def _formal_sm21(tmp_path: Path):
+    run_dir = tmp_path / "case_run"
+    run_dir.mkdir()
+    return _formal_build(CASE_DIR, run_dir, tmp_path / "staging"), run_dir
+
+
+def _write_per_image_views(staging: Path, views: dict) -> None:
+    for eid, view in views.items():
+        (staging / "out" / f"{eid}.json").write_text(json.dumps(view), encoding="utf-8")
+
+
+def test_merge_assembles_per_image_views_byte_equal_and_accepts(tmp_path: Path):
+    """S4 positive lock: with no aggregate, merge assembles the per-image
+    <expected_output_id>.json files; each view is json.loads of its source
+    (zero content change) and the result is accepted like the old aggregate."""
+    manifest, run_dir = _formal_sm21(tmp_path)
+    staging = manifest.staging_root
+    real = _real_views()
+    _write_per_image_views(staging, real)
+    assert not (staging / "out" / "output.json").exists()
+
+    attempt_dir = merge_isolated_output(staging, run_dir)  # default output.json absent -> assemble
+
+    assembled = json.loads((attempt_dir / "output.json").read_text(encoding="utf-8"))
+    assert set(assembled["views"]) == set(real)
+    # zero content change: each assembled view == json.loads of its source file
+    for eid, view in real.items():
+        source_loaded = json.loads((staging / "out" / f"{eid}.json").read_text(encoding="utf-8"))
+        assert assembled["views"][eid] == source_loaded
+        assert assembled["views"][eid] == view
+    # accepted on the real gate①-clean views
+    rec = load_run_manifest(run_dir).accepted("0_reading")
+    assert rec is not None
+    assert rec.artifact_contract == "reading_isolated_v2"
+    assert rec.output_hash == hash_text((attempt_dir / "output.json").read_text(encoding="utf-8"))
+
+
+def test_merge_per_image_missing_is_rejected(tmp_path: Path):
+    """S4 fail-closed: a manifest expected_output_id with no per-image file is a
+    loud error (no silent empty-fill, no partial attempt written)."""
+    manifest, run_dir = _formal_sm21(tmp_path)
+    staging = manifest.staging_root
+    real = _real_views()
+    ids = sorted(real)
+    for eid in ids[:-1]:  # omit exactly one expected id
+        (staging / "out" / f"{eid}.json").write_text(json.dumps(real[eid]), encoding="utf-8")
+    with pytest.raises(ValueError, match="missing"):
+        merge_isolated_output(staging, run_dir)
+    # no attempt was filed
+    assert not (run_dir / "0_reading" / "attempts").exists() or not list((run_dir / "0_reading" / "attempts").iterdir())
+
+
+def test_merge_per_image_extra_is_rejected(tmp_path: Path):
+    """S4 fail-closed: a *_view.json not declared in the manifest is a loud error."""
+    manifest, run_dir = _formal_sm21(tmp_path)
+    staging = manifest.staging_root
+    real = _real_views()
+    _write_per_image_views(staging, real)
+    (staging / "out" / "rogue_view.json").write_text(json.dumps(real[sorted(real)[0]]), encoding="utf-8")
+    with pytest.raises(ValueError, match="unexpected"):
+        merge_isolated_output(staging, run_dir)
+
+
+def test_merge_single_aggregate_still_accepted_alongside_per_image(tmp_path: Path):
+    """S4: the old path is not broken — when a valid aggregate output.json is
+    present it is used (per-image files, if any, are ignored, not assembled)."""
+    manifest, run_dir = _formal_sm21(tmp_path)
+    staging = manifest.staging_root
+    real = _real_views()
+    payload = json.dumps({"views": real})
+    (staging / "out" / "output.json").write_text(payload, encoding="utf-8")
+    _write_per_image_views(staging, real)  # also present; aggregate must win
+
+    attempt_dir = merge_isolated_output(staging, run_dir)
+    # the attempt's output.json is the aggregate bytes verbatim (not re-dumped)
+    assert (attempt_dir / "output.json").read_text(encoding="utf-8") == payload
