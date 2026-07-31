@@ -626,3 +626,81 @@ git diff --check
 ```
 
 Both completed with no output.
+
+## Final acceptance-spine and neuter audit
+
+Acceptance-spine command:
+
+```bash
+python -m pytest -p no:cacheprovider -q -n0 -s \
+  tests/test_reading_typed_scoring_slice0.py \
+  tests/test_reading_typed_score_integration.py
+```
+
+Result: `13 passed in 10.01s`. The U-03 proof printed:
+
+```text
+public_rows.before_sha256=ee2a4d0d3de034417acd76420a9222899d2585d23bbff6f390ebe0ce09b6635b
+public_rows.after_sha256=ee2a4d0d3de034417acd76420a9222899d2585d23bbff6f390ebe0ce09b6635b
+wall_criteria.before_sha256=65cf6dfb5136df7195b8cfb7811f7a7f666c90084e8743dc3bcbbf68f9a17025
+wall_criteria.after_sha256=65cf6dfb5136df7195b8cfb7811f7a7f666c90084e8743dc3bcbbf68f9a17025
+blocking_change=false
+```
+
+Every new/renamed lock was mutation-checked in a detached worktree. Names sharing a
+row were run together against the same focused neuter:
+
+| Locks | Neutered boundary | Observed RED |
+|---|---|---|
+| `gt_echo_fixture_preserves_runstage_cli_byte_parity`; `real_views_cli_and_runstage_artifacts_are_byte_identical` | CLI attempt identity `+1` | both failed byte parity |
+| `real_views_attempt_reaches_typed_total_service`; `reading_contract_is_not_inferred_from_missing_schema`; `detector_is_total_and_leaves_per_view_shape_to_adapter` | reject every `views` envelope | 5 focused cases failed |
+| `product_geometry_bytes_cannot_change_denominator` | grant product-triggered frame NA filter rights | denominator bytes changed |
+| `rect_wall_is_per_stroke_unmeasurable_and_counted`; `plan_polyline_closure_and_rect_wall_are_per_stroke` | make rect wall kill the component | witness/applicability assertions failed |
+| `sm24_local_x_disagreement_is_input_scoped_na_with_raw_witness`; `sm24_frame_disagreement_witness_preserves_raw_declarations` | ignore product/binding frame disagreement | NA/witness/retained-miss assertions failed |
+| `correction_public_judgment_sha_matches_pre_v9_baseline` | flip one public correction segment topology value | public SHA changed |
+| `detector_and_capability_use_reading_views_contract_not_schema_default` | ignore detector/adapter helper versions | wrong-version calls scored |
+| `non_object_reading_product_still_gets_total_na_artifacts`; `exploratory_na_returns_artifacts_and_empty_criteria` | early-return unsupported reading contracts | both lost artifacts |
+| `reading_score_error_does_not_abort_later_attempts_in_exploratory`; `totalizer_emits_internal_na_and_trusted_rejected` | re-raise unexpected scorer errors | continuation/total-result locks failed |
+| `component_applicability_separates_status_from_denominator_disposition` | bypass component status/disposition validator | forbidden `trusted_frame/filter` validated |
+| `v9_row_contracts_reject_incoherent_na_and_target_shapes` | bypass segment validator, then source-row validator | each focused bypass failed the lock |
+| `v9_rejection_and_absent_certificate_payloads_cross_validate` | bypass absent-certificate unmeasurable-count cross-check | malformed JSON wire validated |
+| `denominator_constructor_accepts_only_canonical_trusted_exclusions` | widen filtered cause to `trusted_frame` | forbidden basis validated |
+| `v9_cache_hits_exact_identity_and_treats_v8_as_miss` | ignore expected identity comparison | changed identity hit cache |
+| `strict_profile_commits_top_level_na_before_raising` | raise before artifact commit | both strict profiles lacked files |
+| `real_elevations_use_canonical_ranges_and_ruled_vertical_fallback` | change ruled fallback z from `0` to `1` | datum/geometry assertions failed |
+| `aligned_elevations_project_exactly_and_raw_ids_are_namespaced` | add `1 m` to projected along endpoint | exact projection failed |
+| `elevation_zero_missing_and_malformed_are_distinct` | treat malformed consumed geometry as applicable | malformed branch failed |
+| `elevation_line_polyline_and_degenerate_bounds_are_measurable` | disable line geometry | point observation disappeared |
+| `declared_vertical_datum_is_distinct_and_shifts_z` | relabel declared datum as convention fallback | source assertion failed |
+| `invalid_vertical_datum_keeps_horizontal_evidence_only` | make bad z invalidate horizontal evidence | horizontal-only assertions failed |
+| `multi_floor_elevation_binding_is_trusted_filtered` | disable multi-floor trusted filtering | adapter raised/failed the filter lock |
+| `normalization_is_order_invariant_but_geometry_sensitive` | erase rect values and geometry audit hash | changed geometry got identical hash |
+| `plan_frame_certificate_and_real_endpoints_are_exact` | flip affine y sign | exact frame assertion failed |
+| `plan_structured_origin_translates_but_note_never_does`; `plan_window_line_rect_polyline_vertices_are_transformed` | bypass affine application | translation/world-vertex assertions failed |
+| `missing_plan_frame_is_product_na_with_retained_denominator_rights` | default missing structured x origin to zero | component became applicable |
+| `supported_empty_plan_walls_are_applicable_zero` | classify an empty stroke list as unsupported | applicable-zero assertion failed |
+| `malformed_plan_wall_is_component_na_not_empty_success` | ignore malformed-segment flag | component became applicable |
+| `adapter_has_no_typed_gt_import` | add typed-GT import sentinel | static dependency lock failed |
+| `multiple_plan_inputs_for_one_floor_are_trusted_filtered` | clear duplicate-plan set | both inputs became applicable |
+| `real_reading_sidecar_publishes_both_certificates_and_channel_scores` | omit reading certificates at finalization | certificate/publication assertions failed |
+| `supported_empty_and_invalid_plan_both_retain_targets_as_misses` | drop targets when observations are absent | retained-miss rows disappeared |
+| `plan_input_id_maps_through_binding_gt_view_set_and_host_stays_na` | compare input ID directly with GT view ID | plan match assertion failed |
+| `reading_policy_uses_channel_specific_source_rows` | force all source rows to plan channel | elevation criterion assertion failed |
+| `trusted_filter_removes_va_evidence_without_aborting_reading_score`; `reading_trusted_filter_removes_positive_and_negative_va_evidence` | ignore effective-manifest claim filtering | both failed; E2E became internal NA |
+| `reading_grade_status_lines_publish_all_six_first_class_counts` | rename the unmeasurable label | exact six-line assertion failed |
+
+### Protected signed GT after snapshot
+
+```bash
+find case_tests/test_baseline/gt/sm24_anchor -type f -print0 \
+  | sort -z | xargs -0 sha256sum \
+  > /tmp/reading_typed_scoring_sm24_after.sha256
+cmp -s /tmp/reading_typed_scoring_sm24_before.sha256 \
+  /tmp/reading_typed_scoring_sm24_after.sha256
+wc -l /tmp/reading_typed_scoring_sm24_after.sha256
+sha256sum /tmp/reading_typed_scoring_sm24_before.sha256 \
+  /tmp/reading_typed_scoring_sm24_after.sha256
+```
+
+Result: `cmp` succeeded; both 14-file snapshots hash to
+`e78c6e7e015746c14d8f70521551a71ee77b6e726259000ecf6133f91d61771f`.
