@@ -704,3 +704,32 @@ sha256sum /tmp/reading_typed_scoring_sm24_before.sha256 \
 
 Result: `cmp` succeeded; both 14-file snapshots hash to
 `e78c6e7e015746c14d8f70521551a71ee77b6e726259000ecf6133f91d61771f`.
+
+## Final full-suite gate
+
+Command (run once, after the final code and acceptance-audit commits):
+
+```bash
+python -m pytest -p no:cacheprovider -q
+```
+
+Result:
+
+```text
+1881 passed, 10 xfailed, 150 warnings in 279.34s (0:04:39)
+```
+
+There were zero failures, including zero failures in the parallel seat's isolation
+and CV files.
+
+The controller baseline was `1786 passed / 10 xfailed`; the `+95 passed` delta is
+fully reconciled by collection counts:
+
+- this reading-scoring batch adds 50 collected items: Slice 0 `6`, Slice 1 `18`,
+  adapter `18`, integration `7`, and the trusted-filter Va lock `1`;
+- the parallel isolation/CV batch adds 45 collected items:
+  `tests/test_isolation.py` plus `tests/test_cv_toolbox.py` collect `102` now versus
+  `57` at pre-batch commit `f98d248`.
+
+The renamed D-1 GT-echo parity test is count-neutral. Thus
+`1786 + 50 + 45 = 1881`, while xfails remain unchanged at `10`.
