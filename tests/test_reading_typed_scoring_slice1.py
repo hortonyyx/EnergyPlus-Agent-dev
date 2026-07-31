@@ -96,9 +96,31 @@ def test_detector_and_capability_use_reading_views_contract_not_schema_default()
         product_schema="3",
         view_manifest=manifest,
     )
+    wrong_adapter = decide_score_capability(
+        gt_identity=gt_identity,
+        stage="reading",
+        product_schema="reading_views_v1",
+        view_manifest=manifest,
+        reading_adapter_version="reading_typed_adapter_v0",
+    )
+    wrong_detector = decide_score_capability(
+        gt_identity=gt_identity,
+        stage="reading",
+        product_schema="reading_views_v1",
+        view_manifest=manifest,
+        reading_contract_detector_version="reading_contract_detector_v0",
+    )
     assert accepted.path == "c2_v3"
     assert rejected.path == "not_applicable"
     assert rejected.reason == "unsupported_reading_contract"
+    assert (wrong_adapter.path, wrong_adapter.reason) == (
+        "not_applicable",
+        "unsupported_reading_contract",
+    )
+    assert (wrong_detector.path, wrong_detector.reason) == (
+        "not_applicable",
+        "unsupported_reading_contract",
+    )
 
 
 @pytest.mark.parametrize(
