@@ -1,7 +1,7 @@
 # 2026-07-31 识图链路断点施工记录
 
-> 执行席：sol（CONSTRUCTION）  
-> 派工单：`AI_agent/logs/reviews/request/2026-07-31_reading_chain_gaps_dispatch.md`  
+> 执行席：sol（CONSTRUCTION）
+> 派工单：`AI_agent/logs/reviews/request/2026-07-31_reading_chain_gaps_dispatch.md`
 > 基线：`1997 passed / 10 xfailed / 0 failed`
 
 ## 边界与禁区
@@ -14,15 +14,19 @@
 
 ### 影响面实测（gate①，待主控裁决）
 
-口径：只数 Git 已跟踪的 `case_tests/**/{0_reading,phase1}/*.json`，且 JSON
-同时满足 `image_kind == "plan"` 与 `strokes` 为 list；这与 gate① 的单视图
-产品输入口径一致，排除 `*_checks.json` / judge packet / prescan sidecar。
+口径：数工作树中 `case_tests/**/{0_reading,phase1}/*.json`，且 JSON 同时满足
+`image_kind == "plan"` 与 `strokes` 为 list；这与 gate① 的单视图产品输入口径一致，
+排除 `*_checks.json` / judge packet / prescan sidecar；另列 Git 已跟踪子集，避免把
+当前未跟踪/ignored 的有效历史产品静默漏掉。
 
-- 既有主产品：**38** 份 plan reading JSON。
-- `scale_origin` 含有非 null `world_x_m/world_y_m`：**29/38**。
-- 缺 key / null / 对 judge 不可用：**9/38 = 23.7%**（九份均是整个 key 缺失，无「有 key 但半缺」情形）。
-- 若现在把 gate① 改为 INVARIANT block：这 **9** 份历史产品会新增阻断；
-  其余 **29** 份不受影响。本席未改 `src/validator/checks/reading.py`。
+- 工作树既有主产品：**40** 份；`scale_origin` 可用 **31/40**，不可用
+  **9/40 = 22.5%**。
+- Git 已跟踪子集：**38** 份；可用 **29/38**，不可用
+  **9/38 = 23.7%**。多出的两份均可用：
+  `sm21_anchor/run_2026-07-01_sonnet_e2e_r1/phase1/{1f_view,2f_view}.json`。
+- 九份不可用产品均是整个 key 缺失，无「有 key 但半缺」情形。
+- 若现在把 gate① 改为 acceptance block：无论采用哪一库存口径，绝对新增阻断均为
+  **9** 份；工作树其余 **31** 份不受影响。本席未改 validator。
 
 九份受影响产品分布：
 
@@ -194,4 +198,37 @@ include_cc=False)`：长线视图共 10 条（含内部结构线），其中四�
 
 ## 最终验证
 
-待填。
+- G-1 定向：`python -m pytest -p no:cacheprovider -q tests/test_reading_schema.py`
+  → **10 passed**。
+- G-2 受影响子集：**246 passed**。
+- G-3 受影响子集：**247 passed**。
+- 三项提交完成后、HEAD `35f13e6`，按要求只跑一次全量：
+  `python -m pytest -p no:cacheprovider -q`
+  → **2001 passed, 10 xfailed, 0 failed, 150 warnings in 399.00s (0:06:39)**；
+  相对基线净增 4 passed，`tests/test_gt_discipline.py` 已由全量实际覆盖。
+- 全量结束后共享工作树出现不属于本席提交的
+  `session_kickoff.md`、`src/validator/checks/{reading,schema}.py` 改动；本席未暂存、
+  未修改、未把它们计入上述全量结论，合流者须单独验证这些并发改动。
+
+## 提交与改动文件
+
+- `68fd6d0 7.31_PlanScaleOriginInstructionContract`
+- `421c9d3 7.31_CalibrationAxisConsistencyAndAnchors`
+- `35f13e6 7.31_AdditiveLongStructuralLineView`
+- `AI_agent/logs/reviews/execution/2026-07-31_reading_chain_gaps.md`
+- `skills/intake_pipeline/0_reading/{guide,pen_library,cv_toolbox}.md`
+- `src/agent/reading/cv_toolbox/{recipes,tools}.py`
+- `tests/{test_reading_schema,test_cv_toolbox}.py`
+
+## 请主控裁决 / review ask
+
+1. gate①：按工作树库存会新增阻断 **9/40（22.5%）**，按 tracked 子集是
+   **9/38（23.7%）**；请裁决 profile、迁移/豁免口径，再决定 validator hardening。
+2. residual warn→fail：会阻断 **5/17（29.4%）** 历史 sidecar，其中一条来自最终
+   `15/15` elevation windows 成功路径；请裁决保持 warn、全面 fail-closed，或仅最终
+   接受模式 fail-closed。
+3. 请复核并合流 per-run kickoff 与新 `scale_origin` 合约；共享工作树已有一份并发修改，
+   不属于本席提交。
+4. 请重点 adversarial review：0.30% 两轴阈值的合法端点边界、交点端点助手对非白底图的
+   稳健性、长线互证是否可能把强内部网格误标为外墙；新增视图保持 advisory/additive，
+   下游须显式选择，不应替换原 fragment 视图。
