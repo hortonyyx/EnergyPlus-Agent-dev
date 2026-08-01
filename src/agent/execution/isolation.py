@@ -670,7 +670,9 @@ def _write_kickoff(case_dir: Path, staging_root: Path, manifest: WorkspaceManife
         "(maximum 32 requests, all validated before any run). The legacy "
         "`python tools/run_cv_probe.py --request requests/<name>.json` form is "
         "also available. "
-        "Do the pilot first, then stop and wait for review feedback if provided.\n"
+        "Work straight through to the end on your own: no reviewer will answer you "
+        "mid-run. Finish the first plan image, run the guide's self-check against "
+        "it, then do the remaining images and the summary.\n"
     )
     if (staging_root / "prescan").exists():
         text += (

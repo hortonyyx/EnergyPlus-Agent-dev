@@ -22,7 +22,7 @@ Read it as a style/format anchor only; **do not rewrite it**.
   it outputs only semantic-category labels
 - `skills/intake_pipeline/0_reading/pen_library.md` — what to *do* with each recognized category:
   which pen to use, what to keep/log, and when door-healing applies
-- CV evidence tools: `skills/intake_pipeline/0_reading/cv_toolbox.md` — deterministic pixel probes required before drawing on clean vector CAD PNGs; for noisy scans, hand drawings, or other degraded inputs, see that file's robustness-profile exception
+- CV evidence tools: `skills/intake_pipeline/0_reading/cv_toolbox.md` — deterministic pixel probes; see that file for when the toolbox is required or deferred
 
 ## Non-negotiables — a checklist of WHAT to read, not a second copy of the rules
 
@@ -30,10 +30,6 @@ Do not memorize anything below; the durable text lives in the rule docs and must
 (a duplicated summary is exactly what drifted and degraded before). Each line just tells you which rule
 to go read:
 
-- **Calibrate and measure before writing meter coordinates on clean vector CAD PNGs** → `cv_toolbox.md`
-  §Disciplines (use dimension-chain extension-line intersections or ticks as calibration anchors; for
-  noisy scans, hand drawings, or other degraded inputs, follow that file's robustness-profile
-  exception).
 - **Error budget — read coordinates as final** → `guide.md` §0.1 (precise reading vs the *earned*
   redundant-dimension-channel escape hatch; prefer `null` over guessing; anchor against the testdata totals).
 - **One stroke per continuous wall; no over-segmentation** → `guide.md` §5 (window jambs / dimension
@@ -66,18 +62,10 @@ skip reason in `reading_summary.md`.
 
 ## Workflow
 
-**Nobody reviews your work mid-run and nobody will answer a question you ask.** You run this to
-completion on your own: every row of the image table above gets its output file, then the summary.
-If you find yourself about to stop and ask whether to continue, that is the signal to keep going.
-
 1. Read the three rule docs + the worked-example JSON (understand the style).
-2. Start with **one** plan image and finish it completely.
-3. Then run `guide.md` §6 self-check against that finished file, item by item, and **fix what the
-   self-check finds before going further**. Doing this on the first image is how a method error
-   (wrong calibration anchor, a whole field family left empty, ticks traced as partitions) gets
-   caught while it is still one image's worth of work instead of all of them.
-4. Do the remaining images (other plans + elevations + supplemental/section images), applying the
-   same §6 self-check to each finished file.
+2. Do **one** pilot image first.
+3. Stop and wait for review of that pilot; do not batch remaining images yet.
+4. After the pilot is approved, batch the rest (other plans + elevations + supplemental/section images).
 5. When all are done, write `0_reading/reading_summary.md`: per-image confidence self-assessment
    (high / medium / low, with reasons), which fields were repeatedly null / unknown, and your schema feedback.
 
@@ -89,4 +77,4 @@ If you find yourself about to stop and ask whether to continue, that is the sign
 - Do not produce IntakeOutput fields (zone_specs / surface_specs / fenestration_specs / …) — that is
   the downstream stages' job.
 
-Work straight through: first image, self-check, remaining images, summary. There is no review point.
+Do the pilot first, then stop and wait for feedback.
