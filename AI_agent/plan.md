@@ -86,9 +86,21 @@
 · 执行日志 [terra](logs/reviews/execution/2026-08-01_reading_unsupervised_enablement_terra.md)
 · commits `15cfcb8`(W1) / `0763164`(W3) / `2d2137e`(W4，主控代提交)
 
-## ✅ W4 返工 r1 + r2 已 CLOSED（08-01 同日续场，terra 施工 / 主控轻门）
+## ✅ 「无监督识图使能」批（W1+W3+W4）整批 CLOSED（08-01 同日续场）
 
-**全仓 2040 绿 + 1 红 → 2046 绿 + 10 xfail·零红**（基线 2028）。三个身份哈希主控独立重算逐位不变。
+**派工**：施工 GPT 侧 terra / 审 **GLM-5.2 跨家族对抗审**（用户当日拍板）/ 主控轻门。
+**全仓 2040 绿 + 1 红 → 2047 绿 + 10 xfail·零红**（基线 2028）。三个身份哈希主控独立重算逐位不变。
+
+**GLM 裁决 = APPROVE-WITH-CHANGES**（[裁决书](logs/reviews/verdict/2026-08-01_reading_unsupervised_enablement_glm.md)
+· [审阅单](logs/reviews/request/2026-08-01_reading_unsupervised_enablement_glm_review.md)）：
+20 条命题全成立 · 0 BLOCKER / 0 MAJOR / **1 MINOR（S-1）** / **1 NIT**；独立全量与主控逐字一致。
+**两条「要它证伪主控」的承重命题主动证伪均失败 ⇒ 反向坐实**（W3 零扩权 · r2 删冗余检查安全）。
+
+- **S-1（假锁，主控 neuter 漏扫的同族）**：merge 时那道「范围有没有在 build 之后被换掉」的守卫无锁 ——
+  主控独立复现（摘掉 ⇒ 244 全绿）。**主控的 neuter 只覆盖判卷侧六道、没扫隔离/合并链。**
+- **NIT-1**：探针语法样例用了真实楼宽；**经核非污染**，但仍换成显式占位值。
+- **r3（`a796c6b`）窄修两条** ⇒ 主控独立验真：摘掉 merge 门 ⇒ 恰好新锁一条红、零连带。
+  ⇒ **本批 CLOSED**，[窄修单](logs/reviews/request/2026-08-01_glm_findings_remediation_r3.md)。
 
 - **r1（`3b7d930`）= 修缺陷**：抽出 `resolve_frozen_reading_exam_scope(run_dir, base_manifest)` 作唯一只读消费者，
   `verify_view_manifest` 改为调用它（不留第二把尺子）；判卷侧不再需要 case 目录 ⇒ 硬编码路径 0 命中、
@@ -114,9 +126,9 @@ terra 的可达性回答（留在 provision 与 `cmd_judge`）对重画路径成
 否则施工方会照字面只给探针。配套：**主控轻门的 neuter 必须由主控自己跑**——本轮施工方自查表与主控独立复算逐条吻合，
 但那是验证之后才知道的。
 
-### 返工闭环后的顺序
-1. **GLM-5.2 跨家族对抗审**整批 W1+W3+W4（谁写谁不批；本批审的是「边界有没有被精确实现」= GLM 强项）。
-2. **W5 = 减卷无监督两臂**（sm24 声明 `[1f_view, South_view]`），拿「Haiku 无监督 + 真的用了工具箱」那一格的数
+### 本批闭环后的顺序（① 已完成）
+1. ~~**GLM-5.2 跨家族对抗审**整批 W1+W3+W4~~ **✅ 已做完，见上方本批 CLOSED 条**。
+2. **⛔ 下一站 = W5 = 减卷无监督两臂**（sm24 声明 `[1f_view, South_view]`），拿「Haiku 无监督 + 真的用了工具箱」那一格的数
    —— **这是整条线一直缺的那个数**。
 3. 用 W5 的数回答：pilot 取消后质量自检靠什么承接 / 盲重抽预算设几轮。
 4. **W2「没量过就整轮打回」的门**（本批已明确移出，转窄设计轮）：

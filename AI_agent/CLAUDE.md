@@ -101,11 +101,35 @@ EnergyPlus 经 `WorkflowTool.run_simulation`（eppy + ConverterManager，idfpy �
 
 ## 2. 当前开发状态
 
-- **分支** `6.15_ValidationArchM0toM4`（已推 origin）；测试 **2046 绿 + 10 strict xfail·零红**
-  （08-01 W4 那 1 红已随返工 r1/r2 闭环，见下条；xfail 十条含 2 个 legacy golden sm20/run_2026-06-15、
+- **分支** `6.15_ValidationArchM0toM4`（已推 origin）；测试 **2047 绿 + 10 strict xfail·零红**
+  （08-01 W4 那 1 红已随返工 r1/r2/r3 闭环，见下条；xfail 十条含 2 个 legacy golden sm20/run_2026-06-15、
   sm21/run_2026-06-16_opus 无编排账本→run_state=incomplete；**B5 Phase C 延后的 6 个
   `test_output_coordinate_identity.py` E4 build-proof xfail 已在 Phase D 复原为真绿**，该文件零 xfail）。
-- **✅ 最新（2026-08-01 Opus 5 主控·同日续场）= W4 返工 r1/r2 CLOSED**（`3b7d930` → `2cb1f82`·**2040 绿 + 1 红 → 2046 绿 + 10 xfail·零红**·施工 terra / 主控轻门；**GLM 跨家族对抗审仍待派**）：
+- **✅ 最新（2026-08-01 Opus 5 主控·同日续场）= 「无监督识图使能」批（W1+W3+W4）整批 CLOSED**
+  （`3b7d930` → `2cb1f82` → `a796c6b`·**2040 绿 + 1 红 → 2047 绿 + 10 xfail·零红**·
+  **施工 GPT 侧 terra / 审 GLM-5.2 跨家族对抗审 = APPROVE-WITH-CHANGES / 主控轻门**）：
+  - **⭐ GLM 审 = 20 条命题全部成立（A 4/4 · B 6/6 · C 10/10）· 0 BLOCKER / 0 MAJOR / 1 MINOR / 1 NIT**，
+    独立全量 2046 与主控逐字一致，工作树零改动零 commit，破坏性探针全在 `/tmp`。
+    **审阅单按 GLM 强项写成验证性清单**（每条写死「验什么 / 什么算不成立」），
+    **并特意留两条「要它来证伪主控」的承重命题 —— 它主动证伪均失败 ⇒ 反向坐实**：
+    **B1** 拿一个既不在工具名表、也不在真授权表里的假工具去试 ⇒ 守卫放行、真授权表拒绝
+    ⇒ `PROBE_TOOL_NAMES` **确非第二张授权表**（W3「零扩权」声称成立）；
+    **C3** 构造两种「两个哈希不一致但校验通过」的篡改 ⇒ **均被挡** ⇒ r2 删那道冗余检查安全。
+  - **⛔ GLM 清单外自主发现 S-1（MINOR·假锁）= 主控 neuter 漏扫的同族**：W4 还引入了**第二道**考试范围守卫
+    —— merge 读图产物时校验「范围有没有在 build 之后被换掉」（`isolation.py:340`）—— **同样无锁**。
+    **主控独立复现且跑得更宽**：摘掉那三行，`test_isolation` + `test_view_manifest_generator` 共 **244 全绿**；
+    既有测试只断言 binding **记录了**范围哈希、**没断言「改了会被拒」**。
+    **主控的 neuter 只覆盖了判卷侧那六道、没扫到隔离/合并链 ⇒ 跨家族对抗审的价值再证：
+    它按主控写的清单验完，还从清单外找到了同族漏网。**
+  - **NIT-1（卫生）**：探针错误提示的语法样例用了真实楼宽 `15.0` / `overall_width`（worked-example 那栋楼的真宽度）。
+    **经核非污染**（与目标 sm24 无关；**主控用结构化遍历复核 = 0 命中** ——
+    主控最初用裸正则查出的「15.0」实为命中 sha256 十六进制串里的 `15`，**如实更正**）。
+    但仍改成一看就假的占位值：**拿任何真实建筑的真实尺寸当样例，等于在赌以后的目标 case 不会撞上这个数。**
+  - **r3（`a796c6b`）= 两条 finding 窄修**：补 merge 拒绝锁 + 换占位值。**主控独立验真：摘掉那道 merge 门 ⇒
+    恰好 `test_merge_rejects_reading_exam_scope_changed_since_build` 一条红、零连带**；
+    独立全量 **2047 passed / 10 xfailed / 0 failed**。**⇒ 本批 CLOSED。**
+  - **⭐ 该锁的构造值得记**：它把声明**和**冻结件**一起**改成一个「自洽的新范围」（resolver 因此照常放行），
+    **靠 build 时记进 binding 的旧哈希把它拒掉** —— 即**单靠 resolver 挡不住的那种「考中改卷」，正是这道门的存在理由**。
   - **r1 = 修缺陷**。修法比原实现更紧：抽出 `resolve_frozen_reading_exam_scope(run_dir, base_manifest)` 作**唯一**只读消费者，
     `verify_view_manifest` 改为调用它（**不留第二把尺子**）；判卷侧因此**根本不需要 case 目录** —— 冻结件自带
     `base_view_manifest_sha256`，与判卷已加载的那份 base 直接对账 ⇒ `--base-dir` 恢复可用、未声明 scope 的 run 逐字节不变。
