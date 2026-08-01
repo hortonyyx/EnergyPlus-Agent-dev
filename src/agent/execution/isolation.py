@@ -29,6 +29,7 @@ from src.agent.execution.manifest import (
 )
 from src.agent.execution.view_manifest import (
     ViewManifest,
+    ReadingExamScope,
     build_view_manifest,
     derive_input_inventory,
     verify_view_manifest,
@@ -214,6 +215,13 @@ def build_isolation_workspace(
             "case_metadata_sha256": view_manifest.case_metadata_sha256,
             "image_sha256": {e.input_id: e.image_sha256 for e in view_manifest.required_entries()},
         }
+        if verification.exam_scope is not None:
+            binding.update(
+                {
+                    "reading_exam_scope_sha256": verification.exam_scope.content_sha256,
+                    "reading_exam_scope_input_ids": verification.exam_scope.input_ids,
+                }
+            )
 
     manifest = WorkspaceManifest(
         staging_root=staging_root, case_dir=case_dir, run_dir=run_dir,
@@ -226,7 +234,8 @@ def build_isolation_workspace(
     # instruction to write here is immediately actionable.
     (staging_root / "requests").mkdir(parents=True, exist_ok=True)
 
-    _copy_case_data(case_dir, staging_root, manifest, view_manifest)
+    scope = verification.exam_scope if run_dir is not None else None
+    _copy_case_data(case_dir, staging_root, manifest, view_manifest, scope)
     _copy_reading_skill(staging_root, manifest)
     _copy_worked_example(staging_root, manifest)
     _copy_cv_toolbox(staging_root, manifest)
@@ -234,7 +243,7 @@ def build_isolation_workspace(
     _write_kickoff(case_dir, staging_root, manifest)
     _write_guard_and_wrappers(staging_root, manifest)
     _write_settings(staging_root, manifest)
-    _write_input_inventory(staging_root, manifest, view_manifest)
+    _write_input_inventory(staging_root, manifest, view_manifest, scope)
     _write_binding(staging_root, manifest, binding)
     manifest.save()
     _assert_manifest_clean(manifest)
@@ -328,12 +337,16 @@ def merge_isolated_output(
             "built (case_data image(s) or the committed view manifest changed)"
         )
 
+    if binding.get("reading_exam_scope_sha256") != (
+        verification.exam_scope.content_sha256 if verification.exam_scope else None
+    ):
+        raise ValueError("merge refused: the reading exam scope changed since this workspace was built")
     payload, out_text = _load_isolated_views(
-        output_path, staging_root / "out", verification.on_disk
+        output_path, staging_root / "out", verification.on_disk, verification.exam_scope
     )
     views = payload["views"]
 
-    report = check_reading_stage(verification.on_disk, views)
+    report = check_reading_stage(verification.on_disk, views, exam_scope=verification.exam_scope)
 
     with _merge_lock(run_dir):
         stage_dir = run_dir / STAGE
@@ -434,7 +447,8 @@ def clean_spawn_env(staging_root: Path) -> dict[str, str]:
 
 
 def _copy_case_data(
-    case_dir: Path, staging_root: Path, manifest: WorkspaceManifest, view_manifest: ViewManifest
+    case_dir: Path, staging_root: Path, manifest: WorkspaceManifest, view_manifest: ViewManifest,
+    scope: ReadingExamScope | None = None,
 ) -> None:
     """Copy only what the reader is entitled to see (§2 reader-visibility
     铁律): every ``required_view`` image + ``testdata_prompt.json``. An image
@@ -467,18 +481,31 @@ def _copy_case_data(
                 }
             )
             continue
+        required_by_basename = {
+            entry.source_image.rsplit("/", 1)[-1]: entry for entry in view_manifest.required_entries()
+        }
+        required = required_by_basename.get(path.name)
+        if required is None:
+            continue
+        if scope is not None and required.input_id not in scope.input_ids:
+            manifest.excluded_from_staging.append(
+                {"input_id": required.input_id, "source_image": required.source_image,
+                 "excluded_reason": "outside_reading_exam_scope", "source": scope.source}
+            )
+            continue
         _copy_file(path, dest / path.name, "case_data", manifest)
 
 
 def _write_input_inventory(
-    staging_root: Path, manifest: WorkspaceManifest, view_manifest: ViewManifest
+    staging_root: Path, manifest: WorkspaceManifest, view_manifest: ViewManifest,
+    scope: ReadingExamScope | None = None,
 ) -> None:
     """§2 staging projection: reader-visible identity only (input_id, file,
     view_type, declared_direction_token, floor_ref, expected_output_id) — no
     denominator/negative-evidence content. Lives at staging ROOT (not under
     ``out/``), so the existing Write-allow list already makes it read-only to
     the reader without any additional guard logic."""
-    payload = derive_input_inventory(view_manifest)
+    payload = derive_input_inventory(view_manifest, scope)
     text = json.dumps(payload, indent=2, sort_keys=True, ensure_ascii=False)
     _write_generated(staging_root / "input_inventory.json", text, "input_inventory", manifest)
 
@@ -502,7 +529,8 @@ def _read_binding(staging_root: Path) -> dict:
 
 
 def _load_isolated_views(
-    output_path: Path, out_dir: Path, view_manifest: ViewManifest
+    output_path: Path, out_dir: Path, view_manifest: ViewManifest,
+    scope: ReadingExamScope | None = None,
 ) -> tuple[dict, str]:
     """Return ``(payload, out_text)`` where ``payload`` is ``{'views': {...}}``.
 
@@ -531,7 +559,10 @@ def _load_isolated_views(
             )
         return candidate, out_text
 
-    expected_ids = set(view_manifest.expected_output_ids())
+    expected_ids = {
+        output_id for output_id, input_id in view_manifest.expected_output_ids().items()
+        if scope is None or input_id in scope.input_ids
+    }
     per_image = {p.stem: p for p in sorted(out_dir.glob("*_view.json"))}
     missing = sorted(eid for eid in expected_ids if eid not in per_image)
     if missing:

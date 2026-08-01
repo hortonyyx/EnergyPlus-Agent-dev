@@ -531,6 +531,45 @@ def test_merge_empty_views_is_filed_but_not_accepted(tmp_path: Path):
     assert load_run_manifest(run_dir).accepted("0_reading") is None
 
 
+def test_formal_scope_stages_only_declared_images_and_records_out_of_scope_views(tmp_path: Path):
+    """W4: scope is fixed before build; missing an in-scope view still blocks."""
+    import shutil
+
+    case_dir = tmp_path / "sm24_copy"
+    shutil.copytree("case_tests/e2e_tests/sm24_anchor", case_dir)
+    run_dir = tmp_path / "scope_run"
+    run_dir.mkdir()
+    (run_dir / "run_config.yaml").write_text(
+        "reading_exam_scope:\n"
+        "  input_ids: [1f_view, South_view]\n"
+        "  reason: focused reading exam\n",
+        encoding="utf-8",
+    )
+    provision_view_manifest(case_dir, run_dir)
+
+    workspace = build_isolation_workspace(case_dir, run_dir=run_dir, staging_root=tmp_path / "staging")
+    staged_images = sorted(path.name for path in (workspace.staging_root / "case_data").glob("*.png"))
+    inventory = json.loads((workspace.staging_root / "input_inventory.json").read_text(encoding="utf-8"))
+    binding = json.loads((workspace.staging_root / "binding.json").read_text(encoding="utf-8"))
+
+    assert staged_images == ["1f_view.png", "South_view.png"]
+    assert [item["input_id"] for item in inventory] == ["1f_view", "South_view"]
+    assert binding["reading_exam_scope_input_ids"] == ["1f_view", "South_view"]
+    assert binding["reading_exam_scope_sha256"]
+
+    output = workspace.staging_root / "out/output.json"
+    output.write_text(json.dumps({"views": {"1f_view": _real_views()["1f_view"]}}), encoding="utf-8")
+    attempt_dir = merge_isolated_output(workspace.staging_root, run_dir, output_path=output)
+    checks = json.loads((attempt_dir / "checks.json").read_text(encoding="utf-8"))["results"]
+    coverage = next(row for row in checks if row["check_id"] == "reading.view_manifest_coverage")
+    assert coverage["status"] == "fail"
+    assert coverage["evidence"]["missing_expected_output_ids"] == ["South_view"]
+    out_of_scope = [row for row in checks if ".out_of_scope." in row["check_id"]]
+    assert {row["evidence"]["input_id"] for row in out_of_scope} == {"East_view", "North_view", "West_view"}
+    assert all(row["status"] == "not_applicable" for row in out_of_scope)
+    assert all(row["evidence"]["source"] == "run_config.yaml:reading_exam_scope" for row in out_of_scope)
+
+
 def test_merge_retries_next_attempt_without_overwrite(tmp_path: Path):
     run_dir = tmp_path / "case_run"
     run_dir.mkdir()

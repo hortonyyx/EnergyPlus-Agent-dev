@@ -452,6 +452,33 @@ def test_denominator_constructor_accepts_only_canonical_trusted_exclusions():
         )
 
 
+def test_score_binding_consumer_scope_shrinks_denominator_without_mutating_source_bindings():
+    from src.agent.judge.reading_typed_adapter import derive_reading_denominator_v1
+    from src.agent.judge.score_inputs import select_score_view_bindings
+
+    request = _trusted_request(_real_payload())
+    full = request["score_bindings"]
+    scoped = select_score_view_bindings(
+        bindings=full, input_ids={"1f_view", "South_view"}
+    )
+    _, full_atoms, _, _ = derive_reading_denominator_v1(
+        request["gt"], request["base_view_manifest"], full, ()
+    )
+    _, scoped_atoms, _, _ = derive_reading_denominator_v1(
+        request["gt"], request["base_view_manifest"], scoped, ()
+    )
+
+    assert {binding.input_id for binding in full.bindings} == {
+        "1f_view", "East_view", "North_view", "South_view", "West_view"
+    }
+    assert {binding.input_id for binding in scoped.bindings} == {"1f_view", "South_view"}
+    assert {source for atom in scoped_atoms for source in atom.source_input_ids} <= {
+        "1f_view", "South_view"
+    }
+    assert len(scoped_atoms) < len(full_atoms)
+    assert scoped.content_sha256 != full.content_sha256
+
+
 def test_v9_cache_hits_exact_identity_and_treats_v8_as_miss(tmp_path):
     from scripts.tool_scripts import run_stage
     from src.agent.judge.score_schema import load_cached_score

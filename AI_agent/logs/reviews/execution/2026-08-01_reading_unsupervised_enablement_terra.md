@@ -68,3 +68,49 @@ The focused locks cover the six groups of real 2026-08-01 denials: bare `px_m_ca
 ### Under-specified boundaries
 
 None. I chose not to authorize `mkdir` or `find`: the existing isolated workspace creates the only writable directories, and the manifest/copied `case_data` already supplies the discovery surface. This is a usability receipt improvement, not a permission expansion.
+
+## W4 — run-level reading exam scope
+
+### Changed and why
+
+- Added the optional `reading_exam_scope` declaration to a run's `run_config.yaml`, with exactly `input_ids` and a non-empty `reason`. It contains no answer data.
+- At provisioning, a declared scope is frozen into `_run/reading_exam_scope.json`, bound to the unchanged base view-manifest hash and to a canonical declaration hash. Subsequent removal, change, corruption, or mismatch fails verification/build/merge.
+- Unscoped runs do not receive a new scope artifact or new binding keys; their manifests, isolation bindings, input inventory, and coverage result bytes retain their previous shape.
+- A scoped formal isolation build copies and inventories only the declared images. Coverage continues to BLOCK a missing declared image, while every excluded view is recorded as `not_applicable` with its input id and `run_config.yaml:reading_exam_scope` source.
+- Judge score bindings are materialized as a hash-valid in-memory subset at the consumer. The signed/read-only `judge_score_bindings.json` is not modified; denominator derivation consequently contains only the declared plan/elevation bindings.
+
+### Evidence commands and outputs
+
+```text
+$ python scripts/tool_scripts/affected_tests.py --changed src/agent/execution/view_manifest.py src/agent/execution/isolation.py src/validator/checks/view_manifest.py src/agent/judge/score_inputs.py scripts/tool_scripts/run_stage.py tests/test_view_manifest_generator.py tests/test_isolation.py tests/test_reading_typed_scoring_slice1.py
+SCOPE: SUBSET
+python -m pytest -p no:cacheprovider -q [affected test list]
+跑测声明：受影响子集 = [affected test list]（依据 affected_tests.py；该改变经 src/agent 枢纽传递，选中 100+ 个测试文件）
+
+$ python -m pytest -p no:cacheprovider -q tests/test_view_manifest_generator.py tests/test_check_view_manifest_coverage.py tests/test_isolation.py tests/test_c2_b4b_score_inputs.py tests/test_reading_typed_scoring_slice1.py tests/test_run_stage_flow.py
+305 passed, 11 warnings in 72.33s (0:01:12)
+
+$ python -m pytest -p no:cacheprovider -q -n0 tests/test_isolation.py::test_formal_build_writes_binding_and_input_inventory tests/test_view_manifest_generator.py::test_run_level_exam_scope_is_frozen_without_changing_case_manifest tests/test_isolation.py::test_formal_scope_stages_only_declared_images_and_records_out_of_scope_views tests/test_reading_typed_scoring_slice1.py::test_score_binding_consumer_scope_shrinks_denominator_without_mutating_source_bindings
+4 passed in 21.57s
+
+$ [read-only sm24 identity inspection]
+case_metadata_sha256=f2efff8614ce6ddce9f975e811435a4936720f37df72cda538e4cd0cf8656701
+base_view_manifest_sha256=459513f1377496c2cf79c81f5ecc6860d90408e99053e609f46a977159847b8a
+gt_content_sha256=dd32135d81b0ea6eb34aaaec1675840cc46090b0b8eb99c7b140a7a4afd479f2
+```
+
+The W4 tests use a temporary copy of `sm24_anchor` with the declared `[1f_view, South_view]` scope. They prove only those two PNGs reach staging; an absent in-scope `South_view` remains a coverage BLOCK; `East_view`, `North_view`, and `West_view` are explicit `not_applicable` scope records; and the consumer binding/denominator excludes the other elevations. The identity values above were read without modifying any case, GT, or historical run artifact.
+
+### Under-specified boundaries
+
+None. I selected `run_config.yaml` because it is already run-local orchestration metadata; freezing its narrow declaration under `_run/` prevents a live config edit from becoming an in-progress regrade. The scope is intentionally a consumer subset, not a rewritten case manifest or GT artifact.
+
+### Delivery blocker
+
+At the W4 commit boundary, `git commit -m "feat(reading): support frozen run exam scopes"` failed with:
+
+```text
+fatal: Unable to create '/workspaces/EnergyPlus-Agent-dev/.git/index.lock': File exists.
+```
+
+Read-only inspection found a zero-byte `.git/index.lock` with no owning Git process (`fuser` returned no PID). Removing a stale lock is a deletion, and this dispatch separately forbids deletion without authorization. W4 remains staged and uncommitted; the required final full-suite run and batch declaration are paused pending authorization to remove this explicit stale lock.

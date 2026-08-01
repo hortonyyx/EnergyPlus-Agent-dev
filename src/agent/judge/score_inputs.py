@@ -91,8 +91,13 @@ def load_score_view_bindings(path: Path | str, *, expected_case_id: str, expecte
     return result
 
 
-def validate_score_view_bindings(*, bindings: JudgeScoreViewBindingsV1, base: ViewManifest) -> None:
+def validate_score_view_bindings(*, bindings: JudgeScoreViewBindingsV1, base: ViewManifest,
+                                 input_ids: set[str] | None = None) -> None:
     required = {entry.input_id: entry for entry in base.required_entries() if entry.view_type in {"plan", "elevation"}}
+    if input_ids is not None:
+        if not input_ids or not input_ids <= set(required):
+            raise ScoreContractError("score_view_binding_invalid", "scoring.view_bindings", context={"scope": "invalid"})
+        required = {input_id: entry for input_id, entry in required.items() if input_id in input_ids}
     declared = {binding.input_id: binding for binding in bindings.bindings}
     if set(declared) != set(required):
         raise ScoreContractError("score_view_binding_invalid", "scoring.view_bindings", context={"required": sorted(required), "declared": sorted(declared)})
@@ -112,6 +117,18 @@ def validate_score_view_bindings(*, bindings: JudgeScoreViewBindingsV1, base: Vi
                     raise ScoreContractError("score_direction_unresolved", "scoring.view_bindings", context={"input_id": input_id})
             elif entry.direction_semantics not in {"true_azimuth", "unknown"}:
                 raise ScoreContractError("score_direction_unresolved", "scoring.view_bindings", context={"input_id": input_id})
+
+
+def select_score_view_bindings(*, bindings: JudgeScoreViewBindingsV1,
+                               input_ids: set[str]) -> JudgeScoreViewBindingsV1:
+    """Derive a hash-valid consumer subset; never modify judge-owned source JSON."""
+    selected = tuple(binding for binding in bindings.bindings if binding.input_id in input_ids)
+    if {binding.input_id for binding in selected} != input_ids:
+        raise ScoreContractError("score_view_binding_invalid", "scoring.view_bindings", context={"scope": "unknown_input"})
+    payload = bindings.model_dump(mode="python", exclude={"content_sha256"})
+    payload["bindings"] = tuple(binding.model_dump(mode="python") for binding in selected)
+    payload["content_sha256"] = canonical_sha256(payload)
+    return JudgeScoreViewBindingsV1.model_validate(payload)
 
 
 def validate_score_view_bindings_against_gt(*, bindings: JudgeScoreViewBindingsV1, base: ViewManifest,
@@ -337,7 +354,11 @@ def build_reading_score_manifest(
 
 def materialize_va_elevation_bindings(*, score_bindings: JudgeScoreViewBindingsV1,
                                       effective_manifest: ViewManifest) -> tuple[ElevationViewBindingV1, ...]:
-    validate_score_view_bindings(bindings=score_bindings, base=effective_manifest)
+    validate_score_view_bindings(
+        bindings=score_bindings,
+        base=effective_manifest,
+        input_ids={binding.input_id for binding in score_bindings.bindings},
+    )
     output = []
     for binding in score_bindings.bindings:
         if isinstance(binding, ElevationScoreViewBindingV1):

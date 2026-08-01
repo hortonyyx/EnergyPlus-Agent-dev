@@ -1326,9 +1326,11 @@ def _grade_typed_attempt_artifacts(stage: str, case: str, attempt_dir: Path, doc
                                    run_profile: str = "exploratory") -> dict:
     """Real v3 run-stage assembler: all scorer policy stays in score_service."""
     from src.agent.execution.manifest import attempt_index_of, hash_text
-    from src.agent.execution.view_manifest import ViewManifest
+    from src.agent.execution.view_manifest import ViewManifest, verify_view_manifest
     from src.agent.judge.score_config import load_judge_score_config
-    from src.agent.judge.score_inputs import load_completeness_overlay, load_score_view_bindings
+    from src.agent.judge.score_inputs import (load_completeness_overlay,
+                                              load_score_view_bindings,
+                                              select_score_view_bindings)
     from src.agent.judge.score_schema import (build_product_identity, commit_score_artifacts,
                                                load_cached_score, load_score_gt_identity)
     from src.agent.judge.reading_typed_adapter import identify_reading_contract
@@ -1399,6 +1401,18 @@ def _grade_typed_attempt_artifacts(stage: str, case: str, attempt_dir: Path, doc
     bindings = load_score_view_bindings(bindings_path, expected_case_id=document.case,
         expected_gt_content_sha256=gt_identity.content_sha256, expected_case_metadata_sha256=base.case_metadata_sha256,
         expected_base_view_manifest_sha256=base.content_sha256)
+    if stage == "0_reading":
+        scope_verification = verify_view_manifest(
+            _REPO_ROOT / "case_tests" / "e2e_tests" / case,
+            attempt_dir.parents[2],
+        )
+        if not scope_verification.ok:
+            raise RuntimeError(f"reading exam scope verification failed: {scope_verification.reason}")
+        if scope_verification.exam_scope is not None:
+            bindings = select_score_view_bindings(
+                bindings=bindings,
+                input_ids=set(scope_verification.exam_scope.input_ids),
+            )
     overlay = load_completeness_overlay(overlay_path if overlay_path.exists() else None,
         expected_case_id=document.case, expected_gt_content_sha256=gt_identity.content_sha256,
         expected_base_view_manifest_sha256=base.content_sha256)

@@ -18,8 +18,8 @@ only guards honesty/identity (miss, extra, manifest drift).
 
 from __future__ import annotations
 
-from src.agent.execution.view_manifest import ViewManifest
-from src.validator.checks.schema import CheckLayer, CheckReport, RunProfile
+from src.agent.execution.view_manifest import ReadingExamScope, ViewManifest
+from src.validator.checks.schema import CheckLayer, CheckReport, CheckStatus, RunProfile
 
 CHECK_ID = "reading.view_manifest_coverage"
 
@@ -28,6 +28,7 @@ def check_reading_stage(
     manifest: ViewManifest | None,
     produced: dict[str, dict],
     *,
+    exam_scope: ReadingExamScope | None = None,
     dimensioned_stems: set[str] | None = None,
     manifest_missing_reason: str = "view manifest missing or unreadable",
     capability_profile: str = "rectangular",
@@ -51,6 +52,7 @@ def check_reading_stage(
     rep = check_view_manifest_coverage(
         manifest,
         set(produced),
+        exam_scope=exam_scope,
         manifest_missing_reason=manifest_missing_reason,
         capability_profile=capability_profile,
         run_profile=run_profile,
@@ -93,6 +95,7 @@ def check_view_manifest_coverage(
     manifest: ViewManifest | None,
     produced_stems: set[str],
     *,
+    exam_scope: ReadingExamScope | None = None,
     manifest_missing_reason: str = "view manifest missing or unreadable",
     capability_profile: str = "rectangular",
     run_profile: RunProfile = "exploratory",
@@ -107,7 +110,24 @@ def check_view_manifest_coverage(
         rep.add_fail(CHECK_ID, CheckLayer.INVARIANT, manifest_missing_reason)
         return rep
 
-    expected = manifest.expected_output_ids()  # expected_output_id -> input_id
+    all_expected = manifest.expected_output_ids()  # expected_output_id -> input_id
+    if exam_scope is None:
+        expected = all_expected
+    else:
+        if exam_scope.base_view_manifest_sha256 != manifest.content_sha256:
+            rep.add_fail(CHECK_ID, CheckLayer.INVARIANT, "reading exam scope is not bound to this view manifest")
+            return rep
+        selected = set(exam_scope.input_ids)
+        expected = {output_id: input_id for output_id, input_id in all_expected.items() if input_id in selected}
+        for output_id, input_id in sorted(all_expected.items()):
+            if input_id not in selected:
+                rep.add(
+                    f"{CHECK_ID}.out_of_scope.{output_id}",
+                    CheckStatus.NOT_APPLICABLE,
+                    CheckLayer.INVARIANT,
+                    message="view is outside this run's declared reading exam scope",
+                    evidence={"input_id": input_id, "source": exam_scope.source},
+                )
     expected_ids = set(expected)
     missing = sorted(expected_ids - produced_stems)
     extra = sorted(produced_stems - expected_ids)

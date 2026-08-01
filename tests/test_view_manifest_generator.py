@@ -22,6 +22,7 @@ from src.agent.correction.claims import (
 )
 from src.agent.execution.manifest import hash_bytes, hash_file
 from src.agent.execution.view_manifest import (
+    READING_EXAM_SCOPE_NAME,
     VIEW_MANIFEST_NAME,
     build_view_manifest,
     provision_view_manifest,
@@ -172,6 +173,44 @@ def test_provision_raises_on_mid_run_case_data_change(tmp_path: Path):
     img = case_dir / "case_data" / "1f_view.png"
     img.write_bytes(_tiny_png() + b"\x00")
     with pytest.raises(ValueError, match="drift"):
+        provision_view_manifest(case_dir, run_dir)
+
+
+def test_run_level_exam_scope_is_frozen_without_changing_case_manifest(tmp_path: Path):
+    """A declared subset is run metadata, not a mutation of case identity."""
+    case_dir = tmp_path / "sm24_copy"
+    import shutil
+
+    shutil.copytree(SM24, case_dir)
+    run_dir = tmp_path / "run"
+    run_dir.mkdir()
+    (run_dir / "run_config.yaml").write_text(
+        "reading_exam_scope:\n"
+        "  input_ids: [1f_view, South_view]\n"
+        "  reason: focused reading exam\n",
+        encoding="utf-8",
+    )
+    before = build_view_manifest(case_dir)
+
+    provisioned = provision_view_manifest(case_dir, run_dir)
+    verification = verify_view_manifest(case_dir, run_dir)
+
+    assert provisioned.content_sha256 == before.content_sha256
+    assert provisioned.case_metadata_sha256 == before.case_metadata_sha256
+    assert verification.ok
+    assert verification.exam_scope is not None
+    assert verification.exam_scope.input_ids == ["1f_view", "South_view"]
+    assert verification.exam_scope.base_view_manifest_sha256 == before.content_sha256
+    assert (run_dir / "_run" / READING_EXAM_SCOPE_NAME).is_file()
+
+    (run_dir / "run_config.yaml").write_text(
+        "reading_exam_scope:\n"
+        "  input_ids: [1f_view, South_view]\n"
+        "  reason: changed after start\n",
+        encoding="utf-8",
+    )
+    assert not verify_view_manifest(case_dir, run_dir).ok
+    with pytest.raises(ValueError, match="scope drift"):
         provision_view_manifest(case_dir, run_dir)
 
 

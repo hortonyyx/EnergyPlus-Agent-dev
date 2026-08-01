@@ -31,6 +31,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Annotated, Literal, Union
 
+import yaml
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 from src.agent.correction.claims import (
@@ -44,6 +45,7 @@ from src.agent.execution.manifest import Hex64, hash_bytes, hash_file, hash_obj
 from src.agent.execution.run_meta import run_meta_path
 
 VIEW_MANIFEST_NAME = "view_manifest.json"
+READING_EXAM_SCOPE_NAME = "reading_exam_scope.json"
 VIEW_MANIFEST_SCHEMA_VERSION = "1"
 GENERATOR_VERSION = "1"
 COMPLETENESS_RULESET_VERSION = "1"
@@ -478,6 +480,35 @@ class ViewManifest(BaseModel):
         return {e.expected_output_id: e.input_id for e in self.required_entries()}
 
 
+class ReadingExamScope(BaseModel):
+    """Run-local, pre-start declaration of the views this reading exam covers.
+
+    It deliberately contains only input identity plus a human reason.  The base
+    manifest remains the case identity; this is a frozen consumption subset.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    schema_version: Literal["1"] = "1"
+    source: Literal["run_config.yaml:reading_exam_scope"]
+    base_view_manifest_sha256: Hex64
+    input_ids: list[str]
+    reason: str
+    declaration_sha256: Hex64
+    content_sha256: Hex64
+
+    @model_validator(mode="after")
+    def _canonical_and_hash_consistent(self) -> "ReadingExamScope":
+        if not self.input_ids or self.input_ids != sorted(set(self.input_ids)):
+            raise ValueError("input_ids must be a non-empty sorted unique list")
+        if not self.reason:
+            raise ValueError("reason must be non-empty")
+        expected = hash_obj({k: v for k, v in self.model_dump(mode="json").items() if k != "content_sha256"})
+        if self.content_sha256 != expected:
+            raise ValueError("content_sha256 does not match the canonical payload hash")
+        return self
+
+
 def _content_hash_of_payload(payload: dict) -> str:
     """Hash of the canonical JSON payload, excluding ``content_sha256`` itself."""
     return hash_obj({k: v for k, v in payload.items() if k != "content_sha256"})
@@ -486,6 +517,77 @@ def _content_hash_of_payload(payload: dict) -> str:
 def compute_content_hash(manifest: ViewManifest) -> str:
     """Canonicalized-payload hash (excludes ``content_sha256`` itself, §3.0)."""
     return _content_hash_of_payload(manifest.model_dump(mode="json"))
+
+
+def _scope_content_hash(payload: dict) -> str:
+    return hash_obj({k: v for k, v in payload.items() if k != "content_sha256"})
+
+
+def _declared_reading_exam_scope(run_dir: Path, manifest: ViewManifest) -> ReadingExamScope | None:
+    """Strictly read the optional run-level subset declaration.
+
+    `load_run_config` is intentionally soft for historical pipeline settings;
+    an exam scope is different: if present it changes what is being examined and
+    must therefore fail closed on malformed data rather than disappear.
+    """
+    config_path = run_dir / "run_config.yaml"
+    if not config_path.exists():
+        return None
+    try:
+        raw = yaml.safe_load(config_path.read_text(encoding="utf-8")) or {}
+    except Exception as exc:  # noqa: BLE001 - scope declarations are fail-closed
+        raise ValueError(f"reading exam scope config is unreadable: {exc}") from exc
+    if not isinstance(raw, dict) or "reading_exam_scope" not in raw:
+        return None
+    declaration = raw["reading_exam_scope"]
+    if not isinstance(declaration, dict) or set(declaration) != {"input_ids", "reason"}:
+        raise ValueError("reading_exam_scope must contain exactly input_ids and reason")
+    input_ids = declaration["input_ids"]
+    reason = declaration["reason"]
+    if not isinstance(input_ids, list) or not input_ids or not all(isinstance(item, str) and item for item in input_ids):
+        raise ValueError("reading_exam_scope.input_ids must be a non-empty list of strings")
+    if input_ids != sorted(set(input_ids)):
+        raise ValueError("reading_exam_scope.input_ids must be sorted and unique")
+    if not isinstance(reason, str) or not reason:
+        raise ValueError("reading_exam_scope.reason must be a non-empty string")
+    available = {entry.input_id for entry in manifest.required_entries()}
+    unknown = sorted(set(input_ids) - available)
+    if unknown:
+        raise ValueError(f"reading_exam_scope.input_ids are not required views: {unknown}")
+    declaration_sha256 = hash_obj(declaration)
+    payload = {
+        "schema_version": "1",
+        "source": "run_config.yaml:reading_exam_scope",
+        "base_view_manifest_sha256": manifest.content_sha256,
+        "input_ids": input_ids,
+        "reason": reason,
+        "declaration_sha256": declaration_sha256,
+    }
+    payload["content_sha256"] = _scope_content_hash(payload)
+    return ReadingExamScope.model_validate(payload)
+
+
+def _canonical_reading_exam_scope_json(scope: ReadingExamScope) -> str:
+    return json.dumps(scope.model_dump(mode="json"), indent=2, sort_keys=True, separators=(",", ": "), ensure_ascii=False)
+
+
+def _provision_reading_exam_scope(case_dir: Path, run_dir: Path, manifest: ViewManifest) -> ReadingExamScope | None:
+    expected = _declared_reading_exam_scope(run_dir, manifest)
+    path = run_meta_path(run_dir, READING_EXAM_SCOPE_NAME, for_write=expected is not None)
+    if expected is None:
+        if path.exists():
+            raise ValueError("reading exam scope drift: frozen scope exists but run_config.yaml no longer declares it")
+        return None
+    if path.exists():
+        try:
+            actual = ReadingExamScope.model_validate_json(path.read_text(encoding="utf-8"))
+        except Exception as exc:  # noqa: BLE001
+            raise ValueError(f"existing reading exam scope at {path} is corrupt: {exc}") from exc
+        if actual.content_sha256 != expected.content_sha256:
+            raise ValueError("reading exam scope drift: run_config.yaml changed after this run was provisioned")
+        return actual
+    _atomic_write_text(path, _canonical_reading_exam_scope_json(expected))
+    return expected
 
 
 def canonical_view_manifest_json(manifest: ViewManifest) -> str:
@@ -903,8 +1005,10 @@ def provision_view_manifest(case_dir: Path | str, run_dir: Path | str) -> ViewMa
                 f"this run was provisioned (on-disk content_sha256={existing.content_sha256}, "
                 f"recomputed={expected.content_sha256}) — case_data must not change mid-run"
             )
+        _provision_reading_exam_scope(case_dir, run_dir, existing)
         return existing
     _atomic_write_text(path, canonical_view_manifest_json(expected))
+    _provision_reading_exam_scope(case_dir, run_dir, expected)
     return expected
 
 
@@ -914,6 +1018,7 @@ class ViewManifestVerification:
     reason: str = ""
     expected: ViewManifest | None = None
     on_disk: ViewManifest | None = None
+    exam_scope: ReadingExamScope | None = None
 
 
 def verify_view_manifest(case_dir: Path | str, run_dir: Path | str) -> ViewManifestVerification:
@@ -942,13 +1047,27 @@ def verify_view_manifest(case_dir: Path | str, run_dir: Path | str) -> ViewManif
             expected=expected,
             on_disk=on_disk,
         )
-    return ViewManifestVerification(ok=True, expected=expected, on_disk=on_disk)
+    try:
+        declared_scope = _declared_reading_exam_scope(run_dir, on_disk)
+        scope_path = run_meta_path(run_dir, READING_EXAM_SCOPE_NAME)
+        if declared_scope is None:
+            if scope_path.exists():
+                return ViewManifestVerification(ok=False, reason="reading exam scope drift: frozen scope exists but declaration is absent", expected=expected, on_disk=on_disk)
+        else:
+            if not scope_path.exists():
+                return ViewManifestVerification(ok=False, reason="reading exam scope missing", expected=expected, on_disk=on_disk)
+            actual_scope = ReadingExamScope.model_validate_json(scope_path.read_text(encoding="utf-8"))
+            if actual_scope.content_sha256 != declared_scope.content_sha256:
+                return ViewManifestVerification(ok=False, reason="reading exam scope drift", expected=expected, on_disk=on_disk)
+    except Exception as exc:  # noqa: BLE001
+        return ViewManifestVerification(ok=False, reason=f"reading exam scope invalid: {exc}", expected=expected, on_disk=on_disk)
+    return ViewManifestVerification(ok=True, expected=expected, on_disk=on_disk, exam_scope=declared_scope)
 
 
 # --------------------------------------------------------------------------- #
 # §2 staging input_inventory.json projection (reader-visible, denominator-free)
 # --------------------------------------------------------------------------- #
-def derive_input_inventory(manifest: ViewManifest) -> list[dict]:
+def derive_input_inventory(manifest: ViewManifest, scope: ReadingExamScope | None = None) -> list[dict]:
     """Every required-view entry's reader-visible identity — "read this,
     produce that name" — with no negative-evidence/completeness content."""
     return [
@@ -961,11 +1080,13 @@ def derive_input_inventory(manifest: ViewManifest) -> list[dict]:
             "expected_output_id": e.expected_output_id,
         }
         for e in manifest.required_entries()
+        if scope is None or e.input_id in scope.input_ids
     ]
 
 
 __all__ = [
     "VIEW_MANIFEST_NAME",
+    "READING_EXAM_SCOPE_NAME",
     "VIEW_MANIFEST_SCHEMA_VERSION",
     "GENERATOR_VERSION",
     "COMPLETENESS_RULESET_VERSION",
@@ -981,6 +1102,7 @@ __all__ = [
     "ExcludedInputEntry",
     "ManifestEntry",
     "ViewManifest",
+    "ReadingExamScope",
     "ViewManifestVerification",
     "compute_content_hash",
     "canonical_view_manifest_json",
