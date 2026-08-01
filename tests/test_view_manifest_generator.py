@@ -26,6 +26,7 @@ from src.agent.execution.view_manifest import (
     VIEW_MANIFEST_NAME,
     build_view_manifest,
     provision_view_manifest,
+    resolve_frozen_reading_exam_scope,
     verify_view_manifest,
 )
 
@@ -212,6 +213,29 @@ def test_run_level_exam_scope_is_frozen_without_changing_case_manifest(tmp_path:
     assert not verify_view_manifest(case_dir, run_dir).ok
     with pytest.raises(ValueError, match="scope drift"):
         provision_view_manifest(case_dir, run_dir)
+
+
+def test_frozen_exam_scope_resolver_requires_matching_declaration_and_base(tmp_path: Path):
+    """The judge-side resolver needs neither case data nor a second rule set."""
+    case_dir = _write_case(tmp_path / "case", _sm21_style_testdata())
+    run_dir = tmp_path / "run"
+    run_dir.mkdir()
+    (run_dir / "run_config.yaml").write_text(
+        "reading_exam_scope:\n"
+        "  input_ids: [1f_view, South_view]\n"
+        "  reason: focused reading exam\n",
+        encoding="utf-8",
+    )
+    base = provision_view_manifest(case_dir, run_dir)
+
+    resolved = resolve_frozen_reading_exam_scope(run_dir, base)
+    assert resolved is not None
+    assert resolved.input_ids == ["1f_view", "South_view"]
+
+    frozen_path = run_dir / "_run" / READING_EXAM_SCOPE_NAME
+    frozen_path.unlink()
+    with pytest.raises(ValueError, match="artifact is missing"):
+        resolve_frozen_reading_exam_scope(run_dir, base)
 
 
 # --------------------------------------------------------------------------- #

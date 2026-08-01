@@ -114,3 +114,68 @@ fatal: Unable to create '/workspaces/EnergyPlus-Agent-dev/.git/index.lock': File
 ```
 
 Read-only inspection found a zero-byte `.git/index.lock` with no owning Git process (`fuser` returned no PID). Removing a stale lock is a deletion, and this dispatch separately forbids deletion without authorization. W4 remains staged and uncommitted; the required final full-suite run and batch declaration are paused pending authorization to remove this explicit stale lock.
+
+## W4 返工 r1
+
+### Changed and why
+
+- Added `resolve_frozen_reading_exam_scope(run_dir, base_manifest)` in `view_manifest.py` as the single read-only consumer of the frozen run scope. It distinguishes no declaration/no frozen artifact (unscoped), missing frozen artifact, missing declaration, corrupt frozen artifact, changed declaration, and a frozen artifact bound to another base manifest.
+- `verify_view_manifest` now uses that resolver after it rebuilds and compares the on-disk manifest against case metadata. `run_stage.py` uses the same resolver for `0_reading` scoring, then narrows bindings only when it returns a scope.
+- This removes the scorer's hard-coded repository case path. It does not construct or require a case directory, so unscoped scratch and `--base-dir` runs do not enter the case-rebuild gate during scoring.
+- Added one direct resolver lock covering a valid frozen scope and the frozen-artifact-missing fail-closed path. No existing assertion or fixture was altered.
+
+### Drift-gate reachability answer
+
+- The on-disk-versus-rebuilt-case-manifest drift gate remains in `provision_view_manifest` whenever provisioning/re-provisioning occurs.
+- It also remains in `cmd_judge` before judge-only replay (`verify_view_manifest(case_dir, run_dir)`).
+- The typed scoring helper no longer performs that case-data rebuild; it validates only the frozen scope's binding to the already-loaded judge base manifest. This is intentional for the under-`--base-dir` scratch consumer path. No additional gate was added.
+
+### Evidence commands and outputs
+
+```text
+$ python -m pytest -p no:cacheprovider -q -n0 tests/test_view_manifest_generator.py tests/test_c2_b4b_phase_d.py tests/test_reading_typed_scoring_slice1.py
+74 passed in 34.44s
+
+$ grep -n 'case_tests" / "e2e_tests"' scripts/tool_scripts/run_stage.py
+(no output)
+
+$ python scripts/tool_scripts/run_stage.py --base-dir /tmp/w4_rework_r1_base_dir judge sm24_anchor run_unscoped 0_reading --verdict .../verdict_001_0_reading.json
+[0_reading] judge_pass  (attempts=1, accepted=1)
+
+$ [temporary scoped sm24 run] provision, then invoke the real typed scorer
+scope= ['1f_view', 'South_view']
+consumer_subset= [['1f_view', 'South_view']]
+score_artifact= score_vs_gt.json
+
+$ [same temporary scoped run, frozen reading_exam_scope.json removed] judge ... 0_reading
+✗ view manifest INVARIANT fail (judge-only path is read-only): reading exam scope invalid: reading exam scope drift: run_config.yaml declares a scope but the frozen scope artifact is missing
+
+$ [four further temporary run copies] resolve frozen scope after each drift
+config_changed: run_config.yaml declaration changed after this run was provisioned
+declaration_removed: frozen scope exists but run_config.yaml has no reading_exam_scope declaration
+frozen_corrupt: frozen scope artifact is corrupt
+base_mismatch: frozen scope is bound to a different base view manifest
+
+$ python -m pytest -n auto
+2042 passed, 10 xfailed, 150 warnings in 291.89s (0:04:51)
+```
+
+Cells: A is covered by the existing real correction scorer path (the resolver is called only under `stage == "0_reading"`); B is the unscoped temporary `--base-dir` judge run above and the former b4b parity fixture; C is the scoped temporary real scorer invocation, which captured exactly the two declared IDs; D is the missing-frozen-artifact temporary run above. Existing scope tests also preserve changed-declaration drift, scoped staging, explicit out-of-scope checks, and denominator subset behavior.
+
+The full-suite result is +14 green against the 2028-green baseline: W3's parameterized receipt locks, W4's three existing scope locks, and this one resolver lock; there are zero red tests.
+
+Read-only identity and byte checks after the rework:
+
+```text
+case_metadata_sha256=f2efff8614ce6ddce9f975e811435a4936720f37df72cda538e4cd0cf8656701
+base_view_manifest_sha256=459513f1377496c2cf79c81f5ecc6860d90408e99053e609f46a977159847b8a
+gt_content_sha256=dd32135d81b0ea6eb34aaaec1675840cc46090b0b8eb99c7b140a7a4afd479f2
+output.json=5a1b79f5782b4fcac7809284a3d862fbcc8592d1e8619a671ae736f4b39b659a
+checks.json=680a6cdfab83389dbc4c4f253cad2257857221e64a253eac3bb1b461d37bd394
+```
+
+The three identity values equal the pre-rework values recorded above. The two unscoped sm24 artifact hashes equal `git show HEAD` for the same paths, so their bytes are unchanged.
+
+### Under-specified boundaries
+
+None. The only trade-off is the dispatch-recommended separation: case-manifest reconstruction stays at provisioning and `cmd_judge`, while scoring consumes the already-loaded base manifest plus the frozen scope. This avoids silently imposing a repository case layout on an explicitly supported `--base-dir` path.

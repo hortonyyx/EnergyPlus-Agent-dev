@@ -590,6 +590,53 @@ def _provision_reading_exam_scope(case_dir: Path, run_dir: Path, manifest: ViewM
     return expected
 
 
+def resolve_frozen_reading_exam_scope(
+    run_dir: Path | str, base_manifest: ViewManifest
+) -> ReadingExamScope | None:
+    """Return the run's frozen reading subset, or ``None`` when unscoped.
+
+    This is the single read-only scope consumer for both manifest verification
+    and judge scoring.  Unlike :func:`verify_view_manifest`, it deliberately
+    does not need case data: consumers already holding the base manifest can
+    verify that the frozen declaration is bound to precisely that manifest.
+    """
+    run_dir = Path(run_dir)
+    declared = _declared_reading_exam_scope(run_dir, base_manifest)
+    scope_path = run_meta_path(run_dir, READING_EXAM_SCOPE_NAME)
+    if declared is None:
+        if scope_path.exists():
+            raise ValueError(
+                "reading exam scope drift: frozen scope exists but "
+                "run_config.yaml has no reading_exam_scope declaration"
+            )
+        return None
+    if not scope_path.exists():
+        raise ValueError(
+            "reading exam scope drift: run_config.yaml declares a scope but "
+            "the frozen scope artifact is missing"
+        )
+    try:
+        frozen = ReadingExamScope.model_validate_json(scope_path.read_text(encoding="utf-8"))
+    except Exception as exc:  # noqa: BLE001 - frozen scope is an invariant
+        raise ValueError(f"reading exam scope drift: frozen scope artifact is corrupt: {exc}") from exc
+    if frozen.base_view_manifest_sha256 != base_manifest.content_sha256:
+        raise ValueError(
+            "reading exam scope drift: frozen scope is bound to a different "
+            "base view manifest"
+        )
+    if frozen.declaration_sha256 != declared.declaration_sha256:
+        raise ValueError(
+            "reading exam scope drift: run_config.yaml declaration changed "
+            "after this run was provisioned"
+        )
+    if frozen.content_sha256 != declared.content_sha256:
+        raise ValueError(
+            "reading exam scope drift: frozen scope does not match the "
+            "current declaration"
+        )
+    return frozen
+
+
 def canonical_view_manifest_json(manifest: ViewManifest) -> str:
     """The single canonical on-disk serialization (CR-06: sorted keys, fixed
     separators, UTF-8, 2-space indent) shared by provision and migration. The
@@ -1048,20 +1095,10 @@ def verify_view_manifest(case_dir: Path | str, run_dir: Path | str) -> ViewManif
             on_disk=on_disk,
         )
     try:
-        declared_scope = _declared_reading_exam_scope(run_dir, on_disk)
-        scope_path = run_meta_path(run_dir, READING_EXAM_SCOPE_NAME)
-        if declared_scope is None:
-            if scope_path.exists():
-                return ViewManifestVerification(ok=False, reason="reading exam scope drift: frozen scope exists but declaration is absent", expected=expected, on_disk=on_disk)
-        else:
-            if not scope_path.exists():
-                return ViewManifestVerification(ok=False, reason="reading exam scope missing", expected=expected, on_disk=on_disk)
-            actual_scope = ReadingExamScope.model_validate_json(scope_path.read_text(encoding="utf-8"))
-            if actual_scope.content_sha256 != declared_scope.content_sha256:
-                return ViewManifestVerification(ok=False, reason="reading exam scope drift", expected=expected, on_disk=on_disk)
+        exam_scope = resolve_frozen_reading_exam_scope(run_dir, on_disk)
     except Exception as exc:  # noqa: BLE001
         return ViewManifestVerification(ok=False, reason=f"reading exam scope invalid: {exc}", expected=expected, on_disk=on_disk)
-    return ViewManifestVerification(ok=True, expected=expected, on_disk=on_disk, exam_scope=declared_scope)
+    return ViewManifestVerification(ok=True, expected=expected, on_disk=on_disk, exam_scope=exam_scope)
 
 
 # --------------------------------------------------------------------------- #
@@ -1109,5 +1146,6 @@ __all__ = [
     "build_view_manifest",
     "provision_view_manifest",
     "verify_view_manifest",
+    "resolve_frozen_reading_exam_scope",
     "derive_input_inventory",
 ]
