@@ -46,10 +46,10 @@ Usage:
   python tools/run_cv_probe.py --batch requests/<batch>.json
 
 Copy/paste examples:
-  python tools/run_cv_probe.py --tool px_m_calibrator --image case_data/<image>.png --out-dir out/cv --anchors-json '[{\"axis\":\"x\",\"px_a\":100,\"px_b\":700,\"value_m\":15.0,\"dimension_ref\":\"overall_width\"}]'
-  # requests/calibrate.json: {\"tool\":\"px_m_calibrator\",\"args\":{\"image\":\"case_data/<image>.png\",\"out_dir\":\"out/cv\",\"anchors_json\":[{\"axis\":\"x\",\"px_a\":100,\"px_b\":700,\"value_m\":15.0,\"dimension_ref\":\"overall_width\"}]}}
+  python tools/run_cv_probe.py --tool px_m_calibrator --image case_data/<image>.png --out-dir out/cv --anchors-json '[{\"axis\":\"x\",\"px_a\":12345,\"px_b\":67890,\"value_m\":12.345,\"dimension_ref\":\"example_span\"}]'
+  # requests/calibrate.json: {\"tool\":\"px_m_calibrator\",\"args\":{\"image\":\"case_data/<image>.png\",\"out_dir\":\"out/cv\",\"anchors_json\":[{\"axis\":\"x\",\"px_a\":12345,\"px_b\":67890,\"value_m\":12.345,\"dimension_ref\":\"example_span\"}]}}
   python tools/run_cv_probe.py --request requests/calibrate.json
-  # requests/sweep.json: {\"requests\":[{\"id\":\"calibrate_x\",\"tool\":\"px_m_calibrator\",\"args\":{\"image\":\"case_data/<image>.png\",\"out_dir\":\"out/cv\",\"anchors_json\":[{\"axis\":\"x\",\"px_a\":100,\"px_b\":700,\"value_m\":15.0,\"dimension_ref\":\"overall_width\"}]}}]}
+  # requests/sweep.json: {\"requests\":[{\"id\":\"calibrate_x\",\"tool\":\"px_m_calibrator\",\"args\":{\"image\":\"case_data/<image>.png\",\"out_dir\":\"out/cv\",\"anchors_json\":[{\"axis\":\"x\",\"px_a\":12345,\"px_b\":67890,\"value_m\":12.345,\"dimension_ref\":\"example_span\"}]}}]}
   python tools/run_cv_probe.py --batch requests/sweep.json
 
 Run `python tools/run_cv_probe.py --help` to see this text again.
@@ -146,8 +146,8 @@ def _request_to_argv(request: dict, root: Path) -> list[str]:
         raise ValueError(
             "request args must be an object; use: "
             '{"tool":"px_m_calibrator","args":{"image":"case_data/<image>.png",'
-            '"out_dir":"out/cv","anchors_json":[{"axis":"x","px_a":100,'
-            '"px_b":700,"value_m":15.0,"dimension_ref":"overall_width"}]}}'
+            '"out_dir":"out/cv","anchors_json":[{"axis":"x","px_a":12345,'
+            '"px_b":67890,"value_m":12.345,"dimension_ref":"example_span"}]}}'
         )
     argv = [tool]
     for key, value in args.items():

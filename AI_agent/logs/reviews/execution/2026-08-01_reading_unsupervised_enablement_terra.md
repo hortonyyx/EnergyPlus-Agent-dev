@@ -219,3 +219,40 @@ The three identity values exactly match the r1 pre- and post-rework records abov
 ### Under-specified boundaries
 
 None.
+
+## GLM findings 窄修 r3
+
+### Changed and why
+
+- S-1: added `test_merge_rejects_reading_exam_scope_changed_since_build`. It builds a temporary scoped workspace, then changes the valid run declaration and rewrites its frozen scope before merge. The resolver therefore still accepts the current scope; merge must reject because the scope hash no longer matches the build binding.
+- NIT-1: replaced the copied calibration syntax examples in `guard.py` and `run_cv_probe.py` with deliberately synthetic `px_a=12345`, `px_b=67890`, `value_m=12.345`, and `dimension_ref="example_span"` values. The wrapper copies are the same user-facing hints as the guard template, so they remain aligned without retaining a real building dimension.
+
+### Neuter self-check
+
+The mutation was made only in `/tmp/energyplus-glm-r3-neuter.1w82O3/repo`; the repository source guard was not altered. In that copy, removal of the four physical lines implementing the specified three-line merge-scope conditional produced:
+
+| Lock | Removed guard | Red test | Collateral |
+| --- | --- | --- | --- |
+| S-1 | `binding[reading_exam_scope_sha256]` vs verified frozen-scope hash rejection | `test_merge_rejects_reading_exam_scope_changed_since_build` | none (1 failed, 244 passed) |
+
+The unmodified affected subset was green: `python -m pytest -n auto tests/test_isolation.py tests/test_view_manifest_generator.py` = `245 passed`.
+
+### Evidence
+
+```text
+$ rg -n -F -e '15.0' -e 'overall_width' src/agent/execution/isolation_templates/guard.py
+(no output)
+
+$ python -m pytest -n auto
+2047 passed, 10 xfailed, 150 warnings in 309.69s (0:05:09)
+
+case_metadata_sha256=f2efff8614ce6ddce9f975e811435a4936720f37df72cda538e4cd0cf8656701
+base_view_manifest_sha256=459513f1377496c2cf79c81f5ecc6860d90408e99053e609f46a977159847b8a
+gt_content_sha256=dd32135d81b0ea6eb34aaaec1675840cc46090b0b8eb99c7b140a7a4afd479f2
+```
+
+The three identities exactly match the r1/r2 records. No guard was loosened and the production merge gate is unchanged.
+
+### Under-specified boundaries
+
+None.

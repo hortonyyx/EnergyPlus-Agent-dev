@@ -10,7 +10,7 @@ from pathlib import Path
 
 import pytest
 
-from src.agent.execution import isolation
+from src.agent.execution import isolation, view_manifest
 from src.agent.execution.isolation import (
     _assert_source_allowed,
     build_isolation_workspace,
@@ -568,6 +568,39 @@ def test_formal_scope_stages_only_declared_images_and_records_out_of_scope_views
     assert {row["evidence"]["input_id"] for row in out_of_scope} == {"East_view", "North_view", "West_view"}
     assert all(row["status"] == "not_applicable" for row in out_of_scope)
     assert all(row["evidence"]["source"] == "run_config.yaml:reading_exam_scope" for row in out_of_scope)
+
+
+def test_merge_rejects_reading_exam_scope_changed_since_build(tmp_path: Path):
+    """The valid current scope must still match the scope bound at build time."""
+    case_dir = _case_copy(tmp_path, name="sm24_copy")
+    run_dir = tmp_path / "scope_run"
+    run_dir.mkdir()
+    config_path = run_dir / "run_config.yaml"
+    config_path.write_text(
+        "reading_exam_scope:\n"
+        "  input_ids: [1f_view, South_view]\n"
+        "  reason: focused reading exam\n",
+        encoding="utf-8",
+    )
+    base_manifest = provision_view_manifest(case_dir, run_dir)
+    workspace = build_isolation_workspace(case_dir, run_dir=run_dir, staging_root=tmp_path / "staging")
+    output = workspace.staging_root / "out/output.json"
+    output.write_text(json.dumps({"views": {}}), encoding="utf-8")
+
+    config_path.write_text(
+        "reading_exam_scope:\n"
+        "  input_ids: [1f_view]\n"
+        "  reason: narrowed reading exam\n",
+        encoding="utf-8",
+    )
+    changed_scope = view_manifest._declared_reading_exam_scope(run_dir, base_manifest)
+    assert changed_scope is not None
+    (run_dir / "_run" / "reading_exam_scope.json").write_text(
+        changed_scope.model_dump_json(indent=2), encoding="utf-8"
+    )
+
+    with pytest.raises(ValueError, match="reading exam scope changed"):
+        merge_isolated_output(workspace.staging_root, run_dir, output_path=output)
 
 
 def test_merge_retries_next_attempt_without_overwrite(tmp_path: Path):

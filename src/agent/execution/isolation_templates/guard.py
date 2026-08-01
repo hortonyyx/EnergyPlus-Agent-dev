@@ -135,8 +135,8 @@ MAX_PROBE_BATCH_SIZE = 32
 _BATCH_TEMPLATE = (
     '{"requests":[{"id":"calibrate_x","tool":"px_m_calibrator","args":'
     '{"image":"case_data/<image>.png","out_dir":"out/cv","anchors_json":'
-    '[{"axis":"x","px_a":100,"px_b":700,"value_m":15.0,'
-    '"dimension_ref":"overall_width"}]}}]}'
+    '[{"axis":"x","px_a":12345,"px_b":67890,"value_m":12.345,'
+    '"dimension_ref":"example_span"}]}}]}'
 )
 PROBE_BATCH_ID_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_.-]{0,63}$")
 # Helper output must resolve into the WRITABLE ROOT, not merely "somewhere inside
@@ -396,8 +396,8 @@ def parse_probe_batch(data) -> list[tuple[str, dict]]:
                 f"probe batch request {index} must contain exactly id, tool, args; "
                 "use: {\"id\":\"calibrate_x\",\"tool\":\"px_m_calibrator\","
                 "\"args\":{\"image\":\"case_data/<image>.png\",\"out_dir\":\"out/cv\","
-                "\"anchors_json\":[{\"axis\":\"x\",\"px_a\":100,\"px_b\":700,"
-                "\"value_m\":15.0,\"dimension_ref\":\"overall_width\"}]}}"
+                "\"anchors_json\":[{\"axis\":\"x\",\"px_a\":12345,\"px_b\":67890,"
+                "\"value_m\":12.345,\"dimension_ref\":\"example_span\"}]}}"
             )
         request_id = entry["id"]
         if not isinstance(request_id, str) or not PROBE_BATCH_ID_RE.fullmatch(
