@@ -86,19 +86,33 @@
 · 执行日志 [terra](logs/reviews/execution/2026-08-01_reading_unsupervised_enablement_terra.md)
 · commits `15cfcb8`(W1) / `0763164`(W3) / `2d2137e`(W4，主控代提交)
 
-## ⛔ 新开会话的第一件事 = W4 返工（派 terra 走 CLI 后台）
+## ✅ W4 返工 r1 + r2 已 CLOSED（08-01 同日续场，terra 施工 / 主控轻门）
 
-**缺陷**：[`run_stage.py:1410`](../scripts/tool_scripts/run_stage.py#L1410) 新加的 exam-scope 校验
-对 `0_reading` **无条件触发**，且把 case 路径**硬编码**成 `case_tests/e2e_tests/<case>`：
-1. **无视 `--base-dir`** —— 该 CLI 明确支持它；
-2. **违派工单 §1.6「默认行为不变」** —— 未声明 `reading_exam_scope` 的 run 也走该校验并可能抛错。
+**全仓 2040 绿 + 1 红 → 2046 绿 + 10 xfail·零红**（基线 2028）。三个身份哈希主控独立重算逐位不变。
 
-**红的测试**：`tests/test_c2_b4b_phase_d.py::test_gt_echo_fixture_preserves_runstage_cli_byte_parity`
-（`RuntimeError: reading exam scope verification failed: … no case metadata found under …/case_tests/e2e_tests/b4b-contract`）。
-**全仓现状 = 2040 绿 / 1 红 / 10 xfail**（基线 2028）。
+- **r1（`3b7d930`）= 修缺陷**：抽出 `resolve_frozen_reading_exam_scope(run_dir, base_manifest)` 作唯一只读消费者，
+  `verify_view_manifest` 改为调用它（不留第二把尺子）；判卷侧不再需要 case 目录 ⇒ 硬编码路径 0 命中、
+  `--base-dir` 恢复可用、未声明 scope 的 run 逐字节不变。顺带补上原先没有的「冻结件必须绑定到判卷所用 base manifest」检查。
+  派工单 [rework_r1](logs/reviews/request/2026-08-01_w4_exam_scope_rework_r1.md)。
+- **⛔ 主控轻门抓到第二条（`/tmp` 克隆逐道 neuter）= 6 道守卫里 5 道无回归锁**，最重的是
+  **判卷侧根本不按 scope 收窄 bindings —— 短路掉整个子集仍全绿**，而那正是 W5 减卷要靠的那条。
+  另查出 `declaration_sha256` 是**冗余检查**（被 `content_sha256` 完全包含 ⇒ 无法为它构造独立锁，两条互相遮蔽）。
+- **r2（`2cb1f82`）= 只补锁不改语义**（唯一生产码改动 = 删掉那道冗余检查）。**主控独立复跑 neuter 逐条验真：
+  6 道守卫各摘一次，每次恰好红 1 条、正是点名的那条、零连带零假锁。**
+  派工单 [rework_r2](logs/reviews/request/2026-08-01_w4_exam_scope_rework_r2.md)。
 
-**返工要求**：范围校验只在**显式声明了 exam scope 时**生效；case 目录必须从**调用方已有的 `case_dir`**取，
-不得硬编码 base-dir。返工后仍须跑全仓并证明零回归。**返工归执行档，主控不亲手修。**
+### ⚠️ 本轮登记的跟进债（主控独立发现，未让施工方顺手补）
+
+判卷路径上的「on-disk manifest vs 由 case 元数据重建」漂移门，**在「已有 accepted attempt 且不重画」时不经过**
+（`run_one_stage` 早退 ⇒ 不调 `_draw_reading` ⇒ 不 provision）。**W4 之前即存在、本次未改变**；
+terra 的可达性回答（留在 provision 与 `cmd_judge`）对重画路径成立、未覆盖这条。**补不补是设计决定，归主控裁、需单独立项。**
+
+### ⚠️ 本轮新增的规约候选（第二条）
+
+**「探针 ≠ 锁」应与「门是真的、锁是缺的」并列**：r1 的验收证据形态是临时 run 里的手工探针，
+**证明了当时跑对，但不会在有人改坏时变红**。⇒ 派工单今后须**明写「每条新守卫必须有摘掉即红的锁」**，
+否则施工方会照字面只给探针。配套：**主控轻门的 neuter 必须由主控自己跑**——本轮施工方自查表与主控独立复算逐条吻合，
+但那是验证之后才知道的。
 
 ### 返工闭环后的顺序
 1. **GLM-5.2 跨家族对抗审**整批 W1+W3+W4（谁写谁不批；本批审的是「边界有没有被精确实现」= GLM 强项）。

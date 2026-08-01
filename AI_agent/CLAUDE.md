@@ -101,11 +101,34 @@ EnergyPlus 经 `WorkflowTool.run_simulation`（eppy + ConverterManager，idfpy �
 
 ## 2. 当前开发状态
 
-- **分支** `6.15_ValidationArchM0toM4`（已推 origin）；测试 **2040 绿 + 1 红 + 10 strict xfail**
-  （⚠️ **那 1 红是 08-01 W4 的真缺陷、待返工**，见下条；xfail 十条含 2 个 legacy golden sm20/run_2026-06-15、
+- **分支** `6.15_ValidationArchM0toM4`（已推 origin）；测试 **2046 绿 + 10 strict xfail·零红**
+  （08-01 W4 那 1 红已随返工 r1/r2 闭环，见下条；xfail 十条含 2 个 legacy golden sm20/run_2026-06-15、
   sm21/run_2026-06-16_opus 无编排账本→run_state=incomplete；**B5 Phase C 延后的 6 个
   `test_output_coordinate_identity.py` E4 build-proof xfail 已在 Phase D 复原为真绿**，该文件零 xfail）。
-- **⛔ 最新（2026-08-01 Opus 5 主控）= 「主控参与生产」全面排查 + 判据被用户校准 + 第一份无监督识图基线 + W1/W3/W4 施工（1 条待返工）**。
+- **✅ 最新（2026-08-01 Opus 5 主控·同日续场）= W4 返工 r1/r2 CLOSED**（`3b7d930` → `2cb1f82`·**2040 绿 + 1 红 → 2046 绿 + 10 xfail·零红**·施工 terra / 主控轻门；**GLM 跨家族对抗审仍待派**）：
+  - **r1 = 修缺陷**。修法比原实现更紧：抽出 `resolve_frozen_reading_exam_scope(run_dir, base_manifest)` 作**唯一**只读消费者，
+    `verify_view_manifest` 改为调用它（**不留第二把尺子**）；判卷侧因此**根本不需要 case 目录** —— 冻结件自带
+    `base_view_manifest_sha256`，与判卷已加载的那份 base 直接对账 ⇒ `--base-dir` 恢复可用、未声明 scope 的 run 逐字节不变。
+    **顺带补上一道原先没有的检查**：冻结件必须绑定到判卷正在用的那份 base manifest。
+    **主控独立全量 2042 绿零红**（与 terra 数字逐字一致），三个身份哈希主控独立重算逐位不变。
+  - **⛔ 主控轻门抓到第二条（同族「门是真的、锁是缺的」）**：在 `/tmp` 克隆逐道守卫 neuter ⇒ **6 道里 5 道无锁**
+    （冻结件在但声明被删 / 冻结件绑到另一份 base / `content_sha256` 漂移 / **判卷侧根本不按 scope 收窄 bindings**，全部摘掉仍 277 全绿）。
+    **最重的是最后一条 —— 那是 W4 判卷侧的全部功能点、也正是 W5 减卷要靠的那条**；terra r1 给的是临时 run 里的手工探针
+    ⇒ **探针证明「当时跑对了」，但不会在有人改坏时变红**。另查出 `declaration_sha256` 那道是**冗余检查**
+    （`content_sha256` 是含它的整个 payload 的哈希且模型层强制自洽 ⇒ 它不可能成为唯一触发原因、**也无法为它构造独立锁**，
+    两条一起摘才红 = 互相遮蔽）。**如实登记：3 条在 r1 之前就以等价形式无锁、收窄那条来自 `2d2137e`、只有 base 绑定那条是 r1 新加的。**
+  - **r2 = 只补锁不改语义**（唯一生产码改动 = 按主控推荐删掉那道冗余检查，删完 `content_sha256` 自动获得独立锁）。
+    **主控独立复跑 neuter 逐条验真：6 道守卫各摘一次，每次恰好红 1 条、且正是 terra 点名的那条、零连带、零假锁**
+    （L8 那条走真 `_grade_typed_attempt_artifacts` + 真 GT + 真产物，只 monkeypatch 服务层抓 bindings）。
+    **主控独立全量 = 2046 passed / 10 xfailed / 0 failed。**
+  - **⚠️ 登记跟进债（主控独立发现，未让施工方顺手补 —— 那是另一个决定）**：判卷路径上的「on-disk manifest vs 由 case 元数据重建」
+    漂移门，**在「已有 accepted attempt 且不重画」时不经过**（此时 `run_one_stage` 早退、不调 `_draw_reading` ⇒ 不 provision）。
+    **该缺口 W4 之前即存在、本次未改变**；terra 的可达性回答（留在 provision 与 `cmd_judge`）对**重画路径**成立、未覆盖这条。
+  - **治理数据点**：① **「探针 ≠ 锁」应与「门是真的、锁是缺的」并列**——本轮施工方两轮的自查表都诚实且准确，
+    但 r1 的验收证据形态是探针，**探针不具备回归效力**；派工单今后须**明写「每条新守卫必须有摘掉即红的锁」**，
+    否则施工方会照字面只给探针。② **主控轻门的 neuter 必须由主控自己跑**：本轮 terra 的自查表与主控独立复算逐条吻合，
+    但那是**验证之后**才知道的。③ 08-01 的 `.git/index.lock` 教训已生效：**本轮主控全程只跑只读命令，零抢锁、零阻塞。**
+- **⛔ 上一节点（2026-08-01 Opus 5 主控）= 「主控参与生产」全面排查 + 判据被用户校准 + 第一份无监督识图基线 + W1/W3/W4 施工**。
   - **⚠️ 用户校准了不变量 #7 的判据（07-31 原判据过宽、已作废，详 §1.5 #7）**：**dev 期主控编排合法、主控兼任 judge 合法**
     （judge 是 dev 辅助、不属产品环节；产品要不要 judge 最后工程化再说）；**真判据 = 每个环节自己能走完输入→输出**
     （拿掉主控整个流程跑不出来可以接受）。**judge 只能整轮盲重抽、零信息 = 另外做一次**，
@@ -142,7 +165,7 @@ EnergyPlus 经 `WorkflowTool.run_simulation`（eppy + ConverterManager，idfpy �
     **W3** 探针回执可操作（`--help` 放行为精确三 token 形式、参数错给正确写法；**主动拒绝放 `mkdir`/`find`、零扩权**）（`0763164`）·
     **W4** run 级「本轮考哪几张」声明（`run_config.yaml` 声明 → provision 时冻进 `_run/reading_exam_scope.json` 绑双哈希 ⇒
     **开考前定死、考中不可变更**；判卷 bindings 消费侧取子集、签名件不动；**sm24 三个身份哈希逐字不变**）（`2d2137e`，主控代提交）。
-  - **⛔ 主控轻门抓到 1 条真缺陷（待返工，归执行档、主控不亲手修）**：[`run_stage.py:1410`](../scripts/tool_scripts/run_stage.py#L1410)
+  - **⛔ 主控轻门抓到 1 条真缺陷（✅ 已于同日返工 r1 CLOSED，见上条）**：[`run_stage.py`](../scripts/tool_scripts/run_stage.py) 判卷侧
     新加的 exam-scope 校验对 `0_reading` **无条件触发**且把 case 路径**硬编码**成 `case_tests/e2e_tests/<case>`
     ⇒ ① **无视 `--base-dir`**（该 CLI 明确支持，主控当日就用它在 scratch 目录跑过重判）② **违派工单 §1.6「默认行为不变」**
     （未声明 scope 的 run 也走该校验并可能抛错）。红的是 `tests/test_c2_b4b_phase_d.py::test_gt_echo_fixture_preserves_runstage_cli_byte_parity`。
