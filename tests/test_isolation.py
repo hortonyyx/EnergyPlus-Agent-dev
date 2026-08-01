@@ -1605,6 +1605,136 @@ def test_guard_allows_direct_probe_form_and_logs(tmp_path: Path):
     assert any(path.endswith("out/cv") for path in log["normalized_paths"])
 
 
+def test_probe_help_is_allowlisted_and_documents_all_three_forms(tmp_path: Path):
+    """A rejected exploratory `--help` must become a no-write, copyable repair.
+
+    This locks the exact guard exception as well as the staged wrapper's complete
+    direct/request/batch guidance; a partial argparse help text is insufficient.
+    """
+    staging = _build(tmp_path).staging_root
+
+    hook = _hook(staging, "python tools/run_cv_probe.py --help")
+    helper = subprocess.run(
+        [sys.executable, "tools/run_cv_probe.py", "--help"],
+        cwd=staging,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+
+    assert hook.returncode == 0, hook.stderr
+    log = json.loads((staging / "access_log.jsonl").read_text(encoding="utf-8").splitlines()[-1])
+    assert log["decision"] == "allow"
+    assert log["reason"] == "allowed run_cv_probe help"
+    assert helper.returncode == 0, helper.stderr
+    assert "Usage:" in helper.stdout
+    assert "--tool px_m_calibrator" in helper.stdout
+    assert "--request requests/calibrate.json" in helper.stdout
+    assert "--batch requests/sweep.json" in helper.stdout
+
+
+@pytest.mark.parametrize(
+    ("label", "command", "expected"),
+    [
+        (
+            "bare_tool_name",
+            "python tools/run_cv_probe.py px_m_calibrator --image case_data/1f_view.png --out-dir out/cv",
+            "did you mean --tool px_m_calibrator?",
+        ),
+        (
+            "batch_wrong_envelope",
+            "python tools/run_cv_probe.py --batch requests/wrong_envelope.json",
+            'use: {"requests":[{"id":"calibrate_x","tool":"px_m_calibrator"',
+        ),
+        (
+            "batch_wrong_entry",
+            "python tools/run_cv_probe.py --batch requests/wrong_entry.json",
+            'use: {"id":"calibrate_x","tool":"px_m_calibrator","args":',
+        ),
+    ],
+)
+def test_guard_probe_shape_receipts_include_a_minimal_correct_repair(
+    tmp_path: Path, label: str, command: str, expected: str
+):
+    """W3: real failed shapes carry the next valid form in the denial itself."""
+    staging = _build(tmp_path).staging_root
+    if label == "batch_wrong_envelope":
+        _request(staging, {"wrong": []}, name="requests/wrong_envelope.json")
+    elif label == "batch_wrong_entry":
+        _request(
+            staging,
+            {"requests": [{"tool": "crop_zoom", "args": {}}]},
+            name="requests/wrong_entry.json",
+        )
+
+    proc = _hook(staging, command)
+
+    assert proc.returncode == 2, proc.stdout
+    assert expected in proc.stderr
+    log = json.loads((staging / "access_log.jsonl").read_text(encoding="utf-8").splitlines()[-1])
+    assert log["reason"] in proc.stderr
+
+
+def test_guard_missing_direct_value_receipt_includes_the_required_pair_syntax(tmp_path: Path):
+    staging = _build(tmp_path).staging_root
+
+    proc = _hook(staging, "python tools/run_cv_probe.py --tool crop_zoom --image")
+
+    assert proc.returncode == 2
+    assert "write --image <value>" in proc.stderr
+
+
+@pytest.mark.parametrize(
+    ("command", "expected"),
+    [
+        (
+            "python tools/run_cv_probe.py --tool crop_zoom --image case_data/1f_view.png --out-dir out/cv | tee out/log",
+            "remove the pipe and rerun the same python tools/run_cv_probe.py command directly",
+        ),
+        (
+            "mkdir out/new_probe_dir",
+            "out/ and requests/ are already provisioned",
+        ),
+        (
+            "find case_data -type f",
+            "use ls case_data to list the copied input images",
+        ),
+    ],
+)
+def test_guard_real_shell_denials_include_an_isolation_safe_next_step(
+    tmp_path: Path, command: str, expected: str
+):
+    """W3 locks the three real non-probe denial receipts without allowing Bash."""
+    staging = _build(tmp_path).staging_root
+
+    proc = _hook(staging, command)
+
+    assert proc.returncode == 2
+    assert expected in proc.stderr
+    if command.startswith("find "):
+        assert _hook(staging, "ls case_data").returncode == 0
+
+
+@pytest.mark.parametrize(
+    "args",
+    [
+        "px_m_calibrator --image case_data/1f_view.png --out-dir out/cv",
+        "--tool crop_zoom --image",
+    ],
+)
+def test_wrapper_direct_shape_receipts_match_the_guard_repairs(tmp_path: Path, args: str):
+    """The executable has the same actionable errors if the hook is bypassed."""
+    staging = _build(tmp_path).staging_root
+
+    helper = _run_helper_direct(staging, args)
+
+    assert helper.returncode != 0
+    if args.startswith("px_m_calibrator"):
+        assert "did you mean --tool px_m_calibrator?" in (helper.stderr + helper.stdout)
+    else:
+        assert "write --image <value>" in (helper.stderr + helper.stdout)
+
+
 def test_direct_and_request_forms_produce_identical_output(tmp_path: Path):
     """P1-3: the old `--request` form is unchanged, and the new form is the same
     probe — not a second, differently-behaving entry point. Same tool, same

@@ -39,6 +39,22 @@ OUTPUT_ROOT_DIR = "out"
 BOOLEAN_FLAG_KEYS = {"no_cc"}
 _BOOLEAN_WORDS = {"true": True, "false": False}
 
+_USAGE_TEXT = """\
+Usage:
+  python tools/run_cv_probe.py --tool <tool> --image case_data/<image>.png --out-dir out/cv [--key value ...]
+  python tools/run_cv_probe.py --request requests/<request>.json
+  python tools/run_cv_probe.py --batch requests/<batch>.json
+
+Copy/paste examples:
+  python tools/run_cv_probe.py --tool px_m_calibrator --image case_data/<image>.png --out-dir out/cv --anchors-json '[{\"axis\":\"x\",\"px_a\":100,\"px_b\":700,\"value_m\":15.0,\"dimension_ref\":\"overall_width\"}]'
+  # requests/calibrate.json: {\"tool\":\"px_m_calibrator\",\"args\":{\"image\":\"case_data/<image>.png\",\"out_dir\":\"out/cv\",\"anchors_json\":[{\"axis\":\"x\",\"px_a\":100,\"px_b\":700,\"value_m\":15.0,\"dimension_ref\":\"overall_width\"}]}}
+  python tools/run_cv_probe.py --request requests/calibrate.json
+  # requests/sweep.json: {\"requests\":[{\"id\":\"calibrate_x\",\"tool\":\"px_m_calibrator\",\"args\":{\"image\":\"case_data/<image>.png\",\"out_dir\":\"out/cv\",\"anchors_json\":[{\"axis\":\"x\",\"px_a\":100,\"px_b\":700,\"value_m\":15.0,\"dimension_ref\":\"overall_width\"}]}}]}
+  python tools/run_cv_probe.py --batch requests/sweep.json
+
+Run `python tools/run_cv_probe.py --help` to see this text again.
+"""
+
 
 def _staging_root() -> Path:
     return Path(__file__).resolve().parents[1]
@@ -122,9 +138,17 @@ def _request_to_argv(request: dict, root: Path) -> list[str]:
     tool = request.get("tool")
     args = request.get("args")
     if tool not in ALLOWED_TOOLS:
-        raise ValueError(f"unsupported cv_probe tool: {tool!r}")
+        raise ValueError(
+            f"unsupported cv_probe tool: {tool!r}; use a listed tool after --tool "
+            "(run --help for copyable examples)"
+        )
     if not isinstance(args, dict):
-        raise ValueError("request args must be an object")
+        raise ValueError(
+            "request args must be an object; use: "
+            '{"tool":"px_m_calibrator","args":{"image":"case_data/<image>.png",'
+            '"out_dir":"out/cv","anchors_json":[{"axis":"x","px_a":100,'
+            '"px_b":700,"value_m":15.0,"dimension_ref":"overall_width"}]}}'
+        )
     argv = [tool]
     for key, value in args.items():
         opt = f"--{key.replace('_', '-')}"
@@ -169,16 +193,24 @@ def _direct_to_request(argv: list[str]) -> dict:
     while index < len(argv):
         token = argv[index]
         if not token.startswith("--"):
+            hint = (
+                f"; tool names go after --tool; did you mean --tool {token}?"
+                if token in ALLOWED_TOOLS
+                else "; use only --key value pairs (start with --tool <tool>)"
+            )
             raise ValueError(
                 "probe arguments must be paired --key value; "
-                f"unexpected bare argument: {token}"
+                f"unexpected bare argument: {token}{hint}"
             )
         spelling = token[2:]
         key = spelling.replace("-", "_")
         if not key:
             raise ValueError("probe parameter name is empty")
         if index + 1 >= len(argv) or argv[index + 1].startswith("--"):
-            raise ValueError(f"probe parameter --{spelling} is missing its value")
+            raise ValueError(
+                f"probe parameter --{spelling} is missing its value; "
+                f"write --{spelling} <value>"
+            )
         if key in args:
             raise ValueError(f"repeated probe parameter --{spelling}")
         value = argv[index + 1]
@@ -254,6 +286,9 @@ def _run_batch(batch_data, root: Path) -> int:
 def main(argv: list[str] | None = None) -> int:
     argv = list(sys.argv[1:] if argv is None else argv)
     root = _staging_root()
+    if argv == ["--help"]:
+        print(_USAGE_TEXT, end="")
+        return 0
     if any(arg == "--request" or arg.startswith("--request=") for arg in argv):
         # Form A — unchanged: same parser, same required flag, same errors.
         parser = argparse.ArgumentParser(description=__doc__)

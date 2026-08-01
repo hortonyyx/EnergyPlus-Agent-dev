@@ -112,11 +112,32 @@ PROBE_DIRECT_PARAM_KEYS = (
 # `python tools/run_cv_probe.py` (denied before this batch by the length rule)
 # denied afterwards, so the deny->allow surface is exactly the authorized form.
 PROBE_DIRECT_REQUIRED_KEYS = ("tool", "image")
+# This is not an authorization list (the wrapper's ALLOWED_TOOLS remains that
+# policy owner); it lets a bare, known tool name receive the exact mechanical
+# repair instead of a generic pairing lecture.
+PROBE_TOOL_NAMES = frozenset(
+    {
+        "crop_zoom",
+        "wall_line_profiler",
+        "storey_line_profiler",
+        "px_m_calibrator",
+        "window_cc_detector",
+        "overlay_logger",
+        "prescan-plan",
+        "prescan-elevation",
+    }
+)
 # L1: one batch covers a normal measurement sweep (the good reference run used
 # 19 probes) while refusing unbounded work.  The wrapper imports the batch
 # envelope parser below from this module, so the hook and the executable cannot
 # drift on the bound, request-id syntax, or envelope shape.
 MAX_PROBE_BATCH_SIZE = 32
+_BATCH_TEMPLATE = (
+    '{"requests":[{"id":"calibrate_x","tool":"px_m_calibrator","args":'
+    '{"image":"case_data/<image>.png","out_dir":"out/cv","anchors_json":'
+    '[{"axis":"x","px_a":100,"px_b":700,"value_m":15.0,'
+    '"dimension_ref":"overall_width"}]}}]}'
+)
 PROBE_BATCH_ID_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_.-]{0,63}$")
 # Helper output must resolve into the WRITABLE ROOT, not merely "somewhere inside
 # staging" — the latter let a legal-looking request make the one allowlisted
@@ -352,16 +373,19 @@ def parse_probe_batch(data) -> list[tuple[str, dict]]:
     single request.
     """
     if not isinstance(data, dict) or set(data) != {"requests"}:
-        raise ValueError("probe batch must be an object containing only 'requests'")
+        raise ValueError(
+            "probe batch must be an object containing only 'requests'; "
+            f"use: {_BATCH_TEMPLATE}"
+        )
     entries = data["requests"]
     if not isinstance(entries, list):
-        raise ValueError("probe batch requests must be an array")
+        raise ValueError(f"probe batch requests must be an array; use: {_BATCH_TEMPLATE}")
     if not entries:
-        raise ValueError("probe batch must contain at least one request")
+        raise ValueError(f"probe batch must contain at least one request; use: {_BATCH_TEMPLATE}")
     if len(entries) > MAX_PROBE_BATCH_SIZE:
         raise ValueError(
             f"probe batch has {len(entries)} requests; maximum is "
-            f"{MAX_PROBE_BATCH_SIZE}"
+            f"{MAX_PROBE_BATCH_SIZE}; use: {_BATCH_TEMPLATE}"
         )
 
     parsed = []
@@ -369,7 +393,11 @@ def parse_probe_batch(data) -> list[tuple[str, dict]]:
     for index, entry in enumerate(entries, start=1):
         if not isinstance(entry, dict) or set(entry) != {"id", "tool", "args"}:
             raise ValueError(
-                f"probe batch request {index} must contain exactly id, tool, args"
+                f"probe batch request {index} must contain exactly id, tool, args; "
+                "use: {\"id\":\"calibrate_x\",\"tool\":\"px_m_calibrator\","
+                "\"args\":{\"image\":\"case_data/<image>.png\",\"out_dir\":\"out/cv\","
+                "\"anchors_json\":[{\"axis\":\"x\",\"px_a\":100,\"px_b\":700,"
+                "\"value_m\":15.0,\"dimension_ref\":\"overall_width\"}]}}"
             )
         request_id = entry["id"]
         if not isinstance(request_id, str) or not PROBE_BATCH_ID_RE.fullmatch(
@@ -377,10 +405,13 @@ def parse_probe_batch(data) -> list[tuple[str, dict]]:
         ):
             raise ValueError(
                 f"probe batch request {index} id must match "
-                f"{PROBE_BATCH_ID_RE.pattern}"
+                f"{PROBE_BATCH_ID_RE.pattern}; use id \"calibrate_x\" as in: {_BATCH_TEMPLATE}"
             )
         if request_id in seen_ids:
-            raise ValueError(f"duplicate probe batch request id: {request_id}")
+            raise ValueError(
+                f"duplicate probe batch request id: {request_id}; "
+                f"use unique IDs as in: {_BATCH_TEMPLATE}"
+            )
         seen_ids.add(request_id)
         parsed.append((request_id, {"tool": entry["tool"], "args": entry["args"]}))
     return parsed
@@ -420,9 +451,14 @@ def _parse_direct_probe_args(args: list[str], root: Path) -> list[str]:
     while index < len(args):
         token = args[index]
         if not token.startswith("--"):
+            hint = (
+                f"; tool names go after --tool; did you mean --tool {token}?"
+                if token in PROBE_TOOL_NAMES
+                else "; use only --key value pairs (start with --tool <tool>)"
+            )
             raise ValueError(
                 "probe arguments must be paired --key value; "
-                f"unexpected bare argument: {token}"
+                f"unexpected bare argument: {token}{hint}"
             )
         spelling = token[2:]
         key = spelling.replace("-", "_")
@@ -441,7 +477,10 @@ def _parse_direct_probe_args(args: list[str], root: Path) -> list[str]:
         if key in seen:
             raise ValueError(f"repeated probe parameter --{spelling}")
         if index + 1 >= len(args) or args[index + 1].startswith("--"):
-            raise ValueError(f"probe parameter --{spelling} is missing its value")
+            raise ValueError(
+                f"probe parameter --{spelling} is missing its value; "
+                f"write --{spelling} <value>"
+            )
         seen.add(key)
         pairs.append((key, args[index + 1]))
         index += 2
@@ -630,6 +669,11 @@ def _check_bash(command: str, root: Path) -> tuple[bool, str, list[str]]:
         return False, reason, []
     for token in COMPOUND_TOKENS:
         if token in command:
+            if token == "|":
+                return False, (
+                    "compound shell token forbidden: |; remove the pipe and rerun "
+                    "the same python tools/run_cv_probe.py command directly"
+                ), []
             return False, f"compound shell token forbidden: {token}", []
     try:
         parts = shlex.split(command)
@@ -650,6 +694,16 @@ def _check_bash(command: str, root: Path) -> tuple[bool, str, list[str]]:
                 return False, str(exc), normalized
         return True, "allowed read-only command", normalized
     if Path(parts[0]).name not in {"python", "python3"}:
+        if parts[0] == "mkdir":
+            return False, (
+                "command is not allowlisted: mkdir; out/ and requests/ are already "
+                "provisioned — write requests/<name>.json or run the direct --tool form"
+            ), []
+        if parts[0] == "find":
+            return False, (
+                "command is not allowlisted: find; use ls case_data to list the "
+                "copied input images"
+            ), []
         return False, f"command is not allowlisted: {parts[0]}", []
     # P1-1: the "exactly four tokens" rule is gone, replaced by the strict
     # argument parser below. The checks it used to absorb are now explicit and
@@ -670,6 +724,10 @@ def _check_bash(command: str, root: Path) -> tuple[bool, str, list[str]]:
             return False, "only tools/run_cv_probe.py may be executed", []
     elif parts[1] != "tools/run_cv_probe.py":
         return False, "only tools/run_cv_probe.py may be executed", []
+    # The help form is explicitly narrow: it runs only the one staged wrapper,
+    # receives no file paths or shell syntax, and changes no state.
+    if len(parts) == 3 and parts[2] == "--help":
+        return True, "allowed run_cv_probe help", []
     # Form A — `--request <json>`, byte-for-byte the previous behaviour.
     if len(parts) == 4 and parts[2] == "--request":
         if parts[3] == "-c":
