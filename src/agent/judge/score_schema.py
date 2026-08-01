@@ -367,7 +367,7 @@ class ClaimApplicabilityRefV8(StrictWire):
     claim: ClaimName
     target_world_interval: IntervalV1
     status: Literal["applicable", "partially_applicable", "not_applicable"]
-    reason: Literal["full_observable_coverage", "existence_observable_fragment", "partial_observable_coverage", "unobserved"]
+    reason: Literal["full_observable_coverage", "existence_observable_fragment", "partial_observable_coverage", "unobserved", "outside_reading_exam_scope"]
     applicable_intervals: tuple[IntervalV1, ...]
     unobserved_intervals: tuple[IntervalV1, ...]
     considered_source_view_ids: tuple[StableId, ...]

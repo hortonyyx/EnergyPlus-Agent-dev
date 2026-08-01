@@ -170,7 +170,9 @@ def _resolve_facade_product_to_gt(*, geometry, gt) -> dict[str, str]:
 def score_typed_attempt(*, gt_identity, gt, stage: Literal["reading", "correction"],
                         product_payload: dict, product_identity: ProductIdentityV8,
                         base_view_manifest, score_bindings, completeness_overlay, c2_config,
-                        window_host_proof=None) -> TypedScoreResult:
+                        window_host_proof=None,
+                        reading_exam_scope_input_ids: set[str] | None = None,
+                        reading_exam_scope_source: str | None = None) -> TypedScoreResult:
     """Assemble the Phase A/B/C engines into the one real C2 score service."""
     from src.agent.correction.facade_applicability import FACADE_APPLICABILITY_HELPER_VERSION
     from src.agent.correction.claims import CLAIMS_VOCAB_VERSION
@@ -180,7 +182,8 @@ def score_typed_attempt(*, gt_identity, gt, stage: Literal["reading", "correctio
         derive_reference_ledger, gt_openings_to_va_claims, gt_to_va_visibility, score_opening_claims_v3,
         summarize_claim_rows,
     )
-    from src.agent.judge.score_inputs import build_effective_view_manifest, materialize_va_elevation_bindings
+    from src.agent.judge.score_inputs import (build_effective_view_manifest,
+                                              materialize_va_elevation_bindings)
     from src.agent.judge.score_policy import c2_v3_score_policy
     from src.agent.judge.segment_score import (coerce_plan_observations,
                                                extract_correction_plan_segments, extract_gt_plan_segments,
@@ -240,6 +243,8 @@ def score_typed_attempt(*, gt_identity, gt, stage: Literal["reading", "correctio
             tolerance=tolerance,
             manifest_identity=manifest_identity,
             helpers=helpers,
+            reading_exam_scope_input_ids=reading_exam_scope_input_ids,
+            reading_exam_scope_source=reading_exam_scope_source,
         )
         # The renderer consumes only typed judge rows and GT geometry.  Product
         # facade declarations and raw stroke coordinates are not reachable.

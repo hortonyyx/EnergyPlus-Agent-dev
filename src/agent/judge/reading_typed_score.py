@@ -1144,6 +1144,8 @@ def assemble_reading_score(
     tolerance,
     manifest_identity,
     helpers,
+    reading_exam_scope_input_ids: set[str] | None = None,
+    reading_exam_scope_source: str | None = None,
 ) -> ReadingScoreAssembly:
     """Normalize, certify, and score one recognized reading envelope."""
     normalization_outcome = normalize_reading_attempt(
@@ -1169,6 +1171,7 @@ def assemble_reading_score(
         trusted_capability_dispositions=(
             normalization_outcome.trusted_capability_dispositions
         ),
+        input_ids=reading_exam_scope_input_ids,
     )
     (
         _observations,
@@ -1258,6 +1261,8 @@ def assemble_reading_score(
         gt=gt,
         bindings=score_bindings,
         effective_manifest=score_manifest,
+        input_ids=reading_exam_scope_input_ids,
+        reading_exam_scope_source=reading_exam_scope_source,
     )
     source_rows = _opening_source_rows(
         gt=gt,

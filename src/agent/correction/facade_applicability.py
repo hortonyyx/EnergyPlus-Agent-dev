@@ -30,7 +30,7 @@ CLAIM_ORDER: tuple[ClaimName, ...] = (
 ApplicabilityStatus = Literal["applicable", "partially_applicable", "not_applicable"]
 ApplicabilityReason = Literal[
     "full_observable_coverage", "existence_observable_fragment",
-    "partial_observable_coverage", "unobserved",
+    "partial_observable_coverage", "unobserved", "outside_reading_exam_scope",
 ]
 EvidenceChannel = Literal["plan", "elevation"]
 VisibilityRule = Literal["plan_visibility_bypass", "elevation_visible_intersection"]
@@ -383,7 +383,8 @@ def _relevant_negative(
 
 
 def derive_opening_claim_applicability(*, visibility: FacadeVisibilityLedgerV1, manifest: ViewManifest,
-        elevation_views: tuple[ElevationViewBindingV1, ...], openings: tuple[OpeningClaimsV1, ...]) -> OpeningApplicabilityLedgerV1:
+        elevation_views: tuple[ElevationViewBindingV1, ...], openings: tuple[OpeningClaimsV1, ...],
+        reading_exam_scope_source: str | None = None) -> OpeningApplicabilityLedgerV1:
     """Derive the immutable Va ledger from caller-owned, in-memory facts only."""
     if manifest.view_manifest_schema_version != "1" or manifest.claims_vocab_version != CLAIMS_VOCAB_VERSION or manifest.generator_version != "1" or manifest.completeness_ruleset_version != "1":
         _fail("va_identity_mismatch", declared=manifest.model_dump(mode="json"))
@@ -405,6 +406,9 @@ def derive_opening_claim_applicability(*, visibility: FacadeVisibilityLedgerV1, 
         if tuple(x.claim for x in opening.claims) != CLAIM_ORDER:
             _fail("va_claim_ledger_invalid", opening_id=opening.opening_id, declared=[x.claim for x in opening.claims])
         target = opening.claims[0].target_world_interval
+        opening_has_scope_evidence = any(
+            claim.positive_evidence for claim in opening.claims
+        )
         if any(c.target_world_interval != target for c in opening.claims) or not _intersect(target, ApplicabilityIntervalV1(lo=segment.world_along_interval.lo, hi=segment.world_along_interval.hi)) or target.lo < segment.world_along_interval.lo or target.hi > segment.world_along_interval.hi:
             _fail("va_claim_ledger_invalid", opening_id=opening.opening_id, facade_segment_id=segment.id)
         claims_out = []
@@ -488,7 +492,12 @@ def derive_opening_claim_applicability(*, visibility: FacadeVisibilityLedgerV1, 
             covered = _merge(x for d in decisions for x in d.applicable_intervals)
             unobserved = _complement(target, covered)
             if not covered:
-                status, reason = "not_applicable", "unobserved"
+                status, reason = "not_applicable", (
+                    "outside_reading_exam_scope"
+                    if reading_exam_scope_source is not None
+                    and not opening_has_scope_evidence
+                    else "unobserved"
+                )
             elif not unobserved:
                 status, reason = "applicable", "full_observable_coverage"
             elif claim == "existence":

@@ -1330,7 +1330,8 @@ def _grade_typed_attempt_artifacts(stage: str, case: str, attempt_dir: Path, doc
     from src.agent.judge.score_config import load_judge_score_config
     from src.agent.judge.score_inputs import (load_completeness_overlay,
                                               load_score_view_bindings,
-                                              select_score_view_bindings)
+                                              select_score_view_bindings,
+                                              validate_score_view_bindings_against_gt)
     from src.agent.judge.score_schema import (build_product_identity, commit_score_artifacts,
                                                load_cached_score, load_score_gt_identity)
     from src.agent.judge.reading_typed_adapter import identify_reading_contract
@@ -1364,6 +1365,7 @@ def _grade_typed_attempt_artifacts(stage: str, case: str, attempt_dir: Path, doc
             from src.agent.judge.score_schema import ScoreContractError
             raise ScoreContractError("score_product_identity_invalid", "scoring.input_identity",
                                      context={"reason": "accepted_stage_record_output_mismatch"})
+    exam_scope = None
     if stage == "0_reading":
         output_schema = identify_reading_contract(output).contract_id
     else:
@@ -1411,6 +1413,13 @@ def _grade_typed_attempt_artifacts(stage: str, case: str, attempt_dir: Path, doc
                 bindings=bindings,
                 input_ids=set(exam_scope.input_ids),
             )
+    if stage == "0_reading" and exam_scope is not None:
+        validate_score_view_bindings_against_gt(
+            bindings=bindings,
+            base=base,
+            gt=typed_gt,
+            input_ids=None if exam_scope is None else set(exam_scope.input_ids),
+        )
     overlay = load_completeness_overlay(overlay_path if overlay_path.exists() else None,
         expected_case_id=document.case, expected_gt_content_sha256=gt_identity.content_sha256,
         expected_base_view_manifest_sha256=base.content_sha256)
@@ -1429,6 +1438,9 @@ def _grade_typed_attempt_artifacts(stage: str, case: str, attempt_dir: Path, doc
         "score_bindings": bindings, "completeness_overlay": overlay,
         "c2_config": load_judge_score_config(_REPO_ROOT / "src/configs/judge_score.yaml"),
         "window_host_proof": window_host_proof, "run_profile": run_profile}
+    if exam_scope is not None:
+        request["reading_exam_scope_input_ids"] = set(exam_scope.input_ids)
+        request["reading_exam_scope_source"] = exam_scope.source
     result = score_attempt_service(typed_request=request)
     score_path, grade_path = attempt_dir / "score_vs_gt.json", attempt_dir / "grade.png"
     cached = load_cached_score(score_path, grade_path=grade_path, expected_identity=result.identity)

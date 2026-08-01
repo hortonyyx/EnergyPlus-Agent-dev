@@ -220,6 +220,60 @@ The three identity values exactly match the r1 pre- and post-rework records abov
 
 None.
 
+## W4 减卷判卷 BLOCKER 修复 r4
+
+### Changed and why
+
+- Scoped `0_reading` scoring now passes the frozen `input_ids` through the GT-side score-binding trust-root validator. Unscoped replay keeps its previous path and bytes.
+- The in-memory score manifest is narrowed with the same frozen scope, so Va receives exactly the elevation bindings it is entitled to validate; no signed sidecar, GT, or base manifest is rewritten.
+- GT opening refs outside a declared scope are skipped. An opening with no remaining in-scope ref is retained as explicit zero-unit `not_applicable` applicability with reason `outside_reading_exam_scope`; an opening with an in-scope ref remains normally scorable.
+- Repaired L8: `test_typed_reading_scorer_consumes_only_frozen_exam_scope_bindings` now requires `payload.kind == c2_scored` and non-empty scored denominator atoms, rather than accepting any non-null sidecar.
+
+### Live scoring evidence
+
+Only the judge/scoring replay was run; neither W5 reading attempt was rerun.
+
+```text
+$ python scripts/tool_scripts/run_stage.py --run-profile regression --capability-profile orthogonal_polygon flow sm24_anchor run_2026-08-01_haiku_w5_scoped_d1 --to 0_reading --judge stop
+d1 score_vs_gt.payload.kind = c2_scored
+
+$ python scripts/tool_scripts/run_stage.py --run-profile regression --capability-profile orthogonal_polygon flow sm24_anchor run_2026-08-01_haiku_w5_scoped_d2 --to 0_reading --judge stop
+d2 score_vs_gt.payload.kind = c2_scored
+
+denominator atoms (both runs): 63
+source input composition (both runs): 1f_view=53, South_view=10
+other source inputs: none
+```
+
+### Neuter self-check
+
+All mutations ran only in `/tmp/w4r4-neuter.eHMbzZ/repo` with `PYTHONPATH` pinned to that copy.
+
+| Lock | Removed guard | Red test | Collateral in target run |
+| --- | --- | --- | --- |
+| L8 success | scoped binding selection | `test_typed_reading_scorer_consumes_only_frozen_exam_scope_bindings` | none |
+| C | out-of-scope ref skip | `test_scoped_gt_opening_refs_skip_out_of_scope_views` | none |
+| D | scoped whole-opening NA reason | `test_scoped_opening_with_no_in_scope_refs_is_explicitly_not_applicable` | none |
+| E | in-scope elevation evidence | `test_scoped_gt_opening_refs_retain_in_scope_evidence` | none |
+| A | unscoped full-binding-set check | `test_unscoped_gt_binding_validation_still_requires_the_full_manifest` | none |
+
+### Verification
+
+```text
+$ python -m pytest -p no:cacheprovider -q -n auto
+2051 passed, 10 xfailed, 150 warnings in 665.01s
+
+case_metadata_sha256=f2efff8614ce6ddce9f975e811435a4936720f37df72cda538e4cd0cf8656701
+base_view_manifest_sha256=459513f1377496c2cf79c81f5ecc6860d90408e99053e609f46a977159847b8a
+gt_content_sha256=dd32135d81b0ea6eb34aaaec1675840cc46090b0b8eb99c7b140a7a4afd479f2
+```
+
+The three identity hashes equal the earlier W4 records. `git diff --check` is clean. No push was performed.
+
+### Under-specified boundaries
+
+None.
+
 ## GLM findings 窄修 r3
 
 ### Changed and why

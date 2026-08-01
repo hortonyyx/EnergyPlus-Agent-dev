@@ -203,7 +203,8 @@ def gt_to_va_visibility(gt: GroundTruthV3) -> FacadeVisibilityLedgerV1:
 
 
 def gt_openings_to_va_claims(*, gt: GroundTruthV3, bindings: JudgeScoreViewBindingsV1,
-                             effective_manifest: ViewManifest) -> tuple[OpeningClaimsV1, ...]:
+                             effective_manifest: ViewManifest,
+                             input_ids: set[str] | None = None) -> tuple[OpeningClaimsV1, ...]:
     """Build exact seven-claim GT positive evidence for one Va reference call."""
     by_gt_view = {view: binding for binding in bindings.bindings for view in binding.gt_source_view_ids}
     observable_by_input = {
@@ -231,6 +232,10 @@ def gt_openings_to_va_claims(*, gt: GroundTruthV3, bindings: JudgeScoreViewBindi
         for ref in opening.source_refs:
             binding = by_gt_view.get(ref.view_id)
             if binding is None:
+                if input_ids is not None:
+                    # The frozen scope is the reader's entire exam.  A GT ref
+                    # outside it is neither a missing binding nor a miss.
+                    continue
                 raise ScoreContractError("score_view_binding_invalid", "scoring.view_bindings", context={"opening_id": opening.id, "view_id": ref.view_id})
             marker = (ref.view_id, binding.input_id)
             if marker in seen: continue
@@ -260,11 +265,15 @@ def gt_openings_to_va_claims(*, gt: GroundTruthV3, bindings: JudgeScoreViewBindi
 
 
 def derive_reference_ledger(*, gt: GroundTruthV3, bindings: JudgeScoreViewBindingsV1,
-                            effective_manifest: ViewManifest) -> OpeningApplicabilityLedgerV1:
+                            effective_manifest: ViewManifest,
+                            input_ids: set[str] | None = None,
+                            reading_exam_scope_source: str | None = None) -> OpeningApplicabilityLedgerV1:
     visibility = gt_to_va_visibility(gt)
     return derive_opening_claim_applicability(visibility=visibility, manifest=effective_manifest,
         elevation_views=materialize_va_elevation_bindings(score_bindings=bindings, effective_manifest=effective_manifest),
-        openings=gt_openings_to_va_claims(gt=gt, bindings=bindings, effective_manifest=effective_manifest))
+        openings=gt_openings_to_va_claims(gt=gt, bindings=bindings, effective_manifest=effective_manifest,
+                                         input_ids=input_ids),
+        reading_exam_scope_source=reading_exam_scope_source)
 
 
 def derive_product_ledger(*, visibility: FacadeVisibilityLedgerV1, manifest: ViewManifest,

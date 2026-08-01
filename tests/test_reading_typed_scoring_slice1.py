@@ -455,7 +455,10 @@ def test_denominator_constructor_accepts_only_canonical_trusted_exclusions():
 
 def test_score_binding_consumer_scope_shrinks_denominator_without_mutating_source_bindings():
     from src.agent.judge.reading_typed_adapter import derive_reading_denominator_v1
-    from src.agent.judge.score_inputs import select_score_view_bindings
+    from src.agent.judge.score_inputs import (
+        build_reading_score_manifest,
+        select_score_view_bindings,
+    )
 
     request = _trusted_request(_real_payload())
     full = request["score_bindings"]
@@ -531,8 +534,107 @@ def test_typed_reading_scorer_consumes_only_frozen_exam_scope_bindings(
         grade=run_stage.GradeConfig(),
     )
 
-    assert artifacts["score_vs_gt"] is not None
+    sidecar = json.loads(Path(artifacts["score_vs_gt"]).read_text(encoding="utf-8"))
+    assert sidecar["payload"]["kind"] == "c2_scored"
+    assert sidecar["certificates"]["source_applicability"]["denominator_atoms"]
     assert consumed == [["1f_view", "South_view"]]
+
+
+def test_scoped_gt_opening_refs_skip_out_of_scope_views():
+    from src.agent.judge.opening_claim_score import gt_openings_to_va_claims
+    from src.agent.judge.score_inputs import select_score_view_bindings
+
+    request = _trusted_request(_real_payload())
+    scoped = select_score_view_bindings(
+        bindings=request["score_bindings"], input_ids={"1f_view", "South_view"}
+    )
+    claims = gt_openings_to_va_claims(
+        gt=request["gt"],
+        bindings=scoped,
+        effective_manifest=request["base_view_manifest"],
+        input_ids={"1f_view", "South_view"},
+    )
+    by_id = {item.opening_id: item for item in claims}
+    assert all(
+        evidence.source_input_id in {"1f_view", "South_view"}
+        for opening in claims
+        for claim in opening.claims
+        for evidence in claim.positive_evidence
+    )
+    assert all(
+        evidence.source_input_id == "1f_view"
+        for claim in by_id["op_aff"].claims
+        for evidence in claim.positive_evidence
+    )
+
+
+def test_scoped_gt_opening_refs_retain_in_scope_evidence():
+    from src.agent.judge.opening_claim_score import gt_openings_to_va_claims
+    from src.agent.judge.score_inputs import select_score_view_bindings
+
+    request = _trusted_request(_real_payload())
+    scoped = select_score_view_bindings(
+        bindings=request["score_bindings"], input_ids={"1f_view", "South_view"}
+    )
+    claims = gt_openings_to_va_claims(
+        gt=request["gt"],
+        bindings=scoped,
+        effective_manifest=request["base_view_manifest"],
+        input_ids={"1f_view", "South_view"},
+    )
+    south = next(item for item in claims if item.opening_id == "op_af6")
+    assert any(
+        evidence.source_input_id == "South_view"
+        for claim in south.claims
+        for evidence in claim.positive_evidence
+    )
+
+
+def test_scoped_opening_with_no_in_scope_refs_is_explicitly_not_applicable():
+    from src.agent.judge.opening_claim_score import derive_reference_ledger
+    from src.agent.judge.score_inputs import (
+        build_reading_score_manifest,
+        select_score_view_bindings,
+    )
+
+    request = _trusted_request(_real_payload())
+    scoped = select_score_view_bindings(
+        bindings=request["score_bindings"], input_ids={"South_view"}
+    )
+    score_manifest = build_reading_score_manifest(
+        effective=request["base_view_manifest"],
+        trusted_capability_dispositions=(),
+        input_ids={"South_view"},
+    )
+    ledger = derive_reference_ledger(
+        gt=request["gt"],
+        bindings=scoped,
+        effective_manifest=score_manifest,
+        input_ids={"South_view"},
+        reading_exam_scope_source="run_config.yaml:reading_exam_scope",
+    )
+    excluded = next(item for item in ledger.openings if item.opening_id == "op_aff")
+    assert all(claim.status == "not_applicable" for claim in excluded.claims)
+    assert all(claim.reason == "outside_reading_exam_scope" for claim in excluded.claims)
+
+
+def test_unscoped_gt_binding_validation_still_requires_the_full_manifest():
+    from src.agent.judge.score_inputs import (
+        select_score_view_bindings,
+        validate_score_view_bindings_against_gt,
+    )
+    from src.agent.judge.score_schema import ScoreContractError
+
+    request = _trusted_request(_real_payload())
+    scoped = select_score_view_bindings(
+        bindings=request["score_bindings"], input_ids={"1f_view", "South_view"}
+    )
+    with pytest.raises(ScoreContractError):
+        validate_score_view_bindings_against_gt(
+            bindings=scoped,
+            base=request["base_view_manifest"],
+            gt=request["gt"],
+        )
 
 
 def test_v9_cache_hits_exact_identity_and_treats_v8_as_miss(tmp_path):

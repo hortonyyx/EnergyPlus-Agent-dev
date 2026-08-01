@@ -132,13 +132,14 @@ def select_score_view_bindings(*, bindings: JudgeScoreViewBindingsV1,
 
 
 def validate_score_view_bindings_against_gt(*, bindings: JudgeScoreViewBindingsV1, base: ViewManifest,
-                                            gt: GroundTruthV3) -> None:
+                                            gt: GroundTruthV3,
+                                            input_ids: set[str] | None = None) -> None:
     """Validate the §6.3 GT-side floor/facade/source-ref trust root.
 
     The frozen file loader has no GT parameter, so the future typed service
     calls this companion validator after both independently strict inputs load.
     """
-    validate_score_view_bindings(bindings=bindings, base=base)
+    validate_score_view_bindings(bindings=bindings, base=base, input_ids=input_ids)
     views = {view.id: view for source in gt.sources for view in source.views}
     floors = {floor.id: floor for floor in gt.floors}
     ordered_floor_ids = [floor.id for floor in gt.floors]
@@ -287,6 +288,7 @@ def build_reading_score_manifest(
     trusted_capability_dispositions: tuple[
         ReadingFilteredComponentBasisV1, ...
     ],
+    input_ids: set[str] | None = None,
 ) -> ViewManifest:
     """Remove only trusted-input-filtered claims from the in-memory Va input.
 
@@ -341,6 +343,23 @@ def build_reading_score_manifest(
 
     payload = effective.model_dump(mode="json")
     payload["entries"] = entries
+    if input_ids is not None:
+        required = {
+            entry.input_id
+            for entry in effective.required_entries()
+        }
+        if not input_ids or not input_ids <= required:
+            raise ScoreContractError(
+                "score_view_binding_invalid",
+                "scoring.view_bindings",
+                context={"scope": "invalid"},
+            )
+        payload["entries"] = [
+            entry
+            for entry in entries
+            if entry.get("kind") != "required_view"
+            or entry["input_id"] in input_ids
+        ]
     payload.pop("content_sha256")
     payload["content_sha256"] = canonical_sha256(payload)
     try:
