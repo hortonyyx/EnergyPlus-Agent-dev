@@ -624,11 +624,6 @@ def resolve_frozen_reading_exam_scope(
             "reading exam scope drift: frozen scope is bound to a different "
             "base view manifest"
         )
-    if frozen.declaration_sha256 != declared.declaration_sha256:
-        raise ValueError(
-            "reading exam scope drift: run_config.yaml declaration changed "
-            "after this run was provisioned"
-        )
     if frozen.content_sha256 != declared.content_sha256:
         raise ValueError(
             "reading exam scope drift: frozen scope does not match the "

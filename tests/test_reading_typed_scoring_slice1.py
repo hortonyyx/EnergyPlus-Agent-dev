@@ -11,6 +11,7 @@ from pydantic import ValidationError
 
 from tests.test_reading_typed_scoring_slice0 import (
     GT_FILE,
+    REAL_OUTPUT,
     REAL_RUN,
     _grade_payload,
     _real_payload,
@@ -477,6 +478,61 @@ def test_score_binding_consumer_scope_shrinks_denominator_without_mutating_sourc
     }
     assert len(scoped_atoms) < len(full_atoms)
     assert scoped.content_sha256 != full.content_sha256
+
+
+def test_typed_reading_scorer_consumes_only_frozen_exam_scope_bindings(
+    tmp_path, monkeypatch
+):
+    from scripts.tool_scripts import run_stage
+    from src.agent.execution.manifest import RunManifest
+    from src.agent.execution.view_manifest import provision_view_manifest
+    from src.agent.judge.score_schema import load_score_gt_identity
+    import src.agent.judge.score_service as score_service
+
+    case_dir = tmp_path / "sm24_anchor"
+    shutil.copytree(REAL_RUN.parent, case_dir)
+    run = tmp_path / "scoped_run"
+    meta = run / "_run"
+    meta.mkdir(parents=True)
+    for filename in ("view_manifest.json", "judge_score_bindings.json"):
+        shutil.copyfile(REAL_RUN / "_run" / filename, meta / filename)
+    (run / "run_config.yaml").write_text(
+        "reading_exam_scope:\n"
+        "  input_ids: [1f_view, South_view]\n"
+        "  reason: focused reading exam\n",
+        encoding="utf-8",
+    )
+    provision_view_manifest(case_dir, run)
+    attempt = run / "0_reading/attempts/003"
+    attempt.mkdir(parents=True)
+    shutil.copyfile(REAL_OUTPUT, attempt / "output.json")
+    gt_identity, document = load_score_gt_identity(GT_FILE)
+    assert gt_identity is not None
+    assert document is not None
+
+    consumed = []
+    original = score_service.score_attempt_service
+
+    def capture_consumed_bindings(*, typed_request=None, **kwargs):
+        assert typed_request is not None
+        consumed.append(
+            [binding.input_id for binding in typed_request["score_bindings"].bindings]
+        )
+        return original(typed_request=typed_request, **kwargs)
+
+    monkeypatch.setattr(score_service, "score_attempt_service", capture_consumed_bindings)
+    artifacts = run_stage._grade_typed_attempt_artifacts(
+        "0_reading",
+        document.case,
+        attempt,
+        document,
+        gt_file=GT_FILE,
+        manifest=RunManifest(case=document.case),
+        grade=run_stage.GradeConfig(),
+    )
+
+    assert artifacts["score_vs_gt"] is not None
+    assert consumed == [["1f_view", "South_view"]]
 
 
 def test_v9_cache_hits_exact_identity_and_treats_v8_as_miss(tmp_path):

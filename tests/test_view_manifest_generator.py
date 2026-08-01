@@ -238,6 +238,63 @@ def test_frozen_exam_scope_resolver_requires_matching_declaration_and_base(tmp_p
         resolve_frozen_reading_exam_scope(run_dir, base)
 
 
+def test_frozen_exam_scope_resolver_rejects_removed_declaration(tmp_path: Path):
+    case_dir = _write_case(tmp_path / "case", _sm21_style_testdata())
+    run_dir = tmp_path / "run"
+    run_dir.mkdir()
+    (run_dir / "run_config.yaml").write_text(
+        "reading_exam_scope:\n"
+        "  input_ids: [1f_view, South_view]\n"
+        "  reason: focused reading exam\n",
+        encoding="utf-8",
+    )
+    base = provision_view_manifest(case_dir, run_dir)
+
+    (run_dir / "run_config.yaml").write_text("{}\n", encoding="utf-8")
+
+    with pytest.raises(ValueError, match="has no reading_exam_scope declaration"):
+        resolve_frozen_reading_exam_scope(run_dir, base)
+
+
+def test_frozen_exam_scope_resolver_rejects_other_base_manifest(tmp_path: Path):
+    case_dir = _write_case(tmp_path / "case", _sm21_style_testdata())
+    run_dir = tmp_path / "run"
+    run_dir.mkdir()
+    (run_dir / "run_config.yaml").write_text(
+        "reading_exam_scope:\n"
+        "  input_ids: [1f_view, South_view]\n"
+        "  reason: focused reading exam\n",
+        encoding="utf-8",
+    )
+    provision_view_manifest(case_dir, run_dir)
+    other_case_dir = _write_case(
+        tmp_path / "other_case", _sm21_style_testdata(TestName="other")
+    )
+    other_base = build_view_manifest(other_case_dir)
+
+    with pytest.raises(ValueError, match="bound to a different base view manifest"):
+        resolve_frozen_reading_exam_scope(run_dir, other_base)
+
+
+def test_frozen_exam_scope_resolver_rejects_corrupt_frozen_artifact(tmp_path: Path):
+    case_dir = _write_case(tmp_path / "case", _sm21_style_testdata())
+    run_dir = tmp_path / "run"
+    run_dir.mkdir()
+    (run_dir / "run_config.yaml").write_text(
+        "reading_exam_scope:\n"
+        "  input_ids: [1f_view, South_view]\n"
+        "  reason: focused reading exam\n",
+        encoding="utf-8",
+    )
+    base = provision_view_manifest(case_dir, run_dir)
+    (run_dir / "_run" / READING_EXAM_SCOPE_NAME).write_text(
+        "not json", encoding="utf-8"
+    )
+
+    with pytest.raises(ValueError, match="artifact is corrupt"):
+        resolve_frozen_reading_exam_scope(run_dir, base)
+
+
 # --------------------------------------------------------------------------- #
 # §8.3 sm21 + sm20 dual fixture full mapping
 # --------------------------------------------------------------------------- #

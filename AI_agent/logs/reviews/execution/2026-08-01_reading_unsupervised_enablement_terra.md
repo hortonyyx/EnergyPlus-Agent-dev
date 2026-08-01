@@ -179,3 +179,43 @@ The three identity values equal the pre-rework values recorded above. The two un
 ### Under-specified boundaries
 
 None. The only trade-off is the dispatch-recommended separation: case-manifest reconstruction stays at provisioning and `cmd_judge`, while scoring consumes the already-loaded base manifest plus the frozen scope. This avoids silently imposing a repository case layout on an explicitly supported `--base-dir` path.
+
+## W4 返工 r2（补锁）
+
+### Changed and why
+
+- Removed the redundant `declaration_sha256` comparison from the frozen-scope resolver. The authenticated `content_sha256` covers that field, so the content comparison is the single complete drift guard.
+- Added direct resolver locks for a removed declaration, a frozen scope bound to a different legal base manifest, and a corrupt frozen artifact.
+- Added a real `0_reading` typed-scorer lock that provisions a temporary scoped sm24 run and captures the bindings passed to the scorer. It requires exactly `1f_view` and `South_view` without altering the signed source bindings.
+
+### Neuter self-check
+
+Each mutation ran only in a disposable `/tmp` repository copy with:
+`python -m pytest -n auto -q tests/test_view_manifest_generator.py tests/test_isolation.py tests/test_c2_b4b_phase_d.py tests/test_reading_typed_scoring_slice1.py`.
+
+| Lock | Removed guard | Red test | Collateral |
+| --- | --- | --- | --- |
+| L1 | frozen artifact + missing-declaration raise | `test_frozen_exam_scope_resolver_rejects_removed_declaration` | none (1 failed, 280 passed) |
+| L4 | different-base-manifest raise | `test_frozen_exam_scope_resolver_rejects_other_base_manifest` | none (1 failed, 280 passed) |
+| L6 | `content_sha256` mismatch raise | `test_run_level_exam_scope_is_frozen_without_changing_case_manifest` | none (1 failed, 280 passed) |
+| L7 | corrupt-artifact exception wrapping | `test_frozen_exam_scope_resolver_rejects_corrupt_frozen_artifact` | none (1 failed, 280 passed) |
+| L8 | scoped `select_score_view_bindings` consumer narrowing | `test_typed_reading_scorer_consumes_only_frozen_exam_scope_bindings` | none (1 failed, 280 passed) |
+
+For L8, the unmodified scorer received `['1f_view', 'South_view']`; after removing the narrowing branch it received all five bindings, and only the new scorer-boundary test failed.
+
+### Evidence
+
+```text
+$ python -m pytest -n auto
+2046 passed, 10 xfailed, 150 warnings in 301.36s (0:05:01)
+
+case_metadata_sha256=f2efff8614ce6ddce9f975e811435a4936720f37df72cda538e4cd0cf8656701
+base_view_manifest_sha256=459513f1377496c2cf79c81f5ecc6860d90408e99053e609f46a977159847b8a
+gt_content_sha256=dd32135d81b0ea6eb34aaaec1675840cc46090b0b8eb99c7b140a7a4afd479f2
+```
+
+The three identity values exactly match the r1 pre- and post-rework records above.
+
+### Under-specified boundaries
+
+None.
