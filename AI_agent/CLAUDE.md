@@ -72,26 +72,89 @@ EnergyPlus 经 `WorkflowTool.run_simulation`（eppy + ConverterManager，idfpy �
 4. **gt 铁律**：评测答案 `case_tests/test_baseline/gt/<case>/gt.json` **只 gate② judge / 人 可读**，gate①/执行器绝不 import（dev/prod 一致 + 防照抄）。
 5. **精确坐标容差带由确定性层判**（核坍缩规范值 + gate① 带容差不变量），gt/judge 只判布局/计数/窗位定性。
 6. **建筑复杂度可扩展性铁律（2026-07-03 用户定，硬约束所有决策）**：**每个决策必须为未来建筑复杂度升级留路**——现架构（正交·**共底面盒子**）刻意保留了升级到复杂体量（**非方形 / 退台 / 挑空双层高 / 中庭竖井**）的可能：不变量 #1 判断-几何分工、#2 单一世界坐标、版本化 schema、#3 稳定契约都是为此设的**接缝**；复杂体量 = schema 加槽位（per-floor footprint / 变高区 / void）+ kernel 实现扩展（含休眠支线 [proposals/geometry_first_zonification.md](proposals/geometry_first_zonification.md) 热区积木 = kernel 策略替换、**非架构推翻**），都在接缝内长。**不得**把"共用 footprint / 每层满铺楼板 / 固定层高"这类**当前简化假设烤死到无法松动**——纯只适用当前情况（不能长到复杂体量）的方案**没有意义**。复杂体量本身是远期 defer，但**任何当下决策都要过一遍"这条路以后能不能长到复杂体量"**。风险不在架构、在"烤死的假设"，本条即那道保险。
-7. **主控不得进入产品本身（2026-07-31 用户定，硬约束）**：**主控 agent 的定位 = 项目开发的助手**——
-   dev 期间可以辅助编排、查报错、迭代开发、写方案与派工；**但原则上不得进入项目本身的任何一个环节和步骤**。
-   即使将来产品本身要用到高级模型，那是**单独的另一件事、与主控无关，主控不能代劳**。
-   **判据**：把主控整个拿掉，产品必须仍然能跑完并保证质量；凡是「拿掉主控就断」的地方，都是违反本条的接缝。
-   **⚠️ 已知违反点（2026-07-31 自查，明日重设计时逐条清）**：
-   ① **per-run directive** = 主控看着上轮失败现调、随轮投喂给识图子代理（合法形态 = 沉淀进 standing 文档随产品发布）；
-   ② **pilot → 主控反馈 → 返工**（`isolation.py` 的 `write_feedback` / `feedback.md` 是机制化注入点，
-      `spawn_command` 会并进 prompt 并提示 read it FIRST）—— **07-07 的 8/8 北极星成绩正由此而来** ⇒ 该成绩非无监督基线；
-   ③ **judge② 目前由主控担任**（`new_case_guide` §1 明写「你既编排又当 judge」）⇒ 应代码化，用 gt 直接核；
-   ④ **预扫参数由主控临时挑**（预扫本身是确定性代码、不违规，但参数选择必须是随产品发布的固定档）。
-   **允许的形态**：judge（最终应为代码）判定不过 ⇒ **整轮盲重抽，零提示**；
-   **禁止的形态**：告诉执行环节「哪里错了、该怎么改」，或按子部分打回 —— 那是在监督弱模型把任务做好。
-   详 [logs/experiments/2026-07-31_sm24_e2e_retry/SUPERVISION_CONTAMINATION.md](logs/experiments/2026-07-31_sm24_e2e_retry/SUPERVISION_CONTAMINATION.md)。
+7. **主控与 judge 不得参与各环节内部的生产（2026-07-31 用户定；⚠️2026-08-01 用户校准判据，以本版为唯一口径）**：
+   **主控 agent 的定位 = 项目开发的助手**；**judge 同样是 dev 阶段辅助看开发质量的 agent**
+   （目的 = 减少人工核对 + 判断各环节质量，免得每次都要完全跑完端到端、节省成本）。
+   - **✅ dev 期合法**：**主控编排各个环节**（建工作区 / spawn / merge / 跑确定性工具 / 决定跑什么）；
+     **主控兼任 judge**。judge **目前不归属项目本身的环节**；产品最终要不要引入 judge 环节，**最后工程化时再说**。
+     稳定之后把主控代码化 / 降档化是**开发后期的工程问题、不是现在的重心**。
+   - **⛔ 判据（08-01 校准版，替代 07-31 原判据）**：**拿掉主控整个流程跑不出来，可以接受**；
+     **但每个环节本身必须能完成「输入 → 输出」的全过程**。凡是「环节自己走不完、要有人中途回答才能继续」的地方，即违本条。
+   - **⛔ 唯一允许的 judge 出口**：判定不过 ⇒ **整轮盲重抽、零信息**（**相当于另外做一次**）。
+     **禁止**：告诉执行环节「哪里错了、该怎么改」；按子部分打回；**原任务给反馈续作**。
+   - **⛔ 同样禁止**：主控的**判断**（而非随产品发布的固定档参数）成为某环节的输入。
+   **⚠️ 已排查完的违规点（2026-08-01 全面排查，[审计报告](logs/experiments/2026-08-01_controller_in_production_audit/README.md)）**：
+   ① **pilot 停等 review + `feedback.md` 续作通道**，且「停下等审阅」**写在产品 skill 库
+      `session_kickoff.md` 里**（不是 dev 脚手架）⇒ 读图器被自己的启动文件命令停下等人；
+      **07-07 的 8/8 正由此而来** ⇒ 该成绩非无监督基线。**08-01 已改**（自检后继续，无 review 点）；
+   ② **per-run directive**（198 行，主控看着上轮失败当场写）⇒ 待拆分：通用纪律沉淀进 standing 文档 /
+      针对上轮错法的删除。**⚠️ 与补门成对做**——其 §2、§4.7 实为两条缺失 gate① 检查的替代品，只删不补即退化；
+   ③ **预扫参数由主控临时挑**（跑预扫本身合法，参数必须是随产品发布的固定档）；
+   ④ **污染闸门 `check_feedback_text` 是纯词法**，挡不住裸坐标与具体错处 ⇒ 上述通道无实质约束。
+   **⚠️ 07-31 原文列的另两条已作废**（v1 判据过宽所致）：~~识图段无代码执行器~~、~~judge② 由主控担任~~
+   —— 按 08-01 校准判据**均属合法 dev 编排**。
+   详 [08-01 排查报告](logs/experiments/2026-08-01_controller_in_production_audit/README.md)
+   · [07-31 缘起](logs/experiments/2026-07-31_sm24_e2e_retry/SUPERVISION_CONTAMINATION.md)。
 
 
 ---
 
 ## 2. 当前开发状态
 
-- **分支** `6.15_ValidationArchM0toM4`（已推 origin）；测试 **1786 绿 + 10 strict xfail**（原 9 个均为 legacy golden 精确重建待 sm21 批次重录、xfail 带 reason〔含 2 个 legacy golden sm20/run_2026-06-15、sm21/run_2026-06-16_opus 无编排账本→run_state=incomplete〕；**B5 Phase C 延后的 6 个 `test_output_coordinate_identity.py` E4 build-proof xfail 已在 Phase D 复原为真绿**——Phase D 接通 E4 stepwise→build→loader→assembly 的 proof 生产链〔gate B5-D3 + MINOR-2〕，六条现走生产 source→writer→accepted loader→proof→build/assembly 真链，`test_output_coordinate_identity.py` 零 xfail）。
+- **分支** `6.15_ValidationArchM0toM4`（已推 origin）；测试 **2040 绿 + 1 红 + 10 strict xfail**
+  （⚠️ **那 1 红是 08-01 W4 的真缺陷、待返工**，见下条；xfail 十条含 2 个 legacy golden sm20/run_2026-06-15、
+  sm21/run_2026-06-16_opus 无编排账本→run_state=incomplete；**B5 Phase C 延后的 6 个
+  `test_output_coordinate_identity.py` E4 build-proof xfail 已在 Phase D 复原为真绿**，该文件零 xfail）。
+- **⛔ 最新（2026-08-01 Opus 5 主控）= 「主控参与生产」全面排查 + 判据被用户校准 + 第一份无监督识图基线 + W1/W3/W4 施工（1 条待返工）**。
+  - **⚠️ 用户校准了不变量 #7 的判据（07-31 原判据过宽、已作废，详 §1.5 #7）**：**dev 期主控编排合法、主控兼任 judge 合法**
+    （judge 是 dev 辅助、不属产品环节；产品要不要 judge 最后工程化再说）；**真判据 = 每个环节自己能走完输入→输出**
+    （拿掉主控整个流程跑不出来可以接受）。**judge 只能整轮盲重抽、零信息 = 另外做一次**，
+    **禁按子部分打回 / 原任务给反馈续作 —— 即使反馈纯属方法、零信息泄露也违规**（粒度即违规）。
+    **⇒ 主控 v1 排查按旧判据把两条合法的东西列成头号违规**（识图段无代码执行器 / judge② 未接模型），
+    **用户当场纠正 ⇒ 教训：判据没跟用户对齐，整份排查的分类全错。**
+  - **排查产物** [审计报告](logs/experiments/2026-08-01_controller_in_production_audit/README.md)：**真违规四条，全在识图输入通道**
+    ① **pilot 停等 review + `feedback.md` 续作** —— ⭐**「停下等审阅」写在产品 skill 库 `session_kickoff.md` 里、不在 dev 脚手架**
+    ⇒ 读图器是被自己的启动文件命令停下等人的；**07-07 那个 8/8 正由此而来**（当日已改，见下）；
+    ② per-run directive（198 行）—— ⚠️**不能只删不补**（其 §2/§4.7 实为两条缺失 gate① 检查的替代品）；
+    ③ 预扫参数主控临时挑；④ 污染闸门 `check_feedback_text` 纯词法、挡不住裸坐标。
+    **⚠️ 另一类非违规但真问题（judge 成本）= 判决性实证 S-0**：sm24 的 **8/8** 与 **1/8** 识图各跑一遍最严格档 gate①，
+    **阻断层结论逐字相同、都是 0 block** ⇒ **确定性层对识图质量分辨力 = 0**，替 judge 分担不了任何东西。
+    病根的书面形态 = `reading.py` 注释明写 *"advisory only… **J0 must verify**"*；普查 `src/validator/` 显式降级共 3 处 ⇒ 逐条清可行。
+  - **⭐ 第一份无监督识图基线**（[全档](logs/experiments/2026-08-01_unsupervised_reading_baseline/README.md)·两臂·唯一变量=预扫·零 directive/零 feedback/零中途反馈）：
+    **① 两臂都自己读完五图 + summary、全程没停下提问** ⇒ **「环节自己走完输入→输出」在识图段已达成**
+    （对照 07-31 pilot r2 停在半路问「Would you like me to continue…」—— 那不是模型不行、是产品文档叫它停）。
+    **② 但成绩不合格、不能用**：A 臂（带预扫）内墙 **20.70/57.86 m = 36%**、**多画 64.20 m**（画的墙里约四分之三是虚构的）、
+    平面窗 **0/11**；B 臂（无预扫）内墙 **0%**。同尺子下 07-30 那份有监督的是 0.48/57.86（今日在 scratch 副本独立重算、与 07-31 记录逐位吻合）。
+    **③ 根因：两臂都没去测量。A 臂跑了 0 个探针**，自述「标定推迟、坐标靠目测」；它唯一一次标定尝试被守卫按语法拒了一次
+    （漏 `--tool`）**就整个放弃**。⇒ **「量而非看」没错，错的是「把工具箱摆着指望它自己去用」这个落地方式**。
+    **④ 归因边界**：A vs B 只差预扫 ⇒ **预扫结论干净（35.8% vs 0%，反驳 07-30「预扫噪音是元凶」的猜想）**；
+    但「无监督不比有监督差」**不是单变量结论**，只能说无监督没造成崩塌。**07-07 那个 8/8 至今没有无监督对照。**
+  - **⭐ 历史考据（用户提问后逐条查证）**：**07-02 那份 9/9 · 15/15 · 0.0 m 的 Sonnet 5 产物 = `attempts=1` 一次成、无返工轮、
+    且当时根本没有工具箱**（它自己用 PIL 灰度投影 + numpy + scipy 连通域临时搭了一套 CV，112 次工具调用，
+    第一张图 30 min 发明配方、最后一张 42 s）⇒ **目前唯一一份干净的、无干预的、达标的 reading**。
+    **07-07 主控投喂的内容经查证是「思路/流程」不是「信息」**（记录原文「纯流程合规反馈，无 gt 泄露」）
+    ⇒ **能力没问题、缺的是思路，而思路可以 skill 化** —— 但按 08-01 校准判据，**那次按子部分打回仍属违规、8/8 不算数**。
+    **⚠️ 更正**：主控此前把「全 `dimension_derived` = 零实测 = 失败特征」当判据（写进 07-31 directive §2）**是错的**——
+    07-07 那份 8/8 也是 17/17 全 `dimension_derived`；而 07-02 那份 9/9 **全是 `seen` 且 `dimension_refs` 全空、零像素痕迹**
+    ⇒ **`provenance` 字段与成绩完全不相关，现有 schema 判不出「量没量」**。
+  - **施工（GPT 侧 terra / effort=high，[派工单](logs/reviews/request/2026-08-01_reading_unsupervised_enablement_dispatch.md)）**：
+    **W1** 先量再画提到 kickoff 顶层非可选项、删掉「required or deferred 见那个文件」的间接层（`15cfcb8`）·
+    **W3** 探针回执可操作（`--help` 放行为精确三 token 形式、参数错给正确写法；**主动拒绝放 `mkdir`/`find`、零扩权**）（`0763164`）·
+    **W4** run 级「本轮考哪几张」声明（`run_config.yaml` 声明 → provision 时冻进 `_run/reading_exam_scope.json` 绑双哈希 ⇒
+    **开考前定死、考中不可变更**；判卷 bindings 消费侧取子集、签名件不动；**sm24 三个身份哈希逐字不变**）（`2d2137e`，主控代提交）。
+  - **⛔ 主控轻门抓到 1 条真缺陷（待返工，归执行档、主控不亲手修）**：[`run_stage.py:1410`](../scripts/tool_scripts/run_stage.py#L1410)
+    新加的 exam-scope 校验对 `0_reading` **无条件触发**且把 case 路径**硬编码**成 `case_tests/e2e_tests/<case>`
+    ⇒ ① **无视 `--base-dir`**（该 CLI 明确支持，主控当日就用它在 scratch 目录跑过重判）② **违派工单 §1.6「默认行为不变」**
+    （未声明 scope 的 run 也走该校验并可能抛错）。红的是 `tests/test_c2_b4b_phase_d.py::test_gt_echo_fixture_preserves_runstage_cli_byte_parity`。
+    **terra 三个 slice 都报「欠规格边界：None」没抓到它，因为它被 git 锁卡在交付前的全仓那一步 —— 而全仓正是唯一能抓到这条的地方。**
+  - **运维（两条，都值得记）**：① **codex MCP 第五次撞 30 分钟静默超时** ⇒ 查明**是 Claude Code 客户端侧的空闲计时器**
+    （codex 发的是自家 `codex/event` 而非 MCP 规范的 `notifications/progress`，计时器永不重置；Anthropic 侧同族 issue #58687 已 closed as not planned）。
+    **中止的只是主控这边的等待、codex 进程不会被杀**（本轮 W1/W3 两个 commit 全是超时之后产出的）
+    ⇒ **修法已落**：`.claude/settings.local.json` 加 `Bash(codex *)` 权限（已实测生效 ⇒ **以后施工席走 CLI 后台、不阻塞**）
+    + `CLAUDE_CODE_MCP_TOOL_IDLE_TIMEOUT=3600000`（需重开会话生效）。
+    ② **⚠️ 主控为绕开 MCP 超时去轮询工作树，跟 terra 的 `git add` 抢出了 `.git/index.lock`、把施工席卡住**
+    ⇒ **规约候选：主控监控施工席时只跑只读命令，`git status` 等会刷新索引的命令也算写**。
+    terra 撞锁后**拒绝自行删除**（派工单写了「删除需单独授权」）、停下上报 —— 纪律正确。
 - **⛔⛔ 最新（2026-07-31 Opus 5 主控）= 「跑测流程修复」大批 + ⚠️用户当日提出 reading 监督污染问题、明日优先重新设计**（全仓 **1786 → 2028 绿** + 10 xfail·零回归·`f98d248`→`13cc33a`）。本日以 sm24 为跑测修复案例，把 07-30 卡死的六条缺陷全修 + 另修主控预扫新发现的一条 + pilot 又暴露三条链路断裂，**全部经跨家族独立对抗审 + 主控轻门**。
   - **⚠️⚠️ 当日最重要的产出不是修复，而是用户识破的一个架构级问题：[reading 的监督污染](logs/experiments/2026-07-31_sm24_e2e_retry/SUPERVISION_CONTAMINATION.md)**。用户拍板两条硬口径：① **reading 时间要算总量**（主控把活提前做了不算 reading 变快）；② **上线版本没有主控 ⇒ judge 整体打回可以，但绝不可以主控告诉 reading agent 哪里错了该怎么改**，要实现的是「Haiku 等级模型独立完整完成 reading 并保证质量，过程中不接收任何更强 agent 的信息」。**⇒ 主控自查发现三条违规通道**：per-run directive（主控看着失败现调、随轮投喂）/ pilot→主控反馈→返工（`isolation.py` 有机制化的 `write_feedback` 注入点）/ 预扫参数由主控临时挑。**⇒ 用户判定「之前在 sm21 和 sm24 上拿到的高分很可能是虚假的」**——**07-07 那个 8/8 北极星成绩的过程记录白纸黑字写着 pilot r1 被主控打回并被告知「标定错锚 / 候选未逐条核验 / 字段全空」，r2 才达标** ⇒ **该成绩不能作为无监督基线**。**本轮实测佐证**：pilot r2 在长线视图齐备下自己停在半路输出「Would you like me to continue…」等主控回答 ⇒ 流程本身是围绕「主控在场」设计的。**用户拍板：明日优先单独全面检查并重新设计 reading，具体方案届时再议。**
   - **仍然有效、与监督无关的确定性成果（明日可直接继承）**：**① F-6 BLOCKER 已消**（v3 判卷层建成识图阶段的生产投影 + 能力守卫；sm24 真实识图产物走生产路径出 sidecar v9 + `c2_scored` + grade.png，不再崩）+ **坐标级尺子回到生产**（此前 `load_gt` 对 v3 硬拒 legacy ⇒ v3 答案的识图完全没有生产级尺子，只能主控手搓、违「禁手搓判卷」）；② 硬隔离守卫改**按参数角色**判定 + 补真写保护洞（散文误伤 **13 → 0**，且 44 形状差分证明**净收紧 13 处**、只放松授权的一处）；③ 探针**单调用 + bounded batch**（20 次探针的测量扫描 **40 轮 → 1 轮**）；④ 预扫**按 kind 拆分（零丢弃）+ 长线合并** —— **实测长线视图直接覆盖 GT 8 条分区线中的 6 条、误差 0.01–0.13 m**，并令 **pilot r2 在无人提示下标定出 36.41 px/m、两轴偏差 0.046%**（上一轮 40.22 / 9%，因为它量的是尺寸链跨度而非建筑本身）；⑤ gate① 平面帧契约按 `run_profile` 分档（保住 07-07 那份历史参考产物不被废）。

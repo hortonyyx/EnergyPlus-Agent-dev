@@ -1,0 +1,52 @@
+# ============================================================================
+# RUN PROVENANCE — run_2026-08-01_haiku_unsup_A_prescan (sm24_anchor)
+# 溯源纪律见 memory[[run-provenance-recording-requirement]]。
+# ----------------------------------------------------------------------------
+# 目的 = 【无监督识图基线】。见 run_config.yaml 顶部。
+#        B 臂 = run_2026-08-01_haiku_unsup_B_noprescan（唯一差异 = 不跑预扫）。
+# ----------------------------------------------------------------------------
+# 主控 / 编排 : Claude Opus 5 (claude-opus-5)，整场不切模型。
+#               ⚠️ 本 run 主控**只做编排**：建 staging / spawn / merge / 判卷。
+#               **不写 directive、不写 feedback、不回答子代理任何提问。**
+#               子代理若中途停下提问，本轮以「未完成」计入结果，不补话续作。
+#
+# 0_reading   : 冷启硬隔离子代理 HAIKU 4.5 — `claude-haiku-4-5-20251001`。
+#               effort = 默认（未显式设定，与 07-07 / 07-30 两轮同）。
+#               隔离 = `spawn_isolated_reader.py build`（gt 物理排除 + guard）。
+#               输入 = case_data 五图 + testdata_prompt.json + 0_reading skill
+#                      三件套 + cv_toolbox wrapper + 样板件 + 预扫产物（A 臂）。
+#               **无 directive.md、无 feedback.md**（本 run 的定义性约束）。
+#
+# 1_correction / 4_mep / 下游 : 本 run 不跑（scope 只到 0_reading）。
+# ----------------------------------------------------------------------------
+# 脚手架状态（reading 启动时刻）:
+#   git HEAD = a38730b (7.31_IronRuleControllerStaysOutOfProduct)
+#   工作树 DIRTY，未提交项 = 本 run 的两处前置改动（用户 08-01 批准）:
+#     ① skills/intake_pipeline/0_reading/session_kickoff.md
+#        §Workflow 删「做完一张停下等审阅」→ 改为「自己跑 guide.md §6 自检后继续」；
+#        末行同义句一并改。备份 backup/Skill_history/2026-08-01_remove_pilot_review_stop/。
+#     ② src/agent/execution/isolation.py:642
+#        `_write_kickoff` 生成的 spawn prompt 里同一句副本改掉（不改则①无效）。
+#        测试 tests/test_isolation.py 192 绿。
+#   —— 除此之外零改动；识图侧其余脚手架与 07-31 轮逐字节相同。
+#   内容哈希（sha256[:16]；方法 = find -type f 排除 __pycache__ → sort -z →
+#             xargs sha256sum → 再 sha256 取前 16）:
+#     skills/intake_pipeline/0_reading = b34aae41c1aefb28   ← 含①改动
+#     src/agent/reading                = 9f3aec073690f3dd
+#     src/agent/execution              = 425c2c65c4bbec71   ← 含②改动
+# ----------------------------------------------------------------------------
+# 预扫（A 臂）—— 固定档，跑前写死，跑完不论结果如何都不改:
+#   平面 1f_view      : prescan-plan      --min-strength 0.08 --min-line-len-px 30
+#   立面 ×4           : prescan-elevation --min-strength 0.08 --min-line-len-px 30 --no-cc
+#   档位出处 = skills/intake_pipeline/0_reading/cv_toolbox.md §"Budget prescan candidates"
+#   ⚠️ 与 07-30 的区别：那轮 `--no-cc` 是主控当场看着结果加的（已登记为违规）；
+#      本轮它来自 standing 文档里已写死的档，主控不参与选择。
+# ----------------------------------------------------------------------------
+# 判卷（主控担任 judge，合法；但只输出「过 / 不过」，不得回灌任何内容）:
+#   坐标级尺子 = 07-31 建成的 v3 生产投影层（sidecar v9 + c2_scored + grade.png）。
+#   对账基准   = case_tests/test_baseline/gt/sm24_anchor（07-26 签字转正的 v3 答案）。
+#   历史对照   = 06-24 Opus 5/8 · 07-07 Haiku+工具箱 8/8（有监督）· 07-30 1/8（有监督）。
+#   ⚠️ 历史三份**全部带监督**，故本 run 是**第一份无监督数**，不是「复现」。
+# ----------------------------------------------------------------------------
+# 本 run 无 per-run LLM section 覆盖（不跑 correction/mep，无需 llm 配置段）。
+# ============================================================================
