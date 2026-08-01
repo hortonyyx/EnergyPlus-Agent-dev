@@ -22,7 +22,7 @@ Read it as a style/format anchor only; **do not rewrite it**.
   it outputs only semantic-category labels
 - `skills/intake_pipeline/0_reading/pen_library.md` — what to *do* with each recognized category:
   which pen to use, what to keep/log, and when door-healing applies
-- CV evidence tools: `skills/intake_pipeline/0_reading/cv_toolbox.md` — deterministic pixel probes; see that file for when the toolbox is required or deferred
+- CV evidence tools: `skills/intake_pipeline/0_reading/cv_toolbox.md` — deterministic pixel probes required before drawing on clean vector CAD PNGs; for noisy scans, hand drawings, or other degraded inputs, see that file's robustness-profile exception
 
 ## Non-negotiables — a checklist of WHAT to read, not a second copy of the rules
 
@@ -30,6 +30,10 @@ Do not memorize anything below; the durable text lives in the rule docs and must
 (a duplicated summary is exactly what drifted and degraded before). Each line just tells you which rule
 to go read:
 
+- **Calibrate and measure before writing meter coordinates on clean vector CAD PNGs** → `cv_toolbox.md`
+  §Disciplines (use dimension-chain extension-line intersections or ticks as calibration anchors; for
+  noisy scans, hand drawings, or other degraded inputs, follow that file's robustness-profile
+  exception).
 - **Error budget — read coordinates as final** → `guide.md` §0.1 (precise reading vs the *earned*
   redundant-dimension-channel escape hatch; prefer `null` over guessing; anchor against the testdata totals).
 - **One stroke per continuous wall; no over-segmentation** → `guide.md` §5 (window jambs / dimension
