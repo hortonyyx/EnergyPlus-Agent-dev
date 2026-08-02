@@ -72,17 +72,35 @@ EnergyPlus 经 `WorkflowTool.run_simulation`（eppy + ConverterManager，idfpy �
 4. **gt 铁律**：评测答案 `case_tests/test_baseline/gt/<case>/gt.json` **只 gate② judge / 人 可读**，gate①/执行器绝不 import（dev/prod 一致 + 防照抄）。
 5. **精确坐标容差带由确定性层判**（核坍缩规范值 + gate① 带容差不变量），gt/judge 只判布局/计数/窗位定性。
 6. **建筑复杂度可扩展性铁律（2026-07-03 用户定，硬约束所有决策）**：**每个决策必须为未来建筑复杂度升级留路**——现架构（正交·**共底面盒子**）刻意保留了升级到复杂体量（**非方形 / 退台 / 挑空双层高 / 中庭竖井**）的可能：不变量 #1 判断-几何分工、#2 单一世界坐标、版本化 schema、#3 稳定契约都是为此设的**接缝**；复杂体量 = schema 加槽位（per-floor footprint / 变高区 / void）+ kernel 实现扩展（含休眠支线 [proposals/geometry_first_zonification.md](proposals/geometry_first_zonification.md) 热区积木 = kernel 策略替换、**非架构推翻**），都在接缝内长。**不得**把"共用 footprint / 每层满铺楼板 / 固定层高"这类**当前简化假设烤死到无法松动**——纯只适用当前情况（不能长到复杂体量）的方案**没有意义**。复杂体量本身是远期 defer，但**任何当下决策都要过一遍"这条路以后能不能长到复杂体量"**。风险不在架构、在"烤死的假设"，本条即那道保险。
-7. **主控与 judge 不得参与各环节内部的生产（2026-07-31 用户定；⚠️2026-08-01 用户校准判据，以本版为唯一口径）**：
-   **主控 agent 的定位 = 项目开发的助手**；**judge 同样是 dev 阶段辅助看开发质量的 agent**
-   （目的 = 减少人工核对 + 判断各环节质量，免得每次都要完全跑完端到端、节省成本）。
-   - **✅ dev 期合法**：**主控编排各个环节**（建工作区 / spawn / merge / 跑确定性工具 / 决定跑什么）；
-     **主控兼任 judge**。judge **目前不归属项目本身的环节**；产品最终要不要引入 judge 环节，**最后工程化时再说**。
-     稳定之后把主控代码化 / 降档化是**开发后期的工程问题、不是现在的重心**。
-   - **⛔ 判据（08-01 校准版，替代 07-31 原判据）**：**拿掉主控整个流程跑不出来，可以接受**；
-     **但每个环节本身必须能完成「输入 → 输出」的全过程**。凡是「环节自己走不完、要有人中途回答才能继续」的地方，即违本条。
-   - **⛔ 唯一允许的 judge 出口**：判定不过 ⇒ **整轮盲重抽、零信息**（**相当于另外做一次**）。
-     **禁止**：告诉执行环节「哪里错了、该怎么改」；按子部分打回；**原任务给反馈续作**。
-   - **⛔ 同样禁止**：主控的**判断**（而非随产品发布的固定档参数）成为某环节的输入。
+7. **环节的控制边界 + 成绩归因（2026-07-31 立 → 08-01 校准 → ⭐2026-08-02 用户重订，
+   [调研报告 §0.4/§0.5](logs/reviews/verdict/2026-08-02_reading_regression_controller_cv_investigation.md) 为唯一口径，
+   下述 07-31/08-01 两版判据凡与本版冲突处**全部作废**）**：
+   本条现在管两件事——**谁不许伸手（端到端主控）** 和 **成绩怎么记账（provenance）**；
+   它**不再**禁止「环节内部存在更强 agent 或针对性反馈」。
+   - **⛔ 端到端主控（本 Agent）对某环节内部：只能启动与接收。**
+     ✅ 可以：创建 job / 传入**冻结的** case bundle + profile / 等待 / 接收 `status + output + evidence manifest`；
+     dev 期编排（建工作区 / spawn / merge / 跑确定性工具 / 决定跑什么）仍合法；**主控兼任 judge 仍合法**。
+     ⛔ 不可以：写自由文本 directive / feedback；**看了图之后指导 worker**；替它挑 CV 参数或返工区域；
+     操作环节内部会话；**接触 gt 之后把任何结论送回同一个 run**。
+   - **✅ 环节内部允许有自己的 controller（08-02 新增许可）**：reading 可以配置属于
+     `ReadingService` 内部的控制 agent 去指挥弱 VLM，条件是——
+     ① 与端到端主控**彻底解耦**（外部看仍是 reading 自己走完输入→输出）；
+     ② **档位不高**（DeepSeek v4Flash 级或以下、thinking off、结构化输出、短上下文）；
+     ③ **有界**：最多「一次任务计划 + 一次局部返工」，不重抽整栋，**不得直接写最终坐标**
+     （最终 stroke 必须来自 worker + 工具证据）；④ 它是**权衡方案不是永久架构**，后续要代码化 / 降档 / 撤除。
+   - **⛔ 成绩必须分三条 lane 记账**（配 `reading_mode` provenance 块：worker/controller 模型、
+     controller 是否看图、返工轮次、工具箱版本、隔离档）：
+     **autonomous**（目标 VLM + 冻结工具箱，零 controller）· **controlled**（+ 内部 controller）·
+     **tool-invention**（开发期允许现场造 CV 工具）。
+     后两者**完全可以算真实工程成功**，但**不得记成「弱模型独立满分」**；autonomous lane 必须一直保留，
+     否则不知道离「本地开源 VLM 自主完成」还有多远。
+   - **⛔ 隔离原则改写（08-02）**：**严格限制可见信息与写出边界，不限制在合法输入上采用何种计算方法。**
+     要防的是漏题与污染（gt / baseline / judge / 其他 run / 历史答案 / 网络外传），
+     **不是**模型用了哪种算法 —— 按命令形态封杀通用 CV 编程（`python -c`、临时脚本）属于**能力封口**，
+     它封掉的正是 07-02 Sonnet 那条成功路径。
+   - **judge 出口不变**：判定不过 ⇒ **整轮盲重抽、零信息**（相当于另外做一次）；
+     judge **不得**告诉执行环节「哪里错了、该怎么改」。（注意区分：**环节自己的 controller 做局部返工是允许的**，
+     受 judge 约束的是**跨环节的评判者**。）
    **⚠️ 已排查完的违规点（2026-08-01 全面排查，[审计报告](logs/experiments/2026-08-01_controller_in_production_audit/README.md)）**：
    ① **pilot 停等 review + `feedback.md` 续作通道**，且「停下等审阅」**写在产品 skill 库
       `session_kickoff.md` 里**（不是 dev 脚手架）⇒ 读图器被自己的启动文件命令停下等人；
@@ -93,7 +111,11 @@ EnergyPlus 经 `WorkflowTool.run_simulation`（eppy + ConverterManager，idfpy �
    ④ **污染闸门 `check_feedback_text` 是纯词法**，挡不住裸坐标与具体错处 ⇒ 上述通道无实质约束。
    **⚠️ 07-31 原文列的另两条已作废**（v1 判据过宽所致）：~~识图段无代码执行器~~、~~judge② 由主控担任~~
    —— 按 08-01 校准判据**均属合法 dev 编排**。
-   详 [08-01 排查报告](logs/experiments/2026-08-01_controller_in_production_audit/README.md)
+   **⭐ 08-02 重要改判**：上面 ①–④ 违的是**「端到端主控伸手」**这一条，**仍然成立**；
+   但**同样的动作若由 `ReadingService` 内部的 controller 做（解耦 + 低档 + 有界 + 如实分账），现在是允许的**。
+   即：**要禁的从来是「谁在做」和「记成谁的成绩」，不是「reading 内部有没有控制」。**
+   详 [08-02 调研报告](logs/reviews/verdict/2026-08-02_reading_regression_controller_cv_investigation.md)
+   · [08-01 排查报告](logs/experiments/2026-08-01_controller_in_production_audit/README.md)
    · [07-31 缘起](logs/experiments/2026-07-31_sm24_e2e_retry/SUPERVISION_CONTAMINATION.md)。
 
 
@@ -105,7 +127,45 @@ EnergyPlus 经 `WorkflowTool.run_simulation`（eppy + ConverterManager，idfpy �
   （08-01 W4 那 1 红已随返工 r1/r2/r3 闭环，见下条；xfail 十条含 2 个 legacy golden sm20/run_2026-06-15、
   sm21/run_2026-06-16_opus 无编排账本→run_state=incomplete；**B5 Phase C 延后的 6 个
   `test_output_coordinate_identity.py` E4 build-proof xfail 已在 Phase D 复原为真绿**，该文件零 xfail）。
-- **⭐⭐⭐ 最新（2026-08-02）= 「减卷有害」被实证 + Sonnet 无监督全卷墙侧基本达标 + 六条机制缺陷 ⇒ 用户「是我们把机制改坏了」的判断成立**（**零代码改动**·[全档](logs/experiments/2026-08-02_scope_harms_reading/README.md)）：
+- **⭐⭐⭐ 最新（2026-08-02 晚）= 同一把尺子回放坐实「历史正确路径真的存在」+ 判卷层与 gate 档位两条 P0 断线 + 治理口径被用户重订**
+  （**零代码改动**·[主控回放全档](logs/experiments/2026-08-02_one_ruler_replay/README.md)·
+  [GPT 侧调研报告](logs/reviews/verdict/2026-08-02_reading_regression_controller_cv_investigation.md)）：
+  - **⭐⭐ 一把尺子的纵向回放（此前一直被判「量纲不可比」，本轮做成了）**：把 **07-07 sm24 老产物**
+    （Haiku 4.5 + CV 工具箱）直接喂进**今天的 v3 生产判卷层**（同 GT / 同 bindings / 同容差 / 同全卷五张；
+    先用新件复现出已落盘的 53.31/57.86 验证调用姿势）⇒ **老件内墙 57.86/57.86 = 100 %（20 行全 `complete` 精确命中）·
+    外轮廓 60/60 · 多画 0 m**；今天 Sonnet 全卷 = 92.1 % · 60/60 · 多画 6.77 m。
+    **⇒ 用户「正确做法一定存在」从强推断升级为已证实。** 今天丢的分不在那 12 段 0.06 m 上（容差内照算），
+    **是漏掉右下小房间三面墙（4.55 m）+ 多画 6.77 m**。
+    **做法差别写在 provenance 里：老件 14 条平面墙 13 条 `dimension_derived`（单条最多引 12 个尺寸标注）/ 38 份 CV 证据；
+    今天 10 条墙 10 条全 `seen`、引用 ≤2。**
+    ⚠️ **回放前提**：老件缺 07-31 才立的 `scale_origin` 契约 ⇒ 原样进尺子必然**全 0**（gate① 在 golden/regression 有硬拒、
+    属已知设计），补值取自产物自己的 `calibration_note`、几何未动 —— **这正是此前没人能重量老件的原因**。
+    ⚠️ **仍不能断言「无监督全对」**：该 run 的 `llm.yaml` 逐字写着 prompt 级隔离 + **2 轮 rework**（纪律 1 + schema 1）。
+  - **⛔ P0 断线一 = 判卷层把诚实的 `mirrored:"unknown"` 判成「帧向冲突」，整张立面观测在读 strokes 前就被丢弃**
+    （`reading_typed_adapter.py:273 _facade_sense` 把 `"unknown"`→`None`，`:873` 与 binding 的 `false` 不相等 ⇒
+    `_na_components(..., retain_as_miss)`）。**判决性对照：只把这一个词改成 `false`、几何一字节不动 ⇒
+    老件与新件双双 existence/along/width/sill/head 各 11/11 全 `complete`、`window_elevation_geometry` 0/44 → 44/44、墙面不变。**
+    而 `guide.md:351` 明列 `unknown` 为合法值、`:355` 明令读图器不得做世界落位声明，
+    判卷 CLI 边界注释更写着 *"product-provided mirror declarations are not read"* —— **不但读了，还照它判零**。
+    **⇒ 收回三条结论**：08-02 早间报告的「窗是墙之外唯一真缺口 / 平面与四立面互相矛盾」、
+    「平面窗连续三轮全崩」——**是尺子砸的**，两份质量差很多的产物 `claim_summaries` 哈希**完全相同**（分辨力 = 0）。
+  - **⛔ P0 断线二 = 声明的严格档从未真正执行 ⇒「gate① 分辨力 = 0」这个说法本身要改口径**
+    （GPT 报告 §3.6.1 指出、主控独立核实且后果更重）：`run_config.yaml` 声明 `orthogonal_polygon` + CLI `regression`(fail-closed)，
+    实际落盘 `checks.json` 头部 = **`rectangular` + `exploratory`**；而该 run 的 gate① **本来就抓到 5 条 fail**
+    （`dimension_chain_closure` ×4 + `stroke_dimension_consistency` ×1）。按档位重算 `blocking()`：
+    **exploratory ⇒ 0 · regression ⇒ 4** ⇒ **严格档若真生效，这份产物会被当场拒收**。
+    **且它抓的正是本轮 provenance 分析指向的同一个病灶（尺寸链不闭合 / 看着画）。**
+    同时证实 `_run/view_manifest.json` 五张视图**全 `dimensioned:false`**（图纸带完整尺寸链、产物自己抄了 48–51 条）
+    ⇒ 尺寸类检查在 31 条 N/A 里占大头。
+  - **⭐ 用户重订治理口径（已写入 §1.5 #7，旧版冲突处作废）**：**reading 内部允许有自己的 controller**
+    （ReadingService 内部 / Flash 档或以下 / 一次计划 + 一次局部返工 / 不写最终坐标）；
+    **端到端主控只能启动与接收**；**成绩按 autonomous / controlled / tool-invention 三条 lane 分账**；
+    **隔离原则改为「严格限制可见信息与写出边界，不限制在合法输入上采用何种计算方法」**
+    —— 按命令形态封杀通用 CV 编程，封掉的正是 07-02 Sonnet 那条成功路径。
+    **降档的真实动因**：reading 后续要转本地开源 VLM 部署，Haiku 是那个档位的代理基准，不是省钱实验。
+  - **⇒ 排工表见 [plan.md 顶部 2026-08-02 晚条](plan.md)**（R0 口径统一 → R1 修尺子 → R2 重建基线 →
+    R3 把正确路径提成工序 → R4 ReadingService 边界化 → R5 CV Lab → R6/R7 四臂与 CV A/B）。
+- **（同日早些）2026-08-02 = 「减卷有害」被实证 + Sonnet 无监督全卷墙侧基本达标 + 六条机制缺陷 ⇒ 用户「是我们把机制改坏了」的判断成立**（**零代码改动**·[全档](logs/experiments/2026-08-02_scope_harms_reading/README.md)）：
   - **⭐ 用户校准的方法论原则（本轮最重要，凌驾于此前所有 reading 规划之上）**：
     **「先保证质量，从高模型往低模型上降，而不是先降模型、拿到很低的分数再想办法提分数。」**
     既然已有 Sonnet 几乎全对、Haiku 加轻量介入也基本全对，**不应容忍分数掉到 40–70 % 再想办法提升**。

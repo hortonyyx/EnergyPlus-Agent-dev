@@ -1,5 +1,143 @@
 # 行动清单（活计划）
 
+## 2026-08-02 晚 · ⭐⭐ reading 攻坚排工表（用户定：**先把 reading 解决，再回归主线**）
+
+**依据** → [主控一把尺子回放](logs/experiments/2026-08-02_one_ruler_replay/README.md)
+· [GPT 侧调研报告](logs/reviews/verdict/2026-08-02_reading_regression_controller_cv_investigation.md)
+· 口径已统一进 [CLAUDE.md §1.5 #7](CLAUDE.md) + §2 顶部条。
+
+### 排工总原则（决定了下面的顺序，不要打乱）
+
+1. **尺子没修好之前，任何新跑测的分数都不可用。** 本轮已证两条：`mirrored` 误杀立面（窗从 0/11 → 11/11）、
+   声明的 `regression` 档从未进到 gate（4 条 blocker 被降成 0）。**先修测量，再谈能力。**
+2. **上限锚已经有了**：07-07 老件在今天的尺子下 = 内墙 100 % · 多画 0 m。
+   目标不是「从 9 % 往上爬」，是**「维持这个上限往下降档」**（用户 08-02 原则）。
+3. **每一步都要能独立验真**：改门必须配**摘掉即红**的锁；跑测最少两抽；对照表必须同尺同 GT。
+4. **能代码化的先代码化**：controller 是权衡方案，凡是反复出现的控制动作都要往确定性层沉。
+
+### R0 · 口径统一 ✅ 本轮已做（文档，零代码）
+
+- CLAUDE.md 不变量 #7 重写：端到端主控只能启动与接收；**reading 内部 controller 合法**（解耦 / Flash 档 /
+  一次计划 + 一次局部返工 / 不写最终坐标）；成绩分 **autonomous · controlled · tool-invention** 三 lane；
+  隔离原则改为**「严格限制可见信息与写出边界，不限制在合法输入上采用何种计算方法」**。
+- ⏳ 尚未同步的下游文档（R1 一起做）：`guides/new_case_guide.md` 的硬隔离段、
+  `skills/intake_pipeline/0_reading/session_kickoff.md`、memory 里的旧口径条。
+
+### R1 · 修尺子与断线（**P0，最先，且必须在任何新跑测之前**）
+
+施工席 + 升一档交叉审；每条都要**摘掉即红**的锁。
+
+| 编号 | 内容 | 验收 |
+|---|---|---|
+| **R1-a** | **`mirrored` 契约**：判卷侧**根本不读**产物 `facade.mirrored` / `local_x_positive`，投影只认 reviewed binding（兑现 CLI 边界注释与「世界落位归 correction」的分工） | 锁必须断言**「产物写 `unknown` 照常出分」**；回归上现有两份产物窗 11/11 全 `complete` |
+| **R1-b** | **profile 透传**：hard-isolation merge 调 `check_reading_stage` 时把 `run_config` 的 `capability_profile` / `run_profile` 传进去 | 锁断言「声明 `regression` 的 run，`checks.json` 头部就是 `regression`」；08-02 那份产物在 regression 下**必须出 4 条 blocker** |
+| **R1-c** | **`view_manifest.dimensioned` 全 false**：查为什么带完整尺寸链的图被标 false，修正后 31 条 N/A 里的尺寸类应重新生效 | 锁断言 sm24 五张的 `dimensioned` 与图纸事实一致 |
+| **R1-d** | **M-1 渲染断链**（07-08 起零渲染，用户看不到产物图）+ **M-2 判卷图退化**（v3 柱状图 → 恢复两层平面 + 四立面几何叠图带图例） | 跑一次 merge ⇒ 标准路径自动出图；肉检图能看 |
+| **R1-e** | **M-3 命名契约自相矛盾**（kickoff 通则 `<name>_view.json` vs 表格 `1f_view.json`）+ **M-4 gate① 放行像素坐标**（致 3.3 亿像素 PNG） | 各配一条锁 |
+| **R1-f** | **把「减卷」从默认机制里摘掉**（08-01 W4 才加、实测有害）。⚠️ 摘的是**用法**，W4 那套冻结/守卫/哈希锁是好的，保留 | 默认全卷；scope 收窄需显式声明且报告里标红 |
+
+### R2 · 重建基线（**零生产码改动**，主控可自己跑；R1 完成后立即做）
+
+- **R2-a 全量重判**：07-07 老件 · 08-02 全卷 · 08-01 sonnet 减卷 · W5 d1/d2 · 07-08 GPT-5.4-mini ·
+  07-02 Sonnet（能对齐的话）—— 用**修好的同一把尺子**出一张「**修尺前 / 修尺后**」对照表。
+  **所有「窗全崩 / gate 无分辨力」系列结论都要按这张表重写。**
+- **~~R2-b 基准收口（轴线 vs 墙面）~~ ⛔ 2026-08-02 用户当场纠正，本条撤销、降级并入 R3-b。**
+  用户指出：通道优先级（像素 vs 尺寸链）与出模层 `zone_frame` 都**早就定过了**，主控把三件事混成了一个词。核查结论：
+  - **契约两边本来就一致、根本没有歧义**：`guide.md §0.2` 明写「plan 里的粗黑墙在仿真里**就是 centerline**、
+    `thickness_m` 恒 `null`」；GT 的 `coordinate_frame` = **`building_axis_world_m`**（轴线）。
+  - **08-02 那 12 段是「契约已写、这一轮没照做」**，不是基准未收口：`position_error` 系统性 = **0.06 m
+    （= 120 内墙半厚）· `axis_alignment_error = 0` · `extent_symmetric_difference = 0`** ⇒ **纯平移**，
+    它描了墙的一侧边而不是中心线。07-07 老件 20 段全精确命中，因为**尺寸链标的就是轴线**。
+    减卷那轮 48.8 % 同理（它自己写明「按 240 从中心线推内角 +0.12」——推错了方向）。
+  - **⇒ 不需要用户拍板；变成 R3-b 的一条 gate① 检查**（判据现成：同向系统性平移 ≈ 半墙厚，
+    且图上两条墙边都可量 ⇒ 中心线可算）。又一例「契约写了、没人验证」。
+- **R2-c 补第二抽** Sonnet 全卷（两抽纪律，本项目自己定的）——确认 92.1 % 不是运气。
+
+### R3 · 把「正确路径」提成工序（用户 §0.2 第 3 步；R2 出表后开工）
+
+- **R3-a 提工序卡**：证据源 = 07-07 老件（13/14 `dimension_derived`、38 份 CV 证据、逐候选 crop 核验）
+  + 07-02 Sonnet forensics（112 次工具调用：灰度掩膜 → 行列投影 → 总尺寸锚标定 → CC 框窗，
+  核心是**看中间结果 → 改阈值 → 再跑**的配方迭代）。**产出 = 可执行工序，不是又一篇纪律文档**
+  （「把话说清楚」已连败三次，文档不可能验证别人有没有遵守自己）。
+- **R3-b 让 gate① 长牙**：`dimension_chain_closure` 这次**抓到了**却只是 flag。定「什么条件下升 block」，
+  配 profile 与豁免口径。**这是把 R3-a 的工序变成机器可判的关键一步。**
+- **R3-c 三个「有信号没消费者」接线**：`self_check.*` 结构化字段（d1 诚实填 false 仍 0 阻断）·
+  `cv_evidence` / `prescan` / `candidate_id`（`src/validator/` 零引用）· 考场守卫的 `access_log.jsonl`
+  （命令原文 + 放行/拒绝 + 理由、进指纹、**被测者伪造不了**、零消费者）。
+  ⚠️ **冷水记在前面**：d2 四个自检字段全填 `true` 仍只有 24.8 % ⇒ **自评不能单独当完成度判据**，
+  必须与 `access_log` / CV 证据 / 尺寸链闭合交叉。
+
+### ⛔ 走正规程序的边界（2026-08-02 用户定）
+
+**R4-c（reading 内部 agent 怎么设计）与 R5/R8（工具箱怎么持续迭代进化）＝ 架构决策，禁止直接施工。**
+必须走完整流程再动手，且**方案与架构由用户与主控一起敲定**：
+
+1. **主控出问题书**（`logs/reviews/request/`）：只给事实、约束与已知坑，**不给假设或解法方向**；
+2. **跨家族出设计细稿**（Fable 点射 / GPT 侧 / GLM，按 [[codex-execution-protocol]] 的档位矩阵）——
+   细稿必须**累计式自包含**（禁「vN 不变」引用已覆写正文）；
+3. **交叉对抗审**（写稿的不审自己的稿）；
+4. **⭐ 用户与主控当面敲定方案与架构**（白话四段：背景 / 问题 / 选项后果 / 推荐+理由）；
+5. 拍板后才派施工 + 升一档审 + 主控轻门。
+
+**R1/R2/R3 不受此限**（修断线、重判、把已有正确路径工序化 = 补既有机制，不是新架构）。
+
+### R4 · ReadingService 边界化 + 三 lane 分账（架构；可与 R3 并行设计）
+
+- **R4-a**（先做，便宜）：`reading_mode` provenance 块落盘 + 报告按 **autonomous / controlled / tool-invention** 分账。
+- **R4-b**：把 reading 收成单入口 `ReadingService.run(case_bundle, reading_profile)`，
+  端到端层降为 launcher（只能 create job / 传冻结 bundle / 等 / 收 `status + output + evidence manifest`）。
+- **R4-c ⛔【走正规程序】**：内部 controller（Flash 档、thinking off、结构化输出、最多一次计划 + 一次局部返工、不写最终坐标）。
+  **⚠️ 先有 R4-a 的分账再上 controller**，否则又会出现「成绩记错人」。
+  **设计前必须先有 R2 的对照表 + R3 的工序卡**——不知道「正确路径由哪些动作组成」，就没法定 controller 该管哪几步。
+
+### R5 · 隔离改造成 CV Lab（信息流隔离；R1 之后、R7 之前）⛔【走正规程序】
+
+- **允许**：读当前 run 的 `case_data` / testdata / 公开 skill 与工具代码；在受限环境里写并跑任意
+  PIL / NumPy / SciPy / OpenCV；crop / 掩膜 / 投影 / morphology / CC / Hough / 参数搜索；
+  写当前 run 的 scratch / 实验工具 / overlay / `cv_evidence`；**全部临时代码与命令留痕入哈希**。
+- **禁止**：gt / baseline / judge score / review verdict · 其他 run 与历史 attempts · 改生产码或越界写 ·
+  网络（模型端点除外且禁数据外传）· 超 CPU/RAM/墙钟/输出预算。
+- 现状对照：08-02 全卷那轮 access log **7 次 denied**（含检查 JSON 的 python 与 grep/find 组合）
+  ⇒ 现在要求 Sonnet「复刻 07-02 手搓 CV」在执行能力上自相矛盾。
+
+### R6 / R7 · 受控实验（**R1+R2 完成前不要跑，分数不可用**）
+
+- **R6（V1）四臂 · 同 sm24 全卷 · 同冻结工具箱 · 每臂至少两抽**：
+  A Haiku autonomous（真实地板）· B Haiku + 确定性审计（代码门能接多少控制职责）·
+  C Haiku + Flash controller（低成本控制够不够）· D Haiku + 强 controller（架构可达上限）。
+  报告项：墙长/窗 · 多画 · boundary · 证据覆盖 · 返工次数 · 总墙钟 · controller 增量墙钟 · token · 工具失败恢复率。
+  **判读**：C≈D 且延迟可接受 ⇒ Flash 档成立；**D 也差 ⇒ 问题在工具与任务分解，别再加 controller 推理。**
+- **R7（V2）通用 CV 能力的独立贡献**：同 Sonnet · sm24 全卷 · 同 prompt/预算 ·
+  固定 wrapper 硬隔离 **vs** 信息流隔离的通用 CV sandbox，至少两抽。
+
+### R8 · 工具箱进化机制（三层注册表 + 晋升门）⛔【走正规程序·与 R5 同一份设计稿】
+
+Core（随产品发布）/ Recipes（按图纸风格与能力档版本化）/ Experimental（run-local）。
+晋升条件：本轮确有改善 → 接口不硬编码本 case → 不读禁区、资源与写边界可验证 →
+**在未参与发明的 holdout case 盲测** → 有确定性测试与失败模式声明 → 审后进 Core/Recipes。
+**⛔ 不得用同一 case 的 GT 反复调参后宣称泛化。**
+
+### 依赖与并行
+
+```text
+R0 ✅ ─→ R1（施工，P0，阻塞一切跑测）
+              ├─→ R2（主控自跑：重判 + 基准收口 + 第二抽）
+              │      └─→ R3（工序化 + gate 长牙 + 三条接线）─┐
+              ├─→ R5（CV Lab 改造）───────────────────────┤
+              └─→ R4-a 分账（便宜，可随时插）              ├─→ R6/R7 受控实验 ─→ R8 晋升机制
+                     └─→ R4-b/c ReadingService + controller ┘
+                                                            └─→ ✅ reading 收口 → 回归主线（sm24 e2e → C2 收官）
+```
+
+### 回归主线的判据（什么算「reading 解决了」）
+
+1. **autonomous lane** 在 sm24 全卷两抽都拿到**内墙 ≥ 95 % · 外轮廓 100 % · 多画 < 3 m · 窗全项命中**；
+2. 或 **controlled lane** 达到该线**且** controller 是 Flash 档、增量墙钟可接受、成绩如实记为 controlled；
+3. 且 gate① 在严格档对「达标 / 不达标」两份产物**给出不同结论**（分辨力 > 0）；
+4. 且这些数字是**修好的尺子**量出来的、有两抽、有 provenance。
+
+---
+
 ## 2026-08-02 · ⭐「减卷有害」实证 + 目标口径被用户校准 ⇒ 上一轮 reading 规划作废
 
 **全档** → [logs/experiments/2026-08-02_scope_harms_reading/](logs/experiments/2026-08-02_scope_harms_reading/README.md)
