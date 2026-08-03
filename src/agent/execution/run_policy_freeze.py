@@ -67,7 +67,17 @@ class RunPolicyRecord(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     schema_version: Literal["1"] = RUN_POLICY_SCHEMA_VERSION
-    source: Literal["structured_config", "legacy_defaulted"]
+    # r2-2 (ruling 2026-08-04 §r2-2): source must reflect WHERE the frozen
+    # (run_profile, capability_profile) came from, not be a hardcoded constant.
+    #   - structured_config: BOTH declared in run_config.yaml
+    #   - cli:               NEITHER declared — CLI flags / argparse defaults
+    #                       are the authority (incl. a pure --run-profile run)
+    #   - mixed:             exactly one declared in config, the other CLI-sourced
+    #   - legacy_defaulted:  synthetic read-only replay (no frozen artifact)
+    # Drift re-verification is scoped to config-declared fields, so a cli/mixed
+    # source run has partial/no config drift coverage BY DESIGN — the source
+    # makes that applicability machine-visible.
+    source: Literal["structured_config", "cli", "mixed", "legacy_defaulted"]
     run_profile: RunProfile
     capability_profile: str
     # G-4: non-hash audit snapshot of the other RunPolicy toggles. May be empty;
@@ -202,6 +212,7 @@ def provision_run_policy(
     run_profile: str | None,
     capability_profile: str | None,
     context: dict[str, Any] | None = None,
+    source: str = "structured_config",
 ) -> RunPolicyRecord:
     """The **only** emitter of ``<run>/_run/run_policy.json``.
 
@@ -209,7 +220,11 @@ def provision_run_policy(
     existing record; a policy change mid-run raises ``run_policy_drift``.
     ``run_profile`` is required (a new provisioning must declare its tier);
     ``None`` raises fail-closed (L-13).
-    """
+
+    r2-2: ``source`` reflects where the frozen (run_profile, capability_profile)
+    came from (``structured_config`` / ``cli`` / ``mixed``); the production SOP
+    path computes it in ``_resolve_run_profiles``. Direct callers default to
+    ``structured_config`` (both profiles explicitly supplied)."""
     run_dir = Path(run_dir)
     if run_profile is None:
         raise ValueError(
@@ -223,7 +238,8 @@ def provision_run_policy(
         # run must carry the resolver's value (config or CLI). _build_record
         # fail-closes (capability_profile_not_declared) if None reaches it.
         capability_profile=capability_profile,
-        source="structured_config",
+        # r2-2: source reflects the real origin, not a hardcoded constant.
+        source=source,
         context=context,
         legacy_defaulted=False,
     )
@@ -233,7 +249,7 @@ def provision_run_policy(
             existing = RunPolicyRecord.model_validate_json(path.read_text(encoding="utf-8"))
         except Exception as exc:  # noqa: BLE001 — a corrupt frozen record is a drift fault
             raise ValueError(f"existing run_policy.json at {path} is corrupt: {exc}") from exc
-        if existing.source != "structured_config" or existing.legacy_defaulted:
+        if existing.legacy_defaulted:
             raise ValueError(
                 "run_policy_drift: a legacy_defaulted run_policy.json already exists "
                 "but a structured provisioning was requested — refuse to overwrite a "

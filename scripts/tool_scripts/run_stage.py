@@ -125,6 +125,7 @@ def _manifest_for_attempts(
     run_profile: str | None,
     capability_profile: str | None = None,
     context: dict | None = None,
+    source: str = "structured_config",
 ):
     """Version-dispatched manifest for the attempt-creating commands
     (`run` / `flow` / `resample`) — B-M §5.1 + R1-1 (S-2):
@@ -172,6 +173,7 @@ def _manifest_for_attempts(
         run_profile=run_profile,
         capability_profile=capability_profile,
         context=context,  # J-1 §1.2: non-hash audit snapshot (wired by callers)
+        source=source,  # r2-2: real origin of the frozen pair
     )
     return ensure_run_manifest_v2(run_dir, view_manifest_sha256=vm.content_sha256)
 
@@ -1582,7 +1584,7 @@ _RUN_PROFILE_CLI_DEFAULT = "exploratory"
 _CAPABILITY_PROFILE_CLI_DEFAULT = "rectangular"
 
 
-def _resolve_run_profiles(run_config, args) -> tuple[str, str]:
+def _resolve_run_profiles(run_config, args) -> tuple[str, str, str]:
     """R1-1 (S-2): ``run_profile`` and ``capability_profile`` follow the SAME
     source rule — the structured ``run_config.yaml`` declaration wins, the CLI
     flag is the fallback. Previously ``run_profile`` came from CLI only
@@ -1603,7 +1605,15 @@ def _resolve_run_profiles(run_config, args) -> tuple[str, str]:
     declaration cannot be silently overridden by a conflicting CLI flag. Passing
     the default value explicitly is indistinguishable from not passing it, so
     config still wins there (the frozen-declaration-is-authoritative intent of
-    R1-1)."""
+    R1-1).
+
+    r2-2 (ruling 2026-08-04 §r2-2): also return the ``source`` of the frozen
+    pair — ``structured_config`` (both declared in config) / ``cli`` (neither
+    declared; CLI flags + argparse defaults are the authority, e.g. a pure
+    ``--run-profile`` run) / ``mixed`` (exactly one declared). Previously the
+    freeze layer hardcoded ``structured_config`` for every new run, so a pure
+    CLI run was mislabeled "from structured config" and the ``source`` field was
+    a constant (R1-1b's ``assert source == structured_config`` was vacuous)."""
     cfg_run = run_config.run_profile
     cli_run = getattr(args, "run_profile", None)
     cfg_cap = run_config.capability_profile
@@ -1621,7 +1631,15 @@ def _resolve_run_profiles(run_config, args) -> tuple[str, str]:
         )
     run_profile = cfg_run or cli_run or _RUN_PROFILE_CLI_DEFAULT
     capability_profile = cfg_cap or cli_cap or _CAPABILITY_PROFILE_CLI_DEFAULT
-    return run_profile, capability_profile
+    run_from_cfg = cfg_run is not None
+    cap_from_cfg = cfg_cap is not None
+    if run_from_cfg and cap_from_cfg:
+        source = "structured_config"
+    elif run_from_cfg or cap_from_cfg:
+        source = "mixed"
+    else:
+        source = "cli"
+    return run_profile, capability_profile, source
 
 
 def _run_policy_context(args, run_config) -> dict:
@@ -1929,7 +1947,7 @@ def cmd_run(args) -> int:
     case_dir, run_dir, td_path = _resolve(args.base_dir, args.case, args.run)
     testdata_text = td_path.read_text(encoding="utf-8") if td_path.exists() else ""
     run_config = load_run_config(run_dir)
-    run_profile, capability_profile = _resolve_run_profiles(run_config, args)
+    run_profile, capability_profile, source = _resolve_run_profiles(run_config, args)
     policy = _make_policy(
         reading_runner_available=args.reading_runner_available,
         run_profile=run_profile,
@@ -1942,6 +1960,7 @@ def cmd_run(args) -> int:
         case_dir, run_dir,
         run_profile=run_profile, capability_profile=capability_profile,
         context=_run_policy_context(args, run_config),
+        source=source,
     )
     policy = _policy_with_frozen_tier(run_dir, policy)
     runner = StageRunner(run_dir, manifest)
@@ -2002,11 +2021,12 @@ def cmd_resample(args) -> int:
     # command's invalidate()/save() — a persisted-V1 run's manifest bytes are
     # never touched by a refused resample.
     run_config = load_run_config(run_dir)
-    run_profile, capability_profile = _resolve_run_profiles(run_config, args)
+    run_profile, capability_profile, source = _resolve_run_profiles(run_config, args)
     manifest = _manifest_for_attempts(
         case_dir, run_dir,
         run_profile=run_profile, capability_profile=capability_profile,
         context=_run_policy_context(args, run_config),
+        source=source,
     )
     dropped = invalidate(manifest, args.stage)
     manifest.save(run_dir)
@@ -2124,7 +2144,7 @@ def cmd_flow(args) -> int:
     to_stage = args.to_stage
     if run_config.present and args.to_stage == "5_intakeoutput" and run_config.scope_stages:
         to_stage = run_config.scope_stages[-1]
-    run_profile, capability_profile = _resolve_run_profiles(run_config, args)
+    run_profile, capability_profile, source = _resolve_run_profiles(run_config, args)
     policy = _make_policy(
         reading_runner_available=args.reading_runner_available,
         run_profile=run_profile,
@@ -2139,6 +2159,7 @@ def cmd_flow(args) -> int:
         case_dir, run_dir,
         run_profile=run_profile, capability_profile=capability_profile,
         context=_run_policy_context(args, run_config),
+        source=source,
     )
     policy = _policy_with_frozen_tier(run_dir, policy)
     start_stage = (
@@ -2367,12 +2388,13 @@ def cmd_provision(args) -> int:
     # fallback an operator supplies (R1-1). R1-7: a conflicting explicit CLI flag
     # is refused by _resolve_run_profiles rather than silently overriding config.
     run_config = load_run_config(run_dir)
-    run_profile, capability_profile = _resolve_run_profiles(run_config, args)
+    run_profile, capability_profile, source = _resolve_run_profiles(run_config, args)
     manifest = provision_run(
         case_dir, run_dir,
         run_profile=run_profile,
         capability_profile=capability_profile,
         context=_run_policy_context(args, run_config),
+        source=source,
     )
     print(json.dumps(
         {"provisioned": True, "content_sha256": manifest.content_sha256, "entries": len(manifest.entries)},

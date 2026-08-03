@@ -69,6 +69,7 @@ def provision_run(
     run_profile: str | None,
     capability_profile: str | None = None,
     context: dict | None = None,
+    source: str = "structured_config",
 ) -> ViewManifest:
     """The run-level provisioning transaction (S-2 + S-3).
 
@@ -99,6 +100,7 @@ def provision_run(
         run_profile=run_profile,
         capability_profile=capability_profile,
         context=context,
+        source=source,
     )
     return manifest
 

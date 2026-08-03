@@ -844,7 +844,9 @@ def test_R1_2_absent_run_profile_still_cli_authoritative(tmp_path, monkeypatch):
     # CLI regression froze (absent config ⇒ CLI authoritative, NOT fail-closed)
     record = resolve_frozen_run_policy(run_dir)
     assert record.run_profile == "regression"
-    assert record.source == "structured_config"
+    # r2-2: neither profile declared in config ⇒ source is "cli" (not the
+    # vacuous "structured_config" the hardcoded constant produced before).
+    assert record.source == "cli"
 
 
 # --------------------------------------------------------------------------- #
@@ -900,7 +902,82 @@ def test_r2_1_absent_capability_profile_still_cli_authoritative(tmp_path, monkey
     record = resolve_frozen_run_policy(run_dir)
     assert record.capability_profile == "rectangular"
     assert record.run_profile == "regression"
+    # r2-2: run_profile declared in config, capability CLI-sourced ⇒ "mixed"
+    assert record.source == "mixed"
+
+
+# --------------------------------------------------------------------------- #
+# r2-2 (ruling 2026-08-04 §r2-2): the frozen record's ``source`` must reflect
+# where (run_profile, capability_profile) came from — structured_config / cli /
+# mixed — not be a hardcoded "structured_config" constant. r0/r1 hardcoded it in
+# _build_record, so a pure --run-profile run (no config declaration) was
+# mislabeled "from structured config" and R1-1b's assert was vacuous (恒真).
+# Drift re-verification is scoped to config-declared fields, so source makes the
+# applicability machine-visible.
+# --------------------------------------------------------------------------- #
+def test_r2_2_cli_only_run_source_is_cli(tmp_path, monkeypatch):
+    """r2-2 lock A: run_config.yaml declares NEITHER run_profile nor
+    capability_profile, CLI --run-profile regression is the only authority ⇒
+    frozen record source == "cli" (NOT "structured_config"). A pure CLI run must
+    not be mislabeled as structured-config-sourced.
+    Neuter: _resolve_run_profiles 回硬编码 source="structured_config" ⇒ 断言红。"""
+    from src.agent.execution.run_policy_freeze import resolve_frozen_run_policy
+
+    monkeypatch.setattr(rs, "_make_draw_fn", _fake_make_draw_fn)
+    monkeypatch.setattr(rs, "_render_stage", lambda *a, **k: [])
+    _seed_case_data(tmp_path)
+    run_dir = tmp_path / "case" / "run"
+    run_dir.mkdir()
+    (run_dir / "run_config.yaml").write_text("judge:\n  mode: off\n", encoding="utf-8")
+
+    assert rs.cmd_flow(_args(tmp_path, run_profile="regression", judge="off")) == rs.FLOW_EXIT_OK
+    record = resolve_frozen_run_policy(run_dir)
+    assert record.source == "cli"
+    assert record.source != "structured_config"
+
+
+def test_r2_2_structured_decl_source_is_structured(tmp_path, monkeypatch):
+    """r2-2 lock B: run_config.yaml declares BOTH run_profile and
+    capability_profile ⇒ frozen source == "structured_config". This is the
+    formerly-vacuous assertion, now meaningful (cli/mixed are real alternatives).
+    Neuter: _resolve_run_profiles 回硬编码 ⇒ 断言可被 cli/mixed 撕裂（见 lock A/C）。"""
+    from src.agent.execution.run_policy_freeze import resolve_frozen_run_policy
+
+    monkeypatch.setattr(rs, "_make_draw_fn", _fake_make_draw_fn)
+    monkeypatch.setattr(rs, "_render_stage", lambda *a, **k: [])
+    _seed_case_data(tmp_path)
+    run_dir = tmp_path / "case" / "run"
+    run_dir.mkdir()
+    (run_dir / "run_config.yaml").write_text(
+        "judge:\n  mode: off\n"
+        "run_profile: regression\ncapability_profile: orthogonal_polygon\n",
+        encoding="utf-8",
+    )
+
+    assert rs.cmd_flow(_args(tmp_path, run_profile="exploratory", judge="off")) == rs.FLOW_EXIT_OK
+    record = resolve_frozen_run_policy(run_dir)
     assert record.source == "structured_config"
+
+
+def test_r2_2_mixed_decl_source_is_mixed(tmp_path, monkeypatch):
+    """r2-2 lock C (third state): config declares run_profile only (capability
+    CLI-sourced) ⇒ source == "mixed". 证明三态分类对『只声明一个』给出独立第三值，
+    不是塞进 structured_config 或 cli。
+    Neuter: _resolve_run_profiles 回硬编码 ⇒ 断言红。"""
+    from src.agent.execution.run_policy_freeze import resolve_frozen_run_policy
+
+    monkeypatch.setattr(rs, "_make_draw_fn", _fake_make_draw_fn)
+    monkeypatch.setattr(rs, "_render_stage", lambda *a, **k: [])
+    _seed_case_data(tmp_path)
+    run_dir = tmp_path / "case" / "run"
+    run_dir.mkdir()
+    (run_dir / "run_config.yaml").write_text(
+        "judge:\n  mode: off\nrun_profile: regression\n", encoding="utf-8"
+    )
+
+    assert rs.cmd_flow(_args(tmp_path, run_profile="regression", judge="off")) == rs.FLOW_EXIT_OK
+    record = resolve_frozen_run_policy(run_dir)
+    assert record.source == "mixed"
 
 
 # --------------------------------------------------------------------------- #
