@@ -848,6 +848,62 @@ def test_R1_2_absent_run_profile_still_cli_authoritative(tmp_path, monkeypatch):
 
 
 # --------------------------------------------------------------------------- #
+# r2-1 (ruling 2026-08-04 §r2-1): a present-but-invalid capability_profile
+# (one-letter typo) is fail-closed on the NEW-run provisioning path — the
+# symmetric counterpart of R1-2. r0's _parse_capability_profile warned + returned
+# None, so 'orthogonal_polygone' silently demoted to rectangular (CLI default),
+# and capability decides correction v2 vs v3 schema (wider than judging strictness).
+# --------------------------------------------------------------------------- #
+def test_r2_1_flow_typo_capability_profile_fails_closed(tmp_path, monkeypatch):
+    """r2-1: run_config.yaml 把 capability_profile 拼错一个字母
+    (orthogonal_polygone) ⇒ cmd_flow（真实 CLI 命令函数）fail-closed，不静默降回
+    rectangular、不冻结任何 policy。形态照抄 R1-2 typo 锁。
+    Neuter: _parse_capability_profile 回 warn+None ⇒ load_run_config 不 raise ⇒
+    cmd_flow 成功跑 rectangular ⇒ pytest.raises 失败 ⇒ 红。"""
+    monkeypatch.setattr(rs, "_make_draw_fn", _fake_make_draw_fn)
+    monkeypatch.setattr(rs, "_render_stage", lambda *a, **k: [])
+    _seed_case_data(tmp_path)
+    run_dir = tmp_path / "case" / "run"
+    run_dir.mkdir()
+    (run_dir / "run_config.yaml").write_text(
+        "judge:\n  mode: off\nrun_profile: regression\n"
+        "capability_profile: orthogonal_polygone\n",  # one-letter typo
+        encoding="utf-8",
+    )
+
+    with pytest.raises(ValueError, match="capability_profile_invalid"):
+        rs.cmd_flow(_args(tmp_path, run_profile="regression", judge="off"))
+    # fail-closed BEFORE any freeze: no run policy, no run manifest minted
+    assert not (run_dir / "_run" / "run_policy.json").exists()
+    assert not (run_dir / "_run" / "run_manifest.json").exists()
+
+
+def test_r2_1_absent_capability_profile_still_cli_authoritative(tmp_path, monkeypatch):
+    """r2-1 对照：run_config.yaml 完全不声明 capability_profile（absent）⇒ 不
+    fail-closed，CLI 默认 rectangular 兜底冻结（G-6 legacy/CLI 权威）。证明 r2-1
+    只对『显式声明了非法值』fail-closed，不对『未声明』fail-closed。形态照抄
+    R1-2 absent 对照锁。"""
+    from src.agent.execution.run_policy_freeze import resolve_frozen_run_policy
+
+    monkeypatch.setattr(rs, "_make_draw_fn", _fake_make_draw_fn)
+    monkeypatch.setattr(rs, "_render_stage", lambda *a, **k: [])
+    _seed_case_data(tmp_path)
+    run_dir = tmp_path / "case" / "run"
+    run_dir.mkdir()
+    # declares run_profile but NOT capability_profile (absent)
+    (run_dir / "run_config.yaml").write_text(
+        "judge:\n  mode: off\nrun_profile: regression\n", encoding="utf-8"
+    )
+
+    assert rs.cmd_flow(_args(tmp_path, run_profile="regression", judge="off")) == rs.FLOW_EXIT_OK
+    # absent capability ⇒ CLI default rectangular froze (CLI authoritative, NOT fail-closed)
+    record = resolve_frozen_run_policy(run_dir)
+    assert record.capability_profile == "rectangular"
+    assert record.run_profile == "regression"
+    assert record.source == "structured_config"
+
+
+# --------------------------------------------------------------------------- #
 # R1-7 (派工单 §1.7): a structured config declaration and an EXPLICIT CLI flag
 # that DISAGREE is fail-closed, not silent "config wins". The argparse CLI
 # default (exploratory) counts as "not passed" — config still wins there.

@@ -135,6 +135,19 @@ def _build_record(
     context: dict[str, Any] | None = None,
     legacy_defaulted: bool = False,
 ) -> RunPolicyRecord:
+    # r2-1 (ruling 2026-08-04): a NEW run (source != legacy_defaulted) may not
+    # silently default an ABSENT capability to rectangular here — the resolver
+    # (_resolve_run_profiles) is the CLI/legacy authority that fills an absent
+    # declaration; if a None reaches this layer for a new run it is a
+    # provisioning defect, fail-closed (symmetric with run_profile's
+    # run_profile_not_declared). Legacy replay passes its own non-None
+    # fallback_capability_profile, so this guard never fires for legacy.
+    if source != "legacy_defaulted" and capability_profile is None:
+        raise ValueError(
+            "capability_profile_not_declared: a new run provisioning must resolve its "
+            "capability_profile (structured in run_config.yaml or via CLI) — it may not "
+            "silently default to rectangular"
+        )
     capability_profile = capability_profile or "rectangular"
     if run_profile is None or run_profile not in _RUN_PROFILES:
         raise ValueError(
@@ -206,7 +219,10 @@ def provision_run_policy(
         )
     expected = _build_record(
         run_profile=run_profile,
-        capability_profile=capability_profile or "rectangular",
+        # r2-1: do NOT default an absent capability to rectangular here — a NEW
+        # run must carry the resolver's value (config or CLI). _build_record
+        # fail-closes (capability_profile_not_declared) if None reaches it.
+        capability_profile=capability_profile,
         source="structured_config",
         context=context,
         legacy_defaulted=False,

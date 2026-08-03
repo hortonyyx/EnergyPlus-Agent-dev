@@ -191,15 +191,30 @@ def _parse_run_config(raw: dict, path: Path) -> RunConfig:
 
 
 def _parse_capability_profile(value: object, path: Path) -> str | None:
+    """r2-1 (symmetric with ``_parse_run_profile``, ruling 2026-08-04 §r2-1): a
+    structured ``capability_profile`` declaration that is PRESENT but INVALID
+    (e.g. a one-letter typo ``orthogonal_polygone``) is fail-closed, not
+    warn+ignore. Previously an invalid value warned and returned ``None``, which
+    ``_resolve_run_profiles`` then fell back past to the CLI default
+    (``rectangular``) — so a single typo silently demoted a declared
+    ``orthogonal_polygon`` capability to ``rectangular``. ``capability_profile``
+    decides whether correction runs the v2 or v3 schema, so the blast radius is
+    wider than judging strictness. An absent key (``value is None``) still
+    returns ``None`` so a legacy run with no declaration remains
+    CLI-authoritative / legacy_defaulted (G-6). This raises out of
+    ``load_run_config`` on every NEW-run provisioning path; the read-only replay
+    resolver (``_declared_policy``) reads YAML itself and tolerates a bad value
+    as legacy, so historical replays are unaffected."""
     if value is None:
         return None
     profile = str(value)
     if profile not in _CAPABILITY_PROFILES:
-        warnings.warn(
-            f"{path} capability_profile={profile!r} is invalid; using CLI/default",
-            RuntimeWarning,
+        raise ValueError(
+            f"capability_profile_invalid: {path} capability_profile={profile!r} is not one of "
+            f"{list(_CAPABILITY_PROFILES)} — a present-but-invalid capability declaration may "
+            f"not silently fall back to the CLI default (rectangular); fix the "
+            f"typo in run_config.yaml"
         )
-        return None
     return profile
 
 
