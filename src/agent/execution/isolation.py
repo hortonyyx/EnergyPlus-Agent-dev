@@ -34,6 +34,7 @@ from src.agent.execution.view_manifest import (
     derive_input_inventory,
     verify_view_manifest,
 )
+from src.agent.execution.run_policy_freeze import resolve_frozen_run_policy
 from src.validator.checks.schema import CheckLayer
 from src.validator.checks.view_manifest import check_reading_stage
 
@@ -205,6 +206,11 @@ def build_isolation_workspace(
         run_manifest_v2 = ensure_run_manifest_v2(
             run_dir, view_manifest_sha256=view_manifest.content_sha256
         )
+        # S-2 (G-3): bind the frozen effective run policy so merge can re-verify
+        # it did not drift between build and merge, then feed the SAME typed
+        # profiles to check_reading_stage (no more silent rectangular/exploratory
+        # defaults on the hard-isolation path).
+        policy_record = resolve_frozen_run_policy(run_dir)
         binding = {
             "merge_eligible": True,
             "run_id": run_manifest_v2.run_id,
@@ -214,6 +220,10 @@ def build_isolation_workspace(
             "view_manifest_sha256": view_manifest.content_sha256,
             "case_metadata_sha256": view_manifest.case_metadata_sha256,
             "image_sha256": {e.input_id: e.image_sha256 for e in view_manifest.required_entries()},
+            "run_policy_sha256": policy_record.policy_hash,
+            "run_policy_run_profile": policy_record.run_profile,
+            "run_policy_capability_profile": policy_record.capability_profile,
+            "run_policy_legacy_defaulted": policy_record.legacy_defaulted,
         }
         if verification.exam_scope is not None:
             binding.update(
@@ -341,12 +351,31 @@ def merge_isolated_output(
         verification.exam_scope.content_sha256 if verification.exam_scope else None
     ):
         raise ValueError("merge refused: the reading exam scope changed since this workspace was built")
+    # S-2 (G-3): re-resolve the frozen run policy (re-verifies it against the
+    # current run_config.yaml declaration — a build→merge policy drift raises
+    # run_policy_drift here, BEFORE any attempt is created — L-12), then confirm
+    # it is still the same record bound at build time.
+    policy_record = resolve_frozen_run_policy(run_dir)
+    if binding.get("run_policy_sha256") != policy_record.policy_hash:
+        raise ValueError(
+            "merge refused: the run policy changed since this workspace was built "
+            f"(bound run_policy_sha256={binding.get('run_policy_sha256')}, "
+            f"current={policy_record.policy_hash}) — run_policy_drift"
+        )
     payload, out_text = _load_isolated_views(
         output_path, staging_root / "out", verification.on_disk, verification.exam_scope
     )
     views = payload["views"]
 
-    report = check_reading_stage(verification.on_disk, views, exam_scope=verification.exam_scope)
+    report = check_reading_stage(
+        verification.on_disk,
+        views,
+        exam_scope=verification.exam_scope,
+        capability_profile=policy_record.capability_profile,
+        run_profile=policy_record.run_profile,
+        run_policy_sha256=policy_record.policy_hash,
+        run_policy_source=policy_record.source,
+    )
 
     with _merge_lock(run_dir):
         stage_dir = run_dir / STAGE

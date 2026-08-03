@@ -278,9 +278,15 @@ def test_formal_build_writes_binding_and_input_inventory(tmp_path: Path):
     binding = json.loads((staging / "binding.json").read_text(encoding="utf-8"))
     assert binding["merge_eligible"] is True
     assert binding["case_id"] == "sm21_anchor"
+    # S-2 (G-3): binding now also pins the frozen effective run policy so merge
+    # can re-verify it did not drift between build and merge. This is a
+    # contract change (not a relaxation): the set is still exact-equal, now over
+    # 12 keys rather than 8.
     assert set(binding) == {
         "merge_eligible", "run_id", "case_id", "case_dir", "run_dir",
         "view_manifest_sha256", "case_metadata_sha256", "image_sha256",
+        "run_policy_sha256", "run_policy_run_profile",
+        "run_policy_capability_profile", "run_policy_legacy_defaulted",
     }
     run_manifest = load_run_manifest(run_dir)
     assert isinstance(run_manifest, RunManifestV2)

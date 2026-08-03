@@ -33,6 +33,8 @@ def check_reading_stage(
     manifest_missing_reason: str = "view manifest missing or unreadable",
     capability_profile: str = "rectangular",
     run_profile: RunProfile = "exploratory",
+    run_policy_sha256: str | None = None,
+    run_policy_source: str | None = None,
 ) -> CheckReport:
     """The "merge 同门" checker (§5.2): coverage (:func:`check_view_manifest_coverage`)
     + per-view schema linting (:func:`src.validator.checks.reading.check_reading_view`)
@@ -88,6 +90,10 @@ def check_reading_stage(
         )
         for r in sub.results:
             rep.results.append(r.model_copy(update={"check_id": f"{stem}.{r.check_id}"}))
+    # S-2 (G-3): stamp the frozen policy that governed this report so checks.json
+    # proves which policy was in effect (not two sourceless strings).
+    rep.run_policy_sha256 = run_policy_sha256
+    rep.run_policy_source = run_policy_source
     return rep
 
 

@@ -83,6 +83,9 @@ class GradeConfig:
 DEFAULT_ORIENTATION_COMPLETION_MODE = "prior_fill"
 _ORIENTATION_COMPLETION_MODES = ("prior_fill", "interactive")
 _CAPABILITY_PROFILES = ("rectangular", "orthogonal_polygon")
+# S-2 (G-3): run_profile is now a *structured declaration* in run_config.yaml
+# (durable, hash-bound via run_policy.json), not only a transient CLI flag.
+_RUN_PROFILES = ("exploratory", "dev", "golden", "regression")
 
 
 @dataclass(frozen=True)
@@ -110,6 +113,11 @@ class RunConfig:
     orientation_completion_mode: str = DEFAULT_ORIENTATION_COMPLETION_MODE
     # ``None`` means the key was absent and the CLI value remains authoritative.
     capability_profile: str | None = None
+    # S-2 (G-3): structured run_profile declaration. ``None`` = the key was
+    # absent (legacy run or CLI-authoritative); the freeze layer treats an
+    # absent declaration as legacy_defaulted (read-only), and a NEW strict
+    # provisioning that fails to declare it fails closed (L-13).
+    run_profile: str | None = None
 
     @classmethod
     def defaults(cls, *, path: Path | None = None, present: bool = False) -> "RunConfig":
@@ -167,6 +175,7 @@ def _parse_run_config(raw: dict, path: Path) -> RunConfig:
     }
     orientation_completion_mode = _parse_orientation_completion_mode(raw.get("orientation"), path)
     capability_profile = _parse_capability_profile(raw.get("capability_profile"), path)
+    run_profile = _parse_run_profile(raw.get("run_profile"), path)
     return RunConfig(
         path=path,
         present=True,
@@ -177,6 +186,7 @@ def _parse_run_config(raw: dict, path: Path) -> RunConfig:
         grade=grade,
         orientation_completion_mode=orientation_completion_mode,
         capability_profile=capability_profile,
+        run_profile=run_profile,
     )
 
 
@@ -187,6 +197,19 @@ def _parse_capability_profile(value: object, path: Path) -> str | None:
     if profile not in _CAPABILITY_PROFILES:
         warnings.warn(
             f"{path} capability_profile={profile!r} is invalid; using CLI/default",
+            RuntimeWarning,
+        )
+        return None
+    return profile
+
+
+def _parse_run_profile(value: object, path: Path) -> str | None:
+    if value is None:
+        return None
+    profile = str(value)
+    if profile not in _RUN_PROFILES:
+        warnings.warn(
+            f"{path} run_profile={profile!r} is invalid; ignored",
             RuntimeWarning,
         )
         return None

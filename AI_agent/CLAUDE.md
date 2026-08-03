@@ -146,7 +146,28 @@ EnergyPlus 经 `WorkflowTool.run_simulation`（eppy + ConverterManager，idfpy �
   （08-01 W4 那 1 红已随返工 r1/r2/r3 闭环，见下条；xfail 十条含 2 个 legacy golden sm20/run_2026-06-15、
   sm21/run_2026-06-16_opus 无编排账本→run_state=incomplete；**B5 Phase C 延后的 6 个
   `test_output_coordinate_identity.py` E4 build-proof xfail 已在 Phase D 复原为真绿**，该文件零 xfail）。
-- **⭐⭐⭐ 最新（2026-08-02 深夜）= reading 攻坚开工：R1 修尺子施工中 + 架构细稿被对抗审判 REWORK + 用户三处口径更正**
+- **⭐⭐⭐ 最新（2026-08-03）= R1 批 A 落库 · 批 B/C 施工中 · ⭐ 07-07 启动 prompt 被复原 ⇒ 「杠杆是模式不是纠偏」定案 ⇒ 新立 R1.5「接口层强制测量」**
+  （详细排工与结论见 [plan.md 顶部 2026-08-03 条](plan.md)；审轨：
+  [批 B/C 派工单](logs/reviews/request/2026-08-03_reading_ruler_r1_batchBC_dispatch.md) ·
+  [GLM 边界上报](logs/reviews/execution/2026-08-03_reading_ruler_r1_batchBC_glm_boundary_report.md) ·
+  [orchestrator 裁定](logs/reviews/request/2026-08-03_reading_ruler_r1_batchBC_ruling.md)）：
+  - **⭐ 07-07 的事前 prompt 没丢，在 git 里**（用户提供线索）：启动命令 = 老 `new_case_guide.md` 附录 A 三行
+    + 当时**已版本化**的 `session_kickoff.md`（`git show 891356d:skills/intake_pipeline/0_reading/session_kickoff.md`）
+    ⇒ **sol 架构审 P-2 BLOCKER 的前提被推翻**（仅剩「那次 review 的原文措辞」未落盘，维持待验假设）。
+    **且该 kickoff 逐字写着 "Do one pilot image first / Stop and wait for review"
+    ⇒ 07-07 的「打回」是产品 skill 里写死的 review 环，不是临场干预。**
+  - **⭐⭐ 打回的作用是切换工作模式、不是修具体的错**（07-07 = 13/14 `dimension_derived` + crop_zoom 11 次；
+    今天 Sonnet 无监督 = 全 `seen` + crop_zoom 0 次；**返工两轮造不出这个差别**）
+    ⇒ **用户判断「杠杆不在那一两次纠偏上」成立**；**⛔ 回纠应退化成异常路径，不做主机制**。
+  - **⭐⭐ 新立 R1.5 = 坐标来源改造（接口层强制测量）**：**读图器不写公制坐标**，只写源图像素锚点
+    + 引用的尺寸标注 + 标定变换，**公制坐标由确定性代码唯一换算** ⇒ 目测与左右反向**在接口上表达不出来**，
+    且**不需要任何 controller**。排 R1 之后、R3/R4 冻结接口之前；**⛔ 不得先跑新基线再补方向证据**。
+  - **⭐ 用户定「reading 怎么解决靠实验说话」** ⇒ `reading-agent` 存废由 R1.5 之后的实测两抽决定，
+    **不由设计辩论决定**；架构细稿的 REWORK 返工不必先做。
+  - **⛔ 债 D-1**：sm24 五图 `dimensioned=true` 写入会打穿已签字 GT 信任链（`dimensioned` 进 manifest
+    `content_sha256`，而 GT 侧车冻结 `base_view_manifest_sha256`、评分入口四元组逐字相等）
+    ⇒ **本批只交付机制 + fixture 锁；真值写入 + GT 侧车重签归 R2，需用户单独授权 + 真人签字**。
+- **（前一节点）2026-08-02 深夜 = reading 攻坚开工：R1 修尺子施工中 + 架构细稿被对抗审判 REWORK + 用户三处口径更正**
   （审轨：[R1 问题书](logs/reviews/request/2026-08-02_reading_ruler_r1_discussion_brief_sol.md) ·
   [R1 sol 方案](logs/reviews/verdict/2026-08-02_reading_ruler_r1_discussion_sol.md) ·
   [R1 派工单+裁定](logs/reviews/request/2026-08-02_reading_ruler_r1_construction_dispatch.md) ·

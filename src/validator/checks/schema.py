@@ -34,7 +34,10 @@ from typing import Literal
 from pydantic import BaseModel, ConfigDict, Field
 
 # Bump when the report-level shape changes (golden tests assert on this).
-REPORT_SCHEMA_VERSION = "2.1"
+# 2.2 (S-2): the reading gate① report now records the frozen effective run
+# policy that governed disposition (``run_policy_sha256`` + ``run_policy_source``),
+# so ``checks.json`` proves which policy was in effect — not two sourceless strings.
+REPORT_SCHEMA_VERSION = "2.2"
 
 RunProfile = Literal["exploratory", "dev", "golden", "regression"]
 
@@ -178,6 +181,13 @@ class CheckReport(BaseModel):
     artifact_hash: str | None = None
     attempt_hash: str | None = None
     report_schema_version: str = REPORT_SCHEMA_VERSION
+    # S-2 (G-3): the frozen effective run policy that governed this report's
+    # disposition. ``run_policy_sha256`` is the G-4 drift surface (hash of
+    # capability_profile+run_profile); ``run_policy_source`` is
+    # "structured_config" (provisioned) or "legacy_defaulted" (read-only replay).
+    # ``None`` for non-reading reports or pre-S-2 callers.
+    run_policy_sha256: str | None = None
+    run_policy_source: str | None = None
     results: list[CheckResult] = Field(default_factory=list)
 
     # ---- mutation helpers (checks append as they run) ----
