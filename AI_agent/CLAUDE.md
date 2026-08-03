@@ -142,15 +142,37 @@ EnergyPlus 经 `WorkflowTool.run_simulation`（eppy + ConverterManager，idfpy �
 
 ## 2. 当前开发状态
 
-- **分支** `6.15_ValidationArchM0toM4`（已推 origin）；测试 **2051 绿 + 10 strict xfail·零红**
-  （08-01 W4 那 1 红已随返工 r1/r2/r3 闭环，见下条；xfail 十条含 2 个 legacy golden sm20/run_2026-06-15、
+- **分支** `6.15_ValidationArchM0toM4`（已推 origin）；测试 **2089 绿 + 10 strict xfail·零红**
+  （08-03 收工数：批 A 2055 → 批 B r0 2068 → r1 2089，净增 34 条锁零回归；
+  08-01 W4 那 1 红已随返工 r1/r2/r3 闭环，见下条；xfail 十条含 2 个 legacy golden sm20/run_2026-06-15、
   sm21/run_2026-06-16_opus 无编排账本→run_state=incomplete；**B5 Phase C 延后的 6 个
   `test_output_coordinate_identity.py` E4 build-proof xfail 已在 Phase D 复原为真绿**，该文件零 xfail）。
-- **⭐⭐⭐ 最新（2026-08-03）= R1 批 A 落库 · 批 B/C 施工中 · ⭐ 07-07 启动 prompt 被复原 ⇒ 「杠杆是模式不是纠偏」定案 ⇒ 新立 R1.5「接口层强制测量」**
+- **⭐⭐⭐ 最新（2026-08-03 收工）= R1 批 A + 批 B（r0+r1）全部落库、轻门通过 · 批 C 未开工 · 交叉审两路待下轮 · ⭐ 07-07 启动 prompt 被复原 ⇒ 「杠杆是模式不是纠偏」定案 ⇒ 新立 R1.5「接口层强制测量」**
   （详细排工与结论见 [plan.md 顶部 2026-08-03 条](plan.md)；审轨：
   [批 B/C 派工单](logs/reviews/request/2026-08-03_reading_ruler_r1_batchBC_dispatch.md) ·
   [GLM 边界上报](logs/reviews/execution/2026-08-03_reading_ruler_r1_batchBC_glm_boundary_report.md) ·
-  [orchestrator 裁定](logs/reviews/request/2026-08-03_reading_ruler_r1_batchBC_ruling.md)）：
+  [orchestrator 裁定](logs/reviews/request/2026-08-03_reading_ruler_r1_batchBC_ruling.md) ·
+  [批 B 轻门](logs/reviews/verdict/2026-08-03_reading_ruler_r1_batchB_orchestrator_lightgate.md) ·
+  [sol 部分稿](logs/reviews/verdict/2026-08-03_reading_ruler_r1_batchB_review_sol.md) ·
+  [r1 返工派工单](logs/reviews/request/2026-08-03_reading_ruler_r1_batchB_rework_dispatch.md) ·
+  [J-1/J-2 裁定](logs/reviews/request/2026-08-03_reading_ruler_r1_batchB_j1j2_ruling.md) ·
+  [r1 轻门终版](logs/reviews/verdict/2026-08-03_reading_ruler_r1_orchestrator_lightgate_final.md)）：
+  - **⭐⭐ 批 B 走完 r0 → 两轮独立审 → r1 → 轻门**：r0 落库后
+    **orchestrator 轻门 + sol 交叉对抗审两路独立收敛到同一句话 ——
+    「修好的是『机制存在』，没修好的是『机制在所有真实路径上都生效』」** ⇒ REWORK（6 MAJOR + 1 MINOR）。
+    r1 七条全修完（施工 GLM ×6 + **terra ×1**〔R1-5，GLM 额度耗尽后跨家族接手〕），
+    轻门通过：**独立全量 2089 绿零红 · 独立 neuter 恰好红 2 条 R1-5 锁零连带、POST-RESTORE 全绿 ⇒ 锁真绑**。
+  - **⛔⛔ 本项目第五次撞见「规范写了、没有机器验证」——这次是「考生自己填的字符串决定这道题考不考」**：
+    gate① 本就有 `_dimension_derived_refs`（`src/validator/checks/reading.py:793`）在管
+    「声称按尺寸推导的墙必须真的引用得到标注」，但其首行
+    `if provenance != "dimension_derived": continue` ⇒ **读图器写 `seen` 即整条检查跳过、落 N/A**。
+    今天 Sonnet 那 10 条墙全 `seen` ⇒ 该检查零压力零阻断。
+    **与批 B 修的 L-22「产品内容不得决定考卷」同形** ⇒ **R1.5 的必要性从「设计判断」升为已坐实的接口缺陷**。
+  - **⭐ R1-5 加固超出要求**：`GeometryApproval` 现钉 `run_profile`/`capability_profile`/`source`/
+    `legacy_defaulted` ⇒ **一次人工签字从此绑定「它是在哪个档位下签的」**，事后可审。
+  - **⛔ 下轮起点 = 交叉对抗审两路（施工跨家族、「谁写谁不批」）**：
+    **R1-5（terra 产出）⇒ 派 GLM 审**（契合其「验证性审阅达最高档 / 探索性不及格」画像，此处清单现成）；
+    **GLM 那六条 ⇒ 派 sol 重审 + 补完被平台内容策略中断的 P-3…P-9**。**之后才是批 C。**
   - **⭐ 07-07 的事前 prompt 没丢，在 git 里**（用户提供线索）：启动命令 = 老 `new_case_guide.md` 附录 A 三行
     + 当时**已版本化**的 `session_kickoff.md`（`git show 891356d:skills/intake_pipeline/0_reading/session_kickoff.md`）
     ⇒ **sol 架构审 P-2 BLOCKER 的前提被推翻**（仅剩「那次 review 的原文措辞」未落盘，维持待验假设）。
