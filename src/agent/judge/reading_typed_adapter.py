@@ -20,7 +20,6 @@ from src.agent.judge.score_schema import (
     READING_PRODUCT_CONTRACT,
     READING_CONTRACT_DETECTOR_VERSION,
     ClosedIntervalV1,
-    ElevationFrameDisagreementWitnessV1,
     ElevationScoreViewBindingV1,
     PlanScoreViewBindingV1,
     PlanFrameCertificateV1,
@@ -41,12 +40,12 @@ from src.agent.judge.score_schema import (
 from src.agent.reading import ReadingView
 
 
-READING_CONTRACT_DETECTOR_VERSION = "reading_contract_detector_v1"
+READING_CONTRACT_DETECTOR_VERSION = "reading_contract_detector_v2"
 
 
 @dataclass(frozen=True)
 class ReadingContractDecision:
-    contract_id: Literal["reading_views_v1", "unrecognized"]
+    contract_id: Literal["reading_views_v2", "unrecognized"]
     reason: str | None
 
 
@@ -59,7 +58,7 @@ class ReadingNormalizationOutcome:
 
 
 def identify_reading_contract(raw: object) -> ReadingContractDecision:
-    """Recognize the aggregate reading envelope without inventing a schema."""
+    """Recognize a ReadingViews v2 envelope without interpreting facade direction."""
     if not isinstance(raw, dict):
         return ReadingContractDecision("unrecognized", "reading_output_not_object")
     if "views" not in raw:
@@ -267,42 +266,6 @@ def _plan_frame(
         affine=affine,
         nonzero_origin=raw["nonzero_origin"],
         preimage_sha256=canonical_sha256(raw),
-    )
-
-
-def _facade_sense(
-    raw_view: dict,
-) -> tuple[
-    object,
-    Literal["image_left_to_right", "image_right_to_left"] | None,
-    object,
-    bool | None,
-    object,
-]:
-    facade = raw_view.get("facade", "missing")
-    if not isinstance(facade, dict):
-        return "missing", None, "missing", None, facade
-    raw_local = facade.get("local_x_positive", "missing")
-    effective_local = (
-        "image_left_to_right"
-        if raw_local == "missing"
-        else raw_local
-    )
-    raw_mirrored = facade.get("mirrored", "missing")
-    effective_mirrored = {
-        True: True,
-        False: False,
-        "true": True,
-        "false": False,
-        "unknown": None,
-        "missing": None,
-    }.get(raw_mirrored)
-    return (
-        raw_local,
-        effective_local,
-        raw_mirrored,
-        effective_mirrored,
-        facade,
     )
 
 
@@ -713,7 +676,6 @@ def _elevation_result(
     tuple[ReadingElevationOpeningAuditV1, ...],
     tuple[VerticalDatumCertificateV1, ...],
     tuple[UnmeasurableObservationWitnessV1, ...],
-    tuple[ElevationFrameDisagreementWitnessV1, ...],
     tuple[ReadingMetadataFindingV1, ...],
     tuple[ReadingFilteredComponentBasisV1, ...],
 ]:
@@ -744,7 +706,7 @@ def _elevation_result(
             )
             for component in _ELEVATION_COMPONENTS
         )
-        return components, (), (datum,), (), (), (), exclusions
+        return components, (), (datum,), (), (), exclusions
     if raw_view is _MISSING:
         return (
             _na_components(
@@ -756,7 +718,6 @@ def _elevation_result(
                 cause_class="product_content",
                 denominator_disposition="retain_as_miss",
             ),
-            (),
             (),
             (),
             (),
@@ -779,7 +740,6 @@ def _elevation_result(
             (),
             (),
             (),
-            (),
         )
     try:
         parsed = ReadingView.model_validate(raw_view)
@@ -794,7 +754,6 @@ def _elevation_result(
                 cause_class="product_content",
                 denominator_disposition="retain_as_miss",
             ),
-            (),
             (),
             (),
             (),
@@ -863,46 +822,9 @@ def _elevation_result(
                 z_origin=z_origin,
             )
 
-    (
-        raw_local,
-        effective_local,
-        raw_mirrored,
-        effective_mirrored,
-        facade_for_hash,
-    ) = _facade_sense(raw_view)
-    if (
-        effective_local != binding.local_x_positive
-        or effective_mirrored != binding.mirrored
-    ):
-        witness = ElevationFrameDisagreementWitnessV1(
-            source_input_id=binding.input_id,
-            binding_local_x_positive=binding.local_x_positive,
-            product_local_x_positive_raw=raw_local,
-            product_local_x_positive_effective=effective_local,
-            binding_mirrored=binding.mirrored,
-            product_mirrored_raw=raw_mirrored,
-            product_mirrored_effective=effective_mirrored,
-            binding_frame_transform_sha256=binding.frame_transform_sha256,
-            product_facade_sha256=_audit_sha(facade_for_hash),
-            reason="elevation_local_x_sense_disagreement",
-        )
-        return (
-            _na_components(
-                source_input_id=binding.input_id,
-                channel="elevation",
-                components=_ELEVATION_COMPONENTS,
-                floor_ids=floor_ids,
-                reason="elevation_local_x_sense_disagreement",
-                cause_class="trusted_frame",
-                denominator_disposition="retain_as_miss",
-            ),
-            (),
-            () if datum is None else (datum,),
-            (),
-            (witness,),
-            tuple(findings),
-            (),
-        )
+    # Facade direction declarations are non-load-bearing audit data.  Reading
+    # geometry always starts at the image's left edge and world placement is
+    # entirely the reviewed binding's responsibility.
 
     raw_strokes = raw_view.get("strokes")
     if not isinstance(raw_strokes, list):
@@ -918,7 +840,6 @@ def _elevation_result(
             ),
             (),
             () if datum is None else (datum,),
-            (),
             (),
             tuple(findings),
             (),
@@ -1031,7 +952,6 @@ def _elevation_result(
             (),
             () if datum is None else (datum,),
             tuple(witnesses),
-            (),
             tuple(findings),
             (),
         )
@@ -1071,7 +991,6 @@ def _elevation_result(
         tuple(observations),
         () if datum is None else (datum,),
         tuple(witnesses),
-        (),
         tuple(findings),
         (),
     )
@@ -1087,7 +1006,7 @@ def normalize_reading_attempt(
     """Normalize product evidence through trusted manifest/binding frames."""
     decision = identify_reading_contract(raw)
     if decision.contract_id != READING_PRODUCT_CONTRACT:
-        raise ValueError("normalize_reading_attempt requires reading_views_v1")
+        raise ValueError("normalize_reading_attempt requires reading_views_v2")
     assert isinstance(raw, dict)
     views = raw["views"]
     assert isinstance(views, dict)
@@ -1106,7 +1025,6 @@ def normalize_reading_attempt(
     plan_frames: list[PlanFrameCertificateV1] = []
     vertical_datums: list[VerticalDatumCertificateV1] = []
     unmeasurable: list[UnmeasurableObservationWitnessV1] = []
-    disagreements: list[ElevationFrameDisagreementWitnessV1] = []
     findings: list[ReadingMetadataFindingV1] = []
     exclusions: list[ReadingFilteredComponentBasisV1] = []
     plan_inputs_by_floor: dict[str, list[str]] = {}
@@ -1160,7 +1078,6 @@ def normalize_reading_attempt(
                 observations,
                 datums,
                 witnesses,
-                frame_witnesses,
                 metadata,
                 trusted_exclusions,
             ) = _elevation_result(
@@ -1173,7 +1090,6 @@ def normalize_reading_attempt(
             normalized_observations.extend(observations)
             vertical_datums.extend(datums)
             unmeasurable.extend(witnesses)
-            disagreements.extend(frame_witnesses)
             findings.extend(metadata)
             exclusions.extend(trusted_exclusions)
             continue
@@ -1270,7 +1186,6 @@ def normalize_reading_attempt(
             item.component,
         )
     )
-    disagreements.sort(key=lambda item: item.source_input_id)
     findings.sort(key=lambda item: (item.source_input_id, item.code))
     exclusions.sort(
         key=lambda item: (
@@ -1303,9 +1218,7 @@ def normalize_reading_attempt(
         "unmeasurable_observation_witnesses": tuple(
             item.model_dump(mode="json") for item in unmeasurable
         ),
-        "elevation_frame_disagreements": tuple(
-            item.model_dump(mode="json") for item in disagreements
-        ),
+        "elevation_frame_disagreements": (),
         "metadata_findings": tuple(
             item.model_dump(mode="json") for item in findings
         ),
@@ -1323,7 +1236,7 @@ def normalize_reading_attempt(
         component_applicability=tuple(component_rows),
         observations=observations,
         unmeasurable_observation_witnesses=tuple(unmeasurable),
-        elevation_frame_disagreements=tuple(disagreements),
+        elevation_frame_disagreements=(),
         metadata_findings=tuple(findings),
         content_sha256=canonical_sha256(certificate_raw),
     )

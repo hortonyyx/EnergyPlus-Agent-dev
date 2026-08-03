@@ -11,8 +11,7 @@ so the literal OCR text is preserved verbatim for the judge's "number copied
 wrong" rubric (transcription truth lives here, not in a parsed float).
 
 **P1b — facade is image-local only.** An elevation declares ``view_facade`` (which
-facade, from the trusted image name/metadata), ``local_x_positive`` (a purely
-in-image convention — NEVER east/west), ``mirrored``, and structured
+facade, from the trusted image name/metadata), ``mirrored``, and structured
 ``orientation_evidence``. World axis / sign / base are NOT here — 1_correction
 derives them. The legacy free-text ``facade_axis_note`` is retained for the
 migration adapter (legacy.py) but is not load-bearing.
@@ -95,11 +94,10 @@ class FacadeOrientation(BaseModel):
 
     model_config = ConfigDict(extra="allow")
     view_facade: Facade | None = None
-    # Purely in-image: along which screen direction local-x increases. A constant
-    # convention string — intentionally NOT "east"/"west".
-    local_x_positive: Literal["image_left_to_right", "image_right_to_left"] = (
-        "image_left_to_right"
-    )
+    # Deprecated input-only audit field. ReadingViews v2 fixes x at the image's
+    # left edge and readers must not emit a direction declaration.  Keep raw
+    # historical values loadable, but no judge path may read this field.
+    local_x_positive: str | None = None
     mirrored: Literal["true", "false", "unknown"] | bool = "unknown"
     orientation_evidence: list[OrientationEvidence] = Field(default_factory=list)
 

@@ -346,8 +346,10 @@ An elevation is read in its own image frame. Record orientation in the image-loc
 NOT a world-axis claim:
 
 - `view_facade` — which facade this view shows (North/South/East/West), from the image label/metadata.
-- `local_x_positive` — which screen direction local-x increases (`image_left_to_right` |
-  `image_right_to_left`); a purely in-image convention, **never** "east"/"west".
+- Local-x is fixed: every elevation uses the image's left edge as `x = 0`,
+  increasing to the right. This is a purely in-image convention, **never**
+  "east"/"west". Do not emit `facade.local_x_positive`; it is not a reader
+  declaration and the judge does not use it.
 - `mirrored` — `true` | `false` | `unknown`.
 - `orientation_evidence` — where the facade identity came from (`image_name` / `ocr_label` / `metadata`).
 

@@ -56,7 +56,7 @@ def test_real_reading_sidecar_publishes_both_certificates_and_channel_scores(
         item["channel"]: item for item in sidecar["payload"]["channel_applicability"]
     }
     assert channels["plan"]["status"] == "applicable"
-    assert channels["elevation"]["status"] == "partially_applicable"
+    assert channels["elevation"]["status"] == "applicable"
     assert (
         sidecar["payload"]["visibility_counts"][
             "project_convention_vertical_datums"
@@ -67,8 +67,18 @@ def test_real_reading_sidecar_publishes_both_certificates_and_channel_scores(
         sidecar["payload"]["visibility_counts"][
             "elevation_local_x_sense_disagreements"
         ]
-        == 2
+        == 0
     )
+    north_existence = next(
+        row
+        for row in sidecar["payload"]["opening_source_rows"]
+        if (
+            row["target_id"],
+            row["claim"],
+            row["source_input_id"],
+        ) == ("op_ae1", "existence", "North_view")
+    )
+    assert north_existence["result"] == "complete"
 
 
 def test_supported_empty_and_invalid_plan_both_retain_targets_as_misses(tmp_path):

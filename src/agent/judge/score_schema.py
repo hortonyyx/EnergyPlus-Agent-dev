@@ -546,11 +546,11 @@ class ScoreSidecarV8(StrictWire):
 
 # Reading typed-score wire.  V8 remains available above for strict legacy
 # loading; typed service writers emit V9.
-READING_PRODUCT_CONTRACT = "reading_views_v1"
-READING_CONTRACT_DETECTOR_VERSION = "reading_contract_detector_v1"
-READING_ADAPTER_VERSION = "reading_typed_adapter_v1"
-READING_SOURCE_APPLICABILITY_VERSION = "reading_source_applicability_v1"
-READING_DENOMINATOR_VERSION = "reading_denominator_v1"
+READING_PRODUCT_CONTRACT = "reading_views_v2"
+READING_CONTRACT_DETECTOR_VERSION = "reading_contract_detector_v2"
+READING_ADAPTER_VERSION = "reading_typed_adapter_v2"
+READING_SOURCE_APPLICABILITY_VERSION = "reading_source_applicability_v2"
+READING_DENOMINATOR_VERSION = "reading_denominator_v2"
 
 ReadingComponent = Literal[
     "plan_segments",
@@ -810,6 +810,7 @@ class UnmeasurableObservationWitnessV1(StrictWire):
 
 
 class ElevationFrameDisagreementWitnessV1(StrictWire):
+    """Retained only to read v1 certificates; v2 never emits this witness."""
     source_input_id: StableId
     binding_local_x_positive: Literal[
         "image_left_to_right", "image_right_to_left"
@@ -832,10 +833,10 @@ class ElevationFrameDisagreementWitnessV1(StrictWire):
 
 class ReadingNormalizationCertificateV1(StrictWire):
     schema_version: Literal["1"]
-    helper_version: Literal["reading_typed_adapter_v1"]
-    contract_detector_version: Literal["reading_contract_detector_v1"]
+    helper_version: Literal["reading_typed_adapter_v2"]
+    contract_detector_version: Literal["reading_contract_detector_v2"]
     source_output_sha256: Hex64
-    product_contract: Literal["reading_views_v1"]
+    product_contract: Literal["reading_views_v2"]
     base_view_manifest_sha256: Hex64
     score_view_bindings_sha256: Hex64
     plan_frames: tuple[PlanFrameCertificateV1, ...]
@@ -884,7 +885,7 @@ class ReadingFilteredComponentBasisV1(StrictWire):
 
 
 class ReadingDenominatorBasisV1(StrictWire):
-    helper_version: Literal["reading_denominator_v1"]
+    helper_version: Literal["reading_denominator_v2"]
     gt_content_sha256: Hex64
     base_view_manifest_sha256: Hex64
     score_view_bindings_sha256: Hex64
@@ -917,7 +918,7 @@ class ReadingDenominatorAtomV1(StrictWire):
 
 class SourceApplicabilityCertificateV1(StrictWire):
     schema_version: Literal["1"]
-    helper_version: Literal["reading_source_applicability_v1"]
+    helper_version: Literal["reading_source_applicability_v2"]
     normalization_sha256: Hex64
     gt_content_sha256: Hex64
     score_manifest_sha256: Hex64
@@ -980,9 +981,9 @@ class HelperIdentityV9(StrictWire):
     va_helper: StableId
     vg_helper: StableId
     claims_contract: StableId
-    reading_contract_detector: Literal["reading_contract_detector_v1"]
-    reading_adapter: Literal["reading_typed_adapter_v1"]
-    reading_source_applicability: Literal["reading_source_applicability_v1"]
+    reading_contract_detector: Literal["reading_contract_detector_v2"]
+    reading_adapter: Literal["reading_typed_adapter_v2"]
+    reading_source_applicability: Literal["reading_source_applicability_v2"]
 
 
 class ScoreIdentityV9(StrictWire):

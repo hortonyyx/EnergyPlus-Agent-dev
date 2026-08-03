@@ -723,7 +723,7 @@ def _source_certificate(
 ) -> SourceApplicabilityCertificateV1:
     raw = {
         "schema_version": "1",
-        "helper_version": "reading_source_applicability_v1",
+        "helper_version": "reading_source_applicability_v2",
         "normalization_sha256": normalization.content_sha256,
         "gt_content_sha256": gt.content_sha256,
         "score_manifest_sha256": score_manifest.content_sha256,
@@ -742,7 +742,7 @@ def _source_certificate(
     }
     return SourceApplicabilityCertificateV1(
         schema_version="1",
-        helper_version="reading_source_applicability_v1",
+        helper_version="reading_source_applicability_v2",
         normalization_sha256=normalization.content_sha256,
         gt_content_sha256=gt.content_sha256,
         score_manifest_sha256=score_manifest.content_sha256,

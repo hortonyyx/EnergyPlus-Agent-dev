@@ -221,9 +221,9 @@ def score_typed_attempt(*, gt_identity, gt, stage: Literal["reading", "correctio
         denominator_helper="b4b_denominator_v1", grade_renderer="b4b_grade_png_v2",
         va_helper=FACADE_APPLICABILITY_HELPER_VERSION, vg_helper="facade_visibility_v1",
         claims_contract=CLAIMS_VOCAB_VERSION,
-        reading_contract_detector="reading_contract_detector_v1",
-        reading_adapter="reading_typed_adapter_v1",
-        reading_source_applicability="reading_source_applicability_v1",
+        reading_contract_detector="reading_contract_detector_v2",
+        reading_adapter="reading_typed_adapter_v2",
+        reading_source_applicability="reading_source_applicability_v2",
     )
     if stage == "reading":
         from src.agent.judge.reading_typed_score import (
@@ -511,9 +511,9 @@ def _failure_identity(*, typed_request: dict, capability) -> ScoreIdentityV9:
         va_helper=FACADE_APPLICABILITY_HELPER_VERSION,
         vg_helper="facade_visibility_v1",
         claims_contract=CLAIMS_VOCAB_VERSION,
-        reading_contract_detector="reading_contract_detector_v1",
-        reading_adapter="reading_typed_adapter_v1",
-        reading_source_applicability="reading_source_applicability_v1",
+        reading_contract_detector="reading_contract_detector_v2",
+        reading_adapter="reading_typed_adapter_v2",
+        reading_source_applicability="reading_source_applicability_v2",
     )
     return ScoreIdentityV9(
         gt=typed_request["gt_identity"],

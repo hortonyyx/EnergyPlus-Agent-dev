@@ -214,7 +214,10 @@ def extract_wing_boundary_evidence_from_view(
         if str(mirrored).lower() not in {"true", "false"}:
             return []
         mirrored = str(mirrored).lower() == "true"
-    local_x_positive = getattr(orientation, "local_x_positive", "image_left_to_right") if orientation else "image_left_to_right"
+    # ReadingViews v2 fixes every elevation's local x to image-left → right.
+    # `local_x_positive` is an optional, non-load-bearing audit field and must
+    # not affect correction projection when it is absent or stale.
+    local_x_positive = "image_left_to_right"
     try:
         frame = derive_view_projection_frame(
             vertices=_projection_extent_vertices(footprint), facade_family=facade,

@@ -6,6 +6,44 @@
 · [GPT 侧调研报告](logs/reviews/verdict/2026-08-02_reading_regression_controller_cv_investigation.md)
 · 口径已统一进 [CLAUDE.md §1.5 #7](CLAUDE.md) + §2 顶部条。
 
+### ⭐ 2026-08-02 晚·进行中进度（本节为最新状态，与下方原始排工表冲突处以本节为准）
+
+**术语**：orchestrator（端到端主控）/ `reading-agent`（子环节内部调度，旧称 internal controller）/
+`reading-worker-agent`（实际读图产出观测的 VLM）。见 [CLAUDE.md 顶部 agent 术语 banner](CLAUDE.md)。
+
+**⭐ 本批次目标已被用户当面更正**（详 CLAUDE.md §1.5 #7 末段）：
+**autonomous 是北极星、不是本批目标**；**本批 = `reading-agent` 在场下 sm21 + sm24 都接近满分**
+= 先恢复到「Haiku 满分」那个状态，只把当时 orchestrator 的临场介入**固化 + 隔离 + 降档**。
+**tool-invention 不是成绩 lane，是 dev 期开发者职能**（跑测不算正式成绩、case 收官须脱离它完成）。
+
+| 线 | 状态 |
+|---|---|
+| **R1 修尺子** | sol 独立调查已交付（[方案](logs/reviews/verdict/2026-08-02_reading_ruler_r1_discussion_sol.md)）· orchestrator 裁定见[派工单](logs/reviews/request/2026-08-02_reading_ruler_r1_construction_dispatch.md)· **批 A 施工中（terra）**·批 B/C 未开工 |
+| **架构（R3–R8）** | 问题书 → [Fable 细稿 1052 行](logs/reviews/verdict/2026-08-02_reading_architecture_design_fable.md) → **sol 对抗审进行中** → 之后**用户与 orchestrator 当面敲定** |
+| **R2 重判** | 阻塞，等 R1 |
+
+**R1 的关键裁定（均已写进派工单）**：
+- **批次范围**：本批 = 批 A（判卷测量语义）+ 批 B（政策与适用性冻结）+ 批 C（渲染/命名/像素预算）；
+  **批 D（判卷图六 panel 恢复）移出**（登记债：向用户发布任何「识图变好/变坏」结论前必须完成）；
+  **批 E（离线重判工具）移出、归 R2**。
+- **N-1…N-5 立面读图方向**：用户拍板「**直接规定每张图都从一个方向读，不用它自己选方向再声明**」
+  ⇒ 契约钉死 left-to-right、`local_x_positive` 降级为「历史可加载、判卷永不读取」的废弃字段；
+  历史 4 处错误声明**不需要迁移机制**（terra 已证其数值本就是 L-to-R）；
+  92 处无声明旧产物**零动作**（现行代码缺失即默认 L-to-R，新旧解释相同）。
+- **⚠️ N-6 已知缺口（未解决，有归属无方案）**：**「契约钉死方向」≠「约束住读图器真按那个方向读」**。
+  gate① 对立面 x 方向**零校验**。orchestrator 自拟的「对齐产物自己的尺寸链」判据
+  **已被真实数据证伪**（North 视图：原样命中 2/4、镜像 3/4 ⇒ 会判错），故本批**不实现**。
+  ⇒ 已作为**追加命题 N-6** 挂进 [sol 架构审阅单](logs/reviews/request/2026-08-02_reading_architecture_design_review_sol.md)，
+  由其给判据形态与排期建议。**这是本项目第四次撞见「规范写了、没有机器验证」。**
+- **U-1 裁定**：07-08 GPT-5.4-mini 那份是 **sm21 不是 sm24** ⇒ **R2 按 case 分表**，
+  sm21 不标 `same_gt=true`，**不得为凑第六行伪造**。
+
+**运维教训（今日两次）**：后台 codex 席位**随会话进程退出被回收两次**，两次都是「攒到最后一次性写」⇒ 零交付、同样的活白做两遍。
+**修法**：① 启动一律 `setsid` 脱离进程组；② 派工单明写「**做完一件存一件 / 先落骨架再补**」；
+③ **哨兵判据不能用「文件非空」**（骨架会误判为完成），要用**进程退出 + 占位符清零**。
+
+---
+
 ### 排工总原则（决定了下面的顺序，不要打乱）
 
 1. **尺子没修好之前，任何新跑测的分数都不可用。** 本轮已证两条：`mirrored` 误杀立面（窗从 0/11 → 11/11）、

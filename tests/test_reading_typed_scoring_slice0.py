@@ -40,6 +40,7 @@ def _canonical_bytes(value: object) -> bytes:
 
 
 def _real_payload() -> dict:
+    """The unmodified historical artifact is valid under the fixed-v2 frame."""
     return json.loads(REAL_OUTPUT.read_text(encoding="utf-8"))
 
 
@@ -110,7 +111,7 @@ def test_real_views_attempt_reaches_typed_total_service(tmp_path):
 
     assert sidecar["schema_version"] == "9"
     assert sidecar["payload"]["kind"] in {"c2_scored", "not_applicable"}
-    assert sidecar["identity"]["product"]["output_schema"] == "reading_views_v1"
+    assert sidecar["identity"]["product"]["output_schema"] == "reading_views_v2"
     assert Path(artifacts["grade"]).read_bytes().startswith(b"\x89PNG")
 
 
@@ -127,16 +128,16 @@ def test_reading_contract_is_not_inferred_from_missing_schema(tmp_path):
             "elevation_observations": [],
         }
     ).contract_id == "unrecognized"
-    assert identify_reading_contract({"views": {}}).contract_id == "reading_views_v1"
+    assert identify_reading_contract({"views": {}}).contract_id == "reading_views_v2"
     assert (
         identify_reading_contract(_real_payload()).contract_id
-        == "reading_views_v1"
+        == "reading_views_v2"
     )
 
     sidecar, _artifacts = _grade_payload(
         tmp_path, _real_payload(), name="identity"
     )
-    assert sidecar["identity"]["product"]["output_schema"] == "reading_views_v1"
+    assert sidecar["identity"]["product"]["output_schema"] == "reading_views_v2"
 
 
 def test_product_geometry_bytes_cannot_change_denominator(tmp_path):
@@ -156,22 +157,6 @@ def test_product_geometry_bytes_cannot_change_denominator(tmp_path):
     for view in malformed["views"].values():
         for stroke in view.get("strokes", []):
             stroke["geometry"] = {}
-        if view.get("image_kind") != "elevation":
-            continue
-        facade = view["facade"]
-        facade["local_x_positive"] = (
-            "image_right_to_left"
-            if facade["local_x_positive"] == "image_left_to_right"
-            else "image_left_to_right"
-        )
-        mirrored = facade["mirrored"]
-        facade["mirrored"] = {
-            False: True,
-            True: False,
-            "false": "true",
-            "true": "false",
-            "unknown": "true",
-        }[mirrored]
 
     normal_sidecar, _ = _grade_payload(tmp_path, normal, name="normal")
     malformed_sidecar, _ = _grade_payload(
@@ -192,18 +177,8 @@ def test_product_geometry_bytes_cannot_change_denominator(tmp_path):
         malformed_sidecar["payload"]["unmeasurable_observations"]
         > normal_sidecar["payload"]["unmeasurable_observations"]
     )
-    assert (
-        normal_sidecar["payload"]["visibility_counts"][
-            "elevation_local_x_sense_disagreements"
-        ]
-        == 2
-    )
-    assert (
-        malformed_sidecar["payload"]["visibility_counts"][
-            "elevation_local_x_sense_disagreements"
-        ]
-        == 4
-    )
+    assert normal_sidecar["payload"]["visibility_counts"]["elevation_local_x_sense_disagreements"] == 0
+    assert malformed_sidecar["payload"]["visibility_counts"]["elevation_local_x_sense_disagreements"] == 0
 
 
 def test_rect_wall_is_per_stroke_unmeasurable_and_counted(tmp_path):
@@ -251,99 +226,203 @@ def test_rect_wall_is_per_stroke_unmeasurable_and_counted(tmp_path):
     assert Path(artifacts["grade"]).read_bytes().startswith(b"\x89PNG")
 
 
-def test_sm24_local_x_disagreement_is_input_scoped_na_with_raw_witness(tmp_path):
-    conflict = _real_payload()
-    aligned = copy.deepcopy(conflict)
-    for source in ("North_view", "West_view"):
-        aligned["views"][source]["facade"]["local_x_positive"] = (
-            "image_left_to_right"
-        )
-        aligned["views"][source]["facade"]["mirrored"] = "false"
+def _score_rows(sidecar: dict) -> tuple[object, ...]:
+    payload = sidecar["payload"]
+    opening_fields = (
+        "target_id", "target_kind", "claim", "source_input_id", "channel",
+        "eligible_units", "result", "na_reason", "expected_intervals",
+        "observed_interval", "expected_scalar", "observed_scalar",
+        "error_metric", "error_value", "tolerance",
+    )
+    claim_fields = (
+        "target_id", "target_kind", "claim", "eligible_units", "result",
+        "na_reason", "outcome_slices",
+    )
+    criterion_fields = (
+        "criterion_id", "eligible", "denominator_units", "passing_units",
+        "failing_units", "na_reasons", "verdict",
+    )
+    return (
+        payload["kind"],
+        tuple(
+            tuple(row[field] for field in opening_fields)
+            for row in payload.get("opening_source_rows", ())
+        ),
+        tuple(
+            tuple(row[field] for field in claim_fields)
+            for row in payload.get("claim_rows", ())
+        ),
+        tuple(
+            tuple(row[field] for field in criterion_fields)
+            for row in payload.get("score_criteria", ())
+        ),
+    )
 
-    sidecar, _artifacts = _grade_payload(
-        tmp_path, conflict, name="local_x_conflict"
-    )
-    aligned_sidecar, _ = _grade_payload(
-        tmp_path, aligned, name="local_x_aligned"
-    )
-    certificate = sidecar["certificates"]["reading_normalization"]
-    applicability = {
-        (item["source_input_id"], item["component"]): item
-        for item in certificate["component_applicability"]
-    }
-    reasons = {
-        source: {
-            component: applicability[(source, component)]["reasons"]
-            for component in ("elevation_opening_xy", "elevation_opening_z")
-        }
-        for source in ("East_view", "North_view", "South_view", "West_view")
-    }
 
-    for source in ("North_view", "West_view"):
-        for component in ("elevation_opening_xy", "elevation_opening_z"):
-            item = applicability[(source, component)]
-            assert item["status"] == "not_applicable"
-            assert item["cause_class"] == "trusted_frame"
-            assert item["denominator_disposition"] == "retain_as_miss"
-            assert item["reasons"] == ["elevation_local_x_sense_disagreement"]
-    for source in ("East_view", "South_view"):
-        assert all(
-            "elevation_local_x_sense_disagreement"
-            not in reasons[source][component]
-            for component in ("elevation_opening_xy", "elevation_opening_z")
+def _opening_row_signature(row: dict) -> tuple[object, ...]:
+    return tuple(
+        row[field]
+        for field in (
+            "target_id", "target_kind", "claim", "source_input_id", "channel",
+            "eligible_units", "result", "na_reason", "expected_intervals",
+            "observed_interval", "expected_scalar", "observed_scalar",
+            "error_metric", "error_value", "tolerance",
         )
+    )
 
-    witnesses = certificate["elevation_frame_disagreements"]
-    assert {item["source_input_id"] for item in witnesses} == {
-        "North_view",
-        "West_view",
-    }
-    for witness in witnesses:
-        assert witness["binding_local_x_positive"] == "image_left_to_right"
-        assert witness["product_local_x_positive_raw"] == "image_right_to_left"
-        assert witness["product_local_x_positive_effective"] == (
-            "image_right_to_left"
+
+def test_l02_local_x_declaration_is_never_a_score_input(tmp_path):
+    """L-02/N-5: RTL, arbitrary and missing declarations score identically."""
+    baseline, _ = _grade_payload(tmp_path, _real_payload(), name="local_x_base")
+    variants: dict[str, dict] = {}
+    for label, value in (("ltr", "image_left_to_right"), ("rtl", "image_right_to_left"), ("other", "audit-only"), ("missing", None)):
+        payload = _real_payload()
+        for view in payload["views"].values():
+            if view.get("image_kind") != "elevation":
+                continue
+            facade = view["facade"]
+            if value is None:
+                facade.pop("local_x_positive", None)
+            else:
+                facade["local_x_positive"] = value
+        variants[label], _ = _grade_payload(tmp_path, payload, name=f"local_x_{label}")
+
+    for sidecar in variants.values():
+        assert sidecar["payload"]["kind"] == "c2_scored"
+        assert _denominator_wire(sidecar) == _denominator_wire(baseline)
+        assert _score_rows(sidecar) == _score_rows(baseline)
+
+    target_key = ("op_ae1", "existence", "North_view")
+    baseline_target = next(
+        row for row in baseline["payload"]["opening_source_rows"]
+        if (row["target_id"], row["claim"], row["source_input_id"]) == target_key
+    )
+    assert baseline_target["result"] == "complete"
+    for sidecar in variants.values():
+        target = next(
+            row for row in sidecar["payload"]["opening_source_rows"]
+            if (row["target_id"], row["claim"], row["source_input_id"]) == target_key
         )
-        assert witness["binding_mirrored"] is False
-        assert witness["product_mirrored_raw"] == "false"
-        assert witness["product_mirrored_effective"] is False
-        assert witness["reason"] == "elevation_local_x_sense_disagreement"
-    assert (
-        sidecar["payload"]["visibility_counts"][
-            "elevation_local_x_sense_disagreements"
-        ]
-        == 2
+        assert _opening_row_signature(target) == _opening_row_signature(baseline_target)
+
+
+def test_l01_mirrored_declaration_is_never_a_score_input(tmp_path):
+    """L-01: honest mirror declaration changes cannot alter judged geometry."""
+    baseline, _ = _grade_payload(tmp_path, _real_payload(), name="mirror_base")
+    for label, value in (("unknown", "unknown"), ("true", "true"), ("false", "false"), ("missing", None)):
+        payload = _real_payload()
+        for view in payload["views"].values():
+            if view.get("image_kind") != "elevation":
+                continue
+            facade = view["facade"]
+            if value is None:
+                facade.pop("mirrored", None)
+            else:
+                facade["mirrored"] = value
+        sidecar, _ = _grade_payload(tmp_path, payload, name=f"mirror_{label}")
+        assert sidecar["payload"]["kind"] == "c2_scored"
+        assert _denominator_wire(sidecar) == _denominator_wire(baseline)
+        assert _score_rows(sidecar) == _score_rows(baseline)
+
+
+def test_l05_historical_wrong_local_x_cannot_decide_score(tmp_path):
+    """L-05: the former local-x early return cannot manufacture a miss."""
+    sidecar, _ = _grade_payload(tmp_path, _real_payload(), name="historical_rtl")
+    assert sidecar["payload"]["kind"] == "c2_scored"
+    assert sidecar["certificates"]["reading_normalization"][
+        "elevation_frame_disagreements"
+    ] == []
+    assert sidecar["payload"]["visibility_counts"][
+        "elevation_local_x_sense_disagreements"
+    ] == 0
+    target = next(
+        row
+        for row in sidecar["payload"]["opening_source_rows"]
+        if (
+            row["target_id"],
+            row["claim"],
+            row["source_input_id"],
+        ) == ("op_ae1", "existence", "North_view")
     )
-    assert "Elevation local-x disagreements: 2" in _reading_grade_status_lines(
-        sidecar["payload"]
+    assert target["result"] == "complete"
+    assert target["eligible_units"] == 1.0
+    assert target["na_reason"] is None
+
+
+def test_l04_deleting_a_scored_window_flips_only_its_target_to_miss(tmp_path):
+    """L-04: fixed-frame scoring distinguishes a real good answer from a miss."""
+    good_payload = _real_payload()
+    good, _ = _grade_payload(tmp_path, good_payload, name="g1_good")
+    target_key = ("op_ae1", "existence", "North_view")
+    target = next(
+        row for row in good["payload"]["opening_source_rows"]
+        if (row["target_id"], row["claim"], row["source_input_id"]) == target_key
     )
-    assert (
-        aligned_sidecar["payload"]["visibility_counts"][
-            "elevation_local_x_sense_disagreements"
-        ]
-        == 0
+    assert target["result"] == "complete"
+    observation_id = target["matched_observation_ids"][0]
+    observation = next(
+        item
+        for item in good["certificates"]["reading_normalization"]["observations"]
+        if item["observation_id"] == observation_id
     )
-    assert _denominator_wire(sidecar) == _denominator_wire(aligned_sidecar)
-    denominator_atoms = sidecar["certificates"]["source_applicability"][
-        "denominator_atoms"
+    bad_payload = copy.deepcopy(good_payload)
+    raw_strokes = bad_payload["views"][observation["source_input_id"]]["strokes"]
+    bad_payload["views"][observation["source_input_id"]]["strokes"] = [
+        stroke for stroke in raw_strokes if stroke["id"] != observation["source_stroke_id"]
     ]
-    for source in ("North_view", "West_view"):
-        assert any(
-            source in atom["source_input_ids"]
-            and atom["component"]
-            in {"elevation_opening_xy", "elevation_opening_z"}
-            for atom in denominator_atoms
-        )
-        source_rows = [
-            row
-            for row in sidecar["payload"]["opening_source_rows"]
-            if row["source_input_id"] == source
-        ]
-        assert source_rows
-        assert all(
-            row["result"] == "miss" and row["eligible_units"] > 0
-            for row in source_rows
-        )
+    bad, _ = _grade_payload(tmp_path, bad_payload, name="g1_window_deleted")
+    assert bad["payload"]["kind"] == "c2_scored"
+    bad_target = next(
+        row for row in bad["payload"]["opening_source_rows"]
+        if (row["target_id"], row["claim"], row["source_input_id"]) == target_key
+    )
+    assert bad_target["result"] == "miss"
+    assert bad_target["eligible_units"] == 1.0
+    assert bad_target["na_reason"] is None
+    assert _denominator_wire(bad) == _denominator_wire(good)
+    untouched_good = {
+        (row["target_id"], row["claim"], row["source_input_id"]): _opening_row_signature(row)
+        for row in good["payload"]["opening_source_rows"]
+        if row["target_id"] != target_key[0]
+    }
+    untouched_bad = {
+        (row["target_id"], row["claim"], row["source_input_id"]): _opening_row_signature(row)
+        for row in bad["payload"]["opening_source_rows"]
+        if row["target_id"] != target_key[0]
+    }
+    assert untouched_bad == untouched_good
+
+
+def test_l06_reading_adapter_version_invalidates_cached_score(tmp_path):
+    """L-06: the same product/exam cannot reuse a v1-adapter cache entry."""
+    from src.agent.judge.score_schema import ScoreSidecarV9, load_cached_score
+
+    _sidecar, artifacts = _grade_payload(tmp_path, _real_payload(), name="cache")
+    score_path = Path(artifacts["score_vs_gt"])
+    grade_path = Path(artifacts["grade"])
+    sidecar = ScoreSidecarV9.model_validate_json(score_path.read_text(encoding="utf-8"))
+    assert sidecar.payload.kind == "c2_scored"
+    cache_row = next(
+        row
+        for row in sidecar.payload.opening_source_rows
+        if (
+            row.target_id,
+            row.claim,
+            row.source_input_id,
+        ) == ("op_ae1", "existence", "North_view")
+    )
+    assert cache_row.result == "complete"
+    assert sidecar.identity.helpers.reading_adapter == "reading_typed_adapter_v2"
+    assert load_cached_score(score_path, grade_path=grade_path, expected_identity=sidecar.identity) == sidecar
+    v1_identity = sidecar.identity.model_copy(
+        update={
+            "helpers": sidecar.identity.helpers.model_copy(
+                update={"reading_adapter": "reading_typed_adapter_v1"}
+            )
+        }
+    )
+    assert v1_identity != sidecar.identity
+    assert load_cached_score(score_path, grade_path=grade_path, expected_identity=v1_identity) is None
 
 
 def test_correction_public_judgment_sha_matches_pre_v9_baseline(tmp_path):

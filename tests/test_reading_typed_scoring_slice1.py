@@ -83,12 +83,12 @@ def test_detector_and_capability_use_reading_views_contract_not_schema_default()
     manifest = request["base_view_manifest"]
     gt_identity = request["gt_identity"]
     assert identify_reading_contract(_real_payload()).contract_id == (
-        "reading_views_v1"
+        "reading_views_v2"
     )
     accepted = decide_score_capability(
         gt_identity=gt_identity,
         stage="reading",
-        product_schema="reading_views_v1",
+        product_schema="reading_views_v2",
         view_manifest=manifest,
     )
     rejected = decide_score_capability(
@@ -100,14 +100,14 @@ def test_detector_and_capability_use_reading_views_contract_not_schema_default()
     wrong_adapter = decide_score_capability(
         gt_identity=gt_identity,
         stage="reading",
-        product_schema="reading_views_v1",
+        product_schema="reading_views_v2",
         view_manifest=manifest,
         reading_adapter_version="reading_typed_adapter_v0",
     )
     wrong_detector = decide_score_capability(
         gt_identity=gt_identity,
         stage="reading",
-        product_schema="reading_views_v1",
+        product_schema="reading_views_v2",
         view_manifest=manifest,
         reading_contract_detector_version="reading_contract_detector_v0",
     )
@@ -141,7 +141,7 @@ def test_detector_and_capability_use_reading_views_contract_not_schema_default()
             "unrecognized",
             "reading_views_missing",
         ),
-        ({"views": {"plan": None}}, "reading_views_v1", None),
+        ({"views": {"plan": None}}, "reading_views_v2", None),
     ],
 )
 def test_detector_is_total_and_leaves_per_view_shape_to_adapter(
@@ -508,7 +508,9 @@ def test_typed_reading_scorer_consumes_only_frozen_exam_scope_bindings(
     provision_view_manifest(case_dir, run)
     attempt = run / "0_reading/attempts/003"
     attempt.mkdir(parents=True)
-    shutil.copyfile(REAL_OUTPUT, attempt / "output.json")
+    (attempt / "output.json").write_text(
+        json.dumps(_real_payload(), sort_keys=True), encoding="utf-8"
+    )
     gt_identity, document = load_score_gt_identity(GT_FILE)
     assert gt_identity is not None
     assert document is not None

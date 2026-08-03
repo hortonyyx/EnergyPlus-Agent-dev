@@ -5,6 +5,12 @@
 > 当前架构细节看 [architecture/pipeline_stage_contracts.md](architecture/pipeline_stage_contracts.md)，标准工作流看 [guides/new_case_guide.md](guides/new_case_guide.md)。**
 > 三者职责互斥：本文不叠历史、不堆待办。
 
+> **⭐ agent 术语 banner（2026-08-02 用户定，全项目唯一口径）**：端到端主控 = **orchestrator**（只能启动与接收）·
+> 子环节内部的**调度** = **`<子环节>-agent`**（如 **`reading-agent`**，即旧称「内部 controller」）·
+> 子环节内部**实际执行某功能**的 = **`<子环节>-<功能>-agent`**（如 **`reading-worker-agent`** = 读图并产出观测的 VLM，
+> 不叫 vision 是因为它不止看图、还产出）。**新写文档一律用此表**；历史叙述保留原文。
+> 起因 = 「主控 / controller / worker」三词指代不一，多次造成排查分类错误。
+
 > **术语 banner（当前唯一口径）**：管线 = **0_reading**（识图）→ **1_correction**（校正,LLM）→
 > **2_modelling**+**3_split_pairing**（几何内核,代码）→ **4_mep**（物理,LLM）→ **5_intakeoutput**（装配,代码）。
 > 代码入口 `src/agent/pipeline.py:run_pipeline`。**历史叙述（decision_log / logs / archive）沿用旧称**——
@@ -88,12 +94,25 @@ EnergyPlus 经 `WorkflowTool.run_simulation`（eppy + ConverterManager，idfpy �
      ② **档位不高**（DeepSeek v4Flash 级或以下、thinking off、结构化输出、短上下文）；
      ③ **有界**：最多「一次任务计划 + 一次局部返工」，不重抽整栋，**不得直接写最终坐标**
      （最终 stroke 必须来自 worker + 工具证据）；④ 它是**权衡方案不是永久架构**，后续要代码化 / 降档 / 撤除。
-   - **⛔ 成绩必须分三条 lane 记账**（配 `reading_mode` provenance 块：worker/controller 模型、
-     controller 是否看图、返工轮次、工具箱版本、隔离档）：
-     **autonomous**（目标 VLM + 冻结工具箱，零 controller）· **controlled**（+ 内部 controller）·
-     **tool-invention**（开发期允许现场造 CV 工具）。
-     后两者**完全可以算真实工程成功**，但**不得记成「弱模型独立满分」**；autonomous lane 必须一直保留，
-     否则不知道离「本地开源 VLM 自主完成」还有多远。
+   - **⛔ 成绩记账 = 两条正式 lane + 一个 dev 期职能（⭐2026-08-02 晚用户当面更正，
+     此前记成「三条并列 lane」**是错的**）**（配 `reading_mode` provenance 块：
+     `reading-agent` / `reading-worker-agent` 各自模型、`reading-agent` 是否看图、返工轮次、
+     工具箱版本、隔离档）：
+     - **autonomous**（目标 VLM + 冻结工具箱，**零 `reading-agent`**）= **北极星、长期目标**；
+     - **controlled**（+ `reading-agent`）= **当前批次的验收 lane**。
+     **controlled 完全算真实工程成功**，但**不得记成「弱模型独立满分」**；
+     autonomous lane 必须一直保留，否则不知道离「本地开源 VLM 自主完成」还有多远。
+     - **另有一个 dev 期开发者职能（不是 lane、不产生正式成绩）**：允许**最强模型观察 reading
+       （乃至其他环节）的内部过程**，提炼方法论 / 搓适配工具 / 改进流程，**作为成果资产纳入项目开发本身**。
+       角色归属用户**倾向 orchestrator 兼任**（可再议）。**四条铁律**：
+       ⛔ 不能给项目生产本身提供**信息** · ✅ 可以提供思路 / 方法 / 工具 ·
+       ⛔ 这种模式下的**跑测不作为正式成绩** · ⛔ **一个 case 的收官验收必须脱离该角色完成**
+       （验收时跑的是已固化工序 + 已冻结工具箱，该角色不在场）。
+     - **⭐ 本批次目标口径（用户 08-02 晚更正）**：**不是**「autonomous 拿到好 reading」——那是北极星；
+       **本批 = 在 `reading-agent` 在场的形态下，sm21 与 sm24 两个 case 都拿到接近满分**，
+       本质是**先恢复到「Haiku 做 sm21/sm24 满分」那个状态**（那时本就有高档模型部分介入），
+       只是把当时 orchestrator 的**临场介入固化成 `reading-agent` + 与 orchestrator 隔离 + 降档到 Flash**。
+       ⇒ **不是提高分数，是用合规形态重新达到一次。** 拿到之后再尝试撤掉 `reading-agent` 验证 autonomous。
    - **⛔ 隔离原则改写（08-02）**：**严格限制可见信息与写出边界，不限制在合法输入上采用何种计算方法。**
      要防的是漏题与污染（gt / baseline / judge / 其他 run / 历史答案 / 网络外传），
      **不是**模型用了哪种算法 —— 按命令形态封杀通用 CV 编程（`python -c`、临时脚本）属于**能力封口**，
@@ -127,7 +146,59 @@ EnergyPlus 经 `WorkflowTool.run_simulation`（eppy + ConverterManager，idfpy �
   （08-01 W4 那 1 红已随返工 r1/r2/r3 闭环，见下条；xfail 十条含 2 个 legacy golden sm20/run_2026-06-15、
   sm21/run_2026-06-16_opus 无编排账本→run_state=incomplete；**B5 Phase C 延后的 6 个
   `test_output_coordinate_identity.py` E4 build-proof xfail 已在 Phase D 复原为真绿**，该文件零 xfail）。
-- **⭐⭐⭐ 最新（2026-08-02 晚）= 同一把尺子回放坐实「历史正确路径真的存在」+ 判卷层与 gate 档位两条 P0 断线 + 治理口径被用户重订**
+- **⭐⭐⭐ 最新（2026-08-02 深夜）= reading 攻坚开工：R1 修尺子施工中 + 架构细稿被对抗审判 REWORK + 用户三处口径更正**
+  （审轨：[R1 问题书](logs/reviews/request/2026-08-02_reading_ruler_r1_discussion_brief_sol.md) ·
+  [R1 sol 方案](logs/reviews/verdict/2026-08-02_reading_ruler_r1_discussion_sol.md) ·
+  [R1 派工单+裁定](logs/reviews/request/2026-08-02_reading_ruler_r1_construction_dispatch.md) ·
+  [Slice 0 调查](logs/reviews/execution/2026-08-02_reading_ruler_r1_slice0_rtl_survey.md) ·
+  [架构问题书](logs/reviews/request/2026-08-02_reading_architecture_design_brief.md) ·
+  [Fable 细稿](logs/reviews/verdict/2026-08-02_reading_architecture_design_fable.md) ·
+  [sol 对抗审](logs/reviews/verdict/2026-08-02_reading_architecture_design_review_sol.md)）：
+  - **⭐ 用户三处口径更正（已写入术语 banner 与 §1.5 #7）**：① **术语统一**为 orchestrator /
+    `reading-agent`（子环节内部调度）/ `reading-worker-agent`（实际读图产出的 VLM）；
+    ② **autonomous 是北极星、不是本批目标**，**本批 = `reading-agent` 在场下 sm21+sm24 都接近满分**
+    = 把 07-07 那次 orchestrator 临场介入**固化 + 隔离 + 降档**，**不是提高分数、是用合规形态重新达到一次**；
+    ③ **tool-invention 不是成绩 lane 而是 dev 期开发者职能**（跑测不算正式成绩 · case 收官须脱离它完成）。
+  - **⭐ 立面读图方向：用户拍板「直接规定每张图都从一个方向读，不用它自己选方向再声明」**
+    ⇒ 契约钉死 left-to-right、`local_x_positive` 降为「历史可加载、判卷永不读取」的废弃字段。
+    **terra Slice 0 全语料调查坐实**：RTL 声明共 4 处、**数值真反射 0 处**（全是 metadata 填错）；
+    另 92 处无声明产物在现行代码里本来就默认 L-to-R ⇒ **零动作、零风险**。
+    **⇒ 净减少一个 schema 选项、一套迁移机制、一整类错误来源。**
+  - **⛔⛔ 但「契约钉死 ≠ 约束住」——本项目第四次撞见「规范写了、没有机器验证」**
+    （前三次 = 自评字段 / CV 证据 / access_log 零消费者）。gate① 对立面 x 方向**零校验**
+    （`reading.facade_fields` 只查字段存在性）。**orchestrator 自拟的「对齐产物自己转录的尺寸链」判据
+    被真实数据当场证伪**（07-27 North：产物宽度量错 ⇒ 原样命中 2/4、**镜像 3/4** ⇒ 该判据会判错）
+    ⇒ 本批**不实现**，转 sol 作追加命题 N-6。
+  - **⛔ sol 对抗审架构细稿 = REWORK（4 BLOCKER / 8 MAJOR / 1 MINOR）**，
+    **两条最硬的 orchestrator 已独立核实属实**：
+    ① **反例就在仓库里**——`test_self_consistent_wrong_dimension_passes_linter` 的 docstring 自陈
+    「一条闭合的尺寸链**哪怕每个数字都与真实图纸不符**也不许阻断」（`3+3+3+6=15` 即 pass）
+    ⇒ **「尺寸链闭合」证明不了「量对了」**，而它是细稿四支柱之一 ⇒ P-3 不成立；
+    ② **`spawn_isolated_reader.py` 的 `--directive` 与 `feedback` 子命令仍在**、且被测试固化为期望行为，
+    加上 orchestrator 与 worker **同 UID 同可写 staging** ⇒ 「验收脱离 dev 角色」**无结构性保证**（P-8 BLOCKER）。
+    另 **P-2 判定「07-07 干预映射属倒推、须降级为待验假设」**（细稿自身前后矛盾：一面承认候选召回 5 vs 真实 16，
+    一面称该映射是「代码可判定的事实」）；**P-5 BLOCKER**（解除命令形态限制却无 OS 级隔离信任根
+    ⇒ `python -c` 内 `open()` 可直读 GT；且 `ANTHROPIC_API_KEY` 保留 ⇒ 外传通道）；
+    **F-3 最尖锐**：`reading-agent` 按现规格「只原样摘录 gate 已有 ID、不添加新判断」
+    ⇒ **几行确定性代码即可实现 = LLM 形状的拷贝器**，与「能代码化的就代码化」自相矛盾。
+  - **⭐ N-6 得到比 orchestrator 两个候选都好的答案**：**四条信号抓不住反向**
+    （把所有 x 写成 `W−x` 可四项全绿）；且**「分数低」不是答案**——**近似对称的立面反向后分数可能不低**，
+    GT 几何根本区分不了。**修法 = 读图器不写公制坐标**，只写源图像素锚点 + 标定变换，
+    **由确定性代码按「源图左缘=0、向右为正」唯一换算** ⇒ **反向根本表达不出来**
+    （明确否掉「只把字段改名叫距左缘」——模型照样能把距右缘的数填进去）。
+    **排期建议 = 插 R1.5，在 R1 之后、R3/R4 冻结接口之前**（晚做要返工两次；
+    **且不得先跑新基线再补方向证据**，否则「方向错」与「画错」混成同一个低分）。
+  - **⇒ 架构线下一步（用户 08-02 拍板）= 另开会话与 orchestrator 详谈**（P-8 触到用户自定规则 /
+    N-6-d 要插新阶段 / F-3 质疑 `reading-agent` 存废，三条均须用户当面敲定，不由 orchestrator 代裁）。
+  - **⚠️ 运维根因（用户查明）= 容器内存只给了 16 G ⇒ 会话被 OOM 杀掉**，此前归因的「会话切换带走后台任务」
+    只是表现。用户将扩到 24 G。**当日两次丢失、同样的活白做两遍**，三条修法已落：
+    ① 席位启动一律 `setsid` 脱离进程组；② 派工单明写「做完一件存一件 / 先落骨架再补」（实测有效）；
+    ③ **哨兵判据不得用「文件非空」**（骨架会被误判为完成，orchestrator 当日即栽），
+    须用**进程退出 + 占位符计数归零**。另：**骨架里的「暂定 REWORK」不得当结论汇报**
+    （sol 自己写明「以本文最终版为准」）。**风险点**：16 核 `-n auto` 全仓并行 ≈ 16 worker × 350–700 MB
+    ⇒ 叠加两个 codex 席位后逼近上限 ⇒ orchestrator 轻门改**限制 worker 数**
+    （不削弱门：提速批已机械证明并行与串行**节点集合逐字节相等**；与禁用的 `-m` 过滤性质不同）。
+- **（同日晚些）2026-08-02 = 同一把尺子回放坐实「历史正确路径真的存在」+ 判卷层与 gate 档位两条 P0 断线 + 治理口径被用户重订**
   （**零代码改动**·[主控回放全档](logs/experiments/2026-08-02_one_ruler_replay/README.md)·
   [GPT 侧调研报告](logs/reviews/verdict/2026-08-02_reading_regression_controller_cv_investigation.md)）：
   - **⭐⭐ 一把尺子的纵向回放（此前一直被判「量纲不可比」，本轮做成了）**：把 **07-07 sm24 老产物**

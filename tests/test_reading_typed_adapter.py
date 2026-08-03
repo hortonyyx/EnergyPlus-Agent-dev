@@ -53,10 +53,10 @@ def test_real_elevations_use_canonical_ranges_and_ruled_vertical_fallback():
     observations = _elevation_observations(outcome)
     applicability = _applicability(outcome)
 
-    assert len(observations) == 6
+    assert len(observations) == 13
     assert {
         item.source_input_id for item in observations
-    } == {"East_view", "South_view"}
+    } == {"East_view", "North_view", "South_view", "West_view"}
     assert len(outcome.certificate.vertical_datums) == 4
     assert all(
         item.source == "project_convention_2026_07_25"
@@ -65,7 +65,12 @@ def test_real_elevations_use_canonical_ranges_and_ruled_vertical_fallback():
         == "user_ruling_grade_line_equals_interior_floor_zero"
         for item in outcome.certificate.vertical_datums
     )
-    for source, expected_count in (("East_view", 4), ("South_view", 2)):
+    for source, expected_count in (
+        ("East_view", 4),
+        ("North_view", 2),
+        ("South_view", 2),
+        ("West_view", 5),
+    ):
         for component in ("elevation_opening_xy", "elevation_opening_z"):
             row = applicability[(source, component)]
             assert row.status == "applicable"
@@ -73,18 +78,12 @@ def test_real_elevations_use_canonical_ranges_and_ruled_vertical_fallback():
     for source in ("North_view", "West_view"):
         for component in ("elevation_opening_xy", "elevation_opening_z"):
             row = applicability[(source, component)]
-            assert row.status == "not_applicable"
-            assert row.cause_class == "trusted_frame"
-            assert row.denominator_disposition == "retain_as_miss"
+            assert row.status == "applicable"
+            assert row.denominator_disposition == "score"
 
 
 def test_aligned_elevations_project_exactly_and_raw_ids_are_namespaced():
     payload = _real_payload()
-    for source in ("North_view", "West_view"):
-        payload["views"][source]["facade"]["local_x_positive"] = (
-            "image_left_to_right"
-        )
-        payload["views"][source]["facade"]["mirrored"] = "false"
     outcome = _normalize(payload)
     observations = _elevation_observations(outcome)
 
@@ -123,25 +122,22 @@ def test_aligned_elevations_project_exactly_and_raw_ids_are_namespaced():
     )
 
 
-def test_sm24_frame_disagreement_witness_preserves_raw_declarations():
+def test_l05_historical_wrong_local_x_is_scored_without_frame_rejection():
+    payload = _real_payload()
+    assert payload["views"]["North_view"]["facade"]["local_x_positive"] == (
+        "image_right_to_left"
+    )
+    assert payload["views"]["West_view"]["facade"]["local_x_positive"] == (
+        "image_right_to_left"
+    )
     outcome = _normalize()
-    witnesses = {
-        item.source_input_id: item
-        for item in outcome.certificate.elevation_frame_disagreements
-    }
-    assert tuple(sorted(witnesses)) == ("North_view", "West_view")
+    assert outcome.certificate.elevation_frame_disagreements == ()
+    applicability = _applicability(outcome)
     for source in ("North_view", "West_view"):
-        witness = witnesses[source]
-        assert witness.binding_local_x_positive == "image_left_to_right"
-        assert witness.product_local_x_positive_raw == "image_right_to_left"
-        assert (
-            witness.product_local_x_positive_effective
-            == "image_right_to_left"
-        )
-        assert witness.binding_mirrored is False
-        assert witness.product_mirrored_raw == "false"
-        assert witness.product_mirrored_effective is False
-        assert witness.reason == "elevation_local_x_sense_disagreement"
+        for component in ("elevation_opening_xy", "elevation_opening_z"):
+            row = applicability[(source, component)]
+            assert row.status == "applicable"
+            assert row.denominator_disposition == "score"
 
 
 def test_elevation_zero_missing_and_malformed_are_distinct():
