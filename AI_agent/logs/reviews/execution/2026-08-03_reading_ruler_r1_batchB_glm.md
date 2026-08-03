@@ -601,6 +601,176 @@ frozen-policy reconstruction hook，三条依赖锁的连带是预期的；legac
 也走同一 helper。非 tier 的 draw-budget / reread-availability 仍是调用期操作旋钮，未注册为 frozen policy。
 
 
+---
+
+## 7. r2 返工
+
+- 上游：[r2 派工单](../request/2026-08-04_reading_ruler_r1_batchB_r2_dispatch.md)（以它为准）·
+  [交叉审裁定 + r2 清单](../request/2026-08-03_reading_ruler_r1_crossreview_ruling_and_r2.md)
+- 范围：r2-1 → r2-2 → r2-3 → r2-4（先小后大）。
+- **本段状态**：r2-1 ✅、r2-2 ✅ 已落库（commit `6ff9f4e` / `d601130`）；**r2-3 ⛔ 停下上报（锁结构性不可绑，已实证）**；
+  **r2-4 ⛔ 停下上报（(a)/(b) 二选一无可行 in-scope 解，需 orchestrator 裁）**。详见 7.3 / 7.4。
+
+### 7.1 r2-1（capability_profile 拼错 fail-closed）✅ 完成 · commit `6ff9f4e`
+
+**病灶**：`_parse_capability_profile`（`run_config.py:193`）对非法值 warn+None ⇒ `run_config.capability_profile=None`
+⇒ `_resolve_run_profiles` 落回 CLI 默认 rectangular；`run_policy_freeze.py:209` `capability_profile or "rectangular"`
+又静默兜一次。**`orthogonal_polygone`（拼错一字母）⇒ 静默降 rectangular**，冻结件仍标 structured_config。
+capability 决定 correction v2/v3 schema，影响面宽于判卷严格度。
+
+**改动**（与 r1 `_parse_run_profile` 完全对称）：
+- `run_config._parse_capability_profile`：present-but-invalid 由 warn+None 改 **raise `ValueError(capability_profile_invalid)`**；
+  absent（`value is None`）仍返回 None、CLI/legacy 权威。raises 经 `load_run_config` 在所有新 run provisioning 路径生效；
+  `_declared_policy` 只读 replay 自读 YAML 照旧容忍标 legacy（历史 replay 不受影响）。
+- `run_policy_freeze._build_record`：新 source-conditional 守卫 —— 新 run（`source != legacy_defaulted`）
+  `capability_profile=None` ⇒ raise `capability_profile_not_declared`（新 run 不得靠 rectangular 兜，与 run_profile
+  的 `run_profile_not_declared` 对称）；legacy replay 保留 rectangular 兜底。
+- `run_policy_freeze.provision_run_policy`：去掉冗余 `capability_profile or "rectangular"`（resolver 是 CLI 权威）。
+
+**锁**（`tests/test_run_stage_flow.py`，走真实 `cmd_flow`，形态照抄 R1-2 那对）：
+- **r2-1a typo**：`capability_profile: orthogonal_polygone` ⇒ raise `capability_profile_invalid` + 冻结前
+  （`_run/run_policy.json` 与 `run_manifest.json` 均不存在）。
+- **r2-1b absent 对照**：不声明 capability ⇒ CLI 默认 rectangular 兜底冻结成功（不 fail-closed）。
+
+**neuter 自查**（`/tmp/neuter_r2_1_*.py`，精确替换→跑→立即恢复）：
+- neuter point1（`_parse_capability_profile` 回 warn+None）⇒ 红 **r2-1a**、绿 **r2-1b**（零连带，point1 由 r2-1a 绑）。
+- neuter point2（恢复 `or "rectangular"` + 摘 `_build_record` 守卫）⇒ **两条 CLI 锁皆绿** ——
+  ⚠️ **诚实披露**：point2 守卫 CLI 不可达（`_resolve_run_profiles` 恒给非 None capability，provisioning 永不靠兜底），
+  故无 CLI 锁能绑它。守卫为**防御性结构强制**（防未来 resolver 回归把 None 漏到冻结层），r2-1 主诉求
+  （typo fail-closed）由 r2-1a CLI 锁绑定。point2 的价值是结构执行「新 run 不得靠它兜」，非回归锁。
+
+**受影响子集**（run_stage_flow + batchB + orchestrate_baseline + run_pipeline_self_checks + isolation）⇒
+**301 passed + 1 xfailed 零红**。
+
+### 7.2 r2-2（冻结记录 source 真实反映来源）✅ 完成 · commit `d601130`
+
+**病灶**：`run_policy_freeze.py:210` `_build_record(..., source="structured_config", ...)` **写死**。全仓新 run 一律
+structured_config、replay 一律 legacy_defaulted ⇒ 纯 CLI 冻结（`run_config.yaml` 没声明、靠 `--run-profile` 兜）
+也被标成「来自结构化配置」；连带 R1-1b `assert source == structured_config` **恒真**（空转断言）。
+
+**改动**（source 三态 + legacy_defaulted）：
+- `RunPolicyRecord.source` Literal 扩为 `structured_config` / `cli` / `mixed` / `legacy_defaulted`。
+- `_resolve_run_profiles` 返回 `(run_profile, capability_profile, source)`：两者都 config 声明 ⇒ structured_config；
+  都不声明 ⇒ cli；恰一个 ⇒ mixed。
+- `provision_run_policy` / `provision_run` / `_manifest_for_attempts` 全链接受 `source` 并透传（默认 structured_config
+  供直接/测试调用；production SOP 由 `_resolve_run_profiles` 计算）；`_build_record` 用传入 source。
+- 修 `provision_run_policy` existing-record 检查：原 `source != "structured_config"` 在新语义下会误拒合法 cli/mixed
+  幂等重冻结，改为只拒 `legacy_defaulted`（权威 flag）。
+- **修恒真断言**：`test_R1_2_absent`（config 都不声明）source 由 structured_config 改 **cli**；r2-1b（只声明 run_profile）
+  改 **mixed**。
+
+**漂移复验按来源判**：`resolve_frozen_run_policy` 本就只对 config 声明字段（`decl` 非 None）做 drift 复核 ——
+cli run 无声明故 N/A、mixed run 只复核声明侧。source 现让该适用面机器可见（**无需改 drift 逻辑，已正确**）。
+
+**锁**（`tests/test_run_stage_flow.py`，走真实 `cmd_flow`）：
+- **r2-2 lock A cli**：都不声明 + CLI `--run-profile` ⇒ `source == "cli"`（≠ structured_config）。
+- **r2-2 lock B structured**：两者都声明 ⇒ `source == "structured_config"`（原恒真断言，现有意义）。
+- **r2-2 lock C mixed**：只声明 run_profile ⇒ `source == "mixed"`。
+
+**neuter 自查**（`/tmp/neuter_r2_2.py`）：`_resolve_run_profiles` source 计算回硬编码 structured_config ⇒
+红 **lock A + lock C**、绿 **lock B**（参考态）⇒ source 计算由 A/C 绑定。
+
+**受影响子集**（run_stage_flow + batchB + orchestrate_baseline + isolation + execution_foundation +
+provenance_baseline + validation_run_baseline）⇒ **328 passed + 9 xfailed 零红**。
+
+### 7.3 r2-3（`_policy_with_frozen_tier` 零回归守卫）⛔ 停下上报 —— 锁结构性不可绑（已实证）
+
+**派工单要求**：补一条走真实 CLI（cmd_run/cmd_flow）的锁 —— 构造「冻结档=regression/orthogonal_polygon、
+而 CLI 与 run_config 当次给 exploratory/rectangular」的 run，断言 checks.json 头部=regression/orthogonal +
+某条严格档才 BLOCK 的 check-id 行；**摘掉 `_policy_with_frozen_tier`（改回 `return policy`）必须红**。
+
+**⛔ 实证结论：此锁按派工单指定的形态结构性不可绑。** 两条独立证据（探针 `/tmp/probe_r2_3.py`，真实 `_draw_reading`）：
+
+1. **派工单指定的散度场景（冻结=regression、当次 CLI/config=exploratory）在到达 `_policy_with_frozen_tier` 之前
+   就被 provisioning 的 drift 门挡掉。** 实跑：先 `provision_run_policy(regression/orthogonal)` 预冻结，再
+   `cmd_flow`（config 不声明 + CLI exploratory）⇒ **直接 raise `run_policy_drift: the run policy changed after
+   this run was provisioned`**。provisioning 的幂等性 drift 检查（`existing.policy_hash != expected.policy_hash`）
+   在 `_policy_with_frozen_tier` 之前触发 ⇒ 散度根本到不了 `_policy_with_frozen_tier`。
+
+2. **非散度场景（config 声明 regression、CLI 默认 exploratory）能到 `_policy_with_frozen_tier`，但它改变不了任何东西。**
+   实跑：`_policy_with_frozen_tier` 被调用时 in/out 的 (run_profile, capability_profile) **完全相同**
+   （`('regression','orthogonal_polygon') → ('regression','orthogonal_polygon')`，override 改变 = False）。
+   把它 neuter 成 `return policy` 后，0_reading checks.json 头部**仍是 regression/orthogonal_polygon**
+   （与未 neuter 逐字相同）⇒ **neuter 不红任何头部/check-id 断言**。
+
+**根因分析**：派工单 r2-3 的前提是「摘掉 `_policy_with_frozen_tier` ⇒ correction/modelling/grade/typed-scoring
+退回读 CLI/默认档（= r0 MAJOR 原状）」。这个前提在 **r0 成立、在 R1-1 之后不成立**：
+- R1-1 的 `_resolve_run_profiles`（config-wins）让 cmd_run/cmd_flow 的 `_make_policy` 直接拿到 resolved 档位；
+- `_manifest_for_attempts` 用**同一对** resolved (run_profile, capability_profile) 冻结；
+- 所以 `_make_policy` 的档位 **恒等于** 冻结档位，`_policy_with_frozen_tier` 的 override 是**恒空操作**。
+- 而 provisioning 的 drift 门又保证「冻结档 ≠ 当次 resolved」的散度场景在到达 `_policy_with_frozen_tier` 前 raise。
+
+⇒ **`_policy_with_frozen_tier` 在 cmd_run/cmd_flow 上是结构性冗余**（R1-1 已从根上保证 `_make_policy` 带冻结档）。
+派工单把它当「正文实现」、把 `effective_run_policy`（approve_geometry/record_baseline）当「旁支」——
+**实际上 `effective_run_policy` 才是承载 legacy/散度 diverge 的那根线**（它读冻结 record 重建 policy，
+对 legacy_defaulted run 返回 expl/rect 默认；已被 R1-5 四锁绑住）。`_policy_with_frozen_tier` 反而是冗余第二层。
+
+**与派工单 §0② 的呼应**：派工单说「r2-1 正是停下上报被接住的」。本条同型 —— 我**不伪造锁**（伪造一个
+neuter 不红的锁 = 假锁，违「锁绿 ≠ 锁真绑」）。请 orchestrator 裁其一：
+- (i) 接受「冻结档到达下游」**已由 R1-1c 绑定**（config 声明 regression ⇒ checks.json 头部 regression + closure BLOCK），
+  `_policy_with_frozen_tier` 是冗余防御、无独立锁可达 —— r2-3 视为已由 R1-1c 覆盖、本条收口；
+- (ii) 若要 `_policy_with_frozen_tier` 真正承载（可绑），需让它成为**唯一**档位权威 —— 即 `_make_policy` 不再
+  用 resolved 档位、改用占位/默认，由 `_policy_with_frozen_tier` 统一覆写。但这是**改生产码逻辑**，r2-3 明令禁止；
+- (iii) 其它 orchestrator 指定的形态。
+
+**未改任何生产码**（遵守「⛔ 本条不许改生产码逻辑」）。r2-3 无 commit。
+
+### 7.4 r2-4（context 已成判定面，漂移面没扩 + G-4 免责声明成假注释）⛔ 停下上报 —— (a)/(b) 无可行 in-scope 解
+
+**病灶**（派工单 + 路审 MAJOR-3，已核实）：`run_policy_freeze.py:22-30` G-4 注释把 context 排除在漂移检测外的
+理由写成「they do not affect reading-check blocking」；但 R1-5 后 `effective_run_policy`（`:292-335`）从 context 取
+`require_ep` 等，而 `validation_run.py:120` `require_ep` 决定 `downstream.build` 是否成为 fail-closed 必需件 ⇒
+**理由不成立**。实跑：篡改 `context.require_ep.value` true→false 并自行重算 `content_sha256`（该哈希是 payload
+自身的哈希、不绑外部信任根）⇒ 校验与漂移复核照常通过 ⇒ baseline 记账静默不再记缺失 EP 为阻断行、头部仍 regression。
+精确划界：几何签字门不受影响（只读 geometry_digest/geometry_approved），**受影响只有 baseline 记账**。
+
+**⛔ 核心难点（实证推导）**：`require_ep` 是 CLI `--with-ep` 标志，**在 `run_config.yaml` 里没有外部信任根**。
+- **option (a)「纳入 policy_hash / 漂移复核」挡不住 require_ep 篡改**：`policy_hash` 与 `content_sha256` 都是 payload
+  自身的哈希、可自行重算；drift 复核的唯一外部信任根是 `run_config.yaml`（profiles），而 require_ep 不在其中。
+  （context 里其余三项 judge_enabled/confirmation_policy/validation_scope 可从 run_config/SOP/default 重推导，
+  故 (a) 对它们有效；唯独 require_ep 无外部根 ⇒ (a) 对派工单点名的 require_ep 篡改无效。）
+- **option (b)「收回 effective_run_policy 对 context 的消费，只从冻结档位 + 当次显式入参推导」能消除 require_ep
+  篡改面**（require_ep 改从当次显式入参来，冻结 context.require_ep 不再被消费）—— 但 require_ep 不再是冻结属性
+  意味着 R1-5 的 approve_geometry 锁（断言「frozen context.require_ep=true ⇒ downstream.build 行存在」）的**前提
+  失效**，需把该锁改写成「显式 require_ep=true ⇒ downstream.build」（锁的意图保留、来源改）。这会动到**刚被路审
+  验为真锁的 R1-5 锁**，r2-4 派工单未授权改这些锁。
+
+⇒ **(a) 对命名威胁（require_ep）无效；(b) 可行但需改 R1-5 锁（超出 r2-4 派工单明示范围）。** 两条都非干净的
+in-scope 解。请 orchestrator 裁其一：
+- (i) 采纳 (b) 并**授权我改写受影响的 R1-5 锁**（approve_geometry / record_baseline 的 downstream.build 断言由
+  「frozen context」改「显式入参」），我把 require_ep 从冻结 context 消费收回 + 改 G-4 注释 + 补 r2-4 锁；
+- (ii) 采纳 (a) 的**升级版**：把 require_ep（及/或 validation_scope）**声明进 `run_config.yaml`** 给它外部信任根，
+  再纳入 drift 复核（含 schema 改动，较大）；
+- (iii) 其它 orchestrator 指定的形态。
+
+**未改任何生产码**（(a)/(b) 选择未定，不动）。r2-4 无 commit。G-4 假注释**暂未改写**（派工单明令「⛔ 不接受只改注释」，
+故等 (a)/(b) 落定后一并改，避免出现「只改了注释」的中间态）。
+
+### 7.5 全仓测试结果（r2-1 + r2-2 回归核验）
+
+`pytest -q -n 6`（交付前一次全仓，⛔ 无 `-m`）⇒ **2094 passed + 10 xfailed，零红**
+（基线 2089 + r2-1 ×2 锁 + r2-2 ×3 锁 = 2094，精确符合）。
+
+⚠️ **复证「交付前跑一次全仓」纪律**：r2-1 首次全仓抓到 1 红 ——
+`tests/test_run_config.py::test_run_config_invalid_capability_profile_falls_back_to_cli_authority`
+编码了 r2-1 要修的旧缺陷（非法 capability warn+None 回退 CLI）。我 r2-1 受影响子集（run_stage_flow/batchB/
+orchestrate/run_pipeline_self_checks/isolation）未覆盖 `test_run_config.py`，故漏扫；**只有全仓抓到**。
+已改写为断言新 fail-closed 行为（commit `b9923f0`），二次全仓 2094 绿零红。教训：改 `_parse_*` 类解析函数的
+失败语义时，受影响子集须含其**直接单测文件**（`affected_tests.py` 的 AST import 边对此未捕获，因 test_run_config
+不 import 被改符号、只通过 `load_run_config` 间接走到）。
+
+### 7.6 给 orchestrator 的上报摘要
+
+- **r2-1 / r2-2 已落库**（commit `6ff9f4e` / `d601130`），neuter 自查 + 受影响子集零红，全仓结果见 7.5。
+- **r2-3 停下上报**：锁按派工单指定形态**结构性不可绑**（两条独立实证：散度场景被 drift 门前置拦、非散度场景
+  override 是恒空操作）。根因 = R1-1 的 `_resolve_run_profiles` 已让 `_make_policy` 带冻结档 ⇒
+  `_policy_with_frozen_tier` 冗余。**未改生产码、未伪造锁。** 请裁 (i)/(ii)/(iii)（见 7.3）。
+- **r2-4 停下上报**：(a) 对命名威胁 require_ep 无效（无外部信任根）；(b) 可行但需授权改 R1-5 锁。
+  **未改生产码、未只改注释。** 请裁 (i)/(ii)/(iii)（见 7.4）。
+
+遵守派工单「再遇欠规格边界，停下上报 —— 不要自行降级为假设」。等 orchestrator 裁 r2-3 / r2-4 后续作。
+
+
 
 
 
