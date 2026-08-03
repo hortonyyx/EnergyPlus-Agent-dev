@@ -48,10 +48,16 @@ def test_R1_5_record_baseline_uses_frozen_policy_not_cli_fallback(tmp_path):
     (--with-ep / --require-ep).  A frozen regression/orthogonal run recorded
     with the caller passing require_ep=True keeps its frozen tier header AND
     surfaces the downstream.build blocking row because the CALLER asked for EP
-    (not because the frozen context said so).  Neuter: replace
-    effective_run_policy with RunPolicy() (ignoring both the frozen tier and the
-    caller require_ep) ⇒ the tier header drops to exploratory/rectangular and
-    downstream.build disappears ⇒ reds."""
+    (not because the frozen context said so).
+
+    r2c-1 (ruling 2026-08-04 §1): the tier header (run_profile /
+    capability_profile) now comes from the SAME policy fed to validate_case
+    (effective_run_policy), not from ``frozen`` directly.  Neuter: replace
+    effective_run_policy with RunPolicy(require_ep=require_ep) (keep the caller
+    knob, drop the tier) ⇒ policy.run_profile/capability_profile fall to the
+    RunPolicy defaults (exploratory/rectangular) ⇒ this header assertion reds
+    (the caller knob still brings downstream.build, so only the TIER dimension
+    is lost — which is exactly what this header now witnesses)."""
     from src.agent.execution.run_policy_freeze import provision_run_policy
 
     run = _minimal_run(tmp_path)
@@ -81,6 +87,82 @@ def test_R1_5_record_baseline_uses_frozen_policy_not_cli_fallback(tmp_path):
         row["stage"] == "downstream" and row["check"] == "downstream.build"
         for row in baseline["blocking"]
     )
+
+
+def test_R1_5_record_baseline_regression_tier_surfaces_blocking_check_row(tmp_path):
+    """r2c-1 (ruling 2026-08-04 §1) second layer: the regression tier must be
+    visible on ``baseline["blocking"]`` — not only on the run_policy header.  A
+    non-closing dimension chain (overall != Σ segments) is an EVIDENCE check
+    (``reading.dimension_chain_closure``); its disposition is tier-gated
+    (BLOCK under regression, FLAG under exploratory — schema.disposition).  So a
+    frozen regression run that feeds that FAIL to validate_case must surface it
+    as a blocking row, and the same FAIL fed under an exploratory policy would
+    NOT.  Neuter: replace effective_run_policy with RunPolicy(require_ep=...)
+    (drop the tier, keep the caller knob) ⇒ policy.run_profile becomes
+    exploratory ⇒ the closure FAIL is FLAG, not BLOCK ⇒ this row disappears from
+    ``baseline["blocking"]`` ⇒ reds.  This is the test_L10/L11 form applied to
+    record_baseline: it binds the TIER dimension the header lock above can no
+    longer witness once require_ep is split out."""
+    from src.agent.execution.run_policy_freeze import provision_run_policy
+
+    run = _minimal_run(tmp_path)
+    provision_run_policy(
+        run,
+        run_profile="regression",
+        capability_profile="orthogonal_polygon",
+    )
+    # A plan view with a NON-closing chain: overall=6.0 but segments sum to 5.0
+    # ⇒ check_reading_view emits reading.dimension_chain_closure FAIL (mismatch),
+    # which is a tier-gated EVIDENCE check (BLOCK under regression).
+    rdir = run / "0_reading"
+    rdir.mkdir(parents=True, exist_ok=True)
+    (rdir / "1f_view.json").write_text(
+        json.dumps(
+            {
+                "image_kind": "plan",
+                "uncaptured": [],
+                "strokes": [
+                    {"id": "S1", "pen": "wall", "provenance": "seen",
+                     "confidence": "high", "geometry": {"kind": "line",
+                                                        "p1": [0, 0], "p2": [10, 0]}},
+                    {"id": "S2", "pen": "wall", "provenance": "seen",
+                     "confidence": "high", "geometry": {"kind": "line",
+                                                        "p1": [0, 8], "p2": [10, 8]}},
+                ],
+                "dimensions": [
+                    {"id": "D0", "text_verbatim": "6.0", "value_m": 6.0,
+                     "chain_id": "c", "role": "overall", "order": 0, "axis": "x",
+                     "from": [0, 0], "to": [6, 0]},
+                    {"id": "D1", "text_verbatim": "2.0", "value_m": 2.0,
+                     "chain_id": "c", "role": "segment", "order": 1, "axis": "x",
+                     "from": [0, 0], "to": [2, 0]},
+                    {"id": "D2", "text_verbatim": "3.0", "value_m": 3.0,
+                     "chain_id": "c", "role": "segment", "order": 2, "axis": "x",
+                     "from": [2, 0], "to": [5, 0]},
+                ],
+                "scale_origin": {"world_x_m": 0.0, "world_y_m": 0.0,
+                                 "world_z_m": None},
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    baseline = record_baseline.record_baseline(
+        run,
+        date="2026-08-04",
+        orchestrator="test",
+        require_ep=False,
+        run_profile="exploratory",
+    )
+
+    # The non-closing chain FAIL is a BLOCK only because the tier fed to
+    # validate_case was regression (an exploratory policy would FLAG it).
+    assert any(
+        row["stage"] == "0_reading"
+        and row["check"] == "reading.dimension_chain_closure"
+        for row in baseline["blocking"]
+    )
+
 
 
 def test_R1_5_record_baseline_marks_unfrozen_run_legacy(tmp_path):

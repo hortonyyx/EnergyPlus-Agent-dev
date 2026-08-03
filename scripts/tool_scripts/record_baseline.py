@@ -510,6 +510,14 @@ def record_baseline(
     # record's context. The frozen record supplies only the tier (run_profile /
     # capability_profile) via effective_run_policy.
     policy = effective_run_policy(run_dir, require_ep=require_ep)
+    # r2c-1 (ruling 2026-08-04 §1): the tier (run_profile / capability_profile)
+    # written into the baseline header must come from the SAME policy that was
+    # fed to validate_case (effective_run_policy), NOT from ``frozen`` directly.
+    # frozen and effective agree in the well-formed case (effective derives its
+    # tier from the frozen record), so this is behaviour-preserving — but it
+    # makes the header WITNESS what validate_case actually judged on. Only the
+    # provenance fields (source / legacy_defaulted / policy_hash) stay on frozen
+    # (mirrors step_orchestrator.approve_geometry's split).
     res = validate_case(run_dir, policy=policy, write_reports=False)
     summary = summarize_gates(res.reports)
     counts = _geometry_counts(run_dir)
@@ -539,8 +547,8 @@ def record_baseline(
         "run_policy": {
             "source": frozen.source,
             "legacy_defaulted": frozen.legacy_defaulted,
-            "run_profile": frozen.run_profile,
-            "capability_profile": frozen.capability_profile,
+            "run_profile": policy.run_profile,
+            "capability_profile": policy.capability_profile,
             "policy_hash": frozen.policy_hash,
         },
         "gates": summary["gates"],
