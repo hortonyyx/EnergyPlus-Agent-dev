@@ -7,15 +7,30 @@
 | 批 | 状态 |
 |---|---|
 | **批 A**（判卷测量语义） | ✅ **已落库** `b8f9a8d`（terra 施工 + orchestrator 轻门）。全仓 **2055 绿 + 10 xfail·零红** |
-| **批 B**（policy 冻结 + applicability fail-closed） | 🔄 **施工中（GLM）**。施工席读单后**撞欠规格边界、停下上报**（正面样板）⇒ orchestrator 已裁定，已复工 |
-| **批 C**（渲染 / 命名 / 像素预算） | ⏳ 排在批 B 之后，同一席位 |
+| **批 B**（policy 冻结 + applicability fail-closed） | ⚠️ **r0 已落库** `627efac`（+ `2bb189e` 里 GLM 的 S-2 核心半截）。orchestrator 独立全量 **2068 绿 + 10 xfail·零红**（与施工方自报逐数字一致）。**轻门 = REWORK（1 MAJOR + 1 MINOR）⇒ 待 r1** |
+| **批 C**（渲染 / 命名 / 像素预算） | ⏳ 未开工。施工席在 `render_vector_to_png.py` 上留 28 行半截（像素预算），已 `git stash` = `batchC-wip-render-pixel-budget` |
 | 批 D（判卷图六 panel） | 移出，登记债：**向用户发布任何「识图变好/变坏」结论前必须完成** |
 | 批 E（离线重判） | 移出，归 R2 |
 
 审轨：[批 B/C 派工单](logs/reviews/request/2026-08-03_reading_ruler_r1_batchBC_dispatch.md) ·
 [GLM 边界上报](logs/reviews/execution/2026-08-03_reading_ruler_r1_batchBC_glm_boundary_report.md) ·
-[orchestrator 裁定](logs/reviews/request/2026-08-03_reading_ruler_r1_batchBC_ruling.md)。
-**施工审 = GPT 侧（sol）交叉对抗审，待批 B 交付后启。**
+[orchestrator 裁定](logs/reviews/request/2026-08-03_reading_ruler_r1_batchBC_ruling.md) ·
+[批 B 轻门](logs/reviews/verdict/2026-08-03_reading_ruler_r1_batchB_orchestrator_lightgate.md) ·
+[批 B sol 审阅单](logs/reviews/request/2026-08-03_reading_ruler_r1_batchB_review_sol.md)。
+**施工审 = GPT 侧（sol）交叉对抗审，已发射（`gpt-5.6-sol`/effort max）。**
+
+#### ⛔ 轻门 MAJOR-1（r1 必修）：`flow` / `run` 这条标准 SOP 路径上，病灶仍可复现
+
+批 B 的立项理由是「声明的严格档从未真正执行」。修复关上了 **isolation** 与**显式 `provision`** 两条路，
+**没关上 `cmd_run` / `cmd_flow`** —— 而 `flow` 是 CLAUDE.md §5 跑测铁律规定的唯一入口。
+`run_stage.py:1810-1813` / `:1987-1991` 里 `capability_profile` 取自 `run_config`、
+**`run_profile` 只取 CLI（argparse 默认 `exploratory`）**；`_manifest_for_attempts:121` 不冻结 policy
+⇒ `_draw_reading:196-205` 永远走 legacy 兜底。**orchestrator 实跑复现**：声明
+`regression / orthogonal_polygon` ⇒ 实际 **`exploratory` / orthogonal_polygon**（**半生效比全不生效更难发现**）。
+**13 条锁无一走这条路。** MINOR-1 = 配置与 CLI 冲突实现成「静默取其一」，派工单要的是「直接报错」（未披露的规格偏离）。
+
+**r1 排期**：GLM 施工席撞 5 小时额度上限（**15:36 北京时间复位**）⇒ 用户拍板
+**「现在先开审、返工等施工席恢复」** ⇒ r1 = 轻门两条 + sol findings 合并成一次返工，连同批 C 一起做。
 
 ### 二、⛔ 新登记债 D-1：sm24 真值写入会打穿已签字 GT 信任链
 
@@ -52,6 +67,22 @@
 
 **排期：R1（批 B/C）之后立即，R3/R4 冻结接口之前。**
 **⛔ 不得先跑新基线再补方向证据**（否则「方向错」与「画错」混成同一个低分，实验白跑）。
+
+**⭐ 问题书已就绪（08-03，等 R1 全绿即派）**：
+[R1.5 设计问题书](logs/reviews/request/2026-08-03_reading_coordinate_source_r1_5_design_brief.md)
+—— 按现行规划档写成**跨家族双独立出案**输入（Opus × sol 互不通气 → 综合 → 另一家族新启对抗审），
+Q1–Q9 九条命题、只给事实不给解法方向。
+**⭐ 出题时新查实的核心病灶（写进问题书 §1.2）**：gate① **本来就有**一条检查在管
+「声称按尺寸推导的墙必须真的引用得到标注」（`src/validator/checks/reading.py:793 _dimension_derived_refs`），
+但它第一行是 `if provenance != "dimension_derived": continue`
+⇒ **读图器把 provenance 写成 `seen`，这道题整个跳过、落成 N/A**。今天 Sonnet 那 10 条墙全写 `seen`
+⇒ 引用检查零压力零阻断。**考生自己填的一个字符串，决定了这道题考不考**
+—— 与批 B 正在修的 L-22「产品内容不得决定考卷」同形。
+**这是本项目第五次撞见「规范写了、没有机器验证」这一族**（自评字段 / CV 证据 / access_log /
+立面方向 / 本条）。⇒ R1.5 的必要性从「设计判断」升为**已坐实的接口缺陷**。
+问题书里最承重的是 **Q3**：能否用确定性代码验证「被引用的标注确实在锚点附近、且其数值与两锚点像素距离一致」
+—— 若成立，就把「尺寸链自洽」升级成「与像素一致」，正面回答 sol 那条
+「自洽但每个数字都错的尺寸链照样 pass」的反例。
 
 **残留缺口（真的剩下）** = sol 的 P-1 反例：工具找到真墙、读图器 crop 看了、**判成家具**、老实写 `rejected`。
 测量强制解决「没去量」，**解决不了「量了但语义判错」**。该块需要眼睛，但性质变了（**逐候选、有界**）
