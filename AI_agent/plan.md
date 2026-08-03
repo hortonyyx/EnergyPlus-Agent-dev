@@ -7,7 +7,7 @@
 | 批 | 状态 |
 |---|---|
 | **批 A**（判卷测量语义） | ✅ **已落库** `b8f9a8d`（terra 施工 + orchestrator 轻门）。全仓 **2055 绿 + 10 xfail·零红** |
-| **批 B**（policy 冻结 + applicability fail-closed） | ⚠️ **r0 已落库** `627efac`（+ `2bb189e` 里 GLM 的 S-2 核心半截）。orchestrator 独立全量 **2068 绿 + 10 xfail·零红**（与施工方自报逐数字一致）。**两轮审后判定 = REWORK（6 MAJOR + 1 MINOR）⇒ [r1 返工派工单](logs/reviews/request/2026-08-03_reading_ruler_r1_batchB_rework_dispatch.md) 已备好，等 GLM 15:36 复位开工** |
+| **批 B**（policy 冻结 + applicability fail-closed） | ✅ **r0 + r1 全部落库**（`627efac` → `22f8f14`）。r0 两轮审 = REWORK（6 MAJOR + 1 MINOR）⇒ **r1 七条全修完**（施工 GLM ×6 + **terra ×1**〔R1-5，GLM 额度耗尽后接手〕）。orchestrator 轻门**通过**：独立全量 **2089 绿 + 10 xfail 零红**（起点 2068，净增 21 锁零回归）· **独立 neuter 恰好红 2 条 R1-5 锁零连带、POST-RESTORE 全绿** ⇒ [轻门终版](logs/reviews/verdict/2026-08-03_reading_ruler_r1_orchestrator_lightgate_final.md)。**⏳ 剩交叉对抗审两路（见下）** |
 | **批 C**（渲染 / 命名 / 像素预算） | ⏳ 未开工。施工席在 `render_vector_to_png.py` 上留 28 行半截（像素预算），已 `git stash` = `batchC-wip-render-pixel-budget` |
 | 批 D（判卷图六 panel） | 移出，登记债：**向用户发布任何「识图变好/变坏」结论前必须完成** |
 | 批 E（离线重判） | 移出，归 R2 |
@@ -60,6 +60,27 @@
 ⇒ **锁绿着而缺陷还在**。r1 的锁**必须经过真实 CLI 入口**。
 
 **sol 的 P-3…P-9 不在 r1 前补跑**（审一个已知要变的状态无意义），改为 r1 落库后重新交叉审。
+
+#### ✅ r1 已完成（08-03 深夜）· ⏳ 下一步 = 交叉对抗审两路 + 批 C
+
+**r1 七条全部落地，轻门通过**（详 [轻门终版](logs/reviews/verdict/2026-08-03_reading_ruler_r1_orchestrator_lightgate_final.md)）：
+独立全量 **2089 绿 + 10 xfail 零红**（起点 2068 → 净增 21 条锁、零回归）；
+**独立 neuter**：把冻结政策 hook 换回 `RunPolicy()` 全默认 ⇒ **恰好红 2 条 R1-5 锁、零连带**，
+POST-RESTORE 全绿 ⇒ **锁真绑**（对照 r0 的 L-13 摘掉实现仍绿）。
+**R1-5 加固超出要求**：`GeometryApproval` 现钉上 `run_profile`/`capability_profile`/`source`/`legacy_defaulted`
+⇒ **一次人工签字从此绑定「它是在哪个档位下签的」**。
+
+**⏳ 交叉对抗审必须走两路**（施工跨了两个家族，「谁写谁不批」）：
+- **R1-5（terra 产出，GPT 侧）⇒ 派 GLM 审**。契合其能力画像（**验证性审阅达最高档**、探索性不及格），
+  且这里清单现成（裁定 §1.3 + 派工单同族点名），要验的正是「锁是否真绑」。
+- **R1-1…R1-7 的 GLM 产出 ⇒ 派 sol 重审**，并**补完上轮被平台内容策略中断的 P-3…P-9**。
+
+**之后才是批 C**（渲染 / 命名 / 像素预算；半截 28 行在 `git stash` = `batchC-wip-render-pixel-budget`）。
+
+**⚠️ orchestrator 自身失误登记**：两次用 `ps | grep | head -1` 取席位 pid，**都抓到包装层**
+（`setsid` 壳 / `bash -c` 壳）⇒ 第二次直接产出错误结论「terra 零提交退出」并已汇报给用户，随后自查纠正。
+**修法 = 哨兵判据改为不依赖 pid 的进程家族判据**（`ps aux | grep -c '[c]odex exec'` 归零）。
+**与已有的「哨兵判据不得用文件非空」是同一条教训：判据不得落在「看起来像那个东西」的第一个匹配上。**
 
 ### 二、⛔ 新登记债 D-1：sm24 真值写入会打穿已签字 GT 信任链
 
