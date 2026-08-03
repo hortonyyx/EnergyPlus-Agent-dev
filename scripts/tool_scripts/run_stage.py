@@ -118,9 +118,16 @@ def _load_manifest_readonly(run_dir: Path):
     return load_run_manifest(run_dir) or RunManifest(case=Path(run_dir).name)
 
 
-def _manifest_for_attempts(case_dir: Path, run_dir: Path):
+def _manifest_for_attempts(
+    case_dir: Path,
+    run_dir: Path,
+    *,
+    run_profile: str | None,
+    capability_profile: str | None = None,
+    context: dict | None = None,
+):
     """Version-dispatched manifest for the attempt-creating commands
-    (`run` / `flow` / `resample`) — B-M §5.1:
+    (`run` / `flow` / `resample`) — B-M §5.1 + R1-1 (S-2):
 
     - persisted **V1** run → refuse before ANY write ("grandfather" hard gate:
       a v1 run is read-only for validation/replay/report; every new attempt is
@@ -128,14 +135,21 @@ def _manifest_for_attempts(case_dir: Path, run_dir: Path):
     - persisted **V2** run → verify + return it (`ensure` re-checks the bound
       view-manifest inputs, raising on drift);
     - **no manifest yet** → new runs are V2-by-default: provision the trusted
-      view manifest and atomically mint the run's V2 identity.
+      view manifest AND freeze the effective run policy in the SAME
+      ``provision_run`` transaction, then atomically mint the run's V2 identity.
+
+    R1-1: the policy freeze is what makes a ``run_config.yaml`` declaration of
+    ``regression`` actually take effect on the ``flow``/``run`` SOP path.
+    Without it ``_draw_reading``'s resolver returned ``legacy_defaulted`` every
+    time (no ``_run/run_policy.json``), so the declared strict tier was silently
+    discarded for the CLI ``--run-profile`` default (``exploratory``).
     """
     from src.agent.execution.manifest import (
         ensure_run_manifest_v2,
         load_run_manifest,
         reading_attempt_allowed,
     )
-    from src.agent.execution.view_manifest import provision_view_manifest
+    from src.agent.execution.run_provision import provision_run
 
     allowed, refusal_reason = reading_attempt_allowed(run_dir)
     if not allowed:
@@ -152,7 +166,13 @@ def _manifest_for_attempts(case_dir: Path, run_dir: Path):
             "✗ run manifest is not a writable V2 manifest; migrate explicitly: "
             "run_stage.py provision <case> <run> --migrate"
         )
-    vm = provision_view_manifest(case_dir, run_dir)
+    vm = provision_run(
+        case_dir,
+        run_dir,
+        run_profile=run_profile,
+        capability_profile=capability_profile,
+        context=context,  # R1-1 TODO: context wiring awaits J-1 ruling
+    )
     return ensure_run_manifest_v2(run_dir, view_manifest_sha256=vm.content_sha256)
 
 
@@ -1555,6 +1575,25 @@ def _judge_packet(stage: str, case: str, case_dir: Path, run_dir: Path,
 # --------------------------------------------------------------------------- #
 # verbs
 # --------------------------------------------------------------------------- #
+def _resolve_run_profiles(run_config, args) -> tuple[str, str]:
+    """R1-1 (S-2): ``run_profile`` and ``capability_profile`` follow the SAME
+    source rule — the structured ``run_config.yaml`` declaration wins, the CLI
+    flag is the fallback. Previously ``run_profile`` came from CLI only
+    (``args.run_profile``) while ``capability_profile`` came from config, an
+    asymmetry that let a ``run_config.yaml`` declaring ``regression`` silently
+    run ``exploratory`` on the standard ``flow``/``run`` SOP path — because the
+    ``--run-profile`` argparse default is ``exploratory`` (not None), the
+    declared strict tier was discarded the moment the operator did not pass it
+    explicitly on the command line. Both knobs now resolve identically, and the
+    resolved pair is what freezes into the run policy (see
+    :func:`_manifest_for_attempts`)."""
+    run_profile = run_config.run_profile or args.run_profile
+    capability_profile = run_config.capability_profile or getattr(
+        args, "capability_profile", "rectangular"
+    )
+    return run_profile, capability_profile
+
+
 def _make_policy(
     *,
     reading_runner_available: bool = False,
@@ -1807,16 +1846,19 @@ def cmd_run(args) -> int:
     case_dir, run_dir, td_path = _resolve(args.base_dir, args.case, args.run)
     testdata_text = td_path.read_text(encoding="utf-8") if td_path.exists() else ""
     run_config = load_run_config(run_dir)
+    run_profile, capability_profile = _resolve_run_profiles(run_config, args)
     policy = _make_policy(
         reading_runner_available=args.reading_runner_available,
-        run_profile=args.run_profile,
-        capability_profile=(run_config.capability_profile
-                            or getattr(args, "capability_profile", "rectangular")),
+        run_profile=run_profile,
+        capability_profile=capability_profile,
         budget_draws=getattr(args, "budget_draws", None),
     )
     # CR-02: attempt-creating entrance — grandfather V1 refusal + V2-by-default
     # provisioning happen here, BEFORE any attempt/manifest write.
-    manifest = _manifest_for_attempts(case_dir, run_dir)
+    manifest = _manifest_for_attempts(
+        case_dir, run_dir,
+        run_profile=run_profile, capability_profile=capability_profile,
+    )
     runner = StageRunner(run_dir, manifest)
     stage = args.stage
     stage_dir = run_dir / stage
@@ -1874,7 +1916,12 @@ def cmd_resample(args) -> int:
     # CR-02 (terra r1 点名): the grandfather refusal must fire BEFORE this
     # command's invalidate()/save() — a persisted-V1 run's manifest bytes are
     # never touched by a refused resample.
-    manifest = _manifest_for_attempts(case_dir, run_dir)
+    run_config = load_run_config(run_dir)
+    run_profile, capability_profile = _resolve_run_profiles(run_config, args)
+    manifest = _manifest_for_attempts(
+        case_dir, run_dir,
+        run_profile=run_profile, capability_profile=capability_profile,
+    )
     dropped = invalidate(manifest, args.stage)
     manifest.save(run_dir)
     if dropped:
@@ -1990,18 +2037,21 @@ def cmd_flow(args) -> int:
     to_stage = args.to_stage
     if run_config.present and args.to_stage == "5_intakeoutput" and run_config.scope_stages:
         to_stage = run_config.scope_stages[-1]
+    run_profile, capability_profile = _resolve_run_profiles(run_config, args)
     policy = _make_policy(
         reading_runner_available=args.reading_runner_available,
-        run_profile=args.run_profile,
-        capability_profile=(run_config.capability_profile
-                            or getattr(args, "capability_profile", "rectangular")),
+        run_profile=run_profile,
+        capability_profile=capability_profile,
         judge_enabled=(judge_mode != "off"),
         confirmation_policy=ConfirmationPolicy.REQUIRED,
         budget_draws=getattr(args, "budget_draws", None),
     )
     # CR-02: attempt-creating entrance — same gate as cmd_run (grandfather V1
     # refusal + V2-by-default provisioning), before any stage is touched.
-    manifest = _manifest_for_attempts(case_dir, run_dir)
+    manifest = _manifest_for_attempts(
+        case_dir, run_dir,
+        run_profile=run_profile, capability_profile=capability_profile,
+    )
     start_stage = (
         _auto_start_stage(
             manifest=manifest,

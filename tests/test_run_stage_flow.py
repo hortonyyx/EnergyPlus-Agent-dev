@@ -663,3 +663,135 @@ def test_v1_run_resumable_after_explicit_migration(tmp_path, monkeypatch):
     assert saved.run_id == migrated.run_id  # identity survives the resume
     assert saved.stages["0_reading"].artifact_contract == "migrated_v1"
     assert saved.stages["1_correction"].artifact_contract == "base_v2"
+
+
+# --------------------------------------------------------------------------- #
+# R1-1 (S-2): flow/run SOP path — both profiles same source rule + freeze the
+# effective policy in the provision_run transaction (r0 wired only isolation +
+# cmd_provision; cmd_run/cmd_flow left the resolver legacy_defaulted every time,
+# so a run_config.yaml declaring regression silently ran exploratory).
+# --------------------------------------------------------------------------- #
+_USABLE_ORIGIN = {"world_x_m": 0.0, "world_y_m": 0.0, "world_z_m": None}
+
+
+def _non_closing_plan_payload():
+    """A plan view JSON whose only fault is a non-closing dimension chain
+    (overall 6.0 ≠ Σ segments 2.0+3.0 = 5.0) → dimension_chain_closure FAILs.
+    Every other field is well-formed so the refusal can only come from the
+    closure check (the R1-1 regression-block signal)."""
+    return {
+        "image_kind": "plan",
+        "uncaptured": [],
+        "strokes": [
+            {"id": "S1", "pen": "wall", "provenance": "seen", "confidence": "high",
+             "geometry": {"kind": "line", "p1": [0, 0], "p2": [10, 0]}},
+        ],
+        "dimensions": [
+            {"id": "D0", "text_verbatim": "6.0", "value_m": 6.0, "chain_id": "c",
+             "role": "overall", "order": 0, "axis": "x", "from": [0, 0], "to": [6, 0]},
+            {"id": "D1", "text_verbatim": "2.0", "value_m": 2.0, "chain_id": "c",
+             "role": "segment", "order": 1, "axis": "x", "from": [0, 0], "to": [2, 0]},
+            {"id": "D2", "text_verbatim": "3.0", "value_m": 3.0, "chain_id": "c",
+             "role": "segment", "order": 2, "axis": "x", "from": [2, 0], "to": [5, 0]},
+        ],
+        "scale_origin": dict(_USABLE_ORIGIN),
+    }
+
+
+def test_R1_1_flow_config_run_profile_overrides_cli_default(tmp_path, monkeypatch):
+    """R1-1a: run_config.yaml declares regression; CLI --run-profile is left at
+    its exploratory default ⇒ cmd_flow resolves run_profile=regression (both
+    profiles now follow the same config-wins rule; previously run_profile came
+    from CLI only and the declaration was silently discarded). Neuter: revert
+    run_profile to args.run_profile ⇒ seen == [('exploratory', ...)] ⇒ red."""
+    seen = []
+
+    def capture(stage, run_dir, testdata_text, td_path, policy, manifest=None):
+        seen.append((policy.run_profile, policy.capability_profile))
+        return _fake_make_draw_fn(stage, run_dir, testdata_text, td_path, policy, manifest=manifest)
+
+    monkeypatch.setattr(rs, "_make_draw_fn", capture)
+    monkeypatch.setattr(rs, "_render_stage", lambda *a, **k: [])
+    _seed_case_data(tmp_path)
+    run_dir = tmp_path / "case" / "run"
+    run_dir.mkdir()
+    (run_dir / "run_config.yaml").write_text(
+        "judge:\n  mode: off\n"
+        "run_profile: regression\ncapability_profile: orthogonal_polygon\n",
+        encoding="utf-8",
+    )
+
+    assert rs.cmd_flow(_args(tmp_path, run_profile="exploratory", judge="off")) == rs.FLOW_EXIT_OK
+    assert seen == [("regression", "orthogonal_polygon")]
+
+
+def test_R1_1_flow_freezes_run_policy_not_legacy_defaulted(tmp_path, monkeypatch):
+    """R1-1b: cmd_flow on a NEW run freezes the effective policy via the
+    provision_run transaction (_manifest_for_attempts) ⇒ _run/run_policy.json
+    exists with source=structured_config + legacy_defaulted=false. Neuter: skip
+    the provision_run wiring in _manifest_for_attempts ⇒ run_policy.json absent
+    ⇒ resolver returns legacy_defaulted=true ⇒ red."""
+    from src.agent.execution.run_policy_freeze import resolve_frozen_run_policy
+
+    monkeypatch.setattr(rs, "_make_draw_fn", _fake_make_draw_fn)
+    monkeypatch.setattr(rs, "_render_stage", lambda *a, **k: [])
+    _seed_case_data(tmp_path)
+    run_dir = tmp_path / "case" / "run"
+    run_dir.mkdir()
+    (run_dir / "run_config.yaml").write_text(
+        "judge:\n  mode: off\n"
+        "run_profile: regression\ncapability_profile: orthogonal_polygon\n",
+        encoding="utf-8",
+    )
+
+    assert rs.cmd_flow(_args(tmp_path, run_profile="exploratory", judge="off")) == rs.FLOW_EXIT_OK
+    record = resolve_frozen_run_policy(run_dir)
+    assert record.run_profile == "regression"
+    assert record.capability_profile == "orthogonal_polygon"
+    assert record.source == "structured_config"
+    assert not record.legacy_defaulted
+
+
+def test_R1_1_flow_regression_freezes_to_reading_checks_header(tmp_path, monkeypatch):
+    """R1-1c (派工单 §1.4): 端到端真实 cmd_flow + 真实 _draw_reading —
+    run_config.yaml 声明 regression+orthogonal，不传 CLI --run-profile（args 默认
+    exploratory）⇒ 0_reading attempt 的 checks.json 头部 run_profile=regression /
+    capability_profile=orthogonal_polygon / run_policy_sha256 非 None /
+    run_policy_source=structured_config，且非闭合尺寸链的 dimension_chain_closure
+    在 regression 下 BLOCK。Neuter: 两字段同来源退回（run_profile=args）⇒ 头部退回
+    exploratory + run_policy_sha256=None（legacy_defaulted）⇒ 头部断言红。"""
+    from src.validator.checks.schema import CheckStatus
+
+    case_dir = _seed_case_data(tmp_path)
+    run_dir = case_dir / "run"
+    run_dir.mkdir()
+    (run_dir / "run_config.yaml").write_text(
+        "run_profile: regression\ncapability_profile: orthogonal_polygon\n",
+        encoding="utf-8",
+    )
+    rdir = run_dir / "0_reading"
+    rdir.mkdir()
+    (rdir / "1f_view.json").write_text(
+        json.dumps(_non_closing_plan_payload()), encoding="utf-8"
+    )
+    monkeypatch.setattr(rs, "_render_stage", lambda *a, **k: [])
+
+    rs.cmd_flow(_args(
+        tmp_path, from_stage="0_reading", to_stage="0_reading",
+        run_profile="exploratory", judge="off",
+    ))
+
+    checks_path = run_dir / "0_reading" / "attempts" / "001" / "checks.json"
+    assert checks_path.exists(), "0_reading attempt checks.json must be filed even on block"
+    report = CheckReport.model_validate_json(checks_path.read_text(encoding="utf-8"))
+    # header fields — the declared regression actually took effect on the SOP path
+    assert report.run_profile == "regression"
+    assert report.capability_profile == "orthogonal_polygon"
+    assert report.run_policy_sha256
+    assert report.run_policy_source == "structured_config"
+    # check-id row — the non-closing chain BLOCKs under regression (FLAG under exploratory)
+    closure = next(r for r in report.results
+                   if r.check_id == "1f_view.reading.dimension_chain_closure")
+    assert closure.status is CheckStatus.FAIL
+    assert any(r.check_id == "1f_view.reading.dimension_chain_closure"
+               for r in report.blocking())

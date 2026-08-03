@@ -266,3 +266,36 @@ R1-7 → **R1-5（最大，做不完停下上报）**。**J-1 context 接线 + J
 本会话交付「R1-1 主体 + R1-2/3/4/6/7（+ R1-5 视进度）」，context 接线与混合列表分支作为
 **待裁挂起项**登记，不伪造完成。
 
+### 6.4 R1-1（flow/run SOP 入口：两字段同来源 + 冻结 policy）✅ 主体完成（context 待 J-1 裁）
+
+**改动**（`scripts/tool_scripts/run_stage.py`）：
+- 新增 `_resolve_run_profiles(run_config, args)`：run_profile 与 capability_profile 走**同一
+  来源规则**（config 声明优先、CLI 兜底）。修掉 r0 的不对称（run_profile 只认 CLI、
+  capability_profile 认 config）—— argparse `--run-profile` 默认 `exploratory`（非 None），
+  故声明 regression 不传 CLI ⇒ 静默降 exploratory（r1 派工单 §1 复现）。
+- `_manifest_for_attempts` 加 `run_profile`/`capability_profile`/`context` 关键字参数，内部由
+  `provision_view_manifest` 改为 `provision_run` 事务（一并冻结 view manifest + run policy +
+  strict applicability gate）。R1-1 前 `_draw_reading` 的 resolver 每次返回 `legacy_defaulted`
+  （无 `_run/run_policy.json`）⇒ 声明的 strict 档被丢弃。
+- `cmd_run`/`cmd_flow`/`cmd_resample` 改用 `_resolve_run_profiles` + 传参给
+  `_manifest_for_attempts`（cmd_resample 补 `load_run_config`）。
+- **context 暂传 None**（标注 `# R1-1 TODO: awaits J-1 ruling`）—— 不「默默照做」J-1。
+
+**锁**（`tests/test_run_stage_flow.py`，均走真实 `cmd_flow`）：
+- **R1-1a**：run_config 声明 regression + 不传 CLI ⇒ `policy.run_profile==regression`（捕获）。
+- **R1-1b**：cmd_flow 新 run ⇒ `_run/run_policy.json` 存在 + `source=structured_config` + 非 legacy_defaulted。
+- **R1-1c**（派工单 §1.4）：真实 cmd_flow + 真实 `_draw_reading` ⇒ attempt `checks.json` 头部
+  regression/orthogonal/`run_policy_sha256`/structured_config + `1f_view.reading.dimension_chain_closure`
+  在 regression 下 BLOCK（断言落 **check-id 行 + 头部字段**，非「返回值存在」）。
+
+**neuter 自查**（`/tmp/neuter_r1_1.py`，精确替换→跑→立即恢复→POST-RESTORE）：
+- neuter a（resolution: config-wins→CLI-only）：红 **a/b/c**（三锁共享 run_profile resolution）。
+- neuter b（冻结: `provision_run`→`provision_view_manifest`）：红 **b/c**，**a 绿**（证明 a 独立于
+  冻结、只绑 resolution）。
+- POST-RESTORE 3 passed、工作树恢复 OK。a/b/c 共享 resolution、b/c 共享冻结 ⇒ 连带是「共享同一
+  实现」型（r0 L-10/L-11 同型），三锁从不同角度（policy 捕获 / run_policy.json / checks.json 头部+
+  check-id）绑 R1-1 两处改动，无假锁。
+
+**全仓**：`pytest -q -n 6` ⇒ **2071 passed + 10 xfailed，零红**（基线 2068 + 本条 3 锁，零回归）。
+
+
