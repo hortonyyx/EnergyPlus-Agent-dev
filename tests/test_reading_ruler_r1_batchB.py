@@ -204,9 +204,29 @@ def test_L20_structured_complete_strict_run_succeeds(tmp_path: Path):
 
 
 # --------------------------------------------------------------------------- #
-# J-2 · mixed dimensioned_views list (strings + objects) ⇒ fail-closed raise
-# (orchestrator ruling 2026-08-03 §2: reject, error names the offending entry)
+# R1-4 · strict applicability refusal leaves NO frozen artifact on disk
+# (r1 派工单 §1.4: 校验前置, 不在写盘后)
 # --------------------------------------------------------------------------- #
+def test_R1_4_strict_applicability_refusal_leaves_no_artifact(tmp_path: Path):
+    """R1-4: strict run 的 applicability 拒绝（unknown dimensioned view）必须在
+    写盘前 raise ⇒ view_manifest.json + run_policy.json 都不落盘。r0 先写盘后
+    校验 ⇒ 失败时盘上已有可用 manifest+policy ⇒ 操作者无视 raise、继续走
+    isolation build（只读已冻结 manifest+policy、不重跑此 gate）即绕过。
+    Neuter: provision_run 回 r0 顺序（写盘后才 validate）⇒ view_manifest.json +
+    run_policy.json 已落盘再 raise ⇒ assert not exists 失败 ⇒ 红。"""
+    case_dir = _case_copy(tmp_path, SM21)
+    # structured declaration covering only ONE of sm21's six required views
+    _set_structured_dim(case_dir, [_structured_dim_decl("1f_view", True)])
+    run_dir = case_dir / "run_r14"
+    run_dir.mkdir()
+    with pytest.raises(ValueError, match="dimensioned_applicability_unknown"):
+        provision_run(case_dir, run_dir, run_profile="regression", capability_profile="rectangular")
+    # R1-4: refusal BEFORE any freeze write — neither artifact on disk
+    assert not (run_dir / "_run/view_manifest.json").exists()
+    assert not (run_dir / "_run/run_policy.json").exists()
+
+
+
 def test_J2_mixed_dimensioned_views_list_rejected(tmp_path: Path):
     """J-2 (裁定 §2): dimensioned_views 混合列表（字符串 + 对象）⇒ provision_run
     fail-closed，不静默当 legacy 丢掉对象声明（r0 的 _structured_dimensioned_map

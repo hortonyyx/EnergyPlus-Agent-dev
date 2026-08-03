@@ -28,6 +28,7 @@ from src.agent.execution.run_policy_freeze import provision_run_policy
 from src.agent.execution.view_manifest import (
     DimensionedApplicability,
     ViewManifest,
+    build_view_manifest,
     provision_view_manifest,
 )
 
@@ -71,16 +72,27 @@ def provision_run(
 ) -> ViewManifest:
     """The run-level provisioning transaction (S-2 + S-3).
 
-    Freezes the view manifest, then the effective run policy (L-13 fail-closed
-    on a missing structured ``run_profile``), then — for a strict run —
-    fail-closes on any ``unknown`` dimensioned applicability (L-20). Returns the
-    frozen manifest.
+    For a strict run, FIRST fail-closes on any ``unknown`` dimensioned
+    applicability (L-20) against the in-memory manifest, THEN freezes the view
+    manifest + the effective run policy (L-13 fail-closed on a missing
+    structured ``run_profile``). Returns the frozen manifest.
+
+    R1-4 (派工单 §1.4): applicability is validated BEFORE any freeze write so a
+    strict-profile refusal leaves NO usable artifact on disk. r0 validated AFTER
+    ``provision_view_manifest`` + ``provision_run_policy`` had already written
+    ``view_manifest.json`` + ``run_policy.json``; an operator could then ignore
+    the raised error and proceed straight to isolation build, which only reads
+    the already-frozen manifest + policy and never re-runs this gate. Build the
+    manifest once up front; ``provision_view_manifest`` rebuilds it
+    byte-identically when it writes (same case_data, deterministic).
 
     Callers that only need the case manifest may call
     :func:`provision_view_manifest` directly; this wrapper adds the policy freeze
     + strict applicability gate so a NEW strict run can never start with an
     undeclared tier or an unanswered dimension exam question.
     """
+    if run_profile in _STRICT_PROFILES:
+        validate_dimensioned_applicability(build_view_manifest(case_dir), run_profile=run_profile)
     manifest = provision_view_manifest(case_dir, run_dir)
     provision_run_policy(
         run_dir,
@@ -88,8 +100,6 @@ def provision_run(
         capability_profile=capability_profile,
         context=context,
     )
-    if run_profile in _STRICT_PROFILES:
-        validate_dimensioned_applicability(manifest, run_profile=run_profile)
     return manifest
 
 

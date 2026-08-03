@@ -414,6 +414,39 @@ POST-RESTORE 3 passed。
 run_stage_flow/check_parity/orchestrate/provenance，`-n 6`）⇒ **404 passed + 9 xfailed，零红**
 （含 r0 13 锁 + R1-1 三锁 + R1-2 两锁 + J-2 三锁 + R1-3 三锁 + 保哈希守卫）。
 
+### 6.8 R1-4（provision applicability 校验前置，失败不留可用产物）✅ 完成
+
+**病灶**（派工单 §1.4）：`provision_run`（`run_provision.py:84-93`）顺序 = 写 view manifest →
+写 run policy → **才**校验 applicability。strict 档失败时磁盘**已有**可用的 manifest + policy；
+而 isolation build/merge **不调这道 gate**（只读已冻结 manifest+policy）⇒「跑一次 provision、
+无视报错、继续走 isolation」即绕过 applicability 门。**本项目「raise ≠ 没落盘」教训同族**。
+
+**改动**（`src/agent/execution/run_provision.py` `provision_run`）：把 strict 档 applicability 校验
+**前置**到任何写盘前 —— 先 `build_view_manifest(case_dir)`（in-memory）→
+`validate_dimensioned_applicability` → 通过才 `provision_view_manifest`（写）+ `provision_run_policy`
+（写）。`build_view_manifest` 跑两次（前置 in-memory + `provision_view_manifest` 内部写时各一次），
+但同 case_data、确定性 ⇒ 字节一致。失败 ⇒ `view_manifest.json` + `run_policy.json` 都不落盘。
+
+**为何取「前置」而非「事务化清理」**：派工单 §1.4 给「校验前置，或失败时不留可用产物（事务化）」
+二选一。前置在写盘前 raise ⇒ 根本不写 ⇒ 满足「不留可用产物」，且无需跟踪清理 `provision_view_manifest`
+可能写的多个文件（view_manifest.json + exam_scope.json）。事务化清理是 nice-to-have，前置已满足要求。
+
+**锁**（`tests/test_reading_ruler_r1_batchB.py`，走真实 `provision_run` 入口）：**R1-4 strict
+applicability refusal leaves no artifact** —— SM21 结构化声明只覆盖 1/6 required view（与 r0
+L-20_unknown 同款 fixture）⇒ `provision_run(regression)` raise `dimensioned_applicability_unknown` +
+**view_manifest.json / run_policy.json 均未落盘**。r0 L-20_unknown 只断言 raises、不查盘；R1-4 补
+「盘上无产物」断言。
+
+**neuter 自查**（`/tmp/neuter_r1_4.py`）：把前置 validate 移回写盘后（恢复 r0 顺序）⇒ 红 **R1-4**
+（写盘成功后再 raise ⇒ 盘上有产物 ⇒ assert not exists 失败）、**绿 L-20 三条**（raises 仍发生，只是
+写盘后；L-20 只查 raises）⇒ **R1-4 锁唯一绑前置、零连带**。POST-RESTORE 4 passed。
+
+**受影响子集**（8 文件：batchB + run_stage_flow + isolation + merge + run_pipeline_self_checks +
+validation_run_baseline + a8_evidence_routing + view_manifest_generator，`-n 6`）⇒
+**325 passed + 8 xfailed，零红**（含 r0 13 锁 + R1-1 三锁 + R1-2 两锁 + J-2 三锁 + R1-3 三锁 +
+R1-4 一锁 + 保哈希守卫）。
+
+
 
 
 
