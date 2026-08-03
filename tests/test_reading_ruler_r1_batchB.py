@@ -204,6 +204,61 @@ def test_L20_structured_complete_strict_run_succeeds(tmp_path: Path):
 
 
 # --------------------------------------------------------------------------- #
+# J-2 · mixed dimensioned_views list (strings + objects) ⇒ fail-closed raise
+# (orchestrator ruling 2026-08-03 §2: reject, error names the offending entry)
+# --------------------------------------------------------------------------- #
+def test_J2_mixed_dimensioned_views_list_rejected(tmp_path: Path):
+    """J-2 (裁定 §2): dimensioned_views 混合列表（字符串 + 对象）⇒ provision_run
+    fail-closed，不静默当 legacy 丢掉对象声明（r0 的 _structured_dimensioned_map
+    把『非全 dict』一律 return None ⇒ 混合列表里对象声明被吞）。raise 在写盘前。
+    Neuter: _structured_dimensioned_map 回『非全 dict ⇒ None』⇒ 当 legacy ⇒ provision
+    成功 ⇒ pytest.raises 失败 ⇒ 红。"""
+    case_dir = _case_copy(tmp_path, SM21)
+    run_dir = case_dir / "run_j2"
+    run_dir.mkdir()
+    tp = case_dir / "case_data/testdata_prompt.json"
+    data = json.loads(tp.read_text(encoding="utf-8"))
+    data["dimensioned_views"] = [
+        "1f_view",  # legacy stem string
+        _structured_dim_decl("2f_view", True),  # structured object
+    ]
+    tp.write_text(json.dumps(data), encoding="utf-8")
+    with pytest.raises(ValueError, match="dimensioned_views mixed list"):
+        provision_run(case_dir, run_dir, run_profile="regression", capability_profile="rectangular")
+    # fail-closed BEFORE any freeze: neither manifest nor policy written to disk
+    assert not (run_dir / "_run/view_manifest.json").exists()
+    assert not (run_dir / "_run/run_policy.json").exists()
+
+
+def test_J2_mixed_list_error_names_offender(tmp_path: Path):
+    """J-2 裁定 §2 要求: 错误信息必须指出**哪一项**不合形态（不只说『混合』）。"""
+    case_dir = _case_copy(tmp_path, SM21)
+    run_dir = case_dir / "run_j2b"
+    run_dir.mkdir()
+    tp = case_dir / "case_data/testdata_prompt.json"
+    data = json.loads(tp.read_text(encoding="utf-8"))
+    offender = "1f_view"
+    data["dimensioned_views"] = [offender, _structured_dim_decl("2f_view", True)]
+    tp.write_text(json.dumps(data), encoding="utf-8")
+    with pytest.raises(ValueError) as excinfo:
+        provision_run(case_dir, run_dir, run_profile="regression", capability_profile="rectangular")
+    # the offending legacy entry must be named in the message
+    assert offender in str(excinfo.value)
+
+
+def test_J2_pure_string_legacy_not_rejected(tmp_path: Path):
+    """J-2 对照: 纯字符串(legacy)合法形态不 raise —— 证明 J-2 只对『混合』
+    fail-closed，不误伤 legacy 纯字符串（与 r0 L-20 legacy 对照同向、独立断言）。"""
+    case_dir = _case_copy(tmp_path, SM21)  # SM21 = pure stem-string legacy
+    run_dir = case_dir / "run_j2c"
+    run_dir.mkdir()
+    manifest = provision_run(
+        case_dir, run_dir, run_profile="regression", capability_profile="orthogonal_polygon",
+    )
+    assert manifest.content_sha256 == SM21_MANIFEST_SHA
+
+
+# --------------------------------------------------------------------------- #
 # L-22 · product cannot set the exam (dimensioned is a trusted property)
 # --------------------------------------------------------------------------- #
 def test_L22_product_cannot_set_exam_dimensioned():

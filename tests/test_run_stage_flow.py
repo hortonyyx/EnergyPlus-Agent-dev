@@ -795,3 +795,53 @@ def test_R1_1_flow_regression_freezes_to_reading_checks_header(tmp_path, monkeyp
     assert closure.status is CheckStatus.FAIL
     assert any(r.check_id == "1f_view.reading.dimension_chain_closure"
                for r in report.blocking())
+
+
+# --------------------------------------------------------------------------- #
+# R1-2 (S-2): a present-but-invalid run_profile (one-letter typo) is
+# fail-closed on the NEW-run provisioning path, not warn+ignore. r0's
+# _parse_run_profile warned + returned None, which _resolve_run_profiles then
+# fell back past to the CLI exploratory default — so 'regresion' silently ran
+# exploratory (派工单 §1.2).
+# --------------------------------------------------------------------------- #
+def test_R1_2_flow_typo_run_profile_fails_closed(tmp_path, monkeypatch):
+    """R1-2 (派工单 §1.2): run_config.yaml 把 run_profile 拼错一个字母
+    (regresion) ⇒ cmd_flow（真实 CLI 命令函数）fail-closed，不静默降回
+    exploratory、不冻结任何 policy。Neuter: _parse_run_profile 回 warn+None ⇒
+    load_run_config 不 raise ⇒ cmd_flow 成功跑 exploratory ⇒ pytest.raises
+    失败 ⇒ 红。"""
+    monkeypatch.setattr(rs, "_make_draw_fn", _fake_make_draw_fn)
+    monkeypatch.setattr(rs, "_render_stage", lambda *a, **k: [])
+    _seed_case_data(tmp_path)
+    run_dir = tmp_path / "case" / "run"
+    run_dir.mkdir()
+    (run_dir / "run_config.yaml").write_text(
+        "judge:\n  mode: off\nrun_profile: regresion\n",  # one-letter typo
+        encoding="utf-8",
+    )
+
+    with pytest.raises(ValueError, match="run_profile_invalid"):
+        rs.cmd_flow(_args(tmp_path, run_profile="exploratory", judge="off"))
+    # fail-closed BEFORE any freeze: no run policy, no run manifest minted
+    assert not (run_dir / "_run" / "run_policy.json").exists()
+    assert not (run_dir / "_run" / "run_manifest.json").exists()
+
+
+def test_R1_2_absent_run_profile_still_cli_authoritative(tmp_path, monkeypatch):
+    """R1-2 对照：run_config.yaml 完全不声明 run_profile（absent，legacy）⇒ 不
+    fail-closed，CLI --run-profile 兜底（G-6 legacy/CLI 权威）。证明 R1-2 只对
+    『显式声明了非法值』fail-closed，不对『未声明』fail-closed。"""
+    from src.agent.execution.run_policy_freeze import resolve_frozen_run_policy
+
+    monkeypatch.setattr(rs, "_make_draw_fn", _fake_make_draw_fn)
+    monkeypatch.setattr(rs, "_render_stage", lambda *a, **k: [])
+    _seed_case_data(tmp_path)
+    run_dir = tmp_path / "case" / "run"
+    run_dir.mkdir()
+    (run_dir / "run_config.yaml").write_text("judge:\n  mode: off\n", encoding="utf-8")
+
+    assert rs.cmd_flow(_args(tmp_path, run_profile="regression", judge="off")) == rs.FLOW_EXIT_OK
+    # CLI regression froze (absent config ⇒ CLI authoritative, NOT fail-closed)
+    record = resolve_frozen_run_policy(run_dir)
+    assert record.run_profile == "regression"
+    assert record.source == "structured_config"

@@ -204,15 +204,28 @@ def _parse_capability_profile(value: object, path: Path) -> str | None:
 
 
 def _parse_run_profile(value: object, path: Path) -> str | None:
+    """R1-2 (派工单 §1.2): a structured ``run_profile`` declaration that is
+    PRESENT but INVALID (e.g. a one-letter typo ``regresion``) is fail-closed,
+    not warn+ignore. Previously an invalid value warned and returned ``None``,
+    which ``_resolve_run_profiles`` then fell back past to the CLI
+    ``--run-profile`` default (``exploratory``) — so a single typo silently
+    demoted a declared strict run. An absent key (``value is None``) still
+    returns ``None`` so a legacy run with no declaration remains
+    CLI-authoritative / legacy_defaulted (G-6). This raises out of
+    ``load_run_config`` on every NEW-run provisioning path (cmd_run/flow/
+    resample/provision all call load_run_config before any freeze); the
+    read-only replay resolver (``_declared_policy``) reads YAML itself and
+    tolerates a bad value as legacy, so historical replays are unaffected."""
     if value is None:
         return None
     profile = str(value)
     if profile not in _RUN_PROFILES:
-        warnings.warn(
-            f"{path} run_profile={profile!r} is invalid; ignored",
-            RuntimeWarning,
+        raise ValueError(
+            f"run_profile_invalid: {path} run_profile={profile!r} is not one of "
+            f"{list(_RUN_PROFILES)} — a present-but-invalid tier declaration may "
+            f"not silently fall back to the CLI default (exploratory); fix the "
+            f"typo in run_config.yaml"
         )
-        return None
     return profile
 
 

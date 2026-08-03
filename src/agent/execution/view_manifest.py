@@ -736,8 +736,23 @@ def _structured_dimensioned_map(
     raw = data.get("dimensioned_views")
     if not isinstance(raw, list) or not raw:
         return None
-    # a list of strings is the legacy form; only a list of objects is structured
-    if not all(isinstance(item, dict) for item in raw):
+    # J-2 (orchestrator ruling 2026-08-03 §2): a ``dimensioned_views`` list must
+    # be ALL strings (legacy) or ALL objects (structured with provenance). A MIXED
+    # list (strings + objects) is malformed — it is neither legal form — and was
+    # previously folded to legacy here, silently dropping every structured
+    # declaration. Reject it fail-closed and name the offending entry instead of
+    # guessing which form the operator meant (same spec as R1-2: invalid ⇒ fail).
+    has_object = any(isinstance(item, dict) for item in raw)
+    has_non_object = any(not isinstance(item, dict) for item in raw)
+    if has_object and has_non_object:
+        offender = next(item for item in raw if not isinstance(item, dict))
+        raise ValueError(
+            "dimensioned_views mixed list: entries must be ALL strings (legacy) or "
+            "ALL objects (structured with provenance); found both forms mixed — "
+            f"first non-object entry: {offender!r}"
+        )
+    # all strings (or all non-objects) ⇒ legacy form; object-list wire stays off
+    if has_non_object:
         return None
     out: dict[str, DimensionedApplicability] = {}
     for item in raw:

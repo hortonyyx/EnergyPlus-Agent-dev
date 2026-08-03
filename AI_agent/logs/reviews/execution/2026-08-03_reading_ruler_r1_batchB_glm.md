@@ -298,4 +298,71 @@ R1-7 → **R1-5（最大，做不完停下上报）**。**J-1 context 接线 + J
 
 **全仓**：`pytest -q -n 6` ⇒ **2071 passed + 10 xfailed，零红**（基线 2068 + 本条 3 锁，零回归）。
 
+### 6.5 R1-2（拼错的 run_profile 在新 run provisioning 时 fail-closed）✅ 完成
+
+**改动**（`src/agent/execution/run_config.py` `_parse_run_profile`）：把「present-but-invalid 值
+warn + return None」改为 **raise `ValueError(run_profile_invalid)`**。absent（`value is None`）仍
+返回 `None`（legacy / CLI 权威）。r0 的 warn+None 让 `_resolve_run_profiles` 落回 CLI 默认
+`exploratory`，故 `regresion`（拼错一个字母）静默降档（r1 派工单 §1.2）。
+
+**为何 raise 落在新 run provisioning、不误伤历史 replay**：`_parse_run_profile` 经 `load_run_config`
+传播 raise；全仓 `load_run_config` 调用者 = cmd_run/flow/resample/provision/record_baseline/pipeline，
+**全是「新 run / 执行」语境**。历史只读 replay（`_draw_reading → resolve_frozen_run_policy →
+_declared_policy`）**自己读 YAML**、对非法值容忍成 `None`、不调 `_parse_run_profile` ⇒ 不受影响
+（满足 R1-2「历史 replay 只读容忍、标 legacy、不得冒充」）。missing file / YAML 语法错仍 soft-degrade
+（`load_run_config` 的 try/except 不变），只有「present-but-invalid 语义值」fail-closed。
+
+**锁**（`tests/test_run_stage_flow.py`，走真实 `cmd_flow`）：
+- **R1-2 typo**：`run_profile: regresion`（拼错）⇒ `pytest.raises(ValueError, match="run_profile_invalid")`，
+  且 fail-closed 在冻结**之前**（`_run/run_policy.json` 与 `run_manifest.json` 均不存在）。
+- **R1-2 absent 对照**：完全不声明 run_profile ⇒ 不 fail-closed，CLI `--run-profile regression` 兜底
+  冻结（证明 R1-2 只对「显式非法」fail-closed，不对「未声明」fail-closed —— G-6 legacy/CLI 权威不变）。
+
+**neuter 自查**（`/tmp/neuter_r1_2.py`）：`_parse_run_profile` 回 warn+None ⇒ 红 **R1-2 typo**，
+**R1-2 absent 绿**（对照锁不受影响）⇒ **零连带**，目标精确命中。POST-RESTORE 2 passed、工作树恢复。
+
+**爆破半径核实**：grep 全仓 tests 的 `run_profile` —— 所有用法都是合法值（exploratory/regression/
+golden/dev），**无任何测试依赖「非法 run_profile soft-degrade」**。受影响子集（run_config + run_stage_flow
++ run_pipeline_self_checks + a8_evidence_routing + orchestrate_baseline + c2_b4b_phase_d，覆盖全部
+`load_run_config` 调用者）⇒ **99 passed + 1 xfailed**。全仓留到交付前一并跑（派工单 §5.3 中间轮只跑
+受影响子集）。
+
+**登记同族债（不越界）**：`_parse_capability_profile` 对非法值仍是 warn+None（capability 拼错也静默降
+rectangular），派工单 R1-2 只点 run_profile，故本条**只改 run_profile**。R1-1 的两字段同来源让
+capability 拼错也会静默降档（同族）—— 若 orchestrator 要求对称，r1 后续可扩到 capability。
+
+### 6.6 J-2（混合 dimensioned_views 列表 ⇒ fail-closed raise）✅ 完成
+
+**裁定**（orchestrator 2026-08-03 §2）：采纳「拒绝（raise）」，与 R1-2「非法 ⇒ fail-closed」同条规格。
+混合列表不是任何合法形态（既非全 legacy 字符串、也非全结构化对象），r0 的 `_structured_dimensioned_map`
+对「非全 dict」一律 `return None` ⇒ 当 legacy ⇒ **对象声明被静默吞**（S-3 病灶同族）。
+
+**改动**（`src/agent/execution/view_manifest.py` `_structured_dimensioned_map`）：把
+`if not all(isinstance(item, dict) for item in raw): return None` 改三分——全字符串（或全非对象）
+⇒ `None`（legacy）；全对象 ⇒ 结构化（继续）；**含对象且含非对象 ⇒ raise**，错误信息
+`dimensioned_views mixed list: ...` 并**指出第一个非对象项**（裁定 §2「指出哪一项不合形态」）。
+
+**为何 raise 在写盘前、不落盘**：`_structured_dimensioned_map` 在 `build_view_manifest:940` 调用，
+早于所有 entry 构造（953+）与 `provision_view_manifest` 的 `_atomic_write_text`（1210）⇒ `provision_run`
+调它（`run_provision.py:84`）时 raise 在写 view manifest / run policy 之前。
+
+**锁**（`tests/test_reading_ruler_r1_batchB.py`，走真实 `provision_run` 入口）：
+- **J-2 mixed rejected**：`dimensioned_views=[stem_string, structured_object]` ⇒ `provision_run` raise
+  `dimensioned_views mixed list` + **view_manifest.json / run_policy.json 均未落盘**（fail-closed 在冻结前）。
+- **J-2 names offender**：错误信息含第一个非对象项（legacy 茎字符串）。
+- **J-2 pure-string 对照**：SM21 纯字符串 legacy 形态不 raise（证明 J-2 只对「混合」fail-closed）。
+
+**neuter 自查**（`/tmp/neuter_j2.py`）：短路混合 raise 分支（`if has_object and has_non_object:` →
+`if False and …:`）⇒ 红 **mixed rejected / names offender**（match "dimensioned_views mixed list" 不再成立；
+混合列表走 legacy 后撞 SM21 per-plan contradiction 另行 raise，但信息不匹配）、**绿 pure-string 对照** ⇒
+**目标精确命中、零连带**（仅 J-2 三锁受影响；r0 13 锁 / R1-1 三锁 / R1-2 两锁均不动）。POST-RESTORE 3 passed。
+
+**保哈希核实**：`test_real_manifests_byte_identical` 绿（sm24 `459513f1…` / sm21 `f52ca79c…` 逐字不变）——
+J-2 只改混合分支，sm24（absent）/sm21（纯字符串）/fixture（纯对象）均不混合。
+
+**受影响子集**（`affected_tests.py --changed view_manifest.py` 的核心消费者 18 文件，`-n 6`）⇒
+**540 passed + 8 xfailed，零红**（含 r0 13 锁 + R1-1 三锁 + R1-2 两锁 + J-2 三锁 + 保哈希守卫）。
+
+
+
 
