@@ -167,3 +167,102 @@ layer 1 `provision_run_policy` 显式 `raise run_profile_not_declared`；layer 2
    `provision_run_policy` 以写 run_policy.json，使 flat-flow 的 strict run 也走 typed policy 而非
    legacy_defaulted。本批 isolation + cmd_provision 两条路径已足以验证 S-2 契约（锁 L-10..L-13）。
 
+---
+
+## 6. r1 返工
+
+- 上游：[r1 返工派工单](../request/2026-08-03_reading_ruler_r1_batchB_rework_dispatch.md)（以它为准）·
+  [orchestrator 轻门](../verdict/2026-08-03_reading_ruler_r1_batchB_orchestrator_lightgate.md)·
+  [sol 部分稿（未完成）](../verdict/2026-08-03_reading_ruler_r1_batchB_review_sol.md)
+- 范围：7 条必修（R1-1…R1-7）+ J-1/J-2 两条判断先回报等裁。
+- 本段先落 **J-1 / J-2 的判断与理由**（派工单 §4：先回报再动手，⛔ 不自行决定、⛔ 不默默照做），
+  以及**推进安排**。R1-x 的逐条实施记录随做随补到 §6.x。
+
+### 6.1 J-1（G4 hash 收窄是否安全）—— 推荐 **(b) 保持收窄 + 把 context 真接上**，等 orchestrator 裁
+
+派工单给两个选项：(a) hash 回滚到含 validation/review 开关（sol S-2 原文）；(b) 保持收窄
+（只 capability+run_profile）但把 context 真接上，并说明为何那两个 toggle 不需要 drift 保护。
+
+**我推荐 (b)。理由四条：**
+
+1. **hash 的消费者是确定的，且只消费 capability+run_profile。** `resolve_frozen_run_policy`
+   服务两处：isolation build/merge 的 drift 检测、`_draw_reading` 的 provenance stamp
+  （`run_stage.py:196-217`）。这两处都只经 `check_reading_stage` 消费 `(capability_profile,
+   run_profile)` —— 决定 reading gate① blocking 的就这两个旋钮。`_run_policy_hash`
+   覆盖这两个 = 覆盖了它全部消费者的输入。
+
+2. **orchestrator 核实的「同 hash 下 gate① 事实可变」发生在 `validate_case` 路径，而
+   `validate_case` 不是这个 hash 的消费者。** `validation_scope=DOWNSTREAM_ONLY` 跳过 0–4
+   validators（`validation_run.py:94-98`）、`require_ep` 加一条 fail-closed ERROR（`:120-125`）
+   —— 这两条都在 `validate_case`（M4 离线校验工具）里。而 `validate_case` 的 policy 是
+   **调用者现传**（`policy = policy or RunPolicy()`，`validation_run.py:89`），**不读
+   `_run/run_policy.json`、不 stamp policy hash、不是 isolation build/merge 事务的一部分**。
+   ⇒ 把这两个 toggle 塞进 hash，等于把「离线校验工具的临时输入」耦合进「run 的冻结事务」：
+   操作者用不同 `validation_scope` 跑 `validate_case` 不该触发一个已冻结 run 的 drift 拒绝。
+
+3. **真正的缺陷是 context 从未接线（本项目第 N 次「机制写了、没接线」）。** 执行日志 §5 #1
+   声称「其余 toggle 记录进 `_run/run_policy.json` 的 context（非哈希）」，但全仓唯一生产调用者
+   `cmd_provision`（`run_stage.py:2234`）调 `provision_run(...)` **根本不传 context** ⇒
+   `context={}`（`run_provision.py:85-90` 把 None 传下去 → `_build_record` 里 `dict(context or {})`）。
+   ⇒ 「记录作非哈希上下文」**从未发生**。修法 (b) 的核心就是把这个接线补上：生产 provisioning
+   （`cmd_run`/`cmd_flow`/`cmd_provision`）调 `provision_run` 时把当前 RunPolicy 的其余 toggle
+   （`validation_scope`/`require_ep`/`confirmation_policy`/`judge_enabled`）作为 context 传入，
+   写进 `_run/run_policy.json`，**审计可见、但不参与 drift**。
+
+4. **为何那两个 toggle 不需要 drift 保护：** drift 保护的本意是「防发卷后偷换生产 gate① 的口径」。
+   生产 gate①（`_draw_reading → check_reading_stage`）**不消费** `validation_scope`/`require_ep`；
+   它们只被 `validate_case`（事后离线校验）消费。事后校验的输入参数变化不该回溯拒绝一个已冻结
+   的 run —— 那会把「重新跑一次离线校验」变成「改了 run 的口径」。两者记进 context（审计快照）
+   足够：审计者能看到「这个 run 声明的 validation_scope 是什么」，而 run 不会被它拒。
+
+**(a) 的代价（若 orchestrator 选 a）：** 每次 isolation build/merge 都要把完整 RunPolicy 序列化进
+hash，且 `judge_enabled`（纯 gate② 开关）/`confirmation_policy` 这类 toggle 的任何变化都触发 drift
+拒绝，可能拒绝合法的 re-merge；还要定义「完整 RunPolicy 的规范序列化」（RunPolicy 是 dataclass，
+含 budget 等字段，序列化口径本身是个坑）。
+
+**诚实边界（请 orchestrator 裁时考量）：** 我的论证依赖「`validate_case` 不消费 `_run/run_policy.json`
+的 hash」—— 这个前提今天成立。若未来要让 `validate_case` 绑定到冻结 policy（如「用冻结 policy 跑
+validate_case」），则 G4 收窄需重评。**若 orchestrator 认为生产 provenance 必须覆盖完整 RunPolicy
+（不止 capability+run_profile），则取 (a)，我据此改 `_run_policy_hash` + 序列化口径。**
+
+### 6.2 J-2（畸形输入当 legacy）—— 推荐 **拒绝（混合列表 raise）**，等 orchestrator 裁
+
+`_structured_dimensioned_map`（`view_manifest.py:740-741`）对混合列表（字符串+对象）`return None`
+⇒ 当 legacy ⇒ 对象声明被静默忽略。
+
+**我推荐拒绝（raise）。理由五条：**
+
+1. `dimensioned_views` 的两种合法形态明确：**茎字符串列表**（legacy，sm21）/ **结构化对象列表**
+   （新，fixture/新 case）。混合列表不是任何一种合法形态 —— 既非「全部 legacy」也非「全部结构化」。
+2. **静默当 legacy = 静默丢弃对象声明 = S-3 病灶「该考的题没考」的同族。** 操作者本意是声明结构化
+   applicability，因列表里混了一个字符串 ⇒ 整个结构化声明被吞 ⇒ 与「dimensioned 被静默压成 false」
+   同类静默丢失。这恰恰是批 B 要消灭的那类静默。
+3. **与派工单 §2.1 #5 / R1-2 精神一致：「非法 ⇒ fail-closed」。** 混合列表是畸形输入，应拒绝而非猜。
+4. **无任何合法用例需要混合列表。** legacy run 用纯字符串、新 run 用纯对象；混合只能来自手误或
+   部分迁移，两种都该报错让操作者修正，而不是静默吞。
+5. **安全性：** 拒绝混合列表不打穿任何真实 manifest 哈希（sm24 absent / sm21 纯字符串 / fixture
+   纯对象，三者都不混合）。
+
+**实现（若裁拒绝）：** 把 `if not all(isinstance(item, dict) for item in raw): return None` 改为
+三分：全字符串 ⇒ legacy（None）；全对象 ⇒ 结构化；**含 dict 且含非 dict ⇒ raise ValueError**。
+
+**反对「保留静默兼容」的理由：** 静默兼容的唯一「好处」是不报错，但代价是让 S-3 的核心保证
+（结构化声明不被吞）在混合输入下静默失效 —— 这正是要防的。
+
+### 6.3 推进安排（不违反「先回报等裁」，不浪费额度窗口）
+
+J-1 阻塞 **R1-1 的 context 接线** 与 **R1-5 的全 run context 贯穿**；J-2 阻塞
+`_structured_dimensioned_map` 的混合列表分支。**以下 R1-x 与两裁无关、可立即推进**：
+R1-2（拼错 fail-closed，在 `_parse_run_profile`/provisioning 层，与 hash 覆盖面无关）、
+R1-3（validate_case/evidence_preflight 折回 bool）、R1-4（provision 事务化）、R1-6（provenance 校验）、
+R1-7（config/CLI 冲突）。
+
+**因此本会话的执行顺序调整为：**
+J-1/J-2 回报（本段）→ **R1-1 主体**（两字段同来源 + `_manifest_for_attempts` 走 `provision_run`
+事务；**context 暂传 None、执行日志标 TODO，不「默默照做」J-1**）→ R1-2 → R1-3 → R1-4 → R1-6 →
+R1-7 → **R1-5（最大，做不完停下上报）**。**J-1 context 接线 + J-2 混合列表分支等两裁回来后补做。**
+
+若 orchestrator 在本会话推进期间裁了 J-1/J-2，我按裁定补做对应接线/分支并更新本段；若未裁，
+本会话交付「R1-1 主体 + R1-2/3/4/6/7（+ R1-5 视进度）」，context 接线与混合列表分支作为
+**待裁挂起项**登记，不伪造完成。
+
