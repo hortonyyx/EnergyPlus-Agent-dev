@@ -188,13 +188,32 @@ def _draw_reading(run_dir: Path, policy: RunPolicy, dimensioned_views: set[str])
     for vj in views:
         out[vj.stem] = json.loads(vj.read_text(encoding="utf-8"))
 
+    # S-2 (G-3): a frozen run_policy.json is the authoritative gate① disposition
+    # (same resolver as isolation's build/merge — the flat-flow path no longer
+    # silently assembles rectangular/exploratory defaults). A legacy run without
+    # one keeps its CLI policy and stamps no hash (G-6: legacy is read-only and
+    # never impersonates a strict tier).
+    from src.agent.execution.run_policy_freeze import resolve_frozen_run_policy
+    policy_record = resolve_frozen_run_policy(run_dir)
+    if policy_record.legacy_defaulted:
+        eff_capability = policy.capability_profile
+        eff_run_profile = policy.run_profile
+        policy_sha256 = None
+        policy_source = None
+    else:
+        eff_capability = policy_record.capability_profile
+        eff_run_profile = policy_record.run_profile
+        policy_sha256 = policy_record.policy_hash
+        policy_source = policy_record.source
     rep = check_reading_stage(
         manifest,
         out,
         dimensioned_stems=dimensioned_views,
         manifest_missing_reason=manifest_missing_reason,
-        capability_profile=policy.capability_profile,
-        run_profile=policy.run_profile,
+        capability_profile=eff_capability,
+        run_profile=eff_run_profile,
+        run_policy_sha256=policy_sha256,
+        run_policy_source=policy_source,
     )
     if not views:
         rep.add("reading.present", CheckStatus.ERROR, CheckLayer.INVARIANT,
@@ -2194,14 +2213,29 @@ def cmd_provision(args) -> int:
     new 0_reading attempts until an operator runs this explicitly.
     """
     from src.agent.execution.manifest import migrate_run_to_v2
-    from src.agent.execution.view_manifest import provision_view_manifest
+    from src.agent.execution.run_config import load_run_config
+    from src.agent.execution.run_provision import provision_run
 
     case_dir, run_dir, _td = _resolve(args.base_dir, args.case, args.run)
     if args.migrate:
         v2 = migrate_run_to_v2(case_dir, run_dir)
         print(json.dumps({"migrated": True, "run_id": v2.run_id, "stages": sorted(v2.stages)}, sort_keys=True))
         return 0
-    manifest = provision_view_manifest(case_dir, run_dir)
+    # S-2 + S-3: run-level provisioning freezes BOTH the view manifest and the
+    # effective run policy, then fail-closes on the strict-profile invariants
+    # (L-13 missing run_profile; L-20 unknown dimensioned applicability). The
+    # structured run_config.yaml declaration wins; the CLI --run-profile is the
+    # fallback an operator supplies.
+    run_config = load_run_config(run_dir)
+    run_profile = run_config.run_profile
+    if run_profile is None:
+        run_profile = getattr(args, "run_profile", None)
+    capability_profile = run_config.capability_profile or getattr(args, "capability_profile", None)
+    manifest = provision_run(
+        case_dir, run_dir,
+        run_profile=run_profile,
+        capability_profile=capability_profile,
+    )
     print(json.dumps(
         {"provisioned": True, "content_sha256": manifest.content_sha256, "entries": len(manifest.entries)},
         sort_keys=True,

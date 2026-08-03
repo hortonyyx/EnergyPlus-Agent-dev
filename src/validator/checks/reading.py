@@ -104,13 +104,16 @@ def check_reading_view(
     run_profile: RunProfile = "exploratory",
     view_metadata: dict | None = None,
     dimensioned: bool | None = None,
+    dimensioned_state: str | None = None,
 ) -> CheckReport:
     rep = CheckReport(
         stage="0_reading",
         capability_profile=capability_profile,
         run_profile=run_profile,
     )
-    meta = _view_metadata(view, view_metadata, dimensioned=dimensioned)
+    meta = _view_metadata(
+        view, view_metadata, dimensioned=dimensioned, dimensioned_state=dimensioned_state,
+    )
 
     # ---- INVARIANT: unique ids ----
     _unique_ids(rep, "stroke", [s.id for s in view.strokes])
@@ -168,18 +171,37 @@ def check_reading_view(
     return rep
 
 
+_DIMENSIONED_STATES = ("declared_true", "declared_false", "unknown", "legacy_default")
+
+
 def _view_metadata(
     view: ReadingView,
     view_metadata: dict | None,
     *,
     dimensioned: bool | None,
+    dimensioned_state: str | None = None,
 ) -> dict:
     meta = reading_raw_metadata(view)
     if view_metadata:
         meta.update(view_metadata)
     if dimensioned is not None:
         meta["dimensioned"] = dimensioned
-    meta.setdefault("dimensioned", False)
+    # S-3: the 4-state dimensioned_state is the authoritative applicability signal
+    # carried to checks.json evidence (declared_true / declared_false / unknown /
+    # legacy_default). Derive it from the legacy bool (explicit param, else the
+    # view_metadata bool) when a structured state was not passed, but never fold
+    # it back to a bool downstream — the whole point is keeping
+    # unknown ≠ declared_false ≠ legacy_default visible end-to-end.
+    if dimensioned_state is None:
+        prior = meta.get("dimensioned_state")
+        if isinstance(prior, str) and prior in _DIMENSIONED_STATES:
+            dimensioned_state = prior
+        else:
+            dimensioned_state = "declared_true" if meta.get("dimensioned") is True else "legacy_default"
+    meta["dimensioned_state"] = dimensioned_state
+    # Legacy bool consumers (_chain_closure etc.) still see a bool: only an
+    # affirmative declared_true counts as "dimensioned".
+    meta["dimensioned"] = dimensioned_state == "declared_true"
     meta.setdefault("legacy_migrated", bool(getattr(view, "migrated_from_legacy", False)))
     return meta
 
@@ -187,6 +209,7 @@ def _view_metadata(
 def _evidence_meta(meta: dict) -> dict:
     return {
         "dimensioned": bool(meta.get("dimensioned")),
+        "dimensioned_state": meta.get("dimensioned_state", "legacy_default"),
         "raw_has_dimensions": meta.get("raw_has_dimensions"),
         "raw_has_uncaptured": meta.get("raw_has_uncaptured"),
         "legacy_migrated": bool(meta.get("legacy_migrated")),
@@ -477,19 +500,29 @@ def _raw_field_presence(rep: CheckReport, meta: dict) -> None:
 
 def _dimensioned_view_evidence(rep: CheckReport, view: ReadingView, meta: dict) -> None:
     evidence = _evidence_meta(meta)
-    if not meta.get("dimensioned"):
+    state = meta.get("dimensioned_state", "legacy_default")
+    if state != "declared_true":
+        # declared_false / unknown / legacy_default are all N/A for the dimension
+        # evidence checks, but the 4-state reason stays machine-visible in
+        # evidence.dimensioned_state (ruling追加约束 #1: never fold back to a
+        # bool — unknown ≠ declared_false ≠ legacy_default end-to-end).
+        reason = {
+            "declared_false": "view is declared not dimensioned",
+            "unknown": "view dimensioned applicability is unknown (not declared)",
+            "legacy_default": "view is not declared dimensioned (legacy default)",
+        }.get(state, "view is not declared dimensioned")
         rep.add(
             "reading.dimensions_present",
             CheckStatus.NOT_APPLICABLE,
             CheckLayer.CROSS_CHECK,
-            message="view is not declared dimensioned",
+            message=reason,
             evidence=evidence,
         )
         rep.add(
             "reading.dimension_p1a_fields",
             CheckStatus.NOT_APPLICABLE,
             CheckLayer.CROSS_CHECK,
-            message="view is not declared dimensioned",
+            message=reason,
             evidence=evidence,
         )
         return

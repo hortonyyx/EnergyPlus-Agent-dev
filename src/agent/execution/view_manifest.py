@@ -341,6 +341,61 @@ class _EntryBase(BaseModel):
         return v
 
 
+class DimensionedApplicability(BaseModel):
+    """S-3: structured per-view applicability for the dimension checks.
+
+    Replaces the lossy ``dimensioned: bool`` when a case declares applicability
+    *explicitly with provenance*. The 3-state ``state`` keeps ``unknown`` distinct
+    from ``declared_false`` end-to-end — the lossy bool folded both into ``False``
+    (and sm24's undeclared views into ``False`` too), which is exactly the
+    "exam question was never asked" root cause (31 N/A rows, dimension checks the
+    bulk). ``authority`` + ``source_hash`` make the declaration auditable so a
+    reviewer/sign-off is machine-visible (the sm24 true-values carry reviewer
+    ``hortonyyx`` + the closed dimension-chain basis).
+
+    Wire form is a *union* (``bool | DimensionedApplicability``) so legacy cases
+    that never declared structured applicability keep their byte-identical bool
+    (and therefore their ``content_sha256``): the upgrade is opt-in per case.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    state: Literal["declared_true", "declared_false", "unknown"]
+    authority: str
+    source_hash: Hex64
+
+    @field_validator("authority")
+    @classmethod
+    def _authority_nonempty(cls, v: str) -> str:
+        if not v:
+            raise ValueError("authority must be non-empty")
+        return v
+
+
+# S-3: the 4-state machine value downstream code (checker evidence, N/A reasons)
+# normalizes to. ``legacy_default`` is NOT ``declared_false``: a legacy bool
+# ``False`` is an undeclared legacy view (N/A, read-only), while a real
+# ``declared_false`` is an affirmative "this view has no dimensions" — the two
+# must never fold back together (ruling追加约束 #2).
+DimensionedState = Literal["declared_true", "declared_false", "unknown", "legacy_default"]
+
+
+def dimensioned_state(entry_dimensioned: "bool | DimensionedApplicability") -> DimensionedState:
+    """Normalize a ``RequiredViewEntry.dimensioned`` field to a 4-state value.
+
+    bool ``True``  → ``declared_true``
+    bool ``False`` → ``legacy_default`` (undeclared legacy, NOT ``declared_false``)
+    object         → its own ``state`` (``declared_true``/``declared_false``/``unknown``)
+
+    Downstream N/A reasons and checker evidence carry this 4-state value to
+    ``checks.json`` so the ``unknown``↔``declared_false``↔``legacy_default``
+    distinction is never folded back to a bool (ruling追加约束 #1).
+    """
+    if isinstance(entry_dimensioned, DimensionedApplicability):
+        return entry_dimensioned.state
+    return "declared_true" if entry_dimensioned else "legacy_default"
+
+
 class RequiredViewEntry(_EntryBase):
     kind: Literal["required_view"] = "required_view"
 
@@ -353,7 +408,7 @@ class RequiredViewEntry(_EntryBase):
     semantics_source: Literal["standard_assumption", "case_metadata", "user"]
     azimuth_deg: float | None = None
     building_view_direction: str | None = None
-    dimensioned: bool
+    dimensioned: bool | DimensionedApplicability
     expected_output_id: str
     reader_output_required: Literal[True] = True
     opening_evidence: OpeningEvidence
@@ -659,6 +714,103 @@ def _dimensioned_stems_declared(data: dict) -> set[str]:
     return stems
 
 
+def _structured_dimensioned_map(
+    data: dict, case_metadata_sha256: str
+) -> dict[str, DimensionedApplicability] | None:
+    """S-3: parse a structured ``dimensioned_views`` declaration (a list of
+    ``{view, dimensioned, source}`` objects) into per-stem applicability records.
+
+    Returns ``None`` for the legacy forms (absent key, or stem-string list) so
+    :func:`build_view_manifest` keeps byte-identical bools — and therefore a
+    stable ``content_sha256`` — for every existing case (sm24 absent ⇒ all-False,
+    sm21 stem-list ⇒ membership bools). Only a list-of-objects declaration
+    activates the structured, provenance-bound wire.
+
+    Each object's ``source`` (``{image_sha256, reviewer, date, basis}``) becomes
+    the audit basis: ``authority`` = the human reviewer, ``source_hash`` = the
+    hash of the whole source object (so the sm24 sign-off is machine-visible and
+    tamper-evident). A required view MISSING from the declaration is not folded
+    to False here — :func:`_entry_dimensioned` surfaces it as ``unknown`` and the
+    strict-profile provisioning wrapper fail-closes on it (L-20).
+    """
+    raw = data.get("dimensioned_views")
+    if not isinstance(raw, list) or not raw:
+        return None
+    # a list of strings is the legacy form; only a list of objects is structured
+    if not all(isinstance(item, dict) for item in raw):
+        return None
+    out: dict[str, DimensionedApplicability] = {}
+    for item in raw:
+        view = item.get("view")
+        if not isinstance(view, str) or not view:
+            raise ValueError(
+                f"dimensioned_views structured entry must have a non-empty 'view' string: {item!r}"
+            )
+        stem = Path(view).stem if Path(view).suffix else view
+        dim_flag = item.get("dimensioned")
+        if not isinstance(dim_flag, bool):
+            raise ValueError(
+                f"dimensioned_views entry {view!r} 'dimensioned' must be a bool: {item!r}"
+            )
+        source = item.get("source")
+        if not isinstance(source, dict):
+            raise ValueError(
+                f"dimensioned_views entry {view!r} must carry a 'source' object: {item!r}"
+            )
+        reviewer = source.get("reviewer")
+        if not isinstance(reviewer, str) or not reviewer:
+            raise ValueError(
+                f"dimensioned_views entry {view!r} source.reviewer must be a non-empty string"
+            )
+        if stem in out:
+            raise ValueError(f"dimensioned_views duplicate view: {stem!r}")
+        out[stem] = DimensionedApplicability(
+            state="declared_true" if dim_flag else "declared_false",
+            authority=reviewer,
+            source_hash=hash_obj(source),
+        )
+    return out
+
+
+def _entry_dimensioned(
+    input_id: str,
+    overlay: dict,
+    legacy_bool: bool,
+    structured_dim: dict[str, DimensionedApplicability] | None,
+    case_metadata_sha256: str,
+) -> "bool | DimensionedApplicability":
+    """Resolve one required view's ``dimensioned`` field (S-3).
+
+    Structured form (``dimensioned_views`` is an object list): the declaration is
+    authoritative and provenance-bound — a view present in the declaration gets
+    its :class:`DimensionedApplicability`; a view absent gets ``unknown`` (the
+    strict-profile provisioning wrapper fail-closes on ``unknown``, L-20; it is
+    never silently folded to False). The legacy ``views{{}}.dimensioned`` bool
+    override is refused in this form (it would strip the provenance).
+
+    Legacy form (absent / stem-string list): the caller's precomputed bool wins,
+    and the per-view ``views{{}}.dimensioned`` bool override still applies
+    byte-identically to v1 (so ``content_sha256`` is stable).
+    """
+    if structured_dim is not None:
+        if "dimensioned" in overlay:
+            raise ValueError(
+                f"views{{{input_id!r}}}.dimensioned override is forbidden when "
+                "dimensioned_views is a structured (object-list) declaration; "
+                "declare applicability with provenance in dimensioned_views instead"
+            )
+        if input_id in structured_dim:
+            return structured_dim[input_id]
+        return DimensionedApplicability(
+            state="unknown",
+            authority="case_metadata",
+            source_hash=case_metadata_sha256,
+        )
+    if "dimensioned" in overlay:
+        return bool(overlay["dimensioned"])
+    return legacy_bool
+
+
 def _normalize_declared_path(case_dir: Path, declared: object) -> tuple[str, str, str]:
     """Normalize a declared metadata path to ``case_data/<basename>``.
 
@@ -783,6 +935,9 @@ def build_view_manifest(case_dir: Path | str) -> ViewManifest:
     views_overlay = data.get("views") if isinstance(data.get("views"), dict) else {}
     dimensioned_declared = "dimensioned_views" in data
     dimensioned_stems = _dimensioned_stems_declared(data)
+    # S-3: structured dimensioned_views (object list) activates the provenance-bound
+    # wire; None = legacy (absent / stem-string list) ⇒ bools stay byte-identical.
+    structured_dim = _structured_dimensioned_map(data, case_metadata_sha256)
 
     entries: dict[str, "RequiredViewEntry | ExcludedInputEntry"] = {}
     expected_ids: dict[str, str] = {}
@@ -807,20 +962,24 @@ def build_view_manifest(case_dir: Path | str) -> ViewManifest:
             raise ValueError(f"duplicate floor_ref in 'Floor plans': {floor}")
         floor_refs_seen.add(floor)
 
-        per_plan_flag = item.get("dimensioned")
-        in_top_list = input_id in dimensioned_stems
-        if isinstance(per_plan_flag, bool) and dimensioned_declared and per_plan_flag != in_top_list:
-            raise ValueError(
-                f"dimensioned contradiction for {input_id!r}: 'Floor plans'.dimensioned="
-                f"{per_plan_flag} vs top-level dimensioned_views membership={in_top_list}"
-            )
-        dimensioned = bool(per_plan_flag) or in_top_list
-
         overlay = _overlay_for(input_id)
         direction_semantics, semantics_source, azimuth_deg = _resolve_semantics(overlay)
         view_kind = _resolve_view_kind(overlay)
-        if "dimensioned" in overlay:
-            dimensioned = bool(overlay["dimensioned"])
+        # S-3: a structured dimensioned_views declaration is authoritative +
+        # provenance-bound; the legacy per-plan contradiction check and bool only
+        # apply to the legacy form (absent / stem-string list).
+        if structured_dim is None:
+            per_plan_flag = item.get("dimensioned")
+            in_top_list = input_id in dimensioned_stems
+            if isinstance(per_plan_flag, bool) and dimensioned_declared and per_plan_flag != in_top_list:
+                raise ValueError(
+                    f"dimensioned contradiction for {input_id!r}: 'Floor plans'.dimensioned="
+                    f"{per_plan_flag} vs top-level dimensioned_views membership={in_top_list}"
+                )
+            legacy_dim = bool(per_plan_flag) or in_top_list
+        else:
+            legacy_dim = False
+        dimensioned = _entry_dimensioned(input_id, overlay, legacy_dim, structured_dim, case_metadata_sha256)
 
         entry = RequiredViewEntry(
             input_id=input_id,
@@ -855,13 +1014,12 @@ def build_view_manifest(case_dir: Path | str) -> ViewManifest:
         if token in direction_tokens_seen:
             raise ValueError(f"duplicate elevation direction: {token}")
         direction_tokens_seen.add(token)
-        dimensioned = input_id in dimensioned_stems
-
         overlay = _overlay_for(input_id)
         direction_semantics, semantics_source, azimuth_deg = _resolve_semantics(overlay)
         view_kind = _resolve_view_kind(overlay)
-        if "dimensioned" in overlay:
-            dimensioned = bool(overlay["dimensioned"])
+        dimensioned = _entry_dimensioned(
+            input_id, overlay, input_id in dimensioned_stems, structured_dim, case_metadata_sha256,
+        )
         building_view_direction = token if direction_semantics == "building_axis" else None
 
         entry = RequiredViewEntry(
@@ -894,12 +1052,12 @@ def build_view_manifest(case_dir: Path | str) -> ViewManifest:
             continue
         source_rel, basename, image_hash = _normalize_declared_path(case_dir, data.get(key))
         input_id = Path(basename).stem
-        dimensioned = input_id in dimensioned_stems
         overlay = _overlay_for(input_id)
         direction_semantics, semantics_source, azimuth_deg = _resolve_semantics(overlay)
         view_kind = _resolve_view_kind(overlay)
-        if "dimensioned" in overlay:
-            dimensioned = bool(overlay["dimensioned"])
+        dimensioned = _entry_dimensioned(
+            input_id, overlay, input_id in dimensioned_stems, structured_dim, case_metadata_sha256,
+        )
         view_type = spec["view_type"]
 
         entry = RequiredViewEntry(

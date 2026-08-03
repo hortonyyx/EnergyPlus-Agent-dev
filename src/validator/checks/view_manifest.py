@@ -18,7 +18,7 @@ only guards honesty/identity (miss, extra, manifest drift).
 
 from __future__ import annotations
 
-from src.agent.execution.view_manifest import ReadingExamScope, ViewManifest
+from src.agent.execution.view_manifest import ReadingExamScope, ViewManifest, dimensioned_state
 from src.validator.checks.schema import CheckLayer, CheckReport, CheckStatus, RunProfile
 
 CHECK_ID = "reading.view_manifest_coverage"
@@ -47,7 +47,15 @@ def check_reading_stage(
     existing ``dimensioned_view_names()`` result so this refactor does not
     silently change that pre-existing check's behavior; it defaults to the
     manifest's own ``dimensioned`` flags (isolation's merge path, which has no
-    other source)."""
+    other source).
+
+    S-3: the per-view applicability is the manifest's 4-state dimensioned value
+    (``declared_true``/``declared_false``/``unknown``/``legacy_default``), so a
+    structured :class:`DimensionedApplicability` is normalized rather than
+    folded by truthiness (``if e.dimensioned`` would wrongly treat a
+    ``declared_false`` object as dimensioned). ``dimensioned_stems`` is now a
+    fallback for stems with no manifest entry (e.g. flat-flow when manifest
+    provisioning failed)."""
     from src.agent.reading import parse_reading_view
     from src.validator.checks.reading import check_reading_view
 
@@ -59,12 +67,12 @@ def check_reading_stage(
         capability_profile=capability_profile,
         run_profile=run_profile,
     )
-    if dimensioned_stems is None:
-        dimensioned_stems = set()
-        if manifest is not None:
-            dimensioned_stems = {
-                e.expected_output_id for e in manifest.required_entries() if e.dimensioned
-            }
+    # S-3: per-stem 4-state applicability straight from the manifest wire; never
+    # fold a structured DimensionedApplicability by truthiness.
+    manifest_state: dict[str, str] = {}
+    if manifest is not None:
+        for e in manifest.required_entries():
+            manifest_state[e.expected_output_id] = dimensioned_state(e.dimensioned)
 
     for stem in sorted(produced):
         raw = produced[stem]
@@ -82,11 +90,14 @@ def check_reading_stage(
                 f"produced view {stem!r} failed schema validation: {exc}",
             )
             continue
+        state = manifest_state.get(stem)
+        if state is None:
+            state = "declared_true" if (dimensioned_stems and stem in dimensioned_stems) else "legacy_default"
         sub = check_reading_view(
             view,
             capability_profile=capability_profile,
             run_profile=run_profile,
-            view_metadata={"dimensioned": stem in dimensioned_stems},
+            dimensioned_state=state,
         )
         for r in sub.results:
             rep.results.append(r.model_copy(update={"check_id": f"{stem}.{r.check_id}"}))
