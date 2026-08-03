@@ -559,6 +559,46 @@ J-2 + R1-6 + 保哈希守卫）。
 **受影响**：`run_stage_flow` + `batchB` `-n 6` ⇒ **49 passed，零红**（R1-1 context 两锁 + R1-7 两锁 + R1-1
 三锁 + R1-2 两锁 + r0 锁 + 既有 flow/v1 测试）。
 
+### R1-5 (terra) ✅ 完成
+
+**接手判断**：GLM 留下的约 59 行起点方向正确（`approve_geometry` / `geometry_is_approved` /
+`record_baseline` 改走 frozen resolver），但 `record_baseline` 对 legacy run 仍以 CLI
+`require_ep` / `run_profile` 自造 `RunPolicy`。这会让没有 `_run/run_policy.json` 的只读 replay
+冒充 regression/golden；我删掉该 fallback，legacy 一律为显式 `legacy_defaulted` 的
+`exploratory/rectangular`。
+
+**文件与理由**：
+
+- `src/agent/execution/run_policy_freeze.py`：新增 `effective_run_policy`，从冻结 record + 非哈希
+  context 重建 validation 所需 policy；异常 context 值保守回落到默认，避免 `"false"` 这类字符串误变真。
+- `src/agent/execution/step_orchestrator.py`、`src/agent/execution/approval.py`：两个人工几何调用方
+  均消费 frozen policy；approval 持久化 `run_policy_source` / legacy 位 / tier，使旧 replay 可见为 legacy。
+- `scripts/tool_scripts/record_baseline.py`：记账只消费 frozen policy，`baseline.json.run_policy` 写出
+  source、legacy、profile、capability、hash；兼容保留 CLI 形参但不允许其重造 tier。
+- `scripts/tool_scripts/run_stage.py`：`cmd_run` / `cmd_flow` 在 provision 后、`cmd_judge` 在只读 replay
+  时以 `_policy_with_frozen_tier` 覆盖本地 capability/run profile。因此 correction、modelling、grade 和
+  typed scorer 的生产调用均得到 frozen tier；golden record warning 同样改读该 policy。
+- `tests/test_run_stage_flow.py`、`tests/test_orchestrate_baseline.py`：新增 R1-5 四锁。
+
+| Lock | 真实入口 / 精确断言 |
+|---|---|
+| `approve_geometry` | `cmd_approve_geometry` → 真 `validate_case`；`downstream.build` 行存在，CheckReport headers = regression / orthogonal_polygon。 |
+| `geometry_is_approved` | 真实 resume predicate → 真 `validate_case`；同一 `downstream.build` + headers。 |
+| `record_baseline` frozen | 真 `record_baseline` 调用，`baseline.run_policy` header = structured regression / orthogonal，且 `downstream.build` blocking 行存在，即冻结 context 的 `require_ep=true` 生效而 CLI false 不得覆盖。 |
+| `record_baseline` legacy control | 真 `record_baseline` 调用；`baseline.run_policy` 显式 legacy-defaulted / exploratory / rectangular，且严格-only `downstream.build` 不出现。 |
+
+**neuter self-check**（`/tmp/neuter_r1_5.py`，精确把 `effective_run_policy` 短路成
+`RunPolicy()`，同一四锁，随后 restore + `git diff --exit-code`）：红 = `approve_geometry`、
+`geometry_is_approved`、`record_baseline frozen`；绿 = `record_baseline legacy control`。这是一个共享的
+frozen-policy reconstruction hook，三条依赖锁的连带是预期的；legacy 对照不依赖该 hook。restore 后
+四锁 **4 passed**。
+
+**验证**：相关集（flow / baseline / step orchestrator / batch-B）**117 passed + 1 xfailed，零红**；
+全仓 `pytest -q -n 6` ⇒ **2089 passed + 10 xfailed，零红**。sm24/sm21 manifest byte guard 仍随全仓绿。
+
+**register**：无开放 gap。派工单点名的 correction / modelling / grade（含 typed scoring strict rejection）
+不是另留 local tier：它们由 run/flow provision 后的 `_policy_with_frozen_tier` 统一覆写；judge-only replay
+也走同一 helper。非 tier 的 draw-budget / reread-availability 仍是调用期操作旋钮，未注册为 frozen policy。
 
 
 
