@@ -472,15 +472,27 @@ def approve_geometry(
     digest. Returns the saved GeometryApproval, or None if the geometry is not
     present / not consistent (nothing valid to approve)."""
     from src.agent.execution.approval import GeometryApproval
+    from src.agent.execution.run_policy_freeze import (
+        effective_run_policy,
+        resolve_frozen_run_policy,
+    )
     from src.agent.execution.validation_run import validate_case
 
     run_dir = Path(run_dir)
-    res = validate_case(run_dir, case_dir=case_dir, policy=RunPolicy())
+    # R1-5 (裁定 §1.3): judge the geometry confirmation on the run's FROZEN
+    # policy, not RunPolicy() defaults (laxest exploratory/rectangular/optional).
+    frozen = resolve_frozen_run_policy(run_dir)
+    effective = effective_run_policy(run_dir)
+    res = validate_case(run_dir, case_dir=case_dir, policy=effective)
     if res.geometry_digest is None:
         return None
     appr = GeometryApproval(
         digest=res.geometry_digest, actor=actor, policy=policy,
         timestamp=timestamp, note=note,
+        run_policy_source=frozen.source,
+        run_policy_legacy_defaulted=frozen.legacy_defaulted,
+        run_profile=effective.run_profile,
+        capability_profile=effective.capability_profile,
     )
     appr.save(run_dir)
     return appr
@@ -488,9 +500,11 @@ def approve_geometry(
 
 def geometry_is_approved(run_dir: Path, *, case_dir: Path | None = None) -> bool:
     """True iff a stored approval matches the current geometry checkpoint digest."""
+    from src.agent.execution.run_policy_freeze import effective_run_policy
     from src.agent.execution.validation_run import validate_case
 
-    res = validate_case(Path(run_dir), case_dir=case_dir, policy=RunPolicy())
+    # R1-5 (裁定 §1.3): judge on the run's FROZEN policy, not RunPolicy() defaults.
+    res = validate_case(Path(run_dir), case_dir=case_dir, policy=effective_run_policy(run_dir))
     return res.geometry_approved
 
 

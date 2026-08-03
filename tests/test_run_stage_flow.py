@@ -942,3 +942,90 @@ def test_R1_1_context_not_in_hash_no_drift(tmp_path):
     assert rec2.context == rec1.context            # idempotent: existing record returned
 
 
+# --------------------------------------------------------------------------- #
+# R1-5 · geometry confirmation must validate with the FROZEN policy (J-1
+# ruling §1.3).  This goes through the real approve-geometry command function;
+# the wrapper only retains the real CheckReport for assertions, it does not
+# fabricate the validation result.
+# --------------------------------------------------------------------------- #
+def test_R1_5_approve_geometry_uses_frozen_policy_check_headers(tmp_path, monkeypatch):
+    """A frozen regression/orthogonal/require-EP run must reach the human
+    geometry gate with those exact CheckReport headers.  The missing EP row is
+    the specific check-id proof that ``require_ep`` came from frozen context,
+    not the old ``RunPolicy()`` defaults.  Neuter: replace effective policy at
+    approve_geometry with ``RunPolicy()`` ⇒ headers become
+    exploratory/rectangular and downstream.build is absent, so this lock reds."""
+    from src.agent.execution import validation_run
+    from src.agent.execution.run_policy_freeze import provision_run_policy
+
+    run_dir = tmp_path / "case" / "run"
+    run_dir.mkdir(parents=True)
+    provision_run_policy(
+        run_dir,
+        run_profile="regression",
+        capability_profile="orthogonal_polygon",
+        context={
+            "confirmation_policy": {"value": "required", "source": "sop"},
+            "judge_enabled": {"value": False, "source": "default"},
+            "validation_scope": {"value": "full", "source": "default"},
+            "require_ep": {"value": True, "source": "cli"},
+        },
+    )
+    real_validate_case = validation_run.validate_case
+    seen = {}
+
+    def capture_validate_case(*args, **kwargs):
+        result = real_validate_case(*args, **kwargs)
+        seen["result"] = result
+        return result
+
+    monkeypatch.setattr(validation_run, "validate_case", capture_validate_case)
+    code = rs.cmd_approve_geometry(_args(
+        tmp_path, actor="reviewer", policy="required", note="",
+    ))
+
+    assert code == 2  # intentionally no geometry checkpoint in this focused fixture
+    downstream = seen["result"].reports["downstream"]
+    # The in-memory CheckReport is the same header wire written as checks.json
+    # when validate_case is asked to write reports; approval is deliberately read-only.
+    assert downstream.run_profile == "regression"
+    assert downstream.capability_profile == "orthogonal_polygon"
+    assert any(row.check_id == "downstream.build" for row in downstream.results)
+
+
+def test_R1_5_geometry_is_approved_uses_frozen_policy_check_headers(tmp_path, monkeypatch):
+    """The resume predicate is the second real geometry caller and must not
+    quietly revalidate at defaults.  Neuter its effective-policy hook ⇒ this
+    exact downstream.build check-id/header assertion reds alongside only the
+    paired approval lock, because both callers intentionally share that hook."""
+    from src.agent.execution import step_orchestrator, validation_run
+    from src.agent.execution.run_policy_freeze import provision_run_policy
+
+    run_dir = tmp_path / "case" / "run"
+    run_dir.mkdir(parents=True)
+    provision_run_policy(
+        run_dir,
+        run_profile="regression",
+        capability_profile="orthogonal_polygon",
+        context={
+            "confirmation_policy": {"value": "required", "source": "sop"},
+            "judge_enabled": {"value": False, "source": "default"},
+            "validation_scope": {"value": "full", "source": "default"},
+            "require_ep": {"value": True, "source": "cli"},
+        },
+    )
+    real_validate_case = validation_run.validate_case
+    seen = {}
+
+    def capture_validate_case(*args, **kwargs):
+        result = real_validate_case(*args, **kwargs)
+        seen["result"] = result
+        return result
+
+    monkeypatch.setattr(validation_run, "validate_case", capture_validate_case)
+    assert step_orchestrator.geometry_is_approved(run_dir) is False
+
+    downstream = seen["result"].reports["downstream"]
+    assert downstream.run_profile == "regression"
+    assert downstream.capability_profile == "orthogonal_polygon"
+    assert any(row.check_id == "downstream.build" for row in downstream.results)

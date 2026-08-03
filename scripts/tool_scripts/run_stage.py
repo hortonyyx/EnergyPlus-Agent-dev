@@ -1686,6 +1686,23 @@ def _make_policy(
     return policy
 
 
+def _policy_with_frozen_tier(run_dir: Path, policy: RunPolicy) -> RunPolicy:
+    """Replace the locally assembled tier with the run's frozen tier.
+
+    The caller still owns ephemeral operational knobs (draw budget and the
+    availability of a re-reader), while every correction/modelling/grade/check
+    consumer gets the frozen capability + run profile.  A missing record is a
+    read-only legacy replay and resolves to visibly distinct legacy defaults.
+    """
+    from src.agent.execution.run_policy_freeze import resolve_frozen_run_policy
+
+    frozen = resolve_frozen_run_policy(run_dir)
+    return policy.model_copy(update={
+        "run_profile": frozen.run_profile,
+        "capability_profile": frozen.capability_profile,
+    })
+
+
 def _stage_index(stage: str) -> int:
     try:
         return _STAGES.index(stage)
@@ -1926,6 +1943,7 @@ def cmd_run(args) -> int:
         run_profile=run_profile, capability_profile=capability_profile,
         context=_run_policy_context(args, run_config),
     )
+    policy = _policy_with_frozen_tier(run_dir, policy)
     runner = StageRunner(run_dir, manifest)
     stage = args.stage
     stage_dir = run_dir / stage
@@ -2025,6 +2043,7 @@ def cmd_judge(args) -> int:
         capability_profile=getattr(args, "capability_profile", "rectangular"),
         budget_draws=getattr(args, "budget_draws", None),
     )
+    policy = _policy_with_frozen_tier(run_dir, policy)
     stage = args.stage
     stage_dir = run_dir / stage
     # read-only version-dispatched load: judge/replay stays allowed on a
@@ -2121,6 +2140,7 @@ def cmd_flow(args) -> int:
         run_profile=run_profile, capability_profile=capability_profile,
         context=_run_policy_context(args, run_config),
     )
+    policy = _policy_with_frozen_tier(run_dir, policy)
     start_stage = (
         _auto_start_stage(
             manifest=manifest,
@@ -2282,7 +2302,7 @@ def cmd_flow(args) -> int:
         if not args.orchestrator:
             print("✗ --record requires --orchestrator")
             return FLOW_EXIT_EP_RECORD
-        if args.run_profile == "golden":
+        if policy.run_profile == "golden":
             appr = GeometryApproval.load(run_dir)
             if appr is not None and appr.actor == "flow:auto" and appr.policy == "auto":
                 print("⚠ golden record with flow:auto geometry approval; human HTML review is recommended")

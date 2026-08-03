@@ -62,6 +62,12 @@ class GeometryApproval(BaseModel):
     policy: str = "required"   # the confirmation_policy in force at approval time
     timestamp: str = ""        # ISO; stamped by caller (scripts pass it in)
     note: str = ""
+    # R1-5: make an approval's policy provenance inspectable.  Old approvals
+    # predate the frozen-policy wire and therefore truthfully default to legacy.
+    run_policy_source: str = "legacy_defaulted"
+    run_policy_legacy_defaulted: bool = True
+    run_profile: str = "exploratory"
+    capability_profile: str = "rectangular"
 
     # ---- io ----
     @classmethod

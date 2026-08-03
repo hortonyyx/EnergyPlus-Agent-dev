@@ -281,10 +281,65 @@ def resolve_frozen_run_policy(
     return frozen
 
 
+def effective_run_policy(run_dir: Path | str):
+    """R1-5 (orchestrator ruling 2026-08-03 §1.3): reconstruct the effective
+    :class:`RunPolicy` from the FROZEN run-policy record + its non-hash
+    ``context``, so the geometry-confirmation gate (``confirm_geometry`` /
+    ``geometry_is_approved``) and ``record_baseline`` judge on the run's declared
+    tier instead of ``RunPolicy()`` defaults (which are the laxest exploratory /
+    rectangular / optional everywhere, regardless of what the run declared).
+
+    ``run_profile`` / ``capability_profile`` come from the frozen record; the
+    other toggles (``confirmation_policy`` / ``judge_enabled`` /
+    ``validation_scope`` / ``require_ep``) come from the record's ``context``
+    (recorded by ``_run_policy_context`` at provisioning). A legacy run
+    (``legacy_defaulted``) yields the legacy-default policy — read-only, never
+    impersonates a strict tier (G-6)."""
+    from src.agent.execution.policy import (
+        ConfirmationPolicy,
+        RunPolicy,
+        ValidationScope,
+    )
+
+    record = resolve_frozen_run_policy(run_dir)
+    ctx = record.context or {}
+
+    def _ctx(name: str, default):
+        v = ctx.get(name)
+        return v.get("value", default) if isinstance(v, dict) else default
+
+    # ``context`` is an audit envelope rather than a schema-versioned policy
+    # wire.  Be conservative if an older/corrupt-but-self-hashed record has an
+    # unexpected value: never let a truthy string such as ``"false"`` change
+    # the effective policy.
+    def _bool_ctx(name: str, default: bool) -> bool:
+        value = _ctx(name, default)
+        return value if isinstance(value, bool) else default
+
+    def _enum_ctx(enum_type, name: str, default):
+        value = _ctx(name, default.value)
+        try:
+            return enum_type(value)
+        except ValueError:
+            return default
+
+    return RunPolicy(
+        run_profile=record.run_profile,
+        capability_profile=record.capability_profile,
+        confirmation_policy=_enum_ctx(
+            ConfirmationPolicy, "confirmation_policy", ConfirmationPolicy.OPTIONAL
+        ),
+        judge_enabled=_bool_ctx("judge_enabled", False),
+        validation_scope=_enum_ctx(ValidationScope, "validation_scope", ValidationScope.FULL),
+        require_ep=_bool_ctx("require_ep", False),
+    )
+
+
 __all__ = [
     "RUN_POLICY_NAME",
     "RUN_POLICY_SCHEMA_VERSION",
     "RunPolicyRecord",
+    "effective_run_policy",
     "provision_run_policy",
     "resolve_frozen_run_policy",
 ]

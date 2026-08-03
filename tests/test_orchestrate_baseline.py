@@ -41,6 +41,71 @@ def _minimal_run(tmp_path: Path) -> Path:
     return run
 
 
+def test_R1_5_record_baseline_uses_frozen_policy_not_cli_fallback(tmp_path):
+    """The real baseline recorder must consume its frozen policy.  The caller
+    supplies exploratory/no-EP legacy-looking arguments, but the frozen
+    regression/orthogonal/require-EP record controls validation: its
+    ``downstream.build`` row must remain blocking and baseline.json exposes the
+    frozen-policy header.  Neuter: restore the self-rolled RunPolicy from the
+    caller args ⇒ that named row disappears and this lock reds."""
+    from src.agent.execution.run_policy_freeze import provision_run_policy
+
+    run = _minimal_run(tmp_path)
+    provision_run_policy(
+        run,
+        run_profile="regression",
+        capability_profile="orthogonal_polygon",
+        context={
+            "confirmation_policy": {"value": "required", "source": "sop"},
+            "judge_enabled": {"value": False, "source": "default"},
+            "validation_scope": {"value": "full", "source": "default"},
+            "require_ep": {"value": True, "source": "cli"},
+        },
+    )
+
+    baseline = record_baseline.record_baseline(
+        run,
+        date="2026-08-03",
+        orchestrator="test",
+        require_ep=False,
+        run_profile="exploratory",
+    )
+
+    policy_header = baseline["run_policy"]
+    assert policy_header["source"] == "structured_config"
+    assert policy_header["legacy_defaulted"] is False
+    assert policy_header["run_profile"] == "regression"
+    assert policy_header["capability_profile"] == "orthogonal_polygon"
+    assert policy_header["policy_hash"]
+    assert any(
+        row["stage"] == "downstream" and row["check"] == "downstream.build"
+        for row in baseline["blocking"]
+    )
+
+
+def test_R1_5_record_baseline_marks_unfrozen_run_legacy(tmp_path):
+    """An unfrozen replay remains readable but can never impersonate a strict
+    CLI request.  Its baseline header must say legacy-defaulted/exploratory and
+    the strict-only required-EP check is absent.  Neuter: restore the old CLI
+    fallback RunPolicy ⇒ the header disappears and downstream.build appears."""
+    baseline = record_baseline.record_baseline(
+        _minimal_run(tmp_path),
+        date="2026-08-03",
+        orchestrator="test",
+        require_ep=True,
+        run_profile="regression",
+    )
+
+    assert baseline["run_policy"]["source"] == "legacy_defaulted"
+    assert baseline["run_policy"]["legacy_defaulted"] is True
+    assert baseline["run_policy"]["run_profile"] == "exploratory"
+    assert baseline["run_policy"]["capability_profile"] == "rectangular"
+    assert not any(
+        row["stage"] == "downstream" and row["check"] == "downstream.build"
+        for row in baseline["blocking"]
+    )
+
+
 def _mixed_audit_payload() -> dict:
     corrections = [
         {

@@ -28,7 +28,6 @@ from pathlib import Path
 from src.agent.execution import load_state, summarize_gates, validate_case
 from src.agent.execution.approval import APPROVAL_NAME
 from src.agent.execution.manifest import MANIFEST_NAME
-from src.agent.execution.policy import RunPolicy
 from src.agent.execution.run_config import RunConfig, load_run_config
 from src.agent.execution.run_meta import RUN_META_DIR, run_meta_path
 from src.agent.execution.stage_runner import STAGE_ORDER
@@ -495,11 +494,19 @@ def record_baseline(
     case (materials) is the run's parent; products + llm.yaml live in the run."""
     run_dir = Path(run_dir)
     case = run_dir.parent.name
-    res = validate_case(
-        run_dir,
-        policy=RunPolicy(require_ep=require_ep, run_profile=run_profile),
-        write_reports=False,
+    # R1-5 (裁定 §1.3): consume the FROZEN run policy, not a self-rolled RunPolicy
+    # — the geometry gate + capability profile judge on the run's declared tier,
+    # not RunPolicy() defaults (laxest exploratory/rectangular/optional).  The
+    # legacy CLI parameters deliberately do NOT recreate a requested strict
+    # tier: a run without a frozen record is read-only legacy-defaulted.
+    from src.agent.execution.run_policy_freeze import (
+        effective_run_policy,
+        resolve_frozen_run_policy,
     )
+
+    frozen = resolve_frozen_run_policy(run_dir)
+    policy = effective_run_policy(run_dir)
+    res = validate_case(run_dir, policy=policy, write_reports=False)
     summary = summarize_gates(res.reports)
     counts = _geometry_counts(run_dir)
     draws, verdicts = _draws_and_verdicts(run_dir)
@@ -525,6 +532,13 @@ def record_baseline(
         "geometry": counts,
         "geometry_digest": res.geometry_digest,
         "geometry_approved": res.geometry_approved,
+        "run_policy": {
+            "source": frozen.source,
+            "legacy_defaulted": frozen.legacy_defaulted,
+            "run_profile": frozen.run_profile,
+            "capability_profile": frozen.capability_profile,
+            "policy_hash": frozen.policy_hash,
+        },
         "gates": summary["gates"],
         "signals": signals,
         "flags": summary["flags"],
