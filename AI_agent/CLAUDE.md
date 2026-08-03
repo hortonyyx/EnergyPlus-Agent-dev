@@ -142,7 +142,20 @@ EnergyPlus 经 `WorkflowTool.run_simulation`（eppy + ConverterManager，idfpy �
 
 ## 2. 当前开发状态
 
-- **分支** `6.15_ValidationArchM0toM4`（已推 origin）；测试 **2089 绿 + 10 strict xfail·零红**
+- **⭐⭐⭐ 最新（2026-08-04 凌晨收工）= R1 批 B 收口**：一夜 r2 → r2b → 交叉审 → r2c，全仓 **2096 绿 + 10 xfail 零红**
+  （2089 → 2096，净增 7 锁零回归）。**审全走 Claude 侧子代理**（用户定：GPT 侧额度不足，本批不再启）、
+  **施工全走 GLM**（同席位三轮，05:59 撞 5h 额度上限 ⇒ 三条 MINOR 结转）。交叉审 = **APPROVE-WITH-CHANGES**
+  （0 BLOCKER / 1 MAJOR / 4 MINOR / 1 NIT），**唯一 MAJOR 已修并经 orchestrator 独立 neuter 证明真绑**。
+  **⭐ 两条最重要结论**：① **「停下上报」产生了本批最高价值的两次修正——两次都是派工方的题错了**
+  （要求给一块恒空操作的代码补锁 = 硬补必得假锁；给的防篡改方案挡不住篡改）；
+  ② **新判据：只有 `run_config.yaml` 里声明的东西才有外部信任根、才配被冻结成档位政策并参与防漂移，
+  命令行的运行期开关一律来自当次调用**（交叉审 Q-8 指出措辞把信任根钉死在单一文件、与 view manifest 冲突 ⇒ 待修）。
+  **⛔ 同族缺陷本夜第三/四次现形**：两处「声称在守其实没守」的假 docstring / 假注释已消除；
+  一条「自称摘掉即红、实测全仓零红」的假锁已修。详见
+  [轻门 + 结转债](logs/reviews/verdict/2026-08-04_reading_ruler_r1_batchB_r2_orchestrator_lightgate.md) ·
+  [交叉审](logs/reviews/verdict/2026-08-04_reading_ruler_r1_batchB_r2_crossreview_claude.md) ·
+  [plan.md 顶部 08-04 条](plan.md)。**批 C 未开工。**
+- **分支** `6.15_ValidationArchM0toM4`（已推 origin）；测试 **2096 绿 + 10 strict xfail·零红**（下条 2089 为 08-03 收工数）
   （08-03 收工数：批 A 2055 → 批 B r0 2068 → r1 2089，净增 34 条锁零回归；
   08-01 W4 那 1 红已随返工 r1/r2/r3 闭环，见下条；xfail 十条含 2 个 legacy golden sm20/run_2026-06-15、
   sm21/run_2026-06-16_opus 无编排账本→run_state=incomplete；**B5 Phase C 延后的 6 个

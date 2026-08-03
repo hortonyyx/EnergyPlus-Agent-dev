@@ -1087,11 +1087,15 @@ def test_R1_5_approve_geometry_uses_frozen_policy_check_headers(tmp_path, monkey
     NO LONGER read from frozen context — it is a per-invocation operational knob,
     and the geometry gate (which has no --with-ep) validates at the default
     require_ep=False, so no downstream.build row is produced here.  The frozen
-    tier being consumed (not RunPolicy() defaults) is proven by the stage-report
-    headers.  Neuter: replace effective_run_policy with RunPolicy() ⇒ tier
-    headers become exploratory/rectangular ⇒ this lock reds."""
+    tier being consumed (not RunPolicy() defaults) is proven by BOTH the
+    stage-report headers AND a tier-gated check-id row (r2c-2, cross-review F-4:
+    the r2b rewrite had dropped the check-id row half).  Neuter: replace
+    effective_run_policy with RunPolicy() ⇒ tier headers become
+    exploratory/rectangular AND the non-closing chain FLAGs instead of BLOCKs ⇒
+    this lock reds on both halves."""
     from src.agent.execution import validation_run
     from src.agent.execution.run_policy_freeze import provision_run_policy
+    from src.validator.checks.schema import CheckStatus
 
     run_dir = tmp_path / "case" / "run"
     run_dir.mkdir(parents=True)
@@ -1100,6 +1104,13 @@ def test_R1_5_approve_geometry_uses_frozen_policy_check_headers(tmp_path, monkey
         run_profile="regression",
         capability_profile="orthogonal_polygon",
     )
+    # r2c-2: plant a non-closing dimension chain so a TIER-GATED check-id row
+    # (reading.dimension_chain_closure: BLOCK under regression, FLAG under
+    # exploratory) flows through validate_case — the check-id half r2b dropped.
+    rdir = run_dir / "0_reading"
+    rdir.mkdir(parents=True, exist_ok=True)
+    (rdir / "1f_view.json").write_text(
+        json.dumps(_non_closing_plan_payload()), encoding="utf-8")
     real_validate_case = validation_run.validate_case
     seen = {}
 
@@ -1121,17 +1132,28 @@ def test_R1_5_approve_geometry_uses_frozen_policy_check_headers(tmp_path, monkey
     stage_report = seen["result"].reports["1_correction"]
     assert stage_report.run_profile == "regression"
     assert stage_report.capability_profile == "orthogonal_polygon"
+    # r2c-2: the check-id half — the non-closing chain FAIL is BLOCK only because
+    # the tier fed to validate_case was regression (exploratory would FLAG it).
+    reading_report = seen["result"].reports["0_reading::1f_view"]
+    closure = next(r for r in reading_report.results
+                   if r.check_id == "reading.dimension_chain_closure")
+    assert closure.status is CheckStatus.FAIL
+    assert any(r.check_id == "reading.dimension_chain_closure"
+               for r in reading_report.blocking())
 
 
 def test_R1_5_geometry_is_approved_uses_frozen_policy_check_headers(tmp_path, monkeypatch):
     """The resume predicate is the second real geometry caller and must validate
     at the frozen TIER, not RunPolicy() defaults.  r2-4: require_ep no longer
     comes from frozen context (geometry gate uses default require_ep=False ⇒ no
-    downstream row).  Neuter effective_run_policy ⇒ the stage-report tier headers
-    red alongside only the paired approval lock, because both callers share that
-    hook."""
+    downstream row).  r2c-2 (cross-review F-4): the check-id row half dropped in
+    the r2b rewrite is restored — a tier-gated non-closing chain BLOCKs under
+    regression.  Neuter effective_run_policy ⇒ the stage-report tier headers AND
+    the check-id row red alongside only the paired approval lock, because both
+    callers share that hook."""
     from src.agent.execution import step_orchestrator, validation_run
     from src.agent.execution.run_policy_freeze import provision_run_policy
+    from src.validator.checks.schema import CheckStatus
 
     run_dir = tmp_path / "case" / "run"
     run_dir.mkdir(parents=True)
@@ -1140,6 +1162,11 @@ def test_R1_5_geometry_is_approved_uses_frozen_policy_check_headers(tmp_path, mo
         run_profile="regression",
         capability_profile="orthogonal_polygon",
     )
+    # r2c-2: tier-gated check-id row (non-closing chain: BLOCK under regression).
+    rdir = run_dir / "0_reading"
+    rdir.mkdir(parents=True, exist_ok=True)
+    (rdir / "1f_view.json").write_text(
+        json.dumps(_non_closing_plan_payload()), encoding="utf-8")
     real_validate_case = validation_run.validate_case
     seen = {}
 
@@ -1155,3 +1182,10 @@ def test_R1_5_geometry_is_approved_uses_frozen_policy_check_headers(tmp_path, mo
     stage_report = seen["result"].reports["1_correction"]
     assert stage_report.run_profile == "regression"
     assert stage_report.capability_profile == "orthogonal_polygon"
+    # r2c-2: the check-id half — non-closing chain FAIL BLOCKs under regression.
+    reading_report = seen["result"].reports["0_reading::1f_view"]
+    closure = next(r for r in reading_report.results
+                   if r.check_id == "reading.dimension_chain_closure")
+    assert closure.status is CheckStatus.FAIL
+    assert any(r.check_id == "reading.dimension_chain_closure"
+               for r in reading_report.blocking())

@@ -1,5 +1,57 @@
 # 行动清单（活计划）
 
+## 2026-08-04 凌晨 · ⭐⭐⭐ 批 B 收口（**本节最新，与下方冲突处以本节为准**）
+
+**一夜通宵批次：两路交叉审 → r2 → r2b → 交叉审 → r2c，全仓 2089 → 2096（净增 7 锁、零回归）。**
+审全部走 **Claude 侧子代理**（用户 08-03 定：GPT 侧额度不足，本批不再启）；施工全部走 **GLM**（同席位三轮）。
+
+| 轮 | 内容 | 结果 |
+|---|---|---|
+| **r2**（02:12–03:03） | r2-1 capability 拼错 fail-closed · r2-2 冻结记录 `source` 三态 | ✅ 落库；**r2-3/r2-4 停下上报请裁** |
+| **r2b**（04:20–04:49） | r2-3 删恒空层 + judge 路内联 · r2-4 按 (b) 收回 context 消费 | ✅ 落库 |
+| **交叉审**（05:20–06:00） | Claude 侧 Opus 档，8 命题 | **APPROVE-WITH-CHANGES**（0 B / 1 MAJ / 4 MIN / 1 NIT） |
+| **r2c**（05:55–05:59） | 收 findings，4 条 | **只落 r2c-1（MAJOR）**；**05:59 撞 GLM 5h 额度上限**（07:13 复位）⇒ 三条 MINOR 结转 |
+
+**全档**：[轻门 + r2c 复验 + 结转债清单](logs/reviews/verdict/2026-08-04_reading_ruler_r1_batchB_r2_orchestrator_lightgate.md) ·
+[交叉审报告](logs/reviews/verdict/2026-08-04_reading_ruler_r1_batchB_r2_crossreview_claude.md) ·
+[r2 派工单](logs/reviews/request/2026-08-04_reading_ruler_r1_batchB_r2_dispatch.md) ·
+[r2-3/r2-4 裁定 + r2b 续派](logs/reviews/request/2026-08-04_reading_ruler_r1_batchB_r2b_ruling_and_dispatch.md) ·
+[r2c 派工单](logs/reviews/request/2026-08-04_reading_ruler_r1_batchB_r2c_dispatch.md)
+
+### ⭐⭐ 本夜最重要的两条结论
+
+1. **「停下上报」这条纪律产生了本批最高价值的两次修正 —— 两次都是派工方的题错了。**
+   - **r2-3**：orchestrator 要施工席给 `_policy_with_frozen_tier` 补锁；施工席实跑证明它是**恒空操作**、
+     **拒绝伪造一条 neuter 不红的假锁**。orchestrator 核实属实**并补齐第三条路**（`cmd_judge` 从不 provision、
+     用 argparse 默认档，但唯一消费者 `submit_verdict` 根本不读档位）⇒ 改判为**删冗余 + 消除假 docstring**。
+   - **r2-4**：orchestrator 给的 (a)「把 context 纳入哈希」**挡不住篡改**（哈希是 payload 自身哈希、可自行重算）。
+2. **⭐ 新判据（已入 memory）**：**只有在 `run_config.yaml` 里声明的东西才有外部信任根，才配被冻结成档位政策
+   并参与防漂移；命令行的运行期开关一律来自当次调用、不冻结、不据以判定。**
+   （= terra 在 R1-5 自划、orchestrator 在 r1 轻门批准过的那条线的另一侧，统一成一条。）
+   ⚠️ **交叉审 Q-8 指出该措辞把信任根钉死在单一文件、与仓库已有的第二个信任根（view manifest）冲突
+   ⇒ 措辞待 orchestrator 修，不派施工。**
+
+### ⛔ 同一族缺陷本夜第三、四次现形（「声称在守、其实没守」）
+
+- **假 docstring**：`_policy_with_frozen_tier` 自称「every correction/modelling/grade consumer gets the frozen tier」，
+  实为恒空操作；**假注释**：G-4 免责声明称 context「不影响判定」，而 R1-5 后它决定 `downstream.build` 是否 fail-closed。
+  **两处本批一并消除。**
+- **假锁**：记账那条锁的 docstring 自称「摘掉即红」，实测**只摘档位、保留调用方开关 ⇒ 全仓 2095 条零红**
+  （orchestrator 轻门发现、交叉审全仓坐实并定级 MAJOR）。根因 = **头部五个字段全取自另一行算出来的值，
+  与喂进校验的那个对象零数据依赖**。**r2c-1 已修**（镜像 `approve_geometry` 的「溯源←frozen / 档位←effective」拆分
+  + 加一条只在严格档阻断的 fixture 检查）⇒ orchestrator 复验：同一 neuter **恰好红 3 条、零连带**。
+- **⭐ orchestrator 自己的教训（已入 memory）**：r1 轻门只 neuter 旁支、漏了派工单正文点名的实现 ⇒
+  **「摘掉 A 红了」只证明 A 有锁，不证明正文有锁**；**且发现「摘掉零红」时要先分清是「缺锁」还是
+  「这块代码根本不承重」——后者硬补锁必得假锁。**
+
+### ⏳ 下一步（按序）
+
+1. **r2c 剩三条 MINOR**（geometry 锁丢了 check-id 行断言 / 一条恒真断言 / 一条零锁守卫）——
+   GLM 07:13 额度复位后续派，或并入批 C 首轮。
+2. **批 C**（渲染 / 命名 / 像素预算）：半截 28 行仍在 `git stash` = `batchC-wip-render-pixel-budget`。
+3. R1.5（坐标来源改造）问题书已就绪，排在 R1 全绿之后。
+4. **⛔ 约束不变**：批 A/B/C 三批全绿之前，不得发布任何识图分数或「识图变好/变坏」的结论。
+
 ## 2026-08-03 · ⭐⭐⭐ 本日进展（**本节为最新状态，与下方所有排工表冲突处以本节为准**）
 
 ### 一、R1 修尺子的实际进度
@@ -71,9 +123,33 @@ POST-RESTORE 全绿 ⇒ **锁真绑**（对照 r0 的 L-13 摘掉实现仍绿）
 ⇒ **一次人工签字从此绑定「它是在哪个档位下签的」**。
 
 **⏳ 交叉对抗审必须走两路**（施工跨了两个家族，「谁写谁不批」）：
-- **R1-5（terra 产出，GPT 侧）⇒ 派 GLM 审**。契合其能力画像（**验证性审阅达最高档**、探索性不及格），
-  且这里清单现成（裁定 §1.3 + 派工单同族点名），要验的正是「锁是否真绑」。
-- **R1-1…R1-7 的 GLM 产出 ⇒ 派 sol 重审**，并**补完上轮被平台内容策略中断的 P-3…P-9**。
+- **R1-5（terra 产出，GPT 侧）⇒ ~~派 GLM 审~~**。~~契合其能力画像（**验证性审阅达最高档**、探索性不及格），
+  且这里清单现成（裁定 §1.3 + 派工单同族点名），要验的正是「锁是否真绑」。~~
+- **R1-1…R1-7 的 GLM 产出 ⇒ ~~派 sol 重审~~**，并**补完上轮被平台内容策略中断的 P-3…P-9**。
+
+**⭐ 改派（2026-08-03 用户拍板）：两路一律走 Claude 侧子代理（Opus 档），已发射、后台并行。**
+施工方 = GLM / terra，审方 = Claude ⇒ **「谁写谁不批」+ 跨家族仍满足**；动因 = 收尾的审不再等外部席位额度窗口。
+审阅单两份（互不通气、范围互斥）：
+[路 1 · R1-5](logs/reviews/request/2026-08-03_reading_ruler_r1_crossreview_claude_r15.md)（命题 T-1…T-7，重点 = 逐锁独立 neuter + 冻结政策是否真覆盖整个 run + `GeometryApproval` 四字段有无消费者）·
+[路 2 · GLM 六条 + 补完 P-3…P-9](logs/reviews/request/2026-08-03_reading_ruler_r1_crossreview_claude_glm.md)（命题 G-1…G-7，重点 = 锁是否走**真实 CLI 入口** + P-3 必须真跑 `load_score_view_bindings`）。
+交付落 `logs/reviews/verdict/2026-08-03_reading_ruler_r1_crossreview_claude_{r15,glm}.md`；
+**orchestrator 轻门仍是唯一权威门**（收到两报告后独立全量 + 亲核 diff + 独立复跑 neuter）。
+
+**⭐⭐ 两路已收（Claude 侧双子代理，各自独立全量 2089 绿零红，与轻门逐数字一致）⇒ [orchestrator 裁定 + r2 必修清单](logs/reviews/request/2026-08-03_reading_ruler_r1_crossreview_ruling_and_r2.md)**：
+- **路 1（R1-5）= REWORK**（3 MAJ）· **路 2（GLM 六条）= 降为 APPROVE-WITH-CHANGES**
+  （其 F-1 属施工席**已在执行日志 §6.5 主动上报、orchestrator 未答复**的欠规格边界 ⇒ **归责派工方，不记施工席缺陷**）。
+- **⛔⛔ orchestrator 轻门盲区（第三条同族教训，已认账）**：r1 轻门只 neuter 了几何签字门那两处旁支，
+  **漏了派工单正文点名的主干实现** `run_stage.py:1689 _policy_with_frozen_tier`
+  —— 把它改回 `return policy`（= 精确回退 r0 缺陷）**全仓零红**（orchestrator 已独立复现：六文件 343 passed 零红）。
+  ⇒ **纪律：neuter 选点必须覆盖「派工单正文点名的那处实现」**；「摘掉 A 红了」只证明 A 有锁，不证明正文有锁。
+- **r2 必修 4 条**：① `capability_profile` 拼错仍静默降 `rectangular`（= 批 B 立项事实的**另一半**，不修完立项理由不算兑现）·
+  ② 冻结记录 `source` 硬编码常量⇒「带来源」名存实亡 + 一条恒真断言 · ③ 给 `_policy_with_frozen_tier` 补走真实 CLI 入口的锁（**纯补锁不改行为**）·
+  ④ `context` 已成判定面但不在漂移面内，且 G-4 免责声明已成假注释（⛔ 不接受只改注释）。
+- **新登记债**：**D-2** `GeometryApproval` 四字段零消费者零锁（**是真债不是假锁**——没被声称成阻断项）·
+  **D-3** L-13 锁仍直喂 `None`、生产不可达（r0 遗留，R2 前清）。MINOR/NIT 共 7 条转 R2 backlog。
+- **反向坐实（价值不低于发现缺陷）**：R1-5 四条锁全真绑零假锁；GLM 十一个钩子逐一 neuter 全真绑、**自报零夸大**、
+  且 R1-1/R1-2/R1-7 的锁**真走 `cmd_flow`** ⇒ **「锁必须走真实入口」这条纪律施工席这次做到了**；
+  **P-3 真跑通过**（真实 `load_score_view_bindings` + sm24 签字 GT 出分正常）⇒ **上一轮「没人真跑一次」的坑这次跑了**。
 
 **之后才是批 C**（渲染 / 命名 / 像素预算；半截 28 行在 `git stash` = `batchC-wip-render-pixel-budget`）。
 
