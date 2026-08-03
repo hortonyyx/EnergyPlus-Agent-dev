@@ -7,7 +7,7 @@
 | 批 | 状态 |
 |---|---|
 | **批 A**（判卷测量语义） | ✅ **已落库** `b8f9a8d`（terra 施工 + orchestrator 轻门）。全仓 **2055 绿 + 10 xfail·零红** |
-| **批 B**（policy 冻结 + applicability fail-closed） | ⚠️ **r0 已落库** `627efac`（+ `2bb189e` 里 GLM 的 S-2 核心半截）。orchestrator 独立全量 **2068 绿 + 10 xfail·零红**（与施工方自报逐数字一致）。**轻门 = REWORK（1 MAJOR + 1 MINOR）⇒ 待 r1** |
+| **批 B**（policy 冻结 + applicability fail-closed） | ⚠️ **r0 已落库** `627efac`（+ `2bb189e` 里 GLM 的 S-2 核心半截）。orchestrator 独立全量 **2068 绿 + 10 xfail·零红**（与施工方自报逐数字一致）。**两轮审后判定 = REWORK（6 MAJOR + 1 MINOR）⇒ [r1 返工派工单](logs/reviews/request/2026-08-03_reading_ruler_r1_batchB_rework_dispatch.md) 已备好，等 GLM 15:36 复位开工** |
 | **批 C**（渲染 / 命名 / 像素预算） | ⏳ 未开工。施工席在 `render_vector_to_png.py` 上留 28 行半截（像素预算），已 `git stash` = `batchC-wip-render-pixel-budget` |
 | 批 D（判卷图六 panel） | 移出，登记债：**向用户发布任何「识图变好/变坏」结论前必须完成** |
 | 批 E（离线重判） | 移出，归 R2 |
@@ -30,7 +30,36 @@
 **13 条锁无一走这条路。** MINOR-1 = 配置与 CLI 冲突实现成「静默取其一」，派工单要的是「直接报错」（未披露的规格偏离）。
 
 **r1 排期**：GLM 施工席撞 5 小时额度上限（**15:36 北京时间复位**）⇒ 用户拍板
-**「现在先开审、返工等施工席恢复」** ⇒ r1 = 轻门两条 + sol findings 合并成一次返工，连同批 C 一起做。
+**「现在先开审、返工等施工席恢复」** ⇒ r1 = 轻门两条 + sol findings 合并成一次返工，批 C 排在 r1 之后。
+
+#### ⭐ 两轮审合并结论 = REWORK（6 MAJOR + 1 MINOR + 2 条须施工席回报的判断）
+
+**sol 交叉审跑到一半被其平台内容策略中断**（404k tokens，P-3…P-9 未开跑），
+但已交出 P-1/P-2「暂判不成立」+ 5 条候选 MAJOR，**全部读码推断零探针**；
+**orchestrator 逐条独立核实 ⇒ 全部属实**。完整清单见
+[r1 返工派工单](logs/reviews/request/2026-08-03_reading_ruler_r1_batchB_rework_dispatch.md)，要点：
+
+- **R1-2（orchestrator 核实 sol 的 F-3 时新挖，比 sol 报的更硬）**：`run_config.yaml` 里
+  **把档位拼错一个字母**（`regresion`）⇒ `_parse_run_profile`（`run_config.py:206-216`）
+  只发 `RuntimeWarning` 然后 `return None` ⇒ 落回 CLI 默认 `exploratory`
+  ⇒ **一个拼写错误 = 严格档静默消失**。而原派工单 §2.1 #5 逐字要求
+  「strict/golden 对**缺失/非法**/漂移 fail-closed」⇒ **「非法」这一档属规格未实现，不是判断取舍**。
+- **R1-3**：`validate_case`（`validation_run.py:129-142` → `case_metadata.py:51-73`）
+  **把四态折回 bool 且把结构化声明整个丢掉** ⇒ 直接违反裁定追加约束 #1。
+- **R1-4**：`provision_run` 的 fail-closed 落在**两件冻结产物写盘之后** ⇒ 失败 run 磁盘上已有可用件、
+  isolation 不调这道 gate ⇒ 「无视报错继续走」即可绕过。**「非 None ≠ 成功」的同族：raise ≠ 没落盘。**
+- **R1-5**：冻结政策只接到 reading checker；correction/grade/`record_baseline` 各认各的档。
+- **R1-6**：签字来源零校验（`image_sha256` 从不与真实图 hash 比对，锁 fixture 用 `"0"*64` 且期望通过）
+  ⇒ **伪造的「已签字」畅通无阻**，而这正是 S-3 要建的东西。
+- **J-1（须回报）**：G4 的 hash 收窄**已被证据指向不安全**——`validation_scope` 与 `require_ep`
+  能在同一 hash 下改变 gate① 事实与阻断面；**且那条「记进非哈希上下文」的兜底全仓零生产调用者传参**
+  （`provision_run_policy` 的 `context` 参数从没被传过）⇒ **本项目第 N 次「机制写了、没接线」**。
+
+**⭐ r1 的锁纪律（写进派工单）**：r0 的 13 条锁**无一走 `cmd_run`/`cmd_flow`**，
+且 L-13 直接把 `None` 传给内部函数、**绕过了 argparse 默认值 `exploratory`**
+⇒ **锁绿着而缺陷还在**。r1 的锁**必须经过真实 CLI 入口**。
+
+**sol 的 P-3…P-9 不在 r1 前补跑**（审一个已知要变的状态无意义），改为 r1 落库后重新交叉审。
 
 ### 二、⛔ 新登记债 D-1：sm24 真值写入会打穿已签字 GT 信任链
 
