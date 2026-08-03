@@ -519,6 +519,47 @@ J-2 + R1-6 + 保哈希守卫）。
 **受影响**：`run_stage_flow` 全文件 `-n 6` ⇒ **26 passed，零红**（R1-7 两锁 + R1-1 三锁 + R1-2 两锁 +
 既有 flow 锁）。
 
+### 6.11 R1-1 context 补接（J-1 §1.2：context 真接上 + 不进 hash）✅ 完成
+
+**裁定**（orchestrator 2026-08-03 §1.2）：采纳施工席的 (b) 保持 hash 收窄（R1-1 已做），但 **context 必须真
+接上** —— 收窄的正当性建立在「其余项有记录、只是不参与 drift 判定」之上，而 R1-1 的 `context=None`
+（全仓唯一生产调用者 `run_provision.py` 的 `provision_run` 从不传）⇒ 记录从未发生、收窄成了单纯丢信息。
+**并要有一条锁断言它落盘且不进 hash**。
+
+**改动**（`scripts/tool_scripts/run_stage.py`）：
+- 新增 `_run_policy_context(args, run_config) -> dict`：构造非哈希审计快照，含
+  `validation_scope`/`require_ep`/`confirmation_policy`/`judge_enabled` 四 toggle 的**实际取值 + 来源**
+  （`structured_config` / `cli` / `default` / `sop`）。`judge_mode` 优先 structured（`run_config.judge_mode`），
+  其次 CLI（`args.judge`），否则 default `"off"`；用 `hasattr` 兜底兼容测试 SimpleNamespace 不全的 args
+  （v1 拒绝测试的 args 无 `judge`/`with_ep`）。
+- cmd_run / cmd_flow / cmd_resample 的 `_manifest_for_attempts` 调用 + cmd_provision 的 `provision_run`
+  调用**都传** `context=_run_policy_context(args, run_config)`（4 处）。R1-1 的 `# TODO awaits J-1 ruling`
+  注释填掉。
+
+**为何 context 仍不进 hash**（裁定 §1.2 锁要求）：`_run_policy_hash`（`run_policy_freeze.py:53-57`）只含
+`(capability_profile, run_profile)` —— gate① 实际消费、决定 blocking 的两个旋钮。`provision_run_policy`
+的 drift 检测（`:226`）只比 `policy_hash`，不比 `context` ⇒ toggle 变（如 judge_mode stop→off）不改
+`policy_hash`、不触发 drift。context 是审计快照（操作者声明了什么），不是 drift 口径。
+
+**锁**（`tests/test_run_stage_flow.py`）：
+- **R1-1 context recorded with sources**（走真实 `cmd_flow`）：run_config 声明 `judge.mode=stop` + CLI
+  `--with-ep` ⇒ `run_policy.json` 的 `context` 含四 toggle + 来源（`judge_enabled.judge_mode=="stop"`、
+  `source=="structured_config"`、`require_ep.value is True`、`source=="cli"`、`confirmation_policy=="required"`、
+  `validation_scope=="full"`）。
+- **R1-1 context not in hash, no drift**（走 `provision_run_policy`）：同 `(capability, run_profile)` + **不同**
+  context ⇒ `policy_hash` 逐字相同 + 第二次 provision idempotent（返回 existing，不 drift）。
+
+**neuter 自查**（`/tmp/neuter_r1_1ctx.py`，两个 hook）：
+- neuter **A**（`_run_policy_context` 返回 `{}`）⇒ 红 **context recorded**（context 空 ⇒ KeyError）、绿
+  **context not in hash**（不用 `_run_policy_context`）。
+- neuter **B**（drift 检测加 `or existing.context != expected.context`）⇒ 红 **context not in hash**（不同
+  context ⇒ drift raise）、绿 **context recorded**（一次 provision 不 drift）。
+⇒ 两 hook 各绑一锁、零假锁。POST-RESTORE 2 passed。
+
+**受影响**：`run_stage_flow` + `batchB` `-n 6` ⇒ **49 passed，零红**（R1-1 context 两锁 + R1-7 两锁 + R1-1
+三锁 + R1-2 两锁 + r0 锁 + 既有 flow/v1 测试）。
+
+
 
 
 

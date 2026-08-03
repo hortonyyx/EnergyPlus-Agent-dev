@@ -885,3 +885,60 @@ def test_R1_7_config_cli_same_value_no_conflict(tmp_path, monkeypatch):
     record = resolve_frozen_run_policy(run_dir)
     assert record.run_profile == "regression"
 
+
+# --------------------------------------------------------------------------- #
+# R1-1 context wiring (J-1 §1.2, orchestrator ruling 2026-08-03): the non-hash
+# audit context is wired for real (4 toggles + sources) and does NOT enter the
+# drift hash. R1-1 left context=None pending the ruling.
+# --------------------------------------------------------------------------- #
+def test_R1_1_context_recorded_with_sources(tmp_path, monkeypatch):
+    """J-1 §1.2: provision 的 context 真接上（含 validation_scope/require_ep/
+    confirmation_policy/judge_enabled 的值+来源）且写进 run_policy.json。r0/R1-1 的
+    context=None ⇒ context={}（其余 toggle 从未记录，收窄的正当性落空）。
+    Neuter: _run_policy_context 返回 {} ⇒ context 空 ⇒ KeyError ⇒ 红。"""
+    monkeypatch.setattr(rs, "_make_draw_fn", _fake_make_draw_fn)
+    monkeypatch.setattr(rs, "_render_stage", lambda *a, **k: [])
+    _seed_case_data(tmp_path)
+    run_dir = tmp_path / "case" / "run"
+    run_dir.mkdir()
+    (run_dir / "run_config.yaml").write_text(
+        "judge:\n  mode: stop\nrun_profile: regression\n", encoding="utf-8"
+    )
+    rs.cmd_flow(_args(tmp_path, run_profile="exploratory", judge="off", with_ep=True))
+    from src.agent.execution.run_policy_freeze import resolve_frozen_run_policy
+
+    record = resolve_frozen_run_policy(run_dir)
+    ctx = record.context
+    assert {"judge_enabled", "confirmation_policy", "validation_scope", "require_ep"} <= set(ctx)
+    # judge_mode from structured_config (run_config.yaml mode: stop), NOT CLI --judge off
+    assert ctx["judge_enabled"]["judge_mode"] == "stop"
+    assert ctx["judge_enabled"]["source"] == "structured_config"
+    assert ctx["judge_enabled"]["value"] is True          # stop != off
+    assert ctx["require_ep"]["value"] is True              # --with-ep
+    assert ctx["require_ep"]["source"] == "cli"
+    assert ctx["confirmation_policy"]["value"] == "required"
+    assert ctx["validation_scope"]["value"] == "full"
+
+
+def test_R1_1_context_not_in_hash_no_drift(tmp_path):
+    """J-1 §1.2: context 不进 policy_hash —— 同 (capability, run_profile) + 不同 context
+    ⇒ policy_hash 逐字相同 + 第二次 provision 不 drift（idempotent，返回 existing）。
+    Neuter: _run_policy_hash 纳入 context ⇒ 两次 policy_hash 不同 ⇒ 第二次 raise
+    run_policy_drift ⇒ 红。"""
+    from src.agent.execution.run_policy_freeze import provision_run_policy
+
+    run_dir = tmp_path / "run_ctx"
+    run_dir.mkdir()
+    rec1 = provision_run_policy(
+        run_dir, run_profile="regression", capability_profile="rectangular",
+        context={"judge_enabled": {"value": True, "judge_mode": "stop", "source": "structured_config"}},
+    )
+    # re-provision with DIFFERENT context but identical profiles ⇒ idempotent, no drift
+    rec2 = provision_run_policy(
+        run_dir, run_profile="regression", capability_profile="rectangular",
+        context={"judge_enabled": {"value": False, "judge_mode": "off", "source": "cli"}},
+    )
+    assert rec2.policy_hash == rec1.policy_hash   # context not in hash
+    assert rec2.context == rec1.context            # idempotent: existing record returned
+
+

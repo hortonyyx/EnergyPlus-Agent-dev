@@ -171,7 +171,7 @@ def _manifest_for_attempts(
         run_dir,
         run_profile=run_profile,
         capability_profile=capability_profile,
-        context=context,  # R1-1 TODO: context wiring awaits J-1 ruling
+        context=context,  # J-1 §1.2: non-hash audit snapshot (wired by callers)
     )
     return ensure_run_manifest_v2(run_dir, view_manifest_sha256=vm.content_sha256)
 
@@ -1624,6 +1624,42 @@ def _resolve_run_profiles(run_config, args) -> tuple[str, str]:
     return run_profile, capability_profile
 
 
+def _run_policy_context(args, run_config) -> dict:
+    """J-1 §1.2 (orchestrator ruling 2026-08-03): build the NON-hash audit context
+    for ``run_policy.json`` — the actual values + sources of the RunPolicy toggles
+    that do NOT participate in drift detection
+    (``validation_scope`` / ``require_ep`` / ``confirmation_policy`` /
+    ``judge_enabled``). Only ``(capability_profile, run_profile)`` are hash-bound
+    (they are what gate① consumes); the rest are recorded so an audit can see what
+    governed the run even though toggling them never trips a drift refusal.
+
+    Each entry carries ``value`` + ``source`` (``structured_config`` / ``cli`` /
+    ``default`` / ``sop``). R1-1 left this as ``context=None`` pending the J-1
+    ruling; the ruling adopted "keep the hash narrowed, but wire context for
+    real" — the narrowing's justification rests on "the other toggles ARE
+    recorded, just not drift-bound", which was never true until now."""
+    if run_config.present and run_config.judge_mode is not None:
+        judge_mode, judge_source = run_config.judge_mode, "structured_config"
+    elif hasattr(args, "judge"):
+        judge_mode, judge_source = args.judge, "cli"
+    else:
+        judge_mode, judge_source = "off", "default"
+    return {
+        "judge_enabled": {
+            "value": judge_mode != "off", "judge_mode": judge_mode, "source": judge_source,
+        },
+        # flow/run SOP fixes the geometry-confirmation gate at REQUIRED
+        "confirmation_policy": {"value": "required", "source": "sop"},
+        # run_stage.py has no --intake-from (that is run_full_pipeline's path);
+        # the flat-flow SOP is always full-scope here
+        "validation_scope": {"value": "full", "source": "default"},
+        "require_ep": {
+            "value": bool(getattr(args, "with_ep", False)),
+            "source": "cli" if hasattr(args, "with_ep") else "default",
+        },
+    }
+
+
 def _make_policy(
     *,
     reading_runner_available: bool = False,
@@ -1888,6 +1924,7 @@ def cmd_run(args) -> int:
     manifest = _manifest_for_attempts(
         case_dir, run_dir,
         run_profile=run_profile, capability_profile=capability_profile,
+        context=_run_policy_context(args, run_config),
     )
     runner = StageRunner(run_dir, manifest)
     stage = args.stage
@@ -1951,6 +1988,7 @@ def cmd_resample(args) -> int:
     manifest = _manifest_for_attempts(
         case_dir, run_dir,
         run_profile=run_profile, capability_profile=capability_profile,
+        context=_run_policy_context(args, run_config),
     )
     dropped = invalidate(manifest, args.stage)
     manifest.save(run_dir)
@@ -2081,6 +2119,7 @@ def cmd_flow(args) -> int:
     manifest = _manifest_for_attempts(
         case_dir, run_dir,
         run_profile=run_profile, capability_profile=capability_profile,
+        context=_run_policy_context(args, run_config),
     )
     start_stage = (
         _auto_start_stage(
@@ -2313,6 +2352,7 @@ def cmd_provision(args) -> int:
         case_dir, run_dir,
         run_profile=run_profile,
         capability_profile=capability_profile,
+        context=_run_policy_context(args, run_config),
     )
     print(json.dumps(
         {"provisioned": True, "content_sha256": manifest.content_sha256, "entries": len(manifest.entries)},
