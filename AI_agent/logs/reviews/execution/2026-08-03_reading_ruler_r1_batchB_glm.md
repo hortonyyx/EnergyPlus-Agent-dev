@@ -484,6 +484,42 @@ reading_typed_scoring_slice0/1 + reading_typed_adapter/score_integration + c2_b4
 run_pipeline_self_checks + run_stage_flow，`-n 6`）⇒ **437 passed，零红**（含 r0 13 锁 + R1-1/2/3/4 +
 J-2 + R1-6 + 保哈希守卫）。
 
+### 6.10 R1-7（config/CLI 冲突改报错）✅ 完成
+
+**病灶**（派工单 §1.7）：`_resolve_run_profiles`（R1-1 写）与 cmd_provision 的 config/CLI 解析都是
+「config 声明优先、CLI 兜底」的 `or` —— 当 config 与 CLI **都显式声明且不一致**时静默取 config
+（声明被 CLI 偷换而无人知）。属未在执行日志披露的规格偏离。派工单给「改成报错，或写进执行日志由 sol
+挑战」二选一；§3.1 明确 R1-7 的锁必须走 CLI ⇒ 取「改成报错」。
+
+**改动**（`scripts/tool_scripts/run_stage.py`）：
+- `_resolve_run_profiles` 加 **冲突检测**：config 声明 run_profile/capability_profile（非 None）+
+  CLI **显式传了非默认且不同**的值 ⇒ raise `run_profile conflict` / `capability_profile conflict`。
+  argparse CLI 默认（exploratory/rectangular）计为「未传」——声明 regression 在 CLI 默认下仍是
+  regression（R1-1 冻结权威意图）；只有 CLI 显式传了**冲突值**（如 --run-profile golden）才 raise。
+  显式传**同值**（--run-profile regression 同 config）不报错。
+- 新增模块常量 `_RUN_PROFILE_CLI_DEFAULT`/`_CAPABILITY_PROFILE_CLI_DEFAULT`（须与 main() 的 argparse
+  default 一致）+ 返回值兜底 `or _..._DEFAULT`（兼容测试 `_args` 不设 capability_profile ⇒ None 的情形，
+  与真实 argparse default="rectangular" 行为一致）。
+- cmd_provision 改用 `_resolve_run_profiles`（统一冲突检测，不再自造 config/CLI 解析）。
+
+**边界（诚实登记）**：argparse `--run-profile` default="exploratory"（非 None），「用户显式传 exploratory」
+与「未传（默认 exploratory）」不可区分 ⇒ config=regression + CLI --run-profile exploratory 不报错
+（config 赢）。这是有意的（exploratory 是更宽松档，config regression 冻结权威赢更安全；要降档应改 config、
+不是传 CLI）。R1-7 抓的是「两个不同的严格档冲突」（regression vs golden）这类明显冲突。
+
+**锁**（`tests/test_run_stage_flow.py`，走真实 `cmd_flow` CLI）：
+- **R1-7 conflict**：run_config 声明 regression + CLI --run-profile golden ⇒ raise `run_profile conflict`。
+- **R1-7 same-value 对照**：run_config 声明 regression + CLI --run-profile regression（同值）⇒ 不报错、
+  config 赢（record.run_profile==regression）。证明 R1-7 只对「不同值」raise。
+
+**neuter 自查**（`/tmp/neuter_r1_7.py`）：短路 run_profile 冲突 if（`if False and ...`）⇒ 红 **R1-7 conflict**
+（不 raise ⇒ DID NOT RAISE）、**绿 R1-7 same-value + R1-1a**（同值/默认不涉及冲突检测）⇒ **R1-7 conflict
+锁唯一绑冲突检测、零连带**。POST-RESTORE 3 passed。
+
+**受影响**：`run_stage_flow` 全文件 `-n 6` ⇒ **26 passed，零红**（R1-7 两锁 + R1-1 三锁 + R1-2 两锁 +
+既有 flow 锁）。
+
+
 
 
 

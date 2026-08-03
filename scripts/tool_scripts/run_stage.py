@@ -1575,6 +1575,13 @@ def _judge_packet(stage: str, case: str, case_dir: Path, run_dir: Path,
 # --------------------------------------------------------------------------- #
 # verbs
 # --------------------------------------------------------------------------- #
+# argparse CLI defaults for the profile flags (must match the add_argument
+# defaults in main() — R1-7 uses them to tell "operator passed --run-profile"
+# apart from "the argparse default was used").
+_RUN_PROFILE_CLI_DEFAULT = "exploratory"
+_CAPABILITY_PROFILE_CLI_DEFAULT = "rectangular"
+
+
 def _resolve_run_profiles(run_config, args) -> tuple[str, str]:
     """R1-1 (S-2): ``run_profile`` and ``capability_profile`` follow the SAME
     source rule — the structured ``run_config.yaml`` declaration wins, the CLI
@@ -1586,11 +1593,34 @@ def _resolve_run_profiles(run_config, args) -> tuple[str, str]:
     declared strict tier was discarded the moment the operator did not pass it
     explicitly on the command line. Both knobs now resolve identically, and the
     resolved pair is what freezes into the run policy (see
-    :func:`_manifest_for_attempts`)."""
-    run_profile = run_config.run_profile or args.run_profile
-    capability_profile = run_config.capability_profile or getattr(
-        args, "capability_profile", "rectangular"
-    )
+    :func:`_manifest_for_attempts`).
+
+    R1-7 (派工单 §1.7): a structured config declaration and an EXPLICIT CLI flag
+    that DISAGREE is fail-closed, not silent "config wins". The argparse CLI
+    defaults (exploratory / rectangular) count as "not passed" — a declared
+    regression stays regression unless the operator explicitly passes a
+    CONFLICTING ``--run-profile`` (e.g. golden), which is refused so a strict
+    declaration cannot be silently overridden by a conflicting CLI flag. Passing
+    the default value explicitly is indistinguishable from not passing it, so
+    config still wins there (the frozen-declaration-is-authoritative intent of
+    R1-1)."""
+    cfg_run = run_config.run_profile
+    cli_run = getattr(args, "run_profile", None)
+    cfg_cap = run_config.capability_profile
+    cli_cap = getattr(args, "capability_profile", None)
+    if cfg_run is not None and cli_run is not None and cli_run != _RUN_PROFILE_CLI_DEFAULT and cfg_run != cli_run:
+        raise ValueError(
+            f"run_profile conflict: run_config.yaml declares {cfg_run!r} but CLI "
+            f"--run-profile={cli_run!r}; a strict declaration must not be silently "
+            f"overridden — remove one source"
+        )
+    if cfg_cap is not None and cli_cap is not None and cli_cap != _CAPABILITY_PROFILE_CLI_DEFAULT and cfg_cap != cli_cap:
+        raise ValueError(
+            f"capability_profile conflict: run_config.yaml declares {cfg_cap!r} but CLI "
+            f"--capability-profile={cli_cap!r}; remove one source"
+        )
+    run_profile = cfg_run or cli_run or _RUN_PROFILE_CLI_DEFAULT
+    capability_profile = cfg_cap or cli_cap or _CAPABILITY_PROFILE_CLI_DEFAULT
     return run_profile, capability_profile
 
 
@@ -2275,12 +2305,10 @@ def cmd_provision(args) -> int:
     # effective run policy, then fail-closes on the strict-profile invariants
     # (L-13 missing run_profile; L-20 unknown dimensioned applicability). The
     # structured run_config.yaml declaration wins; the CLI --run-profile is the
-    # fallback an operator supplies.
+    # fallback an operator supplies (R1-1). R1-7: a conflicting explicit CLI flag
+    # is refused by _resolve_run_profiles rather than silently overriding config.
     run_config = load_run_config(run_dir)
-    run_profile = run_config.run_profile
-    if run_profile is None:
-        run_profile = getattr(args, "run_profile", None)
-    capability_profile = run_config.capability_profile or getattr(args, "capability_profile", None)
+    run_profile, capability_profile = _resolve_run_profiles(run_config, args)
     manifest = provision_run(
         case_dir, run_dir,
         run_profile=run_profile,

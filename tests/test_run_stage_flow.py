@@ -845,3 +845,43 @@ def test_R1_2_absent_run_profile_still_cli_authoritative(tmp_path, monkeypatch):
     record = resolve_frozen_run_policy(run_dir)
     assert record.run_profile == "regression"
     assert record.source == "structured_config"
+
+
+# --------------------------------------------------------------------------- #
+# R1-7 (派工单 §1.7): a structured config declaration and an EXPLICIT CLI flag
+# that DISAGREE is fail-closed, not silent "config wins". The argparse CLI
+# default (exploratory) counts as "not passed" — config still wins there.
+# --------------------------------------------------------------------------- #
+def test_R1_7_config_cli_run_profile_conflict_raises(tmp_path, monkeypatch):
+    """R1-7: run_config.yaml 声明 regression + CLI --run-profile golden（显式不同的
+    严格档）⇒ cmd_flow fail-closed raise 'run_profile conflict'，不静默取 config。
+    r0/R1-1 的 'config or CLI' 静默取 config ⇒ 冻结的严格声明被 CLI 偷换而无人知。
+    Neuter: _resolve_run_profiles 去掉冲突检测 ⇒ config 赢、不 raise ⇒ 红。"""
+    monkeypatch.setattr(rs, "_make_draw_fn", _fake_make_draw_fn)
+    monkeypatch.setattr(rs, "_render_stage", lambda *a, **k: [])
+    _seed_case_data(tmp_path)
+    run_dir = tmp_path / "case" / "run"
+    run_dir.mkdir()
+    (run_dir / "run_config.yaml").write_text("run_profile: regression\n", encoding="utf-8")
+    with pytest.raises(ValueError, match="run_profile conflict"):
+        rs.cmd_flow(_args(tmp_path, run_profile="golden", judge="off"))
+
+
+def test_R1_7_config_cli_same_value_no_conflict(tmp_path, monkeypatch):
+    """R1-7 对照: run_config.yaml 声明 regression + CLI --run-profile regression
+    （显式传但与 config 相同）⇒ 不报错（cli == cfg，无冲突）。证明 R1-7 只对
+    『不同的值』raise，CLI 显式确认 config 的同值不误伤。"""
+    from src.agent.execution.run_policy_freeze import resolve_frozen_run_policy
+
+    monkeypatch.setattr(rs, "_make_draw_fn", _fake_make_draw_fn)
+    monkeypatch.setattr(rs, "_render_stage", lambda *a, **k: [])
+    _seed_case_data(tmp_path)
+    run_dir = tmp_path / "case" / "run"
+    run_dir.mkdir()
+    (run_dir / "run_config.yaml").write_text(
+        "judge:\n  mode: off\nrun_profile: regression\n", encoding="utf-8"
+    )
+    assert rs.cmd_flow(_args(tmp_path, run_profile="regression", judge="off")) == rs.FLOW_EXIT_OK
+    record = resolve_frozen_run_policy(run_dir)
+    assert record.run_profile == "regression"
+
