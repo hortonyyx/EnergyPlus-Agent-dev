@@ -1704,23 +1704,6 @@ def _make_policy(
     return policy
 
 
-def _policy_with_frozen_tier(run_dir: Path, policy: RunPolicy) -> RunPolicy:
-    """Replace the locally assembled tier with the run's frozen tier.
-
-    The caller still owns ephemeral operational knobs (draw budget and the
-    availability of a re-reader), while every correction/modelling/grade/check
-    consumer gets the frozen capability + run profile.  A missing record is a
-    read-only legacy replay and resolves to visibly distinct legacy defaults.
-    """
-    from src.agent.execution.run_policy_freeze import resolve_frozen_run_policy
-
-    frozen = resolve_frozen_run_policy(run_dir)
-    return policy.model_copy(update={
-        "run_profile": frozen.run_profile,
-        "capability_profile": frozen.capability_profile,
-    })
-
-
 def _stage_index(stage: str) -> int:
     try:
         return _STAGES.index(stage)
@@ -1962,7 +1945,6 @@ def cmd_run(args) -> int:
         context=_run_policy_context(args, run_config),
         source=source,
     )
-    policy = _policy_with_frozen_tier(run_dir, policy)
     runner = StageRunner(run_dir, manifest)
     stage = args.stage
     stage_dir = run_dir / stage
@@ -2057,13 +2039,23 @@ def cmd_judge(args) -> int:
             return 2
     else:
         print("  view manifest: NOT_APPLICABLE (run predates the view-manifest wire)")
+    # r2-3 (ruling 2026-08-04 §1.3.2): judge-only replay has NO tier consumer
+    # today — submit_verdict / _verdict_outcome read only draw budget +
+    # reading_runner_available, never the tier (verified in the r1 light-gate).
+    # The tier is therefore not a decision input on this path; we still source it
+    # from the frozen record instead of the argparse default so the policy's tier
+    # is never a fabricated exploratory/rectangular, and a run with no frozen
+    # artifact resolves to a visibly-legacy default (G-6). (Debt D-4: should a
+    # future judge-path consumer read the tier, a regression lock must land in
+    # the same change.)
+    from src.agent.execution.run_policy_freeze import resolve_frozen_run_policy
+    _frozen_policy = resolve_frozen_run_policy(run_dir)
     policy = _make_policy(
         reading_runner_available=args.reading_runner_available,
-        run_profile=args.run_profile,
-        capability_profile=getattr(args, "capability_profile", "rectangular"),
+        run_profile=_frozen_policy.run_profile,
+        capability_profile=_frozen_policy.capability_profile,
         budget_draws=getattr(args, "budget_draws", None),
     )
-    policy = _policy_with_frozen_tier(run_dir, policy)
     stage = args.stage
     stage_dir = run_dir / stage
     # read-only version-dispatched load: judge/replay stays allowed on a
@@ -2161,7 +2153,6 @@ def cmd_flow(args) -> int:
         context=_run_policy_context(args, run_config),
         source=source,
     )
-    policy = _policy_with_frozen_tier(run_dir, policy)
     start_stage = (
         _auto_start_stage(
             manifest=manifest,
