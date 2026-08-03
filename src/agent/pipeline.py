@@ -50,7 +50,6 @@ from src.agent.execution.evidence_preflight import (
     EvidenceDebt,
     compute_evidence_debt_from_vector_dir,
     compute_reading_report_from_vector_dir,
-    dimensioned_view_names_from_testdata_text,
     project_evidence_debt,
     write_evidence_debt,
 )
@@ -571,12 +570,22 @@ def run_correction(
     ensure_schema_initialized()  # safe for standalone stage calls (idempotent)
     target = target or correction_target(capability_profile)
     if evidence_debt is None:
+        from src.agent.execution.case_metadata import (
+            dimensioned_states_from_data,
+            parse_testdata_text,
+        )
+        # R1-3 (派工单 §1.3): parse the structured 4-state declaration from
+        # testdata (declared_true/declared_false survive). A caller-provided
+        # legacy bool set is promoted to declared_true for pre-R1-3 parity.
+        if dimensioned_views:
+            dim_states = {stem: "declared_true" for stem in dimensioned_views}
+        else:
+            dim_states = dimensioned_states_from_data(parse_testdata_text(testdata_text) or {})
         evidence_debt = compute_evidence_debt_from_vector_dir(
             vector_dir,
             run_profile=run_profile,
             capability_profile=capability_profile,
-            dimensioned_views=dimensioned_views
-            or dimensioned_view_names_from_testdata_text(testdata_text),
+            dimensioned_states=dim_states,
         )
     if out_dir is not None:
         write_evidence_debt(out_dir / "evidence_debt.json", evidence_debt)
@@ -886,17 +895,21 @@ def run_pipeline_artifacts(
 
     logger.info("1_correction: correcting from {}", vector_dir)
     from src.agent.execution.case_metadata import (
+        dimensioned_states_from_data,
         expected_zone_total_from_testdata,
         parse_testdata_text,
     )
 
     parsed_testdata = parse_testdata_text(testdata_text)
-    dimensioned_views = dimensioned_view_names_from_testdata_text(testdata_text)
+    # R1-3 (派工单 §1.3): per-view 4-state applicability from the structured
+    # declaration, not a bool set — declared_true/declared_false survive to
+    # checks.json instead of collapsing to legacy_default.
+    dimensioned_states = dimensioned_states_from_data(parsed_testdata or {})
     reading_report = compute_reading_report_from_vector_dir(
         vector_dir,
         run_profile=run_profile,
         capability_profile=capability_profile,
-        dimensioned_views=dimensioned_views,
+        dimensioned_states=dimensioned_states,
     )
     from src.agent.reading import load_reading_view
 

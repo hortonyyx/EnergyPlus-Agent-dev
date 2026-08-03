@@ -22,7 +22,7 @@ from pathlib import Path
 from src.agent.correction.schema import CorrectedGeometry
 from src.agent.execution.approval import geometry_checkpoint_digest, is_approved
 from src.agent.execution.case_metadata import (
-    dimensioned_view_names,
+    dimensioned_view_states,
     expected_zone_total_from_testdata,
 )
 from src.agent.execution.manifest import RunManifest, StageRecord, hash_text
@@ -129,7 +129,13 @@ def validate_case(
     if has_reading:
         from src.agent.reading import load_reading_view
 
-        dimensioned_views = dimensioned_view_names(case_dir)
+        # R1-3 (派工单 §1.3): per-view 4-state applicability, not a bool set.
+        # r0 folded this to view_metadata={"dimensioned": stem in names} and
+        # never passed dimensioned_state, so a structured declared_true /
+        # declared_false declaration collapsed to legacy_default here (the
+        # names add() dropped non-strings). check_reading_view's _view_metadata
+        # takes dimensioned_state as the authoritative 4-state signal.
+        dimensioned_states = dimensioned_view_states(case_dir)
         for vj in sorted(rdir.glob("*_view.json")):
             view = load_reading_view(vj)
             reading_views.append(view)
@@ -137,7 +143,7 @@ def validate_case(
                 view,
                 capability_profile=profile,
                 run_profile=run_profile,
-                view_metadata={"dimensioned": vj.stem in dimensioned_views},
+                dimensioned_state=dimensioned_states.get(vj.stem, "legacy_default"),
             )
             res.reports[f"0_reading::{vj.stem}"] = rep
             if write_reports:

@@ -363,6 +363,58 @@ J-2 只改混合分支，sm24（absent）/sm21（纯字符串）/fixture（纯�
 **受影响子集**（`affected_tests.py --changed view_manifest.py` 的核心消费者 18 文件，`-n 6`）⇒
 **540 passed + 8 xfailed，零红**（含 r0 13 锁 + R1-1 三锁 + R1-2 两锁 + J-2 三锁 + 保哈希守卫）。
 
+### 6.7 R1-3（validate_case / evidence_preflight 不把四态折回 bool）✅ 完成
+
+**病灶**（派工单 §1.3 + 裁定追加约束 #1「不得在任何一层折回 bool」）：生产 gate① 路径
+（`check_reading_stage`）r0 已 4 态保真（manifest → `dimensioned_state`），但**两条离线路径**
+仍 bool 折叠：
+- `validation_run.py:132` 调 `dimensioned_view_names(case_dir)`（返回 `set[str]`），其 `add()`
+  （`case_metadata.py:55-57`）对**非字符串直接 return** ⇒ 结构化对象声明被整个丢；`:140` 折
+  `view_metadata={"dimensioned": stem in names}`（bool）且**不传 `dimensioned_state`**。
+- `evidence_preflight.py:222`（`compute_reading_report_from_vector_dir`）同型 bool 折叠。
+⇒ 一个结构化 `declared_true` 声明在这两条路径退回 `legacy_default`/N/A；`declared_false` 折成
+`legacy_default`（与裁定追加约束 #2「legacy_default ≠ declared_false」直接冲突）。
+
+**改动**（克制范围：只修两条离线路径，不动 run_stage cmd_judge/_draw_reading 的 fallback —— 那是
+R1-1/R1-5 范围；生产 gate① 已保真）：
+- `case_metadata.py`：抽 `_dimensioned_view_names_from_data(data)`（纯函数，`dimensioned_view_names`
+  行为零变）+ 新增 `dimensioned_states_from_data(data) → dict[stem,str]`（4 态：legacy 信号 →
+  `declared_true`；结构化对象 → per-view `declared_true`/`declared_false`；absent 不在 map）+
+  `dimensioned_view_states(case_dir)`。
+- `validation_run.py:132,140`：改用 `dimensioned_view_states(case_dir)` + 传
+  `dimensioned_state=states.get(stem,"legacy_default")`（去掉 bool view_metadata）。
+- `evidence_preflight.py`：`compute_reading_report_from_vector_dir` / `compute_evidence_debt_from_vector_dir`
+  加 `dimensioned_states: dict|None` 参数（向后兼容：未传时从 `dimensioned_views` set 推
+  `{stem:"declared_true"}`，与 r0 行为逐字等价）+ 传 `dimensioned_state`。
+- `pipeline.py:574,895`：两处改传 `dimensioned_states`（`dimensioned_states_from_data(parse_testdata_text(...))`），
+  删未用的 `dimensioned_view_names_from_testdata_text` import。
+
+**为何不重构 `dimensioned_view_names`**：它被 run_stage cmd_judge/_draw_reading（R1-1/R1-5 范围）作
+fallback 用。抽 `_dimensioned_view_names_from_data` 是纯重构（行为零变），`dimensioned_view_states`
+是独立 4 态版，两者并存，爆破半径最小。
+
+**锁**（`tests/test_reading_ruler_r1_batchB.py`，三条）：
+- **R1-3a 单元**：`dimensioned_states_from_data` 解析结构化对象 → declared_true/declared_false 保真 +
+  legacy Floor-plans 信号 → declared_true + absent 不在 map。
+- **R1-3b evidence_preflight 入口**：`compute_reading_report_from_vector_dir(dimensioned_states={...})`
+  ⇒ `dimensions_present` evidence 保 declared_false（不折回 legacy_default）。
+- **R1-3c validate_case 入口**（M4 离线校验端到端）：结构化 dimensioned_views 声明 → per-view checks
+  evidence 保 declared_true/declared_false。
+
+**neuter 自查**（`/tmp/neuter_r1_3.py`，三处改动各短路一次）：
+- neuter **case_metadata 结构化解析**（对象分支 `if False`）⇒ 红 **R1-3a + R1-3c**（R1-3c 端到端依赖
+  解析）、绿 R1-3b（硬编码 states）。
+- neuter **evidence_preflight 传参**（`dimensioned_state="legacy_default"` 恒值）⇒ 红 **R1-3b**、
+  绿 R1-3a/R1-3c。
+- neuter **validation_run 传参**（同恒值）⇒ 红 **R1-3c**、绿 R1-3a/R1-3b。
+⇒ 三处改动各精确命中、零假锁；R1-3c 被解析 + 传参两处共同保证（端到端锁合理，r0 L-10/L-11 同型）。
+POST-RESTORE 3 passed。
+
+**受影响子集**（13 文件：batchB + validation/pipeline/evidence/isolation/merge/run_config/
+run_stage_flow/check_parity/orchestrate/provenance，`-n 6`）⇒ **404 passed + 9 xfailed，零红**
+（含 r0 13 锁 + R1-1 三锁 + R1-2 两锁 + J-2 三锁 + R1-3 三锁 + 保哈希守卫）。
+
+
 
 
 

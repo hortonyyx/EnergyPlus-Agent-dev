@@ -48,8 +48,14 @@ def expected_zone_total_from_testdata(data: dict) -> int | None:
     return sum(totals) if totals else None
 
 
-def dimensioned_view_names(case_dir: Path | str) -> set[str]:
-    data = load_case_metadata(case_dir)
+def _dimensioned_view_names_from_data(data: dict) -> set[str]:
+    """Parse the legacy dimensioned stem set from case metadata (bool-form
+    consumers). Pure function over ``data`` so the 4-state
+    :func:`dimensioned_states_from_data` can reuse it for the legacy signals.
+
+    Note: ``add()`` returns on non-strings, so a STRUCTURED ``dimensioned_views``
+    object list is invisible here — that loss is exactly what R1-3 fixes on the
+    offline-audit surface via :func:`dimensioned_states_from_data`."""
     names: set[str] = set()
 
     def add(value: object) -> None:
@@ -74,3 +80,47 @@ def dimensioned_view_names(case_dir: Path | str) -> set[str]:
                 add(item.get("path"))
 
     return names
+
+
+def dimensioned_view_names(case_dir: Path | str) -> set[str]:
+    return _dimensioned_view_names_from_data(load_case_metadata(case_dir))
+
+
+def dimensioned_states_from_data(data: dict) -> dict[str, str]:
+    """R1-3 (派工单 §1.3): per-view 4-state dimensioned applicability parsed
+    from case metadata, WITHOUT folding to bool or dropping structured
+    declarations.
+
+    The legacy signals (stem-string ``dimensioned_views`` list, ``Floor plans``
+    / ``views`` overlay ``dimensioned: true``) all map to ``declared_true`` —
+    the same set :func:`dimensioned_view_names` returns. A STRUCTURED
+    ``dimensioned_views`` object list (the form r0's S-3 wire made
+    authoritative on the production gate① path) additionally carries
+    per-view ``declared_true`` / ``declared_false`` with provenance; that
+    declaration is what :func:`_dimensioned_view_names_from_data` silently
+    dropped (its ``add()`` returns on non-strings), collapsing a
+    ``declared_false`` to ``legacy_default`` and losing a ``declared_true``
+    entirely on the validate_case / record_baseline / evidence-preflight
+    offline-audit surface. Stems absent from any declaration are NOT in the
+    map; callers treat absence as ``legacy_default``.
+    """
+    states: dict[str, str] = {}
+    for stem in _dimensioned_view_names_from_data(data):
+        states[stem] = "declared_true"
+    # structured object list overrides with the provenance-bound 4-state
+    for item in data.get("dimensioned_views") or []:
+        if isinstance(item, dict):
+            view = item.get("view")
+            if isinstance(view, str) and view:
+                p = Path(view)
+                stem = p.stem if p.suffix else view
+                flag = item.get("dimensioned")
+                if isinstance(flag, bool):
+                    states[stem] = "declared_true" if flag else "declared_false"
+    return states
+
+
+def dimensioned_view_states(case_dir: Path | str) -> dict[str, str]:
+    """Per-view 4-state dimensioned map for a case dir (R1-3 fidelity fix for
+    the validate_case / record_baseline offline-audit surface)."""
+    return dimensioned_states_from_data(load_case_metadata(case_dir))

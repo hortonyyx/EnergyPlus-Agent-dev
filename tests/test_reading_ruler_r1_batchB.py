@@ -531,3 +531,91 @@ def test_L12_policy_drift_rejected_before_attempt(tmp_path: Path):
     assert not attempts.exists() or not any(attempts.iterdir())
 
 
+# --------------------------------------------------------------------------- #
+# R1-3 · validate_case / evidence_preflight keep the 4-state (no bool fold)
+# (r1 派工单 §1.3: 离线审计面不得把四态折回 bool / 丢结构化对象声明)
+# --------------------------------------------------------------------------- #
+_EMPTY_PLAN = {
+    "image_kind": "plan", "uncaptured": [],
+    "strokes": [{"id": "S1", "pen": "wall", "provenance": "seen", "confidence": "high",
+                 "geometry": {"kind": "line", "p1": [0, 0], "p2": [10, 0]}}],
+    "dimensions": [],
+    "scale_origin": dict(_USABLE_ORIGIN),
+}
+
+
+def test_R1_3_dimensioned_states_from_data_preserves_structured():
+    """R1-3 单元: dimensioned_states_from_data 解析结构化对象声明为 4 态 —
+    declared_true / declared_false 都保住，不丢、不折回 legacy_default。r0 的
+    dimensioned_view_names add() 对非字符串 return ⇒ 结构化对象声明整个丢。"""
+    from src.agent.execution.case_metadata import dimensioned_states_from_data
+    states = dimensioned_states_from_data({
+        "dimensioned_views": [
+            {"view": "1f_view", "dimensioned": True, "source": {"reviewer": "x"}},
+            {"view": "2f_view", "dimensioned": False, "source": {"reviewer": "x"}},
+        ],
+        "Floor plans": [{"path": "3f.png", "floor": 3, "dimensioned": True}],
+    })
+    assert states["1f_view"] == "declared_true"
+    assert states["2f_view"] == "declared_false"   # not dropped, not folded to legacy_default
+    assert states["3f_view"] == "declared_true"     # legacy Floor-plans signal still → declared_true
+    assert "absent_view" not in states              # absent ⇒ caller applies legacy_default
+
+
+def test_R1_3_evidence_preflight_carries_declared_false(tmp_path):
+    """R1-3 evidence_preflight 入口: compute_reading_report_from_vector_dir 接
+    dimensioned_states(4 态) ⇒ declared_false 进 dimensions_present evidence，不折
+    回 legacy_default。r0 折 view_metadata={'dimensioned': stem in set} ⇒
+    _view_metadata 把 False 推成 legacy_default ⇒ declared_false 丢失。"""
+    from src.agent.execution.evidence_preflight import compute_reading_report_from_vector_dir
+    vector_dir = tmp_path / "0_reading"
+    vector_dir.mkdir()
+    (vector_dir / "1f_view.json").write_text(json.dumps(_plan_with_dims()), encoding="utf-8")
+    (vector_dir / "2f_view.json").write_text(json.dumps(_EMPTY_PLAN), encoding="utf-8")
+    report = compute_reading_report_from_vector_dir(
+        vector_dir, run_profile="exploratory",
+        dimensioned_states={"1f_view": "declared_true", "2f_view": "declared_false"},
+    )
+    states = {}
+    for r in report.results:
+        if r.check_id.endswith("reading.dimensions_present") and r.evidence:
+            states[r.check_id.split(".", 1)[0]] = r.evidence.get("dimensioned_state")
+    assert states["1f_view"] == "declared_true"
+    assert states["2f_view"] == "declared_false"   # R1-3: NOT legacy_default
+
+
+def test_R1_3_validate_case_preserves_structured_declaration(tmp_path):
+    """R1-3 validate_case 入口(M4 离线校验): 结构化 dimensioned_views 声明保真到
+    per-view checks evidence。r0 的 dimensioned_view_names add() 丢非字符串 ⇒ 折
+    bool ⇒ declared_false 退回 legacy_default、declared_true 在无 per-plan flag 时
+    丢失。Neuter: validation_run 回 view_metadata={'dimensioned': stem in names} 且
+    不传 dimensioned_state ⇒ _view_metadata 把 declared_false 推成 legacy_default ⇒
+    断言失败 ⇒ 红。"""
+    from src.agent.execution import RunPolicy, validate_case
+    case_dir = tmp_path / "smR13"
+    (case_dir / "case_data").mkdir(parents=True)
+    (case_dir / "case_data" / "testdata_prompt.json").write_text(json.dumps({
+        "Floor plans": [{"path": "1f.png", "floor": 1}, {"path": "2f.png", "floor": 2}],
+        "dimensioned_views": [
+            {"view": "1f_view", "dimensioned": True,
+             "source": {"reviewer": "hortonyyx", "image_sha256": "0" * 64,
+                        "date": "2026-08-03", "basis": "x"}},
+            {"view": "2f_view", "dimensioned": False,
+             "source": {"reviewer": "hortonyyx", "image_sha256": "0" * 64,
+                        "date": "2026-08-03", "basis": "x"}},
+        ],
+    }), encoding="utf-8")
+    rdir = case_dir / "run_x" / "0_reading"
+    rdir.mkdir(parents=True)
+    (rdir / "1f_view.json").write_text(json.dumps(_plan_with_dims()), encoding="utf-8")
+    (rdir / "2f_view.json").write_text(json.dumps(_EMPTY_PLAN), encoding="utf-8")
+    res = validate_case(case_dir / "run_x", policy=RunPolicy())
+
+    def _state(rep):
+        r = next((x for x in rep.results if x.check_id == "reading.dimensions_present"), None)
+        return r.evidence["dimensioned_state"] if (r and r.evidence) else None
+
+    assert _state(res.reports["0_reading::1f_view"]) == "declared_true"
+    assert _state(res.reports["0_reading::2f_view"]) == "declared_false"   # R1-3: NOT legacy_default
+
+

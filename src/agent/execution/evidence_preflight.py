@@ -187,6 +187,7 @@ def compute_evidence_debt_from_vector_dir(
     run_profile: RunProfile = "exploratory",
     capability_profile: str = "rectangular",
     dimensioned_views: set[str] | None = None,
+    dimensioned_states: dict[str, str] | None = None,
 ) -> EvidenceDebt:
     """Run reading checks and project only evidence debt for correction."""
     report = compute_reading_report_from_vector_dir(
@@ -194,6 +195,7 @@ def compute_evidence_debt_from_vector_dir(
         run_profile=run_profile,
         capability_profile=capability_profile,
         dimensioned_views=dimensioned_views,
+        dimensioned_states=dimensioned_states,
     )
     return project_evidence_debt(report, run_profile=run_profile)
 
@@ -204,10 +206,21 @@ def compute_reading_report_from_vector_dir(
     run_profile: RunProfile = "exploratory",
     capability_profile: str = "rectangular",
     dimensioned_views: set[str] | None = None,
+    dimensioned_states: dict[str, str] | None = None,
 ) -> CheckReport:
-    """Run the full S0 reading checks once and aggregate per-view results."""
+    """Run the full S0 reading checks once and aggregate per-view results.
+
+    R1-3 (派工单 §1.3): ``dimensioned_states`` (per-stem 4-state) is the
+    fidelity-carrying input — it is forwarded to ``check_reading_view`` as the
+    authoritative ``dimensioned_state`` instead of being folded to a bool.
+    ``dimensioned_views`` (a bool set) is kept for backward compatibility: when
+    no 4-state map is given it is promoted to ``{stem: "declared_true"}``, which
+    matches the pre-R1-3 behavior exactly (only an affirmative declared_true
+    counted as dimensioned).
+    """
     vector_dir = Path(vector_dir)
-    dimensioned_views = dimensioned_views or set()
+    if dimensioned_states is None:
+        dimensioned_states = {stem: "declared_true" for stem in (dimensioned_views or set())}
     merged = CheckReport(
         stage="0_reading",
         capability_profile=capability_profile,
@@ -219,7 +232,7 @@ def compute_reading_report_from_vector_dir(
             view,
             capability_profile=capability_profile,
             run_profile=run_profile,
-            view_metadata={"dimensioned": path.stem in dimensioned_views},
+            dimensioned_state=dimensioned_states.get(path.stem, "legacy_default"),
         )
         for result in sub.results:
             merged.results.append(
