@@ -111,12 +111,18 @@ def test_grade_config_rejects_invalid_tolerance_ordering():
         GradeConfig(wall_tol_m=-0.1)
 
 
-def test_run_config_invalid_capability_profile_falls_back_to_cli_authority(tmp_path):
+def test_run_config_invalid_capability_profile_fails_closed(tmp_path):
+    """r2-1 (ruling 2026-08-04 §r2-1): a present-but-invalid capability_profile
+    (e.g. curved_polygon / a one-letter typo) is fail-closed on load, not
+    warn+None. Previously an invalid value warned and returned None, which
+    _resolve_run_profiles then fell back past to the CLI rectangular default —
+    so a typo silently demoted a declared orthogonal_polygon capability (and
+    capability decides correction v2 vs v3 schema). Symmetric with run_profile
+    (R1-2). Absent (key not present) still returns None — see
+    test_run_config_present_fields_parse."""
     (tmp_path / "run_config.yaml").write_text(
         "capability_profile: curved_polygon\n", encoding="utf-8"
     )
 
-    with pytest.warns(RuntimeWarning, match="capability_profile"):
-        cfg = load_run_config(tmp_path)
-
-    assert cfg.capability_profile is None
+    with pytest.raises(ValueError, match="capability_profile_invalid"):
+        load_run_config(tmp_path)
