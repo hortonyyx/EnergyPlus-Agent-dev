@@ -42,12 +42,16 @@ def _minimal_run(tmp_path: Path) -> Path:
 
 
 def test_R1_5_record_baseline_uses_frozen_policy_not_cli_fallback(tmp_path):
-    """The real baseline recorder must consume its frozen policy.  The caller
-    supplies exploratory/no-EP legacy-looking arguments, but the frozen
-    regression/orthogonal/require-EP record controls validation: its
-    ``downstream.build`` row must remain blocking and baseline.json exposes the
-    frozen-policy header.  Neuter: restore the self-rolled RunPolicy from the
-    caller args ⇒ that named row disappears and this lock reds."""
+    """The real baseline recorder must consume its FROZEN TIER + the caller's
+    per-invocation require_ep.  r2-4 (ruling 2026-08-04 §2): require_ep is NO
+    LONGER read from frozen context — it is the caller's operational knob
+    (--with-ep / --require-ep).  A frozen regression/orthogonal run recorded
+    with the caller passing require_ep=True keeps its frozen tier header AND
+    surfaces the downstream.build blocking row because the CALLER asked for EP
+    (not because the frozen context said so).  Neuter: replace
+    effective_run_policy with RunPolicy() (ignoring both the frozen tier and the
+    caller require_ep) ⇒ the tier header drops to exploratory/rectangular and
+    downstream.build disappears ⇒ reds."""
     from src.agent.execution.run_policy_freeze import provision_run_policy
 
     run = _minimal_run(tmp_path)
@@ -55,19 +59,13 @@ def test_R1_5_record_baseline_uses_frozen_policy_not_cli_fallback(tmp_path):
         run,
         run_profile="regression",
         capability_profile="orthogonal_polygon",
-        context={
-            "confirmation_policy": {"value": "required", "source": "sop"},
-            "judge_enabled": {"value": False, "source": "default"},
-            "validation_scope": {"value": "full", "source": "default"},
-            "require_ep": {"value": True, "source": "cli"},
-        },
     )
 
     baseline = record_baseline.record_baseline(
         run,
-        date="2026-08-03",
+        date="2026-08-04",
         orchestrator="test",
-        require_ep=False,
+        require_ep=True,
         run_profile="exploratory",
     )
 
@@ -77,6 +75,8 @@ def test_R1_5_record_baseline_uses_frozen_policy_not_cli_fallback(tmp_path):
     assert policy_header["run_profile"] == "regression"
     assert policy_header["capability_profile"] == "orthogonal_polygon"
     assert policy_header["policy_hash"]
+    # downstream.build is blocking because the CALLER passed require_ep=True
+    # (r2-4: require_ep comes from the caller, never from frozen context).
     assert any(
         row["stage"] == "downstream" and row["check"] == "downstream.build"
         for row in baseline["blocking"]
@@ -85,14 +85,17 @@ def test_R1_5_record_baseline_uses_frozen_policy_not_cli_fallback(tmp_path):
 
 def test_R1_5_record_baseline_marks_unfrozen_run_legacy(tmp_path):
     """An unfrozen replay remains readable but can never impersonate a strict
-    CLI request.  Its baseline header must say legacy-defaulted/exploratory and
-    the strict-only required-EP check is absent.  Neuter: restore the old CLI
-    fallback RunPolicy ⇒ the header disappears and downstream.build appears."""
+    TIER: its baseline header must say legacy-defaulted/exploratory/rectangular
+    regardless of any CLI run_profile request.  r2-4: require_ep is now a
+    caller knob (independent of legacy status); this control records a legacy
+    replay with no EP request (require_ep=False) ⇒ legacy tier markers and no
+    downstream.build row.  The binding is the legacy-defaulted tier
+    (resolve_frozen_run_policy returns legacy_defaulted for an unfrozen run)."""
     baseline = record_baseline.record_baseline(
         _minimal_run(tmp_path),
-        date="2026-08-03",
+        date="2026-08-04",
         orchestrator="test",
-        require_ep=True,
+        require_ep=False,
         run_profile="regression",
     )
 
@@ -100,6 +103,65 @@ def test_R1_5_record_baseline_marks_unfrozen_run_legacy(tmp_path):
     assert baseline["run_policy"]["legacy_defaulted"] is True
     assert baseline["run_policy"]["run_profile"] == "exploratory"
     assert baseline["run_policy"]["capability_profile"] == "rectangular"
+    assert not any(
+        row["stage"] == "downstream" and row["check"] == "downstream.build"
+        for row in baseline["blocking"]
+    )
+
+
+def test_R1_5_record_baseline_context_tamper_does_not_change_blocking(tmp_path):
+    """r2-4 (ruling 2026-08-04 §2.5): tampering ``<run>/_run/run_policy.json``'s
+    ``context.require_ep`` AND recomputing ``content_sha256`` must NOT change
+    baseline accounting — because effective_run_policy no longer reads context
+    for decisions (require_ep comes from the caller per-invocation).  A frozen
+    regression/orthogonal run is provisioned with context.require_ep=False, then
+    the frozen file is tampered to context.require_ep=True with a freshly
+    recomputed self-hash so the record still loads.  Recording with the CALLER's
+    require_ep=False must still produce NO downstream.build blocking row — the
+    tampered context is ignored.  Neuter (b): make effective_run_policy read
+    context.require_ep again ⇒ the tampered True wins over the caller's False ⇒
+    downstream.build appears ⇒ this lock reds."""
+    from src.agent.execution.manifest import hash_obj
+    from src.agent.execution.run_meta import run_meta_path
+    from src.agent.execution.run_policy_freeze import (
+        RUN_POLICY_NAME,
+        provision_run_policy,
+    )
+
+    run = _minimal_run(tmp_path)
+    provision_run_policy(
+        run,
+        run_profile="regression",
+        capability_profile="orthogonal_polygon",
+        context={"require_ep": {"value": False, "source": "cli"}},
+    )
+    # Tamper: flip context.require_ep to True and recompute the record's self-hash
+    # (content_sha256) so the edited record still passes its integrity check —
+    # this is exactly the threat the r2-4 (b) rule removes by not consuming context.
+    policy_path = run_meta_path(run, RUN_POLICY_NAME)
+    payload = json.loads(policy_path.read_text(encoding="utf-8"))
+    payload["context"]["require_ep"]["value"] = True
+    payload["content_sha256"] = hash_obj(
+        {k: v for k, v in payload.items() if k != "content_sha256"}
+    )
+    policy_path.write_text(
+        json.dumps(payload, indent=2, sort_keys=True, separators=(",", ": ")),
+        encoding="utf-8",
+    )
+
+    baseline = record_baseline.record_baseline(
+        run,
+        date="2026-08-04",
+        orchestrator="test",
+        require_ep=False,  # caller's per-invocation value — the authority
+        run_profile="exploratory",
+    )
+
+    # frozen tier still consumed (the tamper only touched context, not the tier)
+    assert baseline["run_policy"]["run_profile"] == "regression"
+    assert baseline["run_policy"]["capability_profile"] == "orthogonal_polygon"
+    # downstream.build is ABSENT because the CALLER passed require_ep=False; the
+    # tampered context.require_ep=True is ignored (r2-4 (b)).
     assert not any(
         row["stage"] == "downstream" and row["check"] == "downstream.build"
         for row in baseline["blocking"]

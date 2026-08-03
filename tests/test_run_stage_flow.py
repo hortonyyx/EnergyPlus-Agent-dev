@@ -1082,12 +1082,14 @@ def test_R1_1_context_not_in_hash_no_drift(tmp_path):
 # fabricate the validation result.
 # --------------------------------------------------------------------------- #
 def test_R1_5_approve_geometry_uses_frozen_policy_check_headers(tmp_path, monkeypatch):
-    """A frozen regression/orthogonal/require-EP run must reach the human
-    geometry gate with those exact CheckReport headers.  The missing EP row is
-    the specific check-id proof that ``require_ep`` came from frozen context,
-    not the old ``RunPolicy()`` defaults.  Neuter: replace effective policy at
-    approve_geometry with ``RunPolicy()`` ⇒ headers become
-    exploratory/rectangular and downstream.build is absent, so this lock reds."""
+    """A frozen regression/orthogonal run must reach the human geometry gate
+    validating at that frozen TIER.  r2-4 (ruling 2026-08-04 §2): require_ep is
+    NO LONGER read from frozen context — it is a per-invocation operational knob,
+    and the geometry gate (which has no --with-ep) validates at the default
+    require_ep=False, so no downstream.build row is produced here.  The frozen
+    tier being consumed (not RunPolicy() defaults) is proven by the stage-report
+    headers.  Neuter: replace effective_run_policy with RunPolicy() ⇒ tier
+    headers become exploratory/rectangular ⇒ this lock reds."""
     from src.agent.execution import validation_run
     from src.agent.execution.run_policy_freeze import provision_run_policy
 
@@ -1097,12 +1099,6 @@ def test_R1_5_approve_geometry_uses_frozen_policy_check_headers(tmp_path, monkey
         run_dir,
         run_profile="regression",
         capability_profile="orthogonal_polygon",
-        context={
-            "confirmation_policy": {"value": "required", "source": "sop"},
-            "judge_enabled": {"value": False, "source": "default"},
-            "validation_scope": {"value": "full", "source": "default"},
-            "require_ep": {"value": True, "source": "cli"},
-        },
     )
     real_validate_case = validation_run.validate_case
     seen = {}
@@ -1118,19 +1114,22 @@ def test_R1_5_approve_geometry_uses_frozen_policy_check_headers(tmp_path, monkey
     ))
 
     assert code == 2  # intentionally no geometry checkpoint in this focused fixture
-    downstream = seen["result"].reports["downstream"]
-    # The in-memory CheckReport is the same header wire written as checks.json
-    # when validate_case is asked to write reports; approval is deliberately read-only.
-    assert downstream.run_profile == "regression"
-    assert downstream.capability_profile == "orthogonal_polygon"
-    assert any(row.check_id == "downstream.build" for row in downstream.results)
+    # r2-4: require_ep comes from the caller (default False here), never from
+    # frozen context ⇒ no "downstream" report. The frozen TIER consumed is proven
+    # by the stage-report headers (regression/orthogonal, not RunPolicy defaults).
+    assert "downstream" not in seen["result"].reports
+    stage_report = seen["result"].reports["1_correction"]
+    assert stage_report.run_profile == "regression"
+    assert stage_report.capability_profile == "orthogonal_polygon"
 
 
 def test_R1_5_geometry_is_approved_uses_frozen_policy_check_headers(tmp_path, monkeypatch):
-    """The resume predicate is the second real geometry caller and must not
-    quietly revalidate at defaults.  Neuter its effective-policy hook ⇒ this
-    exact downstream.build check-id/header assertion reds alongside only the
-    paired approval lock, because both callers intentionally share that hook."""
+    """The resume predicate is the second real geometry caller and must validate
+    at the frozen TIER, not RunPolicy() defaults.  r2-4: require_ep no longer
+    comes from frozen context (geometry gate uses default require_ep=False ⇒ no
+    downstream row).  Neuter effective_run_policy ⇒ the stage-report tier headers
+    red alongside only the paired approval lock, because both callers share that
+    hook."""
     from src.agent.execution import step_orchestrator, validation_run
     from src.agent.execution.run_policy_freeze import provision_run_policy
 
@@ -1140,12 +1139,6 @@ def test_R1_5_geometry_is_approved_uses_frozen_policy_check_headers(tmp_path, mo
         run_dir,
         run_profile="regression",
         capability_profile="orthogonal_polygon",
-        context={
-            "confirmation_policy": {"value": "required", "source": "sop"},
-            "judge_enabled": {"value": False, "source": "default"},
-            "validation_scope": {"value": "full", "source": "default"},
-            "require_ep": {"value": True, "source": "cli"},
-        },
     )
     real_validate_case = validation_run.validate_case
     seen = {}
@@ -1158,7 +1151,7 @@ def test_R1_5_geometry_is_approved_uses_frozen_policy_check_headers(tmp_path, mo
     monkeypatch.setattr(validation_run, "validate_case", capture_validate_case)
     assert step_orchestrator.geometry_is_approved(run_dir) is False
 
-    downstream = seen["result"].reports["downstream"]
-    assert downstream.run_profile == "regression"
-    assert downstream.capability_profile == "orthogonal_polygon"
-    assert any(row.check_id == "downstream.build" for row in downstream.results)
+    assert "downstream" not in seen["result"].reports
+    stage_report = seen["result"].reports["1_correction"]
+    assert stage_report.run_profile == "regression"
+    assert stage_report.capability_profile == "orthogonal_polygon"

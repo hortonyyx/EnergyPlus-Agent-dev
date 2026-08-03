@@ -505,7 +505,11 @@ def record_baseline(
     )
 
     frozen = resolve_frozen_run_policy(run_dir)
-    policy = effective_run_policy(run_dir)
+    # r2-4 (ruling 2026-08-04 §2): require_ep is a per-invocation operational
+    # knob (from the caller's --with-ep / --require-ep), NOT read from the frozen
+    # record's context. The frozen record supplies only the tier (run_profile /
+    # capability_profile) via effective_run_policy.
+    policy = effective_run_policy(run_dir, require_ep=require_ep)
     res = validate_case(run_dir, policy=policy, write_reports=False)
     summary = summarize_gates(res.reports)
     counts = _geometry_counts(run_dir)

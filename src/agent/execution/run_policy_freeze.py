@@ -19,15 +19,22 @@ single hash-bound transaction, mirroring :func:`ReadingExamScope`:
     with no frozen artifact is a legacy replay and resolves to a synthetic
     ``legacy_defaulted=exploratory`` record (read-only, never fails — G-6).
 
-G-4 disclosure (deviates from sol S-2, recorded for review): the drift-detection
-hash covers **only** ``capability_profile + run_profile`` — the two knobs
-:func:`check_reading_stage` actually consumes and that determine gate①
-blocking. sol S-2's original text also included "validation/review relevant
-switches" (confirmation_policy / judge_enabled / validation_scope / require_ep);
-those are recorded into the frozen record's ``context`` as a NON-hash audit
-snapshot but intentionally do not participate in drift detection, because they
-do not affect reading-check blocking and coupling them into the gate①
-transaction would reject runs for irrelevant toggle churn.
+r2-4 (ruling 2026-08-04 §2) — what the drift-detection hash covers, and why.
+The hash covers **only** ``capability_profile + run_profile``. The governing
+rule (§2.1): a knob may be frozen into the "tier policy" and participate in
+drift detection ONLY if it has an external trust root — i.e. it is declared in
+``run_config.yaml``. ``capability_profile`` + ``run_profile`` are the only such
+knobs (structured-declared, and they decide gate① blocking). The operational
+switches — ``require_ep`` (``--with-ep``), draw budget, reread availability,
+``judge_enabled``, ``confirmation_policy``, ``validation_scope`` — are runtime
+knobs with NO external trust root in ``run_config.yaml``; they come from the
+per-invocation CLI call. They are therefore NEVER frozen as tier policy and
+NEVER participate in drift detection. They ARE recorded into the frozen
+record's ``context`` field, but strictly as a NON-authoritative audit snapshot
+(see :attr:`RunPolicyRecord.context`): :func:`effective_run_policy` sources
+them from the caller, never from ``context``, so editing ``context`` (even
+after recomputing this file's self-hash) cannot change any decision — the
+tamper surface is removed by the no-context-consumption rule, not by the hash.
 """
 
 from __future__ import annotations
@@ -80,8 +87,14 @@ class RunPolicyRecord(BaseModel):
     source: Literal["structured_config", "cli", "mixed", "legacy_defaulted"]
     run_profile: RunProfile
     capability_profile: str
-    # G-4: non-hash audit snapshot of the other RunPolicy toggles. May be empty;
-    # never participates in drift detection (only capability_profile+run_profile do).
+    # r2-4 (ruling 2026-08-04 §2.2): NON-AUTHORITATIVE audit snapshot of the
+    # operational RunPolicy toggles recorded at provisioning (require_ep /
+    # confirmation_policy / judge_enabled / validation_scope). Audit-only — NEVER
+    # authoritative, NEVER consumed for decisions (effective_run_policy sources
+    # these from the caller per-invocation, not from here) and never participates
+    # in drift detection. Kept so an auditor can see what the operator declared at
+    # freeze time; tampering it (even after recomputing content_sha256) cannot
+    # change any decision because nothing reads it for decisions.
     context: dict[str, Any] = Field(default_factory=dict)
     legacy_defaulted: bool = False
     policy_hash: Hex64
@@ -313,20 +326,32 @@ def resolve_frozen_run_policy(
     return frozen
 
 
-def effective_run_policy(run_dir: Path | str):
-    """R1-5 (orchestrator ruling 2026-08-03 §1.3): reconstruct the effective
-    :class:`RunPolicy` from the FROZEN run-policy record + its non-hash
-    ``context``, so the geometry-confirmation gate (``confirm_geometry`` /
+def effective_run_policy(
+    run_dir: Path | str,
+    *,
+    require_ep: bool = False,
+    confirmation_policy: "ConfirmationPolicy | str | None" = None,
+    judge_enabled: bool = False,
+    validation_scope: "ValidationScope | str | None" = None,
+):
+    """R1-5 + r2-4 (orchestrator ruling 2026-08-04 §2): reconstruct the effective
+    :class:`RunPolicy` from the FROZEN TIER plus per-invocation operational
+    knobs, so the geometry-confirmation gate (``confirm_geometry`` /
     ``geometry_is_approved``) and ``record_baseline`` judge on the run's declared
-    tier instead of ``RunPolicy()`` defaults (which are the laxest exploratory /
-    rectangular / optional everywhere, regardless of what the run declared).
+    tier instead of ``RunPolicy()`` defaults.
 
-    ``run_profile`` / ``capability_profile`` come from the frozen record; the
-    other toggles (``confirmation_policy`` / ``judge_enabled`` /
-    ``validation_scope`` / ``require_ep``) come from the record's ``context``
-    (recorded by ``_run_policy_context`` at provisioning). A legacy run
-    (``legacy_defaulted``) yields the legacy-default policy — read-only, never
-    impersonates a strict tier (G-6)."""
+    The tier (``run_profile`` / ``capability_profile``) is the only part with an
+    external trust root — it is declared in ``run_config.yaml`` and frozen — so it
+    comes from the frozen record (and a legacy run resolves to a visibly-legacy
+    default, G-6). The operational knobs (``require_ep`` / ``confirmation_policy``
+    / ``judge_enabled`` / ``validation_scope``) are CLI / runtime switches with NO
+    external trust root in ``run_config.yaml``. r2-4 (b) rules they are NEVER read
+    from the frozen record's ``context`` (a non-authoritative audit snapshot — see
+    :attr:`RunPolicyRecord.context`): they are supplied by the caller for the
+    current invocation and default to the ``RunPolicy()`` defaults. This removes
+    the tamper surface outright — editing ``context`` (even after recomputing this
+    file's self-hash) cannot change any decision, because ``context`` is no longer
+    a decision input."""
     from src.agent.execution.policy import (
         ConfirmationPolicy,
         RunPolicy,
@@ -334,36 +359,21 @@ def effective_run_policy(run_dir: Path | str):
     )
 
     record = resolve_frozen_run_policy(run_dir)
-    ctx = record.context or {}
-
-    def _ctx(name: str, default):
-        v = ctx.get(name)
-        return v.get("value", default) if isinstance(v, dict) else default
-
-    # ``context`` is an audit envelope rather than a schema-versioned policy
-    # wire.  Be conservative if an older/corrupt-but-self-hashed record has an
-    # unexpected value: never let a truthy string such as ``"false"`` change
-    # the effective policy.
-    def _bool_ctx(name: str, default: bool) -> bool:
-        value = _ctx(name, default)
-        return value if isinstance(value, bool) else default
-
-    def _enum_ctx(enum_type, name: str, default):
-        value = _ctx(name, default.value)
-        try:
-            return enum_type(value)
-        except ValueError:
-            return default
-
+    if confirmation_policy is None:
+        confirmation_policy = ConfirmationPolicy.OPTIONAL
+    elif not isinstance(confirmation_policy, ConfirmationPolicy):
+        confirmation_policy = ConfirmationPolicy(confirmation_policy)
+    if validation_scope is None:
+        validation_scope = ValidationScope.FULL
+    elif not isinstance(validation_scope, ValidationScope):
+        validation_scope = ValidationScope(validation_scope)
     return RunPolicy(
         run_profile=record.run_profile,
         capability_profile=record.capability_profile,
-        confirmation_policy=_enum_ctx(
-            ConfirmationPolicy, "confirmation_policy", ConfirmationPolicy.OPTIONAL
-        ),
-        judge_enabled=_bool_ctx("judge_enabled", False),
-        validation_scope=_enum_ctx(ValidationScope, "validation_scope", ValidationScope.FULL),
-        require_ep=_bool_ctx("require_ep", False),
+        confirmation_policy=confirmation_policy,
+        judge_enabled=judge_enabled,
+        validation_scope=validation_scope,
+        require_ep=require_ep,
     )
 
 
