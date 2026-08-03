@@ -771,6 +771,145 @@ orchestrate/run_pipeline_self_checks/isolation）未覆盖 `test_run_config.py`�
 遵守派工单「再遇欠规格边界，停下上报 —— 不要自行降级为假设」。等 orchestrator 裁 r2-3 / r2-4 后续作。
 
 
+---
+
+## 8. r2b（r2-3 / r2-4 裁定后返工）
+
+- 上游：[r2b 裁定 + 续派工单](../request/2026-08-04_reading_ruler_r1_batchB_r2b_ruling_and_dispatch.md)（**本轮唯一权威任务书**）·
+  [r2 派工单](../request/2026-08-04_reading_ruler_r1_batchB_r2_dispatch.md)·
+  [交叉审裁定 + r2 清单](../request/2026-08-03_reading_ruler_r1_crossreview_ruling_and_r2.md)
+- 前置状态：HEAD `25b94dc`（批 B r2 §7 收尾）。r2-1 / r2-2 已落库（`6ff9f4e` / `d601130`）。
+  **两条停下上报（§7.3 r2-3 / §7.4 r2-4）orchestrator 都判成立、裁定已出**：
+  - **r2-3 改判**：解除原派工单「不许改生产码」限制；删冗余 + 内联 judge + 核实 R1-1 既有锁。
+  - **r2-4 采纳 (b)**：effective_run_policy 停止从 context 取判定值；授权改写受影响 R1-5 锁。
+- 本段交付：r2-3 ✅ commit `2ea029f` · r2-4 ✅ commit `7dc31bd`。全仓 **2095 passed + 10 xfailed 零红**（基线 2094 + r2-4 新增 tamper 锁 1）。
+
+### 8.1 r2-3（删冗余 `_policy_with_frozen_tier` + cmd_judge 内联 + 核实 R1-1c 既有锁）✅ commit `2ea029f`
+
+**裁定要点**：`_policy_with_frozen_tier` 在 cmd_run/cmd_flow 上是结构性冗余——R1-1 的
+`_resolve_run_profiles`(config-wins) 已让 `_make_policy` 直接带冻结档 ⇒ 冻结档恒等于当次
+resolved 档 ⇒ override 是恒空操作（§7.3 已双实证、裁定 §1.1 orchestrator 独立核实并补证 cmd_judge
+第三路同样恒空）。其 docstring 声称「every correction/modelling/grade/check consumer gets the
+frozen tier」今天是假的——与 r2-4 的 G-4 假注释同族（模块声称在守、其实没守）。
+
+**改动**（`scripts/tool_scripts/run_stage.py`，-22/+13）：
+1. **删除 `_policy_with_frozen_tier` 函数体**（原 1707–1721）+ **cmd_run / cmd_flow 两处调用**
+   （原 1965 / 2164）。删除后档位一致性由三处真守卫保证：① R1-1 `_resolve_run_profiles`
+   （config-wins）；② provisioning drift 门；③ R1-5 `effective_run_policy`。
+2. **cmd_judge 不删，改成内联「档位来自冻结记录」**：原 `_make_policy(args.run_profile,
+   args.capability_profile)` + `_policy_with_frozen_tier` → 改为 `resolve_frozen_run_policy(run_dir)`
+   取冻结档（取不到标 legacy），注释写明「本路当前无 tier 消费者（submit_verdict 只读 draw
+   budget + reading_runner_available），此处只保证来源正确」。
+3. **⛔ 不新增「断言未被消费的值」式锁**（本项目「记录了就以为守住」第二类假锁）。
+   **登记债 D-4**（注释内已写明）：若将来 judge 路出现读档位的消费者，必须同时补回归锁。
+
+**R1-1c 既有锁真绑——双 neuter 复跑**（`/tmp/neuter_r2_3_r11c.py` + `_header.py`）：
+
+R1-1c（`test_R1_1_flow_regression_freezes_to_reading_checks_header`）断言：config 声明
+regression+orthogonal ⇒ 真 cmd_flow + 真 `_draw_reading` ⇒ attempt checks.json 头部
+run_profile=regression / capability=orthogonal / run_policy_sha256 / structured_config +
+`1f_view.reading.dimension_chain_closure` 在 regression 下 BLOCK。**关键**：checks.json 头部来自
+`_draw_reading` 内的 `resolve_frozen_run_policy`（读冻结记录），**不经过被删的
+`_policy_with_frozen_tier`**——故删它不影响 R1-1c。
+
+| neuter | 摘掉处 | R1-1c 结果 | 失败模式 |
+|---|---|---|---|
+| config-wins → CLI-only | `_resolve_run_profiles` 解析行（`cfg_run or` → `cli_run or`） | **红** | drift 门 guard② 拦住：`run_policy_drift: run_config.yaml run_profile='regression' differs from frozen 'exploratory'`（散度在产 checks.json 前即 raise） |
+| `_draw_reading` 冻结档读取 → exploratory | else 分支 `eff_run_profile = policy_record.run_profile` → `"exploratory"` | **红** | **经自身头部断言**：`assert report.run_profile == "regression"` → `AssertionError: assert 'exploratory' == 'regression'`（且 exploratory 下 closure 为 FLAG 非 BLOCK，`report.blocking()` 亦红） |
+
+两条 neuter 都红 ⇒ **R1-1c 真绑**（删 `_policy_with_frozen_tier` 后冻结档到达 checks.json 的性质
+仍由 R1-1c 守住，经 config-wins 解析 + `_draw_reading` 冻结读取两根线）。两脚本均精确替换→跑→
+**立即恢复**，工作树复原（`git diff` 仅余未提交编辑，无 neuter 残留）。
+
+**受影响子集**（test_run_stage_flow + test_orchestrate_baseline + test_step_orchestrator +
+test_reading_ruler_r1_batchB，`-n 6`）⇒ **123 passed + 1 xfailed 零红**（删冗余不破坏行为）。
+
+### 8.2 r2-4（effective_run_policy 收回 context 消费 + 改写 R1-5 锁 + 补篡改面锁）✅ commit `7dc31bd`
+
+**判据**（裁定 §2.1，写进 G-4 注释）：**只有在 `run_config.yaml` 里声明的东西才有外部信任根，
+才配冻结成「档位政策」并参与防漂移；命令行运行期开关（`--with-ep` / draw budget / reread
+availability / judge 开关 / validation_scope）一律来自当次调用、不冻结、不据以判定。** 据此 (a) 从
+一开始就不成立（`content_sha256`/`policy_hash` 都能自行重算，`require_ep` 不在 config 里 ⇒ 无外部根）。
+
+**改动逐条**：
+
+1. **`effective_run_policy` 停止从 context 取判定值**（`run_policy_freeze.py:329`）：签名改为
+   `effective_run_policy(run_dir, *, require_ep=False, confirmation_policy=None,
+   judge_enabled=False, validation_scope=None)`——4 个操作旋钮由**调用方按当次调用传入**
+   （默认 `RunPolicy()` 默认值）；档位仍取冻结 record 的 run_profile / capability_profile（有外部根）。
+   删除原 `_ctx` / `_bool_ctx` / `_enum_ctx` 三段 context 解析逻辑。**从结构上消除篡改面**：
+   编辑 context（哪怕重算 `content_sha256`）改不了任何判定，因为 context 不再是判定输入。
+   - `record_baseline.py:508` 改传 `effective_run_policy(run_dir, require_ep=require_ep)`（require_ep
+     来自 CLI `--with-ep` / `--require-ep`）。
+   - geometry 门（`step_orchestrator.py:485 / 507` 的 approve_geometry / geometry_is_approved，无
+     `--with-ep` 入口）用默认 `require_ep=False`（生产亦然：flow 的 auto-approve 也不传 require_ep）。
+2. **context 块标注为非权威审计快照**（`run_policy_freeze.py` `RunPolicyRecord.context` 字段注释）：
+   「NON-AUTHORITATIVE audit snapshot … NEVER authoritative, NEVER consumed for decisions
+   (effective_run_policy sources these from the caller, not here)」。
+3. **改写 G-4 免责声明**（`run_policy_freeze.py` 模块 docstring）：写成实况 + §2.1 判据，⛔ 删除
+   「这些开关不影响 reading-check blocking 所以不进哈希」旧理由（已不成立：require_ep 经
+   effective_run_policy 决定 downstream.build fail-closed）。
+4. **改写受影响 R1-5 锁**（裁定授权）：
+   - **2 条 geometry 锁**（`test_run_stage_flow.py`）：require_ep 不再来自 frozen context ⇒ geometry
+     门（require_ep=False）不再产 downstream 行；锁改为断言**冻结 tier 头**（`reports["1_correction"]`
+     的 run_profile=regression / capability=orthogonal，非 RunPolicy 默认）+ `downstream not in reports`。
+   - **record_baseline frozen 锁**（`test_orchestrate_baseline.py`）：改为断言冻结 tier 头 +
+     **调用方** `require_ep=True` ⇒ downstream.build 阻断行（require_ep 来自调用方、非 frozen context）。
+   - **legacy 对照锁**：`require_ep=True→False`（r2-4 后 require_ep 是调用方旋钮、与 legacy 状态独立；
+     legacy 仍标 legacy-defaulted/exploratory/rectangular 不冒充严格档）。
+5. **补篡改面消失锁** `test_R1_5_record_baseline_context_tamper_does_not_change_blocking`
+   （`test_orchestrate_baseline.py`）：provision 冻结 regression/orthogonal（context.require_ep=False）
+   → **篡改 run_policy.json 的 context.require_ep=True 并重算 content_sha256**（用 `hash_obj` 重算
+   payload 自哈希，使篡改件仍通过完整性校验）→ `record_baseline(require_ep=False)` ⇒ 断言 baseline
+   阻断行**仍无 downstream.build**（篡改的 context 被忽略）+ 冻结 tier 头仍 regression/orthogonal
+   （篡改只动 context、未动 tier）。
+
+**neuter 自查表**（`/tmp/neuter_r2_4.py`，两 neuter 各替换→跑 5 锁→立即恢复）：
+
+| neuter | 摘掉处 | 红的锁 | 绿的锁（合理） |
+|---|---|---|---|
+| **A**（`effective_run_policy` → `return RunPolicy()` 全默认） | 最终 return | **2 geometry 锁 + record_baseline frozen 锁**（裁定 §2.4 要求「这两条锁」= geometry 两锁必红；frozen 锁亦红，bonus） | legacy 对照（legacy 默认 == RunPolicy 默认）；**tamper 锁**（其 tier 断言取自 `frozen` 非 `effective`，downstream.build 缺席断言在 require_ep=False 下成立——tamper 锁只该被 neuter B 红） |
+| **B**（`effective_run_policy` 读 `record.context.require_ep`、覆盖调用方） | `record = resolve…` 后注入 `_ctx_req` | **tamper 锁**（篡改 True 覆盖调用方 False ⇒ downstream.build 出现 ⇒ 「缺席」断言红，裁定 §2.5 要求）+ record_baseline frozen 锁（空 context 覆盖调用方 True，副作用） | 2 geometry 锁（neuter B 只动 require_ep、geometry 锁断言 tier 不受影响）；legacy 对照 |
+
+⇒ **neuter A 红 geometry 两锁（r1 轻门验过的性质保留、未在改写中丢掉）；neuter B 红 tamper 锁
+（(b) 实现真绑）**。两 neuter 各精确命中、零假锁。脚本立即恢复，工作树无残留。
+
+**受影响子集**（test_orchestrate_baseline + test_run_stage_flow + test_step_orchestrator +
+test_reading_ruler_r1_batchB，`-n 6`）⇒ **124 passed + 1 xfailed 零红**（含新增 tamper 锁）。
+
+### 8.3 全仓测试结果（交付前一次全仓，⛔ 无 `-m`）
+
+`pytest -q -n 6` ⇒ **2095 passed + 10 xfailed，零红**（基线 2094 + r2-4 新增 tamper 锁 1 = 2095，
+精确符合、零回归）。sm24/sm21 manifest byte guard 仍随全仓绿（r2b 未碰 manifest / gt / testdata）。
+
+### 8.4 合规自检
+
+| 项 | 结论 |
+|---|---|
+| 锁走真实 CLI 入口（argparse/cmd_*） | ✅ r2-3 删冗余无新锁；R1-1c 经真 cmd_flow；r2-4 改写锁经真 cmd_approve_geometry / 真 record_baseline / 真 geometry_is_approved |
+| 断言落具体 check-id 行 + checks.json/baseline 头部字段 | ✅ R1-1c 落 `report.run_profile`+`dimension_chain_closure` BLOCK；r2-4 锁落 stage-report tier 头 + baseline `run_policy` 头 + `blocking` 行 |
+| 每条 neuter 自查如实登记 | ✅ r2-3 双 neuter（R1-1c）；r2-4 双 neuter（A/B）均贴结果 |
+| neuter 选点覆盖本单正文点名的实现 | ✅ r2-3 点名 `_policy_with_frozen_tier`（已删）+ R1-1c；r2-4 点名 `effective_run_policy` context 消费 |
+| 不 push | ✅ HEAD `7dc31bd`，未 push |
+| 不碰 `gt/**` 与 sm24 `testdata_prompt.json` | ✅ r2b 零触碰（4 文件 = run_policy_freeze / record_baseline / 2 测试） |
+| 不读 GT | ✅ |
+| 不做批 C/D/R1.5 | ✅ 批 C 半截仍在 stash 未取 |
+| 不动 `AI_agent/` 下除自己执行日志外的管理文档 | ✅ plan.md M 为前置既有、非本次 |
+| 做完一件存一件、每条改完即 commit | ✅ r2-3 `2ea029f` / r2-4 `7dc31bd` 两条本地 commit |
+
+### 8.5 给 orchestrator 的交付摘要
+
+- **r2-3 已落库**（`2ea029f`）：删 `_policy_with_frozen_tier` 函数体 + cmd_run/cmd_flow 调用；
+  cmd_judge 内联冻结档来源；债 D-4 已登记（注释 + 本段）。R1-1c 既有锁经双 neuter 证实真绑
+  （删冗余后冻结档到达 checks.json 的性质未失）。**未伪造锁、未改不该改的生产码逻辑。**
+- **r2-4 已落库**（`7dc31bd`）：采纳 (b)，effective_run_policy 收回 context 消费、4 旋钮改调用方
+  传入；context 标非权威审计快照；G-4 改写实况 + §2.1 判据；改写受影响 R1-5 锁（neuter A 红
+  geometry 两锁、性质保留）；补篡改面消失锁（neuter B 红）。**未只改注释（G-4 与代码改动同落）。**
+- 全仓 2095 passed + 10 xfailed 零红。
+
+本轮未遇新的欠规格边界（裁定书已把 r2-3/r2-4 的形态与判据给定死），照裁定执行完毕。
+
+
 
 
 
