@@ -446,6 +446,45 @@ validation_run_baseline + a8_evidence_routing + view_manifest_generator，`-n 6`
 **325 passed + 8 xfailed，零红**（含 r0 13 锁 + R1-1 三锁 + R1-2 两锁 + J-2 三锁 + R1-3 三锁 +
 R1-4 一锁 + 保哈希守卫）。
 
+### 6.9 R1-6（provenance: source.image_sha256 必须比对真实图像 hash）✅ 完成
+
+**病灶**（派工单 §1.6）：`_structured_dimensioned_map`（`view_manifest.py`）只校验 `source.reviewer`
+非空；`image_sha256` / `date` / `basis` 一律不查；**`image_sha256` 从不与该 view 的真实图像 hash
+比对**。`source_hash = hash_obj(source)` 只证明「声明后来没被改」、证明不了「当初是真的」。锁 fixture
+用 `"0"*64` 当图像 hash 并期望通过 ⇒ **一份伪造的「hortonyyx 已签字」声明可畅通无阻**——而这正是
+S-3 要建的那个信任根。
+
+**改动**（`src/agent/execution/view_manifest.py`，保哈希：sm24/sm21 不含结构化声明 ⇒ 不触发）：
+- `_structured_dimensioned_map` 改返回 `(structured_dim, declared_image_hashes)` + 校验
+  `source.image_sha256` 为非空字符串（提取进 `declared_hashes`）。
+- `build_view_manifest` 在所有 required entry 构造后（Floor plans/elevation/supplementary 三段
+  `_register` 完）加 **R1-6 校验循环**：对每个结构化声明的 `declared_image_hashes[stem]` 与该 entry
+  的真实 `image_sha256` 比对；不等 ⇒ `source.image_sha256 mismatch` raise（伪造签字被拒）；声明的
+  stem 无对应 required view ⇒ raise。legacy（`declared_image_hashes={}`）跳过 ⇒ sm24/sm21 字节不变。
+
+**为何校验放 build_view_manifest 而非 _structured_dimensioned_map**：真实 image_hash 在 entry 构造
+时算（`_normalize_declared_path` 的 `hash_file`），晚于 `_structured_dimensioned_map`（:940）。把
+declared_hashes 一路带到 entry 构造后比对，避免重复 family 解析；DimensionedApplicability schema
+**不加字段**（`source.image_sha256` 只用于校验、不进 manifest）⇒ 保哈希。
+
+**fixture 真值**（`tests/test_reading_ruler_r1_batchB.py` `_set_structured_dim`）：先 `build_view_manifest`
+原 testdata 算每个 required view 的真实 image_hash，写进 declarations 的 `source.image_sha256`
+（覆盖 `"0"*64` 占位）⇒ r0 锁（L-20_complete/L-20_unknown/L-21）+ R1-4 锁用真 hash 继续 绿。
+
+**锁**：**R1-6 forged image hash rejected** —— SM21 结构化声明 `1f_view` + `source.image_sha256="f"*64`
+（非真实 hash，不经 `_set_structured_dim`）⇒ `build_view_manifest` raise `source.image_sha256 mismatch`。
+对照 = r0 L-20_structured_complete（`_set_structured_dim` 填真 hash ⇒ build 成功）。
+
+**neuter 自查**（`/tmp/neuter_r1_6.py`）：短路校验循环（`if False and declared_image_hashes:`）⇒
+红 **R1-6**（假 hash 通过 ⇒ DID NOT RAISE）、**绿 L-20_structured_complete + 保哈希守卫**（真 hash
+不校验也通过 / sm24·sm21 legacy 不进）⇒ **R1-6 锁唯一绑 hash 比对、零连带**。POST-RESTORE 3 passed。
+
+**受影响子集**（14 文件：batchB + view_manifest_generator/schema/coverage + isolation + merge +
+reading_typed_scoring_slice0/1 + reading_typed_adapter/score_integration + c2_b4b_phase_d/contract +
+run_pipeline_self_checks + run_stage_flow，`-n 6`）⇒ **437 passed，零红**（含 r0 13 锁 + R1-1/2/3/4 +
+J-2 + R1-6 + 保哈希守卫）。
+
+
 
 
 

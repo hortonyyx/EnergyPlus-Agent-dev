@@ -75,6 +75,19 @@ def _structured_dim_decl(view: str, dim_flag: bool, reviewer: str = "hortonyyx")
 def _set_structured_dim(case_dir: Path, declarations: list[dict]) -> None:
     tp = case_dir / "case_data/testdata_prompt.json"
     data = json.loads(tp.read_text(encoding="utf-8"))
+    # R1-6: stamp each declaration's source.image_sha256 with the view's REAL
+    # image hash so the provenance check passes — the "0"*64 placeholder is now
+    # refused. Build the manifest from the ORIGINAL testdata (before overwriting
+    # dimensioned_views) to read each required view's real image hash.
+    real = {
+        e.expected_output_id: e.image_sha256
+        for e in build_view_manifest(case_dir).required_entries()
+    }
+    for decl in declarations:
+        view = decl.get("view")
+        stem = Path(view).stem if (isinstance(view, str) and Path(view).suffix) else view
+        if isinstance(stem, str) and stem in real:
+            decl.setdefault("source", {})["image_sha256"] = real[stem]
     data["dimensioned_views"] = declarations
     tp.write_text(json.dumps(data), encoding="utf-8")
 
@@ -224,6 +237,33 @@ def test_R1_4_strict_applicability_refusal_leaves_no_artifact(tmp_path: Path):
     # R1-4: refusal BEFORE any freeze write — neither artifact on disk
     assert not (run_dir / "_run/view_manifest.json").exists()
     assert not (run_dir / "_run/run_policy.json").exists()
+
+
+# --------------------------------------------------------------------------- #
+# R1-6 · provenance: source.image_sha256 must match the view's REAL image hash
+# (r1 派工单 §1.6: 伪造签字声明被拒)
+# --------------------------------------------------------------------------- #
+def test_R1_6_forged_image_hash_rejected(tmp_path: Path):
+    """R1-6: 结构化声明的 source.image_sha256 必须与该 view 的真实图像 hash 一致；
+    伪造（占位 hash，非真实）⇒ build_view_manifest raise。r0 的 _structured_dimensioned_map
+    只查 source.reviewer 非空，image_sha256 从不比对真实 hash ⇒ 一份伪造的
+    'hortonyyx 已签字'声明可畅通无阻（正是 S-3 要建的信任根）。fixture 不经
+    _set_structured_dim（它填真 hash），直接写一个假 hash。
+    Neuter: 去掉 build_view_manifest 的 declared vs real 比对 ⇒ 假 hash 通过 ⇒
+    pytest.raises 失败 ⇒ 红。"""
+    case_dir = _case_copy(tmp_path, SM21)
+    tp = case_dir / "case_data/testdata_prompt.json"
+    data = json.loads(tp.read_text(encoding="utf-8"))
+    # forged: real reviewer + a placeholder image hash that is NOT the real hash
+    data["dimensioned_views"] = [
+        {"view": "1f_view", "dimensioned": True,
+         "source": {"reviewer": "hortonyyx", "image_sha256": "f" * 64,
+                    "date": "2026-08-03", "basis": "forged sign-off"}}
+    ]
+    tp.write_text(json.dumps(data), encoding="utf-8")
+    with pytest.raises(ValueError, match="source.image_sha256 mismatch"):
+        build_view_manifest(case_dir)
+
 
 
 

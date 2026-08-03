@@ -716,12 +716,13 @@ def _dimensioned_stems_declared(data: dict) -> set[str]:
 
 def _structured_dimensioned_map(
     data: dict, case_metadata_sha256: str
-) -> dict[str, DimensionedApplicability] | None:
-    """S-3: parse a structured ``dimensioned_views`` declaration (a list of
-    ``{view, dimensioned, source}`` objects) into per-stem applicability records.
+) -> tuple[dict[str, DimensionedApplicability] | None, dict[str, str]]:
+    """S-3 + R1-6: parse a structured ``dimensioned_views`` declaration (a list of
+    ``{view, dimensioned, source}`` objects) into per-stem applicability records
+    AND the per-stem declared ``source.image_sha256`` for provenance verification.
 
-    Returns ``None`` for the legacy forms (absent key, or stem-string list) so
-    :func:`build_view_manifest` keeps byte-identical bools — and therefore a
+    Returns ``(None, {})`` for the legacy forms (absent key, or stem-string list)
+    so :func:`build_view_manifest` keeps byte-identical bools — and therefore a
     stable ``content_sha256`` — for every existing case (sm24 absent ⇒ all-False,
     sm21 stem-list ⇒ membership bools). Only a list-of-objects declaration
     activates the structured, provenance-bound wire.
@@ -729,13 +730,18 @@ def _structured_dimensioned_map(
     Each object's ``source`` (``{image_sha256, reviewer, date, basis}``) becomes
     the audit basis: ``authority`` = the human reviewer, ``source_hash`` = the
     hash of the whole source object (so the sm24 sign-off is machine-visible and
-    tamper-evident). A required view MISSING from the declaration is not folded
-    to False here — :func:`_entry_dimensioned` surfaces it as ``unknown`` and the
-    strict-profile provisioning wrapper fail-closes on it (L-20).
+    tamper-evident). ``declared_hashes`` carries each entry's declared
+    ``source.image_sha256`` so :func:`build_view_manifest` can verify it against
+    the view's REAL image hash (R1-6): ``source_hash`` only proves the declaration
+    was not tampered with after the fact, not that it was ever true — so a forged
+    ``hortonyyx`` sign-off with a placeholder hash is refused. A required view
+    MISSING from the declaration is not folded to False here —
+    :func:`_entry_dimensioned` surfaces it as ``unknown`` and the strict-profile
+    provisioning wrapper fail-closes on it (L-20).
     """
     raw = data.get("dimensioned_views")
     if not isinstance(raw, list) or not raw:
-        return None
+        return None, {}
     # J-2 (orchestrator ruling 2026-08-03 §2): a ``dimensioned_views`` list must
     # be ALL strings (legacy) or ALL objects (structured with provenance). A MIXED
     # list (strings + objects) is malformed — it is neither legal form — and was
@@ -753,8 +759,9 @@ def _structured_dimensioned_map(
         )
     # all strings (or all non-objects) ⇒ legacy form; object-list wire stays off
     if has_non_object:
-        return None
+        return None, {}
     out: dict[str, DimensionedApplicability] = {}
+    declared_hashes: dict[str, str] = {}
     for item in raw:
         view = item.get("view")
         if not isinstance(view, str) or not view:
@@ -777,6 +784,14 @@ def _structured_dimensioned_map(
             raise ValueError(
                 f"dimensioned_views entry {view!r} source.reviewer must be a non-empty string"
             )
+        # R1-6 (派工单 §1.6): source.image_sha256 must be present; build_view_manifest
+        # verifies it against the view's REAL image hash (a forged sign-off with a
+        # placeholder hash is refused). source_hash alone cannot prove authenticity.
+        decl_hash = source.get("image_sha256")
+        if not isinstance(decl_hash, str) or not decl_hash:
+            raise ValueError(
+                f"dimensioned_views entry {view!r} source.image_sha256 must be a non-empty string"
+            )
         if stem in out:
             raise ValueError(f"dimensioned_views duplicate view: {stem!r}")
         out[stem] = DimensionedApplicability(
@@ -784,7 +799,8 @@ def _structured_dimensioned_map(
             authority=reviewer,
             source_hash=hash_obj(source),
         )
-    return out
+        declared_hashes[stem] = decl_hash
+    return out, declared_hashes
 
 
 def _entry_dimensioned(
@@ -952,7 +968,7 @@ def build_view_manifest(case_dir: Path | str) -> ViewManifest:
     dimensioned_stems = _dimensioned_stems_declared(data)
     # S-3: structured dimensioned_views (object list) activates the provenance-bound
     # wire; None = legacy (absent / stem-string list) ⇒ bools stay byte-identical.
-    structured_dim = _structured_dimensioned_map(data, case_metadata_sha256)
+    structured_dim, declared_image_hashes = _structured_dimensioned_map(data, case_metadata_sha256)
 
     entries: dict[str, "RequiredViewEntry | ExcludedInputEntry"] = {}
     expected_ids: dict[str, str] = {}
@@ -1098,6 +1114,32 @@ def build_view_manifest(case_dir: Path | str) -> ViewManifest:
             ),
         )
         _register(entries, expected_ids, classified_files, entry, basename)
+
+    # R1-6 (派工单 §1.6): a structured declaration's source.image_sha256 must
+    # match the view's REAL image hash. source_hash only proves the declaration
+    # was not tampered with AFTER the fact, not that it was ever true — so a
+    # forged sign-off (reviewer "hortonyyx" + a placeholder hash) is refused.
+    # Legacy cases (no structured declaration) have an empty declared_image_hashes
+    # and skip this entirely, so sm24/sm21 stay byte-identical.
+    if declared_image_hashes:
+        _real_image_hashes = {
+            e.expected_output_id: e.image_sha256
+            for e in entries.values()
+            if isinstance(e, RequiredViewEntry)
+        }
+        for stem, declared in sorted(declared_image_hashes.items()):
+            real = _real_image_hashes.get(stem)
+            if real is None:
+                raise ValueError(
+                    f"dimensioned_views entry {stem!r} source declares a view with no "
+                    f"matching required input image"
+                )
+            if declared != real:
+                raise ValueError(
+                    f"dimensioned_views entry {stem!r} source.image_sha256 mismatch — "
+                    f"declared {declared} does not match the real image hash {real}; "
+                    f"a forged sign-off declaration is refused (R1-6)"
+                )
 
     # 4. explicit `views{}` overlay exclusions (non_drawing_asset / derived_working_copy
     #    declared by stem, not auto-detected — the only machine-readable path to mark a
