@@ -84,3 +84,44 @@ def test_L51_over_budget_structural_canvas_is_refused_not_clamped():
     }
     with pytest.raises(rv.CanvasBudgetExceeded):
         rv.render(huge)
+
+
+def test_L53_large_legit_building_renders_via_adaptive_scale():
+    """N-3 (invariant #6): a legitimate but large building (here 200 x 20 m — a
+    real bar building using only ~1/5 of the total pixel budget) must RENDER,
+    not be refused. The old fixed SCALE_PX_PER_M=45 made any single side over
+    ~182 m (8192/45) unrenderable, baking in a 'no building over ~182 m'
+    assumption that blocks future complexity (long bars, setbacks unfolded into
+    elevations, atrium sections, site plans). The fix ADAPTIVELY scales px/m to
+    the structural extent — this is NOT clamping (the metric geometry is
+    preserved; only the pixel resolution adapts) — and refuses only a genuinely
+    absurd structure (>8 km side, pinned by test_L51_over_budget...). A bad OCR
+    anchor is still never clamped: O-4 keeps it out of the extent and gate①
+    (reading.ocr_anchors_in_bounds) surfaces it.
+
+    Neuter: revert to the fixed SCALE_PX_PER_M (drop the adaptive _fit_scale, so
+    the 200 m side maps to 200*45=9000 px) ⇒ 9000 > MAX_CANVAS_SIDE_PX ⇒
+    CanvasBudgetExceeded ⇒ this lock reds (the legit building is refused
+    again)."""
+    data = {
+        "image_kind": "plan",
+        "strokes": [
+            {"pen": "wall", "geometry": {"kind": "line", "p1": [0, 0], "p2": [200, 0]}},
+            {"pen": "wall", "geometry": {"kind": "line", "p1": [0, 0], "p2": [0, 20]}},
+            {"pen": "wall", "geometry": {"kind": "line", "p1": [200, 0], "p2": [200, 20]}},
+            {"pen": "wall", "geometry": {"kind": "line", "p1": [0, 20], "p2": [200, 20]}},
+        ],
+    }
+    img = rv.render(data)  # must NOT raise — a legit 200 m bar renders
+    # canvas fits BOTH budgets (adaptive scale chose a lower px/m, not a refusal)
+    assert img.size[0] <= rv.MAX_CANVAS_SIDE_PX
+    assert img.size[1] <= rv.MAX_CANVAS_SIDE_PX
+    assert img.size[0] * img.size[1] <= rv.MAX_CANVAS_PIXELS
+    # the 200 m side was DOWNSCALED to fit — at the fixed 45 px/m it would be
+    # 9000 px (> MAX_CANVAS_SIDE_PX, refused); adaptive keeps it under the cap,
+    # proving the resolution adapted rather than the building being refused
+    assert img.size[0] < 200 * rv.SCALE_PX_PER_M
+    # the canvas is still legible (not degenerated to a sliver) and keeps the
+    # long bar's aspect ratio (uniform adaptive scaling, not a per-side clamp)
+    assert img.size[0] > 100 and img.size[1] > 100
+    assert img.size[0] / img.size[1] > 5

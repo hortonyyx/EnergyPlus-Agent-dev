@@ -78,6 +78,21 @@ def _collect_points(data: dict) -> list[tuple[float, float]]:
     return pts
 
 
+def _fit_scale(extent_w_m: float, extent_h_m: float) -> float:
+    """N-3 (invariant #6): the largest render scale (px/m) ``<= SCALE_PX_PER_M``
+    that keeps the canvas within BOTH the per-side and total-pixel budgets.
+    Small structures render at the nominal ``SCALE_PX_PER_M`` (unchanged —
+    current cases are byte-identical); a legitimately large structure (e.g. a
+    200 m bar) downscales to fit instead of being refused outright. This is NOT
+    clamping: the metric geometry is preserved and only the pixel resolution
+    adapts (what every map renderer does)."""
+    longest = max(extent_w_m, extent_h_m, 1e-9)
+    side_fit = MAX_CANVAS_SIDE_PX / longest
+    area = extent_w_m * extent_h_m
+    total_fit = (MAX_CANVAS_PIXELS / area) ** 0.5 if area > 0 else float("inf")
+    return min(SCALE_PX_PER_M, side_fit, total_fit)
+
+
 def render(data: dict) -> Image.Image:
     pts = _collect_points(data)
     if not pts:
@@ -89,23 +104,35 @@ def render(data: dict) -> Image.Image:
     ys = [p[1] for p in pts]
     minx, maxx = min(xs) - MARGIN_M, max(xs) + MARGIN_M
     miny, maxy = min(ys) - MARGIN_M, max(ys) + MARGIN_M
-    W = max(1, int((maxx - minx) * SCALE_PX_PER_M))
-    H = max(1, int((maxy - miny) * SCALE_PX_PER_M))
-    # G-8: refuse an over-budget canvas BEFORE Image.new — never clamp (O-4).
-    if W > MAX_CANVAS_SIDE_PX or H > MAX_CANVAS_SIDE_PX or W * H > MAX_CANVAS_PIXELS:
+    extent_w_m = maxx - minx
+    extent_h_m = maxy - miny
+    # N-3 (invariant #6): post-O-4 the extent comes from STRUCTURE only (OCR
+    # anchors no longer expand it), so an over-budget canvas is now always a
+    # genuinely-large structure, never a bad anchor. Refuse ONLY the absurd case
+    # — a structural side longer than the cap even at 1 px/m (a >8 km "building"
+    # is not real). Legit large structures (a 200 m bar, a site plan) ADAPTIVELY
+    # downscale instead of being refused. ⛔ Never clamp bad data: a pixel OCR
+    # anchor is kept out of the extent by O-4 and surfaced by gate①
+    # (reading.ocr_anchors_in_bounds), not silently rendered away here.
+    if max(extent_w_m, extent_h_m) > MAX_CANVAS_SIDE_PX:
         raise CanvasBudgetExceeded(
-            f"canvas {W}x{H} ({W * H} px) exceeds the pixel budget "
-            f"(side <= {MAX_CANVAS_SIDE_PX}, total <= {MAX_CANVAS_PIXELS}); "
-            f"structural extent = {maxx - minx:.1f} x {maxy - miny:.1f} m. "
-            "Annotation must not expand the canvas; a pixel anchor mistaken for "
-            "metric is the likely cause (O-4)."
+            f"structural extent {extent_w_m:.1f} x {extent_h_m:.1f} m exceeds the "
+            f"renderable size (a side > {MAX_CANVAS_SIDE_PX} m even at 1 px/m). "
+            "This is a genuinely-too-large structure, NOT an OCR-anchor issue "
+            "(O-4 keeps anchors out of the canvas extent; a pixel anchor is "
+            "surfaced by gate① reading.ocr_anchors_in_bounds)."
         )
+    # N-3: adapt the px/m to the extent — small structures keep SCALE_PX_PER_M
+    # (current cases byte-identical), large ones downscale to fit the budget.
+    scale = _fit_scale(extent_w_m, extent_h_m)
+    W = max(1, int(extent_w_m * scale))
+    H = max(1, int(extent_h_m * scale))
 
     def tx(x: float) -> float:
-        return (x - minx) * SCALE_PX_PER_M
+        return (x - minx) * scale
 
     def ty(y: float) -> float:
-        return H - (y - miny) * SCALE_PX_PER_M
+        return H - (y - miny) * scale
 
     img = Image.new("RGB", (W, H), (250, 250, 250))
     dr = ImageDraw.Draw(img)
