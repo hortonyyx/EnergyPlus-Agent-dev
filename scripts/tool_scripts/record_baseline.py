@@ -28,6 +28,7 @@ from pathlib import Path
 from src.agent.execution import load_state, summarize_gates, validate_case
 from src.agent.execution.approval import APPROVAL_NAME
 from src.agent.execution.manifest import MANIFEST_NAME
+from src.agent.execution.reading_mode import provision_reading_mode, resolve_reading_mode
 from src.agent.execution.run_config import RunConfig, load_run_config
 from src.agent.execution.run_meta import RUN_META_DIR, run_meta_path
 from src.agent.execution.stage_runner import STAGE_ORDER
@@ -489,11 +490,27 @@ def record_baseline(
     require_ep: bool = False,
     run_profile: str = "exploratory",
     force_template: bool = False,
+    require_reading_mode: bool = False,
 ) -> dict:
     """Record a self-contained RUN (``<case>/run_<note>/``) as a baseline. The
-    case (materials) is the run's parent; products + llm.yaml live in the run."""
+    case (materials) is the run's parent; products + llm.yaml live in the run.
+
+    ``require_reading_mode`` (R4-a, L-R2): when True, this record fail-closes
+    unless ``run_config.yaml`` declares a ``reading_mode:`` section (freezing
+    it into ``_run/reading_mode.json`` on first record). Defaults to False so
+    every pre-existing direct caller of this function is unaffected; the
+    ``run_stage.py flow --record`` CLI path is the one caller that passes
+    True — see src/agent/execution/reading_mode.py's module docstring for the
+    full placement rationale."""
     run_dir = Path(run_dir)
     case = run_dir.parent.name
+    if require_reading_mode:
+        # L-R2: fail-closed FIRST, before any gate①/evidence machinery runs —
+        # a run recorded through the official ritual without a declared
+        # reading_mode must refuse before doing any other work. Raises
+        # reading_mode_not_declared / reading_mode_invalid / reading_mode_drift
+        # (see src/agent/execution/reading_mode.py).
+        provision_reading_mode(run_dir, declared=load_run_config(run_dir).reading_mode)
     # R1-5 (裁定 §1.3): consume the FROZEN run policy, not a self-rolled RunPolicy
     # — the geometry gate + capability profile judge on the run's declared tier,
     # not RunPolicy() defaults (laxest exploratory/rectangular/optional).  The
@@ -535,12 +552,17 @@ def record_baseline(
     run_state = derive_run_state(state, geometry_approved=res.geometry_approved)
     evidence_index = build_evidence_index(
         run_dir, res, report_assets=report_assets, run_state=run_state, ep=ep)
+    # L-R3: read-only, never fails — a run with no frozen reading_mode.json
+    # (predates this feature, or never opted in) resolves to legacy_unknown
+    # rather than being judged non-compliant or coerced into either lane.
+    reading_mode_resolution = resolve_reading_mode(run_dir)
     baseline = {
         "case": case,
         "run": run_dir.name,
         "recorded": date,
         "orchestrator": orchestrator,
         "models": _models_from_llm_yaml(run_dir, orchestrator=orchestrator),
+        "reading_mode": reading_mode_resolution.model_dump(mode="json"),
         "geometry": counts,
         "geometry_digest": res.geometry_digest,
         "geometry_approved": res.geometry_approved,

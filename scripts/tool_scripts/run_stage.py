@@ -2564,6 +2564,11 @@ def cmd_flow(args) -> int:
                 orchestrator=args.orchestrator,
                 require_ep=args.with_ep,
                 run_profile=args.run_profile,
+                # R4-a / L-R2: `flow --record` is the official-record ritual
+                # (CLAUDE.md §6 #12) — the one call site of record_baseline
+                # that fail-closes on an undeclared reading_mode. See
+                # src/agent/execution/reading_mode.py module docstring.
+                require_reading_mode=True,
             )
         except Exception as e:  # noqa: BLE001 — flow owns record failure code
             print(f"✗ record failed: {type(e).__name__}: {e}")

@@ -762,6 +762,46 @@ def _format_models(models: dict) -> list[str]:
     return lines
 
 
+def _format_reading_mode(reading_mode: dict | None) -> list[str]:
+    """R4-a: render the reading-stage lane label the report shows next to the
+    reading score. L-R1 requires this line to actually change when the
+    declared lane changes (not decorative); L-R4 requires dev_function=true
+    to render an explicit "not an official score" flag; L-R3 requires a
+    legacy_unknown run to render without crashing and without impersonating
+    either lane."""
+    if not isinstance(reading_mode, dict) or not reading_mode:
+        return ["- reading lane: `legacy_unknown`（run 未产出 reading_mode 溯源块）"]
+    status = reading_mode.get("status")
+    if status != "present":
+        return ["- reading lane: `legacy_unknown`（run 未产出 reading_mode 溯源块）"]
+    record = reading_mode.get("record") or {}
+    lane = record.get("lane", "unknown")
+    lines = [f"- reading lane: `{lane}`"]
+    if record.get("dev_function") is True:
+        lines.append(
+            "- ⚠️ 本轮 reading 属 dev 期职能（tool-invention）"
+            "—— **不作为正式成绩**（CLAUDE.md §1.5 #7）"
+        )
+    reading_agent = record.get("reading_agent")
+    if isinstance(reading_agent, dict):
+        lines.append(
+            f"- reading-agent: `{reading_agent.get('model', 'unknown')}` "
+            f"(sees_images=`{reading_agent.get('sees_images')}`, "
+            f"rework_rounds=`{reading_agent.get('rework_rounds')}`)"
+        )
+    worker = record.get("reading_worker_agent")
+    if isinstance(worker, dict):
+        lines.append(
+            f"- reading-worker-agent: `{worker.get('model', 'unknown')}` "
+            f"(effort=`{worker.get('effort', 'unknown')}`)"
+        )
+    lines.append(
+        f"- toolbox_version: `{record.get('toolbox_version', 'unknown')}` · "
+        f"isolation_profile: `{record.get('isolation_profile', 'unknown')}`"
+    )
+    return lines
+
+
 def _short_hash(value: object, length: int = 12) -> str:
     return str(value)[:length] if value else "null"
 
@@ -802,6 +842,7 @@ def _render_model_config(baseline: dict) -> str:
         f"- 自动状态: `{_status_tldr(baseline)}`",
         _format_provenance_summary(baseline.get("provenance", {})),
         *_format_models(baseline.get("models", {})),
+        *_format_reading_mode(baseline.get("reading_mode")),
         *_format_signals(baseline.get("signals", {})),
     ]
     return "\n".join(lines).rstrip() + "\n"
