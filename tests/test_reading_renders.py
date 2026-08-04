@@ -199,6 +199,103 @@ def test_L41_failed_render_blocks_review_approval(tmp_path):
         rs.cmd_approve_review(args)
 
 
+def test_L41_corrupt_render_manifest_reports_unavailable_and_blocks_review(tmp_path):
+    """X-5b (r2 batchC dispatch §3 MINOR): ``_reading_render_status`` has THREE
+    ways to reach a manifest — file absent (``'missing'``, does not block),
+    file present and parseable (reads its own ``status``), and file present but
+    UNREADABLE (corrupt/truncated JSON, or an OS read error) — the third case
+    is deliberately mapped to ``'unavailable'`` (a render state we cannot
+    verify must fail closed), NOT folded into ``'missing'`` (which does not
+    block). That third branch had ZERO lock: every existing test either omits
+    ``render_manifest.json`` entirely (exercising ``'missing'``) or writes
+    valid JSON with an explicit ``status`` (exercising the parse-then-read
+    path) — none ever wrote a genuinely unparseable file, so the
+    ``except (json.JSONDecodeError, OSError): return "unavailable"`` line had
+    no test that would notice if it silently became ``return "missing"``
+    instead (which would flip a run with a render state we cannot verify from
+    BLOCKED to silently approvable).
+
+    Neuter: change the except branch to ``return "missing"`` ⇒ this lock reds
+    (status flips from 'unavailable' to 'missing', and cmd_approve_review no
+    longer raises — the truncated-manifest run becomes silently approvable)."""
+    from src.agent.execution.manifest import RunManifestV2, StageRecordV2, save_run_manifest
+
+    run_dir = tmp_path / "case" / "run"
+    adir = _seed_attempt(run_dir)  # attempts/001/output.json
+    h = "a" * 64
+    save_run_manifest(
+        RunManifestV2(
+            case="case", run_id="b" * 32, run_inputs={"view_manifest_sha256": h},
+            stages={"0_reading": StageRecordV2(
+                stage="0_reading", accepted_attempt=1, output_hash=h,
+                artifact_contract="reading_isolated_v2",
+                artifact_hashes={"output": h, "checks": h, "isolation_provenance": h})},
+        ),
+        run_dir,
+    )
+    # the manifest EXISTS but its JSON is truncated/corrupt — distinct from
+    # both "absent" (missing) and "valid JSON with a status" (the normal path).
+    (adir / "render_manifest.json").write_text("{not valid json", encoding="utf-8")
+
+    assert rs._reading_render_status(adir) == "unavailable"  # NOT "missing"
+
+    args = SimpleNamespace(base_dir=str(tmp_path), case="case", run="run",
+                           stage="0_reading", actor="tester", note="", date="")
+    with pytest.raises(SystemExit, match="review blocked: 0_reading renders are unavailable"):
+        rs.cmd_approve_review(args)
+
+
+def test_L41_top_level_manifest_error_is_surfaced_in_review_block_reason(tmp_path):
+    """X-5a (r2 batchC dispatch §3 MINOR): ``cmd_approve_review``'s unavailable-
+    render block reads the manifest's TOP-LEVEL ``error`` field (set for a
+    finalize crash / unreadable output — the non-per-view failure modes) and
+    surfaces it verbatim in the ``SystemExit`` message, in place of the generic
+    per-view phrasing. That surfacing had ZERO lock: the neighbouring
+    ``test_L41_failed_render_blocks_review_approval`` only ever wrote an
+    ``error`` NESTED inside ``views[0]``, never at the manifest's top level, so
+    ``mf.get("error")`` was always ``None`` in that test and the "surface the
+    machine-readable reason" block could be deleted entirely with every
+    existing render lock staying green (only the generic
+    ``match="review blocked: ..."`` PREFIX was ever asserted, never the
+    specific reason text that follows it).
+
+    Neuter: delete the ``try: mf = json.loads(...); if mf.get("error"): reason
+    = mf["error"]`` block in ``cmd_approve_review`` ⇒ the message falls back to
+    the generic "at least one view failed to render" ⇒ this lock reds (the
+    distinctive top-level error text goes missing from the raised message)."""
+    from src.agent.execution.manifest import RunManifestV2, StageRecordV2, save_run_manifest
+
+    run_dir = tmp_path / "case" / "run"
+    adir = _seed_attempt(run_dir)
+    h = "a" * 64
+    save_run_manifest(
+        RunManifestV2(
+            case="case", run_id="b" * 32, run_inputs={"view_manifest_sha256": h},
+            stages={"0_reading": StageRecordV2(
+                stage="0_reading", accepted_attempt=1, output_hash=h,
+                artifact_contract="reading_isolated_v2",
+                artifact_hashes={"output": h, "checks": h, "isolation_provenance": h})},
+        ),
+        run_dir,
+    )
+    # a TOP-LEVEL error (the finalize-crash / unreadable-output shape M-1
+    # writes) — distinct from the per-view "error" the neighbouring test uses.
+    (adir / "render_manifest.json").write_text(
+        json.dumps({
+            "source_output_hash": h, "render_helper_version": rs.READING_RENDER_HELPER_VERSION,
+            "status": "unavailable",
+            "error": "ValueError: could not read attempt output.json — distinctive-marker-x5a",
+            "views": [],
+        }),
+        encoding="utf-8",
+    )
+
+    args = SimpleNamespace(base_dir=str(tmp_path), case="case", run="run",
+                           stage="0_reading", actor="tester", note="", date="")
+    with pytest.raises(SystemExit, match="distinctive-marker-x5a"):
+        rs.cmd_approve_review(args)
+
+
 def test_L41_complete_render_allows_review_approval(tmp_path):
     """L-41 companion (O-1): the review block is precise — a 'complete' render
     manifest does NOT block approval (only 'unavailable' does), keeping the
