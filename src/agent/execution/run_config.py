@@ -118,6 +118,13 @@ class RunConfig:
     # absent declaration as legacy_defaulted (read-only), and a NEW strict
     # provisioning that fails to declare it fails closed (L-13).
     run_profile: str | None = None
+    # R4-a: raw ``reading_mode:`` mapping (lane / dev_function / reading_agent
+    # / reading_worker_agent / toolbox_version / isolation_profile), or
+    # ``None`` when the key is absent. Left as a raw dict here (parsed +
+    # validated by src.agent.execution.reading_mode.provision_reading_mode) —
+    # RunConfig only carries the declaration through, it is not the schema
+    # authority for this block (mirrors how ``models`` is carried raw).
+    reading_mode: dict | None = None
 
     @classmethod
     def defaults(cls, *, path: Path | None = None, present: bool = False) -> "RunConfig":
@@ -176,6 +183,7 @@ def _parse_run_config(raw: dict, path: Path) -> RunConfig:
     orientation_completion_mode = _parse_orientation_completion_mode(raw.get("orientation"), path)
     capability_profile = _parse_capability_profile(raw.get("capability_profile"), path)
     run_profile = _parse_run_profile(raw.get("run_profile"), path)
+    reading_mode = raw.get("reading_mode") if isinstance(raw.get("reading_mode"), dict) else None
     return RunConfig(
         path=path,
         present=True,
@@ -187,6 +195,7 @@ def _parse_run_config(raw: dict, path: Path) -> RunConfig:
         orientation_completion_mode=orientation_completion_mode,
         capability_profile=capability_profile,
         run_profile=run_profile,
+        reading_mode=reading_mode,
     )
 
 
