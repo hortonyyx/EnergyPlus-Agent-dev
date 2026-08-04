@@ -909,6 +909,138 @@ test_reading_ruler_r1_batchB，`-n 6`）⇒ **124 passed + 1 xfailed 零红**（
 
 本轮未遇新的欠规格边界（裁定书已把 r2-3/r2-4 的形态与判据给定死），照裁定执行完毕。
 
+## 9. r2c（交叉审 APPROVE-WITH-CHANGES 的 1 MAJOR + 4 MINOR 收尾）
+
+- 上游：[r2c 派工单](../request/2026-08-04_reading_ruler_r1_batchB_r2c_dispatch.md) ·
+  [交叉审](../verdict/2026-08-04_reading_ruler_r1_batchB_r2_crossreview_claude.md)（APPROVE-WITH-CHANGES · 0 BLOCKER / 1 MAJOR / 4 MINOR）·
+  [orchestrator 轻门 + §8 记账更正](../verdict/2026-08-04_reading_ruler_r1_batchB_r2_orchestrator_lightgate.md)
+- 前置状态：HEAD `6e06ecf`（批 B wrap-up，已推 origin）。全仓 **2096 passed + 10 xfailed 零红**。
+  交叉审 5 条 finding 对位：**F-1（MAJOR）= r2c-1** · **F-2 = 注释误述** · **F-3 = r2c-3 恒真断言** ·
+  **F-4 = r2c-2 geometry 锁丢 check-id 行** · **F-5 = r2c-4 capability 守卫零锁**。
+- 本段交付：r2c-1 ✅ commit `a231cc3`（昨晚落库）· r2c-2 ✅ **已闭（落在 `6e06ecf`、非独立 commit，记账见 9.2）** ·
+  r2c-3 ✅（本批）· r2c-4 ✅（本批）· F-2 ✅（本批）。
+- **裁定一/裁定二已照办**：r2c-2 ⛔ 不重做（§9.2 如实记 `6e06ecf` 记账事实）；「零连带」判据
+  （红的是依赖本处实现的锁、无无关测试被带红）写进 r2c-2 / r2c-4 的 neuter 自查。
+
+### 9.1 r2c-1（F-1 MAJOR：record_baseline tier 从 effective policy 取 + 补 blocking 行第二层）✅ commit `a231cc3`
+
+昨晚落库，此处简记 + neuter 复述，详见 commit `a231cc3`。
+
+**病灶**：record_baseline 的 run_policy 头部 tier 字段（run_profile / capability_profile）**直接读 `frozen`**，
+于是它见证的是「冻结记录写着 regression」**不是**「regression 被喂给了 validate_case」。r2-4 把 require_ep
+收回调用方后，**neuter-E（effective_run_policy → `RunPolicy(require_ep=require_ep)`，丢档位、留调用方旋钮）
+全仓零红**：头部仍说 regression（来自 frozen），downstream.build 由调用方 require_ep 驱动 ⇒ 锁自称绑
+「冻结档位维度」、实际只绑了调用方旋钮。
+
+**改动**（`scripts/tool_scripts/record_baseline.py`）：
+1. provenance 字段（source / legacy_defaulted / policy_hash）**留在 frozen**；两个 tier 字段改为从 `policy`
+   （effective_run_policy，即喂给 validate_case 的同一 policy）取 —— 与 `step_orchestrator.approve_geometry` 的
+   拆分同构。良态行为不变（effective 的 tier 本就派生自 frozen record），但头部从此见证 validate_case 实际判定所用的档位。
+2. **第二层锁** `test_R1_5_record_baseline_regression_tier_surfaces_blocking_check_row`：种非闭合尺寸链
+   （overall=6.0、Σ segments=5.0）⇒ `reading.dimension_chain_closure` FAIL（tier-gated EVIDENCE：regression 下 BLOCK、
+   exploratory 下 FLAG）⇒ regression tier 在 `baseline["blocking"]` 上可见（不止头部）。
+3. 顺带正了原头部锁 docstring 的错因果（交叉审 §1.4）。
+
+**neuter-E**（record_baseline.py effective→`RunPolicy(require_ep=require_ep)`）⇒ **3 red**（头部锁 +
+新 closure-row 锁 + tamper 锁经其头部 tier 断言），**零无关连带**（两条 approve_geometry 锁仍绿 —— neuter 只
+scope 到 record_baseline）。精确命中 r2c-1 修的维度；与交叉审 neuter-E（修复前 0-red）吻合。
+
+### 9.2 r2c-2（F-4 MINOR：两条 geometry 锁补回 check-id 行断言）✅ 已闭 — **落在 `6e06ecf`，非独立 commit**
+
+**记账事实（如实登记，非本批新做）**：r2c-2 的改动**昨晚 05:59 撞额度时已写在工作树、但未提交**；orchestrator
+06:30 收工 `git add -A` **把它一并扫进了 `6e06ecf`**（那条提交信息只写「管理文档同步」、**实为含代码**，已推 origin）。
+§7 结转债清单「r2c-2 未做」是错的 —— orchestrator 已在
+[轻门 §8](../verdict/2026-08-04_reading_ruler_r1_batchB_r2_orchestrator_lightgate.md) 更正。
+**这是 orchestrator 的记账错误、不是施工席的问题**；此处按 orchestrator 裁定如实记明，⛔ 不重做。
+
+**改动**（`tests/test_run_stage_flow.py` 两条 geometry 锁，已落 `6e06ecf`）：
+`test_R1_5_approve_geometry_uses_frozen_policy_check_headers` /
+`test_R1_5_geometry_is_approved_uses_frozen_policy_check_headers` —— r2b 改写后只剩 report 头部字段
+（`reports["1_correction"]` 的 run_profile / capability）+ `downstream not in reports`，**丢了全部 check-id 行断言**。
+r2c-2 补回：种非闭合尺寸链 ⇒ `reading.dimension_chain_closure` FAIL，断言该 check-id 在 `0_reading::1f_view`
+report 的 `results` 里 status=FAIL 且在 `blocking()` 里（regression 下 BLOCK、exploratory 下 FLAG —— tier-gated）。
+形态照 `test_R1_1_flow_regression_freezes_to_reading_checks_header`（头部字段 + 具体 check-id 行双重断言）。
+
+**锁真绑 —— orchestrator 独立复验（非采信自报）**：
+- 施工席 A1（effective_run_policy → `RunPolicy()` 全默认）⇒ 红 4 条（2 geometry + 2 record_baseline），四条共享
+  `effective_run_policy` 同一 hook ⇒ **同源、非连带**（裁定二判据成立）。
+- orchestrator 另做**更窄 neuter**：只把 disposition 的档位门去掉（`ReportSchema.dispositions()` 里
+  `run_profile=self.run_profile` → 写死 `"exploratory"`，**头部字段一字不动**）⇒ **恰好红那两条 geometry 锁**
+  ⇒ **新加的 check-id 行断言真承重、不是装饰。**
+
+### 9.3 r2c-3（F-3 MINOR：删恒真空转断言）✅ 本批
+
+**病灶**：`test_R1_5_record_baseline_marks_unfrozen_run_legacy` 里 `assert not any(downstream.build)` 在 r2-4 之后
+**恒真**——require_ep 只来自调用方，该测试传 require_ep=False ⇒ downstream.build 行**对任何 run 都不出现**。
+交叉审 PROBE-F3 实证：`frozen_regression=False legacy=False`（两边都不出现）⇒ 该断言**分不开 legacy 与冻结 regression**，
+分辨力 0（与 r2-2 本轮刚修掉的恒真断言同形）。该锁另四条 tier 标记断言仍真绑，故只是内含一条空转断言。
+
+**改动**（`tests/test_orchestrate_baseline.py`）：
+- **删除** `assert not any(row downstream.build …)`（4 行）—— downstream.build 的缺席是 require_ep=False 调用方旋钮的
+  后果（对冻结 regression 同样成立），**不作为 tier 见证**。
+- docstring 改写说明：真正的 TIER 分辨器是上面的 legacy 头（source=legacy_defaulted / legacy_defaulted=True /
+  run_profile=exploratory / capability_profile=rectangular）—— 冻结 regression 的头（structured_config / False /
+  regression / orthogonal）与之**互斥**，那四条断言才是真承重。
+
+**neuter 自查**：本条是**删一条分辨力为 0 的断言**（消歧义），不是加锁 —— 无「摘掉即红」的 neuter。
+受影响子集 `test_orchestrate_baseline.py` 跑 **36 passed + 1 xfailed**（删后该测试仍绿，真承重的四条 tier 标记断言保留）。
+
+### 9.4 r2c-4（F-5 MINOR：补 capability_profile_not_declared 守卫锁）✅ 本批
+
+**病灶**：`run_policy_freeze.py:168` 的 `capability_profile_not_declared` 守卫**零锁**——交叉审 neuter G
+（`if False and …`）⇒ 302 passed 零红。该守卫**非 CLI 不可达**（CLI resolver 总会供 capability_profile），但**结构性可达**：
+`provision_run_policy(run, run_profile="regression", capability_profile=None)` 实跑即抛（交叉审 PROBE-F5）。它防的是
+**未来 resolver 回归**让 None 漏到 `_build_record`，对称于 run_profile_not_declared。
+
+**改动**（`tests/test_orchestrate_baseline.py`，新增 `test_R1_5_new_run_without_capability_profile_fails_closed`）：
+直接调 `provision_run_policy(run, run_profile="regression", capability_profile=None)`（默认 source=structured_config ⇒
+走 new-run 路径）⇒ `pytest.raises(ValueError, match="capability_profile_not_declared")`。**本条不要求走 CLI**
+（派工单明示：CLI 侧确实不可达、是「防未来 resolver 回归」的结构守卫）。
+
+**neuter 自查**（`/tmp/rpf_neuter_backup.py` 备份 → 守卫改 `if False and …` → 跑受影响文件 → 立即 `cp` 还原）：
+摘掉守卫 ⇒ `capability_profile or "rectangular"` 静默兜底 ⇒ **恰好红 `test_R1_5_new_run_without_capability_profile_fails_closed`
+一条**（1 failed / 35 passed / 1 xfailed），**零连带**。还原后 `git diff src/agent/execution/run_policy_freeze.py` 为空。
+
+### 9.5 F-2（MINOR：改误述注释）✅ 本批
+
+**病灶**：`test_R1_5_record_baseline_context_tamper_does_not_change_blocking` 里注释写 *"frozen tier still consumed"*，
+但读的仍是 `baseline["run_policy"]`（来自 frozen）⇒ 它见证的是「冻结记录没被篡改」**不是「档位被消费了」**。
+该锁承重的那条断言（篡改 context 后 downstream.build 仍不出现）真绑（r2b neuter B 恰好红 1 条），只是这两行注释误述。
+
+**改动**（`tests/test_orchestrate_baseline.py`，**只改注释、不补锁**）：注释改为实况「frozen record NOT tampered
+（编辑只动 context.require_ep、未动 tier 字段）⇒ baseline 仍从冻结记录读 regression/orthogonal；见证的是记录完整性、
+非档位消费；effective_run_policy 本就不再读 context」。**不补锁**（派工单明示）。
+
+### 9.6 全仓测试结果（交付前一次全仓，⛔ 无 `-m`）
+
+`pytest -q -n 6` ⇒ **2097 passed + 10 xfailed，零红**（306.8s；基线 2096 + r2c-4 新增 capability 守卫锁 1 = 2097，
+精确符合、零回归）。sm24/sm21 manifest byte guard 仍随全仓绿（r2c 未碰 manifest / gt / testdata）。
+
+### 9.7 合规自检
+
+| 项 | 结论 |
+|---|---|
+| 锁走真实入口（argparse/cmd_*） | ✅ r2c-1 经真 record_baseline；r2c-4 直调 provision_run_policy（派工单明示：非 CLI 守卫、是结构守卫）；r2c-3 / F-2 改测试断言 / 注释、无新锁 |
+| 断言落具体 check-id 行 / 具体产物字段 | ✅ r2c-1 落 baseline blocking 的 dimension_chain_closure 行 + 头部 tier 字段；r2c-2 落 reading.dimension_chain_closure FAIL + in blocking；r2c-4 落 `ValueError(capability_profile_not_declared)` |
+| 每条 neuter 自查如实登记 | ✅ r2c-1 neuter-E（3 red 零连带）；r2c-2 A1 + orchestrator 窄 neuter（真绑）；r2c-3 消歧义非加锁（无 neuter）；r2c-4 守卫 neuter（1 red 零连带）；F-2 改注释无锁 |
+| neuter 在 /tmp / 还原干净 | ✅ r2c-4 备份 → 改 → 跑 → cp 还原，`git diff` 空 |
+| 不 push | ✅ 本批 commit 未 push |
+| 不碰 `gt/**` / sm24 testdata | ✅ 本批仅 `test_orchestrate_baseline.py`（+ r2c-2 已落 `6e06ecf` 的 `test_run_stage_flow.py`），零触碰 gt / testdata / manifest |
+| 不读 GT | ✅ |
+| 不动 `AI_agent/` 下除自己执行日志外的管理文档 | ✅ 工作树含 orchestrator 未提交的 `lightgate.md` / `plan.md`（裁定 + §8 记账更正），**非本批改动、未 commit** |
+| 不做批 C / D / R1.5 | ✅ 批 C 半截仍在 `git stash` 未取 |
+| 做完一件存一件、每条改完即 commit | ✅ r2c-1 `a231cc3`；r2c-2 落 `6e06ecf`（记账更正）；r2c-3 / r2c-4 / F-2 本批 commit |
+
+### 9.8 给 orchestrator 的交付摘要
+
+- **r2c-1 已落库**（`a231cc3`，昨晚）：record_baseline tier 从 effective policy 取 + 补 blocking 行第二层；neuter-E 3 red 零连带。
+- **r2c-2 已闭**（落在 `6e06ecf`、**非独立 commit —— 记账事实已如实登记**）：两条 geometry 锁补回 check-id 行；orchestrator 窄 neuter 证明真绑。
+- **r2c-3 / r2c-4 / F-2 本批完成**（`test_orchestrate_baseline.py`）：删恒真空转断言 + 补 capability 守卫锁（neuter 即红零连带）+ 正误述注释。受影响子集 36 passed + 1 xfailed。
+- 全仓结果见 §9.6。
+- **裁定一/裁定二已照办**：r2c-2 ⛔ 不重做；「零连带」判据写进 r2c-2 / r2c-4 的 neuter 自查。
+
+本轮除 r2c-2 的记账更正外未遇新的欠规格边界。
+
 
 
 
