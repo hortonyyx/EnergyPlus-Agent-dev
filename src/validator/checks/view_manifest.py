@@ -18,7 +18,14 @@ only guards honesty/identity (miss, extra, manifest drift).
 
 from __future__ import annotations
 
-from src.agent.execution.view_manifest import ReadingExamScope, ViewManifest, dimensioned_state
+from pathlib import Path
+
+from src.agent.execution.view_manifest import (
+    ReadingExamScope,
+    ViewManifest,
+    dimensioned_state,
+    resolve_view_pixel_bounds,
+)
 from src.validator.checks.schema import CheckLayer, CheckReport, CheckStatus, RunProfile
 
 CHECK_ID = "reading.view_manifest_coverage"
@@ -35,12 +42,21 @@ def check_reading_stage(
     run_profile: RunProfile = "exploratory",
     run_policy_sha256: str | None = None,
     run_policy_source: str | None = None,
+    case_dir: Path | None = None,
 ) -> CheckReport:
     """The "merge 同门" checker (§5.2): coverage (:func:`check_view_manifest_coverage`)
     + per-view schema linting (:func:`src.validator.checks.reading.check_reading_view`)
     against the SAME rule, whether the caller is the flat-flow reader (one
     ``*_view.json`` file per call) or isolation's merge writer (one aggregate
     ``{"views": {stem: {...}}}`` payload). ``produced`` is ``{stem: raw dict}``.
+
+    ``case_dir`` (X-2, r2 batchC dispatch §1 MAJOR), when given together with
+    ``manifest``, resolves the ONLY trusted image bounds each per-view check may
+    use (:func:`~src.agent.execution.view_manifest.resolve_view_pixel_bounds` —
+    the case_data source image's real pixel size). Both real production callers
+    (the flat-flow reader and isolation's merge writer) always have it; callers
+    that omit it (unit tests, degraded paths) get the pre-X-2 product-derivable
+    fallback inside :func:`~src.validator.checks.reading.check_reading_view`.
 
     ``dimensioned_stems``, if given, overrides the manifest-derived dimensioned
     set for the per-view schema check — the flat-flow caller passes its
@@ -73,6 +89,7 @@ def check_reading_stage(
     if manifest is not None:
         for e in manifest.required_entries():
             manifest_state[e.expected_output_id] = dimensioned_state(e.dimensioned)
+    trusted_bounds_by_stem = resolve_view_pixel_bounds(manifest, case_dir)
 
     for stem in sorted(produced):
         raw = produced[stem]
@@ -98,6 +115,7 @@ def check_reading_stage(
             capability_profile=capability_profile,
             run_profile=run_profile,
             dimensioned_state=state,
+            trusted_image_bounds=trusted_bounds_by_stem.get(stem),
         )
         for r in sub.results:
             rep.results.append(r.model_copy(update={"check_id": f"{stem}.{r.check_id}"}))

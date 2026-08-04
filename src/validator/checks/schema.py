@@ -73,6 +73,16 @@ _PLAN_FRAME_BLOCK_PROFILES = {"golden", "regression"}
 OCR_ANCHOR_BOUNDS_CHECK_ID = "reading.ocr_anchors_in_bounds"
 _OCR_ANCHOR_BLOCK_PROFILES = {"golden", "regression"}
 
+# X-1 (r2 batchC dispatch §1): N-3's adaptive canvas scale (render_vector_to_png)
+# stopped raising when a DIMENSION endpoint is written in pixel space — the same
+# bad-data shape M-3 already catches for OCR anchors — because the renderer now
+# downscales instead of blowing up. That deleted the last machine-readable
+# signal gate① had for this failure mode (gate① never checked dimension
+# endpoints in the first place; it only ever inherited the renderer's crash).
+# Same check shape and profile split as OCR_ANCHOR_BOUNDS_CHECK_ID.
+DIMENSION_ENDPOINT_BOUNDS_CHECK_ID = "reading.dimension_endpoints_in_bounds"
+_DIMENSION_ENDPOINT_BLOCK_PROFILES = {"golden", "regression"}
+
 
 def is_evidence_check_id(check_id: str) -> bool:
     return check_id in EVIDENCE_CHECK_IDS or any(
@@ -88,6 +98,14 @@ def is_plan_frame_check_id(check_id: str) -> bool:
 def is_ocr_anchor_check_id(check_id: str) -> bool:
     """Aggregating callers prefix per-view results with ``<stem>.``; match both."""
     return check_id == OCR_ANCHOR_BOUNDS_CHECK_ID or check_id.endswith(f".{OCR_ANCHOR_BOUNDS_CHECK_ID}")
+
+
+def is_dimension_endpoint_bounds_check_id(check_id: str) -> bool:
+    """Aggregating callers prefix per-view results with ``<stem>.``; match both."""
+    return (
+        check_id == DIMENSION_ENDPOINT_BOUNDS_CHECK_ID
+        or check_id.endswith(f".{DIMENSION_ENDPOINT_BOUNDS_CHECK_ID}")
+    )
 
 
 class CheckStatus(str, Enum):
@@ -171,6 +189,14 @@ def disposition(
         # run (golden/regression) so a pixel-anchor reading is refused, not
         # silently rendered with the label cropped out of frame.
         if run_profile in _OCR_ANCHOR_BLOCK_PROFILES:
+            return Disposition.BLOCK
+        return Disposition.FLAG
+    if is_dimension_endpoint_bounds_check_id(result.check_id):
+        # X-1: a pixel/out-of-bounds dimension endpoint is the same bad-data
+        # shape as an OCR anchor (M-3) — flag always; BLOCK an acceptance run
+        # (golden/regression) so a pixel-dimension reading is refused, not
+        # silently rendered at a downscaled, illegible resolution.
+        if run_profile in _DIMENSION_ENDPOINT_BLOCK_PROFILES:
             return Disposition.BLOCK
         return Disposition.FLAG
     if result.check_id == _CORRECTION_EVIDENCE_DEBT_COVERAGE:

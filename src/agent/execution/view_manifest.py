@@ -1331,6 +1331,43 @@ def derive_input_inventory(manifest: ViewManifest, scope: ReadingExamScope | Non
     ]
 
 
+def resolve_view_pixel_bounds(
+    manifest: "ViewManifest | None", case_dir: "Path | None",
+) -> dict[str, tuple[float, float, float, float]]:
+    """X-2 (r2 batchC dispatch §1 MAJOR): the ONLY trusted source for gate①'s
+    out-of-bounds anchor / dimension-endpoint checks (``reading.py``
+    ``_ocr_anchors_in_bounds`` / ``_dimension_endpoints_in_bounds``) — the real
+    pixel size of each view's case_data source image, keyed by
+    ``expected_output_id``. Deliberately does NOT consult anything the
+    reading-agent (the party being checked) wrote: not ``strokes``, not
+    ``dimensions``, not any ``extra`` field on the produced ``ReadingView``.
+    ``entry.image_sha256`` (R1-6, ``build_view_manifest``) already proves
+    ``entry.source_image`` resolves to the real, unmodified case_data bytes —
+    reading pixel dimensions from that same file inherits that trust: it is
+    fixed before this run starts and the party being checked cannot write it
+    (decision_log §5.14 — only externally-rooted values may drive a judgment).
+
+    Returns ``{}`` if either argument is unavailable, and simply omits any stem
+    whose source image cannot be opened — callers (``check_reading_stage``)
+    fall back to the weaker, product-derivable legacy bounds computation for
+    those stems only, never for the whole manifest."""
+    if manifest is None or case_dir is None:
+        return {}
+    from PIL import Image, UnidentifiedImageError
+
+    case_dir = Path(case_dir)
+    bounds: dict[str, tuple[float, float, float, float]] = {}
+    for entry in manifest.required_entries():
+        image_path = case_dir / entry.source_image
+        try:
+            with Image.open(image_path) as img:
+                width, height = img.size
+        except (OSError, UnidentifiedImageError):
+            continue
+        bounds[entry.expected_output_id] = (0.0, float(width), 0.0, float(height))
+    return bounds
+
+
 __all__ = [
     "VIEW_MANIFEST_NAME",
     "READING_EXAM_SCOPE_NAME",
@@ -1358,4 +1395,5 @@ __all__ = [
     "verify_view_manifest",
     "resolve_frozen_reading_exam_scope",
     "derive_input_inventory",
+    "resolve_view_pixel_bounds",
 ]

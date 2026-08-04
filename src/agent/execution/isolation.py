@@ -375,6 +375,7 @@ def merge_isolated_output(
         run_profile=policy_record.run_profile,
         run_policy_sha256=policy_record.policy_hash,
         run_policy_source=policy_record.source,
+        case_dir=case_dir,
     )
 
     with _merge_lock(run_dir):

@@ -1150,3 +1150,171 @@ def test_ocr_in_bounds_and_margin_tolerated_anchors_pass():
     assert result.status is CheckStatus.PASS
     assert _OCR_BOUNDS_CHECK not in _ids(rep)
     assert _OCR_ANCHOR_MARGIN_M >= 1.5  # the tolerated anchor relies on the margin
+
+
+# --------------------------------------------------------------------------- #
+# X-1 (r2 batchC dispatch §1): dimension endpoints in bounds — same shape as
+# the OCR-anchor bounds check above, but for `dimensions[].from`/`.to`. N-3's
+# adaptive canvas scale stopped the renderer from raising on a pixel-scale
+# dimension endpoint (it downscales instead of blowing up); gate① never had a
+# bounds check on dimension endpoints in the first place, so that removed the
+# last machine-readable signal of this failure mode entirely. Repro payload
+# matches the r1 crossreview exactly: a 10x8 m structure with one pixel-scale
+# dimension endpoint from=[360,450].
+# --------------------------------------------------------------------------- #
+_DIM_BOUNDS_CHECK = "reading.dimension_endpoints_in_bounds"
+
+
+@pytest.mark.parametrize("run_profile", _ACCEPTANCE_PROFILES)
+def test_dimension_pixel_endpoint_out_of_bounds_blocks_acceptance(run_profile):
+    """X-1: a dimension endpoint outside the trusted image bounds is SURFACED —
+    the exact bad-data shape M-3 already catches for OCR anchors. Before this
+    check existed, N-3's adaptive canvas scale silently downscaled a
+    pixel-scale dimension endpoint into a legible-looking but wrong PNG instead
+    of raising (the old signal), and gate① never flagged it (the new, missing
+    signal). A pixel endpoint like [360,450] on a ~10x8 m plan FAILS
+    reading.dimension_endpoints_in_bounds and BLOCKS under golden/regression.
+
+    Neuter: drop the dimension-endpoint disposition branch in schema.disposition
+    (or the check in reading._dimension_endpoints_in_bounds) ⇒ the FAIL no
+    longer blocks under acceptance ⇒ this lock reds."""
+    payload = _clean_plan_payload(_USABLE_ORIGIN)
+    payload["dimensions"] = [{"id": "D1", "from": [360, 450], "to": [365, 450], "text": "3600"}]
+    view = ReadingView.model_validate(payload)
+    rep = check_reading_view(view, run_profile=run_profile)
+    result = _result(rep, _DIM_BOUNDS_CHECK)
+    assert result.status is CheckStatus.FAIL
+    assert result.evidence["offenders"][0]["point"] == [360, 450]
+    assert result.evidence["offenders"][0]["field"] == "from"
+    assert "outside trusted image bounds" in result.evidence["offenders"][0]["reason"]
+    assert _DIM_BOUNDS_CHECK in _ids(rep)  # BLOCKS under acceptance
+
+
+def test_dimension_pixel_endpoint_out_of_bounds_only_flags_under_lenient():
+    """X-1 companion: under exploratory/dev the same out-of-bounds dimension
+    endpoint only FLAGs (surfaced, not blocking), same profile split as the OCR
+    anchor check. Neuter: make the check INVARIANT (always block) ⇒
+    rep.passed flips false ⇒ this lock reds."""
+    payload = _clean_plan_payload(_USABLE_ORIGIN)
+    payload["dimensions"] = [{"id": "D1", "from": [360, 450], "to": [365, 450], "text": "3600"}]
+    view = ReadingView.model_validate(payload)
+    rep = check_reading_view(view, run_profile="exploratory")
+    assert _result(rep, _DIM_BOUNDS_CHECK).status is CheckStatus.FAIL
+    assert _DIM_BOUNDS_CHECK not in _ids(rep)  # FLAG, not BLOCK
+    assert rep.passed  # flags do not block gate①
+
+
+def test_dimension_endpoint_in_bounds_and_margin_tolerated_passes():
+    """X-1 companion: a legitimate in-bounds dimension endpoint passes, and one
+    just outside the structural extent (within _OCR_ANCHOR_MARGIN_M) is
+    tolerated — a dimension tick/arrow extending slightly past a wall is
+    normal. Also proves dimension endpoints do not inflate their own bounds
+    (exclude_dimensions=True in _image_bounds): D1's own far endpoint sits at
+    x=11.5 and is STILL judged against the wall-only extent [0,10], not
+    against a bound that includes itself."""
+    payload = _clean_plan_payload(_USABLE_ORIGIN)
+    # structure (strokes only) spans x∈[0,10], y∈[0,8]
+    payload["dimensions"] = [
+        {"id": "D1", "from": [5, 4], "to": [8, 4], "text": "300"},        # well inside
+        {"id": "D2", "from": [11.5, 4], "to": [11.5, 6], "text": "150"},  # 1.5 m past xmax=10, within margin
+    ]
+    view = ReadingView.model_validate(payload)
+    rep = check_reading_view(view, run_profile="regression")
+    result = _result(rep, _DIM_BOUNDS_CHECK)
+    assert result.status is CheckStatus.PASS
+    assert _DIM_BOUNDS_CHECK not in _ids(rep)
+
+
+# --------------------------------------------------------------------------- #
+# X-2 (r2 batchC dispatch §1): the trusted image bounds for the two checks
+# above must come ONLY from the case_data source image's real pixel size (+ its
+# already-frozen view-manifest fingerprint, R1-6) — never from anything the
+# reading-agent itself wrote. Reproduces the r1 crossreview's three named
+# exploits against the REAL production entry point (check_reading_stage with a
+# real case_dir + manifest), each of which used to widen the product-derived
+# bounds enough to swallow a bad OCR anchor.
+# --------------------------------------------------------------------------- #
+def _write_x2_case(root: Path, *, image_size=(2, 2)) -> Path:
+    """A minimal synthetic case: one plan view, real case_data image at the
+    given pixel size — just enough for build_view_manifest to succeed."""
+    from PIL import Image
+
+    case_data = root / "case_data"
+    case_data.mkdir(parents=True, exist_ok=True)
+    Image.new("RGB", image_size, color=(200, 200, 200)).save(case_data / "1f_view.png")
+    testdata = {
+        "TestName": "x2-lock",
+        "Floor plans": [
+            {"floor": 1, "path": "case_data/1f_view.png", "thermal_zones": 1, "dimensioned": False},
+        ],
+    }
+    (case_data / "testdata_prompt.json").write_text(json.dumps(testdata), encoding="utf-8")
+    return root
+
+
+def test_trusted_bounds_from_case_data_survive_all_three_inflation_tricks(tmp_path):
+    """X-2 (r2 batchC dispatch §1 MAJOR): the r1 crossreview's exact three
+    exploits — an extra pixel-scale dimension endpoint, a stray long stroke, and
+    a declared `image_bounds` extra field — each used to widen the
+    product-derived bounds enough to flip reading.ocr_anchors_in_bounds from
+    fail/blocking to pass/not-blocking. Wired through the REAL production entry
+    point (check_reading_stage with a real (tiny, 2x2 px) case_data image +
+    manifest), none of the three tricks can move the trusted bounds — the
+    check keeps blocking every time.
+
+    Neuter: stop check_reading_stage from resolving/forwarding trusted bounds
+    (e.g. drop its `case_dir=` wiring to resolve_view_pixel_bounds, or make
+    _image_bounds ignore its `trusted_bounds` argument) ⇒ this lock reds (the
+    exploit succeeds again — the trick payloads flip to pass/not-blocking)."""
+    from src.agent.execution.view_manifest import build_view_manifest
+    from src.validator.checks.view_manifest import check_reading_stage
+
+    case_dir = _write_x2_case(tmp_path / "case", image_size=(2, 2))
+    manifest = build_view_manifest(case_dir)
+
+    base = _clean_plan_payload(_USABLE_ORIGIN)
+    bad_anchor = {"text": "3600", "anchor": [360, 450]}
+
+    tricks = {
+        "extra_pixel_dimension_endpoint": {
+            **base,
+            "ocr_texts": [bad_anchor],
+            "dimensions": [{"id": "D1", "from": [360, 450], "to": [365, 450], "text": "3600"}],
+        },
+        "stray_long_stroke": {
+            **base,
+            "ocr_texts": [bad_anchor],
+            "strokes": base["strokes"] + [
+                {"id": "S3", "pen": "wall", "provenance": "seen", "confidence": "high",
+                 "geometry": {"kind": "line", "p1": [0, 0], "p2": [400, 500]}},
+            ],
+        },
+        "declared_image_bounds_extra_field": {
+            **base,
+            "ocr_texts": [bad_anchor],
+            "image_bounds": {"x": [0, 1000], "y": [0, 1000]},
+        },
+    }
+    prefixed = f"1f_view.{_OCR_BOUNDS_CHECK}"
+    for label, payload in tricks.items():
+        rep = check_reading_stage(
+            manifest, {"1f_view": payload}, run_profile="regression", case_dir=case_dir,
+        )
+        result = _result(rep, prefixed)
+        assert result.status is CheckStatus.FAIL, label
+        assert prefixed in _ids(rep), label  # still BLOCKS despite the inflation attempt
+
+
+def test_trusted_bounds_unavailable_falls_back_without_crashing():
+    """X-2 companion: when no case_dir/manifest is wired (degraded/legacy path —
+    direct check_reading_view calls, or a manifest-less run, which is already
+    hard-blocked elsewhere by reading.view_manifest_coverage), the check must
+    not crash — it falls back to the pre-X-2 product-derived bounds. This is
+    exactly the existing OCR-anchor test's payload/profile, re-asserted with
+    trusted_image_bounds explicitly absent to pin the fallback contract."""
+    payload = _clean_plan_payload(_USABLE_ORIGIN)
+    payload["ocr_texts"] = [{"text": "3600", "anchor": [360, 450]}]
+    view = ReadingView.model_validate(payload)
+    rep = check_reading_view(view, run_profile="regression", trusted_image_bounds=None)
+    assert _result(rep, _OCR_BOUNDS_CHECK).status is CheckStatus.FAIL
+    assert _OCR_BOUNDS_CHECK in _ids(rep)
