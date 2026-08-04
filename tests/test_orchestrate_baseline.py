@@ -169,10 +169,15 @@ def test_R1_5_record_baseline_marks_unfrozen_run_legacy(tmp_path):
     """An unfrozen replay remains readable but can never impersonate a strict
     TIER: its baseline header must say legacy-defaulted/exploratory/rectangular
     regardless of any CLI run_profile request.  r2-4: require_ep is now a
-    caller knob (independent of legacy status); this control records a legacy
-    replay with no EP request (require_ep=False) ⇒ legacy tier markers and no
-    downstream.build row.  The binding is the legacy-defaulted tier
-    (resolve_frozen_run_policy returns legacy_defaulted for an unfrozen run)."""
+    caller knob (independent of legacy status).  r2c-3 (cross-review F-3): this
+    case used to also assert ``not any(downstream.build)``, but that row's
+    absence is purely the require_ep=False caller knob's consequence — it is
+    equally absent for a FROZEN regression recorded with require_ep=False
+    (PROBE-F3 confirmed both sides False), so it could not tell legacy from a
+    frozen regression and was a tautology.  The real TIER discriminator is the
+    legacy header below: a frozen regression yields source=structured_config /
+    legacy_defaulted=False / run_profile=regression / capability_profile=
+    orthogonal_polygon — mutually exclusive with this legacy header."""
     baseline = record_baseline.record_baseline(
         _minimal_run(tmp_path),
         date="2026-08-04",
@@ -185,10 +190,32 @@ def test_R1_5_record_baseline_marks_unfrozen_run_legacy(tmp_path):
     assert baseline["run_policy"]["legacy_defaulted"] is True
     assert baseline["run_policy"]["run_profile"] == "exploratory"
     assert baseline["run_policy"]["capability_profile"] == "rectangular"
-    assert not any(
-        row["stage"] == "downstream" and row["check"] == "downstream.build"
-        for row in baseline["blocking"]
-    )
+
+
+def test_R1_5_new_run_without_capability_profile_fails_closed(tmp_path):
+    """r2c-4 (cross-review F-5): the ``capability_profile_not_declared`` guard
+    in ``_build_record`` (run_policy_freeze.py:168) shipped with ZERO test
+    cover — neutering it left 302 passed all green.  It is NOT reachable from
+    the CLI (the CLI resolver always supplies a capability_profile), so this
+    is a structural guard against a FUTURE resolver regression, not a
+    production-path lock: it stops ``None`` reaching ``_build_record`` for a
+    NEW run.  Provisioning a new run (source=structured_config) with
+    ``capability_profile=None`` must fail-closed, symmetric with
+    run_profile_not_declared.  Neuter: drop the
+    ``if source != "legacy_defaulted" and capability_profile is None`` branch
+    ⇒ ``capability_profile or "rectangular"`` silently defaults it ⇒ no raise
+    ⇒ this lock reds.  (Legacy replays pass their own non-None
+    fallback_capability_profile, so the guard never fires for legacy — that is
+    why source is part of the predicate, not legacy status alone.)"""
+    from src.agent.execution.run_policy_freeze import provision_run_policy
+
+    run = _minimal_run(tmp_path)
+    with pytest.raises(ValueError, match="capability_profile_not_declared"):
+        provision_run_policy(
+            run,
+            run_profile="regression",
+            capability_profile=None,
+        )
 
 
 def test_R1_5_record_baseline_context_tamper_does_not_change_blocking(tmp_path):
@@ -239,7 +266,11 @@ def test_R1_5_record_baseline_context_tamper_does_not_change_blocking(tmp_path):
         run_profile="exploratory",
     )
 
-    # frozen tier still consumed (the tamper only touched context, not the tier)
+    # frozen record NOT tampered (the edit touched only context.require_ep,
+    # not the tier fields) ⇒ baseline still reads regression/orthogonal from
+    # the frozen record. (r2c F-2: the old "frozen tier still consumed" wording
+    # mis-stated this — what is witnessed here is record INTEGRITY, not tier
+    # consumption; effective_run_policy no longer reads context anyway.)
     assert baseline["run_policy"]["run_profile"] == "regression"
     assert baseline["run_policy"]["capability_profile"] == "orthogonal_polygon"
     # downstream.build is ABSENT because the CALLER passed require_ep=False; the
