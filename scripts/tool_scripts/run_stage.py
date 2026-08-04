@@ -651,25 +651,143 @@ def _make_draw_fn(stage: str, run_dir: Path, testdata_text: str, td_path: Path, 
 
 
 # --------------------------------------------------------------------------- #
+# O-1: reading render finalization (aggregate views -> per-attempt renders)
+# --------------------------------------------------------------------------- #
+# Bumped when the reading render contract (render_vector_to_png.render's
+# input/output) changes meaningfully. Recorded in render_manifest.json so a
+# manifest rendered by an older helper is detectable as stale.
+READING_RENDER_HELPER_VERSION = "render_vector_to_png:v1"
+
+
+def _finalize_reading_renders(attempt_dir: Path) -> dict:
+    """O-1: render the aggregate reading views from ``<attempt_dir>/output.json``
+    — the hard-isolated merge product — to ``<attempt_dir>/renders/<eid>.png``
+    and write a machine-readable ``render_manifest.json``.
+
+    This replaces the old ``0_reading/*_view.json`` flat glob: under hard
+    isolation merge writes the aggregate to ``attempts/NNN/output.json`` and
+    leaves nothing at the stage root, so the glob matched zero files and 07-08
+    onward every reading run rendered no images (the user saw no product). The
+    SAME renderer (``render_vector_to_png.render``) is used — only the source of
+    the views changes. Any accepted-stage-root alias is a convenience copy only;
+    these per-attempt renders + manifest are the evidence.
+
+    A per-view render failure is RECORDED, never swallowed into 'complete'
+    (O-1 L-41): the view is marked ``status='failed'`` with the error and the
+    manifest's overall ``status`` flips to ``'unavailable'``. A review-required
+    reading run whose manifest is unavailable must not be reported as
+    review-complete — ``cmd_approve_review`` blocks it. Returns the manifest
+    dict (also written to ``render_manifest.json``)."""
+    sys.path.insert(0, str(_REPO_ROOT / "scripts" / "tool_scripts"))
+    import render_vector_to_png as rv
+    from src.agent.execution.manifest import hash_file, hash_text
+
+    output_path = attempt_dir / "output.json"
+    out_text = output_path.read_text(encoding="utf-8")
+    # source_output_hash uses the SAME hasher as merge's output_hash (hash_text),
+    # so the manifest is cross-referenceable to the stage record's output_hash.
+    source_output_hash = hash_text(out_text)
+    views = (json.loads(out_text) or {}).get("views") or {}
+
+    renders_dir = attempt_dir / "renders"
+    renders_dir.mkdir(parents=True, exist_ok=True)
+    view_records: list[dict] = []
+    any_failed = False
+    for eid in sorted(views):
+        record: dict = {"expected_output_id": eid}
+        try:
+            img = rv.render(views[eid])
+            png_path = renders_dir / f"{eid}.png"
+            img.save(png_path)
+            record["status"] = "rendered"
+            record["render_hash"] = hash_file(png_path)
+            record["error"] = None
+        except Exception as exc:  # noqa: BLE001 — recorded in the manifest, NOT swallowed into success
+            any_failed = True
+            record["status"] = "failed"
+            record["render_hash"] = None
+            record["error"] = f"{type(exc).__name__}: {exc}"
+        view_records.append(record)
+
+    manifest = {
+        "source_output_hash": source_output_hash,
+        "render_helper_version": READING_RENDER_HELPER_VERSION,
+        # 'complete' requires at least one view AND none failed — an empty view
+        # set is 'unavailable' (nothing to review), not 'complete'.
+        "status": "complete" if (view_records and not any_failed) else "unavailable",
+        "views": view_records,
+    }
+    (attempt_dir / "render_manifest.json").write_text(
+        json.dumps(manifest, indent=2, ensure_ascii=False), encoding="utf-8"
+    )
+    return manifest
+
+
+def _reading_render_status(attempt_dir: Path) -> str:
+    """O-1 L-41: the machine-readable review-material status for a reading
+    attempt's renders. ``'complete'`` = every view rendered; ``'unavailable'`` =
+    a render was attempted but at least one view failed (or the manifest is
+    unreadable); ``'missing'`` = no manifest (renders never produced, e.g. a
+    pre-O-1 run). ``cmd_approve_review`` blocks a review-required reading run
+    whose status is ``'unavailable'`` so a failed render never masquerades as
+    complete review material."""
+    manifest_path = attempt_dir / "render_manifest.json"
+    if not manifest_path.exists():
+        return "missing"
+    try:
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    except (json.JSONDecodeError, OSError):
+        return "unavailable"
+    return manifest.get("status", "unavailable")
+
+
+def _render_reading_attempts(run_dir: Path) -> list[str]:
+    """O-1: render every reading attempt that has an aggregate ``output.json``
+    (the hard-isolated merge product) via :func:`_finalize_reading_renders`.
+    Returns the rendered png paths (accepted attempt first, for the judge
+    packet). Idempotent — re-running overwrites renders + manifest."""
+    attempts = run_dir / "0_reading" / "attempts"
+    if not attempts.exists():
+        return []
+    order: list[Path] = []
+    accepted = _accepted_output_path(run_dir, "0_reading")
+    if accepted is not None:
+        order.append(accepted.parent)
+    for d in sorted(attempts.iterdir()):
+        if d.is_dir() and d.name.isdigit() and (d / "output.json").exists() and d not in order:
+            order.append(d)
+    produced: list[str] = []
+    for d in order:
+        _finalize_reading_renders(d)
+        renders_dir = d / "renders"
+        if renders_dir.exists():
+            produced.extend(str(p) for p in sorted(renders_dir.glob("*.png")))
+    return produced
+
+
+# --------------------------------------------------------------------------- #
 # visual renders (best-effort) + judge packet
 # --------------------------------------------------------------------------- #
 def _render_stage(stage: str, run_dir: Path, case_dir: Path) -> list[str]:
-    """Render the stage's visual artifacts for the judge / eyeball gate. Best-
-    effort: a render failure (e.g. headless 3D) is logged, never fatal."""
+    """Render the stage's visual artifacts for the judge / eyeball gate.
+
+    Best-effort at the STAGE level: a catastrophic failure (e.g. unreadable
+    output) is logged, never fatal. Per-IMAGE reading render failures are NOT
+    swallowed here — :func:`_finalize_reading_renders` records each in
+    ``render_manifest.json`` with ``status='failed'`` and flips the manifest's
+    overall status to ``'unavailable'``, so a failed render can never masquerade
+    as complete review material (O-1 L-41)."""
     sys.path.insert(0, str(_REPO_ROOT / "scripts" / "tool_scripts"))
     produced: list[str] = []
 
-    def _save(img, path: Path):
-        path.parent.mkdir(parents=True, exist_ok=True)
-        img.save(path)
-        produced.append(str(path))
-
     try:
         if stage == "0_reading":
-            import render_vector_to_png as rv
-            for vj in sorted((run_dir / "0_reading").glob("*_view.json")):
-                data = json.loads(vj.read_text(encoding="utf-8"))
-                _save(rv.render(data), run_dir / "0_reading" / f"{vj.stem}_render.png")
+            # O-1: hard-isolated merge writes the aggregate to
+            # attempts/NNN/output.json (NOT 0_reading/*_view.json at the stage
+            # root), so the old flat glob matched nothing and rendered zero
+            # images 07-08 onward. Read each attempt's aggregate views with the
+            # SAME renderer, writing attempts/NNN/renders/ + render_manifest.json.
+            produced.extend(_render_reading_attempts(run_dir))
         elif stage == "1_correction":
             import render_corrected_geometry as rc
             # User-stamped artifact set (2026-07-08): grade (via the gt-gated
@@ -684,7 +802,7 @@ def _render_stage(stage: str, run_dir: Path, case_dir: Path) -> list[str]:
         # 2_modelling / 3_split_pairing geometry is handled by the dedicated
         # offline 3D viewer at the confirmation gate (_render_geometry_viewer),
         # not here — those are not judge stages.
-    except Exception as e:  # noqa: BLE001 — renders are best-effort
+    except Exception as e:  # noqa: BLE001 — stage-level renders are best-effort
         produced.append(f"(render error for {stage}: {type(e).__name__}: {e})")
     return produced
 
@@ -2108,6 +2226,21 @@ def cmd_approve_review(args) -> int:
     rec = manifest.accepted(args.stage)
     if rec is None:
         raise SystemExit(f"{args.stage} has no accepted attempt; run it first")
+    # O-1 L-41: a review-required reading run whose renders failed must NOT be
+    # markable review-complete — the human would be approving with no visual
+    # material. Block approve-review with a machine-readable reason when the
+    # accepted attempt's render manifest is 'unavailable' (a render was
+    # attempted and at least one view failed). 'missing' (pre-O-1 / never
+    # rendered) is intentionally NOT blocked, so pre-O-1 runs stay approvable.
+    if args.stage == "0_reading":
+        attempt_dir = run_dir / "0_reading" / "attempts" / f"{int(rec.accepted_attempt):03d}"
+        if _reading_render_status(attempt_dir) == "unavailable":
+            raise SystemExit(
+                f"review blocked: 0_reading renders are unavailable for attempt "
+                f"{rec.accepted_attempt} (render_manifest.json status=unavailable — "
+                "at least one view failed to render). Fix the render failure before "
+                "approving review; see that attempt's renders/ + render_manifest.json."
+            )
     appr = record_review(
         run_dir,
         stage=args.stage,
