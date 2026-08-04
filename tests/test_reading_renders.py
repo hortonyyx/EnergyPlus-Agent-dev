@@ -201,9 +201,13 @@ def test_L41_failed_render_blocks_review_approval(tmp_path):
 
 def test_L41_complete_render_allows_review_approval(tmp_path):
     """L-41 companion (O-1): the review block is precise — a 'complete' render
-    manifest does NOT block approval (only 'unavailable' does). This keeps the
-    guard from over-blocking healthy runs and pins the 'missing' branch
-    (pre-O-1 runs stay approvable)."""
+    manifest does NOT block approval (only 'unavailable' does), keeping the
+    guard from over-blocking healthy runs. (The 'missing' branch — pre-O-1 runs
+    with no manifest stay approvable — is pinned by its OWN lock,
+    ``test_L41_missing_render_does_not_block_review_approval``; N-1/F-6: the
+    prior claim that THIS test pinned 'missing' was hollow — it only ever wrote
+    a 'complete' manifest, so flipping the guard to also block 'missing' left
+    every render lock green.)"""
     from src.agent.execution.manifest import RunManifestV2, StageRecordV2, save_run_manifest
 
     run_dir = tmp_path / "case" / "run"
@@ -225,6 +229,51 @@ def test_L41_complete_render_allows_review_approval(tmp_path):
 
     args = SimpleNamespace(base_dir=str(tmp_path), case="case", run="run",
                            stage="0_reading", actor="tester", note="", date="")
+    assert rs.cmd_approve_review(args) == 0
+
+
+def test_L41_missing_render_does_not_block_review_approval(tmp_path):
+    """N-1 (r1 / F-6): the 'missing' render status (no render_manifest.json =
+    renders never tried, e.g. a pre-O-1 run) must NOT block review approval —
+    the backward-compat promise that pre-O-1 runs stay approvable. The prior
+    L-41 companion docstring CLAIMED to pin this branch but never exercised it
+    (it only ever wrote a 'complete' manifest), so the 'missing' branch had
+    ZERO lock: widening the cmd_approve_review guard to also block 'missing'
+    left every existing render lock green (F-6, the project's recurring
+    "claimed-but-not-guarded" family — now the 6th occurrence). This lock drives
+    the REAL missing path (no manifest at all) and asserts approve-review
+    succeeds.
+
+    Neuter: widen the cmd_approve_review guard to also block 'missing'
+    (e.g. ``status in ('unavailable', 'missing')``) ⇒ this pre-O-1 run is
+    refused ⇒ this lock reds — proving the missing branch is now genuinely
+    pinned. (The 'empty' branch is pinned separately by
+    test_L41_empty_view_set_is_not_render_failure, which is why the neuter must
+    name 'missing' specifically, not just '!= complete'.)"""
+    from src.agent.execution.manifest import RunManifestV2, StageRecordV2, save_run_manifest
+
+    run_dir = tmp_path / "case" / "run"
+    adir = run_dir / "0_reading" / "attempts" / "001"
+    adir.mkdir(parents=True)
+    (adir / "output.json").write_text(json.dumps({"views": _agg_views()}), encoding="utf-8")
+    # the missing precondition: renders were NEVER tried — no manifest at all
+    assert not (adir / "render_manifest.json").exists()
+    assert rs._reading_render_status(adir) == "missing"
+
+    h = "a" * 64
+    save_run_manifest(
+        RunManifestV2(
+            case="case", run_id="b" * 32, run_inputs={"view_manifest_sha256": h},
+            stages={"0_reading": StageRecordV2(
+                stage="0_reading", accepted_attempt=1, output_hash=h,
+                artifact_contract="reading_isolated_v2",
+                artifact_hashes={"output": h, "checks": h, "isolation_provenance": h})},
+        ),
+        run_dir,
+    )
+    args = SimpleNamespace(base_dir=str(tmp_path), case="case", run="run",
+                           stage="0_reading", actor="tester", note="", date="")
+    # missing does NOT block — a pre-O-1 run (renders never attempted) stays approvable
     assert rs.cmd_approve_review(args) == 0
 
 
