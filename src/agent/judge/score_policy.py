@@ -277,35 +277,51 @@ def reading_score_criteria(
     missed_windows = max(0, total_windows - total_windows_hit)
     window_ratio = 1.0 if total_windows == 0 else total_windows_hit / total_windows
 
-    if missed_walls:
-        wall_status = "severe"
-    elif extra_walls:
-        wall_status = "minor" if extra_walls <= EXTRA_MINOR_MAX else "severe"
-    else:
-        wall_status = "pass"
+    # F-1b: "no paper was graded" must never read as pass.  This guards only the
+    # mechanical fact that ``scores`` is empty -- e.g. a reading envelope the
+    # legacy seam failed to unwrap, or a product whose views map to no gt floor.
+    # It does NOT fire when scores is non-empty but a floor legitimately lacks
+    # windows: that is the "GT has no windows" case, handled by the
+    # ``total_windows == 0 -> pass`` branch below, which stays unchanged.
+    no_scored_floors = not scores
 
-    boundary_status = "severe" if missed_boundary else "pass"
-
-    if total_windows == 0 or missed_windows == 0:
-        window_status = "pass"
-    elif window_ratio >= WINDOW_MINOR_RATIO:
-        window_status = "minor"
+    if no_scored_floors:
+        wall_status = window_status = boundary_status = oversplit_status = "severe"
     else:
-        window_status = "severe"
+        if missed_walls:
+            wall_status = "severe"
+        elif extra_walls:
+            wall_status = "minor" if extra_walls <= EXTRA_MINOR_MAX else "severe"
+        else:
+            wall_status = "pass"
 
-    oversplit_count = extra_walls
-    if oversplit_count == 0:
-        oversplit_status = "pass"
-    elif oversplit_count <= EXTRA_MINOR_MAX:
-        oversplit_status = "minor"
-    else:
-        oversplit_status = "severe"
+        boundary_status = "severe" if missed_boundary else "pass"
+
+        if total_windows == 0 or missed_windows == 0:
+            window_status = "pass"
+        elif window_ratio >= WINDOW_MINOR_RATIO:
+            window_status = "minor"
+        else:
+            window_status = "severe"
+
+        oversplit_count = extra_walls
+        if oversplit_count == 0:
+            oversplit_status = "pass"
+        elif oversplit_count <= EXTRA_MINOR_MAX:
+            oversplit_status = "minor"
+        else:
+            oversplit_status = "severe"
+
+    no_data_evidence = (
+        "no_data: no reading views were scored against gt floors; "
+        "scores empty so wall/window/boundary/oversplit denominators are all zero"
+    )
 
     criteria = [
         {
             "criterion": "walls_complete",
             "suggested_status": wall_status,
-            "evidence": (
+            "evidence": no_data_evidence if no_scored_floors else (
                 f"wall_hits={total_wall_hits}/{total_walls}; "
                 f"missed={missed_walls}; extra={extra_walls}; "
                 f"max_offset_m={round(max_wall_offset, 3)}; "
@@ -316,7 +332,7 @@ def reading_score_criteria(
         {
             "criterion": "windows_placed",
             "suggested_status": window_status,
-            "evidence": (
+            "evidence": no_data_evidence if no_scored_floors else (
                 f"window_hits={total_windows_hit}/{total_windows}; "
                 f"missed={missed_windows}; extra={extra_windows}; "
                 f"hit_ratio={round(window_ratio, 3)}; "
@@ -327,7 +343,7 @@ def reading_score_criteria(
         {
             "criterion": "boundary_complete",
             "suggested_status": boundary_status,
-            "evidence": (
+            "evidence": no_data_evidence if no_scored_floors else (
                 f"boundary_hits={total_boundary_hits}/{total_boundary}; "
                 f"missed={missed_boundary}; "
                 f"no_data_floors={no_data_boundary_floors}; "
@@ -338,7 +354,7 @@ def reading_score_criteria(
         {
             "criterion": "no_oversplit",
             "suggested_status": oversplit_status,
-            "evidence": (
+            "evidence": no_data_evidence if no_scored_floors else (
                 f"extra_vwalls+extra_hwalls={oversplit_count}; "
                 f"minor_threshold={EXTRA_MINOR_MAX}"
             ),

@@ -1270,6 +1270,29 @@ def _score_reading_attempt_output(
     return scores, evidence, {}
 
 
+def _unwrap_reading_views_envelope(output: dict) -> dict:
+    """Flatten a ReadingViews v2 envelope at the single legacy scoring seam.
+
+    The legacy plan/elevation scorers consume a flat ``{stem: view}`` mapping in
+    which every top-level key is one image stem.  Today's reading product wraps
+    that mapping in a ``{"views": {...}}`` envelope (ReadingViews v2).  The typed
+    judge path recognizes the envelope via ``identify_reading_contract``; the
+    legacy path did not, so the whole envelope collapsed into a single bogus
+    ``"views"`` stem and zero floors were scored -- while the headline criteria
+    still reported ``pass`` (see ``reading_score_criteria``'s empty-scores guard).
+
+    Normalize here, at the one common ancestor of both legacy consumers
+    (``_score_reading_attempt_output`` and ``score_reading_elevation_views``),
+    rather than duplicating the unwrap at each consumer.  Flat inputs and
+    non-reading products are returned unchanged.
+    """
+    from src.agent.judge.reading_typed_adapter import identify_reading_contract
+
+    if identify_reading_contract(output).contract_id == "reading_views_v2":
+        return output["views"]
+    return output
+
+
 def _legacy_score_attempt_output(
     stage: str,
     output: dict,
@@ -1285,6 +1308,10 @@ def _legacy_score_attempt_output(
     win_tol = grade.window_centre_tol_m
     elevation = None
     if stage == "0_reading":
+        # F-1a: consume today's ReadingViews v2 envelope exactly once, at the
+        # single seam that feeds both legacy plan and elevation scorers.  The
+        # correction branch is intentionally left untouched.
+        output = _unwrap_reading_views_envelope(output)
         scores, evidence, floor_map = _score_reading_attempt_output(
             output,
             gt,
