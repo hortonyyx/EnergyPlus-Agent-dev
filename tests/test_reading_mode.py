@@ -215,6 +215,98 @@ def test_L_R2_flow_record_succeeds_with_declared_reading_mode(tmp_path, monkeypa
 
 
 # --------------------------------------------------------------------------- #
+# M-1 (r3 batchC dispatch §2 MAJOR): reading_mode must freeze at the SAME
+# choke point as run_policy — the attempt-creating entrance
+# (_manifest_for_attempts) — not at record time. Before this fix, the ONLY
+# writer was record_baseline()'s own provision_reading_mode call, invoked at
+# RECORD time: a run could execute 0_reading as controlled, then have
+# run_config.yaml edited to autonomous before `flow --record`, and the record
+# would freeze from the EDITED declaration with nothing to compare it against
+# (sol 2026-08-04 batch C r2 review §4, "LATE_FREEZE_PROBE").
+# --------------------------------------------------------------------------- #
+
+def test_M1_late_edit_after_reading_executed_fails_closed_not_recorded_as_autonomous(
+    tmp_path, monkeypatch,
+):
+    """The exact repro: a REAL first `flow` invocation executes 0_reading
+    under a declared `lane: controlled` (a reading-agent genuinely present)
+    and does NOT record. `run_config.yaml` is then edited to `lane:
+    autonomous` on the SAME run. A REAL second `flow --record` invocation
+    must NOT silently record the edited (autonomous) declaration — it must
+    fail closed with `reading_mode_drift`, because reading already executed
+    under the original (controlled) declaration, and the frozen record must
+    still say controlled.
+
+    Neuter: drop the `reading_mode=run_config.reading_mode` kwarg from any of
+    cmd_run/cmd_resample/cmd_flow's `_manifest_for_attempts` call sites (or
+    drop the opportunistic freeze block inside `_manifest_for_attempts`
+    itself, run_stage.py) ⇒ this lock reds — the second call no longer raises,
+    the run records successfully, and `_run/baseline.json` ends up with
+    `reading_mode.record.lane == "autonomous"` despite reading having executed
+    under `controlled` — exactly the bug this lock exists to catch."""
+    monkeypatch.setattr(rs, "_make_draw_fn", _fake_make_draw_fn)
+    monkeypatch.setattr(rs, "_render_stage", lambda *a, **k: [])
+    _seed_case_data(tmp_path)
+    run_dir = tmp_path / "case" / "run"
+    run_dir.mkdir()
+    (run_dir / "run_config.yaml").write_text(
+        "judge:\n  mode: off\n"
+        "reading_mode:\n"
+        "  lane: controlled\n"
+        "  dev_function: false\n"
+        "  reading_agent:\n"
+        "    model: glm-5.2\n"
+        "    sees_images: false\n"
+        "    rework_rounds: 1\n"
+        "  reading_worker_agent:\n"
+        "    model: haiku-4.5\n"
+        "    effort: high\n"
+        "  toolbox_version: cv-toolbox-v3\n"
+        "  isolation_profile: hard-isolation-v2\n",
+        encoding="utf-8",
+    )
+
+    # First real flow invocation: 0_reading actually executes under the
+    # declared controlled lane. Does NOT record.
+    first_exit = rs.cmd_flow(_args(
+        tmp_path, from_stage="0_reading", to_stage="0_reading",
+        judge="off", geometry="auto", record=False, orchestrator="test-harness",
+    ))
+    assert first_exit == rs.FLOW_EXIT_OK
+    frozen = json.loads((run_dir / "_run" / "reading_mode.json").read_text(encoding="utf-8"))
+    assert frozen["lane"] == "controlled"
+    assert not (run_dir / "_run" / "baseline.json").exists()
+
+    # Edit the SAME run's declaration to autonomous — reading already
+    # executed under controlled.
+    (run_dir / "run_config.yaml").write_text(
+        "judge:\n  mode: off\n"
+        "reading_mode:\n"
+        "  lane: autonomous\n"
+        "  dev_function: false\n"
+        "  reading_agent: null\n"
+        "  reading_worker_agent:\n"
+        "    model: target-vlm\n"
+        "    effort: high\n"
+        "  toolbox_version: cv-toolbox-v3\n"
+        "  isolation_profile: hard-isolation-v2\n",
+        encoding="utf-8",
+    )
+
+    with pytest.raises(SystemExit, match="reading_mode_drift"):
+        rs.cmd_flow(_args(
+            tmp_path, from_stage="0_reading", to_stage="0_reading",
+            judge="off", geometry="auto", record=True, orchestrator="test-harness",
+        ))
+
+    # the frozen record still says controlled — the edit never took effect
+    still_frozen = json.loads((run_dir / "_run" / "reading_mode.json").read_text(encoding="utf-8"))
+    assert still_frozen["lane"] == "controlled"
+    # and no baseline/report was ever written recording it as autonomous
+    assert not (run_dir / "_run" / "baseline.json").exists()
+
+
+# --------------------------------------------------------------------------- #
 # L-R1 / L-R4: report_assembly lane annotation
 # --------------------------------------------------------------------------- #
 

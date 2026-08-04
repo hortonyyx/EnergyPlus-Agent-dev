@@ -126,6 +126,7 @@ def _manifest_for_attempts(
     capability_profile: str | None = None,
     context: dict | None = None,
     source: str = "structured_config",
+    reading_mode: dict | None = None,
 ):
     """Version-dispatched manifest for the attempt-creating commands
     (`run` / `flow` / `resample`) — B-M §5.1 + R1-1 (S-2):
@@ -144,6 +145,31 @@ def _manifest_for_attempts(
     Without it ``_draw_reading``'s resolver returned ``legacy_defaulted`` every
     time (no ``_run/run_policy.json``), so the declared strict tier was silently
     discarded for the CLI ``--run-profile`` default (``exploratory``).
+
+    M-1 (r3 batchC dispatch §2 MAJOR): ``reading_mode``, when the caller has a
+    declared ``reading_mode:`` section (``run_config.reading_mode``), is
+    frozen HERE — the same choke point EVERY attempt-creating command
+    (`run`/`flow`/`resample`) passes through before any stage attempt is drawn
+    or validated, mirroring exactly how ``provision_run`` above already
+    freezes ``run_profile``. Before this, the ONLY writer was
+    ``record_baseline()``'s own ``provision_reading_mode`` call, invoked at
+    RECORD time — meaning a run could execute 0_reading as ``controlled``
+    (a reading-agent genuinely present), then have ``run_config.yaml`` edited
+    to ``autonomous`` before ``flow --record``, and the record would freeze
+    from the EDITED, post-execution declaration with nothing to compare it
+    against (sol 2026-08-04 review §4, "LATE_FREEZE_PROBE"). Freezing here
+    instead means: the run's SECOND ``flow`` invocation (the one that edits
+    the declaration and then records) calls this SAME function again before
+    doing anything else, sees the reading_mode already frozen from the FIRST
+    invocation's declaration, and ``provision_reading_mode`` raises
+    ``reading_mode_drift`` immediately — the tampering is caught before
+    ``record_baseline`` is ever reached, not papered over there.
+    Opportunistic (skipped entirely when ``reading_mode is None``): an
+    undeclared reading_mode is still legal right up until a caller demands
+    ``require_reading_mode=True`` (``record_baseline``'s own fail-closed
+    check, unchanged) — this does not newly require every run to declare a
+    lane, it only ensures that WHEN one is declared, it cannot be silently
+    swapped after reading has already executed under the original one.
     """
     from src.agent.execution.manifest import (
         ensure_run_manifest_v2,
@@ -175,6 +201,20 @@ def _manifest_for_attempts(
         context=context,  # J-1 §1.2: non-hash audit snapshot (wired by callers)
         source=source,  # r2-2: real origin of the frozen pair
     )
+    if reading_mode is not None:
+        # M-1: freeze (or drift-check against the already-frozen record) HERE,
+        # at the same attempt-creating choke point as the run_policy freeze
+        # above — never at record time, which is too late to catch a
+        # declaration edited after reading already executed. SystemExit (not
+        # a bare ValueError) to match this function's existing fail-closed
+        # idiom (the V1-grandfather refusal above) — a CLI command's refusal
+        # is a controlled exit with a message, not an uncaught exception.
+        from src.agent.execution.reading_mode import provision_reading_mode
+
+        try:
+            provision_reading_mode(run_dir, declared=reading_mode)
+        except ValueError as exc:
+            raise SystemExit(f"✗ {exc}") from exc
     return ensure_run_manifest_v2(run_dir, view_manifest_sha256=vm.content_sha256)
 
 
@@ -2152,6 +2192,7 @@ def cmd_run(args) -> int:
         run_profile=run_profile, capability_profile=capability_profile,
         context=_run_policy_context(args, run_config),
         source=source,
+        reading_mode=run_config.reading_mode,  # M-1: freeze at the attempt choke point, not at record time
     )
     runner = StageRunner(run_dir, manifest)
     stage = args.stage
@@ -2217,6 +2258,7 @@ def cmd_resample(args) -> int:
         run_profile=run_profile, capability_profile=capability_profile,
         context=_run_policy_context(args, run_config),
         source=source,
+        reading_mode=run_config.reading_mode,  # M-1: freeze at the attempt choke point, not at record time
     )
     dropped = invalidate(manifest, args.stage)
     manifest.save(run_dir)
@@ -2388,6 +2430,7 @@ def cmd_flow(args) -> int:
         run_profile=run_profile, capability_profile=capability_profile,
         context=_run_policy_context(args, run_config),
         source=source,
+        reading_mode=run_config.reading_mode,  # M-1: freeze at the attempt choke point, not at record time
     )
     start_stage = (
         _auto_start_stage(
