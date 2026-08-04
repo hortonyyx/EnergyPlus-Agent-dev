@@ -206,3 +206,127 @@ merge 写完 attempt 后调用 ——「共用同一个 renderer」= 全用 `ren
 
 批 C 三条（O-3/O-4/O-1）全部交付、零回归。O-1 在 dedicated 窗口一次做完整（L-40 渲染 + L-41 失败阻断
 共享 manifest status 字段、不可分），跨 merge/flow/review 三处核心路径、全仓验证通过。
+
+---
+
+## 7. r1 返工（B-1/M-1/M-2/M-3/N-1/N-2/N-3）— 施工 GLM · 2026-08-04
+
+- **上游**：[r1 返工派工单](../request/2026-08-04_reading_ruler_batchC_r1_rework_dispatch.md)（REWORK = 1 BLOCKER / 3 MAJOR / 3 MINOR）·
+  [交叉审](../verdict/2026-08-04_reading_ruler_batchC_crossreview_claude.md) · [轻门 §6](../verdict/2026-08-04_reading_ruler_batchC_orchestrator_lightgate.md)。
+- **首要纪律**：每条锁必须走「会踩到该缺陷的那条真实路径」；neuter 在 /tmp 克隆 + `PYTHONPATH=$PWD`（容器 editable `.pth` 指向主仓，不钉克隆等于没做）。
+- **B-1/M-1/M-2（上轮中断已落库，本轮不复做）**：`fdb31c0`(B-1 flat-flow 渲染) · `484852a`(M-1 failure artifact) ·
+  `f254c56`(M-2 kickoff 按 expected_output_id 命名)。orchestrator 轻门 §6.1 已独立 neuter 四处全部真绑、零连带；
+  **B-1 的锁确实走盲重读那条真实路径**（非隔离 fixture）。
+
+### 7.1 M-3 · gate① OCR anchor frame/bounds 检测（commit `fb33162`）— 唯一实质性一条
+
+**⚠️ 重要披露**：M-3 在工作树里是**上一轮撞额度中断时遗留的完整 WIP**（`reading.py`+`schema.py`+3 锁全部写好但
+未提交、未验证、未做 neuter）。派工单/轻门只数了已 commit 的三条，没算这份未提交 WIP。**本轮没有盲目信任它、
+也没有丢弃**，而是从头严格验证（跑测试 + /tmp 两处 neuter + 全仓）通过后才 commit。
+
+- **`src/validator/checks/reading.py`**：`_ocr_anchors_in_bounds` —— OCR/标注 anchor 落在可信结构画幅
+  （`_image_bounds` = strokes + dimension 端点）外、超出 `_OCR_ANCHOR_MARGIN_M=2.0m` ⇒ FAIL `reading.ocr_anchors_in_bounds`，
+  给机器可读 evidence（offenders: index/anchor/text/reason + bounds + margin_m）。**⛔ 不 clamp、不静默丢弃，只 surface**。
+  空 `ocr_texts` 干净 pass。镜像既有 plan-frame 检查的写法。
+- **`src/validator/checks/schema.py`**：`OCR_ANCHOR_BOUNDS_CHECK_ID` + `is_ocr_anchor_check_id` + disposition 分支
+  （exploratory/dev ⇒ FLAG；golden/regression ⇒ BLOCK）。与 plan-frame 同 profile split。
+- **锁**（`tests/test_checks_reading_correction.py`，3 函数 = 4 测试）：① acceptance[golden/regression] 下像素 anchor
+  `[360,450]` FAIL 且 BLOCK；② exploratory 下同 anchor 只 FLAG（`rep.passed` True）；③ in-bounds anchor + margin 内 anchor pass。
+
+**neuter 自查**（/tmp 克隆 HEAD `f254c56` + 拷入 WIP + `PYTHONPATH=$PWD`，`-k ocr`）：
+
+| # | 摘掉哪一处 | 红了哪几条 | 连带 | 判定 |
+|---|---|---|---|---|
+| **neuter-a** | `_ocr_anchors_in_bounds` 恒 pass（不发射 FAIL） | acceptance[golden]+[regression]+lenient（3 条均断言 FAIL 状态） | 零（in-bounds pass 测试不受影响） | ✅ 检测真绑 |
+| **neuter-b** | 去掉 `schema.disposition` 的 OCR BLOCK 分支 | acceptance[golden]+[regression]（2 条均断言「在 blocking 集」） | 零（lenient FLAG + in-bounds 不受影响） | ✅ 阻断策略真绑 |
+
+两处还原后基线复跑 4 passed；工作树零 NEUTER 残留；克隆清理。**M-3 对全部 141 个含 `ocr_texts` 的历史 fixture 零连带**
+（真实标签本就落在墙内 + 2.0m 宽 margin）。
+
+### 7.2 N-1 · missing 分支真锁 + 修假 docstring（commit `d96d7fd`）
+
+F-6：`test_L41_complete_render_allows_review_approval` 的 docstring 声称 pin 住 `missing` 分支（pre-O-1 run 可批），
+但实测只写 `complete` manifest、从不走 `missing` ⇒ **missing 分支零锁**（守卫加宽到也阻断 missing，五条锁仍全绿）=
+本项目「声称在守其实没守」第 6 次。
+
+**取「补真锁」而非「删声称」**（向后兼容行为是刻意的、值得锁）：
+- 新增 `test_L41_missing_render_does_not_block_review_approval` —— 不写 manifest（真 missing 路径）⇒
+  `_reading_render_status=="missing"` ⇒ `cmd_approve_review` 返回 0（missing 不阻断）。
+- 修 `test_L41_complete_render_allows_review_approval` 的假 docstring → 改为指向新锁（不再虚假声称自己 pin missing）。
+
+**neuter 自查**（/tmp 克隆 HEAD `d96d7fd` 前置 + 拷入 N-1 测试）：守卫 `== "unavailable"` → `in ("unavailable","missing")`
+⇒ **红 1 条**（missing 测试），9 绿零连带（empty 用 `"empty"` 状态不在集合内故不受影响；complete/unavailable/M-1 测试不受影响）。
+
+### 7.3 N-2 · 已被 M-2 已落库锁覆盖 —— ⛔ 不补冗余锁（上报，无 commit）
+
+派工单 N-2 前提「O-3 命名规范目前零锁」**陈旧**（写于 11:55，早于 M-2 落库）。核查：M-2 commit `f254c56` 已含
+`test_build_kickoff_names_outputs_by_expected_output_id_not_view_suffix`（test_isolation.py:189，docstring 明写
+"M-2 / N-2 (r1, F-3)"），直接锁住「生成的 kickoff_prompt.md 按 `<expected_output_id>` 命名、引用 input_inventory.json、
+不含 `<name>_view`」——正是 N-2 要的「直接锁按 expected_output_id 写名」。
+
+**本轮独立 neuter 复核**（不单靠 orchestrator 轻门 §6.1 N-4）：/tmp 克隆 HEAD `d96d7fd`，把 `_write_kickoff` 文案
+精确回退到 F-3 病灶原状（`<name>_view.json`）⇒ **红 1 条**（`assert "expected_output_id" in kickoff` 失败），零连带。
+⇒ **M-2 锁真绑，N-2 已覆盖。**
+
+**裁定：不补冗余锁。** 命名规范链已端到端锁住（kickoff 指令层 = M-2 锁；merge 执行层 = L-50 + 既有 extra 测试）。
+再加一条只会重蹈 F-5/L-50「零增量约束力」覆辙。F-5（L-50 与既有 extra 共用 hook）是良性冗余、记此不再动作。
+（session_kickoff.md 静态规范文本未单独锁，但操作态产物 = 生成的 kickoff 已锁，且 kickoff 独立硬编码嵌入命名规则、
+不读 session_kickoff.md，故静态文档漂移不破行为 —— 非阻断观察。）
+
+### 7.4 N-3 · 画布预算自适应缩放（commit `aa58e28`）
+
+`MAX_CANVAS_SIDE_PX=8192` + 固定 `SCALE_PX_PER_M=45` ⇒ 单边 >182m 的建筑永远渲不出（200×20m 板楼 → 9135px > 8192 被拒，
+只占总像素预算 1/5）⇒ **撞不变量 #6**（复杂度可扩展性）。
+
+**`scripts/tool_scripts/render_vector_to_png.py`**：
+- 新增 `_fit_scale(extent_w, extent_h)` = `min(SCALE_PX_PER_M, MAX_CANVAS_SIDE_PX/longest, sqrt(MAX_CANVAS_PIXELS/area))`。
+  小结构（当前 10-20m case）scale=45 **逐字节不变**；大结构按预算降档 px/m。
+- `render()` 改用自适应 `scale`（tx/ty 同步）；**只在「结构单边 >8192m（哪怕 1px/m 都装不下 = >8km 假建筑）」时 raise**，
+  文案明确「这是结构真的太大、不是 anchor 坏了（O-4 已把 anchor 排除出画幅；像素 anchor 由 gate① M-3 surface）」。
+- **⛔ 不是 clamp**：公制几何保留、只调像素分辨率（地图渲染器通用做法）；**⛔ 不 clamp 坏数据**：坏 anchor 由 O-4+M-3 处理。
+  「结构合法但太大」与「anchor 坏了」两种拒绝原因现已分离（renderer 只拒尺寸、gate 只报 anchor）。
+
+**锁**（`tests/test_render_vector_to_png.py` L-53）：200×20m 板楼 render 不 raise + canvas 同时满足两边/总预算 +
+长边 < 200×45=9000（证明降档而非固定 45）+ 长宽比 >5（证明均匀缩放非 per-side clamp）。
+
+**neuter 自查**（/tmp 克隆 + 拷入 N-3 两文件）：`scale = _fit_scale(...)` → 固定 `SCALE_PX_PER_M` ⇒ **红 1 条**（L-53：
+200m 边 → 9135px > 8192，精确复现派工单病灶数字 9135），3 绿零连带（L-51/L-52 当前小 case scale 仍 45 不变；
+20000m 荒谬结构仍经预检 raise）。
+
+### 7.5 全仓测试结果（四条全部落库后，⛔ 无 `-m`，`-n 6`）
+
+```
+2117 passed, 10 xfailed, 177 warnings in 626.73s (0:10:26)
+```
+
+= 工作树基线 2115（含 M-3 WIP 的 4 条）+ N-1(1) + N-3(1) = **2117**，零红零回归。
+`test_zone_agent_creates_two_zones`（真跑 OpenAI、派工单点名的环境红）本次网络通计入 passed、非确定、与本批无关。
+sm21/sm24 manifest byte guard 随全仓绿（N-3 对小 case scale 逐字节不变 ⇒ 渲染产物零变化）。
+
+### 7.6 合规自检
+
+| 项 | 结论 |
+|---|---|
+| 每条锁走「会踩到缺陷的真实路径」 | ✅ M-3 走真 `check_reading_view`+`schema.disposition`（合成 plan，非 GT）；N-1 走真 `cmd_approve_review` missing 路径；N-3 走真 `rv.render`（200m 结构）；N-2 复核走真 `_write_kickoff` 生成 |
+| 断言落具体产物字段 | ✅ M-3 落 `reading.ocr_anchors_in_bounds` FAIL+offenders anchor/reason+blocking 集；N-1 落 `_reading_render_status=="missing"` + `cmd_approve_review` rc=0；N-3 落 canvas size<=budget + 长边<固定45值 |
+| 每条 neuter「摘掉即红、零连带」+ 如实登记 | ✅ M-3 两处（3 红/2 红）；N-1（1 红）；N-3（1 红）；N-2 复核（1 红）—— 各零连带 |
+| neuter 在 /tmp + `PYTHONPATH=$PWD` + 还原干净 | ✅ 四个克隆均 `__file__` 验证解析到克隆、还原后基线复跑通过、工作树零 NEUTER 残留、克隆清理 |
+| ⛔ renderer 不 clamp 坏数据 | ✅ N-3 自适应缩放保留公制几何（非 clamp）；坏 anchor 由 O-4+M-3 surface 不被 renderer 丢弃 |
+| 不 push | ✅ r1 四个 commit（fb33162/d96d7fd/aa58e28 + 上轮 fdb31c0/484852a/f254c56）均未 push |
+| 不碰 `gt/**` / sm24 testdata / 不读 GT | ✅ r1 改 reading.py/schema.py/run_stage.py(无)/render_vector_to_png.py/isolation.py(无)/4 测试文件，零触碰 |
+| 不动 `AI_agent/` 下除自己执行日志外的管理文档 | ✅ 仅续写本执行日志 §7；工作树里 CLAUDE.md/decision_log/plan/lightgate 未提交改动是 orchestrator 的、未 commit |
+| 做完一件存一件、每条 commit | ✅ M-3 `fb33162` / N-1 `d96d7fd` / N-3 `aa58e28`（N-2 无代码改动、上报覆盖） |
+| 提交前通读 `git status`、只 add 自己文件 | ✅ 每个 commit 仅 `git add` 本条目文件（绝不 `git add -A` 扫走 orchestrator 的 AI_agent 文档）—— 对照记忆 [[wrapup-commit-sweeps-other-seats-wip]] |
+
+### 7.7 给 orchestrator 的交付摘要
+
+- **M-3 已落库**（`fb33162`，**源自中断遗留 WIP、已严格验证非盲信**）：gate① 补 OCR anchor bounds 检测（越界 FLAG、
+  golden/regression 下 BLOCK、机器可读原因、⛔ 不 clamp/丢弃）——「移走症状没补检测」已补上。两处 neuter 各零连带。
+- **N-1 已落库**（`d96d7fd`）：补 missing 分支真锁 + 修假 docstring（F-6 第 6 次「声称在守其实没守」消除）。neuter 零连带。
+- **N-2 ⛔ 不补、上报已覆盖**：M-2 已落库锁 `test_build_kickoff_names_outputs_by_expected_output_id_not_view_suffix`
+  直接锁命名规范，本轮独立 neuter 复核真绑。派工单前提「命名规范零锁」陈旧。补冗余锁会重蹈 F-5 覆辙。**请 orchestrator 裁定：N-2 视为已完成（由 M-2 覆盖）确认。**
+- **N-3 已落库**（`aa58e28`）：画布自适应缩放（小 case 逐字节不变、大建筑降档可渲、只拒 >8km 荒谬结构、分离两种拒绝原因、
+  ⛔ 不 clamp 坏数据）。neuter 精确复现派工单病灶数字 9135、零连带。
+- 全仓 **2117 passed + 10 xfailed 零红**（基线 2115 + N-1/N-3 各 1）。
+- **r1 七条全部落地**（B-1/M-1/M-2 上轮 + M-3/N-1/N-3 本轮 + N-2 由 M-2 覆盖）。**唯一需 orchestrator 裁定项 = N-2 是否视为已完成。**
+
