@@ -31,6 +31,20 @@ PALETTE = {
 SCALE_PX_PER_M = 45
 MARGIN_M = 1.5
 
+# G-8 pixel budget (ruling §4 G8): two NAMED caps — a per-side cap and a
+# total-pixel cap. A render that would exceed either is REFUSED (raises), never
+# clamped: clamping would silently hide a broken extent (the O-4 root cause — a
+# pixel OCR anchor read as metric blew a ~10×20 m drawing up to 3.3e8 px). L-51
+# asserts these constants take effect (changing them changes the lock behaviour);
+# the numbers must not be scattered at call sites.
+MAX_CANVAS_SIDE_PX = 8192
+MAX_CANVAS_PIXELS = 50_000_000
+
+
+class CanvasBudgetExceeded(ValueError):
+    """The rendered canvas would exceed the pixel budget (G-8). Refused, never
+    clamped — clamping hides a broken extent instead of surfacing it (O-4)."""
+
 
 def _stroke_points(g: dict) -> list[tuple[float, float]]:
     kind = g.get("kind")
@@ -56,9 +70,11 @@ def _collect_points(data: dict) -> list[tuple[float, float]]:
             pts.append(tuple(d["from"]))
         if d.get("to"):
             pts.append(tuple(d["to"]))
-    for o in data.get("ocr_texts") or []:
-        if o.get("anchor"):
-            pts.append(tuple(o["anchor"]))
+    # O-4: OCR/annotation anchors are NOT structural geometry — they must not
+    # expand the metric canvas (a pixel anchor read as metric was the 3.3e8-px
+    # root cause). The canvas extent comes from structural strokes + dimension
+    # endpoints ONLY; OCR anchors are drawn against that fixed canvas (and may
+    # fall outside it, which the gate① OCR-bounds FLAG surfaces — G-9).
     return pts
 
 
@@ -75,6 +91,15 @@ def render(data: dict) -> Image.Image:
     miny, maxy = min(ys) - MARGIN_M, max(ys) + MARGIN_M
     W = max(1, int((maxx - minx) * SCALE_PX_PER_M))
     H = max(1, int((maxy - miny) * SCALE_PX_PER_M))
+    # G-8: refuse an over-budget canvas BEFORE Image.new — never clamp (O-4).
+    if W > MAX_CANVAS_SIDE_PX or H > MAX_CANVAS_SIDE_PX or W * H > MAX_CANVAS_PIXELS:
+        raise CanvasBudgetExceeded(
+            f"canvas {W}x{H} ({W * H} px) exceeds the pixel budget "
+            f"(side <= {MAX_CANVAS_SIDE_PX}, total <= {MAX_CANVAS_PIXELS}); "
+            f"structural extent = {maxx - minx:.1f} x {maxy - miny:.1f} m. "
+            "Annotation must not expand the canvas; a pixel anchor mistaken for "
+            "metric is the likely cause (O-4)."
+        )
 
     def tx(x: float) -> float:
         return (x - minx) * SCALE_PX_PER_M
