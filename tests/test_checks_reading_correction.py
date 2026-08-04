@@ -1112,7 +1112,7 @@ def test_ocr_pixel_anchor_out_of_bounds_blocks_acceptance(run_profile):
     result = _result(rep, _OCR_BOUNDS_CHECK)
     assert result.status is CheckStatus.FAIL
     assert result.evidence["offenders"][0]["anchor"] == [360, 450]
-    assert "outside trusted image bounds" in result.evidence["offenders"][0]["reason"]
+    assert "anomalous relative to structural geometry" in result.evidence["offenders"][0]["reason"]
     assert _OCR_BOUNDS_CHECK in _ids(rep)  # BLOCKS under acceptance
 
 
@@ -1186,7 +1186,7 @@ def test_dimension_pixel_endpoint_out_of_bounds_blocks_acceptance(run_profile):
     assert result.status is CheckStatus.FAIL
     assert result.evidence["offenders"][0]["point"] == [360, 450]
     assert result.evidence["offenders"][0]["field"] == "from"
-    assert "outside trusted image bounds" in result.evidence["offenders"][0]["reason"]
+    assert "anomalous relative to structural geometry" in result.evidence["offenders"][0]["reason"]
     assert _DIM_BOUNDS_CHECK in _ids(rep)  # BLOCKS under acceptance
 
 
@@ -1226,24 +1226,38 @@ def test_dimension_endpoint_in_bounds_and_margin_tolerated_passes():
 
 
 # --------------------------------------------------------------------------- #
-# X-2 (r2 batchC dispatch §1): the trusted image bounds for the two checks
-# above must come ONLY from the case_data source image's real pixel size (+ its
-# already-frozen view-manifest fingerprint, R1-6) — never from anything the
-# reading-agent itself wrote. Reproduces the r1 crossreview's three named
-# exploits against the REAL production entry point (check_reading_stage with a
-# real case_dir + manifest), each of which used to widen the product-derived
-# bounds enough to swallow a bad OCR anchor.
+# B-1 (r3 batchC dispatch §1 BLOCKER): the r2 X-2 mechanism above (a "trusted"
+# bound resolved from the case_data source image's real PIXEL size) was
+# dimensionally wrong — reading coordinates are METRES, and a real case_data
+# image is 790-3000 px wide/tall, so the exact repro payload [360, 450] sailed
+# straight through the regression gate on every real image; the r2 tests only
+# ever exercised it against a synthetic 2x2 px fixture that artificially
+# guaranteed the bad value was "out of pixel bounds". See sol's 2026-08-04
+# batch C r2 review §2 for the full repro and
+# src.validator.checks.reading._structural_metric_reference for the
+# dimensionally-safe (route (b), internal unit-anomaly, no external root)
+# replacement. This section proves it at REAL case_data pixel scale
+# (790-1111 px, matching sm24_anchor's own 1f_view.png dimensions) through the
+# real production entry point (check_reading_stage + a real case_dir +
+# manifest) — not the old 2x2 px fixture the retired mechanism depended on to
+# look like it worked.
 # --------------------------------------------------------------------------- #
-def _write_x2_case(root: Path, *, image_size=(2, 2)) -> Path:
-    """A minimal synthetic case: one plan view, real case_data image at the
-    given pixel size — just enough for build_view_manifest to succeed."""
+def _write_realscale_case(root: Path, *, image_size=(790, 1111)) -> Path:
+    """A minimal synthetic case at a REAL case_data pixel scale (default
+    matches sm24_anchor/case_data/1f_view.png's actual 790x1111 px) — enough
+    for build_view_manifest to succeed. Unlike the retired 2x2 px fixture,
+    this size is exactly the shape of image that let [360, 450] sail through
+    the old px-as-metre mechanism (360 < 790, 450 < 1111 — comfortably
+    "in pixel bounds"), so it is the correct regression fixture for B-1: the
+    NEW mechanism must still block the payload even though the image is
+    plenty big enough in pixels to have swallowed it under the old one."""
     from PIL import Image
 
     case_data = root / "case_data"
     case_data.mkdir(parents=True, exist_ok=True)
     Image.new("RGB", image_size, color=(200, 200, 200)).save(case_data / "1f_view.png")
     testdata = {
-        "TestName": "x2-lock",
+        "TestName": "b1-lock",
         "Floor plans": [
             {"floor": 1, "path": "case_data/1f_view.png", "thermal_zones": 1, "dimensioned": False},
         ],
@@ -1252,42 +1266,188 @@ def _write_x2_case(root: Path, *, image_size=(2, 2)) -> Path:
     return root
 
 
-def test_trusted_bounds_from_case_data_survive_all_three_inflation_tricks(tmp_path):
-    """X-2 (r2 batchC dispatch §1 MAJOR): the r1 crossreview's exact three
-    exploits — an extra pixel-scale dimension endpoint, a stray long stroke, and
-    a declared `image_bounds` extra field — each used to widen the
-    product-derived bounds enough to flip reading.ocr_anchors_in_bounds from
-    fail/blocking to pass/not-blocking. Wired through the REAL production entry
-    point (check_reading_stage with a real (tiny, 2x2 px) case_data image +
-    manifest), none of the three tricks can move the trusted bounds — the
-    check keeps blocking every time.
+def test_b1_pixel_anchor_blocks_on_a_real_case_data_scale_image(tmp_path):
+    """B-1 (r3 batchC dispatch §1 BLOCKER): the decisive regression for the
+    BLOCKER itself. A real (790x1111 px — sm24_anchor's own 1f_view.png size)
+    case_data image is wired through the REAL production entry point
+    (check_reading_stage + build_view_manifest), and the exact repro payload
+    [360, 450] on a ~10x8 m plan still BLOCKS under the regression profile.
 
-    Neuter: stop check_reading_stage from resolving/forwarding trusted bounds
-    (e.g. drop its `case_dir=` wiring to resolve_view_pixel_bounds, or make
-    _image_bounds ignore its `trusted_bounds` argument) ⇒ this lock reds (the
-    exploit succeeds again — the trick payloads flip to pass/not-blocking)."""
+    Under the retired r2 mechanism this would PASS (360 < 790, 450 < 1111 are
+    both comfortably inside the image's real pixel bounds) — that IS the B-1
+    bug, and this is the fixture that exposes it (the retired suite's 2x2 px
+    fixture could not, by construction: sol 2026-08-04 review §2).
+
+    Neuter: reintroduce any form of "compare a metre reading coordinate
+    against the source image's real pixel width/height" (e.g. resurrect
+    resolve_view_pixel_bounds and feed its result back into
+    _ocr_anchors_in_bounds) ⇒ this lock reds — the bad anchor flips back to
+    pass/not-blocking on this real-scale image."""
     from src.agent.execution.view_manifest import build_view_manifest
     from src.validator.checks.view_manifest import check_reading_stage
 
-    case_dir = _write_x2_case(tmp_path / "case", image_size=(2, 2))
+    case_dir = _write_realscale_case(tmp_path / "case")
+    manifest = build_view_manifest(case_dir)
+
+    payload = _clean_plan_payload(_USABLE_ORIGIN)
+    payload["ocr_texts"] = [{"text": "3600", "anchor": [360, 450]}]  # pixel anchor
+    payload["dimensions"] = [{"id": "D1", "from": [360, 450], "to": [365, 450], "text": "3600"}]
+
+    rep = check_reading_stage(manifest, {"1f_view": payload}, run_profile="regression")
+    prefixed_ocr = f"1f_view.{_OCR_BOUNDS_CHECK}"
+    prefixed_dim = f"1f_view.{_DIM_BOUNDS_CHECK}"
+    assert _result(rep, prefixed_ocr).status is CheckStatus.FAIL
+    assert prefixed_ocr in _ids(rep)  # BLOCKS
+    assert _result(rep, prefixed_dim).status is CheckStatus.FAIL
+    assert prefixed_dim in _ids(rep)  # BLOCKS
+    assert not rep.passed
+
+
+def test_b1_legitimate_product_on_a_real_case_data_scale_image_is_not_flagged(tmp_path):
+    """B-1 companion (r3 batchC dispatch §1 "另配一条合法产物不被误伤的对照锁"):
+    the exact same real (790x1111 px) case_data image, but with a legitimate,
+    plausible OCR anchor/dimension endpoint (well within the traced plan's own
+    metric scale) — proves the new mechanism does not falsely accuse ordinary
+    products just because it now ignores the image's pixel size entirely."""
+    from src.agent.execution.view_manifest import build_view_manifest
+    from src.validator.checks.view_manifest import check_reading_stage
+
+    case_dir = _write_realscale_case(tmp_path / "case")
+    manifest = build_view_manifest(case_dir)
+
+    payload = _clean_plan_payload(_USABLE_ORIGIN)
+    payload["ocr_texts"] = [{"text": "room", "anchor": [5.0, 4.0]}]  # well inside the 10x8 m plan
+    payload["dimensions"] = [{"id": "D1", "from": [1.0, 0.0], "to": [9.0, 0.0], "text": "800"}]
+
+    rep = check_reading_stage(manifest, {"1f_view": payload}, run_profile="regression")
+    prefixed_ocr = f"1f_view.{_OCR_BOUNDS_CHECK}"
+    prefixed_dim = f"1f_view.{_DIM_BOUNDS_CHECK}"
+    assert _result(rep, prefixed_ocr).status is CheckStatus.PASS
+    assert prefixed_ocr not in _ids(rep)
+    assert _result(rep, prefixed_dim).status is CheckStatus.PASS
+    assert prefixed_dim not in _ids(rep)
+    assert rep.passed
+
+
+def test_b1_large_legitimate_building_is_not_falsely_accused():
+    """B-1 companion: the fence scales with the drawing's OWN structural
+    extent (median absolute deviation), not a fixed absolute threshold, so a
+    genuinely large building's own annotations are never falsely flagged just
+    for being numerically big. A 120x90 m structure (an order of magnitude
+    bigger than the ~10x8 m plan used elsewhere in this file) with an OCR
+    anchor/dimension endpoint at a plausible position near its own edge (135 m,
+    95 m — just past the traced outline, the same "label past a wall" shape as
+    the small-building margin tests) still passes.
+
+    Contrast with test_b1_unit_anomaly_scales_with_structural_extent below:
+    the SAME 120x90 m building rejects an anchor an order of magnitude past
+    ITS OWN scale (1200, 900) — proving this is a relative, not an absolute,
+    judgment."""
+    payload = {
+        "image_kind": "plan",
+        "uncaptured": [],
+        "scale_origin": _USABLE_ORIGIN,
+        "strokes": [
+            {"id": "S1", "pen": "wall", "provenance": "seen", "confidence": "high",
+             "geometry": {"kind": "line", "p1": [0, 0], "p2": [120, 0]}},
+            {"id": "S2", "pen": "wall", "provenance": "seen", "confidence": "high",
+             "geometry": {"kind": "line", "p1": [0, 90], "p2": [120, 90]}},
+        ],
+        "dimensions": [],
+        "ocr_texts": [{"text": "room", "anchor": [135.0, 95.0]}],
+    }
+    view = ReadingView.model_validate(payload)
+    rep = check_reading_view(view, run_profile="regression")
+    result = _result(rep, _OCR_BOUNDS_CHECK)
+    assert result.status is CheckStatus.PASS
+    assert _OCR_BOUNDS_CHECK not in _ids(rep)
+
+
+def test_b1_unit_anomaly_scales_with_structural_extent():
+    """B-1 companion: the SAME 120x90 m building as the test above, but now
+    with an anchor at (1200, 900) — exactly 10x its own structural scale, the
+    same order-of-magnitude relationship [360, 450] has to the ~10-20 m
+    buildings used elsewhere in this file. It is still flagged, proving the
+    check is a RELATIVE (order-of-magnitude-vs-own-geometry) judgment, not an
+    absolute metre threshold that would eventually false-positive on any
+    large enough legitimate building."""
+    payload = {
+        "image_kind": "plan",
+        "uncaptured": [],
+        "scale_origin": _USABLE_ORIGIN,
+        "strokes": [
+            {"id": "S1", "pen": "wall", "provenance": "seen", "confidence": "high",
+             "geometry": {"kind": "line", "p1": [0, 0], "p2": [120, 0]}},
+            {"id": "S2", "pen": "wall", "provenance": "seen", "confidence": "high",
+             "geometry": {"kind": "line", "p1": [0, 90], "p2": [120, 90]}},
+        ],
+        "dimensions": [],
+        "ocr_texts": [{"text": "bad", "anchor": [1200.0, 900.0]}],
+    }
+    view = ReadingView.model_validate(payload)
+    rep = check_reading_view(view, run_profile="regression")
+    result = _result(rep, _OCR_BOUNDS_CHECK)
+    assert result.status is CheckStatus.FAIL
+    assert _OCR_BOUNDS_CHECK in _ids(rep)
+
+
+def test_b1_resists_stray_stroke_self_inflation(tmp_path):
+    """B-1 companion (carries forward the r1/r2 "stray_long_stroke" exploit,
+    the one of the three original inflation tricks that could not be defeated
+    just by construction — see _structural_metric_reference's docstring for
+    why dropping OCR/dimension/declared-``image_bounds`` fields from the
+    reference set defeats the other two by construction alone). A produced
+    view adds an extra wall stroke reaching all the way to (400, 500), right
+    next to the bad OCR anchor at [360, 450] — under a naive min/max bounding
+    box this would widen the "structural extent" enough to swallow the bad
+    anchor. The median/MAD-based reference barely moves (worked numerically in
+    _structural_metric_reference's docstring: median_x stays 5, MAD_x stays 5,
+    with or without the injected stroke) — the bad anchor is still blocked.
+
+    Neuter: revert _structural_metric_reference to raw min/max over the same
+    point set (drop the median/MAD statistics) ⇒ this lock reds — the injected
+    stroke's own endpoint widens the naive bounds enough for [360, 450] to
+    pass."""
+    from src.agent.execution.view_manifest import build_view_manifest
+    from src.validator.checks.view_manifest import check_reading_stage
+
+    case_dir = _write_realscale_case(tmp_path / "case")
+    manifest = build_view_manifest(case_dir)
+
+    base = _clean_plan_payload(_USABLE_ORIGIN)
+    payload = {
+        **base,
+        "ocr_texts": [{"text": "3600", "anchor": [360, 450]}],
+        "strokes": base["strokes"] + [
+            {"id": "S3", "pen": "wall", "provenance": "seen", "confidence": "high",
+             "geometry": {"kind": "line", "p1": [0, 0], "p2": [400, 500]}},
+        ],
+    }
+    rep = check_reading_stage(manifest, {"1f_view": payload}, run_profile="regression")
+    prefixed = f"1f_view.{_OCR_BOUNDS_CHECK}"
+    result = _result(rep, prefixed)
+    assert result.status is CheckStatus.FAIL
+    assert prefixed in _ids(rep)  # still BLOCKS despite the injected stroke
+
+
+def test_b1_declared_image_bounds_and_dimension_endpoints_cannot_inflate_the_reference(tmp_path):
+    """B-1 companion (carries forward the other two r1/r2 inflation tricks —
+    a declared `image_bounds` extra field, and an extra pixel-scale dimension
+    endpoint — both of which are now defeated by construction:
+    _structural_metric_reference never reads either field, only strokes)."""
+    from src.agent.execution.view_manifest import build_view_manifest
+    from src.validator.checks.view_manifest import check_reading_stage
+
+    case_dir = _write_realscale_case(tmp_path / "case")
     manifest = build_view_manifest(case_dir)
 
     base = _clean_plan_payload(_USABLE_ORIGIN)
     bad_anchor = {"text": "3600", "anchor": [360, 450]}
-
     tricks = {
         "extra_pixel_dimension_endpoint": {
             **base,
             "ocr_texts": [bad_anchor],
             "dimensions": [{"id": "D1", "from": [360, 450], "to": [365, 450], "text": "3600"}],
-        },
-        "stray_long_stroke": {
-            **base,
-            "ocr_texts": [bad_anchor],
-            "strokes": base["strokes"] + [
-                {"id": "S3", "pen": "wall", "provenance": "seen", "confidence": "high",
-                 "geometry": {"kind": "line", "p1": [0, 0], "p2": [400, 500]}},
-            ],
         },
         "declared_image_bounds_extra_field": {
             **base,
@@ -1297,24 +1457,63 @@ def test_trusted_bounds_from_case_data_survive_all_three_inflation_tricks(tmp_pa
     }
     prefixed = f"1f_view.{_OCR_BOUNDS_CHECK}"
     for label, payload in tricks.items():
-        rep = check_reading_stage(
-            manifest, {"1f_view": payload}, run_profile="regression", case_dir=case_dir,
-        )
+        rep = check_reading_stage(manifest, {"1f_view": payload}, run_profile="regression")
         result = _result(rep, prefixed)
         assert result.status is CheckStatus.FAIL, label
-        assert prefixed in _ids(rep), label  # still BLOCKS despite the inflation attempt
+        assert prefixed in _ids(rep), label
 
 
-def test_trusted_bounds_unavailable_falls_back_without_crashing():
-    """X-2 companion: when no case_dir/manifest is wired (degraded/legacy path —
-    direct check_reading_view calls, or a manifest-less run, which is already
-    hard-blocked elsewhere by reading.view_manifest_coverage), the check must
-    not crash — it falls back to the pre-X-2 product-derived bounds. This is
-    exactly the existing OCR-anchor test's payload/profile, re-asserted with
-    trusted_image_bounds explicitly absent to pin the fallback contract."""
+def test_b1_m2_undecodable_source_image_no_longer_degrades_the_check(tmp_path):
+    """M-2 (r3 batchC dispatch §2 MAJOR), closed as a structural consequence of
+    the B-1 fix: the retired mechanism resolved trusted PIXEL bounds by
+    PIL-decoding the case_data source image per stem, and silently `continue`d
+    (dropping that stem's trusted bounds, falling back to the weaker
+    product-derivable bounds) when the bytes were not a valid image — even
+    though the manifest/hash were perfectly valid (sol 2026-08-04 review
+    §2.2, row 3: coverage still PASS, blocking=[], report passed=True).
+
+    The B-1 replacement never opens the image file at all — the reference is
+    computed purely from the view's own stroke geometry — so there is no more
+    image-decode step on this path to silently fail. This test proves it
+    through the real production entry point: the case_data "image" on disk is
+    genuinely corrupt (not decodable by PIL), build_view_manifest still
+    succeeds (hash/manifest identity does not require decoding), and the bad
+    OCR anchor is STILL blocked exactly as if the image had been valid.
+
+    Neuter: reintroduce any image-decode step into the OCR-anchor/dimension-
+    endpoint bounds checks (e.g. resurrect resolve_view_pixel_bounds and make
+    a decode failure silently drop to a weaker fallback) ⇒ this lock stays
+    green today but would start reproducing M-2's silent-degrade shape again —
+    the intended regression signal is the companion real-image lock above
+    (test_b1_pixel_anchor_blocks_on_a_real_case_data_scale_image) flipping if
+    that resurrected mechanism ever became the primary gate again; this test
+    pins the specific "image is corrupt" input shape so a future patch cannot
+    reintroduce a decode-dependent fallback without this test forcing the
+    author to look at it."""
+    from src.agent.execution.view_manifest import build_view_manifest
+    from src.validator.checks.view_manifest import check_reading_stage
+
+    case_dir = tmp_path / "case"
+    case_data = case_dir / "case_data"
+    case_data.mkdir(parents=True)
+    # Genuinely undecodable bytes at a .png path — hashes fine, PIL cannot open it.
+    (case_data / "1f_view.png").write_bytes(b"not a real png file, just garbage bytes")
+    testdata = {
+        "TestName": "m2-lock",
+        "Floor plans": [
+            {"floor": 1, "path": "case_data/1f_view.png", "thermal_zones": 1, "dimensioned": False},
+        ],
+    }
+    (case_data / "testdata_prompt.json").write_text(json.dumps(testdata), encoding="utf-8")
+
+    manifest = build_view_manifest(case_dir)  # hashing raw bytes does not require decoding them
+
     payload = _clean_plan_payload(_USABLE_ORIGIN)
     payload["ocr_texts"] = [{"text": "3600", "anchor": [360, 450]}]
-    view = ReadingView.model_validate(payload)
-    rep = check_reading_view(view, run_profile="regression", trusted_image_bounds=None)
-    assert _result(rep, _OCR_BOUNDS_CHECK).status is CheckStatus.FAIL
-    assert _OCR_BOUNDS_CHECK in _ids(rep)
+    rep = check_reading_stage(manifest, {"1f_view": payload}, run_profile="regression")
+    prefixed = f"1f_view.{_OCR_BOUNDS_CHECK}"
+    result = _result(rep, prefixed)
+    assert result.status is CheckStatus.FAIL
+    assert prefixed in _ids(rep)  # still BLOCKS — coverage also still passes (identity is fine)
+    coverage_id = "reading.view_manifest_coverage"
+    assert _result(rep, coverage_id).status is CheckStatus.PASS

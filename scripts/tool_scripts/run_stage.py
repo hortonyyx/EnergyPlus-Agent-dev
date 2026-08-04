@@ -236,7 +236,6 @@ def _draw_reading(run_dir: Path, policy: RunPolicy, dimensioned_views: set[str])
         run_profile=eff_run_profile,
         run_policy_sha256=policy_sha256,
         run_policy_source=policy_source,
-        case_dir=case_dir,
     )
     if not views:
         rep.add("reading.present", CheckStatus.ERROR, CheckLayer.INVARIANT,

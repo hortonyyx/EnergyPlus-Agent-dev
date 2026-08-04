@@ -67,6 +67,19 @@ _WINDOW_JAMB_TOLERANCE_M = 0.20
 # MARGIN_M (render_vector_to_png) so a label flagged here is one a reviewer would
 # NOT see in the render.
 _OCR_ANCHOR_MARGIN_M = 2.0
+# B-1 (r3 batchC dispatch §1 BLOCKER, route (b) — unit-anomaly, no external
+# root): factor applied to the median absolute deviation (MAD) of a view's own
+# stroke geometry to build a plausible-magnitude fence for OCR anchors /
+# dimension endpoints. "An order of magnitude" (r3 dispatch's own wording) ==
+# 10x. See _structural_metric_reference for the full worked justification
+# (why this resists the three r1/r2 self-inflation tricks and does not
+# falsely accuse legitimate large buildings).
+_UNIT_ANOMALY_MAD_FACTOR = 10.0
+# Absolute floor (metres) on the fence half-width, so a view with a tiny or
+# degenerate structural extent (e.g. a single short wall segment, MAD ~= 0)
+# does not become hair-trigger — no legitimate architectural annotation sits
+# farther than this from the drawing's own traced geometry.
+_UNIT_ANOMALY_FLOOR_M = 5.0
 
 
 def _finite(*vals) -> bool:
@@ -114,7 +127,6 @@ def check_reading_view(
     view_metadata: dict | None = None,
     dimensioned: bool | None = None,
     dimensioned_state: str | None = None,
-    trusted_image_bounds: tuple[float, float, float, float] | None = None,
 ) -> CheckReport:
     rep = CheckReport(
         stage="0_reading",
@@ -167,16 +179,17 @@ def check_reading_view(
     _room_labels_wellformed(rep, view)
 
     # ---- CROSS_CHECK (profile-gated BLOCK): OCR/annotation anchors in bounds ----
-    # X-2 (r2 batchC dispatch §1): trusted_image_bounds, when the caller has it
-    # (check_reading_stage resolving it from the case_data source image's real
-    # pixel size via the view manifest), is the ONLY bounds source consulted —
-    # see _image_bounds. Direct callers with no manifest/case_dir wired (unit
-    # tests, degraded/legacy paths) fall back to the weaker product-derived
-    # bounds below.
-    _ocr_anchors_in_bounds(rep, view, trusted_bounds=trusted_image_bounds)
+    # B-1 (r3 batchC dispatch §1 BLOCKER): the r2 X-2 mechanism (a "trusted"
+    # bound resolved from the case_data source image's real PIXEL size) was
+    # dimensionally wrong — reading coordinates are METRES — so it was retired.
+    # See _structural_metric_reference for the replacement: a dimensionally
+    # consistent, dependency-free unit-anomaly check computed entirely from
+    # this view's own stroke geometry (never from case_dir/manifest, so there
+    # is no more "trusted vs fallback" split — one mechanism, always).
+    _ocr_anchors_in_bounds(rep, view)
 
     # ---- CROSS_CHECK (profile-gated BLOCK): dimension endpoints in bounds ----
-    _dimension_endpoints_in_bounds(rep, view, trusted_bounds=trusted_image_bounds)
+    _dimension_endpoints_in_bounds(rep, view)
 
     # ---- CROSS_CHECK: dimension-chain closure ----
     _chain_closure(rep, view, meta)
@@ -327,30 +340,30 @@ def _room_labels_wellformed(rep: CheckReport, view: ReadingView) -> None:
         )
 
 
-def _ocr_anchors_in_bounds(
-    rep: CheckReport, view: ReadingView, *, trusted_bounds: tuple[float, float, float, float] | None = None,
-) -> None:
-    """M-3 (r1 / F-4 ③): surface OCR/annotation anchors that fall outside the
-    trusted structural image bounds. O-4 stopped letting OCR anchors expand the
-    rendered canvas (the ~3.3e8-px root cause) — but that also deleted the ONLY
-    signal of a pixel anchor, so bad data was then silently masked (worse than
-    before). This check restores a machine-readable signal: an OCR anchor outside
-    ``_image_bounds`` (+ ``_OCR_ANCHOR_MARGIN_M``) is flagged, and BLOCKS under
-    golden/regression (disposition in schema.py). A pixel anchor like ``[360,
-    450]`` on a ~10 m plan is the textbook bad-data shape. ⛔ Never clamped, never
-    silently dropped — only surfaced. Empty ``ocr_texts`` passes cleanly.
+def _ocr_anchors_in_bounds(rep: CheckReport, view: ReadingView) -> None:
+    """M-3 (r1 / F-4 ③) + B-1 (r3 batchC dispatch §1 BLOCKER): surface OCR/
+    annotation anchors whose magnitude is anomalous relative to this view's own
+    structural (wall/outline) geometry. O-4 stopped letting OCR anchors expand
+    the rendered canvas (the ~3.3e8-px root cause) — but that also deleted the
+    ONLY signal of a pixel anchor, so bad data was then silently masked (worse
+    than before). This check restores a machine-readable signal, and BLOCKS
+    under golden/regression (disposition in schema.py). A pixel anchor like
+    ``[360, 450]`` on a ~10 m plan is the textbook bad-data shape. ⛔ Never
+    clamped, never silently dropped — only surfaced. Empty ``ocr_texts`` passes
+    cleanly.
 
-    ``trusted_bounds`` (X-2, r2 batchC dispatch §1): forwarded straight to
-    ``_image_bounds`` — when the caller has it, it is the ONLY bounds source
-    consulted (never the product's own strokes/dimensions/extra fields)."""
+    Reference comes from :func:`_structural_metric_reference` (route (b) of
+    B-1 — unit-anomaly, no external root; see that function's docstring for
+    why the earlier px-as-metre ``trusted_image_bounds`` mechanism, r2's X-2,
+    was retired instead of repaired)."""
     ocr_texts = view.ocr_texts or []
     if not ocr_texts:
         rep.add_pass("reading.ocr_anchors_in_bounds", CheckLayer.CROSS_CHECK)
         return
-    bounds = _image_bounds(view, trusted_bounds=trusted_bounds)
+    bounds = _structural_metric_reference(view)
     bad: list[dict] = []
     if bounds is None:
-        bad = [{"index": i, "anchor": _ocr_anchor_repr(t), "reason": "no image bounds"}
+        bad = [{"index": i, "anchor": _ocr_anchor_repr(t), "reason": "no structural geometry to judge against"}
                for i, t in enumerate(ocr_texts)]
     else:
         xmin, xmax, ymin, ymax = bounds
@@ -366,16 +379,16 @@ def _ocr_anchors_in_bounds(
             if not (xmin - _OCR_ANCHOR_MARGIN_M <= x <= xmax + _OCR_ANCHOR_MARGIN_M
                     and ymin - _OCR_ANCHOR_MARGIN_M <= y <= ymax + _OCR_ANCHOR_MARGIN_M):
                 bad.append({"index": i, "anchor": anchor, "text": t.get("text", ""),
-                            "reason": "outside trusted image bounds"})
+                            "reason": "coordinate magnitude anomalous relative to structural geometry"})
     if bad:
         rep.add_fail(
             "reading.ocr_anchors_in_bounds", CheckLayer.CROSS_CHECK,
-            f"{len(bad)} ocr anchor(s) invalid or out of bounds",
-            evidence={"offenders": bad, "bounds": bounds, "margin_m": _OCR_ANCHOR_MARGIN_M},
+            f"{len(bad)} ocr anchor(s) invalid or magnitude-anomalous",
+            evidence={"offenders": bad, "structural_reference": bounds, "margin_m": _OCR_ANCHOR_MARGIN_M},
         )
     else:
         rep.add_pass("reading.ocr_anchors_in_bounds", CheckLayer.CROSS_CHECK,
-                     evidence={"bounds": bounds})
+                     evidence={"structural_reference": bounds})
 
 
 def _ocr_anchor_repr(t) -> object:
@@ -383,37 +396,37 @@ def _ocr_anchor_repr(t) -> object:
     return t.get("anchor") if isinstance(t, dict) else t
 
 
-def _dimension_endpoints_in_bounds(
-    rep: CheckReport, view: ReadingView, *, trusted_bounds: tuple[float, float, float, float] | None = None,
-) -> None:
-    """X-1 (r2 batchC dispatch §1): surface dimension endpoints (``from``/``to``)
-    that fall outside the trusted structural image bounds — the same bad-data
-    shape M-3 (``_ocr_anchors_in_bounds``) already catches for OCR anchors, but
-    until now had NO bounds check of its own. N-3's adaptive canvas scale
-    (render_vector_to_png) stopped RAISING when a dimension endpoint is written
-    in pixel space (it downscales instead of blowing up to ~3.3e8 px) — that
-    deleted the last machine-readable signal of this failure mode, since gate①
-    never checked dimension endpoints directly; it only ever inherited the
-    renderer's crash. This restores a machine-readable signal, independent of
-    the renderer: a dimension endpoint outside ``_image_bounds`` (+
-    ``_OCR_ANCHOR_MARGIN_M``) is flagged, and BLOCKS under golden/regression
-    (disposition in schema.py). ⛔ Never clamped, never silently dropped — only
-    surfaced. Empty ``dimensions`` passes cleanly.
+def _dimension_endpoints_in_bounds(rep: CheckReport, view: ReadingView) -> None:
+    """X-1 (r2 batchC dispatch §1) + B-1 (r3 batchC dispatch §1 BLOCKER):
+    surface dimension endpoints (``from``/``to``) whose magnitude is anomalous
+    relative to this view's own structural (wall/outline) geometry — the same
+    bad-data shape M-3 (``_ocr_anchors_in_bounds``) already catches for OCR
+    anchors. N-3's adaptive canvas scale (render_vector_to_png) stopped
+    RAISING when a dimension endpoint is written in pixel space (it downscales
+    instead of blowing up to ~3.3e8 px) — that deleted the last machine-
+    readable signal of this failure mode, since gate① never checked dimension
+    endpoints directly; it only ever inherited the renderer's crash. This
+    restores a machine-readable signal, independent of the renderer, and
+    BLOCKS under golden/regression (disposition in schema.py). ⛔ Never
+    clamped, never silently dropped — only surfaced. Empty ``dimensions``
+    passes cleanly.
 
-    Bounds are computed with ``exclude_dimensions=True``: a bad dimension
-    endpoint must not be able to inflate the very bounds it is checked
-    against (mirrors O-4's exclusion of OCR anchors from the same fallback)."""
+    Reference comes from :func:`_structural_metric_reference`, which is
+    computed from STROKES ONLY — a bad dimension endpoint can never inflate
+    the very reference it is checked against (dimensions never enter that
+    function's point set at all, so there is no ``exclude_dimensions`` flag to
+    thread through any more)."""
     dims = view.dimensions or []
     if not dims:
         rep.add_pass(DIMENSION_ENDPOINT_BOUNDS_CHECK_ID, CheckLayer.CROSS_CHECK)
         return
-    bounds = _image_bounds(view, trusted_bounds=trusted_bounds, exclude_dimensions=True)
+    bounds = _structural_metric_reference(view)
     bad: list[dict] = []
     if bounds is None:
         for d in dims:
             for field, pt in (("from", d.from_pt), ("to", d.to)):
                 if pt is not None:
-                    bad.append({"id": d.id, "field": field, "point": pt, "reason": "no image bounds"})
+                    bad.append({"id": d.id, "field": field, "point": pt, "reason": "no structural geometry to judge against"})
     else:
         xmin, xmax, ymin, ymax = bounds
         for d in dims:
@@ -427,50 +440,141 @@ def _dimension_endpoints_in_bounds(
                 if not (xmin - _OCR_ANCHOR_MARGIN_M <= x <= xmax + _OCR_ANCHOR_MARGIN_M
                         and ymin - _OCR_ANCHOR_MARGIN_M <= y <= ymax + _OCR_ANCHOR_MARGIN_M):
                     bad.append({"id": d.id, "field": field, "point": pt,
-                                "reason": "outside trusted image bounds"})
+                                "reason": "coordinate magnitude anomalous relative to structural geometry"})
     if bad:
         rep.add_fail(
             DIMENSION_ENDPOINT_BOUNDS_CHECK_ID, CheckLayer.CROSS_CHECK,
-            f"{len(bad)} dimension endpoint(s) invalid or out of bounds",
-            evidence={"offenders": bad, "bounds": bounds, "margin_m": _OCR_ANCHOR_MARGIN_M},
+            f"{len(bad)} dimension endpoint(s) invalid or magnitude-anomalous",
+            evidence={"offenders": bad, "structural_reference": bounds, "margin_m": _OCR_ANCHOR_MARGIN_M},
         )
     else:
         rep.add_pass(DIMENSION_ENDPOINT_BOUNDS_CHECK_ID, CheckLayer.CROSS_CHECK,
-                     evidence={"bounds": bounds})
+                     evidence={"structural_reference": bounds})
 
 
-def _image_bounds(
-    view: ReadingView,
-    *,
-    trusted_bounds: tuple[float, float, float, float] | None = None,
-    exclude_dimensions: bool = False,
-) -> tuple[float, float, float, float] | None:
-    """X-2 (r2 batchC dispatch §1): when ``trusted_bounds`` is supplied — the
-    case_data source image's real pixel size, resolved by the caller from the
-    view manifest (``view_manifest.resolve_view_pixel_bounds``, keyed by an
-    already-frozen, R1-6-verified ``image_sha256``) — it is used EXCLUSIVELY.
-    The product's own ``strokes``, ``dimensions``, and any ``extra`` field
-    (including the ``image_bounds``/``image_size`` escape hatch below) are never
-    even consulted. This closes the exploit where a produced view widens its own
-    bounds (an extra pixel-scale dimension endpoint, a stray long stroke, or a
-    declared ``image_bounds`` extra field) to swallow a bad anchor: that source
-    was fixed before this run started, and the party being checked cannot write
-    it (decision_log §5.14 — only externally-rooted values may drive a
-    judgment).
+def _structural_metric_reference(view: ReadingView) -> tuple[float, float, float, float] | None:
+    """B-1 (r3 batchC dispatch §1 BLOCKER, route (b) — unit-anomaly, no
+    external root): the dimensionally-safe replacement for the retired r2 X-2
+    mechanism (``resolve_view_pixel_bounds`` + ``trusted_image_bounds``),
+    which compared a METRE reading coordinate against a PIXEL bound (the
+    case_data source image's real width/height in px). A ~10-20 m building's
+    source image is 790-3000 px wide, so virtually any garbage metre-scale
+    value up to that pixel count — including the exact repro payload
+    ``[360, 450]`` — sailed straight through: the regression gate blocked
+    nothing on real case_data images, only on the retired test suite's 2x2 px
+    synthetic fixture. See sol's 2026-08-04 batch C r2 review §2 for the full
+    repro.
 
-    Only when no trusted bounds are available (no case_dir/manifest wired by the
-    caller — direct unit-test calls, or a manifest-less legacy run, which is
-    already hard-blocked elsewhere by ``reading.view_manifest_coverage``) does
-    this fall back to the product-declared ``explicit`` bounds, then to bounds
-    derived from the view's own geometry — the pre-X-2 behavior, kept for
-    backward compatibility on that degraded path only.
+    Route (a) — deriving a metre bound from a pixel-per-metre ratio (e.g. the
+    view's own ``scale_origin`` / dimension calibration) — was rejected: that
+    ratio is itself written by the party being checked (``scale_origin`` is a
+    plain product-declared dict, see ``_plan_scale_origin``; no other
+    pixel-per-metre source exists anywhere in this repository — grepped for
+    print/paper-scale case metadata, found none), which fails
+    decision_log.md §5.14's "the judged party cannot write the basis" test
+    exactly the way the original bug did.
 
-    ``exclude_dimensions`` drops dimension endpoints from the geometry fallback
-    (mirroring O-4's exclusion of OCR anchors): a bad dimension endpoint must
-    not be able to inflate the very bounds it is itself checked against."""
-    if trusted_bounds is not None:
-        return trusted_bounds
+    Route (b), implemented here, asks a dimensionally-consistent question
+    entirely within metre space: is this coordinate's magnitude sane relative
+    to the SAME view's own already-established structural geometry? This is
+    an established pattern in this file already (``_chain_closure``,
+    ``_stroke_dimension_consistency`` are both internal cross-consistency
+    checks over the same submission, not comparisons to a frozen external
+    fact) — it does not need decision_log §5.14's "second, pre-existing,
+    unwritable record" because it is not freezing a value at all; it is a
+    fixed, gate①-owned ALGORITHM (which the checked party cannot write —
+    it lives in this module, not in the submission) applied to the party's
+    own data. What the party CANNOT do is defeat it by writing one bad
+    coordinate: to slip a pixel-scale value past this fence, the whole
+    submission's stroke geometry would have to be uniformly pixel-scale too,
+    at which point ``_chain_closure``/``_dimension_derived_refs`` and the
+    plan/elevation dimension-chain checks would very likely also fire on the
+    same submission (the injected value would no longer be an isolated
+    anomaly, it would be systemic).
 
+    Uses STROKES ONLY (line/rect/polyline geometry) — never OCR anchors, never
+    dimension endpoints, never the product-declared ``image_bounds`` escape
+    hatch (``_explicit_image_bounds`` is not consulted here) — because those
+    are exactly the fields these two checks judge; consulting them would let
+    the party being checked inflate its own yardstick. This is the same
+    concern the r1/r2 "three inflation tricks" test targeted, and it is still
+    resisted: dropping the product-declared ``image_bounds`` field and
+    dimension endpoints from the point set entirely defeats two of the three
+    tricks by construction (they are never read); the third (an added stray
+    stroke reaching toward the bad anchor) is resisted by using MEDIAN +
+    MEDIAN ABSOLUTE DEVIATION (MAD), not raw min/max, as the base statistic —
+    a robust statistic barely moves when one extra point is injected among
+    several genuine ones (a raw min/max bounding box has no such property: one
+    extra point can move a max arbitrarily far). Worked example (batch C r3
+    execution log has the full numeric trace): a 2-stroke base building
+    (points (0,0),(10,0),(0,8),(10,8)) plus one injected stroke reaching to
+    (400,500) still yields median_x=5, MAD_x=5 — unchanged from the
+    non-injected case — because a single outlier among several points does
+    not move the median.
+
+    Returns ``None`` when the view has no stroke geometry at all (degenerate/
+    empty submission) — callers then fail closed (every OCR anchor / dimension
+    endpoint is flagged "no structural geometry to judge against"), the same
+    fail-closed posture the pre-B-1 code had for its own "no bounds" case."""
+    xs: list[float] = []
+    ys: list[float] = []
+
+    def add_pt(pt) -> None:
+        if isinstance(pt, list) and len(pt) >= 2 and _finite(pt[0], pt[1]):
+            xs.append(float(pt[0]))
+            ys.append(float(pt[1]))
+
+    for stroke in view.strokes:
+        g = stroke.geometry or {}
+        kind = g.get("kind")
+        if kind == "line":
+            add_pt(g.get("p1"))
+            add_pt(g.get("p2"))
+        elif kind == "rect":
+            xr, yr = g.get("x_range_m"), g.get("y_range_m")
+            if isinstance(xr, list) and isinstance(yr, list) and len(xr) >= 2 and len(yr) >= 2:
+                add_pt([xr[0], yr[0]])
+                add_pt([xr[1], yr[1]])
+        elif kind == "polyline":
+            for pt in g.get("points", []):
+                add_pt(pt)
+
+    if not xs or not ys:
+        return None
+
+    def _median(vals: list[float]) -> float:
+        s = sorted(vals)
+        n = len(s)
+        mid = n // 2
+        return s[mid] if n % 2 else (s[mid - 1] + s[mid]) / 2.0
+
+    def _half_width(vals: list[float], center: float) -> float:
+        mad = _median([abs(v - center) for v in vals])
+        return max(mad * _UNIT_ANOMALY_MAD_FACTOR, _UNIT_ANOMALY_FLOOR_M)
+
+    mx, my = _median(xs), _median(ys)
+    hx, hy = _half_width(xs, mx), _half_width(ys, my)
+    return mx - hx, mx + hx, my - hy, my + hy
+
+
+def _image_bounds(view: ReadingView) -> tuple[float, float, float, float] | None:
+    """Product-derivable bounds: declared ``image_bounds`` extra field, else
+    bounds derived from the view's own strokes + dimension endpoints combined.
+
+    B-1 (r3 batchC dispatch §1 BLOCKER): the r2 X-2 ``trusted_bounds``
+    parameter this function used to accept was retired — it compared a METRE
+    reading coordinate against the case_data source image's real PIXEL size, a
+    dimensional mismatch that let the exact repro payload ``[360, 450]``
+    through on every real (790-3000 px) case_data image. The two callers that
+    needed a dimensionally-safe, self-inflation-resistant reference
+    (``_ocr_anchors_in_bounds`` / ``_dimension_endpoints_in_bounds``) now use
+    :func:`_structural_metric_reference` instead (route (b) — internal
+    unit-anomaly, no external root; see its docstring for the full
+    justification). This function is unchanged from its pre-X-2 form and is
+    now used only by ``reading.room_label_anchors_in_bounds`` (a different,
+    lower-stakes check, not in scope of B-1 — it was never fed
+    ``trusted_bounds`` even under r2's X-2, so its behaviour here is
+    unaffected by this fix)."""
     explicit = _explicit_image_bounds(view)
     if explicit is not None:
         return explicit
@@ -497,10 +601,9 @@ def _image_bounds(
         elif kind == "polyline":
             for pt in g.get("points", []):
                 add_pt(pt)
-    if not exclude_dimensions:
-        for dim in view.dimensions:
-            add_pt(dim.from_pt)
-            add_pt(dim.to)
+    for dim in view.dimensions:
+        add_pt(dim.from_pt)
+        add_pt(dim.to)
 
     if not xs or not ys:
         return None
