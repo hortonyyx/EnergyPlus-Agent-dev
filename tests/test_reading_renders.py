@@ -50,6 +50,23 @@ def _seed_attempt(run_dir: Path, *, attempt: int = 1, views: dict | None = None)
     return adir
 
 
+def _seed_flat_attempt(run_dir: Path, *, attempt: int = 1, views: dict | None = None) -> Path:
+    """B-1 (r1): write ``attempts/<NNN>/output.json`` in the FLAT shape that
+    StageRunner archives for the blind-re-read recovery path — ``{<stem>: <view>}``
+    with NO ``views`` wrapper (StageRunner archives ``_draw_reading``'s
+    ``{vj.stem: view}`` verbatim; see
+    ``window_sources.verify_reading_stage_root_against_accepted_attempt``).
+    This is the OTHER living layout the render path must recognize, distinct from
+    the isolated-merge aggregate ``{'views': {...}}`` written by ``_seed_attempt``."""
+    adir = run_dir / "0_reading" / "attempts" / f"{attempt:03d}"
+    adir.mkdir(parents=True)
+    (adir / "output.json").write_text(
+        json.dumps(views if views is not None else _agg_views()),
+        encoding="utf-8",
+    )
+    return adir
+
+
 def test_L40_isolation_aggregate_renders_per_attempt_with_hashes(tmp_path):
     """L-40 (O-1): an isolated reading run produces ONLY ``attempts/001/output.json``
     (aggregate views) and NO ``0_reading/*_view.json`` at the stage root. The
@@ -209,3 +226,100 @@ def test_L41_complete_render_allows_review_approval(tmp_path):
     args = SimpleNamespace(base_dir=str(tmp_path), case="case", run="run",
                            stage="0_reading", actor="tester", note="", date="")
     assert rs.cmd_approve_review(args) == 0
+
+
+def test_L40_flat_flow_blind_reread_renders_and_approves(tmp_path):
+    """B-1 (r1 BLOCKER): the blind-re-read recovery path archives a reading draw
+    in the FLAT shape ``{<stem>: <view>}`` — StageRunner archives
+    ``_draw_reading``'s ``{vj.stem: view}`` with NO ``views`` wrapper (see
+    ``window_sources.verify_reading_stage_root_against_accepted_attempt``), and
+    both ``judge_rubric.md`` and this CLI's own ``_print_reread_protocol`` command
+    the reader to write the flat ``0_reading/*_view.json`` working copy. The
+    render path must recognize that shape — NOT only the isolated-merge
+    ``{'views': {...}}`` shape — produce per-view renders, finalize status
+    ``'complete'`` (NOT ``'unavailable'``), and let ``cmd_approve_review`` through.
+
+    This lock walks the REAL flat-flow path (no isolated fixture, no ``views``
+    wrapper): it writes the flat-shape archived artifact and drives the real
+    ``_render_stage`` + real ``cmd_approve_review``. The old O-1 code did only
+    ``.get('views')`` ⇒ the flat output parsed to zero views ⇒ status
+    ``'unavailable'`` ⇒ a completely healthy run was reverse-blocked at review
+    (the regression the cross-review reproduced: two PNGs before O-1, zero after).
+
+    Neuter: make the views extractor recognize ONLY the ``{'views': {...}}``
+    shape again (revert ``_extract_reading_views`` to ``out_obj.get('views')``) ⇒
+    the flat output yields zero views ⇒ no renders, status ``'empty'`` ⇒ this
+    lock reds on the render + status assertions."""
+    from src.agent.execution.manifest import RunManifestV2, StageRecordV2, save_run_manifest
+
+    run_dir = tmp_path / "case" / "run"
+    adir = _seed_flat_attempt(run_dir)  # FLAT {stem: view}, NOT views-wrapped
+    raw = json.loads((adir / "output.json").read_text(encoding="utf-8"))
+    # pin the flat-flow precondition: archived output is stem-keyed, NOT wrapped
+    assert "views" not in raw and {"1f_view", "South_view"} <= set(raw)
+
+    produced = rs._render_stage("0_reading", run_dir, tmp_path / "case")
+    produced_names = {Path(p).name for p in produced}
+    assert produced_names == {"1f_view.png", "South_view.png"}
+    assert all((adir / "renders" / n).exists() for n in produced_names)
+
+    manifest = json.loads((adir / "render_manifest.json").read_text(encoding="utf-8"))
+    assert manifest["status"] == "complete"  # NOT 'unavailable' — the regression
+    assert rs._reading_render_status(adir) == "complete"
+
+    h = "a" * 64
+    save_run_manifest(
+        RunManifestV2(
+            case="case", run_id="b" * 32, run_inputs={"view_manifest_sha256": h},
+            stages={"0_reading": StageRecordV2(
+                stage="0_reading", accepted_attempt=1, output_hash=h,
+                artifact_contract="reading_isolated_v2",
+                artifact_hashes={"output": h, "checks": h, "isolation_provenance": h})},
+        ),
+        run_dir,
+    )
+    args = SimpleNamespace(base_dir=str(tmp_path), case="case", run="run",
+                           stage="0_reading", actor="tester", note="", date="")
+    assert rs.cmd_approve_review(args) == 0
+
+
+def test_L41_empty_view_set_is_not_render_failure(tmp_path):
+    """B-1 (r1): "no images to render" (a recognized shape with zero views) must
+    be a DISTINCT, NON-BLOCKING state from "a render failed". An empty output
+    finalizes ``'empty'`` — NOT ``'unavailable'`` (the failure state that blocks
+    review) — and ``cmd_approve_review`` lets it through. Cross-review
+    requirement: the old ternary ``'complete' if (views and not failed) else
+    'unavailable'`` conflated an empty view set with a render failure.
+
+    Neuter: restore that ternary (empty ⇒ 'unavailable') ⇒ status flips to
+    'unavailable' and approve-review raises ⇒ this lock reds. The companion fact
+    — a real render failure still yields 'unavailable' — is pinned by
+    test_L41_render_failure_records_unavailable_not_complete."""
+    from src.agent.execution.manifest import RunManifestV2, StageRecordV2, save_run_manifest
+
+    run_dir = tmp_path / "case" / "run"
+    adir = run_dir / "0_reading" / "attempts" / "001"
+    adir.mkdir(parents=True)
+    (adir / "output.json").write_text(json.dumps({}), encoding="utf-8")  # zero views
+
+    manifest = rs._finalize_reading_renders(adir)
+    assert manifest["status"] == "empty"
+    assert manifest["status"] != "unavailable"
+    assert rs._reading_render_status(adir) == "empty"
+    assert manifest["views"] == []
+    assert (adir / "render_manifest.json").exists()
+
+    h = "a" * 64
+    save_run_manifest(
+        RunManifestV2(
+            case="case", run_id="b" * 32, run_inputs={"view_manifest_sha256": h},
+            stages={"0_reading": StageRecordV2(
+                stage="0_reading", accepted_attempt=1, output_hash=h,
+                artifact_contract="reading_isolated_v2",
+                artifact_hashes={"output": h, "checks": h, "isolation_provenance": h})},
+        ),
+        run_dir,
+    )
+    args = SimpleNamespace(base_dir=str(tmp_path), case="case", run="run",
+                           stage="0_reading", actor="tester", note="", date="")
+    assert rs.cmd_approve_review(args) == 0  # empty does NOT block review

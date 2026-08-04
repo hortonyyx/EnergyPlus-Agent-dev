@@ -659,6 +659,36 @@ def _make_draw_fn(stage: str, run_dir: Path, testdata_text: str, td_path: Path, 
 READING_RENDER_HELPER_VERSION = "render_vector_to_png:v1"
 
 
+def _extract_reading_views(out_obj) -> dict:
+    """B-1 (r1): pull the per-image view payloads out of a reading attempt's
+    archived output, recognizing BOTH living layouts (the "views extractor"
+    seam — do NOT bake ``.get("views")`` into the call site again):
+
+    * isolated-merge aggregate: ``{'views': {<expected_output_id>: <view>}}``
+      (what ``merge_isolated_output`` writes — isolation.py).
+    * flat / blind-re-read recovery: ``{'<stem>': <view>, ...}`` with NO
+      ``views`` wrapper. ``StageRunner`` archives ``_draw_reading``'s
+      ``{vj.stem: view}`` dict verbatim (see
+      ``window_sources.verify_reading_stage_root_against_accepted_attempt``,
+      whose docstring + byte-hash reconstruction both depend on this shape), and
+      the judge-rubric / this CLI's own blind-re-read protocol both command the
+      reader to write the flat ``0_reading/*_view.json`` working copy — so this
+      path is alive, not dead code.
+
+    The previous O-1 code recognized ONLY the aggregate (``.get("views")``), so a
+    healthy flat-flow run parsed to zero views, rendered nothing, and was
+    reverse-blocked at review — the exact regression the cross-review reproduced
+    (two PNGs before O-1, zero after). Non-dict payloads are skipped; a payload
+    that is not one of these shapes yields ``{}`` (finalized as the distinct,
+    non-blocking ``'empty'`` status — NOT a render failure)."""
+    if isinstance(out_obj, dict):
+        wrapped = out_obj.get("views")
+        if isinstance(wrapped, dict):
+            return {k: v for k, v in wrapped.items() if isinstance(v, dict)}
+        return {k: v for k, v in out_obj.items() if isinstance(v, dict)}
+    return {}
+
+
 def _finalize_reading_renders(attempt_dir: Path) -> dict:
     """O-1: render the aggregate reading views from ``<attempt_dir>/output.json``
     — the hard-isolated merge product — to ``<attempt_dir>/renders/<eid>.png``
@@ -687,7 +717,7 @@ def _finalize_reading_renders(attempt_dir: Path) -> dict:
     # source_output_hash uses the SAME hasher as merge's output_hash (hash_text),
     # so the manifest is cross-referenceable to the stage record's output_hash.
     source_output_hash = hash_text(out_text)
-    views = (json.loads(out_text) or {}).get("views") or {}
+    views = _extract_reading_views(json.loads(out_text))
 
     renders_dir = attempt_dir / "renders"
     renders_dir.mkdir(parents=True, exist_ok=True)
@@ -709,12 +739,22 @@ def _finalize_reading_renders(attempt_dir: Path) -> dict:
             record["error"] = f"{type(exc).__name__}: {exc}"
         view_records.append(record)
 
+    # B-1 (r1): "no images to render" (a recognized shape with zero views) must
+    # NOT share a state with "a view failed to render". Only a REAL render
+    # failure blocks review ('unavailable'); a recognized-but-empty output is the
+    # distinct, non-blocking 'empty' state, so a healthy run is never
+    # reverse-blocked for having nothing to render (the cross-review's empty-vs-
+    # failure requirement). 'missing' stays reserved for "no manifest at all".
+    if any_failed:
+        status = "unavailable"
+    elif view_records:
+        status = "complete"
+    else:
+        status = "empty"
     manifest = {
         "source_output_hash": source_output_hash,
         "render_helper_version": READING_RENDER_HELPER_VERSION,
-        # 'complete' requires at least one view AND none failed — an empty view
-        # set is 'unavailable' (nothing to review), not 'complete'.
-        "status": "complete" if (view_records and not any_failed) else "unavailable",
+        "status": status,
         "views": view_records,
     }
     (attempt_dir / "render_manifest.json").write_text(
@@ -724,13 +764,16 @@ def _finalize_reading_renders(attempt_dir: Path) -> dict:
 
 
 def _reading_render_status(attempt_dir: Path) -> str:
-    """O-1 L-41: the machine-readable review-material status for a reading
-    attempt's renders. ``'complete'`` = every view rendered; ``'unavailable'`` =
-    a render was attempted but at least one view failed (or the manifest is
-    unreadable); ``'missing'`` = no manifest (renders never produced, e.g. a
+    """O-1 L-41 / B-1 (r1): the machine-readable review-material status for a
+    reading attempt's renders. ``'complete'`` = at least one view rendered, none
+    failed; ``'unavailable'`` = a render was attempted but at least one view
+    failed (or the manifest is unreadable) — a real failure; ``'empty'`` = the
+    output was a recognized shape with zero views (nothing to render — NOT a
+    failure); ``'missing'`` = no manifest (renders never produced, e.g. a
     pre-O-1 run). ``cmd_approve_review`` blocks a review-required reading run
     whose status is ``'unavailable'`` so a failed render never masquerades as
-    complete review material."""
+    complete review material; ``'empty'``/``'missing'``/``'complete'`` do not
+    block."""
     manifest_path = attempt_dir / "render_manifest.json"
     if not manifest_path.exists():
         return "missing"
@@ -2226,12 +2269,14 @@ def cmd_approve_review(args) -> int:
     rec = manifest.accepted(args.stage)
     if rec is None:
         raise SystemExit(f"{args.stage} has no accepted attempt; run it first")
-    # O-1 L-41: a review-required reading run whose renders failed must NOT be
-    # markable review-complete — the human would be approving with no visual
-    # material. Block approve-review with a machine-readable reason when the
-    # accepted attempt's render manifest is 'unavailable' (a render was
-    # attempted and at least one view failed). 'missing' (pre-O-1 / never
-    # rendered) is intentionally NOT blocked, so pre-O-1 runs stay approvable.
+    # O-1 L-41 / B-1 (r1): a review-required reading run whose renders FAILED
+    # must NOT be markable review-complete — the human would be approving with
+    # no visual material. Block approve-review with a machine-readable reason
+    # ONLY on 'unavailable' (a view was attempted and failed to render — a real
+    # failure). 'complete' (all rendered), 'empty' (recognized output with
+    # nothing to render — NOT a failure), and 'missing' (pre-O-1 / never
+    # rendered) are intentionally NOT blocked, so a healthy or pre-O-1 run stays
+    # approvable.
     if args.stage == "0_reading":
         attempt_dir = run_dir / "0_reading" / "attempts" / f"{int(rec.accepted_attempt):03d}"
         if _reading_render_status(attempt_dir) == "unavailable":
