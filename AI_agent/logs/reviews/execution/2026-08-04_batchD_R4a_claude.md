@@ -125,6 +125,183 @@ tests/test_provenance_baseline.py tests/test_run_config.py tests/test_report_ass
 
 ---
 
-## 批 D · 判卷图恢复
+## 批 D · 判卷图恢复（六 panel + 图例）
 
-（见下方——本节将在批 D 施工过程中持续追加。）
+### 设计
+
+**病灶复核**：`render_typed_grade()`（`scripts/tool_scripts/render_grade.py:1288` 起，
+v3 typed 路径）此前只画每层平面的多边形 + 每个 opening 一条判定色带，**完全没有立面
+panel、也没有图例**——用户能看的只有"墙的形状对不对"，看不出立面（sill/head 等
+垂直方向数据）对不对。legacy 六 panel（`render_grade()`，仍原样保留、按要求不回退用它）
+画的是矩形变换下的两层平面 + 四立面几何叠图带图例，但它的坐标假设（W/D 矩形）
+对 v3 多边形不成立，不能直接复用。
+
+**关键发现（复用已有资产,降低风险）**：`src/agent/judge/gt_render_model.py` 已有
+`GtRenderModel.elevation_surfaces`（`ElevationRenderSurface` 含
+`facade_family`/`segments`/`openings`/`world_along_coverage`，由 `gt_to_render_model()`
+从 GT v3 的 `sources[].views[kind=="elevation"]` 结构化产出）与一个纯 GT 自证的
+`render_elevation_model()`（sm21 形态：网格 panel + 尺寸链 + 窗框）。两者都只读
+**GT 自己声明的 `facade_family`**，与"产品的 mirror/local-x 声明"是完全不同的字段
+——满足派工单 #4 的边界（`render_typed_grade` docstring 那条"不读产品 mirror/local-x
+声明"的边界原样保留，本批未碰）。判定色（`ClaimScoreRowV8.result`）里没有产品自己的
+坐标，只有 complete/within_tolerance/miss/conflict/not_applicable 五档结果——与既有
+平面 claim-rail 完全同源（同一个 `rows_by_target` 查表），故立面 panel 的着色逻辑
+（"取一个 opening 名下所有 claim 里最差的一档"）与平面 panel 同构，不新造判据。
+
+**布局设计**：
+- 六 panel = 2 层平面（既有,未改动核心逻辑）+ 4 立面（North/South/East/West,
+  `FACADE_CODES` 固定顺序,新增,2×2 网格)。
+- **图例**（新增,`_typed_legend()`）：四档判定色 + gt-truth 线型,插在标题与平面行
+  之间，与既有 `render_grade()`（legacy）legend 用同一套词汇（颜色=判定档,画法=类别）。
+- **每个 panel 独立标题**（"{floor_id}  polygon" / "{facade} elevation"）。
+- **标签不互压**：所有布局尺寸（图例 y、`floor_top`、四个立面 panel 的宽高/间距/
+  网格行列）提到模块级常量（`_TYPED_PLAN_*`/`_TYPED_ELEV_*`/`_TYPED_LEGEND_Y`/
+  `_TYPED_FLOOR_TOP`），画布尺寸由这些常量公式化推出（不是拍脑袋的数），并留足
+  legend 与平面行标题之间的垂直间隙（早期草稿在这两者之间只留 4px、实测肉眼可见
+  轻微贴近，已改为公式化留白 22px 予以修正,详见"缺口/披露"）。
+- **缺立面 = 明确占位**：某立面在 GT `elevation_surfaces` 里没有任何条目 ⇒ 该
+  panel 画成整格红字"NO SUCH ELEVATION IN GT" + 全 panel 斜线 hatch（复用既有
+  `_typed_hatch()`），**占据与真实立面同样大小的网格格**（不缩小布局悄悄吞掉）。
+
+### 改动清单
+
+- `scripts/tool_scripts/render_grade.py`：
+  - `:1130-1144` 新增布局常量（`_TYPED_PLAN_PANEL_W/H/MARGIN/GAP`、
+    `_TYPED_LEGEND_Y`、`_TYPED_FLOOR_TOP`、`_TYPED_ELEV_PANEL_W/H/GAP/COLUMNS/ROWS/
+    CELL_H/TOP`）。
+  - `:1146-1160` 新增 `_typed_worst_claim_result()`（同一 opening 多条 claim 取
+    最差档，缺 claim 或全 NA ⇒ `not_applicable`）。
+  - `:1164-1189` 新增 `_typed_legend()`。
+  - `:1193-1275` 新增 `_draw_typed_elevation_panel()`（单个立面 panel：无该立面 ⇒
+    占位；有 ⇒ 画 envelope + 楼层分割线 + 逐 opening 判定色框 + 局部裁切/z 缺失提示）。
+  - `:1301-1407` `render_typed_grade()` 本体：改用上述模块级常量替换原硬编码
+    `420/360/36/28`/`82`/`62`；新增图例调用；floor loop 的 `oy`/标题 y 改用
+    `floor_top` 变量（原硬编码 `82`/`62`）。
+  - `:1409-1417` 平面 loop 结束后新增 4-panel 立面网格绘制循环；`:1421`/`:1435`
+    （`result_footer_bottom`/`panel_top` 两处 status 面板定位）原 `height + 102`
+    改为 `content_bottom + 20`（随立面网格顺延）。
+- `tests/batch_d_four_facade_fixture.py`（新文件）：北/南/东/西四立面均声明真实
+  elevation view + 每面各一窗的 GT v3 fixture（既有 `tests/b4b_contract_fixture.py`
+  只接了北/南两面,不够验 L-D1 的"六 panel 均有真实内容"）。
+- `tests/test_batch_d_typed_grade.py`（新文件,7 个测试）。
+
+### neuter 自查（`/tmp/batchd_neuter` 隔离 clone,`PYTHONPATH=$PWD`）
+
+| # | 摘掉的实现 | 预期变红 | 实测变红 | 连带 |
+|---|---|---|---|---|
+| 1 | `render_typed_grade()` 里画 4 个立面 panel 的 for 循环整段删除 | `test_L_D1_six_panels_render_with_titles_and_exact_canvas_size` + `test_L_D2_missing_facade_renders_explicit_placeholder_not_omission` | 恰好这 2 条 | 0（其余 40 条绿，**尤其 `test_L_D2_missing_facade_does_not_shrink_the_grid` 仍绿**——它只验图幅尺寸不验内容，证明两条断言彼此独立、不是同一件事的两次断言） |
+| 2 | `_draw_typed_elevation_panel` 里"无此立面"分支从画占位改成直接 `return`（静默省略） | `test_L_D2_missing_facade_renders_explicit_placeholder_not_omission` | 恰好这 1 条 | 0（其余 40 条绿） |
+| 3 | `_typed_legend()` 函数体换成 `pass` | `test_L_D3_legend_lists_every_judgement_tier` | 恰好这 1 条 | 0（其余 40 条绿） |
+
+三次 neuter 均在 `git clone` 隔离副本（落在 `8336bd5`）上做，每次 `git checkout --` 复原后
+复跑确认回到 5/5 passed（子集）才做下一条。
+
+### 受影响子集结果
+
+```
+tests/test_batch_d_typed_grade.py tests/test_c2_b4b_phase_d.py tests/test_c2_b5_parent_and_verts.py \
+tests/test_judge_batch_b.py tests/test_reading_typed_scoring_slice0.py tests/test_render_grade.py
+—— 115 passed, 0 failed（42 条 DeprecationWarning,均为既有 `Image.getdata()` 用法,与本批无关）
+```
+
+### 缺口 / 披露
+
+1. **legend 与 floor 标题的垂直间距是肉眼校准的**（先用 `render_typed_grade` 生成
+   真实 PNG 人工检视，发现 legend 与 "F1 polygon" 标题贴得太近后手工把 `floor_top`
+   从 82 调到 100、`legend_y` 从 58 调到 56），不是数学证明的"绝不重叠"（不同
+   floor_id/facade 名字长度、不同 DPI/字体渲染在极端情况下仍可能贴近）。已实测的
+   四种典型 payload（全通过、reading_stage 带状态面板、顶层 not_applicable、四立面
+   全实心）均无肉眼可见重叠，见 `/tmp` 预览截图（未入库,过程产物）。
+2. **立面 panel 内的判定色是"整个 opening 取最差档"，不是逐 claim 分别在立面上
+   再画一次 chip**——sill/head/existence/along/width 五个 claim 的逐项色带**已经
+   由既有的平面 claim-rail 完整画出**（`validate_typed_render_totality` 的
+   totality 契约本就要求每个 `{opening}:{claim}` 都有至少一个渲染位置，平面 rail
+   早已满足），立面新增的是"这个 opening 综合看对不对"的**空间位置**视图（这正是
+   平面视图给不出的东西：sill/head 是垂直方向数据，二维平面画不出高度对不对）。
+   若审阅方认为立面上也应逐 claim 单独打色块，需要另外一轮改动，本批未做。
+3. **多个 elevation view 落在同一 facade 时做了合并**（例如某立面同时有 full+detail
+   两个 view）——直接把所有匹配 `facade_family` 的 surfaces 的 segments/openings
+   拼起来画在同一个 panel，不再区分是哪个 view 提供的。派工单没有要求逐 view
+   拆分,按"六 panel = 四个 facade"字面理解处理。
+4. **未削弱、未触碰 legacy `render_grade()`**（六 panel 矩形路径）——按 §1.2 "⛔ 不得
+   回退到 legacy 渲染器"原样保留，本批唯一改动面是 v3 typed 路径。
+5. `render_typed_grade()` 已有的既有测试（`test_d3_typed_polygon_hatch_audit_and_
+   unknown_target_rejection`）断言 `audit["O1:appearance"].startswith("rail:")`——
+   本批新增的立面绘制**刻意不写任何新的 `audit[...]` key**（既有平面 loop 已经把
+   每个 target/claim 的审计位置写全），避免覆盖掉那条既有断言依赖的字符串前缀。
+   如实记录这个约束,以免后续改动误以为立面也该占用 audit key。
+
+---
+
+## 追加·orchestrator 轻门抓到的一条必修（8.04，批 D 合并入主线后）
+
+### 病灶
+
+orchestrator 把本批两条并入 `6.15_ValidationArchM0toM4` 主线后独立跑权威全量，
+命中一条真红：
+
+```
+FAILED tests/test_affected_tests_map.py::test_every_production_module_is_mapped_or_honestly_allowlisted
+E   Extra items in the right set: 'scripts/tool_scripts/render_grade.py'
+```
+
+**根因（好红，守卫在正常工作）**：`scripts/tool_scripts/affected_tests_rules.yaml`
+的 `uncovered_allowlist` 里原有一条
+`scripts/tool_scripts/render_grade.py: "manual render CLI; no project-side test exercises it"`。
+本批新增的 `tests/test_batch_d_typed_grade.py` 让这条登记过期——**但不是通过
+`import render_grade`（那是运行时 `sys.path` hack，`affected_tests.py` 的静态
+AST 分析认不出裸模块名）**，而是通过一处**巧合**：`test_L_D1_six_panels_render_
+with_titles_and_exact_canvas_size` 的 docstring 里为了写清楚 neuter 说明，
+字面写了 `render_typed_grade (scripts/tool_scripts/render_grade.py) — the 4` ——
+这句话里的字符串 `scripts/tool_scripts/render_grade.py`（一个已登记的 first-class
+文件路径）被 `affected_tests.py::build_edges` 的 `ast.Constant` 字符串扫描当作
+**string-path 边**收进图（`ast.walk` 会遍历到嵌套函数体内的文档字符串常量节点）。
+用 `affected_tests.py --changed ... --explain` 直接验证：
+
+```
+SCOPE: SUBSET
+EXPLAIN: tests/test_batch_d_typed_grade.py: tests/test_batch_d_typed_grade.py --string-path--> scripts/tool_scripts/render_grade.py
+```
+
+这条边是**真实**的（该测试文件确实完整地导入并调用了 `render_grade.render_typed_
+grade`），只是触发它的具体机制（docstring 里恰好写全了文件路径）是巧合，不是我
+特意去满足这条静态规则。
+
+### 为什么上一轮没发现（如实说明）
+
+派工单纪律要求交付前跑一次全仓 `pytest -q -n 4`；我在本 worktree 里确实发起了这次
+跑测（后台任务 `bvr20ms01`），但**在它跑完之前，orchestrator 的合并 + 独立权威全量
+就先到达了**——即我这边的全量还没来得及产出结果、我也就还没看到这条红。
+（该任务后来跑完，结果与 orchestrator 描述吻合：本 worktree 因缺失若干未跟踪
+EP 产物额外多出 5 条环境相关的红，加上这条 affected-map 红共 6 条；orchestrator
+在主树上跑，主树有完整 EP 产物，只剩这 1 条真红——两边观察一致，唯一差别是主树
+先出结果。）**教训**：批 D + R4-a 这种改动面较大的任务，`tests/test_affected_tests_
+map.py` 这类"全仓自省"性质的守卫测试必须显式包含在交付前的确认清单里，不能只
+跑"受影响子集"就当验证完毕——这条锁的性质决定了它**只可能在全仓跑测里被触发**
+（受影响子集选择器不会把自己包含进"受影响"范围）。
+
+### 改动清单
+
+- `scripts/tool_scripts/affected_tests_rules.yaml`：删除 `uncovered_allowlist`
+  下 `scripts/tool_scripts/render_grade.py` 一行（该模块现有真实测试覆盖，登记
+  为"无覆盖"已不诚实）。
+
+### 核验
+
+- `python scripts/tool_scripts/affected_tests.py --changed scripts/tool_scripts/render_grade.py --explain`
+  → `SCOPE: SUBSET`，边 = `tests/test_batch_d_typed_grade.py --string-path--> scripts/tool_scripts/render_grade.py`。
+- `python scripts/tool_scripts/affected_tests.py --changed src/agent/execution/reading_mode.py --explain`
+  → `SCOPE: SUBSET`，边 = `tests/test_reading_mode.py --import--> src/agent/execution/reading_mode.py`
+  （**真实 `import` 边，不是靠 allowlist 蒙混**——`reading_mode.py` 从未在
+  `uncovered_allowlist` 里出现过，本来就是靠 `tests/test_reading_mode.py` 顶部
+  `from src.agent.execution.reading_mode import (...)` 的正规模块化导入被图正确
+  收录，与 render_grade.py 的 string-path 巧合边不是同一种机制）。
+- `pytest -q tests/test_affected_tests_map.py` → 15 passed（含目标锁
+  `test_every_production_module_is_mapped_or_honestly_allowlisted`）。
+- 全仓 `pytest -q -n 4`：见下方"跑测尾部"。
+
+### 边界
+
+未动 `AI_agent/` 下除本执行日志外的管理文档；未碰 gt / sm24 testdata；未做批 C /
+R1.5。本次改动只有一个 yaml 文件删一行，无生产逻辑改动，未额外新增 neuter 台账
+条目（这不是一条"新锁"，是给一条既有守卫更新它自己的登记表）。
