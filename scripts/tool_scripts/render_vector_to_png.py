@@ -37,7 +37,17 @@ MARGIN_M = 1.5
 # pixel OCR anchor read as metric blew a ~10×20 m drawing up to 3.3e8 px). L-51
 # asserts these constants take effect (changing them changes the lock behaviour);
 # the numbers must not be scattered at call sites.
+#
+# NIT (r2 / cross-review P-8 §1): the per-side cap and the absurd-structure cap
+# share the number 8192 but are DIFFERENT QUANTITIES. MAX_CANVAS_SIDE_PX is a
+# PIXEL cap (a rendered canvas side, in px — _fit_scale downscales px/m against
+# it); MAX_STRUCTURAL_SIDE_M is a METRE cap (a structural side, in m — render()
+# refuses a side longer than this even at 1 px/m, the "genuinely too large"
+# gate). Naming them apart stops a future pixel-budget tweak from silently
+# loosening the absurd-structure gate (and vice versa) — a unit pun that is
+# numerically harmless today but a trap the moment either number moves.
 MAX_CANVAS_SIDE_PX = 8192
+MAX_STRUCTURAL_SIDE_M = 8192
 MAX_CANVAS_PIXELS = 50_000_000
 
 
@@ -114,10 +124,10 @@ def render(data: dict) -> Image.Image:
     # downscale instead of being refused. ⛔ Never clamp bad data: a pixel OCR
     # anchor is kept out of the extent by O-4 and surfaced by gate①
     # (reading.ocr_anchors_in_bounds), not silently rendered away here.
-    if max(extent_w_m, extent_h_m) > MAX_CANVAS_SIDE_PX:
+    if max(extent_w_m, extent_h_m) > MAX_STRUCTURAL_SIDE_M:
         raise CanvasBudgetExceeded(
             f"structural extent {extent_w_m:.1f} x {extent_h_m:.1f} m exceeds the "
-            f"renderable size (a side > {MAX_CANVAS_SIDE_PX} m even at 1 px/m). "
+            f"renderable size (a side > {MAX_STRUCTURAL_SIDE_M} m even at 1 px/m). "
             "This is a genuinely-too-large structure, NOT an OCR-anchor issue "
             "(O-4 keeps anchors out of the canvas extent; a pixel anchor is "
             "surfaced by gate① reading.ocr_anchors_in_bounds)."

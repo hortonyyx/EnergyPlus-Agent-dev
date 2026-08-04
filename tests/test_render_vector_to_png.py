@@ -86,6 +86,54 @@ def test_L51_over_budget_structural_canvas_is_refused_not_clamped():
         rv.render(huge)
 
 
+def test_pixel_side_cap_widening_does_not_loosen_structural_refusal_threshold(monkeypatch):
+    """NIT (r2 batchC dispatch §3 / cross-review P-8 §1, GLM r2 WIP): before this
+    fix ``MAX_CANVAS_SIDE_PX`` was reused as BOTH a pixel-per-side render cap
+    (consumed by ``_fit_scale``) AND the metre threshold for the
+    genuinely-too-large-structure refusal in ``render()`` — a unit pun. Now the
+    refusal uses a SEPARATE ``MAX_STRUCTURAL_SIDE_M`` constant. Widening the
+    pixel cap alone must NOT loosen the structural (metre) refusal threshold.
+
+    Neuter: collapse the two constants back to one shared ``MAX_CANVAS_SIDE_PX``
+    (i.e. make the structural refusal compare against the pixel cap again) ⇒
+    widening ``MAX_CANVAS_SIDE_PX`` here would ALSO raise the metre threshold,
+    and the 9000 m structure would no longer be refused ⇒ this lock reds."""
+    monkeypatch.setattr(rv, "MAX_CANVAS_SIDE_PX", 20000)  # widen the PIXEL cap only
+    huge = {
+        "image_kind": "plan",
+        "strokes": [
+            {"pen": "wall", "geometry": {"kind": "line", "p1": [0, 0], "p2": [9000, 0]}},
+            {"pen": "wall", "geometry": {"kind": "line", "p1": [0, 0], "p2": [0, 9000]}},
+        ],
+    }
+    # 9000 m is still > MAX_STRUCTURAL_SIDE_M (8192, unmoved) — must still refuse.
+    with pytest.raises(rv.CanvasBudgetExceeded):
+        rv.render(huge)
+
+
+def test_pixel_side_cap_shrinking_does_not_trip_structural_refusal(monkeypatch):
+    """NIT companion: shrinking the PIXEL cap alone must not move the METRE
+    threshold either. A legitimate 200 m building (well under the unmoved
+    MAX_STRUCTURAL_SIDE_M=8192 m) must still render via adaptive downscale, not
+    be refused — even with an absurdly small pixel cap forcing heavy downscale.
+
+    Neuter: collapse the two constants back to one ⇒ shrinking
+    ``MAX_CANVAS_SIDE_PX`` here would ALSO shrink the metre gate to 100 ⇒ the
+    200 m structure (> 100) would be refused ⇒ this lock reds."""
+    monkeypatch.setattr(rv, "MAX_CANVAS_SIDE_PX", 100)  # shrink the PIXEL cap only
+    data = {
+        "image_kind": "plan",
+        "strokes": [
+            {"pen": "wall", "geometry": {"kind": "line", "p1": [0, 0], "p2": [200, 0]}},
+            {"pen": "wall", "geometry": {"kind": "line", "p1": [0, 0], "p2": [0, 20]}},
+            {"pen": "wall", "geometry": {"kind": "line", "p1": [200, 0], "p2": [200, 20]}},
+            {"pen": "wall", "geometry": {"kind": "line", "p1": [0, 20], "p2": [200, 20]}},
+        ],
+    }
+    img = rv.render(data)  # must NOT raise despite the tiny pixel cap
+    assert img.size[0] <= 100  # honors the shrunk pixel cap via adaptive downscale
+
+
 def test_L53_large_legit_building_renders_via_adaptive_scale():
     """N-3 (invariant #6): a legitimate but large building (here 200 x 20 m — a
     real bar building using only ~1/5 of the total pixel budget) must RENDER,
