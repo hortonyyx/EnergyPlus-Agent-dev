@@ -689,6 +689,29 @@ def _extract_reading_views(out_obj) -> dict:
     return {}
 
 
+def _write_render_failure_manifest(
+    attempt_dir: Path, *, reason: str, source_output_hash: str | None = None,
+) -> dict:
+    """M-1 (r1): drop a machine-readable failure manifest for a reading attempt
+    whose renders could not be produced (unreadable/unparseable output, or a
+    catastrophic finalize crash). Status is the real-failure ``'unavailable'``
+    (which blocks review) with the reason in ``error`` and an empty ``views``
+    list — DISTINCT from ``'missing'`` (no manifest = renders never tried / a
+    pre-O-1 run), so a tried-but-broken run is never silently masked as a
+    pre-O-1 run that approve-review would let through."""
+    manifest = {
+        "source_output_hash": source_output_hash,
+        "render_helper_version": READING_RENDER_HELPER_VERSION,
+        "status": "unavailable",
+        "views": [],
+        "error": reason,
+    }
+    (attempt_dir / "render_manifest.json").write_text(
+        json.dumps(manifest, indent=2, ensure_ascii=False), encoding="utf-8"
+    )
+    return manifest
+
+
 def _finalize_reading_renders(attempt_dir: Path) -> dict:
     """O-1: render the aggregate reading views from ``<attempt_dir>/output.json``
     — the hard-isolated merge product — to ``<attempt_dir>/renders/<eid>.png``
@@ -713,11 +736,23 @@ def _finalize_reading_renders(attempt_dir: Path) -> dict:
     from src.agent.execution.manifest import hash_file, hash_text
 
     output_path = attempt_dir / "output.json"
-    out_text = output_path.read_text(encoding="utf-8")
+    try:
+        out_text = output_path.read_text(encoding="utf-8")
+        out_obj = json.loads(out_text)
+    except (OSError, json.JSONDecodeError) as exc:
+        # M-1 (r1): an unreadable/unparseable archived output is a REAL failure
+        # (the attempt was tried but its output is unusable). Drop a machine-
+        # readable failure manifest with a real-failure status — DISTINCT from
+        # 'missing' (no manifest = never tried / pre-O-1) — so the failure is
+        # never silently masked as a pre-O-1 run that approve-review would let
+        # through. (Previously this raised to _render_stage's stage-level except,
+        # wrote NO manifest, and read back as 'missing'.)
+        return _write_render_failure_manifest(
+            attempt_dir, reason=f"output unreadable: {type(exc).__name__}: {exc}")
     # source_output_hash uses the SAME hasher as merge's output_hash (hash_text),
     # so the manifest is cross-referenceable to the stage record's output_hash.
     source_output_hash = hash_text(out_text)
-    views = _extract_reading_views(json.loads(out_text))
+    views = _extract_reading_views(out_obj)
 
     renders_dir = attempt_dir / "renders"
     renders_dir.mkdir(parents=True, exist_ok=True)
@@ -801,7 +836,19 @@ def _render_reading_attempts(run_dir: Path) -> list[str]:
             order.append(d)
     produced: list[str] = []
     for d in order:
-        _finalize_reading_renders(d)
+        try:
+            _finalize_reading_renders(d)
+        except Exception as exc:  # noqa: BLE001 — M-1: keep the loop alive
+            # A failure BEYOND the read/parse handled inside _finalize_reading_renders
+            # (e.g. cannot even write the manifest) must not kill the whole loop —
+            # F-2: the accepted attempt's already-rendered images used to vanish
+            # when a later attempt raised. Drop a best-effort failure manifest so
+            # this attempt is never silently 'missing', then keep going.
+            try:
+                _write_render_failure_manifest(
+                    d, reason=f"finalize crashed: {type(exc).__name__}: {exc}")
+            except Exception:  # noqa: BLE001 — nothing more we can do (e.g. disk full)
+                pass
         renders_dir = d / "renders"
         if renders_dir.exists():
             produced.extend(str(p) for p in sorted(renders_dir.glob("*.png")))
@@ -2280,11 +2327,22 @@ def cmd_approve_review(args) -> int:
     if args.stage == "0_reading":
         attempt_dir = run_dir / "0_reading" / "attempts" / f"{int(rec.accepted_attempt):03d}"
         if _reading_render_status(attempt_dir) == "unavailable":
+            # Surface the machine-readable reason: a per-view render failure vs
+            # an unreadable/unusable output (M-1) vs a finalize crash — read from
+            # the manifest's top-level 'error' (set only for the non-per-view
+            # failures); fall back to the per-view render phrasing otherwise.
+            reason = "at least one view failed to render"
+            try:
+                mf = json.loads((attempt_dir / "render_manifest.json").read_text(encoding="utf-8"))
+                if mf.get("error"):
+                    reason = mf["error"]
+            except (OSError, json.JSONDecodeError):
+                pass
             raise SystemExit(
                 f"review blocked: 0_reading renders are unavailable for attempt "
                 f"{rec.accepted_attempt} (render_manifest.json status=unavailable — "
-                "at least one view failed to render). Fix the render failure before "
-                "approving review; see that attempt's renders/ + render_manifest.json."
+                f"{reason}). Fix the render failure before approving review; see "
+                "that attempt's renders/ + render_manifest.json."
             )
     appr = record_review(
         run_dir,

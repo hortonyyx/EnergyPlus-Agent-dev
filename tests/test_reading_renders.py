@@ -323,3 +323,85 @@ def test_L41_empty_view_set_is_not_render_failure(tmp_path):
     args = SimpleNamespace(base_dir=str(tmp_path), case="case", run="run",
                            stage="0_reading", actor="tester", note="", date="")
     assert rs.cmd_approve_review(args) == 0  # empty does NOT block review
+
+
+def test_L41_unreadable_output_records_failure_artifact_not_missing(tmp_path):
+    """M-1 (r1 / F-2): when an attempt's output.json is unreadable/corrupt, the
+    render path must STILL drop a machine-readable failure artifact — a
+    render_manifest with a real-failure status — DISTINCT from 'missing' (no
+    manifest = never tried / pre-O-1). The old code let the read/parse exception
+    propagate to _render_stage's stage-level except ⇒ NO manifest written ⇒
+    _reading_render_status returned 'missing' ⇒ a tried-but-broken run was
+    indistinguishable from a pre-O-1 run AND approve-review let it through.
+
+    Drives the REAL _finalize_reading_renders (monkeypatch-free) on a corrupt
+    output.json. Neuter: remove the read/parse try/except in
+    _finalize_reading_renders (let it raise again) ⇒ no manifest written ⇒
+    _reading_render_status returns 'missing' and approve-review does not raise ⇒
+    this lock reds."""
+    from src.agent.execution.manifest import RunManifestV2, StageRecordV2, save_run_manifest
+
+    run_dir = tmp_path / "case" / "run"
+    adir = run_dir / "0_reading" / "attempts" / "001"
+    adir.mkdir(parents=True)
+    (adir / "output.json").write_text("{ not valid json ", encoding="utf-8")
+
+    h = "a" * 64
+    save_run_manifest(
+        RunManifestV2(
+            case="case", run_id="b" * 32, run_inputs={"view_manifest_sha256": h},
+            stages={"0_reading": StageRecordV2(
+                stage="0_reading", accepted_attempt=1, output_hash=h,
+                artifact_contract="reading_isolated_v2",
+                artifact_hashes={"output": h, "checks": h, "isolation_provenance": h})},
+        ),
+        run_dir,
+    )
+
+    manifest = rs._finalize_reading_renders(adir)
+    # M-1: a failure artifact IS dropped — not swallowed to nothing
+    assert (adir / "render_manifest.json").exists()
+    assert manifest["status"] == "unavailable"
+    assert manifest["views"] == []
+    assert manifest["error"]  # machine-readable reason recorded
+    # distinct from 'missing' (never tried) — the whole point of M-1
+    status = rs._reading_render_status(adir)
+    assert status == "unavailable"
+    assert status != "missing"
+    # M-1: a tried-but-broken run must NOT slip through review (old 'missing' did)
+    args = SimpleNamespace(base_dir=str(tmp_path), case="case", run="run",
+                           stage="0_reading", actor="tester", note="", date="")
+    with pytest.raises(SystemExit, match="review blocked"):
+        rs.cmd_approve_review(args)
+
+
+def test_L41_render_loop_survives_catastrophic_attempt(tmp_path, monkeypatch):
+    """M-1 (r1) / F-2: a catastrophic failure in ONE attempt's finalize (beyond
+    the read/parse handled inside _finalize_reading_renders) must not kill the
+    whole render loop — the accepted attempt's renders must still be returned,
+    and the crashed attempt must get a best-effort failure manifest (never
+    silently 'missing'). Previously a mid-loop raise dropped the ENTIRE produced
+    list, including renders already written for earlier attempts.
+
+    Neuter: drop the per-attempt try/except in _render_reading_attempts (let a
+    crash propagate) ⇒ the loop aborts on the crashing attempt ⇒ the accepted
+    attempt's renders vanish from `produced` ⇒ this lock reds."""
+    run_dir = tmp_path / "run"
+    _seed_attempt(run_dir, attempt=1)  # healthy aggregate (rendered first)
+    crashed = _seed_attempt(run_dir, attempt=2)
+    real = rs._finalize_reading_renders
+
+    def _patched(adir):
+        if adir.name == "002":
+            raise RuntimeError("injected catastrophic finalize crash")
+        return real(adir)
+
+    monkeypatch.setattr(rs, "_finalize_reading_renders", _patched)
+
+    produced = rs._render_reading_attempts(run_dir)
+    produced_names = {Path(p).name for p in produced}
+    # accepted attempt 001 still rendered despite 002 crashing
+    assert {"1f_view.png", "South_view.png"} <= produced_names
+    # crashed attempt got a best-effort failure manifest — NOT silently missing
+    assert rs._reading_render_status(crashed) == "unavailable"
+    assert (crashed / "render_manifest.json").exists()
