@@ -186,6 +186,29 @@ def test_build_copies_run_prescan_and_kickoff_mentions_it(tmp_path: Path):
     assert "Nothing is dropped" in prescan_line
 
 
+def test_build_kickoff_names_outputs_by_expected_output_id_not_view_suffix(tmp_path: Path):
+    """M-2 / N-2 (r1, F-3): the generated kickoff_prompt.md is the FIRST
+    instruction the reader receives (spawn_command feeds it to ``claude -p
+    <prompt>``). It must name reading outputs by ``<expected_output_id>`` (from
+    input_inventory.json), matching the O-3 unique spec in session_kickoff.md —
+    NOT teach the old ``<name>_view.json`` derivation. The old kickoff wrote
+    ``<name>_view.json`` even AFTER O-3 deleted that derivation from
+    session_kickoff.md, so a reader following the kickoff (not the skill doc)
+    appended ``_view`` again and was refused at merge (the O-3 病灶 on the real
+    isolated path — the cross-review's F-3 second derivation site).
+
+    Reads the REAL generated kickoff_prompt.md. Neuter: revert the kickoff
+    sentence to ``<name>_view.json`` ⇒ ``expected_output_id``/input_inventory
+    vanish and ``<name>_view`` reappears ⇒ this lock reds. (The merge-side
+    backstop for a reader that still appends ``_view`` is L-50 /
+    test_merge_per_image_view_suffix_misapplied_is_rejected.)"""
+    manifest = _build(tmp_path)
+    kickoff = (manifest.staging_root / "kickoff_prompt.md").read_text(encoding="utf-8")
+    assert "expected_output_id" in kickoff
+    assert "input_inventory.json" in kickoff
+    assert "<name>_view" not in kickoff  # the old derivation rule is gone
+
+
 _KICKOFF_PROBE_FORMS_RE = re.compile(
     r"The normal probe form is `(?P<direct>[^`]+)`; use "
     r"`(?P<batch>[^`]+)` for sweeps \(maximum (?P<limit>\d+) requests, "
