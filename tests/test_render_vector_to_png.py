@@ -70,11 +70,22 @@ def test_L52_pixel_vs_metric_ocr_anchor_canvas_unchanged():
 
 
 def test_L51_over_budget_structural_canvas_is_refused_not_clamped():
-    """L-51 companion (O-4): a STRUCTURAL canvas that genuinely exceeds the pixel
-    budget is REFUSED (raises ``CanvasBudgetExceeded``) — never silently clamped,
-    because clamping would hide a broken extent instead of surfacing it. Here the
-    structure itself spans an enormous footprint (no annotation involved) so the
-    refusal is the structural budget guard, not the annotation-exclusion guard."""
+    """L-51 companion (O-4): a STRUCTURAL canvas whose side genuinely exceeds
+    MAX_STRUCTURAL_SIDE_M (a >8 km side, even at 1 px/m) is REFUSED (raises
+    ``CanvasBudgetExceeded``) — never silently clamped, because clamping would
+    hide a broken extent instead of surfacing it. Here the structure itself
+    spans an enormous footprint (no annotation involved) so the refusal is the
+    structural METRE-side guard, not the annotation-exclusion guard.
+
+    X-3 (r2 batchC dispatch §3): this docstring previously claimed the
+    refusal was "the pixel budget" — it is not. The fixture's 20000 m side is
+    what trips MAX_STRUCTURAL_SIDE_M (a metre cap: N-3's absurd-structure gate
+    in render(), checked BEFORE any px/m scale is chosen); it never reaches
+    MAX_CANVAS_PIXELS (a pixel-count cap consumed only inside
+    ``_fit_scale``, once a structure has already passed the metre gate) —
+    see ``test_L51_total_pixel_budget_binds_for_large_square_structure`` below
+    for a fixture that actually exercises that cap ("声称在守其实没守" — the
+    docstring said one thing and a different check fired)."""
     huge = {
         "image_kind": "plan",
         "strokes": [
@@ -84,6 +95,45 @@ def test_L51_over_budget_structural_canvas_is_refused_not_clamped():
     }
     with pytest.raises(rv.CanvasBudgetExceeded):
         rv.render(huge)
+
+
+def test_L51_total_pixel_budget_binds_for_large_square_structure():
+    """X-3 (r2 batchC dispatch §3 MINOR): ``_fit_scale``'s ``total_fit`` term
+    (the ``MAX_CANVAS_PIXELS`` / area constraint) had ZERO lock — every
+    existing fixture is a thin bar (e.g. 200x20 m) where ``side_fit`` alone
+    already keeps the canvas under the total pixel budget, so ``total_fit`` is
+    never the binding term and dropping it changes nothing observable
+    (cross-review neuter x1: dropping ``total_fit`` left the whole affected
+    subset green).
+
+    A large near-SQUARE structure (unlike a bar) hits ``total_fit`` BEFORE
+    ``side_fit``: at ``side_fit`` alone a 503x503 m extent (500 m building +
+    margin) would scale to ~8190x8190 px ≈ 67M px — OVER the 50M budget — so
+    ``total_fit`` must shrink the scale further for the render to stay in
+    budget at all.
+
+    Neuter: drop ``total_fit`` from ``_fit_scale`` (``return
+    min(SCALE_PX_PER_M, side_fit)``) ⇒ the canvas grows to ~8190x8190 ≈ 67M px
+    ⇒ over ``MAX_CANVAS_PIXELS`` ⇒ this lock reds."""
+    data = {
+        "image_kind": "plan",
+        "strokes": [
+            {"pen": "wall", "geometry": {"kind": "line", "p1": [0, 0], "p2": [500, 0]}},
+            {"pen": "wall", "geometry": {"kind": "line", "p1": [0, 0], "p2": [0, 500]}},
+            {"pen": "wall", "geometry": {"kind": "line", "p1": [500, 0], "p2": [500, 500]}},
+            {"pen": "wall", "geometry": {"kind": "line", "p1": [0, 500], "p2": [500, 500]}},
+        ],
+    }
+    img = rv.render(data)  # must NOT raise
+    # the actual proof: side_fit ALONE would put this ~67M px, over budget —
+    # total_fit is what keeps it under.
+    assert img.size[0] * img.size[1] <= rv.MAX_CANVAS_PIXELS
+    # sanity: total_fit is genuinely binding here, not a no-op — side_fit alone
+    # would have used ~8190 px/side (near MAX_CANVAS_SIDE_PX); total_fit pulls
+    # it down further.
+    side_fit_only_side = int(503 * (rv.MAX_CANVAS_SIDE_PX / 503))
+    assert side_fit_only_side * side_fit_only_side > rv.MAX_CANVAS_PIXELS  # confirms side_fit alone overshoots
+    assert img.size[0] < side_fit_only_side  # total_fit pulled the scale down further
 
 
 def test_pixel_side_cap_widening_does_not_loosen_structural_refusal_threshold(monkeypatch):
