@@ -346,16 +346,33 @@ def _ocr_anchors_in_bounds(rep: CheckReport, view: ReadingView) -> None:
     structural (wall/outline) geometry. O-4 stopped letting OCR anchors expand
     the rendered canvas (the ~3.3e8-px root cause) — but that also deleted the
     ONLY signal of a pixel anchor, so bad data was then silently masked (worse
-    than before). This check restores a machine-readable signal, and BLOCKS
-    under golden/regression (disposition in schema.py). A pixel anchor like
-    ``[360, 450]`` on a ~10 m plan is the textbook bad-data shape. ⛔ Never
-    clamped, never silently dropped — only surfaced. Empty ``ocr_texts`` passes
-    cleanly.
+    than before). This check restores a machine-readable signal. A pixel
+    anchor like ``[360, 450]`` on a ~10 m plan is the textbook bad-data shape.
+    ⛔ Never clamped, never silently dropped — only surfaced. Empty
+    ``ocr_texts`` passes cleanly.
 
     Reference comes from :func:`_structural_metric_reference` (route (b) of
     B-1 — unit-anomaly, no external root; see that function's docstring for
     why the earlier px-as-metre ``trusted_image_bounds`` mechanism, r2's X-2,
-    was retired instead of repaired)."""
+    was retired instead of repaired).
+
+    ⚠️ 2026-08-04 r4 (batch C dispatch §1, user-ratified downgrade): this check
+    is ADVISORY ONLY (FLAG, never BLOCK, on every ``run_profile`` — see
+    ``schema.disposition`` / ``_OCR_ANCHOR_BLOCK_PROFILES``), not because the
+    bad-data shape stopped mattering, but because the median/MAD fence in
+    :func:`_structural_metric_reference` is known to misjudge in BOTH
+    directions: it can be fooled (a structure written entirely in pixel space
+    has no internal outlier to catch — false NEGATIVE), and it can wrongly
+    accuse ordinary, legitimate drawings (an everyday 10x8 m closed-polyline
+    room or a 60x4 m elongated building — false POSITIVE; see this module's
+    test suite for the worked repro of both shapes). Do not "fix" this by
+    tightening/loosening the MAD factor or margin — that only trades one
+    failure mode for the other on a heuristic that cannot see units. The real
+    fix is R1.5: reading only ever writes pixel anchors + a reference to the
+    dimension that calibrates them, and metric conversion happens exactly once
+    in code — which makes "pixel written where a metre was expected"
+    constructionally impossible instead of something to detect after the
+    fact."""
     ocr_texts = view.ocr_texts or []
     if not ocr_texts:
         rep.add_pass("reading.ocr_anchors_in_bounds", CheckLayer.CROSS_CHECK)
@@ -406,8 +423,7 @@ def _dimension_endpoints_in_bounds(rep: CheckReport, view: ReadingView) -> None:
     instead of blowing up to ~3.3e8 px) — that deleted the last machine-
     readable signal of this failure mode, since gate① never checked dimension
     endpoints directly; it only ever inherited the renderer's crash. This
-    restores a machine-readable signal, independent of the renderer, and
-    BLOCKS under golden/regression (disposition in schema.py). ⛔ Never
+    restores a machine-readable signal, independent of the renderer. ⛔ Never
     clamped, never silently dropped — only surfaced. Empty ``dimensions``
     passes cleanly.
 
@@ -415,7 +431,14 @@ def _dimension_endpoints_in_bounds(rep: CheckReport, view: ReadingView) -> None:
     computed from STROKES ONLY — a bad dimension endpoint can never inflate
     the very reference it is checked against (dimensions never enter that
     function's point set at all, so there is no ``exclude_dimensions`` flag to
-    thread through any more)."""
+    thread through any more).
+
+    ⚠️ 2026-08-04 r4 (batch C dispatch §1, user-ratified downgrade): ADVISORY
+    ONLY (FLAG, never BLOCK, on every ``run_profile``) — same fence, same
+    known false-negative (uniformly pixel-space structure) / false-positive
+    (ordinary closed-polyline room, elongated building) failure modes as
+    ``_ocr_anchors_in_bounds`` above; see that function's docstring for the
+    full account. Structural fix is R1.5, not a tighter heuristic here."""
     dims = view.dimensions or []
     if not dims:
         rep.add_pass(DIMENSION_ENDPOINT_BOUNDS_CHECK_ID, CheckLayer.CROSS_CHECK)
@@ -515,7 +538,40 @@ def _structural_metric_reference(view: ReadingView) -> tuple[float, float, float
     Returns ``None`` when the view has no stroke geometry at all (degenerate/
     empty submission) — callers then fail closed (every OCR anchor / dimension
     endpoint is flagged "no structural geometry to judge against"), the same
-    fail-closed posture the pre-B-1 code had for its own "no bounds" case."""
+    fail-closed posture the pre-B-1 code had for its own "no bounds" case.
+
+    ⚠️ 2026-08-04 r4 (batch C dispatch §1, user-ratified downgrade — KNOWN
+    LIMITATIONS, written on purpose so this does not quietly become "the
+    check that claims to guard something it can't"):
+      - False NEGATIVE: if the whole view's stroke geometry is itself written
+        in pixel space (not just one bad coordinate), the median/MAD fence is
+        computed FROM that pixel-scale geometry, so a pixel-scale OCR anchor
+        or dimension endpoint is no longer an outlier relative to it and
+        passes clean. The worked-example resistance to the "stray stroke"
+        trick above only holds when the REST of the geometry is genuinely
+        metre-scale.
+      - False POSITIVE: the median can degenerate on ordinary, everyday
+        shapes. A closed polyline that repeats its start point as its last
+        point (a common "closed room outline" encoding) pulls the median
+        toward that repeated corner instead of the room's centre — e.g. a
+        legitimate 10x8 m room ((0,0),(10,0),(10,8),(0,8),(0,0)) yields
+        median_x=0 (not 5) and a collapsed MAD, fencing METRE-SCALE ANNOTATIONS
+        INSIDE THE SAME ROOM outside the tolerated band. The same collapse
+        hits a 60x4 m elongated building. Both shapes are exercised as real
+        locks in tests/test_checks_reading_correction.py.
+      - Route (a) (a pixel-per-metre ratio from ``scale_origin``) was already
+        rejected (see the paragraph above) because the judged party writes
+        that ratio; route (b) here is dependency-free but, as the two failure
+        modes above show, is not a reliable arbiter either — it is a
+        heuristic, not a proof.
+      ⇒ Both consumers (``_ocr_anchors_in_bounds`` /
+      ``_dimension_endpoints_in_bounds``) treat this fence as ADVISORY ONLY
+      (disposition FLAG, never BLOCK — see schema.py) as of r4. Do not re-BLOCK
+      on this fence without first fixing the mechanism itself. The intended
+      real fix is R1.5 (reading writes pixel anchors + a referenced dimension
+      only; metric conversion happens exactly once, in code — eliminating the
+      "is this coordinate secretly in the wrong unit" question by
+      construction instead of guessing at it statistically after the fact)."""
     xs: list[float] = []
     ys: list[float] = []
 

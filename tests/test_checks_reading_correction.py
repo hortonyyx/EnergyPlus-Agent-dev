@@ -1094,17 +1094,27 @@ _OCR_BOUNDS_CHECK = "reading.ocr_anchors_in_bounds"
 
 
 @pytest.mark.parametrize("run_profile", _ACCEPTANCE_PROFILES)
-def test_ocr_pixel_anchor_out_of_bounds_blocks_acceptance(run_profile):
+def test_ocr_pixel_anchor_out_of_bounds_is_advisory_under_acceptance(run_profile):
     """M-3 (r1 / F-4 ③): an OCR/annotation anchor outside the trusted image bounds
     is SURFACED — the bad-data signal O-4's canvas fix removed (it stopped letting
     OCR anchors blow up the ~3.3e8-px canvas, but that also deleted the only
     signal of a pixel anchor, masking bad data). A pixel anchor like [360,450] on
-    a ~10 m plan FAILS reading.ocr_anchors_in_bounds and BLOCKS under
-    golden/regression. Never clamped, never silently dropped — only surfaced.
+    a ~10 m plan still FAILS reading.ocr_anchors_in_bounds. Never clamped, never
+    silently dropped — only surfaced.
 
-    Neuter: drop the OCR disposition branch in schema.disposition (or the check in
-    reading._ocr_anchors_in_bounds) ⇒ the FAIL no longer blocks under acceptance ⇒
-    this lock reds."""
+    2026-08-04 r4 (batch C dispatch §1, user-ratified downgrade): this used to
+    BLOCK under golden/regression; it no longer does, on ANY profile including
+    acceptance — the median/MAD fence behind this check has known false
+    negatives/positives on ordinary shapes (see
+    src.validator.checks.reading._structural_metric_reference's docstring and
+    the two "real shape must not be blocked" locks near the end of this file).
+    It is advisory only now: the FAIL fact is still produced, still carries the
+    same evidence, and still shows up in ``rep.flagged()`` — it just does not
+    stop gate①. The structural fix is R1.5.
+
+    Neuter: reintroduce a BLOCK branch for this check_id in schema.disposition
+    (e.g. restore ``_OCR_ANCHOR_BLOCK_PROFILES = {"golden", "regression"}``)
+    ⇒ the FAIL blocks again under acceptance ⇒ this lock reds."""
     payload = _clean_plan_payload(_USABLE_ORIGIN)
     payload["ocr_texts"] = [{"text": "3600", "anchor": [360, 450]}]  # pixel anchor
     view = ReadingView.model_validate(payload)
@@ -1113,14 +1123,18 @@ def test_ocr_pixel_anchor_out_of_bounds_blocks_acceptance(run_profile):
     assert result.status is CheckStatus.FAIL
     assert result.evidence["offenders"][0]["anchor"] == [360, 450]
     assert "anomalous relative to structural geometry" in result.evidence["offenders"][0]["reason"]
-    assert _OCR_BOUNDS_CHECK in _ids(rep)  # BLOCKS under acceptance
+    assert _OCR_BOUNDS_CHECK not in _ids(rep)  # no longer BLOCKS under acceptance
+    assert _OCR_BOUNDS_CHECK in {r.check_id for r in rep.flagged()}  # still surfaced
+    assert rep.passed  # advisory-only: does not stop gate①
 
 
 def test_ocr_pixel_anchor_out_of_bounds_only_flags_under_lenient():
     """M-3 companion: under exploratory/dev the same out-of-bounds OCR anchor only
-    FLAGs (surfaced, not blocking) so historical/exploratory artifacts stay
-    replayable — same profile split as the plan-frame gate. Neuter: make the OCR
-    check INVARIANT (always block) ⇒ rep.passed flips false ⇒ this lock reds."""
+    FLAGs (surfaced, not blocking). Since 2026-08-04 r4 this is true on every
+    profile (see test_ocr_pixel_anchor_out_of_bounds_is_advisory_under_acceptance
+    above for the acceptance-profile half) — kept as its own lock so the
+    exploratory/dev half stays pinned independently. Neuter: make the OCR check
+    INVARIANT (always block) ⇒ rep.passed flips false ⇒ this lock reds."""
     payload = _clean_plan_payload(_USABLE_ORIGIN)
     payload["ocr_texts"] = [{"text": "3600", "anchor": [360, 450]}]
     view = ReadingView.model_validate(payload)
@@ -1166,18 +1180,24 @@ _DIM_BOUNDS_CHECK = "reading.dimension_endpoints_in_bounds"
 
 
 @pytest.mark.parametrize("run_profile", _ACCEPTANCE_PROFILES)
-def test_dimension_pixel_endpoint_out_of_bounds_blocks_acceptance(run_profile):
+def test_dimension_pixel_endpoint_out_of_bounds_is_advisory_under_acceptance(run_profile):
     """X-1: a dimension endpoint outside the trusted image bounds is SURFACED —
     the exact bad-data shape M-3 already catches for OCR anchors. Before this
     check existed, N-3's adaptive canvas scale silently downscaled a
     pixel-scale dimension endpoint into a legible-looking but wrong PNG instead
     of raising (the old signal), and gate① never flagged it (the new, missing
-    signal). A pixel endpoint like [360,450] on a ~10x8 m plan FAILS
-    reading.dimension_endpoints_in_bounds and BLOCKS under golden/regression.
+    signal). A pixel endpoint like [360,450] on a ~10x8 m plan still FAILS
+    reading.dimension_endpoints_in_bounds.
 
-    Neuter: drop the dimension-endpoint disposition branch in schema.disposition
-    (or the check in reading._dimension_endpoints_in_bounds) ⇒ the FAIL no
-    longer blocks under acceptance ⇒ this lock reds."""
+    2026-08-04 r4 (batch C dispatch §1, user-ratified downgrade): this used to
+    BLOCK under golden/regression; it no longer does, on ANY profile — same
+    downgrade, same reasons (known false negatives/positives in the shared
+    ``_structural_metric_reference`` fence), as the OCR-anchor companion above.
+    Structural fix is R1.5.
+
+    Neuter: reintroduce a BLOCK branch for this check_id in schema.disposition
+    (e.g. restore ``_DIMENSION_ENDPOINT_BLOCK_PROFILES = {"golden", "regression"}``)
+    ⇒ the FAIL blocks again under acceptance ⇒ this lock reds."""
     payload = _clean_plan_payload(_USABLE_ORIGIN)
     payload["dimensions"] = [{"id": "D1", "from": [360, 450], "to": [365, 450], "text": "3600"}]
     view = ReadingView.model_validate(payload)
@@ -1187,14 +1207,18 @@ def test_dimension_pixel_endpoint_out_of_bounds_blocks_acceptance(run_profile):
     assert result.evidence["offenders"][0]["point"] == [360, 450]
     assert result.evidence["offenders"][0]["field"] == "from"
     assert "anomalous relative to structural geometry" in result.evidence["offenders"][0]["reason"]
-    assert _DIM_BOUNDS_CHECK in _ids(rep)  # BLOCKS under acceptance
+    assert _DIM_BOUNDS_CHECK not in _ids(rep)  # no longer BLOCKS under acceptance
+    assert _DIM_BOUNDS_CHECK in {r.check_id for r in rep.flagged()}  # still surfaced
+    assert rep.passed  # advisory-only: does not stop gate①
 
 
 def test_dimension_pixel_endpoint_out_of_bounds_only_flags_under_lenient():
     """X-1 companion: under exploratory/dev the same out-of-bounds dimension
-    endpoint only FLAGs (surfaced, not blocking), same profile split as the OCR
-    anchor check. Neuter: make the check INVARIANT (always block) ⇒
-    rep.passed flips false ⇒ this lock reds."""
+    endpoint only FLAGs (surfaced, not blocking). Since 2026-08-04 r4 this is
+    true on every profile (see
+    test_dimension_pixel_endpoint_out_of_bounds_is_advisory_under_acceptance
+    above for the acceptance-profile half). Neuter: make the check INVARIANT
+    (always block) ⇒ rep.passed flips false ⇒ this lock reds."""
     payload = _clean_plan_payload(_USABLE_ORIGIN)
     payload["dimensions"] = [{"id": "D1", "from": [360, 450], "to": [365, 450], "text": "3600"}]
     view = ReadingView.model_validate(payload)
@@ -1266,23 +1290,34 @@ def _write_realscale_case(root: Path, *, image_size=(790, 1111)) -> Path:
     return root
 
 
-def test_b1_pixel_anchor_blocks_on_a_real_case_data_scale_image(tmp_path):
-    """B-1 (r3 batchC dispatch §1 BLOCKER): the decisive regression for the
-    BLOCKER itself. A real (790x1111 px — sm24_anchor's own 1f_view.png size)
-    case_data image is wired through the REAL production entry point
-    (check_reading_stage + build_view_manifest), and the exact repro payload
-    [360, 450] on a ~10x8 m plan still BLOCKS under the regression profile.
+def test_b1_pixel_anchor_is_still_surfaced_on_a_real_case_data_scale_image(tmp_path):
+    """B-1 (r3 batchC dispatch §1 BLOCKER), r4-downgraded: the decisive
+    regression for the original BLOCKER. A real (790x1111 px — sm24_anchor's
+    own 1f_view.png size) case_data image is wired through the REAL production
+    entry point (check_reading_stage + build_view_manifest), and the exact
+    repro payload [360, 450] on a ~10x8 m plan still FAILS+FLAGS under the
+    regression profile.
 
     Under the retired r2 mechanism this would PASS (360 < 790, 450 < 1111 are
     both comfortably inside the image's real pixel bounds) — that IS the B-1
     bug, and this is the fixture that exposes it (the retired suite's 2x2 px
     fixture could not, by construction: sol 2026-08-04 review §2).
 
+    2026-08-04 r4: this no longer BLOCKS (the median/MAD fence has its own
+    known false-negative/false-positive failure modes — see
+    ``_structural_metric_reference``'s docstring — so it was downgraded to
+    advisory on every profile). The point of THIS lock is narrower than
+    before: the FAIL fact + evidence are still produced end-to-end through the
+    real entry point, not silently dropped, even though it no longer stops
+    gate①.
+
     Neuter: reintroduce any form of "compare a metre reading coordinate
     against the source image's real pixel width/height" (e.g. resurrect
     resolve_view_pixel_bounds and feed its result back into
-    _ocr_anchors_in_bounds) ⇒ this lock reds — the bad anchor flips back to
-    pass/not-blocking on this real-scale image."""
+    _ocr_anchors_in_bounds) ⇒ the FAIL fact itself disappears/changes shape ⇒
+    this lock reds. (BLOCK-vs-FLAG for this shape is covered separately by
+    test_ocr_pixel_anchor_out_of_bounds_is_advisory_under_acceptance /
+    test_dimension_pixel_endpoint_out_of_bounds_is_advisory_under_acceptance.)"""
     from src.agent.execution.view_manifest import build_view_manifest
     from src.validator.checks.view_manifest import check_reading_stage
 
@@ -1296,11 +1331,14 @@ def test_b1_pixel_anchor_blocks_on_a_real_case_data_scale_image(tmp_path):
     rep = check_reading_stage(manifest, {"1f_view": payload}, run_profile="regression")
     prefixed_ocr = f"1f_view.{_OCR_BOUNDS_CHECK}"
     prefixed_dim = f"1f_view.{_DIM_BOUNDS_CHECK}"
+    flagged_ids = {r.check_id for r in rep.flagged()}
     assert _result(rep, prefixed_ocr).status is CheckStatus.FAIL
-    assert prefixed_ocr in _ids(rep)  # BLOCKS
+    assert prefixed_ocr not in _ids(rep)  # advisory, no longer BLOCKS
+    assert prefixed_ocr in flagged_ids  # still surfaced
     assert _result(rep, prefixed_dim).status is CheckStatus.FAIL
-    assert prefixed_dim in _ids(rep)  # BLOCKS
-    assert not rep.passed
+    assert prefixed_dim not in _ids(rep)  # advisory, no longer BLOCKS
+    assert prefixed_dim in flagged_ids  # still surfaced
+    assert rep.passed  # advisory-only: nothing here stops gate①
 
 
 def test_b1_legitimate_product_on_a_real_case_data_scale_image_is_not_flagged(tmp_path):
@@ -1367,10 +1405,15 @@ def test_b1_unit_anomaly_scales_with_structural_extent():
     """B-1 companion: the SAME 120x90 m building as the test above, but now
     with an anchor at (1200, 900) — exactly 10x its own structural scale, the
     same order-of-magnitude relationship [360, 450] has to the ~10-20 m
-    buildings used elsewhere in this file. It is still flagged, proving the
-    check is a RELATIVE (order-of-magnitude-vs-own-geometry) judgment, not an
-    absolute metre threshold that would eventually false-positive on any
-    large enough legitimate building."""
+    buildings used elsewhere in this file. It is still FAILED (flagged, not
+    blocked — 2026-08-04 r4 downgrade), proving the check is a RELATIVE
+    (order-of-magnitude-vs-own-geometry) judgment, not an absolute metre
+    threshold that would eventually false-positive on any large enough
+    legitimate building — this relative property is exactly what does NOT
+    hold on the closed-polyline / elongated-building shapes covered by the
+    two "real shape must not be blocked" locks near the end of this file,
+    which is why the check as a whole is advisory now, not why this
+    particular relative-scaling property is wrong."""
     payload = {
         "image_kind": "plan",
         "uncaptured": [],
@@ -1388,7 +1431,8 @@ def test_b1_unit_anomaly_scales_with_structural_extent():
     rep = check_reading_view(view, run_profile="regression")
     result = _result(rep, _OCR_BOUNDS_CHECK)
     assert result.status is CheckStatus.FAIL
-    assert _OCR_BOUNDS_CHECK in _ids(rep)
+    assert _OCR_BOUNDS_CHECK not in _ids(rep)  # advisory (r4), not BLOCKED
+    assert _OCR_BOUNDS_CHECK in {r.check_id for r in rep.flagged()}
 
 
 def test_b1_resists_stray_stroke_self_inflation(tmp_path):
@@ -1402,12 +1446,15 @@ def test_b1_resists_stray_stroke_self_inflation(tmp_path):
     box this would widen the "structural extent" enough to swallow the bad
     anchor. The median/MAD-based reference barely moves (worked numerically in
     _structural_metric_reference's docstring: median_x stays 5, MAD_x stays 5,
-    with or without the injected stroke) — the bad anchor is still blocked.
+    with or without the injected stroke) — the bad anchor is still FAILED
+    (flagged, not blocked — 2026-08-04 r4 downgrade; see that function's
+    docstring for the separate, real false-positive shapes that motivated the
+    downgrade — this specific resistance property is unaffected by it).
 
     Neuter: revert _structural_metric_reference to raw min/max over the same
     point set (drop the median/MAD statistics) ⇒ this lock reds — the injected
     stroke's own endpoint widens the naive bounds enough for [360, 450] to
-    pass."""
+    pass (status flips to PASS, not just BLOCK-vs-FLAG)."""
     from src.agent.execution.view_manifest import build_view_manifest
     from src.validator.checks.view_manifest import check_reading_stage
 
@@ -1427,14 +1474,17 @@ def test_b1_resists_stray_stroke_self_inflation(tmp_path):
     prefixed = f"1f_view.{_OCR_BOUNDS_CHECK}"
     result = _result(rep, prefixed)
     assert result.status is CheckStatus.FAIL
-    assert prefixed in _ids(rep)  # still BLOCKS despite the injected stroke
+    assert prefixed not in _ids(rep)  # advisory (r4), not BLOCKED
+    assert prefixed in {r.check_id for r in rep.flagged()}  # despite the injected stroke, still surfaced
 
 
 def test_b1_declared_image_bounds_and_dimension_endpoints_cannot_inflate_the_reference(tmp_path):
     """B-1 companion (carries forward the other two r1/r2 inflation tricks —
     a declared `image_bounds` extra field, and an extra pixel-scale dimension
     endpoint — both of which are now defeated by construction:
-    _structural_metric_reference never reads either field, only strokes)."""
+    _structural_metric_reference never reads either field, only strokes).
+    2026-08-04 r4: the FAIL is still produced (this construction-level
+    resistance is unaffected), it just no longer blocks (advisory only)."""
     from src.agent.execution.view_manifest import build_view_manifest
     from src.validator.checks.view_manifest import check_reading_stage
 
@@ -1460,7 +1510,8 @@ def test_b1_declared_image_bounds_and_dimension_endpoints_cannot_inflate_the_ref
         rep = check_reading_stage(manifest, {"1f_view": payload}, run_profile="regression")
         result = _result(rep, prefixed)
         assert result.status is CheckStatus.FAIL, label
-        assert prefixed in _ids(rep), label
+        assert prefixed not in _ids(rep), label  # advisory (r4), not BLOCKED
+        assert prefixed in {r.check_id for r in rep.flagged()}, label
 
 
 def test_b1_m2_undecodable_source_image_no_longer_degrades_the_check(tmp_path):
@@ -1478,18 +1529,21 @@ def test_b1_m2_undecodable_source_image_no_longer_degrades_the_check(tmp_path):
     through the real production entry point: the case_data "image" on disk is
     genuinely corrupt (not decodable by PIL), build_view_manifest still
     succeeds (hash/manifest identity does not require decoding), and the bad
-    OCR anchor is STILL blocked exactly as if the image had been valid.
+    OCR anchor is STILL surfaced (FAIL + flagged) exactly as if the image had
+    been valid. 2026-08-04 r4: it no longer BLOCKS (advisory-only downgrade,
+    unrelated to M-2) — this lock's own point (the FAIL fact does not
+    silently degrade when the image is corrupt) is unaffected by that.
 
     Neuter: reintroduce any image-decode step into the OCR-anchor/dimension-
     endpoint bounds checks (e.g. resurrect resolve_view_pixel_bounds and make
     a decode failure silently drop to a weaker fallback) ⇒ this lock stays
     green today but would start reproducing M-2's silent-degrade shape again —
     the intended regression signal is the companion real-image lock above
-    (test_b1_pixel_anchor_blocks_on_a_real_case_data_scale_image) flipping if
-    that resurrected mechanism ever became the primary gate again; this test
-    pins the specific "image is corrupt" input shape so a future patch cannot
-    reintroduce a decode-dependent fallback without this test forcing the
-    author to look at it."""
+    (test_b1_pixel_anchor_is_still_surfaced_on_a_real_case_data_scale_image)
+    flipping if that resurrected mechanism ever became the primary gate
+    again; this test pins the specific "image is corrupt" input shape so a
+    future patch cannot reintroduce a decode-dependent fallback without this
+    test forcing the author to look at it."""
     from src.agent.execution.view_manifest import build_view_manifest
     from src.validator.checks.view_manifest import check_reading_stage
 
@@ -1514,6 +1568,84 @@ def test_b1_m2_undecodable_source_image_no_longer_degrades_the_check(tmp_path):
     prefixed = f"1f_view.{_OCR_BOUNDS_CHECK}"
     result = _result(rep, prefixed)
     assert result.status is CheckStatus.FAIL
-    assert prefixed in _ids(rep)  # still BLOCKS — coverage also still passes (identity is fine)
+    assert prefixed not in _ids(rep)  # advisory (r4), not BLOCKED
+    assert prefixed in {r.check_id for r in rep.flagged()}  # still surfaced — coverage also still passes (identity is fine)
     coverage_id = "reading.view_manifest_coverage"
     assert _result(rep, coverage_id).status is CheckStatus.PASS
+
+
+# --------------------------------------------------------------------------- #
+# 2026-08-04 r4 (batch C dispatch §1, user-ratified downgrade): the two real
+# shapes that forced the downgrade in the first place. Both are ordinary,
+# legitimate architectural drawings — not adversarial/inflation fixtures like
+# the B-1 tricks above — and both trip the median/MAD fence in
+# _structural_metric_reference because a closed polyline that repeats its
+# start point as its last point pulls the median toward that repeated corner
+# instead of the shape's centre. This is exactly the false-positive shape
+# sol's independent review + the orchestrator's own live testing found; these
+# two locks pin "these legitimate artifacts must never be BLOCKED" so nobody
+# re-tightens this heuristic back into a hard gate without seeing this file
+# first. (They do NOT assert the FAIL disappears — the underlying mis-
+# judgment is real and documented; only that it stays advisory.)
+# --------------------------------------------------------------------------- #
+def test_b1_r4_closed_polyline_10x8_room_with_legitimate_annotation_is_not_blocked():
+    """r4 real-shape lock #1: an ordinary 10x8 m room traced as a single closed
+    polyline stroke ((0,0)->(10,0)->(10,8)->(0,8)->back to (0,0), the natural
+    encoding of "trace the room outline and close it") with one perfectly
+    legitimate OCR annotation at (9, 4) — well inside the room, nowhere near
+    either wall. The repeated (0,0) start/end point collapses median_x to 0
+    (not 5) and MAD_x to 0, fencing the annotation OUTSIDE the tolerated band
+    even though it sits squarely inside the room the check is supposed to be
+    judging against — the false positive that motivated the r4 downgrade.
+
+    This is the load-bearing assertion of this lock: the legitimate artifact
+    is NOT blocked. (Its FAIL status is asserted too, to pin the exact
+    mechanism being locked against regressing silently — if a future change
+    makes it PASS instead, that's a different, welcome fix and this assertion
+    would need loosening then, not before.)
+
+    Neuter: reintroduce a BLOCK branch for reading.ocr_anchors_in_bounds under
+    "regression" in schema.disposition ⇒ this exact legitimate 10x8 m room
+    payload starts blocking gate① ⇒ this lock reds. That is precisely the
+    regression this lock exists to catch."""
+    payload = _clean_plan_payload(_USABLE_ORIGIN)
+    payload["strokes"] = [
+        {"id": "S1", "pen": "wall", "provenance": "seen", "confidence": "high",
+         "geometry": {"kind": "polyline",
+                      "points": [[0, 0], [10, 0], [10, 8], [0, 8], [0, 0]]}},
+    ]
+    payload["ocr_texts"] = [{"text": "room", "anchor": [9.0, 4.0]}]  # inside the room
+    view = ReadingView.model_validate(payload)
+    rep = check_reading_view(view, run_profile="regression")
+    result = _result(rep, _OCR_BOUNDS_CHECK)
+    assert result.status is CheckStatus.FAIL  # the known false positive, pinned
+    assert _OCR_BOUNDS_CHECK not in _ids(rep)  # ⭐ must never BLOCK
+    assert _OCR_BOUNDS_CHECK in {r.check_id for r in rep.flagged()}  # still surfaced
+    assert rep.passed  # ⭐ this legitimate artifact is not refused
+
+
+def test_b1_r4_elongated_60x4_building_with_legitimate_annotation_is_not_blocked():
+    """r4 real-shape lock #2: a 60x4 m elongated building (e.g. a long narrow
+    corridor block), also traced as a single closed polyline with a repeated
+    start/end point, with one legitimate OCR annotation at (55, 2) — well
+    inside the building, near its far (long) end. Same median-collapse
+    mechanism as the 10x8 m room above (median_x collapses to 0 instead of
+    30), same false positive, same r4 downgrade rationale.
+
+    Neuter: reintroduce a BLOCK branch for reading.ocr_anchors_in_bounds under
+    "regression" in schema.disposition ⇒ this exact legitimate 60x4 m building
+    payload starts blocking gate① ⇒ this lock reds."""
+    payload = _clean_plan_payload(_USABLE_ORIGIN)
+    payload["strokes"] = [
+        {"id": "S1", "pen": "wall", "provenance": "seen", "confidence": "high",
+         "geometry": {"kind": "polyline",
+                      "points": [[0, 0], [60, 0], [60, 4], [0, 4], [0, 0]]}},
+    ]
+    payload["ocr_texts"] = [{"text": "room", "anchor": [55.0, 2.0]}]  # inside the building
+    view = ReadingView.model_validate(payload)
+    rep = check_reading_view(view, run_profile="regression")
+    result = _result(rep, _OCR_BOUNDS_CHECK)
+    assert result.status is CheckStatus.FAIL  # the known false positive, pinned
+    assert _OCR_BOUNDS_CHECK not in _ids(rep)  # ⭐ must never BLOCK
+    assert _OCR_BOUNDS_CHECK in {r.check_id for r in rep.flagged()}  # still surfaced
+    assert rep.passed  # ⭐ this legitimate artifact is not refused

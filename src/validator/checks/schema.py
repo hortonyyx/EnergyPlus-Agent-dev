@@ -67,11 +67,30 @@ _PLAN_FRAME_BLOCK_PROFILES = {"golden", "regression"}
 
 # M-3 (r1 / F-4 ③): an OCR/annotation anchor outside the trusted image bounds is
 # the textbook bad-data shape (a pixel anchor like [360,450] on a ~10 m plan that
-# O-4's canvas fix stopped blowing up — and stopped surfacing). Flag it always,
-# BLOCK under golden/regression so an acceptance run refuses a reading whose OCR
-# anchors are pixels, not metrics. Same profile split as the plan-frame check.
+# O-4's canvas fix stopped blowing up — and stopped surfacing). Flag it always.
 OCR_ANCHOR_BOUNDS_CHECK_ID = "reading.ocr_anchors_in_bounds"
-_OCR_ANCHOR_BLOCK_PROFILES = {"golden", "regression"}
+# 2026-08-04 r4 (batch C dispatch §1, user-ratified downgrade): this used to BLOCK
+# under golden/regression via the "unit-anomaly" fence in
+# ``src.validator.checks.reading._structural_metric_reference`` (median/MAD over
+# a view's own stroke geometry). Independent sol review + orchestrator live
+# testing found that fence is NOT reliable in either direction:
+#   - false NEGATIVE: a structure written entirely in pixel space (so the bad
+#     coordinate is no longer an outlier relative to its own geometry) sails
+#     straight through — the exact shape the check exists to catch.
+#   - false POSITIVE (the more dangerous one): an ordinary 10x8 m closed-
+#     polyline room, or a 60x4 m elongated building, with perfectly legitimate
+#     annotations, gets FAILED — the robust statistic degenerates on these
+#     everyday shapes (see tests/test_checks_reading_correction.py's two r4
+#     "real shape, must not be blocked" locks for the worked repro).
+# ⇒ downgraded to ADVISORY ONLY: never in ``blocking()``, on any profile,
+# including golden/regression. The FAIL fact + evidence (offenders /
+# structural_reference) are still produced — nothing here is deleted or
+# silently swallowed, only kept out of the blocking set. This is a stopgap;
+# the structural fix is R1.5 (reading only ever writes pixel anchors +
+# referenced dimensions, metric conversion lives solely in code so "pixel
+# mistaken for metre" becomes constructionally impossible instead of
+# something a heuristic has to guess at after the fact).
+_OCR_ANCHOR_BLOCK_PROFILES: frozenset[str] = frozenset()
 
 # X-1 (r2 batchC dispatch §1): N-3's adaptive canvas scale (render_vector_to_png)
 # stopped raising when a DIMENSION endpoint is written in pixel space — the same
@@ -79,9 +98,13 @@ _OCR_ANCHOR_BLOCK_PROFILES = {"golden", "regression"}
 # downscales instead of blowing up. That deleted the last machine-readable
 # signal gate① had for this failure mode (gate① never checked dimension
 # endpoints in the first place; it only ever inherited the renderer's crash).
-# Same check shape and profile split as OCR_ANCHOR_BOUNDS_CHECK_ID.
+# Flag it always.
 DIMENSION_ENDPOINT_BOUNDS_CHECK_ID = "reading.dimension_endpoints_in_bounds"
-_DIMENSION_ENDPOINT_BLOCK_PROFILES = {"golden", "regression"}
+# 2026-08-04 r4: same downgrade, same reasons, as _OCR_ANCHOR_BLOCK_PROFILES
+# above (this check shares the same ``_structural_metric_reference`` fence and
+# the same false-negative/false-positive evidence) — see that comment for the
+# full account. Advisory only; structural fix is R1.5.
+_DIMENSION_ENDPOINT_BLOCK_PROFILES: frozenset[str] = frozenset()
 
 
 def is_evidence_check_id(check_id: str) -> bool:
@@ -185,19 +208,22 @@ def disposition(
         return Disposition.FLAG
     if is_ocr_anchor_check_id(result.check_id):
         # M-3 (r1 / F-4 ③): a pixel/out-of-bounds OCR anchor is bad data that
-        # O-4's canvas fix stopped surfacing. Flag always; BLOCK an acceptance
-        # run (golden/regression) so a pixel-anchor reading is refused, not
-        # silently rendered with the label cropped out of frame.
+        # O-4's canvas fix stopped surfacing. FLAG ALWAYS, on every profile —
+        # 2026-08-04 r4 downgraded this from BLOCK-on-acceptance to advisory
+        # (``_OCR_ANCHOR_BLOCK_PROFILES`` is now permanently empty; see the
+        # comment on that constant for the false-negative/false-positive
+        # evidence that forced the downgrade). Structural fix is R1.5.
         if run_profile in _OCR_ANCHOR_BLOCK_PROFILES:
-            return Disposition.BLOCK
+            return Disposition.BLOCK  # unreachable while the set above is empty
         return Disposition.FLAG
     if is_dimension_endpoint_bounds_check_id(result.check_id):
         # X-1: a pixel/out-of-bounds dimension endpoint is the same bad-data
-        # shape as an OCR anchor (M-3) — flag always; BLOCK an acceptance run
-        # (golden/regression) so a pixel-dimension reading is refused, not
-        # silently rendered at a downscaled, illegible resolution.
+        # shape as an OCR anchor (M-3) — FLAG ALWAYS, on every profile — 2026-
+        # 08-04 r4 downgraded this the same way and for the same reasons (see
+        # ``_DIMENSION_ENDPOINT_BLOCK_PROFILES``'s comment). Structural fix is
+        # R1.5.
         if run_profile in _DIMENSION_ENDPOINT_BLOCK_PROFILES:
-            return Disposition.BLOCK
+            return Disposition.BLOCK  # unreachable while the set above is empty
         return Disposition.FLAG
     if result.check_id == _CORRECTION_EVIDENCE_DEBT_COVERAGE:
         if (
