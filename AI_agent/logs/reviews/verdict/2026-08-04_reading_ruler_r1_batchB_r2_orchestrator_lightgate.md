@@ -143,12 +143,46 @@
 **结转 R2 的债（逐条有出口，不阻断收口）**：
 | 债 | 内容 | 出处 |
 |---|---|---|
-| **r2c-2** | 两条 geometry 锁改写后**丢了 check-id 行断言**，只剩头部字段 | 交叉审 F-4 |
+| ~~r2c-2~~ | ~~两条 geometry 锁丢了 check-id 行断言~~ **⇒ 已闭，见 §8 更正** | 交叉审 F-4 |
 | **r2c-3** | `tests/test_orchestrate_baseline.py:106-109` 恒真断言，分辨力 0 | 交叉审 F-3 |
 | **r2c-4** | `capability_profile_not_declared` 守卫零锁（可达但无锁） | 交叉审 F-5 |
 | **F-2** | `tests/test_orchestrate_baseline.py:160` 注释误述「frozen tier still consumed」（只需改注释） | 交叉审 F-2 |
 | **N-1** | judge 路 run-policy 漂移在同一命令下两种出口（`return 2` vs traceback）·**前置存在、不计本批** | 交叉审 N-1 |
-| **Q-8 措辞** | 「外部信任根」判据把信任根钉死在单一文件，而仓库已有第二个信任根（view manifest）⇒ **归 orchestrator 改判据措辞**，不派施工 | 交叉审 Q-8 |
+| ~~Q-8 措辞~~ | **✅ 已闭（2026-08-04 用户拍板）**：改为「两道检查题 + 在册清单」，全文落 [decision_log §5.14](../../../decision_log.md) | 交叉审 Q-8 |
 | **D-2 / D-3 / D-4** | `GeometryApproval` 四字段零消费者零锁 · L-13 锁仍直喂 `None` · judge 路若出现 tier 消费者须补锁 | 08-03 两路交叉审 + r2b 裁定 |
 
 **⛔ 约束不变**：批 A/B/C 三批全绿之前，不得发布任何识图分数或「识图变好/变坏」的结论。**批 C 尚未开工。**
+
+---
+
+## 8. ⛔ orchestrator 记账更正（2026-08-04 09:40）：r2c-2 其实已完成，且被我扫进了 wrap-up 提交
+
+**事实**（施工席复工后报出、orchestrator 用 `git log -- <file>` 独立核实）：
+
+- 施工席 05:59 撞额度中断时，**r2c-2 的改动已写在工作树、但未提交**；
+- orchestrator 06:30 收工执行 `git add -A && git commit`，**把这些未提交的测试代码一并扫进了 `6e06ecf`**
+  —— 而那条提交的信息只写了「管理文档同步」，**实为含代码改动**，且已推 origin。
+- ⇒ **§7 结转债清单里「r2c-2 未做」是错的**，本节更正；plan.md 顶部同步更正。
+
+**两点如实说明**：
+1. **测试口径没出岔**：§6 那次全量 `2096 passed` 跑的就是**含这些改动的工作树**
+   ⇒ 已验证状态与推上去的状态一致，**不存在「测的是 A、推的是 B」**。
+2. **但提交信息与内容不符**，且已 push ⇒ **不 force push 改历史**（项目禁令），
+   改为在此登记 + 施工席执行日志 `## 9` 同步记明「r2c-2 落在 `6e06ecf`，非独立 commit」。
+
+**⇒ 教训（与「哨兵判据不得落在第一个匹配上」同族）**：
+> **收工的 `git add -A` 会把并行席位遗留的未提交工作一并收走。**
+> 席位中断后、orchestrator 提交前，**必须先看一眼 `git status` 里有没有不属于本次提交的改动**
+> （本轮我只核了「未 push / 未碰 gt / 未动管理文档」这三项边界，**没核「工作树里有没有别人的半成品」**）。
+
+**r2c-2 的锁 orchestrator 已独立复验为真绑**（本节结论，非采信自报）：
+除施工席做的 A1（`effective_run_policy` 档位回落默认 ⇒ 红 4 条，四条共享同一 hook、属同源非连带），
+orchestrator 另做**更窄的 neuter** —— 只把 disposition 的档位门去掉
+（`ReportSchema.dispositions()` 里 `run_profile=self.run_profile` → 写死 `"exploratory"`，**头部字段一字不动**）
+⇒ **恰好红 `test_R1_5_approve_geometry_uses_frozen_policy_check_headers` 与
+`test_R1_5_geometry_is_approved_uses_frozen_policy_check_headers` 两条**
+⇒ **新增的 check-id 行断言真承重，不是装饰。**
+
+**并立判据（已告知施工席，以后照此办）**：
+> **「零连带」= 摘掉实现后红的都是依赖这处实现的锁，没有无关测试被带红；
+> 不是「红的条数必须等于本条目的锁数」。** 多条锁共享同一 hook 时同源全红是正常的。

@@ -148,14 +148,32 @@ EnergyPlus 经 `WorkflowTool.run_simulation`（eppy + ConverterManager，idfpy �
   （0 BLOCKER / 1 MAJOR / 4 MINOR / 1 NIT），**唯一 MAJOR 已修并经 orchestrator 独立 neuter 证明真绑**。
   **⭐ 两条最重要结论**：① **「停下上报」产生了本批最高价值的两次修正——两次都是派工方的题错了**
   （要求给一块恒空操作的代码补锁 = 硬补必得假锁；给的防篡改方案挡不住篡改）；
-  ② **新判据：只有 `run_config.yaml` 里声明的东西才有外部信任根、才配被冻结成档位政策并参与防漂移，
-  命令行的运行期开关一律来自当次调用**（交叉审 Q-8 指出措辞把信任根钉死在单一文件、与 view manifest 冲突 ⇒ 待修）。
+  ② **新判据（⭐2026-08-04 用户拍板定案，详 [decision_log §5.14](decision_log.md)）：一个值配不配被冻结并防漂移，
+  看两道题 —— ① 除冻结记录外是否存在第二处记载说明它本该是什么；② 那处记载是否先于本次运行就已固定
+  （进 git / 有人签字 / 绑真实文件指纹）且被评判方写不了。两题皆是才可冻结；任一为否 ⇒ 不冻结、不据以判定，
+  至多留显式标注非权威的审计快照。在册的第二处记载只有两个（`run_config.yaml` 档位声明 · case 身份含签字与图像指纹），
+  ⛔ 新增须用户拍板。** ⇒ 命令行旋钮（`--with-ep` / draw budget / judge 开关）第一题即不通过、永不进判定面。
   **⛔ 同族缺陷本夜第三/四次现形**：两处「声称在守其实没守」的假 docstring / 假注释已消除；
   一条「自称摘掉即红、实测全仓零红」的假锁已修。详见
   [轻门 + 结转债](logs/reviews/verdict/2026-08-04_reading_ruler_r1_batchB_r2_orchestrator_lightgate.md) ·
   [交叉审](logs/reviews/verdict/2026-08-04_reading_ruler_r1_batchB_r2_crossreview_claude.md) ·
   [plan.md 顶部 08-04 条](plan.md)。**批 C 未开工。**
-- **分支** `6.15_ValidationArchM0toM4`（已推 origin）；测试 **2096 绿 + 10 strict xfail·零红**（下条 2089 为 08-03 收工数）
+- **⭐⭐⭐ 最新（2026-08-04 收工）= 批 C（安全交付面）+ 批 D（判卷图）+ R4-a（成绩分账）全部落地**，
+  全仓 **2158 绿 + 10 xfail 零红**（**本日 2089 → 2158，+69 条锁、零回归**）。
+  施工三席接力（GLM 三轮撞额度 → Claude 侧接手 ×3），审 = Claude 侧 ×2 + **sol ×2**。
+  **⭐ 三条最重要的结论**：
+  ① **判卷图与渲染修好了** —— 07-08 起「每轮识图零渲染、用户看不到产物图」已闭合（O-1），
+     判卷图恢复六 panel + 图例（批 D）；**用户重新有了独立看懂产物好坏的通道**；
+  ② **⭐ 方法论（本日最贵）：neuter 变红只证明「实现被调用」，不证明「判据有分辨力」** ——
+     同一族缺陷两个方向各栽一次（2×2 px 退化 fixture 假绿 / 两堵墙探针假红）
+     ⇒ **判据类检查必须四格实测（坏×小·好×小·好×大·坏×大），载荷须真实量级 + 真实形状**；
+  ③ **⭐ 用户拍板：判据两个方向都不稳时不再打补丁，去看接口** ——
+     「像素当米」检测降为 **advisory（只提醒不拦）**，**结构性修法归 R1.5**
+     （读图器只写像素锚点 + 引用标注、米制由代码唯一换算 ⇒ 该错在接口上表达不出来）。
+  详见 [批 C r3/r4 轻门 + 结转债](logs/reviews/verdict/2026-08-04_batchC_r3_orchestrator_lightgate.md) ·
+  [sol 两轮复核](logs/reviews/verdict/2026-08-04_batchC_r3_review_sol.md) · [plan.md 顶部 08-04 条](plan.md)。
+  **⛔ 结转债**：D-5（判据结构性修法归 R1.5）· D-6（源图不可解码仍 coverage PASS）· **X-4 至今未裁定**。
+- **分支** `6.15_ValidationArchM0toM4`（已推 origin）；测试 **2158 绿 + 10 strict xfail·零红**（下条 2089 为 08-03 收工数）
   （08-03 收工数：批 A 2055 → 批 B r0 2068 → r1 2089，净增 34 条锁零回归；
   08-01 W4 那 1 红已随返工 r1/r2/r3 闭环，见下条；xfail 十条含 2 个 legacy golden sm20/run_2026-06-15、
   sm21/run_2026-06-16_opus 无编排账本→run_state=incomplete；**B5 Phase C 延后的 6 个
