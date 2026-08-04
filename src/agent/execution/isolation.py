@@ -383,7 +383,30 @@ def merge_isolated_output(
         (attempt_dir / "output.json").write_text(out_text, encoding="utf-8")
         output_hash = hash_text(out_text)
 
+        # F-2a: carry the reading summary to the stage root when the isolated
+        # reader produced one. The flat reader writes reading_summary.md directly
+        # under 0_reading/; the isolated reader writes it to staging out/, and
+        # until now merge only carried output.json — so a clean-room reading
+        # product stranded one stage short of correction
+        # (pipeline._build_correction_messages reads the summary via a bare
+        # _read). Same hash-accounting as output: when present, the summary's
+        # hash travels in the audited isolation provenance (bound through the
+        # isolation_provenance hash). The manifest's reading_isolated_v2 contract
+        # permits only output/checks/isolation_provenance artifact keys, so the
+        # summary is deliberately NOT a manifest artifact key.
+        # F-2b: a missing summary is NOT silently swallowed — it is recorded as
+        # an explicit null in provenance, and the named, localizable failure
+        # fires at the correction entry (pipeline._build_correction_messages),
+        # which the kickoff contract makes a hard dependency.
+        summary_src = staging_root / "out" / "reading_summary.md"
+        summary_hash: str | None = None
+        if summary_src.is_file():
+            summary_text = summary_src.read_text(encoding="utf-8")
+            (stage_dir / "reading_summary.md").write_text(summary_text, encoding="utf-8")
+            summary_hash = hash_text(summary_text)
+
         provenance = _build_provenance(staging_root, output_hash)
+        provenance["reading_summary_sha256"] = summary_hash
         provenance.update(
             {
                 "run_id": binding["run_id"],

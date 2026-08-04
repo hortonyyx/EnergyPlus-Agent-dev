@@ -103,10 +103,17 @@ def test_helper_identity_literals_are_required_without_contract_defaults():
         HelperIdentityV8(va_helper="facade_applicability_v1", vg_helper="facade_visibility_v1", claims_contract="1")
 
 
-def test_phase_d_converges_legacy_writer_and_v8_contract_labels():
+def test_legacy_scorer_schema_is_independent_of_typed_v8_contract_label():
+    """The legacy (run_stage) and typed (score_schema) scorer-schema constants
+    are INDEPENDENT cache keys. MAJOR-1 bumped the legacy constant from "8" to
+    "9" because commit 4a11097 (F-1a/F-1b) changed legacy scoring semantics, so
+    any v8 sidecar must be recomputed; the typed v3 path was untouched and stays
+    "8". This lock pins both values so a future bump to either side is conscious
+    (and is the lock the MAJOR-1 fix changed — the old form asserted both == "8",
+    which hid the divergence this fix introduced on purpose)."""
     import scripts.tool_scripts.run_stage as run_stage
     from src.agent.judge.score_schema import SCORER_SCHEMA
-    assert run_stage.SCORER_SCHEMA == "8"
+    assert run_stage.SCORER_SCHEMA == "9"
     assert SCORER_SCHEMA == "8"
 
 

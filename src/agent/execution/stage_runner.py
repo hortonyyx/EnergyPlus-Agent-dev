@@ -530,6 +530,26 @@ class StageRunner:
                     artifact_contract = "assembly_e4_v1"
                 else:
                     artifact_contract = "base_v2"
+                    if stage == "1_correction":
+                        # F-3b: a 1_correction record may only be accepted under
+                        # a correction contract (FinalizeResult /
+                        # OrientationEnrichmentResult, all handled above). A raw
+                        # v3 CorrectedGeometry reaching this catch-all is an
+                        # unfinalized draft (the F-3 root cause: an advisory-debt
+                        # early-exit returned raw geom instead of a FinalizeResult);
+                        # its ``schema_version="3"`` then collides two stages later
+                        # in ``load_verified_accepted_correction``
+                        # (output_coordinates.py), which fail-closes with the
+                        # opaque "feature-state sidecar is mandatory for v3". Fail
+                        # closed HERE, at the write point, with a named error.
+                        _draft_sv = str(getattr(output_obj, "schema_version", "") or "")
+                        if _draft_sv == "3":
+                            raise ValueError(
+                                "an unfinalized v3 correction draft (raw "
+                                "CorrectedGeometry, not a FinalizeResult) may not "
+                                "be accepted under a 'base_v2' record — the "
+                                "feature-state sidecar is mandatory for v3 (F-3b)"
+                            )
                 self.manifest.accept(
                     StageRecordV2(
                         **common,

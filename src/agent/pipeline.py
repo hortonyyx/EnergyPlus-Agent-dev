@@ -297,7 +297,19 @@ def _build_correction_messages(
     correction_docs = _load_correction_docs()
     reading_guide = _read(_SKILL_DIR / "0_reading" / "guide.md")
     reading_pens = _read(_SKILL_DIR / "0_reading" / "pen_library.md")
-    summary = _read(vector_dir / "reading_summary.md")
+    # F-2b: the reading summary is a hard dependency (it carries the
+    # cross-image narrative correction assembles its prompt around). A missing
+    # summary is a named, localizable failure pointing at the reading stage's
+    # kickoff contract — not a bare OSError two layers down in _read.
+    summary_path = vector_dir / "reading_summary.md"
+    if not summary_path.is_file():
+        raise FileNotFoundError(
+            f"1_correction requires the 0_reading summary at {summary_path}, but "
+            "it is missing — the reading stage must produce reading_summary.md "
+            "(kickoff contract); correction cannot assemble its prompt without it "
+            "(F-2b)"
+        )
+    summary = _read(summary_path)
     target = target or __import__("src.agent.correction.parse", fromlist=["correction_target"]).correction_target("rectangular")
     geom_schema = json.dumps(target.schema_model.model_json_schema(), indent=2, ensure_ascii=False)
 

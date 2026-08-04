@@ -75,8 +75,15 @@ from src.validator.checks.schema import CheckLayer, CheckReport, CheckStatus  # 
 _STAGES = ["0_reading", "1_correction", "2_modelling", "3_split_pairing",
            "4_mep", "5_intakeoutput"]
 # Phase D convergence: schema 0--7 artifacts are never cache candidates.
-# v2 keeps its exact legacy projection below, but its sidecar label is v8.
-SCORER_SCHEMA = "8"
+# v2 keeps its exact legacy projection below; its sidecar label is v9. It was
+# bumped from v8 because the legacy scoring SEMANTICS changed (4a11097 F-1a/F-1b
+# — envelope unwrap + empty-scores headline): a sidecar labeled v8 or earlier
+# holds stale scores under the old semantics, so _grade_attempt_artifacts must
+# recompute rather than reuse it (MAJOR-1: a stale v8 sidecar otherwise
+# short-circuited grading and replayed the old false-pass headlines). This
+# constant is independent of src.agent.judge.score_schema.SCORER_SCHEMA (the
+# typed v3 side) — do NOT bump them in lockstep.
+SCORER_SCHEMA = "9"
 FLOW_EXIT_OK = 0
 FLOW_EXIT_CHECKPOINT = 10
 FLOW_EXIT_STOP = 20
@@ -322,13 +329,24 @@ def _draw_correction(
     evidence_debt = load_evidence_debt(s1 / "evidence_debt.json")
 
     # Keep flow aligned with pipeline: evidence debt is evaluated before any
-    # deterministic mutation, and a blocked draw is still filed as an attempt.
+    # deterministic mutation, and a BLOCKED draw is still filed as an attempt.
     from src.validator.checks.correction import check_evidence_debt_coverage
     pre_core_debt = check_evidence_debt_coverage(
         geom, evidence_debt, capability_profile=policy.capability_profile,
         run_profile=policy.run_profile,
     )
-    if any(result.status == CheckStatus.FAIL for result in pre_core_debt.results):
+    # F-3a: early-exit on BLOCKING debt only (the policy-aware set), not on any
+    # FAIL. ``evidence_debt_coverage`` is advisory (FLAG) under ``exploratory``,
+    # so the old ``any(FAIL)`` test early-exited on a non-blocking flag —
+    # returning the raw ``geom`` (NOT a FinalizeResult), which StageRunner then
+    # accepted as a ``base_v2`` record despite ``schema_version=="3"``; the next
+    # stage's accepted-loader fail-closed two stages later in
+    # ``load_verified_accepted_correction`` with an opaque message. A blocked
+    # draw is still filed as an attempt here; an advisory debt flows through to
+    # ``finalize_correction_draw`` and the final ``check_correction`` report,
+    # which re-evaluates ``evidence_debt`` itself — so the advisory is recorded
+    # once there, neither lost nor double-counted (``pre_core_debt`` is dropped).
+    if pre_core_debt.blocking():
         return geom, pre_core_debt
 
     # Semantic checks on the PRE-core draw. If bad, THIS draw blocks gate① → the
