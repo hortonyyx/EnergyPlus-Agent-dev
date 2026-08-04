@@ -2406,6 +2406,32 @@ def test_merge_per_image_extra_is_rejected(tmp_path: Path):
         merge_isolated_output(staging, run_dir)
 
 
+def test_merge_per_image_view_suffix_misapplied_is_rejected(tmp_path: Path):
+    """L-50 (O-3): a source PNG whose stem already ends in ``_view`` (e.g.
+    ``1f_view.png``) has ``expected_output_id`` = the stem itself (identity
+    transform, view_manifest §4.2). The OLD kickoff generic rule
+    ``<name>_view.json`` invited a reader to append ``_view`` AGAIN, leaving a
+    spurious ``1f_view_view.json`` ALONGSIDE the correct ``1f_view.json``.
+    Merge must refuse that extra file (``1f_view_view`` is not a manifest
+    expected_output_id), never silently keep it as a duplicate. Neuter: drop the
+    extra-stem check in ``_load_isolated_views`` (isolation.py:602-607) ⇒ the
+    spurious file is no longer refused ⇒ this lock reds. The kickoff now names
+    outputs by ``expected_output_id`` from ``input_inventory.json`` (O-3); this
+    lock is the merge-side backstop for a reader that still appends ``_view``."""
+    manifest, run_dir = _formal_sm21(tmp_path)
+    staging = manifest.staging_root
+    real = _real_views()
+    _write_per_image_views(staging, real)  # all correct <expected_output_id>.json present
+    identity_id = "1f_view"
+    assert identity_id in real and identity_id.endswith("_view")
+    # reader ALSO wrote the old <name>_view.json form for an identity stem
+    (staging / "out" / f"{identity_id}_view.json").write_text(
+        json.dumps(real[identity_id]), encoding="utf-8"
+    )
+    with pytest.raises(ValueError, match="unexpected"):
+        merge_isolated_output(staging, run_dir)
+
+
 def test_merge_single_aggregate_still_accepted_alongside_per_image(tmp_path: Path):
     """S4: the old path is not broken — when a valid aggregate output.json is
     present it is used (per-image files, if any, are ignored, not assembled)."""

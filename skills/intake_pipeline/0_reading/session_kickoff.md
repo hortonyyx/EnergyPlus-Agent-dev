@@ -48,9 +48,16 @@ to go read:
 
 ## Images for this case
 
-Produce one JSON per source drawing at `<case>/0_reading/<name>_view.json`. Fill this manifest for
-the current case before tracing; every source image must have exactly one output row or an explicit
-skip reason in `reading_summary.md`.
+Produce one JSON per source drawing, named **exactly `<expected_output_id>.json`**. The
+`expected_output_id` for every source image is listed in the staging `input_inventory.json` (one
+row per image: `input_id`, `file`, `view_type`, `expected_output_id`). **Do NOT derive the output
+name from the source PNG by appending `_view`**: a stem that already ends in `_view` (e.g.
+`1f_view`, `South_view`) IS its own `expected_output_id`, so its output file is `1f_view.json` —
+not `1f_view_view.json`. A supplementary plan whose stem does not end in `_view` (e.g.
+`supp_plan`) has `expected_output_id = supp_plan_view`. Merge refuses any output file whose stem is
+not an `expected_output_id` in the manifest, so a mis-named file is a loud error, not a silent
+substitute. Fill this manifest for the current case before tracing; every source image must have
+exactly one output row or an explicit skip reason in `reading_summary.md`.
 
 | source PNG | output JSON | image_kind | status / note |
 |---|---|---|---|
@@ -62,7 +69,12 @@ skip reason in `reading_summary.md`.
 | `East_view.png` | `0_reading/East_view.json` | elevation | fill/delete row for this case |
 | `West_view.png` | `0_reading/West_view.json` | elevation | fill/delete row for this case |
 | `supp_plan.png` | `0_reading/supp_plan_view.json` | supplementary / plan | choose by content; explain in note |
-| `<section/detail/other>.png` | `0_reading/<name>_view.json` | section / supplementary / other | include only if present; explain axes/scope in notes |
+| `<section/detail/other>.png` | `0_reading/<expected_output_id>.json` | section / supplementary / other | include only if present; explain axes/scope in notes |
+
+The `output JSON` column above is a **non-normative worked example** of the two shapes an
+`expected_output_id` takes (identity for `1f_view` / `South_view` / …; `stem + "_view"` for
+`supp_plan`). The authoritative name for THIS case is the `expected_output_id` in
+`input_inventory.json` — re-derive it nowhere.
 
 ## Workflow
 
