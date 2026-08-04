@@ -1142,6 +1142,36 @@ _TYPED_ELEV_ROWS = 2  # ceil(len(FACADE_CODES) / _TYPED_ELEV_COLUMNS)
 _TYPED_ELEV_CELL_H = LABEL_H + _TYPED_ELEV_PANEL_H
 _TYPED_ELEV_TOP = _TYPED_FLOOR_TOP + _TYPED_PLAN_PANEL_H + 24
 
+# MINOR (r3 batchC dispatch §3, "批 D 标签仍重叠/截断"): claim-rail row height
+# (same value the old inline `n * 20` used) and reserved-band padding, hoisted
+# so the geometry-scale computation and the rail row placement can never
+# silently drift apart (they must agree on how much vertical space one row
+# actually needs). See render_typed_grade's per-floor loop.
+_TYPED_RAIL_ROW_H = 20
+_TYPED_RAIL_RESERVE_PAD = 30
+# Label shrink-to-fit budget (px) — segment/polygon/opening ids must always
+# render in FULL (dispatch: "⛔ 不许裁掉"); this is a target width the font
+# size search tries to fit under, not a hard clip.
+_TYPED_LABEL_MAX_WIDTH_PX = 150
+
+
+def _fit_label_font(draw: ImageDraw.ImageDraw, text: str, max_width_px: int,
+                     *, base_size: int = 9, min_size: int = 6):
+    """MINOR (r3 batchC dispatch §3): the largest font size in
+    [min_size, base_size] whose rendered width for the FULL ``text`` fits
+    ``max_width_px`` — never slices the string. If even ``min_size``
+    overflows the budget (a genuinely very long id), still returns
+    ``min_size`` and the caller draws the complete text anyway: a label that
+    visually overflows its nominal box is strictly better than one that
+    silently discards characters — sol 2026-08-04 review §S-4 named this
+    exact defect (``segment.id[-10:]``) and the dispatch explicitly rules out
+    truncation as an acceptable fix ("文字超框换行或缩字号，⛔ 不许裁掉")."""
+    for size in range(base_size, min_size - 1, -1):
+        font = _font(size)
+        if draw.textlength(text, font=font) <= max_width_px:
+            return font
+    return _font(min_size)
+
 
 def _typed_worst_claim_result(rows: list[dict]) -> str:
     """Aggregate a target's claim rows into one worst-of status, using the
@@ -1360,7 +1390,19 @@ def render_typed_grade(*, gt_document, payload: object,
         points = floor.footprint_exterior
         xs, ys = zip(*points)
         min_x, max_x, min_y, max_y = min(xs), max(xs), min(ys), max(ys)
-        scale = min((width - 2 * margin) / max(max_x - min_x, .1), (height - 2 * margin) / max(max_y - min_y, .1))
+        # MINOR (r3 batchC dispatch §3): the claim rail below reserves its own
+        # vertical band, sized to the actual number of openings on THIS floor
+        # (each gets its own stacked row, _TYPED_RAIL_ROW_H apart) — the
+        # geometry scale is computed against the REMAINING height only, so the
+        # polygon/segment/label drawing can never grow down into rail
+        # territory no matter how many openings a floor has (sol 2026-08-04
+        # review §S-4: a synthetic four-opening fixture put rail rows for
+        # openings 1-3 inside the geometry's own interior region).
+        rail_reserved = len(floor.openings) * _TYPED_RAIL_ROW_H + _TYPED_RAIL_RESERVE_PAD
+        scale = min(
+            (width - 2 * margin) / max(max_x - min_x, .1),
+            (height - 2 * margin - rail_reserved) / max(max_y - min_y, .1),
+        )
         ox, oy = index * (width + gap), floor_top
         def px(point):
             return (ox + margin + (point[0] - min_x) * scale,
@@ -1368,15 +1410,22 @@ def render_typed_grade(*, gt_document, payload: object,
         draw.text((ox + 12, floor_top - 20), f"{floor.floor_id}  polygon", font=_font(13), fill=TEXT)
         for polygon in floor.zone_polygons:
             draw.polygon([px(point) for point in polygon.exterior], fill=GT_FILL, outline=GT_EDGE, width=1)
-            draw.text(px(polygon.exterior[0]), polygon.id[-14:], font=_font(10), fill=SUBTLE)
+            polygon_label = polygon.id
+            draw.text(px(polygon.exterior[0]), polygon_label,
+                      font=_fit_label_font(draw, polygon_label, _TYPED_LABEL_MAX_WIDTH_PX), fill=SUBTLE)
+            audit[f"label:polygon:{polygon.id}"] = polygon_label
+        audit[f"label:floor_polygon_count:{floor.floor_id}"] = str(len(floor.zone_polygons))
         outline = [px(point) for point in points]
         draw.line(outline + [outline[0]], fill=REFERENCE, width=3)
         segments = {segment.id: segment for segment in floor.boundary_segments}
         for segment in floor.boundary_segments:
             draw.line((px(segment.p1), px(segment.p2)), fill=TRUTH, width=3)
             midpoint = ((px(segment.p1)[0] + px(segment.p2)[0]) / 2, (px(segment.p1)[1] + px(segment.p2)[1]) / 2)
-            draw.text(midpoint, segment.id[-10:], font=_font(9), fill=SUBTLE)
+            segment_label = segment.id
+            draw.text(midpoint, segment_label,
+                      font=_fit_label_font(draw, segment_label, _TYPED_LABEL_MAX_WIDTH_PX), fill=SUBTLE)
             audit[segment.id] = f"plan:{floor.floor_id}:{segment.id}"
+            audit[f"label:segment:{segment.id}"] = segment_label
         rail_y = oy + height - 18
         for n, opening in enumerate(floor.openings):
             segment = segments[opening.segment_id]
@@ -1387,12 +1436,15 @@ def render_typed_grade(*, gt_document, payload: object,
             else:
                 p0, p1 = (segment.p1[0], opening.world_along_interval[0]), (segment.p1[0], opening.world_along_interval[1])
             draw.line((px(p0), px(p1)), fill=GREEN, width=5)
-            draw.text(px(p0), opening.id[-12:], font=_font(9), fill=TEXT)
+            opening_label = opening.id
+            draw.text(px(p0), opening_label,
+                      font=_fit_label_font(draw, opening_label, _TYPED_LABEL_MAX_WIDTH_PX), fill=TEXT)
             audit[opening.id] = f"plan:{floor.floor_id}:{opening.id}"
+            audit[f"label:opening:{opening.id}"] = opening_label
             for claim_index, row in enumerate(rows_by_target.get(opening.id, ())):
                 claim = str(row.get("claim"))
                 x0 = int(ox + 10 + (claim_index % 7) * 55)
-                y0 = int(rail_y - (n * 20))
+                y0 = int(rail_y - (n * _TYPED_RAIL_ROW_H))
                 box = (x0, y0, x0 + 48, y0 + 14)
                 result = row.get("result")
                 na_reason = row.get("na_reason")
