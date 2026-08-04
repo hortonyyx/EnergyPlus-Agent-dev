@@ -65,6 +65,14 @@ _CORRECTION_EVIDENCE_DEBT_COVERAGE = "correction.evidence_debt_coverage"
 PLAN_FRAME_CHECK_ID = "reading.plan_scale_origin_usable"
 _PLAN_FRAME_BLOCK_PROFILES = {"golden", "regression"}
 
+# M-3 (r1 / F-4 ③): an OCR/annotation anchor outside the trusted image bounds is
+# the textbook bad-data shape (a pixel anchor like [360,450] on a ~10 m plan that
+# O-4's canvas fix stopped blowing up — and stopped surfacing). Flag it always,
+# BLOCK under golden/regression so an acceptance run refuses a reading whose OCR
+# anchors are pixels, not metrics. Same profile split as the plan-frame check.
+OCR_ANCHOR_BOUNDS_CHECK_ID = "reading.ocr_anchors_in_bounds"
+_OCR_ANCHOR_BLOCK_PROFILES = {"golden", "regression"}
+
 
 def is_evidence_check_id(check_id: str) -> bool:
     return check_id in EVIDENCE_CHECK_IDS or any(
@@ -75,6 +83,11 @@ def is_evidence_check_id(check_id: str) -> bool:
 def is_plan_frame_check_id(check_id: str) -> bool:
     """Aggregating callers prefix per-view results with ``<stem>.``; match both."""
     return check_id == PLAN_FRAME_CHECK_ID or check_id.endswith(f".{PLAN_FRAME_CHECK_ID}")
+
+
+def is_ocr_anchor_check_id(check_id: str) -> bool:
+    """Aggregating callers prefix per-view results with ``<stem>.``; match both."""
+    return check_id == OCR_ANCHOR_BOUNDS_CHECK_ID or check_id.endswith(f".{OCR_ANCHOR_BOUNDS_CHECK_ID}")
 
 
 class CheckStatus(str, Enum):
@@ -150,6 +163,14 @@ def disposition(
         # regardless of how the artifact was produced. The only relief is the
         # profile split.
         if run_profile in _PLAN_FRAME_BLOCK_PROFILES:
+            return Disposition.BLOCK
+        return Disposition.FLAG
+    if is_ocr_anchor_check_id(result.check_id):
+        # M-3 (r1 / F-4 ③): a pixel/out-of-bounds OCR anchor is bad data that
+        # O-4's canvas fix stopped surfacing. Flag always; BLOCK an acceptance
+        # run (golden/regression) so a pixel-anchor reading is refused, not
+        # silently rendered with the label cropped out of frame.
+        if run_profile in _OCR_ANCHOR_BLOCK_PROFILES:
             return Disposition.BLOCK
         return Disposition.FLAG
     if result.check_id == _CORRECTION_EVIDENCE_DEBT_COVERAGE:

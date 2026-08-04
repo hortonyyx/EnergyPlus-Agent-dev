@@ -1088,3 +1088,65 @@ def test_plan_frame_gate_reaches_the_flow_stage_gate(run_profile):
     )
     assert prefixed not in _ids(usable)
     assert _result(usable, prefixed).status is CheckStatus.PASS
+
+
+_OCR_BOUNDS_CHECK = "reading.ocr_anchors_in_bounds"
+
+
+@pytest.mark.parametrize("run_profile", _ACCEPTANCE_PROFILES)
+def test_ocr_pixel_anchor_out_of_bounds_blocks_acceptance(run_profile):
+    """M-3 (r1 / F-4 ③): an OCR/annotation anchor outside the trusted image bounds
+    is SURFACED — the bad-data signal O-4's canvas fix removed (it stopped letting
+    OCR anchors blow up the ~3.3e8-px canvas, but that also deleted the only
+    signal of a pixel anchor, masking bad data). A pixel anchor like [360,450] on
+    a ~10 m plan FAILS reading.ocr_anchors_in_bounds and BLOCKS under
+    golden/regression. Never clamped, never silently dropped — only surfaced.
+
+    Neuter: drop the OCR disposition branch in schema.disposition (or the check in
+    reading._ocr_anchors_in_bounds) ⇒ the FAIL no longer blocks under acceptance ⇒
+    this lock reds."""
+    payload = _clean_plan_payload(_USABLE_ORIGIN)
+    payload["ocr_texts"] = [{"text": "3600", "anchor": [360, 450]}]  # pixel anchor
+    view = ReadingView.model_validate(payload)
+    rep = check_reading_view(view, run_profile=run_profile)
+    result = _result(rep, _OCR_BOUNDS_CHECK)
+    assert result.status is CheckStatus.FAIL
+    assert result.evidence["offenders"][0]["anchor"] == [360, 450]
+    assert "outside trusted image bounds" in result.evidence["offenders"][0]["reason"]
+    assert _OCR_BOUNDS_CHECK in _ids(rep)  # BLOCKS under acceptance
+
+
+def test_ocr_pixel_anchor_out_of_bounds_only_flags_under_lenient():
+    """M-3 companion: under exploratory/dev the same out-of-bounds OCR anchor only
+    FLAGs (surfaced, not blocking) so historical/exploratory artifacts stay
+    replayable — same profile split as the plan-frame gate. Neuter: make the OCR
+    check INVARIANT (always block) ⇒ rep.passed flips false ⇒ this lock reds."""
+    payload = _clean_plan_payload(_USABLE_ORIGIN)
+    payload["ocr_texts"] = [{"text": "3600", "anchor": [360, 450]}]
+    view = ReadingView.model_validate(payload)
+    rep = check_reading_view(view, run_profile="exploratory")
+    assert _result(rep, _OCR_BOUNDS_CHECK).status is CheckStatus.FAIL
+    assert _OCR_BOUNDS_CHECK not in _ids(rep)  # FLAG, not BLOCK
+    assert rep.passed  # flags do not block gate①
+
+
+def test_ocr_in_bounds_and_margin_tolerated_anchors_pass():
+    """M-3 companion: a legitimate in-bounds OCR anchor passes, and an anchor just
+    outside the structural extent (within _OCR_ANCHOR_MARGIN_M) is tolerated — a
+    label sitting just past a wall is legitimate, so the check does not
+    false-positive on normal labels. Neuter: set the margin to 0 (drop the margin
+    in the check) ⇒ the margin-tolerated anchor flips to FAIL ⇒ this lock reds."""
+    from src.validator.checks.reading import _OCR_ANCHOR_MARGIN_M
+
+    payload = _clean_plan_payload(_USABLE_ORIGIN)
+    # structure spans x∈[0,10], y∈[0,8]
+    payload["ocr_texts"] = [
+        {"text": "room", "anchor": [5, 4]},       # well inside
+        {"text": "dim", "anchor": [11.5, 4]},     # 1.5 m past xmax=10, within margin
+    ]
+    view = ReadingView.model_validate(payload)
+    rep = check_reading_view(view, run_profile="regression")
+    result = _result(rep, _OCR_BOUNDS_CHECK)
+    assert result.status is CheckStatus.PASS
+    assert _OCR_BOUNDS_CHECK not in _ids(rep)
+    assert _OCR_ANCHOR_MARGIN_M >= 1.5  # the tolerated anchor relies on the margin

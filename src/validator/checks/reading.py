@@ -58,6 +58,14 @@ _MIN_EXTENT = 0.05  # m — below this a line/rect is degenerate
 _OUTPUT_PRECISION_M = 0.01  # A0 OUTPUT_PRECISION scale
 _PROVENANCE_PENS = {"wall", "window", "wall_fill", "outline"}
 _WINDOW_JAMB_TOLERANCE_M = 0.20
+# M-3 (r1 / F-4 ③): OCR/annotation anchors are tolerated up to this far OUTSIDE
+# the trusted structural extent (a label sitting just past a wall is legitimate).
+# A PIXEL anchor like [360, 450] on a ~10 m plan is orders of magnitude outside,
+# so any reasonable margin still surfaces it — that is the bad-data signal O-4's
+# canvas fix removed and this check restores. Kept generous vs the renderer's
+# MARGIN_M (render_vector_to_png) so a label flagged here is one a reviewer would
+# NOT see in the render.
+_OCR_ANCHOR_MARGIN_M = 2.0
 
 
 def _finite(*vals) -> bool:
@@ -155,6 +163,9 @@ def check_reading_view(
 
     # ---- INVARIANT: topology-light room-role observations, only if present ----
     _room_labels_wellformed(rep, view)
+
+    # ---- CROSS_CHECK (profile-gated BLOCK): OCR/annotation anchors in bounds ----
+    _ocr_anchors_in_bounds(rep, view)
 
     # ---- CROSS_CHECK: dimension-chain closure ----
     _chain_closure(rep, view, meta)
@@ -303,6 +314,56 @@ def _room_labels_wellformed(rep: CheckReport, view: ReadingView) -> None:
             "reading.room_label_anchors_in_bounds", CheckLayer.CROSS_CHECK,
             evidence={"bounds": bounds},
         )
+
+
+def _ocr_anchors_in_bounds(rep: CheckReport, view: ReadingView) -> None:
+    """M-3 (r1 / F-4 ③): surface OCR/annotation anchors that fall outside the
+    trusted structural image bounds. O-4 stopped letting OCR anchors expand the
+    rendered canvas (the ~3.3e8-px root cause) — but that also deleted the ONLY
+    signal of a pixel anchor, so bad data was then silently masked (worse than
+    before). This check restores a machine-readable signal: an OCR anchor outside
+    ``_image_bounds`` (+ ``_OCR_ANCHOR_MARGIN_M``) is flagged, and BLOCKS under
+    golden/regression (disposition in schema.py). A pixel anchor like ``[360,
+    450]`` on a ~10 m plan is the textbook bad-data shape. ⛔ Never clamped, never
+    silently dropped — only surfaced. Empty ``ocr_texts`` passes cleanly."""
+    ocr_texts = view.ocr_texts or []
+    if not ocr_texts:
+        rep.add_pass("reading.ocr_anchors_in_bounds", CheckLayer.CROSS_CHECK)
+        return
+    bounds = _image_bounds(view)
+    bad: list[dict] = []
+    if bounds is None:
+        bad = [{"index": i, "anchor": _ocr_anchor_repr(t), "reason": "no image bounds"}
+               for i, t in enumerate(ocr_texts)]
+    else:
+        xmin, xmax, ymin, ymax = bounds
+        for i, t in enumerate(ocr_texts):
+            if not isinstance(t, dict):
+                bad.append({"index": i, "reason": "ocr entry is not an object"})
+                continue
+            anchor = t.get("anchor")
+            if not (isinstance(anchor, list) and len(anchor) == 2 and _finite(*anchor)):
+                bad.append({"index": i, "anchor": anchor, "reason": "anchor not two finite numbers"})
+                continue
+            x, y = anchor
+            if not (xmin - _OCR_ANCHOR_MARGIN_M <= x <= xmax + _OCR_ANCHOR_MARGIN_M
+                    and ymin - _OCR_ANCHOR_MARGIN_M <= y <= ymax + _OCR_ANCHOR_MARGIN_M):
+                bad.append({"index": i, "anchor": anchor, "text": t.get("text", ""),
+                            "reason": "outside trusted image bounds"})
+    if bad:
+        rep.add_fail(
+            "reading.ocr_anchors_in_bounds", CheckLayer.CROSS_CHECK,
+            f"{len(bad)} ocr anchor(s) invalid or out of bounds",
+            evidence={"offenders": bad, "bounds": bounds, "margin_m": _OCR_ANCHOR_MARGIN_M},
+        )
+    else:
+        rep.add_pass("reading.ocr_anchors_in_bounds", CheckLayer.CROSS_CHECK,
+                     evidence={"bounds": bounds})
+
+
+def _ocr_anchor_repr(t) -> object:
+    """Best-effort anchor for an ocr entry that may not be a dict (e.g. None)."""
+    return t.get("anchor") if isinstance(t, dict) else t
 
 
 def _image_bounds(view: ReadingView) -> tuple[float, float, float, float] | None:
