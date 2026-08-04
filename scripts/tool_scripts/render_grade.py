@@ -1124,6 +1124,180 @@ def validate_typed_render_totality(*, model, payload: object, audit_map: dict[st
                                          context={"reason": "claim_not_rendered"})
 
 
+# Plan-row layout (batch D §1.1). Hoisted to module scope (not just locals
+# inside render_typed_grade) so the L-D1/L-D2/L-D3 locks can assert on exact,
+# formula-derived pixel regions instead of duplicating magic numbers.
+_TYPED_PLAN_PANEL_W = 420
+_TYPED_PLAN_PANEL_H = 360
+_TYPED_PLAN_MARGIN = 36
+_TYPED_PLAN_GAP = 28
+_TYPED_LEGEND_Y = 56
+_TYPED_FLOOR_TOP = 100
+
+_TYPED_ELEV_PANEL_W = 460
+_TYPED_ELEV_PANEL_H = 300
+_TYPED_ELEV_GAP = 28
+_TYPED_ELEV_COLUMNS = 2
+_TYPED_ELEV_ROWS = 2  # ceil(len(FACADE_CODES) / _TYPED_ELEV_COLUMNS)
+_TYPED_ELEV_CELL_H = LABEL_H + _TYPED_ELEV_PANEL_H
+_TYPED_ELEV_TOP = _TYPED_FLOOR_TOP + _TYPED_PLAN_PANEL_H + 24
+
+
+def _typed_worst_claim_result(rows: list[dict]) -> str:
+    """Aggregate a target's claim rows into one worst-of status, using the
+    SAME tier ordering the plan claim-rail already colours by. A target with
+    no rows, or rows that are entirely not_applicable/na_reason, aggregates
+    to "not_applicable" (batch D §1: an elevation panel must not invent a
+    pass/fail colour where the plan rail itself has none)."""
+    non_na = [row for row in rows
+              if row.get("result") != "not_applicable" and not row.get("na_reason")]
+    if not non_na:
+        return "not_applicable"
+    results = {str(row.get("result")) for row in non_na}
+    if results <= {"complete"}:
+        return "complete"
+    if results <= {"complete", "within_tolerance"}:
+        return "within_tolerance"
+    return "miss"
+
+
+def _typed_legend(draw: ImageDraw.ImageDraw, y: int) -> None:
+    """Shared legend for the whole typed grade board: colour = judgement
+    tier (complete/within-tolerance/miss/not-applicable), drawing style =
+    category (filled/outlined box = an opening's aggregate claim status;
+    solid gray line = gt truth wall/envelope), same vocabulary the legacy
+    render_grade() legend already used (batch D §1.1)."""
+    x = [14]
+
+    def chip(colour, label) -> None:
+        box = (x[0], y, x[0] + 20, y + 12)
+        draw.rectangle(box, fill=colour)
+        draw.text((x[0] + 26, y - 1), label, font=_font(10), fill=SUBTLE)
+        x[0] += 26 + len(label) * 6 + 16
+
+    def na_chip(label) -> None:
+        box = (x[0], y, x[0] + 20, y + 12)
+        draw.rectangle(box, fill=(224, 224, 224), outline=(107, 114, 128), width=1)
+        draw.line((box[0], box[3], box[2], box[1]), fill=(107, 114, 128), width=1)
+        draw.text((x[0] + 26, y - 1), label, font=_font(10), fill=SUBTLE)
+        x[0] += 26 + len(label) * 6 + 16
+
+    chip(GREEN, "complete")
+    chip(ORANGE, "within-tolerance")
+    chip(RED, "miss")
+    na_chip("not applicable")
+    draw.line((x[0], y + 6, x[0] + 20, y + 6), fill=TRUTH, width=3)
+    draw.text((x[0] + 26, y - 1), "gt truth (wall / envelope)", font=_font(10), fill=SUBTLE)
+
+
+def _draw_typed_elevation_panel(
+    draw: ImageDraw.ImageDraw,
+    image: Image.Image,
+    ox: int,
+    oy: int,
+    w: int,
+    h: int,
+    facade: str,
+    model,
+    rows_by_target: dict[str, list[dict]],
+) -> None:
+    """One elevation panel (batch D §1.1). ``model`` is a
+    :class:`~src.agent.judge.gt_render_model.GtRenderModel`; this function
+    reads only its own gt-authored ``elevation_surfaces`` (facade_family is a
+    GT structural field, never a product mirror/local-x declaration) plus the
+    same ``rows_by_target`` claim-result lookup the plan panel already uses.
+
+    A facade absent from GT is rendered as an explicit hatched "no such
+    elevation" placeholder — never silently omitted (§1 requirement 5)."""
+    facade_name = FACADE_NAMES[facade]
+    draw.text((ox + 4, oy - LABEL_H + 4), f"{facade_name} elevation", font=_font(13), fill=TEXT)
+    panel_box = (ox, oy, ox + w, oy + h)
+    draw.rectangle(panel_box, outline=GT_EDGE, width=1)
+
+    surfaces = [s for s in model.elevation_surfaces if s.facade_family == facade_name]
+    if not surfaces:
+        _typed_hatch(image, panel_box)
+        draw.text((ox + 12, oy + h // 2 - 8), "NO SUCH ELEVATION IN GT",
+                  font=_font(12), fill=RED)
+        return
+
+    floor_by_id = {floor.floor_id: floor for floor in model.floors}
+    segments = [seg for surface in surfaces for seg in surface.segments]
+    openings = list({op.id: op for surface in surfaces for op in surface.openings}.values())
+    floor_ids = sorted({fid for surface in surfaces for fid in surface.floor_ids})
+    if not segments or not floor_ids:
+        _typed_hatch(image, panel_box)
+        draw.text((ox + 12, oy + h // 2 - 8), "NO GEOMETRY ON THIS ELEVATION",
+                  font=_font(12), fill=RED)
+        return
+
+    axis = 0 if facade_name in {"North", "South"} else 1
+
+    def extent(segment) -> tuple[float, float]:
+        return tuple(sorted((segment.p1[axis], segment.p2[axis])))
+
+    lo = min(extent(seg)[0] for seg in segments)
+    hi = max(extent(seg)[1] for seg in segments)
+    coverage = next((s.world_along_coverage for s in surfaces if s.world_along_coverage is not None), None)
+    if coverage is not None:
+        lo, hi = coverage
+    max_z = max(floor_by_id[fid].z_floor_m + floor_by_id[fid].ceiling_height_m for fid in floor_ids)
+    if hi <= lo or max_z <= 0:
+        _typed_hatch(image, panel_box)
+        draw.text((ox + 12, oy + h // 2 - 8), "DEGENERATE ELEVATION EXTENT",
+                  font=_font(12), fill=RED)
+        return
+
+    margin_x, margin_top, margin_bottom = 54, 12, 46
+    ppm = min((w - margin_x - 16) / (hi - lo), (h - margin_top - margin_bottom) / max_z)
+    base_y = oy + margin_top + max_z * ppm
+
+    def tx(value: float) -> float:
+        return ox + margin_x + (value - lo) * ppm
+
+    def tz(value: float) -> float:
+        return base_y - value * ppm
+
+    draw.rectangle((tx(lo), tz(max_z), tx(hi), tz(0)), outline=TRUTH, width=2)
+    floor_levels = sorted(
+        {floor_by_id[fid].z_floor_m for fid in floor_ids}
+        | {floor_by_id[fid].z_floor_m + floor_by_id[fid].ceiling_height_m for fid in floor_ids}
+    )
+    for level in floor_levels[1:-1]:
+        draw.line((tx(lo), tz(level), tx(hi), tz(level)), fill=GT_EDGE, width=1)
+
+    clipped_any = False
+    for opening in openings:
+        if opening.z_interval is None:
+            continue
+        a, b = opening.world_along_interval
+        if b <= lo or a >= hi:
+            continue
+        a_clip, b_clip = max(a, lo), min(b, hi)
+        if (a_clip, b_clip) != (a, b):
+            clipped_any = True
+        box = (tx(a_clip), tz(opening.z_interval[1]), tx(b_clip), tz(opening.z_interval[0]))
+        result = _typed_worst_claim_result(rows_by_target.get(opening.id, []))
+        if result == "not_applicable":
+            _typed_hatch(image, tuple(int(round(v)) for v in box))
+            outline = GT_EDGE
+        else:
+            outline = {"complete": GREEN, "within_tolerance": ORANGE}.get(result, RED)
+        draw.rectangle(box, outline=outline, width=3)
+        draw.text((box[0], box[1] - 11), opening.id[-10:], font=_font(8), fill=SUBTLE)
+
+    for floor_id in floor_ids:
+        level = floor_by_id[floor_id].z_floor_m
+        count = sum(1 for opening in openings if opening.floor_id == floor_id and opening.z_interval is not None)
+        draw.text((ox + 4, tz(level) - 13), f"{floor_id}: {count}", font=_font(9), fill=SUBTLE)
+
+    note_y = oy + h - 14
+    if clipped_any or coverage is not None:
+        draw.text((ox + 8, note_y), "PARTIAL — CLIPPED AT COVERAGE", font=_font(9), fill=RED)
+    elif any(opening.z_interval is None for opening in openings):
+        draw.text((ox + 8, note_y), "PLAN-ONLY · z NA for some openings", font=_font(9), fill=SUBTLE)
+
+
 def render_typed_grade(*, gt_document, payload: object,
                        score_bindings: object | None = None,
                        reading_stage: bool = False) -> tuple[Image.Image, dict[str, str]]:
@@ -1132,6 +1306,11 @@ def render_typed_grade(*, gt_document, payload: object,
     World geometry and elevation projection are already normalized by the
     judge's reviewed bindings.  This renderer deliberately does not read any
     product mirror/local-x flags; it only records bindings as an audited input.
+
+    Batch D (2026-08-04): restores the six-panel board (two plan floors +
+    four facade elevations North/South/East/West) plus a shared legend, so a
+    v3-scored run's facade correctness is visible again — the v3 path
+    previously rendered plan polygons only.
     """
     from src.agent.judge.gt_render_model import gt_to_render_model
     from src.agent.judge.gt_schema import GroundTruthV3
@@ -1142,7 +1321,18 @@ def render_typed_grade(*, gt_document, payload: object,
     floors = model.floors
     if not floors:
         raise ValueError("typed grade renderer requires floors")
-    width, height, margin, gap = 420, 360, 36, 28
+    width, height, margin, gap = (
+        _TYPED_PLAN_PANEL_W, _TYPED_PLAN_PANEL_H, _TYPED_PLAN_MARGIN, _TYPED_PLAN_GAP,
+    )
+    # Legend (batch D §1.1) sits between the header and the plan row; floor_top
+    # keeps a clear gap below it so the legend row and floor titles never share
+    # a scanline (the exact "标签互压" defect this batch exists to fix).
+    legend_y = _TYPED_LEGEND_Y
+    floor_top = _TYPED_FLOOR_TOP
+    elev_grid_w = _TYPED_ELEV_COLUMNS * _TYPED_ELEV_PANEL_W + (_TYPED_ELEV_COLUMNS - 1) * _TYPED_ELEV_GAP
+    elev_grid_h = _TYPED_ELEV_ROWS * _TYPED_ELEV_CELL_H + (_TYPED_ELEV_ROWS - 1) * _TYPED_ELEV_GAP
+    elev_top = _TYPED_ELEV_TOP
+    content_bottom = elev_top + elev_grid_h
     payload_dict = _typed_payload_dict(payload)
     status_lines = (
         reading_grade_status_lines(payload_dict) if reading_stage else ()
@@ -1151,8 +1341,8 @@ def render_typed_grade(*, gt_document, payload: object,
     image = Image.new(
         "RGBA",
         (
-            max(500, len(floors) * (width + gap)),
-            height + 110 + status_height,
+            max(500, len(floors) * (width + gap), elev_grid_w),
+            content_bottom + 20 + status_height,
         ),
         (*BG, 255),
     )
@@ -1160,6 +1350,7 @@ def render_typed_grade(*, gt_document, payload: object,
     draw.text((14, 12), "C2 typed grade — actual polygons", font=_font(18), fill=TEXT)
     if score_bindings is not None:
         draw.text((14, 38), "projection: reviewed score bindings", font=_font(11), fill=SUBTLE)
+    _typed_legend(draw, legend_y)
     audit: dict[str, str] = {}
     rows_by_target: dict[str, list[dict]] = {}
     for row in _typed_claim_rows(payload_dict):
@@ -1170,11 +1361,11 @@ def render_typed_grade(*, gt_document, payload: object,
         xs, ys = zip(*points)
         min_x, max_x, min_y, max_y = min(xs), max(xs), min(ys), max(ys)
         scale = min((width - 2 * margin) / max(max_x - min_x, .1), (height - 2 * margin) / max(max_y - min_y, .1))
-        ox, oy = index * (width + gap), 82
+        ox, oy = index * (width + gap), floor_top
         def px(point):
             return (ox + margin + (point[0] - min_x) * scale,
                     oy + margin + (max_y - point[1]) * scale)
-        draw.text((ox + 12, 62), f"{floor.floor_id}  polygon", font=_font(13), fill=TEXT)
+        draw.text((ox + 12, floor_top - 20), f"{floor.floor_id}  polygon", font=_font(13), fill=TEXT)
         for polygon in floor.zone_polygons:
             draw.polygon([px(point) for point in polygon.exterior], fill=GT_FILL, outline=GT_EDGE, width=1)
             draw.text(px(polygon.exterior[0]), polygon.id[-14:], font=_font(10), fill=SUBTLE)
@@ -1212,9 +1403,22 @@ def render_typed_grade(*, gt_document, payload: object,
                     draw.rectangle(box, fill=GREEN if result == "complete" else ORANGE if result == "within_tolerance" else RED)
                 audit[f"{opening.id}:{claim}"] = f"rail:{floor.floor_id}:{opening.id}:{claim}"
 
+    # Batch D §1.1: four facade panels (fixed 2x2 grid, canonical N/S/E/W
+    # order) below the plan row. A facade the GT does not declare renders as
+    # an explicit "no such elevation" hatch, never a silently skipped panel.
+    for idx, facade in enumerate(FACADE_CODES):
+        col = idx % _TYPED_ELEV_COLUMNS
+        row_index = idx // _TYPED_ELEV_COLUMNS
+        elev_ox = col * (_TYPED_ELEV_PANEL_W + _TYPED_ELEV_GAP)
+        elev_oy = elev_top + row_index * (_TYPED_ELEV_CELL_H + _TYPED_ELEV_GAP) + LABEL_H
+        _draw_typed_elevation_panel(
+            draw, image, elev_ox, elev_oy, _TYPED_ELEV_PANEL_W, _TYPED_ELEV_PANEL_H,
+            facade, model, rows_by_target,
+        )
+
     # Explicit top-level NA/REJECTED boards are gray/red information surfaces,
     # never fake geometric score colours.
-    result_footer_bottom = height + 102 if status_lines else image.height
+    result_footer_bottom = content_bottom + 20 if status_lines else image.height
     if payload_dict.get("kind") == "not_applicable":
         _typed_hatch(image, (0, 0, image.width - 1, image.height - 1))
         draw.text((20, result_footer_bottom - 34), f"NOT APPLICABLE · {payload_dict.get('reason', 'unknown')}", font=_font(16), fill=TEXT)
@@ -1222,7 +1426,7 @@ def render_typed_grade(*, gt_document, payload: object,
         draw.rectangle((0, result_footer_bottom - 48, image.width, result_footer_bottom), fill=(255, 235, 235, 255))
         draw.text((20, result_footer_bottom - 34), f"REJECTED · {payload_dict.get('gate_id', '')} · {payload_dict.get('error_code', '')}", font=_font(14), fill=RED)
     if status_lines:
-        panel_top = height + 102
+        panel_top = content_bottom + 20
         draw.rectangle(
             (8, panel_top, image.width - 8, image.height - 8),
             fill=(244, 244, 240, 255),
