@@ -33,7 +33,18 @@
 | # | 事项 | 状态 |
 |---|---|---|
 | **F-6** | correction 抽签 `provenance` 产出 `transcribed_dimension`/`inferred_topology`，schema 只认 `observed/derived/assumed` ⇒ **三抽全废**。判定 = **F-4 那套 vocab 机制的覆盖面缺口**，把枚举纳入同一套机械导出 | GLM 半成品在工作树（`vocab.py` +54），**撞 5h 额度**（16:03 北京重置） |
-| **F-7** | `_claim_links` 收到裸 stroke id（`D2` 在任何 reading 产物里都不存在）。**先分清**是不是「失败抽签的残留产物被下一次消费」——若是，那是独立缺陷（与「凭空造空 attempt」同族） | 未开工 |
+| **F-7** | **⭐ 已由 GLM 调查完毕，orchestrator 的两个预设**（残留产物 / 走 F-4 回灌通道）**双双被证伪** ——
+  真缺陷 = **接口错位，F-5 的双胞胎**：`_claim_links` 要求 `source_ids` 填 **locator**，
+  而 ① correction 的 prompt 从不提 locator/`src:` 格式（`pipeline.py:329` 正文 grep 零命中）；
+  ② `_build_correction_messages` **签名里根本没有 manifest / reading artifacts**，结构上产不出 locator；
+  ③ locator 目录基建 `build_window_source_offer` **在生产里是孤儿**（只被 `test_c2_b5_source_routing.py` 调用）；
+  ④ B5 夹具**手搓真 locator** 才过 `_claim_links` ⇒ 测试绿、真链路必崩。
+  **模型的行为是合理的**：它把能看到的 observation id（`S11`）填进去 —— 用唯一能引用真实源的方式引用真实源。
+  ⛔ **F-4 通道对它无效**（`source_ids: list[str]` 无格式约束 ⇒ 过 pydantic ⇒ 不产 `ValidationError` ⇒ 回灌永不开启）。
+  **⇒ 修法必须在接口层**（把 locator 目录注入 prompt，或在代码层把 observation id 映射成 locator），
+  ⛔ 不放宽 `_claim_links`、⛔ 不手搓第二份 locator 词表。**下轮第一件事 = orchestrator 拍这个方向。**
+  **附带待裁**：`_claim_links` raise 会**硬崩 flow**（`step_orchestrator.py:251` 的 `draw_fn` 异常直接穿出，
+  不归档为失败 attempt、不盲重抽），与 `correction_draw_issues` 的「归档重抽」不一致 —— 独立口径，排在接口修法之后 | 调查完成，**修法方向待拍板** |
 | **F-2c** | 隔离 merge 不写扁平镜像 ⇒ 打不通 `0_reading→1_correction`。**orchestrator 已裁定**（`2026-08-05_f2c_boundary_ruling.md`）：merge 写镜像 + 校验器按 accepted 契约形状重建；**探测器从 judge 包搬到 `src/agent/reading/contract.py`**（原派工单让它引用 judge 代码、撞 B5 A6 judge-blind 硬边界 —— **我的题出错了**） | GLM 改动在工作树，待收口 |
 | **r4** | 产品库正式恢复 reading 的 **review 环**（`session_kickoff.md` + `isolation.py:729` 成对改，保留 `95ba3dc` 带来的 §6 自检段）。⛔ 明确不回退 `d246c90`/`b8f9a8d`/`15cfcb8`（与 merge 门、gate① 耦合） | 已派，未开工 |
 | **验收** | 拿 07-07 好 reading 跑到 **EP 完成 · 0 severe** | 卡在 F-6 |
