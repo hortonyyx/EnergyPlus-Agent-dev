@@ -1,4 +1,4 @@
-"""Locks for the sm21 e2e-break r2 dispatch (commit following 4a11097).
+"""Locks for the sm21 e2e-break isolation→correction wall (r2 + F-2c).
 
 Three real defects, each with a "摘掉即红" lock and (where the fix is a
 judgment) a discriminating two-/four-cell matrix on REAL-scale payloads:
@@ -38,9 +38,18 @@ from src.agent.correction.feature_state import derive_feature_state_claims
 from src.agent.correction.finalize import FinalizeResult, finalize_correction_draw
 from src.agent.correction.parse import correction_target
 from src.agent.correction.schema import CorrectedGeometry
+from src.agent.correction.window_sources import (
+    WindowResolverInputError,
+    verify_reading_stage_root_against_accepted_attempt,
+)
 from src.agent.execution.evidence_preflight import EvidenceDebt, EvidenceDebtItem
 from src.agent.execution.isolation import build_isolation_workspace, merge_isolated_output
-from src.agent.execution.manifest import ensure_run_manifest_v2, hash_file, hash_text
+from src.agent.execution.manifest import (
+    ensure_run_manifest_v2,
+    hash_file,
+    hash_text,
+    load_run_manifest,
+)
 from src.agent.execution.stage_runner import StageRunner
 from src.agent.execution.view_manifest import provision_view_manifest
 from src.agent.execution.policy import RunPolicy
@@ -281,6 +290,169 @@ def test_f2b_correction_entry_names_missing_summary(tmp_path):
     # contextual failure (not the bare one) and goes red if the guard is removed.
     with pytest.raises(FileNotFoundError, match="1_correction requires"):
         _build_correction_messages(vector_dir, "testdata prompt")
+
+
+# =========================================================================== #
+# F-2c — merge writes flat per-view mirrors; the verifier binds them to the
+# accepted archive by the accepted product's OWN contract shape (envelope wrap
+# for the isolated merge, flat for the legacy writer). Three locks: end-to-end
+# (isolated merge now verifies), anti-swap (one swapped coordinate still
+# rejected — the gate cannot go恒真), and flat-path regression (unchanged).
+# =========================================================================== #
+def _isolated_merge_run(tmp_path: Path) -> Path:
+    """Real clean-room build + real six-view aggregate + merge (accepted). The
+    post-merge stage root is where F-2c-1's flat mirrors must land."""
+    run_dir = tmp_path / "case_run"
+    run_dir.mkdir()
+    workspace = _formal_build(_SM21, run_dir, tmp_path / "staging")
+    staging = workspace.staging_root
+    (staging / "out" / "output.json").write_text(
+        json.dumps({"views": _real_views()}), encoding="utf-8"
+    )
+    merge_isolated_output(staging, run_dir)
+    return run_dir
+
+
+def test_f2c1_isolated_merge_mirrors_views_and_verifies(tmp_path: Path):
+    """F-2c-1 + F-2c-2 end-to-end: after an isolated merge, each accepted view is
+    mirrored to ``0_reading/<view_id>.json`` (content = the view object itself,
+    derived from the accepted payload — never re-parsed from source), and the
+    source verifier — which pre-F-2c reconstructed ``{}`` (no flat files) and
+    died on the envelope/floor shape mismatch — now binds those mirrors to the
+    envelope accepted archive.
+
+    Neuter: drop the mirror-writing loop in ``merge_isolated_output`` ⇒ the
+    ``0_reading/*_view.json`` glob is empty ⇒ the verifier rebuilds ``{}``,
+    wraps it to ``{"views": {}}``, and reds on the canonical mismatch (and the
+    mirror-existence assertions red directly)."""
+    run_dir = _isolated_merge_run(tmp_path)
+    assert load_run_manifest(run_dir).accepted("0_reading") is not None  # mirrors are accept-gated
+
+    views = _real_views()
+    mirrored = sorted(p.name for p in (run_dir / "0_reading").glob("*_view.json"))
+    assert mirrored == sorted(f"{view_id}.json" for view_id in views)
+    for view_id, view in views.items():
+        assert json.loads((run_dir / "0_reading" / f"{view_id}.json").read_text()) == view
+
+    # The wall: the isolated path now reaches correction's source verifier.
+    verify_reading_stage_root_against_accepted_attempt(run_dir, run_dir / "0_reading")  # no raise
+
+
+def _bump_first_coordinate(view: dict) -> None:
+    """Mutate the first wall-stroke endpoint in place — a real coordinate swap
+    (not a synthetic field), robust to the exact stroke order of the fixture."""
+    for stroke in view.get("strokes", []):
+        geometry = stroke.get("geometry") or {}
+        p1 = geometry.get("p1")
+        if isinstance(p1, list) and len(p1) == 2 and isinstance(p1[0], (int, float)):
+            p1[0] = p1[0] + 1000.0
+            return
+    raise AssertionError("no mutable coordinate found in view (fixture drift)")
+
+
+def test_f2c2_tampered_mirror_coordinate_is_rejected(tmp_path: Path):
+    """F-2c-2 anti-swap (the function's only reason to exist): once the mirrors
+    are written, swapping ONE coordinate in ONE view's mirror MUST still be
+    rejected — adding the mirrors cannot turn this gate恒真. Two-cell on the same
+    post-merge run: clean verifies, then reds after a single coordinate swap.
+
+    Neuter: collapse the canonical comparison (e.g. make it a tautology) ⇒ the
+    swapped-coordinate cell stops raising ⇒ this lock reds."""
+    run_dir = _isolated_merge_run(tmp_path)
+    reading_dir = run_dir / "0_reading"
+
+    # Cell 1 — clean: the accepted mirrors verify.
+    verify_reading_stage_root_against_accepted_attempt(run_dir, reading_dir)
+
+    # Cell 2 — swap one real coordinate in the 1f_view mirror only; the accepted
+    # archive under attempts/ is untouched, so the mirrors now diverge from it.
+    mirror = reading_dir / "1f_view.json"
+    assert mirror.is_file()
+    tampered = json.loads(mirror.read_text())
+    _bump_first_coordinate(tampered)
+    mirror.write_text(json.dumps(tampered), encoding="utf-8")
+    with pytest.raises(WindowResolverInputError, match="accepted_attempt_mismatch"):
+        verify_reading_stage_root_against_accepted_attempt(run_dir, reading_dir)
+
+
+def test_f2c3_flat_path_verifies_and_flat_archive_is_unchanged(tmp_path: Path):
+    """F-2c-3 regression: the flat path is untouched. Its accepted archive stays
+    FLAT (``{stem: view}``, no envelope) — written byte-for-byte by the real
+    flat StageRunner writer, which F-2c does not modify — and the verifier binds
+    the flat mirrors to that flat archive with NO envelope wrap. Catches any
+    F-2c-2 change that breaks the flat path's verify (e.g. always wrapping)."""
+    views = _real_views()
+    run_dir = tmp_path / "flat_run"
+    run_dir.mkdir()
+    reading_dir = run_dir / "0_reading"
+    reading_dir.mkdir(parents=True)
+    # Flat reader working copy (the *_view.json mirrors the flat flow reads).
+    for stem, view in views.items():
+        (reading_dir / f"{stem}.json").write_text(
+            json.dumps(view, indent=2, ensure_ascii=False), encoding="utf-8"
+        )
+    manifest = ensure_run_manifest_v2(run_dir, view_manifest_sha256="a" * 64)
+    out = {stem: json.loads((reading_dir / f"{stem}.json").read_text()) for stem in views}
+    rep = CheckReport(stage="0_reading")
+    rep.add_pass("flat.lock", CheckLayer.INVARIANT)
+    # Archive + accept EXACTLY as the flat StageRunner writer does, then persist
+    # the manifest (StageRunner.record mutates in memory only — the flat flow
+    # saves after each stage; without this, accepted("0_reading") is None and the
+    # verifier would early-return without ever comparing, hiding a regression).
+    StageRunner(run_dir, manifest).record(
+        stage="0_reading", stage_dir=reading_dir, output_obj=out, report=rep, accept=True,
+    )
+    manifest.save(run_dir)
+    assert load_run_manifest(run_dir).accepted("0_reading") is not None  # guard against a false lock
+
+    accepted_path = reading_dir / "attempts" / "001" / "output.json"
+    accepted_text = accepted_path.read_text(encoding="utf-8")
+    accepted = json.loads(accepted_text)
+    assert "views" not in accepted  # FLAT, not the isolated envelope
+    assert accepted == out  # the flat writer's exact payload, round-trip stable
+    assert accepted_text == json.dumps(out, indent=2, ensure_ascii=False)  # byte-exact
+    # The verifier binds the flat mirrors to the flat archive (no wrap).
+    verify_reading_stage_root_against_accepted_attempt(run_dir, reading_dir)  # no raise
+
+
+# =========================================================================== #
+# F-2c §3 — exactly one reading-contract detector in the repo (no second ruler)
+# =========================================================================== #
+def test_f2c_single_contract_detector_is_canonical():
+    """F-2c §3: there is exactly ONE reading-contract shape detector.  The
+    judge-side re-export points (``reading_typed_adapter``, ``score_schema``)
+    must BE the reading-package object — the same function, not a same-named
+    reimplementation — and a source scan of ``src/`` finds exactly one
+    ``def identify_reading_contract``.  The recognized contract id is a single
+    record: a recognized envelope yields ``READING_PRODUCT_CONTRACT`` (the
+    dataclass field's Literal derives from that constant).  Catches a future
+    re-clone — the second-ruler failure mode this project has hit repeatedly
+    (scoring double-ruler, vocab double-record) — the moment it appears.
+
+    Neuter: (a) re-``def identify_reading_contract`` anywhere in ``src/`` ⇒ the
+    source-scan assertion reds; (b) stop re-exporting the canonical object from
+    a judge module (e.g. redefine it there) ⇒ the ``is`` assertions red."""
+    import src.agent.judge.reading_typed_adapter as rta
+    import src.agent.judge.score_schema as ss
+    import src.agent.reading.contract as rdc
+
+    # The judge re-export points bind the canonical object — not clones.
+    assert rta.identify_reading_contract is rdc.identify_reading_contract
+    assert rta.READING_PRODUCT_CONTRACT is rdc.READING_PRODUCT_CONTRACT
+    assert rta.READING_CONTRACT_DETECTOR_VERSION is rdc.READING_CONTRACT_DETECTOR_VERSION
+    assert ss.READING_PRODUCT_CONTRACT is rdc.READING_PRODUCT_CONTRACT
+    assert ss.READING_CONTRACT_DETECTOR_VERSION is rdc.READING_CONTRACT_DETECTOR_VERSION
+
+    # Single record for the recognized id: a recognized envelope yields the constant.
+    assert rdc.identify_reading_contract({"views": {}}).contract_id == rdc.READING_PRODUCT_CONTRACT
+
+    # Exactly one detector definition across the production source tree.
+    hits = [
+        str(path)
+        for path in Path("src").rglob("*.py")
+        if "def identify_reading_contract" in path.read_text(encoding="utf-8")
+    ]
+    assert hits == ["src/agent/reading/contract.py"], hits
 
 
 # =========================================================================== #

@@ -17,8 +17,6 @@ from src.agent.judge.score_schema import (
     Affine2DV1,
     READING_ADAPTER_VERSION,
     READING_DENOMINATOR_VERSION,
-    READING_PRODUCT_CONTRACT,
-    READING_CONTRACT_DETECTOR_VERSION,
     ClosedIntervalV1,
     ElevationScoreViewBindingV1,
     PlanScoreViewBindingV1,
@@ -38,15 +36,15 @@ from src.agent.judge.score_schema import (
     canonical_sha256,
 )
 from src.agent.reading import ReadingView
-
-
-READING_CONTRACT_DETECTOR_VERSION = "reading_contract_detector_v2"
-
-
-@dataclass(frozen=True)
-class ReadingContractDecision:
-    contract_id: Literal["reading_views_v2", "unrecognized"]
-    reason: str | None
+# The reading-product contract shape detector + constants are owned by the
+# reading package (src.agent.reading.contract).  Imported here so this adapter
+# (and its existing call sites) bind the canonical single object — there is no
+# second detector.  See test_f2c_single_contract_detector_is_canonical.
+from src.agent.reading.contract import (
+    READING_CONTRACT_DETECTOR_VERSION,
+    READING_PRODUCT_CONTRACT,
+    identify_reading_contract,
+)
 
 
 @dataclass(frozen=True)
@@ -55,20 +53,6 @@ class ReadingNormalizationOutcome:
     trusted_capability_dispositions: tuple[
         ReadingFilteredComponentBasisV1, ...
     ]
-
-
-def identify_reading_contract(raw: object) -> ReadingContractDecision:
-    """Recognize a ReadingViews v2 envelope without interpreting facade direction."""
-    if not isinstance(raw, dict):
-        return ReadingContractDecision("unrecognized", "reading_output_not_object")
-    if "views" not in raw:
-        return ReadingContractDecision("unrecognized", "reading_views_missing")
-    views = raw["views"]
-    if not isinstance(views, dict):
-        return ReadingContractDecision("unrecognized", "reading_views_not_object")
-    if any(not isinstance(key, str) or not key for key in views):
-        return ReadingContractDecision("unrecognized", "reading_view_id_invalid")
-    return ReadingContractDecision(READING_PRODUCT_CONTRACT, None)
 
 
 _ELEVATION_COMPONENTS = (

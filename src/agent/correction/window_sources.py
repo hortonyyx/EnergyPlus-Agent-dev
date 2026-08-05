@@ -21,6 +21,10 @@ from src.agent.correction.footprint import floor_footprint_fingerprint
 from src.agent.correction.schema import CorrectedGeometryV3
 from src.agent.execution.view_manifest import RequiredViewEntry, ViewManifest
 from src.agent.reading import parse_reading_view
+from src.agent.reading.contract import (
+    READING_PRODUCT_CONTRACT,
+    identify_reading_contract,
+)
 
 WINDOW_RESOLVER_INPUT_SCHEMA_VERSION = "1"
 SOURCE_LOCATOR_PREFIX = "src:"
@@ -501,15 +505,26 @@ def verify_reading_stage_root_against_accepted_attempt(
     run_dir: Path,
     reading_dir: Path,
 ) -> None:
-    """Bind flat reading inputs to 0_reading's accepted attempt when present.
+    """Bind the stage-root reading mirrors to 0_reading's accepted attempt.
 
-    ``StageRunner`` archives a reading draw as one JSON object keyed by each
-    ``*_view.json`` stem.  Flat files remain convenience mirrors of the latest
-    draw, so reconstruct that exact writer payload and compare its byte hash to
-    the accepted record.  Runs without an accepted reading attempt retain the
-    standalone/exploratory behavior.
+    The accepted draw is archived under ``attempts/NNN/output.json``; the
+    stage-root ``*_view.json`` files are convenience mirrors of that same draw.
+    Two independent anti-swap checks anchor the accepted product: (1) the
+    archived ``output.json`` bytes must still hash to the manifest's
+    ``output_hash`` (the archive itself was not swapped); (2) the stage-root
+    mirrors must canonicalize to the SAME payload as that verified archive (the
+    mirrors were not swapped or diverged — the only reason this function exists).
+
+    The accepted product's OWN contract decides the mirror shape (reuses
+    ``identify_reading_contract`` — no second shape detector): the isolated
+    merge archives an envelope ``{"views": {stem: ...}}`` while the legacy flat
+    writer archives ``{stem: ...}``, so the reconstructed mirrors are wrapped in
+    the envelope only when the accepted product is the v2 envelope. Both paths
+    then compare a canonical hash, so an isolated run's mirrors rebuild
+    byte-equal to its envelope accepted product and a flat run is unchanged.
+    Runs without an accepted reading attempt keep the standalone behavior.
     """
-    from src.agent.execution.manifest import hash_bytes, hash_text, load_run_manifest
+    from src.agent.execution.manifest import hash_bytes, load_run_manifest
 
     manifest = load_run_manifest(Path(run_dir))
     if manifest is None:
@@ -536,18 +551,25 @@ def verify_reading_stage_root_against_accepted_attempt(
                 "source_identity_invalid",
                 {"artifact": "accepted_reading", "reason": "output_hash_mismatch"},
             )
+        accepted_payload = json.loads(accepted_bytes)
+        # Reconstruct the stage-root mirrors keyed by each *_view.json stem.
         current = {
             path.stem: json.loads(path.read_text(encoding="utf-8"))
             for path in sorted(Path(reading_dir).glob("*_view.json"))
         }
-        current_text = json.dumps(current, indent=2, ensure_ascii=False)
+        # Match the accepted product's own contract shape: wrap the mirrors in
+        # the v2 envelope only when the accepted archive IS that envelope.
+        if identify_reading_contract(accepted_payload).contract_id == READING_PRODUCT_CONTRACT:
+            current = {"views": current}
+        current_hash = canonical_sha256(current)
+        accepted_hash = canonical_sha256(accepted_payload)
     except WindowResolverInputError:
         raise
-    except (OSError, UnicodeDecodeError, json.JSONDecodeError) as exc:
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError, ValueError) as exc:
         raise WindowResolverInputError(
             "source_identity_invalid", {"artifact": "reading_stage_root"}
         ) from exc
-    if hash_text(current_text) != accepted.output_hash:
+    if current_hash != accepted_hash:
         raise WindowResolverInputError(
             "source_identity_invalid",
             {"artifact": "reading_stage_root", "reason": "accepted_attempt_mismatch"},

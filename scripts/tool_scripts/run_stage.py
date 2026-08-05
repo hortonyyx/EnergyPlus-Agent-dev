@@ -728,7 +728,9 @@ def _extract_reading_views(out_obj) -> dict:
       ``views`` wrapper. ``StageRunner`` archives ``_draw_reading``'s
       ``{vj.stem: view}`` dict verbatim (see
       ``window_sources.verify_reading_stage_root_against_accepted_attempt``,
-      whose docstring + byte-hash reconstruction both depend on this shape), and
+      which rebuilds the stage-root mirrors in the accepted product's OWN
+      contract shape — flat here, envelope for the isolated merge — and
+      compares a canonical hash), and
       the judge-rubric / this CLI's own blind-re-read protocol both command the
       reader to write the flat ``0_reading/*_view.json`` working copy — so this
       path is alive, not dead code.

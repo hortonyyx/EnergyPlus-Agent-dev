@@ -18,6 +18,14 @@ from pydantic import BaseModel, ConfigDict, Field, StrictBool, StrictStr, String
 from src.agent.judge.gt import load_gt_file
 from src.agent.judge.gt_schema import GtDocument, GroundTruthV3
 from src.agent.execution.view_manifest import ViewManifest
+# Reading-product contract constants are owned by the reading package
+# (src.agent.reading.contract) so non-judge code can recognize the v2 envelope
+# without importing judge score code.  Re-exported here for the judge callers
+# and validators that historically read them from this module.
+from src.agent.reading.contract import (
+    READING_CONTRACT_DETECTOR_VERSION,
+    READING_PRODUCT_CONTRACT,
+)
 
 FiniteFloat = Annotated[float, Field(strict=True, allow_inf_nan=False)]
 NonNegativeFloat = Annotated[float, Field(strict=True, ge=0.0, allow_inf_nan=False)]
@@ -546,8 +554,6 @@ class ScoreSidecarV8(StrictWire):
 
 # Reading typed-score wire.  V8 remains available above for strict legacy
 # loading; typed service writers emit V9.
-READING_PRODUCT_CONTRACT = "reading_views_v2"
-READING_CONTRACT_DETECTOR_VERSION = "reading_contract_detector_v2"
 READING_ADAPTER_VERSION = "reading_typed_adapter_v2"
 READING_SOURCE_APPLICABILITY_VERSION = "reading_source_applicability_v2"
 READING_DENOMINATOR_VERSION = "reading_denominator_v2"

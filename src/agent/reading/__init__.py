@@ -10,6 +10,12 @@ from src.agent.reading.legacy import (
     parse_value_m,
     reading_raw_metadata,
 )
+from src.agent.reading.contract import (
+    READING_CONTRACT_DETECTOR_VERSION,
+    READING_PRODUCT_CONTRACT,
+    ReadingContractDecision,
+    identify_reading_contract,
+)
 from src.agent.reading.schema import (
     Dimension,
     DimensionRole,
@@ -36,4 +42,8 @@ __all__ = [
     "ReadingView",
     "RoomRoleObservation",
     "Stroke",
+    "READING_PRODUCT_CONTRACT",
+    "READING_CONTRACT_DETECTOR_VERSION",
+    "ReadingContractDecision",
+    "identify_reading_contract",
 ]

@@ -460,6 +460,23 @@ def merge_isolated_output(
                 )
             )
             save_run_manifest(current_manifest, run_dir)
+            # F-2c-1: mirror each accepted view to the stage root as
+            # ``0_reading/<expected_output_id>.json`` so the isolated path is
+            # indistinguishable from the flat path there. Downstream readers —
+            # ``verify_reading_stage_root_against_accepted_attempt``,
+            # ``build_verified_window_inputs_from_run``, ``_render_stage`` and
+            # the ``reading.present`` glob — all read ``0_reading/*_view.json``
+            # at the stage root, which the isolated merge never produced (it
+            # archived the aggregate envelope under ``attempts/NNN/output.json``
+            # only). Each mirror's content is the view object itself (same
+            # ``views`` payload already gate①-validated above — never re-parsed
+            # from source). Written only on accept so the mirrors always reflect
+            # the accepted product the source verifier binds against, never a
+            # later blocking draw that would clobber them.
+            for view_id, view in views.items():
+                (stage_dir / f"{view_id}.json").write_text(
+                    json.dumps(view, indent=2, ensure_ascii=False), encoding="utf-8"
+                )
         return attempt_dir
 
 
