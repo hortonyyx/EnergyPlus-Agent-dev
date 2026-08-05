@@ -246,7 +246,7 @@ def _wing_envelope(value: float) -> AuthoritativeEnvelope:
 def test_b5_b1_plan_hidden_segment_is_a_real_vg_hidden_edge():
     geom, verified = _context(
         ring=U_RING, facade="East", span=(4.0, 5.0), room="r1",
-        plan_geometry={"x_range": [2.9, 3.1], "y_range": [4.0, 5.0]},
+        plan_geometry={"x_range_m":[2.9, 3.1], "y_range_m":[4.0, 5.0]},
     )
     materialized = _materialized(geom)
     hidden = next(segment for segment in materialized.facade_segments
@@ -261,7 +261,7 @@ def test_b5_b1_plan_hidden_segment_is_a_real_vg_hidden_edge():
 def test_b5_b2_elevation_visible_segment_fills_unique_room_and_keeps_ids_distinct(tmp_path: Path):
     geom, verified = _context(
         room=None, plan_geometry=None,
-        elevation_geometry={"x_range": [1.0, 2.0], "z_range": [1.0, 2.0]},
+        elevation_geometry={"x_range_m":[1.0, 2.0], "y_range_m":[1.0, 2.0]},
         existence_channels=("elevation",),
     )
     result = finalize_correction_draw(
@@ -278,7 +278,7 @@ def test_b5_b2_elevation_visible_segment_fills_unique_room_and_keeps_ids_distinc
 def test_final_commit_writes_one_strict_audit_and_preserves_observed_provenance(tmp_path: Path):
     geom, verified = _context(
         span=(-0.006, 1.0),
-        plan_geometry={"x_range": [-0.006, 1.0], "y_range": [0.0, 0.1]},
+        plan_geometry={"x_range_m":[-0.006, 1.0], "y_range_m":[0.0, 0.1]},
     )
     original_source_ids = tuple(geom.windows[0].provenance["existence"].source_ids)
     result = finalize_correction_draw(
@@ -297,7 +297,7 @@ def test_final_commit_writes_one_strict_audit_and_preserves_observed_provenance(
 
 def test_commit_rejects_self_consistently_resigned_resolver_output_tamper():
     geom, verified = _context(
-        plan_geometry={"x_range": [1.0, 2.0], "y_range": [0.0, 0.1]},
+        plan_geometry={"x_range_m":[1.0, 2.0], "y_range_m":[0.0, 0.1]},
     )
     materialized = _materialized(geom)
     claims = resolve_window_hosts(
@@ -338,7 +338,7 @@ def test_b5_b3_cross_segment_rejects_instead_of_using_window_center():
     geom, verified = _context(
         ring=L_RING, facade="North", span=(3.9, 4.1), room=None,
         plan_geometry=None,
-        elevation_geometry={"x_range": [5.9, 6.1], "z_range": [1.0, 2.0]},
+        elevation_geometry={"x_range_m":[5.9, 6.1], "y_range_m":[1.0, 2.0]},
         existence_channels=("elevation",),
     )
     with pytest.raises(WindowHostResolutionError) as exc:
@@ -355,8 +355,8 @@ def test_geo_cross_room_boundary_is_typed_for_each_source_branch(channel):
     ]
     geom, verified = _context(
         cells=cells, span=(1.8, 2.2), room="left" if channel == "plan" else None,
-        plan_geometry={"x_range": [1.8, 2.2], "y_range": [0.0, 0.1]} if channel == "plan" else None,
-        elevation_geometry={"x_range": [1.8, 2.2], "z_range": [1.0, 2.0]} if channel == "elevation" else None,
+        plan_geometry={"x_range_m":[1.8, 2.2], "y_range_m":[0.0, 0.1]} if channel == "plan" else None,
+        elevation_geometry={"x_range_m":[1.8, 2.2], "y_range_m":[1.0, 2.0]} if channel == "elevation" else None,
         existence_channels=(channel,),
     )
     with pytest.raises(WindowHostResolutionError) as exc:
@@ -372,7 +372,7 @@ def test_geo_cell_bbox_cannot_replace_actual_room_boundary():
     ]
     geom, verified = _context(
         cells=cells, span=(2.5, 3.5), room="declared",
-        plan_geometry={"x_range": [2.5, 3.5], "y_range": [0.0, 0.1]},
+        plan_geometry={"x_range_m":[2.5, 3.5], "y_range_m":[0.0, 0.1]},
     )
     with pytest.raises(WindowHostResolutionError) as exc:
         _resolve(geom, verified)
@@ -382,7 +382,7 @@ def test_geo_cell_bbox_cannot_replace_actual_room_boundary():
 def test_source_locator_for_another_window_cannot_attach_by_hash_presence():
     geom, verified = _context(
         span=(1.0, 2.0),
-        plan_geometry={"x_range": [2.5, 3.5], "y_range": [0.0, 0.1]},
+        plan_geometry={"x_range_m":[2.5, 3.5], "y_range_m":[0.0, 0.1]},
     )
     with pytest.raises(WindowHostResolutionError) as exc:
         _resolve(geom, verified)
@@ -392,7 +392,7 @@ def test_source_locator_for_another_window_cannot_attach_by_hash_presence():
 def test_geo_zero_segment_candidate_is_typed():
     geom, verified = _context(
         span=(8.0, 9.0),
-        plan_geometry={"x_range": [8.0, 9.0], "y_range": [0.0, 0.1]},
+        plan_geometry={"x_range_m":[8.0, 9.0], "y_range_m":[0.0, 0.1]},
     )
     with pytest.raises(WindowHostResolutionError) as exc:
         _resolve(geom, verified)
@@ -402,7 +402,7 @@ def test_geo_zero_segment_candidate_is_typed():
 def test_geo_multiple_overlapping_segment_candidates_reject_without_id_tiebreak():
     geom, verified = _context(
         ring=U_RING, facade="East", span=(4.0, 5.0), room="r1",
-        plan_geometry={"x_range": [0.0, 10.0], "y_range": [4.0, 5.0]},
+        plan_geometry={"x_range_m":[0.0, 10.0], "y_range_m":[4.0, 5.0]},
     )
     with pytest.raises(WindowHostResolutionError) as exc:
         _resolve(geom, verified)
@@ -413,7 +413,7 @@ def test_geo_multiple_overlapping_segment_candidates_reject_without_id_tiebreak(
 def test_plan_plane_filter_keeps_coplanar_segments_for_cross_segment_rejection(monkeypatch):
     geom, verified = _context(
         span=(1.8, 2.2),
-        plan_geometry={"x_range": [1.8, 2.2], "y_range": [0.0, 0.1]},
+        plan_geometry={"x_range_m":[1.8, 2.2], "y_range_m":[0.0, 0.1]},
     )
     materialized = _materialized(geom)
     south = next(row for row in materialized.facade_segments if row.facade_family == "South")
@@ -451,7 +451,7 @@ def test_plan_plane_filter_keeps_coplanar_segments_for_cross_segment_rejection(m
 def test_elevation_segment_not_visible_is_a_typed_safety_rejection(monkeypatch):
     geom, verified = _context(
         room=None, plan_geometry=None,
-        elevation_geometry={"x_range": [1.0, 2.0], "z_range": [1.0, 2.0]},
+        elevation_geometry={"x_range_m":[1.0, 2.0], "y_range_m":[1.0, 2.0]},
         existence_channels=("elevation",),
     )
     materialized = _materialized(geom)
@@ -484,7 +484,7 @@ def test_elevation_segment_not_visible_is_a_typed_safety_rejection(monkeypatch):
 def test_elevation_binding_facade_mismatch_is_rejected_by_resolver():
     geom, verified = _context(
         facade="South", source_facade="North", room=None, plan_geometry=None,
-        elevation_geometry={"x_range": [1.0, 2.0], "z_range": [1.0, 2.0]},
+        elevation_geometry={"x_range_m":[1.0, 2.0], "y_range_m":[1.0, 2.0]},
         existence_channels=("elevation",),
     )
     with pytest.raises(WindowHostResolutionError) as exc:
@@ -494,7 +494,7 @@ def test_elevation_binding_facade_mismatch_is_rejected_by_resolver():
 
 def test_resolver_source_channel_missing_is_typed_even_for_defensive_marker_tamper():
     geom, verified = _context(
-        plan_geometry={"x_range": [1.0, 2.0], "y_range": [0.0, 0.1]},
+        plan_geometry={"x_range_m":[1.0, 2.0], "y_range_m":[0.0, 0.1]},
     )
     tampered = copy.copy(verified)
     object.__setattr__(
@@ -507,7 +507,7 @@ def test_resolver_source_channel_missing_is_typed_even_for_defensive_marker_tamp
 
 def test_invalid_host_line_is_typed_after_candidate_selection(monkeypatch):
     geom, verified = _context(
-        plan_geometry={"x_range": [1.0, 2.0], "y_range": [0.0, 0.1]},
+        plan_geometry={"x_range_m":[1.0, 2.0], "y_range_m":[0.0, 0.1]},
     )
     materialized = _materialized(geom)
     south = next(row for row in materialized.facade_segments if row.facade_family == "South")
@@ -534,7 +534,7 @@ def test_invalid_host_line_is_typed_after_candidate_selection(monkeypatch):
 )
 def test_geo_segment_endpoint_clamp_and_overrun_have_separate_locks(span, expected):
     geom, verified = _context(
-        span=span, plan_geometry={"x_range": list(span), "y_range": [0.0, 0.1]},
+        span=span, plan_geometry={"x_range_m":list(span), "y_range_m":[0.0, 0.1]},
     )
     if isinstance(expected, tuple):
         row = _resolve(geom, verified).resolutions[0]
@@ -551,7 +551,7 @@ def test_geo_overlapping_room_intervals_reject_multiple():
         {"id": "b", "x": [0.0, 4.0], "y": [0.0, 3.0]},
     ]
     geom, verified = _context(
-        cells=cells, room="a", plan_geometry={"x_range": [1.0, 2.0], "y_range": [0.0, 0.1]},
+        cells=cells, room="a", plan_geometry={"x_range_m":[1.0, 2.0], "y_range_m":[0.0, 0.1]},
     )
     with pytest.raises(WindowHostResolutionError) as exc:
         _resolve(geom, verified)
@@ -562,7 +562,7 @@ def test_geo_zero_room_interval_candidate_is_typed():
     cells = [{"id": "r1", "x": [0.0, 1.0], "y": [0.0, 3.0]}]
     geom, verified = _context(
         cells=cells, span=(2.0, 3.0), room="r1",
-        plan_geometry={"x_range": [2.0, 3.0], "y_range": [0.0, 0.1]},
+        plan_geometry={"x_range_m":[2.0, 3.0], "y_range_m":[0.0, 0.1]},
     )
     with pytest.raises(WindowHostResolutionError) as exc:
         _resolve(geom, verified)
@@ -576,7 +576,7 @@ def test_elevation_segment_spanning_rooms_fills_only_the_unique_complete_interva
     ]
     geom, verified = _context(
         cells=cells, span=(2.5, 3.5), room=None, plan_geometry=None,
-        elevation_geometry={"x_range": [2.5, 3.5], "z_range": [1.0, 2.0]},
+        elevation_geometry={"x_range_m":[2.5, 3.5], "y_range_m":[1.0, 2.0]},
         existence_channels=("elevation",),
     )
     row = _resolve(geom, verified).resolutions[0]
@@ -590,7 +590,7 @@ def test_elevation_prefilled_wrong_room_is_rejected_not_overwritten():
     ]
     geom, verified = _context(
         cells=cells, span=(2.5, 3.5), room="left", plan_geometry=None,
-        elevation_geometry={"x_range": [2.5, 3.5], "z_range": [1.0, 2.0]},
+        elevation_geometry={"x_range_m":[2.5, 3.5], "y_range_m":[1.0, 2.0]},
         existence_channels=("elevation",),
     )
     with pytest.raises(WindowHostResolutionError) as exc:
@@ -605,7 +605,7 @@ def test_geo_plan_declared_room_mismatch_is_typed():
     ]
     geom, verified = _context(
         cells=cells, span=(2.5, 3.5), room="left",
-        plan_geometry={"x_range": [2.5, 3.5], "y_range": [0.0, 0.1]},
+        plan_geometry={"x_range_m":[2.5, 3.5], "y_range_m":[0.0, 0.1]},
     )
     with pytest.raises(WindowHostResolutionError) as exc:
         _resolve(geom, verified)
@@ -614,7 +614,7 @@ def test_geo_plan_declared_room_mismatch_is_typed():
 
 def test_geo_invalid_window_width_is_never_dropped_before_resolver(tmp_path: Path):
     geom, verified = _context(
-        span=(1.0, 1.05), plan_geometry={"x_range": [1.0, 1.05], "y_range": [0.0, 0.1]},
+        span=(1.0, 1.05), plan_geometry={"x_range_m":[1.0, 1.05], "y_range_m":[0.0, 0.1]},
     )
     with pytest.raises(WindowHostResolutionError) as exc:
         finalize_correction_draw(
@@ -627,7 +627,7 @@ def test_geo_invalid_window_width_is_never_dropped_before_resolver(tmp_path: Pat
 def test_geo_full_parent_face_window_is_a_locked_safety_rejection():
     geom, verified = _context(
         span=(0.0, 4.0), z=(0.0, 3.0),
-        plan_geometry={"x_range": [0.0, 4.0], "y_range": [0.0, 0.1]},
+        plan_geometry={"x_range_m":[0.0, 4.0], "y_range_m":[0.0, 0.1]},
     )
     with pytest.raises(WindowHostResolutionError) as exc:
         _resolve(geom, verified)
@@ -640,7 +640,7 @@ def test_b2b_post_resolver_needs_input_rolls_back_without_state_leakage():
     # that relation, and it must reject atomically as invalid_window_span.
     geom, verified = _context(
         span=(0.0, 3.85), z=(0.0, 3.0),
-        plan_geometry={"x_range": [0.0, 3.85], "y_range": [0.0, 0.1]},
+        plan_geometry={"x_range_m":[0.0, 3.85], "y_range_m":[0.0, 0.1]},
     )
     before = geom.model_dump(mode="json")
     result = apply_v3_envelope_transaction(
@@ -662,7 +662,7 @@ def test_b2b_post_resolver_needs_input_rolls_back_without_state_leakage():
 
 def test_b2b_dry_post_ring_fingerprint_invariant_pierces_transaction(monkeypatch):
     geom, verified = _context(
-        plan_geometry={"x_range": [1.0, 2.0], "y_range": [0.0, 0.1]},
+        plan_geometry={"x_range_m":[1.0, 2.0], "y_range_m":[0.0, 0.1]},
     )
     before = geom.model_dump(mode="json")
     import src.agent.correction.envelope_transform as transform
@@ -705,7 +705,7 @@ def test_b2b_geometry_room_ownership_change_fails_host_parity_and_rolls_back():
     geom, verified = _context(
         ring=U_RING, cells=cells, facade="South", span=(3.05, 3.15),
         room=None, plan_geometry=None,
-        elevation_geometry={"x_range": [3.05, 3.15], "z_range": [1.0, 2.0]},
+        elevation_geometry={"x_range_m":[3.05, 3.15], "y_range_m":[1.0, 2.0]},
         existence_channels=("elevation",),
     )
     result = apply_v3_envelope_transaction(
@@ -730,7 +730,7 @@ def test_run_envelope_hard_gates_requires_explicit_window_host_result():
 
 def test_b2b_mixed_post_conflicts_pierce_when_any_row_is_invariant(monkeypatch):
     geom, verified = _context(
-        plan_geometry={"x_range": [1.0, 2.0], "y_range": [0.0, 0.1]},
+        plan_geometry={"x_range_m":[1.0, 2.0], "y_range_m":[0.0, 0.1]},
     )
     pre = _resolve(geom, verified)
     common = dict(
@@ -776,7 +776,7 @@ def test_b2b_mixed_post_conflicts_pierce_when_any_row_is_invariant(monkeypatch):
 
 def test_room_interval_merge_receives_span_epsilon_not_plane_epsilon(monkeypatch):
     geom, verified = _context(
-        plan_geometry={"x_range": [1.0, 2.0], "y_range": [0.0, 0.1]},
+        plan_geometry={"x_range_m":[1.0, 2.0], "y_range_m":[0.0, 0.1]},
     )
     tolerances = replace(
         load_core_tolerances(),
@@ -801,7 +801,7 @@ def test_room_interval_merge_receives_span_epsilon_not_plane_epsilon(monkeypatch
 
 def test_b5_b4_b2b_rederives_pre_and_post_ring_bindings(monkeypatch):
     geom, verified = _context(
-        span=(1.0, 2.0), plan_geometry={"x_range": [1.0, 2.0], "y_range": [0.0, 0.1]},
+        span=(1.0, 2.0), plan_geometry={"x_range_m":[1.0, 2.0], "y_range_m":[0.0, 0.1]},
     )
     candidate = EnvelopeCandidate(
         "x", (0.0, 4.2), 4.2, "dimension", "South", "overall-x",
@@ -833,7 +833,7 @@ def test_b5_b4_b2b_rederives_pre_and_post_ring_bindings(monkeypatch):
 
 def test_finalize_calls_binding_on_dry_pre_dry_post_and_final_current_ring(monkeypatch, tmp_path: Path):
     geom, verified = _context(
-        span=(1.0, 2.0), plan_geometry={"x_range": [1.0, 2.0], "y_range": [0.0, 0.1]},
+        span=(1.0, 2.0), plan_geometry={"x_range_m":[1.0, 2.0], "y_range_m":[0.0, 0.1]},
     )
     candidate = EnvelopeCandidate(
         "x", (0.0, 4.2), 4.2, "dimension", "South", "overall-x",
@@ -871,7 +871,7 @@ def test_finalize_calls_binding_on_dry_pre_dry_post_and_final_current_ring(monke
 
 def test_bind_5_dry_ring_fingerprint_tamper_maps_to_typed_invariant(monkeypatch):
     geom, verified = _context(
-        plan_geometry={"x_range": [1.0, 2.0], "y_range": [0.0, 0.1]},
+        plan_geometry={"x_range_m":[1.0, 2.0], "y_range_m":[0.0, 0.1]},
     )
     import src.agent.correction.envelope_transform as transform
     real = transform.materialize_all_facade_segments
@@ -897,7 +897,7 @@ def test_bind_5_dry_ring_fingerprint_tamper_maps_to_typed_invariant(monkeypatch)
 
 def test_bind_6_dry_multifloor_ring_incompatibility_maps_to_typed_invariant():
     geom, verified = _context(
-        plan_geometry={"x_range": [1.0, 2.0], "y_range": [0.0, 0.1]},
+        plan_geometry={"x_range_m":[1.0, 2.0], "y_range_m":[0.0, 0.1]},
     )
     first = geom.floors[0]
     second = first.model_copy(deep=True, update={
@@ -923,7 +923,7 @@ def test_finalize_marker_backed_core_floor_reference_tamper_hits_identity_invari
     monkeypatch, tmp_path: Path,
 ):
     geom, verified = _context(
-        plan_geometry={"x_range": [1.0, 2.0], "y_range": [0.0, 0.1]},
+        plan_geometry={"x_range_m":[1.0, 2.0], "y_range_m":[0.0, 0.1]},
     )
     import src.agent.correction.finalize as finalize_module
 
@@ -945,7 +945,7 @@ def test_finalize_marker_backed_core_floor_reference_tamper_hits_identity_invari
 
 def test_legacy_v1_finalize_rejects_misrouted_verified_window_marker(tmp_path: Path):
     _, verified = _context(
-        plan_geometry={"x_range": [1.0, 2.0], "y_range": [0.0, 0.1]},
+        plan_geometry={"x_range_m":[1.0, 2.0], "y_range_m":[0.0, 0.1]},
     )
     legacy = {
         "schema_version": "1", "footprint_x": [0, 4], "footprint_y": [0, 3],
@@ -963,7 +963,7 @@ def test_legacy_v1_finalize_rejects_misrouted_verified_window_marker(tmp_path: P
 
 def test_legacy_v2_finalize_rejects_misrouted_verified_window_marker(tmp_path: Path):
     _, verified = _context(
-        plan_geometry={"x_range": [1.0, 2.0], "y_range": [0.0, 0.1]},
+        plan_geometry={"x_range_m":[1.0, 2.0], "y_range_m":[0.0, 0.1]},
     )
     legacy = CorrectedGeometry.model_validate({
         "schema_version": "2", "footprint_x": [0, 4], "footprint_y": [0, 3],
@@ -982,7 +982,7 @@ def test_legacy_v2_finalize_rejects_misrouted_verified_window_marker(tmp_path: P
 
 def test_b5_b5_complete_other_channel_negative_blocks(tmp_path: Path):
     geom, verified = _context(
-        plan_geometry={"x_range": [1.0, 2.0], "y_range": [0.0, 0.1]},
+        plan_geometry={"x_range_m":[1.0, 2.0], "y_range_m":[0.0, 0.1]},
         elevation_complete=True,
     )
     with pytest.raises(WindowHostResolutionError) as exc:
@@ -997,7 +997,7 @@ def test_b5_b5_complete_other_channel_negative_blocks(tmp_path: Path):
 
 def test_negative_without_manifest_completeness_is_uncorroborated(tmp_path: Path):
     geom, verified = _context(
-        plan_geometry={"x_range": [1.0, 2.0], "y_range": [0.0, 0.1]},
+        plan_geometry={"x_range_m":[1.0, 2.0], "y_range_m":[0.0, 0.1]},
         elevation_complete=False,
     )
     result = finalize_correction_draw(
@@ -1012,8 +1012,8 @@ def test_negative_without_manifest_completeness_is_uncorroborated(tmp_path: Path
 
 def test_reference_positive_source_is_excluded_from_negative_inputs(tmp_path: Path):
     geom, verified = _context(
-        plan_geometry={"x_range": [1.0, 2.0], "y_range": [0.0, 0.1]},
-        elevation_geometry={"x_range": [1.0, 2.0], "z_range": [1.0, 2.0]},
+        plan_geometry={"x_range_m":[1.0, 2.0], "y_range_m":[0.0, 0.1]},
+        elevation_geometry={"x_range_m":[1.0, 2.0], "y_range_m":[1.0, 2.0]},
         existence_channels=("plan", "elevation"), elevation_complete=True,
     )
     result = finalize_correction_draw(
@@ -1029,7 +1029,7 @@ def test_reference_positive_source_is_excluded_from_negative_inputs(tmp_path: Pa
 def test_hidden_other_channel_negative_is_uncorroborated_and_does_not_delete_window(tmp_path: Path):
     geom, verified = _context(
         ring=U_RING, facade="East", span=(4.0, 5.0), room="r1",
-        plan_geometry={"x_range": [2.9, 3.1], "y_range": [4.0, 5.0]},
+        plan_geometry={"x_range_m":[2.9, 3.1], "y_range_m":[4.0, 5.0]},
         elevation_complete=True,
     )
     result = finalize_correction_draw(
@@ -1046,7 +1046,7 @@ def test_hidden_other_channel_negative_is_uncorroborated_and_does_not_delete_win
 def test_partial_visible_negative_coverage_is_not_promoted_to_complete(tmp_path: Path):
     geom, verified = _context(
         ring=PARTIAL_EAST_RING, facade="East", span=(4.0, 6.0), room="r1",
-        plan_geometry={"x_range": [2.9, 3.1], "y_range": [4.0, 6.0]},
+        plan_geometry={"x_range_m":[2.9, 3.1], "y_range_m":[4.0, 6.0]},
         elevation_complete=True,
     )
     result = finalize_correction_draw(
@@ -1063,7 +1063,7 @@ def test_partial_visible_negative_coverage_is_not_promoted_to_complete(tmp_path:
 def test_trusted_negative_is_symmetric_elevation_positive_plan_complete(tmp_path: Path):
     geom, verified = _context(
         room=None, plan_geometry=None, plan_complete=True,
-        elevation_geometry={"x_range": [1.0, 2.0], "z_range": [1.0, 2.0]},
+        elevation_geometry={"x_range_m":[1.0, 2.0], "y_range_m":[1.0, 2.0]},
         existence_channels=("elevation",),
     )
     with pytest.raises(WindowHostResolutionError) as exc:
@@ -1077,8 +1077,8 @@ def test_trusted_negative_is_symmetric_elevation_positive_plan_complete(tmp_path
 
 def test_attribute_zero_intersection_is_owned_by_va_mapper(tmp_path: Path):
     geom, first = _context(
-        plan_geometry={"x_range": [1.0, 2.0], "y_range": [0.0, 0.1]},
-        elevation_geometry={"x_range": [3.0, 4.0], "z_range": [1.0, 2.0]},
+        plan_geometry={"x_range_m":[1.0, 2.0], "y_range_m":[0.0, 0.1]},
+        elevation_geometry={"x_range_m":[3.0, 4.0], "y_range_m":[1.0, 2.0]},
         existence_channels=("plan",),
     )
     elevation_source = next(source for source in first.inputs.source_windows if source.channel == "elevation")
@@ -1156,7 +1156,7 @@ def test_product_self_reported_completeness_does_not_change_va_negative_decision
     tmp_path: Path,
 ):
     geom, verified = _context(
-        plan_geometry={"x_range": [1.0, 2.0], "y_range": [0.0, 0.1]},
+        plan_geometry={"x_range_m":[1.0, 2.0], "y_range_m":[0.0, 0.1]},
         elevation_complete=False,
         existence_method="product_self_report: elevation complete; no opening seen",
     )
@@ -1206,7 +1206,7 @@ def test_b5_b6_zero_window_totality_has_empty_host_and_evidence_hashes(tmp_path:
 
 def test_b5_b6_nonempty_window_host_evidence_and_audit_sets_are_total(tmp_path: Path):
     geom, verified = _context(
-        plan_geometry={"x_range": [1.0, 2.0], "y_range": [0.0, 0.1]},
+        plan_geometry={"x_range_m":[1.0, 2.0], "y_range_m":[0.0, 0.1]},
     )
     result = finalize_correction_draw(
         geom, vector_dir=tmp_path, target=correction_target("orthogonal_polygon"),
@@ -1223,7 +1223,7 @@ def test_b5_b6_nonempty_window_host_evidence_and_audit_sets_are_total(tmp_path: 
 
 def test_b5_b7_candidate_identity_uses_exact_writer_serializer_bytes(tmp_path: Path):
     geom, verified = _context(
-        plan_geometry={"x_range": [1.0, 2.0], "y_range": [0.0, 0.1]},
+        plan_geometry={"x_range_m":[1.0, 2.0], "y_range_m":[0.0, 0.1]},
     )
     result = finalize_correction_draw(
         geom, vector_dir=tmp_path, target=correction_target("orthogonal_polygon"),
@@ -1255,7 +1255,7 @@ def test_candidate_identity_rejects_placeholder_feature_states_hash():
 
 def _evidence_result(tmp_path):
     geom, verified = _context(
-        plan_geometry={"x_range": [1.0, 2.0], "y_range": [0.0, 0.1]},
+        plan_geometry={"x_range_m":[1.0, 2.0], "y_range_m":[0.0, 0.1]},
     )
     return finalize_correction_draw(
         geom, vector_dir=tmp_path, target=correction_target("orthogonal_polygon"),

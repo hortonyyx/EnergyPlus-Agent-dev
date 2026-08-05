@@ -65,7 +65,7 @@ def _with_plan_marker(geom):
         "strokes": [{
             "id": "P-W", "pen": "window",
             "geometry": {
-                "x_range": list(window.span), "y_range": [0.0, 0.1],
+                "x_range_m":list(window.span), "y_range_m":[0.0, 0.1],
             },
         }],
         "uncaptured": [],

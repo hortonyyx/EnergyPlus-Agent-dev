@@ -51,7 +51,7 @@ def _reading(*strokes):
 
 
 def _geom(*, provenance=True):
-    source = source_locator(input_id="plan", observation_id="W-01", output_sha256=hashlib.sha256(_reading({"id": "W-01", "pen": "window", "geometry": {"x_range": [1.0, 2.0], "y_range": [0.0, 1.0]}})).hexdigest())
+    source = source_locator(input_id="plan", observation_id="W-01", output_sha256=hashlib.sha256(_reading({"id": "W-01", "pen": "window", "geometry": {"x_range_m":[1.0, 2.0], "y_range_m":[0.0, 1.0]}})).hexdigest())
     return CorrectedGeometryV3.model_validate({"schema_version": "3", "footprint_x": [0.0, 4.0], "footprint_y": [0.0, 3.0],
         "floors": [{"id": "f1", "name": "F1", "z_floor": 0.0, "ceiling_height": 3.0,
                     "footprint": {"vertices": [[0.0, 0.0], [4.0, 0.0], [4.0, 3.0], [0.0, 3.0]]},
@@ -63,7 +63,7 @@ def _geom(*, provenance=True):
 
 def _base():
     manifest, raw_manifest = _manifest(_entry("plan", "plan", floor_ref=1), _entry("south", "elevation"))
-    plan = _reading({"id": "W-01", "pen": "window", "geometry": {"x_range": [1.0, 2.0], "y_range": [0.0, 1.0]}})
+    plan = _reading({"id": "W-01", "pen": "window", "geometry": {"x_range_m":[1.0, 2.0], "y_range_m":[0.0, 1.0]}})
     elevation = json.dumps({"image_kind": "elevation", "strokes": [], "uncaptured": [],
         "facade": {"mirrored": False, "local_x_positive": "image_left_to_right"}}, separators=(",", ":")).encode()
     fact = ElevationDirectionFactV1(input_id="south", resolved_building_direction="South", resolution_source="manifest_building_axis",
@@ -217,7 +217,7 @@ def test_b5_a6_production_source_is_judge_blind():
 
 def test_b5_b1_plan_source_resolves_hidden_segment_without_center_guess():
     manifest, raw_manifest = _manifest(_entry("plan", "plan", floor_ref=1), _entry("east", "elevation", direction="East"))
-    plan = _reading({"id": "W-01", "pen": "window", "geometry": {"x_range": [2.9, 3.1], "y_range": [4.0, 5.0]}})
+    plan = _reading({"id": "W-01", "pen": "window", "geometry": {"x_range_m":[2.9, 3.1], "y_range_m":[4.0, 5.0]}})
     elevation = json.dumps({"image_kind": "elevation", "strokes": [], "uncaptured": [],
         "facade": {"view_facade": "East", "mirrored": False, "local_x_positive": "image_left_to_right"}}, separators=(",", ":")).encode()
     artifacts = {"plan": plan, "east": elevation}
@@ -338,10 +338,10 @@ def _verify_invalid_channel_claim(channel, claim):
 def _reject_claim(channel, claim, code):
     manifest, raw_manifest, artifacts, fact = _base()
     if channel == "plan":
-        raw = json.loads(artifacts["plan"]); raw["strokes"][0]["geometry"] = {"x_range": [1.0, 2.0], "y_range": [0.0, 1.0]}; artifacts["plan"] = json.dumps(raw).encode()
+        raw = json.loads(artifacts["plan"]); raw["strokes"][0]["geometry"] = {"x_range_m":[1.0, 2.0], "y_range_m":[0.0, 1.0]}; artifacts["plan"] = json.dumps(raw).encode()
         geom = _geom(); locator = source_locator(input_id="plan", observation_id="W-01", output_sha256=hashlib.sha256(artifacts["plan"]).hexdigest())
     else:
-        artifacts["south"] = _reading({"id": "E-01", "pen": "window", "geometry": {"x_range": [1.0, 2.0]}})
+        artifacts["south"] = _reading({"id": "E-01", "pen": "window", "geometry": {"x_range_m":[1.0, 2.0]}})
         geom = _geom(); locator = source_locator(input_id="south", observation_id="E-01", output_sha256=hashlib.sha256(artifacts["south"]).hexdigest())
     provenance = {"existence": {"provenance": "observed", "source_ids": [source_locator(input_id="plan", observation_id="W-01", output_sha256=hashlib.sha256(artifacts["plan"]).hexdigest())]},
                   claim: {"provenance": "observed", "source_ids": [locator]}}
@@ -371,7 +371,7 @@ def test_src_c5_duplicate_catalog_locator_rejected():
 
 
 def test_src_c6_duplicate_raw_observation_rejected():
-    _, raw_manifest, artifacts, _ = _base(); row = {"id": "W-01", "pen": "window", "geometry": {"x_range": [1.0, 2.0], "y_range": [0.0, 1.0]}}
+    _, raw_manifest, artifacts, _ = _base(); row = {"id": "W-01", "pen": "window", "geometry": {"x_range_m":[1.0, 2.0], "y_range_m":[0.0, 1.0]}}
     artifacts["plan"] = _reading(row, row)
     with pytest.raises(WindowResolverInputError, match="duplicate_source_observation"):
         build_window_source_offer(raw_view_manifest_bytes=raw_manifest, raw_reading_artifacts=artifacts)
@@ -384,7 +384,7 @@ def test_src_c7_non_contiguous_manifest_floor_ref_rejected():
 
 def test_src_c8_elevation_floor_mismatch_rejected():
     manifest, raw_manifest, artifacts, fact = _base()
-    artifacts["south"] = _reading({"id": "E-01", "pen": "window", "geometry": {"x_range": [1.0, 2.0], "z_range": [4.0, 5.0]}})
+    artifacts["south"] = _reading({"id": "E-01", "pen": "window", "geometry": {"x_range_m":[1.0, 2.0], "y_range_m":[4.0, 5.0]}})
     geom = _geom(); plan_locator = source_locator(input_id="plan", observation_id="W-01", output_sha256=hashlib.sha256(artifacts["plan"]).hexdigest())
     elev_locator = source_locator(input_id="south", observation_id="E-01", output_sha256=hashlib.sha256(artifacts["south"]).hexdigest())
     geom = geom.model_copy(update={"windows": [geom.windows[0].model_copy(update={"provenance": _provenance({

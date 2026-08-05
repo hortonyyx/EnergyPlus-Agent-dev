@@ -288,15 +288,17 @@ def _window_strokes(raw: bytes, entry: RequiredViewEntry):
         if entry.view_type == "plan":
             yield PlanSourceWindowV1(channel="plan", source_locator=locator, source_input_id=entry.input_id,
                 source_output_sha256=output_sha, observation_id=stroke.id, floor_ref=entry.floor_ref,
-                world_x_interval=_interval(geometry.get("x_range"), observation_id=stroke.id, field="x_range"),
-                world_y_interval=_interval(geometry.get("y_range"), observation_id=stroke.id, field="y_range"),
+                world_x_interval=_interval(geometry.get("x_range_m"), observation_id=stroke.id, field="x_range_m"),
+                world_y_interval=_interval(geometry.get("y_range_m"), observation_id=stroke.id, field="y_range_m"),
                 positive_claims=("existence", "host", "along", "width"))
         elif entry.view_type == "elevation":
-            z = geometry.get("z_range")
+            # Elevation vertical span (sill→head) lives in the rect's y_range_m
+            # (image-local vertical = height); there is no z_range contract field.
+            z = geometry.get("y_range_m")
             yield ElevationSourceWindowV1(channel="elevation", source_locator=locator, source_input_id=entry.input_id,
                 source_output_sha256=output_sha, observation_id=stroke.id,
-                local_along_interval=_interval(geometry.get("x_range"), observation_id=stroke.id, field="x_range"),
-                local_z_interval=None if z is None else _interval(z, observation_id=stroke.id, field="z_range"),
+                local_along_interval=_interval(geometry.get("x_range_m"), observation_id=stroke.id, field="x_range_m"),
+                local_z_interval=None if z is None else _interval(z, observation_id=stroke.id, field="y_range_m"),
                 positive_claims=("existence", "along", "width", "sill", "head", "appearance"))
 
 

@@ -84,7 +84,7 @@ from src.validator.checks.schema import CheckReport
 H = "a" * 64
 RING = [[0.0, 0.0], [4.0, 0.0], [4.0, 4.0], [0.0, 4.0]]
 SOUTH_SEGMENT_ID = "f1:facade:c7548828ff8ea141abc4467ff1c4c3e20b54949eb08b3690b1218675986efe76"
-SOUTH_RESOLUTION_SHA256 = "2e3e3683c5493c6c4939053489b100689bd1812478aa1869fcf1d7a28d72e2cb"
+SOUTH_RESOLUTION_SHA256 = "c388b0ddef9e92372dccf5191bbae512596dd140b01754df86369e4ca138f07f"
 
 
 def _manifest(*, include_elevation: bool = False) -> tuple[ViewManifest, bytes]:
@@ -141,10 +141,10 @@ def _manifest(*, include_elevation: bool = False) -> tuple[ViewManifest, bytes]:
 
 def _plan_geometry(facade: str) -> dict[str, list[float]]:
     return {
-        "South": {"x_range": [1.0, 3.0], "y_range": [0.0, 0.1]},
-        "North": {"x_range": [1.0, 3.0], "y_range": [3.9, 4.0]},
-        "East": {"x_range": [3.9, 4.0], "y_range": [1.0, 3.0]},
-        "West": {"x_range": [0.0, 0.1], "y_range": [1.0, 3.0]},
+        "South": {"x_range_m":[1.0, 3.0], "y_range_m":[0.0, 0.1]},
+        "North": {"x_range_m":[1.0, 3.0], "y_range_m":[3.9, 4.0]},
+        "East": {"x_range_m":[3.9, 4.0], "y_range_m":[1.0, 3.0]},
+        "West": {"x_range_m":[0.0, 0.1], "y_range_m":[1.0, 3.0]},
     }[facade]
 
 
