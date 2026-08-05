@@ -1,0 +1,62 @@
+{
+  "image_label": "West elevation view",
+  "image_kind": "elevation",
+  "facade_axis_note": "West-facing facade; x-axis = North-South (width/depth); image y-axis = vertical (height, two stories visible)",
+  "scale_origin": {
+    "world_x_m": null,
+    "world_y_m": 0.00,
+    "world_z_m": 0.00,
+    "note": "elevation-local: x from 0 (South) to 8m (North); image-local y from 0 (ground) to ~6.6m (roof). Width scale: 115.89 px/m from 8000mm width. Height scale derived from visible dimensions."
+  },
+
+  "strokes": [
+    {"id": "S1", "pen": "wall", "provenance": "dimension_derived", "confidence": "high", "dimension_refs": ["D_overall_width"], "geometry": {"kind": "line", "p1": [0.00, 0.00], "p2": [8.00, 0.00], "thickness_m": null}, "note": "west facade base (ground level)"},
+    {"id": "S2", "pen": "wall", "provenance": "dimension_derived", "confidence": "high", "dimension_refs": ["D_overall_width"], "geometry": {"kind": "line", "p1": [8.00, 0.00], "p2": [8.00, 6.60], "thickness_m": null}, "note": "west facade right edge (North end)"},
+    {"id": "S3", "pen": "wall", "provenance": "dimension_derived", "confidence": "high", "dimension_refs": ["D_overall_width"], "geometry": {"kind": "line", "p1": [8.00, 6.60], "p2": [0.00, 6.60], "thickness_m": null}, "note": "west facade roofline (top)"},
+    {"id": "S4", "pen": "wall", "provenance": "dimension_derived", "confidence": "high", "dimension_refs": ["D_overall_width"], "geometry": {"kind": "line", "p1": [0.00, 6.60], "p2": [0.00, 0.00], "thickness_m": null}, "note": "west facade left edge (South end)"},
+
+    {"id": "S5", "pen": "wall", "provenance": "seen", "confidence": "high", "dimension_refs": [], "geometry": {"kind": "line", "p1": [0.00, 3.30], "p2": [8.00, 3.30], "thickness_m": 0.20}, "note": "horizontal story break (mid-facade); visual confirmation: dark horizontal line visible separating upper and lower stories"},
+
+    {"id": "W1", "pen": "window", "provenance": "seen", "confidence": "high", "dimension_refs": [], "geometry": {"kind": "rect", "x_range_m": [2.80, 5.20], "y_range_m": [4.20, 5.80]}, "note": "upper story window (centered); visual confirmation: cyan rectangle visible"},
+
+    {"id": "W2", "pen": "window", "provenance": "seen", "confidence": "high", "dimension_refs": [], "geometry": {"kind": "rect", "x_range_m": [2.20, 4.00], "y_range_m": [1.20, 2.80]}, "note": "lower story window 1 (left); visual confirmation: cyan rectangle visible (part of 2-window assembly)"},
+    {"id": "W3", "pen": "window", "provenance": "seen", "confidence": "high", "dimension_refs": [], "geometry": {"kind": "rect", "x_range_m": [4.00, 5.80], "y_range_m": [1.20, 2.80]}, "note": "lower story window 2 (right); visual confirmation: cyan rectangle visible (part of 2-window assembly)"}
+  ],
+
+  "dimensions": [
+    {"id": "D_overall_width", "text_verbatim": "8000", "value_m": 8.00, "from": [0.00, 0.00], "to": [8.00, 0.00], "axis": "x", "chain_id": "C_width", "role": "overall", "order": 0},
+
+    {"id": "D_top_seg1", "text_verbatim": "3400", "value_m": 3.40, "from": [0.00, 6.60], "to": [3.40, 6.60], "axis": "x", "chain_id": "C_top", "role": "segment", "order": 1},
+    {"id": "D_top_seg2", "text_verbatim": "1200", "value_m": 1.20, "from": [3.40, 6.60], "to": [4.60, 6.60], "axis": "x", "chain_id": "C_top", "role": "segment", "order": 2},
+    {"id": "D_top_seg3", "text_verbatim": "3400", "value_m": 3.40, "from": [4.60, 6.60], "to": [8.00, 6.60], "axis": "x", "chain_id": "C_top", "role": "segment", "order": 3, "note": "CLOSURE: sum = 8.0m ✓"},
+
+    {"id": "D_left_height", "text_verbatim": "6600", "value_m": 6.60, "from": [0.00, 0.00], "to": [0.00, 6.60], "axis": "y", "chain_id": "C_height", "role": "overall_height", "order": 0, "note": "Total visible height (2 stories) from ground to roof"},
+    {"id": "D_left_seg1", "text_verbatim": "3600", "value_m": 3.60, "from": [0.00, 3.30], "to": [0.00, 6.90], "axis": "y", "chain_id": "C_height", "role": "segment", "order": 1, "note": "upper story height segment (approximate)"},
+    {"id": "D_left_seg2", "text_verbatim": "1800", "value_m": 1.80, "from": [0.00, 0.00], "to": [0.00, 1.80], "axis": "y", "chain_id": "C_height", "role": "segment", "order": 2, "note": "lower story lower segment"},
+    {"id": "D_left_seg3", "text_verbatim": "1000", "value_m": 1.00, "from": [0.00, 1.80], "to": [0.00, 2.80], "axis": "y", "chain_id": "C_height", "role": "segment", "order": 3, "note": "lower story middle segment"}
+  ],
+
+  "ocr_texts": [],
+
+  "uncaptured": [
+    "Interior wall structure on stories: not visible in elevation view (facade view only)",
+    "Window frame details: cyan outlines shown, exact frame thickness not dimensioned",
+    "Mullion/gridwork: visible in lower-story window assembly (appears to have 2 vertical muntins, creating 2 or more panes)"
+  ],
+
+  "self_check": {
+    "all_dimensions_transcribed": true,
+    "all_visible_strokes_captured": true,
+    "no_topology_inferred": true,
+    "pens_used": ["wall", "window"],
+    "unknowns_noted": [
+      "HORIZONTAL CHAIN: Top chain (3400+1200+3400) = 8.0m ✓. Closes correctly.",
+      "VERTICAL DIMENSION: Total height marked as 6600mm (6.6m), representing 2 visible stories. Story break at approximately mid-height (3.3m). Intermediate segments shown but full closure unclear from dimension callouts.",
+      "OPENINGS: 3 openings total (1 upper story window, 2 lower story windows appearing as a 2-unit assembly). All visually confirmed as cyan rectangles.",
+      "LOWER WINDOW ASSEMBLY: Two windows in lower story appear to be separated by a vertical muntil/frame member, forming a distinct 2-window assembly design.",
+      "ELEVATION TYPE: West-facing facade; uses image-local coordinates only (x_range_m, y_range_m). Does not attempt world z-axis mapping. X-axis represents North-South depth of building.",
+      "SYMMETRY: Horizontal divisions match East facade (3.4m + 1.2m + 3.4m), suggesting similar structural grid.",
+      "FINAL INVENTORY: 4 perimeter wall segments + 1 story-break horizontal = 5 wall strokes. 3 window strokes. Total = 8 strokes."
+    ]
+  }
+}

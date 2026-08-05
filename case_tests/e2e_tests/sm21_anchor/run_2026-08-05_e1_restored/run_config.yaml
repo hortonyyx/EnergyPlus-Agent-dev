@@ -1,0 +1,28 @@
+# run_2026-08-05_e1_restored (sm21_anchor) — 真·E1 复原
+# 用户 08-05：「先统一恢复到之前 reading 模式，先把 reading 质量恢复了」
+#            「现在你确保 gate 不会拦端到端就行」⇒ run_profile=exploratory
+#
+# 与 08-04 那次失败抽签的差别（那次不是 E1，是今天的产品默认路径）：
+#   ① kickoff 换回 07-07 那版（git 891356d）——含 "Do one pilot / Stop and wait for review"
+#   ② ⛔ 不跑预扫（07-07 两轮都没有；08-04 那抽把 prescan 候选当墙抄）
+#   ③ 补 per-run directive：cv_toolbox 必读 + 先量再画（07-07 原话）
+#   ④ orchestrator 的 pilot review 环保留（= 用户排期里的「主控介入保留」）
+# 保留不变：clean-room 硬隔离（已落地机制，不回退）
+run_profile: exploratory
+capability_profile: orthogonal_polygon
+judge:
+  mode: stop
+  resample_ladder: open
+review: {reading: false, correction: false, geometry: false}
+reading_mode:
+  lane: controlled
+  dev_function: true
+  reading_agent: {model: claude-opus-5, sees_images: true, rework_rounds: 1}
+  reading_worker_agent: {model: claude-haiku-4-5-20251001, effort: default}
+  toolbox_version: "217c046b8884dbbe"
+  isolation_profile: clean_room_staging
+models:
+  reading: {role: 0_reading, model_id: claude-haiku-4-5-20251001, provider: anthropic, effort: default}
+  orchestrator: {role: judge2+orchestration, model_id: claude-opus-5}
+  correction: {role: 1_correction, model_id: deepseek-v4-pro, effort: high}
+  mep: {role: 4_mep, model_id: deepseek-v4-pro, effort: high}

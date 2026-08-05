@@ -1,0 +1,79 @@
+# =====================================================================
+# run_config.yaml — run_2026-08-04_e1_haiku_e2e (sm21_anchor)
+#
+# PURPOSE: 收 sm21（plan.md 2026-08-04 队列 #1）。E1 模式 reading =
+#   Haiku 4.5 + CV 工具箱 + orchestrator 的 pilot review 环（一次），
+#   之后端到端跑到 EP 并录基线。
+#
+# 用户 2026-08-04 晚拍板（原话）：
+#   「先跑 sm21 端到端不变，做完之后如果跑好了，做到之前的效果，
+#     直接进 sm25 素材处理」
+#   「中途不停，不用人工检验了，你有答案可以直接对」
+#   ⇒ review.reading / review.correction / review.geometry 全 false；
+#     judge 仍在环（orchestrator 兼 judge②，gt 权威）。
+#
+# 达标线（= 之前的效果，实测自 run_2026-07-02_sonnet_flow_e2e 与
+#   run_2026-07-07_haiku_cv_retest，两者逐项相同）：
+#   平面墙 9/9 · 平面窗 7/7 · 立面窗 15/15 complete · extra 0 ·
+#   gate① 0 block · EP completed 0 severe
+#
+# ⛔ 成绩记账：orchestrator 介入在场 ⇒ reading_mode.dev_function = true
+#   ⇒ 本 run 的 reading 成绩不作为正式 lane 成绩（CLAUDE.md §1.5 #7）。
+# =====================================================================
+
+run_profile: regression          # fail-closed（批 B 之后真生效）
+capability_profile: orthogonal_polygon
+
+scope:
+  stages:
+    - 0_reading
+    - 1_correction
+    - 2_modelling
+    - 3_split_pairing
+    - 4_mep
+    - 5_intakeoutput
+
+judge:
+  mode: stop                     # judge-in-the-loop（J0/J1 由 orchestrator 判，gt 权威）
+  resample_ladder: open          # JUDGE_BLOCK → 冷启盲重抽，budget 3
+
+review:
+  reading: false                 # 用户免掉全部人工校验点（见上）
+  correction: false
+  geometry: false                # 几何门走 --geometry auto
+
+# R4-a 成绩分账（provision 在 record 时发生 ⇒ rework_rounds 收工前按实况定稿）
+reading_mode:
+  lane: controlled               # reading-agent（此处 = orchestrator 的 review 环）在场
+  dev_function: true             # ⛔ 不作为正式 lane 成绩
+  reading_agent:
+    model: claude-opus-5         # orchestrator 兼任（E1 复原的 review 环）
+    sees_images: true
+    rework_rounds: 1             # 计划：一次 pilot review；收工前按实况定稿
+  reading_worker_agent:
+    model: claude-haiku-4-5-20251001
+    effort: default
+  toolbox_version: "217c046b8884dbbe"   # skills/intake_pipeline/0_reading 目录 sha256[:16]
+  isolation_profile: clean_room_staging # spawn_isolated_reader build（gt 物理排除）
+
+models:
+  reading:
+    role: 0_reading
+    model_id: claude-haiku-4-5-20251001
+    provider: anthropic
+    effort: default
+    source: cold-start `claude -p` in clean-room staging (spawn_isolated_reader)
+  orchestrator:
+    role: judge2+orchestration
+    model_id: claude-opus-5
+  correction:
+    role: 1_correction
+    model_id: deepseek-v4-pro
+    effort: high
+  mep:
+    role: 4_mep
+    model_id: deepseek-v4-pro
+    effort: high
+
+# grade: 省略 → judge 侧默认容差（wall 0.30 / window_centre 0.40 / elevation 默认），
+# 与 07-02 基线、07-05 对照臂、07-07 CV 复测逐字相同。
