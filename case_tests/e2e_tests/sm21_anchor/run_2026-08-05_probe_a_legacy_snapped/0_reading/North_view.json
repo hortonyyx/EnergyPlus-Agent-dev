@@ -1,0 +1,143 @@
+{
+  "image_label": "North elevation",
+  "image_kind": "elevation",
+  "facade_axis_note": null,
+  "scale_origin": {
+    "world_x_m": 0.00,
+    "world_y_m": 0.00,
+    "world_z_m": 0.00,
+    "note": "elevation local coords: local x = horizontal along facade (image left->right), local y = z (height, ground = 0). Local origin = bottom-left ground corner of the facade as drawn. World axis & sign are the correction stage's job."
+  },
+  "facade": {
+    "view_facade": "North",
+    "local_x_positive": "image_left_to_right",
+    "mirrored": "false",
+    "orientation_evidence": [
+      {"source": "image_name", "detail": "filename North_view.png", "confidence": "high"}
+    ]
+  },
+  "strokes": [
+    {
+      "id": "S1",
+      "pen": "outline",
+      "geometry": {
+        "kind": "rect",
+        "x_range_m": [0.00, 15.00],
+        "y_range_m": [0.00, 6.60]
+      },
+      "note": "overall facade silhouette (flat-top rectangle); no explicit wall fill drawn, outer frame = wall extent; top z=6600, ground z=0"
+    },
+    {
+      "id": "S2",
+      "pen": "wall_fill",
+      "geometry": {
+        "kind": "rect",
+        "x_range_m": [0.00, 15.00],
+        "y_range_m": [0.00, 3.00]
+      },
+      "note": "lower floor (1F) wall body, z 0-3000; bounded above by the storey line at z=3000"
+    },
+    {
+      "id": "S3",
+      "pen": "wall_fill",
+      "geometry": {
+        "kind": "rect",
+        "x_range_m": [0.00, 15.00],
+        "y_range_m": [3.00, 6.60]
+      },
+      "note": "upper floor (2F) wall body, z 3000-6600; bounded below by storey line, above by parapet/roof at z=6600"
+    },
+    {
+      "id": "S4",
+      "pen": "window",
+      "geometry": {
+        "kind": "rect",
+        "x_range_m": [1.95, 5.55],
+        "y_range_m": [4.00, 5.80]
+      },
+      "note": "upper floor window, left (wide ~3600); sill z=4000, head z=5800. x from top chain 1950/3600; z from left chain 1000/1800/800"
+    },
+    {
+      "id": "S5",
+      "pen": "window",
+      "geometry": {
+        "kind": "rect",
+        "x_range_m": [9.45, 13.05],
+        "y_range_m": [4.00, 5.80]
+      },
+      "note": "upper floor window, right (wide ~3600); sill z=4000, head z=5800"
+    },
+    {
+      "id": "S6",
+      "pen": "window",
+      "geometry": {
+        "kind": "rect",
+        "x_range_m": [1.24, 3.64],
+        "y_range_m": [1.00, 2.60]
+      },
+      "note": "lower floor window, left (width ~2400); sill z=1000, head z=2600. x from bottom chain 1240/2400; z from left chain 1000/1600/400"
+    },
+    {
+      "id": "S7",
+      "pen": "window",
+      "geometry": {
+        "kind": "rect",
+        "x_range_m": [6.30, 8.70],
+        "y_range_m": [1.00, 2.60]
+      },
+      "note": "lower floor window, center (width ~2400); sill z=1000, head z=2600. x-range approximate"
+    },
+    {
+      "id": "S8",
+      "pen": "window",
+      "geometry": {
+        "kind": "rect",
+        "x_range_m": [11.36, 13.76],
+        "y_range_m": [1.00, 2.60]
+      },
+      "note": "lower floor window, right (width ~2400); sill z=1000, head z=2600. x-range approximate"
+    }
+  ],
+  "dimensions": [
+    {"id": "D1", "text": "15000", "from": [0.00, 6.60], "to": [15.00, 6.60], "axis": "x", "note": "top overall width chain"},
+    {"id": "D2", "text": "1950", "from": null, "to": null, "axis": "x", "note": "top sub-chain segment 1"},
+    {"id": "D3", "text": "3600", "from": null, "to": null, "axis": "x", "note": "top sub-chain: upper-left window width"},
+    {"id": "D4", "text": "3900", "from": null, "to": null, "axis": "x", "note": "top sub-chain: central span between upper windows"},
+    {"id": "D5", "text": "3600", "from": null, "to": null, "axis": "x", "note": "top sub-chain: upper-right window width"},
+    {"id": "D6", "text": "1950", "from": null, "to": null, "axis": "x", "note": "top sub-chain segment last"},
+    {"id": "D7", "text": "1240", "from": null, "to": null, "axis": "x", "note": "bottom sub-chain segment 1"},
+    {"id": "D8", "text": "2400", "from": null, "to": null, "axis": "x", "note": "bottom sub-chain: lower-left window width"},
+    {"id": "D9", "text": "2660", "from": null, "to": null, "axis": "x", "note": "bottom sub-chain: gap"},
+    {"id": "D10", "text": "2400", "from": null, "to": null, "axis": "x", "note": "bottom sub-chain: lower-center window width"},
+    {"id": "D11", "text": "2660", "from": null, "to": null, "axis": "x", "note": "bottom sub-chain: gap"},
+    {"id": "D12", "text": "2400", "from": null, "to": null, "axis": "x", "note": "bottom sub-chain: lower-right window width"},
+    {"id": "D13", "text": "1240", "from": null, "to": null, "axis": "x", "note": "bottom sub-chain segment last"},
+    {"id": "D14", "text": "6600", "from": [0.00, 0.00], "to": [0.00, 6.60], "axis": "z", "note": "left overall height chain"},
+    {"id": "D15", "text": "3600", "from": null, "to": null, "axis": "z", "note": "left sub-chain: upper floor height (3000-6600)"},
+    {"id": "D16", "text": "3000", "from": null, "to": null, "axis": "z", "note": "left sub-chain: lower floor height (0-3000)"},
+    {"id": "D17", "text": "800", "from": null, "to": null, "axis": "z", "note": "left fine chain: parapet/roof to upper window head"},
+    {"id": "D18", "text": "1800", "from": null, "to": null, "axis": "z", "note": "left fine chain: upper window height"},
+    {"id": "D19", "text": "1000", "from": null, "to": null, "axis": "z", "note": "left fine chain: storey line to upper window sill"},
+    {"id": "D20", "text": "400", "from": null, "to": null, "axis": "z", "note": "left fine chain: lower window head to storey line"},
+    {"id": "D21", "text": "1600", "from": null, "to": null, "axis": "z", "note": "left fine chain: lower window height"},
+    {"id": "D22", "text": "1000", "from": null, "to": null, "axis": "z", "note": "left fine chain: ground to lower window sill"},
+    {"id": "D23", "text": "3600", "from": null, "to": null, "axis": "z", "note": "right sub-chain: upper floor height (repeat)"},
+    {"id": "D24", "text": "3000", "from": null, "to": null, "axis": "z", "note": "right sub-chain: lower floor height (repeat)"}
+  ],
+  "ocr_texts": [],
+  "self_check": {
+    "all_dimensions_transcribed": true,
+    "all_visible_strokes_captured": true,
+    "no_topology_inferred": true,
+    "pens_used": ["outline", "wall_fill", "window"],
+    "unknowns_noted": [
+      "lower-floor center/right window left edges are estimated from the bottom chain (1240/2400/2660...); widths (2400) are confident, exact x offsets approximate",
+      "z-bands confident: upper windows 4000-5800, lower windows 1000-2600"
+    ],
+    "uncaptured_visual_elements": [
+      "horizontal storey line at z=3000 captured implicitly as the shared edge between the two wall_fill rects (not a separate stroke)",
+      "no door on this facade",
+      "dimension tick marks and extension lines (green) not traced as strokes"
+    ]
+  }
+}

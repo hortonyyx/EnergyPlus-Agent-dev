@@ -1,0 +1,3885 @@
+{
+  "stage": "0_reading",
+  "attempt": 1,
+  "output_hash": "a0a97bdc64ebddb732c40eeae8f70f260a0e098abaa984f9891bec66d34001f8",
+  "source": "attempt_output",
+  "scorer_schema": "9",
+  "case": "sm21_anchor",
+  "tolerances": {
+    "wall_tol_m": 0.3,
+    "window_centre_tol_m": 0.4,
+    "elevation_along_tol_m": 0.4,
+    "sill_tol_m": 0.3,
+    "head_tol_m": 0.3,
+    "width_tol_m": 0.4,
+    "position_tol_m": 0.3,
+    "extent_tol_m": 0.3,
+    "complete_eps_m": 0.05,
+    "overlap_accept": 0.75,
+    "overlap_complete": 0.95,
+    "floor_line_tol_m": 0.3
+  },
+  "scores": {
+    "1f_view": {
+      "floor": "Floor 1",
+      "wall_hits": 3,
+      "wall_total": 4,
+      "window_hits": 2,
+      "window_total": 3,
+      "max_wall_offset_m": 0.06,
+      "vwalls": [
+        {
+          "status": "miss",
+          "orientation": "v",
+          "truth": 5.0,
+          "read": null,
+          "delta": null,
+          "lateral_drift": false,
+          "extent_drift": false,
+          "extent_start_drift": false,
+          "extent_end_drift": false,
+          "product": null,
+          "gt": [
+            5.0,
+            0.0,
+            3.0
+          ],
+          "product_intervals": [],
+          "gt_intervals": [
+            [
+              5.0,
+              0.0,
+              3.0
+            ],
+            [
+              5.0,
+              5.0,
+              8.0
+            ]
+          ],
+          "pieces": [
+            {
+              "kind": "missing",
+              "span": [
+                0.0,
+                3.0
+              ],
+              "within_tol": false
+            },
+            {
+              "kind": "missing",
+              "span": [
+                5.0,
+                8.0
+              ],
+              "within_tol": false
+            }
+          ]
+        },
+        {
+          "status": "within_tol",
+          "orientation": "v",
+          "truth": 10.0,
+          "read": 9.94,
+          "delta": -0.06,
+          "lateral_drift": true,
+          "extent_drift": true,
+          "extent_start_drift": true,
+          "extent_end_drift": true,
+          "product": [
+            9.94,
+            0.12,
+            3.04
+          ],
+          "gt": [
+            10.0,
+            0.0,
+            3.0
+          ],
+          "product_intervals": [
+            [
+              9.94,
+              0.12,
+              3.04
+            ],
+            [
+              9.94,
+              4.96,
+              7.88
+            ]
+          ],
+          "gt_intervals": [
+            [
+              10.0,
+              0.0,
+              3.0
+            ],
+            [
+              10.0,
+              5.0,
+              8.0
+            ]
+          ],
+          "pieces": [
+            {
+              "kind": "missing",
+              "span": [
+                0.0,
+                0.12
+              ],
+              "within_tol": true
+            },
+            {
+              "kind": "matched",
+              "span": [
+                0.12,
+                3.0
+              ],
+              "within_tol": true
+            },
+            {
+              "kind": "extra",
+              "span": [
+                3.0,
+                3.04
+              ],
+              "within_tol": true
+            },
+            {
+              "kind": "extra",
+              "span": [
+                4.96,
+                5.0
+              ],
+              "within_tol": true
+            },
+            {
+              "kind": "matched",
+              "span": [
+                5.0,
+                7.88
+              ],
+              "within_tol": true
+            },
+            {
+              "kind": "missing",
+              "span": [
+                7.88,
+                8.0
+              ],
+              "within_tol": true
+            }
+          ]
+        }
+      ],
+      "hwalls": [
+        {
+          "status": "within_tol",
+          "orientation": "h",
+          "truth": 3.0,
+          "read": 3.04,
+          "delta": 0.04,
+          "lateral_drift": false,
+          "extent_drift": true,
+          "extent_start_drift": true,
+          "extent_end_drift": true,
+          "product": [
+            3.04,
+            0.24,
+            14.76
+          ],
+          "gt": [
+            3.0,
+            0.0,
+            15.0
+          ],
+          "product_intervals": [
+            [
+              3.04,
+              0.24,
+              14.76
+            ]
+          ],
+          "gt_intervals": [
+            [
+              3.0,
+              0.0,
+              15.0
+            ]
+          ],
+          "pieces": [
+            {
+              "kind": "missing",
+              "span": [
+                0.0,
+                0.24
+              ],
+              "within_tol": true
+            },
+            {
+              "kind": "matched",
+              "span": [
+                0.24,
+                14.76
+              ],
+              "within_tol": true
+            },
+            {
+              "kind": "missing",
+              "span": [
+                14.76,
+                15.0
+              ],
+              "within_tol": true
+            }
+          ]
+        },
+        {
+          "status": "within_tol",
+          "orientation": "h",
+          "truth": 5.0,
+          "read": 4.96,
+          "delta": -0.04,
+          "lateral_drift": false,
+          "extent_drift": true,
+          "extent_start_drift": true,
+          "extent_end_drift": true,
+          "product": [
+            4.96,
+            0.24,
+            14.76
+          ],
+          "gt": [
+            5.0,
+            0.0,
+            15.0
+          ],
+          "product_intervals": [
+            [
+              4.96,
+              0.24,
+              14.76
+            ]
+          ],
+          "gt_intervals": [
+            [
+              5.0,
+              0.0,
+              15.0
+            ]
+          ],
+          "pieces": [
+            {
+              "kind": "missing",
+              "span": [
+                0.0,
+                0.24
+              ],
+              "within_tol": true
+            },
+            {
+              "kind": "matched",
+              "span": [
+                0.24,
+                14.76
+              ],
+              "within_tol": true
+            },
+            {
+              "kind": "missing",
+              "span": [
+                14.76,
+                15.0
+              ],
+              "within_tol": true
+            }
+          ]
+        }
+      ],
+      "extra_vwalls": [
+        4.56
+      ],
+      "extra_hwalls": [],
+      "vwall_records": [
+        {
+          "status": "miss",
+          "orientation": "v",
+          "truth": 5.0,
+          "read": null,
+          "delta": null,
+          "lateral_drift": false,
+          "extent_drift": false,
+          "extent_start_drift": false,
+          "extent_end_drift": false,
+          "product": null,
+          "gt": [
+            5.0,
+            0.0,
+            3.0
+          ],
+          "product_intervals": [],
+          "gt_intervals": [
+            [
+              5.0,
+              0.0,
+              3.0
+            ],
+            [
+              5.0,
+              5.0,
+              8.0
+            ]
+          ],
+          "pieces": [
+            {
+              "kind": "missing",
+              "span": [
+                0.0,
+                3.0
+              ],
+              "within_tol": false
+            },
+            {
+              "kind": "missing",
+              "span": [
+                5.0,
+                8.0
+              ],
+              "within_tol": false
+            }
+          ]
+        },
+        {
+          "status": "within_tol",
+          "orientation": "v",
+          "truth": 10.0,
+          "read": 9.94,
+          "delta": -0.06,
+          "lateral_drift": true,
+          "extent_drift": true,
+          "extent_start_drift": true,
+          "extent_end_drift": true,
+          "product": [
+            9.94,
+            0.12,
+            3.04
+          ],
+          "gt": [
+            10.0,
+            0.0,
+            3.0
+          ],
+          "product_intervals": [
+            [
+              9.94,
+              0.12,
+              3.04
+            ],
+            [
+              9.94,
+              4.96,
+              7.88
+            ]
+          ],
+          "gt_intervals": [
+            [
+              10.0,
+              0.0,
+              3.0
+            ],
+            [
+              10.0,
+              5.0,
+              8.0
+            ]
+          ],
+          "pieces": [
+            {
+              "kind": "missing",
+              "span": [
+                0.0,
+                0.12
+              ],
+              "within_tol": true
+            },
+            {
+              "kind": "matched",
+              "span": [
+                0.12,
+                3.0
+              ],
+              "within_tol": true
+            },
+            {
+              "kind": "extra",
+              "span": [
+                3.0,
+                3.04
+              ],
+              "within_tol": true
+            },
+            {
+              "kind": "extra",
+              "span": [
+                4.96,
+                5.0
+              ],
+              "within_tol": true
+            },
+            {
+              "kind": "matched",
+              "span": [
+                5.0,
+                7.88
+              ],
+              "within_tol": true
+            },
+            {
+              "kind": "missing",
+              "span": [
+                7.88,
+                8.0
+              ],
+              "within_tol": true
+            }
+          ]
+        },
+        {
+          "status": "extra",
+          "orientation": "v",
+          "truth": null,
+          "read": 4.56,
+          "delta": null,
+          "lateral_drift": false,
+          "extent_drift": false,
+          "extent_start_drift": false,
+          "extent_end_drift": false,
+          "product": [
+            4.56,
+            0.12,
+            3.04
+          ],
+          "gt": null,
+          "product_intervals": [
+            [
+              4.56,
+              0.12,
+              3.04
+            ],
+            [
+              4.56,
+              4.96,
+              7.88
+            ]
+          ],
+          "gt_intervals": [],
+          "pieces": [
+            {
+              "kind": "extra",
+              "span": [
+                0.12,
+                3.04
+              ],
+              "within_tol": false
+            },
+            {
+              "kind": "extra",
+              "span": [
+                4.96,
+                7.88
+              ],
+              "within_tol": false
+            }
+          ]
+        }
+      ],
+      "hwall_records": [
+        {
+          "status": "within_tol",
+          "orientation": "h",
+          "truth": 3.0,
+          "read": 3.04,
+          "delta": 0.04,
+          "lateral_drift": false,
+          "extent_drift": true,
+          "extent_start_drift": true,
+          "extent_end_drift": true,
+          "product": [
+            3.04,
+            0.24,
+            14.76
+          ],
+          "gt": [
+            3.0,
+            0.0,
+            15.0
+          ],
+          "product_intervals": [
+            [
+              3.04,
+              0.24,
+              14.76
+            ]
+          ],
+          "gt_intervals": [
+            [
+              3.0,
+              0.0,
+              15.0
+            ]
+          ],
+          "pieces": [
+            {
+              "kind": "missing",
+              "span": [
+                0.0,
+                0.24
+              ],
+              "within_tol": true
+            },
+            {
+              "kind": "matched",
+              "span": [
+                0.24,
+                14.76
+              ],
+              "within_tol": true
+            },
+            {
+              "kind": "missing",
+              "span": [
+                14.76,
+                15.0
+              ],
+              "within_tol": true
+            }
+          ]
+        },
+        {
+          "status": "within_tol",
+          "orientation": "h",
+          "truth": 5.0,
+          "read": 4.96,
+          "delta": -0.04,
+          "lateral_drift": false,
+          "extent_drift": true,
+          "extent_start_drift": true,
+          "extent_end_drift": true,
+          "product": [
+            4.96,
+            0.24,
+            14.76
+          ],
+          "gt": [
+            5.0,
+            0.0,
+            15.0
+          ],
+          "product_intervals": [
+            [
+              4.96,
+              0.24,
+              14.76
+            ]
+          ],
+          "gt_intervals": [
+            [
+              5.0,
+              0.0,
+              15.0
+            ]
+          ],
+          "pieces": [
+            {
+              "kind": "missing",
+              "span": [
+                0.0,
+                0.24
+              ],
+              "within_tol": true
+            },
+            {
+              "kind": "matched",
+              "span": [
+                0.24,
+                14.76
+              ],
+              "within_tol": true
+            },
+            {
+              "kind": "missing",
+              "span": [
+                14.76,
+                15.0
+              ],
+              "within_tol": true
+            }
+          ]
+        }
+      ],
+      "windows": {
+        "N": [
+          {
+            "status": "within_tol",
+            "facade": "N",
+            "truth": [
+              1.24,
+              3.64
+            ],
+            "read": [
+              1.24,
+              3.64
+            ],
+            "product": [
+              1.24,
+              3.64
+            ],
+            "gt": [
+              1.24,
+              3.64
+            ],
+            "product_intervals": [
+              [
+                1.24,
+                3.64
+              ],
+              [
+                6.08,
+                8.48
+              ],
+              [
+                11.12,
+                13.52
+              ]
+            ],
+            "gt_intervals": [
+              [
+                1.24,
+                3.64
+              ],
+              [
+                6.3,
+                8.7
+              ],
+              [
+                11.36,
+                13.76
+              ]
+            ],
+            "centre_delta": -0.15,
+            "pieces": [
+              {
+                "kind": "matched",
+                "span": [
+                  1.24,
+                  3.64
+                ],
+                "within_tol": true
+              },
+              {
+                "kind": "extra",
+                "span": [
+                  6.08,
+                  6.3
+                ],
+                "within_tol": true
+              },
+              {
+                "kind": "matched",
+                "span": [
+                  6.3,
+                  8.48
+                ],
+                "within_tol": true
+              },
+              {
+                "kind": "missing",
+                "span": [
+                  8.48,
+                  8.7
+                ],
+                "within_tol": true
+              },
+              {
+                "kind": "extra",
+                "span": [
+                  11.12,
+                  11.36
+                ],
+                "within_tol": true
+              },
+              {
+                "kind": "matched",
+                "span": [
+                  11.36,
+                  13.52
+                ],
+                "within_tol": true
+              },
+              {
+                "kind": "missing",
+                "span": [
+                  13.52,
+                  13.76
+                ],
+                "within_tol": true
+              }
+            ]
+          }
+        ],
+        "S": [
+          {
+            "status": "miss",
+            "facade": "S",
+            "truth": [
+              3.44,
+              4.64
+            ],
+            "read": [
+              2.94,
+              4.14
+            ],
+            "product": [
+              2.94,
+              4.14
+            ],
+            "gt": [
+              3.44,
+              4.64
+            ],
+            "product_intervals": [
+              [
+                2.94,
+                4.14
+              ],
+              [
+                5.3,
+                7.7
+              ],
+              [
+                10.4,
+                12.8
+              ]
+            ],
+            "gt_intervals": [
+              [
+                3.44,
+                4.64
+              ],
+              [
+                6.3,
+                8.7
+              ],
+              [
+                11.36,
+                13.76
+              ]
+            ],
+            "centre_delta": -0.82,
+            "pieces": [
+              {
+                "kind": "extra",
+                "span": [
+                  2.94,
+                  3.44
+                ],
+                "within_tol": false
+              },
+              {
+                "kind": "matched",
+                "span": [
+                  3.44,
+                  4.14
+                ],
+                "within_tol": true
+              },
+              {
+                "kind": "missing",
+                "span": [
+                  4.14,
+                  4.64
+                ],
+                "within_tol": false
+              },
+              {
+                "kind": "extra",
+                "span": [
+                  5.3,
+                  6.3
+                ],
+                "within_tol": false
+              },
+              {
+                "kind": "matched",
+                "span": [
+                  6.3,
+                  7.7
+                ],
+                "within_tol": true
+              },
+              {
+                "kind": "missing",
+                "span": [
+                  7.7,
+                  8.7
+                ],
+                "within_tol": false
+              },
+              {
+                "kind": "extra",
+                "span": [
+                  10.4,
+                  11.36
+                ],
+                "within_tol": false
+              },
+              {
+                "kind": "matched",
+                "span": [
+                  11.36,
+                  12.8
+                ],
+                "within_tol": true
+              },
+              {
+                "kind": "missing",
+                "span": [
+                  12.8,
+                  13.76
+                ],
+                "within_tol": false
+              }
+            ]
+          }
+        ],
+        "E": [
+          {
+            "status": "complete",
+            "facade": "E",
+            "truth": [
+              3.4,
+              4.6
+            ],
+            "read": [
+              3.4,
+              4.6
+            ],
+            "product": [
+              3.4,
+              4.6
+            ],
+            "gt": [
+              3.4,
+              4.6
+            ],
+            "product_intervals": [
+              [
+                3.4,
+                4.6
+              ]
+            ],
+            "gt_intervals": [
+              [
+                3.4,
+                4.6
+              ]
+            ],
+            "centre_delta": 0.0,
+            "pieces": []
+          }
+        ],
+        "W": []
+      },
+      "extra_windows": {
+        "N": [],
+        "S": [],
+        "E": [],
+        "W": []
+      },
+      "extra_window_records": {
+        "N": [],
+        "S": [],
+        "E": [],
+        "W": []
+      },
+      "boundary": {
+        "S": {
+          "truth": 0.0,
+          "read": 0.12,
+          "delta": 0.12
+        },
+        "N": {
+          "truth": 8.0,
+          "read": 7.88,
+          "delta": -0.12
+        },
+        "W": {
+          "truth": 0.0,
+          "read": 0.12,
+          "delta": 0.12
+        },
+        "E": {
+          "truth": 15.0,
+          "read": 14.88,
+          "delta": -0.12
+        }
+      }
+    },
+    "2f_view": {
+      "floor": "Floor 2",
+      "wall_hits": 5,
+      "wall_total": 5,
+      "window_hits": 3,
+      "window_total": 4,
+      "max_wall_offset_m": 0.04,
+      "vwalls": [
+        {
+          "status": "within_tol",
+          "orientation": "v",
+          "truth": 3.75,
+          "read": 3.79,
+          "delta": 0.04,
+          "lateral_drift": false,
+          "extent_drift": true,
+          "extent_start_drift": true,
+          "extent_end_drift": false,
+          "product": [
+            3.79,
+            0.12,
+            3.04
+          ],
+          "gt": [
+            3.75,
+            0.0,
+            3.0
+          ],
+          "product_intervals": [
+            [
+              3.79,
+              0.12,
+              3.04
+            ]
+          ],
+          "gt_intervals": [
+            [
+              3.75,
+              0.0,
+              3.0
+            ]
+          ],
+          "pieces": [
+            {
+              "kind": "missing",
+              "span": [
+                0.0,
+                0.12
+              ],
+              "within_tol": true
+            },
+            {
+              "kind": "matched",
+              "span": [
+                0.12,
+                3.0
+              ],
+              "within_tol": true
+            },
+            {
+              "kind": "extra",
+              "span": [
+                3.0,
+                3.04
+              ],
+              "within_tol": true
+            }
+          ]
+        },
+        {
+          "status": "within_tol",
+          "orientation": "v",
+          "truth": 7.5,
+          "read": 7.5,
+          "delta": 0.0,
+          "lateral_drift": false,
+          "extent_drift": true,
+          "extent_start_drift": true,
+          "extent_end_drift": true,
+          "product": [
+            7.5,
+            0.12,
+            3.04
+          ],
+          "gt": [
+            7.5,
+            0.0,
+            3.0
+          ],
+          "product_intervals": [
+            [
+              7.5,
+              0.12,
+              3.04
+            ],
+            [
+              7.5,
+              4.96,
+              7.88
+            ]
+          ],
+          "gt_intervals": [
+            [
+              7.5,
+              0.0,
+              3.0
+            ],
+            [
+              7.5,
+              5.0,
+              8.0
+            ]
+          ],
+          "pieces": [
+            {
+              "kind": "missing",
+              "span": [
+                0.0,
+                0.12
+              ],
+              "within_tol": true
+            },
+            {
+              "kind": "matched",
+              "span": [
+                0.12,
+                3.0
+              ],
+              "within_tol": true
+            },
+            {
+              "kind": "extra",
+              "span": [
+                3.0,
+                3.04
+              ],
+              "within_tol": true
+            },
+            {
+              "kind": "extra",
+              "span": [
+                4.96,
+                5.0
+              ],
+              "within_tol": true
+            },
+            {
+              "kind": "matched",
+              "span": [
+                5.0,
+                7.88
+              ],
+              "within_tol": true
+            },
+            {
+              "kind": "missing",
+              "span": [
+                7.88,
+                8.0
+              ],
+              "within_tol": true
+            }
+          ]
+        },
+        {
+          "status": "within_tol",
+          "orientation": "v",
+          "truth": 11.25,
+          "read": 11.21,
+          "delta": -0.04,
+          "lateral_drift": false,
+          "extent_drift": true,
+          "extent_start_drift": true,
+          "extent_end_drift": false,
+          "product": [
+            11.21,
+            0.12,
+            3.04
+          ],
+          "gt": [
+            11.25,
+            0.0,
+            3.0
+          ],
+          "product_intervals": [
+            [
+              11.21,
+              0.12,
+              3.04
+            ]
+          ],
+          "gt_intervals": [
+            [
+              11.25,
+              0.0,
+              3.0
+            ]
+          ],
+          "pieces": [
+            {
+              "kind": "missing",
+              "span": [
+                0.0,
+                0.12
+              ],
+              "within_tol": true
+            },
+            {
+              "kind": "matched",
+              "span": [
+                0.12,
+                3.0
+              ],
+              "within_tol": true
+            },
+            {
+              "kind": "extra",
+              "span": [
+                3.0,
+                3.04
+              ],
+              "within_tol": true
+            }
+          ]
+        }
+      ],
+      "hwalls": [
+        {
+          "status": "within_tol",
+          "orientation": "h",
+          "truth": 3.0,
+          "read": 3.04,
+          "delta": 0.04,
+          "lateral_drift": false,
+          "extent_drift": true,
+          "extent_start_drift": true,
+          "extent_end_drift": true,
+          "product": [
+            3.04,
+            0.24,
+            14.76
+          ],
+          "gt": [
+            3.0,
+            0.0,
+            15.0
+          ],
+          "product_intervals": [
+            [
+              3.04,
+              0.24,
+              14.76
+            ]
+          ],
+          "gt_intervals": [
+            [
+              3.0,
+              0.0,
+              15.0
+            ]
+          ],
+          "pieces": [
+            {
+              "kind": "missing",
+              "span": [
+                0.0,
+                0.24
+              ],
+              "within_tol": true
+            },
+            {
+              "kind": "matched",
+              "span": [
+                0.24,
+                14.76
+              ],
+              "within_tol": true
+            },
+            {
+              "kind": "missing",
+              "span": [
+                14.76,
+                15.0
+              ],
+              "within_tol": true
+            }
+          ]
+        },
+        {
+          "status": "within_tol",
+          "orientation": "h",
+          "truth": 5.0,
+          "read": 4.96,
+          "delta": -0.04,
+          "lateral_drift": false,
+          "extent_drift": true,
+          "extent_start_drift": true,
+          "extent_end_drift": true,
+          "product": [
+            4.96,
+            0.24,
+            14.76
+          ],
+          "gt": [
+            5.0,
+            0.0,
+            15.0
+          ],
+          "product_intervals": [
+            [
+              4.96,
+              0.24,
+              14.76
+            ]
+          ],
+          "gt_intervals": [
+            [
+              5.0,
+              0.0,
+              15.0
+            ]
+          ],
+          "pieces": [
+            {
+              "kind": "missing",
+              "span": [
+                0.0,
+                0.24
+              ],
+              "within_tol": true
+            },
+            {
+              "kind": "matched",
+              "span": [
+                0.24,
+                14.76
+              ],
+              "within_tol": true
+            },
+            {
+              "kind": "missing",
+              "span": [
+                14.76,
+                15.0
+              ],
+              "within_tol": true
+            }
+          ]
+        }
+      ],
+      "extra_vwalls": [],
+      "extra_hwalls": [],
+      "vwall_records": [
+        {
+          "status": "within_tol",
+          "orientation": "v",
+          "truth": 3.75,
+          "read": 3.79,
+          "delta": 0.04,
+          "lateral_drift": false,
+          "extent_drift": true,
+          "extent_start_drift": true,
+          "extent_end_drift": false,
+          "product": [
+            3.79,
+            0.12,
+            3.04
+          ],
+          "gt": [
+            3.75,
+            0.0,
+            3.0
+          ],
+          "product_intervals": [
+            [
+              3.79,
+              0.12,
+              3.04
+            ]
+          ],
+          "gt_intervals": [
+            [
+              3.75,
+              0.0,
+              3.0
+            ]
+          ],
+          "pieces": [
+            {
+              "kind": "missing",
+              "span": [
+                0.0,
+                0.12
+              ],
+              "within_tol": true
+            },
+            {
+              "kind": "matched",
+              "span": [
+                0.12,
+                3.0
+              ],
+              "within_tol": true
+            },
+            {
+              "kind": "extra",
+              "span": [
+                3.0,
+                3.04
+              ],
+              "within_tol": true
+            }
+          ]
+        },
+        {
+          "status": "within_tol",
+          "orientation": "v",
+          "truth": 7.5,
+          "read": 7.5,
+          "delta": 0.0,
+          "lateral_drift": false,
+          "extent_drift": true,
+          "extent_start_drift": true,
+          "extent_end_drift": true,
+          "product": [
+            7.5,
+            0.12,
+            3.04
+          ],
+          "gt": [
+            7.5,
+            0.0,
+            3.0
+          ],
+          "product_intervals": [
+            [
+              7.5,
+              0.12,
+              3.04
+            ],
+            [
+              7.5,
+              4.96,
+              7.88
+            ]
+          ],
+          "gt_intervals": [
+            [
+              7.5,
+              0.0,
+              3.0
+            ],
+            [
+              7.5,
+              5.0,
+              8.0
+            ]
+          ],
+          "pieces": [
+            {
+              "kind": "missing",
+              "span": [
+                0.0,
+                0.12
+              ],
+              "within_tol": true
+            },
+            {
+              "kind": "matched",
+              "span": [
+                0.12,
+                3.0
+              ],
+              "within_tol": true
+            },
+            {
+              "kind": "extra",
+              "span": [
+                3.0,
+                3.04
+              ],
+              "within_tol": true
+            },
+            {
+              "kind": "extra",
+              "span": [
+                4.96,
+                5.0
+              ],
+              "within_tol": true
+            },
+            {
+              "kind": "matched",
+              "span": [
+                5.0,
+                7.88
+              ],
+              "within_tol": true
+            },
+            {
+              "kind": "missing",
+              "span": [
+                7.88,
+                8.0
+              ],
+              "within_tol": true
+            }
+          ]
+        },
+        {
+          "status": "within_tol",
+          "orientation": "v",
+          "truth": 11.25,
+          "read": 11.21,
+          "delta": -0.04,
+          "lateral_drift": false,
+          "extent_drift": true,
+          "extent_start_drift": true,
+          "extent_end_drift": false,
+          "product": [
+            11.21,
+            0.12,
+            3.04
+          ],
+          "gt": [
+            11.25,
+            0.0,
+            3.0
+          ],
+          "product_intervals": [
+            [
+              11.21,
+              0.12,
+              3.04
+            ]
+          ],
+          "gt_intervals": [
+            [
+              11.25,
+              0.0,
+              3.0
+            ]
+          ],
+          "pieces": [
+            {
+              "kind": "missing",
+              "span": [
+                0.0,
+                0.12
+              ],
+              "within_tol": true
+            },
+            {
+              "kind": "matched",
+              "span": [
+                0.12,
+                3.0
+              ],
+              "within_tol": true
+            },
+            {
+              "kind": "extra",
+              "span": [
+                3.0,
+                3.04
+              ],
+              "within_tol": true
+            }
+          ]
+        }
+      ],
+      "hwall_records": [
+        {
+          "status": "within_tol",
+          "orientation": "h",
+          "truth": 3.0,
+          "read": 3.04,
+          "delta": 0.04,
+          "lateral_drift": false,
+          "extent_drift": true,
+          "extent_start_drift": true,
+          "extent_end_drift": true,
+          "product": [
+            3.04,
+            0.24,
+            14.76
+          ],
+          "gt": [
+            3.0,
+            0.0,
+            15.0
+          ],
+          "product_intervals": [
+            [
+              3.04,
+              0.24,
+              14.76
+            ]
+          ],
+          "gt_intervals": [
+            [
+              3.0,
+              0.0,
+              15.0
+            ]
+          ],
+          "pieces": [
+            {
+              "kind": "missing",
+              "span": [
+                0.0,
+                0.24
+              ],
+              "within_tol": true
+            },
+            {
+              "kind": "matched",
+              "span": [
+                0.24,
+                14.76
+              ],
+              "within_tol": true
+            },
+            {
+              "kind": "missing",
+              "span": [
+                14.76,
+                15.0
+              ],
+              "within_tol": true
+            }
+          ]
+        },
+        {
+          "status": "within_tol",
+          "orientation": "h",
+          "truth": 5.0,
+          "read": 4.96,
+          "delta": -0.04,
+          "lateral_drift": false,
+          "extent_drift": true,
+          "extent_start_drift": true,
+          "extent_end_drift": true,
+          "product": [
+            4.96,
+            0.24,
+            14.76
+          ],
+          "gt": [
+            5.0,
+            0.0,
+            15.0
+          ],
+          "product_intervals": [
+            [
+              4.96,
+              0.24,
+              14.76
+            ]
+          ],
+          "gt_intervals": [
+            [
+              5.0,
+              0.0,
+              15.0
+            ]
+          ],
+          "pieces": [
+            {
+              "kind": "missing",
+              "span": [
+                0.0,
+                0.24
+              ],
+              "within_tol": true
+            },
+            {
+              "kind": "matched",
+              "span": [
+                0.24,
+                14.76
+              ],
+              "within_tol": true
+            },
+            {
+              "kind": "missing",
+              "span": [
+                14.76,
+                15.0
+              ],
+              "within_tol": true
+            }
+          ]
+        }
+      ],
+      "windows": {
+        "N": [
+          {
+            "status": "complete",
+            "facade": "N",
+            "truth": [
+              1.95,
+              5.55
+            ],
+            "read": [
+              1.95,
+              5.55
+            ],
+            "product": [
+              1.95,
+              5.55
+            ],
+            "gt": [
+              1.95,
+              5.55
+            ],
+            "product_intervals": [
+              [
+                1.95,
+                5.55
+              ],
+              [
+                9.45,
+                13.05
+              ]
+            ],
+            "gt_intervals": [
+              [
+                1.95,
+                5.55
+              ],
+              [
+                9.45,
+                13.05
+              ]
+            ],
+            "centre_delta": 0.0,
+            "pieces": []
+          }
+        ],
+        "S": [
+          {
+            "status": "miss",
+            "facade": "S",
+            "truth": [
+              2.19,
+              3.39
+            ],
+            "read": [
+              2.19,
+              3.39
+            ],
+            "product": [
+              2.19,
+              3.39
+            ],
+            "gt": [
+              2.19,
+              3.39
+            ],
+            "product_intervals": [
+              [
+                2.19,
+                3.39
+              ],
+              [
+                5.31,
+                6.51
+              ],
+              [
+                8.49,
+                9.69
+              ],
+              [
+                11.61,
+                12.81
+              ]
+            ],
+            "gt_intervals": [
+              [
+                2.19,
+                3.39
+              ],
+              [
+                4.11,
+                5.31
+              ],
+              [
+                9.69,
+                10.89
+              ],
+              [
+                11.61,
+                12.81
+              ]
+            ],
+            "centre_delta": 0.0,
+            "pieces": [
+              {
+                "kind": "matched",
+                "span": [
+                  2.19,
+                  3.39
+                ],
+                "within_tol": true
+              },
+              {
+                "kind": "missing",
+                "span": [
+                  4.11,
+                  5.31
+                ],
+                "within_tol": false
+              },
+              {
+                "kind": "extra",
+                "span": [
+                  5.31,
+                  6.51
+                ],
+                "within_tol": false
+              },
+              {
+                "kind": "extra",
+                "span": [
+                  8.49,
+                  9.69
+                ],
+                "within_tol": false
+              },
+              {
+                "kind": "missing",
+                "span": [
+                  9.69,
+                  10.89
+                ],
+                "within_tol": false
+              },
+              {
+                "kind": "matched",
+                "span": [
+                  11.61,
+                  12.81
+                ],
+                "within_tol": true
+              }
+            ]
+          }
+        ],
+        "E": [
+          {
+            "status": "complete",
+            "facade": "E",
+            "truth": [
+              3.4,
+              4.6
+            ],
+            "read": [
+              3.4,
+              4.6
+            ],
+            "product": [
+              3.4,
+              4.6
+            ],
+            "gt": [
+              3.4,
+              4.6
+            ],
+            "product_intervals": [
+              [
+                3.4,
+                4.6
+              ]
+            ],
+            "gt_intervals": [
+              [
+                3.4,
+                4.6
+              ]
+            ],
+            "centre_delta": 0.0,
+            "pieces": []
+          }
+        ],
+        "W": [
+          {
+            "status": "complete",
+            "facade": "W",
+            "truth": [
+              3.4,
+              4.6
+            ],
+            "read": [
+              3.4,
+              4.6
+            ],
+            "product": [
+              3.4,
+              4.6
+            ],
+            "gt": [
+              3.4,
+              4.6
+            ],
+            "product_intervals": [
+              [
+                3.4,
+                4.6
+              ]
+            ],
+            "gt_intervals": [
+              [
+                3.4,
+                4.6
+              ]
+            ],
+            "centre_delta": 0.0,
+            "pieces": []
+          }
+        ]
+      },
+      "extra_windows": {
+        "N": [],
+        "S": [],
+        "E": [],
+        "W": []
+      },
+      "extra_window_records": {
+        "N": [],
+        "S": [],
+        "E": [],
+        "W": []
+      },
+      "boundary": {
+        "S": {
+          "truth": 0.0,
+          "read": 0.12,
+          "delta": 0.12
+        },
+        "N": {
+          "truth": 8.0,
+          "read": 7.88,
+          "delta": -0.12
+        },
+        "W": {
+          "truth": 0.0,
+          "read": 0.12,
+          "delta": 0.12
+        },
+        "E": {
+          "truth": 15.0,
+          "read": 14.88,
+          "delta": -0.12
+        }
+      }
+    }
+  },
+  "elevation": {
+    "summary": {
+      "gt_total": 15,
+      "matched_total": 14,
+      "complete_total": 13,
+      "within_tol_total": 1,
+      "placed_hit_total": 13,
+      "z_drift_total": 0,
+      "miss_total": 1,
+      "extra_total": 1,
+      "no_data_floor_facades": 0
+    },
+    "facades": {
+      "North": {
+        "orientation": "ambiguous",
+        "span_limit_m": 15.0,
+        "floors": {
+          "Floor 1": {
+            "facade": "North",
+            "floor": "Floor 1",
+            "orientation": "ambiguous",
+            "no_data": false,
+            "gt_count": 3,
+            "read_count": 3,
+            "matched_total": 3,
+            "placed_hit_total": 3,
+            "complete_total": 3,
+            "within_tol_total": 0,
+            "matches": [
+              {
+                "status": "complete",
+                "facade": "North",
+                "floor": "Floor 1",
+                "orientation": "ambiguous",
+                "source_id": "S6",
+                "truth": {
+                  "id": "North/Floor 1/0",
+                  "span": [
+                    1.24,
+                    3.64
+                  ],
+                  "z": [
+                    1.0,
+                    2.6
+                  ],
+                  "center": 2.44,
+                  "width": 2.4
+                },
+                "read": {
+                  "span": [
+                    1.24,
+                    3.64
+                  ],
+                  "z": [
+                    1.0,
+                    2.6
+                  ],
+                  "center": 2.44,
+                  "width": 2.4,
+                  "source_id": "S6",
+                  "source_span": [
+                    1.24,
+                    3.64
+                  ]
+                },
+                "product_box": {
+                  "span": [
+                    1.24,
+                    3.64
+                  ],
+                  "z": [
+                    1.0,
+                    2.6
+                  ],
+                  "center": 2.44,
+                  "width": 2.4,
+                  "source_id": "S6",
+                  "source_span": [
+                    1.24,
+                    3.64
+                  ]
+                },
+                "gt_box": {
+                  "id": "North/Floor 1/0",
+                  "span": [
+                    1.24,
+                    3.64
+                  ],
+                  "z": [
+                    1.0,
+                    2.6
+                  ],
+                  "center": 2.44,
+                  "width": 2.4
+                },
+                "deltas": {
+                  "along_center_m": 0.0,
+                  "sill_m": 0.0,
+                  "head_m": 0.0,
+                  "width_m": 0.0
+                },
+                "overlap_ratio": 1.0,
+                "overlap_fraction": 1.0,
+                "gt_coverage": 1.0,
+                "product_coverage": 1.0
+              },
+              {
+                "status": "complete",
+                "facade": "North",
+                "floor": "Floor 1",
+                "orientation": "ambiguous",
+                "source_id": "S7",
+                "truth": {
+                  "id": "North/Floor 1/1",
+                  "span": [
+                    6.3,
+                    8.7
+                  ],
+                  "z": [
+                    1.0,
+                    2.6
+                  ],
+                  "center": 7.5,
+                  "width": 2.4
+                },
+                "read": {
+                  "span": [
+                    6.3,
+                    8.7
+                  ],
+                  "z": [
+                    1.0,
+                    2.6
+                  ],
+                  "center": 7.5,
+                  "width": 2.4,
+                  "source_id": "S7",
+                  "source_span": [
+                    6.3,
+                    8.7
+                  ]
+                },
+                "product_box": {
+                  "span": [
+                    6.3,
+                    8.7
+                  ],
+                  "z": [
+                    1.0,
+                    2.6
+                  ],
+                  "center": 7.5,
+                  "width": 2.4,
+                  "source_id": "S7",
+                  "source_span": [
+                    6.3,
+                    8.7
+                  ]
+                },
+                "gt_box": {
+                  "id": "North/Floor 1/1",
+                  "span": [
+                    6.3,
+                    8.7
+                  ],
+                  "z": [
+                    1.0,
+                    2.6
+                  ],
+                  "center": 7.5,
+                  "width": 2.4
+                },
+                "deltas": {
+                  "along_center_m": 0.0,
+                  "sill_m": 0.0,
+                  "head_m": 0.0,
+                  "width_m": 0.0
+                },
+                "overlap_ratio": 1.0,
+                "overlap_fraction": 1.0,
+                "gt_coverage": 1.0,
+                "product_coverage": 1.0
+              },
+              {
+                "status": "complete",
+                "facade": "North",
+                "floor": "Floor 1",
+                "orientation": "ambiguous",
+                "source_id": "S8",
+                "truth": {
+                  "id": "North/Floor 1/2",
+                  "span": [
+                    11.36,
+                    13.76
+                  ],
+                  "z": [
+                    1.0,
+                    2.6
+                  ],
+                  "center": 12.56,
+                  "width": 2.4
+                },
+                "read": {
+                  "span": [
+                    11.36,
+                    13.76
+                  ],
+                  "z": [
+                    1.0,
+                    2.6
+                  ],
+                  "center": 12.56,
+                  "width": 2.4,
+                  "source_id": "S8",
+                  "source_span": [
+                    11.36,
+                    13.76
+                  ]
+                },
+                "product_box": {
+                  "span": [
+                    11.36,
+                    13.76
+                  ],
+                  "z": [
+                    1.0,
+                    2.6
+                  ],
+                  "center": 12.56,
+                  "width": 2.4,
+                  "source_id": "S8",
+                  "source_span": [
+                    11.36,
+                    13.76
+                  ]
+                },
+                "gt_box": {
+                  "id": "North/Floor 1/2",
+                  "span": [
+                    11.36,
+                    13.76
+                  ],
+                  "z": [
+                    1.0,
+                    2.6
+                  ],
+                  "center": 12.56,
+                  "width": 2.4
+                },
+                "deltas": {
+                  "along_center_m": 0.0,
+                  "sill_m": 0.0,
+                  "head_m": 0.0,
+                  "width_m": 0.0
+                },
+                "overlap_ratio": 1.0,
+                "overlap_fraction": 1.0,
+                "gt_coverage": 1.0,
+                "product_coverage": 1.0
+              }
+            ],
+            "extras": []
+          },
+          "Floor 2": {
+            "facade": "North",
+            "floor": "Floor 2",
+            "orientation": "ambiguous",
+            "no_data": false,
+            "gt_count": 2,
+            "read_count": 2,
+            "matched_total": 2,
+            "placed_hit_total": 2,
+            "complete_total": 2,
+            "within_tol_total": 0,
+            "matches": [
+              {
+                "status": "complete",
+                "facade": "North",
+                "floor": "Floor 2",
+                "orientation": "ambiguous",
+                "source_id": "S4",
+                "truth": {
+                  "id": "North/Floor 2/0",
+                  "span": [
+                    1.95,
+                    5.55
+                  ],
+                  "z": [
+                    4.0,
+                    5.8
+                  ],
+                  "center": 3.75,
+                  "width": 3.6
+                },
+                "read": {
+                  "span": [
+                    1.95,
+                    5.55
+                  ],
+                  "z": [
+                    4.0,
+                    5.8
+                  ],
+                  "center": 3.75,
+                  "width": 3.6,
+                  "source_id": "S4",
+                  "source_span": [
+                    1.95,
+                    5.55
+                  ]
+                },
+                "product_box": {
+                  "span": [
+                    1.95,
+                    5.55
+                  ],
+                  "z": [
+                    4.0,
+                    5.8
+                  ],
+                  "center": 3.75,
+                  "width": 3.6,
+                  "source_id": "S4",
+                  "source_span": [
+                    1.95,
+                    5.55
+                  ]
+                },
+                "gt_box": {
+                  "id": "North/Floor 2/0",
+                  "span": [
+                    1.95,
+                    5.55
+                  ],
+                  "z": [
+                    4.0,
+                    5.8
+                  ],
+                  "center": 3.75,
+                  "width": 3.6
+                },
+                "deltas": {
+                  "along_center_m": 0.0,
+                  "sill_m": 0.0,
+                  "head_m": 0.0,
+                  "width_m": 0.0
+                },
+                "overlap_ratio": 1.0,
+                "overlap_fraction": 1.0,
+                "gt_coverage": 1.0,
+                "product_coverage": 1.0
+              },
+              {
+                "status": "complete",
+                "facade": "North",
+                "floor": "Floor 2",
+                "orientation": "ambiguous",
+                "source_id": "S5",
+                "truth": {
+                  "id": "North/Floor 2/1",
+                  "span": [
+                    9.45,
+                    13.05
+                  ],
+                  "z": [
+                    4.0,
+                    5.8
+                  ],
+                  "center": 11.25,
+                  "width": 3.6
+                },
+                "read": {
+                  "span": [
+                    9.45,
+                    13.05
+                  ],
+                  "z": [
+                    4.0,
+                    5.8
+                  ],
+                  "center": 11.25,
+                  "width": 3.6,
+                  "source_id": "S5",
+                  "source_span": [
+                    9.45,
+                    13.05
+                  ]
+                },
+                "product_box": {
+                  "span": [
+                    9.45,
+                    13.05
+                  ],
+                  "z": [
+                    4.0,
+                    5.8
+                  ],
+                  "center": 11.25,
+                  "width": 3.6,
+                  "source_id": "S5",
+                  "source_span": [
+                    9.45,
+                    13.05
+                  ]
+                },
+                "gt_box": {
+                  "id": "North/Floor 2/1",
+                  "span": [
+                    9.45,
+                    13.05
+                  ],
+                  "z": [
+                    4.0,
+                    5.8
+                  ],
+                  "center": 11.25,
+                  "width": 3.6
+                },
+                "deltas": {
+                  "along_center_m": 0.0,
+                  "sill_m": 0.0,
+                  "head_m": 0.0,
+                  "width_m": 0.0
+                },
+                "overlap_ratio": 1.0,
+                "overlap_fraction": 1.0,
+                "gt_coverage": 1.0,
+                "product_coverage": 1.0
+              }
+            ],
+            "extras": []
+          }
+        }
+      },
+      "South": {
+        "orientation": "aligned",
+        "span_limit_m": 15.0,
+        "floors": {
+          "Floor 1": {
+            "facade": "South",
+            "floor": "Floor 1",
+            "orientation": "aligned",
+            "no_data": false,
+            "gt_count": 3,
+            "read_count": 3,
+            "matched_total": 2,
+            "placed_hit_total": 1,
+            "complete_total": 1,
+            "within_tol_total": 1,
+            "matches": [
+              {
+                "status": "miss",
+                "facade": "South",
+                "floor": "Floor 1",
+                "orientation": "aligned",
+                "source_id": null,
+                "truth": {
+                  "id": "South/Floor 1/0",
+                  "span": [
+                    3.44,
+                    4.64
+                  ],
+                  "z": [
+                    1.5,
+                    2.1
+                  ],
+                  "center": 4.04,
+                  "width": 1.2
+                },
+                "read": null,
+                "product_box": null,
+                "gt_box": {
+                  "id": "South/Floor 1/0",
+                  "span": [
+                    3.44,
+                    4.64
+                  ],
+                  "z": [
+                    1.5,
+                    2.1
+                  ],
+                  "center": 4.04,
+                  "width": 1.2
+                },
+                "deltas": {
+                  "along_center_m": null,
+                  "sill_m": null,
+                  "head_m": null,
+                  "width_m": null
+                },
+                "overlap_ratio": null,
+                "overlap_fraction": null,
+                "gt_coverage": null,
+                "product_coverage": null
+              },
+              {
+                "status": "within_tol",
+                "facade": "South",
+                "floor": "Floor 1",
+                "orientation": "aligned",
+                "source_id": "S9",
+                "truth": {
+                  "id": "South/Floor 1/1",
+                  "span": [
+                    6.3,
+                    8.7
+                  ],
+                  "z": [
+                    1.0,
+                    2.6
+                  ],
+                  "center": 7.5,
+                  "width": 2.4
+                },
+                "read": {
+                  "span": [
+                    6.5,
+                    8.9
+                  ],
+                  "z": [
+                    1.0,
+                    2.6
+                  ],
+                  "center": 7.7,
+                  "width": 2.4,
+                  "source_id": "S9",
+                  "source_span": [
+                    6.5,
+                    8.9
+                  ]
+                },
+                "product_box": {
+                  "span": [
+                    6.5,
+                    8.9
+                  ],
+                  "z": [
+                    1.0,
+                    2.6
+                  ],
+                  "center": 7.7,
+                  "width": 2.4,
+                  "source_id": "S9",
+                  "source_span": [
+                    6.5,
+                    8.9
+                  ]
+                },
+                "gt_box": {
+                  "id": "South/Floor 1/1",
+                  "span": [
+                    6.3,
+                    8.7
+                  ],
+                  "z": [
+                    1.0,
+                    2.6
+                  ],
+                  "center": 7.5,
+                  "width": 2.4
+                },
+                "deltas": {
+                  "along_center_m": 0.2,
+                  "sill_m": 0.0,
+                  "head_m": 0.0,
+                  "width_m": 0.0
+                },
+                "overlap_ratio": 0.917,
+                "overlap_fraction": 0.917,
+                "gt_coverage": 0.917,
+                "product_coverage": 0.917
+              },
+              {
+                "status": "complete",
+                "facade": "South",
+                "floor": "Floor 1",
+                "orientation": "aligned",
+                "source_id": "S10",
+                "truth": {
+                  "id": "South/Floor 1/2",
+                  "span": [
+                    11.36,
+                    13.76
+                  ],
+                  "z": [
+                    1.0,
+                    2.6
+                  ],
+                  "center": 12.56,
+                  "width": 2.4
+                },
+                "read": {
+                  "span": [
+                    11.4,
+                    13.8
+                  ],
+                  "z": [
+                    1.0,
+                    2.6
+                  ],
+                  "center": 12.6,
+                  "width": 2.4,
+                  "source_id": "S10",
+                  "source_span": [
+                    11.4,
+                    13.8
+                  ]
+                },
+                "product_box": {
+                  "span": [
+                    11.4,
+                    13.8
+                  ],
+                  "z": [
+                    1.0,
+                    2.6
+                  ],
+                  "center": 12.6,
+                  "width": 2.4,
+                  "source_id": "S10",
+                  "source_span": [
+                    11.4,
+                    13.8
+                  ]
+                },
+                "gt_box": {
+                  "id": "South/Floor 1/2",
+                  "span": [
+                    11.36,
+                    13.76
+                  ],
+                  "z": [
+                    1.0,
+                    2.6
+                  ],
+                  "center": 12.56,
+                  "width": 2.4
+                },
+                "deltas": {
+                  "along_center_m": 0.04,
+                  "sill_m": 0.0,
+                  "head_m": 0.0,
+                  "width_m": 0.0
+                },
+                "overlap_ratio": 0.983,
+                "overlap_fraction": 0.983,
+                "gt_coverage": 0.983,
+                "product_coverage": 0.983
+              }
+            ],
+            "extras": [
+              {
+                "status": "extra",
+                "facade": "South",
+                "floor": "Floor 1",
+                "orientation": "aligned",
+                "source_id": "S8",
+                "truth": null,
+                "read": {
+                  "span": [
+                    4.64,
+                    5.84
+                  ],
+                  "z": [
+                    1.5,
+                    2.1
+                  ],
+                  "center": 5.24,
+                  "width": 1.2,
+                  "source_id": "S8",
+                  "source_span": [
+                    4.64,
+                    5.84
+                  ]
+                },
+                "product_box": {
+                  "span": [
+                    4.64,
+                    5.84
+                  ],
+                  "z": [
+                    1.5,
+                    2.1
+                  ],
+                  "center": 5.24,
+                  "width": 1.2,
+                  "source_id": "S8",
+                  "source_span": [
+                    4.64,
+                    5.84
+                  ]
+                },
+                "gt_box": null,
+                "deltas": {
+                  "along_center_m": null,
+                  "sill_m": null,
+                  "head_m": null,
+                  "width_m": null
+                },
+                "overlap_ratio": null,
+                "overlap_fraction": null,
+                "gt_coverage": null,
+                "product_coverage": null
+              }
+            ]
+          },
+          "Floor 2": {
+            "facade": "South",
+            "floor": "Floor 2",
+            "orientation": "aligned",
+            "no_data": false,
+            "gt_count": 4,
+            "read_count": 4,
+            "matched_total": 4,
+            "placed_hit_total": 4,
+            "complete_total": 4,
+            "within_tol_total": 0,
+            "matches": [
+              {
+                "status": "complete",
+                "facade": "South",
+                "floor": "Floor 2",
+                "orientation": "aligned",
+                "source_id": "S4",
+                "truth": {
+                  "id": "South/Floor 2/0",
+                  "span": [
+                    2.19,
+                    3.39
+                  ],
+                  "z": [
+                    4.0,
+                    5.8
+                  ],
+                  "center": 2.79,
+                  "width": 1.2
+                },
+                "read": {
+                  "span": [
+                    2.19,
+                    3.39
+                  ],
+                  "z": [
+                    4.0,
+                    5.8
+                  ],
+                  "center": 2.79,
+                  "width": 1.2,
+                  "source_id": "S4",
+                  "source_span": [
+                    2.19,
+                    3.39
+                  ]
+                },
+                "product_box": {
+                  "span": [
+                    2.19,
+                    3.39
+                  ],
+                  "z": [
+                    4.0,
+                    5.8
+                  ],
+                  "center": 2.79,
+                  "width": 1.2,
+                  "source_id": "S4",
+                  "source_span": [
+                    2.19,
+                    3.39
+                  ]
+                },
+                "gt_box": {
+                  "id": "South/Floor 2/0",
+                  "span": [
+                    2.19,
+                    3.39
+                  ],
+                  "z": [
+                    4.0,
+                    5.8
+                  ],
+                  "center": 2.79,
+                  "width": 1.2
+                },
+                "deltas": {
+                  "along_center_m": 0.0,
+                  "sill_m": 0.0,
+                  "head_m": 0.0,
+                  "width_m": 0.0
+                },
+                "overlap_ratio": 1.0,
+                "overlap_fraction": 1.0,
+                "gt_coverage": 1.0,
+                "product_coverage": 1.0
+              },
+              {
+                "status": "complete",
+                "facade": "South",
+                "floor": "Floor 2",
+                "orientation": "aligned",
+                "source_id": "S5",
+                "truth": {
+                  "id": "South/Floor 2/1",
+                  "span": [
+                    4.11,
+                    5.31
+                  ],
+                  "z": [
+                    4.0,
+                    5.8
+                  ],
+                  "center": 4.71,
+                  "width": 1.2
+                },
+                "read": {
+                  "span": [
+                    4.11,
+                    5.31
+                  ],
+                  "z": [
+                    4.0,
+                    5.8
+                  ],
+                  "center": 4.71,
+                  "width": 1.2,
+                  "source_id": "S5",
+                  "source_span": [
+                    4.11,
+                    5.31
+                  ]
+                },
+                "product_box": {
+                  "span": [
+                    4.11,
+                    5.31
+                  ],
+                  "z": [
+                    4.0,
+                    5.8
+                  ],
+                  "center": 4.71,
+                  "width": 1.2,
+                  "source_id": "S5",
+                  "source_span": [
+                    4.11,
+                    5.31
+                  ]
+                },
+                "gt_box": {
+                  "id": "South/Floor 2/1",
+                  "span": [
+                    4.11,
+                    5.31
+                  ],
+                  "z": [
+                    4.0,
+                    5.8
+                  ],
+                  "center": 4.71,
+                  "width": 1.2
+                },
+                "deltas": {
+                  "along_center_m": 0.0,
+                  "sill_m": 0.0,
+                  "head_m": 0.0,
+                  "width_m": 0.0
+                },
+                "overlap_ratio": 1.0,
+                "overlap_fraction": 1.0,
+                "gt_coverage": 1.0,
+                "product_coverage": 1.0
+              },
+              {
+                "status": "complete",
+                "facade": "South",
+                "floor": "Floor 2",
+                "orientation": "aligned",
+                "source_id": "S6",
+                "truth": {
+                  "id": "South/Floor 2/2",
+                  "span": [
+                    9.69,
+                    10.89
+                  ],
+                  "z": [
+                    4.0,
+                    5.8
+                  ],
+                  "center": 10.29,
+                  "width": 1.2
+                },
+                "read": {
+                  "span": [
+                    9.69,
+                    10.89
+                  ],
+                  "z": [
+                    4.0,
+                    5.8
+                  ],
+                  "center": 10.29,
+                  "width": 1.2,
+                  "source_id": "S6",
+                  "source_span": [
+                    9.69,
+                    10.89
+                  ]
+                },
+                "product_box": {
+                  "span": [
+                    9.69,
+                    10.89
+                  ],
+                  "z": [
+                    4.0,
+                    5.8
+                  ],
+                  "center": 10.29,
+                  "width": 1.2,
+                  "source_id": "S6",
+                  "source_span": [
+                    9.69,
+                    10.89
+                  ]
+                },
+                "gt_box": {
+                  "id": "South/Floor 2/2",
+                  "span": [
+                    9.69,
+                    10.89
+                  ],
+                  "z": [
+                    4.0,
+                    5.8
+                  ],
+                  "center": 10.29,
+                  "width": 1.2
+                },
+                "deltas": {
+                  "along_center_m": 0.0,
+                  "sill_m": 0.0,
+                  "head_m": 0.0,
+                  "width_m": 0.0
+                },
+                "overlap_ratio": 1.0,
+                "overlap_fraction": 1.0,
+                "gt_coverage": 1.0,
+                "product_coverage": 1.0
+              },
+              {
+                "status": "complete",
+                "facade": "South",
+                "floor": "Floor 2",
+                "orientation": "aligned",
+                "source_id": "S7",
+                "truth": {
+                  "id": "South/Floor 2/3",
+                  "span": [
+                    11.61,
+                    12.81
+                  ],
+                  "z": [
+                    4.0,
+                    5.8
+                  ],
+                  "center": 12.21,
+                  "width": 1.2
+                },
+                "read": {
+                  "span": [
+                    11.61,
+                    12.81
+                  ],
+                  "z": [
+                    4.0,
+                    5.8
+                  ],
+                  "center": 12.21,
+                  "width": 1.2,
+                  "source_id": "S7",
+                  "source_span": [
+                    11.61,
+                    12.81
+                  ]
+                },
+                "product_box": {
+                  "span": [
+                    11.61,
+                    12.81
+                  ],
+                  "z": [
+                    4.0,
+                    5.8
+                  ],
+                  "center": 12.21,
+                  "width": 1.2,
+                  "source_id": "S7",
+                  "source_span": [
+                    11.61,
+                    12.81
+                  ]
+                },
+                "gt_box": {
+                  "id": "South/Floor 2/3",
+                  "span": [
+                    11.61,
+                    12.81
+                  ],
+                  "z": [
+                    4.0,
+                    5.8
+                  ],
+                  "center": 12.21,
+                  "width": 1.2
+                },
+                "deltas": {
+                  "along_center_m": 0.0,
+                  "sill_m": 0.0,
+                  "head_m": 0.0,
+                  "width_m": 0.0
+                },
+                "overlap_ratio": 1.0,
+                "overlap_fraction": 1.0,
+                "gt_coverage": 1.0,
+                "product_coverage": 1.0
+              }
+            ],
+            "extras": []
+          }
+        }
+      },
+      "East": {
+        "orientation": "ambiguous",
+        "span_limit_m": 8.0,
+        "floors": {
+          "Floor 1": {
+            "facade": "East",
+            "floor": "Floor 1",
+            "orientation": "ambiguous",
+            "no_data": false,
+            "gt_count": 1,
+            "read_count": 1,
+            "matched_total": 1,
+            "placed_hit_total": 1,
+            "complete_total": 1,
+            "within_tol_total": 0,
+            "matches": [
+              {
+                "status": "complete",
+                "facade": "East",
+                "floor": "Floor 1",
+                "orientation": "ambiguous",
+                "source_id": "S5",
+                "truth": {
+                  "id": "East/Floor 1/0",
+                  "span": [
+                    3.4,
+                    4.6
+                  ],
+                  "z": [
+                    1.0,
+                    2.8
+                  ],
+                  "center": 4.0,
+                  "width": 1.2
+                },
+                "read": {
+                  "span": [
+                    3.4,
+                    4.6
+                  ],
+                  "z": [
+                    1.0,
+                    2.8
+                  ],
+                  "center": 4.0,
+                  "width": 1.2,
+                  "source_id": "S5",
+                  "source_span": [
+                    3.4,
+                    4.6
+                  ]
+                },
+                "product_box": {
+                  "span": [
+                    3.4,
+                    4.6
+                  ],
+                  "z": [
+                    1.0,
+                    2.8
+                  ],
+                  "center": 4.0,
+                  "width": 1.2,
+                  "source_id": "S5",
+                  "source_span": [
+                    3.4,
+                    4.6
+                  ]
+                },
+                "gt_box": {
+                  "id": "East/Floor 1/0",
+                  "span": [
+                    3.4,
+                    4.6
+                  ],
+                  "z": [
+                    1.0,
+                    2.8
+                  ],
+                  "center": 4.0,
+                  "width": 1.2
+                },
+                "deltas": {
+                  "along_center_m": 0.0,
+                  "sill_m": 0.0,
+                  "head_m": 0.0,
+                  "width_m": 0.0
+                },
+                "overlap_ratio": 1.0,
+                "overlap_fraction": 1.0,
+                "gt_coverage": 1.0,
+                "product_coverage": 1.0
+              }
+            ],
+            "extras": []
+          },
+          "Floor 2": {
+            "facade": "East",
+            "floor": "Floor 2",
+            "orientation": "ambiguous",
+            "no_data": false,
+            "gt_count": 1,
+            "read_count": 1,
+            "matched_total": 1,
+            "placed_hit_total": 1,
+            "complete_total": 1,
+            "within_tol_total": 0,
+            "matches": [
+              {
+                "status": "complete",
+                "facade": "East",
+                "floor": "Floor 2",
+                "orientation": "ambiguous",
+                "source_id": "S4",
+                "truth": {
+                  "id": "East/Floor 2/0",
+                  "span": [
+                    3.4,
+                    4.6
+                  ],
+                  "z": [
+                    4.0,
+                    5.8
+                  ],
+                  "center": 4.0,
+                  "width": 1.2
+                },
+                "read": {
+                  "span": [
+                    3.4,
+                    4.6
+                  ],
+                  "z": [
+                    4.0,
+                    5.8
+                  ],
+                  "center": 4.0,
+                  "width": 1.2,
+                  "source_id": "S4",
+                  "source_span": [
+                    3.4,
+                    4.6
+                  ]
+                },
+                "product_box": {
+                  "span": [
+                    3.4,
+                    4.6
+                  ],
+                  "z": [
+                    4.0,
+                    5.8
+                  ],
+                  "center": 4.0,
+                  "width": 1.2,
+                  "source_id": "S4",
+                  "source_span": [
+                    3.4,
+                    4.6
+                  ]
+                },
+                "gt_box": {
+                  "id": "East/Floor 2/0",
+                  "span": [
+                    3.4,
+                    4.6
+                  ],
+                  "z": [
+                    4.0,
+                    5.8
+                  ],
+                  "center": 4.0,
+                  "width": 1.2
+                },
+                "deltas": {
+                  "along_center_m": 0.0,
+                  "sill_m": 0.0,
+                  "head_m": 0.0,
+                  "width_m": 0.0
+                },
+                "overlap_ratio": 1.0,
+                "overlap_fraction": 1.0,
+                "gt_coverage": 1.0,
+                "product_coverage": 1.0
+              }
+            ],
+            "extras": []
+          }
+        }
+      },
+      "West": {
+        "orientation": "ambiguous",
+        "span_limit_m": 8.0,
+        "floors": {
+          "Floor 1": {
+            "facade": "West",
+            "floor": "Floor 1",
+            "orientation": "ambiguous",
+            "no_data": false,
+            "gt_count": 0,
+            "read_count": 0,
+            "matched_total": 0,
+            "placed_hit_total": 0,
+            "complete_total": 0,
+            "within_tol_total": 0,
+            "matches": [],
+            "extras": []
+          },
+          "Floor 2": {
+            "facade": "West",
+            "floor": "Floor 2",
+            "orientation": "ambiguous",
+            "no_data": false,
+            "gt_count": 1,
+            "read_count": 1,
+            "matched_total": 1,
+            "placed_hit_total": 1,
+            "complete_total": 1,
+            "within_tol_total": 0,
+            "matches": [
+              {
+                "status": "complete",
+                "facade": "West",
+                "floor": "Floor 2",
+                "orientation": "ambiguous",
+                "source_id": "S4",
+                "truth": {
+                  "id": "West/Floor 2/0",
+                  "span": [
+                    3.4,
+                    4.6
+                  ],
+                  "z": [
+                    4.0,
+                    5.8
+                  ],
+                  "center": 4.0,
+                  "width": 1.2
+                },
+                "read": {
+                  "span": [
+                    3.4,
+                    4.6
+                  ],
+                  "z": [
+                    4.0,
+                    5.8
+                  ],
+                  "center": 4.0,
+                  "width": 1.2,
+                  "source_id": "S4",
+                  "source_span": [
+                    3.4,
+                    4.6
+                  ]
+                },
+                "product_box": {
+                  "span": [
+                    3.4,
+                    4.6
+                  ],
+                  "z": [
+                    4.0,
+                    5.8
+                  ],
+                  "center": 4.0,
+                  "width": 1.2,
+                  "source_id": "S4",
+                  "source_span": [
+                    3.4,
+                    4.6
+                  ]
+                },
+                "gt_box": {
+                  "id": "West/Floor 2/0",
+                  "span": [
+                    3.4,
+                    4.6
+                  ],
+                  "z": [
+                    4.0,
+                    5.8
+                  ],
+                  "center": 4.0,
+                  "width": 1.2
+                },
+                "deltas": {
+                  "along_center_m": 0.0,
+                  "sill_m": 0.0,
+                  "head_m": 0.0,
+                  "width_m": 0.0
+                },
+                "overlap_ratio": 1.0,
+                "overlap_fraction": 1.0,
+                "gt_coverage": 1.0,
+                "product_coverage": 1.0
+              }
+            ],
+            "extras": []
+          }
+        }
+      }
+    },
+    "floor_lines": {
+      "North": {
+        "facade": "North",
+        "gt_floor_lines": [
+          0.0,
+          3.0,
+          6.6
+        ],
+        "product_floor_lines": [
+          0.0,
+          3.0,
+          6.6
+        ],
+        "matches": [
+          {
+            "facade": "North",
+            "gt_z": 0.0,
+            "product_z": 0.0,
+            "status": "complete",
+            "delta": 0.0
+          },
+          {
+            "facade": "North",
+            "gt_z": 3.0,
+            "product_z": 3.0,
+            "status": "complete",
+            "delta": 0.0
+          },
+          {
+            "facade": "North",
+            "gt_z": 6.6,
+            "product_z": 6.6,
+            "status": "complete",
+            "delta": 0.0
+          }
+        ],
+        "extras": [],
+        "no_data": false,
+        "no_data_reason": null
+      },
+      "South": {
+        "facade": "South",
+        "gt_floor_lines": [
+          0.0,
+          3.0,
+          6.6
+        ],
+        "product_floor_lines": [
+          0.0,
+          3.0,
+          6.6
+        ],
+        "matches": [
+          {
+            "facade": "South",
+            "gt_z": 0.0,
+            "product_z": 0.0,
+            "status": "complete",
+            "delta": 0.0
+          },
+          {
+            "facade": "South",
+            "gt_z": 3.0,
+            "product_z": 3.0,
+            "status": "complete",
+            "delta": 0.0
+          },
+          {
+            "facade": "South",
+            "gt_z": 6.6,
+            "product_z": 6.6,
+            "status": "complete",
+            "delta": 0.0
+          }
+        ],
+        "extras": [],
+        "no_data": false,
+        "no_data_reason": null
+      },
+      "East": {
+        "facade": "East",
+        "gt_floor_lines": [
+          0.0,
+          3.0,
+          6.6
+        ],
+        "product_floor_lines": [
+          0.0,
+          3.0,
+          6.6
+        ],
+        "matches": [
+          {
+            "facade": "East",
+            "gt_z": 0.0,
+            "product_z": 0.0,
+            "status": "complete",
+            "delta": 0.0
+          },
+          {
+            "facade": "East",
+            "gt_z": 3.0,
+            "product_z": 3.0,
+            "status": "complete",
+            "delta": 0.0
+          },
+          {
+            "facade": "East",
+            "gt_z": 6.6,
+            "product_z": 6.6,
+            "status": "complete",
+            "delta": 0.0
+          }
+        ],
+        "extras": [],
+        "no_data": false,
+        "no_data_reason": null
+      },
+      "West": {
+        "facade": "West",
+        "gt_floor_lines": [
+          0.0,
+          3.0,
+          6.6
+        ],
+        "product_floor_lines": [
+          0.0,
+          3.0,
+          6.6
+        ],
+        "matches": [
+          {
+            "facade": "West",
+            "gt_z": 0.0,
+            "product_z": 0.0,
+            "status": "complete",
+            "delta": 0.0
+          },
+          {
+            "facade": "West",
+            "gt_z": 3.0,
+            "product_z": 3.0,
+            "status": "complete",
+            "delta": 0.0
+          },
+          {
+            "facade": "West",
+            "gt_z": 6.6,
+            "product_z": 6.6,
+            "status": "complete",
+            "delta": 0.0
+          }
+        ],
+        "extras": [],
+        "no_data": false,
+        "no_data_reason": null
+      }
+    },
+    "boundary": {
+      "North": {
+        "floors": {
+          "Floor 1": {
+            "side_left": {
+              "source_boundary": "W",
+              "status": "complete",
+              "truth": 0.0,
+              "product": 0.12,
+              "delta": 0.12
+            },
+            "side_right": {
+              "source_boundary": "E",
+              "status": "complete",
+              "truth": 15.0,
+              "product": 14.88,
+              "delta": -0.12
+            }
+          },
+          "Floor 2": {
+            "side_left": {
+              "source_boundary": "W",
+              "status": "complete",
+              "truth": 0.0,
+              "product": 0.12,
+              "delta": 0.12
+            },
+            "side_right": {
+              "source_boundary": "E",
+              "status": "complete",
+              "truth": 15.0,
+              "product": 14.88,
+              "delta": -0.12
+            }
+          }
+        }
+      },
+      "South": {
+        "floors": {
+          "Floor 1": {
+            "side_left": {
+              "source_boundary": "W",
+              "status": "complete",
+              "truth": 0.0,
+              "product": 0.12,
+              "delta": 0.12
+            },
+            "side_right": {
+              "source_boundary": "E",
+              "status": "complete",
+              "truth": 15.0,
+              "product": 14.88,
+              "delta": -0.12
+            }
+          },
+          "Floor 2": {
+            "side_left": {
+              "source_boundary": "W",
+              "status": "complete",
+              "truth": 0.0,
+              "product": 0.12,
+              "delta": 0.12
+            },
+            "side_right": {
+              "source_boundary": "E",
+              "status": "complete",
+              "truth": 15.0,
+              "product": 14.88,
+              "delta": -0.12
+            }
+          }
+        }
+      },
+      "East": {
+        "floors": {
+          "Floor 1": {
+            "side_left": {
+              "source_boundary": "S",
+              "status": "complete",
+              "truth": 0.0,
+              "product": 0.12,
+              "delta": 0.12
+            },
+            "side_right": {
+              "source_boundary": "N",
+              "status": "complete",
+              "truth": 8.0,
+              "product": 7.88,
+              "delta": -0.12
+            }
+          },
+          "Floor 2": {
+            "side_left": {
+              "source_boundary": "S",
+              "status": "complete",
+              "truth": 0.0,
+              "product": 0.12,
+              "delta": 0.12
+            },
+            "side_right": {
+              "source_boundary": "N",
+              "status": "complete",
+              "truth": 8.0,
+              "product": 7.88,
+              "delta": -0.12
+            }
+          }
+        }
+      },
+      "West": {
+        "floors": {
+          "Floor 1": {
+            "side_left": {
+              "source_boundary": "S",
+              "status": "complete",
+              "truth": 0.0,
+              "product": 0.12,
+              "delta": 0.12
+            },
+            "side_right": {
+              "source_boundary": "N",
+              "status": "complete",
+              "truth": 8.0,
+              "product": 7.88,
+              "delta": -0.12
+            }
+          },
+          "Floor 2": {
+            "side_left": {
+              "source_boundary": "S",
+              "status": "complete",
+              "truth": 0.0,
+              "product": 0.12,
+              "delta": 0.12
+            },
+            "side_right": {
+              "source_boundary": "N",
+              "status": "complete",
+              "truth": 8.0,
+              "product": 7.88,
+              "delta": -0.12
+            }
+          }
+        }
+      }
+    },
+    "evidence": []
+  },
+  "floor_map": {},
+  "evidence": [],
+  "score_criteria": [
+    {
+      "criterion": "walls_complete",
+      "suggested_status": "severe",
+      "evidence": "wall_hits=8/9; missed=1; extra=1; max_offset_m=0.06; wall_tol_m=0.3",
+      "floors": [
+        {
+          "key": "1f_view",
+          "floor": "Floor 1",
+          "wall_hits": 3,
+          "wall_total": 4,
+          "boundary_hits": 4,
+          "boundary_total": 4,
+          "boundary_no_data": false,
+          "window_hits": 2,
+          "window_total": 3,
+          "extra_walls": 1,
+          "extra_windows": 0,
+          "wall_status_counts": {
+            "complete": 0,
+            "within_tol": 3,
+            "miss": 1,
+            "extra": 1
+          },
+          "window_status_counts": {
+            "complete": 1,
+            "within_tol": 1,
+            "miss": 1,
+            "extra": 0
+          },
+          "max_wall_offset_m": 0.06
+        },
+        {
+          "key": "2f_view",
+          "floor": "Floor 2",
+          "wall_hits": 5,
+          "wall_total": 5,
+          "boundary_hits": 4,
+          "boundary_total": 4,
+          "boundary_no_data": false,
+          "window_hits": 3,
+          "window_total": 4,
+          "extra_walls": 0,
+          "extra_windows": 0,
+          "wall_status_counts": {
+            "complete": 0,
+            "within_tol": 5,
+            "miss": 0,
+            "extra": 0
+          },
+          "window_status_counts": {
+            "complete": 3,
+            "within_tol": 0,
+            "miss": 1,
+            "extra": 0
+          },
+          "max_wall_offset_m": 0.04
+        }
+      ]
+    },
+    {
+      "criterion": "windows_placed",
+      "suggested_status": "severe",
+      "evidence": "window_hits=5/7; missed=2; extra=0; hit_ratio=0.714; centre_tol_m=0.4",
+      "floors": [
+        {
+          "key": "1f_view",
+          "floor": "Floor 1",
+          "wall_hits": 3,
+          "wall_total": 4,
+          "boundary_hits": 4,
+          "boundary_total": 4,
+          "boundary_no_data": false,
+          "window_hits": 2,
+          "window_total": 3,
+          "extra_walls": 1,
+          "extra_windows": 0,
+          "wall_status_counts": {
+            "complete": 0,
+            "within_tol": 3,
+            "miss": 1,
+            "extra": 1
+          },
+          "window_status_counts": {
+            "complete": 1,
+            "within_tol": 1,
+            "miss": 1,
+            "extra": 0
+          },
+          "max_wall_offset_m": 0.06
+        },
+        {
+          "key": "2f_view",
+          "floor": "Floor 2",
+          "wall_hits": 5,
+          "wall_total": 5,
+          "boundary_hits": 4,
+          "boundary_total": 4,
+          "boundary_no_data": false,
+          "window_hits": 3,
+          "window_total": 4,
+          "extra_walls": 0,
+          "extra_windows": 0,
+          "wall_status_counts": {
+            "complete": 0,
+            "within_tol": 5,
+            "miss": 0,
+            "extra": 0
+          },
+          "window_status_counts": {
+            "complete": 3,
+            "within_tol": 0,
+            "miss": 1,
+            "extra": 0
+          },
+          "max_wall_offset_m": 0.04
+        }
+      ]
+    },
+    {
+      "criterion": "boundary_complete",
+      "suggested_status": "pass",
+      "evidence": "boundary_hits=8/8; missed=0; no_data_floors=0; wall_tol_m=0.3",
+      "floors": [
+        {
+          "key": "1f_view",
+          "floor": "Floor 1",
+          "wall_hits": 3,
+          "wall_total": 4,
+          "boundary_hits": 4,
+          "boundary_total": 4,
+          "boundary_no_data": false,
+          "window_hits": 2,
+          "window_total": 3,
+          "extra_walls": 1,
+          "extra_windows": 0,
+          "wall_status_counts": {
+            "complete": 0,
+            "within_tol": 3,
+            "miss": 1,
+            "extra": 1
+          },
+          "window_status_counts": {
+            "complete": 1,
+            "within_tol": 1,
+            "miss": 1,
+            "extra": 0
+          },
+          "max_wall_offset_m": 0.06
+        },
+        {
+          "key": "2f_view",
+          "floor": "Floor 2",
+          "wall_hits": 5,
+          "wall_total": 5,
+          "boundary_hits": 4,
+          "boundary_total": 4,
+          "boundary_no_data": false,
+          "window_hits": 3,
+          "window_total": 4,
+          "extra_walls": 0,
+          "extra_windows": 0,
+          "wall_status_counts": {
+            "complete": 0,
+            "within_tol": 5,
+            "miss": 0,
+            "extra": 0
+          },
+          "window_status_counts": {
+            "complete": 3,
+            "within_tol": 0,
+            "miss": 1,
+            "extra": 0
+          },
+          "max_wall_offset_m": 0.04
+        }
+      ]
+    },
+    {
+      "criterion": "no_oversplit",
+      "suggested_status": "minor",
+      "evidence": "extra_vwalls+extra_hwalls=1; minor_threshold=2",
+      "floors": [
+        {
+          "key": "1f_view",
+          "floor": "Floor 1",
+          "wall_hits": 3,
+          "wall_total": 4,
+          "boundary_hits": 4,
+          "boundary_total": 4,
+          "boundary_no_data": false,
+          "window_hits": 2,
+          "window_total": 3,
+          "extra_walls": 1,
+          "extra_windows": 0,
+          "wall_status_counts": {
+            "complete": 0,
+            "within_tol": 3,
+            "miss": 1,
+            "extra": 1
+          },
+          "window_status_counts": {
+            "complete": 1,
+            "within_tol": 1,
+            "miss": 1,
+            "extra": 0
+          },
+          "max_wall_offset_m": 0.06
+        },
+        {
+          "key": "2f_view",
+          "floor": "Floor 2",
+          "wall_hits": 5,
+          "wall_total": 5,
+          "boundary_hits": 4,
+          "boundary_total": 4,
+          "boundary_no_data": false,
+          "window_hits": 3,
+          "window_total": 4,
+          "extra_walls": 0,
+          "extra_windows": 0,
+          "wall_status_counts": {
+            "complete": 0,
+            "within_tol": 5,
+            "miss": 0,
+            "extra": 0
+          },
+          "window_status_counts": {
+            "complete": 3,
+            "within_tol": 0,
+            "miss": 1,
+            "extra": 0
+          },
+          "max_wall_offset_m": 0.04
+        }
+      ]
+    },
+    {
+      "criterion": "elevation_windows_placed",
+      "suggested_status": "minor",
+      "evidence": "elevation_placed=14/15; complete=13; within_tol=1; missed=1; extra=1; no_data_floor_facades=0; hit_ratio=0.933; along_tol_m=0.4; sill_tol_m=0.3; head_tol_m=0.3; width_tol_m=0.4; overlap_accept=0.75; overlap_complete=0.95",
+      "floors": [
+        {
+          "facade": "North",
+          "floor": "Floor 1",
+          "orientation": "ambiguous",
+          "no_data": false,
+          "gt_count": 3,
+          "read_count": 3,
+          "matched_total": 3,
+          "placed_hit_total": 3,
+          "complete_total": 3,
+          "within_tol_total": 0,
+          "miss_total": 0,
+          "extra_total": 0
+        },
+        {
+          "facade": "North",
+          "floor": "Floor 2",
+          "orientation": "ambiguous",
+          "no_data": false,
+          "gt_count": 2,
+          "read_count": 2,
+          "matched_total": 2,
+          "placed_hit_total": 2,
+          "complete_total": 2,
+          "within_tol_total": 0,
+          "miss_total": 0,
+          "extra_total": 0
+        },
+        {
+          "facade": "South",
+          "floor": "Floor 1",
+          "orientation": "aligned",
+          "no_data": false,
+          "gt_count": 3,
+          "read_count": 3,
+          "matched_total": 2,
+          "placed_hit_total": 1,
+          "complete_total": 1,
+          "within_tol_total": 1,
+          "miss_total": 1,
+          "extra_total": 1
+        },
+        {
+          "facade": "South",
+          "floor": "Floor 2",
+          "orientation": "aligned",
+          "no_data": false,
+          "gt_count": 4,
+          "read_count": 4,
+          "matched_total": 4,
+          "placed_hit_total": 4,
+          "complete_total": 4,
+          "within_tol_total": 0,
+          "miss_total": 0,
+          "extra_total": 0
+        },
+        {
+          "facade": "East",
+          "floor": "Floor 1",
+          "orientation": "ambiguous",
+          "no_data": false,
+          "gt_count": 1,
+          "read_count": 1,
+          "matched_total": 1,
+          "placed_hit_total": 1,
+          "complete_total": 1,
+          "within_tol_total": 0,
+          "miss_total": 0,
+          "extra_total": 0
+        },
+        {
+          "facade": "East",
+          "floor": "Floor 2",
+          "orientation": "ambiguous",
+          "no_data": false,
+          "gt_count": 1,
+          "read_count": 1,
+          "matched_total": 1,
+          "placed_hit_total": 1,
+          "complete_total": 1,
+          "within_tol_total": 0,
+          "miss_total": 0,
+          "extra_total": 0
+        },
+        {
+          "facade": "West",
+          "floor": "Floor 1",
+          "orientation": "ambiguous",
+          "no_data": false,
+          "gt_count": 0,
+          "read_count": 0,
+          "matched_total": 0,
+          "placed_hit_total": 0,
+          "complete_total": 0,
+          "within_tol_total": 0,
+          "miss_total": 0,
+          "extra_total": 0
+        },
+        {
+          "facade": "West",
+          "floor": "Floor 2",
+          "orientation": "ambiguous",
+          "no_data": false,
+          "gt_count": 1,
+          "read_count": 1,
+          "matched_total": 1,
+          "placed_hit_total": 1,
+          "complete_total": 1,
+          "within_tol_total": 0,
+          "miss_total": 0,
+          "extra_total": 0
+        }
+      ]
+    }
+  ]
+}
