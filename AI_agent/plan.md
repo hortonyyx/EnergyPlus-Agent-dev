@@ -30,9 +30,30 @@
 
 ### 二、待落（下轮第一件事）
 
+> **⭐ 2026-08-05 16:50 更新（本轮续开工，用户拍板三条）**：
+> ① **F-7 走「代码侧翻译」** —— 模型在 `source_ids` 填它看得见的观测引用 `<图名>/<笔画编号>`（`1f_view/S11`），
+>    **由代码翻译成 locator**；合法引用清单从建 locator 的**同一个出口机械导出**后注入 prompt。
+>    `_claim_links` 的严格校验**一个字不放宽**。⛔ 否决「把 64 位 locator 塞进 prompt 让模型誊抄」
+>    （抄长哈希脆 + `output_sha256` 每 run 变、prompt 不可缓存）。
+>    **⇒ B5 契约里 `source_ids` 的语义变更为「观测引用」，用户已认。**
+> ② **源绑定失败分两类** —— 模型抽签写错 ⇒ **归档成失败 attempt + 盲重抽**（与 `correction_draw_issues` 一致）；
+>    识图产物本身对不上/被篡改 ⇒ **保持硬崩**。**分类必须落在错误类型/抛出点上，⛔ 不许匹配错误消息文字判类、⛔ 不许兜底默认。**
+> ③ **r4 押到下轮**（属 reading 支线，与本轮端到端主线无关）。
+>
+> **派工（用户拍板：小活给 GLM，F-7 给 Claude 侧 Sonnet 子代理，两批做完一起 sol 审）**：
+> - F-2c 收口 → **GLM-5.2**，主工作树，派工单 [`request/2026-08-05_f2c_closeout_dispatch_glm.md`](logs/reviews/request/2026-08-05_f2c_closeout_dispatch_glm.md)
+> - F-7 → **Claude 侧 Sonnet 子代理**，**独立 git worktree**（两者都动 `window_sources.py` 的不同区域，隔离防撞车），
+>   派工单 [`request/2026-08-05_f7_source_ids_dispatch_sonnet.md`](logs/reviews/request/2026-08-05_f7_source_ids_dispatch_sonnet.md)
+> - 交叉对抗审 → **sol（GPT 侧，跨家族，谁写谁不批）**，请求书骨架
+>   [`request/2026-08-05_f2c_f7_crossreview_brief_sol.md`](logs/reviews/request/2026-08-05_f2c_f7_crossreview_brief_sol.md)
+>
+> **⭐ F-7 的核心验收条件（写死在派工单里）= 必须在 07-07 那份真实 sm21 产物上跑通 1_correction 出 accepted attempt。**
+> 理由：F-5/F-7 这一族缺陷的定义就是「测试绿、真链路崩」⇒ **夹具自洽不算数、只有真实产物跑通才算修好。**
+> 跑测一律 `exploratory` 档（用户 08-05：「现在你确保不会拦端到端就行」）。
+
 | # | 事项 | 状态 |
 |---|---|---|
-| **F-6** | correction 抽签 `provenance` 产出 `transcribed_dimension`/`inferred_topology`，schema 只认 `observed/derived/assumed` ⇒ **三抽全废**。判定 = **F-4 那套 vocab 机制的覆盖面缺口**，把枚举纳入同一套机械导出 | GLM 半成品在工作树（`vocab.py` +54），**撞 5h 额度**（16:03 北京重置） |
+| **F-6** | correction 抽签 `provenance` 产出 `transcribed_dimension`/`inferred_topology`，schema 只认 `observed/derived/assumed` ⇒ **三抽全废**。判定 = **F-4 那套 vocab 机制的覆盖面缺口**，把枚举纳入同一套机械导出 | ✅ **已落库 `9fd8a9a`**（`vocab.py` +56 / 4 把锁 / 双向 neuter 验分辨力 / 全仓 2193 绿 10 xfail 0 红）—— 上方表述写于落库前，此处更正 |
 | **F-7** | **⭐ 已由 GLM 调查完毕，orchestrator 的两个预设**（残留产物 / 走 F-4 回灌通道）**双双被证伪** ——
   真缺陷 = **接口错位，F-5 的双胞胎**：`_claim_links` 要求 `source_ids` 填 **locator**，
   而 ① correction 的 prompt 从不提 locator/`src:` 格式（`pipeline.py:329` 正文 grep 零命中）；
@@ -44,10 +65,11 @@
   **⇒ 修法必须在接口层**（把 locator 目录注入 prompt，或在代码层把 observation id 映射成 locator），
   ⛔ 不放宽 `_claim_links`、⛔ 不手搓第二份 locator 词表。**下轮第一件事 = orchestrator 拍这个方向。**
   **附带待裁**：`_claim_links` raise 会**硬崩 flow**（`step_orchestrator.py:251` 的 `draw_fn` 异常直接穿出，
-  不归档为失败 attempt、不盲重抽），与 `correction_draw_issues` 的「归档重抽」不一致 —— 独立口径，排在接口修法之后 | 调查完成，**修法方向待拍板** |
-| **F-2c** | 隔离 merge 不写扁平镜像 ⇒ 打不通 `0_reading→1_correction`。**orchestrator 已裁定**（`2026-08-05_f2c_boundary_ruling.md`）：merge 写镜像 + 校验器按 accepted 契约形状重建；**探测器从 judge 包搬到 `src/agent/reading/contract.py`**（原派工单让它引用 judge 代码、撞 B5 A6 judge-blind 硬边界 —— **我的题出错了**） | GLM 改动在工作树，待收口 |
-| **r4** | 产品库正式恢复 reading 的 **review 环**（`session_kickoff.md` + `isolation.py:729` 成对改，保留 `95ba3dc` 带来的 §6 自检段）。⛔ 明确不回退 `d246c90`/`b8f9a8d`/`15cfcb8`（与 merge 门、gate① 耦合） | 已派，未开工 |
-| **验收** | 拿 07-07 好 reading 跑到 **EP 完成 · 0 severe** | 卡在 F-6 |
+  不归档为失败 attempt、不盲重抽），与 `correction_draw_issues` 的「归档重抽」不一致 —— 独立口径，排在接口修法之后 | ✅ **已落库 `a174fe8` → merge `86ab24b`（Sonnet 施工）· orchestrator 轻门 PASS**（[轻门](logs/reviews/verdict/2026-08-05_f7_source_ids_orchestrator_lightgate.md)）。**独立全量 2212 绿 / 10 xfail / 0 红**（2197 + 15 锁，零回归）。**独立 neuter 三个方向各自绑住各自的锁**：禁用翻译 ⇒ 恰好 8 条翻译相关红、其余 7 绿；分类一律判「模型错」⇒ 只红「输入坏必须硬崩」；一律判「输入错」⇒ 只红「模型错必须归档重抽」。**⭐ 真链路证据**：attempt 001 因 `source_claim_undeclared`（平面来源挂 `appearance`）被**归档重抽而非硬崩**⇒ 新分类真链路生效；重抽那次**完全通过 `_claim_links`**、死在更深的 `resolve_window_hosts` ⇒ **死点确已越过**。⚠️ **提交由 orchestrator 代做**（施工席收尾前撞 5h 额度窗）|
+| **F-2c** | 隔离 merge 不写扁平镜像 ⇒ 打不通 `0_reading→1_correction`。**orchestrator 已裁定**（`2026-08-05_f2c_boundary_ruling.md`）：merge 写镜像 + 校验器按 accepted 契约形状重建；**探测器从 judge 包搬到 `src/agent/reading/contract.py`**（原派工单让它引用 judge 代码、撞 B5 A6 judge-blind 硬边界 —— **我的题出错了**） | ✅ **已落库 `a8c367a`（GLM 施工）· orchestrator 轻门 PASS**（[轻门](logs/reviews/verdict/2026-08-05_f2c_closeout_orchestrator_lightgate.md)）。探测器搬到 `src/agent/reading/contract.py`（零 judge 依赖）、judge 侧纯 re-export 同一对象、`window_sources.py` 改从 reading 包导入 ⇒ **B5 A6 守卫一字未改而恢复绿**。**独立全量 2197 绿 / 10 xfail / 0 红**（基线 2193，净增 4 锁零回归）。**独立 neuter 两个方向各自绑住**（遮蔽 re-export ⇒ 红在 `is` 断言；换不影响 `is` 的模块加第二个 def ⇒ 红在源码扫描断言）。顺带收敛两处既存重复声明：`READING_CONTRACT_DETECTOR_VERSION` 两份 → 一份；`ReadingContractDecision.contract_id` 的 Literal 改由常量导出 |
+| **r4** | 产品库正式恢复 reading 的 **review 环**（`session_kickoff.md` + `isolation.py:729` 成对改，保留 `95ba3dc` 带来的 §6 自检段）。⛔ 明确不回退 `d246c90`/`b8f9a8d`/`15cfcb8`（与 merge 门、gate① 耦合） | **⏸ 用户 08-05 拍板押到下轮**（reading 支线，与本轮端到端主线无关）|
+| **⭐ F-8（新，08-05 撞出）** | **「全仓绿」是「这台机器工作目录」的属性，不是「这个提交」的属性** —— 主树 `case_tests/` 比干净检出**多 619 个被 `.gitignore` 挡住的文件**（`.gitignore:275 eplusout.*` · `:249 *.txt` 等：EP 输出 / correction·mep 原始 LLM 回复 / viewer HTML），**其中一部分是测试的活输入** ⇒ **干净 worktree / 新克隆 / CI 跑全仓必红 5 条**：`test_inspect_dxf::test_manifest_inspector_cli_exit_and_json_contract` · `test_checks_reading_correction::test_partition_on_window_jamb_real_restore_reading_r2_flags_four` · `test_gt_from_dxf::test_build_only_cli_round_trips_l_candidate_and_nonzero_north` · `test_reading_score::test_sm21_phase1_reading_score_regression_floor` · `test_validation_run_baseline::test_sm21_anchor_ep_clean`。**orchestrator 实测坐实**：同一份代码，主树 `a8c367a` = 2197 绿 0 红、这 5 条单独在主树跑 = 5 passed；干净 worktree = 5 红。**⇒ 与 F-5/F-7 同族：测试的绿证明不了它声称证明的东西。**（`test_validation_run_baseline.py:161` 的注释显示作者对 EP 输出被 ignore **部分知情**并为个别用例合成了 `.end`，但覆盖不全。）**修法方向未定，⛔ 不在本轮修** | **新登记，待排期** |
+| **验收** | 拿 07-07 好 reading 跑到 **EP 完成 · 0 severe** | 卡在 F-7（F-6 已解、F-2c 已收）|
 
 ### 三、reading（本轮停，下轮单开支线）—— 但拿到了**三条硬结论**
 
@@ -105,9 +127,22 @@
 
 1. **三个席位全撞过 5 小时额度窗**：Claude 侧 2 次（Sonnet 读图抽签，21:10 / 02:20 UTC 重置）、GLM 1 次（16:03 北京重置）。
    ⇒ 长批次要按额度窗排，读图抽签尤其贵。
-2. **⭐ GLM 三次「停下上报」，三次都是派工方（orchestrator）的题错了**：
-   ① 让它引用 judge 包的函数、撞 B5 A6 judge-blind 硬边界；② 把「窗源修好」与「整条 correction 跑过」绑成一个验收条件；
-   ③ 提交粒度（F-5 与 F-2c 共享一个文件）。**与 08-04 那条结论同型，第二次坐实。**
+2. **⭐⭐ 本轮共 6 次「施工席停下上报」，6 次都是派工方（orchestrator）的题错了 —— 且已跨家族复现**：
+   - **GLM ×4**：① 让它引用 judge 包的函数、撞 B5 A6 judge-blind 硬边界；② 把「窗源修好」与「整条 correction 跑过」
+     绑成一个验收条件；③ 提交粒度（F-5 与 F-2c 共享一个文件）；④ F-7 派工单的两个预设（残留产物 / 走 F-4 回灌通道）
+     被证据双双推翻。
+   - **⭐ Claude 侧 Sonnet ×2（08-05 16:5x，新增）**：⑤ orchestrator 给它开的 git worktree **基点开成了 `origin/main`**
+     而非当前分支 ⇒ 进去发现整批 08-04/08-05 提交与派工单本身全不存在；⑥ 修正指令发出后，那个 worktree
+     **已被系统回收**（子代理未改动过任何文件 ⇒ 触发自动清理），且 bash 的 cwd **回退到了主工作树**
+     （GLM 的在制品就在那儿）—— 它只跑只读命令确认后停下，**没有在共享主工作树上动手**。
+   - **⭐ 结论升级**：前四次全在 GLM，尚可解释为「某个席位比较谨慎」；**第五、六次跨到 Claude 家族仍然复现**
+     ⇒ **「停下上报」抓的一直是派工方的题，不是施工方的能力**。同时坐实**⑤⑥ 这一类是「环境/基点」的题，
+     不是「代码事实」的题** ⇒ **派工前的核实义务要扩到施工席的工作基点本身**
+     （worktree 从哪切、派工单文件在不在那个树里、cwd 落在哪），不能只核代码事实。
+   - **⭐ 附带一条好数据点**：Sonnet 拒绝自行 `reset --hard` 去凑基点，理由是派工单自陈「派工方本轮已出错四次」——
+     **而 `reset --hard` 恰好是 CLAUDE.md §5#7 明令禁止的操作**，它硬做反而违规。
+     ⇒ **在派工单里如实登记自己的错误率，是有防御价值的，不只是记账。**
+     （orchestrator 改用 `git merge --ff-only` / 手工 `git worktree add <path> -b <br> <sha>` 解决，未违规。）
 3. GLM 自己 neuter 出一把**假锁**（`StageRunner.record` 后漏 `manifest.save` ⇒ `verify` 在 `accepted is None` 提前退出、
    **根本没走到比较**）—— 又一个「锁必须落在真实入口」的实例。
 
