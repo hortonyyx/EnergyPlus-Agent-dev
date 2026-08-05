@@ -71,6 +71,98 @@
 | **⭐ F-8（新，08-05 撞出）** | **「全仓绿」是「这台机器工作目录」的属性，不是「这个提交」的属性** —— 主树 `case_tests/` 比干净检出**多 619 个被 `.gitignore` 挡住的文件**（`.gitignore:275 eplusout.*` · `:249 *.txt` 等：EP 输出 / correction·mep 原始 LLM 回复 / viewer HTML），**其中一部分是测试的活输入** ⇒ **干净 worktree / 新克隆 / CI 跑全仓必红 5 条**：`test_inspect_dxf::test_manifest_inspector_cli_exit_and_json_contract` · `test_checks_reading_correction::test_partition_on_window_jamb_real_restore_reading_r2_flags_four` · `test_gt_from_dxf::test_build_only_cli_round_trips_l_candidate_and_nonzero_north` · `test_reading_score::test_sm21_phase1_reading_score_regression_floor` · `test_validation_run_baseline::test_sm21_anchor_ep_clean`。**orchestrator 实测坐实**：同一份代码，主树 `a8c367a` = 2197 绿 0 红、这 5 条单独在主树跑 = 5 passed；干净 worktree = 5 红。**⇒ 与 F-5/F-7 同族：测试的绿证明不了它声称证明的东西。**（`test_validation_run_baseline.py:161` 的注释显示作者对 EP 输出被 ignore **部分知情**并为个别用例合成了 `.end`，但覆盖不全。）**修法方向未定，⛔ 不在本轮修** | **新登记，待排期** |
 | **验收** | 拿 07-07 好 reading 跑到 **EP 完成 · 0 severe** | 卡在 F-7（F-6 已解、F-2c 已收）|
 
+### 二之二、⭐⭐⭐ 08-05 下半场：两条探针把「未知空间」清了大半 + 新撞 F-8/F-9/F-10
+
+> **用户 08-05 定的打法**：「**能不能直接拿之前端到端跑通的中间产物直接来试呢？反正是探工程问题。**」
+> ⇒ 用 6 月那个真跑到 EP 的 golden run（`sm21_anchor/run_2026-06-16_opus_e2e`）的中间产物，
+> **绕开卡住的段**，把后面的段先撞一遍。**这个打法当场兑现了价值 —— 见 F-10。**
+
+#### 逐段体检结果（今日实测，唯一一张全景表）
+
+| 段 | v1/rectangular 路径 | v3 路径（真实 sm21） | 证据 |
+|---|---|---|---|
+| 0_reading | ✅ gate① 过（18 条 advisory，非阻断）| ✅ 已知可满分 | 探针 A · 07-07 老件 |
+| 1_correction | ✅ gate① 过（block 0 / flag 0）| 🔴 **F-9** | 探针 A · `run_2026-08-05_f7_verify_sonnet` |
+| 2_modelling | ✅ 14 区造面成功，**几何内核本身没坏** | ❓ 未测 | 探针 A |
+| 3_split_pairing | ✅ 序列化一致 | ❓ 未测 | 探针 A |
+| **4_mep** | 🔴 **F-10 硬崩** | 🔴 **同 F-10**（与档位无关）| 探针 A |
+| 5_intakeoutput | ❓ **不可达、零证据** | ❓ 未测 | 探针 A |
+| 下游 9 subagent → IDF → EP | ✅ **`EnergyPlus Completed Successfully-- 6 Warning; 0 Severe Errors`** | ✅ 同（契约逐字未变）| **探针 B** |
+
+**⇒ 今日全部缺陷集中在 0→4 段；下游半边实测健康。唯一未测到的是 5_intakeoutput。**
+
+#### ⭐⭐ F-10（本轮最有价值的一条）—— 4_mep 硬崩，**已断整整一个月无人发现**
+
+```
+TypeError: check_mep() got an unexpected keyword argument 'run_profile'
+```
+`check_mep` 形参 =`(mep, used_constructions, zone_names, geometry_idf, testdata, capability_profile)`（`src/validator/checks/mep.py:95`，**07-01** 定），
+而 `scripts/tool_scripts/run_stage.py:577` 传了 `run_profile=policy.run_profile`（**07-06** 加）。
+**⇒ 任何走 flow 跑到 4_mep 的 run 必崩，与 capability/run profile 无关。** orchestrator 已独立复核签名 + `git log -L` 定位两侧日期。
+
+**⭐ 方法论意义**：**F-9 一直遮着 F-10**。不绕开前面的墙，后面的墙永远不会露头
+⇒ **「串行修墙」会让后段缺陷无限期潜伏；「绕开卡点先撞后段」是必要的并行手段。**（用户定的打法，当场兑现。）
+
+#### 4_mep 之后还有第三堵（未定性，**本轮未修**）
+
+用**正确签名**直接跑真 `check_mep` ⇒ 仍 block：`mep.load_to_schedule: 14 load schedule reference(s) are missing or undefined`
+（`run_mep` 让 load 引用了它自己没生成的 schedule）。**是 LLM 产出质量还是 `run_mep` 的 schedule 接线缺陷 —— 未裁定。**
+另：June 那份已知好 mep 喂今天的 `check_mep` 也被拒，因 **zone 命名约定漂移**
+（June `R_<层>_<位置>` → 今天 `Z0n_F<层>_<角色>_<方位>`，零交集）—— 这是**预期内的规范化副作用，不是缺陷**，
+但意味着 **⛔ 老 mep 与今天 geometry 不可混用**。
+
+#### ⚠️ 登记待查：zone 命名的描述部分不具分辨力
+
+今天产的 14 个 zone 名**全唯一**（序号前缀兜底），但去掉序号后二层有 4 个房间塌成 2 个标签
+（`F2_Office_SW` ×2 · `F2_Office_SE` ×2）。**不是名字冲突**，是「角色_方位」不足以区分。已登记，未修。
+
+#### F-9 —— **又是接口错位（这一族的第三个）**，修法方向**待用户拍板**
+
+全档：[`execution/2026-08-05_f9_window_host_investigation_sonnet.md`](logs/reviews/execution/2026-08-05_f9_window_host_investigation_sonnet.md)（Sonnet，**零 LLM 成本**离线复现 —— 崩溃前的草稿本就落在 `1_correction/correction_geometry.json`）。
+
+- **conflicts 内容**：4 条全 `source_geometry_mismatch`，全在**北立面**窗（两层各 2 扇）。结构化数据完整，**只是从不被打印**。
+- **⭐ 定性 = 接口/约定错位，不是模型画错**（调查方比对了源图 `North_view.png`/`South_view.png`）：
+  该建筑的真实图纸**平面与四立面共用一套轴网**（左=西、无镜像），
+  而 `A1_coordinate_normalization.md` §2.2 与 `window_sources.py` 的 `_BASE_SIGN` 表**写死了「从外部看的镜像约定」**（北/西 `sign=-1`）。
+  **南立面默认 `+1` 恰好蒙对**，北立面不对。**⇒ 需与用户 08-02 定的「每张图都从一个方向读、契约钉死 left-to-right」重新对齐口径。**
+- **⭐ 该硬崩还是归档重抽？—— 代码里本就有第三条路，只是没接上**：
+  `apply_v3_envelope_transaction` 两次调 `_dry_resolve_current_ring`，
+  **变换后**那次（`envelope_transform.py:576-591`）catch 住并优雅回滚 + 写 `geom.conflicts`；
+  **变换前**那次（`:536`）**没有 try/except**、裸穿出去崩全流程。`git log -p` 显示两处**同一个 07-18 提交加的**
+  ⇒ **长期潜伏的不对称，不是新回归。** ⚠️ 且**只修这条只会把硬崩换成必然失败的重抽循环**，除非同时修上面的方向约定。
+- **不是系统性问题**：`correction`/`geometry` 下 6 个自定义异常类，**5 个都把诊断折进 `__str__`**，
+  `WindowHostResolutionError` 是唯一例外。最小改法已给（**未动手**）。
+
+#### 本轮审轨
+
+- **sol 跨家族对抗审 = REWORK（1 BLOCKER / 4 MAJOR）** → [裁决](logs/reviews/verdict/2026-08-05_f2c_f7_crossreview_sol.md)
+  ⚠️ **sol 侧沙箱坏了**（`bwrap: No permissions to create a new namespace`）⇒ 它**写不了文件、定向 pytest 一条没跑起来**
+  ⇒ **五条结论全部建立在读码之上**，orchestrator 代为落盘并已独立核实前三条。
+- **返工批 r1（GLM）四条 MAJOR 全修** → [轻门 PASS](logs/reviews/verdict/2026-08-05_f2c_f7_rework_r1_orchestrator_lightgate.md)，
+  独立全量 **2220 绿 / 10 xfail / 0 红**、独立 neuter 三条各自绑住（含两条**行为锁**）。
+- **⛔ sol 的 BLOCKER 未解、继续持有为出口条件**（真实 sm21 `1_correction` accepted attempt 仍未产生）。
+
+#### ⭐⭐ 本轮方法论产出（两条，均已生效）
+
+1. **分辨力实测只证明「机制能分辨」，不证明「每个抛出点分得对」。**
+   ⇒ 凡「由抛出点自行归类」的设计，**必须逐点审计**；机制级 neuter 不能替代。
+   **实证**：54 处逐点审计**只有 2 处归错** —— 错得稀疏到任何抽样与机制级 neuter 都照不出来。
+2. **neuter 必须先确认「改动真的落下去了」** —— orchestrator 实犯：一次正则替换命中 **0 处**（空操作）却拿到「22 绿」，
+   若据此判「已验」或「锁不绑」**两个结论都是错的**。
+
+#### ⛔ 结转债
+
+| # | 事项 |
+|---|---|
+| **F-9** | 修法方向待拍板（含**北/西立面方向约定**需与 08-02 口径重新对齐）|
+| **F-10** | `check_mep` 签名漂移，**未修** |
+| **墙 3** | `run_mep` 产的 load 引用未定义 schedule，**未定性未修** |
+| **F-8** | 干净检出跑全仓必红 5 条（619 个 gitignored 文件含测试活输入），**未排期** |
+| **5_intakeoutput** | **仍零证据**（被 F-10 挡住，从未测到）|
+| **zone 命名** | 描述部分不具分辨力（二层 4 房塌成 2 标签），登记待查 |
+| **遗留 worktree** | `.claude/worktrees/agent-a03990d733f96334f`（`b8ff69f`，更早会话遗留，**非本轮**）—— 未动，待确认可否清理 |
+| **未跟踪产物** | `run_2026-08-04_smoke_downstream/`(736K) · `run_2026-08-04_e1_haiku_e2e/0_reading/cv_evidence/`(8.4M) · `run_2026-08-05_smoke_downstream_r2/1_correction/` —— **非本轮产物，未擅自入库**，待用户定去留 |
+
 ### 三、reading（本轮停，下轮单开支线）—— 但拿到了**三条硬结论**
 
 全档：[`logs/experiments/2026-08-05_sm21_e1_restored/INTERVENTION_LOG.md`](logs/experiments/2026-08-05_sm21_e1_restored/INTERVENTION_LOG.md)
