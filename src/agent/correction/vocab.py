@@ -22,7 +22,7 @@ reading content, gt, or numeric values from a rejected draw.
 from __future__ import annotations
 
 from collections.abc import Callable
-from typing import Any
+from typing import Any, get_args
 
 
 def window_provenance_vocabulary() -> list[str]:
@@ -33,6 +33,28 @@ def window_provenance_vocabulary() -> list[str]:
     from src.agent.correction.claims import WINDOW_CLAIMS
 
     return sorted(WINDOW_CLAIMS)
+
+
+def provenance_kind_vocabulary() -> list[str]:
+    """Legal VALUES for a claim's ``provenance`` field — observed / derived /
+    assumed (the VALUE enum, distinct from :func:`window_provenance_vocabulary`
+    which is the claim-name KEY set).
+
+    Derived mechanically from ``FieldProvenance.provenance``'s own ``Literal``
+    annotation (the schema's authoritative enum), not hand-copied, and asserted
+    element-equal to ``NorthAxisEvidence.provenance`` so the two Literal
+    declarations cannot drift. A schema change (a fourth kind added to either)
+    propagates to both the system prompt and the retry message automatically."""
+    from src.agent.correction.schema import FieldProvenance, NorthAxisEvidence
+
+    field_kinds = get_args(FieldProvenance.model_fields["provenance"].annotation)
+    north_kinds = get_args(NorthAxisEvidence.model_fields["provenance"].annotation)
+    if set(field_kinds) != set(north_kinds):
+        raise AssertionError(
+            "FieldProvenance.provenance and NorthAxisEvidence.provenance enums "
+            f"drifted: {field_kinds} vs {north_kinds}"
+        )
+    return sorted(field_kinds)
 
 
 def north_axis_allowed_fields() -> list[str]:
@@ -54,6 +76,24 @@ def _is_v3_target(target: Any) -> bool:
         return False
 
 
+def _provenance_value_break(loc: tuple) -> bool:
+    """True when a ``ValidationError`` loc targets a claim's ``provenance`` VALUE
+    (the observed/derived/assumed ``Literal`` on ``FieldProvenance`` /
+    ``NorthAxisEvidence``) — as opposed to the window ``provenance`` dict KEY set.
+
+    Both shapes end in ``'provenance'``: a window claim's value error is
+    ``('windows', i, 'provenance', <claim>, 'provenance')`` and north_axis's is
+    ``('north_axis', 'provenance')``, whereas the window key-set rejection is
+    exactly ``('windows', i, 'provenance')`` (the dict field itself). The key-set
+    case is the one shape to exclude so it is guided to the KEY vocabulary, not
+    the value enum."""
+    if not loc or str(loc[-1]) != "provenance":
+        return False
+    if str(loc[0]) == "windows" and len(loc) == 3:
+        return False
+    return True
+
+
 def correction_schema_vocabulary(target: Any) -> dict[str, list[str]]:
     """Map of stable label -> sorted legal tokens for the target schema.
 
@@ -64,6 +104,7 @@ def correction_schema_vocabulary(target: Any) -> dict[str, list[str]]:
         return {}
     return {
         "window_provenance_keys": window_provenance_vocabulary(),
+        "provenance_kinds": provenance_kind_vocabulary(),
         "north_axis_fields": north_axis_allowed_fields(),
     }
 
@@ -86,6 +127,12 @@ def format_correction_system_vocabulary(target: Any) -> str:
             "window `provenance` keys — the opening-claim vocabulary (use ONLY "
             "these; any other key is rejected): "
             + ", ".join(vocab["window_provenance_keys"])
+        )
+    if "provenance_kinds" in vocab:
+        lines.append(
+            "each claim's `provenance` VALUE — observed/derived/assumed (the value "
+            "of every opening-claim AND north_axis; any other string is rejected): "
+            + ", ".join(vocab["provenance_kinds"])
         )
     if "north_axis_fields" in vocab:
         lines.append(
@@ -133,7 +180,12 @@ def retry_guidance_for_correction(target: Any) -> Callable[[BaseException], str 
             path = ".".join(str(part) for part in loc)
             reason = err.get("msg", "")
             lines.append(f"- field path: {path}  reason: {reason}")
-            if "windows" in loc and "provenance" in loc and "window_provenance_keys" in vocab:
+            if _provenance_value_break(loc) and "provenance_kinds" in vocab:
+                lines.append(
+                    "  legal `provenance` value (observed/derived/assumed): "
+                    + ", ".join(vocab["provenance_kinds"])
+                )
+            elif "windows" in loc and "provenance" in loc and "window_provenance_keys" in vocab:
                 lines.append(
                     "  legal window `provenance` keys (opening-claim vocabulary): "
                     + ", ".join(vocab["window_provenance_keys"])
