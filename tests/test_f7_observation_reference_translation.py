@@ -43,7 +43,7 @@ import scripts.tool_scripts.run_stage as rs  # noqa: E402
 from src.agent.correction.finalize import FinalizeResult  # noqa: E402
 from src.agent.correction.feature_state import derive_feature_state_claims  # noqa: E402
 from src.agent.correction.parse import correction_target, parse_correction_draw  # noqa: E402
-from src.agent.correction.schema import CorrectedGeometry  # noqa: E402
+from src.agent.correction.schema import CorrectedGeometry, CorrectedGeometryV3  # noqa: E402
 from src.agent.correction.window_sources import (  # noqa: E402
     ObservationReferenceCatalogEntry,
     WindowResolverInputError,
@@ -377,3 +377,98 @@ def test_f7_category_duplicate_source_observation_is_input_integrity_error():
     with pytest.raises(WindowResolverInputError, match="duplicate_source_observation") as exc:
         build_window_source_offer(raw_view_manifest_bytes=raw_manifest, raw_reading_artifacts=artifacts)
     assert exc.value.category == "input_integrity_error"
+
+
+# =========================================================================== #
+# MAJOR ② (rework r1): model floor-count mismatch is a model_draw_error, not
+# input_integrity. `_check_floor_order` used to raise one compound `A or B`
+# classified input_integrity_error; B reads `producer.floors` (the model's
+# output) so it must resample. A (manifest floor_refs non-contiguous) stays
+# input_integrity — it reads only the manifest.
+# =========================================================================== #
+def _geom_with_extra_floor():
+    """A v3 producer that draws TWO floors while `_base()`'s manifest declares
+    only one plan floor_ref — trips the model-half (B) of `_check_floor_order`.
+    The window stays on f1 with a valid existence claim so `_producer_preflight`
+    and `_claim_links` pass and execution reaches `_check_floor_order`."""
+    payload = _geom().model_dump(mode="json")
+    payload["floors"].append({
+        "id": "f2", "name": "F2", "z_floor": 3.0, "ceiling_height": 3.0,
+        "footprint": {"vertices": [[0.0, 0.0], [4.0, 0.0], [4.0, 3.0], [0.0, 3.0]]},
+        "cells": [{"id": "r2", "x": [0.0, 4.0], "y": [0.0, 3.0]}],
+    })
+    return CorrectedGeometryV3.model_validate(payload)
+
+
+def test_f7_category_producer_floor_count_mismatch_is_model_draw_error():
+    """Per-point audit (MAJOR ②): a model that draws a different NUMBER of floors
+    than the manifest declares is the model's fault — a fresh draw can fix it —
+    so it must be `model_draw_error`, not `input_integrity_error`."""
+    manifest, raw_manifest, artifacts, fact = _base()
+    with pytest.raises(WindowResolverInputError, match="producer_floor_count_mismatch") as exc:
+        build_verified_window_resolver_inputs(
+            producer_draw=_geom_with_extra_floor(), raw_view_manifest_bytes=raw_manifest,
+            raw_reading_artifacts=artifacts, elevation_direction_facts=(fact,),
+        )
+    assert exc.value.category == "model_draw_error"
+    assert exc.value.context["manifest_floor_count"] == 1
+    assert exc.value.context["producer_floor_count"] == 2
+
+
+def test_f7_floor_count_mismatch_archived_as_failed_attempt_and_resampled(tmp_path, monkeypatch):
+    """Real `run_one_stage` stochastic loop: a wrong-floor-count draw is a
+    model_draw_error, so `_draw_correction` must file it as a gate①-blocked
+    attempt and blind-resample — NOT hard-crash (which the old compound
+    input_integrity classification did). Lock pins the actual path: the bad
+    attempt's check record carries the exact code, and a second draw is issued."""
+    import src.agent.pipeline as pipeline
+    import src.agent.correction.finalize as finalize_mod
+    import src.agent.correction.window_sources as ws
+    import src.validator.checks.correction as corr_checks
+
+    manifest, raw_manifest, artifacts, fact = _base()
+    run_dir = tmp_path / "run"
+    _write_run_layout(run_dir, manifest, raw_manifest, artifacts)
+
+    bad_geom = _geom_with_extra_floor()
+    good_geom = CorrectedGeometry.model_validate(
+        {**json.loads(bad_geom.model_dump_json()), "schema_version": "2", "windows": []}
+    )
+    assert good_geom.schema_version == "2"  # sidesteps window-source resolution entirely
+
+    calls = {"n": 0}
+
+    def fake_run_correction(*a, **k):
+        calls["n"] += 1
+        return bad_geom if calls["n"] == 1 else good_geom
+
+    def fake_finalize(geom_or_payload, *, vector_dir, target, verified_window_inputs=None, tol=None):
+        return FinalizeResult(
+            geom=good_geom, audit_payload={},
+            feature_state_claims=derive_feature_state_claims(target, good_geom),
+        )
+
+    monkeypatch.setattr(pipeline, "run_correction", fake_run_correction)
+    monkeypatch.setattr(pipeline, "correction_draw_issues", lambda *a, **k: [])
+    monkeypatch.setattr(rs, "dimensioned_view_names", lambda *a, **k: set())
+    monkeypatch.setattr(ws, "verify_reading_stage_root_against_accepted_attempt", lambda *a, **k: None)
+    monkeypatch.setattr(finalize_mod, "finalize_correction_draw", fake_finalize)
+    monkeypatch.setattr(corr_checks, "check_correction", lambda *a, **k: CheckReport(stage="1_correction"))
+
+    policy = RunPolicy(capability_profile="rectangular", run_profile="exploratory")
+    runner = StageRunner(run_dir, RunManifest(case="f7-floor-test"))
+
+    def draw_fn(feedback):
+        assert feedback is None  # the stochastic loop must stay blind
+        return rs._draw_correction(run_dir, "testdata", expected_zones=None, relied=False, policy=policy)
+
+    out = run_one_stage(stage="1_correction", runner=runner, stage_dir=run_dir / "1_correction",
+                        policy=policy, draw_fn=draw_fn)
+
+    assert calls["n"] == 2, "wrong-floor-count draw must resample, not hard-crash"
+    assert out.attempts_used == 2 and out.accepted_attempt == 2
+    attempt1 = CheckReport.model_validate_json(
+        (run_dir / "1_correction" / "attempts" / "001" / "checks.json").read_bytes())
+    assert attempt1.passed is False
+    fail_result = next(r for r in attempt1.blocking() if r.check_id == "correction.window_source_reference")
+    assert "producer_floor_count_mismatch" in fail_result.message

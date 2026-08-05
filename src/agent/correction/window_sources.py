@@ -838,8 +838,24 @@ def _claim_links(producer: CorrectedGeometryV3, rows: tuple[SourceWindowV1, ...]
 def _check_floor_order(manifest: ViewManifest, producer: CorrectedGeometryV3,
                        rows: tuple[SourceWindowV1, ...], links: tuple[WindowClaimSourceLinkV1, ...]) -> None:
     refs = sorted({entry.floor_ref for entry in manifest.required_entries() if entry.view_type == "plan"})
-    if refs != list(range(1, len(refs) + 1)) or len(refs) != len(producer.floors):
+    # F-2c/F-7 rework r1 (MAJOR ②): this was one compound `A or B` raise, but the
+    # two halves are decided by different actors and must classify separately —
+    # misclassifying B as input_integrity made a model floor-count mistake hard-
+    # crash instead of archive+resample.
+    #   A) manifest plan floor_refs not contiguous 1..N — a manifest (upstream)
+    #      defect; no resample fixes it. Redundant in practice with the manifest's
+    #      own validator (view_manifest._contiguous plan-ref check), kept only as
+    #      a defensive re-check honest about its (upstream) deciding factor.
+    #   B) the model drew a different NUMBER of floors than the manifest declares
+    #      — `producer.floors` is THIS draw's output, so a fresh draw can fix it.
+    if refs != list(range(1, len(refs) + 1)):
         raise WindowResolverInputError("manifest_floor_ref_non_contiguous", category="input_integrity_error")
+    if len(refs) != len(producer.floors):
+        raise WindowResolverInputError(
+            "producer_floor_count_mismatch",
+            {"manifest_floor_count": len(refs), "producer_floor_count": len(producer.floors)},
+            category="model_draw_error",
+        )
     floor_by_id = {floor.id: floor for floor in producer.floors}
     rank = {floor.id: index for index, floor in enumerate(sorted(producer.floors, key=lambda floor: floor.z_floor), start=1)}
     windows = {window.id: window for window in producer.windows}
@@ -856,7 +872,11 @@ def _check_floor_order(manifest: ViewManifest, producer: CorrectedGeometryV3,
                     raise WindowResolverInputError("elevation_floor_mismatch", {"window_id": link.window_id,
                         "candidate_floors": [floor.id for floor in candidates]}, category="model_draw_error")
     if set(floor_by_id) != set(rank):  # defensive, makes the mapping invariant explicit
-        raise WindowResolverInputError("floor_ref_window_mismatch", category="input_integrity_error")
+        # Both sets derive from `producer.floors`, so if this ever fires it is a
+        # model-side inconsistency (the draw's floors) — model_draw_error, not an
+        # upstream-integrity fault. (Defensive: under the floor-id uniqueness the
+        # schema enforces, this branch is unreachable.)
+        raise WindowResolverInputError("floor_ref_window_mismatch", category="model_draw_error")
 
 
 def build_verified_window_resolver_inputs(*, producer_draw: CorrectedGeometryV3,
