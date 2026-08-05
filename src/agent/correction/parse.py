@@ -84,11 +84,11 @@ def parse_correction_draw(payload: dict, target: CorrectionTarget) -> CorrectedG
         windows = payload.get("windows")
         if isinstance(windows, list) and any(isinstance(item, dict) and item.get("facade_segment_id") is not None for item in windows):
             from src.agent.correction.window_sources import WindowResolverInputError
-            raise WindowResolverInputError("producer_segment_ref_prefilled")
+            raise WindowResolverInputError("producer_segment_ref_prefilled", category="model_draw_error")
         audit_rows = [payload.get(name) for name in ("corrections", "conflicts", "unsupported")]
         if any(isinstance(rows, list) and any(isinstance(item, dict) and item.get("kind") == "window_host_resolution" for item in rows) for rows in audit_rows):
             from src.agent.correction.window_sources import WindowResolverInputError
-            raise WindowResolverInputError("producer_resolver_audit_prefilled")
+            raise WindowResolverInputError("producer_resolver_audit_prefilled", category="model_draw_error")
     geom = ensure_corrected_geometry(payload)
     if geom.schema_version != target.schema_version:
         raise ValueError("correction draw schema_version does not match selected target")

@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import re
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Annotated, Literal, Mapping, Union
@@ -55,11 +56,39 @@ def _without_hash(model: BaseModel) -> dict:
     return data
 
 
-class WindowResolverInputError(ValueError):
-    """Typed, stable B5 draw/source-input rejection."""
+# F-7 (2026-08-05): every window-source rejection is either the correction
+# LLM's fault (it cited an observation reference it invented, mis-scoped, or
+# was not entitled to use) or an upstream input-integrity fault (the reading
+# artifact / view manifest / accepted-attempt bytes do not line up with each
+# other — no resample of the correction draw can fix that). The caller that
+# turns a rejection into either an archived failed attempt + blind resample
+# (model's fault) or a hard, non-retried crash (input's fault) must be able
+# to tell the two apart WITHOUT parsing the message text or the `code`
+# string — `code` values are reused across both categories at different call
+# sites, so only the throw site itself knows which one applies. `category`
+# is therefore a required keyword: a raise site that forgets to classify
+# itself fails loudly (TypeError) instead of silently defaulting into either
+# bucket.
+WindowSourceErrorCategory = Literal["model_draw_error", "input_integrity_error"]
 
-    def __init__(self, code: str, context: Mapping[str, object] | None = None):
+
+class WindowResolverInputError(ValueError):
+    """Typed, stable B5 draw/source-input rejection.
+
+    ``category`` distinguishes a correction-draw mistake (archive as a
+    failed attempt, blind-resample) from an input-integrity fault (hard
+    crash, resampling cannot help) — see the module-level note above.
+    """
+
+    def __init__(
+        self,
+        code: str,
+        context: Mapping[str, object] | None = None,
+        *,
+        category: WindowSourceErrorCategory,
+    ):
         self.code = code
+        self.category = category
         self.context = dict(context or {})
         super().__init__(f"{code}: {self.context}")
 
@@ -265,16 +294,16 @@ def _parse_manifest(raw: bytes) -> ViewManifest:
     try:
         return ViewManifest.model_validate_json(raw)
     except (UnicodeDecodeError, json.JSONDecodeError, ValueError) as exc:
-        raise WindowResolverInputError("source_identity_invalid", {"artifact": "view_manifest"}) from exc
+        raise WindowResolverInputError("source_identity_invalid", {"artifact": "view_manifest"}, category="input_integrity_error") from exc
 
 
 def _interval(raw: object, *, observation_id: str, field: str) -> SourceIntervalV1:
     if not isinstance(raw, (list, tuple)) or len(raw) != 2:
-        raise WindowResolverInputError("source_identity_invalid", {"observation_id": observation_id, "field": field})
+        raise WindowResolverInputError("source_identity_invalid", {"observation_id": observation_id, "field": field}, category="input_integrity_error")
     try:
         return SourceIntervalV1(lo=raw[0], hi=raw[1])
     except ValueError as exc:
-        raise WindowResolverInputError("source_identity_invalid", {"observation_id": observation_id, "field": field}) from exc
+        raise WindowResolverInputError("source_identity_invalid", {"observation_id": observation_id, "field": field}, category="input_integrity_error") from exc
 
 
 def _window_strokes(raw: bytes, entry: RequiredViewEntry):
@@ -282,7 +311,7 @@ def _window_strokes(raw: bytes, entry: RequiredViewEntry):
         payload = json.loads(raw.decode("utf-8"))
         view = parse_reading_view(payload)
     except (UnicodeDecodeError, json.JSONDecodeError, ValueError) as exc:
-        raise WindowResolverInputError("source_identity_invalid", {"input_id": entry.input_id, "artifact": "reading"}) from exc
+        raise WindowResolverInputError("source_identity_invalid", {"input_id": entry.input_id, "artifact": "reading"}, category="input_integrity_error") from exc
     output_sha = hashlib.sha256(raw).hexdigest()
     for stroke in view.strokes:
         if stroke.pen != "window":
@@ -309,7 +338,7 @@ def _window_strokes(raw: bytes, entry: RequiredViewEntry):
 def _catalog(*, manifest: ViewManifest, raw_reading_artifacts: Mapping[str, bytes]) -> tuple[SourceWindowV1, ...]:
     required = {entry.input_id: entry for entry in manifest.required_entries()}
     if set(raw_reading_artifacts) != set(required):
-        raise WindowResolverInputError("source_identity_invalid", {"reading_inputs": sorted(raw_reading_artifacts), "required_inputs": sorted(required)})
+        raise WindowResolverInputError("source_identity_invalid", {"reading_inputs": sorted(raw_reading_artifacts), "required_inputs": sorted(required)}, category="input_integrity_error")
     rows: list[SourceWindowV1] = []
     for input_id in sorted(required):
         entry = required[input_id]
@@ -323,11 +352,11 @@ def _validate_catalog(rows: tuple[SourceWindowV1, ...] | list[SourceWindowV1], *
     locators = [item.source_locator for item in rows]
     observations = [(item.source_input_id, item.observation_id) for item in rows]
     if raw_parser and len(observations) != len(set(observations)):
-        raise WindowResolverInputError("duplicate_source_observation")
+        raise WindowResolverInputError("duplicate_source_observation", category="input_integrity_error")
     if len(locators) != len(set(locators)):
-        raise WindowResolverInputError("duplicate_source_locator")
+        raise WindowResolverInputError("duplicate_source_locator", category="input_integrity_error")
     if not raw_parser and len(observations) != len(set(observations)):
-        raise WindowResolverInputError("duplicate_source_observation")
+        raise WindowResolverInputError("duplicate_source_observation", category="input_integrity_error")
 
 
 def verify_window_resolver_inputs(inputs: WindowResolverInputsV1) -> None:
@@ -338,26 +367,26 @@ def verify_window_resolver_inputs(inputs: WindowResolverInputsV1) -> None:
     syntactically valid but duplicate catalog before any marker exists.
     """
     if inputs.content_sha256 != canonical_sha256(_without_hash(inputs)):
-        raise WindowResolverInputError("source_identity_invalid", {"artifact": "resolver_inputs"})
+        raise WindowResolverInputError("source_identity_invalid", {"artifact": "resolver_inputs"}, category="input_integrity_error")
     _validate_catalog(inputs.source_windows)
     by_locator = {row.source_locator: row for row in inputs.source_windows}
     for link in inputs.claim_links:
         row = by_locator.get(link.source_locator)
         if row is None:
-            raise WindowResolverInputError("source_identity_invalid", {"source_locator": link.source_locator})
+            raise WindowResolverInputError("source_identity_invalid", {"source_locator": link.source_locator}, category="input_integrity_error")
         entry = inputs.view_manifest.entry_by_input_id(row.source_input_id)
         if not isinstance(entry, RequiredViewEntry):
-            raise WindowResolverInputError("source_identity_invalid", {"input_id": row.source_input_id})
+            raise WindowResolverInputError("source_identity_invalid", {"input_id": row.source_input_id}, category="input_integrity_error")
         # Permission is intentionally checked before declaration/manifest
         # observability: it is a channel hard boundary, not a missing claim.
         permitted = ((row.channel == "plan" and link.claim in {"existence", "host", "along", "width"}) or
                      (row.channel == "elevation" and link.claim in {"existence", "along", "width", "sill", "head", "appearance"}))
         if not permitted:
-            raise WindowResolverInputError("claim_permission_invalid", {"window_id": link.window_id, "claim": link.claim})
+            raise WindowResolverInputError("claim_permission_invalid", {"window_id": link.window_id, "claim": link.claim}, category="input_integrity_error")
         if link.claim not in row.positive_claims:
-            raise WindowResolverInputError("source_claim_undeclared", {"window_id": link.window_id, "claim": link.claim})
+            raise WindowResolverInputError("source_claim_undeclared", {"window_id": link.window_id, "claim": link.claim}, category="input_integrity_error")
         if link.claim not in entry.opening_evidence.potentially_observable_claims:
-            raise WindowResolverInputError("manifest_claim_not_observable", {"window_id": link.window_id, "claim": link.claim})
+            raise WindowResolverInputError("manifest_claim_not_observable", {"window_id": link.window_id, "claim": link.claim}, category="input_integrity_error")
 
 
 def verify_window_resolver_inputs_against_raw_artifacts(
@@ -371,12 +400,12 @@ def verify_window_resolver_inputs_against_raw_artifacts(
     manifest = _parse_manifest(raw_view_manifest_bytes)
     if manifest != inputs.view_manifest:
         raise WindowResolverInputError(
-            "source_identity_invalid", {"artifact": "view_manifest"}
+            "source_identity_invalid", {"artifact": "view_manifest"}, category="input_integrity_error"
         )
     rows = _catalog(manifest=manifest, raw_reading_artifacts=raw_reading_artifacts)
     if rows != inputs.source_windows:
         raise WindowResolverInputError(
-            "source_identity_invalid", {"artifact": "source_catalog"}
+            "source_identity_invalid", {"artifact": "source_catalog"}, category="input_integrity_error"
         )
     facts = _check_direction_facts(
         manifest,
@@ -385,7 +414,7 @@ def verify_window_resolver_inputs_against_raw_artifacts(
     )
     if facts != inputs.elevation_direction_facts:
         raise WindowResolverInputError(
-            "direction_fact_invalid", {"artifact": "direction_facts"}
+            "direction_fact_invalid", {"artifact": "direction_facts"}, category="input_integrity_error"
         )
     identities = tuple(
         ReadingArtifactIdentityV1(
@@ -397,7 +426,7 @@ def verify_window_resolver_inputs_against_raw_artifacts(
     )
     if identities != inputs.reading_artifacts:
         raise WindowResolverInputError(
-            "source_identity_invalid", {"artifact": "reading_artifacts"}
+            "source_identity_invalid", {"artifact": "reading_artifacts"}, category="input_integrity_error"
         )
 
 
@@ -411,6 +440,91 @@ def build_window_source_offer(*, raw_view_manifest_bytes: bytes,
                "allowed_claims_by_locator": [[loc, list(claims)] for loc, claims in allowed]}
     return WindowSourceOfferV1(schema_version="1", view_manifest_sha256=manifest.content_sha256,
         source_windows=rows, allowed_claims_by_locator=allowed, content_sha256=canonical_sha256(payload))
+
+
+@dataclass(frozen=True)
+class ObservationReferenceCatalogEntry:
+    """One legal ``<expected_output_id>/<observation_id>`` a correction draw
+    may cite in ``source_ids`` — the model-facing counterpart of a
+    :class:`SourceWindowV1` row, with the internal locator hash stripped out
+    (the model must never see or copy a ``src:`` hash)."""
+
+    reference: str
+    allowed_claims: tuple[str, ...]
+
+
+def derive_observation_reference_catalog(
+    *, raw_view_manifest_bytes: bytes, raw_reading_artifacts: Mapping[str, bytes],
+) -> tuple[ObservationReferenceCatalogEntry, ...]:
+    """The single, mechanically-derived catalogue of legal observation
+    references for this run's reading artifacts.
+
+    Built from the exact same :func:`_catalog` (and therefore the same
+    ``source_locator`` computation) that :func:`_translate_observation_reference`
+    validates against — the prompt-facing listing and the enforced catalogue
+    can never diverge because both are read off this one function's output.
+    """
+    manifest = _parse_manifest(raw_view_manifest_bytes)
+    rows = _catalog(manifest=manifest, raw_reading_artifacts=raw_reading_artifacts)
+    expected_output_id_by_input = {entry.input_id: entry.expected_output_id for entry in manifest.required_entries()}
+    return tuple(
+        ObservationReferenceCatalogEntry(
+            reference=f"{expected_output_id_by_input[row.source_input_id]}/{row.observation_id}",
+            allowed_claims=row.positive_claims,
+        )
+        for row in rows
+    )
+
+
+def format_observation_reference_catalog(entries: tuple[ObservationReferenceCatalogEntry, ...]) -> str:
+    """Human-readable prompt text for :func:`derive_observation_reference_catalog`.
+
+    Never emits a ``src:`` locator or a 64-hex hash: only the reference form
+    the model can actually produce (and its allowed claims) is shown.
+    """
+    if not entries:
+        return "(no window observations found in this run's reading artifacts)"
+    return "\n".join(
+        f"- {entry.reference}: allowed claims = [{', '.join(entry.allowed_claims)}]"
+        for entry in entries
+    )
+
+
+def build_observation_reference_catalog_from_run(*, run_dir: Path, reading_dir: Path) -> str | None:
+    """Prompt-facing catalog listing for a run's correction-draw guidance.
+
+    Returns ``None`` when the view manifest (or one of its required reading
+    artifacts) is not yet on disk — this is advisory prompt content only;
+    the enforcement path (`build_verified_window_inputs_from_run` ->
+    `build_verified_window_resolver_inputs` -> `_claim_links`) independently
+    re-derives and re-validates everything after the draw regardless of
+    whether this listing was shown, so a missing catalog here weakens
+    guidance, never the contract.
+    """
+    from src.agent.execution.run_meta import run_meta_path
+    from src.agent.execution.view_manifest import VIEW_MANIFEST_NAME
+
+    manifest_path = run_meta_path(Path(run_dir), VIEW_MANIFEST_NAME)
+    if not manifest_path.is_file():
+        return None
+    raw_manifest = manifest_path.read_bytes()
+    try:
+        manifest = _parse_manifest(raw_manifest)
+    except WindowResolverInputError:
+        return None
+    raw_readings: dict[str, bytes] = {}
+    for entry in manifest.required_entries():
+        path = Path(reading_dir) / f"{entry.expected_output_id}.json"
+        if not path.is_file():
+            return None
+        raw_readings[entry.input_id] = path.read_bytes()
+    try:
+        entries = derive_observation_reference_catalog(
+            raw_view_manifest_bytes=raw_manifest, raw_reading_artifacts=raw_readings,
+        )
+    except WindowResolverInputError:
+        return None
+    return format_observation_reference_catalog(entries)
 
 
 def derive_manifest_direction_facts(
@@ -432,6 +546,7 @@ def derive_manifest_direction_facts(
             raise WindowResolverInputError(
                 "direction_fact_invalid",
                 {"input_id": entry.input_id, "reason": "verified_orientation_sidecar_required"},
+                category="input_integrity_error",
             )
         try:
             reading = parse_reading_view(
@@ -439,7 +554,7 @@ def derive_manifest_direction_facts(
             )
         except (KeyError, UnicodeDecodeError, json.JSONDecodeError, ValueError) as exc:
             raise WindowResolverInputError(
-                "direction_fact_invalid", {"input_id": entry.input_id, "artifact": "reading"}
+                "direction_fact_invalid", {"input_id": entry.input_id, "artifact": "reading"}, category="input_integrity_error"
             ) from exc
         mirrored = False
         local_x_positive = "image_left_to_right"
@@ -477,7 +592,7 @@ def build_verified_window_inputs_from_run(
     manifest_path = run_meta_path(Path(run_dir), VIEW_MANIFEST_NAME)
     if not manifest_path.is_file():
         raise WindowResolverInputError(
-            "source_identity_invalid", {"artifact": "view_manifest", "path": str(manifest_path)}
+            "source_identity_invalid", {"artifact": "view_manifest", "path": str(manifest_path)}, category="input_integrity_error"
         )
     raw_manifest = manifest_path.read_bytes()
     manifest = _parse_manifest(raw_manifest)
@@ -486,7 +601,7 @@ def build_verified_window_inputs_from_run(
         path = Path(reading_dir) / f"{entry.expected_output_id}.json"
         if not path.is_file():
             raise WindowResolverInputError(
-                "source_identity_invalid", {"input_id": entry.input_id, "path": str(path)}
+                "source_identity_invalid", {"input_id": entry.input_id, "path": str(path)}, category="input_integrity_error"
             )
         raw_readings[entry.input_id] = path.read_bytes()
     facts = derive_manifest_direction_facts(
@@ -543,6 +658,7 @@ def verify_reading_stage_root_against_accepted_attempt(
         raise WindowResolverInputError(
             "source_identity_invalid",
             {"artifact": "accepted_reading", "path": str(attempt_path)},
+            category="input_integrity_error",
         )
     try:
         accepted_bytes = attempt_path.read_bytes()
@@ -550,6 +666,7 @@ def verify_reading_stage_root_against_accepted_attempt(
             raise WindowResolverInputError(
                 "source_identity_invalid",
                 {"artifact": "accepted_reading", "reason": "output_hash_mismatch"},
+                category="input_integrity_error",
             )
         accepted_payload = json.loads(accepted_bytes)
         # Reconstruct the stage-root mirrors keyed by each *_view.json stem.
@@ -567,12 +684,13 @@ def verify_reading_stage_root_against_accepted_attempt(
         raise
     except (OSError, UnicodeDecodeError, json.JSONDecodeError, ValueError) as exc:
         raise WindowResolverInputError(
-            "source_identity_invalid", {"artifact": "reading_stage_root"}
+            "source_identity_invalid", {"artifact": "reading_stage_root"}, category="input_integrity_error"
         ) from exc
     if current_hash != accepted_hash:
         raise WindowResolverInputError(
             "source_identity_invalid",
             {"artifact": "reading_stage_root", "reason": "accepted_attempt_mismatch"},
+            category="input_integrity_error",
         )
 
 
@@ -581,38 +699,101 @@ def _check_direction_facts(manifest: ViewManifest, facts: tuple[ElevationDirecti
     expected = {entry.input_id: entry for entry in manifest.required_entries() if entry.view_type == "elevation"}
     got = {fact.input_id: fact for fact in facts}
     if len(got) != len(facts) or set(got) != set(expected):
-        raise WindowResolverInputError("direction_fact_invalid", {"declared": sorted(got), "required": sorted(expected)})
+        raise WindowResolverInputError("direction_fact_invalid", {"declared": sorted(got), "required": sorted(expected)}, category="input_integrity_error")
     out = []
     for input_id, entry in expected.items():
         fact = got[input_id]
         if fact.view_manifest_sha256 != manifest.content_sha256:
-            raise WindowResolverInputError("direction_fact_invalid", {"input_id": input_id, "field": "view_manifest_sha256"})
+            raise WindowResolverInputError("direction_fact_invalid", {"input_id": input_id, "field": "view_manifest_sha256"}, category="input_integrity_error")
         try:
             reading = parse_reading_view(json.loads(raw_reading_artifacts[input_id].decode("utf-8")))
         except (UnicodeDecodeError, json.JSONDecodeError, ValueError) as exc:
-            raise WindowResolverInputError("direction_fact_invalid", {"input_id": input_id, "artifact": "reading"}) from exc
+            raise WindowResolverInputError("direction_fact_invalid", {"input_id": input_id, "artifact": "reading"}, category="input_integrity_error") from exc
         if reading.facade is not None:
             mirrored = reading.facade.mirrored
             if isinstance(mirrored, bool) and (fact.mirrored != mirrored or fact.local_x_positive != reading.facade.local_x_positive):
-                raise WindowResolverInputError("direction_fact_invalid", {"input_id": input_id, "field": "reading_facade"})
+                raise WindowResolverInputError("direction_fact_invalid", {"input_id": input_id, "field": "reading_facade"}, category="input_integrity_error")
         if fact.resolution_source == "manifest_building_axis":
             if (entry.direction_semantics != "building_axis" or
                     fact.resolved_building_direction != entry.building_view_direction or
                     fact.orientation_output_hash is not None or fact.adapter_version is not None):
-                raise WindowResolverInputError("direction_fact_invalid", {"input_id": input_id})
+                raise WindowResolverInputError("direction_fact_invalid", {"input_id": input_id}, category="input_integrity_error")
         elif (entry.direction_semantics not in ("true_azimuth", "unknown") or
               fact.orientation_output_hash is None or fact.adapter_version is None):
-            raise WindowResolverInputError("direction_fact_invalid", {"input_id": input_id})
+            raise WindowResolverInputError("direction_fact_invalid", {"input_id": input_id}, category="input_integrity_error")
         out.append(fact)
     return tuple(sorted(out, key=lambda item: item.input_id))
 
 
 def _producer_preflight(producer: CorrectedGeometryV3) -> None:
+    # These two are model_draw_error (not input_integrity_error): a
+    # correction draw pre-filling deterministic-core-only fields is the LLM
+    # writing outside its scope, not a broken upstream artifact — retrying
+    # the draw can fix it.
     if producer.facade_segments or any(window.facade_segment_id is not None for window in producer.windows):
-        raise WindowResolverInputError("producer_segment_ref_prefilled")
+        raise WindowResolverInputError("producer_segment_ref_prefilled", category="model_draw_error")
     if any(isinstance(row, dict) and row.get("kind") == "window_host_resolution"
            for rows in (producer.corrections, producer.conflicts, producer.unsupported) for row in rows):
-        raise WindowResolverInputError("producer_resolver_audit_prefilled")
+        raise WindowResolverInputError("producer_resolver_audit_prefilled", category="model_draw_error")
+
+
+_SOURCE_LOCATOR_PATTERN = re.compile(r"^src:[0-9a-f]{64}$")
+
+
+def _translate_observation_reference(
+    reference: str,
+    *,
+    rows: tuple[SourceWindowV1, ...],
+    manifest: ViewManifest,
+    window_id: str,
+    claim: str,
+) -> str:
+    """Translate a correction draw's cited source into its internal locator.
+
+    F-7 (2026-08-05): a correction draw cannot see or compute the 64-hex
+    locator hash (it embeds the reading-artifact byte hash, which the LLM has
+    no access to) — so it must cite what it CAN see: the reading vector
+    file's own name and the observation ``id`` printed in that file's
+    ``strokes`` array, as ``<expected_output_id>/<observation_id>`` (e.g.
+    ``1f_view/S11``). This is the sole translation point; the resulting
+    locator is then validated exactly as before by every existing
+    ``_claim_links`` check below — nothing downstream is relaxed.
+
+    Two forms are accepted:
+      1. An already-valid ``src:<64hex>`` locator — passed through unchanged
+         (backward compatibility for callers/fixtures that already carry a
+         real locator, e.g. computed directly via :func:`source_locator`).
+      2. ``<expected_output_id>/<observation_id>`` — the only form a live
+         draw can produce.
+    Anything else (no ``/``, an unknown view name, or an unknown observation
+    id within a known view) is a named, distinct model-draw error — never a
+    silent guess at which view/observation was meant.
+    """
+    if _SOURCE_LOCATOR_PATTERN.match(reference):
+        return reference
+    parts = reference.split("/", 1)
+    if len(parts) != 2 or not parts[0] or not parts[1]:
+        raise WindowResolverInputError(
+            "observation_reference_ambiguous",
+            {"window_id": window_id, "claim": claim, "source_ids": reference},
+            category="model_draw_error",
+        )
+    view_name, observation_id = parts
+    input_id = manifest.expected_output_ids().get(view_name)
+    if input_id is None:
+        raise WindowResolverInputError(
+            "observation_reference_view_unknown",
+            {"window_id": window_id, "claim": claim, "expected_output_id": view_name},
+            category="model_draw_error",
+        )
+    for row in rows:
+        if row.source_input_id == input_id and row.observation_id == observation_id:
+            return row.source_locator
+    raise WindowResolverInputError(
+        "observation_reference_observation_unknown",
+        {"window_id": window_id, "claim": claim, "expected_output_id": view_name, "observation_id": observation_id},
+        category="model_draw_error",
+    )
 
 
 def _claim_links(producer: CorrectedGeometryV3, rows: tuple[SourceWindowV1, ...], manifest: ViewManifest) -> tuple[WindowClaimSourceLinkV1, ...]:
@@ -623,28 +804,31 @@ def _claim_links(producer: CorrectedGeometryV3, rows: tuple[SourceWindowV1, ...]
         provenance = window.provenance or {}
         existence = provenance.get("existence")
         if existence is None or not existence.source_ids or existence.provenance == "assumed":
-            raise WindowResolverInputError("source_identity_invalid", {"window_id": window.id, "claim": "existence"})
+            raise WindowResolverInputError("source_identity_invalid", {"window_id": window.id, "claim": "existence"}, category="model_draw_error")
         for claim, detail in provenance.items():
-            for locator in detail.source_ids:
+            for reference in detail.source_ids:
+                locator = _translate_observation_reference(
+                    reference, rows=rows, manifest=manifest, window_id=window.id, claim=claim,
+                )
                 source = by_locator.get(locator)
                 if source is None:
-                    raise WindowResolverInputError("source_identity_invalid", {"window_id": window.id, "source_locator": locator})
+                    raise WindowResolverInputError("source_identity_invalid", {"window_id": window.id, "source_locator": locator}, category="model_draw_error")
                 if claim not in source.positive_claims:
-                    raise WindowResolverInputError("source_claim_undeclared", {"window_id": window.id, "claim": claim})
+                    raise WindowResolverInputError("source_claim_undeclared", {"window_id": window.id, "claim": claim}, category="model_draw_error")
                 entry = manifest.entry_by_input_id(source.source_input_id)
                 if not isinstance(entry, RequiredViewEntry):
                     raise WindowResolverInputError("source_identity_invalid", {
                         "window_id": window.id, "input_id": source.source_input_id,
-                    })
+                    }, category="input_integrity_error")
                 if claim not in entry.opening_evidence.potentially_observable_claims:
-                    raise WindowResolverInputError("manifest_claim_not_observable", {"window_id": window.id, "claim": claim})
+                    raise WindowResolverInputError("manifest_claim_not_observable", {"window_id": window.id, "claim": claim}, category="model_draw_error")
                 permitted = ((source.channel == "plan" and claim in {"existence", "host", "along", "width"}) or
                              (source.channel == "elevation" and claim in {"existence", "along", "width", "sill", "head", "appearance"}))
                 if not permitted:
-                    raise WindowResolverInputError("claim_permission_invalid", {"window_id": window.id, "claim": claim})
+                    raise WindowResolverInputError("claim_permission_invalid", {"window_id": window.id, "claim": claim}, category="model_draw_error")
                 if claim == "existence":
                     if locator in used_existence:
-                        raise WindowResolverInputError("source_identity_invalid", {"source_locator": locator, "reason": "multiple_windows"})
+                        raise WindowResolverInputError("source_identity_invalid", {"source_locator": locator, "reason": "multiple_windows"}, category="model_draw_error")
                     used_existence.add(locator)
                 links.append(WindowClaimSourceLinkV1(window_id=window.id, claim=claim, source_locator=locator))
     order = {claim: index for index, claim in enumerate(("existence", "host", "along", "width", "sill", "head", "appearance"))}
@@ -655,7 +839,7 @@ def _check_floor_order(manifest: ViewManifest, producer: CorrectedGeometryV3,
                        rows: tuple[SourceWindowV1, ...], links: tuple[WindowClaimSourceLinkV1, ...]) -> None:
     refs = sorted({entry.floor_ref for entry in manifest.required_entries() if entry.view_type == "plan"})
     if refs != list(range(1, len(refs) + 1)) or len(refs) != len(producer.floors):
-        raise WindowResolverInputError("manifest_floor_ref_non_contiguous")
+        raise WindowResolverInputError("manifest_floor_ref_non_contiguous", category="input_integrity_error")
     floor_by_id = {floor.id: floor for floor in producer.floors}
     rank = {floor.id: index for index, floor in enumerate(sorted(producer.floors, key=lambda floor: floor.z_floor), start=1)}
     windows = {window.id: window for window in producer.windows}
@@ -663,16 +847,16 @@ def _check_floor_order(manifest: ViewManifest, producer: CorrectedGeometryV3,
         if isinstance(row, PlanSourceWindowV1):
             for link in (link for link in links if link.source_locator == row.source_locator):
                 if rank[windows[link.window_id].floor_id] != row.floor_ref:
-                    raise WindowResolverInputError("floor_ref_window_mismatch", {"window_id": link.window_id})
+                    raise WindowResolverInputError("floor_ref_window_mismatch", {"window_id": link.window_id}, category="model_draw_error")
         elif isinstance(row, ElevationSourceWindowV1) and row.local_z_interval is not None:
             candidates = [floor for floor in producer.floors
                           if row.local_z_interval.lo >= floor.z_floor and row.local_z_interval.hi <= floor.z_floor + floor.ceiling_height]
             for link in (link for link in links if link.source_locator == row.source_locator):
                 if len(candidates) != 1 or windows[link.window_id].floor_id != candidates[0].id:
                     raise WindowResolverInputError("elevation_floor_mismatch", {"window_id": link.window_id,
-                        "candidate_floors": [floor.id for floor in candidates]})
+                        "candidate_floors": [floor.id for floor in candidates]}, category="model_draw_error")
     if set(floor_by_id) != set(rank):  # defensive, makes the mapping invariant explicit
-        raise WindowResolverInputError("floor_ref_window_mismatch")
+        raise WindowResolverInputError("floor_ref_window_mismatch", category="input_integrity_error")
 
 
 def build_verified_window_resolver_inputs(*, producer_draw: CorrectedGeometryV3,
@@ -721,7 +905,7 @@ def verify_window_resolver_inputs_artifact(
     canonical = canonical_json_bytes(artifact.model_dump(mode="json"))
     if raw_artifact_bytes != canonical:
         raise WindowResolverInputError(
-            "source_identity_invalid", {"artifact": "window_resolver_inputs_canonical_bytes"},
+            "source_identity_invalid", {"artifact": "window_resolver_inputs_canonical_bytes"}, category="input_integrity_error",
         )
     raw_readings = {
         row.input_id: bytes(row.raw_bytes) for row in artifact.raw_reading_artifacts
@@ -741,7 +925,7 @@ def verify_window_resolver_inputs_artifact(
     )
     if rebuilt.inputs != artifact.inputs:
         raise WindowResolverInputError(
-            "source_identity_invalid", {"artifact": "resolver_inputs_replay"},
+            "source_identity_invalid", {"artifact": "resolver_inputs_replay"}, category="input_integrity_error",
         )
     return rebuilt
 
@@ -827,12 +1011,16 @@ def materialize_current_ring_va_elevation_bindings(*, geom: CorrectedGeometryV3,
 
 __all__ = [
     "CURRENT_RING_BINDING_HELPER_VERSION", "ElevationDirectionFactV1", "ElevationSourceWindowV1",
+    "ObservationReferenceCatalogEntry",
     "PlanSourceWindowV1", "RawReadingArtifactV1", "ReadingArtifactIdentityV1", "SourceIntervalV1", "VerifiedWindowResolverInputs",
     "WindowClaimSourceLinkV1", "WindowDirectionBindingError", "WindowResolverInputError", "WindowResolverInputsV1",
-    "WindowResolverInputsArtifactV1", "WindowSourceOfferV1", "build_verified_window_inputs_from_run",
+    "WindowResolverInputsArtifactV1", "WindowSourceErrorCategory", "WindowSourceOfferV1",
+    "build_observation_reference_catalog_from_run",
+    "build_verified_window_inputs_from_run",
     "build_verified_window_resolver_inputs", "build_window_source_offer",
     "build_window_resolver_inputs_artifact",
     "derive_manifest_direction_facts",
+    "derive_observation_reference_catalog", "format_observation_reference_catalog",
     "materialize_current_ring_va_elevation_bindings", "source_locator", "verify_window_resolver_inputs",
     "serialize_window_resolver_inputs_artifact", "verify_window_resolver_inputs_against_raw_artifacts",
     "verify_window_resolver_inputs_artifact",

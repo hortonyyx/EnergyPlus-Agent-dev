@@ -101,12 +101,17 @@ def finalize_correction_draw(
     if geom.schema_version == "3" and verified_window_inputs is not None:
         producer_bytes = canonical_json_bytes(geom.model_dump(mode="json"))
         if producer_bytes != verified_window_inputs.producer_draw_canonical_bytes:
+            # Caller-side wiring defect (finalize was handed a different geom
+            # than the one `verified_window_inputs` was built from) — not a
+            # model draw mistake, so no resample can help.
             raise WindowResolverInputError(
                 "source_identity_invalid", {"artifact": "producer_draw_canonical_bytes"},
+                category="input_integrity_error",
             )
     if geom.schema_version == "3" and verified_window_inputs is None:
         raise WindowResolverInputError(
             "source_identity_invalid", {"artifact": "verified_window_resolver_inputs"},
+            category="input_integrity_error",
         )
     tol = tol or load_core_tolerances()
     envelope = extract_authoritative_envelope(
