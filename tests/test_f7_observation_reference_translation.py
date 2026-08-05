@@ -472,3 +472,98 @@ def test_f7_floor_count_mismatch_archived_as_failed_attempt_and_resampled(tmp_pa
     assert attempt1.passed is False
     fail_result = next(r for r in attempt1.blocking() if r.check_id == "correction.window_source_reference")
     assert "producer_floor_count_mismatch" in fail_result.message
+
+
+# =========================================================================== #
+# MAJOR ① (rework r1): under a v3 target, a non-exportable observation-reference
+# catalog is a hard precondition (name the missing file + producer stage), not a
+# silent None that lets the model draw blind and fails opaquely two stages later.
+# Default behaviour (advisory None) is preserved for non-v3 callers.
+# =========================================================================== #
+def test_f7_v3_catalog_missing_manifest_raises_naming_path(tmp_path):
+    manifest, raw_manifest, artifacts, _ = _base()
+    run_dir = tmp_path / "run"
+    reading_dir = run_dir / "0_reading"
+    reading_dir.mkdir(parents=True)
+    # No view manifest on disk.
+    with pytest.raises(WindowResolverInputError, match="observation_reference_catalog_unavailable") as exc:
+        build_observation_reference_catalog_from_run(
+            run_dir=run_dir, reading_dir=reading_dir, required_for_v3=True)
+    assert exc.value.context["artifact"] == "view_manifest"
+    assert exc.value.context["produced_by_stage"] == "0_reading"
+    assert exc.value.context["missing_artifact"]
+
+
+def test_f7_v3_catalog_missing_reading_raises_naming_path(tmp_path):
+    manifest, raw_manifest, artifacts, _ = _base()
+    run_dir = tmp_path / "run"
+    reading_dir = run_dir / "0_reading"
+    reading_dir.mkdir(parents=True)
+    run_meta_path(run_dir, VIEW_MANIFEST_NAME, for_write=True).write_bytes(raw_manifest)
+    # Provision every required reading EXCEPT the elevation -> catalog cannot export.
+    for input_id in ("plan",):
+        expected_output_id = manifest.entry_by_input_id(input_id).expected_output_id
+        (reading_dir / f"{expected_output_id}.json").write_bytes(artifacts[input_id])
+    with pytest.raises(WindowResolverInputError, match="observation_reference_catalog_unavailable") as exc:
+        build_observation_reference_catalog_from_run(
+            run_dir=run_dir, reading_dir=reading_dir, required_for_v3=True)
+    assert exc.value.context["artifact"] == "reading"
+    assert exc.value.context["expected_output_id"] == "south"
+    assert "south.json" in exc.value.context["missing_artifact"]
+    assert exc.value.context["produced_by_stage"] == "0_reading"
+
+
+def test_f7_v3_catalog_complete_injects_normally(tmp_path):
+    manifest, raw_manifest, artifacts, _ = _base()
+    run_dir = tmp_path / "run"
+    reading_dir = run_dir / "0_reading"
+    reading_dir.mkdir(parents=True)
+    run_meta_path(run_dir, VIEW_MANIFEST_NAME, for_write=True).write_bytes(raw_manifest)
+    for input_id, raw in artifacts.items():
+        expected_output_id = manifest.entry_by_input_id(input_id).expected_output_id
+        (reading_dir / f"{expected_output_id}.json").write_bytes(raw)
+    # When everything is on disk, required_for_v3 must NOT raise — same text as advisory path.
+    injected = build_observation_reference_catalog_from_run(
+        run_dir=run_dir, reading_dir=reading_dir, required_for_v3=True)
+    advisory = build_observation_reference_catalog_from_run(
+        run_dir=run_dir, reading_dir=reading_dir)
+    assert injected == advisory and injected is not None
+
+
+def test_f7_v3_missing_catalog_hard_fails_at_draw_correction_entry(tmp_path, monkeypatch):
+    """Real-entry lock: the precondition surfaces at `_draw_correction`'s entry
+    (the catalog call sits before run_correction with no try/except), so a v3 run
+    with no manifest fails loudly instead of drawing blind."""
+    import src.agent.correction.window_sources as ws
+    run_dir = tmp_path / "run"
+    monkeypatch.setattr(ws, "verify_reading_stage_root_against_accepted_attempt", lambda *a, **k: None)
+    policy = RunPolicy(capability_profile="orthogonal_polygon", run_profile="exploratory")
+    with pytest.raises(WindowResolverInputError, match="observation_reference_catalog_unavailable") as exc:
+        rs._draw_correction(run_dir, "testdata", expected_zones=None, relied=False, policy=policy)
+    assert exc.value.context["produced_by_stage"] == "0_reading"
+    assert exc.value.context["artifact"] == "view_manifest"
+
+
+# =========================================================================== #
+# MAJOR ③ (rework r1): parse.py's two prefilled-raise sites are NOT a
+# classification point — they live in the inner-retry validator and never reach
+# run_stage's model_draw_error->archive classifier. This pins the ACTUAL path.
+# =========================================================================== #
+def test_f7_parse_prefilled_raises_in_inner_validator_not_outer_classifier():
+    """The inner validator `_draw_correction` actually wires
+    (`_schema_only_correction_validator`) rejects a prefilled payload — that is
+    the inner blind-retry trigger, not the outer classifier. If someone removes
+    these raises thinking classification covers prefill elsewhere, this goes red
+    (the inner self-correction chance is lost)."""
+    from src.agent.pipeline import _schema_only_correction_validator
+    target = correction_target("orthogonal_polygon")
+
+    payload_seg = _geom().model_dump(mode="json")
+    payload_seg["windows"][0]["facade_segment_id"] = "fake"
+    with pytest.raises(WindowResolverInputError, match="producer_segment_ref_prefilled"):
+        _schema_only_correction_validator(payload_seg, target)
+
+    payload_audit = _geom().model_dump(mode="json")
+    payload_audit["corrections"] = [{"kind": "window_host_resolution"}]
+    with pytest.raises(WindowResolverInputError, match="producer_resolver_audit_prefilled"):
+        _schema_only_correction_validator(payload_audit, target)

@@ -329,7 +329,7 @@ def _draw_correction(
         from src.agent.correction.window_sources import build_observation_reference_catalog_from_run
 
         observation_reference_catalog = build_observation_reference_catalog_from_run(
-            run_dir=run_dir, reading_dir=rdir,
+            run_dir=run_dir, reading_dir=rdir, required_for_v3=True,
         )
     geom = run_correction(rdir, testdata_text, out_dir=s1, feedback=None,
                           draw_validate=_schema_only_correction_validator,

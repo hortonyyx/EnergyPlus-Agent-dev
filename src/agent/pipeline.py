@@ -1029,7 +1029,7 @@ def run_pipeline_artifacts(
 
         if _correction_target(capability_profile).schema_version == "3":
             observation_reference_catalog = build_observation_reference_catalog_from_run(
-                run_dir=out_dir, reading_dir=vector_dir,
+                run_dir=out_dir, reading_dir=vector_dir, required_for_v3=True,
             )
     geom = run_correction(
         vector_dir,

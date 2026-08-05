@@ -490,7 +490,9 @@ def format_observation_reference_catalog(entries: tuple[ObservationReferenceCata
     )
 
 
-def build_observation_reference_catalog_from_run(*, run_dir: Path, reading_dir: Path) -> str | None:
+def build_observation_reference_catalog_from_run(
+    *, run_dir: Path, reading_dir: Path, required_for_v3: bool = False,
+) -> str | None:
     """Prompt-facing catalog listing for a run's correction-draw guidance.
 
     Returns ``None`` when the view manifest (or one of its required reading
@@ -500,22 +502,46 @@ def build_observation_reference_catalog_from_run(*, run_dir: Path, reading_dir: 
     re-derives and re-validates everything after the draw regardless of
     whether this listing was shown, so a missing catalog here weakens
     guidance, never the contract.
+
+    Under a v3 target, though, that advisory fallback is a usability trap
+    (F-2c/F-7 rework r1, MAJOR ①): a missing catalog leaves the model with no
+    guidance, it fills wrong references, and the run burns its resample budget
+    surfacing as an opaque failure two stages later — the same silent-degrade
+    shape F-3/F-4 hit. Pass ``required_for_v3=True`` to make a non-exportable
+    catalog fail immediately and loudly instead: the error names the missing
+    file and the stage (0_reading) that should have produced it.
     """
     from src.agent.execution.run_meta import run_meta_path
     from src.agent.execution.view_manifest import VIEW_MANIFEST_NAME
 
+    def _unavailable(**context) -> None:
+        raise WindowResolverInputError(
+            "observation_reference_catalog_unavailable",
+            {**context, "produced_by_stage": "0_reading"},
+            category="input_integrity_error",
+        )
+
     manifest_path = run_meta_path(Path(run_dir), VIEW_MANIFEST_NAME)
     if not manifest_path.is_file():
+        if required_for_v3:
+            _unavailable(missing_artifact=str(manifest_path), artifact="view_manifest")
         return None
     raw_manifest = manifest_path.read_bytes()
     try:
         manifest = _parse_manifest(raw_manifest)
     except WindowResolverInputError:
+        if required_for_v3:
+            raise
         return None
     raw_readings: dict[str, bytes] = {}
     for entry in manifest.required_entries():
         path = Path(reading_dir) / f"{entry.expected_output_id}.json"
         if not path.is_file():
+            if required_for_v3:
+                _unavailable(
+                    missing_artifact=str(path), artifact="reading",
+                    expected_output_id=entry.expected_output_id,
+                )
             return None
         raw_readings[entry.input_id] = path.read_bytes()
     try:
@@ -523,6 +549,8 @@ def build_observation_reference_catalog_from_run(*, run_dir: Path, reading_dir: 
             raw_view_manifest_bytes=raw_manifest, raw_reading_artifacts=raw_readings,
         )
     except WindowResolverInputError:
+        if required_for_v3:
+            raise
         return None
     return format_observation_reference_catalog(entries)
 

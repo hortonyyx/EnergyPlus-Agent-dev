@@ -80,6 +80,24 @@ def parse_correction_draw(payload: dict, target: CorrectionTarget) -> CorrectedG
     # B5 producer draw is intentionally unmounted.  Check the raw payload
     # before strict V3 model validation so a prefilled reference receives its
     # stable source-trust code instead of an incidental "unknown segment".
+    #
+    # F-2c/F-7 rework r1 (MAJOR ③) — path honesty, NOT a classification site:
+    # these two raises are reached only when `parse_correction_draw` is handed a
+    # *dict*, which in production happens inside the inner-retry validator
+    # (`_schema_only_correction_validator` / `_make_correction_validator`, the
+    # validator `_draw_correction` wires) and `run_correction`'s own parse — all
+    # of which wrap any exception into a RuntimeError. So they trigger the inner
+    # BLIND retry (up to 3 chances for the model to stop prefilling) and NEVER
+    # reach `run_stage._draw_correction`'s `model_draw_error`→archive classifier.
+    # The `category` below is required by the type and records fault attribution
+    # (a prefill IS the model's fault); it is not consumed by the outer
+    # classifier at this site. The same prefill condition is independently
+    # caught on the live post-draw path by `_producer_preflight`
+    # (window_sources.py), which IS routed as model_draw_error → archive +
+    # resample — so classification coverage does not depend on these raises.
+    # Their value here is a STABLE, named rejection code in the inner-retry
+    # channel (without them the V3 schema validator still rejects a prefilled
+    # segment id, but as a generic ValidationError, not this stable code).
     if target.schema_version == "3" and isinstance(payload, dict):
         windows = payload.get("windows")
         if isinstance(windows, list) and any(isinstance(item, dict) and item.get("facade_segment_id") is not None for item in windows):
