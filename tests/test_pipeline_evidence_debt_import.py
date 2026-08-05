@@ -75,6 +75,7 @@ def test_run_correction_default_evidence_debt_path_resolves_import(
         prefix,
         attempts,
         validate,
+        retry_guidance=None,
     ):
         assert prefix == "correction"
         return _minimal_geom_dict()

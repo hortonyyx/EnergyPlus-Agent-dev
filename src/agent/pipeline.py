@@ -46,6 +46,10 @@ from src.agent._share import ensure_schema_initialized
 from src.agent.correction import CorrectedGeometry, apply_deterministic_core
 from src.agent.correction.config import load_core_tolerances
 from src.agent.correction.envelope import extract_authoritative_envelope
+from src.agent.correction.vocab import (
+    format_correction_system_vocabulary,
+    retry_guidance_for_correction,
+)
 from src.agent.execution.evidence_preflight import (
     EvidenceDebt,
     compute_evidence_debt_from_vector_dir,
@@ -172,6 +176,7 @@ def _call_json_llm(
     prefix: str,
     attempts: int = 1,
     validate: Callable[[dict], None] | None = None,
+    retry_guidance: Callable[[BaseException], str | None] | None = None,
 ) -> dict:
     """JSON-only LLM call with retry; return the parsed (and optionally validated) dict.
 
@@ -182,7 +187,18 @@ def _call_json_llm(
     sampling differs each draw), turning an intermittent bad draw from a hard
     pipeline failure into a retry. `validate(parsed)` may raise to reject a draw
     that parses but fails a semantic check. Saves raw/thinking artifacts (last
-    attempt). Raises after the final attempt still fails."""
+    attempt). Raises after the final attempt still fails.
+
+    `retry_guidance` (F-4a): when a retry happens AND the failure got far enough
+    to receive a model response (i.e. it failed parsing/validation, not the
+    network), this callable translates the exception into a FORMAT-ONLY
+    corrective message that is appended to the next attempt's messages — so a
+    systematic schema misunderstanding (unknown field, off-vocabulary key) is
+    corrected instead of repeated verbatim until the budget is gone. Transport
+    errors (the `create()` call raised before any response) retry blind, and
+    `retry_guidance` returning ``None`` (e.g. for a semantic ValueError) also
+    retries blind: the inner retry owns ONLY schema/format robustness, never
+    geometry/upstream/numeric values. None/omitted ⇒ fully blind retry (legacy)."""
     api_key = section.get("api_key")
     base_url = section.get("base_url")
     model_name = section["model_name"]
@@ -208,19 +224,27 @@ def _call_json_llm(
 
     client = OpenAI(api_key=api_key, base_url=base_url, timeout=600.0, max_retries=2)
     last_err: Exception | None = None
+    # F-4a: corrective message appended to the NEXT attempt's messages. Stays
+    # "" (blind retry) unless the previous attempt received a model response
+    # that then failed schema validation AND retry_guidance translated that
+    # failure into a format-only correction. Transport errors never set this.
+    guidance_text = ""
     for attempt in range(1, attempts + 1):
         # Reset per-attempt state so the except branch can always reference
         # `content` even when a transport error fires before the response is
         # unpacked (L2: transport exceptions now consume an attempt and retry).
         content: str = ""
         finish_reason: str | None = None
+        messages: list[dict] = [
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": human},
+        ]
+        if guidance_text:
+            messages.append({"role": "user", "content": guidance_text})
         try:
             resp = client.chat.completions.create(
                 model=model_name,
-                messages=[
-                    {"role": "system", "content": system_prompt},
-                    {"role": "user", "content": human},
-                ],
+                messages=messages,
                 temperature=temperature,
                 max_tokens=max_tokens,
                 extra_body=extra_body,
@@ -269,6 +293,22 @@ def _call_json_llm(
                     encoding="utf-8",
                 )
             if attempt < attempts:
+                # F-4a: earn corrective feedback ONLY when we got a model
+                # response back that then failed parsing/validation. `content`
+                # is non-empty iff create() returned (a transport error raises
+                # inside create() before `content` is assigned, so it stays ""
+                # and we retry blind). retry_guidance then decides whether the
+                # exception is a schema ValidationError worth translating;
+                # returning None (semantic ValueError / JSON syntax / etc.)
+                # also retries blind. Guidance carries field paths + the
+                # schema's legal tokens only, never geometry/upstream/numbers.
+                if retry_guidance is not None and content.strip():
+                    try:
+                        guidance_text = retry_guidance(e) or ""
+                    except Exception:  # noqa: BLE001 — guidance must never crash the retry
+                        guidance_text = ""
+                else:
+                    guidance_text = ""
                 logger.warning(
                     "{}: attempt {}/{} rejected ({}); retrying",
                     prefix,
@@ -344,6 +384,7 @@ def _build_correction_messages(
         "===== BEGIN CorrectedGeometry JSON SCHEMA =====\n"
         f"{geom_schema}\n"
         "===== END CorrectedGeometry JSON SCHEMA =====\n\n"
+        f"{format_correction_system_vocabulary(target)}"
         "===== BEGIN RULE DOCUMENT: 1_correction =====\n"
         f"{correction_docs}\n"
         "===== END RULE DOCUMENT: 1_correction =====\n\n"
@@ -624,6 +665,7 @@ def run_correction(
         prefix="correction",
         attempts=3,
         validate=validator,
+        retry_guidance=retry_guidance_for_correction(target),
     )
     try:
         geom = parse_correction_draw(parsed, target)
