@@ -459,11 +459,10 @@ def merge_isolated_output(
                     },
                 )
             )
-            save_run_manifest(current_manifest, run_dir)
-            # F-2c-1: mirror each accepted view to the stage root as
-            # ``0_reading/<expected_output_id>.json`` so the isolated path is
-            # indistinguishable from the flat path there. Downstream readers —
-            # ``verify_reading_stage_root_against_accepted_attempt``,
+            # F-2c-1 + F-2c rework r1 (MAJOR ④): mirror each accepted view to
+            # the stage root as ``0_reading/<expected_output_id>.json`` so the
+            # isolated path is indistinguishable from the flat path there.
+            # Downstream readers — ``verify_reading_stage_root_against_accepted_attempt``,
             # ``build_verified_window_inputs_from_run``, ``_render_stage`` and
             # the ``reading.present`` glob — all read ``0_reading/*_view.json``
             # at the stage root, which the isolated merge never produced (it
@@ -473,10 +472,28 @@ def merge_isolated_output(
             # from source). Written only on accept so the mirrors always reflect
             # the accepted product the source verifier binds against, never a
             # later blocking draw that would clobber them.
+            #
+            # MAJOR ④ (rework r1) ordering + stale cleanup — two real pre-state
+            # hazards a clean tmp fixture masks:
+            #   (a) a prior round's leftover *_view.json at the stage root
+            #       survives an overwrite-only loop, so the next stage's source
+            #       verifier rebuilds `current` from ALL *_view.json (stale
+            #       included) and hard-crashes on accepted_attempt_mismatch
+            #       ("accept first, crash next stage"). Remove every *_view.json
+            #       first, then write exactly the accepted set.
+            #   (b) writing the accepted pointer before the mirrors left an
+            #       interruption window of accepted-but-unmirrored; mirrors-first
+            #       means an interruption leaves the run UNaccepted (the verifier
+            #       early-returns when there is no accepted attempt), never
+            #       half-mirrored. `save_run_manifest` (the persist) is therefore
+            #       the LAST step.
+            for stale in stage_dir.glob("*_view.json"):
+                stale.unlink()
             for view_id, view in views.items():
                 (stage_dir / f"{view_id}.json").write_text(
                     json.dumps(view, indent=2, ensure_ascii=False), encoding="utf-8"
                 )
+            save_run_manifest(current_manifest, run_dir)
         return attempt_dir
 
 

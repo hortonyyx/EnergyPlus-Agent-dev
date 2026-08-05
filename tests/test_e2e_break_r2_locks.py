@@ -415,6 +415,40 @@ def test_f2c3_flat_path_verifies_and_flat_archive_is_unchanged(tmp_path: Path):
     verify_reading_stage_root_against_accepted_attempt(run_dir, reading_dir)  # no raise
 
 
+def test_f2c_rework_r1_stale_stage_root_mirrors_cleaned_before_accept(tmp_path):
+    """F-2c rework r1 (MAJOR ④, sol cross-review): a REAL pre-state — the stage
+    root already holds a stale/extra ``*_view.json`` left by a prior round (more
+    mirrors than the accepted attempt produces). Pre-fix, merge wrote the
+    accepted pointer and the new mirrors WITHOUT removing the stale one, so the
+    next stage's ``verify_reading_stage_root_against_accepted_attempt`` rebuilt
+    ``current`` from ALL ``*_view.json`` (stale included) and hard-crashed on
+    ``accepted_attempt_mismatch`` — "accept first, crash next stage", masked by
+    clean tmp fixtures. Post-fix, merge removes stale ``*_view.json`` and writes
+    the accepted mirrors BEFORE the accepted pointer, so verify binds cleanly."""
+    run_dir = tmp_path / "case_run"
+    run_dir.mkdir()
+    workspace = _formal_build(_SM21, run_dir, tmp_path / "staging")
+    staging = workspace.staging_root
+    # Real pre-state: a previous round left a stale extra view mirror at the
+    # stage root before this merge runs.
+    reading_dir = run_dir / "0_reading"
+    reading_dir.mkdir(parents=True)
+    (reading_dir / "stale_view.json").write_text(
+        json.dumps({"strokes": [], "uncaptured": []}), encoding="utf-8")
+
+    (staging / "out" / "output.json").write_text(json.dumps({"views": _real_views()}), encoding="utf-8")
+    merge_isolated_output(staging, run_dir)
+
+    # The stale mirror is gone — exactly the accepted views remain at the root.
+    mirrors = sorted(p.name for p in reading_dir.glob("*_view.json"))
+    assert "stale_view.json" not in mirrors
+    assert mirrors == sorted(f"{view_id}.json" for view_id in _real_views())
+
+    # The next stage's source verifier binds cleanly (no accepted_attempt_mismatch
+    # from the stale extra).
+    verify_reading_stage_root_against_accepted_attempt(run_dir, reading_dir)  # no raise
+
+
 # =========================================================================== #
 # F-2c §3 — exactly one reading-contract detector in the repo (no second ruler)
 # =========================================================================== #
