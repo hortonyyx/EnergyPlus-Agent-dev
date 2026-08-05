@@ -321,11 +321,22 @@ def _draw_correction(
     # gate①'s job (so a content-bad draw is counted + filed, not silently re-drawn
     # inside the LLM call, bypassing the per-stage budget — review 2026-06-19 High-2).
     target = correction_target(policy.capability_profile)
+    observation_reference_catalog = None
+    if target.schema_version == "3":
+        # F-7 (2026-08-05): mechanically-derived, from the same `_catalog`
+        # exit the enforcement path validates against — see
+        # `derive_observation_reference_catalog`'s docstring.
+        from src.agent.correction.window_sources import build_observation_reference_catalog_from_run
+
+        observation_reference_catalog = build_observation_reference_catalog_from_run(
+            run_dir=run_dir, reading_dir=rdir,
+        )
     geom = run_correction(rdir, testdata_text, out_dir=s1, feedback=None,
                           draw_validate=_schema_only_correction_validator,
                           run_profile=policy.run_profile,
                           capability_profile=policy.capability_profile,
-                          dimensioned_views=dimensioned_view_names(run_dir.parent), target=target)
+                          dimensioned_views=dimensioned_view_names(run_dir.parent), target=target,
+                          observation_reference_catalog=observation_reference_catalog)
     evidence_debt = load_evidence_debt(s1 / "evidence_debt.json")
 
     # Keep flow aligned with pipeline: evidence debt is evaluated before any
@@ -363,21 +374,55 @@ def _draw_correction(
             rep.add_fail("correction.draw_quality", CheckLayer.INVARIANT, msg)
         return geom, rep
 
+    # F-7 (2026-08-05): `WindowResolverInputError` carries `.category` — the
+    # throw site's own classification of who is at fault, never inferred here
+    # from the message text. `model_draw_error` (the correction LLM cited an
+    # observation it invented, mis-scoped, or was not entitled to use) is this
+    # draw's fault: file it as a gate①-blocked attempt so the outer stochastic
+    # loop archives it and blind-resamples, exactly like `correction_draw_issues`
+    # above. `input_integrity_error` (reading artifact / manifest / accepted-
+    # attempt bytes do not line up) is not this draw's fault — no resample can
+    # fix a broken upstream artifact, so it re-raises and hard-crashes the flow
+    # as before.
+    from src.agent.correction.window_sources import WindowResolverInputError
+
+    def _window_source_error_report(exc: WindowResolverInputError) -> CheckReport:
+        rep = CheckReport(
+            stage="1_correction",
+            capability_profile=policy.capability_profile,
+            run_profile=policy.run_profile,
+        )
+        rep.add_fail(
+            "correction.window_source_reference", CheckLayer.INVARIANT,
+            f"window source reference rejected ({exc.code}): {exc.context}",
+        )
+        return rep
+
     verified_window_inputs = None
     if geom.schema_version == "3":
         from src.agent.correction.window_sources import build_verified_window_inputs_from_run
 
-        verified_window_inputs = build_verified_window_inputs_from_run(
-            producer_draw=geom,
-            run_dir=run_dir,
-            reading_dir=rdir,
+        try:
+            verified_window_inputs = build_verified_window_inputs_from_run(
+                producer_draw=geom,
+                run_dir=run_dir,
+                reading_dir=rdir,
+            )
+        except WindowResolverInputError as exc:
+            if exc.category != "model_draw_error":
+                raise
+            return geom, _window_source_error_report(exc)
+    try:
+        result = finalize_correction_draw(
+            geom,
+            vector_dir=rdir,
+            target=target,
+            verified_window_inputs=verified_window_inputs,
         )
-    result = finalize_correction_draw(
-        geom,
-        vector_dir=rdir,
-        target=target,
-        verified_window_inputs=verified_window_inputs,
-    )
+    except WindowResolverInputError as exc:
+        if exc.category != "model_draw_error":
+            raise
+        return geom, _window_source_error_report(exc)
     geom = result.geom
     rep = check_correction(geom,
                            window_host_proof=result.window_host_claims,

@@ -333,6 +333,7 @@ def _build_correction_messages(
     feedback: str | None = None,
     evidence_debt: EvidenceDebt | None = None,
     target=None,
+    observation_reference_catalog: str | None = None,
 ) -> tuple[str, str]:
     correction_docs = _load_correction_docs()
     reading_guide = _read(_SKILL_DIR / "0_reading" / "guide.md")
@@ -427,6 +428,29 @@ def _build_correction_messages(
         )
     for fname in vector_files:
         chunks.append(f"\n[reading vector] {fname}:\n```json\n{_read(vector_dir / fname)}\n```\n")
+    if observation_reference_catalog:
+        # F-7 (2026-08-05): source_ids cites what the draw can actually see —
+        # a reading-vector observation, not a locator hash it cannot compute
+        # (that hash embeds reading-artifact bytes this stage never receives).
+        chunks.append(
+            "\n===== BEGIN WINDOW SOURCE OBSERVATIONS =====\n"
+            "Each window's `provenance.<claim>.source_ids` must cite the "
+            "specific reading-stage observations that support that claim, "
+            "using the form `<view_file_stem>/<observation_id>` — the "
+            "reading vector JSON's filename above (without `.json`) "
+            "followed by `/` and the `id` of a `window`-pen stroke from that "
+            "file's `strokes` array (e.g. `1f_view/S11`). Cite ONLY ids "
+            "listed in the catalog below; never invent an id, and never "
+            "write a `src:`-prefixed hash — you cannot compute one and must "
+            "not try. Every window's `existence` claim requires at least one "
+            "such reference; other claims (`host`/`along`/`width`/`sill`/"
+            "`head`/`appearance`) may only cite an observation whose entry "
+            "below lists that claim as allowed.\n\n"
+            "Legal observation references for this run "
+            "(view/observation: allowed claims):\n"
+            f"{observation_reference_catalog}\n"
+            "===== END WINDOW SOURCE OBSERVATIONS =====\n"
+        )
     if feedback:
         chunks.append(
             "\n\n=== Geometry feedback from a previous attempt — fix these ===\n"
@@ -609,6 +633,7 @@ def run_correction(
     dimensioned_views: set[str] | None = None,
     fail_closed_evidence_debt: bool = False,
     target=None,
+    observation_reference_catalog: str | None = None,
 ) -> CorrectedGeometry:
     """1_correction LLM stage → CorrectedGeometry (pre-core).
 
@@ -649,7 +674,8 @@ def run_correction(
             f"under run_profile={run_profile}: {checks}"
         )
     system_prompt, human = _build_correction_messages(
-        vector_dir, testdata_text, feedback=feedback, evidence_debt=evidence_debt, target=target
+        vector_dir, testdata_text, feedback=feedback, evidence_debt=evidence_debt, target=target,
+        observation_reference_catalog=observation_reference_catalog,
     )
     validator = (
         _make_correction_validator(_reading_window_stroke_count(vector_dir), target)
@@ -996,6 +1022,15 @@ def run_pipeline_artifacts(
         filename="reading_checks.json",
         run_profile=run_profile,
     )
+    observation_reference_catalog = None
+    if out_dir is not None:
+        from src.agent.correction.parse import correction_target as _correction_target
+        from src.agent.correction.window_sources import build_observation_reference_catalog_from_run
+
+        if _correction_target(capability_profile).schema_version == "3":
+            observation_reference_catalog = build_observation_reference_catalog_from_run(
+                run_dir=out_dir, reading_dir=vector_dir,
+            )
     geom = run_correction(
         vector_dir,
         testdata_text,
@@ -1004,6 +1039,7 @@ def run_pipeline_artifacts(
         run_profile=run_profile,
         capability_profile=capability_profile,
         evidence_debt=evidence_debt,
+        observation_reference_catalog=observation_reference_catalog,
     )
 
     from src.validator.checks.correction import check_evidence_debt_coverage
