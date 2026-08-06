@@ -27,7 +27,7 @@ from __future__ import annotations
 
 import re
 
-from src.validator.checks.schema import CheckLayer, CheckReport, CheckStatus
+from src.validator.checks.schema import CheckLayer, CheckReport, CheckStatus, RunProfile
 from src.validator.idf_fragments import IdfFragmentIndex, parse_mep_fragments
 from src.validator.schedules import validate_schedule_completeness
 
@@ -100,8 +100,13 @@ def check_mep(
     geometry_idf: str = "",
     testdata: dict | None = None,
     capability_profile: str = "rectangular",
+    run_profile: RunProfile = "exploratory",
 ) -> CheckReport:
-    rep = CheckReport(stage="4_mep", capability_profile=capability_profile)
+    rep = CheckReport(
+        stage="4_mep",
+        capability_profile=capability_profile,
+        run_profile=run_profile,
+    )
     idx = parse_mep_fragments(mep, extra_idf=geometry_idf)
     if not idx.ok:
         rep.add("mep.idf_parse", CheckStatus.ERROR, CheckLayer.INVARIANT,

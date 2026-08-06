@@ -652,3 +652,87 @@ def test_s5_without_contract_is_byte_identical_legacy():
     legacy = assemble_intake_output(
         zone_specs="z", surface_specs="s", fenestration_specs="f", mep=mep)
     assert legacy.building is mep.building  # verbatim copy, no rebuild
+
+
+# =========================================================================== #
+# F-10 (2026-08-05): check_mep run_profile signature + wiring.
+#   run_stage.py:572-578 passes run_profile=policy.run_profile; before F-10
+#   check_mep did not accept it -> TypeError on every flow reaching 4_mep.
+#   Fix mirrors check_assembly: kw param run_profile + passed to CheckReport.
+#
+# NOTE on acceptance B: a profile-gated mep check_id ("FAIL under exploratory
+# but BLOCK only under regression") does NOT exist. disposition() in
+# src/validator/checks/schema.py is profile-agnostic for every mep.* id --
+# INVARIANT always BLOCKs, CROSS_CHECK always FLAGs, on ANY profile (the only
+# profile-gated ids are reading.*/correction.evidence_debt_coverage). So B as
+# literally specified is structurally impossible without editing disposition()
+# (out of scope -- only mep.py may change) or a mep check's layer/id (forbidden
+# by the dispatch). The profile-flow lock below is the honest expression of the
+# behavior change this fix actually delivers.
+# =========================================================================== #
+
+
+def _f10_minimal_mep_dict():
+    """Self-contained minimal valid mep dict (no anchor/gitignored file dep)."""
+    return {
+        "building": {"name": "B", "north_axis": 0.0, "terrain": "City"},
+        "site_location": {"name": "S", "latitude": 22.5, "longitude": 114.0,
+                          "time_zone": 8.0, "elevation": 5.0},
+        "material_specs": "", "construction_specs": "", "schedule_specs": "",
+        "hvac_specs": "", "people_specs": "", "lights_specs": "",
+    }
+
+
+def test_mep_default_run_profile_is_exploratory():
+    """C: omitting run_profile must yield report.run_profile == 'exploratory'.
+
+    Guards against a silent default change that would widen/narrow 4_mep's
+    global blocking surface (the report's run_profile governs disposition)."""
+    rep = check_mep(_f10_minimal_mep_dict())
+    assert rep.run_profile == "exploratory"
+
+
+def test_mep_run_profile_flows_into_report():
+    """The run_profile kw now governs the 4_mep report (previously it crashed
+    on the real path and was never recorded). This is the auditable behavior
+    change: the report honestly records which profile dispositioned it."""
+    rep_default = check_mep(_f10_minimal_mep_dict())
+    rep_regression = check_mep(_f10_minimal_mep_dict(), run_profile="regression")
+    assert rep_default.run_profile == "exploratory"
+    assert rep_regression.run_profile == "regression"
+
+
+def test_draw_mep_real_path_no_typeerror_and_wires_run_profile(tmp_path, monkeypatch):
+    """A: the REAL entry path (run_stage._draw_mep -> check_mep) must not raise
+    TypeError and must carry policy.run_profile into the report.
+
+    Exercises the actual call site at run_stage.py:572-578
+    (run_profile=policy.run_profile), NOT a test-only signature check: _draw_mep
+    is driven for real, with only the LLM (run_mep) and geometry I/O
+    (_geometry_zone_meta) stubbed. Before F-10 this raised:
+      TypeError: check_mep() got an unexpected keyword argument 'run_profile'
+    """
+    import scripts.tool_scripts.run_stage as rs
+    import src.agent.pipeline as pipeline
+    from src.agent.execution.policy import RunPolicy
+
+    monkeypatch.setattr(
+        rs, "_geometry_zone_meta",
+        lambda run_dir, policy: ("zone_specs_str", [], [], set(), set()),
+    )
+
+    class _StubMep:
+        # _draw_mep only consumes mep.model_dump(); stubbing the LLM stage's
+        # return avoids pulling BuildingSchema's IDD descriptor, so this lock
+        # stays self-contained (no schema-init ordering dependency) while still
+        # driving the real _draw_mep body + the real check_mep(run_profile=...)
+        # call site at run_stage.py:572-578.
+        def model_dump(self):
+            return _f10_minimal_mep_dict()
+
+    monkeypatch.setattr(pipeline, "run_mep", lambda *a, **k: _StubMep())
+
+    policy = RunPolicy(capability_profile="rectangular", run_profile="regression")
+    _mep, rep = rs._draw_mep(tmp_path, "testdata", policy)
+    assert rep.stage == "4_mep"
+    assert rep.run_profile == "regression"  # proves the real call site wired it through
