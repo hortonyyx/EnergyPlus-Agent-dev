@@ -161,6 +161,42 @@ def test_foundations_path_skips_terminal_vertex_drift():
     )
 
 
+def test_foundations_node_binds_drift_skip_at_callsite():
+    """F-11 Fix-A WIRING lock (the real protection). ``cross_ref_foundations_node``
+    ITSELF — not a hand-passed flag — must defer the terminal vertex-drift gate.
+    We drive the NODE with a real post-geometry drift (snapshot surface W1 absent
+    from ConfigState), let the node decide what to pass, and assert the returned
+    ``validation_errors`` carries NO ``VERTEX_FRAME_DRIFT``.
+
+    This is the lock the mechanism test above does NOT provide: that test passes
+    ``include_vertex_drift=False`` by hand to the validator, so it stays green
+    even if the node were rewired to pass True (i.e. even if F-11 were undone).
+    Decisive neuter: deleting ``include_vertex_drift=False`` from
+    ``cross_ref_foundations_node``'s call to ``_output_coordinate_errors``
+    (``src/agent/nodes/cross_ref.py``) MUST turn THIS test red.
+
+    Contrast cell = ``test_cross_ref_complete_node_reports_real_vertex_drift``:
+    the SAME ``_drift_state()`` fed to ``cross_ref_complete_node`` MUST report
+    ``VERTEX_FRAME_DRIFT``. Only with both cells does the foundations skip mean
+    'deferred', not 'dropped'."""
+    from src.agent.nodes.cross_ref import cross_ref_foundations_node
+    from src.agent.state import AgentState
+
+    contract, context, config = _drift_state()
+    state = AgentState(
+        config_state=config,
+        output_coordinate_contract=contract,
+        output_coordinate_context=context,
+    )
+    update = cross_ref_foundations_node(state)
+    errs = update["validation_errors"]
+    drift = [e for e in errs if "VERTEX_FRAME_DRIFT" in e]
+    assert not drift, (
+        f"cross_ref_foundations_node must defer terminal vertex-drift at the "
+        f"callsite (include_vertex_drift=False); got {drift}"
+    )
+
+
 # --------------------------------------------------------------------------- #
 # Acceptance 3 — deterministic loop termination (circuit breaker)
 # --------------------------------------------------------------------------- #
