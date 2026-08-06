@@ -1041,6 +1041,60 @@ class GeometrySchema(BaseSchema):
     _interior_points: np.ndarray = np.array([])
     _surface_to_normal_vector: ClassVar[dict[str, np.ndarray]] = {}
 
+    # F-13 (2026-08-06): process-wide counter + log of real winding
+    # reversals performed by _sort_vertices_clockwise (see that method's
+    # docstring). Retrieve after a run via
+    # GeometrySchema.winding_reversal_count() / .winding_reversal_log(),
+    # or by grepping the process log for "VERTEX_WINDING_REVERSED".
+    _winding_reversal_count: ClassVar[int] = 0
+    _winding_reversal_log: ClassVar[list[dict[str, str]]] = []
+
+    @classmethod
+    def reset_winding_reversal_state(cls) -> None:
+        """Reset the F-13 winding-reversal counter/log. Call at the start of
+        a fresh run/process if isolating counts per-run; tests should call
+        this to avoid cross-test pollution of the shared class state."""
+        GeometrySchema._winding_reversal_count = 0
+        GeometrySchema._winding_reversal_log = []
+
+    @classmethod
+    def winding_reversal_count(cls) -> int:
+        return GeometrySchema._winding_reversal_count
+
+    @classmethod
+    def winding_reversal_log(cls) -> list[dict[str, str]]:
+        return list(GeometrySchema._winding_reversal_log)
+
+    # F-13 orchestrator addendum (2026-08-06): the retired algorithm did
+    # THREE things, not two — (1) guarantee outward winding [kept],
+    # (2) re-pick the start vertex [retired, see _sort_vertices_clockwise],
+    # (3) silently repair vertex orders that weren't a simple loop around
+    # their own centroid (self-intersecting "bowtie" orderings, or input so
+    # far from planar that no normal can be trusted) by re-sorting all
+    # points into angular order. (3) is ALSO gone now that re-sorting is
+    # retired. This counter/log instruments that silently-removed safety
+    # net — diagnose only, never repairs, never raises. Retrieve via
+    # GeometrySchema.disordered_loop_count() / .disordered_loop_log(), or
+    # by grepping the process log for "VERTEX_LOOP_DISORDERED".
+    _disordered_loop_count: ClassVar[int] = 0
+    _disordered_loop_log: ClassVar[list[dict[str, str]]] = []
+
+    @classmethod
+    def reset_disordered_loop_state(cls) -> None:
+        """Reset the F-13 disordered-loop counter/log. Same shape/retrieval
+        pattern as reset_winding_reversal_state; tests should call this too
+        to avoid cross-test pollution of the shared class state."""
+        GeometrySchema._disordered_loop_count = 0
+        GeometrySchema._disordered_loop_log = []
+
+    @classmethod
+    def disordered_loop_count(cls) -> int:
+        return GeometrySchema._disordered_loop_count
+
+    @classmethod
+    def disordered_loop_log(cls) -> list[dict[str, str]]:
+        return list(GeometrySchema._disordered_loop_log)
+
     @model_validator(mode="before")
     def validate_surfaces(cls, v):
         if "surfaces" not in v:
@@ -1147,34 +1201,194 @@ class GeometrySchema(BaseSchema):
         surface: SurfaceSchema | FenestrationSurfaceSchema,
         normal_vector: np.ndarray,
     ):
+        """Ensure the surface's vertex loop winds so its own normal (judged
+        purely from the order of its points, independent of any external
+        reference) agrees with `normal_vector` — the direction independently
+        judged to be "outward" (see _get_normal_vector / Floor's fixed
+        [0, 0, ±1]). Does NOT decide what counts as outward; that logic is
+        untouched.
+
+        F-13 (2026-08-06): this function used to ALSO re-pick the starting
+        vertex (sort all points into an angular order around the centroid,
+        then roll to a "top-left corner"). That corrupted the start point on
+        ~90% of real surfaces relative to the deterministic kernel's own
+        frozen vertex order (B-layer VERTEX_FRAME_DRIFT: 104/115 faces
+        rewritten, 100% pure rotation, 0 coordinate errors, 0 winding
+        reversals — see
+        AI_agent/logs/reviews/execution/2026-08-06_f13_two_vertex_order_conventions_claude.md).
+        That "pick a new start point" behavior is retired. The only thing
+        this function does now is flip winding when the input's own winding
+        disagrees with `normal_vector` — and even then it preserves the
+        original starting vertex:
+            [A, B, C, D] -> [A, D, C, B]   (NOT [D, C, B, A] — that would
+            still move the start point).
+        If the input already winds the right way, it is returned completely
+        unchanged (identity): no reordering, no re-rolled start point.
+
+        Every time a real reversal happens, it is counted + logged (see
+        GeometrySchema.winding_reversal_count()/.winding_reversal_log()).
+        This is deliberately NOT an error/raise — see the F-13 dispatch:
+        this step only retires the start-vertex rotation and instruments
+        the winding-guarantee; whether to escalate a reversal into a hard
+        failure is a later decision that needs this count as evidence.
+
+        F-13 orchestrator addendum (2026-08-06): the retired algorithm's
+        full re-sort ALSO silently repaired vertex orders that weren't a
+        simple loop around their own centroid — self-intersecting
+        ("bowtie") orderings, or points so far from planar that no normal
+        can be trusted. That silent repair is gone too, and is NOT being
+        reinstated here. Instead this function now DETECTS that case and
+        counts + logs it (GeometrySchema.disordered_loop_count()/
+        .disordered_loop_log()) WITHOUT changing the points — same
+        diagnose-only posture as the winding counter above.
+        """
         points = surface.vertices
         normal = normal_vector / np.linalg.norm(normal_vector)
+
+        own_normal = self._newell_normal(points)
+        own_normal_magnitude = np.linalg.norm(own_normal)
+        if own_normal_magnitude < 1e-9:
+            # Degenerate Newell normal: either collinear points or a
+            # perfectly self-cancelling self-intersecting order. Either
+            # way the vertex order alone can't tell us its winding, AND it
+            # can't be a simple loop around its own centroid either — log
+            # it as disordered, then leave untouched rather than guess.
+            self._record_disordered_loop(surface, reason="degenerate_normal")
+            return points
+
+        if not self._is_planar(points, own_normal):
+            self._record_disordered_loop(surface, reason="non_planar")
+        elif not self._is_simple_angular_loop(points, own_normal):
+            self._record_disordered_loop(
+                surface, reason="self_intersecting_or_shuffled"
+            )
+
+        if np.dot(own_normal, normal) < -1e-9:
+            reversed_points = np.concatenate([points[:1], points[1:][::-1]], axis=0)
+            self._record_winding_reversal(surface)
+            return reversed_points
+
+        return points
+
+    @staticmethod
+    def _is_planar(points: np.ndarray, normal: np.ndarray, tolerance: float = 1e-6) -> bool:
+        """True iff every point lies (within `tolerance`, scaled by the
+        polygon's own extent) in the plane through the centroid
+        perpendicular to `normal`. Diagnostic-only helper for F-13's
+        disordered-loop counter — never used to change any vertex."""
         centroid = np.mean(points, axis=0)
+        relative_points = points - centroid
+        span = float(np.max(np.linalg.norm(relative_points, axis=1)))
+        if span < 1e-12:
+            return True
+        perpendicular_offsets = np.abs(relative_points @ normal)
+        return bool(np.max(perpendicular_offsets) <= tolerance * span)
 
-        def compare_points(idx1, idx2):
-            v1 = points[idx1] - centroid
-            v2 = points[idx2] - centroid
+    @staticmethod
+    def _is_simple_angular_loop(points: np.ndarray, normal: np.ndarray) -> bool:
+        """True iff, walking the points in their GIVEN order around their
+        own centroid (in the plane perpendicular to `normal`), the angle is
+        monotonic all the way around — i.e. the loop is star-shaped from
+        its own centroid, the signature of a simple (non-self-intersecting)
+        polygon traversal. False for a shuffled/self-intersecting ("bowtie")
+        order. Diagnostic-only helper for F-13's disordered-loop counter —
+        it never reorders anything itself."""
+        centroid = np.mean(points, axis=0)
+        arbitrary = np.array([1.0, 0.0, 0.0])
+        if abs(np.dot(arbitrary, normal)) > 0.9:
+            arbitrary = np.array([0.0, 1.0, 0.0])
+        basis_x = np.cross(normal, arbitrary)
+        basis_x_norm = np.linalg.norm(basis_x)
+        if basis_x_norm < 1e-12:
+            return False
+        basis_x = basis_x / basis_x_norm
+        basis_y = np.cross(normal, basis_x)
 
-            cross = np.cross(v1, v2)
+        relative_points = points - centroid
+        angles = np.arctan2(relative_points @ basis_y, relative_points @ basis_x)
+        n = len(angles)
+        steps = np.array(
+            [
+                ((angles[(i + 1) % n] - angles[i] + np.pi) % (2 * np.pi)) - np.pi
+                for i in range(n)
+            ]
+        )
+        return bool(np.all(steps >= -1e-9)) or bool(np.all(steps <= 1e-9))
 
-            sign = np.dot(cross, normal)
+    @staticmethod
+    def _newell_normal(points: np.ndarray) -> np.ndarray:
+        """Polygon normal derived purely from the order of its vertices
+        (Newell's method), independent of any external reference direction
+        or choice of origin. Reversing the vertex order flips the sign.
+        Returns the zero vector for a degenerate (near-zero-area) loop."""
+        total = np.zeros(3)
+        n = len(points)
+        for i in range(n):
+            p1 = points[i]
+            p2 = points[(i + 1) % n]
+            total[0] += (p1[1] - p2[1]) * (p1[2] + p2[2])
+            total[1] += (p1[2] - p2[2]) * (p1[0] + p2[0])
+            total[2] += (p1[0] - p2[0]) * (p1[1] + p2[1])
+        norm = np.linalg.norm(total)
+        if norm < 1e-9:
+            return total
+        return total / norm
 
-            if sign > 1e-10:
-                return -1
-            elif sign < -1e-10:
-                return 1
-            else:
-                d1 = np.linalg.norm(v1)
-                d2 = np.linalg.norm(v2)
-                return -1 if d1 < d2 else 1
+    def _record_winding_reversal(
+        self, surface: SurfaceSchema | FenestrationSurfaceSchema
+    ) -> None:
+        """F-13 diagnostic: count + log a real winding reversal (the
+        surface's own vertex order disagreed with the independently-judged
+        outward normal, so it was flipped in place)."""
+        surface_type = getattr(surface, "surface_type", None) or "Fenestration"
+        zone = getattr(surface, "zone_name", None) or getattr(
+            surface, "building_surface_name", None
+        )
+        GeometrySchema._winding_reversal_count += 1
+        GeometrySchema._winding_reversal_log.append(
+            {"name": surface.name, "surface_type": surface_type, "zone": zone or ""}
+        )
+        logger.warning(
+            "VERTEX_WINDING_REVERSED: surface={} type={} zone={} "
+            "(input vertex order disagreed with the outward normal; "
+            "reversed in place, start vertex preserved)",
+            surface.name,
+            surface_type,
+            zone,
+        )
 
-        from functools import cmp_to_key
-
-        sorted_indices = sorted(range(len(points)), key=cmp_to_key(compare_points))
-        points = points[sorted_indices]
-        top_left_index = self._get_top_left_corner_from_normal(points, normal_vector)
-
-        return np.roll(points, -top_left_index, axis=0)
+    def _record_disordered_loop(
+        self, surface: SurfaceSchema | FenestrationSurfaceSchema, reason: str
+    ) -> None:
+        """F-13 orchestrator addendum diagnostic: count + log a surface
+        whose vertex order is NOT a simple loop around its own centroid
+        (self-intersecting/"bowtie", too far from planar to trust a normal,
+        or a fully degenerate Newell normal). The retired algorithm used to
+        silently repair this class of input by re-sorting all points into
+        angular order; that repair is gone. This is diagnose-only — the
+        points passed to this call are NEVER modified because of it."""
+        surface_type = getattr(surface, "surface_type", None) or "Fenestration"
+        zone = getattr(surface, "zone_name", None) or getattr(
+            surface, "building_surface_name", None
+        )
+        GeometrySchema._disordered_loop_count += 1
+        GeometrySchema._disordered_loop_log.append(
+            {
+                "name": surface.name,
+                "surface_type": surface_type,
+                "zone": zone or "",
+                "reason": reason,
+            }
+        )
+        logger.warning(
+            "VERTEX_LOOP_DISORDERED: surface={} type={} zone={} reason={} "
+            "(input vertex order is not a simple loop around its own "
+            "centroid; left UNCHANGED, no repair applied)",
+            surface.name,
+            surface_type,
+            zone,
+            reason,
+        )
 
     def _get_interior_points(self, surface: SurfaceSchema) -> np.ndarray:
         interior_points = []
@@ -1196,6 +1410,11 @@ class GeometrySchema(BaseSchema):
         return np.array(interior_points)
 
     def _get_top_left_corner_from_normal(self, points, normal_vector) -> np.ndarray:
+        # F-13 (2026-08-06): no longer called by _sort_vertices_clockwise
+        # (the "re-pick the start vertex" behavior was retired — see that
+        # method's docstring). Left in place rather than removed, since
+        # deleting it is a separate refactor decision outside this dispatch's
+        # scope, not something this fix requires.
         normal = normal_vector / np.linalg.norm(normal_vector)
 
         world_up = np.array([0, 0, 1])
