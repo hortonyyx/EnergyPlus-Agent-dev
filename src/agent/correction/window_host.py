@@ -36,6 +36,7 @@ from src.agent.correction.window_sources import (
     SourceIntervalV1,
     VerifiedWindowResolverInputs,
     WindowDirectionBindingError,
+    WindowSourceErrorCategory,
     canonical_sha256,
     materialize_current_ring_va_elevation_bindings,
 )
@@ -393,6 +394,31 @@ class WindowHostResolutionError(ValueError):
         self.phase = phase
         self.context = dict(context or {})
         super().__init__("window host resolution rejected")
+
+    @property
+    def category(self) -> WindowSourceErrorCategory:
+        """F-9 (2026-08-06): fault classification for F-7's `run_stage.py`
+        "model_draw_error → file as failed attempt, blind-resample" vs
+        "input_integrity_error → re-raise, hard-crash" routing (mirrors
+        `WindowResolverInputError.category`).
+
+        Derived from each conflict's OWN `fallback_action` — the field every
+        throw site inside this module already sets to decide whether a
+        conflict may ever be silently folded into a softer outcome
+        (`invariant_no_geometry_commit`) or not
+        (`needs_input_no_geometry_commit`; see `envelope_transform.py`'s own
+        pre-/post-transform handling, which uses this exact same field for
+        the same reason). This is a throw-site judgment, never inferred from
+        `str(self)` / message text, and never defaulted: any conflict marked
+        `invariant_no_geometry_commit` means at least one throw site judged
+        the state unsafe to ever resample past, so the WHOLE exception is
+        `input_integrity_error`. Only when every conflict is the softer
+        `needs_input_no_geometry_commit` — i.e. every throw site judged this
+        a correction-draw claim that failed verification, not a broken
+        invariant — is the exception `model_draw_error`."""
+        if any(row.fallback_action == "invariant_no_geometry_commit" for row in self.conflicts):
+            return "input_integrity_error"
+        return "model_draw_error"
 
 
 def _conflict(window, reason: HostConflictReason, *, branch="unresolved", candidates=(), rooms=(), crossed=(),
