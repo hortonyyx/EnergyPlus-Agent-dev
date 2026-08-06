@@ -125,6 +125,56 @@ Assign from `mep.md` defaults, per zone, by the zone's role. Reference each zone
 exact name from the zone list. HVAC = `IdealLoadsAirSystem` with the setpoints from
 `mep.md`.
 
+#### People object field order (hard — IDD positions, not semantic grouping)
+EnergyPlus parses a `People` object by **IDD field position**, not by the `!-` comments.
+The two schedule names are **not** adjacent in the IDD: the calculation method and four
+numeric fields sit between them. Authoring the number-of-people schedule and the
+activity-level schedule back-to-back (a natural semantic ordering) shifts every later
+field one position — the calculation method becomes a schedule name, the numeric
+density fields absorb garbage, and the required `Activity Level Schedule Name` ends up
+blank. The exact 10-slot IDD order:
+
+```
+People,
+  <Name>,                              !- A1  Name
+  <Zone or ZoneList Name>,             !- A2  Zone or ZoneList ... Name
+  <Number of People Schedule Name>,    !- A3  references schedule_specs (required)
+  <Calculation Method>,                !- A4  ONE OF: People | People/Area | Area/Person
+  <Number of People>,                  !- N1  set when A4 = People
+  <People per Floor Area>,             !- N2  set when A4 = People/Area (person/m2)
+  <Floor Area per Person>,             !- N3  set when A4 = Area/Person (m2/person)
+  <Fraction Radiant>,                  !- N4  0.0–1.0, default 0.3
+  <Sensible Heat Fraction>,            !- N5  default autocalculate
+  <Activity Level Schedule Name>;      !- A5  REQUIRED — references schedule_specs
+```
+
+- **A4 is a fixed-position enum** with exactly three legal keys: `People`,
+  `People/Area`, `Area/Person`. Do **not** write OpenStudio-style keys
+  (`ZoneFloorAreaPerPerson`, `FloorAreaPerPerson`, etc.) — EnergyPlus rejects them.
+  Put your numeric density in the single N-field (N1/N2/N3) that matches your A4 key;
+  leave the other two N density fields blank.
+- **A5 `Activity Level Schedule Name` is `\required-field`** and sits at the **10th**
+  slot — it is not the 4th. Author it last (immediately before the closing `;`), and
+  author **at least 10 fields** so eppy does not drop it.
+- A `People` object that misplaces the activity schedule into the A4 slot fails the
+  4_mep field-alignment gate (`mep.people_field_alignment`), which reports the
+  misalignment directly rather than only the blank-A5 symptom.
+
+Worked example — one person per 10 m² of floor area, office seated activity (120 W/person):
+```
+People,
+  Z01_Office_N People,   !- A1 Name
+  Z01_Office_N,          !- A2 Zone Name
+  Sch_Occupancy,         !- A3 Number of People Schedule Name
+  Area/Person,           !- A4 Number of People Calculation Method
+  ,                      !- N1 Number of People        (blank: A4 != People)
+  ,                      !- N2 People per Floor Area   (blank: A4 != People/Area)
+  10.0,                  !- N3 Floor Area per Person   (m2/person)
+  0.3,                   !- N4 Fraction Radiant
+  autocalculate,         !- N5 Sensible Heat Fraction
+  Sch_ActivityLevel;     !- A5 Activity Level Schedule Name (REQUIRED)
+```
+
 ## Naming (mandatory)
 Letters / digits / `_` only — no spaces, commas, hyphens, slashes, parentheses.
 Cross-field references literally identical: a construction in the geometry specs must

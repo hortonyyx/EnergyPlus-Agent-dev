@@ -344,6 +344,63 @@ def test_people_primary_and_activity_schedules_pass_load_to_schedule():
     assert result.status == CheckStatus.PASS
 
 
+def _people_misaligned_mep() -> dict:
+    """Real LLM failure shape: the activity schedule is authored adjacent to the
+    number-of-people schedule and lands in the A4 calculation-method slot,
+    shifting every later field one position (A5 ends up blank)."""
+    return {
+        "building": {"name": "B", "north_axis": 0.0, "terrain": "City"},
+        "site_location": {"name": "S", "latitude": 22.5, "longitude": 114.0,
+                          "time_zone": 8.0, "elevation": 5.0},
+        "material_specs": "", "construction_specs": "",
+        "schedule_specs": "ScheduleTypeLimits,\n  Fraction,\n  0,\n  1,\n  Continuous;\n\n"
+                          "ScheduleTypeLimits,\n  Any Number,\n  ,\n  ,\n  Continuous;\n\n"
+                          "Schedule:Compact,\n  Occ,\n  Fraction,\n  Through: 12/31,\n"
+                          "  For: AllDays,\n  Until: 24:00,1.0;\n"
+                          "Schedule:Compact,\n  Sch_Activity,\n  Any Number,\n"
+                          "  Through: 12/31,\n  For: AllDays,\n  Until: 24:00,120.0;\n",
+        "hvac_specs": "",
+        # LLM mental order Name, Zone, occ-sched, activity-sched, calc-method, density,
+        # radiant, sensible -> Sch_Activity occupies A4 (calc method), Area/Person lands
+        # in N1, 10 in N2, and the required A5 Activity Level Schedule Name is blank.
+        "people_specs": "People,\n  P1,\n  Z1,\n  Occ,\n  Sch_Activity,\n  Area/Person,\n"
+                        "  10,\n  0.3,\n  ,\n  ;\n",
+        "lights_specs": "",
+    }
+
+
+def test_people_field_misalignment_blocks_alignment_check():
+    """The disease (activity schedule misplaced into the A4 calc-method slot) is
+    caught directly by mep.people_field_alignment — not only via the blank-A5
+    symptom reported by mep.load_to_schedule."""
+    mep = _people_misaligned_mep()
+    rep = check_mep(mep, zone_names={"Z1"})
+    alignment = next(r for r in rep.results
+                     if r.check_id == "mep.people_field_alignment")
+    assert alignment.status == CheckStatus.FAIL
+    offender = alignment.evidence["offenders"][0]
+    assert offender["reason"] == "activity_schedule_misplaced_into_calc_method_slot"
+    assert offender["field_A4_Number_of_People_Calculation_Method"] == "Sch_Activity"
+    assert offender["field_A5_Activity_Level_Schedule_Name"] == "<blank>"
+    assert offender["expected_A4_one_of"] == ["People", "People/Area", "Area/Person"]
+
+
+def test_alignment_check_distinguishes_misalignment_from_undefined_name():
+    """Two-cell discrimination: when A4 is a legal enum but the A5 schedule name is
+    genuinely undefined, mep.people_field_alignment PASSES (no misalignment) while
+    mep.load_to_schedule FAILS (undefined name). The misalignment cell above FAILs
+    alignment — so the two failure modes are distinguishable, not collapsed into
+    one 'missing' bucket."""
+    mep = _people_activity_mep(",\n  Sch_GenuinelyMissing", include_activity_schedule=False)
+    rep = check_mep(mep, zone_names={"Z1"})
+    alignment = next(r for r in rep.results
+                     if r.check_id == "mep.people_field_alignment")
+    load = next(r for r in rep.results if r.check_id == "mep.load_to_schedule")
+    assert alignment.status == CheckStatus.PASS  # A4 = People (legal enum) -> no misalignment
+    assert load.status == CheckStatus.FAIL       # but A5 names an undefined schedule
+    assert load.evidence["offenders"][0]["activity_schedule_ref"] == "Sch_GenuinelyMissing"
+
+
 def _hvac_schedule_mep(hvac_specs: str) -> dict:
     return {
         "building": {"name": "B", "north_axis": 0.0, "terrain": "City"},

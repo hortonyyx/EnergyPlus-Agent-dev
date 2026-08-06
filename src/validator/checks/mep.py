@@ -39,6 +39,11 @@ _MATERIAL_TYPES = (
 )
 _WINDOW_MATERIAL_TYPES = tuple(t for t in _MATERIAL_TYPES if t.startswith("WINDOWMATERIAL:"))
 _LOAD_TYPES = ("PEOPLE", "LIGHTS", "ELECTRICEQUIPMENT")
+# IDD People A4 "Number of People Calculation Method" — the ONLY legal enum keys
+# (Energy+.idd People group \key lines). OpenStudio-style keys like
+# ZoneFloorAreaPerPerson / FloorAreaPerPerson are NOT legal EnergyPlus IDD values
+# and EnergyPlus rejects them even when the field position is otherwise correct.
+_PEOPLE_CALC_METHODS = ("People", "People/Area", "Area/Person")
 _HVAC_SCHEDULE_REF_FIELDS = {
     "ZONECONTROL:THERMOSTAT": ("Control_Type_Schedule_Name",),
     "THERMOSTATSETPOINT:DUALSETPOINT": (
@@ -124,6 +129,7 @@ def check_mep(
     _schedule_type_refs(rep, idx)
     _schedule_completeness(rep, idx)
     _load_refs(rep, idx, zone_names)
+    _people_field_alignment(rep, idx)
     _hvac_schedule_refs(rep, idx)
     _per_zone_coverage(rep, idx, zone_names)
     _simpleglazing_standalone(rep, idx)
@@ -554,7 +560,10 @@ def _load_refs(
         rep.add_pass("mep.load_to_zone", CheckLayer.INVARIANT)
     if sched_bad:
         rep.add_fail("mep.load_to_schedule", CheckLayer.INVARIANT,
-                     f"{len(sched_bad)} load schedule reference(s) are missing or undefined",
+                     f"{len(sched_bad)} People/Lights schedule field(s) are blank or "
+                     f"reference a name not defined in schedule_specs — a blank People "
+                     f"activity-level schedule is usually a field-misalignment symptom, "
+                     f"not a missing schedule (see mep.people_field_alignment)",
                      evidence={"offenders": sched_bad})
     else:
         rep.add_pass("mep.load_to_schedule", CheckLayer.INVARIANT)
@@ -622,6 +631,92 @@ def _people_activity_schedule_name(obj) -> str:
     if len(obj.fields) > 9:
         return str(obj.fields[9] or "").strip()
     return ""
+
+
+def _people_field_alignment(rep: CheckReport, idx: IdfFragmentIndex) -> None:
+    """Catch People field misalignment directly (the disease), not its symptom.
+
+    IDD puts ``Number of People Calculation Method`` at field A4 (a choice:
+    People / People/Area / Area/Person) and the *required* ``Activity Level
+    Schedule Name`` at A5 (the 10th field). When the two schedule names are
+    authored back-to-back, the activity schedule lands in the A4 slot and every
+    later field shifts one position — A5 ends up blank, the calculation method
+    becomes a schedule name, and the numeric density fields absorb garbage (a
+    real LLM product read as "10 people per m²" instead of "10 m² per person").
+
+    ``mep.load_to_schedule`` only sees the *symptom* (A5 blank → "missing") and
+    reads as if the schedule were never authored. This check sees the *disease*:
+    A4 does not hold a legal calculation-method enum. It also distinguishes a
+    true misalignment (A4 holds a defined schedule name) from a merely illegal
+    calculation-method value (e.g. an OpenStudio-style key).
+    """
+    sched_names = idx.has_name("SCHEDULE:COMPACT")
+    offenders = []
+    for obj in idx.of_type("PEOPLE"):
+        a4 = str(obj.fields[3]).strip() if len(obj.fields) > 3 else ""
+        if a4 in _PEOPLE_CALC_METHODS:
+            continue  # calc-method slot holds a legal enum → not misaligned here;
+                      # a blank/undefined A5 is diagnosed by mep.load_to_schedule.
+        a5 = _people_activity_schedule_name(obj)
+        misplaced = bool(a4) and a4 in sched_names
+        offenders.append(
+            {
+                "object": obj.name,
+                "reason": (
+                    "activity_schedule_misplaced_into_calc_method_slot"
+                    if misplaced
+                    else "illegal_calculation_method"
+                ),
+                "field_A4_Number_of_People_Calculation_Method": a4,
+                "expected_A4_one_of": list(_PEOPLE_CALC_METHODS),
+                "field_A5_Activity_Level_Schedule_Name": a5 or "<blank>",
+                "diagnostic": (
+                    f"activity schedule name {a4!r} occupies field A4 (Number of "
+                    f"People Calculation Method, must be one of "
+                    f"{'/'.join(_PEOPLE_CALC_METHODS)}); it was authored adjacent "
+                    f"to the number-of-people schedule and shifted every later "
+                    f"field one position, leaving the required A5 Activity Level "
+                    f"Schedule Name blank"
+                )
+                if misplaced
+                else (
+                    f"field A4 value {a4!r} is not a legal Number of People "
+                    f"Calculation Method (expected one of "
+                    f"{'/'.join(_PEOPLE_CALC_METHODS)}); OpenStudio-style keys "
+                    f"like ZoneFloorAreaPerPerson are rejected by EnergyPlus"
+                ),
+            }
+        )
+    evidence = {
+        "idd_field_order": [
+            "A1 Name",
+            "A2 Zone or ZoneList Name",
+            "A3 Number of People Schedule Name",
+            "A4 Number of People Calculation Method (People|People/Area|Area/Person)",
+            "N1 Number of People",
+            "N2 People per Floor Area",
+            "N3 Floor Area per Person",
+            "N4 Fraction Radiant",
+            "N5 Sensible Heat Fraction",
+            "A5 Activity Level Schedule Name (required)",
+        ],
+        "disease_vs_symptom": (
+            "mep.load_to_schedule reports the symptom (A5 blank → 'missing'); "
+            "this check reports the disease (A4 holds a non-enum value)"
+        ),
+    }
+    if offenders:
+        rep.add_fail(
+            "mep.people_field_alignment",
+            CheckLayer.INVARIANT,
+            f"{len(offenders)} People object(s) have a field misalignment or an "
+            f"illegal calculation method (the activity schedule was misplaced "
+            f"into the calculation-method slot, or A4 is not "
+            f"{'/'.join(_PEOPLE_CALC_METHODS)})",
+            evidence=evidence | {"offenders": offenders},
+        )
+    else:
+        rep.add_pass("mep.people_field_alignment", CheckLayer.INVARIANT, evidence=evidence)
 
 
 def _per_zone_coverage(
