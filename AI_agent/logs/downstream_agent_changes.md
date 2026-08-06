@@ -15,6 +15,21 @@
 
 ## 改动记录
 
+### 2026-08-06 — F-12：surface / fenestration prompt 改「逐字照抄顶点」（撤销 05-12 那条 z_floor 重算指令）
+
+**Trigger**：[F-12 施工单](../reviews/request/2026-08-06_f12_surface_prompt_transcribe_dispatch_claude.md)。`_vertex_drift_issues`（[src/validator/output_coordinates.py:816](../../src/validator/output_coordinates.py)，逐位严格相等）在真链路上报 44 条 `VERTEX_FRAME_DRIFT`（24 exterior 墙全中 + 20 对 interzone 墙每对一个），validate 连拦 4 轮触发 `InterruptLoopBreakerError`。根因 = [surface.py](../../src/agent/nodes/surface.py) 的 `SURFACE_SYSTEM_PROMPT` 逐字命令 LLM 用 `zone_specs` 的 `z_floor`/`ceiling_height` **自己重算**墙顶点 Z，并配了一段自相矛盾的 worked example，而 `surface_specs` 本来就已经给出每一面的完整绝对世界坐标顶点串（`_fmt_verts`，[specs.py:202](../../src/agent/geometry/specs.py)）。⇒ 提示词与数据打架，LLM 重新推导出与内核确定性输出不同的起笔点/顺序，撞上新上线的严格 drift 门。**这条与 2026-05-12 那条历史 hotfix 是同一因（LLM 被要求对 z 做算术）的两次反复——05-12 是"没给 zone_specs 导致默认 3m"，08-06 是"给了 zone_specs 后被明文要求用它重算、覆盖了 surface_specs 已经算对的值"。**
+
+**改动**（[src/agent/nodes/surface.py](../../src/agent/nodes/surface.py) + [src/agent/nodes/fenestration.py](../../src/agent/nodes/fenestration.py)，备份 [backup/src_history/2026-08-06_f12_surface_prompt_transcribe/](../../backup/src_history/2026-08-06_f12_surface_prompt_transcribe)）：
+- **surface.py**：删掉 "CRITICAL: per-floor z values come from zone_specs" 整节的重算指令 + 自相矛盾的 worked example，换成「surface_specs 已给出每面完整绝对世界坐标顶点串，逐字转录（含顺序/起笔点），zone_specs 只作 zone 名称/邻接语义、不作顶点来源」。Workflow 步骤 3 与 Rules 里 "Order CCW from OUTSIDE" 也同步改为「顺序已是 CCW-from-outside，照抄，不许重排」。装配 `specs` 字符串处的代码注释同步更新（不再声称"bundle 是为了读 z_floor"）。
+- **fenestration.py**（顺带项，同族隐患）：worked example 由「手算一个居中窗」改为强调 fenestration_specs 已给完整顶点、照抄；删掉 "derive vertex coordinates from the parent wall's corners and the WWR" 这条命令 LLM 用窗墙比推导坐标的指令。窗此前零漂移（fenestration_specs 是 verbatim 抄），本次未改变其正确路径，只是拔掉了一个未发作的同类地雷。
+- **不改**：`src/validator/output_coordinates.py`（drift 门本身）、`src/agent/geometry/`、`src/agent/intakeoutput.py`、`src/agent/correction/`。
+
+**影响范围**：仅两个下游 subagent 的 system prompt 文本 + 装配阶段的说明性注释；`create_surface`/`create_fenestration` 工具签名、`IntakeOutput` 契约、下游 9 subagent 的其余 8 个均未碰。
+
+**验收**：见 [执行日志](../reviews/execution/2026-08-06_f12_surface_prompt_transcribe_claude.md)（锁 + neuter + 真链路 VERTEX_FRAME_DRIFT 归零证据 + 全仓回归数字）。
+
+**协作者侧建议**：下次 prompt 演进务必保留「surface/fenestration 顶点来自 surface_specs/fenestration_specs 逐字转录，zone_specs 不是顶点来源」这条——这是本项目侧确定性内核已经把顶点算对、下游 LLM 唯一该做的是照抄，一旦被要求"用某个字段重算"就会与内核输出的起笔点/顺序不一致。
+
 ### 2026-06-14 — 标准 case 布局：EP 产物拆 EP/ + EP/EP_run/（opt-in）
 
 **Trigger**：规范测试 case 组织结构（用户定标准，[corpus README](../../case_tests/e2e_tests/README.md)）——素材进 `case_data/`、IDF 落 `<case>/EP/`、EP 仿真落 `<case>/EP/EP_run/`。备份：`backup/src_history/2026-06-14_ep_run_subdir/`（state.py / simulate.py / run_full_pipeline.py）+ `backup/MCP_history/2026-06-14_ep_run_subdir/workflow.py`。

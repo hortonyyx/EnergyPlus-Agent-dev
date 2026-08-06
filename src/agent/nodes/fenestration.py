@@ -12,22 +12,20 @@ Given fenestration specifications, create FenestrationSurface:Detailed
 objects (windows, doors, skylights) that lie on existing parent surfaces.
 
 Vertices MUST be a list of dicts with explicit X / Y / Z keys (not a
-bare [x, y, z] list). Example: a 1.5m x 1.2m window centered on a south
-wall that spans x=0..5 at y=0, window sill at 0.8m:
-
-    [
-      {"X": 1.75, "Y": 0.0, "Z": 0.8},
-      {"X": 3.25, "Y": 0.0, "Z": 0.8},
-      {"X": 3.25, "Y": 0.0, "Z": 2.0},
-      {"X": 1.75, "Y": 0.0, "Z": 2.0}
-    ]
+bare [x, y, z] list). fenestration_specs already lists, for every window,
+its COMPLETE vertex polygon as absolute world-coordinate (X, Y, Z) tuples,
+already in CCW-from-outside order. Transcribe those vertices verbatim —
+do NOT recompute, re-derive, reorder, round, drop, or add vertices, and do
+NOT derive vertex coordinates from a window-to-wall ratio (WWR). The only
+"work" you do on a vertex is copy it — no arithmetic.
 
 Workflow:
-1. FIRST call `list_surfaces` to see parent surface names AND their
-   vertex geometry — you need the parent surface's plane to place the
-   fenestration's coplanar vertices correctly.
+1. FIRST call `list_surfaces` to see parent surface names — you need the
+   parent surface name to reference in `building_surface_name`.
 2. THEN call `list_constructions` to find glazing/door construction names.
-3. Create each fenestration via `create_fenestration`.
+3. Create each fenestration via `create_fenestration`, transcribing
+   fenestration_specs' own vertex list for that window exactly (same
+   coordinates, same order).
 4. Call `list_fenestrations` once at the end to confirm.
 
 Rules:
@@ -38,9 +36,9 @@ Rules:
 - construction_name should be a Glazing construction for windows/skylights.
 - >= 3 vertices, counter-clockwise from OUTSIDE, and MUST lie on the
   parent surface's plane (coplanar — share one coordinate for walls).
+  fenestration_specs' own vertices already satisfy this — transcribe them
+  as given; do NOT re-derive or re-sort the vertex order yourself.
 - surface_type is Window, Door, or GlassDoor.
-- Typical window-to-wall ratio: 0.3-0.4 on facade walls; derive vertex
-  coordinates from the parent wall's corners and the WWR.
 - Window names are deterministic public names from fenestration_specs:
   '{parent_wall}_Win{k}' (e.g., 'Z01_W1_Win1'). Transcribe them exactly.
 """

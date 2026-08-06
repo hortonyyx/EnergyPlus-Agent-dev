@@ -15,42 +15,24 @@ BuildingSurface:Detailed objects (walls, floors, roofs, ceilings) with
 Vertices MUST be a list of dicts, each with explicit X / Y / Z keys (not
 a bare [x, y, z] list). Meters, in the global (world) coordinate system.
 
-## CRITICAL: per-floor z values come from zone_specs
+## CRITICAL: transcribe vertices verbatim from surface_specs — do NOT recompute them
 
 The user message starts with a `=== ZONE_SPECS ===` block followed by a
 `=== SURFACE_SPECS ===` block. Use them this way:
 
-- zone_specs gives you, for every zone, its `z_floor` (finished-floor level
-  in absolute world coords) and its `ceiling_height` (this floor's storey
-  height, can differ floor by floor — e.g. F1=3.60, F2=3.60, F3=4.80).
-- surface_specs gives you the adjacency / exterior-vs-interior / construction
-  / split-pairing semantics.
+- surface_specs already lists, for every surface, its COMPLETE vertex
+  polygon as absolute world-coordinate (X, Y, Z) tuples, already in
+  CCW-from-outside order. This is the authoritative geometry. Copy each
+  vertex's X, Y, Z straight into the `create_surface` call, IN THE SAME
+  ORDER they are listed. Do NOT recompute, re-derive, reorder, round, drop,
+  or add vertices. Do NOT use zone_specs' `z_floor` / `ceiling_height` to
+  compute a vertex Z value — surface_specs' own Z values are already
+  correct and already reflect each zone's floor level and storey height.
+- zone_specs is for zone NAMES and adjacency / construction semantics only
+  (e.g. confirming which zone a surface belongs to). It is NOT a source of
+  vertex coordinates for surface creation.
 
-For every wall vertex you write:
-    bottom z = z_floor of that zone
-    top z    = z_floor + ceiling_height of that zone
-Do NOT use a default 3 m floor height. Do NOT round z_floor down (3.60 m
-stays 3.60 m, not 3 m). Different floors may have different `ceiling_height`.
-
-For floor surfaces:    z = z_floor
-For ceiling/roof:      z = z_floor + ceiling_height
-For interzone floor/ceiling pair, the two zones MUST share the same z value
-on the shared boundary (lower zone's ceiling z == upper zone's floor z).
-
-Worked example. Zone `F2_S1` has `z_floor=3.60, ceiling_height=3.60` and
-x-range 0..5, y-range 0..3. Its south wall (CCW from outside) has vertices:
-
-    [
-      {"X": 0.0, "Y": 0.0, "Z": 3.60},   # SW-top
-      {"X": 0.0, "Y": 0.0, "Z": 3.60 + 3.60},  # ← but actually start with bottom; see below
-      {"X": 5.0, "Y": 0.0, "Z": 3.60},
-      {"X": 5.0, "Y": 0.0, "Z": 7.20}
-    ]
-
-(Canonical CCW-from-outside order for a south wall observed from y<0 is
-top-left → bottom-left → bottom-right → top-right, so the actual order is
-`(0,0,7.20) → (0,0,3.60) → (5,0,3.60) → (5,0,7.20)`. The vital point is
-that bottom z = 3.60 and top z = 7.20, **not 3 and 6**.)
+The only "work" you do on a vertex is copy it — no arithmetic.
 
 ## Workflow
 
@@ -59,8 +41,9 @@ that bottom z = 3.60 and top z = 7.20, **not 3 and 6**.)
 2. THEN call `list_constructions` to discover the exact construction
    names and their layer composition (helps you match the right
    construction to each surface type — wall / floor / roof / window).
-3. Create each surface via `create_surface`, reusing those names verbatim
-   and using zone_specs' per-zone `z_floor` + `ceiling_height` for vertex z.
+3. Create each surface via `create_surface`, reusing zone/construction
+   names verbatim and transcribing surface_specs' own vertex list for
+   that surface exactly (same coordinates, same order).
 4. Call `list_surfaces` once at the end to confirm.
 
 ## Rules
@@ -70,7 +53,8 @@ that bottom z = 3.60 and top z = 7.20, **not 3 and 6**.)
 - If a needed zone or construction is missing after list, STOP and
   report; do NOT invent names or create a surface with a broken reference.
 - >= 3 vertices per surface; four-vertex rectangles are most common.
-- Order counter-clockwise when viewed from OUTSIDE the zone.
+- surface_specs' vertex order is already CCW-from-outside — transcribe it
+  as given; do NOT re-derive or re-sort the vertex order yourself.
 - No two vertices may coincide (tolerance 1e-10 m).
 - outside_boundary_condition:
     * Walls/roofs facing outdoors: 'Outdoors',
@@ -102,16 +86,22 @@ def surface_agent(state: AgentState) -> AgentStateUpdate:
         trace_collector=collector,
     )
 
-    # 2026-05-12: bundle zone_specs + surface_specs so the agent can read each
-    # zone's z_floor / ceiling_height for wall vertex Z (see SURFACE_SYSTEM_PROMPT
-    # "per-floor z values come from zone_specs"). Previously surface_agent only
-    # saw surface_specs → defaulted to 3 m floors → upper-floor windows fell
-    # outside their parent wall and EP emitted CHKSBS partial-overlap warnings.
+    # 2026-05-12: bundle zone_specs + surface_specs so the agent has zone
+    # names/adjacency alongside the surface geometry.
+    # 2026-08-06 (F-12): surface_specs already carries each surface's complete
+    # absolute-world-coordinate vertex polygon (kernel-computed, CCW-from-
+    # outside) — the agent transcribes those verbatim (see SURFACE_SYSTEM_PROMPT
+    # "transcribe vertices verbatim from surface_specs"). zone_specs is kept
+    # only for zone names / adjacency, NOT as a vertex-Z source anymore: the
+    # prior "derive Z from zone_specs" instruction caused the LLM to
+    # re-derive wall vertices instead of copying surface_specs' own values,
+    # producing a different start-vertex/order than the deterministic kernel
+    # emitted (VERTEX_FRAME_DRIFT in src/validator/output_coordinates.py).
     if state.intake_output:
         specs = (
-            "=== ZONE_SPECS (read each zone's z_floor and ceiling_height) ===\n"
+            "=== ZONE_SPECS (zone names / adjacency only — NOT a vertex source) ===\n"
             f"{state.intake_output.zone_specs}\n\n"
-            "=== SURFACE_SPECS (adjacency / exterior / construction / pairings) ===\n"
+            "=== SURFACE_SPECS (authoritative vertices — transcribe verbatim) ===\n"
             f"{state.intake_output.surface_specs}"
         )
     else:
