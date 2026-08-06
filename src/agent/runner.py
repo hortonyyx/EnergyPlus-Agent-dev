@@ -29,6 +29,35 @@ def load_intake_from(path: Path):
     return IntakeOutput.model_validate(data)
 
 
+class InterruptLoopBreakerError(RuntimeError):
+    """Raised by ``run_session`` when the same validate-interrupt error set
+    recurs past the breaker threshold — a deterministic termination guarantee
+    against repair loops that can never make progress.
+
+    A ``validate -> intake -> ... -> validate`` cycle with a persistent error,
+    ``MAX_RETRIES=0``, and an intake short-circuit cannot self-terminate: the
+    error never disappears, retry is already exhausted, and auto-approval
+    always rejects. Rather than rely on the error "eventually going away", the
+    breaker counts consecutive identical error-bearing interrupts and aborts.
+    """
+
+
+def _interrupt_errors_signature(payload: Any) -> tuple[str, ...] | None:
+    """Stable signature of an interrupt payload's error set.
+
+    Returns ``None`` when the payload carries no errors (a clean interrupt
+    awaiting approval, or a non-dict payload) so the clean path never counts
+    toward the breaker. Order-independent so list reshuffles do not mask a
+    genuinely stuck loop.
+    """
+    if not isinstance(payload, dict):
+        return None
+    errors = payload.get("errors")
+    if not errors:
+        return None
+    return tuple(sorted(str(e) for e in errors))
+
+
 def run_session(
     graph: AgentGraph,
     initial: AgentState,
@@ -36,6 +65,8 @@ def run_session(
     config: RunnableConfig,
     on_interrupt: InterruptHandler,
     on_event: NodeEventHandler | None = None,
+    *,
+    max_consecutive_identical_interrupts: int = 3,
 ) -> dict[str, Any]:
     """Drive `graph` from `initial` until END, handling validate interrupts.
 
@@ -50,12 +81,21 @@ def run_session(
         on_event: Optional debug hook called as `on_event(node_name, update)`
             after every non-interrupt node. `update` is the partial state
             dict that node returned. Default None = silent.
+        max_consecutive_identical_interrupts: Circuit-breaker threshold. If a
+            validate interrupt carries the SAME error set on more than this
+            many consecutive rounds, ``run_session`` raises
+            ``InterruptLoopBreakerError`` instead of resuming — a deterministic
+            termination guarantee against non-terminating repair loops (see the
+            exception docstring). Normal flows interrupt once and resolve; this
+            only trips on a genuinely stuck loop.
 
     Returns:
         Final state dict after END (pulled from the checkpointer).
     """
     reset_traces()
     payload: Any = initial
+    identical_run = 0
+    last_signature: tuple[str, ...] | None = None
     while True:
         for event in graph.stream(
             payload, config=config, context=context, stream_mode="updates"
@@ -72,7 +112,35 @@ def run_session(
         if not pending:
             return dict(snapshot.values)
 
-        decision = on_interrupt(pending[0].value)
+        interrupt_value = pending[0].value
+        signature = _interrupt_errors_signature(interrupt_value)
+        if signature is None:
+            # No error set (clean interrupt awaiting approval) — never counts
+            # toward the breaker; reset so a later error run starts fresh.
+            identical_run = 0
+            last_signature = None
+        else:
+            if signature == last_signature:
+                identical_run += 1
+            else:
+                identical_run = 1
+                last_signature = signature
+            if identical_run > max_consecutive_identical_interrupts:
+                errors = (
+                    interrupt_value.get("errors")
+                    if isinstance(interrupt_value, dict)
+                    else []
+                )
+                raise InterruptLoopBreakerError(
+                    f"validate interrupt repeated the same error set "
+                    f"{identical_run} consecutive time(s) "
+                    f"(threshold={max_consecutive_identical_interrupts}); "
+                    f"aborting a non-terminating repair loop. "
+                    f"{len(errors)} error(s):\n"
+                    + "\n".join(f"  - {e}" for e in (errors or []))
+                )
+
+        decision = on_interrupt(interrupt_value)
         payload = Command(resume=decision)
 
 
@@ -150,10 +218,26 @@ def auto_approval(payload: dict[str, Any]) -> InterruptDecision:
 
     Returns:
         InterruptDecision with "approved": True.
+
+    On rejection the error set is logged at WARNING (count + every message) so
+    a stuck repair loop is visible on stdout. Historically this decision was
+    fully silent, which let a non-terminating ``validate -> intake -> ... ->
+    validate`` loop run ~400 paid LLM rounds before anyone noticed. The
+    returned decision dict is deliberately left without an ``"errors"`` key:
+    wiring errors back into ``validate_node``'s rejected branch would only flip
+    the loop into a different failure mode (a hard crash at intake, per the
+    F-11 investigation option A), not fix it. Deterministic loop termination
+    is the circuit breaker's job (``InterruptLoopBreakerError``), not this
+    function's.
     """
     errors = payload["errors"]
     if not errors:
         return {"approved": True}
+    logger.warning(
+        "validate interrupt AUTO-REJECTED: {} cross-ref error(s):\n{}",
+        len(errors),
+        "\n".join(f"  - {e}" for e in errors),
+    )
     return {
         "approved": False,
         "feedback": "please address errors: " + "; ".join(errors),

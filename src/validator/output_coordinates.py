@@ -575,7 +575,24 @@ def validate_output_coordinate_contract(
     context: OutputCoordinateValidationContext,
     *,
     idf: "IDF | None" = None,
+    include_vertex_drift: bool = True,
 ) -> list[OutputCoordinateIssue]:
+    """Run the E4 output-coordinate contract gate.
+
+    Args:
+        include_vertex_drift: The vertex-by-vertex comparison in step 6
+            (``_vertex_drift_issues``) is a TERMINAL check — it requires the
+            full geometry (surfaces + fenestration) to already exist in
+            ``ConfigState``. Callers that run before the geometry kernel has
+            built surfaces (``cross_ref_foundations``) pass ``False`` so the
+            gate does not report every snapshot record as "missing from
+            ConfigState" (a timing false-positive, not a real drift). Every
+            boundary that runs after geometry is complete
+            (``cross_ref_complete`` / ``validate`` / export) keeps the default
+            ``True``, so no real drift is ever dropped. Steps 1–5 (contract
+            identity, North Axis, GGR A3/A4/A5, Zone frame) and the snapshot
+            hash-integrity sub-check always run regardless of this flag.
+    """
     issues: list[OutputCoordinateIssue] = []
 
     # --- 1. contract strict round-trip ---
@@ -656,7 +673,12 @@ def validate_output_coordinate_contract(
             issues.append(OutputCoordinateIssue(
                 "VERTEX_FRAME_DRIFT", "raw snapshot bytes do not hash to contract.geometry_snapshot_sha256",
             ))
-        else:
+        elif include_vertex_drift:
+            # TERMINAL check (see validate_output_coordinate_contract docstring):
+            # _vertex_drift_issues needs the full geometry in ConfigState. At a
+            # pre-geometry boundary (cross_ref_foundations) surfaces do not exist
+            # yet, so this is skipped there; cross_ref_complete / validate /
+            # export keep it on and catch every real drift once geometry is done.
             issues.extend(_vertex_drift_issues(config, snapshot))
     elif contract.geometry_snapshot_sha256 is not None:
         issues.append(OutputCoordinateIssue(
