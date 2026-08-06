@@ -385,6 +385,7 @@ def _draw_correction(
     # fix a broken upstream artifact, so it re-raises and hard-crashes the flow
     # as before.
     from src.agent.correction.window_sources import WindowResolverInputError
+    from src.agent.correction.window_host import WindowHostResolutionError
 
     def _window_source_error_report(exc: WindowResolverInputError) -> CheckReport:
         rep = CheckReport(
@@ -395,6 +396,28 @@ def _draw_correction(
         rep.add_fail(
             "correction.window_source_reference", CheckLayer.INVARIANT,
             f"window source reference rejected ({exc.code}): {exc.context}",
+        )
+        return rep
+
+    # F-9 (2026-08-06): `WindowHostResolutionError` was a rejected接线缺口 —
+    # a `ValueError` sibling of `WindowResolverInputError` with no
+    # `.category`, so it fell through both except clauses below uncaught and
+    # hard-crashed the flow. It now carries the same F-7-shaped `.category`
+    # (see `WindowHostResolutionError.category`'s docstring for how that's
+    # derived); wire it into the identical archive-and-blind-resample routing
+    # `WindowResolverInputError` already gets, keyed the same way (never on
+    # message text, never defaulted — a non-`model_draw_error` category still
+    # re-raises and hard-crashes, exactly like the sibling type above).
+    def _window_host_error_report(exc: WindowHostResolutionError) -> CheckReport:
+        rep = CheckReport(
+            stage="1_correction",
+            capability_profile=policy.capability_profile,
+            run_profile=policy.run_profile,
+        )
+        conflict_desc = "; ".join(f"{row.window_id}:{row.reason_code}" for row in exc.conflicts)
+        rep.add_fail(
+            "correction.window_host_resolution", CheckLayer.INVARIANT,
+            f"window host resolution rejected ({len(exc.conflicts)} conflict(s)): {conflict_desc}",
         )
         return rep
 
@@ -423,6 +446,10 @@ def _draw_correction(
         if exc.category != "model_draw_error":
             raise
         return geom, _window_source_error_report(exc)
+    except WindowHostResolutionError as exc:
+        if exc.category != "model_draw_error":
+            raise
+        return geom, _window_host_error_report(exc)
     geom = result.geom
     rep = check_correction(geom,
                            window_host_proof=result.window_host_claims,

@@ -533,10 +533,29 @@ def apply_v3_envelope_transaction(
                 "correction.window_host_resolution",
                 "v3 windows require verified source-aware resolver inputs",
             )
-        pre_hosts = (_dry_resolve_current_ring(
-            before, verified_window_inputs=verified_window_inputs, tol=tol,
-            phase="dry_pre_transform",
-        ) if verified_window_inputs is not None else None)
+        pre_hosts = None
+        if verified_window_inputs is not None:
+            try:
+                pre_hosts = _dry_resolve_current_ring(
+                    before, verified_window_inputs=verified_window_inputs, tol=tol,
+                    phase="dry_pre_transform",
+                )
+            except WindowHostResolutionError as exc:
+                # F-9 (2026-08-06): symmetric with the post-transform handling
+                # below (:582-591) — an `invariant_no_geometry_commit` conflict
+                # must still escape as a raw raise (never silently folded into
+                # a rejection), everything else folds into a structured,
+                # audited `EnvelopeTransformRejected` instead of propagating
+                # uncaught out of this transaction.
+                if any(
+                    row.fallback_action == "invariant_no_geometry_commit" for row in exc.conflicts
+                ):
+                    raise
+                raise EnvelopeTransformRejected(
+                    "correction.window_host_resolution",
+                    "pre-transform source-aware host resolution failed",
+                    {"conflicts": [row.model_dump(mode="json") for row in exc.conflicts]},
+                ) from exc
         pre_host_by_window = {
             row.window_id: row for row in pre_hosts.resolutions
         } if pre_hosts is not None else {}
