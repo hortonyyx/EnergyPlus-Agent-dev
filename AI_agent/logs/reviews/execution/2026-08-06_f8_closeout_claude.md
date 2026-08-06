@@ -65,7 +65,37 @@ PYTHONPATH=/tmp/f8closeout/post_wt python -m pytest \
 
 ### 实测记录
 
-（待填 —— 见下方执行记录）
+**入仓前**（`PRE_COMMIT_SHA = 27c0935`，worktree `/tmp/f8closeout/pre_wt`）：
+
+```
+FAILED tests/test_validation_run_baseline.py::test_sm21_anchor_ep_clean - ass...
+FAILED tests/test_reading_score.py::test_sm21_phase1_reading_score_regression_floor
+FAILED tests/test_checks_reading_correction.py::test_partition_on_window_jamb_real_restore_reading_r2_flags_four
+3 failed in 5.94s
+```
+
+失败根因逐条核对，均为「文件不存在」（`FileNotFoundError`），与调查日志判断一致，非其它偶然原因：
+```
+FileNotFoundError: [Errno 2] No such file or directory:
+'AI_agent/logs/experiments/2026-06-30_reading_scaffold_restore_validation/readings/sonnet_r2/1f_view.json'
+```
+
+**入仓后**（`POST_COMMIT_SHA = 5cccee8`，worktree `/tmp/f8closeout/post_wt`）：
+
+```
+bringing up nodes...
+...                                                                      [100%]
+3 passed in 6.51s
+```
+
+**⇒ 前 3 红 / 后 0 红，验证通过。** 两个 worktree 均以 `--detach` 显式指定基点建立
+（`git worktree add <path> <sha> --detach`），未使用默认基点。两次运行都显式设置
+`PYTHONPATH=<worktree自身路径>`，绕开共享 venv editable-install `.pth` 钉死主树路径的陷阱
+（验证方法见调查日志「操作注记」一节，本次未再触碰共享 venv 本身，全程只读 `.pth`、未跑 `uv sync`）。
+
+worktree 用后已清理：`git worktree remove <path> --force` × 2 + `rm -rf /tmp/f8closeout`；
+`git worktree list` 复核只剩其它席位的既有 worktree（`f9-fix`/`f7-manual`/`agent-a039...`/`/tmp/f9base`），
+未新增未清理项。
 
 ### 清理
 
@@ -84,7 +114,14 @@ cd /workspaces/EnergyPlus-Agent-dev
 python -m pytest -q
 ```
 
-（待填 —— 见下方执行记录）
+跑于入仓前（工作目录内容与提交后一致，因 `git add -f` 只改变 git 索引状态、不改磁盘文件；
+入仓的 4 个文件此前已在磁盘上，全仓测试结果不受本次入仓动作影响）：
+
+```
+2247 passed, 10 xfailed, 209 warnings in 370.71s (0:06:10)
+```
+
+**主树全仓 = 2247 passed / 10 xfailed / 0 failed**，与验收要求的基线数字逐字吻合，零回归。
 
 ---
 
@@ -104,4 +141,6 @@ python -m pytest -q
 
 ## 五、Commit
 
-（待填 SHA）
+`5cccee8`（`08.06_f8_closeout_commit_live_test_inputs`），parent `27c0935`。
+6 files changed（4 个夹具入仓 + `AI_agent/plan.md` 登记机械检查立项 + 本执行日志）。
+⛔ 未 push。
