@@ -221,7 +221,8 @@ IDF 声明 `GlobalGeometryRules → UpperLeftCorner, Counterclockwise`。
 | **F-12** | ✅ **已落库 `77b3da4`**：提示词改逐字照抄（surface + fenestration）· 5 条锁钉在旧缺陷原文正则 · **neuter = 换回 `.orig` 缺陷本体，5/5 转红**（真锁）· **A 层归零、链路单程走完 validate** · 全仓 **2239 绿 / 10 xfail / 0 红**（2234+5，零回归）|
 | **F-13（新）** | 🔴 **当前端到端卡点**。调查单已备未发（额度窗）。**⛔ 修法未定，⛔ 不许先放宽门** |
 | **F-9** | 🔶 **施工已基本完成但未验证、未落库** —— 在 worktree `.claude/worktrees/f9-fix`（分支 `f9-fix-2026-08-06`，基点 `dfbd62a`）：`envelope_transform.py` / `window_host.py` / `run_stage.py` 三处改动 + `tests/test_f9_window_host_crash.py` + 夹具，**neuter 已确认逐字节复原**，**倒在跑全仓那一步**（Claude 侧 session limit）。⇒ **续做 = 恢复该席位**，⛔ 别重头派 |
-| **F-8** | 🔶 调查完成、**收口未做**（4 文件 `git add -f` + 干净环境验证 + 机械检查立项）。⚠️ 验证**必须避开 venv 陷阱**（见执行日志）|
+| **F-8** | ✅ **已收口**：4 文件（合计 45.0 KB）`git add -f` 入仓，干净 worktree 验证「前 3 红 / 后 0 红」，主树全仓零回归。详见 [`execution/2026-08-06_f8_closeout_claude.md`](logs/reviews/execution/2026-08-06_f8_closeout_claude.md) |
+| **F-8 防复发机械检查（新登记，⛔ 只立项未实现）** | ⏸ **选项 A**：AST 静态扫描测试文件路径字面量逐个 `git check-ignore`，命中即拦（pre-commit/PR 级）——代价 = heuristic、漏动态拼接路径、需维护豁免白名单；成本低、秒级。**选项 B**：CI 加「全新检出 + 全仓测试」影子任务（`git clone --depth1 && uv sync --frozen && pytest`）——代价 = 每次多几分钟 + 独立算力，但零遗漏（连 venv/editable-install 这类非 gitignore 起因的环境假象也一并捕获，本次 F-8 排查已实证）。**建议分层用**：A 做日常 pre-commit 快门、B 做合并前/每日一次的权威门，呼应既有「轻门=唯一权威门、日常跑子集」节奏。**要防的复发形态** = 新增测试悄悄依赖了一个被 `.gitignore` 挡住的文件 ⇒ 本机全绿、新克隆/CI 必红，且没人会主动发现（本批 3 条真红从 2026-06 到 2026-08 潜伏了一到两个月）|
 | **架构债 D-2** | ⏸ 待与协作者谈权属（下游建墙面改代码确定性生成）|
 | **F-9 的治本（路线 ①/②）** | ⏸ 设计稿未出。**张力**：配对全交给代码 ⇒ 彻底合铁律 #1，但 `source_ids` 的「模型自证用了哪条证据」语义会被架空。**待用户拍板** |
 | 既有债 | 0.12m 尺寸基准（07-08 登记）· `run_mep` schedule 引用 · zone 命名描述部分不具分辨力 —— 仍未排期 |
