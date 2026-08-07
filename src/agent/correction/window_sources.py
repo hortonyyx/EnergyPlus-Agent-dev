@@ -447,10 +447,78 @@ class ObservationReferenceCatalogEntry:
     """One legal ``<expected_output_id>/<observation_id>`` a correction draw
     may cite in ``source_ids`` — the model-facing counterpart of a
     :class:`SourceWindowV1` row, with the internal locator hash stripped out
-    (the model must never see or copy a ``src:`` hash)."""
+    (the model must never see or copy a ``src:`` hash).
+
+    ``approx_world_along_interval`` (F-9, 2026-08-07): for an ``elevation``
+    channel observation only, an ADVISORY pre-flipped world-along interval —
+    see :func:`_advisory_elevation_world_frame` for the derivation and why it
+    is sound to compute here (before any correction draw exists) without the
+    real ``along_origin``. ``None`` for plan-channel rows (already natively
+    world-frame, no flip ambiguity to resolve) and whenever the frame is not
+    resolvable from the manifest + reading alone (true_azimuth/unknown
+    direction, or the reading declares no ``overall`` dimension on this
+    facade's along-axis). This field is never consumed by any enforcement
+    path — see the module docstring on :func:`build_observation_reference_catalog_from_run`.
+    """
 
     reference: str
     allowed_claims: tuple[str, ...]
+    approx_world_along_interval: tuple[float, float] | None = None
+
+
+def _advisory_elevation_world_frame(entry: RequiredViewEntry, raw_reading_bytes: bytes) -> tuple[int, float] | None:
+    """Best-effort ``(sign, along_axis_width_m)`` for translating an elevation
+    view's OWN image-local along-facade coordinate into an approximate
+    world-oriented coordinate, using only facts knowable before any
+    correction draw exists (A3: this run's own view manifest + reading
+    artifact — no ``along_origin``, which depends on the correction draw's
+    envelope).
+
+    B-1 math (F-9 dispatch, 2026-08-07): the real transform is
+    ``world = along_origin + sign * local``, with ``along_origin = lo if
+    sign > 0 else hi`` where ``(lo, hi)`` is the facade family's world-along
+    extent. Under this project's world-coordinate invariant (origin = the
+    overall bounding box's SW corner, #2 in CLAUDE.md §1.5) and the current
+    single-shared-footprint-per-floor architecture, ``lo == 0`` for every
+    facade family's along-axis, so the extent collapses to ``[0, W]`` where
+    ``W`` is that facade's own along-axis total width — which the elevation's
+    OWN dimension chain already declares (``role="overall"``) independent of
+    any correction draw. The transform therefore reduces to exactly:
+    ``world = local`` when ``sign == +1``, or ``world = W - local`` when
+    ``sign == -1`` — no ``along_origin`` lookup needed.
+
+    This is advisory prompt content only (never authoritative): the real
+    host-resolution transform in `materialize_current_ring_va_elevation_bindings`
+    independently re-derives `along_origin` from the correction draw's actual
+    envelope and remains the sole enforced source of truth, so a residual
+    mismatch between this hint's `W` (read straight off the elevation's own
+    dimension chain) and the eventual envelope-derived width (already a
+    registered, untouched tolerance — see A5/CLAUDE.md 0.12m debt) cannot
+    relax or bypass any check.
+
+    Returns ``None`` (never guesses) when the direction is not resolvable
+    without a verified orientation sidecar (true_azimuth/unknown — the same
+    condition `derive_manifest_direction_facts` fails closed on) or the
+    reading declares no ``overall`` dimension on this facade's along-axis.
+    """
+    if entry.direction_semantics != "building_axis" or entry.building_view_direction is None:
+        return None
+    family = entry.building_view_direction
+    axis = _AXIS[family]
+    try:
+        reading = parse_reading_view(json.loads(raw_reading_bytes.decode("utf-8")))
+    except (UnicodeDecodeError, json.JSONDecodeError, ValueError):
+        return None
+    mirrored, local_x_positive = _resolve_facade_flip_fields(reading.facade)
+    flip = mirrored ^ (local_x_positive == "image_right_to_left")
+    sign = -_BASE_SIGN[family] if flip else _BASE_SIGN[family]
+    widths = [
+        dimension.value_m for dimension in reading.dimensions
+        if dimension.role == "overall" and dimension.axis == axis and dimension.value_m is not None
+    ]
+    if not widths:
+        return None
+    return sign, widths[0]
 
 
 def derive_observation_reference_catalog(
@@ -463,17 +531,46 @@ def derive_observation_reference_catalog(
     ``source_locator`` computation) that :func:`_translate_observation_reference`
     validates against — the prompt-facing listing and the enforced catalogue
     can never diverge because both are read off this one function's output.
+
+    F-9 (2026-08-07): elevation rows additionally carry an advisory
+    pre-flipped ``approx_world_along_interval`` (see
+    :func:`_advisory_elevation_world_frame`) so a correction draw citing an
+    elevation stroke does not have to mentally apply the North/West mirror
+    sign — the model already knows each window's own plan world span; giving
+    it the elevation observation's span in the SAME (world) frame lets plain
+    numeric-overlap matching land on the window itself instead of its mirror
+    twin. This is computed once per elevation ``entry`` and reused across
+    every row from that same view (all its stroke rows share the same frame).
     """
     manifest = _parse_manifest(raw_view_manifest_bytes)
     rows = _catalog(manifest=manifest, raw_reading_artifacts=raw_reading_artifacts)
+    entries_by_input = {entry.input_id: entry for entry in manifest.required_entries()}
     expected_output_id_by_input = {entry.input_id: entry.expected_output_id for entry in manifest.required_entries()}
-    return tuple(
-        ObservationReferenceCatalogEntry(
+    frame_cache: dict[str, tuple[int, float] | None] = {}
+    result = []
+    for row in rows:
+        hint = None
+        if isinstance(row, ElevationSourceWindowV1):
+            if row.source_input_id not in frame_cache:
+                entry = entries_by_input.get(row.source_input_id)
+                frame_cache[row.source_input_id] = (
+                    None if entry is None
+                    else _advisory_elevation_world_frame(entry, raw_reading_artifacts[row.source_input_id])
+                )
+            frame = frame_cache[row.source_input_id]
+            if frame is not None:
+                sign, width = frame
+                def _to_world(local: float, *, _sign=sign, _width=width) -> float:
+                    return local if _sign > 0 else _width - local
+                a = _to_world(row.local_along_interval.lo)
+                b = _to_world(row.local_along_interval.hi)
+                hint = (min(a, b), max(a, b))
+        result.append(ObservationReferenceCatalogEntry(
             reference=f"{expected_output_id_by_input[row.source_input_id]}/{row.observation_id}",
             allowed_claims=row.positive_claims,
-        )
-        for row in rows
-    )
+            approx_world_along_interval=hint,
+        ))
+    return tuple(result)
 
 
 def format_observation_reference_catalog(entries: tuple[ObservationReferenceCatalogEntry, ...]) -> str:
@@ -484,10 +581,19 @@ def format_observation_reference_catalog(entries: tuple[ObservationReferenceCata
     """
     if not entries:
         return "(no window observations found in this run's reading artifacts)"
-    return "\n".join(
+    lines = [
         f"- {entry.reference}: allowed claims = [{', '.join(entry.allowed_claims)}]"
+        + (
+            f"; approx world-along interval ≈ [{entry.approx_world_along_interval[0]:.3g}, "
+            f"{entry.approx_world_along_interval[1]:.3g}] (informational only, already translated "
+            "out of image-local so you can compare it directly against a window's own plan world "
+            "span instead of mentally mirroring it — not authoritative, re-verified independently "
+            "after your draw)"
+            if entry.approx_world_along_interval is not None else ""
+        )
         for entry in entries
-    )
+    ]
+    return "\n".join(lines)
 
 
 def build_observation_reference_catalog_from_run(
@@ -555,6 +661,28 @@ def build_observation_reference_catalog_from_run(
     return format_observation_reference_catalog(entries)
 
 
+def _resolve_facade_flip_fields(facade) -> tuple[bool, str]:
+    """Shared coercion: a reading's own ``facade.mirrored``/``local_x_positive``
+    into the ``(mirrored: bool, local_x_positive: str)`` pair the world-frame
+    convention consumes.
+
+    Extracted out of :func:`derive_manifest_direction_facts` (B-9/F-9,
+    2026-08-07) so the advisory catalog hint below computes the flip from the
+    exact same rule instead of a second hand-copied inline version that could
+    silently drift from it. Behaviour-preserving: a non-``bool`` ``mirrored``
+    (e.g. the schema's legacy string literals ``"true"``/``"false"``/``"unknown"``)
+    still defaults to not-mirrored, same as before this extraction.
+    """
+    mirrored = False
+    local_x_positive = "image_left_to_right"
+    if facade is not None:
+        if isinstance(facade.mirrored, bool):
+            mirrored = facade.mirrored
+        if facade.local_x_positive in {"image_left_to_right", "image_right_to_left"}:
+            local_x_positive = facade.local_x_positive
+    return mirrored, local_x_positive
+
+
 def derive_manifest_direction_facts(
     *,
     raw_view_manifest_bytes: bytes,
@@ -584,15 +712,7 @@ def derive_manifest_direction_facts(
             raise WindowResolverInputError(
                 "direction_fact_invalid", {"input_id": entry.input_id, "artifact": "reading"}, category="input_integrity_error"
             ) from exc
-        mirrored = False
-        local_x_positive = "image_left_to_right"
-        if reading.facade is not None:
-            if isinstance(reading.facade.mirrored, bool):
-                mirrored = reading.facade.mirrored
-            if reading.facade.local_x_positive in {
-                "image_left_to_right", "image_right_to_left",
-            }:
-                local_x_positive = reading.facade.local_x_positive
+        mirrored, local_x_positive = _resolve_facade_flip_fields(reading.facade)
         facts.append(ElevationDirectionFactV1(
             input_id=entry.input_id,
             resolved_building_direction=entry.building_view_direction,
