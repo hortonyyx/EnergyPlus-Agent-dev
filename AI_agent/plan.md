@@ -256,6 +256,82 @@ F-13 r1 派工单要求「用与前次相同的中间产物跑下游」，
 ⇒ **新自检：写验收路径前先问「这条路径真的会经过我改的那段代码吗」。
 冻结产物 + 跳段入口 = 天然的假验证温床 ⇒ 派工单第一步就写防假验证自检。**
 
+### 六之七、⭐ 08-07 下半场：F-9 治本 + F-15（两堵）+ 同族缺陷第六次现形
+
+**用户 08-07 定的本轮目标**：**拿 sm21 那份好 reading 产物，把后面的链路全跑通到 EnergyPlus。**
+⇒ 打前半条链。**目标未达成**，但把 1_correction 上的墙连推两堵，且性质发生了变化。
+
+#### F-9 治本（落库 `99d9521` + 锁 `76a639d`）—— 走【B1】advisory 世界区间
+
+**B1 被证实**（此前判定"路线①结构上做不到"的结论因此被推翻）：
+真实变换 `world = along_origin + sign·local`，而 `along_origin = lo(sign>0)/hi(sign<0)`；
+在世界坐标铁律 #2 下沿轴 `lo == 0` ⇒ 区间坍缩为 `[0, W]`
+⇒ **`world = local` 或 `W − local`，不需要 `along_origin`**（后者依赖尚不存在的校正稿，正是原卡点）。
+`W` 直接取自立面自身尺寸链的 `role="overall"`。
+
+**B2 查清**：`facade.mirrored` 与 `_BASE_SIGN` **不矛盾**，属不同层，
+经 `flip = mirrored XOR (local_x_positive=="image_right_to_left")` 合成。
+**B3 的同义反复风险已避开**：该区间标 **advisory、绝不进强制路径**，真实变换在下游独立重算仍是唯一权威。
+
+**真链路证据（指示性，非定论）**：北立面互为镜像的两扇窗
+`1F_North_win_1 span=[1.24,3.64] → North_view/S7` · `1F_North_win_3 span=[11.36,13.76] → North_view/S5`
+⇒ **引用顺序是反的，正是镜像立面应有的配对方向**（缺陷形态下两扇会各自引用对方的笔画）。
+⚠️ **但该次抽签死在更早的 pydantic 校验，没走到 resolver** ⇒ **配对未被真正验证，F-9 验收仍未闭合。**
+
+**⛔ orchestrator 审出的留档**：`lo == 0` 是**假设不是检查**，依赖「每层共用 footprint」这个当前简化
+—— 正是铁律 #6 明令不许烤死的那类。实测本次 `footprint_x=[0.12,14.88]`、**`lo` 已经是 0.12 不是 0**。
+今日因 advisory + 重叠容差足够而无害，但**退台/L 形建筑会静默给错提示**。
+⇒ 建议补「advisory 提示 vs 真实变换的偏离计数」（仪表先行，与 F-13 同思路）。**未做，登记。**
+
+#### F-15（落库 `eaa6b4e`）—— 两堵，第二堵是二阶缺陷
+
+- **第一堵**：模型把内核专属字段 `facade_segments`/`facade_segment_id` 整个造出来
+  （连 `source_footprint_fingerprint` 都编了 64 个 a 的假哈希），被 `_producer_preflight` 判越界，
+  **三次抽签全同一个错、盲重抽治不了**。根因 = **schema 把这些字段暴露给了模型，提示词一个字没提**。
+  修法 = 给字段打 `CORRECTION_DRAW_FORBIDDEN` 标记，**从给模型看的 JSON Schema 里机械剥除**
+  （⛔ 不是手维护名单 —— 呼应 F-5「必须机械导出」）；校验侧一字未动，门未被削弱。
+  ⇒ **生效**：`attempts/` 从彻底空 → 有归档 attempt。
+- **⭐ 第二堵（二阶）**：`parse.py` 的 b2 门**另外硬编码了一份禁止清单**（`facade_segments` + `north_axis`），
+  与 schema 的标记集**各自维护、已经漂了**（`north_axis` 没被标 ⇒ 提示词照样展示 ⇒ 模型照样填）。
+  ⇒ **这是 F-5 形状升了一层**（F-5 是夹具照抄实现的字段名；这次是"给模型看的 schema"与"门"各抄各的）。
+  修法 = 门改为遍历 `schema.draw_forbidden_field_names()`，**两份清单合成一份**。
+  **分阶段性已查清并保留**：`phase_contract=="b2"` 的限定必须留 ——
+  另一个 `e4_orientation` 阶段（确定性后处理、从不进 LLM 提示词）**本来就该填 `north_axis`**。
+- **⭐ 施工席额外抓到一条 orchestrator 没点的**：那道门原抛**裸 `ValueError`**，
+  拿不到 `model_draw_error` 的重试引导 ⇒ **上一次真跑白烧了 3 次里的 2 次**（模型无引导地瞎猜）。已改为带类型异常。
+
+#### orchestrator 轻门（F-15 批）· **PASS**
+
+- **独立全量 2289 passed / 10 xfailed / 0 failed** = 基线 2262 + F-9 锁 7 + F-15 锁 20，逐项对账吻合，零回归。
+- **独立 neuter（换方向：把漂移重新制造出来 —— 门改回硬编码清单、故意漏 `north_axis`）⇒ 3 条红**：
+  `test_unmarking_a_real_forbidden_field_makes_the_b2_gate_stop_rejecting_it_live` ·
+  `test_marking_a_previously_ordinary_field_makes_the_b2_gate_reject_it_live` ·
+  `test_e2e_real_crash_north_axis_only_draw_gets_guided_then_recovers`。
+  ⇒ **前两条是双向属性锁**（取消标记则门必须停止拒绝 / 新加标记则门必须开始拒绝）——
+  **锁的是「门跟着标记走」这个性质本身，不是某个字段名** ⇒ 将来任谁再加门都漂不了。**真锁。**
+
+#### ⛔ 仍未通过：F-16 候选
+
+`run_2026-08-07_f15_north_axis_fix_verify` 三次抽签用尽、**`quarantined@1_correction`**。
+最终报错性质**已从「接口逼着模型失败」变为模型内容错**：
+```
+window W-F1-N1: floor must match referenced floor name
+（模型写 floors[0].id="F1" / name="Level 1"，窗引用了 "F1"，而门要求匹配 name）
+```
+**⚠️ 定性未做**：`id` 与 `name` 并存而只有一个是合法引用目标，**形状很像同族第七次**，
+但**必须查证才能定性，⛔ 不得据此下结论**。**登记为 F-16 候选。**
+
+#### ⭐⭐⭐ 同族缺陷已第六次现形 —— 形状固定，建议立项系统性排查
+
+F-5（字段名错拼）· F-7（locator 结构上产不出）· F-9（镜像要模型心算）· F-12（prompt 层可绕过）·
+F-15 第一堵（内核专属字段暴露给模型）· F-15 第二堵（两份禁止清单各自维护）。
+
+> **共同形状：凡是「模型看得见但不该它管」的东西，最终都会被它填，然后靠事后拒绝纠正。
+> 有效修法只有一种形态 —— 让它看不见，而不是告诉它别碰。**
+
+⇒ **建议立项（待用户拍板）**：**把整个生产者接口盘一遍**，一次性找出所有
+「模型看得见但不该管」的字段/语义，而不是等它一堵堵撞出来。依据 = 本轮六次全在同一条缝上。
+
 ### 七、结转
 
 | 事项 | 状态 |
