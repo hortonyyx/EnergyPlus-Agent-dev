@@ -18,6 +18,53 @@ from typing import Annotated, Literal
 from pydantic import AllowInfNan, BaseModel, ConfigDict, Field, StringConstraints, field_validator, model_validator
 
 from src.agent.correction.claims import WINDOW_CLAIMS
+
+# F-15 (2026-08-07): marker for fields that are the deterministic core's OWN
+# audit trail — computed downstream from a correction draw, never legal input
+# TO one. A field carrying this marker in its ``json_schema_extra`` is
+# mechanically stripped from the JSON Schema shown to the correction LLM
+# prompt (``vocab.producer_facing_json_schema``); validation against the full
+# ``CorrectedGeometryV3`` (this module) is completely unaffected — the
+# stripping only touches what the model is TOLD it may write, not what the
+# core accepts/rejects. ``_producer_preflight``
+# (correction/window_sources.py) remains the authoritative, unweakened door:
+# a draw that fills a marked field anyway is still hard-rejected.
+CORRECTION_DRAW_FORBIDDEN = "correction_draw_forbidden"
+
+
+def draw_forbidden_field_names(model_cls: type[BaseModel]) -> tuple[str, ...]:
+    """Names of ``model_cls``'s OWN top-level fields marked
+    ``CORRECTION_DRAW_FORBIDDEN`` (F-15 follow-up, 2026-08-07 orchestrator
+    A3/B1).
+
+    This is the SINGLE source both consumers must agree with — previously
+    they each hardcoded their own name list and drifted: the prompt-schema
+    stripper (``vocab.producer_facing_json_schema``) already read the marker
+    correctly, but ``parse.parse_correction_draw``'s b2-phase draw-contract
+    gate independently hardcoded ``facade_segments`` + ``north_axis`` by
+    name — so when ``north_axis`` was later found to need the SAME
+    protection as ``facade_segments`` (a real run filled it and was
+    rejected), only one of the two lists needed updating, and it would have
+    been easy to update the wrong one, or only the gate, and quietly
+    re-widen the gap. Deriving both from this single function makes that
+    class of drift structurally impossible: mark a field once, both
+    consumers see it.
+
+    Only inspects ``model_cls.model_fields`` directly (top-level fields of
+    the model actually passed in — e.g. ``CorrectedGeometryV3``), NOT nested
+    models reached through them (e.g. ``WindowV3.facade_segment_id`` is a
+    separate, per-window, unconditional early-exit check in
+    ``parse.py``/``window_sources.py._producer_preflight`` — a different
+    enforcement point serving a different purpose, deliberately NOT unified
+    here; see the module docstring above and the parse.py b2-gate comment for
+    why that boundary is intentional, not an oversight).
+    """
+    names = []
+    for name, field in model_cls.model_fields.items():
+        extra = field.json_schema_extra
+        if isinstance(extra, dict) and extra.get(CORRECTION_DRAW_FORBIDDEN) is True:
+            names.append(name)
+    return tuple(sorted(names))
 from src.agent.correction.constants import SCHEMA_VERSION_V1
 
 # Case-insensitive aliases the facade validator accepts; anything else (e.g.
@@ -195,7 +242,9 @@ class FloorV3(Floor):
 class WindowV3(Window):
     model_config = ConfigDict(extra="forbid")
     floor_id: str
-    facade_segment_id: str | None = None
+    facade_segment_id: str | None = Field(
+        default=None, json_schema_extra={CORRECTION_DRAW_FORBIDDEN: True}
+    )
     provenance: dict[str, FieldProvenance] | None = None
 
     @field_validator("provenance")
@@ -219,8 +268,26 @@ class CorrectedGeometryV3(CorrectedGeometry):
     schema_version: Literal["3"]
     floors: list[FloorV3] = Field(min_length=1)
     windows: list[WindowV3] = Field(default_factory=list)
-    facade_segments: list[FacadeSegment] = Field(default_factory=list)
-    north_axis: NorthAxisEvidence | None = None
+    facade_segments: list[FacadeSegment] = Field(
+        default_factory=list, json_schema_extra={CORRECTION_DRAW_FORBIDDEN: True}
+    )
+    # F-15 follow-up (2026-08-07, orchestrator A3): `north_axis` is exactly
+    # the same shape of core-only field as `facade_segments` — under the b2
+    # (draw) phase_contract it must ALWAYS stay unpopulated (see
+    # feature_state.derive_feature_state_claims: a b2-phase v3 draw is
+    # unconditionally `typed_north_axis="declared_unpopulated"`; only the
+    # SEPARATE, non-LLM `e4_orientation` enrichment phase — a different call
+    # site entirely, orientation.py, never a draw prompt — is allowed to
+    # populate it). It was NOT marked in the original F-15 fix (facade_segments
+    # / facade_segment_id only), so the b2 draw contract gate in parse.py kept
+    # a second, independently-hardcoded name list — exactly the drift this
+    # marker is meant to prevent. Now marked, so both the prompt-stripper
+    # (vocab.producer_facing_json_schema) AND the runtime gate
+    # (parse.parse_correction_draw's b2 check, via
+    # schema.draw_forbidden_field_names) read the SAME single source.
+    north_axis: NorthAxisEvidence | None = Field(
+        default=None, json_schema_extra={CORRECTION_DRAW_FORBIDDEN: True}
+    )
 
     @model_validator(mode="after")
     def _v3_integrity(self):

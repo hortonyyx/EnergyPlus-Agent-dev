@@ -112,8 +112,50 @@ def parse_correction_draw(payload: dict, target: CorrectionTarget) -> CorrectedG
         raise ValueError("correction draw schema_version does not match selected target")
     if target.phase_contract == "b2" and geom.schema_version == "3":
         assert isinstance(geom, CorrectedGeometryV3)
-        if geom.facade_segments or geom.north_axis is not None:
-            raise ValueError("b2 draw contract requires empty facade_segments and null north_axis")
+        # F-15 follow-up (2026-08-07, orchestrator A3): the forbidden field
+        # NAMES are derived from the schema's own CORRECTION_DRAW_FORBIDDEN
+        # marker (schema.draw_forbidden_field_names) instead of being
+        # hardcoded here a second time — `facade_segments` and `north_axis`
+        # used to each be named literally in this `if`, independently of the
+        # marker vocab.producer_facing_json_schema already read, and the two
+        # lists drifted (north_axis was marked-forbidden-in-practice by this
+        # gate but not yet marked in the schema, so the prompt kept showing
+        # it — a real run hit exactly that gap). This `if` is still scoped to
+        # phase_contract == "b2" (the draw phase) exactly as before: the
+        # SEPARATE e4_orientation phase (orientation.py, a deterministic
+        # post-draw enrichment, never an LLM prompt) legitimately populates
+        # north_axis and never reaches this branch.
+        from src.agent.correction.schema import draw_forbidden_field_names
+        populated = [
+            name for name in draw_forbidden_field_names(CorrectedGeometryV3)
+            if getattr(geom, name)
+        ]
+        if populated:
+            # F-15 follow-up: same typed exception class + category as the
+            # OTHER model_draw_error doors in this file (facade_segment_id /
+            # window_host_resolution, above) and in window_sources.py's
+            # `_producer_preflight` — not a plain ValueError — so this
+            # rejection gets the SAME retry-guidance treatment
+            # (vocab._MODEL_DRAW_ERROR_GUIDANCE) instead of silently falling
+            # through to a blind retry (F-15 A1 pattern: a real run burned 2
+            # of its 3 attempts on this exact message, un-guided, before this
+            # fix). The message text keeps the original prefix
+            # ("b2 draw contract requires empty facade_segments and null
+            # north_axis") so the pre-existing
+            # test_v3_producer_prefilled_facade_segments_still_rejected regex
+            # match still passes unchanged.
+            from src.agent.correction.window_sources import WindowResolverInputError
+            raise WindowResolverInputError(
+                "producer_b2_forbidden_field_populated",
+                {
+                    "message": (
+                        "b2 draw contract requires empty facade_segments and "
+                        "null north_axis"
+                    ),
+                    "fields": populated,
+                },
+                category="model_draw_error",
+            )
     _ring_checks(geom, canonical=False)
     return geom
 

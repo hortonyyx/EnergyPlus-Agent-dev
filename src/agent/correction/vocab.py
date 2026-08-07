@@ -109,6 +109,102 @@ def correction_schema_vocabulary(target: Any) -> dict[str, list[str]]:
     }
 
 
+def producer_facing_json_schema(schema_model: Any) -> dict:
+    """The JSON Schema shown to the correction LLM draw prompt (F-15,
+    2026-08-07).
+
+    Structurally excludes any field the schema itself marks
+    ``schema.CORRECTION_DRAW_FORBIDDEN`` (e.g. ``CorrectedGeometryV3.
+    facade_segments`` / ``WindowV3.facade_segment_id``) — the deterministic
+    core's OWN audit trail, computed downstream from a correction draw, never
+    legal input to one.
+
+    Before this fix the FULL, unmodified ``model_json_schema()`` was dumped
+    verbatim into the prompt (F-15 A1/A5): the schema offered these fields as
+    ordinary optional fields worth filling, and nothing in the prompt or
+    schema said otherwise. The model filled them — including fabricating a
+    64-hex placeholder for ``source_footprint_fingerprint`` — and every one
+    of its 3 blind inner-retry attempts was rejected by the (unweakened)
+    ``_producer_preflight`` door in ``window_sources.py`` with the exact same
+    error, because nothing told it to stop (see also
+    ``retry_guidance_for_correction`` below, which now also translates that
+    specific rejection into guidance — F-15 B2).
+
+    The exclusion is marker-driven, not a hand-copied field-name list: a
+    future core-only field is excluded automatically as long as it carries
+    the marker in its own ``Field(json_schema_extra=...)`` declaration — same
+    discipline as the rest of this module (single source of truth, no second
+    list to forget). Validation of an actual draw against the full
+    ``CorrectedGeometryV3`` model is completely unaffected by this function —
+    it only changes what the model is TOLD, never what the core accepts.
+    """
+    import copy
+
+    from src.agent.correction.schema import CORRECTION_DRAW_FORBIDDEN
+
+    schema = copy.deepcopy(schema_model.model_json_schema())
+
+    def _strip(node: dict) -> None:
+        properties = node.get("properties")
+        if not isinstance(properties, dict):
+            return
+        forbidden = [
+            name
+            for name, prop in properties.items()
+            if isinstance(prop, dict) and prop.get(CORRECTION_DRAW_FORBIDDEN) is True
+        ]
+        for name in forbidden:
+            del properties[name]
+            required = node.get("required")
+            if isinstance(required, list) and name in required:
+                required.remove(name)
+
+    _strip(schema)
+    for definition in schema.get("$defs", {}).values():
+        if isinstance(definition, dict):
+            _strip(definition)
+
+    # A stripped property can leave its own type definition (e.g.
+    # `FacadeSegment`, the type of the now-removed `facade_segments`) as an
+    # ORPHANED `$defs` entry — unreferenced by any `$ref`, but still visually
+    # present in the dumped JSON, which would re-offer the model the exact
+    # shape it should never fill. Prune anything no longer reachable by
+    # `$ref` from the (already-stripped) root.
+    defs = schema.get("$defs")
+    if isinstance(defs, dict):
+        reachable = _reachable_def_names({k: v for k, v in schema.items() if k != "$defs"}, defs)
+        schema["$defs"] = {name: value for name, value in defs.items() if name in reachable}
+    return schema
+
+
+def _collect_ref_names(node: object, out: set[str]) -> None:
+    if isinstance(node, dict):
+        ref = node.get("$ref")
+        if isinstance(ref, str) and ref.startswith("#/$defs/"):
+            out.add(ref[len("#/$defs/"):])
+        for value in node.values():
+            _collect_ref_names(value, out)
+    elif isinstance(node, list):
+        for item in node:
+            _collect_ref_names(item, out)
+
+
+def _reachable_def_names(root: object, defs: dict) -> set[str]:
+    """BFS closure of `$defs` entries reachable by `$ref` from `root`."""
+    seen: set[str] = set()
+    frontier: set[str] = set()
+    _collect_ref_names(root, frontier)
+    while frontier:
+        name = frontier.pop()
+        if name in seen or name not in defs:
+            continue
+        seen.add(name)
+        more: set[str] = set()
+        _collect_ref_names(defs[name], more)
+        frontier |= more - seen
+    return seen
+
+
 def format_correction_system_vocabulary(target: Any) -> str:
     """The allowed-vocabulary block for the correction system prompt (F-4b).
 
@@ -143,18 +239,79 @@ def format_correction_system_vocabulary(target: Any) -> str:
     return "\n".join(lines) + "\n\n"
 
 
+# F-15 B2 (2026-08-07): `_producer_preflight` / `parse.py`'s early-exit raise
+# `WindowResolverInputError` with `category="model_draw_error"` for exactly
+# two named draw mistakes (deterministic-core-only fields prefilled by the
+# model). That exception is a plain `ValueError` subclass, NOT a pydantic
+# `ValidationError` — before this fix `_guide` below only recognised
+# `ValidationError`, so this specific, already-named, already-stable
+# rejection code fell through to `return None` (blind retry) every time,
+# despite the retry-guidance channel being fully wired into the loop that
+# raises it (`_make_correction_validator` -> `parse_correction_draw` IS the
+# `validate` callback `_call_json_llm` retries with). A real run
+# (F-15 A1) burned all 3 attempts on the identical
+# `producer_segment_ref_prefilled` error because nothing ever told the model
+# what to remove. This mapping is the fix: format-only, code-keyed guidance,
+# same discipline as the ValidationError branch below (never echoes
+# geometry/coordinates/upstream content).
+_MODEL_DRAW_ERROR_GUIDANCE: dict[str, str] = {
+    "producer_segment_ref_prefilled": (
+        "Your previous output was rejected: `facade_segments` and/or a "
+        "window's `facade_segment_id` were filled in. These are "
+        "deterministic-core-only fields — the core computes them from your "
+        "draw AFTER you submit it; they are not legal input from this draw "
+        "(they were also removed from the schema shown to you above, so do "
+        "not re-add them). Remove the top-level `facade_segments` array "
+        "entirely and leave every window's `facade_segment_id` unset (or "
+        "`null`). Do NOT change any other coordinate, numeric value, "
+        "room/window placement, or upstream reading content that already "
+        "passed."
+    ),
+    "producer_resolver_audit_prefilled": (
+        "Your previous output was rejected: one of `corrections` / "
+        "`conflicts` / `unsupported` contains a row with `\"kind\": "
+        "\"window_host_resolution\"`. That audit trail is produced "
+        "downstream by the deterministic core, never by this draw. Remove "
+        "any such row. Do NOT change any other coordinate, numeric value, "
+        "room/window placement, or upstream reading content that already "
+        "passed."
+    ),
+    # F-15 follow-up (2026-08-07, orchestrator A3): the b2 draw-contract gate
+    # in parse.py now raises this SAME exception class/category (previously a
+    # plain ValueError, which this guidance channel could never recognise —
+    # a real run burned 2 of its 3 attempts blind on this exact rejection
+    # before this fix landed).
+    "producer_b2_forbidden_field_populated": (
+        "Your previous output was rejected: it populated one or more "
+        "deterministic-core-only fields (`facade_segments` and/or "
+        "`north_axis`). Both are computed downstream by the deterministic "
+        "core AFTER you submit your draw — they are not legal input from "
+        "this draw (they were also removed from the schema shown to you "
+        "above, so do not re-add them). Remove the top-level "
+        "`facade_segments` array and leave `north_axis` unset (or `null`). "
+        "Do NOT change any other coordinate, numeric value, room/window "
+        "placement, or upstream reading content that already passed."
+    ),
+}
+
+
 def retry_guidance_for_correction(target: Any) -> Callable[[BaseException], str | None]:
     """Build the inner-retry corrective-message callable for ``_call_json_llm`` (F-4a).
 
     Returns a machine-generated, FORMAT-ONLY correction when the failure is a
     Pydantic schema ``ValidationError``: each error's field path + the
     validator's own reason + the schema's mechanically-derived legal vocabulary
-    / field-set for that field. Returns ``None`` for any other failure
-    (transport, JSON syntax, a semantic ``ValueError`` from
-    ``correction_draw_issues``) so those retry blind — the inner retry owns
-    ONLY schema/format robustness, never geometry, upstream content, gt, or
-    numeric values (run_stage.py:320 "Inner retry handles ONLY schema/format
-    robustness").
+    / field-set for that field. Also returns FORMAT-ONLY, code-keyed guidance
+    for the two named ``model_draw_error`` codes raised by
+    ``_producer_preflight`` / ``parse.py`` when the draw prefills a
+    deterministic-core-only field (F-15 B2, see ``_MODEL_DRAW_ERROR_GUIDANCE``
+    above). Returns ``None`` for any other failure (transport, JSON syntax, a
+    semantic ``ValueError`` from ``correction_draw_issues``, or an
+    ``input_integrity_error``-category ``WindowResolverInputError`` — an
+    upstream/environment fault that resampling cannot fix) so those retry
+    blind — the inner retry owns ONLY schema/format robustness, never
+    geometry, upstream content, gt, or numeric values (run_stage.py:320
+    "Inner retry handles ONLY schema/format robustness").
 
     The message never echoes the rejected draw's coordinates or numbers: only
     field paths, the validator's reason text, and the schema's legal tokens.
@@ -166,6 +323,12 @@ def retry_guidance_for_correction(target: Any) -> Callable[[BaseException], str 
     vocab = correction_schema_vocabulary(target)
 
     def _guide(exc: BaseException) -> str | None:
+        from src.agent.correction.window_sources import WindowResolverInputError
+
+        if isinstance(exc, WindowResolverInputError):
+            if exc.category == "model_draw_error":
+                return _MODEL_DRAW_ERROR_GUIDANCE.get(exc.code)
+            return None
         if not isinstance(exc, ValidationError):
             return None
         lines = [

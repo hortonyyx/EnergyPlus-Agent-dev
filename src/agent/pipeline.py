@@ -48,6 +48,7 @@ from src.agent.correction.config import load_core_tolerances
 from src.agent.correction.envelope import extract_authoritative_envelope
 from src.agent.correction.vocab import (
     format_correction_system_vocabulary,
+    producer_facing_json_schema,
     retry_guidance_for_correction,
 )
 from src.agent.execution.evidence_preflight import (
@@ -352,7 +353,10 @@ def _build_correction_messages(
         )
     summary = _read(summary_path)
     target = target or __import__("src.agent.correction.parse", fromlist=["correction_target"]).correction_target("rectangular")
-    geom_schema = json.dumps(target.schema_model.model_json_schema(), indent=2, ensure_ascii=False)
+    # F-15 (2026-08-07): the PROMPT sees a schema stripped of
+    # deterministic-core-only fields (facade_segments / facade_segment_id) —
+    # validation elsewhere still uses the full target.schema_model unchanged.
+    geom_schema = json.dumps(producer_facing_json_schema(target.schema_model), indent=2, ensure_ascii=False)
 
     system_prompt = (
         "You are running the CORRECTION stage (1_correction) of a staged "
@@ -385,7 +389,17 @@ def _build_correction_messages(
         "===== BEGIN CorrectedGeometry JSON SCHEMA =====\n"
         f"{geom_schema}\n"
         "===== END CorrectedGeometry JSON SCHEMA =====\n\n"
-        f"{format_correction_system_vocabulary(target)}"
+        + (
+            "Note: `corrections`/`conflicts`/`unsupported` are free-form audit "
+            "rows for THIS draw's own material changes / ambiguities / unsafe "
+            "fixes. Never add a row with `\"kind\": \"window_host_resolution\"` "
+            "to any of them — that is a separate audit trail the deterministic "
+            "core produces downstream from your draw, not something for you to "
+            "pre-fill.\n\n"
+            if target.schema_version == "3"
+            else ""
+        )
+        + f"{format_correction_system_vocabulary(target)}"
         "===== BEGIN RULE DOCUMENT: 1_correction =====\n"
         f"{correction_docs}\n"
         "===== END RULE DOCUMENT: 1_correction =====\n\n"
