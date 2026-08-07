@@ -206,6 +206,28 @@ def test_lock2_canonicalization_vertical_wall_top_left_and_outward():
 
 def test_lock2_canonicalization_floor_top_left_and_outward():
     # Floor ring in the z=0 plane, outward normal (0, 0, -1) (faces down).
+    #
+    # Hand-derivation from `top_left_corner_index`'s own definition (NOT run
+    # from the implementation and copied back — see the F-13 followup dispatch
+    # 2026-08-07 §1, "手算值的来源纪律"):
+    #   normal = (0, 0, -1). world_up starts as (0, 0, 1); |dot(normal,
+    #   world_up)| = 1 > 0.99 and dot < 0, so the near-horizontal branch fires
+    #   and swaps world_up to (0, -1, 0) — i.e. "up" is taken along -Y, not
+    #   +Y, precisely because a floor's outward normal faces DOWN: standing
+    #   outside the surface means standing BELOW it and looking UP, which
+    #   mirrors the view left-right relative to the standard bird's-eye
+    #   (ceiling/roof) convention below. This is the step orchestrator misread
+    #   as "same as looking down from above" in the F-13 investigation.
+    #   right = cross(world_up, normal) = cross((0,-1,0), (0,0,-1))
+    #         = ((-1)*(-1) - 0*0, 0*0 - 0*(-1), 0*0 - (-1)*0) = (1, 0, 0)
+    #   up    = cross(normal, right) = cross((0,0,-1), (1,0,0))
+    #         = (0*0 - (-1)*0, (-1)*1 - 0*0, 0*0 - 0*1) = (0, -1, 0)
+    #   So right = world +X, up = world -Y (viewed-from-below "up" points to
+    #   world -Y). "Top" (max up-projection) = point with SMALLEST world Y;
+    #   tie-break "left" (min right-projection) = point with SMALLEST world X.
+    #   Ring points: (4,3,0) (4,0,0) (0,0,0) (0,3,0) — the two with Y=0 (the
+    #   "top" group here, y=0 < y=3) are (4,0,0) and (0,0,0); smaller X of
+    #   those is (0,0,0) ⇒ hand-derived top-left = (0.0, 0.0, 0.0).
     scrambled = np.array([
         [4.0, 3.0, 0.0],
         [4.0, 0.0, 0.0],
@@ -214,12 +236,31 @@ def test_lock2_canonicalization_floor_top_left_and_outward():
     ])
     normal = np.array([0.0, 0.0, -1.0])
     canonical = canonicalize_ring_vertices(scrambled, normal)
+    assert np.array_equal(canonical[0], np.array([0.0, 0.0, 0.0]))
     assert top_left_corner_index(canonical, normal) == 0
     assert float(np.dot(_newell([tuple(p) for p in canonical]), normal)) > 0.99
 
 
 def test_lock2_canonicalization_ceiling_top_left_and_outward():
     # Ceiling/Roof ring in the z=3 plane, outward normal (0, 0, 1) (faces up).
+    #
+    # Hand-derivation (same method as the floor case above, opposite branch):
+    #   normal = (0, 0, 1). world_up starts as (0, 0, 1); |dot| = 1 > 0.99 and
+    #   dot > 0 this time, so world_up swaps to (0, 1, 0) — a ceiling's
+    #   outward normal faces UP, so standing outside means standing ABOVE it
+    #   and looking DOWN: the standard bird's-eye-view convention (north/+Y
+    #   is "up" in the view, matching ordinary plan-view drawings).
+    #   right = cross(world_up, normal) = cross((0,1,0), (0,0,1))
+    #         = (1*1 - 0*0, 0*0 - 0*1, 0*0 - 1*0) = (1, 0, 0)
+    #   up    = cross(normal, right) = cross((0,0,1), (1,0,0))
+    #         = (0*0 - 1*0, 1*1 - 0*0, 0*0 - 0*1) = (0, 1, 0)
+    #   So right = world +X, up = world +Y — the ordinary plan-view sense.
+    #   "Top" (max up-projection) = point with LARGEST world Y; tie-break
+    #   "left" (min right-projection) = point with SMALLEST world X.
+    #   Ring points: (0,0,3) (4,0,3) (4,3,3) (0,3,3) — the two with Y=3 (the
+    #   "top" group) are (4,3,3) and (0,3,3); smaller X of those is (0,3,3)
+    #   ⇒ hand-derived top-left = (0.0, 3.0, 3.0) — the north-west corner,
+    #   consistent with "north up, west left" plan-view convention.
     scrambled = np.array([
         [0.0, 0.0, 3.0],
         [4.0, 0.0, 3.0],
@@ -228,11 +269,19 @@ def test_lock2_canonicalization_ceiling_top_left_and_outward():
     ])
     normal = np.array([0.0, 0.0, 1.0])
     canonical = canonicalize_ring_vertices(scrambled, normal)
+    assert np.array_equal(canonical[0], np.array([0.0, 3.0, 3.0]))
     assert top_left_corner_index(canonical, normal) == 0
     assert float(np.dot(_newell([tuple(p) for p in canonical]), normal)) > 0.99
 
 
 def test_lock2_canonicalization_window_top_left_and_outward():
+    # South-facing window on the y=0 plane, outward normal (0, -1, 0) — same
+    # normal, hence same right/up derivation, as the vertical-wall case above
+    # (`test_lock2_canonicalization_vertical_wall_top_left_and_outward`):
+    # right = world +X, up = world +Z. "Top" = max z, tie-break "left" = min
+    # x. Ring points: (1,0,1) (2,0,1) (2,0,1.5) (1,0,1.5) — the two with
+    # z=1.5 (the "top" group) are (2,0,1.5) and (1,0,1.5); smaller x of those
+    # is (1,0,1.5) ⇒ hand-derived top-left = (1.0, 0.0, 1.5).
     scrambled = np.array([
         [1.0, 0.0, 1.0],
         [2.0, 0.0, 1.0],
@@ -241,6 +290,7 @@ def test_lock2_canonicalization_window_top_left_and_outward():
     ])
     normal = np.array([0.0, -1.0, 0.0])
     canonical = canonicalize_ring_vertices(scrambled, normal)
+    assert np.array_equal(canonical[0], np.array([1.0, 0.0, 1.5]))
     assert top_left_corner_index(canonical, normal) == 0
     assert float(np.dot(_newell([tuple(p) for p in canonical]), normal)) > 0.99
 
