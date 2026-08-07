@@ -142,8 +142,17 @@ EnergyPlus 经 `WorkflowTool.run_simulation`（eppy + ConverterManager，idfpy �
 
 ## 2. 当前开发状态
 
-- **🎯🎯🎯 最新（2026-08-07 收工）= 端到端跑通 EnergyPlus 且【数值可信】首次达成**
+- **🎯🎯 最新（2026-08-07 收工）= 【几何内核→装配→下游→EnergyPlus】这半条链首次跑通且【数值可信】**
   （排工与全部结论见 [plan.md 顶部「2026-08-06 下半场」节](plan.md)）。全仓 **2255 绿 / 10 xfail / 0 红**。
+  - **⛔⛔ 口径必须说准（08-07 用户追问后 orchestrator 核实更正，此前表述"端到端跑通"⚠️ 说过头了）**：
+    这次跑通的**不是**「从图纸到 EnergyPlus 全程一次跑通」。实际形态 =
+    **0_reading 用 07-07 老产物**（reading 是下轮支线）· **1_correction 完全没跑**
+    （逐字节复用 `wall3_a_retest` 那份，且该产物 `schema_version=None`、窗无 `provenance`/`source_ids`
+    ⇒ **legacy 形态，v3 窗源那条路〔F-5/F-7/F-9 所在〕本次根本没被走过**）·
+    **2→5 + 下游 13 节点 + IDF + EnergyPlus 才是今天真跑的部分**。
+    ⇒ **「后半条链在一份 legacy correction 产物上跑通且数值可信」** 才是准确表述。
+    ⇒ **reading 重启会补上前半条，届时 1_correction 被真跑、F-9 那条路会立刻现形
+    ⇒ F-9 治本（路线②）宜在 reading 重启前拍板。**
   - **本轮落库**：F-12（`77b3da4`）· F-9（`f316cfe`→合并 `657f3e6`）· F-8 收口（`5cccee8`/`709bc8f`）·
     **F-13 r1（`a3458cc`）**。三道 orchestrator 轻门：**F-9 PASS · F-13 否决版 REJECT · F-13 r1 无条件 PASS**。
   - **⭐ 终局实测**（新 run `run_2026-08-07_f13_e2e_verify`）：内核冻结快照 vs 最终 IDF

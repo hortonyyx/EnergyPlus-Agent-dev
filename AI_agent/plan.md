@@ -270,6 +270,12 @@ F-13 r1 派工单要求「用与前次相同的中间产物跑下游」，
 | **交叉审（下一件）** | ⏳ 请求书已备：[`request/2026-08-07_f12_f9_f13_crossreview_brief_glm.md`](logs/reviews/request/2026-08-07_f12_f9_f13_crossreview_brief_glm.md) · 席位 **GLM-5.2**（验证性审阅，⛔ 非探索性）· 三摊合审 F-12/F-9/F-13 + 请它独立复核 orchestrator 的两个新判断（恒等锁 vs 正确性锁 · 楼板左上角与俯视相反）|
 | **F-14 候选（新登记）** | ⏸ `tests/test_zone_agent.py` **无任何 mock**（`tests/` 下无 `conftest.py`）、单跑 13.5s ⇒ **真调付费 API**。⇒ 全仓绿额外依赖 API 可用性与凭据、**每跑一次全仓都在烧钱**、天然 flaky 源（已实际造成一次基线红）。机械扫描确认**同类只此一条** |
 | **其它新登记（未排期）** | 接地面无地温输入（EP 用默认 18℃）· World 坐标系下非零 North Axis 被 EnergyPlus 忽略（将来撞 `relative_north_axis` 模式）· **环检测计数缺口**（老排序器还顺带把乱序顶点排回环，这层安全网在 r1 里仍保留，但没有仪表）|
+| **⛔ 口径更正（08-07 用户追问后核实）** | 本轮跑通的**不是**「从图纸到 EnergyPlus 全程」：**0_reading 用 07-07 老产物 · 1_correction 完全没跑**（逐字节复用 wall3 那份，且该产物 `schema_version=None`、窗无 `provenance`/`source_ids` ⇒ **legacy 形态，v3 窗源那条路本次没被走过**）· **2→5 + 下游 + EP 才是真跑的**。⇒ 准确表述 = **「后半条链在一份 legacy correction 产物上跑通且数值可信」** |
+| **⭐ reading 重启的前置** | **F-9 治本（路线②）宜在 reading 重启前拍板** —— reading 一出真产物，1_correction 就会被真跑，**F-9 那条路立刻现形**（现状只修了"崩的方式"= 归档重抽，没修"为什么对不上"）|
+| **交叉审 follow-up（在跑）** | 🔄 补两处正确性锁：F-13 lock2 水平面手算断言（MAJOR-1）+ `VERTEX_FRAME_DRIFT` 行为门单元锁（F-12 MINOR）。派工单 [`request/2026-08-07_crossreview_followup_locks_dispatch_claude.md`](logs/reviews/request/2026-08-07_crossreview_followup_locks_dispatch_claude.md) |
+| **【登记不处理】F-9 MINOR** | 「不变量必须硬崩」那侧的端到端锁是 **monkeypatch 强制 category** 覆盖的，非真实冲突自然产生的完整链路 ⇒ 若某抛出点误标 `fallback_action`，不变量违反会被**静默归档重抽**，单测抓不住。**用户 08-07 定：先登记不处理** |
+| **【登记不处理】水平面端到端无对账** | 宽高对账只覆盖垂直面 79/115，36 个水平面被判据排除（`~Width`/`~Height` 语义不同，需另设计判据）|
+| **【登记不处理】其它** | F-14 候选（`test_zone_agent` 真调付费 API）· 接地面无地温输入 · World 坐标系忽略非零 North Axis（将来撞 `relative_north_axis`）· 环检测计数缺口 · F-8 防复发机械检查（选项 A/B）· 架构债 D-2（下游建墙面改代码生成，卡权属）|
 | 既有债 | 0.12m 尺寸基准（07-08 登记）· `run_mep` schedule 引用 · zone 命名描述部分不具分辨力 —— 仍未排期 |
 
 **⛔ 运维**：2026-08-06 **Claude 侧 session limit 撞窗（11:30 UTC 复位）**，同时 GLM 侧 5h 窗也在恢复中
