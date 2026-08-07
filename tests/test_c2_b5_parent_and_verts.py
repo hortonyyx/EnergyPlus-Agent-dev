@@ -606,10 +606,19 @@ def test_sync_1_output_built_json_and_specs_share_all_window_identity(tmp_path: 
     resolution = bundle.result.window_host_claims.resolutions[0]
     assert resolution.facade_segment_id == SOUTH_SEGMENT_ID
     assert resolution.resolution_sha256 == SOUTH_RESOLUTION_SHA256
+    # F-13 (2026-08-06): the kernel now canonicalizes its own vertex order
+    # (top-left start, outward winding) at `build_geometry`'s finalization
+    # point instead of leaving that to gate①'s validator — see
+    # AI_agent/logs/reviews/verdict/2026-08-06_f13_orchestrator_lightgate.md.
+    # This window's outward normal is (0, -1, 0) (south-facing, y=0 plane);
+    # with world +Z as "up" the IDF UpperLeftCorner is (1.0, 0.0, 2.0) — the
+    # same 4 points as before, rolled to start there instead of the
+    # bottom-left corner. Same ring, same winding, only the start vertex
+    # moved (independently re-derived by hand in the F-13 execution log).
     assert row == {
         "name": "Z01_W1_Win1",
         "parent": "Z01_W1",
-        "verts": [[1.0, 0.0, 1.0], [3.0, 0.0, 1.0], [3.0, 0.0, 2.0], [1.0, 0.0, 2.0]],
+        "verts": [[1.0, 0.0, 2.0], [1.0, 0.0, 1.0], [3.0, 0.0, 1.0], [3.0, 0.0, 2.0]],
         "source_window": "w1",
         "facade_segment": SOUTH_SEGMENT_ID,
         "host_resolution_sha256": SOUTH_RESOLUTION_SHA256,

@@ -17,17 +17,21 @@ from __future__ import annotations
 import hashlib
 from dataclasses import dataclass
 
+import numpy as np
+
 from src.agent.correction.schema import CorrectedGeometry
 from src.agent.geometry.modelling import (
     BuildingGeometry,
     NameRegistry,
     Surface,
     Window,
+    _newell,
     attach_windows,
     attach_windows_v3,
     build_zone_volumes,
 )
 from src.agent.geometry.split_pairing import pair_surfaces
+from src.validator.data_model import canonicalize_ring_vertices
 
 __all__ = [
     "BuildingGeometry", "Surface", "VerifiedWindowHostProof", "Window",
@@ -36,6 +40,49 @@ __all__ = [
 
 
 _PROOF_CONSTRUCTION_TOKEN = object()
+
+
+def _canonicalize_bg_vertices(out: BuildingGeometry) -> None:
+    """F-13 (2026-08-06): make the kernel's own vertex output already IDF
+    canonical, in place, so gate①'s `GeometrySchema.validate_points_sorting`
+    (`src/validator/data_model.py`) becomes an identity transform on it.
+
+    Reuses `canonicalize_ring_vertices` — the SAME function the validator
+    itself delegates to — rather than re-deriving a second "should agree"
+    algorithm (that divergence is exactly how F-13 happened; see
+    AI_agent/logs/reviews/verdict/2026-08-06_f13_orchestrator_lightgate.md).
+
+    The validator derives each surface's outward normal independently (via
+    Delaunay triangulation of a Floor's interior points — see
+    `GeometrySchema._get_normal_vector`). This kernel does not need to
+    replicate that: by the time `pair_surfaces`/`attach_windows*` finish,
+    every surface's own vertex order is ALREADY outward-oriented (walls via
+    `_local_outward_normal`/owner-polygon containment test, floors/ceilings/
+    roofs via the fixed ±Z convention, windows via their parent wall's own
+    orientation or an explicit, validated `outward_normal_xy`) — this is the
+    kernel's pre-existing, independently-grounded orientation logic
+    (`_orient` in `modelling.py`), unchanged by F-13. So the outward normal
+    to feed the shared canonicalizer is simply each surface's OWN Newell
+    normal (`_newell`): self-consistent, requires no interior-point lookup,
+    and only re-derives the ring order + start vertex — it cannot flip a
+    winding that is already correct.
+
+    Degenerate (near-zero-area) faces are left untouched — same posture the
+    kernel already takes elsewhere (a degenerate face has no well-defined
+    normal to canonicalize against; nothing here guesses one).
+    """
+    for surface in out.surfaces:
+        normal = _newell(surface.verts)
+        if float(np.linalg.norm(normal)) < 1e-9:
+            continue
+        canonical = canonicalize_ring_vertices(np.asarray(surface.verts, dtype=float), normal)
+        surface.verts = [(float(x), float(y), float(z)) for x, y, z in canonical]
+    for window in out.windows:
+        normal = _newell(window.verts)
+        if float(np.linalg.norm(normal)) < 1e-9:
+            continue
+        canonical = canonicalize_ring_vertices(np.asarray(window.verts, dtype=float), normal)
+        window.verts = [(float(x), float(y), float(z)) for x, y, z in canonical]
 
 
 @dataclass(frozen=True, init=False)
@@ -212,5 +259,12 @@ def build_geometry(
             f"window attachment lost {len(geom.windows) - len(out.windows)} of "
             f"{len(geom.windows)} window(s): " + "; ".join(win_notes)
         )
+
+    # F-13 (2026-08-06): `bg` (`out`) is now fully resolved — canonicalize
+    # every surface/window's vertex order here, once, at the single point
+    # both downstream consumers (`serialize_geometry` in specs.py,
+    # `build_output_coordinate_snapshot` in output_coordinates.py) read
+    # `out.surfaces[*].verts` / `out.windows[*].verts` from.
+    _canonicalize_bg_vertices(out)
 
     return out

@@ -1027,6 +1027,95 @@ class FenestrationSurfaceSchema(BaseSchema):
         return {"FenestrationSurface:Detailed": self.model_dump(by_alias=True)}
 
 
+# --------------------------------------------------------------------------- #
+# F-13 (2026-08-06): single-source vertex canonicalization.
+#
+# Extracted verbatim (no algorithmic change) from what were previously
+# `GeometrySchema._sort_vertices_clockwise` / `._get_top_left_corner_from_normal`
+# instance methods, so the geometry kernel
+# (`src.agent.geometry.build.build_geometry`) can produce already-canonical
+# vertices using the EXACT same algorithm this gate① validator uses to
+# enforce them — instead of two independently-maintained "should agree"
+# implementations (which is how F-13 happened: the kernel's own vertex order
+# silently disagreed with this validator's `UpperLeftCorner` normalization on
+# ~90% of real surfaces). See
+# AI_agent/logs/reviews/verdict/2026-08-06_f13_orchestrator_lightgate.md.
+#
+# `GeometrySchema._sort_vertices_clockwise` / `._get_top_left_corner_from_normal`
+# below now delegate to these two functions; their behavior is unchanged.
+# --------------------------------------------------------------------------- #
+def canonicalize_ring_vertices(points: np.ndarray, normal_vector: np.ndarray) -> np.ndarray:
+    """Reorder a planar polygon's vertices (any input order, including
+    scrambled / self-intersecting) into IDF canonical form relative to
+    `normal_vector` — the surface's independently-known outward normal:
+    (1) the ring winds so its own normal agrees with `normal_vector`, and
+    (2) it starts at the ``GlobalGeometryRules = UpperLeftCorner`` vertex
+    (see `top_left_corner_index`). Both properties fall out of a single
+    angle-around-centroid sort keyed on `normal_vector`; no separate
+    winding-reversal step is needed or applied.
+    """
+    normal = normal_vector / np.linalg.norm(normal_vector)
+    centroid = np.mean(points, axis=0)
+
+    def compare_points(idx1, idx2):
+        v1 = points[idx1] - centroid
+        v2 = points[idx2] - centroid
+
+        cross = np.cross(v1, v2)
+
+        sign = np.dot(cross, normal)
+
+        if sign > 1e-10:
+            return -1
+        elif sign < -1e-10:
+            return 1
+        else:
+            d1 = np.linalg.norm(v1)
+            d2 = np.linalg.norm(v2)
+            return -1 if d1 < d2 else 1
+
+    from functools import cmp_to_key
+
+    sorted_indices = sorted(range(len(points)), key=cmp_to_key(compare_points))
+    sorted_points = points[sorted_indices]
+    top_left_index = top_left_corner_index(sorted_points, normal_vector)
+
+    return np.roll(sorted_points, -top_left_index, axis=0)
+
+
+def top_left_corner_index(points: np.ndarray, normal_vector: np.ndarray) -> int:
+    """Index within `points` of the IDF ``UpperLeftCorner`` vertex relative to
+    `normal_vector`: the corner a viewer standing outside the surface (facing
+    along ``-normal_vector``, with world +Z as "up" unless the surface is
+    itself near-horizontal) would call top-left."""
+    normal = normal_vector / np.linalg.norm(normal_vector)
+
+    world_up = np.array([0, 0, 1])
+
+    if abs(np.dot(normal, world_up)) > 0.99:
+        if np.dot(normal, world_up) > 0:
+            world_up = np.array([0, 1, 0])
+        else:
+            world_up = np.array([0, -1, 0])
+
+    right = np.cross(world_up, normal)
+    right /= np.linalg.norm(right)
+
+    up = np.cross(normal, right)
+    up /= np.linalg.norm(up)
+
+    centroid = np.mean(points, axis=0)
+    relative_points = points - centroid
+
+    x_coords = np.dot(relative_points, right)
+    y_coords = np.dot(relative_points, up)
+
+    sort_keys = np.column_stack((-y_coords, x_coords))
+    top_left_index = np.lexsort((sort_keys[:, 1], sort_keys[:, 0]))[0]
+
+    return top_left_index
+
+
 class GeometrySchema(BaseSchema):
     surfaces: list[SurfaceSchema] = Field(
         default_factory=list,
@@ -1040,6 +1129,94 @@ class GeometrySchema(BaseSchema):
     )
     _interior_points: np.ndarray = np.array([])
     _surface_to_normal_vector: ClassVar[dict[str, np.ndarray]] = {}
+
+    # F-13 §2.3 (2026-08-06): process/run-wide instrumentation counter — NOT
+    # a behavior change, never raises, never alters any vertex list. Counts
+    # every surface whose vertex list `validate_points_sorting` actually
+    # changed (reorder / new start vertex / winding flip — see
+    # `_classify_normalization_change`). This is the long-term probe for
+    # "has the kernel been made to already produce canonical vertices":
+    # once F-13 §2.2 lands, this should read 0 on every real chain run.
+    # Retrieve via GeometrySchema.normalization_change_count()/
+    # .normalization_change_log(), or by grepping the process log for
+    # "VERTEX_NORMALIZATION_CHANGED". Reset with
+    # reset_normalization_change_state() (tests should call this to avoid
+    # cross-test pollution of the shared class state — GeometrySchema
+    # instantiates once per zone / once per fenestration batch, so this is
+    # deliberately class-wide, not per instance, mirroring the existing
+    # `_surface_to_normal_vector` cache pattern above).
+    _normalization_change_count: ClassVar[int] = 0
+    _normalization_change_log: ClassVar[list[dict[str, str]]] = []
+
+    @classmethod
+    def reset_normalization_change_state(cls) -> None:
+        GeometrySchema._normalization_change_count = 0
+        GeometrySchema._normalization_change_log = []
+
+    @classmethod
+    def normalization_change_count(cls) -> int:
+        return GeometrySchema._normalization_change_count
+
+    @classmethod
+    def normalization_change_log(cls) -> list[dict[str, str]]:
+        return list(GeometrySchema._normalization_change_log)
+
+    @staticmethod
+    def _classify_normalization_change(before: np.ndarray, after: np.ndarray) -> str | None:
+        """F-13 §2.3 instrumentation only: classify what `_sort_vertices_clockwise`
+        did to one surface's vertex array, purely by comparing its input and
+        output arrays. Never influences behavior — pure post-hoc diagnostic.
+
+        Returns None when the vertex list is byte-identical. Otherwise one of:
+          - "start_vertex_rotated": same points, same winding — only the
+            starting vertex moved (`after` is some cyclic rotation of
+            `before`).
+          - "winding_reversed": same points, opposite winding (`after` is
+            some cyclic rotation of `before` reversed).
+          - "resorted": `before` was not already a simple loop in either
+            direction around its own centroid — a genuine re-sort into
+            angular order (the failure mode this normalization step exists
+            to repair; see the retired `_is_simple_angular_loop` check on
+            branch `f13-wip-2026-08-06` for the same concept).
+        """
+        if np.array_equal(before, after):
+            return None
+        n = len(before)
+        for k in range(n):
+            if np.array_equal(np.roll(before, -k, axis=0), after):
+                return "start_vertex_rotated"
+        reversed_before = before[::-1]
+        for k in range(n):
+            if np.array_equal(np.roll(reversed_before, -k, axis=0), after):
+                return "winding_reversed"
+        return "resorted"
+
+    def _record_normalization_change(
+        self,
+        surface: "SurfaceSchema | FenestrationSurfaceSchema",
+        before: np.ndarray,
+        after: np.ndarray,
+    ) -> None:
+        """F-13 §2.3: count + log every real change `_sort_vertices_clockwise`
+        makes to one surface's vertex list. Non-behavioral: does not raise,
+        does not alter `after`, runs strictly after the assignment it is
+        instrumenting."""
+        category = self._classify_normalization_change(before, after)
+        if category is None:
+            return
+        surface_type = getattr(surface, "surface_type", None) or "Fenestration"
+        GeometrySchema._normalization_change_count += 1
+        GeometrySchema._normalization_change_log.append(
+            {"name": surface.name, "surface_type": surface_type, "change": category}
+        )
+        logger.warning(
+            "VERTEX_NORMALIZATION_CHANGED: surface={} type={} change={} "
+            "(validator's canonicalization altered a vertex list the kernel "
+            "produced — see F-13 §2.3)",
+            surface.name,
+            surface_type,
+            category,
+        )
 
     @model_validator(mode="before")
     def validate_surfaces(cls, v):
@@ -1113,13 +1290,17 @@ class GeometrySchema(BaseSchema):
                 interior_points = self._get_interior_points(surface)
                 if not np.any(self._interior_points):
                     GeometrySchema._interior_points = interior_points
+                before = surface.vertices
                 surface.vertices = self._sort_vertices_clockwise(
                     surface, np.array([0, 0, -1])
                 )
+                self._record_normalization_change(surface, before, surface.vertices)
             elif surface.surface_type == "Roof" or surface.surface_type == "Ceiling":
+                before = surface.vertices
                 surface.vertices = self._sort_vertices_clockwise(
                     surface, np.array([0, 0, 1])
                 )
+                self._record_normalization_change(surface, before, surface.vertices)
         for surface in self.surfaces:
             if surface.surface_type not in {"Floor", "Roof", "Ceiling"}:
                 if len(interior_points) == 0:
@@ -1134,12 +1315,16 @@ class GeometrySchema(BaseSchema):
                 normal_vector = self._get_normal_vector(
                     surface.vertices, interior_points, surface.name
                 )
+                before = surface.vertices
                 surface.vertices = self._sort_vertices_clockwise(surface, normal_vector)
+                self._record_normalization_change(surface, before, surface.vertices)
         for surface in self.fenestrationsurfaces:
             normal_vector = self._get_normal_vector(
                 surface.vertices, interior_points, surface.building_surface_name
             )
+            before = surface.vertices
             surface.vertices = self._sort_vertices_clockwise(surface, normal_vector)
+            self._record_normalization_change(surface, before, surface.vertices)
         return self
 
     def _sort_vertices_clockwise(
@@ -1147,34 +1332,10 @@ class GeometrySchema(BaseSchema):
         surface: SurfaceSchema | FenestrationSurfaceSchema,
         normal_vector: np.ndarray,
     ):
-        points = surface.vertices
-        normal = normal_vector / np.linalg.norm(normal_vector)
-        centroid = np.mean(points, axis=0)
-
-        def compare_points(idx1, idx2):
-            v1 = points[idx1] - centroid
-            v2 = points[idx2] - centroid
-
-            cross = np.cross(v1, v2)
-
-            sign = np.dot(cross, normal)
-
-            if sign > 1e-10:
-                return -1
-            elif sign < -1e-10:
-                return 1
-            else:
-                d1 = np.linalg.norm(v1)
-                d2 = np.linalg.norm(v2)
-                return -1 if d1 < d2 else 1
-
-        from functools import cmp_to_key
-
-        sorted_indices = sorted(range(len(points)), key=cmp_to_key(compare_points))
-        points = points[sorted_indices]
-        top_left_index = self._get_top_left_corner_from_normal(points, normal_vector)
-
-        return np.roll(points, -top_left_index, axis=0)
+        # F-13 (2026-08-06): delegates to the free function above (single
+        # implementation shared with the geometry kernel). Behavior
+        # unchanged — see that function's docstring.
+        return canonicalize_ring_vertices(surface.vertices, normal_vector)
 
     def _get_interior_points(self, surface: SurfaceSchema) -> np.ndarray:
         interior_points = []
@@ -1196,32 +1357,10 @@ class GeometrySchema(BaseSchema):
         return np.array(interior_points)
 
     def _get_top_left_corner_from_normal(self, points, normal_vector) -> np.ndarray:
-        normal = normal_vector / np.linalg.norm(normal_vector)
-
-        world_up = np.array([0, 0, 1])
-
-        if abs(np.dot(normal, world_up)) > 0.99:
-            if np.dot(normal, world_up) > 0:
-                world_up = np.array([0, 1, 0])
-            else:
-                world_up = np.array([0, -1, 0])
-
-        right = np.cross(world_up, normal)
-        right /= np.linalg.norm(right)
-
-        up = np.cross(normal, right)
-        up /= np.linalg.norm(up)
-
-        centroid = np.mean(points, axis=0)
-        relative_points = points - centroid
-
-        x_coords = np.dot(relative_points, right)
-        y_coords = np.dot(relative_points, up)
-
-        sort_keys = np.column_stack((-y_coords, x_coords))
-        top_left_index = np.lexsort((sort_keys[:, 1], sort_keys[:, 0]))[0]
-
-        return top_left_index
+        # F-13 (2026-08-06): delegates to the free function above (single
+        # implementation shared with the geometry kernel). Behavior
+        # unchanged — see that function's docstring.
+        return top_left_corner_index(points, normal_vector)
 
     def _get_normal_vector(
         self, points: np.ndarray, interior_points: np.ndarray, surface_name: str
