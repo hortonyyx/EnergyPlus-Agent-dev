@@ -13,7 +13,7 @@ required and are the polygon bbox projection.
 from __future__ import annotations
 
 import json
-from typing import Annotated, Literal
+from typing import Annotated, Literal, get_args, get_origin
 
 from pydantic import AllowInfNan, BaseModel, ConfigDict, Field, StringConstraints, field_validator, model_validator
 
@@ -29,7 +29,41 @@ from src.agent.correction.claims import WINDOW_CLAIMS
 # core accepts/rejects. ``_producer_preflight``
 # (correction/window_sources.py) remains the authoritative, unweakened door:
 # a draw that fills a marked field anyway is still hard-rejected.
+#
+# A field marked this way NEVER gets a value from anywhere but a later,
+# non-draw stage (e.g. Vg materializes `facade_segments` at finalize; the
+# separate e4_orientation phase resolves `north_axis`) — it stays legitimately
+# absent/None all through a draw and its preflight. Contrast with
+# CORRECTION_DRAW_DERIVED below, whose fields the SCHEMA ITSELF fills in
+# unconditionally the moment validation succeeds.
 CORRECTION_DRAW_FORBIDDEN = "correction_draw_forbidden"
+
+# F-16 follow-up (2026-08-08, orchestrator interface sweep §6 摊一 Step 2):
+# marker for fields that are ALSO illegal input to a draw, but — unlike
+# CORRECTION_DRAW_FORBIDDEN fields — the schema's own validator derives and
+# fills them in from other fields of the SAME draw as soon as construction
+# succeeds (WindowV3.floor <- by_id[floor_id].name), so by the time any code
+# holds a validated instance the field is ALWAYS populated. That makes
+# "is it populated?" meaningless as a post-construction preflight check (it
+# would fire on every valid instance, derived or not) — the only point where
+# "did the MODEL supply a value" is still observable is the raw draw payload,
+# before ``model_validate`` ever runs. Kept as a distinct marker (rather than
+# reusing CORRECTION_DRAW_FORBIDDEN for both) so that distinction is encoded
+# in the schema itself and each consumer can tell, mechanically, which kind
+# of field it is holding — not something a caller has to remember per field
+# name. Still gets the SAME prompt-schema stripping treatment as
+# CORRECTION_DRAW_FORBIDDEN (see ``vocab.producer_facing_json_schema``): the
+# model must not see either kind as a fillable field.
+CORRECTION_DRAW_DERIVED = "correction_draw_derived"
+
+
+def _marked_field_names(model_cls: type[BaseModel], marker: str) -> tuple[str, ...]:
+    names = []
+    for name, field in model_cls.model_fields.items():
+        extra = field.json_schema_extra
+        if isinstance(extra, dict) and extra.get(marker) is True:
+            names.append(name)
+    return tuple(sorted(names))
 
 
 def draw_forbidden_field_names(model_cls: type[BaseModel]) -> tuple[str, ...]:
@@ -52,19 +86,100 @@ def draw_forbidden_field_names(model_cls: type[BaseModel]) -> tuple[str, ...]:
 
     Only inspects ``model_cls.model_fields`` directly (top-level fields of
     the model actually passed in — e.g. ``CorrectedGeometryV3``), NOT nested
-    models reached through them (e.g. ``WindowV3.facade_segment_id`` is a
-    separate, per-window, unconditional early-exit check in
-    ``parse.py``/``window_sources.py._producer_preflight`` — a different
-    enforcement point serving a different purpose, deliberately NOT unified
-    here; see the module docstring above and the parse.py b2-gate comment for
-    why that boundary is intentional, not an oversight).
+    models reached through them (e.g. ``WindowV3.facade_segment_id``, a
+    per-window field). Nested list-of-submodel fields (``windows``) are
+    covered by the sibling function :func:`nested_draw_forbidden_fields`
+    below — kept separate rather than folded into a single recursive walk
+    because the two call shapes differ (a container's own fields vs. each
+    item of a list field), and unifying them into one generic recursive
+    function would either need to guess how deep to descend or risk
+    picking up marked fields on unrelated nested models reached through
+    other paths (e.g. a future marked field on ``FacadeSegment``, itself
+    already gated at the container level via ``facade_segments``).
+
+    Deliberately does NOT also match ``CORRECTION_DRAW_DERIVED`` — the two
+    markers' consumers have opposite post-construction semantics (see that
+    marker's docstring), and this function's only caller
+    (``_producer_preflight``'s top-level check, plus the b2 gate) needs the
+    "stays legitimately absent" set specifically.
     """
-    names = []
-    for name, field in model_cls.model_fields.items():
-        extra = field.json_schema_extra
-        if isinstance(extra, dict) and extra.get(CORRECTION_DRAW_FORBIDDEN) is True:
-            names.append(name)
-    return tuple(sorted(names))
+    return _marked_field_names(model_cls, CORRECTION_DRAW_FORBIDDEN)
+
+
+def _nested_marked_fields(container_cls: type[BaseModel], marker: str) -> dict[str, tuple[str, ...]]:
+    result: dict[str, tuple[str, ...]] = {}
+    for name, field in container_cls.model_fields.items():
+        if get_origin(field.annotation) is not list:
+            continue
+        args = get_args(field.annotation)
+        if len(args) != 1:
+            continue
+        item_type = args[0]
+        if not (isinstance(item_type, type) and issubclass(item_type, BaseModel)):
+            continue
+        marked = _marked_field_names(item_type, marker)
+        if marked:
+            result[name] = marked
+    return result
+
+
+def nested_draw_forbidden_fields(container_cls: type[BaseModel]) -> dict[str, tuple[str, ...]]:
+    """Map ``container_cls``'s own ``list[<submodel>]`` fields to the
+    ``CORRECTION_DRAW_FORBIDDEN``-marked field names declared on each
+    submodel (F-16 follow-up, 2026-08-08 orchestrator interface sweep §6).
+
+    Companion to :func:`draw_forbidden_field_names`, one level down: where
+    that function answers "which of THIS model's own fields are forbidden",
+    this one answers "for each of this model's list-of-submodel fields,
+    which of THAT submodel's fields are forbidden". Both read the SAME
+    marker (``CORRECTION_DRAW_FORBIDDEN`` in ``json_schema_extra``), so a
+    field marked once is picked up by whichever function matches its
+    nesting depth — no second, hand-maintained name list at either level.
+
+    This closes a drift that F-15's original fix (marker + top-level
+    stripping/gate only) left open: ``WindowV3.facade_segment_id`` carries
+    the marker (so the prompt-schema stripper already excludes it, since
+    that stripper recurses through ``$defs`` and finds it regardless of
+    nesting depth — see ``vocab.producer_facing_json_schema``), but the
+    runtime draw-contract gates (``parse.py``'s b2 check,
+    ``window_sources.py._producer_preflight``) each independently
+    hardcoded the literal field name ``"facade_segment_id"`` instead of
+    reading the marker — precisely the two-list drift pattern F-15 was
+    meant to eliminate, just one level deeper than F-15 first looked.
+
+    Only descends exactly one level (``list[BaseModel]`` fields whose item
+    type itself declares at least one marked field); a submodel with no
+    marked fields is simply absent from the returned mapping. Deliberately
+    does not recurse further (e.g. into a list field's own nested list
+    fields) — no current schema needs that depth, and guessing at it would
+    risk snagging on unrelated future nesting.
+
+    Intentionally excludes ``CORRECTION_DRAW_DERIVED``-marked fields (e.g.
+    ``WindowV3.floor``) — see :func:`nested_draw_derived_fields` and that
+    marker's docstring for why a post-construction "is it populated?" check
+    (which is how ``_producer_preflight`` uses this function's result) would
+    be meaningless, not merely redundant, for a field the schema itself
+    always fills in.
+    """
+    return _nested_marked_fields(container_cls, CORRECTION_DRAW_FORBIDDEN)
+
+
+def nested_draw_derived_fields(container_cls: type[BaseModel]) -> dict[str, tuple[str, ...]]:
+    """Map ``container_cls``'s own ``list[<submodel>]`` fields to the
+    ``CORRECTION_DRAW_DERIVED``-marked field names declared on each submodel
+    (F-16, 2026-08-08 orchestrator interface sweep §6 摊一 Step 2).
+
+    Same shape as :func:`nested_draw_forbidden_fields`, different marker.
+    The split matters at the call site: this set is only safe to check
+    against the RAW draw payload dict, before ``model_validate`` runs (see
+    ``parse.parse_correction_draw``'s b2 gate) — a validated instance's
+    fields of this kind are unconditionally populated by the model's own
+    ``model_validator``, so "is it None?" can never distinguish a model-drawn
+    value from a derived one after the fact.
+    """
+    return _nested_marked_fields(container_cls, CORRECTION_DRAW_DERIVED)
+
+
 from src.agent.correction.constants import SCHEMA_VERSION_V1
 
 # Case-insensitive aliases the facade validator accepts; anything else (e.g.
@@ -242,6 +357,23 @@ class FloorV3(Floor):
 class WindowV3(Window):
     model_config = ConfigDict(extra="forbid")
     floor_id: str
+    # F-16 (2026-08-08, orchestrator interface sweep §6 摊一 Step 2): base
+    # `Window.floor` (str, required) is a v1/v2 leftover — v1 has no
+    # `floor_id` at all, so `floor` (a name string) is its ONLY floor
+    # reference and must stay exactly as-is there (untouched: this override
+    # lives on WindowV3 only, base `Window`/`CorrectedGeometry` are
+    # unaffected). On v3, `floor_id` is the authoritative reference and
+    # `floor` becomes a pure, optional, DERIVED display echo of
+    # `by_id[floor_id].name` (see `CorrectedGeometryV3._v3_integrity` below)
+    # — the model no longer supplies it at all, closing off the "two
+    # independent declarations of the same fact" shape that produced F-16
+    # (`floors[0].id="F1"` / `name="Level 1"`, window's `floor="F1"` written
+    # against the id instead of the name the old required-field contract
+    # wanted). Marked CORRECTION_DRAW_DERIVED, not CORRECTION_DRAW_FORBIDDEN
+    # — see that marker's docstring for why the two need to stay distinct.
+    floor: str | None = Field(
+        default=None, json_schema_extra={CORRECTION_DRAW_DERIVED: True}
+    )
     facade_segment_id: str | None = Field(
         default=None, json_schema_extra={CORRECTION_DRAW_FORBIDDEN: True}
     )
@@ -299,7 +431,29 @@ class CorrectedGeometryV3(CorrectedGeometry):
             floor = by_id.get(win.floor_id)
             if floor is None:
                 raise ValueError(f"window {win.id}: unknown floor_id {win.floor_id}")
-            if win.floor != floor.name:
+            # F-16 (2026-08-08, §6 摊一 Step 2): `floor` is derived from
+            # `floor_id`, not model input (see WindowV3.floor above) — the
+            # PRIMARY door rejecting a draw that supplied it is
+            # parse.parse_correction_draw's raw-payload b2 gate (typed
+            # WindowResolverInputError, category=model_draw_error, so a
+            # rejection carries retry guidance — see that gate's comment for
+            # why this pydantic-level check must NOT be the primary one: by
+            # the time a WindowV3 instance exists, any exception raised here
+            # is a plain ValueError wrapped into pydantic's ValidationError,
+            # which is exactly the F-15-shaped mistake this project already
+            # paid for once — bare ValidationError never reaches the
+            # model_draw_error retry-guidance channel). This branch is the
+            # schema's OWN, unconditional invariant enforcement — it runs
+            # regardless of which door (if any) a caller went through, so a
+            # value that already agrees with the derivation (e.g. a v1->v3
+            # round-trip that copied it forward correctly) is accepted
+            # as-is; only a genuine mismatch is rejected here, as a
+            # defense-in-depth backstop for callers that construct
+            # `CorrectedGeometryV3` directly instead of going through
+            # `parse_correction_draw`.
+            if win.floor is None:
+                win.floor = floor.name
+            elif win.floor != floor.name:
                 raise ValueError(f"window {win.id}: floor must match referenced floor name")
         segment_ids = {seg.id for seg in self.facade_segments}
         if len(segment_ids) != len(self.facade_segments):

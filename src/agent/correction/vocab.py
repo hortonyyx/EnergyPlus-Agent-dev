@@ -117,7 +117,11 @@ def producer_facing_json_schema(schema_model: Any) -> dict:
     ``schema.CORRECTION_DRAW_FORBIDDEN`` (e.g. ``CorrectedGeometryV3.
     facade_segments`` / ``WindowV3.facade_segment_id``) — the deterministic
     core's OWN audit trail, computed downstream from a correction draw, never
-    legal input to one.
+    legal input to one. Also excludes ``schema.CORRECTION_DRAW_DERIVED``
+    fields (e.g. ``WindowV3.floor``, F-16 2026-08-08 §6 摊一 Step 2) — a
+    different reason (the schema derives them from a sibling field the model
+    DOES draw, rather than a later stage populating them) but the same
+    "the model must never see this as fillable" outcome.
 
     Before this fix the FULL, unmodified ``model_json_schema()`` was dumped
     verbatim into the prompt (F-15 A1/A5): the schema offered these fields as
@@ -140,7 +144,7 @@ def producer_facing_json_schema(schema_model: Any) -> dict:
     """
     import copy
 
-    from src.agent.correction.schema import CORRECTION_DRAW_FORBIDDEN
+    from src.agent.correction.schema import CORRECTION_DRAW_DERIVED, CORRECTION_DRAW_FORBIDDEN
 
     schema = copy.deepcopy(schema_model.model_json_schema())
 
@@ -148,10 +152,17 @@ def producer_facing_json_schema(schema_model: Any) -> dict:
         properties = node.get("properties")
         if not isinstance(properties, dict):
             return
+        # F-16 (2026-08-08, §6 摊一 Step 2): a CORRECTION_DRAW_DERIVED field
+        # (e.g. WindowV3.floor) gets the exact same "the model must never see
+        # this as fillable" treatment as a CORRECTION_DRAW_FORBIDDEN one —
+        # the two markers differ in what happens AFTER a value slips through
+        # (derived-and-overwritten vs. stays-forbidden-forever), not in
+        # whether the prompt schema should offer the field at all.
         forbidden = [
             name
             for name, prop in properties.items()
-            if isinstance(prop, dict) and prop.get(CORRECTION_DRAW_FORBIDDEN) is True
+            if isinstance(prop, dict)
+            and (prop.get(CORRECTION_DRAW_FORBIDDEN) is True or prop.get(CORRECTION_DRAW_DERIVED) is True)
         ]
         for name in forbidden:
             del properties[name]
@@ -291,6 +302,27 @@ _MODEL_DRAW_ERROR_GUIDANCE: dict[str, str] = {
         "`facade_segments` array and leave `north_axis` unset (or `null`). "
         "Do NOT change any other coordinate, numeric value, room/window "
         "placement, or upstream reading content that already passed."
+    ),
+    # F-16 (2026-08-08, orchestrator interface sweep §6 摊一 Step 2): a
+    # window's `floor` name string used to be required, independent input —
+    # the SAME floor fact declared twice (once as `floor_id`, once as this
+    # name), and the two could disagree (the actual F-16 crash:
+    # `floors[0].id="F1"` / `name="Level 1"`, window wrote `floor="F1"`
+    # against the id instead of the name). `floor` is now derived from
+    # `floor_id` by the core; a draw must leave it unset. Distinct code (and
+    # message) from `producer_segment_ref_prefilled`/
+    # `producer_b2_forbidden_field_populated` on purpose — reusing either of
+    # those would name the WRONG field in the guidance text shown back to
+    # the model.
+    "producer_window_floor_populated": (
+        "Your previous output was rejected: one or more windows had `floor` "
+        "filled in. `floor` is derived automatically from `floor_id` (it is "
+        "no longer legal input from this draw — it was also removed from "
+        "the schema shown to you above, so do not re-add it). Leave every "
+        "window's `floor` unset (or `null`); keep `floor_id` pointing at "
+        "the correct floor's `id`. Do NOT change any other coordinate, "
+        "numeric value, room/window placement, or upstream reading content "
+        "that already passed."
     ),
 }
 

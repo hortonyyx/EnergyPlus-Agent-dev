@@ -321,7 +321,13 @@ def test_finalize_raises_if_core_mutates_window_floor_reference(tmp_path, monkey
     import src.agent.correction.finalize as finalize_module
 
     raw = _payload()
-    raw["windows"] = [{"id": "w1", "floor": "1F", "floor_id": "f1", "facade": "South", "span": [1, 2], "z": [1, 2]}]
+    # F-16 (2026-08-08, §6 摊一 Step 2): `floor` is now derived from
+    # `floor_id`, not a legal draw input (CORRECTION_DRAW_DERIVED) — this
+    # test cares about `floor_id` tampering, not `floor`, so it is omitted
+    # here rather than supplied (a supplied value would trip the unrelated
+    # `producer_window_floor_populated` door before this test's own
+    # `source_identity_invalid` assertion is ever reached).
+    raw["windows"] = [{"id": "w1", "floor_id": "f1", "facade": "South", "span": [1, 2], "z": [1, 2]}]
 
     def _tamper_core(geom, tol=None, *, authoritative_envelope=None, capability_profile="rectangular",
                      verified_window_inputs=None):

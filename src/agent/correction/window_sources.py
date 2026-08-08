@@ -878,8 +878,33 @@ def _producer_preflight(producer: CorrectedGeometryV3) -> None:
     # correction draw pre-filling deterministic-core-only fields is the LLM
     # writing outside its scope, not a broken upstream artifact — retrying
     # the draw can fix it.
-    if producer.facade_segments or any(window.facade_segment_id is not None for window in producer.windows):
+    #
+    # F-16 follow-up (2026-08-08, orchestrator interface sweep §6 摊一
+    # Step 1): the nested (per-window) half of this check used to hardcode
+    # `window.facade_segment_id is not None` directly — independently of
+    # the top-level `producer.facade_segments` check right next to it, and
+    # of the SAME marker vocab.producer_facing_json_schema already reads to
+    # strip this exact field from the model-facing schema. Deriving both
+    # halves from schema.{draw_forbidden_field_names,
+    # nested_draw_forbidden_fields} closes that drift the same way F-15's
+    # original fix closed it for top-level-only fields.
+    #
+    # Deliberately NOT `nested_draw_derived_fields` too (which would add
+    # `WindowV3.floor`, §6 摊一 Step 2): `producer` here is an ALREADY
+    # VALIDATED instance, and `floor` is unconditionally populated by the
+    # schema's own validator by the time any instance exists — checking
+    # "is it None" here would misfire on every valid v3 draw, not just a
+    # model-authored one. The only place that distinction is still
+    # observable is the raw payload dict, before `model_validate` ever
+    # runs — see `parse.parse_correction_draw`'s b2 gate, which is where
+    # that check actually lives.
+    from src.agent.correction.schema import draw_forbidden_field_names, nested_draw_forbidden_fields
+    if any(getattr(producer, name) for name in draw_forbidden_field_names(type(producer))):
         raise WindowResolverInputError("producer_segment_ref_prefilled", category="model_draw_error")
+    for list_field, marked_names in nested_draw_forbidden_fields(type(producer)).items():
+        for item in getattr(producer, list_field):
+            if any(getattr(item, name) is not None for name in marked_names):
+                raise WindowResolverInputError("producer_segment_ref_prefilled", category="model_draw_error")
     if any(isinstance(row, dict) and row.get("kind") == "window_host_resolution"
            for rows in (producer.corrections, producer.conflicts, producer.unsupported) for row in rows):
         raise WindowResolverInputError("producer_resolver_audit_prefilled", category="model_draw_error")

@@ -476,6 +476,68 @@ CLAUDE.md §3 out-of-scope① 的原文是下游 9 节点的 **「prompt 演进�
 → **③ B-1′ fail-open 两处**（小）→ ④ 步骤 4 全量语义轴（89 参数逐个过，本轮只在候选上做了）
 → ⑤ cross_ref / validate 两节点（本轮未看）→ ⑥ B-3 查证。
 
+### 六之十、⭐⭐ 2026-08-08 三摊修法已施工 + orchestrator 轻门 PASS（交叉审待发）
+
+**派工（用户拍板：三摊全派、两席）**：席 A = 摊一 F-16 · 席 B = 摊二 A-1 + 摊三 B-1′ · 审 = GLM-5.2（验证性）。
+设计稿 [`request/2026-08-08_interface_sweep_round1_fixes_design.md`](logs/reviews/request/2026-08-08_interface_sweep_round1_fixes_design.md)。
+
+#### 交付
+
+| 摊 | 内容 | 执行日志 |
+|---|---|---|
+| **一 F-16** | **Step 1** 嵌套字段标记机制（`nested_draw_forbidden_fields` / `nested_draw_derived_fields`）⇒ `parse.py` 与 `_producer_preflight` 不再硬编码字段名；**Step 2** `WindowV3.floor` 改为**代码从 `floor_id` 派生**，模型侧机械剥除。**24 把锁** | [`f16_floor_derivation`](logs/reviews/execution/2026-08-08_f16_floor_derivation_claude.md) |
+| **二 A-1** | `create_fenestration` **摘掉 `multiplier` 参数**（模型再无途径设置它）。前置调查确认唯一消费者是 fenestration 节点，standalone MCP 的 `create_fenestration_surface` 原样保留、未误伤。**3 把锁** | [`multiplier_and_failopen`](logs/reviews/execution/2026-08-08_multiplier_and_failopen_claude.md) |
+| **三 B-1′** | 默认档 `exploratory`→`regression`（生产调用点全部显式传参 ⇒ 行为零变化，但"忘了传"从放水变成从严）+ 两处分级白名单翻向。**7 把锁** | 同上 |
+
+#### ⭐ 施工席的设计比 orchestrator 的设计稿更准（登记）
+
+设计稿写「给 `floor` 打 `CORRECTION_DRAW_FORBIDDEN`」，施工席拆成**两个标记**：
+`CORRECTION_DRAW_FORBIDDEN`（核心专属、draw 全程合法地保持空）vs **新增 `CORRECTION_DRAW_DERIVED`**
+（schema 自己在 `model_validate` 成功瞬间无条件填充）。
+**理由（orchestrator 认可）**：派生字段验证后**总是**被填充 ⇒ post-construction 的「是否非空」检查
+会对**每个合法 v3 draw** 误触发；**唯一还能观察到「模型有没有填」的点是 `model_validate` 之前的 raw payload**
+⇒ 门必须落在 parse 的原始载荷层。**这个区分决定了门放在哪一层，不是命名偏好。**
+
+#### orchestrator 轻门 · **PASS**
+
+- **独立全量**：补锁前 **2321**（= 2289 + 10 + 22）· **补锁后终值 2323 passed / 10 xfailed / 0 failed**
+  （= 基线 2289 + 摊二三 10 + 摊一 24，逐项对账吻合、**零回归**）。
+  ⚠️ 中途一次全仓在 98% 处**静默中断**（无汇总行、无进程，疑 OOM：16 worker × ~0.5 GB 贴容器上限）
+  ⇒ 改 `-n 8` 重跑取得终值。**⛔ 跑测「没跑完」与「全绿」外观相近，必须看汇总行 + 退出码，不能看进度条。**
+- **⛔ 独立 neuter（换方向）抓到 1 条 finding —— 席 A 因撞额度中断在 neuter 自查前，自己没发现**：
+  - **N2（复原 F-16 本尊，摘掉 DERIVED 门）⇒ 恰好红 5 条** ✅ Step 2 真锁；
+  - **⛔ N1（复原 F-15② 的病，嵌套门改回硬编码）⇒ 22 条全绿** ——
+    原 22 把锁的**三把双向属性锁全部只走 `DERIVED` 路径**，
+    **`FORBIDDEN` 的嵌套路径（= Step 1 的产物本身）零回归保护** ⇒ 典型的「门是真的、锁是缺的」。
+  - **已派席 A 续作补 2 把锁**（走 FORBIDDEN 路径 + 断言 `producer_segment_ref_prefilled`），
+    **orchestrator 独立复验：改回硬编码 ⇒ 恰好那 2 条红、其余 22 条零连带** ⇒ 缺锁补实，共 **24 把**。
+
+#### ⛔ 派工方错误率更新：**12/12**（本轮第 12 次，且是「同一轮内同一个错犯两次」）
+
+设计稿写「同形的阻断白名单**共 4 处**，建议一律反过来写」。**施工席翻了 2 处、拒绝翻另 2 处并标记分歧点** ——
+**它对，我错**：另 2 处的值是 **`frozenset()` 空集 = 对所有档位都不阻断 = 2026-08-04 用户拍板的永久 advisory**
+（底层 median/MAD 启发式**双向都会误判**，结构性修法归 R1.5）。
+**照原指令翻转空集会变成「所有档位一律阻断」，直接推翻用户拍板，并用一个已知会误判的判据去拦正确的建筑。**
+施工席另加一把锁钉住该决定，防止日后被「顺手补完」。
+
+⇒ **错因 = 只看名字形状（都叫 `_*_BLOCK_PROFILES`）不看那一行的值在约束什么** ——
+**与本轮摸排报告 §3 刚写下的「范围校验 ≠ 语义门」是同一个错误模式，同一轮内犯第二次。**
+⇒ **新纪律（已机械化）：凡「一律 / 全部 / 共 N 处」这类批量措辞，发单前必须逐处列值对账。**
+
+#### ⛔ 运维
+
+- **席 A 撞「月度额度上限」中断**在 neuter 自查前（主体已落工作树、日志未写）⇒ 与 07-27 GLM 那次同型：
+  **主体已交付但未自验的状态最危险**，因为外观（代码在、测试绿）与「已验收」无法区分。
+  **⇒ 轻门的 neuter 必须由 orchestrator 自己跑，这条纪律本轮再次兑现价值**（N1 就是这么抓到的）。
+- **⛔ orchestrator 又栽一次已记过的坑**：首次跑全仓用「输出文件非空」当哨兵判据
+  ⇒ 拿到 0 字节文件 + 无进程，什么都没测到。**「哨兵判据不得用文件非空」是 08-02 记下的**，重跑改为直接落文件 + 看退出码。
+
+#### 结转
+
+**交叉审待发**：请求书已备 [`request/2026-08-08_interface_sweep_round1_crossreview_brief_glm.md`](logs/reviews/request/2026-08-08_interface_sweep_round1_crossreview_brief_glm.md)
+（GLM-5.2 验证性审阅 · A/B/C 三组命题 · **特别请它独立复判两处 orchestrator 自评薄弱**：
+A5 四把双向属性锁〔我与施工方用的是同一个 neuter 方向〕· C3〔那条是我被纠正的，裁定时可能有确认偏差〕）。
+
 ### 七、结转
 
 | 事项 | 状态 |

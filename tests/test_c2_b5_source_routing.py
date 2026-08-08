@@ -358,6 +358,13 @@ def test_src_c3_producer_segment_ref_rejected():
 
 def test_src_c4_producer_resolver_audit_rejected():
     payload = _geom().model_dump(mode="json"); payload["corrections"] = [{"kind": "window_host_resolution"}]
+    # F-16 (2026-08-08, §6 摊一 Step 2): `.model_dump()` round-trips the
+    # schema-derived `floor` value back onto the raw dict; strip it so this
+    # test isolates the audit-row rejection it names, not the unrelated
+    # (and, since it just echoes the correct derived value, less
+    # interesting) `producer_window_floor_populated` door.
+    for window in payload["windows"]:
+        window.pop("floor", None)
     with pytest.raises(WindowResolverInputError, match="producer_resolver_audit_prefilled"):
         parse_correction_draw(payload, correction_target("orthogonal_polygon"))
 

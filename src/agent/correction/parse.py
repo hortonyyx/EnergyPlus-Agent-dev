@@ -99,10 +99,45 @@ def parse_correction_draw(payload: dict, target: CorrectionTarget) -> CorrectedG
     # channel (without them the V3 schema validator still rejects a prefilled
     # segment id, but as a generic ValidationError, not this stable code).
     if target.schema_version == "3" and isinstance(payload, dict):
-        windows = payload.get("windows")
-        if isinstance(windows, list) and any(isinstance(item, dict) and item.get("facade_segment_id") is not None for item in windows):
-            from src.agent.correction.window_sources import WindowResolverInputError
-            raise WindowResolverInputError("producer_segment_ref_prefilled", category="model_draw_error")
+        # F-16 follow-up (2026-08-08, orchestrator interface sweep §6 摊一
+        # Step 1): the forbidden field NAMES for each nested list field are
+        # derived from the schema's own CORRECTION_DRAW_FORBIDDEN marker
+        # (schema.nested_draw_forbidden_fields) instead of being hardcoded
+        # here — this used to literally spell out "facade_segment_id",
+        # independently of the marker vocab.producer_facing_json_schema
+        # already reads for the SAME field, the exact two-list drift F-15's
+        # top-level fix (draw_forbidden_field_names, below) already closed
+        # one level up but left open here, one level down.
+        from src.agent.correction.schema import nested_draw_forbidden_fields
+        for list_field, marked_names in nested_draw_forbidden_fields(target.schema_model).items():
+            items = payload.get(list_field)
+            if isinstance(items, list) and any(
+                isinstance(item, dict) and any(item.get(name) is not None for name in marked_names)
+                for item in items
+            ):
+                from src.agent.correction.window_sources import WindowResolverInputError
+                raise WindowResolverInputError("producer_segment_ref_prefilled", category="model_draw_error")
+        # F-16 (2026-08-08, §6 摊一 Step 2): `WindowV3.floor` is a SEPARATE
+        # marker (CORRECTION_DRAW_DERIVED, not CORRECTION_DRAW_FORBIDDEN) —
+        # the schema derives it from `floor_id` unconditionally the moment
+        # `model_validate` succeeds, so this raw-payload dict is the ONLY
+        # place "did the model supply floor" is still observable at all (see
+        # `schema.nested_draw_derived_fields`'s docstring — a validated
+        # instance can never tell a model-drawn value from a derived one
+        # apart after the fact). Checked here, not folded into the loop
+        # above, because it needs its OWN error code/guidance text
+        # (`producer_window_floor_populated`) — reusing
+        # `producer_segment_ref_prefilled`'s message would tell the model to
+        # remove `facade_segments`/`facade_segment_id`, the wrong field.
+        from src.agent.correction.schema import nested_draw_derived_fields
+        for list_field, marked_names in nested_draw_derived_fields(target.schema_model).items():
+            items = payload.get(list_field)
+            if isinstance(items, list) and any(
+                isinstance(item, dict) and any(item.get(name) is not None for name in marked_names)
+                for item in items
+            ):
+                from src.agent.correction.window_sources import WindowResolverInputError
+                raise WindowResolverInputError("producer_window_floor_populated", category="model_draw_error")
         audit_rows = [payload.get(name) for name in ("corrections", "conflicts", "unsupported")]
         if any(isinstance(rows, list) and any(isinstance(item, dict) and item.get("kind") == "window_host_resolution" for item in rows) for rows in audit_rows):
             from src.agent.correction.window_sources import WindowResolverInputError

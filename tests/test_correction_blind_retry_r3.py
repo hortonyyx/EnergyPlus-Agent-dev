@@ -133,11 +133,14 @@ def _v3_with_extra_north_axis_key() -> dict:
 
 
 def _v3_with_window() -> dict:
+    # F-16 (2026-08-08, §6 摊一 Step 2): `floor` is CORRECTION_DRAW_DERIVED —
+    # a legal draw never supplies it (it is derived from `floor_id`) — so it
+    # is intentionally omitted here, not just left matching `floor_id`'s
+    # floor name as it used to.
     base = _valid_v3_payload()
     base["windows"] = [
         {
             "id": "W1",
-            "floor": "F1",
             "floor_id": "F1",
             "facade": "South",
             "span": [1.0, 2.0],

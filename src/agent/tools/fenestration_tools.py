@@ -16,7 +16,6 @@ def make_fenestration_tools(config: ConfigState) -> list[BaseTool]:
         construction_name: str,
         building_surface_name: str,
         vertices: list[dict[str, float]],
-        multiplier: int = 1,
     ) -> str:
         """Create a FenestrationSurface:Detailed (window/door/skylight).
 
@@ -35,7 +34,17 @@ def make_fenestration_tools(config: ConfigState) -> list[BaseTool]:
                          {"X": 3.25, "Y": 0.0, "Z": 0.8},
                          {"X": 3.25, "Y": 0.0, "Z": 2.0},
                          {"X": 1.75, "Y": 0.0, "Z": 2.0}]
-            multiplier: Number of identical copies (>= 1).
+
+        Every fenestration the geometry kernel emits is exactly one
+        physical window/door (`fenestration_specs` lists one polygon per
+        opening) — there is no notion of "N identical copies" for the model
+        to ask for. `Multiplier` is intentionally NOT a parameter here (not
+        merely defaulted to 1): FenestrationSurfaceSchema.multiplier still
+        defaults to 1 underneath, but the model has no argument that could
+        set it to anything else (2026-08-08 A-1 interface sweep finding —
+        see AI_agent/logs/experiments/2026-08-08_interface_sweep/README.md
+        §4). This is a structural-risk fix, not a repair of an observed
+        defect: no run has been shown to actually emit a non-1 value.
         """
         return ft.create(
             {
@@ -43,7 +52,6 @@ def make_fenestration_tools(config: ConfigState) -> list[BaseTool]:
                 "Surface Type": surface_type,
                 "Construction Name": construction_name,
                 "Building Surface Name": building_surface_name,
-                "Multiplier": multiplier,
                 "Number of Vertices": len(vertices),
                 "Vertices": vertices,
             }

@@ -526,6 +526,20 @@ def window_host_claim_issues(
             != (resolution.z_interval.lo, resolution.z_interval.hi)
         ):
             issues.append({**prefix, "reason": "final_window_identity"})
+        # F-16 follow-up (2026-08-08, §6 摊一 Step 2): unlike the
+        # `floor_mismatch` check in `resolve_window_hosts` (below in this
+        # file), this one is NOT provably tautological after the `floor`
+        # derivation and is intentionally left unchanged. `floor` here is
+        # looked up via `resolution.floor_id` — a value from `claims`, an
+        # UNTRUSTED, potentially-persisted/forged audit payload this
+        # function's own docstring says to audit "without trusting record
+        # vertices" — not via `window.floor_id`. If `resolution.floor_id`
+        # lies about which floor a window is on, `window.floor` (correctly
+        # schema-derived from the window's OWN, real `floor_id`) generally
+        # will not equal the LYING floor's name, so this still catches a
+        # real, externally-observable discrepancy; it is not simply
+        # implied by the `final_window_identity` check above; that check
+        # already flags `window.floor_id != resolution.floor_id` directly.
         if floor is None or floor.name != window.floor:
             issues.append({**prefix, "reason": "floor_identity"})
         if segment is None:
@@ -718,9 +732,29 @@ def resolve_window_hosts(geom: CorrectedGeometryV3, *, verified_inputs: Verified
         branch = "plan" if plan else "elevation"
         source_inputs = [source.source_input_id for source in existence]
         floor = floors.get(window.floor_id)
-        if floor is None or floor.name != window.floor:
+        if floor is None:
             conflicts.append(_conflict(window, "floor_mismatch", branch=branch, source_input_ids=source_inputs))
             continue
+        # F-16 follow-up (2026-08-08, §6 摊一 Step 2): `floor.name !=
+        # window.floor` used to be part of the condition above (a second,
+        # independent way to reach the same "floor_mismatch" conflict) —
+        # now provably unreachable, not merely redundant: `window.floor` is
+        # schema-derived from `by_id[window.floor_id].name`
+        # (CorrectedGeometryV3._v3_integrity), and `floor` here is looked
+        # up via that SAME `window.floor_id`, off the SAME `geom` the
+        # window came from — so `floor.name == window.floor` holds for
+        # every window that reaches this line, by construction, not by
+        # coincidence. Kept as a loud assertion (not silently dropped)
+        # because a validated CorrectedGeometryV3 instance's fields CAN
+        # still be mutated after construction by non-schema code (pydantic
+        # does not freeze these models); if that ever desyncs the two, this
+        # is the earliest point that would notice.
+        assert floor.name == window.floor, (
+            f"window {window.id}: floor/floor_id desync despite schema derivation "
+            f"(floor.name={floor.name!r}, window.floor={window.floor!r}) — "
+            "geom was mutated after construction without going through "
+            "CorrectedGeometryV3 validation again"
+        )
         z0, z1 = map(float, window.z)
         if not (floor.z_floor <= z0 < z1 <= floor.z_floor + floor.ceiling_height):
             conflicts.append(_conflict(window, "invalid_window_span", branch=branch, source_input_ids=source_inputs))

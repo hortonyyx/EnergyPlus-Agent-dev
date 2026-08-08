@@ -565,5 +565,10 @@ def test_f7_parse_prefilled_raises_in_inner_validator_not_outer_classifier():
 
     payload_audit = _geom().model_dump(mode="json")
     payload_audit["corrections"] = [{"kind": "window_host_resolution"}]
+    # F-16 (2026-08-08, §6 摊一 Step 2): strip the round-tripped, derived
+    # `floor` so this isolates the audit-row door, not the unrelated
+    # `producer_window_floor_populated` one.
+    for window in payload_audit["windows"]:
+        window.pop("floor", None)
     with pytest.raises(WindowResolverInputError, match="producer_resolver_audit_prefilled"):
         _schema_only_correction_validator(payload_audit, target)

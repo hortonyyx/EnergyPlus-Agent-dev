@@ -54,8 +54,24 @@ F-15 用的 `producer_facing_json_schema` 机械剥除**在下游用不上**，�
 产出的是材料热工参数、层次组合、时间表 —— 全属不变量 #1 里「LLM 该做的物理语义」。
 
 ⇒ **同族缺陷（模型看得见但不该它管）在这三个节点上射程为零。**
-「剩 7 个从没人看过」这个先验要下修为 **「剩 4 个值得看」**（fenestration 已看过一半、
-hvac/lights/people 见 §4、cross_ref/validate 见下一轮）。
+
+### ⭐⭐ 补完后的结论：轴 A 在下游的覆盖率 = **9/9（100%）**，本轮已收官
+
+机械确认（`grep -l build_react_agent src/agent/nodes/*.py`）：**恰好 9 个 LLM 节点**。
+`intake` / `cross_ref` / `validate` / `simulate` 四个**根本不是 LLM 节点**
+（纯派发与代码校验，零 prompt、零工具、零 `create_llm`）⇒ **不在轴 A 射程内**。
+
+| 节点 | 本轮结论 |
+|---|---|
+| `zone` | ✅ **已闭 —— 且是全项目唯一的正面样板**（prompt + 工具侧拒绝 + 段尾 normalizer 三层）|
+| `surface` | ✅ 已闭（F-12 改逐字照抄，且**有漂移门在真量**）|
+| `fenestration` | ⭐ **A-1 命中**（`multiplier`）；顶点侧已闭（F-12 同批）|
+| `construction` / `material` / `schedule` | ⭕ **射程外**（完全不碰几何，纯物理语义）|
+| `hvac` | ✅ 干净（纯物理语义，参数全是引用完整性）|
+| `lights` / `people` | 🔶 **A-2 弱命中**（绝对值路径要模型自己乘面积）|
+
+⇒ **立项时的「剩 7 个从没人看过」现已全部看完。** 轴 A 下游侧本轮收官，
+剩余工作在 correction draw 侧（步骤 4 全量语义轴）与轴 B。
 
 ## 3. ⛔ 步骤 3 的机械判据有噪声 —— 如实登记（这条本身是方法论产出）
 

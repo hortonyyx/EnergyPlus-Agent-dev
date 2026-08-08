@@ -52,7 +52,17 @@ EVIDENCE_CHECK_IDS = frozenset(
     }
 )
 
-_EVIDENCE_BLOCK_PROFILES = {"golden", "regression"}
+# 2026-08-08 摊三②(interface sweep B-1'): this used to be a *block* whitelist
+# (``_EVIDENCE_BLOCK_PROFILES = {"golden", "regression"}``) — a future profile
+# stricter than "regression" would not be in that set, so it would silently
+# NOT block, i.e. a newly-added strict profile defaulted to lenient. Flipped
+# to a *permissive* whitelist: everything not explicitly named here is
+# treated as strict (blocks). "exploratory"/"dev" are the two profiles this
+# evidence-debt gate is deliberately soft on (historical artifacts predating
+# the evidence-provenance contract must stay replayable there); a future 5th
+# profile now defaults to being held to the same bar as "golden"/"regression"
+# unless someone deliberately adds it here.
+_EVIDENCE_PERMISSIVE_PROFILES = frozenset({"exploratory", "dev"})
 _CORRECTION_EVIDENCE_DEBT_COVERAGE = "correction.evidence_debt_coverage"
 
 # A plan view that does not declare a usable local→world frame cannot be scored
@@ -63,7 +73,10 @@ _CORRECTION_EVIDENCE_DEBT_COVERAGE = "correction.evidence_debt_coverage"
 # historical artifacts predating the instruction contract stay replayable. Same
 # profile split as the missing-judge-sidecar gap (2026-07-20).
 PLAN_FRAME_CHECK_ID = "reading.plan_scale_origin_usable"
-_PLAN_FRAME_BLOCK_PROFILES = {"golden", "regression"}
+# 2026-08-08 摊三②: same whitelist-direction flip as `_EVIDENCE_PERMISSIVE_PROFILES`
+# above, same reasoning — a future stricter profile now defaults to BLOCK
+# instead of silently inheriting leniency.
+_PLAN_FRAME_PERMISSIVE_PROFILES = frozenset({"exploratory", "dev"})
 
 # M-3 (r1 / F-4 ③): an OCR/annotation anchor outside the trusted image bounds is
 # the textbook bad-data shape (a pixel anchor like [360,450] on a ~10 m plan that
@@ -90,6 +103,24 @@ OCR_ANCHOR_BOUNDS_CHECK_ID = "reading.ocr_anchors_in_bounds"
 # referenced dimensions, metric conversion lives solely in code so "pixel
 # mistaken for metre" becomes constructionally impossible instead of
 # something a heuristic has to guess at after the fact).
+#
+# 2026-08-08 摊三②: this constant is DELIBERATELY NOT flipped to the
+# "permissive whitelist" shape applied above to `_EVIDENCE_PERMISSIVE_PROFILES`
+# / `_PLAN_FRAME_PERMISSIVE_PROFILES`. Those two are lenient on
+# "exploratory"/"dev" because THOSE PROFILES are intentionally soft; this one
+# is lenient on every profile — including golden/regression — because the
+# CHECK ITSELF is known unreliable in both directions (see the false-negative/
+# false-positive account immediately above). Flipping this to a permissive
+# whitelist of the four profiles known today would silently make a future,
+# stricter 5th profile BLOCK on this exact heuristic by default — reintroducing
+# the false-positive-fails-correct-buildings defect the 2026-08-04 downgrade
+# was written to remove, for any run adopting that profile before R1.5 lands.
+# Left as an always-empty block set (⇒ FLAG on every profile, present or
+# future) until the structural fix (R1.5) replaces the heuristic; flagged for
+# orchestrator review in the 2026-08-08 execution log rather than silently
+# reinterpreted, since this is a case where the general "new strict profile
+# defaults to strict" rule and this check's own documented "advisory on any
+# profile" rule point in opposite directions.
 _OCR_ANCHOR_BLOCK_PROFILES: frozenset[str] = frozenset()
 
 # X-1 (r2 batchC dispatch §1): N-3's adaptive canvas scale (render_vector_to_png)
@@ -104,6 +135,10 @@ DIMENSION_ENDPOINT_BOUNDS_CHECK_ID = "reading.dimension_endpoints_in_bounds"
 # above (this check shares the same ``_structural_metric_reference`` fence and
 # the same false-negative/false-positive evidence) — see that comment for the
 # full account. Advisory only; structural fix is R1.5.
+#
+# 2026-08-08 摊三②: same deliberate non-flip as `_OCR_ANCHOR_BLOCK_PROFILES`
+# immediately above, same reasoning (the check's own unreliability, not a
+# profile's leniency, is why this stays advisory) — see that comment.
 _DIMENSION_ENDPOINT_BLOCK_PROFILES: frozenset[str] = frozenset()
 
 
@@ -179,7 +214,21 @@ def disposition(
     result: CheckResult,
     *,
     capability_profile: str = "rectangular",
-    run_profile: RunProfile = "exploratory",
+    # 2026-08-08 摊三①(interface sweep B-1'): the default used to be
+    # "exploratory" — the MOST lenient profile — so any caller that forgot to
+    # thread `run_profile` through silently got fail-open disposition instead
+    # of an error. Default now to "regression" — the strictest profile — so a
+    # dropped/omitted `run_profile` fails closed instead of failing open. Every
+    # real production caller of `disposition()` already threads its own
+    # `run_profile` explicitly (verified by grep, 2026-08-08); the only call
+    # sites that relied on this default (`assembly.check_ep_baseline`'s
+    # ERROR/INVARIANT-only checks, `test_execution_foundation`'s ERROR-status
+    # test) are entirely insensitive to `run_profile` — their checks are
+    # always-BLOCK via the `CheckStatus.ERROR` / plain-INVARIANT paths, which
+    # never consult `run_profile` — so this default change is a no-op for
+    # every caller that exists today, and only changes behavior for a FUTURE
+    # caller that forgets to pass it.
+    run_profile: RunProfile = "regression",
 ) -> Disposition:
     """Map a check FACT to a policy disposition. Pure function (§0.4 #8).
 
@@ -202,8 +251,9 @@ def disposition(
     if is_plan_frame_check_id(result.check_id):
         # No legacy/grandfather carve-out here: an unscorable plan is unscorable
         # regardless of how the artifact was produced. The only relief is the
-        # profile split.
-        if run_profile in _PLAN_FRAME_BLOCK_PROFILES:
+        # profile split. 2026-08-08 摊三②: whitelist direction flipped — see
+        # `_PLAN_FRAME_PERMISSIVE_PROFILES`'s comment.
+        if run_profile not in _PLAN_FRAME_PERMISSIVE_PROFILES:
             return Disposition.BLOCK
         return Disposition.FLAG
     if is_ocr_anchor_check_id(result.check_id):
@@ -226,16 +276,18 @@ def disposition(
             return Disposition.BLOCK  # unreachable while the set above is empty
         return Disposition.FLAG
     if result.check_id == _CORRECTION_EVIDENCE_DEBT_COVERAGE:
+        # 2026-08-08 摊三②: whitelist direction flipped — see
+        # `_EVIDENCE_PERMISSIVE_PROFILES`'s comment.
         if (
             result.evidence.get("scope") == "element_local"
-            and run_profile in _EVIDENCE_BLOCK_PROFILES
+            and run_profile not in _EVIDENCE_PERMISSIVE_PROFILES
         ):
             return Disposition.BLOCK
         return Disposition.FLAG
     if is_evidence_check_id(result.check_id):
         if result.evidence.get("legacy_migrated"):
             return Disposition.FLAG
-        if run_profile in _EVIDENCE_BLOCK_PROFILES:
+        if run_profile not in _EVIDENCE_PERMISSIVE_PROFILES:
             return Disposition.BLOCK
         return Disposition.FLAG
     if result.layer == CheckLayer.INVARIANT:
@@ -250,7 +302,17 @@ class CheckReport(BaseModel):
 
     stage: str
     capability_profile: str = "rectangular"
-    run_profile: RunProfile = "exploratory"
+    # 2026-08-08 摊三①: same fail-open-by-default fix as `disposition()`'s
+    # parameter above — see that comment. A `CheckReport` built without an
+    # explicit `run_profile` now defaults to the strictest profile
+    # ("regression") instead of the most lenient ("exploratory"), so a
+    # dropped/omitted value fails closed. Every production `CheckReport(...)`
+    # call site that matters for disposition already threads its own
+    # `run_profile` explicitly (verified by grep, 2026-08-08); the one
+    # production call site that doesn't (`assembly.check_ep_baseline`) only
+    # ever emits ERROR/plain-INVARIANT checks that don't consult
+    # `run_profile` at all, so this default change is a no-op for it.
+    run_profile: RunProfile = "regression"
     artifact_hash: str | None = None
     attempt_hash: str | None = None
     report_schema_version: str = REPORT_SCHEMA_VERSION

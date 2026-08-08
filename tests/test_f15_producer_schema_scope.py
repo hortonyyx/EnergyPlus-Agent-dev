@@ -114,7 +114,19 @@ def _real_crash_draw_north_axis_only() -> dict:
     both attempts rejected with the identical `b2 draw contract requires
     empty facade_segments and null north_axis` message) — not a
     hand-invented payload; the base file predates and is independent of the
-    north_axis follow-up fix."""
+    north_axis follow-up fix.
+
+    F-16 follow-up (2026-08-08, §6 摊一 Step 2): each window's `floor`
+    string is ALSO now programmatically stripped from this on-disk fixture
+    — it was a legitimately required field when this real draw was
+    produced (predates F-16), but `floor` is now `CORRECTION_DRAW_DERIVED`
+    and any populated value is rejected on its own, orthogonal door
+    (`producer_window_floor_populated`) BEFORE `parse_correction_draw` ever
+    reaches the north_axis check this fixture exists to isolate. Left as-is
+    the fixture would fail this test for the wrong reason (floor, not
+    north_axis) — stripping it keeps the isolation this fixture's docstring
+    promises, same reasoning as the pre-existing facade_segments/
+    facade_segment_id strip above."""
     return json.loads(_FIXTURE_NORTH_AXIS_ONLY.read_text(encoding="utf-8"))
 
 
@@ -336,15 +348,18 @@ def test_retry_guidance_unmapped_model_draw_error_code_is_safe_none():
 
 
 def test_guidance_map_covers_exactly_the_three_known_model_draw_error_codes():
-    """Pins the guidance map's key set directly against the three codes the
-    TWO real doors actually raise: `_producer_preflight` (window_sources.py,
-    2 codes) + the b2 gate (parse.py, 1 code, follow-up). If a new door is
-    added at either site without a matching guidance entry, this test names
-    the gap."""
+    """Pins the guidance map's key set directly against the codes the
+    real doors raise: `_producer_preflight` (window_sources.py, 2 codes) +
+    the b2 gate (parse.py, 2 codes: `producer_b2_forbidden_field_populated`
+    for top-level fields, and `producer_window_floor_populated` — F-16,
+    2026-08-08 §6 摊一 Step 2 — for the nested, CORRECTION_DRAW_DERIVED
+    `WindowV3.floor`). If a new door is added at either site without a
+    matching guidance entry, this test names the gap."""
     assert set(_MODEL_DRAW_ERROR_GUIDANCE) == {
         "producer_segment_ref_prefilled",
         "producer_resolver_audit_prefilled",
         "producer_b2_forbidden_field_populated",
+        "producer_window_floor_populated",
     }
 
 
