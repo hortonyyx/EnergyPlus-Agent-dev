@@ -532,11 +532,31 @@ CLAUDE.md §3 out-of-scope① 的原文是下游 9 节点的 **「prompt 演进�
 - **⛔ orchestrator 又栽一次已记过的坑**：首次跑全仓用「输出文件非空」当哨兵判据
   ⇒ 拿到 0 字节文件 + 无进程，什么都没测到。**「哨兵判据不得用文件非空」是 08-02 记下的**，重跑改为直接落文件 + 看退出码。
 
-#### 结转
+#### ✅ 交叉审已完成 = **APPROVE**（GLM-5.2 验证性审阅）
 
-**交叉审待发**：请求书已备 [`request/2026-08-08_interface_sweep_round1_crossreview_brief_glm.md`](logs/reviews/request/2026-08-08_interface_sweep_round1_crossreview_brief_glm.md)
-（GLM-5.2 验证性审阅 · A/B/C 三组命题 · **特别请它独立复判两处 orchestrator 自评薄弱**：
-A5 四把双向属性锁〔我与施工方用的是同一个 neuter 方向〕· C3〔那条是我被纠正的，裁定时可能有确认偏差〕）。
+裁决书 [`verdict/2026-08-08_interface_sweep_round1_crossreview_glm.md`](logs/reviews/verdict/2026-08-08_interface_sweep_round1_crossreview_glm.md)
+· 审阅单 [`request/...crossreview_brief_glm.md`](logs/reviews/request/2026-08-08_interface_sweep_round1_crossreview_brief_glm.md)
+
+**0 BLOCKER / 0 MAJOR / 0 MINOR / 2 NIT · A/B/C 三组 17 条命题全部成立。**
+独立全仓 **2323 passed / 10 xfailed / 0 failed**（`-n 8`、EXIT=0），与 orchestrator 逐字一致，
+且它自行对账 2289 + 34（24+3+7）。**只审不修纪律遵守**（orchestrator 核验：`src/` 与 `tests/` 零改动）。
+
+**⭐ 两处「特别请它推翻我」的独立复判，都用了不同的探针轴**：
+- **A5 四把双向属性锁**：它换成「运行时增删标记看门反应」方向（orchestrator 与施工方用的是「改回硬编码」方向）
+  ⇒ 4 方向全通过、两个 marker 各走独立循环。**⇒ 确认偏差风险已排除：结论建立在不同探针轴上。**
+- **C3**：它**独立复现了那个启发式的假阳性**（闭合 polyline 编码的合法建筑被误判），
+  以 (A)/(B)/(C) 三态对照证明「翻转会让已知不可靠的判据在未来档位 BLOCK 正确建筑」。
+  **明确写了未采信 orchestrator「它对我错」的裁定** —— 结论一致但证据独立。
+
+**⭐ 它还补上了施工日志里一条空白**：施工方 neuter 表 #5 对 `window_host.py` 那条 floor-desync backstop
+只做了**逻辑推导、未实测**；GLM 实测证明它是 live code（篡改 `windows[0].floor` 后确实抛 `AssertionError`）。
+
+#### 结转：两条 NIT（非阻断，已登记）
+
+| NIT | 内容 |
+|---|---|
+| **E2** | `window_host.py:752` 的 floor-desync backstop 用**裸 `assert`** ⇒ `python -O` 下会被剥离而静默失效。**当前无害**（全仓 grep 无 `-O` 用法，且 primary 门是 `parse.py` 的 typed b2 门、不受 `-O` 影响）。**⇒ 若将来启用 `-O`，此 backstop 需换成显式 `raise`。** |
+| **E3** | `facade_segment_id` 字段名仍硬编码于 ~6 处（`envelope_transform.py:324/529` · `window_host.py:703/981` · `schema.py:471` · `artifact_serialization.py:20`）。**GLM 逐处核实全是非 draw-合约用途**（阶段前置/后置 · 引用完整性 · v1/v2 legacy 序列化净化）⇒ **判定为正确的设计决策、不是漂移 bug**（改成遍历标记反而会把「阶段顺序检查」与「draw 合约检查」两种不同性质的事混在一起）。仅登记：将来该字段改名需手动同步这几处。 |
 
 ### 七、结转
 
