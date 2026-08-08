@@ -558,6 +558,52 @@ CLAUDE.md §3 out-of-scope① 的原文是下游 9 节点的 **「prompt 演进�
 | **E2** | `window_host.py:752` 的 floor-desync backstop 用**裸 `assert`** ⇒ `python -O` 下会被剥离而静默失效。**当前无害**（全仓 grep 无 `-O` 用法，且 primary 门是 `parse.py` 的 typed b2 门、不受 `-O` 影响）。**⇒ 若将来启用 `-O`，此 backstop 需换成显式 `raise`。** |
 | **E3** | `facade_segment_id` 字段名仍硬编码于 ~6 处（`envelope_transform.py:324/529` · `window_host.py:703/981` · `schema.py:471` · `artifact_serialization.py:20`）。**GLM 逐处核实全是非 draw-合约用途**（阶段前置/后置 · 引用完整性 · v1/v2 legacy 序列化净化）⇒ **判定为正确的设计决策、不是漂移 bug**（改成遍历标记反而会把「阶段顺序检查」与「draw 合约检查」两种不同性质的事混在一起）。仅登记：将来该字段改名需手动同步这几处。 |
 
+### 六之十一、⭐⭐⭐ 2026-08-08 真链路验收：**F-16 已解开**，当场撞出 **F-17（内核 bug）**
+
+run = `case_tests/e2e_tests/sm21_anchor/run_2026-08-08_f16_e2e_verify`（用户拍板「跑到底」·
+配置照抄 08-07 那份：`exploratory` + `orthogonal_polygon` + judge off + 三校验开关全关 +
+复用 07-07 满分识图产物〔⛔ 未重跑识图〕+ correction = deepseek-v4-pro/high）。
+
+#### ✅ F-16 解开了（真链路证据，非夹具）
+
+| 证据 | 说明 |
+|---|---|
+| **`floor must match referenced floor name` 出现 0 次** | 上一轮 (`f15_north_axis_fix_verify`) 三次抽签**全**死在这条 |
+| **`1_correction/correction_geometry.json` 产出了** | ⇒ 模型的 draw **通过了 parse 层全部门**（含 F-16 新增的 `producer_window_floor_populated`），上一轮是三次全被门挡在外面 |
+| 崩溃位置整体后移 | 从 parse 层（门）→ 确定性核（`apply_deterministic_core` 内的 envelope transaction） |
+
+⇒ **修法从「夹具层 24 把锁 + 跨家族 APPROVE」升级为「真实产物跑通该段」** —— 兑现 F-5 那条教训。
+
+#### ⛔ 新登记 **F-17 候选**：envelope 变换造出**非正交** cell 多边形（内核 bug，非模型错）
+
+```
+ValueError: cell RM1F_01: polygon edge 3 is not orthogonal
+  cell_geometry.py:172 ← validate_cell_polygon ← envelope_transform.py:424 _apply_components
+  ← apply_v3_envelope_transaction ← _apply_envelope_reconcile ← apply_deterministic_core
+```
+
+**已实测证实（事实）**：
+- 模型输出 **14 个 cell 全部 `polygon: None`**（合法：用矩形 `x`/`y` 边界），
+  `RM1F_01` = `x=[0.12, 5.0] · y=[5.0, 7.88]` **标准轴对齐矩形** ⇒ **模型没画非正交多边形**；
+- 那个被判非正交的多边形是**内核在 `_apply_components` 里生成/变换出来的**
+  （代码路径明确：`_materialize_axis_splits` → 部分顶点移动 → `promoted_rect_cells_to_polygon` → 校验）；
+- ⇒ **这不是模型的错，重抽多少次都没用**（与 F-15 第一堵墙「三次抽签同一个错」同型，但根因在内核不在接口）；
+- ⇒ 且它是**裸 `ValueError`**、整条链路无捕获 ⇒ **不走 `model_draw_error` 归档重抽，直接炸穿整个 flow**
+  （`attempts/` 零归档）。**这一点与 F-15 第二堵墙同型**（裸 ValueError 拿不到重试引导）。
+
+**⚠️ 尚未证实（推断，⛔ 不得据此下修法）**：机理疑为 **`_materialize_axis_splits` 在矩形边上插入中间顶点后，
+只移动「落在 component 上」的点** ⇒ 原本共线的三点中间那个被移、两端未动 ⇒ 产生斜边。
+`footprint_x=[0.12, 14.88]` 而 `RM1F_01.x` 恰以 `0.12` 起（正在 footprint 边界上）与该机理吻合，
+**但需实测坐实**。
+
+**⛔ orchestrator 离线复现未走通**：`finalize_correction_draw` 需要上游构造的 `verified_window_inputs`，
+离线缺这一环 ⇒ **精确机理留给调查单**（需带该输入的最小复现）。
+
+**⭐ 副产发现（可用性，登记）**：落盘的 `correction_geometry.json` **不能直接重放** ——
+其 windows 已带**派生填充**的 `floor`，重新喂进 `parse_correction_draw` 会被 F-16 新门拒
+（`producer_window_floor_populated`）。生产路径不这么走，但**调试/复现时会踩**，
+且这正是施工席在 5 处既有测试里 `pop("floor")` 的同一原因。**建议调查单一并给出官方重放姿势。**
+
 ### 七、结转
 
 | 事项 | 状态 |
