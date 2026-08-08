@@ -1,6 +1,6 @@
 # 接线摸排第一轮 · 三摊修法设计稿（orchestrator 出，待用户拍板派工）
 
-> 依据 = [摸排报告](../../experiments/2026-08-08_interface_sweep/README.md)（commit `d61c2fe`）。
+> 依据 = [摸排报告](../../experiments/2026-08-08_interface_sweep/README.md)（commit `4b77513`）。
 > 本稿只做**设计与派工建议**，⛔ 未施工、未改任何生产码。
 
 ---
