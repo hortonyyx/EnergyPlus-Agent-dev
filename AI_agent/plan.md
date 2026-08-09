@@ -702,12 +702,81 @@ commit body 写明只为挡协作者一份 LangSmith trace 归档 `20260414_1925
 **⚠️ 新登记：`*.txt` / `*.log` 是全局忽略**（`.gitignore:258/81`）⇒ 这是同一个债的**第三面**，
 被 plan.md 引用的 `logs/reviews/execution/*.log` 仍需 `-f`。**本轮未动，登记待议。**
 
+### 六之十三、⭐⭐⭐ 2026-08-09 真链路验收：**F-17 已解开**，撞出 **F-18（窗宿主，非 F-17 引起）**
+
+run = `case_tests/e2e_tests/sm21_anchor/run_2026-08-09_f17_e2e_verify`（用户 08-09 拍板「先跑真链路」）。
+
+#### ⭐ 输入无变量（机械可验证，不是声称）
+
+| 证据 | 值 |
+|---|---|
+| `policy_hash` | `d058a59f…` **与 08-08 那次逐字一致** |
+| `view_manifest content_sha256` | `f52ca79c…` 与 08-08 逐字一致 |
+| `0_reading` | 从 08-08 run **逐字节复制**（`diff -rq` 过） |
+
+⇒ **本 run 与 08-08 的唯一变量 = F-17 修法本身。**
+（该哈希一致性是被 **policy 漂移门**意外报出来的 —— orchestrator first 把顺序搞反了
+〔先 provision 后写 `run_config.yaml`〕，门当场拦下并打印了 `requested` 哈希。**门是对的**，
+且顺带把「唯一变量」从声称升级成机械证据。**新纪律：`run_config.yaml` 必须先于 `provision` 落盘。**）
+
+#### ✅ F-17 已解开（真链路证据，非夹具）
+
+拿本 run 的真实产物走官方入口（`parse_correction_draw` → `build_verified_window_inputs_from_run`
+→ `finalize_correction_draw`）+ `_apply_components` 调用追踪：
+
+```
+resolve_envelope_move_intents ⇒ 4 个 intent（x-lo/x-hi/y-lo/y-hi = 触发缺陷的跨轴配置）
+[TRACE] _apply_components 被调用，组件数=4 → 返回，无异常
+footprint [0.12,14.88]×[0.12,7.88] → [0.0,15.0]×[0.0,8.0] ✅
+```
+
+**修法前此处必抛 `ValueError: cell …: polygon edge … is not orthogonal`。**
+⇒ 兑现 F-5 教训：从「夹具层 3 把锁 + 四格 neuter + 2326 绿」升级为「真实产物跑通该段」。
+
+**⛔ 但分类修法【未被验证】**：本 run 没有产生斜边 ⇒ 那条 try/except 根本没被执行到。
+**「代码在、锁绿」≠「真链路验过」**，如实登记，不记功。
+
+#### ⛔ 新登记 F-18 候选：写入侧窗宿主重算失败（**已证非 F-17 引起**）
+
+flow 崩在 `stage_runner.py:299` → `recompute_window_host_claims` → `WindowHostResolutionError`：
+
+```
+conflicts=15 · issues=6 窗 · reason=line_geometry · detail="world span"
+fallback_action = invariant_no_geometry_commit   ⇒ 按 F-9 的设计【故意】裸抛、不归档重抽
+```
+
+**A/B 归因（决定性）**：抑制 `resolve_envelope_move_intents` 使 envelope 变换不发生后，
+**同一个写入侧重算照样失败**（8 个窗，同样 `line_geometry / world span`）。
+⇒ **F-18 与 F-17 无因果关系，是既有缺陷第一次被跑到。**
+（变换会改变**哪些**窗失败〔8 → 6〕，但不改变**失败本身**。此二阶现象登记备查。）
+
+**⭐ 与 plan.md 结转里那条预言完全对上**：「reading 一出真产物，1_correction 就会被真跑，
+**F-9 那条路立刻现形**（现状只修了『崩的方式』，没修『为什么对不上』）」——
+本 run 虽未重跑 reading，但**第一次让 v3 带真实窗源的 draw 走到这一步**（08-08 死在更早、08-07 用 legacy 产物）。
+
+**⚠️ 尚未定性（⛔ 不得据此下修法）**：F-9 登记的 reason 是 `source_geometry_mismatch`，
+本次是 `line_geometry / world span` —— **同一子系统、不同 reason code**，
+是不是 F-9 同一条根因**必须查证**，⛔ 不许直接归并。
+
+**⭐ 顺带兑现一条 08-07 登记的 MINOR**：当时记「『不变量必须硬崩』那侧的端到端锁是
+**monkeypatch 强制 category** 覆盖的，非真实冲突自然产生的完整链路」——
+**本 run 就是那条真实链路第一次自然发生**，可作为该锁的真实对照。
+
+#### 本轮跑测账
+
+烧的是 1_correction 一次抽签（deepseek-v4-pro/high）。**未跑到 4_mep / 下游 / EnergyPlus。**
+`attempts/001/` 有归档（`checks.json` + `output.json`），与 08-08 的「零归档」不同 ——
+但这是 draw 阶段的正常归档，**不是**分类修法的功劳（见上）。
+
 ### 七、结转
 
 | 事项 | 状态 |
 |---|---|
 | **F-16** | ✅ **已修 + 真链路证实解开**（`15ea05d`，GLM 交叉审 APPROVE，run `run_2026-08-08_f16_e2e_verify`）。详「六之十／六之十一」 |
 | **F-17（⛔ 下一件 = 出派工单）** | ✅ **调查完成、根因已实测坐实**（2026-08-09，orchestrator 亲跑，零 LLM 成本，[全档](logs/experiments/2026-08-09_f17_envelope_cross_axis_chamfer/README.md)）。**根因 = 跨轴组件的顺序耦合**（⛔ 立项时登记的「materialize 插点后部分移动」推断**已被实测推翻**）· 修法方向已用反事实探针验证（斜边归零）· **修法与锁待施工**，详见「六之十二」 |
+| **F-17** | ✅ **已修 + 真链路证实解开**（`2c8aca3`，orchestrator 轻门 PASS，run `run_2026-08-09_f17_e2e_verify`）。⛔ **分类修法那一半未被真链路验证**（本 run 没产生斜边、那条 try/except 没执行到）⇒ 需要一次能触发 cell 环失败的真实产物才算闭合 |
+| **F-18 候选（新，⛔ 下一件）** | ⛔ **调查单待起**：写入侧 `recompute_window_host_claims` 在最终几何上失败（`line_geometry` / `world span`，6–8 个窗，`invariant_no_geometry_commit` 按设计裸抛 ⇒ 不归档、直接终止 flow）。**A/B 已证非 F-17 引起**（抑制 envelope 变换后照样失败）。**⚠️ 与 F-9 的关系未定性**：F-9 是 `source_geometry_mismatch`，本次是 `line_geometry`，同子系统不同 reason code，⛔ 不许直接归并。可零成本离线做（探针已在 scratchpad） |
+| **T-junction 锁（materialize 零覆盖）** | ⏸ 待拍板是否补。`_materialize_axis_splits` 在全部现有夹具上调用 101 次、插点恒 0 ⇒ 整套 T-junction/图闭包机制从未被任何测试执行过；缺口继承自旧代码、不影响 F-17 正确性，但派工单那条 ⛔ 约束零机器验证。触发配方见 [轻门裁决 §3](logs/reviews/verdict/2026-08-09_f17_orchestrator_lightgate.md) |
 | **F-8 债「第三面」（新登记）** | ⏸ `*.txt`（`.gitignore:258`）与 `*.log`（:81）是**全局忽略** ⇒ 被 plan.md 引用的 `logs/reviews/execution/*.log`、以及任何 `.txt` 证据文件仍需 `-f`，**同一个静默陷阱换了条规则**。与「第二面」同源（用文件类型/名字形状当规则，不看位置）。**修法候选** = 给 `AI_agent/logs/` 加位置例外。⛔ 本轮未动 |
 | **管理文档断链 20 条（新登记）** | ⏸ 一次性审计查出：CLAUDE.md / plan.md / decision_log.md 共 311 条内部链接中 **20 条指向的路径不存在**（多为 06-14 仓库大整理后的老路径，如 `proposals/judge_identity_and_metric_plan*.md`、`skills/energyplus_mcp/*`、`case_tests/test_baseline/runs`）。**未修**；修时注意 memory 已记「老路径按 logs 重排口径重定向」 |
 | **摸排剩余步骤** | ⏸ 步骤 4 全量语义轴（89 个写入参数逐个过，本轮只在候选上做）· 轴 B 的 B-3 查证（feature 名单 4 处是否已漂） |

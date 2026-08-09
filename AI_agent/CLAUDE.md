@@ -142,7 +142,42 @@ EnergyPlus 经 `WorkflowTool.run_simulation`（eppy + ConverterManager，idfpy �
 
 ## 2. 当前开发状态
 
-- **⭐⭐⭐ 最新（2026-08-09）= F-17 根因实测坐实（推翻立项推断）+ F-8 债「第二面」收口**
+- **⭐⭐⭐ 最新（2026-08-09 下半场）= F-17 修法落库 + 轻门 PASS + ⭐真链路证实解开，撞出 F-18**
+  （全档见 [plan.md「六之十三」](plan.md) · [轻门裁决](logs/reviews/verdict/2026-08-09_f17_orchestrator_lightgate.md)）。
+  全仓 **2326 绿 / 10 xfail / 0 红**（2323 → 2326，零回归）。落库 `2c8aca3`。
+  - **修法 = 三阶段替换「边移边判」**：相 1 只插点不移动 ⇒ 相 2 用**冻结的原始坐标**对全部组件定位、
+    命中哪个改哪个分量 ⇒ 相 3 规范化。**恰好恢复 legacy 由 bbox/索引表示【免费】得到、
+    v3 顶点环/谓词表示静默丢掉的跨轴独立性。** 同批交付分类修法（cell 环失败改走结构化拒绝）。
+  - **⭐ orchestrator 轻门换方向 neuter 两格**（施工席测的是函数内部两格，不重复）：
+    ① **接线方向** —— **不动 `_apply_components` 本身**，只把调用点改回逐组件调用
+    ⇒ **恰好 Group A/B 转红、零连带** ⇒ 兑现 08-06 判别问法「把调用点改回缺陷形态，锁红不红」；
+    ② materialize 删除方向 ⇒ 全仓零红（缺口坐实，见下）。
+  - **✅ F-17 已由真链路证实解开**（run `run_2026-08-09_f17_e2e_verify`）：
+    真实产物 + 官方入口 + 调用追踪 ⇒ **4 个跨轴 intent 全跑过 `_apply_components` 无异常**，
+    footprint `[0.12,14.88]×[0.12,7.88]` → **`[0.0,15.0]×[0.0,8.0]`**（修法前此处必抛非正交）。
+    **⭐ 输入无变量是机械可验证的**：`policy_hash` 与 08-08 逐字一致 · `view_manifest` 指纹一致 ·
+    `0_reading` 逐字节复制 ⇒ **唯一变量就是修法本身**。
+    ⛔ **但分类修法那一半未被验证**（本 run 没产生斜边、那条 try/except 没执行到）——
+    **「代码在、锁绿」≠「真链路验过」，不记功。**
+  - **⛔ 新登记 F-18 候选**：写入侧 `recompute_window_host_claims` 在最终几何上失败
+    （`line_geometry` / `world span`，6–8 个窗，`invariant_no_geometry_commit` **按 F-9 的设计裸抛**
+    ⇒ 不归档、直接终止 flow）。**A/B 已证非 F-17 引起**（抑制 envelope 变换后照样失败，8 个窗）。
+    **⚠️ 与 F-9 的关系未定性**（F-9 是 `source_geometry_mismatch`，本次是 `line_geometry`）⇒ ⛔ 不许直接归并。
+  - **⛔⛔ 轻门量到比「缺一把锁」严重的事**：给 `_materialize_axis_splits` 挂计数器跑遍全部
+    envelope 测试（152 passed）= **调用 101 次、插点恒为 0** ⇒ **整套 T-junction／图闭包机制
+    从来没有被任何测试执行过**。定性：**继承自旧代码、不记施工席账**（它主动登记了该缺口），
+    但派工单那条「⛔ 不许删 materialize」**目前零机器验证**，且正好处在 **F-13 那个危险位置**
+    （全绿、看起来多余、实际在为 L/U 形 T-junction 服务）。触发配方已推出，待拍板是否补锁。
+  - **⭐ 两条新纪律（都是本轮实犯／实测换来）**：
+    ① **权威门的观测通道本身必须可信** —— 施工席自陈：`pytest | tee log | head -20` 会因
+       `head` 关 stdin ⇒ `tee` 收 SIGPIPE ⇒ **连带打断 pytest**，而通知里的「退出码 0」
+       **其实是 `head` 的退出码**。⇒ 输出直接重定向到文件、退出码单独落一个只属于该命令的文件，
+       ⛔ 中间不接任何下游管道（与「`-n auto` 静默 OOM」并列）；
+    ② **`run_config.yaml` 必须先于 `provision` 落盘** —— 反了会冻结「flow 默认」策略、
+       之后配置一改就撞 policy 漂移门（orchestrator 本轮实犯；**门是对的**，且它打印的 `requested`
+       哈希顺带把「唯一变量」从声称升级成机械证据）。
+
+- **（同日上半场）2026-08-09 = F-17 根因实测坐实（推翻立项推断）+ F-8 债「第二面」收口**
   （全档见 [plan.md「六之十二」](plan.md) · [调查报告](logs/experiments/2026-08-09_f17_envelope_cross_axis_chamfer/README.md)）。
   orchestrator 亲跑，**零 LLM 成本 · 只读 · 零生产码改动**；三个可复跑脚本随报告入库。
   - **⛔ 立项推断被实测推翻**：~~「materialize 插中间点后只部分移动 ⇒ 共线三点中间被移出斜边」~~。
