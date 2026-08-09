@@ -483,6 +483,26 @@ def _room_intervals(
     return tuple((str(room_id), float(lo), float(hi)) for room_id, lo, hi in merged)
 
 
+def _point_close(a: tuple[float, ...], b: tuple[float, ...], eps: tuple[float, ...]) -> bool:
+    """True when every coordinate of ``a``/``b`` agrees within its own ``eps``.
+
+    F-18 (2026-08-09): used only to re-compare two independently-computed
+    binary64 representations of the SAME already-resolved geometric fact —
+    e.g. a stored ``clamped_span`` against a fresh ``line.point_at(t)``
+    reprojection of that SAME resolution's own stored parameter interval.
+    An exact ``!=`` on floats there flags 1-4 ULP round-trip noise
+    (<= 2e-15 m on real production geometry) as tampering even though both
+    sides trace the same wall through different, equally-valid arithmetic.
+    This helper is never a measurement/matching tolerance between two
+    DIFFERENT candidates — every other comparison in this module (segment
+    selection, room binding, etc.) stays exact or uses its own documented
+    physical tolerance.
+    """
+    return len(a) == len(b) == len(eps) and all(
+        abs(av - bv) <= e for av, bv, e in zip(a, b, eps)
+    )
+
+
 def window_host_claim_issues(
     geom: CorrectedGeometryV3,
     *,
@@ -587,16 +607,33 @@ def window_host_claim_issues(
             )
             q0 = line.point_at(t[0])
             q1 = line.point_at(t[1])
+            # F-18: the host line is axis-aligned (guarded above), so one plan
+            # coordinate runs ALONG the facade and the other is the plane
+            # offset.  Each gets B5's own designated epsilon -- these two
+            # deliberately carry no dataclass default precisely so this
+            # resolver can never silently borrow a Vg/legacy window tolerance.
+            eps_xy = (
+                (tolerances.window_host_span_epsilon_m, tolerances.window_host_plane_epsilon_m)
+                if dy == 0
+                else (tolerances.window_host_plane_epsilon_m, tolerances.window_host_span_epsilon_m)
+            )
             declared_endpoints = tuple(
                 (point.x, point.y)
                 for point in resolution.clamped_plan_endpoints_p1_to_p2
             )
-            if declared_endpoints != (q0, q1):
+            if len(declared_endpoints) != 2 or not all(
+                _point_close(declared, fresh, eps_xy)
+                for declared, fresh in zip(declared_endpoints, (q0, q1))
+            ):
                 raise ValueError("p1->p2 endpoints")
             projected = (q0[0], q1[0]) if dy == 0 else (q0[1], q1[1])
             lo = projected[0] if projected[0] < projected[1] else projected[1]
             hi = projected[1] if projected[0] < projected[1] else projected[0]
-            if (lo, hi) != (resolution.clamped_span.lo, resolution.clamped_span.hi):
+            if not _point_close(
+                (lo, hi),
+                (resolution.clamped_span.lo, resolution.clamped_span.hi),
+                (tolerances.window_host_span_epsilon_m,) * 2,
+            ):
                 raise ValueError("world span")
             fresh_vertices = window_verts_on_line(
                 host_line=line,
@@ -607,7 +644,15 @@ def window_host_claim_issues(
             declared_vertices = [
                 (point.x, point.y, point.z) for point in resolution.clamped_vertices
             ]
-            if fresh_vertices != declared_vertices:
+            # z rides along unchanged from `z_interval`, but compare it on the
+            # same 1e-9 round-trip epsilon rather than exactly: B5 defines no
+            # separate vertical epsilon, and inventing one here would be a new
+            # un-shipped constant.
+            eps_xyz = (*eps_xy, tolerances.window_host_plane_epsilon_m)
+            if len(fresh_vertices) != len(declared_vertices) or not all(
+                _point_close(fresh, declared, eps_xyz)
+                for fresh, declared in zip(fresh_vertices, declared_vertices)
+            ):
                 raise ValueError("vertices")
         except ValueError as exc:
             issues.append({**prefix, "reason": "line_geometry", "detail": str(exc)})
