@@ -65,6 +65,8 @@ Group layout:
 """
 from __future__ import annotations
 
+import pytest
+
 from src.agent.correction.config import load_core_tolerances
 from src.agent.correction.envelope import (
     AuthoritativeEnvelope,
@@ -258,3 +260,55 @@ def test_cell_ring_failure_is_a_structured_rejection_not_a_bare_exception():
     # Rollback contract: the returned geometry is the pre-transform input,
     # not a half-applied candidate.
     assert result.geom.floors[0].cells[0].x == [0.12, 0.25]
+
+
+def _components_for(geom, envelope):
+    """Build the component set exactly as the transaction does."""
+    from src.agent.correction import envelope_transform as transform
+
+    tol = load_core_tolerances()
+    return [
+        transform.build_shared_axis_component(geom, intent, tol)
+        for intent in transform.resolve_envelope_move_intents(geom, envelope, tol)
+    ]
+
+
+@pytest.mark.parametrize(
+    "builder,envelope_builder",
+    [(_sm21_f1_geom, _sm21_f1_envelope), (_l_shape_geom, _l_shape_envelope)],
+    ids=["rect-sm21", "l-shape"],
+)
+def test_component_application_is_order_independent(builder, envelope_builder):
+    """Order-independence is the PROPERTY the F-17 fix restores -- lock it.
+
+    sol cross-review 2026-08-09 (MINOR-4): the other tests only ever exercise
+    the one ordering ``resolve_envelope_move_intents`` happens to emit, so a
+    future refactor could quietly reintroduce order-dependence without any
+    test objecting.  The pre-fix implementation FAILS this outright (it
+    chamfers, so the two orderings do not even both survive validation).
+
+    Neuter direction: restore the per-component "move while judging" loop and
+    this turns red.
+    """
+    from src.agent.correction import envelope_transform as transform
+
+    tol = load_core_tolerances()
+    components = _components_for(builder(), envelope_builder())
+    assert len(components) >= 2, "fixture premise: need >=2 components to permute"
+    assert len({c.axis for c in components}) == 2, "fixture premise: need a cross-axis pair"
+
+    def apply(order):
+        geom = builder()
+        moved = transform._apply_components(
+            geom, {str(i): comp for i, comp in enumerate(order)}, tol,
+        )
+        rings = [[tuple(p) for p in f.footprint.vertices] for f in geom.floors]
+        cells = [
+            (f.id, c.id, transform.cell_polygon_vertices(c), tuple(c.x), tuple(c.y))
+            for f in geom.floors for c in f.cells
+        ]
+        return rings, cells, {k: sorted(v) for k, v in moved.items()}
+
+    forward = apply(components)
+    reverse = apply(list(reversed(components)))
+    assert forward == reverse

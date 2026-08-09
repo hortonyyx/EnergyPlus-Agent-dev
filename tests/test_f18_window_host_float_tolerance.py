@@ -4,21 +4,33 @@ epsilons, not with exact ``!=``.
 Why this file exists (2026-08-09).  ``window_host_claim_issues`` re-derives a
 resolution's world span / plan endpoints / vertices from that SAME resolution's
 stored parameter interval and compares them to the stored values.  Both sides
-describe one already-resolved wall, but they travel different arithmetic, so a
-decimal that binary64 cannot represent exactly (11.36, 1.24, 2.19 ...) lands
-1-4 ULP apart.  With an exact ``!=`` the check called that "tampering" and threw
+describe one already-resolved wall, but they travel different arithmetic
+(``t = (x - p1) / L`` then ``p1 + t * L``), so the round trip can land 1-4 ULP
+away.  With an exact ``!=`` the check called that "tampering" and threw
 ``invariant_no_geometry_commit`` -- a bare raise that terminates the whole flow.
 On the first real v3 product to reach this code (run_2026-08-09_f17_e2e_verify)
-6 of 15 windows failed that way, with drifts <= 2e-15 m.
+6 of 15 windows failed that way, with drifts <= 2.22e-15 m.
 
-The whole repo missed it because every pre-existing B5 fixture uses spans like
-0/4/10 -- values binary64 represents exactly, so the round-trip is bit-identical
-and the gate never fires.  Hence the deliberate choice of awkward decimals and
-an offset footprint origin below: this file's fixtures are shaped like real
-production geometry, not like round numbers.
+⛔ HOW THIS FILE WAS WRONG ON ITS FIRST ATTEMPT (sol cross-review, MAJOR-1) --
+read before editing.  The first version picked "awkward decimals" (11.36, 1.24
+...) and assumed that was enough to reproduce the bug.  It is not.  Whether the
+round trip loses a bit depends on the WHOLE arithmetic path -- above all the
+host line's length L, because ``t = x / L`` followed by ``t * L`` is exact
+whenever L is a power of two.  The first fixture used the PRE-transform ring
+([0.12, 14.88]) while the real failure happens on the POST-F-17 ring ([0, 15]),
+so its headline "real production case" round-tripped bit-exactly and stayed
+GREEN even with the old ``!=`` restored.  It was not a lock at all.
+
+⇒ The rule this file now follows: **a regression case must prove its own
+premise.**  Every lock below first asserts that the old exact comparison really
+would have failed on this fixture (``_round_trip_differs``), and only then
+asserts that the tolerant gate lets it through.  ⛔ Never again select fixtures
+by "these numbers look awkward" -- measure.
 
 Full investigation:
 AI_agent/logs/experiments/2026-08-09_f18_window_host_exact_float_gate/README.md
+Cross-review that caught the bad fixture:
+AI_agent/logs/reviews/verdict/2026-08-09_f17_f18_crossreview_sol.md
 """
 from __future__ import annotations
 
@@ -26,14 +38,37 @@ import pytest
 
 from src.agent.correction.config import load_core_tolerances
 from src.agent.correction.window_host import window_host_claim_issues
+from src.agent.geometry.modelling import SegmentLine2D
 
 from tests.test_c2_b5_host_resolution import _context, _materialized, _resolve
 
-# Real production shape: footprint inset off the origin by 0.12 m and a window
-# span on decimals binary64 cannot hold exactly.  These are the literal values
-# that failed in run_2026-08-09_f17_e2e_verify (window W_F1_SE).
-INSET_RING = [[0.12, 0.12], [14.88, 0.12], [14.88, 7.88], [0.12, 7.88]]
-AWKWARD_SPAN = (11.36, 13.76)
+# The real post-F-17 footprint: the envelope transform moves [0.12, 14.88] x
+# [0.12, 7.88] onto [0, 15] x [0, 8], and THAT is the ring the failing windows
+# were hosted on.  15 is not a power of two, so x/15*15 can lose a bit.
+POST_TRANSFORM_RING = [[0.0, 0.0], [15.0, 0.0], [15.0, 8.0], [0.0, 8.0]]
+# Vertical host lines need a non-power-of-two height for the same reason: with
+# height 8 the round trip is exact for every span we measured, so an East-facade
+# fixture on an 8 m wall can never discriminate.
+TALL_RING = [[0.0, 0.0], [15.0, 0.0], [15.0, 7.88], [0.0, 7.88]]
+
+
+def _south(span):
+    return _context(
+        ring=POST_TRANSFORM_RING, span=span, facade="South",
+        plan_geometry={"x_range_m": list(span), "y_range_m": [0.0, 0.1]},
+    )
+
+
+def _east(span):
+    return _context(
+        ring=TALL_RING, span=span, facade="East",
+        plan_geometry={"x_range_m": [14.9, 15.0], "y_range_m": list(span)},
+    )
+
+
+def _claims(builder, span):
+    geom, verified = builder(span)
+    return _materialized(geom), _resolve(geom, verified)
 
 
 def _line_geometry(issues):
@@ -41,18 +76,36 @@ def _line_geometry(issues):
 
     ``window_host_claim_issues`` also audits committed identity/audit rows,
     which a pre-commit fixture legitimately lacks; filtering keeps the lock
-    pinned to the float comparison under test instead of drifting into
-    unrelated checks.
+    pinned to the float comparison under test.
     """
     return [issue for issue in issues if issue.get("reason") == "line_geometry"]
+
+
+def _round_trip_differs(claims) -> bool:
+    """Does the OLD exact ``!=`` comparison actually fail on this fixture?
+
+    This is the premise every lock in this file must prove about itself.  It
+    replays exactly what ``window_host_claim_issues`` does for the world span,
+    using only the resolution's own stored values.
+    """
+    res = claims.resolutions[0]
+    line = SegmentLine2D(
+        (res.segment_p1.x, res.segment_p1.y), (res.segment_p2.x, res.segment_p2.y),
+    )
+    dy = res.segment_p2.y - res.segment_p1.y
+    q0 = line.point_at(res.segment_parameter_interval.lo)
+    q1 = line.point_at(res.segment_parameter_interval.hi)
+    projected = (q0[0], q1[0]) if dy == 0 else (q0[1], q1[1])
+    lo, hi = sorted(projected)
+    return (lo, hi) != (res.clamped_span.lo, res.clamped_span.hi)
 
 
 def _tampered(claims, channel, delta):
     """Rebuild frozen claims with exactly one coordinate nudged by ``delta``.
 
     ``model_copy(update=...)`` rather than a dump/re-validate round trip: the
-    claim models nest many tuple-typed fields, and a JSON round trip would
-    silently retype them all -- the tamper fixture must differ from the real
+    claim models nest many tuple-typed fields and a JSON round trip would
+    silently retype them all -- a tamper fixture must differ from the real
     claims in the one coordinate under test and nothing else.
     """
     res = claims.resolutions[0]
@@ -78,71 +131,110 @@ def _tampered(claims, channel, delta):
     return claims.model_copy(update={"resolutions": (patched, *claims.resolutions[1:])})
 
 
-def _claims_for(span):
-    geom, verified = _context(
-        ring=INSET_RING,
-        span=span,
-        plan_geometry={"x_range_m": list(span), "y_range_m": [0.12, 0.22]},
-    )
-    return _materialized(geom), _resolve(geom, verified)
+# ---------------------------------------------------------------- the locks --
+# Measured 2026-08-09: these four (builder, span) pairs are the ones where the
+# exact comparison really fails.  Each test re-proves that before asserting the
+# fix, so a future refactor that quietly makes a case non-discriminating fails
+# LOUDLY here instead of silently becoming a no-op lock.
+
+DISCRIMINATING = [
+    (_south, (11.36, 13.76), "south-11.36-13.76-real-W_F1_SE"),
+    (_south, (2.19, 5.55), "south-2.19-5.55"),
+    (_east, (2.19, 5.55), "east-vertical-2.19-5.55"),
+    (_east, (3.44, 4.64), "east-vertical-3.44-4.64"),
+]
 
 
 @pytest.mark.parametrize(
-    "span",
-    [AWKWARD_SPAN, (1.24, 3.64), (2.19, 5.55), (6.3, 8.7)],
-    ids=["11.36-13.76", "1.24-3.64", "2.19-5.55", "6.3-8.7"],
+    "builder,span", [(b, s) for b, s, _ in DISCRIMINATING],
+    ids=[i for _, _, i in DISCRIMINATING],
 )
-def test_binary64_round_trip_noise_is_not_tampering(span):
-    """Real-shaped spans must PASS the self-check.
+def test_binary64_round_trip_noise_is_not_tampering(builder, span):
+    """Round-trip noise must pass; the fixture must prove it HAS noise first.
 
     Neuter direction: restore the exact ``!=`` comparisons in
-    ``window_host_claim_issues``.
-
-    ⛔ Measured 2026-08-09 -- only ``1.24-3.64`` and ``2.19-5.55`` actually turn
-    red under that neuter on this fixture; ``11.36-13.76`` and ``6.3-8.7``
-    happen to round-trip bit-exactly here.  Whether the noise appears depends
-    on the exact arithmetic, so discriminating power lives in the SET, not in
-    any single case.  ⛔ Do not prune this list to "the ones that matter" --
-    that is how the lock silently loses its teeth.
+    ``window_host_claim_issues`` -- every case here turns red, because the
+    premise assertion guarantees each one exercises the noisy path.
     """
-    geom, claims = _claims_for(span)
+    geom, claims = _claims(builder, span)
+    assert _round_trip_differs(claims), (
+        "fixture premise broken: the exact comparison would have PASSED here, "
+        "so this case cannot lock the tolerance fix (see module docstring)"
+    )
     issues = window_host_claim_issues(
         geom, claims=claims, tolerances=load_core_tolerances(),
     )
     assert _line_geometry(issues) == [], issues
 
 
-def test_span_drift_far_above_epsilon_is_still_rejected():
-    """Anti-tamper power must survive the tolerance change.
+def test_power_of_two_host_line_never_produces_round_trip_noise():
+    """Documents WHY fixture choice is not free -- and pins the reason.
 
-    1e-6 m is a thousand times B5's 1e-9 epsilon and still a thousand times
-    below anything geometrically meaningful, so this asserts the gate was
-    loosened by exactly the round-trip band and not by a hand-wave.
+    ``t = x / L`` then ``t * L`` is exact when L is a power of two, so an
+    8 m host line cannot exercise F-18 no matter how awkward the span decimals
+    are.  ⛔ This is why "pick awkward numbers" was not a valid fixture
+    strategy; keep this case so the next person does not rediscover it the
+    expensive way.
     """
-    geom, claims = _claims_for(AWKWARD_SPAN)
-    tol = load_core_tolerances()
-    assert _line_geometry(window_host_claim_issues(geom, claims=claims, tolerances=tol)) == []
+    ring = [[0.0, 0.0], [15.0, 0.0], [15.0, 8.0], [0.0, 8.0]]
+    geom, verified = _context(
+        ring=ring, span=(2.19, 5.55), facade="East",
+        plan_geometry={"x_range_m": [14.9, 15.0], "y_range_m": [2.19, 5.55]},
+    )
+    _, claims = _materialized(geom), _resolve(geom, verified)
+    assert not _round_trip_differs(claims)
 
+
+# ------------------------------------------------------- anti-tamper is kept --
+
+def test_span_drift_far_above_epsilon_is_still_rejected():
+    geom, claims = _claims(_south, (11.36, 13.76))
+    tol = load_core_tolerances()
     issues = _line_geometry(window_host_claim_issues(
         geom, claims=_tampered(claims, "span", 1e-6), tolerances=tol))
     assert [issue["detail"] for issue in issues] == ["world span"], issues
 
 
 def test_plan_endpoint_drift_far_above_epsilon_is_still_rejected():
-    """Same guarantee for the p1->p2 endpoint comparison."""
-    geom, claims = _claims_for(AWKWARD_SPAN)
+    geom, claims = _claims(_south, (11.36, 13.76))
     tol = load_core_tolerances()
-
     issues = _line_geometry(window_host_claim_issues(
         geom, claims=_tampered(claims, "endpoint", 1e-6), tolerances=tol))
     assert [issue["detail"] for issue in issues] == ["p1->p2 endpoints"], issues
 
 
-def test_vertex_drift_far_above_epsilon_is_still_rejected():
-    """Same guarantee for the clamped-vertex comparison (incl. the z channel)."""
-    geom, claims = _claims_for(AWKWARD_SPAN)
-    tol = load_core_tolerances()
+@pytest.mark.parametrize("delta", [1e-6, 1e-12], ids=["1e-6", "1e-12-exact"])
+def test_vertex_z_is_compared_exactly(delta):
+    """z gets NO tolerance (sol cross-review MINOR-2).
 
+    ``window_verts_on_line`` copies ``z_interval`` straight into each vertex,
+    so z never travels the round trip that produces F-18's noise.  Even a
+    1e-12 m nudge -- far below the 1e-9 epsilon the xy channels use -- must
+    still be rejected.  Neuter direction: give z a non-zero epsilon and the
+    1e-12 case turns green.
+    """
+    geom, claims = _claims(_south, (11.36, 13.76))
+    tol = load_core_tolerances()
     issues = _line_geometry(window_host_claim_issues(
-        geom, claims=_tampered(claims, "vertex", 1e-6), tolerances=tol))
+        geom, claims=_tampered(claims, "vertex", delta), tolerances=tol))
     assert [issue["detail"] for issue in issues] == ["vertices"], issues
+
+
+@pytest.mark.parametrize(
+    "delta,rejected",
+    [(5e-10, False), (5e-9, True)],
+    ids=["just-inside-epsilon", "just-outside-epsilon"],
+)
+def test_span_tolerance_threshold_sits_at_b5_epsilon(delta, rejected):
+    """Pin the threshold itself, not just "small passes / large fails".
+
+    sol cross-review Q1: the 1e-6 reverse lock proves a big drift is still
+    caught, but it does NOT prove the band was widened to exactly B5's 1e-9.
+    These two cases straddle it.
+    """
+    geom, claims = _claims(_south, (11.36, 13.76))
+    tol = load_core_tolerances()
+    assert tol.window_host_span_epsilon_m == 1.0e-9
+    issues = _line_geometry(window_host_claim_issues(
+        geom, claims=_tampered(claims, "span", delta), tolerances=tol))
+    assert bool(issues) is rejected, issues

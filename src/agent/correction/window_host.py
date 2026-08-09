@@ -483,7 +483,7 @@ def _room_intervals(
     return tuple((str(room_id), float(lo), float(hi)) for room_id, lo, hi in merged)
 
 
-def _point_close(a: tuple[float, ...], b: tuple[float, ...], eps: tuple[float, ...]) -> bool:
+def _same_resolution_representation_close(a: tuple[float, ...], b: tuple[float, ...], eps: tuple[float, ...]) -> bool:
     """True when every coordinate of ``a``/``b`` agrees within its own ``eps``.
 
     F-18 (2026-08-09): used only to re-compare two independently-computed
@@ -622,14 +622,14 @@ def window_host_claim_issues(
                 for point in resolution.clamped_plan_endpoints_p1_to_p2
             )
             if len(declared_endpoints) != 2 or not all(
-                _point_close(declared, fresh, eps_xy)
+                _same_resolution_representation_close(declared, fresh, eps_xy)
                 for declared, fresh in zip(declared_endpoints, (q0, q1))
             ):
                 raise ValueError("p1->p2 endpoints")
             projected = (q0[0], q1[0]) if dy == 0 else (q0[1], q1[1])
             lo = projected[0] if projected[0] < projected[1] else projected[1]
             hi = projected[1] if projected[0] < projected[1] else projected[0]
-            if not _point_close(
+            if not _same_resolution_representation_close(
                 (lo, hi),
                 (resolution.clamped_span.lo, resolution.clamped_span.hi),
                 (tolerances.window_host_span_epsilon_m,) * 2,
@@ -644,13 +644,18 @@ def window_host_claim_issues(
             declared_vertices = [
                 (point.x, point.y, point.z) for point in resolution.clamped_vertices
             ]
-            # z rides along unchanged from `z_interval`, but compare it on the
-            # same 1e-9 round-trip epsilon rather than exactly: B5 defines no
-            # separate vertical epsilon, and inventing one here would be a new
-            # un-shipped constant.
-            eps_xyz = (*eps_xy, tolerances.window_host_plane_epsilon_m)
+            # z stays EXACT (sol cross-review 2026-08-09, MINOR-2): the earlier
+            # "reuse plane epsilon or invent a constant" framing was a false
+            # dichotomy.  `window_verts_on_line` copies `z_interval` straight
+            # into each vertex (modelling.py:412-420) -- z never travels the
+            # world -> parameter -> world round trip that produces F-18's ULP
+            # noise, so it needs no tolerance at all.  Borrowing the XY plane
+            # epsilon would also be semantically wrong: that one guards planar
+            # collinearity, and downstream z-extent checks use the SPAN epsilon
+            # (modelling.py:837-840).  A 0.0 epsilon here IS exact comparison.
+            eps_xyz = (*eps_xy, 0.0)
             if len(fresh_vertices) != len(declared_vertices) or not all(
-                _point_close(fresh, declared, eps_xyz)
+                _same_resolution_representation_close(fresh, declared, eps_xyz)
                 for fresh, declared in zip(fresh_vertices, declared_vertices)
             ):
                 raise ValueError("vertices")
