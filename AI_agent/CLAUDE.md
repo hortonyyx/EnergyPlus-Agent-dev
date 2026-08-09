@@ -142,7 +142,43 @@ EnergyPlus 经 `WorkflowTool.run_simulation`（eppy + ConverterManager，idfpy �
 
 ## 2. 当前开发状态
 
-- **⭐⭐⭐ 最新（2026-08-09 下半场）= F-17 修法落库 + 轻门 PASS + ⭐真链路证实解开，撞出 F-18**
+- **⭐⭐⭐ 最新（2026-08-09 收工）= F-18 修法 + 返工 + ⭐sol 两轮交叉审全过 · F-9 路线②设计稿已出**
+  （全档见 [plan.md「六之十三」](plan.md)）。全仓 **2339 绿 / 10 xfail / 0 红**（本日 2323 → 2339，零回归）。
+  - **F-18 = 窗宿主自洽门用浮点精确相等**（`!=` 比两条不同算路得到的同一个世界跨度，
+    实测偏差 1–4 ULP ≤2e-15 m）⇒ 判真实产物「被篡改」并**裸抛终止整条 flow**。
+    **不是几何错。** 修法 = 三处比较改用 B5 自己的 `window_host_span/plane_epsilon_m`（1e-9）。
+    ⭐ 该容差**本就存在、同文件用了 11 次、其中一处就在失败那行上面 14 行** ⇒ **不是缺容差，是门没用**。
+  - **⛔⛔ 本轮最该记住的一条 —— 「谁写谁不批」防的不是粗心，是作者对自己推理的系统性盲区**：
+    Claude 侧施工席撞月度额度中断，orchestrator 接手做完 ⇒ **作者=验证者**。
+    orchestrator 自验做满（全仓绿 + neuter 转红 + 真实产物通过，**外观完全合格**），
+    **sol 仍抓出 1 MAJOR**：headline 正向锁用的是**变换前**宿主线 `[0.12,14.88]`，
+    而真实失败发生在**变换后**的 `[0,15]` 上 ⇒ **那个用例恢复 `!=` 后仍是绿的、根本不是锁**。
+    ⇒ 这正是 orchestrator neuter「只红 2/4」的原因 —— **我只观察到症状，没诊断出原因**。
+  - **⛔⛔ 同一类错误（从测量过度外推）同一批里连犯两次，两次都是交叉审抓的**：
+    ① MAJOR-1 = 从「数值看起来难看」外推到「能复现缺陷」；
+    ② 返工时新引入的 MINOR = 从一组实测外推成普适定律
+    （「宿主线长为 2 的幂 ⇒ 永不产生 ULP」，sol 反例 `p1=2.6317878,L=8,x=7.877522392`
+    ⇒ 偏差 −8.88e-16，orchestrator 已独立复算证实）。
+    **第二次是在我刚写完「⛔ 不许靠挑数字、必须实测」那条纪律之后犯的。**
+  - **⭐ 由此定的新纪律**：**回归用例必须自证前提** —— 先断言「旧的错误判据在这个夹具上
+    确实会失败」，再断言修法放行；前提破了要**大声报错**，⛔ 不许静默退化成空锁。
+    （已落 `tests/test_f18_window_host_float_tolerance.py` 的 `_round_trip_differs`。）
+  - **sol 两轮裁决**：[第一轮](logs/reviews/verdict/2026-08-09_f17_f18_crossreview_sol.md)
+    = APPROVE-WITH-CHANGES（0 BLOCKER / 1 MAJOR / 3 MINOR）·
+    [第二轮](logs/reviews/verdict/2026-08-09_f17_f18_crossreview_sol_round2.md)
+    = APPROVE-WITH-CHANGES（0 BLOCKER / 0 MAJOR / 1 MINOR，已修）。**审阅债已清。**
+    F-17 复核通过（sol 独立逆序探针验证组件顺序无关）。
+  - **⭐ F-9 路线②设计稿 v1 已出**（[proposals/f9_route2_evidence_citation_design.md](proposals/f9_route2_evidence_citation_design.md)，**待用户过目**）：
+    **关键发现 = 零件基本都在**，确定性换算 `_advisory_elevation_world_frame` 已存在、
+    帧参数 `VaElevationViewBindingV1` 已算出、`source_ids` 通道已存在，
+    **缺的只是「让确定性结果当权威」**（源码逐字写着 never authoritative）。
+    ⛔ **附带必做**：`_BASE_SIGN` 声明 3 份、**其中一份在 judge 侧** ⇒ 判卷方与生产方各持一份约定、
+    可各自漂 ⇒ 届时「判卷说错了」与「生产真的错了」**原理上无法区分**。**轴 B 第五次现形（生产 vs 判卷）。**
+  - **⛔ 施工席中断的自述不可信（第二次实证）**：它最后一句「Let me apply the fix」听起来未动手，
+    实测工作区**已落 20 行**（helper 已加、三个调用点一行未改）
+    ⇒ **纪律：施工席中断后一律以 `git diff` 为准。**（08-08 那次是「中断在 neuter 自查前」，同族。）
+
+- **（同日）2026-08-09 中场 = F-17 修法落库 + 轻门 PASS + ⭐真链路证实解开，撞出 F-18**
   （全档见 [plan.md「六之十三」](plan.md) · [轻门裁决](logs/reviews/verdict/2026-08-09_f17_orchestrator_lightgate.md)）。
   全仓 **2326 绿 / 10 xfail / 0 红**（2323 → 2326，零回归）。落库 `2c8aca3`。
   - **修法 = 三阶段替换「边移边判」**：相 1 只插点不移动 ⇒ 相 2 用**冻结的原始坐标**对全部组件定位、
