@@ -5,8 +5,8 @@ Why this file exists (2026-08-09).  ``window_host_claim_issues`` re-derives a
 resolution's world span / plan endpoints / vertices from that SAME resolution's
 stored parameter interval and compares them to the stored values.  Both sides
 describe one already-resolved wall, but they travel different arithmetic
-(``t = (x - p1) / L`` then ``p1 + t * L``), so the round trip can land 1-4 ULP
-away.  With an exact ``!=`` the check called that "tampering" and threw
+(``t = ((x - p1) * L) / L**2`` then ``p1 + t * L``), so the round trip can land
+1-4 ULP away.  With an exact ``!=`` the check called that "tampering" and threw
 ``invariant_no_geometry_commit`` -- a bare raise that terminates the whole flow.
 On the first real v3 product to reach this code (run_2026-08-09_f17_e2e_verify)
 6 of 15 windows failed that way, with drifts <= 2.22e-15 m.
@@ -14,9 +14,9 @@ On the first real v3 product to reach this code (run_2026-08-09_f17_e2e_verify)
 ⛔ HOW THIS FILE WAS WRONG ON ITS FIRST ATTEMPT (sol cross-review, MAJOR-1) --
 read before editing.  The first version picked "awkward decimals" (11.36, 1.24
 ...) and assumed that was enough to reproduce the bug.  It is not.  Whether the
-round trip loses a bit depends on the WHOLE arithmetic path -- above all the
-host line's length L, because ``t = x / L`` followed by ``t * L`` is exact
-whenever L is a power of two.  The first fixture used the PRE-transform ring
+round trip loses a bit depends on the WHOLE arithmetic path -- the host line's
+origin p1, its length L, and the span value together.  The first fixture used
+the PRE-transform ring
 ([0.12, 14.88]) while the real failure happens on the POST-F-17 ring ([0, 15]),
 so its headline "real production case" round-tripped bit-exactly and stayed
 GREEN even with the old ``!=`` restored.  It was not a lock at all.
@@ -44,11 +44,13 @@ from tests.test_c2_b5_host_resolution import _context, _materialized, _resolve
 
 # The real post-F-17 footprint: the envelope transform moves [0.12, 14.88] x
 # [0.12, 7.88] onto [0, 15] x [0, 8], and THAT is the ring the failing windows
-# were hosted on.  15 is not a power of two, so x/15*15 can lose a bit.
+# were hosted on -- measured to be discriminating for the spans below.
 POST_TRANSFORM_RING = [[0.0, 0.0], [15.0, 0.0], [15.0, 8.0], [0.0, 8.0]]
-# Vertical host lines need a non-power-of-two height for the same reason: with
-# height 8 the round trip is exact for every span we measured, so an East-facade
-# fixture on an 8 m wall can never discriminate.
+# Vertical host lines: with a ZERO-origin 8 m wall the round trip was exact for
+# every span we measured, so that shape could not discriminate.  7.88 does.
+# ⛔ This is an empirical property of (p1, L, span) together -- see
+# test_zero_origin_power_of_two_scaling_round_trips_exactly for why it must NOT
+# be generalised into "powers of two are always safe".
 TALL_RING = [[0.0, 0.0], [15.0, 0.0], [15.0, 7.88], [0.0, 7.88]]
 
 
@@ -167,14 +169,24 @@ def test_binary64_round_trip_noise_is_not_tampering(builder, span):
     assert _line_geometry(issues) == [], issues
 
 
-def test_power_of_two_host_line_never_produces_round_trip_noise():
-    """Documents WHY fixture choice is not free -- and pins the reason.
+def test_zero_origin_power_of_two_scaling_round_trips_exactly():
+    """Documents WHY fixture choice is not free -- with the correct scope.
 
-    ``t = x / L`` then ``t * L`` is exact when L is a power of two, so an
-    8 m host line cannot exercise F-18 no matter how awkward the span decimals
-    are.  ⛔ This is why "pick awkward numbers" was not a valid fixture
-    strategy; keep this case so the next person does not rediscover it the
-    expensive way.
+    ⛔ NARROWED after sol cross-review round 2 (MINOR-1).  The first version of
+    this test claimed "a power-of-two host line NEVER produces round-trip
+    noise".  That is false: the real path is ``t = ((x - p1) * L) / L**2`` then
+    ``p1 + t * L``, so the subtraction and the final addition can round even
+    when the L scaling is exact.  sol's counterexample, re-verified here by
+    hand: p1=2.6317878, L=8, x=7.877522392 round-trips to 7.8775223919999995
+    (-8.88e-16, 1 ULP).
+
+    What survives is the narrow, measured statement below: on a ZERO-origin
+    8 m wall the spans we tried all round-trip bit-exactly, which is why the
+    original East fixture could not discriminate no matter how awkward its
+    decimals were.  ⛔ Do not restate this as a law about powers of two --
+    discriminating power is a property of (p1, L, span) together, which is
+    exactly why every lock in this file proves its own premise instead of
+    reasoning about the arithmetic.
     """
     ring = [[0.0, 0.0], [15.0, 0.0], [15.0, 8.0], [0.0, 8.0]]
     geom, verified = _context(
