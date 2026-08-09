@@ -3,11 +3,20 @@ __pycache__/
 *.py[codz]
 *$py.class
 
-# 协作者侧 LangSmith run log archives (参考资料，可由 LangSmith 复现，~5MB+/次跑)
-20*_*/
-!backup/Skill_history/
-!backup/MCP_history/
-!case_tests/test_baseline/runs/
+# backup/ 树下的变更前快照 + 协作者侧 LangSmith run log archives
+# (参考资料：git 历史 / LangSmith 均可复现；合计 ~26 MB / ~1900 文件)
+#
+# ⛔ 2026-08-09 修正（F-8 防复发债「第二面」）：原规则是**不限路径**的裸 `20*_*/`，
+#    按「目录名形状」匹配。它写于 2026-05-05（e9d7a2b），当时只为挡协作者一份
+#    LangSmith trace 归档 `20260414_192502/`；但它顺带吞掉了项目自己的过程痕迹
+#    `AI_agent/logs/experiments/2026-MM-DD_*/`（8.4 MB / 238 文件）⇒ 被文档引用的报告
+#    不在版本库里，换机器即打不开；且实测 `git add -f` 入库之后**每次再改仍被静默拦下**
+#    （`--amend` 成功 + `status` 干净 + `log` 正常，改动却不在 commit 里）。
+#    ⇒ 改为**按位置**限定：只挡 backup/ 树下的快照，项目自己的 logs/ 恢复正常可跟踪。
+#    ⛔ 顺带删掉原三条 `!` 例外 —— 实测**全部无效**：git 无法在已被排除的目录内再包含
+#    （`!backup/Skill_history/` 只解禁目录本身，其 `20*_*/` 子目录照旧被排除），
+#    且第三条 `case_tests/test_baseline/runs/` 指向的路径根本不存在。
+**/backup/**/20*_*/
 
 # EnergyPlus 时序变量输出 (二进制，单文件 ~15MB，可由 IDF 重跑出来)
 eplusout.eso
