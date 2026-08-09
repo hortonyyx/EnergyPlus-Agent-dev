@@ -789,7 +789,7 @@ fallback_action = invariant_no_geometry_commit   ⇒ 按 F-9 的设计【故意�
 | **F-8** | ✅ **已收口**：4 文件（合计 45.0 KB）`git add -f` 入仓，干净 worktree 验证「前 3 红 / 后 0 红」，主树全仓零回归。详见 [`execution/2026-08-06_f8_closeout_claude.md`](logs/reviews/execution/2026-08-06_f8_closeout_claude.md) |
 | **F-8 防复发机械检查（新登记，⛔ 只立项未实现）** | ⏸ **选项 A**：AST 静态扫描测试文件路径字面量逐个 `git check-ignore`，命中即拦（pre-commit/PR 级）——代价 = heuristic、漏动态拼接路径、需维护豁免白名单；成本低、秒级。**选项 B**：CI 加「全新检出 + 全仓测试」影子任务（`git clone --depth1 && uv sync --frozen && pytest`）——代价 = 每次多几分钟 + 独立算力，但零遗漏（连 venv/editable-install 这类非 gitignore 起因的环境假象也一并捕获，本次 F-8 排查已实证）。**建议分层用**：A 做日常 pre-commit 快门、B 做合并前/每日一次的权威门，呼应既有「轻门=唯一权威门、日常跑子集」节奏。**要防的复发形态** = 新增测试悄悄依赖了一个被 `.gitignore` 挡住的文件 ⇒ 本机全绿、新克隆/CI 必红，且没人会主动发现（本批 3 条真红从 2026-06 到 2026-08 潜伏了一到两个月）|
 | **架构债 D-2** | ⏸ 待与协作者谈权属（下游建墙面改代码确定性生成）|
-| **F-9 的治本（路线 ①/②）** | ⏸ 设计稿未出。**张力**：配对全交给代码 ⇒ 彻底合铁律 #1，但 `source_ids` 的「模型自证用了哪条证据」语义会被架空。**待用户拍板** |
+| **F-9 的治本** | ✅ **2026-08-09 用户拍板走【路线②】**：模型**只指认证据**（哪张图/哪条标注），**换算与校验全归代码且只留一份实现**；「模型引错证据」走结构化拒绝+归档重抽，⛔ 不升级为不变量硬崩。详 [decision_log §5.15](decision_log.md)。**⏸ 设计稿待出**；⛔ 仍是 reading 重启的前置 |
 | **交叉审** | ✅ **已完成**（08-08 核实此行原写「⏳ 请求书已备」属过期）：裁决书 [`verdict/2026-08-07_f12_f9_f13_crossreview_glm.md`](logs/reviews/verdict/2026-08-07_f12_f9_f13_crossreview_glm.md) · follow-up 两把正确性锁已落库（`c366502`→`af39939`）|
 | **F-14 候选（新登记）** | ⏸ `tests/test_zone_agent.py` **无任何 mock**（`tests/` 下无 `conftest.py`）、单跑 13.5s ⇒ **真调付费 API**。⇒ 全仓绿额外依赖 API 可用性与凭据、**每跑一次全仓都在烧钱**、天然 flaky 源（已实际造成一次基线红）。机械扫描确认**同类只此一条** |
 | **其它新登记（未排期）** | 接地面无地温输入（EP 用默认 18℃）· World 坐标系下非零 North Axis 被 EnergyPlus 忽略（将来撞 `relative_north_axis` 模式）· **环检测计数缺口**（老排序器还顺带把乱序顶点排回环，这层安全网在 r1 里仍保留，但没有仪表）|
