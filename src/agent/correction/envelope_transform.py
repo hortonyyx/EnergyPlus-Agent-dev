@@ -390,38 +390,99 @@ def _canonical_open_ccw(points, tol: CoreTolerances):
 
 
 def _apply_components(candidate: CorrectedGeometryV3, components: dict[str, SharedAxisComponent], tol: CoreTolerances) -> dict[str, list[str]]:
+    """Move every shared-axis component onto the candidate's rings.
+
+    F-17 fix (2026-08-09): three phases replace the old "move while judging"
+    loop, which iterated `components.values()` one component at a time and
+    mutated each ring in place before moving on to the next component. When a
+    second component was axis-orthogonal to the first (one on x, one on y),
+    its `_on_component` test ran against coordinates the FIRST component had
+    already moved: a shared corner could fall outside the second component's
+    interval purely because the first component had shifted it off its own
+    axis. `_materialize_axis_splits` would then insert a fresh point back at
+    the original (now legitimately in-interval) location and move only that
+    new point -- splitting one right angle into two points joined by a 45deg
+    edge. Full mechanism, real-data repro and a 15-cell combination matrix:
+    AI_agent/logs/experiments/2026-08-09_f17_envelope_cross_axis_chamfer/README.md
+
+    Phase 1 (materialize) -- insert every component's T-junction/graph-closure
+      split points into the ring exactly as given, without moving anything,
+      so every component still sees the untouched, pre-transform coordinates
+      no matter what order they run in. Do not skip this: it is what keeps an
+      interior wall's endpoint attached to the moved boundary in non-rect
+      (L/U-shaped) footprints -- see the two grids exercised in
+      tests/test_f17_cross_axis_envelope.py.
+    Phase 2 (relocate) -- test every vertex (materialized or original)
+      against EVERY component using that vertex's frozen original
+      coordinates (never the coordinates written by an earlier match in this
+      same phase), and apply every axis that matches. One corner can be
+      claimed by an x component and a y component in the same pass, each
+      writing its own coordinate independently -- this is what legacy's
+      bbox/index representation got "for free" (`values[edge_idx] = new`) and
+      the v3 vertex-ring/predicate representation silently lost.
+    Phase 3 (normalize) -- unchanged: canonical CCW / rect fallback / ring
+      validation, operating on the fully relocated ring.
+    """
     moved = {"floor_vertex_refs": [], "cell_vertex_refs": [], "window_span_refs": [], "promoted_rect_cells_to_polygon": []}
-    for component in components.values():
-        idx = 0 if component.axis == "x" else 1
-        for floor in candidate.floors:
-            ring = []
-            for n, point in enumerate(_materialize_axis_splits(floor.footprint.vertices, component, tol)):
-                values = list(point)
-                if _on_component(values, component.axis, component.old_value, component.intervals, tol):
-                    values[idx] = component.new_value; moved["floor_vertex_refs"].append(f"{floor.id}:{n}")
-                ring.append(tuple(values))
-            floor.footprint = FootprintRing(vertices=_canonical_open_ccw(ring, tol))
-            for cell in floor.cells:
-                original_polygon = cell_has_polygon(cell)
-                points = _materialize_axis_splits(_owner_points(cell), component, tol)
-                changed = False; updated = []
-                for n, point in enumerate(points):
-                    values = list(point)
-                    if _on_component(values, component.axis, component.old_value, component.intervals, tol):
-                        values[idx] = component.new_value; changed = True; moved["cell_vertex_refs"].append(f"{floor.id}:{cell.id}:{n}")
-                    updated.append(tuple(values))
-                if changed:
-                    updated = _canonical_open_ccw(updated, tol)
-                    xs, ys = {p[0] for p in updated}, {p[1] for p in updated}
-                    is_rect = len(updated) == 4 and len(xs) == 2 and len(ys) == 2
-                    if original_polygon or not is_rect:
-                        if not original_polygon: moved["promoted_rect_cells_to_polygon"].append(cell.id)
-                        set_cell_polygon_vertices(cell, updated)
-                    else:
-                        cell.x, cell.y = [min(xs), max(xs)], [min(ys), max(ys)]
+    comps = list(components.values())
+
+    def materialize(points):
+        for component in comps:
+            points = _materialize_axis_splits(points, component, tol)
+        return points
+
+    def relocate(points, ref_prefix: str, bucket: str):
+        out = []
+        for n, point in enumerate(points):
+            original = list(point)  # every component below tests THIS, never `resolved`
+            resolved = list(original)
+            for component in comps:
+                if _on_component(original, component.axis, component.old_value, component.intervals, tol):
+                    idx = 0 if component.axis == "x" else 1
+                    resolved[idx] = component.new_value
+                    moved[bucket].append(f"{ref_prefix}:{n}")
+            out.append(tuple(resolved))
+        return out
+
+    for floor in candidate.floors:
+        ring = relocate(materialize(floor.footprint.vertices), floor.id, "floor_vertex_refs")
+        floor.footprint = FootprintRing(vertices=_canonical_open_ccw(ring, tol))
+        for cell in floor.cells:
+            original_polygon = cell_has_polygon(cell)
+            before = [tuple(p) for p in _owner_points(cell)]
+            updated = relocate(materialize(_owner_points(cell)), f"{floor.id}:{cell.id}", "cell_vertex_refs")
+            if [tuple(p) for p in updated] == before:
+                continue
+            updated = _canonical_open_ccw(updated, tol)
+            xs, ys = {p[0] for p in updated}, {p[1] for p in updated}
+            is_rect = len(updated) == 4 and len(xs) == 2 and len(ys) == 2
+            if original_polygon or not is_rect:
+                if not original_polygon: moved["promoted_rect_cells_to_polygon"].append(cell.id)
+                set_cell_polygon_vertices(cell, updated)
+            else:
+                cell.x, cell.y = [min(xs), max(xs)], [min(ys), max(ys)]
     for floor in candidate.floors:
         for cell in floor.cells:
-            if cell_has_polygon(cell): validate_cell_polygon(cell, min_edge_length_m=tol.min_edge_length_m)
+            if not cell_has_polygon(cell):
+                continue
+            try:
+                validate_cell_polygon(cell, min_edge_length_m=tol.min_edge_length_m)
+            except ValueError as exc:
+                # F-17 classification fix: a chamfered/degenerate cell ring
+                # produced by this transform must fail CLOSED through the
+                # same structured-rejection channel every other invariant in
+                # this transaction uses -- `EnvelopeTransformRejected` is
+                # caught by `apply_v3_envelope_transaction`'s try/except
+                # below and turned into an archived, resample-eligible
+                # conflict. A bare ValueError here (the pre-fix behaviour)
+                # instead escapes uncaught all the way out of the deterministic
+                # core and blows through the whole flow with zero attempts
+                # archived -- the same shape as the F-15 second wall.
+                raise EnvelopeTransformRejected(
+                    "correction.envelope_cell_ring_valid",
+                    str(exc),
+                    {"floor_id": floor.id, "cell_id": cell.id},
+                ) from exc
     bbox = footprint_bbox(candidate)
     candidate.footprint_x, candidate.footprint_y = list(bbox[0]), list(bbox[1])
     return moved
@@ -452,7 +513,7 @@ def _append_evidence_audit(geom: CorrectedGeometryV3, envelope: AuthoritativeEnv
 def _conflict_shape(gate_id: str) -> tuple[str, str]:
     if gate_id in {"correction.window_host_unique", "correction.window_host_resolution", "correction.envelope_identity_snapshot", "correction.envelope_axis_attachment", "correction.envelope_schema_scope", "correction.envelope_evidence_scope"}:
         return "reference_or_identity_ambiguity", "numeric"
-    if gate_id in {"correction.envelope_topology_preserved", "correction.envelope_ring_valid", "correction.shared_boundary_consistency", "correction.envelope_min_edge", "correction.envelope_notch_depth_authority"}:
+    if gate_id in {"correction.envelope_topology_preserved", "correction.envelope_ring_valid", "correction.envelope_cell_ring_valid", "correction.shared_boundary_consistency", "correction.envelope_min_edge", "correction.envelope_notch_depth_authority"}:
         return "unsupported_geometry", "topology_identity"
     return "facade_plan_mismatch", "numeric"
 
