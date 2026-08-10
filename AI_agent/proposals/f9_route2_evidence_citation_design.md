@@ -1,7 +1,42 @@
 # F-9 治本设计稿 · 路线②：模型只指认证据，代码做换算与校验
 
-> **状态**：设计稿 v1（orchestrator 出稿，2026-08-09）· **⛔ 未施工、待用户过目**
-> **拍板依据**：[decision_log §5.15](../decision_log.md)（用户 2026-08-09 拍板走路线②）
+> # ⛔⛔ 本稿（v1）已被交叉审判 **REWORK** —— **不得据此施工**
+>
+> **裁决**：[`logs/reviews/verdict/2026-08-09_f9_route2_design_crossreview_sol.md`](../logs/reviews/verdict/2026-08-09_f9_route2_design_crossreview_sol.md)
+> （`gpt-5.6-sol` / effort max）= **REWORK**，3 BLOCKER / 5 MAJOR / 1 MINOR。
+> **三条 BLOCKER 的承重命题已由 orchestrator 逐条独立核实，全部成立**：
+> - **B1** —— 本稿会把一道**现存且有真实夹具证明**的交叉校验（`window_host.py:832`
+>   的 `source_geometry_mismatch`，真实事故见 `tests/test_f9_window_host_crash.py:174`）
+>   改成**恒真式**：从被引 stroke 派生 span 再与同一 stroke 比较。**§0/§2/§4/§7 据此全部失效。**
+> - **B2** —— §2 的派生入口写错：现行强制契约由 `existence.source_ids` 驱动，不是 `along`；
+>   且 `CORRECTION_DRAW_DERIVED`（F-16 那套）**做不了外部证据派生**（`span` 需要 manifest／
+>   raw reading／方向 binding／ring，schema validator 拿不到）。**§1 末尾「已有现成机制」失效。**
+> - **B3** —— ⛔ **§1 的核心论断「缺的只是让确定性结果当权威」是错的**：
+>   `_advisory_elevation_world_frame` 的 advisory 标记**有明确、可追溯的原因** ——
+>   引入它的提交 `99d9521` 说明逐字写着「**B3 的同义反复风险已避开**：该区间标注为 advisory，
+>   **绝不进任何强制路径**」，并当场登记了 `lo==0` 只是假设。实证代价：advisory 给
+>   `[11.36,13.76]`，权威 current-ring 给 `[11.24,13.64]` ⇒ **0.12 m**。**提权即引入静默错误。**
+>
+> **另 4 条 MAJOR 级事实错误**（均已核实）：镜像约定实际**至少 4 份**（漏 `facade.py::_CONVENTION`，
+> 且它真接在 `envelope.py:222` 生产路径上，**故 §1「3 份」与 §3 S1 的盘点不完整**）·
+> §2 写的模型证据格式 `src:<input_id>:<observation_id>:<sha256>` **模型算不出**
+> （其合法输出是 `North_view/S7`，由代码翻译）· **§3 的 S1–S4 不可独立验收**
+> （S3 单独落地会产生「错引证据 ⇒ 合法但错误的窗位」的危险中间态）·
+> §2 指定复用的 `VaElevationViewBindingV1` **要求各层 footprint 指纹与 extent 完全一致**
+> ⇒ **退台当场违反铁律 #6**（§7 的可扩展性声称不成立）。
+>
+> **sol 给的安全顺序**（v2 起点）：
+> `S0（证据身份门 + raw/hydrated/full 三阶段合同）→ S1（gt-free 单一 convention）
+> → shadow projector（保留旧 span 对照）→ S4 detector/routing → S3 cutover`。
+>
+> **⚠️ 返工纪律**：v1 由 orchestrator 亲手出稿并被判 REWORK
+> ⇒ **v2 不宜再由 orchestrator 亲手写**（同一个人同一个盲区）。
+> **⏸ 用户 2026-08-09 定：本轮只登记，返工单独开一批。**
+>
+> **⛔ 以下正文保留为 v1 原文（含已被证伪的论断），仅供返工时对照，⛔ 不是可施工规格。**
+
+> **状态**：设计稿 v1（orchestrator 出稿，2026-08-09）· **⛔ REWORK，不得施工**
+> **拍板依据**：[decision_log §5.15](../decision_log.md)（用户 2026-08-09 拍板走路线②——**路线选择本身未被推翻**，被推翻的是这份实现设计）
 > **前置**：⛔ 本条是 **reading 重启的前置** —— reading 一出真产物，1_correction 被真跑，这条路立刻现形。
 
 ---

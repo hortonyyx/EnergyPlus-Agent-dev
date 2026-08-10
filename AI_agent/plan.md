@@ -768,10 +768,122 @@ fallback_action = invariant_no_geometry_commit   ⇒ 按 F-9 的设计【故意�
 `attempts/001/` 有归档（`checks.json` + `output.json`），与 08-08 的「零归档」不同 ——
 但这是 draw 阶段的正常归档，**不是**分类修法的功劳（见上）。
 
+### 六之十四、⭐⭐⭐ 2026-08-09 续场（A+B 并行）：**F-18 真链路证实解开、撞出 F-19** + **F-9 设计稿判 REWORK**
+
+> **用户本轮拍板**：① 排工 = **A+B 并行**（A = 跑真链路撞后段；B = F-9 设计稿交 sol 对抗审）；
+> ② F-9 设计稿里判卷侧那份重复常量**可以动**；③ 真链路**一路跑到 EnergyPlus**；
+> ④ F-19 修法**现在就派 Claude 侧 Sonnet**，并**把同族排查纳入同批**；⑤ F-9 返工**本轮先只登记**。
+> 打法依据 = 用户 08-05 定的「绕开卡点先撞后段」——串行修墙会让后段缺陷无限期潜伏（F-10 断一个月即此）。
+
+#### A 摊 · run `run_2026-08-09_f18_e2e_verify`（flow 退出码 20）
+
+**⭐ 「唯一变量」这次是机械证据不是声称**：`policy_hash = d058a59f…` 与
+`view_manifest content_sha256 = f52ca79c…` **两个都与 08-09 f17 那次逐字一致**，
+`envelope_transform.py` 源码指纹 `604dc15ff0f8cb05` 亦一致 ⇒ 唯一变量 = F-18 修法。
+（`run_config.yaml` 已按 08-09 新纪律**先于 provision 落盘**。）
+
+```
+[0_reading]     deterministic_pass
+[1_correction]  deterministic_pass    ← ⭐ 第一次过（attempts=1, accepted=1）
+[2_modelling]   deterministic_defect
+   ⛔ kernel.window_parent_binding: 15 built window parent-binding defect(s)
+```
+
+**✅ F-18 已由真链路证实解开** —— 上一轮正是死在校正段写回去那一步，本轮一次抽签即过。
+**战线从「1_correction 写入侧」前移到「2_modelling 几何造面」。**
+
+#### ⛔ 新登记 F-19（内核门恒红，**几何是对的**）· [调查全档](logs/experiments/2026-08-09_f19_window_parent_binding/README.md)
+
+orchestrator 亲跑，**只读 · 零 LLM 成本 · 零生产码改动**；三个可复跑探针随报告入库。
+
+- **⛔ 第一个数字骗人**：按下标逐顶点求差得 **1.2–3.6 米**，看着像严重几何错。
+  逐窗机械归类后：**15/15 循环旋转 · 位移恒为 3 · 法向全部保持 · 零绕向反 · 零坐标真不同**
+  ⇒ **几何正确、EP 等价**。兑现 08-06 纪律：**「顺序不同」必须再分 循环旋转／绕向反**。
+- **根因（决定性验证：两边过同一规范化后 15/15 逐位相等，直接比 0/15）**：
+  `built.verts` 走 `build.py:80-85` 的 `_canonicalize_bg_vertices`（**F-13 于 08-06 `a3458cc` 加的，对窗也做**），
+  而 `kernel.py:344-358` 的复算侧直调 `window_verts_on_line` **不走规范化**
+  ⇒ `kernel.py:362` 的 `!=` 逐位比恒假。
+- **门生于 07-18（`2885a84`）一直是对的，08-06 被 F-13 修法打坏，潜伏 3 天**
+  （**B 类潜伏**：这 3 天没有 run 走到过 v3 契约 + 真实 proof 的 2_modelling）。
+- **⛔⛔ 为什么 2339 绿一条没抓到 —— 该门的 7 条测试【全部只断言 fail】、零正向锁。**
+  orchestrator 在 `/tmp` 实测（⛔ 未动工作树）：拿该文件自己的 `_bundle()` 夹具、**零改动**跑这道门
+  ⇒ `fail` + `reasons=['built_vertices']` ⇒ **唯一测顶点的那条（`:798`）把 mutation 整行删掉照样绿 = 假锁，已坐实**。
+  ⭐ **新的假锁形态**：**一道门若只有「断言它 fail」的测试、没有「断言它 pass」的测试，
+  则它【恒红】结构上不可能被测试发现，且所有 fail 断言会因此全部永远绿。**
+  比 08-09 sol 抓的那个 MAJOR 更隐蔽（那次至少有正向锁，只是夹具选错）。
+- **修法方向**：路线①、与 F-13 r1 同精神 —— 复算侧共用**同一份** `canonicalize_ring_vertices`。
+  ⛔ **明确禁止「循环旋转视为等价」的豁免**（严格才抓得住绕向反 ⇒ 法向翻转 ⇒ 窗挂错房间；
+  用户 08-06 已就同一问题拍过板）。**必须补正向锁**，否则同一个洞原样还在。
+- **派工单**：[`request/2026-08-09_f19_window_parent_binding_fix_dispatch_claude.md`](logs/reviews/request/2026-08-09_f19_window_parent_binding_fix_dispatch_claude.md)
+  （Claude 侧 Sonnet；含 §0 防假验证三问 · L-1…L-4 四把锁 · **§2.3 同族排查**〔用户拍板纳入〕· 合法退出口）。
+  **⛔ 首次派出撞 5h 额度窗中断、零产出**（已用 `git diff` 核实，**纪律再次兑现**）；额度恢复后重派。
+
+#### ✅ F-19 已修 + orchestrator 轻门 PASS（`d103c3e`）· [执行日志](logs/reviews/execution/2026-08-09_f19_window_parent_binding_claude.md)
+
+修法 = 复算侧共用**同一份** `canonicalize_ring_vertices`（用其自身自洽 Newell 法向，与
+`_canonicalize_bg_vertices` 逐字同构）；**比较仍是精确 `!=`**，⛔ 未加容差、⛔ 未加豁免。
+补 **4 把锁**（L-1 四朝面正向锁〔**该门此前零正向锁**〕· L-2 自证前提 · L-3 用真实入口
+`check_kernel` 先断言干净夹具必须过 · L-4 绕向反转防豁免）。
+
+**⭐ orchestrator 轻门两个换方向 neuter**（施工席三个方向全在夹具层，故不重复）：
+
+| 方向 | 结果 |
+|---|---|
+| ① **接线** —— 真实产物走真实入口重跑 2_modelling | `deterministic_pass`，gate① **零 block 零 flag**（attempt 001 = 15 条缺陷 → 002 = 过）⇒ **兑现 F-5 教训：夹具自洽不算数** |
+| ② **安全属性** —— 真实 15 窗上量 | 正确绕向 **15/15 放行** · **绕向反转 15/15 仍被拦下** ⇒ 源码注释那条「规范化修不好真正反了的绕向」由**推理**升级为**真实几何实测**，「窗挂错房间」那条防线未被削弱 |
+
+**独立全量 2345 passed / 10 xfailed / 0 failed**（2339+6，零回归，与施工席逐字一致）。
+**§2.3 同族排查 0 新命中**；orchestrator 抽验其调用点清单完整无遗漏
+（`window_verts_on_line` 的 4 个消费点、`canonicalize_ring_vertices` 的全部调用点均已对账）。
+
+**⛔ 结转两条**：① **NIT** = 正向锁 L-1 走私有 helper 而非真实入口 `check_kernel`（L-3 已覆盖，不阻塞）；
+② **登记一条未证实的理论缺口** = `_live_idf_vertex_drift_issues` 若存在绕过 `GeometrySchema`
+的原始片段注入路径，理论上可能重演同类问题（施工席如实标注「未证实、不计入命中」，需独立调查）。
+**⛔ 审阅债：本修法 Claude 侧施工 + orchestrator 轻门，按「谁写谁不批」仍应交 GPT/GLM 侧跨家族复核。**
+
+#### B 摊 · sol 对抗审 F-9 路线②设计稿 ⇒ **REWORK**（3 BLOCKER / 5 MAJOR / 1 MINOR）
+
+[请求书](logs/reviews/request/2026-08-09_f9_route2_design_crossreview_brief_sol.md) ·
+[裁决书](logs/reviews/verdict/2026-08-09_f9_route2_design_crossreview_sol.md)（`gpt-5.6-sol` / effort max，只读）
+
+**三条 BLOCKER 的承重命题 orchestrator 已逐条独立核实，全部成立**：
+
+| | sol 的命题 | orchestrator 的核实 |
+|---|---|---|
+| **B1** | 设计会把一道**现存且有真实夹具证明**的交叉校验改成恒真式 | ✅ `window_host.py:832` 的 `source_geometry_mismatch` 真实存在，`tests/test_f9_window_host_crash.py:174` 逐字写着 "The real F-9 conflicts (4x `source_geometry_mismatch`)"。真实事故形态 = 模型 span `[1.24,3.64]`（**对的**）却错引北立面镜像搭档 `North_view/S5` ⇒ **两个独立观测量对不上才抓到**。按设计改完，**同一条证据自己跟自己比、按构造必过** |
+| **B2** | 派生入口写错（`along` vs `existence`），且 `CORRECTION_DRAW_DERIVED` 做不了外部证据派生 | ✅ 现行 `_claim_links` 由 `existence.source_ids` 驱动；F-16 的 `floor` 是**同一 draw 内**派生，而 `span` 需要 manifest／raw reading／方向 binding／ring，schema validator 拿不到 |
+| **B3** | `_advisory_elevation_world_frame` 的 advisory 标记**有明确原因**，不是「当初没人敢用」 | ✅ **提交 `99d9521` 说明逐字写着**「**B3 的同义反复风险已避开**：该区间标注为 advisory，**绝不进任何强制路径**」，并**当场登记了** `lo==0` 只是假设、真实 fixture 已有 `lo=0.12`、退台/L 形会静默误导。实证代价：advisory 给 `[11.36,13.76]`，权威 current-ring 给 `[11.24,13.64]` ⇒ **0.12 m** |
+
+**⛔⛔ 本轮 orchestrator 最该记住的一条 —— B3 是 F-13 那条教训的原样重犯，只是这次「多余的东西」是一个标记**：
+设计稿写「源码逐字写着 never authoritative，**缺的只是让它当权威**」，
+而**理由就写在引入它的那次提交说明里，我没去读**。
+⇒ **纪律扩写**：「删掉／推翻一段看起来多余的东西之前，先找出它在为哪份契约服务」
+**这条同样适用于一个标记、一个 flag、一句注释** —— 问法不变：**这东西没了，谁会因为「以为它还在」而算错？**
+且**首选证据是引入它的那次提交说明**，不是当前源码。
+
+**另有 4 条 orchestrator 数错／写错的**（均已核实）：
+① 镜像约定实际**至少 4 份**（漏了 `facade.py::_CONVENTION`，且它真接在 `envelope.py:222` 生产路径上）·
+② 模型输出的证据格式写错（模型算不出内部 hash，其合法输出是 `North_view/S7`，由代码翻译）·
+③ S1–S4 **不可独立验收**（S3 单独落地会产生「错引证据 ⇒ 合法但错误的窗位」的危险中间态）·
+④ 指定复用的 `VaElevationViewBindingV1` **要求各层 footprint 指纹与 extent 完全一致** ⇒ **退台当场违反铁律 #6**。
+
+sol 给出的安全顺序 = `S0（证据身份门＋三阶段合同）→ S1（gt-free 单一 convention）→ shadow projector → S4 detector/routing → S3 cutover`。
+
+**⇒ 用户 08-09 定：本轮先只登记，返工单独开一批。**
+
+#### ⭐ 两条通用方法论（本轮实测换来）
+
+1. **加一层规范化 = 换表示**，与 F-17 那条「换表示会让【免费的】正确性静默蒸发」**互为镜像**：
+   F-17 是*重写丢掉了旧表示免费送的正确性*；F-19 是*新增的规范化打破了既有比较的相等前提*。
+   ⇒ **必答题扩写为两问**：换表示时问「旧表示里有哪些正确性是免费的」；
+   **加规范化时问「谁在拿未规范化的形态跟它比」**。
+2. **「按下标逐位求差」在两个环起笔点不同时，会把纯顺序差异放大成米级数字** ⇒ 见到大偏差**先分类再定性**。
+
 ### 七、结转
 
 | 事项 | 状态 |
 |---|---|
+| **F-19** | ✅ **已修 + orchestrator 轻门 PASS**（`d103c3e`，Claude 侧 Sonnet 施工）。修法 = 复算侧共用同一份 `canonicalize_ring_vertices`，**比较仍精确 `!=`**（⛔ 未加容差、⛔ 未加循环旋转豁免）· 补 **4 把锁**（该门此前**零正向锁**）· 独立全量 **2345 / 10 xfail / 0 红**（2339+6，零回归）。**⭐ orchestrator 两个换方向 neuter**（施工席三个方向全在夹具层）：① **接线** = 真实产物走真实入口重跑 2_modelling ⇒ `deterministic_pass`、gate① 零 block 零 flag（attempt 001=15 缺陷 → 002=过，**兑现 F-5 教训**）· ② **安全属性** = 真实 15 窗上量，正确绕向 15/15 放行、**绕向反转 15/15 仍被拦下** ⇒ 源码注释那条「规范化修不好真正反了的绕向」由**推理**升级为**真实几何实测**。**同族排查 0 新命中**（用户拍板纳入同批；orchestrator 抽验其调用点清单完整无遗漏）。⛔ **审阅债：仍应交 GPT/GLM 侧跨家族复核。** 详「六之十四」 |
 | **F-16** | ✅ **已修 + 真链路证实解开**（`15ea05d`，GLM 交叉审 APPROVE，run `run_2026-08-08_f16_e2e_verify`）。详「六之十／六之十一」 |
 | **F-17（⛔ 下一件 = 出派工单）** | ✅ **调查完成、根因已实测坐实**（2026-08-09，orchestrator 亲跑，零 LLM 成本，[全档](logs/experiments/2026-08-09_f17_envelope_cross_axis_chamfer/README.md)）。**根因 = 跨轴组件的顺序耦合**（⛔ 立项时登记的「materialize 插点后部分移动」推断**已被实测推翻**）· 修法方向已用反事实探针验证（斜边归零）· **修法与锁待施工**，详见「六之十二」 |
 | **F-17** | ✅ **已修 + 真链路证实解开**（`2c8aca3`，orchestrator 轻门 PASS，run `run_2026-08-09_f17_e2e_verify`）。⛔ **分类修法那一半未被真链路验证**（本 run 没产生斜边、那条 try/except 没执行到）⇒ 需要一次能触发 cell 环失败的真实产物才算闭合 |
@@ -793,7 +905,8 @@ fallback_action = invariant_no_geometry_commit   ⇒ 按 F-9 的设计【故意�
 | **F-8** | ✅ **已收口**：4 文件（合计 45.0 KB）`git add -f` 入仓，干净 worktree 验证「前 3 红 / 后 0 红」，主树全仓零回归。详见 [`execution/2026-08-06_f8_closeout_claude.md`](logs/reviews/execution/2026-08-06_f8_closeout_claude.md) |
 | **F-8 防复发机械检查（新登记，⛔ 只立项未实现）** | ⏸ **选项 A**：AST 静态扫描测试文件路径字面量逐个 `git check-ignore`，命中即拦（pre-commit/PR 级）——代价 = heuristic、漏动态拼接路径、需维护豁免白名单；成本低、秒级。**选项 B**：CI 加「全新检出 + 全仓测试」影子任务（`git clone --depth1 && uv sync --frozen && pytest`）——代价 = 每次多几分钟 + 独立算力，但零遗漏（连 venv/editable-install 这类非 gitignore 起因的环境假象也一并捕获，本次 F-8 排查已实证）。**建议分层用**：A 做日常 pre-commit 快门、B 做合并前/每日一次的权威门，呼应既有「轻门=唯一权威门、日常跑子集」节奏。**要防的复发形态** = 新增测试悄悄依赖了一个被 `.gitignore` 挡住的文件 ⇒ 本机全绿、新克隆/CI 必红，且没人会主动发现（本批 3 条真红从 2026-06 到 2026-08 潜伏了一到两个月）|
 | **架构债 D-2** | ⏸ 待与协作者谈权属（下游建墙面改代码确定性生成）|
-| **F-9 的治本** | ✅ 已拍板路线② · ✅ **设计稿 v1 已出**（[proposals/f9_route2_evidence_citation_design.md](proposals/f9_route2_evidence_citation_design.md)，orchestrator 出稿，**待用户过目**）。⭐ **关键发现：零件基本都在** —— 确定性换算 `_advisory_elevation_world_frame` 已存在、帧参数 `VaElevationViewBindingV1` 已算出、模型指认证据的通道 `source_ids` 已存在，**缺的只是「让确定性结果当权威」**（源码里逐字写着 advisory / never authoritative）。⛔ **附带必做**：`_BASE_SIGN` 声明了 3 份、其中一份在 **judge 侧**（判卷方与生产方可各自漂）⇒ 合成单一来源是本设计的组成部分。分 S1–S4 四步，**S1（合成单一来源）必须最先**。⚠️ 三条未决见设计稿 §6 |
+| **F-9 的治本（⏸ 用户 08-09 定：本轮只登记，返工单独开一批）** | ⛔ **设计稿 v1 经 sol 对抗审判 REWORK**（3 BLOCKER / 5 MAJOR / 1 MINOR，[裁决书](logs/reviews/verdict/2026-08-09_f9_route2_design_crossreview_sol.md)）· **⛔ 不得据 v1 施工**。三条 BLOCKER 的承重命题 orchestrator 已逐条独立核实**全部成立**：① 设计会把**现存且有真实夹具证明**的交叉校验 `source_geometry_mismatch` 改成恒真式；② 派生入口写错（`along` vs `existence`）且 `CORRECTION_DRAW_DERIVED` 做不了外部证据派生；③ ~~「缺的只是让确定性结果当权威」~~ —— **`_advisory_elevation_world_frame` 的 advisory 标记有明确原因**，提交 `99d9521` 逐字写着「绝不进任何强制路径」且当场登记了 `lo==0` 假设与 0.12 m 实证代价。另 4 条 orchestrator 数错／写错（镜像约定实际**至少 4 份**、模型证据格式写错、S1–S4 不可独立验收、指定复用的帧参数**违铁律 #6**）。**sol 给的安全顺序** = `S0（证据身份门＋三阶段合同）→ S1 → shadow projector → S4 detector → S3 cutover`。⚠️ **返工不宜再由 orchestrator 亲手出稿**（v1 即其亲手所写并被判 REWORK）。详「六之十四」 |
+| ~~**F-9 的治本**~~ | ~~✅ 设计稿 v1 已出，关键发现「零件基本都在」~~ —— **该判断已被 sol 交叉审证伪，见上一行** |
 | ~~**F-9 的治本**~~ | ~~2026-08-09 用户拍板走【路线②】~~：模型**只指认证据**（哪张图/哪条标注），**换算与校验全归代码且只留一份实现**；「模型引错证据」走结构化拒绝+归档重抽，⛔ 不升级为不变量硬崩。详 [decision_log §5.15](decision_log.md)。**⏸ 设计稿待出**；⛔ 仍是 reading 重启的前置 |
 | **交叉审** | ✅ **已完成**（08-08 核实此行原写「⏳ 请求书已备」属过期）：裁决书 [`verdict/2026-08-07_f12_f9_f13_crossreview_glm.md`](logs/reviews/verdict/2026-08-07_f12_f9_f13_crossreview_glm.md) · follow-up 两把正确性锁已落库（`c366502`→`af39939`）|
 | **F-14 候选（新登记）** | ⏸ `tests/test_zone_agent.py` **无任何 mock**（`tests/` 下无 `conftest.py`）、单跑 13.5s ⇒ **真调付费 API**。⇒ 全仓绿额外依赖 API 可用性与凭据、**每跑一次全仓都在烧钱**、天然 flaky 源（已实际造成一次基线红）。机械扫描确认**同类只此一条** |
