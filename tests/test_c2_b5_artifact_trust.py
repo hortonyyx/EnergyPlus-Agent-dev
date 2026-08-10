@@ -1084,7 +1084,8 @@ def test_f20_l5_stage_root_convenience_copy_tamper_does_not_affect_v2_authority(
     clean = validate_case(tmp_path, policy=policy)
     assert _trust_row(clean.reports["1_correction"]).status == CheckStatus.PASS
     assert clean.geometry_digest is not None
-    accepted_hash_before = record.output_hash
+    manifest_path = tmp_path / "_run" / "run_manifest.json"
+    manifest_before = manifest_path.read_bytes()
 
     stage_root_data = json.loads(stage_root.read_text())
     stage_root_data["windows"][0]["room"] = "forged-room"
@@ -1092,7 +1093,7 @@ def test_f20_l5_stage_root_convenience_copy_tamper_does_not_affect_v2_authority(
 
     res = validate_case(tmp_path, policy=policy)
     assert stage_root.read_bytes() != accepted_output.read_bytes()  # only stage-root changed
-    assert record.output_hash == accepted_hash_before  # accepted manifest hash untouched
+    assert manifest_path.read_bytes() == manifest_before  # on-disk accepted ledger untouched
 
     trust = _trust_row(res.reports["1_correction"])
     assert trust.status == CheckStatus.PASS  # V2 authority is unaffected by the tampered copy
@@ -1228,7 +1229,7 @@ def test_f20_nit1_unparseable_manifest_is_fail_closed_not_treated_as_no_manifest
     assert trust.status == CheckStatus.FAIL
     # ⛔ must not be silently absorbed into "no manifest" (fail-open onto the
     # untrusted stage-root convenience copy).
-    assert trust.status != CheckStatus.NOT_APPLICABLE
+    assert "run manifest is present but unreadable" in trust.message
     assert res.geometry_digest is None
 
 
@@ -1274,6 +1275,87 @@ def _write_legacy_v2_accepted(tmp_path: Path):
     return geom, bg, manifest
 
 
+def test_f20_major1_v2_rejection_never_falls_back_to_buildable_legacy_stage_root(
+    tmp_path: Path,
+):
+    """A V2 ledger rejection must never regain a digest through the legacy
+    stage-root path.
+
+    This deliberately uses a buildable legacy-schema stage root.  A v3 root
+    would be independently rejected by the legacy resolver and would mask the
+    resolver-level fail-open mutation this lock is meant to catch.
+    """
+    _geom, _bg, _manifest = _write_legacy_v2_accepted(tmp_path)
+    policy = RunPolicy(capability_profile="rectangular")
+    provision_run_policy(tmp_path, run_profile="exploratory", capability_profile="rectangular")
+
+    clean = validate_case(tmp_path, policy=policy)
+    clean_trust = _trust_row(clean.reports["1_correction"])
+    assert clean_trust.status == CheckStatus.PASS, clean_trust.message
+    assert clean.geometry_digest is not None
+    assert approve_geometry(
+        tmp_path, actor="f20-major1-clean", timestamp="2026-08-10T00:00:00Z",
+    ) is not None
+
+    accepted_output = tmp_path / "1_correction" / "attempts" / "001" / "output.json"
+    accepted_output.write_bytes(accepted_output.read_bytes() + b" ")
+
+    res = validate_case(tmp_path, policy=policy)
+    trust = _trust_row(res.reports["1_correction"])
+    assert trust.status == CheckStatus.FAIL
+    assert "accepted 1_correction artifact chain rejected" in trust.message
+    assert res.geometry_digest is None
+    assert approve_geometry(
+        tmp_path, actor="f20-major1-rejected", timestamp="2026-08-10T00:01:00Z",
+    ) is None
+
+
+def test_f20_minor1_manifest_dispatch_exception_is_reported_as_error(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch,
+):
+    import src.agent.execution.validation_run as validation_run_module
+
+    _geom, _bg, _manifest = _write_legacy_v2_accepted(tmp_path)
+    policy = RunPolicy(capability_profile="rectangular")
+
+    clean = validate_case(tmp_path, policy=policy)
+    clean_trust = _trust_row(clean.reports["1_correction"])
+    assert clean_trust.status == CheckStatus.PASS, clean_trust.message
+    assert clean.geometry_digest is not None
+
+    def sentinel(*args, **kwargs):
+        raise RuntimeError("f20-minor1-manifest-dispatch-sentinel")
+
+    monkeypatch.setattr(validation_run_module, "load_run_manifest", sentinel)
+    res = validate_case(tmp_path, policy=policy)
+
+    trust = _trust_row(res.reports["1_correction"])
+    assert trust.status == CheckStatus.ERROR
+    assert "f20-minor1-manifest-dispatch-sentinel" in trust.message
+    assert res.geometry_digest is None
+    assert "2_modelling" not in res.reports
+
+
+def test_f20_minor1_malformed_legacy_payload_is_reported_as_fail(tmp_path: Path):
+    _geom, _bg = _write_legacy_stage_root(tmp_path)
+    policy = RunPolicy(capability_profile="rectangular")
+
+    clean = validate_case(tmp_path, policy=policy)
+    clean_trust = _trust_row(clean.reports["1_correction"])
+    assert clean_trust.status == CheckStatus.NOT_APPLICABLE, clean_trust.message
+    assert clean.geometry_digest is not None
+
+    stage_root = tmp_path / "1_correction" / "correction_geometry_snapped.json"
+    stage_root.write_text("{not valid json", encoding="utf-8")
+    res = validate_case(tmp_path, policy=policy)
+
+    trust = _trust_row(res.reports["1_correction"])
+    assert trust.status == CheckStatus.FAIL
+    assert "legacy stage-root payload rejected" in trust.message
+    assert res.geometry_digest is None
+    assert "2_modelling" not in res.reports
+
+
 def test_f20_nit1_legacy_schema_manifest_unreadable_is_fail_closed_not_masked(
     tmp_path: Path,
 ):
@@ -1294,5 +1376,5 @@ def test_f20_nit1_legacy_schema_manifest_unreadable_is_fail_closed_not_masked(
     res = validate_case(tmp_path, policy=policy)
     trust = _trust_row(res.reports["1_correction"])
     assert trust.status == CheckStatus.FAIL
-    assert trust.status != CheckStatus.NOT_APPLICABLE
+    assert "run manifest is present but unreadable" in trust.message
     assert res.geometry_digest is None

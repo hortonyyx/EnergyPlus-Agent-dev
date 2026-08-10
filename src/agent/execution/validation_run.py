@@ -152,13 +152,32 @@ def _resolve_correction_source(run_dir: Path, snapped: Path) -> _CorrectionSourc
             trust_status=CheckStatus.FAIL,
             trust_message=f"run manifest is present but unreadable: {exc}",
         )
+    except Exception as exc:  # noqa: BLE001 — dispatcher faults must become a trust report
+        return _CorrectionSource(
+            geom=None, window_host_proof=None, window_evidence=None,
+            trust_status=CheckStatus.ERROR,
+            trust_message=f"run manifest dispatch failed unexpectedly: {exc}",
+        )
 
     if manifest is None or not isinstance(manifest, RunManifestV2):
         reason = (
             "no run manifest" if manifest is None
             else "run manifest is V1 (grandfathered legacy)"
         )
-        return _resolve_legacy_stage_root(snapped, reason=reason)
+        try:
+            return _resolve_legacy_stage_root(snapped, reason=reason)
+        except ValueError as exc:
+            return _CorrectionSource(
+                geom=None, window_host_proof=None, window_evidence=None,
+                trust_status=CheckStatus.FAIL,
+                trust_message=f"legacy stage-root payload rejected: {exc}",
+            )
+        except Exception as exc:  # noqa: BLE001 — unknown failures must become a trust report
+            return _CorrectionSource(
+                geom=None, window_host_proof=None, window_evidence=None,
+                trust_status=CheckStatus.ERROR,
+                trust_message=f"legacy stage-root resolution failed unexpectedly: {exc}",
+            )
 
     try:
         verified = load_verified_accepted_correction(run_dir=run_dir, manifest=manifest)
