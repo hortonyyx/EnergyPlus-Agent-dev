@@ -45,6 +45,13 @@ _EXCLUDED_VALIDATE_CHECKS = {
         "(verify_view_manifest); run_pipeline has no view-manifest wiring yet "
         "— that is a separate, later batch, not this one"
     ),
+    ("1_correction", "correction.accepted_artifact_trust"): (
+        "F-20: this is validate_case's offline audit surface re-verifying the "
+        "on-disk accepted-attempt chain (manifest version / hash / artifact "
+        "contract); the inline run_pipeline caller consumes an already-signed, "
+        "in-memory verified bundle (verify_integrated_gate1_correction) and "
+        "has no on-disk accepted attempt to re-replay this against"
+    ),
 }
 
 

@@ -19,14 +19,22 @@ import json
 from dataclasses import dataclass, field
 from pathlib import Path
 
+from src.agent.correction.parse import ensure_corrected_geometry
 from src.agent.correction.schema import CorrectedGeometry
 from src.agent.execution.approval import geometry_checkpoint_digest, is_approved
 from src.agent.execution.case_metadata import (
     dimensioned_view_states,
     expected_zone_total_from_testdata,
 )
-from src.agent.execution.manifest import RunManifest, StageRecord, hash_text
+from src.agent.execution.manifest import (
+    RunManifest,
+    RunManifestV2,
+    StageRecord,
+    hash_text,
+    load_run_manifest,
+)
 from src.agent.execution.policy import RunPolicy, ValidationScope
+from src.agent.output_coordinates import load_verified_accepted_correction
 from src.agent.state import IntakeOutput
 from src.validator.checks.assembly import check_assembly, check_ep_baseline
 from src.validator.checks.correction import check_correction
@@ -69,6 +77,121 @@ def _load_testdata(case_dir: Path) -> dict | None:
     except json.JSONDecodeError:
         return None
     return data if isinstance(data, dict) else None
+
+
+# F-20: `correction.accepted_artifact_trust` — see
+# AI_agent/proposals/f20_validate_case_v3_proof_design.md §2.2/§3.1/§4.
+# This is the ONLY check_id validate_case adds to the 1_correction report as
+# part of F-20; it is NEVER placed in the 2_modelling report (that report's
+# bytes feed `geometry_checkpoint_digest`'s `hash_obj(kernel_check_report)`,
+# so adding any row there — even an inert NOT_APPLICABLE on a legacy run —
+# would change the digest of every existing approved run on disk).
+_TRUST_CHECK_ID = "correction.accepted_artifact_trust"
+
+
+@dataclass
+class _CorrectionSource:
+    """Resolver output (F-20 §3.1): the single trusted correction geometry
+    (if any) plus the trust fact to fold into the 1_correction report.
+
+    ``geom`` is ``None`` exactly when ``trust_status`` is FAIL/ERROR — a
+    trust failure never falls back to an untrusted geometry for the caller
+    to accidentally check anyway."""
+
+    geom: CorrectedGeometry | None
+    window_host_proof: object | None
+    window_evidence: object | None
+    trust_status: CheckStatus
+    trust_message: str
+
+
+def _resolve_legacy_stage_root(snapped: Path, *, reason: str) -> _CorrectionSource:
+    """No manifest / a grandfathered V1 manifest: the pre-F-20 stage-root
+    audit path, unchanged, for schema v1/v2. A v3 stage-root geometry in this
+    state has no trusted V2 accepted-attempt source at all — FAIL, never
+    guessed at from the untrusted convenience copy."""
+    geom = ensure_corrected_geometry(json.loads(snapped.read_text()))
+    if str(geom.schema_version) == "3":
+        return _CorrectionSource(
+            geom=None, window_host_proof=None, window_evidence=None,
+            trust_status=CheckStatus.FAIL,
+            trust_message=(
+                f"{reason}; a v3 (B5) correction has no trusted V2 accepted-attempt "
+                "source to supply its required window host proof — the stage-root "
+                "convenience copy is never used as a v3 trust source"
+            ),
+        )
+    return _CorrectionSource(
+        geom=geom, window_host_proof=None, window_evidence=None,
+        trust_status=CheckStatus.NOT_APPLICABLE,
+        trust_message=f"{reason}; legacy stage-root geometry continues under the pre-F-20 audit path",
+    )
+
+
+def _resolve_correction_source(run_dir: Path, snapped: Path) -> _CorrectionSource:
+    """F-20: pick the one trusted correction-geometry source. Three states,
+    not a has/hasn't-manifest binary (the F-20 investigation found V1 and V2
+    are two distinct manifest wires, not one) — see design §2.1/§2.2:
+
+      - no manifest, or a grandfathered V1 manifest -> ``_resolve_legacy_stage_root``.
+      - a V2 manifest -> the accepted ``1_correction`` attempt, loaded via
+        ``load_verified_accepted_correction`` (the same function 7 production
+        call sites already use), is the SOLE authority. Any load / hash /
+        artifact-contract failure is FAIL; nothing here ever falls back to
+        the stage-root convenience copy.
+    """
+    try:
+        manifest = load_run_manifest(run_dir)
+    except ValueError as exc:
+        # NIT-1: a manifest file that exists but fails to parse (bad JSON /
+        # unknown manifest_version) is fail-closed data corruption — it must
+        # NOT be silently treated as "no manifest" (that would be fail-open
+        # onto the untrusted stage-root convenience copy).
+        return _CorrectionSource(
+            geom=None, window_host_proof=None, window_evidence=None,
+            trust_status=CheckStatus.FAIL,
+            trust_message=f"run manifest is present but unreadable: {exc}",
+        )
+
+    if manifest is None or not isinstance(manifest, RunManifestV2):
+        reason = (
+            "no run manifest" if manifest is None
+            else "run manifest is V1 (grandfathered legacy)"
+        )
+        return _resolve_legacy_stage_root(snapped, reason=reason)
+
+    try:
+        verified = load_verified_accepted_correction(run_dir=run_dir, manifest=manifest)
+        geom = ensure_corrected_geometry(json.loads(verified.raw_output_bytes.decode("utf-8")))
+        if verified.window_host_proof is None:
+            return _CorrectionSource(
+                geom=geom, window_host_proof=None, window_evidence=None,
+                trust_status=CheckStatus.PASS,
+                trust_message="V2 accepted attempt is a verified legacy (non-B5) correction",
+            )
+        from src.agent.correction.window_host import WindowHostsArtifactV1
+
+        hosts_artifact = WindowHostsArtifactV1.model_validate_json(
+            verified.raw_window_hosts_bytes
+        )
+        return _CorrectionSource(
+            geom=geom, window_host_proof=verified.window_host_proof,
+            window_evidence=hosts_artifact.evidence,
+            trust_status=CheckStatus.PASS,
+            trust_message="V2 accepted attempt supplies a verified B5 window host proof",
+        )
+    except ValueError as exc:
+        return _CorrectionSource(
+            geom=None, window_host_proof=None, window_evidence=None,
+            trust_status=CheckStatus.FAIL,
+            trust_message=f"accepted 1_correction artifact chain rejected: {exc}",
+        )
+    except Exception as exc:  # noqa: BLE001 — unknown failure must not pass silently (L8)
+        return _CorrectionSource(
+            geom=None, window_host_proof=None, window_evidence=None,
+            trust_status=CheckStatus.ERROR,
+            trust_message=f"accepted-artifact trust resolution failed unexpectedly: {exc}",
+        )
 
 
 def validate_case(
@@ -188,72 +311,101 @@ def validate_case(
     if snapped.exists():
         from src.agent.execution.evidence_preflight import load_evidence_debt
 
-        from src.agent.correction.parse import ensure_corrected_geometry
-        geom = ensure_corrected_geometry(json.loads(snapped.read_text()))
-        relied = (case_dir / "case_data" / "testdata_prompt.json").exists()
-        evidence_debt = load_evidence_debt(run_dir / "1_correction" / "evidence_debt.json")
-        crep = check_correction(
-            geom, expected_zone_total=_expected_zone_total(case_dir),
-            relied_on_testdata=relied,
-            capability_profile=profile,
-            run_profile=run_profile,
-            evidence_debt=evidence_debt,
-            reading_views=reading_views,
+        # F-20: pick the single trusted correction-geometry source (V2
+        # accepted attempt when a V2 manifest exists; the pre-F-20 stage-root
+        # path for no-manifest/V1 legacy runs) BEFORE running any check on it.
+        source = _resolve_correction_source(run_dir, snapped)
+
+        if source.geom is not None:
+            relied = (case_dir / "case_data" / "testdata_prompt.json").exists()
+            evidence_debt = load_evidence_debt(run_dir / "1_correction" / "evidence_debt.json")
+            crep = check_correction(
+                source.geom, expected_zone_total=_expected_zone_total(case_dir),
+                relied_on_testdata=relied,
+                capability_profile=profile,
+                run_profile=run_profile,
+                evidence_debt=evidence_debt,
+                reading_views=reading_views,
+                window_host_proof=source.window_host_proof,
+                window_evidence=source.window_evidence,
+            )
+        else:
+            # Trust resolution failed outright (FAIL/ERROR) — there is no
+            # geometry trusted enough to run the ordinary correction checks
+            # against at all; the trust fact below is the entire report.
+            crep = CheckReport(stage="1_correction", capability_profile=profile, run_profile=run_profile)
+        crep.add(
+            _TRUST_CHECK_ID, source.trust_status, CheckLayer.INVARIANT,
+            message=source.trust_message,
         )
         res.reports["1_correction"] = crep
         if write_reports:
             _write(run_dir / "1_correction" / "correction_checks.json", crep)
 
-        # 2/3 kernel — rebuild the authoritative geometry from the snapped cells,
-        # AND reconcile the committed on-disk 2/3 artifacts against that rebuild so
-        # a stale/garbage building_geometry.json or geometry_specs.md cannot pass.
-        try:
-            from src.agent.geometry import build_geometry
-            from src.agent.geometry.specs import (
-                building_geometry_dict,
-                geometry_specs_markdown,
-                serialize_geometry,
-            )
-
-            bg = build_geometry(geom, capability_profile=profile)
-            zone_specs, surface_specs, fen_specs, used_constructions = serialize_geometry(bg)
-            zone_names = set(dict.fromkeys(bg.zones))
-
-            # S2: kernel check on the authoritative rebuild + on-disk consistency.
-            if bg_json.exists():
-                krep = check_kernel(
-                    bg,
-                    capability_profile=profile,
-                    run_profile=run_profile,
-                )
-                try:
-                    disk_bg = json.loads(bg_json.read_text())
-                except json.JSONDecodeError:
-                    disk_bg = None
-                if disk_bg != building_geometry_dict(bg):
-                    geometry_consistent = False
-                    krep.add_fail(
-                        "kernel.artifact_consistency", CheckLayer.INVARIANT,
-                        "committed building_geometry.json does not match the "
-                        "deterministic rebuild from snapped correction geometry "
-                        "(stale/garbage artifact)")
-                res.reports["2_modelling"] = krep
-                if write_reports:
-                    _write(run_dir / "2_modelling" / "kernel_checks.json", krep)
-
-            # S3: geometry_specs.md must equal the serializer output.
-            if specs_path.exists():
-                expected_md = geometry_specs_markdown(zone_specs, surface_specs, fen_specs)
-                if specs_path.read_text() != expected_md:
-                    geometry_consistent = False
-                    res.reports["3_split_pairing"] = _error_report(
-                        "3_split_pairing", profile, run_profile,
-                        "committed geometry_specs.md does not match the deterministic "
-                        "serializer output (stale/garbage artifact)")
-        except Exception as e:  # noqa: BLE001 — recorded as a blocking error report
+        if source.trust_status in (CheckStatus.FAIL, CheckStatus.ERROR):
+            # F-20 §2.3: a trust BLOCK never falls back to the (possibly
+            # stale/tampered) stage-root convenience copy and never enters
+            # the kernel rebuild — this is deliberately NOT a "kernel build
+            # failed" bucket; the geometry checkpoint digest stays empty
+            # because "2_modelling" is never populated below.
             geometry_consistent = False
-            res.reports["2_modelling"] = _error_report("2_modelling", profile, run_profile,
-                                                        f"kernel build failed: {e}")
+        else:
+            geom = source.geom
+            # 2/3 kernel — rebuild the authoritative geometry from the trusted
+            # source, AND reconcile the committed on-disk 2/3 artifacts against
+            # that rebuild so a stale/garbage building_geometry.json or
+            # geometry_specs.md cannot pass.
+            try:
+                from src.agent.geometry import build_geometry
+                from src.agent.geometry.specs import (
+                    building_geometry_dict,
+                    geometry_specs_markdown,
+                    serialize_geometry,
+                )
+
+                bg = build_geometry(
+                    geom, capability_profile=profile,
+                    window_host_proof=source.window_host_proof,
+                )
+                zone_specs, surface_specs, fen_specs, used_constructions = serialize_geometry(bg)
+                zone_names = set(dict.fromkeys(bg.zones))
+
+                # S2: kernel check on the authoritative rebuild + on-disk consistency.
+                if bg_json.exists():
+                    krep = check_kernel(
+                        bg,
+                        capability_profile=profile,
+                        run_profile=run_profile,
+                        window_host_proof=source.window_host_proof,
+                    )
+                    try:
+                        disk_bg = json.loads(bg_json.read_text())
+                    except json.JSONDecodeError:
+                        disk_bg = None
+                    if disk_bg != building_geometry_dict(bg):
+                        geometry_consistent = False
+                        krep.add_fail(
+                            "kernel.artifact_consistency", CheckLayer.INVARIANT,
+                            "committed building_geometry.json does not match the "
+                            "deterministic rebuild from snapped correction geometry "
+                            "(stale/garbage artifact)")
+                    res.reports["2_modelling"] = krep
+                    if write_reports:
+                        _write(run_dir / "2_modelling" / "kernel_checks.json", krep)
+
+                # S3: geometry_specs.md must equal the serializer output.
+                if specs_path.exists():
+                    expected_md = geometry_specs_markdown(zone_specs, surface_specs, fen_specs)
+                    if specs_path.read_text() != expected_md:
+                        geometry_consistent = False
+                        res.reports["3_split_pairing"] = _error_report(
+                            "3_split_pairing", profile, run_profile,
+                            "committed geometry_specs.md does not match the deterministic "
+                            "serializer output (stale/garbage artifact)")
+            except Exception as e:  # noqa: BLE001 — recorded as a blocking error report
+                geometry_consistent = False
+                res.reports["2_modelling"] = _error_report("2_modelling", profile, run_profile,
+                                                            f"kernel build failed: {e}")
 
     # ---- 4_mep ----
     if mep_path.exists():

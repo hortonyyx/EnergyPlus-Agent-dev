@@ -19,15 +19,37 @@ from src.agent.correction.orientation import (
     finalize_orientation_enrichment,
     verify_orientation_resolution,
 )
-from src.agent.execution.manifest import RunInputs, RunManifestV2, hash_bytes, new_run_id
+from src.agent.correction.schema import CorrectedGeometry
+from src.agent.execution.manifest import (
+    RunInputs,
+    RunManifest,
+    RunManifestV2,
+    StageRecordV2,
+    hash_bytes,
+    hash_text,
+    new_run_id,
+)
 from src.agent.execution.correction_audit import load_reportable_correction_audit
+from src.agent.execution.policy import RunPolicy, ValidationScope
+from src.agent.execution.run_policy_freeze import provision_run_policy
 from src.agent.execution.stage_runner import StageRunner
+from src.agent.execution.step_orchestrator import approve_geometry
+from src.agent.execution.validation_run import validate_case
 from src.agent.geometry import build_geometry
+from src.agent.geometry.specs import (
+    building_geometry_json,
+    geometry_specs_markdown,
+    serialize_geometry,
+)
 from src.agent.output_coordinates import (
     load_verified_accepted_correction,
     verify_integrated_gate1_correction,
 )
-from src.validator.checks.schema import CheckLayer, CheckReport
+from src.agent.state import IntakeOutput
+from src.validator.checks.correction import check_correction
+from src.validator.checks.kernel import check_kernel
+from src.validator.checks.schema import CheckLayer, CheckReport, CheckStatus
+from src.validator.data_model import BuildingSchema, SiteLocationSchema
 
 
 def _report() -> CheckReport:
@@ -36,8 +58,8 @@ def _report() -> CheckReport:
     return report
 
 
-def _accepted(tmp_path: Path, *, include_elevation: bool = False):
-    bundle = _bundle(tmp_path, include_elevation=include_elevation)
+def _accepted(tmp_path: Path, *, include_elevation: bool = False, include_window: bool = True):
+    bundle = _bundle(tmp_path, include_elevation=include_elevation, include_window=include_window)
     marker = bundle.verified
     manifest = RunManifestV2(
         case="phase-d",
@@ -831,3 +853,445 @@ def test_d3_report_reads_typed_conflict_reason_from_rejected_attempt_only(
         "upstream_error_code": None,
         "audit_path": "1_correction/attempts/002/audit.json",
     },)
+
+
+# ---------------------------------------------------------------------------
+# F-20: validate_case must thread the V2 accepted-attempt trust root (loaded
+# via load_verified_accepted_correction, the same function 7 production call
+# sites already use) into all three geometry-consumer sites — check_correction
+# / build_geometry / check_kernel — instead of rebuilding from the untrusted
+# stage-root convenience copy without any window_host_proof at all. Design
+# authority: AI_agent/proposals/f20_validate_case_v3_proof_design.md §4 (L1-L8).
+# ---------------------------------------------------------------------------
+
+_TRUST_CHECK_ID = "correction.accepted_artifact_trust"
+
+
+def _write_canonical_2_3(run_dir: Path, bg) -> None:
+    """F-5 discipline: never hand-write 2/3 fixture artifacts — always go
+    through the exact canonical serializers validate_case's own S2/S3
+    on-disk-consistency checks compare against."""
+    zone_specs, surface_specs, fen_specs, _used = serialize_geometry(bg)
+    (run_dir / "2_modelling").mkdir(parents=True, exist_ok=True)
+    (run_dir / "2_modelling" / "building_geometry.json").write_text(
+        building_geometry_json(bg), encoding="utf-8",
+    )
+    (run_dir / "3_split_pairing").mkdir(parents=True, exist_ok=True)
+    (run_dir / "3_split_pairing" / "geometry_specs.md").write_text(
+        geometry_specs_markdown(zone_specs, surface_specs, fen_specs), encoding="utf-8",
+    )
+
+
+def _trust_row(report: CheckReport):
+    return next(r for r in report.results if r.check_id == _TRUST_CHECK_ID)
+
+
+def _minimal_intake_output() -> IntakeOutput:
+    return IntakeOutput(
+        building=BuildingSchema(name="F20Probe"),
+        site_location=SiteLocationSchema(
+            name="F20", latitude=22.5, longitude=114.0, time_zone=8.0, elevation=5.0,
+        ),
+        zone_specs="n/a", material_specs="n/a", schedule_specs="n/a",
+        construction_specs="n/a", surface_specs="n/a", fenestration_specs="n/a",
+        hvac_specs="n/a", people_specs="n/a", lights_specs="n/a",
+    )
+
+
+def _assert_direct_no_proof_entry_points_still_fail(bundle) -> None:
+    """§4 shared self-proving precondition for every F-20 lock below: prove
+    that, absent the fix, the three DIRECT no-proof entry points still refuse
+    this exact geometry (a pre-existing v3/B5 contract that F-20 must not
+    touch) — so a later PASS through validate_case proves the fix threads a
+    real accepted-attempt proof through, not that this precondition quietly
+    stopped applying."""
+    with pytest.raises(ValueError, match="v3 build requires VerifiedWindowHostProof"):
+        build_geometry(bundle.result.geom, capability_profile="orthogonal_polygon")
+
+    crep = check_correction(bundle.result.geom, capability_profile="orthogonal_polygon")
+    host_row = next(r for r in crep.results if r.check_id == "correction.window_host_resolution")
+    assert host_row.status == CheckStatus.FAIL
+
+    krep = check_kernel(bundle.bg, capability_profile="orthogonal_polygon")
+    host_row = next(r for r in krep.results if r.check_id == "kernel.window_parent_binding")
+    assert host_row.status == CheckStatus.FAIL
+
+
+def _legacy_geom() -> CorrectedGeometry:
+    return CorrectedGeometry.model_validate({
+        "footprint_x": [0.0, 4.0],
+        "footprint_y": [0.0, 4.0],
+        "floors": [{
+            "name": "F1", "z_floor": 0.0, "ceiling_height": 3.0,
+            "cells": [{"id": "C1", "role": "office", "x": [0.0, 4.0], "y": [0.0, 4.0]}],
+        }],
+        "windows": [], "conflicts": [], "corrections": [], "unsupported": [],
+    })
+
+
+def _write_legacy_stage_root(run_dir: Path):
+    """A pre-B5 (schema v1) correction geometry read straight off the
+    stage-root convenience copy — the audit path F-20 must leave untouched
+    for runs with no manifest / a grandfathered V1 manifest."""
+    geom = _legacy_geom()
+    stage_dir = run_dir / "1_correction"
+    stage_dir.mkdir(parents=True, exist_ok=True)
+    (stage_dir / "correction_geometry_snapped.json").write_text(
+        geom.model_dump_json(), encoding="utf-8",
+    )
+    bg = build_geometry(geom, capability_profile="rectangular")
+    _write_canonical_2_3(run_dir, bg)
+    return geom, bg
+
+
+@pytest.mark.parametrize("include_window", [True, False], ids=["with-window", "zero-window"])
+def test_f20_l1_v3_accepted_proof_reaches_validate_case(tmp_path: Path, include_window: bool):
+    bundle, manifest, record, attempt = _accepted(tmp_path, include_window=include_window)
+    _assert_direct_no_proof_entry_points_still_fail(bundle)
+    _write_canonical_2_3(tmp_path, bundle.bg)
+    policy = RunPolicy(capability_profile="orthogonal_polygon")
+
+    res = validate_case(tmp_path, policy=policy)
+
+    trust = _trust_row(res.reports["1_correction"])
+    assert trust.status == CheckStatus.PASS
+    assert res.reports["1_correction"].passed, res.reports["1_correction"].blocking()
+    host_row = next(
+        r for r in res.reports["1_correction"].results
+        if r.check_id == "correction.window_host_resolution"
+    )
+    assert host_row.status == CheckStatus.PASS
+    assert res.reports["2_modelling"].passed, res.reports["2_modelling"].blocking()
+    kernel_host_row = next(
+        r for r in res.reports["2_modelling"].results
+        if r.check_id == "kernel.window_parent_binding"
+    )
+    assert kernel_host_row.status == CheckStatus.PASS
+    assert res.geometry_digest is not None
+
+    provision_run_policy(tmp_path, run_profile="exploratory", capability_profile="orthogonal_polygon")
+    appr = approve_geometry(tmp_path, actor="f20-lock", timestamp="2026-08-10T00:00:00Z")
+    assert appr is not None
+    assert appr.digest == res.geometry_digest
+
+    # Scope-conservation tail (§2.5): break the upstream trust chain so a
+    # full validate would now hard-reject, then prove --intake-from's early
+    # return still never reaches the resolver at all — it only ever produces
+    # the 5_intakeoutput report, digest stays None.
+    (attempt / "output.json").write_bytes((attempt / "output.json").read_bytes() + b" ")
+    broken = validate_case(tmp_path, policy=policy)
+    assert not broken.reports["1_correction"].passed
+
+    (tmp_path / "5_intakeoutput").mkdir(parents=True, exist_ok=True)
+    (tmp_path / "5_intakeoutput" / "intake_output.json").write_text(
+        _minimal_intake_output().model_dump_json(), encoding="utf-8",
+    )
+    downstream = validate_case(
+        tmp_path, policy=RunPolicy(validation_scope=ValidationScope.DOWNSTREAM_ONLY),
+    )
+    assert set(downstream.reports) == {"5_intakeoutput"}
+    assert downstream.geometry_digest is None
+
+
+def test_f20_l2_tampered_accepted_output_is_fail_closed_no_stage_root_fallback(tmp_path: Path):
+    bundle, manifest, record, attempt = _accepted(tmp_path)
+    _assert_direct_no_proof_entry_points_still_fail(bundle)
+    _write_canonical_2_3(tmp_path, bundle.bg)
+    policy = RunPolicy(capability_profile="orthogonal_polygon")
+
+    clean = validate_case(tmp_path, policy=policy)
+    assert _trust_row(clean.reports["1_correction"]).status == CheckStatus.PASS
+    assert clean.geometry_digest is not None
+
+    stage_root = tmp_path / "1_correction" / "correction_geometry_snapped.json"
+    stage_root_before = stage_root.read_bytes()
+    output_path = attempt / "output.json"
+    output_path.write_bytes(output_path.read_bytes() + b" ")
+
+    res = validate_case(tmp_path, policy=policy)
+    assert stage_root.read_bytes() == stage_root_before  # only the accepted attempt was mutated
+
+    trust = _trust_row(res.reports["1_correction"])
+    assert trust.status == CheckStatus.FAIL
+    assert res.geometry_digest is None
+    # Must not fall into the generic "kernel build failed" bucket, and must
+    # not fall back to the still-clean stage-root convenience copy.
+    assert "2_modelling" not in res.reports
+
+
+def test_f20_l3_missing_six_artifact_file_is_fail_closed(tmp_path: Path):
+    bundle, manifest, record, attempt = _accepted(tmp_path)
+    _assert_direct_no_proof_entry_points_still_fail(bundle)
+    _write_canonical_2_3(tmp_path, bundle.bg)
+    policy = RunPolicy(capability_profile="orthogonal_polygon")
+
+    assert set(record.artifact_hashes) == {
+        "output", "checks", "audit", "feature_states",
+        "window_resolver_inputs", "window_hosts",
+    }
+    assert {p.name for p in attempt.iterdir()} == {
+        "output.json", "checks.json", "audit.json", "feature_states.json",
+        "window_resolver_inputs.json", "window_hosts.json",
+    }
+    clean = validate_case(tmp_path, policy=policy)
+    assert _trust_row(clean.reports["1_correction"]).status == CheckStatus.PASS
+    assert clean.geometry_digest is not None
+
+    (attempt / "window_hosts.json").unlink()
+    res = validate_case(tmp_path, policy=policy)
+    assert _trust_row(res.reports["1_correction"]).status == CheckStatus.FAIL
+    assert res.geometry_digest is None
+    assert "2_modelling" not in res.reports
+
+
+def test_f20_l4_v3_downgraded_to_non_b5_contract_is_fail_closed(tmp_path: Path):
+    bundle, manifest, record, attempt = _accepted(tmp_path)
+    _assert_direct_no_proof_entry_points_still_fail(bundle)
+    _write_canonical_2_3(tmp_path, bundle.bg)
+    policy = RunPolicy(capability_profile="orthogonal_polygon")
+
+    output_schema = json.loads((attempt / "output.json").read_text())["schema_version"]
+    assert str(output_schema) == "3"
+    assert record.artifact_contract == "correction_b5_v1"
+    clean = validate_case(tmp_path, policy=policy)
+    assert _trust_row(clean.reports["1_correction"]).status == CheckStatus.PASS
+    assert clean.geometry_digest is not None
+
+    record.artifact_contract = "correction_b2_v1"
+    for key, filename in (
+        ("window_resolver_inputs", "window_resolver_inputs.json"),
+        ("window_hosts", "window_hosts.json"),
+    ):
+        record.artifact_hashes.pop(key)
+        (attempt / filename).unlink()
+    manifest.save(tmp_path)
+
+    res = validate_case(tmp_path, policy=policy)
+    assert _trust_row(res.reports["1_correction"]).status == CheckStatus.FAIL
+    assert res.geometry_digest is None
+
+
+def test_f20_l5_stage_root_convenience_copy_tamper_does_not_affect_v2_authority(tmp_path: Path):
+    bundle, manifest, record, attempt = _accepted(tmp_path)
+    _assert_direct_no_proof_entry_points_still_fail(bundle)
+    _write_canonical_2_3(tmp_path, bundle.bg)
+    policy = RunPolicy(capability_profile="orthogonal_polygon")
+
+    stage_root = tmp_path / "1_correction" / "correction_geometry_snapped.json"
+    accepted_output = attempt / "output.json"
+    assert stage_root.read_bytes() == accepted_output.read_bytes()
+
+    clean = validate_case(tmp_path, policy=policy)
+    assert _trust_row(clean.reports["1_correction"]).status == CheckStatus.PASS
+    assert clean.geometry_digest is not None
+    accepted_hash_before = record.output_hash
+
+    stage_root_data = json.loads(stage_root.read_text())
+    stage_root_data["windows"][0]["room"] = "forged-room"
+    stage_root.write_text(json.dumps(stage_root_data, indent=2), encoding="utf-8")
+
+    res = validate_case(tmp_path, policy=policy)
+    assert stage_root.read_bytes() != accepted_output.read_bytes()  # only stage-root changed
+    assert record.output_hash == accepted_hash_before  # accepted manifest hash untouched
+
+    trust = _trust_row(res.reports["1_correction"])
+    assert trust.status == CheckStatus.PASS  # V2 authority is unaffected by the tampered copy
+    assert res.geometry_digest == clean.geometry_digest  # identical rebuild — copy was never consulted
+
+
+def test_f20_l6_legacy_no_manifest_and_v1_manifest_continue_to_be_auditable(tmp_path: Path):
+    # --- half 1: the V2/v3 positive path, paired per the design so this lock
+    # is red (pre-fix) on the real F-20 defect, not merely on a formality ---
+    bundle, manifest, record, attempt = _accepted(tmp_path)
+    _assert_direct_no_proof_entry_points_still_fail(bundle)
+    _write_canonical_2_3(tmp_path, bundle.bg)
+    v2_res = validate_case(tmp_path, policy=RunPolicy(capability_profile="orthogonal_polygon"))
+    assert _trust_row(v2_res.reports["1_correction"]).status == CheckStatus.PASS
+    assert v2_res.geometry_digest is not None
+
+    # --- half 2a: no manifest at all — the pre-F-20 behaviour must be
+    # unchanged: this already passes today, and must keep passing. ---
+    no_manifest_dir = tmp_path / "no_manifest"
+    _write_legacy_stage_root(no_manifest_dir)
+    assert not (no_manifest_dir / "_run" / "run_manifest.json").exists()
+    res_a = validate_case(no_manifest_dir)
+    trust_a = _trust_row(res_a.reports["1_correction"])
+    assert trust_a.status == CheckStatus.NOT_APPLICABLE
+    assert res_a.reports["2_modelling"].passed
+    assert res_a.geometry_digest is not None
+    # validate_case is read-only: it must never write/upgrade a manifest.
+    assert not (no_manifest_dir / "_run" / "run_manifest.json").exists()
+    res_a2 = validate_case(no_manifest_dir)
+    assert res_a2.geometry_digest == res_a.geometry_digest  # stable across repeat runs
+
+    # --- half 2b: a legit, grandfathered V1 manifest present ---
+    v1_dir = tmp_path / "v1_manifest"
+    _write_legacy_stage_root(v1_dir)
+    v1_manifest = RunManifest(case="v1-legacy")
+    assert v1_manifest.manifest_version == "1"
+    v1_manifest.save(v1_dir)
+    res_b = validate_case(v1_dir)
+    trust_b = _trust_row(res_b.reports["1_correction"])
+    assert trust_b.status == CheckStatus.NOT_APPLICABLE
+    assert res_b.reports["2_modelling"].passed
+    assert res_b.geometry_digest is not None
+    on_disk_after = json.loads((v1_dir / "_run" / "run_manifest.json").read_text())
+    assert on_disk_after["manifest_version"] == "1"  # never silently upgraded to V2
+
+
+def test_f20_l7_v3_geometry_under_legacy_manifest_state_is_fail_closed(tmp_path: Path):
+    bundle, manifest, record, attempt = _accepted(tmp_path)
+    _assert_direct_no_proof_entry_points_still_fail(bundle)
+    _write_canonical_2_3(tmp_path, bundle.bg)
+    policy = RunPolicy(capability_profile="orthogonal_polygon")
+
+    clean = validate_case(tmp_path, policy=policy)
+    assert _trust_row(clean.reports["1_correction"]).status == CheckStatus.PASS
+    assert clean.geometry_digest is not None
+
+    manifest_path = tmp_path / "_run" / "run_manifest.json"
+    assert json.loads(manifest_path.read_text())["manifest_version"] == "2"
+    manifest_path.unlink()  # no manifest at all — the v3 stage-root geometry stays put
+    res_no_manifest = validate_case(tmp_path, policy=policy)
+    trust_no_manifest = _trust_row(res_no_manifest.reports["1_correction"])
+    assert trust_no_manifest.status == CheckStatus.FAIL
+    assert res_no_manifest.geometry_digest is None
+
+    v1 = RunManifest(case="v1-with-v3-geometry")
+    v1.save(tmp_path)
+    res_v1 = validate_case(tmp_path, policy=policy)
+    trust_v1 = _trust_row(res_v1.reports["1_correction"])
+    assert trust_v1.status == CheckStatus.FAIL
+    assert res_v1.geometry_digest is None
+
+
+def test_f20_l8_unknown_resolver_exception_is_error_not_fail(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch,
+):
+    import src.agent.execution.validation_run as validation_run_module
+
+    bundle, manifest, record, attempt = _accepted(tmp_path)
+    _assert_direct_no_proof_entry_points_still_fail(bundle)
+    _write_canonical_2_3(tmp_path, bundle.bg)
+    policy = RunPolicy(capability_profile="orthogonal_polygon")
+
+    clean = validate_case(tmp_path, policy=policy)
+    assert _trust_row(clean.reports["1_correction"]).status == CheckStatus.PASS
+
+    call_count = 0
+
+    def sentinel(*args, **kwargs):
+        nonlocal call_count
+        call_count += 1
+        raise RuntimeError("f20-l8-sentinel-unexpected-failure")
+
+    monkeypatch.setattr(validation_run_module, "load_verified_accepted_correction", sentinel)
+    res = validate_case(tmp_path, policy=policy)
+    assert call_count == 1  # exactly once — neither skipped nor called redundantly
+
+    trust = _trust_row(res.reports["1_correction"])
+    assert trust.status == CheckStatus.ERROR
+    assert res.geometry_digest is None
+    assert "2_modelling" not in res.reports
+
+
+@pytest.mark.parametrize(
+    ("mutate", "case_id"),
+    [
+        (lambda p: p.write_text("{not valid json", encoding="utf-8"), "invalid-json"),
+        (
+            lambda p: p.write_text(
+                json.dumps({"manifest_version": "99", "case": "x"}), encoding="utf-8",
+            ),
+            "unknown-version",
+        ),
+    ],
+    ids=["invalid-json", "unknown-version"],
+)
+def test_f20_nit1_unparseable_manifest_is_fail_closed_not_treated_as_no_manifest(
+    tmp_path: Path, mutate, case_id: str,
+):
+    bundle, manifest, record, attempt = _accepted(tmp_path)
+    _assert_direct_no_proof_entry_points_still_fail(bundle)
+    _write_canonical_2_3(tmp_path, bundle.bg)
+    policy = RunPolicy(capability_profile="orthogonal_polygon")
+
+    clean = validate_case(tmp_path, policy=policy)
+    assert _trust_row(clean.reports["1_correction"]).status == CheckStatus.PASS
+
+    manifest_path = tmp_path / "_run" / "run_manifest.json"
+    mutate(manifest_path)
+
+    res = validate_case(tmp_path, policy=policy)
+    trust = _trust_row(res.reports["1_correction"])
+    assert trust.status == CheckStatus.FAIL
+    # ⛔ must not be silently absorbed into "no manifest" (fail-open onto the
+    # untrusted stage-root convenience copy).
+    assert trust.status != CheckStatus.NOT_APPLICABLE
+    assert res.geometry_digest is None
+
+
+def _write_legacy_v2_accepted(tmp_path: Path):
+    """A legacy-SCHEMA correction accepted under a genuine V2 manifest
+    (``base_v2`` contract, no B5 fields at all).
+
+    This exists solely to isolate the "manifest present but unreadable" code
+    path from a masking effect discovered during F-20 neuter review: the
+    v3-schema fixture ``_accepted()`` uses for
+    ``test_f20_nit1_unparseable_manifest_is_fail_closed_not_treated_as_no_manifest``
+    still comes out FAIL after a manifest-corrupted-treated-as-no-manifest
+    regression, because ``_resolve_legacy_stage_root`` independently refuses
+    any v3 stage-root geometry regardless of *why* it ended up on the legacy
+    path. That second check has no opinion on a LEGACY-schema geometry, so
+    only a legacy-schema fixture can prove the manifest-unreadable branch
+    itself — not a neighbour — is what produces FAIL here."""
+    geom = _legacy_geom()
+    stage_dir = tmp_path / "1_correction"
+    stage_dir.mkdir(parents=True, exist_ok=True)
+    output_text = geom.model_dump_json()
+    (stage_dir / "correction_geometry_snapped.json").write_text(output_text, encoding="utf-8")
+    attempt = stage_dir / "attempts" / "001"
+    attempt.mkdir(parents=True, exist_ok=True)
+    (attempt / "output.json").write_text(output_text, encoding="utf-8")
+    checks_report = CheckReport(stage="1_correction", capability_profile="rectangular")
+    checks_report.add_pass("phase_d.fixture", CheckLayer.INVARIANT)
+    checks_text = checks_report.model_dump_json(indent=2)
+    (attempt / "checks.json").write_text(checks_text, encoding="utf-8")
+    output_hash = hash_text(output_text)
+    manifest = RunManifestV2(
+        case="legacy-v2", run_id=new_run_id(),
+        run_inputs=RunInputs(view_manifest_sha256="a" * 64),
+    )
+    manifest.accept(StageRecordV2(
+        stage="1_correction", accepted_attempt=1, output_hash=output_hash,
+        artifact_contract="base_v2",
+        artifact_hashes={"output": output_hash, "checks": hash_text(checks_text)},
+    ))
+    manifest.save(tmp_path)
+    bg = build_geometry(geom, capability_profile="rectangular")
+    _write_canonical_2_3(tmp_path, bg)
+    return geom, bg, manifest
+
+
+def test_f20_nit1_legacy_schema_manifest_unreadable_is_fail_closed_not_masked(
+    tmp_path: Path,
+):
+    """Same NIT-1 property as the test above, but on a LEGACY-schema accepted
+    correction — this is the variant that actually isolates the
+    manifest-unreadable branch (see ``_write_legacy_v2_accepted``'s
+    docstring)."""
+    _geom, _bg, _manifest = _write_legacy_v2_accepted(tmp_path)
+    policy = RunPolicy(capability_profile="rectangular")
+
+    clean = validate_case(tmp_path, policy=policy)
+    assert _trust_row(clean.reports["1_correction"]).status == CheckStatus.PASS
+    assert clean.geometry_digest is not None
+
+    manifest_path = tmp_path / "_run" / "run_manifest.json"
+    manifest_path.write_text("{not valid json", encoding="utf-8")
+
+    res = validate_case(tmp_path, policy=policy)
+    trust = _trust_row(res.reports["1_correction"])
+    assert trust.status == CheckStatus.FAIL
+    assert trust.status != CheckStatus.NOT_APPLICABLE
+    assert res.geometry_digest is None

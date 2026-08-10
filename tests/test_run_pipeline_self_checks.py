@@ -565,9 +565,19 @@ def test_run_pipeline_inline_reports_match_validate_case(tmp_path, monkeypatch):
 
     validate_case(run_dir, case_dir=case_dir, write_reports=True)
 
-    assert inline_correction == _statuses(
+    post_validate_correction = _statuses(
         _report(run_dir / "1_correction" / "correction_checks.json")
     )
+    # F-20: validate_case's own accepted-attempt trust-root re-verification
+    # check (`correction.accepted_artifact_trust` — same named exemption as
+    # tests/test_check_parity.py's `_EXCLUDED_VALIDATE_CHECKS`). This run has
+    # no manifest at all, so the trust resolver reports NOT_APPLICABLE and
+    # continues under the pre-F-20 stage-root audit path; the inline
+    # run_pipeline path never produces this check_id — it consumes an
+    # already-signed in-memory verified bundle, not an on-disk accepted
+    # attempt to re-replay against.
+    assert post_validate_correction.pop("correction.accepted_artifact_trust") == "not_applicable"
+    assert inline_correction == post_validate_correction
     assert inline_mep == _statuses(_report(run_dir / "4_mep" / "mep_checks.json"))
     assert inline_assembly == _statuses(
         _report(run_dir / "5_intakeoutput" / "assembly_checks.json")
