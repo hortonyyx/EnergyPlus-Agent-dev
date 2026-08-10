@@ -1122,7 +1122,8 @@ def test_f20_l6_legacy_no_manifest_and_v1_manifest_continue_to_be_auditable(tmp_
     # validate_case is read-only: it must never write/upgrade a manifest.
     assert not (no_manifest_dir / "_run" / "run_manifest.json").exists()
     res_a2 = validate_case(no_manifest_dir)
-    assert res_a2.geometry_digest == res_a.geometry_digest  # stable across repeat runs
+    # Repeatability only: the same implementation returns the same digest twice.
+    assert res_a2.geometry_digest == res_a.geometry_digest
 
     # --- half 2b: a legit, grandfathered V1 manifest present ---
     v1_dir = tmp_path / "v1_manifest"

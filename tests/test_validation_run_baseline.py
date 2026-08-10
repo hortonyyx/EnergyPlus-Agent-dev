@@ -211,6 +211,13 @@ def test_downstream_only_scope_skips_geometry():
 # green, EP 0 severe. Counts are the regression anchor; gt is judge-only.
 _ANCHOR_21 = Path("case_tests/e2e_tests/sm21_anchor")
 _RUN_21 = _ANCHOR_21 / "run_2026-06-16_opus_e2e"
+_F13_VERIFY_RUN = _ANCHOR_21 / "run_2026-08-07_f13_e2e_verify"
+# Frozen by F-20 MAJOR-1 from validate_case(..., policy=RunPolicy()) at the
+# pre-F-20 commit 2c7e0a4.  This V2-ledger/legacy-schema run preserves the
+# historical geometry-approval binding when the digest formula/report shape changes.
+_F13_VERIFY_FROZEN_GEOMETRY_DIGEST = (
+    "bed87c03e4c9947858f540a638ee495658fca56545f120352ef9e4003de8a5c8"
+)
 
 
 @_RERECORD_XFAIL
@@ -221,6 +228,12 @@ def test_sm21_anchor_positive_baseline():
     assert res.case == "sm21_anchor"
     for key, rep in res.reports.items():
         assert rep.passed, f"{key} blocked: {[r.message for r in rep.blocking()]}"
+
+
+def test_sm21_f13_verify_geometry_digest_is_frozen_from_pre_f20():
+    """The legacy V2-ledger run retains its pre-F-20 geometry approval binding."""
+    res = validate_case(_F13_VERIFY_RUN)
+    assert res.geometry_digest == _F13_VERIFY_FROZEN_GEOMETRY_DIGEST
 
 
 def test_sm21_anchor_golden_counts():

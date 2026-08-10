@@ -94,13 +94,45 @@ assert res_a2.geometry_digest == res_a.geometry_digest  # stable across repeat r
 **orchestrator 补充查实**：`grep` 全 `tests/`，**没有任何一处把 `geometry_digest` 钉在字面值上**
 ⇒ **「历史几何批准不失效」这条性质，全仓零锁**。
 
-⚠️ **公平地说**：施工席**确实验过**这条性质（验收项④用 `git archive` 取修前只读快照
-与工作树逐字节对比，两个 golden 基线的 `blocked`/`blocking_summary`/`digest` 全同）——
-**那是一次有效的人工验证**。问题是**它没有变成锁**：
-⇒ **今天是对的，但没有任何东西守着它明天还对。**
+### ⛔ 5.1 【r2 更正】上面那段「施工席确实验过」是 orchestrator 写过头了
 
-**要求**：补一把把 golden 基线 digest **钉在修前实测字面值**上的锁
-（或等价的 frozen report fixture）。⛔ 不许再用「同一版本跑两次相等」。
+**本裁决 v1 原文写**：施工席验收项④（`git archive` 修前快照 vs 工作树，两个 golden 基线的
+`blocked`/`blocking_summary`/`digest` 全同）**「是一次有效的人工验证」**。
+
+**⛔ 错。** 派 GPT 侧 terra 补锁时它按合法退出口停下上报：
+**那两个 golden 基线的 `geometry_digest` 修前修后都是 `None`**。
+orchestrator 独立复核（当前代码）：
+
+```
+sm20 golden  digest=None  blocked=True
+sm21 golden  digest=None  blocked=True
+```
+
+⇒ **验收项④在 digest 这一维上是空的（`None == None` 恒真）。**
+`blocked` / `blocking_summary` 那两维的比较**仍然有效**，但
+**「历史几何批准不失效」这条性质从来没有被真正验过** —— 不是「验过但没变成锁」，是**根本没验到**。
+
+⇒ **MAJOR-1 比 v1 描述的更严重一档**，且 **orchestrator 的轻门 v1 自己也漏判了这一层**
+（我把一个空断言当成了有效验证）。**与 08-09「我只观察到症状、没诊断出原因」同族。**
+
+### 5.2 ✅ MAJOR-1 已补实（GPT 侧 terra，orchestrator 独立复核）
+
+**锚点**：全仓扫描 `case_tests/e2e_tests/**/run_*`，**只有一个** run 能产出非空 `geometry_digest`
+—— `sm21_anchor/run_2026-08-07_f13_e2e_verify`（**V2 账本 + legacy schema ⇒ 走的正是 F-20 改动的那条分支**）。
+
+```
+修前 2c7e0a4 : bed87c03e4c9947858f540a638ee495658fca56545f120352ef9e4003de8a5c8
+修后 3303eee : 同上，逐字符相同   ← orchestrator 亲自量的（git archive 修前 src 到 /tmp）
+```
+
+**修法** = `tests/test_validation_run_baseline.py` 新增
+`test_sm21_f13_verify_geometry_digest_is_frozen_from_pre_f20`，把该值**写成源码常量**并注明
+「从修前提交 `2c7e0a4` 冻结」；L6 里那条 `res_a2 == res_a` 保留但**注释改准**
+（只守「同实现重复调用的确定性」，不再冒充历史锁）。
+
+**orchestrator 独立 neuter 复核**：把 trust 行 `krep.add(...)` 进 kernel report
+⇒ **新锁转红**（digest 变 `1f9cc8…`），同文件其余 10 项全绿。
+⇒ **这一次，第二发雷被真正锁住了。**
 
 ---
 
