@@ -871,6 +871,50 @@ sol 给出的安全顺序 = `S0（证据身份门＋三阶段合同）→ S1（g
 
 **⇒ 用户 08-09 定：本轮先只登记，返工单独开一批。**
 
+#### ⛔ 新登记 F-20 候选：`validate_case` 重建几何时**不传窗宿主凭证** ⇒ **任何 v3 产物过不了几何确认门**
+
+F-19 修完后续跑 flow，`3_split_pairing` **gate① 也过了**（零 block 零 flag），
+但停在 `awaiting_geometry_approval`，报 `✗ geometry auto-approval failed: no consistent checkpoint`。
+
+**根因（已实测坐实，非推断）**：
+[`validation_run.py:218`](../src/agent/execution/validation_run.py#L218) 是
+
+```python
+bg = build_geometry(geom, capability_profile=profile)      # ⛔ 没有 window_host_proof
+```
+
+而 v3（`c2_b5_v1`）产物的 `build_geometry` **要求** `VerifiedWindowHostProof`
+⇒ 抛 `v3 build requires VerifiedWindowHostProof` ⇒ `2_modelling` 记 error
+⇒ `geometry_digest = None` ⇒ `approve_geometry()` 返回 None ⇒ **门无法签发检查点**。
+（同因连带 `1_correction` 的 `correction.window_host_resolution` 也判 fail。）
+
+**⛔ 比表面严重的一点**：`--geometry auto` 与**人工** `approve-geometry`
+（`run_stage.py:2458-2460`）**走的是同一个 `approve_geometry()`**
+⇒ **不是「自动批不了、人来批即可」，而是人也批不了 ⇒ v3 路径彻底堵死。**
+
+**出生年月（git 实证）= 又一个 F-10 同型的签名/契约漂移**：
+
+| 件 | 提交 | 日期 |
+|---|---|---|
+| `validate_case` 那行调用的写法 | `802822f` | **07-06** |
+| `build_geometry` **开始要求** proof | `2885a84`（**与造出 F-19 那道门的是同一个提交**）| **07-18** |
+
+⇒ **被调方 07-18 加了必需参数，调用方 07-06 的写法没跟，潜伏 3 周多。**
+
+**⛔ 为什么 2345 绿没抓到**：`tests/test_validation_run_baseline.py` /
+`test_run_stage_flow.py` / `test_check_parity.py` 三个跑 `validate_case` 的文件里，
+**v3 相关命中数全部为 0** ⇒ **从来没有测试拿 v3 产物喂过校验器**。
+（对照：08-07 那次跑到 EnergyPlus 用的是 **legacy** 产物；**本 run 的 `schema_version = 3`，
+是 v3 第一次真正走到几何确认门。**）**又一次 F-5 那族：夹具形态分布 ≠ 真实产出。**
+
+**⚠️ 修法有一个必须先拍板的设计岔口**（正是 08-05 登记过的那个坑
+「`validate_case` 几何 digest 读 stage 根不读 manifest attempt」）：
+凭证只存在于 `1_correction/attempts/NNN/window_hosts.json`，而 `validate_case`
+**按设计只读 stage 根**（为的是「never bind an approval to stale / unchecked bytes」）。
+⇒ 两条改法 **防篡改强度不同**：① 让 `validate_case` 去读账本指定的 accepted attempt（耦合 manifest）；
+② 让上游把凭证镜像一份到 stage 根（保持只读 stage 根，但多一处需保持同步的副本 = 轴 B 风险）。
+**⇒ 建议先派「调查 + 设计」（零 LLM 成本，产物都在盘上），拿到利弊再拍，⛔ 不要直接派施工。**
+
 #### ⭐ 两条通用方法论（本轮实测换来）
 
 1. **加一层规范化 = 换表示**，与 F-17 那条「换表示会让【免费的】正确性静默蒸发」**互为镜像**：
@@ -883,6 +927,7 @@ sol 给出的安全顺序 = `S0（证据身份门＋三阶段合同）→ S1（g
 
 | 事项 | 状态 |
 |---|---|
+| **F-20（⛔ 下一件 = 派调查+设计，不要直接派施工）** | ⛔ **新登记，根因已实测坐实**：[`validation_run.py:218`](../src/agent/execution/validation_run.py#L218) 调 `build_geometry` **不传 `window_host_proof`** ⇒ v3 产物重建必抛 ⇒ `geometry_digest=None` ⇒ **几何确认门无法签发检查点**。**⛔ 人工 `approve-geometry` 走同一个函数 ⇒ 人也批不了 ⇒ v3 路径彻底堵死**（不是「自动批不了、人来批即可」）。**又一个 F-10 同型签名漂移**：调用方写法 `802822f`（07-06），被调方加要求 `2885a84`（07-18，**与造出 F-19 那道门的是同一提交**），潜伏 3 周多。**2345 绿没抓到** = 三个跑 `validate_case` 的测试文件 v3 命中数**全为 0**（本 run `schema_version=3`，是 v3 第一次走到该门；08-07 跑到 EP 那次用的是 legacy）。⚠️ **修法有设计岔口需先拍板**（凭证只在 attempt 目录、`validate_case` 按设计只读 stage 根 ⇒ 两条改法防篡改强度不同）。详「六之十四」 |
 | **F-19** | ✅ **已修 + orchestrator 轻门 PASS**（`d103c3e`，Claude 侧 Sonnet 施工）。修法 = 复算侧共用同一份 `canonicalize_ring_vertices`，**比较仍精确 `!=`**（⛔ 未加容差、⛔ 未加循环旋转豁免）· 补 **4 把锁**（该门此前**零正向锁**）· 独立全量 **2345 / 10 xfail / 0 红**（2339+6，零回归）。**⭐ orchestrator 两个换方向 neuter**（施工席三个方向全在夹具层）：① **接线** = 真实产物走真实入口重跑 2_modelling ⇒ `deterministic_pass`、gate① 零 block 零 flag（attempt 001=15 缺陷 → 002=过，**兑现 F-5 教训**）· ② **安全属性** = 真实 15 窗上量，正确绕向 15/15 放行、**绕向反转 15/15 仍被拦下** ⇒ 源码注释那条「规范化修不好真正反了的绕向」由**推理**升级为**真实几何实测**。**同族排查 0 新命中**（用户拍板纳入同批；orchestrator 抽验其调用点清单完整无遗漏）。⛔ **审阅债：仍应交 GPT/GLM 侧跨家族复核。** 详「六之十四」 |
 | **F-16** | ✅ **已修 + 真链路证实解开**（`15ea05d`，GLM 交叉审 APPROVE，run `run_2026-08-08_f16_e2e_verify`）。详「六之十／六之十一」 |
 | **F-17（⛔ 下一件 = 出派工单）** | ✅ **调查完成、根因已实测坐实**（2026-08-09，orchestrator 亲跑，零 LLM 成本，[全档](logs/experiments/2026-08-09_f17_envelope_cross_axis_chamfer/README.md)）。**根因 = 跨轴组件的顺序耦合**（⛔ 立项时登记的「materialize 插点后部分移动」推断**已被实测推翻**）· 修法方向已用反事实探针验证（斜边归零）· **修法与锁待施工**，详见「六之十二」 |

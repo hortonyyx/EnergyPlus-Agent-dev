@@ -16,6 +16,14 @@
 
 ## A. 里程碑时间线（倒序）
 
+> ⛔ **[2026-08-10 Opus 5 orchestrator] F-9 路线②设计稿 v1 判 REWORK —— §5.15 的【路线选择】仍成立，【这份实现设计】作废**（sol 交叉审，3 BLOCKER / 5 MAJOR / 1 MINOR·[裁决书](logs/reviews/verdict/2026-08-09_f9_route2_design_crossreview_sol.md)）：
+> ① **本条只推翻实现设计，不推翻 2026-08-09 §5.15 那次「走路线②」的拍板**——模型只指认证据、换算与校验归代码，这个分工方向 sol 亦认可。作废的是 [`proposals/f9_route2_evidence_citation_design.md`](proposals/f9_route2_evidence_citation_design.md) 的 v1 实现路径（该文件顶部已挂 REWORK 横幅、逐条点名失效章节，正文保留供返工对照）。
+> ② **三条 BLOCKER，orchestrator 已逐条独立核实全部成立**：**B1** = v1 会把一道**现存且有真实夹具证明**的交叉校验（`window_host.py:832` 的 `source_geometry_mismatch`；真实事故 = 模型 span `[1.24,3.64]` 正确却错引北立面镜像搭档 `North_view/S5`，见 `tests/test_f9_window_host_crash.py:174`）**改造成恒真式** —— 从被引 stroke 派生 span 再与同一 stroke 比较；**B2** = 派生入口写错（现行强制契约由 `existence.source_ids` 驱动而非 `along`），且 F-16 的 `CORRECTION_DRAW_DERIVED` **做不了外部证据派生**（`span` 需要 manifest／raw reading／方向 binding／ring，schema validator 拿不到）；**B3** = v1 的核心论断「缺的只是让确定性结果当权威」**是错的**。
+> ③ **⛔⛔ B3 = 本轮最贵的一条教训，且是 F-13 那条纪律的原样重犯**：v1 写「源码逐字写着 `never authoritative`，缺的只是让它当权威」，把一个**警告标记**读成了「当初没人敢用」。而**引入它的提交 `99d9521` 的说明逐字写着**「**B3 的同义反复风险已避开**：该区间标注为 advisory，**绝不进任何强制路径**」，并当场登记了 `lo == 0` 只是假设、真实 fixture 已有 `lo=0.12`、退台／L 形会静默误导。实证代价：advisory 给 `[11.36,13.76]`，权威 current-ring 给 `[11.24,13.64]` ⇒ **0.12 m**。⇒ **纪律扩写（新，通用）：「删掉／推翻一段看起来多余的东西之前，先找出它在为哪份契约服务」——【契约的承载物可以是一个标记、一个 flag、一句注释】，不限于代码；且【首选证据是引入它的那次提交说明，不是当前源码】。**
+> ④ **另 4 条 MAJOR 级事实错误**（均已核实）：镜像约定 `_BASE_SIGN` 实际**至少 4 份**（v1 只数了 3 份，漏掉 `facade.py::_CONVENTION`，且它真接在 `envelope.py:222` 生产路径上）· v1 写的模型证据格式 `src:<input_id>:<observation_id>:<sha256>` **模型算不出**（合法输出是 `North_view/S7`，由代码翻译，F-7 已定的不可见 hash 边界）· S1–S4 **不可独立验收**（S3 单独落地会产生「错引证据 ⇒ 合法但错误的窗位」的危险中间态）· v1 指定复用的 `VaElevationViewBindingV1` **要求各层 footprint 指纹与 family extent 完全一致** ⇒ **退台当场违反铁律 #6**。
+> ⑤ **sol 给的安全顺序（v2 起点）**：`S0（证据身份门 + raw/hydrated/full 三阶段合同）→ S1（gt-free 单一 convention）→ shadow projector（保留旧 span 对照）→ S4 detector/routing → S3 cutover`。
+> ⑥ **流程裁定**：**v1 由 orchestrator 亲手出稿并被判 REWORK ⇒ v2 不宜再由 orchestrator 亲手写**（同一个人同一个盲区；本项目 08-09 已有同型实证 —— orchestrator 自验做满、外观完全合格的 F-18 修法，sol 仍抓出「headline 锁根本不是锁」）。**用户 2026-08-09 定：本轮只登记，返工单独开一批。** 判卷侧 `score_inputs.py` 那份重复常量**用户已拍板可以动**（合成单一来源属合法清理，不改判卷逻辑）。
+
 > ✅ **[2026-08-03 Opus 5 orchestrator] R1 修尺子 · 批 B「运行政策冻结 + 适用性 fail-closed」r0 + r1 完成、轻门通过**（2055 → 2068 → **2089 绿** + 10 xfail 零回归；施工 = GLM-5.2 ×6 条 + **terra ×1 条**〔跨家族接手〕；审 = orchestrator 轻门 ×2 + sol 交叉对抗审〔部分稿〕）：
 > ① **立项病灶**：`run_config.yaml` 声明 `regression`+`orthogonal_polygon`，落盘 `checks.json` 头部却是 `exploratory`+`rectangular`；那一轮 gate① 本抓到 5 条 fail，按 exploratory = **0 阻断**、按 regression = **4 blocker** ⇒ 严格档若真生效该产物会被当场拒收。
 > ② **施工席两次「撞欠规格边界即停下上报」（正面样板，记正分）**：一次是发现写 sm24 `dimensioned=true` 会打穿已签字 GT 信任链（`dimensioned` 进 manifest `content_sha256`、GT 侧车冻结 `base_view_manifest_sha256`、评分入口四元组逐字相等）⇒ orchestrator 裁定本批只交付机制 + fixture 锁，**真值写入 + GT 侧车重签登记为债 D-1 归 R2、需用户单独授权 + 真人签字**；一次是 J-1/J-2 先回报再动手。
