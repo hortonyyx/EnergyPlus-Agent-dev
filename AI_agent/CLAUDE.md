@@ -142,7 +142,47 @@ EnergyPlus 经 `WorkflowTool.run_simulation`（eppy + ConverterManager，idfpy �
 
 ## 2. 当前开发状态
 
-- **⭐⭐⭐ 最新（2026-08-10 收工）= 一轮内倒两堵墙（F-18 真链路证实 · F-19 修完过轻门）+ 诊断清第三堵（F-20）+ ⭐F-9 设计稿被 sol 判 REWORK**
+- **⭐⭐⭐ 最新（2026-08-10 下半场）= F-20 调查+设计双双过审（可出施工单）· F-19 审阅债结清 · F-8 第三面修一半**
+  （全档见 [plan.md 结转表](plan.md)）。**零生产码改动**，本轮落库 6 个提交。
+  排工 = 用户拍板的 **A+B（F-20 调查→设计）+ C（F-19 交叉审）** 三摊并行。
+  - **⭐⭐⭐ 本轮最该记住的一条 —— 跨家族出稿在同家族的盲区里躲开了两发雷**：
+    F-20 设计稿由 **sol 出稿**（纪律来自 08-09：orchestrator 亲手写的 F-9 稿被判 REWORK），
+    orchestrator 对抗审两轮 ⇒ **APPROVE 0 BLOCKER / 0 MAJOR / 2 NIT**。
+    **两发雷都藏在调查报告的建议里，而调查方与轻门方都是 Claude 侧**：
+    ① **「账本存在」不是二值事实** —— 有 V1/V2 两种 wire（`b14af01`），
+    盘上 **V1 账本 11 份 / V2 22 份**，而加载器第一件事就是对 V1 抛 `v1 runs are legacy-only`
+    ⇒ 按二分法施工会把 **11 个今天还能被审的 run 目录当场废掉**；
+    ② **新检查放哪一层是必须、不是整洁** —— `geometry_checkpoint_digest`（`approval.py:37-54`）
+    **直接 `hash_obj(kernel_check_report)`** ⇒ 往 2_modelling 报告里加**任何**一行
+    （哪怕 legacy run 上一条无害的 `NOT_APPLICABLE`）⇒ **盘上每个既有 run 的 digest 全变、
+    所有历史几何批准一次性失效** —— 而调查报告 Q4 建议的名字正是 `2_modelling.window_host_proof_unavailable`。
+    ⇒ **「设计稿必须跨家族出」这条纪律，本轮兑现得比 08-09 那次更直接**（那次是我的稿被判 REWORK，这次是我的题被出稿方纠正）。
+  - **F-20 岔口被调查整个推翻**：上一轮记的「① 耦合 manifest（**新**耦合）vs ② 多一处副本（**新**副本）」
+    **两边都不准** —— 加载器已有 **7 个生产调用点**、stage 根**本来就镜像着** `output.json`（sha256 逐字节相同）。
+    **防篡改强度不是「各有取舍」**：实测篡改 stage 根一个非几何字段（`windows[0].room`）
+    ⇒ 17 项检查**与未篡改对照逐条相同**（orchestrator 补跑了缺失的对照，把该结论由**推断升级为实测**）；
+    同样篡改落在账本绑定的 attempt 上 ⇒ **逐字节哈希必中**。
+  - **⭐ orchestrator 机械测量关掉 sol 自陈的一条未确定项**：全仓 22 份 V2 账本中有 accepted 记录的 4 个，
+    stage 根与 accepted 产物**全部逐字节相同、DIFF = 0** ⇒ 权威切到 accepted 对现有 V2 legacy run
+    **行为变化 = 0**。⚠️ **口径**：测的是**今天的盘上语料**，**不是**「代码保证恒等」的不变量证明。
+  - **✅ F-19 审阅债结清**（GLM 跨家族复核 **APPROVE-WITH-CHANGES**，0/0/0/2 NIT）：
+    独立全量 2345 逐字一致 · **两个方向 neuter**（还原修法 ⇒ 7 锁全红零连带；放宽成 `sorted()` ⇒ 只 L-4 红）
+    · **并逐把核对了红点位置** ⇒ 4 把锁全部真绑、零 false lock ·
+    C3 的 `>=1e-9` 退化守卫判为**非豁免口子**（与 `build.py:76/82` 对称，orchestrator 抽验属实）。
+  - **✅ F-8 债「第三面」修掉一半**：`eplusout.*` 连带挡掉 `eplusout.end`（"0 Severe" 那一行）与 `eplusout.err`，
+    **而 `validate_case` 把 `EP/EP_run/eplusout.end` 列为必需产物** ⇒ **新克隆缺它就判「必需产物缺失」**。
+    修法**按位置**：`!case_tests/**/eplusout.end` / `!eplusout.err`（例外**实测为活**，大件仍挡）。
+    顺带把 08-04 后一直在库外的 **67 项过程痕迹入库**（568 文件 / 23 MB，含**全项目唯一一份 v3 产物**）。
+    **⭐ 换来的判据**：判断一条 ignore 规则「有没有误伤」，必须**逐个列出它实际挡掉的文件** ——
+    `eplusout.*` 挡的 26 个里 24 个该挡、**2 个是承重证据**，只看规则名字必然判错
+    （orchestrator 实犯并写进过提交说明，靠 `git show HEAD:<path>` 逐件验收才照出来）。
+  - **⛔ 新登记 F-21 候选（未定性，⛔ 不并入 F-20）**：`approve_geometry`（`step_orchestrator.py:486-488`）
+    **只看 `geometry_digest is None`、不看 `res.blocked`** ⇒ **1_correction 仍在阻断时，
+    只要 2_modelling 出了 digest，几何批准照样签得出来。**
+  - **⏸ 待用户拍一条原则即可出施工单**（设计稿 §7 已白话写好）：
+    **是否接受「有正式记账的新 run 一律信记账、没记账的老 run 保留旧入口」。**
+
+- **（前一节点）2026-08-10 收工 = 一轮内倒两堵墙（F-18 真链路证实 · F-19 修完过轻门）+ 诊断清第三堵（F-20）+ ⭐F-9 设计稿被 sol 判 REWORK**
   （全档见 [plan.md「六之十四」](plan.md)）。全仓 **2345 绿 / 10 xfail / 0 红**（2339 → 2345，零回归）。
   本轮落库 4 个提交：`0efc775` 调查与裁决 · `d103c3e` F-19 修法 + 轻门 · `3cfb921` 文档 · 收工提交。
   - **⭐ 战线连推两格**：`0_reading ✅ → 1_correction ✅`（**F-18 修法兑现，第一次过**）
