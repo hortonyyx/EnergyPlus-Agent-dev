@@ -1,0 +1,196 @@
+{
+  "image_label": "West view of the building",
+  "image_kind": "elevation",
+  "facade_axis_note": "West facade: local x = -world y (local x increasing = world southward); local y = world z (increasing upward, ground = 0)",
+  "scale_origin": {
+    "world_x_m": 0.00,
+    "world_y_m": 8.00,
+    "world_z_m": 0.00,
+    "note": "local origin = NW ground corner (world x=0, y=8, z=0); local x increases southward = -world y"
+  },
+
+  "strokes": [
+    {
+      "id": "S1",
+      "pen": "wall_fill",
+      "provenance": "dimension_derived",
+      "confidence": "high",
+      "dimension_refs": ["D1", "D6", "D7"],
+      "geometry": {
+        "kind": "rect",
+        "x_range_m": [0.00, 8.00],
+        "y_range_m": [3.00, 6.60]
+      },
+      "note": "F2 wall body; local x = 0 to 8.00 (total 8000mm); y = 3.00 to 6.60 (F2 zone = 3600mm)"
+    },
+    {
+      "id": "S2",
+      "pen": "wall_fill",
+      "provenance": "dimension_derived",
+      "confidence": "high",
+      "dimension_refs": ["D1", "D6", "D8"],
+      "geometry": {
+        "kind": "rect",
+        "x_range_m": [0.00, 8.00],
+        "y_range_m": [0.00, 3.00]
+      },
+      "note": "F1 wall body; y = 0 to 3.00 (F1 height = 3000mm); x = 0 to 8.00"
+    },
+    {
+      "id": "S3",
+      "pen": "window",
+      "provenance": "dimension_derived",
+      "confidence": "high",
+      "dimension_refs": ["D2", "D3", "D9", "D10"],
+      "geometry": {
+        "kind": "rect",
+        "x_range_m": [3.40, 4.60],
+        "y_range_m": [4.00, 5.80]
+      },
+      "note": "F2 window; local x = [3.40, 4.60] per top dim chain 3400+1200=4600, start=3400; y = [4.00, 5.80]: F2 sill 1000mm above floor (3.00+1.00=4.00), height 1800mm"
+    }
+  ],
+
+  "dimensions": [
+    {
+      "id": "D1",
+      "text": "8000",
+      "from": [0.00, 6.60],
+      "to": [8.00, 6.60],
+      "axis": "x",
+      "note": "top total width 8000mm"
+    },
+    {
+      "id": "D2",
+      "text": "3400",
+      "from": [0.00, 6.60],
+      "to": [3.40, 6.60],
+      "axis": "x",
+      "note": "top dim chain segment 1: solid wall left 3400mm"
+    },
+    {
+      "id": "D3",
+      "text": "1200",
+      "from": [3.40, 6.60],
+      "to": [4.60, 6.60],
+      "axis": "x",
+      "note": "top dim chain segment 2: window/door width 1200mm"
+    },
+    {
+      "id": "D4",
+      "text": "3400",
+      "from": [4.60, 6.60],
+      "to": [8.00, 6.60],
+      "axis": "x",
+      "note": "top dim chain segment 3: solid wall right 3400mm"
+    },
+    {
+      "id": "D5",
+      "text": "8000",
+      "from": [0.00, 0.00],
+      "to": [8.00, 0.00],
+      "axis": "x",
+      "note": "bottom total width 8000mm (confirmation)"
+    },
+    {
+      "id": "D6",
+      "text": "6600",
+      "from": [0.00, 0.00],
+      "to": [0.00, 6.60],
+      "axis": "y",
+      "note": "left outer total height 6600mm"
+    },
+    {
+      "id": "D7",
+      "text": "3600",
+      "from": [0.00, 3.00],
+      "to": [0.00, 6.60],
+      "axis": "y",
+      "note": "left outer F2 height 3600mm"
+    },
+    {
+      "id": "D8",
+      "text": "3000",
+      "from": [0.00, 0.00],
+      "to": [0.00, 3.00],
+      "axis": "y",
+      "note": "left outer F1 height 3000mm"
+    },
+    {
+      "id": "D9",
+      "text": "800",
+      "from": [0.00, 5.80],
+      "to": [0.00, 6.60],
+      "axis": "y",
+      "note": "inner left chain: parapet/top 800mm"
+    },
+    {
+      "id": "D10",
+      "text": "1800",
+      "from": [0.00, 4.00],
+      "to": [0.00, 5.80],
+      "axis": "y",
+      "note": "inner left chain: F2 window height 1800mm"
+    },
+    {
+      "id": "D11",
+      "text": "1000",
+      "from": [0.00, 3.00],
+      "to": [0.00, 4.00],
+      "axis": "y",
+      "note": "inner left chain: F2 sill 1000mm"
+    },
+    {
+      "id": "D12",
+      "text": "3000",
+      "from": [0.00, 0.00],
+      "to": [0.00, 3.00],
+      "axis": "y",
+      "note": "inner left chain: F1 zone 3000mm (no inner subdivisions shown on left inner chain for F1; the door and F1 zone treated as solid)"
+    },
+    {
+      "id": "D13",
+      "text": "6600",
+      "from": [8.00, 0.00],
+      "to": [8.00, 6.60],
+      "axis": "y",
+      "note": "right outer total height 6600mm"
+    },
+    {
+      "id": "D14",
+      "text": "3600",
+      "from": [8.00, 3.00],
+      "to": [8.00, 6.60],
+      "axis": "y",
+      "note": "right outer F2 height 3600mm"
+    },
+    {
+      "id": "D15",
+      "text": "3000",
+      "from": [8.00, 0.00],
+      "to": [8.00, 3.00],
+      "axis": "y",
+      "note": "right outer F1 height 3000mm"
+    }
+  ],
+
+  "ocr_texts": [],
+
+  "self_check": {
+    "all_dimensions_transcribed": true,
+    "all_visible_strokes_captured": true,
+    "no_topology_inferred": true,
+    "pens_used": ["wall_fill", "window"],
+    "unknowns_noted": [
+      "F1 center opening is a door (two-panel glazed door, floor-to-near-top-F1 height) — recognized as door, not traced per pen library; logged in uncaptured_visual_elements",
+      "No inner dim subdivisions for F1 on left inner chain; F1 wall fill S2 covers full F1 band without window opening",
+      "outline not traced separately; coincides with wall_fill boundary edges",
+      "Floor line at y=3.00m visible as horizontal white line"
+    ],
+    "uncaptured_visual_elements": [
+      "F1 door at center x=[3.40, 4.60] (floor-height, two-panel glazed) — recognized as door; not traced per pen library (door → not drawn); the door breaks the F1 wall_fill but since it's a door (not a window), wall_fill S2 is kept continuous per elevation door convention",
+      "Horizontal storey line at y=3.00m — floor divider; used to split wall_fill; not traced separately",
+      "outline silhouette — not traced separately; coincides with outer edges of S1+S2"
+    ]
+  }
+}

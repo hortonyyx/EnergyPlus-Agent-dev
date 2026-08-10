@@ -1,0 +1,35 @@
+# run_2026-08-07_f13_e2e_verify (sm21_anchor) — F-13 内核顶点顺序修复验收
+# 目的：把 run_2026-08-06_wall3_a_retest 的 1_correction accepted 产物
+#       （legacy-snapped 几何，base_v2 contract，与 run_2026-08-05_probe_a_legacy_snapped
+#       同一份 correction_geometry_snapped.json）原样复用，只重跑
+#       2_modelling → 3_split_pairing → 4_mep → 5_intakeoutput，
+#       用 F-13 修复后（commit a3458cc）的内核重新生成中间产物，
+#       坐实修复后 A 层（output-coordinate / vertex-frame）漂移=0。
+# ⛔ 不重跑 0_reading / 1_correction 的 LLM 抽签、⛔ 不修任何撞到的墙。
+# 1_correction 来源：run_2026-08-06_wall3_a_retest/1_correction/attempts/001/
+#   （output.json sha256=f338fa81d5142e3f11c9318a48154f5a87496d3c2b230368474fb527d15d72f6，
+#    与源文件逐字节一致，manifest 手工重建但由 pydantic StageRecordV2 校验通过）。
+run_profile: exploratory
+capability_profile: rectangular
+judge:
+  mode: off
+review:
+  reading: false
+  correction: false
+  geometry: false
+models:
+  reading:
+    role: 0_reading
+    model_id: n/a
+    source: 未播种/未使用（本 run 只重跑 2_modelling 起下游，5_intakeoutput 之前不读 0_reading）
+  correction:
+    role: 1_correction
+    model_id: legacy-snapped-geometry
+    source: run_2026-08-06_wall3_a_retest/1_correction/attempts/001/output.json 原样复用（非本 run 产出）
+  mep:
+    role: 4_mep
+    model_id: deepseek-v4-pro
+    source: src/configs/llm.yaml intake_correction/default 全局配置（本 run 唯一的真实 LLM 抽签）
+  orchestrator:
+    role: orchestration
+    model_id: claude-sonnet-5

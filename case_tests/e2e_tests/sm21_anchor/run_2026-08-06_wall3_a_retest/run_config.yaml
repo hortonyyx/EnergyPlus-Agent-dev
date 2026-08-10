@@ -1,0 +1,27 @@
+# run_2026-08-05_probe_a_legacy_snapped (sm21_anchor) — 探针 A，⛔ 非成绩、⛔ 不录基线
+# 目的：把 6 月跑通过 EP 的【内核后】几何(correction_geometry_snapped.json)灌进今天的
+#       2_modelling → 3_split_pairing → 4_mep → 5_intakeoutput，探这四段今天本身坏没坏。
+# 输入 = run_2026-06-16_opus_e2e/1_correction/correction_geometry_snapped.json（schema v1）
+#       原样播种为 accepted 1_correction；0_reading 用同一 6 月 run 的 *_view.json 原样播种。
+# ⛔ 不重跑识图、⛔ 不重跑 1_correction 的 LLM 抽签（绕开 F-9）、⛔ 不修任何撞到的墙。
+# ⚠️ 局限：老件是 schema v1 / rectangular 档 ⇒ 查不到 v3 专有接线（窗源绑定/facade_segments/provenance）。
+run_profile: exploratory
+capability_profile: rectangular
+judge:
+  mode: off
+review:
+  reading: false
+  correction: false
+  geometry: false
+models:
+  reading:
+    role: 0_reading
+    model_id: claude-opus-5
+    source: 06-16 run_2026-06-16_opus_e2e/0_reading 原样复用（探针输入，非本 run 产出）
+  correction:
+    role: 1_correction
+    model_id: legacy-snapped-geometry
+    source: 06-16 run_2026-06-16_opus_e2e/1_correction/correction_geometry_snapped.json 原样播种（探针输入，非本 run 产出）
+  orchestrator:
+    role: orchestration
+    model_id: glm-5.2

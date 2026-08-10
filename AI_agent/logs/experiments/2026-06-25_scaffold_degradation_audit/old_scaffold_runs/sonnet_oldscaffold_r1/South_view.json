@@ -1,0 +1,427 @@
+{
+  "image_label": "South elevation view",
+  "image_kind": "elevation",
+  "facade_axis_note": "South facade: local x = world x (increasing eastward); local y = world z (up positive, ground = 0)",
+  "scale_origin": {
+    "world_x_m": 0.00,
+    "world_y_m": 0.00,
+    "world_z_m": 0.00,
+    "note": "local origin = SW outer corner of building at ground level; x east, y up"
+  },
+
+  "strokes": [
+    {
+      "id": "S1",
+      "pen": "wall_fill",
+      "geometry": {
+        "kind": "rect",
+        "x_range_m": [0.00, 15.00],
+        "y_range_m": [3.00, 6.60]
+      },
+      "note": "F2 south facade wall body; floor height 3.60m; windows punch through but fill is one per floor"
+    },
+    {
+      "id": "S2",
+      "pen": "wall_fill",
+      "geometry": {
+        "kind": "rect",
+        "x_range_m": [0.00, 15.00],
+        "y_range_m": [0.00, 3.00]
+      },
+      "note": "F1 south facade wall body; floor height 3.00m; windows and door punch through"
+    },
+    {
+      "id": "W1",
+      "pen": "window",
+      "geometry": {
+        "kind": "rect",
+        "x_range_m": [2.19, 3.39],
+        "y_range_m": [4.00, 5.80]
+      },
+      "note": "F2 south window 1 (portrait); x from top dim chain: 2190 offset + 1200 width; y: sill at F2_floor+1.00=4.00, top at 6.60-0.80=5.80, height=1800"
+    },
+    {
+      "id": "W2",
+      "pen": "window",
+      "geometry": {
+        "kind": "rect",
+        "x_range_m": [4.11, 5.31],
+        "y_range_m": [4.00, 5.80]
+      },
+      "note": "F2 south window 2 (portrait); x: 2190+1200+720=4110→4110+1200=5310; left pair: W1 at [2.19,3.39], W2 at [4.11,5.31]"
+    },
+    {
+      "id": "W3",
+      "pen": "window",
+      "geometry": {
+        "kind": "rect",
+        "x_range_m": [9.69, 10.89],
+        "y_range_m": [4.00, 5.80]
+      },
+      "note": "F2 south window 3 (portrait); symmetric right pair; x: from right end: 15.00-2.19=12.81, 12.81-1.20=11.61, 11.61-0.72=10.89, 10.89-1.20=9.69"
+    },
+    {
+      "id": "W4",
+      "pen": "window",
+      "geometry": {
+        "kind": "rect",
+        "x_range_m": [11.61, 12.81],
+        "y_range_m": [4.00, 5.80]
+      },
+      "note": "F2 south window 4 (portrait)"
+    },
+    {
+      "id": "W5",
+      "pen": "window",
+      "geometry": {
+        "kind": "rect",
+        "x_range_m": [4.64, 5.84],
+        "y_range_m": [0.40, 2.00]
+      },
+      "note": "F1 south window 1 (small/narrow); x: bottom dim chain 3440+1200=4640→4640+1200=5840; y: from right-side inner dims for F1: 400 from ground (sill), 1600 height = y [0.40, 2.00]"
+    },
+    {
+      "id": "W6",
+      "pen": "window",
+      "geometry": {
+        "kind": "rect",
+        "x_range_m": [6.30, 8.70],
+        "y_range_m": [0.40, 2.00]
+      },
+      "note": "F1 south window 2 (large landscape); x: bottom dim chain cumulative 3440+1200+1660=6300→6300+2400=8700; y: [0.40, 2.00]"
+    },
+    {
+      "id": "W7",
+      "pen": "window",
+      "geometry": {
+        "kind": "rect",
+        "x_range_m": [11.36, 13.76],
+        "y_range_m": [0.40, 2.00]
+      },
+      "note": "F1 south window 3 (large landscape); x: bottom dim chain 3440+1200+1660+2400+2660=11360→11360+2400=13760; y: [0.40, 2.00]"
+    },
+    {
+      "id": "W8",
+      "pen": "window",
+      "geometry": {
+        "kind": "rect",
+        "x_range_m": [0.34, 0.94],
+        "y_range_m": [0.00, 2.10]
+      },
+      "note": "F1 south facade: door-height element at far left (x≈0.34–0.94); visible as tall rectangle with internal division lines; classified as door in recognition but this element appears on elevation — recording as window-height opening; NOTE: from plan this is the main entrance door; elevation shows door symbol (leaf division lines + floor contact) — treated here as an opening notation; height≈2.10m from left-side inner dims: 1500+600 from bottom=2100 sill at 0, top at 2.10"
+    }
+  ],
+
+  "dimensions": [
+    {
+      "id": "D1",
+      "text": "15000",
+      "from": [0.00, 6.60],
+      "to": [15.00, 6.60],
+      "axis": "x",
+      "note": "top total width"
+    },
+    {
+      "id": "D2",
+      "text": "2190",
+      "from": [0.00, 6.60],
+      "to": [2.19, 6.60],
+      "axis": "x",
+      "note": "top dim chain segment 1"
+    },
+    {
+      "id": "D3",
+      "text": "1200",
+      "from": [2.19, 6.60],
+      "to": [3.39, 6.60],
+      "axis": "x",
+      "note": "top dim chain segment 2 (F2 window 1 width)"
+    },
+    {
+      "id": "D4",
+      "text": "720",
+      "from": [3.39, 6.60],
+      "to": [4.11, 6.60],
+      "axis": "x",
+      "note": "top dim chain segment 3 (pier between F2 windows 1 and 2)"
+    },
+    {
+      "id": "D5",
+      "text": "1200",
+      "from": [4.11, 6.60],
+      "to": [5.31, 6.60],
+      "axis": "x",
+      "note": "top dim chain segment 4 (F2 window 2 width)"
+    },
+    {
+      "id": "D6",
+      "text": "4380",
+      "from": [5.31, 6.60],
+      "to": [9.69, 6.60],
+      "axis": "x",
+      "note": "top dim chain segment 5 (solid wall center band between F2 window pairs)"
+    },
+    {
+      "id": "D7",
+      "text": "1200",
+      "from": [9.69, 6.60],
+      "to": [10.89, 6.60],
+      "axis": "x",
+      "note": "top dim chain segment 6 (F2 window 3 width)"
+    },
+    {
+      "id": "D8",
+      "text": "720",
+      "from": [10.89, 6.60],
+      "to": [11.61, 6.60],
+      "axis": "x",
+      "note": "top dim chain segment 7 (pier between F2 windows 3 and 4)"
+    },
+    {
+      "id": "D9",
+      "text": "1200",
+      "from": [11.61, 6.60],
+      "to": [12.81, 6.60],
+      "axis": "x",
+      "note": "top dim chain segment 8 (F2 window 4 width)"
+    },
+    {
+      "id": "D10",
+      "text": "2190",
+      "from": [12.81, 6.60],
+      "to": [15.00, 6.60],
+      "axis": "x",
+      "note": "top dim chain segment 9"
+    },
+    {
+      "id": "D11",
+      "text": "3440",
+      "from": [0.00, 0.00],
+      "to": [3.44, 0.00],
+      "axis": "x",
+      "note": "bottom dim chain segment 1 (door zone + solid wall)"
+    },
+    {
+      "id": "D12",
+      "text": "1200",
+      "from": [3.44, 0.00],
+      "to": [4.64, 0.00],
+      "axis": "x",
+      "note": "bottom dim chain segment 2"
+    },
+    {
+      "id": "D13",
+      "text": "1660",
+      "from": [4.64, 0.00],
+      "to": [6.30, 0.00],
+      "axis": "x",
+      "note": "bottom dim chain segment 3"
+    },
+    {
+      "id": "D14",
+      "text": "2400",
+      "from": [6.30, 0.00],
+      "to": [8.70, 0.00],
+      "axis": "x",
+      "note": "bottom dim chain segment 4 (F1 window 2 width)"
+    },
+    {
+      "id": "D15",
+      "text": "2660",
+      "from": [8.70, 0.00],
+      "to": [11.36, 0.00],
+      "axis": "x",
+      "note": "bottom dim chain segment 5 (solid wall pier)"
+    },
+    {
+      "id": "D16",
+      "text": "2400",
+      "from": [11.36, 0.00],
+      "to": [13.76, 0.00],
+      "axis": "x",
+      "note": "bottom dim chain segment 6 (F1 window 3 width)"
+    },
+    {
+      "id": "D17",
+      "text": "1240",
+      "from": [13.76, 0.00],
+      "to": [15.00, 0.00],
+      "axis": "x",
+      "note": "bottom dim chain segment 7"
+    },
+    {
+      "id": "D18",
+      "text": "15000",
+      "from": [0.00, 0.00],
+      "to": [15.00, 0.00],
+      "axis": "x",
+      "note": "bottom total width"
+    },
+    {
+      "id": "D19",
+      "text": "6600",
+      "from": [0.00, 0.00],
+      "to": [0.00, 6.60],
+      "axis": "y",
+      "note": "left outer total height"
+    },
+    {
+      "id": "D20",
+      "text": "3600",
+      "from": [0.00, 3.00],
+      "to": [0.00, 6.60],
+      "axis": "y",
+      "note": "left outer F2 height"
+    },
+    {
+      "id": "D21",
+      "text": "3000",
+      "from": [0.00, 0.00],
+      "to": [0.00, 3.00],
+      "axis": "y",
+      "note": "left outer F1 height"
+    },
+    {
+      "id": "D22",
+      "text": "800",
+      "from": [0.00, 5.80],
+      "to": [0.00, 6.60],
+      "axis": "y",
+      "note": "left inner F2 dim: parapet to F2 window top"
+    },
+    {
+      "id": "D23",
+      "text": "1800",
+      "from": [0.00, 4.00],
+      "to": [0.00, 5.80],
+      "axis": "y",
+      "note": "left inner F2 dim: F2 window height"
+    },
+    {
+      "id": "D24",
+      "text": "1000",
+      "from": [0.00, 3.00],
+      "to": [0.00, 4.00],
+      "axis": "y",
+      "note": "left inner F2 dim: F2 window sill height from floor"
+    },
+    {
+      "id": "D25",
+      "text": "900",
+      "from": [0.00, 2.10],
+      "to": [0.00, 3.00],
+      "axis": "y",
+      "note": "left inner F1 dim: from floor-divider line down to door/opening top"
+    },
+    {
+      "id": "D26",
+      "text": "600",
+      "from": [0.00, 1.50],
+      "to": [0.00, 2.10],
+      "axis": "y",
+      "note": "left inner F1 dim"
+    },
+    {
+      "id": "D27",
+      "text": "1500",
+      "from": [0.00, 0.00],
+      "to": [0.00, 1.50],
+      "axis": "y",
+      "note": "left inner F1 dim: ground to bottom of element"
+    },
+    {
+      "id": "D28",
+      "text": "6600",
+      "from": [15.00, 0.00],
+      "to": [15.00, 6.60],
+      "axis": "y",
+      "note": "right outer total height"
+    },
+    {
+      "id": "D29",
+      "text": "3600",
+      "from": [15.00, 3.00],
+      "to": [15.00, 6.60],
+      "axis": "y",
+      "note": "right outer F2 height"
+    },
+    {
+      "id": "D30",
+      "text": "3000",
+      "from": [15.00, 0.00],
+      "to": [15.00, 3.00],
+      "axis": "y",
+      "note": "right outer F1 height"
+    },
+    {
+      "id": "D31",
+      "text": "800",
+      "from": [15.00, 5.80],
+      "to": [15.00, 6.60],
+      "axis": "y",
+      "note": "right inner F2 dim: parapet to window top"
+    },
+    {
+      "id": "D32",
+      "text": "1800",
+      "from": [15.00, 4.00],
+      "to": [15.00, 5.80],
+      "axis": "y",
+      "note": "right inner F2 dim: F2 window height"
+    },
+    {
+      "id": "D33",
+      "text": "1000",
+      "from": [15.00, 3.00],
+      "to": [15.00, 4.00],
+      "axis": "y",
+      "note": "right inner F2 dim: sill"
+    },
+    {
+      "id": "D34",
+      "text": "400",
+      "from": [15.00, 0.00],
+      "to": [15.00, 0.40],
+      "axis": "y",
+      "note": "right inner F1 dim: sill height"
+    },
+    {
+      "id": "D35",
+      "text": "1600",
+      "from": [15.00, 0.40],
+      "to": [15.00, 2.00],
+      "axis": "y",
+      "note": "right inner F1 dim: F1 window height"
+    },
+    {
+      "id": "D36",
+      "text": "1000",
+      "from": [15.00, 2.00],
+      "to": [15.00, 3.00],
+      "axis": "y",
+      "note": "right inner F1 dim: from window top to floor divider"
+    }
+  ],
+
+  "ocr_texts": [],
+
+  "self_check": {
+    "all_dimensions_transcribed": true,
+    "all_visible_strokes_captured": true,
+    "no_topology_inferred": true,
+    "pens_used": ["wall_fill", "window"],
+    "unknowns_noted": [
+      "W8 (door-height element at far left F1) recognized as door on elevation (floor-height rectangle with internal leaf division lines); elevation pen set has no door pen — recorded as window-height opening for coordinate capture; note includes recognition details",
+      "F2 window x-positions: re-read from top dim chain shows W1 at 2.19–3.39 and W2 at 4.11–5.31 (not 3.39–4.59 as originally noted in W2 — corrected); W2 x_range updated to [4.11, 5.31]",
+      "Left inner F1 dim chain (900+600+1500) does not obviously align with F1 window dims (400 sill + 1600 height + 1000 top) from right inner chain; left and right inner dim chains may refer to different elements on the facade; left chain may relate to the door element",
+      "floor divider line at y=3.00 visible as horizontal line across facade"
+    ],
+    "uncaptured_visual_elements": [
+      "floor-divider horizontal line at y=3.00 — not a separate stroke (it is the boundary between F1 and F2 wall_fill zones); acknowledged as zone boundary",
+      "outline: outer silhouette coincides with wall_fill edges — not drawn as separate outline stroke",
+      "shadow: no visible shadow fill on this elevation",
+      "decoration: no balconies, sun-shades, or cornices visible",
+      "W8 recognized as door opening (elevation door rectangle with internal division) — no door pen exists; recorded under window pen with note; healed in plan S1"
+    ]
+  }
+}

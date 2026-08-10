@@ -1,0 +1,114 @@
+{
+  "case": "run_2026-08-05_probe_a_legacy_snapped",
+  "manifest_version": "2",
+  "run_id": "37650bf3c99d07459e92ac1c7eb820ff",
+  "run_inputs": {
+    "view_manifest_sha256": "f52ca79c1bcacaf8fccc9436e165b4bfdc08814ec770370dd1acefd76b6e493e"
+  },
+  "stages": {
+    "0_reading": {
+      "stage": "0_reading",
+      "accepted_attempt": 1,
+      "output_hash": "a0a97bdc64ebddb732c40eeae8f70f260a0e098abaa984f9891bec66d34001f8",
+      "input_hashes": {},
+      "stage_version": "1",
+      "check_version": "1",
+      "capability": "manual",
+      "check_passed": true,
+      "record_schema_version": "2",
+      "artifact_contract": "base_v2",
+      "artifact_hashes": {
+        "output": "a0a97bdc64ebddb732c40eeae8f70f260a0e098abaa984f9891bec66d34001f8",
+        "checks": "e2e8dc77ba0c043db6b0f8bdeac04bcaaf99435a71ccbbd51399b865ed76df07"
+      }
+    },
+    "1_correction": {
+      "stage": "1_correction",
+      "accepted_attempt": 1,
+      "output_hash": "f338fa81d5142e3f11c9318a48154f5a87496d3c2b230368474fb527d15d72f6",
+      "input_hashes": {
+        "0_reading": "a0a97bdc64ebddb732c40eeae8f70f260a0e098abaa984f9891bec66d34001f8"
+      },
+      "stage_version": "1",
+      "check_version": "1",
+      "capability": "stochastic",
+      "check_passed": true,
+      "record_schema_version": "2",
+      "artifact_contract": "base_v2",
+      "artifact_hashes": {
+        "output": "f338fa81d5142e3f11c9318a48154f5a87496d3c2b230368474fb527d15d72f6",
+        "checks": "ee8c8f3f64b2c3a4fa8c130e2240a8cd1b1292221123f51b37d374a0d48ff797"
+      }
+    },
+    "2_modelling": {
+      "stage": "2_modelling",
+      "accepted_attempt": 1,
+      "output_hash": "b0212cac5593e2265fec89e68320b4a80391f7e4133253f6cadbebeea6c328c4",
+      "input_hashes": {},
+      "stage_version": "1",
+      "check_version": "1",
+      "capability": "deterministic",
+      "check_passed": true,
+      "record_schema_version": "2",
+      "artifact_contract": "base_v2",
+      "artifact_hashes": {
+        "output": "b0212cac5593e2265fec89e68320b4a80391f7e4133253f6cadbebeea6c328c4",
+        "checks": "9511b586238dd6e1b5f6c63ad56f299890e023c3833f74c4c2cb14fdced6c695"
+      }
+    },
+    "3_split_pairing": {
+      "stage": "3_split_pairing",
+      "accepted_attempt": 1,
+      "output_hash": "39f535b13ffdb482df11e5482d609af81a5a83d4c33aca2cbce2fbaafa75aeba",
+      "input_hashes": {},
+      "stage_version": "1",
+      "check_version": "1",
+      "capability": "deterministic",
+      "check_passed": true,
+      "record_schema_version": "2",
+      "artifact_contract": "base_v2",
+      "artifact_hashes": {
+        "output": "39f535b13ffdb482df11e5482d609af81a5a83d4c33aca2cbce2fbaafa75aeba",
+        "checks": "ae317c6d415d8a57d950a35cd950d4e3f53aa81daf1d48f591a719e2621a8716"
+      }
+    },
+    "4_mep": {
+      "stage": "4_mep",
+      "accepted_attempt": 1,
+      "output_hash": "e742f857ec2143920f7a10f848e1202b69135e959623912ca91d05117c24fb68",
+      "input_hashes": {},
+      "stage_version": "1",
+      "check_version": "1",
+      "capability": "stochastic",
+      "check_passed": true,
+      "record_schema_version": "2",
+      "artifact_contract": "base_v2",
+      "artifact_hashes": {
+        "output": "e742f857ec2143920f7a10f848e1202b69135e959623912ca91d05117c24fb68",
+        "checks": "3e9eef11460cb567aba9961d13bc92ba6e128e897aa127250c9ac6dc7b26ad8a"
+      }
+    },
+    "5_intakeoutput": {
+      "stage": "5_intakeoutput",
+      "accepted_attempt": 1,
+      "output_hash": "5e0a610ec018ead6e4b58dbdab93984bf179ce2ef50091f3cce764fa80f1dfab",
+      "input_hashes": {
+        "1_correction": "f338fa81d5142e3f11c9318a48154f5a87496d3c2b230368474fb527d15d72f6",
+        "4_mep": "e742f857ec2143920f7a10f848e1202b69135e959623912ca91d05117c24fb68"
+      },
+      "stage_version": "1",
+      "check_version": "1",
+      "capability": "deterministic",
+      "check_passed": true,
+      "record_schema_version": "2",
+      "artifact_contract": "assembly_e4_v1",
+      "artifact_hashes": {
+        "output": "5e0a610ec018ead6e4b58dbdab93984bf179ce2ef50091f3cce764fa80f1dfab",
+        "checks": "41ede273b60d6a113523b3f0fdbb53550c71efc383283c5f28c34780fd4cc5ae",
+        "audit": "c9a464d31c867b8480adaeee112751b881feb0d8e4e86946770a5b184a1a840b",
+        "output_coordinate_contract": "8ddb94a83743df811134325e1c524e47a68419b3527cb3d65392b54c228da0ae",
+        "output_coordinate_snapshot": "01cf9f8720a7cde9a5d9ec97f3546da1253a010940c59185a0c3edb9481aa561"
+      }
+    }
+  }
+}

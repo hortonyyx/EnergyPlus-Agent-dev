@@ -1,0 +1,179 @@
+{
+  "image_label": "West elevation view",
+  "image_kind": "elevation",
+  "facade_axis_note": "West facade: local x = -world y (local x increasing = world southward); local y = world z (up positive, ground = 0)",
+  "scale_origin": {
+    "world_x_m": 0.00,
+    "world_y_m": 8.00,
+    "world_z_m": 0.00,
+    "note": "local origin = NW outer corner of building at ground level; local x increases southward (decreasing world y)"
+  },
+
+  "strokes": [
+    {
+      "id": "S1",
+      "pen": "wall_fill",
+      "geometry": {
+        "kind": "rect",
+        "x_range_m": [0.00, 8.00],
+        "y_range_m": [3.00, 6.60]
+      },
+      "note": "F2 west facade wall body; 3600mm tall; 1 portrait window"
+    },
+    {
+      "id": "S2",
+      "pen": "wall_fill",
+      "geometry": {
+        "kind": "rect",
+        "x_range_m": [0.00, 8.00],
+        "y_range_m": [0.00, 3.00]
+      },
+      "note": "F1 west facade wall body; 3000mm tall; contains an entry double-door opening (door recognized and noted; not drawn as pen)"
+    },
+    {
+      "id": "W1",
+      "pen": "window",
+      "geometry": {
+        "kind": "rect",
+        "x_range_m": [3.40, 4.60],
+        "y_range_m": [4.00, 5.80]
+      },
+      "note": "F2 west window (portrait); x from top dim chain: 3400+1200=4600→x=[3.40,4.60]; y: sill at F2_floor+1.00=4.00, height=1800, top=5.80 (inner F2 dims: 800+1800+1000)"
+    }
+  ],
+
+  "dimensions": [
+    {
+      "id": "D1",
+      "text": "8000",
+      "from": [0.00, 6.60],
+      "to": [8.00, 6.60],
+      "axis": "x",
+      "note": "top total width"
+    },
+    {
+      "id": "D2",
+      "text": "3400",
+      "from": [0.00, 6.60],
+      "to": [3.40, 6.60],
+      "axis": "x",
+      "note": "top dim chain segment 1"
+    },
+    {
+      "id": "D3",
+      "text": "1200",
+      "from": [3.40, 6.60],
+      "to": [4.60, 6.60],
+      "axis": "x",
+      "note": "top dim chain segment 2 (F2 window width; same position aligns with F1 door centerline)"
+    },
+    {
+      "id": "D4",
+      "text": "3400",
+      "from": [4.60, 6.60],
+      "to": [8.00, 6.60],
+      "axis": "x",
+      "note": "top dim chain segment 3"
+    },
+    {
+      "id": "D5",
+      "text": "8000",
+      "from": [0.00, 0.00],
+      "to": [8.00, 0.00],
+      "axis": "x",
+      "note": "bottom total width"
+    },
+    {
+      "id": "D6",
+      "text": "6600",
+      "from": [0.00, 0.00],
+      "to": [0.00, 6.60],
+      "axis": "y",
+      "note": "left outer total height"
+    },
+    {
+      "id": "D7",
+      "text": "3600",
+      "from": [0.00, 3.00],
+      "to": [0.00, 6.60],
+      "axis": "y",
+      "note": "left outer F2 height"
+    },
+    {
+      "id": "D8",
+      "text": "3000",
+      "from": [0.00, 0.00],
+      "to": [0.00, 3.00],
+      "axis": "y",
+      "note": "left outer F1 height"
+    },
+    {
+      "id": "D9",
+      "text": "800",
+      "from": [0.00, 5.80],
+      "to": [0.00, 6.60],
+      "axis": "y",
+      "note": "left inner F2: parapet to window top"
+    },
+    {
+      "id": "D10",
+      "text": "1800",
+      "from": [0.00, 4.00],
+      "to": [0.00, 5.80],
+      "axis": "y",
+      "note": "left inner F2: window height"
+    },
+    {
+      "id": "D11",
+      "text": "1000",
+      "from": [0.00, 3.00],
+      "to": [0.00, 4.00],
+      "axis": "y",
+      "note": "left inner F2: sill height from F2 floor"
+    },
+    {
+      "id": "D12",
+      "text": "6600",
+      "from": [8.00, 0.00],
+      "to": [8.00, 6.60],
+      "axis": "y",
+      "note": "right outer total height"
+    },
+    {
+      "id": "D13",
+      "text": "3600",
+      "from": [8.00, 3.00],
+      "to": [8.00, 6.60],
+      "axis": "y",
+      "note": "right outer F2 height"
+    },
+    {
+      "id": "D14",
+      "text": "3000",
+      "from": [8.00, 0.00],
+      "to": [8.00, 3.00],
+      "axis": "y",
+      "note": "right outer F1 height"
+    }
+  ],
+
+  "ocr_texts": [],
+
+  "self_check": {
+    "all_dimensions_transcribed": true,
+    "all_visible_strokes_captured": true,
+    "no_topology_inferred": true,
+    "pens_used": ["wall_fill", "window"],
+    "unknowns_noted": [
+      "West facade local x = -world y (southward); window x_range [3.40,4.60] in local = world y from 8.00-4.60=3.40 to 8.00-3.40=4.60 (i.e. world y [3.40,4.60])",
+      "F1 center element: the image shows a double-door (two rectangular panels side-by-side, floor-height, with internal vertical division line) at x≈3.40–4.60, y≈0.00–2.80; recognized as a door — not drawn as a pen (no door pen in elevation); recorded in uncaptured_visual_elements; F1 wall_fill S2 is continuous because doors are ignored in EP simulation",
+      "No inner F1 vertical sub-dims visible on West view (left side); right side also shows only 3000 for F1 zone undivided"
+    ],
+    "uncaptured_visual_elements": [
+      "F1 center double-door at x≈[3.40,4.60], y≈[0.00,2.80]: double-door leaf symbol visible (two vertical panels + division lines); recognized as door — not drawn; elevation door pen does not exist; noted here for phase 2 (may need to correlate with plan west wall)",
+      "floor-divider horizontal line at y=3.00 — boundary between F1 and F2 wall_fill zones; not a separate stroke",
+      "outline: silhouette coincides with wall_fill edges — not drawn separately",
+      "no shadow, balconies, or decoration visible on West facade"
+    ]
+  }
+}

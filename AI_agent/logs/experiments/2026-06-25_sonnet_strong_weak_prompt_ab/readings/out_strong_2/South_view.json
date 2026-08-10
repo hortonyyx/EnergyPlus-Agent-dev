@@ -1,0 +1,444 @@
+{
+  "image_label": "South view of the building",
+  "image_kind": "elevation",
+  "facade_axis_note": "South facade: local x = world x (increasing eastward); local y = world z (increasing upward, ground = 0)",
+  "scale_origin": {
+    "world_x_m": 0.00,
+    "world_y_m": 0.00,
+    "world_z_m": 0.00,
+    "note": "local origin = SW ground corner of south facade; x east, y up"
+  },
+
+  "strokes": [
+    {
+      "id": "S1",
+      "pen": "wall_fill",
+      "provenance": "dimension_derived",
+      "confidence": "high",
+      "dimension_refs": ["D1", "D2", "D10"],
+      "geometry": {
+        "kind": "rect",
+        "x_range_m": [0.00, 15.00],
+        "y_range_m": [3.00, 6.60]
+      },
+      "note": "F2 wall body; x = 0 to 15.00 (total width 15000); y = 3.00 to 6.60 (F1 height 3000mm, total 6600mm); F2 zone = 3600mm"
+    },
+    {
+      "id": "S2",
+      "pen": "wall_fill",
+      "provenance": "dimension_derived",
+      "confidence": "high",
+      "dimension_refs": ["D1", "D2", "D10"],
+      "geometry": {
+        "kind": "rect",
+        "x_range_m": [0.00, 15.00],
+        "y_range_m": [0.00, 3.00]
+      },
+      "note": "F1 wall body; y = 0 to 3.00 (F1 height = 3000mm per dim chain 3000 on left); x = 0 to 15.00"
+    },
+    {
+      "id": "S3",
+      "pen": "window",
+      "provenance": "dimension_derived",
+      "confidence": "high",
+      "dimension_refs": ["D3", "D4", "D11", "D12"],
+      "geometry": {
+        "kind": "rect",
+        "x_range_m": [2.19, 3.39],
+        "y_range_m": [4.00, 5.80]
+      },
+      "note": "F2 window W1 (leftmost); x = [2.19, 3.39] per top dim chain 2190+1200; y = [4.00, 5.80] per inner left dim: sill 1000mm above F2 floor (y=3.00+1.00=4.00), height 1800mm (y=4.00+1.80=5.80)"
+    },
+    {
+      "id": "S4",
+      "pen": "window",
+      "provenance": "dimension_derived",
+      "confidence": "high",
+      "dimension_refs": ["D3", "D4", "D5", "D11", "D12"],
+      "geometry": {
+        "kind": "rect",
+        "x_range_m": [4.11, 5.31],
+        "y_range_m": [4.00, 5.80]
+      },
+      "note": "F2 window W2; x = [4.11, 5.31] per top dim chain 2190+1200+720+1200=5310, second window start 2190+1200+720=4110; y same as W1"
+    },
+    {
+      "id": "S5",
+      "pen": "window",
+      "provenance": "dimension_derived",
+      "confidence": "high",
+      "dimension_refs": ["D6", "D7", "D11", "D12"],
+      "geometry": {
+        "kind": "rect",
+        "x_range_m": [9.69, 10.89],
+        "y_range_m": [4.00, 5.80]
+      },
+      "note": "F2 window W3; x = [9.69, 10.89] per top dim chain: 2190+1200+720+1200+4380+1200=10890, start=10890-1200=9690; y same as W1-W2"
+    },
+    {
+      "id": "S6",
+      "pen": "window",
+      "provenance": "dimension_derived",
+      "confidence": "high",
+      "dimension_refs": ["D6", "D7", "D8", "D11", "D12"],
+      "geometry": {
+        "kind": "rect",
+        "x_range_m": [11.61, 12.81],
+        "y_range_m": [4.00, 5.80]
+      },
+      "note": "F2 window W4 (rightmost); x = [11.61, 12.81] per top dim chain: 9690+720=10410 start... recalc: 2190+1200+720+1200+4380+1200+720=11610, +1200=12810; so [11.61, 12.81]; y same as W1-W2"
+    },
+    {
+      "id": "S7",
+      "pen": "window",
+      "provenance": "dimension_derived",
+      "confidence": "high",
+      "dimension_refs": ["D13", "D14", "D16", "D17"],
+      "geometry": {
+        "kind": "rect",
+        "x_range_m": [6.30, 8.70],
+        "y_range_m": [1.00, 2.60]
+      },
+      "note": "F1 large window L1 (center); x = [6.30, 8.70] per bottom dim chain: 3440+1200+1660=6300 start, +2400=8700 end; y = [1.00, 2.60] per right inner dim: sill 1000mm (1000), height 1600mm (1600), y=[1.00, 2.60]"
+    },
+    {
+      "id": "S8",
+      "pen": "window",
+      "provenance": "dimension_derived",
+      "confidence": "high",
+      "dimension_refs": ["D14", "D15", "D17"],
+      "geometry": {
+        "kind": "rect",
+        "x_range_m": [11.36, 13.76],
+        "y_range_m": [1.00, 2.60]
+      },
+      "note": "F1 large window L2 (right); x = [11.36, 13.76] per bottom dim chain: 3440+1200+1660+2400+2660=11360 start, +2400=13760 end; y = [1.00, 2.60] same as L1"
+    },
+    {
+      "id": "S9",
+      "pen": "window",
+      "provenance": "seen",
+      "confidence": "medium",
+      "dimension_refs": ["D13"],
+      "geometry": {
+        "kind": "rect",
+        "x_range_m": [4.64, 5.20],
+        "y_range_m": [1.40, 1.90]
+      },
+      "note": "F1 small window visible between door and first large window; x estimated: starts after door end 3440+1200=4640=4.64; width estimated ~0.56m (small rectangle seen); y estimated mid-height from left inner dim ~1500 sill from bottom of F1 → y=[1.50, 1.50+0.45]; approximate only — no direct dimension to this small window"
+    }
+  ],
+
+  "dimensions": [
+    {
+      "id": "D1",
+      "text": "15000",
+      "from": [0.00, 6.60],
+      "to": [15.00, 6.60],
+      "axis": "x",
+      "note": "top total width 15000mm"
+    },
+    {
+      "id": "D2",
+      "text": "15000",
+      "from": [0.00, 0.00],
+      "to": [15.00, 0.00],
+      "axis": "x",
+      "note": "bottom total width 15000mm (confirmation)"
+    },
+    {
+      "id": "D3",
+      "text": "2190",
+      "from": [0.00, 6.60],
+      "to": [2.19, 6.60],
+      "axis": "x",
+      "note": "top dim chain segment 1: west margin 2190"
+    },
+    {
+      "id": "D4",
+      "text": "1200",
+      "from": [2.19, 6.60],
+      "to": [3.39, 6.60],
+      "axis": "x",
+      "note": "top dim chain segment 2: F2 window width 1200"
+    },
+    {
+      "id": "D5",
+      "text": "720",
+      "from": [3.39, 6.60],
+      "to": [4.11, 6.60],
+      "axis": "x",
+      "note": "top dim chain segment 3: gap between F2 windows 720"
+    },
+    {
+      "id": "D6",
+      "text": "1200",
+      "from": [4.11, 6.60],
+      "to": [5.31, 6.60],
+      "axis": "x",
+      "note": "top dim chain segment 4: F2 window width 1200"
+    },
+    {
+      "id": "D7",
+      "text": "4380",
+      "from": [5.31, 6.60],
+      "to": [9.69, 6.60],
+      "axis": "x",
+      "note": "top dim chain segment 5: solid wall between left and right window pairs 4380"
+    },
+    {
+      "id": "D8",
+      "text": "1200",
+      "from": [9.69, 6.60],
+      "to": [10.89, 6.60],
+      "axis": "x",
+      "note": "top dim chain segment 6: F2 window width 1200"
+    },
+    {
+      "id": "D9",
+      "text": "720",
+      "from": [10.89, 6.60],
+      "to": [11.61, 6.60],
+      "axis": "x",
+      "note": "top dim chain segment 7: gap 720"
+    },
+    {
+      "id": "D10",
+      "text": "1200",
+      "from": [11.61, 6.60],
+      "to": [12.81, 6.60],
+      "axis": "x",
+      "note": "top dim chain segment 8: F2 window width 1200"
+    },
+    {
+      "id": "D11",
+      "text": "2190",
+      "from": [12.81, 6.60],
+      "to": [15.00, 6.60],
+      "axis": "x",
+      "note": "top dim chain segment 9: east margin 2190"
+    },
+    {
+      "id": "D12",
+      "text": "6600",
+      "from": [0.00, 0.00],
+      "to": [0.00, 6.60],
+      "axis": "y",
+      "note": "left outer total height 6600mm"
+    },
+    {
+      "id": "D13",
+      "text": "3600",
+      "from": [0.00, 3.00],
+      "to": [0.00, 6.60],
+      "axis": "y",
+      "note": "left outer F2 height 3600mm"
+    },
+    {
+      "id": "D14",
+      "text": "3000",
+      "from": [0.00, 0.00],
+      "to": [0.00, 3.00],
+      "axis": "y",
+      "note": "left outer F1 height 3000mm"
+    },
+    {
+      "id": "D15",
+      "text": "800",
+      "from": [0.00, 5.80],
+      "to": [0.00, 6.60],
+      "axis": "y",
+      "note": "inner left chain: parapet/top band 800mm"
+    },
+    {
+      "id": "D16",
+      "text": "1800",
+      "from": [0.00, 4.00],
+      "to": [0.00, 5.80],
+      "axis": "y",
+      "note": "inner left chain: F2 window height 1800mm"
+    },
+    {
+      "id": "D17",
+      "text": "1000",
+      "from": [0.00, 3.00],
+      "to": [0.00, 4.00],
+      "axis": "y",
+      "note": "inner left chain: F2 window sill 1000mm above floor line"
+    },
+    {
+      "id": "D18",
+      "text": "900",
+      "from": [0.00, 2.10],
+      "to": [0.00, 3.00],
+      "axis": "y",
+      "note": "inner left chain: F1 spandrel below F2 floor 900mm"
+    },
+    {
+      "id": "D19",
+      "text": "600",
+      "from": [0.00, 1.50],
+      "to": [0.00, 2.10],
+      "axis": "y",
+      "note": "inner left chain: F1 zone 600mm (door frame height zone or small window band)"
+    },
+    {
+      "id": "D20",
+      "text": "1500",
+      "from": [0.00, 0.00],
+      "to": [0.00, 1.50],
+      "axis": "y",
+      "note": "inner left chain: F1 lower zone 1500mm"
+    },
+    {
+      "id": "D21",
+      "text": "6600",
+      "from": [15.00, 0.00],
+      "to": [15.00, 6.60],
+      "axis": "y",
+      "note": "right outer total height 6600mm"
+    },
+    {
+      "id": "D22",
+      "text": "3600",
+      "from": [15.00, 3.00],
+      "to": [15.00, 6.60],
+      "axis": "y",
+      "note": "right outer F2 height 3600mm"
+    },
+    {
+      "id": "D23",
+      "text": "3000",
+      "from": [15.00, 0.00],
+      "to": [15.00, 3.00],
+      "axis": "y",
+      "note": "right outer F1 height 3000mm"
+    },
+    {
+      "id": "D24",
+      "text": "800",
+      "from": [15.00, 5.80],
+      "to": [15.00, 6.60],
+      "axis": "y",
+      "note": "inner right chain: parapet 800mm"
+    },
+    {
+      "id": "D25",
+      "text": "1800",
+      "from": [15.00, 4.00],
+      "to": [15.00, 5.80],
+      "axis": "y",
+      "note": "inner right chain: F2 window height 1800mm"
+    },
+    {
+      "id": "D26",
+      "text": "1000",
+      "from": [15.00, 3.00],
+      "to": [15.00, 4.00],
+      "axis": "y",
+      "note": "inner right chain: F2 sill 1000mm"
+    },
+    {
+      "id": "D27",
+      "text": "400",
+      "from": [15.00, 2.60],
+      "to": [15.00, 3.00],
+      "axis": "y",
+      "note": "inner right chain: F1 top spandrel 400mm"
+    },
+    {
+      "id": "D28",
+      "text": "1600",
+      "from": [15.00, 1.00],
+      "to": [15.00, 2.60],
+      "axis": "y",
+      "note": "inner right chain: F1 window height 1600mm"
+    },
+    {
+      "id": "D29",
+      "text": "1000",
+      "from": [15.00, 0.00],
+      "to": [15.00, 1.00],
+      "axis": "y",
+      "note": "inner right chain: F1 sill 1000mm from ground"
+    },
+    {
+      "id": "D30",
+      "text": "3440",
+      "from": [0.00, 0.00],
+      "to": [3.44, 0.00],
+      "axis": "x",
+      "note": "bottom dim chain segment 1: solid wall to door 3440mm"
+    },
+    {
+      "id": "D31",
+      "text": "1200",
+      "from": [3.44, 0.00],
+      "to": [4.64, 0.00],
+      "axis": "x",
+      "note": "bottom dim chain segment 2: door width 1200mm"
+    },
+    {
+      "id": "D32",
+      "text": "1660",
+      "from": [4.64, 0.00],
+      "to": [6.30, 0.00],
+      "axis": "x",
+      "note": "bottom dim chain segment 3: wall gap 1660mm"
+    },
+    {
+      "id": "D33",
+      "text": "2400",
+      "from": [6.30, 0.00],
+      "to": [8.70, 0.00],
+      "axis": "x",
+      "note": "bottom dim chain segment 4: F1 large window width 2400mm"
+    },
+    {
+      "id": "D34",
+      "text": "2660",
+      "from": [8.70, 0.00],
+      "to": [11.36, 0.00],
+      "axis": "x",
+      "note": "bottom dim chain segment 5: solid wall between large windows 2660mm"
+    },
+    {
+      "id": "D35",
+      "text": "2400",
+      "from": [11.36, 0.00],
+      "to": [13.76, 0.00],
+      "axis": "x",
+      "note": "bottom dim chain segment 6: F1 large window width 2400mm"
+    },
+    {
+      "id": "D36",
+      "text": "1240",
+      "from": [13.76, 0.00],
+      "to": [15.00, 0.00],
+      "axis": "x",
+      "note": "bottom dim chain segment 7: east margin 1240mm"
+    }
+  ],
+
+  "ocr_texts": [],
+
+  "self_check": {
+    "all_dimensions_transcribed": true,
+    "all_visible_strokes_captured": true,
+    "no_topology_inferred": true,
+    "pens_used": ["wall_fill", "window"],
+    "unknowns_noted": [
+      "Door at F1 left (x=[3.44, 4.64], floor-to-somewhere height) is recognized as door → not traced as window pen; logged in uncaptured_visual_elements",
+      "Small window S9 at F1 center-left has no direct x-dimension in the bottom chain; x estimated from position after door end; confidence medium",
+      "Left inner dim chain for F1 (1500+600+900=3000) gives different z bands than right inner chain (1000+1600+400=3000); right chain used for large window y coordinates; left chain may be for door/small-window zone",
+      "outline not traced separately as it coincides with wall_fill boundary edges",
+      "Floor line at y=3.00m visible as horizontal white line dividing F1 and F2"
+    ],
+    "uncaptured_visual_elements": [
+      "F1 door at x=[3.44, 4.64] floor-height (two-panel glazed entry door) — recognized as door, not traced (pen_library: door → not drawn in elevation); logged here",
+      "F1 small window between door and large window — partially captured in S9 with medium confidence; exact x-width not dimensioned",
+      "Horizontal storey line at y=3.00m — recognized as floor line dividing wall_fill per floor; used to split S1 and S2",
+      "outline silhouette — not traced separately; coincides with wall_fill outer edges (S1+S2 cover the full facade rectangle)"
+    ]
+  }
+}

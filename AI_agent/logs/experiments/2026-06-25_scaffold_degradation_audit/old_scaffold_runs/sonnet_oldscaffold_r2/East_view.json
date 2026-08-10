@@ -1,0 +1,262 @@
+{
+  "image_label": "East view",
+  "image_kind": "elevation",
+  "facade_axis_note": "East facade: local x = world y (increasing northward); local y = world z (increasing upward, ground = 0). Local x=0 at south end of building (world y=0), local x=8.00 at north end (world y=8.00).",
+  "scale_origin": {
+    "world_x_m": 15.00,
+    "world_y_m": 0.00,
+    "world_z_m": 0.00,
+    "note": "local (0,0) = SE corner of building at ground level; local x runs northward along the east facade (= world y); local y = world z"
+  },
+
+  "strokes": [
+    {
+      "id": "S1",
+      "pen": "wall_fill",
+      "geometry": {
+        "kind": "rect",
+        "x_range_m": [0.00, 8.00],
+        "y_range_m": [3.00, 6.60]
+      },
+      "note": "F2 east facade wall body; interrupted by 1 window opening centered; one fill per floor"
+    },
+    {
+      "id": "S2",
+      "pen": "wall_fill",
+      "geometry": {
+        "kind": "rect",
+        "x_range_m": [0.00, 8.00],
+        "y_range_m": [0.00, 3.00]
+      },
+      "note": "F1 east facade wall body; interrupted by 1 window opening centered; one fill per floor"
+    },
+    {
+      "id": "S3",
+      "pen": "window",
+      "geometry": {
+        "kind": "rect",
+        "x_range_m": [3.40, 4.60],
+        "y_range_m": [4.00, 5.80]
+      },
+      "note": "F2 east window W1 (single, centered); x from top dim chain: 3400 left + 1200 window = x=[3.40, 4.60]; y from left inner dims: 1000 sill (above F2 floor at 3.00) + 1800 height = [4.00, 5.80]"
+    },
+    {
+      "id": "S4",
+      "pen": "window",
+      "geometry": {
+        "kind": "rect",
+        "x_range_m": [3.40, 4.60],
+        "y_range_m": [1.00, 2.80]
+      },
+      "note": "F1 east window W2 (single, centered); same x as W1; y from left inner F1 dims: 1000 sill + 1800 window height = [1.00, 2.80]; 200mm zone above window to F2 floor (3.00-2.80=0.20m)"
+    }
+  ],
+
+  "dimensions": [
+    {
+      "id": "D1",
+      "text": "8000",
+      "from": [0.00, 6.60],
+      "to": [8.00, 6.60],
+      "axis": "x",
+      "note": "top overall width"
+    },
+    {
+      "id": "D2",
+      "text": "3400",
+      "from": [0.00, 6.60],
+      "to": [3.40, 6.60],
+      "axis": "x",
+      "note": "top dim chain: south zone to window"
+    },
+    {
+      "id": "D3",
+      "text": "1200",
+      "from": [3.40, 6.60],
+      "to": [4.60, 6.60],
+      "axis": "x",
+      "note": "top dim chain: window width"
+    },
+    {
+      "id": "D4",
+      "text": "3400",
+      "from": [4.60, 6.60],
+      "to": [8.00, 6.60],
+      "axis": "x",
+      "note": "top dim chain: window to north edge"
+    },
+    {
+      "id": "D5",
+      "text": "8000",
+      "from": [0.00, 0.00],
+      "to": [8.00, 0.00],
+      "axis": "x",
+      "note": "bottom overall width"
+    },
+    {
+      "id": "D6",
+      "text": "6600",
+      "from": [0.00, 0.00],
+      "to": [0.00, 6.60],
+      "axis": "z",
+      "note": "overall height left side"
+    },
+    {
+      "id": "D7",
+      "text": "3600",
+      "from": [0.00, 3.00],
+      "to": [0.00, 6.60],
+      "axis": "z",
+      "note": "left side F2 zone height"
+    },
+    {
+      "id": "D8",
+      "text": "3000",
+      "from": [0.00, 0.00],
+      "to": [0.00, 3.00],
+      "axis": "z",
+      "note": "left side F1 zone height"
+    },
+    {
+      "id": "D9",
+      "text": "800",
+      "from": [0.00, 5.80],
+      "to": [0.00, 6.60],
+      "axis": "z",
+      "note": "left inner dim F2: above window"
+    },
+    {
+      "id": "D10",
+      "text": "1800",
+      "from": [0.00, 4.00],
+      "to": [0.00, 5.80],
+      "axis": "z",
+      "note": "left inner dim F2: window height"
+    },
+    {
+      "id": "D11",
+      "text": "1000",
+      "from": [0.00, 3.00],
+      "to": [0.00, 4.00],
+      "axis": "z",
+      "note": "left inner dim F2: sill height above F2 floor"
+    },
+    {
+      "id": "D12",
+      "text": "200",
+      "from": [0.00, 2.80],
+      "to": [0.00, 3.00],
+      "axis": "z",
+      "note": "left inner dim F1: zone above F1 window top (to F2 floor)"
+    },
+    {
+      "id": "D13",
+      "text": "1800",
+      "from": [0.00, 1.00],
+      "to": [0.00, 2.80],
+      "axis": "z",
+      "note": "left inner dim F1: window height"
+    },
+    {
+      "id": "D14",
+      "text": "1000",
+      "from": [0.00, 0.00],
+      "to": [0.00, 1.00],
+      "axis": "z",
+      "note": "left inner dim F1: sill height above ground"
+    },
+    {
+      "id": "D15",
+      "text": "6600",
+      "from": [8.00, 0.00],
+      "to": [8.00, 6.60],
+      "axis": "z",
+      "note": "overall height right side"
+    },
+    {
+      "id": "D16",
+      "text": "3600",
+      "from": [8.00, 3.00],
+      "to": [8.00, 6.60],
+      "axis": "z",
+      "note": "right side F2 zone height"
+    },
+    {
+      "id": "D17",
+      "text": "3000",
+      "from": [8.00, 0.00],
+      "to": [8.00, 3.00],
+      "axis": "z",
+      "note": "right side F1 zone height"
+    },
+    {
+      "id": "D18",
+      "text": "800",
+      "from": [8.00, 5.80],
+      "to": [8.00, 6.60],
+      "axis": "z",
+      "note": "right inner dim F2: above window"
+    },
+    {
+      "id": "D19",
+      "text": "1800",
+      "from": [8.00, 4.00],
+      "to": [8.00, 5.80],
+      "axis": "z",
+      "note": "right inner dim F2: window height"
+    },
+    {
+      "id": "D20",
+      "text": "1000",
+      "from": [8.00, 3.00],
+      "to": [8.00, 4.00],
+      "axis": "z",
+      "note": "right inner dim F2: sill"
+    },
+    {
+      "id": "D21",
+      "text": "200",
+      "from": [8.00, 2.80],
+      "to": [8.00, 3.00],
+      "axis": "z",
+      "note": "right inner dim F1: above window"
+    },
+    {
+      "id": "D22",
+      "text": "1800",
+      "from": [8.00, 1.00],
+      "to": [8.00, 2.80],
+      "axis": "z",
+      "note": "right inner dim F1: window height"
+    },
+    {
+      "id": "D23",
+      "text": "1000",
+      "from": [8.00, 0.00],
+      "to": [8.00, 1.00],
+      "axis": "z",
+      "note": "right inner dim F1: sill"
+    }
+  ],
+
+  "ocr_texts": [],
+
+  "self_check": {
+    "all_dimensions_transcribed": true,
+    "all_visible_strokes_captured": true,
+    "no_topology_inferred": true,
+    "pens_used": ["wall_fill", "window"],
+    "unknowns_noted": [
+      "F1 east window height: left inner dims show 200|1800|1000 (top-to-bottom order from F2 floor = z=3.00 down); this gives window top at z=3.00-0.20=2.80 and bottom at z=3.00-0.20-1.80=1.00; window y_range=[1.00, 2.80]",
+      "the 200mm zone above the F1 window (below F2 floor): this is a spandrel/slab band; recorded in dims but not as a wall_fill break (windows don't break wall_fill by convention)",
+      "outline coincides with wall_fill edges; not drawn as a separate stroke"
+    ],
+    "uncaptured_visual_elements": [
+      "floor storey line at y=3.00: visible horizontal line across the facade; used to split wall_fill strokes; not traced separately",
+      "ground line at y=0: coincides with wall_fill bottom",
+      "outline: coincides with wall_fill boundary edges; not traced separately per pen library rule",
+      "dimension tick marks and extension lines (not geometry)",
+      "no decorative elements, balconies, or shadow fills visible"
+    ]
+  }
+}

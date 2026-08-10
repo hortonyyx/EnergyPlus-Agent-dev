@@ -1,0 +1,365 @@
+{
+  "image_label": "North view",
+  "image_kind": "elevation",
+  "facade_axis_note": "North facade: local x = -world x (local x increasing = world westward, i.e. viewer sees facade from outside/north, left = east, right = west... WAIT: North facade is viewed from the north, so the left side of the elevation as drawn corresponds to the EAST end of the building and the right side corresponds to the WEST end. Therefore local x increasing leftward = world x decreasing = world westward. Correction: standard convention is local x increasing = world westward for north facade, so local x=0 at east end (world x=15.00), local x increases as world x decreases); local y = world z",
+  "scale_origin": {
+    "world_x_m": 15.00,
+    "world_y_m": null,
+    "world_z_m": 0.00,
+    "note": "local (0,0) = NE corner of building at ground level; local x increases westward (world x decreases); y = world z"
+  },
+
+  "strokes": [
+    {
+      "id": "S1",
+      "pen": "wall_fill",
+      "geometry": {
+        "kind": "rect",
+        "x_range_m": [0.00, 15.00],
+        "y_range_m": [3.00, 6.60]
+      },
+      "note": "F2 north facade wall body; interrupted by 2 window openings; one fill per floor"
+    },
+    {
+      "id": "S2",
+      "pen": "wall_fill",
+      "geometry": {
+        "kind": "rect",
+        "x_range_m": [0.00, 15.00],
+        "y_range_m": [0.00, 3.00]
+      },
+      "note": "F1 north facade wall body; interrupted by 3 window openings; one fill per floor"
+    },
+    {
+      "id": "S3",
+      "pen": "window",
+      "geometry": {
+        "kind": "rect",
+        "x_range_m": [1.95, 5.55],
+        "y_range_m": [4.00, 5.80]
+      },
+      "note": "F2 north window W1 (west conference room, as seen from north; local x=1.95 from NE corner = world x=15.00-1.95=13.05 to world x=15.00-5.55=9.45); width 3600mm; y from right-side dims: 1000 sill + 1800 height = [3+1.00, 3+2.80]=[4.00, 5.80]"
+    },
+    {
+      "id": "S4",
+      "pen": "window",
+      "geometry": {
+        "kind": "rect",
+        "x_range_m": [8.85, 12.45],
+        "y_range_m": [4.00, 5.80]
+      },
+      "note": "F2 north window W2 (east conference room as seen from north); local x = 1950+3600+3900=9450mm... wait: top dim chain for North view is 1950|3600|3900|3600|1950=15000. So: W2 local x_start = 1950+3600+3900=9450mm = 9.45m, width 3600mm, x_end=13.05m; local coords [9.45, 13.05]; same y as W1"
+    },
+    {
+      "id": "S5",
+      "pen": "window",
+      "geometry": {
+        "kind": "rect",
+        "x_range_m": [1.24, 3.64],
+        "y_range_m": [1.00, 2.60]
+      },
+      "note": "F1 north window W3 (west); local x from bottom dim chain: 1240|2400|2660|2400|2660|2400|1240; W3 local x=[1.24, 3.64], width 2400mm; y from right dims: 1000 sill + 1600 height = [1.00, 2.60]"
+    },
+    {
+      "id": "S6",
+      "pen": "window",
+      "geometry": {
+        "kind": "rect",
+        "x_range_m": [6.30, 8.70],
+        "y_range_m": [1.00, 2.60]
+      },
+      "note": "F1 north window W4 (center); local x = 1240+2400+2660=6300mm = 6.30m; width 2400mm; x=[6.30, 8.70]; same y"
+    },
+    {
+      "id": "S7",
+      "pen": "window",
+      "geometry": {
+        "kind": "rect",
+        "x_range_m": [11.36, 13.76],
+        "y_range_m": [1.00, 2.60]
+      },
+      "note": "F1 north window W5 (east); local x = 1240+2400+2660+2400+2660=11360mm = 11.36m; width 2400mm; x=[11.36, 13.76]; same y"
+    }
+  ],
+
+  "dimensions": [
+    {
+      "id": "D1",
+      "text": "15000",
+      "from": [0.00, 6.60],
+      "to": [15.00, 6.60],
+      "axis": "x",
+      "note": "top overall width"
+    },
+    {
+      "id": "D2",
+      "text": "1950",
+      "from": [0.00, 6.60],
+      "to": [1.95, 6.60],
+      "axis": "x",
+      "note": "top dim chain: edge to F2 window W1 start"
+    },
+    {
+      "id": "D3",
+      "text": "3600",
+      "from": [1.95, 6.60],
+      "to": [5.55, 6.60],
+      "axis": "x",
+      "note": "top dim chain: F2 window W1 width (west conference room)"
+    },
+    {
+      "id": "D4",
+      "text": "3900",
+      "from": [5.55, 6.60],
+      "to": [9.45, 6.60],
+      "axis": "x",
+      "note": "top dim chain: pier between F2 windows (center)"
+    },
+    {
+      "id": "D5",
+      "text": "3600",
+      "from": [9.45, 6.60],
+      "to": [13.05, 6.60],
+      "axis": "x",
+      "note": "top dim chain: F2 window W2 width (east conference room)"
+    },
+    {
+      "id": "D6",
+      "text": "1950",
+      "from": [13.05, 6.60],
+      "to": [15.00, 6.60],
+      "axis": "x",
+      "note": "top dim chain: edge to end"
+    },
+    {
+      "id": "D7",
+      "text": "1240",
+      "from": [0.00, 0.00],
+      "to": [1.24, 0.00],
+      "axis": "x",
+      "note": "bottom dim chain: west edge"
+    },
+    {
+      "id": "D8",
+      "text": "2400",
+      "from": [1.24, 0.00],
+      "to": [3.64, 0.00],
+      "axis": "x",
+      "note": "bottom dim chain: F1 window W3 width"
+    },
+    {
+      "id": "D9",
+      "text": "2660",
+      "from": [3.64, 0.00],
+      "to": [6.30, 0.00],
+      "axis": "x",
+      "note": "bottom dim chain: pier between F1 windows"
+    },
+    {
+      "id": "D10",
+      "text": "2400",
+      "from": [6.30, 0.00],
+      "to": [8.70, 0.00],
+      "axis": "x",
+      "note": "bottom dim chain: F1 window W4 width (center)"
+    },
+    {
+      "id": "D11",
+      "text": "2660",
+      "from": [8.70, 0.00],
+      "to": [11.36, 0.00],
+      "axis": "x",
+      "note": "bottom dim chain: pier between F1 windows"
+    },
+    {
+      "id": "D12",
+      "text": "2400",
+      "from": [11.36, 0.00],
+      "to": [13.76, 0.00],
+      "axis": "x",
+      "note": "bottom dim chain: F1 window W5 width (east)"
+    },
+    {
+      "id": "D13",
+      "text": "1240",
+      "from": [13.76, 0.00],
+      "to": [15.00, 0.00],
+      "axis": "x",
+      "note": "bottom dim chain: east edge"
+    },
+    {
+      "id": "D14",
+      "text": "15000",
+      "from": [0.00, 0.00],
+      "to": [15.00, 0.00],
+      "axis": "x",
+      "note": "bottom overall width"
+    },
+    {
+      "id": "D15",
+      "text": "6600",
+      "from": [0.00, 0.00],
+      "to": [0.00, 6.60],
+      "axis": "z",
+      "note": "overall height left side"
+    },
+    {
+      "id": "D16",
+      "text": "3600",
+      "from": [0.00, 3.00],
+      "to": [0.00, 6.60],
+      "axis": "z",
+      "note": "left side F2 height"
+    },
+    {
+      "id": "D17",
+      "text": "3000",
+      "from": [0.00, 0.00],
+      "to": [0.00, 3.00],
+      "axis": "z",
+      "note": "left side F1 height"
+    },
+    {
+      "id": "D18",
+      "text": "800",
+      "from": [0.00, 5.80],
+      "to": [0.00, 6.60],
+      "axis": "z",
+      "note": "left inner dim F2: above window (parapet)"
+    },
+    {
+      "id": "D19",
+      "text": "1800",
+      "from": [0.00, 4.00],
+      "to": [0.00, 5.80],
+      "axis": "z",
+      "note": "left inner dim F2: window height"
+    },
+    {
+      "id": "D20",
+      "text": "1000",
+      "from": [0.00, 3.00],
+      "to": [0.00, 4.00],
+      "axis": "z",
+      "note": "left inner dim F2: sill above F2 floor"
+    },
+    {
+      "id": "D21",
+      "text": "400",
+      "from": [0.00, 2.60],
+      "to": [0.00, 3.00],
+      "axis": "z",
+      "note": "left inner dim F1: above F1 windows"
+    },
+    {
+      "id": "D22",
+      "text": "1600",
+      "from": [0.00, 1.00],
+      "to": [0.00, 2.60],
+      "axis": "z",
+      "note": "left inner dim F1: window height"
+    },
+    {
+      "id": "D23",
+      "text": "1000",
+      "from": [0.00, 0.00],
+      "to": [0.00, 1.00],
+      "axis": "z",
+      "note": "left inner dim F1: sill height above floor"
+    },
+    {
+      "id": "D24",
+      "text": "6600",
+      "from": [15.00, 0.00],
+      "to": [15.00, 6.60],
+      "axis": "z",
+      "note": "overall height right side"
+    },
+    {
+      "id": "D25",
+      "text": "3600",
+      "from": [15.00, 3.00],
+      "to": [15.00, 6.60],
+      "axis": "z",
+      "note": "right side F2 height"
+    },
+    {
+      "id": "D26",
+      "text": "3000",
+      "from": [15.00, 0.00],
+      "to": [15.00, 3.00],
+      "axis": "z",
+      "note": "right side F1 height"
+    },
+    {
+      "id": "D27",
+      "text": "800",
+      "from": [15.00, 5.80],
+      "to": [15.00, 6.60],
+      "axis": "z",
+      "note": "right inner dim F2: above window"
+    },
+    {
+      "id": "D28",
+      "text": "1800",
+      "from": [15.00, 4.00],
+      "to": [15.00, 5.80],
+      "axis": "z",
+      "note": "right inner dim F2: window height"
+    },
+    {
+      "id": "D29",
+      "text": "1000",
+      "from": [15.00, 3.00],
+      "to": [15.00, 4.00],
+      "axis": "z",
+      "note": "right inner dim F2: sill"
+    },
+    {
+      "id": "D30",
+      "text": "400",
+      "from": [15.00, 2.60],
+      "to": [15.00, 3.00],
+      "axis": "z",
+      "note": "right inner dim F1: above windows"
+    },
+    {
+      "id": "D31",
+      "text": "1600",
+      "from": [15.00, 1.00],
+      "to": [15.00, 2.60],
+      "axis": "z",
+      "note": "right inner dim F1: window height"
+    },
+    {
+      "id": "D32",
+      "text": "1000",
+      "from": [15.00, 0.00],
+      "to": [15.00, 1.00],
+      "axis": "z",
+      "note": "right inner dim F1: sill"
+    }
+  ],
+
+  "ocr_texts": [],
+
+  "self_check": {
+    "all_dimensions_transcribed": true,
+    "all_visible_strokes_captured": true,
+    "no_topology_inferred": true,
+    "pens_used": ["wall_fill", "window"],
+    "unknowns_noted": [
+      "facade_axis_note: North facade is viewed from outside (north), so the facade's left-as-drawn is the EAST end of the building. Confirmed: local x=0 at east end (world x=15.00), local x increases westward.",
+      "North view top dim chain: 1950+3600+3900+3600+1950=15000mm. The 3900 center pier is larger than the south facade's center (4380mm); this is consistent with different window layouts on N vs S facades.",
+      "Bottom dim chain: 1240+2400+2660+2400+2660+2400+1240=15000mm. 3 windows each 2400mm wide with 2660mm piers and 1240mm edge zones.",
+      "outline not drawn separately: outline coincides with wall_fill boundary"
+    ],
+    "uncaptured_visual_elements": [
+      "floor storey line at y=3.00: used to split wall_fill strokes; not traced as a separate stroke",
+      "ground line at y=0: coincides with wall_fill bottom; not separate",
+      "outline: outer silhouette coincides with wall_fill edges; not traced separately",
+      "dimension extension lines and tick marks (not geometry)",
+      "no decorative elements, balconies, or shadows visible in this elevation"
+    ]
+  }
+}

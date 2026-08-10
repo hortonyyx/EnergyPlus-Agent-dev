@@ -1,0 +1,61 @@
+# run_2026-08-09_f17_e2e_verify (sm21_anchor)
+#
+# 目的：F-17 修法（跨轴 envelope 组件切角，落库 2c8aca3，orchestrator 轻门 PASS）的
+#       **真链路验收**。核心问题只有一个：**F-17 是不是真的解开了确定性核那道坎。**
+#       上一轮 run_2026-08-08_f16_e2e_verify 死在
+#       `ValueError: cell RM1F_01: polygon edge 3 is not orthogonal`
+#       （裸 ValueError 炸穿 flow，attempts/ 零归档）。
+#
+# ⚠️ 修法目前只有夹具层证据（3 把锁 + 施工席两格 neuter + orchestrator 换方向两格 neuter
+#    + 全仓 2326 绿）。本 run 即为兑现项目那条最贵的教训（F-5）：
+#    **夹具自洽不算数，只有真实产物跑通才算修好。** 与 08-08 验 F-16 同一逻辑。
+#
+# 用户 2026-08-09 拍板：**先跑真链路**（理由 = F-16 先例：上一次正是靠真链路
+#   把「夹具层 24 把锁 + 跨家族 APPROVE」升级成「真解开」，并当场撞出 F-17；
+#   战线又前移一格，接着撞下一堵墙性价比最高）。
+#
+# 输入 = 07-07 那份已知满分的 sm21 识图产物，经 run_2026-08-08_f16_e2e_verify/0_reading
+#   **逐字节复制**（已 diff -rq 校验一致）。⛔ 本 run 不重跑识图（reading 是下轮支线）。
+#   view_manifest content_sha256 = f52ca79c1bcacaf8fccc9436e165b4bfdc08814ec770370dd1acefd76b6e493e
+#   （与 08-08 run 的 run_inputs.view_manifest_sha256 逐字一致 ⇒ 输入无变量）
+#
+# ⇒ **本 run 与 08-08 那次的唯一变量 = F-17 修法本身。**
+
+run_profile: exploratory
+capability_profile: orthogonal_polygon
+judge:
+  mode: off
+review:
+  reading: false
+  correction: false
+  geometry: auto        # 自动几何确认（无人值守），非人工签字
+with_ep: true
+record: true
+
+provenance:
+  base_commit: 2c8aca3          # 08.09_f17_cross_axis_chamfer_fixed_lightgate_passed
+  tracked_dirty: false
+  key_source_fingerprints:
+    src/agent/correction/envelope_transform.py: 604dc15ff0f8cb05   # sha256 前 16 位
+  scaffold: 全仓 2326 passed / 10 xfailed / 0 failed（orchestrator 独立轻门，-n 8）
+
+models:
+  reading:
+    role: 0_reading
+    model_id: claude-haiku-4-5-20251001
+    source: 07-07 run_2026-07-07_haiku_cv_retest/0_reading 原样复用（本 run 未重跑识图）
+  correction:
+    role: 1_correction
+    model_id: deepseek-v4-pro
+    effort: high                 # src/configs/llm.yaml:intake_correction，thinking enabled
+  mep:
+    role: 4_mep
+    model_id: deepseek-v4-pro    # 无 intake_mep 段 ⇒ 回落 intake_correction
+    effort: high
+  downstream:
+    role: 9 subagent
+    model_id: deepseek-v4-pro（surface/construction/fenestration）+ deepseek-v4-flash（zone/material/schedule/hvac/people/lights）
+    source: src/configs/llm.yaml 全局默认，⛔ 本 run 无 per-run 覆盖（与 08-08 相同）
+  orchestrator:
+    role: orchestration
+    model_id: claude-opus-5

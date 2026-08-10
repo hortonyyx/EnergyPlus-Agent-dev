@@ -1,0 +1,22 @@
+# run_2026-08-04_smoke_downstream (sm21_anchor) — 下游机械烟测，⛔ 非成绩、⛔ 不录基线
+# 目的：在识图仍在重抽期间，先验证 1_correction → 内核 → 4_mep → 5_intakeoutput → EP
+#       这半条链今天还通不通（用户 08-04 晚「看看端到端有没有问题，有问题就修好」）。
+# 输入 = 07-07 那份已知满分的 sm21 识图产物原样拷入（flat *_view.json），⛔ 不重跑识图。
+run_profile: exploratory
+capability_profile: orthogonal_polygon
+judge:
+  mode: off
+review:
+  reading: false
+  correction: false
+  geometry: false
+models:
+  reading:
+    role: 0_reading
+    model_id: claude-haiku-4-5-20251001
+    source: 07-07 run_2026-07-07_haiku_cv_retest attempts/001 原样复用（烟测输入，非本 run 产出）
+  orchestrator:
+    role: orchestration
+    model_id: claude-opus-5
+  correction: {role: 1_correction, model_id: deepseek-v4-pro, effort: high}
+  mep: {role: 4_mep, model_id: deepseek-v4-pro, effort: high}

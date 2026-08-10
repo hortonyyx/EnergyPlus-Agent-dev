@@ -1,0 +1,232 @@
+{
+  "image_label": "West view",
+  "image_kind": "elevation",
+  "facade_axis_note": "West facade: local x = -world y (local x increasing = world southward, i.e. viewer sees facade from outside/west, left = north end, right = south end); local y = world z. Local x=0 at north end (world y=8.00), local x=8.00 at south end (world y=0.00).",
+  "scale_origin": {
+    "world_x_m": 0.00,
+    "world_y_m": 8.00,
+    "world_z_m": 0.00,
+    "note": "local (0,0) = NW corner of building at ground level; local x increases southward (world y decreases); local y = world z"
+  },
+
+  "strokes": [
+    {
+      "id": "S1",
+      "pen": "wall_fill",
+      "geometry": {
+        "kind": "rect",
+        "x_range_m": [0.00, 8.00],
+        "y_range_m": [3.00, 6.60]
+      },
+      "note": "F2 west facade wall body; interrupted by 1 window opening; one fill per floor"
+    },
+    {
+      "id": "S2",
+      "pen": "wall_fill",
+      "geometry": {
+        "kind": "rect",
+        "x_range_m": [0.00, 8.00],
+        "y_range_m": [0.00, 3.00]
+      },
+      "note": "F1 west facade wall body; interrupted by door opening; one fill per floor"
+    },
+    {
+      "id": "S3",
+      "pen": "window",
+      "geometry": {
+        "kind": "rect",
+        "x_range_m": [3.40, 4.60],
+        "y_range_m": [4.00, 5.80]
+      },
+      "note": "F2 west window W1 (single, centered); x from top dim chain: 3400 left + 1200 = [3.40, 4.60]; y from left inner dims F2: 1000 sill above F2 floor + 1800 height = [3+1.00, 3+1.00+1.80]=[4.00, 5.80]"
+    },
+    {
+      "id": "S4",
+      "pen": "window",
+      "geometry": {
+        "kind": "rect",
+        "x_range_m": [3.40, 4.60],
+        "y_range_m": [0.00, 2.10]
+      },
+      "note": "F1 west opening W2 — a door as seen in plan (double-leaf door with center vertical mullion line visible in elevation, floor-to-approx-2100mm); recorded as window pen because only wall_fill/window/outline are legal elevation pens; height 2100mm estimated visually (no explicit door height dimension found in image); the plan confirms this is a door on the west perimeter wall. LOW CONFIDENCE on exact top y (2.10m); x=[3.40, 4.60] matching the 1200mm centered opening (from top dim chain: 3400+1200+3400=8000)"
+    }
+  ],
+
+  "dimensions": [
+    {
+      "id": "D1",
+      "text": "8000",
+      "from": [0.00, 6.60],
+      "to": [8.00, 6.60],
+      "axis": "x",
+      "note": "top overall width"
+    },
+    {
+      "id": "D2",
+      "text": "3400",
+      "from": [0.00, 6.60],
+      "to": [3.40, 6.60],
+      "axis": "x",
+      "note": "top dim chain: north edge to window start"
+    },
+    {
+      "id": "D3",
+      "text": "1200",
+      "from": [3.40, 6.60],
+      "to": [4.60, 6.60],
+      "axis": "x",
+      "note": "top dim chain: window/door width"
+    },
+    {
+      "id": "D4",
+      "text": "3400",
+      "from": [4.60, 6.60],
+      "to": [8.00, 6.60],
+      "axis": "x",
+      "note": "top dim chain: window to south edge"
+    },
+    {
+      "id": "D5",
+      "text": "8000",
+      "from": [0.00, 0.00],
+      "to": [8.00, 0.00],
+      "axis": "x",
+      "note": "bottom overall width"
+    },
+    {
+      "id": "D6",
+      "text": "6600",
+      "from": [0.00, 0.00],
+      "to": [0.00, 6.60],
+      "axis": "z",
+      "note": "overall height left side"
+    },
+    {
+      "id": "D7",
+      "text": "3600",
+      "from": [0.00, 3.00],
+      "to": [0.00, 6.60],
+      "axis": "z",
+      "note": "left side F2 zone height"
+    },
+    {
+      "id": "D8",
+      "text": "3000",
+      "from": [0.00, 0.00],
+      "to": [0.00, 3.00],
+      "axis": "z",
+      "note": "left side F1 zone height"
+    },
+    {
+      "id": "D9",
+      "text": "800",
+      "from": [0.00, 5.80],
+      "to": [0.00, 6.60],
+      "axis": "z",
+      "note": "left inner dim F2: above window (parapet)"
+    },
+    {
+      "id": "D10",
+      "text": "1800",
+      "from": [0.00, 4.00],
+      "to": [0.00, 5.80],
+      "axis": "z",
+      "note": "left inner dim F2: window height"
+    },
+    {
+      "id": "D11",
+      "text": "1000",
+      "from": [0.00, 3.00],
+      "to": [0.00, 4.00],
+      "axis": "z",
+      "note": "left inner dim F2: sill above F2 floor"
+    },
+    {
+      "id": "D12",
+      "text": "3000",
+      "from": [0.00, 0.00],
+      "to": [0.00, 3.00],
+      "axis": "z",
+      "note": "left inner dim F1: total F1 height only (no sub-dims visible for F1 zone on left side of West view; door height not explicitly dimensioned)"
+    },
+    {
+      "id": "D13",
+      "text": "6600",
+      "from": [8.00, 0.00],
+      "to": [8.00, 6.60],
+      "axis": "z",
+      "note": "overall height right side"
+    },
+    {
+      "id": "D14",
+      "text": "3600",
+      "from": [8.00, 3.00],
+      "to": [8.00, 6.60],
+      "axis": "z",
+      "note": "right side F2 zone height"
+    },
+    {
+      "id": "D15",
+      "text": "3000",
+      "from": [8.00, 0.00],
+      "to": [8.00, 3.00],
+      "axis": "z",
+      "note": "right side F1 zone height"
+    },
+    {
+      "id": "D16",
+      "text": "800",
+      "from": [8.00, 5.80],
+      "to": [8.00, 6.60],
+      "axis": "z",
+      "note": "right inner dim F2: above window"
+    },
+    {
+      "id": "D17",
+      "text": "1800",
+      "from": [8.00, 4.00],
+      "to": [8.00, 5.80],
+      "axis": "z",
+      "note": "right inner dim F2: window height"
+    },
+    {
+      "id": "D18",
+      "text": "1000",
+      "from": [8.00, 3.00],
+      "to": [8.00, 4.00],
+      "axis": "z",
+      "note": "right inner dim F2: sill"
+    },
+    {
+      "id": "D19",
+      "text": "3000",
+      "from": [8.00, 0.00],
+      "to": [8.00, 3.00],
+      "axis": "z",
+      "note": "right inner dim F1: total F1 height (no sub-dims visible on right side of West view)"
+    }
+  ],
+
+  "ocr_texts": [],
+
+  "self_check": {
+    "all_dimensions_transcribed": true,
+    "all_visible_strokes_captured": true,
+    "no_topology_inferred": true,
+    "pens_used": ["wall_fill", "window"],
+    "unknowns_noted": [
+      "F1 west elevation shows a DOOR (double-leaf, with center vertical mullion line, floor-contact at bottom, extends approximately 2/3 of F1 height). No door pen exists in the elevation pen set; recorded as window pen (S4) with LOW CONFIDENCE note and explicit flag. Phase 2 must interpret this as an exterior door opening, not a fenestration window.",
+      "Door height (top of F1 door opening) not explicitly dimensioned in this image: estimated visually as approximately 2100mm (y≈2.10m). The left/right column dims for F1 show only the total 3000mm, with no sub-dims for the door opening.",
+      "West facade_axis_note: local x=0 is at the NORTH end of the building (as seen from outside/west); local x increases toward SOUTH. Confirmed by analogy with East facade convention.",
+      "outline coincides with wall_fill edges; not drawn as a separate stroke"
+    ],
+    "uncaptured_visual_elements": [
+      "floor storey line at y=3.00: visible horizontal line; used to split wall_fill strokes; not traced separately",
+      "ground line at y=0: coincides with wall_fill bottom",
+      "outline: outer silhouette coincides with wall_fill boundary; not traced separately per pen library rule",
+      "dimension tick marks and extension lines (not geometry)",
+      "door leaf detail: the F1 west opening shows a double door with center mullion and lower/upper panel division visible — recognized as door element but not traced as a separate pen; the opening geometry is captured in S4",
+      "no balconies, sun-shades, shadows, or decorative elements visible in this elevation"
+    ]
+  }
+}

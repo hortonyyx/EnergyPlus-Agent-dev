@@ -1,0 +1,901 @@
+{
+  "tool_exposure": {
+    "construction_tools.py::make_construction_tools": [
+      {
+        "tool": "create_construction",
+        "params": [
+          {
+            "name": "name",
+            "annotation": "str",
+            "has_default": false
+          },
+          {
+            "name": "layers",
+            "annotation": "list[str]",
+            "has_default": false
+          }
+        ],
+        "doc_lines": 6
+      },
+      {
+        "tool": "list_constructions",
+        "params": [],
+        "doc_lines": 1
+      },
+      {
+        "tool": "get_construction",
+        "params": [
+          {
+            "name": "name",
+            "annotation": "str",
+            "has_default": false
+          }
+        ],
+        "doc_lines": 1
+      },
+      {
+        "tool": "delete_construction",
+        "params": [
+          {
+            "name": "name",
+            "annotation": "str",
+            "has_default": false
+          }
+        ],
+        "doc_lines": 1
+      },
+      {
+        "tool": "list_materials",
+        "params": [],
+        "doc_lines": 1
+      }
+    ],
+    "fenestration_tools.py::make_fenestration_tools": [
+      {
+        "tool": "create_fenestration",
+        "params": [
+          {
+            "name": "name",
+            "annotation": "str",
+            "has_default": false
+          },
+          {
+            "name": "surface_type",
+            "annotation": "str",
+            "has_default": false
+          },
+          {
+            "name": "construction_name",
+            "annotation": "str",
+            "has_default": false
+          },
+          {
+            "name": "building_surface_name",
+            "annotation": "str",
+            "has_default": false
+          },
+          {
+            "name": "vertices",
+            "annotation": "list[dict[str, float]]",
+            "has_default": false
+          },
+          {
+            "name": "multiplier",
+            "annotation": "int",
+            "has_default": true
+          }
+        ],
+        "doc_lines": 18
+      },
+      {
+        "tool": "list_fenestrations",
+        "params": [],
+        "doc_lines": 1
+      },
+      {
+        "tool": "get_fenestration",
+        "params": [
+          {
+            "name": "name",
+            "annotation": "str",
+            "has_default": false
+          }
+        ],
+        "doc_lines": 1
+      },
+      {
+        "tool": "delete_fenestration",
+        "params": [
+          {
+            "name": "name",
+            "annotation": "str",
+            "has_default": false
+          }
+        ],
+        "doc_lines": 1
+      },
+      {
+        "tool": "list_surfaces",
+        "params": [],
+        "doc_lines": 1
+      },
+      {
+        "tool": "list_constructions",
+        "params": [],
+        "doc_lines": 1
+      }
+    ],
+    "hvac_tools.py::make_hvac_tools": [
+      {
+        "tool": "create_thermostat",
+        "params": [
+          {
+            "name": "name",
+            "annotation": "str",
+            "has_default": false
+          },
+          {
+            "name": "heating_setpoint_schedule_name",
+            "annotation": "str",
+            "has_default": false
+          },
+          {
+            "name": "cooling_setpoint_schedule_name",
+            "annotation": "str",
+            "has_default": false
+          }
+        ],
+        "doc_lines": 6
+      },
+      {
+        "tool": "create_ideal_loads_system",
+        "params": [
+          {
+            "name": "zone_name",
+            "annotation": "str",
+            "has_default": false
+          },
+          {
+            "name": "template_thermostat_name",
+            "annotation": "str",
+            "has_default": false
+          },
+          {
+            "name": "system_availability_schedule_name",
+            "annotation": "str | None",
+            "has_default": true
+          }
+        ],
+        "doc_lines": 6
+      },
+      {
+        "tool": "list_thermostats",
+        "params": [],
+        "doc_lines": 1
+      },
+      {
+        "tool": "list_ideal_loads_systems",
+        "params": [],
+        "doc_lines": 1
+      },
+      {
+        "tool": "delete_thermostat",
+        "params": [
+          {
+            "name": "name",
+            "annotation": "str",
+            "has_default": false
+          }
+        ],
+        "doc_lines": 1
+      },
+      {
+        "tool": "delete_ideal_loads_system",
+        "params": [
+          {
+            "name": "zone_name",
+            "annotation": "str",
+            "has_default": false
+          }
+        ],
+        "doc_lines": 1
+      },
+      {
+        "tool": "list_zones",
+        "params": [],
+        "doc_lines": 1
+      },
+      {
+        "tool": "list_schedules",
+        "params": [],
+        "doc_lines": 1
+      }
+    ],
+    "lights_tools.py::make_lights_tools": [
+      {
+        "tool": "create_light",
+        "params": [
+          {
+            "name": "name",
+            "annotation": "str",
+            "has_default": false
+          },
+          {
+            "name": "zone_name",
+            "annotation": "str",
+            "has_default": false
+          },
+          {
+            "name": "schedule_name",
+            "annotation": "str",
+            "has_default": false
+          },
+          {
+            "name": "design_level_calculation_method",
+            "annotation": "str",
+            "has_default": true
+          },
+          {
+            "name": "lighting_level",
+            "annotation": "float",
+            "has_default": true
+          },
+          {
+            "name": "watts_per_floor_area",
+            "annotation": "float",
+            "has_default": true
+          },
+          {
+            "name": "watts_per_person",
+            "annotation": "float",
+            "has_default": true
+          },
+          {
+            "name": "fraction_radiant",
+            "annotation": "float",
+            "has_default": true
+          },
+          {
+            "name": "fraction_visible",
+            "annotation": "float",
+            "has_default": true
+          }
+        ],
+        "doc_lines": 12
+      },
+      {
+        "tool": "list_lights",
+        "params": [],
+        "doc_lines": 1
+      },
+      {
+        "tool": "delete_light",
+        "params": [
+          {
+            "name": "name",
+            "annotation": "str",
+            "has_default": false
+          }
+        ],
+        "doc_lines": 1
+      },
+      {
+        "tool": "list_zones",
+        "params": [],
+        "doc_lines": 1
+      },
+      {
+        "tool": "list_schedules",
+        "params": [],
+        "doc_lines": 1
+      }
+    ],
+    "material_tools.py::make_material_tools": [
+      {
+        "tool": "create_standard_material",
+        "params": [
+          {
+            "name": "name",
+            "annotation": "str",
+            "has_default": false
+          },
+          {
+            "name": "roughness",
+            "annotation": "str",
+            "has_default": false
+          },
+          {
+            "name": "thickness",
+            "annotation": "float",
+            "has_default": false
+          },
+          {
+            "name": "conductivity",
+            "annotation": "float",
+            "has_default": false
+          },
+          {
+            "name": "density",
+            "annotation": "float",
+            "has_default": false
+          },
+          {
+            "name": "specific_heat",
+            "annotation": "float",
+            "has_default": false
+          }
+        ],
+        "doc_lines": 9
+      },
+      {
+        "tool": "create_nomass_material",
+        "params": [
+          {
+            "name": "name",
+            "annotation": "str",
+            "has_default": false
+          },
+          {
+            "name": "roughness",
+            "annotation": "str",
+            "has_default": false
+          },
+          {
+            "name": "thermal_resistance",
+            "annotation": "float",
+            "has_default": false
+          }
+        ],
+        "doc_lines": 6
+      },
+      {
+        "tool": "create_airgap_material",
+        "params": [
+          {
+            "name": "name",
+            "annotation": "str",
+            "has_default": false
+          },
+          {
+            "name": "thermal_resistance",
+            "annotation": "float",
+            "has_default": false
+          }
+        ],
+        "doc_lines": 1
+      },
+      {
+        "tool": "create_glazing_material",
+        "params": [
+          {
+            "name": "name",
+            "annotation": "str",
+            "has_default": false
+          },
+          {
+            "name": "u_factor",
+            "annotation": "float",
+            "has_default": false
+          },
+          {
+            "name": "solar_heat_gain_coefficient",
+            "annotation": "float",
+            "has_default": false
+          },
+          {
+            "name": "visible_transmittance",
+            "annotation": "float | None",
+            "has_default": true
+          }
+        ],
+        "doc_lines": 7
+      },
+      {
+        "tool": "list_materials",
+        "params": [],
+        "doc_lines": 1
+      },
+      {
+        "tool": "get_material",
+        "params": [
+          {
+            "name": "name",
+            "annotation": "str",
+            "has_default": false
+          }
+        ],
+        "doc_lines": 1
+      },
+      {
+        "tool": "delete_material",
+        "params": [
+          {
+            "name": "name",
+            "annotation": "str",
+            "has_default": false
+          }
+        ],
+        "doc_lines": 1
+      }
+    ],
+    "output_tools.py::make_output_tools": [
+      {
+        "tool": "add_output_variable",
+        "params": [
+          {
+            "name": "variable_name",
+            "annotation": "str",
+            "has_default": false
+          },
+          {
+            "name": "key_value",
+            "annotation": "str",
+            "has_default": true
+          },
+          {
+            "name": "reporting_frequency",
+            "annotation": "str",
+            "has_default": true
+          }
+        ],
+        "doc_lines": 6
+      },
+      {
+        "tool": "list_output_variables",
+        "params": [],
+        "doc_lines": 1
+      }
+    ],
+    "people_tools.py::make_people_tools": [
+      {
+        "tool": "create_people",
+        "params": [
+          {
+            "name": "name",
+            "annotation": "str",
+            "has_default": false
+          },
+          {
+            "name": "zone_name",
+            "annotation": "str",
+            "has_default": false
+          },
+          {
+            "name": "number_of_people_schedule_name",
+            "annotation": "str",
+            "has_default": false
+          },
+          {
+            "name": "activity_level_schedule_name",
+            "annotation": "str",
+            "has_default": false
+          },
+          {
+            "name": "number_of_people_calculation_method",
+            "annotation": "str",
+            "has_default": true
+          },
+          {
+            "name": "number_of_people",
+            "annotation": "float",
+            "has_default": true
+          },
+          {
+            "name": "people_per_floor_area",
+            "annotation": "float",
+            "has_default": true
+          },
+          {
+            "name": "floor_area_per_person",
+            "annotation": "float",
+            "has_default": true
+          },
+          {
+            "name": "fraction_radiant",
+            "annotation": "float",
+            "has_default": true
+          }
+        ],
+        "doc_lines": 12
+      },
+      {
+        "tool": "list_people",
+        "params": [],
+        "doc_lines": 1
+      },
+      {
+        "tool": "delete_people",
+        "params": [
+          {
+            "name": "name",
+            "annotation": "str",
+            "has_default": false
+          }
+        ],
+        "doc_lines": 1
+      },
+      {
+        "tool": "list_zones",
+        "params": [],
+        "doc_lines": 1
+      },
+      {
+        "tool": "list_schedules",
+        "params": [],
+        "doc_lines": 1
+      }
+    ],
+    "schedule_tools.py::make_schedule_tools": [
+      {
+        "tool": "create_schedule_type_limits",
+        "params": [
+          {
+            "name": "name",
+            "annotation": "str",
+            "has_default": false
+          },
+          {
+            "name": "lower_limit_value",
+            "annotation": "float | None",
+            "has_default": true
+          },
+          {
+            "name": "upper_limit_value",
+            "annotation": "float | None",
+            "has_default": true
+          },
+          {
+            "name": "numeric_type",
+            "annotation": "str",
+            "has_default": true
+          },
+          {
+            "name": "unit_type",
+            "annotation": "str",
+            "has_default": true
+          }
+        ],
+        "doc_lines": 8
+      },
+      {
+        "tool": "create_schedule_compact",
+        "params": [
+          {
+            "name": "name",
+            "annotation": "str",
+            "has_default": false
+          },
+          {
+            "name": "schedule_type_limits_name",
+            "annotation": "str",
+            "has_default": false
+          },
+          {
+            "name": "data",
+            "annotation": "list[dict[str, Any]]",
+            "has_default": false
+          }
+        ],
+        "doc_lines": 43
+      },
+      {
+        "tool": "list_schedules",
+        "params": [],
+        "doc_lines": 1
+      },
+      {
+        "tool": "list_schedule_type_limits",
+        "params": [],
+        "doc_lines": 1
+      },
+      {
+        "tool": "get_schedule",
+        "params": [
+          {
+            "name": "name",
+            "annotation": "str",
+            "has_default": false
+          }
+        ],
+        "doc_lines": 1
+      },
+      {
+        "tool": "delete_schedule",
+        "params": [
+          {
+            "name": "name",
+            "annotation": "str",
+            "has_default": false
+          }
+        ],
+        "doc_lines": 1
+      }
+    ],
+    "surface_tools.py::make_surface_tools": [
+      {
+        "tool": "create_surface",
+        "params": [
+          {
+            "name": "name",
+            "annotation": "str",
+            "has_default": false
+          },
+          {
+            "name": "surface_type",
+            "annotation": "str",
+            "has_default": false
+          },
+          {
+            "name": "construction_name",
+            "annotation": "str",
+            "has_default": false
+          },
+          {
+            "name": "zone_name",
+            "annotation": "str",
+            "has_default": false
+          },
+          {
+            "name": "outside_boundary_condition",
+            "annotation": "str",
+            "has_default": false
+          },
+          {
+            "name": "vertices",
+            "annotation": "list[dict[str, float]]",
+            "has_default": false
+          },
+          {
+            "name": "sun_exposure",
+            "annotation": "str",
+            "has_default": true
+          },
+          {
+            "name": "wind_exposure",
+            "annotation": "str",
+            "has_default": true
+          },
+          {
+            "name": "outside_boundary_condition_object",
+            "annotation": "str | None",
+            "has_default": true
+          }
+        ],
+        "doc_lines": 20
+      },
+      {
+        "tool": "list_surfaces",
+        "params": [],
+        "doc_lines": 1
+      },
+      {
+        "tool": "get_surface",
+        "params": [
+          {
+            "name": "name",
+            "annotation": "str",
+            "has_default": false
+          }
+        ],
+        "doc_lines": 1
+      },
+      {
+        "tool": "delete_surface",
+        "params": [
+          {
+            "name": "name",
+            "annotation": "str",
+            "has_default": false
+          }
+        ],
+        "doc_lines": 1
+      },
+      {
+        "tool": "list_zones",
+        "params": [],
+        "doc_lines": 1
+      },
+      {
+        "tool": "list_constructions",
+        "params": [],
+        "doc_lines": 1
+      }
+    ],
+    "zone_tools.py::make_zone_tools": [
+      {
+        "tool": "create_zone",
+        "params": [
+          {
+            "name": "name",
+            "annotation": "str",
+            "has_default": false
+          },
+          {
+            "name": "x_origin",
+            "annotation": "float",
+            "has_default": true
+          },
+          {
+            "name": "y_origin",
+            "annotation": "float",
+            "has_default": true
+          },
+          {
+            "name": "z_origin",
+            "annotation": "float",
+            "has_default": true
+          },
+          {
+            "name": "direction_of_relative_north",
+            "annotation": "float",
+            "has_default": true
+          },
+          {
+            "name": "multiplier",
+            "annotation": "int",
+            "has_default": true
+          }
+        ],
+        "doc_lines": 13
+      },
+      {
+        "tool": "list_zones",
+        "params": [],
+        "doc_lines": 1
+      },
+      {
+        "tool": "get_zone",
+        "params": [
+          {
+            "name": "name",
+            "annotation": "str",
+            "has_default": false
+          }
+        ],
+        "doc_lines": 1
+      },
+      {
+        "tool": "update_zone",
+        "params": [
+          {
+            "name": "name",
+            "annotation": "str",
+            "has_default": false
+          },
+          {
+            "name": "x_origin",
+            "annotation": "float | None",
+            "has_default": true
+          },
+          {
+            "name": "y_origin",
+            "annotation": "float | None",
+            "has_default": true
+          },
+          {
+            "name": "z_origin",
+            "annotation": "float | None",
+            "has_default": true
+          },
+          {
+            "name": "direction_of_relative_north",
+            "annotation": "float | None",
+            "has_default": true
+          },
+          {
+            "name": "multiplier",
+            "annotation": "int | None",
+            "has_default": true
+          }
+        ],
+        "doc_lines": 1
+      },
+      {
+        "tool": "delete_zone",
+        "params": [
+          {
+            "name": "name",
+            "annotation": "str",
+            "has_default": false
+          }
+        ],
+        "doc_lines": 1
+      }
+    ]
+  },
+  "node_prompts": {
+    "construction.py": {
+      "prompts": [
+        "CONSTRUCTION_SYSTEM_PROMPT"
+      ],
+      "intake_fields_read": [
+        "state.intake_output.construction_specs"
+      ]
+    },
+    "cross_ref.py": {
+      "prompts": [],
+      "intake_fields_read": []
+    },
+    "fenestration.py": {
+      "prompts": [
+        "FENESTRATION_SYSTEM_PROMPT"
+      ],
+      "intake_fields_read": [
+        "state.intake_output.fenestration_specs"
+      ]
+    },
+    "hvac.py": {
+      "prompts": [
+        "HVAC_SYSTEM_PROMPT"
+      ],
+      "intake_fields_read": [
+        "state.intake_output.hvac_specs"
+      ]
+    },
+    "intake.py": {
+      "prompts": [],
+      "intake_fields_read": [
+        "state.intake_output.building",
+        "state.intake_output.building.name",
+        "state.intake_output.site_location",
+        "state.intake_output.site_location.name"
+      ]
+    },
+    "lights.py": {
+      "prompts": [
+        "LIGHTS_SYSTEM_PROMPT"
+      ],
+      "intake_fields_read": [
+        "state.intake_output.lights_specs"
+      ]
+    },
+    "material.py": {
+      "prompts": [
+        "MATERIAL_SYSTEM_PROMPT"
+      ],
+      "intake_fields_read": [
+        "state.intake_output.material_specs"
+      ]
+    },
+    "people.py": {
+      "prompts": [
+        "PEOPLE_SYSTEM_PROMPT"
+      ],
+      "intake_fields_read": [
+        "state.intake_output.people_specs"
+      ]
+    },
+    "schedule.py": {
+      "prompts": [
+        "SCHEDULE_SYSTEM_PROMPT"
+      ],
+      "intake_fields_read": []
+    },
+    "simulate.py": {
+      "prompts": [],
+      "intake_fields_read": []
+    },
+    "surface.py": {
+      "prompts": [
+        "SURFACE_SYSTEM_PROMPT"
+      ],
+      "intake_fields_read": [
+        "state.intake_output.surface_specs",
+        "state.intake_output.zone_specs"
+      ]
+    },
+    "validate.py": {
+      "prompts": [],
+      "intake_fields_read": []
+    },
+    "zone.py": {
+      "prompts": [
+        "ZONE_SYSTEM_PROMPT",
+        "ZONE_SYSTEM_PROMPT_RELATIVE"
+      ],
+      "intake_fields_read": [
+        "state.intake_output.zone_specs"
+      ]
+    }
+  }
+}

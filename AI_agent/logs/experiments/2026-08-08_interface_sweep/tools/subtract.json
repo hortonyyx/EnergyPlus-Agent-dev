@@ -1,0 +1,714 @@
+[
+  {
+    "node": "construction.py",
+    "tool": "create_construction",
+    "param": "name",
+    "optional": false,
+    "in_prompt": false,
+    "gated_beyond_format": true
+  },
+  {
+    "node": "construction.py",
+    "tool": "create_construction",
+    "param": "layers",
+    "optional": false,
+    "in_prompt": true,
+    "gated_beyond_format": true
+  },
+  {
+    "node": "construction.py",
+    "tool": "delete_construction",
+    "param": "name",
+    "optional": false,
+    "in_prompt": false,
+    "gated_beyond_format": true
+  },
+  {
+    "node": "fenestration.py",
+    "tool": "create_fenestration",
+    "param": "name",
+    "optional": false,
+    "in_prompt": true,
+    "gated_beyond_format": true
+  },
+  {
+    "node": "fenestration.py",
+    "tool": "create_fenestration",
+    "param": "surface_type",
+    "optional": false,
+    "in_prompt": true,
+    "gated_beyond_format": true
+  },
+  {
+    "node": "fenestration.py",
+    "tool": "create_fenestration",
+    "param": "construction_name",
+    "optional": false,
+    "in_prompt": true,
+    "gated_beyond_format": true
+  },
+  {
+    "node": "fenestration.py",
+    "tool": "create_fenestration",
+    "param": "building_surface_name",
+    "optional": false,
+    "in_prompt": true,
+    "gated_beyond_format": true
+  },
+  {
+    "node": "fenestration.py",
+    "tool": "create_fenestration",
+    "param": "vertices",
+    "optional": false,
+    "in_prompt": true,
+    "gated_beyond_format": true
+  },
+  {
+    "node": "fenestration.py",
+    "tool": "create_fenestration",
+    "param": "multiplier",
+    "optional": true,
+    "in_prompt": false,
+    "gated_beyond_format": true
+  },
+  {
+    "node": "fenestration.py",
+    "tool": "delete_fenestration",
+    "param": "name",
+    "optional": false,
+    "in_prompt": true,
+    "gated_beyond_format": true
+  },
+  {
+    "node": "hvac.py",
+    "tool": "create_thermostat",
+    "param": "name",
+    "optional": false,
+    "in_prompt": false,
+    "gated_beyond_format": true
+  },
+  {
+    "node": "hvac.py",
+    "tool": "create_thermostat",
+    "param": "heating_setpoint_schedule_name",
+    "optional": false,
+    "in_prompt": true,
+    "gated_beyond_format": true
+  },
+  {
+    "node": "hvac.py",
+    "tool": "create_thermostat",
+    "param": "cooling_setpoint_schedule_name",
+    "optional": false,
+    "in_prompt": true,
+    "gated_beyond_format": true
+  },
+  {
+    "node": "hvac.py",
+    "tool": "create_ideal_loads_system",
+    "param": "zone_name",
+    "optional": false,
+    "in_prompt": true,
+    "gated_beyond_format": true
+  },
+  {
+    "node": "hvac.py",
+    "tool": "create_ideal_loads_system",
+    "param": "template_thermostat_name",
+    "optional": false,
+    "in_prompt": true,
+    "gated_beyond_format": true
+  },
+  {
+    "node": "hvac.py",
+    "tool": "create_ideal_loads_system",
+    "param": "system_availability_schedule_name",
+    "optional": true,
+    "in_prompt": true,
+    "gated_beyond_format": true
+  },
+  {
+    "node": "hvac.py",
+    "tool": "delete_thermostat",
+    "param": "name",
+    "optional": false,
+    "in_prompt": false,
+    "gated_beyond_format": true
+  },
+  {
+    "node": "hvac.py",
+    "tool": "delete_ideal_loads_system",
+    "param": "zone_name",
+    "optional": false,
+    "in_prompt": true,
+    "gated_beyond_format": true
+  },
+  {
+    "node": "lights.py",
+    "tool": "create_light",
+    "param": "name",
+    "optional": false,
+    "in_prompt": true,
+    "gated_beyond_format": true
+  },
+  {
+    "node": "lights.py",
+    "tool": "create_light",
+    "param": "zone_name",
+    "optional": false,
+    "in_prompt": true,
+    "gated_beyond_format": true
+  },
+  {
+    "node": "lights.py",
+    "tool": "create_light",
+    "param": "schedule_name",
+    "optional": false,
+    "in_prompt": true,
+    "gated_beyond_format": true
+  },
+  {
+    "node": "lights.py",
+    "tool": "create_light",
+    "param": "design_level_calculation_method",
+    "optional": true,
+    "in_prompt": true,
+    "gated_beyond_format": true
+  },
+  {
+    "node": "lights.py",
+    "tool": "create_light",
+    "param": "lighting_level",
+    "optional": true,
+    "in_prompt": true,
+    "gated_beyond_format": true
+  },
+  {
+    "node": "lights.py",
+    "tool": "create_light",
+    "param": "watts_per_floor_area",
+    "optional": true,
+    "in_prompt": true,
+    "gated_beyond_format": true
+  },
+  {
+    "node": "lights.py",
+    "tool": "create_light",
+    "param": "watts_per_person",
+    "optional": true,
+    "in_prompt": true,
+    "gated_beyond_format": true
+  },
+  {
+    "node": "lights.py",
+    "tool": "create_light",
+    "param": "fraction_radiant",
+    "optional": true,
+    "in_prompt": true,
+    "gated_beyond_format": true
+  },
+  {
+    "node": "lights.py",
+    "tool": "create_light",
+    "param": "fraction_visible",
+    "optional": true,
+    "in_prompt": true,
+    "gated_beyond_format": true
+  },
+  {
+    "node": "lights.py",
+    "tool": "delete_light",
+    "param": "name",
+    "optional": false,
+    "in_prompt": true,
+    "gated_beyond_format": true
+  },
+  {
+    "node": "material.py",
+    "tool": "create_standard_material",
+    "param": "name",
+    "optional": false,
+    "in_prompt": false,
+    "gated_beyond_format": true
+  },
+  {
+    "node": "material.py",
+    "tool": "create_standard_material",
+    "param": "roughness",
+    "optional": false,
+    "in_prompt": true,
+    "gated_beyond_format": true
+  },
+  {
+    "node": "material.py",
+    "tool": "create_standard_material",
+    "param": "thickness",
+    "optional": false,
+    "in_prompt": true,
+    "gated_beyond_format": true
+  },
+  {
+    "node": "material.py",
+    "tool": "create_standard_material",
+    "param": "conductivity",
+    "optional": false,
+    "in_prompt": true,
+    "gated_beyond_format": true
+  },
+  {
+    "node": "material.py",
+    "tool": "create_standard_material",
+    "param": "density",
+    "optional": false,
+    "in_prompt": true,
+    "gated_beyond_format": true
+  },
+  {
+    "node": "material.py",
+    "tool": "create_standard_material",
+    "param": "specific_heat",
+    "optional": false,
+    "in_prompt": true,
+    "gated_beyond_format": true
+  },
+  {
+    "node": "material.py",
+    "tool": "create_nomass_material",
+    "param": "name",
+    "optional": false,
+    "in_prompt": false,
+    "gated_beyond_format": true
+  },
+  {
+    "node": "material.py",
+    "tool": "create_nomass_material",
+    "param": "roughness",
+    "optional": false,
+    "in_prompt": true,
+    "gated_beyond_format": true
+  },
+  {
+    "node": "material.py",
+    "tool": "create_nomass_material",
+    "param": "thermal_resistance",
+    "optional": false,
+    "in_prompt": false,
+    "gated_beyond_format": true
+  },
+  {
+    "node": "material.py",
+    "tool": "create_airgap_material",
+    "param": "name",
+    "optional": false,
+    "in_prompt": false,
+    "gated_beyond_format": true
+  },
+  {
+    "node": "material.py",
+    "tool": "create_airgap_material",
+    "param": "thermal_resistance",
+    "optional": false,
+    "in_prompt": false,
+    "gated_beyond_format": true
+  },
+  {
+    "node": "material.py",
+    "tool": "create_glazing_material",
+    "param": "name",
+    "optional": false,
+    "in_prompt": false,
+    "gated_beyond_format": true
+  },
+  {
+    "node": "material.py",
+    "tool": "create_glazing_material",
+    "param": "u_factor",
+    "optional": false,
+    "in_prompt": true,
+    "gated_beyond_format": true
+  },
+  {
+    "node": "material.py",
+    "tool": "create_glazing_material",
+    "param": "solar_heat_gain_coefficient",
+    "optional": false,
+    "in_prompt": true,
+    "gated_beyond_format": true
+  },
+  {
+    "node": "material.py",
+    "tool": "create_glazing_material",
+    "param": "visible_transmittance",
+    "optional": true,
+    "in_prompt": true,
+    "gated_beyond_format": true
+  },
+  {
+    "node": "material.py",
+    "tool": "delete_material",
+    "param": "name",
+    "optional": false,
+    "in_prompt": false,
+    "gated_beyond_format": true
+  },
+  {
+    "node": "(unbound)",
+    "tool": "add_output_variable",
+    "param": "variable_name",
+    "optional": false,
+    "in_prompt": false,
+    "gated_beyond_format": true
+  },
+  {
+    "node": "(unbound)",
+    "tool": "add_output_variable",
+    "param": "key_value",
+    "optional": true,
+    "in_prompt": false,
+    "gated_beyond_format": true
+  },
+  {
+    "node": "(unbound)",
+    "tool": "add_output_variable",
+    "param": "reporting_frequency",
+    "optional": true,
+    "in_prompt": false,
+    "gated_beyond_format": true
+  },
+  {
+    "node": "people.py",
+    "tool": "create_people",
+    "param": "name",
+    "optional": false,
+    "in_prompt": true,
+    "gated_beyond_format": true
+  },
+  {
+    "node": "people.py",
+    "tool": "create_people",
+    "param": "zone_name",
+    "optional": false,
+    "in_prompt": true,
+    "gated_beyond_format": true
+  },
+  {
+    "node": "people.py",
+    "tool": "create_people",
+    "param": "number_of_people_schedule_name",
+    "optional": false,
+    "in_prompt": true,
+    "gated_beyond_format": true
+  },
+  {
+    "node": "people.py",
+    "tool": "create_people",
+    "param": "activity_level_schedule_name",
+    "optional": false,
+    "in_prompt": true,
+    "gated_beyond_format": true
+  },
+  {
+    "node": "people.py",
+    "tool": "create_people",
+    "param": "number_of_people_calculation_method",
+    "optional": true,
+    "in_prompt": true,
+    "gated_beyond_format": true
+  },
+  {
+    "node": "people.py",
+    "tool": "create_people",
+    "param": "number_of_people",
+    "optional": true,
+    "in_prompt": true,
+    "gated_beyond_format": true
+  },
+  {
+    "node": "people.py",
+    "tool": "create_people",
+    "param": "people_per_floor_area",
+    "optional": true,
+    "in_prompt": true,
+    "gated_beyond_format": true
+  },
+  {
+    "node": "people.py",
+    "tool": "create_people",
+    "param": "floor_area_per_person",
+    "optional": true,
+    "in_prompt": true,
+    "gated_beyond_format": true
+  },
+  {
+    "node": "people.py",
+    "tool": "create_people",
+    "param": "fraction_radiant",
+    "optional": true,
+    "in_prompt": true,
+    "gated_beyond_format": true
+  },
+  {
+    "node": "people.py",
+    "tool": "delete_people",
+    "param": "name",
+    "optional": false,
+    "in_prompt": true,
+    "gated_beyond_format": true
+  },
+  {
+    "node": "schedule.py",
+    "tool": "create_schedule_type_limits",
+    "param": "name",
+    "optional": false,
+    "in_prompt": true,
+    "gated_beyond_format": true
+  },
+  {
+    "node": "schedule.py",
+    "tool": "create_schedule_type_limits",
+    "param": "lower_limit_value",
+    "optional": true,
+    "in_prompt": false,
+    "gated_beyond_format": true
+  },
+  {
+    "node": "schedule.py",
+    "tool": "create_schedule_type_limits",
+    "param": "upper_limit_value",
+    "optional": true,
+    "in_prompt": false,
+    "gated_beyond_format": true
+  },
+  {
+    "node": "schedule.py",
+    "tool": "create_schedule_type_limits",
+    "param": "numeric_type",
+    "optional": true,
+    "in_prompt": false,
+    "gated_beyond_format": true
+  },
+  {
+    "node": "schedule.py",
+    "tool": "create_schedule_type_limits",
+    "param": "unit_type",
+    "optional": true,
+    "in_prompt": false,
+    "gated_beyond_format": true
+  },
+  {
+    "node": "schedule.py",
+    "tool": "create_schedule_compact",
+    "param": "name",
+    "optional": false,
+    "in_prompt": true,
+    "gated_beyond_format": true
+  },
+  {
+    "node": "schedule.py",
+    "tool": "create_schedule_compact",
+    "param": "schedule_type_limits_name",
+    "optional": false,
+    "in_prompt": false,
+    "gated_beyond_format": true
+  },
+  {
+    "node": "schedule.py",
+    "tool": "create_schedule_compact",
+    "param": "data",
+    "optional": false,
+    "in_prompt": true,
+    "gated_beyond_format": true
+  },
+  {
+    "node": "schedule.py",
+    "tool": "delete_schedule",
+    "param": "name",
+    "optional": false,
+    "in_prompt": true,
+    "gated_beyond_format": true
+  },
+  {
+    "node": "surface.py",
+    "tool": "create_surface",
+    "param": "name",
+    "optional": false,
+    "in_prompt": false,
+    "gated_beyond_format": true
+  },
+  {
+    "node": "surface.py",
+    "tool": "create_surface",
+    "param": "surface_type",
+    "optional": false,
+    "in_prompt": true,
+    "gated_beyond_format": true
+  },
+  {
+    "node": "surface.py",
+    "tool": "create_surface",
+    "param": "construction_name",
+    "optional": false,
+    "in_prompt": true,
+    "gated_beyond_format": true
+  },
+  {
+    "node": "surface.py",
+    "tool": "create_surface",
+    "param": "zone_name",
+    "optional": false,
+    "in_prompt": true,
+    "gated_beyond_format": true
+  },
+  {
+    "node": "surface.py",
+    "tool": "create_surface",
+    "param": "outside_boundary_condition",
+    "optional": false,
+    "in_prompt": true,
+    "gated_beyond_format": true
+  },
+  {
+    "node": "surface.py",
+    "tool": "create_surface",
+    "param": "vertices",
+    "optional": false,
+    "in_prompt": true,
+    "gated_beyond_format": true
+  },
+  {
+    "node": "surface.py",
+    "tool": "create_surface",
+    "param": "sun_exposure",
+    "optional": true,
+    "in_prompt": true,
+    "gated_beyond_format": true
+  },
+  {
+    "node": "surface.py",
+    "tool": "create_surface",
+    "param": "wind_exposure",
+    "optional": true,
+    "in_prompt": true,
+    "gated_beyond_format": true
+  },
+  {
+    "node": "surface.py",
+    "tool": "create_surface",
+    "param": "outside_boundary_condition_object",
+    "optional": true,
+    "in_prompt": true,
+    "gated_beyond_format": true
+  },
+  {
+    "node": "surface.py",
+    "tool": "delete_surface",
+    "param": "name",
+    "optional": false,
+    "in_prompt": false,
+    "gated_beyond_format": true
+  },
+  {
+    "node": "zone.py",
+    "tool": "create_zone",
+    "param": "name",
+    "optional": false,
+    "in_prompt": false,
+    "gated_beyond_format": true
+  },
+  {
+    "node": "zone.py",
+    "tool": "create_zone",
+    "param": "x_origin",
+    "optional": true,
+    "in_prompt": true,
+    "gated_beyond_format": true
+  },
+  {
+    "node": "zone.py",
+    "tool": "create_zone",
+    "param": "y_origin",
+    "optional": true,
+    "in_prompt": true,
+    "gated_beyond_format": true
+  },
+  {
+    "node": "zone.py",
+    "tool": "create_zone",
+    "param": "z_origin",
+    "optional": true,
+    "in_prompt": true,
+    "gated_beyond_format": true
+  },
+  {
+    "node": "zone.py",
+    "tool": "create_zone",
+    "param": "direction_of_relative_north",
+    "optional": true,
+    "in_prompt": true,
+    "gated_beyond_format": true
+  },
+  {
+    "node": "zone.py",
+    "tool": "create_zone",
+    "param": "multiplier",
+    "optional": true,
+    "in_prompt": true,
+    "gated_beyond_format": true
+  },
+  {
+    "node": "zone.py",
+    "tool": "update_zone",
+    "param": "name",
+    "optional": false,
+    "in_prompt": false,
+    "gated_beyond_format": true
+  },
+  {
+    "node": "zone.py",
+    "tool": "update_zone",
+    "param": "x_origin",
+    "optional": true,
+    "in_prompt": true,
+    "gated_beyond_format": true
+  },
+  {
+    "node": "zone.py",
+    "tool": "update_zone",
+    "param": "y_origin",
+    "optional": true,
+    "in_prompt": true,
+    "gated_beyond_format": true
+  },
+  {
+    "node": "zone.py",
+    "tool": "update_zone",
+    "param": "z_origin",
+    "optional": true,
+    "in_prompt": true,
+    "gated_beyond_format": true
+  },
+  {
+    "node": "zone.py",
+    "tool": "update_zone",
+    "param": "direction_of_relative_north",
+    "optional": true,
+    "in_prompt": true,
+    "gated_beyond_format": true
+  },
+  {
+    "node": "zone.py",
+    "tool": "update_zone",
+    "param": "multiplier",
+    "optional": true,
+    "in_prompt": true,
+    "gated_beyond_format": true
+  },
+  {
+    "node": "zone.py",
+    "tool": "delete_zone",
+    "param": "name",
+    "optional": false,
+    "in_prompt": false,
+    "gated_beyond_format": true
+  }
+]

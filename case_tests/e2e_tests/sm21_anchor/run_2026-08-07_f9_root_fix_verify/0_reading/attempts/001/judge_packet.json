@@ -1,0 +1,394 @@
+{
+  "stage": "0_reading",
+  "rubric_id": "J0",
+  "rubric_doc": "skills/intake_pipeline/0_reading/judge_rubric.md",
+  "accepted_attempt_dir": "case_tests/e2e_tests/sm21_anchor/run_2026-08-07_f9_root_fix_verify/0_reading/attempts/001",
+  "source_images": [
+    "case_tests/e2e_tests/sm21_anchor/case_data/1f_view.png",
+    "case_tests/e2e_tests/sm21_anchor/case_data/2f_view.png",
+    "case_tests/e2e_tests/sm21_anchor/case_data/East_view.png",
+    "case_tests/e2e_tests/sm21_anchor/case_data/North_view.png",
+    "case_tests/e2e_tests/sm21_anchor/case_data/South_view.png",
+    "case_tests/e2e_tests/sm21_anchor/case_data/West_view.png"
+  ],
+  "renders": [
+    "case_tests/e2e_tests/sm21_anchor/run_2026-08-07_f9_root_fix_verify/0_reading/attempts/001/renders/1f_view.png",
+    "case_tests/e2e_tests/sm21_anchor/run_2026-08-07_f9_root_fix_verify/0_reading/attempts/001/renders/2f_view.png",
+    "case_tests/e2e_tests/sm21_anchor/run_2026-08-07_f9_root_fix_verify/0_reading/attempts/001/renders/East_view.png",
+    "case_tests/e2e_tests/sm21_anchor/run_2026-08-07_f9_root_fix_verify/0_reading/attempts/001/renders/North_view.png",
+    "case_tests/e2e_tests/sm21_anchor/run_2026-08-07_f9_root_fix_verify/0_reading/attempts/001/renders/South_view.png",
+    "case_tests/e2e_tests/sm21_anchor/run_2026-08-07_f9_root_fix_verify/0_reading/attempts/001/renders/West_view.png"
+  ],
+  "gt_path": "/workspaces/EnergyPlus-Agent-dev/case_tests/test_baseline/gt/sm21_anchor/gt.json",
+  "score_vs_gt": "case_tests/e2e_tests/sm21_anchor/run_2026-08-07_f9_root_fix_verify/0_reading/attempts/001/score_vs_gt.json",
+  "score_criteria": [
+    {
+      "criterion": "walls_complete",
+      "suggested_status": "pass",
+      "evidence": "wall_hits=9/9; missed=0; extra=0; max_offset_m=0.0; wall_tol_m=0.3",
+      "floors": [
+        {
+          "key": "1f_view",
+          "floor": "Floor 1",
+          "wall_hits": 4,
+          "wall_total": 4,
+          "boundary_hits": 4,
+          "boundary_total": 4,
+          "boundary_no_data": false,
+          "window_hits": 3,
+          "window_total": 3,
+          "extra_walls": 0,
+          "extra_windows": 0,
+          "wall_status_counts": {
+            "complete": 4,
+            "within_tol": 0,
+            "miss": 0,
+            "extra": 0
+          },
+          "window_status_counts": {
+            "complete": 3,
+            "within_tol": 0,
+            "miss": 0,
+            "extra": 0
+          },
+          "max_wall_offset_m": 0.0
+        },
+        {
+          "key": "2f_view",
+          "floor": "Floor 2",
+          "wall_hits": 5,
+          "wall_total": 5,
+          "boundary_hits": 4,
+          "boundary_total": 4,
+          "boundary_no_data": false,
+          "window_hits": 4,
+          "window_total": 4,
+          "extra_walls": 0,
+          "extra_windows": 0,
+          "wall_status_counts": {
+            "complete": 5,
+            "within_tol": 0,
+            "miss": 0,
+            "extra": 0
+          },
+          "window_status_counts": {
+            "complete": 4,
+            "within_tol": 0,
+            "miss": 0,
+            "extra": 0
+          },
+          "max_wall_offset_m": 0.0
+        }
+      ]
+    },
+    {
+      "criterion": "windows_placed",
+      "suggested_status": "pass",
+      "evidence": "window_hits=7/7; missed=0; extra=0; hit_ratio=1.0; centre_tol_m=0.4",
+      "floors": [
+        {
+          "key": "1f_view",
+          "floor": "Floor 1",
+          "wall_hits": 4,
+          "wall_total": 4,
+          "boundary_hits": 4,
+          "boundary_total": 4,
+          "boundary_no_data": false,
+          "window_hits": 3,
+          "window_total": 3,
+          "extra_walls": 0,
+          "extra_windows": 0,
+          "wall_status_counts": {
+            "complete": 4,
+            "within_tol": 0,
+            "miss": 0,
+            "extra": 0
+          },
+          "window_status_counts": {
+            "complete": 3,
+            "within_tol": 0,
+            "miss": 0,
+            "extra": 0
+          },
+          "max_wall_offset_m": 0.0
+        },
+        {
+          "key": "2f_view",
+          "floor": "Floor 2",
+          "wall_hits": 5,
+          "wall_total": 5,
+          "boundary_hits": 4,
+          "boundary_total": 4,
+          "boundary_no_data": false,
+          "window_hits": 4,
+          "window_total": 4,
+          "extra_walls": 0,
+          "extra_windows": 0,
+          "wall_status_counts": {
+            "complete": 5,
+            "within_tol": 0,
+            "miss": 0,
+            "extra": 0
+          },
+          "window_status_counts": {
+            "complete": 4,
+            "within_tol": 0,
+            "miss": 0,
+            "extra": 0
+          },
+          "max_wall_offset_m": 0.0
+        }
+      ]
+    },
+    {
+      "criterion": "boundary_complete",
+      "suggested_status": "pass",
+      "evidence": "boundary_hits=8/8; missed=0; no_data_floors=0; wall_tol_m=0.3",
+      "floors": [
+        {
+          "key": "1f_view",
+          "floor": "Floor 1",
+          "wall_hits": 4,
+          "wall_total": 4,
+          "boundary_hits": 4,
+          "boundary_total": 4,
+          "boundary_no_data": false,
+          "window_hits": 3,
+          "window_total": 3,
+          "extra_walls": 0,
+          "extra_windows": 0,
+          "wall_status_counts": {
+            "complete": 4,
+            "within_tol": 0,
+            "miss": 0,
+            "extra": 0
+          },
+          "window_status_counts": {
+            "complete": 3,
+            "within_tol": 0,
+            "miss": 0,
+            "extra": 0
+          },
+          "max_wall_offset_m": 0.0
+        },
+        {
+          "key": "2f_view",
+          "floor": "Floor 2",
+          "wall_hits": 5,
+          "wall_total": 5,
+          "boundary_hits": 4,
+          "boundary_total": 4,
+          "boundary_no_data": false,
+          "window_hits": 4,
+          "window_total": 4,
+          "extra_walls": 0,
+          "extra_windows": 0,
+          "wall_status_counts": {
+            "complete": 5,
+            "within_tol": 0,
+            "miss": 0,
+            "extra": 0
+          },
+          "window_status_counts": {
+            "complete": 4,
+            "within_tol": 0,
+            "miss": 0,
+            "extra": 0
+          },
+          "max_wall_offset_m": 0.0
+        }
+      ]
+    },
+    {
+      "criterion": "no_oversplit",
+      "suggested_status": "pass",
+      "evidence": "extra_vwalls+extra_hwalls=0; minor_threshold=2",
+      "floors": [
+        {
+          "key": "1f_view",
+          "floor": "Floor 1",
+          "wall_hits": 4,
+          "wall_total": 4,
+          "boundary_hits": 4,
+          "boundary_total": 4,
+          "boundary_no_data": false,
+          "window_hits": 3,
+          "window_total": 3,
+          "extra_walls": 0,
+          "extra_windows": 0,
+          "wall_status_counts": {
+            "complete": 4,
+            "within_tol": 0,
+            "miss": 0,
+            "extra": 0
+          },
+          "window_status_counts": {
+            "complete": 3,
+            "within_tol": 0,
+            "miss": 0,
+            "extra": 0
+          },
+          "max_wall_offset_m": 0.0
+        },
+        {
+          "key": "2f_view",
+          "floor": "Floor 2",
+          "wall_hits": 5,
+          "wall_total": 5,
+          "boundary_hits": 4,
+          "boundary_total": 4,
+          "boundary_no_data": false,
+          "window_hits": 4,
+          "window_total": 4,
+          "extra_walls": 0,
+          "extra_windows": 0,
+          "wall_status_counts": {
+            "complete": 5,
+            "within_tol": 0,
+            "miss": 0,
+            "extra": 0
+          },
+          "window_status_counts": {
+            "complete": 4,
+            "within_tol": 0,
+            "miss": 0,
+            "extra": 0
+          },
+          "max_wall_offset_m": 0.0
+        }
+      ]
+    },
+    {
+      "criterion": "elevation_windows_placed",
+      "suggested_status": "pass",
+      "evidence": "elevation_placed=15/15; complete=15; within_tol=0; missed=0; extra=0; no_data_floor_facades=0; hit_ratio=1.0; along_tol_m=0.4; sill_tol_m=0.3; head_tol_m=0.3; width_tol_m=0.4; overlap_accept=0.75; overlap_complete=0.95",
+      "floors": [
+        {
+          "facade": "North",
+          "floor": "Floor 1",
+          "orientation": "ambiguous",
+          "no_data": false,
+          "gt_count": 3,
+          "read_count": 3,
+          "matched_total": 3,
+          "placed_hit_total": 3,
+          "complete_total": 3,
+          "within_tol_total": 0,
+          "miss_total": 0,
+          "extra_total": 0
+        },
+        {
+          "facade": "North",
+          "floor": "Floor 2",
+          "orientation": "ambiguous",
+          "no_data": false,
+          "gt_count": 2,
+          "read_count": 2,
+          "matched_total": 2,
+          "placed_hit_total": 2,
+          "complete_total": 2,
+          "within_tol_total": 0,
+          "miss_total": 0,
+          "extra_total": 0
+        },
+        {
+          "facade": "South",
+          "floor": "Floor 1",
+          "orientation": "aligned",
+          "no_data": false,
+          "gt_count": 3,
+          "read_count": 3,
+          "matched_total": 3,
+          "placed_hit_total": 3,
+          "complete_total": 3,
+          "within_tol_total": 0,
+          "miss_total": 0,
+          "extra_total": 0
+        },
+        {
+          "facade": "South",
+          "floor": "Floor 2",
+          "orientation": "aligned",
+          "no_data": false,
+          "gt_count": 4,
+          "read_count": 4,
+          "matched_total": 4,
+          "placed_hit_total": 4,
+          "complete_total": 4,
+          "within_tol_total": 0,
+          "miss_total": 0,
+          "extra_total": 0
+        },
+        {
+          "facade": "East",
+          "floor": "Floor 1",
+          "orientation": "ambiguous",
+          "no_data": false,
+          "gt_count": 1,
+          "read_count": 1,
+          "matched_total": 1,
+          "placed_hit_total": 1,
+          "complete_total": 1,
+          "within_tol_total": 0,
+          "miss_total": 0,
+          "extra_total": 0
+        },
+        {
+          "facade": "East",
+          "floor": "Floor 2",
+          "orientation": "ambiguous",
+          "no_data": false,
+          "gt_count": 1,
+          "read_count": 1,
+          "matched_total": 1,
+          "placed_hit_total": 1,
+          "complete_total": 1,
+          "within_tol_total": 0,
+          "miss_total": 0,
+          "extra_total": 0
+        },
+        {
+          "facade": "West",
+          "floor": "Floor 1",
+          "orientation": "ambiguous",
+          "no_data": false,
+          "gt_count": 0,
+          "read_count": 0,
+          "matched_total": 0,
+          "placed_hit_total": 0,
+          "complete_total": 0,
+          "within_tol_total": 0,
+          "miss_total": 0,
+          "extra_total": 0
+        },
+        {
+          "facade": "West",
+          "floor": "Floor 2",
+          "orientation": "ambiguous",
+          "no_data": false,
+          "gt_count": 1,
+          "read_count": 1,
+          "matched_total": 1,
+          "placed_hit_total": 1,
+          "complete_total": 1,
+          "within_tol_total": 0,
+          "miss_total": 0,
+          "extra_total": 0
+        }
+      ]
+    }
+  ],
+  "grade": "case_tests/e2e_tests/sm21_anchor/run_2026-08-07_f9_root_fix_verify/0_reading/attempts/001/grade.png",
+  "gate1": {
+    "passed": true,
+    "flags": [
+      "1f_view.reading.dimension_chain_closure: dimension chain evidence is missing, incomplete, or non-closing",
+      "2f_view.reading.dimension_chain_closure: dimension chain evidence is missing, incomplete, or non-closing",
+      "East_view.reading.dimension_chain_closure: dimension chain evidence is missing, incomplete, or non-closing",
+      "North_view.reading.dimension_chain_closure: dimension chain evidence is missing, incomplete, or non-closing",
+      "South_view.reading.dimension_chain_closure: dimension chain evidence is missing, incomplete, or non-closing",
+      "West_view.reading.dimension_chain_closure: dimension chain evidence is missing, incomplete, or non-closing"
+    ]
+  },
+  "note": "You are gate② judge. View the source images + renders (+ gt), then write a StageVerdict JSON and submit it with `judge ... --verdict`. score_criteria is machine-readable gt reconciliation evidence only; StageVerdict remains the authoritative checklist decision. Use the reconciliation first, images second; tolerances are relaxed."
+}

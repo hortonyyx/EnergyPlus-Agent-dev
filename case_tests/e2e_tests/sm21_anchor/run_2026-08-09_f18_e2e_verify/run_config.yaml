@@ -1,0 +1,69 @@
+# run_2026-08-09_f18_e2e_verify (sm21_anchor)
+#
+# 目的：F-18 修法（窗宿主自洽门改用 B5 自己的容差，落库 f91f387→bab4d09，
+#       sol 两轮交叉审 APPROVE-WITH-CHANGES 且 findings 全修）的 **真链路续跑**。
+#
+#       上一轮 run_2026-08-09_f17_e2e_verify 证实 F-17 已解开，但当场撞上 F-18：
+#       flow 崩在 stage_runner.py:299 → recompute_window_host_claims →
+#       WindowHostResolutionError（conflicts=15 / 6 窗 / reason=line_geometry /
+#       fallback_action=invariant_no_geometry_commit ⇒ 裸抛、不归档、终止 flow）。
+#
+# ⚠️ F-18 修法目前的验收成色 = 夹具层 7 把锁 + 三向 neuter + 全仓 2339 绿
+#    + **对同一份落盘产物做的离线重放**（写入侧重算由抛异常变为通过）。
+#    ⛔ 但**整条 flow 从未在修法后跑过一次** ⇒ 本 run 即兑现 F-5 教训：
+#    夹具自洽不算数，只有真实产物跑通那一段才算修好。
+#
+# 用户 2026-08-09 拍板：**A+B 并行** —— A = 本 run（跑真链路撞下一堵墙）；
+#   B = F-9 路线②设计稿交 sol 对抗审（打法依据 = 用户 08-05 定的
+#   「绕开卡点先撞后段」，串行修墙会让后段缺陷无限期潜伏，F-10 断一个月即此）。
+#
+# 输入 = 07-07 那份已知满分的 sm21 识图产物，经 run_2026-08-09_f17_e2e_verify/0_reading
+#   **逐字节复制**（已 diff -rq 校验一致，该目录本身又是从 08-08 run 逐字节复制而来）。
+#   ⛔ 本 run 不重跑识图（reading 是下轮支线）。
+#
+# ⇒ **本 run 与 08-09 f17 那次的唯一变量 = F-18 修法本身。**
+#   （策略侧机械证据：本文件的 policy 相关字段与 f17 run 逐字一致
+#    ⇒ provision 后 policy_hash 应仍为 d058a59f…；若不是，说明有未声明的变量。）
+#
+# ⭐ 纪律：本文件**先于 provision 落盘**（08-09 实犯：反了会冻结「flow 默认」策略，
+#   之后配置一改就撞 policy 漂移门）。
+
+run_profile: exploratory
+capability_profile: orthogonal_polygon
+judge:
+  mode: off
+review:
+  reading: false
+  correction: false
+  geometry: auto        # 自动几何确认（无人值守），非人工签字
+with_ep: true
+record: true
+
+provenance:
+  base_commit: 7315bc8          # 08.09_WrapUp_F18Closed_SolTwoRounds_F9Route2Design
+  tracked_dirty: false
+  key_source_fingerprints:      # sha256 前 16 位
+    src/agent/correction/window_host.py: 873f8c2cc84d0a2f        # F-18 修法所在
+    src/agent/correction/envelope_transform.py: 604dc15ff0f8cb05 # 与 f17 run 逐字一致 ⇒ F-17 修法未变
+  scaffold: 全仓 2339 passed / 10 xfailed / 0 failed（文档口径，本 run 未重跑轻门）
+
+models:
+  reading:
+    role: 0_reading
+    model_id: claude-haiku-4-5-20251001
+    source: 07-07 run_2026-07-07_haiku_cv_retest/0_reading 原样复用（本 run 未重跑识图）
+  correction:
+    role: 1_correction
+    model_id: deepseek-v4-pro
+    effort: high                 # src/configs/llm.yaml:intake_correction，thinking enabled
+  mep:
+    role: 4_mep
+    model_id: deepseek-v4-pro    # 无 intake_mep 段 ⇒ 回落 intake_correction
+    effort: high
+  downstream:
+    role: 9 subagent
+    model_id: deepseek-v4-pro（surface/construction/fenestration）+ deepseek-v4-flash（zone/material/schedule/hvac/people/lights）
+    source: src/configs/llm.yaml 全局默认，⛔ 本 run 无 per-run 覆盖（与 08-08 / 08-09 f17 相同）
+  orchestrator:
+    role: orchestration
+    model_id: claude-opus-5

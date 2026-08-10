@@ -1,0 +1,27 @@
+# run_2026-08-07_f9_root_fix_verify (sm21_anchor)
+# 目的：F-9 治本(B-1 advisory 世界向区间提示)主验收 —— 拿 07-07 那份已知满分的
+#       sm21 识图产物真跑 1_correction(v3/orthogonal_polygon 路径，走 window_sources
+#       B5 窗源解析，正是 F-9 所在的路径)，看北立面 4 扇窗是否各自配到自己而不是
+#       镜像搭档。输入 = 07-07 run_2026-07-07_haiku_cv_retest/0_reading 原样拷入
+#       （flat *_view.json + reading_summary.md），⛔ 不重跑识图。
+# 派工：AI_agent/logs/reviews/request/2026-08-07_f9_root_fix_dispatch_claude.md
+run_profile: exploratory
+capability_profile: orthogonal_polygon
+judge:
+  mode: off
+review:
+  reading: false
+  correction: false
+  geometry: false
+models:
+  reading:
+    role: 0_reading
+    model_id: claude-haiku-4-5-20251001
+    source: 07-07 run_2026-07-07_haiku_cv_retest/0_reading 原样复用（本 run 未重跑识图）
+  orchestrator:
+    role: orchestration
+    model_id: claude-sonnet-5
+  correction:
+    role: 1_correction
+    model_id: deepseek-v4-pro
+    effort: high

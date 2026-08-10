@@ -1,0 +1,334 @@
+{
+  "image_label": "North view of the building",
+  "image_kind": "elevation",
+  "facade_axis_note": "North facade: local x = -world x (local x increasing = world westward); local y = world z (increasing upward, ground = 0)",
+  "scale_origin": {
+    "world_x_m": 15.00,
+    "world_y_m": 8.00,
+    "world_z_m": 0.00,
+    "note": "local origin = NE ground corner (world x=15, y=8, z=0); local x increases westward so local x=0 is world x=15"
+  },
+
+  "strokes": [
+    {
+      "id": "S1",
+      "pen": "wall_fill",
+      "provenance": "dimension_derived",
+      "confidence": "high",
+      "dimension_refs": ["D1", "D12", "D13"],
+      "geometry": {
+        "kind": "rect",
+        "x_range_m": [0.00, 15.00],
+        "y_range_m": [3.00, 6.60]
+      },
+      "note": "F2 wall body; local x = 0 to 15.00 (total 15000); y = 3.00 to 6.60 (F2 zone 3600mm above F1 3000mm)"
+    },
+    {
+      "id": "S2",
+      "pen": "wall_fill",
+      "provenance": "dimension_derived",
+      "confidence": "high",
+      "dimension_refs": ["D1", "D12", "D14"],
+      "geometry": {
+        "kind": "rect",
+        "x_range_m": [0.00, 15.00],
+        "y_range_m": [0.00, 3.00]
+      },
+      "note": "F1 wall body; y = 0 to 3.00 (F1 height = 3000mm); x = 0 to 15.00"
+    },
+    {
+      "id": "S3",
+      "pen": "window",
+      "provenance": "dimension_derived",
+      "confidence": "high",
+      "dimension_refs": ["D3", "D4", "D15", "D16"],
+      "geometry": {
+        "kind": "rect",
+        "x_range_m": [1.95, 5.55],
+        "y_range_m": [4.00, 5.80]
+      },
+      "note": "F2 window W1 (local left = world east side); local x = [1.95, 5.55] per top dim chain 1950+3600=5550; y = [4.00, 5.80]: F2 floor at y=3.00, sill 1000mm → y_bot=4.00, height 1800mm → y_top=5.80"
+    },
+    {
+      "id": "S4",
+      "pen": "window",
+      "provenance": "dimension_derived",
+      "confidence": "high",
+      "dimension_refs": ["D5", "D6", "D7", "D15", "D16"],
+      "geometry": {
+        "kind": "rect",
+        "x_range_m": [9.45, 13.05],
+        "y_range_m": [4.00, 5.80]
+      },
+      "note": "F2 window W2 (local right = world west side); local x = [9.45, 13.05] per top dim chain 1950+3600+3900=9450 start, +3600=13050 end; y = [4.00, 5.80] same as W1"
+    },
+    {
+      "id": "S5",
+      "pen": "window",
+      "provenance": "dimension_derived",
+      "confidence": "high",
+      "dimension_refs": ["D8", "D9", "D17", "D18"],
+      "geometry": {
+        "kind": "rect",
+        "x_range_m": [1.24, 3.64],
+        "y_range_m": [1.00, 2.60]
+      },
+      "note": "F1 window W3 (local leftmost); local x = [1.24, 3.64] per bottom dim chain 1240+2400=3640; y = [1.00, 2.60]: sill 1000mm, height 1600mm per inner dim chain"
+    },
+    {
+      "id": "S6",
+      "pen": "window",
+      "provenance": "dimension_derived",
+      "confidence": "high",
+      "dimension_refs": ["D9", "D10", "D11", "D17", "D18"],
+      "geometry": {
+        "kind": "rect",
+        "x_range_m": [6.30, 8.70],
+        "y_range_m": [1.00, 2.60]
+      },
+      "note": "F1 window W4 (center); local x = [6.30, 8.70] per bottom dim chain 1240+2400+2660=6300 start, +2400=8700 end; y = [1.00, 2.60] same"
+    },
+    {
+      "id": "S7",
+      "pen": "window",
+      "provenance": "dimension_derived",
+      "confidence": "high",
+      "dimension_refs": ["D9", "D10", "D11", "D17", "D18"],
+      "geometry": {
+        "kind": "rect",
+        "x_range_m": [11.36, 13.76],
+        "y_range_m": [1.00, 2.60]
+      },
+      "note": "F1 window W5 (local rightmost); local x = [11.36, 13.76] per bottom dim chain 1240+2400+2660+2400+2660=11360 start, +2400=13760 end; y = [1.00, 2.60] same"
+    }
+  ],
+
+  "dimensions": [
+    {
+      "id": "D1",
+      "text": "15000",
+      "from": [0.00, 6.60],
+      "to": [15.00, 6.60],
+      "axis": "x",
+      "note": "top total width 15000mm"
+    },
+    {
+      "id": "D2",
+      "text": "15000",
+      "from": [0.00, 0.00],
+      "to": [15.00, 0.00],
+      "axis": "x",
+      "note": "bottom total width 15000mm"
+    },
+    {
+      "id": "D3",
+      "text": "1950",
+      "from": [0.00, 6.60],
+      "to": [1.95, 6.60],
+      "axis": "x",
+      "note": "top dim chain segment 1: margin 1950"
+    },
+    {
+      "id": "D4",
+      "text": "3600",
+      "from": [1.95, 6.60],
+      "to": [5.55, 6.60],
+      "axis": "x",
+      "note": "top dim chain segment 2: F2 window width 3600"
+    },
+    {
+      "id": "D5",
+      "text": "3900",
+      "from": [5.55, 6.60],
+      "to": [9.45, 6.60],
+      "axis": "x",
+      "note": "top dim chain segment 3: solid wall between F2 windows 3900"
+    },
+    {
+      "id": "D6",
+      "text": "3600",
+      "from": [9.45, 6.60],
+      "to": [13.05, 6.60],
+      "axis": "x",
+      "note": "top dim chain segment 4: F2 window width 3600"
+    },
+    {
+      "id": "D7",
+      "text": "1950",
+      "from": [13.05, 6.60],
+      "to": [15.00, 6.60],
+      "axis": "x",
+      "note": "top dim chain segment 5: east margin 1950"
+    },
+    {
+      "id": "D8",
+      "text": "1240",
+      "from": [0.00, 0.00],
+      "to": [1.24, 0.00],
+      "axis": "x",
+      "note": "bottom dim chain segment 1: west margin 1240"
+    },
+    {
+      "id": "D9",
+      "text": "2400",
+      "from": [1.24, 0.00],
+      "to": [3.64, 0.00],
+      "axis": "x",
+      "note": "bottom dim chain segment 2: F1 window width 2400"
+    },
+    {
+      "id": "D10",
+      "text": "2660",
+      "from": [3.64, 0.00],
+      "to": [6.30, 0.00],
+      "axis": "x",
+      "note": "bottom dim chain segment 3: solid wall between F1 windows 2660"
+    },
+    {
+      "id": "D11",
+      "text": "2400",
+      "from": [6.30, 0.00],
+      "to": [8.70, 0.00],
+      "axis": "x",
+      "note": "bottom dim chain segment 4: F1 window width 2400"
+    },
+    {
+      "id": "D12",
+      "text": "2660",
+      "from": [8.70, 0.00],
+      "to": [11.36, 0.00],
+      "axis": "x",
+      "note": "bottom dim chain segment 5: solid wall between F1 windows 2660"
+    },
+    {
+      "id": "D13",
+      "text": "2400",
+      "from": [11.36, 0.00],
+      "to": [13.76, 0.00],
+      "axis": "x",
+      "note": "bottom dim chain segment 6: F1 window width 2400"
+    },
+    {
+      "id": "D14",
+      "text": "1240",
+      "from": [13.76, 0.00],
+      "to": [15.00, 0.00],
+      "axis": "x",
+      "note": "bottom dim chain segment 7: east margin 1240"
+    },
+    {
+      "id": "D15",
+      "text": "6600",
+      "from": [0.00, 0.00],
+      "to": [0.00, 6.60],
+      "axis": "y",
+      "note": "left outer total height 6600mm"
+    },
+    {
+      "id": "D16",
+      "text": "3600",
+      "from": [0.00, 3.00],
+      "to": [0.00, 6.60],
+      "axis": "y",
+      "note": "left outer F2 height 3600mm"
+    },
+    {
+      "id": "D17",
+      "text": "3000",
+      "from": [0.00, 0.00],
+      "to": [0.00, 3.00],
+      "axis": "y",
+      "note": "left outer F1 height 3000mm"
+    },
+    {
+      "id": "D18",
+      "text": "800",
+      "from": [0.00, 5.80],
+      "to": [0.00, 6.60],
+      "axis": "y",
+      "note": "inner left chain: parapet/top band 800mm"
+    },
+    {
+      "id": "D19",
+      "text": "1800",
+      "from": [0.00, 4.00],
+      "to": [0.00, 5.80],
+      "axis": "y",
+      "note": "inner left chain: F2 window height 1800mm"
+    },
+    {
+      "id": "D20",
+      "text": "1000",
+      "from": [0.00, 3.00],
+      "to": [0.00, 4.00],
+      "axis": "y",
+      "note": "inner left chain: F2 window sill 1000mm"
+    },
+    {
+      "id": "D21",
+      "text": "400",
+      "from": [0.00, 2.60],
+      "to": [0.00, 3.00],
+      "axis": "y",
+      "note": "inner left chain: F1 top spandrel 400mm"
+    },
+    {
+      "id": "D22",
+      "text": "1600",
+      "from": [0.00, 1.00],
+      "to": [0.00, 2.60],
+      "axis": "y",
+      "note": "inner left chain: F1 window height 1600mm"
+    },
+    {
+      "id": "D23",
+      "text": "1000",
+      "from": [0.00, 0.00],
+      "to": [0.00, 1.00],
+      "axis": "y",
+      "note": "inner left chain: F1 window sill 1000mm from ground"
+    },
+    {
+      "id": "D24",
+      "text": "6600",
+      "from": [15.00, 0.00],
+      "to": [15.00, 6.60],
+      "axis": "y",
+      "note": "right outer total height 6600mm"
+    },
+    {
+      "id": "D25",
+      "text": "3600",
+      "from": [15.00, 3.00],
+      "to": [15.00, 6.60],
+      "axis": "y",
+      "note": "right outer F2 height 3600mm"
+    },
+    {
+      "id": "D26",
+      "text": "3000",
+      "from": [15.00, 0.00],
+      "to": [15.00, 3.00],
+      "axis": "y",
+      "note": "right outer F1 height 3000mm"
+    }
+  ],
+
+  "ocr_texts": [],
+
+  "self_check": {
+    "all_dimensions_transcribed": true,
+    "all_visible_strokes_captured": true,
+    "no_topology_inferred": true,
+    "pens_used": ["wall_fill", "window"],
+    "unknowns_noted": [
+      "outline not drawn separately; coincides with wall_fill boundary edges of S1+S2",
+      "Floor line at y=3.00m used to split wall_fill per floor; line visible as horizontal white line",
+      "facade_axis_note: local x increases leftward in image = world westward; correction stage must handle axis reversal"
+    ],
+    "uncaptured_visual_elements": [
+      "Horizontal storey line at y=3.00m dividing F1/F2 — recognized as floor line; used to split wall_fill; not traced as separate stroke",
+      "outline silhouette — not traced separately; coincides with wall_fill outer edges"
+    ]
+  }
+}

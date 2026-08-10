@@ -1,0 +1,297 @@
+{
+  "image_label": "East elevation view",
+  "image_kind": "elevation",
+  "facade": {
+    "view_facade": "East",
+    "local_x_positive": "image_left_to_right",
+    "mirrored": "false",
+    "orientation_evidence": [
+      {"source": "image_name", "detail": "file is named 'East_view.png'", "confidence": "high"}
+    ]
+  },
+
+  "strokes": [
+    {
+      "id": "S1",
+      "pen": "outline",
+      "provenance": "seen",
+      "confidence": "high",
+      "dimension_refs": ["D_bottom_overall", "D_left_overall"],
+      "geometry": {
+        "kind": "rect",
+        "x_range_m": [0.00, 8.00],
+        "y_range_m": [0.00, 6.60]
+      },
+      "note": "overall facade outline: width 8000mm, total height 6600mm"
+    },
+    {
+      "id": "S2",
+      "pen": "wall_fill",
+      "provenance": "seen",
+      "confidence": "high",
+      "dimension_refs": ["D_left_seg4", "D_left_seg5", "D_left_seg6"],
+      "geometry": {
+        "kind": "rect",
+        "x_range_m": [0.00, 8.00],
+        "y_range_m": [0.00, 3.00]
+      },
+      "note": "F1 wall fill — east facade ground floor (y=0.00 to 3.00)"
+    },
+    {
+      "id": "S3",
+      "pen": "wall_fill",
+      "provenance": "seen",
+      "confidence": "high",
+      "dimension_refs": ["D_left_seg1", "D_left_seg2", "D_left_seg3"],
+      "geometry": {
+        "kind": "rect",
+        "x_range_m": [0.00, 8.00],
+        "y_range_m": [3.00, 6.60]
+      },
+      "note": "F2 wall fill — east facade second floor (y=3.00 to 6.60)"
+    },
+    {
+      "id": "S4",
+      "pen": "window",
+      "provenance": "seen",
+      "confidence": "high",
+      "dimension_refs": ["D_top_seg1", "D_top_seg2", "D_left_seg2", "D_left_seg3"],
+      "geometry": {
+        "kind": "rect",
+        "x_range_m": [3.40, 4.60],
+        "y_range_m": [4.00, 5.80]
+      },
+      "note": "F2 window (centered): x from top chain 3400–4600 (width 1200), y: sill=1000mm above F2 floor → y=3.00+1.00=4.00; top=4.00+1.80=5.80"
+    },
+    {
+      "id": "S5",
+      "pen": "window",
+      "provenance": "seen",
+      "confidence": "high",
+      "dimension_refs": ["D_top_seg1", "D_top_seg2", "D_left_seg5", "D_left_seg6"],
+      "geometry": {
+        "kind": "rect",
+        "x_range_m": [3.40, 4.60],
+        "y_range_m": [1.00, 2.80]
+      },
+      "note": "F1 window (centered): x from top chain 3400–4600 (width 1200), y: sill=1000mm above ground → y=1.00; top=1.00+1.80=2.80"
+    }
+  ],
+
+  "dimensions": [
+    {
+      "id": "D_top_overall",
+      "text_verbatim": "8000",
+      "value_m": 8.00,
+      "from": [0.00, 6.60],
+      "to": [8.00, 6.60],
+      "axis": "x",
+      "chain_id": "C_top",
+      "role": "overall",
+      "order": 0,
+      "anchor": null,
+      "note": "top overall width"
+    },
+    {
+      "id": "D_top_seg1",
+      "text_verbatim": "3400",
+      "value_m": 3.40,
+      "from": [0.00, 6.60],
+      "to": [3.40, 6.60],
+      "axis": "x",
+      "chain_id": "C_top",
+      "role": "segment",
+      "order": 1,
+      "anchor": null,
+      "note": "top chain seg1: left margin to window"
+    },
+    {
+      "id": "D_top_seg2",
+      "text_verbatim": "1200",
+      "value_m": 1.20,
+      "from": [3.40, 6.60],
+      "to": [4.60, 6.60],
+      "axis": "x",
+      "chain_id": "C_top",
+      "role": "segment",
+      "order": 2,
+      "anchor": null,
+      "note": "top chain seg2: window width"
+    },
+    {
+      "id": "D_top_seg3",
+      "text_verbatim": "3400",
+      "value_m": 3.40,
+      "from": [4.60, 6.60],
+      "to": [8.00, 6.60],
+      "axis": "x",
+      "chain_id": "C_top",
+      "role": "segment",
+      "order": 3,
+      "anchor": null,
+      "note": "top chain seg3: right margin (sum: 3400+1200+3400=8000 ✓)"
+    },
+    {
+      "id": "D_bottom_overall",
+      "text_verbatim": "8000",
+      "value_m": 8.00,
+      "from": [0.00, 0.00],
+      "to": [8.00, 0.00],
+      "axis": "x",
+      "chain_id": "C_bottom",
+      "role": "overall",
+      "order": 0,
+      "anchor": null,
+      "note": "bottom overall width"
+    },
+    {
+      "id": "D_left_overall",
+      "text_verbatim": "6600",
+      "value_m": 6.60,
+      "from": [0.00, 0.00],
+      "to": [0.00, 6.60],
+      "axis": "y",
+      "chain_id": "C_left",
+      "role": "overall",
+      "order": 0,
+      "anchor": null,
+      "note": "left overall height"
+    },
+    {
+      "id": "D_left_seg1",
+      "text_verbatim": "800",
+      "value_m": 0.80,
+      "from": [0.00, 5.80],
+      "to": [0.00, 6.60],
+      "axis": "y",
+      "chain_id": "C_left",
+      "role": "segment",
+      "order": 1,
+      "anchor": null,
+      "note": "left seg1: F2 top margin (parapet)"
+    },
+    {
+      "id": "D_left_seg2",
+      "text_verbatim": "1800",
+      "value_m": 1.80,
+      "from": [0.00, 4.00],
+      "to": [0.00, 5.80],
+      "axis": "y",
+      "chain_id": "C_left",
+      "role": "segment",
+      "order": 2,
+      "anchor": null,
+      "note": "left seg2: F2 window height"
+    },
+    {
+      "id": "D_left_seg3",
+      "text_verbatim": "1000",
+      "value_m": 1.00,
+      "from": [0.00, 3.00],
+      "to": [0.00, 4.00],
+      "axis": "y",
+      "chain_id": "C_left",
+      "role": "segment",
+      "order": 3,
+      "anchor": null,
+      "note": "left seg3: F2 sill height from floor"
+    },
+    {
+      "id": "D_left_seg4",
+      "text_verbatim": "200",
+      "value_m": 0.20,
+      "from": [0.00, 2.80],
+      "to": [0.00, 3.00],
+      "axis": "y",
+      "chain_id": "C_left",
+      "role": "segment",
+      "order": 4,
+      "anchor": null,
+      "note": "left seg4: F1 top margin above window"
+    },
+    {
+      "id": "D_left_seg5",
+      "text_verbatim": "1800",
+      "value_m": 1.80,
+      "from": [0.00, 1.00],
+      "to": [0.00, 2.80],
+      "axis": "y",
+      "chain_id": "C_left",
+      "role": "segment",
+      "order": 5,
+      "anchor": null,
+      "note": "left seg5: F1 window height"
+    },
+    {
+      "id": "D_left_seg6",
+      "text_verbatim": "1000",
+      "value_m": 1.00,
+      "from": [0.00, 0.00],
+      "to": [0.00, 1.00],
+      "axis": "y",
+      "chain_id": "C_left",
+      "role": "segment",
+      "order": 6,
+      "anchor": null,
+      "note": "left seg6: F1 sill height (sum: 800+1800+1000+200+1800+1000=6600 ✓)"
+    },
+    {
+      "id": "D_right_overall",
+      "text_verbatim": "6600",
+      "value_m": 6.60,
+      "from": [8.00, 0.00],
+      "to": [8.00, 6.60],
+      "axis": "y",
+      "chain_id": "C_right",
+      "role": "overall",
+      "order": 0,
+      "anchor": null,
+      "note": "right overall height"
+    },
+    {
+      "id": "D_right_seg1",
+      "text_verbatim": "3600",
+      "value_m": 3.60,
+      "from": [8.00, 3.00],
+      "to": [8.00, 6.60],
+      "axis": "y",
+      "chain_id": "C_right",
+      "role": "segment",
+      "order": 1,
+      "anchor": null,
+      "note": "right seg1: F2 floor height"
+    },
+    {
+      "id": "D_right_seg2",
+      "text_verbatim": "3000",
+      "value_m": 3.00,
+      "from": [8.00, 0.00],
+      "to": [8.00, 3.00],
+      "axis": "y",
+      "chain_id": "C_right",
+      "role": "segment",
+      "order": 2,
+      "anchor": null,
+      "note": "right seg2: F1 floor height (3600+3000=6600 ✓)"
+    }
+  ],
+
+  "ocr_texts": [],
+
+  "uncaptured": [
+    "East elevation: shadow tones excluded",
+    "East elevation: floor divider line at y=3.00 used as storey boundary for wall_fill split"
+  ],
+
+  "self_check": {
+    "all_dimensions_transcribed": true,
+    "all_visible_strokes_captured": true,
+    "no_topology_inferred": true,
+    "pens_used": ["outline", "wall_fill", "window"],
+    "unknowns_noted": [
+      "East facade has 1 window per floor, both centered horizontally at x=3.40–4.60 (1200mm width)",
+      "F1 window top y=2.80 (sill=1.00, height=1.80), F1 top margin=0.20 (200mm), floor line at y=3.00",
+      "F2 window sill=1.00 above y=3.00 → y=4.00, window top=5.80, parapet margin=0.80 to 6.60"
+    ]
+  }
+}

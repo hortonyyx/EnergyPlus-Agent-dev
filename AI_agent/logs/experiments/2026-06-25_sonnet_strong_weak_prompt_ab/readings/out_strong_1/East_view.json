@@ -1,0 +1,201 @@
+{
+  "image_label": "East view path of the building",
+  "image_kind": "elevation",
+  "facade_axis_note": "East facade: local x = world y (increasing northward); local y = world z",
+  "scale_origin": {
+    "world_x_m": null,
+    "world_y_m": null,
+    "world_z_m": 0.00,
+    "note": "local x=0 = south edge of east facade (world y min); local y=0 = ground level (z=0); world y translation deferred to correction"
+  },
+
+  "strokes": [
+    {
+      "id": "S1",
+      "pen": "wall_fill",
+      "provenance": "seen",
+      "confidence": "high",
+      "dimension_refs": ["D_V_left_F2", "D_H_top_outer"],
+      "geometry": {
+        "kind": "rect",
+        "x_range_m": [0.00, 8.00],
+        "y_range_m": [3.00, 6.60]
+      },
+      "note": "F2 wall body fill; y=3.00 from 3000 F1 height; y=6.60 from 6600 total; x=0.00 to 8.00 per 8000 width"
+    },
+    {
+      "id": "S2",
+      "pen": "wall_fill",
+      "provenance": "seen",
+      "confidence": "high",
+      "dimension_refs": ["D_V_left_F1"],
+      "geometry": {
+        "kind": "rect",
+        "x_range_m": [0.00, 8.00],
+        "y_range_m": [0.00, 3.00]
+      },
+      "note": "F1 wall body fill; y=0.00 ground; y=3.00 per 3000 F1 height"
+    },
+    {
+      "id": "S3",
+      "pen": "window",
+      "provenance": "dimension_derived",
+      "confidence": "high",
+      "dimension_refs": ["D_top_chain", "D_V_inner_F2"],
+      "geometry": {
+        "kind": "rect",
+        "x_range_m": [3.40, 4.60],
+        "y_range_m": [4.00, 5.80]
+      },
+      "note": "F2 window (center): x = 0+3400 = 3.40 to 3.40+1.20 = 4.60 per top chain (3400+1200=4600; +3400=8000 ✓); y: top = 6.60-0.80 = 5.80; bottom = 6.60-0.80-1.80 = 4.00 per inner-left vertical chain (800+1800+1000=3600 ✓)"
+    },
+    {
+      "id": "S4",
+      "pen": "window",
+      "provenance": "dimension_derived",
+      "confidence": "high",
+      "dimension_refs": ["D_bottom_chain", "D_V_inner_F1"],
+      "geometry": {
+        "kind": "rect",
+        "x_range_m": [3.40, 4.60],
+        "y_range_m": [1.00, 2.80]
+      },
+      "note": "F1 window (center): same x as S3 per bottom chain (3400+1200+3400=8000 ✓); y: top = 3.00-0.20 = 2.80; bottom = 3.00-0.20-1.80 = 1.00 per inner-left vertical F1 chain (200+1800+1000=3000 ✓)"
+    }
+  ],
+
+  "dimensions": [
+    {
+      "id": "D_H_top_outer",
+      "text": "8000",
+      "from": [0.00, 6.60],
+      "to": [8.00, 6.60],
+      "axis": "x",
+      "note": "top overall horizontal dimension; total east facade width = 8000mm = 8.00m"
+    },
+    {
+      "id": "D_H_bottom_outer",
+      "text": "8000",
+      "from": [0.00, 0.00],
+      "to": [8.00, 0.00],
+      "axis": "x",
+      "note": "bottom overall horizontal dimension; confirms total width = 8000mm"
+    },
+    {
+      "id": "D_top_chain",
+      "text": "3400+1200+3400",
+      "from": [0.00, 6.60],
+      "to": [8.00, 6.60],
+      "axis": "x",
+      "note": "top horizontal segment chain: 3400|1200|3400 = 8000; marks F2 window x position; cumulative: 3400, 4600, 8000"
+    },
+    {
+      "id": "D_bottom_chain",
+      "text": "3400+1200+3400",
+      "from": [0.00, 0.00],
+      "to": [8.00, 0.00],
+      "axis": "x",
+      "note": "bottom horizontal segment chain: 3400|1200|3400 = 8000; same as top chain; marks F1 window x position"
+    },
+    {
+      "id": "D_V_left_outer",
+      "text": "6600",
+      "from": [0.00, 0.00],
+      "to": [0.00, 6.60],
+      "axis": "z",
+      "note": "left outer vertical: total building height 6600mm = 6.60m"
+    },
+    {
+      "id": "D_V_left_F2",
+      "text": "3600",
+      "from": [0.00, 3.00],
+      "to": [0.00, 6.60],
+      "axis": "z",
+      "note": "left outer F2 height: 3600mm = 3.60m (z=3.00 to z=6.60)"
+    },
+    {
+      "id": "D_V_left_F1",
+      "text": "3000",
+      "from": [0.00, 0.00],
+      "to": [0.00, 3.00],
+      "axis": "z",
+      "note": "left outer F1 height: 3000mm = 3.00m (z=0.00 to z=3.00)"
+    },
+    {
+      "id": "D_V_inner_F2",
+      "text": "800+1800+1000",
+      "from": [0.00, 3.00],
+      "to": [0.00, 6.60],
+      "axis": "z",
+      "note": "inner-left vertical F2 breakdown: 800 (top spandrel) + 1800 (window height) + 1000 (sill from floor line); top of window = 6.60-0.80=5.80; bottom = 6.60-0.80-1.80=4.00; 800+1800+1000=3600 ✓"
+    },
+    {
+      "id": "D_V_inner_F1",
+      "text": "200+1800+1000",
+      "from": [0.00, 0.00],
+      "to": [0.00, 3.00],
+      "axis": "z",
+      "note": "inner-left vertical F1 breakdown: 200 (head-to-floor) + 1800 (window height) + 1000 (sill); sill at 1.00; top at 1.00+1.80=2.80; head clearance 200mm to floor line; 200+1800+1000=3000 ✓"
+    },
+    {
+      "id": "D_V_right_outer",
+      "text": "6600",
+      "from": [8.00, 0.00],
+      "to": [8.00, 6.60],
+      "axis": "z",
+      "note": "right outer vertical: 6600mm = 6.60m (confirms left)"
+    },
+    {
+      "id": "D_V_right_F2",
+      "text": "3600",
+      "from": [8.00, 3.00],
+      "to": [8.00, 6.60],
+      "axis": "z",
+      "note": "right outer F2 height: 3600mm"
+    },
+    {
+      "id": "D_V_right_F1",
+      "text": "3000",
+      "from": [8.00, 0.00],
+      "to": [8.00, 3.00],
+      "axis": "z",
+      "note": "right outer F1 height: 3000mm"
+    }
+  ],
+
+  "ocr_texts": [
+    {"id": "T1", "text": "8000", "anchor": [4.00, 6.80], "note": "top overall dimension"},
+    {"id": "T2", "text": "3400", "anchor": [1.70, 7.00], "note": "top chain first segment"},
+    {"id": "T3", "text": "1200", "anchor": [4.00, 7.00], "note": "top chain second segment (window width)"},
+    {"id": "T4", "text": "3400", "anchor": [6.30, 7.00], "note": "top chain third segment"},
+    {"id": "T5", "text": "6600", "anchor": [-0.80, 3.30], "note": "left outer total height"},
+    {"id": "T6", "text": "3600", "anchor": [-0.50, 4.80], "note": "left outer F2 height"},
+    {"id": "T7", "text": "3000", "anchor": [-0.50, 1.50], "note": "left outer F1 height"},
+    {"id": "T8", "text": "800", "anchor": [-0.25, 6.20], "note": "inner-left F2 top spandrel"},
+    {"id": "T9", "text": "1800", "anchor": [-0.25, 4.90], "note": "inner-left F2 window height"},
+    {"id": "T10", "text": "1000", "anchor": [-0.25, 3.50], "note": "inner-left F2 sill"},
+    {"id": "T11", "text": "200", "anchor": [-0.25, 2.90], "note": "inner-left F1 head-to-floor clearance"},
+    {"id": "T12", "text": "1800", "anchor": [-0.25, 1.90], "note": "inner-left F1 window height"},
+    {"id": "T13", "text": "1000", "anchor": [-0.25, 0.50], "note": "inner-left F1 sill"},
+    {"id": "T14", "text": "6600", "anchor": [8.80, 3.30], "note": "right outer total height"},
+    {"id": "T15", "text": "3600", "anchor": [8.50, 4.80], "note": "right outer F2 height"},
+    {"id": "T16", "text": "3000", "anchor": [8.50, 1.50], "note": "right outer F1 height"},
+    {"id": "T17", "text": "8000", "anchor": [4.00, -0.40], "note": "bottom overall dimension"}
+  ],
+
+  "self_check": {
+    "all_dimensions_transcribed": true,
+    "all_visible_strokes_captured": true,
+    "no_topology_inferred": true,
+    "pens_used": ["wall_fill", "window"],
+    "unknowns_noted": [
+      "No door visible in East elevation; no healing required",
+      "wall_fill outline edges coincide with wall_fill rect borders; no separate outline stroke drawn"
+    ],
+    "uncaptured_visual_elements": [
+      "Floor/storey divider line at z=3.00m: horizontal line separating F1 and F2; used as y boundary for wall_fill split, not drawn as separate stroke",
+      "Outer building silhouette/outline: coincides with wall_fill S1 and S2 edges; no separate outline stroke drawn",
+      "Dimension tick marks, extension lines: visible at all chain endpoints; not drawn as strokes"
+    ]
+  }
+}

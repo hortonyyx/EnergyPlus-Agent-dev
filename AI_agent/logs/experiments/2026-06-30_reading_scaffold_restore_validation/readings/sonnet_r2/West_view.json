@@ -1,0 +1,234 @@
+{
+  "image_label": "West elevation view",
+  "image_kind": "elevation",
+  "facade": {
+    "view_facade": "West",
+    "local_x_positive": "image_left_to_right",
+    "mirrored": "false",
+    "orientation_evidence": [
+      {"source": "image_name", "detail": "file is named 'West_view.png'", "confidence": "high"}
+    ]
+  },
+
+  "strokes": [
+    {
+      "id": "S1",
+      "pen": "outline",
+      "provenance": "seen",
+      "confidence": "high",
+      "dimension_refs": ["D_bottom_overall", "D_left_overall"],
+      "geometry": {
+        "kind": "rect",
+        "x_range_m": [0.00, 8.00],
+        "y_range_m": [0.00, 6.60]
+      },
+      "note": "overall facade outline: width 8000mm, total height 6600mm"
+    },
+    {
+      "id": "S2",
+      "pen": "wall_fill",
+      "provenance": "seen",
+      "confidence": "high",
+      "dimension_refs": ["D_left_seg2", "D_right_seg2"],
+      "geometry": {
+        "kind": "rect",
+        "x_range_m": [0.00, 8.00],
+        "y_range_m": [0.00, 3.00]
+      },
+      "note": "F1 wall fill — west facade ground floor (y=0.00 to 3.00); door opening recognized and logged in uncaptured — door is floor-height so wall_fill note records the opening"
+    },
+    {
+      "id": "S3",
+      "pen": "wall_fill",
+      "provenance": "seen",
+      "confidence": "high",
+      "dimension_refs": ["D_left_seg1", "D_right_seg1"],
+      "geometry": {
+        "kind": "rect",
+        "x_range_m": [0.00, 8.00],
+        "y_range_m": [3.00, 6.60]
+      },
+      "note": "F2 wall fill — west facade second floor (y=3.00 to 6.60)"
+    },
+    {
+      "id": "S4",
+      "pen": "window",
+      "provenance": "seen",
+      "confidence": "high",
+      "dimension_refs": ["D_top_seg1", "D_top_seg2"],
+      "geometry": {
+        "kind": "rect",
+        "x_range_m": [3.40, 4.60],
+        "y_range_m": [4.00, 5.80]
+      },
+      "note": "F2 window (centered): x from top chain 3400–4600 (width 1200), y: sill=1000mm above F2 floor → y=3.00+1.00=4.00; top=4.00+1.80=5.80"
+    }
+  ],
+
+  "dimensions": [
+    {
+      "id": "D_top_overall",
+      "text_verbatim": "8000",
+      "value_m": 8.00,
+      "from": [0.00, 6.60],
+      "to": [8.00, 6.60],
+      "axis": "x",
+      "chain_id": "C_top",
+      "role": "overall",
+      "order": 0,
+      "anchor": null,
+      "note": "top overall width"
+    },
+    {
+      "id": "D_top_seg1",
+      "text_verbatim": "3400",
+      "value_m": 3.40,
+      "from": [0.00, 6.60],
+      "to": [3.40, 6.60],
+      "axis": "x",
+      "chain_id": "C_top",
+      "role": "segment",
+      "order": 1,
+      "anchor": null,
+      "note": "top chain seg1: left margin to opening/window"
+    },
+    {
+      "id": "D_top_seg2",
+      "text_verbatim": "1200",
+      "value_m": 1.20,
+      "from": [3.40, 6.60],
+      "to": [4.60, 6.60],
+      "axis": "x",
+      "chain_id": "C_top",
+      "role": "segment",
+      "order": 2,
+      "anchor": null,
+      "note": "top chain seg2: opening/window width (both F1 door and F2 window share this span)"
+    },
+    {
+      "id": "D_top_seg3",
+      "text_verbatim": "3400",
+      "value_m": 3.40,
+      "from": [4.60, 6.60],
+      "to": [8.00, 6.60],
+      "axis": "x",
+      "chain_id": "C_top",
+      "role": "segment",
+      "order": 3,
+      "anchor": null,
+      "note": "top chain seg3: right margin (sum: 3400+1200+3400=8000 ✓)"
+    },
+    {
+      "id": "D_bottom_overall",
+      "text_verbatim": "8000",
+      "value_m": 8.00,
+      "from": [0.00, 0.00],
+      "to": [8.00, 0.00],
+      "axis": "x",
+      "chain_id": "C_bottom",
+      "role": "overall",
+      "order": 0,
+      "anchor": null,
+      "note": "bottom overall width"
+    },
+    {
+      "id": "D_left_overall",
+      "text_verbatim": "6600",
+      "value_m": 6.60,
+      "from": [0.00, 0.00],
+      "to": [0.00, 6.60],
+      "axis": "y",
+      "chain_id": "C_left",
+      "role": "overall",
+      "order": 0,
+      "anchor": null,
+      "note": "left overall height"
+    },
+    {
+      "id": "D_left_seg1",
+      "text_verbatim": "3600",
+      "value_m": 3.60,
+      "from": [0.00, 3.00],
+      "to": [0.00, 6.60],
+      "axis": "y",
+      "chain_id": "C_left",
+      "role": "segment",
+      "order": 1,
+      "anchor": null,
+      "note": "left seg1: F2 floor-to-ceiling height"
+    },
+    {
+      "id": "D_left_seg2",
+      "text_verbatim": "3000",
+      "value_m": 3.00,
+      "from": [0.00, 0.00],
+      "to": [0.00, 3.00],
+      "axis": "y",
+      "chain_id": "C_left",
+      "role": "segment",
+      "order": 2,
+      "anchor": null,
+      "note": "left seg2: F1 floor-to-ceiling height (3600+3000=6600 ✓)"
+    },
+    {
+      "id": "D_right_overall",
+      "text_verbatim": "6600",
+      "value_m": 6.60,
+      "from": [8.00, 0.00],
+      "to": [8.00, 6.60],
+      "axis": "y",
+      "chain_id": "C_right",
+      "role": "overall",
+      "order": 0,
+      "anchor": null,
+      "note": "right overall height"
+    },
+    {
+      "id": "D_right_seg1",
+      "text_verbatim": "3600",
+      "value_m": 3.60,
+      "from": [8.00, 3.00],
+      "to": [8.00, 6.60],
+      "axis": "y",
+      "chain_id": "C_right",
+      "role": "segment",
+      "order": 1,
+      "anchor": null,
+      "note": "right seg1: F2 floor height"
+    },
+    {
+      "id": "D_right_seg2",
+      "text_verbatim": "3000",
+      "value_m": 3.00,
+      "from": [8.00, 0.00],
+      "to": [8.00, 3.00],
+      "axis": "y",
+      "chain_id": "C_right",
+      "role": "segment",
+      "order": 2,
+      "anchor": null,
+      "note": "right seg2: F1 floor height (3600+3000=6600 ✓)"
+    }
+  ],
+
+  "ocr_texts": [],
+
+  "uncaptured": [
+    "West elevation F1: double-leaf door recognized at x=3.40–4.60, y=0.00–~2.50 (floor-height opening with double-leaf panel subdivisions visible) — recognized as door, not drawn as window pen; logged here per pen_library",
+    "West elevation: floor divider line at y=3.00 used as storey boundary for wall_fill split",
+    "West elevation: shadow tones excluded"
+  ],
+
+  "self_check": {
+    "all_dimensions_transcribed": true,
+    "all_visible_strokes_captured": true,
+    "no_topology_inferred": true,
+    "pens_used": ["outline", "wall_fill", "window"],
+    "unknowns_noted": [
+      "West F1 has a door (double-leaf, floor-to-ceiling, x=3.40–4.60) — door is NOT drawn as a window pen per pen_library; it is recognized and logged in uncaptured only",
+      "West F2 has 1 window (1200mm wide, centered at x=3.40–4.60) — same horizontal span as the F1 door",
+      "No detailed y-chain visible on left side for door/window sill/head in West view beyond the overall 3600/3000 floor splits; F2 window y estimated from East elevation detail chain (sill=1000, height=1800 → y=[4.00,5.80]) which is consistent across facades",
+      "F1 door head height not dimensioned on West view; visually reaches approximately y≈2.50; not emitted as a stroke"
+    ]
+  }
+}

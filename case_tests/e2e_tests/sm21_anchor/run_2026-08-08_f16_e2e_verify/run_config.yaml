@@ -1,0 +1,39 @@
+# run_2026-08-08_f16_e2e_verify (sm21_anchor)
+# 目的：接线摸排第一轮三摊修法（F-16 / A-1 / B-1′，落库 15ea05d，GLM 交叉审 APPROVE）的
+#       **真链路验收**。核心问题只有一个：**F-16 是不是真的解开了 1_correction 的卡点。**
+#       上一轮 run_2026-08-07_f15_north_axis_fix_verify 三次抽签用尽、quarantined@1_correction，
+#       报错 = `window W-F1-N1: floor must match referenced floor name`（模型写 floors[0].id="F1"
+#       / name="Level 1"，窗引用 "F1"，门要求匹配 name）。F-16 修法后模型**根本不再被要求写
+#       `floor`**（CORRECTION_DRAW_DERIVED，已从给模型的 JSON Schema 机械剥除，由代码从
+#       floor_id 派生）⇒ 该形态的错误应在结构上消失。
+#
+# ⚠️ 修法至今**只有夹具层证据**（24 把锁 + 换方向 neuter + 跨家族审），**零真链路证据**。
+#    本 run 即为兑现项目那条最贵的教训（F-5）：**夹具自洽不算数，只有真实产物跑通才算修好。**
+#
+# 用户 2026-08-08 拍板：**跑到底**（全链 + 下游 13 节点 + EnergyPlus），
+#   理由 = 08-05 定的「先撞后段」打法，串行修墙会让后段缺陷无限期潜伏；一次跑比分两次省。
+#
+# 输入 = 07-07 那份已知满分的 sm21 识图产物（经 run_2026-08-07_f15_north_axis_fix_verify/0_reading
+#   原样传递，flat *_view.json + reading_summary.md）。⛔ 本 run 不重跑识图（reading 是下轮支线）。
+#
+# 基点：15ea05d（三摊）→ c8d5ac2（交叉审裁决书落库）。全仓 2323 passed / 10 xfailed / 0 failed。
+run_profile: exploratory
+capability_profile: orthogonal_polygon
+judge:
+  mode: off
+review:
+  reading: false
+  correction: false
+  geometry: false
+models:
+  reading:
+    role: 0_reading
+    model_id: claude-haiku-4-5-20251001
+    source: 07-07 run_2026-07-07_haiku_cv_retest/0_reading 原样复用（本 run 未重跑识图）
+  orchestrator:
+    role: orchestration
+    model_id: claude-opus-5
+  correction:
+    role: 1_correction
+    model_id: deepseek-v4-pro
+    effort: high

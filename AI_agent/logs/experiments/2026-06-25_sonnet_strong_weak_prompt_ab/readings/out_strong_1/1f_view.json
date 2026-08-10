@@ -1,0 +1,586 @@
+{
+  "image_label": "Floor 1 plan view",
+  "image_kind": "plan",
+  "facade_axis_note": null,
+  "scale_origin": {
+    "world_x_m": 0.00,
+    "world_y_m": 0.00,
+    "world_z_m": null,
+    "note": "local (0,0) = SW outer corner of building footprint; x increases eastward, y increases northward"
+  },
+
+  "strokes": [
+    {
+      "id": "S1",
+      "pen": "wall",
+      "provenance": "dimension_derived",
+      "confidence": "high",
+      "dimension_refs": ["D1", "D2_chain"],
+      "geometry": {
+        "kind": "line",
+        "p1": [0.00, 0.00],
+        "p2": [15.00, 0.00],
+        "thickness_m": null
+      },
+      "note": "south perimeter wall; length = 15000 per D1 top overall and D2_chain bottom overall; windows do not break wall (plan)"
+    },
+    {
+      "id": "S2",
+      "pen": "wall",
+      "provenance": "dimension_derived",
+      "confidence": "high",
+      "dimension_refs": ["D1", "D22"],
+      "geometry": {
+        "kind": "line",
+        "p1": [0.00, 8.00],
+        "p2": [15.00, 8.00],
+        "thickness_m": null
+      },
+      "note": "north perimeter wall; y = 8000 per D22 left overall chain"
+    },
+    {
+      "id": "S3",
+      "pen": "wall",
+      "provenance": "dimension_derived",
+      "confidence": "high",
+      "dimension_refs": ["D22"],
+      "geometry": {
+        "kind": "line",
+        "p1": [0.00, 0.00],
+        "p2": [0.00, 8.00],
+        "thickness_m": null
+      },
+      "note": "west perimeter wall; height = 8000 per D22"
+    },
+    {
+      "id": "S4",
+      "pen": "wall",
+      "provenance": "dimension_derived",
+      "confidence": "high",
+      "dimension_refs": ["D22"],
+      "geometry": {
+        "kind": "line",
+        "p1": [15.00, 0.00],
+        "p2": [15.00, 8.00],
+        "thickness_m": null
+      },
+      "note": "east perimeter wall; height = 8000"
+    },
+    {
+      "id": "S5",
+      "pen": "wall",
+      "provenance": "dimension_derived",
+      "confidence": "high",
+      "dimension_refs": ["D22", "D23"],
+      "geometry": {
+        "kind": "line",
+        "p1": [0.00, 3.00],
+        "p2": [15.00, 3.00],
+        "thickness_m": null
+      },
+      "note": "south interior horizontal wall (south face of central corridor); y = 3000 per D23 left chain bottom segment; healed door opening at x≈2.4 (door swing arc visible); healed door opening at x≈7.5 (door swing arc); healed door opening at x≈12.1 (door swing arc)"
+    },
+    {
+      "id": "S6",
+      "pen": "wall",
+      "provenance": "dimension_derived",
+      "confidence": "high",
+      "dimension_refs": ["D22", "D23", "D24", "D25", "D26"],
+      "geometry": {
+        "kind": "line",
+        "p1": [0.00, 5.00],
+        "p2": [15.00, 5.00],
+        "thickness_m": null
+      },
+      "note": "north interior horizontal wall (north face of central corridor); y = 3000+250+1500+250 = 5000 per D23+D24+D25+D26 left chain; healed door opening at x≈4.9 (door swing arc); healed door opening at x≈9.8 (door swing arc)"
+    },
+    {
+      "id": "S7",
+      "pen": "wall",
+      "provenance": "seen",
+      "confidence": "medium",
+      "dimension_refs": ["D15"],
+      "geometry": {
+        "kind": "line",
+        "p1": [4.94, 5.00],
+        "p2": [4.94, 8.00],
+        "thickness_m": null
+      },
+      "note": "north zone first vertical divider wall (between rooms 1 and 2); x ≈ 4.94 estimated: inner x from west = 0+1.24+2.40+1.30 = 4.94 per D13+D14+D15 top chain; wall extends from north interior wall to north perimeter"
+    },
+    {
+      "id": "S8",
+      "pen": "wall",
+      "provenance": "seen",
+      "confidence": "medium",
+      "dimension_refs": ["D19"],
+      "geometry": {
+        "kind": "line",
+        "p1": [9.82, 5.00],
+        "p2": [9.82, 8.00],
+        "thickness_m": null
+      },
+      "note": "north zone second vertical divider wall (between rooms 2 and 3); x ≈ 9.82 estimated: inner x = 1.24+2.40+1.30+1.24+2.40+1.24 = 9.82 per chain D13–D18"
+    },
+    {
+      "id": "S9",
+      "pen": "wall",
+      "provenance": "seen",
+      "confidence": "medium",
+      "dimension_refs": [],
+      "geometry": {
+        "kind": "line",
+        "p1": [4.94, 0.00],
+        "p2": [4.94, 3.00],
+        "thickness_m": null
+      },
+      "note": "south zone first vertical divider wall; x ≈ 4.94 matching north zone S7; healed door opening at y≈1.5 (door swing arc visible in south zone)"
+    },
+    {
+      "id": "S10",
+      "pen": "wall",
+      "provenance": "seen",
+      "confidence": "medium",
+      "dimension_refs": [],
+      "geometry": {
+        "kind": "line",
+        "p1": [9.82, 0.00],
+        "p2": [9.82, 3.00],
+        "thickness_m": null
+      },
+      "note": "south zone second vertical divider wall; x ≈ 9.82 matching north zone S8; healed door opening at y≈1.5 (door swing arc visible)"
+    },
+    {
+      "id": "S11",
+      "pen": "wall",
+      "provenance": "seen",
+      "confidence": "low",
+      "dimension_refs": [],
+      "geometry": {
+        "kind": "line",
+        "p1": [1.44, 3.00],
+        "p2": [1.44, 5.00],
+        "thickness_m": null
+      },
+      "note": "short interior wall stub in corridor zone west area (stairwell/entry enclosure west wall); x ≈1.44 from bottom chain seg 1+2 (540+900=1440); connects south and north interior walls; healed door opening at y≈3.0 (door swing)"
+    },
+    {
+      "id": "W1",
+      "pen": "window",
+      "provenance": "dimension_derived",
+      "confidence": "high",
+      "dimension_refs": ["D13", "D14"],
+      "geometry": {
+        "kind": "line",
+        "p1": [1.24, 8.00],
+        "p2": [3.64, 8.00],
+        "thickness_m": null
+      },
+      "note": "north perimeter wall window 1; x_start = inner west face offset 1.24 per D13; width = 2400 per D14; x_end = 1.24+2.40 = 3.64"
+    },
+    {
+      "id": "W2",
+      "pen": "window",
+      "provenance": "dimension_derived",
+      "confidence": "high",
+      "dimension_refs": ["D13", "D14", "D15", "D16", "D17"],
+      "geometry": {
+        "kind": "line",
+        "p1": [6.18, 8.00],
+        "p2": [8.58, 8.00],
+        "thickness_m": null
+      },
+      "note": "north perimeter wall window 2; x_start = 1.24+2.40+1.30+1.24 = 6.18 per D13+D14+D15+D16; width = 2400 per D17; x_end = 6.18+2.40 = 8.58"
+    },
+    {
+      "id": "W3",
+      "pen": "window",
+      "provenance": "dimension_derived",
+      "confidence": "high",
+      "dimension_refs": ["D13", "D14", "D15", "D16", "D17", "D18", "D19", "D20"],
+      "geometry": {
+        "kind": "line",
+        "p1": [11.12, 8.00],
+        "p2": [13.52, 8.00],
+        "thickness_m": null
+      },
+      "note": "north perimeter wall window 3; x_start = 1.24+2.40+1.30+1.24+2.40+1.24+1.30 = 11.12 per chain; width = 2400 per D20; x_end = 11.12+2.40 = 13.52"
+    },
+    {
+      "id": "W4",
+      "pen": "window",
+      "provenance": "dimension_derived",
+      "confidence": "high",
+      "dimension_refs": ["D2a", "D2b", "D2c"],
+      "geometry": {
+        "kind": "line",
+        "p1": [1.44, 0.00],
+        "p2": [3.44, 0.00],
+        "thickness_m": null
+      },
+      "note": "south perimeter wall window 1 (left); x_start = 0.54+0.90 = 1.44 per bottom chain D2a+D2b; width = 2000 per D2c; x_end = 1.44+2.00 = 3.44"
+    },
+    {
+      "id": "W5",
+      "pen": "window",
+      "provenance": "dimension_derived",
+      "confidence": "high",
+      "dimension_refs": ["D2e", "D2f", "D2g"],
+      "geometry": {
+        "kind": "line",
+        "p1": [6.30, 0.00],
+        "p2": [8.70, 0.00],
+        "thickness_m": null
+      },
+      "note": "south perimeter wall window 2 (center); x_start = 0.54+0.90+2.00+1.20+0.36+1.30 = 6.30 per bottom chain segments; width = 2400 per D2g; x_end = 6.30+2.40 = 8.70; note: segment 540+900+2000+1200+360+1300=6300"
+    },
+    {
+      "id": "W6",
+      "pen": "window",
+      "provenance": "dimension_derived",
+      "confidence": "high",
+      "dimension_refs": ["D2i", "D2j"],
+      "geometry": {
+        "kind": "line",
+        "p1": [11.36, 0.00],
+        "p2": [13.76, 0.00],
+        "thickness_m": null
+      },
+      "note": "south perimeter wall window 3 (right); x_start = 0.54+0.90+2.00+1.20+0.36+1.30+2.40+1.30+1.36 = 11.36 per bottom chain; width = 2400 per D2j; x_end = 11.36+2.40 = 13.76"
+    }
+  ],
+
+  "dimensions": [
+    {
+      "id": "D1",
+      "text": "15000",
+      "from": [0.00, 8.00],
+      "to": [15.00, 8.00],
+      "axis": "x",
+      "note": "top overall dimension 15000mm"
+    },
+    {
+      "id": "D2_chain",
+      "text": "15000",
+      "from": [0.00, 0.00],
+      "to": [15.00, 0.00],
+      "axis": "x",
+      "note": "bottom overall dimension 15000mm (outer)"
+    },
+    {
+      "id": "D2a",
+      "text": "540",
+      "from": [0.00, 0.00],
+      "to": [0.54, 0.00],
+      "axis": "x",
+      "note": "bottom chain seg 1: 540mm west pier to first window"
+    },
+    {
+      "id": "D2b",
+      "text": "900",
+      "from": [0.54, 0.00],
+      "to": [1.44, 0.00],
+      "axis": "x",
+      "note": "bottom chain seg 2: 900mm"
+    },
+    {
+      "id": "D2c",
+      "text": "2000",
+      "from": [1.44, 0.00],
+      "to": [3.44, 0.00],
+      "axis": "x",
+      "note": "bottom chain seg 3: 2000mm (south window 1 width)"
+    },
+    {
+      "id": "D2d",
+      "text": "1200",
+      "from": [3.44, 0.00],
+      "to": [4.64, 0.00],
+      "axis": "x",
+      "note": "bottom chain seg 4: 1200mm"
+    },
+    {
+      "id": "D2e",
+      "text": "360",
+      "from": [4.64, 0.00],
+      "to": [5.00, 0.00],
+      "axis": "x",
+      "note": "bottom chain seg 5: 360mm"
+    },
+    {
+      "id": "D2f",
+      "text": "1300",
+      "from": [5.00, 0.00],
+      "to": [6.30, 0.00],
+      "axis": "x",
+      "note": "bottom chain seg 6: 1300mm pier between south windows 1 and 2"
+    },
+    {
+      "id": "D2g",
+      "text": "2400",
+      "from": [6.30, 0.00],
+      "to": [8.70, 0.00],
+      "axis": "x",
+      "note": "bottom chain seg 7: 2400mm (south window 2 width)"
+    },
+    {
+      "id": "D2h",
+      "text": "1300",
+      "from": [8.70, 0.00],
+      "to": [10.00, 0.00],
+      "axis": "x",
+      "note": "bottom chain seg 8: 1300mm pier between south windows 2 and 3"
+    },
+    {
+      "id": "D2i",
+      "text": "1360",
+      "from": [10.00, 0.00],
+      "to": [11.36, 0.00],
+      "axis": "x",
+      "note": "bottom chain seg 9: 1360mm"
+    },
+    {
+      "id": "D2j",
+      "text": "2400",
+      "from": [11.36, 0.00],
+      "to": [13.76, 0.00],
+      "axis": "x",
+      "note": "bottom chain seg 10: 2400mm (south window 3 width)"
+    },
+    {
+      "id": "D2k",
+      "text": "1240",
+      "from": [13.76, 0.00],
+      "to": [15.00, 0.00],
+      "axis": "x",
+      "note": "bottom chain seg 11: 1240mm east pier; cumulative = 540+900+2000+1200+360+1300+2400+1300+1360+2400+1240 = 15000 ✓"
+    },
+    {
+      "id": "D13",
+      "text": "1240",
+      "from": [0.00, 8.00],
+      "to": [1.24, 8.00],
+      "axis": "x",
+      "note": "top inner chain seg 1: 1240mm west pier (from inner face of west wall)"
+    },
+    {
+      "id": "D14",
+      "text": "2400",
+      "from": [1.24, 8.00],
+      "to": [3.64, 8.00],
+      "axis": "x",
+      "note": "top inner chain seg 2: 2400mm north window 1"
+    },
+    {
+      "id": "D15",
+      "text": "1300",
+      "from": [3.64, 8.00],
+      "to": [4.94, 8.00],
+      "axis": "x",
+      "note": "top inner chain seg 3: 1300mm pier"
+    },
+    {
+      "id": "D16",
+      "text": "1240",
+      "from": [4.94, 8.00],
+      "to": [6.18, 8.00],
+      "axis": "x",
+      "note": "top inner chain seg 4: 1240mm"
+    },
+    {
+      "id": "D17",
+      "text": "2400",
+      "from": [6.18, 8.00],
+      "to": [8.58, 8.00],
+      "axis": "x",
+      "note": "top inner chain seg 5: 2400mm north window 2"
+    },
+    {
+      "id": "D18",
+      "text": "1240",
+      "from": [8.58, 8.00],
+      "to": [9.82, 8.00],
+      "axis": "x",
+      "note": "top inner chain seg 6: 1240mm"
+    },
+    {
+      "id": "D19",
+      "text": "1300",
+      "from": [9.82, 8.00],
+      "to": [11.12, 8.00],
+      "axis": "x",
+      "note": "top inner chain seg 7: 1300mm pier"
+    },
+    {
+      "id": "D20",
+      "text": "2400",
+      "from": [11.12, 8.00],
+      "to": [13.52, 8.00],
+      "axis": "x",
+      "note": "top inner chain seg 8: 2400mm north window 3"
+    },
+    {
+      "id": "D21",
+      "text": "1240",
+      "from": [13.52, 8.00],
+      "to": [14.76, 8.00],
+      "axis": "x",
+      "note": "top inner chain seg 9: 1240mm east pier; inner total = 14760; missing 240 = two perimeter wall half-thicknesses (~120mm each)"
+    },
+    {
+      "id": "D22",
+      "text": "8000",
+      "from": [0.00, 0.00],
+      "to": [0.00, 8.00],
+      "axis": "y",
+      "note": "left side overall 8000mm"
+    },
+    {
+      "id": "D23",
+      "text": "3000",
+      "from": [0.00, 0.00],
+      "to": [0.00, 3.00],
+      "axis": "y",
+      "note": "left chain seg 1 (south zone depth): 3000mm"
+    },
+    {
+      "id": "D24",
+      "text": "250",
+      "from": [0.00, 3.00],
+      "to": [0.00, 3.25],
+      "axis": "y",
+      "note": "left chain seg 2 (south interior wall thickness): 250mm"
+    },
+    {
+      "id": "D25",
+      "text": "1500",
+      "from": [0.00, 3.25],
+      "to": [0.00, 4.75],
+      "axis": "y",
+      "note": "left chain seg 3 (corridor clear): 1500mm"
+    },
+    {
+      "id": "D26",
+      "text": "250",
+      "from": [0.00, 4.75],
+      "to": [0.00, 5.00],
+      "axis": "y",
+      "note": "left chain seg 4 (north interior wall thickness): 250mm; y_top_wall = 5.00"
+    },
+    {
+      "id": "D27",
+      "text": "3000",
+      "from": [0.00, 5.00],
+      "to": [0.00, 8.00],
+      "axis": "y",
+      "note": "left chain seg 5 (north zone depth): 3000mm; total = 3000+250+1500+250+3000 = 8000 ✓"
+    },
+    {
+      "id": "D28",
+      "text": "240",
+      "from": [0.00, 5.00],
+      "to": [0.00, 5.24],
+      "axis": "y",
+      "note": "dimension '240' seen in north zone left (window sill or head sub-dimension)"
+    },
+    {
+      "id": "D29",
+      "text": "240",
+      "from": [13.76, 5.00],
+      "to": [13.76, 5.24],
+      "axis": "y",
+      "note": "dimension '240' seen in north zone right"
+    },
+    {
+      "id": "D30",
+      "text": "240",
+      "from": [0.00, 3.25],
+      "to": [0.00, 3.49],
+      "axis": "y",
+      "note": "dimension '240' seen in corridor zone left"
+    },
+    {
+      "id": "D31",
+      "text": "240",
+      "from": [0.00, 0.00],
+      "to": [0.00, 0.24],
+      "axis": "y",
+      "note": "dimension '240' seen in south zone left"
+    },
+    {
+      "id": "D32",
+      "text": "2940",
+      "from": [15.00, 0.00],
+      "to": [15.00, 2.94],
+      "axis": "y",
+      "note": "right chain seg 1: south zone 2940mm (inner clear)"
+    },
+    {
+      "id": "D33",
+      "text": "340",
+      "from": [15.00, 2.94],
+      "to": [15.00, 3.28],
+      "axis": "y",
+      "note": "right chain seg 2: 340mm"
+    },
+    {
+      "id": "D34",
+      "text": "1200",
+      "from": [15.00, 3.28],
+      "to": [15.00, 4.48],
+      "axis": "y",
+      "note": "right chain seg 3: 1200mm (corridor inner or wall zone)"
+    },
+    {
+      "id": "D35",
+      "text": "340",
+      "from": [15.00, 4.48],
+      "to": [15.00, 4.82],
+      "axis": "y",
+      "note": "right chain seg 4: 340mm"
+    },
+    {
+      "id": "D36",
+      "text": "2940",
+      "from": [15.00, 4.82],
+      "to": [15.00, 7.76],
+      "axis": "y",
+      "note": "right chain seg 5: north zone 2940mm (inner clear); total right = 2940+340+1200+340+2940 = 7760; delta vs left 8000 = 240mm = perimeter walls"
+    }
+  ],
+
+  "ocr_texts": [
+    {"id": "T1", "text": "240", "anchor": [1.50, 7.70], "note": "dimension '240' label near north zone left window (sill or head height)"},
+    {"id": "T2", "text": "240", "anchor": [13.50, 7.70], "note": "dimension '240' label near north zone right window"},
+    {"id": "T3", "text": "240", "anchor": [1.50, 3.50], "note": "dimension '240' label in corridor/entry zone"},
+    {"id": "T4", "text": "240", "anchor": [1.50, 1.20], "note": "dimension '240' label in south zone"}
+  ],
+
+  "self_check": {
+    "all_dimensions_transcribed": true,
+    "all_visible_strokes_captured": true,
+    "no_topology_inferred": true,
+    "pens_used": ["wall", "window"],
+    "unknowns_noted": [
+      "thickness_m = null for all walls; plan walls have no thickness in EP simulation",
+      "top inner chain total 14760; missing 240mm from 15000 = 2 × ~120mm perimeter wall half-thicknesses (inner face measurements)",
+      "right-side y-chain total 7760; missing 240mm from 8000 = perimeter wall thicknesses",
+      "vertical interior wall x positions (S7,S8,S9,S10) at x≈4.94 and x≈9.82 are estimated from top chain reading; not directly dimensioned as wall centerlines",
+      "short stub wall S11 at x≈1.44 confidence low — visual inspection suggests enclosure but exact extent uncertain",
+      "240 dimensions seen multiple times (north/south zone sill/head) — exact anchor positions approximate; correction stage will use elevation z-chains for window heights"
+    ],
+    "uncaptured_visual_elements": [
+      "furniture: 3 desk+chair sets in north zone offices; excluded (furniture pen not legal in plan)",
+      "furniture: desks/chairs in south zone rooms; excluded",
+      "sanitary/WC fixtures: visible in south-east area of plan; excluded",
+      "stair symbol: seen in south-west corridor area (tread lines + UP arrow); tread lines not traced; bounding walls traced via S3/S5/S11",
+      "door swings healed in S5 (south interior wall): arc at x≈2.4, arc at x≈7.5, arc at x≈12.1",
+      "door swings healed in S6 (north interior wall): arc at x≈4.9, arc at x≈9.8",
+      "door swing healed in S9 (south zone divider at x≈4.94): arc at y≈1.5",
+      "door swing healed in S10 (south zone divider at x≈9.82): arc at y≈1.5",
+      "door swing healed in S11 (corridor stub at x≈1.44): arc at y≈3.0",
+      "grid axis lines and dimension extension lines: excluded (not walls)",
+      "north arrow: not clearly visible in image crop; excluded"
+    ]
+  }
+}
