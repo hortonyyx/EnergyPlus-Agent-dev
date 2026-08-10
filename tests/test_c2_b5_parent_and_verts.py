@@ -785,8 +785,120 @@ def test_correction_validator_rejects_evidence_different_from_proof_artifact(tmp
     assert finding.message == "window evidence differs from verified proof artifact"
 
 
+# F-19 (2026-08-10): `kernel.window_parent_binding` compared the ALREADY
+# canonicalized `built.verts` (build_geometry's `_canonicalize_bg_vertices`,
+# F-13, runs on every window) against a raw, un-canonicalized
+# `window_verts_on_line` recompute -- so a correctly-built window whose ring
+# simply started at a different (but equally valid) vertex than the fresh
+# recompute failed with reason=built_vertices on every real B5 case (15/15
+# windows in the run that first hit this). The fix routes the recompute side
+# through the SAME shared `canonicalize_ring_vertices` primitive. Full
+# investigation: AI_agent/logs/experiments/2026-08-09_f19_window_parent_binding/README.md
+#
+# Before this fix, `tests/test_c2_b5_parent_and_verts.py` had SEVEN
+# assertions on this gate and every single one asserted `fail` -- none ever
+# asserted `pass` on a correct product, so the gate's "always red" defect was
+# structurally unobservable by this file (and the one exception,
+# `test_kernel_fresh_recompute_rejects_built_vertex_tamper` below, was
+# confirmed in /tmp to be a false lock: the clean bundle already failed
+# before its mutation line ever ran, so deleting the mutation left it green
+# for the wrong reason). L-1..L-4 close that gap.
+@pytest.mark.parametrize("facade", ["South", "North", "East", "West"])
+def test_f19_l1_gate_passes_on_real_build_geometry_output(tmp_path: Path, facade: str):
+    """L-1 (positive lock, the most important one): the gate must PASS on a
+    real, correctly-built window -- not merely fail on broken ones.
+
+    `bundle.bg` here comes from `_bundle()`'s real `build_geometry(...)` call
+    (not a hand-built `BuildingGeometry(...)`), so `built.verts` genuinely is
+    routed through `_canonicalize_bg_vertices` -- a hand-constructed fixture
+    would bypass that step and lock a different thing entirely (dispatch §0
+    Q2). Parametrized over all four cardinal facades since F-13/F-19 both
+    turn on sign/axis handling that a single facade cannot exercise.
+
+    Neuter direction: strip the canonicalization added below in
+    `_window_parent_binding` (kernel.py) -- every facade here turns red,
+    because F-19 is not facade-specific (15/15 windows failed in production
+    regardless of orientation).
+    """
+    bundle = _bundle(tmp_path, facade=facade)
+    gate = _window_parent_gate(bundle.bg, bundle.proof)
+    assert gate.status.value == "pass", gate.evidence
+
+
+def test_f19_l2_gate_would_fail_without_fresh_side_canonicalization(tmp_path: Path):
+    """L-2 (self-proving premise): a regression case must prove its own
+    premise (2026-08-09 rule; template = `_round_trip_differs` in
+    `tests/test_f18_window_host_float_tolerance.py`). First mechanically
+    confirm that the OLD, un-fixed comparison -- raw `window_verts_on_line`
+    recompute vs the canonical built side, with NO canonicalization on the
+    recompute -- really does disagree on this fixture (i.e. this case truly
+    would have failed before the fix, not "probably" or "usually"). Only
+    then assert the real (fixed) gate passes.
+
+    If a future change makes the fresh recompute happen to already agree
+    with the canonical built side on this fixture (e.g. because someone
+    changes `window_verts_on_line`'s own vertex order), the premise
+    assertion below fails LOUDLY instead of this test silently degenerating
+    into a lock that no longer exercises the F-19 fix at all.
+
+    Neuter direction: strip the canonicalization in `_window_parent_binding`
+    -- this turns red at the FINAL assertion (gate no longer passes), not at
+    the premise (the premise is about the OLD code's behavior, which this
+    test reconstructs independently and does not call).
+    """
+    bundle = _bundle(tmp_path, facade="South")
+    resolution = bundle.result.window_host_claims.resolutions[0]
+    raw_fresh_vertices = window_verts_on_line(
+        host_line=SegmentLine2D(
+            (resolution.segment_p1.x, resolution.segment_p1.y),
+            (resolution.segment_p2.x, resolution.segment_p2.y),
+        ),
+        parameter_interval=(
+            resolution.segment_parameter_interval.lo,
+            resolution.segment_parameter_interval.hi,
+        ),
+        z_interval=(resolution.z_interval.lo, resolution.z_interval.hi),
+        outward_normal_xy=tuple(
+            float(value) for value in resolution.segment_outward_normal
+        ),
+    )
+    built_vertices = list(bundle.bg.windows[0].verts)
+    assert list(raw_fresh_vertices) != built_vertices, (
+        "fixture premise broken: the OLD un-canonicalized comparison would "
+        "have PASSED here, so this case cannot lock the F-19 fix (see this "
+        "test's docstring)"
+    )
+
+    gate = _window_parent_gate(bundle.bg, bundle.proof)
+    assert gate.status.value == "pass", gate.evidence
+
+
 def test_kernel_fresh_recompute_rejects_built_vertex_tamper(tmp_path: Path):
+    """L-3 (repairs a confirmed false lock, orchestrator investigation
+    2026-08-09): this test used to assert only `fail` on a MUTATED bundle,
+    with no assertion that the unmutated bundle passes first. Before the
+    F-19 fix, the clean bundle already failed (reason=built_vertices, from
+    the canonicalization bug itself) -- so deleting the mutation two lines
+    below left this test green for a reason that had nothing to do with the
+    mutation. Asserting the clean-pass premise first means this test can now
+    only stay green if the MUTATION -- not some other defect -- is what the
+    gate is catching.
+    """
     bundle = _bundle(tmp_path)
+    clean_report = check_kernel(
+        bundle.bg,
+        window_host_proof=bundle.proof,
+        capability_profile="orthogonal_polygon",
+        interzone_issues=[],
+    )
+    clean_gate = next(
+        row for row in clean_report.results if row.check_id == "kernel.window_parent_binding"
+    )
+    assert clean_gate.status.value == "pass", (
+        "premise broken: the unmutated bundle already fails, so a FAIL "
+        f"below would not prove the mutation itself was caught: {clean_gate.evidence}"
+    )
+
     broken = deepcopy(bundle.bg)
     broken.windows[0].verts[0] = (9.0, 9.0, 9.0)
     report = check_kernel(
@@ -796,6 +908,40 @@ def test_kernel_fresh_recompute_rejects_built_vertex_tamper(tmp_path: Path):
         interzone_issues=[],
     )
     gate = next(row for row in report.results if row.check_id == "kernel.window_parent_binding")
+    assert gate.status.value == "fail"
+    assert any(item["reason"] == "built_vertices" for item in gate.evidence["offenders"])
+
+
+def test_f19_l4_reversed_winding_still_caught(tmp_path: Path):
+    """L-4 (anti-regression against re-adding the forbidden exemption): a
+    genuinely reversed vertex ring -- flipped normal, inside/outside
+    swapped, window bound to the wrong room -- must still FAIL after the
+    F-19 fix.
+
+    The fix makes the gate tolerant of a HARMLESS rotation (a different but
+    equally valid starting vertex): both sides get canonicalized before the
+    exact-equality compare. This test locks that nobody later "fixes" this
+    gate by making the comparison tolerant of MORE than that -- e.g. a
+    naive cyclic-rotation or set-based comparison broad enough to also
+    swallow a real winding reversal. Dispatch
+    2026-08-09_f19_window_parent_binding_fix_dispatch_claude.md §2.2
+    explicitly forbids adding a "cyclic rotation is equivalent" exemption,
+    reaffirming the same ruling from the F-12 dispatch (2026-08-06): only
+    strict comparison catches winding reversal, which is the genuinely
+    harmful case (flipped normal -> inside/outside flip -> window on the
+    wrong room).
+
+    Neuter direction: add a rotation- or set-tolerant comparison to
+    `_window_parent_binding` -- this test must turn red (see execution log
+    neuter table for the specific variant exercised).
+    """
+    bundle = _bundle(tmp_path)
+    clean_gate = _window_parent_gate(bundle.bg, bundle.proof)
+    assert clean_gate.status.value == "pass", clean_gate.evidence  # premise
+
+    reversed_winding = deepcopy(bundle.bg)
+    reversed_winding.windows[0].verts = list(reversed(reversed_winding.windows[0].verts))
+    gate = _window_parent_gate(reversed_winding, bundle.proof)
     assert gate.status.value == "fail"
     assert any(item["reason"] == "built_vertices" for item in gate.evidence["offenders"])
 

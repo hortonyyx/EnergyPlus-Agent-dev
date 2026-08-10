@@ -30,6 +30,7 @@ import numpy as np
 from src.agent.geometry.adjacency import expected_internal_interface_area
 from src.agent.geometry.modelling import BuildingGeometry, Surface
 from src.validator.checks.schema import CheckLayer, CheckReport, CheckStatus, RunProfile
+from src.validator.data_model import canonicalize_ring_vertices
 
 _AREA_TOL = 0.10       # m^2 — interface-area reconcile tolerance
 _PERIM_TOL = 0.10      # m — perimeter-match tolerance
@@ -264,6 +265,14 @@ def _window_parent_binding(rep: CheckReport, bg: BuildingGeometry, proof) -> Non
     from src.agent.geometry.build import VerifiedWindowHostProof
     from src.agent.geometry.modelling import (
         SegmentLine2D,
+        _newell,  # intentionally shadows this module's OWN top-level `_newell`
+        # (used elsewhere in this file, e.g. `_normals`) for the rest of this
+        # function -- this is the exact `_newell` `_canonicalize_bg_vertices`
+        # (build.py) feeds into `canonicalize_ring_vertices`, so using it here
+        # keeps "same normal-derivation, same canonicalizer" unambiguous
+        # rather than relying on an equivalence argument between two Newell
+        # implementations that only agree because canonicalize_ring_vertices
+        # re-normalizes internally.
         _v3_parent_candidates,
         window_verts_on_line,
     )
@@ -359,6 +368,37 @@ def _window_parent_binding(rep: CheckReport, bg: BuildingGeometry, proof) -> Non
         except ValueError as exc:
             issues.append({**prefix, "reason": "line_geometry", "detail": str(exc)})
         else:
+            # F-19 (2026-08-10): `built.verts` is already IDF-canonical --
+            # `build_geometry`'s `_canonicalize_bg_vertices` (build.py:80-85)
+            # runs canonicalize_ring_vertices on every window before this
+            # check ever sees it. `fresh_vertices` above is the raw
+            # `window_verts_on_line` output and was NOT canonicalized, so a
+            # correctly-built window whose ring simply started at a different
+            # (but equally valid) vertex than this independent recompute
+            # failed here on every real B5 case -- see
+            # AI_agent/logs/experiments/2026-08-09_f19_window_parent_binding/README.md.
+            # Route this side through the exact same shared primitive, using
+            # its own self-consistent Newell normal -- the identical pattern
+            # `_canonicalize_bg_vertices` already uses -- instead of deriving
+            # a second "should agree" algorithm (that divergence is exactly
+            # how F-13 happened; see
+            # AI_agent/logs/reviews/verdict/2026-08-06_f13_orchestrator_lightgate.md).
+            # This does NOT tolerate a genuinely reversed winding (flipped
+            # normal -- inside/outside swapped, window on the wrong room):
+            # canonicalize_ring_vertices only re-derives ring order + start
+            # vertex relative to the normal it is given, it cannot repair a
+            # winding that disagrees with the true outward direction (see
+            # `_canonicalize_bg_vertices`'s own docstring for why that
+            # holds), so a built ring that is actually wound backwards still
+            # compares unequal to this correctly-oriented fresh recompute.
+            fresh_normal = _newell(fresh_vertices)
+            if float(np.linalg.norm(fresh_normal)) >= 1e-9:
+                fresh_vertices = [
+                    (float(x), float(y), float(z))
+                    for x, y, z in canonicalize_ring_vertices(
+                        np.asarray(fresh_vertices, dtype=float), fresh_normal
+                    )
+                ]
             if built.verts != fresh_vertices:
                 issues.append({**prefix, "reason": "built_vertices"})
     if issues:
