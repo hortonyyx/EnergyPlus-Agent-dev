@@ -1,0 +1,93 @@
+Program Version,EnergyPlus, Version 25.1.0-68a4a7c774, YMD=2026.05.28 09:55,
+   ** Warning ** No Timestep object found.  Number of TimeSteps in Hour defaulted to 4.
+   ** Warning ** CheckEnvironmentSpecifications: SimulationControl specified doing design day simulations, but no design environments specified.
+   **   ~~~   ** ...No design environment results produced. For these results, add appropriate SizingPeriod:* objects for your simulation.
+   ** Warning ** Weather file location will be used rather than entered (IDF) Location object.
+   **   ~~~   ** ..Location object=SHENZHEN_CN
+   **   ~~~   ** ..Weather File Location=SHENZHEN - CHN SWERA WMO#=594930
+   **   ~~~   ** ..due to location differences, Latitude difference=[0.00] degrees, Longitude difference=[0.00] degrees.
+   **   ~~~   ** ..Time Zone difference=[0.0] hour(s), Elevation difference=[260.00] percent, [13.00] meters.
+   ** Warning ** GlobalGeometryRules: Potential mismatch of coordinate specifications. Note that the rectangular surfaces are relying on the default SurfaceGeometry for 'Relative to zone' coordinate.
+   **   ~~~   ** Coordinate System="WORLD"; while 
+   **   ~~~   ** Rectangular Surface Coordinate System="RELATIVE".
+   ** Warning ** GetSurfaceData: World Coordinate System selected.  Any non-zero Building/Zone North Axes or non-zero Zone Origins are ignored.
+   **   ~~~   ** These may be used in daylighting reference point coordinate calculations but not in normal geometry inputs.
+   ** Warning ** GetHTSurfaceData: Surfaces with interface to Ground found but no "Ground Temperatures" were input.
+   **   ~~~   ** Found first in surface=F1_N1_FLOOR
+   **   ~~~   ** Defaults, constant throughout the year of (18.0) will be used.
+   ** Warning ** GetSurfaceData: Construction CONS_INTERFLOOR of interzone surface F1_N1_CEILING_N1 does not have the same materials in the reverse order as the construction CONS_INTERFLOOR of adjacent surface F2_N1_FLOOR_N1
+   **   ~~~   ** or the properties of the reversed layers are not correct due to differing layer front and back side values
+   **   ~~~   ** ...but Nominal U values are similar, diff=[0.0000] ... simulation proceeds.
+   **   ~~~   ** ...if the two zones are expected to have significantly different temperatures, the proper "reverse" construction should be created.
+   **   ~~~   ** ...this problem for this pair will not be reported again.
+   ** Warning ** CalculateZoneVolume: The Zone="F1_S2" is not fully enclosed. To be fully enclosed, each edge of a surface must also be an edge on one other surface.
+   **   ~~~   **   The zone volume was calculated using the floor area times ceiling height method where the floor is horizontal, the walls are vertical, and the wall heights are all the same.
+   **   ~~~   **   The surface "F1_S2_EAST_WALL" has an edge that was used 3 times: it is an edge on three or more surfaces: 
+   **   ~~~   **     It was found on the following Surfaces: 'F1_S2_CEILING_S3' 'F1_S2_CEILING_S4A' 
+   **   ~~~   **     Vertex start { 10.1000, 3.0000, 3.0000}
+   **   ~~~   **     Vertex end   { 10.1000, 0.0000, 3.0000}
+   **   ~~~   **   The surface "F1_S2_CEILING_S4A" has an edge that was used only once: it is not an edge on another surface
+   **   ~~~   **     Vertex start { 11.2500, 3.0000, 3.0000}
+   **   ~~~   **     Vertex end   { 10.1000, 3.0000, 3.0000}
+   **   ~~~   **   The surface "F1_S2_CEILING_S4A" has an edge that was used only once: it is not an edge on another surface
+   **   ~~~   **     Vertex start { 10.1000, 0.0000, 3.0000}
+   **   ~~~   **     Vertex end   { 11.2500, 0.0000, 3.0000}
+   **   ~~~   **   The surface "F1_S2_CEILING_S4A" has an edge that was used only once: it is not an edge on another surface
+   **   ~~~   **     Vertex start { 11.2500, 0.0000, 3.0000}
+   **   ~~~   **     Vertex end   { 11.2500, 3.0000, 3.0000}
+   ** Warning ** CalculateZoneVolume: The Zone="F1_S3" is not fully enclosed. To be fully enclosed, each edge of a surface must also be an edge on one other surface.
+   **   ~~~   **   The zone volume was calculated using the floor area times ceiling height method where the floor is horizontal, the walls are vertical, and the wall heights are all the same.
+   **   ~~~   **   The surface "F1_S3_WEST_WALL" has an edge that was used only once: it is not an edge on another surface
+   **   ~~~   **     Vertex start { 10.1000, 0.0000, 3.0000}
+   **   ~~~   **     Vertex end   { 10.1000, 3.0000, 3.0000}
+   **   ~~~   **   The surface "F1_S3_CEILING" has an edge that was used only once: it is not an edge on another surface
+   **   ~~~   **     Vertex start { 11.2500, 3.0000, 3.0000}
+   **   ~~~   **     Vertex end   { 11.2500, 0.0000, 3.0000}
+   ** Warning ** CalculateZoneVolume: The Zone="F2_S3" is not fully enclosed. To be fully enclosed, each edge of a surface must also be an edge on one other surface.
+   **   ~~~   **   The zone volume was calculated using the floor area times ceiling height method where the floor is horizontal, the walls are vertical, and the wall heights are all the same.
+   **   ~~~   **   The surface "F2_S3_EAST_WALL" has an edge that was used only once: it is not an edge on another surface
+   **   ~~~   **     Vertex start { 11.2500, 0.0000, 3.0000}
+   **   ~~~   **     Vertex end   { 11.2500, 3.0000, 3.0000}
+   **   ~~~   **   The surface "F2_S3_FLOOR" has an edge that was used only once: it is not an edge on another surface
+   **   ~~~   **     Vertex start { 10.1000, 3.0000, 3.0000}
+   **   ~~~   **     Vertex end   { 10.1000, 0.0000, 3.0000}
+   ** Warning ** CalculateZoneVolume: The Zone="F2_S4" is not fully enclosed. To be fully enclosed, each edge of a surface must also be an edge on one other surface.
+   **   ~~~   **   The zone volume was calculated using the floor area times ceiling height method where the floor is horizontal, the walls are vertical, and the wall heights are all the same.
+   **   ~~~   **   The surface "F2_S4_WEST_WALL" has an edge that was used 3 times: it is an edge on three or more surfaces: 
+   **   ~~~   **     It was found on the following Surfaces: 'F2_S4_FLOOR_S2' 'F2_S4_FLOOR_S3' 
+   **   ~~~   **     Vertex start { 11.2500, 3.0000, 3.0000}
+   **   ~~~   **     Vertex end   { 11.2500, 0.0000, 3.0000}
+   **   ~~~   **   The surface "F2_S4_FLOOR_S2" has an edge that was used only once: it is not an edge on another surface
+   **   ~~~   **     Vertex start { 11.2500, 0.0000, 3.0000}
+   **   ~~~   **     Vertex end   { 10.1000, 0.0000, 3.0000}
+   **   ~~~   **   The surface "F2_S4_FLOOR_S2" has an edge that was used only once: it is not an edge on another surface
+   **   ~~~   **     Vertex start { 10.1000, 0.0000, 3.0000}
+   **   ~~~   **     Vertex end   { 10.1000, 3.0000, 3.0000}
+   **   ~~~   **   The surface "F2_S4_FLOOR_S2" has an edge that was used only once: it is not an edge on another surface
+   **   ~~~   **     Vertex start { 10.1000, 3.0000, 3.0000}
+   **   ~~~   **     Vertex end   { 11.2500, 3.0000, 3.0000}
+   ************* Testing Individual Branch Integrity
+   ************* All Branches passed integrity testing
+   ************* Testing Individual Supply Air Path Integrity
+   ************* All Supply Air Paths passed integrity testing
+   ************* Testing Individual Return Air Path Integrity
+   ************* All Return Air Paths passed integrity testing
+   ************* No node connection errors were found.
+   ************* Beginning Simulation
+   ************* Simulation Error Summary *************
+   *************
+   ************* ===== Recurring Surface Error Summary =====
+   ************* The following surface error messages occurred.
+   *************
+   ************* Base Surface does not surround subsurface errors occurring...
+   ************* Check that the GlobalGeometryRules object is expressing the proper starting corner and direction [CounterClockwise/Clockwise]
+   *************
+   ** Warning ** Base surface does not surround subsurface (CHKSBS), Overlap Status=Partial-Overlap
+   **   ~~~   **   The base surround errors occurred 1 times.
+   **   ~~~   ** Surface "F1_S1_SOUTH_WALL" overlaps SubSurface "WIN_F1_S1_SOUTH"
+   *************
+   **   ~~~   **   The base surround errors occurred 1 times (total).
+   *************
+   ************* EnergyPlus Warmup Error Summary. During Warmup: 0 Warning; 0 Severe Errors.
+   ************* EnergyPlus Sizing Error Summary. During Sizing: 0 Warning; 0 Severe Errors.
+   ************* EnergyPlus Completed Successfully-- 12 Warning; 0 Severe Errors; Elapsed Time=00hr 00min  5.32sec
