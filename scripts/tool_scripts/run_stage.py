@@ -75,15 +75,23 @@ from src.validator.checks.schema import CheckLayer, CheckReport, CheckStatus  # 
 _STAGES = ["0_reading", "1_correction", "2_modelling", "3_split_pairing",
            "4_mep", "5_intakeoutput"]
 # Phase D convergence: schema 0--7 artifacts are never cache candidates.
-# v2 keeps its exact legacy projection below; its sidecar label is v9. It was
-# bumped from v8 because the legacy scoring SEMANTICS changed (4a11097 F-1a/F-1b
-# — envelope unwrap + empty-scores headline): a sidecar labeled v8 or earlier
-# holds stale scores under the old semantics, so _grade_attempt_artifacts must
-# recompute rather than reuse it (MAJOR-1: a stale v8 sidecar otherwise
-# short-circuited grading and replayed the old false-pass headlines). This
-# constant is independent of src.agent.judge.score_schema.SCORER_SCHEMA (the
-# typed v3 side) — do NOT bump them in lockstep.
-SCORER_SCHEMA = "9"
+# v2 keeps its exact legacy projection below; its sidecar label is CURRENTLY
+# v10 (history: v8 -> v9 -> v10, both bumps below). This constant is
+# independent of src.agent.judge.score_schema.SCORER_SCHEMA (the typed v3
+# side) — do NOT bump them in lockstep.
+#   v8 -> v9: legacy scoring SEMANTICS changed (4a11097 F-1a/F-1b — envelope
+#   unwrap + empty-scores headline): a sidecar labeled v8 or earlier holds
+#   stale scores under the old semantics, so _grade_attempt_artifacts must
+#   recompute rather than reuse it (MAJOR-1: a stale v8 sidecar otherwise
+#   short-circuited grading and replayed the old false-pass headlines).
+#   v9 -> v10: F-22 changed both the correction-boundary SEMANTICS (deleted
+#   the double wall-thickness expansion that double-counted post-F-17
+#   outer-skin products, then narrowed trust to schema-v3 identity only —
+#   BLOCKER-1) and the sidecar SHAPE (`boundary` entries carry a `status`
+#   field; a new `output_convention` provenance field was added) — a
+#   v9-or-earlier cached sidecar holds stale deltas under the old (wrong)
+#   semantics and lacks the new fields, so it must not be reused.
+SCORER_SCHEMA = "10"
 FLOW_EXIT_OK = 0
 FLOW_EXIT_CHECKPOINT = 10
 FLOW_EXIT_STOP = 20
@@ -1071,7 +1079,7 @@ def _source_images(case_dir: Path) -> list[str]:
 
 
 def _line_match_dict(m) -> dict:
-    return {"truth": m.truth, "read": m.read, "delta": m.delta}
+    return {"truth": m.truth, "read": m.read, "delta": m.delta, "status": m.status}
 
 
 def _piece_dict(piece) -> dict:
@@ -1213,7 +1221,7 @@ def _boundary_match_dict(match, source_side: str) -> dict:
         return {"source_boundary": source_side, "status": "no_data", "truth": None, "product": None, "delta": None}
     return {
         "source_boundary": source_side,
-        "status": "complete" if match.read is not None else "miss",
+        "status": match.status,
         "truth": match.truth,
         "product": match.read,
         "delta": match.delta,
@@ -1399,6 +1407,11 @@ def _legacy_score_attempt_output(
     wall_tol = grade.wall_tol_m
     win_tol = grade.window_centre_tol_m
     elevation = None
+    # F-22 BLOCKER-1: correction-stage provenance for the boundary/interior-
+    # wall-extent output convention this run assumed; 0_reading has no such
+    # concept (reading strokes are never wall-thickness-expanded) so it stays
+    # None there.
+    output_convention: dict | None = None
     if stage == "0_reading":
         # F-1a: consume today's ReadingViews v2 envelope exactly once, at the
         # single seam that feeds both legacy plan and elevation scorers.  The
@@ -1443,6 +1456,7 @@ def _legacy_score_attempt_output(
         )
         scores, evidence, floor_map = result.scores, result.evidence, result.floor_map
         elevation = result.elevation
+        output_convention = result.output_convention
     else:
         return None
     return {
@@ -1450,6 +1464,7 @@ def _legacy_score_attempt_output(
         "elevation": elevation,
         "evidence": evidence,
         "floor_map": floor_map,
+        "output_convention": output_convention,
         "score_criteria": reading_score_criteria(
             scores,
             wall_tol_m=wall_tol,
@@ -1634,6 +1649,10 @@ def _grade_attempt_artifacts(
             "floor_map": scored["floor_map"],
             "evidence": scored["evidence"],
             "score_criteria": scored["score_criteria"],
+            # F-22 BLOCKER-1: schema/profile provenance for the boundary /
+            # interior-wall-extent output convention this run assumed (None
+            # for 0_reading, which has no such concept).
+            "output_convention": scored.get("output_convention"),
         }
     grade_path = attempt_dir / "grade.png"
     if render_needed or not grade_path.exists():

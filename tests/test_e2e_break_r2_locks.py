@@ -497,14 +497,18 @@ def test_major1_stale_schema_sidecar_recomputed_current_reused(tmp_path, monkeyp
     sidecar on disk MUST be recomputed, never reused. Two-cell on a real sm21
     reading attempt + real gt:
 
-    * stale sidecar (real shape, scorer_schema='8') ⇒ `_score_attempt_output`
-      IS invoked and the written sidecar carries the current schema.
-    * current sidecar (scorer_schema=='9') ⇒ `_score_attempt_output` is NOT
-      invoked (the valid sidecar is reused).
+    * stale sidecar (real shape, scorer_schema='9', the value immediately
+      prior to the current one) ⇒ `_score_attempt_output` IS invoked and the
+      written sidecar carries the current schema.
+    * current sidecar (scorer_schema==rs.SCORER_SCHEMA, currently '10') ⇒
+      `_score_attempt_output` is NOT invoked (the valid sidecar is reused).
 
     The stale sidecar is built by running the real scorer once (so its SHAPE is
     authentic, not hand-faked) then rewriting only `scorer_schema` to the old
-    value — exactly the on-disk shape MAJOR-1 is about."""
+    value — exactly the on-disk shape MAJOR-1 is about. Literal values are
+    kept in sync with `rs.SCORER_SCHEMA` each time it bumps (NIT-1, F-22
+    2026-08-11) so this docstring never reads stale against the assertions
+    below."""
     attempt_dir = tmp_path / "0_reading" / "attempts" / "001"
     attempt_dir.mkdir(parents=True)
     shutil.copy2(_REAL_VIEWS_PATH, attempt_dir / "output.json")
@@ -522,20 +526,24 @@ def test_major1_stale_schema_sidecar_recomputed_current_reused(tmp_path, monkeyp
     monkeypatch.setattr(rs, "_score_attempt_output", spy)
 
     # Produce an authentic current sidecar (no sidecar yet ⇒ forced recompute).
+    # F-22 (2026-08-11) bumped SCORER_SCHEMA "9" -> "10" (correction-boundary
+    # semantics + sidecar shape changed); this lock is updated to the current
+    # value so the bump stays a conscious, verified act (not silently masked).
     rs._grade_attempt_artifacts("0_reading", "sm21_anchor", attempt_dir, gt, grade=grade)
     sidecar_path = attempt_dir / "score_vs_gt.json"
     sidecar = json.loads(sidecar_path.read_text(encoding="utf-8"))
-    assert sidecar["scorer_schema"] == rs.SCORER_SCHEMA == "9"
+    assert sidecar["scorer_schema"] == rs.SCORER_SCHEMA == "10"
     assert calls == [True]
 
-    # Cell A — stale: rewrite the REAL sidecar's schema tag to the old value.
-    sidecar["scorer_schema"] = "8"
+    # Cell A — stale: rewrite the REAL sidecar's schema tag to the immediately
+    # prior value (exactly what would be on disk from before the F-22 bump).
+    sidecar["scorer_schema"] = "9"
     sidecar_path.write_text(json.dumps(sidecar), encoding="utf-8")
     calls.clear()
     out = rs._grade_attempt_artifacts("0_reading", "sm21_anchor", attempt_dir, gt, grade=grade)
     assert calls == [True], "a stale-schema sidecar MUST be recomputed, not reused"
     rewritten = json.loads(sidecar_path.read_text(encoding="utf-8"))
-    assert rewritten["scorer_schema"] == "9"
+    assert rewritten["scorer_schema"] == "10"
     assert out["score_vs_gt"] is not None
 
     # Cell B — current: the valid sidecar is reused, scorer NOT invoked.

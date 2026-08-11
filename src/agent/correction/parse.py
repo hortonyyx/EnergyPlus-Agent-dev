@@ -2,11 +2,18 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any, Literal
+from typing import Any, Literal, Mapping
+
+from pydantic import BaseModel
 
 from src.agent.correction.cell_geometry import normalized_ccw_polygon, validate_cell_polygon
 from src.agent.correction.config import load_core_tolerances
-from src.agent.correction.schema import CorrectedGeometry, CorrectedGeometryV3
+from src.agent.correction.schema import (
+    DRAW_CONTRACT_VERSION_V3_CITATION_V2,
+    CorrectedGeometry,
+    CorrectedGeometryV3,
+    CorrectionDrawV3CitationV2,
+)
 
 # E4-output-contract spec v2 §3.2bis writer contract: the frozen phase
 # vocabulary. `b2` = draw/Vg finalize (north_axis must stay None);
@@ -21,6 +28,26 @@ class CorrectionTarget:
     schema_model: type[CorrectedGeometry]
     capability_profile: str
     phase_contract: PhaseContract = "b2"
+    # F-9 route② S0 (2026-08-11, design v2.1 §4.3): v3-under-route② targets
+    # additionally split "what the model is allowed to write" (`draw_model`)
+    # from "the fully-hydrated contract the deterministic core produces"
+    # (`full_model`) -- today's single `schema_model` conflates the two for
+    # v1/v2/legacy-v3 targets, where the model IS allowed to author `span`.
+    # `correction_target()` below (the live factory `run_correction`/
+    # `pipeline.py` actually call) NEVER sets these fields -- S0 leaves the
+    # live path on the existing `schema_model`-only contract; only the new,
+    # unwired `correction_target_v2()` populates them (v2.1 §10 S0: "均先不
+    # 接 live production").
+    draw_model: type[BaseModel] | None = None
+    full_model: type[BaseModel] | None = None
+    draw_contract_version: str | None = None
+    full_schema_version: str | None = None
+    # Explicit legacy artifact loader registry (v2.1 §4.1: "禁止按『有没有
+    # span』猜版本"; §10 S0: "显式 loader registry"). Keyed by the wire's own
+    # `artifact_version`/`draw_contract_version` string, never inferred from
+    # field presence. `None` for every profile that has no legacy artifact
+    # axis (v1/v2/rectangular).
+    legacy_artifact_loader_registry: Mapping[str, Any] | None = None
 
     def __post_init__(self) -> None:
         if self.phase_contract not in ("b2", "e4_orientation"):
@@ -28,6 +55,10 @@ class CorrectionTarget:
                 f"unknown correction phase_contract {self.phase_contract!r}; "
                 "frozen vocabulary is 'b2' | 'e4_orientation'"
             )
+        if (self.draw_model is None) != (self.draw_contract_version is None):
+            raise ValueError("draw_model and draw_contract_version must be set together or not at all")
+        if (self.full_model is None) != (self.full_schema_version is None):
+            raise ValueError("full_model and full_schema_version must be set together or not at all")
 
 
 def correction_target(capability_profile: str) -> CorrectionTarget:
@@ -36,6 +67,30 @@ def correction_target(capability_profile: str) -> CorrectionTarget:
     if capability_profile == "orthogonal_polygon":
         return CorrectionTarget("3", CorrectedGeometryV3, capability_profile)
     raise ValueError(f"unknown correction capability profile {capability_profile!r}")
+
+
+def correction_target_v2(capability_profile: str = "orthogonal_polygon") -> CorrectionTarget:
+    """F-9 route② S0 (design v2.1 §4.3/§10 S0): the raw/full-split target for
+    the future window-citation live path.
+
+    NOT called by `correction_target()`, `pipeline.py`, or any live
+    production entry point (v2.1 §10 S0: "均先不接 live production") --
+    this is schema/serialize/reload/hash-testable scaffolding only. `S3`/`S4`
+    are the batches that make `run_correction` actually construct a
+    `CorrectionTarget` through this function.
+    """
+    if capability_profile != "orthogonal_polygon":
+        raise ValueError(
+            f"unknown correction capability profile {capability_profile!r} for route② target"
+        )
+    from src.agent.correction.window_position import WINDOW_RESOLVER_ARTIFACT_LOADER_REGISTRY
+
+    return CorrectionTarget(
+        "3", CorrectedGeometryV3, capability_profile,
+        draw_model=CorrectionDrawV3CitationV2, full_model=CorrectedGeometryV3,
+        draw_contract_version=DRAW_CONTRACT_VERSION_V3_CITATION_V2, full_schema_version="3",
+        legacy_artifact_loader_registry=WINDOW_RESOLVER_ARTIFACT_LOADER_REGISTRY,
+    )
 
 
 def ensure_corrected_geometry(value: dict | CorrectedGeometry) -> CorrectedGeometry:
@@ -199,3 +254,41 @@ def validate_final_corrected_geometry(geom: CorrectedGeometry) -> CorrectedGeome
     result = ensure_corrected_geometry(geom)
     _ring_checks(result, canonical=True)
     return result
+
+
+def parse_raw_correction_draw(payload: dict) -> CorrectionDrawV3CitationV2:
+    """F-9 route② S0 (design v2.1 §4.2/§10 S0): parse a raw model-facing v3
+    window-citation draw.
+
+    NOT called by `_draw_correction`, `run_correction`, or any live parse
+    path (v2.1 §10 S0: "均先不接 live production") — S3/S4 wire this in.
+    Exists now so the raw-key preflight and the strict `extra="forbid"`
+    schema itself are independently schema/serialize/reload-testable ahead
+    of that wiring.
+
+    Mirrors the existing `parse_correction_draw` raw-payload-dict preflight
+    pattern (same file, above): a raw-key check runs BEFORE
+    `CorrectionDrawV3CitationV2.model_validate`, so a live model that writes
+    `span` on a window gets the STABLE `producer_window_span_populated`
+    code (v2.1 §4.2) instead of a generic, un-actionable pydantic
+    `ValidationError` from the `extra="forbid"` schema violation that would
+    otherwise reject it anyway (the raw model itself has no `span` field at
+    all — the preflight is purely about giving the rejection a stable,
+    retry-guidable code, not about whether it gets rejected).
+    """
+    if not isinstance(payload, dict):
+        raise TypeError("parse_raw_correction_draw requires a raw dict payload")
+    windows = payload.get("windows")
+    if isinstance(windows, list):
+        offenders = [
+            item.get("id") for item in windows
+            if isinstance(item, dict) and "span" in item
+        ]
+        if offenders:
+            from src.agent.correction.window_sources import WindowResolverInputError
+            raise WindowResolverInputError(
+                "producer_window_span_populated",
+                {"window_ids": offenders},
+                category="model_draw_error",
+            )
+    return CorrectionDrawV3CitationV2.model_validate(payload)

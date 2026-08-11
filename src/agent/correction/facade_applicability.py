@@ -11,6 +11,7 @@ from typing import Annotated, Literal, Union
 
 from pydantic import AllowInfNan, BaseModel, ConfigDict, Field, StringConstraints, model_validator
 
+from src.agent.correction import facade_convention
 from src.agent.correction.claims import (
     CLAIMS_VOCAB_VERSION,
     ELEVATION_POTENTIALLY_OBSERVABLE_CLAIMS,
@@ -40,8 +41,8 @@ FiniteFloat = Annotated[float, AllowInfNan(False)]
 Hex64 = Annotated[str, StringConstraints(pattern=r"^[0-9a-f]{64}$")]
 _CFG = ConfigDict(extra="forbid", frozen=True, strict=True)
 _RANK = {"North": 0, "South": 1, "East": 2, "West": 3}
-_AXIS = {"North": "x", "South": "x", "East": "y", "West": "y"}
-_BASE_SIGN = {"North": -1, "South": 1, "East": 1, "West": -1}
+# F-9 route② S1 (2026-08-11): _AXIS/_BASE_SIGN merged into
+# `facade_convention` (single, gt-free source); see that module's docstring.
 
 
 class FacadeApplicabilityInvariantError(ValueError):
@@ -345,9 +346,10 @@ def _validate_bindings(manifest: ViewManifest, bindings: tuple[ElevationViewBind
         else:
             if entry.direction_semantics not in ("true_azimuth", "unknown") or not binding.orientation_output_hash or not binding.adapter_version:
                 _fail("va_direction_unresolved", input_id=input_id)
-        flip = binding.mirrored ^ (binding.local_x_positive == "image_right_to_left")
-        expected_sign = -_BASE_SIGN[binding.resolved_building_direction] if flip else _BASE_SIGN[binding.resolved_building_direction]
-        if binding.world_axis != _AXIS[binding.resolved_building_direction] or binding.sign != expected_sign or binding.frame_transform_sha256 != _frame_hash(binding):
+        expected_sign = facade_convention.resolve_sign(
+            binding.resolved_building_direction, mirrored=binding.mirrored, local_x_positive=binding.local_x_positive,
+        )
+        if binding.world_axis != facade_convention.world_axis(binding.resolved_building_direction) or binding.sign != expected_sign or binding.frame_transform_sha256 != _frame_hash(binding):
             _fail("va_projection_frame_invalid", input_id=input_id)
     return got
 

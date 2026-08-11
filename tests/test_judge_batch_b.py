@@ -9,6 +9,7 @@ import pytest
 
 import scripts.tool_scripts.run_stage as rs
 from src.agent.execution import RunManifest
+import src.agent.judge.correction_score as correction_score_module
 from src.agent.judge.correction_score import score_correction_geometry
 from src.agent.judge.gt import load_gt
 from src.agent.judge.verdict import StageVerdict
@@ -141,27 +142,91 @@ def test_judge_packet_scores_accepted_reading_attempt_not_mutable_flat(tmp_path,
     assert sidecar3["tolerances"] == _DEFAULT_TOLERANCES
 
 
+def _v3_floor(name: str, *, footprint_xy, cells, z_floor: float = 0.0, ceiling_height: float = 3.0) -> dict:
+    """Minimal valid schema-v3 (`orthogonal_polygon`) floor payload: a
+    rectangular footprint ring (the mandatory `floor.footprint.vertices`
+    schema v3 requires and legacy v1/v2 does not have) + one or more
+    axis-aligned rectangular cells, each also given an explicit orthogonal
+    `polygon` alongside the legacy `x`/`y` bbox pair (schema v3's `CellV3`
+    requires both). Used by the F-22 BLOCKER-1 locks that specifically
+    exercise the trusted (schema-v3) output-convention path — this is the
+    ONLY schema version `_is_trusted_output_convention` recognizes."""
+    (fx0, fx1), (fy0, fy1) = footprint_xy
+    return {
+        "id": name.replace(" ", "_"),
+        "name": name,
+        "z_floor": z_floor,
+        "ceiling_height": ceiling_height,
+        "footprint": {"vertices": [[fx0, fy0], [fx1, fy0], [fx1, fy1], [fx0, fy1]]},
+        "cells": [
+            {
+                "id": c["id"],
+                "role": c.get("role", "office"),
+                "x": list(c["x"]),
+                "y": list(c["y"]),
+                "polygon": [
+                    [c["x"][0], c["y"][0]],
+                    [c["x"][1], c["y"][0]],
+                    [c["x"][1], c["y"][1]],
+                    [c["x"][0], c["y"][1]],
+                ],
+            }
+            for c in cells
+        ],
+    }
+
+
+def _v3_output(floors: list[dict], *, footprint_x, footprint_y, windows: list | None = None) -> dict:
+    return {
+        "schema_version": "3",
+        "footprint_x": list(footprint_x),
+        "footprint_y": list(footprint_y),
+        "floors": floors,
+        "windows": windows or [],
+    }
+
+
 def test_correction_scorer_maps_f1_f2_to_gt_floors():
+    """F-22 BLOCKER-1 rewrite (2026-08-11): this fixture is a REAL historical
+    accepted attempt with no `schema_version` declared, i.e. legacy schema
+    v1 (`ensure_corrected_geometry` defaults undeclared to "1") — exactly the
+    CLI's DEFAULT `capability_profile: rectangular`. Its output-convention
+    identity is therefore untrusted per `_is_trusted_output_convention`, so
+    boundary/interior-wall-extent scoring is explicitly refused (not
+    guessed): wall_hits/boundary_hits go to 0 of their totals and `evidence`
+    carries a visible `unsupported_output_convention` entry, rather than the
+    previous (F-22 BLOCKER-1 bug) behaviour of silently scoring it as if it
+    were outer-skin. Window matching is untouched by this gate (window spans
+    were never wall-thickness-expanded either before or after F-22) so
+    window_hits stays exactly as before.
+    """
     gt = load_gt("sm21_anchor")
     output = json.loads(
         (_SM21 / "run_2026-06-20_sonnet_reading/1_correction/attempts/001/output.json")
         .read_text(encoding="utf-8")
     )
+    assert output.get("schema_version") is None  # sanity: this IS the untrusted-legacy fixture
 
     result = score_correction_geometry(output, gt)
 
     assert result.floor_map == {"F1": "Floor 1", "F2": "Floor 2"}
-    assert result.evidence == []
+    assert result.output_convention == {"schema_version": "1", "trusted": False, "identity": None}
+    assert [e["type"] for e in result.evidence] == ["unsupported_output_convention"]
     assert set(result.scores) == {"F1", "F2"}
-    assert result.scores["F1"].wall_hits() == (2, 4)
-    assert result.scores["F2"].wall_hits() == (5, 5)
+    assert result.scores["F1"].wall_hits() == (0, 4)
+    assert result.scores["F2"].wall_hits() == (0, 5)
     assert result.scores["F1"].window_hits() == (3, 3)
     assert result.scores["F2"].window_hits() == (4, 4)
-    assert result.scores["F1"].boundary_hits() == (4, 4)
-    assert result.scores["F2"].boundary_hits() == (4, 4)
+    assert result.scores["F1"].boundary_hits() == (0, 0)
+    assert result.scores["F2"].boundary_hits() == (0, 0)
+    assert result.scores["F1"].boundary is None
+    assert result.scores["F2"].boundary is None
 
 
 def test_correction_boundary_uses_footprint_and_records_miss_delta():
+    """F-22 BLOCKER-1 rewrite (2026-08-11): this test is specifically about
+    boundary delta/miss reporting, which is now gated on a trusted (schema-v3)
+    identity — migrated from an implicit-v1 dict to the minimal v3 shape."""
     gt = {
         "footprint": {"W_m": 15.0, "D_m": 8.0},
         "floors": [
@@ -169,19 +234,11 @@ def test_correction_boundary_uses_footprint_and_records_miss_delta():
         ],
         "windows": [],
     }
-    output = {
-        "footprint_x": [0.12, 14.72],
-        "footprint_y": [0.0, 8.4],
-        "floors": [
-            {
-                "name": "Floor 1",
-                "z_floor": 0.0,
-                "ceiling_height": 3.0,
-                "cells": [{"id": "A", "role": "office", "x": [0.12, 14.72], "y": [0.0, 8.4]}],
-            }
-        ],
-        "windows": [],
-    }
+    output = _v3_output(
+        [_v3_floor("Floor 1", footprint_xy=((0.12, 14.72), (0.0, 8.4)),
+                   cells=[{"id": "A", "x": [0.12, 14.72], "y": [0.0, 8.4]}])],
+        footprint_x=[0.12, 14.72], footprint_y=[0.0, 8.4],
+    )
 
     result = score_correction_geometry(output, gt)
     boundary = result.scores["Floor 1"].boundary
@@ -193,7 +250,28 @@ def test_correction_boundary_uses_footprint_and_records_miss_delta():
     assert result.scores["Floor 1"].boundary_hits() == (3, 4)
 
 
-def test_correction_boundary_expands_centerline_to_gt_outer_skin_when_wall_thickness_declared():
+def test_correction_boundary_matches_directly_for_trusted_schema_v3_with_wall_thickness_declared():
+    """F-22 rewrite (2026-08-11; renamed per sol NIT-1 — was
+    ``test_correction_boundary_expands_centerline_to_gt_outer_skin_when_wall_thickness_declared``,
+    a name that described an action ["expands"] this scorer no longer takes;
+    kept as a rename not a deletion, same scenario covered).
+
+    Pre-F-17, a 1_correction product's exterior envelope was expressed at
+    the wall CENTRELINE, so this scorer used to expand it outward by half
+    `wall_thickness_m` before comparing to gt's outer-skin truth (that old
+    ``_boundary_centerline_to_outer`` helper). F-17 (2026-08-09) fixed the
+    deterministic core so a schema-v3 product's own footprint is now already
+    expressed at the outer face — applying that expansion on top
+    double-counted the offset (F-22 BLOCKER-1 bug, ``delta`` systematically
+    ±half-thickness on every real schema-v3 run past F-17).
+
+    BLOCKER-1 (sol 2026-08-11): direct comparison is only trusted for a
+    verified schema-v3/orthogonal_polygon identity — this fixture is
+    migrated to that minimal v3 shape (was an implicit-v1 dict) precisely
+    because it is testing that trusted path. The surviving lock is that
+    declaring ``wall_thickness_m`` on gt must NOT perturb the score for a
+    trusted product (not merely become a no-op that happens to cancel out).
+    """
     gt = {
         "footprint": {"W_m": 15.0, "D_m": 8.0},
         "wall_thickness_m": 0.24,
@@ -202,21 +280,14 @@ def test_correction_boundary_expands_centerline_to_gt_outer_skin_when_wall_thick
         ],
         "windows": [],
     }
-    output = {
-        "footprint_x": [0.12, 14.88],
-        "footprint_y": [0.12, 7.88],
-        "floors": [
-            {
-                "name": "Floor 1",
-                "z_floor": 0.0,
-                "ceiling_height": 3.0,
-                "cells": [{"id": "A", "role": "office", "x": [0.12, 14.88], "y": [0.12, 7.88]}],
-            }
-        ],
-        "windows": [],
-    }
+    output = _v3_output(
+        [_v3_floor("Floor 1", footprint_xy=((0.0, 15.0), (0.0, 8.0)),
+                   cells=[{"id": "A", "x": [0.0, 15.0], "y": [0.0, 8.0]}])],
+        footprint_x=[0.0, 15.0], footprint_y=[0.0, 8.0],
+    )
 
     result = score_correction_geometry(output, gt)
+    assert result.output_convention["trusted"] is True
     boundary = result.scores["Floor 1"].boundary
 
     assert boundary is not None
@@ -226,10 +297,29 @@ def test_correction_boundary_expands_centerline_to_gt_outer_skin_when_wall_thick
         "W": 0.0,
         "E": 0.0,
     }
+    assert {side: match.status for side, match in boundary.items()} == {
+        "S": "complete",
+        "N": "complete",
+        "W": "complete",
+        "E": "complete",
+    }
     assert result.scores["Floor 1"].boundary_hits() == (4, 4)
 
 
-def test_correction_edge_wall_spans_expand_to_gt_outer_skin_when_wall_thickness_declared():
+def test_correction_edge_wall_spans_match_directly_for_trusted_schema_v3_with_wall_thickness_declared():
+    """F-22 rewrite (2026-08-11; renamed per sol NIT-1 — was
+    ``test_correction_edge_wall_spans_expand_to_gt_outer_skin_when_wall_thickness_declared``).
+
+    Companion to the boundary test above but for interior wall extents
+    (the old ``_expand_boundary_span`` helper, also deleted in F-22). For a
+    trusted schema-v3 product, interior wall extents are read verbatim from
+    its cell polygons: post-F-17 they already run edge-to-edge of the outer
+    footprint, matching gt's own interior-wall truth extents (which also
+    touch the outer footprint — see ``derive_gt_wall_segments`` in
+    reading_score.py) with no expansion needed. BLOCKER-1: interior-wall
+    extraction is ALSO gated on trusted identity now (not just boundary),
+    so this fixture is migrated to the minimal v3 shape.
+    """
     gt = {
         "footprint": {"W_m": 10.0, "D_m": 5.0},
         "wall_thickness_m": 0.24,
@@ -244,24 +334,16 @@ def test_correction_edge_wall_spans_expand_to_gt_outer_skin_when_wall_thickness_
         ],
         "windows": [],
     }
-    output = {
-        "footprint_x": [0.12, 9.88],
-        "footprint_y": [0.12, 4.88],
-        "floors": [
-            {
-                "name": "Floor 1",
-                "z_floor": 0.0,
-                "ceiling_height": 3.0,
-                "cells": [
-                    {"id": "A", "role": "office", "x": [0.12, 5.0], "y": [0.12, 4.88]},
-                    {"id": "B", "role": "office", "x": [5.0, 9.88], "y": [0.12, 4.88]},
-                ],
-            }
-        ],
-        "windows": [],
-    }
+    output = _v3_output(
+        [_v3_floor("Floor 1", footprint_xy=((0.0, 10.0), (0.0, 5.0)), cells=[
+            {"id": "A", "x": [0.0, 5.0], "y": [0.0, 5.0]},
+            {"id": "B", "x": [5.0, 10.0], "y": [0.0, 5.0]},
+        ])],
+        footprint_x=[0.0, 10.0], footprint_y=[0.0, 5.0],
+    )
 
     result = score_correction_geometry(output, gt)
+    assert result.output_convention["trusted"] is True
     match = result.scores["Floor 1"].vwalls[0]
 
     assert match.status == "complete"
@@ -271,7 +353,211 @@ def test_correction_edge_wall_spans_expand_to_gt_outer_skin_when_wall_thickness_
     assert match.read.end == 5.0
 
 
+def test_correction_boundary_double_expansion_regression_self_proving():
+    """F-22 regression lock, self-proving its own premise.
+
+    Pattern per project discipline (see
+    ``tests/test_f18_window_host_float_tolerance.py::_round_trip_differs``):
+    first assert the deleted transform really WOULD have produced a wrong
+    answer on this exact fixture (the premise), THEN assert the fix is
+    correct — so a silently-neutered fixture cannot pass as an empty lock.
+    """
+    truth = {"S": 0.0, "N": 8.0, "W": 0.0, "E": 15.0}
+    wall_thickness_m = 0.24
+    half = wall_thickness_m / 2.0
+    # This is exactly the deleted `_boundary_centerline_to_outer` formula
+    # (correction_score.py, removed in F-22), re-derived here ONLY to prove
+    # the premise below — production code no longer contains it.
+    what_old_code_would_have_produced = {
+        "S": truth["S"] - half,
+        "N": truth["N"] + half,
+        "W": truth["W"] - half,
+        "E": truth["E"] + half,
+    }
+    # PREMISE: on a product already expressed at the outer skin (post-F-17,
+    # matching gt's own outer-skin truth), the old transform is NOT a no-op —
+    # it introduces a spurious half-wall-thickness offset on every side.
+    assert what_old_code_would_have_produced != truth
+    assert all(
+        abs(what_old_code_would_have_produced[side] - truth[side]) == pytest.approx(half)
+        for side in truth
+    )
+
+    gt = {
+        "footprint": {"W_m": 15.0, "D_m": 8.0},
+        "wall_thickness_m": wall_thickness_m,
+        "floors": [{"name": "Floor 1", "zones": [{"rect_m": [0, 0, 15, 8]}]}],
+        "windows": [],
+    }
+    # BLOCKER-1: this is testing the trusted-identity path, so use the
+    # minimal v3 shape (was an implicit-v1 dict) — an untrusted product
+    # returns boundary=None unconditionally and would never reach the
+    # premise this test proves.
+    output = _v3_output(
+        [_v3_floor("Floor 1", footprint_xy=((0.0, 15.0), (0.0, 8.0)),
+                   cells=[{"id": "A", "x": [0.0, 15.0], "y": [0.0, 8.0]}])],
+        footprint_x=[0.0, 15.0], footprint_y=[0.0, 8.0],
+    )
+
+    # FIX: the real public entry point no longer applies that transform.
+    result = score_correction_geometry(output, gt)
+    assert result.output_convention["trusted"] is True  # sanity: premise applies to a trusted product
+    boundary = result.scores["Floor 1"].boundary
+    assert boundary is not None
+    for side in ("S", "N", "W", "E"):
+        assert boundary[side].read == pytest.approx(truth[side])
+        assert boundary[side].delta == pytest.approx(0.0)
+        assert boundary[side].status == "complete"
+
+
+def _boundary_south_fixture(south_offset: float) -> tuple[dict, dict]:
+    """Trusted schema-v3 footprint at [south_offset, 8.0] x [0, 15] — the S
+    side of the boundary is thus off from gt truth (S=0.0) by exactly
+    `south_offset`. (BLOCKER-1: uses the minimal v3 shape so
+    `_is_trusted_output_convention` recognizes it and the boundary tiers
+    below are actually exercised, not short-circuited to None.)"""
+    gt = {
+        "footprint": {"W_m": 15.0, "D_m": 8.0},
+        "wall_thickness_m": 0.24,
+        "floors": [{"name": "Floor 1", "zones": [{"rect_m": [0, 0, 15, 8]}]}],
+        "windows": [],
+    }
+    output = _v3_output(
+        [_v3_floor("Floor 1", footprint_xy=((0.0, 15.0), (south_offset, 8.0)),
+                   cells=[{"id": "A", "x": [0.0, 15.0], "y": [south_offset, 8.0]}])],
+        footprint_x=[0.0, 15.0], footprint_y=[south_offset, 8.0],
+    )
+    return gt, output
+
+
+def test_correction_boundary_status_three_tier_green_exact():
+    """F-22 orange-tier lock, tier 1 of 3: 0.0 offset -> complete (green)."""
+    gt, output = _boundary_south_fixture(0.0)
+    result = score_correction_geometry(output, gt)
+    match = result.scores["Floor 1"].boundary["S"]
+    assert match.status == "complete"
+    assert match.delta == pytest.approx(0.0)
+
+
+def test_correction_boundary_status_three_tier_orange_within_tol():
+    """F-22 orange-tier lock, tier 2 of 3: 0.12 offset (> complete_eps 0.05,
+    <= position_tol 0.30) -> within_tol (orange). This is the exact drift
+    magnitude the F-22 bug produced (real ±0.12 sidecar deltas) and, before
+    this batch, went completely uncoloured (LineMatch had no status field)."""
+    gt, output = _boundary_south_fixture(0.12)
+    result = score_correction_geometry(output, gt)
+    match = result.scores["Floor 1"].boundary["S"]
+    assert match.status == "within_tol"
+    assert match.delta == pytest.approx(0.12)
+    assert match.read is not None
+
+
+def test_correction_boundary_status_threshold_uses_raw_delta_not_rounded():
+    """F-22 MINOR-1 (sol cross-review 2026-08-11): the complete/within_tol
+    threshold must compare the RAW (unrounded) offset against `complete_eps`
+    (0.05), not the value already rounded to 2dp for display — rounding
+    first silently widens the green tier (0.054 rounds to 0.05 and would
+    wrongly read "complete"). Exercises the exact boundary values sol used:
+    0.05 (complete) / 0.054 (within_tol, NOT complete despite rounding to
+    0.05) / 0.055 (within_tol) via the real `score_correction_geometry`
+    entry point (not the private `_match_lines` helper directly)."""
+    gt, output = _boundary_south_fixture(0.05)
+    result = score_correction_geometry(output, gt)
+    match = result.scores["Floor 1"].boundary["S"]
+    assert match.status == "complete"
+    assert match.delta == pytest.approx(0.05)
+
+    gt, output = _boundary_south_fixture(0.054)
+    result = score_correction_geometry(output, gt)
+    match = result.scores["Floor 1"].boundary["S"]
+    assert match.status == "within_tol"  # raw 0.054 > 0.05, even though it rounds to 0.05
+    assert match.delta == pytest.approx(0.05)  # displayed delta IS rounded
+
+    gt, output = _boundary_south_fixture(0.055)
+    result = score_correction_geometry(output, gt)
+    match = result.scores["Floor 1"].boundary["S"]
+    assert match.status == "within_tol"
+    assert match.delta == pytest.approx(0.06)
+
+
+def test_boundary_match_dict_propagates_within_tol_status_for_elevation_consumer():
+    """F-22: `_boundary_match_dict` (run_stage.py) used to hardcode
+    ``"complete" if match.read is not None else "miss"`` — a real
+    ``within_tol`` LineMatch (from the real entry point) was silently
+    collapsed to "complete", which is why `_draw_elevation_boundary`'s
+    already-present orange branch (`render_grade.py`) was dead code: its
+    producer never emitted "within_tol". This locks the producer side."""
+    gt, output = _boundary_south_fixture(0.12)
+    result = score_correction_geometry(output, gt)
+    match = result.scores["Floor 1"].boundary["S"]
+    assert match.status == "within_tol"  # sanity: this IS the drift tier
+
+    out = rs._boundary_match_dict(match, "S")
+    assert out["status"] == "within_tol"
+    assert out["status"] != "complete"
+
+
+def test_correction_boundary_status_three_tier_red_miss():
+    """F-22 orange-tier lock, tier 3 of 3: 0.5 offset (> position_tol 0.30)
+    -> miss (red), unmatched."""
+    gt, output = _boundary_south_fixture(0.5)
+    result = score_correction_geometry(output, gt)
+    match = result.scores["Floor 1"].boundary["S"]
+    assert match.status == "miss"
+    assert match.read is None
+    assert match.delta is None
+
+
+def test_output_convention_declaration_mutation_changes_scoring_behavior():
+    """F-22 BLOCKER-1 self-test (sol cross-review 2026-08-11): sol's
+    reproduction of the "runtime inert" defect was literally "change
+    `CORRECTION_OUTPUT_CONVENTION` to a bogus string and rerun scoring on a
+    real, otherwise-trusted schema-v3 product; if the result doesn't change,
+    the declaration is a comment wearing a variable name, not a guard."
+    This locks that exact self-test as a permanent regression check, on a
+    real production artifact (not a synthetic fixture) so it can't be
+    satisfied by a fixture that happens not to exercise the read site.
+    """
+    gt = load_gt("sm21_anchor")
+    output = json.loads(
+        (_SM21 / "run_2026-08-11_continuous_e2e/1_correction/attempts/001/output.json")
+        .read_text(encoding="utf-8")
+    )
+    assert output.get("schema_version") == "3"  # sanity: this IS the trusted-identity fixture
+
+    before = score_correction_geometry(output, gt)
+    assert before.output_convention["trusted"] is True
+    assert before.scores["Floor 1"].boundary is not None
+    assert all(m.status == "complete" for m in before.scores["Floor 1"].boundary.values())
+
+    original = correction_score_module.CORRECTION_OUTPUT_CONVENTION
+    correction_score_module.CORRECTION_OUTPUT_CONVENTION = "bogus"
+    try:
+        after = score_correction_geometry(output, gt)
+    finally:
+        correction_score_module.CORRECTION_OUTPUT_CONVENTION = original
+
+    # THE ASSERTION: mutating the declaration changed scoring behaviour for
+    # this real, valid, otherwise-trusted schema-v3 product.
+    assert after.output_convention["trusted"] is False
+    assert after.scores["Floor 1"].boundary is None
+    assert any(e["type"] == "unsupported_output_convention" for e in after.evidence)
+
+
 def test_correction_boundary_falls_back_to_cells_bbox_when_footprint_missing():
+    """F-22 BLOCKER-1 rewrite (2026-08-11).
+
+    Original intent: no `footprint_x`/`footprint_y` declared, only cells ->
+    `_extract_correction_boundary` falls back to `_floor_cells_bbox`. That
+    fallback is legacy-schema machinery (schema v3's `floor.footprint` is a
+    mandatory field, so "missing footprint" cannot even be constructed in a
+    trusted v3 payload) and the fixture below is implicit schema v1 (no
+    `schema_version` key) — i.e. untrusted per `_is_trusted_output_convention`
+    regardless of whether the fallback would have derived the right bbox.
+    This now locks the REFUSAL: an untrusted, footprint-less product still
+    returns a safe no-data boundary (not a crash, not a guess), consistent
+    with every other untrusted-identity case in this file.
+    """
     gt = {
         "footprint": {"W_m": 15.0, "D_m": 8.0},
         "floors": [
@@ -293,13 +579,19 @@ def test_correction_boundary_falls_back_to_cells_bbox_when_footprint_missing():
         ],
         "windows": [],
     }
+    assert output.get("schema_version") is None  # sanity: untrusted-legacy fixture
 
     result = score_correction_geometry(output, gt)
 
-    assert result.scores["Floor 1"].boundary_hits() == (4, 4)
+    assert result.output_convention["trusted"] is False
+    assert result.scores["Floor 1"].boundary is None
+    assert result.scores["Floor 1"].boundary_hits() == (0, 0)
 
 
 def test_correction_half_length_wall_scores_missing_piece():
+    """F-22 BLOCKER-1 rewrite (2026-08-11): interior-wall extent/piece
+    scoring is now gated on trusted (schema-v3) identity too, so this
+    fixture is migrated from an implicit-v1 dict to the minimal v3 shape."""
     gt = {
         "footprint": {"W_m": 10.0, "D_m": 4.0},
         "floors": [
@@ -313,21 +605,14 @@ def test_correction_half_length_wall_scores_missing_piece():
         ],
         "windows": [],
     }
-    output = {
-        "footprint_x": [0, 10],
-        "footprint_y": [0, 4],
-        "floors": [
-            {
-                "name": "Floor 1",
-                "z_floor": 0.0,
-                "ceiling_height": 3.0,
-                "cells": [{"id": "A", "role": "office", "x": [0, 5], "y": [0, 2]}],
-            }
-        ],
-        "windows": [],
-    }
+    output = _v3_output(
+        [_v3_floor("Floor 1", footprint_xy=((0, 10), (0, 4)),
+                   cells=[{"id": "A", "x": [0, 5], "y": [0, 2]}])],
+        footprint_x=[0, 10], footprint_y=[0, 4],
+    )
 
     result = score_correction_geometry(output, gt)
+    assert result.output_convention["trusted"] is True
     match = result.scores["Floor 1"].vwalls[0]
 
     assert match.status == "miss"
@@ -419,7 +704,12 @@ def test_judge_packet_scores_correction_attempt_and_records_floor_map(tmp_path, 
     assert sidecar["elevation"]["boundary"]["North"]["floors"]["Floor 1"]["side_left"]["source_boundary"] == "W"
     assert sidecar["elevation"]["boundary"]["East"]["floors"]["Floor 1"]["side_right"]["source_boundary"] == "N"
     assert sidecar["floor_map"] == {"F1": "Floor 1", "F2": "Floor 2"}
-    assert sidecar["evidence"] == []
+    # F-22 BLOCKER-1: this fixture is a real accepted attempt with no
+    # `schema_version` declared (implicit legacy v1) — untrusted per
+    # `_is_trusted_output_convention`, so a visible `unsupported_output_convention`
+    # evidence entry is expected rather than an empty list.
+    assert [e["type"] for e in sidecar["evidence"]] == ["unsupported_output_convention"]
+    assert sidecar["output_convention"] == {"schema_version": "1", "trusted": False, "identity": None}
     assert Path(packet["grade"]).exists()
     assert packet["score_criteria"] == sidecar["score_criteria"]
 

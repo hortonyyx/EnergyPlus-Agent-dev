@@ -110,10 +110,17 @@ def test_legacy_scorer_schema_is_independent_of_typed_v8_contract_label():
     any v8 sidecar must be recomputed; the typed v3 path was untouched and stays
     "8". This lock pins both values so a future bump to either side is conscious
     (and is the lock the MAJOR-1 fix changed — the old form asserted both == "8",
-    which hid the divergence this fix introduced on purpose)."""
+    which hid the divergence this fix introduced on purpose).
+
+    F-22 (2026-08-11) bumped the legacy constant again, "9" -> "10": the
+    correction-boundary scoring SEMANTICS changed (deleted a double
+    wall-thickness expansion that was double-counting post-F-17 outer-skin
+    products) and the sidecar SHAPE changed (`boundary` entries gained a
+    `status` field), so any v9-or-earlier sidecar must be recomputed. The
+    typed v3 path is still untouched and stays "8"."""
     import scripts.tool_scripts.run_stage as run_stage
     from src.agent.judge.score_schema import SCORER_SCHEMA
-    assert run_stage.SCORER_SCHEMA == "9"
+    assert run_stage.SCORER_SCHEMA == "10"
     assert SCORER_SCHEMA == "8"
 
 

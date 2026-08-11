@@ -7,6 +7,7 @@ from typing import Any
 
 from pydantic import ValidationError
 
+from src.agent.correction import facade_convention
 from src.agent.correction.facade_applicability import ElevationViewBindingV1
 from src.agent.execution.view_manifest import (
     CompletenessAssertion,
@@ -31,8 +32,9 @@ from .score_schema import (
     canonical_sha256,
 )
 
-_AXIS = {"North": "x", "South": "x", "East": "y", "West": "y"}
-_BASE_SIGN = {"North": -1, "South": 1, "East": 1, "West": -1}
+# F-9 route② S1 (2026-08-11): _AXIS/_BASE_SIGN merged into
+# `facade_convention` (single, gt-free source; judge is a permitted
+# consumer, see that module's docstring and design v2.1 §11).
 _FRAME_KEYS = {
     "schema", "input_id", "resolved_building_direction", "source_footprint_fingerprint",
     "world_axis", "sign", "along_origin", "mirrored", "local_x_positive",
@@ -106,10 +108,11 @@ def validate_score_view_bindings(*, bindings: JudgeScoreViewBindingsV1, base: Vi
         if (entry.view_type == "plan") != isinstance(binding, PlanScoreViewBindingV1):
             raise ScoreContractError("score_view_binding_invalid", "scoring.view_bindings", context={"input_id": input_id})
         if isinstance(binding, ElevationScoreViewBindingV1):
-            if binding.facade_family != binding.resolved_building_direction or binding.world_axis != _AXIS[binding.resolved_building_direction]:
+            if binding.facade_family != binding.resolved_building_direction or binding.world_axis != facade_convention.world_axis(binding.resolved_building_direction):
                 raise ScoreContractError("score_direction_unresolved", "scoring.view_bindings", context={"input_id": input_id})
-            flip = binding.mirrored ^ (binding.local_x_positive == "image_right_to_left")
-            expected_sign = -_BASE_SIGN[binding.resolved_building_direction] if flip else _BASE_SIGN[binding.resolved_building_direction]
+            expected_sign = facade_convention.resolve_sign(
+                binding.resolved_building_direction, mirrored=binding.mirrored, local_x_positive=binding.local_x_positive,
+            )
             if binding.sign != expected_sign or binding.frame_transform_sha256 != frame_transform_sha256(binding):
                 raise ScoreContractError("score_direction_unresolved", "scoring.view_bindings", context={"input_id": input_id})
             if binding.resolution_source == "manifest_building_axis":

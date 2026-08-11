@@ -89,6 +89,11 @@ class LineMatch:
     truth: float
     read: float | None          # matched read value, or None if missed
     delta: float | None         # read - truth (signed), or None
+    # Three-tier status, same convention as WallMatch/WindowMatch:
+    # "complete" (<= complete_eps) / "within_tol" (<= tol, > complete_eps —
+    # the previously-unobservable orange tier, F-22) / "miss" (no match
+    # found within tol, i.e. read is None).
+    status: str = "miss"
 
 
 @dataclass
@@ -375,17 +380,33 @@ def extract_reading_boundary(reading: dict, W: float, D: float) -> dict[str, flo
 
 # ---------------------------------------------------------------------- matching
 
-def _match_lines(read: list[float], truth: list[float], tol: float) -> tuple[list[LineMatch], list[float]]:
+def _match_lines(
+    read: list[float],
+    truth: list[float],
+    tol: float,
+    *,
+    complete_eps: float = DEFAULT_COMPLETE_EPS_M,
+) -> tuple[list[LineMatch], list[float]]:
     pool = list(read)
     matches: list[LineMatch] = []
     for t in truth:
         cands = [r for r in pool if abs(r - t) <= tol]
         if cands:
             b = min(cands, key=lambda r: abs(r - t))
-            matches.append(LineMatch(t, b, round(b - t, 2)))
+            # F-22 MINOR-1 (sol cross-review 2026-08-11): the status threshold
+            # must compare the RAW (unrounded) difference against
+            # `complete_eps` — rounding first and comparing the rounded value
+            # silently widens the green tier (e.g. a true 0.054 delta rounds
+            # to 0.05 and would wrongly read as "complete" if compared after
+            # rounding). `delta` itself is still stored rounded to 2dp for
+            # display; only the status decision uses the raw value.
+            raw_delta = b - t
+            delta = round(raw_delta, 2)
+            status = "complete" if abs(raw_delta) <= complete_eps else "within_tol"
+            matches.append(LineMatch(t, b, delta, status))
             pool.remove(b)
         else:
-            matches.append(LineMatch(t, None, None))
+            matches.append(LineMatch(t, None, None, "miss"))
     return matches, pool
 
 
@@ -394,6 +415,8 @@ def match_boundary(
     W: float,
     D: float,
     tol: float,
+    *,
+    complete_eps: float = DEFAULT_COMPLETE_EPS_M,
 ) -> dict[str, LineMatch] | None:
     if read is None:
         return None
@@ -401,7 +424,7 @@ def match_boundary(
     out: dict[str, LineMatch] = {}
     for side in ("S", "N", "W", "E"):
         vals = [read[side]] if side in read else []
-        matches, _extra = _match_lines(vals, [truth[side]], tol)
+        matches, _extra = _match_lines(vals, [truth[side]], tol, complete_eps=complete_eps)
         out[side] = matches[0]
     return out
 
@@ -816,7 +839,7 @@ def score_floor(
         extent_tol=extent_tol,
         complete_eps=complete_eps,
     )
-    sc.boundary = match_boundary(rbnd, W, D, wall_tol)
+    sc.boundary = match_boundary(rbnd, W, D, wall_tol, complete_eps=complete_eps)
     for f in ("N", "S", "E", "W"):
         ms, extra = _match_window_segments(
             f,

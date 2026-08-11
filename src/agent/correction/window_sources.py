@@ -15,6 +15,7 @@ from typing import Annotated, Literal, Mapping, Union
 
 from pydantic import AllowInfNan, BaseModel, ConfigDict, Field, Strict, StringConstraints, model_validator
 
+from src.agent.correction import facade_convention
 from src.agent.correction.claims import CLAIMS_VOCAB_VERSION, WINDOW_CLAIMS
 from src.agent.correction.facade_applicability import ElevationViewBindingV1 as VaElevationViewBindingV1
 from src.agent.correction.facade_visibility import FacadeVisibilityInvariantError, VisibilityTolerances, validate_materialized_facade_segments
@@ -38,8 +39,11 @@ SourceLocator = Annotated[str, Strict(), StringConstraints(pattern=r"^src:[0-9a-
 ClaimName = Literal["existence", "host", "along", "width", "sill", "head", "appearance"]
 CardinalFamily = Literal["North", "South", "East", "West"]
 _CFG = ConfigDict(extra="forbid", frozen=True, strict=True)
-_AXIS = {"North": "x", "South": "x", "East": "y", "West": "y"}
-_BASE_SIGN = {"North": -1, "South": 1, "East": 1, "West": -1}
+# F-9 route② S1 (2026-08-11): _AXIS/_BASE_SIGN used to be local literal
+# tables here; both call sites now go through `facade_convention` (single,
+# gt-free source — see that module's docstring). Kept as no-op removed names
+# intentionally absent, not aliased, so a reintroduced local table would be a
+# NameError, not a silent shadow.
 
 
 def canonical_json_bytes(value: object) -> bytes:
@@ -504,14 +508,13 @@ def _advisory_elevation_world_frame(entry: RequiredViewEntry, raw_reading_bytes:
     if entry.direction_semantics != "building_axis" or entry.building_view_direction is None:
         return None
     family = entry.building_view_direction
-    axis = _AXIS[family]
+    axis = facade_convention.world_axis(family)
     try:
         reading = parse_reading_view(json.loads(raw_reading_bytes.decode("utf-8")))
     except (UnicodeDecodeError, json.JSONDecodeError, ValueError):
         return None
     mirrored, local_x_positive = _resolve_facade_flip_fields(reading.facade)
-    flip = mirrored ^ (local_x_positive == "image_right_to_left")
-    sign = -_BASE_SIGN[family] if flip else _BASE_SIGN[family]
+    sign = facade_convention.resolve_sign(family, mirrored=mirrored, local_x_positive=local_x_positive)
     widths = [
         dimension.value_m for dimension in reading.dimensions
         if dimension.role == "overall" and dimension.axis == axis and dimension.value_m is not None
@@ -672,6 +675,21 @@ def _resolve_facade_flip_fields(facade) -> tuple[bool, str]:
     silently drift from it. Behaviour-preserving: a non-``bool`` ``mirrored``
     (e.g. the schema's legacy string literals ``"true"``/``"false"``/``"unknown"``)
     still defaults to not-mirrored, same as before this extraction.
+
+    F-9 route② MINOR-3 debt (2026-08-11, sol verdict): this coercion is a
+    DIFFERENT lenient policy than ``facade.py::_is_mirrored`` (which accepts
+    a case-insensitive ``"true"`` STRING as mirrored=True; this function
+    only ever honors a real ``bool`` and treats every string, including
+    ``"true"``, as not-mirrored) and different again from
+    ``facade_convention.normalize_mirror_flag``'s strict typed adapter. Same
+    input, three different answers depending which one reads it -- a real
+    latent defect, registered (not silently unified) here because unifying
+    it would change behavior, which S1's "行为保持不变" rule forbids.
+    Pinned as an executable fact by
+    ``tests/test_f9_route2_s1_convention_truth.py::
+    test_minor3_legacy_mirror_coercions_disagree_is_a_pinned_debt_fact``.
+    S3/S4's new live v3 raw-citation boundary must use only the strict
+    adapter and fail closed.
     """
     mirrored = False
     local_x_positive = "image_left_to_right"
@@ -1188,9 +1206,8 @@ def materialize_current_ring_va_elevation_bindings(*, geom: CorrectedGeometryV3,
             raise WindowDirectionBindingError("direction_binding_ring_incompatible", {"input_id": fact.input_id,
                 "floor_ids": [item[0] for item in per_floor], "fingerprints": [item[1] for item in per_floor], "family_extents": [item[2] for item in per_floor]})
         fingerprint = per_floor[0][1]; lo, hi = per_floor[0][2]
-        axis = _AXIS[family]
-        flip = fact.mirrored ^ (fact.local_x_positive == "image_right_to_left")
-        sign = -_BASE_SIGN[family] if flip else _BASE_SIGN[family]
+        axis = facade_convention.world_axis(family)
+        sign = facade_convention.resolve_sign(family, mirrored=fact.mirrored, local_x_positive=fact.local_x_positive)
         origin = lo if sign == 1 else hi
         output.append(VaElevationViewBindingV1(input_id=fact.input_id, resolved_building_direction=family,
             resolution_source=fact.resolution_source, view_manifest_sha256=manifest.content_sha256,

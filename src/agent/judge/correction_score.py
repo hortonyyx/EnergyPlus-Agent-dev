@@ -45,6 +45,92 @@ from .elevation_score import (
 
 _BOUNDARY_EPS_M = 0.30
 
+# ---------------------------------------------------------------------------
+# Single declared judge-side output convention — RUNTIME ENFORCED (F-22
+# BLOCKER-1 fix, 2026-08-11 sol cross-review + user-ratified correction).
+#
+# This is the ONE place that states which physical frame a 1_correction
+# product's coordinates are TRUSTED to be expressed in, for scoring against
+# gt without a frame conversion —
+#   * exterior envelope (footprint / floor.footprint) == the wall's OUTER
+#     FACE.  This is the same face gt's `footprint.W_m`/`D_m` are measured
+#     to (gt also separately records `wall_thickness_m`, purely as metadata
+#     for that outer-skin dimension — not as a hint that judge-side geometry
+#     needs converting).
+#   * interior partition walls == the wall CENTRELINE.  This is the same
+#     line gt's `zones[].rect_m` edges sit on (see `derive_gt_wall_segments`
+#     in reading_score.py — an interior gt wall's declared extent already
+#     runs edge-to-edge of the outer footprint, i.e. touches the outer skin
+#     at its ends, not an inset centerline point).
+#
+# Before 2026-08-09 (F-17) a 1_correction product's exterior envelope was
+# expressed at the wall CENTRELINE, so this scorer used to convert it
+# outward by half `wall_thickness_m` before comparing to gt (see git history
+# of `_boundary_centerline_to_outer` / `_expand_boundary_span`, removed
+# earlier in F-22). F-17 fixed the deterministic core's envelope transform
+# so a schema-v3 (`orthogonal_polygon`) product's own footprint is now
+# already expressed at the outer face — i.e. that ONE profile already
+# matches this declared convention with no transform needed.
+#
+# ⛔ NARROWED SCOPE (sol BLOCKER-1, 2026-08-11): the first cut of this fix
+# treated EVERY schema version as already-outer-skin unconditionally. Real
+# measurement on this repo's own historical runs proved that false: schema
+# v1/v2 (`rectangular`, which is the CLI's DEFAULT capability_profile) has
+# NEVER been verified to share this frame, and real v1/v2 artifacts on disk
+# sit at inconsistent, unregistered offsets (measured examples: exactly
+# [0,0] some runs, [-0.1,-0.1] others, [-0.22,-0.23] on a third — no fixed
+# relationship to gt's outer skin at all). Directly comparing those against
+# gt "because there's only one convention now" reproduced a NEW variant of
+# the same double-expansion-era bug (an asymmetric miss on 2 of 4 boundary
+# sides, and dropped interior-wall hits, purely from betting on an unproven
+# frame) — see `AI_agent/logs/reviews/verdict/2026-08-11_f22_f9s0s1_crossreview_sol.md`
+# BLOCKER-1 for the reproduction. The user-ratified correction is: trust
+# schema v3 (`orthogonal_polygon`) ONLY; everything else is explicitly
+# rejected (not guessed) — see `_is_trusted_output_convention` below, which
+# every extraction site calls and which every caller must treat as
+# authoritative. This is NOT a second conversion branch (the user's "single
+# output convention, no switch" instruction from the original F-22 dispatch
+# still holds) — untrusted inputs get NO conversion of any kind, they get
+# refused.
+#
+# `CORRECTION_OUTPUT_CONVENTION` is the ONE declaration of the identity
+# currently trusted; `_is_trusted_output_convention()` is the ONE runtime
+# read of it. Self-test (required by sol, and locked by
+# `tests/test_judge_batch_b.py::test_output_convention_declaration_mutation_changes_scoring_behavior`):
+# mutate this constant's VALUE and rerun scoring on a real, otherwise-valid
+# schema-v3 product — the result MUST change (boundary/wall-extent scoring
+# must stop trusting it), proving the declaration is load-bearing and not
+# decorative.
+#
+# This constant is the seam for a future second convention (the deferred
+# "标注/墙厚/出模" work item): a second named identity would be added, and
+# `_is_trusted_output_convention` — the only reader — is the only place that
+# would need to grow a branch. Nothing else in this module may assume a
+# frame on its own.
+_TRUSTED_SCHEMA_V3_IDENTITY = "outer_skin_exterior_centerline_interior"
+CORRECTION_OUTPUT_CONVENTION = _TRUSTED_SCHEMA_V3_IDENTITY
+
+
+def _is_trusted_output_convention(geom: CorrectedGeometry) -> bool:
+    """Runtime identity check — the ONLY gate that may treat a product's
+    coordinates as directly comparable to gt without a frame conversion.
+
+    `schema_version` is used as the capability_profile proxy:
+    `src/agent/correction/parse.py::correction_target` maps
+    `capability_profile` onto `schema_version` 1:1 ("rectangular" -> "1",
+    "orthogonal_polygon" -> "3"; there is no v2 profile in the current
+    registry), and only the v3/orthogonal_polygon pipeline's deterministic
+    core (`finalize_correction_draw` -> `apply_deterministic_core` ->
+    v3 envelope reconcile) is verified to land the footprint on the outer
+    face. Returns False for everything else, INCLUDING a mutated/unrecognized
+    `CORRECTION_OUTPUT_CONVENTION` value — there is no fallback
+    interpretation; untrusted means untrusted.
+    """
+    return (
+        getattr(geom, "schema_version", None) == "3"
+        and CORRECTION_OUTPUT_CONVENTION == _TRUSTED_SCHEMA_V3_IDENTITY
+    )
+
 
 @dataclass
 class CorrectionScoreResult:
@@ -52,6 +138,12 @@ class CorrectionScoreResult:
     evidence: list[dict] = field(default_factory=list)
     floor_map: dict[str, str] = field(default_factory=dict)
     elevation: ElevationScoreResult | None = None
+    # F-22 BLOCKER-1: explicit schema/profile provenance for the boundary /
+    # interior-wall-extent convention this scoring run assumed — written
+    # unconditionally (both trusted and untrusted cases) so the sidecar
+    # always states what was assumed, not just when it refuses. `identity`
+    # is `CORRECTION_OUTPUT_CONVENTION` when trusted, else None.
+    output_convention: dict = field(default_factory=dict)
 
 
 def _floor_number(name: str) -> int | None:
@@ -122,36 +214,31 @@ def _map_floors(geom: CorrectedGeometry, gt: dict) -> tuple[dict[str, str], list
     return mapping, evidence
 
 
-def _expand_boundary_span(
-    lo: float,
-    hi: float,
-    bounds: tuple[float, float],
-    *,
-    wall_thickness_m: float | None,
-) -> tuple[float, float]:
-    if wall_thickness_m is None or wall_thickness_m <= 0:
-        return lo, hi
-    half = float(wall_thickness_m) / 2.0
-    blo, bhi = bounds
-    if abs(lo - blo) <= _BOUNDARY_EPS_M:
-        lo = lo - half
-    if abs(hi - bhi) <= _BOUNDARY_EPS_M:
-        hi = hi + half
-    return lo, hi
-
-
 def _extract_correction_wall_segments(
     floor,
     W: float,
     D: float,
     *,
-    boundary_bounds: tuple[tuple[float, float], tuple[float, float]] | None = None,
-    wall_thickness_m: float | None = None,
+    geom: CorrectedGeometry,
 ) -> tuple[list[WallSegment], list[WallSegment]]:
+    """Interior wall extents, per CORRECTION_OUTPUT_CONVENTION (module docstring).
+
+    Gated on `_is_trusted_output_convention(geom)` (F-22 BLOCKER-1): when
+    trusted, a product's interior wall extents are read verbatim from its
+    cell polygons — no centerline<->outer-skin conversion — because the
+    product footprint is already at the outer face (post-F-17) and gt's own
+    interior wall truth extents (`derive_gt_wall_segments`) already run
+    edge-to-edge of the outer footprint. When NOT trusted, returns no
+    segments at all rather than guess: comparing an unverified frame's wall
+    extents directly against gt's outer-skin-anchored truth reproduces the
+    same class of asymmetric-miss bug the boundary side had (sol BLOCKER-1
+    reproduction: legacy real runs showed a registration offset become a
+    lopsided N/E "miss" once compared without a trusted, uniform frame).
+    """
+    if not _is_trusted_output_convention(geom):
+        return [], []
     vx: list[WallSegment] = []
     hy: list[WallSegment] = []
-    if boundary_bounds is None:
-        boundary_bounds = _floor_cells_bbox(floor)
     for cell in floor.cells:
         try:
             coords = list(cell_polygon(cell).exterior.coords)
@@ -164,31 +251,19 @@ def _extract_correction_wall_segments(
                 x = round(x0, 2)
                 if _BOUNDARY_EPS_M < x0 < W - _BOUNDARY_EPS_M:
                     lo, hi = sorted((y0, y1))
-                    if boundary_bounds is not None:
-                        lo, hi = _expand_boundary_span(
-                            lo,
-                            hi,
-                            boundary_bounds[1],
-                            wall_thickness_m=wall_thickness_m,
-                        )
                     vx.append(WallSegment("v", x, round(lo, 2), round(hi, 2)))
             elif abs(y0 - y1) <= 1e-6:
                 y = round(y0, 2)
                 if _BOUNDARY_EPS_M < y0 < D - _BOUNDARY_EPS_M:
                     lo, hi = sorted((x0, x1))
-                    if boundary_bounds is not None:
-                        lo, hi = _expand_boundary_span(
-                            lo,
-                            hi,
-                            boundary_bounds[0],
-                            wall_thickness_m=wall_thickness_m,
-                        )
                     hy.append(WallSegment("h", y, round(lo, 2), round(hi, 2)))
     return _dedupe_segments(vx), _dedupe_segments(hy)
 
 
-def _extract_correction_walls(floor, W: float, D: float) -> tuple[list[float], list[float]]:
-    vx, hy = _extract_correction_wall_segments(floor, W, D)
+def _extract_correction_walls(
+    floor, W: float, D: float, *, geom: CorrectedGeometry
+) -> tuple[list[float], list[float]]:
+    vx, hy = _extract_correction_wall_segments(floor, W, D, geom=geom)
     return [s.coord for s in vx], [s.coord for s in hy]
 
 
@@ -249,26 +324,27 @@ def _normalise_raw_geom_for_scoring(data: dict) -> dict:
     return out
 
 
-def _boundary_centerline_to_outer(
-    boundary: dict[str, float], wall_thickness_m: float | None
-) -> dict[str, float]:
-    if wall_thickness_m is None or wall_thickness_m <= 0:
-        return boundary
-    half = float(wall_thickness_m) / 2.0
-    return {
-        "S": boundary["S"] - half,
-        "N": boundary["N"] + half,
-        "W": boundary["W"] - half,
-        "E": boundary["E"] + half,
-    }
-
-
 def _extract_correction_boundary(
     geom: CorrectedGeometry,
     floor,
-    *,
-    wall_thickness_m: float | None = None,
 ) -> dict[str, float] | None:
+    """Exterior envelope boundary, per CORRECTION_OUTPUT_CONVENTION (module docstring).
+
+    Gated on `_is_trusted_output_convention(geom)` (F-22 BLOCKER-1). When
+    trusted, read verbatim from the product's own footprint — no
+    centerline<->outer-skin conversion — because the product footprint is
+    already at the outer face (post-F-17) and gt's `footprint.W_m`/`D_m` are
+    also outer-skin. When NOT trusted, returns None (the existing "no data"
+    representation `FloorScore.boundary` already carries — see its
+    docstring) rather than guess a conversion: `score_correction_geometry`
+    additionally records an explicit, visible `unsupported_output_convention`
+    evidence entry for the floor so this reads as an active refusal, not a
+    silent pass (a None boundary contributes 0/0 to `boundary_hits()`, which
+    on its own would look identical to "nothing to grade" — the evidence
+    entry is what makes `score_evidence_completeness` surface as severe).
+    """
+    if not _is_trusted_output_convention(geom):
+        return None
     from src.agent.correction.footprint import footprint_bbox
     try:
         fx, fy = footprint_bbox(geom, floor)
@@ -277,10 +353,7 @@ def _extract_correction_boundary(
         if bbox is None:
             return None
         fx, fy = bbox
-    return _boundary_centerline_to_outer(
-        {"S": fy[0], "N": fy[1], "W": fx[0], "E": fx[1]},
-        wall_thickness_m,
-    )
+    return {"S": fy[0], "N": fy[1], "W": fx[0], "E": fx[1]}
 
 
 def _gt_floor_for_label(label: str, gt: dict, floor_map: dict[str, str]) -> str | None:
@@ -338,14 +411,36 @@ def score_correction_geometry(
     )
     fp = gt["footprint"]
     W, D = float(fp["W_m"]), float(fp["D_m"])
-    wall_thickness_m = gt.get("wall_thickness_m")
-    try:
-        wall_thickness_m = float(wall_thickness_m) if wall_thickness_m is not None else None
-    except (TypeError, ValueError):
-        wall_thickness_m = None
     gt_floor_by_name = {str(f["name"]): f for f in gt.get("floors", [])}
     floor_map, evidence = _map_floors(geom, gt)
     scores: dict[str, FloorScore] = {}
+
+    # F-22 BLOCKER-1: identity is a property of the whole product (schema
+    # version), not per-floor, so compute the trust decision once and record
+    # it unconditionally — this is the sidecar-visible provenance the
+    # user-ratified fix requires (§3 point 3), independent of whether any
+    # floor ends up flagged.
+    trusted = _is_trusted_output_convention(geom)
+    output_convention = {
+        "schema_version": getattr(geom, "schema_version", None),
+        "trusted": trusted,
+        "identity": CORRECTION_OUTPUT_CONVENTION if trusted else None,
+    }
+    if not trusted:
+        evidence.append(
+            {
+                "type": "unsupported_output_convention",
+                "schema_version": getattr(geom, "schema_version", None),
+                "reason": (
+                    "boundary and interior-wall-extent scoring require a "
+                    "trusted schema-v3/orthogonal_polygon post-transform "
+                    "product identity (F-22 BLOCKER-1); this product's "
+                    "schema_version does not qualify, so boundary was left "
+                    "unscored (no_data) and no interior wall segments were "
+                    "extracted, rather than guessing a frame conversion"
+                ),
+            }
+        )
 
     for fl in geom.floors:
         gt_name = floor_map.get(fl.name)
@@ -360,20 +455,9 @@ def score_correction_geometry(
         position_tol = wall_tol if position_tol is None else position_tol
         gvx, ghy = derive_gt_wall_segments(gt_floor["zones"], W, D)
         gwin = derive_gt_windows(gt, gt_name)
-        centerline_bounds = _floor_cells_bbox(fl)
-        rvx, rhy = _extract_correction_wall_segments(
-            fl,
-            W,
-            D,
-            boundary_bounds=centerline_bounds,
-            wall_thickness_m=wall_thickness_m,
-        )
+        rvx, rhy = _extract_correction_wall_segments(fl, W, D, geom=geom)
         rwin = _extract_correction_windows(geom, gt_name, gt, floor_map)
-        rbnd = _extract_correction_boundary(
-            geom,
-            fl,
-            wall_thickness_m=wall_thickness_m,
-        )
+        rbnd = _extract_correction_boundary(geom, fl)
 
         sc = FloorScore(floor=gt_name)
         sc.vwalls, sc.extra_vwalls = _match_wall_segments(
@@ -390,7 +474,7 @@ def score_correction_geometry(
             extent_tol=extent_tol,
             complete_eps=complete_eps,
         )
-        sc.boundary = match_boundary(rbnd, W, D, wall_tol)
+        sc.boundary = match_boundary(rbnd, W, D, wall_tol, complete_eps=complete_eps)
         for facade in ("N", "S", "E", "W"):
             ms, extra = _match_window_segments(
                 facade,
@@ -434,4 +518,5 @@ def score_correction_geometry(
         evidence=evidence,
         floor_map=floor_map,
         elevation=elevation,
+        output_convention=output_convention,
     )

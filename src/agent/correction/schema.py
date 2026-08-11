@@ -493,3 +493,104 @@ class CorrectedGeometryV3(CorrectedGeometry):
                     json.dumps(row, separators=(",", ":"), ensure_ascii=False),
                 )
         return self
+
+
+# ---------------------------------------------------------------------------
+# F-9 route② S0 (2026-08-11, design v2.1 §4.2/§10): raw, model-facing v3
+# window-citation draw. `CorrectionDrawV3CitationV2` is an INDEPENDENT
+# strict model, not a field-deleted view of `CorrectedGeometryV3` (v2.1
+# §4.2: "它应是独立 strict Pydantic model，不是从 full model dump schema
+# 后临时删字段"). It reuses `FloorV3`/`CellV3` unchanged — window/z/cell
+# geometry are out of this batch's scope (v2.1 §0: "本批只改 Window.span
+# 的 world-along authority") — but replaces `Window`/`WindowV3` with
+# `WindowCitationV2`, which structurally CANNOT carry `span`, a derived
+# `floor` echo, or `facade_segment_id`: the model has no field for them at
+# all, so a payload that supplies one is a pydantic `extra="forbid"`
+# violation (backstopped by the raw-key preflight in
+# `parse.parse_raw_correction_draw`, which gives it the stable
+# `producer_window_span_populated` code before pydantic's generic error —
+# v2.1 §4.2).
+#
+# S0 ONLY defines these types and leaves them fully unwired: nothing in
+# `pipeline.py`, `finalize.py`, `window_sources.py`, or any live production
+# path constructs, accepts, or dispatches on `CorrectionDrawV3CitationV2`
+# yet (v2.1 §10 S0: "均先不接 live production"). Wiring the live prompt/
+# parser onto this type is S3/S4.
+# ---------------------------------------------------------------------------
+
+DRAW_CONTRACT_VERSION_V3_CITATION_V2 = "correction_draw_v3_window_citation_v2"
+
+
+class WindowCitationV2(BaseModel):
+    """Raw, model-facing v3 window: an evidence citation, not a geometry
+    claim (v2.1 §4.2). No `span`, no `floor` (echoed or otherwise), no
+    `facade_segment_id` — those are code-authored outputs of hydration
+    (v2.1 §8), never legal draw input. `provenance` reuses the exact same
+    `FieldProvenance` claim shape `WindowV3.provenance` already uses — v2.1's
+    raw wire example (§4.2) is wire-identical to it; only the ENCLOSING
+    window no longer carries the fields that made a citation self-referential.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+    id: str
+    floor_id: str
+    facade: Literal["North", "South", "East", "West"]
+    z: list[float]  # [sill, head] world
+    room: str | None = None  # cell id this window belongs to
+    provenance: dict[str, FieldProvenance] | None = None
+
+    @field_validator("facade", mode="before")
+    @classmethod
+    def _normalize_facade(cls, v):
+        if isinstance(v, str):
+            return _FACADE_ALIASES.get(v.strip().lower(), v)
+        return v
+
+    @field_validator("provenance")
+    @classmethod
+    def _claims_vocab(cls, value):
+        if value is not None and not set(value).issubset(WINDOW_CLAIMS):
+            raise ValueError("window provenance keys must be opening-claim vocabulary")
+        return value
+
+
+class CorrectionDrawV3CitationV2(BaseModel):
+    """The raw v3 draw wire a live model may legally produce under F-9
+    route② (v2.1 §4.2). Deliberately does NOT subclass `CorrectedGeometry`/
+    `CorrectedGeometryV3`: v2.1 §4.2 requires an independent strict model so
+    the absence of `span`/`floor`/`facade_segment_id`/`facade_segments`/
+    `north_axis` is structural (a field that does not exist on this class),
+    not a permissive base-class field that merely happens to be unset.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+    schema_version: Literal["3"]
+    draw_contract_version: Literal["correction_draw_v3_window_citation_v2"]
+    footprint_x: list[float]
+    footprint_y: list[float]
+    floors: list[FloorV3] = Field(min_length=1)
+    windows: list[WindowCitationV2] = Field(default_factory=list)
+    corrections: list[dict] = Field(default_factory=list)
+    conflicts: list[dict] = Field(default_factory=list)
+    unsupported: list[dict] = Field(default_factory=list)
+    notes: str | None = None
+
+    @model_validator(mode="after")
+    def _raw_integrity(self):
+        ids = [fl.id for fl in self.floors]
+        if any(not value for value in ids) or len(ids) != len(set(ids)):
+            raise ValueError("v3 floor ids must be non-empty and globally unique")
+        by_id = {fl.id: fl for fl in self.floors}
+        for win in self.windows:
+            if win.floor_id not in by_id:
+                raise ValueError(f"window {win.id}: unknown floor_id {win.floor_id}")
+        # No `window_host_resolution` audit rows: that kind is Vg/host
+        # resolver OUTPUT (finalize.py), never legal raw draw input — the
+        # same restriction `parse.parse_correction_draw`'s b2 gate already
+        # enforces for full `CorrectedGeometryV3`, restated here because
+        # this raw model has no `facade_segments`/`north_axis` fields to
+        # hang that check off of at the container-field level.
+        for row in [*self.corrections, *self.conflicts, *self.unsupported]:
+            if isinstance(row, dict) and row.get("kind") == "window_host_resolution":
+                raise ValueError("raw draw must not carry window_host_resolution audit rows")
+        return self

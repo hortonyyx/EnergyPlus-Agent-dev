@@ -419,6 +419,26 @@ def test_render_grade_draws_boundary_hit_green_from_sidecar():
     assert img.getpixel(_plan_px(2.0, 0.0)) == render_grade.GREEN
 
 
+def test_render_grade_draws_boundary_within_tol_orange_from_sidecar():
+    """F-22: the plan boundary renderer previously only ever drew GREEN
+    (any read is not None) or RED-dashed (read is None) — there was no
+    orange tier even though wall segments already have one. This is a
+    positive lock that the renderer actually consumes the new `status`
+    field (dispatch §3.3: "渲染...要真的用上")."""
+    sidecar = _sidecar()
+    sidecar["scores"]["1f_view"]["boundary"] = {
+        "S": {"truth": 0.0, "read": 0.12, "delta": 0.12, "status": "within_tol"},
+        "N": {"truth": 4.0, "read": 4.0, "delta": 0.0, "status": "complete"},
+        "W": {"truth": 0.0, "read": 0.0, "delta": 0.0, "status": "complete"},
+        "E": {"truth": 10.0, "read": 10.0, "delta": 0.0, "status": "complete"},
+    }
+
+    img = render_grade.render_grade("0_reading", sidecar, _gt())
+
+    assert img.getpixel(_plan_px(2.0, 0.12)) == render_grade.ORANGE
+    assert img.getpixel(_plan_px(2.0, 0.12)) != render_grade.GREEN
+
+
 def test_render_grade_draws_boundary_miss_red_dashes_from_sidecar():
     sidecar = _sidecar()
     sidecar["scores"]["1f_view"]["boundary"] = {

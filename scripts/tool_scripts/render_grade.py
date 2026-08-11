@@ -443,8 +443,11 @@ def _draw_plan_boundary(
             continue
         coord = float(read if read is not None else truth)
         p1, p2 = _boundary_line(tr, W, D, side, coord)
-        if read is None:
+        status = match.get("status")
+        if read is None or status == "miss":
             _dashed(d, p1, p2, RED, 5, dash=7, gap=4)
+        elif status == "within_tol":
+            d.line([p1, p2], fill=ORANGE, width=5)
         else:
             d.line([p1, p2], fill=GREEN, width=5)
 
