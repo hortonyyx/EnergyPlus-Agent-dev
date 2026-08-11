@@ -1,11 +1,13 @@
-# F-9 治本设计稿 v2 · 路线②：模型只指认证据，代码换算、验真与落位
+# F-9 治本设计稿 v2.1 · 路线②：模型只指认证据，代码换算、验真与落位
 
-> **状态**：设计稿 v2，2026-08-10，待对抗审；通过前不得施工。
+> **状态**：设计稿 v2.1，2026-08-10，待返工轻门复核；通过前不得施工。
 > **拍板边界**：沿用用户 2026-08-09 在 `decision_log.md §5.15` 选择的路线②。
 > **版本说明**：v1 于 2026-08-09 被交叉审判为 **REWORK**（3 BLOCKER / 5 MAJOR / 1 MINOR）。
 > v2 不继承 v1 正文；关键改动是：补上独立证据身份门，拆开 raw / authenticated / hydrated / full
 > 合同，禁止提权 advisory frame，改用 current-ring projector，先 shadow 再启用 detector，最后原子
 > cutover；同时补齐历史 v3 producer artifact 的版本边界与 per-floor / z-band 扩展接缝。
+> v2.1 仅补对抗审的 MAJOR-1 / MINOR-1：显式 local-z datum 与 scope 归属合同，以及让 0.300 m
+> 阈值可观测的正向/跨阈值锁；不重开路线、阶段或分工。
 
 ---
 
@@ -293,7 +295,8 @@ host resolver 只消费该 decision。`existence` 没有被旁路，`along` 也�
 2. 把 model-facing ref 翻译为 `src:<64hex>`；
 3. 校验 locator、reading output hash、claim permission、manifest observability、floor order；
 4. 严格归一 elevation direction / mirror；
-5. 按 `(floor scope, facade family)` 建 plan/elevation 候选域；
+5. 先按 §7.3 独立解析 elevation source/window 的唯一 `scope_id`，并校验 plan 的 authenticated
+   `floor_ref == scope.floor_id`，再按 `(scope_id, facade family)` 建 plan/elevation 候选域；
 6. 产出绑定 raw draw hash 的 `VerifiedWindowResolverInputsV2`。
 
 任何 raw reading / manifest / hash 不一致是 `input_integrity_error`；任何模型虚构、错 scope、重复、越权
@@ -321,13 +324,19 @@ window_evidence_pairing_tol_m = 0.300
 通过条件不是“有一点 overlap”，而是同时满足：
 
 1. 每个 cited `E_i` 的 `d(P,E_i) <= window_evidence_pairing_tol_m`；
-2. 对每个 `E_i`，在它所属 elevation view 的同 floor/facade elevation 候选与 plan 候选之间，cited
-   `(P,E_i)` 是唯一 mutual-nearest pair：`E_i` 是该 view 内离 `P` 最近的 elevation，`P` 也是离
-   `E_i` 最近的 plan；不同 elevation view 不互相竞争，因而同一 `P` 可被多 view 独立佐证；
+2. 对每个 `E_i`，在它所属 elevation view 的同一已解析 `scope_id` / facade 候选域内，cited
+   `(P,E_i)` 是唯一 mutual-nearest pair：`E_i` 是该 view + scope 内离 `P` 最近的 elevation，`P` 也是该
+   scope 的同 `floor_ref` plan 域中离 `E_i` 最近的 plan；不同 elevation view 不互相竞争，因而同一
+   `P` 可被多 view 独立佐证；
 3. 最优与次优距离之差大于纯数值 ambiguity epsilon；
 4. 全 draw 的 position source 分配无重复；
 5. plan 的 plane interval、floor_ref 与 model 的 floor/facade/host claim 一致；
-6. elevation direction、floor/z scope 与 window 一致。
+6. 每个 elevation source 与 window 均按 §7.3 独立解析到唯一 scope，二者 `scope_id` 一致；plan 的
+   authenticated `floor_ref` 必须等于该 scope 的 `floor_id`，elevation direction 也与 window facade 一致。
+
+scope 过滤必须发生在距离计算和 mutual-nearest 排名之前；其他楼层/z-band 的 stroke 不进入该 window
+的“次优候选”，不能先制造同分再报 ambiguity。反过来，代码也不得拿 window 的 citation 或 plan 距离
+替 elevation source 猜 scope。
 
 全 catalog 只用于验证 cited pair 是否在上述 view-scoped 候选域中唯一最佳。若代码发现 `P` 与同一
 view 的另一个未引 `E*` 更匹配，结果是 `position_evidence_pair_mismatch`；绝不能把 `E_i` 改成
@@ -420,7 +429,8 @@ project_affine_interval(frame, local_interval)
 
 - plan adapter 返回已经在 world frame 的 interval，并附带 plane evidence；
 - elevation adapter 唯一调用 `project_affine_interval`；
-- 返回统一 `ProjectedAlongEvidenceV1`，保留 channel、locator、frame hash、scope hash；
+- 返回统一 `ProjectedAlongEvidenceV1`，保留 channel、locator、frame hash、已解析 `scope_id` /
+  scope hash，以及 elevation 的 projected world-z interval；
 - 穷尽分派未知 channel，不能 fallback。
 
 这是“一处公开入口、一份 elevation 公式”，不是假装 plan/elevation 没有类型差异。
@@ -438,8 +448,10 @@ ElevationViewProjectionBindingV2
   input_id
   resolved_building_direction
   world_axis / sign / mirrored / local_x_positive
-  datum_mode
+  datum_mode                         # 仅指 local-x / along datum
   along_origin
+  z_datum_mode                       # world_z | floor_local_z
+  source_scope_assignments[]         # authenticated {observation_id, scope_id}
   datum_geometry_sha256
   scopes[]
 
@@ -447,16 +459,21 @@ ElevationProjectionScopeV1
   scope_id
   floor_id
   z_band_id + world_z_interval
+  z_origin_world_m                   # 仅 floor_local_z scope 必填
   source_footprint_fingerprint
   candidate_facade_segment_ids[]
   visible_regions_along_z[]
   scope_sha256
 ```
 
-`datum_geometry_sha256` 哈希 view datum 所依赖的全部 per-floor projection facts；它不是“任选第一层
-fingerprint”。每个 scope 自带 floor/z-band fingerprint、segments、depth/visibility 适用域。
+`datum_geometry_sha256` 哈希 view datum 所依赖的全部 per-floor projection facts，以及
+`z_datum_mode`、每个 scope 的 z origin 和 source-scope assignment；它不是“任选第一层 fingerprint”。
+每个 scope 自带 floor/z-band fingerprint、segments、depth/visibility 适用域。`z_datum_mode` 与
+source-scope assignment 只能来自已认证 reading manifest / orientation sidecar 或版本化 adapter 合同；
+scope 的 world interval/origin 才由 current-ring context 供给。两类事实都入 hash，模型不得填写或覆盖，
+context 也不得靠数值拟合反推 mode。
 
-### 7.2 当前 datum mode
+### 7.2 当前 local-x datum mode
 
 当前 cardinal full-elevation adapter 明确声明
 `datum_mode="view_global_projected_envelope"`：同一张 elevation 的 local x=0 对应整栋投影域的一个
@@ -467,7 +484,60 @@ footprint 相同时它与现行结果一致，但 binding 本身不比较“所�
 `datum_mode="floor_z_band_reset"`，origin 随 scope 存储并升 binding 版本。没有声明时 typed
 `projection_datum_unresolved`，绝不猜。
 
-### 7.3 复杂体量逐项
+### 7.3 local-z datum 与 scope 唯一归属
+
+local-z 与 local-x 对称地 fail closed。`ElevationViewProjectionBindingV2` 必须是按
+`z_datum_mode` 判别的 strict variant，当前只接受：
+
+- `world_z`：canonical `local_z` 已是绝对世界 z，`Z_world(source) = sort(local_z)`；scope 不得携带
+  `z_origin_world_m`。
+- `floor_local_z`：每条进入 window-position 候选域的 elevation observation 必须在 authenticated
+  `source_scope_assignments` 中恰有一个 `scope_id`，对应 scope 必须携带有限的
+  `z_origin_world_m`，且 `Z_world(source) = sort(local_z + z_origin_world_m)`。assignment 必须在看见
+  model citation 之前形成，不能用“离哪个 window.z 最近”补齐。
+
+当前 cardinal full-elevation adapter 只有在其版本化 reading 合同或 authenticated sidecar 明文承诺时，
+才可把 `z_datum_mode="world_z"` 写进 binding；今天产物的 local-z 数值恰等于 world-z 不能充当这份声明。
+历史输入若没有可认证声明，先报 typed block，不能为通过 replay 临时补默认值。
+
+这两个 mode 都承诺 canonical local-z 正方向向上；方向未知或为 image-down 的输入不能偷套任一 mode，
+必须由新 adapter/version 显式归一。`z_datum_mode` 缺失/未知、`floor_local_z` 少 assignment 或 origin 时均
+typed `projection_datum_unresolved`，不得因数值恰似世界 z 而默认 `world_z`。
+
+scope 归属按以下机械规则执行。冻结纯数值边界量
+`projection_scope_epsilon_m = 1e-9`；它不是测量容差，绝不能借用
+`window_evidence_pairing_tol_m`：
+
+```text
+contained(I, S) :=
+  S.world_z_interval.lo - projection_scope_epsilon_m <= I.lo
+  and I.hi <= S.world_z_interval.hi + projection_scope_epsilon_m
+```
+
+1. 所有 elevation source/window z interval 先排序并要求有限、正高度。window 的 `z` 继续按现合同解释为
+   world-z。plan observation 没有 z interval，不为它发明 z datum；它只在 authenticated `floor_ref` 等于
+   resolved scope 的 `floor_id` 时进入该 scope 的 plan 候选域。
+2. `world_z` source 在该 view coverage 的 scopes 中用 `contained(Z_world(source), scope)` 求 eligible set；
+   `floor_local_z` source 先用 authenticated assignment 选 scope、应用该 scope origin，再反查 full
+   containment。source 的解析独立于任何 window。
+3. window 只在 `floor_id` 相同、facade/segment coverage 适用且 full-contain 其 world-z interval 的 scope
+   中求 eligible set。source 与 window 都必须各自唯一解析，之后才比较 `scope_id` 并建立 §5.3 的候选域。
+4. interval 按闭区间判定：端点恰落 scope 边界可算 contained；仅相交或仅触碰一个边界但没有全包含，
+   一律不算。跨边界 stroke 不按 midpoint、overlap 长度或最近 floor 拆派，必须有能全包含它的显式
+   cross-band scope。
+5. eligible set 为空时 typed `projection_scope_unresolved`；多于一个时 typed
+   `projection_scope_ambiguous`。重叠 scope 不取第一项、不选最窄/最大 overlap；只有 authenticated
+   source-scope assignment 可为 source 消歧，window 若仍多解则 fail closed，等待 trusted z-band anchor
+   或 binding 版本升级。
+
+datum/source scope 本身不能唯一解析属于 upstream evidence block。binding/source 可解而 model-authored
+window floor/z 落入零 scope，是 `position_evidence_authority_invalid`；window 因 trusted scopes 重叠而
+多解且没有 trusted z-band anchor，仍是 upstream evidence block。若 source 与 window 各自唯一、但
+`scope_id` 不同，则 cited pair 是 `position_evidence_pair_mismatch`，归 model draw error。这样真实
+East_view/S3 与 S4 虽有逐位相同的 along interval，也会先分别落入二层/一层 scope，不在同一
+mutual-nearest 竞争域中。
+
+### 7.4 复杂体量逐项
 
 - **退台**：各层 scope 可有不同 fingerprint、extent、candidate segments；view-global origin 不随层漂。
   可见性由 `along × z` regions 限定，不再是一条全楼共享 1D interval。
@@ -500,8 +570,10 @@ raw_draw_canonical_bytes
 ```
 
 `WindowPositionDecisionV1` 的 preimage 包含 raw hash、resolver hash、plan/elevation locators、两个投影
-interval、frame/scope hashes、distance、tolerance name/value、decision 与 derived span；不包含自身 hash
-或 final output hash。Hydrator把 decision hash 写入 code-owned audit 后再算 `hydrated_geometry_sha256`，
+interval、frame/scope hashes、`z_datum_mode`、elevation source/window 的 resolved `scope_id` 与
+projected world-z interval、plan `floor_ref`、distance、tolerance name/value、decision 与 derived span；
+不包含自身 hash 或 final output hash。Hydrator把 decision hash 写入 code-owned audit 后再算
+`hydrated_geometry_sha256`，
 所以没有循环。
 
 `WindowResolverInputsArtifactV2` 内嵌：raw draw canonical bytes、raw manifest bytes、raw reading bytes、
@@ -588,7 +660,7 @@ hydrate → core/envelope → host/evidence，并逐对象比 hash。任一 `Non
 | authority 缺失、额外 plan、跨 claim 不一致、source 复用 | `position_evidence_authority_invalid` | model draw | `correction.window_position_evidence` FAIL；归档本 attempt；外层盲重抽 |
 | cited pair 非唯一最佳、明显错配 | `position_evidence_pair_mismatch` | model draw | `correction.window_position_evidence` FAIL；归档本 attempt；外层盲重抽 |
 | catalog 根本缺 plan/elevation，或候选固有同分 | `position_evidence_insufficient` | upstream evidence | typed `input_evidence_blocked`；不重抽 correction |
-| mirror/datum/scope 未解析 | `projection_datum_unresolved` | upstream evidence | 同上；需要补 reading/manifest/sidecar |
+| mirror/along-or-z datum/source scope 未解析 | `projection_datum_unresolved` / `projection_scope_unresolved` / `projection_scope_ambiguous` | upstream evidence | 同上；需要补 reading/manifest/sidecar；绝不猜 mode、origin 或 scope |
 | raw manifest/reading/hash 被换 | `source_identity_invalid` | input integrity | hard fail；不归档成模型错 |
 | hydration/hash/decision 被改 | `position_hydration_identity_drift` | invariant | no geometry commit；hard fail |
 | envelope candidate 才制造 mismatch | `position_evidence_post_transform_mismatch` | deterministic transform | reject candidate；保留 before；不得重抽模型 |
@@ -743,7 +815,7 @@ import gt-free convention，但 frame datum、GT bindings 与 expected truth tab
 | Raw projection context | raw 无 span；footprint/floor/wall 非空且 ring 手算可成；context hash 非空 | hydration 前 current-ring context PASS，且绑定 raw/resolver hash | 给 context builder 传 full model、补 placeholder span 或改用 finalize/advisory 时，structure/path 锁红 |
 | Convention truth | 手写 4 facade × 2 mirror × 2 local-direction expected；lo/hi 非零 | 每格 axis/sign/origin 精确；`"true"/"false"/"unknown"` 边界 | 任一 live consumer 恢复本地 table/XOR，AST structure lock 或真实路径锁红 |
 | Advisory 隔离 | F-9 数字先断言 overall-W 与 current-ring 结果确实差 0.12 | authoritative artifact 只能带 current-ring frame kind；advisory 类型传入 enforcement 必须 type/error FAIL | 把 advisory frame 注入 hydrator，锁红；两边都 `None` 禁止 |
-| Pair positive | plan/elevation refs 都独立存在；手算 endpoint distance ≤ 0.300 且逐 view 唯一 mutual-nearest；另有两 view 同证一 plan | `correction.window_position_evidence` PASS；decision 逐 view 列出 authority/corroborator/hash | 删除 view scope、mutual-nearest 或 endpoint gate，各自有专用多 view/阈值/歧义夹具转红 |
+| Pair positive | plan/elevation refs 都独立存在；老 F-9 ring 手算 `d=0.12`、现代产物 15/15 手算 `d=0`；另有 `d=0.29/0.31` 阈值对照、两 view 同证一 plan，以及同 view/同 along/仅 z 不同的跨楼层双 stroke | 两个真实 regime 都 PASS；`0.29` PASS、`0.31` 报 pair mismatch；z 双 stroke 各自只和 `floor_ref == scope.floor_id` 的本层 plan 配对；decision 逐 view 列出 authority/corroborator/frame/scope hash | 把 0.300 改至 0.28/0.32、删除 endpoint gate、z-scope 预过滤、mutual-nearest 或 view scope，各有专用夹具转红；删 `z_datum_mode` 或 floor-local assignment 必须 typed block，不能默认 world-z |
 | F-9 mirror negative | `W-F1-N-1` plan `[1.24,3.64]`；S7 current-ring 投影 `[1.12,3.52]`；S5 `[11.24,13.64]`，先断言前者在带内、后者超带 | 只把 cited elevation S7 换成合法 S5，报 `position_evidence_pair_mismatch`，check-id 精确为 `correction.window_position_evidence` | 测试 double 伪造 detector PASS 后，后续不得由另一份重复 projector 先挡；整条路径应能继续，证明真正承重门就是 detector |
 | Hydration positive | raw 无 span、decision 非空、id totality 相等 | full span 精确 `[1.24,3.64]`；`floor` derived；segment 仍空；`correction.window_position_hydration_identity` PASS | 不写 span、改从 elevation/advisory 写、交换两窗 decision，分别转红 |
 | Final attributes | 非对称 North + West；South + East 控制；至少两房间 | 逐 window id 断言 `span`, `room`, `facade_segment_id`, host resolution source locators, decision hash；不准只比集合 | 交换两窗 room/segment 时必须红，即使 span 集合不变 |
@@ -756,6 +828,14 @@ import gt-free convention，但 frame datum、GT bindings 与 expected truth tab
 
 当前 correction/full wire 没有 `host_zone_id` 字段；逐属性锁以真实存在的 `room`、
 `facade_segment_id` 和 `WindowHostResolutionV2.room_id` 为准，不得为了对齐文案发明一个未接线字段。
+
+`Pair positive` 至少拆成三把命名子锁，不能把多个前提揉成一次“最终 PASS”：① z-scope 锁固定同一
+view、相同 along、world-z 分属两层的两条 stroke，断言先解析 scope 再排名；neuter scope filter 后必须
+因同分/错配转红；另用 `floor_local_z` + 非零 per-scope origin 固定按层归零的输入，缺任一 source assignment
+即红。② regime 锁同时保留老夹具的非零带内样本 `d=0.12` 与今天现代产物的零差样本 `d=0`，证明
+既没有只接受 exact-zero，也没有为 zero 特判。③ threshold 锁用除 endpoint 残差外完全相同、expected
+由冻结 raw 数值手算的 `d=0.29` / `d=0.31` 两格，固定 `<= 0.300` 的放行/拦截边界；把配置改到
+`0.28` 或 `0.32` 至少一格必须红。任何 expected 都不得调用 production projector 生成。
 
 ### 12.3 F-9 真夹具的具体 oracle
 
@@ -866,11 +946,21 @@ S4 commit / release，不能在单次 run 中 fallback。已经生成的 V2 arti
 **本轮没有运行任何 Python/pytest/几何探针，也没有运行全仓测试。** 因而不存在可标为“本轮运行
 实测”的新算法结论；上面的 runtime 数字全部来自必读材料中的既有实测。
 
-### 14.3 未能验证清单
+### 14.3 审裁新增实测与剩余未验证
 
-- 未统计真实/历史 v3 draw 中满足“唯一 plan + 至少一 elevation existence、same plan along/host”的比例。
-- 未对全 corpus 测 `0.300 m + unique mutual-nearest` 的误拒/误放率。
-- 未验证多 elevation corroborator、重复窗、同投影不同 depth、跨楼层同 x 的 pairing 行为。
+对抗审已机械关闭以下三项；口径严格限定为**今天盘上的一份语料（1 个 case / 15 扇窗）**，不是代码
+保证或“模型永远如此”的不变量证明，施工期 targeted replay 仍须保留：
+
+- 15/15 都满足唯一 plan + 至少一条 elevation existence；`along` / `host` 也都指向 existence 中那条
+  唯一 plan，且 position source 零复用。因此 §5.1 的新 citation 规则不误伤这份现产物。
+- 15/15 的 endpoint `d` 都恰为 `0.0000 m`，在 0.300 m 配置下对这份语料零误拒；这份语料没有
+  `(0, 0.300]` 内样本，故不能独自赋予阈值分辨力，§12.2 仍以 `0.12` 与 `0.29/0.31` 专锁承载该证明。
+- 跨楼层同 along 不是假设：真实 East view 已有 S3/S4，二者 along 相同、仅 z 不同；这正是 §7.3
+  z-datum/scope 规则与对应 targeted replay 必须承重的现产物样本。
+
+剩余未验证项：
+
+- 未验证多 elevation corroborator、重复窗、同投影不同 depth 的 pairing 行为。
 - 未验证下游是否要求 model-authored `window.id` 跨 run 稳定；若要求，plan-locator physical key 不足以
   完成业务 identity 迁移。
 - 未验证 reading 的 elevation local-x datum 在所有来源中都确为 view-global，而非某些图按 floor 重置。
