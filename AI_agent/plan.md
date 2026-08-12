@@ -137,6 +137,67 @@ unevaluated_conditions = []
 ② **一处真实行为收紧** —— z 数据缺失（`not_declared`）的被引源，补齐前被两道守卫都放过而静默 accepted，
 补齐后改判 rejected；它认定这是正确收紧（否则「省略 z 就能跳过条件 2/3」）。
 
+### 〇-A5、⭐⭐⭐ **sol 第三轮 = 主体全量实审完成（规矩分层生效）· CHANGES REQUIRED · 1 BLOCKER / 6 MAJOR / 5 MINOR / 1 NIT**
+
+[裁决书](logs/reviews/verdict/2026-08-12_round3_full_body_crossreview_sol.md) ·
+[请求书](logs/reviews/request/2026-08-12_round3_full_body_crossreview_sol.md)
+
+**⭐ 规矩分层生效**：前两轮都停在外围论据错上、主体零审阅；第三轮把
+「① 承重前提错⇒停 · ② 外围论据错⇒报告后继续」写在请求书最前面，
+**五项主体全部实审完毕、未停单**。sol 独立复现 2557 绿 + rc=0 + compileall + `git diff --check`。
+
+**⛔ 落库意见（sol）**：**这两笔提交不能签为主体复审通过。**
+`BLOCKER-1` 必须先闭合；MAJOR-1/2、B2/B3 是 S3/S4 硬前置；C1 必须纠正观测语义；
+F-24 必须在**首次产生可复用 schema-10 cache 之前**闭合。
+
+#### ⛔⛔ BLOCKER-1 仍未关闭 —— **印章是「自报」不是 provenance**
+
+写入端**做对了**（sol 逐条确认：唯一 return 前无条件覆盖写、伪值被盖掉、
+schema 严格建模、trust 判据真读 live core version、两份真实历史产物确实被拒判、
+条件盖章 mutant 让两把零位移锁转红）。**但字段在产品自己身上。**
+
+**两级反例（orchestrator 已核实）**：
+1. 往 F-17 翻转前真实产物**手加一行** `"deterministic_core_stamp": {"version": "1"}`
+   ⇒ `trusted=False` → `trusted=True`，两层 boundary 变 `4/4`。
+2. **更狠**：伪造 `[0,4]²` producer 重签成 `[0.12,3.88]²` 的**内部自洽**候选
+   （重物化 Vg、重算 feature/host/candidate identity/evidence）
+   ⇒ **真实 `StageRunner.record` 接受并持久化了伪造几何**。
+   根因 = `stage_runner.py:309-383` 从 embedded producer 重放了 core，
+   **但只拿 replayed windows 去核 audit/host，从不比较 replayed footprint/floors/cells 与候选**。
+
+> ⭐ **判别问法：「这个字段，被评判的一方能不能自己写？」能写 ⇒ 最多叫 `declared`，绝不能叫 `trusted`。**
+> ⇒ 与既有判据 [[freeze-only-what-has-external-trust-root]] 同一条，**换了个壳又被违反一次**。
+
+**⛔ 连带**：施工席的锁 `test_neuter_restoring_stamp_flips_judge_back_to_accept`
+**把这个 bug 写成了正向预期** ⇒ **锁越完备，越会把错误的语义固化下来**（「谁写谁不批」的又一实证）。
+
+**✅ sol 给的修法方向（可直接出施工单，四步）**：
+① writer 重放后对 **core-owned projection** 做规范化等价/哈希比较
+（footprint / 每层 ring・cells / core 后 window span・floor / corrections・conflicts・unsupported / stamp；
+若 host/finalize 会合法改 window 字段，先定义不含 final-owned 字段的 `DeterministicCoreOutputV1`）；
+② **由 writer 在重放成功后签发** `deterministic_core_proof{core_version,input_hash,core_projection_hash}`
+并绑进 accepted manifest —— ⛔ 不能由候选自己提供；
+③ **scorer 只认 manifest 上已验证的 proof**；裸 dict 的内嵌 stamp 最多叫 `declared`，
+无外部 proof 时 boundary/wall-extent 应保持 **unavailable**；
+④ 补一把**真实 `StageRunner.record` 锁**：内部自洽但与 replay 不同的候选，
+必须在 **accepted pointer 移动之前**稳定失败。
+
+#### 其余四项主体
+
+| 主体 | 裁定 |
+|---|---|
+| **F-9 S2** | 两条指定生产入口**接线为真**、条件 2/3/4 **已按行为补上** ✅ **但完整 S2 仍不能签收**：**条件 5 实际未实现却被声明为 evaluated**（⚠️ 比 orchestrator 抓的 `MAJOR-B2`「声明未绑定行为」更重 —— **今天就已经是假的**）· coverage 仍来自手写常量 · `not_declared` z 的错误归因 · **`validate_case` 第三入口未接线** |
+| **标注法观测（摊 C）** | 纯观察接线与四个机器状态**都在** ✅ **但核心语义不成立** ⇒ `MAJOR-C1`：把整个 `(0.01, 0.30] m` 区间**统统命名为 `outer_skin_annotation`**，**没读墙厚、没验「约半墙厚」** ⇒ `0.02` / `0.12` / `0.29` 得到同一解释。**而该摊的全部目的就是让人看到正确解释。** |
+| **F-23（摊 D）** | 方向与定性**成立** ✅ 实现**不等于**测试名声称的 byte-for-byte ⇒ `MINOR-D1`：同尺寸内容改写后**还原 `mtime_ns`**，内容 SHA 变而 metadata fingerprint **完全不变** |
+| **上轮 7 条** | ✅ **关闭 4 条**：MAJOR-3 · MINOR-1 · MINOR-2 · NIT-1 ｜ ⛔ **仍开**：MAJOR-1 · MAJOR-2 ｜ MINOR-3 转为**有明确 cutover 截止点的 compatibility debt** |
+
+**新 `MINOR-A1`**：拒判中 `boundary_complete` **仍单项显示 PASS** ——
+`score_policy.py:249-303` 把 `boundary=None` 计成 `0/0`，`missed_boundary==0` ⇒ `pass`。
+（整体没伪装成全对：`walls_complete=severe` + `score_evidence_completeness=severe`。）
+
+**⛔ sol 纠正 orchestrator 一个数字**：轻门报「换方向 neuter 18 红」，
+sol 实测 `_is_unique_nearest` 恒真 ⇒ **8 failed / 55 passed**。**以 sol 的为准。**
+
 ### 〇-B、⛔ **摊 B（F-9 S2）的 mutual-nearest 缺口 —— orchestrator 已查实，不是判断题**
 
 施工席自陈第 1 条：「跨 catalog 唯一最佳匹配（mutual-nearest）未实现……如果 S3 的验收口径要求这条
