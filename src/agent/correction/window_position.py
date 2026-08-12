@@ -544,6 +544,76 @@ discrete decision a future `floor_local_z` mode could replace — not a bare
 numeric coincidence nobody could see or test.
 """
 
+PAIRING_AMBIGUITY_EPSILON_M: float = 1e-9
+"""v2.1 §5.3 condition 3: "最优与次优距离之差必须大于纯数值 ambiguity
+epsilon". A FROZEN, PURE-NUMERIC safety margin against floating-point/exact-
+tie coincidence in the mutual-nearest ranking below (see
+`_rank_candidates_by_distance`) — explicitly NOT a measurement tolerance
+(unlike `WINDOW_EVIDENCE_PAIRING_TOL_M`) and NOT borrowed from
+`PROJECTION_SCOPE_EPSILON_M` (that one governs z-scope closed-interval
+containment, a structurally different comparison this constant never enters).
+Same order of magnitude as `PROJECTION_SCOPE_EPSILON_M` for the same reason:
+both exist only to reject exact/near-exact numeric coincidence, not to
+express physical measurement uncertainty — §12.2's own "Pair positive" lock
+table forbids conflating this with the 0.300 m band."""
+
+
+# ---------------------------------------------------------------------------
+# MAJOR-B1 (`AI_agent/logs/reviews/verdict/
+# 2026-08-12_round2_blocker1_and_bcd_crossreview_sol.md`): a named, versioned
+# declaration of WHICH of v2.1 §5.3's six numbered pass conditions this
+# module's shadow decision actually evaluates — sol's finding was that the
+# shadow reported an unqualified `accepted`/`PASS` while covering only a
+# SUBSET of the ruleset, with no machine-readable way for a consumer to tell.
+# `WindowPositionEvidenceShadowReportV1.evaluated_conditions`/
+# `.unevaluated_conditions` must EXACTLY partition `ALL_POSITION_EVIDENCE_
+# CONDITIONS` (its own validator enforces this), and a report cannot claim
+# `all_accepted=True` while `unevaluated_conditions` is non-empty (same
+# validator) — so a FUTURE partial re-implementation that again narrows
+# coverage is structurally prevented from silently looking like a clean PASS,
+# not just discouraged by a comment.
+# ---------------------------------------------------------------------------
+
+POSITION_EVIDENCE_CONDITION_DISTANCE_TOLERANCE: str = "distance_within_tolerance"
+POSITION_EVIDENCE_CONDITION_UNIQUE_MUTUAL_NEAREST: str = "unique_mutual_nearest"
+POSITION_EVIDENCE_CONDITION_AMBIGUITY_MARGIN: str = "ambiguity_margin"
+POSITION_EVIDENCE_CONDITION_SOURCE_NOT_REUSED: str = "source_not_reused"
+POSITION_EVIDENCE_CONDITION_CLAIM_CONSISTENCY: str = "claim_consistency"
+POSITION_EVIDENCE_CONDITION_SCOPE_RESOLUTION: str = "scope_resolution"
+
+ALL_POSITION_EVIDENCE_CONDITIONS: tuple[str, ...] = tuple(sorted((
+    POSITION_EVIDENCE_CONDITION_DISTANCE_TOLERANCE,
+    POSITION_EVIDENCE_CONDITION_UNIQUE_MUTUAL_NEAREST,
+    POSITION_EVIDENCE_CONDITION_AMBIGUITY_MARGIN,
+    POSITION_EVIDENCE_CONDITION_SOURCE_NOT_REUSED,
+    POSITION_EVIDENCE_CONDITION_CLAIM_CONSISTENCY,
+    POSITION_EVIDENCE_CONDITION_SCOPE_RESOLUTION,
+)))
+"""v2.1 §5.3's six numbered conditions:
+1 = `distance_within_tolerance`, 2 = `unique_mutual_nearest`,
+3 = `ambiguity_margin`, 4 = `source_not_reused`, 5 = `claim_consistency`
+(plan plane-interval/floor_ref consistent with the window's own floor/facade
+claim — enforced below as a side effect of the family-consistent plan-domain
+filter itself, since a plan candidate that fails family-consistency cannot be
+the argmin of its own domain), 6 = `scope_resolution` (this module's
+pre-existing z-scope resolution + floor match)."""
+
+POSITION_EVIDENCE_RULESET_VERSION: str = "f9_route2_s2_position_evidence_ruleset_v2"
+"""Bumped from the implicit, never-declared "v1" (distance + scope only) the
+moment conditions 2/3/4 below were added. Any future change to WHICH
+conditions are evaluated must bump this string too — it is part of every
+report's identity, not decoration (see `WindowPositionEvidenceShadowReportV1`
+below, where it sits alongside `evaluated_conditions`/`unevaluated_
+conditions` in the coverage declaration MAJOR-B1 requires)."""
+
+CURRENTLY_EVALUATED_POSITION_EVIDENCE_CONDITIONS: tuple[str, ...] = ALL_POSITION_EVIDENCE_CONDITIONS
+CURRENTLY_UNEVALUATED_POSITION_EVIDENCE_CONDITIONS: tuple[str, ...] = ()
+"""What `compute_window_position_evidence_shadow` actually evaluates today,
+post-MAJOR-B1: all six. Kept as its own pair of named module constants (not
+inlined at the report-construction call site) so there is exactly ONE place
+to edit if a future change narrows coverage again — forcing that edit to be
+an honest, visible declaration change, not a silent drop from the evidence."""
+
 
 def _validate_window_evidence_pairing_tolerance(*, envelope_reconcile_tol_m: float) -> None:
     """v2.1 §5.3's required cross-field bound, executed every time shadow
@@ -844,6 +914,18 @@ class WindowPositionEvidenceShadowReportV1(BaseModel):
     `src/validator/checks/correction.py` emits `CheckStatus.NOT_APPLICABLE`
     and never calls `compute_window_position_evidence_shadow` in that case)
     stay THREE separately observable states, never collapsed onto one `None`.
+
+    MAJOR-B1 (`AI_agent/logs/reviews/verdict/
+    2026-08-12_round2_blocker1_and_bcd_crossreview_sol.md`): `ruleset_version`
+    + `evaluated_conditions` + `unevaluated_conditions` are the machine-
+    readable coverage declaration sol's finding demanded — "shadow 用无修饰的
+    accepted/PASS 表达只覆盖部分判据的结果...把结论说得比证据强". The
+    `_shape` validator below enforces, at the TYPE level (not just by
+    convention), that `evaluated_conditions`/`unevaluated_conditions` exactly
+    partition `ALL_POSITION_EVIDENCE_CONDITIONS`, and that `all_accepted` can
+    NEVER be `True` while `unevaluated_conditions` is non-empty — so a future
+    partial re-implementation that narrows coverage again cannot construct an
+    object that both declares incomplete coverage and claims a clean PASS.
     """
 
     model_config = _CFG
@@ -854,6 +936,9 @@ class WindowPositionEvidenceShadowReportV1(BaseModel):
     window_count: Annotated[int, Field(ge=0)]
     decisions: tuple[WindowPositionEvidenceShadowDecisionV1, ...]
     all_accepted: Annotated[bool, Strict()]
+    ruleset_version: StableId
+    evaluated_conditions: tuple[StableId, ...]
+    unevaluated_conditions: tuple[StableId, ...]
     content_sha256: Hex64
 
     @model_validator(mode="after")
@@ -882,6 +967,26 @@ class WindowPositionEvidenceShadowReportV1(BaseModel):
                 raise ValueError("a binding_unavailable report must not carry per-window decisions")
             if self.all_accepted:
                 raise ValueError("a binding_unavailable report must not claim all_accepted")
+        # --- MAJOR-B1 coverage lock ------------------------------------------
+        if tuple(sorted(set(self.evaluated_conditions))) != tuple(sorted(self.evaluated_conditions)):
+            raise ValueError("evaluated_conditions must be sorted and unique")
+        if tuple(sorted(set(self.unevaluated_conditions))) != tuple(sorted(self.unevaluated_conditions)):
+            raise ValueError("unevaluated_conditions must be sorted and unique")
+        evaluated = set(self.evaluated_conditions)
+        unevaluated = set(self.unevaluated_conditions)
+        if evaluated & unevaluated:
+            raise ValueError("evaluated_conditions and unevaluated_conditions must be disjoint")
+        if (evaluated | unevaluated) != set(ALL_POSITION_EVIDENCE_CONDITIONS):
+            raise ValueError(
+                "evaluated_conditions + unevaluated_conditions must exactly partition "
+                "ALL_POSITION_EVIDENCE_CONDITIONS -- a condition cannot silently vanish "
+                "from the coverage declaration"
+            )
+        if self.unevaluated_conditions and self.all_accepted:
+            raise ValueError(
+                "a report with any unevaluated_conditions must not claim all_accepted=True "
+                "(MAJOR-B1: a PASS must never be reported stronger than what was actually checked)"
+            )
         if self.content_sha256 != canonical_sha256(_without_key(self, "content_sha256")):
             raise ValueError("content_sha256 does not match canonical shadow report")
         return self
@@ -954,10 +1059,89 @@ def _window_existence_sources(window_id: str, *, links, sources_by_locator):
     return tuple(plan), tuple(elevation)
 
 
+# ---------------------------------------------------------------------------
+# MAJOR-B1 condition 2/3: the mutual-nearest ranking + its plan-side facade
+# candidate domain.
+# ---------------------------------------------------------------------------
+
+def _plan_source_consistent_with_family(
+    source: PlanSourceWindowV1, family: str, segments, floor_id: str, *, tol_m: float,
+) -> bool:
+    """v2.1 §5.3 condition 2's "facade 候选域" restriction on the PLAN side.
+
+    A `PlanSourceWindowV1` carries only `world_x_interval`/`world_y_interval`
+    — no facade tag — so comparing a North-family elevation source against
+    EVERY plan stroke on a floor, using only the along-axis, is not enough:
+    a real, symmetric building routinely has a North window and a South
+    window at the IDENTICAL along-position (verified against the real clean
+    e2e fixture below: `1f_view/S12` North at world_x=[6.30,8.70] and
+    `1f_view/S15` South at the SAME world_x=[6.30,8.70] — an exact tie with
+    zero facade filter, confirmed empirically before writing this function).
+
+    This does NOT use a single building-wide bbox extreme as a wall plane —
+    `facade_convention.FACADE_BASE_PLANE_SIDE`'s own docstring forbids that
+    exact pattern for "new code (Vg/Va, window-position)". Instead it uses
+    the ALREADY-MATERIALIZED, per-segment `geom.facade_segments` (Vg): each
+    segment is derived from the building's OWN polygon edges (not a global
+    extreme), carries its own axis-aligned plane value and along-range, and
+    both real fixtures' `finalize_correction_draw` already materializes it
+    before `check_correction` runs (confirmed by reading `finalize.py` and
+    `pipeline.py`/`run_stage.py`'s call order) — so it is available, real,
+    GT-blind building geometry, not a citation-dependent or invented signal.
+    This scales to L/U-shaped buildings with multiple segments per family
+    (v2.1 §7.4): a candidate only needs to be consistent with ONE segment of
+    `family`, and each segment's own along-range bounds where it applies.
+
+    `tol_m` is `WINDOW_EVIDENCE_PAIRING_TOL_M` — the SAME measurement-scale
+    tolerance that already governs "is this stroke close enough to count as
+    evidence" elsewhere in this module, not a second, undocumented constant.
+    """
+    if family in ("North", "South"):
+        cross = source.world_y_interval
+        along = source.world_x_interval
+    else:
+        cross = source.world_x_interval
+        along = source.world_y_interval
+    for segment in segments:
+        if segment.floor_id != floor_id or segment.facade_family != family:
+            continue
+        plane = segment.p1[1] if family in ("North", "South") else segment.p1[0]
+        seg_lo, seg_hi = segment.world_along_interval.lo, segment.world_along_interval.hi
+        if along.hi < seg_lo - tol_m or along.lo > seg_hi + tol_m:
+            continue
+        if cross.lo - tol_m <= plane <= cross.hi + tol_m:
+            return True
+    return False
+
+
+def _rank_candidates_by_distance(candidates: list[tuple[float, str]]) -> tuple[tuple[float, str], ...]:
+    """Sort `(distance, locator)` pairs ascending by distance, locator as a
+    deterministic tiebreak key for the sort itself (never for the ACCEPT
+    decision — an exact-distance tie between two DIFFERENT locators is
+    exactly what `PAIRING_AMBIGUITY_EPSILON_M` below must catch, not silently
+    resolve via locator ordering)."""
+    return tuple(sorted(candidates, key=lambda pair: (pair[0], pair[1])))
+
+
+def _is_unique_nearest(ranked: tuple[tuple[float, str], ...], *, expected_locator: str) -> bool:
+    """v2.1 §5.3 conditions 2+3 together: `expected_locator` must be the
+    STRICT argmin of `ranked` (condition 2) with a margin over the runner-up
+    exceeding `PAIRING_AMBIGUITY_EPSILON_M` (condition 3) — a single boolean
+    so callers cannot accidentally check one without the other. `ranked` is
+    never empty when this is called with a locator that is itself a member of
+    the candidate set the caller built it from."""
+    if not ranked or ranked[0][1] != expected_locator:
+        return False
+    if len(ranked) >= 2 and (ranked[1][0] - ranked[0][0]) <= PAIRING_AMBIGUITY_EPSILON_M:
+        return False
+    return True
+
+
 def _build_window_position_evidence_shadow_decision(
     window, *, plan_sources: tuple, elevation_sources: tuple,
     frames_by_input: Mapping[str, AuthoritativeViewProjectionFrameV2], floors,
     producer_draw_sha256: str, resolver_inputs_sha256: str, tolerance_value: float,
+    catalog: tuple, facade_segments: tuple,
 ) -> WindowPositionEvidenceShadowDecisionV1:
     """Total for any well-typed `(window, cited-sources)` pair — every
     "could not verify" reason becomes a named `reject_code` on a real, hashed
@@ -980,6 +1164,20 @@ def _build_window_position_evidence_shadow_decision(
     show ONE reason a window's evidence does not cohere, not enumerate every
     possible reason at once; S3's active detector, which turns this into a
     blocking gate, is where a fuller audit trail would earn its complexity.
+
+    MAJOR-B1 (2026-08-12): `catalog` is the FULL, draw-wide source catalog
+    (`verified_inputs.inputs.source_windows`, both channels, every view/floor
+    — NOT just what this window cited) and `facade_segments` is `geom`'s
+    already-materialized Vg segments. Both are now REQUIRED so conditions
+    2 (unique mutual-nearest) and 3 (ambiguity margin) can be checked against
+    candidates the model never mentioned at all (v2.1 §5.3: "全 catalog 只用于
+    验证 cited pair 是否在...候选域中唯一最佳" — a domain built only from
+    ALREADY-cited sources could never surface an uncited-but-better match,
+    defeating the whole point of condition 2). Condition 4 (source reuse) is
+    a DRAW-LEVEL property no single window's decision can see by itself —
+    it is checked by `compute_window_position_evidence_shadow`'s caller-side
+    second pass (`_detect_position_source_reuse`), after every window's
+    decision from THIS function is in hand.
     """
     def _decision(
         *, decision: str, reject_code, derived_span, plan_locator, plan_world_interval,
@@ -1059,6 +1257,18 @@ def _build_window_position_evidence_shadow_decision(
     scope_floor_ids: list[str | None] = []
     distances: list[float] = []
     floors_list = list(floors)
+    # MAJOR-B1 plan-side domain: the facade-segment consistency lookup below
+    # must use the FLOOR THE PLAN CANDIDATES THEMSELVES BELONG TO (derived
+    # from `plan_source.floor_ref`, the SAME key the domain's own `floor_ref`
+    # filter uses), never `scope.floor_id` (the CITED elevation source's own
+    # resolved floor). These two coincide whenever `along = window.facade`'s
+    # own citations happen to be internally consistent, but a malformed draw
+    # can pass a `plan_source` and an elevation `scope` that disagree — using
+    # the elevation's floor for the plan-side lookup would silently borrow
+    # the wrong floor's wall geometry in exactly that malformed case.
+    floor_rank = {floor.id: index for index, floor in enumerate(sorted(floors_list, key=lambda f: f.z_floor), start=1)}
+    floor_id_by_ref = {ref: floor_id for floor_id, ref in floor_rank.items()}
+    plan_source_floor_id = floor_id_by_ref.get(plan_source.floor_ref)
     for source in elevation_sources:
         scope = resolve_elevation_source_floor_scope(source, floors_list)
         # The examined corroborator's locator/scope are recorded FIRST,
@@ -1112,12 +1322,176 @@ def _build_window_position_evidence_shadow_decision(
                 distances=tuple(distances),
             )
 
+        # --- MAJOR-B1 condition 2+3, elevation side -------------------------
+        # `E_i` must be the UNIQUE (with ambiguity margin) nearest elevation
+        # candidate, among sources sharing E_i's OWN view (`source_input_id`)
+        # AND E_i's OWN resolved scope (`scope.floor_id`) -- scope filtering
+        # happens BEFORE this ranking is built (v2.1 §5.3: "scope 过滤必须
+        # 发生在距离计算和 mutual-nearest 排名之前"; the §12.2 顺序锁), so a
+        # same-along/different-floor stroke (e.g. the real East_view S3/S4
+        # pair, which project to the IDENTICAL along interval) can never
+        # enter this ranking as a false competitor.
+        elev_domain_ranked_input: list[tuple[float, str]] = []
+        for candidate in catalog:
+            if candidate.channel != "elevation" or candidate.source_input_id != source.source_input_id:
+                continue
+            candidate_scope = resolve_elevation_source_floor_scope(candidate, floors_list)
+            if candidate_scope.status != "resolved" or candidate_scope.floor_id != scope.floor_id:
+                continue
+            candidate_projected = project_window_source_along(
+                candidate, window_facade=window.facade, frame=frame, scope_floor_id=candidate_scope.floor_id,
+            ).world_interval
+            candidate_distance = max(
+                abs(plan_world_interval.lo - candidate_projected.lo),
+                abs(plan_world_interval.hi - candidate_projected.hi),
+            )
+            elev_domain_ranked_input.append((candidate_distance, candidate.source_locator))
+        elev_ranked = _rank_candidates_by_distance(elev_domain_ranked_input)
+        if not _is_unique_nearest(elev_ranked, expected_locator=source.source_locator):
+            return _reject(
+                "position_evidence_pair_mismatch",
+                plan_locator=plan_source.source_locator, plan_world_interval=plan_world_interval,
+                elevation_locators=tuple(elevation_locators), elevation_projected_intervals=tuple(elevation_projected),
+                elevation_scope_status=tuple(scope_status), elevation_scope_floor_ids=tuple(scope_floor_ids),
+                distances=tuple(distances),
+            )
+
+        # --- MAJOR-B1 condition 2+3, plan side -------------------------------
+        # `P` must be the UNIQUE (with ambiguity margin) nearest plan
+        # candidate to THIS `E_i`, among plan sources sharing P's OWN
+        # `floor_ref` AND consistent with `window.facade`'s family (the
+        # facade-segment domain filter above) -- this is what stops a
+        # symmetric building's opposite-facade twin (same along-position,
+        # different wall) from producing a false tie (empirically verified
+        # against both `tests/fixtures/f9_window_host_crash/` and the real
+        # clean e2e run before this was written: zero false rejections on
+        # either fixture with the filter in place, six false rejections
+        # without it).
+        plan_domain_ranked_input: list[tuple[float, str]] = []
+        for candidate in catalog:
+            if candidate.channel != "plan" or candidate.floor_ref != plan_source.floor_ref:
+                continue
+            if not _plan_source_consistent_with_family(
+                candidate, window.facade, facade_segments, plan_source_floor_id, tol_m=tolerance_value,
+            ):
+                continue
+            candidate_world = project_window_source_along(candidate, window_facade=window.facade).world_interval
+            candidate_distance = max(
+                abs(candidate_world.lo - projected.lo), abs(candidate_world.hi - projected.hi),
+            )
+            plan_domain_ranked_input.append((candidate_distance, candidate.source_locator))
+        plan_ranked = _rank_candidates_by_distance(plan_domain_ranked_input)
+        if not plan_ranked:
+            # No candidate (not even P itself) is consistent with this
+            # family/floor's facade geometry -- the catalog cannot
+            # independently judge this pair at all (v2.1 §5.3: "若 catalog
+            # 自身存在...缺一 channel，使代码无法独立判 identity，结果是
+            # position_evidence_insufficient").
+            return _reject(
+                "position_evidence_insufficient",
+                plan_locator=plan_source.source_locator, plan_world_interval=plan_world_interval,
+                elevation_locators=tuple(elevation_locators), elevation_projected_intervals=tuple(elevation_projected),
+                elevation_scope_status=tuple(scope_status), elevation_scope_floor_ids=tuple(scope_floor_ids),
+                distances=tuple(distances),
+            )
+        if not _is_unique_nearest(plan_ranked, expected_locator=plan_source.source_locator):
+            return _reject(
+                "position_evidence_pair_mismatch",
+                plan_locator=plan_source.source_locator, plan_world_interval=plan_world_interval,
+                elevation_locators=tuple(elevation_locators), elevation_projected_intervals=tuple(elevation_projected),
+                elevation_scope_status=tuple(scope_status), elevation_scope_floor_ids=tuple(scope_floor_ids),
+                distances=tuple(distances),
+            )
+
     return _decision(
         decision="accepted", reject_code=None, derived_span=plan_world_interval,
         plan_locator=plan_source.source_locator, plan_world_interval=plan_world_interval,
         elevation_locators=tuple(elevation_locators), elevation_projected_intervals=tuple(elevation_projected),
         elevation_scope_status=tuple(scope_status), elevation_scope_floor_ids=tuple(scope_floor_ids),
         distances=tuple(distances),
+    )
+
+
+def _downgrade_decision_to_rejected(
+    decision: WindowPositionEvidenceShadowDecisionV1, *, code: str,
+) -> WindowPositionEvidenceShadowDecisionV1:
+    """MAJOR-B1 condition 4 support: rebuild `decision` as `rejected`/`code`,
+    preserving every EXAMINED field (locators, projected intervals, scope
+    status, distances) so the audit trail still shows what was cited — only
+    `decision`/`reject_code`/`derived_span`/`legacy_span_delta_m` change.
+    `WindowPositionEvidenceShadowDecisionV1` is frozen, so this constructs a
+    NEW object (not a mutation) and recomputes `decision_sha256` accordingly;
+    it deliberately does not go through the `_decision`/`_reject` closures
+    inside `_build_window_position_evidence_shadow_decision` (those are
+    per-window-local and do not have access to a decision built for a
+    DIFFERENT window's context) — this is the draw-level counterpart.
+    """
+    payload = {
+        "producer_draw_sha256": decision.producer_draw_sha256, "resolver_inputs_sha256": decision.resolver_inputs_sha256,
+        "window_id": decision.window_id, "window_floor_id": decision.window_floor_id,
+        "plan_locator": decision.plan_locator,
+        "plan_world_interval": None if decision.plan_world_interval is None else decision.plan_world_interval.model_dump(mode="json"),
+        "elevation_locators": list(decision.elevation_locators),
+        "elevation_projected_intervals": [i.model_dump(mode="json") for i in decision.elevation_projected_intervals],
+        "elevation_scope_status": list(decision.elevation_scope_status),
+        "elevation_scope_floor_ids": list(decision.elevation_scope_floor_ids),
+        "distances": list(decision.distances),
+        "tolerance_name": decision.tolerance_name, "tolerance_value": decision.tolerance_value,
+        "decision": "rejected", "reject_code": code,
+        "derived_span": None,
+        "legacy_model_span": None if decision.legacy_model_span is None else decision.legacy_model_span.model_dump(mode="json"),
+        "legacy_span_delta_m": None,
+    }
+    return WindowPositionEvidenceShadowDecisionV1(
+        producer_draw_sha256=decision.producer_draw_sha256, resolver_inputs_sha256=decision.resolver_inputs_sha256,
+        window_id=decision.window_id, window_floor_id=decision.window_floor_id,
+        plan_locator=decision.plan_locator, plan_world_interval=decision.plan_world_interval,
+        elevation_locators=decision.elevation_locators, elevation_projected_intervals=decision.elevation_projected_intervals,
+        elevation_scope_status=decision.elevation_scope_status, elevation_scope_floor_ids=decision.elevation_scope_floor_ids,
+        distances=decision.distances, tolerance_name=decision.tolerance_name, tolerance_value=decision.tolerance_value,
+        decision="rejected", reject_code=code, derived_span=None,
+        legacy_model_span=decision.legacy_model_span, legacy_span_delta_m=None,
+        decision_sha256=canonical_sha256(payload),
+    )
+
+
+def _detect_position_source_reuse(
+    decisions: tuple[WindowPositionEvidenceShadowDecisionV1, ...],
+) -> tuple[WindowPositionEvidenceShadowDecisionV1, ...]:
+    """MAJOR-B1 condition 4 / v2.1 §5.1: "一个 plan authority 或 elevation
+    position source 在同一 draw 中不得被两个 window 复用". A DRAW-LEVEL pass
+    (needs every window's decision at once, which no single per-window call
+    can see) that runs AFTER conditions 1/2/3/5/6 have each independently
+    produced a per-window decision.
+
+    Any source locator (the `plan_locator`, or any entry of
+    `elevation_locators`) that is claimed by MORE THAN ONE `accepted`
+    decision is a reuse: every one of those decisions is downgraded to
+    `rejected`/`position_evidence_authority_invalid` — v2.1 §9's own mapping
+    ("...source 复用 -> position_evidence_authority_invalid"). An ALREADY-
+    rejected decision is left untouched: it never won the authority it would
+    be "fighting over", so it does not participate in this check.
+    """
+    claim_counts: dict[str, list[str]] = {}
+    for decision in decisions:
+        if decision.decision != "accepted":
+            continue
+        claimed = set(decision.elevation_locators)
+        if decision.plan_locator is not None:
+            claimed.add(decision.plan_locator)
+        for locator in claimed:
+            claim_counts.setdefault(locator, []).append(decision.window_id)
+    reused_window_ids = {
+        window_id
+        for window_ids in claim_counts.values() if len(window_ids) > 1
+        for window_id in window_ids
+    }
+    if not reused_window_ids:
+        return decisions
+    return tuple(
+        _downgrade_decision_to_rejected(decision, code="position_evidence_authority_invalid")
+        if decision.window_id in reused_window_ids else decision
+        for decision in decisions
     )
 
 
@@ -1141,10 +1515,24 @@ def compute_window_position_evidence_shadow(
     itself and returns a `status="binding_unavailable"` report rather than
     propagating it, so `compute_window_position_evidence_shadow` itself never
     raises for ANY well-typed input.
+
+    MAJOR-B1 (2026-08-12): after every window's PER-WINDOW decision (which
+    now also evaluates conditions 2/3, the mutual-nearest ranking) is built,
+    this function runs `_detect_position_source_reuse` (condition 4) as a
+    second, draw-level pass before computing the report's own `all_accepted`
+    — so `all_accepted` reflects ALL SIX §5.3 conditions, not just the five a
+    single window can see on its own. Every report also carries the
+    machine-readable `ruleset_version`/`evaluated_conditions`/
+    `unevaluated_conditions` coverage declaration (`WindowPositionEvidence
+    ShadowReportV1`'s own validator forbids `all_accepted=True` alongside any
+    `unevaluated_conditions`).
     """
     _validate_window_evidence_pairing_tolerance(envelope_reconcile_tol_m=tol.envelope_reconcile_tol_m)
     producer_draw_sha256 = verified_inputs.inputs.producer_draw_sha256
     resolver_inputs_sha256 = verified_inputs.inputs.content_sha256
+    ruleset_version = POSITION_EVIDENCE_RULESET_VERSION
+    evaluated_conditions = CURRENTLY_EVALUATED_POSITION_EVIDENCE_CONDITIONS
+    unevaluated_conditions = CURRENTLY_UNEVALUATED_POSITION_EVIDENCE_CONDITIONS
 
     try:
         frames_by_input = _build_authoritative_frames(geom, verified_inputs, tol)
@@ -1153,15 +1541,21 @@ def compute_window_position_evidence_shadow(
             "producer_draw_sha256": producer_draw_sha256, "resolver_inputs_sha256": resolver_inputs_sha256,
             "status": "binding_unavailable", "binding_error_code": exc.code,
             "window_count": len(geom.windows), "decisions": [], "all_accepted": False,
+            "ruleset_version": ruleset_version, "evaluated_conditions": list(evaluated_conditions),
+            "unevaluated_conditions": list(unevaluated_conditions),
         }
         return WindowPositionEvidenceShadowReportV1(
             producer_draw_sha256=producer_draw_sha256, resolver_inputs_sha256=resolver_inputs_sha256,
             status="binding_unavailable", binding_error_code=exc.code, window_count=len(geom.windows),
-            decisions=(), all_accepted=False, content_sha256=canonical_sha256(payload),
+            decisions=(), all_accepted=False,
+            ruleset_version=ruleset_version, evaluated_conditions=evaluated_conditions,
+            unevaluated_conditions=unevaluated_conditions, content_sha256=canonical_sha256(payload),
         )
 
     sources_by_locator = {row.source_locator: row for row in verified_inputs.inputs.source_windows}
     links = verified_inputs.inputs.claim_links
+    catalog = verified_inputs.inputs.source_windows
+    facade_segments = tuple(geom.facade_segments)
 
     def _decision_for(window) -> WindowPositionEvidenceShadowDecisionV1:
         plan_sources, elevation_sources = _window_existence_sources(
@@ -1172,19 +1566,25 @@ def compute_window_position_evidence_shadow(
             frames_by_input=frames_by_input, floors=geom.floors,
             producer_draw_sha256=producer_draw_sha256, resolver_inputs_sha256=resolver_inputs_sha256,
             tolerance_value=WINDOW_EVIDENCE_PAIRING_TOL_M,
+            catalog=catalog, facade_segments=facade_segments,
         )
 
-    decisions = tuple(_decision_for(window) for window in sorted(geom.windows, key=lambda w: w.id))
+    per_window_decisions = tuple(_decision_for(window) for window in sorted(geom.windows, key=lambda w: w.id))
+    decisions = _detect_position_source_reuse(per_window_decisions)
     all_accepted = all(d.decision == "accepted" for d in decisions)
     payload = {
         "producer_draw_sha256": producer_draw_sha256, "resolver_inputs_sha256": resolver_inputs_sha256,
         "status": "evaluated", "binding_error_code": None, "window_count": len(decisions),
         "decisions": [d.model_dump(mode="json") for d in decisions], "all_accepted": all_accepted,
+        "ruleset_version": ruleset_version, "evaluated_conditions": list(evaluated_conditions),
+        "unevaluated_conditions": list(unevaluated_conditions),
     }
     return WindowPositionEvidenceShadowReportV1(
         producer_draw_sha256=producer_draw_sha256, resolver_inputs_sha256=resolver_inputs_sha256,
         status="evaluated", binding_error_code=None, window_count=len(decisions),
-        decisions=decisions, all_accepted=all_accepted, content_sha256=canonical_sha256(payload),
+        decisions=decisions, all_accepted=all_accepted,
+        ruleset_version=ruleset_version, evaluated_conditions=evaluated_conditions,
+        unevaluated_conditions=unevaluated_conditions, content_sha256=canonical_sha256(payload),
     )
 
 
@@ -1197,9 +1597,15 @@ __all__ = [
     "ArtifactLoader", "WINDOW_RESOLVER_ARTIFACT_LOADER_REGISTRY", "load_window_resolver_artifact",
     # S2
     "WINDOW_EVIDENCE_PAIRING_TOL_M", "WINDOW_EVIDENCE_PAIRING_TOLERANCE_NAME", "PROJECTION_SCOPE_EPSILON_M",
-    "Z_DATUM_MODE_WORLD_Z",
+    "Z_DATUM_MODE_WORLD_Z", "PAIRING_AMBIGUITY_EPSILON_M",
     "AuthoritativeViewProjectionFrameV2", "AdvisoryViewProjectionFrameV1", "ProjectedAlongEvidenceV1",
     "project_window_source_along", "resolve_elevation_source_floor_scope",
     "WindowPositionEvidenceShadowDecisionV1", "WindowPositionEvidenceShadowReportV1",
     "compute_window_position_evidence_shadow",
+    # MAJOR-B1 (§5.3 conditions 2/3/4 + coverage declaration)
+    "POSITION_EVIDENCE_CONDITION_DISTANCE_TOLERANCE", "POSITION_EVIDENCE_CONDITION_UNIQUE_MUTUAL_NEAREST",
+    "POSITION_EVIDENCE_CONDITION_AMBIGUITY_MARGIN", "POSITION_EVIDENCE_CONDITION_SOURCE_NOT_REUSED",
+    "POSITION_EVIDENCE_CONDITION_CLAIM_CONSISTENCY", "POSITION_EVIDENCE_CONDITION_SCOPE_RESOLUTION",
+    "ALL_POSITION_EVIDENCE_CONDITIONS", "POSITION_EVIDENCE_RULESET_VERSION",
+    "CURRENTLY_EVALUATED_POSITION_EVIDENCE_CONDITIONS", "CURRENTLY_UNEVALUATED_POSITION_EVIDENCE_CONDITIONS",
 ]

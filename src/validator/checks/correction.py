@@ -737,7 +737,12 @@ def _window_position_evidence_shadow(
             CheckLayer.CROSS_CHECK,
             f"window position evidence shadow could not evaluate this ring "
             f"({shadow.binding_error_code})",
-            evidence={"status": shadow.status, "binding_error_code": shadow.binding_error_code},
+            evidence={
+                "status": shadow.status, "binding_error_code": shadow.binding_error_code,
+                "ruleset_version": shadow.ruleset_version,
+                "evaluated_conditions": list(shadow.evaluated_conditions),
+                "unevaluated_conditions": list(shadow.unevaluated_conditions),
+            },
         )
         return
 
@@ -752,6 +757,20 @@ def _window_position_evidence_shadow(
             (d.legacy_span_delta_m for d in shadow.decisions if d.legacy_span_delta_m is not None),
             default=None,
         ),
+        # MAJOR-B1 (`AI_agent/logs/reviews/verdict/
+        # 2026-08-12_round2_blocker1_and_bcd_crossreview_sol.md`): the
+        # machine-readable coverage declaration sol's finding demanded —
+        # "shadow 用无修饰的 accepted/PASS 表达只覆盖部分判据的结果...把结论
+        # 说得比证据强". A bare PASS status alone no longer tells a consumer
+        # WHICH of v2.1 §5.3's six conditions were actually checked; these
+        # three fields do. `WindowPositionEvidenceShadowReportV1`'s own
+        # validator makes it structurally impossible for `shadow.all_accepted`
+        # to be `True` while `unevaluated_conditions` is non-empty, so this
+        # PASS branch below can never fire on an incomplete-coverage report —
+        # that invariant is enforced at construction, not re-checked here.
+        "ruleset_version": shadow.ruleset_version,
+        "evaluated_conditions": list(shadow.evaluated_conditions),
+        "unevaluated_conditions": list(shadow.unevaluated_conditions),
         "content_sha256": shadow.content_sha256,
     }
     if shadow.all_accepted:

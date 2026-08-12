@@ -283,6 +283,7 @@ def test_f9_w_f1_n1_swap_wrong_citation_for_correct_one_flips_reject_to_accept()
         producer_draw_sha256=verified.inputs.producer_draw_sha256,
         resolver_inputs_sha256=verified.inputs.content_sha256,
         tolerance_value=wp.WINDOW_EVIDENCE_PAIRING_TOL_M,
+        catalog=verified.inputs.source_windows, facade_segments=tuple(geom.facade_segments),
     )
     assert swapped.decision == "accepted", (
         "swapping in the correct North_view/S7 citation should flip this "
@@ -354,6 +355,7 @@ def test_east_view_wrong_floor_citation_rejected_by_zscope_not_by_distance():
         producer_draw_sha256=verified.inputs.producer_draw_sha256,
         resolver_inputs_sha256=verified.inputs.content_sha256,
         tolerance_value=wp.WINDOW_EVIDENCE_PAIRING_TOL_M,
+        catalog=verified.inputs.source_windows, facade_segments=tuple(geom.facade_segments),
     )
     assert decision.decision == "rejected"
     assert decision.reject_code == "position_evidence_pair_mismatch"
@@ -362,12 +364,29 @@ def test_east_view_wrong_floor_citation_rejected_by_zscope_not_by_distance():
     assert decision.distances[0] < wp.WINDOW_EVIDENCE_PAIRING_TOL_M  # distance alone would have passed
 
 
-def test_zscope_neuter_disabling_scope_check_causes_false_accept():
-    """Must-red for the z-scope disambiguator specifically: with
-    `resolve_elevation_source_floor_scope` neutered to always report
-    `"not_declared"` (i.e. as if z-scoping were never consulted), the SAME
-    wrong cross-floor citation from the previous test is incorrectly
-    ACCEPTED — proving the z-scope check is load-bearing, not decorative."""
+def test_zscope_global_neuter_now_masked_by_mutual_nearest_domain_gap():
+    """MAJOR-B1 discovery (self-documented, not swept under): before
+    conditions 2/3 existed, globally neutering `resolve_elevation_source_
+    floor_scope` (as if z-scoping were never consulted) produced a FALSE
+    ACCEPT on this cross-floor mis-citation -- that was this test's original
+    claim. It no longer does, because the NEW mutual-nearest domain filter
+    (below `_build_window_position_evidence_shadow_decision`'s per-source
+    loop) ALSO calls `resolve_elevation_source_floor_scope` for every
+    candidate while building its own elevation-domain -- so the SAME global
+    neuter breaks BOTH mechanisms at once: with scope resolution disabled,
+    every candidate (including the cited one) reports `"not_declared"`, the
+    domain filter's `status == "resolved"` requirement is never satisfied by
+    ANYONE, the domain comes back empty, and `_is_unique_nearest` on an empty
+    domain correctly returns False -> `position_evidence_pair_mismatch`.
+
+    This means the global neuter no longer ISOLATES the original per-source
+    `scope.floor_id != window.floor_id` guard's own load-bearing-ness -- a
+    second, independent defense now also depends on the same shared
+    function. `test_zscope_window_floor_mismatch_check_alone_is_load_bearing`
+    below is the corrected, surgical isolation of THAT specific guard,
+    per this project's own "遮蔽自查" discipline (CLAUDE.md: "有没有第二条
+    防线先把这个变异拦下"). This test is kept, reframed, as the honest record
+    of what changed and why -- deleting it would erase the finding."""
     geom, verified, tol = _f9_prepared()
     frames = wp._build_authoritative_frames(geom, verified, tol)
     floors = list(geom.floors)
@@ -396,17 +415,81 @@ def test_zscope_neuter_disabling_scope_check_causes_false_accept():
             producer_draw_sha256=verified.inputs.producer_draw_sha256,
             resolver_inputs_sha256=verified.inputs.content_sha256,
             tolerance_value=wp.WINDOW_EVIDENCE_PAIRING_TOL_M,
+            catalog=verified.inputs.source_windows, facade_segments=tuple(geom.facade_segments),
         )
     finally:
         wp.resolve_elevation_source_floor_scope = original
 
-    assert neutered_decision.decision == "accepted", (
-        "neutering the z-scope check should have produced a FALSE accept "
-        "on this cross-floor mis-citation -- if this assertion fails, the "
-        "test fixture no longer proves the scope check is load-bearing"
+    assert neutered_decision.decision == "rejected", (
+        "globally disabling scope resolution should STILL correctly reject "
+        "this cross-floor mis-citation -- via the mutual-nearest domain gap, "
+        "not via the original per-source check (which this same neuter also "
+        "disables). If this now falsely accepts, MAJOR-B1's condition 2/3 "
+        "domain construction stopped depending on scope resolution."
     )
+    assert neutered_decision.reject_code == "position_evidence_pair_mismatch"
     # Self-proof the neuter was actually removed, not left in place:
     assert wp.resolve_elevation_source_floor_scope is original
+
+
+def test_zscope_window_floor_mismatch_check_alone_is_load_bearing():
+    """Surgical isolation of the ORIGINAL per-source `scope.floor_id !=
+    window.floor_id` guard (v2.1 §7.3), independent of the NEW MAJOR-B1
+    mutual-nearest domain filter that now also depends on `resolve_
+    elevation_source_floor_scope` (see the test above). Rather than
+    neutering that shared resolver (which disables BOTH defenses at once),
+    this spoofs ONLY `window.floor_id` to equal the wrong source's REAL,
+    correctly-resolved floor -- `resolve_elevation_source_floor_scope`
+    itself runs UNCHANGED and UNNEUTERED, so it resolves `East_view/S3`
+    to its genuine `floor-2`, and the mutual-nearest domain (built from
+    that same correct resolution) sees a coherent, single-candidate
+    domain and would otherwise accept. Only the ORIGINAL comparison
+    (`scope.floor_id("floor-2") != window.floor_id`) is defeated, by
+    making `window.floor_id` lie and claim `"floor-2"` too."""
+    geom, verified, tol = _f9_prepared()
+    frames = wp._build_authoritative_frames(geom, verified, tol)
+    floors = list(geom.floors)
+    sources_by_locator = {row.source_locator: row for row in verified.inputs.source_windows}
+    real_window = next(w for w in geom.windows if w.id == "W-F1-E-1")
+    assert real_window.floor_id == "floor-1"
+
+    plan_source = next(
+        sources_by_locator[link.source_locator]
+        for link in verified.inputs.claim_links
+        if link.window_id == "W-F1-E-1" and link.claim == "existence"
+        and sources_by_locator[link.source_locator].channel == "plan"
+    )
+    east_s3 = next(
+        row for row in verified.inputs.source_windows
+        if row.source_input_id == "East_view" and row.observation_id == "S3"
+    )
+    assert east_s3.local_z_interval.lo == pytest.approx(4.0)  # genuinely floor-2, unneutered
+
+    class _SpoofedFloorWindow:
+        """Same window in every respect except `.floor_id`, which lies and
+        reports the WRONG source's own real floor -- defeats ONLY the
+        original comparison, nothing else."""
+
+        id = real_window.id
+        facade = real_window.facade
+        floor_id = "floor-2"
+        span = real_window.span
+
+    decision = wp._build_window_position_evidence_shadow_decision(
+        _SpoofedFloorWindow(), plan_sources=(plan_source,), elevation_sources=(east_s3,),
+        frames_by_input=frames, floors=floors,
+        producer_draw_sha256=verified.inputs.producer_draw_sha256,
+        resolver_inputs_sha256=verified.inputs.content_sha256,
+        tolerance_value=wp.WINDOW_EVIDENCE_PAIRING_TOL_M,
+        catalog=verified.inputs.source_windows, facade_segments=tuple(geom.facade_segments),
+    )
+    assert decision.decision == "accepted", (
+        "spoofing window.floor_id to swallow ONLY the original "
+        "scope.floor_id != window.floor_id comparison should have produced "
+        "a FALSE accept -- if this fails, that comparison is fully "
+        "subsumed by the newer mutual-nearest domain filter and this test "
+        "no longer isolates anything real"
+    )
 
 
 # =========================================================================== #
@@ -460,11 +543,35 @@ def _identity_frame(input_id="North_view"):
     )
 
 
+def _hand_segment(family="North", floor_id="floor-1", *, along=(0.0, 100.0), plane=0.5, id_="seg-hand-1"):
+    """MAJOR-B1: a minimal, schema-valid `FacadeSegment` for hand-typed unit
+    tests that never materialize real Vg geometry. `plane` is the segment's
+    own constant cross-axis coordinate (its `p1`/`p2` share it, exactly like
+    real Vg segments) -- default `plane=0.5` sits at the midpoint of
+    `_hand_plan`'s own default `world_y_interval=[0.0,1.0]`, so a hand plan
+    built with default args is family-consistent with a hand North/South
+    segment built with default args without either helper needing to know
+    about the other's defaults."""
+    from src.agent.correction.schema import FacadeSegment, WorldInterval
+
+    normal = {"North": (0, 1), "South": (0, -1), "East": (1, 0), "West": (-1, 0)}[family]
+    if family in ("North", "South"):
+        p1, p2 = (along[0], plane), (along[1], plane)
+    else:
+        p1, p2 = (plane, along[0]), (plane, along[1])
+    return FacadeSegment(
+        id=id_, floor_id=floor_id, facade_family=family, p1=p1, p2=p2,
+        outward_normal=normal, world_along_interval=WorldInterval(lo=along[0], hi=along[1]),
+        depth=0.0, visible_intervals=[], source_footprint_fingerprint="f" * 64,
+    )
+
+
 def test_threshold_boundary_029_accepts_031_rejects():
     plan = _hand_plan(0.0, 2.0)
     window = _FakeWindow("W-T", "North", "floor-1", [0.0, 2.0])
     floors = [_FakeFloor("floor-1", 0.0, 3.0)]
     frame = _identity_frame()
+    segments = (_hand_segment("North", "floor-1"),)
 
     # Identity frame (sign=1, origin=0): world = local. plan=[0,2].
     # local=[0.29, 2.29] -> world=[0.29, 2.29] -> d = max(0.29, 0.29) = 0.29.
@@ -473,6 +580,7 @@ def test_threshold_boundary_029_accepts_031_rejects():
         window, plan_sources=(plan,), elevation_sources=(elev_pass,), frames_by_input={"North_view": frame},
         floors=floors, producer_draw_sha256="0" * 64, resolver_inputs_sha256="0" * 64,
         tolerance_value=wp.WINDOW_EVIDENCE_PAIRING_TOL_M,
+        catalog=(plan, elev_pass), facade_segments=segments,
     )
     assert d_pass.distances[0] == pytest.approx(0.29, abs=1e-12)
     assert d_pass.decision == "accepted"
@@ -482,6 +590,7 @@ def test_threshold_boundary_029_accepts_031_rejects():
         window, plan_sources=(plan,), elevation_sources=(elev_fail,), frames_by_input={"North_view": frame},
         floors=floors, producer_draw_sha256="0" * 64, resolver_inputs_sha256="0" * 64,
         tolerance_value=wp.WINDOW_EVIDENCE_PAIRING_TOL_M,
+        catalog=(plan, elev_fail), facade_segments=segments,
     )
     assert d_fail.distances[0] == pytest.approx(0.31, abs=1e-12)
     assert d_fail.decision == "rejected"
@@ -704,6 +813,8 @@ def test_shadow_report_types_reject_none_where_a_named_state_is_required():
             producer_draw_sha256="0" * 64, resolver_inputs_sha256="0" * 64,
             status="binding_unavailable", binding_error_code=None,
             window_count=0, decisions=(), all_accepted=False,
+            ruleset_version=wp.POSITION_EVIDENCE_RULESET_VERSION,
+            evaluated_conditions=wp.ALL_POSITION_EVIDENCE_CONDITIONS, unevaluated_conditions=(),
             content_sha256="0" * 64,
         )
 
@@ -878,6 +989,12 @@ def test_duplicate_same_view_elevation_corroborators_rejected():
         frames_by_input={"North_view": _identity_frame()}, floors=[_FakeFloor("floor-1", 0.0, 3.0)],
         producer_draw_sha256="0" * 64, resolver_inputs_sha256="0" * 64,
         tolerance_value=wp.WINDOW_EVIDENCE_PAIRING_TOL_M,
+        # Rejected before this function ever reaches the new catalog-based
+        # mutual-nearest checks (v2.1 §5.1 same-view dedup fires first) --
+        # empty catalog/facade_segments proves that ordering, not just
+        # documents it: if the dedup check ever moved AFTER the mutual-
+        # nearest block, this test would crash instead of asserting.
+        catalog=(), facade_segments=(),
     )
     assert decision.decision == "rejected"
     assert decision.reject_code == "position_evidence_authority_invalid"
@@ -890,6 +1007,7 @@ def test_zero_plan_sources_rejected_authority_invalid():
         frames_by_input={"North_view": _identity_frame()}, floors=[_FakeFloor("floor-1", 0.0, 3.0)],
         producer_draw_sha256="0" * 64, resolver_inputs_sha256="0" * 64,
         tolerance_value=wp.WINDOW_EVIDENCE_PAIRING_TOL_M,
+        catalog=(), facade_segments=(),
     )
     assert decision.decision == "rejected"
     assert decision.reject_code == "position_evidence_authority_invalid"
@@ -906,6 +1024,7 @@ def test_multiple_plan_sources_rejected_authority_invalid():
         frames_by_input={"North_view": _identity_frame()}, floors=[_FakeFloor("floor-1", 0.0, 3.0)],
         producer_draw_sha256="0" * 64, resolver_inputs_sha256="0" * 64,
         tolerance_value=wp.WINDOW_EVIDENCE_PAIRING_TOL_M,
+        catalog=(), facade_segments=(),
     )
     assert decision.decision == "rejected"
     assert decision.reject_code == "position_evidence_authority_invalid"
@@ -919,6 +1038,7 @@ def test_no_elevation_corroborator_rejected_insufficient():
         frames_by_input={"North_view": _identity_frame()}, floors=[_FakeFloor("floor-1", 0.0, 3.0)],
         producer_draw_sha256="0" * 64, resolver_inputs_sha256="0" * 64,
         tolerance_value=wp.WINDOW_EVIDENCE_PAIRING_TOL_M,
+        catalog=(), facade_segments=(),
     )
     assert decision.decision == "rejected"
     assert decision.reject_code == "position_evidence_insufficient"
@@ -939,6 +1059,7 @@ def test_zscope_unresolved_multiple_floors_rejected():
         frames_by_input={"North_view": _identity_frame()}, floors=floors,
         producer_draw_sha256="0" * 64, resolver_inputs_sha256="0" * 64,
         tolerance_value=wp.WINDOW_EVIDENCE_PAIRING_TOL_M,
+        catalog=(), facade_segments=(),
     )
     assert decision.decision == "rejected"
     assert decision.reject_code == "projection_scope_unresolved"
@@ -975,12 +1096,15 @@ def test_resolve_elevation_source_floor_scope_zero_floors_unresolved():
 def test_decision_sha256_self_validates():
     plan = _hand_plan(0.0, 2.0)
     window = _FakeWindow("W-T", "North", "floor-1", [0.0, 2.0])
+    elev = _hand_elevation(0.0, 2.0)
     decision = wp._build_window_position_evidence_shadow_decision(
-        window, plan_sources=(plan,), elevation_sources=(_hand_elevation(0.0, 2.0),),
+        window, plan_sources=(plan,), elevation_sources=(elev,),
         frames_by_input={"North_view": _identity_frame()}, floors=[_FakeFloor("floor-1", 0.0, 3.0)],
         producer_draw_sha256="0" * 64, resolver_inputs_sha256="0" * 64,
         tolerance_value=wp.WINDOW_EVIDENCE_PAIRING_TOL_M,
+        catalog=(plan, elev), facade_segments=(_hand_segment("North", "floor-1"),),
     )
+    assert decision.decision == "accepted", "test premise: this fixture must reach an accepted decision"
     tampered = decision.model_dump(mode="json")
     tampered["distances"] = [999.0]
     with pytest.raises(ValidationError):
@@ -1060,3 +1184,580 @@ def test_legacy_span_delta_is_real_float_when_accepted():
     for d in accepted:
         assert isinstance(d.legacy_span_delta_m, float)
         assert d.legacy_span_delta_m >= 0.0
+
+
+# =========================================================================== #
+# 13. MAJOR-B1 condition 2 — unique mutual-nearest (dispatch §1 / design doc
+#     §5.3 condition 2). Condition 1 (distance-within-tolerance) alone cannot
+#     catch this: the cited source's OWN distance is comfortably inside
+#     tolerance; only comparing against the full catalog can.
+# =========================================================================== #
+def test_condition2_uncited_closer_candidate_causes_pair_mismatch():
+    plan = _hand_plan(0.0, 2.0)
+    window = _FakeWindow("W-T", "North", "floor-1", [0.0, 2.0])
+    floors = [_FakeFloor("floor-1", 0.0, 3.0)]
+    frame = _identity_frame()
+    segments = (_hand_segment("North", "floor-1"),)
+
+    # Identity frame: world = local. plan = [0, 2].
+    cited = _hand_elevation(0.10, 2.10, locator="src:" + "9" * 64)   # d = 0.10, within 0.300
+    better = _hand_elevation(0.02, 2.02, locator="src:" + "8" * 64)  # d = 0.02, UNCITED, closer, same view+scope
+
+    decision = wp._build_window_position_evidence_shadow_decision(
+        window, plan_sources=(plan,), elevation_sources=(cited,), frames_by_input={"North_view": frame},
+        floors=floors, producer_draw_sha256="0" * 64, resolver_inputs_sha256="0" * 64,
+        tolerance_value=wp.WINDOW_EVIDENCE_PAIRING_TOL_M,
+        catalog=(plan, cited, better), facade_segments=segments,
+    )
+    assert decision.decision == "rejected", (
+        "an uncited elevation candidate strictly closer than the cited one "
+        "must reject, even though the cited one's OWN distance (0.10) is "
+        "well inside the 0.300 tolerance"
+    )
+    assert decision.reject_code == "position_evidence_pair_mismatch"
+    # The cited source's OWN recorded distance is unaffected/untouched --
+    # v2.1 §5.3: code may only report `pair_mismatch`, never silently swap
+    # in the better candidate's numbers.
+    assert decision.distances[0] == pytest.approx(0.10, abs=1e-12)
+
+
+def test_condition2_without_the_closer_candidate_same_fixture_still_accepts():
+    """Self-proof of the previous test's premise: WITHOUT `better` in the
+    catalog, the identical cited pair accepts cleanly -- isolates that the
+    previous rejection is caused by the closer candidate's presence, not by
+    anything else about the fixture geometry."""
+    plan = _hand_plan(0.0, 2.0)
+    window = _FakeWindow("W-T", "North", "floor-1", [0.0, 2.0])
+    floors = [_FakeFloor("floor-1", 0.0, 3.0)]
+    frame = _identity_frame()
+    segments = (_hand_segment("North", "floor-1"),)
+    cited = _hand_elevation(0.10, 2.10, locator="src:" + "9" * 64)
+
+    decision = wp._build_window_position_evidence_shadow_decision(
+        window, plan_sources=(plan,), elevation_sources=(cited,), frames_by_input={"North_view": frame},
+        floors=floors, producer_draw_sha256="0" * 64, resolver_inputs_sha256="0" * 64,
+        tolerance_value=wp.WINDOW_EVIDENCE_PAIRING_TOL_M,
+        catalog=(plan, cited), facade_segments=segments,
+    )
+    assert decision.decision == "accepted"
+
+
+def test_condition2_different_view_candidate_never_competes():
+    """v2.1 §5.3 condition 2: "不同 elevation view 不互相竞争" -- an UNCITED
+    candidate that would be closer, but sits on a DIFFERENT elevation view
+    (`source_input_id`), must NOT be considered a competitor at all."""
+    plan = _hand_plan(0.0, 2.0)
+    window = _FakeWindow("W-T", "North", "floor-1", [0.0, 2.0])
+    floors = [_FakeFloor("floor-1", 0.0, 3.0)]
+    frame = _identity_frame()
+    segments = (_hand_segment("North", "floor-1"),)
+    cited = _hand_elevation(0.10, 2.10, locator="src:" + "9" * 64, input_id="North_view")
+    closer_other_view = _hand_elevation(
+        0.02, 2.02, locator="src:" + "5" * 64, input_id="South_view",
+    )
+
+    decision = wp._build_window_position_evidence_shadow_decision(
+        window, plan_sources=(plan,), elevation_sources=(cited,), frames_by_input={"North_view": frame},
+        floors=floors, producer_draw_sha256="0" * 64, resolver_inputs_sha256="0" * 64,
+        tolerance_value=wp.WINDOW_EVIDENCE_PAIRING_TOL_M,
+        catalog=(plan, cited, closer_other_view), facade_segments=segments,
+    )
+    assert decision.decision == "accepted", (
+        "a closer candidate on a DIFFERENT elevation view must not compete "
+        "-- only same-view corroborators are ranked against each other"
+    )
+
+
+def test_condition2_side_effect_undeclared_z_scope_now_rejects_not_silently_accepts():
+    """Documented, intentional behavior change discovered while implementing
+    condition 2 (not something the dispatch asked for by name, but an
+    unavoidable consequence of it -- recorded here rather than left as a
+    silent side effect, per the execution record's own §5).
+
+    BEFORE this batch: a cited elevation source with NO z data at all
+    (`resolve_elevation_source_floor_scope` reports `"not_declared"`) hit
+    neither of the two pre-existing per-source guards (`status=="unresolved"`
+    / `status=="resolved" and floor mismatch` -- both require a definite
+    status this source never reaches) and, if its along-distance happened to
+    be in tolerance, was silently ACCEPTED. Verified against the actual
+    pre-MAJOR-B1 module (`AI_agent/backup/src_history/2026-08-12_majorb1/
+    window_position.py.orig`) on this exact fixture: `decision=="accepted"`.
+
+    AFTER this batch: the SAME fixture now REJECTS. Condition 2's elevation-
+    side domain can only admit candidates with `status=="resolved"` (an
+    unresolvable scope cannot be ranked against anything, including itself),
+    so a `not_declared` cited source can never populate its own domain and
+    always fails `_is_unique_nearest` via the empty-domain path.
+
+    This is treated as a CORRECT tightening, not a bug to work around: v2.1
+    §2.1 rule 10 already commits this whole module to "无隐式 fallback...
+    scope 不唯一时均 fail closed" -- silently accepting an unscoped citation
+    on distance alone was the outlier, and carving out a special case to
+    preserve the old behavior would create an actual exploitable gap (omit
+    z data to dodge mutual-nearest verification entirely). Real F-9/clean
+    fixtures never exercise this path (every real elevation stroke in both
+    has non-`None` `local_z_interval`, confirmed by direct catalog
+    inspection), so this affects no currently-tested real production data."""
+    plan = _hand_plan(0.0, 2.0)
+    window = _FakeWindow("W-T", "North", "floor-1", [0.0, 2.0])
+    floors = [_FakeFloor("floor-1", 0.0, 3.0)]
+    frame = _identity_frame()
+    segments = (_hand_segment("North", "floor-1"),)
+    elev_no_z = _hand_elevation(0.10, 2.10, locator="src:" + "9" * 64, z=None)
+
+    decision = wp._build_window_position_evidence_shadow_decision(
+        window, plan_sources=(plan,), elevation_sources=(elev_no_z,), frames_by_input={"North_view": frame},
+        floors=floors, producer_draw_sha256="0" * 64, resolver_inputs_sha256="0" * 64,
+        tolerance_value=wp.WINDOW_EVIDENCE_PAIRING_TOL_M,
+        catalog=(plan, elev_no_z), facade_segments=segments,
+    )
+    assert decision.elevation_scope_status == ("not_declared",)  # premise: z genuinely absent
+    assert decision.decision == "rejected"
+    assert decision.reject_code == "position_evidence_pair_mismatch"
+
+
+# =========================================================================== #
+# 14. MAJOR-B1 condition 3 — ambiguity margin (dispatch §1 / design doc §5.3
+#     condition 3). Independent of, and stricter than, plain uniqueness: a
+#     near-tie runner-up must still reject even when the cited source is
+#     technically the strict argmin.
+# =========================================================================== #
+def test_condition3_near_tie_within_epsilon_is_ambiguous_and_rejected():
+    plan = _hand_plan(0.0, 2.0)
+    window = _FakeWindow("W-T", "North", "floor-1", [0.0, 2.0])
+    floors = [_FakeFloor("floor-1", 0.0, 3.0)]
+    frame = _identity_frame()
+    segments = (_hand_segment("North", "floor-1"),)
+
+    eps = wp.PAIRING_AMBIGUITY_EPSILON_M
+    cited = _hand_elevation(0.10, 2.10, locator="src:" + "9" * 64)                         # d = 0.10 exactly
+    near_tie = _hand_elevation(0.10 + eps / 2, 2.10 + eps / 2, locator="src:" + "7" * 64)  # d = 0.10 + eps/2
+
+    decision = wp._build_window_position_evidence_shadow_decision(
+        window, plan_sources=(plan,), elevation_sources=(cited,), frames_by_input={"North_view": frame},
+        floors=floors, producer_draw_sha256="0" * 64, resolver_inputs_sha256="0" * 64,
+        tolerance_value=wp.WINDOW_EVIDENCE_PAIRING_TOL_M,
+        catalog=(plan, cited, near_tie), facade_segments=segments,
+    )
+    assert decision.decision == "rejected", (
+        "cited is technically the strict nearest (0.10 < 0.10+eps/2), but "
+        "the runner-up is within the ambiguity epsilon of it -- condition 3 "
+        "must still reject, not just condition 2's plain uniqueness check"
+    )
+    assert decision.reject_code == "position_evidence_pair_mismatch"
+
+
+def test_condition3_margin_comfortably_outside_epsilon_accepts():
+    """Self-proof of premise: the identical construction with the runner-up
+    moved comfortably outside the epsilon (10x, not 0.5x) accepts cleanly."""
+    plan = _hand_plan(0.0, 2.0)
+    window = _FakeWindow("W-T", "North", "floor-1", [0.0, 2.0])
+    floors = [_FakeFloor("floor-1", 0.0, 3.0)]
+    frame = _identity_frame()
+    segments = (_hand_segment("North", "floor-1"),)
+
+    eps = wp.PAIRING_AMBIGUITY_EPSILON_M
+    cited = _hand_elevation(0.10, 2.10, locator="src:" + "9" * 64)
+    far_enough = _hand_elevation(0.10 + eps * 10, 2.10 + eps * 10, locator="src:" + "6" * 64)
+
+    decision = wp._build_window_position_evidence_shadow_decision(
+        window, plan_sources=(plan,), elevation_sources=(cited,), frames_by_input={"North_view": frame},
+        floors=floors, producer_draw_sha256="0" * 64, resolver_inputs_sha256="0" * 64,
+        tolerance_value=wp.WINDOW_EVIDENCE_PAIRING_TOL_M,
+        catalog=(plan, cited, far_enough), facade_segments=segments,
+    )
+    assert decision.decision == "accepted"
+
+
+# =========================================================================== #
+# 15. §12.2 顺序锁 — scope filtering must happen BEFORE mutual-nearest
+#     ranking. Real East_view S3/S4 (identical along-projection, different
+#     floor): if the domain builder ranked BEFORE filtering by scope, S3
+#     would falsely enter S4's domain and tie with it.
+# =========================================================================== #
+def test_scope_filter_before_ranking_order_lock():
+    geom, verified, tol = _f9_prepared()
+    frames = wp._build_authoritative_frames(geom, verified, tol)
+    floors = list(geom.floors)
+    sources_by_locator = {row.source_locator: row for row in verified.inputs.source_windows}
+    window = next(w for w in geom.windows if w.id == "W-F1-E-1")
+    assert window.floor_id == "floor-1"
+
+    plan_source = next(
+        sources_by_locator[link.source_locator]
+        for link in verified.inputs.claim_links
+        if link.window_id == "W-F1-E-1" and link.claim == "existence"
+        and sources_by_locator[link.source_locator].channel == "plan"
+    )
+    east_s4 = next(  # the REAL, correct citation for this window
+        row for row in verified.inputs.source_windows
+        if row.source_input_id == "East_view" and row.observation_id == "S4"
+    )
+    assert east_s4.local_z_interval.lo == pytest.approx(1.0) and east_s4.local_z_interval.hi == pytest.approx(2.8)
+
+    baseline = wp._build_window_position_evidence_shadow_decision(
+        window, plan_sources=(plan_source,), elevation_sources=(east_s4,),
+        frames_by_input=frames, floors=floors,
+        producer_draw_sha256=verified.inputs.producer_draw_sha256,
+        resolver_inputs_sha256=verified.inputs.content_sha256,
+        tolerance_value=wp.WINDOW_EVIDENCE_PAIRING_TOL_M,
+        catalog=verified.inputs.source_windows, facade_segments=tuple(geom.facade_segments),
+    )
+    assert baseline.decision == "accepted", "test premise: the correct citation must accept before neutering"
+
+    # Neuter: collapse scope resolution so EVERY East_view candidate reports
+    # the SAME resolved floor as the cited source, regardless of its real z
+    # -- functionally equivalent to "the domain builder ranked candidates
+    # WITHOUT first filtering by scope" (scope no longer discriminates
+    # anything). East_view/S3 (the OTHER floor's stroke, identical
+    # along-projection) now falsely enters the domain and exact-ties S4.
+    original = wp.resolve_elevation_source_floor_scope
+    wp.resolve_elevation_source_floor_scope = (
+        lambda source, floors_arg: wp._FloorScopeResolution(status="resolved", floor_id="floor-1")
+    )
+    try:
+        neutered = wp._build_window_position_evidence_shadow_decision(
+            window, plan_sources=(plan_source,), elevation_sources=(east_s4,),
+            frames_by_input=frames, floors=floors,
+            producer_draw_sha256=verified.inputs.producer_draw_sha256,
+            resolver_inputs_sha256=verified.inputs.content_sha256,
+            tolerance_value=wp.WINDOW_EVIDENCE_PAIRING_TOL_M,
+            catalog=verified.inputs.source_windows, facade_segments=tuple(geom.facade_segments),
+        )
+    finally:
+        wp.resolve_elevation_source_floor_scope = original
+
+    assert neutered.decision == "rejected", (
+        "collapsing scope resolution so a DIFFERENT floor's identical-along "
+        "stroke enters the same domain should produce a false ambiguity "
+        "rejection -- if this still accepts, the domain builder is not "
+        "actually scope-filtering BEFORE ranking (§12.2 顺序锁)"
+    )
+    assert neutered.reject_code == "position_evidence_pair_mismatch"
+    assert wp.resolve_elevation_source_floor_scope is original
+
+
+# =========================================================================== #
+# 16. MAJOR-B1 condition 4 — source reuse (dispatch §1/§4, design doc §5.1/
+#     §5.3 condition 4 / §9's "source 复用 -> position_evidence_authority_
+#     invalid"). A DRAW-LEVEL property: two SYNTHETIC windows constructed to
+#     each INDEPENDENTLY pass conditions 1/2/3/5/6 (same position, same
+#     evidence), proving the reuse pass is doing real work and is not merely
+#     riding on a rejection some other condition would already have caught.
+# =========================================================================== #
+def test_condition4_both_windows_rejected_when_sharing_plan_authority():
+    plan = _hand_plan(0.0, 2.0)
+    elev = _hand_elevation(0.0, 2.0)
+    floors = [_FakeFloor("floor-1", 0.0, 3.0)]
+    frame = _identity_frame()
+    segments = (_hand_segment("North", "floor-1"),)
+    window_a = _FakeWindow("W-A", "North", "floor-1", [0.0, 2.0])
+    window_b = _FakeWindow("W-B", "North", "floor-1", [0.0, 2.0])
+
+    decision_a = wp._build_window_position_evidence_shadow_decision(
+        window_a, plan_sources=(plan,), elevation_sources=(elev,), frames_by_input={"North_view": frame},
+        floors=floors, producer_draw_sha256="0" * 64, resolver_inputs_sha256="0" * 64,
+        tolerance_value=wp.WINDOW_EVIDENCE_PAIRING_TOL_M,
+        catalog=(plan, elev), facade_segments=segments,
+    )
+    decision_b = wp._build_window_position_evidence_shadow_decision(
+        window_b, plan_sources=(plan,), elevation_sources=(elev,), frames_by_input={"North_view": frame},
+        floors=floors, producer_draw_sha256="0" * 64, resolver_inputs_sha256="0" * 64,
+        tolerance_value=wp.WINDOW_EVIDENCE_PAIRING_TOL_M,
+        catalog=(plan, elev), facade_segments=segments,
+    )
+    assert decision_a.decision == "accepted" and decision_b.decision == "accepted", (
+        "test premise: BOTH windows must independently pass conditions "
+        "1/2/3/5/6 before reuse detection runs, or this would not be a "
+        "genuine test of condition 4's own necessity"
+    )
+    assert decision_a.plan_locator == decision_b.plan_locator
+    assert set(decision_a.elevation_locators) & set(decision_b.elevation_locators)
+
+    final = wp._detect_position_source_reuse((decision_a, decision_b))
+    by_id = {d.window_id: d for d in final}
+    assert by_id["W-A"].decision == "rejected"
+    assert by_id["W-A"].reject_code == "position_evidence_authority_invalid"
+    assert by_id["W-B"].decision == "rejected"
+    assert by_id["W-B"].reject_code == "position_evidence_authority_invalid"
+    # decision_sha256 changed (a NEW object, not a mutation of the frozen one):
+    assert by_id["W-A"].decision_sha256 != decision_a.decision_sha256
+
+
+def test_condition4_reuse_pass_is_targeted_not_a_blanket_reject():
+    """Self-proof: a single, non-colliding decision passes through the
+    reuse pass completely untouched."""
+    plan = _hand_plan(0.0, 2.0)
+    elev = _hand_elevation(0.0, 2.0)
+    floors = [_FakeFloor("floor-1", 0.0, 3.0)]
+    frame = _identity_frame()
+    segments = (_hand_segment("North", "floor-1"),)
+    window_a = _FakeWindow("W-A", "North", "floor-1", [0.0, 2.0])
+    decision_a = wp._build_window_position_evidence_shadow_decision(
+        window_a, plan_sources=(plan,), elevation_sources=(elev,), frames_by_input={"North_view": frame},
+        floors=floors, producer_draw_sha256="0" * 64, resolver_inputs_sha256="0" * 64,
+        tolerance_value=wp.WINDOW_EVIDENCE_PAIRING_TOL_M,
+        catalog=(plan, elev), facade_segments=segments,
+    )
+    assert decision_a.decision == "accepted"
+    passthrough = wp._detect_position_source_reuse((decision_a,))
+    assert passthrough == (decision_a,)
+    # A rejected decision sharing a locator with an accepted one does not
+    # drag the accepted one down -- only accepted-vs-accepted collisions
+    # count (v2.1 §5.1: an already-rejected window never won any authority
+    # to "fight over"). Built via the SAME real per-window builder (window
+    # id "W-C", otherwise identical), then downgraded with the module's own
+    # helper -- not a hand-rolled JSON round trip that could silently drift
+    # from the model's real shape.
+    decision_c = wp._build_window_position_evidence_shadow_decision(
+        _FakeWindow("W-C", "North", "floor-1", [0.0, 2.0]),
+        plan_sources=(plan,), elevation_sources=(elev,), frames_by_input={"North_view": frame},
+        floors=floors, producer_draw_sha256="0" * 64, resolver_inputs_sha256="0" * 64,
+        tolerance_value=wp.WINDOW_EVIDENCE_PAIRING_TOL_M,
+        catalog=(plan, elev), facade_segments=segments,
+    )
+    assert decision_c.decision == "accepted"
+    rejected_elsewhere = wp._downgrade_decision_to_rejected(decision_c, code="position_evidence_pair_mismatch")
+    assert rejected_elsewhere.decision == "rejected"
+    assert rejected_elsewhere.plan_locator == decision_a.plan_locator  # genuinely shares the locator
+
+    result = wp._detect_position_source_reuse((decision_a, rejected_elsewhere))
+    by_id = {d.window_id: d for d in result}
+    assert by_id["W-A"] == decision_a  # untouched, no collision among ACCEPTED decisions
+    assert by_id["W-C"].decision == "rejected"  # stays rejected, code unchanged (not re-flagged)
+    assert by_id["W-C"].reject_code == "position_evidence_pair_mismatch"
+
+
+def test_condition4_wiring_report_level_pass_is_consumed():
+    """Neuter proving `compute_window_position_evidence_shadow` actually
+    THREADS `_detect_position_source_reuse`'s return value into the report
+    (not merely calls it and discards the result): patched to unconditionally
+    downgrade every decision, the real clean e2e fixture's report must
+    reflect that -- `all_accepted` flips to False even though every window's
+    OWN citation is genuinely distinct and valid in this real, unmodified
+    data."""
+    geom, verified, tol = _clean_prepared()
+    baseline = wp.compute_window_position_evidence_shadow(geom, verified_inputs=verified, tol=tol)
+    assert baseline.all_accepted is True, "test premise: clean fixture must be all-accepted before neutering"
+
+    original = wp._detect_position_source_reuse
+    wp._detect_position_source_reuse = lambda decisions: tuple(
+        wp._downgrade_decision_to_rejected(d, code="position_evidence_authority_invalid") for d in decisions
+    )
+    try:
+        neutered = wp.compute_window_position_evidence_shadow(geom, verified_inputs=verified, tol=tol)
+    finally:
+        wp._detect_position_source_reuse = original
+
+    assert neutered.all_accepted is False
+    assert all(d.decision == "rejected" for d in neutered.decisions)
+    assert neutered.window_count == baseline.window_count  # same windows, just downgraded
+    assert wp._detect_position_source_reuse is original
+
+
+# =========================================================================== #
+# 17. MAJOR-B1 coverage lock — evaluated_conditions/unevaluated_conditions
+#     (dispatch §3/§4). "补齐之后 unevaluated_conditions 应为空 -- 但这个
+#     字段必须存在且被锁住，使将来任何再次的部分实现不可能悄悄冒充完整".
+# =========================================================================== #
+def test_all_six_conditions_currently_evaluated_none_unevaluated():
+    """Literal test of the dispatch's own completion bar."""
+    assert len(wp.ALL_POSITION_EVIDENCE_CONDITIONS) == 6
+    assert set(wp.CURRENTLY_EVALUATED_POSITION_EVIDENCE_CONDITIONS) == set(wp.ALL_POSITION_EVIDENCE_CONDITIONS)
+    assert wp.CURRENTLY_UNEVALUATED_POSITION_EVIDENCE_CONDITIONS == ()
+
+
+def test_real_report_carries_ruleset_version_and_full_coverage():
+    geom, verified, tol = _clean_prepared()
+    report = wp.compute_window_position_evidence_shadow(geom, verified_inputs=verified, tol=tol)
+    assert report.ruleset_version == wp.POSITION_EVIDENCE_RULESET_VERSION
+    assert set(report.evaluated_conditions) == set(wp.ALL_POSITION_EVIDENCE_CONDITIONS)
+    assert report.unevaluated_conditions == ()
+
+
+def _rejected_hand_decision(window_id: str) -> "wp.WindowPositionEvidenceShadowDecisionV1":
+    """A real `rejected` decision (out-of-tolerance distance), built via the
+    actual per-window function -- so `decisions=(this,)` legitimately makes
+    `all(d.decision == 'accepted' ...)` False without fighting the report
+    model's own pre-existing `all_accepted` consistency check."""
+    plan = _hand_plan(0.0, 2.0, locator="src:" + "a" * 64)
+    elev = _hand_elevation(5.0, 7.0, locator="src:" + "b" * 64)  # d = 5.0, way over tolerance
+    window = _FakeWindow(window_id, "North", "floor-1", [0.0, 2.0])
+    decision = wp._build_window_position_evidence_shadow_decision(
+        window, plan_sources=(plan,), elevation_sources=(elev,), frames_by_input={"North_view": _identity_frame()},
+        floors=[_FakeFloor("floor-1", 0.0, 3.0)], producer_draw_sha256="0" * 64, resolver_inputs_sha256="0" * 64,
+        tolerance_value=wp.WINDOW_EVIDENCE_PAIRING_TOL_M,
+        catalog=(plan, elev), facade_segments=(_hand_segment("North", "floor-1"),),
+    )
+    assert decision.decision == "rejected", "test premise: this fixture must genuinely reject"
+    return decision
+
+
+def _report_content_sha256(*, decisions=(), **fields) -> str:
+    """Compute a genuinely-matching `content_sha256` for a
+    `WindowPositionEvidenceShadowReportV1` payload -- MUST be used (not a
+    placeholder like `"0"*64`) whenever a coverage/shape test wants the hash
+    check to be a NON-factor, so a `pytest.raises(ValidationError)` block can
+    only be satisfied by the SPECIFIC invariant under test, not incidentally
+    by an unrelated hash mismatch (a false lock this project's CLAUDE.md
+    repeatedly warns about: "遮蔽自查"). Field shapes mirror
+    `model_dump(mode='json')`: tuple-of-str fields as lists."""
+    payload = {
+        "producer_draw_sha256": fields["producer_draw_sha256"], "resolver_inputs_sha256": fields["resolver_inputs_sha256"],
+        "status": fields["status"], "binding_error_code": fields["binding_error_code"],
+        "window_count": fields["window_count"], "decisions": [d.model_dump(mode="json") for d in decisions],
+        "all_accepted": fields["all_accepted"], "ruleset_version": fields["ruleset_version"],
+        "evaluated_conditions": list(fields["evaluated_conditions"]),
+        "unevaluated_conditions": list(fields["unevaluated_conditions"]),
+    }
+    return wp.canonical_sha256(payload)
+
+
+def test_report_evaluated_and_unevaluated_conditions_must_partition_full_set():
+    """A condition silently missing from BOTH lists (not declared evaluated,
+    not declared unevaluated) is refused -- it cannot just vanish. Uses a
+    CORRECTLY-COMPUTED `content_sha256` (via `_report_content_sha256`) so
+    this can only raise via the partition check itself, not incidentally via
+    an unrelated hash mismatch -- self-verified below by confirming the
+    SAME construction succeeds once the missing condition is properly named
+    in `unevaluated_conditions`."""
+    evaluated = wp.ALL_POSITION_EVIDENCE_CONDITIONS[:-1]  # missing one condition
+    unevaluated = ()  # ...and it is not named here either
+    fields = dict(
+        producer_draw_sha256="0" * 64, resolver_inputs_sha256="0" * 64,
+        status="evaluated", binding_error_code=None, window_count=0, all_accepted=True,
+        ruleset_version=wp.POSITION_EVIDENCE_RULESET_VERSION,
+        evaluated_conditions=evaluated, unevaluated_conditions=unevaluated,
+    )
+    with pytest.raises(ValidationError):
+        wp.WindowPositionEvidenceShadowReportV1(
+            decisions=(), content_sha256=_report_content_sha256(**fields), **fields,
+        )
+    # Self-proof the hash was never the blocker: naming the missing condition
+    # (still a correctly-computed hash) constructs cleanly. `decisions=()`
+    # vacuously requires `all_accepted=True` (the report's OWN pre-existing
+    # consistency check), so this exercises the "legal partial coverage"
+    # shape rather than the coverage-vs-PASS lock (that one is `test_
+    # coverage_lock_report_cannot_claim_all_accepted_with_unevaluated_
+    # conditions`'s job, backed by a real rejected decision).
+    fixed_fields = {**fields, "unevaluated_conditions": (), "evaluated_conditions": wp.ALL_POSITION_EVIDENCE_CONDITIONS}
+    ok = wp.WindowPositionEvidenceShadowReportV1(
+        decisions=(), content_sha256=_report_content_sha256(**fixed_fields), **fixed_fields,
+    )
+    assert ok.unevaluated_conditions == ()
+
+
+def test_coverage_lock_report_cannot_claim_all_accepted_with_unevaluated_conditions():
+    """§4's own "coverage 锁": "把某个条件从 evaluated 挪到 unevaluated ⇒
+    消费方必须拒绝把它当完整判定用" -- enforced at the TYPE level: it is
+    STRUCTURALLY IMPOSSIBLE to construct a report claiming both
+    `all_accepted=True` and a non-empty `unevaluated_conditions`, regardless
+    of what any future caller/consumer remembers to check. Uses a
+    CORRECTLY-COMPUTED `content_sha256` so this can only raise via the
+    coverage invariant itself -- self-verified by confirming the IDENTICAL
+    coverage shape, backed by a genuinely-rejected decision so `all_accepted
+    =False` is honest, constructs cleanly."""
+    missing = wp.ALL_POSITION_EVIDENCE_CONDITIONS[0]
+    remaining = tuple(c for c in wp.ALL_POSITION_EVIDENCE_CONDITIONS if c != missing)
+    bad_fields = dict(
+        producer_draw_sha256="0" * 64, resolver_inputs_sha256="0" * 64,
+        status="evaluated", binding_error_code=None, window_count=0, all_accepted=True,
+        ruleset_version=wp.POSITION_EVIDENCE_RULESET_VERSION,
+        evaluated_conditions=remaining, unevaluated_conditions=(missing,),
+    )
+    with pytest.raises(ValidationError):
+        wp.WindowPositionEvidenceShadowReportV1(
+            decisions=(), content_sha256=_report_content_sha256(**bad_fields), **bad_fields,
+        )
+    # Self-proof: the IDENTICAL partial coverage, now backed by one real
+    # rejected decision (honest all_accepted=False), is legal -- the hash
+    # was never what blocked the case above, only the True/unevaluated
+    # combination was.
+    rejected = _rejected_hand_decision("W-REJ")  # already producer_draw_sha256/resolver_inputs_sha256 = "0"*64
+    assert rejected.producer_draw_sha256 == bad_fields["producer_draw_sha256"]
+    assert rejected.resolver_inputs_sha256 == bad_fields["resolver_inputs_sha256"]
+    ok_fields = {**bad_fields, "all_accepted": False, "window_count": 1}
+    ok = wp.WindowPositionEvidenceShadowReportV1(
+        decisions=(rejected,), content_sha256=_report_content_sha256(decisions=(rejected,), **ok_fields), **ok_fields,
+    )
+    assert ok.all_accepted is False
+    assert ok.unevaluated_conditions == (missing,)
+
+
+def test_check_correction_evidence_dict_exposes_coverage_fields():
+    """MAJOR-B1's actual observable surface: the machine-readable coverage
+    lands in the CHECK evidence a consumer/human would actually read (not
+    just on the internal report object no external caller sees)."""
+    geom, verified, tol = _clean_prepared()
+    rep = check_correction(
+        geom, capability_profile="orthogonal_polygon", run_profile="regression",
+        verified_window_inputs=verified,
+    )
+    row = _shadow_row(rep)
+    assert row.status == CheckStatus.PASS
+    assert row.evidence["ruleset_version"] == wp.POSITION_EVIDENCE_RULESET_VERSION
+    assert set(row.evidence["evaluated_conditions"]) == set(wp.ALL_POSITION_EVIDENCE_CONDITIONS)
+    assert row.evidence["unevaluated_conditions"] == []
+
+
+# =========================================================================== #
+# 18. Must-red neuter for the mutual-nearest/ambiguity mechanism itself
+#     (§12.2's own must-red: "删掉 mutual-nearest 后专用夹具必须转红").
+# =========================================================================== #
+def test_neuter_disable_mutual_nearest_causes_false_accept():
+    plan = _hand_plan(0.0, 2.0)
+    window = _FakeWindow("W-T", "North", "floor-1", [0.0, 2.0])
+    floors = [_FakeFloor("floor-1", 0.0, 3.0)]
+    frame = _identity_frame()
+    segments = (_hand_segment("North", "floor-1"),)
+    cited = _hand_elevation(0.10, 2.10, locator="src:" + "9" * 64)
+    better = _hand_elevation(0.02, 2.02, locator="src:" + "8" * 64)
+
+    original = wp._is_unique_nearest
+    wp._is_unique_nearest = lambda ranked, *, expected_locator: True
+    try:
+        neutered = wp._build_window_position_evidence_shadow_decision(
+            window, plan_sources=(plan,), elevation_sources=(cited,), frames_by_input={"North_view": frame},
+            floors=floors, producer_draw_sha256="0" * 64, resolver_inputs_sha256="0" * 64,
+            tolerance_value=wp.WINDOW_EVIDENCE_PAIRING_TOL_M,
+            catalog=(plan, cited, better), facade_segments=segments,
+        )
+    finally:
+        wp._is_unique_nearest = original
+
+    assert neutered.decision == "accepted", (
+        "neutering the mutual-nearest/ambiguity check should have produced "
+        "a FALSE accept on the uncited-closer-candidate fixture -- if this "
+        "fails, that check is decorative, not load-bearing"
+    )
+    assert wp._is_unique_nearest is original
+
+
+def test_neuter_disable_plan_family_filter_reintroduces_symmetric_false_reject():
+    """Must-red for the facade-segment domain filter specifically: with
+    `_plan_source_consistent_with_family` neutered to always return True (as
+    if EVERY plan candidate on the floor were consistent with every family),
+    the real clean e2e fixture -- which is genuinely, architecturally
+    symmetric (North/South and East/West window pairs sharing identical
+    along-position, confirmed empirically before this module was written) --
+    falsely loses its clean 15/15 accept."""
+    geom, verified, tol = _clean_prepared()
+    baseline = wp.compute_window_position_evidence_shadow(geom, verified_inputs=verified, tol=tol)
+    assert baseline.all_accepted is True, "test premise: clean fixture must be all-accepted before neutering"
+
+    original = wp._plan_source_consistent_with_family
+    wp._plan_source_consistent_with_family = lambda *args, **kwargs: True
+    try:
+        neutered = wp.compute_window_position_evidence_shadow(geom, verified_inputs=verified, tol=tol)
+    finally:
+        wp._plan_source_consistent_with_family = original
+
+    assert neutered.all_accepted is False, (
+        "neutering the facade-segment family filter should reintroduce the "
+        "symmetric North/South (and East/West) false-tie ambiguity this "
+        "filter exists to prevent -- if this still accepts, the filter is "
+        "not actually load-bearing on real, architecturally-symmetric data"
+    )
+    rejected_ids = {d.window_id for d in neutered.decisions if d.decision == "rejected"}
+    assert len(rejected_ids) >= 6, rejected_ids  # matches the pre-fix empirical count
+    assert wp._plan_source_consistent_with_family is original
