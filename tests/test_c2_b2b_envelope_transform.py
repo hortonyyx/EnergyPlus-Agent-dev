@@ -14,7 +14,8 @@ from src.agent.correction.envelope import (
 )
 from src.agent.correction.envelope import EnvelopeEndpointResolution, WingBoundaryEvidence
 from src.agent.correction.envelope_transform import (
-    EnvelopeGateFinding, EnvelopeTransformRejected, apply_v3_envelope_transaction,
+    EnvelopeAnnotationObservation, EnvelopeGateFinding, EnvelopeTransformRejected,
+    apply_v3_envelope_transaction, observe_envelope_annotation_basis, resolve_envelope_move_intents,
 )
 from src.agent.correction.footprint import floor_footprint_fingerprint
 from src.agent.correction.parse import ensure_corrected_geometry
@@ -286,3 +287,227 @@ def test_v1_v2_legacy_envelope_matrix_semantic_snapshots(schema_version, state):
         assert result.unsupported
     else:
         assert result.model_dump()["corrections"] == []
+
+
+# ---------------------------------------------------------------------------
+# 摊 C (2026-08-12): EnvelopeAnnotationObservation / observe_envelope_
+# annotation_basis locks. See AI_agent/logs/reviews/request/
+# 2026-08-12_c_annotation_observable_and_f23_dispatch_claude.md §C.
+#
+# `_geom()`'s footprint bbox is exactly [0,10] x [0,8] (its L-shaped ring
+# still spans that full rectangle -- observe_envelope_annotation_basis only
+# ever looks at footprint_bbox(), never the ring's interior shape), so it is
+# reused here rather than adding a second geometry fixture.
+# ---------------------------------------------------------------------------
+
+
+def _annotation_envelope(dx: float | None, dy: float | None) -> AuthoritativeEnvelope:
+    """Authoritative envelope for `_geom()`'s [0,10] x [0,8] bbox, whose
+    accepted bounds are displaced by `dx`/`dy` outward on BOTH the lo and hi
+    side of the x/y axis respectively (so every one of the 4 observations
+    -- x.lo, x.hi, y.lo, y.hi -- lands in the same basis, keeping each
+    lock's assertions uniform). `None` on an axis means that axis has no
+    entry in `AuthoritativeEnvelope.axes` at all -- `envelope.axis(axis)`
+    then returns `None`, the `no_authoritative_evidence` case.
+    """
+    axes: dict[str, EnvelopeAxisResolution] = {}
+    for axis, base_lo, base_hi, delta, source in (
+        ("x", 0.0, 10.0, dx, "South"), ("y", 0.0, 8.0, dy, "West"),
+    ):
+        if delta is None:
+            continue
+        bounds = (base_lo - delta, base_hi + delta)
+        candidate = EnvelopeCandidate(
+            axis, bounds, bounds[1] - bounds[0], "dimension", source, f"src-{axis}",
+            role="overall", confidence=.95,
+        )
+        axes[axis] = EnvelopeAxisResolution(
+            axis, "accepted", bounds, bounds[1] - bounds[0], candidate, candidates=(candidate,),
+        )
+    return AuthoritativeEnvelope(axes)
+
+
+def test_annotation_basis_names_axis_line_annotation_when_displacement_is_negligible():
+    """C.4 lock 1/4: displacement <= output_precision_m (0.01 m) =>
+    "axis_line_annotation" -- plan.md's original rule's most-wanted-to-see
+    row, and the one `resolve_envelope_move_intents` structurally can never
+    produce a signal for (its first `continue`, envelope_transform.py:
+    296-297: displacement <= output_precision_m never becomes an intent).
+
+    Self-proving premise: on this exact (geom, envelope, tol), the
+    pre-existing "observable channel" (`corrections[].intents`, i.e.
+    `resolve_envelope_move_intents`) really does produce nothing at all --
+    proving this state was genuinely invisible before this batch, not just
+    named differently.
+    """
+    tol = load_core_tolerances()
+    geom, envelope = _geom(), _annotation_envelope(0.0, 0.0)
+
+    intents = resolve_envelope_move_intents(geom, envelope, tol)
+    assert intents == ()  # self-proving premise: old channel is silent here
+
+    observations = observe_envelope_annotation_basis(geom, envelope, tol)
+    assert len(observations) == 4
+    assert all(o.basis == "axis_line_annotation" for o in observations)
+    assert all(o.displacement_m == 0.0 for o in observations)
+    assert {(o.axis, o.side) for o in observations} == {
+        ("x", "lo"), ("x", "hi"), ("y", "lo"), ("y", "hi"),
+    }
+
+    # Real entry point, not just the bare function: apply_v3_envelope_
+    # transaction wires observe_envelope_annotation_basis in unconditionally
+    # (envelope_transform.py:748), on every exit path -- including this
+    # "zero intents" no-op commit.
+    result = apply_v3_envelope_transaction(geom, tol, envelope)
+    assert not result.committed and result.intent_ids == ()
+    assert result.annotation_basis == observations
+
+
+def test_annotation_basis_names_outer_skin_annotation_at_half_wall_thickness_scale():
+    """C.4 lock 2/4: output_precision_m < displacement <=
+    envelope_reconcile_tol_m (0.12 m, this project's half-wall-thickness
+    reference magnitude, per plan.md/the dispatch doc) =>
+    "outer_skin_annotation". This is the ONE basis plan.md's original rule
+    could already see a raw number for.
+
+    Self-proving premise: on this fixture, `resolve_envelope_move_intents`
+    DOES fire (contrast with the other three locks in this group) -- so the
+    new observation is not inventing a signal, it is naming one that was
+    already a bare, unlabeled numeric delta (plan.md's own third table row:
+    "其他值 | 需人工判读"). `EnvelopeMoveIntent` carries no basis
+    classification field at all; only the new observation does.
+    """
+    tol = load_core_tolerances()
+    geom, envelope = _geom(), _annotation_envelope(0.12, 0.12)
+
+    intents = resolve_envelope_move_intents(geom, envelope, tol)
+    assert len(intents) == 4  # self-proving premise: old channel DOES fire here...
+    assert not {"basis", "basis_label"} & set(intents[0].__dict__)  # ...but never names *why*
+
+    observations = observe_envelope_annotation_basis(geom, envelope, tol)
+    assert len(observations) == 4
+    assert all(o.basis == "outer_skin_annotation" for o in observations)
+    assert all(o.displacement_m == pytest.approx(0.12) for o in observations)
+
+    result = apply_v3_envelope_transaction(geom, tol, envelope)
+    assert result.committed  # unlike the other three locks: this state really moves geometry
+    assert result.geom.footprint_x == [-0.12, 10.12]
+    assert result.geom.footprint_y == [-0.12, 8.12]
+    assert result.annotation_basis == observations
+
+
+def test_annotation_basis_names_exceeds_tolerance_beyond_reconcile_tol():
+    """C.4 lock 3/4: displacement > envelope_reconcile_tol_m (0.30 m) =>
+    "exceeds_tolerance" -- the dispatch doc's "正是最该报警的那一档": with
+    the old rule, this reads identically to "no evidence at all".
+
+    Self-proving premise: `resolve_envelope_move_intents` is silent here
+    too (its SECOND `continue`, envelope_transform.py:298-299).
+    """
+    tol = load_core_tolerances()
+    geom, envelope = _geom(), _annotation_envelope(0.5, 0.5)
+
+    intents = resolve_envelope_move_intents(geom, envelope, tol)
+    assert intents == ()  # self-proving premise: old channel is silent here too
+
+    observations = observe_envelope_annotation_basis(geom, envelope, tol)
+    assert len(observations) == 4
+    assert all(o.basis == "exceeds_tolerance" for o in observations)
+    assert all(o.displacement_m == pytest.approx(0.5) for o in observations)
+
+    result = apply_v3_envelope_transaction(geom, tol, envelope)
+    assert not result.committed and result.intent_ids == ()
+    assert result.annotation_basis == observations
+
+
+def test_annotation_basis_names_no_authoritative_evidence_when_axis_unresolved():
+    """C.4 lock 4/4: the axis has no accepted envelope resolution at all
+    (never appears in `AuthoritativeEnvelope.axes`) => "no_authoritative_
+    evidence" -- structurally indistinguishable, through the old channel,
+    from "displacement is zero" or "displacement exceeds tolerance": all
+    three read as the same silence.
+
+    Self-proving premise: `resolve_envelope_move_intents` is silent here
+    too (its `resolution is None -> continue` guard, envelope_transform.py:
+    288-289).
+    """
+    tol = load_core_tolerances()
+    geom, envelope = _geom(), _annotation_envelope(None, None)
+    assert envelope.axis("x") is None and envelope.axis("y") is None  # fixture sanity
+
+    intents = resolve_envelope_move_intents(geom, envelope, tol)
+    assert intents == ()  # self-proving premise: old channel is silent here too
+
+    observations = observe_envelope_annotation_basis(geom, envelope, tol)
+    assert len(observations) == 4
+    assert all(o.basis == "no_authoritative_evidence" for o in observations)
+    assert all(o.displacement_m is None and o.new_value_m is None for o in observations)
+    assert all(o.old_value_m is not None for o in observations)  # footprint side is still reported
+
+    result = apply_v3_envelope_transaction(geom, tol, envelope)
+    assert not result.committed and result.intent_ids == ()
+    assert result.annotation_basis == observations
+
+
+@pytest.mark.parametrize("dx,dy,expected_basis,committed", [
+    # committed exit path (real intents -> _apply_components runs and
+    # recomputes footprint_x/y fresh from the ring on its way out).
+    (0.12, 0.12, "outer_skin_annotation", True),
+    # no-intents early-return path (envelope_transform.py:762-763 returns
+    # `before` completely as-is -- nothing downstream re-derives anything).
+    # A neuter run during this batch's own verification (2026-08-12,
+    # reverted, see execution log) found that a contamination bug written
+    # as `geom.footprint_x = [...]` inside observe_envelope_annotation_basis
+    # is SILENTLY SELF-HEALED by _apply_components on the committed path
+    # (which recomputes footprint_x/y from the ring unconditionally) but
+    # DOES surface on the no-intents path -- so both paths are exercised
+    # here, not just one.
+    (0.0, 0.0, "axis_line_annotation", False),
+])
+def test_annotation_basis_observation_never_perturbs_existing_transaction_outputs(
+    monkeypatch, dx, dy, expected_basis, committed,
+):
+    """C.4 invariance lock: C.3 §4 requires that adding this observation
+    leave every existing judgement byte-for-byte unchanged ("纯观测...加了
+    它,所有现有测试的结果必须一字不变"). Proven here by swapping the real
+    `observe_envelope_annotation_basis` for a stub that returns a visibly
+    different value, and showing every OTHER field
+    `apply_v3_envelope_transaction` already promised --
+    committed/geom/transaction_id/intent_ids/failed_gate_id -- comes out
+    byte-for-byte identical regardless. This is stronger than "existing
+    tests still pass" alone: it proves the observation call at
+    envelope_transform.py:748 is a pure, non-participating side channel,
+    not a hidden dependency the rest of the transaction could ever read
+    back -- on BOTH the committed and the no-intents exit path (see the
+    parametrize comment above for why one alone is not enough).
+    """
+    import src.agent.correction.envelope_transform as transform
+
+    tol = load_core_tolerances()
+    envelope = _annotation_envelope(dx, dy)
+    baseline = apply_v3_envelope_transaction(_geom(), tol, envelope)
+    # self-proving premise: this fixture really produces a non-trivial
+    # observation -- swapping it for a stub below would be a vacuous no-op
+    # test if the real function already returned nothing interesting.
+    assert baseline.annotation_basis
+    assert all(o.basis == expected_basis for o in baseline.annotation_basis)
+    assert baseline.committed is committed
+
+    def stub(*_args, **_kwargs):
+        return (EnvelopeAnnotationObservation(
+            axis="x", side="lo", basis="exceeds_tolerance", basis_label="stub",
+            old_value_m=None, new_value_m=None, displacement_m=None, interpretation="stub",
+        ),)
+
+    monkeypatch.setattr(transform, "observe_envelope_annotation_basis", stub)
+    swapped = apply_v3_envelope_transaction(_geom(), tol, envelope)
+
+    # the stub really took effect (this is not comparing a cached result)...
+    assert swapped.annotation_basis != baseline.annotation_basis
+    assert swapped.annotation_basis[0].basis == "exceeds_tolerance"
+    # ...yet every other field is untouched.
+    for field_name in ("committed", "geom", "transaction_id", "intent_ids", "failed_gate_id"):
+        assert getattr(swapped, field_name) == getattr(baseline, field_name), field_name
+    # the observation must never leak into the geometry artifact itself --
+    # it lives only on EnvelopeTransactionResult, never on `.geom`.
+    assert "annotation_basis" not in swapped.geom.model_dump()

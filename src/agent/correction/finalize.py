@@ -12,6 +12,7 @@ from src.agent.correction.artifact_serialization import (
 from src.agent.correction.config import CoreTolerances, load_core_tolerances
 from src.agent.correction.deterministic import apply_deterministic_core
 from src.agent.correction.envelope import extract_authoritative_envelope
+from src.agent.correction.envelope_transform import EnvelopeAnnotationObservation
 from src.agent.correction.facade_visibility import (
     VisibilityTolerances,
     materialize_all_facade_segments,
@@ -66,6 +67,12 @@ class FinalizeResult:
     window_evidence_ledger: WindowEvidenceLedgerV1 | None = None
     verified_window_resolver_inputs: VerifiedWindowResolverInputs | None = None
     prepared_candidate_identity: PreparedCandidateIdentity | None = None
+    # 2026-08-12 (摊 C): pure "which annotation basis" observation from the
+    # v3 B2b envelope transform, if one ran (empty for legacy v1/v2 -- this
+    # batch only names an outer-skin-vs-axis-line basis for the
+    # AuthoritativeEnvelope-derived v3 comparison). Never gates, never
+    # changes any pre-existing field on this result.
+    annotation_basis: tuple[EnvelopeAnnotationObservation, ...] = ()
 
 
 def _identity_snapshot(geom: CorrectedGeometry):
@@ -117,9 +124,15 @@ def finalize_correction_draw(
     envelope = extract_authoritative_envelope(
         Path(vector_dir), footprint=geom, footprint_tolerance_m=tol.envelope_reconcile_tol_m, tol=tol,
     )
+    # 2026-08-12 (摊 C): opt-in sink, see `_apply_envelope_reconcile`'s
+    # docstring for why this is a mutable out-parameter rather than a return
+    # value -- `apply_deterministic_core`'s return type is consumed too
+    # widely (including the B5 writer's independent replay) to safely widen.
+    annotation_basis_sink: list[EnvelopeAnnotationObservation] = []
     geom = apply_deterministic_core(
         geom, tol, authoritative_envelope=envelope, capability_profile=target.capability_profile,
         verified_window_inputs=verified_window_inputs,
+        annotation_basis_sink=annotation_basis_sink,
     )
     if before != _identity_snapshot(geom):
         raise ValueError("finalize invariant: v3 floor/reference identities changed during core")
@@ -193,4 +206,5 @@ def finalize_correction_draw(
         window_evidence_ledger=window_evidence,
         verified_window_resolver_inputs=verified_window_inputs,
         prepared_candidate_identity=prepared_identity,
+        annotation_basis=tuple(annotation_basis_sink),
     )

@@ -152,6 +152,16 @@ def _mismatched_bbox_geom():
     raw = _payload()
     raw["footprint_x"] = [-99, 99]
     raw["footprint_y"] = [-99, 99]
+    # F-22 BLOCKER-1 (2026-08-12): `_extract_correction_boundary` (R8, used
+    # below) is now gated on `_is_trusted_output_convention`, which requires
+    # an unconditional deterministic-core stamp in addition to
+    # schema_version == "3". This fixture is a hand-built raw payload (never
+    # run through `apply_deterministic_core`) testing footprint-bounds
+    # ROUTING (R4/R5/R7/R8), not the trust gate itself -- inject a stamp so
+    # it keeps exercising that routing rather than accidentally exercising
+    # the (unrelated) refusal path.
+    from src.agent.correction.deterministic import DETERMINISTIC_CORE_STAMP_VERSION
+    raw["deterministic_core_stamp"] = {"version": DETERMINISTIC_CORE_STAMP_VERSION}
     return ensure_corrected_geometry(raw)
 
 
@@ -307,7 +317,7 @@ def test_finalize_raises_if_core_mutates_floor_identity(tmp_path, monkeypatch):
     import src.agent.correction.finalize as finalize_module
 
     def _tamper_core(geom, tol=None, *, authoritative_envelope=None, capability_profile="rectangular",
-                     verified_window_inputs=None):
+                     verified_window_inputs=None, annotation_basis_sink=None):
         object.__setattr__(geom.floors[0], "id", "tampered")
         return geom
 
@@ -330,7 +340,7 @@ def test_finalize_raises_if_core_mutates_window_floor_reference(tmp_path, monkey
     raw["windows"] = [{"id": "w1", "floor_id": "f1", "facade": "South", "span": [1, 2], "z": [1, 2]}]
 
     def _tamper_core(geom, tol=None, *, authoritative_envelope=None, capability_profile="rectangular",
-                     verified_window_inputs=None):
+                     verified_window_inputs=None, annotation_basis_sink=None):
         geom.windows[0].floor_id = "tampered"
         return geom
 

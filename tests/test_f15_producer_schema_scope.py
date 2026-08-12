@@ -198,16 +198,23 @@ def test_producer_schema_prunes_orphaned_defs():
 def test_producer_schema_preserves_everything_else_byte_identical():
     """Every OTHER top-level property and every OTHER $defs entry is
     byte-identical to the untouched schema — this fix removes exactly the
-    marked fields and nothing else."""
+    marked fields and nothing else.
+
+    F-22 BLOCKER-1 (2026-08-12): `deterministic_core_stamp` joins the marked
+    set here too (schema.py, `CorrectedGeometryV3`) — same
+    CORRECTION_DRAW_FORBIDDEN marker, same reason (a core-only provenance
+    fact, illegal draw input), stripped by the SAME generic marker scan with
+    zero changes needed to `producer_facing_json_schema` itself.
+    """
     full = CorrectedGeometryV3.model_json_schema()
     stripped = producer_facing_json_schema(CorrectedGeometryV3)
 
-    kept_top = set(full["properties"]) - {"facade_segments", "north_axis"}
+    kept_top = set(full["properties"]) - {"facade_segments", "north_axis", "deterministic_core_stamp"}
     assert set(stripped["properties"]) == kept_top
     for name in kept_top:
         assert stripped["properties"][name] == full["properties"][name], name
 
-    kept_defs = set(full["$defs"]) - {"FacadeSegment", "WorldInterval", "NorthAxisEvidence"}
+    kept_defs = set(full["$defs"]) - {"FacadeSegment", "WorldInterval", "NorthAxisEvidence", "DeterministicCoreStampV1"}
     assert set(stripped["$defs"]) == kept_defs
     for name in kept_defs:
         if name == "WindowV3":
@@ -225,9 +232,9 @@ def test_producer_schema_v1_target_is_completely_unmodified():
     assert json.dumps(stripped, sort_keys=True) == json.dumps(full, sort_keys=True)
 
 
-def test_schema_forbidden_marker_present_on_exactly_the_three_fields():
+def test_schema_forbidden_marker_present_on_exactly_the_four_fields():
     """Pins the marker itself at the schema source (schema.py) — if someone
-    removes `json_schema_extra` from any of the three, or adds it somewhere
+    removes `json_schema_extra` from any of the four, or adds it somewhere
     it doesn't belong, this test names exactly which field changed.
 
     Three, not two: the original F-15 pass only marked `facade_segments` +
@@ -235,14 +242,26 @@ def test_schema_forbidden_marker_present_on_exactly_the_three_fields():
     same shape of core-only field (populated only by the separate
     `e4_orientation` enrichment phase, never the draw), just missed the first
     time because the real crash that surfaced it (a filled `north_axis`) only
-    happened on the SECOND verification run, after the first door closed."""
+    happened on the SECOND verification run, after the first door closed.
+
+    Four, not three (2026-08-12, F-22 BLOCKER-1): `deterministic_core_stamp`
+    joins the set — same shape again (a core-only provenance fact a draw
+    must never pre-fill), this time because a schema-v3-shaped draw claiming
+    a core-verified identity it never earned is exactly what let a pre-F-17
+    real production run score five-for-five `pass` while 0.12 m off on
+    every side (see correction_score.py's `_is_trusted_output_convention`).
+    """
     full = CorrectedGeometryV3.model_json_schema()
     assert full["properties"]["facade_segments"].get(CORRECTION_DRAW_FORBIDDEN) is True
     assert full["properties"]["north_axis"].get(CORRECTION_DRAW_FORBIDDEN) is True
+    assert full["properties"]["deterministic_core_stamp"].get(CORRECTION_DRAW_FORBIDDEN) is True
     window_def = full["$defs"]["WindowV3"]
     assert window_def["properties"]["facade_segment_id"].get(CORRECTION_DRAW_FORBIDDEN) is True
     # nothing else on CorrectedGeometryV3's own top-level carries the marker
-    other_top = {k: v for k, v in full["properties"].items() if k not in ("facade_segments", "north_axis")}
+    other_top = {
+        k: v for k, v in full["properties"].items()
+        if k not in ("facade_segments", "north_axis", "deterministic_core_stamp")
+    }
     assert not any(isinstance(v, dict) and v.get(CORRECTION_DRAW_FORBIDDEN) for v in other_top.values())
 
 

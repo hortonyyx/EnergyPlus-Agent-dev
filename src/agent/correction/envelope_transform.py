@@ -49,6 +49,171 @@ class EnvelopeMoveIntent:
     boundary_ref: str | None = None
 
 
+# 2026-08-12 (摊 C, "标注法观测"): the four ways a single footprint side can
+# relate to its facade-derived authoritative bound. Named so that "no intent"
+# (see `resolve_envelope_move_intents` below) never has to double as a signal
+# for three unrelated outcomes -- see `observe_envelope_annotation_basis`.
+EnvelopeAnnotationBasis = Literal[
+    "axis_line_annotation",
+    "outer_skin_annotation",
+    "exceeds_tolerance",
+    "no_authoritative_evidence",
+]
+
+_ANNOTATION_BASIS_LABEL_ZH: dict[EnvelopeAnnotationBasis, str] = {
+    "axis_line_annotation": "按轴线标注",
+    "outer_skin_annotation": "按外包标注",
+    "exceeds_tolerance": "超出容差,两者都不是",
+    "no_authoritative_evidence": "无权威证据",
+}
+
+_ANNOTATION_BASIS_INTERPRETATION_ZH: dict[EnvelopeAnnotationBasis, str] = {
+    "axis_line_annotation": (
+        "该侧位移 <= output_precision_m,与 footprint 现值几乎重合,"
+        "与这张图按墙/房间轴线标总尺寸一致。"
+    ),
+    "outer_skin_annotation": (
+        "该侧位移超出 output_precision_m 但仍 <= envelope_reconcile_tol_m,"
+        "量级与半墙厚相符,与这张图按外墙外包标总尺寸一致。"
+    ),
+    "exceeds_tolerance": (
+        "该侧位移超出 envelope_reconcile_tol_m,两种标注法都解释不了,"
+        "属数值分歧而非标注习惯,需人工判读。"
+    ),
+    "no_authoritative_evidence": (
+        "该轴没有 accepted 的立面外包权威证据,无从比较,"
+        "既不是按轴线也不是按外包,而是无信息。"
+    ),
+}
+
+
+@dataclass(frozen=True)
+class EnvelopeAnnotationObservation:
+    """One pure, non-blocking, per-side measurement of which dimensioning
+    basis a facade drawing appears to use (2026-08-12, 摊 C).
+
+    ⚠️ Exists to fix a structural blind spot in `resolve_envelope_move_intents`
+    below: that function only emits an `EnvelopeMoveIntent` for ONE of four
+    possible outcomes (the "outer-skin" middle band) -- the other three
+    (near-zero displacement, over-tolerance displacement, no accepted axis)
+    all fall through its two `continue`s / its axis-missing guard and produce
+    *no intent at all*. A reader of `corrections[].intents` alone therefore
+    cannot distinguish "this drawing is axis-line annotated" from "this axis
+    has no evidence" from "the evidence disagrees by more than tolerance" --
+    all three read as the same silence. This observation names all four
+    outcomes explicitly, computed BEFORE intent generation, so none of them
+    collapses into an unobservable absence (same family as this project's
+    "a gate with only negative assertions is structurally unobservable"
+    finding -- absence is not a signal unless it is made one on purpose).
+
+    Scope: only the `overall_bound` claim kind (``envelope.axis(axis)``) can
+    answer "which annotation basis" -- ``wing_break_endpoint`` (internal
+    T-junction claims, `envelope.endpoint_resolutions`) answers a different
+    question and never contributes an observation here.
+
+    Pure: computed from already-resolved inputs, never mutates them, never
+    raises, never gates, never changes any existing correction / conflict /
+    unsupported entry or any other pre-existing judgement.
+    """
+
+    axis: EnvelopeAxis
+    side: Literal["lo", "hi"]
+    basis: EnvelopeAnnotationBasis
+    basis_label: str
+    old_value_m: float | None
+    new_value_m: float | None
+    displacement_m: float | None
+    interpretation: str
+
+    def to_dict(self) -> dict:
+        return {
+            "axis": self.axis,
+            "side": self.side,
+            "basis": self.basis,
+            "basis_label": self.basis_label,
+            "old_value_m": self.old_value_m,
+            "new_value_m": self.new_value_m,
+            "displacement_m": self.displacement_m,
+            "interpretation": self.interpretation,
+        }
+
+
+def observe_envelope_annotation_basis(
+    geom: CorrectedGeometryV3, envelope: AuthoritativeEnvelope, tol: CoreTolerances,
+) -> tuple[EnvelopeAnnotationObservation, ...]:
+    """Per-side (x/lo, x/hi, y/lo, y/hi) observation of `footprint_bbox(geom)`
+    vs `envelope.axis(axis)` -- see `EnvelopeAnnotationObservation` for why
+    this exists and what it deliberately does not do (no gate, no mutation,
+    no change to any existing intent/correction/conflict/unsupported entry).
+
+    Always returns exactly 4 observations, one per (axis, side); never raises.
+    """
+    bbox = footprint_bbox(geom)
+    observations: list[EnvelopeAnnotationObservation] = []
+    for axis, bounds in (("x", bbox[0]), ("y", bbox[1])):
+        resolution = envelope.axis(axis)
+        if resolution is None or resolution.status != "accepted" or resolution.bounds is None:
+            for side, value in (("lo", bounds[0]), ("hi", bounds[1])):
+                basis: EnvelopeAnnotationBasis = "no_authoritative_evidence"
+                observations.append(EnvelopeAnnotationObservation(
+                    axis=axis, side=side, basis=basis, basis_label=_ANNOTATION_BASIS_LABEL_ZH[basis],
+                    old_value_m=round(float(value), 6), new_value_m=None, displacement_m=None,
+                    interpretation=_ANNOTATION_BASIS_INTERPRETATION_ZH[basis],
+                ))
+            continue
+        for side, old, new in (("lo", bounds[0], resolution.bounds[0]), ("hi", bounds[1], resolution.bounds[1])):
+            displacement = abs(float(new) - float(old))
+            if displacement <= tol.output_precision_m:
+                basis = "axis_line_annotation"
+            elif displacement <= tol.envelope_reconcile_tol_m:
+                basis = "outer_skin_annotation"
+            else:
+                basis = "exceeds_tolerance"
+            observations.append(EnvelopeAnnotationObservation(
+                axis=axis, side=side, basis=basis, basis_label=_ANNOTATION_BASIS_LABEL_ZH[basis],
+                old_value_m=round(float(old), 6), new_value_m=round(float(new), 6),
+                displacement_m=round(displacement, 6),
+                interpretation=_ANNOTATION_BASIS_INTERPRETATION_ZH[basis],
+            ))
+    return tuple(observations)
+
+
+def annotation_basis_report(
+    observations: tuple[EnvelopeAnnotationObservation, ...], tol: CoreTolerances,
+) -> dict:
+    """JSON-serializable report payload for the report/sidecar exposure point
+    (2026-08-12, 摊 C §C.3.3): one summary line + one interpretation-rule
+    sentence, plus the full per-side table. Pure formatting only -- never
+    recomputes, never raises, never used for any gate/judgement."""
+    if observations:
+        summary = "; ".join(
+            f"{o.axis}.{o.side}={o.basis_label}"
+            + (f"(Δ{o.displacement_m:.3f}m)" if o.displacement_m is not None else "")
+            for o in observations
+        )
+    else:
+        summary = "无观测（该产物非 v3,或未计算）"
+    return {
+        "schema": "envelope_annotation_basis_observation_v1",
+        "note": (
+            "纯观测,不设门/不阻断/不改变任何既有判定 —— 见 AI_agent/plan.md〇-C 与 "
+            "2026-08-12_c_annotation_observable_and_f23_dispatch_claude.md。"
+        ),
+        "summary_line": f"标注法观测（纯观测）: {summary}",
+        "interpretation_rule": (
+            f"位移 <= output_precision_m({tol.output_precision_m:.3f}m) => {_ANNOTATION_BASIS_LABEL_ZH['axis_line_annotation']}"
+            f"({'axis_line_annotation'}); "
+            f"output_precision_m < 位移 <= envelope_reconcile_tol_m({tol.envelope_reconcile_tol_m:.3f}m) => "
+            f"{_ANNOTATION_BASIS_LABEL_ZH['outer_skin_annotation']}({'outer_skin_annotation'}); "
+            f"位移 > envelope_reconcile_tol_m => {_ANNOTATION_BASIS_LABEL_ZH['exceeds_tolerance']}"
+            f"({'exceeds_tolerance'}); "
+            f"该轴无 accepted 权威 => {_ANNOTATION_BASIS_LABEL_ZH['no_authoritative_evidence']}"
+            f"({'no_authoritative_evidence'})。"
+        ),
+        "observations": [o.to_dict() for o in observations],
+    }
+
+
 @dataclass(frozen=True)
 class AxisInterval:
     lo: float
@@ -87,6 +252,11 @@ class EnvelopeTransactionResult:
     transaction_id: str | None
     intent_ids: tuple[str, ...]
     failed_gate_id: str | None = None
+    # 2026-08-12 (摊 C): pure observation, computed unconditionally on every
+    # exit path (committed / rolled back / no-intents) -- see
+    # `observe_envelope_annotation_basis`. Never influences `committed` /
+    # `failed_gate_id` / `geom`.
+    annotation_basis: tuple[EnvelopeAnnotationObservation, ...] = ()
 
 
 class EnvelopeTransformRejected(ValueError):
@@ -570,6 +740,12 @@ def apply_v3_envelope_transaction(
     verified_window_inputs: VerifiedWindowResolverInputs | None = None,
 ) -> EnvelopeTransactionResult:
     before = CorrectedGeometryV3.model_validate(geom.model_dump())
+    # 2026-08-12 (摊 C): computed unconditionally, before the try block, on
+    # the SAME `before` + `authoritative_envelope` + `tol` that
+    # `resolve_envelope_move_intents` below consumes -- so every exit path
+    # (no-intents / committed / rolled-back / re-raised) carries the same
+    # observation. Pure; never raises; never influences anything below.
+    annotation_basis = observe_envelope_annotation_basis(before, authoritative_envelope, tol)
     intent_ids: tuple[str, ...] = ()
     transaction_id: str | None = None
     try:
@@ -584,7 +760,7 @@ def apply_v3_envelope_transaction(
         intents = resolve_envelope_move_intents(before, authoritative_envelope, tol)
         intent_ids = tuple(i.intent_id for i in intents)
         if not intents:
-            return EnvelopeTransactionResult(before, False, None, (), None)
+            return EnvelopeTransactionResult(before, False, None, (), None, annotation_basis)
         transaction_id = sha256(_canonical({"schema_version": "3", "before_fingerprints": sorted(floor_footprint_fingerprint(before, f) for f in before.floors), "intents": [asdict(i) for i in intents]}).encode()).hexdigest()
         # Phase A #4: reject post-Vg bindings before any candidate write.
         if before.facade_segments or any(w.facade_segment_id is not None for w in before.windows):
@@ -689,9 +865,9 @@ def apply_v3_envelope_transaction(
             "attachment_tolerance_name": "ENVELOPE_AXIS_ATTACH_TOL", "attachment_tolerance_value": tol.envelope_axis_attach_tol_m,
             "endpoint_match_tolerance_name": "ENVELOPE_ENDPOINT_MATCH_TOL", "endpoint_match_tolerance_value": tol.envelope_endpoint_match_tol_m, "changes_topology": False,
         })
-        return EnvelopeTransactionResult(CorrectedGeometryV3.model_validate(candidate.model_dump()), True, transaction_id, intent_ids)
+        return EnvelopeTransactionResult(CorrectedGeometryV3.model_validate(candidate.model_dump()), True, transaction_id, intent_ids, annotation_basis=annotation_basis)
     except EnvelopeTransformRejected as exc:
         returned = before.model_copy(deep=True)
         conflict_type, claim_type = _conflict_shape(exc.gate_id)
         returned.conflicts.append({"rule_id": "deterministic_core.envelope_atomic_transform", "stage": "core", "target": "building.per_floor_footprints", "conflict_type": conflict_type, "claim_type": claim_type, "transaction_id": transaction_id, "intent_ids": list(intent_ids), "source_ids": [], "failed_gate_id": exc.gate_id, "reason_unresolved": str(exc), "evidence": exc.evidence, "fallback_action": "rollback_keep_original_geometry"})
-        return EnvelopeTransactionResult(returned, False, transaction_id, intent_ids, exc.gate_id)
+        return EnvelopeTransactionResult(returned, False, transaction_id, intent_ids, exc.gate_id, annotation_basis)

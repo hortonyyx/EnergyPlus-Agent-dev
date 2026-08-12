@@ -8,6 +8,7 @@ from pathlib import Path
 import pytest
 
 import scripts.tool_scripts.run_stage as rs
+from src.agent.correction.deterministic import DETERMINISTIC_CORE_STAMP_VERSION
 from src.agent.execution import RunManifest
 import src.agent.judge.correction_score as correction_score_module
 from src.agent.judge.correction_score import score_correction_geometry
@@ -149,8 +150,10 @@ def _v3_floor(name: str, *, footprint_xy, cells, z_floor: float = 0.0, ceiling_h
     axis-aligned rectangular cells, each also given an explicit orthogonal
     `polygon` alongside the legacy `x`/`y` bbox pair (schema v3's `CellV3`
     requires both). Used by the F-22 BLOCKER-1 locks that specifically
-    exercise the trusted (schema-v3) output-convention path — this is the
-    ONLY schema version `_is_trusted_output_convention` recognizes."""
+    exercise the trusted (schema-v3) output-convention path — schema v3 is
+    ONE of the (now two, F-22 BLOCKER-1 2026-08-12) facts
+    `_is_trusted_output_convention` requires; see `_v3_output` below for the
+    other (the deterministic core's own unconditional stamp)."""
     (fx0, fx1), (fy0, fy1) = footprint_xy
     return {
         "id": name.replace(" ", "_"),
@@ -177,12 +180,25 @@ def _v3_floor(name: str, *, footprint_xy, cells, z_floor: float = 0.0, ceiling_h
 
 
 def _v3_output(floors: list[dict], *, footprint_x, footprint_y, windows: list | None = None) -> dict:
+    """Minimal trusted schema-v3 output payload.
+
+    F-22 BLOCKER-1 (2026-08-12): `_is_trusted_output_convention` now ALSO
+    requires an unconditional `deterministic_core_stamp` (schema v3 alone is
+    no longer sufficient — see that function's docstring for why: schema
+    version cannot distinguish a pre- vs. post-transform-fix product). Every
+    caller of this helper is testing boundary/wall-extent scoring behaviour
+    on an ASSUMED-trusted v3 product, not testing trust detection itself
+    (that is `tests/test_f22_blocker1_core_stamp.py`'s job) — so the stamp is
+    injected here, unconditionally, exactly like `schema_version` a few lines
+    below, rather than requiring every call site to repeat it.
+    """
     return {
         "schema_version": "3",
         "footprint_x": list(footprint_x),
         "footprint_y": list(footprint_y),
         "floors": floors,
         "windows": windows or [],
+        "deterministic_core_stamp": {"version": DETERMINISTIC_CORE_STAMP_VERSION},
     }
 
 
@@ -517,6 +533,23 @@ def test_output_convention_declaration_mutation_changes_scoring_behavior():
     This locks that exact self-test as a permanent regression check, on a
     real production artifact (not a synthetic fixture) so it can't be
     satisfied by a fixture that happens not to exercise the read site.
+
+    F-22 BLOCKER-1 2026-08-12 unconditional-core-stamp follow-up: this exact
+    run (`run_2026-08-11_continuous_e2e`) is the second row of sol's
+    reproduction table — a real, post-F-17-fix, `capability_profile:
+    orthogonal_polygon` production artifact that STILL lacks
+    `deterministic_core_stamp` (it predates the stamp's existence). Per the
+    user-ratified fix, this on-disk artifact is now UNTRUSTED as-is and needs
+    a rerun to regain a score — that is locked directly below, first, as this
+    test's own self-proving premise (project discipline: a regression test
+    must prove the condition it depends on actually holds on this exact
+    fixture, not assume it). The REST of this test (the
+    `CORRECTION_OUTPUT_CONVENTION` mutation self-test) is about a DIFFERENT
+    guard than the stamp — it wants an otherwise-trusted real v3 product, so
+    a stamp is injected into the loaded dict, standing in for "if this run
+    had been produced by today's code" (the same substitution
+    `tests/test_f22_blocker1_core_stamp.py` uses to build a real
+    core-verified product without needing to re-run the full pipeline).
     """
     gt = load_gt("sm21_anchor")
     output = json.loads(
@@ -525,6 +558,18 @@ def test_output_convention_declaration_mutation_changes_scoring_behavior():
     )
     assert output.get("schema_version") == "3"  # sanity: this IS the trusted-identity fixture
 
+    # PREMISE (F-22 BLOCKER-1 2026-08-12): as committed to disk today, this
+    # real post-F-17-fix production artifact has NO core stamp and is
+    # therefore untrusted — proving the fix actually changed this run's
+    # verdict (sol's exact BLOCKER-1 reproduction), not merely a synthetic
+    # fixture that never had the old bug.
+    assert "deterministic_core_stamp" not in output
+    as_scored_on_disk = score_correction_geometry(output, gt)
+    assert as_scored_on_disk.output_convention["trusted"] is False
+    assert as_scored_on_disk.scores["Floor 1"].boundary is None
+
+    output = dict(output)
+    output["deterministic_core_stamp"] = {"version": DETERMINISTIC_CORE_STAMP_VERSION}
     before = score_correction_geometry(output, gt)
     assert before.output_convention["trusted"] is True
     assert before.scores["Floor 1"].boundary is not None

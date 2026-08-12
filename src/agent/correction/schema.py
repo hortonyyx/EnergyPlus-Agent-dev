@@ -395,6 +395,54 @@ class DebtResolutionAuditEntry(BaseModel):
     source: Literal["llm_correction", "a3"]
 
 
+class DeterministicCoreStampV1(BaseModel):
+    """F-22 BLOCKER-1 (2026-08-12, unconditional core stamp): the
+    deterministic core's own "I ran, version is X" mark.
+
+    `deterministic.apply_deterministic_core` writes this UNCONDITIONALLY on
+    every schema-v3 completion — regardless of whether any correction,
+    envelope reconcile, or window-host resolution actually changed anything.
+    This is deliberately a SEPARATE, always-present field, not a conditional
+    `corrections[]` audit entry: `deterministic_core.envelope_atomic_transform`
+    (envelope_transform.py) only appends a record when there is something to
+    move (`if not intents: return ... # no record left at all`), so a legal
+    v3 product whose drawing already agreed with the facade evidence (no
+    intents) is byte-for-byte indistinguishable, in `corrections[]`, from one
+    the core never touched. A missing conditional record can mean either "the
+    core never ran" (untrustworthy) or "the core ran and had nothing to do"
+    (fully trustworthy) — those two facts get compressed into the same
+    blank. Only an unconditional field that is always written on completion,
+    independent of what happened inside, can tell them apart.
+
+    `version` is compared against `deterministic.DETERMINISTIC_CORE_STAMP_VERSION`
+    by `judge.correction_score._is_trusted_output_convention` — the ONLY
+    reader that treats it as a trust signal — with EXACT equality (same
+    "declared identity, no fallback interpretation" discipline as
+    `CORRECTION_OUTPUT_CONVENTION` in that module: an unrecognized version is
+    untrusted, not coerced or guessed at). Deliberately a strict, separately
+    named model (not a bare `dict`) even though the rest of this schema's
+    audit trail uses flexible dicts (`corrections`/`conflicts`/`unsupported`):
+    those lists hold heterogeneous rule-specific rows a stage need not
+    over-specify; this field's whole job is a single, load-bearing identity
+    check, so it gets the same strict-typing treatment as this module's other
+    v3-only identity fields (`FacadeSegment`, `NorthAxisEvidence`).
+
+    Marked `CORRECTION_DRAW_FORBIDDEN` — like `facade_segments`/`north_axis`,
+    a correction draw that pre-fills this field is the model claiming a
+    provenance fact only the deterministic core is allowed to assert, and is
+    rejected at the raw-payload preflight (`parse.py`'s b2 gate,
+    `window_sources.py`'s `_producer_preflight`) via the SAME
+    `draw_forbidden_field_names` marker scan those already use — no separate
+    edit needed there. Belt-and-suspenders only: `apply_deterministic_core`
+    unconditionally OVERWRITES this field (plain assignment, never "if
+    unset") on every real run, so even if a forged value slipped past the
+    preflight it could never survive a genuine core pass.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+    version: str
+
+
 class CorrectedGeometryV3(CorrectedGeometry):
     model_config = ConfigDict(extra="forbid")
     schema_version: Literal["3"]
@@ -402,6 +450,20 @@ class CorrectedGeometryV3(CorrectedGeometry):
     windows: list[WindowV3] = Field(default_factory=list)
     facade_segments: list[FacadeSegment] = Field(
         default_factory=list, json_schema_extra={CORRECTION_DRAW_FORBIDDEN: True}
+    )
+    # F-22 BLOCKER-1 (2026-08-12): see `DeterministicCoreStampV1` above for
+    # why this exists and why it must stay a separate, unconditional field
+    # rather than folding into `corrections[]`. Base `CorrectedGeometry`
+    # (legacy v1/v2) deliberately does NOT get this field — this module's own
+    # "V3 is deliberately a strict subclass family; the legacy classes above
+    # must remain wire-identical" contract (top of file) forbids adding
+    # anything to the shared base that would change a v1/v2 artifact's
+    # existing serializer bytes. Legacy is never a trusted output-convention
+    # candidate regardless (`_is_trusted_output_convention` gates on
+    # `schema_version == "3"` first), so scoping the stamp to v3-only costs
+    # nothing and keeps every legacy fixture byte-identical.
+    deterministic_core_stamp: DeterministicCoreStampV1 | None = Field(
+        default=None, json_schema_extra={CORRECTION_DRAW_FORBIDDEN: True}
     )
     # F-15 follow-up (2026-08-07, orchestrator A3): `north_axis` is exactly
     # the same shape of core-only field as `facade_segments` — under the b2

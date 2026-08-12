@@ -10,6 +10,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 import re
 
+from src.agent.correction import deterministic as deterministic_module
 from src.agent.correction.cell_geometry import cell_bbox, cell_polygon
 from src.agent.correction.schema import CorrectedGeometry
 
@@ -93,14 +94,39 @@ _BOUNDARY_EPS_M = 0.30
 # still holds) — untrusted inputs get NO conversion of any kind, they get
 # refused.
 #
+# ⛔⛔ STILL NARROWER (sol re-review 2026-08-12, BLOCKER-1 remained OPEN after
+# the narrowing above): `schema_version == "3"` alone is NOT proof of
+# `outer_skin_exterior_centerline_interior` either. A bug fix to the core's
+# transform logic (F-17, 2026-08-09) does not bump `schema_version` — by
+# design, this project's own convention is "fixing a bug never changes the
+# version number" — so the SAME `schema_version == "3"` spans real,
+# byte-identical-looking runs both BEFORE and AFTER that fix
+# (`run_2026-08-09_f17_e2e_verify`, pre-fix, footprint `[0.12,14.88]`, vs.
+# `run_2026-08-11_continuous_e2e`, post-fix, footprint `[0,15]` — same
+# `capability_profile`, same declared config). Trusting on schema alone
+# scored the pre-fix run five-for-five `pass`, 0.12 m off on every side, with
+# zero refusal evidence. The fix is a SEPARATE, unconditional identity the
+# deterministic core itself stamps on every v3 completion regardless of
+# whether anything changed (`DeterministicCoreStampV1`,
+# `src/agent/correction/schema.py`; written by
+# `deterministic.apply_deterministic_core`, see that function's v3 branch) —
+# `schema_version` states WHAT SHAPE a product claims to be; the stamp states
+# WHICH REVISION OF THE CORE actually produced it. Both are now required.
+#
 # `CORRECTION_OUTPUT_CONVENTION` is the ONE declaration of the identity
 # currently trusted; `_is_trusted_output_convention()` is the ONE runtime
-# read of it. Self-test (required by sol, and locked by
+# read of it (now joined by `deterministic_module.DETERMINISTIC_CORE_STAMP_VERSION`
+# for the post-transform half of that identity — referenced via the module,
+# not `from ... import`, so a test that mutates
+# `deterministic_module.DETERMINISTIC_CORE_STAMP_VERSION` is read live, the
+# same "single declared source, no drift" discipline `CORRECTION_OUTPUT_CONVENTION`
+# already uses). Self-test (required by sol, and locked by
 # `tests/test_judge_batch_b.py::test_output_convention_declaration_mutation_changes_scoring_behavior`):
 # mutate this constant's VALUE and rerun scoring on a real, otherwise-valid
 # schema-v3 product — the result MUST change (boundary/wall-extent scoring
 # must stop trusting it), proving the declaration is load-bearing and not
-# decorative.
+# decorative. The same self-test discipline now also applies to the stamp
+# version (`tests/test_f22_blocker1_core_stamp.py`).
 #
 # This constant is the seam for a future second convention (the deferred
 # "标注/墙厚/出模" work item): a second named identity would be added, and
@@ -115,20 +141,46 @@ def _is_trusted_output_convention(geom: CorrectedGeometry) -> bool:
     """Runtime identity check — the ONLY gate that may treat a product's
     coordinates as directly comparable to gt without a frame conversion.
 
-    `schema_version` is used as the capability_profile proxy:
-    `src/agent/correction/parse.py::correction_target` maps
-    `capability_profile` onto `schema_version` 1:1 ("rectangular" -> "1",
-    "orthogonal_polygon" -> "3"; there is no v2 profile in the current
-    registry), and only the v3/orthogonal_polygon pipeline's deterministic
-    core (`finalize_correction_draw` -> `apply_deterministic_core` ->
-    v3 envelope reconcile) is verified to land the footprint on the outer
-    face. Returns False for everything else, INCLUDING a mutated/unrecognized
-    `CORRECTION_OUTPUT_CONVENTION` value — there is no fallback
-    interpretation; untrusted means untrusted.
+    Three independent facts must ALL hold, none a proxy for another:
+
+    1. `schema_version == "3"` — the wire shape claims `orthogonal_polygon`.
+    2. `CORRECTION_OUTPUT_CONVENTION == _TRUSTED_SCHEMA_V3_IDENTITY` — this
+       module's own declared identity has not been tampered with.
+    3. The product's `deterministic_core_stamp.version` (F-22 BLOCKER-1,
+       2026-08-12) exactly equals `deterministic_module.DETERMINISTIC_CORE_STAMP_VERSION`
+       — the deterministic core (whose only verified-safe revision is the
+       CURRENT one; see that constant's docstring) actually ran to
+       completion on THIS artifact. Only `apply_deterministic_core` ever
+       writes this field, unconditionally, on every v3 completion — whether
+       or not it found anything to move (F-22 BLOCKER-1 §3: a *conditional*
+       "did an envelope transform record get written" signal cannot tell
+       "the core never ran" apart from "the core ran and had nothing to
+       do", because a drawing already annotated at the outer skin also
+       leaves no transform record).
+
+    (1) alone used to be treated as sufficient — that was BLOCKER-1's bug:
+    the SAME `schema_version == "3"` spans a real run from before the F-17
+    transform fix and a real run from after it, with no version bump between
+    them, so schema alone cannot distinguish a pre-fix product from a
+    post-fix one. (3) is what actually distinguishes them: a pre-fix run
+    predates this stamp's existence entirely, so its `deterministic_core_stamp`
+    is unconditionally `None` — missing, not merely mismatched — and is
+    refused exactly like an unrecognized version would be, with no
+    historical whitelist (user-ratified 2026-08-12: this applies even to
+    runs produced AFTER the F-17 fix landed but before this stamp did, e.g.
+    `run_2026-08-11_continuous_e2e` — they need a rerun to regain a score;
+    that is the intended enforcement, not a gap).
+
+    Returns False for everything else, INCLUDING a mutated/unrecognized
+    `CORRECTION_OUTPUT_CONVENTION` value or stamp version — there is no
+    fallback interpretation; untrusted means untrusted.
     """
+    stamp = getattr(geom, "deterministic_core_stamp", None)
+    stamp_version = getattr(stamp, "version", None)
     return (
         getattr(geom, "schema_version", None) == "3"
         and CORRECTION_OUTPUT_CONVENTION == _TRUSTED_SCHEMA_V3_IDENTITY
+        and stamp_version == deterministic_module.DETERMINISTIC_CORE_STAMP_VERSION
     )
 
 
@@ -427,6 +479,43 @@ def score_correction_geometry(
         "identity": CORRECTION_OUTPUT_CONVENTION if trusted else None,
     }
     if not trusted:
+        # F-22 BLOCKER-1 (2026-08-12): give the SPECIFIC reason, not a generic
+        # one — `_is_trusted_output_convention` now checks three independent
+        # facts (schema_version / CORRECTION_OUTPUT_CONVENTION / the core
+        # stamp's version) and a message that only ever names "schema_version"
+        # would misdiagnose the exact case this fix exists for: a real
+        # schema-v3 product that fails ONLY because it predates the
+        # unconditional stamp (`deterministic_core_stamp` is unconditionally
+        # `None` on any artifact produced before this fix, or by a producer
+        # that isn't `apply_deterministic_core`) — "schema_version does not
+        # qualify" would be false for that product; its schema_version is
+        # exactly "3".
+        stamp = getattr(geom, "deterministic_core_stamp", None)
+        stamp_version = getattr(stamp, "version", None)
+        schema_ok = getattr(geom, "schema_version", None) == "3"
+        if not schema_ok:
+            core_stamp_reason = (
+                f"schema_version {getattr(geom, 'schema_version', None)!r} is not "
+                f"the trusted schema-v3/orthogonal_polygon shape"
+            )
+        elif stamp is None:
+            core_stamp_reason = (
+                "schema_version is v3, but deterministic_core_stamp is absent — "
+                "this artifact predates the unconditional core stamp (F-22 "
+                "BLOCKER-1) or was never produced by apply_deterministic_core; "
+                "a v3 schema shape alone does not prove the current, verified "
+                "deterministic core actually ran on it"
+            )
+        elif stamp_version != deterministic_module.DETERMINISTIC_CORE_STAMP_VERSION:
+            core_stamp_reason = (
+                f"schema_version is v3 and a deterministic_core_stamp is "
+                f"present, but its version {stamp_version!r} does not match "
+                f"the currently trusted core version "
+                f"{deterministic_module.DETERMINISTIC_CORE_STAMP_VERSION!r} — "
+                f"either a stale core revision or an unrecognized/forged value"
+            )
+        else:
+            core_stamp_reason = "CORRECTION_OUTPUT_CONVENTION declaration mismatch"
         evidence.append(
             {
                 "type": "unsupported_output_convention",
@@ -434,8 +523,8 @@ def score_correction_geometry(
                 "reason": (
                     "boundary and interior-wall-extent scoring require a "
                     "trusted schema-v3/orthogonal_polygon post-transform "
-                    "product identity (F-22 BLOCKER-1); this product's "
-                    "schema_version does not qualify, so boundary was left "
+                    "product identity (F-22 BLOCKER-1); this product does "
+                    f"not qualify ({core_stamp_reason}), so boundary was left "
                     "unscored (no_data) and no interior wall segments were "
                     "extracted, rather than guessing a frame conversion"
                 ),

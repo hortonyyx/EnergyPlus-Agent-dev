@@ -466,7 +466,15 @@ def _draw_correction(
                            relied_on_testdata=relied,
                            capability_profile=policy.capability_profile,
                            run_profile=policy.run_profile,
-                           evidence_debt=evidence_debt)
+                           evidence_debt=evidence_debt,
+                           # F-9 route② S2 (2026-08-12): non-blocking cross-check
+                           # shadow of the same live model-authored `window.span`
+                           # path, using the SAME `verified_window_inputs` this
+                           # real entry already built above. See
+                           # `check_correction`'s `_window_position_evidence_shadow`
+                           # for the full contract (never overrides span, never
+                           # blocks — CheckLayer.CROSS_CHECK only).
+                           verified_window_inputs=verified_window_inputs)
     return result, rep
 
 

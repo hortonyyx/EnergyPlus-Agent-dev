@@ -10,9 +10,15 @@ the two checks that live at the adapter level:
     geometry (snapped ≠ raw) or the correction relied on testdata, there must be
     a sourced ``corrections``/``conflicts`` entry — so the "0_reading was wrong"
     attribution is never silently erased (the 2f corridor-split class).
+  - **window position evidence shadow** (flag; F-9 route② v2.1 §10 S2): a
+    NON-blocking cross-check of the SAME model-authored ``existence`` claim
+    citations the live host resolver already trusts, using the independent
+    plan-authority-vs-elevation-corroborator pairing decision from
+    ``correction/window_position.py``. See
+    ``_window_position_evidence_shadow`` below for the full contract.
 
 Severity→layer: coverage/nondegenerate/zstack/audit = INVARIANT (block);
-window-on-wall/zone-count/reconcile = CROSS_CHECK (flag).
+window-on-wall/zone-count/reconcile/window-position-evidence-shadow = CROSS_CHECK (flag).
 """
 
 from __future__ import annotations
@@ -99,6 +105,7 @@ def check_correction(
     capability_profile: str = "rectangular",
     run_profile: RunProfile = "exploratory",
     evidence_debt: EvidenceDebt | dict | None = None,
+    verified_window_inputs=None,
 ) -> CheckReport:
     rep = CheckReport(
         stage="1_correction",
@@ -131,6 +138,7 @@ def check_correction(
     _audit_completeness(rep, geom, raw_geom, relied_on_testdata)
     _evidence_debt_coverage(rep, geom, evidence_debt)
     _deferred_residual_placeholders(rep)
+    _window_position_evidence_shadow(rep, geom, verified_window_inputs)
     return rep
 
 
@@ -654,4 +662,106 @@ def _deferred_residual_placeholders(rep: CheckReport) -> None:
             CheckStatus.NOT_APPLICABLE,
             CheckLayer.CROSS_CHECK,
             message="deferred until evidence is richer",
+        )
+
+
+_WINDOW_POSITION_EVIDENCE_SHADOW_CHECK_ID = "correction.window_position_evidence_shadow"
+
+
+def _window_position_evidence_shadow(
+    rep: CheckReport,
+    geom: CorrectedGeometry,
+    verified_window_inputs,
+) -> None:
+    """F-9 route② v2.1 §10 S2: a NON-blocking cross-check that runs the
+    independent plan-authority-vs-elevation-corroborator pairing decision
+    (``src.agent.correction.window_position.compute_window_position_evidence_
+    shadow``) alongside today's live model-authored ``window.span`` path,
+    WITHOUT overriding ``span`` and WITHOUT ever contributing a BLOCK
+    disposition — this check is always registered at ``CheckLayer.CROSS_CHECK``
+    (which ``src/validator/checks/schema.py::disposition()`` maps to
+    ``Disposition.FLAG`` on FAIL, on every ``run_profile``; only
+    ``CheckStatus.ERROR`` would map to BLOCK, and this function never emits
+    that status — every branch below is PASS/FAIL/NOT_APPLICABLE).
+
+    Three, separately observable, never-``None``-collapsed states (v2.1 §9:
+    "不可用 ``None`` 表示『跑过但没结果』"):
+
+    - ``verified_window_inputs is None`` (legacy schema, or the caller never
+      built one) -> this check did not run at all -> ``NOT_APPLICABLE``.
+    - shadow evidence computed successfully (``status="evaluated"``,
+      possibly ``window_count=0``) -> ``PASS`` iff every window's decision is
+      ``"accepted"``, else ``FAIL`` (still only a FLAG-mapped fact, never a
+      block).
+    - the shared current-ring binding materializer could not even build this
+      ring's authoritative frames (``status="binding_unavailable"``, or the
+      module's own dispatcher raised a ``TypeError`` -- e.g. a caller
+      substituting an advisory frame for the authoritative one, v2.1 §1.3)
+      -> ``FAIL`` with the concrete error recorded as evidence, never a
+      silent PASS and never an uncaught crash that would propagate past this
+      non-blocking check into the real accept/reject decision.
+    """
+    if str(geom.schema_version) != "3" or verified_window_inputs is None:
+        rep.add(
+            _WINDOW_POSITION_EVIDENCE_SHADOW_CHECK_ID,
+            CheckStatus.NOT_APPLICABLE,
+            CheckLayer.CROSS_CHECK,
+            message="no v3 verified_window_inputs supplied — shadow evidence did not run",
+        )
+        return
+
+    from src.agent.correction.config import load_core_tolerances
+    from src.agent.correction.window_position import compute_window_position_evidence_shadow
+
+    try:
+        shadow = compute_window_position_evidence_shadow(
+            geom, verified_inputs=verified_window_inputs, tol=load_core_tolerances(),
+        )
+    except Exception as exc:  # noqa: BLE001 — deliberately total: a shadow
+        # observer must never let ITS OWN wiring/type errors (e.g. an
+        # advisory frame injected where an authoritative one belongs, v2.1
+        # §1.3/§12.2's "Advisory 隔离" must-red neuter) propagate past this
+        # non-blocking check and crash — or silently block — the real draw.
+        rep.add_fail(
+            _WINDOW_POSITION_EVIDENCE_SHADOW_CHECK_ID,
+            CheckLayer.CROSS_CHECK,
+            f"window position evidence shadow computation raised "
+            f"{type(exc).__name__}: {exc}",
+            evidence={"exception_type": type(exc).__name__, "exception_message": str(exc)},
+        )
+        return
+
+    if shadow.status != "evaluated":
+        rep.add_fail(
+            _WINDOW_POSITION_EVIDENCE_SHADOW_CHECK_ID,
+            CheckLayer.CROSS_CHECK,
+            f"window position evidence shadow could not evaluate this ring "
+            f"({shadow.binding_error_code})",
+            evidence={"status": shadow.status, "binding_error_code": shadow.binding_error_code},
+        )
+        return
+
+    rejected = [d for d in shadow.decisions if d.decision == "rejected"]
+    evidence = {
+        "producer_draw_sha256": shadow.producer_draw_sha256,
+        "resolver_inputs_sha256": shadow.resolver_inputs_sha256,
+        "window_count": shadow.window_count,
+        "rejected_window_ids": [d.window_id for d in rejected],
+        "rejected_reject_codes": sorted({d.reject_code for d in rejected if d.reject_code}),
+        "max_legacy_span_delta_m": max(
+            (d.legacy_span_delta_m for d in shadow.decisions if d.legacy_span_delta_m is not None),
+            default=None,
+        ),
+        "content_sha256": shadow.content_sha256,
+    }
+    if shadow.all_accepted:
+        rep.add_pass(_WINDOW_POSITION_EVIDENCE_SHADOW_CHECK_ID, CheckLayer.CROSS_CHECK, evidence=evidence)
+    else:
+        rep.add_fail(
+            _WINDOW_POSITION_EVIDENCE_SHADOW_CHECK_ID,
+            CheckLayer.CROSS_CHECK,
+            f"{len(rejected)}/{shadow.window_count} window(s) failed the independent "
+            "plan-authority vs elevation-corroborator pairing decision (cross-check "
+            "only — does not affect this draw's accept/reject result)",
+            evidence=evidence,
         )

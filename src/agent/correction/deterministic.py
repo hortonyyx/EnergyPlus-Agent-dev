@@ -52,7 +52,7 @@ from src.agent.correction.envelope import AuthoritativeEnvelope, EnvelopeAxisRes
 from src.agent.correction.footprint import floor_footprint, floor_key, footprint_bbox
 from src.agent.correction.geometry_validator import validate_corrected_geometry
 from src.agent.correction.parse import ensure_corrected_geometry, validate_final_corrected_geometry
-from src.agent.correction.schema import CorrectedGeometry, FootprintRing
+from src.agent.correction.schema import CorrectedGeometry, DeterministicCoreStampV1, FootprintRing
 from src.agent.geometry.capability import require_supported_geometry_contract
 from src.agent.geometry.capability import FEATURE_CELL_POLYGON, schema_supports, schema_version_of
 
@@ -61,6 +61,28 @@ if TYPE_CHECKING:
 
 
 _EPS = 1e-9
+
+# F-22 BLOCKER-1 (2026-08-12): version identity for the UNCONDITIONAL stamp
+# `apply_deterministic_core` writes onto every schema-v3 completion (see
+# `DeterministicCoreStampV1` in schema.py for the field itself, and the write
+# site at the end of this function's v3 branch). `schema_version` alone
+# cannot serve this role — a bug fix to this module's transform logic (e.g.
+# F-17, 2026-08-09) does not bump `schema_version`, so the SAME
+# `schema_version == "3"` spans both the buggy and the fixed code, and a
+# judge that trusts on `schema_version` alone cannot tell a pre-fix product
+# from a post-fix one (F-22 BLOCKER-1's actual reproduction).
+#
+# Bump this string whenever a change to this module (or envelope_transform.py
+# / window_host.py, which it calls into) alters what a v3 product's
+# post-transform geometry is actually GUARANTEED to mean — the same class of
+# change F-17 was. `judge.correction_score._is_trusted_output_convention`
+# compares a product's stamped version against this constant with EXACT
+# equality; bumping it makes every artifact stamped under the OLD value stop
+# being trusted, with NO historical whitelist required (user-ratified
+# 2026-08-12: existing artifacts, including ones produced after a fix but
+# before this stamp existed at all, are expected to need a rerun to regain a
+# score — that is the intended enforcement mechanism, not a gap).
+DETERMINISTIC_CORE_STAMP_VERSION = "1"
 
 
 def _v3_rectangular_ring(floor) -> bool:
@@ -762,6 +784,8 @@ def _apply_envelope_reconcile(
     tol: CoreTolerances,
     authoritative_envelope: AuthoritativeEnvelope | None,
     verified_window_inputs: "VerifiedWindowResolverInputs | None" = None,
+    *,
+    annotation_basis_sink: list | None = None,
 ) -> CorrectedGeometry:
     """Apply an envelope reconcile without leaking mutable audit side channels.
 
@@ -769,16 +793,31 @@ def _apply_envelope_reconcile(
     B2b's fresh-copy transaction.  This is intentionally a small private
     dispatcher so callers cannot accidentally commit ring/cell changes while
     retaining audit from a rejected candidate.
+
+    ``annotation_basis_sink`` (2026-08-12, 摊 C, opt-in, default None ->
+    zero behaviour change for every existing caller): when a caller passes a
+    mutable list, the v3 branch extends it with
+    `apply_v3_envelope_transaction`'s pure `annotation_basis` observation
+    (see envelope_transform.py). This is the only way to surface that
+    observation without widening this function's / `apply_deterministic_core`'s
+    return type (both are consumed too widely -- including the B5 writer's
+    independent replay in stage_runner.py -- to safely change their return
+    shape for a purely observational, non-blocking feature). Legacy v1/v2
+    never populates it (out of scope for this batch; only v3 has an
+    `AuthoritativeEnvelope`-derived per-side comparison worth naming).
     """
     geom = ensure_corrected_geometry(geom)
     if schema_version_of(geom) == "3":
         if authoritative_envelope is None:
             return geom
         from src.agent.correction.envelope_transform import apply_v3_envelope_transaction
-        return apply_v3_envelope_transaction(
+        result = apply_v3_envelope_transaction(
             geom, tol, authoritative_envelope,
             verified_window_inputs=verified_window_inputs,
-        ).geom
+        )
+        if annotation_basis_sink is not None:
+            annotation_basis_sink.extend(result.annotation_basis)
+        return result.geom
     corrections, unsupported, conflicts = list(geom.corrections), list(geom.unsupported), list(geom.conflicts)
     fx, fy = _apply_legacy_envelope_reconcile(geom, tol, authoritative_envelope, corrections, unsupported, conflicts)
     geom.footprint_x, geom.footprint_y = fx, fy
@@ -793,6 +832,7 @@ def apply_deterministic_core(
     authoritative_envelope: AuthoritativeEnvelope | None = None,
     capability_profile: str = "rectangular",
     verified_window_inputs: "VerifiedWindowResolverInputs | None" = None,
+    annotation_basis_sink: list | None = None,
 ) -> CorrectedGeometry:
     """Snap all geometry onto a global canonical axis set; append audit entries.
 
@@ -1061,9 +1101,20 @@ def apply_deterministic_core(
             geom = _apply_envelope_reconcile(
                 geom, tol, authoritative_envelope,
                 verified_window_inputs=verified_window_inputs,
+                annotation_basis_sink=annotation_basis_sink,
             )
         (xmin, xmax), (ymin, ymax) = footprint_bbox(geom)
         geom.footprint_x, geom.footprint_y = [xmin, xmax], [ymin, ymax]
+        # F-22 BLOCKER-1: the UNCONDITIONAL "I ran, version is X" stamp — the
+        # LAST statement before this function's only v3 return, so every v3
+        # completion carries it regardless of which branch above did or did
+        # not fire (zero intents / rejected-and-rolled-back / committed all
+        # reach here the same way). A plain, unconditional assignment (never
+        # "if not already set"): this also means a forged value a draw might
+        # have slipped past the CORRECTION_DRAW_FORBIDDEN preflight gate on
+        # (see DeterministicCoreStampV1's docstring) gets clobbered by the
+        # real one on every genuine core pass, independent of that gate.
+        geom.deterministic_core_stamp = DeterministicCoreStampV1(version=DETERMINISTIC_CORE_STAMP_VERSION)
         return validate_final_corrected_geometry(geom)
     geom.corrections = corrections
     geom.conflicts = conflicts

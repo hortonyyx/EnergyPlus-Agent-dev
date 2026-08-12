@@ -1,6 +1,190 @@
 # 行动清单（活计划）
 
-## 2026-08-10 收工 / 08-11 · ⭐⭐⭐ 本节最新（凌驾下方所有排工表）：**全链首次跑到 EnergyPlus + 一口气连跑兑现 · F-9 可施工 · 新登记 F-22**
+## 2026-08-12 · ⭐⭐⭐ 本节最新（凌驾下方所有排工表）：**F-22 BLOCKER-1 未关闭 · 版本号当身份证据被证伪 · 三摊并行中**
+
+### 〇、2026-08-12 开工排工（**用户当日拍板：A + B + C/D 三摊 · Claude 侧 Sonnet 施工 + GPT 侧 sol 审**）
+
+| 摊 | 内容 | 派工单 | 状态 |
+|---|---|---|---|
+| **A** | **返工复审债**（08-11 两摊返工是作者自己改的，「谁写谁不批」要求换人）| [request/2026-08-12_f22_f9s0s1_rework_rereview_sol.md](logs/reviews/request/2026-08-12_f22_f9s0s1_rework_rereview_sol.md) → [**裁决书**](logs/reviews/verdict/2026-08-12_f22_f9s0s1_rework_rereview_sol.md) | ⛔ **CHANGES REQUIRED**：BLOCKER-1 **未关闭**，其余 7 条按停止纪律**未裁定** |
+| **B** | **F-9 路线② S2**：权威 projector + shadow position evidence（旁路观测，不覆盖 span、不阻断）| [request/2026-08-12_f9_route2_s2_…_dispatch_claude.md](logs/reviews/request/2026-08-12_f9_route2_s2_shadow_projector_dispatch_claude.md) | 🔄 施工中 |
+| **C+D** | 标注法观测量露出（纯观测）+ F-23（测工作树状态的脆弱断言）| [request/2026-08-12_c_annotation_observable_and_f23_dispatch_claude.md](logs/reviews/request/2026-08-12_c_annotation_observable_and_f23_dispatch_claude.md) | 🔄 施工中 |
+| **E** | 修 BLOCKER-1（无条件印章）| 待出单 | ⏸ **用户拍板：等 B、C+D 收工后再派**（避免三席位抢同一棵工作树）|
+
+### 〇-A、⏸ **2026-08-12 03:20 UTC 暂停点（撞 5h 额度窗，用户定 4 小时后恢复）**
+
+**恢复后按此顺序做**（换主控 / 新会话接手直接读这一节即可）：
+
+> **⛔⛔ 03:30 UTC 更新 —— 摊 C+D 席位已中途崩掉（API 连接中断，疑似额度窗）。
+> 以下状态由 `git diff` 核实，⛔ 未采信席位自述**（「施工席中断的自述不可信」已三次实证）：
+>
+> | 摊 | 真实落盘状态 |
+> |---|---|
+> | **C**（标注法观测量）| ⚠️ **生产码已改（`envelope_transform.py` +182 行），但锁一把没写** —— 无属于它的新测试文件 |
+> | **D**（F-23）| ⛔ **一行没动** —— `tests/test_c2_b4b_phase_d.py:454` 那条 `git diff` 断言原样还在，该文件不在 diffstat 里 |
+> | **B**（F-9 S2）| 🔄 崩溃时仍在跑（`window_position.py` +754 行 + 新建 `tests/test_f9_route2_s2_authoritative_projector.py`）|
+>
+> ⇒ **摊 C 停在最危险的中间状态：改了行为、没有锁钉住。**
+> **恢复后对摊 C 的处置必须先决定**：是**续做补锁**，还是**整摊回退重来**（作者已不在场，
+> 续做等于让新席位接手别人写了一半的代码）。**⛔ 别默认续做。**
+> 归属未分清的改动：`deterministic.py` / `finalize.py` / `pipeline.py` / `stage_runner.py` /
+> `record_baseline.py` / `run_stage.py` / `validator/checks/correction.py` / `test_c2_b2_v3.py` /
+> `test_c2_b5_host_resolution.py` —— **轻门时必须逐个认领，认不出来的当可疑处理。**
+
+1. **先收两个施工席位的产出** —— 工作树里已有它们的半成品：
+   `window_position.py` + 新建 `tests/test_f9_route2_s2_authoritative_projector.py`（摊 B）·
+   `envelope_transform.py`（摊 C+D）· 另有 `deterministic.py` / `finalize.py` / `pipeline.py` /
+   `stage_runner.py` / `record_baseline.py` / `run_stage.py` / `validator/checks/correction.py` /
+   `tests/test_c2_b2_v3.py` / `tests/test_c2_b5_host_resolution.py` 被改动（**归属待在轻门时分清**）。
+   ⛔ **绝不要 `git add -A` / `stash` / `checkout`** —— 会扫走或毁掉并行席位的半成品（已实犯过两次）。
+2. **跑 orchestrator 轻门**：独立全量（**新文件名**落日志与退出码，判跑完**看 `N passed` 汇总行**）
+   + **换方向 neuter**（施工席的方向不算）。基线 = **2470 passed / 10 xfailed / 0 failed**。
+3. **派摊 E**（修 BLOCKER-1，**用户已拍板 = 选项 1「无条件印章」，⛔ 不要历史白名单**）——
+   口径见本节「二」。派 Claude 侧执行档，审交 GPT 侧。
+4. **摊 A 的其余 7 条 finding 仍「未裁定」** —— sol 按停止纪律没往下审 ⇒ BLOCKER 修完后**要再送一轮**。
+5. 收工按 §5#12：管理文档 + `commit` + `push`。
+
+### 〇-A2、✅ **摊 E（BLOCKER-1 无条件印章）已完工 · orchestrator 轻门定向验证通过**
+
+**⛔ 以下全部是 orchestrator 独立实测，未采信席位自述。**
+
+| 项 | 结果 |
+|---|---|
+| 印章是否**真无条件** | ✅ `deterministic.py:1117`，唯一 v3 `return` 前的**最后一句、无 `if`**；且能**覆盖伪造值**（draw 若混过 preflight 也会被真印章清掉）|
+| **风险 #1**：摊 E 有没有覆盖掉摊 C 的接线 | ✅ 未覆盖 —— `annotation_basis` 在 `deterministic.py`/`finalize.py`/`pipeline.py` 仍为 7/4/4 命中 |
+| **⭐ 换方向 neuter**（施工席方向 = 真跑后剥印章 / 给 pre-flip 补印章，**两条都不用**）| ✅ **把 §3 那个坑重新造回去**（印章只在「核真改了东西」时才盖）⇒ **`test_zero_displacement_legit_product_is_still_trusted` 转红**（9 failed / 6 passed）⇒ **那把锁真绑住了 §3 的性质** |
+| 真实产物行为 | ✅ `f17`（翻转前、真差 0.12 m）⇒ `trusted=False` **拒判** · `continuous_e2e`（翻转后、正确）⇒ **也拒判**（= 用户已接受的既定代价，需重跑一次）|
+
+**⛔ 本轮新登记两条债（一条是席位自报、一条是 orchestrator 顺带撞到的）**：
+
+| # | 事项 | 详情 |
+|---|---|---|
+| **F-24** | **判卷侧车 cache key 不含印章状态** | 席位自报（超出其所有权未修）。orchestrator **已独立核实其「当前零影响」的依据成立**：盘上 `score_vs_gt.json` 的 `scorer_schema` 分布 = 9×20 / 8×4 / 7×4 / 6×1，**无一份到 "10"** ⇒ 今天不会命中陈旧缓存。**但结构性缺口是真的**：一旦出现 "10" 的侧车，印章状态变化不会让它失效 ⇒ **fail-open 入口**。|
+| **F-25** | **`SCORER_SCHEMA` 同名两处声明、值不同** | **orchestrator 撞到，席位未提**：`scripts/tool_scripts/run_stage.py:94 = "10"` vs `src/agent/judge/score_schema.py:40 = "8"`。**轴 B 族（同一事实两处声明会各自漂）**。需先判两者是不是同一事实（可能一处服务 dormant 的 `ScoreSidecarV8/V9` 分型路径），再决定合并还是改名。|
+
+### 〇-A3、⛔⛔ **sol 第二轮复审：CHANGES REQUIRED · 又停在 orchestrator 的题错上 · MAJOR-B1**
+
+[裁决书](logs/reviews/verdict/2026-08-12_round2_blocker1_and_bcd_crossreview_sol.md)
+
+**① sol 抓的第 15 次派工方题错（本轮第二次）**：请求书写
+「`position_evidence_pair_mismatch` **没有 mutual-nearest 就结构上不可能触发**」——
+**这句是错的**。sol **动态验证**出两条真实触发路径：① cited plan/elevation 端点距离超 pairing tolerance；
+② cited elevation 的 z-scope 解析到与 window 不同的楼层（along 距离仍在容差内）。
+⇒ **orchestrator 的结论对（mutual-nearest 确属 S2），但三条论据里有一条是假的。**
+> ⭐ **新类别 = 「否定式结构断言未经实测」**。判别问法：**「我说『X 不可能发生』，我去触发过 X 吗？」**
+> ⛔ 否定式结构断言**只能靠实测** —— 这正是 orchestrator 整天在要求施工席做的事。
+
+**② 范围裁定（不受①影响，且 sol 补了一条 orchestrator 没引的证据）**：
+**mutual-nearest 属于 S2，摊 B 不能按完整 S2 验收。** 依据 = §5.3 把唯一 mutual-nearest / ambiguity margin /
+全 draw source 不复用列为**同一个 pairing decision 的通过条件** · §10 S2 明令实现 `pairing decision`、
+S3 只冻结规则并把 **S2 decision** 升为 blocking gate · **⭐§12.2 把「删 mutual-nearest 后专用夹具转红」
+直接写进 Pair positive 锁**（orchestrator 未引）。
+
+**③ sol 拒签 orchestrator 的「6 条里的 3 条」这个数字** —— 它没做完逐条件归因，
+只认**「覆盖不完整且无披露」**。⭐ **这个拒签是对的**（与「不许把未验证项写成已验证」同源）。
+
+**④ 新 finding `MAJOR-B1`**：shadow 用无修饰的 `accepted`/`PASS` 表达只覆盖部分判据的结果，
+产物又**没有机器可读的 coverage/未实现条件** ⇒ **把结论说得比证据强**。
+**要按 S2 关闭必须补齐 §5.3 条件 2/3/4**；若不扩大批次，选「显式部分实现标记」则须同时满足三条硬约束：
+- ⛔ **不得继续输出无修饰的 `PASS` / `accepted`**；
+- **必须结构化记录 decision/ruleset version + `evaluated_conditions` + `unevaluated_conditions`**（⛔ 不能只写自由文本备注）；
+- **S3 的 consumer 必须 fail closed**，拒绝把 coverage 不完整的 decision 升为 gate；
+- **且交付须改名为 partial telemetry milestone，⛔ 不能仍宣称 S2 完成。**
+
+**⑤ ⛔⛔ 本轮暴露的【规矩本身的缺陷】—— 下轮必改**：
+「发现前提错就停」**连续两轮把整批主体挡在审阅之外**。sol 裁决书自己写着
+「这项前提错误**不改变**范围裁定」—— **它知道那条错是外围的，但硬规矩逼它停**。
+⇒ **代价 = BLOCKER-1 修法 + 摊 B/C/D + 上轮 7 条 finding，两轮下来一次都没被真正审过。**
+> **⇒ 规矩必须分层写进派工单**：
+> **① 承重前提错（错了则任务方向作废）⇒ 停下上报；
+> ② 外围论据错（不改变任务方向）⇒ 【报告并继续审其余】。**
+> ⛔ 不许再写成无差别的「发现前提错就停」。
+
+**⇒ 下轮第一件事** = 按分层规矩重发第三轮复审（主体仍未受审），
+并就 `MAJOR-B1` 的两条出路请用户拍板（补齐 §5.3 条件 2/3/4 = 扩大批次 · 还是改名为部分交付 + 三条硬约束）。
+
+### 〇-B、⛔ **摊 B（F-9 S2）的 mutual-nearest 缺口 —— orchestrator 已查实，不是判断题**
+
+施工席自陈第 1 条：「跨 catalog 唯一最佳匹配（mutual-nearest）未实现……如果 S3 的验收口径要求这条
+也在 S2 就落地，需要返工」。**orchestrator 对照设计稿查实 = 设计要求它在 S2**：
+
+- **稿 §5.3 列了「引对了」的六个条件，`mutual-nearest` 是第 2 条**（且返工稿明确加了
+  「scope 过滤必须发生在距离计算和 mutual-nearest 排名**之前**」）；第 3 条「最优与次优距离之差
+  大于 ambiguity epsilon」**同样依赖它**；错误词表里的 **`position_evidence_pair_mismatch`
+  没有 mutual-nearest 就结构上不可能被触发**。
+- **稿 §10 S2 的内容逐字含「pairing decision」**；而 **S3 是「冻结 citation 规则」+
+  「把 **S2 decision** 变成 blocking gate」** ⇒ **S3 不负责实现，它把 S2 的 decision 拿去承重。**
+  ⇒ 若 S2 的 decision 只覆盖 6 条里的 3 条，S3 会在一个不完整的判据上承重。
+
+**⭐ 而且这正是今天那条主题的第四次现形**：shadow 现在报 `PASS`，
+但那个 `PASS` **只验了 6 个条件里的 3 个**，**产物里没有任何东西说明它只验了一部分**
+⇒ **一个「通过」看起来比它实际意味着的强。**
+
+**⇒ 两条出路（交跨家族审裁，orchestrator 倾向后者更安全）**：
+① 在 S2 补齐条件 2/3/4；
+② **显式把「本 decision 只覆盖哪几条」写进产出**（具名的部分实现标记），
+   使 S3 承重前必须先看见这个缺口 —— ⛔ 不许让不完整的 PASS 长得像完整的 PASS。
+
+### 一、⛔⛔ **F-22 BLOCKER-1 未关闭** —— 版本号被当成「产生它的代码修没修过」的证据
+
+**sol 抓、orchestrator 已独立复现。** 昨天的修法 = 判卷看产物声明的 `schema_version=="3"`，
+是就信「坐标在外皮框」，不是就拒判。**代码注释里自己写着
+`"schema_version is used as the capability_profile proxy"`，而这个 proxy 没人证过。**
+
+| run | `schema_version` | run_config `capability_profile` | 实际 footprint |
+|---|---|---|---|
+| `run_2026-08-09_f17_e2e_verify` | `3` | `orthogonal_polygon` | **`[0.12,14.88]` 中线框** |
+| `run_2026-08-11_continuous_e2e` | `3` | `orthogonal_polygon` | **`[0,15]` 外皮框** |
+
+**版本号一样、配置逐字一样，坐标框不同** —— 差别不在格式、不在配置，**在中间修好了 F-17**。
+⇒ 08-09 那份今天被判 **五项全 `pass`**（`walls_complete` / `windows_placed` / `boundary_complete` /
+`no_oversplit` / `elevation_windows_placed`），而它每条外边实际差 **0.12 m**，
+侧车里逐条记着 `delta=±0.12 / status=within_tol`（**新加的橙色档记了，但 headline 仍全绿**
+—— 与 F-22 原缺陷「`wall_hits` 仍报 4/4」**同一形状**）。
+
+> ⭐ **修 bug 从来不改版本号 ⇒ 同一个版本号必然横跨修复前后。
+> 版本号是「我是什么形状」的声明，不是「产生我的代码有没有那个 bug」的证明。**
+> **判别问法**：「我拿 A 当 B 的证据，那么 A 变过而 B 没变的产物，盘上有没有？」
+
+**⛔ orchestrator 自己的账**：**翻转点早就写在 plan.md 里**（下节 F-22 条目：
+「f17 run 及以前全是 `[0.12,14.88]`，f18 run 起变 `[0,15]`」）——**我自己写下的记录，
+在我自己写派工单时没去查**；派工单里那个「四种路径」分类穷举了**「身份不合法」**的各种形态
+（缺失 / `None` / 解析失败 / 未知版本），**漏掉了「身份合法但过时」**。⇒ 派工方错误率 **14/14**。
+
+### 二、⭐ 修法岔口已查清（用户 08-12 拍板 = **选项 1**）
+
+- **⛔ 选项 2（判卷去读 run_config 的 profile）已实测排除**：两次跑的 `capability_profile` **逐字相同**。
+- **⛔ 自然想法「看产物里有没有 `deterministic_core.envelope_atomic_transform` 记录」也不成立**：
+  `envelope_transform.py:586` 是 **`if not intents: return` 早返回、不留记录**
+  ⇒ 图纸本来就按外皮标注时核什么都不用改，**合法产物同样没记录**。
+  **今天所有 `deterministic_core.*` 记录全部有条件，一条无条件的都没有。**
+- **✅ 用户拍板 = 选项 1**：**让确定性核盖一个【无条件】的「我跑过、版本是 X」印章**
+  （哪怕它什么都没改）。**接受代价：现有正确产物（`continuous_e2e`）也没有印章 ⇒ 也会被拒判、需重跑一次**
+  （用户明确不要历史白名单）。
+
+### 三、⭐⭐ 本轮方法论（同一条毛病一天现形三次）
+
+> **⛔ 别拿「副作用的痕迹」当「事件发生过」的证据 —— 痕迹只在『有事可做』时才留，而你要证的是『来过』。**
+
+| # | 现场 | 「缺席」同时代表 |
+|---|---|---|
+| 1 | 摊 C 标注法观测量（`corrections[].intents`）| 按轴线标注（好）/ 超容差（最该报警）/ 无权威证据（无信息）|
+| 2 | 修法岔口（`deterministic_core.*` 记录）| 没跑过核（不可信）/ 跑了但没事干（完全可信）|
+| 3 | F-22 原缺陷（`LineMatch` 无 status 字段）| 已由 08-11 补橙色档解决，但 **headline 仍不受影响** |
+
+⇒ **判别问法**：**「这个量取不到值的时候，有几种不同的原因？它们是不是被压成了同一个空白？」**
+⇒ **修法只能是「每种缺席各自具名」+「在过滤之前算」，⛔ 不是给空白加注释。**
+
+**⭐ 连续第二轮，发单前机械核实当场救回范围写错**（上一轮救回 F-22 实为三处不是两处；
+本轮推翻了 plan.md 〇-C 已写好的解读规则 —— 详见下节 〇-C 的失效警示）。
+
+---
+
+## 2026-08-10 收工 / 08-11 · **（前一节点，与上节冲突处以上节为准）**：**全链首次跑到 EnergyPlus + 一口气连跑兑现 · F-9 可施工 · 新登记 F-22**
+
+> **⛔ 2026-08-12 失效警示**：本节「〇-A 轻门表」把 F-22 的修法记为已过 orchestrator 轻门 ——
+> **该判定已被 08-12 sol 复审推翻**（`schema_version` 当身份证据不成立，BLOCKER-1 未关闭），
+> 详见上节「一」。本节 〇-C 的解读规则也已被实测更正，见该节内挂的失效警示。
 
 ### 〇、2026-08-11 开工排工（**用户当日拍板：两摊并行 · Claude 侧施工 + GPT 侧审**）
 
@@ -181,8 +365,23 @@ y: 0.12 → 0.0（移动 -0.12） |  7.88 →  8.0（移动 +0.12）
 | 每侧位移 | 说明这张图 |
 |---|---|
 | **≈ 半个墙厚**（今天 = 0.12）| **按外包标注**（C2 批全部是这种）|
-| **≈ 0** | **按轴线标注** |
+| ~~**≈ 0**~~ | ~~**按轴线标注**~~ ⛔ **见下方 08-12 更正：这一档在 `intents` 里结构上不可观测** |
 | 其他值 | 两者都不是，需人工判读 |
+
+> **⛔⛔ 2026-08-12 发单前实测更正 —— 上表「≈ 0 ⇒ 按轴线标注」这一行【不能照此施工】。**
+> `envelope_transform.py:111-165` 里 intent 的生成有三处 `continue`：
+> 位移 `≤ output_precision_m`（**0.010**）不生成 · 位移 `> envelope_reconcile_tol_m`（**0.30**）不生成 ·
+> 该轴 `resolution.status != "accepted"` 不生成。
+> ⇒ **「没有 intent」这一个状态同时代表三件完全不同的事**：
+> **① 按轴线标注（位移≈0，好消息）· ② 超出容差（坏消息，最该报警）· ③ 无权威证据（无信息）**。
+> ⇒ 照原表施工（把 `intents` 列出来当观测量），**最该被看见的两档恰好是一片空白**。
+> **与本项目「只有负向断言的门 = 恒红、结构上不可观测」同族：缺席不是信号，除非显式把缺席变成信号。**
+> **✅ 修正后的口径**（已写进 08-12 施工单）：观测量必须是**逐侧实测位移、在 intent 生成之前算**
+> （`footprint_bbox` 每侧 vs `authoritative_envelope` 每侧），**四种状态各自具名**
+> （按轴线 / 按外包 / 超容差 / 无权威），⛔ 不许合并。
+> **另有一条**：`claim_kind` 有 `overall_bound` 与 `wing_break_endpoint`（`side="internal"`，翼部断点）**两种**，
+> **只有前者能判标注法**，⛔ 不许混进同一个数。
+> ⇒ **本条是「发单前机械核实」连续第二轮当场救回范围写错**（上一轮救回 F-22 实为三处不是两处）。
 
 **⇒ 定下的两件事**：
 

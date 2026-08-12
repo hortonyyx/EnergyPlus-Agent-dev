@@ -1,12 +1,16 @@
-"""F-9 route② S0 (2026-08-11, design v2.1 §4.4/§5.3/§8/§9/§10 S0): raw
-projection context, resolver artifact V2, position-decision/evidence
+"""F-9 route② S0/S2 (2026-08-11, design v2.1 §4.4/§5.3/§6.3/§7.3/§8/§9/§10):
+raw projection context, resolver artifact V2, position-decision/evidence
 artifacts, the explicit legacy/new artifact-version loader registry, and the
-typed §9 error-code vocabulary.
+typed §9 error-code vocabulary (S0) — plus (S2) the authoritative frame V2,
+the unified projection dispatcher, and the shadow pairing decision that runs
+alongside today's live model-authored `window.span` path.
 
-Everything in this module is new, additive scaffolding — nothing here is
-called by any live production path yet (v2.1 §10 S0: "均先不接 live
-production"). It is independently schema/serialize/reload/hash-testable now
-so S2/S3/S4 do not have to design these types under wiring pressure.
+S0's types are new, additive scaffolding — nothing under the "§10 S0" banner
+below is called by any live production path (v2.1 §10 S0: "均先不接 live
+production"). S2's types/functions ARE wired into live production (see
+`src/validator/checks/correction.py::_window_position_evidence_shadow`), but
+strictly as a non-blocking CROSS_CHECK observer: v2.1 §10 S2 "不得覆盖
+span、不得 block" — see the "§10 S2" section below for the full contract.
 
 Kept as its own file (not folded into `window_sources.py`, already 1200+
 lines) per v2.1 §11's file-responsibility table: "projector、pairing、
@@ -17,21 +21,28 @@ from __future__ import annotations
 
 import hashlib
 import json
-from typing import Callable, Literal, Mapping
+from dataclasses import dataclass
+from typing import Annotated, Callable, Literal, Mapping
 
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field, Strict, model_validator
 
+from src.agent.correction import facade_convention
 from src.agent.correction.footprint import floor_footprint_fingerprint
-from src.agent.correction.schema import CorrectionDrawV3CitationV2
+from src.agent.correction.schema import CorrectedGeometryV3, CorrectionDrawV3CitationV2
 from src.agent.correction.window_sources import (
+    ElevationSourceWindowV1,
     FiniteFloat,
     Hex64,
+    PlanSourceWindowV1,
     RawReadingArtifactV1,
     SourceIntervalV1,
     SourceLocator,
     StableId,
+    VerifiedWindowResolverInputs,
+    WindowDirectionBindingError,
     WindowResolverInputsArtifactV1,
     canonical_sha256,
+    materialize_current_ring_va_elevation_bindings,
 )
 
 _CFG = ConfigDict(extra="forbid", frozen=True, strict=True)
@@ -461,6 +472,722 @@ def load_window_resolver_artifact(raw_bytes: bytes) -> BaseModel:
     return loader(raw_bytes)
 
 
+# ============================================================================
+# v2.1 §10 S2: authoritative frame V2, unified projection dispatcher, and the
+# per-window shadow pairing decision.
+#
+# Runs ALONGSIDE the existing model-authored `window.span` path
+# (`window_host.py::resolve_window_hosts`'s coarse "does span overlap every
+# cited existence source" check, which stays completely untouched by this
+# batch) — it never writes `span`, and its own report is consumed ONLY as a
+# CROSS_CHECK (non-blocking) row: see `src/validator/checks/correction.py::
+# _window_position_evidence_shadow`, wired at `CheckLayer.CROSS_CHECK`, which
+# `src/validator/checks/schema.py::disposition()` maps to `Disposition.FLAG`
+# on every `run_profile` for every FAIL status other than `CheckStatus.ERROR`
+# — this module's own `compute_window_position_evidence_shadow` is written to
+# be TOTAL for any well-typed input specifically so it never raises a
+# data-quality exception into that ERROR path (v2.1 §10 S2: "不得...block").
+#
+# Deliberately NOT reusing `WindowPositionDecisionV1`/
+# `WindowPositionEvidenceArtifactV1` above: those S0 types are bound to the
+# FUTURE raw-v2 citation wire (`raw_draw_sha256` keyed to a
+# `CorrectionDrawV3CitationV2`, which no live producer emits yet — S3/S4
+# scope). S2 runs against TODAY's live model-authored FULL `CorrectedGeometryV3`
+# wire and its already-authenticated `VerifiedWindowResolverInputs` — a
+# genuinely different identity root (`producer_draw_sha256`/
+# `resolver_inputs_sha256`, both already computed by `window_sources.
+# build_verified_window_resolver_inputs`). Overloading the S0 types' fields to
+# mean something else would be exactly the "same field, silently different
+# meaning" drift this project's CLAUDE.md keeps re-finding. The shadow
+# check-id (`correction.window_position_evidence_shadow`) is likewise
+# deliberately DIFFERENT from the eventual S3 blocking check-id
+# (`correction.window_position_evidence`, v2.1 §9's error table) — the two
+# are unified only at the S4 cutover, not before.
+# ============================================================================
+
+WINDOW_EVIDENCE_PAIRING_TOL_M: float = 0.300
+"""v2.1 §5.3: the endpoint L-infinity pairing tolerance between a cited plan
+authority and a cited elevation corroborator, projected through the
+authoritative current-ring frame. A FROZEN, named, own constant — v2.1 §5.3
+explicitly forbids borrowing `window_host_span_epsilon_m` (a ~1e-9 numeric
+equality guard, not a measurement tolerance) for this purpose. Cross-checked
+against `envelope_reconcile_tol_m` by `_validate_window_evidence_pairing_
+tolerance` below every time shadow evidence is computed (v2.1 §5.3: "配置
+校验要求 0 < window_evidence_pairing_tol_m <= envelope_reconcile_tol_m").
+Kept as a hardcoded module constant rather than a `configs/correction.yaml`
+entry: v2.1 §5.3 calls for this value to be "冻结" (frozen/pinned), which a
+hardcoded constant satisfies more directly than a YAML-tunable field would.
+"""
+
+WINDOW_EVIDENCE_PAIRING_TOLERANCE_NAME: str = "window_evidence_pairing_tol_m"
+
+PROJECTION_SCOPE_EPSILON_M: float = 1e-9
+"""v2.1 §7.3: "冻结纯数值边界量 projection_scope_epsilon_m = 1e-9；它不是
+测量容差". Governs only the closed-interval containment test in
+`resolve_elevation_source_floor_scope` below — never the pairing-distance
+comparison, which uses `WINDOW_EVIDENCE_PAIRING_TOL_M` instead."""
+
+Z_DATUM_MODE_WORLD_Z: Literal["world_z"] = "world_z"
+"""v2.1 §7.3 names two z-datum modes (`world_z` / `floor_local_z`); today's
+live wire (`ElevationSourceWindowV1.local_z_interval`, produced by
+`window_sources._window_strokes` straight off a stroke's `y_range_m`) has no
+per-source or per-scope declaration of which mode applies — there is no live
+channel carrying a `z_datum_mode`/`z_origin_world_m` fact yet (that is
+raw-v2/S3/S4 scope, v2.1 §7.1's `ElevationProjectionScopeV1`).
+`resolve_elevation_source_floor_scope` therefore operates under EXACTLY ONE,
+explicitly named mode (this constant) — not an inline `local_z == world_z`
+comparison. This is how the F-9 route② S2 dispatch's hard constraint #6
+("z 轴 datum 不许靠『今天恰好相等』...请落实成代码里的显式规则，不是隐式
+依赖") is met: the choice is named, documented, and pinned by
+`tests/test_f9_route2_s2_authoritative_projector.py`'s z-scope lock as a
+discrete decision a future `floor_local_z` mode could replace — not a bare
+numeric coincidence nobody could see or test.
+"""
+
+
+def _validate_window_evidence_pairing_tolerance(*, envelope_reconcile_tol_m: float) -> None:
+    """v2.1 §5.3's required cross-field bound, executed every time shadow
+    evidence is computed (see `compute_window_position_evidence_shadow`)
+    rather than only once at import time, so a caller feeding an unusually
+    small `envelope_reconcile_tol_m` cannot silently sail past the invariant.
+    """
+    if not (0 < WINDOW_EVIDENCE_PAIRING_TOL_M <= envelope_reconcile_tol_m):
+        raise ValueError(
+            "window_evidence_pairing_tol_m must be in (0, envelope_reconcile_tol_m]; "
+            f"got {WINDOW_EVIDENCE_PAIRING_TOL_M} vs "
+            f"envelope_reconcile_tol_m={envelope_reconcile_tol_m}"
+        )
+
+
+class AuthoritativeViewProjectionFrameV2(BaseModel):
+    """v2.1 §6.3: "datum 来自已认证 direction fact + 当前 geometry projection
+    context；仅它能进入 evidence gate / hydrator / host / Va". The ONLY frame
+    type `project_window_source_along` accepts for an elevation source — see
+    that function's `isinstance` gate. Constructible ONLY via
+    `from_current_ring_binding`, never by hand-typing a sign/origin: the one
+    legal source of these numbers is `window_sources.materialize_current_
+    ring_va_elevation_bindings`'s already-hash-bound `VaElevationViewBindingV1`
+    — the SAME authoritative binding `window_host.py::_source_world_interval`
+    already uses for the existing coarse overlap check. S2 does not invent a
+    second, independent projection; it reuses the one production already
+    trusts and applies a strict distance+threshold decision to it instead of
+    a loose overlap test.
+    """
+
+    model_config = _CFG
+    input_id: StableId
+    resolved_building_direction: Literal["North", "South", "East", "West"]
+    world_axis: Literal["x", "y"]
+    sign: Literal[-1, 1]
+    along_origin: FiniteFloat
+    mirrored: Annotated[bool, Strict()]
+    local_x_positive: Literal["image_left_to_right", "image_right_to_left"]
+    frame_transform_sha256: Hex64
+
+    @classmethod
+    def from_current_ring_binding(cls, binding) -> "AuthoritativeViewProjectionFrameV2":
+        return cls(
+            input_id=binding.input_id, resolved_building_direction=binding.resolved_building_direction,
+            world_axis=binding.world_axis, sign=binding.sign, along_origin=binding.along_origin,
+            mirrored=binding.mirrored, local_x_positive=binding.local_x_positive,
+            frame_transform_sha256=binding.frame_transform_sha256,
+        )
+
+
+class AdvisoryViewProjectionFrameV1(BaseModel):
+    """v2.1 §6.3: "datum 来自 reading overall width；仅 prompt formatter 接受".
+    Structurally distinct from `AuthoritativeViewProjectionFrameV2` — exists
+    here ONLY so a neuter test can construct one and hand it to
+    `project_window_source_along` to prove the dispatcher's type gate
+    rejects it (v2.1 §1.3/§12.2 "Advisory 隔离" lock: "advisory 类型传入
+    enforcement 必须 type/error FAIL"). No production code path constructs
+    this class; the live advisory computation remains `window_sources.py::
+    _advisory_elevation_world_frame` (an untyped `(sign, width)` tuple
+    consumed only by the prompt formatter, per that function's own
+    docstring) — this type is not wired to it and does not change its
+    behavior.
+    """
+
+    model_config = _CFG
+    input_id: StableId
+    sign: Literal[-1, 1]
+    overall_width_m: FiniteFloat
+
+
+class ProjectedAlongEvidenceV1(BaseModel):
+    """v2.1 §6.3's unified `project_window_source_along` return shape: one
+    origin-tagged world-along interval, regardless of whether the source was
+    a plan observation (already world-frame) or an elevation observation
+    (projected through the authoritative current-ring frame)."""
+
+    model_config = _CFG
+    channel: Literal["plan", "elevation"]
+    source_locator: SourceLocator
+    world_interval: SourceIntervalV1
+    frame_sha256: Hex64 | None
+    scope_floor_id: StableId | None
+
+    @model_validator(mode="after")
+    def _shape(self):
+        if self.channel == "plan" and (self.frame_sha256 is not None or self.scope_floor_id is not None):
+            raise ValueError("a plan channel projection carries no elevation frame/scope")
+        if self.channel == "elevation" and self.frame_sha256 is None:
+            raise ValueError("an elevation channel projection must record the frame it used")
+        return self
+
+
+def project_window_source_along(
+    source, *, window_facade: str, frame=None, scope_floor_id: str | None = None,
+) -> ProjectedAlongEvidenceV1:
+    """v2.1 §6.3's single public projection entry point.
+
+    Plan sources are already in world frame (the plan adapter): the family's
+    along-facade axis (x for North/South, y for East/West) selects
+    `world_x_interval`/`world_y_interval` directly, `frame` is ignored.
+
+    Elevation sources are projected through `frame`, which MUST be an
+    `AuthoritativeViewProjectionFrameV2` — the type gate v2.1 §1.3/§6.3
+    requires ("enforcement 不接受 advisory frame"): an
+    `AdvisoryViewProjectionFrameV1`, `None`, or any other object raises
+    `TypeError` — never silently falls back to identity/zero.
+    """
+    if isinstance(source, PlanSourceWindowV1):
+        interval = source.world_x_interval if window_facade in ("North", "South") else source.world_y_interval
+        return ProjectedAlongEvidenceV1(
+            channel="plan", source_locator=source.source_locator, world_interval=interval,
+            frame_sha256=None, scope_floor_id=None,
+        )
+    if isinstance(source, ElevationSourceWindowV1):
+        if not isinstance(frame, AuthoritativeViewProjectionFrameV2):
+            raise TypeError(
+                "project_window_source_along requires an AuthoritativeViewProjectionFrameV2 "
+                f"for an elevation source; got {type(frame).__name__} "
+                "(v2.1 §1.3: an advisory frame is never accepted by an enforcement path)"
+            )
+        lo, hi = facade_convention.project_affine_interval(
+            along_origin=frame.along_origin, sign=frame.sign,
+            local_lo=source.local_along_interval.lo, local_hi=source.local_along_interval.hi,
+        )
+        return ProjectedAlongEvidenceV1(
+            channel="elevation", source_locator=source.source_locator,
+            world_interval=SourceIntervalV1(lo=lo, hi=hi),
+            frame_sha256=frame.frame_transform_sha256, scope_floor_id=scope_floor_id,
+        )
+    raise TypeError(f"project_window_source_along: unknown source channel type {type(source)!r}")
+
+
+@dataclass(frozen=True)
+class _FloorScopeResolution:
+    """Tri-state result of `resolve_elevation_source_floor_scope` — kept as
+    its own small type (not a bare `str | None`) so "z not observed on this
+    source" and "z observed but does not resolve to exactly one floor" stay
+    two DIFFERENTLY named outcomes instead of collapsing onto the same
+    `None` (v2.1 §9: "不可用 None 表示『跑过但没结果』...每种『没算出来』
+    的原因必须各自具名" — the same discipline the report-level type below
+    applies at the whole-check level, applied here at this one sub-decision).
+    """
+
+    status: Literal["not_declared", "resolved", "unresolved"]
+    floor_id: str | None
+
+
+def resolve_elevation_source_floor_scope(source: ElevationSourceWindowV1, floors) -> _FloorScopeResolution:
+    """v2.1 §7.3 z-datum scope resolution, restricted to the single
+    `Z_DATUM_MODE_WORLD_Z` mode this batch's live wire can authenticate (see
+    that constant's docstring). `floors` is any iterable of objects with
+    `.id`/`.z_floor`/`.ceiling_height` (a `CorrectedGeometryV3.floors` list).
+
+    Full-containment, closed-interval, with `PROJECTION_SCOPE_EPSILON_M`
+    slack on both ends (v2.1 §7.3 rule 4): a source whose z-interval is not
+    fully contained by EXACTLY ONE floor's `[z_floor, z_floor +
+    ceiling_height]` band resolves to `"unresolved"` — never to the nearest
+    or first candidate (v2.1 §7.3 rule 5: "重叠 scope 不取第一项、不选最窄/
+    最大 overlap").
+
+    This is the disambiguator the real `East_view` S3/S4 pair in
+    `tests/fixtures/f9_window_host_crash/` needs: both project to the
+    IDENTICAL world-along interval `[3.52, 4.72]` (same `local_along`, same
+    frame) but S3's `local_z=(4.0, 5.8)` only fits floor-2's
+    `[3.0, 6.6]` band and S4's `local_z=(1.0, 2.8)` only fits floor-1's
+    `[0.0, 3.0]` band — an along-only comparison cannot tell them apart,
+    only this z-scope check can.
+    """
+    if source.local_z_interval is None:
+        return _FloorScopeResolution(status="not_declared", floor_id=None)
+    lo, hi = source.local_z_interval.lo, source.local_z_interval.hi
+    candidates = [
+        floor.id for floor in floors
+        if lo >= floor.z_floor - PROJECTION_SCOPE_EPSILON_M
+        and hi <= floor.z_floor + floor.ceiling_height + PROJECTION_SCOPE_EPSILON_M
+    ]
+    if len(candidates) == 1:
+        return _FloorScopeResolution(status="resolved", floor_id=candidates[0])
+    return _FloorScopeResolution(status="unresolved", floor_id=None)
+
+
+class WindowPositionEvidenceShadowDecisionV1(BaseModel):
+    """v2.1 §10 S2's per-window shadow pairing decision — computed against
+    TODAY's already-authenticated `VerifiedWindowResolverInputs` (identity
+    root: `producer_draw_sha256`/`resolver_inputs_sha256`), NOT the future
+    raw-v2 wire `WindowPositionDecisionV1` above targets (see this module's
+    "§10 S2" section docstring for why the two are deliberately not the same
+    type).
+
+    `legacy_span_delta_m` is the Chebyshev distance between `derived_span`
+    (this decision's own plan-authority-based span) and `legacy_model_span`
+    (`window.span` on the SAME `geom` being checked — i.e. the value
+    actually driving today's accept/reject/IDF output). It is `None` in
+    EXACTLY one situation — no `derived_span` exists to diff against because
+    `decision == "rejected"` — never because the diff happened to compute to
+    zero (a real zero is written as the float `0.0`).
+    """
+
+    model_config = _CFG
+    producer_draw_sha256: Hex64
+    resolver_inputs_sha256: Hex64
+    window_id: StableId
+    window_floor_id: StableId
+    plan_locator: SourceLocator | None
+    plan_world_interval: SourceIntervalV1 | None
+    elevation_locators: tuple[SourceLocator, ...]
+    elevation_projected_intervals: tuple[SourceIntervalV1, ...]
+    elevation_scope_status: tuple[Literal["not_declared", "resolved", "unresolved"], ...]
+    elevation_scope_floor_ids: tuple[StableId | None, ...]
+    distances: tuple[FiniteFloat, ...]
+    tolerance_name: StableId
+    tolerance_value: FiniteFloat
+    decision: Literal["accepted", "rejected"]
+    reject_code: StableId | None
+    derived_span: SourceIntervalV1 | None
+    legacy_model_span: SourceIntervalV1 | None
+    legacy_span_delta_m: FiniteFloat | None
+    decision_sha256: Hex64
+
+    @model_validator(mode="after")
+    def _shape(self):
+        # `elevation_locators`/`elevation_scope_status`/`elevation_scope_floor_ids`
+        # are recorded for every cited corroborator the decision EXAMINED
+        # (n entries); `elevation_projected_intervals`/`distances` are
+        # recorded only for the ones that reached a successful projection
+        # (m entries, m <= n). A rejection at `projection_scope_unresolved`/
+        # `projection_datum_unresolved` legitimately has m == n - 1 — the
+        # examined-but-unprojectable corroborator that TRIGGERED the
+        # rejection is still named in the first three tuples, just not in
+        # the projection/distance pair (there is nothing to project).
+        n = len(self.elevation_locators)
+        if not (n == len(self.elevation_scope_status) == len(self.elevation_scope_floor_ids)):
+            raise ValueError("elevation_locators/elevation_scope_status/elevation_scope_floor_ids must align 1:1")
+        m = len(self.elevation_projected_intervals)
+        if m != len(self.distances):
+            raise ValueError("elevation_projected_intervals/distances must align 1:1")
+        if m > n:
+            raise ValueError("cannot have more projected intervals than examined corroborators")
+        if len(set(self.elevation_locators)) != n:
+            raise ValueError("elevation_locators must not repeat within one decision")
+        if any(d < 0 for d in self.distances):
+            raise ValueError("distances must be non-negative")
+        if self.tolerance_value <= 0:
+            raise ValueError("tolerance_value must be positive")
+        for status, floor_id in zip(self.elevation_scope_status, self.elevation_scope_floor_ids):
+            if (status == "resolved") != (floor_id is not None):
+                raise ValueError("scope floor_id must be set iff status is 'resolved'")
+        if self.decision == "accepted":
+            if self.reject_code is not None:
+                raise ValueError("accepted decision must not carry a reject_code")
+            if self.plan_locator is None or self.plan_world_interval is None:
+                raise ValueError("accepted decision requires a resolved plan authority")
+            if not self.elevation_locators:
+                raise ValueError("accepted decision requires at least one elevation corroborator")
+            if m != n:
+                raise ValueError(
+                    "accepted decision requires every examined corroborator to have "
+                    "reached a projected interval/distance"
+                )
+            for status, floor_id in zip(self.elevation_scope_status, self.elevation_scope_floor_ids):
+                if status == "unresolved":
+                    raise ValueError("accepted decision cannot carry an unresolved z-scope corroborator")
+                if status == "resolved" and floor_id != self.window_floor_id:
+                    raise ValueError("accepted decision's resolved z-scope must match the window's own floor")
+            if any(d > self.tolerance_value for d in self.distances):
+                raise ValueError("accepted decision requires every distance within tolerance_value")
+            if self.derived_span is None or self.derived_span != self.plan_world_interval:
+                raise ValueError(
+                    "accepted decision's derived_span must equal plan_world_interval "
+                    "(v2.1 §5.4: plan authority is the sole span source)"
+                )
+        else:
+            if self.reject_code is None:
+                raise ValueError("rejected decision requires a reject_code")
+            if self.derived_span is not None:
+                raise ValueError("rejected decision must not carry derived_span")
+        if self.decision_sha256 != canonical_sha256(_without_key(self, "decision_sha256")):
+            raise ValueError("decision_sha256 does not match canonical shadow decision")
+        return self
+
+
+class WindowPositionEvidenceShadowReportV1(BaseModel):
+    """v2.1 §10 S2's per-run shadow report.
+
+    `status` distinguishes "ran and produced real per-window decisions"
+    (`"evaluated"` — the only status `decisions`/`all_accepted` are
+    meaningful for) from "could not even build the current-ring
+    authoritative frames for this ring" (`"binding_unavailable"` — e.g. the
+    ring's own facade-segment/fingerprint invariants that
+    `materialize_current_ring_va_elevation_bindings` already enforces for
+    the EXISTING coarse check are violated; a pre-existing limitation of
+    that shared helper, not something S2 papers over). Both are non-`None`
+    objects with their own hash (v2.1 §9: "不可用 None 表示『跑过但没结果』")
+    — so "ran with zero windows" (`window_count=0`, `all_accepted=True`,
+    `status="evaluated"`), "ran but the ring's own binding invariants
+    failed" (`status="binding_unavailable"`), and "did not run at all
+    because no `verified_window_inputs` was supplied" (the caller in
+    `src/validator/checks/correction.py` emits `CheckStatus.NOT_APPLICABLE`
+    and never calls `compute_window_position_evidence_shadow` in that case)
+    stay THREE separately observable states, never collapsed onto one `None`.
+    """
+
+    model_config = _CFG
+    producer_draw_sha256: Hex64
+    resolver_inputs_sha256: Hex64
+    status: Literal["evaluated", "binding_unavailable"]
+    binding_error_code: StableId | None
+    window_count: Annotated[int, Field(ge=0)]
+    decisions: tuple[WindowPositionEvidenceShadowDecisionV1, ...]
+    all_accepted: Annotated[bool, Strict()]
+    content_sha256: Hex64
+
+    @model_validator(mode="after")
+    def _shape(self):
+        if self.status == "evaluated":
+            if self.binding_error_code is not None:
+                raise ValueError("an evaluated report must not carry a binding_error_code")
+            if len(self.decisions) != self.window_count:
+                raise ValueError("decisions must have exactly window_count entries")
+            ids = [d.window_id for d in self.decisions]
+            if ids != sorted(ids) or len(ids) != len(set(ids)):
+                raise ValueError("decisions must be sorted by window_id and unique")
+            for decision in self.decisions:
+                if (decision.producer_draw_sha256 != self.producer_draw_sha256
+                        or decision.resolver_inputs_sha256 != self.resolver_inputs_sha256):
+                    raise ValueError(
+                        f"decision {decision.window_id!r} identity does not match "
+                        "this report's own binding"
+                    )
+            if self.all_accepted != all(d.decision == "accepted" for d in self.decisions):
+                raise ValueError("all_accepted does not match the per-window decisions")
+        else:
+            if self.binding_error_code is None:
+                raise ValueError("a binding_unavailable report requires a binding_error_code")
+            if self.decisions:
+                raise ValueError("a binding_unavailable report must not carry per-window decisions")
+            if self.all_accepted:
+                raise ValueError("a binding_unavailable report must not claim all_accepted")
+        if self.content_sha256 != canonical_sha256(_without_key(self, "content_sha256")):
+            raise ValueError("content_sha256 does not match canonical shadow report")
+        return self
+
+
+def _build_authoritative_frames(
+    geom: CorrectedGeometryV3, verified_inputs: VerifiedWindowResolverInputs, tol,
+) -> dict[str, AuthoritativeViewProjectionFrameV2]:
+    """Private, deliberately PATCHABLE seam: the one place S2 asks the
+    current-ring binding materializer for authoritative frames, keyed by
+    elevation `input_id`.
+
+    Kept as its own top-level function (not inlined into
+    `compute_window_position_evidence_shadow`) specifically so a neuter test
+    can monkeypatch it: v2.1 §12.2's two named must-red neuters ("摘掉
+    projector" / "改用 advisory frame") both act by replacing what THIS
+    function returns, not by editing `project_window_source_along` itself —
+    which is what actually proves those are two independently observable
+    failure MODES (a numeric one and a type one), not one lock wearing two
+    names. See `tests/test_f9_route2_s2_authoritative_projector.py`.
+    """
+    visibility_tolerances = _facade_visibility_tolerances(tol)
+    bindings = materialize_current_ring_va_elevation_bindings(
+        geom=geom, manifest=verified_inputs.inputs.view_manifest,
+        direction_facts=verified_inputs.inputs.elevation_direction_facts,
+        visibility_tolerances=visibility_tolerances,
+    ) if geom.windows else ()
+    return {
+        binding.input_id: AuthoritativeViewProjectionFrameV2.from_current_ring_binding(binding)
+        for binding in bindings
+    }
+
+
+def _facade_visibility_tolerances(tol):
+    """Small shared adapter (`tol` -> `VisibilityTolerances`) so
+    `_build_authoritative_frames` does not need its own copy of the two-field
+    mapping `window_host.py::_visibility_tolerances` already performs for the
+    same underlying `CoreTolerances` object — imported lazily to avoid a
+    module-load-order dependency on `facade_visibility.py` for callers that
+    never touch S2."""
+    from src.agent.correction.facade_visibility import VisibilityTolerances
+
+    return VisibilityTolerances(
+        depth_epsilon_m=tol.facade_visibility_depth_epsilon_m,
+        endpoint_epsilon_m=tol.facade_visibility_endpoint_epsilon_m,
+    )
+
+
+def _window_existence_sources(window_id: str, *, links, sources_by_locator):
+    """`(plan_sources, elevation_sources)` cited by this window's
+    `existence` claim, in the SAME canonical order
+    `verified_inputs.inputs.claim_links` already lists them.
+
+    Deliberately reads `claim_links` (the authenticated, hash-bound
+    locators) rather than re-reading `window.provenance.existence.source_ids`
+    directly — this consumes exactly the SAME sources the existing host
+    resolver's coarse overlap check already trusts (v2.1 §5.1: existence's
+    citations are the input to this decision, not something it re-derives).
+    """
+    plan: list[PlanSourceWindowV1] = []
+    elevation: list[ElevationSourceWindowV1] = []
+    for link in links:
+        if link.window_id != window_id or link.claim != "existence":
+            continue
+        source = sources_by_locator.get(link.source_locator)
+        if isinstance(source, PlanSourceWindowV1):
+            plan.append(source)
+        elif isinstance(source, ElevationSourceWindowV1):
+            elevation.append(source)
+    return tuple(plan), tuple(elevation)
+
+
+def _build_window_position_evidence_shadow_decision(
+    window, *, plan_sources: tuple, elevation_sources: tuple,
+    frames_by_input: Mapping[str, AuthoritativeViewProjectionFrameV2], floors,
+    producer_draw_sha256: str, resolver_inputs_sha256: str, tolerance_value: float,
+) -> WindowPositionEvidenceShadowDecisionV1:
+    """Total for any well-typed `(window, cited-sources)` pair — every
+    "could not verify" reason becomes a named `reject_code` on a real, hashed
+    decision object, never an exception (v2.1 §10 S2: "不得...block"; an
+    uncaught exception here would propagate out of a non-blocking cross-check
+    and defeat that guarantee). Only `project_window_source_along`'s TYPE
+    gate can still raise from inside this function, and that is deliberate:
+    a caller passing the wrong frame TYPE is a wiring bug, not a
+    data-quality fact to represent as a rejection — see
+    `src/validator/checks/correction.py::_window_position_evidence_shadow`
+    for where that specific exception is caught and turned into a FAIL row
+    instead of an uncaught crash.
+
+    Scope note: on a structural rejection (authority invalid / insufficient
+    evidence / scope unresolved / datum unresolved / pair mismatch) this
+    function stops accumulating `elevation_*` tuples at the FIRST corroborator
+    that fails — a rejected decision may therefore list fewer corroborators
+    than were actually cited, not the full cited set. This is a deliberate,
+    documented S2 scope cut (not silently dropped data): S2 only needs to
+    show ONE reason a window's evidence does not cohere, not enumerate every
+    possible reason at once; S3's active detector, which turns this into a
+    blocking gate, is where a fuller audit trail would earn its complexity.
+    """
+    def _decision(
+        *, decision: str, reject_code, derived_span, plan_locator, plan_world_interval,
+        elevation_locators: tuple, elevation_projected_intervals: tuple,
+        elevation_scope_status: tuple, elevation_scope_floor_ids: tuple, distances: tuple,
+    ) -> WindowPositionEvidenceShadowDecisionV1:
+        try:
+            legacy_model_span = SourceIntervalV1(lo=float(window.span[0]), hi=float(window.span[1]))
+        except (IndexError, TypeError, ValueError):
+            legacy_model_span = None
+        legacy_span_delta_m = None
+        if derived_span is not None and legacy_model_span is not None:
+            legacy_span_delta_m = max(
+                abs(derived_span.lo - legacy_model_span.lo), abs(derived_span.hi - legacy_model_span.hi),
+            )
+        payload = {
+            "producer_draw_sha256": producer_draw_sha256, "resolver_inputs_sha256": resolver_inputs_sha256,
+            "window_id": window.id, "window_floor_id": window.floor_id,
+            "plan_locator": plan_locator,
+            "plan_world_interval": None if plan_world_interval is None else plan_world_interval.model_dump(mode="json"),
+            "elevation_locators": list(elevation_locators),
+            "elevation_projected_intervals": [i.model_dump(mode="json") for i in elevation_projected_intervals],
+            "elevation_scope_status": list(elevation_scope_status),
+            "elevation_scope_floor_ids": list(elevation_scope_floor_ids),
+            "distances": list(distances),
+            "tolerance_name": WINDOW_EVIDENCE_PAIRING_TOLERANCE_NAME, "tolerance_value": tolerance_value,
+            "decision": decision, "reject_code": reject_code,
+            "derived_span": None if derived_span is None else derived_span.model_dump(mode="json"),
+            "legacy_model_span": None if legacy_model_span is None else legacy_model_span.model_dump(mode="json"),
+            "legacy_span_delta_m": legacy_span_delta_m,
+        }
+        return WindowPositionEvidenceShadowDecisionV1(
+            producer_draw_sha256=producer_draw_sha256, resolver_inputs_sha256=resolver_inputs_sha256,
+            window_id=window.id, window_floor_id=window.floor_id,
+            plan_locator=plan_locator, plan_world_interval=plan_world_interval,
+            elevation_locators=elevation_locators, elevation_projected_intervals=elevation_projected_intervals,
+            elevation_scope_status=elevation_scope_status, elevation_scope_floor_ids=elevation_scope_floor_ids,
+            distances=distances, tolerance_name=WINDOW_EVIDENCE_PAIRING_TOLERANCE_NAME,
+            tolerance_value=tolerance_value, decision=decision, reject_code=reject_code,
+            derived_span=derived_span, legacy_model_span=legacy_model_span,
+            legacy_span_delta_m=legacy_span_delta_m, decision_sha256=canonical_sha256(payload),
+        )
+
+    def _reject(code: str, *, plan_locator=None, plan_world_interval=None,
+                elevation_locators=(), elevation_projected_intervals=(),
+                elevation_scope_status=(), elevation_scope_floor_ids=(), distances=()):
+        return _decision(
+            decision="rejected", reject_code=code, derived_span=None,
+            plan_locator=plan_locator, plan_world_interval=plan_world_interval,
+            elevation_locators=elevation_locators, elevation_projected_intervals=elevation_projected_intervals,
+            elevation_scope_status=elevation_scope_status, elevation_scope_floor_ids=elevation_scope_floor_ids,
+            distances=distances,
+        )
+
+    if len(plan_sources) != 1:
+        # Zero -> no authority to derive a span from; >1 -> ambiguous authority.
+        # Both are v2.1 §5.1's "existence｜...恰有一个 plan source" violated.
+        return _reject("position_evidence_authority_invalid")
+    plan_source = plan_sources[0]
+    plan_world_interval = project_window_source_along(plan_source, window_facade=window.facade).world_interval
+
+    if not elevation_sources:
+        return _reject(
+            "position_evidence_insufficient",
+            plan_locator=plan_source.source_locator, plan_world_interval=plan_world_interval,
+        )
+    if len({source.source_input_id for source in elevation_sources}) != len(elevation_sources):
+        # v2.1 §5.1: "同一 view 最多一条 position corroborator".
+        return _reject(
+            "position_evidence_authority_invalid",
+            plan_locator=plan_source.source_locator, plan_world_interval=plan_world_interval,
+        )
+
+    elevation_locators: list[str] = []
+    elevation_projected: list[SourceIntervalV1] = []
+    scope_status: list[str] = []
+    scope_floor_ids: list[str | None] = []
+    distances: list[float] = []
+    floors_list = list(floors)
+    for source in elevation_sources:
+        scope = resolve_elevation_source_floor_scope(source, floors_list)
+        # The examined corroborator's locator/scope are recorded FIRST,
+        # before either early-exit check below — a rejection must still name
+        # the specific source that caused it, not silently omit it from the
+        # audit trail (see `WindowPositionEvidenceShadowDecisionV1._shape`'s
+        # m <= n alignment rule for why elevation_projected_intervals/
+        # distances are allowed to be one entry shorter here).
+        elevation_locators.append(source.source_locator)
+        scope_status.append(scope.status)
+        scope_floor_ids.append(scope.floor_id)
+        if scope.status == "unresolved":
+            return _reject(
+                "projection_scope_unresolved",
+                plan_locator=plan_source.source_locator, plan_world_interval=plan_world_interval,
+                elevation_locators=tuple(elevation_locators), elevation_projected_intervals=tuple(elevation_projected),
+                elevation_scope_status=tuple(scope_status), elevation_scope_floor_ids=tuple(scope_floor_ids),
+                distances=tuple(distances),
+            )
+        frame = frames_by_input.get(source.source_input_id)
+        if frame is None:
+            return _reject(
+                "projection_datum_unresolved",
+                plan_locator=plan_source.source_locator, plan_world_interval=plan_world_interval,
+                elevation_locators=tuple(elevation_locators), elevation_projected_intervals=tuple(elevation_projected),
+                elevation_scope_status=tuple(scope_status), elevation_scope_floor_ids=tuple(scope_floor_ids),
+                distances=tuple(distances),
+            )
+        projected = project_window_source_along(
+            source, window_facade=window.facade, frame=frame, scope_floor_id=scope.floor_id,
+        ).world_interval
+        distance = max(
+            abs(plan_world_interval.lo - projected.lo), abs(plan_world_interval.hi - projected.hi),
+        )
+        elevation_projected.append(projected)
+        distances.append(distance)
+        if scope.status == "resolved" and scope.floor_id != window.floor_id:
+            return _reject(
+                "position_evidence_pair_mismatch",
+                plan_locator=plan_source.source_locator, plan_world_interval=plan_world_interval,
+                elevation_locators=tuple(elevation_locators), elevation_projected_intervals=tuple(elevation_projected),
+                elevation_scope_status=tuple(scope_status), elevation_scope_floor_ids=tuple(scope_floor_ids),
+                distances=tuple(distances),
+            )
+        if distance > tolerance_value:
+            return _reject(
+                "position_evidence_pair_mismatch",
+                plan_locator=plan_source.source_locator, plan_world_interval=plan_world_interval,
+                elevation_locators=tuple(elevation_locators), elevation_projected_intervals=tuple(elevation_projected),
+                elevation_scope_status=tuple(scope_status), elevation_scope_floor_ids=tuple(scope_floor_ids),
+                distances=tuple(distances),
+            )
+
+    return _decision(
+        decision="accepted", reject_code=None, derived_span=plan_world_interval,
+        plan_locator=plan_source.source_locator, plan_world_interval=plan_world_interval,
+        elevation_locators=tuple(elevation_locators), elevation_projected_intervals=tuple(elevation_projected),
+        elevation_scope_status=tuple(scope_status), elevation_scope_floor_ids=tuple(scope_floor_ids),
+        distances=tuple(distances),
+    )
+
+
+def compute_window_position_evidence_shadow(
+    geom: CorrectedGeometryV3, *, verified_inputs: VerifiedWindowResolverInputs, tol,
+) -> WindowPositionEvidenceShadowReportV1:
+    """v2.1 §10 S2's public entry point.
+
+    Runs the independent plan-authority vs elevation-corroborator pairing
+    decision for every window in `geom`, against `geom`'s OWN cited
+    `existence` sources (the same sources the live coarse overlap check in
+    `window_host.py::resolve_window_hosts` already trusts) — see this
+    module's "§10 S2" section docstring for the full contract.
+
+    Total for a well-formed `geom`/`verified_inputs` pair drawn from the SAME
+    producer draw: never raises for a data-quality reason. The one exception
+    a caller must still expect is `WindowDirectionBindingError` from the
+    shared current-ring binding materializer (this ring's OWN
+    facade-segment/fingerprint invariants failing — a pre-existing
+    limitation of that helper, not new to S2); this function catches that
+    itself and returns a `status="binding_unavailable"` report rather than
+    propagating it, so `compute_window_position_evidence_shadow` itself never
+    raises for ANY well-typed input.
+    """
+    _validate_window_evidence_pairing_tolerance(envelope_reconcile_tol_m=tol.envelope_reconcile_tol_m)
+    producer_draw_sha256 = verified_inputs.inputs.producer_draw_sha256
+    resolver_inputs_sha256 = verified_inputs.inputs.content_sha256
+
+    try:
+        frames_by_input = _build_authoritative_frames(geom, verified_inputs, tol)
+    except WindowDirectionBindingError as exc:
+        payload = {
+            "producer_draw_sha256": producer_draw_sha256, "resolver_inputs_sha256": resolver_inputs_sha256,
+            "status": "binding_unavailable", "binding_error_code": exc.code,
+            "window_count": len(geom.windows), "decisions": [], "all_accepted": False,
+        }
+        return WindowPositionEvidenceShadowReportV1(
+            producer_draw_sha256=producer_draw_sha256, resolver_inputs_sha256=resolver_inputs_sha256,
+            status="binding_unavailable", binding_error_code=exc.code, window_count=len(geom.windows),
+            decisions=(), all_accepted=False, content_sha256=canonical_sha256(payload),
+        )
+
+    sources_by_locator = {row.source_locator: row for row in verified_inputs.inputs.source_windows}
+    links = verified_inputs.inputs.claim_links
+
+    def _decision_for(window) -> WindowPositionEvidenceShadowDecisionV1:
+        plan_sources, elevation_sources = _window_existence_sources(
+            window.id, links=links, sources_by_locator=sources_by_locator,
+        )
+        return _build_window_position_evidence_shadow_decision(
+            window, plan_sources=plan_sources, elevation_sources=elevation_sources,
+            frames_by_input=frames_by_input, floors=geom.floors,
+            producer_draw_sha256=producer_draw_sha256, resolver_inputs_sha256=resolver_inputs_sha256,
+            tolerance_value=WINDOW_EVIDENCE_PAIRING_TOL_M,
+        )
+
+    decisions = tuple(_decision_for(window) for window in sorted(geom.windows, key=lambda w: w.id))
+    all_accepted = all(d.decision == "accepted" for d in decisions)
+    payload = {
+        "producer_draw_sha256": producer_draw_sha256, "resolver_inputs_sha256": resolver_inputs_sha256,
+        "status": "evaluated", "binding_error_code": None, "window_count": len(decisions),
+        "decisions": [d.model_dump(mode="json") for d in decisions], "all_accepted": all_accepted,
+    }
+    return WindowPositionEvidenceShadowReportV1(
+        producer_draw_sha256=producer_draw_sha256, resolver_inputs_sha256=resolver_inputs_sha256,
+        status="evaluated", binding_error_code=None, window_count=len(decisions),
+        decisions=decisions, all_accepted=all_accepted, content_sha256=canonical_sha256(payload),
+    )
+
+
 __all__ = [
     "PositionEvidenceErrorCategory", "POSITION_EVIDENCE_ERROR_CATEGORY", "WindowPositionEvidenceError",
     "position_evidence_error",
@@ -468,4 +1195,11 @@ __all__ = [
     "WindowResolverInputsArtifactV2",
     "WindowPositionDecisionV1", "WindowPositionEvidenceArtifactV1", "build_window_position_decision",
     "ArtifactLoader", "WINDOW_RESOLVER_ARTIFACT_LOADER_REGISTRY", "load_window_resolver_artifact",
+    # S2
+    "WINDOW_EVIDENCE_PAIRING_TOL_M", "WINDOW_EVIDENCE_PAIRING_TOLERANCE_NAME", "PROJECTION_SCOPE_EPSILON_M",
+    "Z_DATUM_MODE_WORLD_Z",
+    "AuthoritativeViewProjectionFrameV2", "AdvisoryViewProjectionFrameV1", "ProjectedAlongEvidenceV1",
+    "project_window_source_along", "resolve_elevation_source_floor_scope",
+    "WindowPositionEvidenceShadowDecisionV1", "WindowPositionEvidenceShadowReportV1",
+    "compute_window_position_evidence_shadow",
 ]

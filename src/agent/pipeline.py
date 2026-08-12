@@ -1128,6 +1128,22 @@ def run_pipeline_artifacts(
             ),
             encoding="utf-8",
         )
+        # 2026-08-12 (摊 C): pure "annotation basis" observation sidecar --
+        # same convenience-copy pattern as corrections.json above, mirrored
+        # from stage_runner.py's writer so the run_pipeline_artifacts path
+        # (this function) and the flow/run_stage.py path both expose it.
+        # Empty for legacy v1/v2 or a v3 draw with no accepted envelope axis.
+        if finalized.annotation_basis:
+            from src.agent.correction.config import load_core_tolerances
+            from src.agent.correction.envelope_transform import annotation_basis_report
+
+            (s1 / "annotation_basis.json").write_text(
+                json.dumps(
+                    annotation_basis_report(finalized.annotation_basis, load_core_tolerances()),
+                    indent=2, ensure_ascii=False,
+                ),
+                encoding="utf-8",
+            )
 
     from src.validator.checks.correction import check_correction
 
@@ -1146,6 +1162,13 @@ def run_pipeline_artifacts(
         run_profile=run_profile,
         evidence_debt=evidence_debt,
         reading_views=reading_views,
+        # F-9 route② S2 (2026-08-12): non-blocking cross-check shadow of the
+        # same live model-authored `window.span` path, using the SAME
+        # `verified_window_inputs` this function already built above
+        # (:1093-1101). See `check_correction`'s
+        # `_window_position_evidence_shadow` for the full contract (never
+        # overrides span, never blocks — CheckLayer.CROSS_CHECK only).
+        verified_window_inputs=verified_window_inputs,
     )
     _gate_self_check_report(
         stage_name="1_correction",

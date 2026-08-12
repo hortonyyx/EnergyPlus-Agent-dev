@@ -930,6 +930,7 @@ def test_finalize_marker_backed_core_floor_reference_tamper_hits_identity_invari
     def tamper_core(
         candidate, tol=None, *, authoritative_envelope=None,
         capability_profile="rectangular", verified_window_inputs=None,
+        annotation_basis_sink=None,
     ):
         candidate.windows[0].floor_id = "tampered-floor"
         return candidate

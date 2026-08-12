@@ -160,6 +160,7 @@ class StageRunner:
             derive_feature_state_claims,
         )
         from src.agent.correction.config import load_core_tolerances
+        from src.agent.correction.envelope_transform import annotation_basis_report
         from src.agent.correction.facade_visibility import (
             VisibilityTolerances,
             validate_materialized_facade_segments,
@@ -561,6 +562,21 @@ class StageRunner:
                     # Convenience copies are promoted only after gate acceptance.
                     (stage_dir / "correction_geometry_snapped.json").write_text(out_text, encoding="utf-8")
                     (stage_dir / "corrections.json").write_text(_to_json(output_obj.audit_payload), encoding="utf-8")
+                    # 2026-08-12 (摊 C): pure "annotation basis" observation
+                    # sidecar -- convenience copy only, like the two writes
+                    # above; deliberately NOT added to `artifact_hashes` /
+                    # the manifest trust root (it is advisory-only and must
+                    # never gate acceptance or participate in the B5 replay
+                    # cross-check above). Empty tuple (legacy v1/v2, or a v3
+                    # draw whose envelope never accepted an axis) writes
+                    # nothing -- consistent with "no intent" staying silent
+                    # only where there truly is nothing to report.
+                    annotation_basis = getattr(output_obj, "annotation_basis", ())
+                    if annotation_basis:
+                        (stage_dir / "annotation_basis.json").write_text(
+                            _to_json(annotation_basis_report(annotation_basis, load_core_tolerances())),
+                            encoding="utf-8",
+                        )
                 elif is_assembly_e4:
                     (stage_dir / "output_coordinate_contract.json").write_text(contract_text, encoding="utf-8")
                     (stage_dir / "output_coordinate_snapshot.json").write_text(snapshot_text, encoding="utf-8")

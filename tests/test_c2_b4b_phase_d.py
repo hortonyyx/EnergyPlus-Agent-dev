@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 from pathlib import Path
 import subprocess
 
@@ -19,6 +20,61 @@ from src.agent.judge.score_schema import (
 )
 
 H = "a" * 64
+
+
+def _scandir_files(root):
+    """Recursive os.scandir walk yielding (path, DirEntry) for every file.
+
+    Not pathlib: on this repo's filesystem (a 9p/drvfs WSL2 mount --
+    ``mount`` shows ``... on /workspaces/EnergyPlus-Agent-dev type 9p``),
+    ``Path.rglob("*")`` + ``Path.stat()`` over case_tests/'s ~3000 files
+    measured at ~35s per pass -- ``os.scandir``'s cached ``DirEntry.stat()``
+    (one syscall round-trip per entry instead of pathlib's extra object
+    / syscall overhead) measured at ~4-5s per pass. Still far from GNU
+    ``find``'s ~1s (a tight C loop), but ``find -printf`` is a non-portable
+    GNU extension (BSD/macOS find has no equivalent), so this stays stdlib.
+    """
+    with os.scandir(root) as it:
+        for entry in it:
+            if entry.is_dir(follow_symlinks=False):
+                yield from _scandir_files(entry.path)
+            elif entry.is_file(follow_symlinks=False):
+                yield entry
+
+
+def _case_tests_metadata_fingerprint(root: Path = Path("case_tests")) -> str:
+    """Path + size + mtime_ns fingerprint of every file under ``root``
+    (F-23 fix, 2026-08-12 -- see AI_agent/logs/reviews/request/
+    2026-08-12_c_annotation_observable_and_f23_dispatch_claude.md §D).
+
+    Deliberately NOT git-based: it reads only the filesystem, so it is blind
+    to whether anything under ``root`` is tracked, staged, or committed.
+    Taken once before and once after some operation, it answers "did that
+    operation touch this directory's contents", independent of the
+    developer's ambient working-tree/index state -- unlike
+    ``git diff --name-only -- case_tests`` (the check this replaces), which
+    answers "does the *current, ambient* working tree differ from HEAD
+    under this path", a completely different question that happens to have
+    looked like the right one only in the single session it was written for.
+
+    Metadata (not full sha256 content) is used deliberately: case_tests/ is
+    ~540 MB / ~3000 files on this repo, and a full content hash over it
+    measured at ~17s per pass -- prohibitive to pay twice (before/after) in
+    a routine test run. This walk measured at ~4-5s per pass (see
+    ``_scandir_files``) and still catches every shape a real accidental
+    write would take (new file, deleted file, resized file, rewritten-in-
+    place file -- any real write() updates at least one of size or mtime on
+    every filesystem this project runs on; see the two self-proving-premise
+    tests below, which use differently-*sized* fixture content specifically
+    so this is never load bearing on mtime resolution alone).
+    """
+    root = Path(root)
+    entries = sorted(
+        (str(Path(entry.path).relative_to(root)), info.st_size, info.st_mtime_ns)
+        for entry in _scandir_files(root)
+        for info in (entry.stat(follow_symlinks=False),)
+    )
+    return hashlib.sha256(repr(entries).encode()).hexdigest()
 
 
 def _identity() -> ScoreIdentityV8:
@@ -450,8 +506,217 @@ def test_d5_va_source_has_no_tautological_noop_assertion_and_d6_new_judge_module
     forbidden = ("score_schema", "score_config", "score_inputs", "segment_score", "opening_claim_score", "score_policy", "elevation_score", "score_service")
     assert all(not any(f"src.agent.judge.{name}" in path.read_text(encoding="utf-8") for name in forbidden)
                for path in production if path.exists())
-    protected = subprocess.run(
-        ["git", "diff", "--name-only", "--", "case_tests"], check=True,
+    # F-23 fix (2026-08-12): this gate used to end here with a
+    # `git diff --name-only -- case_tests` check. That measured whether the
+    # *developer's ambient working tree* differed from HEAD under
+    # case_tests/ -- a fact about this machine's uncommitted state, not
+    # about what running the judge/scoring path actually did. It both
+    # false-positived (any unrelated uncommitted edit under case_tests/, e.g.
+    # a README touch-up, turns it red) and false-negatived (the moment the
+    # edit is `git add`+committed, it goes green again, even if a judge
+    # module really did write into GT/golden/verified-overlay material --
+    # precisely the thing this gate exists to catch). Not deleted: the
+    # contract ("judge code never writes case_tests/", CLAUDE.md §1.5#4's
+    # gt 铁律, generalized past this one construction session) is now
+    # enforced by `test_d6_judge_scoring_path_leaves_case_tests_byte_for_byte_unchanged`
+    # below, which fingerprints case_tests/ around a real judge-path call
+    # instead of asking git about the working tree. The two tests after it
+    # are the self-proving premise: they replicate the exact snippet above,
+    # verbatim, in an isolated /tmp repo, and show both failure modes firing
+    # on fixtures built specifically to trigger them.
+
+
+def test_d6_judge_scoring_path_leaves_case_tests_byte_for_byte_unchanged(tmp_path):
+    """F-23 replacement gate: exercises two real judge-path entry points
+    (not private test helpers) around a single before/after fingerprint of
+    the real, on-disk case_tests/ tree --
+
+    1. ``run_stage._grade_typed_attempt_artifacts`` for a CORRECTION-stage
+       attempt built via the real pipeline (``_correction_v3_runstage_
+       fixture`` -> ``_stepwise_e4_run``, the same fixture
+       ``test_correction_v3_runstage_scoring_e2e_emits_real_grade`` above
+       uses), which really reaches a scored ``"c2_scored"`` payload -- not
+       an early "unsupported" bail-out;
+    2. ``score_reading_vs_gt.py`` spawned as the real CLI subprocess (the
+       same invocation ``test_gt_echo_fixture_preserves_runstage_cli_byte_
+       parity`` above uses) for a READING-stage attempt.
+
+    Both fixtures are entirely synthetic/in-memory (neither
+    ``_correction_v3_runstage_fixture`` nor ``real_va_context`` reads
+    case_tests/ off disk -- see tests/test_c2_b4b_phase_b.py). This is what
+    the old D6 assertion was trying to say ("judge modules stay judge
+    only" extends to "...and never write GT/golden/verified-overlay
+    material"), but it tests the run's actual side effect rather than the
+    ambient git working-tree state.
+    """
+    from scripts.tool_scripts import run_stage
+    from src.agent.execution.manifest import RunManifest
+    from tests.test_c2_b4b_phase_b import real_va_context
+
+    # Entry point 1 fixture (correction stage, real scoring). Own
+    # subdirectory: `_correction_v3_runstage_fixture` writes `gt.json` and
+    # `run/` directly under the path it's given, which would otherwise
+    # collide with entry point 2's fixture below.
+    correction_root = tmp_path / "correction"
+    correction_root.mkdir()
+    correction_gt, correction_run, correction_manifest, correction_gt_file = (
+        _correction_v3_runstage_fixture(correction_root)
+    )
+    correction_accepted = correction_manifest.accepted("1_correction")
+    correction_attempt = (
+        correction_run / "1_correction" / "attempts"
+        / f"{correction_accepted.accepted_attempt:03d}"
+    )
+
+    # Entry point 2 fixture (reading stage, CLI dispatch).
+    gt, base, bindings = real_va_context(complete_plan=True, complete_elevation=True)
+    run = tmp_path / "reading_run"
+    attempt = run / "0_reading" / "attempts" / "001"
+    attempt.mkdir(parents=True)
+    meta = run / "_run"
+    meta.mkdir()
+    gt_file = tmp_path / "gt.json"
+    gt_file.write_text(gt.model_dump_json(), encoding="utf-8")
+    (meta / "view_manifest.json").write_text(base.model_dump_json(), encoding="utf-8")
+    (meta / "judge_score_bindings.json").write_text(bindings.model_dump_json(), encoding="utf-8")
+    payload = _typed_attempt_payload(gt, bindings)
+    (attempt / "output.json").write_text(json.dumps(payload, sort_keys=True), encoding="utf-8")
+
+    before = _case_tests_metadata_fingerprint()
+
+    correction_artifacts = run_stage._grade_typed_attempt_artifacts(
+        "1_correction", correction_gt.case, correction_attempt, correction_gt,
+        gt_file=correction_gt_file, manifest=correction_manifest, grade=run_stage.GradeConfig(),
+    )
+
+    cli_out = tmp_path / "cli"
+    completed = subprocess.run([
+        "python", "scripts/tool_scripts/score_reading_vs_gt.py", str(attempt / "output.json"), "--case", gt.case,
+        "--typed-elevation-json", str(attempt / "output.json"), "--gt-file", str(gt_file),
+        "--view-manifest", str(meta / "view_manifest.json"), "--bindings", str(meta / "judge_score_bindings.json"),
+        "--attempt", "1", "--out-dir", str(cli_out),
+    ], check=True, capture_output=True, text=True)
+
+    after = _case_tests_metadata_fingerprint()
+
+    # self-proving premise: both judge paths really ran and really produced
+    # artifacts (otherwise "case_tests unchanged" would be a vacuous no-op) --
+    # entry point 1 reached a REAL score, not an early "unsupported" exit.
+    correction_sidecar = json.loads(
+        Path(correction_artifacts["score_vs_gt"]).read_text(encoding="utf-8")
+    )
+    assert correction_sidecar["payload"]["kind"] == "c2_scored"
+    assert Path(correction_artifacts["grade"]).read_bytes().startswith(b"\x89PNG")
+    assert completed.returncode == 0
+    assert (cli_out / "score_vs_gt.json").exists()
+    assert (cli_out / "grade.png").exists()
+
+    assert after == before
+
+
+def test_d6_old_git_diff_check_false_positives_on_unrelated_dirty_tree(tmp_path):
+    """F-23 self-proving premise, direction 1. ⛔ Isolated /tmp repo only --
+    never the real working tree, which another seat has uncommitted changes
+    in right now; deliberately dirtying the real case_tests/ would turn a
+    parallel seat's full-suite run red.
+
+    Replicates test_c2_b4b_phase_d.py:453-457's old technique verbatim
+    against a throwaway repo, and shows the exact scenario named in this
+    batch's dispatch doc -- "orchestrator 改一个 README 就把它打红了": an
+    edit to case_tests/ that has nothing to do with any judge-path run is
+    enough to fail the old check, while the new metadata-fingerprint
+    approach, taken around an operation that never touches case_tests/ at
+    all, correctly stays green (it compares this test's own before/after
+    snapshots, not the ambient git working-tree diff).
+    """
+    def git(*args: str) -> str:
+        completed = subprocess.run(
+            ["git", *args], cwd=tmp_path, text=True, capture_output=True, check=True,
+        )
+        return completed.stdout.strip()
+
+    git("init", "-q")
+    git("config", "user.email", "f23-fixture@example.invalid")
+    git("config", "user.name", "F23 Fixture")
+    (tmp_path / "case_tests").mkdir()
+    readme = tmp_path / "case_tests" / "README.md"
+    readme.write_text("baseline\n", encoding="utf-8")
+    git("add", "case_tests/README.md")
+    git("commit", "-q", "-m", "baseline case_tests")
+
+    # An unrelated developer edit -- e.g. orchestrator editing a README --
+    # with no judge code involved at all.
+    readme.write_text("baseline\nunrelated edit\n", encoding="utf-8")
+
+    # OLD approach: test_c2_b4b_phase_d.py:453-457's exact technique,
+    # replicated against the isolated repo.
+    old_check = subprocess.run(
+        ["git", "diff", "--name-only", "--", "case_tests"], cwd=tmp_path, check=True,
         capture_output=True, text=True,
     )
-    assert protected.stdout.strip() == ""
+    # self-proving premise: on this fixture, the OLD condition the deleted
+    # assertion relied on (`stdout.strip() == ""`) is indeed false --
+    # the old test function would have failed here.
+    assert old_check.stdout.strip() != ""
+
+    # NEW approach: a no-op "judge path" stand-in that never writes to
+    # case_tests/ at all -- fingerprinted straddling it, exactly like the
+    # real regression test above.
+    before = _case_tests_metadata_fingerprint(tmp_path / "case_tests")
+    _ = readme.read_text(encoding="utf-8")  # read-only; not a write
+    after = _case_tests_metadata_fingerprint(tmp_path / "case_tests")
+    assert after == before
+
+
+def test_d6_old_git_diff_check_false_negatives_once_committed_but_fingerprint_catches_it(tmp_path):
+    """F-23 self-proving premise, direction 2. ⛔ Isolated /tmp repo only
+    (see the direction-1 test above for why).
+
+    A real, judge-path-shaped mutation of case_tests/ content that then gets
+    `git add`+committed (staging/committing the damage, whether by a
+    developer or by automation) makes the OLD
+    `git diff --name-only -- case_tests` check pass -- "只要 git add 或
+    commit 一下就变绿" from the dispatch doc, i.e. it goes blind to the
+    exact scenario it exists to catch -- while the metadata fingerprint,
+    taken straddling the mutating write itself (not straddling the commit),
+    still catches it because it never consults git at all.
+    """
+    def git(*args: str) -> str:
+        completed = subprocess.run(
+            ["git", *args], cwd=tmp_path, text=True, capture_output=True, check=True,
+        )
+        return completed.stdout.strip()
+
+    git("init", "-q")
+    git("config", "user.email", "f23-fixture@example.invalid")
+    git("config", "user.name", "F23 Fixture")
+    (tmp_path / "case_tests").mkdir()
+    gt_file = tmp_path / "case_tests" / "gt.json"
+    gt_file.write_text('{"schema_version": "3", "content": "original"}\n', encoding="utf-8")
+    git("add", "case_tests/gt.json")
+    git("commit", "-q", "-m", "baseline gt")
+
+    before = _case_tests_metadata_fingerprint(tmp_path / "case_tests")
+    # Stand-in for "a judge module accidentally writes into GT material"
+    # (deliberately a different length, so this does not lean on mtime
+    # resolution: see _case_tests_metadata_fingerprint's docstring).
+    gt_file.write_text(
+        '{"schema_version": "3", "content": "MUTATED_BY_JUDGE_PATH_A_LOT_LONGER_THAN_BEFORE"}\n',
+        encoding="utf-8",
+    )
+    after = _case_tests_metadata_fingerprint(tmp_path / "case_tests")
+    # NEW approach: catches the mutation immediately, commit or not.
+    assert after != before
+
+    # The developer/automation stages and commits the damage -- this is
+    # exactly what makes the OLD check blind to it.
+    git("add", "case_tests/gt.json")
+    git("commit", "-q", "-m", "oops, judge path wrote into gt.json")
+    old_check_after_commit = subprocess.run(
+        ["git", "diff", "--name-only", "--", "case_tests"], cwd=tmp_path, check=True,
+        capture_output=True, text=True,
+    )
+    # self-proving premise / failure demonstration: the OLD condition is
+    # now true (empty diff) even though case_tests/ material really changed
+    # -- the exact F-23 false-negative.
+    assert old_check_after_commit.stdout.strip() == ""

@@ -425,6 +425,32 @@ def _corrections_summary(run_dir: Path) -> dict:
     }
 
 
+def _annotation_basis_summary(run_dir: Path) -> dict:
+    """Best-effort read of 1_correction/annotation_basis.json (2026-08-12,
+    摊 C: "让标注法这个观测量可见" -- see AI_agent/plan.md〇-C). Pure
+    observation, advisory-only: a missing sidecar (legacy v1/v2 run, or a v3
+    run whose facade envelope never accepted an axis) is normal, not an
+    error, and must never make report generation fail or change any
+    gate①/judge② outcome."""
+    path = run_dir / "1_correction" / "annotation_basis.json"
+    rel = "1_correction/annotation_basis.json"
+    if not path.exists():
+        return {"sidecar_path": rel, "present": False}
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        return {
+            "sidecar_path": rel, "present": True,
+            "parse_status": "malformed_json", "parse_error": str(exc),
+        }
+    if not isinstance(data, dict):
+        return {
+            "sidecar_path": rel, "present": True,
+            "parse_status": "malformed_json", "parse_error": "sidecar is not a JSON object",
+        }
+    return {"sidecar_path": rel, "present": True, "parse_status": "ok", **data}
+
+
 def _j0_semantic_clean(verdicts: list[dict]) -> bool | None:
     j0 = [
         v for v in verdicts
@@ -541,6 +567,7 @@ def record_baseline(
     draws, verdicts = _draws_and_verdicts(run_dir)
     state = load_state(run_dir)  # stepwise orchestration ledger (stop_reason etc.)
     corr_summary = _corrections_summary(run_dir)
+    annotation_basis_summary = _annotation_basis_summary(run_dir)  # 摊 C, 2026-08-12
     signals = {
         **summary.get("signals", {}),
         "j0_semantic_clean": _j0_semantic_clean(verdicts),
@@ -583,6 +610,7 @@ def record_baseline(
         "stop_reason": state.get("stop_reason"),
         "ep": ep,
         "corrections_summary": corr_summary,
+        "annotation_basis_summary": annotation_basis_summary,
         "evidence_index": evidence_index,
         "provenance": _collect_provenance(),
         "blocked": res.blocked,
@@ -778,6 +806,32 @@ def _render_corrections_audit_summary(summary: dict) -> list[str]:
     ]
 
 
+def _render_annotation_basis_summary(summary: dict) -> list[str]:
+    """2026-08-12 (摊 C): render the "which annotation basis" pure
+    observation into the human-facing report — one line + one interpretation
+    rule, so a future run whose facades are axis-line-dimensioned (rather
+    than this batch's outer-skin convention) is visible on sight instead of
+    silently folding into the same 4.8%-area drift this batch registered but
+    never surfaced. Pure reporting: never blocks, never affects `verdict`/
+    `blocking`/`flags` elsewhere in this report."""
+    lines = ["", "### 标注法观测（纯观测,不阻断,见 plan.md〇-C）"]
+    path = summary.get("sidecar_path", "1_correction/annotation_basis.json")
+    if not summary.get("present"):
+        return lines + ["", f"- sidecar: `{path}` (missing — legacy v1/v2 run, or no accepted facade-envelope axis)"]
+    if summary.get("parse_status") != "ok":
+        msg = summary.get("parse_error", "")
+        return lines + [
+            "",
+            f"- sidecar: `{path}` ({summary.get('parse_status')})" + (f" — {msg}" if msg else ""),
+        ]
+    return lines + [
+        "",
+        f"- sidecar: `{path}` (ok)",
+        f"- {summary.get('summary_line', '（无 summary_line）')}",
+        f"- 解读规则: {summary.get('interpretation_rule', '（无 interpretation_rule）')}",
+    ]
+
+
 def _render_facts_card(b: dict) -> str:
     g = b["geometry"]
     ep = b["ep"]
@@ -854,6 +908,7 @@ def _render_facts_card(b: dict) -> str:
         lines += ["", "### 连带缺失下游件", ""]
         lines += [f"- `{x.get('stage')}`: {x.get('message')}" for x in consequential]
     lines += _render_corrections_audit_summary(b.get("corrections_summary", {}))
+    lines += _render_annotation_basis_summary(b.get("annotation_basis_summary", {}))
     return "\n".join(lines) + "\n"
 
 
