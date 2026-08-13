@@ -169,7 +169,7 @@ RunManifestV1 = RunManifest
 ArtifactKey = Literal[
     "output", "checks", "audit", "feature_states", "isolation_provenance",
     "output_coordinate_contract", "output_coordinate_snapshot",
-    "window_resolver_inputs", "window_hosts",
+    "window_resolver_inputs", "window_hosts", "deterministic_core_proof",
 ]
 ArtifactContract = Literal[
     "migrated_v1", "base_v2", "reading_isolated_v2", "correction_b2_v1",
@@ -208,6 +208,20 @@ _CONTRACT_REQUIRED_KEYS: dict[str, frozenset[str]] = {
 # exist yet) — so a `migrated_v1` record carrying e.g. "audit" is structurally
 # impossible for a real migration and is rejected as a forged/mislabeled record
 # whose provenance does not match its claimed contract.
+#
+# F-22 BLOCKER-1 round 2 (2026-08-13): `deterministic_core_proof` is
+# deliberately ALLOWED but NOT required for the two B5 contracts below.
+# Making it required would retroactively invalidate every already-persisted
+# manifest whose StageRecordV2 predates this key (this model's own
+# `_contract_keys_and_output_identity` validator raises on a missing
+# required key at LOAD time, not just at write time -- so `RunManifestV2.
+# model_validate_json` would crash on any historical run's manifest.json
+# just from being read). A record written by the current writer always
+# carries it (StageRunner.record signs and binds it unconditionally on every
+# real B5 write); a record from before this fix simply lacks the key, which
+# is exactly the "declared, not trusted; rerun to regain a score"
+# consequence the user ratified for the original stamp — see
+# `judge.correction_score._is_trusted_output_convention`.
 _CONTRACT_ALLOWED_KEYS: dict[str, frozenset[str]] = {
     "migrated_v1": frozenset({"output", "checks"}),
     "base_v2": frozenset({"output", "checks"}),
@@ -216,11 +230,11 @@ _CONTRACT_ALLOWED_KEYS: dict[str, frozenset[str]] = {
     "correction_e4_orientation_v1": frozenset({"output", "checks", "audit", "feature_states"}),
     "correction_b5_v1": frozenset({
         "output", "checks", "audit", "feature_states",
-        "window_resolver_inputs", "window_hosts",
+        "window_resolver_inputs", "window_hosts", "deterministic_core_proof",
     }),
     "correction_b5_orientation_v1": frozenset({
         "output", "checks", "audit", "feature_states",
-        "window_resolver_inputs", "window_hosts",
+        "window_resolver_inputs", "window_hosts", "deterministic_core_proof",
     }),
     "assembly_e4_v1": frozenset({
         "output", "checks", "audit", "output_coordinate_contract", "output_coordinate_snapshot",

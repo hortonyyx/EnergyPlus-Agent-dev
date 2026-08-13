@@ -313,9 +313,12 @@ def test_stepwise_enrichment_and_assembly_identity(tmp_path):
     corr = manifest.accepted("1_correction")
     assert corr.artifact_contract == "correction_b5_orientation_v1"
     assert corr.stage_version == "4"  # derived, not the caller's bogus "9"
+    # F-22 BLOCKER-1 round 2 (2026-08-13): a 7th sidecar,
+    # `deterministic_core_proof`, is now always written and bound alongside
+    # the original six -- see `DeterministicCoreProofV1` (deterministic.py).
     assert set(corr.artifact_hashes) == {
         "output", "checks", "audit", "feature_states",
-        "window_resolver_inputs", "window_hosts",
+        "window_resolver_inputs", "window_hosts", "deterministic_core_proof",
     }
     assert set(corr.input_hashes) == {
         "base_correction", "orientation_evidence_set", "orientation_resolution", "run_config",

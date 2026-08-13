@@ -84,9 +84,12 @@ def test_correction_writer_emits_b5_contract_with_verified_empty_marker(tmp_path
     stage = manifest.accepted("1_correction")
     assert stage.artifact_contract == "correction_b5_v1"
     assert stage.stage_version == "3"
+    # F-22 BLOCKER-1 round 2 (2026-08-13): a 7th sidecar,
+    # `deterministic_core_proof`, is now always written and bound alongside
+    # the original six -- see `DeterministicCoreProofV1` (deterministic.py).
     assert set(stage.artifact_hashes) == {
         "output", "checks", "audit", "feature_states",
-        "window_resolver_inputs", "window_hosts",
+        "window_resolver_inputs", "window_hosts", "deterministic_core_proof",
     }
     assert artifact_feature_state(tmp_path / "1_correction" / "attempts" / "001", stage, "per_floor_footprint") == "populated"
     assert artifact_feature_state(tmp_path / "1_correction" / "attempts" / "001", stage, "facade_segments") == "populated"
@@ -167,7 +170,9 @@ def _mismatched_bbox_geom():
 
 def test_f3_routes_r4_r5_r7_r8_use_floor_footprint():
     geom = _mismatched_bbox_geom()
+    from src.agent.correction.deterministic import DeterministicCoreProofV1, core_owned_projection_v1
     from src.agent.correction.envelope import _footprint_bounds as envelope_bounds
+    from src.agent.execution.manifest import hash_obj
     from src.agent.judge.correction_score import _extract_correction_boundary
     from src.validator.checks.correction import _footprint_bounds as facade_bounds
 
@@ -175,7 +180,21 @@ def test_f3_routes_r4_r5_r7_r8_use_floor_footprint():
     assert envelope_bounds(geom) == {"x": (0.0, 10.0), "y": (0.0, 8.0)}  # R5
     rep = check_correction(geom, elevation_widths={"North": 10.0, "South": 10.0, "East": 8.0, "West": 8.0}, capability_profile="orthogonal_polygon")
     assert next(result for result in rep.results if result.check_id == "correction.cross_image_reconcile").status.value == "pass"  # R7
-    assert _extract_correction_boundary(geom, geom.floors[0]) == {"S": 0.0, "N": 8.0, "W": 0.0, "E": 10.0}  # R8
+    # F-22 BLOCKER-1 round 2 (2026-08-13): `_extract_correction_boundary` now
+    # also requires an externally issued, independently re-verified
+    # `deterministic_core_proof` (not just the self-reported stamp
+    # `_mismatched_bbox_geom` already injects) -- build one that genuinely
+    # matches THIS hand-built fixture's own projection, exercising the R8
+    # footprint-bounds routing this test targets rather than the (unrelated)
+    # trust-gate refusal path.
+    proof = DeterministicCoreProofV1(
+        core_version=geom.deterministic_core_stamp.version,
+        input_hash="0" * 64,
+        core_projection_hash=hash_obj(core_owned_projection_v1(geom)),
+    )
+    assert _extract_correction_boundary(geom, geom.floors[0], core_proof=proof) == {
+        "S": 0.0, "N": 8.0, "W": 0.0, "E": 10.0,
+    }  # R8
 
 
 def test_f3_routes_r6_r9_r10_use_floor_footprint():

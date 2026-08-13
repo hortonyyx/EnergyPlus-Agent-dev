@@ -34,6 +34,53 @@ until rerun. That is locked as an explicit, expected fact below (not merely
 implied), matching this project's own "回归用例必须自证前提" discipline: a
 lock must first prove the condition it depends on genuinely holds on this
 exact fixture, not assume it.
+
+=============================================================================
+ROUND 2 (2026-08-13, sol re-review, BLOCKER-1 REOPENED):
+=============================================================================
+The fix above closed the wrong door. `deterministic_core_stamp` lives INSIDE
+a candidate's own bytes -- it is a self-report, writable by anything that can
+construct a `CorrectedGeometryV3`. sol proved this two ways: (1) hand-adding
+`{"deterministic_core_stamp": {"version": "1"}}` to a real, WRONG,
+pre-F-17-fix artifact flips it straight to `trusted=True`; (2) more severely,
+a candidate whose footprint/floor-ring/cells were forged together (with every
+derived artifact -- Vg, host claims, evidence -- re-materialized FROM the
+forged footprint, so everything is internally self-consistent) was ACCEPTED
+and PERSISTED by the real `StageRunner.record` writer, because the writer's
+own independent core replay was only ever compared against WINDOWS' host-
+resolved half, never against the replayed footprint/floors/cells themselves.
+
+"这个字段,被评判的一方能不能自己写?能写 => 最多叫 declared,绝不能叫 trusted"
+(2026-08-13 dispatch's guiding question) is the fix's spine:
+
+- `_is_declared_output_convention` is the OLD `_is_trusted_output_convention`
+  in full (schema_version / CORRECTION_OUTPUT_CONVENTION / stamp version) --
+  a necessary, product-writable self-report. Renamed `declared`.
+- `_is_trusted_output_convention` now ALSO requires an externally issued
+  `DeterministicCoreProofV1` (deterministic.py), signed by
+  `StageRunner.record`'s B5 write path ONLY after it independently replayed
+  the core and confirmed the replay's `core_owned_projection_v1` byte-
+  matches the candidate's footprint/floor-rings/cells/window
+  floor-id-and-z/corrections-conflicts-unsupported (stage_runner.py's new
+  `writer_core_projection_drift` gauntlet) -- AND that proof is RE-VERIFIED
+  here, against the CURRENT geometry under test, not merely trusted because
+  a well-formed object was handed in.
+- `score_correction_geometry` gained an optional `core_proof` keyword. A bare
+  dict/CorrectedGeometry call with no `core_proof` (every test in this file
+  that does not explicitly build and pass one) can therefore NEVER reach
+  `trusted` -- at most `declared`. `CorrectionScoreResult.output_convention`
+  gained a `declared` key, independent of `trusted`.
+
+`test_neuter_restoring_stamp_flips_judge_back_to_accept` (below,
+RENAMED/REWRITTEN as `test_neuter_restoring_stamp_flips_declared_not_trusted`)
+was sol's exact BLOCKER-1 finding: it asserted the WRONG (self-report-alone)
+behaviour as the positive expectation. New tests
+`test_core_proof_from_different_geometry_does_not_grant_trust` and
+`test_matching_core_proof_grants_trust` are this round's new Lock 5/6,
+proving the external-proof gate is both necessary (a mismatched proof cannot
+launder a forged geometry) and sufficient (a genuinely matching proof does
+reach `trusted`) -- the scorer-side analogue of the writer-side
+`writer_core_projection_drift` lock in `tests/test_c2_b5_artifact_trust.py`.
 """
 from __future__ import annotations
 
@@ -45,18 +92,39 @@ import pytest
 
 import src.agent.correction.deterministic as deterministic_module
 from src.agent.correction.config import load_core_tolerances
-from src.agent.correction.deterministic import DETERMINISTIC_CORE_STAMP_VERSION, apply_deterministic_core
+from src.agent.correction.deterministic import (
+    DETERMINISTIC_CORE_STAMP_VERSION,
+    DeterministicCoreProofV1,
+    apply_deterministic_core,
+    core_owned_projection_v1,
+)
 from src.agent.correction.envelope import AuthoritativeEnvelope, EnvelopeAxisResolution, EnvelopeCandidate
 from src.agent.correction.parse import parse_correction_draw, correction_target
 from src.agent.correction.schema import CorrectedGeometryV3
 from src.agent.correction.window_sources import WindowResolverInputError
+from src.agent.execution.manifest import hash_obj
 import src.agent.judge.correction_score as correction_score_module
 from src.agent.judge.correction_score import score_correction_geometry
 from src.agent.judge.gt import load_gt
+from src.agent.judge.score_policy import reading_score_criteria
 
 _SM21 = Path("case_tests/e2e_tests/sm21_anchor")
 _PRE_FLIP_OUTPUT = _SM21 / "run_2026-08-09_f17_e2e_verify/1_correction/attempts/001/output.json"
 _POST_FLIP_PRE_STAMP_OUTPUT = _SM21 / "run_2026-08-11_continuous_e2e/1_correction/attempts/001/output.json"
+
+
+def _matching_core_proof(geom: CorrectedGeometryV3, *, core_version: str | None = None) -> DeterministicCoreProofV1:
+    """Build a `DeterministicCoreProofV1` whose `core_projection_hash`
+    genuinely matches `geom`'s own `core_owned_projection_v1` -- i.e. the
+    proof a real `StageRunner.record` write WOULD have signed had this exact
+    geometry come out of a genuine core replay. `input_hash` is not read by
+    the scorer (only `core_version`/`core_projection_hash` are) so a fixed
+    placeholder is fine here."""
+    return DeterministicCoreProofV1(
+        core_version=core_version or DETERMINISTIC_CORE_STAMP_VERSION,
+        input_hash="0" * 64,
+        core_projection_hash=hash_obj(core_owned_projection_v1(geom)),
+    )
 
 
 # =========================================================================== #
@@ -158,9 +226,13 @@ def test_pre_flip_real_artifact_is_rejected_and_premise_self_proven():
     # None value, the key itself is absent from the real, on-disk JSON.
     assert "deterministic_core_stamp" not in output
 
-    # FIX: the real, current entry point refuses it.
+    # FIX: the real, current entry point refuses it. No stamp at all ->
+    # neither `declared` (the self-report) nor `trusted` (self-report +
+    # verified external proof, round 2) can hold.
     result = score_correction_geometry(output, gt)
-    assert result.output_convention == {"schema_version": "3", "trusted": False, "identity": None}
+    assert result.output_convention == {
+        "schema_version": "3", "declared": False, "trusted": False, "identity": None,
+    }
 
     # Refusal must not "look like" a pass on either scored floor.
     # `boundary` has a dedicated "no data" representation (None ->
@@ -209,15 +281,17 @@ def test_post_flip_pre_stamp_real_artifact_also_rejected():
     assert "deterministic_core_stamp" not in output
 
     result = score_correction_geometry(output, gt)
+    assert result.output_convention["declared"] is False
     assert result.output_convention["trusted"] is False
     assert result.scores["Floor 1"].boundary is None
 
 
 # =========================================================================== #
-# Lock 2: a zero-displacement legit v3 product is still trusted (the §3
-# pitfall guard).
+# Lock 2: a zero-displacement legit v3 product is still DECLARED (the §3
+# pitfall guard on the self-report layer), and reaches TRUSTED once a
+# genuinely matching external proof is supplied (round 2, 2026-08-13).
 # =========================================================================== #
-def test_zero_displacement_legit_product_is_still_trusted():
+def test_zero_displacement_legit_product_is_still_declared():
     """Lock 2. Constructs a v3 product for which `apply_deterministic_core`
     genuinely runs the full envelope-reconcile machinery (real accepted
     facade evidence on both axes, `resolve_envelope_move_intents` actually
@@ -226,8 +300,12 @@ def test_zero_displacement_legit_product_is_still_trusted():
     audit rows are written (empirically confirmed below: this is the exact
     §3 pitfall, not a hypothetical). If the stamp were implemented as "was
     there a correction/conflict/unsupported row", this product would be
-    indistinguishable from one the core never touched. It must still be
-    trusted.
+    indistinguishable from one the core never touched.
+
+    Round 2 (2026-08-13): the self-report alone (no `core_proof` argument
+    passed here) now caps out at `declared`, not `trusted` -- see
+    `test_zero_displacement_legit_product_is_trusted_with_matching_core_proof`
+    below for the companion positive case that DOES supply a proof.
     """
     fx, fy = (0.0, 15.0), (0.0, 8.0)
     geom = _minimal_v3_geometry(fx=fx, fy=fy)
@@ -248,7 +326,32 @@ def test_zero_displacement_legit_product_is_still_trusted():
     gt = _minimal_gt(w=15.0, d=8.0)
     result = score_correction_geometry(out.model_dump(mode="json"), gt)
     assert result.output_convention == {
-        "schema_version": "3", "trusted": True,
+        "schema_version": "3", "declared": True, "trusted": False, "identity": None,
+    }
+    # `declared` alone must NOT unblock boundary/wall-extent scoring -- that
+    # is exactly the round-2 fix.
+    assert result.scores["Floor 1"].boundary is None
+    assert any(e["type"] == "unsupported_output_convention" for e in result.evidence)
+
+
+def test_zero_displacement_legit_product_is_trusted_with_matching_core_proof():
+    """Companion to the test above: the SAME product, SAME call, but now
+    with a `core_proof` that genuinely matches its own
+    `core_owned_projection_v1` -- exactly what `StageRunner.record`'s B5
+    write path would have signed for this geometry. This is the positive
+    half of round 2: the external-proof gate is not merely a way to make
+    trust unreachable, it is reachable given a real, matching proof."""
+    fx, fy = (0.0, 15.0), (0.0, 8.0)
+    geom = _minimal_v3_geometry(fx=fx, fy=fy)
+    envelope = _agreeing_envelope(fx=fx, fy=fy)
+    tol = load_core_tolerances()
+    out = apply_deterministic_core(geom, tol, authoritative_envelope=envelope, capability_profile="orthogonal_polygon")
+    proof = _matching_core_proof(out)
+
+    gt = _minimal_gt(w=15.0, d=8.0)
+    result = score_correction_geometry(out.model_dump(mode="json"), gt, core_proof=proof)
+    assert result.output_convention == {
+        "schema_version": "3", "declared": True, "trusted": True,
         "identity": "outer_skin_exterior_centerline_interior",
     }
     assert result.scores["Floor 1"].boundary is not None
@@ -256,13 +359,15 @@ def test_zero_displacement_legit_product_is_still_trusted():
     assert not any(e["type"] == "unsupported_output_convention" for e in result.evidence)
 
 
-def test_zero_displacement_via_absent_envelope_is_also_still_trusted():
+def test_zero_displacement_via_absent_envelope_is_also_still_declared():
     """Companion construction for Lock 2: no facade evidence AT ALL
     (`authoritative_envelope=None`) is a SEPARATE way to reach "the core ran,
     nothing to move" (the envelope-reconcile branch is skipped entirely
-    rather than consulted-and-agreeing). Both must be trusted -- the stamp
-    must not accidentally depend on which of the two zero-intent paths was
-    taken."""
+    rather than consulted-and-agreeing). Both must be `declared` -- the
+    stamp must not accidentally depend on which of the two zero-intent paths
+    was taken. (Round 2: `trusted` still requires a matching `core_proof`,
+    proven separately above; this fixture is only re-checked at the
+    `declared` layer here, plus one supplied-proof spot-check.)"""
     geom = _minimal_v3_geometry()
     tol = load_core_tolerances()
     out = apply_deterministic_core(geom, tol, authoritative_envelope=None, capability_profile="orthogonal_polygon")
@@ -271,7 +376,13 @@ def test_zero_displacement_via_absent_envelope_is_also_still_trusted():
 
     gt = _minimal_gt()
     result = score_correction_geometry(out.model_dump(mode="json"), gt)
-    assert result.output_convention["trusted"] is True
+    assert result.output_convention["declared"] is True
+    assert result.output_convention["trusted"] is False
+
+    trusted_result = score_correction_geometry(
+        out.model_dump(mode="json"), gt, core_proof=_matching_core_proof(out),
+    )
+    assert trusted_result.output_convention["trusted"] is True
 
 
 # =========================================================================== #
@@ -298,11 +409,20 @@ def test_fail_closed_variants_do_not_look_like_a_pass(mutate):
 
     payload = out.model_dump(mode="json")
     assert payload["deterministic_core_stamp"] == {"version": DETERMINISTIC_CORE_STAMP_VERSION}  # sanity
+    # A proof matching the PRISTINE (pre-mutation) geometry -- valid, and
+    # `core_owned_projection_v1` is unaffected by any of the `mutate`
+    # variants below (they only ever touch `deterministic_core_stamp`, never
+    # footprint/floors/cells/windows/corrections). Supplied to every variant
+    # below to prove round 2's defense-in-depth: a broken/absent SELF-REPORT
+    # denies trust even when a genuinely matching EXTERNAL proof is present
+    # -- the two checks are independent, neither substitutes for the other.
+    matching_proof = _matching_core_proof(out)
     mutate(payload)
 
     gt = _minimal_gt(w=15.0, d=8.0)
-    result = score_correction_geometry(payload, gt)
+    result = score_correction_geometry(payload, gt, core_proof=matching_proof)
 
+    assert result.output_convention["declared"] is False
     assert result.output_convention["trusted"] is False
     assert result.output_convention["identity"] is None
     floor = result.scores["Floor 1"]
@@ -354,22 +474,34 @@ def test_stamp_value_mutation_on_product_changes_scoring_behavior():
     fixed) and confirm scoring changes. This is the most direct reading of
     "把印章值改成 bogus,判卷行为必须变" -- it proves `_is_trusted_output_convention`
     genuinely READS `geom.deterministic_core_stamp.version` as part of its
-    decision, not that some other, unrelated fact happens to also flip."""
+    decision, not that some other, unrelated fact happens to also flip.
+
+    Round 2 (2026-08-13): a genuinely matching `core_proof` (built from the
+    PRE-mutation `out`, so its `core_projection_hash` is real and correct
+    for the geometry both calls share) is supplied to BOTH the before and
+    after call -- this proves the stamp-mutation flip is NOT merely an
+    artifact of "no core_proof was ever supplied" (which would already force
+    `trusted: False` regardless of the stamp); it proves the self-report gate
+    independently denies trust even when a valid external proof is present.
+    """
     fx, fy = (0.0, 15.0), (0.0, 8.0)
     geom = _minimal_v3_geometry(fx=fx, fy=fy)
     envelope = _agreeing_envelope(fx=fx, fy=fy)
     tol = load_core_tolerances()
     out = apply_deterministic_core(geom, tol, authoritative_envelope=envelope, capability_profile="orthogonal_polygon")
     gt = _minimal_gt(w=15.0, d=8.0)
+    proof = _matching_core_proof(out)
 
     trusted_payload = out.model_dump(mode="json")
-    before = score_correction_geometry(trusted_payload, gt)
+    before = score_correction_geometry(trusted_payload, gt, core_proof=proof)
+    assert before.output_convention["declared"] is True
     assert before.output_convention["trusted"] is True
 
     bogus_payload = dict(trusted_payload)
     bogus_payload["deterministic_core_stamp"] = {"version": "bogus"}
-    after = score_correction_geometry(bogus_payload, gt)
+    after = score_correction_geometry(bogus_payload, gt, core_proof=proof)
 
+    assert after.output_convention["declared"] is False
     assert after.output_convention["trusted"] is False
     assert before.scores["Floor 1"].boundary is not None
     assert after.scores["Floor 1"].boundary is None
@@ -388,6 +520,17 @@ def test_declared_trusted_version_mutation_changes_scoring_behavior():
     `deterministic_module.DETERMINISTIC_CORE_STAMP_VERSION` (module-qualified,
     resolved fresh on every call), the same "single declared source, no
     drift" discipline as `CORRECTION_OUTPUT_CONVENTION`.
+
+    Round 2 (2026-08-13): the SAME `core_proof` object (its `core_version`
+    frozen at construction time to the then-current "1") is supplied to
+    every call. Mutating the live constant defeats trust via
+    `_is_declared_output_convention`'s stamp-version comparison (the
+    `declared` gate is checked first and short-circuits); the SEPARATE
+    `core_proof.core_version` live-comparison in `_is_trusted_output_convention`
+    is isolated and tested on its own in
+    `test_stale_core_proof_version_alone_does_not_grant_trust` below (a
+    fixture where the self-report stays genuinely valid but the PROOF's own
+    recorded version is stale).
     """
     fx, fy = (0.0, 15.0), (0.0, 8.0)
     geom = _minimal_v3_geometry(fx=fx, fy=fy)
@@ -396,22 +539,24 @@ def test_declared_trusted_version_mutation_changes_scoring_behavior():
     out = apply_deterministic_core(geom, tol, authoritative_envelope=envelope, capability_profile="orthogonal_polygon")
     gt = _minimal_gt(w=15.0, d=8.0)
     payload = out.model_dump(mode="json")
+    proof = _matching_core_proof(out)
 
-    before = score_correction_geometry(payload, gt)
+    before = score_correction_geometry(payload, gt, core_proof=proof)
     assert before.output_convention["trusted"] is True
 
     original = deterministic_module.DETERMINISTIC_CORE_STAMP_VERSION
     deterministic_module.DETERMINISTIC_CORE_STAMP_VERSION = "bogus-declared-version"
     try:
-        after = score_correction_geometry(payload, gt)
+        after = score_correction_geometry(payload, gt, core_proof=proof)
     finally:
         deterministic_module.DETERMINISTIC_CORE_STAMP_VERSION = original
 
+    assert after.output_convention["declared"] is False
     assert after.output_convention["trusted"] is False
     assert after.scores["Floor 1"].boundary is None
     # Restoring the constant restores the original decision -- proves this
     # is a live comparison, not a one-way latch.
-    restored = score_correction_geometry(payload, gt)
+    restored = score_correction_geometry(payload, gt, core_proof=proof)
     assert restored.output_convention["trusted"] is True
 
 
@@ -428,17 +573,26 @@ def test_neuter_writer_stops_stamping_judge_flips_to_reject(monkeypatch):
     the one line that writes the stamp (simulating "the core never learned
     to stamp at all", i.e. reverting to pre-2026-08-12 core behaviour) --
     `correction_score.py` itself is completely untouched. The exact same
-    calling code that produces a trusted product in the lock-2/4 tests above
-    must now produce an untrusted one, proving the judge's decision is
-    actually driven by whether the core's write happened, not merely by the
-    field's schema-level existence.
+    calling code that produces a `declared: True` product in the lock-2/4
+    tests above must now produce an undeclared, untrusted one, proving the
+    judge's decision is actually driven by whether the core's write
+    happened, not merely by the field's schema-level existence.
+
+    Round 2 (2026-08-13): a `core_proof` matching the STAMPED (un-neutered)
+    baseline geometry is supplied to the neutered call too -- proving the
+    self-report gate alone is enough to deny trust even when an otherwise-
+    valid external proof for the SAME underlying geometry is present (a
+    neutered writer that stops stamping must not be rescuable by a proof
+    that was, hypothetically, signed by a properly-working writer for this
+    same footprint).
 
     Sweep self-check (dispatch's mandatory "遮蔽自查"): this fixture has NO
     second gate ahead of `_is_trusted_output_convention` that could reject
-    it for an unrelated reason -- `test_zero_displacement_legit_product_is_still_trusted`
+    it for an unrelated reason -- `test_zero_displacement_legit_product_is_trusted_with_matching_core_proof`
     above already proves the UN-neutered version of this exact call scores
-    `trusted: True` with `boundary_hits() == (4, 4)`, so any flip to
-    `trusted: False` here is attributable to the neuter alone.
+    `trusted: True` with `boundary_hits() == (4, 4)` when handed a matching
+    proof, so any flip to `trusted: False` here is attributable to the
+    neuter alone.
     """
     real_apply = deterministic_module.apply_deterministic_core
 
@@ -449,52 +603,135 @@ def test_neuter_writer_stops_stamping_judge_flips_to_reject(monkeypatch):
         result.deterministic_core_stamp = None
         return result
 
-    monkeypatch.setattr(deterministic_module, "apply_deterministic_core", _apply_without_stamping)
-
     fx, fy = (0.0, 15.0), (0.0, 8.0)
     geom = _minimal_v3_geometry(fx=fx, fy=fy)
     envelope = _agreeing_envelope(fx=fx, fy=fy)
     tol = load_core_tolerances()
 
+    # Build the matching proof from a GENUINE, un-neutered replay first (the
+    # writer's own bookkeeping, not the judge under test).
+    stamped_baseline = real_apply(
+        geom.model_copy(deep=True), tol, authoritative_envelope=envelope,
+        capability_profile="orthogonal_polygon",
+    )
+    proof = _matching_core_proof(stamped_baseline)
+
+    monkeypatch.setattr(deterministic_module, "apply_deterministic_core", _apply_without_stamping)
     out = deterministic_module.apply_deterministic_core(
         geom, tol, authoritative_envelope=envelope, capability_profile="orthogonal_polygon",
     )
     assert out.deterministic_core_stamp is None  # sanity: neuter actually took effect
 
     gt = _minimal_gt(w=15.0, d=8.0)
-    result = score_correction_geometry(out.model_dump(mode="json"), gt)
+    result = score_correction_geometry(out.model_dump(mode="json"), gt, core_proof=proof)
+    assert result.output_convention["declared"] is False
     assert result.output_convention["trusted"] is False
     assert result.scores["Floor 1"].boundary is None
 
 
-def test_neuter_restoring_stamp_flips_judge_back_to_accept():
-    """Direction B (reverse / consumer side): start from a real product with
-    NO stamp (the current, as-shipped `run_2026-08-09_f17_e2e_verify`
-    artifact -- genuinely untrusted, per Lock 1) and, WITHOUT touching
-    `correction_score.py`, restore a valid stamp on a copy of it. The
-    (unmodified) judge must flip back to trusting it. This is the
-    complementary direction to Direction A: A proves "removing production
-    causes rejection"; B proves the gate is not a one-way latch that, once a
-    product has been seen without a stamp, refuses to trust ANY copy of
-    it -- the decision is a live per-call read of the field's value, in
-    both directions.
+def test_neuter_restoring_stamp_flips_declared_not_trusted():
+    """Direction B (reverse / consumer side), REWRITTEN for BLOCKER-1 round 2
+    (2026-08-13, sol re-review). The ORIGINAL version of this lock
+    (`test_neuter_restoring_stamp_flips_judge_back_to_accept`) asserted that
+    restoring JUST the self-reported stamp on a bare dict flips the judge
+    back to `trusted: True` -- this was sol's exact re-review finding: "现有
+    test_neuter_restoring_stamp_flips_judge_back_to_accept 事实上把这种行为写成了
+    正向预期". That assertion documented the bug as the intended behaviour.
+    The stamp restored here is EXACTLY the shape a forger can write --
+    nothing outside `deterministic_core_stamp` changes -- so it must never,
+    on its own, regain `trusted`.
+
+    New, correct expectation: restoring the stamp flips `declared` (the
+    self-report) from False to True -- preserving the ORIGINAL property this
+    lock always cared about: the decision is a live per-call read, not a
+    one-way latch that, once a product has been seen without a stamp,
+    refuses to ever recognize a stamped copy of it. But `trusted` stays
+    False, because no externally issued `deterministic_core_proof` exists
+    for this real, pre-stamp, pre-proof historical artifact. (Deliberately
+    NOT forging a "matching" proof for it here: this artifact's footprint
+    really is the wrong, pre-F-17-fix `[0.12,14.88]x[0.12,7.88]` value --
+    constructing a proof "for" it would only prove the hash machinery is
+    self-consistent, not that the geometry is trustworthy. That distinction
+    is what `test_core_proof_from_different_geometry_does_not_grant_trust`
+    below tests directly.)
 
     Sweep self-check: `dict(output)` is a shallow copy holding the SAME
     nested `floors`/`windows`/etc. as the untrusted `output` scored just
     above it, with `deterministic_core_stamp` the ONLY key that differs
     between the two calls -- no other second gate is in play, so the flip
-    from `False` to `True` is attributable to the stamp alone.
+    is attributable to the stamp alone.
     """
     gt = load_gt("sm21_anchor")
     output = json.loads(_PRE_FLIP_OUTPUT.read_text(encoding="utf-8"))
     baseline = score_correction_geometry(output, gt)
     assert baseline.output_convention["trusted"] is False  # sanity, same as Lock 1
+    assert baseline.output_convention["declared"] is False  # sanity, same as Lock 1
 
     restored = dict(output)
     restored["deterministic_core_stamp"] = {"version": DETERMINISTIC_CORE_STAMP_VERSION}
     after = score_correction_geometry(restored, gt)
-    assert after.output_convention["trusted"] is True
-    assert after.scores["Floor 1"].boundary is not None
+    # The live-read property this lock exists to prove: the SELF-REPORT
+    # layer flips on a per-call basis, not a one-way latch.
+    assert after.output_convention["declared"] is True
+    # The bug this reopened BLOCKER-1: a self-reported stamp alone must
+    # NEVER be enough to reach `trusted`.
+    assert after.output_convention["trusted"] is False
+    assert after.scores["Floor 1"].boundary is None
+
+
+def test_core_proof_from_different_geometry_does_not_grant_trust():
+    """Lock 5 (BLOCKER-1 round 2, 2026-08-13): a `core_proof` is only a bag
+    of hashes -- `_is_trusted_output_convention` must independently
+    recompute `core_owned_projection_v1` on the ACTUAL geometry under test
+    and compare, not merely accept any well-formed proof it is handed. This
+    is the scorer-level analogue of sol's forged-candidate reproduction
+    against the WRITER (`stage_runner.py`'s `writer_core_projection_drift`,
+    exercised at the writer layer in `tests/test_c2_b5_artifact_trust.py`):
+    take a proof genuinely signed for one (correct) geometry and try to use
+    it to launder a DIFFERENT (tampered-footprint) one that merely carries a
+    byte-identical, correctly-versioned self-reported stamp.
+    """
+    fx, fy = (0.0, 15.0), (0.0, 8.0)
+    real_geom = _minimal_v3_geometry(fx=fx, fy=fy)
+    envelope = _agreeing_envelope(fx=fx, fy=fy)
+    tol = load_core_tolerances()
+    real_out = apply_deterministic_core(
+        real_geom, tol, authoritative_envelope=envelope, capability_profile="orthogonal_polygon",
+    )
+    real_proof = _matching_core_proof(real_out)
+
+    # A DIFFERENT, tampered geometry (sol's exact reproduction shape: a
+    # re-signed, forged footprint) -- same schema, same correctly-versioned
+    # self-reported stamp, but NOT what `real_proof` was actually issued for.
+    forged_geom = _minimal_v3_geometry(fx=(0.12, 3.88), fy=(0.12, 3.88))
+    forged_payload = forged_geom.model_dump(mode="json")
+    forged_payload["deterministic_core_stamp"] = {"version": DETERMINISTIC_CORE_STAMP_VERSION}
+
+    gt = _minimal_gt(w=15.0, d=8.0)
+    result = score_correction_geometry(forged_payload, gt, core_proof=real_proof)
+    assert result.output_convention["declared"] is True  # the self-report alone looks fine
+    assert result.output_convention["trusted"] is False  # the proof does not match THIS geometry
+    assert result.scores["Floor 1"].boundary is None
+
+
+def test_stale_core_proof_version_alone_does_not_grant_trust():
+    """Isolates the `core_proof.core_version` live-comparison in
+    `_is_trusted_output_convention`, independent of the `declared` gate
+    (companion to Lock 4b, which mutates the live constant and therefore
+    exercises BOTH gates at once via short-circuit): the self-report is
+    genuinely valid (current stamp, matching projection hash) but the
+    PROOF's own recorded `core_version` is stale/foreign."""
+    fx, fy = (0.0, 15.0), (0.0, 8.0)
+    geom = _minimal_v3_geometry(fx=fx, fy=fy)
+    envelope = _agreeing_envelope(fx=fx, fy=fy)
+    tol = load_core_tolerances()
+    out = apply_deterministic_core(geom, tol, authoritative_envelope=envelope, capability_profile="orthogonal_polygon")
+    stale_proof = _matching_core_proof(out, core_version="0")
+
+    gt = _minimal_gt(w=15.0, d=8.0)
+    result = score_correction_geometry(out.model_dump(mode="json"), gt, core_proof=stale_proof)
+    assert result.output_convention["declared"] is True
+    assert result.output_convention["trusted"] is False
 
 
 # =========================================================================== #
@@ -521,3 +758,48 @@ def test_producer_draw_prefilling_stamp_is_rejected_at_preflight():
     with pytest.raises(WindowResolverInputError) as exc_info:
         parse_correction_draw(payload, target)
     assert "deterministic_core_stamp" in str(exc_info.value)
+
+
+# =========================================================================== #
+# MINOR-A1 (2026-08-12 sol re-review, §3.1 tail, closed in the 2026-08-13
+# aprime dispatch alongside F-24/NIT-F25): a refused product's `boundary_complete`
+# criterion must not say `pass`.
+# =========================================================================== #
+def test_minor_a1_boundary_no_data_does_not_read_as_pass():
+    """A floor with `boundary is None` (F-22 BLOCKER-1 refusal) used to
+    contribute 0/0 to `total_boundary`/`total_boundary_hits`, so the naive
+    `missed = total - hits` formula read ZERO misses and `boundary_complete`
+    said `pass` -- the one criterion still saying "fine" on a product that
+    `walls_complete`/`score_evidence_completeness` both already correctly
+    flag `severe`.
+
+    Self-proving premise (this project's "回归用例必须自证前提" discipline,
+    same fixture Lock 1 above uses): first prove, on this exact real on-disk
+    pre-F-17-fix artifact, that every scored floor genuinely has no boundary
+    data and that the naive missed-count formula genuinely evaluates to 0
+    here -- not merely assume it.
+    """
+    gt = load_gt("sm21_anchor")
+    output = json.loads(_PRE_FLIP_OUTPUT.read_text(encoding="utf-8"))
+    result = score_correction_geometry(output, gt)
+
+    # PREMISE: this fixture is genuinely all-no-data on boundary, and the old
+    # `missed = total - hits` formula genuinely computes 0 misses on it.
+    assert len(result.scores) == 2
+    assert all(fl.boundary is None for fl in result.scores.values())
+    total_boundary_hits = sum(fl.boundary_hits()[0] for fl in result.scores.values())
+    total_boundary = sum(fl.boundary_hits()[1] for fl in result.scores.values())
+    assert (total_boundary_hits, total_boundary) == (0, 0)
+    assert max(0, total_boundary - total_boundary_hits) == 0, (
+        "premise: the naive missed-count formula really is 0 misses on this fixture"
+    )
+
+    # FIX: `boundary_complete` must not say pass on a refused product -- it
+    # must agree with `walls_complete`, a DIFFERENT criterion computed from
+    # different data, not be silently corrected by it (sol: "不能靠另一条
+    # criterion 替它纠正含义").
+    criteria = {c["criterion"]: c for c in reading_score_criteria(result.scores)}
+    assert criteria["walls_complete"]["suggested_status"] == "severe"
+    assert criteria["boundary_complete"]["suggested_status"] != "pass"
+    assert criteria["boundary_complete"]["suggested_status"] == "severe"
+    assert "no_data_floors=2" in criteria["boundary_complete"]["evidence"]

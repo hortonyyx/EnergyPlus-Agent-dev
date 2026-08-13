@@ -10,7 +10,7 @@ from pathlib import Path
 
 import pytest
 
-from test_c2_b5_parent_and_verts import _bundle
+from test_c2_b5_parent_and_verts import _bundle, _manifest, _plan_geometry
 
 from src.agent.correction.orientation import (
     OrientationEvidenceSetV1,
@@ -151,13 +151,22 @@ def _forge_both_window_audit_copies(result, mutate_rows):
 def test_d1_writer_emits_exact_six_artifacts_and_loader_issues_build_proof(tmp_path: Path):
     bundle, manifest, record, attempt = _accepted(tmp_path)
     assert record.artifact_contract == "correction_b5_v1"
+    # F-22 BLOCKER-1 round 2 (2026-08-13): a 7th sidecar,
+    # `deterministic_core_proof`, is now always written and bound alongside
+    # the original six -- see `DeterministicCoreProofV1` (deterministic.py)
+    # and its ALLOWED-but-not-REQUIRED registration in manifest.py (kept
+    # optional so a historical manifest.json predating this fix still loads;
+    # `_is_trusted_output_convention` treats its absence as "declared, not
+    # trusted", not as a load failure). Test name kept for history/grep
+    # continuity; the set below is the current, real count.
     assert set(record.artifact_hashes) == {
         "output", "checks", "audit", "feature_states",
-        "window_resolver_inputs", "window_hosts",
+        "window_resolver_inputs", "window_hosts", "deterministic_core_proof",
     }
     assert {path.name for path in attempt.iterdir()} == {
         "output.json", "checks.json", "audit.json", "feature_states.json",
         "window_resolver_inputs.json", "window_hosts.json",
+        "deterministic_core_proof.json",
     }
     verified = load_verified_accepted_correction(run_dir=tmp_path, manifest=manifest)
     assert verified.window_host_proof is not None
@@ -1025,13 +1034,17 @@ def test_f20_l3_missing_six_artifact_file_is_fail_closed(tmp_path: Path):
     _write_canonical_2_3(tmp_path, bundle.bg)
     policy = RunPolicy(capability_profile="orthogonal_polygon")
 
+    # F-22 BLOCKER-1 round 2 (2026-08-13): see the sibling comment on
+    # `test_d1_writer_emits_exact_six_artifacts_and_loader_issues_build_proof`
+    # -- a 7th, optional sidecar is now always written.
     assert set(record.artifact_hashes) == {
         "output", "checks", "audit", "feature_states",
-        "window_resolver_inputs", "window_hosts",
+        "window_resolver_inputs", "window_hosts", "deterministic_core_proof",
     }
     assert {p.name for p in attempt.iterdir()} == {
         "output.json", "checks.json", "audit.json", "feature_states.json",
         "window_resolver_inputs.json", "window_hosts.json",
+        "deterministic_core_proof.json",
     }
     clean = validate_case(tmp_path, policy=policy)
     assert _trust_row(clean.reports["1_correction"]).status == CheckStatus.PASS
@@ -1378,3 +1391,292 @@ def test_f20_nit1_legacy_schema_manifest_unreadable_is_fail_closed_not_masked(
     assert trust.status == CheckStatus.FAIL
     assert "run manifest is present but unreadable" in trust.message
     assert res.geometry_digest is None
+
+
+# =========================================================================== #
+# F-22 BLOCKER-1 round 2 (2026-08-13, sol re-review): the writer's core-owned
+# projection gauntlet. sol's exact reproduction, walked through the REAL
+# `finalize_correction_draw` helper functions + `StageRunner.record` entry
+# point (not a simplified fixture writer, per dispatch step 4's explicit ⛔).
+# =========================================================================== #
+def _forge_footprint_self_consistent(real, *, lo: float, hi: float):
+    """Forge `real.result`'s geometry to a DIFFERENT footprint, re-deriving
+    every downstream artifact (facade segments/Vg, window host claims,
+    evidence, candidate identity, feature-state claims) FROM the forged
+    footprint via the SAME production helpers `finalize_correction_draw`
+    itself calls internally -- exactly sol's reproduction recipe ("改变
+    footprint、floor ring、cell range/polygon，并重新物化 Vg、重算 feature
+    claims / host claims / candidate identity / evidence") -- while reusing
+    the ORIGINAL `verified_window_resolver_inputs`, which still describes
+    the REAL, unforged producer bytes the writer will independently replay.
+
+    Uses `real`'s zero-window fixture (sol's own reproduction: "探针使用
+    production-builder-backed 的零窗 B5 fixture") deliberately: with zero
+    windows, window-host resolution has nothing to resolve and is trivially
+    consistent regardless of footprint, isolating the footprint/ring/cell
+    forgery from the (separate, already-covered) window-host consistency
+    machinery this file's other locks exercise.
+    """
+    from src.agent.correction.artifact_serialization import (
+        serialize_correction_output,
+        serialize_feature_states,
+    )
+    from src.agent.correction.config import load_core_tolerances
+    from src.agent.correction.facade_visibility import VisibilityTolerances, materialize_all_facade_segments
+    from src.agent.correction.feature_state import FeatureStatesArtifactV1, derive_feature_state_claims
+    from src.agent.correction.finalize import PreparedCandidateIdentity
+    from src.agent.correction.parse import correction_target, validate_final_corrected_geometry
+    from src.agent.correction.window_host import derive_window_evidence_ledger, resolve_window_hosts
+
+    assert real.result.geom.windows == ()  or list(real.result.geom.windows) == []  # sanity: zero-window fixture
+    tol = load_core_tolerances()
+    forged = real.result.geom.model_copy(deep=True)
+    ring = [[lo, lo], [hi, lo], [hi, hi], [lo, hi]]
+    forged.footprint_x = [lo, hi]
+    forged.footprint_y = [lo, hi]
+    for floor in forged.floors:
+        floor.footprint = floor.footprint.__class__(vertices=ring)
+        for cell in floor.cells:
+            cell.x = [lo, hi]
+            cell.y = [lo, hi]
+            if cell.polygon is not None:
+                cell.polygon = ring
+    forged.facade_segments = []
+
+    visibility_tol = VisibilityTolerances(
+        depth_epsilon_m=tol.facade_visibility_depth_epsilon_m,
+        endpoint_epsilon_m=tol.facade_visibility_endpoint_epsilon_m,
+    )
+    segments = materialize_all_facade_segments(forged, tolerances=visibility_tol)
+    forged = forged.model_copy(update={"facade_segments": list(segments)})
+    forged = validate_final_corrected_geometry(forged)
+
+    verified_inputs = real.result.verified_window_resolver_inputs
+    claims = resolve_window_hosts(forged, verified_inputs=verified_inputs, tolerances=tol, commit=False)
+
+    output_bytes = serialize_correction_output(forged)
+    output_sha256 = hashlib.sha256(output_bytes).hexdigest()
+    feature_states = FeatureStatesArtifactV1(output_sha256=output_sha256, claims=real.result.feature_state_claims)
+    feature_states_bytes = serialize_feature_states(feature_states)
+    prepared = PreparedCandidateIdentity(
+        output_bytes=output_bytes, output_sha256=output_sha256,
+        feature_states_bytes=feature_states_bytes,
+        feature_states_sha256=hashlib.sha256(feature_states_bytes).hexdigest(),
+    )
+    evidence = derive_window_evidence_ledger(
+        forged, host_claims=claims, verified_inputs=verified_inputs,
+        candidate_identity=prepared, tolerances=tol,
+    )
+    target = correction_target("orthogonal_polygon")
+    expected_claims = derive_feature_state_claims(target, forged)
+    assert expected_claims == real.result.feature_state_claims  # sanity: shape-level claims unaffected
+
+    return dataclasses.replace(
+        real.result,
+        geom=forged,
+        audit_payload={
+            "corrections": forged.corrections, "conflicts": forged.conflicts, "unsupported": forged.unsupported,
+        },
+        window_host_claims=claims,
+        window_evidence_ledger=evidence,
+        prepared_candidate_identity=prepared,
+        # `verified_window_resolver_inputs` deliberately UNCHANGED -- still
+        # the REAL producer's raw bytes, for the writer to independently
+        # replay. This is the entire attack: every OTHER field above is
+        # freshly, correctly re-derived FROM the forged geometry (self-
+        # consistent), but this one field -- which the writer treats as the
+        # ground truth to replay against -- still describes the unforged one.
+    )
+
+
+def test_forged_footprint_with_self_consistent_derived_artifacts_is_rejected(tmp_path: Path):
+    """sol's exact writer-level reproduction (2026-08-12 verdict §3.1):
+
+        producer_bounds [0.0, 4.0] [0.0, 4.0]
+        forged_bounds   [0.12, 3.88] [0.12, 3.88]
+        outputs_differ  True
+        stamp           {'version': '1'}
+        writer_accepted True [0.12, 3.88] [0.12, 3.88]
+
+    Before this fix, the real `StageRunner.record` writer accepted and
+    PERSISTED exactly this shape (sol's finding, independently reproduced
+    here): the writer's own replay-and-compare gauntlet only ever compared
+    the replayed core's WINDOW half against the candidate's audit rows --
+    never the replayed footprint/floor-ring/cells against the candidate's
+    own. A candidate whose footprint/ring/cells were forged together, with
+    every OTHER derived artifact (Vg, host claims, evidence, candidate
+    identity, feature-state claims) correctly re-derived FROM the forged
+    geometry (so all of THOSE checks pass), sailed straight through.
+
+    Real entry points only (dispatch step 4's ⛔ on a simplified fixture
+    writer): `_forge_footprint_self_consistent` above calls the exact same
+    `materialize_all_facade_segments` / `resolve_window_hosts` /
+    `derive_window_evidence_ledger` / `derive_feature_state_claims` helpers
+    `finalize_correction_draw` itself calls; `StageRunner.record` here is the
+    real, unmocked writer.
+    """
+    real = _bundle(tmp_path, include_window=False)
+    assert real.result.geom.footprint_x == [0.0, 4.0]  # sanity: sol's exact producer footprint
+
+    forged_candidate = _forge_footprint_self_consistent(real, lo=0.12, hi=3.88)
+    assert forged_candidate.geom.footprint_x == [0.12, 3.88]  # sanity: sol's exact forged footprint
+    assert forged_candidate.geom.model_dump(mode="json") != real.result.geom.model_dump(mode="json")
+    # sanity: EVERY other derived artifact besides the swapped
+    # verified_window_resolver_inputs really did change too -- this is not
+    # an accidental no-op forgery.
+    assert forged_candidate.window_host_claims.facade_segments_sha256 \
+        != real.result.window_host_claims.facade_segments_sha256
+    assert forged_candidate.prepared_candidate_identity.output_sha256 \
+        != real.result.prepared_candidate_identity.output_sha256
+
+    manifest = RunManifestV2(
+        case="blocker1-r2", run_id=new_run_id(),
+        run_inputs=RunInputs(view_manifest_sha256=real.verified.inputs.view_manifest.content_sha256),
+    )
+    run_dir = tmp_path / "run"
+
+    with pytest.raises(ValueError, match="writer_core_projection_drift"):
+        StageRunner(run_dir, manifest).record(
+            stage="1_correction", stage_dir=run_dir / "1_correction",
+            output_obj=forged_candidate, report=_report(),
+        )
+
+    # The accepted pointer must never have moved, and no attempt directory
+    # may persist the forged geometry (append-only: a REJECTED write must
+    # leave nothing an accepted-attempt reader could ever pick up).
+    assert manifest.accepted("1_correction") is None
+    attempts_dir = run_dir / "1_correction" / "attempts"
+    surviving = list(attempts_dir.iterdir()) if attempts_dir.exists() else []
+    assert surviving == [], f"a rejected forged write must not leave a promoted attempt dir: {surviving}"
+
+
+def test_genuine_footprint_change_through_real_finalize_is_accepted(tmp_path: Path):
+    """Companion sanity/self-check for the lock above: prove the NEW
+    `writer_core_projection_drift` check is discriminating (rejects a forged
+    identity-swap) and NOT merely broken (rejecting every write at
+    `[0.12,3.88]x[0.12,3.88]` regardless of identity). Build a SEPARATE,
+    genuinely honest producer at sol's exact forged footprint -- its own raw
+    draw, its own `verified_window_resolver_inputs` built FROM that draw,
+    run through the real `finalize_correction_draw` end to end (zero
+    windows, so no reading-stroke/footprint depth coupling to manage) -- and
+    confirm `StageRunner.record` accepts and persists it normally.
+    """
+    from src.agent.correction.finalize import finalize_correction_draw
+    from src.agent.correction.parse import correction_target
+    from src.agent.correction.schema import CorrectedGeometryV3
+    from src.agent.correction.window_sources import (
+        build_verified_window_resolver_inputs,
+        derive_manifest_direction_facts,
+    )
+
+    real = _bundle(tmp_path, include_window=False)
+
+    lo, hi = 0.12, 3.88
+    ring = [[lo, lo], [hi, lo], [hi, hi], [lo, hi]]
+    honest_producer = CorrectedGeometryV3.model_validate({
+        "schema_version": "3",
+        "footprint_x": [lo, hi], "footprint_y": [lo, hi],
+        "floors": [{
+            "id": "f1", "name": "F1", "z_floor": 0.0, "ceiling_height": 3.0,
+            "footprint": {"vertices": ring},
+            "cells": [{"id": "r1", "x": [lo, hi], "y": [lo, hi], "polygon": ring}],
+        }],
+        "windows": [],
+        "facade_segments": [],
+    })
+    raw_reading_artifacts = dict(real.verified.raw_reading_artifacts)
+    facts = derive_manifest_direction_facts(
+        raw_view_manifest_bytes=real.verified.raw_view_manifest_bytes,
+        raw_reading_artifacts=raw_reading_artifacts,
+    )
+    honest_verified = build_verified_window_resolver_inputs(
+        producer_draw=honest_producer,
+        raw_view_manifest_bytes=real.verified.raw_view_manifest_bytes,
+        raw_reading_artifacts=raw_reading_artifacts,
+        elevation_direction_facts=facts,
+    )
+    honest_result = finalize_correction_draw(
+        honest_producer, vector_dir=tmp_path,
+        target=correction_target("orthogonal_polygon"),
+        verified_window_inputs=honest_verified,
+    )
+    assert honest_result.geom.footprint_x == [0.12, 3.88]  # sanity: same forged numbers as the lock above
+
+    manifest = RunManifestV2(
+        case="blocker1-r2-honest", run_id=new_run_id(),
+        run_inputs=RunInputs(view_manifest_sha256=real.verified.inputs.view_manifest.content_sha256),
+    )
+    run_dir = tmp_path / "run"
+    rec = StageRunner(run_dir, manifest).record(
+        stage="1_correction", stage_dir=run_dir / "1_correction",
+        output_obj=honest_result, report=_report(),
+    )
+    assert rec.accepted
+    assert manifest.accepted("1_correction") is not None
+
+
+# =========================================================================== #
+# F-22 BLOCKER-1 round 2 (2026-08-13): `run_stage._resolve_core_proof_for_attempt`
+# -- the ONE seam with manifest/attempt_dir context that resolves a proof for
+# `score_correction_geometry` (dispatch P5: attempt_dir -> accepted manifest,
+# mechanically). Fail-closed on every anomaly, never raises.
+# =========================================================================== #
+def test_resolve_core_proof_for_attempt_real_accepted_write(tmp_path: Path):
+    """Happy path: a real accepted B5 write's proof resolves and its
+    `core_projection_hash` matches the accepted geometry's own projection."""
+    import sys as _sys
+    _sys.path.insert(0, str(Path("scripts/tool_scripts").resolve()))
+    import run_stage as rs
+    from src.agent.correction.deterministic import core_owned_projection_v1
+    from src.agent.execution.manifest import hash_obj
+
+    _bundle_obj, _manifest, _record, attempt = _accepted(tmp_path)
+    proof = rs._resolve_core_proof_for_attempt("1_correction", attempt)
+    assert proof is not None
+    from src.agent.correction.schema import CorrectedGeometryV3
+    geom = CorrectedGeometryV3.model_validate_json((attempt / "output.json").read_bytes())
+    assert proof.core_projection_hash == hash_obj(core_owned_projection_v1(geom))
+
+
+def test_resolve_core_proof_for_attempt_tampered_sidecar_returns_none(tmp_path: Path):
+    """The manifest's bound hash must be re-verified against the ON-DISK
+    sidecar bytes, not merely trusted because a file with the right name
+    exists -- tamper the sidecar after acceptance and confirm the seam
+    fails closed (returns None, does not raise, does not resolve a proof
+    for the tampered bytes)."""
+    import sys as _sys
+    _sys.path.insert(0, str(Path("scripts/tool_scripts").resolve()))
+    import run_stage as rs
+
+    _bundle_obj, _manifest, _record, attempt = _accepted(tmp_path)
+    assert rs._resolve_core_proof_for_attempt("1_correction", attempt) is not None  # sanity
+
+    proof_path = attempt / "deterministic_core_proof.json"
+    tampered = json.loads(proof_path.read_text(encoding="utf-8"))
+    tampered["core_projection_hash"] = "0" * 64
+    proof_path.write_text(json.dumps(tampered), encoding="utf-8")
+
+    assert rs._resolve_core_proof_for_attempt("1_correction", attempt) is None
+
+
+def test_resolve_core_proof_for_attempt_non_accepted_attempt_returns_none(tmp_path: Path):
+    """A rejected/non-accepted attempt (e.g. one `_render_all_attempt_grades`
+    renders for review, per its own docstring) must never resolve a proof --
+    only the manifest's currently-accepted attempt may."""
+    import sys as _sys
+    _sys.path.insert(0, str(Path("scripts/tool_scripts").resolve()))
+    import run_stage as rs
+
+    _bundle_obj, manifest, record, attempt = _accepted(tmp_path)
+    # Simulate a second, non-accepted attempt directory sitting beside the
+    # accepted one (structurally what a rejected draw / prior attempt looks
+    # like) by pointing the resolver at attempt index 999, which the
+    # manifest's accepted() will never match.
+    other = attempt.parent / "999"
+    other.mkdir()
+    for name in ("output.json", "deterministic_core_proof.json"):
+        (other / name).write_bytes((attempt / name).read_bytes())
+
+    assert rs._resolve_core_proof_for_attempt("1_correction", other) is None
+    # sanity: the ACCEPTED one still resolves fine.
+    assert rs._resolve_core_proof_for_attempt("1_correction", attempt) is not None

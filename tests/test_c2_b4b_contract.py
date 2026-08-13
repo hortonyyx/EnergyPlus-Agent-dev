@@ -116,12 +116,22 @@ def test_legacy_scorer_schema_is_independent_of_typed_v8_contract_label():
     correction-boundary scoring SEMANTICS changed (deleted a double
     wall-thickness expansion that was double-counting post-F-17 outer-skin
     products) and the sidecar SHAPE changed (`boundary` entries gained a
-    `status` field), so any v9-or-earlier sidecar must be recomputed. The
-    typed v3 path is still untouched and stays "8"."""
+    `status` field), so any v9-or-earlier sidecar must be recomputed. F-22
+    BLOCKER-1 round 2 (2026-08-13) bumped it again, "10" -> "11": trust
+    SEMANTICS changed again (a self-reported stamp alone is no longer
+    sufficient) and the sidecar SHAPE changed again (`output_convention`
+    gained a `declared` key). The typed v3 path is still untouched and stays
+    "8".
+
+    NIT-F25 (2026-08-13): both constants were renamed for clarity (pure
+    symbol rename, no behavior change) -- the legacy label is now
+    `LEGACY_SCORE_CACHE_SCHEMA` (was `SCORER_SCHEMA`) and the typed label is
+    the pre-existing `SCORE_SIDECAR_SCHEMA` (the duplicate `SCORER_SCHEMA`
+    alias in `score_schema.py` was removed, not kept alongside it)."""
     import scripts.tool_scripts.run_stage as run_stage
-    from src.agent.judge.score_schema import SCORER_SCHEMA
-    assert run_stage.SCORER_SCHEMA == "10"
-    assert SCORER_SCHEMA == "8"
+    from src.agent.judge.score_schema import SCORE_SIDECAR_SCHEMA
+    assert run_stage.LEGACY_SCORE_CACHE_SCHEMA == "11"
+    assert SCORE_SIDECAR_SCHEMA == "8"
 
 
 def test_facade_hash_is_full_sorted_a0_preimage():

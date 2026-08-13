@@ -85,7 +85,7 @@ def test_judge_packet_scores_accepted_reading_attempt_not_mutable_flat(tmp_path,
     assert sidecar["stage"] == "0_reading"
     assert sidecar["attempt"] == 2
     assert sidecar["source"] == "attempt_output"
-    assert sidecar["scorer_schema"] == rs.SCORER_SCHEMA
+    assert sidecar["scorer_schema"] == rs.LEGACY_SCORE_CACHE_SCHEMA
     assert sidecar["output_hash"] == rec.output_hash
     assert sidecar["tolerances"] == _DEFAULT_TOLERANCES
     assert "elevation" in sidecar
@@ -202,6 +202,28 @@ def _v3_output(floors: list[dict], *, footprint_x, footprint_y, windows: list | 
     }
 
 
+def _core_proof_for(output: dict):
+    """F-22 BLOCKER-1 round 2 (2026-08-13): the companion to `_v3_output`'s
+    stamp injection. `_is_trusted_output_convention` now ALSO requires an
+    externally issued `DeterministicCoreProofV1`, independently re-verified
+    against the geometry under test -- every caller of this helper is
+    testing boundary/wall-extent scoring on an ASSUMED-trusted v3 product
+    (not testing trust detection itself, which is
+    tests/test_f22_blocker1_core_stamp.py's job), so build a proof that
+    genuinely matches THIS payload's own `core_owned_projection_v1` here,
+    rather than requiring every call site to repeat that."""
+    from src.agent.correction.deterministic import DeterministicCoreProofV1, core_owned_projection_v1
+    from src.agent.correction.parse import ensure_corrected_geometry
+    from src.agent.execution.manifest import hash_obj
+
+    geom = ensure_corrected_geometry(output)
+    return DeterministicCoreProofV1(
+        core_version=DETERMINISTIC_CORE_STAMP_VERSION,
+        input_hash="0" * 64,
+        core_projection_hash=hash_obj(core_owned_projection_v1(geom)),
+    )
+
+
 def test_correction_scorer_maps_f1_f2_to_gt_floors():
     """F-22 BLOCKER-1 rewrite (2026-08-11): this fixture is a REAL historical
     accepted attempt with no `schema_version` declared, i.e. legacy schema
@@ -226,7 +248,9 @@ def test_correction_scorer_maps_f1_f2_to_gt_floors():
     result = score_correction_geometry(output, gt)
 
     assert result.floor_map == {"F1": "Floor 1", "F2": "Floor 2"}
-    assert result.output_convention == {"schema_version": "1", "trusted": False, "identity": None}
+    assert result.output_convention == {
+        "schema_version": "1", "declared": False, "trusted": False, "identity": None,
+    }
     assert [e["type"] for e in result.evidence] == ["unsupported_output_convention"]
     assert set(result.scores) == {"F1", "F2"}
     assert result.scores["F1"].wall_hits() == (0, 4)
@@ -256,7 +280,7 @@ def test_correction_boundary_uses_footprint_and_records_miss_delta():
         footprint_x=[0.12, 14.72], footprint_y=[0.0, 8.4],
     )
 
-    result = score_correction_geometry(output, gt)
+    result = score_correction_geometry(output, gt, core_proof=_core_proof_for(output))
     boundary = result.scores["Floor 1"].boundary
 
     assert boundary is not None
@@ -302,7 +326,7 @@ def test_correction_boundary_matches_directly_for_trusted_schema_v3_with_wall_th
         footprint_x=[0.0, 15.0], footprint_y=[0.0, 8.0],
     )
 
-    result = score_correction_geometry(output, gt)
+    result = score_correction_geometry(output, gt, core_proof=_core_proof_for(output))
     assert result.output_convention["trusted"] is True
     boundary = result.scores["Floor 1"].boundary
 
@@ -358,7 +382,7 @@ def test_correction_edge_wall_spans_match_directly_for_trusted_schema_v3_with_wa
         footprint_x=[0.0, 10.0], footprint_y=[0.0, 5.0],
     )
 
-    result = score_correction_geometry(output, gt)
+    result = score_correction_geometry(output, gt, core_proof=_core_proof_for(output))
     assert result.output_convention["trusted"] is True
     match = result.scores["Floor 1"].vwalls[0]
 
@@ -416,7 +440,7 @@ def test_correction_boundary_double_expansion_regression_self_proving():
     )
 
     # FIX: the real public entry point no longer applies that transform.
-    result = score_correction_geometry(output, gt)
+    result = score_correction_geometry(output, gt, core_proof=_core_proof_for(output))
     assert result.output_convention["trusted"] is True  # sanity: premise applies to a trusted product
     boundary = result.scores["Floor 1"].boundary
     assert boundary is not None
@@ -449,7 +473,7 @@ def _boundary_south_fixture(south_offset: float) -> tuple[dict, dict]:
 def test_correction_boundary_status_three_tier_green_exact():
     """F-22 orange-tier lock, tier 1 of 3: 0.0 offset -> complete (green)."""
     gt, output = _boundary_south_fixture(0.0)
-    result = score_correction_geometry(output, gt)
+    result = score_correction_geometry(output, gt, core_proof=_core_proof_for(output))
     match = result.scores["Floor 1"].boundary["S"]
     assert match.status == "complete"
     assert match.delta == pytest.approx(0.0)
@@ -461,7 +485,7 @@ def test_correction_boundary_status_three_tier_orange_within_tol():
     magnitude the F-22 bug produced (real ±0.12 sidecar deltas) and, before
     this batch, went completely uncoloured (LineMatch had no status field)."""
     gt, output = _boundary_south_fixture(0.12)
-    result = score_correction_geometry(output, gt)
+    result = score_correction_geometry(output, gt, core_proof=_core_proof_for(output))
     match = result.scores["Floor 1"].boundary["S"]
     assert match.status == "within_tol"
     assert match.delta == pytest.approx(0.12)
@@ -478,19 +502,19 @@ def test_correction_boundary_status_threshold_uses_raw_delta_not_rounded():
     0.05) / 0.055 (within_tol) via the real `score_correction_geometry`
     entry point (not the private `_match_lines` helper directly)."""
     gt, output = _boundary_south_fixture(0.05)
-    result = score_correction_geometry(output, gt)
+    result = score_correction_geometry(output, gt, core_proof=_core_proof_for(output))
     match = result.scores["Floor 1"].boundary["S"]
     assert match.status == "complete"
     assert match.delta == pytest.approx(0.05)
 
     gt, output = _boundary_south_fixture(0.054)
-    result = score_correction_geometry(output, gt)
+    result = score_correction_geometry(output, gt, core_proof=_core_proof_for(output))
     match = result.scores["Floor 1"].boundary["S"]
     assert match.status == "within_tol"  # raw 0.054 > 0.05, even though it rounds to 0.05
     assert match.delta == pytest.approx(0.05)  # displayed delta IS rounded
 
     gt, output = _boundary_south_fixture(0.055)
-    result = score_correction_geometry(output, gt)
+    result = score_correction_geometry(output, gt, core_proof=_core_proof_for(output))
     match = result.scores["Floor 1"].boundary["S"]
     assert match.status == "within_tol"
     assert match.delta == pytest.approx(0.06)
@@ -504,7 +528,7 @@ def test_boundary_match_dict_propagates_within_tol_status_for_elevation_consumer
     already-present orange branch (`render_grade.py`) was dead code: its
     producer never emitted "within_tol". This locks the producer side."""
     gt, output = _boundary_south_fixture(0.12)
-    result = score_correction_geometry(output, gt)
+    result = score_correction_geometry(output, gt, core_proof=_core_proof_for(output))
     match = result.scores["Floor 1"].boundary["S"]
     assert match.status == "within_tol"  # sanity: this IS the drift tier
 
@@ -517,7 +541,7 @@ def test_correction_boundary_status_three_tier_red_miss():
     """F-22 orange-tier lock, tier 3 of 3: 0.5 offset (> position_tol 0.30)
     -> miss (red), unmatched."""
     gt, output = _boundary_south_fixture(0.5)
-    result = score_correction_geometry(output, gt)
+    result = score_correction_geometry(output, gt, core_proof=_core_proof_for(output))
     match = result.scores["Floor 1"].boundary["S"]
     assert match.status == "miss"
     assert match.read is None
@@ -570,7 +594,12 @@ def test_output_convention_declaration_mutation_changes_scoring_behavior():
 
     output = dict(output)
     output["deterministic_core_stamp"] = {"version": DETERMINISTIC_CORE_STAMP_VERSION}
-    before = score_correction_geometry(output, gt)
+    # Round 2 (2026-08-13): a genuinely matching `core_proof` for THIS real
+    # production geometry -- otherwise `trusted` could never reach True at
+    # all post-round-2, and this self-test would be unable to prove its own
+    # "otherwise-trusted" premise before mutating the declaration.
+    proof = _core_proof_for(output)
+    before = score_correction_geometry(output, gt, core_proof=proof)
     assert before.output_convention["trusted"] is True
     assert before.scores["Floor 1"].boundary is not None
     assert all(m.status == "complete" for m in before.scores["Floor 1"].boundary.values())
@@ -578,7 +607,7 @@ def test_output_convention_declaration_mutation_changes_scoring_behavior():
     original = correction_score_module.CORRECTION_OUTPUT_CONVENTION
     correction_score_module.CORRECTION_OUTPUT_CONVENTION = "bogus"
     try:
-        after = score_correction_geometry(output, gt)
+        after = score_correction_geometry(output, gt, core_proof=proof)
     finally:
         correction_score_module.CORRECTION_OUTPUT_CONVENTION = original
 
@@ -656,7 +685,7 @@ def test_correction_half_length_wall_scores_missing_piece():
         footprint_x=[0, 10], footprint_y=[0, 4],
     )
 
-    result = score_correction_geometry(output, gt)
+    result = score_correction_geometry(output, gt, core_proof=_core_proof_for(output))
     assert result.output_convention["trusted"] is True
     match = result.scores["Floor 1"].vwalls[0]
 
@@ -715,7 +744,7 @@ def test_old_score_sidecar_schema_triggers_recompute_with_boundary(tmp_path):
     sidecar = json.loads((attempt_dir / "score_vs_gt.json").read_text(encoding="utf-8"))
 
     assert artifacts["score_vs_gt"] == str(attempt_dir / "score_vs_gt.json")
-    assert sidecar["scorer_schema"] == rs.SCORER_SCHEMA
+    assert sidecar["scorer_schema"] == rs.LEGACY_SCORE_CACHE_SCHEMA
     assert sidecar["scores"]["1f_view"]["boundary"]["N"]["read"] == 4.0
 
 
@@ -739,7 +768,7 @@ def test_judge_packet_scores_correction_attempt_and_records_floor_map(tmp_path, 
     sidecar = json.loads(Path(packet["score_vs_gt"]).read_text(encoding="utf-8"))
     assert sidecar["stage"] == "1_correction"
     assert sidecar["source"] == "attempt_output"
-    assert sidecar["scorer_schema"] == rs.SCORER_SCHEMA
+    assert sidecar["scorer_schema"] == rs.LEGACY_SCORE_CACHE_SCHEMA
     assert sidecar["tolerances"] == _DEFAULT_TOLERANCES
     assert sidecar["elevation"]["summary"]["complete_total"] == 14
     assert sidecar["elevation"]["summary"]["miss_total"] == 1
@@ -754,7 +783,9 @@ def test_judge_packet_scores_correction_attempt_and_records_floor_map(tmp_path, 
     # `_is_trusted_output_convention`, so a visible `unsupported_output_convention`
     # evidence entry is expected rather than an empty list.
     assert [e["type"] for e in sidecar["evidence"]] == ["unsupported_output_convention"]
-    assert sidecar["output_convention"] == {"schema_version": "1", "trusted": False, "identity": None}
+    assert sidecar["output_convention"] == {
+        "schema_version": "1", "declared": False, "trusted": False, "identity": None,
+    }
     assert Path(packet["grade"]).exists()
     assert packet["score_criteria"] == sidecar["score_criteria"]
 
@@ -787,7 +818,7 @@ def test_judge_side_renders_every_attempt_and_promotes_accepted_grade(tmp_path):
         assert (adir / "grade.png").exists()
         sidecar = json.loads((adir / "score_vs_gt.json").read_text(encoding="utf-8"))
         assert sidecar["attempt"] == attempt
-        assert sidecar["scorer_schema"] == rs.SCORER_SCHEMA
+        assert sidecar["scorer_schema"] == rs.LEGACY_SCORE_CACHE_SCHEMA
         assert sidecar["tolerances"] == _DEFAULT_TOLERANCES
 
     accepted = run_dir / "0_reading" / "attempts" / "002" / "grade.png"

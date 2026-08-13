@@ -19,7 +19,8 @@ judgment) a discriminating two-/four-cell matrix on REAL-scale payloads:
   - F-2b: a missing summary is a named, localizable failure (merge boundary and
     correction entry), not a bare FileNotFoundError.
 * **MAJOR-1** — legacy scoring semantics changed (4a11097 F-1a/F-1b) but the
-  sidecar cache key (`SCORER_SCHEMA`) did not, so a stale sidecar short-circuited
+  sidecar cache key (`LEGACY_SCORE_CACHE_SCHEMA`, then named `SCORER_SCHEMA`) did
+  not, so a stale sidecar short-circuited
   re-grading. Bumped 8→9; lock: a real-shape stale-schema sidecar MUST recompute
   (two-cell: stale recomputes, current reuses).
 """
@@ -493,22 +494,29 @@ def test_f2c_single_contract_detector_is_canonical():
 # MAJOR-1 — a stale-schema sidecar is recomputed, a current one reused (two-cell)
 # =========================================================================== #
 def test_major1_stale_schema_sidecar_recomputed_current_reused(tmp_path, monkeypatch):
-    """MAJOR-1: when the scoring SEMANTICS change (SCORER_SCHEMA bump), a stale
-    sidecar on disk MUST be recomputed, never reused. Two-cell on a real sm21
+    """MAJOR-1: when the scoring SEMANTICS change (`LEGACY_SCORE_CACHE_SCHEMA`
+    bump, named `SCORER_SCHEMA` before the NIT-F25 rename), a stale sidecar
+    on disk MUST be recomputed, never reused. Two-cell on a real sm21
     reading attempt + real gt:
 
-    * stale sidecar (real shape, scorer_schema='9', the value immediately
+    * stale sidecar (real shape, scorer_schema='10', the value immediately
       prior to the current one) ⇒ `_score_attempt_output` IS invoked and the
       written sidecar carries the current schema.
-    * current sidecar (scorer_schema==rs.SCORER_SCHEMA, currently '10') ⇒
-      `_score_attempt_output` is NOT invoked (the valid sidecar is reused).
+    * current sidecar (scorer_schema==rs.LEGACY_SCORE_CACHE_SCHEMA, currently
+      '11') ⇒ `_score_attempt_output` is NOT invoked (the valid sidecar is
+      reused).
 
     The stale sidecar is built by running the real scorer once (so its SHAPE is
     authentic, not hand-faked) then rewriting only `scorer_schema` to the old
     value — exactly the on-disk shape MAJOR-1 is about. Literal values are
-    kept in sync with `rs.SCORER_SCHEMA` each time it bumps (NIT-1, F-22
-    2026-08-11) so this docstring never reads stale against the assertions
-    below."""
+    kept in sync with `rs.LEGACY_SCORE_CACHE_SCHEMA` each time it bumps
+    (NIT-1, F-22 2026-08-11; F-22 BLOCKER-1 round 2, 2026-08-13, bumped "10"
+    -> "11") so this docstring never reads stale against the assertions
+    below. F-24 (2026-08-13, same day): this schema label is now a SEPARATE
+    predicate field alongside `scoring_semantics` -- rewriting only
+    `scorer_schema` still exercises the schema-label half of the predicate,
+    which is what this lock is about; `scoring_semantics` stays correct
+    (untouched) in both cells here, so it is not what makes cell A stale."""
     attempt_dir = tmp_path / "0_reading" / "attempts" / "001"
     attempt_dir.mkdir(parents=True)
     shutil.copy2(_REAL_VIEWS_PATH, attempt_dir / "output.json")
@@ -519,31 +527,34 @@ def test_major1_stale_schema_sidecar_recomputed_current_reused(tmp_path, monkeyp
     real_score = rs._score_attempt_output
     calls: list[bool] = []
 
-    def spy(stage, output, gt, *, grade):
+    def spy(stage, output, gt, *, grade, core_proof=None):
         calls.append(True)
-        return real_score(stage, output, gt, grade=grade)
+        return real_score(stage, output, gt, grade=grade, core_proof=core_proof)
 
     monkeypatch.setattr(rs, "_score_attempt_output", spy)
 
     # Produce an authentic current sidecar (no sidecar yet ⇒ forced recompute).
-    # F-22 (2026-08-11) bumped SCORER_SCHEMA "9" -> "10" (correction-boundary
-    # semantics + sidecar shape changed); this lock is updated to the current
-    # value so the bump stays a conscious, verified act (not silently masked).
+    # F-22 BLOCKER-1 round 2 (2026-08-13) bumped the legacy schema label
+    # "10" -> "11" (trust semantics + `output_convention` sidecar shape
+    # changed again — gained a `declared` key); this lock is updated to the
+    # current value so the bump stays a conscious, verified act (not
+    # silently masked).
     rs._grade_attempt_artifacts("0_reading", "sm21_anchor", attempt_dir, gt, grade=grade)
     sidecar_path = attempt_dir / "score_vs_gt.json"
     sidecar = json.loads(sidecar_path.read_text(encoding="utf-8"))
-    assert sidecar["scorer_schema"] == rs.SCORER_SCHEMA == "10"
+    assert sidecar["scorer_schema"] == rs.LEGACY_SCORE_CACHE_SCHEMA == "11"
     assert calls == [True]
 
     # Cell A — stale: rewrite the REAL sidecar's schema tag to the immediately
-    # prior value (exactly what would be on disk from before the F-22 bump).
-    sidecar["scorer_schema"] = "9"
+    # prior value (exactly what would be on disk from before the F-22
+    # BLOCKER-1 round 2 bump).
+    sidecar["scorer_schema"] = "10"
     sidecar_path.write_text(json.dumps(sidecar), encoding="utf-8")
     calls.clear()
     out = rs._grade_attempt_artifacts("0_reading", "sm21_anchor", attempt_dir, gt, grade=grade)
     assert calls == [True], "a stale-schema sidecar MUST be recomputed, not reused"
     rewritten = json.loads(sidecar_path.read_text(encoding="utf-8"))
-    assert rewritten["scorer_schema"] == "10"
+    assert rewritten["scorer_schema"] == "11"
     assert out["score_vs_gt"] is not None
 
     # Cell B — current: the valid sidecar is reused, scorer NOT invoked.

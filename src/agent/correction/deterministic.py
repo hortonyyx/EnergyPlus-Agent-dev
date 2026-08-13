@@ -39,6 +39,8 @@ from collections import defaultdict
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
+from pydantic import BaseModel, ConfigDict
+
 from src.agent.correction.config import CoreTolerances, load_core_tolerances
 from src.agent.correction.cell_geometry import (
     cell_axis_values,
@@ -52,7 +54,12 @@ from src.agent.correction.envelope import AuthoritativeEnvelope, EnvelopeAxisRes
 from src.agent.correction.footprint import floor_footprint, floor_key, footprint_bbox
 from src.agent.correction.geometry_validator import validate_corrected_geometry
 from src.agent.correction.parse import ensure_corrected_geometry, validate_final_corrected_geometry
-from src.agent.correction.schema import CorrectedGeometry, DeterministicCoreStampV1, FootprintRing
+from src.agent.correction.schema import (
+    CorrectedGeometry,
+    CorrectedGeometryV3,
+    DeterministicCoreStampV1,
+    FootprintRing,
+)
 from src.agent.geometry.capability import require_supported_geometry_contract
 from src.agent.geometry.capability import FEATURE_CELL_POLYGON, schema_supports, schema_version_of
 
@@ -83,6 +90,112 @@ _EPS = 1e-9
 # before this stamp existed at all, are expected to need a rerun to regain a
 # score — that is the intended enforcement mechanism, not a gap).
 DETERMINISTIC_CORE_STAMP_VERSION = "1"
+
+
+class DeterministicCoreProofV1(BaseModel):
+    """F-22 BLOCKER-1 round 2 (2026-08-13, sol re-review): externally issued
+    proof that THIS accepted attempt's geometry is what the deterministic
+    core actually produced -- not merely what the candidate CLAIMS
+    (`DeterministicCoreStampV1`, which lives INSIDE the candidate's own
+    bytes and is therefore only a `declared` fact: sol proved a candidate can
+    forge a self-consistent geometry -- tampered footprint/ring/cells with
+    every derived artifact (Vg, host claims, evidence) recomputed FROM the
+    tampered footprint -- that still carries a byte-identical stamp).
+
+    This object is NEVER constructed by, or reachable from, a correction
+    draw. It is signed by `StageRunner.record`'s B5 write path ONLY after it
+    has: (1) independently replayed `apply_deterministic_core` from the
+    candidate's own embedded, re-verified raw producer bytes
+    (`VerifiedWindowResolverInputs.producer_draw_canonical_bytes`), and (2)
+    confirmed the replayed output's `core_owned_projection_v1` byte-matches
+    the candidate's own -- see stage_runner.py's B5 branch for the exact
+    equality gauntlet. It is bound into the accepted manifest record's
+    `artifact_hashes["deterministic_core_proof"]` (manifest.py), the same
+    tamper-evident mechanism `window_hosts`/`window_resolver_inputs` already
+    use, so a judge-side reader can verify the sidecar on disk has not been
+    swapped since acceptance without re-running the replay itself.
+
+    `judge.correction_score._is_trusted_output_convention` is the ONLY
+    reader that may promote a product's coordinates from `declared` to
+    `trusted`, and it does so only when handed one of these AND after
+    independently recomputing `core_owned_projection_v1(geom)` on the
+    CURRENT geometry under test and confirming it still equals
+    `core_projection_hash` -- the proof is re-verified against the artifact
+    being scored, never merely trusted because a file with the right name
+    exists on disk.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+    core_version: str
+    input_hash: str
+    core_projection_hash: str
+
+
+def core_owned_projection_v1(geom: CorrectedGeometryV3) -> dict:
+    """The subset of a v3 artifact's fields `apply_deterministic_core` fully
+    determines and that a genuine core replay MUST reproduce byte-for-byte
+    (F-22 BLOCKER-1 round 2).
+
+    Deliberately EXCLUDES every field a stage AFTER the core is allowed to
+    legitimately change (`finalize_correction_draw`, after `apply_
+    deterministic_core` returns):
+      - `facade_segments` -- materialized by `materialize_all_facade_segments`
+        from the core-final footprint; already independently re-verified by
+        `validate_materialized_facade_segments` (Vg rework CR1), not this.
+      - each window's `span`/`room`/`facade_segment_id` -- overwritten by
+        `apply_window_host_resolutions` (window_host.py) with the host-
+        resolved, clamped values; those are separately cross-checked against
+        `recompute_window_host_claims` in stage_runner.py's per-window audit
+        loop. Only `floor_id` and `z` (untouched by host resolution) are
+        core-owned for a window.
+      - the `corrections` list's appended `window_host_resolution` rows --
+        host resolution APPENDS to this list (never rewrites/reorders the
+        core's own entries), so the caller must compare this projection's
+        `corrections` as a PREFIX of the candidate's, not full equality; see
+        the writer's own prefix + suffix-shape check.
+
+    Floors are sorted by `id` and each floor's cells sorted by `id` so the
+    comparison is order-independent (core mutates in place and never
+    reorders either list in practice, but this keeps the projection --
+    and the proof hash derived from it -- from depending on an incidental
+    ordering guarantee this module does not otherwise promise).
+    """
+    floors = []
+    for floor in sorted(geom.floors, key=lambda f: f.id):
+        cells = sorted(floor.cells, key=lambda c: c.id)
+        floors.append({
+            "id": floor.id,
+            "name": floor.name,
+            "z_floor": float(floor.z_floor),
+            "ceiling_height": float(floor.ceiling_height),
+            "footprint": [[float(x), float(y)] for x, y in floor.footprint.vertices],
+            "cells": [
+                {
+                    "id": cell.id,
+                    "role": cell.role,
+                    "x": [float(v) for v in cell.x],
+                    "y": [float(v) for v in cell.y],
+                    "polygon": (
+                        None if cell.polygon is None
+                        else [[float(x), float(y)] for x, y in cell.polygon]
+                    ),
+                }
+                for cell in cells
+            ],
+        })
+    windows = [
+        {"id": window.id, "floor_id": window.floor_id, "z": [float(v) for v in window.z]}
+        for window in sorted(geom.windows, key=lambda w: w.id)
+    ]
+    return {
+        "footprint_x": [float(v) for v in geom.footprint_x],
+        "footprint_y": [float(v) for v in geom.footprint_y],
+        "floors": floors,
+        "windows": windows,
+        "conflicts": list(geom.conflicts),
+        "unsupported": list(geom.unsupported),
+        "corrections": list(geom.corrections),
+    }
 
 
 def _v3_rectangular_ring(floor) -> bool:

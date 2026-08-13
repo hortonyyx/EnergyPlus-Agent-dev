@@ -363,12 +363,12 @@ def test_annotation_basis_names_axis_line_annotation_when_displacement_is_neglig
     assert result.annotation_basis == observations
 
 
-def test_annotation_basis_names_outer_skin_annotation_at_half_wall_thickness_scale():
+def test_annotation_basis_names_reconcilable_nonzero_displacement_within_tolerance():
     """C.4 lock 2/4: output_precision_m < displacement <=
-    envelope_reconcile_tol_m (0.12 m, this project's half-wall-thickness
-    reference magnitude, per plan.md/the dispatch doc) =>
-    "outer_skin_annotation". This is the ONE basis plan.md's original rule
-    could already see a raw number for.
+    envelope_reconcile_tol_m (0.12 m in this fixture) => the neutral
+    ``reconcilable_nonzero_displacement`` state. This observation has no
+    trustworthy wall-thickness input, so it deliberately makes no claim
+    about the drawing's annotation basis.
 
     Self-proving premise: on this fixture, `resolve_envelope_move_intents`
     DOES fire (contrast with the other three locks in this group) -- so the
@@ -386,7 +386,7 @@ def test_annotation_basis_names_outer_skin_annotation_at_half_wall_thickness_sca
 
     observations = observe_envelope_annotation_basis(geom, envelope, tol)
     assert len(observations) == 4
-    assert all(o.basis == "outer_skin_annotation" for o in observations)
+    assert all(o.basis == "reconcilable_nonzero_displacement" for o in observations)
     assert all(o.displacement_m == pytest.approx(0.12) for o in observations)
 
     result = apply_v3_envelope_transaction(geom, tol, envelope)
@@ -452,7 +452,7 @@ def test_annotation_basis_names_no_authoritative_evidence_when_axis_unresolved()
 @pytest.mark.parametrize("dx,dy,expected_basis,committed", [
     # committed exit path (real intents -> _apply_components runs and
     # recomputes footprint_x/y fresh from the ring on its way out).
-    (0.12, 0.12, "outer_skin_annotation", True),
+    (0.12, 0.12, "reconcilable_nonzero_displacement", True),
     # no-intents early-return path (envelope_transform.py:762-763 returns
     # `before` completely as-is -- nothing downstream re-derives anything).
     # A neuter run during this batch's own verification (2026-08-12,

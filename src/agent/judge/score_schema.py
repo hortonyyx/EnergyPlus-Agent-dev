@@ -37,7 +37,14 @@ StableId = Annotated[StrictStr, StringConstraints(min_length=1, max_length=256)]
 ClaimName = Literal["existence", "host", "along", "width", "sill", "head", "appearance"]
 CardinalFamily = Literal["North", "South", "East", "West"]
 
-SCORER_SCHEMA = "8"
+# NIT-F25 (2026-08-13): the `SCORER_SCHEMA` alias that used to live here was
+# a pure duplicate of this constant (both "8") with zero production readers
+# of its own (only `SCORE_SIDECAR_SCHEMA` below is ever imported outside a
+# test) -- removed rather than kept, per the dispatch's "后者统一使用已有
+# `SCORE_SIDECAR_SCHEMA`". Pure rename/removal, no behavior change: this
+# typed-contract label was already independent of, and untouched by, the
+# `scripts/tool_scripts/run_stage.py` legacy cache label (now
+# `LEGACY_SCORE_CACHE_SCHEMA`) it used to share a name with.
 SCORE_SIDECAR_SCHEMA = "8"
 JUDGE_SCORE_CONFIG_SCHEMA = "1"
 JUDGE_SCORE_BINDINGS_SCHEMA = "1"

@@ -295,7 +295,18 @@ def reading_score_criteria(
         else:
             wall_status = "pass"
 
-        boundary_status = "severe" if missed_boundary else "pass"
+        # MINOR-A1 (2026-08-12 sol re-review, §3.1 tail): a floor with
+        # `score.boundary is None` (F-22 BLOCKER-1 refusal -- no trusted
+        # output convention) contributes 0/0 to both `total_boundary` and
+        # `total_boundary_hits`, so the naive `missed = total - hits` formula
+        # reads 0 misses on a product that was actively REFUSED, not one that
+        # was checked and found complete. `walls_complete`/
+        # `score_evidence_completeness` already correctly read `severe` for
+        # the same refusal (see `_extract_correction_boundary`'s
+        # `unsupported_output_convention` evidence entry) -- this criterion
+        # must say the same thing, not the opposite, when any floor has no
+        # boundary data at all.
+        boundary_status = "severe" if (missed_boundary or no_data_boundary_floors) else "pass"
 
         if total_windows == 0 or missed_windows == 0:
             window_status = "pass"

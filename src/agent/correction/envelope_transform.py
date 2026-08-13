@@ -55,14 +55,14 @@ class EnvelopeMoveIntent:
 # for three unrelated outcomes -- see `observe_envelope_annotation_basis`.
 EnvelopeAnnotationBasis = Literal[
     "axis_line_annotation",
-    "outer_skin_annotation",
+    "reconcilable_nonzero_displacement",
     "exceeds_tolerance",
     "no_authoritative_evidence",
 ]
 
 _ANNOTATION_BASIS_LABEL_ZH: dict[EnvelopeAnnotationBasis, str] = {
     "axis_line_annotation": "按轴线标注",
-    "outer_skin_annotation": "按外包标注",
+    "reconcilable_nonzero_displacement": "非零且容差内，标注法未知",
     "exceeds_tolerance": "超出容差,两者都不是",
     "no_authoritative_evidence": "无权威证据",
 }
@@ -72,9 +72,9 @@ _ANNOTATION_BASIS_INTERPRETATION_ZH: dict[EnvelopeAnnotationBasis, str] = {
         "该侧位移 <= output_precision_m,与 footprint 现值几乎重合,"
         "与这张图按墙/房间轴线标总尺寸一致。"
     ),
-    "outer_skin_annotation": (
-        "该侧位移超出 output_precision_m 但仍 <= envelope_reconcile_tol_m,"
-        "量级与半墙厚相符,与这张图按外墙外包标总尺寸一致。"
+    "reconcilable_nonzero_displacement": (
+        "该侧位移非零、超出 output_precision_m 但仍 <= envelope_reconcile_tol_m;"
+        "当前没有可信墙厚事实，不能据此判断标注法，需人工判读。"
     ),
     "exceeds_tolerance": (
         "该侧位移超出 envelope_reconcile_tol_m,两种标注法都解释不了,"
@@ -166,7 +166,7 @@ def observe_envelope_annotation_basis(
             if displacement <= tol.output_precision_m:
                 basis = "axis_line_annotation"
             elif displacement <= tol.envelope_reconcile_tol_m:
-                basis = "outer_skin_annotation"
+                basis = "reconcilable_nonzero_displacement"
             else:
                 basis = "exceeds_tolerance"
             observations.append(EnvelopeAnnotationObservation(
@@ -204,7 +204,8 @@ def annotation_basis_report(
             f"位移 <= output_precision_m({tol.output_precision_m:.3f}m) => {_ANNOTATION_BASIS_LABEL_ZH['axis_line_annotation']}"
             f"({'axis_line_annotation'}); "
             f"output_precision_m < 位移 <= envelope_reconcile_tol_m({tol.envelope_reconcile_tol_m:.3f}m) => "
-            f"{_ANNOTATION_BASIS_LABEL_ZH['outer_skin_annotation']}({'outer_skin_annotation'}); "
+            f"{_ANNOTATION_BASIS_LABEL_ZH['reconcilable_nonzero_displacement']}"
+            f"({'reconcilable_nonzero_displacement'}); "
             f"位移 > envelope_reconcile_tol_m => {_ANNOTATION_BASIS_LABEL_ZH['exceeds_tolerance']}"
             f"({'exceeds_tolerance'}); "
             f"该轴无 accepted 权威 => {_ANNOTATION_BASIS_LABEL_ZH['no_authoritative_evidence']}"

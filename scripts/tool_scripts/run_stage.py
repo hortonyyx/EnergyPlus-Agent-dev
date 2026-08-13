@@ -77,8 +77,12 @@ _STAGES = ["0_reading", "1_correction", "2_modelling", "3_split_pairing",
 # Phase D convergence: schema 0--7 artifacts are never cache candidates.
 # v2 keeps its exact legacy projection below; its sidecar label is CURRENTLY
 # v10 (history: v8 -> v9 -> v10, both bumps below). This constant is
-# independent of src.agent.judge.score_schema.SCORER_SCHEMA (the typed v3
-# side) — do NOT bump them in lockstep.
+# independent of src.agent.judge.score_schema.SCORE_SIDECAR_SCHEMA (the typed
+# v3 side) — do NOT bump them in lockstep. (NIT-F25, 2026-08-13: renamed from
+# `SCORER_SCHEMA` -- the OTHER, unrelated `score_schema.SCORER_SCHEMA` typed-
+# contract-label constant this comment already warned not to confuse it with
+# was itself removed in the same rename batch, in favor of the pre-existing
+# `SCORE_SIDECAR_SCHEMA`; both were pure symbol renames, no behavior change.)
 #   v8 -> v9: legacy scoring SEMANTICS changed (4a11097 F-1a/F-1b — envelope
 #   unwrap + empty-scores headline): a sidecar labeled v8 or earlier holds
 #   stale scores under the old semantics, so _grade_attempt_artifacts must
@@ -91,7 +95,69 @@ _STAGES = ["0_reading", "1_correction", "2_modelling", "3_split_pairing",
 #   field; a new `output_convention` provenance field was added) — a
 #   v9-or-earlier cached sidecar holds stale deltas under the old (wrong)
 #   semantics and lacks the new fields, so it must not be reused.
-SCORER_SCHEMA = "10"
+#   v10 -> v11: F-22 BLOCKER-1 round 2 (2026-08-13) changed the trust
+#   SEMANTICS again (a self-reported `deterministic_core_stamp` alone is no
+#   longer sufficient -- see `judge.correction_score._is_trusted_output_convention`)
+#   and the sidecar SHAPE (`output_convention` gained a `declared` key,
+#   independent of `trusted`). A v10-or-earlier cached sidecar may have
+#   `trusted=True` under the OLD (now-forgeable) rule and lacks `declared`
+#   entirely -- it must not be reused; every accepted B5 attempt needs a
+#   rerun through the write path (which now also signs
+#   `deterministic_core_proof.json`) to regain a trusted score.
+#
+#   F-24 (2026-08-13, sol re-review of the round-2 fix above): this hand-
+#   maintained version number is NOT, on its own, sufficient to invalidate a
+#   stale cache when the trust rule changes again -- it depends on an
+#   engineer remembering to bump it every time `DETERMINISTIC_CORE_STAMP_VERSION`
+#   or `CORRECTION_OUTPUT_CONVENTION` change. See `_current_scoring_semantics_identity`
+#   below, which is read LIVE from those two constants (not copied) and
+#   checked as a SEPARATE, ADDITIONAL cache-predicate field -- bumping either
+#   constant now invalidates every cached `score_vs_gt.json` automatically,
+#   with no `LEGACY_SCORE_CACHE_SCHEMA` bump required. This schema label is
+#   kept (not removed) because it also covers scoring-SHAPE changes (new
+#   sidecar fields, MAJOR-1's kind of change) that are not expressible as a
+#   function of those two constants.
+LEGACY_SCORE_CACHE_SCHEMA = "11"
+
+
+def _current_scoring_semantics_identity() -> dict:
+    """F-24 (2026-08-13): the cache-predicate half of the trust identity that
+    `_is_trusted_output_convention` (`src/agent/judge/correction_score.py`)
+    actually gates scoring on, read LIVE at cache-check time -- NOT a new
+    hand-maintained version number (sol's dispatch: "不许写「不与行为绑定的
+    声明」... 必须能通过「把对应实现中和掉、看该字段是否跟着变」的实测").
+
+    Both fields already exist and already gate real scoring behavior; this
+    function invents nothing new, it only reads the SAME two constants
+    `_is_declared_output_convention`/`_is_trusted_output_convention` compare
+    a candidate's stamp against, module-qualified (not `from ... import`) so
+    a live mutation of either is observed here too -- the exact discipline
+    `correction_score.py`'s own module docstring documents for
+    `CORRECTION_OUTPUT_CONVENTION` and `DETERMINISTIC_CORE_STAMP_VERSION`:
+
+    * `deterministic.DETERMINISTIC_CORE_STAMP_VERSION` -- which core revision
+      a stamp/proof must carry to be trusted at all.
+    * `correction_score.CORRECTION_OUTPUT_CONVENTION` -- which output-frame
+      identity a trusted product is currently assumed to use.
+
+    A cached sidecar whose `scoring_semantics` does not match the CURRENT
+    live values of these two constants is stale and must be recomputed,
+    regardless of whether anyone also remembered to bump
+    `LEGACY_SCORE_CACHE_SCHEMA`. (0_reading sidecars carry this same field
+    too, even though neither constant is read on that branch -- a bump on
+    either still safely over-invalidates a reading cache entry rather than
+    risk under-invalidating a correction one; there is exactly one predicate,
+    not a per-stage one.)
+    """
+    import src.agent.correction.deterministic as deterministic_module
+    import src.agent.judge.correction_score as correction_score_module
+
+    return {
+        "core_stamp_version": deterministic_module.DETERMINISTIC_CORE_STAMP_VERSION,
+        "output_convention": correction_score_module.CORRECTION_OUTPUT_CONVENTION,
+    }
+
+
 FLOW_EXIT_OK = 0
 FLOW_EXIT_CHECKPOINT = 10
 FLOW_EXIT_STOP = 20
@@ -1401,12 +1467,80 @@ def _unwrap_reading_views_envelope(output: dict) -> dict:
     return output
 
 
+def _resolve_core_proof_for_attempt(stage: str, attempt_dir: Path):
+    """F-22 BLOCKER-1 round 2 (2026-08-13): the ONLY place a judge-side
+    caller obtains an externally-issued `DeterministicCoreProofV1` for an
+    attempt -- `score_correction_geometry` itself deliberately takes no
+    run/manifest context (P3 of the dispatch), so this lives here, at the
+    one seam that DOES have it.
+
+    Mechanically walks `attempt_dir` -> `stage_dir` -> `run_dir` (dispatch's
+    P5: the fixed `<run_dir>/<stage>/attempts/<NNN>/` layout `next_attempt_index`
+    / `new_attempt_dir` establish in manifest.py) to locate the SAME
+    `run_manifest.json` the writer (`StageRunner.record`) itself wrote the
+    proof hash into, then RE-VERIFIES -- never merely trusts -- that:
+
+    1. this exact attempt is the one the manifest currently calls accepted
+       (a non-accepted/rejected attempt, e.g. while `_render_all_attempt_grades`
+       renders every attempt for review, never gets a proof — only the
+       artifact the manifest actually points to can be `trusted`);
+    2. its `artifact_contract` is one of the two B5 contracts that actually
+       ran the full replay-and-compare gauntlet (a plain `base_v2`/
+       `correction_b2_v1` record never had a proof signed for it at all);
+    3. the artifact_hashes-bound proof sidecar is present on disk and its
+       bytes still hash to what the manifest recorded at acceptance time
+       (catches any post-acceptance tamper of the sidecar file itself, the
+       same tamper-evidence `window_hosts`/`window_resolver_inputs` already
+       rely on).
+
+    Any failure at any step degrades to `None` (no proof) -- fail CLOSED to
+    `declared`, NEVER raises: a missing/stale/malformed/tampered proof must
+    never crash grading, only withhold trust. `score_correction_geometry`
+    independently re-verifies the returned proof's `core_projection_hash`
+    against the geometry actually being scored (this function does not
+    parse or trust the geometry at all), so returning a proof here is not
+    itself sufficient for trust either.
+    """
+    if stage != "1_correction":
+        return None
+    from src.agent.execution.manifest import RunManifestV2, StageRecordV2, attempt_index_of, hash_bytes
+    from src.agent.correction.deterministic import DeterministicCoreProofV1
+
+    try:
+        attempt_dir = Path(attempt_dir)
+        if attempt_dir.parent.name != "attempts":
+            return None
+        run_dir = attempt_dir.parents[2]
+        if attempt_dir.parents[1].name != stage:
+            return None
+        attempt = attempt_index_of(attempt_dir)
+        manifest = _load_manifest_readonly(run_dir)
+        if not isinstance(manifest, RunManifestV2):
+            return None
+        rec = manifest.accepted(stage)
+        if rec is None or not isinstance(rec, StageRecordV2) or rec.accepted_attempt != attempt:
+            return None
+        if rec.artifact_contract not in {"correction_b5_v1", "correction_b5_orientation_v1"}:
+            return None
+        expected_hash = rec.artifact_hashes.get("deterministic_core_proof")
+        if not expected_hash:
+            return None
+        proof_path = attempt_dir / "deterministic_core_proof.json"
+        proof_bytes = proof_path.read_bytes()
+        if hash_bytes(proof_bytes) != expected_hash:
+            return None
+        return DeterministicCoreProofV1.model_validate_json(proof_bytes)
+    except Exception:
+        return None
+
+
 def _legacy_score_attempt_output(
     stage: str,
     output: dict,
     gt: dict,
     *,
     grade: GradeConfig,
+    core_proof=None,
 ):
     from src.agent.judge.correction_score import score_correction_geometry
     from src.agent.judge.elevation_score import score_reading_elevation_views
@@ -1461,6 +1595,7 @@ def _legacy_score_attempt_output(
             overlap_accept=grade.overlap_accept,
             overlap_complete=grade.overlap_complete,
             floor_line_tol_m=grade.floor_line_tol_m,
+            core_proof=core_proof,
         )
         scores, evidence, floor_map = result.scores, result.evidence, result.floor_map
         elevation = result.elevation
@@ -1489,11 +1624,23 @@ def _legacy_score_attempt_output(
     }
 
 
-def _score_attempt_output(stage: str, output: dict, gt: dict, *, grade: GradeConfig):
-    """Run-stage reaches scoring through the shared judge service seam."""
+def _score_attempt_output(stage: str, output: dict, gt: dict, *, grade: GradeConfig, core_proof=None):
+    """Run-stage reaches scoring through the shared judge service seam.
+
+    `core_proof` is bound into a closure rather than threaded through
+    `score_service.score_attempt_service`'s own signature -- that seam is
+    shared with the unrelated typed C2 dispatch path, and F-22 BLOCKER-1
+    round 2 is scoped to the legacy correction scorer only (P4 of the
+    2026-08-13 dispatch: `score_correction_geometry` has exactly one
+    production call site, right here).
+    """
     from src.agent.judge.score_service import score_attempt_service
+
+    def _legacy_evaluator_with_proof(stage_, output_, gt_, *, grade):
+        return _legacy_score_attempt_output(stage_, output_, gt_, grade=grade, core_proof=core_proof)
+
     return score_attempt_service(stage=stage, output=output, gt=gt, grade=grade,
-                                 legacy_evaluator=_legacy_score_attempt_output)
+                                 legacy_evaluator=_legacy_evaluator_with_proof)
 
 
 def _commit_legacy_grade_pair(*, score_path: Path, grade_path: Path, sidecar: dict, grade_png: bytes) -> None:
@@ -1546,6 +1693,7 @@ def _load_valid_score_sidecar(
     attempt: int,
     output_hash: str,
     tolerances: dict[str, float],
+    scoring_semantics: dict,
 ) -> dict | None:
     if not sidecar.exists():
         return None
@@ -1558,8 +1706,13 @@ def _load_valid_score_sidecar(
         and data.get("attempt") == attempt
         and data.get("output_hash") == output_hash
         and data.get("source") == "attempt_output"
-        and data.get("scorer_schema") == SCORER_SCHEMA
+        and data.get("scorer_schema") == LEGACY_SCORE_CACHE_SCHEMA
         and data.get("tolerances") == tolerances
+        # F-24 (2026-08-13): a cache entry whose `scoring_semantics` no longer
+        # matches the CURRENT live core-stamp-version/output-convention
+        # identity is stale even if `scorer_schema` happens to match -- see
+        # `_current_scoring_semantics_identity`'s docstring.
+        and data.get("scoring_semantics") == scoring_semantics
     ):
         return data
     return None
@@ -1626,17 +1779,27 @@ def _grade_attempt_artifacts(
     attempt = attempt_index_of(attempt_dir)
     score_path = attempt_dir / "score_vs_gt.json"
     tolerances = grade.as_tolerances()
+    # F-24 (2026-08-13): read live, at cache-check time -- see
+    # `_current_scoring_semantics_identity`'s docstring for why this cannot
+    # be folded into `LEGACY_SCORE_CACHE_SCHEMA` alone.
+    scoring_semantics = _current_scoring_semantics_identity()
     sidecar = _load_valid_score_sidecar(
         score_path,
         stage=stage,
         attempt=attempt,
         output_hash=output_hash,
         tolerances=tolerances,
+        scoring_semantics=scoring_semantics,
     )
     render_needed = sidecar is None
     if sidecar is None:
         output = json.loads(output_text)
-        scored = _score_attempt_output(stage, output, gt, grade=grade)
+        # F-22 BLOCKER-1 round 2 (2026-08-13): resolve the manifest-bound
+        # proof HERE, at the one seam with `attempt_dir` (-> run_dir ->
+        # manifest) in scope -- `score_correction_geometry` itself never
+        # sees a run/manifest.
+        core_proof = _resolve_core_proof_for_attempt(stage, attempt_dir)
+        scored = _score_attempt_output(stage, output, gt, grade=grade, core_proof=core_proof)
         if scored is None:
             return {"score_vs_gt": None, "grade": None, "score_criteria": []}
         sidecar = {
@@ -1644,7 +1807,11 @@ def _grade_attempt_artifacts(
             "attempt": attempt,
             "output_hash": output_hash,
             "source": "attempt_output",
-            "scorer_schema": SCORER_SCHEMA,
+            "scorer_schema": LEGACY_SCORE_CACHE_SCHEMA,
+            # F-24 (2026-08-13): the identity the cache predicate above
+            # re-checks live on every load -- see
+            # `_current_scoring_semantics_identity`.
+            "scoring_semantics": scoring_semantics,
             "case": case,
             "tolerances": tolerances,
             "scores": {

@@ -137,43 +137,27 @@ _TRUSTED_SCHEMA_V3_IDENTITY = "outer_skin_exterior_centerline_interior"
 CORRECTION_OUTPUT_CONVENTION = _TRUSTED_SCHEMA_V3_IDENTITY
 
 
-def _is_trusted_output_convention(geom: CorrectedGeometry) -> bool:
-    """Runtime identity check — the ONLY gate that may treat a product's
-    coordinates as directly comparable to gt without a frame conversion.
-
-    Three independent facts must ALL hold, none a proxy for another:
+def _is_declared_output_convention(geom: CorrectedGeometry) -> bool:
+    """The product's own SELF-REPORT — three independent facts must ALL
+    hold, none a proxy for another:
 
     1. `schema_version == "3"` — the wire shape claims `orthogonal_polygon`.
     2. `CORRECTION_OUTPUT_CONVENTION == _TRUSTED_SCHEMA_V3_IDENTITY` — this
        module's own declared identity has not been tampered with.
     3. The product's `deterministic_core_stamp.version` (F-22 BLOCKER-1,
        2026-08-12) exactly equals `deterministic_module.DETERMINISTIC_CORE_STAMP_VERSION`
-       — the deterministic core (whose only verified-safe revision is the
-       CURRENT one; see that constant's docstring) actually ran to
-       completion on THIS artifact. Only `apply_deterministic_core` ever
-       writes this field, unconditionally, on every v3 completion — whether
-       or not it found anything to move (F-22 BLOCKER-1 §3: a *conditional*
-       "did an envelope transform record get written" signal cannot tell
-       "the core never ran" apart from "the core ran and had nothing to
-       do", because a drawing already annotated at the outer skin also
-       leaves no transform record).
+       — a plausible, correctly-versioned stamp is present.
 
-    (1) alone used to be treated as sufficient — that was BLOCKER-1's bug:
-    the SAME `schema_version == "3"` spans a real run from before the F-17
-    transform fix and a real run from after it, with no version bump between
-    them, so schema alone cannot distinguish a pre-fix product from a
-    post-fix one. (3) is what actually distinguishes them: a pre-fix run
-    predates this stamp's existence entirely, so its `deterministic_core_stamp`
-    is unconditionally `None` — missing, not merely mismatched — and is
-    refused exactly like an unrecognized version would be, with no
-    historical whitelist (user-ratified 2026-08-12: this applies even to
-    runs produced AFTER the F-17 fix landed but before this stamp did, e.g.
-    `run_2026-08-11_continuous_e2e` — they need a rerun to regain a score;
-    that is the intended enforcement, not a gap).
-
-    Returns False for everything else, INCLUDING a mutated/unrecognized
-    `CORRECTION_OUTPUT_CONVENTION` value or stamp version — there is no
-    fallback interpretation; untrusted means untrusted.
+    This is EXACTLY the check `_is_trusted_output_convention` used to BE, in
+    full, before 2026-08-13 (sol re-review, BLOCKER-1 reopened): sol proved a
+    candidate can construct a self-consistent, tampered geometry (forged
+    footprint + every derived artifact re-materialized from it) that still
+    carries a byte-identical, correctly-versioned stamp — because the stamp
+    lives INSIDE the candidate's own bytes, this check alone answers only
+    "does the product CLAIM the core ran", never "did it". ⇒ this is now
+    named `declared`, not `trusted`, and is a NECESSARY but no longer
+    SUFFICIENT condition for trust — see `_is_trusted_output_convention`
+    below, the only reader allowed to promote `declared` to `trusted`.
     """
     stamp = getattr(geom, "deterministic_core_stamp", None)
     stamp_version = getattr(stamp, "version", None)
@@ -181,6 +165,78 @@ def _is_trusted_output_convention(geom: CorrectedGeometry) -> bool:
         getattr(geom, "schema_version", None) == "3"
         and CORRECTION_OUTPUT_CONVENTION == _TRUSTED_SCHEMA_V3_IDENTITY
         and stamp_version == deterministic_module.DETERMINISTIC_CORE_STAMP_VERSION
+    )
+
+
+def _is_trusted_output_convention(
+    geom: CorrectedGeometry,
+    *,
+    core_proof: "deterministic_module.DeterministicCoreProofV1 | None" = None,
+) -> bool:
+    """Runtime identity check — the ONLY gate that may treat a product's
+    coordinates as directly comparable to gt without a frame conversion.
+
+    F-22 BLOCKER-1 round 2 (2026-08-13, sol re-review): the pre-2026-08-13
+    version of this function WAS `_is_declared_output_convention` above, in
+    full — trusting a self-reported stamp alone. sol's reproduction: forge a
+    candidate's footprint/floor-ring/cells together, re-derive every
+    downstream artifact (Vg, host claims, evidence) FROM the tampered
+    footprint so everything is internally self-consistent, keep the stamp
+    byte-identical — the real `StageRunner.record` writer accepted and
+    persisted it, because nothing compared the writer's own independent core
+    REPLAY against the candidate's footprint/floors/cells (only against
+    windows' host-resolved half). "这个字段,被评判的一方能不能自己写?能写=>
+    最多叫declared,绝不能叫trusted" (2026-08-13 dispatch's guiding question).
+
+    Trust now additionally requires an EXTERNALLY issued
+    `DeterministicCoreProofV1` (deterministic.py) — signed by
+    `StageRunner.record`'s B5 write path ONLY after it independently
+    replayed the core from the candidate's own re-verified raw producer
+    bytes and confirmed the replay's `core_owned_projection_v1` byte-matches
+    the candidate's — AND that proof must be RE-VERIFIED here, against the
+    CURRENT geometry actually being scored:
+
+    1. `_is_declared_output_convention(geom)` — the self-report must still be
+       internally plausible (a broken/absent stamp is refused regardless of
+       any proof supplied — a valid external proof for some OTHER, correct
+       geometry can never rescue a candidate whose own self-report is
+       broken; this is a floor, not a substitute for the proof check).
+    2. `core_proof is not None` — an external proof was actually supplied.
+       The caller (judge-side scoring entry point, which HAS run/manifest
+       context this function deliberately does not) is responsible for
+       resolving a proof ONLY from an accepted manifest record's
+       `artifact_hashes["deterministic_core_proof"]`, hash-verified against
+       the on-disk sidecar — see `run_stage.py`'s
+       `_resolve_core_proof_for_attempt`. This function itself never reads a
+       run/manifest; a bare dict/`CorrectedGeometry` with no `core_proof`
+       argument can therefore never be more than `declared`.
+    3. `core_proof.core_version == deterministic_module.DETERMINISTIC_CORE_STAMP_VERSION`
+       — the proof was signed under the CURRENTLY live core revision, not a
+       stale one (mirrors the stamp check, but against the proof's own
+       recorded version, so a bump to the live constant untrusts BOTH the
+       self-report and any previously issued proof, with no fallback).
+    4. `core_proof.core_projection_hash == hash_obj(core_owned_projection_v1(geom))`
+       — recomputed HERE, on THIS geometry, not merely read off the proof.
+       This is what defeats sol's forged-candidate reproduction: a proof
+       genuinely issued for the correct producer replay will never hash-match
+       a DIFFERENT, tampered geometry, no matter how internally
+       self-consistent that tampered geometry's own derived artifacts are.
+
+    Returns False for everything else — there is no fallback interpretation;
+    untrusted means untrusted.
+    """
+    if not _is_declared_output_convention(geom):
+        return False
+    if core_proof is None:
+        return False
+    if core_proof.core_version != deterministic_module.DETERMINISTIC_CORE_STAMP_VERSION:
+        return False
+    if not isinstance(geom, deterministic_module.CorrectedGeometryV3):
+        return False
+    from src.agent.execution.manifest import hash_obj
+
+    return core_proof.core_projection_hash == hash_obj(
+        deterministic_module.core_owned_projection_v1(geom)
     )
 
 
@@ -272,6 +328,7 @@ def _extract_correction_wall_segments(
     D: float,
     *,
     geom: CorrectedGeometry,
+    core_proof: "deterministic_module.DeterministicCoreProofV1 | None" = None,
 ) -> tuple[list[WallSegment], list[WallSegment]]:
     """Interior wall extents, per CORRECTION_OUTPUT_CONVENTION (module docstring).
 
@@ -287,7 +344,7 @@ def _extract_correction_wall_segments(
     reproduction: legacy real runs showed a registration offset become a
     lopsided N/E "miss" once compared without a trusted, uniform frame).
     """
-    if not _is_trusted_output_convention(geom):
+    if not _is_trusted_output_convention(geom, core_proof=core_proof):
         return [], []
     vx: list[WallSegment] = []
     hy: list[WallSegment] = []
@@ -379,6 +436,8 @@ def _normalise_raw_geom_for_scoring(data: dict) -> dict:
 def _extract_correction_boundary(
     geom: CorrectedGeometry,
     floor,
+    *,
+    core_proof: "deterministic_module.DeterministicCoreProofV1 | None" = None,
 ) -> dict[str, float] | None:
     """Exterior envelope boundary, per CORRECTION_OUTPUT_CONVENTION (module docstring).
 
@@ -395,7 +454,7 @@ def _extract_correction_boundary(
     on its own would look identical to "nothing to grade" — the evidence
     entry is what makes `score_evidence_completeness` surface as severe).
     """
-    if not _is_trusted_output_convention(geom):
+    if not _is_trusted_output_convention(geom, core_proof=core_proof):
         return None
     from src.agent.correction.footprint import footprint_bbox
     try:
@@ -455,6 +514,7 @@ def score_correction_geometry(
     overlap_accept: float = DEFAULT_OVERLAP_ACCEPT,
     overlap_complete: float = DEFAULT_OVERLAP_COMPLETE,
     floor_line_tol_m: float = DEFAULT_FLOOR_LINE_TOL_M,
+    core_proof: "deterministic_module.DeterministicCoreProofV1 | None" = None,
 ) -> CorrectionScoreResult:
     from src.agent.correction.parse import ensure_corrected_geometry
     geom = ensure_corrected_geometry(
@@ -467,29 +527,38 @@ def score_correction_geometry(
     floor_map, evidence = _map_floors(geom, gt)
     scores: dict[str, FloorScore] = {}
 
-    # F-22 BLOCKER-1: identity is a property of the whole product (schema
-    # version), not per-floor, so compute the trust decision once and record
-    # it unconditionally — this is the sidecar-visible provenance the
+    # F-22 BLOCKER-1 round 2 (2026-08-13): identity is a property of the
+    # whole product (schema version), not per-floor, so compute both the
+    # `declared` (self-report) and `trusted` (self-report + independently
+    # verified external proof) decisions once and record them
+    # unconditionally — this is the sidecar-visible provenance the
     # user-ratified fix requires (§3 point 3), independent of whether any
-    # floor ends up flagged.
-    trusted = _is_trusted_output_convention(geom)
+    # floor ends up flagged. `core_proof` is deliberately the ONLY run/
+    # manifest-shaped input this whole function accepts (P3 of the 2026-08-13
+    # dispatch: this function otherwise takes a bare dict/CorrectedGeometry,
+    # no run context) — callers with manifest access (run_stage.py) resolve
+    # it from an ACCEPTED attempt's manifest record before calling in; a bare
+    # caller that passes nothing can therefore never get more than `declared`.
+    declared = _is_declared_output_convention(geom)
+    trusted = _is_trusted_output_convention(geom, core_proof=core_proof)
     output_convention = {
         "schema_version": getattr(geom, "schema_version", None),
+        "declared": declared,
         "trusted": trusted,
         "identity": CORRECTION_OUTPUT_CONVENTION if trusted else None,
     }
     if not trusted:
-        # F-22 BLOCKER-1 (2026-08-12): give the SPECIFIC reason, not a generic
-        # one — `_is_trusted_output_convention` now checks three independent
-        # facts (schema_version / CORRECTION_OUTPUT_CONVENTION / the core
-        # stamp's version) and a message that only ever names "schema_version"
-        # would misdiagnose the exact case this fix exists for: a real
-        # schema-v3 product that fails ONLY because it predates the
-        # unconditional stamp (`deterministic_core_stamp` is unconditionally
-        # `None` on any artifact produced before this fix, or by a producer
-        # that isn't `apply_deterministic_core`) — "schema_version does not
-        # qualify" would be false for that product; its schema_version is
-        # exactly "3".
+        # F-22 BLOCKER-1 (2026-08-12, extended 2026-08-13): give the SPECIFIC
+        # reason, not a generic one. `_is_trusted_output_convention` now
+        # checks FOUR independent facts (the three `declared` facts —
+        # schema_version / CORRECTION_OUTPUT_CONVENTION / the core stamp's
+        # version — PLUS an externally issued, independently re-verified
+        # `deterministic_core_proof`) and a message that only ever names
+        # "schema_version" would misdiagnose the exact case this fix exists
+        # for: a real schema-v3 product that fails ONLY because it predates
+        # the unconditional stamp, or one that self-reports fine but was
+        # never handed a verified external proof — "schema_version does not
+        # qualify" would be false for either.
         stamp = getattr(geom, "deterministic_core_stamp", None)
         stamp_version = getattr(stamp, "version", None)
         schema_ok = getattr(geom, "schema_version", None) == "3"
@@ -514,8 +583,34 @@ def score_correction_geometry(
                 f"{deterministic_module.DETERMINISTIC_CORE_STAMP_VERSION!r} — "
                 f"either a stale core revision or an unrecognized/forged value"
             )
-        else:
+        elif not declared:
             core_stamp_reason = "CORRECTION_OUTPUT_CONVENTION declaration mismatch"
+        elif core_proof is None:
+            core_stamp_reason = (
+                "this product self-reports a matching deterministic_core_stamp "
+                "(declared=True), but no externally issued "
+                "deterministic_core_proof was supplied for this attempt (F-22 "
+                "BLOCKER-1 round 2, 2026-08-13) — a self-reported stamp is a "
+                "product-writable claim, not proof; trust requires a proof "
+                "signed by the writer's independent core replay and bound to "
+                "this attempt's accepted manifest record"
+            )
+        elif core_proof.core_version != deterministic_module.DETERMINISTIC_CORE_STAMP_VERSION:
+            core_stamp_reason = (
+                f"an externally issued deterministic_core_proof was supplied, "
+                f"but its core_version {core_proof.core_version!r} does not "
+                f"match the currently trusted core version "
+                f"{deterministic_module.DETERMINISTIC_CORE_STAMP_VERSION!r}"
+            )
+        else:
+            core_stamp_reason = (
+                "an externally issued deterministic_core_proof was supplied "
+                "and its declared core_version matches, but its "
+                "core_projection_hash does not match this artifact's own "
+                "independently recomputed core-owned projection — either the "
+                "geometry was tampered with after acceptance, or the proof "
+                "belongs to a different attempt"
+            )
         evidence.append(
             {
                 "type": "unsupported_output_convention",
@@ -544,9 +639,9 @@ def score_correction_geometry(
         position_tol = wall_tol if position_tol is None else position_tol
         gvx, ghy = derive_gt_wall_segments(gt_floor["zones"], W, D)
         gwin = derive_gt_windows(gt, gt_name)
-        rvx, rhy = _extract_correction_wall_segments(fl, W, D, geom=geom)
+        rvx, rhy = _extract_correction_wall_segments(fl, W, D, geom=geom, core_proof=core_proof)
         rwin = _extract_correction_windows(geom, gt_name, gt, floor_map)
-        rbnd = _extract_correction_boundary(geom, fl)
+        rbnd = _extract_correction_boundary(geom, fl, core_proof=core_proof)
 
         sc = FloorScore(floor=gt_name)
         sc.vwalls, sc.extra_vwalls = _match_wall_segments(

@@ -308,7 +308,12 @@ class StageRunner:
                 # Replay producer -> structural/window core from embedded raw
                 # sources, then bind every accepted audit row to that pre-host
                 # state and to the independently recomputed final claim.
-                from src.agent.correction.deterministic import apply_deterministic_core
+                from src.agent.correction.deterministic import (
+                    DETERMINISTIC_CORE_STAMP_VERSION,
+                    DeterministicCoreProofV1,
+                    apply_deterministic_core,
+                    core_owned_projection_v1,
+                )
                 from src.agent.correction.envelope import extract_authoritative_envelope
                 from src.agent.correction.window_host import WindowHostResolutionAuditV1
                 from src.agent.correction.window_sources import SourceIntervalV1
@@ -336,6 +341,55 @@ class StageRunner:
                         capability_profile=report.capability_profile,
                         verified_window_inputs=rebuilt_marker,
                     )
+                # F-22 BLOCKER-1 round 2 (2026-08-13, sol re-review): the
+                # per-window audit checks below only ever compared REPLAYED
+                # window fields against the candidate's own AUDIT ROWS (a
+                # dict the candidate itself carries). Nothing above this line
+                # ever compared `replayed`'s footprint / per-floor ring /
+                # cells against `fresh_geom`'s -- so a candidate whose
+                # producer, floor ring, and cells were tampered together
+                # (sol's reproduction: re-signed footprint + rewritten
+                # ring/cells + every derived artifact re-materialized FROM
+                # the tampered footprint, all internally self-consistent)
+                # sailed through unchecked and was accepted. Compare the
+                # core-owned projection now, BEFORE any of the (still
+                # necessary) per-window audit-row checks below, which only
+                # ever verify the FINAL-owned half (host-resolved span/room/
+                # facade_segment_id) that this projection deliberately
+                # excludes -- see `core_owned_projection_v1`'s docstring.
+                replayed_projection = core_owned_projection_v1(replayed)
+                candidate_projection = core_owned_projection_v1(fresh_geom)
+                if (
+                    replayed_projection["footprint_x"] != candidate_projection["footprint_x"]
+                    or replayed_projection["footprint_y"] != candidate_projection["footprint_y"]
+                    or replayed_projection["floors"] != candidate_projection["floors"]
+                    or replayed_projection["windows"] != candidate_projection["windows"]
+                    or replayed_projection["conflicts"] != candidate_projection["conflicts"]
+                    or replayed_projection["unsupported"] != candidate_projection["unsupported"]
+                ):
+                    raise ValueError("writer_core_projection_drift")
+                # `corrections` is append-only downstream of the core: window
+                # host resolution APPENDS `window_host_resolution` rows to it
+                # but never rewrites the core's own entries (window_host.py
+                # `apply_window_host_resolutions`) -- so the core-replayed
+                # list must be an exact PREFIX of the candidate's, not a full
+                # match. The suffix's shape (exactly one row per resolved
+                # window, all `window_host_resolution`) is checked below once
+                # `audit_rows` exists.
+                _replayed_corrections = replayed_projection["corrections"]
+                if candidate_projection["corrections"][: len(_replayed_corrections)] != _replayed_corrections:
+                    raise ValueError("writer_core_projection_drift")
+                replayed_stamp_version = getattr(
+                    getattr(replayed, "deterministic_core_stamp", None), "version", None
+                )
+                candidate_stamp_version = getattr(
+                    getattr(fresh_geom, "deterministic_core_stamp", None), "version", None
+                )
+                if (
+                    replayed_stamp_version != DETERMINISTIC_CORE_STAMP_VERSION
+                    or candidate_stamp_version != DETERMINISTIC_CORE_STAMP_VERSION
+                ):
+                    raise ValueError("writer_core_projection_drift")
                 audit_core = {
                     key: output_obj.audit_payload.get(key)
                     for key in ("corrections", "conflicts", "unsupported")
@@ -358,6 +412,12 @@ class StageRunner:
                         and item.get("kind") == "window_host_resolution"
                     )
                 }
+                _corrections_suffix = candidate_projection["corrections"][len(_replayed_corrections):]
+                if len(_corrections_suffix) != len(audit_rows) or any(
+                    not isinstance(item, dict) or item.get("kind") != "window_host_resolution"
+                    for item in _corrections_suffix
+                ):
+                    raise ValueError("writer_core_projection_drift")
                 replay_windows = {window.id: window for window in replayed.windows}
                 claim_rows = {row.window_id: row for row in recomputed_claims.resolutions}
                 if set(audit_rows) != set(replay_windows) or set(audit_rows) != set(claim_rows):
@@ -381,6 +441,29 @@ class StageRunner:
                         or audit.resolution_sha256 != claim.resolution_sha256
                     ):
                         raise ValueError("writer_window_audit_replay_drift")
+
+                # F-22 BLOCKER-1 round 2: the loop above only verified the
+                # AUDIT ROW dict's `resolved_*` fields against the
+                # independently recomputed claim. Nothing verified that the
+                # window's OWN persisted `span`/`room`/`facade_segment_id`
+                # (the fields a downstream consumer actually reads) equal
+                # what that audit row / claim says was resolved -- the same
+                # "self-consistent but untethered from the verified value"
+                # shape as the footprint/ring/cells gap fixed above, applied
+                # to windows instead. Close it the same way: compare the
+                # candidate's own window fields to the independently
+                # recomputed claim, not to another field the candidate also
+                # controls.
+                fresh_windows_by_id = {window.id: window for window in fresh_geom.windows}
+                for window_id in sorted(claim_rows):
+                    fresh_window = fresh_windows_by_id.get(window_id)
+                    claim = claim_rows[window_id]
+                    if fresh_window is None or (
+                        list(fresh_window.span) != [claim.clamped_span.lo, claim.clamped_span.hi]
+                        or fresh_window.room != claim.room_id
+                        or fresh_window.facade_segment_id != claim.facade_segment_id
+                    ):
+                        raise ValueError("writer_window_final_fields_drift")
 
                 states_for_identity = FeatureStatesArtifactV1(
                     output_sha256=output_hash,
@@ -409,6 +492,42 @@ class StageRunner:
                 )
                 extra_artifacts["window_resolver_inputs.json"] = resolver_artifact_bytes.decode("utf-8")
                 extra_artifacts["window_hosts.json"] = host_artifact.model_dump_json(indent=2)
+                # F-22 BLOCKER-1 round 2: signed ONLY here, after every
+                # replay/projection/audit/claim comparison above has
+                # succeeded -- this is the "由落库方在重放成功之后签发" proof the
+                # 2026-08-13 dispatch's 修法步骤 2 requires. `input_hash` binds
+                # it to the exact raw producer bytes that were replayed.
+                #
+                # `core_projection_hash` is hashed from `candidate_projection`
+                # (the FINAL, accepted geometry's own projection) -- NOT from
+                # `replayed_projection` (the pre-host-resolution replay).
+                # These are NOT the same bytes whenever the attempt has any
+                # window at all: host resolution APPENDS `window_host_
+                # resolution` rows to `corrections` after the core runs (see
+                # `core_owned_projection_v1`'s docstring on the prefix/suffix
+                # split), so `candidate_projection["corrections"]` is
+                # genuinely longer than `replayed_projection["corrections"]`
+                # for any real B5 write with windows. A judge-side reader can
+                # only ever recompute `core_owned_projection_v1` on the FINAL
+                # geometry it is scoring (it never has access to the pre-host
+                # replay) -- so the proof must commit to THAT projection, or
+                # verification would fail on every real write with windows.
+                # This does not weaken what was proved above: by this line,
+                # `candidate_projection`'s footprint/floors/windows(floor_id,z)/
+                # conflicts/unsupported have already been asserted equal to
+                # `replayed_projection`'s, and its `corrections` suffix has
+                # already been asserted to be exactly the verified window-
+                # host-resolution rows -- so committing to `candidate_projection`
+                # here binds the proof to a value already proven correct, not
+                # to an unverified one.
+                core_proof = DeterministicCoreProofV1(
+                    core_version=DETERMINISTIC_CORE_STAMP_VERSION,
+                    input_hash=hashlib.sha256(
+                        rebuilt_marker.producer_draw_canonical_bytes
+                    ).hexdigest(),
+                    core_projection_hash=hash_obj(candidate_projection),
+                )
+                extra_artifacts["deterministic_core_proof.json"] = core_proof.model_dump_json(indent=2)
             audit_text = _to_json(output_obj.audit_payload)
             states = FeatureStatesArtifactV1(output_sha256=output_hash, claims=expected)
             states_text = states.model_dump_json(indent=2)
@@ -417,6 +536,7 @@ class StageRunner:
                 artifact_hashes.update({
                     "window_resolver_inputs": hash_text(extra_artifacts["window_resolver_inputs.json"]),
                     "window_hosts": hash_text(extra_artifacts["window_hosts.json"]),
+                    "deterministic_core_proof": hash_text(extra_artifacts["deterministic_core_proof.json"]),
                 })
         elif is_assembly_e4:
             audit_text = output_obj.audit.model_dump_json(indent=2)
@@ -461,6 +581,7 @@ class StageRunner:
             from src.agent.correction.schema import CorrectedGeometryV3
             from src.agent.correction.window_host import WindowHostsArtifactV1
             from src.agent.correction.window_sources import WindowResolverInputsArtifactV1
+            from src.agent.correction.deterministic import DeterministicCoreProofV1
 
             CorrectedGeometryV3.model_validate_json((adir / "output.json").read_bytes())
             CheckReport.model_validate_json((adir / "checks.json").read_bytes())
@@ -472,6 +593,9 @@ class StageRunner:
                 (adir / "window_resolver_inputs.json").read_bytes()
             )
             WindowHostsArtifactV1.model_validate_json((adir / "window_hosts.json").read_bytes())
+            DeterministicCoreProofV1.model_validate_json(
+                (adir / "deterministic_core_proof.json").read_bytes()
+            )
             assert final_attempt_dir is not None
             os.replace(adir, final_attempt_dir)
             adir = final_attempt_dir
