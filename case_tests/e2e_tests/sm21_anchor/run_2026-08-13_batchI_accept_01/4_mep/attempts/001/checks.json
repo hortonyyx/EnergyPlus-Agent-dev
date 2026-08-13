@@ -1,0 +1,260 @@
+{
+  "stage": "4_mep",
+  "capability_profile": "orthogonal_polygon",
+  "run_profile": "exploratory",
+  "artifact_hash": "34fa88731149dce9b85e72a3492413ae3b5942f02333661e516bc57a4f1fc7a1",
+  "attempt_hash": "34fa88731149dce9b85e72a3492413ae3b5942f02333661e516bc57a4f1fc7a1",
+  "report_schema_version": "2.2",
+  "run_policy_sha256": null,
+  "run_policy_source": null,
+  "results": [
+    {
+      "check_id": "mep.idf_parse",
+      "status": "pass",
+      "layer": "invariant",
+      "check_version": "1",
+      "message": "",
+      "evidence": {}
+    },
+    {
+      "check_id": "mep.placeholder_ban",
+      "status": "pass",
+      "layer": "invariant",
+      "check_version": "1",
+      "message": "",
+      "evidence": {
+        "scanned_surface": "parsed IDF fragment field values plus structured building/site string fields",
+        "guards": "case-insensitive token/phrase patterns use non-word boundaries; ellipsis requires literal ... or …; angle placeholders require placeholder/tbd/todo/insert/replace text inside <>"
+      }
+    },
+    {
+      "check_id": "mep.name_charset",
+      "status": "pass",
+      "layer": "cross_check",
+      "check_version": "1",
+      "message": "",
+      "evidence": {
+        "allowed_charset": "letters, digits, underscore, hyphen, and space",
+        "allowed_pattern": "^[A-Za-z0-9_ -]+$",
+        "scanned_object_types": [
+          "CONSTRUCTION",
+          "MATERIAL",
+          "MATERIAL:AIRGAP",
+          "MATERIAL:INFRAREDTRANSPARENT",
+          "MATERIAL:NOMASS",
+          "SCHEDULE:COMPACT",
+          "SCHEDULETYPELIMITS",
+          "WINDOWMATERIAL:BLIND",
+          "WINDOWMATERIAL:GAS",
+          "WINDOWMATERIAL:GLAZING",
+          "WINDOWMATERIAL:SIMPLEGLAZINGSYSTEM"
+        ]
+      }
+    },
+    {
+      "check_id": "mep.building_north_axis_placeholder",
+      "status": "pass",
+      "layer": "invariant",
+      "check_version": "1",
+      "message": "",
+      "evidence": {
+        "field": "building.north_axis",
+        "required_placeholder": 0.0,
+        "observed": 0.0,
+        "owner": "the accepted correction's NorthAxisEvidence (S5 unconditional override); 4_mep may not author a real value"
+      }
+    },
+    {
+      "check_id": "mep.site_matches_testdata",
+      "status": "not_applicable",
+      "layer": "cross_check",
+      "check_version": "1",
+      "message": "no comparable structured site fields in testdata (latitude/longitude/time_zone/elevation)",
+      "evidence": {
+        "testdata_schema": "none supplied",
+        "structured_site_fields": [],
+        "location_string_fields": [],
+        "tolerances": {
+          "latitude": 0.01,
+          "longitude": 0.01,
+          "time_zone": 0.1,
+          "elevation": 1.0
+        }
+      }
+    },
+    {
+      "check_id": "mep.construction_coverage",
+      "status": "pass",
+      "layer": "invariant",
+      "check_version": "1",
+      "message": "",
+      "evidence": {
+        "used": 6
+      }
+    },
+    {
+      "check_id": "mep.construction_to_material",
+      "status": "pass",
+      "layer": "invariant",
+      "check_version": "1",
+      "message": "",
+      "evidence": {}
+    },
+    {
+      "check_id": "mep.construction_thermal_mass",
+      "status": "pass",
+      "layer": "invariant",
+      "check_version": "1",
+      "message": "",
+      "evidence": {
+        "checked_opaque_constructions": 5,
+        "skipped_fenestration_constructions": [
+          "Default_Window"
+        ],
+        "mass_layer_type": "MATERIAL",
+        "non_mass_layer_types": [
+          "MATERIAL:NOMASS",
+          "MATERIAL:AIRGAP",
+          "MATERIAL:INFRAREDTRANSPARENT"
+        ],
+        "out_of_scope_object_types": [
+          "CONSTRUCTION:AIRBOUNDARY"
+        ]
+      }
+    },
+    {
+      "check_id": "mep.schedule_type_refs",
+      "status": "pass",
+      "layer": "invariant",
+      "check_version": "1",
+      "message": "",
+      "evidence": {}
+    },
+    {
+      "check_id": "mep.schedule_completeness",
+      "status": "pass",
+      "layer": "invariant",
+      "check_version": "1",
+      "message": "",
+      "evidence": {}
+    },
+    {
+      "check_id": "mep.load_to_zone",
+      "status": "pass",
+      "layer": "invariant",
+      "check_version": "1",
+      "message": "",
+      "evidence": {}
+    },
+    {
+      "check_id": "mep.load_to_schedule",
+      "status": "pass",
+      "layer": "invariant",
+      "check_version": "1",
+      "message": "",
+      "evidence": {}
+    },
+    {
+      "check_id": "mep.people_field_alignment",
+      "status": "pass",
+      "layer": "invariant",
+      "check_version": "1",
+      "message": "",
+      "evidence": {
+        "idd_field_order": [
+          "A1 Name",
+          "A2 Zone or ZoneList Name",
+          "A3 Number of People Schedule Name",
+          "A4 Number of People Calculation Method (People|People/Area|Area/Person)",
+          "N1 Number of People",
+          "N2 People per Floor Area",
+          "N3 Floor Area per Person",
+          "N4 Fraction Radiant",
+          "N5 Sensible Heat Fraction",
+          "A5 Activity Level Schedule Name (required)"
+        ],
+        "disease_vs_symptom": "mep.load_to_schedule reports the symptom (A5 blank → 'missing'); this check reports the disease (A4 holds a non-enum value)"
+      }
+    },
+    {
+      "check_id": "mep.hvac_schedule_refs",
+      "status": "pass",
+      "layer": "invariant",
+      "check_version": "1",
+      "message": "",
+      "evidence": {
+        "checked_fields": 16,
+        "field_table": {
+          "ZONECONTROL:THERMOSTAT": [
+            "Control_Type_Schedule_Name"
+          ],
+          "THERMOSTATSETPOINT:DUALSETPOINT": [
+            "Heating_Setpoint_Temperature_Schedule_Name",
+            "Cooling_Setpoint_Temperature_Schedule_Name"
+          ],
+          "THERMOSTATSETPOINT:SINGLEHEATING": [
+            "Setpoint_Temperature_Schedule_Name"
+          ],
+          "THERMOSTATSETPOINT:SINGLECOOLING": [
+            "Setpoint_Temperature_Schedule_Name"
+          ],
+          "THERMOSTATSETPOINT:SINGLEHEATINGORCOOLING": [
+            "Setpoint_Temperature_Schedule_Name"
+          ],
+          "ZONEHVAC:IDEALLOADSAIRSYSTEM": [
+            "Availability_Schedule_Name"
+          ],
+          "HVACTEMPLATE:ZONE:IDEALLOADSAIRSYSTEM": [
+            "System_Availability_Schedule_Name"
+          ],
+          "HVACTEMPLATE:THERMOSTAT": [
+            "Heating_Setpoint_Schedule_Name",
+            "Cooling_Setpoint_Schedule_Name"
+          ]
+        },
+        "blank_reference_policy": "pass",
+        "resolved_schedule_type": "SCHEDULE:COMPACT",
+        "deferred_fields": [
+          "ZoneHVAC:IdealLoadsAirSystem.Heating_Availability_Schedule_Name",
+          "ZoneHVAC:IdealLoadsAirSystem.Cooling_Availability_Schedule_Name",
+          "HVACTemplate:Zone:IdealLoadsAirSystem.Heating_Availability_Schedule_Name",
+          "HVACTemplate:Zone:IdealLoadsAirSystem.Cooling_Availability_Schedule_Name"
+        ]
+      }
+    },
+    {
+      "check_id": "mep.per_zone_coverage",
+      "status": "pass",
+      "layer": "cross_check",
+      "check_version": "1",
+      "message": "",
+      "evidence": {
+        "zones": 14
+      }
+    },
+    {
+      "check_id": "mep.simpleglazing_standalone",
+      "status": "pass",
+      "layer": "invariant",
+      "check_version": "1",
+      "message": "",
+      "evidence": {}
+    },
+    {
+      "check_id": "mep.nomass_positive_resistance",
+      "status": "pass",
+      "layer": "invariant",
+      "check_version": "1",
+      "message": "",
+      "evidence": {}
+    },
+    {
+      "check_id": "mep.reasonability_bands",
+      "status": "not_applicable",
+      "layer": "cross_check",
+      "check_version": "1",
+      "message": "reasonability bands deferred until MEP input is richer (§5.2)",
+      "evidence": {}
+    }
+  ]
+}

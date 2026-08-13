@@ -1,4 +1,4 @@
-"""F-25 (2026-08-13): downstream ReAct-loop LLM call resilience.
+"""F-26 (2026-08-13): downstream ReAct-loop LLM call resilience.
 
 Real-run investigation (`AI_agent/logs/reviews/request/
 2026-08-13_downstream_surface_break_dispatch_claude.md`) found the `surface`
@@ -10,10 +10,9 @@ single `AIMessage` despite `bind_tools(..., parallel_tool_calls=False)`, and
 the LOCAL message history stayed perfectly paired (0 unpaired ids, 0
 duplicate ids, 30/30 tool_calls matched by ToolMessages) right up to the
 failing call — the provider's own turn validator is what broke on the next
-request, not our wiring. `src/agent/react.py` now (a) defensively truncates
-any multi-tool_call response to 1 so `parallel_tool_calls=False` holds
-regardless of what the provider does with the flag, and (b) wraps the LLM
-call in a bounded retry that leaves diagnostic evidence instead of silently
+request, not our wiring. `src/agent/react.py` preserves every provider-
+emitted tool call so `ToolNode` can reply to every id, and wraps the LLM call
+in a bounded retry that leaves diagnostic evidence instead of silently
 propagating a bare provider error through the whole flow.
 
 These tests exercise both mechanisms against a scripted fake `BaseChatModel`
@@ -34,7 +33,7 @@ from src.agent.react import (
     MAX_LLM_CALL_ATTEMPTS,
     ReactLLMCallError,
     ReactState,
-    _enforce_single_tool_call,
+    _preserve_all_tool_calls,
     _message_pairing_summary,
     build_react_agent,
 )
@@ -101,50 +100,46 @@ def _ai_with_calls(call_specs: list[tuple[str, dict]], *, msg_id: str) -> AIMess
 
 
 # ---------------------------------------------------------------------------
-# _enforce_single_tool_call: pure-function unit tests
+# _preserve_all_tool_calls: pure-function unit tests
 # ---------------------------------------------------------------------------
 
 
-def test_enforce_single_tool_call_truncates_multi_call_response():
+def test_preserve_all_tool_calls_keeps_multi_call_response():
     response = _ai_with_calls(
         [("noop_a", {"x": 1}), ("noop_b", {"x": 2}), ("noop_a", {"x": 3})],
         msg_id="m1",
     )
-    result = _enforce_single_tool_call(response, phase="test")
-    assert len(result.tool_calls) == 1
-    assert result.tool_calls[0]["name"] == "noop_a"
-    assert result.tool_calls[0]["id"] == "m1_0"
+    result = _preserve_all_tool_calls(response, phase="test")
+    assert result is response
+    assert [call["id"] for call in result.tool_calls] == ["m1_0", "m1_1", "m1_2"]
 
 
-def test_enforce_single_tool_call_passthrough_for_single_call():
+def test_preserve_all_tool_calls_passthrough_for_single_call():
     response = _ai_with_calls([("noop_a", {"x": 1})], msg_id="m2")
-    result = _enforce_single_tool_call(response, phase="test")
+    result = _preserve_all_tool_calls(response, phase="test")
     assert result is response  # identity: no copy made when already <= 1
 
 
-def test_enforce_single_tool_call_passthrough_for_no_calls():
+def test_preserve_all_tool_calls_passthrough_for_no_calls():
     response = AIMessage(content="done", id="m3")
-    result = _enforce_single_tool_call(response, phase="test")
+    result = _preserve_all_tool_calls(response, phase="test")
     assert result is response
     assert result.tool_calls == []
 
 
 # ---------------------------------------------------------------------------
-# Wiring-level neuter: prove build_react_agent's live path truncates, not
-# just the standalone function (08-11 lesson: "neuter must cover wiring not
-# just mechanism" — locking only the pure function would pass even if
-# llm_node stopped calling it).
+# Wiring-level lock: prove build_react_agent's live path preserves every id,
+# not just the standalone function (08-11 lesson: a pure-function assertion
+# alone would pass even if llm_node stopped calling it).
 # ---------------------------------------------------------------------------
 
 
-def test_multi_call_turn_is_truncated_through_the_real_graph_wiring():
+def test_multi_call_turn_answers_every_id_through_the_real_graph_wiring():
     """The provider-shaped failure mode, replayed end-to-end.
 
     Turn 1 returns 2 tool_calls in one AIMessage (mirrors the real deepseek
-    behavior with parallel_tool_calls=False). If `llm_node` truncates
-    correctly, only `noop_a` executes in that turn; `noop_b` is never
-    invoked because the graph ends after the (truncated) single-tool-call
-    turn produces no further tool_calls.
+    behavior with parallel_tool_calls=False). The ReAct graph must execute
+    both and send one ToolMessage for each id before its next LLM turn.
     """
     first_turn = _ai_with_calls([("noop_a", {"x": 1}), ("noop_b", {"x": 2})], msg_id="t1")
     final_turn = AIMessage(content="done", id="t2")
@@ -154,11 +149,12 @@ def test_multi_call_turn_is_truncated_through_the_real_graph_wiring():
     result = agent.invoke(ReactState(messages=[]))
 
     tool_messages = [m for m in result["messages"] if type(m).__name__ == "ToolMessage"]
-    assert len(tool_messages) == 1
-    assert tool_messages[0].content == "a:1"
-    # exactly 2 llm turns: the truncated multi-call turn, then the final
-    # no-tool-calls turn that ends the loop — proves noop_b's call was
-    # dropped rather than deferred to a 3rd turn that never happened.
+    assert [(message.tool_call_id, message.content) for message in tool_messages] == [
+        ("t1_0", "a:1"),
+        ("t1_1", "b:2"),
+    ]
+    # Exactly two LLM turns: the batch, then the final no-tool-calls turn.
+    # A cap-to-one regression makes this assertion fail with only t1_0.
     assert llm.calls == 2
 
 
@@ -248,3 +244,14 @@ def test_message_pairing_summary_reports_clean_pairing_as_empty():
     assert "unpaired tool_call_ids at end: []" in summary
     assert "DUPLICATE tool_call ids within AIMessage.tool_calls: {}" in summary
     assert "DUPLICATE tool_call_id across ToolMessages: {}" in summary
+
+
+def test_message_pairing_summary_includes_content_lengths_and_finish_reason():
+    ai = _ai_with_calls([("noop_a", {"x": 1})], msg_id="metadata")
+    ai.response_metadata["finish_reason"] = "tool_calls"
+    from langchain_core.messages import ToolMessage
+
+    summary = _message_pairing_summary([ai, ToolMessage(content="done", tool_call_id="metadata_0")])
+
+    assert "content_len=0 finish_reason='tool_calls'" in summary
+    assert "ToolMessage id=None content_len=4 tool_call_id=metadata_0" in summary

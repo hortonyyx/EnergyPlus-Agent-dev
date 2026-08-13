@@ -1,5 +1,6 @@
 from langchain_core.tools import BaseTool, tool
 
+from src.mcp.interface import ToolResponse
 from src.mcp.state import ConfigState
 from src.mcp.tools.construction import ConstructionTool
 from src.mcp.tools.surface import SurfaceTool
@@ -57,6 +58,74 @@ def make_surface_tools(config: ConfigState) -> list[BaseTool]:
         ).model_dump_json()
 
     @tool
+    def create_surfaces_batch(items: list[dict]) -> str:
+        """Create multiple BuildingSurface:Detailed objects (walls/floors/
+        roofs/ceilings) in a single call.
+
+        Use this instead of looping `create_surface` once per surface — for
+        buildings with many surfaces, a long run of sequential single-surface
+        tool calls can build a conversation history too large for some
+        providers to accept mid-flow. Each item is validated and applied
+        independently; a failure on one item does NOT stop the rest of the
+        batch (2026-08-13, batch create surfaces — see
+        AI_agent/logs/downstream_agent_changes.md).
+
+        Args:
+            items: List of dicts. Each dict accepts the same fields as
+                `create_surface`: `name`, `surface_type`, `construction_name`,
+                `zone_name`, `outside_boundary_condition`, `vertices`
+                (all required — same shapes/semantics as `create_surface`'s
+                own arguments, including the vertex dict form
+                `{"X": float, "Y": float, "Z": float}`), plus optional
+                `sun_exposure` (default 'NoSun'), `wind_exposure` (default
+                'NoWind'), and `outside_boundary_condition_object`.
+
+        Returns:
+            JSON `{"success": bool, "message": str, "data": {"count": N,
+            "succeeded": [name, ...], "failed": [{"name": ..., "error": ...},
+            ...]}}`. `success` is True only when `failed` is empty. Items
+            missing a usable `name` are reported under a placeholder
+            `"<item_i>"` in `failed`.
+        """
+        succeeded: list[str] = []
+        failed: list[dict] = []
+
+        for i, raw in enumerate(items):
+            if not isinstance(raw, dict):
+                failed.append({"name": f"<item_{i}>", "error": "item must be a dict"})
+                continue
+            name = raw.get("name") or f"<item_{i}>"
+            record = {
+                "Name": raw.get("name"),
+                "Surface Type": raw.get("surface_type"),
+                "Construction Name": raw.get("construction_name"),
+                "Zone Name": raw.get("zone_name"),
+                "Outside Boundary Condition": raw.get("outside_boundary_condition"),
+                "Outside Boundary Condition Object": raw.get(
+                    "outside_boundary_condition_object"
+                ),
+                "Sun Exposure": raw.get("sun_exposure", "NoSun"),
+                "Wind Exposure": raw.get("wind_exposure", "NoWind"),
+                "Vertices": raw.get("vertices"),
+            }
+            r = st.create(record)
+            if r.success:
+                succeeded.append((r.data or {}).get("name", name))
+            else:
+                failed.append({"name": name, "error": r.message})
+
+        return ToolResponse(
+            success=not failed,
+            message=f"Batch create_surface: {len(succeeded)} succeeded, "
+            f"{len(failed)} failed.",
+            data={
+                "count": len(items),
+                "succeeded": succeeded,
+                "failed": failed,
+            },
+        ).model_dump_json()
+
+    @tool
     def list_surfaces() -> str:
         """List all building surfaces."""
         return st.list_all().model_dump_json()
@@ -83,6 +152,7 @@ def make_surface_tools(config: ConfigState) -> list[BaseTool]:
 
     return [
         create_surface,
+        create_surfaces_batch,
         list_surfaces,
         get_surface,
         delete_surface,

@@ -15,6 +15,21 @@
 
 ## 改动记录
 
+### 2026-08-13 — 摊 I：加 `create_surfaces_batch` 工具 + surface prompt 改令其批量建面（DeepSeek 400 结构性诱因）
+
+**Trigger**：[派工单](../reviews/request/2026-08-13_batch_create_surfaces_dispatch_claude.md)。GPT 侧活体探针实测：一条消息里 50 个工具调用 + 50 条配对完好的回应，仍被 DeepSeek 400 拒绝（错误消息误导性地报"配对问题"，实际配对良好）；两轮诊断把机制收敛到"历史规模"。仓里只有单个 `create_surface`（`src/mcp/api/envelope.py:784` / `src/agent/tools/surface_tools.py:13`），无批量创建面 ⇒ **100 个面结构性地要求 100 次工具调用堆进同一段对话历史**，而 50/50 就已经被拒——这个节点的工作量结构上就要求一份 provider 会拒掉的历史。
+
+**改动**（备份 [backup/src_history/2026-08-13_batch_create_surfaces/](../../backup/src_history/2026-08-13_batch_create_surfaces)：`surface_tools.py.orig` + `surface.py.orig`）：
+
+- **`src/agent/tools/surface_tools.py`（本项目权属内，非下游 hotfix）**：新增 `create_surfaces_batch(items: list[dict])` 工具，接到 `make_surface_tools()` 返回列表（`surface` 节点的 ReAct agent 实际拿到的工具集，见 [surface.py](../../src/agent/nodes/surface.py):`make_surface_tools`）。形态照抄仓内既有批量先例——`create_fenestration_surfaces_batch` + `update_surfaces_batch`（均在 `src/mcp/api/envelope.py`，前者批量创建的先例、后者批量写的先例）：逐条独立校验与应用、失败不中止批、返回 `{"count", "succeeded", "failed"}` 结构、失败项按 `{"name", "error"}` 记录、缺名时退回 `"<item_i>"` 占位符。**不同之处**：MCP 层批量工具外部先 `to_payload(XxxCreateInput.model_validate(raw))` 再调 `.create(payload)`；本工具直接把 `items` 的 snake_case 字段（`name`/`surface_type`/...，与本文件既有单条 `create_surface` 参数同名）翻译成 IDD 风格 dict（`"Name"`/`"Surface Type"`/...）后调 `st.create(record)`——因为下游节点走的是本地 LangChain 工具（`src/agent/tools/`），根本不经过 MCP envelope 层，单条 `create_surface` 本就是这样接线的，批量版沿用同一条路径而非另开一条。此外 `st.create()`（`BaseTool.create`）自带对 `ValidationError` **和**任意 `Exception` 的兜底捕获，比 MCP 层批量工具只显式捕获 `ValidationError` 更宽，属额外安全余量非语义差异。
+- **`src/agent/nodes/surface.py`（下游 hotfix，`surface` 是 CLAUDE.md §3 所指"下游 9 subagent"之一）**：`SURFACE_SYSTEM_PROMPT` 的 Workflow 步骤 3 由"逐个调用 `create_surface`"改为"一次调用 `create_surfaces_batch` 建完全部面（必要时按楼层拆成几次调用，但不许一面一次调用）"，`create_surface` 降级为仅用于修复 `failed` 里报告的个别失败项；步骤 4 补上"若 `list_surfaces` 缺面，用 `create_surface` 单条补"。**若只加工具不改此处，模型不会去用新工具**——本条正是 §5#4 意义下的下游代码 hotfix，走此纪律记账。
+
+**影响范围**：`surface` 节点的工具集与 system prompt；未碰 `IntakeOutput` 契约、几何内核、`src/mcp/api/envelope.py`（MCP 外部服务器层，本摊未新增其 `create_surfaces_batch`，因为内部管线根本不经过它）、`src/agent/react.py`（另一摊刚完工的面，本摊未触碰）、下游其余 8 个 subagent 的 prompt。
+
+**验收**：见 [执行日志](../reviews/request/2026-08-13_batch_create_surfaces_dispatch_claude.md) 回报（`tests/test_batch_create_surfaces.py` 8 测 + 4 组 neuter 实测 + 真链路 A1–A8 验收结果）。
+
+**协作者侧建议**：下次 prompt 演进务必保留"优先 `create_surfaces_batch` 建全部面、`create_surface` 仅作单点补救"这条——否则模型会退回逐个调用，在大型建筑上重新撞上 DeepSeek 400。
+
 ### 2026-08-06 — F-12：surface / fenestration prompt 改「逐字照抄顶点」（撤销 05-12 那条 z_floor 重算指令）
 
 **Trigger**：[F-12 施工单](../reviews/request/2026-08-06_f12_surface_prompt_transcribe_dispatch_claude.md)。`_vertex_drift_issues`（[src/validator/output_coordinates.py:816](../../src/validator/output_coordinates.py)，逐位严格相等）在真链路上报 44 条 `VERTEX_FRAME_DRIFT`（24 exterior 墙全中 + 20 对 interzone 墙每对一个），validate 连拦 4 轮触发 `InterruptLoopBreakerError`。根因 = [surface.py](../../src/agent/nodes/surface.py) 的 `SURFACE_SYSTEM_PROMPT` 逐字命令 LLM 用 `zone_specs` 的 `z_floor`/`ceiling_height` **自己重算**墙顶点 Z，并配了一段自相矛盾的 worked example，而 `surface_specs` 本来就已经给出每一面的完整绝对世界坐标顶点串（`_fmt_verts`，[specs.py:202](../../src/agent/geometry/specs.py)）。⇒ 提示词与数据打架，LLM 重新推导出与内核确定性输出不同的起笔点/顺序，撞上新上线的严格 drift 门。**这条与 2026-05-12 那条历史 hotfix 是同一因（LLM 被要求对 z 做算术）的两次反复——05-12 是"没给 zone_specs 导致默认 3m"，08-06 是"给了 zone_specs 后被明文要求用它重算、覆盖了 surface_specs 已经算对的值"。**

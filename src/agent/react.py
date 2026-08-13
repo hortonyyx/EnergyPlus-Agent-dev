@@ -18,7 +18,7 @@ from src.agent.trace import TraceCollector
 MAX_LLM_CALL_ATTEMPTS: Final = 3
 """Total attempts (including the first) for a single ReAct-loop LLM call.
 
-2026-08-13, F-25 — bounded retry, not blind.
+2026-08-13, F-26 — bounded retry, not blind.
 
 Downstream 9-subagent tool-calling loops (`build_react_agent`) had zero
 resilience: one provider-side failure on any turn propagated uncaught all the
@@ -27,10 +27,10 @@ diagnosable evidence (unlike 1_correction/4_mep, whose single-shot raw-OpenAI
 calls already retry via `pipeline.py::_call_json_llm`, and unlike the outer
 stage-attempt loop, which redraws a whole stage on gate① rejection). This
 mirrors that same idea one layer down, for the LLM<->tool transport itself.
-Not blind: `_enforce_single_tool_call` below removes the actual confirmed
-trigger (provider batching many tool_calls into one turn despite
-`parallel_tool_calls=False`) BEFORE a retry is ever needed; this retry only
-covers residual transient provider/transport failures.
+The provider may still return a batch despite `parallel_tool_calls=False`.
+That flag is a request preference, not permission to discard calls: every
+returned id must be carried to `ToolNode` and answered before the next model
+turn. This retry only covers residual transient provider/transport failures.
 """
 
 RETRY_BACKOFF_SECONDS: Final = 2.0
@@ -44,7 +44,7 @@ class ReactLLMCallError(RuntimeError):
     node, which round, message-history summary) instead of a bare provider
     error swallowed into a generic top-level `except Exception` — see
     `scripts/tool_scripts/run_stage.py`'s `flow --with-ep` handler, which
-    only ever printed `str(e)` before this (2026-08-13, F-25 downstream
+    only ever printed `str(e)` before this (2026-08-13, F-26 downstream
     `surface` break investigation).
     """
 
@@ -71,8 +71,12 @@ def _message_pairing_summary(messages: list[AnyMessage], *, tail: int = 20) -> s
         mid = getattr(m, "id", None)
         if isinstance(m, AIMessage) and m.tool_calls:
             call_ids = [tc.get("id") for tc in m.tool_calls]
+            content_len = len(str(m.content))
+            finish_reason = m.response_metadata.get("finish_reason")
             lines.append(
-                f"[{i}] {mtype} id={mid} n_tool_calls={len(call_ids)} tool_calls={call_ids}"
+                f"[{i}] {mtype} id={mid} content_len={content_len} "
+                f"finish_reason={finish_reason!r} n_tool_calls={len(call_ids)} "
+                f"tool_calls={call_ids}"
             )
             if len(call_ids) > 1:
                 multi_call_turns.append((i, call_ids))
@@ -80,7 +84,10 @@ def _message_pairing_summary(messages: list[AnyMessage], *, tail: int = 20) -> s
             for cid in call_ids:
                 pending[cid] = i
         elif isinstance(m, ToolMessage):
-            lines.append(f"[{i}] {mtype} id={mid} tool_call_id={m.tool_call_id}")
+            lines.append(
+                f"[{i}] {mtype} id={mid} content_len={len(str(m.content))} "
+                f"tool_call_id={m.tool_call_id}"
+            )
             tool_msg_ids.append(m.tool_call_id)
             pending.pop(m.tool_call_id, None)
         else:
@@ -107,42 +114,24 @@ def _message_pairing_summary(messages: list[AnyMessage], *, tail: int = 20) -> s
     return header + "\ntail:\n  " + "\n  ".join(tail_lines)
 
 
-def _enforce_single_tool_call(response: AIMessage, *, phase: str) -> AIMessage:
-    """Defensively cap `response.tool_calls` at 1 (F-25, 2026-08-13).
+def _preserve_all_tool_calls(response: AIMessage, *, phase: str) -> AIMessage:
+    """Keep every provider-emitted tool call so `ToolNode` can answer each id.
 
-    `build_react_agent` binds tools with `parallel_tool_calls=False`, but at
-    least one provider (deepseek-v4-pro, confirmed live on the `surface`
-    node 2026-08-13) ignores that flag and returns many tool_calls in a
-    single turn (28 observed in one message on a real run). LangGraph's
-    `ToolNode` happily executes all of them, and the local message list
-    stays perfectly paired afterwards (verified via `_message_pairing_summary`
-    on the live failure: 0 unpaired ids, 0 duplicate ids, 30/30 tool_calls
-    matched 1:1 by ToolMessages) — the 400
-    ("insufficient tool messages following tool_calls message") that follows
-    originates on the PROVIDER re-validating that same, locally-correct,
-    history on the NEXT call. We cannot fix the provider's own turn
-    validator, so we make `parallel_tool_calls=False` actually hold from our
-    side: drop every tool_call past the first and let the model see, next
-    turn, exactly the state it would be in had the provider honored the flag
-    to begin with (only one of its requested calls happened; the rest are
-    simply re-decided next turn from the unchanged surface_specs/zone_specs
-    already in context — no information is lost, since those specs are the
-    single source of truth transcribed verbatim, not something the model
-    needs to remember across turns).
+    `parallel_tool_calls=False` is advisory: deepseek-v4-pro can return a
+    batch anyway. A live protocol probe on 2026-08-13 confirmed the provider
+    accepts all 28 matching ToolMessages. Mutating the assistant message to
+    retain only one is neither needed nor a valid implementation of the
+    preference; it throws away requested work and obscures diagnostics.
     """
-    if len(response.tool_calls) <= 1:
-        return response
-    kept, dropped = response.tool_calls[:1], response.tool_calls[1:]
-    logger.warning(
-        "[react:{}] provider returned {} tool_calls in one turn despite "
-        "parallel_tool_calls=False; keeping only the first ({}), dropping {}: {}",
-        phase,
-        len(response.tool_calls),
-        kept[0].get("name"),
-        len(dropped),
-        [tc.get("name") for tc in dropped],
-    )
-    return response.model_copy(update={"tool_calls": kept})
+    if len(response.tool_calls) > 1:
+        logger.warning(
+            "[react:{}] provider returned {} tool_calls in one turn despite "
+            "parallel_tool_calls=False; preserving all ids for ToolNode: {}",
+            phase,
+            len(response.tool_calls),
+            [tc.get("name") for tc in response.tool_calls],
+        )
+    return response
 
 
 class ReactState(BaseModel):
@@ -165,12 +154,11 @@ def build_react_agent(
 
     Topology: llm -> [tools_condition] -> tools -> llm -> ... -> END.
     `parallel_tool_calls=False` is enforced so each tool call can be
-    validated sequentially — important because tool calls mutate
-    the shared (local-copy) ConfigState. Since at least one provider ignores
-    that request-level flag, `llm_node` also defensively truncates any
-    multi-tool_call response to 1 (see `_enforce_single_tool_call`), and
-    wraps the provider call in a bounded retry that leaves diagnostic
-    evidence on every failed attempt (see `ReactLLMCallError`).
+    requested sequentially — important because tool calls mutate the shared
+    (local-copy) ConfigState. The provider may ignore that preference; in
+    that case `llm_node` preserves all returned calls so `ToolNode` responds
+    to every id, and wraps provider failures in a bounded retry that leaves
+    diagnostic evidence (see `ReactLLMCallError`).
 
     No checkpointer, no interrupts inside the subgraph.
     """
@@ -212,7 +200,7 @@ def build_react_agent(
                     f"attempt(s): {type(last_exc).__name__}: {last_exc}\n{summary}"
                 ) from last_exc
             else:
-                response = _enforce_single_tool_call(response, phase=phase)
+                response = _preserve_all_tool_calls(response, phase=phase)
                 return {"messages": [response]}
         # Unreachable: the loop above always either returns or raises.
         raise AssertionError("unreachable")  # pragma: no cover

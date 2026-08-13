@@ -1,0 +1,83 @@
+# run_2026-08-13_oneshot_acceptance (sm21_anchor)
+#
+# ⭐ 目的 = **验收跑**。用户 2026-08-13 定的验收标准，逐字为：
+#     「验收要一口气推完不出错才算」
+#
+# ⇒ 与 run_2026-08-13_post_blocker1_e2e（同日、勘察跑）的区别**不在代码、在口径**：
+#   那一次是**三次调用拼出来的**（0–5 段跑在 `da2245d` 旧代码上、下游跑在修法之后），
+#   且中途 4_mep attempt 001 崩过（裸 TypeError，靠段级重试自愈）
+#   ⇒ **它证明不了「一口气」，也证明不了「不出错」**。本 run 专为挣这两句话而跑。
+#
+# ⛔ 这正是本项目 08-11 立过规矩的那个坑（见 run_2026-08-11_continuous_e2e/run_config.yaml）：
+#   08-09 那次全链是分三次跨两天推完的、1_correction 跑在老代码上
+#   ⇒ 「今天的代码从头连续跑一遍还通不通」从未被验证。今天同一形状的账又出现了一次，只是压缩到一小时内。
+#
+# ⇒ 与上一个 run 的唯一变量 = **单次连续执行 + 单一代码基线**（输入逐字节相同，见 inputs）。
+
+# ─── ⭐ 验收条件（跑前写死，⛔ 跑完不许放宽）─────────────────────────────
+#   A1. **单次 flow 调用**从 1_correction 跑到 EnergyPlus，中途**不停、不修、不续跑、不人工干预**。
+#   A2. 该次调用的**真实退出码 = 0**（⛔ 后台通知里的 exit code 是外层壳的，只认独占 `.rc` 文件 + 汇总行）。
+#   A3. **每一段 attempts 必须 = 1** —— 「不出错」按严格口径解：
+#       任何一段出现 attempt 002（= 第一次失败、靠段级重试自愈）**即判不通过**。
+#       ⚠️ 已知风险点：`mep.idf_parse` 在上一个 run 的 attempt 001 崩过
+#       （`TypeError: unsupported operand type(s) for //: 'int' and 'NoneType'`，
+#       LLM 输出里某字段为 None ⇒ 解析器崩而非结构化拒绝）。若本 run 复发 ⇒ 不通过，
+#       且该缺陷（裸异常当校验结果）必须先修掉再重跑，⛔ 不许靠重试蒙过去。
+#   A4. **EnergyPlus `0 Severe`**，且 IDF 内 面/窗/区 = **100 / 15 / 14**（与内核声明一致，防「少建几个」）。
+#   A5. **几何不许变**：与 `run_2026-08-11_continuous_e2e` 的 2_modelling 产物比**顶点**
+#       （400 面顶点 + 60 窗顶点，逐位同序全同）。
+#       ⛔ **不许用 `geometry_checkpoint_digest` 判几何** —— 它是 `hash_obj(kernel_check_report)`、
+#       报告里嵌着房间名，校正 LLM 换个房间叫法它就变（08-13 实证：digest 变了而 460 顶点逐位全同，
+#       差别只是两个房间 `Conference`→`Meeting`）。digest 一变必须改判据比顶点。
+#   A6. 摊 A 的正向链条仍在：accepted 账本带第 7 件 `deterministic_core_proof`，
+#       判卷 `declared=True, trusted=True`。
+# ────────────────────────────────────────────────────────────────
+
+run_profile: exploratory
+capability_profile: orthogonal_polygon
+judge:
+  mode: off
+review:
+  reading: false
+  correction: false
+  geometry: auto        # 「一口气」与人工停点直接冲突；几何另由 A5 的顶点对账把关
+with_ep: true
+record: false           # ⛔ 非成绩跑（识图为复用，无可诚实声明的 reading lane）
+
+provenance:
+  base_commit: 41f73e7          # 08.13_downstream_surface_break_fixed_and_cache_no_longer_bypasses_proof
+  tracked_dirty: false          # 落盘时工作树干净（`git status --porcelain` 零行）
+  key_source_fingerprints:      # sha256 前 16 位
+    src/agent/react.py: 70f79a290c524373                            # 摊 F：强制单发 + 有界重试
+    scripts/tool_scripts/run_stage.py: 11244caabe3baa6f             # 摊 G：缓存绑 proof 身份
+    src/agent/judge/correction_score.py: 220378a2aa63601e           # 摊 G/A：declared vs trusted
+    src/agent/execution/stage_runner.py: 85db50dfd6c2d2af           # 摊 A：落库方比对 + 签 proof
+  scaffold: 全仓 2589 passed / 10 xfailed / 0 failed（orchestrator 独立复跑，rc=0 + 汇总行核对）
+
+inputs:
+  reading:
+    source: case_tests/e2e_tests/sm21_anchor/run_2026-08-11_continuous_e2e/0_reading
+    method: 逐字节复制，落盘后 cmp 逐件校验一致
+    origin_chain: run_2026-07-07_haiku_cv_retest → 08-08 f16 → 08-09 f17 → 08-09 f18 → 08-11 连续跑 → 08-13 勘察跑 → 本 run
+    note: ⛔ 该识图产物是在「停下等人审阅」的循环里拿到的，非无监督基线（CLAUDE.md §1.5#7 违规点①）
+
+models:
+  reading:
+    role: 0_reading
+    model_id: claude-haiku-4-5-20251001
+    source: 07-07 产物原样复用（本 run 未重跑识图）
+  correction:
+    role: 1_correction
+    model_id: deepseek-v4-pro
+    effort: high
+  mep:
+    role: 4_mep
+    model_id: deepseek-v4-pro    # 无 intake_mep 段 ⇒ 回落 intake_correction
+    effort: high
+  downstream:
+    role: 9 subagent
+    model_id: deepseek-v4-pro（surface/construction/fenestration）+ deepseek-v4-flash（其余六个）
+    source: src/configs/llm.yaml 全局默认，⛔ 本 run 无 per-run 覆盖
+  orchestrator:
+    role: orchestration
+    model_id: claude-opus-5

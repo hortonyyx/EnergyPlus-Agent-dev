@@ -1,0 +1,48 @@
+{
+  "schema": "envelope_annotation_basis_observation_v1",
+  "note": "纯观测,不设门/不阻断/不改变任何既有判定 —— 见 AI_agent/plan.md〇-C 与 2026-08-12_c_annotation_observable_and_f23_dispatch_claude.md。",
+  "summary_line": "标注法观测（纯观测）: x.lo=非零且容差内，标注法未知(Δ0.120m); x.hi=非零且容差内，标注法未知(Δ0.120m); y.lo=非零且容差内，标注法未知(Δ0.120m); y.hi=非零且容差内，标注法未知(Δ0.120m)",
+  "interpretation_rule": "位移 <= output_precision_m(0.010m) => 按轴线标注(axis_line_annotation); output_precision_m < 位移 <= envelope_reconcile_tol_m(0.300m) => 非零且容差内，标注法未知(reconcilable_nonzero_displacement); 位移 > envelope_reconcile_tol_m => 超出容差,两者都不是(exceeds_tolerance); 该轴无 accepted 权威 => 无权威证据(no_authoritative_evidence)。",
+  "observations": [
+    {
+      "axis": "x",
+      "side": "lo",
+      "basis": "reconcilable_nonzero_displacement",
+      "basis_label": "非零且容差内，标注法未知",
+      "old_value_m": 0.12,
+      "new_value_m": 0.0,
+      "displacement_m": 0.12,
+      "interpretation": "该侧位移非零、超出 output_precision_m 但仍 <= envelope_reconcile_tol_m;当前没有可信墙厚事实，不能据此判断标注法，需人工判读。"
+    },
+    {
+      "axis": "x",
+      "side": "hi",
+      "basis": "reconcilable_nonzero_displacement",
+      "basis_label": "非零且容差内，标注法未知",
+      "old_value_m": 14.88,
+      "new_value_m": 15.0,
+      "displacement_m": 0.12,
+      "interpretation": "该侧位移非零、超出 output_precision_m 但仍 <= envelope_reconcile_tol_m;当前没有可信墙厚事实，不能据此判断标注法，需人工判读。"
+    },
+    {
+      "axis": "y",
+      "side": "lo",
+      "basis": "reconcilable_nonzero_displacement",
+      "basis_label": "非零且容差内，标注法未知",
+      "old_value_m": 0.12,
+      "new_value_m": 0.0,
+      "displacement_m": 0.12,
+      "interpretation": "该侧位移非零、超出 output_precision_m 但仍 <= envelope_reconcile_tol_m;当前没有可信墙厚事实，不能据此判断标注法，需人工判读。"
+    },
+    {
+      "axis": "y",
+      "side": "hi",
+      "basis": "reconcilable_nonzero_displacement",
+      "basis_label": "非零且容差内，标注法未知",
+      "old_value_m": 7.88,
+      "new_value_m": 8.0,
+      "displacement_m": 0.12,
+      "interpretation": "该侧位移非零、超出 output_precision_m 但仍 <= envelope_reconcile_tol_m;当前没有可信墙厚事实，不能据此判断标注法，需人工判读。"
+    }
+  ]
+}

@@ -1,0 +1,1129 @@
+{
+  "corrections": [
+    {
+      "id": "COR-1",
+      "stage": "A1",
+      "method_profile": "room_identity",
+      "entity_type": "footprint",
+      "entity_id": "building_footprint",
+      "floor_id": "floor_1",
+      "coordinate_frame": "world",
+      "unit": "m",
+      "rule_id": "A1.4_centerline_convention",
+      "claim_type": "numeric",
+      "conflict_type": null,
+      "source_ids": [
+        "1f_view/S1",
+        "1f_view/S2",
+        "1f_view/S3",
+        "1f_view/S4",
+        "2f_view/S1",
+        "2f_view/S2",
+        "2f_view/S3",
+        "2f_view/S4",
+        "1f_view/T1",
+        "1f_view/T2",
+        "1f_view/T3",
+        "1f_view/T4",
+        "1f_view/T5",
+        "1f_view/T6",
+        "2f_view/T1",
+        "2f_view/T2",
+        "2f_view/T3",
+        "2f_view/T4"
+      ],
+      "original_value": {
+        "x": [
+          0.0,
+          15.0
+        ],
+        "y": [
+          0.0,
+          8.0
+        ]
+      },
+      "resolved_value": {
+        "x": [
+          0.12,
+          14.88
+        ],
+        "y": [
+          0.12,
+          7.88
+        ]
+      },
+      "value_type": "polygon",
+      "tolerance_name": "OUTPUT_PRECISION",
+      "tolerance_value": 0.01,
+      "delta": 0.12,
+      "evidence_grade": "transcribed_dimension",
+      "confidence_before": "high",
+      "confidence_after": "high",
+      "changes_topology": false,
+      "prior_id": null,
+      "note": "Converted exterior wall outer-face plan strokes to wall centerline using the 240 mm wall-thickness label (half thickness = 0.12 m)."
+    },
+    {
+      "id": "COR-2",
+      "stage": "A2-apply",
+      "method_profile": "room_identity",
+      "entity_type": "axis",
+      "entity_id": "x_axis_top_1f",
+      "floor_id": "floor_1",
+      "coordinate_frame": "world",
+      "unit": "m",
+      "rule_id": "A2.3_dimension_chain_closure",
+      "claim_type": "numeric",
+      "conflict_type": "checksum_failure",
+      "source_ids": [
+        "1f_view/D1",
+        "1f_view/D2",
+        "1f_view/D3",
+        "1f_view/D4",
+        "1f_view/D5",
+        "1f_view/D6",
+        "1f_view/D7",
+        "1f_view/D8",
+        "1f_view/D9",
+        "1f_view/D10"
+      ],
+      "original_value": {
+        "annotated_segment_sum_m": 14.76,
+        "overall_m": 15.0
+      },
+      "resolved_value": {
+        "unannotated_wall_band_m": 0.24,
+        "closed_m": 15.0
+      },
+      "value_type": "line",
+      "tolerance_name": "DIMCHAIN_CLOSE_TOL",
+      "tolerance_value": 0.01,
+      "delta": 0.24,
+      "evidence_grade": "transcribed_dimension",
+      "confidence_before": "high",
+      "confidence_after": "high",
+      "changes_topology": false,
+      "prior_id": null,
+      "note": "Floor 1 top dimension chain added two unannotated 0.12 m wall-band ticks at partition walls, as identified in reading notes."
+    },
+    {
+      "id": "COR-3",
+      "stage": "A2-apply",
+      "method_profile": "room_identity",
+      "entity_type": "axis",
+      "entity_id": "y_axis_right_1f",
+      "floor_id": "floor_1",
+      "coordinate_frame": "world",
+      "unit": "m",
+      "rule_id": "A2.3_dimension_chain_closure",
+      "claim_type": "numeric",
+      "conflict_type": "checksum_failure",
+      "source_ids": [
+        "1f_view/D28",
+        "1f_view/D29",
+        "1f_view/D30",
+        "1f_view/D31",
+        "1f_view/D32"
+      ],
+      "original_value": {
+        "annotated_segment_sum_m": 7.76,
+        "overall_m": 8.0
+      },
+      "resolved_value": {
+        "unannotated_wall_band_m": 0.24,
+        "closed_m": 8.0
+      },
+      "value_type": "line",
+      "tolerance_name": "DIMCHAIN_CLOSE_TOL",
+      "tolerance_value": 0.01,
+      "delta": 0.24,
+      "evidence_grade": "transcribed_dimension",
+      "confidence_before": "high",
+      "confidence_after": "high",
+      "changes_topology": false,
+      "prior_id": null,
+      "note": "Floor 1 right dimension chain added two unannotated 0.12 m corridor wall-band ticks to close 8.00 m."
+    },
+    {
+      "id": "COR-4",
+      "stage": "A2-apply",
+      "method_profile": "room_identity",
+      "entity_type": "axis",
+      "entity_id": "x_axis_top_2f",
+      "floor_id": "floor_2",
+      "coordinate_frame": "world",
+      "unit": "m",
+      "rule_id": "A2.3_dimension_chain_closure",
+      "claim_type": "numeric",
+      "conflict_type": "checksum_failure",
+      "source_ids": [
+        "2f_view/D1",
+        "2f_view/D2",
+        "2f_view/D3",
+        "2f_view/D4",
+        "2f_view/D5",
+        "2f_view/D6",
+        "2f_view/D7"
+      ],
+      "original_value": {
+        "annotated_segment_sum_m": 14.88,
+        "overall_m": 15.0
+      },
+      "resolved_value": {
+        "unannotated_wall_band_m": 0.12,
+        "closed_m": 15.0
+      },
+      "value_type": "line",
+      "tolerance_name": "DIMCHAIN_CLOSE_TOL",
+      "tolerance_value": 0.01,
+      "delta": 0.12,
+      "evidence_grade": "transcribed_dimension",
+      "confidence_before": "high",
+      "confidence_after": "high",
+      "changes_topology": false,
+      "prior_id": null,
+      "note": "Floor 2 top dimension chain added one unannotated 0.12 m wall-band tick at the central partition to close 15.00 m."
+    },
+    {
+      "id": "COR-5",
+      "stage": "A2-apply",
+      "method_profile": "room_identity",
+      "entity_type": "axis",
+      "entity_id": "y_axis_right_2f",
+      "floor_id": "floor_2",
+      "coordinate_frame": "world",
+      "unit": "m",
+      "rule_id": "A2.3_dimension_chain_closure",
+      "claim_type": "numeric",
+      "conflict_type": "checksum_failure",
+      "source_ids": [
+        "2f_view/D26",
+        "2f_view/D27",
+        "2f_view/D28",
+        "2f_view/D29",
+        "2f_view/D30"
+      ],
+      "original_value": {
+        "annotated_segment_sum_m": 7.76,
+        "overall_m": 8.0
+      },
+      "resolved_value": {
+        "unannotated_wall_band_m": 0.24,
+        "closed_m": 8.0
+      },
+      "value_type": "line",
+      "tolerance_name": "DIMCHAIN_CLOSE_TOL",
+      "tolerance_value": 0.01,
+      "delta": 0.24,
+      "evidence_grade": "transcribed_dimension",
+      "confidence_before": "high",
+      "confidence_after": "high",
+      "changes_topology": false,
+      "prior_id": null,
+      "note": "Floor 2 right dimension chain added two unannotated 0.12 m corridor wall-band ticks to close 8.00 m."
+    },
+    {
+      "rule_id": "deterministic_core.envelope_atomic_transform",
+      "stage": "core",
+      "target": "building.per_floor_footprints",
+      "claim_type": "numeric",
+      "transaction_id": "f3de591b225649c36b9eda0a7be4cd1c239aa5d068d74f5842957817ec00bf5f",
+      "source_ids": [
+        "D1"
+      ],
+      "original_value": {
+        "footprint_fingerprints": {
+          "floor_1": "243a13b8e0ec9734b552e388752c8325d7c592f80812160705b7226695f32606",
+          "floor_2": "243a13b8e0ec9734b552e388752c8325d7c592f80812160705b7226695f32606"
+        },
+        "bbox": {
+          "x": [
+            0.12,
+            14.88
+          ],
+          "y": [
+            0.12,
+            7.88
+          ]
+        }
+      },
+      "resolved_value": {
+        "footprint_fingerprints": {
+          "floor_1": "bd7fbafbf0f76a78523f86f055c095b112b40e524853809837b48f1acb2ba680",
+          "floor_2": "bd7fbafbf0f76a78523f86f055c095b112b40e524853809837b48f1acb2ba680"
+        },
+        "bbox": {
+          "x": [
+            0.0,
+            15.0
+          ],
+          "y": [
+            0.0,
+            8.0
+          ]
+        }
+      },
+      "value_type": "polygon",
+      "intents": [
+        {
+          "intent_id": "36fbdee28f0133e324e96e9d9d388d97451263aea862fdc9613e2a0411398c0b",
+          "claim_kind": "overall_bound",
+          "axis": "x",
+          "side": "lo",
+          "old_value": 0.12,
+          "new_value": 0.0,
+          "source_facade": "North",
+          "boundary_ref": null
+        },
+        {
+          "intent_id": "5c50c93e9c360fa915182d8d1b19ffdd8c974f9b6db3a29767aea18479ed5418",
+          "claim_kind": "overall_bound",
+          "axis": "x",
+          "side": "hi",
+          "old_value": 14.88,
+          "new_value": 15.0,
+          "source_facade": "North",
+          "boundary_ref": null
+        },
+        {
+          "intent_id": "9f69f94ccc032708245c6244cbcec64f011260c17d2920474c3241e0bf852ed0",
+          "claim_kind": "overall_bound",
+          "axis": "y",
+          "side": "lo",
+          "old_value": 0.12,
+          "new_value": 0.0,
+          "source_facade": "East",
+          "boundary_ref": null
+        },
+        {
+          "intent_id": "4d33b0d281d6e84ec9eba0111dc47a994dc6df463c7539ca6ef50f57e0f51fa1",
+          "claim_kind": "overall_bound",
+          "axis": "y",
+          "side": "hi",
+          "old_value": 7.88,
+          "new_value": 8.0,
+          "source_facade": "East",
+          "boundary_ref": null
+        }
+      ],
+      "moved": {
+        "floor_vertex_refs": [
+          "floor_1:0",
+          "floor_1:0",
+          "floor_1:1",
+          "floor_1:1",
+          "floor_1:2",
+          "floor_1:2",
+          "floor_1:3",
+          "floor_1:3",
+          "floor_2:0",
+          "floor_2:0",
+          "floor_2:1",
+          "floor_2:1",
+          "floor_2:2",
+          "floor_2:2",
+          "floor_2:3",
+          "floor_2:3"
+        ],
+        "cell_vertex_refs": [
+          "floor_1:F1_corridor:0",
+          "floor_1:F1_corridor:1",
+          "floor_1:F1_corridor:2",
+          "floor_1:F1_corridor:3",
+          "floor_1:F1_office_N1:0",
+          "floor_1:F1_office_N1:2",
+          "floor_1:F1_office_N1:3",
+          "floor_1:F1_office_N1:3",
+          "floor_1:F1_office_N2:2",
+          "floor_1:F1_office_N2:3",
+          "floor_1:F1_office_N3:1",
+          "floor_1:F1_office_N3:2",
+          "floor_1:F1_office_N3:2",
+          "floor_1:F1_office_N3:3",
+          "floor_1:F1_office_S1:0",
+          "floor_1:F1_office_S1:0",
+          "floor_1:F1_office_S1:1",
+          "floor_1:F1_office_S1:3",
+          "floor_1:F1_office_S2:0",
+          "floor_1:F1_office_S2:1",
+          "floor_1:F1_office_S3:0",
+          "floor_1:F1_office_S3:1",
+          "floor_1:F1_office_S3:1",
+          "floor_1:F1_office_S3:2",
+          "floor_2:F2_corridor:0",
+          "floor_2:F2_corridor:1",
+          "floor_2:F2_corridor:2",
+          "floor_2:F2_corridor:3",
+          "floor_2:F2_meeting_E:1",
+          "floor_2:F2_meeting_E:2",
+          "floor_2:F2_meeting_E:2",
+          "floor_2:F2_meeting_E:3",
+          "floor_2:F2_meeting_W:0",
+          "floor_2:F2_meeting_W:2",
+          "floor_2:F2_meeting_W:3",
+          "floor_2:F2_meeting_W:3",
+          "floor_2:F2_office_S1:0",
+          "floor_2:F2_office_S1:0",
+          "floor_2:F2_office_S1:1",
+          "floor_2:F2_office_S1:3",
+          "floor_2:F2_office_S2:0",
+          "floor_2:F2_office_S2:1",
+          "floor_2:F2_office_S3:0",
+          "floor_2:F2_office_S3:1",
+          "floor_2:F2_office_S4:0",
+          "floor_2:F2_office_S4:1",
+          "floor_2:F2_office_S4:1",
+          "floor_2:F2_office_S4:2"
+        ],
+        "window_span_refs": [],
+        "promoted_rect_cells_to_polygon": []
+      },
+      "hard_gates": [
+        {
+          "check_id": "correction.envelope_ring_valid",
+          "ok": true
+        },
+        {
+          "check_id": "correction.coverage",
+          "ok": true
+        },
+        {
+          "check_id": "correction.shared_boundary_consistency",
+          "ok": true
+        },
+        {
+          "check_id": "correction.window_host_unique",
+          "ok": true
+        },
+        {
+          "check_id": "correction.facade_segment_binding",
+          "ok": true
+        },
+        {
+          "check_id": "correction.envelope_identity_snapshot",
+          "ok": true
+        },
+        {
+          "check_id": "correction.envelope_bbox_projection",
+          "ok": true
+        },
+        {
+          "check_id": "correction.envelope_topology_preserved",
+          "ok": true
+        }
+      ],
+      "tolerance_name": "ENVELOPE_RECONCILE_TOL",
+      "tolerance_value": 0.3,
+      "attachment_tolerance_name": "ENVELOPE_AXIS_ATTACH_TOL",
+      "attachment_tolerance_value": 0.01,
+      "endpoint_match_tolerance_name": "ENVELOPE_ENDPOINT_MATCH_TOL",
+      "endpoint_match_tolerance_value": 0.05,
+      "changes_topology": false
+    },
+    {
+      "kind": "window_host_resolution",
+      "rule_id": "deterministic_core.window_host_resolver_v1",
+      "stage": "core",
+      "claim_type": "topology_identity",
+      "window_id": "F1_S_w1",
+      "floor_id": "floor_1",
+      "original_room_id": "F1_office_S1",
+      "resolved_room_id": "F1_office_S1",
+      "original_facade_segment_id": null,
+      "resolved_facade_segment_id": "floor_1:facade:121355024686ae32fceeb10835c67904f4b40e529a960083b8edfe4905f5c465",
+      "original_span": {
+        "lo": 3.44,
+        "hi": 4.64
+      },
+      "resolved_span": {
+        "lo": 3.44,
+        "hi": 4.64
+      },
+      "source_ids": [
+        "src:60f71917f0f28fb9431482e03ac02ac7b8f6c64ffbb464116ab72ba15ffa1afe",
+        "src:def876989406b017585bcca0ab6845bcbdd7bb431cfeae318bf26f02c5d0ab95"
+      ],
+      "branch": "plan",
+      "resolution_sha256": "68230f346f2e8735aa2428610ccbb9c82ba0867ee3eaea3942388e890f54fb76",
+      "tolerance_names": [
+        "WINDOW_SEGMENT_ENDPOINT_CLAMP_TOL",
+        "WINDOW_HOST_SPAN_EPSILON",
+        "WINDOW_HOST_PLANE_EPSILON"
+      ],
+      "changes_topology": true
+    },
+    {
+      "kind": "window_host_resolution",
+      "rule_id": "deterministic_core.window_host_resolver_v1",
+      "stage": "core",
+      "claim_type": "topology_identity",
+      "window_id": "F1_S_w2",
+      "floor_id": "floor_1",
+      "original_room_id": "F1_office_S2",
+      "resolved_room_id": "F1_office_S2",
+      "original_facade_segment_id": null,
+      "resolved_facade_segment_id": "floor_1:facade:121355024686ae32fceeb10835c67904f4b40e529a960083b8edfe4905f5c465",
+      "original_span": {
+        "lo": 6.3,
+        "hi": 8.7
+      },
+      "resolved_span": {
+        "lo": 6.3,
+        "hi": 8.7
+      },
+      "source_ids": [
+        "src:028f69cbe15b579cfe94e27016e276de07d67c04416ab40cd7623a4598b3d3cf",
+        "src:5b88c5b26f5be675875afa0f6be542fd8fd185cb66dd025847967de485c4bcf8"
+      ],
+      "branch": "plan",
+      "resolution_sha256": "3a273b8a15c4d10cfc2eb065bb6a6e883102cc590513204d2a86c903436e47f7",
+      "tolerance_names": [
+        "WINDOW_SEGMENT_ENDPOINT_CLAMP_TOL",
+        "WINDOW_HOST_SPAN_EPSILON",
+        "WINDOW_HOST_PLANE_EPSILON"
+      ],
+      "changes_topology": true
+    },
+    {
+      "kind": "window_host_resolution",
+      "rule_id": "deterministic_core.window_host_resolver_v1",
+      "stage": "core",
+      "claim_type": "topology_identity",
+      "window_id": "F1_S_w3",
+      "floor_id": "floor_1",
+      "original_room_id": "F1_office_S3",
+      "resolved_room_id": "F1_office_S3",
+      "original_facade_segment_id": null,
+      "resolved_facade_segment_id": "floor_1:facade:121355024686ae32fceeb10835c67904f4b40e529a960083b8edfe4905f5c465",
+      "original_span": {
+        "lo": 11.36,
+        "hi": 13.76
+      },
+      "resolved_span": {
+        "lo": 11.36,
+        "hi": 13.76
+      },
+      "source_ids": [
+        "src:53fb394296baa5a02afa9ded2829ac93bdccef691f7ec5bc0afa2a936454ee3a",
+        "src:eb2e0ee2cea7a970c466b6fec4d4e57fe8ea88d682d9323f65966c53c9c2a556"
+      ],
+      "branch": "plan",
+      "resolution_sha256": "e35a44281c3434335adda367c63b0f8c53905cdb1f0c530fd74d83822ca387dc",
+      "tolerance_names": [
+        "WINDOW_SEGMENT_ENDPOINT_CLAMP_TOL",
+        "WINDOW_HOST_SPAN_EPSILON",
+        "WINDOW_HOST_PLANE_EPSILON"
+      ],
+      "changes_topology": true
+    },
+    {
+      "kind": "window_host_resolution",
+      "rule_id": "deterministic_core.window_host_resolver_v1",
+      "stage": "core",
+      "claim_type": "topology_identity",
+      "window_id": "F1_N_w1",
+      "floor_id": "floor_1",
+      "original_room_id": "F1_office_N1",
+      "resolved_room_id": "F1_office_N1",
+      "original_facade_segment_id": null,
+      "resolved_facade_segment_id": "floor_1:facade:327996e6f4a7d678e65956ee9a8bb8e0de3c0d122a32cf53f8738c07bd87070a",
+      "original_span": {
+        "lo": 1.24,
+        "hi": 3.64
+      },
+      "resolved_span": {
+        "lo": 1.24,
+        "hi": 3.64
+      },
+      "source_ids": [
+        "src:1f8ab6022727f227488ce8581c4e06d5fd0c3e7cfc22c5b1016e811ab36f3238",
+        "src:fc3a88e6794794343d5d6806de142145efa809cda2a159b5029a32d9582e40df"
+      ],
+      "branch": "plan",
+      "resolution_sha256": "1113c38039b741d099e0cbeea154b58b697bf0a77d2aaab7c17101f1737fad8e",
+      "tolerance_names": [
+        "WINDOW_SEGMENT_ENDPOINT_CLAMP_TOL",
+        "WINDOW_HOST_SPAN_EPSILON",
+        "WINDOW_HOST_PLANE_EPSILON"
+      ],
+      "changes_topology": true
+    },
+    {
+      "kind": "window_host_resolution",
+      "rule_id": "deterministic_core.window_host_resolver_v1",
+      "stage": "core",
+      "claim_type": "topology_identity",
+      "window_id": "F1_N_w2",
+      "floor_id": "floor_1",
+      "original_room_id": "F1_office_N2",
+      "resolved_room_id": "F1_office_N2",
+      "original_facade_segment_id": null,
+      "resolved_facade_segment_id": "floor_1:facade:327996e6f4a7d678e65956ee9a8bb8e0de3c0d122a32cf53f8738c07bd87070a",
+      "original_span": {
+        "lo": 6.3,
+        "hi": 8.7
+      },
+      "resolved_span": {
+        "lo": 6.3,
+        "hi": 8.7
+      },
+      "source_ids": [
+        "src:19156f4383f3d2e415cdc3293c5017602ca68ccac52bd17e254fa34a90b9c966",
+        "src:943fb7e1b48fc8b4015958d1132b581e6e92243847aa5468937442af4ade36e6"
+      ],
+      "branch": "plan",
+      "resolution_sha256": "8ee16f6bce46ddb2c1cb3b76c5fe89390b03777db78a1c9cfd8048ddf74b43b2",
+      "tolerance_names": [
+        "WINDOW_SEGMENT_ENDPOINT_CLAMP_TOL",
+        "WINDOW_HOST_SPAN_EPSILON",
+        "WINDOW_HOST_PLANE_EPSILON"
+      ],
+      "changes_topology": true
+    },
+    {
+      "kind": "window_host_resolution",
+      "rule_id": "deterministic_core.window_host_resolver_v1",
+      "stage": "core",
+      "claim_type": "topology_identity",
+      "window_id": "F1_N_w3",
+      "floor_id": "floor_1",
+      "original_room_id": "F1_office_N3",
+      "resolved_room_id": "F1_office_N3",
+      "original_facade_segment_id": null,
+      "resolved_facade_segment_id": "floor_1:facade:327996e6f4a7d678e65956ee9a8bb8e0de3c0d122a32cf53f8738c07bd87070a",
+      "original_span": {
+        "lo": 11.36,
+        "hi": 13.76
+      },
+      "resolved_span": {
+        "lo": 11.36,
+        "hi": 13.76
+      },
+      "source_ids": [
+        "src:d9f4e99b2f98c16dd0706d4495bd9dfd41f42fe8c4835a25cd78c98876a84d11",
+        "src:ed8c58b9044ca3109c35821eca340013772b4e0716e3d075e82ede7b7c1af81b"
+      ],
+      "branch": "plan",
+      "resolution_sha256": "d315740996253585afb141fdf0537d9d8b983d07f2ab2c9d590eff3f8c1c8918",
+      "tolerance_names": [
+        "WINDOW_SEGMENT_ENDPOINT_CLAMP_TOL",
+        "WINDOW_HOST_SPAN_EPSILON",
+        "WINDOW_HOST_PLANE_EPSILON"
+      ],
+      "changes_topology": true
+    },
+    {
+      "kind": "window_host_resolution",
+      "rule_id": "deterministic_core.window_host_resolver_v1",
+      "stage": "core",
+      "claim_type": "topology_identity",
+      "window_id": "F1_E_w1",
+      "floor_id": "floor_1",
+      "original_room_id": "F1_corridor",
+      "resolved_room_id": "F1_corridor",
+      "original_facade_segment_id": null,
+      "resolved_facade_segment_id": "floor_1:facade:3b268db789d0c17bf026f0e5f8bd710de9b96ed707c8ceca2def06c4e9e1ee68",
+      "original_span": {
+        "lo": 3.4,
+        "hi": 4.6
+      },
+      "resolved_span": {
+        "lo": 3.4,
+        "hi": 4.6
+      },
+      "source_ids": [
+        "src:84829f164a68f7dbd5d4ae1f3ae8d2f831f16fb74e685530e5f7f33be3108ce0",
+        "src:f59db926f268829926af39b1c5e643c6c62a8499b14345d999204b3a7dfe0ab2"
+      ],
+      "branch": "plan",
+      "resolution_sha256": "97e684951daed3e266d2f908ef65b7d26dcd13d0db101ea9fcfbb04f7dd00c62",
+      "tolerance_names": [
+        "WINDOW_SEGMENT_ENDPOINT_CLAMP_TOL",
+        "WINDOW_HOST_SPAN_EPSILON",
+        "WINDOW_HOST_PLANE_EPSILON"
+      ],
+      "changes_topology": true
+    },
+    {
+      "kind": "window_host_resolution",
+      "rule_id": "deterministic_core.window_host_resolver_v1",
+      "stage": "core",
+      "claim_type": "topology_identity",
+      "window_id": "F2_S_w1",
+      "floor_id": "floor_2",
+      "original_room_id": "F2_office_S1",
+      "resolved_room_id": "F2_office_S1",
+      "original_facade_segment_id": null,
+      "resolved_facade_segment_id": "floor_2:facade:121355024686ae32fceeb10835c67904f4b40e529a960083b8edfe4905f5c465",
+      "original_span": {
+        "lo": 2.19,
+        "hi": 3.39
+      },
+      "resolved_span": {
+        "lo": 2.19,
+        "hi": 3.39
+      },
+      "source_ids": [
+        "src:0889d276cd6b348ebe297d6836214d6633144e2666e2bed8d5d7388b00fa9f63",
+        "src:50fc8ba4902a487a82e1c1fbf30ec361079629a2d8bfb195a0775ead250fe2fe"
+      ],
+      "branch": "plan",
+      "resolution_sha256": "fc764e108c170d9870b79ff11b675d1cba315d2126f3a14112798d0ba4ca22ee",
+      "tolerance_names": [
+        "WINDOW_SEGMENT_ENDPOINT_CLAMP_TOL",
+        "WINDOW_HOST_SPAN_EPSILON",
+        "WINDOW_HOST_PLANE_EPSILON"
+      ],
+      "changes_topology": true
+    },
+    {
+      "kind": "window_host_resolution",
+      "rule_id": "deterministic_core.window_host_resolver_v1",
+      "stage": "core",
+      "claim_type": "topology_identity",
+      "window_id": "F2_S_w2",
+      "floor_id": "floor_2",
+      "original_room_id": "F2_office_S2",
+      "resolved_room_id": "F2_office_S2",
+      "original_facade_segment_id": null,
+      "resolved_facade_segment_id": "floor_2:facade:121355024686ae32fceeb10835c67904f4b40e529a960083b8edfe4905f5c465",
+      "original_span": {
+        "lo": 4.11,
+        "hi": 5.31
+      },
+      "resolved_span": {
+        "lo": 4.11,
+        "hi": 5.31
+      },
+      "source_ids": [
+        "src:2d98ba2a1400d9273e046be4a47a29acc455ebd4198c37020de96766e74f1452",
+        "src:443521fcb8d8b3161c4afe480faef13b4355398778d3655ff25d35180398d496"
+      ],
+      "branch": "plan",
+      "resolution_sha256": "bb3664899a025887d08c242f81c1948eade91bef06e93fc49b39860591ff73d9",
+      "tolerance_names": [
+        "WINDOW_SEGMENT_ENDPOINT_CLAMP_TOL",
+        "WINDOW_HOST_SPAN_EPSILON",
+        "WINDOW_HOST_PLANE_EPSILON"
+      ],
+      "changes_topology": true
+    },
+    {
+      "kind": "window_host_resolution",
+      "rule_id": "deterministic_core.window_host_resolver_v1",
+      "stage": "core",
+      "claim_type": "topology_identity",
+      "window_id": "F2_S_w3",
+      "floor_id": "floor_2",
+      "original_room_id": "F2_office_S3",
+      "resolved_room_id": "F2_office_S3",
+      "original_facade_segment_id": null,
+      "resolved_facade_segment_id": "floor_2:facade:121355024686ae32fceeb10835c67904f4b40e529a960083b8edfe4905f5c465",
+      "original_span": {
+        "lo": 9.69,
+        "hi": 10.89
+      },
+      "resolved_span": {
+        "lo": 9.69,
+        "hi": 10.89
+      },
+      "source_ids": [
+        "src:177cad029d471273643c7aeff700575af5797b9e23fd2910bb8b8e8d68b51ca3",
+        "src:4be5437d8e2a5ff04b8b9ee98a0513b35b6da377aabdc4b202b435898bbd457c"
+      ],
+      "branch": "plan",
+      "resolution_sha256": "3118562c17d5f9e059f50b25bca7624e2247d4a07b2abb66820d8b8d9d29b471",
+      "tolerance_names": [
+        "WINDOW_SEGMENT_ENDPOINT_CLAMP_TOL",
+        "WINDOW_HOST_SPAN_EPSILON",
+        "WINDOW_HOST_PLANE_EPSILON"
+      ],
+      "changes_topology": true
+    },
+    {
+      "kind": "window_host_resolution",
+      "rule_id": "deterministic_core.window_host_resolver_v1",
+      "stage": "core",
+      "claim_type": "topology_identity",
+      "window_id": "F2_S_w4",
+      "floor_id": "floor_2",
+      "original_room_id": "F2_office_S4",
+      "resolved_room_id": "F2_office_S4",
+      "original_facade_segment_id": null,
+      "resolved_facade_segment_id": "floor_2:facade:121355024686ae32fceeb10835c67904f4b40e529a960083b8edfe4905f5c465",
+      "original_span": {
+        "lo": 11.61,
+        "hi": 12.81
+      },
+      "resolved_span": {
+        "lo": 11.61,
+        "hi": 12.81
+      },
+      "source_ids": [
+        "src:91fd32d54ab7dc1c1c1e7612a5b357e3f2d26f036639ae24e1f9196730e5da6f",
+        "src:de0b86513f4e7500bd46cb60f8fb902b1ecece8eff9e020f3d94810f3af04e18"
+      ],
+      "branch": "plan",
+      "resolution_sha256": "5d7431fd9bd612b6c5329551a6ad2f084e4e202823120be7869b509d511da98d",
+      "tolerance_names": [
+        "WINDOW_SEGMENT_ENDPOINT_CLAMP_TOL",
+        "WINDOW_HOST_SPAN_EPSILON",
+        "WINDOW_HOST_PLANE_EPSILON"
+      ],
+      "changes_topology": true
+    },
+    {
+      "kind": "window_host_resolution",
+      "rule_id": "deterministic_core.window_host_resolver_v1",
+      "stage": "core",
+      "claim_type": "topology_identity",
+      "window_id": "F2_N_w1",
+      "floor_id": "floor_2",
+      "original_room_id": "F2_meeting_W",
+      "resolved_room_id": "F2_meeting_W",
+      "original_facade_segment_id": null,
+      "resolved_facade_segment_id": "floor_2:facade:327996e6f4a7d678e65956ee9a8bb8e0de3c0d122a32cf53f8738c07bd87070a",
+      "original_span": {
+        "lo": 1.95,
+        "hi": 5.55
+      },
+      "resolved_span": {
+        "lo": 1.95,
+        "hi": 5.55
+      },
+      "source_ids": [
+        "src:1b9c8f22a1a199ebd07139e39ef52cdc24ec698a35dcc7ce739e0f61c1c760f9",
+        "src:7ae50d1410687daacf6dc42ac7653e0fe3129e7293a8a31cd61ba273ec55258e"
+      ],
+      "branch": "plan",
+      "resolution_sha256": "7da1e09e947fc00ac62f2edec0bcf1fbe975cbe447b7a76c8f2464d0d3da9e9a",
+      "tolerance_names": [
+        "WINDOW_SEGMENT_ENDPOINT_CLAMP_TOL",
+        "WINDOW_HOST_SPAN_EPSILON",
+        "WINDOW_HOST_PLANE_EPSILON"
+      ],
+      "changes_topology": true
+    },
+    {
+      "kind": "window_host_resolution",
+      "rule_id": "deterministic_core.window_host_resolver_v1",
+      "stage": "core",
+      "claim_type": "topology_identity",
+      "window_id": "F2_N_w2",
+      "floor_id": "floor_2",
+      "original_room_id": "F2_meeting_E",
+      "resolved_room_id": "F2_meeting_E",
+      "original_facade_segment_id": null,
+      "resolved_facade_segment_id": "floor_2:facade:327996e6f4a7d678e65956ee9a8bb8e0de3c0d122a32cf53f8738c07bd87070a",
+      "original_span": {
+        "lo": 9.45,
+        "hi": 13.05
+      },
+      "resolved_span": {
+        "lo": 9.45,
+        "hi": 13.05
+      },
+      "source_ids": [
+        "src:2208f125f4a327d3c35be97410c9a3446ec51e8154508434af2425e800ffb13a",
+        "src:e9c9accf0e4d034132b3120d374fd4d58d900b019a5a26de3a07dc937df2c41b"
+      ],
+      "branch": "plan",
+      "resolution_sha256": "4ebd10fff14cf4b1b137ba1cef0c931ab121cc1ec29cc6e4acf5d31af4463017",
+      "tolerance_names": [
+        "WINDOW_SEGMENT_ENDPOINT_CLAMP_TOL",
+        "WINDOW_HOST_SPAN_EPSILON",
+        "WINDOW_HOST_PLANE_EPSILON"
+      ],
+      "changes_topology": true
+    },
+    {
+      "kind": "window_host_resolution",
+      "rule_id": "deterministic_core.window_host_resolver_v1",
+      "stage": "core",
+      "claim_type": "topology_identity",
+      "window_id": "F2_E_w1",
+      "floor_id": "floor_2",
+      "original_room_id": "F2_corridor",
+      "resolved_room_id": "F2_corridor",
+      "original_facade_segment_id": null,
+      "resolved_facade_segment_id": "floor_2:facade:3b268db789d0c17bf026f0e5f8bd710de9b96ed707c8ceca2def06c4e9e1ee68",
+      "original_span": {
+        "lo": 3.4,
+        "hi": 4.6
+      },
+      "resolved_span": {
+        "lo": 3.4,
+        "hi": 4.6
+      },
+      "source_ids": [
+        "src:4762afc7d208add34b5937c44620867068c04e202d0550e16cf3fa6dd25063bd",
+        "src:fd441a53bc2739c79f937a5c7ca3005d7c024ea86cc5d31de09306a7aa0da36a"
+      ],
+      "branch": "plan",
+      "resolution_sha256": "567f910342856a181761a5b26146952907daeb598324a9d664c7a6c69b0861fd",
+      "tolerance_names": [
+        "WINDOW_SEGMENT_ENDPOINT_CLAMP_TOL",
+        "WINDOW_HOST_SPAN_EPSILON",
+        "WINDOW_HOST_PLANE_EPSILON"
+      ],
+      "changes_topology": true
+    },
+    {
+      "kind": "window_host_resolution",
+      "rule_id": "deterministic_core.window_host_resolver_v1",
+      "stage": "core",
+      "claim_type": "topology_identity",
+      "window_id": "F2_W_w1",
+      "floor_id": "floor_2",
+      "original_room_id": "F2_corridor",
+      "resolved_room_id": "F2_corridor",
+      "original_facade_segment_id": null,
+      "resolved_facade_segment_id": "floor_2:facade:f93561c1a634de26972b6a62a23157d4fbc226db55b7723dac46a69eb2dcf821",
+      "original_span": {
+        "lo": 3.4,
+        "hi": 4.6
+      },
+      "resolved_span": {
+        "lo": 3.4,
+        "hi": 4.6
+      },
+      "source_ids": [
+        "src:3ad92937462931dd77c11839243ae0184800ee93011b5edc3e64995617438ea3",
+        "src:3e66366ede90aade91175ffdca013351d880ae4f67c8d5d88357a2f79bf82ab5"
+      ],
+      "branch": "plan",
+      "resolution_sha256": "9eb674dd3b2de397caced26a4c07b7a3a8e7cfd12660799289bd06d991c4b610",
+      "tolerance_names": [
+        "WINDOW_SEGMENT_ENDPOINT_CLAMP_TOL",
+        "WINDOW_HOST_SPAN_EPSILON",
+        "WINDOW_HOST_PLANE_EPSILON"
+      ],
+      "changes_topology": true
+    }
+  ],
+  "conflicts": [
+    {
+      "id": "CONF-1f-dim-debt",
+      "stage": "A3-resolve",
+      "method_profile": "room_identity",
+      "entity_type": "dimension_chain",
+      "entity_id": "1f_view.reading.dimension_chain_closure",
+      "floor_id": null,
+      "coordinate_frame": "plan_local",
+      "unit": "m",
+      "conflict_type": "checksum_failure",
+      "claim_type": "numeric",
+      "candidates": [
+        {
+          "value": "segment_sum_14.76_vs_overall_15.00",
+          "source_ids": [
+            "1f_view/D1",
+            "1f_view/D2",
+            "1f_view/D3",
+            "1f_view/D4",
+            "1f_view/D5",
+            "1f_view/D6",
+            "1f_view/D7",
+            "1f_view/D8",
+            "1f_view/D9",
+            "1f_view/D10"
+          ],
+          "evidence_grade": "transcribed_dimension",
+          "confidence": "high"
+        }
+      ],
+      "reason_unresolved": "Preflight flagged C_top mismatch and missing overall entries for C_bottom/C_right. Correction used reading-note unannotated wall bands only where explicitly identified; otherwise the debt remains unresolved.",
+      "fallback_action": "Kept resolved centerline axes and recorded this reading evidence debt as an unresolved conflict.",
+      "debt_id": "423612129c77ec5dc10cbaea08d1ec4bc49cf1cafa370d958329f2f36ad61461",
+      "view": "1f_view"
+    },
+    {
+      "id": "CONF-2f-dim-debt",
+      "stage": "A3-resolve",
+      "method_profile": "room_identity",
+      "entity_type": "dimension_chain",
+      "entity_id": "2f_view.reading.dimension_chain_closure",
+      "floor_id": null,
+      "coordinate_frame": "plan_local",
+      "unit": "m",
+      "conflict_type": "checksum_failure",
+      "claim_type": "numeric",
+      "candidates": [
+        {
+          "value": "segment_sum_14.88_vs_overall_15.00",
+          "source_ids": [
+            "2f_view/D1",
+            "2f_view/D2",
+            "2f_view/D3",
+            "2f_view/D4",
+            "2f_view/D5",
+            "2f_view/D6",
+            "2f_view/D7"
+          ],
+          "evidence_grade": "transcribed_dimension",
+          "confidence": "high"
+        }
+      ],
+      "reason_unresolved": "Preflight flagged C_top mismatch and missing overall entries for C_bottom/C_right. Correction used reading-note unannotated wall band only where explicitly identified; otherwise the debt remains unresolved.",
+      "fallback_action": "Kept resolved centerline axes and recorded this reading evidence debt as an unresolved conflict.",
+      "debt_id": "7bfbffb665842fdc3efbc6f980171c2c5c7081b0c2c44f7eecad7fd1a5e436ad",
+      "view": "2f_view"
+    },
+    {
+      "id": "CONF-east-dim-debt",
+      "stage": "A3-resolve",
+      "method_profile": "room_identity",
+      "entity_type": "dimension_chain",
+      "entity_id": "East_view.reading.dimension_chain_closure",
+      "floor_id": null,
+      "coordinate_frame": "facade_local",
+      "unit": "m",
+      "conflict_type": "checksum_failure",
+      "claim_type": "numeric",
+      "candidates": [
+        {
+          "value": "incomplete_C_bottom_and_C_left_detail",
+          "source_ids": [
+            "East_view/D5",
+            "East_view/D11",
+            "East_view/D12",
+            "East_view/D13",
+            "East_view/D14",
+            "East_view/D15",
+            "East_view/D16"
+          ],
+          "evidence_grade": "transcribed_dimension",
+          "confidence": "high"
+        }
+      ],
+      "reason_unresolved": "Preflight flagged incomplete dimension-chain evidence: C_bottom overall-only, C_left_detail segment-only.",
+      "fallback_action": "Kept elevation-derived window z values from the explicit detail chain where complete, and recorded the reading debt as unresolved.",
+      "debt_id": "4628d843456e921cbb027124bded743198e3b33ac2086c875f2027727d951916",
+      "view": "East_view"
+    },
+    {
+      "id": "CONF-north-dim-debt",
+      "stage": "A3-resolve",
+      "method_profile": "room_identity",
+      "entity_type": "dimension_chain",
+      "entity_id": "North_view.reading.dimension_chain_closure",
+      "floor_id": null,
+      "coordinate_frame": "facade_local",
+      "unit": "m",
+      "conflict_type": "checksum_failure",
+      "claim_type": "numeric",
+      "candidates": [
+        {
+          "value": "incomplete_C_left_detail",
+          "source_ids": [
+            "North_view/D17",
+            "North_view/D18",
+            "North_view/D19",
+            "North_view/D20",
+            "North_view/D21",
+            "North_view/D22"
+          ],
+          "evidence_grade": "transcribed_dimension",
+          "confidence": "high"
+        }
+      ],
+      "reason_unresolved": "Preflight flagged C_left_detail as segment-only/incomplete.",
+      "fallback_action": "Kept elevation-derived window z values from the explicitly present segments and recorded the reading debt as unresolved.",
+      "debt_id": "489e93c4c4b61fe89fd822d05d7bf2c5a67c0b43d70487e4be691a27b951c880",
+      "view": "North_view"
+    },
+    {
+      "id": "CONF-south-dim-debt",
+      "stage": "A3-resolve",
+      "method_profile": "room_identity",
+      "entity_type": "dimension_chain",
+      "entity_id": "South_view.reading.dimension_chain_closure",
+      "floor_id": null,
+      "coordinate_frame": "facade_local",
+      "unit": "m",
+      "conflict_type": "checksum_failure",
+      "claim_type": "numeric",
+      "candidates": [
+        {
+          "value": "incomplete_detail_and_right_chains",
+          "source_ids": [
+            "South_view/D22",
+            "South_view/D23",
+            "South_view/D24",
+            "South_view/D25",
+            "South_view/D26",
+            "South_view/D27",
+            "South_view/D28",
+            "South_view/D28b",
+            "South_view/D29",
+            "South_view/D30",
+            "South_view/D30b",
+            "South_view/D31",
+            "South_view/D32",
+            "South_view/D33"
+          ],
+          "evidence_grade": "transcribed_dimension",
+          "confidence": "high"
+        }
+      ],
+      "reason_unresolved": "Preflight flagged multiple South elevation chains as incomplete.",
+      "fallback_action": "Kept explicitly dimensioned window z values and recorded the reading debt as unresolved.",
+      "debt_id": "08ef8075f11900f93f6d62aedc6062099b0f7b7a9f9dd3229049a44017049360",
+      "view": "South_view"
+    },
+    {
+      "id": "CONF-west-dim-debt",
+      "stage": "A3-resolve",
+      "method_profile": "room_identity",
+      "entity_type": "dimension_chain",
+      "entity_id": "West_view.reading.dimension_chain_closure",
+      "floor_id": null,
+      "coordinate_frame": "facade_local",
+      "unit": "m",
+      "conflict_type": "checksum_failure",
+      "claim_type": "numeric",
+      "candidates": [
+        {
+          "value": "incomplete_C_bottom_and_C_left_detail",
+          "source_ids": [
+            "West_view/D5",
+            "West_view/D11",
+            "West_view/D12",
+            "West_view/D13",
+            "West_view/D14"
+          ],
+          "evidence_grade": "transcribed_dimension",
+          "confidence": "high"
+        }
+      ],
+      "reason_unresolved": "Preflight flagged West elevation chains as incomplete.",
+      "fallback_action": "Kept explicitly dimensioned window z values and recorded the reading debt as unresolved.",
+      "debt_id": "f905addb8d53e8f8870f871434348f028e5604353569e4c6a4d817d547676f39",
+      "view": "West_view"
+    }
+  ],
+  "unsupported": [],
+  "orientation": {
+    "schema_version": "1",
+    "base_correction_sha256": "2c49c7bb66a45352d7f1b92b3737951ec8e39d4ba06e07836b04936640272a70",
+    "orientation_resolution_sha256": "1031db451afe2195509de420d9b6a03f10deaeabfdc407effbcd582a7dc3d27d",
+    "resolution_kind": "prior_fill_assumed_zero",
+    "north_axis": {
+      "value_deg": 0.0,
+      "provenance": "assumed",
+      "source_ids": [],
+      "uncertainty_deg": null,
+      "method": "prior_fill_default_zero_v1",
+      "frame_transform_hash": null
+    },
+    "assumption_audit": {
+      "kind": "north_axis_assumption",
+      "value_deg": 0.0,
+      "completion_mode": "prior_fill",
+      "evidence_candidate_count": 0,
+      "policy_ref": "c2_e4.north_axis.default_zero.v1",
+      "knowledge_ref": null,
+      "knowledge_ref_na_reason": "policy_default_not_knowledge_lookup"
+    }
+  }
+}

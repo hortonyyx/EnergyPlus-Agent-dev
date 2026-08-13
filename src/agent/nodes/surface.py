@@ -41,10 +41,23 @@ The only "work" you do on a vertex is copy it — no arithmetic.
 2. THEN call `list_constructions` to discover the exact construction
    names and their layer composition (helps you match the right
    construction to each surface type — wall / floor / roof / window).
-3. Create each surface via `create_surface`, reusing zone/construction
-   names verbatim and transcribing surface_specs' own vertex list for
-   that surface exactly (same coordinates, same order).
-4. Call `list_surfaces` once at the end to confirm.
+3. Create ALL surfaces via `create_surfaces_batch` in ONE call (do not
+   loop `create_surface` one surface at a time — buildings can have
+   dozens to hundreds of surfaces, and a long run of sequential
+   single-surface calls builds a conversation history too large for some
+   providers to accept). Pass one item per surface_specs entry in the
+   `items` list, each item using the same fields `create_surface` takes
+   (`name`, `surface_type`, `construction_name`, `zone_name`,
+   `outside_boundary_condition`, `vertices`, and optionally
+   `sun_exposure`, `wind_exposure`, `outside_boundary_condition_object`),
+   reusing zone/construction names verbatim and transcribing each
+   surface's own vertex list from surface_specs exactly (same
+   coordinates, same order). If surface_specs is very long, you may split
+   it into a few `create_surfaces_batch` calls (e.g. by floor) — just
+   avoid one call per surface. Use single-item `create_surface` only to
+   retry/fix an individual surface reported in `failed`.
+4. Call `list_surfaces` once at the end to confirm all surfaces were
+   created; if any are missing, use `create_surface` to add just those.
 
 ## Rules
 
