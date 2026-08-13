@@ -1680,3 +1680,132 @@ def test_resolve_core_proof_for_attempt_non_accepted_attempt_returns_none(tmp_pa
     assert rs._resolve_core_proof_for_attempt("1_correction", other) is None
     # sanity: the ACCEPTED one still resolves fine.
     assert rs._resolve_core_proof_for_attempt("1_correction", attempt) is not None
+
+
+# =========================================================================== #
+# F-22 BLOCKER-1 cache closure (2026-08-13): a score sidecar is an output
+# cache, never a substitute for resolving the proof on this scoring call.
+# These use a real StageRunner.record B5 attempt and the production judge
+# entry point, rather than constructing manifest/proof-shaped test data.
+# =========================================================================== #
+def _score_accepted_b5_through_production_entry(tmp_path: Path, attempt: Path):
+    import scripts.tool_scripts.run_stage as rs
+    from src.agent.judge.gt import load_gt
+
+    return rs._judge_gt_artifacts(
+        "1_correction", "sm21_anchor", tmp_path, attempt, load_gt("sm21_anchor"),
+    )
+
+
+def test_lock_cache_hits_when_current_accepted_proof_is_unchanged(tmp_path: Path, monkeypatch):
+    """Positive lock: current verified proof unchanged means a real cache hit."""
+    from functools import wraps
+    import scripts.tool_scripts.run_stage as rs
+
+    _bundle_obj, _manifest, _record, attempt = _accepted(tmp_path)
+    first = _score_accepted_b5_through_production_entry(tmp_path, attempt)
+    sidecar = json.loads(Path(first["score_vs_gt"]).read_text(encoding="utf-8"))
+    assert sidecar["output_convention"]["trusted"] is True
+    assert set(sidecar["accepted_proof_identity"]) == {
+        "proof_bytes_sha256", "accepted_record_sha256",
+    }
+
+    calls: list[bool] = []
+    real_score = rs._score_attempt_output
+
+    @wraps(real_score)
+    def spy(stage, output, gt, *, grade, core_proof=None):
+        calls.append(True)
+        return real_score(stage, output, gt, grade=grade, core_proof=core_proof)
+
+    monkeypatch.setattr(rs, "_score_attempt_output", spy)
+    second = _score_accepted_b5_through_production_entry(tmp_path, attempt)
+    assert calls == [], "unchanged current proof must reuse the cached score"
+    assert second["score_criteria"] == first["score_criteria"]
+
+
+def test_lock_historical_cache_bypass_self_proves_then_current_proof_misses(tmp_path: Path, monkeypatch):
+    """Self-proving premise plus negative lock using the same production entry.
+
+    The first half reinstates the exact pre-fix predicate only in this test:
+    it establishes that this real B5 fixture genuinely exhibits sol's stale
+    trusted-cache counterexample.  The second half restores production code
+    and proves the same call now misses and records refusal.
+    """
+    from functools import wraps
+    import scripts.tool_scripts.run_stage as rs
+
+    _bundle_obj, _manifest, _record, attempt = _accepted(tmp_path)
+    first = _score_accepted_b5_through_production_entry(tmp_path, attempt)
+    assert json.loads(Path(first["score_vs_gt"]).read_text(encoding="utf-8"))["output_convention"]["trusted"] is True
+    (attempt / "deterministic_core_proof.json").unlink()
+    assert rs._resolve_core_proof_for_attempt("1_correction", attempt) is None
+
+    # This is the pre-fix `_load_valid_score_sidecar` predicate, including
+    # the then-current scoring_semantics field but excluding proof identity.
+    def historical_loader(sidecar_path, *, stage, attempt, output_hash, tolerances,
+                          scoring_semantics, accepted_proof_identity):
+        data = json.loads(sidecar_path.read_text(encoding="utf-8"))
+        if (
+            data.get("stage") == stage
+            and data.get("attempt") == attempt
+            and data.get("output_hash") == output_hash
+            and data.get("source") == "attempt_output"
+            and data.get("scorer_schema") == rs.LEGACY_SCORE_CACHE_SCHEMA
+            and data.get("tolerances") == tolerances
+            and data.get("scoring_semantics") == scoring_semantics
+        ):
+            return data
+        return None
+
+    calls: list[bool] = []
+    real_score = rs._score_attempt_output
+
+    @wraps(real_score)
+    def spy(stage, output, gt, *, grade, core_proof=None):
+        calls.append(True)
+        return real_score(stage, output, gt, grade=grade, core_proof=core_proof)
+
+    original_loader = rs._load_valid_score_sidecar
+    monkeypatch.setattr(rs, "_score_attempt_output", spy)
+    monkeypatch.setattr(rs, "_load_valid_score_sidecar", historical_loader)
+    historical = _score_accepted_b5_through_production_entry(tmp_path, attempt)
+    assert calls == [], "self-proving premise failed: historical cache did not bypass proof"
+    assert json.loads(Path(historical["score_vs_gt"]).read_text(encoding="utf-8"))["output_convention"]["trusted"] is True
+
+    monkeypatch.setattr(rs, "_load_valid_score_sidecar", original_loader)
+    current = _score_accepted_b5_through_production_entry(tmp_path, attempt)
+    current_sidecar = json.loads(Path(current["score_vs_gt"]).read_text(encoding="utf-8"))
+    assert calls == [True], "missing current proof must force a cache miss and rescore"
+    assert current_sidecar["output_convention"]["trusted"] is False
+    assert current_sidecar["accepted_proof_identity"] is None
+
+
+@pytest.mark.parametrize("damage", ["delete", "alter"])
+def test_lock_current_missing_or_altered_proof_cannot_reuse_trusted_cache(tmp_path: Path, monkeypatch, damage: str):
+    """Negative lock: an unavailable current proof always recomputes refusal."""
+    from functools import wraps
+    import scripts.tool_scripts.run_stage as rs
+
+    _bundle_obj, _manifest, _record, attempt = _accepted(tmp_path)
+    _score_accepted_b5_through_production_entry(tmp_path, attempt)
+    proof_path = attempt / "deterministic_core_proof.json"
+    if damage == "delete":
+        proof_path.unlink()
+    else:
+        proof_path.write_bytes(proof_path.read_bytes() + b"\n")
+    assert rs._resolve_core_proof_for_attempt("1_correction", attempt) is None
+
+    calls: list[bool] = []
+    real_score = rs._score_attempt_output
+
+    @wraps(real_score)
+    def spy(stage, output, gt, *, grade, core_proof=None):
+        calls.append(True)
+        return real_score(stage, output, gt, grade=grade, core_proof=core_proof)
+
+    monkeypatch.setattr(rs, "_score_attempt_output", spy)
+    result = _score_accepted_b5_through_production_entry(tmp_path, attempt)
+    sidecar = json.loads(Path(result["score_vs_gt"]).read_text(encoding="utf-8"))
+    assert calls == [True]
+    assert sidecar["output_convention"]["trusted"] is False

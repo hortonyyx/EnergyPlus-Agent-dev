@@ -188,8 +188,8 @@ def _is_trusted_output_convention(
     windows' host-resolved half). "这个字段,被评判的一方能不能自己写?能写=>
     最多叫declared,绝不能叫trusted" (2026-08-13 dispatch's guiding question).
 
-    Trust now additionally requires an EXTERNALLY issued
-    `DeterministicCoreProofV1` (deterministic.py) — signed by
+    Trust now additionally requires a writer-issued
+    `DeterministicCoreProofV1` (deterministic.py) — issued by
     `StageRunner.record`'s B5 write path ONLY after it independently
     replayed the core from the candidate's own re-verified raw producer
     bytes and confirmed the replay's `core_owned_projection_v1` byte-matches
@@ -198,10 +198,10 @@ def _is_trusted_output_convention(
 
     1. `_is_declared_output_convention(geom)` — the self-report must still be
        internally plausible (a broken/absent stamp is refused regardless of
-       any proof supplied — a valid external proof for some OTHER, correct
+       any proof supplied — a valid writer-issued proof for some OTHER, correct
        geometry can never rescue a candidate whose own self-report is
        broken; this is a floor, not a substitute for the proof check).
-    2. `core_proof is not None` — an external proof was actually supplied.
+    2. `core_proof is not None` — a writer-issued proof was actually supplied.
        The caller (judge-side scoring entry point, which HAS run/manifest
        context this function deliberately does not) is responsible for
        resolving a proof ONLY from an accepted manifest record's
@@ -211,7 +211,7 @@ def _is_trusted_output_convention(
        run/manifest; a bare dict/`CorrectedGeometry` with no `core_proof`
        argument can therefore never be more than `declared`.
     3. `core_proof.core_version == deterministic_module.DETERMINISTIC_CORE_STAMP_VERSION`
-       — the proof was signed under the CURRENTLY live core revision, not a
+       — the proof was issued under the CURRENTLY live core revision, not a
        stale one (mirrors the stamp check, but against the proof's own
        recorded version, so a bump to the live constant untrusts BOTH the
        self-report and any previously issued proof, with no fallback).
@@ -530,7 +530,7 @@ def score_correction_geometry(
     # F-22 BLOCKER-1 round 2 (2026-08-13): identity is a property of the
     # whole product (schema version), not per-floor, so compute both the
     # `declared` (self-report) and `trusted` (self-report + independently
-    # verified external proof) decisions once and record them
+    # verified writer-issued proof) decisions once and record them
     # unconditionally — this is the sidecar-visible provenance the
     # user-ratified fix requires (§3 point 3), independent of whether any
     # floor ends up flagged. `core_proof` is deliberately the ONLY run/
@@ -557,7 +557,7 @@ def score_correction_geometry(
         # "schema_version" would misdiagnose the exact case this fix exists
         # for: a real schema-v3 product that fails ONLY because it predates
         # the unconditional stamp, or one that self-reports fine but was
-        # never handed a verified external proof — "schema_version does not
+        # never handed a verified writer-issued proof — "schema_version does not
         # qualify" would be false for either.
         stamp = getattr(geom, "deterministic_core_stamp", None)
         stamp_version = getattr(stamp, "version", None)
@@ -588,23 +588,23 @@ def score_correction_geometry(
         elif core_proof is None:
             core_stamp_reason = (
                 "this product self-reports a matching deterministic_core_stamp "
-                "(declared=True), but no externally issued "
+                "(declared=True), but no writer-issued "
                 "deterministic_core_proof was supplied for this attempt (F-22 "
                 "BLOCKER-1 round 2, 2026-08-13) — a self-reported stamp is a "
                 "product-writable claim, not proof; trust requires a proof "
-                "signed by the writer's independent core replay and bound to "
+                "issued after the writer's independent core replay and bound to "
                 "this attempt's accepted manifest record"
             )
         elif core_proof.core_version != deterministic_module.DETERMINISTIC_CORE_STAMP_VERSION:
             core_stamp_reason = (
-                f"an externally issued deterministic_core_proof was supplied, "
+                f"a writer-issued deterministic_core_proof was supplied, "
                 f"but its core_version {core_proof.core_version!r} does not "
                 f"match the currently trusted core version "
                 f"{deterministic_module.DETERMINISTIC_CORE_STAMP_VERSION!r}"
             )
         else:
             core_stamp_reason = (
-                "an externally issued deterministic_core_proof was supplied "
+                "a writer-issued deterministic_core_proof was supplied "
                 "and its declared core_version matches, but its "
                 "core_projection_hash does not match this artifact's own "
                 "independently recomputed core-owned projection — either the "

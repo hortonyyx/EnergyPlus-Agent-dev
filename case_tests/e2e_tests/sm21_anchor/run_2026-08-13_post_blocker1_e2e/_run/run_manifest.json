@@ -1,0 +1,122 @@
+{
+  "case": "run_2026-08-13_post_blocker1_e2e",
+  "manifest_version": "2",
+  "run_id": "f4c496c74a1d84af484805b174823db4",
+  "run_inputs": {
+    "view_manifest_sha256": "f52ca79c1bcacaf8fccc9436e165b4bfdc08814ec770370dd1acefd76b6e493e"
+  },
+  "stages": {
+    "1_correction": {
+      "stage": "1_correction",
+      "accepted_attempt": 2,
+      "output_hash": "12c4bfc9bae322ef36e67103f8132cf7ebbc9ac3f891a5315e4af34af6b584cb",
+      "input_hashes": {
+        "base_correction": "3aa3851b916083018e0fb72d123626bfa1a79873ad3dd4a265d126247d106879",
+        "orientation_evidence_set": "f271412adae023c412cafebf2d7f72bf2e21096110ef17edede9168a52fbf78f",
+        "orientation_resolution": "7a81d5a3fe3a61e866775058f43435befe03ef03cffac6a17c45152445e8c33b",
+        "run_config": "d941e6c2d4d8db1b96eec492e95b1b0e5837ae09514c351a349bd2a5a5cf8aca"
+      },
+      "stage_version": "4",
+      "check_version": "1",
+      "capability": "stochastic",
+      "check_passed": true,
+      "record_schema_version": "2",
+      "artifact_contract": "correction_b5_orientation_v1",
+      "artifact_hashes": {
+        "output": "12c4bfc9bae322ef36e67103f8132cf7ebbc9ac3f891a5315e4af34af6b584cb",
+        "checks": "bf3a3f18d4e205ed8eda22648cd669ddd01df5cd19d63642a4fc70e8ac544354",
+        "audit": "c35e087942157c3c4284da407963ddec3a22349cc657490bff686cbc851e039f",
+        "feature_states": "488ac228afaf9048ba89869cbafff04f94d9e662b131c9d9bf0d1b3717c9e82d",
+        "window_resolver_inputs": "185c7bd39b6af55ce1d27d62f84359123a7b3520ed831d5c34f30c2b374abf2e",
+        "window_hosts": "d61a6b94d03a05546fed10d92be6babbdce3589ce47c8c1fa1e2de3cb728b390",
+        "deterministic_core_proof": "e20014e511928fb672a946d996cb0965877118426c514522720937e108beebb4"
+      }
+    },
+    "2_modelling": {
+      "stage": "2_modelling",
+      "accepted_attempt": 1,
+      "output_hash": "f84c9bc17709237cfc5f683076a94181d26556a44403521e49b8bc0caaf4f332",
+      "input_hashes": {},
+      "stage_version": "1",
+      "check_version": "1",
+      "capability": "deterministic",
+      "check_passed": true,
+      "record_schema_version": "2",
+      "artifact_contract": "base_v2",
+      "artifact_hashes": {
+        "output": "f84c9bc17709237cfc5f683076a94181d26556a44403521e49b8bc0caaf4f332",
+        "checks": "d3f3a4eadb258314175c3a8ccf8c3a9db443e276d33479078514483339bd812b"
+      }
+    },
+    "3_split_pairing": {
+      "stage": "3_split_pairing",
+      "accepted_attempt": 1,
+      "output_hash": "ac8bb74b0fd5ae171aabbe78d10d7b3515eceaec6ea199d6f496ab2c986d3f93",
+      "input_hashes": {},
+      "stage_version": "1",
+      "check_version": "1",
+      "capability": "deterministic",
+      "check_passed": true,
+      "record_schema_version": "2",
+      "artifact_contract": "base_v2",
+      "artifact_hashes": {
+        "output": "ac8bb74b0fd5ae171aabbe78d10d7b3515eceaec6ea199d6f496ab2c986d3f93",
+        "checks": "33ca8b816521004b68c62c5bb94807bb78988338f2a292a18a969fb060994158"
+      }
+    },
+    "4_mep": {
+      "stage": "4_mep",
+      "accepted_attempt": 2,
+      "output_hash": "e1e06e4a43f047bc81811f0bbddaef5ac85cccbbd0863034bab4965b694ee3e0",
+      "input_hashes": {},
+      "stage_version": "1",
+      "check_version": "1",
+      "capability": "stochastic",
+      "check_passed": true,
+      "record_schema_version": "2",
+      "artifact_contract": "base_v2",
+      "artifact_hashes": {
+        "output": "e1e06e4a43f047bc81811f0bbddaef5ac85cccbbd0863034bab4965b694ee3e0",
+        "checks": "bb0c0711de04ae39fdfce07aecc7c1e0931c5306786fef6b8efd972901d948fb"
+      }
+    },
+    "5_intakeoutput": {
+      "stage": "5_intakeoutput",
+      "accepted_attempt": 1,
+      "output_hash": "f196a8dc8bbf84f2dcb2c1120d4cf2224cd6c0c24a547e4be27e2e3b515e5a47",
+      "input_hashes": {
+        "1_correction": "12c4bfc9bae322ef36e67103f8132cf7ebbc9ac3f891a5315e4af34af6b584cb",
+        "4_mep": "e1e06e4a43f047bc81811f0bbddaef5ac85cccbbd0863034bab4965b694ee3e0"
+      },
+      "stage_version": "1",
+      "check_version": "1",
+      "capability": "deterministic",
+      "check_passed": true,
+      "record_schema_version": "2",
+      "artifact_contract": "assembly_e4_v1",
+      "artifact_hashes": {
+        "output": "f196a8dc8bbf84f2dcb2c1120d4cf2224cd6c0c24a547e4be27e2e3b515e5a47",
+        "checks": "0a4b6aa856072a8b949971d3d09c7b2aa62610c5c879da03e86e1228feb0a30e",
+        "audit": "9154d4079a538af91f22e7cf50a80a8b47b77127b8801a58640f6bb8190db5d5",
+        "output_coordinate_contract": "621246002a329e0bce4fabf2e84068d49d774fdde24411f207169c239cf1af51",
+        "output_coordinate_snapshot": "6264ea83d54156d9c20024ffc63f2078faaf29ab1b79443d51a3966b6b5d7a71"
+      }
+    },
+    "0_reading": {
+      "stage": "0_reading",
+      "accepted_attempt": 1,
+      "output_hash": "a99329cf27edb51e544f3eb5545fe2fb21e1d0cdec99e2bf79f88dfeced286a5",
+      "input_hashes": {},
+      "stage_version": "1",
+      "check_version": "1",
+      "capability": "manual",
+      "check_passed": true,
+      "record_schema_version": "2",
+      "artifact_contract": "base_v2",
+      "artifact_hashes": {
+        "output": "a99329cf27edb51e544f3eb5545fe2fb21e1d0cdec99e2bf79f88dfeced286a5",
+        "checks": "848835fea1c7e25ee4ae51f34e968f26395618ab136d388f5d4387795f002127"
+      }
+    }
+  }
+}

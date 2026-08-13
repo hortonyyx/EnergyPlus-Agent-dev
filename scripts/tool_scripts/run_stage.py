@@ -25,7 +25,10 @@ and report/REPORT.md.
 from __future__ import annotations
 
 import argparse
+import hashlib
+import inspect
 import json
+import marshal
 import os
 import shutil
 import sys
@@ -102,7 +105,7 @@ _STAGES = ["0_reading", "1_correction", "2_modelling", "3_split_pairing",
 #   independent of `trusted`). A v10-or-earlier cached sidecar may have
 #   `trusted=True` under the OLD (now-forgeable) rule and lacks `declared`
 #   entirely -- it must not be reused; every accepted B5 attempt needs a
-#   rerun through the write path (which now also signs
+#   rerun through the write path (which now also issues
 #   `deterministic_core_proof.json`) to regain a trusted score.
 #
 #   F-24 (2026-08-13, sol re-review of the round-2 fix above): this hand-
@@ -155,7 +158,38 @@ def _current_scoring_semantics_identity() -> dict:
     return {
         "core_stamp_version": deterministic_module.DETERMINISTIC_CORE_STAMP_VERSION,
         "output_convention": correction_score_module.CORRECTION_OUTPUT_CONVENTION,
+        # F-24 follow-up (2026-08-13): constants alone do not identify the
+        # implementation that consumes them.  Derive this from the current
+        # scorer code, so replacing an implementation changes the cache
+        # predicate without a separately maintained version declaration.
+        "scorer_implementation_sha256": _scorer_implementation_sha256(),
     }
+
+
+def _scorer_implementation_sha256() -> str:
+    """Hash the live legacy scoring implementation, not a declared version.
+
+    The three functions are the legacy scoring dispatch, its evaluator, and
+    the correction scorer that decides trusted output convention.  Their code
+    objects are unwrapped first so observational decorators do not turn a
+    cache hit into a miss, while replacing any implementation changes this
+    value.  ``marshal`` serializes code objects for an interpreter-local
+    identity; a Python/compiler change safely over-invalidates old sidecars.
+    """
+    import src.agent.judge.correction_score as correction_score_module
+
+    implementations = (
+        _score_attempt_output,
+        _legacy_score_attempt_output,
+        correction_score_module.score_correction_geometry,
+    )
+    digests: list[str] = []
+    for implementation in implementations:
+        code = getattr(inspect.unwrap(implementation), "__code__", None)
+        if code is None:
+            raise TypeError("legacy scorer implementation has no Python code object")
+        digests.append(hashlib.sha256(marshal.dumps(code)).hexdigest())
+    return hashlib.sha256("\n".join(digests).encode("ascii")).hexdigest()
 
 
 FLOW_EXIT_OK = 0
@@ -1467,9 +1501,15 @@ def _unwrap_reading_views_envelope(output: dict) -> dict:
     return output
 
 
-def _resolve_core_proof_for_attempt(stage: str, attempt_dir: Path):
-    """F-22 BLOCKER-1 round 2 (2026-08-13): the ONLY place a judge-side
-    caller obtains an externally-issued `DeterministicCoreProofV1` for an
+def _resolve_core_proof_with_identity_for_attempt(stage: str, attempt_dir: Path):
+    """Resolve a writer-issued proof and its current manifest-bound identity.
+
+    The returned identity is deliberately derived only after the proof bytes
+    and accepted record have both been verified.  It is a cache predicate, not
+    a claim that files in a writable run directory cannot be edited.
+
+    F-22 BLOCKER-1 round 2 (2026-08-13): the ONLY place a judge-side
+    caller obtains a `DeterministicCoreProofV1` for an
     attempt -- `score_correction_geometry` itself deliberately takes no
     run/manifest context (P3 of the dispatch), so this lives here, at the
     one seam that DOES have it.
@@ -1486,12 +1526,9 @@ def _resolve_core_proof_for_attempt(stage: str, attempt_dir: Path):
        artifact the manifest actually points to can be `trusted`);
     2. its `artifact_contract` is one of the two B5 contracts that actually
        ran the full replay-and-compare gauntlet (a plain `base_v2`/
-       `correction_b2_v1` record never had a proof signed for it at all);
+       `correction_b2_v1` record never had a writer-issued proof at all);
     3. the artifact_hashes-bound proof sidecar is present on disk and its
-       bytes still hash to what the manifest recorded at acceptance time
-       (catches any post-acceptance tamper of the sidecar file itself, the
-       same tamper-evidence `window_hosts`/`window_resolver_inputs` already
-       rely on).
+       bytes still hash to what the manifest recorded at acceptance time.
 
     Any failure at any step degrades to `None` (no proof) -- fail CLOSED to
     `declared`, NEVER raises: a missing/stale/malformed/tampered proof must
@@ -1503,7 +1540,9 @@ def _resolve_core_proof_for_attempt(stage: str, attempt_dir: Path):
     """
     if stage != "1_correction":
         return None
-    from src.agent.execution.manifest import RunManifestV2, StageRecordV2, attempt_index_of, hash_bytes
+    from src.agent.execution.manifest import (
+        RunManifestV2, StageRecordV2, attempt_index_of, hash_bytes, hash_obj,
+    )
     from src.agent.correction.deterministic import DeterministicCoreProofV1
 
     try:
@@ -1529,9 +1568,19 @@ def _resolve_core_proof_for_attempt(stage: str, attempt_dir: Path):
         proof_bytes = proof_path.read_bytes()
         if hash_bytes(proof_bytes) != expected_hash:
             return None
-        return DeterministicCoreProofV1.model_validate_json(proof_bytes)
+        proof = DeterministicCoreProofV1.model_validate_json(proof_bytes)
+        return proof, {
+            "proof_bytes_sha256": hash_bytes(proof_bytes),
+            "accepted_record_sha256": hash_obj(rec.model_dump(mode="json")),
+        }
     except Exception:
         return None
+
+
+def _resolve_core_proof_for_attempt(stage: str, attempt_dir: Path):
+    """Compatibility wrapper returning only the verified proof object."""
+    resolved = _resolve_core_proof_with_identity_for_attempt(stage, attempt_dir)
+    return None if resolved is None else resolved[0]
 
 
 def _legacy_score_attempt_output(
@@ -1694,6 +1743,7 @@ def _load_valid_score_sidecar(
     output_hash: str,
     tolerances: dict[str, float],
     scoring_semantics: dict,
+    accepted_proof_identity: dict | None,
 ) -> dict | None:
     if not sidecar.exists():
         return None
@@ -1701,6 +1751,11 @@ def _load_valid_score_sidecar(
         data = json.loads(sidecar.read_text(encoding="utf-8"))
     except json.JSONDecodeError:
         return None
+    output_convention = data.get("output_convention")
+    cached_claims_trusted = (
+        isinstance(output_convention, dict)
+        and output_convention.get("trusted") is True
+    )
     if (
         data.get("stage") == stage
         and data.get("attempt") == attempt
@@ -1713,6 +1768,12 @@ def _load_valid_score_sidecar(
         # identity is stale even if `scorer_schema` happens to match -- see
         # `_current_scoring_semantics_identity`'s docstring.
         and data.get("scoring_semantics") == scoring_semantics
+        # Cache reuse is bound to the proof bytes and accepted-record identity
+        # verified for THIS call, rather than merely to a prior score's claim.
+        and data.get("accepted_proof_identity") == accepted_proof_identity
+        # A sidecar may never supply trusted=True by itself.  If the current
+        # proof is absent or invalid, force a rescore that records refusal.
+        and (not cached_claims_trusted or accepted_proof_identity is not None)
     ):
         return data
     return None
@@ -1783,6 +1844,12 @@ def _grade_attempt_artifacts(
     # `_current_scoring_semantics_identity`'s docstring for why this cannot
     # be folded into `LEGACY_SCORE_CACHE_SCHEMA` alone.
     scoring_semantics = _current_scoring_semantics_identity()
+    # Resolve and verify the CURRENT accepted proof before consulting cache.
+    # A stale trusted sidecar is not evidence that this call still has one.
+    resolved_proof = _resolve_core_proof_with_identity_for_attempt(stage, attempt_dir)
+    core_proof, accepted_proof_identity = (
+        resolved_proof if resolved_proof is not None else (None, None)
+    )
     sidecar = _load_valid_score_sidecar(
         score_path,
         stage=stage,
@@ -1790,15 +1857,11 @@ def _grade_attempt_artifacts(
         output_hash=output_hash,
         tolerances=tolerances,
         scoring_semantics=scoring_semantics,
+        accepted_proof_identity=accepted_proof_identity,
     )
     render_needed = sidecar is None
     if sidecar is None:
         output = json.loads(output_text)
-        # F-22 BLOCKER-1 round 2 (2026-08-13): resolve the manifest-bound
-        # proof HERE, at the one seam with `attempt_dir` (-> run_dir ->
-        # manifest) in scope -- `score_correction_geometry` itself never
-        # sees a run/manifest.
-        core_proof = _resolve_core_proof_for_attempt(stage, attempt_dir)
         scored = _score_attempt_output(stage, output, gt, grade=grade, core_proof=core_proof)
         if scored is None:
             return {"score_vs_gt": None, "grade": None, "score_criteria": []}
@@ -1812,6 +1875,7 @@ def _grade_attempt_artifacts(
             # re-checks live on every load -- see
             # `_current_scoring_semantics_identity`.
             "scoring_semantics": scoring_semantics,
+            "accepted_proof_identity": accepted_proof_identity,
             "case": case,
             "tolerances": tolerances,
             "scores": {

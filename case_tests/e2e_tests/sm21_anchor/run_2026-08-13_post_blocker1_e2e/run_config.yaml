@@ -1,0 +1,90 @@
+# run_2026-08-13_post_blocker1_e2e (sm21_anchor)
+#
+# 目的（用户 2026-08-13 定）：**拿之前好的识图产物，跑后面完整的端到端，回答「工程上还差哪些问题」。**
+#   ⇒ 本 run 是一次**工程缺陷勘察跑**，不是成绩跑，也不是「证明修法对了」的验收跑。
+#   识图本轮一次没跑（逐字节复用），⇒ 本 run 不产生任何识图成绩。
+#
+# ⛔ 与上一个连续跑（run_2026-08-11_continuous_e2e）的唯一变量 = **代码基线前移**：
+#   本 run 跑在 `da2245d` 上，其中包含今日三摊（输入逐字节相同，见 inputs）：
+#     - 摊 A  = F-22 BLOCKER-1：确定性核印章由「产品自报」改为「落库方签发、绑进 accepted 账本的 proof」；
+#              判卷只认账本上已验证的 proof，裸 dict 的内嵌印章最多算 declared。
+#     - 摊 C  = MAJOR-C1：标注法观测中间档不再冒充「按外包标注」（生产侧无可信墙厚 ⇒ 如实报「未知」）。
+#     - 摊 A′ = F-24 判卷缓存绑信任身份 + MINOR-A1 拒判不再单显 pass + NIT-F25 同名常量清理。
+#
+# ⭐ 本 run 顺带补一条**至今从未被观测过的证据**（sol 第四轮点名要的）：
+#   摊 A 落地后，盘上**零份**真实产物带 proof ⇒ `trusted=True` 只在夹具与单测里出现过，
+#   **真实 run 走通「拿到 trusted」这一侧从未发生**。本 run 是第一次有机会观测它。
+#   ⇒ 观测项（非阻塞，跑完核）：① accepted 账本里是否真的多出第 7 件 `deterministic_core_proof`；
+#      ② 判卷侧 `output_convention` 是否给出 `declared=True, trusted=True`；
+#      ③ 侧车 `scorer_schema` 是否为 `"11"`（= 本仓**第一份**新版判卷缓存，F-24 的截止点正是此刻）。
+#
+# ⛔ 已知未闭合缺陷（跑之前就知道，⇒ 本 run 的判卷结论不得当作签收依据）：
+#   sol 第四轮裁决 = CHANGES REQUIRED，`BLOCKER-1` 仍开（run-local 可变账本不算外部信任根；
+#   且**删掉 proof 后缓存仍会给出 trusted=True**）· `MAJOR-F24` 仍开（只绑 2/3 身份、未绑当前 proof 身份）。
+#   ⇒ 本 run 的价值在**工程链路**，不在判卷分数。
+#
+# 性质：**非正式工程勘察跑，⛔ 不是成绩跑**（沿用用户 2026-08-10 口径「这种非正式的都不用记，
+#   写明是测什么就行了」）⇒ ⛔ 不走 flow --record，无 baseline.json / 无 report/REPORT.md。
+#
+# ⛔ 几何确认门走 auto 的理由与验收条件：
+#   本 run 要的是「一口气跑完、看撞上什么」，人工停点与之直接冲突。用户已于 2026-08-10 看过
+#   run_2026-08-09_f18_e2e_verify 的 manual_review/geometry_viewer.html 并当面确认几何无误。
+#   参照 digest = 3409f90b9b8000092127875e0209767ab559ee818879ddc6af0b406dc704f4be
+#   ⇒ **验收条件（已按 2026-08-11 教训收窄，⚠️ 与上一个 run 的写法不同）**：
+#      digest 相同 ⇒ 合法迁移（人已看过的那份几何）；
+#      digest 不同 ⇒ **⛔ 不得据此声称「几何变了」** —— `geometry_checkpoint_digest` 是
+#      `hash_obj(kernel_check_report)`，报告里嵌着房间名，1_correction 的 LLM 换个房间叫法 digest 就变，
+#      而顶点可能逐位完全相同（08-11 实证：460 顶点同序全同、digest 却不同）。
+#      ⇒ digest 一变必须**改判据比顶点**，再决定是否需要重新出图请用户看。
+#
+# ⭐ 纪律：本文件**先于 provision 落盘**（08-09 实犯过：反了会冻结「flow 默认」策略，
+#   之后配置一改就撞 policy 漂移门）。
+
+run_profile: exploratory
+capability_profile: orthogonal_polygon
+judge:
+  mode: off
+review:
+  reading: false
+  correction: false
+  geometry: auto        # 见上方"⛔ 几何确认门走 auto 的理由与验收条件"
+with_ep: true
+record: false           # ⛔ 刻意不记账（非正式跑；且识图为复用、无可诚实声明的 lane）
+
+provenance:
+  base_commit: da2245d          # 08.13_blocker1_core_proof_and_c1_annotation_semantics_and_f24_cache_identity
+  tracked_dirty: false          # 落盘时仅两个未跟踪文件：第四轮复审请求书 + sol 的裁决书
+  key_source_fingerprints:      # sha256 前 16 位
+    src/agent/execution/stage_runner.py: 85db50dfd6c2d2af          # 摊 A：落库方比对 + 签 proof
+    src/agent/judge/correction_score.py: cad7fbc9437247f8          # 摊 A：declared / trusted 拆分
+    scripts/tool_scripts/run_stage.py: f78fe03fc334c54f            # 摊 A′：proof 解析 + F-24 缓存身份
+    src/agent/correction/envelope_transform.py: cb823b93f1af618e   # 摊 C：标注法观测语义
+  scaffold: 全仓 2573 passed / 10 xfailed / 0 failed（orchestrator 本日独立复跑三次，rc 与汇总行逐次核对）
+
+inputs:
+  reading:
+    source: case_tests/e2e_tests/sm21_anchor/run_2026-08-11_continuous_e2e/0_reading
+    method: 逐字节复制，落盘后 diff -rq 校验一致
+    origin_chain: run_2026-07-07_haiku_cv_retest → 08-08 f16 run → 08-09 f17 run → 08-09 f18 run → 08-11 连续跑 → 本 run
+    note: ⛔ 该识图产物是在「停下等人审阅」的循环里拿到的，非无监督基线（CLAUDE.md §1.5#7 违规点①）
+
+models:
+  reading:
+    role: 0_reading
+    model_id: claude-haiku-4-5-20251001
+    source: 07-07 产物原样复用（本 run 未重跑识图）
+  correction:
+    role: 1_correction
+    model_id: deepseek-v4-pro
+    effort: high                 # src/configs/llm.yaml:intake_correction
+  mep:
+    role: 4_mep
+    model_id: deepseek-v4-pro    # 无 intake_mep 段 ⇒ 回落 intake_correction
+    effort: high
+  downstream:
+    role: 9 subagent
+    model_id: deepseek-v4-pro（surface/construction/fenestration）+ deepseek-v4-flash（其余六个）
+    source: src/configs/llm.yaml 全局默认，⛔ 本 run 无 per-run 覆盖
+  orchestrator:
+    role: orchestration
+    model_id: claude-opus-5

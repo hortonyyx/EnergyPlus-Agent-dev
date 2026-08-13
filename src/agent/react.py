@@ -1,16 +1,148 @@
-from typing import Annotated
+import time
+from collections import Counter
+from typing import Annotated, Final
 
 from langchain_core.language_models import BaseChatModel
-from langchain_core.messages import AnyMessage, SystemMessage
+from langchain_core.messages import AIMessage, AnyMessage, SystemMessage, ToolMessage
 from langchain_core.tools import BaseTool
 from langgraph.graph import END, START, StateGraph
 from langgraph.graph.message import add_messages
 from langgraph.graph.state import CompiledStateGraph
 from langgraph.prebuilt import ToolNode, tools_condition
+from loguru import logger
 from pydantic import BaseModel, Field
 
 from src.agent._share import language_directive
 from src.agent.trace import TraceCollector
+
+MAX_LLM_CALL_ATTEMPTS: Final = 3
+"""Total attempts (including the first) for a single ReAct-loop LLM call.
+
+2026-08-13, F-25 — bounded retry, not blind.
+
+Downstream 9-subagent tool-calling loops (`build_react_agent`) had zero
+resilience: one provider-side failure on any turn propagated uncaught all the
+way through `run_downstream_ep`, killing the entire flow with no retry and no
+diagnosable evidence (unlike 1_correction/4_mep, whose single-shot raw-OpenAI
+calls already retry via `pipeline.py::_call_json_llm`, and unlike the outer
+stage-attempt loop, which redraws a whole stage on gate① rejection). This
+mirrors that same idea one layer down, for the LLM<->tool transport itself.
+Not blind: `_enforce_single_tool_call` below removes the actual confirmed
+trigger (provider batching many tool_calls into one turn despite
+`parallel_tool_calls=False`) BEFORE a retry is ever needed; this retry only
+covers residual transient provider/transport failures.
+"""
+
+RETRY_BACKOFF_SECONDS: Final = 2.0
+
+
+class ReactLLMCallError(RuntimeError):
+    """Raised when a ReAct-loop LLM call still fails after bounded retries.
+
+    Carries the phase name, attempt count, and a message-pairing summary at
+    the point of final failure so a crash leaves diagnosable evidence (which
+    node, which round, message-history summary) instead of a bare provider
+    error swallowed into a generic top-level `except Exception` — see
+    `scripts/tool_scripts/run_stage.py`'s `flow --with-ep` handler, which
+    only ever printed `str(e)` before this (2026-08-13, F-25 downstream
+    `surface` break investigation).
+    """
+
+
+def _message_pairing_summary(messages: list[AnyMessage], *, tail: int = 20) -> str:
+    """Render tool_call <-> ToolMessage pairing state for diagnostic evidence.
+
+    Reports any tool_call_ids opened by an AIMessage and never closed by a
+    matching ToolMessage by the end of the list, PLUS a subtler failure mode
+    a naive per-key dict scan would hide: an AIMessage emitting >1 tool_calls
+    in one turn (the provider ignoring `parallel_tool_calls=False`) and/or
+    duplicate ids within/across tool_calls (a duplicate id still looks
+    "paired" to a plain dict pop, since the second pop is a silent no-op,
+    while genuinely producing more ToolMessages than the provider expects
+    against that one id).
+    """
+    pending: dict[str, int] = {}
+    lines: list[str] = []
+    all_call_ids: list[str] = []
+    tool_msg_ids: list[str] = []
+    multi_call_turns: list[tuple[int, list[str]]] = []
+    for i, m in enumerate(messages):
+        mtype = type(m).__name__
+        mid = getattr(m, "id", None)
+        if isinstance(m, AIMessage) and m.tool_calls:
+            call_ids = [tc.get("id") for tc in m.tool_calls]
+            lines.append(
+                f"[{i}] {mtype} id={mid} n_tool_calls={len(call_ids)} tool_calls={call_ids}"
+            )
+            if len(call_ids) > 1:
+                multi_call_turns.append((i, call_ids))
+            all_call_ids.extend(call_ids)
+            for cid in call_ids:
+                pending[cid] = i
+        elif isinstance(m, ToolMessage):
+            lines.append(f"[{i}] {mtype} id={mid} tool_call_id={m.tool_call_id}")
+            tool_msg_ids.append(m.tool_call_id)
+            pending.pop(m.tool_call_id, None)
+        else:
+            content_len = (
+                len(str(getattr(m, "content", ""))) if hasattr(m, "content") else 0
+            )
+            lines.append(f"[{i}] {mtype} id={mid} content_len={content_len}")
+
+    call_id_counts = Counter(all_call_ids)
+    dup_call_ids = {cid: n for cid, n in call_id_counts.items() if n > 1}
+    tool_msg_counts = Counter(tool_msg_ids)
+    dup_tool_msg_ids = {cid: n for cid, n in tool_msg_counts.items() if n > 1}
+    orphan_tool_msgs = [cid for cid in tool_msg_ids if cid not in call_id_counts]
+
+    header = (
+        f"{len(messages)} total messages; unpaired tool_call_ids at end: {list(pending.keys())}\n"
+        f"total AIMessage tool_calls emitted: {len(all_call_ids)}; total ToolMessages: {len(tool_msg_ids)}\n"
+        f"multi-call turns (parallel_tool_calls should be False): {multi_call_turns}\n"
+        f"DUPLICATE tool_call ids within AIMessage.tool_calls: {dup_call_ids}\n"
+        f"DUPLICATE tool_call_id across ToolMessages: {dup_tool_msg_ids}\n"
+        f"ToolMessages whose tool_call_id matches NO known AIMessage tool_call: {orphan_tool_msgs}"
+    )
+    tail_lines = lines[-tail:] if len(lines) > tail else lines
+    return header + "\ntail:\n  " + "\n  ".join(tail_lines)
+
+
+def _enforce_single_tool_call(response: AIMessage, *, phase: str) -> AIMessage:
+    """Defensively cap `response.tool_calls` at 1 (F-25, 2026-08-13).
+
+    `build_react_agent` binds tools with `parallel_tool_calls=False`, but at
+    least one provider (deepseek-v4-pro, confirmed live on the `surface`
+    node 2026-08-13) ignores that flag and returns many tool_calls in a
+    single turn (28 observed in one message on a real run). LangGraph's
+    `ToolNode` happily executes all of them, and the local message list
+    stays perfectly paired afterwards (verified via `_message_pairing_summary`
+    on the live failure: 0 unpaired ids, 0 duplicate ids, 30/30 tool_calls
+    matched 1:1 by ToolMessages) — the 400
+    ("insufficient tool messages following tool_calls message") that follows
+    originates on the PROVIDER re-validating that same, locally-correct,
+    history on the NEXT call. We cannot fix the provider's own turn
+    validator, so we make `parallel_tool_calls=False` actually hold from our
+    side: drop every tool_call past the first and let the model see, next
+    turn, exactly the state it would be in had the provider honored the flag
+    to begin with (only one of its requested calls happened; the rest are
+    simply re-decided next turn from the unchanged surface_specs/zone_specs
+    already in context — no information is lost, since those specs are the
+    single source of truth transcribed verbatim, not something the model
+    needs to remember across turns).
+    """
+    if len(response.tool_calls) <= 1:
+        return response
+    kept, dropped = response.tool_calls[:1], response.tool_calls[1:]
+    logger.warning(
+        "[react:{}] provider returned {} tool_calls in one turn despite "
+        "parallel_tool_calls=False; keeping only the first ({}), dropping {}: {}",
+        phase,
+        len(response.tool_calls),
+        kept[0].get("name"),
+        len(dropped),
+        [tc.get("name") for tc in dropped],
+    )
+    return response.model_copy(update={"tool_calls": kept})
 
 
 class ReactState(BaseModel):
@@ -34,7 +166,11 @@ def build_react_agent(
     Topology: llm -> [tools_condition] -> tools -> llm -> ... -> END.
     `parallel_tool_calls=False` is enforced so each tool call can be
     validated sequentially — important because tool calls mutate
-    the shared (local-copy) ConfigState.
+    the shared (local-copy) ConfigState. Since at least one provider ignores
+    that request-level flag, `llm_node` also defensively truncates any
+    multi-tool_call response to 1 (see `_enforce_single_tool_call`), and
+    wraps the provider call in a bounded retry that leaves diagnostic
+    evidence on every failed attempt (see `ReactLLMCallError`).
 
     No checkpointer, no interrupts inside the subgraph.
     """
@@ -42,11 +178,44 @@ def build_react_agent(
     # Project-wide language directive appended once; per-phase prompts
     # stay free of language boilerplate.
     effective_prompt = system_prompt + language_directive()
+    phase = trace_collector.phase if trace_collector else "unknown"
 
     def llm_node(state: ReactState) -> dict:
         messages = [SystemMessage(content=effective_prompt), *state.messages]
-        response = llm_with_tools.invoke(messages)
-        return {"messages": [response]}
+        last_exc: Exception | None = None
+        for attempt in range(1, MAX_LLM_CALL_ATTEMPTS + 1):
+            try:
+                response = llm_with_tools.invoke(messages)
+            except Exception as exc:  # noqa: BLE001 — transport/provider errors, bounded-retried
+                last_exc = exc
+                logger.warning(
+                    "[react:{}] llm call attempt {}/{} failed: {}: {}",
+                    phase,
+                    attempt,
+                    MAX_LLM_CALL_ATTEMPTS,
+                    type(exc).__name__,
+                    exc,
+                )
+                if attempt < MAX_LLM_CALL_ATTEMPTS:
+                    time.sleep(RETRY_BACKOFF_SECONDS * attempt)
+                    continue
+                summary = _message_pairing_summary(messages)
+                logger.error(
+                    "[react:{}] llm call exhausted {} attempt(s); message "
+                    "pairing at failure time:\n{}",
+                    phase,
+                    MAX_LLM_CALL_ATTEMPTS,
+                    summary,
+                )
+                raise ReactLLMCallError(
+                    f"[react:{phase}] LLM call failed after {MAX_LLM_CALL_ATTEMPTS} "
+                    f"attempt(s): {type(last_exc).__name__}: {last_exc}\n{summary}"
+                ) from last_exc
+            else:
+                response = _enforce_single_tool_call(response, phase=phase)
+                return {"messages": [response]}
+        # Unreachable: the loop above always either returns or raises.
+        raise AssertionError("unreachable")  # pragma: no cover
 
     tool_node = ToolNode(
         tools,

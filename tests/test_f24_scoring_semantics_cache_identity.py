@@ -46,6 +46,7 @@ an unrelated reason" -- exactly the over-invalidation-is-safe property
 from __future__ import annotations
 
 import json
+from functools import wraps
 from pathlib import Path
 
 import pytest
@@ -100,6 +101,7 @@ def _spy_on_scorer(monkeypatch):
     real_score = rs._score_attempt_output
     calls: list[bool] = []
 
+    @wraps(real_score)
     def spy(stage, output, gt, *, grade, core_proof=None):
         calls.append(True)
         return real_score(stage, output, gt, grade=grade, core_proof=core_proof)
@@ -118,6 +120,7 @@ def test_current_scoring_semantics_identity_reads_live_constants(monkeypatch):
     assert before == {
         "core_stamp_version": deterministic_module.DETERMINISTIC_CORE_STAMP_VERSION,
         "output_convention": correction_score_module.CORRECTION_OUTPUT_CONVENTION,
+        "scorer_implementation_sha256": rs._scorer_implementation_sha256(),
     }
 
     monkeypatch.setattr(deterministic_module, "DETERMINISTIC_CORE_STAMP_VERSION", "__f24_probe_stamp__")
@@ -130,6 +133,21 @@ def test_current_scoring_semantics_identity_reads_live_constants(monkeypatch):
     after_convention = rs._current_scoring_semantics_identity()
     assert after_convention["output_convention"] == "__f24_probe_convention__"
     assert after_convention != before
+
+
+def test_current_scoring_semantics_identity_tracks_scorer_implementation(monkeypatch):
+    """F-24 third identity: this is code-derived, not a third constant."""
+    before = rs._current_scoring_semantics_identity()
+    real_score = rs._score_attempt_output
+
+    def replacement(stage, output, gt, *, grade, core_proof=None):
+        return real_score(stage, output, gt, grade=grade, core_proof=core_proof)
+
+    monkeypatch.setattr(rs, "_score_attempt_output", replacement)
+    after = rs._current_scoring_semantics_identity()
+    assert after["scorer_implementation_sha256"] != before["scorer_implementation_sha256"]
+    assert after["core_stamp_version"] == before["core_stamp_version"]
+    assert after["output_convention"] == before["output_convention"]
 
 
 # =========================================================================== #
@@ -147,6 +165,7 @@ def test_lock1_cache_hits_when_identity_unchanged(tmp_path, monkeypatch):
     assert sidecar["scoring_semantics"] == {
         "core_stamp_version": deterministic_module.DETERMINISTIC_CORE_STAMP_VERSION,
         "output_convention": correction_score_module.CORRECTION_OUTPUT_CONVENTION,
+        "scorer_implementation_sha256": rs._scorer_implementation_sha256(),
     }
 
     # Second call: nothing changed on disk or in the live constants -> the
@@ -205,3 +224,27 @@ def test_lock3_output_convention_change_invalidates_cache(tmp_path, monkeypatch)
     sidecar_after = json.loads(sidecar_path.read_text(encoding="utf-8"))
     assert sidecar_before["scorer_schema"] == sidecar_after["scorer_schema"] == rs.LEGACY_SCORE_CACHE_SCHEMA
     assert sidecar_after["scoring_semantics"]["output_convention"] == "__f24_bumped_convention__"
+
+
+def test_lock4_scorer_implementation_replacement_invalidates_cache(tmp_path, monkeypatch):
+    """Replacing scorer code invalidates a sidecar with both constants live."""
+    attempt_dir = _seed_attempt(tmp_path)
+    gt = _tiny_gt()
+    grade = rs.GradeConfig()
+    rs._grade_attempt_artifacts("0_reading", "tiny", attempt_dir, gt, grade=grade)
+    before = json.loads((attempt_dir / "score_vs_gt.json").read_text(encoding="utf-8"))
+    real_score = rs._score_attempt_output
+    calls: list[bool] = []
+
+    def replacement(stage, output, gt, *, grade, core_proof=None):
+        calls.append(True)
+        return real_score(stage, output, gt, grade=grade, core_proof=core_proof)
+
+    monkeypatch.setattr(rs, "_score_attempt_output", replacement)
+    rs._grade_attempt_artifacts("0_reading", "tiny", attempt_dir, gt, grade=grade)
+    after = json.loads((attempt_dir / "score_vs_gt.json").read_text(encoding="utf-8"))
+    assert calls == [True]
+    assert before["scorer_schema"] == after["scorer_schema"] == rs.LEGACY_SCORE_CACHE_SCHEMA
+    assert before["scoring_semantics"]["core_stamp_version"] == after["scoring_semantics"]["core_stamp_version"]
+    assert before["scoring_semantics"]["output_convention"] == after["scoring_semantics"]["output_convention"]
+    assert before["scoring_semantics"]["scorer_implementation_sha256"] != after["scoring_semantics"]["scorer_implementation_sha256"]
