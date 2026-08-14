@@ -19,6 +19,8 @@ Acceptance coverage:
 from __future__ import annotations
 
 import json
+import subprocess
+import warnings
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -314,6 +316,9 @@ def test_hvac_schedule_refs_attaches_disease_ref_for_shifted_thermostat():
 # only as an untracked temp file in the orchestrator's main worktree, not in a
 # clean checkout. Its 9-People-missing-A5 shape is covered by opus_e2e /
 # gpt54_reading / gpt54mini / probe_a_legacy below (same People defect).
+# Enumeration is git-tracked only (see _artifact_runs), so smalloffice_23/4_mep
+# is never enumerated as a tracked artifact; if it IS present on disk it is
+# skipped with a recorded reason (see _untracked_mep_outputs), not hard-failed.
 _PRESCAN_OBJECT_LEVEL = {
     "sm20_anchor/run_2026-06-15_baseline": 19,
     "sm21_anchor/run_2026-06-16_opus_e2e": 14,
@@ -340,24 +345,88 @@ _PRESCAN_GREEN = {
 }
 
 
+_E2E_BASE = _ROOT / "case_tests" / "e2e_tests"
+
+
 def _artifact_runs():
-    base = _ROOT / "case_tests" / "e2e_tests"
-    runs = {}
-    for p in sorted(base.glob("*/*/4_mep/mep_output.json")):
-        runs[p.parent.parent.relative_to(base).as_posix()] = p
-    for p in sorted(base.glob("*/4_mep/mep_output.json")):
-        runs[p.parent.parent.relative_to(base).as_posix()] = p
+    """git-TRACKED ``4_mep/mep_output.json`` under ``case_tests/e2e_tests``.
+
+    Enumerated via ``git ls-files``, NOT a filesystem glob, so the fixture set
+    is a property of the COMMIT: identical between a clean checkout and a dev
+    machine that carries untracked temp artifacts on disk. This is the F-23
+    shape (08-12: ``test_c2_b4b_phase_d`` asserted ``git diff`` was empty and so
+    tested working-tree state, not commit content) — a plain glob would pick up
+    ``smalloffice_23/4_mep/``, which is ``.gitignore``'d (line 320) and exists
+    only as an untracked temp file in the orchestrator's main worktree, then
+    hard-fail on it. Routing enumeration through git keeps the assertion honest
+    in both environments. The label is computed with the same
+    ``p.parent.parent.relative_to(base)`` rule as before (so ``<anchor>/<run>``
+    or ``<run>``), guaranteeing the existing table keys still match.
+
+    Artifacts that ARE on disk but untracked are surfaced separately by
+    ``_untracked_mep_outputs`` so they get an explicit skip-with-reason, never
+    a silent drop.
+    """
+    proc = subprocess.run(
+        ["git", "ls-files", "--", "case_tests/e2e_tests"],
+        cwd=_ROOT, capture_output=True, text=True, check=True,
+    )
+    runs: dict[str, Path] = {}
+    for line in proc.stdout.splitlines():
+        if not line.endswith("4_mep/mep_output.json"):
+            continue
+        p = _ROOT / line
+        runs[p.parent.parent.relative_to(_E2E_BASE).as_posix()] = p
     return runs
 
 
+def _untracked_mep_outputs(tracked: dict[str, Path]) -> list[Path]:
+    """``4_mep/mep_output.json`` present on disk but NOT tracked by git.
+
+    These are dev-machine-only temp artifacts (e.g. ``smalloffice_23/4_mep/``,
+    ``.gitignore``'d). The gate's red set is defined over TRACKED artifacts, so
+    these are skipped — but never silently: the caller records each via a
+    warning so the exclusion is visible in the pytest summary (a plain glob in
+    ``_artifact_runs`` would instead hard-fail on them).
+    """
+    on_disk: set[Path] = set()
+    for pat in ("*/*/4_mep/mep_output.json", "*/4_mep/mep_output.json"):
+        for p in _E2E_BASE.glob(pat):
+            on_disk.add(p.resolve())
+    tracked_resolved = {p.resolve() for p in tracked.values()}
+    return sorted(on_disk - tracked_resolved)
+
+
 def test_b2_prescan_reproduction():
-    """B2: the gate's red set over the git-tracked historical artifacts matches
+    """B2: the gate's red set over the git-TRACKED historical artifacts matches
     the orchestrator's read-only prescan exactly. Object-level counts (objects
     with ≥1 finding) match prescan_output.md; this gate reports field-level
     offenders so sm24 opus_reading (thermostats missing 3 cells each) shows 44
-    field-level findings == 22 object-level."""
+    field-level findings == 22 object-level.
+
+    The fixture set is enumerated off ``git ls-files`` (see ``_artifact_runs``),
+    so it is a property of the commit, not the working tree. Untracked
+    artifacts present on disk (e.g. ``smalloffice_23/4_mep/``, ``.gitignore``'d)
+    are explicitly skipped with a recorded reason — never silently dropped —
+    while a TRACKED artifact missing from the table still hard-fails."""
     runs = _artifact_runs()
-    assert runs, "no 4_mep artifacts found under case_tests/e2e_tests"
+    assert runs, "no git-tracked 4_mep artifacts found under case_tests/e2e_tests"
+    # Untracked dev-machine artifacts are explicitly skipped with a reason
+    # (F-23): their presence is a working-tree property, not a commit one, so
+    # it must not turn this assertion red — but it must not be invisible either,
+    # hence the warning surfacing the skip in the pytest summary.
+    untracked = _untracked_mep_outputs(runs)
+    if untracked:
+        reasons = [
+            f"  - {p.relative_to(_E2E_BASE.resolve()).as_posix()} "
+            "(untracked dev-only temp artifact; .gitignore'd, not in this commit)"
+            for p in untracked
+        ]
+        warnings.warn(
+            "B2: skipped %d untracked 4_mep artifact(s) not part of this "
+            "commit:\n%s" % (len(untracked), "\n".join(reasons)),
+            stacklevel=2,
+        )
     for label, path in runs.items():
         mep = json.loads(path.read_text())
         rep = check_mep(mep)
@@ -375,7 +444,9 @@ def test_b2_prescan_reproduction():
                 f"{label} should be GREEN per prescan, got FAIL: {offenders}"
             )
         else:
-            pytest.fail(f"{label}: not classified in prescan fixture table")
+            pytest.fail(
+                f"{label}: tracked but not classified in prescan fixture table"
+            )
     # the accept_C thermostat disease (14 × Control 1 Name) MUST be caught
     accept_c = runs["sm21_anchor/run_2026-08-13_accept_C"]
     rep = check_mep(json.loads(accept_c.read_text()))
