@@ -1,0 +1,45 @@
+# run_2026-08-14_accept_D (sm21_anchor) — 验收跑 D（第 1/3 次）
+#
+# 用户口径（2026-08-13 定）：「验收要一口气推完不出错才算」
+#   = 单次 flow 调用 · 单一代码基线 · 中途不干预 · 禁用重试掩盖崩溃 · 且必须连跑 ≥3 次全过
+#
+# 验收条件（⭐ 跑前写死，⛔ 跑完不许放宽）：
+#   A1 单次 flow 调用从 1_correction 推到 EnergyPlus，中途不停/不修/不续跑/不人工干预
+#   A2 真实退出码 0（只认本次独占的 .rc 文件 + 日志汇总行；⛔ 后台通知里的 exit code 是外层壳的）
+#   A3 除 1_correction 的两次法定写入（基础 + 方位增强）外，任何段不得出现重试；特别盯 4_mep
+#      ⚠️ 08-13 教训：A3 曾被写成「任何段 attempts 必须=1」，对 1_correction 是错的
+#   A4 EnergyPlus 0 Severe，且 IDF 内 面/窗/区 = 100/15/14
+#   A5 几何不许变：与 run_2026-08-11_continuous_e2e 比【顶点】（400 面顶点 + 60 窗顶点逐位同序全同）
+#      ⛔ 不许用 geometry_checkpoint_digest 判几何（它 hash 内核报告、嵌着房间名）
+#   A6 连跑 3 次全过才算（D/E/F 三次；一次通过不算 —— 该链路已多次证明间歇性）
+#
+# ⚠️ 本次相对 08-13 验收的变量（两摊 + 两轮返工，均已过 orchestrator 轻门）：
+#   摊 A：hvac_specs 改为代码确定性渲染（HVACTemplate 两类 + 3 张保留时间表由代码拥有）
+#         ⇒ 直接针对 08-13 验收 C 的死因 F-28（模型漏一格导致整行位移）
+#   摊 B：新增 mep.idd_field_alignment 通用字段对齐检查（分档；⚠️ 当前实为报告型，
+#         阻塞档结构上恒绿 —— 已登记，下轮补，⛔ 不得当作本次跑通的功劳）
+#
+# ⛔ 已知限制（sol 2026-08-14 第五轮裁定，必须随结果一起说）：
+#   F-27（协议层未处理生成期截断）未修 ⇒ 即使三次全过，也只能算【经验样本】，
+#   ⛔ 不得声称「surface 400 已根治」。
+#
+run_profile: exploratory
+capability_profile: orthogonal_polygon
+judge: {mode: off}
+review: {reading: false, correction: false, geometry: auto}
+with_ep: true
+record: false
+provenance:
+  base_commit: f81cd3a
+  tracked_dirty: false
+  scaffold: 全仓 2633 passed / 10 xfailed / 0 failed（orchestrator 主树独立实测，rc=0）
+  env_integrity: editable .pth 指向主树（跑前已核；F-31 纪律）
+inputs:
+  reading:
+    source: case_tests/e2e_tests/sm21_anchor/run_2026-08-11_continuous_e2e/0_reading
+    method: 逐字节复制，cmp 逐件校验（30/30 一致）
+models:
+  correction: {model_id: deepseek-v4-pro, effort: high}
+  mep: {model_id: deepseek-v4-pro, effort: high}
+  downstream: {model_id: deepseek-v4-pro + deepseek-v4-flash, source: src/configs/llm.yaml 全局默认}
+  orchestrator: {model_id: claude-opus-5}
