@@ -28,8 +28,11 @@ Source profile: ASHRAE 90.1 Office default (same as the original Step 7 text).
 **Schedules** (weekday occupied 9–18, weekend off)
 - `Office_Workday` / `Office_Weekend` style `Schedule:Compact` profiles
 
-**HVAC**
-- `IdealLoadsAirSystem`
+**HVAC** (2026-08-14: code-generated, not authored from this doc — see
+`authoring.md` "What you output". Listed here only because `run_mep`
+(`src/agent/pipeline.py`) hardcodes these same Office-default values, so this
+prior and the code stay the documented source of the same numbers.)
+- `HVACTemplate:Zone:IdealLoadsAirSystem`
 - cooling setpoint 24 °C / heating setpoint 20 °C
 
 ---
