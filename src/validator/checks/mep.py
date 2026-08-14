@@ -60,6 +60,18 @@ _HVAC_SCHEDULE_REF_FIELDS = {
         "Cooling_Setpoint_Schedule_Name",
     ),
 }
+
+# 2026-08-14 摊 B (user-ratified tiering): object types whose 4_mep lines are
+# rendered by DETERMINISTIC CODE (摊 A's HVACTemplate:* generators, replacing the
+# old model-authored ZoneControl:Thermostat / ZoneHVAC:IdealLoadsAirSystem) ⇒ a
+# field misalignment there is a CODE BUG and must stop the run. Every other object
+# type is model-authored ⇒ only reported (FLAG), never blocking, so this gate
+# cannot change any historical run's blocking status. ⛔ 摊 A 接缝: if 摊 A changes
+# which types it renders deterministically, THIS SET IS VOID — stop and report;
+# do not guess a new set (dispatch §3).
+_IDD_ALIGNMENT_BLOCK_TYPES = frozenset(
+    {"HVACTEMPLATE:THERMOSTAT", "HVACTEMPLATE:ZONE:IDEALLOADSAIRSYSTEM"}
+)
 _NAME_CHARSET_TYPES = _MATERIAL_TYPES + ("CONSTRUCTION", "SCHEDULE:COMPACT", "SCHEDULETYPELIMITS")
 _NAME_CHARSET_RE = re.compile(r"^[A-Za-z0-9_ -]+$")
 _SITE_FIELD_ALIASES = {
@@ -128,9 +140,14 @@ def check_mep(
     _construction_thermal_mass(rep, idx)
     _schedule_type_refs(rep, idx)
     _schedule_completeness(rep, idx)
-    _load_refs(rep, idx, zone_names)
+    # IDD field-alignment findings feed the disease cross-references that
+    # load_to_schedule / hvac_schedule_refs attach to their symptom offenders, so
+    # they must be computed before those symptom checks run.
+    idd_findings, idd_diseased = _idd_field_findings(idx)
+    _idd_field_alignment(rep, idd_findings)
+    _load_refs(rep, idx, zone_names, idd_diseased)
     _people_field_alignment(rep, idx)
-    _hvac_schedule_refs(rep, idx)
+    _hvac_schedule_refs(rep, idx, idd_diseased)
     _per_zone_coverage(rep, idx, zone_names)
     _simpleglazing_standalone(rep, idx)
     _nomass_positive_resistance(rep, idx)
@@ -527,7 +544,10 @@ def _schedule_completeness(rep: CheckReport, idx: IdfFragmentIndex) -> None:
 
 
 def _load_refs(
-    rep: CheckReport, idx: IdfFragmentIndex, zone_names: set[str] | None
+    rep: CheckReport,
+    idx: IdfFragmentIndex,
+    zone_names: set[str] | None,
+    idd_diseased: dict | None = None,
 ) -> None:
     """People/Lights/Equipment → zone (field 1) and → schedule references."""
     sched_names = idx.has_name("SCHEDULE:COMPACT")
@@ -538,17 +558,25 @@ def _load_refs(
         if zone_names is not None and zref and zref not in zone_names:
             zone_bad.append({"object": obj.name, "zone_ref": zref})
         if sref and sref not in sched_names:
-            sched_bad.append({"object": obj.name, "schedule_ref": sref})
+            off = {"object": obj.name, "schedule_ref": sref}
+            dref = _disease_ref(idd_diseased, obj.obj_type, obj.name)
+            if dref:
+                off["disease_ref"] = dref
+            sched_bad.append(off)
         if obj.obj_type == "PEOPLE":
             activity_ref = _people_activity_schedule_name(obj)
             if not activity_ref:
-                sched_bad.append(
-                    {"object": obj.name, "activity_schedule_ref": "", "reason": "missing"}
-                )
+                off = {"object": obj.name, "activity_schedule_ref": "", "reason": "missing"}
+                dref = _disease_ref(idd_diseased, obj.obj_type, obj.name)
+                if dref:
+                    off["disease_ref"] = dref
+                sched_bad.append(off)
             elif activity_ref not in sched_names:
-                sched_bad.append(
-                    {"object": obj.name, "activity_schedule_ref": activity_ref}
-                )
+                off = {"object": obj.name, "activity_schedule_ref": activity_ref}
+                dref = _disease_ref(idd_diseased, obj.obj_type, obj.name)
+                if dref:
+                    off["disease_ref"] = dref
+                sched_bad.append(off)
     if zone_names is None:
         rep.add("mep.load_to_zone", CheckStatus.NOT_APPLICABLE, CheckLayer.INVARIANT,
                 message="no zone list supplied")
@@ -559,17 +587,28 @@ def _load_refs(
     else:
         rep.add_pass("mep.load_to_zone", CheckLayer.INVARIANT)
     if sched_bad:
+        evidence = {"offenders": sched_bad}
+        diseased_count = sum(1 for o in sched_bad if "disease_ref" in o)
+        if diseased_count:
+            evidence["disease_cross_ref"] = (
+                f"{diseased_count} offender(s) also flagged by mep.idd_field_alignment "
+                f"(per-offender disease_ref names the missing IDD field) — a blank/"
+                f"undefined schedule is usually the symptom of a positional shift, "
+                f"not a missing schedule"
+            )
         rep.add_fail("mep.load_to_schedule", CheckLayer.INVARIANT,
                      f"{len(sched_bad)} People/Lights schedule field(s) are blank or "
                      f"reference a name not defined in schedule_specs — a blank People "
                      f"activity-level schedule is usually a field-misalignment symptom, "
                      f"not a missing schedule (see mep.people_field_alignment)",
-                     evidence={"offenders": sched_bad})
+                     evidence=evidence)
     else:
         rep.add_pass("mep.load_to_schedule", CheckLayer.INVARIANT)
 
 
-def _hvac_schedule_refs(rep: CheckReport, idx: IdfFragmentIndex) -> None:
+def _hvac_schedule_refs(
+    rep: CheckReport, idx: IdfFragmentIndex, idd_diseased: dict | None = None
+) -> None:
     sched_names = idx.has_name("SCHEDULE:COMPACT")
     bad = []
     checked = 0
@@ -579,14 +618,16 @@ def _hvac_schedule_refs(rep: CheckReport, idx: IdfFragmentIndex) -> None:
                 checked += 1
                 schedule_ref = _raw_field_value(obj, field_name)
                 if schedule_ref and schedule_ref not in sched_names:
-                    bad.append(
-                        {
-                            "object_type": obj.obj_type,
-                            "object": obj.name,
-                            "field": field_name,
-                            "schedule_ref": schedule_ref,
-                        }
-                    )
+                    off = {
+                        "object_type": obj.obj_type,
+                        "object": obj.name,
+                        "field": field_name,
+                        "schedule_ref": schedule_ref,
+                    }
+                    dref = _disease_ref(idd_diseased, obj.obj_type, obj.name)
+                    if dref:
+                        off["disease_ref"] = dref
+                    bad.append(off)
     evidence = {
         "checked_fields": checked,
         "field_table": _HVAC_SCHEDULE_REF_FIELDS,
@@ -600,6 +641,15 @@ def _hvac_schedule_refs(rep: CheckReport, idx: IdfFragmentIndex) -> None:
         ],
     }
     if bad:
+        diseased_count = sum(1 for o in bad if "disease_ref" in o)
+        if diseased_count:
+            evidence["disease_cross_ref"] = (
+                f"{diseased_count} offender(s) also flagged by mep.idd_field_alignment "
+                f"(per-offender disease_ref names the missing IDD field) — an undefined "
+                f"schedule reference is often the symptom of a positional shift that "
+                f"landed an object-type name (or other non-schedule value) in a schedule "
+                f"slot, not a genuinely missing schedule"
+            )
         rep.add_fail(
             "mep.hvac_schedule_refs",
             CheckLayer.INVARIANT,
@@ -783,3 +833,204 @@ def _reasonability_placeholder(rep: CheckReport) -> None:
     rep.add("mep.reasonability_bands", CheckStatus.NOT_APPLICABLE,
             CheckLayer.CROSS_CHECK,
             message="reasonability bands deferred until MEP input is richer (§5.2)")
+
+
+# --------------------------------------------------------------------------- #
+# IDD-driven field-alignment gate (摊 B, 2026-08-14)
+# --------------------------------------------------------------------------- #
+# A missing required field — or a positional shift where one blank cell collapses
+# the whole row — is caught for EVERY object type off the authoritative IDD, not
+# just People (where mep.people_field_alignment was bolted on after the fact, the
+# "whack-a-mole" this gate retires). The IDD lives in-repo
+# (data/dependencies/Energy+.idd) and eppy exposes its \field / \required-field /
+# \extensible directives on each parsed object's objidd, so this needs no
+# hand-maintained per-type rule and no new dependency. Parsing reuses the single
+# idf_fragments parser — no regex (施工 H3).
+
+_IDD_ALIGNMENT_PASS_EVIDENCE = {
+    "criteria": [
+        "missing_required: an IDD \\required-field is absent or blank",
+        "too_many_fields: authored count > IDD count (extensible objects exempt)",
+    ],
+    "idd_source": (
+        "data/dependencies/Energy+.idd via eppy objidd "
+        "(\\field / \\required-field / \\extensible)"
+    ),
+    "extensible_detection": (
+        "objidd[0] key matching 'extensible:<N>' — eppy exposes the IDD "
+        "\\extensible:N directive as a key literally named 'extensible:N', NOT a "
+        "plain 'extensible' field (discovered by dumping objidd[0].keys(): "
+        "Schedule:Compact carries 'extensible:1', Material carries none)"
+    ),
+    "dedup": (
+        "does not re-state mep.people_field_alignment's misalignment diagnosis "
+        "for People objects"
+    ),
+}
+
+
+def _idd_object_meta(raw):
+    """Return (idd_fields, idd_count, extensible_group) for one eppy object.
+
+    - idd_fields: [(field_name, is_required)] for every IDD-declared field.
+    - idd_count: len(idd_fields). For extensible objects eppy expands the IDD to
+      a large fixed cap (e.g. Schedule:Compact → 10000), so this is the cap, not
+      the authored count.
+    - extensible_group: the N from the IDD ``\\extensible:N`` directive, or None
+      for non-extensible objects.
+    """
+    objidd = getattr(raw, "objidd", None)
+    if not objidd:
+        return None
+    head = objidd[0] if isinstance(objidd, list) and objidd else {}
+    idd_fields = []
+    for entry in objidd[1:]:  # entry[0] is the object-level metadata
+        fname = entry.get("field")
+        if not fname:
+            continue
+        name = fname[0] if isinstance(fname, (list, tuple)) else fname
+        idd_fields.append((name, "required-field" in entry))
+    extensible_group = None
+    for key in head:
+        if isinstance(key, str) and key.startswith("extensible:"):
+            try:
+                extensible_group = int(key.split(":", 1)[1])
+            except ValueError:
+                extensible_group = 0  # marked extensible but unparseable → treat as extensible
+            break
+    return idd_fields, len(idd_fields), extensible_group
+
+
+def _idd_field_findings(idx: IdfFragmentIndex):
+    """Compute IDD field-alignment findings for every parsed object.
+
+    Mirrors the orchestrator's read-only prescan (probe_arity.audit_object) so
+    that B2 (prescan reproduction) is a structural guarantee, not a coincidence.
+
+    Two criteria:
+      (1) missing_required — an IDD \\required-field is absent or blank.
+      (2) too_many_fields  — authored count exceeds the IDD field count.
+          Extensible objects are exempt (their count is variable by design).
+
+    ⚠️ Criterion (2) is STRUCTURALLY UNOBSERVABLE on the real parse path: eppy
+    either silently truncates an over-long object to its IDD count (e.g. Lights)
+    or raises TypeError → mep.idf_parse ERROR/fail-closed (e.g. Material /
+    Construction). Either way `authored > idd` can never hold for an object that
+    reaches this loop. The logic is kept as defense-in-depth (if the parser ever
+    changes) and exercised by a monkeypatch fixture (B1) since no real artifact
+    can reach it.
+
+    Returns (findings, diseased): diseased maps (obj_type, name) →
+    {field, check_id} for missing_required findings, so the symptom checks
+    (load_to_schedule / hvac_schedule_refs) can cite the disease.
+    """
+    findings = []
+    diseased = {}
+    meta_cache: dict[str, object] = {}  # IDD defs are per-type, identical across instances
+    for obj in idx.objects:
+        meta = meta_cache.get(obj.obj_type)
+        if meta is None:
+            meta = _idd_object_meta(obj.raw)
+            if meta is not None:
+                meta_cache[obj.obj_type] = meta
+        if meta is None:
+            continue
+        idd_fields, idd_count, extensible_group = meta
+        authored = obj.fields  # str-ized; len == authored count (fieldvalues does NOT pad)
+        for i, (fname, required) in enumerate(idd_fields):
+            if not required:
+                continue
+            val = authored[i] if i < len(authored) else None
+            if val is None or str(val).strip() == "":
+                findings.append({
+                    "object_type": obj.obj_type,
+                    "object": obj.name,
+                    "kind": "missing_required",
+                    "field_index": i + 1,
+                    "field": fname,
+                    "authored_field_count": len(authored),
+                    "idd_field_count": idd_count,
+                })
+                diseased[(obj.obj_type, obj.name)] = {
+                    "field": fname,
+                    "check_id": "mep.idd_field_alignment",
+                }
+        if extensible_group is None and idd_count and len(authored) > idd_count:
+            findings.append({
+                "object_type": obj.obj_type,
+                "object": obj.name,
+                "kind": "too_many_fields",
+                "authored_field_count": len(authored),
+                "idd_field_count": idd_count,
+            })
+    return findings, diseased
+
+
+def _disease_ref(idd_diseased, obj_type, name):
+    """Cross-reference to mep.idd_field_alignment when the same object is also
+    flagged there for a missing required field — the disease behind a symptom
+    offender that load_to_schedule / hvac_schedule_refs report."""
+    if not idd_diseased:
+        return None
+    d = idd_diseased.get((obj_type, name))
+    if not d:
+        return None
+    return {"check_id": d["check_id"], "missing_field": d["field"]}
+
+
+def _idd_field_alignment(rep: CheckReport, findings: list) -> None:
+    """IDD-driven field-alignment gate — the disease, for every object type.
+
+    Tiered disposition (user 2026-08-14): a finding on a deterministic-code
+    object type (摊 A's HVACTemplate:* generators) is an INVARIANT (BLOCK — a code
+    bug); any other type is a CROSS_CHECK (FLAG — reported, never blocking, so no
+    historical run's blocking status changes). The layer is chosen from whether
+    any block-list offender is present, so the framework's pure disposition()
+    maps the result correctly with NO schema.py change.
+
+    De-dup vs mep.people_field_alignment (dispatch §2.4): that check owns the
+    People MISALIGNMENT disease (A4 holds a non-enum value). This gate reports
+    the same root cause from the generic IDD angle (A5 required field blank) and
+    does NOT re-state the misalignment diagnosis — the two report different
+    cells, so a reader never sees "field misalignment" counted twice for one
+    People object. people_dedup_note makes that explicit in evidence.
+    """
+    if not findings:
+        rep.add_pass("mep.idd_field_alignment", CheckLayer.INVARIANT,
+                     evidence=_IDD_ALIGNMENT_PASS_EVIDENCE)
+        return
+    block_offenders = [f for f in findings if f["object_type"] in _IDD_ALIGNMENT_BLOCK_TYPES]
+    layer = CheckLayer.INVARIANT if block_offenders else CheckLayer.CROSS_CHECK
+    by_kind: dict[str, int] = {}
+    for f in findings:
+        by_kind[f["kind"]] = by_kind.get(f["kind"], 0) + 1
+    evidence = {
+        **_IDD_ALIGNMENT_PASS_EVIDENCE,
+        "block_list_types": sorted(_IDD_ALIGNMENT_BLOCK_TYPES),
+        "block_offenders_count": len(block_offenders),
+        "disposition": (
+            "block (INVARIANT) — block-list offender present"
+            if block_offenders
+            else "report-only (CROSS_CHECK/FLAG) — no block-list offender"
+        ),
+        "findings_by_kind": by_kind,
+    }
+    if any(f["object_type"] == "PEOPLE" for f in findings):
+        evidence["people_dedup_note"] = (
+            "People missing_required findings here are the generic IDD view of the "
+            "same root cause mep.people_field_alignment diagnoses as a misalignment "
+            "(A4 non-enum); this gate does not re-state the misalignment, only the "
+            "blank required field"
+        )
+    missing = by_kind.get("missing_required", 0)
+    too_many = by_kind.get("too_many_fields", 0)
+    parts = []
+    if missing:
+        parts.append(f"{missing} missing-required-field")
+    if too_many:
+        parts.append(f"{too_many} too-many-field")
+    rep.add_fail(
+        "mep.idd_field_alignment", layer,
+        f"{len(findings)} object(s) with IDD field-alignment findings ({', '.join(parts)})",
+        evidence=evidence | {"offenders": findings},
+    )
