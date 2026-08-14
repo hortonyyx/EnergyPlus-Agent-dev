@@ -830,13 +830,31 @@ _HVAC_DET_THERMOSTAT_NAME = "HVACDet_Thermostat"
 _HVAC_DET_HEATING_SCHEDULE = "Sch_HVACDet_HeatingSetpoint"
 _HVAC_DET_COOLING_SCHEDULE = "Sch_HVACDet_CoolingSetpoint"
 _HVAC_DET_AVAILABILITY_SCHEDULE = "Sch_HVACDet_Availability"
+# The names code EXCLUSIVELY owns (2026-08-14 terra cross-review, A's
+# blocking finding): any Schedule:Compact the model authors under one of
+# these — including a bare-case variant, since EnergyPlus name lookups are
+# case-insensitive — is excluded before the code's own canonical definition
+# is appended. See _merge_hvac_det_schedules.
+_HVAC_DET_RESERVED_SCHEDULE_NAMES = (
+    _HVAC_DET_HEATING_SCHEDULE,
+    _HVAC_DET_COOLING_SCHEDULE,
+    _HVAC_DET_AVAILABILITY_SCHEDULE,
+)
 # mep.md Office prior: "cooling setpoint 24 C / heating setpoint 20 C".
 _HVAC_DET_HEATING_SETPOINT_C = 20.0
 _HVAC_DET_COOLING_SETPOINT_C = 24.0
 # ScheduleTypeLimits these 3 schedules need, keyed by the exact name every
 # historical hvac-capable run already used (Temperature / OnOff) — reused
 # rather than reserved-prefixed so we fold into whatever the model already
-# defined instead of doubling up on an established convention.
+# defined instead of doubling up on an established convention. Unlike the 3
+# schedule names above, these are NOT exclusively code-owned: Temperature /
+# OnOff are generic type-limit categories other (non-HVAC) schedules the
+# model authors may legitimately share — so this only ADDS the code's
+# definition when the model hasn't already defined that name (case-
+# insensitively), it never excludes/overrides an existing one the way the
+# 3 reserved schedule names do (overriding here could silently change the
+# bounds of some unrelated schedule that happens to share the type-limit
+# name).
 _HVAC_DET_TYPE_LIMITS = {
     "Temperature": "ScheduleTypeLimits, Temperature, -60, 200, Continuous;",
     "OnOff": "ScheduleTypeLimits, OnOff, 0, 1, Discrete;",
@@ -855,7 +873,24 @@ def _render_hvac_specs(zone_names: Sequence[str]) -> str:
     A pure function of ``zone_names``: same input -> byte-identical output,
     which is what makes the flow and run_stage call sites agree (A3) as long
     as both pass the same ordered zone list.
+
+    Raises ``ValueError`` if ``zone_names`` is empty (2026-08-14 terra
+    cross-review pre-acceptance item #5): a zero-zone building has no HVAC
+    to render, and silently emitting a Thermostat with zero
+    IdealLoadsAirSystem objects attached to it would be a meaningless,
+    self-orphaning output that could mask an upstream bug (a real building
+    always has >=1 zone by construction; an empty zone_names here means
+    either the geometry kernel produced a zero-zone building — a kernel bug,
+    not something to paper over — or a caller passed the wrong sequence).
     """
+    if not zone_names:
+        raise ValueError(
+            "_render_hvac_specs: zone_names is empty — a zero-zone building "
+            "has no HVAC to render (there is one thermostat but it would "
+            "reference zero HVACTemplate:Zone:IdealLoadsAirSystem objects, "
+            "i.e. nothing). This is a hard reject, not a degenerate-but-"
+            "valid output: check what produced an empty zone list upstream."
+        )
     lines = [
         "HVACTemplate:Thermostat,",
         f"  {_HVAC_DET_THERMOSTAT_NAME},",
@@ -911,28 +946,75 @@ def _merge_hvac_det_schedules(schedule_specs: str) -> str:
     LLM-authored schedule_specs text, plus their ScheduleTypeLimits — but only
     the type limits the model hasn't already defined, so folding this in
     never produces two ScheduleTypeLimits objects with the same name.
-    Unconditional otherwise: this runs even if ``schedule_specs`` fails to
-    parse (a pre-existing failure this override does not need to fix or
-    hide — the concatenated bundle will still fail mep.idf_parse, same as
-    before this change).
 
-    The model may separately still define its own heating/cooling/hvac
-    schedules (authoring.md and the system prompt now tell it not to, but
-    that is a token-saving instruction, not an enforced constraint) — those
-    become orphaned (defined, unreferenced). No check in this repo flags
-    orphaned schedules (grep for unused/orphan/unreferenced in checks/mep.py
-    and validator/schedules.py is empty), so this is silent by omission, not
+    2026-08-14 terra cross-review (A's blocking finding on the first pass of
+    this function): the prompt tells the model not to author these 3
+    schedules, but the prompt is not a constraint (this repo's own
+    model-visible-but-not-its-business lesson) — a model response can still
+    define a Schedule:Compact under one of the 3 reserved names, and the
+    first version of this function unconditionally appended the code's copy
+    alongside it: two same-named Schedule:Compact objects, no check catches
+    it (mep.hvac_schedule_refs only checks the name RESOLVES to some
+    schedule, not that the resolution is unambiguous), and the model's
+    arbitrary value rides along uninspected. Fixed here by TRUE code
+    ownership: any Schedule:Compact in ``schedule_specs`` whose name matches
+    one of the 3 reserved names — compared case-INSENSITIVELY, since
+    EnergyPlus object-name lookups are case-insensitive, so a bare-case
+    variant is the same collision — is excluded (via eppy
+    ``removeidfobject`` + ``idfstr()`` re-serialization, not string
+    surgery) before the code's canonical definition is appended, so the
+    merged text is guaranteed to have exactly one Schedule:Compact per
+    reserved name, with the code's 20/24/1 values. Only reformats
+    (re-serializes via idfstr()) when a collision actually exists — the
+    common case (no collision) leaves ``schedule_specs`` byte-identical
+    apart from the appended addendum, same as before this change.
+
+    ScheduleTypeLimits are treated differently ON PURPOSE: Temperature /
+    OnOff are generic categories other, non-reserved schedules may
+    legitimately share, so this only ADDS the code's type-limit definition
+    when the model hasn't already defined that name (case-insensitively) —
+    it never excludes/overrides the model's own, unlike the 3 schedule
+    names (excluding it here could silently change bounds some unrelated
+    model-authored schedule depends on).
+
+    Unconditional otherwise: this runs even if ``schedule_specs`` fails to
+    parse — nothing can be reliably excluded from unparseable text, but the
+    concatenated MEP bundle will still fail mep.idf_parse (fail-closed, same
+    as before this change), so this is not a silent gap.
+
+    The model may separately still define ITS OWN heating/cooling/hvac
+    schedules under names other than the 3 reserved ones (authoring.md and
+    the system prompt now tell it not to, but that is a token-saving
+    instruction, not an enforced constraint) — those become orphaned
+    (defined, unreferenced). No check in this repo flags orphaned schedules
+    (grep for unused/orphan/unreferenced in checks/mep.py and
+    validator/schedules.py is empty), so this is silent by omission, not
     silently wrong — recorded here and in the dispatch report, not hidden."""
     from src.validator.idf_fragments import parse_idf_text
 
     idx = parse_idf_text(schedule_specs)
-    existing_type_limits = idx.has_name("SCHEDULETYPELIMITS") if idx.ok else set()
+    base_text = schedule_specs
+    existing_type_limits_lower: set[str] = set()
+    if idx.ok:
+        existing_type_limits_lower = {
+            name.lower() for name in idx.has_name("SCHEDULETYPELIMITS")
+        }
+        reserved_lower = {name.lower() for name in _HVAC_DET_RESERVED_SCHEDULE_NAMES}
+        collisions = [
+            obj for obj in idx.of_type("SCHEDULE:COMPACT")
+            if obj.name.lower() in reserved_lower
+        ]
+        if collisions:
+            for obj in collisions:
+                idx.idf.removeidfobject(obj.raw)
+            base_text = idx.idf.idfstr()
+
     addendum = [
         text for name, text in _HVAC_DET_TYPE_LIMITS.items()
-        if name not in existing_type_limits
+        if name.lower() not in existing_type_limits_lower
     ]
     addendum.append(_hvac_det_schedule_block())
-    merged = schedule_specs.rstrip()
+    merged = base_text.strip()
     if merged:
         merged += "\n\n"
     merged += "\n".join(addendum)
