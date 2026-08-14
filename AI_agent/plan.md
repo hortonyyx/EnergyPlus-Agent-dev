@@ -139,6 +139,14 @@ sol 的判定 = **协议缺陷是否根治**。sol 明说：F-27 未修时三次
 而测试传的是 worktree 路径 ⇒ `gt_vg_config_path_forbidden`（`gt_manifest.py:278`）。
 实测证据：worktree 内以**脚本形态**启动，`gt_schema.__file__` 打印的是**主树**路径
 （⚠️ 用 `python -c` 探针**复现不出来** —— `-c` 的 `sys.path[0]` 是 cwd ⇒ **探针必须复刻被测对象的启动形态**）。
+**⭐ 当日补充：假红实为 3 条，不是 2 条 —— 而且【换个启动器结果就不同】**：
+第三条 = `tests/test_zone_agent.py::test_zone_agent_creates_two_zones`，
+根因 = **`.env` 被 gitignore、worktree 里没有** ⇒ 无 `OPENAI_API_KEY`
+（实测：主树 1 passed / **干净基线 worktree（不含任何改动）同样 `openai.OpenAIError`**）。
+**⇒ 同一棵树形态下，GLM 席位只报 2 条红、Claude 子代理席位报 3 条** ——
+因为 `scripts/glm_code.sh` 会 `source` 主仓 `.env` 注入子进程，Claude 子代理不会。
+**⇒ 「全仓绿」不只是工作目录的属性，还是【席位启动器】的属性。**
+
 **⇒ 三条纪律**：
 1. **任何 worktree 席位报的「全仓绿/红」都不可全信，权威全量必须在主树跑**；
 2. 对账关系已核：`2601 passed + 2 failed = 2603`（= orchestrator 主树基线 total）⇒ 摊 B 零回归成立；
