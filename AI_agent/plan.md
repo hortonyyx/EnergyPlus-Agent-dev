@@ -1,6 +1,55 @@
 # 行动清单（活计划）
 
-## 2026-08-13 收工 · ⭐⭐⭐ **本节最新（凌驾下方所有排工表）**：**验收 2/3 未通过 · 下游断链真因坐实 · BLOCKER-1 工程侧闭合待 sol 复核**
+## 2026-08-14 开工 · ⭐⭐⭐ **本节最新（凌驾下方所有排工表）**：**派工前机械核实做完 ⇒ F-28 定性第二次修正 + 两摊已发工**
+
+### 〇、⭐ 用户 2026-08-14 拍板（三条）
+
+1. **通用字段对齐检查的档位 = 分档** —— 代码确定性生成的对象类型**阻塞**、模型自由撰写的部分**只报告**；
+2. **F-28 修法形态 = 最小改动**（代码按内核区列表直接渲染设备段），**结构化留后续「标注/墙厚/出模」专项**；
+3. **席位 = 摊 A 派 Sonnet、摊 B 派 GLM，两摊并行**。
+
+### 一、⛔ 派工前机械核实（08-13 §七 明令必做）——**做完了，结论会改施工方向**
+
+只读预扫全档：[`logs/experiments/2026-08-14_mep_arity_gate_prescan/`](logs/experiments/2026-08-14_mep_arity_gate_prescan/README.md)
+（`probe_arity.py` + `prescan_output.md` + `README.md`）。全仓基线实测 `rc=0` · **`2603 passed / 10 xfailed / 0 failed`**。
+
+- **新门若直接上成阻塞门 ⇒ 21 份历史产物红 15 份**，其中包括
+  **08-13 验收 A（`batchI_accept_02`，六条全中、EP `0 Severe`）** 与 **08-09「全链首次跑到 EP」那份**。
+  ⇒ 这就是用户拍「分档」的直接依据。
+- **⭐⭐⭐ F-28 定性第二次修正（推翻下方 08-13 §六之二 的因果链后半段）**：
+  「漏一格 ⇒ 位移 ⇒ **EP 正常算完但结果是错的**」——**后半段在今天的下游路径上不成立，已实测证伪**。
+  `*_specs` 文本**从不被贴进最终 IDF**：下游 `nodes/hvac.py` 把它当**输入文本**喂给 ReAct agent，
+  后者只能用**具名参数的 MCP 工具**建对象。**活证据 = 验收 B**：它的设备段少写两格
+  （`50` 落进排风节点名、`13` 落进进风节点名）而**最终 IDF 语义完全正确**；
+  且最终 IDF 里 `ZoneControl:Thermostat` / `ZoneHVAC:IdealLoadsAirSystem` **各 0 个**（全是 HVACTemplate）。
+  ⇒ **F-28 的真实危害 = 链路被门拦死（可靠性），不是静默算错物理。**
+- **⭐⭐ 更该记的一条**：同一个缺陷，**那一格留空就放行、填了字就炸链**
+  （`mep.hvac_schedule_refs` 的 `blank_reference_policy: pass`；f18 / post_blocker1 留空 ⇒ 一路跑到 EP，
+  accept_C 填了对象类型名 ⇒ 拦死）⇒ **决定生死的是模型留没留空，不是缺陷本身。**
+  同族 memory：`absence-conflates-causes-in-observables`。
+- 顺带核正：`checks/mep.py` 实际登记 **18 个** check id（此前记的「19 道」），不影响任何结论。
+
+### 二、两摊已发工（各自独占 git worktree，⛔ 不共用工作树）
+
+| 摊 | 事项 | 席位 | 工作树 / 分支 | 派工单 |
+|---|---|---|---|---|
+| **A** | 设备段由代码确定性生成，模型碰不到那几格 | Claude 侧 Sonnet | `/workspaces/ep-wt-A` · `wt/0814_A_mep_hvac_det` | [dispatch](logs/reviews/request/2026-08-14_mep_hvac_deterministic_dispatch_claude.md) |
+| **B** | IDD 驱动通用字段对齐检查（分档） | GLM-5.2 | `/workspaces/ep-wt-B` · `wt/0814_B_idd_alignment` | [dispatch](logs/reviews/request/2026-08-14_idd_field_alignment_gate_dispatch_glm.md) |
+
+**硬接缝（两单都写了「变了就停」）**：摊 B 的阻塞名单初值 = 摊 A 的输出形态
+（`HVACTemplate:Thermostat` / `HVACTemplate:Zone:IdealLoadsAirSystem`）。
+**并行纪律**：两摊各自独占 worktree（承 08-13 实犯④）；全仓跑测一律 `-n 6`，⛔ 不许两摊同时 `-n auto`。
+
+### 三、本轮待办（顺序）
+
+1. 摊 A / 摊 B 交付 → orchestrator 轻门 → **跨家族交叉审**（⛔ 谁写谁不批）；
+2. 合树 → 跑验收，**独占工作树、连跑 3 次全过**才算达成；
+3. 存量债：**BLOCKER-1 送 sol 复核** · sol 第四轮 `MAJOR-1/2` · `MAJOR-B2/B3` · `MINOR-3/B4/B5/D1` · `NIT-F25`；
+4. 之后：重启 reading、与之前那份好 reading 做 diff；reading 撤降 agent 归专项。
+
+---
+
+## 2026-08-13 收工 · ⭐⭐⭐ **（前一节点）**：**验收 2/3 未通过 · 下游断链真因坐实 · BLOCKER-1 工程侧闭合待 sol 复核**
 
 落库四笔：`da2245d`（摊 A/C/A′）· `41f73e7`（摊 F/G）· `f2e6c47`（摊 H/I，`WIP_ACCEPTANCE_NOT_MET`）· 本次收工。
 
