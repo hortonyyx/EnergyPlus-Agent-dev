@@ -1,0 +1,37 @@
+# run_2026-08-13_accept_A (sm21_anchor) — 验收跑 A（共 3 次，用户口径「一口气推完不出错才算」）
+#
+# 验收条件（跑前写死，⛔ 跑完不许放宽）：
+#   A1 单次 flow 调用 1_correction → EnergyPlus，中途不停/不修/不续跑/不人工干预
+#   A2 真实退出码 0（只认独占 .rc + 汇总行；⛔ 后台通知里的 exit code 是外层壳的）
+#   A3 除 1_correction 的两次法定写入（基础 + 方位增强）外，任何段不得出现重试；特别盯 4_mep
+#   A4 EnergyPlus 0 Severe，且 IDF 内 面/窗/区 = 100/15/14
+#   A5 几何不许变：与 run_2026-08-11_continuous_e2e 比【顶点】（400 面顶点 + 60 窗顶点逐位同序全同）
+#      ⛔ 不许用 geometry_checkpoint_digest 判几何（它 hash 内核报告、嵌着房间名，08-13 实证过会因改名而变）
+#   A6 ⭐ 连跑 3 次全过才算稳（一次通过不算 —— 该链路已多次证明间歇性）
+#
+# 本次相对上一次验收（run_2026-08-13_oneshot_acceptance，退出码 30 崩在 surface）的变量：
+#   ① 摊 H：react.py 保留 provider 一轮内下发的全部 tool_call（实测 zone 14 个 / material 7 个 / construction 6 个）
+#   ② 摊 I：新增 create_surfaces_batch + 结构性上限 _MAX_BATCH_ITEMS=4（超限在代码里拒绝）
+#      + surface 提示词改为每次至多 4 个面
+#   ⭐ 真因（本轮实测坐实）：单轮生成过大 ⇒ finish_reason='length' 截断 ⇒
+#      provider 服务端工具调用记账与本地记录脱同步 ⇒ 下一轮报「tool 结果不足」
+#      （这解释了为何本地历史逐位完美配对而 provider 仍 400）
+run_profile: exploratory
+capability_profile: orthogonal_polygon
+judge: {mode: off}
+review: {reading: false, correction: false, geometry: auto}
+with_ep: true
+record: false
+provenance:
+  base_commit: f2e6c47
+  tracked_dirty: true    # ⚠️ 未提交：src/agent/nodes/surface.py + src/agent/tools/surface_tools.py + tests/test_batch_create_surfaces.py
+  scaffold: 全仓 2590 passed / 10 xfailed / 0 failed（摊 H 后 orchestrator 独立实测；摊 I 后的全量待补）
+inputs:
+  reading:
+    source: case_tests/e2e_tests/sm21_anchor/run_2026-08-11_continuous_e2e/0_reading
+    method: 逐字节复制，cmp 逐件校验
+models:
+  correction: {model_id: deepseek-v4-pro, effort: high}
+  mep: {model_id: deepseek-v4-pro, effort: high}
+  downstream: {model_id: deepseek-v4-pro + deepseek-v4-flash, source: src/configs/llm.yaml 全局默认}
+  orchestrator: {model_id: claude-opus-5}

@@ -1,0 +1,106 @@
+{
+  "case": "run_2026-08-13_accept_B",
+  "manifest_version": "2",
+  "run_id": "c58e5c75c2c203f3758e281c4e7b1c0a",
+  "run_inputs": {
+    "view_manifest_sha256": "f52ca79c1bcacaf8fccc9436e165b4bfdc08814ec770370dd1acefd76b6e493e"
+  },
+  "stages": {
+    "1_correction": {
+      "stage": "1_correction",
+      "accepted_attempt": 2,
+      "output_hash": "72f8aa5ccb24ed781a42ff83ae57fb2a91fa8f760f3e57db64f98f5f504a4eac",
+      "input_hashes": {
+        "base_correction": "ec31af8308c381e9ba5c94dce3ca1ff427d43e45e1751dc575a59f8aef57ff6e",
+        "orientation_evidence_set": "f271412adae023c412cafebf2d7f72bf2e21096110ef17edede9168a52fbf78f",
+        "orientation_resolution": "ba88f0d651dc5ea65f3107a71ff26408933e466204baf504944ce092e19bb730",
+        "run_config": "d941e6c2d4d8db1b96eec492e95b1b0e5837ae09514c351a349bd2a5a5cf8aca"
+      },
+      "stage_version": "4",
+      "check_version": "1",
+      "capability": "stochastic",
+      "check_passed": true,
+      "record_schema_version": "2",
+      "artifact_contract": "correction_b5_orientation_v1",
+      "artifact_hashes": {
+        "output": "72f8aa5ccb24ed781a42ff83ae57fb2a91fa8f760f3e57db64f98f5f504a4eac",
+        "checks": "887fc9542fd9e33095b1595c98b30b1a0f9a816c892a874433e3b926ce6bc4ab",
+        "audit": "5c074c4b1537a077881cca74dbe70125eaf4423db8d12f30bfb5710d9476070b",
+        "feature_states": "bd3749a1cdd59e9310e47b3049f654d9649469fdfcc108387858eeafb75fd0b7",
+        "window_resolver_inputs": "6401a28c753d1471a196c676c41036f5697db653a04ac012d9eea874623ff8a1",
+        "window_hosts": "aad64d8f50b1fd03402f9d50bb19ce4c8338276212e65f80b9da9e5fd1940a8c",
+        "deterministic_core_proof": "e56fe8f0a6ce8d8ff9c306183914766734ee8aae7614d8ed9c678fad63ec2268"
+      }
+    },
+    "2_modelling": {
+      "stage": "2_modelling",
+      "accepted_attempt": 1,
+      "output_hash": "a8f56e2c93dea2922faff4cc9d1770049198343b14ccb5030605546debef6f99",
+      "input_hashes": {},
+      "stage_version": "1",
+      "check_version": "1",
+      "capability": "deterministic",
+      "check_passed": true,
+      "record_schema_version": "2",
+      "artifact_contract": "base_v2",
+      "artifact_hashes": {
+        "output": "a8f56e2c93dea2922faff4cc9d1770049198343b14ccb5030605546debef6f99",
+        "checks": "cf5d98f97409a4737c17011672b9e142dde4752e8087c58804bfc398a2f9f187"
+      }
+    },
+    "3_split_pairing": {
+      "stage": "3_split_pairing",
+      "accepted_attempt": 1,
+      "output_hash": "58032d63414083762f4fc003f0f01f86454d41cd50d80841de2f840261393c67",
+      "input_hashes": {},
+      "stage_version": "1",
+      "check_version": "1",
+      "capability": "deterministic",
+      "check_passed": true,
+      "record_schema_version": "2",
+      "artifact_contract": "base_v2",
+      "artifact_hashes": {
+        "output": "58032d63414083762f4fc003f0f01f86454d41cd50d80841de2f840261393c67",
+        "checks": "b065001a73b92c40e80a98ebb30dc22d2085ec6d23ad1f095fe39f54e1717c14"
+      }
+    },
+    "4_mep": {
+      "stage": "4_mep",
+      "accepted_attempt": 1,
+      "output_hash": "86337a5ab44126792ce149114525bda9fdbd08a7c0b07c13c43d6bb5a80d59dd",
+      "input_hashes": {},
+      "stage_version": "1",
+      "check_version": "1",
+      "capability": "stochastic",
+      "check_passed": true,
+      "record_schema_version": "2",
+      "artifact_contract": "base_v2",
+      "artifact_hashes": {
+        "output": "86337a5ab44126792ce149114525bda9fdbd08a7c0b07c13c43d6bb5a80d59dd",
+        "checks": "5bdc276e76bd39f09263914e15434fb12441a5e510e4f46ecbec72a78860bd68"
+      }
+    },
+    "5_intakeoutput": {
+      "stage": "5_intakeoutput",
+      "accepted_attempt": 1,
+      "output_hash": "5535ff672edff1a370d6884df42c7028903fdc43f9bbe6bf2e3c535a07c1bb84",
+      "input_hashes": {
+        "1_correction": "72f8aa5ccb24ed781a42ff83ae57fb2a91fa8f760f3e57db64f98f5f504a4eac",
+        "4_mep": "86337a5ab44126792ce149114525bda9fdbd08a7c0b07c13c43d6bb5a80d59dd"
+      },
+      "stage_version": "1",
+      "check_version": "1",
+      "capability": "deterministic",
+      "check_passed": true,
+      "record_schema_version": "2",
+      "artifact_contract": "assembly_e4_v1",
+      "artifact_hashes": {
+        "output": "5535ff672edff1a370d6884df42c7028903fdc43f9bbe6bf2e3c535a07c1bb84",
+        "checks": "1770f25556f0496129ae5201675f026c3435e091f88f2e98cda44b7cf2283645",
+        "audit": "5650c17768cd257d99c67ee290a6e1ec8dcb1fbf643f8faa21f88a401fd291d7",
+        "output_coordinate_contract": "d49d2b6a392191be458555abe18138512cfc45e3165566736502ad360cf83320",
+        "output_coordinate_snapshot": "6264ea83d54156d9c20024ffc63f2078faaf29ab1b79443d51a3966b6b5d7a71"
+      }
+    }
+  }
+}

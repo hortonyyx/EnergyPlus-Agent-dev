@@ -7,6 +7,33 @@ from src.mcp.tools.surface import SurfaceTool
 from src.mcp.tools.zone import ZoneTool
 
 
+# 2026-08-13 (batch create surfaces, structural-safety follow-up): a real
+# reproduction of the `surface` node against production intake_output.json
+# showed the model can send an oversized `create_surfaces_batch` call whose
+# generation gets cut off mid-turn by the provider (observed
+# finish_reason='length' on a 6-item call under an earlier, looser "one call
+# per zone" prompt — up to ~8 items/call), which desyncs the provider's
+# server-side tool-call bookkeeping from our local transcript and 400s the
+# NEXT turn ("insufficient tool messages following tool_calls message" — the
+# same error class this whole batch tool was built to avoid). Relying on
+# prose ("send at most 4 per call") is not a defense on its own — this repo
+# has repeatedly found prompt-only constraints get ignored/drift. This caps
+# batch size in CODE so an oversized call is rejected with a clear,
+# model-visible error instead of silently risking truncation.
+#
+# The exact number is an empirically-motivated, NOT rigorously derived,
+# conservative choice: in real single-shot reproductions against the same
+# 100-surface production spec, one 25-call run at <= 4 items/call completed
+# cleanly (0 truncations); a looser <= 8-items-per-call ("one zone per call")
+# prompt truncated on its 2nd of 2 real trials. This is n=1 clean / n=1
+# truncated at the two tested sizes — NOT a proven safe threshold, just the
+# best evidence available without a token-budget-based derivation (raw
+# max_tokens=64000 is not the binding constraint here: even a 100-item batch
+# is only ~15-25k tokens, well under budget, so the truncation is some other
+# provider-side limit this repo does not have visibility into).
+_MAX_BATCH_ITEMS = 4
+
+
 def make_surface_tools(config: ConfigState) -> list[BaseTool]:
     st = SurfaceTool(config)
 
@@ -85,8 +112,24 @@ def make_surface_tools(config: ConfigState) -> list[BaseTool]:
             "succeeded": [name, ...], "failed": [{"name": ..., "error": ...},
             ...]}}`. `success` is True only when `failed` is empty. Items
             missing a usable `name` are reported under a placeholder
-            `"<item_i>"` in `failed`.
+            `"<item_i>"` in `failed`. A call with more than 4 items is
+            rejected outright (nothing is created) with `data.count` still
+            reporting how many were sent — split into groups of at most 4
+            and call again once per group.
         """
+        if len(items) > _MAX_BATCH_ITEMS:
+            return ToolResponse(
+                success=False,
+                message=(
+                    f"Batch too large: {len(items)} items "
+                    f"(max {_MAX_BATCH_ITEMS} per call). Nothing was "
+                    f"created. Split into groups of at most "
+                    f"{_MAX_BATCH_ITEMS} and call create_surfaces_batch "
+                    f"again once per group."
+                ),
+                data={"count": len(items), "succeeded": [], "failed": []},
+            ).model_dump_json()
+
         succeeded: list[str] = []
         failed: list[dict] = []
 
