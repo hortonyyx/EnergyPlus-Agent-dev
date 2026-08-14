@@ -102,7 +102,29 @@
 ## 6. 权威全量（orchestrator 在**主树**跑，⛔ 不要重复）
 
 - 合并前基线（`a413e66`）：`rc=0` · `2603 passed / 10 xfailed / 0 failed`
-- 合并后：**见 orchestrator 随件附上的实测数**（`rc` + `N passed` 汇总行）
+- **合并后（含摊 B 返工）：`rc=0` · `2629 passed / 10 xfailed / 0 failed`**
+- **对账逐位闭合**：`2603（基线）+ 15（摊 A 新增）+ 11（摊 B 新增）= 2629` ✅ **零回归、零红。**
+
+### 6.1 中途出过一条真红（已修，说明白免得你困惑）
+
+首次合并后权威全量是 `1 failed / 2628 passed`，红的是摊 B 新写的
+`test_b2_prescan_reproduction`：它**枚举文件系统**并对任何不在 20 条固定表里的产物硬失败，
+而**主树开发机上存在一个未跟踪的产物**（`smalloffice_23/4_mep/`，被 `.gitignore:320` 排除）
+⇒ **该断言测的是「开发者工作目录里有哪些未跟踪文件」，不是「这个提交的性质」**（F-23 同族、极性相反）。
+**已由 GLM 返工修掉**（`fb171ec`，枚举口径改 `git ls-files`；未跟踪产物 `warn` + skip 并**点名记原因**；
+已跟踪但不在表里的仍硬失败）。orchestrator 在**真考场**（主树、该未跟踪产物真实存在）复验：
+`11 passed` 且 warning 里点名了文件与理由，**非静默通过**。
+
+## 6.2 ⛔⛔ 你的环境纪律（本日刚被踩，硬要求）
+
+1. **⛔ 绝对不许跑 `pip install -e .` / 任何 editable 安装。**
+   本日实测：一个席位在自己 worktree 里跑了一次，**共享 venv 的 `.pth` 被改成指向那棵 worktree**
+   ⇒ 此后**连主树**的脚本式启动都跨树导入到那棵树 ⇒ orchestrator 的权威全量会失去权威性
+   （**新登记 F-31**）。已修复并复验，请勿再触发。
+2. **你的 worktree 里会看到 3 条环境假红**，⛔ 不要修、不要当回归：
+   `test_gt_from_dxf` / `test_inspect_dxf`（CLI 子进程跨树导入 editable 安装 ⇒ `REPO_ROOT` 指向主树）
+   + `test_zone_agent`（`.env` 被 gitignore ⇒ 无 `OPENAI_API_KEY`）。**已登记 F-30。**
+3. 跑测优先跑定向用例；⛔ 不要重复 §6 的权威全量。
 
 ## 7. 请在裁决书里明确给出
 
