@@ -32,7 +32,13 @@ class MepOutput(BaseModel):
     material_specs: str
     construction_specs: str
     schedule_specs: str
-    hvac_specs: str
+    # 2026-08-14 dispatch: hvac_specs is never authored by the LLM — run_mep
+    # (src/agent/pipeline.py) unconditionally overwrites it with a
+    # deterministic render, regardless of what (if anything) is supplied
+    # here. Defaulted to "" (rather than required) so a model response that
+    # drops the key entirely still validates — the override runs either way,
+    # this only widens which malformed LLM responses are tolerated.
+    hvac_specs: str = ""
     people_specs: str
     lights_specs: str
 

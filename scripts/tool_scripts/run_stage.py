@@ -689,7 +689,18 @@ def _draw_split_pairing(run_dir: Path, policy: RunPolicy):
 
 
 def _geometry_zone_meta(run_dir: Path, policy: RunPolicy):
-    """Rebuild zone_specs + used_constructions + zone_names for 4_mep / 5."""
+    """Rebuild zone_specs + used_constructions + zone_names for 4_mep / 5.
+
+    ``zone_names`` is ORDERED (2026-08-14 dispatch §2.1): it used to be
+    ``set(dict.fromkeys(bg.zones))``, which discarded order because its only
+    consumer (check_mep) treats it as a membership/coverage set. run_mep now
+    ALSO consumes it, to render hvac_specs deterministically — an unordered
+    zone list there would make this run_stage code path's rendered text
+    diverge from the flow (pipeline.py run_pipeline_artifacts) path's, which
+    defeats the point of "deterministic". A plain list still satisfies
+    check_mep's existing usage (membership test / sorted() / truthiness —
+    checks/mep.py never does set arithmetic on it), so this is the one
+    variable serving both call sites; no behavior change for check_mep."""
     from src.agent.geometry import build_geometry
     from src.agent.geometry.specs import serialize_geometry
 
@@ -700,7 +711,7 @@ def _geometry_zone_meta(run_dir: Path, policy: RunPolicy):
         window_host_proof=window_host_proof,
     )
     zone_specs, surface_specs, fen_specs, used = serialize_geometry(bg)
-    zone_names = set(dict.fromkeys(bg.zones))
+    zone_names = list(dict.fromkeys(bg.zones))
     return zone_specs, surface_specs, fen_specs, used, zone_names
 
 
@@ -711,7 +722,10 @@ def _draw_mep(run_dir: Path, testdata_text: str, policy: RunPolicy):
     zone_specs, _, _, used, zone_names = _geometry_zone_meta(run_dir, policy)
     s4 = run_dir / "4_mep"
     s4.mkdir(parents=True, exist_ok=True)
-    mep = run_mep(zone_specs, used, testdata_text, out_dir=s4, feedback=None)
+    mep = run_mep(
+        zone_specs, used, testdata_text,
+        zone_names=zone_names, out_dir=s4, feedback=None,
+    )
     rep = check_mep(
         mep.model_dump(),
         used_constructions=used,
