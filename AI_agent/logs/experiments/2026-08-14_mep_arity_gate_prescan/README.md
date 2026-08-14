@@ -13,6 +13,12 @@
 
 **结果：21 份产物中 15 份会红**（明细见 `prescan_output.md`）：
 
+> **⛔ 2026-08-14 当日更正（摊 B 席位指出、orchestrator 核实）**：这 21 份里
+> **`smalloffice_23` 那份不在版本库里**（`.gitignore:320` 显式排除 `case_tests/e2e_tests/smalloffice_23/4_mep/`）
+> ⇒ **「21 份」是本机工作目录的属性，干净检出只有 20 份，红 14 份。**
+> 结论方向不变（该门直接阻塞仍会红掉验收 A 与 08-09 首次到 EP 那份），但**数字以 20/14 为准**。
+> **这是 F-8 族又一例**：`git check-ignore -v` 一行就能发现，预扫时没跑。
+
 | 产物 | 红对象数 / 总对象数 | 主要类型 |
 |---|---|---|
 | sm20 `run_2026-06-15_baseline` | 19 / 138 | `ZoneHVAC:EquipmentConnections` 缺 Zone Air Node Name |

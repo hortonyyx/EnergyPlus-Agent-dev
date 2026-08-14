@@ -40,6 +40,119 @@
 （`HVACTemplate:Thermostat` / `HVACTemplate:Zone:IdealLoadsAirSystem`）。
 **并行纪律**：两摊各自独占 worktree（承 08-13 实犯④）；全仓跑测一律 `-n 6`，⛔ 不许两摊同时 `-n auto`。
 
+### 二之二、⛔ sol 第五轮裁决（当日回执）：**`BLOCKER-1` 仍开 · 摊 H/I CHANGES REQUIRED · 又抓出一条真旁路**
+
+裁决书：[round5 verdict](logs/reviews/verdict/2026-08-14_round5_blocker1_closure_crossreview_sol.md)
+（`REVIEW STOPPED · REQUEST CORRECTION REQUIRED`，但**主体三支 + 摊 H/I 全部实审完毕**，分层停止规矩再次生效）。
+**orchestrator 已逐条独立复核，四条全部属实**（含两条是 orchestrator 自己的题错）。
+
+| 支 | sol 裁定 | orchestrator 复核 |
+|---|---|---|
+| 信任根 | **可关**（收窄模型内认账）·**但**「硬约束均已照办」不实 | ✅ 属实：`externally issued` / `signed by` / `tamper-evident` 全仓**仍剩 11 处**，含现役生产文件 `src/agent/correction/deterministic.py:96/106/114`，**连 orchestrator 声称已清干净的 `correction_score.py:555` 也还剩一处** |
+| 缓存 | 反例 A **已关** · **但 `MAJOR-F24` 仍开**：`scorer_implementation_sha256` 只哈希三个 code object，**真正决定 `trusted` 的 `_is_trusted_output_convention` 不在其中** | ✅ **orchestrator 独立探针复现**（带对照组）：换掉信任门 ⇒ 指纹 `c4014b3b…` **一字不变**；换掉被哈希的函数 ⇒ 指纹立刻变 ⇒ **门的语义已变、缓存照吐旧答案** |
+| 真实 run 正向观察 | **orchestrator 题错**：不是「从未做」 | ✅ 属实：`post_blocker1_e2e/1_correction/attempts/002/score_vs_gt.json` = `declared=True, trusted=True` + `accepted_proof_identity`；**且「`judge: off` ⇒ 不生成判卷侧车」这个推断也不成立** |
+| 摊 H/I | **CHANGES REQUIRED**，不得作为「surface 400 已根治」的验收版本 | ✅ 两条均属实（见下 F-27 / 补救分支） |
+
+**⛔⛔ 派工方错误率 17/17**（本轮 orchestrator 贡献两条，其中**一条是承重前提错**，不是外围）：
+① 「真实 run 正向 `trusted` 至今没做」——**盘上就有**，发单前没去查；
+② 「§5.14.1 硬约束均已照办」——**全仓还剩 11 处**，`grep` 一次就能发现，发单前没跑。
+⭐ 共同形状 = **我又一次把「我以为的状态」当「盘上的事实」写进了派工单**，而这正是我整天在要求施工席避免的。
+
+### 二之三、⭐ 本轮登记（**只登记，用户 2026-08-14 拍板「先登记」，本轮不派**）
+
+#### 摊 E — `BLOCKER-1` 最小闭合（**不复杂**，≈ 一个窗口，机械活为主 + 一个小设计点）
+
+1. **措辞机械清理 11 处**（`deterministic.py` ×3 · `correction_score.py:555` · `view_manifest.py:733`
+   · `test_f22_blocker1_core_stamp.py` ×4 · `test_c2_b2_v3.py:184` · `test_judge_batch_b.py:208`）——
+   按 §5.14.1 硬约束 1，⛔ 不得再出现「外部根 / 防篡改 / 签名」等价表述。
+2. **把信任门纳入实现身份**（`scripts/tool_scripts/run_stage.py:169 _scorer_implementation_sha256`）。
+   ⚠️ **小设计点**：sol 明确「**不能只给当前三函数再起一个完整身份的名字**」——
+   再加一个函数仍是「被选中的函数」。需覆盖**实际部署的依赖闭包**（模块源码摘要 / 部署 revision 之类）。
+3. **补反向锁**：只替换 trust gate、两个 live 常量与其余顶层函数不变 ⇒ **cache 必须 miss 且重算 `trusted=False`**。
+   （orchestrator 今日的探针已具备该形状，可直接改写成 pytest 锁。）
+4. **复读观察 5 步**（sol §2.3 已写死，**⛔ 不需要 `--record`、不需要重跑 0–5 或 EnergyPlus**）：
+   基于已在库的 `post_blocker1_e2e/1_correction/attempts/002` 或 HEAD 新建等价 attempt ——
+   ① 核 accepted manifest 指向该 attempt 且 hashes 与盘上字节一致 → ② 走生产 `_judge_gt_artifacts`
+   首算得 `declared=True, trusted=True` 且 scorer 一次调用 → ③ 身份不变再调，scorer 零调用且命中
+   → ④ 隔离副本删/篡改 proof ⇒ resolver `None`、旧 cache miss、重算 `trusted=False`
+   → ⑤ 旧无 proof attempt 仍 fail closed。
+
+#### 摊 D — F-27 协议层 + surface 越界补救分支（**这个复杂，且风险面最大**）
+
+**为什么复杂（orchestrator 评估，供排工参考）**：
+- **改的是 `react.py` 协议层 = 下游 9 个 subagent 全线共用** ⇒ 改坏了是全线崩，不是一个节点崩；
+- **「判该轮无效」之后做什么是真设计题**：重试同一轮？模型可能每次都生成过长 ⇒ 需**有界重试 + 降批量退避**，
+  否则把一次 400 换成一个死循环；
+- **`finish_reason` 的取法跨 provider 不一致**（LangChain `response_metadata` 字段名各家不同）；
+- **截断轮的夹具要构造**（sol 要求完整轮/截断轮**双向 wiring 锁**）；
+- **验收成本高**：修法是否真起作用**只能靠真实跑验证**，而真实跑烧额度且本身是间歇性的。
+- 另一半（surface 补救分支）先有个**决策**：**回退这段越界功能** vs **补正成走共享 self-repair
+  且第二轮仍缺时结构化失败**；补正要动 `_share.py`。
+
+**sol 给的最小闭合口径（原文要点）**：
+- `react.py` 把 `finish_reason == "length"` 的 assistant turn **判为无效**，该轮 tool calls
+  **不许执行、不许进下一次提交的历史**；给**完整轮/截断轮双向 wiring 锁**；
+- surface 补救分支：**回退** 或 **经明确授权后走共享 self-repair/引用校验 + 第二轮仍缺时结构化失败**，
+  并补「首轮零调用 → 补救建齐」与「补救仍不齐 → fail closed」两条 wiring 锁；
+- 完成后再按既定三次新 run 验收。
+
+**⭐ 已核实的事实（不是推测）**：`_MAX_BATCH_ITEMS=4` **只在 provider 已完整生成、客户端已解析出 tool call 之后才生效**
+⇒ 它能拒绝「完整生成的 5 项调用」，**结构上拒绝不了「第 5 项生成到一半」的幽灵调用**
+⇒ 现修法只降低截断概率。`react.py` 当前**只记录** finish reason，未判无效、未阻止进历史。
+**surface 补救分支**（`src/agent/nodes/surface.py:199`）**直接 `agent.invoke(...)`，绕过
+`invoke_with_self_repair` 每轮强制的 `validate_references()`**；补救后仍缺面时只
+`logger.error`（`:205`）**不 fail closed**。
+
+**⚠️ 与验收的关系（用户口径 vs sol 口径，是两件事，别混）**：
+用户的验收标准 = **工程可靠性**（一口气推完不出错、连跑 3 次）；
+sol 的判定 = **协议缺陷是否根治**。sol 明说：F-27 未修时三次 clean run **只能算经验样本**。
+⇒ **两者不冲突**：验收照跑、拿可靠度数据；⛔ 但不得据此声称「surface 400 已根治」。
+
+### 二之四、摊 B 已交付 + orchestrator 轻门（**抓出派工方第 18 次题错**）
+
+**摊 B 落库 `1472cfc`**（`wt/0814_B_idd_alignment`）：新增 `mep.idd_field_alignment`（check 数 18 → 19）·
+判据①缺必填格 / ②超字段数（extensible 豁免）· 分档用 `CheckResult.layer` 运行时定（零改 `disposition()`）·
+`load_to_schedule` / `hvac_schedule_refs` 的 offender 加 `disease_ref` 交叉引用 · 新增 11 条测试。
+轻门全档：[lightgate](logs/reviews/verdict/2026-08-14_seatB_idd_alignment_orchestrator_lightgate.md)
+· 席位报告：[execution](logs/reviews/execution/2026-08-14_idd_field_alignment_glm.md)
+
+- **✅ orchestrator 独立复核三项**（真实 `check_mep` 入口，⛔ 非形状匹配）：
+  **零回归 20/20 阻断集合逐份不变** · **预扫复现 红 14 / 绿 6 逐份吻合** · 检查条数 18→19。
+- **⛔⛔ 轻门发现：阻塞档结构上恒绿 = 派工方第 18 次题错**。查 IDD 坐实：
+  `HVACTemplate:Thermostat` 共 5 格、`\required-field` **只有 `Name`**；
+  `HVACTemplate:Zone:IdealLoadsAirSystem` 共 30 格、**只有 `Zone Name`**
+  ⇒ 判据①对这两类**只在「连第一格都不写」时才触发**（渲染器永远会写）；
+  判据②又被施工席自证是**真实解析路径上的死代码**（eppy 对超字段对象**静默截断或 crash**）
+  ⇒ **两条判据对阻塞档同时失效，该门今天净效果 = 纯报告。**
+  **⛔ 错在 orchestrator**：指定阻塞名单前**没去 IDD 核「这条判据对这两类能不能触发」**。施工席按单做对了，不记它的账。
+  **建议修法（下轮）**：阻塞档要抓的是「代码生成的行对不齐 = 代码 bug」，
+  **正确探测器是「解析回来的对象是不是渲染器打算写的那个形状」**（由摊 A 渲染器给期望字段数/位，门做 round-trip 断言），
+  ⛔ 不是 IDD 的 `\required-field`。该形态同时让阻塞档**真的可触发**、可做 neuter 自证。
+
+### 二之五、⛔⛔ **新登记：干净检出跑不绿全仓（F-8 族新面，对所有 worktree 席位有效）**
+
+**现象**：同一 commit，**主树 16 passed / 干净 worktree 2 failed**
+（`test_gt_from_dxf` · `test_inspect_dxf`）。
+**根因（orchestrator 实测坐实）**：这两条测试用 `subprocess` 跑 `python scripts/tool_scripts/<x>.py`；
+**脚本式启动时 `sys.path[0]` 是脚本所在目录、不是 cwd** ⇒ `import src...` 落到 **editable 安装**、
+**指向主树** ⇒ 子进程内 `REPO_ROOT`（`gt_schema.py:38 = Path(__file__).resolve().parents[3]`）解析成主树，
+而测试传的是 worktree 路径 ⇒ `gt_vg_config_path_forbidden`（`gt_manifest.py:278`）。
+实测证据：worktree 内以**脚本形态**启动，`gt_schema.__file__` 打印的是**主树**路径
+（⚠️ 用 `python -c` 探针**复现不出来** —— `-c` 的 `sys.path[0]` 是 cwd ⇒ **探针必须复刻被测对象的启动形态**）。
+**⇒ 三条纪律**：
+1. **任何 worktree 席位报的「全仓绿/红」都不可全信，权威全量必须在主树跑**；
+2. 对账关系已核：`2601 passed + 2 failed = 2603`（= orchestrator 主树基线 total）⇒ 摊 B 零回归成立；
+3. 另一同族已登记：**`smalloffice_23/4_mep/` 被 `.gitignore:320` 排除** ⇒ orchestrator 预扫的「21 份」
+   是本机工作目录属性，**干净检出只有 20 份、红 14 份**（预扫 README 已更正）。
+
+### 二之六、其他新登记的债
+
+| # | 事项 |
+|---|---|
+| **F-29** | **eppy 对超字段 IDF 对象静默截断**（Lights 类）或 crash（Material/Construction）⇒ **任何按位置读的门读到的都是被截断后的形态，且无人报警**。摊 B 席位自陈发现，超出其范围。 |
+| **F-30** | **干净检出跑不绿全仓**（见二之五）⇒ CLI 子进程跨树导入 editable 安装。 |
+| — | 摊 B 去重口径 = 「不复述诊断」而非「不报 offender」，同一错位 People 仍出现在两个 check 的 offender 里 ⇒ 交跨家族审裁。 |
+
 ### 三、本轮待办（顺序）
 
 1. 摊 A / 摊 B 交付 → orchestrator 轻门 → **跨家族交叉审**（⛔ 谁写谁不批）；
