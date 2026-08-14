@@ -215,3 +215,72 @@ python3 -m pytest -q tests/test_mep_hvac_deterministic.py tests/test_checks_mep_
 **两条都成立，我没有找到判错的地方。** 在动手改代码之前，我先各自独立复现了一遍（§7.1/§7.2 已记录复现过程与命令/结果），两条都能在我自己的机器上现场重现，不是只看 terra 的文字描述就采信。
 
 如果要说有什么"可以商榷但不算判错"的地方：terra 给的修法口径是"排除或明确 fail-closed/resample"两条路二选一，我选了"排除"（不是 fail-closed/resample）。**这不是对 terra 判断的反驳**——terra 本就把这两条并列为都可接受的方案，我只是在两个都合法的选项里做了工程判断：排除比 fail-closed/resample 更贴合本项目"让它填不错，而不是抓到再重试"的既有方法论（memory: `model-visible-but-not-its-business` 本身就是同一条教训——唯一有效修法是"让它看不见"不是"告诉它别碰"；fail-closed/resample 属于后者的变体，且重试不保证下一轮模型换一种大小写写法就不会再撞上）。这一点在 §7.1 的修法说明里已经写清楚理由，不是隐瞒的分歧点。
+
+---
+
+## 8. 第二次返工（2026-08-14，terra 对返工轮的二次复审）
+
+裁决书：`AI_agent/logs/reviews/verdict/2026-08-14_seatA_rework_rereview_terra.md`（主树只读副本，terra 复核基线 `f81cd3a`，即含返工提交 `c367667`）。
+
+**裁决**：§7.1 的保留 `Schedule:Compact` 同名修法**已签收**（"三张保留名按大小写不敏感语义识别、碰撞时摘除、无碰撞不重序列化"这部分认可）；**零区边界也已签收**（terra 用 v1 schema 构造出 `floors=[]` 与一层 `cells=[]` 两种真实可达零区输入，均证实会到达 `run_mep`，且 `ValueError` 确实向上传播——**terra 反过来替我把 §7.4 第 6 条自陈的"未反向确认可达性"验证掉了**，判定 reject 是有意义的 fail-closed、不是死分支）。**但摊 A 整体仍暂不签收**：§7.1 那三张"代码拥有"的 schedule 仍分别引用**通用**名 `Temperature`/`OnOff`，而这两个名字的处理逻辑只是"模型已定义就不添加"——没有验证或接管其值域与大小写语义，代码拥有权在**下一层**又被放开了。
+
+### 8.1 独立复现（动手改代码前）
+
+terra 给了两个具体构造，我各自现场复现了一遍，均未先信任裁决书文字：
+
+**发现①**：模型把通用 `Temperature`/`OnOff` 收窄到与代码 20/24/1 不交叠的范围（`Temperature,30,40` / `OnOff,2,3`），代码仍写入 20/24/1——落在模型声明的合法范围之外。现场复现：`mep.idf_parse`/`mep.schedule_type_refs`/`mep.schedule_completeness`/`mep.hvac_schedule_refs` 四门全 PASS、`rep.passed=True`，与 terra 描述逐字吻合。
+
+**发现②**：模型写小写 `temperature`，我上一轮的大小写不敏感"已存在就不添加"逻辑会跳过补 `Temperature`，但三张 canonical schedule 仍拼**精确大小写** `Temperature`；本仓 `mep.schedule_type_refs` 是大小写敏感的集合比较 ⇒ 现场复现 `mep.schedule_type_refs = FAIL: 2 schedule(s) reference undefined ScheduleTypeLimits`。**这是上一轮返工自己引入的新红，不是遗留问题**——terra 裁决书原文点明了这一点，我复现后确认属实。
+
+### 8.2 修法
+
+terra 的最小闭合口径：不覆盖模型的通用 `Temperature`/`OnOff`（避免连带改到无关 schedule——这条**动机**terra 明确认可是对的），而是让 3 张 canonical schedule 改引用**两个专属保留 type-limit 名**（`HVACDet_Temperature`/`HVACDet_OnOff`），并对它们施加**与 3 张保留 schedule 完全相同**的代码所有权处理（大小写不敏感排除模型同名定义 + 无条件追加代码 canonical 定义）。
+
+`src/agent/pipeline.py` 改动：
+- 新增 `_HVAC_DET_TEMPERATURE_TYPE_LIMIT = "HVACDet_Temperature"` / `_HVAC_DET_ONOFF_TYPE_LIMIT = "HVACDet_OnOff"` 两个专属常量 + `_HVAC_DET_RESERVED_TYPE_LIMIT_NAMES` 元组。
+- `_hvac_det_schedule_block()` 三段 canonical schedule 的 type-limit 引用从字面量 `"Temperature"`/`"OnOff"` 改成这两个专属常量。
+- `_merge_hvac_det_schedules()` 的排除逻辑从只扫 `SCHEDULE:COMPACT` 扩展为**同时**扫 `SCHEDULE:COMPACT`（3 个保留 schedule 名）与 `SCHEDULETYPELIMITS`（2 个保留 type-limit 名），两类对象用**同一套**大小写不敏感摘除 + `idfstr()` 重新生成逻辑；`addendum` 不再需要"已存在就跳过"的条件分支——**两个专属 type-limit 现在无条件追加**（因为不会再有任何合法用途会用到这两个名字）。
+- **模型对通用 `Temperature`/`OnOff` 做什么，现在与本函数完全无关**——代码不再读它、不再判断它是否存在、不再往它身上追加或排除任何东西。原来"不覆盖无关 schedule"的动机被**完全保留**，且不再以"代码的值依赖模型有没有定义某个通用名"为代价。
+
+### 8.3 独立验证
+
+逐字复现 terra 给的两个构造，均已解决：
+- 发现①场景：合并后 3 张 canonical schedule 仍引用 `HVACDet_Temperature`（`-60,200`）/`HVACDet_OnOff`（`0,1`），与模型收窄后的通用 `Temperature`（`30,40`）/`OnOff`（`2,3`）**互不相关**；模型的通用定义原样保留（`fields == ["Temperature", "30.0", "40.0", "Continuous"]`，未被覆盖也未被删除）；`check_mep` 四门与 `rep.passed` 全部通过预期。
+- 发现②场景：模型写 `temperature`（小写）后，合并文本仍无条件包含精确大小写的 `HVACDet_Temperature`；`mep.schedule_type_refs` 现场复现为 PASS。
+- 额外验证："不连带改到无关 schedule"这条动机确实保留：给一个引用通用 `Temperature` 的无关 schedule（`Sch_SomeOtherSetback`）+ 收窄后的通用范围，合并后该 schedule 的类型引用与数值原样不变。
+
+### 8.4 新增/改写的测试
+
+`tests/test_mep_hvac_deterministic.py`（全部驱动真实 `run_mep`，只 stub `_call_json_llm`，除两个纯函数级单测外）：
+- **改写**（原 `test_merge_hvac_det_schedules_does_not_duplicate_existing_type_limits` 测的是已废弃的"通用名+已存在就跳过"行为，随修法一起过时）→ `test_merge_hvac_det_schedules_never_touches_generic_type_limits`：断言模型收窄的通用 `Temperature`/`OnOff` 逐字段原样存活，专属保留名无条件追加，且 3 张 canonical schedule 只引用专属名不引用通用名。
+- 新增 `test_merge_hvac_det_reserved_type_limits_are_case_insensitively_owned`：模型对两个专属名分别写小写/大写变体，验证归一为代码唯一版本。
+- **terra 本轮明确要求的组合锁** `test_reserved_schedules_immune_to_narrowed_generic_and_exclusive_name_collision`：驱动真实 `run_mep`，**同时**预置（a）收窄的通用 `Temperature`/`OnOff` + 一个依赖通用名的无关 schedule，与（b）专属保留名的大小写碰撞，一次性断言 terra 列的全部 4 点——① 3 张 canonical schedule 各唯一且仍为 20/24/1；② 只引用专属 canonical type limits 且范围/数值类型正确（非 `-1,1` 碰撞值、非通用名）；③ 模型的通用 type limits 与依赖它们的无关 schedule 原样不变；④ 合并产物的 `mep.idf_parse`/`mep.schedule_type_refs`/`mep.schedule_completeness`/`mep.hvac_schedule_refs` 全 PASS（不是只断言 eppy 能解析）。
+
+### 8.5 复跑结果
+
+```
+python3 -m pytest -q tests/test_mep_hvac_deterministic.py -n 6
+21 passed in 6.01s
+```
+（19 条既有 + 1 条改写 + 2 条本轮新增，零回归；过程中我自己的新测试踩过一次 eppy `idfstr()` 数值格式化的假设错误——把裸整数 "35" 误期望成 "35.0"，改成数值比较而非字符串比较后修复，这是我自己的测试 bug，不是生产代码问题，如实记录。）
+
+超出 terra 明确要求的额外验证（terra 与 orchestrator 均未要求全仓）：
+```
+python3 -m pytest -q tests/test_mep_hvac_deterministic.py tests/test_checks_mep_assembly.py \
+  tests/test_run_pipeline_self_checks.py tests/test_check_parity.py tests/test_a8_evidence_routing.py -n 6
+90 passed in 6.38s
+```
+
+**环境纪律**：本轮全程未运行 `pip install -e .` 或任何 editable 安装；未创建 `.env`；未处理那 3 条已知 worktree 环境假红。
+
+### 8.6 我自己判断没做到 / 没验证的事项（本轮）
+
+1. §7.4 里第 6 条列的"零区拒绝有没有机会被真实触发"——**terra 本轮替我验证掉了**（用 v1 schema 构造出两种真实可达的零区输入，证实会到达 `run_mep`）。这条不再是我的未验证项，但我自己没有独立复现 terra 这一步（只读了裁决书里的描述，没有像 §8.1 那样现场重跑）——如实标注：**这条我采信了 terra 的复核，没有自己再验一遍**，与本报告其余部分"先复现再动手"的做法不一致，特此说明。
+2. 除此之外，§7.4 记录的其余未验证项（真实下游链路 / EnergyPlus 仿真 / regression·golden 端到端 / 提示词更新后孤儿时间表趋势）本轮状态不变，理由同前——不在 terra 本轮"局部命名/合并 + 一条锁"的返工范围内，orchestrator 转达的指令也未要求。
+3. **没有验证"专属保留名会不会被下游 schedule_agent 当成陌生/无意义的名字而处理异常"**——下游 ReAct agent 看到 `HVACDet_Temperature` 这种明显是内部保留名的字符串，行为是否与看到 `Temperature` 时一致，我没有验证（仍属下游范围外）。
+
+### 8.7 对本轮 terra 两条发现的看法
+
+**两条都成立，复现结果与裁决书描述逐字吻合，没有找到判错的地方。** 这次连"可以商榷但不算判错"的分歧点都没有——terra 给的修法方向（专属名 + 同样的代码所有权处理）是唯一清楚、并且与我上一轮自己选择"排除而非 fail-closed"时用的同一条理由（让它填不错、不是抓到再重试）完全一致，属于顺着同一个方法论往下延伸一层，没有第二条合法路径需要比较取舍。
+
+如果要反思，这次的教训在我自己身上，terra 裁决书末尾那句方法论总结已经说得很准确：**「你上一轮把『代码拥有』推进了一层，这一轮抓的是你拥有的那三张表所依赖的东西还在模型手里」**——我在做 §7 那轮修法时，注意力全在"3 张 schedule 本身要不要被模型污染"上，没有顺着依赖链再往下问一句"这 3 张表依赖的 type-limit 名，它的归属是谁"。这不是判断错误，是检查的**颗粒度**不够深——与本项目 memory 里已经记过的"换表示/加规范化要问谁在用旧形态跟它比"、"同一事实的多处声明"是同一类方法论盲区的又一次实例，只是这次换成了"代码接管一个对象时，要连它引用的对象一起问owned-by-whom"。

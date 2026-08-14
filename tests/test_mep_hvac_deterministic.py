@@ -367,19 +367,75 @@ def test_a4_referenced_schedules_exist_in_merged_schedule_specs():
     assert referenced <= defined, f"referenced but undefined: {referenced - defined}"
 
 
-def test_merge_hvac_det_schedules_does_not_duplicate_existing_type_limits():
-    """The merge must fold in only the ScheduleTypeLimits the caller's
-    schedule_specs doesn't already define -- otherwise concatenating this
-    into a downstream bundle that already has e.g. Temperature would produce
-    two ScheduleTypeLimits objects with the same name."""
-    already = "ScheduleTypeLimits, Temperature, -50, 100, Continuous;\n"
-    merged = pipeline._merge_hvac_det_schedules(already)
+def test_merge_hvac_det_schedules_never_touches_generic_type_limits(monkeypatch):
+    """2026-08-14 terra 2nd re-review: the 3 canonical schedules must NOT
+    reference the generic Temperature/OnOff names at all (they reference 2
+    exclusive reserved names instead) -- so a model definition of the
+    generic names, however it's shaped, is simply none of this function's
+    business: not read, not overridden, not duplicated. Reproduces terra's
+    literal 2nd-pass finding (narrowed Temperature/OnOff that would have put
+    the code's 20/24/1 out of range under the old generic-name design) and
+    asserts it survives byte-for-byte -- not merely "doesn't duplicate"."""
+    narrowed_generic = (
+        "ScheduleTypeLimits, Temperature, 30, 40, Continuous;\n"
+        "ScheduleTypeLimits, OnOff, 2, 3, Discrete;\n"
+    )
+    merged = pipeline._merge_hvac_det_schedules(narrowed_generic)
     idx = parse_idf_text(merged)
     assert idx.ok, idx.parse_error
 
-    temperature_objs = [o for o in idx.of_type("SCHEDULETYPELIMITS") if o.name == "Temperature"]
-    assert len(temperature_objs) == 1
-    assert "OnOff" in idx.has_name("SCHEDULETYPELIMITS")  # was NOT predefined -> must be added
+    generic_temperature = [o for o in idx.of_type("SCHEDULETYPELIMITS") if o.name == "Temperature"]
+    generic_onoff = [o for o in idx.of_type("SCHEDULETYPELIMITS") if o.name == "OnOff"]
+    assert len(generic_temperature) == 1
+    assert generic_temperature[0].fields == ["Temperature", "30.0", "40.0", "Continuous"]
+    assert len(generic_onoff) == 1
+    assert generic_onoff[0].fields == ["OnOff", "2.0", "3.0", "Discrete"]
+
+    # The 2 exclusive reserved type limits are always added, independent of
+    # what the model did with the generic names.
+    reserved_names = idx.has_name("SCHEDULETYPELIMITS")
+    assert pipeline._HVAC_DET_TEMPERATURE_TYPE_LIMIT in reserved_names
+    assert pipeline._HVAC_DET_ONOFF_TYPE_LIMIT in reserved_names
+
+    # And the 3 canonical schedules reference ONLY the reserved names, never
+    # the generic ones -- so the model's narrowed range cannot constrain them.
+    for obj in idx.of_type("SCHEDULE:COMPACT"):
+        if obj.name in (
+            pipeline._HVAC_DET_HEATING_SCHEDULE,
+            pipeline._HVAC_DET_COOLING_SCHEDULE,
+            pipeline._HVAC_DET_AVAILABILITY_SCHEDULE,
+        ):
+            type_limit_ref = obj.fields[1]
+            assert type_limit_ref in (
+                pipeline._HVAC_DET_TEMPERATURE_TYPE_LIMIT,
+                pipeline._HVAC_DET_ONOFF_TYPE_LIMIT,
+            ), f"{obj.name} references {type_limit_ref!r}, expected a reserved type limit"
+
+
+def test_merge_hvac_det_reserved_type_limits_are_case_insensitively_owned():
+    """The 2 reserved type-limit names get the SAME code-ownership treatment
+    as the 3 reserved schedule names: a model-authored same-named definition
+    (any case) is excluded, the code's own is appended unconditionally."""
+    collision = (
+        f"ScheduleTypeLimits, {pipeline._HVAC_DET_TEMPERATURE_TYPE_LIMIT.lower()}, 5, 6, Continuous;\n"
+        f"ScheduleTypeLimits, {pipeline._HVAC_DET_ONOFF_TYPE_LIMIT.upper()}, 7, 8, Discrete;\n"
+    )
+    merged = pipeline._merge_hvac_det_schedules(collision)
+    idx = parse_idf_text(merged)
+    assert idx.ok, idx.parse_error
+
+    temp_objs = [
+        o for o in idx.of_type("SCHEDULETYPELIMITS")
+        if o.name.lower() == pipeline._HVAC_DET_TEMPERATURE_TYPE_LIMIT.lower()
+    ]
+    onoff_objs = [
+        o for o in idx.of_type("SCHEDULETYPELIMITS")
+        if o.name.lower() == pipeline._HVAC_DET_ONOFF_TYPE_LIMIT.lower()
+    ]
+    assert len(temp_objs) == 1
+    assert temp_objs[0].fields == [pipeline._HVAC_DET_TEMPERATURE_TYPE_LIMIT, "-60.0", "200.0", "Continuous"]
+    assert len(onoff_objs) == 1
+    assert onoff_objs[0].fields == [pipeline._HVAC_DET_ONOFF_TYPE_LIMIT, "0.0", "1.0", "Discrete"]
 
 
 # --------------------------------------------------------------------------- #
@@ -540,6 +596,127 @@ def test_reserved_schedule_ownership_neuter_flips_lock_red(monkeypatch):
         f"got {len(matches)} copies, expected 2 (proves the real fix's lock "
         "above is coupled to real code, not vacuous)"
     )
+
+
+# --------------------------------------------------------------------------- #
+# REWORK #2 (2026-08-14 terra 2nd re-review, verdict
+# logs/reviews/verdict/2026-08-14_seatA_rework_rereview_terra.md) -- the
+# rework #1 fix bound the 3 canonical schedules to the GENERIC ScheduleType-
+# Limits names Temperature/OnOff (only adding the code's definition if the
+# model hadn't already defined that name, deliberately, to avoid tampering
+# with unrelated model schedules that might share those names). That left
+# the 3 "code-owned" schedules depending on something the model still fully
+# controlled: terra reproduced (a) a model response narrowing Temperature
+# to `30, 40` / OnOff to `2, 3` silently puts the code's own 20/24/1 values
+# out of the declared range (all of mep.idf_parse / mep.schedule_type_refs
+# / mep.schedule_completeness / mep.hvac_schedule_refs still PASS,
+# check_mep.passed=True — no existing gate catches it), and (b) a model
+# response spelling it lower-case `temperature` makes the case-insensitive
+# "already defined" check skip adding `Temperature`, while the canonical
+# schedules still spell it exact-case `Temperature` — and this repo's
+# mep.schedule_type_refs is a case-SENSITIVE set comparison, so THAT
+# combination flips mep.schedule_type_refs to FAIL (a regression rework #1
+# itself introduced). Fixed by giving the 3 schedules 2 EXCLUSIVE reserved
+# type-limit names (HVACDet_Temperature / HVACDet_OnOff) that get the exact
+# same code-ownership treatment as the 3 reserved schedule names, so
+# nothing the model does to the generic Temperature/OnOff names can affect
+# them. This lock drives the real run_mep body, pre-seeding BOTH failure
+# shapes simultaneously (terra's explicit ask): a narrowed generic
+# Temperature/OnOff, AND a case-collision on the exclusive reserved names.
+# --------------------------------------------------------------------------- #
+def test_reserved_schedules_immune_to_narrowed_generic_and_exclusive_name_collision(
+    monkeypatch,
+):
+    model_schedule_specs = (
+        # (a) narrowed generic type limits -- under the pre-fix design this
+        # would have put the code's 20/24 heating/cooling values out of range.
+        "ScheduleTypeLimits, Temperature, 30, 40, Continuous;\n"
+        "ScheduleTypeLimits, OnOff, 2, 3, Discrete;\n"
+        # An unrelated schedule that legitimately depends on the generic
+        # Temperature name -- must survive untouched (proves the model's
+        # own use of the generic name is not collateral damage).
+        "Schedule:Compact, Sch_SomeOtherSetback, Temperature,\n"
+        "  Through: 12/31,\n"
+        "  For: AllDays,\n"
+        "  Until: 24:00, 35;\n"
+        # (b) case collision on the exclusive reserved names themselves --
+        # under the pre-fix design the case-insensitive "already defined"
+        # check would have skipped adding HVACDet_Temperature while the
+        # canonical schedules still spelled it exact-case.
+        "ScheduleTypeLimits, hvacdet_temperature, -1, 1, Continuous;\n"
+        "ScheduleTypeLimits, HVACDET_ONOFF, -1, 1, Discrete;\n"
+    )
+    result = _run_mep_real(
+        monkeypatch,
+        zone_names=_ZONES,
+        schedule_specs_from_model=model_schedule_specs,
+    )
+    idx = parse_idf_text(result.schedule_specs)
+    assert idx.ok, idx.parse_error
+
+    # 1. The 3 canonical schedules are each unique, still 20/24/1.
+    expected_values = {
+        pipeline._HVAC_DET_HEATING_SCHEDULE: "20.0",
+        pipeline._HVAC_DET_COOLING_SCHEDULE: "24.0",
+        pipeline._HVAC_DET_AVAILABILITY_SCHEDULE: "1.0",
+    }
+    schedules_by_name = {}
+    for name, expected_value in expected_values.items():
+        matches = [o for o in idx.of_type("SCHEDULE:COMPACT") if o.name.lower() == name.lower()]
+        assert len(matches) == 1, f"{name}: expected exactly one, found {len(matches)}"
+        assert matches[0].fields[-1] == expected_value
+        schedules_by_name[name] = matches[0]
+
+    # 2. They only reference the exclusive canonical type limits, with
+    #    correct range/numeric type each -- not the generic or collided names.
+    reserved_type_limits = {
+        o.name.lower(): o for o in idx.of_type("SCHEDULETYPELIMITS")
+        if o.name.lower() in {
+            pipeline._HVAC_DET_TEMPERATURE_TYPE_LIMIT.lower(),
+            pipeline._HVAC_DET_ONOFF_TYPE_LIMIT.lower(),
+        }
+    }
+    assert len(reserved_type_limits) == 2, (
+        f"expected exactly the 2 reserved type limits (case-insensitive), "
+        f"found: {list(reserved_type_limits)}"
+    )
+    temp_limit = reserved_type_limits[pipeline._HVAC_DET_TEMPERATURE_TYPE_LIMIT.lower()]
+    onoff_limit = reserved_type_limits[pipeline._HVAC_DET_ONOFF_TYPE_LIMIT.lower()]
+    # exact-case name (the collision's lower/upper-case copies were excluded)
+    assert temp_limit.name == pipeline._HVAC_DET_TEMPERATURE_TYPE_LIMIT
+    assert onoff_limit.name == pipeline._HVAC_DET_ONOFF_TYPE_LIMIT
+    # code's own range/type, not the collision's `-1, 1`
+    assert temp_limit.fields == [pipeline._HVAC_DET_TEMPERATURE_TYPE_LIMIT, "-60.0", "200.0", "Continuous"]
+    assert onoff_limit.fields == [pipeline._HVAC_DET_ONOFF_TYPE_LIMIT, "0.0", "1.0", "Discrete"]
+    for sched_name, sched_obj in schedules_by_name.items():
+        type_limit_ref = sched_obj.fields[1]
+        assert type_limit_ref in (
+            pipeline._HVAC_DET_TEMPERATURE_TYPE_LIMIT,
+            pipeline._HVAC_DET_ONOFF_TYPE_LIMIT,
+        ), f"{sched_name} references {type_limit_ref!r}, not a reserved type limit"
+
+    # 3. The model's generic type limits (and the unrelated schedule
+    #    depending on them) are NOT rewritten.
+    generic_temp = [o for o in idx.of_type("SCHEDULETYPELIMITS") if o.name == "Temperature"]
+    generic_onoff = [o for o in idx.of_type("SCHEDULETYPELIMITS") if o.name == "OnOff"]
+    assert len(generic_temp) == 1
+    assert generic_temp[0].fields == ["Temperature", "30.0", "40.0", "Continuous"]
+    assert len(generic_onoff) == 1
+    assert generic_onoff[0].fields == ["OnOff", "2.0", "3.0", "Discrete"]
+    other_setback = [o for o in idx.of_type("SCHEDULE:COMPACT") if o.name == "Sch_SomeOtherSetback"]
+    assert len(other_setback) == 1
+    assert other_setback[0].fields[1] == "Temperature"  # still the generic name
+    # eppy's idfstr() round-trip doesn't force ".0" onto a bare-integer
+    # literal, so compare numerically, not by exact string -- the point
+    # under test is the VALUE is untouched (35), not its string spelling.
+    assert float(other_setback[0].fields[-1]) == 35.0
+
+    # 4. The merged product's check_mep-related gates are PASS.
+    rep = check_mep(json.loads(result.model_dump_json()), zone_names=set(_ZONES))
+    assert _status(rep, "mep.idf_parse") == CheckStatus.PASS
+    assert _status(rep, "mep.schedule_type_refs") == CheckStatus.PASS
+    assert _status(rep, "mep.schedule_completeness") == CheckStatus.PASS
+    assert _status(rep, "mep.hvac_schedule_refs") == CheckStatus.PASS
 
 
 # --------------------------------------------------------------------------- #
