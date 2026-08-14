@@ -146,3 +146,72 @@ FAILED tests/test_zone_agent.py::test_zone_agent_creates_two_zones - openai.O...
 ## 6. 对派工单本身的判断
 
 没有发现派工单 §2、§3 的事实性前提有错。§2.2 的输出形态判断经 A5 实测成立,未行使"停下上报"。中途 orchestrator 转达的一次诊断（"A3 红是因为 `run_stage.py:703` 还是 `set(...)`"）与我自己独立重跑后看到的真实 `RuntimeError`（`assembly.contract_backstop` 因我的测试夹具缺 `construction_specs` 而非零回退,与区排序无关）不符——我按自己实测的证据链修复并重新验证,过程记在 §4 A3 和上面的自查项里,不代表派工单本身有错,是过程中一次转述/复核口径的分歧,已用可执行证据收敛。
+
+---
+
+## 7. 返工轮（2026-08-14，GPT 侧 terra 跨家族复审后）
+
+裁决书：`AI_agent/logs/reviews/verdict/2026-08-14_seatAB_crossreview_terra.md`（主树只读副本，terra 在 `/workspaces/ep-wt-R` 复核，基线 `9700684`）。裁决 = **摊 A 暂不签收**，给了一条阻塞项 + 一条验收前置补项，本节记录返工过程与结果。
+
+### 7.1 阻塞项：`_merge_hvac_det_schedules()` 不是真正的代码所有权（已闭合）
+
+**terra 的发现**：该函数只避免重复 `ScheduleTypeLimits`，不处理模型在 `schedule_specs` 里已经写出的 3 个保留 `Schedule:Compact` 名。用 3 个精确保留名预置模型时间表后调用该函数：解析成功、3 个名称均出现 2 次、`mep.idf_parse=pass`、`check_mep` 整体 `passed=True`。
+
+**我的独立复现（在提出任何修法之前先复现，不是照抄 terra 的结论）**：用 terra 描述的**同一种构造**（3 个保留名 + `Until: 24:00, 99` 荒唐值）现场跑了一遍——`parse ok=True`，3 个名称各出现 2 次，`mep.hvac_schedule_refs=PASS`（该门只查名字能不能解析到某个时间表，不查是否唯一），`rep.passed=True`。**terra 的发现真实存在，是我第一版实现的真实缺陷，不是误判**。
+
+**修法**（`src/agent/pipeline.py::_merge_hvac_det_schedules`）：
+- 对 3 个保留 `Schedule:Compact` 名实施**真正排除**：解析模型的 `schedule_specs` 后，对每个 `SCHEDULE:COMPACT` 对象按**大小写不敏感**（`str.lower()`）比对是否命中 3 个保留名之一，命中的用 `idf.removeidfobject(obj.raw)` 从 eppy 对象里摘除，再用 `idf.idfstr()` 重新生成文本，然后才追加代码自己的 3 段canonical 定义。这样合并后的文本保证每个保留名**恰好 1 个定义**，值恒为代码的 20/24/1。
+- **只有真的发生碰撞时才重新序列化**：没有碰撞（预期今后的常态，尤其提示词已改后）时 `schedule_specs` 保持模型原样字节不变，只在末尾追加，不为了这个防御逻辑而无谓改变现有行为。
+- `ScheduleTypeLimits`（`Temperature`/`OnOff`）**刻意不用同一套"排除"处理**：这两个类型限制名是通用词汇，模型的其它非 HVAC 时间表可能合法共用；改成"排除模型的、用代码的"会有连带风险（可能悄悄改掉模型某个无关时间表的取值范围）。这里维持原有的"模型已定义就不重复添加"逻辑，只是把存在性判断也升级成大小写不敏感（之前是精确匹配，同一类缺陷的隐性分支，顺手一起修）。
+- 无法解析的 `schedule_specs`：不做排除（没法可靠摘除），但整个 bundle 仍会在 `mep.idf_parse` 处 fail-closed——这是修法前就有的既定行为，不是新缺口。
+
+**独立验证过程**：
+1. 逐字复现 terra 的场景，确认修法后 3 个名称各恰好 1 个、值为 20.0/24.0/1.0、荒唐值 99 不再出现在合并文本里。
+2. 加大小写变体压力测试（`temperature`/`sch_hvacdet_coolingsetpoint`/`SCH_HVACDET_AVAILABILITY`/`Sch_HVACDET_Availability` 两个不同大小写的可用性时间表各写一次）：全部正确归一到代码版本；模型另外写的无关时间表 `Sch_Occupancy` 原样存活、数值不变；模型已定义的 `Temperature`（大小写为 `temperature`，边界 `-50/100`）被尊重、代码不覆盖；`OnOff` 因模型没定义而由代码补上。
+3. `check_mep` 在这份合并产物上全绿（`mep.hvac_schedule_refs`/`mep.schedule_type_refs`/`mep.idf_parse` 均 PASS）。
+
+**新增测试**（`tests/test_mep_hvac_deterministic.py`，均驱动真实 `run_mep`，只 stub `_call_json_llm`，不 stub `run_mep` 本体或 `_merge_hvac_det_schedules`）：
+- `test_reserved_schedule_names_are_truly_code_owned_not_just_deduplicated`：3 个精确保留名 + 2 个额外大小写变体碰撞（满足 terra"再加至少一个大小写变体"的要求）+ 1 个无关时间表，断言**每个保留名在交给下游的 `schedule_specs` 里恰好出现一次、值精确等于代码的 20.0/24.0/1.0**（不是只断言 eppy 能解析），并额外跑 `check_mep` 确认 `mep.hvac_schedule_refs`/`mep.schedule_type_refs`/`mep.idf_parse` 三门都真的 PASS。
+- `test_reserved_schedule_ownership_neuter_flips_lock_red`：把 `_merge_hvac_det_schedules` 中和回修法前的行为（只去重 `ScheduleTypeLimits`，不排除同名 `Schedule:Compact`），同一场景下确认保留名变回 2 份——证明上一条锁是真绑在修法逻辑上，不是空过。
+
+### 7.2 验收前置第 5 条：零区边界未定义（已闭合）
+
+**terra 的发现**：`_render_hvac_specs([])` 会无条件渲染出一个 thermostat、零个 `HVACTemplate:Zone:IdealLoadsAirSystem`，行为未定义。
+
+**判断**：零区输入应当**在渲染前明确拒绝**，不是给一份"能通过但没意义"的输出。理由——真实建筑按几何内核的构造方式必然至少有 1 个区（零区意味着上游内核本身出了 bug），一个不挂任何 `IdealLoadsAirSystem` 的 thermostat 是自我孤立的无意义对象（讽刺地正是本轮要根治的"孤儿"同类问题）；静默生成这种退化输出会**掩盖**上游可能的真实缺陷，而不是暴露它——与本仓"kernel 构建失败是要修的 bug、不是要糊弄过去的东西"这条既有哲学一致。
+
+**修法**：`_render_hvac_specs` 函数体最前面加 `if not zone_names: raise ValueError(...)`，消息明确说明这是硬拒绝、不是留空当默认。
+
+**新增测试**：`test_render_hvac_specs_rejects_empty_zone_list`（直接调用渲染函数断言 raise）+ `test_run_mep_propagates_zero_zone_rejection`（驱动真实 `run_mep`，确认异常会一路传播出来、不会被吞掉）。
+
+### 7.3 复跑结果
+
+```
+python3 -m pytest -q tests/test_mep_hvac_deterministic.py -n 6
+19 passed in 5.90s
+```
+（15 条原有 + 4 条本轮新增：2 条 schedule ownership + 2 条零区边界）
+
+另外做了一次**超出 terra 明确要求**的轻量扩围验证（不是全仓，terra 与 orchestrator 都明确不需要）——把改动周边最相关的几个测试文件一起跑，确认零连带回归：
+```
+python3 -m pytest -q tests/test_mep_hvac_deterministic.py tests/test_checks_mep_assembly.py \
+  tests/test_run_pipeline_self_checks.py tests/test_check_parity.py tests/test_a8_evidence_routing.py -n 6
+88 passed in 6.10s
+```
+
+**环境纪律**：本轮全程未运行 `pip install -e .` 或任何 editable 安装；未创建 `.env`；未去处理仓库里那 3 条已知的 worktree 环境假红（`test_gt_from_dxf`/`test_inspect_dxf`/`test_zone_agent`）。
+
+### 7.4 我自己判断没做到 / 没验证的事项（本轮，如实写）
+
+1. **没有跑真实下游链路**（`schedule_agent → hvac_agent` 消费新形态、用工具状态确认 3 张时间表+1 个 thermostat+每区一个 IdealLoads 的命名与数量）。terra 裁决书 §"进入验收路径前必须补的验证"第 2 条明确要求这个，我这轮没做——判断理由：这仍然落在项目不变量 #3"下游 9 subagent 消费、不归本项目管"的既有边界内，且这条本身是**验收路径前置项**（terra 原文："不等同于要求重跑已完成的 §6 全量"，但也没有说这是本轮返工必须完成的），而 orchestrator 这次的返工指令只列了阻塞项（§1/§2 的两条）+ 环境纪律，没有把这条列进交付范围。如实标注：这不是我核实过"做了没问题"，是我判断它不在本轮返工范围内、没有去做。
+2. **没有跑真实 EnergyPlus 仿真**（terra 裁决书同一节第 3 条）。同上，判断为不在本轮返工范围。
+3. **没有对 `regression`/`golden` 验收 profile 各跑一次端到端**（同节第 4 条）。同上。
+4. **孤儿时间表在提示词更新后的真实趋势**仍未验证（terra 明确说这不是验收阻塞项，只是应观测）——上一轮报告已如实记录这点，本轮无新验证。
+5. **没有验证「排除同名时间表」这个修法本身，会不会在下游 schedule_agent 眼里产生新的困惑**——比如下游是否会因为看到 `schedule_specs` 里"少了"一个它可能期待的名字而行为异常。这仍然是下游范围外的问题，但如实记录我没有去想清楚这条修法对下游语义的全部影响，只验证了它在本项目边界内（`check_mep` 门 + 合并文本本身）的正确性。
+6. **零区拒绝这条修法目前只有单元测试覆盖**，没有验证"上游几何内核在什么条件下真的会产出零区"这件事本身——即没有反向确认这个 `ValueError` 在真实链路里究竟有没有机会被触发到，只确认了"如果被触发，行为是明确的"。
+
+### 7.5 对 terra 这两条发现的看法
+
+**两条都成立，我没有找到判错的地方。** 在动手改代码之前，我先各自独立复现了一遍（§7.1/§7.2 已记录复现过程与命令/结果），两条都能在我自己的机器上现场重现，不是只看 terra 的文字描述就采信。
+
+如果要说有什么"可以商榷但不算判错"的地方：terra 给的修法口径是"排除或明确 fail-closed/resample"两条路二选一，我选了"排除"（不是 fail-closed/resample）。**这不是对 terra 判断的反驳**——terra 本就把这两条并列为都可接受的方案，我只是在两个都合法的选项里做了工程判断：排除比 fail-closed/resample 更贴合本项目"让它填不错，而不是抓到再重试"的既有方法论（memory: `model-visible-but-not-its-business` 本身就是同一条教训——唯一有效修法是"让它看不见"不是"告诉它别碰"；fail-closed/resample 属于后者的变体，且重试不保证下一轮模型换一种大小写写法就不会再撞上）。这一点在 §7.1 的修法说明里已经写清楚理由，不是隐瞒的分歧点。
