@@ -71,15 +71,34 @@ def _stroke_points(g: dict) -> list[tuple[float, float]]:
     return []
 
 
+def _usable_point(value) -> bool:
+    """A coordinate pair is usable only with both components present.
+
+    The reading schema types dimension ``from``/``to`` as plain ``list[float]``,
+    so a reader can emit ``"to": [11.36]`` and have it load. Renders are a
+    required stage artifact (`pipeline_stage_contracts.md` §0_reading), so one
+    malformed endpoint must cost that endpoint, never the whole drawing.
+    """
+    return isinstance(value, (list, tuple)) and len(value) >= 2
+
+
 def _collect_points(data: dict) -> list[tuple[float, float]]:
     pts: list[tuple[float, float]] = []
     for s in data.get("strokes") or []:
         pts.extend(_stroke_points(s.get("geometry") or {}))
     for d in data.get("dimensions") or []:
-        if d.get("from"):
-            pts.append(tuple(d["from"]))
-        if d.get("to"):
-            pts.append(tuple(d["to"]))
+        # A dimension endpoint is only usable as a canvas point when it actually
+        # has both components. A reader can emit `"to": [11.36]` (one short) —
+        # the schema types from/to as plain list[float], so it loads, and this
+        # used to raise IndexError in `render`, killing the whole render pass
+        # for that view. Same root cause as the gate① crash fixed in
+        # `_dimensions_wellformed`; this is its second consumer. Renders are a
+        # required stage artifact, so a malformed endpoint must cost that one
+        # endpoint, never the drawing.
+        for key in ("from", "to"):
+            value = d.get(key)
+            if _usable_point(value):
+                pts.append((value[0], value[1]))
     # O-4: OCR/annotation anchors are NOT structural geometry — they must not
     # expand the metric canvas (a pixel anchor read as metric was the 3.3e8-px
     # root cause). The canvas extent comes from structural strokes + dimension
@@ -158,7 +177,10 @@ def render(data: dict) -> Image.Image:
 
     for d in data.get("dimensions") or []:
         f_, t_ = d.get("from"), d.get("to")
-        if f_ and t_:
+        # Same guard as `_collect_points`: draw a dimension only when BOTH
+        # endpoints carry two components. A one-component endpoint drops that
+        # dimension line, not the whole render.
+        if _usable_point(f_) and _usable_point(t_):
             dr.line([(tx(f_[0]), ty(f_[1])), (tx(t_[0]), ty(t_[1]))], fill=PALETTE["dim"], width=1)
             dr.text(((tx(f_[0]) + tx(t_[0])) / 2, (ty(f_[1]) + ty(t_[1])) / 2),
                     d.get("text", ""), fill=PALETTE["dim"])

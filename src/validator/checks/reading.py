@@ -784,7 +784,22 @@ def _dimensions_wellformed(rep: CheckReport, view: ReadingView) -> None:
             unparseable.append(d.id)
         # axis-endpoint consistency: a dimension's axis must match the axis along
         # which its endpoints actually differ.
-        if d.axis and d.from_pt and d.to and _finite(*d.from_pt[:2], *d.to[:2]):
+        if d.axis and d.from_pt and d.to:
+            # A present-but-malformed endpoint (fewer than 2 components, or a
+            # non-finite one) is an OFFENDER, not a crash: the schema types
+            # from/to as plain ``list[float]``, so a reader that emits
+            # ``"to": [11.36]`` loads fine and used to raise IndexError two
+            # lines below — a gate that dies instead of reporting. Its sibling
+            # ``_strokes_nondegenerate`` already guards ``len(pt) >= 2``; this
+            # is the same guard on the dimension path. Endpoints that are
+            # ABSENT stay skipped, exactly as before.
+            if not (len(d.from_pt) >= 2 and len(d.to) >= 2
+                    and _finite(*d.from_pt[:2], *d.to[:2])):
+                axis_bad.append({
+                    "id": d.id, "axis": d.axis, "reason": "malformed endpoints",
+                    "from": list(d.from_pt), "to": list(d.to),
+                })
+                continue
             dx = abs(d.to[0] - d.from_pt[0])
             dy = abs(d.to[1] - d.from_pt[1])
             if d.axis == "x" and dx < dy:
@@ -802,7 +817,8 @@ def _dimensions_wellformed(rep: CheckReport, view: ReadingView) -> None:
     if axis_bad:
         rep.add_fail(
             "reading.axis_endpoint_consistent", CheckLayer.INVARIANT,
-            f"{len(axis_bad)} dimension(s) whose axis disagrees with endpoints",
+            f"{len(axis_bad)} dimension(s) with malformed endpoints or an axis "
+            f"that disagrees with them",
             evidence={"offenders": axis_bad},
         )
     else:

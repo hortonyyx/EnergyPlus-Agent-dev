@@ -1649,3 +1649,75 @@ def test_b1_r4_elongated_60x4_building_with_legitimate_annotation_is_not_blocked
     assert _OCR_BOUNDS_CHECK not in _ids(rep)  # ⭐ must never BLOCK
     assert _OCR_BOUNDS_CHECK in {r.check_id for r in rep.flagged()}  # still surfaced
     assert rep.passed  # ⭐ this legitimate artifact is not refused
+
+
+# --- F-33: a malformed dimension endpoint must be an offender, never a crash ---
+#
+# Found by run_2026-08-15_reading_restart_A1, the first real reading run in
+# weeks: the reader wrote North_view D6 as {"from": [8.7, 0.0], "to": [11.36]}
+# — one component short. ReadingView loads it fine (the schema types from/to as
+# plain list[float]), then _dimensions_wellformed did `d.to[1]` and raised
+# IndexError, taking down the whole merge. Same family as F-6 (judge crashed
+# instead of reporting "unsupported") and violates "a gate may say fail, it may
+# not die".
+
+_AXIS_ENDPOINT_CHECK = "reading.axis_endpoint_consistent"
+
+# The exact shape the reader emitted, kept verbatim so this lock stays tied to
+# the real artifact rather than to a hand-invented one.
+_A1_MALFORMED_DIMENSION = {
+    "id": "D6", "text_verbatim": "2660", "value_m": 2.66,
+    "from": [8.7, 0.0], "to": [11.36], "axis": "x",
+}
+
+
+def test_malformed_dimension_endpoint_premise_would_have_crashed_the_old_gate():
+    """Self-proving premise (a regression case must show the old judgement
+    really fails on this fixture): the pre-fix body is exactly the two lines
+    below, and on this payload they raise IndexError. Without this, the lock
+    underneath could be green for a reason unrelated to the fix."""
+    d = _A1_MALFORMED_DIMENSION
+    with pytest.raises(IndexError):
+        _ = abs(d["to"][1] - d["from"][1])  # the pre-fix line 789
+
+
+def test_malformed_dimension_endpoint_is_reported_not_raised():
+    """⭐ The lock: gate① reports the malformed endpoint as an offender of
+    reading.axis_endpoint_consistent and completes the report.
+
+    Neuter: drop the `len(...) >= 2` guard in _dimensions_wellformed ⇒ this
+    test raises IndexError instead of asserting ⇒ red."""
+    payload = _clean_plan_payload(_USABLE_ORIGIN)
+    payload["dimensions"] = [_A1_MALFORMED_DIMENSION]
+
+    rep = check_reading_view(ReadingView.model_validate(payload))  # must not raise
+
+    result = _result(rep, _AXIS_ENDPOINT_CHECK)
+    assert result.status is CheckStatus.FAIL
+    offenders = result.evidence["offenders"]
+    assert [o["id"] for o in offenders] == ["D6"]
+    assert offenders[0]["reason"] == "malformed endpoints"
+
+
+def test_wellformed_dimension_endpoints_still_pass():
+    """The guard must not turn healthy dimensions into offenders — an
+    axis-consistent, two-component dimension stays a pass."""
+    payload = _clean_plan_payload(_USABLE_ORIGIN)
+    payload["dimensions"] = [
+        {"id": "D1", "text_verbatim": "15000", "value_m": 15.0,
+         "from": [0.0, 0.0], "to": [15.0, 0.0], "axis": "x"},
+    ]
+    rep = check_reading_view(ReadingView.model_validate(payload))
+    assert _result(rep, _AXIS_ENDPOINT_CHECK).status is CheckStatus.PASS
+
+
+def test_absent_dimension_endpoints_stay_skipped():
+    """Behaviour preservation: endpoints that are ABSENT were skipped before
+    the fix and must still be skipped — the guard targets present-but-malformed
+    values only, so old artifacts keep their verdicts."""
+    payload = _clean_plan_payload(_USABLE_ORIGIN)
+    payload["dimensions"] = [
+        {"id": "D1", "text_verbatim": "15000", "value_m": 15.0, "axis": "x"},
+    ]
+    rep = check_reading_view(ReadingView.model_validate(payload))
+    assert _result(rep, _AXIS_ENDPOINT_CHECK).status is CheckStatus.PASS

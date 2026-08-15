@@ -3028,6 +3028,50 @@ def cmd_status(args) -> int:
     return 0
 
 
+def cmd_artifacts(args) -> int:
+    """`artifacts <case> <run> <stage>` — produce the stage's REQUIRED viewing
+    artifacts for an already-merged run, without re-running the stage.
+
+    Why this verb exists (F-38, 2026-08-15): the artifact set is contract, not
+    preference — `pipeline_stage_contracts.md` §0_reading lists `*_render.png`,
+    and `new_case_guide.md` §"grade 批卷" requires a `score_vs_gt.json` +
+    `grade.png` per attempt with the accepted one promoted to the stage root.
+    Both producers already existed (`_render_reading_attempts`,
+    `_render_stage_grade_artifacts`) but were reachable ONLY through `flow`.
+    A run driven the hard-isolation way (`spawn_isolated_reader.py build/spawn/
+    merge`) therefore produced no images at all — the same "the user saw no
+    product" symptom O-1 was written to fix, resurfacing on a second path.
+
+    Kept a SEPARATE verb rather than folded into `merge` on purpose: grade
+    artifacts read gt, and `merge` runs gate① in-process (invariant #4 — gate①
+    and the executor never import gt). This verb is the judge-side step, run
+    after merge.
+
+    `--renders-only` skips the gt-reading half, for a run with no gt or when the
+    caller must stay gt-free. Both halves are idempotent.
+    """
+    from src.agent.execution.run_config import load_run_config
+
+    _case_dir, run_dir, _td = _resolve(args.base_dir, args.case, args.run)
+    result: dict = {"stage": args.stage, "renders": [], "grade": {}}
+
+    if args.stage == "0_reading":
+        result["renders"] = _render_reading_attempts(run_dir)
+
+    if not args.renders_only:
+        run_config = load_run_config(run_dir)
+        manifest = _load_manifest_readonly(run_dir)
+        graded = _render_stage_grade_artifacts(
+            args.stage, args.case, run_dir,
+            manifest=manifest, run_config=run_config,
+            run_profile=run_config.run_profile or "exploratory",
+        )
+        result["grade"] = {str(k): v for k, v in (graded or {}).items()}
+
+    print(json.dumps(result, sort_keys=True, default=str))
+    return 0
+
+
 def cmd_provision(args) -> int:
     """`provision <case> <run>` — provision (or re-verify) this run's trusted
     view manifest (§4.4, the "唯一 emitter" for `<run>/_run/view_manifest.json`).
@@ -3130,6 +3174,12 @@ def main() -> int:
     ps = sub.add_parser("status")
     ps.add_argument("case"); ps.add_argument("run")
 
+    pt = sub.add_parser("artifacts")
+    pt.add_argument("case"); pt.add_argument("run")
+    pt.add_argument("stage", choices=_STAGES)
+    pt.add_argument("--renders-only", action="store_true",
+                    help="skip the gt-reading grade half (no gt, or caller must stay gt-free)")
+
     pp = sub.add_parser("provision")
     pp.add_argument("case"); pp.add_argument("run")
     pp.add_argument("--migrate", action="store_true",
@@ -3144,6 +3194,7 @@ def main() -> int:
         "approve-review": cmd_approve_review,
         "flow": cmd_flow,
         "status": cmd_status,
+        "artifacts": cmd_artifacts,
         "provision": cmd_provision,
     }[args.verb](args)
 

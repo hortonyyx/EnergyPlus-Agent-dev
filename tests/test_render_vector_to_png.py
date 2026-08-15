@@ -223,3 +223,66 @@ def test_L53_large_legit_building_renders_via_adaptive_scale():
     # long bar's aspect ratio (uniform adaptive scaling, not a per-side clamp)
     assert img.size[0] > 100 and img.size[1] > 100
     assert img.size[0] / img.size[1] > 5
+
+
+# --- F-37: a malformed dimension endpoint costs that endpoint, not the render ---
+#
+# Second consumer of the same root cause as F-33 (gate①). Found by
+# run_2026-08-15_reading_restart_A1: the reader wrote North_view D6 as
+# {"from": [8.7, 0.0], "to": [11.36]} — one component short. The schema types
+# from/to as plain list[float], so it loads; the renderer then did `p[1]` and
+# raised IndexError, so that view produced NO png at all (3 of 6 renders
+# missing). Renders are a required stage artifact
+# (pipeline_stage_contracts.md §0_reading), so the render must survive.
+
+_A1_MALFORMED_DIMENSION = {
+    "id": "D6", "text": "2660", "value_m": 2.66,
+    "from": [8.7, 0.0], "to": [11.36], "axis": "x",
+}
+
+
+def _plan_with(dimension: dict) -> dict:
+    return {
+        "image_kind": "plan",
+        "strokes": [
+            {"pen": "wall", "geometry": {"kind": "line", "p1": [0, 0], "p2": [15, 0]}},
+            {"pen": "wall", "geometry": {"kind": "line", "p1": [0, 8], "p2": [15, 8]}},
+        ],
+        "dimensions": [dimension],
+    }
+
+
+def test_malformed_dimension_endpoint_premise_is_a_one_component_list():
+    """Self-proving premise: the fixture really is the short-endpoint shape the
+    pre-fix code indexed into, so the lock below cannot pass for some unrelated
+    reason."""
+    assert len(_A1_MALFORMED_DIMENSION["to"]) == 1
+    with pytest.raises(IndexError):
+        _ = _A1_MALFORMED_DIMENSION["to"][1]  # what both pre-fix sites did
+
+
+def test_malformed_dimension_endpoint_still_renders():
+    """⭐ The lock: the view renders, and its canvas comes from the strokes.
+
+    Neuter: drop either `_usable_point` guard (`_collect_points` or the
+    dimension-drawing loop) ⇒ this raises IndexError ⇒ red."""
+    img = rv.render(_plan_with(_A1_MALFORMED_DIMENSION))  # must NOT raise
+    assert img.size[0] > 100 and img.size[1] > 100
+
+
+def test_malformed_endpoint_does_not_shift_the_canvas():
+    """The dropped endpoint must not silently move the extent either: the same
+    plan with the malformed dimension removed renders byte-identically."""
+    with_bad = rv.render(_plan_with(_A1_MALFORMED_DIMENSION))
+    without = rv.render({**_plan_with(_A1_MALFORMED_DIMENSION), "dimensions": []})
+    assert with_bad.size == without.size
+    assert with_bad.tobytes() == without.tobytes()
+
+
+def test_wellformed_dimension_still_drawn():
+    """The guard must not drop healthy dimensions: a two-component dimension
+    still reaches the canvas (it changes the render vs having no dimension)."""
+    good = dict(_A1_MALFORMED_DIMENSION, to=[11.36, 0.0])
+    with_good = rv.render(_plan_with(good))
+    without = rv.render({**_plan_with(good), "dimensions": []})
+    assert with_good.tobytes() != without.tobytes()

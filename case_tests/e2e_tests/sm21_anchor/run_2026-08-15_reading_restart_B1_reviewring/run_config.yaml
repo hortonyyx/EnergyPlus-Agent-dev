@@ -1,0 +1,138 @@
+# =====================================================================
+# run_config.yaml — run_2026-08-15_reading_restart_B1_reviewring (sm21_anchor)
+#
+# 目的：**恢复 07-07 的 review 环**，把主线阻塞推过去 ——
+#       「机器今天还能不能再产出一份好 reading」。
+#
+# 前置实测（同日 A1/A2 两抽，全档 AI_agent/logs/experiments/2026-08-15_reading_restart/）：
+#   不带 review 环 ⇒ 墙 3/9 与 1/9、窗 0/7 与 1/7（07-07 = 9/9 · 7/7，最大偏移 0.0 m）
+#   CV 工具调用 6 次 / 2 次（07-07 = 92）· crop_zoom 0 / 0（07-07 = 55）
+#   平面 dimension_derived 0/54 与 0/44（07-07 = 35/35）
+#   ⇒ 08-01 换上的「首图 §6 自检」**没顶住**；恢复 per-run directive 也**救不回来**。
+#   ⇒ 唯一还没试过的杠杆 = 07-07 kickoff 里那句
+#      "Do one pilot image first / Stop and wait for review of that pilot"。
+#
+# 用户 2026-08-15 拍板：**可以接受先恢复**（先解主线阻塞）；
+#   `reading-agent` 是否必要 / 什么形式 / 什么智力 **全部归 reading 专项**，不在本 run 决定。
+#
+# ---------------------------------------------------------------------
+# ⛔⛔ 本 run 的成绩性质 —— 必须与任何数字一起说，不得省略
+#
+# ① **打回由 orchestrator（claude-opus-5）亲自做** = CLAUDE.md §1.5 #7 明令禁止的
+#    「端到端主控对环节内部伸手」。用户已知情并拍板接受。
+#    ⇒ ⛔ 本 run 的任何识图成绩**不得**记为 autonomous，也**不得**记为合规 controlled
+#      （§1.5 #7 的 controlled 要求 reading-agent 解耦 + 低档 + 有界，本 run 三条都不满足）。
+#    ⇒ reading_mode 下面按**事实**填 controlled + reading_agent=orchestrator，
+#      这是 provenance 记账不是合规声明；对外表述一律用「等同 07-07 的 legacy 形态」。
+#
+# ② ⛔⛔ **orchestrator 在本 run 之前已被 gt 污染**：为给用户出 A1/A2 分数，
+#    orchestrator 跑了 score_reading_vs_gt，终端直接打印了 gt 的墙坐标与窗跨。
+#    判据「⛔ 接触 gt 之后不得把任何结论送回同一个 run」因此**在本 run 上已被触碰**。
+#    缓解措施（非豁免）：打回文本的**每一句都锁死在产物自身证据上**，逐句出处见
+#    `_run/feedback_provenance.md`；⛔ 不含任何坐标、不含任何「正确答案」方向的提示。
+#    ⇒ **本 run 只用于解主线阻塞（拿到一份能喂下游的 reading）**，
+#      ⛔ 不得作为「识图能力」的证据，⛔ 不得进 baseline / 不得 --record。
+#
+# ③ 干净地回答「机器能不能自己产出好 reading」只能靠 reading 专项里那个
+#    与 orchestrator 解耦、且从未见过 gt 的复核者。本 run 不回答那个问题。
+# ---------------------------------------------------------------------
+
+run_profile: exploratory
+capability_profile: orthogonal_polygon
+# 与 07-07 对照基准同档（该基准自带 6 条 dimension_chain_closure FAIL，
+# regression 档会当场拒 ⇒ 换档就不是同一场对照了）。
+
+scope:
+  stages:
+    - 0_reading
+
+judge:
+  mode: off             # 判卷跑完离线做；judge ⛔ 不得回流信息给执行环节
+review:
+  reading: false        # ⚠️ 这里的 false 指「flow 的人工停点」未启用；
+                        # 本 run 的 review 环走 spawn/feedback 协议（见下），不走 flow 停点
+  correction: false
+  geometry: false
+with_ep: false
+record: false           # ⛔ 见上 ②：本 run 永不记账
+
+reading_mode:
+  lane: controlled      # 按事实填（有介入者在场）。⛔ 见上 ①：这不是合规 controlled
+  dev_function: false
+  reading_agent:
+    model: claude-opus-5          # = orchestrator 本人（这正是不合规之处）
+    sees_images: false            # orchestrator 全程不打开图纸 PNG
+    rework_rounds: 1              # 有界：一次 pilot 打回，与 07-07 同形
+  reading_worker_agent:
+    model: claude-haiku-4-5-20251001
+    effort: default
+  toolbox_version: "cv_toolbox@452ed6d70cab20c7"
+  isolation_profile: "clean_room_hard_isolation_v1"
+
+# ---------------------------------------------------------------------
+# review 环的实现形态（⛔ 不改产品 skill）
+#
+# 现行 session_kickoff.md 明写 "There is no review point"（08-01, 95ba3dc），
+# 与本 run 要恢复的形态**直接冲突**。处置 = **不动 skill 文件**，
+# 把 review 环放进 per-run directive（spawn_command 声明其 "binding for this run"），
+# 并在 directive 里显式写明它覆盖 kickoff 的哪一句，免得模型自己挑一边。
+#
+# 协议（= 07-07 原形，memory contamination-hard-isolation：pilot→batch ⛔ 不用 --resume）：
+#   spawn #1  directive = 07-07 的 cv_toolbox 强制 + 「只做第一张平面图，然后停」
+#   → orchestrator 只读产物与 sidecar（⛔ 不开图纸）
+#   → write_feedback 写 staging/feedback.md（逐句出处见 _run/feedback_provenance.md）
+#   → spawn #2  冷启，prompt 自动指向 feedback.md，续做其余 5 张
+# ---------------------------------------------------------------------
+
+models:
+  reading:
+    role: 0_reading
+    model_id: claude-haiku-4-5-20251001
+    provider: anthropic
+    effort: default
+    source: spawn_isolated_reader.py clean-room + headless claude -p（两段冷启，中间 feedback）
+  orchestrator:
+    role: orchestration + pilot review
+    model_id: claude-opus-5
+    note: ⛔ 本 run 中兼任打回者 = 已知违 §1.5 #7，用户拍板接受，见文件头 ①②
+
+provenance:
+  base_commit: 76876b5
+  working_tree_delta:               # ⚠️ 本 run 开跑时工作树非空
+    - src/validator/checks/reading.py         # F-33 修法（gate① 畸形端点从崩改判 fail）
+    - tests/test_checks_reading_correction.py # F-33 四条锁（含自证前提 + neuter 实测过）
+    - AI_agent/logs/experiments/2026-08-15_reading_restart/   # A1/A2 实验档
+  scaffold_fingerprints:
+    skills/intake_pipeline/0_reading: 37e685964a9bc765     # ⭐ 与 A1/A2 同（skill 未改）
+    src/agent/reading/cv_toolbox: 452ed6d70cab20c7
+  control_arms:
+    - run: run_2026-07-07_haiku_cv_retest      # 目标形态：9/9 · 7/7 · 0.0 m
+    - run: run_2026-08-15_reading_restart_A1   # 无 review 环：3/9 · 0/7
+    - run: run_2026-08-15_reading_restart_A2   # 无 review 环：1/9 · 1/7
+
+acceptance:
+  primary:
+    - 产出可喂下游的 6 张图（gate① 无阻断项、merge accept 成功）
+  process:                          # 与 A1/A2 同一组尺子，看 review 环有没有切换工作模式
+    - CV 工具调用总数与 crop_zoom 次数（07-07 = 92 / 55；A1 = 6 / 0；A2 = 2 / 0）
+    - 平面 dimension_derived 占比（07-07 = 35/35；A1 = 0/54；A2 = 0/44）
+    - 标定是否落在 92.7 附近且 x/y 自洽（⛔ 该判据来自产物自身跨轴一致性，非 gt）
+  secondary:
+    - score_vs_gt 离线出，⛔ 仅供 orchestrator 判「够不够喂下游」，见文件头 ②
+
+# =====================================================================
+# ⚠️ 跑完后的如实更正（2026-08-15，⛔ 不改已冻结的 _run/reading_mode.json）
+#
+# 上面 reading_mode.reading_agent.rework_rounds 声明为 1（= 07-07 那次的形态）。
+# **实际发生了 2 轮**：
+#   轮 1 = pilot 打回（设计内，5 条方法意见，_run/feedback_draft.md）
+#   轮 2 = schema 词表更正（_run/feedback_r2_schema.md）—— ⛔ **这一轮是 orchestrator
+#          自己措辞不当造成的**：打回第 4 条要求「标签必须与来源一致」却没给合法词表，
+#          模型据此发明了非法值 `provenance: "pixel-measured"`，gate① 六张图全拒。
+#          详见实验 README「教训 ①」。
+# ⇒ 冻结记录与事实的这处差异**故意保留不改**（reading_mode.json 只有 provision 一个写入者，
+#   事后改写它就等于让被评判方自己改账）。以本注释与实验 README 为准。
+#
+# 结果：gate① 97 pass / 22 N/A / 9 fail（exploratory 下全非阻断）⇒ attempts/002 已 accept；
+#       对 gt 判卷 **墙 2/9 · 窗 0/7**（07-07 = 9/9 · 7/7）⇒ ⛔ **未恢复到 07-07 水平**。
+# =====================================================================

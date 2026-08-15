@@ -1,0 +1,131 @@
+# =====================================================================
+# run_config.yaml — run_2026-08-15_reading_restart_A2 (sm21_anchor)
+#
+# 目的：**reading 重启第一跑 · 抽 2/2**。回答主线剩下的那一半问题 ——
+#       「机器今天还能不能再产出一份好 reading」。
+#       08-14 三次验收证明的是「好 reading → EnergyPlus 通」，那份 reading
+#       是 07-07 Haiku 产物逐字节复用（cmp 7/7 全同），今天一次图都没识。
+#
+# 对照基准 = run_2026-07-07_haiku_cv_retest/0_reading（就是那份好 reading 的出生地）：
+#   判卷 gt 满分（平面 1F 墙 4/4·窗 3/3、2F 墙 5/5·窗 4/4，最大墙偏移 0.0 m；
+#   立面 15/15 matched+complete，漏 0 多 0 漂移 0）
+#   过程指标（本轮要盯的真正判据，不是分数）：
+#     cv 工具调用 92 次 = 1f 33 · 2f 24 · South 10 · North 9 · East 8 · West 8
+#     其中 crop_zoom 55 次 · prescan 0 次
+#     平面墙 provenance 全 dimension_derived（1f 17/17 · 2f 18/18）
+#   ⚠️ 该基准自带 6 条 dimension_chain_closure FAIL（每图一条，exploratory 下非阻断）
+#      ⇒ 满分 ≠ 全绿，本轮不要把「有 fail」误判成退步。
+#
+# ---------------------------------------------------------------------
+# 本跑的变量设计（用户 2026-08-15 拍板：「实验说话」；有杠杆项可全部恢复，
+# 但正向增益尽量保留；让 reading 摆脱高智力模型属 reading 专项，本轮先解主线阻塞）
+#
+# 07-07 之后共 5 条「碰得到读图器」的改动，本跑处置：
+#   B1 「pilot → 停下等审阅」被删(95ba3dc)  → ⭐ 本跑【不恢复】= 唯一变量
+#        08-01 换上的替代品是「首图跑 guide §6 自检」，从未被真实检验过。
+#        本跑就是它的第一次实测。顶不住 ⇒ A2 或 B 组恢复 review 环再比。
+#   B2 硬隔离壳(prompt级 → clean-room+guard) → 【保留新壳】
+#        07-30 曾同模型同工具 8/8→1/8；当时三个缺陷 F-2/F-4/F-5 均已修
+#        （worked example 入 staging · guard 按参数角色判路径 · merge 自动拼装
+#        per-image 文件），但修完零实测 ⇒ 本跑顺带第一次复测。
+#   B3 cv_toolbox 强制方式(run级 directive → skill 常驻文本) → ⭐【恢复 directive】
+#        07-07 的 A/B 只证明过「directive 强制 + 工具箱」vs「无工具箱」；
+#        「skill 里一行非协商项」有没有同等约束力从未被测过。
+#        directive 逐字沿用 07-07 llm.yaml 记录的那条，见 _run/directive.md。
+#   B4 prescan triage 那一整套(7.09/7.31 新增)  → 【不点名、不禁用】
+#        07-07 全程 prescan 0 次、crop_zoom 55 次；新 cv_toolbox.md 却把
+#        prescan 的 calibration_span_candidates 指定为标定起点、crop_zoom 降为
+#        「仅解歧义」⇒ 恰好把当年主力工具挪出默认位。本跑观察 Haiku 自己走哪条。
+#   B5 px_m_calibrator 跨轴 0.30% 硬校验(421c9d3) → 【保留】✅ 已离线实测为纯正向：
+#        07-07 的 6 次被采纳标定全通过（偏差 0.00–0.09%，离门槛 3 倍余量）；
+#        1f 前 4 次错误标定全部 RAISE（偏差 13.1 / 21.1 / 59.1 / 61.5 %）
+#        ⇒ 当年靠试 5 次+人复核才走对的路，今天第 1 次就硬失败。
+#
+# 无杠杆的新增（view_manifest / exam_scope / run manifest v2 / run policy 冻结 /
+#   reading_mode 记账 / gate① 档位 / v3 判卷 / line_style·visibility /
+#   local_x_positive 反转 / reading_guide 新增三块）一律照现状，不回退。
+#   其中 v3 判卷换尺子已由 08-02「一把尺子回放」校准过（老件在新尺子下仍满分）
+#   ⇒ 与 07-07 分数纵向可比。
+# ---------------------------------------------------------------------
+#
+# ⭐ 纪律：本文件**先于 provision 落盘**（08-09 实犯过：反了会冻结「flow 默认」
+#    策略，之后配置一改就撞 policy 漂移门）。
+
+run_profile: exploratory
+capability_profile: orthogonal_polygon
+
+# exploratory 的理由：与 07-07 对照基准同档。该基准自带 6 条
+# dimension_chain_closure FAIL，regression 档会当场拒 ⇒ 换档就不是同一场实验了。
+# 严格档端到端属 terra 前置④，不在本轮范围。
+
+scope:
+  stages:
+    - 0_reading
+  # 只跑识图。下游 1–5 + EP 已由 08-14 验收 3/3 证明（用好 reading 喂）；
+  # 本轮要单独回答的是识图本身。识图达标后再接全链。
+
+judge:
+  mode: off             # 本跑 = 过程实测，不是成绩跑；判卷改为跑完后离线用
+                        # score_vs_gt 侧车对账（judge 不得回流信息给执行环节）
+review:
+  reading: false        # ⭐ B1 变量：无中途人工停点
+  correction: false
+  geometry: false
+with_ep: false
+record: false           # ⛔ 非正式跑，不记账；两抽都完成后再决定是否记
+
+reading_mode:
+  lane: autonomous      # 无 reading-agent 在场。⚠️ directive 是**随本 run 冻结的
+                        # 固定档文本**、不是临场撰写的 feedback ⇒ 不构成 reading-agent。
+                        # 若本跑后需要恢复 B1(review 环)，那一跑必须改记 controlled
+                        # 或 legacy_unknown，⛔ 不得沿用 autonomous。
+  dev_function: false
+  reading_agent: null
+  reading_worker_agent:
+    model: claude-haiku-4-5-20251001
+    effort: default
+  toolbox_version: "cv_toolbox@452ed6d70cab20c7"
+  isolation_profile: "clean_room_hard_isolation_v1"
+
+models:
+  reading:
+    role: 0_reading
+    model_id: claude-haiku-4-5-20251001
+    provider: anthropic
+    effort: default
+    source: >-
+      spawn_isolated_reader.py clean-room staging + headless claude -p
+      (--settings allow=staging / deny=repo,home,web,Agent,mcp;
+      PreToolUse guard 结构化白名单)；per-run directive 见 _run/directive.md
+  orchestrator:
+    role: orchestration
+    model_id: claude-opus-5
+    note: ⛔ 只启动与接收（CLAUDE.md §1.5 #7）；不写自由文本 directive、不看图后指导
+
+provenance:
+  base_commit: 76876b5      # 08.14_WrapUp_addendum_next_round_reading_restart_kickoff_pack
+  tracked_dirty: false      # 落盘时工作树 0 处改动（git status --porcelain 空）
+  scaffold_fingerprints:    # sha256 前 16 位，口径同 07-07 llm.yaml
+    skills/intake_pipeline/0_reading: 37e685964a9bc765
+    src/agent/reading: 50b9b5987ef31f89
+    src/agent/reading/cv_toolbox: 452ed6d70cab20c7
+  control_arm:
+    run: run_2026-07-07_haiku_cv_retest
+    scaffold_at_the_time: "0_reading skill d4c8a9bf6f53d1d8 / src/agent/reading 02eecb894a77a503"
+    note: >-
+      07-07 与今天之间 skills/0_reading 的文本差仅 +119/−21 行（5 文件），
+      src/agent/reading 差 +672/−23（主要在 cv_toolbox/recipes.py 的 prescan 派生视图）。
+      完整分档见本文件上方 B1–B5。
+
+acceptance:
+  # ⛔ 本跑的判据是【过程】不是【分数】—— 分数只是副产品。
+  primary:
+    - 6 张图全部产出、merge 成功（= 硬隔离壳 F-2/F-4/F-5 三个修法的首次实测）
+    - 平面墙 provenance 中 dimension_derived 占比（07-07 = 34/34 = 100%）
+    - cv 工具调用总次数与 crop_zoom 次数（07-07 = 92 / 55；08-02 Sonnet 无监督 = crop_zoom 0）
+    - 标定是否一次到位（B5 门是否被触发、触发几次）
+  secondary:
+    - score_vs_gt 侧车（跑完离线出，与 07-07 满分逐项对照）
+  discipline:
+    - ⭐ 至少两抽（同配置曾差 2.8 倍）：本 run = 抽 2，抽 1 = run_2026-08-15_reading_restart_A1
+    - ⛔ 席位禁跑 editable 安装（F-31）；本跑不与全仓 pytest 并行（F-30 / 08-13 ④）
