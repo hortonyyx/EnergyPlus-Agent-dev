@@ -142,7 +142,44 @@ EnergyPlus 经 `WorkflowTool.run_simulation`（eppy + ConverterManager，idfpy �
 
 ## 2. 当前开发状态
 
-- **⭐⭐⭐ 最新（2026-08-13）= BLOCKER-1 工程侧闭合 + C1/A1 关闭 + 下游断链真因坐实 · ⛔ 但用户验收标准「一口气推完不出错」仍 0/3 未达成**
+- **🎉🎉 最新（2026-08-14）= 用户口径的验收首次达成：一口气推完不出错 · 连跑 3 次全过 · F-28 修法证实有效**
+  （全档见 [decision_log §A 首条](decision_log.md) 与 [plan.md「2026-08-14」](plan.md)）。落库 `ea00e015` → `151e055`，
+  全仓 **2603 → 2635 绿 / 10 xfail / 0 红**（零回归）。
+  - **验收 3/3（`accept_D/E/F`）六条全中**：单次 `flow` 调用 · 真实退出码 0（独占 `.rc`）·
+    除 `1_correction` 两次法定写入外**零重试** · EnergyPlus `0 Severe` · IDF **100 面/15 窗/14 区** ·
+    **顶点与 `run_2026-08-11_continuous_e2e` 400+60 逐位同序全同**。
+    代码基线 `151e055` 全程未变 · 工作树全程 0 处改动 · **独占工作树**。
+    08-13 死掉的 `4_mep` 三次全部 **attempts=1**。
+  - **修法（F-28）**：`hvac_specs` 不再由 LLM 撰写，改由代码按**内核区列表**确定性渲染
+    （`HVACTemplate:Thermostat` ×1 + 每区一个 `HVACTemplate:Zone:IdealLoadsAirSystem`），
+    其引用的 3 张 `Schedule:Compact` + 2 个专属 `ScheduleTypeLimits` **一并代码拥有**
+    （大小写不敏感排除模型同名定义 + 无条件追加 canonical 定义）⇒ **模型碰不到那几格**。
+    真实跑证据：最终 IDF **1 恒温器模板 + 14 区级系统**、5 个专属保留名**原样落地**。
+  - **⛔⛔ 口径限制（必须与成绩一起说，⛔ 不得省略）**：
+    **(a)** 三次跑用的是**冻结的老识图件**（08-09 → 08-11 → 今天，逐字节 `cmp` 30/30），**今天一次图都没识**
+    ⇒ 成立的是「**好 reading → EnergyPlus 通**」，**⛔ 不是「机器能再产出好 reading」**；
+    **(b)** 该识图件对 gt 判卷**是满分**（平面 4/4·3/3 与 5/5·4/4，最大墙偏移 0.0 m；立面 15/15
+    matched+complete，漏 0 多 0 漂移 0），**但它自己带 6 条 `dimension_chain_closure` FAIL**（非阻断、一路继承）；
+    **(c)** **F-27 未修** ⇒ 按 sol 第五轮裁定，三次全过**只算经验样本**，⛔ 不得称「surface 400 已根治」；
+    **(d)** 摊 B 那道新门**阻塞档结构上恒绿** ⇒ ⛔ 不得把跑通算作它的功劳。
+  - **⛔ 新登记 F-32（比这次验收本身更值得记）**：`accept_F` 警告 18 条 vs D/E 的 4 条 ——
+    几何逐位相同，差别在 4_mep 的 LLM 把**活动水平时间表**写成作息曲线（上班 120 W/人、其余 **0**），
+    而活动水平是**每人代谢率**、不该随作息归零。**而 `mep.reasonability_bands` 当前是 `not_applicable`
+    ⇒ 全链没有任何一道门在校验 MEP 数值的物理合理性**，只有 EnergyPlus 以 Warning 提了一句，
+    而验收条件只看 `0 Severe`、看不见它。
+    ⇒ **§4 洞察 #3「EP 通过 ≠ 几何对」要加一句：「EP 0 Severe ≠ 物理输入对」。**
+  - **审阅链条产出**：orchestrator 轻门抓**摊 B 阻塞档恒绿**（= 派工方题错）· terra 三轮
+    （模型能写同名时间表 ⇒「代码拥有」不成立 → 代码拥有的表**所依赖的 type limits 仍在模型手里** → 签收）·
+    orchestrator 每轮换角度。**⛔ 没有任何一条是靠重复上一轮的检查发现的。**
+  - **⛔ 派工方错误率 19/19**（本日四条，同一形状 = **把「我以为的盘面」当「盘上的事实」说出口**）。
+    ✅ 反面收获：派工单里「派工方错误率 N/N，请主动证伪」**当天兑现两次**（sol、摊 A 各一次）。
+  - **⛔ 环境层两条新债 F-30 / F-31**：**「全仓绿」是【树 + 启动器】的属性** ·
+    **一个席位跑一次 editable 安装就能把共享 venv 指到自己的 worktree、连主树都跨树导入**
+    ⇒ 靠**时间戳对账**才证明权威全量跑在污染之前。**纪律：席位禁跑 editable 安装 · 权威全量前后查 `.pth`。**
+  - **下一步（用户 08-13 定，顺序不变）**：**① 重启 reading、与这份好 reading 做 diff、看怎么恢复好 reading**
+    ② reading 撤降 agent 归专项 ③ 清 sol 未闭合项（BLOCKER-1 仍开）+ F-27 / F-32 / 摊 B 阻塞档。
+
+- **（前一节点）2026-08-13 = BLOCKER-1 工程侧闭合 + C1/A1 关闭 + 下游断链真因坐实 · ⛔ 但用户验收标准「一口气推完不出错」仍 0/3 未达成**
   （全档见 [plan.md「2026-08-13」](plan.md)）。落库三笔：`da2245d`（摊 A/C/A′）· `41f73e7`（摊 F/G）·
   `f2e6c47`（摊 H/I，**标题带 `WIP_ACCEPTANCE_NOT_MET`**）。
   - **⭐ 用户 08-13 定的验收口径（新硬标准）**：**「验收要一口气推完不出错才算」** ——
@@ -1245,6 +1282,10 @@ EnergyPlus 经 `WorkflowTool.run_simulation`（eppy + ConverterManager，idfpy �
 1. **视觉理解非首要瓶颈**；真正瓶颈 = **长链路 tool-calling 稳定性 + 子系统覆盖完整性**（新流程靠 cross_ref + validate + 确定性门兜底）。
 2. **强制约束别交给 LLM 记得** → 关键不变量一律确定性门强制（schedule 门 / interzone 门 / 内核 raise），不靠 prompt。
 3. **EP 通过 ≠ 几何对**：几何正确性以 InterZone 门 + gate① 不变量为准；EP 段错≠环境（多为不完整 schedule 等可定位真因）。
+   **⭐ 2026-08-14 扩写：`EP 0 Severe` ≠ 物理输入对** —— 同一份逐位相同的几何，三次跑的 MEP 数值逐次在变，
+   其中一次把**活动水平**（每人代谢率）写成了会归零的作息曲线；**全链无任何门校验 MEP 数值物理合理性**
+   （`mep.reasonability_bands` 现为 `not_applicable`），只有 EnergyPlus 以 **Warning** 提了一句，
+   而验收条件只看 `0 Severe` ⇒ **看不见**。登记为 **F-32**。
 4. **token 口径**：`/context` 真值才作准（deferred MCP / autocompact / system tools 不计入 Total）。
 
 ---

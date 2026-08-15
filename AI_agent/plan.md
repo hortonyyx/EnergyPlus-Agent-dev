@@ -227,12 +227,55 @@ stub `_call_json_llm` 返回一段合法 `HVACTemplate` 文本 ⇒ 真跑 `run_m
 > ⭐ 四条同一形状：**把「我以为的盘面」当「盘上的事实」说出口**。
 > ✅ 反面收获：派工单里那句「派工方错误率 N/N，请主动证伪」**当天真的兑现了两次**（sol、摊 A 各一次）。
 
-### 三、本轮待办（顺序）
+### 二之九、🎉 **验收 3/3 全过 —— 用户口径首次达成**（收工前最后一段）
 
-1. 摊 A / 摊 B 交付 → orchestrator 轻门 → **跨家族交叉审**（⛔ 谁写谁不批）；
-2. 合树 → 跑验收，**独占工作树、连跑 3 次全过**才算达成；
-3. 存量债：**BLOCKER-1 送 sol 复核** · sol 第四轮 `MAJOR-1/2` · `MAJOR-B2/B3` · `MINOR-3/B4/B5/D1` · `NIT-F25`；
-4. 之后：重启 reading、与之前那份好 reading 做 diff；reading 撤降 agent 归专项。
+| 跑 | 退出码 | `4_mep` attempts | EnergyPlus | 面/窗/区 | 顶点逐位同序 |
+|---|---|---|---|---|---|
+| `accept_D` | **0** | **1** | 0 Severe（4 Warning） | 100/15/14 | ✅ |
+| `accept_E` | **0** | **1** | 0 Severe（4 Warning） | 100/15/14 | ✅ |
+| `accept_F` | **0** | **1** | 0 Severe（**18** Warning） | 100/15/14 | ✅ |
+
+代码基线 `151e055` **全程未变** · 工作树全程 **0 处改动** · **独占工作树** · 每次跑前查 `.pth` 指向。
+识图为 `run_2026-08-11_continuous_e2e/0_reading` 逐字节复制（`cmp` 30/30 一致）。
+
+**✅ terra「进验收路径前必须补的验证」当日关掉三条（拿真实跑的证据）**：
+② 真实下游链路消费新形态 —— 最终 IDF **1 `HVACTemplate:Thermostat` + 14 `HVACTemplate:Zone:IdealLoadsAirSystem`**，
+**5 个专属保留名（`HVACDet_Temperature`/`HVACDet_OnOff`/3 张 `Sch_HVACDet_*`）原样落地**
+⇒ 同时关掉摊 A 自陈的「专属名会不会被下游当陌生字符串处理异常」；
+③ 真实 EnergyPlus 仿真 ×3；⑤ 零区边界（返工已闭合）。
+**⛔ 仍开：④ `regression` / `golden` profile 端到端各跑一次**（本三次均为 `exploratory`）。
+
+### 二之十、⛔ **本轮登记的全部欠债（reading 之后那段管线）**
+
+**均为非阻塞**（今天三次跑全过），按重要度排：
+
+| # | 事项 | 性质 |
+|---|---|---|
+| **F-32**（新） | **MEP 数值物理合理性零门禁** —— `mep.reasonability_bands` = `not_applicable`（"deferred until MEP input is richer"）。`accept_F` 把**活动水平**（每人代谢率）写成会归零的作息曲线 ⇒ EnergyPlus 报 14 条 Warning，**全链无门捕获**，验收条件只看 `0 Severe` 故看不见。⇒ **「EP 0 Severe ≠ 物理输入对」** | 非阻塞·**本轮最值钱的新发现** |
+| **F-27** | 协议层未处理**生成期截断**（`finish_reason=='length'` 该轮未判无效、未阻止进历史）。`_MAX_BATCH_ITEMS=4` 只在**完整生成后**才生效，拦不住半截调用 ⇒ 换节点/更大 turn 同一个 400 会回来。**归 `react.py`** | 非阻塞·**但三次全过因此只算经验样本** |
+| **摊 B 阻塞档恒绿** | `HVACTemplate:Thermostat` / `:Zone:IdealLoadsAirSystem` 的 IDD `\required-field` **只有第一格** ⇒ 判据①对它们几乎不可触发；判据②又是真实解析路径上的死代码 ⇒ 该门**净效果 = 纯报告**。**修法方向已定**：改成「渲染器给期望形状 ↔ 已解析对象的往返断言」。⚠️ terra 附加约束：**该项完成前，B 的 blocker 集不得用作 A 正确性的证据** | 非阻塞·派工方题错 |
+| **F-29** | **eppy 对超字段对象静默截断**（Lights）或 crash（Material/Construction）⇒ 任何按位置读的门读到的都是被截断后的形态，且无人报警 | 非阻塞 |
+| **F-30 / F-31** | 环境层：**「全仓绿」是【树 + 启动器】的属性** · **席位跑一次 editable 安装即可劫持共享 venv**（连主树都跨树导入）⇒ 纪律已写入派工单模板 | 非阻塞·运维 |
+| **摊 B 去重口径** | 现为「不复述诊断」而非「不报 offender」。terra：**若日后把 check 数 / offender 数 / 告警数用于重试或质量指标，必须按 `(object_type, object)` 聚合成一个问题组 + `related_to` 保留第二证据** | 非阻塞·**条件触发型** |
+| terra 前置 ④ | `regression` / `golden` profile 端到端各跑一次（本轮三次均 `exploratory`） | 非阻塞 |
+
+**⛔ 跨段仍开（非本段）**：`BLOCKER-1`（sol 第五轮：治理措辞 11 处未清 + **scorer 实现身份可旁路**，`MAJOR-F24` 仍开）·
+sol 第四轮遗留 `MAJOR-1/2` · `MAJOR-B2/B3` · `MINOR-3/B4/B5/D1` · `NIT-F25`。
+
+### 三、本轮待办 —— ✅ 1、2 已完成；下一轮从第 3 条起
+
+1. ~~摊 A / 摊 B 交付 → orchestrator 轻门 → 跨家族交叉审~~ ✅ **完成**
+   （摊 A 经 terra **三轮**签收；摊 B 签收为**报告型**门）；
+2. ~~合树 → 跑验收，独占工作树、连跑 3 次全过~~ ✅ **完成（3/3，见二之九）**；
+3. **⭐ 下一轮第一件事（用户 08-13 定）**：**重启 reading、与这份好 reading 做 diff、看怎么恢复好 reading**
+   —— **这是「端到端」真正剩下的那一半**：今天证明的是「好 reading → EnergyPlus 通」，
+   **⛔ 不是「机器能再产出好 reading」**（今天一次图都没识）。
+   ⚠️ 起手先读 memory `one-ruler-replay-old-artifact-perfect`（07-07 老件进今天的尺子 = 内墙 100%/多画 0m，
+   而 Sonnet 92.1%/6.77m）与 `reading-lever-is-measurement-enforcement`（主修法 = 读图器**不写公制坐标**、
+   只写像素锚点 + 引用的尺寸标注，代码唯一换算）。
+4. **reading 撤降 agent 归专项**；
+5. 清欠债：**BLOCKER-1 送 sol 复核**（仍开）· **F-32**（MEP 物理合理性门）· **F-27**（协议层截断）·
+   **摊 B 阻塞档改往返断言** · sol 第四轮遗留一批 · terra 前置 ④（`regression`/`golden` 端到端）。
 
 ---
 

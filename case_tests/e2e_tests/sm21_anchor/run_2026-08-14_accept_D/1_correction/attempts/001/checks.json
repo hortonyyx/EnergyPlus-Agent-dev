@@ -1,0 +1,260 @@
+{
+  "stage": "1_correction",
+  "capability_profile": "orthogonal_polygon",
+  "run_profile": "exploratory",
+  "artifact_hash": "576a95a17a2b48cbfab7534452ec516afee0552bb406dd9b5778409d1865e819",
+  "attempt_hash": "576a95a17a2b48cbfab7534452ec516afee0552bb406dd9b5778409d1865e819",
+  "report_schema_version": "2.2",
+  "run_policy_sha256": null,
+  "run_policy_source": null,
+  "results": [
+    {
+      "check_id": "correction.schema_version_supported",
+      "status": "pass",
+      "layer": "invariant",
+      "check_version": "1",
+      "message": "",
+      "evidence": {
+        "schema_version": "3"
+      }
+    },
+    {
+      "check_id": "correction.capability_profile_shapes",
+      "status": "pass",
+      "layer": "invariant",
+      "check_version": "1",
+      "message": "",
+      "evidence": {
+        "capability_profile": "orthogonal_polygon",
+        "declared_shapes": [
+          "orthogonal_polygon",
+          "rectangular"
+        ],
+        "allowed_shapes": [
+          "orthogonal_polygon",
+          "rectangular"
+        ]
+      }
+    },
+    {
+      "check_id": "correction.cell_polygon_contract",
+      "status": "pass",
+      "layer": "invariant",
+      "check_version": "1",
+      "message": "",
+      "evidence": {}
+    },
+    {
+      "check_id": "correction.coverage",
+      "status": "pass",
+      "layer": "invariant",
+      "check_version": "1",
+      "message": "",
+      "evidence": {
+        "floor": "Floor 1",
+        "coverage_gate_version": "v2",
+        "footprint_source": "floor_footprint",
+        "footprint_area_m2": 120.0,
+        "cells_union_area_m2": 120.0,
+        "area_delta_m2": 0.0,
+        "coverage_area_tol_m2": 0.05,
+        "overlap_m2": 0.0,
+        "hole_m2": 0.0,
+        "outside_footprint_m2": 0.0
+      }
+    },
+    {
+      "check_id": "correction.coverage",
+      "status": "pass",
+      "layer": "invariant",
+      "check_version": "1",
+      "message": "",
+      "evidence": {
+        "floor": "Floor 2",
+        "coverage_gate_version": "v2",
+        "footprint_source": "floor_footprint",
+        "footprint_area_m2": 120.0,
+        "cells_union_area_m2": 120.0,
+        "area_delta_m2": 0.0,
+        "coverage_area_tol_m2": 0.05,
+        "overlap_m2": 0.0,
+        "hole_m2": 0.0,
+        "outside_footprint_m2": 0.0
+      }
+    },
+    {
+      "check_id": "correction.nondegenerate",
+      "status": "pass",
+      "layer": "invariant",
+      "check_version": "1",
+      "message": "",
+      "evidence": {}
+    },
+    {
+      "check_id": "correction.zstack_continuity",
+      "status": "pass",
+      "layer": "invariant",
+      "check_version": "1",
+      "message": "",
+      "evidence": {}
+    },
+    {
+      "check_id": "correction.zone_count_tripwire",
+      "status": "pass",
+      "layer": "cross_check",
+      "check_version": "1",
+      "message": "",
+      "evidence": {
+        "actual": 14,
+        "expected": 14,
+        "per_floor": {
+          "Floor 1": 7,
+          "Floor 2": 7
+        }
+      }
+    },
+    {
+      "check_id": "correction.window_host_resolution",
+      "status": "pass",
+      "layer": "invariant",
+      "check_version": "1",
+      "message": "",
+      "evidence": {
+        "windows": 15,
+        "aggregate_sha256": "5d84372ab062fac301cd0f86371a63630123609e43e0314310f9701306afe634"
+      }
+    },
+    {
+      "check_id": "correction.cross_image_reconcile",
+      "status": "not_applicable",
+      "layer": "cross_check",
+      "check_version": "1",
+      "message": "no elevation widths supplied",
+      "evidence": {}
+    },
+    {
+      "check_id": "correction.facade_frame_cross_check",
+      "status": "not_applicable",
+      "layer": "cross_check",
+      "check_version": "1",
+      "message": "no elevation reading artifacts supplied",
+      "evidence": {}
+    },
+    {
+      "check_id": "correction.audit_completeness",
+      "status": "pass",
+      "layer": "invariant",
+      "check_version": "1",
+      "message": "",
+      "evidence": {
+        "audit_entries": 28
+      }
+    },
+    {
+      "check_id": "correction.evidence_debt_coverage",
+      "status": "fail",
+      "layer": "cross_check",
+      "check_version": "1",
+      "message": "6 view/global evidence debt item(s) were not mentioned in correction audit",
+      "evidence": {
+        "scope": "view_global",
+        "missing": [
+          {
+            "check_id": "1f_view.reading.dimension_chain_closure",
+            "canonical_check_id": "reading.dimension_chain_closure",
+            "view": "1f_view",
+            "message": "dimension chain evidence is missing, incomplete, or non-closing"
+          },
+          {
+            "check_id": "2f_view.reading.dimension_chain_closure",
+            "canonical_check_id": "reading.dimension_chain_closure",
+            "view": "2f_view",
+            "message": "dimension chain evidence is missing, incomplete, or non-closing"
+          },
+          {
+            "check_id": "East_view.reading.dimension_chain_closure",
+            "canonical_check_id": "reading.dimension_chain_closure",
+            "view": "East_view",
+            "message": "dimension chain evidence is missing, incomplete, or non-closing"
+          },
+          {
+            "check_id": "North_view.reading.dimension_chain_closure",
+            "canonical_check_id": "reading.dimension_chain_closure",
+            "view": "North_view",
+            "message": "dimension chain evidence is missing, incomplete, or non-closing"
+          },
+          {
+            "check_id": "South_view.reading.dimension_chain_closure",
+            "canonical_check_id": "reading.dimension_chain_closure",
+            "view": "South_view",
+            "message": "dimension chain evidence is missing, incomplete, or non-closing"
+          },
+          {
+            "check_id": "West_view.reading.dimension_chain_closure",
+            "canonical_check_id": "reading.dimension_chain_closure",
+            "view": "West_view",
+            "message": "dimension chain evidence is missing, incomplete, or non-closing"
+          }
+        ]
+      }
+    },
+    {
+      "check_id": "correction.facade_area_residuals",
+      "status": "not_applicable",
+      "layer": "cross_check",
+      "check_version": "1",
+      "message": "deferred until evidence is richer",
+      "evidence": {}
+    },
+    {
+      "check_id": "correction.wwr_residuals",
+      "status": "not_applicable",
+      "layer": "cross_check",
+      "check_version": "1",
+      "message": "deferred until evidence is richer",
+      "evidence": {}
+    },
+    {
+      "check_id": "correction.area_residuals",
+      "status": "not_applicable",
+      "layer": "cross_check",
+      "check_version": "1",
+      "message": "deferred until evidence is richer",
+      "evidence": {}
+    },
+    {
+      "check_id": "correction.unsupported_count_by_severity",
+      "status": "not_applicable",
+      "layer": "cross_check",
+      "check_version": "1",
+      "message": "deferred until evidence is richer",
+      "evidence": {}
+    },
+    {
+      "check_id": "correction.window_position_evidence_shadow",
+      "status": "pass",
+      "layer": "cross_check",
+      "check_version": "1",
+      "message": "",
+      "evidence": {
+        "producer_draw_sha256": "4b9a061cbb20db6f4bfc9ca96acaf1b5a8f8b4aad5a89a50570cf2e6473ef6c4",
+        "resolver_inputs_sha256": "e8957961c096212fda6cb71437474f7c9d1f17b87433602ee34fa368c41a5df6",
+        "window_count": 15,
+        "rejected_window_ids": [],
+        "rejected_reject_codes": [],
+        "max_legacy_span_delta_m": 0.0,
+        "ruleset_version": "f9_route2_s2_position_evidence_ruleset_v2",
+        "evaluated_conditions": [
+          "ambiguity_margin",
+          "claim_consistency",
+          "distance_within_tolerance",
+          "scope_resolution",
+          "source_not_reused",
+          "unique_mutual_nearest"
+        ],
+        "unevaluated_conditions": [],
+        "content_sha256": "1e95699204ee663f215b83ddc5e3fe33a792f2eff7711dac7a849f49aaba8a43"
+      }
+    }
+  ]
+}
