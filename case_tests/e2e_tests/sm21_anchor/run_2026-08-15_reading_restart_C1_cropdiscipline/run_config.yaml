@@ -1,0 +1,171 @@
+# =====================================================================
+# run_config.yaml — run_2026-08-15_reading_restart_C1_cropdiscipline (sm21_anchor)
+#
+# 目的：**单变量实验 · 抽 1/2**。08-15 四轮实测（A1/A2 无 review 环两抽、B1 恢复 review 环）
+#       把 reading 质量杠杆收窄到**一处**：`skills/intake_pipeline/0_reading/cv_toolbox.md`
+#       Disciplines 段在 07-07 之后新增的三条「省 crop」纪律。
+#       本跑把那三条**回滚到 07-07 原文**，其余一切不动，验证杠杆是否坐实在文档文本上。
+#
+# 对照基准 = run_2026-07-07_haiku_cv_retest/0_reading
+#   分数：平面 1F 墙 4/4·窗 3/3、2F 墙 5/5·窗 4/4（合计墙 9/9·窗 7/7），最大墙偏移 0.0 m；
+#         立面 15/15 matched+complete
+#   过程（本轮真正的判据）：cv 调用 92 · **crop_zoom 55** · overlay_logger 9 · prescan 0 ·
+#         量了 6/6 张图 · 平面 dimension_derived 35/35
+#   ⚠️ 该基准自带 6 条 dimension_chain_closure FAIL（exploratory 下非阻断）⇒ 满分 ≠ 全绿。
+#   ⛔ 该基准**不是干净基线**：其 run_config 的 orchestrator 一栏写作 role: judge2+orchestration
+#      ⇒ 当时打回者本人就是持 gt 的 judge②，打回前是否看过 gt 无记录。
+#
+# ---------------------------------------------------------------------
+# 唯一变量（相对 A1/A2）
+#
+#   cv_toolbox.md 的 Disciplines 段回滚到 07-07（891356d）原文，具体三条：
+#     ① crop_zoom 复位为标定主力
+#        今天原文（421c9d3 7.31）：「从 prescan 的 calibration_span_candidates.json 起手，
+#                                    crop_zoom 仅用于解歧义」
+#        回滚为 07-07 原文：「标定锚点必须是尺寸链引出线或刻度，**用 high-zoom crop_zoom 定位**」
+#     ② 删除「Budget prescan candidates」整条（20749ff 7.09 新增）
+#        其中 "(one crop per peak band, not one per segment)" = 明文要求少 crop，
+#        而 07-07 干的恰恰是 one crop per segment（55 次）。
+#     ③ 删除「Reuse calibration within a same-scale group」整条（20749ff 7.09 新增）
+#        它授权「同比例组只标定一张图」⇒ A1/A2 只标定首图并非违规，是文档给的合法路径。
+#
+#   ⚠️ 因果链（08-15 查实）：硬隔离落地（df6f249 7.08，探针成本翻倍、探针数 19→8）
+#      → 次日立预算纪律（20749ff 7.09）→ 明文授权少量 → 逐候选深度消失
+#      → 外轮廓精确（0.0 m）而内墙整片缺失 → 9/9 塌到 2/9。
+#      = 为省成本立的规矩把成功路径写死了。与 08-02「按命令形态封杀通用 CV 编程 = 能力封口」同形。
+#
+# 刻意**保留**的正向增量（用户 08-15 口径：只恢复真杠杆，非杠杆增益尽量保留）
+#   - Tools 段全部现状文本，含 px_m_calibrator 跨轴 0.30% 硬校验说明（B5）；
+#   - Disciplines 里 421c9d3 加的那句「跨轴不一致 ⇒ 至少一端错，不得平均或复用该结果」
+#     （它是 B5 那道门的**合法出口**，与 crop 深度无关，删了反而复现 F-34 那种「有门无出口」）；
+#   - Disciplines 里 35f13e6 加的 long_structural_lines 附加索引那条（附加视图，非省 crop 纪律）；
+#   - prescan 工具本身**不点名、不禁用**（与 A1/A2 同）；
+#   - 硬隔离壳、view_manifest、run manifest v2、v3 判卷尺、gate① 档位等一律照现状。
+#
+# 同时**顺手修掉** F-40（用户 2026-08-15 拍板：只改词、不改纪律）
+#   cv_toolbox.md 教模型写 provenance: "pixel-measured"（891356d 7.07 引入，潜伏 39 天），
+#   而 schema.py:50 与 guide.md:155 的合法词表只有 seen | dimension_derived | estimated | unknown。
+#   B1 那轮六图全被 gate① 拒、白花一轮更正就是它。
+#   本跑改法 = 指向合法词表 + 指定 `seen` + 要求在 notes 里引 CV 侧车。
+#   ⚠️ 它管「标签怎么写」，不管「量到什么粒度」⇒ **不是本轮被测变量**；
+#      但它确实改动了同一份文档 ⇒ 如实记在此处，不得声称「本跑只动了那三条」。
+#
+# 相对 A1/A2 **不变**的项（保证单变量）
+#   模型 / 形态 / directive 逐字 / 隔离壳 / 无 review 环 / 无打回 / judge off / 只跑 0_reading。
+# ---------------------------------------------------------------------
+#
+# ⭐ 纪律：本文件**先于 provision 落盘**（08-09 实犯过：反了会冻结「flow 默认」策略，
+#    之后配置一改就撞 policy 漂移门）。
+
+run_profile: exploratory
+capability_profile: orthogonal_polygon
+
+# exploratory 的理由：与 07-07 对照基准同档（该基准自带 6 条 dimension_chain_closure FAIL，
+# regression 档会当场拒 ⇒ 换档就不是同一场实验了）。与 A1/A2/B1 同档，四轮横向可比。
+
+scope:
+  stages:
+    - 0_reading
+
+judge:
+  mode: off             # 过程实测，不是成绩跑；跑完离线用 score_vs_gt 侧车对账
+                        # （judge 不得回流信息给执行环节）
+                        # ⚠️ judge: off 会关掉产 grade 图的那条路 ⇒ 必须补跑 run_stage.py artifacts，
+                        #    见 acceptance.discipline 最后一条（用户 08-15 拍板 #3）
+review:
+  reading: false        # ⛔ 无中途人工停点、⛔ 无打回（与 A1/A2 同，与 B1 不同）
+  correction: false
+  geometry: false
+with_ep: false
+record: false           # 非正式跑，不记账；两抽都完成后再决定
+
+reading_mode:
+  lane: autonomous      # 无 reading-agent 在场。directive 是随本 run 冻结的固定档文本、
+                        # 不是临场撰写的 feedback ⇒ 不构成 reading-agent。
+  dev_function: false
+  reading_agent: null
+  reading_worker_agent:
+    model: claude-haiku-4-5-20251001
+    effort: default
+  isolation_profile: "clean_room_hard_isolation_v1"
+
+models:
+  reading:
+    role: 0_reading
+    model_id: claude-haiku-4-5-20251001
+    provider: anthropic
+    effort: default
+    source: >-
+      spawn_isolated_reader.py clean-room staging + headless claude -p
+      (--settings allow=staging / deny=repo,home,web,Agent,mcp;
+      PreToolUse guard 结构化白名单)；per-run directive 见 _run/directive.md
+      （逐字沿用 A1/A2 那份，未改一字）
+  orchestrator:
+    role: orchestration
+    model_id: claude-opus-5
+    note: >-
+      ⛔ 只能启动与接收（CLAUDE.md §1.5 #7）。本跑 orchestrator **不看图纸、不写 feedback、
+      不打回**；改动只发生在跑之前的产品文档上，且改动内容与逐句出处已全部落盘于本文件。
+
+provenance:
+  base_commit: bcec36b      # 08.15_ReadingRestart_QualityLeverLocated_CropBudgetNotReviewRing
+  tracked_dirty: true       # ⚠️ 本跑**故意带一处工作树改动**：
+                            #    skills/intake_pipeline/0_reading/cv_toolbox.md（= 本轮唯一变量 + F-40 词表修正）
+                            #    改动前后逐条差异见本文件顶部；07-07 原文可用
+                            #    `git show 891356d:skills/intake_pipeline/0_reading/cv_toolbox.md` 取回
+  dirty_paths:
+    - skills/intake_pipeline/0_reading/cv_toolbox.md
+
+  # ⭐ 指纹配方（F-41：此前三份 run_config 里的 scaffold_fingerprints 只有值、
+  #    **算法从未记录在仓内任何位置** ⇒ 不可复算、不可比对，等于「不可复现的数字」。
+  #    本文件起改为写明配方，⛔ 与旧值不可比。）
+  fingerprint_recipe: >-
+    对目录下每个文件（排除 __pycache__）输出一行 "<相对路径> <文件内容 sha256>"，
+    按相对路径排序后整体 sha256，取前 16 位十六进制。
+    等价一行命令：
+    (cd <dir> && find . -type f -not -path "*/__pycache__/*" | sort |
+     while read -r f; do printf '%s %s\n' "${f#./}" "$(sha256sum "$f" | cut -d' ' -f1)"; done) |
+    sha256sum | cut -c1-16
+  scaffold_fingerprints:
+    skills/intake_pipeline/0_reading: af198934fd4fa9ec
+    src/agent/reading: b150071083fca419
+  file_fingerprints:      # 单文件 sha256 前 16 位
+    cv_toolbox.md@this_run: f24a2ec1a7e2c421
+    cv_toolbox.md@891356d_0707: bc4c13bdd49a5335
+
+  control_arm:
+    run: run_2026-07-07_haiku_cv_retest
+    note: >-
+      07-07 与本跑之间，cv_toolbox.md 的 Disciplines 段差异已收敛到
+      「+跨轴出口一句 +long_structural_lines 一条 +provenance 词表修正」三处，
+      三条省 crop 纪律已全部还原 ⇒ 这是四轮里第一次「深度纪律」与基准对齐的形态。
+  sibling_arms:
+    - run_2026-08-15_reading_restart_A1       # autonomous，墙 3/9 · crop_zoom 0
+    - run_2026-08-15_reading_restart_A2       # autonomous 第二抽，墙 1/9 · crop_zoom 0
+    - run_2026-08-15_reading_restart_B1_reviewring   # 有 review 环，墙 2/9 · crop_zoom 0
+
+acceptance:
+  # ⛔ 本跑判据是【过程】，分数是副产品 —— 但这次分数也确实是要看的（杠杆假说的直接检验）。
+  primary:
+    - ⭐ crop_zoom 调用次数（07-07 = 55；A1/A2/B1 三轮全 0）—— 本轮的核心观测量
+    - cv 工具调用总次数（07-07 = 92；A1 6 · A2 2 · B1 24）
+    - 量了几张图（07-07 = 6/6；A1/A2 = 1/6；B1 = 6/6）
+    - 平面 dimension_derived 占比（07-07 = 35/35；A1 0/54 · A2 0/44 · B1 8/30）
+    - overlay_logger 调用次数（07-07 = 9；三轮全 0）
+  secondary:
+    - score_vs_gt 侧车（跑完离线出，与 07-07 的 墙 9/9 · 窗 7/7 · 最大偏移 0.0 m 逐项对照）
+  interpretation:
+    - 分数回来 ⇒ 杠杆坐实在文档文本上，**且顺带证明不需要监督**（比 07-07 的结论更硬，
+      因为本跑无 review 环、无打回、污染形态严格弱于 07-07）
+    - 分数不回来但 crop_zoom 上去了 ⇒ 排除「文本」这个变量，再论 review 环 / 模型档位
+    - crop_zoom 仍是 0 ⇒ 文本不是约束力来源，回到老结论「prompt 强度不是杠杆」
+  discipline:
+    - ⭐ 至少两抽（同配置曾差 2.8 倍）：本 run = 抽 1，抽 2 = ..._C2_cropdiscipline
+    - ⛔ 席位禁跑 editable 安装（F-31）；本跑不与全仓 pytest 并行（F-30 / 08-13 ④）
+    - >-
+      ⭐ 产物必须出全（用户 08-15 拍板 #3）：跑完必须补
+      "python scripts/tool_scripts/run_stage.py artifacts sm21_anchor <run> 0_reading"
+      产出每张图的 render + grade 图 —— judge off 关掉的正是这条路（F-39 未修，缺件不会红）
+    - >-
+      ⚠️ CV 证据不进 attempt（F-35 未修）⇒ 跑完必须从 /tmp staging 手工抢救
+      out/*/cv_evidence/ 到实验目录，否则「它到底量没量」无从审计

@@ -8,6 +8,18 @@ import json
 import sys
 from pathlib import Path
 
+# This set is the authorization policy for what a reading worker may invoke —
+# guard.py's PROBE_TOOL_NAMES exists only to phrase error messages and defers to
+# this list. Withdrawing a tool here is what actually removes the capability.
+#
+# 2026-08-15: `prescan-plan` / `prescan-elevation` withdrawn. Six draws across
+# 07-07..08-15 showed the reader always opens with prescan and then stops at the
+# candidate layer; rolling the "spend fewer crops" wording back to the 07-07 text
+# changed nothing (C1/C2). The remaining hypothesis is that the free macro probe
+# is simply the path of least resistance, so the withdrawal is at the capability
+# layer rather than in the skill doc. The recipes stay implemented for the reading
+# workstream to revive deliberately — see
+# AI_agent/logs/experiments/2026-08-15_reading_restart/speedup_batch_ledger.md.
 ALLOWED_TOOLS = {
     "crop_zoom",
     "wall_line_profiler",
@@ -15,8 +27,6 @@ ALLOWED_TOOLS = {
     "px_m_calibrator",
     "window_cc_detector",
     "overlay_logger",
-    "prescan-plan",
-    "prescan-elevation",
 }
 PATH_KEYS = {"image", "out_dir", "anchors_json", "candidates_json"}
 # R2-2: parameters this wrapper turns into an OUTPUT LANDING POINT. `out_dir` is

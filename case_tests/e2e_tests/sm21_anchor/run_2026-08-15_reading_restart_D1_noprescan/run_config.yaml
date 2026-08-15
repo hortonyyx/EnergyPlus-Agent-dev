@@ -1,0 +1,145 @@
+# =====================================================================
+# run_config.yaml — run_2026-08-15_reading_restart_D1_noprescan (sm21_anchor)
+#
+# 目的：**单变量实验 · 先只跑一抽**（用户 2026-08-15 拍板「撤了之后先只试一抽」）。
+#       C 组已证伪「文档文本 = 杠杆」，剩下唯一没被单独测过的主变量 = **prescan 工具的存在本身**。
+#       本跑把 prescan 从读图器的**可选项集合**里撤掉（能力层，不是文档层），看工作模式是否切换。
+#
+# 机理假说：改文字改的是「建议」，没改「可选项集合」。只要存在一条一次调用就能拿到上千个
+#           候选的路，「逐候选放大核验」就永远不是阻力最小的那条路。
+#           ⇒ C 组把纪律文字回滚了、行为纹丝不动，恰好是这个假说的正面证据。
+#
+# 提速批的完整效果登记（买到了什么 / 代价 / 已排除的解释）见
+#   AI_agent/logs/experiments/2026-08-15_reading_restart/speedup_batch_ledger.md
+# ⛔ 该文件明写：在本跑跑完之前，不得把「prescan 是元凶」写成结论。
+#
+# ---------------------------------------------------------------------
+# 唯一变量（相对 C1/C2）
+#
+#   `prescan-plan` / `prescan-elevation` 从读图器可调工具集中撤除：
+#     - `src/agent/execution/isolation_templates/run_cv_probe.py::ALLOWED_TOOLS` 删两项
+#       （**唯一授权表** —— guard.py 自己的注释明写它那份「不是授权列表」）
+#     - `isolation_templates/guard.py::PROBE_TOOL_NAMES` 同步删（否则报错文案还在打广告）
+#     - `skills/.../cv_toolbox.md` 删 prescan 工具条 + 删 long_structural_lines 纪律条
+#       （后者是 prescan 派生产物，工具没了就指向不存在的文件）
+#   ⛔ 不删 `recipes.py` 里的实现与其锁 —— 用户口径「prescan 那批提效改动归 reading 专项」，
+#      撤的是读图器的可选项，不是销毁这批工作。
+#
+#   连带（如实记）：`calibration_span_candidates.json` 与 `long_structural_lines.json`
+#   两个派生视图随之对读图器不可见 ⇒ 标定回到 `crop_zoom` + 尺寸链，**这正是 07-07 的形态**。
+#
+#   ⭐ 撤除已**行为验证**（⛔ 不接受形状匹配）：
+#     ① 绕过路径 `python tools/cv_probe.py prescan-plan …` → guard DENY
+#        「only tools/run_cv_probe.py may be executed」
+#     ② 授权路径 `run_cv_probe.py --tool prescan-plan` → wrapper
+#        「unsupported cv_probe tool: 'prescan-plan'」
+#     ③ 阴性对照 `--tool crop_zoom` → 通过授权层（后续报错来自该工具自己的 argparse）
+#
+# 相对 C1/C2 **不变**：模型 ID · directive 逐字（cmp 验过）· 隔离壳 · autonomous ·
+#   无 review 环 · 无打回 · judge off · 只跑 0_reading ·
+#   cv_toolbox.md Disciplines 段仍是 C 组那份（07-07 文本 + 跨轴出口句 + F-40 词表修正）。
+#
+# ---------------------------------------------------------------------
+# ⚠️⚠️ 一条会改措辞的更正（2026-08-15 下午查实，此前六抽的记法都受影响）
+#
+#   07-07 那次 run 的产物是**被 `891356d` 这笔提交带进来的**
+#   ⇒ 跑那次时工作树上的 cv_toolbox.md 是它的**父提交 `e3ec9ae`（7.06）**版本：
+#      Disciplines **只有三条**（tools measure / prefer empty hands / log accept-reject），
+#      **没有** "Calibrate first"、**没有** "Measure before drawing"、**没有** crop_zoom 标定强制，
+#      **也没有 prescan**。
+#   ⇒ 我们（含 08-15 上午那轮）一直当作「07-07 原文」的那七条 Disciplines，
+#      其实是**那次成功之后、部分照着它总结出来的**。
+#   ⇒ **拿 9/9 的那次，文档指令比今天任何一抽都少** —— 这把「文本不是杠杆」钉得更死，
+#      也说明 C 组回滚的目标本身就选错了（但结论方向不受影响）。
+#   ⚠️ 07-07 的指令是走 per-run directive 进去的（llm.yaml 有记录），今天四抽用的是同一份
+#      directive ⇒ directive 这一轴仍然可比。
+# ---------------------------------------------------------------------
+#
+# ⭐ 纪律：本文件先于 provision 落盘。
+
+run_profile: exploratory
+capability_profile: orthogonal_polygon
+
+scope:
+  stages:
+    - 0_reading
+
+judge:
+  mode: off             # 过程实测；跑完离线 score_vs_gt 对账
+                        # ⚠️ judge off 会关掉产 grade 图的那条路 ⇒ 必须补 run_stage.py artifacts
+review:
+  reading: false        # ⛔ 无停点、⛔ 无打回
+  correction: false
+  geometry: false
+with_ep: false
+record: false
+
+reading_mode:
+  lane: autonomous
+  dev_function: false
+  reading_agent: null
+  reading_worker_agent:
+    model: claude-haiku-4-5-20251001
+    effort: default
+  isolation_profile: "clean_room_hard_isolation_v1"
+
+models:
+  reading:
+    role: 0_reading
+    model_id: claude-haiku-4-5-20251001
+    provider: anthropic
+    effort: default
+    source: >-
+      spawn_isolated_reader.py clean-room staging + headless claude -p；
+      per-run directive 见 _run/directive.md（与 A1/A2/C1/C2 逐字相同）
+  orchestrator:
+    role: orchestration
+    model_id: claude-opus-5
+    note: ⛔ 只启动与接收；本跑不看图、不写 feedback、不打回
+
+provenance:
+  base_commit: bcec36b
+  tracked_dirty: true
+  dirty_paths:
+    - skills/intake_pipeline/0_reading/cv_toolbox.md
+    - src/agent/execution/isolation_templates/run_cv_probe.py
+    - src/agent/execution/isolation_templates/guard.py
+  fingerprint_recipe: >-
+    对目录下每个文件（排除 __pycache__）输出一行 "<相对路径> <文件内容 sha256>"，
+    按相对路径排序后整体 sha256，取前 16 位十六进制。（配方须落盘 —— F-41）
+  scaffold_fingerprints:
+    skills/intake_pipeline/0_reading: 2dbad9ac6a665a6f
+    src/agent/reading: b150071083fca419
+    src/agent/execution/isolation_templates: 14ca993f23d34254
+  file_fingerprints:
+    cv_toolbox.md@this_run: 98020fe665e6e7f4
+    cv_toolbox.md@C1_C2: f24a2ec1a7e2c421
+  sibling_arms:
+    - run_2026-08-15_reading_restart_C1_cropdiscipline   # 墙 0/9 · crop_zoom 2 · 量 1/6
+    - run_2026-08-15_reading_restart_C2_cropdiscipline   # 墙 0/9 · crop_zoom 1 · 量 1/6
+    - run_2026-08-15_reading_restart_B1_reviewring       # 墙 2/9 · crop_zoom 0 · 量 6/6
+    - run_2026-08-15_reading_restart_A1                  # 墙 3/9 · crop_zoom 0 · 量 1/6
+    - run_2026-08-15_reading_restart_A2                  # 墙 1/9 · crop_zoom 0 · 量 1/6
+
+acceptance:
+  primary:
+    - ⭐ crop_zoom 调用次数（07-07 = 55；A1/A2/B1 = 0；C1 = 2；C2 = 1）
+    - 量了几张图（07-07 = 6/6；C1/C2 = 1/6）
+    - CV 编号调用总数（07-07 = 92；C1 = 5；C2 = 4）
+    - px_m_calibrator 是否被真的调用（C1 = 0 次却自称标定过 = F-34 第二个绕过口）
+  secondary:
+    - score_vs_gt 侧车（07-07 = 墙 9/9 · 窗 7/7 · 最大偏移 0.0 m）
+  interpretation:
+    - crop_zoom 上去且分数回来 ⇒ 杠杆坐实，提速批代价成立，ledger 第三节由假说升为结论
+    - crop_zoom 上去但分数不回来 ⇒ 工作模式能换回来但不够 ⇒ 还有第四个变量
+    - crop_zoom 仍是 0 ⇒ prescan 也不是杠杆，剩 session_kickoff 改写 / 硬隔离壳摩擦两项
+  discipline:
+    - >-
+      ⚠️ 本轮先只跑一抽（用户 2026-08-15 拍板）。⛔ 一抽不构成成绩结论 ——
+      同配置曾差 2.8 倍；若 D1 出现方向性变化，必须补第二抽才能记账。
+    - ⛔ 席位禁跑 editable 安装（F-31）；不与全仓 pytest 并行（F-30）
+    - >-
+      ⭐ 产物出全（用户 08-15 拍板 #3）：跑完补
+      run_stage.py artifacts sm21_anchor <run> 0_reading
+    - >-
+      ⚠️ CV 证据不进 attempt（F-35）⇒ 从 staging 抢救，保留 out/label 层级

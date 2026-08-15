@@ -1,0 +1,2866 @@
+{
+  "stage": "0_reading",
+  "capability_profile": "orthogonal_polygon",
+  "run_profile": "exploratory",
+  "artifact_hash": "ffce1ded87f4e1ed642ba1d5a7a72c7a21e4700c0a5df56a714698570838f900",
+  "attempt_hash": "ffce1ded87f4e1ed642ba1d5a7a72c7a21e4700c0a5df56a714698570838f900",
+  "report_schema_version": "2.2",
+  "run_policy_sha256": "d058a59f01173ca05b088773e1cc06cd090eeffac520624ccad8bdc7dc32606d",
+  "run_policy_source": "structured_config",
+  "results": [
+    {
+      "check_id": "reading.view_manifest_coverage",
+      "status": "pass",
+      "layer": "invariant",
+      "check_version": "1",
+      "message": "",
+      "evidence": {
+        "expected_output_ids": [
+          "1f_view",
+          "2f_view",
+          "East_view",
+          "North_view",
+          "South_view",
+          "West_view"
+        ]
+      }
+    },
+    {
+      "check_id": "1f_view.reading.stroke_ids_unique",
+      "status": "pass",
+      "layer": "invariant",
+      "check_version": "1",
+      "message": "",
+      "evidence": {}
+    },
+    {
+      "check_id": "1f_view.reading.dimension_ids_unique",
+      "status": "pass",
+      "layer": "invariant",
+      "check_version": "1",
+      "message": "",
+      "evidence": {}
+    },
+    {
+      "check_id": "1f_view.reading.pen_kind_valid",
+      "status": "pass",
+      "layer": "invariant",
+      "check_version": "1",
+      "message": "",
+      "evidence": {}
+    },
+    {
+      "check_id": "1f_view.reading.no_topology_fields",
+      "status": "pass",
+      "layer": "invariant",
+      "check_version": "1",
+      "message": "",
+      "evidence": {}
+    },
+    {
+      "check_id": "1f_view.reading.nondegenerate_geometry",
+      "status": "pass",
+      "layer": "invariant",
+      "check_version": "1",
+      "message": "",
+      "evidence": {}
+    },
+    {
+      "check_id": "1f_view.reading.dimension_parseable",
+      "status": "pass",
+      "layer": "invariant",
+      "check_version": "1",
+      "message": "",
+      "evidence": {}
+    },
+    {
+      "check_id": "1f_view.reading.axis_endpoint_consistent",
+      "status": "pass",
+      "layer": "invariant",
+      "check_version": "1",
+      "message": "",
+      "evidence": {}
+    },
+    {
+      "check_id": "1f_view.reading.facade_fields",
+      "status": "not_applicable",
+      "layer": "invariant",
+      "check_version": "1",
+      "message": "not an elevation",
+      "evidence": {}
+    },
+    {
+      "check_id": "1f_view.reading.plan_scale_origin_usable",
+      "status": "pass",
+      "layer": "cross_check",
+      "check_version": "1",
+      "message": "",
+      "evidence": {
+        "world_x_m": 0.0,
+        "world_y_m": 0.0
+      }
+    },
+    {
+      "check_id": "1f_view.reading.uncaptured_present",
+      "status": "pass",
+      "layer": "invariant",
+      "check_version": "1",
+      "message": "",
+      "evidence": {
+        "count": 7
+      }
+    },
+    {
+      "check_id": "1f_view.reading.raw_field_presence",
+      "status": "pass",
+      "layer": "cross_check",
+      "check_version": "1",
+      "message": "",
+      "evidence": {
+        "dimensioned": true,
+        "dimensioned_state": "declared_true",
+        "raw_has_dimensions": true,
+        "raw_has_uncaptured": true,
+        "legacy_migrated": false
+      }
+    },
+    {
+      "check_id": "1f_view.reading.dimensions_present",
+      "status": "pass",
+      "layer": "cross_check",
+      "check_version": "1",
+      "message": "",
+      "evidence": {
+        "dimensioned": true,
+        "dimensioned_state": "declared_true",
+        "raw_has_dimensions": true,
+        "raw_has_uncaptured": true,
+        "legacy_migrated": false,
+        "dimension_count": 14
+      }
+    },
+    {
+      "check_id": "1f_view.reading.dimension_p1a_fields",
+      "status": "pass",
+      "layer": "cross_check",
+      "check_version": "1",
+      "message": "",
+      "evidence": {
+        "dimensioned": true,
+        "dimensioned_state": "declared_true",
+        "raw_has_dimensions": true,
+        "raw_has_uncaptured": true,
+        "legacy_migrated": false,
+        "dimension_count": 14
+      }
+    },
+    {
+      "check_id": "1f_view.reading.ocr_anchors_in_bounds",
+      "status": "pass",
+      "layer": "cross_check",
+      "check_version": "1",
+      "message": "",
+      "evidence": {}
+    },
+    {
+      "check_id": "1f_view.reading.dimension_endpoints_in_bounds",
+      "status": "pass",
+      "layer": "cross_check",
+      "check_version": "1",
+      "message": "",
+      "evidence": {
+        "structural_reference": [
+          -32.309999999999995,
+          44.29,
+          -33.25,
+          41.75
+        ]
+      }
+    },
+    {
+      "check_id": "1f_view.reading.dimension_chain_closure",
+      "status": "fail",
+      "layer": "cross_check",
+      "check_version": "1",
+      "message": "dimension chain evidence is missing, incomplete, or non-closing",
+      "evidence": {
+        "dimensioned": true,
+        "dimensioned_state": "declared_true",
+        "raw_has_dimensions": true,
+        "raw_has_uncaptured": true,
+        "legacy_migrated": false,
+        "missing_chain_id": [],
+        "missing_axis": [],
+        "incomplete": [
+          {
+            "chain_id": "C_south_overall",
+            "axis": "x",
+            "overall_count": 1,
+            "segment_count": 0,
+            "dimension_ids": [
+              "D1"
+            ]
+          },
+          {
+            "chain_id": "C_south",
+            "axis": "x",
+            "overall_count": 0,
+            "segment_count": 9,
+            "dimension_ids": [
+              "D2",
+              "D3",
+              "D4",
+              "D5",
+              "D6",
+              "D7",
+              "D8",
+              "D9",
+              "D10"
+            ]
+          },
+          {
+            "chain_id": "C_west_overall",
+            "axis": "y",
+            "overall_count": 1,
+            "segment_count": 0,
+            "dimension_ids": [
+              "D11"
+            ]
+          },
+          {
+            "chain_id": "C_west",
+            "axis": "y",
+            "overall_count": 0,
+            "segment_count": 3,
+            "dimension_ids": [
+              "D12",
+              "D13",
+              "D14"
+            ]
+          }
+        ],
+        "mismatches": []
+      }
+    },
+    {
+      "check_id": "1f_view.reading.dimension_derived_refs",
+      "status": "pass",
+      "layer": "cross_check",
+      "check_version": "1",
+      "message": "",
+      "evidence": {
+        "dimensioned": true,
+        "dimensioned_state": "declared_true",
+        "raw_has_dimensions": true,
+        "raw_has_uncaptured": true,
+        "legacy_migrated": false,
+        "strokes_checked": 4
+      }
+    },
+    {
+      "check_id": "1f_view.reading.stroke_provenance_coverage",
+      "status": "pass",
+      "layer": "cross_check",
+      "check_version": "1",
+      "message": "",
+      "evidence": {
+        "dimensioned": true,
+        "dimensioned_state": "declared_true",
+        "raw_has_dimensions": true,
+        "raw_has_uncaptured": true,
+        "legacy_migrated": false,
+        "provenance_mode": "full",
+        "structural_strokes": 34,
+        "with_provenance": 34
+      }
+    },
+    {
+      "check_id": "1f_view.reading.partition_on_window_jamb",
+      "status": "fail",
+      "layer": "cross_check",
+      "check_version": "1",
+      "message": "6 interior wall stroke coordinate(s) coincide with window jambs; verify each is a real partition rather than a traced jamb",
+      "evidence": {
+        "tolerance_m": 0.2,
+        "offenders": [
+          {
+            "stroke_id": "S7",
+            "axis": "x",
+            "coord_m": 1.24,
+            "window_jambs": [
+              {
+                "window_id": "W2",
+                "coord_m": 1.3,
+                "source": "x_range_m[1]"
+              },
+              {
+                "window_id": "W8",
+                "coord_m": 1.3,
+                "source": "x_range_m[1]"
+              }
+            ],
+            "matching_dimension_positions": [
+              {
+                "coord": 1.24,
+                "dimension_ids": [
+                  "D2"
+                ],
+                "chain_id": "C_south"
+              },
+              {
+                "coord": 1.24,
+                "dimension_ids": [
+                  "D3"
+                ],
+                "chain_id": "C_south"
+              }
+            ],
+            "joins_walls": {
+              "p1": true,
+              "p2": true,
+              "both_endpoints_join": true
+            }
+          },
+          {
+            "stroke_id": "S8",
+            "axis": "x",
+            "coord_m": 3.64,
+            "window_jambs": [
+              {
+                "window_id": "W3",
+                "coord_m": 3.6,
+                "source": "x_range_m[1]"
+              },
+              {
+                "window_id": "W9",
+                "coord_m": 3.6,
+                "source": "x_range_m[1]"
+              }
+            ],
+            "matching_dimension_positions": [
+              {
+                "coord": 3.64,
+                "dimension_ids": [
+                  "D3"
+                ],
+                "chain_id": "C_south"
+              },
+              {
+                "coord": 3.64,
+                "dimension_ids": [
+                  "D2",
+                  "D3"
+                ],
+                "chain_id": "C_south"
+              },
+              {
+                "coord": 3.64,
+                "dimension_ids": [
+                  "D4"
+                ],
+                "chain_id": "C_south"
+              }
+            ],
+            "joins_walls": {
+              "p1": true,
+              "p2": true,
+              "both_endpoints_join": true
+            }
+          },
+          {
+            "stroke_id": "S11",
+            "axis": "x",
+            "coord_m": 8.58,
+            "window_jambs": [
+              {
+                "window_id": "W6",
+                "coord_m": 8.5,
+                "source": "x_range_m[1]"
+              },
+              {
+                "window_id": "W12",
+                "coord_m": 8.5,
+                "source": "x_range_m[1]"
+              }
+            ],
+            "matching_dimension_positions": [
+              {
+                "coord": 8.58,
+                "dimension_ids": [
+                  "D6"
+                ],
+                "chain_id": "C_south"
+              },
+              {
+                "coord": 8.58,
+                "dimension_ids": [
+                  "D2",
+                  "D3",
+                  "D4",
+                  "D5",
+                  "D6"
+                ],
+                "chain_id": "C_south"
+              },
+              {
+                "coord": 8.58,
+                "dimension_ids": [
+                  "D7"
+                ],
+                "chain_id": "C_south"
+              }
+            ],
+            "joins_walls": {
+              "p1": true,
+              "p2": true,
+              "both_endpoints_join": true
+            }
+          },
+          {
+            "stroke_id": "S15",
+            "axis": "x",
+            "coord_m": 1.24,
+            "window_jambs": [
+              {
+                "window_id": "W2",
+                "coord_m": 1.3,
+                "source": "x_range_m[1]"
+              },
+              {
+                "window_id": "W8",
+                "coord_m": 1.3,
+                "source": "x_range_m[1]"
+              }
+            ],
+            "matching_dimension_positions": [
+              {
+                "coord": 1.24,
+                "dimension_ids": [
+                  "D2"
+                ],
+                "chain_id": "C_south"
+              },
+              {
+                "coord": 1.24,
+                "dimension_ids": [
+                  "D3"
+                ],
+                "chain_id": "C_south"
+              }
+            ],
+            "joins_walls": {
+              "p1": true,
+              "p2": true,
+              "both_endpoints_join": true
+            }
+          },
+          {
+            "stroke_id": "S16",
+            "axis": "x",
+            "coord_m": 3.64,
+            "window_jambs": [
+              {
+                "window_id": "W3",
+                "coord_m": 3.6,
+                "source": "x_range_m[1]"
+              },
+              {
+                "window_id": "W9",
+                "coord_m": 3.6,
+                "source": "x_range_m[1]"
+              }
+            ],
+            "matching_dimension_positions": [
+              {
+                "coord": 3.64,
+                "dimension_ids": [
+                  "D3"
+                ],
+                "chain_id": "C_south"
+              },
+              {
+                "coord": 3.64,
+                "dimension_ids": [
+                  "D2",
+                  "D3"
+                ],
+                "chain_id": "C_south"
+              },
+              {
+                "coord": 3.64,
+                "dimension_ids": [
+                  "D4"
+                ],
+                "chain_id": "C_south"
+              }
+            ],
+            "joins_walls": {
+              "p1": true,
+              "p2": true,
+              "both_endpoints_join": true
+            }
+          },
+          {
+            "stroke_id": "S19",
+            "axis": "x",
+            "coord_m": 8.58,
+            "window_jambs": [
+              {
+                "window_id": "W6",
+                "coord_m": 8.5,
+                "source": "x_range_m[1]"
+              },
+              {
+                "window_id": "W12",
+                "coord_m": 8.5,
+                "source": "x_range_m[1]"
+              }
+            ],
+            "matching_dimension_positions": [
+              {
+                "coord": 8.58,
+                "dimension_ids": [
+                  "D6"
+                ],
+                "chain_id": "C_south"
+              },
+              {
+                "coord": 8.58,
+                "dimension_ids": [
+                  "D2",
+                  "D3",
+                  "D4",
+                  "D5",
+                  "D6"
+                ],
+                "chain_id": "C_south"
+              },
+              {
+                "coord": 8.58,
+                "dimension_ids": [
+                  "D7"
+                ],
+                "chain_id": "C_south"
+              }
+            ],
+            "joins_walls": {
+              "p1": true,
+              "p2": true,
+              "both_endpoints_join": true
+            }
+          }
+        ]
+      }
+    },
+    {
+      "check_id": "1f_view.reading.stroke_dimension_consistency",
+      "status": "fail",
+      "layer": "cross_check",
+      "check_version": "1",
+      "message": "16 plan wall stroke coordinate(s) coincide with dimension-chain cumulative positions; verify each is a real room-bounding wall",
+      "evidence": {
+        "tolerance_m": 0.01,
+        "offenders": [
+          {
+            "stroke_id": "S7",
+            "axis": "x",
+            "coord_m": 1.24,
+            "matching_dimension_ids": [
+              "D2",
+              "D3"
+            ],
+            "matching_positions": [
+              {
+                "coord": 1.24,
+                "dimension_ids": [
+                  "D2"
+                ],
+                "chain_id": "C_south"
+              },
+              {
+                "coord": 1.24,
+                "dimension_ids": [
+                  "D3"
+                ],
+                "chain_id": "C_south"
+              }
+            ],
+            "joins_walls": {
+              "p1": true,
+              "p2": true,
+              "both_endpoints_join": true
+            },
+            "bounds_rooms_inferable": true
+          },
+          {
+            "stroke_id": "S8",
+            "axis": "x",
+            "coord_m": 3.64,
+            "matching_dimension_ids": [
+              "D2",
+              "D3",
+              "D4"
+            ],
+            "matching_positions": [
+              {
+                "coord": 3.64,
+                "dimension_ids": [
+                  "D3"
+                ],
+                "chain_id": "C_south"
+              },
+              {
+                "coord": 3.64,
+                "dimension_ids": [
+                  "D2",
+                  "D3"
+                ],
+                "chain_id": "C_south"
+              },
+              {
+                "coord": 3.64,
+                "dimension_ids": [
+                  "D4"
+                ],
+                "chain_id": "C_south"
+              }
+            ],
+            "joins_walls": {
+              "p1": true,
+              "p2": true,
+              "both_endpoints_join": true
+            },
+            "bounds_rooms_inferable": true
+          },
+          {
+            "stroke_id": "S9",
+            "axis": "x",
+            "coord_m": 4.94,
+            "matching_dimension_ids": [
+              "D2",
+              "D3",
+              "D4",
+              "D5"
+            ],
+            "matching_positions": [
+              {
+                "coord": 4.94,
+                "dimension_ids": [
+                  "D4"
+                ],
+                "chain_id": "C_south"
+              },
+              {
+                "coord": 4.94,
+                "dimension_ids": [
+                  "D2",
+                  "D3",
+                  "D4"
+                ],
+                "chain_id": "C_south"
+              },
+              {
+                "coord": 4.94,
+                "dimension_ids": [
+                  "D5"
+                ],
+                "chain_id": "C_south"
+              }
+            ],
+            "joins_walls": {
+              "p1": true,
+              "p2": true,
+              "both_endpoints_join": true
+            },
+            "bounds_rooms_inferable": true
+          },
+          {
+            "stroke_id": "S10",
+            "axis": "x",
+            "coord_m": 6.18,
+            "matching_dimension_ids": [
+              "D2",
+              "D3",
+              "D4",
+              "D5",
+              "D6"
+            ],
+            "matching_positions": [
+              {
+                "coord": 6.18,
+                "dimension_ids": [
+                  "D5"
+                ],
+                "chain_id": "C_south"
+              },
+              {
+                "coord": 6.18,
+                "dimension_ids": [
+                  "D2",
+                  "D3",
+                  "D4",
+                  "D5"
+                ],
+                "chain_id": "C_south"
+              },
+              {
+                "coord": 6.18,
+                "dimension_ids": [
+                  "D6"
+                ],
+                "chain_id": "C_south"
+              }
+            ],
+            "joins_walls": {
+              "p1": true,
+              "p2": true,
+              "both_endpoints_join": true
+            },
+            "bounds_rooms_inferable": true
+          },
+          {
+            "stroke_id": "S11",
+            "axis": "x",
+            "coord_m": 8.58,
+            "matching_dimension_ids": [
+              "D2",
+              "D3",
+              "D4",
+              "D5",
+              "D6",
+              "D7"
+            ],
+            "matching_positions": [
+              {
+                "coord": 8.58,
+                "dimension_ids": [
+                  "D6"
+                ],
+                "chain_id": "C_south"
+              },
+              {
+                "coord": 8.58,
+                "dimension_ids": [
+                  "D2",
+                  "D3",
+                  "D4",
+                  "D5",
+                  "D6"
+                ],
+                "chain_id": "C_south"
+              },
+              {
+                "coord": 8.58,
+                "dimension_ids": [
+                  "D7"
+                ],
+                "chain_id": "C_south"
+              }
+            ],
+            "joins_walls": {
+              "p1": true,
+              "p2": true,
+              "both_endpoints_join": true
+            },
+            "bounds_rooms_inferable": true
+          },
+          {
+            "stroke_id": "S12",
+            "axis": "x",
+            "coord_m": 9.82,
+            "matching_dimension_ids": [
+              "D2",
+              "D3",
+              "D4",
+              "D5",
+              "D6",
+              "D7",
+              "D8"
+            ],
+            "matching_positions": [
+              {
+                "coord": 9.82,
+                "dimension_ids": [
+                  "D7"
+                ],
+                "chain_id": "C_south"
+              },
+              {
+                "coord": 9.82,
+                "dimension_ids": [
+                  "D2",
+                  "D3",
+                  "D4",
+                  "D5",
+                  "D6",
+                  "D7"
+                ],
+                "chain_id": "C_south"
+              },
+              {
+                "coord": 9.82,
+                "dimension_ids": [
+                  "D8"
+                ],
+                "chain_id": "C_south"
+              }
+            ],
+            "joins_walls": {
+              "p1": true,
+              "p2": true,
+              "both_endpoints_join": true
+            },
+            "bounds_rooms_inferable": true
+          },
+          {
+            "stroke_id": "S13",
+            "axis": "x",
+            "coord_m": 11.12,
+            "matching_dimension_ids": [
+              "D2",
+              "D3",
+              "D4",
+              "D5",
+              "D6",
+              "D7",
+              "D8",
+              "D9"
+            ],
+            "matching_positions": [
+              {
+                "coord": 11.12,
+                "dimension_ids": [
+                  "D8"
+                ],
+                "chain_id": "C_south"
+              },
+              {
+                "coord": 11.12,
+                "dimension_ids": [
+                  "D2",
+                  "D3",
+                  "D4",
+                  "D5",
+                  "D6",
+                  "D7",
+                  "D8"
+                ],
+                "chain_id": "C_south"
+              },
+              {
+                "coord": 11.12,
+                "dimension_ids": [
+                  "D9"
+                ],
+                "chain_id": "C_south"
+              }
+            ],
+            "joins_walls": {
+              "p1": true,
+              "p2": true,
+              "both_endpoints_join": true
+            },
+            "bounds_rooms_inferable": true
+          },
+          {
+            "stroke_id": "S14",
+            "axis": "x",
+            "coord_m": 13.52,
+            "matching_dimension_ids": [
+              "D10",
+              "D2",
+              "D3",
+              "D4",
+              "D5",
+              "D6",
+              "D7",
+              "D8",
+              "D9"
+            ],
+            "matching_positions": [
+              {
+                "coord": 13.52,
+                "dimension_ids": [
+                  "D9"
+                ],
+                "chain_id": "C_south"
+              },
+              {
+                "coord": 13.52,
+                "dimension_ids": [
+                  "D2",
+                  "D3",
+                  "D4",
+                  "D5",
+                  "D6",
+                  "D7",
+                  "D8",
+                  "D9"
+                ],
+                "chain_id": "C_south"
+              },
+              {
+                "coord": 13.52,
+                "dimension_ids": [
+                  "D10"
+                ],
+                "chain_id": "C_south"
+              }
+            ],
+            "joins_walls": {
+              "p1": true,
+              "p2": true,
+              "both_endpoints_join": true
+            },
+            "bounds_rooms_inferable": true
+          },
+          {
+            "stroke_id": "S15",
+            "axis": "x",
+            "coord_m": 1.24,
+            "matching_dimension_ids": [
+              "D2",
+              "D3"
+            ],
+            "matching_positions": [
+              {
+                "coord": 1.24,
+                "dimension_ids": [
+                  "D2"
+                ],
+                "chain_id": "C_south"
+              },
+              {
+                "coord": 1.24,
+                "dimension_ids": [
+                  "D3"
+                ],
+                "chain_id": "C_south"
+              }
+            ],
+            "joins_walls": {
+              "p1": true,
+              "p2": true,
+              "both_endpoints_join": true
+            },
+            "bounds_rooms_inferable": true
+          },
+          {
+            "stroke_id": "S16",
+            "axis": "x",
+            "coord_m": 3.64,
+            "matching_dimension_ids": [
+              "D2",
+              "D3",
+              "D4"
+            ],
+            "matching_positions": [
+              {
+                "coord": 3.64,
+                "dimension_ids": [
+                  "D3"
+                ],
+                "chain_id": "C_south"
+              },
+              {
+                "coord": 3.64,
+                "dimension_ids": [
+                  "D2",
+                  "D3"
+                ],
+                "chain_id": "C_south"
+              },
+              {
+                "coord": 3.64,
+                "dimension_ids": [
+                  "D4"
+                ],
+                "chain_id": "C_south"
+              }
+            ],
+            "joins_walls": {
+              "p1": true,
+              "p2": true,
+              "both_endpoints_join": true
+            },
+            "bounds_rooms_inferable": true
+          },
+          {
+            "stroke_id": "S17",
+            "axis": "x",
+            "coord_m": 4.94,
+            "matching_dimension_ids": [
+              "D2",
+              "D3",
+              "D4",
+              "D5"
+            ],
+            "matching_positions": [
+              {
+                "coord": 4.94,
+                "dimension_ids": [
+                  "D4"
+                ],
+                "chain_id": "C_south"
+              },
+              {
+                "coord": 4.94,
+                "dimension_ids": [
+                  "D2",
+                  "D3",
+                  "D4"
+                ],
+                "chain_id": "C_south"
+              },
+              {
+                "coord": 4.94,
+                "dimension_ids": [
+                  "D5"
+                ],
+                "chain_id": "C_south"
+              }
+            ],
+            "joins_walls": {
+              "p1": true,
+              "p2": true,
+              "both_endpoints_join": true
+            },
+            "bounds_rooms_inferable": true
+          },
+          {
+            "stroke_id": "S18",
+            "axis": "x",
+            "coord_m": 6.18,
+            "matching_dimension_ids": [
+              "D2",
+              "D3",
+              "D4",
+              "D5",
+              "D6"
+            ],
+            "matching_positions": [
+              {
+                "coord": 6.18,
+                "dimension_ids": [
+                  "D5"
+                ],
+                "chain_id": "C_south"
+              },
+              {
+                "coord": 6.18,
+                "dimension_ids": [
+                  "D2",
+                  "D3",
+                  "D4",
+                  "D5"
+                ],
+                "chain_id": "C_south"
+              },
+              {
+                "coord": 6.18,
+                "dimension_ids": [
+                  "D6"
+                ],
+                "chain_id": "C_south"
+              }
+            ],
+            "joins_walls": {
+              "p1": true,
+              "p2": true,
+              "both_endpoints_join": true
+            },
+            "bounds_rooms_inferable": true
+          },
+          {
+            "stroke_id": "S19",
+            "axis": "x",
+            "coord_m": 8.58,
+            "matching_dimension_ids": [
+              "D2",
+              "D3",
+              "D4",
+              "D5",
+              "D6",
+              "D7"
+            ],
+            "matching_positions": [
+              {
+                "coord": 8.58,
+                "dimension_ids": [
+                  "D6"
+                ],
+                "chain_id": "C_south"
+              },
+              {
+                "coord": 8.58,
+                "dimension_ids": [
+                  "D2",
+                  "D3",
+                  "D4",
+                  "D5",
+                  "D6"
+                ],
+                "chain_id": "C_south"
+              },
+              {
+                "coord": 8.58,
+                "dimension_ids": [
+                  "D7"
+                ],
+                "chain_id": "C_south"
+              }
+            ],
+            "joins_walls": {
+              "p1": true,
+              "p2": true,
+              "both_endpoints_join": true
+            },
+            "bounds_rooms_inferable": true
+          },
+          {
+            "stroke_id": "S20",
+            "axis": "x",
+            "coord_m": 9.82,
+            "matching_dimension_ids": [
+              "D2",
+              "D3",
+              "D4",
+              "D5",
+              "D6",
+              "D7",
+              "D8"
+            ],
+            "matching_positions": [
+              {
+                "coord": 9.82,
+                "dimension_ids": [
+                  "D7"
+                ],
+                "chain_id": "C_south"
+              },
+              {
+                "coord": 9.82,
+                "dimension_ids": [
+                  "D2",
+                  "D3",
+                  "D4",
+                  "D5",
+                  "D6",
+                  "D7"
+                ],
+                "chain_id": "C_south"
+              },
+              {
+                "coord": 9.82,
+                "dimension_ids": [
+                  "D8"
+                ],
+                "chain_id": "C_south"
+              }
+            ],
+            "joins_walls": {
+              "p1": true,
+              "p2": true,
+              "both_endpoints_join": true
+            },
+            "bounds_rooms_inferable": true
+          },
+          {
+            "stroke_id": "S21",
+            "axis": "x",
+            "coord_m": 11.12,
+            "matching_dimension_ids": [
+              "D2",
+              "D3",
+              "D4",
+              "D5",
+              "D6",
+              "D7",
+              "D8",
+              "D9"
+            ],
+            "matching_positions": [
+              {
+                "coord": 11.12,
+                "dimension_ids": [
+                  "D8"
+                ],
+                "chain_id": "C_south"
+              },
+              {
+                "coord": 11.12,
+                "dimension_ids": [
+                  "D2",
+                  "D3",
+                  "D4",
+                  "D5",
+                  "D6",
+                  "D7",
+                  "D8"
+                ],
+                "chain_id": "C_south"
+              },
+              {
+                "coord": 11.12,
+                "dimension_ids": [
+                  "D9"
+                ],
+                "chain_id": "C_south"
+              }
+            ],
+            "joins_walls": {
+              "p1": true,
+              "p2": true,
+              "both_endpoints_join": true
+            },
+            "bounds_rooms_inferable": true
+          },
+          {
+            "stroke_id": "S22",
+            "axis": "x",
+            "coord_m": 13.52,
+            "matching_dimension_ids": [
+              "D10",
+              "D2",
+              "D3",
+              "D4",
+              "D5",
+              "D6",
+              "D7",
+              "D8",
+              "D9"
+            ],
+            "matching_positions": [
+              {
+                "coord": 13.52,
+                "dimension_ids": [
+                  "D9"
+                ],
+                "chain_id": "C_south"
+              },
+              {
+                "coord": 13.52,
+                "dimension_ids": [
+                  "D2",
+                  "D3",
+                  "D4",
+                  "D5",
+                  "D6",
+                  "D7",
+                  "D8",
+                  "D9"
+                ],
+                "chain_id": "C_south"
+              },
+              {
+                "coord": 13.52,
+                "dimension_ids": [
+                  "D10"
+                ],
+                "chain_id": "C_south"
+              }
+            ],
+            "joins_walls": {
+              "p1": true,
+              "p2": true,
+              "both_endpoints_join": true
+            },
+            "bounds_rooms_inferable": true
+          }
+        ]
+      }
+    },
+    {
+      "check_id": "1f_view.reading.door_heal_traced",
+      "status": "pass",
+      "layer": "cross_check",
+      "check_version": "1",
+      "message": "",
+      "evidence": {
+        "healed_stroke_ids": [
+          "S8",
+          "S10",
+          "S12",
+          "S16",
+          "S18",
+          "S20"
+        ],
+        "heal_traces": 6
+      }
+    },
+    {
+      "check_id": "2f_view.reading.stroke_ids_unique",
+      "status": "pass",
+      "layer": "invariant",
+      "check_version": "1",
+      "message": "",
+      "evidence": {}
+    },
+    {
+      "check_id": "2f_view.reading.dimension_ids_unique",
+      "status": "pass",
+      "layer": "invariant",
+      "check_version": "1",
+      "message": "",
+      "evidence": {}
+    },
+    {
+      "check_id": "2f_view.reading.pen_kind_valid",
+      "status": "pass",
+      "layer": "invariant",
+      "check_version": "1",
+      "message": "",
+      "evidence": {}
+    },
+    {
+      "check_id": "2f_view.reading.no_topology_fields",
+      "status": "pass",
+      "layer": "invariant",
+      "check_version": "1",
+      "message": "",
+      "evidence": {}
+    },
+    {
+      "check_id": "2f_view.reading.nondegenerate_geometry",
+      "status": "pass",
+      "layer": "invariant",
+      "check_version": "1",
+      "message": "",
+      "evidence": {}
+    },
+    {
+      "check_id": "2f_view.reading.dimension_parseable",
+      "status": "pass",
+      "layer": "invariant",
+      "check_version": "1",
+      "message": "",
+      "evidence": {}
+    },
+    {
+      "check_id": "2f_view.reading.axis_endpoint_consistent",
+      "status": "pass",
+      "layer": "invariant",
+      "check_version": "1",
+      "message": "",
+      "evidence": {}
+    },
+    {
+      "check_id": "2f_view.reading.facade_fields",
+      "status": "not_applicable",
+      "layer": "invariant",
+      "check_version": "1",
+      "message": "not an elevation",
+      "evidence": {}
+    },
+    {
+      "check_id": "2f_view.reading.plan_scale_origin_usable",
+      "status": "pass",
+      "layer": "cross_check",
+      "check_version": "1",
+      "message": "",
+      "evidence": {
+        "world_x_m": 0.0,
+        "world_y_m": 0.0
+      }
+    },
+    {
+      "check_id": "2f_view.reading.uncaptured_present",
+      "status": "pass",
+      "layer": "invariant",
+      "check_version": "1",
+      "message": "",
+      "evidence": {
+        "count": 4
+      }
+    },
+    {
+      "check_id": "2f_view.reading.raw_field_presence",
+      "status": "pass",
+      "layer": "cross_check",
+      "check_version": "1",
+      "message": "",
+      "evidence": {
+        "dimensioned": true,
+        "dimensioned_state": "declared_true",
+        "raw_has_dimensions": true,
+        "raw_has_uncaptured": true,
+        "legacy_migrated": false
+      }
+    },
+    {
+      "check_id": "2f_view.reading.dimensions_present",
+      "status": "pass",
+      "layer": "cross_check",
+      "check_version": "1",
+      "message": "",
+      "evidence": {
+        "dimensioned": true,
+        "dimensioned_state": "declared_true",
+        "raw_has_dimensions": true,
+        "raw_has_uncaptured": true,
+        "legacy_migrated": false,
+        "dimension_count": 12
+      }
+    },
+    {
+      "check_id": "2f_view.reading.dimension_p1a_fields",
+      "status": "pass",
+      "layer": "cross_check",
+      "check_version": "1",
+      "message": "",
+      "evidence": {
+        "dimensioned": true,
+        "dimensioned_state": "declared_true",
+        "raw_has_dimensions": true,
+        "raw_has_uncaptured": true,
+        "legacy_migrated": false,
+        "dimension_count": 12
+      }
+    },
+    {
+      "check_id": "2f_view.reading.ocr_anchors_in_bounds",
+      "status": "pass",
+      "layer": "cross_check",
+      "check_version": "1",
+      "message": "",
+      "evidence": {}
+    },
+    {
+      "check_id": "2f_view.reading.dimension_endpoints_in_bounds",
+      "status": "pass",
+      "layer": "cross_check",
+      "check_version": "1",
+      "message": "",
+      "evidence": {
+        "structural_reference": [
+          -47.21,
+          62.089999999999996,
+          -27.0,
+          33.0
+        ]
+      }
+    },
+    {
+      "check_id": "2f_view.reading.dimension_chain_closure",
+      "status": "fail",
+      "layer": "cross_check",
+      "check_version": "1",
+      "message": "dimension chain evidence is missing, incomplete, or non-closing",
+      "evidence": {
+        "dimensioned": true,
+        "dimensioned_state": "declared_true",
+        "raw_has_dimensions": true,
+        "raw_has_uncaptured": true,
+        "legacy_migrated": false,
+        "missing_chain_id": [],
+        "missing_axis": [],
+        "incomplete": [
+          {
+            "chain_id": "C_south_overall",
+            "axis": "x",
+            "overall_count": 1,
+            "segment_count": 0,
+            "dimension_ids": [
+              "D1"
+            ]
+          },
+          {
+            "chain_id": "C_south",
+            "axis": "x",
+            "overall_count": 0,
+            "segment_count": 6,
+            "dimension_ids": [
+              "D2",
+              "D3",
+              "D4",
+              "D5",
+              "D6",
+              "D7"
+            ]
+          },
+          {
+            "chain_id": "C_west_overall",
+            "axis": "y",
+            "overall_count": 1,
+            "segment_count": 0,
+            "dimension_ids": [
+              "D8"
+            ]
+          },
+          {
+            "chain_id": "C_west",
+            "axis": "y",
+            "overall_count": 0,
+            "segment_count": 4,
+            "dimension_ids": [
+              "D9",
+              "D10",
+              "D11",
+              "D12"
+            ]
+          }
+        ],
+        "mismatches": []
+      }
+    },
+    {
+      "check_id": "2f_view.reading.dimension_derived_refs",
+      "status": "not_applicable",
+      "layer": "cross_check",
+      "check_version": "1",
+      "message": "no dimension_derived strokes",
+      "evidence": {
+        "dimensioned": true,
+        "dimensioned_state": "declared_true",
+        "raw_has_dimensions": true,
+        "raw_has_uncaptured": true,
+        "legacy_migrated": false,
+        "strokes_checked": 0
+      }
+    },
+    {
+      "check_id": "2f_view.reading.stroke_provenance_coverage",
+      "status": "pass",
+      "layer": "cross_check",
+      "check_version": "1",
+      "message": "",
+      "evidence": {
+        "dimensioned": true,
+        "dimensioned_state": "declared_true",
+        "raw_has_dimensions": true,
+        "raw_has_uncaptured": true,
+        "legacy_migrated": false,
+        "provenance_mode": "full",
+        "structural_strokes": 24,
+        "with_provenance": 24
+      }
+    },
+    {
+      "check_id": "2f_view.reading.partition_on_window_jamb",
+      "status": "fail",
+      "layer": "cross_check",
+      "check_version": "1",
+      "message": "3 interior wall stroke coordinate(s) coincide with window jambs; verify each is a real partition rather than a traced jamb",
+      "evidence": {
+        "tolerance_m": 0.2,
+        "offenders": [
+          {
+            "stroke_id": "S6",
+            "axis": "x",
+            "coord_m": 1.95,
+            "window_jambs": [
+              {
+                "window_id": "W8",
+                "coord_m": 2.0,
+                "source": "x_range_m[0]"
+              }
+            ],
+            "matching_dimension_positions": [
+              {
+                "coord": 1.95,
+                "dimension_ids": [
+                  "D2"
+                ],
+                "chain_id": "C_south"
+              },
+              {
+                "coord": 1.95,
+                "dimension_ids": [
+                  "D3"
+                ],
+                "chain_id": "C_south"
+              }
+            ],
+            "joins_walls": {
+              "p1": true,
+              "p2": true,
+              "both_endpoints_join": true
+            }
+          },
+          {
+            "stroke_id": "S8",
+            "axis": "x",
+            "coord_m": 9.35,
+            "window_jambs": [
+              {
+                "window_id": "W4",
+                "coord_m": 9.5,
+                "source": "x_range_m[0]"
+              }
+            ],
+            "matching_dimension_positions": [
+              {
+                "coord": 9.35,
+                "dimension_ids": [
+                  "D5"
+                ],
+                "chain_id": "C_south"
+              },
+              {
+                "coord": 9.33,
+                "dimension_ids": [
+                  "D2",
+                  "D3",
+                  "D4",
+                  "D5"
+                ],
+                "chain_id": "C_south"
+              },
+              {
+                "coord": 9.35,
+                "dimension_ids": [
+                  "D6"
+                ],
+                "chain_id": "C_south"
+              }
+            ],
+            "joins_walls": {
+              "p1": true,
+              "p2": true,
+              "both_endpoints_join": true
+            }
+          },
+          {
+            "stroke_id": "S9",
+            "axis": "x",
+            "coord_m": 12.95,
+            "window_jambs": [
+              {
+                "window_id": "W5",
+                "coord_m": 13.1,
+                "source": "x_range_m[1]"
+              }
+            ],
+            "matching_dimension_positions": [
+              {
+                "coord": 12.95,
+                "dimension_ids": [
+                  "D6"
+                ],
+                "chain_id": "C_south"
+              },
+              {
+                "coord": 12.93,
+                "dimension_ids": [
+                  "D2",
+                  "D3",
+                  "D4",
+                  "D5",
+                  "D6"
+                ],
+                "chain_id": "C_south"
+              },
+              {
+                "coord": 12.95,
+                "dimension_ids": [
+                  "D7"
+                ],
+                "chain_id": "C_south"
+              }
+            ],
+            "joins_walls": {
+              "p1": true,
+              "p2": true,
+              "both_endpoints_join": true
+            }
+          }
+        ]
+      }
+    },
+    {
+      "check_id": "2f_view.reading.stroke_dimension_consistency",
+      "status": "fail",
+      "layer": "cross_check",
+      "check_version": "1",
+      "message": "6 plan wall stroke coordinate(s) coincide with dimension-chain cumulative positions; verify each is a real room-bounding wall",
+      "evidence": {
+        "tolerance_m": 0.01,
+        "offenders": [
+          {
+            "stroke_id": "S5",
+            "axis": "y",
+            "coord_m": 3.0,
+            "matching_dimension_ids": [
+              "D10",
+              "D9"
+            ],
+            "matching_positions": [
+              {
+                "coord": 3.0,
+                "dimension_ids": [
+                  "D9"
+                ],
+                "chain_id": "C_west"
+              },
+              {
+                "coord": 3.0,
+                "dimension_ids": [
+                  "D10"
+                ],
+                "chain_id": "C_west"
+              }
+            ],
+            "joins_walls": {
+              "p1": true,
+              "p2": true,
+              "both_endpoints_join": true
+            },
+            "bounds_rooms_inferable": true
+          },
+          {
+            "stroke_id": "S6",
+            "axis": "x",
+            "coord_m": 1.95,
+            "matching_dimension_ids": [
+              "D2",
+              "D3"
+            ],
+            "matching_positions": [
+              {
+                "coord": 1.95,
+                "dimension_ids": [
+                  "D2"
+                ],
+                "chain_id": "C_south"
+              },
+              {
+                "coord": 1.95,
+                "dimension_ids": [
+                  "D3"
+                ],
+                "chain_id": "C_south"
+              }
+            ],
+            "joins_walls": {
+              "p1": true,
+              "p2": true,
+              "both_endpoints_join": true
+            },
+            "bounds_rooms_inferable": true
+          },
+          {
+            "stroke_id": "S7",
+            "axis": "x",
+            "coord_m": 5.55,
+            "matching_dimension_ids": [
+              "D2",
+              "D3",
+              "D4"
+            ],
+            "matching_positions": [
+              {
+                "coord": 5.55,
+                "dimension_ids": [
+                  "D3"
+                ],
+                "chain_id": "C_south"
+              },
+              {
+                "coord": 5.55,
+                "dimension_ids": [
+                  "D2",
+                  "D3"
+                ],
+                "chain_id": "C_south"
+              },
+              {
+                "coord": 5.55,
+                "dimension_ids": [
+                  "D4"
+                ],
+                "chain_id": "C_south"
+              }
+            ],
+            "joins_walls": {
+              "p1": true,
+              "p2": true,
+              "both_endpoints_join": true
+            },
+            "bounds_rooms_inferable": true
+          },
+          {
+            "stroke_id": "S8",
+            "axis": "x",
+            "coord_m": 9.35,
+            "matching_dimension_ids": [
+              "D5",
+              "D6"
+            ],
+            "matching_positions": [
+              {
+                "coord": 9.35,
+                "dimension_ids": [
+                  "D5"
+                ],
+                "chain_id": "C_south"
+              },
+              {
+                "coord": 9.35,
+                "dimension_ids": [
+                  "D6"
+                ],
+                "chain_id": "C_south"
+              }
+            ],
+            "joins_walls": {
+              "p1": true,
+              "p2": true,
+              "both_endpoints_join": true
+            },
+            "bounds_rooms_inferable": true
+          },
+          {
+            "stroke_id": "S9",
+            "axis": "x",
+            "coord_m": 12.95,
+            "matching_dimension_ids": [
+              "D6",
+              "D7"
+            ],
+            "matching_positions": [
+              {
+                "coord": 12.95,
+                "dimension_ids": [
+                  "D6"
+                ],
+                "chain_id": "C_south"
+              },
+              {
+                "coord": 12.95,
+                "dimension_ids": [
+                  "D7"
+                ],
+                "chain_id": "C_south"
+              }
+            ],
+            "joins_walls": {
+              "p1": true,
+              "p2": true,
+              "both_endpoints_join": true
+            },
+            "bounds_rooms_inferable": true
+          },
+          {
+            "stroke_id": "S10",
+            "axis": "x",
+            "coord_m": 7.44,
+            "matching_dimension_ids": [
+              "D2",
+              "D3",
+              "D4",
+              "D5"
+            ],
+            "matching_positions": [
+              {
+                "coord": 7.44,
+                "dimension_ids": [
+                  "D4"
+                ],
+                "chain_id": "C_south"
+              },
+              {
+                "coord": 7.44,
+                "dimension_ids": [
+                  "D2",
+                  "D3",
+                  "D4"
+                ],
+                "chain_id": "C_south"
+              },
+              {
+                "coord": 7.44,
+                "dimension_ids": [
+                  "D5"
+                ],
+                "chain_id": "C_south"
+              }
+            ],
+            "joins_walls": {
+              "p1": true,
+              "p2": true,
+              "both_endpoints_join": true
+            },
+            "bounds_rooms_inferable": true
+          }
+        ]
+      }
+    },
+    {
+      "check_id": "2f_view.reading.door_heal_traced",
+      "status": "pass",
+      "layer": "cross_check",
+      "check_version": "1",
+      "message": "",
+      "evidence": {
+        "healed_stroke_ids": [
+          "S7",
+          "S8",
+          "S10"
+        ],
+        "heal_traces": 3
+      }
+    },
+    {
+      "check_id": "East_view.reading.stroke_ids_unique",
+      "status": "pass",
+      "layer": "invariant",
+      "check_version": "1",
+      "message": "",
+      "evidence": {}
+    },
+    {
+      "check_id": "East_view.reading.dimension_ids_unique",
+      "status": "pass",
+      "layer": "invariant",
+      "check_version": "1",
+      "message": "",
+      "evidence": {}
+    },
+    {
+      "check_id": "East_view.reading.pen_kind_valid",
+      "status": "pass",
+      "layer": "invariant",
+      "check_version": "1",
+      "message": "",
+      "evidence": {}
+    },
+    {
+      "check_id": "East_view.reading.no_topology_fields",
+      "status": "pass",
+      "layer": "invariant",
+      "check_version": "1",
+      "message": "",
+      "evidence": {}
+    },
+    {
+      "check_id": "East_view.reading.nondegenerate_geometry",
+      "status": "pass",
+      "layer": "invariant",
+      "check_version": "1",
+      "message": "",
+      "evidence": {}
+    },
+    {
+      "check_id": "East_view.reading.dimension_parseable",
+      "status": "pass",
+      "layer": "invariant",
+      "check_version": "1",
+      "message": "",
+      "evidence": {}
+    },
+    {
+      "check_id": "East_view.reading.axis_endpoint_consistent",
+      "status": "pass",
+      "layer": "invariant",
+      "check_version": "1",
+      "message": "",
+      "evidence": {}
+    },
+    {
+      "check_id": "East_view.reading.facade_fields",
+      "status": "pass",
+      "layer": "invariant",
+      "check_version": "1",
+      "message": "",
+      "evidence": {
+        "view_facade": "East",
+        "mirrored": "false"
+      }
+    },
+    {
+      "check_id": "East_view.reading.plan_scale_origin_usable",
+      "status": "not_applicable",
+      "layer": "cross_check",
+      "check_version": "1",
+      "message": "not a plan",
+      "evidence": {}
+    },
+    {
+      "check_id": "East_view.reading.uncaptured_present",
+      "status": "pass",
+      "layer": "invariant",
+      "check_version": "1",
+      "message": "",
+      "evidence": {
+        "count": 0
+      }
+    },
+    {
+      "check_id": "East_view.reading.raw_field_presence",
+      "status": "pass",
+      "layer": "cross_check",
+      "check_version": "1",
+      "message": "",
+      "evidence": {
+        "dimensioned": true,
+        "dimensioned_state": "declared_true",
+        "raw_has_dimensions": true,
+        "raw_has_uncaptured": true,
+        "legacy_migrated": false
+      }
+    },
+    {
+      "check_id": "East_view.reading.dimensions_present",
+      "status": "pass",
+      "layer": "cross_check",
+      "check_version": "1",
+      "message": "",
+      "evidence": {
+        "dimensioned": true,
+        "dimensioned_state": "declared_true",
+        "raw_has_dimensions": true,
+        "raw_has_uncaptured": true,
+        "legacy_migrated": false,
+        "dimension_count": 7
+      }
+    },
+    {
+      "check_id": "East_view.reading.dimension_p1a_fields",
+      "status": "pass",
+      "layer": "cross_check",
+      "check_version": "1",
+      "message": "",
+      "evidence": {
+        "dimensioned": true,
+        "dimensioned_state": "declared_true",
+        "raw_has_dimensions": true,
+        "raw_has_uncaptured": true,
+        "legacy_migrated": false,
+        "dimension_count": 7
+      }
+    },
+    {
+      "check_id": "East_view.reading.ocr_anchors_in_bounds",
+      "status": "pass",
+      "layer": "cross_check",
+      "check_version": "1",
+      "message": "",
+      "evidence": {}
+    },
+    {
+      "check_id": "East_view.reading.dimension_endpoints_in_bounds",
+      "status": "pass",
+      "layer": "cross_check",
+      "check_version": "1",
+      "message": "",
+      "evidence": {
+        "structural_reference": [
+          -19.0,
+          27.0,
+          -8.4,
+          15.6
+        ]
+      }
+    },
+    {
+      "check_id": "East_view.reading.dimension_chain_closure",
+      "status": "fail",
+      "layer": "cross_check",
+      "check_version": "1",
+      "message": "dimension chain evidence is missing, incomplete, or non-closing",
+      "evidence": {
+        "dimensioned": true,
+        "dimensioned_state": "declared_true",
+        "raw_has_dimensions": true,
+        "raw_has_uncaptured": true,
+        "legacy_migrated": false,
+        "missing_chain_id": [],
+        "missing_axis": [],
+        "incomplete": [
+          {
+            "chain_id": "C_east_height",
+            "axis": "y",
+            "overall_count": 3,
+            "segment_count": 0,
+            "dimension_ids": [
+              "D5",
+              "D6",
+              "D7"
+            ]
+          }
+        ],
+        "mismatches": []
+      }
+    },
+    {
+      "check_id": "East_view.reading.dimension_derived_refs",
+      "status": "not_applicable",
+      "layer": "cross_check",
+      "check_version": "1",
+      "message": "no dimension_derived strokes",
+      "evidence": {
+        "dimensioned": true,
+        "dimensioned_state": "declared_true",
+        "raw_has_dimensions": true,
+        "raw_has_uncaptured": true,
+        "legacy_migrated": false,
+        "strokes_checked": 0
+      }
+    },
+    {
+      "check_id": "East_view.reading.stroke_provenance_coverage",
+      "status": "pass",
+      "layer": "cross_check",
+      "check_version": "1",
+      "message": "",
+      "evidence": {
+        "dimensioned": true,
+        "dimensioned_state": "declared_true",
+        "raw_has_dimensions": true,
+        "raw_has_uncaptured": true,
+        "legacy_migrated": false,
+        "provenance_mode": "full",
+        "structural_strokes": 4,
+        "with_provenance": 4
+      }
+    },
+    {
+      "check_id": "East_view.reading.partition_on_window_jamb",
+      "status": "not_applicable",
+      "layer": "cross_check",
+      "check_version": "1",
+      "message": "not a plan",
+      "evidence": {}
+    },
+    {
+      "check_id": "East_view.reading.stroke_dimension_consistency",
+      "status": "not_applicable",
+      "layer": "cross_check",
+      "check_version": "1",
+      "message": "not a plan",
+      "evidence": {}
+    },
+    {
+      "check_id": "East_view.reading.door_heal_traced",
+      "status": "not_applicable",
+      "layer": "cross_check",
+      "check_version": "1",
+      "message": "no healed door openings",
+      "evidence": {}
+    },
+    {
+      "check_id": "North_view.reading.stroke_ids_unique",
+      "status": "pass",
+      "layer": "invariant",
+      "check_version": "1",
+      "message": "",
+      "evidence": {}
+    },
+    {
+      "check_id": "North_view.reading.dimension_ids_unique",
+      "status": "pass",
+      "layer": "invariant",
+      "check_version": "1",
+      "message": "",
+      "evidence": {}
+    },
+    {
+      "check_id": "North_view.reading.pen_kind_valid",
+      "status": "pass",
+      "layer": "invariant",
+      "check_version": "1",
+      "message": "",
+      "evidence": {}
+    },
+    {
+      "check_id": "North_view.reading.no_topology_fields",
+      "status": "pass",
+      "layer": "invariant",
+      "check_version": "1",
+      "message": "",
+      "evidence": {}
+    },
+    {
+      "check_id": "North_view.reading.nondegenerate_geometry",
+      "status": "pass",
+      "layer": "invariant",
+      "check_version": "1",
+      "message": "",
+      "evidence": {}
+    },
+    {
+      "check_id": "North_view.reading.dimension_parseable",
+      "status": "pass",
+      "layer": "invariant",
+      "check_version": "1",
+      "message": "",
+      "evidence": {}
+    },
+    {
+      "check_id": "North_view.reading.axis_endpoint_consistent",
+      "status": "pass",
+      "layer": "invariant",
+      "check_version": "1",
+      "message": "",
+      "evidence": {}
+    },
+    {
+      "check_id": "North_view.reading.facade_fields",
+      "status": "pass",
+      "layer": "invariant",
+      "check_version": "1",
+      "message": "",
+      "evidence": {
+        "view_facade": "North",
+        "mirrored": "false"
+      }
+    },
+    {
+      "check_id": "North_view.reading.plan_scale_origin_usable",
+      "status": "not_applicable",
+      "layer": "cross_check",
+      "check_version": "1",
+      "message": "not a plan",
+      "evidence": {}
+    },
+    {
+      "check_id": "North_view.reading.uncaptured_present",
+      "status": "pass",
+      "layer": "invariant",
+      "check_version": "1",
+      "message": "",
+      "evidence": {
+        "count": 0
+      }
+    },
+    {
+      "check_id": "North_view.reading.raw_field_presence",
+      "status": "pass",
+      "layer": "cross_check",
+      "check_version": "1",
+      "message": "",
+      "evidence": {
+        "dimensioned": true,
+        "dimensioned_state": "declared_true",
+        "raw_has_dimensions": true,
+        "raw_has_uncaptured": true,
+        "legacy_migrated": false
+      }
+    },
+    {
+      "check_id": "North_view.reading.dimensions_present",
+      "status": "pass",
+      "layer": "cross_check",
+      "check_version": "1",
+      "message": "",
+      "evidence": {
+        "dimensioned": true,
+        "dimensioned_state": "declared_true",
+        "raw_has_dimensions": true,
+        "raw_has_uncaptured": true,
+        "legacy_migrated": false,
+        "dimension_count": 9
+      }
+    },
+    {
+      "check_id": "North_view.reading.dimension_p1a_fields",
+      "status": "pass",
+      "layer": "cross_check",
+      "check_version": "1",
+      "message": "",
+      "evidence": {
+        "dimensioned": true,
+        "dimensioned_state": "declared_true",
+        "raw_has_dimensions": true,
+        "raw_has_uncaptured": true,
+        "legacy_migrated": false,
+        "dimension_count": 9
+      }
+    },
+    {
+      "check_id": "North_view.reading.ocr_anchors_in_bounds",
+      "status": "pass",
+      "layer": "cross_check",
+      "check_version": "1",
+      "message": "",
+      "evidence": {}
+    },
+    {
+      "check_id": "North_view.reading.dimension_endpoints_in_bounds",
+      "status": "pass",
+      "layer": "cross_check",
+      "check_version": "1",
+      "message": "",
+      "evidence": {
+        "structural_reference": [
+          -43.65,
+          59.35,
+          -8.4,
+          15.6
+        ]
+      }
+    },
+    {
+      "check_id": "North_view.reading.dimension_chain_closure",
+      "status": "fail",
+      "layer": "cross_check",
+      "check_version": "1",
+      "message": "dimension chain evidence is missing, incomplete, or non-closing",
+      "evidence": {
+        "dimensioned": true,
+        "dimensioned_state": "declared_true",
+        "raw_has_dimensions": true,
+        "raw_has_uncaptured": true,
+        "legacy_migrated": false,
+        "missing_chain_id": [],
+        "missing_axis": [],
+        "incomplete": [
+          {
+            "chain_id": "C_north_height",
+            "axis": "y",
+            "overall_count": 3,
+            "segment_count": 0,
+            "dimension_ids": [
+              "D7",
+              "D8",
+              "D9"
+            ]
+          }
+        ],
+        "mismatches": []
+      }
+    },
+    {
+      "check_id": "North_view.reading.dimension_derived_refs",
+      "status": "not_applicable",
+      "layer": "cross_check",
+      "check_version": "1",
+      "message": "no dimension_derived strokes",
+      "evidence": {
+        "dimensioned": true,
+        "dimensioned_state": "declared_true",
+        "raw_has_dimensions": true,
+        "raw_has_uncaptured": true,
+        "legacy_migrated": false,
+        "strokes_checked": 0
+      }
+    },
+    {
+      "check_id": "North_view.reading.stroke_provenance_coverage",
+      "status": "pass",
+      "layer": "cross_check",
+      "check_version": "1",
+      "message": "",
+      "evidence": {
+        "dimensioned": true,
+        "dimensioned_state": "declared_true",
+        "raw_has_dimensions": true,
+        "raw_has_uncaptured": true,
+        "legacy_migrated": false,
+        "provenance_mode": "full",
+        "structural_strokes": 8,
+        "with_provenance": 8
+      }
+    },
+    {
+      "check_id": "North_view.reading.partition_on_window_jamb",
+      "status": "not_applicable",
+      "layer": "cross_check",
+      "check_version": "1",
+      "message": "not a plan",
+      "evidence": {}
+    },
+    {
+      "check_id": "North_view.reading.stroke_dimension_consistency",
+      "status": "not_applicable",
+      "layer": "cross_check",
+      "check_version": "1",
+      "message": "not a plan",
+      "evidence": {}
+    },
+    {
+      "check_id": "North_view.reading.door_heal_traced",
+      "status": "not_applicable",
+      "layer": "cross_check",
+      "check_version": "1",
+      "message": "no healed door openings",
+      "evidence": {}
+    },
+    {
+      "check_id": "South_view.reading.stroke_ids_unique",
+      "status": "pass",
+      "layer": "invariant",
+      "check_version": "1",
+      "message": "",
+      "evidence": {}
+    },
+    {
+      "check_id": "South_view.reading.dimension_ids_unique",
+      "status": "pass",
+      "layer": "invariant",
+      "check_version": "1",
+      "message": "",
+      "evidence": {}
+    },
+    {
+      "check_id": "South_view.reading.pen_kind_valid",
+      "status": "pass",
+      "layer": "invariant",
+      "check_version": "1",
+      "message": "",
+      "evidence": {}
+    },
+    {
+      "check_id": "South_view.reading.no_topology_fields",
+      "status": "pass",
+      "layer": "invariant",
+      "check_version": "1",
+      "message": "",
+      "evidence": {}
+    },
+    {
+      "check_id": "South_view.reading.nondegenerate_geometry",
+      "status": "pass",
+      "layer": "invariant",
+      "check_version": "1",
+      "message": "",
+      "evidence": {}
+    },
+    {
+      "check_id": "South_view.reading.dimension_parseable",
+      "status": "pass",
+      "layer": "invariant",
+      "check_version": "1",
+      "message": "",
+      "evidence": {}
+    },
+    {
+      "check_id": "South_view.reading.axis_endpoint_consistent",
+      "status": "pass",
+      "layer": "invariant",
+      "check_version": "1",
+      "message": "",
+      "evidence": {}
+    },
+    {
+      "check_id": "South_view.reading.facade_fields",
+      "status": "pass",
+      "layer": "invariant",
+      "check_version": "1",
+      "message": "",
+      "evidence": {
+        "view_facade": "South",
+        "mirrored": "false"
+      }
+    },
+    {
+      "check_id": "South_view.reading.plan_scale_origin_usable",
+      "status": "not_applicable",
+      "layer": "cross_check",
+      "check_version": "1",
+      "message": "not a plan",
+      "evidence": {}
+    },
+    {
+      "check_id": "South_view.reading.uncaptured_present",
+      "status": "pass",
+      "layer": "invariant",
+      "check_version": "1",
+      "message": "",
+      "evidence": {
+        "count": 0
+      }
+    },
+    {
+      "check_id": "South_view.reading.raw_field_presence",
+      "status": "pass",
+      "layer": "cross_check",
+      "check_version": "1",
+      "message": "",
+      "evidence": {
+        "dimensioned": true,
+        "dimensioned_state": "declared_true",
+        "raw_has_dimensions": true,
+        "raw_has_uncaptured": true,
+        "legacy_migrated": false
+      }
+    },
+    {
+      "check_id": "South_view.reading.dimensions_present",
+      "status": "pass",
+      "layer": "cross_check",
+      "check_version": "1",
+      "message": "",
+      "evidence": {
+        "dimensioned": true,
+        "dimensioned_state": "declared_true",
+        "raw_has_dimensions": true,
+        "raw_has_uncaptured": true,
+        "legacy_migrated": false,
+        "dimension_count": 13
+      }
+    },
+    {
+      "check_id": "South_view.reading.dimension_p1a_fields",
+      "status": "pass",
+      "layer": "cross_check",
+      "check_version": "1",
+      "message": "",
+      "evidence": {
+        "dimensioned": true,
+        "dimensioned_state": "declared_true",
+        "raw_has_dimensions": true,
+        "raw_has_uncaptured": true,
+        "legacy_migrated": false,
+        "dimension_count": 13
+      }
+    },
+    {
+      "check_id": "South_view.reading.ocr_anchors_in_bounds",
+      "status": "pass",
+      "layer": "cross_check",
+      "check_version": "1",
+      "message": "",
+      "evidence": {}
+    },
+    {
+      "check_id": "South_view.reading.dimension_endpoints_in_bounds",
+      "status": "pass",
+      "layer": "cross_check",
+      "check_version": "1",
+      "message": "",
+      "evidence": {
+        "structural_reference": [
+          -34.70000000000001,
+          45.300000000000004,
+          -9.2,
+          15.8
+        ]
+      }
+    },
+    {
+      "check_id": "South_view.reading.dimension_chain_closure",
+      "status": "fail",
+      "layer": "cross_check",
+      "check_version": "1",
+      "message": "dimension chain evidence is missing, incomplete, or non-closing",
+      "evidence": {
+        "dimensioned": true,
+        "dimensioned_state": "declared_true",
+        "raw_has_dimensions": true,
+        "raw_has_uncaptured": true,
+        "legacy_migrated": false,
+        "missing_chain_id": [],
+        "missing_axis": [],
+        "incomplete": [
+          {
+            "chain_id": "C_south_height",
+            "axis": "y",
+            "overall_count": 3,
+            "segment_count": 0,
+            "dimension_ids": [
+              "D11",
+              "D12",
+              "D13"
+            ]
+          }
+        ],
+        "mismatches": []
+      }
+    },
+    {
+      "check_id": "South_view.reading.dimension_derived_refs",
+      "status": "not_applicable",
+      "layer": "cross_check",
+      "check_version": "1",
+      "message": "no dimension_derived strokes",
+      "evidence": {
+        "dimensioned": true,
+        "dimensioned_state": "declared_true",
+        "raw_has_dimensions": true,
+        "raw_has_uncaptured": true,
+        "legacy_migrated": false,
+        "strokes_checked": 0
+      }
+    },
+    {
+      "check_id": "South_view.reading.stroke_provenance_coverage",
+      "status": "pass",
+      "layer": "cross_check",
+      "check_version": "1",
+      "message": "",
+      "evidence": {
+        "dimensioned": true,
+        "dimensioned_state": "declared_true",
+        "raw_has_dimensions": true,
+        "raw_has_uncaptured": true,
+        "legacy_migrated": false,
+        "provenance_mode": "full",
+        "structural_strokes": 13,
+        "with_provenance": 13
+      }
+    },
+    {
+      "check_id": "South_view.reading.partition_on_window_jamb",
+      "status": "not_applicable",
+      "layer": "cross_check",
+      "check_version": "1",
+      "message": "not a plan",
+      "evidence": {}
+    },
+    {
+      "check_id": "South_view.reading.stroke_dimension_consistency",
+      "status": "not_applicable",
+      "layer": "cross_check",
+      "check_version": "1",
+      "message": "not a plan",
+      "evidence": {}
+    },
+    {
+      "check_id": "South_view.reading.door_heal_traced",
+      "status": "not_applicable",
+      "layer": "cross_check",
+      "check_version": "1",
+      "message": "no healed door openings",
+      "evidence": {}
+    },
+    {
+      "check_id": "West_view.reading.stroke_ids_unique",
+      "status": "pass",
+      "layer": "invariant",
+      "check_version": "1",
+      "message": "",
+      "evidence": {}
+    },
+    {
+      "check_id": "West_view.reading.dimension_ids_unique",
+      "status": "pass",
+      "layer": "invariant",
+      "check_version": "1",
+      "message": "",
+      "evidence": {}
+    },
+    {
+      "check_id": "West_view.reading.pen_kind_valid",
+      "status": "pass",
+      "layer": "invariant",
+      "check_version": "1",
+      "message": "",
+      "evidence": {}
+    },
+    {
+      "check_id": "West_view.reading.no_topology_fields",
+      "status": "pass",
+      "layer": "invariant",
+      "check_version": "1",
+      "message": "",
+      "evidence": {}
+    },
+    {
+      "check_id": "West_view.reading.nondegenerate_geometry",
+      "status": "pass",
+      "layer": "invariant",
+      "check_version": "1",
+      "message": "",
+      "evidence": {}
+    },
+    {
+      "check_id": "West_view.reading.dimension_parseable",
+      "status": "pass",
+      "layer": "invariant",
+      "check_version": "1",
+      "message": "",
+      "evidence": {}
+    },
+    {
+      "check_id": "West_view.reading.axis_endpoint_consistent",
+      "status": "pass",
+      "layer": "invariant",
+      "check_version": "1",
+      "message": "",
+      "evidence": {}
+    },
+    {
+      "check_id": "West_view.reading.facade_fields",
+      "status": "pass",
+      "layer": "invariant",
+      "check_version": "1",
+      "message": "",
+      "evidence": {
+        "view_facade": "West",
+        "mirrored": "false"
+      }
+    },
+    {
+      "check_id": "West_view.reading.plan_scale_origin_usable",
+      "status": "not_applicable",
+      "layer": "cross_check",
+      "check_version": "1",
+      "message": "not a plan",
+      "evidence": {}
+    },
+    {
+      "check_id": "West_view.reading.uncaptured_present",
+      "status": "pass",
+      "layer": "invariant",
+      "check_version": "1",
+      "message": "",
+      "evidence": {
+        "count": 0
+      }
+    },
+    {
+      "check_id": "West_view.reading.raw_field_presence",
+      "status": "pass",
+      "layer": "cross_check",
+      "check_version": "1",
+      "message": "",
+      "evidence": {
+        "dimensioned": true,
+        "dimensioned_state": "declared_true",
+        "raw_has_dimensions": true,
+        "raw_has_uncaptured": true,
+        "legacy_migrated": false
+      }
+    },
+    {
+      "check_id": "West_view.reading.dimensions_present",
+      "status": "pass",
+      "layer": "cross_check",
+      "check_version": "1",
+      "message": "",
+      "evidence": {
+        "dimensioned": true,
+        "dimensioned_state": "declared_true",
+        "raw_has_dimensions": true,
+        "raw_has_uncaptured": true,
+        "legacy_migrated": false,
+        "dimension_count": 7
+      }
+    },
+    {
+      "check_id": "West_view.reading.dimension_p1a_fields",
+      "status": "pass",
+      "layer": "cross_check",
+      "check_version": "1",
+      "message": "",
+      "evidence": {
+        "dimensioned": true,
+        "dimensioned_state": "declared_true",
+        "raw_has_dimensions": true,
+        "raw_has_uncaptured": true,
+        "legacy_migrated": false,
+        "dimension_count": 7
+      }
+    },
+    {
+      "check_id": "West_view.reading.ocr_anchors_in_bounds",
+      "status": "pass",
+      "layer": "cross_check",
+      "check_version": "1",
+      "message": "",
+      "evidence": {}
+    },
+    {
+      "check_id": "West_view.reading.dimension_endpoints_in_bounds",
+      "status": "pass",
+      "layer": "cross_check",
+      "check_version": "1",
+      "message": "",
+      "evidence": {
+        "structural_reference": [
+          -23.5,
+          30.5,
+          -8.4,
+          15.6
+        ]
+      }
+    },
+    {
+      "check_id": "West_view.reading.dimension_chain_closure",
+      "status": "fail",
+      "layer": "cross_check",
+      "check_version": "1",
+      "message": "dimension chain evidence is missing, incomplete, or non-closing",
+      "evidence": {
+        "dimensioned": true,
+        "dimensioned_state": "declared_true",
+        "raw_has_dimensions": true,
+        "raw_has_uncaptured": true,
+        "legacy_migrated": false,
+        "missing_chain_id": [],
+        "missing_axis": [],
+        "incomplete": [
+          {
+            "chain_id": "C_west_height",
+            "axis": "y",
+            "overall_count": 3,
+            "segment_count": 0,
+            "dimension_ids": [
+              "D5",
+              "D6",
+              "D7"
+            ]
+          }
+        ],
+        "mismatches": []
+      }
+    },
+    {
+      "check_id": "West_view.reading.dimension_derived_refs",
+      "status": "not_applicable",
+      "layer": "cross_check",
+      "check_version": "1",
+      "message": "no dimension_derived strokes",
+      "evidence": {
+        "dimensioned": true,
+        "dimensioned_state": "declared_true",
+        "raw_has_dimensions": true,
+        "raw_has_uncaptured": true,
+        "legacy_migrated": false,
+        "strokes_checked": 0
+      }
+    },
+    {
+      "check_id": "West_view.reading.stroke_provenance_coverage",
+      "status": "pass",
+      "layer": "cross_check",
+      "check_version": "1",
+      "message": "",
+      "evidence": {
+        "dimensioned": true,
+        "dimensioned_state": "declared_true",
+        "raw_has_dimensions": true,
+        "raw_has_uncaptured": true,
+        "legacy_migrated": false,
+        "provenance_mode": "full",
+        "structural_strokes": 4,
+        "with_provenance": 4
+      }
+    },
+    {
+      "check_id": "West_view.reading.partition_on_window_jamb",
+      "status": "not_applicable",
+      "layer": "cross_check",
+      "check_version": "1",
+      "message": "not a plan",
+      "evidence": {}
+    },
+    {
+      "check_id": "West_view.reading.stroke_dimension_consistency",
+      "status": "not_applicable",
+      "layer": "cross_check",
+      "check_version": "1",
+      "message": "not a plan",
+      "evidence": {}
+    },
+    {
+      "check_id": "West_view.reading.door_heal_traced",
+      "status": "not_applicable",
+      "layer": "cross_check",
+      "check_version": "1",
+      "message": "no healed door openings",
+      "evidence": {}
+    },
+    {
+      "check_id": "reading.isolation_provenance_bound",
+      "status": "pass",
+      "layer": "invariant",
+      "check_version": "1",
+      "message": "",
+      "evidence": {
+        "isolation_provenance_hash": "19dfdbc83b6331592086eab4aa4977cda50dc9e34309a4fe97791faacd26d568"
+      }
+    }
+  ]
+}

@@ -1,0 +1,195 @@
+{
+  "image_label": "East elevation view",
+  "image_kind": "elevation",
+  "facade": {
+    "view_facade": "East",
+    "local_x_positive": "image_left_to_right",
+    "mirrored": "false",
+    "orientation_evidence": [
+      {
+        "source": "image_name",
+        "detail": "file named 'East_view.png'",
+        "confidence": "high"
+      }
+    ]
+  },
+  "scale_origin": null,
+  "strokes": [
+    {
+      "id": "S1",
+      "pen": "wall_fill",
+      "provenance": "seen",
+      "confidence": "high",
+      "dimension_refs": [
+        "D_F1_height"
+      ],
+      "geometry": {
+        "kind": "rect",
+        "x_range_m": [
+          0.0,
+          8.0
+        ],
+        "y_range_m": [
+          0.0,
+          3.0
+        ]
+      },
+      "note": "east facade F1 wall body fill"
+    },
+    {
+      "id": "S2",
+      "pen": "wall_fill",
+      "provenance": "seen",
+      "confidence": "high",
+      "dimension_refs": [
+        "D_F2_height"
+      ],
+      "geometry": {
+        "kind": "rect",
+        "x_range_m": [
+          0.0,
+          8.0
+        ],
+        "y_range_m": [
+          3.0,
+          6.0
+        ]
+      },
+      "note": "east facade F2 wall body fill"
+    },
+    {
+      "id": "S3",
+      "pen": "window",
+      "provenance": "seen",
+      "confidence": "high",
+      "dimension_refs": [],
+      "geometry": {
+        "kind": "rect",
+        "x_range_m": [
+          3.1,
+          4.9
+        ],
+        "y_range_m": [
+          1.8,
+          2.6
+        ]
+      },
+      "note": "east facade F1 window (center)"
+    },
+    {
+      "id": "S4",
+      "pen": "window",
+      "provenance": "seen",
+      "confidence": "high",
+      "dimension_refs": [],
+      "geometry": {
+        "kind": "rect",
+        "x_range_m": [
+          3.1,
+          4.9
+        ],
+        "y_range_m": [
+          3.9,
+          4.7
+        ]
+      },
+      "note": "east facade F2 window (center)"
+    }
+  ],
+  "dimensions": [
+    {
+      "id": "D_width_total",
+      "text_verbatim": "8000",
+      "value_m": 8.0,
+      "from": [
+        0.0,
+        0.0
+      ],
+      "to": [
+        8.0,
+        0.0
+      ],
+      "axis": "x",
+      "chain_id": "C_width",
+      "role": "overall",
+      "order": 0,
+      "anchor": null,
+      "note": "overall width (depth of building); bottom dimension chain"
+    },
+    {
+      "id": "D_F1_height",
+      "text_verbatim": "3000",
+      "value_m": 3.0,
+      "from": [
+        0.0,
+        0.0
+      ],
+      "to": [
+        0.0,
+        3.0
+      ],
+      "axis": "z",
+      "chain_id": "C_height_left",
+      "role": "segment",
+      "order": 1,
+      "anchor": null,
+      "note": "F1 floor height on left side"
+    },
+    {
+      "id": "D_F2_height",
+      "text_verbatim": "3000",
+      "value_m": 3.0,
+      "from": [
+        0.0,
+        3.0
+      ],
+      "to": [
+        0.0,
+        6.0
+      ],
+      "axis": "z",
+      "chain_id": "C_height_left",
+      "role": "segment",
+      "order": 2,
+      "anchor": null,
+      "note": "F2 floor height on left side"
+    },
+    {
+      "id": "D_total_height",
+      "text_verbatim": "6000",
+      "value_m": 6.0,
+      "from": [
+        0.0,
+        0.0
+      ],
+      "to": [
+        0.0,
+        6.0
+      ],
+      "axis": "z",
+      "chain_id": "C_height_left",
+      "role": "overall",
+      "order": 0,
+      "anchor": null,
+      "note": "total building height on left side"
+    }
+  ],
+  "ocr_texts": [],
+  "uncaptured": [
+    "no text labels, room names, or annotations visible on east elevation"
+  ],
+  "self_check": {
+    "all_dimensions_transcribed": true,
+    "all_visible_strokes_captured": true,
+    "no_topology_inferred": true,
+    "pens_used": [
+      "wall_fill",
+      "window"
+    ],
+    "unknowns_noted": [
+      "elevation uses image-local x (left to right), z (up); no world axis stated",
+      "wall_fill split by floor level as per pen_library §3: one per floor",
+      "coordinate calibration inherited from plans: 92.70 px/m"
+    ]
+  }
+}

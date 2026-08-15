@@ -1,0 +1,243 @@
+{
+  "image_label": "West elevation view",
+  "image_kind": "elevation",
+  "scale_origin": {
+    "world_x_m": null,
+    "world_y_m": null,
+    "world_z_m": null,
+    "note": "elevation does not set world origin; facade block specifies image-local orientation"
+  },
+  "facade": {
+    "view_facade": "West",
+    "local_x_positive": "image_left_to_right",
+    "mirrored": "false",
+    "orientation_evidence": [
+      {
+        "source": "image_name",
+        "detail": "filename West_view",
+        "confidence": "high"
+      }
+    ]
+  },
+  "strokes": [
+    {
+      "id": "S1",
+      "pen": "wall_fill",
+      "provenance": "seen",
+      "confidence": "high",
+      "dimension_refs": [],
+      "geometry": {
+        "kind": "rect",
+        "x_range_m": [
+          0.0,
+          8.0
+        ],
+        "y_range_m": [
+          0.0,
+          3.6
+        ]
+      },
+      "note": "Floor 1 wall fill, height 0-3.6m"
+    },
+    {
+      "id": "S2",
+      "pen": "wall_fill",
+      "provenance": "seen",
+      "confidence": "high",
+      "dimension_refs": [],
+      "geometry": {
+        "kind": "rect",
+        "x_range_m": [
+          0.0,
+          8.0
+        ],
+        "y_range_m": [
+          3.6,
+          6.0
+        ]
+      },
+      "note": "Floor 2 wall fill, height 3.6-6.0m"
+    },
+    {
+      "id": "W1",
+      "pen": "window",
+      "provenance": "seen",
+      "confidence": "medium",
+      "dimension_refs": [],
+      "geometry": {
+        "kind": "rect",
+        "x_range_m": [
+          3.1,
+          3.9
+        ],
+        "y_range_m": [
+          4.2,
+          5.3
+        ]
+      },
+      "note": "F2 window on west facade, center"
+    },
+    {
+      "id": "W2",
+      "pen": "window",
+      "provenance": "seen",
+      "confidence": "medium",
+      "dimension_refs": [],
+      "geometry": {
+        "kind": "rect",
+        "x_range_m": [
+          2.6,
+          5.4
+        ],
+        "y_range_m": [
+          1.8,
+          2.9
+        ]
+      },
+      "note": "F1 window on west facade, center (4-pane double window)"
+    }
+  ],
+  "dimensions": [
+    {
+      "id": "D1",
+      "text_verbatim": "8000",
+      "value_m": 8.0,
+      "from": [
+        0.0,
+        0.0
+      ],
+      "to": [
+        8.0,
+        0.0
+      ],
+      "axis": "x",
+      "chain_id": "C_west_depth",
+      "role": "overall",
+      "order": 0,
+      "note": "west facade total depth (building depth)"
+    },
+    {
+      "id": "D2",
+      "text_verbatim": "3400",
+      "value_m": 3.4,
+      "from": [
+        0.0,
+        0.0
+      ],
+      "to": [
+        3.4,
+        0.0
+      ],
+      "axis": "x",
+      "chain_id": "C_west_depth",
+      "role": "segment",
+      "order": 1,
+      "note": "west facade segment 1"
+    },
+    {
+      "id": "D3",
+      "text_verbatim": "1200",
+      "value_m": 1.2,
+      "from": [
+        3.4,
+        0.0
+      ],
+      "to": [
+        4.6,
+        0.0
+      ],
+      "axis": "x",
+      "chain_id": "C_west_depth",
+      "role": "segment",
+      "order": 2,
+      "note": "west facade segment 2 (center)"
+    },
+    {
+      "id": "D4",
+      "text_verbatim": "3400",
+      "value_m": 3.4,
+      "from": [
+        4.6,
+        0.0
+      ],
+      "to": [
+        8.0,
+        0.0
+      ],
+      "axis": "x",
+      "chain_id": "C_west_depth",
+      "role": "segment",
+      "order": 3,
+      "note": "west facade segment 3"
+    },
+    {
+      "id": "D5",
+      "text_verbatim": "3600",
+      "value_m": 3.6,
+      "from": [
+        0.0,
+        0.0
+      ],
+      "to": [
+        0.0,
+        3.6
+      ],
+      "axis": "y",
+      "chain_id": "C_west_height",
+      "role": "overall",
+      "order": 0,
+      "note": "Floor 1 height from ground to floor 2 level"
+    },
+    {
+      "id": "D6",
+      "text_verbatim": "2400",
+      "value_m": 2.4,
+      "from": [
+        0.0,
+        3.6
+      ],
+      "to": [
+        0.0,
+        6.0
+      ],
+      "axis": "y",
+      "chain_id": "C_west_height",
+      "role": "overall",
+      "order": 1,
+      "note": "Floor 2 height from floor 2 level to roof"
+    },
+    {
+      "id": "D7",
+      "text_verbatim": "6000",
+      "value_m": 6.0,
+      "from": [
+        0.0,
+        0.0
+      ],
+      "to": [
+        0.0,
+        6.0
+      ],
+      "axis": "y",
+      "chain_id": "C_west_height",
+      "role": "overall",
+      "order": 2,
+      "note": "total building height (two floors)"
+    }
+  ],
+  "ocr_texts": [],
+  "uncaptured": [],
+  "self_check": {
+    "all_dimensions_transcribed": true,
+    "all_visible_strokes_captured": true,
+    "no_topology_inferred": true,
+    "pens_used": [
+      "wall_fill",
+      "window"
+    ],
+    "unknowns_noted": [
+      "floor heights derived from horizontal wall_fill division visible in elevation",
+      "window x/y coordinates estimated from visual positioning; precision ~±0.1m"
+    ]
+  }
+}
