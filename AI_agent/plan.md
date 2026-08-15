@@ -267,12 +267,29 @@ sol 第四轮遗留 `MAJOR-1/2` · `MAJOR-B2/B3` · `MINOR-3/B4/B5/D1` · `NIT-F
 1. ~~摊 A / 摊 B 交付 → orchestrator 轻门 → 跨家族交叉审~~ ✅ **完成**
    （摊 A 经 terra **三轮**签收；摊 B 签收为**报告型**门）；
 2. ~~合树 → 跑验收，独占工作树、连跑 3 次全过~~ ✅ **完成（3/3，见二之九）**；
-3. **⭐ 下一轮第一件事（用户 08-13 定）**：**重启 reading、与这份好 reading 做 diff、看怎么恢复好 reading**
+3. **⭐⭐ 下一轮第一件事（用户 08-13 定 · 08-14 收工时再次确认「下轮重启 reading」）**：
+   **重启 reading、与这份好 reading 做 diff、看怎么恢复好 reading**
    —— **这是「端到端」真正剩下的那一半**：今天证明的是「好 reading → EnergyPlus 通」，
    **⛔ 不是「机器能再产出好 reading」**（今天一次图都没识）。
    ⚠️ 起手先读 memory `one-ruler-replay-old-artifact-perfect`（07-07 老件进今天的尺子 = 内墙 100%/多画 0m，
    而 Sonnet 92.1%/6.77m）与 `reading-lever-is-measurement-enforcement`（主修法 = 读图器**不写公制坐标**、
    只写像素锚点 + 引用的尺寸标注，代码唯一换算）。
+> **⭐ 下轮开工起手包（08-14 收工时备好，省得冷启重找）**
+> - **对照基准**：`case_tests/e2e_tests/sm21_anchor/run_2026-08-11_continuous_e2e/0_reading`
+>   —— 就是今天三次验收用的那份，**对 gt 判卷满分**（平面 1F 墙4/4·窗3/3、2F 墙5/5·窗4/4，
+>   最大墙偏移 **0.0 m**；立面 15/15 matched+complete，漏 0 多 0 漂移 0）。
+>   判卷侧车在 `0_reading/attempts/001/score_vs_gt.json`。
+>   ⚠️ 但它自带 **6 条 `dimension_chain_closure` FAIL**（每图一条，非阻断）⇒ **满分 ≠ 全绿**，diff 时别忽略这层。
+> - **必读 memory（起手先读，别直接开跑）**：`one-ruler-replay-old-artifact-perfect`（老件内墙 100%/多画 0m
+>   vs Sonnet 92.1%/6.77m）· `reading-lever-is-measurement-enforcement`（主修法 = 读图器**不写公制坐标**、
+>   只写像素锚点 + 引用的尺寸标注，代码唯一换算）· `reading-batch-target-controlled-lane`（本批目标是
+>   **controlled lane**，不是 autonomous）· `reading-supervision-contamination`（⚠️ 多处已被推翻，读前先看前两条）。
+> - **纪律**：任何识图成绩**至少两抽**（同配置两抽曾差 2.8 倍）· 成绩必须按 `reading_mode` 如实分账
+>   （autonomous / controlled，⛔ controlled 不得记成「弱模型独立满分」）· 冷启子 Agent 走
+>   `spawn_isolated_reader.py` 硬隔离。
+> - **⛔ 别重复今天踩过的**：席位禁跑 editable 安装（F-31）· 权威全量只在主树 ·
+>   worktree 里那 3 条环境假红（F-30）不要修。
+
 4. **reading 撤降 agent 归专项**；
 5. 清欠债：**BLOCKER-1 送 sol 复核**（仍开）· **F-32**（MEP 物理合理性门）· **F-27**（协议层截断）·
    **摊 B 阻塞档改往返断言** · sol 第四轮遗留一批 · terra 前置 ④（`regression`/`golden` 端到端）。
