@@ -1,0 +1,222 @@
+{
+  "applicability": "clean_vector",
+  "crop_chain": [],
+  "cv_schema": "1",
+  "diagnostics": {
+    "anchor_count": 2,
+    "overlay_decisions": [
+      {
+        "candidate_id": "1f_view:px_m_calibrator:001:scale:1",
+        "geometry": {
+          "axis": "col",
+          "kind": "line",
+          "x_px": 275
+        },
+        "reason": "calibration anchor",
+        "status": "accepted"
+      },
+      {
+        "candidate_id": "1f_view:px_m_calibrator:001:scale:2",
+        "geometry": {
+          "axis": "row",
+          "kind": "line",
+          "y_px": 196
+        },
+        "reason": "calibration anchor",
+        "status": "accepted"
+      }
+    ],
+    "warnings": [
+      {
+        "axis": "x",
+        "dimension_ref": "overall_width",
+        "residual_m": -0.4847579012922313,
+        "residual_px": -53.86851211072667,
+        "span_px": 1613.0,
+        "type": "residual_exceeds_threshold",
+        "value_m": 15.0
+      },
+      {
+        "axis": "y",
+        "dimension_ref": "overall_height",
+        "residual_m": 0.9089210649229329,
+        "residual_px": 101.00346020761242,
+        "span_px": 990.0,
+        "type": "residual_exceeds_threshold",
+        "value_m": 8.0
+      }
+    ]
+  },
+  "overlay_path": "case_tests/e2e_tests/sm21_anchor/0_reading/cv_evidence/1f_view/001_px_m_calibrator_overlay.png",
+  "params": {
+    "anchors": [
+      {
+        "axis": "x",
+        "dimension_ref": "overall_width",
+        "px_a": 275,
+        "px_b": 1888,
+        "value_m": 15.0
+      },
+      {
+        "axis": "y",
+        "dimension_ref": "overall_height",
+        "px_a": 196,
+        "px_b": 1186,
+        "value_m": 8.0
+      }
+    ],
+    "residual_warn_m": 0.05,
+    "residual_warn_px": 2.0
+  },
+  "recipe_id": "clean_vector_v1",
+  "results": [
+    {
+      "anchor_px": {
+        "kind": "span",
+        "value": {
+          "anchors": [
+            {
+              "axis": "x",
+              "dimension_ref": "overall_width",
+              "px_a": 275,
+              "px_b": 1888,
+              "value_m": 15.0
+            },
+            {
+              "axis": "y",
+              "dimension_ref": "overall_height",
+              "px_a": 196,
+              "px_b": 1186,
+              "value_m": 8.0
+            }
+          ]
+        }
+      },
+      "candidate_id": "1f_view:px_m_calibrator:001:scale",
+      "candidate_kind": "calibration",
+      "coord_space": "source_px",
+      "m_per_px": 0.008998910166588821,
+      "metric": {
+        "confidence": "medium",
+        "dimension_refs": [
+          "overall_width",
+          "overall_height"
+        ],
+        "raw_segments": [
+          {
+            "axis": "x",
+            "dimension_ref": "overall_width",
+            "px_a": 275,
+            "px_b": 1888,
+            "value_m": 15.0
+          },
+          {
+            "axis": "y",
+            "dimension_ref": "overall_height",
+            "px_a": 196,
+            "px_b": 1186,
+            "value_m": 8.0
+          }
+        ],
+        "residuals": [
+          {
+            "axis": "x",
+            "dimension_ref": "overall_width",
+            "residual_m": -0.4847579012922313,
+            "residual_px": -53.86851211072667,
+            "span_px": 1613.0,
+            "value_m": 15.0
+          },
+          {
+            "axis": "y",
+            "dimension_ref": "overall_height",
+            "residual_m": 0.9089210649229329,
+            "residual_px": 101.00346020761242,
+            "span_px": 990.0,
+            "value_m": 8.0
+          }
+        ],
+        "scale_px_per_m": 111.12456747404845
+      },
+      "provenance": {
+        "crop_chain_id": "",
+        "recipe_id": "clean_vector_v1",
+        "source_image_sha256": "ac62091683dd",
+        "tool": "px_m_calibrator",
+        "tool_version": "1"
+      },
+      "px_per_m": 111.12456747404845,
+      "residuals": [
+        {
+          "axis": "x",
+          "dimension_ref": "overall_width",
+          "residual_m": -0.4847579012922313,
+          "residual_px": -53.86851211072667,
+          "span_px": 1613.0,
+          "value_m": 15.0
+        },
+        {
+          "axis": "y",
+          "dimension_ref": "overall_height",
+          "residual_m": 0.9089210649229329,
+          "residual_px": 101.00346020761242,
+          "span_px": 990.0,
+          "value_m": 8.0
+        }
+      ],
+      "rmse_m": 0.7283981483796781,
+      "rmse_px": 80.94292918758948,
+      "visual": {
+        "anchor_px": {
+          "kind": "span",
+          "value": {
+            "anchors": [
+              {
+                "axis": "x",
+                "dimension_ref": "overall_width",
+                "px_a": 275,
+                "px_b": 1888,
+                "value_m": 15.0
+              },
+              {
+                "axis": "y",
+                "dimension_ref": "overall_height",
+                "px_a": 196,
+                "px_b": 1186,
+                "value_m": 8.0
+              }
+            ]
+          }
+        },
+        "confidence": "high",
+        "relative": {}
+      },
+      "warnings": [
+        {
+          "axis": "x",
+          "dimension_ref": "overall_width",
+          "residual_m": -0.4847579012922313,
+          "residual_px": -53.86851211072667,
+          "span_px": 1613.0,
+          "type": "residual_exceeds_threshold",
+          "value_m": 15.0
+        },
+        {
+          "axis": "y",
+          "dimension_ref": "overall_height",
+          "residual_m": 0.9089210649229329,
+          "residual_px": 101.00346020761242,
+          "span_px": 990.0,
+          "type": "residual_exceeds_threshold",
+          "value_m": 8.0
+        }
+      ]
+    }
+  ],
+  "source_image": {
+    "name": "1f_view.png",
+    "sha256": "ac62091683dd"
+  },
+  "tool": "px_m_calibrator",
+  "tool_version": "1"
+}

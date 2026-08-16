@@ -1,0 +1,122 @@
+# =====================================================================
+# run_config.yaml — run_2026-08-16_707_repro_F1 (sm21_anchor)
+#
+# ⛔⛔ 这不是一次正式成绩跑。它是 **dev 期开发者职能** 下的**诊断跑**
+#     （CLAUDE.md §1.5 #7：允许最强模型观察环节内部过程以提炼方法/改进流程，
+#      ⛔ 该模式下的跑测不作为正式成绩，⛔ 一个 case 的收官验收必须脱离该角色完成）。
+#
+# 目的（用户 2026-08-16 定，⭐ 这是方法论上的转向）：
+#   前七抽全是「站在今天这棵树上，往回退一个变量」——从坏的那一端往前摸。
+#   **二分法真正的起点从没人跑过**：回到 07-07 那棵树上，用当年那套配置，今天再跑一次。
+#   ⇒ 本跑 = 二分的第 0 步。
+#
+# 用户的论证（orchestrator 认同并已更正自己此前的说法）：
+#   07-07 出过好 reading 是事实；sm24 那条反证（同样的「量」的工作模式出现在一个
+#   **当时没有 gt** 的 case 上）基本排掉了答案泄漏 ⇒ **只可能是后来的升级改动影响了 reading**。
+#   ⛔ orchestrator 此前把「基准不可审计」滑成「基准可能虚高」，**那一步是错的** ——
+#      不可审计 ≠ 虚高；抄答案被排掉之后，「虚高」没有来路。
+#
+# ---------------------------------------------------------------------
+# 判读（两种结果都有用，这是本跑值得跑的理由）
+#
+#   **跑出好 reading** ⇒ 杠杆一定在 723b0f9..HEAD 的 diff 里 ⇒ 接下来老实二分，
+#     且前七抽已排除的 6 项可直接砍掉搜索空间。
+#   **跑不出好 reading** ⇒ 杠杆**不在仓库改动里** ⇒ 剩下的可能是：同一 model_id 背后
+#     模型本身变了 / Claude Code 这个壳变了 / 当年那次是运气（同配置差过 2.8 倍）。
+#     这三种没有一种能靠回滚代码解决 ⇒ 整个搜索方向要改。
+#   ⇒ ⛔ 现在这个「一个一个往回退变量」的打法，**排到最后一个也回答不了
+#      「是不是根本不在仓库里」** —— 这正是本跑要补的那一刀。
+#
+# ---------------------------------------------------------------------
+# 配置 = 尽最大可能忠实于 07-07（逐条对照 07-07 的 llm.yaml / run_config.yaml）
+#
+#   树        : **git worktree @ `723b0f9`**（`/workspaces/ep_707_tree`，detached）
+#               ⚠️ 07-07 的 llm.yaml 记了 scaffold 指纹，但**配方从未落盘（F-41）**
+#                  ⇒ 指纹不可复算、不可比对；本跑改用 **commit hash 核树**（精确）。
+#   读图器    : `claude-haiku-4-5-20251001`（与 07-07 同一 ID）
+#   隔离      : **prompt 级，与 07-07 相同** —— gt.json 与 **10 个历史 run**
+#               （含 `run_2026-07-02_sonnet_flow_e2e` 那份 **9/9 满分 reading**）
+#               **全部物理够得着**，只有指令拦着。⛔ 刻意不加 guard、不加 clean-room：
+#               加了就不是复现 07-07 了。
+#   会话形态  : **多轮同一会话**（`claude -p --resume`），反馈留在上下文里
+#               —— 这正是 07-07 有、今天六抽全没有的那一条。已实测续接确实带上下文。
+#   启动文件  : **老树自己的 `session_kickoff.md`**，其 Workflow 明写
+#               「先做一张 pilot → **停下等审阅** → 批准后再批量做其余」。
+#               （08-01 把这句改成了「一路做完，没人会回你」。）
+#   directive : 与 07-07 逐字同义 —— cv_toolbox.md 必读 + 位置必须先用
+#               `python scripts/tool_scripts/cv_probe.py` 量过再画（measure-before-draw）。
+#               ⚠️ 老树上就叫 `cv_probe.py`（今天是 wrapper `tools/run_cv_probe.py`）
+#               ⇒ 顺带避开 F-45 那处示例/现实不一致。
+#   主控介入  : **有**（07-07 的判卷记录写着「pilot-r1 过度分割成 19 道墙，
+#               在 pilot review 时被抓出、靠 crop 逐处核验消掉」⇒ 当年确实打回过）。
+#
+# ---------------------------------------------------------------------
+# ⭐ 与 07-07 的唯一差别 = **留痕**（用户 2026-08-16 选的方案 2）
+#
+#   07-07 什么记录都没有 ⇒ 不可审计。本跑在**不改变读图器处境**的前提下补上：
+#     ① **我说的每一句**在**发出之前**就逐字写进 `_run/interventions.md`
+#        （发出前写 ⇒ 事后改不了口径）；
+#     ② 每一轮的完整结果 JSON 落 `_run/turns/`；
+#     ③ **Claude Code 自己的 transcript**（逐条记录每次工具调用及其参数）
+#        随 run 复制到 `_run/transcript_<session>.jsonl`
+#        ⇒ **「它有没有去读 gt / 历史 run」事后可查**。已自证该记录确实看得见工具调用。
+#   ⇒ 本跑在可审计性上**严格优于 07-07**，在读图器的处境上**与 07-07 相同**。
+#
+#   ⛔ 主控纪律（自我约束，可被 transcript 与 interventions.md 反查）：
+#     ⛔ 全程不打开 gt / 不打开任何历史 run 的 reading；
+#     ✅ 可以看**原图**与**读图器自己的产出/渲染**（当年的 pilot review 只能这么做）；
+#     ⛔ 不在反馈里写任何具体坐标/数值答案，只指工作方式与自相矛盾处。
+#
+# ---------------------------------------------------------------------
+# ⛔ 口径限制
+#   (a) **诊断跑，不计正式成绩**（§1.5 #7）。
+#   (b) 一抽不构成结论；若出现方向性变化必须补第二抽（同配置曾差 2.8 倍）。
+#   (c) 本跑**不走今天的 flow / provision / gate①**：老树上那套机制与今天不同，
+#       走了就不是复现。判卷用**今天的离线 scorer**（判卷与被测树无关）。
+#   (d) 老树物理可达答案 ⇒ **结论必须与 transcript 审计结果一起说**，
+#       缺审计的分数不得单独引用。
+
+run_kind: diagnostic_reproduction      # ⛔ not a scored run
+lane: dev_function                      # §1.5 #7 开发者职能
+scope:
+  stages: [0_reading]
+
+models:
+  reading:
+    role: 0_reading
+    model_id: claude-haiku-4-5-20251001
+    provider: anthropic
+    source: >-
+      claude -p --resume 多轮会话，cwd = /workspaces/ep_707_tree (worktree @ 723b0f9)，
+      prompt 级隔离，allowedTools = Read,Write,Edit,Bash,Glob,Grep
+  orchestrator:
+    role: judge2+orchestration          # 与 07-07 同角色
+    model_id: claude-opus-5
+    note: >-
+      ⚠️ 07-07 当时是 claude-fable-5，本跑是 opus-5 —— **这是一处已知差异**，
+      如实登记。若本跑复现失败，orchestrator 家族/档位是候选解释之一。
+
+provenance:
+  reader_tree: 723b0f9
+  main_tree_at_dispatch: dc4ca57
+  worktree_path: /workspaces/ep_707_tree
+  images_verified: 6/6 sha256 与主树逐字节相同
+  reference_run: run_2026-07-07_haiku_cv_retest
+  reference_numbers:
+    plan_walls: 9/9
+    plan_windows: 7/7
+    elevation_windows: 15/15
+    max_wall_offset_m: 0.0
+    cv_calls: 92
+    images_measured: 6/6
+
+acceptance:
+  primary:
+    - ⭐ 量了几张图（07-07 = 6/6；今天六抽全是 1/6，唯一例外 B1 靠打回到 6/6）
+    - ⭐ CV 调用总数与 crop_zoom 次数（07-07 = 92 / 55）
+    - pilot 是否真的**停下来等**（老 kickoff 命令它停；这是本跑的核心变量之一）
+  secondary:
+    - score_vs_gt 侧车（⛔ 两抽都跑完、且 transcript 审计做完之后才判）
+  integrity:
+    - ⛔ **必做**：transcript 逐条扫，是否出现 gt.json / test_baseline / 任何 run_2026-* 的读取
+    - ⛔ **必做**：interventions.md 逐条自查，有没有泄过具体坐标/数值

@@ -1,0 +1,36 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "hooks": [
+          {
+            "command": "/opt/venv/bin/python /tmp/ep_isolation/sm21_anchor_l0ec8q7h/guard.py",
+            "type": "command"
+          }
+        ],
+        "matcher": ""
+      }
+    ]
+  },
+  "permissions": {
+    "allow": [
+      "Read(//tmp/ep_isolation/sm21_anchor_l0ec8q7h/**)",
+      "Write(//tmp/ep_isolation/sm21_anchor_l0ec8q7h/out/**)",
+      "Edit(//tmp/ep_isolation/sm21_anchor_l0ec8q7h/out/**)",
+      "Write(//tmp/ep_isolation/sm21_anchor_l0ec8q7h/requests/**)",
+      "Edit(//tmp/ep_isolation/sm21_anchor_l0ec8q7h/requests/**)",
+      "Bash"
+    ],
+    "defaultMode": "default",
+    "deny": [
+      "Read(//workspaces/EnergyPlus-Agent-dev/**)",
+      "Read(//root/**)",
+      "Read(//home/**)",
+      "WebFetch",
+      "WebSearch",
+      "Agent",
+      "Task",
+      "mcp__*"
+    ]
+  }
+}

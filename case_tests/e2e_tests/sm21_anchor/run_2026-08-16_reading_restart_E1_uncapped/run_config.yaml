@@ -1,0 +1,186 @@
+# =====================================================================
+# run_config.yaml — run_2026-08-16_reading_restart_E1_uncapped (sm21_anchor)
+#
+# 目的：**单变量实验 · 先只跑一抽**（用户 2026-08-16 拍板，沿用 D1 的「先试一抽」口径）。
+#       撤掉 lever_inventory 排第一的 **A3「能力封口」** —— 沙箱读图器至此可以
+#       **自己写代码算图**，而不是只能调用工具箱替它算好的六个配方。
+#
+# 依据（⛔ 不是新提案，是一条已拍板但从未落地的裁定）：
+#   CLAUDE.md §1.5 #7（用户 2026-08-02 定）——
+#     「严格限制**可见信息与写出边界**，**不限制在合法输入上采用何种计算方法**。……
+#      按命令形态封杀通用 CV 编程（`python -c`、临时脚本）属于**能力封口**，
+#      **它封掉的正是 07-02 Sonnet 那条成功路径**。」
+#   2026-08-15 实测证实该裁定至今未落地：`python -c` DENY、任何自写脚本 DENY。
+#   ⇒ 本跑把它落地，并观察工作模式是否切换。
+#
+# ---------------------------------------------------------------------
+# 唯一变量（相对 D1）
+#
+#   `isolation_templates/guard.py` 的**命令层策略**：
+#     ① `python -c '<code>'`  DENY → **ALLOW**
+#     ② `python <自写脚本>`    DENY → **ALLOW**（脚本须位于 out/ 或 requests/，即
+#        「可写的目录」本身 —— 复用 WRITE_ALLOWED_DIRS，不新立一份会漂移的清单）
+#     ③ `cat/head/tail/wc/find` 加入只读命令表（路径照旧过 `_path_arg` 归一）
+#     ④ 复合符号检查从「整条命令字符串子串扫描」改为**带引号状态的逐字符扫描**
+#        —— 否则 `python -c 'print(a > b)'` 会被拒，等于从侧门把封口装回去
+#   连带（**信息边界不降级，是换了个测量点**）：
+#     ⑤ 新增**执行前代码扫描** —— 要跑的脚本、以及 out//requests/ 下**全部** .py
+#        （import 面）逐份读出来，按同一条边界规则扫；`python -c` 的程序文本同理。
+#        ⇒ 「命令里没有禁词但文件里有」这条一行大的口子不存在。
+#     ⑥ 执行代码另加两条 exec-only 拒绝：**网络外传**（urllib/socket/…）与
+#        **子进程**（subprocess/os.system/…）。⛔ 这两条不是能力封口：
+#        网络外传是 08-02 原文点名要防的；子进程不新增任何算力，只是把工作
+#        挪到 guard 视野之外（本 hook 只看得见最外层 Bash 调用）。
+#     ⑦ `$` 与反引号在单引号外一律拒 —— `$HOME` 能在 guard 看过之后才被 shell
+#        替换成 /root，属于「guard 没见过的文本」。
+#
+#   ⛔ **仍然拒绝**（本跑不动，如实登记为「A 档未撤到底」的部分）：
+#     管道 / 重定向 / `;` 等 shell 复合结构（读图器可在 Python 内表达）；
+#     `cd` / `env`；`..` / `~`；仓库绝对路径；Read 仓库文件。
+#   ⚠️ **一处如实更正**：orchestrator 在向用户解释 A 档时说过「管道全放开」，
+#      实际实现**没有放开管道**。理由 = 引入 shell 结构解析会新增一个真实的
+#      解析漏洞面，而本仓在「解析歧义」上吃过亏；且管道不影响「能不能自己写代码算」
+#      这个被测能力。**该收窄已当面向用户交代，未经二次确认不得记成 A 档全量。**
+#
+#   ⭐ **prescan 保持撤除**（D1 的变量必须held constant，否则一跑动两个变量）：
+#     可执行面**刻意排除** `tools/cv_probe.py` ⇒ 直调 CLI 拿 prescan 这条路仍 DENY。
+#     ⛔ **该排除的诚实边界**：staging 里仍有 `src/agent/reading/cv_toolbox/` 整包，
+#        读图器**理论上可以自己 import `recipes` 调 prescan 实现**。文档里已无任何
+#        prescan 痕迹（D1 已删工具条），但这条路**没有被机制堵死**。
+#        ⇒ 跑完**必须查 access_log 的 executed_code 与 out/ 下脚本**，
+#           若真出现 import prescan，本跑降级为双变量、结论不成立。
+#
+# 相对 D1 **不变**：模型 ID · directive 逐字（`cmp` 已验，sha256
+#   58df1705846b7c75…）· clean-room staging · gt 物理不可达 · 权限表禁读仓库 ·
+#   autonomous · 无 review 环 · 无打回 · judge off · 只跑 0_reading ·
+#   cv_toolbox.md 的 Disciplines 段（C 组那份）一字未动。
+#
+# ---------------------------------------------------------------------
+# 同批落地的缺陷修复（⛔ 不是被测变量，但**是本跑产物可审计性的前提**）
+#
+#   **F-44（本轮新登记并当场修掉）**：`guard.py::_append_log` 原来**只在 deny 时**
+#   记录参数原文，allow 只留一个 payload 哈希。⇒ 一条**被放行**的 `python -c`
+#   事后在日志里只剩哈希，**代码内容看不见、不可复算**。
+#   A3 撤除会把「放行面」变成主要信息通道，这个空档必须先补，否则本跑产出的
+#   reading 与 07-07 那份同属「不可审计」——而 08-15 刚把目标口径改成
+#   **「好用 + 产生过程可审计」**。
+#   修法：allow/deny 一律记 `tool_input_excerpt`（上限 500→8000，够装下一段
+#   `-c` 程序）；另加 `executed_code` = 每个被扫描文件的 `{path, sha256}`
+#   ⇒ 事后改文件不能改写「当时跑的是什么」这条记录。
+#   `GUARD_VERSION` 1→2（⚠️ 仅标注写日志的**策略**，⛔ 不是任何 run 的行为证据）。
+#
+# ---------------------------------------------------------------------
+# ⛔ 口径限制（必须与任何结论一起说）
+#
+#   (a) **一抽不构成成绩结论** —— 本仓纪律「识图成绩至少两抽」（同配置曾差 2.8 倍）。
+#       本跑先看**过程指标**（自写代码有没有被用、量了几张图、crop_zoom 次数）；
+#       若出现方向性变化，必须补第二抽才能记账。
+#   (b) **07-07 基准不可审计**（08-15 收工定）⇒ ⛔ 不得把 9/9 当必须够到的靶子；
+#       今天分数低可能有一部分是老基准虚高的镜像。
+#   (c) **A 档未撤到底**（见上「仍然拒绝」）⇒ 若本跑无起色，
+#       ⛔ 不得直接写成「A3 不是杠杆」，只能写成「撤到这一档不足以恢复」。
+#   (d) gate① 收下 ≠ 这份 reading 能用（C1/C2 两份 0/9 都被 exploratory 档 accept）。
+#
+# ⭐ 纪律：本文件先于 provision 落盘。
+
+run_profile: exploratory
+capability_profile: orthogonal_polygon
+
+scope:
+  stages:
+    - 0_reading
+
+judge:
+  mode: off             # 过程实测；跑完离线 score_vs_gt 对账
+                        # ⚠️ judge off 会关掉产 grade 图的那条路 ⇒ 必须补 run_stage.py artifacts
+review:
+  reading: false        # ⛔ 无停点、⛔ 无打回
+  correction: false
+  geometry: false
+with_ep: false
+record: false
+
+reading_mode:
+  lane: autonomous
+  dev_function: false
+  reading_agent: null
+  reading_worker_agent:
+    model: claude-haiku-4-5-20251001
+    effort: default
+  isolation_profile: "clean_room_hard_isolation_v2_uncapped"
+                      # v2 = A3 撤除后的隔离形态：可见面/写出面不变，计算方法不限
+
+models:
+  reading:
+    role: 0_reading
+    model_id: claude-haiku-4-5-20251001
+    provider: anthropic
+    effort: default
+    source: >-
+      spawn_isolated_reader.py clean-room staging + headless claude -p；
+      per-run directive 见 _run/directive.md（与 A1/A2/C1/C2/D1 逐字相同）
+  orchestrator:
+    role: orchestration
+    model_id: claude-opus-5
+    note: ⛔ 只启动与接收；本跑不看图、不写 feedback、不打回
+
+provenance:
+  base_commit: dc4ca57
+  tracked_dirty: true
+  dirty_paths:
+    - src/agent/execution/isolation_templates/guard.py
+    - skills/intake_pipeline/0_reading/cv_toolbox.md
+    - tests/test_isolation.py
+  fingerprint_recipe: >-
+    对目录下每个文件（排除 __pycache__）输出一行 "<相对路径> <文件内容 sha256>"，
+    按相对路径排序后整体 sha256，取前 16 位十六进制。（配方须落盘 —— F-41）
+  scaffold_fingerprints:
+    skills/intake_pipeline/0_reading: f20ed5bd0f5dcc60
+    src/agent/reading: 9044cd8c2adb30c4
+    src/agent/execution/isolation_templates: dbf153422ad6d414
+  file_fingerprints:
+    cv_toolbox.md@this_run: 86a7b62e662c014c
+    cv_toolbox.md@D1: 98020fe665e6e7f4
+    guard.py@this_run: 2fcef8c09f14c9cb
+    directive.md@this_run_and_D1: 58df1705846b7c75
+  sibling_arms:
+    - run_2026-08-15_reading_restart_D1_noprescan        # 墙 2/9 · crop_zoom 6 · 量 1/6
+    - run_2026-08-15_reading_restart_C1_cropdiscipline   # 墙 0/9 · crop_zoom 2 · 量 1/6
+    - run_2026-08-15_reading_restart_C2_cropdiscipline   # 墙 0/9 · crop_zoom 1 · 量 1/6
+    - run_2026-08-15_reading_restart_B1_reviewring       # 墙 2/9 · crop_zoom 0 · 量 6/6
+    - run_2026-08-15_reading_restart_A1                  # 墙 3/9 · crop_zoom 0 · 量 1/6
+    - run_2026-08-15_reading_restart_A2                  # 墙 1/9 · crop_zoom 0 · 量 1/6
+
+acceptance:
+  primary:
+    - >-
+      ⭐⭐ **读图器有没有真的自己写代码算** —— 直接读 access_log 的 `executed_code`
+      与 staging `out/**/*.py`。这是本跑唯一直接测量被撤变量的指标：
+      **0 次 = 给了能力它不用**（与「给了工具就会去量是错的」同族，且该判据本仓已记过一次）
+    - 量了几张图（07-07 = 6/6；A1/A2/C1/C2/D1 = 1/6）
+    - ⭐ crop_zoom 调用次数（07-07 = 55；D1 = 6，为撤 prescan 后历史最高）
+    - CV 编号调用总数（07-07 = 92；D1 = 10）
+    - px_m_calibrator 是否被真的调用（F-34 的两个绕过口是否复现）
+  secondary:
+    - score_vs_gt 侧车（07-07 = 墙 9/9 · 窗 7/7 · 最大偏移 0.0 m；D1 = 墙 2/9）
+  integrity:
+    - >-
+      ⛔ **变量纯度检查（跑完必做）**：`executed_code` 与 out/ 下脚本中若出现
+      `import` 到 cv_toolbox 的 prescan 实现 ⇒ 本跑变成「撤 A3 + 还 prescan」双变量，
+      结论作废、如实登记。
+    - >-
+      ⛔ **信息边界检查（跑完必做）**：access_log 逐条过一遍 deny 列表，
+      并核 allow 条目的 `executed_code` 里没有指向答案的路径。
+      本跑起 allow 条目带原文（F-44）⇒ 这项**第一次真的可做**。
+  interpretation:
+    - 自写代码被用 + 量图数上去 + 分数回来 ⇒ A3 就是杠杆，08-02 裁定的代价坐实
+    - 自写代码被用但分数不回来 ⇒ 能力不是瓶颈，⇒ 剩 A1 会话形态 / B kickoff / C 工具拒绝行为
+    - >-
+      **自写代码零次使用** ⇒ 最有信息量的一岔：说明杠杆不在「能不能」而在
+      「肯不肯」，与 07-02 Sonnet 那条成功路径的差别不在权限而在别处 ⇒
+      下一个单变量应转向 **A1 会话形态**（多轮 vs 一次性冷启）
+  discipline:
+    - ⛔ 席位禁跑 editable 安装（F-31）；不与全仓 pytest 并行（F-30）
+    - ⭐ 产物出全（用户 08-15 拍板 #3）：跑完补 `run_stage.py artifacts sm21_anchor <run> 0_reading`
+    - ⚠️ CV 证据不进 attempt（F-35）⇒ 从 staging 抢救，保留 out/<label> 层级
+    - ⛔ orchestrator 全程不看图、不写 feedback、不打回（lane = autonomous）

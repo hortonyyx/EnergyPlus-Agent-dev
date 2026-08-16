@@ -1,0 +1,105 @@
+{
+  "image_label": "West elevation view",
+  "image_kind": "elevation",
+  "facade": {
+    "view_facade": "West",
+    "local_x_positive": "image_left_to_right",
+    "mirrored": "false",
+    "orientation_evidence": [
+      {"source": "image_name", "detail": "labeled 'West_view'", "confidence": "high"}
+    ]
+  },
+  "measurement_basis_note": "Horizontal (y) dimension chain CLOSED: 3400+1200+3400=8000 ✓. Vertical (z) dimension chain: Floor 1 height 3.60m, Floor 2 height 3.60m. Windows: one centered on floor 2; four-pane grid (2x2) on floor 1 center area.",
+  "strokes": [
+    {
+      "id": "S1",
+      "pen": "outline",
+      "provenance": "seen",
+      "confidence": "high",
+      "dimension_refs": [],
+      "geometry": {"kind": "polyline", "points": [[0.00, 0.00], [8.00, 0.00], [8.00, 7.20], [0.00, 7.20], [0.00, 0.00]], "closed": true}
+    },
+    {
+      "id": "S2",
+      "pen": "wall_fill",
+      "provenance": "seen",
+      "confidence": "high",
+      "dimension_refs": [],
+      "geometry": {"kind": "rect", "x_range_m": [0.00, 8.00], "y_range_m": [0.00, 3.60]}
+    },
+    {
+      "id": "S3",
+      "pen": "wall_fill",
+      "provenance": "seen",
+      "confidence": "high",
+      "dimension_refs": [],
+      "geometry": {"kind": "rect", "x_range_m": [0.00, 8.00], "y_range_m": [3.60, 7.20]}
+    },
+    {
+      "id": "S4",
+      "pen": "window",
+      "provenance": "seen",
+      "confidence": "medium",
+      "dimension_refs": [],
+      "geometry": {"kind": "rect", "x_range_m": [3.40, 4.60], "y_range_m": [4.80, 6.00]}
+    },
+    {
+      "id": "S5",
+      "pen": "window",
+      "provenance": "seen",
+      "confidence": "medium",
+      "dimension_refs": [],
+      "geometry": {"kind": "rect", "x_range_m": [3.00, 3.80], "y_range_m": [1.80, 2.60]}
+    },
+    {
+      "id": "S6",
+      "pen": "window",
+      "provenance": "seen",
+      "confidence": "medium",
+      "dimension_refs": [],
+      "geometry": {"kind": "rect", "x_range_m": [4.20, 5.00], "y_range_m": [1.80, 2.60]}
+    },
+    {
+      "id": "S7",
+      "pen": "window",
+      "provenance": "seen",
+      "confidence": "medium",
+      "dimension_refs": [],
+      "geometry": {"kind": "rect", "x_range_m": [3.00, 3.80], "y_range_m": [0.80, 1.60]}
+    },
+    {
+      "id": "S8",
+      "pen": "window",
+      "provenance": "seen",
+      "confidence": "medium",
+      "dimension_refs": [],
+      "geometry": {"kind": "rect", "x_range_m": [4.20, 5.00], "y_range_m": [0.80, 1.60]}
+    }
+  ],
+  "dimensions": [
+    {"id": "D_Y_overall", "text_verbatim": "8000", "value_m": 8.00, "from": [0.00, 0.00], "to": [8.00, 0.00], "axis": "y", "chain_id": "C_y_horiz", "role": "overall", "order": 0},
+    {"id": "DY1", "text_verbatim": "3400", "value_m": 3.40, "from": [0.00, 0.00], "to": [3.40, 0.00], "axis": "y", "chain_id": "C_y_horiz", "role": "segment", "order": 1},
+    {"id": "DY2", "text_verbatim": "1200", "value_m": 1.20, "from": [3.40, 0.00], "to": [4.60, 0.00], "axis": "y", "chain_id": "C_y_horiz", "role": "segment", "order": 2},
+    {"id": "DY3", "text_verbatim": "3400", "value_m": 3.40, "from": [4.60, 0.00], "to": [8.00, 0.00], "axis": "y", "chain_id": "C_y_horiz", "role": "segment", "order": 3, "note": "closure verified: 3.40+1.20+3.40=8.00 ✓"},
+    {"id": "D_Z_floor1", "text_verbatim": "3600", "value_m": 3.60, "from": [0.00, 0.00], "to": [0.00, 3.60], "axis": "z", "chain_id": "C_z_floors", "role": "segment", "order": 1},
+    {"id": "D_Z_floor2", "text_verbatim": "3600", "value_m": 3.60, "from": [0.00, 3.60], "to": [0.00, 7.20], "axis": "z", "chain_id": "C_z_floors", "role": "segment", "order": 2}
+  ],
+  "ocr_texts": [
+    {"id": "T1", "text": "8000", "anchor": [4.00, 0.05]}
+  ],
+  "self_check": {
+    "all_dimensions_transcribed": true,
+    "all_visible_strokes_captured": false,
+    "no_topology_inferred": true,
+    "pens_used": ["outline", "wall_fill", "window"],
+    "unknowns_noted": [
+      "Window positions (S4-S8) estimated from visual placement; not pixel-measured",
+      "Floor 1 four-pane grid (S5-S8) treated as individual window rectangles; muntins not separate strokes",
+      "Floor heights interpreted from storey line"
+    ]
+  },
+  "uncaptured": [
+    "Storey line implicit in wall_fill boundaries",
+    "Window muntins (grid divisions on 2x2 pane window) captured as single openings, not individual panes"
+  ]
+}

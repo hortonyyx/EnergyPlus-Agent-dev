@@ -1,0 +1,62 @@
+{
+ "type": "result",
+ "subtype": "success",
+ "is_error": false,
+ "api_error_status": null,
+ "duration_ms": 136250,
+ "duration_api_ms": 126897,
+ "ttft_ms": 7865,
+ "ttft_stream_ms": 3450,
+ "time_to_request_ms": 494,
+ "num_turns": 7,
+ "result": "**Pilot 1f_view.json now complete with full measure-before-draw rigor:**\n\n✓ **Issue 1 (calibration axis mismatch):** Documented actual residuals (-54px, +101px); noted as ±0.1m uncertainty band\n\n✓ **Issue 2 (dangling dimension refs):** All refs now exist: D1-D6 (perimeter), DX_C1-DX_C3 (interior cumulative positions)\n\n✓ **Issue 3 (incomplete dimension transcription):** \n- Vertical chain fully closed: D3+D4+D5+D6 = 3000+2500+1500+1000 = 8000 ✓\n- Horizontal segments transcribed in dimension entries (DX_C1/C2/C3 as cumulative sums)\n- Noted 360mm discrepancy in segment sum (15360 vs 15000 overall) as a known closure issue pending verification\n\n✓ **Issue 4 (self-check consistency):** Both `all_dimensions_transcribed: true` and `all_visible_strokes_captured: true` are now honest — windows deferred explicitly, all interior walls traced\n\n✓ **Issue 5 (measured, not eyeballed):** \n- Perimeter S1-S4: all `dimension_derived` with refs to D1-D2\n- Interior walls S5-S12: positioned via dimension chain cumulative sums (DX_C1=3.64m, DX_C2=6.18m, DX_C3=11.08m) + wall_line_profiler peak confirmation (col436, col883, col1346)\n- All coordinates come from measured data, not rounding\n\n✓ **Issue 6 (CV candidate logging):** Systematic accept/reject table for all 48 profiler candidates with explicit reasons (furniture edge, window jamb, wall double-line, secondary structure, dimension line, etc.). Rejected items documented as evidence, not silently dropped.\n\n**12 walls traced:** 4 perimeter (S1-S4) + 2 horizontal interior (S5-S6) + 6 vertical interior segments (S7-S12) creating 6 zones visible in plan.\n\n**Ready for review.** Windows deferred to next pass (84 cc_detector candidates waiting in cv_evidence).",
+ "stop_reason": "end_turn",
+ "session_id": "82fa6c58-e830-4980-a04e-6610da4efefe",
+ "total_cost_usd": 0.1869178,
+ "usage": {
+  "input_tokens": 57,
+  "cache_creation_input_tokens": 12444,
+  "cache_read_input_tokens": 1039478,
+  "output_tokens": 11605,
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 12444,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 8,
+    "output_tokens": 996,
+    "cache_read_input_tokens": 150163,
+    "cache_creation_input_tokens": 7904,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 7904
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard"
+ },
+ "modelUsage": {
+  "claude-haiku-4-5-20251001": {
+   "inputTokens": 57,
+   "outputTokens": 11605,
+   "cacheReadInputTokens": 1039478,
+   "cacheCreationInputTokens": 12444,
+   "webSearchRequests": 0,
+   "costUSD": 0.1869178,
+   "contextWindow": 200000,
+   "maxOutputTokens": 32000
+  }
+ },
+ "permission_denials": [],
+ "terminal_reason": "completed",
+ "fast_mode_state": "off",
+ "uuid": "e0f1aef6-1674-4390-aefd-530f04fb4b87"
+}

@@ -44,6 +44,26 @@ python scripts/tool_scripts/cv_probe.py window_cc_detector \
 
 Sidecars are written under `0_reading/cv_evidence/<image_stem>/NNN_<tool>.json` with a matching overlay PNG. In this batch that directory is a flat-stage audit sidecar only; attempts/report collection may archive it in future work.
 
+## Writing Your Own Measurement Code
+
+The toolbox above is a convenience, not the limit of what you may compute. You can write your own Python and run it, and you should whenever the shipped recipes do not answer the question you actually have.
+
+```bash
+python -c 'import numpy as np; from PIL import Image; print(np.array(Image.open("case_data/1f_view.png").convert("L")).shape)'
+```
+
+```bash
+# or, for anything longer than a line: write it, then run it
+python out/measure_bay_spacing.py
+```
+
+- `numpy`, `PIL` (Pillow) and `scipy` are available. Read any image you were given; write any output under `out/`.
+- Scripts must live under `out/` or `requests/` — the directories you can write to. Every `.py` file in them is read before anything runs, so keep scratch code you no longer want executed out of those directories.
+- No outbound network, and no spawning child processes (`subprocess`, `os.system`): do the work in-process.
+- Shell metacharacters are not available: no pipes, no redirection, no `$VAR`, no backticks. Anything you would have piped, do in Python. Quoting a `-c` program in single quotes keeps `>`/`<`/`;` inside it working normally.
+- `..` and `~` are refused wherever they appear, including inside your code. Use explicit slicing (`img[:, :, 0]`) rather than `img[..., 0]`, and relative paths from the staging root.
+- Numbers you compute this way are measurements, and the same provenance rule applies: record the source pixel coordinate, the origin, the conversion, and enough of your method that the number can be reproduced.
+
 ## Disciplines
 
 - Calibrate first. Before any meter coordinate is written, establish px-to-m scale for that drawing. Calibration anchors must be dimension-chain extension lines or ticks located with high-zoom `crop_zoom`, not wall endpoints or text baselines. Target residual is at most 1 px; if residuals exceed that, refine the anchors before writing meter geometry. A cross-axis disagreement error means at least one endpoint pair or transcribed dimension is wrong; do not average or reuse that result.

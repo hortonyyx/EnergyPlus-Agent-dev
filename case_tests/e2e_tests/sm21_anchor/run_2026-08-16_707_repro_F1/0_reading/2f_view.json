@@ -1,0 +1,293 @@
+{
+  "image_label": "Floor 2 plan view",
+  "image_kind": "plan",
+  "facade_axis_note": null,
+  "scale_origin": {
+    "world_x_m": 0.00,
+    "world_y_m": 0.00,
+    "world_z_m": null,
+    "note": "image-local origin at SW corner"
+  },
+
+  "measurement_basis_note": "px_m_calibrator scale 0.009 m/px (from 1f calibration, applied consistently). X-axis: top chain segments 1950+3600+1889+1891+3600+1950=14880 (120mm SHORT of 15000 overall); chain UNVERIFIED. Y-axis: similar structure to 1f; requires closure verification. Interior layout: two main office zones (tables/chairs) separated by central spine with door swings, service areas.",
+
+  "strokes": [
+    {
+      "id": "S1",
+      "pen": "wall",
+      "provenance": "dimension_derived",
+      "confidence": "high",
+      "dimension_refs": ["D_X_overall"],
+      "geometry": {
+        "kind": "line",
+        "p1": [0.00, 0.00],
+        "p2": [15.00, 0.00],
+        "thickness_m": null
+      },
+      "note": "perimeter south wall"
+    },
+    {
+      "id": "S2",
+      "pen": "wall",
+      "provenance": "dimension_derived",
+      "confidence": "high",
+      "dimension_refs": ["D_Y_overall"],
+      "geometry": {
+        "kind": "line",
+        "p1": [15.00, 0.00],
+        "p2": [15.00, 8.00],
+        "thickness_m": null
+      },
+      "note": "perimeter east wall"
+    },
+    {
+      "id": "S3",
+      "pen": "wall",
+      "provenance": "dimension_derived",
+      "confidence": "high",
+      "dimension_refs": ["D_X_overall"],
+      "geometry": {
+        "kind": "line",
+        "p1": [15.00, 8.00],
+        "p2": [0.00, 8.00],
+        "thickness_m": null
+      },
+      "note": "perimeter north wall"
+    },
+    {
+      "id": "S4",
+      "pen": "wall",
+      "provenance": "dimension_derived",
+      "confidence": "high",
+      "dimension_refs": ["D_Y_overall"],
+      "geometry": {
+        "kind": "line",
+        "p1": [0.00, 8.00],
+        "p2": [0.00, 0.00],
+        "thickness_m": null
+      },
+      "note": "perimeter west wall"
+    },
+
+    {
+      "id": "S5",
+      "pen": "wall",
+      "provenance": "dimension_derived",
+      "confidence": "medium",
+      "dimension_refs": ["D_Y_seg1"],
+      "geometry": {
+        "kind": "line",
+        "p1": [0.00, 3.00],
+        "p2": [15.00, 3.00],
+        "thickness_m": null
+      },
+      "note": "interior horizontal wall (mid-level); separates upper office space from lower service area"
+    },
+    {
+      "id": "S6",
+      "pen": "wall",
+      "provenance": "dimension_derived",
+      "confidence": "medium",
+      "dimension_refs": ["D_Y_seg2"],
+      "geometry": {
+        "kind": "line",
+        "p1": [0.00, 4.20],
+        "p2": [15.00, 4.20],
+        "thickness_m": null
+      },
+      "note": "interior horizontal wall (service zone); estimated from observed door swing pattern; pending dimension verification"
+    },
+
+    {
+      "id": "S7",
+      "pen": "wall",
+      "provenance": "seen",
+      "confidence": "medium",
+      "dimension_refs": [],
+      "geometry": {
+        "kind": "line",
+        "p1": [7.50, 0.00],
+        "p2": [7.50, 3.00],
+        "thickness_m": null
+      },
+      "note": "interior vertical wall (central spine, lower section); separates left and right office zones; door swing visible (cyan arc)"
+    },
+    {
+      "id": "S8",
+      "pen": "wall",
+      "provenance": "seen",
+      "confidence": "medium",
+      "dimension_refs": [],
+      "geometry": {
+        "kind": "line",
+        "p1": [7.50, 5.55],
+        "p2": [7.50, 8.00],
+        "thickness_m": null
+      },
+      "note": "interior vertical wall (central spine, upper section); completes the spine separation"
+    }
+  ],
+
+  "dimensions": [
+    {
+      "id": "D_X_overall",
+      "text_verbatim": "15000",
+      "value_m": 15.00,
+      "from": [0.00, 0.00],
+      "to": [15.00, 0.00],
+      "axis": "x",
+      "chain_id": "C_x_perimeter",
+      "role": "overall",
+      "order": 0,
+      "note": "overall building width (mm); from top dimension line"
+    },
+    {
+      "id": "D_Y_overall",
+      "text_verbatim": "8000",
+      "value_m": 8.00,
+      "from": [0.00, 0.00],
+      "to": [0.00, 8.00],
+      "axis": "y",
+      "chain_id": "C_y_perimeter",
+      "role": "overall",
+      "order": 0,
+      "note": "overall building height (mm); from left dimension line"
+    },
+    {
+      "id": "D_Y_seg1",
+      "text_verbatim": "3000",
+      "value_m": 3.00,
+      "from": [0.00, 0.00],
+      "to": [0.00, 3.00],
+      "axis": "y",
+      "chain_id": "C_y_perimeter",
+      "role": "segment",
+      "order": 1,
+      "note": "first vertical segment (lower office zone); matches 1f"
+    },
+    {
+      "id": "D_Y_seg2",
+      "text_verbatim": "1200",
+      "value_m": 1.20,
+      "from": [0.00, 3.00],
+      "to": [0.00, 4.20],
+      "axis": "y",
+      "chain_id": "C_y_perimeter",
+      "role": "segment",
+      "order": 2,
+      "note": "second vertical segment (service zone); observed from dimension line"
+    },
+    {
+      "id": "D_X_seg1",
+      "text_verbatim": "1950",
+      "value_m": 1.95,
+      "from": [0.00, 0.00],
+      "to": [1.95, 0.00],
+      "axis": "x",
+      "chain_id": "C_x_top_UNVERIFIED",
+      "role": "segment",
+      "order": 1,
+      "note": "left offset segment; from top dimension line"
+    },
+    {
+      "id": "D_X_seg2",
+      "text_verbatim": "3600",
+      "value_m": 3.60,
+      "from": [1.95, 0.00],
+      "to": [5.55, 0.00],
+      "axis": "x",
+      "chain_id": "C_x_top_UNVERIFIED",
+      "role": "segment",
+      "order": 2,
+      "note": "main segment; likely left office zone width"
+    },
+    {
+      "id": "D_X_seg3",
+      "text_verbatim": "1889",
+      "value_m": 1.89,
+      "from": [5.55, 0.00],
+      "to": [7.44, 0.00],
+      "axis": "x",
+      "chain_id": "C_x_top_UNVERIFIED",
+      "role": "segment",
+      "order": 3,
+      "note": "spine or transition zone width"
+    },
+    {
+      "id": "D_X_seg4",
+      "text_verbatim": "1891",
+      "value_m": 1.89,
+      "from": [7.44, 0.00],
+      "to": [9.33, 0.00],
+      "axis": "x",
+      "chain_id": "C_x_top_UNVERIFIED",
+      "role": "segment",
+      "order": 4,
+      "note": "transition or right zone start; note: 1889 vs 1891 (2mm difference, possibly symmetry mark)"
+    },
+    {
+      "id": "D_X_seg5",
+      "text_verbatim": "3600",
+      "value_m": 3.60,
+      "from": [9.33, 0.00],
+      "to": [12.93, 0.00],
+      "axis": "x",
+      "chain_id": "C_x_top_UNVERIFIED",
+      "role": "segment",
+      "order": 5,
+      "note": "main segment; likely right office zone width (mirrors left)"
+    },
+    {
+      "id": "D_X_seg6",
+      "text_verbatim": "1950",
+      "value_m": 1.95,
+      "from": [12.93, 0.00],
+      "to": [14.88, 0.00],
+      "axis": "x",
+      "chain_id": "C_x_top_UNVERIFIED",
+      "role": "segment",
+      "order": 6,
+      "note": "right offset segment; closure check: 1.95+3.60+1.89+1.89+3.60+1.95=14.88 (120mm SHORT of 15.00 overall) — CHAIN DOES NOT CLOSE"
+    }
+  ],
+
+  "ocr_texts": [
+    {
+      "id": "T1",
+      "text": "15000",
+      "anchor": [7.50, 0.05],
+      "note": "overall width"
+    },
+    {
+      "id": "T2",
+      "text": "8000",
+      "anchor": [0.05, 4.00],
+      "note": "overall height"
+    }
+  ],
+
+  "self_check": {
+    "all_dimensions_transcribed": false,
+    "all_visible_strokes_captured": false,
+    "no_topology_inferred": true,
+    "pens_used": ["wall"],
+    "unknowns_noted": [
+      "X-axis top chain sums to 14880 (120mm short of 15000 overall) — UNVERIFIED. Likely misread: one segment may be 120mm larger, or overall is incorrect.",
+      "Y-axis segments partially read; full closure verification pending.",
+      "interior walls (S5-S8) positioned at observed door swing locations and midpoint estimates; dimension-derived placement pending chain closure.",
+      "Windows not traced (few visible on floor 2 plan; likely service/break room areas).",
+      "Door swings (cyan arcs) recognized (2 visible), not traced; healing deferred.",
+      "Furniture symbols (meeting tables, kitchen equipment) excluded.",
+      "Layout: two office zones (conference areas with large tables) separated by central vertical spine, with service/break area below; upper zone ~3m tall, lower service zone ~1.2m tall."
+    ]
+  },
+
+  "uncaptured": [
+    "X-axis dimension chain unverified: 1950+3600+1889+1891+3600+1950=14880 ≠ 15000; closure gap of 120mm flagged",
+    "Interior walls (S5-S8) not yet verified against dimension chains; positions estimated from visual layout",
+    "Door swings: 2 cyan arcs visible in central spine; not traced, healing deferred",
+    "Furniture: meeting tables with chair symbols (8 seats per table visible, 2 tables per zone); equipment symbols in lower zone; all excluded",
+    "Windows: minimal visible on plan; service/facility spaces",
+    "wall_line_profiler not yet run for 2f (batch CV analysis deferred pending dimension verification)"
+  ]
+}

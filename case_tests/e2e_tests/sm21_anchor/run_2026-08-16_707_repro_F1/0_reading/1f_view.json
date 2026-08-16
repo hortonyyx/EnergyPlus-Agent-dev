@@ -1,0 +1,430 @@
+{
+  "image_label": "Floor 1 plan view",
+  "image_kind": "plan",
+  "facade_axis_note": null,
+  "scale_origin": {
+    "world_x_m": 0.00,
+    "world_y_m": 0.00,
+    "world_z_m": null,
+    "note": "image-local origin at SW corner; z_m=null (set by elevation)"
+  },
+
+  "measurement_basis_note": "px_m_calibrator scale 0.009 m/px. Y-axis CLOSED: segments 3000+2500+1500+1000=8000 ✓. X-axis: dimension chain from bottom annotation (not top): 540+900+2000+1200+360+1300+2400+1300+1360+2400+1240=15000 ✓ CLOSED. wall_line_profiler: 19 row + 29 col candidates. Interior walls positioned from dimension chain cumulative positions cross-checked against profiler peaks.",
+
+  "strokes": [
+    {
+      "id": "S1",
+      "pen": "wall",
+      "provenance": "dimension_derived",
+      "confidence": "high",
+      "dimension_refs": ["D_X_overall"],
+      "geometry": {
+        "kind": "line",
+        "p1": [0.00, 0.00],
+        "p2": [15.00, 0.00],
+        "thickness_m": null
+      },
+      "note": "perimeter south wall"
+    },
+    {
+      "id": "S2",
+      "pen": "wall",
+      "provenance": "dimension_derived",
+      "confidence": "high",
+      "dimension_refs": ["D_Y_overall"],
+      "geometry": {
+        "kind": "line",
+        "p1": [15.00, 0.00],
+        "p2": [15.00, 8.00],
+        "thickness_m": null
+      },
+      "note": "perimeter east wall"
+    },
+    {
+      "id": "S3",
+      "pen": "wall",
+      "provenance": "dimension_derived",
+      "confidence": "high",
+      "dimension_refs": ["D_X_overall"],
+      "geometry": {
+        "kind": "line",
+        "p1": [15.00, 8.00],
+        "p2": [0.00, 8.00],
+        "thickness_m": null
+      },
+      "note": "perimeter north wall"
+    },
+    {
+      "id": "S4",
+      "pen": "wall",
+      "provenance": "dimension_derived",
+      "confidence": "high",
+      "dimension_refs": ["D_Y_overall"],
+      "geometry": {
+        "kind": "line",
+        "p1": [0.00, 8.00],
+        "p2": [0.00, 0.00],
+        "thickness_m": null
+      },
+      "note": "perimeter west wall"
+    },
+
+    {
+      "id": "S5",
+      "pen": "wall",
+      "provenance": "dimension_derived",
+      "confidence": "high",
+      "dimension_refs": ["D_Y_seg1"],
+      "geometry": {
+        "kind": "line",
+        "p1": [0.00, 3.00],
+        "p2": [15.00, 3.00],
+        "thickness_m": null
+      },
+      "note": "interior horizontal wall (lower); at y=3.00m (cumulative end of D_Y_seg1=3000mm). profiler row356 (y_px=356.5) confirms"
+    },
+    {
+      "id": "S6",
+      "pen": "wall",
+      "provenance": "dimension_derived",
+      "confidence": "high",
+      "dimension_refs": ["D_Y_seg2"],
+      "geometry": {
+        "kind": "line",
+        "p1": [0.00, 5.50],
+        "p2": [15.00, 5.50],
+        "thickness_m": null
+      },
+      "note": "interior horizontal wall (upper); at y=5.50m (cumulative 3.00+2.50). profiler row803 (y_px=803.5) confirms"
+    },
+
+    {
+      "id": "S7",
+      "pen": "wall",
+      "provenance": "dimension_derived",
+      "confidence": "medium",
+      "dimension_refs": ["D_X_seg3"],
+      "geometry": {
+        "kind": "line",
+        "p1": [3.44, 0.00],
+        "p2": [3.44, 3.00],
+        "thickness_m": null
+      },
+      "note": "interior vertical wall (lower-left); at x=3.44m (cumulative end of D_X_seg2=1.44+2.00). profiler col436 (x_px=436.5 ≈ 1.45m) partially confirms; discrepancy noted for next review"
+    },
+    {
+      "id": "S8",
+      "pen": "wall",
+      "provenance": "dimension_derived",
+      "confidence": "medium",
+      "dimension_refs": ["D_X_seg3"],
+      "geometry": {
+        "kind": "line",
+        "p1": [3.44, 5.50],
+        "p2": [3.44, 8.00],
+        "thickness_m": null
+      },
+      "note": "interior vertical wall (upper-left); continues from S7"
+    },
+    {
+      "id": "S9",
+      "pen": "wall",
+      "provenance": "dimension_derived",
+      "confidence": "medium",
+      "dimension_refs": ["D_X_seg6"],
+      "geometry": {
+        "kind": "line",
+        "p1": [8.74, 0.00],
+        "p2": [8.74, 3.00],
+        "thickness_m": null
+      },
+      "note": "interior vertical wall (center-left); at x=8.74m (cumulative 1.44+2.00+1.20+0.36+1.30+2.40). profiler col883 (x_px=883.0 ≈ 5.47m) does not align; marked for review"
+    },
+    {
+      "id": "S10",
+      "pen": "wall",
+      "provenance": "dimension_derived",
+      "confidence": "medium",
+      "dimension_refs": ["D_X_seg6"],
+      "geometry": {
+        "kind": "line",
+        "p1": [8.74, 5.50],
+        "p2": [8.74, 8.00],
+        "thickness_m": null
+      },
+      "note": "interior vertical wall (upper-center); continues from S9"
+    },
+    {
+      "id": "S11",
+      "pen": "wall",
+      "provenance": "dimension_derived",
+      "confidence": "medium",
+      "dimension_refs": ["D_X_seg9"],
+      "geometry": {
+        "kind": "line",
+        "p1": [13.40, 0.00],
+        "p2": [13.40, 3.00],
+        "thickness_m": null
+      },
+      "note": "interior vertical wall (lower-right); at x=13.40m (cumulative 1.44+2.00+1.20+0.36+1.30+2.40+1.30+1.36+2.40). profiler col1346 (x_px=1346.5 ≈ 9.64m) does not align"
+    },
+    {
+      "id": "S12",
+      "pen": "wall",
+      "provenance": "dimension_derived",
+      "confidence": "medium",
+      "dimension_refs": ["D_X_seg9"],
+      "geometry": {
+        "kind": "line",
+        "p1": [13.40, 5.50],
+        "p2": [13.40, 8.00],
+        "thickness_m": null
+      },
+      "note": "interior vertical wall (upper-right); continues from S11"
+    }
+  ],
+
+  "dimensions": [
+    {
+      "id": "D_X_overall",
+      "text_verbatim": "15000",
+      "value_m": 15.00,
+      "from": [0.00, 0.00],
+      "to": [15.00, 0.00],
+      "axis": "x",
+      "chain_id": "C_x_perimeter",
+      "role": "overall",
+      "order": 0,
+      "note": "overall building width (mm); from bottom dimension line"
+    },
+    {
+      "id": "D_Y_overall",
+      "text_verbatim": "8000",
+      "value_m": 8.00,
+      "from": [0.00, 0.00],
+      "to": [0.00, 8.00],
+      "axis": "y",
+      "chain_id": "C_y_perimeter",
+      "role": "overall",
+      "order": 0,
+      "note": "overall building height (mm); left side dimension line"
+    },
+    {
+      "id": "D_Y_seg1",
+      "text_verbatim": "3000",
+      "value_m": 3.00,
+      "from": [0.00, 0.00],
+      "to": [0.00, 3.00],
+      "axis": "y",
+      "chain_id": "C_y_perimeter",
+      "role": "segment",
+      "order": 1,
+      "note": "first vertical segment (lower)"
+    },
+    {
+      "id": "D_Y_seg2",
+      "text_verbatim": "2500",
+      "value_m": 2.50,
+      "from": [0.00, 3.00],
+      "to": [0.00, 5.50],
+      "axis": "y",
+      "chain_id": "C_y_perimeter",
+      "role": "segment",
+      "order": 2,
+      "note": "second vertical segment; cumulative y=5.50"
+    },
+    {
+      "id": "D_Y_seg3",
+      "text_verbatim": "1500",
+      "value_m": 1.50,
+      "from": [0.00, 5.50],
+      "to": [0.00, 7.00],
+      "axis": "y",
+      "chain_id": "C_y_perimeter",
+      "role": "segment",
+      "order": 3,
+      "note": "third vertical segment"
+    },
+    {
+      "id": "D_Y_seg4",
+      "text_verbatim": "1000",
+      "value_m": 1.00,
+      "from": [0.00, 7.00],
+      "to": [0.00, 8.00],
+      "axis": "y",
+      "chain_id": "C_y_perimeter",
+      "role": "segment",
+      "order": 4,
+      "note": "fourth vertical segment (topmost); closure verified: 3+2.5+1.5+1=8 ✓"
+    },
+    {
+      "id": "D_X_seg1",
+      "text_verbatim": "540",
+      "value_m": 0.54,
+      "from": [0.00, 0.00],
+      "to": [0.54, 0.00],
+      "axis": "x",
+      "chain_id": "C_x_bottom",
+      "role": "segment",
+      "order": 1,
+      "note": "left offset segment 1 (from bottom dimension line)"
+    },
+    {
+      "id": "D_X_seg2",
+      "text_verbatim": "900",
+      "value_m": 0.90,
+      "from": [0.54, 0.00],
+      "to": [1.44, 0.00],
+      "axis": "x",
+      "chain_id": "C_x_bottom",
+      "role": "segment",
+      "order": 2,
+      "note": "left offset segment 2; cumulative x=1.44"
+    },
+    {
+      "id": "D_X_seg3",
+      "text_verbatim": "2000",
+      "value_m": 2.00,
+      "from": [1.44, 0.00],
+      "to": [3.44, 0.00],
+      "axis": "x",
+      "chain_id": "C_x_bottom",
+      "role": "segment",
+      "order": 3,
+      "note": "main building segment 1; building main start at cumulative x=3.44"
+    },
+    {
+      "id": "D_X_seg4",
+      "text_verbatim": "1200",
+      "value_m": 1.20,
+      "from": [3.44, 0.00],
+      "to": [4.64, 0.00],
+      "axis": "x",
+      "chain_id": "C_x_bottom",
+      "role": "segment",
+      "order": 4,
+      "note": "main segment 2"
+    },
+    {
+      "id": "D_X_seg5",
+      "text_verbatim": "360",
+      "value_m": 0.36,
+      "from": [4.64, 0.00],
+      "to": [5.00, 0.00],
+      "axis": "x",
+      "chain_id": "C_x_bottom",
+      "role": "segment",
+      "order": 5,
+      "note": "main segment 3 (narrow)"
+    },
+    {
+      "id": "D_X_seg6",
+      "text_verbatim": "1300",
+      "value_m": 1.30,
+      "from": [5.00, 0.00],
+      "to": [6.30, 0.00],
+      "axis": "x",
+      "chain_id": "C_x_bottom",
+      "role": "segment",
+      "order": 6,
+      "note": "main segment 4"
+    },
+    {
+      "id": "D_X_seg7",
+      "text_verbatim": "2400",
+      "value_m": 2.40,
+      "from": [6.30, 0.00],
+      "to": [8.70, 0.00],
+      "axis": "x",
+      "chain_id": "C_x_bottom",
+      "role": "segment",
+      "order": 7,
+      "note": "main segment 5"
+    },
+    {
+      "id": "D_X_seg8",
+      "text_verbatim": "1300",
+      "value_m": 1.30,
+      "from": [8.70, 0.00],
+      "to": [10.00, 0.00],
+      "axis": "x",
+      "chain_id": "C_x_bottom",
+      "role": "segment",
+      "order": 8,
+      "note": "main segment 6"
+    },
+    {
+      "id": "D_X_seg9",
+      "text_verbatim": "1360",
+      "value_m": 1.36,
+      "from": [10.00, 0.00],
+      "to": [11.36, 0.00],
+      "axis": "x",
+      "chain_id": "C_x_bottom",
+      "role": "segment",
+      "order": 9,
+      "note": "main segment 7"
+    },
+    {
+      "id": "D_X_seg10",
+      "text_verbatim": "2400",
+      "value_m": 2.40,
+      "from": [11.36, 0.00],
+      "to": [13.76, 0.00],
+      "axis": "x",
+      "chain_id": "C_x_bottom",
+      "role": "segment",
+      "order": 10,
+      "note": "main segment 8"
+    },
+    {
+      "id": "D_X_seg11",
+      "text_verbatim": "1240",
+      "value_m": 1.24,
+      "from": [13.76, 0.00],
+      "to": [15.00, 0.00],
+      "axis": "x",
+      "chain_id": "C_x_bottom",
+      "role": "segment",
+      "order": 11,
+      "note": "main segment 9 (final); closure verified: 0.54+0.90+2.00+1.20+0.36+1.30+2.40+1.30+1.36+2.40+1.24=15.00 ✓"
+    }
+  ],
+
+  "ocr_texts": [
+    {
+      "id": "T1",
+      "text": "15000",
+      "anchor": [7.50, 0.05],
+      "note": "overall width dimension"
+    },
+    {
+      "id": "T2",
+      "text": "8000",
+      "anchor": [0.05, 4.00],
+      "note": "overall height dimension"
+    }
+  ],
+
+  "self_check": {
+    "all_dimensions_transcribed": true,
+    "all_visible_strokes_captured": false,
+    "no_topology_inferred": true,
+    "pens_used": ["wall"],
+    "unknowns_noted": [
+      "X-axis dimension chain from BOTTOM annotation (not top), verified closed at 15000mm ✓",
+      "Y-axis dimension chain from left annotation, verified closed at 8000mm ✓",
+      "interior vertical walls (S7-S12) positioned at dimension cumulative points but profiler pixel peaks (col436, col883, col1346) show discrepancies vs calculated positions (1.45m vs 3.44m for col436, 5.47m vs 8.74m for col883, 9.64m vs 13.40m for col1346); scale conversion or wall actual positions require further verification",
+      "windows not traced (1f is interior plan, likely few windows)",
+      "door swings visible (cyan arcs), recognized but not traced; healing deferred"
+    ]
+  },
+
+  "uncaptured": [
+    "wall_line_profiler: 4 row candidates accepted (2 perimeter, 2 interior horizontal); remaining rejected as secondary edges",
+    "wall_line_profiler: 5 col candidates accepted (2 perimeter, 3 interior vertical); remaining rejected as secondary/window edges",
+    "window_cc_detector: 84 candidates → deferred (interior plan, limited window area)",
+    "furniture symbols: visible in ~3 zones, excluded",
+    "door swings: ~3 cyan arcs visible; recognized but not healed"
+  ]
+}

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import io
 import json
 import re
@@ -463,7 +464,11 @@ def test_guard_with_transcript_path_still_denies_illegal_tool_input(tmp_path: Pa
 @pytest.mark.parametrize(
     "command",
     [
-        "python -c 'print(1)'",
+        # 2026-08-16: `python -c 'print(1)'` MOVED OUT of this list — it is now
+        # allowed on purpose (A3 removal). See
+        # test_guard_allows_reader_authored_computation. Everything left here is
+        # denied for a reason that survived that change: shell structure, cwd/env
+        # manipulation, or the information boundary itself.
         "python tools/run_cv_probe.py --request request.json; ls",
         "cd case_data",
         "env python tools/run_cv_probe.py --request request.json",
@@ -1372,14 +1377,22 @@ def test_guard_r3_default_stays_fail_closed_after_free_text_exemptions(
         ("read_case_tests", {"tool_name": "Read", "tool_input": {"file_path": "case_tests/e2e_tests/sm21_anchor/case_data/1f_view.png"}}),
         ("abs_outside", {"tool_name": "Read", "tool_input": {"file_path": "/etc/passwd"}}),
         ("non_allowlisted_cmd", {"tool_name": "Bash", "tool_input": {"command": "rm -rf out"}}),
-        ("python_c", {"tool_name": "Bash", "tool_input": {"command": "python -c 'print(1)'"}}),
+        # 2026-08-16: `python -c 'print(1)'` was listed here as security property
+        # #5 and is now ALLOWED on purpose. It was never an information-boundary
+        # property — running a program reveals nothing by itself — it was a
+        # capability lockdown filed under the security heading, which is exactly
+        # the conflation the 2026-08-02 ruling names. What the boundary actually
+        # needs is that a program cannot REACH the answers, and that is locked by
+        # test_guard_information_boundary_survives_a3_removal (including the
+        # `-c` form) and test_guard_scans_the_bytes_that_will_run_not_the_command_line.
         ("compound_token", {"tool_name": "Bash", "tool_input": {"command": "ls; whoami"}}),
     ],
 )
 def test_guard_security_properties_stay_denied(tmp_path: Path, label: str, payload: dict):
-    """S2b regression locks: six of the eight required security properties stay
-    red->deny through the prose-scan relaxation. (Property 4 symlink escape and
-    property 8 request-file forbidden token have dedicated tests below.)"""
+    """S2b regression locks: the required security properties stay red->deny
+    through the prose-scan relaxation and the 2026-08-16 A3 removal. (Property 4
+    symlink escape and property 8 request-file forbidden token have dedicated
+    tests below.)"""
     staging = _build(tmp_path).staging_root
     proc = _hook_payload(staging, payload)
     assert proc.returncode == 2, (label, proc.stderr)
@@ -1788,17 +1801,17 @@ def test_guard_missing_direct_value_receipt_includes_the_required_pair_syntax(tm
 @pytest.mark.parametrize(
     ("command", "expected"),
     [
+        # 2026-08-16: the safe next step for each of these changed with A3
+        # removal, because the reader now HAS a general way out — its own Python.
+        # `find` left this list entirely: it is allowlisted now, so there is no
+        # denial left to carry advice.
         (
             "python tools/run_cv_probe.py --tool crop_zoom --image case_data/1f_view.png --out-dir out/cv | tee out/log",
-            "remove the pipe and rerun the same python tools/run_cv_probe.py command directly",
+            "express the pipeline in the Python program instead",
         ),
         (
             "mkdir out/new_probe_dir",
-            "out/ and requests/ are already provisioned",
-        ),
-        (
-            "find case_data -type f",
-            "use ls case_data to list the copied input images",
+            "run it from Python instead",
         ),
     ],
 )
@@ -1923,16 +1936,32 @@ def test_guard_denies_illegal_direct_probe_shapes(tmp_path: Path, label: str, ar
 
 
 _DIRECT_BASH_BOUNDARY_SHAPES = [
+        # 2026-08-16 (A3 removal) reshaped this list. Three shapes left it and
+        # each departure is deliberate:
+        #   `python -c` and reader-authored scripts are the capability this round
+        #     restores, so they moved to the positive tests below;
+        #   `cat case_data/...` is now an allowlisted read whose path goes through
+        #     the same normalization `ls` always used.
+        # `tools/cv_probe.py` stays here and is the load-bearing one: the raw CLI
+        # must NOT become executable just because scripts did, or the 08-15
+        # prescan withdrawal silently reverses.
         ("other_script_direct_form",
          "python tools/cv_probe.py --tool crop_zoom --image case_data/1f_view.png --out-dir out/cv"),
         ("other_script_request_form", "python tools/other.py --request requests/probe.json"),
-        ("python_dash_c", "python -c 'print(1)'"),
         ("python_alone", "python"),
         ("compound_token_after_direct_form",
          "python tools/run_cv_probe.py --tool crop_zoom --image case_data/1f_view.png --out-dir out/cv | tee x"),
         ("redirect_after_direct_form",
          "python tools/run_cv_probe.py --tool crop_zoom --image case_data/1f_view.png --out-dir out/cv > out/log"),
-        ("not_allowlisted_command", "cat case_data/1f_view.png"),
+        ("script_outside_writable_dirs", "python skills/whatever.py"),
+        ("nonexistent_script", "python out/never_written.py"),
+        # `-m` names an installed module, so its code never reaches the scan.
+        # `pip` would fetch from the network and mutate the environment;
+        # `http.server` would open a socket. Neither is caught by scanning a bare
+        # module name, and neither is a computation the reader loses: everything
+        # importable via -m is importable from -c, where the code IS scanned.
+        ("module_form_pip", "python -m pip install requests"),
+        ("module_form_server", "python -m http.server"),
 ]
 
 
@@ -2497,3 +2526,335 @@ def test_merge_existing_corrupt_aggregate_is_rejected_instead_of_assembled(
     assert not (run_dir / "0_reading" / "attempts").exists() or not list(
         (run_dir / "0_reading" / "attempts").iterdir()
     )
+
+
+# ---------------------------------------------------------------------------
+# 2026-08-16 — A3 removal ("能力封口" withdrawn).
+#
+# WHAT CHANGED AND WHY IT IS NOT A LOOSENING OF THE ISOLATION:
+# The 2026-08-02 ruling (CLAUDE.md §1.5 #7) is that isolation must "严格限制可见
+# 信息与写出边界，不限制在合法输入上采用何种计算方法" — and it names shutting
+# down general CV programming by command shape as the thing NOT to do. Until this
+# batch the guard did exactly that: `python -c` -> DENY, any self-written script
+# -> DENY. These tests pin the new split: the reader may run its own code, and
+# the boundary that decides what it may SEE moved from "which command was typed"
+# to "which bytes are about to run".
+#
+# Every test here drives the real hook against a real staging workspace, so a
+# regression shows up as a behaviour change and not as a diff in a constant.
+# ---------------------------------------------------------------------------
+
+_READER_COMPUTATION_ALLOWED = [
+    ("dash_c", "python -c 'import numpy; print(numpy.__version__)'"),
+    # Division, comparison and `;` are ordinary Python. They are also the shell
+    # operators the pre-2026-08-16 substring scan refused ANYWHERE in the command
+    # line, which would have made the newly-legal form unusable in practice —
+    # the lockdown reappearing through the side door.
+    ("division_operator", "python -c 'print(15 / 2)'"),
+    ("comparison_operators", "python -c 'print(3 > 2)'"),
+    ("statement_separator", "python -c 'import numpy as np; print(np.pi)'"),
+    # Reading a file was never a capability worth locking: every path below goes
+    # through the same `_path_arg` normalization `ls` already used.
+    ("read_own_file", "cat out/measure.py"),
+    ("head_own_file", "head out/measure.py"),
+]
+
+
+@pytest.mark.parametrize(
+    ("label", "command"), _READER_COMPUTATION_ALLOWED,
+    ids=[case[0] for case in _READER_COMPUTATION_ALLOWED],
+)
+def test_guard_allows_reader_authored_computation(tmp_path: Path, label: str, command: str):
+    staging = _build(tmp_path).staging_root
+    (staging / "out" / "measure.py").write_text("print(1)\n", encoding="utf-8")
+    (staging / "out" / "x.json").write_text("{}", encoding="utf-8")
+    proc = _hook(staging, command)
+    assert proc.returncode == 0, (label, proc.stderr)
+
+
+def test_guard_allows_running_a_script_the_reader_wrote(tmp_path: Path):
+    """The headline positive: write a measurement program, then run it."""
+    staging = _build(tmp_path).staging_root
+    (staging / "out" / "measure.py").write_text(
+        "import numpy as np\nfrom PIL import Image\n"
+        "img = np.array(Image.open('case_data/1f_view.png').convert('L'))\n"
+        "print(img.shape)\n",
+        encoding="utf-8",
+    )
+    proc = _hook(staging, "python out/measure.py")
+    assert proc.returncode == 0, proc.stderr
+
+
+def test_guard_scans_the_bytes_that_will_run_not_the_command_line(tmp_path: Path):
+    """The load-bearing test of the whole batch.
+
+    `python out/leak.py` carries no forbidden token — the command line is clean
+    no matter what the file holds. If the guard kept scanning only the command,
+    allowing scripts would have opened the answer directory in one line. So the
+    scan follows the bytes.
+    """
+    staging = _build(tmp_path).staging_root
+    gt = "/workspaces/EnergyPlus-Agent-dev/case_tests/test_baseline/gt/sm21_anchor/gt.json"
+    command = "python out/leak.py"
+
+    # Self-check FIRST, and with the same command and the same filename: only the
+    # bytes differ between the two halves. Without this half the test would still
+    # pass if the deny came from the command line, i.e. it would be testing
+    # nothing — the "prove the probe can see its target" discipline.
+    (staging / "out" / "leak.py").write_text("print(1)\n", encoding="utf-8")
+    assert _hook(staging, command).returncode == 0, "the command itself must be clean"
+
+    (staging / "out" / "leak.py").write_text(f"print(open({gt!r}).read())\n", encoding="utf-8")
+    proc = _hook(staging, command)
+    assert proc.returncode == 2, proc.stdout
+    assert "leak.py" in proc.stderr, proc.stderr
+
+
+def test_guard_scans_the_whole_import_surface_not_just_the_entry_script(tmp_path: Path):
+    """Entry script clean, helper dirty — `import helper` would otherwise be a
+    one-line bypass of the file scan."""
+    staging = _build(tmp_path).staging_root
+    gt = "/workspaces/EnergyPlus-Agent-dev/case_tests/test_baseline/gt/sm21_anchor/gt.json"
+    (staging / "out" / "main.py").write_text("import helper\nprint(helper.PATH)\n", encoding="utf-8")
+    (staging / "out" / "helper.py").write_text(f"PATH = {gt!r}\n", encoding="utf-8")
+    denied = _hook(staging, "python out/main.py")
+    assert denied.returncode == 2, denied.stdout
+    assert "helper.py" in denied.stderr, denied.stderr
+
+    # ...and the SAME command is allowed once the dirty file is gone, which is
+    # what proves the deny came from the helper and not from `main.py`.
+    (staging / "out" / "helper.py").unlink()
+    assert _hook(staging, "python out/main.py").returncode == 0
+
+
+_EXEC_BOUNDARY_DENIED = [
+    ("dash_c_reads_answers",
+     "python -c 'print(open(\"/workspaces/EnergyPlus-Agent-dev/case_tests/test_baseline/gt/x/gt.json\").read())'"),
+    # `$HOME` reaches outside staging while no forbidden token ever appears in
+    # the command — the shell substitutes it after the guard has looked.
+    ("shell_expansion", 'python -c "print(open(\'$HOME/x\').read())"'),
+    ("command_substitution", "python -c 'print(1)' `ls`"),
+    ("pipe_stays_denied", "python out/measure.py | head"),
+    ("cat_reaches_answers",
+     "cat /workspaces/EnergyPlus-Agent-dev/case_tests/test_baseline/gt/x/gt.json"),
+]
+
+
+@pytest.mark.parametrize(
+    ("label", "command"), _EXEC_BOUNDARY_DENIED,
+    ids=[case[0] for case in _EXEC_BOUNDARY_DENIED],
+)
+def test_guard_information_boundary_survives_a3_removal(tmp_path: Path, label: str, command: str):
+    staging = _build(tmp_path).staging_root
+    (staging / "out" / "measure.py").write_text("print(1)\n", encoding="utf-8")
+    proc = _hook(staging, command)
+    assert proc.returncode == 2, (label, proc.stdout)
+
+
+@pytest.mark.parametrize(
+    ("label", "body", "fragment"),
+    [
+        ("network_egress", "import urllib.request\n", "network egress"),
+        ("raw_socket", "import socket\n", "network egress"),
+        ("child_process", "import subprocess\n", "child process"),
+    ],
+)
+def test_guard_refuses_egress_and_indirection_inside_executed_code(
+    tmp_path: Path, label: str, body: str, fragment: str
+):
+    """The two exec-only refusals, and they are NOT capability lockdowns:
+    outbound network is named by the 2026-08-02 ruling as something isolation
+    must prevent, and a child process computes nothing new — it only moves the
+    work out of the guard's view, since only the top-level Bash call is hooked.
+    """
+    staging = _build(tmp_path).staging_root
+    (staging / "out" / "prog.py").write_text(body, encoding="utf-8")
+    proc = _hook(staging, "python out/prog.py")
+    assert proc.returncode == 2, proc.stdout
+    assert fragment in proc.stderr, proc.stderr
+
+
+def test_guard_does_not_brick_python_over_prose_words_in_code(tmp_path: Path):
+    """Regression guard for a trap this design walked into once already.
+
+    'grade' (室外地坪线), 'attempts' and 'verdict' are this project's own
+    vocabulary, and the repo already rules them legal in a reader's prose
+    (test_guard_allows_reading_summary_with_prose_forbidden_tokens). Scanning
+    executed code with the full DENY_TOKENS list would mean one comment disables
+    every Python call for the rest of a one-shot session — the lockdown coming
+    back as an accident rather than a decision.
+    """
+    staging = _build(tmp_path).staging_root
+    (staging / "out" / "prog.py").write_text(
+        "# grade line at 0.000; earlier attempts and the judge verdict are prose\n"
+        "print('ok')\n",
+        encoding="utf-8",
+    )
+    assert _hook(staging, "python out/prog.py").returncode == 0
+
+
+def test_prescan_withdrawal_is_not_reversed_by_the_executable_surface(tmp_path: Path):
+    """08-15 D1 withdrew prescan from the reader's option set. Making scripts
+    executable must not hand it back through `tools/cv_probe.py`, or this round
+    would be changing two variables at once and its result would be unreadable.
+    """
+    staging = _build(tmp_path).staging_root
+    assert (staging / "tools" / "cv_probe.py").exists(), "the CLI is staged; that is the point"
+    proc = _hook(
+        staging,
+        "python tools/cv_probe.py prescan-plan --image case_data/1f_view.png --out-dir out/cv",
+    )
+    assert proc.returncode == 2, proc.stdout
+
+
+def test_access_log_records_the_payload_on_allow_too(tmp_path: Path):
+    """F-44. The excerpt used to be a deny-only field, so the ALLOWED surface —
+    the only one that can carry anything out of the clean room — left nothing
+    behind but a hash of the payload. A hash proves two entries are identical; it
+    cannot tell an auditor what ran, which is what made "was this reading
+    produced without touching the answers?" unanswerable after the fact.
+    """
+    staging = _build(tmp_path).staging_root
+    program = "import numpy as np; print(np.pi)"
+    assert _hook(staging, f"python -c '{program}'").returncode == 0
+
+    entry = json.loads((staging / "access_log.jsonl").read_text(encoding="utf-8").splitlines()[-1])
+    assert entry["decision"] == "allow"
+    assert program in entry["tool_input_excerpt"]
+    # The code that ran is hashed, so editing the file afterwards cannot rewrite
+    # the record of what was authorized.
+    assert entry["executed_code"] == [
+        {"path": "-c", "sha256": hashlib.sha256(program.encode("utf-8")).hexdigest()}
+    ]
+
+
+def test_access_log_hashes_every_scanned_script(tmp_path: Path):
+    staging = _build(tmp_path).staging_root
+    (staging / "out" / "main.py").write_text("import helper\n", encoding="utf-8")
+    (staging / "out" / "helper.py").write_text("VALUE = 1\n", encoding="utf-8")
+    assert _hook(staging, "python out/main.py").returncode == 0
+
+    entry = json.loads((staging / "access_log.jsonl").read_text(encoding="utf-8").splitlines()[-1])
+    recorded = {item["path"]: item["sha256"] for item in entry["executed_code"]}
+    assert set(recorded) == {"out/main.py", "out/helper.py"}
+    for rel, digest in recorded.items():
+        assert digest == hashlib.sha256(
+            (staging / rel).read_text(encoding="utf-8").encode("utf-8")
+        ).hexdigest()
+
+
+# --- 2026-08-16 cross-family review (sol) BLOCKER + the variant it did not reach ---
+# The first version of the exec scan covered `*.py` ONLY. sol reproduced the hole
+# end to end; reviewing my own fix surfaced a second shape that needs no `exec` at
+# all. Both are ORDINARY Python, not obfuscation, which is why they matter: the
+# stated threat model covers a reader taking an easy path, and these were easy.
+
+def test_exec_scan_covers_code_carried_by_a_non_py_file(tmp_path: Path):
+    """sol's BLOCKER, verbatim: a clean `.py` execs a `.txt` the scan never read."""
+    staging = _build(tmp_path).staging_root
+    gt = "/workspaces/EnergyPlus-Agent-dev/case_tests/test_baseline/gt/sm21_anchor/gt.json"
+    (staging / "out" / "payload.txt").write_text(
+        f"from pathlib import Path\nprint(Path({gt!r}).exists())\n", encoding="utf-8"
+    )
+    (staging / "out" / "runner.py").write_text(
+        "from pathlib import Path\nexec(Path('out/payload.txt').read_text())\n", encoding="utf-8"
+    )
+    proc = _hook(staging, "python out/runner.py")
+    assert proc.returncode == 2, proc.stdout
+
+
+def test_exec_scan_covers_a_path_carried_by_a_non_py_file(tmp_path: Path):
+    """The variant with no dynamic execution at all: the `.txt` carries the PATH,
+    and a completely ordinary program opens it. Denying `exec` alone would not
+    have caught this — which is why the FILE SET, not just the mechanism, moved.
+    """
+    staging = _build(tmp_path).staging_root
+    gt = "/workspaces/EnergyPlus-Agent-dev/case_tests/test_baseline/gt/sm21_anchor/gt.json"
+    (staging / "out" / "target.txt").write_text(gt + "\n", encoding="utf-8")
+    (staging / "out" / "reader.py").write_text(
+        "p = open('out/target.txt').read().strip()\nprint(open(p).read())\n", encoding="utf-8"
+    )
+    proc = _hook(staging, "python out/reader.py")
+    assert proc.returncode == 2, proc.stdout
+
+
+@pytest.mark.parametrize(
+    "code",
+    ["import importlib", "exec('x=1')", "eval('1+1')", "import pickle", "import runpy"],
+)
+def test_dynamic_execution_is_refused_by_name(tmp_path: Path, code: str):
+    """The mechanism is refused independently of where the bytes live, so the two
+    defences do not depend on each other."""
+    staging = _build(tmp_path).staging_root
+    assert _hook(staging, f"python -c '{code}'").returncode == 2
+
+
+def test_binary_artifacts_do_not_block_execution(tmp_path: Path):
+    """Negative control for the fix: `out/` fills up with crop PNGs and overlays
+    during a real run. If widening the scan to every file had made those a hard
+    error, the capability this batch restores would be unusable in practice — and
+    that failure would only appear after the first CV call, not in any unit test
+    that forgets to put a binary there.
+    """
+    staging = _build(tmp_path).staging_root
+    (staging / "out" / "measure.py").write_text("print(1)\n", encoding="utf-8")
+    (staging / "out" / "crop.png").write_bytes(b"\x89PNG\r\n\x1a\n" + bytes(range(256)) * 400)
+    assert _hook(staging, "python out/measure.py").returncode == 0
+
+
+def test_scanned_non_code_files_are_not_logged_as_executed_code(tmp_path: Path):
+    """Widening the scan must not widen the CLAIM: a `.json` that was read as a
+    potential carrier did not RUN, and `executed_code` is an execution record.
+    """
+    staging = _build(tmp_path).staging_root
+    (staging / "out" / "measure.py").write_text("print(1)\n", encoding="utf-8")
+    (staging / "out" / "1f_view.json").write_text('{"strokes": []}', encoding="utf-8")
+    assert _hook(staging, "python out/measure.py").returncode == 0
+
+    entry = json.loads((staging / "access_log.jsonl").read_text(encoding="utf-8").splitlines()[-1])
+    assert [item["path"] for item in entry["executed_code"]] == ["out/measure.py"]
+
+
+@pytest.mark.parametrize(
+    ("label", "body"),
+    [
+        ("walk_from_root", "import os\nfor r, d, f in os.walk('/'):\n    print(r)\n    break\n"),
+        ("walk_from_root_double_quoted", 'import os\nfor r, d, f in os.walk("/"):\n    print(r)\n    break\n'),
+        ("root_via_os_sep", "import os\nfor r, d, f in os.walk(os.sep):\n    print(r)\n    break\n"),
+        ("home_directory", "from pathlib import Path\nprint(Path.home())\n"),
+        ("expanduser", "import os\nprint(os.path.expanduser('x'))\n"),
+        ("environment", "import os\nprint(os.environ)\n"),
+    ],
+)
+def test_paths_obtained_instead_of_written_are_refused(tmp_path: Path, label: str, body: str):
+    """A lexical scan can only judge paths that appear AS TEXT, so the way past it
+    is to never type one.
+
+    This whole class was missed on the first pass, and the review request shipped
+    with the claim that the pure-slash exemption "let no real path through".
+    `os.walk('/')` disproved that claim: zero forbidden tokens, whole filesystem.
+    The exemption exists for the division operator, and a quoted `'/'` is not
+    division — that is the distinction these cases pin.
+    """
+    staging = _build(tmp_path).staging_root
+    (staging / "out" / "prog.py").write_text(body, encoding="utf-8")
+    assert _hook(staging, "python out/prog.py").returncode == 2
+
+
+@pytest.mark.parametrize(
+    ("label", "body"),
+    [
+        ("spaced_division", "px, m = 60.7, 2.0\nprint(px / m)\n"),
+        ("relative_join", "import os\nprint(os.path.join('out', 'cv', 'x.json'))\n"),
+        ("real_measurement",
+         "import numpy as np\nfrom PIL import Image\n"
+         "img = np.array(Image.open('case_data/1f_view.png').convert('L'))\nprint(img.shape)\n"),
+    ],
+)
+def test_ordinary_measurement_code_survives_the_path_rules(tmp_path: Path, label: str, body: str):
+    """The negative control that keeps the rule above from becoming a lockdown:
+    spaced division is why the slash exemption exists at all, and it must still
+    work alongside the root-literal denial."""
+    staging = _build(tmp_path).staging_root
+    (staging / "out" / "prog.py").write_text(body, encoding="utf-8")
+    assert _hook(staging, "python out/prog.py").returncode == 0, body

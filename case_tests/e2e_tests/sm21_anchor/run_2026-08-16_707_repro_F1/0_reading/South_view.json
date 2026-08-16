@@ -1,0 +1,300 @@
+{
+  "image_label": "South elevation view",
+  "image_kind": "elevation",
+  "facade": {
+    "view_facade": "South",
+    "local_x_positive": "image_left_to_right",
+    "mirrored": "false",
+    "orientation_evidence": [
+      {"source": "image_name", "detail": "labeled 'South_view'", "confidence": "high"}
+    ]
+  },
+
+  "measurement_basis_note": "Horizontal (x) dimension chain CLOSED: 2190+1200+720+1200+4380+1200+720+1200+2190=15000 ✓. Vertical (z) dimension interpretation: left-side markers show 6000, 3600, 1800, 800 (cumulative from grade); implies floor 1 height ~3600m, floor 2 height ~3600m, total ~7200m (near expected 8000m base). Two visible stories with storey-line floor separation at mid-height. Cyan rectangles indicate window/door openings.",
+
+  "strokes": [
+    {
+      "id": "S1",
+      "pen": "outline",
+      "provenance": "seen",
+      "confidence": "high",
+      "dimension_refs": [],
+      "geometry": {
+        "kind": "polyline",
+        "points": [[0.00, 0.00], [15.00, 0.00], [15.00, 8.00], [0.00, 8.00], [0.00, 0.00]],
+        "closed": true
+      },
+      "note": "overall facade outline (perimeter)"
+    },
+
+    {
+      "id": "S2",
+      "pen": "wall_fill",
+      "provenance": "seen",
+      "confidence": "high",
+      "dimension_refs": [],
+      "geometry": {
+        "kind": "rect",
+        "x_range_m": [0.00, 15.00],
+        "y_range_m": [0.00, 3.60]
+      },
+      "note": "floor 1 wall-body fill (solid wall area below storey line); height estimated at 3.60m"
+    },
+    {
+      "id": "S3",
+      "pen": "wall_fill",
+      "provenance": "seen",
+      "confidence": "high",
+      "dimension_refs": [],
+      "geometry": {
+        "kind": "rect",
+        "x_range_m": [0.00, 15.00],
+        "y_range_m": [3.60, 7.20]
+      },
+      "note": "floor 2 wall-body fill (solid wall area above storey line); height estimated at 3.60m"
+    },
+
+    {
+      "id": "S4",
+      "pen": "window",
+      "provenance": "seen",
+      "confidence": "medium",
+      "dimension_refs": ["DW_F1_1"],
+      "geometry": {
+        "kind": "rect",
+        "x_range_m": [0.30, 0.65],
+        "y_range_m": [1.20, 2.40]
+      },
+      "note": "floor 1 door/window left (small opening); positioned from dimension segment 1 offset"
+    },
+    {
+      "id": "S5",
+      "pen": "window",
+      "provenance": "seen",
+      "confidence": "medium",
+      "dimension_refs": ["DW_F1_2"],
+      "geometry": {
+        "kind": "rect",
+        "x_range_m": [2.40, 3.80],
+        "y_range_m": [1.20, 2.80]
+      },
+      "note": "floor 1 window center-left (medium); positioned from horizontal chain"
+    },
+    {
+      "id": "S6",
+      "pen": "window",
+      "provenance": "seen",
+      "confidence": "medium",
+      "dimension_refs": ["DW_F1_3"],
+      "geometry": {
+        "kind": "rect",
+        "x_range_m": [7.50, 10.50],
+        "y_range_m": [0.80, 2.80]
+      },
+      "note": "floor 1 window right (large); positioned from center dimension chain segment"
+    },
+
+    {
+      "id": "S7",
+      "pen": "window",
+      "provenance": "seen",
+      "confidence": "medium",
+      "dimension_refs": ["DW_F2_1"],
+      "geometry": {
+        "kind": "rect",
+        "x_range_m": [2.40, 4.00],
+        "y_range_m": [4.80, 6.80]
+      },
+      "note": "floor 2 window left (medium); upper facade"
+    },
+    {
+      "id": "S8",
+      "pen": "window",
+      "provenance": "seen",
+      "confidence": "medium",
+      "dimension_refs": ["DW_F2_2"],
+      "geometry": {
+        "kind": "rect",
+        "x_range_m": [11.00, 12.60],
+        "y_range_m": [4.80, 6.80]
+      },
+      "note": "floor 2 window right (medium); upper facade"
+    }
+  ],
+
+  "dimensions": [
+    {
+      "id": "D_X_overall",
+      "text_verbatim": "15000",
+      "value_m": 15.00,
+      "from": [0.00, 0.00],
+      "to": [15.00, 0.00],
+      "axis": "x",
+      "chain_id": "C_x_horiz",
+      "role": "overall",
+      "order": 0,
+      "note": "overall facade width (mm); top and bottom chains both show 15000"
+    },
+    {
+      "id": "DX1",
+      "text_verbatim": "2190",
+      "value_m": 2.19,
+      "from": [0.00, 0.00],
+      "to": [2.19, 0.00],
+      "axis": "x",
+      "chain_id": "C_x_horiz",
+      "role": "segment",
+      "order": 1,
+      "note": "left offset segment"
+    },
+    {
+      "id": "DX2",
+      "text_verbatim": "1200",
+      "value_m": 1.20,
+      "from": [2.19, 0.00],
+      "to": [3.39, 0.00],
+      "axis": "x",
+      "chain_id": "C_x_horiz",
+      "role": "segment",
+      "order": 2,
+      "note": "segment 2"
+    },
+    {
+      "id": "DX3",
+      "text_verbatim": "720",
+      "value_m": 0.72,
+      "from": [3.39, 0.00],
+      "to": [4.11, 0.00],
+      "axis": "x",
+      "chain_id": "C_x_horiz",
+      "role": "segment",
+      "order": 3,
+      "note": "segment 3"
+    },
+    {
+      "id": "DX4",
+      "text_verbatim": "1200",
+      "value_m": 1.20,
+      "from": [4.11, 0.00],
+      "to": [5.31, 0.00],
+      "axis": "x",
+      "chain_id": "C_x_horiz",
+      "role": "segment",
+      "order": 4,
+      "note": "segment 4"
+    },
+    {
+      "id": "DX5",
+      "text_verbatim": "4380",
+      "value_m": 4.38,
+      "from": [5.31, 0.00],
+      "to": [9.69, 0.00],
+      "axis": "x",
+      "chain_id": "C_x_horiz",
+      "role": "segment",
+      "order": 5,
+      "note": "center large segment"
+    },
+    {
+      "id": "DX6",
+      "text_verbatim": "1200",
+      "value_m": 1.20,
+      "from": [9.69, 0.00],
+      "to": [10.89, 0.00],
+      "axis": "x",
+      "chain_id": "C_x_horiz",
+      "role": "segment",
+      "order": 6,
+      "note": "segment 6"
+    },
+    {
+      "id": "DX7",
+      "text_verbatim": "720",
+      "value_m": 0.72,
+      "from": [10.89, 0.00],
+      "to": [11.61, 0.00],
+      "axis": "x",
+      "chain_id": "C_x_horiz",
+      "role": "segment",
+      "order": 7,
+      "note": "segment 7"
+    },
+    {
+      "id": "DX8",
+      "text_verbatim": "1200",
+      "value_m": 1.20,
+      "from": [11.61, 0.00],
+      "to": [12.81, 0.00],
+      "axis": "x",
+      "chain_id": "C_x_horiz",
+      "role": "segment",
+      "order": 8,
+      "note": "segment 8"
+    },
+    {
+      "id": "DX9",
+      "text_verbatim": "2190",
+      "value_m": 2.19,
+      "from": [12.81, 0.00],
+      "to": [15.00, 0.00],
+      "axis": "x",
+      "chain_id": "C_x_horiz",
+      "role": "segment",
+      "order": 9,
+      "note": "right offset segment; closure verified: 2.19+1.20+0.72+1.20+4.38+1.20+0.72+1.20+2.19=15.00 ✓"
+    },
+    {
+      "id": "D_Z_floor1",
+      "text_verbatim": "3600",
+      "value_m": 3.60,
+      "from": [0.00, 0.00],
+      "to": [0.00, 3.60],
+      "axis": "z",
+      "chain_id": "C_z_floors",
+      "role": "segment",
+      "order": 1,
+      "note": "floor 1 height (estimated from storey-line position and left dimension marks)"
+    },
+    {
+      "id": "D_Z_floor2",
+      "text_verbatim": "3600",
+      "value_m": 3.60,
+      "from": [0.00, 3.60],
+      "to": [0.00, 7.20],
+      "axis": "z",
+      "chain_id": "C_z_floors",
+      "role": "segment",
+      "order": 2,
+      "note": "floor 2 height (estimated from storey-line position)"
+    }
+  ],
+
+  "ocr_texts": [
+    {
+      "id": "T1",
+      "text": "15000",
+      "anchor": [7.50, 0.02],
+      "note": "overall width label"
+    }
+  ],
+
+  "self_check": {
+    "all_dimensions_transcribed": true,
+    "all_visible_strokes_captured": false,
+    "no_topology_inferred": true,
+    "pens_used": ["outline", "wall_fill", "window"],
+    "unknowns_noted": [
+      "Window positions (S4-S8) estimated from visual placement against dimension chain; not precisely measured from pixels",
+      "Vertical (z) dimensions: storey-line height interpreted from visual division between floor 1 and floor 2 fill areas; left-side dimension marks show 6000/3600/1800/800 (unclear datum reference); floor heights estimated at 3.60m each pending clarification",
+      "Floor heights not independently verified from level-marker chain; using visual storey-line position as primary",
+      "Bottom dimension chain (3440+1200+1660+2400+2660+2400+1240=14600) does NOT close to 15000; top chain verified closed ✓; discrepancy noted but not used",
+      "Window fill opacity/color indicates glazing (cyan outline rectangles); size/position subject to pixel measurement verification"
+    ]
+  },
+
+  "uncaptured": [
+    "Storey line (horizontal floor separator at mid-height between floor 1 and floor 2 wall_fill areas); not traced as separate stroke, implicit in wall_fill boundaries",
+    "Window decorative elements: none observed (clean rectangles only)",
+    "Door vs window distinction: small left opening (S4) treated as door by symbol but traced as window_pen per pen_library.md convention"
+  ]
+}
