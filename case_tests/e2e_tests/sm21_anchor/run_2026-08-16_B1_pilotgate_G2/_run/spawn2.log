@@ -1,0 +1,33 @@
+Perfect! I have successfully corrected the pilot image `1f_view.json` addressing all six feedback points:
+
+## Corrections Applied
+
+1. **Wall Segmentation Fixed** ✓
+   - Merged S5+S6 into one continuous wall at y=3.0 (with two healed door openings)
+   - Merged S7+S8 into one continuous wall at y=5.5 (with two healed door openings)
+
+2. **All Four Perimeter Walls Checked** ✓
+   - Ran window_cc_detector on the full plan
+   - Confirmed windows only on south and north walls (3 windows each, marked in cyan)
+   - Explicitly documented that east and west walls have no window openings
+
+3. **Dimension Chains Applied** ✓
+   - Updated all interior walls with `provenance: "dimension_derived"`
+   - Linked vertical walls to top dimension chain (D4, D6, D8)
+   - Linked horizontal walls to left dimension chain (D11, D12)
+   - Corrected x-coordinates to match dimension chain endpoints (3.64, 6.18, 9.82)
+
+4. **Dimension Text Already Complete** ✓
+   - All dimensions have `text_verbatim` with exact printed values
+
+5. **Wall Thickness Added** ✓
+   - Set `thickness_m: 0.24` (240mm) on all interior walls where marked
+
+6. **Self-Check Items Now True** ✓
+   - `all_dimensions_transcribed: true` — all chain numbers transcribed
+   - `all_visible_strokes_captured: true` — all walls merged correctly, all windows found
+   - Updated `unknowns_noted` to document how each item was resolved
+
+---
+
+**The corrected pilot is ready for review.** All six feedback points have been addressed and verified against guide.md §6 self-check requirements.

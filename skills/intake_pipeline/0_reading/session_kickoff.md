@@ -78,20 +78,26 @@ The `output JSON` column above is a **non-normative worked example** of the two 
 
 ## Workflow
 
-**Nobody reviews your work mid-run and nobody will answer a question you ask.** You run this to
-completion on your own: every row of the image table above gets its output file, then the summary.
-If you find yourself about to stop and ask whether to continue, that is the signal to keep going.
+**This run has one review point, and it is after the pilot image.** A method error caught on the
+first image costs one image's worth of work; the same error found at the end costs all of them.
 
 1. Read the three rule docs + the worked-example JSON (understand the style).
-2. Start with **one** plan image and finish it completely.
-3. Then run `guide.md` §6 self-check against that finished file, item by item, and **fix what the
-   self-check finds before going further**. Doing this on the first image is how a method error
-   (wrong calibration anchor, a whole field family left empty, ticks traced as partitions) gets
-   caught while it is still one image's worth of work instead of all of them.
-4. Do the remaining images (other plans + elevations + supplemental/section images), applying the
-   same §6 self-check to each finished file.
-5. When all are done, write `0_reading/reading_summary.md`: per-image confidence self-assessment
+2. Do **one** pilot image first (a plan) and finish it completely.
+3. Run `guide.md` §6 self-check against that finished file, item by item, and fix what the
+   self-check finds. This is your own pass over the pilot, not the review.
+4. **Stop and wait for review of that pilot. Do not start the remaining images yet.** Ending your
+   turn here is the correct move, not a failure to finish — write what you have, say the pilot is
+   ready for review, and stop. You will be resumed. **If `feedback.md` is present in your workspace
+   root, that is the review of your previous output**: read it, apply it to the pilot, and only then
+   continue.
+5. After the pilot is settled, do the remaining images (other plans + elevations + supplemental /
+   section images), applying the same §6 self-check to each finished file.
+6. When all are done, write `0_reading/reading_summary.md`: per-image confidence self-assessment
    (high / medium / low, with reasons), which fields were repeatedly null / unknown, and your schema feedback.
+
+⛔ **Do not ask questions mid-run and do not wait for an answer to one.** The review at step 4 is a
+one-way channel: it arrives as a file, it is not a conversation. Everything other than that one
+pause runs to completion on your own.
 
 ## Boundaries
 
@@ -101,4 +107,5 @@ If you find yourself about to stop and ask whether to continue, that is the sign
 - Do not produce IntakeOutput fields (zone_specs / surface_specs / fenestration_specs / …) — that is
   the downstream stages' job.
 
-Work straight through: first image, self-check, remaining images, summary. There is no review point.
+Do the pilot first, self-check it, then stop and wait for review. After the pilot is settled, work
+straight through: remaining images, summary.

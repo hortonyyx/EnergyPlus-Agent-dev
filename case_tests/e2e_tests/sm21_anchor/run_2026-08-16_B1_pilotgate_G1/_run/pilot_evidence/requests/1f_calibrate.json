@@ -1,0 +1,31 @@
+{
+  "requests": [
+    {
+      "id": "calibrate_xy",
+      "tool": "px_m_calibrator",
+      "args": {
+        "image": "case_data/1f_view.png",
+        "out_dir": "out/cv_1f",
+        "anchors_json": "[{\"axis\":\"x\",\"px_a\":289,\"px_b\":1257,\"value_m\":15.0,\"dimension_ref\":\"overall_width_top\"},{\"axis\":\"y\",\"px_a\":1276,\"px_b\":212,\"value_m\":8.0,\"dimension_ref\":\"overall_height_left\"}]"
+      }
+    },
+    {
+      "id": "walls_both",
+      "tool": "wall_line_profiler",
+      "args": {
+        "image": "case_data/1f_view.png",
+        "out_dir": "out/cv_1f",
+        "axis": "both"
+      }
+    },
+    {
+      "id": "windows_detect",
+      "tool": "window_cc_detector",
+      "args": {
+        "image": "case_data/1f_view.png",
+        "out_dir": "out/cv_1f",
+        "min_area": "50"
+      }
+    }
+  ]
+}

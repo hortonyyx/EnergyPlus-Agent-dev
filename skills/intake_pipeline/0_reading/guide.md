@@ -125,11 +125,11 @@ In EnergyPlus a zone is enclosed by **surfaces (2D faces)**; a wall has no thick
     "note": "plan-local (0,0) measured at overall projected maximum boundary SW inner corner"
   },
   // facade: IMAGE-LOCAL elevation orientation (elevation only; plan → null). Records which facade
-  // this view shows and which screen direction local-x increases. NO world axis / sign / base — the
+  // this view shows. Local-x is FIXED by convention (image left edge = x 0, increasing right), so
+  // there is no `local_x_positive` to declare — see §4. NO world axis / sign / base either — the
   // correction stage derives world placement from the plan footprint + this block (§4).
   "facade": {
     "view_facade": "South",                 // which facade this elevation shows (from the image label/metadata)
-    "local_x_positive": "image_left_to_right", // purely in-image; NEVER "east"/"west"
     "mirrored": "false",                    // "true" | "false" | "unknown"
     "orientation_evidence": [
       {"source": "image_name", "detail": "label says 'South elevation'", "confidence": "high"}
@@ -403,7 +403,7 @@ coordinates); the correction stage maps them into the world frame.
 - [ ] not-found fields filled with null
 - [ ] every plan declares `scale_origin.world_x_m` + `world_y_m`; the world origin is the overall
       projected maximum boundary SW inner corner, shared by every floor (plan `world_z_m` = null)
-- [ ] elevation `facade` block filled image-local (view_facade + local_x_positive + mirrored); no world axis / sign here
+- [ ] elevation `facade` block filled image-local (view_facade + mirrored + orientation_evidence); no world axis / sign here, and no `local_x_positive` (§4: local-x is fixed by convention, not a reader declaration)
 - [ ] elevation outline: not drawn separately if it coincides with wall_fill edges (see pen library); confirmed for this image
 - [ ] self_check.pens_used lists the pen set used in this image
 - [ ] top-level `uncaptured` records everything "seen but not drawn" — out-of-dictionary strokes + actively excluded clutter + healed doors (a genuinely clean drawing may be [], but any heal / exclusion must appear)

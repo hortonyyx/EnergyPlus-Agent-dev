@@ -5,16 +5,29 @@
 > 本文 = 操作手册；核心约定同时收录在 [../CLAUDE.md](../CLAUDE.md) §5#8/#10。换主控模型读此接手。
 > **2026-07-10 修订**：GPT-5.6 家族发布（有限预览）+ Fable 5 订阅 07-12 到期 → 从「Claude 编排 / Codex 执行」两方模式升级为**完整双模型家族分工**（用户 2026-07-10 拍）。文件名沿用 `codex_execution_protocol.md` 保链接稳定。
 
-## 1. 家族版图（2026-07-10 现状）
+## 1. 家族版图（**2026-08-16 全量核对，下表 = 当前唯一在册口径**）
 
-| 档位 | Claude 家族 | GPT 家族（Codex 通道） | 说明 |
-|---|---|---|---|
-| 旗舰 | **Fable 5**（2026-07-16 起不任主控、降为点射；退场后顶位由 **Opus 4.8** 顺移） | **gpt-5.6-sol**（$5/$30） | sol=Terminal-Bench 2.1 SOTA、长程 agent；Opus=工程秩序/长期协作 |
-| 主力 | **Sonnet 5**（$3/$15，08-31 前 $2/$10） | **gpt-5.6-terra**（$2.5/$15） | everyday work，执行主力 |
-| 轻档 | **Haiku 4.5** | **gpt-5.6-luna**（$1/$6） | 批量机械/提取/预处理 |
+| 档位 | Claude 家族 | GPT 家族（Codex 通道） | GLM 家族 | DeepSeek 家族 | 说明 |
+|---|---|---|---|---|---|
+| 旗舰 | **Fable 5**（2026-07-16 起不任主控、降为点射；退场后顶位由 **Opus 4.8** 顺移） | **gpt-5.6-sol**（$5/$30） | **glm-5.3**（08-13 发布，**08-16 起席位默认**） | **deepseek-v4-pro**（08-13 GA） | sol=长程 agent；Opus=工程秩序；glm-5.3=编程/长程 agent |
+| 主力 | **Sonnet 5**（$3/$15，08-31 前 $2/$10） | **gpt-5.6-terra**（$2.5/$15） | 同上（GLM 单档，无独立主力位） | **deepseek-v4-flash**（07-31 GA） | everyday work，执行主力 |
+| 轻档 | **Haiku 4.5** | **gpt-5.6-luna**（$1/$6） | — | 同上 | 批量机械/提取/预处理 |
+| 视觉 | 主控/子代理原生多模态 | CLI `codex exec -i` | **glm-5v-turbo**（200K，识图实验臂唯一候选） | — | GLM 无 5.3v；`glm-4.6v` 已出局（把毫米标注当像素） |
+
+**计费性质（决定能不能随便派长批次）**：Claude / GPT / GLM = **订阅制 5h 窗口**；**DeepSeek = 按量扣账户余额**，
+和管线（`src/configs/llm.yaml` 的 1_correction / 4_mep / 9 subagent）**共用同一个余额** ⇒ 席位烧穿余额会**连带打断 e2e**。
+派长批次前查：`curl -s https://api.deepseek.com/user/balance -H "Authorization: Bearer $DEEPSEEK_API_KEY"`。
+DeepSeek 峰谷计价（谷价=峰价一半，2026-08-16 16:00 UTC 起）⇒ 长批次排谷时段；GLM 高峰 14:00–18:00 (UTC+8) 3x 扣。
 
 - **GPT-5.6 = 有限预览**（少量受邀组织，无公开申请入口/GA 日期；本账号 Codex 已可用，CLI ≥0.144）。三型号：~105 万 ctx / 128K 输出 / 截止 2026-02；effort `low→ultra` 六档（**luna 无 ultra**）；`ultra`≈多智能体并行（消耗大）；另有 fast 速度档（1.5x 速度多耗额度）。5.5/5.4/5.4-mini 仍可用（5.4-mini 交叉测试交接单不作废）。
-- **通道**：Claude 侧=主控会话 + Agent 子代理（`model` 参数 sonnet/opus/haiku）；GPT 侧=MCP `mcp__codex__codex` / CLI `codex exec`。
+- **GLM-5.3（08-16 实测 + 官方文档核对）**：1M ctx / 128K 输出；**thinking 强制常开**——`thinking.type:"disabled"` 接口收下但**静默忽略**（实测仍计 `reasoning_tokens`），`reasoning_effort` 默认 `max`（`low|high|max` 三档）。同基座纯后训练，官方称内部 Code Bench 较 5.2 **+50%**、Terminal-Bench 3.0 4.6→28.3、DeepSWE 46.2→66.9，且平均输出 token 更省（~50K vs Opus 4.8 ~120K）。**⚠️ 我方零实测**：07-21 那份「验证性审阅=Fable 级 / 探索性审阅=不及格」的能力画像是 **5.2 的**，未迁移到 5.3；档位定级沿用 5.2 那套，直到实战暴露差异。
+- **DeepSeek V4 GA（08-16 核对）**：`/models` 只列 `deepseek-v4-pro` / `deepseek-v4-flash` 两个 id ⇒ **转正没换 id、旧 key 直接落 GA**，preview 名已被接口拒绝（`-preview` 报 invalid_request_error）。**⛔ 陷阱**：旧别名 `deepseek-chat` / `deepseek-reasoner` 现在**静默解析到 v4-flash**（不是 pro）⇒ 任何地方都别再写这两个名字。`reasoning_effort` = `low|high|max`（`xhigh` 也收）。
+- **通道**：Claude 侧=主控会话 + Agent 子代理（`model` 参数 sonnet/opus/haiku）；GPT 侧=MCP `mcp__codex__codex` / CLI `codex exec`；
+  **GLM 席位**=[`scripts/glm_code.sh`](../../scripts/glm_code.sh)；**DeepSeek 席位**=[`scripts/deepseek_code.sh`](../../scripts/deepseek_code.sh)（08-16 新增）。
+  两个席位启动器**凭据只注入子进程**——全局导出 `ANTHROPIC_BASE_URL` 会静默劫持主控 Claude Code 会话。
+- **⚠️ 席位里的 `total_cost_usd` 不可信**：Claude Code 用 Anthropic 价目表估算，套到 GLM/DeepSeek 上是**假数字**
+  （08-16 实测：一句 "reply OK" 报 $0.14）。真实消耗看 DeepSeek 余额接口 / GLM 订阅窗口，不看这个字段。
+  同理 `contextWindow` 客户端一律按 200K 报（GLM-5.3 实际 1M）。
 
 ## 2. 角色分工矩阵（用户 2026-07-10 拍；**2026-07-12 用户重梳为四档对位阶梯**；**2026-07-16 主控降档**）
 

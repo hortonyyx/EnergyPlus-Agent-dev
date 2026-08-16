@@ -9,6 +9,8 @@ from hashlib import sha256
 from pathlib import Path
 from typing import Any
 
+from PIL import Image
+
 _SIDECAR_NAME_RE = re.compile(r"^\d{3}_[A-Za-z0-9_-]+(\.json)?$")
 
 
@@ -69,6 +71,14 @@ def write_sidecar(
     path.parent.mkdir(parents=True, exist_ok=True)
 
     source_hash = sha256_short(source_image)
+    # F-51: report the SOURCE image's true pixel size. The reader (VLM) works on
+    # a possibly downsampled frame, so its self-reported pixel coordinates may
+    # live in a different frame than these sidecars (which read the original
+    # file). width_px/height_px give it the anchor to detect that mismatch.
+    # Deliberately the source image's size — never the post-crop size, even when
+    # crop_chain is non-empty.
+    with Image.open(source_image) as _source_img:
+        source_width_px, source_height_px = _source_img.size
     payload = deepcopy(tool_payload)
     for idx, result in enumerate(payload.get("results", []), start=1):
         result.setdefault("candidate_id", f"{Path(source_image).stem}:{payload.get('tool', 'cv_tool')}:{idx:03d}")
@@ -87,6 +97,8 @@ def write_sidecar(
         "source_image": {
             "name": Path(source_image).name,
             "sha256": source_hash,
+            "width_px": int(source_width_px),
+            "height_px": int(source_height_px),
         },
         # Phase B anchor_px will be lifted from per-candidate fields here later;
         # the reading schema is intentionally untouched in this batch.

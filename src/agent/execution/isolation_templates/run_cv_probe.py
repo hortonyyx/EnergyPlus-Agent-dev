@@ -29,6 +29,11 @@ ALLOWED_TOOLS = {
     "overlay_logger",
 }
 PATH_KEYS = {"image", "out_dir", "anchors_json", "candidates_json"}
+# These two cv_probe inputs intentionally accept either an inline JSON
+# object/array or a path to a JSON file.  The dispatch is lexical and stable:
+# after leading whitespace, `[` or `{` means inline JSON; every other string
+# keeps the existing staging-contained path resolution below.
+JSON_OR_PATH_KEYS = {"anchors_json", "candidates_json"}
 # R2-2: parameters this wrapper turns into an OUTPUT LANDING POINT. `out_dir` is
 # the only one across all of ALLOWED_TOOLS (sidecar/crop/overlay/prescan paths
 # are all derived from it; `sidecar_name` and `label` are regex-pinned name
@@ -170,6 +175,15 @@ def _request_to_argv(request: dict, root: Path) -> list[str]:
             if not isinstance(value, str):
                 raise ValueError(f"{key} must be a path string")
             value = str(_resolve_output(value, root))
+        elif key in JSON_OR_PATH_KEYS:
+            if isinstance(value, (dict, list)):
+                value = json.dumps(value, separators=(",", ":"), ensure_ascii=False)
+            elif not isinstance(value, str):
+                raise ValueError(
+                    f"{key} must be an inline JSON object/array or a path string"
+                )
+            elif not value.lstrip().startswith(("[", "{")):
+                value = str(_resolve(value, root))
         elif key in PATH_KEYS:
             if not isinstance(value, str):
                 raise ValueError(f"{key} must be a path string")

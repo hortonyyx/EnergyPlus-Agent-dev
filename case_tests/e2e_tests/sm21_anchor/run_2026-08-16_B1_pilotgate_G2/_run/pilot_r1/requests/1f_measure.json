@@ -1,0 +1,31 @@
+{
+  "requests": [
+    {
+      "id": "walls_rows",
+      "tool": "wall_line_profiler",
+      "args": {
+        "image": "case_data/1f_view.png",
+        "out_dir": "out/cv",
+        "axis": "row"
+      }
+    },
+    {
+      "id": "walls_cols",
+      "tool": "wall_line_profiler",
+      "args": {
+        "image": "case_data/1f_view.png",
+        "out_dir": "out/cv",
+        "axis": "col"
+      }
+    },
+    {
+      "id": "windows",
+      "tool": "window_cc_detector",
+      "args": {
+        "image": "case_data/1f_view.png",
+        "out_dir": "out/cv",
+        "min_area": 30
+      }
+    }
+  ]
+}

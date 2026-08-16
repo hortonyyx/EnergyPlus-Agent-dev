@@ -61,7 +61,7 @@ run_pipeline（image-blind，src/agent/pipeline.py）几何彻底确定性化：
 | [../src/agent/reading/](../src/agent/reading) | 0_reading schema（P1a dimension chain + P1b facade image-local + legacy 迁移）|
 | [../src/agent/llm.py](../src/agent/llm.py) + [../src/configs/llm.yaml](../src/configs/llm.yaml) | LLM 工厂 + 多 section（per-case `<case>/llm.yaml` 经 `EP_AGENT_LLM_CONFIG` 覆盖）；容差 [correction.yaml](../src/configs/correction.yaml) |
 | [../src/agent/graph.py](../src/agent/graph.py) | 下游 LangGraph（intake → 9 subagent → cross_ref → validate → simulate）；prompt 演进归协作者（§3）|
-| [../scripts/](../scripts) | 总启动 `run_full_pipeline.py`（`--reading-from`/`--intake-from`）；`tool_scripts/`=render×N + `run_stage.py` + `record_baseline.py` + `render_geometry_viewer.py` + `render_gt.py` + `gt_from_dxf.py` + `inspect_dxf.py`；`glm_code.sh`=GLM 席位启动器（凭据只注入子进程，**勿全局导出 `ANTHROPIC_*`**）|
+| [../scripts/](../scripts) | 总启动 `run_full_pipeline.py`（`--reading-from`/`--intake-from`）；`tool_scripts/`=render×N + `run_stage.py` + `record_baseline.py` + `render_geometry_viewer.py` + `render_gt.py` + `gt_from_dxf.py` + `inspect_dxf.py`；`glm_code.sh`=GLM 席位启动器（默认 **glm-5.3**）+ `deepseek_code.sh`=DeepSeek 席位启动器（默认 **deepseek-v4-pro**，**⛔ 按量扣余额、与管线共用**）——两者**凭据只注入子进程，勿全局导出 `ANTHROPIC_*`**；家族版图见 [codex_execution_protocol §1](guides/codex_execution_protocol.md)|
 | [../tests/](../tests) | pytest **1786 绿 + 10 strict xfail**（**全仓默认并行** `-n auto`，16 核 4.5–8 分钟；串行 `-n0` 15–26 分钟。跑测三档节奏 + 「受影响子集」工具见 [codex_execution_protocol §7.5](guides/codex_execution_protocol.md)）（kernel/checks/judge/orchestrator/gt/interzone/schedule/viewer/flow/runner/grade/run_config/isolation/view_manifest/c2_b2_v3/c2_b2b_envelope_transform/c2_va_applicability/gt_schema/output_coordinate_×5/e4_relative_north_axis_e2e/c2_b5_source_routing/c2_b5_host_resolution/c2_b5_parent_and_verts/c2_b5_artifact_trust/c2_b5_legacy/reading_line_style_visibility/audit_remediation_accepted_inputs/tarch_converter_p{0,1,2}/tarch_elevation_must_red/**tarch_converter_reproducibility**/**gt_promotion_path**〔含 25 格 `mutation` 源码变异矩阵，默认收集内〕/gt_overlay…）|
 | [../case_tests/](../case_tests) | `0_reading_tests/` + `e2e_tests/`(含 sm20_anchor/sm21_anchor) + `test_baseline/`(方案+注册表+gt) |
 | `$ENERGYPLUS_EXE` | EnergyPlus 引擎；解析序 env→PATH→硬编码默认。容器内 25.1.0、宿主 Windows 25.2.0（patch 差异，数值对齐以容器为准）|
@@ -186,6 +186,16 @@ EnergyPlus 经 `WorkflowTool.run_simulation`（eppy + ConverterManager，idfpy �
     ⇒ **判据升级**：本仓已记「给了工具就会去量是错的」，今天证的是加强版 ——
     **不是工具形态的问题，把「随便写代码」这种上限最高的能力给它，行为一样不变。**
     ⇒ 剩下的解释不在「能不能」，在「肯不肯 / 知不知道该量」。
+    **⛔⛔ 上面这三行当晚被 F-49 推翻了一半（2026-08-16 晚，如实更正、不删原文）**：
+    回查 E1 的 access_log —— 它**先试过出厂工具 4 次**（1 次撞旧文档形态被 guard 拒，
+    3 次 guard 放行但**零产出**），试不通之后**才**改写硬编码坐标的自制脚本。
+    零产出的原因 = **F-49：`px_m_calibrator` 在隔离沙箱里，文档与 wrapper 自带 usage
+    写的两种形态全都跑不通**（`anchors_json` 被放进 `PATH_KEYS` ⇒ 内联 JSON 字符串被拼上
+    staging 根路径、JSON 数组撞 "must be a path string"；唯一可用的「先写成文件再传路径」
+    **没有任何文档写过**）。
+    ⇒ **「零次用于测量」是事实，但「肯不肯 / 知不知道该量」这个归因不成立** ——
+    它**知道该量、也去量了**，是**尺子在它脚下是坏的**。
+    ⇒ 同族判据再现：**判一个「模型不肯做 X」的结论前，先确认做 X 的那条路是通的。**
   - **F-44 已修（本轮结论能成立的前提）**：access_log 原来**只在 deny 时**记参数原文
     ⇒ 放行面（唯一能把信息带出净室的面）事后只剩哈希。上面那张「它到底跑了什么代码」的表，
     **F-44 之前根本读不出来**。修法 = allow 也记原文 + 新增 `executed_code` 每份被扫文件的 sha256。

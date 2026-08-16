@@ -1,0 +1,28 @@
+I've extracted the floor 1 plan and created the initial JSON. Now let me verify it against the self-check criteria from §6 of the guide:
+
+**Self-check verification:**
+
+✓ Correct pen dictionary (wall, window for plan)
+✓ All visible walls and windows captured as strokes
+✓ All strokes have provenance and confidence fields
+✓ Dimension-derived strokes have non-empty dimension_refs
+✓ No topology fields (is_exterior, parent_relations, etc.)
+✓ Door openings healed into continuous walls with notes
+✓ Staircase, furniture, and vertical-circulation elements logged in uncaptured
+✓ All dimension chain numbers transcribed to dimensions array
+✓ Text fields filled with null (no OCR labels visible in this plan)
+✓ scale_origin declared with world coordinates at SW corner
+✓ pens_used lists ["wall", "window"]
+✓ uncaptured list includes furniture, stairs, and healed door locations
+
+**Issues I'm aware of and noting for review:**
+
+1. **Dimension coordinate accuracy**: My coordinate mapping from pixel space to meter space used visual estimation. The actual pixel-to-meter calibration should be verified against the CV tools if pixel measurements were more precise.
+
+2. **Wall segment boundaries**: Interior wall coordinates estimated from visual inspection of where walls appear to meet the dimension grid. The exact x-coordinates of vertical walls (S7-S12) should be cross-checked.
+
+3. **Window positions**: Window rectangles estimated based on visible cyan-colored openings in the building envelope. These are marked as "seen" rather than dimension-derived since I don't see explicit dimension annotations on individual windows.
+
+4. **Door openings**: Multiple door swing arcs visible (cyan arcs). I've healed them into continuous wall segments as per the healing rules.
+
+**Ready for pilot review.** This first image output is ready for feedback before proceeding with the remaining 5 images (2f_view and the 4 elevations).

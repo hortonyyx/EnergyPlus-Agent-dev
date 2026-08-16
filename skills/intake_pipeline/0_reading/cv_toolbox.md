@@ -13,36 +13,71 @@ Use the CV toolbox before drawing semantic reading JSON for clean vector CAD PNG
 
 ## Invocation Examples
 
+The entry point is `tools/run_cv_probe.py` and the tool name is passed as `--tool`. Output must land
+under `out/` — that is the only writable root, so `--out-dir out/cv` (or any `out/<name>`) works and
+anything else is refused.
+
 ```bash
-python scripts/tool_scripts/cv_probe.py wall_line_profiler \
+python tools/run_cv_probe.py --tool wall_line_profiler \
   --image case_data/1f_view.png \
-  --out-dir 0_reading \
+  --out-dir out/cv \
   --axis col
 ```
 
 ```bash
-python scripts/tool_scripts/cv_probe.py crop_zoom \
+python tools/run_cv_probe.py --tool crop_zoom \
   --image case_data/1f_view.png \
-  --out-dir 0_reading \
+  --out-dir out/cv \
   --bbox 120,80,620,460 \
   --scale 2
 ```
 
 ```bash
-python scripts/tool_scripts/cv_probe.py px_m_calibrator \
+python tools/run_cv_probe.py --tool px_m_calibrator \
   --image case_data/1f_view.png \
-  --out-dir 0_reading \
+  --out-dir out/cv \
   --anchors-json '[{"axis":"x","px_a":100,"px_b":700,"value_m":15.0,"dimension_ref":"overall_width"}]'
 ```
 
 ```bash
-python scripts/tool_scripts/cv_probe.py window_cc_detector \
+python tools/run_cv_probe.py --tool window_cc_detector \
   --image case_data/South_view.png \
-  --out-dir 0_reading \
+  --out-dir out/cv \
   --min-area 30
 ```
 
-Sidecars are written under `0_reading/cv_evidence/<image_stem>/NNN_<tool>.json` with a matching overlay PNG. In this batch that directory is a flat-stage audit sidecar only; attempts/report collection may archive it in future work.
+For a sweep, put the requests in a JSON file and run them in one call (maximum 32, all validated
+before any of them runs):
+
+```bash
+python tools/run_cv_probe.py --batch requests/<name>.json
+```
+
+Sidecars are written under `<out-dir>/cv_evidence/<image_stem>/NNN_<tool>.json` (e.g.
+`out/cv/cv_evidence/1f_view/001_wall_line_profiler.json`) with a matching overlay PNG. In this batch
+that directory is a flat-stage audit sidecar only; attempts/report collection may archive it in
+future work.
+
+## Source-Frame Anchor
+
+Every sidecar reports the true pixel size of the image the tools actually read. In
+`NNN_<tool>.json`, under `source_image`:
+
+```json
+{"name": "f51_synth.png", "sha256": "1a05d35c64ae", "width_px": 1200, "height_px": 600}
+```
+
+- `width_px` and `height_px` are the **source image's** real dimensions — the file on disk. They are
+  never the cropped or rescaled size: a `crop_zoom` sidecar still reports the source dimensions, not
+  the crop's.
+- The drawing you *saw* may have been rescaled before it reached you, and pixel coordinates you
+  eyeballed live in that rescaled frame. Check yourself: compare the image width you had in mind
+  against the sidecar's `width_px`. If they differ, every eyeballed pixel coordinate carries that
+  same uniform scale error — a calibration built from such anchors is self-consistent yet globally
+  wrong, and a crop sent to those coordinates lands in the wrong region.
+- Therefore, for any pixel coordinate you hand to a tool — calibration anchors, `--bbox` values —
+  prefer numbers read back from a tool (profiler `position_px`, detector `bbox_px`, crop-chain
+  coordinates) over eyeballed ones.
 
 ## Writing Your Own Measurement Code
 

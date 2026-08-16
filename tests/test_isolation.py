@@ -1705,6 +1705,187 @@ def test_staging_run_cv_probe_direct_form_smoke(tmp_path: Path):
     )
 
 
+def _assert_probe_artifacts(
+    staging: Path, out_dir: str, image_stem: str, sidecar_name: str
+) -> None:
+    evidence_dir = staging / out_dir / "cv_evidence" / image_stem
+    assert (evidence_dir / f"{sidecar_name}.json").exists()
+    assert (evidence_dir / f"{sidecar_name}_overlay.png").exists()
+
+
+def test_px_m_calibrator_path_and_direct_inline_json_reach_real_entrypoint(
+    tmp_path: Path,
+):
+    """F-49 R-1/R-3/R-4: preserve the file-path form, then prove the
+    documented one-call inline form passes both the real hook and wrapper and
+    creates both evidence artifacts."""
+    staging = _build(tmp_path).staging_root
+    anchors = [
+        {
+            "axis": "x",
+            "px_a": 100,
+            "px_b": 700,
+            "value_m": 15.0,
+            "dimension_ref": "overall_width",
+        }
+    ]
+
+    anchors_path = staging / "requests/anchors.json"
+    anchors_path.write_text(json.dumps(anchors), encoding="utf-8")
+    _request(
+        staging,
+        {
+            "tool": "px_m_calibrator",
+            "args": {
+                "image": "case_data/1f_view.png",
+                "out_dir": "out/f49_path",
+                "anchors_json": "requests/anchors.json",
+                "sidecar_name": "001_px_m_calibrator",
+            },
+        },
+        name="requests/f49_path.json",
+    )
+    path_command = (
+        "python tools/run_cv_probe.py --request requests/f49_path.json"
+    )
+    path_hook = _hook(staging, path_command)
+    assert path_hook.returncode == 0, (path_hook.stdout, path_hook.stderr)
+    path_helper = _run_helper(staging, "requests/f49_path.json")
+    assert path_helper.returncode == 0, (path_helper.stdout, path_helper.stderr)
+    _assert_probe_artifacts(
+        staging, "out/f49_path", "1f_view", "001_px_m_calibrator"
+    )
+
+    inline = json.dumps(anchors, separators=(",", ":"))
+    direct_command = (
+        "python tools/run_cv_probe.py --tool px_m_calibrator "
+        "--image case_data/1f_view.png --out-dir out/f49_inline "
+        f"--anchors-json '{inline}' --sidecar-name 001_px_m_calibrator"
+    )
+    direct_hook = _hook(staging, direct_command)
+    assert direct_hook.returncode == 0, (direct_hook.stdout, direct_hook.stderr)
+    direct_helper = subprocess.run(
+        [
+            sys.executable,
+            "tools/run_cv_probe.py",
+            "--tool",
+            "px_m_calibrator",
+            "--image",
+            "case_data/1f_view.png",
+            "--out-dir",
+            "out/f49_inline",
+            "--anchors-json",
+            inline,
+            "--sidecar-name",
+            "001_px_m_calibrator",
+        ],
+        cwd=staging,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert direct_helper.returncode == 0, (
+        direct_helper.stdout,
+        direct_helper.stderr,
+    )
+    _assert_probe_artifacts(
+        staging, "out/f49_inline", "1f_view", "001_px_m_calibrator"
+    )
+
+
+@pytest.mark.parametrize("form", ["request", "batch"])
+def test_px_m_calibrator_json_array_reaches_real_entrypoint(
+    tmp_path: Path, form: str
+):
+    """F-49 R-1/R-3/R-4/R-5: the JSON-array shape advertised by both
+    request examples must survive the real staged command-line entrypoint."""
+    staging = _build(tmp_path).staging_root
+    sidecar_name = f"001_f49_{form}"
+    request = {
+        "tool": "px_m_calibrator",
+        "args": {
+            "image": "case_data/1f_view.png",
+            "out_dir": f"out/f49_{form}",
+            "anchors_json": [
+                {
+                    "axis": "x",
+                    "px_a": 100,
+                    "px_b": 700,
+                    "value_m": 15.0,
+                    "dimension_ref": "overall_width",
+                }
+            ],
+            "sidecar_name": sidecar_name,
+        },
+    }
+    if form == "request":
+        _request(staging, request, name="requests/f49_request.json")
+        command = (
+            "python tools/run_cv_probe.py --request requests/f49_request.json"
+        )
+        run_helper = lambda: _run_helper(staging, "requests/f49_request.json")
+    else:
+        _batch(staging, [{"id": "calibrate_x", **request}])
+        command = "python tools/run_cv_probe.py --batch requests/batch.json"
+        run_helper = lambda: _run_helper_batch(staging)
+
+    hook = _hook(staging, command)
+    assert hook.returncode == 0, (hook.stdout, hook.stderr)
+    helper = run_helper()
+    assert helper.returncode == 0, (helper.stdout, helper.stderr)
+    _assert_probe_artifacts(
+        staging, f"out/f49_{form}", "1f_view", sidecar_name
+    )
+
+
+def test_overlay_logger_direct_inline_json_reaches_real_entrypoint(tmp_path: Path):
+    """F-49 premise check: candidates_json is the same JSON-or-path role and
+    its documented direct shape must pass the real hook and wrapper."""
+    staging = _build(tmp_path).staging_root
+    candidates = json.dumps(
+        [
+            {
+                "candidate_id": "wall_1",
+                "geometry": {"kind": "line", "axis": "col", "x_px": 100},
+                "status": "accepted",
+                "reason": "F-49 premise check",
+            }
+        ],
+        separators=(",", ":"),
+    )
+    command = (
+        "python tools/run_cv_probe.py --tool overlay_logger "
+        "--image case_data/1f_view.png --out-dir out/f49_overlay "
+        f"--candidates-json '{candidates}' --sidecar-name 001_overlay_logger"
+    )
+    hook = _hook(staging, command)
+    assert hook.returncode == 0, (hook.stdout, hook.stderr)
+    helper = subprocess.run(
+        [
+            sys.executable,
+            "tools/run_cv_probe.py",
+            "--tool",
+            "overlay_logger",
+            "--image",
+            "case_data/1f_view.png",
+            "--out-dir",
+            "out/f49_overlay",
+            "--candidates-json",
+            candidates,
+            "--sidecar-name",
+            "001_overlay_logger",
+        ],
+        cwd=staging,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert helper.returncode == 0, (helper.stdout, helper.stderr)
+    _assert_probe_artifacts(
+        staging, "out/f49_overlay", "1f_view", "001_overlay_logger"
+    )
+
+
 def test_guard_allows_direct_probe_form_and_logs(tmp_path: Path):
     """P1-1 hook side: the legal direct shape is ALLOWED and its path arguments
     are normalized into the audit log (so the log stays a usable read of what the
