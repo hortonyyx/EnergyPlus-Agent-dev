@@ -380,16 +380,48 @@ def px_m_calibrator(
     max_axis_relative_deviation = float(
         recipe["calibration_max_axis_relative_deviation"]
     )
+    # C1 (2026-08-17): a legal exit instead of a dead end. This used to `raise`
+    # here (2026-07-31, 421c9d3), before blending — the 07-07/07-08 good-window
+    # tool never had this check and always returned a usable px_per_m. A hard
+    # raise with no escape has an observed real-world consequence (F-34): the
+    # reader abandons pixel calibration entirely and falls back to eyeballing
+    # meters, which is strictly worse than a flagged, low-confidence number.
+    # The disagreement is real signal, so it is surfaced loudly — a boolean
+    # flag, a `warnings` entry with explicit next-step guidance, and a forced
+    # `metric_confidence="low"` — rather than hidden by a silent average, but
+    # the caller always gets a number back. Same-family judgment as F-51:
+    # once the staged image and the reader's frame agree (see
+    # src.agent.execution.vision_resize), a uniform-scale reader error no
+    # longer masquerades as a real cross-axis disagreement here, so this gate
+    # should fire less often AND more truthfully than before.
+    warnings: list[dict[str, Any]] = []
+    axis_calibration_disagreement = False
     if set(axis_px_per_m) == {"x", "y"}:
         x_scale = axis_px_per_m["x"]
         y_scale = axis_px_per_m["y"]
         axis_relative_deviation = abs(x_scale - y_scale) / ((x_scale + y_scale) / 2.0)
         if axis_relative_deviation > max_axis_relative_deviation:
-            raise ValueError(
-                "cross-axis calibration disagreement: "
-                f"x={x_scale:.9g} px/m, y={y_scale:.9g} px/m, "
-                f"relative_deviation={axis_relative_deviation:.6%} exceeds "
-                f"{max_axis_relative_deviation:.6%}; verify dimension extension-line intersections"
+            axis_calibration_disagreement = True
+            warnings.append(
+                {
+                    "type": "cross_axis_disagreement",
+                    "x_px_per_m": x_scale,
+                    "y_px_per_m": y_scale,
+                    "relative_deviation": axis_relative_deviation,
+                    "relative_deviation_limit": max_axis_relative_deviation,
+                    "guidance": (
+                        f"x={x_scale:.9g} px/m and y={y_scale:.9g} px/m disagree by "
+                        f"{axis_relative_deviation:.6%}, over the "
+                        f"{max_axis_relative_deviation:.6%} limit — at least one endpoint "
+                        "pair or transcribed dimension is likely wrong. Do not silently "
+                        "trust the blended px_per_m below: re-crop and re-measure both "
+                        "axes' anchors at their dimension-chain extension-line "
+                        "intersections, then recalibrate. If you must proceed now, prefer "
+                        "the single-axis scale (axis_px_per_m) for geometry measured along "
+                        "that axis over the blended value, and record this disagreement "
+                        "instead of treating the reading as clean."
+                    ),
+                }
             )
     px_per_m = float(np.sum(values * spans) / np.sum(values**2))
     m_per_px = 1.0 / px_per_m
@@ -420,7 +452,9 @@ def px_m_calibrator(
 
     warn_px = float(residual_warn_px if residual_warn_px is not None else recipe["calibration_warn_residual_px"])
     warn_m = float(residual_warn_m if residual_warn_m is not None else recipe["calibration_warn_residual_m"])
-    warnings = []
+    # NOTE: `warnings` was seeded above (possibly with a cross_axis_disagreement
+    # entry) — appended to here, never reset, so neither warning source can
+    # clobber the other.
     if residuals is not None:
         for residual in residuals:
             if abs(residual["residual_px"]) > warn_px or abs(residual["residual_m"]) > warn_m:
@@ -437,6 +471,12 @@ def px_m_calibrator(
         for anchor in anchors
     ]
     dimension_refs = [a["dimension_ref"] for a in anchors if a.get("dimension_ref")]
+    if axis_calibration_disagreement:
+        metric_confidence = "low"
+    elif warnings:
+        metric_confidence = "medium"
+    else:
+        metric_confidence = "high"
     result = _base_result(
         candidate_id=f"{Path(source_name).stem}:px_m_calibrator:001:scale",
         candidate_kind="calibration",
@@ -444,7 +484,7 @@ def px_m_calibrator(
         tool="px_m_calibrator",
         recipe=recipe,
         visual_confidence="high",
-        metric_confidence="high" if not warnings else "medium",
+        metric_confidence=metric_confidence,
         metric={
             "dimension_refs": dimension_refs,
             "raw_segments": raw_segments,
@@ -452,6 +492,7 @@ def px_m_calibrator(
             "axis_px_per_m": axis_px_per_m,
             "axis_relative_deviation": axis_relative_deviation,
             "axis_relative_deviation_limit": max_axis_relative_deviation,
+            "axis_calibration_disagreement": axis_calibration_disagreement,
             "residuals": residuals,
         },
     )
@@ -466,6 +507,7 @@ def px_m_calibrator(
             "axis_px_per_m": axis_px_per_m,
             "axis_relative_deviation": axis_relative_deviation,
             "axis_relative_deviation_limit": max_axis_relative_deviation,
+            "axis_calibration_disagreement": axis_calibration_disagreement,
         }
     )
     return _make_payload(

@@ -81,6 +81,12 @@ Every sidecar reports the true pixel size of the image the tools actually read. 
 - Therefore, for any pixel coordinate you hand to a tool — calibration anchors, `--bbox` values —
   prefer numbers read back from a tool (profiler `position_px`, detector `bbox_px`, crop-chain
   coordinates) over eyeballed ones.
+- For this project's own cases, staging now pre-resizes an oversized `case_data/` drawing to the
+  vision API's own resize target BEFORE you ever see it (F-51 second cut), so for those images the
+  size you had in mind and the sidecar's `width_px` are the same number by construction — there is no
+  mismatch left to self-check. Still compare them: a mismatch is possible any time the source is
+  already within the tier (nothing to resize) yet the number you eyeballed is simply wrong, or a case
+  is staged under a different tier than you expect.
 
 ## Writing Your Own Measurement Code
 
