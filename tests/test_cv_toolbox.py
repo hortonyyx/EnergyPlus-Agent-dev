@@ -116,7 +116,43 @@ def test_px_m_calibrator_exact_and_residuals():
     assert single["results"][0]["rmse_px"] is None
 
 
-def test_px_m_calibrator_rejects_cross_axis_anisotropy_before_blending():
+def test_px_m_calibrator_flags_cross_axis_disagreement_with_a_legal_exit_not_a_raise():
+    """C1 (2026-08-17): supersedes this test's own former name and body
+    (``test_px_m_calibrator_rejects_cross_axis_anisotropy_before_blending``).
+
+    OLD semantics (until 2026-08-17, since 2026-07-31/421c9d3): a cross-axis
+    relative deviation beyond ``calibration_max_axis_relative_deviation``
+    (0.3%) made ``px_m_calibrator`` raise
+    ``ValueError("cross-axis calibration disagreement: ...")`` BEFORE ever
+    blending ``px_per_m`` -- a dead end with no legal exit. This exact
+    ``pytest.raises`` assertion is what this test used to lock.
+
+    NEW semantics: the disagreement is still computed against the SAME 0.3%
+    limit and is still surfaced loudly -- ``axis_calibration_disagreement`` is
+    set ``True``, a ``warnings[]`` entry of type ``cross_axis_disagreement``
+    carries actionable next-step guidance, and ``metric_confidence`` is forced
+    to ``"low"`` -- but ``px_m_calibrator`` ALWAYS returns a usable
+    ``px_per_m`` instead of throwing it away.
+
+    Why the assertion is deliberately inverted here rather than left as a
+    raise lock: this project's own dispatch
+    (AI_agent/logs/experiments/2026-08-16_707_repro/
+    behavioral_change_inventory.md §C1) traced a real, observed consequence of
+    the old "raise, no escape" shape -- F-34, where the reading agent
+    abandoned pixel calibration entirely and fell back to eyeballing meters in
+    response to the hard failure, which is a strictly worse outcome than a
+    flagged, low-confidence number. This repo's own recurring judgment on this
+    class of problem: a rule with no legal exit breeds an invented one (立规则
+    不给合法出口 ⇒ 模型自己发明出口) -- so the gate itself is preserved (the
+    disagreement is still computed and still loudly flagged), only reshaped
+    from a dead end into a legal exit. A real-entry-point (subprocess against
+    the staged CLI wrapper) version of both halves of this test, plus a
+    neuter, lives at ``tests/test_cross_axis_exit.py`` -- this library-layer
+    (direct-import) test is kept alongside it as a second, independent lock on
+    the same underlying function, matching this file's existing convention of
+    testing ``cv_toolbox`` functions directly.
+    """
+
     accepted = px_m_calibrator(
         [
             {"axis": "x", "px_a": 247.5, "px_b": 611.5, "value_m": 10.0},
@@ -125,14 +161,25 @@ def test_px_m_calibrator_rejects_cross_axis_anisotropy_before_blending():
     )["results"][0]
     assert accepted["axis_relative_deviation"] == pytest.approx(0.00137457, rel=1e-5)
     assert accepted["axis_relative_deviation_limit"] == pytest.approx(0.003)
+    assert accepted["axis_calibration_disagreement"] is False
+    assert accepted["metric"]["confidence"] == "high"
+    assert accepted["warnings"] == []
 
-    with pytest.raises(ValueError, match="cross-axis calibration disagreement"):
-        px_m_calibrator(
-            [
-                {"axis": "x", "px_a": 245, "px_b": 620, "value_m": 10.0},
-                {"axis": "y", "px_a": 54, "px_b": 872, "value_m": 20.0},
-            ]
-        )
+    disagreeing = px_m_calibrator(
+        [
+            {"axis": "x", "px_a": 245, "px_b": 620, "value_m": 10.0},
+            {"axis": "y", "px_a": 54, "px_b": 872, "value_m": 20.0},
+        ]
+    )["results"][0]
+    assert disagreeing["axis_calibration_disagreement"] is True
+    assert disagreeing["metric"]["confidence"] == "low"
+    warn_types = [w["type"] for w in disagreeing["warnings"]]
+    assert "cross_axis_disagreement" in warn_types, warn_types
+    cross_warning = next(w for w in disagreeing["warnings"] if w["type"] == "cross_axis_disagreement")
+    assert "re-crop and re-measure" in cross_warning["guidance"]
+    assert "recalibrate" in cross_warning["guidance"]
+    assert isinstance(disagreeing["px_per_m"], (int, float)) and disagreeing["px_per_m"] > 0
+    assert set(disagreeing["axis_px_per_m"]) == {"x", "y"}
 
 
 def test_window_cc_detector_count_bbox_and_merge(tmp_path: Path):

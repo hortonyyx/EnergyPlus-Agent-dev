@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from pathlib import Path
 
 from src.agent.reading import (
@@ -18,17 +19,100 @@ from src.agent.reading import (
 _ANCHOR = Path("case_tests/e2e_tests/sm20_anchor/run_2026-06-15_baseline/0_reading")
 
 
-def test_plan_scale_origin_is_a_locked_reader_instruction_contract():
+def test_plan_scale_origin_is_an_optional_not_mandatory_reader_instruction_contract():
+    """scale_origin (2026-08-17, 707-prereq): supersedes this test's own
+    former name and body
+    (``test_plan_scale_origin_is_a_locked_reader_instruction_contract``).
+
+    OLD semantics (a short-lived state, introduced sometime after the
+    07-07/07-08 good window and never present in either successful run from
+    that window -- see AI_agent/logs/experiments/2026-08-16_707_repro/
+    behavioral_change_inventory.md §A1): ``guide.md`` §1 said "Every plan view
+    **must** declare `scale_origin`", where the required value was **the SW
+    INNER corner of the overall projected maximum building boundary** --
+    i.e. every plan-view reading required the reader to (1) determine the
+    whole building's CROSS-FLOOR projected maximum footprint, (2) judge that
+    boundary's INNER edge (⇒ requires judging wall thickness / inner vs.
+    outer skin -- this project's "dimension/wall-thickness/derive-footprint"
+    workstream is explicitly UNSOLVED), and (3) place the result in world
+    coordinates. All three are exactly the kind of "world placement" the same
+    document's §1 opening line explicitly forbids the reading stage from
+    doing ("the reading stage does NO world placement") -- the old
+    requirement contradicted the document's own governing rule, was never
+    exercised by either known-good run, and was never actually a documented
+    rule before 2026-08-16 despite reading like a long-settled one. This old
+    literal sentence is what the previous version of this test locked
+    (byte-for-byte, including its embedded newline).
+
+    NEW semantics: ``scale_origin`` is OPTIONAL for every plan (never
+    required), and when given, its reference point is a per-image datum only
+    -- "an easily-seen reference point drawn in THIS SAME image", explicitly
+    NEVER the result of cross-floor footprint or wall-thickness reasoning.
+    Leaving it ``null`` when not cheaply confident is legal and is explicitly
+    NOT a self-check failure. This restores consistency with §1's "no world
+    placement" rule rather than carving out a silent exception to it.
+
+    Why this test locks SEMANTICS (optional-not-mandatory, same-image-only
+    scoping) rather than the new sentences' literal wording: the old test's
+    actual defect was never "it used substring/exact-text checks against doc
+    prose" (that technique is this codebase's normal way of contract-locking
+    a skill doc -- see e.g. tests/test_substrate_fix_tools.py's F-53
+    section). The defect was locking the WRONG CONTENT -- one specific
+    sentence's exact phrasing, which happened to encode a requirement that
+    was itself wrong and that a future editorial rewrite (e.g. rewording
+    "SHOULD" to "may" for style) could trivially break EVEN THOUGH the
+    underlying contract had not changed, while conversely a regression back
+    to "must" + cross-floor reasoning phrased in ANY new sentence would sail
+    right past a check that only ever looked for one old exact string. Each
+    assertion below is therefore a short, semantically load-bearing marker
+    (present-tense: proves the new invariant holds; absent-tense: proves the
+    old wrong invariant has not silently crept back), not a full-sentence
+    verbatim pin -- picked so a future copy-edit that PRESERVES the contract
+    keeps passing, while an edit that REGRESSES the contract (mandatory
+    again, or cross-floor/wall-thickness reasoning again, in any phrasing)
+    fails. Also widened to session_kickoff.md, the third of the three files
+    this same commit touched (the previous version of this test covered only
+    guide.md + pen_library.md) -- in scope because it is literally part of
+    what item ② of this porting task changed, not scope creep. Two of the old
+    test's assertions (the literal ``"world_x_m": 0.00`` / ``"world_y_m":
+    0.00`` example strings) are deliberately NOT carried forward: they pin an
+    illustrative worked example, not a promise -- they were never evidence of
+    mandatoriness one way or the other, so locking them taught nothing about
+    THIS contract.
+    """
+
     guide = Path("skills/intake_pipeline/0_reading/guide.md").read_text(encoding="utf-8")
     pens = Path("skills/intake_pipeline/0_reading/pen_library.md").read_text(encoding="utf-8")
+    kickoff = Path("skills/intake_pipeline/0_reading/session_kickoff.md").read_text(encoding="utf-8")
 
-    assert 'Every plan view\n    **must** declare `scale_origin`' in guide
-    assert '"world_x_m": 0.00' in guide
-    assert '"world_y_m": 0.00' in guide
-    assert "overall projected maximum building boundary" in guide
-    assert "every plan declares `scale_origin.world_x_m` + `world_y_m`" in guide
-    assert "For every plan, calibration also has a mandatory container action" in pens
-    assert "all floors share that datum" in pens
+    # --- scale_origin is still a documented, legal field (not deleted) ---
+    assert '"scale_origin"' in guide
+    assert "world_x_m" in guide and "world_y_m" in guide and "world_z_m" in guide
+
+    # --- NEW: explicitly optional, in both the prose rule and the schema ---
+    assert "scale_origin: OPTIONAL for every plan" in guide
+    assert re.search(r"plan view SHOULD\s+also declare `scale_origin`", guide), (
+        "expected a SHOULD (not MUST) instruction to declare scale_origin"
+    )
+    assert "leave `scale_origin` `null` rather than guess" in guide
+    assert "omitting it is not itself a self-check failure" in guide
+    assert "optional container action" in pens
+    assert "never guess the field — omit it" in pens
+    assert "is not an exception to that" in kickoff
+    assert "a plan MAY state" in kickoff
+
+    # --- NEW: reference point is per-image / same-drawing only ---
+    assert "drawn in THIS SAME image" in guide
+    assert "drawn in THIS SAME image" in pens
+    assert re.search(r"never a cross-image or\s+cross-floor judgment", kickoff), kickoff
+    assert "never guessed, never a cross-floor judgment" in kickoff
+
+    # --- OLD wrong requirement must not have silently crept back ---
+    assert "must** declare `scale_origin`" not in guide
+    assert "mandatory container action" not in pens
+    assert "overall projected maximum building boundary" not in guide
+    assert "SW inner corner" not in guide
+    assert "all floors share that datum" not in pens
 
 
 def test_parse_value_m():

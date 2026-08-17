@@ -427,11 +427,28 @@ def test_doc_example_python_dash_c_executes_in_staging(doc_staging: Path) -> Non
     at all, so it says nothing about the wrapper. It is included because the
     dispatch asked for every ```bash block in the doc to be run and recorded;
     whether Bash-tool calls of this shape are ALLOWED is guard.py's policy
-    layer, which is Lane B's territory, not tested here."""
+    layer, which is Lane B's territory, not tested here.
+
+    F-51 (2026-08-17): the expected numpy shape changes, not the assertion's
+    PURPOSE. OLD semantics: ``doc_staging`` staged ``case_data/1f_view.png``
+    byte-for-byte as the repo original (2133x1345, W x H) -- unresized --
+    so ``np.array(Image.open(...).convert("L")).shape`` (numpy shape is
+    H x W, the transpose of PIL's W x H ``.size``) read ``(1345, 2133)``.
+    NEW semantics: every staging build now resizes an oversized ``case_data/``
+    PNG to the vision API's own target size BEFORE this doc example (or
+    anything else) ever reads it (``src/agent/execution/vision_resize.py``,
+    wired into ``isolation.py::_copy_case_data_image`` -- see
+    ``tests/test_f51_single_frame.py`` for the dedicated lock on that
+    mechanism). ``1f_view.png``'s real size resizes 2133x1345 -> 1377x868, so
+    the numpy shape this doc example now reports is ``(868, 1377)``. This is
+    not a relaxation of the check (still an exact-equality pin on a concrete
+    tuple) -- it is the doc example continuing to report whatever the REAL
+    staged frame actually is, which is now a different, correct number.
+    """
 
     proc = _run_doc_block(doc_staging, DOC_6_PYTHON_DASH_C)
     assert proc.returncode == 0, (proc.stdout, proc.stderr)
-    assert proc.stdout.strip() == "(1345, 2133)"
+    assert proc.stdout.strip() == "(868, 1377)"
 
 
 def test_doc_example_script_placeholder_is_illustrative_not_literal(doc_staging: Path) -> None:
