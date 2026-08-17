@@ -1,0 +1,99 @@
+{
+  "f35": {
+    "probe_rc": 0,
+    "sidecars_in_staging_before_merge": [
+      "out/cv/cv_evidence/1f_view/001_storey_line_profiler.json"
+    ],
+    "attempt_dir": "/tmp/ep_isolation/s6_y6xw6_8c/run_f35/0_reading/attempts/001",
+    "attempt_tree": [
+      "checks.json",
+      "isolation_archive",
+      "isolation_archive/MANIFEST.json",
+      "isolation_archive/guard.py",
+      "isolation_archive/isolation_settings.json",
+      "isolation_provenance.json",
+      "output.json"
+    ],
+    "stage_tree": [
+      "1f_view.json",
+      "2f_view.json",
+      "East_view.json",
+      "North_view.json",
+      "South_view.json",
+      "West_view.json",
+      "attempts",
+      "attempts/001",
+      "attempts/001/checks.json",
+      "attempts/001/isolation_archive",
+      "attempts/001/isolation_archive/MANIFEST.json",
+      "attempts/001/isolation_archive/guard.py",
+      "attempts/001/isolation_archive/isolation_settings.json",
+      "attempts/001/isolation_provenance.json",
+      "attempts/001/output.json",
+      "reading_summary.md"
+    ],
+    "cv_evidence_in_attempt": false
+  },
+  "f50_per_image_single": {
+    "outcome": "ValueError",
+    "message": "no aggregate output.json and missing per-image view files for expected_output_ids: ['2f_view', 'East_view', 'North_view', 'South_view', 'West_view']",
+    "attempts_created": []
+  },
+  "f50_aggregate_single": {
+    "outcome": "merged as attempt (filed)",
+    "attempt": "001",
+    "coverage_status": "fail",
+    "coverage_evidence": {
+      "missing_expected_output_ids": [
+        "2f_view",
+        "East_view",
+        "North_view",
+        "South_view",
+        "West_view"
+      ],
+      "extra_stems": []
+    },
+    "accepted": false
+  },
+  "f44": {
+    "entries": [
+      {
+        "decision": "allow",
+        "reason": "allowed run_cv_probe direct arguments",
+        "has_excerpt": true,
+        "excerpt_len": 119,
+        "excerpt_sample": "{\"command\": \"python tools/run_cv_probe.py --tool storey_line_profiler --image case_data/1f_view.png --out-dir out/f44\"}",
+        "executed_code": null
+      },
+      {
+        "decision": "allow",
+        "reason": "allowed python -c program",
+        "has_excerpt": true,
+        "excerpt_len": 37,
+        "excerpt_sample": "{\"command\": \"python -c 'print(1+1)'\"}",
+        "executed_code": [
+          {
+            "path": "-c",
+            "sha256": "df5db25436cb819bec6de11301829284c56ab24fb6738ca0268c53245daa0346"
+          }
+        ]
+      },
+      {
+        "decision": "allow",
+        "reason": "allowed",
+        "has_excerpt": true,
+        "excerpt_len": 48,
+        "excerpt_sample": "{\"content\": \"hello\", \"file_path\": \"out/note.md\"}",
+        "executed_code": null
+      },
+      {
+        "decision": "deny",
+        "reason": "forbidden token: case_tests",
+        "has_excerpt": true,
+        "excerpt_len": 31,
+        "excerpt_sample": "{\"command\": \"cat case_tests/x\"}",
+        "executed_code": null
+      }
+    ]
+  }
+}

@@ -1,0 +1,20 @@
+rc=1
+
+STDERR:
+Traceback (most recent call last):
+  File "/tmp/f55b/tools/run_cv_probe.py", line 345, in <module>
+    raise SystemExit(main())
+                     ^^^^^^
+  File "/tmp/f55b/tools/run_cv_probe.py", line 341, in main
+    return int(cv_main(cv_argv) or 0)
+               ^^^^^^^^^^^^^^^^
+  File "/tmp/f55b/tools/cv_probe.py", line 302, in main
+    result_path = execute_probe(args, parser)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/tmp/f55b/tools/cv_probe.py", line 263, in execute_probe
+    payload = overlay_logger(
+              ^^^^^^^^^^^^^^^
+  File "/tmp/f55b/src/agent/reading/cv_toolbox/tools.py", line 711, in overlay_logger
+    status = candidate.get("status", "undecided")
+             ^^^^^^^^^^^^^
+AttributeError: 'str' object has no attribute 'get'

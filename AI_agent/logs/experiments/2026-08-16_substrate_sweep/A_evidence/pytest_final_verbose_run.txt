@@ -1,0 +1,57 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.13, pytest-9.0.3, pluggy-1.6.0 -- /opt/venv/bin/python
+cachedir: .pytest_cache
+rootdir: /workspaces/EnergyPlus-Agent-dev
+configfile: pyproject.toml
+plugins: langsmith-0.7.33, xdist-3.8.0, anyio-4.13.0
+collecting ... collected 47 items
+
+tests/test_substrate_sweep_tools.py::test_grid_wall_line_profiler_col[B] PASSED [  2%]
+tests/test_substrate_sweep_tools.py::test_grid_wall_line_profiler_col[A] PASSED [  4%]
+tests/test_substrate_sweep_tools.py::test_grid_wall_line_profiler_col[C] PASSED [  6%]
+tests/test_substrate_sweep_tools.py::test_grid_storey_line_profiler[B] PASSED [  8%]
+tests/test_substrate_sweep_tools.py::test_grid_storey_line_profiler[A] PASSED [ 10%]
+tests/test_substrate_sweep_tools.py::test_grid_storey_line_profiler[C] PASSED [ 12%]
+tests/test_substrate_sweep_tools.py::test_grid_px_m_calibrator[B] PASSED [ 14%]
+tests/test_substrate_sweep_tools.py::test_grid_px_m_calibrator[A] PASSED [ 17%]
+tests/test_substrate_sweep_tools.py::test_grid_px_m_calibrator[C] PASSED [ 19%]
+tests/test_substrate_sweep_tools.py::test_grid_window_cc_detector[B] PASSED [ 21%]
+tests/test_substrate_sweep_tools.py::test_grid_window_cc_detector[A] PASSED [ 23%]
+tests/test_substrate_sweep_tools.py::test_grid_window_cc_detector[C] PASSED [ 25%]
+tests/test_substrate_sweep_tools.py::test_grid_crop_zoom[B] PASSED       [ 27%]
+tests/test_substrate_sweep_tools.py::test_grid_crop_zoom[A] PASSED       [ 29%]
+tests/test_substrate_sweep_tools.py::test_grid_crop_zoom[C] PASSED       [ 31%]
+tests/test_substrate_sweep_tools.py::test_grid_overlay_logger[B] PASSED  [ 34%]
+tests/test_substrate_sweep_tools.py::test_grid_overlay_logger[A] PASSED  [ 36%]
+tests/test_substrate_sweep_tools.py::test_grid_overlay_logger[C] PASSED  [ 38%]
+tests/test_substrate_sweep_tools.py::test_doc_example_wall_line_profiler_runs PASSED [ 40%]
+tests/test_substrate_sweep_tools.py::test_doc_example_crop_zoom_runs_and_crops_correctly PASSED [ 42%]
+tests/test_substrate_sweep_tools.py::test_doc_example_px_m_calibrator_runs_and_computes_the_documented_scale PASSED [ 44%]
+tests/test_substrate_sweep_tools.py::test_doc_example_window_cc_detector_runs PASSED [ 46%]
+tests/test_substrate_sweep_tools.py::test_doc_example_batch_placeholder_is_not_shell_safe XFAIL [ 48%]
+tests/test_substrate_sweep_tools.py::test_doc_example_python_dash_c_executes_in_staging PASSED [ 51%]
+tests/test_substrate_sweep_tools.py::test_doc_example_script_placeholder_is_illustrative_not_literal PASSED [ 53%]
+tests/test_substrate_sweep_tools.py::test_s2_bbox_native_json_array_form_a XFAIL [ 55%]
+tests/test_substrate_sweep_tools.py::test_s2_bbox_native_json_array_form_c XFAIL [ 57%]
+tests/test_substrate_sweep_tools.py::test_s2_bbox_string_form_a_is_the_working_spelling PASSED [ 59%]
+tests/test_substrate_sweep_tools.py::test_s2_anchors_json_as_file_path_string_form_a PASSED [ 61%]
+tests/test_substrate_sweep_tools.py::test_s2_candidates_json_as_file_path_string_form_a PASSED [ 63%]
+tests/test_substrate_sweep_tools.py::test_s2_scale_forms_agree[A-2-int] PASSED [ 65%]
+tests/test_substrate_sweep_tools.py::test_s2_scale_forms_agree[A-2.0-float] PASSED [ 68%]
+tests/test_substrate_sweep_tools.py::test_s2_scale_forms_agree[A-2-string] PASSED [ 70%]
+tests/test_substrate_sweep_tools.py::test_s2_scale_forms_agree[B-2-b_string] PASSED [ 72%]
+tests/test_substrate_sweep_tools.py::test_s2_window_filter_params_native_and_string_forms PASSED [ 74%]
+tests/test_substrate_sweep_tools.py::test_s3_source_size_reported_by_every_tool[crop_zoom-args_extra0] PASSED [ 76%]
+tests/test_substrate_sweep_tools.py::test_s3_source_size_reported_by_every_tool[wall_line_profiler-args_extra1] PASSED [ 78%]
+tests/test_substrate_sweep_tools.py::test_s3_source_size_reported_by_every_tool[storey_line_profiler-args_extra2] PASSED [ 80%]
+tests/test_substrate_sweep_tools.py::test_s3_source_size_reported_by_every_tool[px_m_calibrator-args_extra3] PASSED [ 82%]
+tests/test_substrate_sweep_tools.py::test_s3_source_size_reported_by_every_tool[window_cc_detector-args_extra4] PASSED [ 85%]
+tests/test_substrate_sweep_tools.py::test_s3_source_size_reported_by_every_tool[overlay_logger-args_extra5] PASSED [ 87%]
+tests/test_substrate_sweep_tools.py::test_s3_crop_scale_roundtrip_within_one_pixel PASSED [ 89%]
+tests/test_substrate_sweep_tools.py::test_s3_overlay_png_is_always_in_the_source_frame[crop_zoom-args_extra0] PASSED [ 91%]
+tests/test_substrate_sweep_tools.py::test_s3_overlay_png_is_always_in_the_source_frame[wall_line_profiler-args_extra1] PASSED [ 93%]
+tests/test_substrate_sweep_tools.py::test_s3_overlay_png_is_always_in_the_source_frame[overlay_logger-args_extra2] PASSED [ 95%]
+tests/test_substrate_sweep_tools.py::test_s3_crop_png_is_in_the_crop_local_frame_not_source PASSED [ 97%]
+tests/test_substrate_sweep_tools.py::test_s2_wrapper_validation_errors_are_clean_not_raw_tracebacks XFAIL [100%]
+
+======================== 43 passed, 4 xfailed in 46.56s ========================

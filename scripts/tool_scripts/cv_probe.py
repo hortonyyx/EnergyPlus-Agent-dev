@@ -27,7 +27,43 @@ from src.agent.reading.cv_toolbox import (  # noqa: E402
 
 
 def _bbox(value: str) -> list[float]:
-    parts = [float(part) for part in value.split(",")]
+    """F-52: accept both the documented comma-separated spelling
+    (``x0,y0,x1,y1``) and a native JSON array spelling (``[x0,y0,x1,y1]``).
+
+    ``bbox`` is one of six PUBLIC parameters shared across every tool in this
+    toolbox, and the most natural way to write a bbox in a JSON request body
+    is a native array. Before this fix, only the comma-separated string
+    worked: run_cv_probe.py's wrapper serializes any list-typed argument it
+    does not recognize as a JSON-or-path key via ``json.dumps`` (this
+    includes ``bbox``, since it never joined ``JSON_OR_PATH_KEYS`` — see the
+    comment on that set for why it deliberately stays that way), which
+    produces exactly the bracketed string this function now parses. Fixing
+    the acceptance here, at the single point every invocation form (direct
+    CLI, ``--request``, ``--batch``) converges on before this type callable
+    runs, covers all of them at once rather than only the wrapper's JSON
+    path.
+    """
+    stripped = value.strip()
+    if stripped.startswith("["):
+        try:
+            parsed = json.loads(stripped)
+        except json.JSONDecodeError as exc:
+            raise argparse.ArgumentTypeError(
+                f"--bbox JSON array is not valid JSON: {exc}"
+            ) from exc
+        if not isinstance(parsed, list):
+            raise argparse.ArgumentTypeError(
+                "--bbox JSON value must be an array [x0,y0,x1,y1]"
+            )
+        raw_parts: list = parsed
+    else:
+        raw_parts = stripped.split(",")
+    try:
+        parts = [float(part) for part in raw_parts]
+    except (TypeError, ValueError) as exc:
+        raise argparse.ArgumentTypeError(
+            f"--bbox must be x0,y0,x1,y1 or a JSON array [x0,y0,x1,y1]: {exc}"
+        ) from exc
     if len(parts) != 4:
         raise argparse.ArgumentTypeError("--bbox must be x0,y0,x1,y1")
     return parts

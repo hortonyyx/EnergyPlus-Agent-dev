@@ -307,38 +307,66 @@ def _run_batch(batch_data, root: Path) -> int:
     return 0
 
 
+# F-54: every validation/parsing step below this point (path resolution, file
+# reads, JSON decoding, the direct-form and request-form converters) can raise
+# one of these two types. None of it used to be wrapped in a try/except, so a
+# ValueError/OSError/json.JSONDecodeError (JSONDecodeError IS a ValueError
+# subclass, so it needs no separate entry) propagated out of main() as a raw,
+# uncaught Python traceback at exit code 1 -- unlike cv_probe.py's own
+# argparse-based parser.error() paths, which give clean usage text at exit
+# code 2. This is the wrapper's OWN entry point (guard.py's PreToolUse
+# validation reuses these same exception types to reject bad input before the
+# wrapper subprocess ever starts on the normal product path, so the gap is
+# mostly invisible there) -- but this file is also invoked directly by
+# anything that bypasses the hook, which is exactly the shape this project's
+# own test methodology uses (real staging + subprocess against the staged
+# wrapper, deliberately not going through guard.py).
+_EXPECTED_ERRORS = (ValueError, OSError)
+
+
 def main(argv: list[str] | None = None) -> int:
     argv = list(sys.argv[1:] if argv is None else argv)
     root = _staging_root()
     if argv == ["--help"]:
         print(_USAGE_TEXT, end="")
         return 0
-    if any(arg == "--request" or arg.startswith("--request=") for arg in argv):
-        # Form A — unchanged: same parser, same required flag, same errors.
-        parser = argparse.ArgumentParser(description=__doc__)
-        parser.add_argument("--request", required=True, type=Path)
-        ns = parser.parse_args(argv)
-        request_path = _resolve(str(ns.request), root)
-        request = json.loads(request_path.read_text(encoding="utf-8"))
-    elif any(arg == "--batch" or arg.startswith("--batch=") for arg in argv):
-        # Form C — one bounded batch file.  Parse the option exactly so it
-        # cannot be mixed with direct arguments or the legacy request form.
-        parser = argparse.ArgumentParser(description=__doc__)
-        parser.add_argument("--batch", required=True, type=Path)
-        ns = parser.parse_args(argv)
-        batch_path = _resolve(str(ns.batch), root)
-        if batch_path.suffix != ".json":
-            raise ValueError("batch must be a JSON file")
-        batch_data = json.loads(batch_path.read_text(encoding="utf-8"))
-        return _run_batch(batch_data, root)
-    else:
-        # Form B (P1-1/P1-2) — direct `--key value` arguments.
-        request = _direct_to_request(argv)
-    cv_argv = _request_to_argv(request, root)
-    sys.path.insert(0, str(root / "tools"))
-    from cv_probe import main as cv_main  # noqa: WPS433
+    try:
+        if any(arg == "--request" or arg.startswith("--request=") for arg in argv):
+            # Form A — unchanged: same parser, same required flag, same errors.
+            parser = argparse.ArgumentParser(description=__doc__)
+            parser.add_argument("--request", required=True, type=Path)
+            ns = parser.parse_args(argv)
+            request_path = _resolve(str(ns.request), root)
+            request = json.loads(request_path.read_text(encoding="utf-8"))
+        elif any(arg == "--batch" or arg.startswith("--batch=") for arg in argv):
+            # Form C — one bounded batch file.  Parse the option exactly so it
+            # cannot be mixed with direct arguments or the legacy request form.
+            parser = argparse.ArgumentParser(description=__doc__)
+            parser.add_argument("--batch", required=True, type=Path)
+            ns = parser.parse_args(argv)
+            batch_path = _resolve(str(ns.batch), root)
+            if batch_path.suffix != ".json":
+                raise ValueError("batch must be a JSON file")
+            batch_data = json.loads(batch_path.read_text(encoding="utf-8"))
+            return _run_batch(batch_data, root)
+        else:
+            # Form B (P1-1/P1-2) — direct `--key value` arguments.
+            request = _direct_to_request(argv)
+        cv_argv = _request_to_argv(request, root)
+        sys.path.insert(0, str(root / "tools"))
+        from cv_probe import main as cv_main  # noqa: WPS433
 
-    return int(cv_main(cv_argv) or 0)
+        return int(cv_main(cv_argv) or 0)
+    except _EXPECTED_ERRORS as exc:
+        # Preserve the exception's message verbatim -- these messages were
+        # already written with care (e.g. _request_to_argv's copyable JSON
+        # example, _direct_to_request's "did you mean --tool X?" hint); the
+        # bug was that the text was buried in a stack trace, not that the
+        # text itself was wrong. argparse's own error paths raise SystemExit,
+        # which is not an Exception subclass, so they are never intercepted
+        # here and keep their existing usage-text behavior untouched.
+        print(f"run_cv_probe.py: error: {exc}", file=sys.stderr)
+        return 2
 
 
 if __name__ == "__main__":

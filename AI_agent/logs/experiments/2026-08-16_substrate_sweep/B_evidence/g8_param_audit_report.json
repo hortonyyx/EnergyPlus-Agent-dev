@@ -1,0 +1,277 @@
+{
+  "guard_keys": [
+    "tool",
+    "image",
+    "out_dir",
+    "recipe",
+    "bbox",
+    "scale",
+    "sidecar_name",
+    "axis",
+    "anchors_json",
+    "residual_warn_px",
+    "residual_warn_m",
+    "min_area",
+    "min_width",
+    "min_height",
+    "max_width",
+    "max_height",
+    "min_aspect",
+    "max_aspect",
+    "merge_gap",
+    "merge_overlap_ratio",
+    "merge_iou",
+    "candidates_json",
+    "capability_profile",
+    "no_cc",
+    "min_strength",
+    "min_line_len_px",
+    "label"
+  ],
+  "per_tool_keys": {
+    "crop_zoom": [
+      "bbox",
+      "image",
+      "out_dir",
+      "recipe",
+      "scale",
+      "sidecar_name",
+      "tool"
+    ],
+    "wall_line_profiler": [
+      "axis",
+      "bbox",
+      "image",
+      "out_dir",
+      "recipe",
+      "scale",
+      "sidecar_name",
+      "tool"
+    ],
+    "storey_line_profiler": [
+      "bbox",
+      "image",
+      "out_dir",
+      "recipe",
+      "scale",
+      "sidecar_name",
+      "tool"
+    ],
+    "px_m_calibrator": [
+      "anchors_json",
+      "bbox",
+      "image",
+      "out_dir",
+      "recipe",
+      "residual_warn_m",
+      "residual_warn_px",
+      "scale",
+      "sidecar_name",
+      "tool"
+    ],
+    "window_cc_detector": [
+      "bbox",
+      "image",
+      "max_aspect",
+      "max_height",
+      "max_width",
+      "merge_gap",
+      "merge_iou",
+      "merge_overlap_ratio",
+      "min_area",
+      "min_aspect",
+      "min_height",
+      "min_width",
+      "out_dir",
+      "recipe",
+      "scale",
+      "sidecar_name",
+      "tool"
+    ],
+    "overlay_logger": [
+      "bbox",
+      "candidates_json",
+      "image",
+      "out_dir",
+      "recipe",
+      "scale",
+      "sidecar_name",
+      "tool"
+    ],
+    "prescan-plan": [
+      "bbox",
+      "capability_profile",
+      "image",
+      "label",
+      "min_line_len_px",
+      "min_strength",
+      "no_cc",
+      "out_dir",
+      "recipe",
+      "scale",
+      "sidecar_name",
+      "tool"
+    ],
+    "prescan-elevation": [
+      "bbox",
+      "capability_profile",
+      "image",
+      "label",
+      "min_line_len_px",
+      "min_strength",
+      "no_cc",
+      "out_dir",
+      "recipe",
+      "scale",
+      "sidecar_name",
+      "tool"
+    ]
+  },
+  "common_keys": [
+    "bbox",
+    "image",
+    "out_dir",
+    "recipe",
+    "scale",
+    "sidecar_name",
+    "tool"
+  ],
+  "dead_vs_authorized": [
+    "capability_profile",
+    "no_cc",
+    "min_strength",
+    "min_line_len_px",
+    "label"
+  ],
+  "dead_keys_accepted_only_by_withdrawn": [
+    "capability_profile",
+    "no_cc",
+    "min_strength",
+    "min_line_len_px",
+    "label"
+  ],
+  "missing_in_guard (accepted but not allowed)": [],
+  "counts": {
+    "guard_keys": 27,
+    "authorized_union": 22,
+    "common_plus_tool": 7,
+    "exclusive_union": 15
+  },
+  "behaviour": {
+    "guard/tool/on-storey": {
+      "decision": "deny",
+      "reason": "repeated probe parameter --tool"
+    },
+    "guard/image/on-storey": {
+      "decision": "deny",
+      "reason": "repeated probe parameter --image"
+    },
+    "guard/out_dir/on-storey": {
+      "decision": "deny",
+      "reason": "repeated probe parameter --out-dir"
+    },
+    "guard/recipe/on-storey": {
+      "decision": "allow",
+      "reason": "allowed run_cv_probe direct arguments"
+    },
+    "guard/bbox/on-storey": {
+      "decision": "allow",
+      "reason": "allowed run_cv_probe direct arguments"
+    },
+    "guard/scale/on-storey": {
+      "decision": "allow",
+      "reason": "allowed run_cv_probe direct arguments"
+    },
+    "guard/sidecar_name/on-storey": {
+      "decision": "allow",
+      "reason": "allowed run_cv_probe direct arguments"
+    },
+    "guard/axis/on-storey": {
+      "decision": "allow",
+      "reason": "allowed run_cv_probe direct arguments"
+    },
+    "guard/anchors_json/on-storey": {
+      "decision": "allow",
+      "reason": "allowed run_cv_probe direct arguments"
+    },
+    "guard/residual_warn_px/on-storey": {
+      "decision": "allow",
+      "reason": "allowed run_cv_probe direct arguments"
+    },
+    "guard/residual_warn_m/on-storey": {
+      "decision": "allow",
+      "reason": "allowed run_cv_probe direct arguments"
+    },
+    "guard/min_area/on-storey": {
+      "decision": "allow",
+      "reason": "allowed run_cv_probe direct arguments"
+    },
+    "guard/min_width/on-storey": {
+      "decision": "allow",
+      "reason": "allowed run_cv_probe direct arguments"
+    },
+    "guard/min_height/on-storey": {
+      "decision": "allow",
+      "reason": "allowed run_cv_probe direct arguments"
+    },
+    "guard/max_width/on-storey": {
+      "decision": "allow",
+      "reason": "allowed run_cv_probe direct arguments"
+    },
+    "guard/max_height/on-storey": {
+      "decision": "allow",
+      "reason": "allowed run_cv_probe direct arguments"
+    },
+    "guard/min_aspect/on-storey": {
+      "decision": "allow",
+      "reason": "allowed run_cv_probe direct arguments"
+    },
+    "guard/max_aspect/on-storey": {
+      "decision": "allow",
+      "reason": "allowed run_cv_probe direct arguments"
+    },
+    "guard/merge_gap/on-storey": {
+      "decision": "allow",
+      "reason": "allowed run_cv_probe direct arguments"
+    },
+    "guard/merge_overlap_ratio/on-storey": {
+      "decision": "allow",
+      "reason": "allowed run_cv_probe direct arguments"
+    },
+    "guard/merge_iou/on-storey": {
+      "decision": "allow",
+      "reason": "allowed run_cv_probe direct arguments"
+    },
+    "guard/candidates_json/on-storey": {
+      "decision": "allow",
+      "reason": "allowed run_cv_probe direct arguments"
+    },
+    "guard/capability_profile/on-storey": {
+      "decision": "allow",
+      "reason": "allowed run_cv_probe direct arguments"
+    },
+    "guard/no_cc/on-storey": {
+      "decision": "allow",
+      "reason": "allowed run_cv_probe direct arguments"
+    },
+    "guard/min_strength/on-storey": {
+      "decision": "allow",
+      "reason": "allowed run_cv_probe direct arguments"
+    },
+    "guard/min_line_len_px/on-storey": {
+      "decision": "allow",
+      "reason": "allowed run_cv_probe direct arguments"
+    },
+    "guard/label/on-storey": {
+      "decision": "allow",
+      "reason": "allowed run_cv_probe direct arguments"
+    },
+    "wrapper/capability_profile/on-storey": 2,
+    "wrapper/no_cc/on-storey": 1,
+    "wrapper/min_strength/on-storey": 2,
+    "wrapper/min_line_len_px/on-storey": 2,
+    "wrapper/label/on-storey": 2,
+    "wrapper/axis-on-storey": 2,
+    "wrapper/bbox-on-wcc": 0
+  }
+}

@@ -1,0 +1,24 @@
+⚠ claude.ai connectors are disabled because ANTHROPIC_API_KEY or another auth source is set and takes precedence over your claude.ai login · Unset it to load your organization's connectors
+Warning: no stdin data received in 3s, proceeding without it. If piping from a slow command, redirect stdin explicitly: < /dev/null to skip, or wait longer.
+复审完毕。裁决书已落 `AI_agent/logs/reviews/verdict/2026-08-16_e1_residual_three_items_review_glm.md`，仓库跟踪文件零改动（只审不改兑现；`git diff` 为空，未跟踪文件里除裁决书外均为并行席位的既有产物）。摘要：
+
+## 总裁决：CHANGES REQUIRED（2 BLOCKER / 1 MINOR / 1 NIT）
+
+**§2.1 引号状态机 —— 三态机本身无判错，但整体有一个危险方向的洞**
+
+- `_quote_states` 的 bare/`'`/`"`+反斜杠逻辑对拍 12 组真实 bash 全部一致；作者自证“不一致处全在保守方向”里引号相关的部分成立。
+- **BLOCKER-1**：`_check_shell_structure` 元字符集漏了**换行（和 CR）**。`ls⏎python -c '<code>'` → guard **allow**（`shlex` 把换行当空白，`ls` 走只读分支，代码只被当"路径参数”），而真实 bash 执行第二条。三组对照实测：同一段含 `urllib` 的代码，单独跑 deny（网络禁词）、`;` 分隔 deny（结构禁词）、**换行分隔 allow 且真实执行**——第二行对 `EXEC_DENY_NETWORK` 等全部 exec 检查**零扫描**。如实记账：换行洞早于 A3 存在（旧 `COMPOUND_TOKENS` 也不含它），但 A3 把它的 payload 面从“藏裸命令”扩大到“藏免检 python"。
+
+**§2.2 词表收窄 —— 主张证伪，但账不在那三个词上**
+
+- **BLOCKER-2**：`Path.cwd().parents[2]`（或 `__file__` 锚点）不在 `EXEC_DENY_IMPLICIT_PATHS` 枚举里。实测 guard allow，真实执行已定位到本仓 `case_tests/test_baseline/gt/sm21_anchor/gt.json` 等三个答案路径（只打印未读内容）。staging 真实布局 `/tmp/ep_isolation/<case>` 下 parents 两层到 `/`，同样成立。控制组：`'/'` 与 `os.sep` 均被 F-47 的锁拦住——反例走的是 F-47 枚举之外的锚点族。
+- **拆账（修法方向的关键）**：反例代码里根本没有 attempts/verdict/grade，把三词加回去照样绕。主张假在“路径必然以仓库根或 `..` 文本出现"这个前提——**修法是补锚点拦截，不是回填词表**。
+
+**§2.3 计数 —— 4 处正确、无第五处**
+
+- 全部 8 条删除行机械归位到声称的 4 处；4 处改法逐项验证成立（4 个新 boundary 形状实测全 deny、两条新文案与 guard 实际输出逐字一致、python -c 除名有替代边界锁）。
+- **MINOR-1**：`READ_ONLY_COMMANDS` 放宽了 5 个命令，cat/head 配了正向锁，**tail/wc/find 三个零锁**——`find` 正是那条被删旧文案锁的对象，删除登记在案但新 allow 行为无任何测试钉住（F-43「放宽静默」同族）。
+
+**F-55 交互**：与两条 BLOCKER 均独立可叠加、互不为前提；词表收窄的安危结论**不因 F-55 改变**（本来就不安全，理由是锚点族）——F-55 只让“guard 仍拒 X"这类推理的前提进一步松动。修法排序上互不阻塞。
+
+另更正请求书一处外围描述（NIT）：`e0367e1` 除 `run_cv_probe.py` 与测试外还动了 `isolation.py`/`sidecar.py`，非“只动了”——guard.py 确实未动，审 HEAD 的结论不受影响。

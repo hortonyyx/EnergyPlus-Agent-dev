@@ -1,0 +1,235 @@
+### wlp/B
+RC: 0
+
+### wlp/A
+RC: 0
+
+### wlp/C
+RC: 0
+STDOUT: {
+  "batch_schema": "1",
+  "request_count": 1,
+  "results": [
+    {
+      "id": "r1",
+      "result": {
+        "applicability": "clean_vector",
+        "crop_chain": [],
+        "cv_schema": "1",
+        "diagnostics": {
+          "crop_chain": [],
+          "image_size_px": [
+            1200,
+            900
+          ],
+          "mask_pixels": 13500,
+          "overlay_decisions": [
+            {
+              "candidate_id": "synth_probe:wall_line_profiler:001:col100",
+              "geometry": {
+                "axis": "col",
+                "kind": "line",
+                "x_px": 100.00000000000001
+              },
+              "reason": "cv_probe automatic overlay",
+              "status": "undecided"
+            },
+            {
+              "candidate_id": "synth_probe:wall_li
+
+### slp/B
+RC: 0
+
+### slp/A
+RC: 0
+
+### slp/C
+RC: 0
+STDOUT: {
+  "batch_schema": "1",
+  "request_count": 1,
+  "results": [
+    {
+      "id": "r1",
+      "result": {
+        "applicability": "clean_vector",
+        "crop_chain": [],
+        "cv_schema": "1",
+        "diagnostics": {
+          "crop_chain": [],
+          "image_size_px": [
+            1200,
+            900
+          ],
+          "mask_pixels": 13500,
+          "overlay_decisions": [
+            {
+              "candidate_id": "synth_probe:storey_line_profiler:001:row150",
+              "geometry": {
+                "axis": "row",
+                "kind": "line",
+                "y_px": 150.0
+              },
+              "reason": "cv_probe automatic overlay",
+              "status": "undecided"
+            },
+            {
+              "candidate_id": "synth_probe:storey_line_profil
+
+### calib/B
+RC: 0
+
+### calib/A
+RC: 0
+
+### calib/C
+RC: 0
+STDOUT: {
+  "batch_schema": "1",
+  "request_count": 1,
+  "results": [
+    {
+      "id": "r1",
+      "result": {
+        "applicability": "clean_vector",
+        "crop_chain": [],
+        "cv_schema": "1",
+        "diagnostics": {
+          "anchor_count": 1,
+          "overlay_decisions": [
+            {
+              "candidate_id": "synth_probe:px_m_calibrator:001:scale:1",
+              "geometry": {
+                "axis": "col",
+                "kind": "line",
+                "x_px": 100
+              },
+              "reason": "calibration anchor",
+              "status": "accepted"
+            }
+          ],
+          "warnings": []
+        },
+        "overlay_path": "/tmp/claude-0/-workspaces-EnergyPlus-Agent-dev/d8fe0051-7002-4586-92bc-937faf7f6a52/scratchpad/staging_explore/staging/out/m
+
+### wcc/B
+RC: 0
+
+### wcc/A
+RC: 0
+
+### wcc/C
+RC: 0
+STDOUT: {
+  "batch_schema": "1",
+  "request_count": 1,
+  "results": [
+    {
+      "id": "r1",
+      "result": {
+        "applicability": "clean_vector",
+        "crop_chain": [],
+        "cv_schema": "1",
+        "diagnostics": {
+          "crop_chain": [],
+          "filtered_component_count": 3,
+          "image_size_px": [
+            1200,
+            900
+          ],
+          "mask_pixels": 13500,
+          "merged_count": 3,
+          "overlay_decisions": [
+            {
+              "candidate_id": "synth_probe:window_cc_detector:001:bbox",
+              "geometry": {
+                "bbox_px": [
+                  50.0,
+                  50.0,
+                  750.0,
+                  650.0
+                ],
+                "kind": "bbox"
+              },
+              "reason": "cv_pro
+
+### crop/B
+RC: 0
+
+### crop/A
+RC: 0
+
+### crop/C
+RC: 0
+STDOUT: {
+  "batch_schema": "1",
+  "request_count": 1,
+  "results": [
+    {
+      "id": "r1",
+      "result": {
+        "applicability": "clean_vector",
+        "crop_chain": [
+          {
+            "bbox_px": [
+              880.0,
+              730.0,
+              1000.0,
+              790.0
+            ],
+            "crop_size_px": [
+              120,
+              60
+            ],
+            "local_to_source": {
+              "source_x": "880.0 + local_x / 1.0",
+              "source_y": "730.0 + local_y / 1.0"
+            },
+            "op": "crop_zoom",
+            "scale": 1.0,
+            "source_size_px": [
+              1200,
+              900
+            ],
+            "source_to_local": {
+              "local_x": "(source_x - 880.0) * 1.0",
+              "local_y": "(source_y -
+
+### overlay/B
+RC: 0
+
+### overlay/A
+RC: 0
+
+### overlay/C
+RC: 0
+STDOUT: {
+  "batch_schema": "1",
+  "request_count": 1,
+  "results": [
+    {
+      "id": "r1",
+      "result": {
+        "applicability": "clean_vector",
+        "crop_chain": [],
+        "cv_schema": "1",
+        "diagnostics": {
+          "decisions": [
+            {
+              "candidate_id": "c1",
+              "geometry": {
+                "bbox_px": [
+                  900,
+                  750,
+                  920,
+                  765
+                ],
+                "kind": "bbox"
+              },
+              "reason": "rectA",
+              "status": "accepted"
+            }
+          ]
+        },
+        "overlay_path": "/tmp/claude-0/-workspaces-EnergyPlus-Agent-dev/d8fe0051-7002-4586-92bc-937faf7f6a52/scratchpad/staging_explore/staging/out/m_ovl_c/cv_evidence/synth_probe/001
+

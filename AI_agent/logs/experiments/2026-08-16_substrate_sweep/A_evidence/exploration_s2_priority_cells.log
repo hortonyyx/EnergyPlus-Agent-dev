@@ -1,0 +1,103 @@
+==================== S-2 priority cells ====================
+### bbox-array/A
+RC: 2
+STDERR: usage: run_cv_probe.py crop_zoom [-h] --image IMAGE --out-dir OUT_DIR
+                                 [--recipe RECIPE] [--bbox BBOX]
+                                 [--scale SCALE] [--sidecar-name SIDECAR_NAME]
+run_cv_probe.py crop_zoom: error: argument --bbox: invalid _bbox value: '[880,730,1000,790]'
+
+
+### bbox-array/C
+RC: 2
+STDERR: usage: run_cv_probe.py crop_zoom [-h] --image IMAGE --out-dir OUT_DIR
+                                 [--recipe RECIPE] [--bbox BBOX]
+                                 [--scale SCALE] [--sidecar-name SIDECAR_NAME]
+run_cv_probe.py crop_zoom: error: argument --bbox: invalid _bbox value: '[880,730,1000,790]'
+
+
+### bbox-string/A
+RC: 0
+
+### anchors-path/A
+RC: 0
+
+### anchors-inline-string/A
+RC: 0
+
+### candidates-path/A
+RC: 0
+
+### scale-int/A
+RC: 0
+
+### scale-float/A
+RC: 0
+
+### scale-string/A
+RC: 0
+
+### scale-string/B
+RC: 0
+
+### recipe/B
+RC: 0
+
+### recipe/A
+RC: 0
+
+### sidecar_name/B
+RC: 1
+STDERR: , line 341, in main
+    return int(cv_main(cv_argv) or 0)
+               ^^^^^^^^^^^^^^^^
+  File "/tmp/claude-0/-workspaces-EnergyPlus-Agent-dev/d8fe0051-7002-4586-92bc-937faf7f6a52/scratchpad/staging_explore/staging/tools/cv_probe.py", line 302, in main
+    result_path = execute_probe(args, parser)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/tmp/claude-0/-workspaces-EnergyPlus-Agent-dev/d8fe0051-7002-4586-92bc-937faf7f6a52/scratchpad/staging_explore/staging/tools/cv_probe.py", line 178, in execute_probe
+    sidecar_path = allocate_sidecar_path(args.out_dir, args.image, "crop_zoom", args.sidecar_name)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/tmp/claude-0/-workspaces-EnergyPlus-Agent-dev/d8fe0051-7002-4586-92bc-937faf7f6a52/scratchpad/staging_explore/staging/src/agent/reading/cv_toolbox/sidecar.py", line 56, in allocate_sidecar_path
+    raise FileExistsError(f"sidecar already exists: {path}")
+FileExistsError: sidecar already exists: /tmp/claude-0/-workspaces-EnergyPlus-Agent-dev/d8fe0051-7002-4586-92bc-937faf7f6a52/scratchpad/staging_explore/staging/out/s2_sidecar_b/cv_evidence/synth_probe/001_mycrop.json
+
+
+### sidecar_name/A
+RC: 1
+STDERR: , line 341, in main
+    return int(cv_main(cv_argv) or 0)
+               ^^^^^^^^^^^^^^^^
+  File "/tmp/claude-0/-workspaces-EnergyPlus-Agent-dev/d8fe0051-7002-4586-92bc-937faf7f6a52/scratchpad/staging_explore/staging/tools/cv_probe.py", line 302, in main
+    result_path = execute_probe(args, parser)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/tmp/claude-0/-workspaces-EnergyPlus-Agent-dev/d8fe0051-7002-4586-92bc-937faf7f6a52/scratchpad/staging_explore/staging/tools/cv_probe.py", line 178, in execute_probe
+    sidecar_path = allocate_sidecar_path(args.out_dir, args.image, "crop_zoom", args.sidecar_name)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/tmp/claude-0/-workspaces-EnergyPlus-Agent-dev/d8fe0051-7002-4586-92bc-937faf7f6a52/scratchpad/staging_explore/staging/src/agent/reading/cv_toolbox/sidecar.py", line 56, in allocate_sidecar_path
+    raise FileExistsError(f"sidecar already exists: {path}")
+FileExistsError: sidecar already exists: /tmp/claude-0/-workspaces-EnergyPlus-Agent-dev/d8fe0051-7002-4586-92bc-937faf7f6a52/scratchpad/staging_explore/staging/out/s2_sidecar_a/cv_evidence/synth_probe/001_mycrop.json
+
+
+### axis/B
+RC: 0
+
+### axis/A
+RC: 0
+
+### residual-b/B
+RC: 0
+
+### residual-native/A
+RC: 0
+
+### residual-string/A
+RC: 0
+
+### window-minarea-native/A
+RC: 0
+
+### window-minarea-string/A
+RC: 0
+
+### window-minwidth-float/A
+RC: 0
+

@@ -47,10 +47,13 @@ python tools/run_cv_probe.py --tool window_cc_detector \
 ```
 
 For a sweep, put the requests in a JSON file and run them in one call (maximum 32, all validated
-before any of them runs):
+before any of them runs). Name the file yourself (`requests/sweep.json` below is one such name, not a
+placeholder to fill in) — angle brackets are shell redirection operators, not a fill-in-the-blank
+convention, so a literal `<name>` pasted into a real shell is read as "redirect stdin from a file
+called `name`, redirect stdout to a file called `.json`," not as a path:
 
 ```bash
-python tools/run_cv_probe.py --batch requests/<name>.json
+python tools/run_cv_probe.py --batch requests/sweep.json
 ```
 
 Sidecars are written under `<out-dir>/cv_evidence/<image_stem>/NNN_<tool>.json` (e.g.

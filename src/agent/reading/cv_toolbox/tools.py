@@ -703,11 +703,35 @@ def overlay_logger(
     source_name: str = "image",
 ) -> dict[str, Any]:
     recipe = get_recipe(recipe_id)
+    # F-58: validate the candidates SHAPE before iterating. A caller who wraps
+    # the candidate list in an envelope object (e.g. {"results": [...]}
+    # instead of the documented bare [...]) used to iterate the dict's keys
+    # (plain strings), and the first `.get()` call on a string then raised a
+    # bare AttributeError ("'str' object has no attribute 'get'") pointing at
+    # this function's internals rather than at the caller's mistake. A reading
+    # agent that mis-learns the shape from the docs gets a stack trace instead
+    # of guidance. These two checks turn both failure shapes -- the whole
+    # argument being the wrong type, and an individual element inside an
+    # otherwise-correct list being the wrong type -- into one clean,
+    # actionable ValueError naming what was actually received.
+    if not isinstance(candidates, list):
+        raise ValueError(
+            "overlay_logger candidates must be a JSON array of candidate "
+            'objects, e.g. [{"candidate_id":"c1","status":"accepted",'
+            '"reason":"...","geometry":{...}}], not a '
+            f"{type(candidates).__name__}"
+        )
     img = _load_rgb(image)
     draw = ImageDraw.Draw(img)
     colors = {"accepted": "lime", "rejected": "red", "undecided": "orange"}
     decisions = []
     for candidate in candidates:
+        if not isinstance(candidate, dict):
+            raise ValueError(
+                "each overlay candidate must be a JSON object with "
+                '"candidate_id"/"status"/"reason"/"geometry" keys, not a '
+                f"{type(candidate).__name__}: {candidate!r}"
+            )
         status = candidate.get("status", "undecided")
         if status not in colors:
             raise ValueError("candidate status must be accepted, rejected, or undecided")

@@ -8,6 +8,7 @@ import json
 import os
 import re
 import shutil
+import stat
 import subprocess
 import sys
 import tempfile
@@ -40,6 +41,14 @@ from src.validator.checks.view_manifest import check_reading_stage
 
 ISOLATION_SCHEMA_VERSION = "1"
 STAGE = "0_reading"
+
+# F-55: named to match guard.py's own WRITE_ALLOWED_DIRS (the reader's real,
+# sanctioned write surface) rather than adding a second, differently-spelled
+# copy of the same two directory names — this file did not previously have a
+# shared constant for them (the mkdir calls below used to spell "out"/
+# "requests" as bare literals); `_lock_down_readonly_surface` is the first
+# consumer here that needs the pair as a set, not one at a time.
+WRITE_ALLOWED_DIRS = ("out", "requests")
 
 # The worked-example reading-view JSON the kickoff tells the reader to read as a
 # style/format anchor (session_kickoff.md §"First"). It is a *different* building
@@ -190,6 +199,11 @@ def build_isolation_workspace(
         staging_root = Path(staging_root).resolve()
         staging_root.mkdir(parents=True, exist_ok=True)
     _require_outside_repo(staging_root)
+    # F-55: create the audit log's real home before the reader's first command
+    # can possibly run — guard.py's `_append_log` also mkdir's this
+    # defensively, but doing it here means the directory exists from the very
+    # start of the build, not only after the first hook invocation.
+    _audit_dir(staging_root).mkdir(parents=True, exist_ok=True)
 
     view_manifest = build_view_manifest(case_dir)
     binding: dict = {"merge_eligible": False}
@@ -257,6 +271,9 @@ def build_isolation_workspace(
     _write_binding(staging_root, manifest, binding)
     manifest.save()
     _assert_manifest_clean(manifest)
+    # F-55: the read-only lockdown is the LAST step — everything above still
+    # needs to write into staging_root while the tree is being assembled.
+    _lock_down_readonly_surface(staging_root)
     return manifest
 
 
@@ -915,7 +932,9 @@ def _build_provenance(staging_root: Path, output_hash: str) -> dict:
     manifest_path = staging_root / "MANIFEST.json"
     settings_path = staging_root / "isolation_settings.json"
     guard_path = staging_root / "guard.py"
-    access_log_path = staging_root / "access_log.jsonl"
+    # F-55: access_log.jsonl no longer lives under staging_root — see
+    # `_audit_dir`.
+    access_log_path = _audit_dir(staging_root) / "access_log.jsonl"
     denied = 0
     entries = 0
     if access_log_path.exists():
@@ -941,10 +960,26 @@ def _build_provenance(staging_root: Path, output_hash: str) -> dict:
 def _archive_isolation_artifacts(staging_root: Path, attempt_dir: Path) -> None:
     archive = attempt_dir / "isolation_archive"
     archive.mkdir(parents=True, exist_ok=True)
-    for name in ["MANIFEST.json", "isolation_settings.json", "guard.py", "access_log.jsonl"]:
-        src = staging_root / name
+    sources = {
+        "MANIFEST.json": staging_root / "MANIFEST.json",
+        "isolation_settings.json": staging_root / "isolation_settings.json",
+        "guard.py": staging_root / "guard.py",
+        # F-55: relocated out of staging_root — see `_audit_dir`. The archive
+        # keeps the same filename so nothing downstream of this function
+        # needs to know the log moved.
+        "access_log.jsonl": _audit_dir(staging_root) / "access_log.jsonl",
+    }
+    for name, src in sources.items():
         if src.exists():
-            shutil.copy2(src, archive / name)
+            dest = archive / name
+            shutil.copy2(src, dest)
+            # F-55: copy2 preserves the source's mode bits, and guard.py (and,
+            # after this batch, everything else outside out/+requests/) is
+            # now read-only in staging_root. attempt_dir lives under run_dir,
+            # which this fix never locks down, so undo that side effect here
+            # rather than let a read-only file appear somewhere no other code
+            # in this tree expects one.
+            dest.chmod(0o644)
 
 
 def _new_attempt_dir_retry(stage_dir: Path, retries: int = 5) -> Path:
@@ -987,6 +1022,89 @@ def _require_outside_repo(path: Path) -> None:
     except ValueError:
         return
     raise ValueError(f"staging root must be outside repo: {path}")
+
+
+# F-55: where the guard's append-only access_log.jsonl actually lives — a
+# SIBLING of staging_root, never a descendant of it. `guard.py` is a
+# standalone, stdlib-only file copied byte for byte into every staging tree
+# (it cannot receive a per-run injected constant), so it recomputes this exact
+# same rule from its own `_staging_root()`; see that file's `_audit_dir`
+# docstring for the full rationale. The two MUST NEVER disagree, mirrored the
+# same way `writable_root`/`OUTPUT_ROOT_DIR` already are between guard.py and
+# run_cv_probe.py.
+def _audit_dir(staging_root: Path) -> Path:
+    root = Path(staging_root).resolve()
+    return root.parent / f"{root.name}.audit"
+
+
+# F-55, part 2: after the workspace is fully built, remove the WRITE bit from
+# every FILE outside out/ and requests/ — an OS-level backstop that does not
+# replace the guard's Write/Edit-tool-only check (S2a/_check_write_target)
+# but covers what it structurally cannot: A3 (2026-08-16, same day) let
+# reader-authored Python run, and nothing wires WRITE_ALLOWED_DIRS into what
+# an interpreter's own `open()` may target — a plain
+# `python -c 'open("guard.py","a").write(...)'` reached the real file (the
+# controller reproduced this: guard.py grew a line, 1224 -> 1225). This is the
+# read-only half of the direction the user ratified 2026-08-16: physical
+# unwritability for files an accidental hand-slip (a measurement script that
+# typos its output path) could otherwise clobber, NOT a new scanner rule that
+# recognizes "code that writes to a protected path" — the 2026-08-13 threat
+# model narrowing is explicit that this guard defends an accidental/ordinary
+# path, not a reader that deliberately `os.chmod`s a file back to writable
+# first (see the module docstring at the top of guard.py).
+#
+# Only FILES are chmod'd, not directories: a file's own write bit is what
+# governs `open(path, "a"/"w")` on an EXISTING file (the demonstrated repro,
+# both for guard.py and for the pre-fix access_log.jsonl), while a
+# directory's write bit governs create/delete/rename of the entries inside
+# it. Leaving directories writable keeps `shutil.rmtree`/pytest's own
+# tmp_path teardown working (deleting a file only needs the *directory's*
+# write bit on POSIX, never the file's own) and keeps the many existing test
+# fixtures that stage a NEW file directly under a built workspace (e.g.
+# writing `request.json` at staging root, or `feedback.md` after a pilot
+# review) unaffected — only pre-existing files become unwritable, exactly the
+# set this fix needs to protect. Deleting a protected file and recreating it
+# under the same name is a real residual gap, but it takes a DELIBERATE
+# two-step bypass, which is the class of attack the ratified direction
+# explicitly does not ask this fix to close.
+#
+# ⚠️ KNOWN, TESTED, DOCUMENTED LIMITATION (found while verifying this fix,
+# 2026-08-16 — not something the ratified direction anticipated): this whole
+# mechanism is DAC permission bits, and DAC is a no-op for a process running
+# as root (uid 0) against files it owns — which is this dev container's
+# reality end to end (`whoami` -> root for the orchestrator, the spawned
+# reader, and every guard subprocess alike). `open(chmod_0o444_file, "a")`
+# from a plain root `python -c` STILL SUCCEEDS here; it was verified failing
+# only under an explicitly capability-dropped child
+# (`setpriv --bounding-set=-dac_override,-fowner,-chown`, confirmed to work on
+# this host). The immutable-attribute alternative (`chattr +i`, which even
+# root cannot write through without first clearing the flag) was also tried
+# and is unavailable — this container's `/` and `/tmp` are overlayfs, which
+# refuses FS_IOC_SETFLAGS outright ("Operation not permitted while setting
+# flags"). Wiring capability-dropping into `spawn_command` (the one call site
+# that launches the reader's whole top-level session, so a bounding-set drop
+# there would be inherited by everything the reader subsequently runs,
+# including every guard.py hook subprocess) would close this, but it is a
+# materially bigger, higher-blast-radius change than "make some files
+# read-only" — it cannot be validated end to end without actually launching a
+# real reader session, which this batch's scope and time-box do not cover.
+# Left as an explicit follow-up (see the execution log) rather than silently
+# shipped or silently ignored: this fix is still correct and still valuable
+# (it protects a hand-slip in any deployment where the reader runs less
+# privileged than its own protected files, which is the ordinary shape this
+# kind of boundary is deployed under), it is simply NOT a complete defense in
+# THIS specific all-root container today.
+def _lock_down_readonly_surface(staging_root: Path) -> None:
+    staging_root = Path(staging_root).resolve()
+    protected_roots = [(staging_root / name).resolve() for name in WRITE_ALLOWED_DIRS]
+    for path in staging_root.rglob("*"):
+        if path.is_symlink() or not path.is_file():
+            continue
+        resolved = path.resolve()
+        if any(root in resolved.parents for root in protected_roots):
+            continue
+        mode = path.stat().st_mode
+        path.chmod(mode & ~(stat.S_IWUSR | stat.S_IWGRP | stat.S_IWOTH))
 
 
 def _claude_abs(path: Path) -> str:

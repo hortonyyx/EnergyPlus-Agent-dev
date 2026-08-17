@@ -1,0 +1,46 @@
+=== crop_zoom bbox=[50,50,750,650) scale=3 ===
+source_image: {'height_px': 900, 'name': 'synth_probe.png', 'sha256': '5f73f58a120a', 'width_px': 1200}
+crop_size_px: [2100, 1800] expected: [2100, 1800]
+crop_chain[0]: {
+ "bbox_px": [
+  50.0,
+  50.0,
+  750.0,
+  650.0
+ ],
+ "crop_size_px": [
+  2100,
+  1800
+ ],
+ "local_to_source": {
+  "source_x": "50.0 + local_x / 3.0",
+  "source_y": "50.0 + local_y / 3.0"
+ },
+ "op": "crop_zoom",
+ "scale": 3.0,
+ "source_size_px": [
+  1200,
+  900
+ ],
+ "source_to_local": {
+  "local_x": "(source_x - 50.0) * 3.0",
+  "local_y": "(source_y - 50.0) * 3.0"
+ }
+}
+known line source x=100 -> local_x expected 150 -> roundtrip via local_to_source formula -> 100.0 error_px= 0.0
+crop png files: ['./staging_explore/staging/out/s3_crop/cv_evidence/synth_probe/001_crop_zoom_crop.png']
+overlay png files: ['./staging_explore/staging/out/s3_crop/cv_evidence/synth_probe/001_crop_zoom_overlay.png']
+crop.png size: (2100, 1800) == crop_size_px? True
+crop.png pixel at local (150,300) [should be gray ~128]: (128, 128, 128)
+crop.png pixel at local (10,300) [should be white 255, far from any line]: (128, 128, 128)
+crop's overlay.png size: (1200, 900) source size: (1200, 900)
+
+=== wall_line_profiler on same bbox+scale crop: SOURCE-space positions ===
+  col position_px(source-space)= 100.33333333333334 local_position_px= 151.0
+  col position_px(source-space)= 700.3333333333334 local_position_px= 1951.0
+source_image: {'height_px': 900, 'name': 'synth_probe.png', 'sha256': '5f73f58a120a', 'width_px': 1200}
+wlp(cropped-run) overlay.png size: (1200, 900) vs source: (1200, 900)
+
+=== overlay_logger, no crop restriction ===
+source_image: {'height_px': 900, 'name': 'synth_probe.png', 'sha256': '5f73f58a120a', 'width_px': 1200}
+overlay_logger overlay.png size: (1200, 900) vs source: (1200, 900)

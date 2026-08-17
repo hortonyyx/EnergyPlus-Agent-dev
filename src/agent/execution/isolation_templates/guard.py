@@ -15,12 +15,15 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
-# "2" = the 2026-08-16 A3 removal (reader-authored code may execute; the
-# information boundary moved from "which command" to "which bytes run") plus the
-# F-44 log change. Bumped so an access_log can be attributed to a policy without
-# guessing from the repo's history — the version number says which POLICY wrote
-# the log, and nothing more: it is not evidence about any run's behaviour.
-GUARD_VERSION = "2"
+# "3" = the 2026-08-16 F-55 fix (this batch): access_log.jsonl relocated
+# outside staging_root (see `_audit_dir`) and the read-only lockdown applied by
+# `isolation.py._lock_down_readonly_surface` after build. "2" was the same-day
+# A3 removal (reader-authored code may execute; the information boundary moved
+# from "which command" to "which bytes run") plus the F-44 log change. Bumped
+# so an access_log can be attributed to a policy without guessing from the
+# repo's history — the version number says which POLICY wrote the log, and
+# nothing more: it is not evidence about any run's behaviour.
+GUARD_VERSION = "3"
 # S2: tools that write a file. Their target path may only land under out/ or
 # requests/ (write protection, F-4/K); everything else under staging is denied.
 WRITE_TOOLS = ("Write", "Edit", "MultiEdit", "NotebookEdit")
@@ -347,6 +350,39 @@ _EXECUTED_CODE: list[dict] = []
 
 def _staging_root() -> Path:
     return Path(__file__).resolve().parent
+
+
+# F-55: the access log's real home. It is a SIBLING of the staging root, never
+# a descendant of it — staging_root (this file's own directory) is the
+# reader's cwd and the only tree it was ever told about (MANIFEST.json,
+# input_inventory.json, the kickoff prompt all live and speak only inside it),
+# so a location outside that tree is off the reader's map for any ordinary
+# command it runs, even though A3 (2026-08-16, same day) removed the
+# capability lockdown that used to make every `python -c` a denial by SHAPE.
+# Before this fix `_append_log` wrote to `root / "access_log.jsonl"`, which
+# put the one artifact "was this run's answer touched?" depends on INSIDE the
+# tree A3 just opened up: `python -c 'open("access_log.jsonl","w").write("")'`
+# was `allow`ed (no forbidden token in that text) and really erased it — the
+# audited party could erase its own audit trail. Moving the file is the fix
+# the user ratified (2026-08-16): NOT a new scanner rule that recognizes
+# "write to this filename" (that would just be the capability lockdown coming
+# back from a different angle, and the 2026-08-13 threat model only asks for
+# defence against an accidental/ordinary path, not a deliberate `os.chmod`
+# bypass — see the module docstring and `_lock_down_readonly_surface` in
+# isolation.py for the other half of this fix).
+#
+# This is a FIXED NAME-DERIVATION RULE, not a secret: this file is a
+# standalone, stdlib-only template copied byte for byte into every staging
+# tree (see the module docstring), so it cannot receive a per-run injected
+# constant — it has to RECOMPUTE the same path `isolation.py` used when it
+# `mkdir`'d this directory before the reader's first command ever ran.
+# `isolation.py._audit_dir` mirrors this exact rule so the writer (this file,
+# during the run) and the reader-after-the-fact (`_build_provenance`,
+# `_archive_isolation_artifacts`, both in isolation.py) can never disagree —
+# the same pattern already used for `writable_root`/`OUTPUT_ROOT_DIR` between
+# this file and run_cv_probe.py.
+def _audit_dir(root: Path) -> Path:
+    return root.parent / f"{root.name}.audit"
 
 
 def _hash_text(text: str) -> str:
@@ -1200,7 +1236,13 @@ def _append_log(
     # silently rewrite the history of what ran.
     if executed_code:
         entry["executed_code"] = executed_code
-    log_path = root / "access_log.jsonl"
+    # F-55: outside staging_root — see `_audit_dir`. `isolation.py` creates
+    # this directory before the reader's first command runs; the mkdir here is
+    # a defensive fallback (e.g. a hand-built staging tree in a test) so this
+    # function stays self-sufficient rather than depending on that ordering.
+    audit_dir = _audit_dir(root)
+    audit_dir.mkdir(parents=True, exist_ok=True)
+    log_path = audit_dir / "access_log.jsonl"
     with log_path.open("a", encoding="utf-8") as fh:
         fh.write(json.dumps(entry, sort_keys=True, ensure_ascii=False) + "\n")
 

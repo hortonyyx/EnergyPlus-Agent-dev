@@ -1,0 +1,27 @@
+⚠ claude.ai connectors are disabled because ANTHROPIC_API_KEY or another auth source is set and takes precedence over your claude.ai login · Unset it to load your organization's connectors
+摊 B 全部收尾。以下为回执（派工单 §8 七项）：
+
+---
+
+## 摊 B 回执 —— 移植基座普查（S-4 / S-5 / S-6）
+
+**交付物**：`AI_agent/logs/experiments/2026-08-16_substrate_sweep/grid_B.md`（对照表本体）· `B_evidence/`（4 探针 + 4 报告 + neuter 记录，全可复跑）· `tests/test_substrate_sweep_policy.py`（锁）。**权属干净**：`git diff` 零已跟踪文件改动，`git status` 仅上述新文件 + 摊 A 的文件；未 commit、未 pip install、未跑全仓。
+
+**1. 对照表**（详表在 grid_B.md）：G1 六工具×三形态 18+1 格 ✅ 全一致（含 F-49 内联 anchors 形态已通的回归）；G3/G4/G5/G6/G7 共 24 格 ✅ 全双拒，G6 五格零 sidecar；G9 显式同名=FileExistsError、auto=递增。唯一大类不一致 = **G2**：已撤的 prescan 四形态 **guard 全放行、wrapper 裸栈拒**。
+
+**2. 缺陷清单**（F-52B 起，均登记未修）：
+- **F-52B** 写入面只在 Write 工具形态设防——`python -c` 的 OS 层写面完全敞开，**实测文件真落 staging 根**；`open("guard.py","a")` 同样放行（改守卫 + 擦 access_log 的通道）。
+- **F-53B** 已撤 prescan 在守门层不可见（guard 不校验 `--tool` 的值，prescan 5 专属键仍在白名单）。
+- **F-54B** guard 键白名单是跨工具扁平表，键-工具错配（如 storey_line_profiler 带 --axis）guard 放行、argparse 层爆。
+- **F-55B** wrapper 对 candidates/anchors 形状错误裸抛 `AttributeError` 栈（复现在 `B_evidence/f55b_repro.txt`）。
+- 维持未修实测再坐实：**F-35**（CV sidecar 不进 attempt）、**F-50**（per-image 形态中途零归档；细化：aggregate 形态其实可 filed-not-accepted）、**F-39**（sidecar 缺失无门）。
+
+**3. G8 逐键对账**（双向，机械提取自 cv_probe 源）：guard 27 键中**死面恰为 5 键**（capability_profile/no_cc/min_strength/min_line_len_px/label，全部只属已撤 prescan）；反方向授权工具并集 22 键（7 公共+15 专属）**零缺**。`BOOLEAN_FLAG_KEYS={"no_cc"}` 死面属实。
+
+**4. 沙箱里的 python**：读图器环境（clean_spawn_env）下 `python`/`python3` 均解析到 **`/opt/venv/bin/python`（3.12.13）**，numpy 2.4.4 / PIL 12.2.0 / scipy 1.17.1 全可 import；仓内 `.venv` 的 numpy 确实是坏的（`__file__=None`、无 zeros），但读图器**碰不到它**——“自写测量代码因解释器失败”这条路不通。
+
+**5. 证伪/细化的前提**（14 条 ⚠️ 逐条核验表在 grid_B.md §4）：**证伪 2 条**——① G2 的「guard 侧记录实际」：实况是 guard **allow 且无任何 tool 值校验**，比预期宽（F-53B）；② S-5 §3「其它位置实测拒」：Write 工具成立，python -c 形态**失守**（F-52B）。其余 12 条核过成立（含 F-50 报错文案逐字吻合、F-44 修法实测成立、F-49 已修的背景更新）。
+
+**6. 锁**：16 个正锁函数（展开 38 条）+ 3 个 xfail(strict=True) 函数（展开 4 条），全部走真实入口（真 staging + 子进程 guard.evaluate + 子进程 wrapper；merge 场景真 formal build+provision）。**neuter 3 把**：G8（删 axis 键→恰好方向 B 红）、G6（上限 32→64→恰好 33-entries 格红、零连带）、G3（清空 out_dir 角色键→tools/requests 两格红），全部还原后 `git diff` 零残留、全文件复跑 **38 passed + 4 xfailed 零红**。⛔ 无一把锁把错误行为写成正向预期——xfail 体断言的是修好后的应然行为。
+
+**7. 没做完的格子**：无。

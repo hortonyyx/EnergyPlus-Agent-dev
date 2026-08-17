@@ -1,0 +1,131 @@
+{
+  "staging_root": "/tmp/ep_isolation/s5probe_ggznir7t",
+  "env_keys": [
+    "ANTHROPIC_API_KEY",
+    "HOME",
+    "PATH",
+    "PYTHONPATH"
+  ],
+  "interpreter": {
+    "bash -lc": {
+      "cmd": [
+        "bash",
+        "-lc",
+        "type -a python"
+      ],
+      "rc": 0,
+      "stdout": "python is /opt/venv/bin/python\npython is /opt/venv/bin/python",
+      "stderr": ""
+    },
+    "python -c": {
+      "cmd": [
+        "python",
+        "-c",
+        "import sys; print(sys.executable); print(sys.version)"
+      ],
+      "rc": 0,
+      "stdout": "/opt/venv/bin/python\n3.12.13 (main, Mar  4 2026, 09:23:07) [GCC 11.4.0]",
+      "stderr": ""
+    },
+    "python3 -c": {
+      "cmd": [
+        "python3",
+        "-c",
+        "import sys; print(sys.executable); print(sys.version)"
+      ],
+      "rc": 0,
+      "stdout": "/opt/venv/bin/python3\n3.12.13 (main, Mar  4 2026, 09:23:07) [GCC 11.4.0]",
+      "stderr": ""
+    },
+    "PATH": "/opt/venv/bin:/vscode/vscode-server/bin/linux-x64/a5b500951314efd502d07465bd138dfbd714a960/bin/remote-cli:/opt/venv/bin:/EnergyPlus-25.1.0-68a4a7c774-Linux-Ubuntu22.04-x86_64:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+    "PYTHONPATH": "/tmp/ep_isolation/s5probe_ggznir7t"
+  },
+  "libraries_reader_python": {
+    "numpy": {
+      "cmd": [
+        "python",
+        "-c",
+        "import numpy; print(numpy.__version__)"
+      ],
+      "rc": 0,
+      "stdout": "2.4.4",
+      "stderr": ""
+    },
+    "PIL": {
+      "cmd": [
+        "python",
+        "-c",
+        "import PIL; print(PIL.__version__)"
+      ],
+      "rc": 0,
+      "stdout": "12.2.0",
+      "stderr": ""
+    },
+    "scipy": {
+      "cmd": [
+        "python",
+        "-c",
+        "import scipy; print(scipy.__version__)"
+      ],
+      "rc": 0,
+      "stdout": "1.17.1",
+      "stderr": ""
+    }
+  },
+  "libraries_sys_executable": {
+    "numpy": {
+      "cmd": [
+        "/opt/venv/bin/python",
+        "-c",
+        "import numpy; print(numpy.__version__)"
+      ],
+      "rc": 0,
+      "stdout": "2.4.4",
+      "stderr": ""
+    },
+    "PIL": {
+      "cmd": [
+        "/opt/venv/bin/python",
+        "-c",
+        "import PIL; print(PIL.__version__)"
+      ],
+      "rc": 0,
+      "stdout": "12.2.0",
+      "stderr": ""
+    },
+    "scipy": {
+      "cmd": [
+        "/opt/venv/bin/python",
+        "-c",
+        "import scipy; print(scipy.__version__)"
+      ],
+      "rc": 0,
+      "stdout": "1.17.1",
+      "stderr": ""
+    }
+  },
+  "staging_tree_dirs_filecount": {
+    "<root files>": 0,
+    "case_data/": 7,
+    "out/": 0,
+    "reference/": 1,
+    "requests/": 0,
+    "skills/": 5,
+    "skills/intake_pipeline/": 5,
+    "skills/intake_pipeline/0_reading/": 5,
+    "src/": 11,
+    "src/agent/": 10,
+    "src/agent/reading/": 9,
+    "src/agent/reading/cv_toolbox/": 8,
+    "src/agent/reading/cv_toolbox/__pycache__/": 4,
+    "tools/": 2
+  },
+  "staging_root_files": [
+    "MANIFEST.json",
+    "binding.json",
+    "guard.py",
+    "input_inventory.json",
+    "isolation_settings.json",
+    "kickoff_prompt.md"
+  ]
+}

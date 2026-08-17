@@ -79,6 +79,18 @@ def _request(staging: Path, payload: dict, name: str = "request.json") -> Path:
     return path
 
 
+def _access_log(staging: Path) -> Path:
+    """F-55: access_log.jsonl no longer lives under staging_root — it was
+    relocated to a SIBLING directory (`<staging.name>.audit`) so the reader's
+    own OS-level writes cannot reach it (guard.py's `_audit_dir` / isolation
+    .py's mirrored rule of the same name). Every existing test that used to
+    read `staging / "access_log.jsonl"` directly reads through this helper
+    now — the log's CONTENT and the property each test verifies are
+    unchanged; only its physical location moved, which is the entire point
+    of the fix."""
+    return staging.parent / f"{staging.name}.audit" / "access_log.jsonl"
+
+
 def _hook(staging: Path, command: str) -> subprocess.CompletedProcess[str]:
     payload = {"tool_name": "Bash", "tool_input": {"command": command}}
     return _hook_payload(staging, payload)
@@ -265,7 +277,7 @@ def test_build_kickoff_probe_forms_match_live_guard(tmp_path: Path):
     for command, expected_reason in expected_reasons.items():
         proc = _hook(staging, command)
         assert proc.returncode == 0, (command, proc.stdout, proc.stderr)
-        log = json.loads((staging / "access_log.jsonl").read_text(encoding="utf-8").splitlines()[-1])
+        log = json.loads(_access_log(staging).read_text(encoding="utf-8").splitlines()[-1])
         assert log["reason"] == expected_reason
 
     stated_limit = int(match.group("limit"))
@@ -392,7 +404,7 @@ def test_guard_allows_legal_run_cv_probe_and_logs(tmp_path: Path):
     )
     proc = _hook(staging, "python tools/run_cv_probe.py --request request.json")
     assert proc.returncode == 0, proc.stderr
-    log = json.loads((staging / "access_log.jsonl").read_text(encoding="utf-8").splitlines()[-1])
+    log = json.loads(_access_log(staging).read_text(encoding="utf-8").splitlines()[-1])
     assert log["decision"] == "allow"
     assert log["tool"] == "Bash"
     assert log["normalized_paths"]
@@ -456,7 +468,7 @@ def test_guard_with_transcript_path_still_denies_illegal_tool_input(tmp_path: Pa
         },
     )
     assert proc.returncode == 2
-    log = json.loads((staging / "access_log.jsonl").read_text(encoding="utf-8").splitlines()[-1])
+    log = json.loads(_access_log(staging).read_text(encoding="utf-8").splitlines()[-1])
     assert log["decision"] == "deny"
     assert "tool_input_excerpt" in log
 
@@ -482,7 +494,7 @@ def test_guard_rejects_forbidden_bash_shapes(tmp_path: Path, command: str):
     _request(staging, {"tool": "crop_zoom", "args": {"image": "case_data/1f_view.png", "out_dir": "out/cv", "bbox": "0,0,20,20"}})
     proc = _hook(staging, command)
     assert proc.returncode == 2
-    log = json.loads((staging / "access_log.jsonl").read_text(encoding="utf-8").splitlines()[-1])
+    log = json.loads(_access_log(staging).read_text(encoding="utf-8").splitlines()[-1])
     assert log["decision"] == "deny"
 
 
@@ -1074,7 +1086,7 @@ def test_guard_allows_reading_summary_with_prose_forbidden_tokens(tmp_path: Path
         {"tool_name": "Write", "tool_input": {"file_path": "out/reading_summary.md", "content": content}},
     )
     assert proc.returncode == 0, proc.stderr
-    log = json.loads((staging / "access_log.jsonl").read_text(encoding="utf-8").splitlines()[-1])
+    log = json.loads(_access_log(staging).read_text(encoding="utf-8").splitlines()[-1])
     assert log["decision"] == "allow"
 
 
@@ -1092,7 +1104,7 @@ def test_guard_r1_allows_reading_summary_content_with_slash_and_grade_line(tmp_p
         {"tool_name": "Write", "tool_input": {"file_path": "out/reading_summary.md", "content": content}},
     )
     assert proc.returncode == 0, proc.stderr
-    log = json.loads((staging / "access_log.jsonl").read_text(encoding="utf-8").splitlines()[-1])
+    log = json.loads(_access_log(staging).read_text(encoding="utf-8").splitlines()[-1])
     assert log["decision"] == "allow"
 
 
@@ -1141,7 +1153,7 @@ def test_guard_r1_excludes_content_role_params_from_path_scan(tmp_path: Path, la
     staging = _build(tmp_path).staging_root
     proc = _hook_payload(staging, payload)
     assert proc.returncode == 0, (label, proc.stderr)
-    log = json.loads((staging / "access_log.jsonl").read_text(encoding="utf-8").splitlines()[-1])
+    log = json.loads(_access_log(staging).read_text(encoding="utf-8").splitlines()[-1])
     assert log["decision"] == "allow", label
 
 
@@ -1325,7 +1337,7 @@ def test_guard_r3_free_text_params_of_non_write_tools_are_allowed(
     staging = _build(tmp_path).staging_root
     proc = _hook_payload(staging, payload)
     assert proc.returncode == 0, (label, proc.stdout, proc.stderr)
-    log = json.loads((staging / "access_log.jsonl").read_text(encoding="utf-8").splitlines()[-1])
+    log = json.loads(_access_log(staging).read_text(encoding="utf-8").splitlines()[-1])
     assert log["decision"] == "allow", label
 
 
@@ -1422,6 +1434,11 @@ def test_guard_denies_read_of_symlink_escaping_staging(tmp_path: Path):
 # --------------------------------------------------------------------------- #
 _E2E_WRITABLE_PREFIXES = ("out/", "requests/")
 # Explicit, named exemptions — never a silent ignore:
+# F-55 (2026-08-16): access_log.jsonl no longer lives under staging_root (see
+# `_access_log`/guard.py's `_audit_dir`), so `_staging_snapshot`'s
+# `root.rglob("*")` never sees it any more and this exemption is now
+# vestigial — left in place, harmless, rather than pulled mid-fix for a name
+# that still describes what it would have exempted.
 _E2E_EXEMPT_NAMES = ("access_log.jsonl",)  # the guard's own append-only audit log
 # R3-3 NIT-2 (registered, not changed — the rework order authorized this
 # exemption): the match is by PATH PART, so `__pycache__` is exempt at ANY depth,
@@ -1893,7 +1910,7 @@ def test_guard_allows_direct_probe_form_and_logs(tmp_path: Path):
     staging = _build(tmp_path).staging_root
     proc = _hook(staging, _direct_command())
     assert proc.returncode == 0, proc.stderr
-    log = json.loads((staging / "access_log.jsonl").read_text(encoding="utf-8").splitlines()[-1])
+    log = json.loads(_access_log(staging).read_text(encoding="utf-8").splitlines()[-1])
     assert log["decision"] == "allow"
     assert log["reason"] == "allowed run_cv_probe direct arguments"
     assert any(path.endswith("case_data/1f_view.png") for path in log["normalized_paths"])
@@ -1918,7 +1935,7 @@ def test_probe_help_is_allowlisted_and_documents_all_three_forms(tmp_path: Path)
     )
 
     assert hook.returncode == 0, hook.stderr
-    log = json.loads((staging / "access_log.jsonl").read_text(encoding="utf-8").splitlines()[-1])
+    log = json.loads(_access_log(staging).read_text(encoding="utf-8").splitlines()[-1])
     assert log["decision"] == "allow"
     assert log["reason"] == "allowed run_cv_probe help"
     assert helper.returncode == 0, helper.stderr
@@ -1966,7 +1983,7 @@ def test_guard_probe_shape_receipts_include_a_minimal_correct_repair(
 
     assert proc.returncode == 2, proc.stdout
     assert expected in proc.stderr
-    log = json.loads((staging / "access_log.jsonl").read_text(encoding="utf-8").splitlines()[-1])
+    log = json.loads(_access_log(staging).read_text(encoding="utf-8").splitlines()[-1])
     assert log["reason"] in proc.stderr
 
 
@@ -2112,7 +2129,7 @@ def test_guard_denies_illegal_direct_probe_shapes(tmp_path: Path, label: str, ar
     (staging / "case_data" / "escape.png").symlink_to("/etc/passwd")
     proc = _hook(staging, _direct_command(args))
     assert proc.returncode == 2, (label, proc.stdout, proc.stderr)
-    log = json.loads((staging / "access_log.jsonl").read_text(encoding="utf-8").splitlines()[-1])
+    log = json.loads(_access_log(staging).read_text(encoding="utf-8").splitlines()[-1])
     assert log["decision"] == "deny", label
 
 
@@ -2271,7 +2288,7 @@ def test_guard_allows_bounded_probe_batch_and_logs_every_request_path(tmp_path: 
     proc = _hook(staging, "python tools/run_cv_probe.py --batch requests/batch.json")
 
     assert proc.returncode == 0, proc.stderr
-    log = json.loads((staging / "access_log.jsonl").read_text(encoding="utf-8").splitlines()[-1])
+    log = json.loads(_access_log(staging).read_text(encoding="utf-8").splitlines()[-1])
     assert log["decision"] == "allow"
     assert log["reason"] == "allowed run_cv_probe batch"
     assert any(path.endswith("requests/batch.json") for path in log["normalized_paths"])
@@ -2899,7 +2916,7 @@ def test_access_log_records_the_payload_on_allow_too(tmp_path: Path):
     program = "import numpy as np; print(np.pi)"
     assert _hook(staging, f"python -c '{program}'").returncode == 0
 
-    entry = json.loads((staging / "access_log.jsonl").read_text(encoding="utf-8").splitlines()[-1])
+    entry = json.loads(_access_log(staging).read_text(encoding="utf-8").splitlines()[-1])
     assert entry["decision"] == "allow"
     assert program in entry["tool_input_excerpt"]
     # The code that ran is hashed, so editing the file afterwards cannot rewrite
@@ -2915,7 +2932,7 @@ def test_access_log_hashes_every_scanned_script(tmp_path: Path):
     (staging / "out" / "helper.py").write_text("VALUE = 1\n", encoding="utf-8")
     assert _hook(staging, "python out/main.py").returncode == 0
 
-    entry = json.loads((staging / "access_log.jsonl").read_text(encoding="utf-8").splitlines()[-1])
+    entry = json.loads(_access_log(staging).read_text(encoding="utf-8").splitlines()[-1])
     recorded = {item["path"]: item["sha256"] for item in entry["executed_code"]}
     assert set(recorded) == {"out/main.py", "out/helper.py"}
     for rel, digest in recorded.items():
@@ -2992,7 +3009,7 @@ def test_scanned_non_code_files_are_not_logged_as_executed_code(tmp_path: Path):
     (staging / "out" / "1f_view.json").write_text('{"strokes": []}', encoding="utf-8")
     assert _hook(staging, "python out/measure.py").returncode == 0
 
-    entry = json.loads((staging / "access_log.jsonl").read_text(encoding="utf-8").splitlines()[-1])
+    entry = json.loads(_access_log(staging).read_text(encoding="utf-8").splitlines()[-1])
     assert [item["path"] for item in entry["executed_code"]] == ["out/measure.py"]
 
 
