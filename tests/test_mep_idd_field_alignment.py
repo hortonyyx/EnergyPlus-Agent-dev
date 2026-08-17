@@ -342,6 +342,20 @@ _PRESCAN_GREEN = {
     "sm21_anchor/run_2026-08-11_continuous_e2e",
     "sm21_anchor/run_2026-08-13_accept_B",
     "sm21_anchor/run_2026-08-13_batchI_accept_01",
+    # accept_D/E/F (F-36): committed in dc7b239 (2026-08-14 acceptance-3/3
+    # wrap-up), AFTER this table was last touched (fb171ec, earlier the same
+    # day) — the table was simply never updated for them, not a gate drift.
+    # Classified GREEN from two independent measurements, not by assumption:
+    # (1) the real gate (mep.idd_field_alignment via check_mep) reports PASS,
+    #     0 offenders, for all three;
+    # (2) the original prescan probe (probe_arity.py, byte-identical to the
+    #     08-14 run — no commit has touched src/validator/checks/mep.py's
+    #     _idd_field_findings since 1472cfc introduced this gate) reports
+    #     flagged=0 / 67 objects clean for all three, re-run standalone.
+    # Both agree, so no prescan-vs-gate discrepancy to escalate.
+    "sm21_anchor/run_2026-08-14_accept_D",
+    "sm21_anchor/run_2026-08-14_accept_E",
+    "sm21_anchor/run_2026-08-14_accept_F",
 }
 
 

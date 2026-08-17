@@ -103,8 +103,47 @@ F-51 之后这个掩盖成因消失 ⇒ **门的信噪比变好**，所以选「
 
 **⛔ 本批不动、已登记结转的**：BLOCKER-1 + BLOCKER-2（锚点族）+ F-59（root 降权）合并为
 **「净室的信息边界到底靠什么成立」** —— ⛔ 继续加词表是死路，判据要搬到进程能力/文件系统那一层 ·
-`grid_B` + `test_substrate_sweep_policy.py` 需**非 GLM 席位**补审 · S-2 参数形态表未穷举 ·
-F-35 / F-39 / F-50 留痕面 · `_plan_scale_origin` 在 golden/regression 档的 block 风险。
+S-2 参数形态表未穷举 · F-35 / F-39 / F-50 留痕面 ·
+`_plan_scale_origin` 在 golden/regression 档的 block 风险。**欠审债见下 §八。**
+
+### 八、⛔ 复审债清单（用户 08-17 令「其他欠审债登记」；逐份对账 `logs/reviews/{request,execution,verdict}/`，⛔ 非凭记忆）
+
+**对账方法**：每份 `execution/` 日志找有没有对应 `verdict/`；每份 `request/` 找它**明文排除**了什么。
+⇒ 下表每行都能指到具体文件，**没有「大概还欠一笔」这种条目**。
+
+#### 甲类 · 本轮新产生、作者 = Claude 侧席位 + orchestrator、零复审（按「谁写谁不批」必须换人）
+
+| # | 被审对象 | 执行日志 | 为什么该审 |
+|---|---|---|---|
+| **甲-1** | **测试工程修法 M-1/M-2** —— neuter 改到 tmp staging 副本（不再覆写仓库真实文件）+ pre-fix 夹具搬进 `tests/fixtures/substrate_fix_II/` | `execution/2026-08-17_test_engineering_fix_execution_log.md` | 这两条本身是 GLM 复审抓出来的 MAJOR，**修法由作者家族自己做的** ⇒ 修得对不对没有第二方看过 |
+| **甲-2** | **F-36 修法** —— `_PRESCAN_GREEN` 加 `sm21_anchor/run_2026-08-14_accept_D\|E\|F` 三条 + 断言 `CheckStatus.PASS` | `execution/2026-08-17_f36_prescan_table_execution_log.md` | ⚠️ **我给的因果注是错的**（plan.md 原写「未进 `_PRESCAN_OBJECT_LEVEL`」＝暗示该判 RED），席位靠自己实测纠正为 GREEN。**判据是「哪张表」这种分类题，恰恰是最需要换人的形状** |
+| **甲-3** | **开抽前最小修补四项** —— `cv_toolbox.md` 两处（第 9 行工具清单 + 第 113 行 Disciplines）· `guide.md` 后果披露 · banker's rounding 边界锁 · 聚合项停下登记 | `execution/2026-08-17_prerun_minimum_patch_execution_log.md` | 改的是**给读图器看的产品文档**，写错一句就是下一轮识图的输入错误；且它推翻了我转述的两处（`metric.confidence` 是嵌套不是扁平字段 · 那把锁不是纯负向） |
+
+#### 乙类 · GLM 是作者，两份 08-17 请求书都排除了它 ⇒ 需**非 GLM 席位**
+
+| # | 被审对象 | 排除位置 | 备注 |
+|---|---|---|---|
+| **乙-1** | `logs/experiments/2026-08-16_substrate_sweep/grid_B.md` + `tests/test_substrate_sweep_policy.py`（38 pass + 4 xfail） | `request/2026-08-17_substrate_fix_and_gridA_crossreview_glm.md` 明写「⛔ 不在范围」 | 政策 / 环境 / 留痕面整个面，含 **F-55 / F-56 / F-57 三条判「不修」的定性** |
+| **乙-2** | **F-51 首刀**：`src/agent/reading/cv_toolbox/sidecar.py` +12 行（侧车报告源图 `width_px`/`height_px`） | **两份 08-17 请求书都没列它** ⇒ 落在两批之间的缝里 | ⚠️ 这条不是「我知道欠、排在后面」，是**对账时才发现漏掉的**。它是 F-51 那条线的上游一半，下游（`vision_resize.py` + 预缩）已审、上游没审 |
+
+#### 丙类 · 跨批次结转的老审债（08-13 起，⛔ 至今一条未动）
+
+| # | 被审对象 | 当前状态 | 拦路的是什么 |
+|---|---|---|---|
+| **丙-1** | **08-13 `BLOCKER-1`（印章 → provenance）** | ⛔ **OPEN**。第五轮裁决书结论 = `REVIEW STOPPED · REQUEST CORRECTION REQUIRED`（`verdict/2026-08-14_round5_blocker1_closure_crossreview_sol.md:195-197`） | **两件事叠着**：① 我的请求书**承重前提写错**，须先改请求书再重派；② 缓存实现身份仍有**可复现旁路**。⇒ 不是「等签字」，是**欠一轮修 + 一轮重派** |
+| **丙-2** | sol 老批未闭合项：`MAJOR-1`/`MAJOR-2` · `MAJOR-B2`/`MAJOR-B3` · `MINOR-3`/`B4`/`B5`/`D1` · `NIT-F25` | ⛔ 08-13 记「本日一条未动」，此后四天仍未动 | 其中 **B3 的「条件 5 未实现却声明 evaluated」当天就已经是假的**（同族＝「不与行为绑定的声明」） |
+
+#### ✅ 已闭的（列出来是为了让「没列的就是没审」这句话站得住）
+
+| 批次 | 审阅方 | 裁决书 |
+|---|---|---|
+| 基座修法批（摊 I + 摊 II）+ `grid_A` + **F-49 修法**（sol 作者，改 `run_cv_probe.py` + `test_isolation.py`，两文件均在范围内） | GLM | `verdict/2026-08-17_substrate_fix_and_gridA_review_glm.md` |
+| 707 前置三件 + 14 把锁 + 三处推翻 | GLM | `verdict/2026-08-17_707_prereq_review_glm.md` |
+| E1 欠的三项（引号状态机 / 词表收窄 / 旧锁计数） | GLM | `verdict/2026-08-16_e1_residual_three_items_review_glm.md` |
+
+**⇒ 排期口径（未拍板，本节只登记）**：甲-3 与乙-2 直接影响开抽的**归因可信度**（一个是读图器的输入文档、
+一个是单帧化的上游半边），建议**与开抽并行**派掉；甲-1 / 甲-2 是测试工程与表分类，可排在开抽之后；
+乙-1 与丙类是独立批次。**⛔ 不得因为「这批过了就开抽」把甲、乙两类记成已闭。**
 
 ---
 
@@ -658,8 +697,12 @@ D1 今天有 63 条访问记录、5 条 deny 全留痕，**这是 07-07 完全�
 | F-38 | 补 grade/render 无 CLI 入口（生产者只挂在 `flow` 上） | ✅ 新增 `run_stage.py artifacts` |
 | **F-34** | **跨轴标定校验两种绕过**：拆两次单轴调用 · **根本不调用该工具** ⇒ 门挂在可选工具上 | ⛔ 未修 |
 | **F-35** | cv 证据不进 attempt，审计只能靠 `/tmp` staging | ⛔ 未修 |
-| **F-36** | 全仓一条红 `test_b2_prescan_reproduction`（`accept_D/E/F` 未进 `_PRESCAN_OBJECT_LEVEL`）——
-  `dc7b239` 带进来的，**08-14 记的「2635 绿」跑在 `151e055`、那笔之后没人再跑全量** | ⛔ 未修 |
+| **F-36** | 全仓一条红 `test_b2_prescan_reproduction`：`accept_D/E/F` 三份产物入库后**没进预扫对账表**——
+  `dc7b239` 带进来的，**08-14 记的「2635 绿」跑在 `151e055`、那笔之后没人再跑全量**。
+  ⛔ **本行原写「未进 `_PRESCAN_OBJECT_LEVEL`」（= 猜它们该落红表），2026-08-17 实测证伪：该落绿表**
+  —— 真门 `check_mep` 报 PASS/0 offenders，独立重跑 08-14 原始探针 `probe_arity.py` 报 flagged=0/67 objects，
+  两法一致。若照本行原来的方向补表，测试同样会变绿、但那是**一次假分类**。
+  ⇒ 判据：**长期红的断言会训练所有人无视它，而随手记下的成因往往没被测过。** | ✅ **2026-08-17 已清**（补 `_PRESCAN_GREEN` 三行 + 证据注释；全仓 0 failed）|
 | **F-39** | 产物缺件**没有任何门会红**（只是「有命令可调」）⇒ 「缺件即红」未落地 | ⛔ 未修 |
 
 ### 三、⭐ 产物出全这条：查下来是「早就写过、一直没执行」

@@ -154,7 +154,41 @@ EnergyPlus 经 `WorkflowTool.run_simulation`（eppy + ConverterManager，idfpy �
 > ⚠️ orchestrator 已因误读 §1.5#7 **连续三次**得出「07-07 模式违规、须先实现 reading-agent」的错误结论
 > （08-16 两次 + 08-17 一次，最后一次是把 08-02 的旧口径当现行说给用户）。
 
-- **⭐⭐⭐ 最新（2026-08-16 晚 → 08-17）= 移植基座一次性普查：40 分钟撞出 7 条（此前串行一整天撞 3 条）· 修 5 条 · +135 把锁 · E1 补审两条 BLOCKER**
+- **⭐⭐⭐ 最新（2026-08-17）= 707 复现前置三件落地并过跨家族复审 · F-36 旧债清掉 ⇒ 全仓首次真零红 · ⛔ 只剩用户拍开抽配置**
+  （全档见 [plan.md「2026-08-17」](plan.md)；**复审债清单 = 同节 §八**，逐份对账过 `logs/reviews/`，非凭记忆）。
+  全仓 **2834 → 2835 passed / 14 xfailed / 0 failed**（orchestrator 独立权威门；F-36 清掉后**零红**，
+  ⛔ 上一条里「唯一红 = F-36 旧债」那句自本日起不再成立）。
+  - **三件前置**：**① F-51 单帧化** —— 新增 `src/agent/execution/vision_resize.py`，按 Anthropic 官方
+    resize 规则（`ceil(w/28)*ceil(h/28)` 视觉 token · 长边二分 · 短边**半进偶**）在 staging 拷入时**预缩**，
+    使「读图器看到的帧 = 文件的帧 = 工具的帧」；四张立面逐字节未动。
+    ⛔ **但它解释不了 07-07 那次回归**（07-07 有同样的错帧、照样 9/9）——⛔ 不得写成回归原因。
+    **② `scale_origin` 从必填退回 SHOULD**（同图可见参考点 · 拿不准留 null · 省略本身不算自检失败），
+    起因 = 行为清单 §A1 我写的「两份好 reading 都没有它」**事实错**（两份都有，07-07 原注是 SW **外**角，
+    且 `git show 723b0f9:guide.md` 零提及 ⇒ 从来不是成文规则）。
+    **③ 跨轴校验补合法出口**（不撤门）：不再 raise，返回可用 blend + `axis_calibration_disagreement=true`
+    + `metric.confidence="low"` + `warnings[]` 带 next-step。
+  - **⭐ 跨家族复审（GLM）= 0 BLOCKER / 2 MAJOR / 2 MINOR**，三件修法主体成立、14 把锁经**四向独立 neuter**
+    （临时 worktree、零仓库改动）证明真绑、三处推翻**无一处净放宽**。
+    **两条 MAJOR 都不是「跑不出分」，是「抽完之后分数归因不可信」**：
+    ① 跨轴信号**零机器消费者** —— 且它补了我没想到的一环：旧 raise 经 F-54 变成 **rc=2**（agent 无法忽略），
+    **新出口 rc=0 = 工具「成功」** ⇒ 这道门从「强制可见」退化成「寄望自觉」；
+    ② **v3 typed 判卷对 null `scale_origin` 判 `plan_frame_unavailable` + `retain_as_miss`**
+    ⇒ **整条 plan 通道（`plan_segments` + `plan_openings`）按 miss 计、与 `run_profile` 无关、永不报错**
+    （orchestrator 独立核实：该文件零处引用 `run_profile`；`reading_typed_score.py` 里只有 `filter` 才出分母）。
+    ⇒ **开抽若含 sm24，「拿不准留 null」会合法地把 plan 通道考成结构性零分**；只跑 sm21 走 legacy 判卷、零影响。
+  - **⭐ 我自己那三处怀疑：对一、错一、半对**（值得记的是**错的那条**）——
+    「档位配错会让 F-51 复活」被查实**tier 根本没有入口**（CLI 不暴露、配置文件无此字段）⇒ 降 MINOR；
+    F-51 实现逐格正确但**半进偶那条边界零锁**（审阅方换 half-up 后现有锁全绿，并给出可区分案例
+    `resized_size(408,289,max_tokens=160)`：banker's `(396,280)` vs half-up `(395,280)`，orchestrator 已独立复现）。
+  - **⛔ 派工方错误率 29/29**，另有**判据自伤 ×4 同一形状**：字符串前缀判路径包含 ·
+    `pgrep -f` 两次匹配到**我自己那条命令** · 从**截断的 grep 视图**误判一把好锁是假锁。
+    **⭐ 最该记的一条**：我给 M-1 写的验收判据 `-n4` 是**一道不会变红的门**
+    （原始未修代码 `-n4` 跑 6 轮 0 红；默认并发才 6 轮全红、4 轮精确重现裁决书的「7 failed / 39 passed」）
+    ⇒ 归入「只有负向断言 / 恒绿的门 = 结构上不可观测」，**判据本身要先自证有分辨力**。
+  - **⇒ 下一步 = 开抽，只欠用户拍三项**：① sm21 only（可立即开）还是 sm21+sm24（须先处理 v3 的 null 语义）
+    ② 沿用 `claude-haiku-4-5` 还是换 ③ 抽几次（建议 ≥3）。
+
+- **（前一节点）2026-08-16 晚 → 08-17 = 移植基座一次性普查：40 分钟撞出 7 条（此前串行一整天撞 3 条）· 修 5 条 · +135 把锁 · E1 补审两条 BLOCKER**
   （全档见 [plan.md「2026-08-16 晚」](plan.md) 与
   [`logs/experiments/2026-08-16_substrate_sweep/README.md`](logs/experiments/2026-08-16_substrate_sweep/README.md)）。
   落库 `c68c293`。全仓 **2684 → 2819 passed / 14 xfailed / 1 failed**

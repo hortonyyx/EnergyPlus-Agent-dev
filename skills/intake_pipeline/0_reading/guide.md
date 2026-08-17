@@ -414,7 +414,13 @@ coordinates); the correction stage maps them into the world frame.
 - [ ] not-found fields filled with null
 - [ ] if this plan declares `scale_origin`, it is a per-image reference only (not guessed, no
       cross-floor/wall-thickness reasoning); `world_z_m` = null. Fine to omit (`null`) when not
-      cheaply confident — omitting it is not itself a self-check failure.
+      cheaply confident — omitting it is not itself a self-check failure, and guessing a number you
+      are not confident of is worse than leaving it out. It is not free either, though: a plan with
+      no usable `scale_origin` is recorded as a failing check (`reading.plan_scale_origin_usable`) —
+      non-blocking on `exploratory`/`dev` runs, but blocking on `golden`/`regression` acceptance runs
+      — and in scored (v3 typed) grading it makes this view's entire plan channel (every wall segment
+      and opening on it) score as a miss, on any run profile. Omit it only when you are genuinely not
+      confident; do not guess just to dodge that cost.
 - [ ] elevation `facade` block filled image-local (view_facade + mirrored + orientation_evidence); no world axis / sign here, and no `local_x_positive` (§4: local-x is fixed by convention, not a reader declaration)
 - [ ] elevation outline: not drawn separately if it coincides with wall_fill edges (see pen library); confirmed for this image
 - [ ] self_check.pens_used lists the pen set used in this image

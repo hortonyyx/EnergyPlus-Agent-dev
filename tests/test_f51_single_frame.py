@@ -129,6 +129,37 @@ def test_resized_size_matches_anthropic_doc_worked_example() -> None:
     assert resized_size(1075, 1520) == (924, 1307)
 
 
+def test_resized_size_half_to_even_boundary_disagrees_with_half_up_rounding() -> None:
+    """MINOR-2 (2026-08-17 707-prereq cross-review, GLM): the short-edge
+    rounding step this module's docstring documents as "banker's-rounding
+    ``round()``" was, before this test, never exercised AT a ``.5`` boundary
+    -- every size this file already pinned (the Anthropic worked example
+    above, and both of this anchor's real plan views in
+    ``PLAN_VIEW_TARGETS``) resolves through arithmetic that lands nowhere
+    near a half-integer, so those cases cannot tell Python's native
+    round-half-to-even apart from a naive round-half-up "fix". The reviewer
+    demonstrated this with an independent ``git worktree`` neuter (swap
+    ``round`` -> half-up in ``vision_resize.py``): the whole pre-existing
+    suite stayed green.
+
+    This size was picked because at ``max_tokens=160`` the binary search for
+    ``width=408, height=289`` lands exactly on a ``.5`` fraction, and the two
+    rounding rules disagree by a whole pixel on the LONG edge too (not only
+    the short-edge value fed into the search, since the search's own `fits`
+    probe consumes the rounded short edge) -- confirmed by shadowing this
+    module's ``round`` name with a round-half-up implementation and
+    re-running just this assertion: round-half-to-even (what
+    ``resized_size`` actually uses, and what the worked example above is
+    consistent with) gives ``(396, 280)``; round-half-up gives ``(395,
+    280)``. Either frame is internally self-consistent, so a silent switch
+    between them is exactly the one-pixel frame misalignment F-51 exists to
+    prevent (see the module docstring) -- it is simply invisible to any
+    fixture whose arithmetic never crosses a ``.5``.
+    """
+
+    assert resized_size(408, 289, max_edge=1568, max_tokens=160) == (396, 280)
+
+
 # ===========================================================================
 # 1) Plan views (oversized source): staged copy is resized to the standard
 #    tier's target, and is genuinely different from the original (not a
