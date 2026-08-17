@@ -86,12 +86,19 @@ In EnergyPlus a zone is enclosed by **surfaces (2D faces)**; a wall has no thick
 ## 1. Global constraints
 
 - **Units**: meters, two decimals
-- **Each image is read in its OWN local 2D frame — the reading stage does no topology placement**.
-  The one required plan-frame datum is `scale_origin`; it declares how the measured plan-local frame
-  translates into the single world frame, but does not assign rooms, surfaces, or facade topology:
+- **Each image is read in its OWN local 2D frame — the reading stage does no topology placement and
+  no cross-image world placement**.
+  The optional plan-frame datum is `scale_origin`; when you give it, it declares how the measured
+  plan-local frame relates to a shared reference, but it does not assign rooms, surfaces, or facade
+  topology, and it is never worth guessing:
   - `image_kind="plan"`: x = horizontal (drawing right), y = vertical (drawing up). A plan is already
-    drawn in plan orientation, so these read directly as the building's plan axes. Every plan view
-    **must** declare `scale_origin` as specified below.
+    drawn in plan orientation, so these read directly as the building's plan axes. A plan view SHOULD
+    also declare `scale_origin` as specified below WHEN it is cheap and confident — the common shape is
+    plan-local `(0,0)` already sitting at an easily-seen corner of THIS drawing, which makes
+    `world_x_m`/`world_y_m` simply `0.00`. Do not chase this: never try to determine the building's
+    overall cross-floor footprint or judge wall thickness to answer it (that is topology/correction's
+    job downstream, not this per-image datum) — if a confident per-image answer is not immediately
+    available, leave `scale_origin` `null` rather than guess.
   - `image_kind="elevation"`: x = horizontal along that facade (purely in-image), y = height (up
     positive). Record WHICH facade this is and which screen direction local-x increases in the
     image-local `facade` block (§4); do NOT state a world axis / sign / base here — the correction
@@ -112,17 +119,21 @@ In EnergyPlus a zone is enclosed by **surfaces (2D faces)**; a wall has no thick
   // ===== metadata =====
   "image_label": "Floor 1 plan view",       // use the official label from testdata_prompt.json
   "image_kind": "plan | elevation | section | supplementary | other",
-  // scale_origin: REQUIRED for every plan (non-plan views may use null). It gives the world-metre
-  // coordinates of this plan's local (0,0). The one world origin is the SW inner corner of the
-  // overall projected maximum building boundary (A1 invariant #2); never create a per-floor origin.
-  // Prefer measuring that SW inner corner as plan-local (0,0), which makes world_x_m/world_y_m zero.
-  // If plan-local (0,0) is elsewhere, record its signed measured offset from that SW inner corner.
-  // Plan drawings carry no z datum, so world_z_m stays null. Do not guess any value.
+  // scale_origin: OPTIONAL for every plan (non-plan views always use null). When you give it, it
+  // records where THIS image's own plan-local (0,0) sits relative to an easily-seen reference point
+  // drawn in THIS SAME image — e.g. the outer corner of the drawn footprint, or a dimension-chain
+  // terminal. Prefer measuring plan-local (0,0) AT that reference point, which makes
+  // world_x_m/world_y_m simply 0.00; if plan-local (0,0) is elsewhere in this image, record its
+  // signed measured offset from that reference. Do NOT reason about the overall building's
+  // cross-floor footprint or wall thickness to answer this — that is out of scope for a per-image
+  // datum (topology/correction's job downstream). Plan drawings carry no z datum, so world_z_m stays
+  // null. Do not guess any value — omit (null) the whole object rather than write a number you are
+  // not confident of.
   "scale_origin": {
     "world_x_m": 0.00,
     "world_y_m": 0.00,
     "world_z_m": null,
-    "note": "plan-local (0,0) measured at overall projected maximum boundary SW inner corner"
+    "note": "plan-local (0,0) measured at this drawing's own SW outer corner"
   },
   // facade: IMAGE-LOCAL elevation orientation (elevation only; plan → null). Records which facade
   // this view shows. Local-x is FIXED by convention (image left edge = x 0, increasing right), so
@@ -401,8 +412,9 @@ coordinates); the correction stage maps them into the world frame.
 - [ ] every dimension-chain number is in the dimensions array
 - [ ] text labels transcribed verbatim
 - [ ] not-found fields filled with null
-- [ ] every plan declares `scale_origin.world_x_m` + `world_y_m`; the world origin is the overall
-      projected maximum boundary SW inner corner, shared by every floor (plan `world_z_m` = null)
+- [ ] if this plan declares `scale_origin`, it is a per-image reference only (not guessed, no
+      cross-floor/wall-thickness reasoning); `world_z_m` = null. Fine to omit (`null`) when not
+      cheaply confident — omitting it is not itself a self-check failure.
 - [ ] elevation `facade` block filled image-local (view_facade + mirrored + orientation_evidence); no world axis / sign here, and no `local_x_positive` (§4: local-x is fixed by convention, not a reader declaration)
 - [ ] elevation outline: not drawn separately if it coincides with wall_fill edges (see pen library); confirmed for this image
 - [ ] self_check.pens_used lists the pen set used in this image

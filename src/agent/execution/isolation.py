@@ -36,6 +36,10 @@ from src.agent.execution.view_manifest import (
     verify_view_manifest,
 )
 from src.agent.execution.run_policy_freeze import resolve_frozen_run_policy
+from src.agent.execution.vision_resize import (
+    DEFAULT_VISION_RESIZE_TIER,
+    resize_image_file_to_tier,
+)
 from src.validator.checks.schema import CheckLayer
 from src.validator.checks.view_manifest import check_reading_stage
 
@@ -166,8 +170,26 @@ def build_isolation_workspace(
     case_dir: Path,
     run_dir: Path | None = None,
     staging_root: Path | None = None,
+    vision_resize_tier: str | None = None,
 ) -> WorkspaceManifest:
     """Build a clean-room staging tree for an isolated 0_reading executor.
+
+    ``vision_resize_tier`` (F-51, second cut): before a ``case_data/`` PNG is
+    handed to the reader, resize it in place to the given
+    :mod:`src.agent.execution.vision_resize` tier (default
+    :data:`~src.agent.execution.vision_resize.DEFAULT_VISION_RESIZE_TIER`,
+    i.e. "standard" — matches Haiku 4.5 and the other models this project
+    currently runs). This is what makes the frame the model sees, the frame
+    on disk in staging, and the frame ``cv_probe`` reads the SAME frame: the
+    Claude vision API downsamples an oversized image before the model ever
+    sees it, while ``cv_probe`` reads the staged file directly — mismatched,
+    those two frames disagree in a way that is self-consistent (so it does
+    not trip the cross-axis calibration check) yet globally wrong. Resizing
+    the staged copy to the size the API would have produced anyway (per
+    Anthropic's own documented recommendation) removes the mismatch instead
+    of only making it detectable. An image already within the tier round-trips
+    unchanged (verified byte-for-byte identical). Never touches the repo's
+    original case image — only the staged copy under ``case_data/``.
 
     Two modes (§5.2):
 
@@ -259,7 +281,8 @@ def build_isolation_workspace(
     (staging_root / "requests").mkdir(parents=True, exist_ok=True)
 
     scope = verification.exam_scope if run_dir is not None else None
-    _copy_case_data(case_dir, staging_root, manifest, view_manifest, scope)
+    resolved_vision_tier = vision_resize_tier or DEFAULT_VISION_RESIZE_TIER
+    _copy_case_data(case_dir, staging_root, manifest, view_manifest, scope, resolved_vision_tier)
     _copy_reading_skill(staging_root, manifest)
     _copy_worked_example(staging_root, manifest)
     _copy_cv_toolbox(staging_root, manifest)
@@ -552,12 +575,20 @@ def clean_spawn_env(staging_root: Path) -> dict[str, str]:
 def _copy_case_data(
     case_dir: Path, staging_root: Path, manifest: WorkspaceManifest, view_manifest: ViewManifest,
     scope: ReadingExamScope | None = None,
+    vision_resize_tier: str = DEFAULT_VISION_RESIZE_TIER,
 ) -> None:
     """Copy only what the reader is entitled to see (§2 reader-visibility
     铁律): every ``required_view`` image + ``testdata_prompt.json``. An image
     the view manifest classifies ``excluded_input`` (derived working copy /
     non-drawing asset) is never copied — it is logged in
-    ``excluded_from_staging`` instead, not silently dropped."""
+    ``excluded_from_staging`` instead, not silently dropped.
+
+    F-51: every staged ``required_view`` PNG is then resized in place to
+    ``vision_resize_tier`` (:func:`_copy_case_data_image`) — this is the one
+    place that decides what the reader, cv_probe, and the manifest hash all
+    see, so it is the one place the resize belongs. ``testdata_prompt.json``
+    is not an image and is copied via the untouched :func:`_copy_file`.
+    """
     src = case_dir / "case_data"
     if not src.exists():
         src = case_dir
@@ -596,7 +627,7 @@ def _copy_case_data(
                  "excluded_reason": "outside_reading_exam_scope", "source": scope.source}
             )
             continue
-        _copy_file(path, dest / path.name, "case_data", manifest)
+        _copy_case_data_image(path, dest / path.name, "case_data", manifest, vision_resize_tier)
 
 
 def _write_input_inventory(
@@ -905,6 +936,29 @@ def _copy_file(src: Path, dest: Path, category: str, manifest: WorkspaceManifest
     _assert_source_allowed(src)
     dest.parent.mkdir(parents=True, exist_ok=True)
     shutil.copy2(src, dest)
+    _add_manifest_entry(dest, src, category, manifest)
+
+
+def _copy_case_data_image(
+    src: Path, dest: Path, category: str, manifest: WorkspaceManifest,
+    vision_resize_tier: str = DEFAULT_VISION_RESIZE_TIER,
+) -> None:
+    """Like :func:`_copy_file`, but for a reader-visible ``case_data/*.png``:
+    resize the staged copy to ``vision_resize_tier`` (F-51) BEFORE the
+    manifest hash is computed, so ``MANIFEST.json`` records the hash of what
+    is actually on disk (and what the reader/cv_probe actually see), not a
+    stale pre-resize hash. A no-op resize (image already within the tier)
+    leaves the copy byte-for-byte identical to ``shutil.copy2``'s output, so
+    this only ever changes behavior for an oversized image.
+
+    ``manifest``'s ``source_path`` still names the true repo original (audit
+    provenance is about WHERE the bytes came from, not whether they were
+    resized in staging) — only the recorded ``sha256`` reflects the resize.
+    """
+    _assert_source_allowed(src)
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copy2(src, dest)
+    resize_image_file_to_tier(dest, vision_resize_tier)
     _add_manifest_entry(dest, src, category, manifest)
 
 

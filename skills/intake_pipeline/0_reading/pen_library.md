@@ -55,11 +55,12 @@ For elevation windows, record the visible chain on each facade and each floor in
 reuse a typical-floor chain from another floor/facade just because the drawing looks repetitive.
 Stage-1 companion TODO: correction should later run count/blank cross-checks across facade × floor.
 
-For every plan, calibration also has a mandatory container action: write `scale_origin` in the
-top-level reading product. `scale_origin.world_x_m/world_y_m` are the world-metre coordinates of
-plan-local `(0,0)`, measured against the single world origin at the overall projected maximum
-boundary's SW inner corner; all floors share that datum. Use `0.00/0.00` when plan-local `(0,0)` is
-that corner, keep plan `world_z_m` null, and never omit or guess the field. See `guide.md` §1/§2.
+For every plan, calibration also has an optional container action: write `scale_origin` in the
+top-level reading product when it is cheap and confident. `scale_origin.world_x_m/world_y_m` record
+the metre offset of plan-local `(0,0)` from an easily-seen reference point drawn in THIS SAME image
+(e.g. the drawing's own outer corner) — never the result of reasoning about another floor's footprint
+or about wall thickness. Use `0.00/0.00` when plan-local `(0,0)` already IS that reference point, keep
+plan `world_z_m` null, and never guess the field — omit it (`null`) instead. See `guide.md` §1/§2.
 
 ---
 
