@@ -413,7 +413,19 @@ def test_f56_guard_allows_withdrawn_prescan_tool_value_but_wrapper_still_refuses
     at the gate. The safety property this "do not fix" judgment depends on
     is that run_cv_probe.ALLOWED_TOOLS remains the SOLE authority and still
     refuses the call — pinned here so a future change to either file cannot
-    silently drop the backstop without a test noticing."""
+    silently drop the backstop without a test noticing.
+
+    m-1 (2026-08-17 cross-review): this exact scenario is also the
+    documented access_log blind spot — guard logs decision="allow" for the
+    call below, and the wrapper's refusal that follows leaves NO trace in
+    access_log at all (guard fires and appends its entry before the wrapper
+    subprocess even starts). A reader of access_log.jsonl who checks only
+    the `decision` field would misread this call as having executed. The
+    assertion on the log entry below makes that gap explicit rather than
+    leaving it undocumented: `decision="allow"` means "guard did not block
+    this call", never "this call ran successfully" — telling the two apart
+    requires evidence outside access_log entirely (here, the wrapper's own
+    returncode/stderr, exactly what this test already checks above)."""
     args = ["--tool", "prescan-plan", "--image", IMG, "--out-dir", "out/f56lock"]
     decision = _guard_bash(staging, "python tools/run_cv_probe.py " + " ".join(args))
     assert decision.returncode == 0, "guard's tool-value-blind decision is the documented status quo"
@@ -424,6 +436,13 @@ def test_f56_guard_allows_withdrawn_prescan_tool_value_but_wrapper_still_refuses
     assert wrapper.returncode != 0, "wrapper must remain the sole authority and refuse a withdrawn tool"
     assert "unsupported cv_probe tool" in wrapper.stderr
     assert not list((staging / "out" / "f56lock").rglob("*")) if (staging / "out" / "f56lock").exists() else True
+
+    log_entry = json.loads(_access_log(staging).read_text(encoding="utf-8").splitlines()[-1])
+    assert log_entry["decision"] == "allow", (
+        "m-1: access_log records decision=allow for the guard call above even "
+        "though the wrapper immediately refused it — decision=allow is not "
+        "evidence the tool call executed, only that guard did not block it"
+    )
 
 
 def test_f57_guard_allows_key_tool_mismatch_but_wrapper_argparse_still_refuses(staging: Path):
@@ -436,7 +455,13 @@ def test_f57_guard_allows_key_tool_mismatch_but_wrapper_argparse_still_refuses(s
     judgment relies on; pinned here the same way as the F-56 lock above.
     Uses storey_line_profiler + --axis (grid_B's own exact repro shape):
     storey_line_profiler has no extra required parameters, so a missing-
-    required-argument error can't mask the unrecognized-argument one."""
+    required-argument error can't mask the unrecognized-argument one.
+
+    m-1 (2026-08-17 cross-review): same access_log blind spot as the F-56
+    lock above — guard's decision="allow" entry for this call predates, and
+    says nothing about, the wrapper's refusal below. See that test's
+    docstring for the full reasoning; asserted again here so the F-57 half
+    of the gap is pinned independently of the F-56 half."""
     args = ["--tool", "storey_line_profiler", "--image", IMG, "--out-dir", "out/f57lock", "--axis", "row"]
     decision = _guard_bash(staging, "python tools/run_cv_probe.py " + " ".join(args))
     assert decision.returncode == 0, "guard's flat key table is the documented status quo"
@@ -446,3 +471,10 @@ def test_f57_guard_allows_key_tool_mismatch_but_wrapper_argparse_still_refuses(s
     )
     assert wrapper.returncode != 0, "wrapper's per-tool argparse must remain the backstop"
     assert "unrecognized arguments" in wrapper.stderr or "unrecognized" in wrapper.stderr
+
+    log_entry = json.loads(_access_log(staging).read_text(encoding="utf-8").splitlines()[-1])
+    assert log_entry["decision"] == "allow", (
+        "m-1: access_log records decision=allow for the guard call above even "
+        "though the wrapper immediately refused it — decision=allow is not "
+        "evidence the tool call executed, only that guard did not block it"
+    )

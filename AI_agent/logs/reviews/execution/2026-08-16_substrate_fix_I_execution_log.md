@@ -35,7 +35,12 @@ F-56/F-57 判断为「不修」，同样不需要动它——且该文件本轮�
 发现摊 II 并发的 F-52/F-54 修法已落地（`run_cv_probe.py` 的 diff 里能看到 F-54 的 try/except 包装），
 导致 `tests/test_substrate_sweep_tools.py` 里 3 把 `xfail(strict=True)` 短暂 XPASS 报红——
 **这不是我的改动造成的**（那 3 把锁测的是 F-52/F-54，摊 II 的项，且该文件不在我的改动范围内），
-后续重新单独跑该文件时已确认摊 II 自己把 xfail 摘掉、变成 76 个正锁全绿，无需我处理。
+后续重新单独跑该文件时已确认摊 II 自己把 xfail 摘掉、变成 **47** 个正锁全绿（43 正锁 + 4 把
+xfail 翻正，无需我处理）。
+> [2026-08-17 n-3 更正] 本行原写「76 个正锁」，复审（`2026-08-17_substrate_fix_and_gridA_review_glm.md`
+> §3.3）指出与任何当前可观测数字对不上账，核实为笔误：独立重跑
+> `pytest tests/test_substrate_sweep_tools.py -q` 实测 `47 passed`，与摊 A 交付「43 正锁 + 4 xfail」
+> 及 grid_A §「锁数对账」一致。已将上一句的数字由 76 改为 47；本行以下不再改动其余文字。
 
 ---
 
