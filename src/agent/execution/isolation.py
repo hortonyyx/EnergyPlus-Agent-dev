@@ -56,13 +56,13 @@ STAGE = "0_reading"
 WRITE_ALLOWED_DIRS = ("out", "requests")
 
 # The worked-example reading-view JSON the kickoff tells the reader to read as a
-# style/format anchor (session_kickoff.md §"First"). It is a *different* building
-# (smalloffice_20) containing none of the target case's information, so staging it
-# is not contamination — `_assert_source_allowed` passes for it (verified). The
-# repo path is denied by the guard (DENY_TOKENS contains `case_tests`) and is not
-# copied by default, so build must stage it at a non-denied path and rewrite the
-# kickoff pointer to that staging path (F-2). Both sides must agree on this path.
-WORKED_EXAMPLE_SOURCE = "case_tests/e2e_tests/smalloffice_20/0_reading/1f_view.json"
+# style/format anchor (session_kickoff.md §"First"). Keep it with the isolation
+# templates, not under case_tests: the former smalloffice_20 example had exactly
+# the same 15 m x 8 m / x={5,10} / y={3,5} wall grid as sm21 and therefore leaked
+# an answer-shaped prior into that benchmark. This synthetic example deliberately
+# uses a different envelope and asymmetric wall grid. Build stages it at a stable
+# non-denied path and rewrites the kickoff pointer to that path (F-2).
+WORKED_EXAMPLE_SOURCE = "src/agent/execution/isolation_templates/worked_example_plan.json"
 WORKED_EXAMPLE_STAGED = "reference/worked_example_plan.json"
 
 HARD_BLOCK_FILENAMES = {
@@ -847,9 +847,9 @@ def _copy_reading_skill(staging_root: Path, manifest: WorkspaceManifest) -> None
         _assert_source_allowed(path)
         rel = path.relative_to(skill_root)
         if path.name == "session_kickoff.md":
-            # F-2: the kickoff names the worked-example by its (denied) repo path.
-            # Rewrite the pointer to the staged copy so the reader is never sent at
-            # a wall-outside file the guard will refuse. Both sides agree on
+            # F-2: the kickoff names the repository source of the worked example.
+            # Rewrite the pointer to the staged copy so the reader only sees files
+            # present in the isolation manifest. Both sides agree on
             # WORKED_EXAMPLE_STAGED (the consistency lock stats this path in staging).
             _copy_skill_kickoff(path, dest_root / rel, manifest)
             continue

@@ -944,8 +944,52 @@ def test_feedback_refusal_fixtures_are_neuter_clean(
 # F-2 / S1 — worked-example staged at a non-denied path, in MANIFEST, and the
 # kickoff pointer agrees with the actual staged file
 # --------------------------------------------------------------------------- #
-WORKED_EXAMPLE_SOURCE = Path("case_tests/e2e_tests/smalloffice_20/0_reading/1f_view.json")
+WORKED_EXAMPLE_SOURCE = Path(isolation.WORKED_EXAMPLE_SOURCE)
 WORKED_EXAMPLE_STAGED = Path("reference/worked_example_plan.json")
+
+
+def _wall_line_fingerprint(path: Path) -> set[tuple[tuple[float, float], tuple[float, float]]]:
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    lines = set()
+    for stroke in payload["strokes"]:
+        geometry = stroke["geometry"]
+        if stroke["pen"] != "wall" or geometry["kind"] != "line":
+            continue
+        p1 = tuple(float(value) for value in geometry["p1"])
+        p2 = tuple(float(value) for value in geometry["p2"])
+        lines.add(tuple(sorted((p1, p2))))
+    return lines
+
+
+def test_worked_example_is_synthetic_and_not_the_sm21_shaped_case_artifact():
+    """Regression lock for the 2026-08-18 benchmark-confound finding.
+
+    The previous ``smalloffice_20`` example was a different case by name but its
+    complete Floor-1 wall grid was identical to sm21. A reader was required to
+    inspect it before the sm21 exam. Keep examples out of case artifacts and
+    ensure the replacement cannot silently drift back to that exact wall prior.
+    """
+    contaminated = Path("case_tests/e2e_tests/smalloffice_20/0_reading/1f_view.json")
+
+    assert "case_tests" not in WORKED_EXAMPLE_SOURCE.parts
+    assert WORKED_EXAMPLE_SOURCE.is_file()
+    assert _wall_line_fingerprint(WORKED_EXAMPLE_SOURCE)
+    assert _wall_line_fingerprint(WORKED_EXAMPLE_SOURCE) != _wall_line_fingerprint(contaminated)
+
+
+def test_worked_example_is_schema_valid_and_gate_clean():
+    """A format anchor must not teach a shape that the production gate rejects."""
+    from src.agent.reading.schema import ReadingView
+    from src.validator.checks.reading import check_reading_view
+
+    payload = json.loads(WORKED_EXAMPLE_SOURCE.read_text(encoding="utf-8"))
+    report = check_reading_view(
+        ReadingView.model_validate(payload),
+        run_profile="regression",
+        dimensioned_state="declared_true",
+    )
+
+    assert report.blocking() == []
 
 
 def test_build_stages_worked_example_byte_identical_and_in_manifest(tmp_path: Path):

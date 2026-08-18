@@ -15,8 +15,9 @@ three rule docs below; the recap section is only a pointer so nothing here can s
 ## First: read the rule docs (required)
 
 Read all three before tracing anything, then follow the worked-example plan JSON's style.
-Canonical worked-example file: `case_tests/e2e_tests/smalloffice_20/0_reading/1f_view.json`.
-Read it as a style/format anchor only; **do not rewrite it**.
+Canonical worked-example file: `src/agent/execution/isolation_templates/worked_example_plan.json`.
+This is a synthetic, deliberately asymmetric format example, not a target-case precedent. Read it
+for JSON shape and evidence-field style only; **never copy its coordinates or rewrite it**.
 
 - `skills/intake_pipeline/0_reading/guide.md` — error budget, global constraints, JSON schema,
   door-healing, self-check, downstream contract; this is the master rule container
