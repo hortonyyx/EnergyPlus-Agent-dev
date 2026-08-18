@@ -14,6 +14,7 @@ if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
 from src.agent.execution.isolation import (  # noqa: E402
+    approve_pilot,
     build_isolation_workspace,
     merge_isolated_output,
     spawn_command,
@@ -51,6 +52,12 @@ def _cmd_feedback(args: argparse.Namespace) -> int:
     if args.file:
         text = args.file.read_text(encoding="utf-8")
     path = write_feedback(args.staging_root, text, name=args.name)
+    print(path)
+    return 0
+
+
+def _cmd_approve_pilot(args: argparse.Namespace) -> int:
+    path = approve_pilot(args.staging_root)
     print(path)
     return 0
 
@@ -122,6 +129,16 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--file", type=Path)
     p.add_argument("--name", default="feedback.md")
     p.set_defaults(func=_cmd_feedback)
+
+    p = sub.add_parser(
+        "approve-pilot",
+        help=(
+            "externally approve the sole completed plan pilot, binding its current "
+            "hash; required after any feedback round before batch or merge"
+        ),
+    )
+    p.add_argument("--staging-root", required=True, type=Path)
+    p.set_defaults(func=_cmd_approve_pilot)
 
     p = sub.add_parser("merge")
     p.add_argument("--staging-root", required=True, type=Path)

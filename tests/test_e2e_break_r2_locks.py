@@ -221,7 +221,12 @@ def test_f3b_stage_runner_rejects_v3_draft_but_allows_v2(tmp_path):
 # =========================================================================== #
 def _formal_build(case_dir: Path, run_dir: Path, staging_root: Path):
     provision_view_manifest(case_dir, run_dir)
-    return build_isolation_workspace(case_dir, run_dir=run_dir, staging_root=staging_root)
+    return build_isolation_workspace(
+        case_dir,
+        run_dir=run_dir,
+        staging_root=staging_root,
+        pilot_review_gate=False,
+    )
 
 
 def _real_views() -> dict:

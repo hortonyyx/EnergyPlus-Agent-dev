@@ -15,6 +15,7 @@ import tempfile
 import time
 from contextlib import contextmanager
 from dataclasses import dataclass, field
+from datetime import datetime, timezone
 from importlib import resources
 from pathlib import Path
 
@@ -45,6 +46,7 @@ from src.validator.checks.schema import CheckLayer
 from src.validator.checks.view_manifest import check_reading_stage
 
 ISOLATION_SCHEMA_VERSION = "1"
+PILOT_REVIEW_STATE_SCHEMA_VERSION = "1"
 STAGE = "0_reading"
 
 # F-55: named to match guard.py's own WRITE_ALLOWED_DIRS (the reader's real,
@@ -232,7 +234,10 @@ def build_isolation_workspace(
     _audit_dir(staging_root).mkdir(parents=True, exist_ok=True)
 
     view_manifest = build_view_manifest(case_dir)
-    binding: dict = {"merge_eligible": False}
+    binding: dict = {
+        "merge_eligible": False,
+        "pilot_review_gate": bool(pilot_review_gate),
+    }
 
     if run_dir is not None:
         verification = verify_view_manifest(case_dir, run_dir)
@@ -253,6 +258,7 @@ def build_isolation_workspace(
         policy_record = resolve_frozen_run_policy(run_dir)
         binding = {
             "merge_eligible": True,
+            "pilot_review_gate": bool(pilot_review_gate),
             "run_id": run_manifest_v2.run_id,
             "case_id": view_manifest.case_id,
             "case_dir": _repo_relative(case_dir),
@@ -297,6 +303,7 @@ def build_isolation_workspace(
     _write_settings(staging_root, manifest)
     _write_input_inventory(staging_root, manifest, view_manifest, scope)
     _write_binding(staging_root, manifest, binding)
+    _write_pilot_review_state(staging_root, enabled=pilot_review_gate)
     manifest.save()
     _assert_manifest_clean(manifest)
     # F-55: the read-only lockdown is the LAST step — everything above still
@@ -315,14 +322,186 @@ def check_feedback_text(text: str) -> None:
             raise ValueError(f"feedback contains forbidden pattern: {label}")
 
 
+def pilot_review_state_path(staging_root: Path) -> Path:
+    """Operator-owned pilot-review state, outside the reader's write surface."""
+    return _audit_dir(Path(staging_root).resolve()) / "pilot_review_state.json"
+
+
+def _read_pilot_review_state(
+    staging_root: Path, *, required: bool = False
+) -> dict | None:
+    path = pilot_review_state_path(staging_root)
+    if not path.is_file():
+        if required:
+            raise ValueError(
+                "pilot review state is missing; this workspace predates the "
+                "machine review gate and cannot be merged safely"
+            )
+        return None
+    try:
+        state = json.loads(path.read_text(encoding="utf-8"))
+    except (json.JSONDecodeError, OSError) as exc:
+        raise ValueError(f"pilot review state is unreadable: {path}") from exc
+    if state.get("schema_version") != PILOT_REVIEW_STATE_SCHEMA_VERSION:
+        raise ValueError("pilot review state has an unsupported schema_version")
+    if state.get("phase") not in {"disabled", "awaiting_pilot", "feedback_issued", "approved"}:
+        raise ValueError("pilot review state has an invalid phase")
+    if not isinstance(state.get("enabled"), bool):
+        raise ValueError("pilot review state has an invalid enabled flag")
+    return state
+
+
+def _save_pilot_review_state(staging_root: Path, state: dict) -> Path:
+    path = pilot_review_state_path(staging_root)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(
+        json.dumps(state, indent=2, sort_keys=True, ensure_ascii=False) + "\n",
+        encoding="utf-8",
+    )
+    return path
+
+
+def _write_pilot_review_state(staging_root: Path, *, enabled: bool) -> Path:
+    return _save_pilot_review_state(
+        staging_root,
+        {
+            "schema_version": PILOT_REVIEW_STATE_SCHEMA_VERSION,
+            "enabled": bool(enabled),
+            "phase": "awaiting_pilot" if enabled else "disabled",
+            "feedback_round": 0,
+            "feedback_sha256": None,
+            "approved_pilot_path": None,
+            "approved_pilot_sha256": None,
+            "approved_at": None,
+        },
+    )
+
+
 def write_feedback(staging_root: Path, text: str, *, name: str = "feedback.md") -> Path:
     check_feedback_text(text)
     staging_root = Path(staging_root).resolve()
     path = staging_root / name
     if path.name != name:
         raise ValueError(f"feedback name must be a filename: {name!r}")
+    state = _read_pilot_review_state(staging_root)
     path.write_text(text, encoding="utf-8")
+    if name == "feedback.md" and state is not None and state["enabled"]:
+        state.update(
+            {
+                "phase": "feedback_issued",
+                "feedback_round": int(state.get("feedback_round", 0)) + 1,
+                "feedback_sha256": hash_file(path),
+                "approved_pilot_path": None,
+                "approved_pilot_sha256": None,
+                "approved_at": None,
+            }
+        )
+        _save_pilot_review_state(staging_root, state)
     return path
+
+
+def approve_pilot(staging_root: Path) -> Path:
+    """Approve exactly one completed plan pilot and bind its current bytes.
+
+    Approval is intentionally an operator action. The state lives beside the
+    audit log, not under ``out/``, so the reader cannot approve itself. Refuse
+    when more than one expected output already exists: that means batching
+    started before the review point and the run no longer exercises this gate.
+    """
+    staging_root = Path(staging_root).resolve()
+    state = _read_pilot_review_state(staging_root, required=True)
+    assert state is not None
+    if not state["enabled"]:
+        raise ValueError("pilot approval is disabled for this control-arm workspace")
+
+    premature_batch_artifacts = [
+        path
+        for path in (
+            staging_root / "out" / "output.json",
+            staging_root / "out" / "reading_summary.md",
+        )
+        if path.exists()
+    ]
+    if premature_batch_artifacts:
+        raise ValueError(
+            "cannot approve pilot: batch/summary artifact exists before external "
+            "approval: "
+            + ", ".join(path.name for path in premature_batch_artifacts)
+        )
+
+    inventory_path = staging_root / "input_inventory.json"
+    try:
+        inventory = json.loads(inventory_path.read_text(encoding="utf-8"))
+    except (json.JSONDecodeError, OSError) as exc:
+        raise ValueError("cannot approve pilot: input_inventory.json is unreadable") from exc
+    expected = {
+        entry["expected_output_id"]: entry.get("view_type")
+        for entry in inventory
+        if entry.get("expected_output_id")
+    }
+    present = [
+        staging_root / "out" / f"{output_id}.json"
+        for output_id in expected
+        if (staging_root / "out" / f"{output_id}.json").is_file()
+    ]
+    if len(present) != 1:
+        raise ValueError(
+            "cannot approve pilot: expected exactly one completed expected-output "
+            f"JSON before batch, found {len(present)}"
+        )
+    pilot = present[0]
+    if expected[pilot.stem] != "plan":
+        raise ValueError("cannot approve pilot: the sole completed output is not a plan")
+    try:
+        payload = json.loads(pilot.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as exc:
+        raise ValueError("cannot approve pilot: pilot output is not valid JSON") from exc
+    if not isinstance(payload, dict):
+        raise ValueError("cannot approve pilot: pilot output must be a JSON object")
+
+    feedback = staging_root / "feedback.md"
+    state.update(
+        {
+            "phase": "approved",
+            "feedback_sha256": hash_file(feedback) if feedback.is_file() else None,
+            "approved_pilot_path": pilot.relative_to(staging_root).as_posix(),
+            "approved_pilot_sha256": hash_file(pilot),
+            "approved_at": datetime.now(timezone.utc).isoformat(),
+        }
+    )
+    return _save_pilot_review_state(staging_root, state)
+
+
+def _verify_pilot_review_for_merge(staging_root: Path, binding: dict) -> dict:
+    state = _read_pilot_review_state(staging_root, required=True)
+    assert state is not None
+    expected_enabled = bool(binding.get("pilot_review_gate"))
+    if state["enabled"] != expected_enabled:
+        raise ValueError("merge refused: pilot review state disagrees with the bound run mode")
+    if not expected_enabled:
+        if state["phase"] != "disabled":
+            raise ValueError("merge refused: disabled pilot gate has a non-disabled state")
+        return state
+    if state["phase"] != "approved":
+        raise ValueError(
+            "merge refused: pilot revision has not received external approval "
+            f"(phase={state['phase']})"
+        )
+    rel = state.get("approved_pilot_path")
+    approved_hash = state.get("approved_pilot_sha256")
+    if not rel or not approved_hash:
+        raise ValueError("merge refused: pilot approval is missing its artifact binding")
+    pilot = staging_root / rel
+    _require_under(pilot, staging_root / "out")
+    if not pilot.is_file() or hash_file(pilot) != approved_hash:
+        raise ValueError("merge refused: approved pilot changed after external review")
+    feedback = staging_root / "feedback.md"
+    expected_feedback_hash = state.get("feedback_sha256")
+    if expected_feedback_hash is not None and (
+        not feedback.is_file() or hash_file(feedback) != expected_feedback_hash
+    ):
+        raise ValueError("merge refused: feedback changed after pilot approval")
+    return state
 
 
 def merge_isolated_output(
@@ -407,10 +586,24 @@ def merge_isolated_output(
             f"(bound run_policy_sha256={binding.get('run_policy_sha256')}, "
             f"current={policy_record.policy_hash}) — run_policy_drift"
         )
+    # Run/view/policy identity errors take precedence over workflow state: an
+    # approval cannot legitimize a workspace bound to a different or drifted
+    # run. The pilot gate still runs before any output is loaded or attempt is
+    # created.
+    pilot_review_state = _verify_pilot_review_for_merge(staging_root, binding)
     payload, out_text = _load_isolated_views(
         output_path, staging_root / "out", verification.on_disk, verification.exam_scope
     )
     views = payload["views"]
+    if pilot_review_state["enabled"]:
+        approved_path = staging_root / pilot_review_state["approved_pilot_path"]
+        approved_view = json.loads(approved_path.read_text(encoding="utf-8"))
+        approved_id = approved_path.stem
+        if approved_id not in views or views[approved_id] != approved_view:
+            raise ValueError(
+                "merge refused: the pilot inside the merged payload differs from "
+                "the externally approved pilot artifact"
+            )
 
     report = check_reading_stage(
         verification.on_disk,
@@ -556,7 +749,15 @@ def merge_isolated_output(
 
 _FEEDBACK_POINTER = (
     "A review of your previous output exists at feedback.md — read it FIRST and "
-    "follow it exactly before doing anything else.\n"
+    "apply it to the pilot only before doing anything else. Re-run the pilot "
+    "self-check, then STOP again for external approval. Do not start any remaining "
+    "image until a later turn explicitly says the revised pilot was approved.\n"
+)
+
+_PILOT_APPROVAL_POINTER = (
+    "External review approved the current pilot artifact. Do not rewrite that "
+    "approved pilot. Continue with the remaining images and reading_summary.md, "
+    "applying the approved method consistently.\n"
 )
 
 
@@ -607,6 +808,7 @@ def spawn_command(
     REMEMBERS of its own work, not what it can see or write.
     """
     staging_root = Path(staging_root).resolve()
+    review_state = _read_pilot_review_state(staging_root)
     resume_id = None
     if resume:
         recorded = session_id_path(staging_root)
@@ -623,10 +825,24 @@ def spawn_command(
     if resume_id:
         # The kickoff (and any directive) is already in the resumed context;
         # re-sending it would both waste the window and change the conversation
-        # shape we are trying to reproduce. The turn is just the review.
-        prompt = _FEEDBACK_POINTER if (staging_root / "feedback.md").exists() else (
-            "Continue from where you stopped.\n"
-        )
+        # shape we are trying to reproduce. The turn is only the machine-recorded
+        # review transition.
+        if review_state is not None and review_state["enabled"]:
+            if review_state["phase"] == "feedback_issued":
+                if not (staging_root / "feedback.md").is_file():
+                    raise ValueError("cannot resume rework: feedback.md is missing")
+                prompt = _FEEDBACK_POINTER
+            elif review_state["phase"] == "approved":
+                prompt = _PILOT_APPROVAL_POINTER
+            else:
+                raise ValueError(
+                    "cannot resume: pilot is awaiting an external review decision; "
+                    "write feedback or approve the pilot first"
+                )
+        else:
+            prompt = _FEEDBACK_POINTER if (staging_root / "feedback.md").exists() else (
+                "Continue from where you stopped.\n"
+            )
     else:
         prompt = (staging_root / "kickoff_prompt.md").read_text(encoding="utf-8")
         if directive is not None:
@@ -635,7 +851,9 @@ def spawn_command(
             check_feedback_text(text)
             (staging_root / "directive.md").write_text(text, encoding="utf-8")
             prompt += "\n## Per-run directive (binding for this run)\n" + text
-        if (staging_root / "feedback.md").exists():
+        if review_state is not None and review_state.get("phase") == "approved":
+            prompt += "\nIMPORTANT: " + _PILOT_APPROVAL_POINTER
+        elif (staging_root / "feedback.md").exists():
             prompt += "\nIMPORTANT: " + _FEEDBACK_POINTER
 
     cmd = ["claude", "-p", prompt, "--settings", str(staging_root / "isolation_settings.json")]
@@ -930,14 +1148,16 @@ def _write_kickoff(
         "`python tools/run_cv_probe.py --request requests/<name>.json` form is "
         "also available. "
         + (
-            "This run has ONE review point and it is after the pilot image. Finish "
+            "This run has ONE pilot approval gate after the pilot image. Finish "
             "the first plan image, run the guide's self-check against it, then STOP "
             "and say the pilot is ready for review — ending your turn there is "
             "correct, not a failure to finish. If `feedback.md` exists in this "
-            "directory it IS that review: read it first, apply it, then do the "
-            "remaining images and the summary. Apart from that one pause, work "
-            "through on your own — the review is a one-way file, not a "
-            "conversation, so do not ask questions and wait.\n"
+            "directory it IS a rework request: read it first, revise ONLY the "
+            "pilot, rerun its self-check, and STOP AGAIN. Do not start the "
+            "remaining images until a later launcher turn explicitly says external "
+            "review approved the revised pilot. After that approval, work through "
+            "the remaining images and summary on your own; review is a one-way "
+            "state transition, not a conversation, so do not ask questions.\n"
             if pilot_review_gate
             else
             # 2026-08-18 control-arm form. Stated as an explicit OVERRIDE rather
@@ -1144,6 +1364,7 @@ def _build_provenance(staging_root: Path, output_hash: str) -> dict:
     # F-55: access_log.jsonl no longer lives under staging_root — see
     # `_audit_dir`.
     access_log_path = _audit_dir(staging_root) / "access_log.jsonl"
+    pilot_review_path = pilot_review_state_path(staging_root)
     denied = 0
     entries = 0
     if access_log_path.exists():
@@ -1163,6 +1384,9 @@ def _build_provenance(staging_root: Path, output_hash: str) -> dict:
         "access_log_sha256": hash_file(access_log_path) if access_log_path.exists() else "",
         "access_log_entries": entries,
         "access_log_denied": denied,
+        "pilot_review_state_sha256": (
+            hash_file(pilot_review_path) if pilot_review_path.exists() else ""
+        ),
     }
 
 
@@ -1177,6 +1401,7 @@ def _archive_isolation_artifacts(staging_root: Path, attempt_dir: Path) -> None:
         # keeps the same filename so nothing downstream of this function
         # needs to know the log moved.
         "access_log.jsonl": _audit_dir(staging_root) / "access_log.jsonl",
+        "pilot_review_state.json": pilot_review_state_path(staging_root),
     }
     for name, src in sources.items():
         if src.exists():

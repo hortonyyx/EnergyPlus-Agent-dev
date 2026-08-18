@@ -146,7 +146,10 @@ def formal_staging(tmp_path: Path):
     (run_dir / "run_config.yaml").write_text("", encoding="utf-8")
     provision_view_manifest(case_dir, run_dir)
     manifest = build_isolation_workspace(
-        case_dir, run_dir=run_dir, staging_root=tmp_path / "staging"
+        case_dir,
+        run_dir=run_dir,
+        staging_root=tmp_path / "staging",
+        pilot_review_gate=False,
     )
     return manifest.staging_root, run_dir
 

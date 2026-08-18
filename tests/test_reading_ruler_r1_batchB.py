@@ -491,7 +491,12 @@ def _merge_with_policy(tmp_path: Path, tag: str, run_profile: str, capability_pr
     vm = provision_view_manifest(case_dir, run_dir)
     ensure_run_manifest_v2(run_dir, view_manifest_sha256=vm.content_sha256)
     staging = tmp_path / f"staging_{tag}"
-    build_isolation_workspace(case_dir, run_dir=run_dir, staging_root=staging)
+    build_isolation_workspace(
+        case_dir,
+        run_dir=run_dir,
+        staging_root=staging,
+        pilot_review_gate=False,
+    )
     stems = [e.expected_output_id for e in vm.required_entries()]
     views = {
         st: _plan_with_dims(overall=(6.0 if i < 4 else 5.0), segments=[2.0, 3.0])
@@ -677,5 +682,4 @@ def test_R1_3_validate_case_preserves_structured_declaration(tmp_path):
 
     assert _state(res.reports["0_reading::1f_view"]) == "declared_true"
     assert _state(res.reports["0_reading::2f_view"]) == "declared_false"   # R1-3: NOT legacy_default
-
 

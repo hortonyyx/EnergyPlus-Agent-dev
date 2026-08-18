@@ -18,6 +18,7 @@ from src.agent.execution.isolation import (
     check_feedback_text,
     merge_isolated_output,
     spawn_command,
+    write_feedback,
 )
 from src.agent.execution.manifest import (
     RunManifest,
@@ -65,7 +66,15 @@ def _formal_build(case_dir: Path, run_dir: Path, staging_root: Path):
     the view manifest (§4.4/§5.2) — it never provisions — so every formal-build
     test provisions first, exactly as an operator/CLI must."""
     provision_view_manifest(case_dir, run_dir)
-    return build_isolation_workspace(case_dir, run_dir=run_dir, staging_root=staging_root)
+    # Most tests below exercise merge/provenance mechanics, not the human review
+    # workflow. Keep those fixtures on the explicit control arm; dedicated pilot
+    # review tests build with the production default and verify the state gate.
+    return build_isolation_workspace(
+        case_dir,
+        run_dir=run_dir,
+        staging_root=staging_root,
+        pilot_review_gate=False,
+    )
 
 
 def _case_copy(tmp_path: Path, *, name: str = "sm21_anchor") -> Path:
@@ -328,12 +337,13 @@ def test_formal_build_writes_binding_and_input_inventory(tmp_path: Path):
     # S-2 (G-3): binding now also pins the frozen effective run policy so merge
     # can re-verify it did not drift between build and merge. This is a
     # contract change (not a relaxation): the set is still exact-equal, now over
-    # 12 keys rather than 8.
+    # 13 keys rather than 8.
     assert set(binding) == {
         "merge_eligible", "run_id", "case_id", "case_dir", "run_dir",
         "view_manifest_sha256", "case_metadata_sha256", "image_sha256",
         "run_policy_sha256", "run_policy_run_profile",
         "run_policy_capability_profile", "run_policy_legacy_defaulted",
+        "pilot_review_gate",
     }
     run_manifest = load_run_manifest(run_dir)
     assert isinstance(run_manifest, RunManifestV2)
@@ -604,7 +614,12 @@ def test_formal_scope_stages_only_declared_images_and_records_out_of_scope_views
     )
     provision_view_manifest(case_dir, run_dir)
 
-    workspace = build_isolation_workspace(case_dir, run_dir=run_dir, staging_root=tmp_path / "staging")
+    workspace = build_isolation_workspace(
+        case_dir,
+        run_dir=run_dir,
+        staging_root=tmp_path / "staging",
+        pilot_review_gate=False,
+    )
     staged_images = sorted(path.name for path in (workspace.staging_root / "case_data").glob("*.png"))
     inventory = json.loads((workspace.staging_root / "input_inventory.json").read_text(encoding="utf-8"))
     binding = json.loads((workspace.staging_root / "binding.json").read_text(encoding="utf-8"))
@@ -3353,6 +3368,181 @@ def test_merge_records_calibration_agreement_when_the_ruler_is_consistent(tmp_pa
 
 
 # ---------------------------------------------------------------------------
+# 2026-08-18 · PILOT R2 EXTERNAL APPROVAL STATE.
+#
+# Feedback changes the artifact; it is not approval. The reader must stop after
+# applying it, and an operator-owned state transition must bind the exact pilot
+# bytes before batch work or merge can proceed.
+# ---------------------------------------------------------------------------
+
+
+def _gated_formal_build(tmp_path: Path) -> tuple[Path, Path]:
+    run_dir = tmp_path / "case_run"
+    run_dir.mkdir()
+    provision_view_manifest(CASE_DIR, run_dir)
+    staging = build_isolation_workspace(
+        CASE_DIR,
+        run_dir=run_dir,
+        staging_root=tmp_path / "staging",
+        pilot_review_gate=True,
+    ).staging_root
+    return staging, run_dir
+
+
+def _write_only_plan_pilot(staging: Path, payload: dict | None = None) -> Path:
+    inventory = json.loads((staging / "input_inventory.json").read_text(encoding="utf-8"))
+    pilot_id = next(
+        item["expected_output_id"] for item in inventory if item["view_type"] == "plan"
+    )
+    path = staging / "out" / f"{pilot_id}.json"
+    path.write_text(json.dumps(payload or {"image_kind": "plan"}), encoding="utf-8")
+    return path
+
+
+def test_default_pilot_review_state_is_waiting_and_outside_reader_surface(tmp_path: Path):
+    from src.agent.execution.isolation import pilot_review_state_path
+
+    staging = _build(tmp_path).staging_root
+    marker = pilot_review_state_path(staging)
+    state = json.loads(marker.read_text(encoding="utf-8"))
+
+    assert state["enabled"] is True
+    assert state["phase"] == "awaiting_pilot"
+    assert staging not in marker.parents
+
+
+def test_feedback_requires_second_stop_then_explicit_approval_releases_batch(tmp_path: Path):
+    from src.agent.execution.isolation import (
+        _record_reader_session_id,
+        approve_pilot,
+        pilot_review_state_path,
+    )
+
+    staging = _build(tmp_path).staging_root
+    _record_reader_session_id(staging, json.dumps({"session_id": "sess-review"}))
+    pilot = _write_only_plan_pilot(staging)
+
+    write_feedback(staging, "Recheck every measured candidate and revise only the pilot.")
+    state = json.loads(pilot_review_state_path(staging).read_text(encoding="utf-8"))
+    assert state["phase"] == "feedback_issued"
+    assert state["feedback_round"] == 1
+
+    rework_prompt = _spawn_argv(staging, resume=True)[2]
+    assert "STOP again" in rework_prompt
+    assert "Do not start any remaining image" in rework_prompt
+
+    approve_pilot(staging)
+    state = json.loads(pilot_review_state_path(staging).read_text(encoding="utf-8"))
+    assert state["phase"] == "approved"
+    assert state["approved_pilot_sha256"] == hash_file(pilot)
+
+    approval_prompt = _spawn_argv(staging, resume=True)[2]
+    assert "approved" in approval_prompt
+    assert "remaining images" in approval_prompt
+    assert "feedback.md" not in approval_prompt
+
+
+def test_pilot_approval_refuses_when_reader_already_started_batch(tmp_path: Path):
+    from src.agent.execution.isolation import approve_pilot
+
+    staging = _build(tmp_path).staging_root
+    inventory = json.loads((staging / "input_inventory.json").read_text(encoding="utf-8"))
+    first_two = [item["expected_output_id"] for item in inventory[:2]]
+    for output_id in first_two:
+        (staging / "out" / f"{output_id}.json").write_text("{}", encoding="utf-8")
+
+    with pytest.raises(ValueError, match="exactly one completed"):
+        approve_pilot(staging)
+
+
+@pytest.mark.parametrize("name", ["output.json", "reading_summary.md"])
+def test_pilot_approval_refuses_premature_aggregate_or_summary(tmp_path: Path, name: str):
+    from src.agent.execution.isolation import approve_pilot
+
+    staging = _build(tmp_path).staging_root
+    _write_only_plan_pilot(staging)
+    (staging / "out" / name).write_text("{}", encoding="utf-8")
+
+    with pytest.raises(ValueError, match="exists before external approval"):
+        approve_pilot(staging)
+
+
+def test_merge_refuses_before_external_pilot_approval(tmp_path: Path):
+    staging, run_dir = _gated_formal_build(tmp_path)
+    output = staging / "out" / "output.json"
+    output.write_text(json.dumps({"views": _real_views()}), encoding="utf-8")
+
+    with pytest.raises(ValueError, match="has not received external approval"):
+        merge_isolated_output(staging, run_dir, output_path=output)
+
+    assert not (run_dir / "0_reading" / "attempts").exists()
+
+
+def test_merge_refuses_if_approved_pilot_bytes_change(tmp_path: Path):
+    from src.agent.execution.isolation import approve_pilot
+
+    staging, run_dir = _gated_formal_build(tmp_path)
+    pilot = _write_only_plan_pilot(staging, _real_views()["1f_view"])
+    approve_pilot(staging)
+    output = staging / "out" / "output.json"
+    output.write_text(json.dumps({"views": _real_views()}), encoding="utf-8")
+    pilot.write_text(json.dumps({"image_kind": "plan", "changed": True}), encoding="utf-8")
+
+    with pytest.raises(ValueError, match="approved pilot changed"):
+        merge_isolated_output(staging, run_dir, output_path=output)
+
+
+def test_merge_refuses_if_aggregate_contains_a_different_unapproved_pilot(tmp_path: Path):
+    from src.agent.execution.isolation import approve_pilot
+
+    staging, run_dir = _gated_formal_build(tmp_path)
+    approved_view = _real_views()["1f_view"]
+    _write_only_plan_pilot(staging, approved_view)
+    approve_pilot(staging)
+
+    merged_views = json.loads(json.dumps(_real_views()))
+    merged_views["1f_view"]["image_label"] = "different unapproved pilot"
+    output = staging / "out" / "output.json"
+    output.write_text(json.dumps({"views": merged_views}), encoding="utf-8")
+
+    with pytest.raises(ValueError, match="merged payload differs"):
+        merge_isolated_output(staging, run_dir, output_path=output)
+
+
+def test_approved_immutable_pilot_allows_full_merge(tmp_path: Path):
+    from src.agent.execution.isolation import approve_pilot
+
+    staging, run_dir = _gated_formal_build(tmp_path)
+    pilot = _write_only_plan_pilot(staging, _real_views()["1f_view"])
+    approve_pilot(staging)
+    output = staging / "out" / "output.json"
+    output.write_text(json.dumps({"views": _real_views()}), encoding="utf-8")
+
+    attempt = merge_isolated_output(staging, run_dir, output_path=output)
+
+    assert attempt.is_dir()
+    archived = json.loads(
+        (attempt / "isolation_archive" / "pilot_review_state.json").read_text(encoding="utf-8")
+    )
+    assert archived["phase"] == "approved"
+    assert archived["approved_pilot_sha256"] == hash_file(pilot)
+
+
+def test_new_feedback_revokes_a_prior_pilot_approval(tmp_path: Path):
+    from src.agent.execution.isolation import approve_pilot, pilot_review_state_path
+
+    staging = _build(tmp_path).staging_root
+    _write_only_plan_pilot(staging)
+    approve_pilot(staging)
+    write_feedback(staging, "One more pilot-only correction is required.")
+
+    state = json.loads(pilot_review_state_path(staging).read_text(encoding="utf-8"))
+    assert state["phase"] == "feedback_issued"
+    assert state["approved_pilot_path"] is None
+    assert state["approved_pilot_sha256"] is None
+
+
+# ---------------------------------------------------------------------------
 # 2026-08-18 · A1 SESSION FORM (`spawn_command(resume=...)`).
 #
 # The variable: 07-07 ran the pilot review inside ONE conversation (the reviewed
@@ -3422,7 +3612,7 @@ def test_spawn_resume_passes_the_id_and_does_not_resend_the_kickoff(tmp_path: Pa
     recorded = session_id_path(staging)
     recorded.parent.mkdir(parents=True, exist_ok=True)
     recorded.write_text("abc-123", encoding="utf-8")
-    (staging / "feedback.md").write_text("rework the pilot", encoding="utf-8")
+    write_feedback(staging, "rework the pilot")
 
     argv = _spawn_argv(staging, resume=True)
 
@@ -3430,6 +3620,7 @@ def test_spawn_resume_passes_the_id_and_does_not_resend_the_kickoff(tmp_path: Pa
     prompt = argv[argv.index("-p") + 1]
     assert "feedback.md" in prompt
     assert "session_kickoff.md" not in prompt, "the kickoff was re-sent into a resumed session"
+    assert "STOP again" in prompt
 
 
 def test_recorded_session_id_lives_outside_the_reader_writable_surface(tmp_path: Path):
@@ -3612,9 +3803,9 @@ def test_no_pilot_gate_kickoff_states_an_explicit_override(tmp_path: Path):
     text = (staging / "kickoff_prompt.md").read_text(encoding="utf-8")
     assert "NO review point" in text
     assert "overriding the pilot-review step" in text
-    assert "ONE review point" not in text
+    assert "ONE pilot approval gate" not in text
     gated = build_isolation_workspace(CASE_DIR, staging_root=tmp_path / "gated").staging_root
-    assert "ONE review point" in (gated / "kickoff_prompt.md").read_text(encoding="utf-8")
+    assert "ONE pilot approval gate" in (gated / "kickoff_prompt.md").read_text(encoding="utf-8")
 
 
 # ---------------------------------------------------------------------------

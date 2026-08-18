@@ -82,8 +82,9 @@ The `output JSON` column above is a **non-normative worked example** of the two 
 
 ## Workflow
 
-**This run has one review point, and it is after the pilot image.** A method error caught on the
-first image costs one image's worth of work; the same error found at the end costs all of them.
+**This run has one pilot approval gate, after the pilot image.** The gate may contain one or more
+rework turns; every rework stops at the same gate until external approval. A method error caught on
+the first image costs one image's worth of work; the same error found at the end costs all of them.
 
 1. Read the three rule docs + the worked-example JSON (understand the style).
 2. Do **one** pilot image first (a plan) and finish it completely.
@@ -92,16 +93,17 @@ first image costs one image's worth of work; the same error found at the end cos
 4. **Stop and wait for review of that pilot. Do not start the remaining images yet.** Ending your
    turn here is the correct move, not a failure to finish — write what you have, say the pilot is
    ready for review, and stop. You will be resumed. **If `feedback.md` is present in your workspace
-   root, that is the review of your previous output**: read it, apply it to the pilot, and only then
-   continue.
-5. After the pilot is settled, do the remaining images (other plans + elevations + supplemental /
-   section images), applying the same §6 self-check to each finished file.
+   root, that is a rework request for the pilot**: read it, revise only the pilot, run its self-check
+   again, and **stop again**. Feedback is not approval to batch.
+5. Start the remaining images only after a later launcher turn explicitly says that external review
+   approved the current pilot artifact. Do not rewrite the approved pilot. Then do the remaining
+   plans + elevations + supplemental / section images, applying the same §6 self-check to each.
 6. When all are done, write `0_reading/reading_summary.md`: per-image confidence self-assessment
    (high / medium / low, with reasons), which fields were repeatedly null / unknown, and your schema feedback.
 
-⛔ **Do not ask questions mid-run and do not wait for an answer to one.** The review at step 4 is a
-one-way channel: it arrives as a file, it is not a conversation. Everything other than that one
-pause runs to completion on your own.
+⛔ **Do not ask questions mid-run and do not wait for an answer to one.** Rework and approval are
+one-way state transitions, not a conversation. Stop only at the pilot gate; after explicit approval,
+run the remaining work to completion on your own.
 
 ## Boundaries
 
@@ -111,5 +113,5 @@ pause runs to completion on your own.
 - Do not produce IntakeOutput fields (zone_specs / surface_specs / fenestration_specs / …) — that is
   the downstream stages' job.
 
-Do the pilot first, self-check it, then stop and wait for review. After the pilot is settled, work
-straight through: remaining images, summary.
+Do the pilot first, self-check it, then stop and wait for review. Rework feedback means revise the
+pilot and stop again; only explicit external approval releases the remaining images and summary.
