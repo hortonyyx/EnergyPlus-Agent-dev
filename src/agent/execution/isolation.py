@@ -47,6 +47,8 @@ from src.validator.checks.view_manifest import check_reading_stage
 
 ISOLATION_SCHEMA_VERSION = "1"
 PILOT_REVIEW_STATE_SCHEMA_VERSION = "1"
+READER_INVOCATION_SCHEMA_VERSION = "1"
+READING_EXPERIMENT_SCHEMA_VERSION = "1"
 STAGE = "0_reading"
 
 # F-55: named to match guard.py's own WRITE_ALLOWED_DIRS (the reader's real,
@@ -312,6 +314,125 @@ def build_isolation_workspace(
     return manifest
 
 
+def prepare_single_plan_experiment(
+    case_dir: Path,
+    run_dir: Path,
+    staging_root: Path,
+    *,
+    input_id: str,
+    model: str,
+    capability_profile: str = "orthogonal_polygon",
+    guard_profile: str = "observe",
+) -> dict:
+    """Freeze and build a new one-plan, same-session recovery experiment.
+
+    This is deliberately a new-run-only entry point. Reusing an existing run or
+    staging tree would make the nominally controlled draw inherit unknown
+    outputs, policy state, or session metadata. The generated run config pins
+    the sole image, exploratory gate profile, and exact reader model; the audit
+    sibling spec then binds those bytes to the built staging inputs.
+    """
+    case_dir = Path(case_dir).resolve()
+    run_dir = Path(run_dir).resolve()
+    staging_root = Path(staging_root).resolve()
+    if not model or not model.strip():
+        raise ValueError("single-plan experiment requires an explicit reader model")
+    if run_dir.exists():
+        raise ValueError(f"single-plan experiment requires a new run directory: {run_dir}")
+    if staging_root.exists() or _audit_dir(staging_root).exists():
+        raise ValueError(
+            "single-plan experiment requires a new staging root and audit sibling"
+        )
+    _require_outside_repo(staging_root)
+
+    base_manifest = build_view_manifest(case_dir)
+    matches = [entry for entry in base_manifest.required_entries() if entry.input_id == input_id]
+    if len(matches) != 1:
+        raise ValueError(f"input_id is not exactly one required view: {input_id!r}")
+    if matches[0].view_type != "plan":
+        raise ValueError("single-plan experiment input_id must select a plan view")
+    if capability_profile not in {"rectangular", "orthogonal_polygon"}:
+        raise ValueError(f"unsupported capability_profile: {capability_profile!r}")
+
+    run_dir.mkdir(parents=True)
+    run_config = run_dir / "run_config.yaml"
+    config_text = (
+        "run_profile: exploratory\n"
+        f"capability_profile: {capability_profile}\n"
+        "scope:\n"
+        "  stages: [0_reading]\n"
+        "judge:\n"
+        "  mode: stop\n"
+        "review:\n"
+        "  reading: false\n"
+        "  correction: false\n"
+        "  geometry: false\n"
+        "models:\n"
+        "  reading:\n"
+        "    role: 0_reading\n"
+        f"    model_id: {json.dumps(model, ensure_ascii=False)}\n"
+        "    provider: anthropic\n"
+        "    effort: default\n"
+        "    source: controlled single-plan same-session isolation experiment\n"
+        "reading_exam_scope:\n"
+        f"  input_ids: [{json.dumps(input_id, ensure_ascii=False)}]\n"
+        "  reason: controlled reading-recovery single-plan reproduction\n"
+    )
+    run_config.write_text(config_text, encoding="utf-8")
+
+    from src.agent.execution.run_provision import provision_run
+
+    frozen_manifest = provision_run(
+        case_dir,
+        run_dir,
+        run_profile="exploratory",
+        capability_profile=capability_profile,
+        context={"experiment_kind": "single_plan_same_session", "input_id": input_id},
+        source="structured_config",
+    )
+    ensure_run_manifest_v2(run_dir, view_manifest_sha256=frozen_manifest.content_sha256)
+    workspace = build_isolation_workspace(
+        case_dir,
+        run_dir=run_dir,
+        staging_root=staging_root,
+        pilot_review_gate=True,
+        guard_profile=guard_profile,
+    )
+
+    spec = {
+        "schema_version": READING_EXPERIMENT_SCHEMA_VERSION,
+        "experiment_kind": "single_plan_same_session",
+        "created_at": datetime.now(timezone.utc).isoformat(),
+        "case_dir": str(case_dir),
+        "run_dir": str(run_dir),
+        "staging_root": str(staging_root),
+        "input_id": input_id,
+        "expected_output_id": matches[0].expected_output_id,
+        "model": model,
+        "session_policy": "start_then_resume_same_session",
+        "run_profile": "exploratory",
+        "capability_profile": capability_profile,
+        "guard_profile": guard_profile,
+        "run_config_sha256": hash_file(run_config),
+        "manifest_sha256": hash_file(workspace.manifest_path),
+        "binding_sha256": hash_file(staging_root / "binding.json"),
+        "input_inventory_sha256": hash_file(staging_root / "input_inventory.json"),
+    }
+    spec["content_sha256"] = _reading_experiment_content_hash(spec)
+    spec_path = reading_experiment_spec_path(staging_root)
+    spec_path.write_text(
+        json.dumps(spec, indent=2, sort_keys=True, ensure_ascii=False) + "\n",
+        encoding="utf-8",
+    )
+    return {
+        "run_dir": str(run_dir),
+        "staging_root": str(staging_root),
+        "experiment_spec": str(spec_path),
+        "model": model,
+        "input_id": input_id,
+    }
+
+
 def check_feedback_text(text: str) -> None:
     lowered = text.lower()
     for token in FEEDBACK_FORBIDDEN_SUBSTRINGS:
@@ -504,6 +625,86 @@ def _verify_pilot_review_for_merge(staging_root: Path, binding: dict) -> dict:
     return state
 
 
+def _load_reader_invocations(staging_root: Path) -> list[dict]:
+    path = reader_invocations_path(staging_root)
+    if not path.is_file():
+        return []
+    records: list[dict] = []
+    for line_number, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
+        if not line.strip():
+            continue
+        try:
+            record = json.loads(line)
+        except json.JSONDecodeError as exc:
+            raise ValueError(
+                f"reader invocation ledger is corrupt at line {line_number}"
+            ) from exc
+        if record.get("schema_version") != READER_INVOCATION_SCHEMA_VERSION:
+            raise ValueError("reader invocation ledger has an unsupported schema_version")
+        records.append(record)
+    return records
+
+
+def _verify_controlled_experiment_launches(
+    staging_root: Path, spec: dict, pilot_review_state: dict
+) -> None:
+    records = _load_reader_invocations(staging_root)
+    if not records:
+        raise ValueError("merge refused: controlled experiment has no reader invocation record")
+    if any(record.get("requested_model") != spec["model"] for record in records):
+        raise ValueError("merge refused: controlled experiment reader model drifted")
+
+    successful = [record for record in records if record.get("returncode") == 0]
+    if not successful:
+        raise ValueError("merge refused: controlled experiment has no successful reader launch")
+    first = successful[0]
+    session_id = first.get("reported_session_id")
+    stable_runtime = (
+        first.get("runner_path"),
+        first.get("runner_version"),
+        first.get("launcher_module_sha256"),
+    )
+    if first.get("runner_version_returncode") != 0 or not all(stable_runtime):
+        raise ValueError(
+            "merge refused: controlled experiment did not resolve its reader runtime"
+        )
+    if first.get("session_form") != "start" or not session_id:
+        raise ValueError(
+            "merge refused: controlled experiment did not record a session-start id"
+        )
+    for record in successful:
+        inputs = record.get("input_hashes") or {}
+        if (
+            inputs.get("manifest_sha256") != spec["manifest_sha256"]
+            or inputs.get("binding_sha256") != spec["binding_sha256"]
+            or inputs.get("input_inventory_sha256") != spec["input_inventory_sha256"]
+            or inputs.get("experiment_spec_sha256")
+            != hash_file(reading_experiment_spec_path(staging_root))
+        ):
+            raise ValueError(
+                "merge refused: controlled experiment launch inputs drifted"
+            )
+        if (
+            record.get("runner_path"),
+            record.get("runner_version"),
+            record.get("launcher_module_sha256"),
+        ) != stable_runtime:
+            raise ValueError(
+                "merge refused: controlled experiment reader runtime drifted"
+            )
+    for record in successful[1:]:
+        if record.get("session_form") != "resume" or record.get("session_id") != session_id:
+            raise ValueError(
+                "merge refused: controlled experiment did not preserve one reader session"
+            )
+    required_successes = 1 + int(pilot_review_state.get("feedback_round", 0))
+    if len(successful) < required_successes:
+        raise ValueError(
+            "merge refused: controlled experiment has fewer successful reader turns "
+            "than its review rounds require"
+        )
+
+
 def merge_isolated_output(
     staging_root: Path,
     run_dir: Path,
@@ -590,7 +791,14 @@ def merge_isolated_output(
     # approval cannot legitimize a workspace bound to a different or drifted
     # run. The pilot gate still runs before any output is loaded or attempt is
     # created.
+    experiment_spec = _read_reading_experiment_spec(staging_root)
+    if experiment_spec is not None:
+        _verify_reading_experiment_spec(staging_root, experiment_spec)
     pilot_review_state = _verify_pilot_review_for_merge(staging_root, binding)
+    if experiment_spec is not None:
+        _verify_controlled_experiment_launches(
+            staging_root, experiment_spec, pilot_review_state
+        )
     payload, out_text = _load_isolated_views(
         output_path, staging_root / "out", verification.on_disk, verification.exam_scope
     )
@@ -698,6 +906,12 @@ def merge_isolated_output(
                         "isolation_settings": provenance.get("settings_sha256", ""),
                         "isolation_guard": provenance.get("guard_sha256", ""),
                         "isolation_access_log": provenance.get("access_log_sha256", ""),
+                        "isolation_reader_invocations": provenance.get(
+                            "reader_invocations_sha256", ""
+                        ),
+                        "isolation_experiment_spec": provenance.get(
+                            "reading_experiment_spec_sha256", ""
+                        ),
                     },
                     capability="manual",
                     check_passed=not blocking,
@@ -775,6 +989,99 @@ def session_id_path(staging_root: Path) -> Path:
     return staging_root.parent / f"{staging_root.name}.audit" / "reader_session_id"
 
 
+def reader_invocations_path(staging_root: Path) -> Path:
+    """Append-only controller record of actual reader process launches."""
+    return _audit_dir(Path(staging_root).resolve()) / "reader_invocations.jsonl"
+
+
+def reading_experiment_spec_path(staging_root: Path) -> Path:
+    """Frozen controlled-experiment declaration outside reader write access."""
+    return _audit_dir(Path(staging_root).resolve()) / "reading_experiment_spec.json"
+
+
+def _reading_experiment_content_hash(payload: dict) -> str:
+    canonical = {key: value for key, value in payload.items() if key != "content_sha256"}
+    return hash_text(
+        json.dumps(canonical, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
+    )
+
+
+def _optional_hash(path: Path) -> str | None:
+    return hash_file(path) if path.is_file() else None
+
+
+def _read_reading_experiment_spec(staging_root: Path) -> dict | None:
+    path = reading_experiment_spec_path(staging_root)
+    if not path.is_file():
+        return None
+    try:
+        spec = json.loads(path.read_text(encoding="utf-8"))
+    except (json.JSONDecodeError, OSError) as exc:
+        raise ValueError(f"reading experiment spec is unreadable: {path}") from exc
+    if spec.get("schema_version") != READING_EXPERIMENT_SCHEMA_VERSION:
+        raise ValueError("reading experiment spec has an unsupported schema_version")
+    if spec.get("experiment_kind") != "single_plan_same_session":
+        raise ValueError("reading experiment spec has an unsupported experiment_kind")
+    if not isinstance(spec.get("model"), str) or not spec["model"]:
+        raise ValueError("reading experiment spec has no fixed model")
+    if spec.get("content_sha256") != _reading_experiment_content_hash(spec):
+        raise ValueError("reading experiment spec content hash does not match its payload")
+    return spec
+
+
+def _verify_reading_experiment_spec(staging_root: Path, spec: dict) -> None:
+    expected_root = str(Path(staging_root).resolve())
+    if spec.get("staging_root") != expected_root:
+        raise ValueError("reading experiment spec is bound to a different staging root")
+    paths = {
+        "manifest_sha256": Path(staging_root) / "MANIFEST.json",
+        "binding_sha256": Path(staging_root) / "binding.json",
+        "input_inventory_sha256": Path(staging_root) / "input_inventory.json",
+        "run_config_sha256": Path(spec["run_dir"]) / "run_config.yaml",
+    }
+    for field, path in paths.items():
+        expected = spec.get(field)
+        if not expected or not path.is_file() or hash_file(path) != expected:
+            raise ValueError(
+                f"reading experiment drift: {field} no longer matches its frozen bytes"
+            )
+
+
+def _append_reader_invocation(staging_root: Path, record: dict) -> Path:
+    path = reader_invocations_path(staging_root)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("a", encoding="utf-8") as fh:
+        fcntl.flock(fh.fileno(), fcntl.LOCK_EX)
+        fh.write(json.dumps(record, sort_keys=True, ensure_ascii=False) + "\n")
+        fh.flush()
+        os.fsync(fh.fileno())
+        fcntl.flock(fh.fileno(), fcntl.LOCK_UN)
+    return path
+
+
+def _reported_session_id(stdout: str) -> str | None:
+    try:
+        value = (json.loads(stdout) or {}).get("session_id")
+    except (json.JSONDecodeError, AttributeError):
+        return None
+    return str(value) if value else None
+
+
+def _reader_input_hashes(staging_root: Path) -> dict[str, str | None]:
+    audit = _audit_dir(staging_root)
+    return {
+        "manifest_sha256": _optional_hash(staging_root / "MANIFEST.json"),
+        "binding_sha256": _optional_hash(staging_root / "binding.json"),
+        "input_inventory_sha256": _optional_hash(staging_root / "input_inventory.json"),
+        "settings_sha256": _optional_hash(staging_root / "isolation_settings.json"),
+        "guard_sha256": _optional_hash(staging_root / "guard.py"),
+        "directive_sha256": _optional_hash(staging_root / "directive.md"),
+        "feedback_sha256": _optional_hash(staging_root / "feedback.md"),
+        "pilot_review_state_sha256": _optional_hash(audit / "pilot_review_state.json"),
+        "experiment_spec_sha256": _optional_hash(audit / "reading_experiment_spec.json"),
+    }
+
+
 def spawn_command(
     staging_root: Path,
     *,
@@ -808,6 +1115,21 @@ def spawn_command(
     REMEMBERS of its own work, not what it can see or write.
     """
     staging_root = Path(staging_root).resolve()
+    experiment_spec = _read_reading_experiment_spec(staging_root)
+    model_source = "explicit_argument" if model else "claude_cli_default"
+    if experiment_spec is not None:
+        _verify_reading_experiment_spec(staging_root, experiment_spec)
+        declared_model = experiment_spec["model"]
+        if model is None:
+            model = declared_model
+            model_source = "reading_experiment_spec"
+        elif model != declared_model:
+            raise ValueError(
+                "controlled reading experiment model mismatch: "
+                f"declared={declared_model!r}, requested={model!r}"
+            )
+        else:
+            model_source = "explicit_argument_matching_experiment_spec"
     review_state = _read_pilot_review_state(staging_root)
     resume_id = None
     if resume:
@@ -867,10 +1189,53 @@ def spawn_command(
         # so its output format is left alone.
         cmd.extend(["--output-format", "json"])
     if execute:
+        spawn_env = clean_spawn_env(staging_root)
+        runner_path = shutil.which(cmd[0], path=spawn_env.get("PATH")) or cmd[0]
+        try:
+            version_proc = subprocess.run(
+                [runner_path, "--version"], cwd=staging_root, env=spawn_env,
+                check=False, text=True, capture_output=True,
+            )
+            runner_version = (version_proc.stdout or version_proc.stderr).strip()
+            runner_version_returncode: int | None = version_proc.returncode
+        except OSError as exc:
+            runner_version = f"{type(exc).__name__}: {exc}"
+            runner_version_returncode = None
+
+        started_at = datetime.now(timezone.utc)
+        started_clock = time.monotonic()
         proc = subprocess.run(
-            cmd, cwd=staging_root, env=clean_spawn_env(staging_root),
-            check=True, text=True, capture_output=True,
+            cmd, cwd=staging_root, env=spawn_env,
+            check=False, text=True, capture_output=True,
         )
+        completed_at = datetime.now(timezone.utc)
+        prompt_hash = hash_text(prompt)
+        redacted_argv = list(cmd)
+        redacted_argv[2] = f"<prompt sha256={prompt_hash}>"
+        invocation = {
+            "schema_version": READER_INVOCATION_SCHEMA_VERSION,
+            "started_at": started_at.isoformat(),
+            "completed_at": completed_at.isoformat(),
+            "elapsed_ms": round((time.monotonic() - started_clock) * 1000),
+            "runner_path": str(Path(runner_path).resolve()),
+            "runner_version": runner_version,
+            "runner_version_returncode": runner_version_returncode,
+            "requested_model": model,
+            "model_source": model_source,
+            "session_form": "resume" if resume_id else "start",
+            "session_id": resume_id,
+            "reported_session_id": _reported_session_id(proc.stdout),
+            "prompt_sha256": prompt_hash,
+            "argv_redacted": redacted_argv,
+            "argv_sha256": hash_text(json.dumps(cmd, ensure_ascii=False)),
+            "returncode": proc.returncode,
+            "stdout_sha256": hash_text(proc.stdout),
+            "stderr_sha256": hash_text(proc.stderr),
+            "launcher_module_sha256": hash_file(Path(__file__)),
+            "input_hashes": _reader_input_hashes(staging_root),
+        }
+        _append_reader_invocation(staging_root, invocation)
+        proc.check_returncode()
         # stdout is the reader's product record either way; print it so the
         # caller's redirect keeps behaving as before this change.
         print(proc.stdout, end="")
@@ -890,10 +1255,7 @@ def _record_reader_session_id(staging_root: Path, stdout: str) -> None:
     would quietly turn the A1 experiment back into the thing it is testing
     against.
     """
-    try:
-        session_id = (json.loads(stdout) or {}).get("session_id")
-    except (json.JSONDecodeError, AttributeError):
-        return
+    session_id = _reported_session_id(stdout)
     if not session_id:
         return
     target = session_id_path(staging_root)
@@ -1365,6 +1727,8 @@ def _build_provenance(staging_root: Path, output_hash: str) -> dict:
     # `_audit_dir`.
     access_log_path = _audit_dir(staging_root) / "access_log.jsonl"
     pilot_review_path = pilot_review_state_path(staging_root)
+    reader_invocations = reader_invocations_path(staging_root)
+    experiment_spec = reading_experiment_spec_path(staging_root)
     denied = 0
     entries = 0
     if access_log_path.exists():
@@ -1387,6 +1751,12 @@ def _build_provenance(staging_root: Path, output_hash: str) -> dict:
         "pilot_review_state_sha256": (
             hash_file(pilot_review_path) if pilot_review_path.exists() else ""
         ),
+        "reader_invocations_sha256": (
+            hash_file(reader_invocations) if reader_invocations.exists() else ""
+        ),
+        "reading_experiment_spec_sha256": (
+            hash_file(experiment_spec) if experiment_spec.exists() else ""
+        ),
     }
 
 
@@ -1402,6 +1772,8 @@ def _archive_isolation_artifacts(staging_root: Path, attempt_dir: Path) -> None:
         # needs to know the log moved.
         "access_log.jsonl": _audit_dir(staging_root) / "access_log.jsonl",
         "pilot_review_state.json": pilot_review_state_path(staging_root),
+        "reader_invocations.jsonl": reader_invocations_path(staging_root),
+        "reading_experiment_spec.json": reading_experiment_spec_path(staging_root),
     }
     for name, src in sources.items():
         if src.exists():

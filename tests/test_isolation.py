@@ -3648,6 +3648,135 @@ def test_unparseable_spawn_output_records_nothing_rather_than_a_bogus_id(tmp_pat
 
 
 # ---------------------------------------------------------------------------
+# 2026-08-18 · N3 REPRODUCIBLE READER INVOCATIONS.
+#
+# A run is not reproducible merely because run_config names a model. These
+# locks prove which executable/model/session form actually ran and bind that
+# controller-owned ledger into the accepted reading attempt.
+# ---------------------------------------------------------------------------
+
+
+def test_execute_records_exact_reader_invocation_outside_staging(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+):
+    from src.agent.execution.isolation import reader_invocations_path
+
+    staging = _build(tmp_path).staging_root
+
+    def fake_run(cmd, **kwargs):
+        if cmd[-1] == "--version":
+            return subprocess.CompletedProcess(cmd, 0, "2.1.198 (Claude Code)\n", "")
+        return subprocess.CompletedProcess(
+            cmd, 0, json.dumps({"session_id": "sess-n3", "result": "ok"}), ""
+        )
+
+    monkeypatch.setattr(isolation.subprocess, "run", fake_run)
+    spawn_command(staging, model="claude-haiku-4-5-20251001", execute=True)
+    capsys.readouterr()
+
+    ledger = reader_invocations_path(staging)
+    records = [json.loads(line) for line in ledger.read_text(encoding="utf-8").splitlines()]
+    assert len(records) == 1
+    record = records[0]
+    assert record["runner_version"] == "2.1.198 (Claude Code)"
+    assert record["requested_model"] == "claude-haiku-4-5-20251001"
+    assert record["session_form"] == "start"
+    assert record["reported_session_id"] == "sess-n3"
+    assert record["returncode"] == 0
+    assert record["input_hashes"]["manifest_sha256"] == hash_file(
+        staging / "MANIFEST.json"
+    )
+    assert record["argv_redacted"][2].startswith("<prompt sha256=")
+    assert "session_kickoff.md" not in record["argv_redacted"][2]
+    assert staging not in ledger.parents
+
+
+def test_single_plan_experiment_fixes_model_and_rejects_model_drift(tmp_path: Path):
+    from src.agent.execution.isolation import (
+        prepare_single_plan_experiment,
+        reading_experiment_spec_path,
+    )
+
+    run_dir = tmp_path / "run_single"
+    staging = tmp_path / "staging_single"
+    prepare_single_plan_experiment(
+        CASE_DIR,
+        run_dir,
+        staging,
+        input_id="1f_view",
+        model="claude-haiku-4-5-20251001",
+    )
+
+    inventory = json.loads((staging / "input_inventory.json").read_text(encoding="utf-8"))
+    assert [item["input_id"] for item in inventory] == ["1f_view"]
+    spec = json.loads(reading_experiment_spec_path(staging).read_text(encoding="utf-8"))
+    assert spec["experiment_kind"] == "single_plan_same_session"
+    assert spec["model"] == "claude-haiku-4-5-20251001"
+    argv = spawn_command(staging)
+    assert argv[argv.index("--model") + 1] == "claude-haiku-4-5-20251001"
+
+    with pytest.raises(ValueError, match="model mismatch"):
+        spawn_command(staging, model="claude-sonnet-4-6")
+
+
+def test_controlled_single_plan_merge_requires_and_archives_same_session_ledger(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+):
+    from src.agent.execution.isolation import (
+        approve_pilot,
+        prepare_single_plan_experiment,
+        reader_invocations_path,
+    )
+
+    model = "claude-haiku-4-5-20251001"
+    run_dir = tmp_path / "run_single"
+    staging = tmp_path / "staging_single"
+    prepare_single_plan_experiment(
+        CASE_DIR, run_dir, staging, input_id="1f_view", model=model
+    )
+
+    actual_turn = 0
+
+    def fake_run(cmd, **kwargs):
+        nonlocal actual_turn
+        if cmd[-1] == "--version":
+            return subprocess.CompletedProcess(cmd, 0, "2.1.198 (Claude Code)\n", "")
+        actual_turn += 1
+        stdout = json.dumps({"session_id": "sess-one", "result": "pilot"}) if actual_turn == 1 else "revised"
+        return subprocess.CompletedProcess(cmd, 0, stdout, "")
+
+    monkeypatch.setattr(isolation.subprocess, "run", fake_run)
+    spawn_command(staging, execute=True)
+    capsys.readouterr()
+    pilot = staging / "out" / "1f_view.json"
+    pilot.write_text(json.dumps(_real_views()["1f_view"]), encoding="utf-8")
+    write_feedback(staging, "Recheck the measured wall and opening candidates in the pilot only.")
+    spawn_command(staging, execute=True, resume=True)
+    capsys.readouterr()
+    approve_pilot(staging)
+
+    attempt = merge_isolated_output(staging, run_dir)
+
+    records = [
+        json.loads(line)
+        for line in reader_invocations_path(staging).read_text(encoding="utf-8").splitlines()
+    ]
+    assert [record["session_form"] for record in records] == ["start", "resume"]
+    assert records[1]["session_id"] == records[0]["reported_session_id"] == "sess-one"
+    archive = attempt / "isolation_archive"
+    assert (archive / "reader_invocations.jsonl").is_file()
+    assert (archive / "reading_experiment_spec.json").is_file()
+    provenance = json.loads((attempt / "isolation_provenance.json").read_text(encoding="utf-8"))
+    assert provenance["reader_invocations_sha256"] == hash_file(
+        archive / "reader_invocations.jsonl"
+    )
+    accepted = load_run_manifest(run_dir).accepted("0_reading")
+    assert accepted is not None
+    assert accepted.input_hashes["isolation_reader_invocations"]
+    assert accepted.input_hashes["isolation_experiment_spec"]
+
+
+# ---------------------------------------------------------------------------
 # 2026-08-18 · GUARD PROFILE — the relaxed control arm.
 #
 # ⭐ The load-bearing lock in this block is BOUNDARY PARITY. The arm exists to

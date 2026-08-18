@@ -17,6 +17,7 @@ from src.agent.execution.isolation import (  # noqa: E402
     approve_pilot,
     build_isolation_workspace,
     merge_isolated_output,
+    prepare_single_plan_experiment,
     spawn_command,
     write_feedback,
 )
@@ -31,6 +32,20 @@ def _cmd_build(args: argparse.Namespace) -> int:
         guard_profile=args.guard_profile,
     )
     print(manifest.staging_root)
+    return 0
+
+
+def _cmd_prepare_single_plan(args: argparse.Namespace) -> int:
+    result = prepare_single_plan_experiment(
+        args.case_dir,
+        args.run_dir,
+        args.staging_root,
+        input_id=args.input_id,
+        model=args.model,
+        capability_profile=args.capability_profile,
+        guard_profile=args.guard_profile,
+    )
+    print(json.dumps(result, sort_keys=True))
     return 0
 
 
@@ -105,6 +120,28 @@ def build_parser() -> argparse.ArgumentParser:
         ),
     )
     p.set_defaults(func=_cmd_build)
+
+    p = sub.add_parser(
+        "prepare-single-plan",
+        help=(
+            "create a new run, freeze one plan input + exact reader model, and "
+            "build a same-session pilot-review isolation workspace"
+        ),
+    )
+    p.add_argument("--case-dir", required=True, type=Path)
+    p.add_argument("--run-dir", required=True, type=Path)
+    p.add_argument("--staging-root", required=True, type=Path)
+    p.add_argument("--input-id", required=True)
+    p.add_argument("--model", required=True)
+    p.add_argument(
+        "--capability-profile",
+        choices=["rectangular", "orthogonal_polygon"],
+        default="orthogonal_polygon",
+    )
+    p.add_argument(
+        "--guard-profile", choices=["strict", "relaxed", "observe"], default="observe"
+    )
+    p.set_defaults(func=_cmd_prepare_single_plan)
 
     p = sub.add_parser("spawn")
     p.add_argument("--staging-root", required=True, type=Path)
