@@ -45,8 +45,19 @@ def _real_views() -> dict:
 
 
 def _build(tmp_path: Path):
-    """Preview/unbound build (no run_dir) — never merge-eligible."""
-    return build_isolation_workspace(CASE_DIR, staging_root=tmp_path / "staging")
+    """Preview/unbound build (no run_dir) — never merge-eligible.
+
+    Pinned to ``guard_profile="strict"``: as of 2026-08-18 the SHIPPING default
+    is ``observe`` (CLAUDE.md §0.4#1 — exploratory tier logs and does not
+    enforce), but what the guard tests below assert is the strict policy's
+    JUDGMENT, which ``observe`` computes identically and then declines to
+    enforce. Pinning keeps those assertions about the judgment instead of
+    silently becoming assertions about the default. The default itself is
+    locked separately (``test_default_guard_profile_is_observe``).
+    """
+    return build_isolation_workspace(
+        CASE_DIR, staging_root=tmp_path / "staging", guard_profile="strict"
+    )
 
 
 def _formal_build(case_dir: Path, run_dir: Path, staging_root: Path):
@@ -2509,7 +2520,12 @@ def test_guard_denies_writes_when_an_allowed_root_is_a_symlink(tmp_path: Path, r
     (staging_root / "tools").mkdir()
     (staging_root / root_name).symlink_to("tools")
 
-    staging = build_isolation_workspace(CASE_DIR, staging_root=staging_root).staging_root
+    # strict: this asserts the guard's JUDGMENT of a symlinked write root, which
+    # the shipping `observe` default computes identically and then declines to
+    # enforce (CLAUDE.md §0.4#1). Same reason `_build` is pinned.
+    staging = build_isolation_workspace(
+        CASE_DIR, staging_root=staging_root, guard_profile="strict"
+    ).staging_root
     assert (staging / root_name).is_symlink(), "fixture precondition: the root stayed a symlink"
     assert (staging / root_name / "run_cv_probe.py").resolve() == (
         staging / "tools" / "run_cv_probe.py"
@@ -3056,3 +3072,597 @@ def test_ordinary_measurement_code_survives_the_path_rules(tmp_path: Path, label
     staging = _build(tmp_path).staging_root
     (staging / "out" / "prog.py").write_text(body, encoding="utf-8")
     assert _hook(staging, "python out/prog.py").returncode == 0, body
+
+
+# ---------------------------------------------------------------------------
+# F-60 (2026-08-17) — the traversal/home rules used to be bare substring tests
+# (`".." in text` / `"~" in text`) applied to whole FILE BODIES by the exec scan.
+# Source files carry prose, and prose contains both characters, so the scan fired
+# on English punctuation and on numpy's unary `~`. Found while reviewing an sm21
+# pilot: the reader's two real pixel-measurement attempts were refused for
+# exactly these two reasons, and the artifact it then produced ("round numbers
+# instead of measurements") is indistinguishable from a reader that never tried
+# — same family as F-49.
+#
+# ⛔ The locks below come in PAIRS on purpose. A narrowing like this is only
+# correct if the prose stops matching AND every real escape shape still does, so
+# each positive lock is paired with the negative it could have broken. A test
+# file that only proved "prose is allowed now" would go green on `return True`.
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.parametrize(
+    "body, shape",
+    [
+        ('print("Scanning for vertical walls...")\n', "ellipsis in a print string"),
+        ("# Find bounds of walls (gray = ~180)\nx = 1\n", "tilde meaning 'approximately'"),
+        ("import numpy as np\nmask = np.zeros(3, bool)\ncyan = ~mask\n", "numpy unary NOT"),
+        ("import numpy as np\na = np.zeros(3, bool)\nb = ~(a & a)\n", "numpy NOT before a paren"),
+        ("x = [[1, 2]]\nimport numpy as np\ny = np.array(x)[..., 0]\n", "numpy Ellipsis index"),
+        ("def f():\n    ...\n", "Ellipsis as a statement"),
+        ("# z ~ 0.0 within tolerance\nz = 0.0\n", "the free-text example CONTENT_ROLE_KEYS cites"),
+    ],
+)
+def test_guard_f60_allows_prose_punctuation_in_reader_authored_code(
+    tmp_path: Path, body: str, shape: str
+):
+    """F-60 positive half: prose punctuation inside code no longer reads as a path.
+
+    Real entry point — a file written under out/ and executed through the hook,
+    not a regex asserted in isolation, because the defect was in what the exec
+    scan does to a FILE, and only the file channel can show that.
+    """
+    staging = _build(tmp_path).staging_root
+    (staging / "out" / "prog.py").write_text(body, encoding="utf-8")
+    proc = _hook(staging, "python out/prog.py")
+    assert proc.returncode == 0, f"{shape} still denied: {proc.stderr}"
+
+
+@pytest.mark.parametrize(
+    "body, shape",
+    [
+        ('open("../gt.json")\n', "separator-adjacent traversal"),
+        ('from pathlib import Path\np = Path("..") / "gt"\n', "'..' standing alone as a path segment"),
+        ('open("..\\\\secret")\n', "backslash traversal"),
+        ('x = "foo/.."\n', "traversal at the end of a path"),
+        ('open("..../../gt")\n', "dot padding does not buy an escape"),
+        ('open("~/.ssh/id_rsa")\n', "home path"),
+        ('open("~root/answers")\n', "home path with a user name"),
+    ],
+)
+def test_guard_f60_still_denies_every_real_path_shape(tmp_path: Path, body: str, shape: str):
+    """F-60 negative half — the half that makes the positive half mean anything.
+
+    Each row is a shape the OLD bare-substring rule caught. If a future edit
+    widens the regex back toward "anything containing .. or ~", these stay green;
+    if it narrows past correctness, they go red. That asymmetry is the point.
+    """
+    staging = _build(tmp_path).staging_root
+    (staging / "out" / "prog.py").write_text(body, encoding="utf-8")
+    proc = _hook(staging, "python out/prog.py")
+    assert proc.returncode != 0, f"{shape} was allowed through"
+
+
+def test_guard_f60_narrowing_did_not_shrink_the_scanned_surface(tmp_path: Path):
+    """⭐ The lock that protects the part of the design F-60 must NOT touch.
+
+    `_scan_reader_authored_code` deliberately scans EVERY writable file, not the
+    one named on the command line — a 2026-08-16 cross-family review reproduced
+    the hole that scanning only the entry script leaves (`out/main.py` stays
+    clean and imports `out/helper.py`, which holds the path). The F-60 narrowing
+    is about WHICH CHARACTERS count as a path, and must not become an excuse to
+    narrow WHICH FILES are read. Here the executed file is spotless and the
+    offender is a sibling: it must still be refused.
+    """
+    staging = _build(tmp_path).staging_root
+    (staging / "out" / "main.py").write_text("print('clean')\n", encoding="utf-8")
+    (staging / "out" / "helper.py").write_text(
+        'ANSWERS = "../../case_tests/test_baseline/gt/sm21_anchor/gt.json"\n', encoding="utf-8"
+    )
+    proc = _hook(staging, "python out/main.py")
+    assert proc.returncode != 0, "a sibling file carrying the answer path was not scanned"
+    assert "helper.py" in proc.stderr, proc.stderr
+
+
+def test_guard_f60_denial_names_the_line_and_the_matched_text(tmp_path: Path):
+    """F-53/F-54/F-58 family: a refusal has to be actionable.
+
+    "contains a forbidden token" alone is unactionable precisely BECAUSE the scan
+    reads every writable file — the offender is routinely not the file being run,
+    so the reader cannot tell what to change. The message must name the file, the
+    line number, and the characters that matched.
+    """
+    staging = _build(tmp_path).staging_root
+    (staging / "out" / "prog.py").write_text(
+        "# fine\n# also fine\nDATA = open('../gt.json')\n", encoding="utf-8"
+    )
+    proc = _hook(staging, "python out/prog.py")
+    assert proc.returncode != 0
+    assert "prog.py" in proc.stderr, proc.stderr
+    assert "line 3" in proc.stderr, proc.stderr
+    assert "../" in proc.stderr, proc.stderr
+
+
+def test_guard_f60_regression_case_proves_its_own_premise():
+    """⚠️ This repo's rule: a regression case must show the OLD judgement really
+    would have failed here, otherwise a green row proves nothing about the bug.
+
+    The old rule was literally `".." in text` / `"~" in text`. Assert both halves
+    directly: every prose sample WOULD have been caught by the old test (so the
+    positive locks above are not vacuous), and is NOT caught by the new one.
+    """
+    guard_mod = _guard_module()
+    prose = [
+        'print("Scanning for vertical walls...")',
+        "# Find bounds of walls (gray = ~180)",
+        "cyan = ~mask",
+        "# z ~ 0.0 within tolerance",
+    ]
+    for sample in prose:
+        assert ".." in sample or "~" in sample, (
+            f"{sample!r} would not have tripped the old rule — it is not a "
+            "regression case for F-60 at all"
+        )
+        assert not guard_mod._TRAVERSAL_RE.search(sample), sample
+        assert not guard_mod._HOME_RE.search(sample), sample
+
+
+# ---------------------------------------------------------------------------
+# 2026-08-18 · WIRING locks for `reading.calibration_axes_agree`.
+#
+# The checker itself is unit-tested in test_checks_reading_correction.py. What
+# those tests cannot show is that `merge_isolated_output` actually CALLS it —
+# and this repo's standing lesson is that a change must be locked at the wiring,
+# not only at the mechanism (a perfectly correct checker nobody invokes looks
+# exactly like no checker at all in the artifact).
+# ---------------------------------------------------------------------------
+
+_CAL_CHECK_ID = "reading.calibration_axes_agree"
+
+
+def _write_bad_calibration(staging: Path) -> None:
+    """A px_m_calibrator sidecar shaped like the real 2026-08-17 legal exit:
+    the tool SUCCEEDED (rc=0) and recorded that it disagrees with itself."""
+    target = staging / "out" / "cv" / "cv_evidence" / "1f_view" / "002_px_m_calibrator.json"
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_text(
+        json.dumps(
+            {
+                "tool": "px_m_calibrator",
+                "results": [
+                    {
+                        "candidate_id": "1f_view:px_m_calibrator:002:scale",
+                        "axis_calibration_disagreement": True,
+                        "axis_px_per_m": {"x": 60.0666, "y": 87.5},
+                        "axis_relative_deviation": 0.3718,
+                        "axis_relative_deviation_limit": 0.003,
+                        "metric": {"confidence": "low"},
+                    }
+                ],
+            }
+        ),
+        encoding="utf-8",
+    )
+
+
+def test_merge_records_calibration_disagreement_in_the_checks_artifact(tmp_path: Path):
+    """The wiring lock: a disagreeing calibration in staging must reach checks.json.
+
+    Without this, the 2026-08-17 legal exit leaves the disagreement in two
+    sidecar fields with no machine consumer anywhere in the pipeline — which is
+    precisely what the 2026-08-18 draw measured going wrong.
+    """
+    run_dir = tmp_path / "case_run"
+    run_dir.mkdir()
+    manifest = _formal_build(CASE_DIR, run_dir, tmp_path / "staging")
+    staging = manifest.staging_root
+    output = staging / "out/output.json"
+    output.write_text(json.dumps({"views": _real_views()}), encoding="utf-8")
+    _write_bad_calibration(staging)
+
+    attempt_dir = merge_isolated_output(staging, run_dir, output_path=output)
+
+    checks = json.loads((attempt_dir / "checks.json").read_text(encoding="utf-8"))
+    hits = [r for r in checks["results"] if r["check_id"].endswith(_CAL_CHECK_ID)]
+    assert hits, "the calibration check never ran — merge is not wired to it"
+    assert hits[0]["status"] == "fail", hits[0]
+    assert hits[0]["evidence"]["offenders"][0]["axis_relative_deviation"] == 0.3718
+
+
+def test_merge_records_calibration_agreement_when_the_ruler_is_consistent(tmp_path: Path):
+    """The paired positive: the wiring must not be a constant-fail either.
+
+    A lock that only ever proves "fail appears" would stay green if the checker
+    were replaced by `add_fail(...)` unconditionally, so the agreeing case has
+    to be pinned in the same artifact.
+    """
+    run_dir = tmp_path / "case_run"
+    run_dir.mkdir()
+    manifest = _formal_build(CASE_DIR, run_dir, tmp_path / "staging")
+    staging = manifest.staging_root
+    output = staging / "out/output.json"
+    output.write_text(json.dumps({"views": _real_views()}), encoding="utf-8")
+    target = staging / "out" / "cv" / "cv_evidence" / "1f_view" / "001_px_m_calibrator.json"
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_text(
+        json.dumps(
+            {
+                "tool": "px_m_calibrator",
+                "results": [
+                    {
+                        "candidate_id": "1f_view:px_m_calibrator:001:scale",
+                        "axis_calibration_disagreement": False,
+                        "axis_px_per_m": {"x": 60.0, "y": 60.0},
+                        "metric": {"confidence": "high"},
+                    }
+                ],
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    attempt_dir = merge_isolated_output(staging, run_dir, output_path=output)
+
+    checks = json.loads((attempt_dir / "checks.json").read_text(encoding="utf-8"))
+    hits = [r for r in checks["results"] if r["check_id"].endswith(_CAL_CHECK_ID)]
+    assert hits and hits[0]["status"] == "pass", hits
+
+
+# ---------------------------------------------------------------------------
+# 2026-08-18 · A1 SESSION FORM (`spawn_command(resume=...)`).
+#
+# The variable: 07-07 ran the pilot review inside ONE conversation (the reviewed
+# work was still in context when the review arrived); every run since has
+# cold-started each round via `claude -p`. That difference was named as gap #6
+# on 2026-07-09 and never isolated — eight draws have attributed "the reader
+# does not measure deeply" to prompts, tools and model identity instead.
+#
+# ⛔ The load-bearing lock here is the FAIL-CLOSED one: if `--resume` could
+# silently fall back to a cold start when no session id exists, the experiment
+# would report "we tested same-session" while having tested the control.
+# ---------------------------------------------------------------------------
+
+
+def _spawn_argv(staging: Path, **kw) -> list[str]:
+    from src.agent.execution.isolation import spawn_command
+
+    return spawn_command(staging, execute=False, **kw)
+
+
+def test_spawn_defaults_to_cold_start_and_asks_for_the_session_id(tmp_path: Path):
+    """Default is unchanged behaviour — plus the one addition that makes A1
+    possible at all: the starting round must emit its session id."""
+    staging = _build(tmp_path).staging_root
+    argv = _spawn_argv(staging)
+    assert "-r" not in argv
+    assert argv[argv.index("--output-format") + 1] == "json"
+    assert "Read skills/intake_pipeline/0_reading/session_kickoff.md" in argv[argv.index("-p") + 1]
+
+
+def test_spawn_resume_refuses_when_no_session_was_recorded(tmp_path: Path):
+    """⭐ Fail-closed, and the reason is experimental integrity, not safety.
+
+    A silent cold-start fallback would make `--resume` a no-op that still LOOKS
+    like the treatment arm — the run would be logged as same-session while
+    actually being another cold start, and the one variable we are trying to
+    isolate would be silently unisolated.
+    """
+    from src.agent.execution.isolation import spawn_command
+
+    staging = _build(tmp_path).staging_root
+    with pytest.raises(ValueError, match="cannot resume"):
+        spawn_command(staging, execute=False, resume=True)
+
+
+def test_spawn_resume_refuses_an_empty_recorded_session_id(tmp_path: Path):
+    from src.agent.execution.isolation import session_id_path, spawn_command
+
+    staging = _build(tmp_path).staging_root
+    recorded = session_id_path(staging)
+    recorded.parent.mkdir(parents=True, exist_ok=True)
+    recorded.write_text("   \n", encoding="utf-8")
+    with pytest.raises(ValueError, match="cannot resume"):
+        spawn_command(staging, execute=False, resume=True)
+
+
+def test_spawn_resume_passes_the_id_and_does_not_resend_the_kickoff(tmp_path: Path):
+    """The resumed turn must be just the review.
+
+    Re-sending the kickoff would both burn the window and change the shape being
+    reproduced: in 07-07 the reviewer said the next thing into an ongoing
+    conversation, it did not restate the brief.
+    """
+    from src.agent.execution.isolation import session_id_path
+
+    staging = _build(tmp_path).staging_root
+    recorded = session_id_path(staging)
+    recorded.parent.mkdir(parents=True, exist_ok=True)
+    recorded.write_text("abc-123", encoding="utf-8")
+    (staging / "feedback.md").write_text("rework the pilot", encoding="utf-8")
+
+    argv = _spawn_argv(staging, resume=True)
+
+    assert argv[argv.index("-r") + 1] == "abc-123"
+    prompt = argv[argv.index("-p") + 1]
+    assert "feedback.md" in prompt
+    assert "session_kickoff.md" not in prompt, "the kickoff was re-sent into a resumed session"
+
+
+def test_recorded_session_id_lives_outside_the_reader_writable_surface(tmp_path: Path):
+    """F-55's rule applied to session identity: the audited party must not be
+    able to forge or erase the record of which session it ran in."""
+    from src.agent.execution.isolation import _record_reader_session_id, session_id_path
+
+    staging = _build(tmp_path).staging_root
+    _record_reader_session_id(staging, json.dumps({"session_id": "sess-42", "result": "ok"}))
+    recorded = session_id_path(staging)
+    assert recorded.read_text(encoding="utf-8") == "sess-42"
+    assert staging not in recorded.parents, "session id was written inside the reader's workspace"
+    assert recorded.parent == staging.parent / f"{staging.name}.audit"
+
+
+@pytest.mark.parametrize("stdout", ["not json at all", "{}", '{"result": "ok"}'])
+def test_unparseable_spawn_output_records_nothing_rather_than_a_bogus_id(tmp_path: Path, stdout: str):
+    """A round whose id could not be captured still succeeded; what it loses is
+    the ability to resume — and the refusal above makes that loud, not silent."""
+    from src.agent.execution.isolation import _record_reader_session_id, session_id_path
+
+    staging = _build(tmp_path).staging_root
+    _record_reader_session_id(staging, stdout)
+    assert not session_id_path(staging).exists()
+
+
+# ---------------------------------------------------------------------------
+# 2026-08-18 · GUARD PROFILE — the relaxed control arm.
+#
+# ⭐ The load-bearing lock in this block is BOUNDARY PARITY. The arm exists to
+# weigh guard friction against measurement depth, and its result is only worth
+# reading if "the reader never reached the answers" is still true under the
+# relaxed policy. If a future edit lets one boundary shape through on `relaxed`,
+# every conclusion drawn from that arm becomes unciteable — so the parity test
+# is what makes the experiment admissible, not a nicety.
+# ---------------------------------------------------------------------------
+
+_BOUNDARY_SHAPES = [
+    ("cat ../../case_tests/test_baseline/gt/sm21_anchor/gt.json", "traversal to the answers"),
+    ("python -c \"open('gt.json')\"", "answer filename"),
+    ("cat /workspaces/EnergyPlus-Agent-dev/x", "repo absolute path"),
+    ("cat case_tests/test_baseline/x", "answer directory token"),
+    ("python -c \"import os; os.path.expanduser('~')\"", "home obtained, not typed"),
+    ("python -c \"exec(open('x').read())\"", "code the guard never sees"),
+    ("python -c \"import subprocess\"", "child the guard never sees"),
+    ("cat $HOME/x", "shell expansion"),
+    ("cat `pwd`/x", "command substitution"),
+]
+
+_FRICTION_SHAPES = [
+    ("ls out > list.txt", "shell redirect"),
+    ("cat out/x | head -3", "pipeline"),
+    ("grep -n wall out/1f.json", "command allowlist"),
+    ("python -c \"g = 'grade line at z=0'\"", "the word grade (elevation vocabulary)"),
+]
+
+
+def _profile_staging(tmp_path: Path, profile: str) -> Path:
+    return build_isolation_workspace(
+        CASE_DIR, staging_root=tmp_path / f"staging_{profile}",
+        pilot_review_gate=False, guard_profile=profile,
+    ).staging_root
+
+
+@pytest.mark.parametrize("command, shape", _BOUNDARY_SHAPES)
+def test_relaxed_profile_keeps_every_answer_boundary_shape_denied(
+    tmp_path: Path, command: str, shape: str
+):
+    """⭐ Boundary parity — what makes the control arm admissible.
+
+    The relaxed profile drops friction; if it ever drops boundary, the arm can
+    no longer support the sentence "this reading was produced without reaching
+    the answers", which is the sentence every draw's credibility rests on.
+    """
+    for profile in ("strict", "relaxed"):
+        staging = _profile_staging(tmp_path, profile)
+        proc = _hook(staging, command)
+        assert proc.returncode != 0, f"{shape} was ALLOWED under {profile}"
+
+
+@pytest.mark.parametrize("command, shape", _FRICTION_SHAPES)
+def test_relaxed_profile_actually_unlocks_the_measured_friction(
+    tmp_path: Path, command: str, shape: str
+):
+    """The paired positive: each row is friction MEASURED to cost real attempts.
+
+    Without this half the profile could be a no-op and the control arm would
+    silently be a second copy of the strict arm — the same "reported the
+    treatment, ran the control" failure the --resume refusal guards against.
+    """
+    strict = _profile_staging(tmp_path, "strict")
+    relaxed = _profile_staging(tmp_path, "relaxed")
+    assert _hook(strict, command).returncode != 0, f"{shape} was not friction to begin with"
+    assert _hook(relaxed, command).returncode == 0, f"{shape} still denied under relaxed"
+
+
+def test_default_guard_profile_is_observe_and_records_what_it_did_not_enforce(tmp_path: Path):
+    """⭐ CLAUDE.md §0.4#1 lock — the ONE guard lock kept under §0.4#4.
+
+    Not a scaffolding-detail lock: it pins the ratified governance decision
+    itself. If the default silently reverts to `strict`, the next draw pays
+    friction again and the draw gets misattributed — which is exactly the
+    failure this batch has already spent eight draws on. Two properties, both
+    load-bearing:
+
+    1. the shipped default is `observe` (nobody has to remember a flag), and
+    2. a call strict WOULD have denied runs anyway, while the log still carries
+       strict's verdict as `shadow_decision` — so the friction measurement is
+       collected without any reader paying for it.
+    """
+    staging = build_isolation_workspace(
+        CASE_DIR, staging_root=tmp_path / "staging", pilot_review_gate=False
+    ).staging_root
+    assert (staging.parent / f"{staging.name}.audit" / "guard_profile").read_text(
+        encoding="utf-8"
+    ).strip() == "observe"
+
+    boundary_shape = 'python -c "open(\'../gt\' + \'.json\')"'
+    proc = _hook(staging, boundary_shape)
+    assert proc.returncode == 0, f"observe must not enforce, got: {proc.stderr}"
+
+    log = (staging.parent / f"{staging.name}.audit" / "access_log.jsonl").read_text(
+        encoding="utf-8"
+    ).strip().splitlines()
+    entry = json.loads(log[-1])
+    assert entry["guard_profile"] == "observe"
+    assert entry["decision"] == "allow", "the log must say what happened"
+    assert entry["shadow_decision"] == "deny", "…and what strict would have said"
+    assert entry["shadow_reason"]
+
+
+def test_guard_profile_marker_is_outside_the_reader_writable_surface(tmp_path: Path):
+    """Same rule as the session id: the audited party must not be able to grant
+    itself a weaker policy by writing a file it is allowed to write."""
+    staging = _profile_staging(tmp_path, "relaxed")
+    marker = staging.parent / f"{staging.name}.audit" / "guard_profile"
+    assert marker.read_text(encoding="utf-8") == "relaxed"
+    assert staging not in marker.parents
+
+
+@pytest.mark.parametrize("value", ["", "RELAXED", "relaxed\n\nextra", "strict", "garbage"])
+def test_unrecognised_profile_marker_fails_closed_to_strict(tmp_path: Path, value: str):
+    """Fail-closed: anything that is not exactly "relaxed" is strict.
+
+    A truncated or corrupted marker must not be able to open the boundary —
+    note "relaxed\\n" alone IS accepted (the reader strips), but any other
+    content is not.
+    """
+    staging = _profile_staging(tmp_path, "strict")
+    marker = staging.parent / f"{staging.name}.audit" / "guard_profile"
+    marker.write_text(value, encoding="utf-8")
+    assert _hook(staging, "ls out > x.txt").returncode != 0, f"{value!r} opened the gate"
+
+
+def test_build_rejects_an_unknown_guard_profile(tmp_path: Path):
+    with pytest.raises(ValueError, match="unknown guard profile"):
+        build_isolation_workspace(
+            CASE_DIR, staging_root=tmp_path / "staging", guard_profile="off"
+        )
+
+
+def test_access_log_stamps_which_profile_judged_each_call(tmp_path: Path):
+    """Without this stamp a relaxed log is indistinguishable from a strict one
+    after the fact — and comparing the two logs line for line is the entire
+    method of the experiment."""
+    staging = _profile_staging(tmp_path, "relaxed")
+    _hook(staging, "ls out")
+    entry = json.loads(_access_log(staging).read_text(encoding="utf-8").splitlines()[-1])
+    assert entry["guard_profile"] == "relaxed"
+
+
+def test_no_pilot_gate_kickoff_states_an_explicit_override(tmp_path: Path):
+    """The control-arm kickoff must CONTRADICT the staged skill doc out loud.
+
+    Editing the staged copy of session_kickoff.md instead would make the run
+    unauditable against the committed skill, and leaving the contradiction
+    silent is the D1 shape this repo has already been bitten by.
+    """
+    staging = _profile_staging(tmp_path, "strict")
+    text = (staging / "kickoff_prompt.md").read_text(encoding="utf-8")
+    assert "NO review point" in text
+    assert "overriding the pilot-review step" in text
+    assert "ONE review point" not in text
+    gated = build_isolation_workspace(CASE_DIR, staging_root=tmp_path / "gated").staging_root
+    assert "ONE review point" in (gated / "kickoff_prompt.md").read_text(encoding="utf-8")
+
+
+# ---------------------------------------------------------------------------
+# F-61 (2026-08-18) — unlocking `|` moved the friction one layer down instead of
+# removing it. The relaxed profile let the pipeline through the STRUCTURE check
+# and then handed the whole token list — `|`, `tail`, `-300` included — to the
+# per-command checks, so the probe wrapper reported "unknown probe parameter
+# --batch" for a call the kickoff itself teaches.
+#
+# Measured cost: the control-arm reader wrote SEVEN CV request files, hit this on
+# its first real measurement call, and did the remaining five images by eye. The
+# arm designed to remove this class of friction was voided by a new instance of
+# it, authored by the orchestrator.
+#
+# ⭐ The lesson these locks encode: verifying "what must stay blocked is still
+# blocked" is only half a verification. The other half — "what must now work
+# actually works, end to end" — is the half that was skipped.
+# ---------------------------------------------------------------------------
+
+
+def _relaxed_staging(tmp_path: Path) -> Path:
+    staging = build_isolation_workspace(
+        CASE_DIR, staging_root=tmp_path / "staging",
+        pilot_review_gate=False, guard_profile="relaxed",
+    ).staging_root
+    # The guard validates a --batch file's CONTENTS, so the fixture has to
+    # provide a real one — a missing file would make these locks pass or fail
+    # for the wrong reason.
+    (staging / "requests").mkdir(exist_ok=True)
+    (staging / "requests" / "t.json").write_text(
+        json.dumps({"requests": [{"id": "a", "tool": "crop_zoom", "args": {
+            "image": "case_data/1f_view.png", "out_dir": "out/cv",
+            "bbox": [200, 200, 600, 500], "scale": 2.0}}]}),
+        encoding="utf-8",
+    )
+    return staging
+
+
+@pytest.mark.parametrize(
+    "command, shape",
+    [
+        ("python tools/run_cv_probe.py --batch requests/t.json", "batch, no pipeline"),
+        ("python tools/run_cv_probe.py --batch requests/t.json 2>&1 | tail -300", "batch + 2>&1 + pipe (the exact F-61 repro)"),
+        ("python tools/run_cv_probe.py --batch requests/t.json | tail -5", "batch + pipe"),
+        ("python tools/run_cv_probe.py --tool crop_zoom --image case_data/1f_view.png --out-dir out/cv | tail -5", "direct form + pipe"),
+        ("cat out/x.json | head -3", "read-only pipeline"),
+    ],
+)
+def test_relaxed_profile_lets_a_piped_probe_call_through(tmp_path: Path, command: str, shape: str):
+    """The half of the verification that was skipped: the measurement path works.
+
+    Every row is a form the kickoff or cv_toolbox actively teaches. A guard that
+    allows the operator but then misreads the command is indistinguishable, from
+    the reader's side, from a guard that forbids it.
+    """
+    staging = _relaxed_staging(tmp_path)
+    proc = _hook(staging, command)
+    assert proc.returncode == 0, f"{shape} denied: {proc.stderr}"
+
+
+@pytest.mark.parametrize(
+    "command, shape",
+    [
+        ("ls out | python -c \"exec(open('x').read())\"", "dynamic exec in the SECOND segment"),
+        ("ls out | python -c \"import subprocess\"", "child process in the second segment"),
+        ("ls out | cat ../../case_tests/test_baseline/gt/sm21_anchor/gt.json", "answers in the second segment"),
+        ("ls out > /workspaces/EnergyPlus-Agent-dev/leak.txt", "redirect target outside staging"),
+        ("ls out | python -c \"import os; os.path.expanduser('~')\"", "home obtained in the second segment"),
+    ],
+)
+def test_every_pipeline_segment_is_checked_not_just_the_first(
+    tmp_path: Path, command: str, shape: str
+):
+    """⭐ The paired negative, and the reason the fix splits instead of truncating.
+
+    Checking only the head segment would have fixed F-61 in one line AND opened a
+    hole: `cat x | python -c '<code>'` would put code past the exec scan — the
+    same "code the guard never saw" shape EXEC_DENY_DYNAMIC exists to close. Each
+    row here fails if a future edit takes the one-line route.
+    """
+    staging = _relaxed_staging(tmp_path)
+    assert _hook(staging, command).returncode != 0, f"{shape} was allowed through"
+
+
+def test_strict_profile_pipeline_handling_is_unchanged_by_the_f61_fix(tmp_path: Path):
+    """The fix must not leak into strict: there, `|` never reaches segmentation
+    because the structure check refuses it first."""
+    staging = build_isolation_workspace(
+        CASE_DIR, staging_root=tmp_path / "strict", guard_profile="strict",
+    ).staging_root
+    (staging / "requests").mkdir(exist_ok=True)
+    (staging / "requests" / "t.json").write_text('{"requests": []}', encoding="utf-8")
+    proc = _hook(staging, "python tools/run_cv_probe.py --batch requests/t.json | tail -5")
+    assert proc.returncode != 0
+    assert "compound shell token forbidden" in proc.stderr, proc.stderr

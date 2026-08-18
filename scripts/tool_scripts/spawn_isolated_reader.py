@@ -26,6 +26,8 @@ def _cmd_build(args: argparse.Namespace) -> int:
         args.case_dir,
         run_dir=args.run_dir,
         staging_root=args.staging_root,
+        pilot_review_gate=not args.no_pilot_gate,
+        guard_profile=args.guard_profile,
     )
     print(manifest.staging_root)
     return 0
@@ -37,6 +39,7 @@ def _cmd_spawn(args: argparse.Namespace) -> int:
         model=args.model,
         execute=args.execute,
         directive=args.directive,
+        resume=args.resume,
     )
     if not args.execute:
         print(shlex.join(cmd))
@@ -71,6 +74,29 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--case-dir", required=True, type=Path)
     p.add_argument("--run-dir", type=Path)
     p.add_argument("--staging-root", type=Path)
+    p.add_argument(
+        "--no-pilot-gate",
+        action="store_true",
+        help=(
+            "control-arm form: the generated kickoff explicitly overrides "
+            "session_kickoff.md's pilot-review step, so the reader works straight "
+            "through all images in one turn. Default keeps the gate."
+        ),
+    )
+    p.add_argument(
+        "--guard-profile",
+        choices=["strict", "relaxed", "observe"],
+        default="observe",
+        help=(
+            "'observe' (DEFAULT, exploratory tier): evaluate exactly as strict, "
+            "log the would-be verdict as shadow_decision, enforce nothing. "
+            "'relaxed' drops FRICTION ONLY (compound shell operators, the command "
+            "allowlist, the words grade/attempts/verdict, URL-scheme strings in the "
+            "all-file scan). 'strict' enforces. The answer boundary is byte-identical "
+            "in all three (gt is physically absent from staging either way). "
+            "Recorded in the audit dir and stamped on every access_log entry."
+        ),
+    )
     p.set_defaults(func=_cmd_build)
 
     p = sub.add_parser("spawn")
@@ -78,6 +104,16 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--model")
     p.add_argument("--execute", action="store_true")
     p.add_argument("--directive", type=Path, help="per-run directive file appended to the spawn prompt (contamination-checked, persisted as staging/directive.md)")
+    p.add_argument(
+        "--resume",
+        action="store_true",
+        help=(
+            "A1 session form: resume the session the previous round started "
+            "(id read from the audit sibling dir, never from staging) instead of "
+            "cold-starting. The first round must run without it. Default = cold "
+            "start, i.e. today's behaviour, so turning this on is a single-variable change."
+        ),
+    )
     p.set_defaults(func=_cmd_spawn)
 
     p = sub.add_parser("feedback")

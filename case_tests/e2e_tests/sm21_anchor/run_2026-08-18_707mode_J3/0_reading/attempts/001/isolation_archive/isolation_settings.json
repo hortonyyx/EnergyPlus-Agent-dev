@@ -1,0 +1,36 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "hooks": [
+          {
+            "command": "/opt/venv/bin/python3 /tmp/ep_isolation/j3_staging/guard.py",
+            "type": "command"
+          }
+        ],
+        "matcher": ""
+      }
+    ]
+  },
+  "permissions": {
+    "allow": [
+      "Read(//tmp/ep_isolation/j3_staging/**)",
+      "Write(//tmp/ep_isolation/j3_staging/out/**)",
+      "Edit(//tmp/ep_isolation/j3_staging/out/**)",
+      "Write(//tmp/ep_isolation/j3_staging/requests/**)",
+      "Edit(//tmp/ep_isolation/j3_staging/requests/**)",
+      "Bash"
+    ],
+    "defaultMode": "default",
+    "deny": [
+      "Read(//workspaces/EnergyPlus-Agent-dev/**)",
+      "Read(//root/**)",
+      "Read(//home/**)",
+      "WebFetch",
+      "WebSearch",
+      "Agent",
+      "Task",
+      "mcp__*"
+    ]
+  }
+}

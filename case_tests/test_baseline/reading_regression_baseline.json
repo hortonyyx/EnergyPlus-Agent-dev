@@ -1,0 +1,61 @@
+{
+  "_note": "读图质量回归基线。⛔ 目标是【重复出好成绩的那个形式】= 「CV 工具箱 + 指令要求使用（measure-before-draw）」，不是任何单次配置。⚠️ 2026-08-18 用户两次纠正后重订参照系。",
+  "sm21_anchor": {
+    "floor": {
+      "wall_hits": 9,
+      "window_hits": 6,
+      "_rationale": "墙取两次实例的共同值 9/9；窗取较低的 6/7（gpt-5.4-mini），门槛落在【两个实例都过】的线上。⛔ 已剔除 07-02 Sonnet —— 那次无工具箱，不是本形式的实例。"
+    },
+    "reference_runs": [
+      {
+        "run": "run_2026-07-07_haiku_cv_retest",
+        "family": "Haiku",
+        "wall_hits": 9,
+        "wall_total": 9,
+        "window_hits": 7,
+        "window_total": 7
+      },
+      {
+        "run": "run_2026-07-08_gpt54mini_cv_retest",
+        "family": "GPT",
+        "wall_hits": 9,
+        "wall_total": 9,
+        "window_hits": 6,
+        "window_total": 7
+      }
+    ]
+  },
+  "_form": {
+    "definition": "CV toolbox available + usage DIRECTED (measure-before-draw) + pilot 停等复核 + 一次流程返工",
+    "instances": [
+      {
+        "run": "run_2026-07-07_haiku_cv_retest",
+        "case": "sm21_anchor",
+        "family": "Haiku",
+        "score": "墙 9/9 · 窗 7/7 · max_offset 0.0m",
+        "gt": "有"
+      },
+      {
+        "run": "run_2026-07-08_gpt54mini_cv_retest",
+        "case": "sm21_anchor",
+        "family": "GPT",
+        "score": "墙 9/9 · 窗 6/7",
+        "gt": "有"
+      },
+      {
+        "run": "run_2026-07-07_haiku_cv_probe",
+        "case": "sm24_anchor",
+        "family": "Haiku",
+        "score": "用户人工肉检 = 满分（14 墙 · 11 窗 · 51 尺寸全链闭合）",
+        "gt": "⛔ 当时没有 gt",
+        "_why_it_matters": "⭐ 不同建筑（非方形内部布局）⇒ 证明该形式不是对 sm21 过拟合；且当时无 gt ⇒ 用户据此证伪「抄答案」与「主控泄答案」两说"
+      }
+    ],
+    "_excluded_from_form": {
+      "run": "run_2026-07-02_sonnet_flow_e2e",
+      "family": "Sonnet",
+      "score": "墙 9/9 · 窗 7/7",
+      "reason": "⛔ 该次【无 CV 工具箱】—— 是强模型自发做到的，工具箱是事后从它这次拆解固化出来的。它是本形式的【来源】而非实例，⛔ 不得当作「这条路通不通」的参照或判别臂。"
+    }
+  }
+}

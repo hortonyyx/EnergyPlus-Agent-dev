@@ -40,6 +40,7 @@ from src.agent.execution.vision_resize import (
     DEFAULT_VISION_RESIZE_TIER,
     resize_image_file_to_tier,
 )
+from src.validator.checks.reading import check_calibration_evidence
 from src.validator.checks.schema import CheckLayer
 from src.validator.checks.view_manifest import check_reading_stage
 
@@ -171,6 +172,9 @@ def build_isolation_workspace(
     run_dir: Path | None = None,
     staging_root: Path | None = None,
     vision_resize_tier: str | None = None,
+    *,
+    pilot_review_gate: bool = True,
+    guard_profile: str = "observe",
 ) -> WorkspaceManifest:
     """Build a clean-room staging tree for an isolated 0_reading executor.
 
@@ -287,7 +291,8 @@ def build_isolation_workspace(
     _copy_worked_example(staging_root, manifest)
     _copy_cv_toolbox(staging_root, manifest)
     _copy_prescan(run_dir, staging_root, manifest)
-    _write_kickoff(case_dir, staging_root, manifest)
+    _write_kickoff(case_dir, staging_root, manifest, pilot_review_gate=pilot_review_gate)
+    _write_guard_profile(staging_root, guard_profile)
     _write_guard_and_wrappers(staging_root, manifest)
     _write_settings(staging_root, manifest)
     _write_input_inventory(staging_root, manifest, view_manifest, scope)
@@ -416,6 +421,18 @@ def merge_isolated_output(
         run_policy_sha256=policy_record.policy_hash,
         run_policy_source=policy_record.source,
     )
+    # 2026-08-18 — the cross-axis calibration signal gets a machine consumer.
+    # This is the ONE place in the pipeline that holds both the gate① report and
+    # the CV evidence the reader produced: `check_reading_stage` sees only the
+    # ReadingView, and the evidence never travels into the attempt (F-35). So the
+    # audit has to happen here, while the staging workspace is still on disk.
+    #
+    # It is appended to the SAME report deliberately: `report.blocking()` below
+    # is what downgrades `accept=True`, so under golden/regression a reading
+    # built on a self-contradicting ruler now cannot be accepted, while
+    # exploratory/dev still merge with the fact recorded. Before this, the
+    # disagreement existed only in two sidecar fields that nothing read.
+    check_calibration_evidence(report, staging_root / "out" / "cv")
 
     with _merge_lock(run_dir):
         stage_dir = run_dir / STAGE
@@ -537,32 +554,133 @@ def merge_isolated_output(
         return attempt_dir
 
 
+_FEEDBACK_POINTER = (
+    "A review of your previous output exists at feedback.md — read it FIRST and "
+    "follow it exactly before doing anything else.\n"
+)
+
+
+def session_id_path(staging_root: Path) -> Path:
+    """Where this workspace's reader session id is recorded.
+
+    Deliberately in the AUDIT sibling directory, not in staging: F-55 moved the
+    access log out of the reader's writable surface for exactly this reason, and
+    the session id is the same class of thing — operator metadata about the run,
+    which the audited party must not be able to forge or erase. It is also what
+    makes `--resume` safe to automate: the id comes from the launcher's own
+    record, never from anything the reader wrote.
+    """
+    staging_root = Path(staging_root).resolve()
+    return staging_root.parent / f"{staging_root.name}.audit" / "reader_session_id"
+
+
 def spawn_command(
     staging_root: Path,
     *,
     model: str | None = None,
     execute: bool = False,
     directive: str | Path | None = None,
+    resume: bool = False,
 ) -> list[str]:
+    """Build (and optionally run) the reader spawn command.
+
+    ``resume`` (A1, 2026-08-18) selects the SESSION FORM, which is the last big
+    untested variable separating today's runs from the 2026-07-07 baseline:
+
+    * ``False`` (default, unchanged): every round is a fresh ``claude -p`` cold
+      start. Round N+1 has no memory of round N and must re-read its own prior
+      output off disk to know what it did.
+    * ``True``: resume the session recorded by the previous round, so the review
+      lands in a conversation that still contains the work being reviewed —
+      which is how 07-07 actually ran, and is the shape under which its
+      measurement depth appeared.
+
+    Why this matters enough to be a parameter rather than a rewrite: the repo has
+    spent eight draws attributing "the reader does not go deep" to prompts, tool
+    availability and model identity, while the session form was named as gap #6
+    on 2026-07-09 and never isolated. Keeping cold start as the default means
+    turning it on is a single-variable change, which is the only way the next
+    draw can attribute anything.
+
+    ⚠️ Resuming carries the reader's own prior turns and nothing else — same
+    workspace, same settings, same clean-room surface. It widens what the reader
+    REMEMBERS of its own work, not what it can see or write.
+    """
     staging_root = Path(staging_root).resolve()
-    prompt = (staging_root / "kickoff_prompt.md").read_text(encoding="utf-8")
-    if directive is not None:
-        text = Path(directive).read_text(encoding="utf-8")
-        # Same contamination bar as feedback: the directive is a prompt channel.
-        check_feedback_text(text)
-        (staging_root / "directive.md").write_text(text, encoding="utf-8")
-        prompt += "\n## Per-run directive (binding for this run)\n" + text
-    if (staging_root / "feedback.md").exists():
-        prompt += (
-            "\nIMPORTANT: A review of your previous output exists at feedback.md — "
-            "read it FIRST and follow it exactly before doing anything else.\n"
+    resume_id = None
+    if resume:
+        recorded = session_id_path(staging_root)
+        if not recorded.is_file():
+            raise ValueError(
+                "cannot resume: no reader session id was recorded for this workspace "
+                f"({recorded}). The first round must run without --resume; only a "
+                "session this launcher itself started can be resumed."
+            )
+        resume_id = recorded.read_text(encoding="utf-8").strip()
+        if not resume_id:
+            raise ValueError(f"cannot resume: recorded session id is empty ({recorded})")
+
+    if resume_id:
+        # The kickoff (and any directive) is already in the resumed context;
+        # re-sending it would both waste the window and change the conversation
+        # shape we are trying to reproduce. The turn is just the review.
+        prompt = _FEEDBACK_POINTER if (staging_root / "feedback.md").exists() else (
+            "Continue from where you stopped.\n"
         )
+    else:
+        prompt = (staging_root / "kickoff_prompt.md").read_text(encoding="utf-8")
+        if directive is not None:
+            text = Path(directive).read_text(encoding="utf-8")
+            # Same contamination bar as feedback: the directive is a prompt channel.
+            check_feedback_text(text)
+            (staging_root / "directive.md").write_text(text, encoding="utf-8")
+            prompt += "\n## Per-run directive (binding for this run)\n" + text
+        if (staging_root / "feedback.md").exists():
+            prompt += "\nIMPORTANT: " + _FEEDBACK_POINTER
+
     cmd = ["claude", "-p", prompt, "--settings", str(staging_root / "isolation_settings.json")]
     if model:
         cmd.extend(["--model", model])
+    if resume_id:
+        cmd.extend(["-r", resume_id])
+    else:
+        # Only the session-STARTING round asks for JSON, because that is the
+        # round whose id has to be captured. A resumed round keeps the same id,
+        # so its output format is left alone.
+        cmd.extend(["--output-format", "json"])
     if execute:
-        subprocess.run(cmd, cwd=staging_root, env=clean_spawn_env(staging_root), check=True)
+        proc = subprocess.run(
+            cmd, cwd=staging_root, env=clean_spawn_env(staging_root),
+            check=True, text=True, capture_output=True,
+        )
+        # stdout is the reader's product record either way; print it so the
+        # caller's redirect keeps behaving as before this change.
+        print(proc.stdout, end="")
+        if proc.stderr:
+            print(proc.stderr, end="", file=sys.stderr)
+        if not resume_id:
+            _record_reader_session_id(staging_root, proc.stdout)
     return cmd
+
+
+def _record_reader_session_id(staging_root: Path, stdout: str) -> None:
+    """Persist the session id from a ``--output-format json`` spawn.
+
+    A missing/unparseable id is NOT fatal: the round itself succeeded and its
+    product is on disk. It only costs the ability to resume, and a later
+    ``--resume`` says so explicitly rather than silently cold-starting — which
+    would quietly turn the A1 experiment back into the thing it is testing
+    against.
+    """
+    try:
+        session_id = (json.loads(stdout) or {}).get("session_id")
+    except (json.JSONDecodeError, AttributeError):
+        return
+    if not session_id:
+        return
+    target = session_id_path(staging_root)
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_text(str(session_id), encoding="utf-8")
 
 
 def clean_spawn_env(staging_root: Path) -> dict[str, str]:
@@ -791,7 +909,10 @@ def _copy_prescan(run_dir: Path | None, staging_root: Path, manifest: WorkspaceM
             _copy_file(path, dest_root / path.relative_to(src), "prescan", manifest)
 
 
-def _write_kickoff(case_dir: Path, staging_root: Path, manifest: WorkspaceManifest) -> None:
+def _write_kickoff(
+    case_dir: Path, staging_root: Path, manifest: WorkspaceManifest,
+    *, pilot_review_gate: bool = True,
+) -> None:
     text = (
         "Read skills/intake_pipeline/0_reading/session_kickoff.md and follow it "
         f"for case {case_dir.name}.\n"
@@ -808,13 +929,28 @@ def _write_kickoff(case_dir: Path, staging_root: Path, manifest: WorkspaceManife
         "(maximum 32 requests, all validated before any run). The legacy "
         "`python tools/run_cv_probe.py --request requests/<name>.json` form is "
         "also available. "
-        "This run has ONE review point and it is after the pilot image. Finish the "
-        "first plan image, run the guide's self-check against it, then STOP and say "
-        "the pilot is ready for review — ending your turn there is correct, not a "
-        "failure to finish. If `feedback.md` exists in this directory it IS that "
-        "review: read it first, apply it, then do the remaining images and the "
-        "summary. Apart from that one pause, work through on your own — the review "
-        "is a one-way file, not a conversation, so do not ask questions and wait.\n"
+        + (
+            "This run has ONE review point and it is after the pilot image. Finish "
+            "the first plan image, run the guide's self-check against it, then STOP "
+            "and say the pilot is ready for review — ending your turn there is "
+            "correct, not a failure to finish. If `feedback.md` exists in this "
+            "directory it IS that review: read it first, apply it, then do the "
+            "remaining images and the summary. Apart from that one pause, work "
+            "through on your own — the review is a one-way file, not a "
+            "conversation, so do not ask questions and wait.\n"
+            if pilot_review_gate
+            else
+            # 2026-08-18 control-arm form. Stated as an explicit OVERRIDE rather
+            # than by editing the staged product doc: a silently divergent copy of
+            # session_kickoff.md would make the run unauditable against the
+            # committed skill, and this repo has already been bitten by documents
+            # that quietly contradict each other (D1).
+            "FOR THIS RUN ONLY, overriding the pilot-review step in "
+            "session_kickoff.md: there is NO review point. Nobody will read your "
+            "pilot and nobody will answer a question. Work straight through — "
+            "first image, its self-check, then the remaining images and the "
+            "summary — and finish in this one turn.\n"
+        )
     )
     if (staging_root / "prescan").exists():
         text += (
@@ -829,6 +965,25 @@ def _write_kickoff(case_dir: Path, staging_root: Path, manifest: WorkspaceManife
             "cv_toolbox discipline.\n"
         )
     _write_generated(staging_root / "kickoff_prompt.md", text, "kickoff", manifest)
+
+
+def _write_guard_profile(staging_root: Path, profile: str) -> None:
+    """Record which guard policy this workspace runs under.
+
+    Written to the AUDIT sibling directory, never into staging: `guard.py` reads
+    it from there, so the audited party cannot grant itself a weaker policy by
+    writing a file it is allowed to write. Anything other than the exact string
+    "relaxed" resolves to strict on the guard side too, so a corrupted or
+    truncated marker fails closed rather than silently opening the boundary.
+    """
+    if profile not in {"strict", "relaxed", "observe"}:
+        raise ValueError(
+            f"unknown guard profile: {profile!r} "
+            "(expected 'strict', 'relaxed' or 'observe')"
+        )
+    target = _audit_dir(staging_root) / "guard_profile"
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_text(profile, encoding="utf-8")
 
 
 def _write_guard_and_wrappers(staging_root: Path, manifest: WorkspaceManifest) -> None:

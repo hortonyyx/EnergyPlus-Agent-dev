@@ -1,0 +1,55 @@
+{
+  "image_label": "West elevation view",
+  "image_kind": "elevation",
+  "facade": {
+    "view_facade": "West",
+    "mirrored": "false",
+    "orientation_evidence": [
+      {"source": "image_name", "detail": "labeled 'West_view'", "confidence": "high"}
+    ]
+  },
+
+  "strokes": [
+    {"id": "S1", "pen": "wall_fill", "provenance": "seen", "confidence": "high", "dimension_refs": [], "geometry": {"kind": "rect", "x_range_m": [0.00, 8.00], "y_range_m": [0.00, 3.60]}, "note": "wall fill floor 1"},
+    {"id": "S2", "pen": "wall_fill", "provenance": "seen", "confidence": "high", "dimension_refs": [], "geometry": {"kind": "rect", "x_range_m": [0.00, 8.00], "y_range_m": [3.60, 6.60]}, "note": "wall fill floor 2"},
+
+    {"id": "S3", "pen": "window", "provenance": "seen", "confidence": "medium", "dimension_refs": [], "geometry": {"kind": "rect", "x_range_m": [2.80, 5.20], "y_range_m": [2.80, 3.80]}, "note": "window floor 1"},
+    {"id": "S4", "pen": "window", "provenance": "seen", "confidence": "medium", "dimension_refs": [], "geometry": {"kind": "rect", "x_range_m": [2.40, 5.60], "y_range_m": [4.00, 5.60]}, "note": "window floor 2, multi-pane"}
+  ],
+
+  "dimensions": [
+    {"id": "D1", "text_verbatim": "8000", "value_m": 8.00, "from": [0.00, 6.60], "to": [8.00, 6.60], "axis": "x", "chain_id": "C_top", "role": "overall", "order": 0},
+    {"id": "D2", "text_verbatim": "3400", "value_m": 3.40, "from": [0.00, 6.60], "to": [3.40, 6.60], "axis": "x", "chain_id": "C_top", "role": "segment", "order": 1},
+    {"id": "D3", "text_verbatim": "1200", "value_m": 1.20, "from": [3.40, 6.60], "to": [4.60, 6.60], "axis": "x", "chain_id": "C_top", "role": "segment", "order": 2},
+    {"id": "D4", "text_verbatim": "3400", "value_m": 3.40, "from": [4.60, 6.60], "to": [8.00, 6.60], "axis": "x", "chain_id": "C_top", "role": "segment", "order": 3},
+
+    {"id": "D11", "text_verbatim": "8000", "value_m": 8.00, "from": [0.00, 0.00], "to": [8.00, 0.00], "axis": "x", "chain_id": "C_bottom", "role": "overall", "order": 0},
+
+    {"id": "D19", "text_verbatim": "6600", "value_m": 6.60, "from": [0.00, 0.00], "to": [0.00, 6.60], "axis": "y", "chain_id": "C_left", "role": "overall", "order": 0},
+    {"id": "D20", "text_verbatim": "3600", "value_m": 3.60, "from": [0.00, 0.00], "to": [0.00, 3.60], "axis": "y", "chain_id": "C_left", "role": "segment", "order": 1},
+    {"id": "D21", "text_verbatim": "1800", "value_m": 1.80, "from": [0.00, 3.60], "to": [0.00, 5.40], "axis": "y", "chain_id": "C_left", "role": "segment", "order": 2},
+    {"id": "D22", "text_verbatim": "1200", "value_m": 1.20, "from": [0.00, 5.40], "to": [0.00, 6.60], "axis": "y", "chain_id": "C_left", "role": "segment", "order": 3},
+
+    {"id": "D23", "text_verbatim": "6600", "value_m": 6.60, "from": [8.00, 0.00], "to": [8.00, 6.60], "axis": "y", "chain_id": "C_right", "role": "overall", "order": 0},
+    {"id": "D24", "text_verbatim": "3600", "value_m": 3.60, "from": [8.00, 0.00], "to": [8.00, 3.60], "axis": "y", "chain_id": "C_right", "role": "segment", "order": 1},
+    {"id": "D25", "text_verbatim": "3000", "value_m": 3.00, "from": [8.00, 3.60], "to": [8.00, 6.60], "axis": "y", "chain_id": "C_right", "role": "segment", "order": 2}
+  ],
+
+  "ocr_texts": [],
+
+  "uncaptured": [
+    "west elevation: shading and material patterns excluded"
+  ],
+
+  "self_check": {
+    "all_dimensions_transcribed": true,
+    "all_visible_strokes_captured": true,
+    "no_topology_inferred": true,
+    "pens_used": ["wall_fill", "window"],
+    "unknowns_noted": [
+      "west view (8.0m width) mirrors east in horizontal dimensions",
+      "window patterns differ: floor 2 shows multi-pane glazing (apparent horizontal mullion visible)",
+      "right side y-dimension shows 3.6m + 3.0m = 6.6m (differs from split shown in left chain; correction stage reconciles)"
+    ]
+  }
+}

@@ -1,0 +1,122 @@
+# =====================================================================
+# run_config.yaml — run_2026-08-18_707mode_J4 (sm21_anchor)
+#
+# 用户 2026-08-18 拍板：「**你就原模原样复现 707 的模式**」。
+# ⇒ J4 = 把 J3 相对 07-07 的偏离逐条改回去，⛔ 不是又一个变量实验。
+#
+# ---------------------------------------------------------------------
+# ⛔ 用户同日**证伪并禁止再提**的三条（⛔ 不得复活）
+#
+#   1. 「之前的满分是抄答案得的」—— ⛔ 不成立：**sm24 当时根本没做 gt**，照样出好 reading。
+#   2. 「主控泄答案」—— ⛔ 不成立：同上无 gt；且 gpt-5.4-mini 做到**接近**满分，
+#      抄答案不可能只抄成「接近」。
+#   3. 「模型差异 / 误差」—— ⛔ 不成立：之前几次都接近满分，现在离及格都远。
+#      **这不是误差，是整套正确的 reading 方式没有被复现。**
+#
+#   ⚠️ orchestrator 在 J3 收尾时把第 2 条当作「有证据的假设」摆上台面，**已被用户当场驳回**。
+#      记在这里是为了它不再被重新发明。
+#
+# ---------------------------------------------------------------------
+# 07-07 原样 vs J3 的六处偏离（源：07-07 自己的 llm.yaml 溯源头 + run_config）
+#
+#   | # | 07-07 | J3 | J4 |
+#   |---|---|---|---|
+#   | 1 | **有 per-run directive**：`cv_toolbox.md` = REQUIRED，且 wall/window/storey 位置
+#         **必须先用 pixel probe 量了再画**（measure-before-draw） | **完全没有** | ✅ **已复原** |
+#   | 2 | pilot **打到真对为止**（≥2 轮；判卷书原文：pilot-r1 过度分割 **19 道墙**，
+#         **在 pilot review 时被抓出**） | **1 轮就放行**，且 feedback 里明写「改完直接继续」
+#         ⇒ **第二个复核点是 orchestrator 自己取消的** | ✅ **改回打到对为止** |
+#   | 3 | 图 = **原尺寸 2133×1345**（92.7 px/m） | F-51 预缩到 1377×868（**59.8 px/m**）
+#         ⇒ 一道 240mm 墙从 22 px 掉到 14 px，**量图精度少 35%** | ✅ **`high_res` 档
+#         ⇒ 2133×1345 逐张实测未动** |
+#   | 4 | Agent tool 子代理，**无 guard 无 wrapper** | headless + staging + wrapper + guard |
+#         ⚠️ **未恢复**（guard 已在 observe 档不拦截，摩擦已归零；wrapper 形态仍在） |
+#   | 5 | `cv_probe.py` 直调 | `run_cv_probe.py --tool` | ⚠️ **未恢复**（基座迁移，非本轮范围）|
+#   | 6 | judge② = Fable 5 | Opus 5 | ⛔ **不可恢复**（Fable 2026-07-21 退订）|
+#
+#   ⇒ **本跑仍有 4/5/6 三处偏离**，⛔ 不得声称「完全原样」。
+#
+# ---------------------------------------------------------------------
+# ⛔ 已实测排除的候选（十项，别再重测）
+#
+#   1 review 环打回(B1) · 2 cv_toolbox 文档文本逐字回滚(C1/C2) · 3 模型身份 ·
+#   4 输入图纸 sha256 逐字节相同 · 5 prescan(D1) · 6 能力封口(E1) ·
+#   7 **pilot 停等门存在与否**(J3) · 8 **会话形态**(J3) · 9 **guard 摩擦**(J3，32 条全放行) ·
+#   10 上述用户证伪的三条。
+#   ⇒ 清单空了之后，J3 撞出的唯一新候选 = **pilot 门守到什么程度**（不是有没有），
+#      这一格此前从没被单独测过，因为前八抽根本没走到批量阶段。
+#
+# ---------------------------------------------------------------------
+# 判读口径
+#   ⛔ n=1，同配置两抽实测差 2.8 倍 ⇒ 分数不得当结论。
+#   ⛔ 探索档（CLAUDE.md §0.2）⇒ 产物永远不得记成成绩。
+#   过程指标（07-07 在 1f_view 单张上的基准）：
+#     crop_zoom **17** · window_cc_detector **5** · px_m_calibrator **5** ·
+#     overlay_logger **4** · wall_line_profiler **2**
+#     （J3 同张：4 / 1 / 4 / **0** / 2 —— 扫描量一样，核验量差 4 倍、取舍记录归零）
+#   分数：墙 x/9 · 窗 x/7（07-07 = 9/9 · 7/7 · 最大偏移 0.0 m）
+# =====================================================================
+
+case: sm21_anchor
+run_id: run_2026-08-18_707mode_J4
+stage: 0_reading
+supersedes: null   # J3 是「形态恢复了但分数没恢复」的一抽，非本跑对照臂
+
+purpose: >-
+  原模原样复现 07-07 的 reading 模式：复原 per-run directive、
+  把 pilot 门改回「打到真对为止」、把图恢复到 07-07 的原尺寸。
+  ⛔ 不是变量实验，是复现。
+
+isolation:
+  profile: clean_room_physical_staging + guard_observe
+  boundary:
+    - "gt 物理不在 staging（_copy_case_data 撞 gt 路径 raise）"
+    - "staging 物理在仓库外（_require_outside_repo）"
+  note: >-
+    用户 08-18 口径：隔离要防的只有 reading 抄答案，而每个 run 本来就新建独立空间、
+    答案本来就不在里面 ⇒ 物理隔绝已成立。「不要一道道规则去防」。
+
+vision_resize:
+  tier: high_res
+  note: >-
+    ⭐ 相对 J3 的单变量之一。2133×1345 未超 high_res 的 2576 边 / 4784 token
+    ⇒ **逐张实测未动**，等于 07-07 看到的帧。
+    ⛔ 这不是撤销 F-51 —— standard 档仍是默认；本跑显式选 high_res 以复现 07-07。
+
+directive:
+  restored: true
+  path: _run/directive.md
+  source: 07-07 的 llm.yaml 溯源头逐字复原（cv_toolbox REQUIRED + measure-before-draw）
+  note: ⛔ 刻意不加料 —— 07-30 之后那份 96/198 行的 directive 是后来长出来的，不是 707 原样。
+
+pilot_gate:
+  policy: hold_until_correct
+  note: >-
+    ⭐ 相对 J3 的单变量之二，也是 J3 里 orchestrator 的操作错误所在。
+    07-07 判卷书：pilot-r1 过度分割 19 道墙、被 pilot review 抓出、打回重做；
+    其 reading_summary 停在「pilot 重做完成，等待复核」⇒ 至少两轮。
+    ⇒ 本跑 orchestrator **每轮只审 pilot、不放批量**，直到 pilot 真的对。
+
+models:
+  reading:
+    role: 0_reading
+    model_id: claude-haiku-4-5-20251001
+    provider: anthropic
+    effort: default
+    note: 与 07-07 基准同一 model_id（用户已证伪「模型差异」说）。
+  orchestrator:
+    role: orchestration + pilot review
+    model_id: claude-opus-5
+    sees_images: true
+    note: >-
+      ⭐ 看图并写 feedback.md（07-07 模式，用户 08-16 已授权）。
+      07-07 该位是 Fable 5，已退订不可恢复。
+      **成绩记账须如实标注，⛔ 不得记成「弱模型独立完成」。**
+
+session_form:
+  mode: resumed_same_session
+  note: 第一轮无 --resume；其后每轮 --resume。⛔ 无 session 记录时报错、不静默降级。
+
+judge:
+  mode: stop
+  note: 走标准链 flow --judge stop --to 0_reading，判卷产物自动出全。

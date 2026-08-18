@@ -1721,3 +1721,159 @@ def test_absent_dimension_endpoints_stay_skipped():
     ]
     rep = check_reading_view(ReadingView.model_validate(payload))
     assert _result(rep, _AXIS_ENDPOINT_CHECK).status is CheckStatus.PASS
+
+
+# ---------------------------------------------------------------------------
+# 2026-08-18 · `reading.calibration_axes_agree` — the machine consumer for the
+# cross-axis calibration signal.
+#
+# Motivating measurement (`run_2026-08-17_707mode_H2`, pilot r2): the tool
+# reported disagreement=true / 37.18% deviation / confidence=low / an explicit
+# "do not trust the blend" warning, and the reader used the blend anyway AND
+# told its reviewer the calibration was consistent. Before this check, that
+# outcome was invisible to every automated consumer in the repo.
+#
+# ⛔ Locks come in pairs: "the bad shape trips it" is worthless without "the
+# clean shape does not", and both are worthless without "absence is not a pass".
+# ---------------------------------------------------------------------------
+
+_CAL_CHECK = "reading.calibration_axes_agree"
+
+
+def _cal_sidecar(cv_root: Path, name: str, *, disagree: bool, on_metric_only: bool = False) -> Path:
+    """Write one px_m_calibrator sidecar shaped like the real tool's output."""
+    result = {
+        "candidate_id": f"1f_view:px_m_calibrator:{name}:scale",
+        "axis_px_per_m": {"x": 60.0666, "y": 87.5} if disagree else {"x": 60.0, "y": 60.0},
+        "axis_relative_deviation": 0.3718 if disagree else None,
+        "axis_relative_deviation_limit": 0.003,
+        "metric": {"confidence": "low" if disagree else "high"},
+    }
+    flag_home = result["metric"] if on_metric_only else result
+    flag_home["axis_calibration_disagreement"] = disagree
+    target = cv_root / "cv_evidence" / "1f_view" / f"{name}_px_m_calibrator.json"
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_text(json.dumps({"tool": "px_m_calibrator", "results": [result]}), encoding="utf-8")
+    return target
+
+
+def _cal_report(profile: str = "regression") -> CheckReport:
+    return CheckReport(stage="0_reading", capability_profile="orthogonal_polygon", run_profile=profile)
+
+
+def test_calibration_axes_check_fails_when_the_two_axes_disagree(tmp_path: Path):
+    from src.validator.checks.reading import check_calibration_evidence
+
+    _cal_sidecar(tmp_path, "002", disagree=True)
+    rep = check_calibration_evidence(_cal_report(), tmp_path)
+    result = _result(rep, _CAL_CHECK)
+    assert result.status is CheckStatus.FAIL, result.message
+    assert result.evidence["offenders"][0]["axis_relative_deviation"] == 0.3718
+
+
+def test_calibration_axes_check_reads_the_flag_from_metric_too(tmp_path: Path):
+    """The tool writes the flag on the result AND mirrors it into `metric`.
+
+    A checker that trusted only one spelling would go silent the day the other
+    is the surviving one — and silence here is indistinguishable from agreement,
+    which is the exact failure this whole check exists to end.
+    """
+    from src.validator.checks.reading import check_calibration_evidence
+
+    _cal_sidecar(tmp_path, "002", disagree=True, on_metric_only=True)
+    rep = check_calibration_evidence(_cal_report(), tmp_path)
+    assert _result(rep, _CAL_CHECK).status is CheckStatus.FAIL
+
+
+def test_calibration_axes_check_passes_when_the_axes_agree(tmp_path: Path):
+    from src.validator.checks.reading import check_calibration_evidence
+
+    _cal_sidecar(tmp_path, "001", disagree=False)
+    rep = check_calibration_evidence(_cal_report(), tmp_path)
+    assert _result(rep, _CAL_CHECK).status is CheckStatus.PASS
+
+
+@pytest.mark.parametrize("shape", ["no_directory", "empty_directory"])
+def test_calibration_axes_check_never_reports_absence_as_agreement(tmp_path: Path, shape: str):
+    """⭐ Absence is NOT a pass.
+
+    "No calibration evidence" conflates "the reader never calibrated" with "the
+    directory moved" — and a PASS here would launder both into a clean bill of
+    health, which is this repo's recurring `absence conflates causes` trap.
+    """
+    from src.validator.checks.reading import check_calibration_evidence
+
+    root = tmp_path / "cv"
+    if shape == "empty_directory":
+        (root / "cv_evidence").mkdir(parents=True)
+    rep = check_calibration_evidence(_cal_report(), root)
+    result = _result(rep, _CAL_CHECK)
+    assert result.status is CheckStatus.NOT_APPLICABLE
+    assert result.status is not CheckStatus.PASS
+    assert "not" in result.message.lower()
+
+
+def test_calibration_axes_check_errors_rather_than_passes_on_unreadable_evidence(tmp_path: Path):
+    """Fail-closed: unparseable evidence means we do not KNOW the ruler agrees."""
+    from src.validator.checks.reading import check_calibration_evidence
+
+    target = tmp_path / "cv_evidence" / "1f_view" / "003_px_m_calibrator.json"
+    target.parent.mkdir(parents=True)
+    target.write_text("{not json", encoding="utf-8")
+    rep = check_calibration_evidence(_cal_report(), tmp_path)
+    assert _result(rep, _CAL_CHECK).status is CheckStatus.ERROR
+
+
+@pytest.mark.parametrize(
+    "profile, expected_blocking",
+    [("exploratory", 0), ("dev", 0), ("golden", 1), ("regression", 1)],
+)
+def test_calibration_axes_disagreement_blocks_only_on_acceptance_profiles(
+    tmp_path: Path, profile: str, expected_blocking: int
+):
+    """The profile split is the whole reason diagnostic draws stay runnable.
+
+    Both halves are load-bearing: if it blocked everywhere, exploratory draws
+    could not merge and the check would be removed; if it blocked nowhere, an
+    acceptance run would still accept geometry built on a ruler that disagrees
+    with itself — which is the status quo this replaces.
+    """
+    from src.validator.checks.reading import check_calibration_evidence
+
+    _cal_sidecar(tmp_path, "002", disagree=True)
+    rep = check_calibration_evidence(_cal_report(profile), tmp_path)
+    assert len(rep.blocking()) == expected_blocking
+
+
+def test_calibration_axes_evidence_carries_no_run_specific_absolute_path(tmp_path: Path):
+    """⭐ Regression lock for a defect this check introduced and L-11 caught.
+
+    Check FACTS must be comparable across two runs of the same product that
+    differ only in policy — L-11 asserts the fact rows are byte-identical. The
+    first version of this checker put `str(root)` (an absolute per-run staging
+    tmpdir) into evidence, so two identical products produced different rows and
+    L-11 went red. Keep the label relative.
+    """
+    from src.validator.checks.reading import check_calibration_evidence
+
+    rows = []
+    for run in ("staging_reg", "staging_exp"):
+        root = tmp_path / run / "out" / "cv"
+        root.mkdir(parents=True)
+        _cal_sidecar(root, "001", disagree=False)
+        rep = check_calibration_evidence(_cal_report(), root)
+        rows.append(json.dumps(_result(rep, _CAL_CHECK).evidence, sort_keys=True))
+    assert rows[0] == rows[1], "evidence differs between two runs of the same product"
+    assert str(tmp_path) not in rows[0], "an absolute path leaked into check evidence"
+
+
+def test_calibration_axes_evidence_has_no_absolute_path_when_directory_is_missing(tmp_path: Path):
+    """Same property on the absence branch — that is the one L-11 actually hit."""
+    from src.validator.checks.reading import check_calibration_evidence
+
+    rows = []
+    for run in ("staging_reg", "staging_exp"):
+        rep = check_calibration_evidence(_cal_report(), tmp_path / run / "out" / "cv")
+        rows.append(json.dumps(_result(rep, _CAL_CHECK).evidence, sort_keys=True))
+    assert rows[0] == rows[1]
+    assert str(tmp_path) not in rows[0]

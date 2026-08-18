@@ -124,7 +124,12 @@ def access_log(staging: Path) -> Path:
 @pytest.fixture(scope="module")
 def staging(tmp_path_factory):
     root = tmp_path_factory.mktemp("substrateB") / "staging"
-    manifest = build_isolation_workspace(CASE_DIR, staging_root=root)
+    # strict: these assert the guard POLICY's judgment (deny shapes, F-44's
+    # deny-entry contract). The shipping default is "observe", which computes
+    # the same verdict and declines to enforce it (CLAUDE.md §0.4#1).
+    manifest = build_isolation_workspace(
+        CASE_DIR, staging_root=root, guard_profile="strict"
+    )
     s = manifest.staging_root
     (s / "requests" / "anchors.json").write_text(json.dumps(ANCHORS))
     (s / "requests" / "cand.json").write_text(json.dumps(CANDIDATES))

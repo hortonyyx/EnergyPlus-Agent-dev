@@ -13,6 +13,12 @@ full_scope:
   - tests/b5_test_helpers.py
 uncovered_allowlist:
   scripts/tool_scripts/_grade_transform.py: "private render helper; no direct project test imports it"
+  scripts/tool_scripts/reading_regression.py: >-
+    milestone gate CLI (2026-08-18); scores an already-completed run against the
+    recorded good-form baselines. No project-side test imports it. Verified by hand
+    in BOTH directions at introduction: run_2026-07-07_haiku_cv_retest exits 0 (PASS)
+    and run_2026-08-18_707mode_J3 exits 1 (REGRESSED, walls 1<9 windows 0<6), so it
+    is not a green-only gate.
   scripts/tool_scripts/baseline_record.py: "maintenance CLI; no project-side test exercises it"
   scripts/tool_scripts/gt_promote.py: "release-signoff CLI; covered only through manual promotion workflow"
   scripts/tool_scripts/gt_review_rerun.py: "review rerun CLI; no project-side test exercises it"

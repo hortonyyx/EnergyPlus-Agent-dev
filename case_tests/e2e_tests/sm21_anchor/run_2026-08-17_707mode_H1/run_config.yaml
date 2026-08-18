@@ -1,0 +1,161 @@
+# =====================================================================
+# run_config.yaml — run_2026-08-17_707mode_H1 (sm21_anchor)
+#
+# 本跑 = 08-17 三件前置落地后的**第一次开抽**。
+# 前置全档见 AI_agent/plan.md「2026-08-17」；复审裁决
+#   AI_agent/logs/reviews/verdict/2026-08-17_707_prereq_review_glm.md
+#
+# ---------------------------------------------------------------------
+# 与上一跑（run_2026-08-16_B1_pilotgate_G1/G2）的关系
+#
+#   G1/G2 施加的是 B1（pilot 停等审阅门），门本身生效了，但两跑都**没走出 pilot**
+#   （G2 停在 pilot_r3）。此后 08-17 落了三件前置，本跑是它们之后的第一抽。
+#
+#   ⚠️ 因此本跑**不是** B1 的单变量续测：B1 与下面三件前置叠在一起。
+#      ⛔ 不得把本跑结果单独归因给其中任何一项。
+#
+# ---------------------------------------------------------------------
+# 本跑相对 G1/G2 新增的三件前置（08-17 落地 + 跨家族复审 0 BLOCKER）
+#
+#   ① F-51 单帧化 —— src/agent/execution/vision_resize.py
+#      按 Anthropic 官方 resize 规则在 staging 拷入时预缩源图，
+#      使「读图器看到的帧 = 文件的帧 = 工具的帧」。
+#      ⛔ 它**解释不了** 07-07 那次回归（07-07 有同样的错帧、照样 9/9）
+#      ⇒ ⛔ 不得写成回归原因；它是**让归因可信**的前置，不是修法。
+#
+#   ② scale_origin 从必填退回 SHOULD —— 同图可见参考点 · 拿不准留 null ·
+#      省略本身不算自检失败。起因 = 行为清单 §A1 原写「两份好 reading 都没有它」
+#      是**事实错**（两份都有）。
+#
+#   ③ 跨轴校验补合法出口（不撤门）—— 不再 raise，返回可用 blend +
+#      axis_calibration_disagreement=true + metric.confidence="low" + warnings[]。
+#      ⚠️ 复审指出的代价：旧 raise 经 F-54 是 rc=2（agent 无法忽略），
+#         新出口 rc=0 = 工具「成功」⇒ 这道门从「强制可见」退化成「寄望自觉」，
+#         且两个新字段**零机器消费者**
+#         ⇒ 事后账面上分不开「模型没量」vs「量了、被标 low confidence、仍用了那个值」。
+#         ⛔ 判读时必须去 access_log / 产物里人工看，不能只看分数。
+#
+# ---------------------------------------------------------------------
+# 跑前复核（orchestrator 2026-08-17 16:36 UTC 实跑验证，⛔ 非读代码）
+#
+#   ① pilot 停等门接线在
+#      真建 staging → kickoff_prompt.md 含 "ONE review point" ×1；
+#      08-16 删掉的三句反制话（"no reviewer will answer" /
+#      "work straight through to the end on your own" / "there is no review point"）
+#      残留 **0 处**；staging 内 session_kickoff.md 含 "Stop and wait for review
+#      of that pilot"；staging 内 gt/baseline 命中 **0**。
+#
+#   ② 单帧化真实生效（不是「代码在」）
+#      源 vs staging 实测：
+#        1f_view   2133x1345 -> 1377x868   （规则算出 1377x868 ✅）
+#        2f_view   2182x1319 -> 1400x846   （规则算出 1400x846 ✅）
+#        East/North/South/West              逐字节未动（本就在 tier 内 ✅）
+#      六张全部与 vision_resize.resized_size(tier="standard") 逐格一致。
+#
+#   ③ 判卷档位 / 通道
+#      sm21 gt `schema_version: 2` ⇒ **老判卷通道**。
+#      v3 typed 那条（null scale_origin ⇒ plan_frame_unavailable + retain_as_miss
+#      ⇒ 整条 plan 通道按 miss 计）**在 sm21 上走不到**：需 --typed-elevation-json
+#      显式开关 + v3 gt 文档，两个条件 sm21 均不满足（load_score_gt_identity
+#      对非 v3 直接 "unsupported GT profile"）。
+#      run_profile = exploratory ⇒ reading.plan_scale_origin_usable 只 flag 不阻断
+#      （_PLAN_FRAME_PERMISSIVE_PROFILES = {exploratory, dev}）。
+#      ⇒ **本跑「拿不准留 null」零分数影响。** sm24 不成立，故本轮不跑 sm24。
+#
+# ---------------------------------------------------------------------
+# 形态 = 07-07 模式（用户 2026-08-16 当面定，08-17 复述确认）
+#
+#   流程：spawn① (pilot 1f_view → 停) → orchestrator 看图审 pilot
+#         → feedback.md → spawn② (读 feedback → 修 pilot + 剩余 5 张 + summary)
+#
+#   ⛔ orchestrator 本跑的两条硬纪律（08-16 就是栽在这两条上）:
+#     ① **pilot 没改对就不放行**（上次自己写了要求、然后没检查就批准）
+#     ② **不解除后续审阅**（上次解除后其余五张图零 CV 调用，整轮作废）
+#
+#   ⚠️ 已知会话形态限制（A1 变量，本跑**不控制、只登记**，与 G1 同）:
+#     每次 spawn 都是 `claude -p` 一次性冷启 ⇒ spawn② 是全新会话，
+#     必须从工作区重读 pilot 文件；07-07 当年是同一会话多轮。
+#     ⇒ **若本跑不达标，A1 仍是未排除项，⛔ 不得据本跑宣布 pilot 门无效。**
+#
+# ---------------------------------------------------------------------
+# 判读口径
+#
+#   ⛔⛔ **本抽的分数不得当结论**（用户 08-17 拍板「先 1 抽探路」时的原话口径）:
+#      本仓实测同配置两抽能差 **2.8 倍**，一抽基本是噪声。
+#      本抽回答的是「这条路今天走不走得通」，**不是**「达到什么水平」。
+#      要出分数结论须补抽（本仓纪律：任何识图成绩至少两抽）。
+#
+#   过程指标（比分数更早出信号、更抗单抽噪声）:
+#     - CV 调用次数，尤其 crop_zoom（07-07 基准 = 55；08-15 七抽 = 0/0/0/2/1/6）
+#     - **量了几张图**（六抽全部只量 1/6 —— 最稳定的病征）
+#     - pilot 是否真停下等审
+#     - 打回后是否真的改（08-15 B1 抽：覆盖从 1/6 修到 6/6，分数不动）
+#     - ⭐ 新增：跨轴出口是否被触发（axis_calibration_disagreement / confidence=low）
+#       —— 因其 rc=0 且零机器消费者，**必须人工翻 access_log 与产物**
+#   分数：墙 x/9 · 窗 x/7（07-07 基准 9/9 · 7/7 · 最大偏移 0.0 m）
+# =====================================================================
+
+case: sm21_anchor
+run_id: run_2026-08-17_707mode_H1
+stage: 0_reading
+
+purpose: >-
+  08-17 三件前置（F-51 单帧化 / scale_origin 退回 SHOULD / 跨轴合法出口）落地后的
+  第一次开抽，以 07-07 模式（orchestrator 亲自审 pilot）跑 sm21 单抽探路。
+  目标是「这条路今天走不走得通」，⛔ 不是拿分数结论。
+
+isolation:
+  profile: clean_room_hard_isolation_v2_uncapped
+  note: >-
+    与 E1 / G1 同档：可见面 · 写出面不变，计算方法不限（A3 已撤）。
+    ⛔ 刻意不退回 07-07 的 prompt 级隔离。
+  known_open_holes:
+    - >-
+      BLOCKER-1：换行（\n / \r）不在 guard 元字符集 ⇒ 第二行免检执行。**未修。**
+    - >-
+      BLOCKER-2：cwd / __file__ / parents 锚点族绕过，实测可定位到本仓 gt.json
+      真实路径。**未修。**
+    - >-
+      F-55 后半无效：全程 root 运行，root 绕过自己拥有文件的 DAC 检查
+      ⇒ 被审计方能改自己的 access_log。
+    - >-
+      ⇒ 严格口径：事后只能说「**我们手上这份日志显示**它没碰答案」，
+      ⛔ 不能说「它没碰答案」。
+
+models:
+  reading:
+    role: 0_reading
+    model_id: claude-haiku-4-5-20251001
+    provider: anthropic
+    effort: default
+    source: spawn_isolated_reader.py clean-room staging + headless `claude -p`
+    note: >-
+      与 07-07 基准、与 08-15 七抽、与 08-16 G1/G2 全部同一 model_id。
+      用户 08-17 拍板沿用，理由 = 换了模型分数差就说不清是模式没移植成功还是模型不同。
+  orchestrator:
+    role: orchestration + pilot review
+    model_id: claude-opus-5
+    sees_images: true
+    note: >-
+      ⭐ 本跑 orchestrator **看图并写 feedback.md**（07-07 模式，用户已授权）。
+      ⛔ 按 CLAUDE.md §1.5#7 字面条文属「主控伸手」形态；用户 2026-08-16 明确接受，
+      合规化归 reading 专项。
+      **成绩记账须如实标注此项，⛔ 不得记成「弱模型独立完成」。**
+
+sampling:
+  draws: 1
+  note: >-
+    用户 08-17 拍板「先 1 抽探路」。⛔ 该抽分数不得当结论。
+
+provenance:
+  base_commit: 0fd8eaa
+  tracked_dirty: false
+  untracked: []
+  note: 工作树干净，本跑无未提交改动。
+
+judge:
+  mode: off
+  note: >-
+    ⚠️ `judge: off` 会关掉产 grade 的那条路（本仓已踩过）。
+    ⇒ merge 之后**必须单独补**：score_vs_gt.json + grade.png + 六张 render，
+    否则产物不全。见 AI_agent/CLAUDE.md 跑测产物口径。

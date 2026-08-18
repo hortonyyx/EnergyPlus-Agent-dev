@@ -1,0 +1,126 @@
+{
+  "applicability": "clean_vector",
+  "crop_chain": [],
+  "cv_schema": "1",
+  "diagnostics": {
+    "anchor_count": 1,
+    "overlay_decisions": [
+      {
+        "candidate_id": "1f_view:px_m_calibrator:001:scale:1",
+        "geometry": {
+          "axis": "col",
+          "kind": "line",
+          "x_px": 275
+        },
+        "reason": "calibration anchor",
+        "status": "accepted"
+      }
+    ],
+    "warnings": []
+  },
+  "overlay_path": "/tmp/ep_isolation/sm21_anchor_3dhw1u09/out/cv/cv_evidence/1f_view/001_px_m_calibrator_overlay.png",
+  "params": {
+    "anchors": [
+      {
+        "axis": "x",
+        "dimension_ref": "top_15000_mm",
+        "px_a": 275,
+        "px_b": 1175,
+        "value_m": 15.0
+      }
+    ],
+    "max_axis_relative_deviation": 0.003,
+    "residual_warn_m": 0.05,
+    "residual_warn_px": 2.0
+  },
+  "recipe_id": "clean_vector_v1",
+  "results": [
+    {
+      "anchor_px": {
+        "kind": "span",
+        "value": {
+          "anchors": [
+            {
+              "axis": "x",
+              "dimension_ref": "top_15000_mm",
+              "px_a": 275,
+              "px_b": 1175,
+              "value_m": 15.0
+            }
+          ]
+        }
+      },
+      "axis_calibration_disagreement": false,
+      "axis_px_per_m": {
+        "x": 60.0
+      },
+      "axis_relative_deviation": null,
+      "axis_relative_deviation_limit": 0.003,
+      "candidate_id": "1f_view:px_m_calibrator:001:scale",
+      "candidate_kind": "calibration",
+      "coord_space": "source_px",
+      "m_per_px": 0.016666666666666666,
+      "metric": {
+        "axis_calibration_disagreement": false,
+        "axis_px_per_m": {
+          "x": 60.0
+        },
+        "axis_relative_deviation": null,
+        "axis_relative_deviation_limit": 0.003,
+        "confidence": "high",
+        "dimension_refs": [
+          "top_15000_mm"
+        ],
+        "raw_segments": [
+          {
+            "axis": "x",
+            "dimension_ref": "top_15000_mm",
+            "px_a": 275,
+            "px_b": 1175,
+            "value_m": 15.0
+          }
+        ],
+        "residuals": null,
+        "scale_px_per_m": 60.0
+      },
+      "provenance": {
+        "crop_chain_id": "",
+        "recipe_id": "clean_vector_v1",
+        "source_image_sha256": "a2efe3c41cf4",
+        "tool": "px_m_calibrator",
+        "tool_version": "1"
+      },
+      "px_per_m": 60.0,
+      "residuals": null,
+      "rmse_m": null,
+      "rmse_px": null,
+      "visual": {
+        "anchor_px": {
+          "kind": "span",
+          "value": {
+            "anchors": [
+              {
+                "axis": "x",
+                "dimension_ref": "top_15000_mm",
+                "px_a": 275,
+                "px_b": 1175,
+                "value_m": 15.0
+              }
+            ]
+          }
+        },
+        "confidence": "high",
+        "relative": {}
+      },
+      "warnings": []
+    }
+  ],
+  "source_image": {
+    "height_px": 868,
+    "name": "1f_view.png",
+    "sha256": "a2efe3c41cf4",
+    "width_px": 1377
+  },
+  "tool": "px_m_calibrator",
+  "tool_version": "1"
+}

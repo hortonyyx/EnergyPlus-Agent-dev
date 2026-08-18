@@ -23,6 +23,7 @@ Returns a :class:`CheckReport`; policy (block vs flag) is applied by the report.
 
 from __future__ import annotations
 
+import json
 import math
 
 from src.agent.reading.legacy import parse_value_m, reading_raw_metadata
@@ -30,6 +31,7 @@ from src.agent.reading.schema import ReadingView
 from src.agent.reading.constants import DIMCHAIN_CLOSE_TOL_M
 from src.agent.roles import CANONICAL_ROLES, normalize
 from src.validator.checks.schema import (
+    CALIBRATION_AXES_CHECK_ID,
     DIMENSION_ENDPOINT_BOUNDS_CHECK_ID,
     PLAN_FRAME_CHECK_ID,
     CheckLayer,
@@ -1582,3 +1584,141 @@ def _point_on_segment(pt: list[float], a: list[float], b: list[float]) -> bool:
     t = max(0.0, min(1.0, ((px - ax) * dx + (py - ay) * dy) / seg_len2))
     closest = [ax + t * dx, ay + t * dy]
     return math.dist(pt, closest) <= _OUTPUT_PRECISION_M
+
+
+# ---------------------------------------------------------------------------
+# 2026-08-18 · the machine consumer for the cross-axis calibration signal.
+#
+# Unlike everything above, this one does NOT read the ReadingView — it reads the
+# CV evidence sidecars on disk. That is deliberate and is the whole point of the
+# check; the rationale (and the measured failure that motivated it) lives on
+# CALIBRATION_AXES_CHECK_ID in schema.py. In one line: the reader's own account
+# of its calibration was measured to be wrong, so the gate reads the tool's
+# output instead of the reader's claim.
+# ---------------------------------------------------------------------------
+
+_CALIBRATOR_GLOB = "**/*px_m_calibrator*.json"
+
+
+def check_calibration_evidence(rep: CheckReport, cv_evidence_root) -> CheckReport:
+    """Append the cross-axis calibration verdict to ``rep``, from evidence files.
+
+    ``cv_evidence_root`` is the directory the CV wrapper writes sidecars under
+    (staging ``out/cv``); a caller that has no such directory should not call
+    this at all rather than pass a bogus path.
+
+    ⚠️ Scope, stated rather than implied: this answers "did any calibration this
+    reader ran disagree with itself across axes", NOT "did the reader derive its
+    coordinates from a disagreeing calibration". Answering the second needs the
+    reading to cite the calibration it used (a `candidate_id` reference), which
+    is the R1.5 direction and is not implemented — so a reader that runs a bad
+    calibration, then a good one, and genuinely uses the good one still trips
+    this. That over-triggering is the deliberate choice: under-triggering here
+    reproduces exactly the silence this check exists to end, and the evidence
+    for "which one was actually used" does not exist on disk today.
+    """
+    from pathlib import Path
+
+    root = Path(cv_evidence_root)
+    # ⛔ Never put the absolute path in evidence. Check FACTS must be comparable
+    # across runs that differ only in policy (L-11 pins exactly that), and an
+    # absolute staging path embeds a per-run tmp directory, which would make two
+    # byte-identical products produce different fact rows. The trailing two
+    # components keep the row debuggable without making it run-specific.
+    root_label = "/".join(root.parts[-2:]) if len(root.parts) >= 2 else root.name
+    if not root.is_dir():
+        # ⛔ NOT "clean". Absence of evidence conflates "no calibration was run"
+        # with "the directory moved", and this check must not launder either into
+        # a pass — it says so in the message rather than emitting PASS.
+        rep.add(
+            CALIBRATION_AXES_CHECK_ID, CheckStatus.NOT_APPLICABLE, CheckLayer.CROSS_CHECK,
+            message=(
+                "no CV evidence directory — this check cannot speak to whether the "
+                "reading was calibrated at all, and its silence is not evidence of a "
+                "clean calibration"
+            ),
+            evidence={"cv_evidence_root": root_label, "exists": False},
+        )
+        return rep
+
+    sidecars = sorted(root.glob(_CALIBRATOR_GLOB))
+    if not sidecars:
+        rep.add(
+            CALIBRATION_AXES_CHECK_ID, CheckStatus.NOT_APPLICABLE, CheckLayer.CROSS_CHECK,
+            message=(
+                "no px_m_calibrator evidence present — the reading declares no "
+                "pixel→metre ruler this check can audit; absence is not agreement"
+            ),
+            evidence={"cv_evidence_root": root_label, "calibrator_sidecars": 0},
+        )
+        return rep
+
+    offenders: list[dict] = []
+    unreadable: list[str] = []
+    audited = 0
+    for path in sidecars:
+        try:
+            data = json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError) as exc:
+            unreadable.append(f"{path.name}: {type(exc).__name__}")
+            continue
+        for result in data.get("results") or []:
+            if not isinstance(result, dict):
+                continue
+            audited += 1
+            metric = result.get("metric") if isinstance(result.get("metric"), dict) else {}
+            # Read the flag from BOTH levels: the tool writes it on the result and
+            # mirrors it into `metric`, and a checker that trusted only one would
+            # go quiet the day the other one is the surviving spelling.
+            disagreed = bool(
+                result.get("axis_calibration_disagreement")
+                or metric.get("axis_calibration_disagreement")
+            )
+            if not disagreed:
+                continue
+            offenders.append(
+                {
+                    "sidecar": path.name,
+                    "candidate_id": result.get("candidate_id"),
+                    "axis_px_per_m": result.get("axis_px_per_m"),
+                    "axis_relative_deviation": result.get("axis_relative_deviation"),
+                    "axis_relative_deviation_limit": result.get("axis_relative_deviation_limit"),
+                    "confidence": metric.get("confidence"),
+                }
+            )
+
+    if unreadable:
+        # Fail-closed: an unparseable calibration sidecar means we do not know the
+        # ruler is consistent, which is not the same as knowing it is.
+        rep.add(
+            CALIBRATION_AXES_CHECK_ID, CheckStatus.ERROR, CheckLayer.CROSS_CHECK,
+            message=f"calibration evidence could not be read: {'; '.join(unreadable)}",
+            evidence={"unreadable": unreadable, "calibrator_sidecars": len(sidecars)},
+        )
+        return rep
+
+    if offenders:
+        rep.add_fail(
+            CALIBRATION_AXES_CHECK_ID, CheckLayer.CROSS_CHECK,
+            (
+                f"{len(offenders)} calibration result(s) report the two axes disagreeing "
+                "beyond the tool's own limit; the pixel→metre ruler is inconsistent with "
+                "itself, so geometry derived from it is wrong in at least one direction. "
+                "The tool returns success in this case by design (2026-08-17 legal exit) "
+                "— this check is what makes that outcome visible to anything other than "
+                "a reader choosing to mention it"
+            ),
+            evidence={
+                "offenders": offenders,
+                "calibrator_sidecars": len(sidecars),
+                "calibration_results_audited": audited,
+            },
+        )
+        return rep
+
+    rep.add(
+        CALIBRATION_AXES_CHECK_ID, CheckStatus.PASS, CheckLayer.CROSS_CHECK,
+        message=f"all {audited} calibration result(s) agree across axes",
+        evidence={"calibrator_sidecars": len(sidecars), "calibration_results_audited": audited},
+    )
+    return rep

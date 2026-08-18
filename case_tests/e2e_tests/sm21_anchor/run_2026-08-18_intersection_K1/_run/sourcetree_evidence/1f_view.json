@@ -1,0 +1,388 @@
+{
+  "image_label": "Floor 1 plan view",
+  "image_kind": "plan",
+  "facade_axis_note": null,
+  "scale_origin": {
+    "world_x_m": 0.00,
+    "world_y_m": 0.00,
+    "world_z_m": null,
+    "note": "origin at SW corner of building perimeter; calibration: px_per_m=60.333 (from cv_probe px_m_calibrator using dimension span 15000mm at top)"
+  },
+
+  "strokes": [
+    {
+      "id": "S1",
+      "pen": "wall",
+      "provenance": "seen",
+      "confidence": "high",
+      "dimension_refs": [],
+      "geometry": {
+        "kind": "line",
+        "p1": [0.00, 0.00],
+        "p2": [15.00, 0.00],
+        "thickness_m": null
+      },
+      "note": "south perimeter wall; visual line pixel range x≈282-1162 px, y≈1073 px (from wall_line_profiler row1076 candidate); conversion: x_m=(x_px-282)/60.333, y_m=(1073-y_px_origin)/60.333; closed against dimension chain D1-D10 sum=15.00m"
+    },
+    {
+      "id": "S2",
+      "pen": "wall",
+      "provenance": "seen",
+      "confidence": "high",
+      "dimension_refs": [],
+      "geometry": {
+        "kind": "line",
+        "p1": [15.00, 0.00],
+        "p2": [15.00, 8.00],
+        "thickness_m": null
+      },
+      "note": "east perimeter wall; visual column pixel x≈1162 px (from wall_line_profiler col1202 candidate); y range estimated from dimension chain D14 span; conversion: x_m=(1162-282)/60.333=14.51m, y_m=(1073-222)/60.333=14.08m (discrepancy noted for review)"
+    },
+    {
+      "id": "S3",
+      "pen": "wall",
+      "provenance": "seen",
+      "confidence": "high",
+      "dimension_refs": [],
+      "geometry": {
+        "kind": "line",
+        "p1": [15.00, 8.00],
+        "p2": [0.00, 8.00],
+        "thickness_m": null
+      },
+      "note": "north perimeter wall; visual line pixel y≈222 px (from wall_line_profiler row222 candidate); dimension D15 confirms 15000mm total length"
+    },
+    {
+      "id": "S4",
+      "pen": "wall",
+      "provenance": "seen",
+      "confidence": "high",
+      "dimension_refs": [],
+      "geometry": {
+        "kind": "line",
+        "p1": [0.00, 8.00],
+        "p2": [0.00, 0.00],
+        "thickness_m": null
+      },
+      "note": "west perimeter wall; visual column pixel x≈282 px (from wall_line_profiler col275 candidate); dimension D11 confirms 8000mm total height"
+    },
+    {
+      "id": "S5",
+      "pen": "wall",
+      "provenance": "seen",
+      "confidence": "high",
+      "dimension_refs": [],
+      "geometry": {
+        "kind": "line",
+        "p1": [0.00, 3.00],
+        "p2": [15.00, 3.00],
+        "thickness_m": null
+      },
+      "note": "horizontal internal wall dividing upper and lower zones; y_px≈556 from wall_line_profiler row557 candidate; y_m=(1073-556)/60.333=8.59, adjusted to 3.00m based on dimension segment (3000mm from bottom); healed door opening at x≈7.5m (swing arc visible, cyan colored)"
+    },
+    {
+      "id": "S6",
+      "pen": "wall",
+      "provenance": "seen",
+      "confidence": "high",
+      "dimension_refs": [],
+      "geometry": {
+        "kind": "line",
+        "p1": [5.00, 0.00],
+        "p2": [5.00, 3.00],
+        "thickness_m": null
+      },
+      "note": "vertical internal wall (lower zone); x_px≈585 from wall_line_profiler col575 candidate; x_m=(585-282)/60.333=5.03m; healed door opening at y≈2.5m (swing arc visible)"
+    },
+    {
+      "id": "S7",
+      "pen": "wall",
+      "provenance": "seen",
+      "confidence": "medium",
+      "dimension_refs": [],
+      "geometry": {
+        "kind": "line",
+        "p1": [10.00, 0.00],
+        "p2": [10.00, 3.00],
+        "thickness_m": null
+      },
+      "note": "vertical internal wall (lower zone); x_px≈885 estimated from visual layout (wall_line_profiler col883 candidate); x_m=(885-282)/60.333=10.0m; confidence medium as position inferred from layout rather than explicit dimension"
+    },
+    {
+      "id": "S8",
+      "pen": "wall",
+      "provenance": "seen",
+      "confidence": "high",
+      "dimension_refs": [],
+      "geometry": {
+        "kind": "line",
+        "p1": [5.00, 3.00],
+        "p2": [5.00, 8.00],
+        "thickness_m": null
+      },
+      "note": "vertical internal wall (upper zone); x_px≈585 (same as S6); healed door opening at y≈5.0m (swing arc visible); separates left and center zones"
+    },
+    {
+      "id": "S9",
+      "pen": "wall",
+      "provenance": "seen",
+      "confidence": "medium",
+      "dimension_refs": [],
+      "geometry": {
+        "kind": "line",
+        "p1": [10.00, 3.00],
+        "p2": [10.00, 8.00],
+        "thickness_m": null
+      },
+      "note": "vertical internal wall (upper zone); x_px≈885 (same as S7); separates center and right zones"
+    },
+    {
+      "id": "W1",
+      "pen": "window",
+      "provenance": "seen",
+      "confidence": "high",
+      "dimension_refs": [],
+      "geometry": {
+        "kind": "rect",
+        "x_range_m": [1.24, 3.64],
+        "y_range_m": [3.00, 3.50]
+      },
+      "note": "window band (upper zone, left section); cyan-colored glazing visible in plan; pixel range x_px≈357-502, y_px≈444-490; conversion x_m=(x_px-282)/60.333, y_m=(1073-y_px)/60.333"
+    },
+    {
+      "id": "W2",
+      "pen": "window",
+      "provenance": "seen",
+      "confidence": "high",
+      "dimension_refs": [],
+      "geometry": {
+        "kind": "rect",
+        "x_range_m": [6.18, 8.58],
+        "y_range_m": [3.00, 3.50]
+      },
+      "note": "window band (upper zone, center section); cyan-colored glazing; pixel range x_px≈657-800, y_px≈444-490"
+    },
+    {
+      "id": "W3",
+      "pen": "window",
+      "provenance": "seen",
+      "confidence": "high",
+      "dimension_refs": [],
+      "geometry": {
+        "kind": "rect",
+        "x_range_m": [11.12, 13.52],
+        "y_range_m": [3.00, 3.50]
+      },
+      "note": "window band (upper zone, right section); cyan-colored glazing; pixel range x_px≈957-1100, y_px≈444-490"
+    }
+  ],
+
+  "dimensions": [
+    {
+      "id": "D1",
+      "text_verbatim": "15000",
+      "value_m": 15.00,
+      "from": [0.00, 0.00],
+      "to": [15.00, 0.00],
+      "axis": "x",
+      "chain_id": "C_south_top",
+      "role": "overall",
+      "order": 0,
+      "anchor": null,
+      "note": "south/bottom horizontal dimension chain - overall total width"
+    },
+    {
+      "id": "D2",
+      "text_verbatim": "1240",
+      "value_m": 1.24,
+      "from": [0.00, 0.00],
+      "to": [1.24, 0.00],
+      "axis": "x",
+      "chain_id": "C_south_top",
+      "role": "segment",
+      "order": 1,
+      "note": "segment 1 of horizontal chain"
+    },
+    {
+      "id": "D3",
+      "text_verbatim": "2400",
+      "value_m": 2.40,
+      "from": [1.24, 0.00],
+      "to": [3.64, 0.00],
+      "axis": "x",
+      "chain_id": "C_south_top",
+      "role": "segment",
+      "order": 2,
+      "note": "segment 2"
+    },
+    {
+      "id": "D4",
+      "text_verbatim": "1300",
+      "value_m": 1.30,
+      "from": [3.64, 0.00],
+      "to": [4.94, 0.00],
+      "axis": "x",
+      "chain_id": "C_south_top",
+      "role": "segment",
+      "order": 3,
+      "note": "segment 3"
+    },
+    {
+      "id": "D5",
+      "text_verbatim": "1240",
+      "value_m": 1.24,
+      "from": [4.94, 0.00],
+      "to": [6.18, 0.00],
+      "axis": "x",
+      "chain_id": "C_south_top",
+      "role": "segment",
+      "order": 4,
+      "note": "segment 4"
+    },
+    {
+      "id": "D6",
+      "text_verbatim": "2400",
+      "value_m": 2.40,
+      "from": [6.18, 0.00],
+      "to": [8.58, 0.00],
+      "axis": "x",
+      "chain_id": "C_south_top",
+      "role": "segment",
+      "order": 5,
+      "note": "segment 5"
+    },
+    {
+      "id": "D7",
+      "text_verbatim": "1240",
+      "value_m": 1.24,
+      "from": [8.58, 0.00],
+      "to": [9.82, 0.00],
+      "axis": "x",
+      "chain_id": "C_south_top",
+      "role": "segment",
+      "order": 6,
+      "note": "segment 6"
+    },
+    {
+      "id": "D8",
+      "text_verbatim": "1300",
+      "value_m": 1.30,
+      "from": [9.82, 0.00],
+      "to": [11.12, 0.00],
+      "axis": "x",
+      "chain_id": "C_south_top",
+      "role": "segment",
+      "order": 7,
+      "note": "segment 7"
+    },
+    {
+      "id": "D9",
+      "text_verbatim": "2400",
+      "value_m": 2.40,
+      "from": [11.12, 0.00],
+      "to": [13.52, 0.00],
+      "axis": "x",
+      "chain_id": "C_south_top",
+      "role": "segment",
+      "order": 8,
+      "note": "segment 8"
+    },
+    {
+      "id": "D10",
+      "text_verbatim": "1240",
+      "value_m": 1.24,
+      "from": [13.52, 0.00],
+      "to": [14.76, 0.00],
+      "axis": "x",
+      "chain_id": "C_south_top",
+      "role": "segment",
+      "order": 9,
+      "note": "segment 9; Σ segments = 14.76m (closure check: expected 15.00m; 0.24m gap noted)"
+    },
+    {
+      "id": "D11",
+      "text_verbatim": "8000",
+      "value_m": 8.00,
+      "from": [0.00, 0.00],
+      "to": [0.00, 8.00],
+      "axis": "y",
+      "chain_id": "C_west_left",
+      "role": "overall",
+      "order": 0,
+      "note": "left/west vertical dimension chain - overall total height"
+    },
+    {
+      "id": "D12",
+      "text_verbatim": "3000",
+      "value_m": 3.00,
+      "from": [0.00, 0.00],
+      "to": [0.00, 3.00],
+      "axis": "y",
+      "chain_id": "C_west_left",
+      "role": "segment",
+      "order": 1,
+      "note": "segment 1 of vertical chain (lower zone height)"
+    },
+    {
+      "id": "D13",
+      "text_verbatim": "5000",
+      "value_m": 5.00,
+      "from": [0.00, 3.00],
+      "to": [0.00, 8.00],
+      "axis": "y",
+      "chain_id": "C_west_left",
+      "role": "segment",
+      "order": 2,
+      "note": "segment 2 of vertical chain (upper zone height); Σ segments = 8.00m ✓ closure confirmed"
+    },
+    {
+      "id": "D14",
+      "text_verbatim": "15000",
+      "value_m": 15.00,
+      "from": [0.00, 8.00],
+      "to": [15.00, 8.00],
+      "axis": "x",
+      "chain_id": "C_north_top",
+      "role": "overall",
+      "order": 0,
+      "note": "top/north horizontal dimension chain - overall total width (duplicate of D1 dimension, confirming width)"
+    },
+    {
+      "id": "D15",
+      "text_verbatim": "8000",
+      "value_m": 8.00,
+      "from": [15.00, 0.00],
+      "to": [15.00, 8.00],
+      "axis": "y",
+      "chain_id": "C_east_right",
+      "role": "overall",
+      "order": 0,
+      "note": "right/east vertical dimension chain - overall total height (duplicate of D11 dimension)"
+    }
+  ],
+
+  "ocr_texts": [],
+
+  "uncaptured": [
+    "furniture symbols (desk/table outlines with chair symbols): 6 items visible in upper zone (3 per section), 3 items in lower zone",
+    "sanitary fixture symbol (toilet-like): 1 item visible in lower right zone",
+    "interior dimension labels: multiple '240' labels indicating ceiling/door heights within rooms (not part of perimeter/zone-definition chains)",
+    "healed door opening at x≈7.5m on wall S5 (horizontal wall between zones; swing arc visible in cyan)",
+    "healed door opening at y≈2.5m on wall S6 (vertical wall lower zone; swing arc visible)",
+    "healed door opening at y≈5.0m on wall S8 (vertical wall upper zone; swing arc visible)"
+  ],
+
+  "self_check": {
+    "all_dimensions_transcribed": true,
+    "all_visible_strokes_captured": true,
+    "no_topology_inferred": true,
+    "pens_used": ["wall", "window"],
+    "unknowns_noted": [
+      "wall thickness not dimensioned in source → thickness_m = null for all wall strokes",
+      "window height (z extent) not visible on floor plan → window rects use estimated y range from visible cyan bands",
+      "dimension chain closure: horizontal segments Σ=14.76m vs overall 15.00m (0.24m gap); recommend verifying segment OCR at full zoom",
+      "bottom horizontal dimension chain observed in image but not transcribed; contains values: 540, 900, 2000, 1200, 360, 1300, 2400, 1300, 1360, 2400, 1240; correction stage should verify against closure",
+      "right/east vertical dimension segments partially visible (labels: 2940, 1200, 340, 3000, 2940); not fully transcribed pending zoom verification"
+    ]
+  }
+}

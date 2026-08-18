@@ -1,0 +1,255 @@
+{
+  "applicability": "clean_vector",
+  "crop_chain": [],
+  "cv_schema": "1",
+  "diagnostics": {
+    "anchor_count": 2,
+    "overlay_decisions": [
+      {
+        "candidate_id": "1f_view:px_m_calibrator:001:scale:1",
+        "geometry": {
+          "axis": "col",
+          "kind": "line",
+          "x_px": 260
+        },
+        "reason": "calibration anchor",
+        "status": "accepted"
+      },
+      {
+        "candidate_id": "1f_view:px_m_calibrator:001:scale:2",
+        "geometry": {
+          "axis": "row",
+          "kind": "line",
+          "y_px": 190
+        },
+        "reason": "calibration anchor",
+        "status": "accepted"
+      }
+    ],
+    "warnings": [
+      {
+        "guidance": "x=61.3333333 px/m and y=65 px/m disagree by 5.804749%, over the 0.300000% limit \u2014 at least one endpoint pair or transcribed dimension is likely wrong. Do not silently trust the blended px_per_m below: re-crop and re-measure both axes' anchors at their dimension-chain extension-line intersections, then recalibrate. If you must proceed now, prefer the single-axis scale (axis_px_per_m) for geometry measured along that axis over the blended value, and record this disagreement instead of treating the reading as clean.",
+        "relative_deviation": 0.05804749340369389,
+        "relative_deviation_limit": 0.003,
+        "type": "cross_axis_disagreement",
+        "x_px_per_m": 61.333333333333336,
+        "y_px_per_m": 65.0
+      },
+      {
+        "axis": "x",
+        "dimension_ref": "top_overall_15000mm",
+        "residual_m": -0.19599109131402984,
+        "residual_px": -12.179930795847667,
+        "span_px": 920.0,
+        "type": "residual_exceeds_threshold",
+        "value_m": 15.0
+      },
+      {
+        "axis": "y",
+        "dimension_ref": "left_overall_8000mm",
+        "residual_m": 0.3674832962138087,
+        "residual_px": 22.837370242214547,
+        "span_px": 520.0,
+        "type": "residual_exceeds_threshold",
+        "value_m": 8.0
+      }
+    ]
+  },
+  "overlay_path": "/tmp/ep_isolation/sm21_anchor_e86s57mu/out/1f_calib/cv_evidence/1f_view/001_px_m_calibrator_overlay.png",
+  "params": {
+    "anchors": [
+      {
+        "axis": "x",
+        "dimension_ref": "top_overall_15000mm",
+        "px_a": 260,
+        "px_b": 1180,
+        "value_m": 15.0
+      },
+      {
+        "axis": "y",
+        "dimension_ref": "left_overall_8000mm",
+        "px_a": 190,
+        "px_b": 710,
+        "value_m": 8.0
+      }
+    ],
+    "max_axis_relative_deviation": 0.003,
+    "residual_warn_m": 0.05,
+    "residual_warn_px": 2.0
+  },
+  "recipe_id": "clean_vector_v1",
+  "results": [
+    {
+      "anchor_px": {
+        "kind": "span",
+        "value": {
+          "anchors": [
+            {
+              "axis": "x",
+              "dimension_ref": "top_overall_15000mm",
+              "px_a": 260,
+              "px_b": 1180,
+              "value_m": 15.0
+            },
+            {
+              "axis": "y",
+              "dimension_ref": "left_overall_8000mm",
+              "px_a": 190,
+              "px_b": 710,
+              "value_m": 8.0
+            }
+          ]
+        }
+      },
+      "axis_calibration_disagreement": true,
+      "axis_px_per_m": {
+        "x": 61.333333333333336,
+        "y": 65.0
+      },
+      "axis_relative_deviation": 0.05804749340369389,
+      "axis_relative_deviation_limit": 0.003,
+      "candidate_id": "1f_view:px_m_calibrator:001:scale",
+      "candidate_kind": "calibration",
+      "coord_space": "source_px",
+      "m_per_px": 0.0160913140311804,
+      "metric": {
+        "axis_calibration_disagreement": true,
+        "axis_px_per_m": {
+          "x": 61.333333333333336,
+          "y": 65.0
+        },
+        "axis_relative_deviation": 0.05804749340369389,
+        "axis_relative_deviation_limit": 0.003,
+        "confidence": "low",
+        "dimension_refs": [
+          "top_overall_15000mm",
+          "left_overall_8000mm"
+        ],
+        "raw_segments": [
+          {
+            "axis": "x",
+            "dimension_ref": "top_overall_15000mm",
+            "px_a": 260,
+            "px_b": 1180,
+            "value_m": 15.0
+          },
+          {
+            "axis": "y",
+            "dimension_ref": "left_overall_8000mm",
+            "px_a": 190,
+            "px_b": 710,
+            "value_m": 8.0
+          }
+        ],
+        "residuals": [
+          {
+            "axis": "x",
+            "dimension_ref": "top_overall_15000mm",
+            "residual_m": -0.19599109131402984,
+            "residual_px": -12.179930795847667,
+            "span_px": 920.0,
+            "value_m": 15.0
+          },
+          {
+            "axis": "y",
+            "dimension_ref": "left_overall_8000mm",
+            "residual_m": 0.3674832962138087,
+            "residual_px": 22.837370242214547,
+            "span_px": 520.0,
+            "value_m": 8.0
+          }
+        ],
+        "scale_px_per_m": 62.14532871972318
+      },
+      "provenance": {
+        "crop_chain_id": "",
+        "recipe_id": "clean_vector_v1",
+        "source_image_sha256": "a2efe3c41cf4",
+        "tool": "px_m_calibrator",
+        "tool_version": "1"
+      },
+      "px_per_m": 62.14532871972318,
+      "residuals": [
+        {
+          "axis": "x",
+          "dimension_ref": "top_overall_15000mm",
+          "residual_m": -0.19599109131402984,
+          "residual_px": -12.179930795847667,
+          "span_px": 920.0,
+          "value_m": 15.0
+        },
+        {
+          "axis": "y",
+          "dimension_ref": "left_overall_8000mm",
+          "residual_m": 0.3674832962138087,
+          "residual_px": 22.837370242214547,
+          "span_px": 520.0,
+          "value_m": 8.0
+        }
+      ],
+      "rmse_m": 0.2944965881556442,
+      "rmse_px": 18.301587277769446,
+      "visual": {
+        "anchor_px": {
+          "kind": "span",
+          "value": {
+            "anchors": [
+              {
+                "axis": "x",
+                "dimension_ref": "top_overall_15000mm",
+                "px_a": 260,
+                "px_b": 1180,
+                "value_m": 15.0
+              },
+              {
+                "axis": "y",
+                "dimension_ref": "left_overall_8000mm",
+                "px_a": 190,
+                "px_b": 710,
+                "value_m": 8.0
+              }
+            ]
+          }
+        },
+        "confidence": "high",
+        "relative": {}
+      },
+      "warnings": [
+        {
+          "guidance": "x=61.3333333 px/m and y=65 px/m disagree by 5.804749%, over the 0.300000% limit \u2014 at least one endpoint pair or transcribed dimension is likely wrong. Do not silently trust the blended px_per_m below: re-crop and re-measure both axes' anchors at their dimension-chain extension-line intersections, then recalibrate. If you must proceed now, prefer the single-axis scale (axis_px_per_m) for geometry measured along that axis over the blended value, and record this disagreement instead of treating the reading as clean.",
+          "relative_deviation": 0.05804749340369389,
+          "relative_deviation_limit": 0.003,
+          "type": "cross_axis_disagreement",
+          "x_px_per_m": 61.333333333333336,
+          "y_px_per_m": 65.0
+        },
+        {
+          "axis": "x",
+          "dimension_ref": "top_overall_15000mm",
+          "residual_m": -0.19599109131402984,
+          "residual_px": -12.179930795847667,
+          "span_px": 920.0,
+          "type": "residual_exceeds_threshold",
+          "value_m": 15.0
+        },
+        {
+          "axis": "y",
+          "dimension_ref": "left_overall_8000mm",
+          "residual_m": 0.3674832962138087,
+          "residual_px": 22.837370242214547,
+          "span_px": 520.0,
+          "type": "residual_exceeds_threshold",
+          "value_m": 8.0
+        }
+      ]
+    }
+  ],
+  "source_image": {
+    "height_px": 868,
+    "name": "1f_view.png",
+    "sha256": "a2efe3c41cf4",
+    "width_px": 1377
+  },
+  "tool": "px_m_calibrator",
+  "tool_version": "1"
+}

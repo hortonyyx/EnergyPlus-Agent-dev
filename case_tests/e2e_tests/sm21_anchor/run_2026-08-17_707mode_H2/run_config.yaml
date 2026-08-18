@@ -1,0 +1,144 @@
+# =====================================================================
+# run_config.yaml — run_2026-08-17_707mode_H2 (sm21_anchor)
+#
+# H2 = H1 的接替跑。H1 因 **F-60** 作废（量图的路被 guard 堵死 ⇒ 观测不承载信息），
+# 详见 ../run_2026-08-17_707mode_H1/VOID.md 与其 _run/pilot_r1/F60_guard_prose_false_positive.md。
+#
+# ⇒ H2 与 H1 的**唯一自变量差**就是 F-60 修法。其余配置逐项沿用。
+#
+# ---------------------------------------------------------------------
+# 相对 H1 新增的改动（F-60 修法，orchestrator 施工，⛔ 零复审）
+#
+#   判据面（用户拍板「修」）：`guard.py` 的 `..` / `~` 由**裸子串匹配**
+#     （`".." in text` / `"~" in text`，作用于整份文件正文）收窄为**路径形态**匹配：
+#       `_TRAVERSAL_RE = ..[\\/] | [\\/].. | 独立 .. 段（前后非点非词字符）`
+#       `_HOME_RE      = ~[\w.-]*[\\/]`
+#     ⇒ 英文省略号、numpy 一元 `~`、`~180`、`z ~ 0.0`、`x[..., 0]` 不再误判。
+#     ⚠️ 收窄 `~` 之所以安全，是因为真正能**展开**家目录的路都在别处按名字挡着且未动：
+#        `cd`/`env` 在 `_check_bash` 按名字禁 · 只读命令参数走 `_path_arg`（拒绝 `~` 开头）·
+#        `expanduser` / `.home()` 在 EXEC_DENY_IMPLICIT_PATHS。
+#        ⛔ 删掉其中任何一条都会重新打开本次收窄让渡给它的那部分。
+#
+#   可自救面（未拍板，随修法一起做）：新增 `_token_reason`，
+#     拒绝信息从「含禁忌 token」升级为**指名文件 + 行号 + 命中的原文**。
+#     理由：扫描面读的是**每一个可写文件**，出事的往往不是被执行的那个
+#     ⇒ 不指名就无法自救。同族 F-53/F-54/F-58。
+#
+#   ⛔ 扫描面：**不动**（用户 08-17 改判）。
+#     我最初提的「只扫实际要跑的文件」经复核 = **08-16 跨家族复审已复现并封堵的漏洞**
+#     （`out/main.py` 干净、`import out/helper.py`，路径藏在后者）——
+#     见 `guard.py:868-896`。已补锁 `test_guard_f60_narrowing_did_not_shrink_the_scanned_surface`
+#     钉住「不得拿 F-60 当借口窄化扫描面」。
+#
+#   锁：`tests/test_isolation.py` +17（7 正向 prose · 7 负向真实路径形态 ·
+#     扫描面不缩 · 拒绝信息可自救 · 回归用例自证前提）。
+#     **双向 neuter 实测**（临时 worktree，零仓库改动）：
+#       退回老判据 ⇒ 正向锁 9 红 · 过度收窄 ⇒ 负向锁 5 红
+#     ⇒ 两个方向都不是恒绿的门。⚠️ 该 neuter 由作者自测，**结论待独立复核**。
+#
+#   回归：受影响子集 **399 passed / 0 failed**
+#     （test_isolation + test_reading_schema + test_reading_mode +
+#       test_checks_reading_correction + test_reading_line_style_visibility）。
+#
+# ---------------------------------------------------------------------
+# ⛔ 归因纪律（本跑最容易被自己糊弄的地方）
+#
+#   H1 与 H2 之间**只差 F-60 修法**，但这⛔**不**意味着 H2 的任何结果可以归因给 F-60。
+#   F-60 修的是「路通不通」，不是「模型会不会走这条路」——
+#   路通了之后它**仍然可能不去量**，那才是本批真正要测的东西。
+#   ⇒ **F-60 是让归因可信的前置，不是修法。**（与 F-51 单帧化同一性质。）
+#
+#   ⚠️ H1 与 H2 之间还叠着 08-17 三件前置（F-51 单帧化 / scale_origin 退回 SHOULD /
+#      跨轴合法出口）与 B1（pilot 停等门）——它们对 H1、H2 **都在场**，
+#      所以 H2 依然⛔**不是**任何单项的单变量测试。
+#
+# ---------------------------------------------------------------------
+# 跑前复核（沿用 H1 已验证项；带 ⭐ 的在 H2 的新 staging 上重验）
+#
+#   ⭐ ① 单帧化真实生效（staging 重建，须重验）
+#   ⭐ ② F-60 修法真的进了 staging 的 guard 副本（不是只改了仓库源码）
+#      ③ pilot 停等门接线在（H1 已验，逻辑未动）
+#      ④ sm21 走 legacy 判卷（gt schema_version: 2；H1 已验，与本跑无关的改动）
+#
+# ---------------------------------------------------------------------
+# 判读口径（与 H1 相同，⛔ 不因为「这次修好了工具」而放松）
+#
+#   ⛔⛔ **本抽的分数不得当结论**：同配置两抽实测差 2.8 倍，一抽是噪声。
+#      本抽回答「这条路今天走不走得通」，⛔ 不是「达到什么水平」。
+#
+#   过程指标（比分数更早出信号）：
+#     - CV 调用次数，尤其 crop_zoom（07-07 基准 55；08-15 七抽 0/0/0/2/1/6；H1 = 1 且 scale=1.0）
+#     - **量了几张图**（历史六抽全部只量 1/6，最稳定的病征）
+#     - ⭐ **自写代码是否真的跑起来了**（H1 = 两次尝试两次被拒 ⇒ 本项在 H1 上不可测）
+#     - 打回后是否真的改
+#     - 跨轴出口是否被触发（rc=0 且零机器消费者 ⇒ **必须人工翻 access_log 与产物**）
+#   分数：墙 x/9 · 窗 x/7（07-07 基准 9/9 · 7/7 · 最大偏移 0.0 m）
+# =====================================================================
+
+case: sm21_anchor
+run_id: run_2026-08-17_707mode_H2
+stage: 0_reading
+supersedes: run_2026-08-17_707mode_H1   # ⛔ H1 VOID (F-60)
+
+purpose: >-
+  H1 因 F-60（guard 把代码里的英文标点判成路径穿越，堵死自写测量代码）作废后的接替跑。
+  以 07-07 模式跑 sm21 单抽探路，回答「这条路今天走不走得通」。
+  ⛔ 不是拿分数结论。
+
+isolation:
+  profile: clean_room_hard_isolation_v2_uncapped
+  known_open_holes:
+    - "BLOCKER-1：换行（\\n / \\r）不在 guard 元字符集 ⇒ 第二行免检执行。**未修。**"
+    - "BLOCKER-2：cwd / __file__ / parents 锚点族绕过，实测可定位到本仓 gt.json。**未修。**"
+    - "F-55 后半无效：全程 root 运行，被审计方能改自己的 access_log。"
+    - "⇒ 严格口径：只能说「**我们手上这份日志显示**它没碰答案」。"
+
+models:
+  reading:
+    role: 0_reading
+    model_id: claude-haiku-4-5-20251001
+    provider: anthropic
+    effort: default
+    source: spawn_isolated_reader.py clean-room staging + headless `claude -p`
+    note: 与 07-07 基准、08-15 七抽、08-16 G1/G2、H1 全部同一 model_id。
+  orchestrator:
+    role: orchestration + pilot review
+    model_id: claude-opus-5
+    sees_images: true
+    note: >-
+      ⭐ 看图并写 feedback.md（07-07 模式，用户已授权）。
+      **成绩记账须如实标注，⛔ 不得记成「弱模型独立完成」。**
+
+sampling:
+  draws: 1
+  note: 用户 08-17 拍板「先 1 抽探路」。⛔ 该抽分数不得当结论。
+
+session_form:
+  note: >-
+    ⚠️ A1 变量，**不控制、只登记**：每次 spawn 都是 `claude -p` 一次性冷启
+    ⇒ spawn② 是全新会话，须从工作区重读 pilot 文件；07-07 当年是同一会话多轮。
+    ⛔ 若本跑不达标，A1 仍是未排除项，不得据本跑宣布 pilot 门无效。
+
+provenance:
+  base_commit: 0fd8eaa
+  tracked_dirty: true
+  dirty_paths:
+    - src/agent/execution/isolation_templates/guard.py   # F-60 判据收窄 + 可自救信息
+    - tests/test_isolation.py                            # F-60 +17 把锁
+  note: 两处 dirty 即 F-60 修法本体，尚未落库、尚未复审。
+
+review_debt:
+  ratified: 用户 08-17「先重开一抽，复审登记欠着」
+  items:
+    - object: F-60 修法（guard.py 判据收窄 + _token_reason）
+      author: orchestrator (claude-opus-5)
+      status: ⛔ 零复审 —— 按「谁写谁不批」须换人换家族
+    - object: F-60 的 17 把锁 + 双向 neuter 结论
+      author: orchestrator (claude-opus-5)
+      status: ⛔ 零复审（neuter 是作者自测）
+
+judge:
+  mode: off
+  note: >-
+    ⚠️ `judge: off` 会关掉产 grade 的那条路。
+    ⇒ merge 之后**必须单独补**：score_vs_gt.json + grade.png + 六张 render。

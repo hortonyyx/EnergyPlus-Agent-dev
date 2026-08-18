@@ -1,0 +1,119 @@
+# =====================================================================
+# run_config.yaml — run_2026-08-18_707mode_J3 (sm21_anchor)
+#
+# J3 = 用户 2026-08-18 拍板「**就先完整恢复 707 模式**」后的第一抽。
+# 治理口径见 AI_agent/CLAUDE.md §0（本日新增）：科研项目 P0 = 快跑通，
+# §0.0 当前唯一第一目标 = **恢复到 07-07 的水平**。
+#
+# ---------------------------------------------------------------------
+# ⛔⛔ 归因纪律（本跑最重要的一句）
+#
+#   J3 相对 H2 **同时动了两个变量**，这是用户明确选择的结果，不是疏漏：
+#     ① guard 档 strict → **observe**（只记录不拦截）
+#     ② 会话形态 冷启 → **同会话多轮**（--resume）
+#   目标是「像不像 07-07」，**不是**「哪个变量起了作用」。
+#   ⇒ 达标 ⇒ 707 模式恢复成立；⛔ 不得据此宣布任一变量是杠杆。
+#   ⇒ 不达标 ⇒ 才拆变量。
+#
+# ---------------------------------------------------------------------
+# 相对 H2 的改动
+#
+#   ① guard_profile: observe（本日新增第三档，已成默认）
+#      = 按 strict 原样判、把「本来会拦」记成 access_log 的 `shadow_decision`、**不阻断**。
+#      ⇒ 摩擦归零，**摩擦测量照收**（不用任何一抽去换）。
+#      跑前实测：毁掉 J1/J2 的六种形状 **6/6 全放行**，其中 4 条留下 strict 判决记录
+#      （F-61 管道尾巴 · F-62 heredoc · F-62 反斜杠续行 · N-1 `grade` 词 ·
+#        F-60 英文标点 · J2「像素峰换算成米」——最后一条是 J2 全部 4 次 deny 的落点）。
+#      ⛔ 边界未动：答案（gt）**物理不在 staging**（`_copy_case_data` 撞 gt 路径直接 raise）、
+#         staging **物理在仓库外**（`_require_outside_repo`）——这两条与档位无关，三档一致。
+#
+#   ② session_form: 同会话多轮（`spawn --resume`，A1，08-18 实现）
+#      07-07 本身就是同一会话多轮；H2 每轮 `claude -p` 冷启，spawn② 须从工作区重读 pilot 文件。
+#      第一轮必须无 `--resume`（session id 由该轮记下，存审计兄弟目录，读图器不可写不可伪造）。
+#
+#   ⛔ 用户同日否掉的一件（登记，不做）：orchestrator 曾提议把答案边界搬到进程/文件系统层
+#      （专用低权用户 + 权限位）。用户否：隔离要防的只有 reading 抄答案，而**每个 run 本来就
+#      新建独立空间、答案本来就不在里面** ⇒ 物理隔绝已成立。原话「不要一道道规则去防」。
+#
+# ---------------------------------------------------------------------
+# 跑前复核
+#   ⭐ ① guard 档位在 staging 审计目录里确实是 observe
+#   ⭐ ② 单帧化（F-51）对本次新建 staging 真实生效
+#      ③ pilot 停等门接线在
+#      ④ sm21 走 legacy 判卷（gt schema_version: 2）
+#
+# ---------------------------------------------------------------------
+# 判读口径（沿用，⛔ 不因为「这次把路修通了」而放松）
+#
+#   ⛔⛔ **本抽的分数不得当结论**：同配置两抽实测差 2.8 倍，一抽是噪声。
+#   过程指标（比分数更早出信号）：
+#     - **量了几张图**（07-07 = 6/6；此前八抽 1/6；J2 = 3/6 —— 覆盖面动过，深度没动）
+#     - crop_zoom 次数（07-07 = 55；此前八抽 0/0/0/2/1/6/1/7；J2 = 1）
+#     - 自写代码是否真的跑起来（H1 两次尝试两次被拒 ⇒ 该项在 H1 上不可测）
+#     - access_log 里的 `shadow_decision` —— **本跑独有**：它直接量出
+#       「strict 本来会收多少摩擦税」，且不花任何代价
+#     - 打回后是否真的改
+# =====================================================================
+
+case: sm21_anchor
+run_id: run_2026-08-18_707mode_J3
+stage: 0_reading
+supersedes: null   # J1 VOID(F-61) / J2 是对照臂诊断，均非 707 模式跑
+
+purpose: >-
+  用户 08-18 拍板「就先完整恢复 707 模式」后的第一抽。
+  707 模式 = orchestrator 亲自审 pilot + 同会话多轮 + Haiku + sm21。
+  ⛔ 回答「707 模式在新基座上恢复了没有」，不是拿分数结论。
+
+isolation:
+  profile: clean_room_physical_staging + guard_observe
+  boundary:
+    - "gt 物理不在 staging（_copy_case_data 撞 gt 路径 raise）"
+    - "staging 物理在仓库外（_require_outside_repo）"
+  known_open_holes:
+    - "guard 为 observe 档 ⇒ 词法层【不拦截】，只留 shadow 记录。按 §0.2 探索档口径这是刻意的。"
+    - "全程 root 运行，被审计方能改自己的 access_log（F-55 后半无效）。"
+    - "⇒ 严格口径：只能说「**我们手上这份日志显示**它没碰答案」。"
+    - "⛔ 本跑是探索档 ⇒ 按 CLAUDE.md §0.2 反向铁律，**产物永远不得记成成绩**。"
+
+models:
+  reading:
+    role: 0_reading
+    model_id: claude-haiku-4-5-20251001
+    provider: anthropic
+    effort: default
+    source: spawn_isolated_reader.py clean-room staging + headless `claude -p`
+    note: 与 07-07 基准、08-15 七抽、08-16 G1/G2、H1/H2 全部同一 model_id。
+  orchestrator:
+    role: orchestration + pilot review
+    model_id: claude-opus-5
+    sees_images: true
+    note: >-
+      ⭐ 看图并写 feedback.md（07-07 模式，用户 08-16 已授权且明说「已经说了很多遍了」）。
+      **成绩记账须如实标注，⛔ 不得记成「弱模型独立完成」。**
+
+sampling:
+  draws: 1
+  note: ⛔ 该抽分数不得当结论（同配置两抽实测差 2.8 倍）。
+
+session_form:
+  mode: resumed_same_session
+  note: >-
+    ⭐ A1 变量本跑**打开**（07-07 本身即同会话多轮）。
+    第一轮无 --resume；其后每轮 --resume，session id 存审计兄弟目录。
+    ⛔ 无记录时 spawn 直接报错、不静默降级成冷启。
+
+provenance:
+  base_commit: 0fd8eaa
+  tracked_dirty: true
+  note: >-
+    本日改动尚未落库：CLAUDE.md §0 治理条款 · guard observe 档 ·
+    isolation/spawn 默认档 · test_isolation 夹具与 1 把新锁 ·
+    plan.md / decision_log.md。
+
+judge:
+  mode: stop
+  note: >-
+    ⛔ 不用 H2 的 `judge: off` —— 那会关掉产 grade 的那条路，导致产物不全
+    （merge 后还得手工补 score_vs_gt / grade.png / 六张 render）。
+    走标准链 `flow <case> <run> --judge stop --to 0_reading`，判卷产物自动出全。

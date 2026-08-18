@@ -1,0 +1,113 @@
+{
+  "image_label": "North elevation view",
+  "image_kind": "elevation",
+  "scale_origin": null,
+  "facade": {
+    "view_facade": "North",
+    "mirrored": "unknown",
+    "orientation_evidence": [
+      {
+        "source": "image_name",
+        "detail": "label indicates 'North elevation'",
+        "confidence": "high"
+      }
+    ]
+  },
+  "strokes": [
+    {
+      "id": "WF1",
+      "pen": "wall_fill",
+      "provenance": "seen",
+      "confidence": "medium",
+      "dimension_refs": [],
+      "geometry": {
+        "kind": "rect",
+        "x_range_m": [
+          0.0,
+          15.0
+        ],
+        "y_range_m": [
+          0.0,
+          3.6
+        ]
+      },
+      "note": "Floor 1 wall (North facade)"
+    },
+    {
+      "id": "WF2",
+      "pen": "wall_fill",
+      "provenance": "seen",
+      "confidence": "medium",
+      "dimension_refs": [],
+      "geometry": {
+        "kind": "rect",
+        "x_range_m": [
+          0.0,
+          15.0
+        ],
+        "y_range_m": [
+          3.6,
+          7.2
+        ]
+      },
+      "note": "Floor 2 wall (North facade)"
+    }
+  ],
+  "dimensions": [
+    {
+      "id": "D1",
+      "text_verbatim": "15000",
+      "value_m": 15.0,
+      "from": [
+        0.0,
+        0.0
+      ],
+      "to": [
+        15.0,
+        0.0
+      ],
+      "axis": "x",
+      "chain_id": "C_width",
+      "role": "overall",
+      "note": "Facade width"
+    },
+    {
+      "id": "D2",
+      "text_verbatim": "6000",
+      "value_m": 6.0,
+      "from": [
+        0.0,
+        0.0
+      ],
+      "to": [
+        0.0,
+        6.0
+      ],
+      "axis": "y",
+      "chain_id": "C_height",
+      "role": "overall",
+      "note": "Total height"
+    }
+  ],
+  "ocr_texts": [],
+  "uncaptured": [
+    "Decorative details, cornices, or non-structural facade elements excluded",
+    "Window frame details (muntins, mullions) shown as filled rectangles",
+    "Door openings marked with swing arcs (healed into continuous walls per guide.md §2.1)"
+  ],
+  "self_check": {
+    "all_dimensions_transcribed": false,
+    "all_visible_strokes_captured": true,
+    "no_topology_inferred": true,
+    "pens_used": [
+      "wall_fill",
+      "window"
+    ],
+    "unknowns_noted": [
+      "Elevation facade orientation is image-local only (not world axis per guide.md §4)",
+      "Windows marked as rectangles in local x (horizontal along facade) and y (height) coordinates",
+      "Wall_fill: one per floor (two floors visible = two wall_fill rectangles)",
+      "Axis calibration discrepancy from 1f_view (17%) affects precision of all coordinate measurements"
+    ]
+  }
+}

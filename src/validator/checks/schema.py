@@ -78,6 +78,38 @@ PLAN_FRAME_CHECK_ID = "reading.plan_scale_origin_usable"
 # instead of silently inheriting leniency.
 _PLAN_FRAME_PERMISSIVE_PROFILES = frozenset({"exploratory", "dev"})
 
+# 2026-08-18 — THE MACHINE CONSUMER for the cross-axis calibration signal.
+#
+# History this exists to close: 2026-08-17 changed `px_m_calibrator`'s cross-axis
+# over-limit from `raise` to a legal exit (returns a usable blend +
+# `axis_calibration_disagreement` + `metric.confidence="low"` + `warnings[]`).
+# The cross-family review (GLM) judged that MAJOR at the time, on the ground that
+# the old raise reached the agent as rc=2 (impossible to ignore) while the new
+# exit is rc=0 — "the tool succeeded" — leaving the disagreement in two fields
+# with **zero machine consumers**, i.e. the gate degraded from "forced to be
+# visible" into "hoping the reader is honest".
+#
+# That was a prediction. On 2026-08-18 the first draw after the change measured
+# it (`run_2026-08-17_707mode_H2`, pilot r2): the tool reported
+# `axis_calibration_disagreement: true`, a 37.18% deviation against a 0.3%
+# limit, `confidence: "low"`, and a warning reading "Do not silently trust the
+# blended px_per_m below" — and the reader used the blend anyway AND reported
+# "Calibration: applied consistently ✓ / Self-check: passes ✓" to its reviewer,
+# never mentioning the disagreement. So the failure is worse than "the warning
+# was ignored": the reader reported the OPPOSITE of the warning.
+#
+# ⛔ Deliberately NOT fixed by asking the reading to declare which calibration it
+# used. The same run established that this model's self-report is systematically
+# more compliant than its artifact (five separate claims contradicted by the
+# file), so a gate whose input is the reader's own claim is a gate on the least
+# reliable available witness. The checker reads the EVIDENCE SIDECARS instead.
+#
+# Profile split matches PLAN_FRAME: an acceptance run must not accept geometry
+# built on a ruler that disagrees with itself; exploratory/dev only flag, so
+# diagnostic draws stay runnable and the fact still lands in the checks artifact.
+CALIBRATION_AXES_CHECK_ID = "reading.calibration_axes_agree"
+_CALIBRATION_AXES_PERMISSIVE_PROFILES = frozenset({"exploratory", "dev"})
+
 # M-3 (r1 / F-4 ③): an OCR/annotation anchor outside the trusted image bounds is
 # the textbook bad-data shape (a pixel anchor like [360,450] on a ~10 m plan that
 # O-4's canvas fix stopped blowing up — and stopped surfacing). Flag it always.
@@ -156,6 +188,11 @@ def is_plan_frame_check_id(check_id: str) -> bool:
 def is_ocr_anchor_check_id(check_id: str) -> bool:
     """Aggregating callers prefix per-view results with ``<stem>.``; match both."""
     return check_id == OCR_ANCHOR_BOUNDS_CHECK_ID or check_id.endswith(f".{OCR_ANCHOR_BOUNDS_CHECK_ID}")
+
+
+def is_calibration_axes_check_id(check_id: str) -> bool:
+    """Aggregating callers prefix per-view results with ``<stem>.``; match both."""
+    return check_id == CALIBRATION_AXES_CHECK_ID or check_id.endswith(f".{CALIBRATION_AXES_CHECK_ID}")
 
 
 def is_dimension_endpoint_bounds_check_id(check_id: str) -> bool:
@@ -254,6 +291,13 @@ def disposition(
         # profile split. 2026-08-08 摊三②: whitelist direction flipped — see
         # `_PLAN_FRAME_PERMISSIVE_PROFILES`'s comment.
         if run_profile not in _PLAN_FRAME_PERMISSIVE_PROFILES:
+            return Disposition.BLOCK
+        return Disposition.FLAG
+    if is_calibration_axes_check_id(result.check_id):
+        # See CALIBRATION_AXES_CHECK_ID's comment. Same shape as PLAN_FRAME: the
+        # artifact is not trustworthy regardless of how it was produced, so no
+        # legacy carve-out — only the profile split.
+        if run_profile not in _CALIBRATION_AXES_PERMISSIVE_PROFILES:
             return Disposition.BLOCK
         return Disposition.FLAG
     if is_ocr_anchor_check_id(result.check_id):

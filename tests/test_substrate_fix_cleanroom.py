@@ -122,7 +122,12 @@ requires_setpriv = pytest.mark.skipif(_SETPRIV is None, reason="setpriv (util-li
 @pytest.fixture()
 def staging(tmp_path: Path) -> Path:
     """Preview/unbound build — fresh per test, never merge-eligible."""
-    return build_isolation_workspace(CASE_DIR, staging_root=tmp_path / "staging").staging_root
+    # strict: these assert the guard POLICY's judgment (deny shapes, F-44's
+    # deny-entry contract). The shipping default is "observe", which computes
+    # the same verdict and declines to enforce it (CLAUDE.md §0.4#1).
+    return build_isolation_workspace(
+        CASE_DIR, staging_root=tmp_path / "staging", guard_profile="strict"
+    ).staging_root
 
 
 @pytest.fixture()
