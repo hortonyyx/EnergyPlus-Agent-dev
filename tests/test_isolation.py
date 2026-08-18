@@ -3714,6 +3714,8 @@ def test_single_plan_experiment_fixes_model_and_rejects_model_drift(tmp_path: Pa
     assert spec["model"] == "claude-haiku-4-5-20251001"
     argv = spawn_command(staging)
     assert argv[argv.index("--model") + 1] == "claude-haiku-4-5-20251001"
+    assert "measure-before-draw" in argv[argv.index("-p") + 1]
+    assert spec["directive_sha256"] == hash_file(staging / "directive.md")
 
     with pytest.raises(ValueError, match="model mismatch"):
         spawn_command(staging, model="claude-sonnet-4-6")
@@ -3766,6 +3768,7 @@ def test_controlled_single_plan_merge_requires_and_archives_same_session_ledger(
     archive = attempt / "isolation_archive"
     assert (archive / "reader_invocations.jsonl").is_file()
     assert (archive / "reading_experiment_spec.json").is_file()
+    assert (archive / "directive.md").is_file()
     provenance = json.loads((attempt / "isolation_provenance.json").read_text(encoding="utf-8"))
     assert provenance["reader_invocations_sha256"] == hash_file(
         archive / "reader_invocations.jsonl"
@@ -3774,6 +3777,9 @@ def test_controlled_single_plan_merge_requires_and_archives_same_session_ledger(
     assert accepted is not None
     assert accepted.input_hashes["isolation_reader_invocations"]
     assert accepted.input_hashes["isolation_experiment_spec"]
+    assert accepted.input_hashes["isolation_directive"] == hash_file(
+        archive / "directive.md"
+    )
 
 
 # ---------------------------------------------------------------------------

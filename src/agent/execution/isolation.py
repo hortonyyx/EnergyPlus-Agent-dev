@@ -398,6 +398,10 @@ def prepare_single_plan_experiment(
         pilot_review_gate=True,
         guard_profile=guard_profile,
     )
+    directive_path = staging_root / "directive.md"
+    directive_path.write_text(
+        _CONTROLLED_MEASURE_BEFORE_DRAW_DIRECTIVE, encoding="utf-8"
+    )
 
     spec = {
         "schema_version": READING_EXPERIMENT_SCHEMA_VERSION,
@@ -417,6 +421,7 @@ def prepare_single_plan_experiment(
         "manifest_sha256": hash_file(workspace.manifest_path),
         "binding_sha256": hash_file(staging_root / "binding.json"),
         "input_inventory_sha256": hash_file(staging_root / "input_inventory.json"),
+        "directive_sha256": hash_file(directive_path),
     }
     spec["content_sha256"] = _reading_experiment_content_hash(spec)
     spec_path = reading_experiment_spec_path(staging_root)
@@ -678,6 +683,7 @@ def _verify_controlled_experiment_launches(
             inputs.get("manifest_sha256") != spec["manifest_sha256"]
             or inputs.get("binding_sha256") != spec["binding_sha256"]
             or inputs.get("input_inventory_sha256") != spec["input_inventory_sha256"]
+            or inputs.get("directive_sha256") != spec["directive_sha256"]
             or inputs.get("experiment_spec_sha256")
             != hash_file(reading_experiment_spec_path(staging_root))
         ):
@@ -912,6 +918,7 @@ def merge_isolated_output(
                         "isolation_experiment_spec": provenance.get(
                             "reading_experiment_spec_sha256", ""
                         ),
+                        "isolation_directive": provenance.get("directive_sha256", ""),
                     },
                     capability="manual",
                     check_passed=not blocking,
@@ -973,6 +980,15 @@ _PILOT_APPROVAL_POINTER = (
     "approved pilot. Continue with the remaining images and reading_summary.md, "
     "applying the approved method consistently.\n"
 )
+
+_CONTROLLED_MEASURE_BEFORE_DRAW_DIRECTIVE = """# Per-run directive (directed mode)
+
+`cv_toolbox.md` is REQUIRED reading for this run — not an optional pointer.
+
+Wall-line, window-box and storey-line positions MUST be measured with the pixel
+probe before you draw them (measure-before-draw). Do not write an eyeballed
+coordinate for any of those three when the clean-vector toolbox applies.
+"""
 
 
 def session_id_path(staging_root: Path) -> Path:
@@ -1037,6 +1053,7 @@ def _verify_reading_experiment_spec(staging_root: Path, spec: dict) -> None:
         "manifest_sha256": Path(staging_root) / "MANIFEST.json",
         "binding_sha256": Path(staging_root) / "binding.json",
         "input_inventory_sha256": Path(staging_root) / "input_inventory.json",
+        "directive_sha256": Path(staging_root) / "directive.md",
         "run_config_sha256": Path(spec["run_dir"]) / "run_config.yaml",
     }
     for field, path in paths.items():
@@ -1167,7 +1184,19 @@ def spawn_command(
             )
     else:
         prompt = (staging_root / "kickoff_prompt.md").read_text(encoding="utf-8")
-        if directive is not None:
+        if experiment_spec is not None:
+            frozen_directive = (staging_root / "directive.md").read_text(encoding="utf-8")
+            if directive is not None and Path(directive).read_text(
+                encoding="utf-8"
+            ) != frozen_directive:
+                raise ValueError(
+                    "controlled reading experiment directive differs from its frozen bytes"
+                )
+            check_feedback_text(frozen_directive)
+            prompt += (
+                "\n## Per-run directive (binding for this run)\n" + frozen_directive
+            )
+        elif directive is not None:
             text = Path(directive).read_text(encoding="utf-8")
             # Same contamination bar as feedback: the directive is a prompt channel.
             check_feedback_text(text)
@@ -1729,6 +1758,7 @@ def _build_provenance(staging_root: Path, output_hash: str) -> dict:
     pilot_review_path = pilot_review_state_path(staging_root)
     reader_invocations = reader_invocations_path(staging_root)
     experiment_spec = reading_experiment_spec_path(staging_root)
+    directive_path = staging_root / "directive.md"
     denied = 0
     entries = 0
     if access_log_path.exists():
@@ -1757,6 +1787,7 @@ def _build_provenance(staging_root: Path, output_hash: str) -> dict:
         "reading_experiment_spec_sha256": (
             hash_file(experiment_spec) if experiment_spec.exists() else ""
         ),
+        "directive_sha256": hash_file(directive_path) if directive_path.exists() else "",
     }
 
 
@@ -1774,6 +1805,7 @@ def _archive_isolation_artifacts(staging_root: Path, attempt_dir: Path) -> None:
         "pilot_review_state.json": pilot_review_state_path(staging_root),
         "reader_invocations.jsonl": reader_invocations_path(staging_root),
         "reading_experiment_spec.json": reading_experiment_spec_path(staging_root),
+        "directive.md": staging_root / "directive.md",
     }
     for name, src in sources.items():
         if src.exists():
