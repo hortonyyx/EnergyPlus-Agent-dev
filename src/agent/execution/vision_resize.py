@@ -56,7 +56,18 @@ VISION_RESIZE_TIERS: dict[str, tuple[int, int]] = {
     "standard": (1568, 1568),
     "high_res": (2576, 4784),
 }
-DEFAULT_VISION_RESIZE_TIER = "standard"
+# "none" is not a vision tier — it is the explicit choice NOT to touch the file.
+# Kept out of VISION_RESIZE_TIERS so that the two real tiers stay a faithful copy
+# of the Anthropic table; callers select it by name like any other option.
+NO_VISION_RESIZE = "none"
+VISION_RESIZE_CHOICES: tuple[str, ...] = (NO_VISION_RESIZE, "standard", "high_res")
+
+# 2026-08-19 (user ruling): stage the ORIGINAL drawing. Cost-driven downscaling is
+# off the table for now, and the frame-alignment tradeoff F-51 was built to manage
+# — the reader's displayed frame vs the frame cv_probe measures — is packaged into
+# the reading 专项 rather than decided by a default here. A caller that wants the
+# old behaviour asks for it by name.
+DEFAULT_VISION_RESIZE_TIER = NO_VISION_RESIZE
 
 # High-quality downsampling for a full-image resize the model will read as a
 # drawing (LANCZOS preserves thin lines/text better than the NEAREST filter
@@ -110,6 +121,8 @@ def resized_size(
 def resized_size_for_tier(
     width: int, height: int, tier: str = DEFAULT_VISION_RESIZE_TIER
 ) -> tuple[int, int]:
+    if tier == NO_VISION_RESIZE:
+        return (width, height)
     if tier not in VISION_RESIZE_TIERS:
         raise ValueError(
             f"unknown vision resize tier {tier!r}; known tiers: "

@@ -33,7 +33,6 @@ WRITE_ALLOWED_DIRS = ("out", "requests")
 # Enumerated by auditing every tool in run_cv_probe.ALLOWED_TOOLS:
 #   crop_zoom / wall_line_profiler / storey_line_profiler / px_m_calibrator /
 #   window_cc_detector / overlay_logger -> allocate_sidecar_path(out_dir, ...)
-#   prescan-plan / prescan-elevation    -> evidence_dir(out_dir, ...)/label
 # `out_dir` is therefore the ONLY output-role parameter; every other file the
 # helper writes (crop png, overlay png, candidates.json, sidecar json) is derived
 # from it. The two name components that also shape the landing path are pinned to
@@ -70,8 +69,6 @@ PROBE_PATH_ROLE_KEYS = ("image", "anchors_json", "candidates_json")
 #                                    --max-aspect --merge-gap
 #                                    --merge-overlap-ratio --merge-iou
 #   overlay_logger                   --candidates-json
-#   prescan-plan / prescan-elevation --capability-profile --no-cc
-#                                    --min-strength --min-line-len-px --label
 # plus `--tool`, which selects the subparser (it is the request JSON's top-level
 # "tool" field).
 #
@@ -108,11 +105,6 @@ PROBE_DIRECT_PARAM_KEYS = (
     "merge_overlap_ratio",
     "merge_iou",
     "candidates_json",
-    "capability_profile",
-    "no_cc",
-    "min_strength",
-    "min_line_len_px",
-    "label",
 )
 # The direct form is not optional about WHAT it runs and WHAT it runs on; both
 # are required by cv_probe itself (`--tool` selects the subparser, `--image` is
@@ -124,7 +116,10 @@ PROBE_DIRECT_REQUIRED_KEYS = ("tool", "image")
 # policy owner); it lets a bare, known tool name receive the exact mechanical
 # repair instead of a generic pairing lecture.
 # 2026-08-15: prescan-plan / prescan-elevation dropped in step with
-# run_cv_probe.ALLOWED_TOOLS. Leaving them here would keep advertising a tool the
+# run_cv_probe.ALLOWED_TOOLS; 2026-08-19 it was withdrawn from the working tree
+# and archived under AI_agent/capability/reading/prescan_snapshot/
+# (deferred to the reading 专项, not abandoned).
+# Leaving them advertised here would keep pointing at a tool the
 # wrapper now refuses, which is the "mechanical repair" hint working against the
 # withdrawal.
 PROBE_TOOL_NAMES = frozenset(
@@ -282,9 +277,9 @@ TOOL_INPUT_EXCERPT_LIMIT = 8000
 # this file already documents for `writable_root`). `tools/run_cv_probe.py` stays
 # executable as the authorized wrapper.
 #
-# This deliberately EXCLUDES `tools/cv_probe.py`: the 2026-08-15 D1 arm withdrew
-# prescan from the reader's option set, and making the raw CLI executable would
-# hand it straight back — changing two variables in one run instead of one. See
+# This deliberately EXCLUDES `tools/cv_probe.py`: the reader goes through the
+# wrapper so every call is authorized and audited. (Until 2026-08-19 this also kept
+# the withdrawn prescan out of reach; prescan has since been withdrawn and archived.) See
 # this round's run_config for the honest limit of that exclusion (the toolbox
 # package is still importable from staging).
 SCRIPT_EXEC_ALLOWED_FILES = ("tools/run_cv_probe.py",)
@@ -891,7 +886,7 @@ def _sole_write_target(tool_input, root: Path) -> Path | None:
 def _check_write_target(target: Path, root: Path) -> tuple[bool, str]:
     """S2a: a write tool's resolved target may only land under out/ or requests/.
     `tools/**`, `guard.py`, `isolation_settings.json`, `MANIFEST.json`,
-    `skills/**`, `src/**`, `case_data/**`, `prescan/**`, `reference/**` and the
+    `skills/**`, `src/**`, `case_data/**`, `reference/**` and the
     staging root are all denied — closing the F-4/K escape where a reader could
     overwrite tools/run_cv_probe.py and then execute arbitrary code via the one
     Bash-allowlisted executable."""
@@ -1400,7 +1395,7 @@ def evaluate(payload: dict) -> tuple[str, str, list[str]]:
         return ("allow" if ok else "deny"), reason, paths
     # S2a: write protection — Write/Edit/MultiEdit/NotebookEdit may only target
     # out/** or requests/**; everything else (tools/, guard.py, MANIFEST.json,
-    # skills/, src/, case_data/, prescan/, reference/, staging root) is denied.
+    # skills/, src/, case_data/, reference/, staging root) is denied.
     if tool in WRITE_TOOLS:
         try:
             target = _sole_write_target(tool_input, root)

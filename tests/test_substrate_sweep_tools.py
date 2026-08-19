@@ -440,7 +440,7 @@ def test_doc_example_python_dash_c_executes_in_staging(doc_staging: Path) -> Non
     wired into ``isolation.py::_copy_case_data_image`` -- see
     ``tests/test_f51_single_frame.py`` for the dedicated lock on that
     mechanism). ``1f_view.png``'s real size resizes 2133x1345 -> 1377x868, so
-    the numpy shape this doc example now reports is ``(868, 1377)``. This is
+    the numpy shape this doc example reported was ``(868, 1377)``. This is
     not a relaxation of the check (still an exact-equality pin on a concrete
     tuple) -- it is the doc example continuing to report whatever the REAL
     staged frame actually is, which is now a different, correct number.
@@ -448,7 +448,12 @@ def test_doc_example_python_dash_c_executes_in_staging(doc_staging: Path) -> Non
 
     proc = _run_doc_block(doc_staging, DOC_6_PYTHON_DASH_C)
     assert proc.returncode == 0, (proc.stdout, proc.stderr)
-    assert proc.stdout.strip() == "(868, 1377)"
+    # 2026-08-19 (third value, same rule): the user ruled "stage the original, do not
+    # downscale to save cost" -> DEFAULT_VISION_RESIZE_TIER == "none", so the REAL staged
+    # frame is the source file's own 2133x1345 -> numpy (1345, 2133). The resize MECHANISM
+    # is unchanged and still locked in tests/test_f51_single_frame.py, which now asks for
+    # the tier by name and separately locks what the DEFAULT is.
+    assert proc.stdout.strip() == "(1345, 2133)"
 
 
 def test_doc_example_script_placeholder_is_illustrative_not_literal(doc_staging: Path) -> None:

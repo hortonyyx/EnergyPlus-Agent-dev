@@ -1,0 +1,113 @@
+{
+  "run": "run_2026-08-19_gpt54mini_historystack_P1",
+  "tier": "exploratory / diagnostic — n=1, MUST NOT be recorded as a score",
+  "question": "Is today's reading failure Haiku-side, or harness-side? Re-run gpt-5.4-mini on ITS OWN historical success stack.",
+  "control": "run_2026-07-08_gpt54mini_cv_retest — same model, same commit — plan walls 9/9, plan windows 6/7",
+  "tree": {
+    "worktree": "/workspaces/ep_708_tree",
+    "git_head": "ebddadaee2f9e6848715976e32bf2e86ff70036f",
+    "detached": true
+  },
+  "staging": {
+    "root": "/tmp/ep_708_arm",
+    "built_by": "ebddada-era spawn_isolated_reader.py build",
+    "note": "dedicated empty root; the shared /tmp/ep_isolation root was NOT used because the ebddada build writes staging INTO the root and that root holds 12+ prior runs' stagings (contamination surface). Prior mis-build was removed before rebuild."
+  },
+  "frame": {
+    "1f_view_px": [
+      2133,
+      1345
+    ],
+    "vision_resize_F51": "absent at ebddada — faithful to 07-08"
+  },
+  "images_sha256_16": {
+    "1f_view.png": "ac62091683dde4ab",
+    "2f_view.png": "d7cd58d34bc6243e",
+    "East_view.png": "d09983ef9bdd4297",
+    "North_view.png": "3eea6a31223f0cee",
+    "South_view.png": "6c69efe4699b0a53",
+    "West_view.png": "88972f24bf728772"
+  },
+  "images_match_main_tree": "6/6 byte-identical (verified)",
+  "skill_0_reading_concat_sha256_16": "1e23f5056a95d520",
+  "reader": {
+    "model": "gpt-5.4-mini",
+    "channel": "codex CLI 0.144.1",
+    "invocation": "codex exec -m gpt-5.4-mini --dangerously-bypass-approvals-and-sandbox --cd <staging> -i case_data/1f_view.png < spawn_prompt_pilot.md",
+    "effort": "CLI default (not pinned) — faithful to 07-08 which passed no effort flag; actual value recorded from session header in transcript",
+    "guard": "Claude Code PreToolUse guard does NOT apply to codex (same as 07-08); isolation = L1 physical staging + cwd"
+  },
+  "prompt": {
+    "file": "spawn_prompt_pilot.md",
+    "sha256_16": "ba2b3e7bcd8e6439",
+    "measure_before_draw_included": false,
+    "why": "07-08 form: the E-batch folded the discipline into cv_toolbox.md self-declaration; the spawn prompt deliberately does NOT repeat it. That is part of what this arm tests."
+  },
+  "prescan_E3": {
+    "staged": true,
+    "views": 6,
+    "params": "shipped defaults, no orchestrator-picked values"
+  },
+  "pilot_gate": "1f only, then stop and wait for orchestrator review (07-08 kept this)",
+  "orchestrator": {
+    "model": "claude-opus-5",
+    "differs_from_control": "07-08 used Opus 4.8 — recorded honestly"
+  },
+  "authoritative_verdict": "deterministic gt scorer (score_reading_vs_gt); orchestrator does process review only",
+  "preflight_checks_passed": [
+    "codex CLI + gpt-5.4-mini reachable (CHANNEL_OK)",
+    "--dangerously-bypass-approvals-and-sandbox NOT blocked (this was the stated blocker in both the 08-18 reports)",
+    "vision channel verified: East_view -> '2 window openings, upper and lower' (matches 07-08 pre-run probe)",
+    "staging contamination sweep: no gt / no other runs / no prior readings"
+  ],
+  "result": {
+    "pilot_r1": {
+      "walls": "2/4",
+      "windows": "3/3",
+      "max_wall_offset_m": 0.0,
+      "note": "两道走廊墙完全缺失；它自己的 uncaptured 里点名了那两道墙上的门洞"
+    },
+    "pilot_r2_after_one_process_rework": {
+      "walls": "4/4",
+      "windows": "3/3",
+      "max_wall_offset_m": 0.07
+    },
+    "control_2026_07_08_final_1f": {
+      "walls": "4/4",
+      "windows": "2/3"
+    },
+    "calibration_r2": {
+      "px_per_m": 92.7093425606,
+      "truth": 92.6945,
+      "error_pct": 0.016,
+      "anchors_px": {
+        "x": [
+          425,
+          1816
+        ],
+        "y": [
+          346,
+          1087
+        ]
+      },
+      "residual_px": [
+        0.36,
+        -0.67
+      ],
+      "confidence": "high",
+      "note": "07-07 Haiku 拿满分那次的锚点是 425.4 / 1815.9 —— 同一组图元"
+    }
+  },
+  "model_identity_audit": {
+    "claim": "purely gpt-5.4-mini",
+    "evidence": "codex session rollout jsonl: all 3 turn_context records = gpt-5.4-mini",
+    "sol_incident": "一次 resume 未带 -m，CLI 静默落回 gpt-5.6-sol（06:03:02）；06:03:53 前被杀，该窗口内 response_item 计数 = 0 ⇒ 零内容进入会话历史；产物 md5 与已归档 r1 逐位相同",
+    "lesson": "codex exec resume 不继承 -m（本仓此前只记了不继承 sandbox）"
+  },
+  "isolation_boundary": {
+    "feedback_text": "process + self-consistency only — 零坐标 / 零 gt 值 / 零「少了几道墙」；全文见 _run/feedback_r1.md",
+    "⛔ disclosure": "orchestrator 在写返工【之前】已用 gt 判过 r1（2/4）⇒ 违反不变量 #7「接触 gt 之后不得把结论送回同一个 run」。返工文本可由产物单独推出，但无法证明注意力未被分数引导。",
+    "user_ruling_2026_08_19": "用户当面裁定：信息没泄漏、只是物理上没隔离 ⇒ 【不阻塞本抽】，该类问题（隔离档位 / 成绩归因 / 谁当审阅者）统一归 reading 专项解决。⛔ 不得再把它当拍板项反复上报。",
+    "grade_status": "受控/有监督结果 ⇒ ⛔ 不得宣称「模型自己做到的」；与对照组（07-08 / Haiku 各抽）口径一致，均为 orchestrator 审 pilot"
+  }
+}

@@ -1,7 +1,7 @@
 # Fable5 项目体检报告
 
 > 2026-07-05 · Fable5 自主主控 · 审计/规划任务(零代码改动)。
-> 取证方式:6 路并行子代理(A2 工程链路 / A3 迁移第四路 / C3 烤死假设 / C4 测试+判卷事实;2026-07-06 用户授权追加 D1 环境地基 / D2 skill 一致性)+ Fable5 本人通读全部权威文档(CLAUDE.md / pipeline_stage_contracts.md / judge_grade_model.md / reading_improvement_methodology.md / pipeline_0-5_capability_upgrade_suggestions.md / geometry_first_zonification.md / plan.md / codex_cv_plan.md)后综合裁决。
+> 取证方式:6 路并行子代理(A2 工程链路 / A3 迁移第四路 / C3 烤死假设 / C4 测试+判卷事实;2026-07-06 用户授权追加 D1 环境地基 / D2 skill 一致性)+ Fable5 本人通读全部权威文档(CLAUDE.md / pipeline_stage_contracts.md / judge_grade_model.md / reading/improvement_methodology.md / pipeline_0-5_capability_upgrade_suggestions.md / geometry_first_zonification.md / plan.md / codex_cv_plan.md)后综合裁决。
 > A3 特意**不派 Codex**:既有 GO 裁决即 Codex 所出,第四路必须换血统才有独立性。
 
 ---
@@ -13,7 +13,7 @@
 **总评:架构骨架健康,四条不变量(分工/世界坐标/契约/gt 铁律)在代码层基本站得住;真正的架构级隐患不在"边界画错了",而在三处"边界画对了但执行体不对/执行体重复"。**
 
 **A1-1(最重)· 分工铁律 #1 在两处被"暂时豁免",且豁免已固化成常态**
-- 现象:①0_reading 的 schema 要求 VLM 直接吐**最终米制坐标**——迫使 VLM 做尺寸链累加算术,这是文档自认的过度分割根因([reading_improvement_methodology.md §3](AI_agent/capability/reading_improvement_methodology.md):"reading 曾做累加算术=违反 0-5");② 立面 local→world 世界落位——契约文档明确归"确定性代码"([pipeline_stage_contracts.md §1 1_correction 校验(b)](AI_agent/architecture/pipeline_stage_contracts.md)),但实际由 correction LLM 按 A1 §2.2 prose 手工换算符号([pipeline.py:376-380](src/agent/pipeline.py#L376-L380) prompt 原话 "mind the North/West sign flip"),而确定性替代品 `derive_facade_frame` 建好、E/W sign 已翻正并有 gt 锚定测试(commit `23a0e47`),**仍零调用点闲置**(全仓库 grep 仅命中自身)。
+- 现象:①0_reading 的 schema 要求 VLM 直接吐**最终米制坐标**——迫使 VLM 做尺寸链累加算术,这是文档自认的过度分割根因([reading/improvement_methodology.md §3](../../../capability/reading/improvement_methodology.md):"reading 曾做累加算术=违反 0-5");② 立面 local→world 世界落位——契约文档明确归"确定性代码"([pipeline_stage_contracts.md §1 1_correction 校验(b)](AI_agent/architecture/pipeline_stage_contracts.md)),但实际由 correction LLM 按 A1 §2.2 prose 手工换算符号([pipeline.py:376-380](src/agent/pipeline.py#L376-L380) prompt 原话 "mind the North/West sign flip"),而确定性替代品 `derive_facade_frame` 建好、E/W sign 已翻正并有 gt 锚定测试(commit `23a0e47`),**仍零调用点闲置**(全仓库 grep 仅命中自身)。
 - 根因:两处都是"判断-几何分工"里**无判断成分的纯几何**活,却留在随机层。它们不是被架构漏掉,是被 Phase B defer——但 defer 的代价每个 run 都在付(每次世界落位都是一次 LLM 符号推理的掷骰子)。
 - 修复方向:Phase B 双通道 schema 解①;②可以**先行单独接线**——`derive_facade_frame` 已具备接线条件(sign 正确+gt 测试在),不必等完整 Phase B,先作 gate① 交叉校验(LLM 落位 vs 确定性落位,不一致即 flag)是零风险中间态。风险/优先级:高(与 B2 排序合并看)。
 
@@ -155,7 +155,7 @@
 **对 codex_cv_plan.md 的总裁决:方向、工具清单、风格泛化税目表、分期(C0–C6)全部认同,采纳为施工蓝本**;它的工具箱设计(12 件套、每件带 schema 落点+失败模式)和风格变异轴(9 轴带缓解/兜底)超出了本轮需要重抠的粒度。以下是它没有替你拍板的**四个方向性裁决** + 两处挑战。
 
 **裁决 1:定位 = Phase B 的算术下沉载体,不是 Phase C**(答其 open question #10)。
-`reading_improvement_methodology.md` §4 已定:Phase B 的"算术下沉"具体形态就是 CV 工具箱(anchor_px 由 profiler 填实,禁 VLM 尺寸链累加)。所以不存在"先 Phase B 再 CV"的顺序问题——**CV 工具箱就是 Phase B 的施工形态**。Phase C(学习型 CV/完整 OCR 前端)维持 deferred,codex 方案的 C6 门槛("学习型必须在风格桶全面胜过经典 CV 才转正")采纳。
+`reading/improvement_methodology.md` §4 已定:Phase B 的"算术下沉"具体形态就是 CV 工具箱(anchor_px 由 profiler 填实,禁 VLM 尺寸链累加)。所以不存在"先 Phase B 再 CV"的顺序问题——**CV 工具箱就是 Phase B 的施工形态**。Phase C(学习型 CV/完整 OCR 前端)维持 deferred,codex 方案的 C6 门槛("学习型必须在风格桶全面胜过经典 CV 才转正")采纳。
 
 **裁决 2:sidecar 先行,双通道 schema 随后**(答其 open question #1)。
 C0–C2(其分期)以 evidence sidecar 落地,不动 reading schema 契约——理由:(a) 早期实验免于 schema 审+重录 baseline 的重成本;(b) sidecar 本身就是审计件,符合"工具输出=证据非真相源"的 Phase A 精神。**双通道 schema(`visual.anchor_px` + `metric`)在其 C4 档(算术下沉集成)时正式落**,与 correction 契约更新、evidence 门更新一次过审——这是必然要付的一次 schema 演化,别拆成两次。

@@ -1,6 +1,6 @@
 # CV 工具箱 C0+C1 执行简报(待 Codex 方案审)
 
-> 缘起:体检报告 B2/C1(`logs/experiments/2026-07-05_fable5_project_audit/FABLE5_REPORT.md`)+ `capability/reading_improvement_methodology.md` §2/§4(Phase B 算术下沉的具体载体=经典 CV 工具箱)+ `logs/experiments/2026-07-05_fable5_project_audit/codex_cv_plan.md`(蓝本)。已定裁决(B2 裁决 1-4):**CV=Phase B 载体;sidecar 先行不动 reading schema;工具放执行侧零 gt 可达;Haiku 4.5=首个验收模型**。
+> 缘起:体检报告 B2/C1(`logs/experiments/2026-07-05_fable5_project_audit/FABLE5_REPORT.md`)+ `capability/reading/improvement_methodology.md` §2/§4(Phase B 算术下沉的具体载体=经典 CV 工具箱)+ `logs/experiments/2026-07-05_fable5_project_audit/codex_cv_plan.md`(蓝本)。已定裁决(B2 裁决 1-4):**CV=Phase B 载体;sidecar 先行不动 reading schema;工具放执行侧零 gt 可达;Haiku 4.5=首个验收模型**。
 > 本批=codex_cv_plan 的 C0(契约)+C1(平面测量)+最小立面对(窗连通域+楼层线,为 Haiku 复测凑齐平面+立面两条判卷线)。
 > 纪律:备份 `backup/{src,scripts,Skill}_history/2026-07-06_cv_toolbox/`;**零 reading/correction schema 契约改动;零 gate①/Phase A 行为改动;不跑任何 case**(跑 Haiku 复测=另一轮,须用户跑前拍配置)。
 

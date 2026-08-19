@@ -1,0 +1,232 @@
+{
+  "image_label": "1f_view",
+  "image_kind": "plan",
+  "facade": null,
+  "strokes": [
+    {
+      "id": "S1",
+      "pen": "wall",
+      "provenance": "dimension_derived",
+      "confidence": "high",
+      "dimension_refs": ["D_bot_overall"],
+      "geometry": {"kind": "line", "p1": [0.00, 0.00], "p2": [15.00, 0.00], "thickness_m": null},
+      "note": "bottom (south) exterior perimeter wall; healed door opening at x≈0.54-1.44 (single entrance door, swing seen)"
+    },
+    {
+      "id": "S2",
+      "pen": "wall",
+      "provenance": "dimension_derived",
+      "confidence": "high",
+      "dimension_refs": ["D_right_overall"],
+      "geometry": {"kind": "line", "p1": [15.00, 0.00], "p2": [15.00, 8.00], "thickness_m": null},
+      "note": "right (east) exterior perimeter wall; carries one window (see W7), no door"
+    },
+    {
+      "id": "S3",
+      "pen": "wall",
+      "provenance": "dimension_derived",
+      "confidence": "high",
+      "dimension_refs": ["D_top_overall"],
+      "geometry": {"kind": "line", "p1": [15.00, 8.00], "p2": [0.00, 8.00], "thickness_m": null},
+      "note": "top (north) exterior perimeter wall; carries 3 windows (W1-W3), no door"
+    },
+    {
+      "id": "S4",
+      "pen": "wall",
+      "provenance": "dimension_derived",
+      "confidence": "high",
+      "dimension_refs": ["D_left_overall"],
+      "geometry": {"kind": "line", "p1": [0.00, 8.00], "p2": [0.00, 0.00], "thickness_m": null},
+      "note": "left (west) exterior perimeter wall; healed door opening at y≈3.25-4.75 (double-leaf door, two swing arcs meeting at center, seen)"
+    },
+    {
+      "id": "S5",
+      "pen": "wall",
+      "provenance": "seen",
+      "confidence": "high",
+      "dimension_refs": [],
+      "geometry": {"kind": "line", "p1": [0.00, 5.00], "p2": [15.00, 5.00], "thickness_m": null},
+      "note": "corridor north wall (separates top row of 3 rooms from central corridor); measured via wall_line_profiler row candidates y_px 399.00/406.00 (pair, calibrated to y=5.00m); healed door openings at x≈3.76-4.65, 5.36-6.28, 10.36-11.25 (one door per top room into corridor, all swings seen)"
+    },
+    {
+      "id": "S6",
+      "pen": "wall",
+      "provenance": "seen",
+      "confidence": "high",
+      "dimension_refs": [],
+      "geometry": {"kind": "line", "p1": [0.00, 3.00], "p2": [15.00, 3.00], "thickness_m": null},
+      "note": "corridor south wall (separates central corridor from bottom row of 3 rooms); measured via wall_line_profiler row candidates y_px 518.49/526.01 (pair, calibrated to y=3.00m); healed door openings at x≈3.76-4.65, 5.38-6.26, 10.37-11.25 (one door per bottom room into corridor, all swings seen)"
+    },
+    {
+      "id": "S7",
+      "pen": "wall",
+      "provenance": "seen",
+      "confidence": "high",
+      "dimension_refs": [],
+      "geometry": {"kind": "line", "p1": [5.00, 5.00], "p2": [5.00, 8.00], "thickness_m": null},
+      "note": "top-row partition between room1(top) and room2(top); measured via wall_line_profiler col candidates x_px 570.02/577.02 (pair, calibrated to x=5.00m); runs only from corridor wall (y=5.00) to top exterior wall (y=8.00) - stops at corridor, real open span not a door, not healed through"
+    },
+    {
+      "id": "S8",
+      "pen": "wall",
+      "provenance": "seen",
+      "confidence": "high",
+      "dimension_refs": [],
+      "geometry": {"kind": "line", "p1": [5.00, 0.00], "p2": [5.00, 3.00], "thickness_m": null},
+      "note": "bottom-row partition between room1(bottom) and room2(bottom); same x=5.00m column as S7; runs from bottom exterior wall (y=0.00) to corridor wall (y=3.00) - stops at corridor"
+    },
+    {
+      "id": "S9",
+      "pen": "wall",
+      "provenance": "seen",
+      "confidence": "high",
+      "dimension_refs": [],
+      "geometry": {"kind": "line", "p1": [10.00, 5.00], "p2": [10.00, 8.00], "thickness_m": null},
+      "note": "top-row partition between room2(top) and room3(top); measured via wall_line_profiler col candidates x_px 868.99/876.02 (pair, calibrated to x=9.99m, rounded 10.00m); runs from corridor wall (y=5.00) to top exterior wall (y=8.00)"
+    },
+    {
+      "id": "S10",
+      "pen": "wall",
+      "provenance": "seen",
+      "confidence": "high",
+      "dimension_refs": [],
+      "geometry": {"kind": "line", "p1": [10.00, 0.00], "p2": [10.00, 3.00], "thickness_m": null},
+      "note": "bottom-row partition between room2(bottom) and room3(bottom); same x=10.00m column as S9; runs from bottom exterior wall (y=0.00) to corridor wall (y=3.00)"
+    },
+    {
+      "id": "W1",
+      "pen": "window",
+      "provenance": "dimension_derived",
+      "confidence": "high",
+      "dimension_refs": ["D_top_seg1", "D_top_seg2", "D_top_seg3"],
+      "geometry": {"kind": "line", "p1": [1.24, 8.00], "p2": [3.64, 8.00]},
+      "note": "top wall, room1(top) window; position from top dimension chain (1240 offset, 2400 wide); cross-checked against window_cc_detector wall-gap measurement x_px[347,494] -> x_m[1.23,3.68], matches within 2cm"
+    },
+    {
+      "id": "W2",
+      "pen": "window",
+      "provenance": "dimension_derived",
+      "confidence": "high",
+      "dimension_refs": ["D_top_seg4", "D_top_seg5"],
+      "geometry": {"kind": "line", "p1": [6.30, 8.00], "p2": [8.70, 8.00]},
+      "note": "top wall, room2(top) window; cross-checked against window_cc_detector wall-gap x_px[652,795] -> x_m[6.31,8.70], matches"
+    },
+    {
+      "id": "W3",
+      "pen": "window",
+      "provenance": "dimension_derived",
+      "confidence": "high",
+      "dimension_refs": ["D_top_seg7", "D_top_seg8"],
+      "geometry": {"kind": "line", "p1": [11.36, 8.00], "p2": [13.76, 8.00]},
+      "note": "top wall, room3(top) window; cross-checked against window_cc_detector wall-gap x_px[955,1097] -> x_m[11.37,13.74], matches"
+    },
+    {
+      "id": "W4",
+      "pen": "window",
+      "provenance": "dimension_derived",
+      "confidence": "high",
+      "dimension_refs": ["D_bot_seg3", "D_bot_seg4"],
+      "geometry": {"kind": "line", "p1": [3.44, 0.00], "p2": [4.64, 0.00]},
+      "note": "bottom wall, room1(bottom) window (narrower, 1200mm, positioned after the entrance door); cross-checked against window_cc_detector wall-gap x_px[481,552] -> x_m[3.46,4.64], matches"
+    },
+    {
+      "id": "W5",
+      "pen": "window",
+      "provenance": "dimension_derived",
+      "confidence": "high",
+      "dimension_refs": ["D_bot_seg6", "D_bot_seg7"],
+      "geometry": {"kind": "line", "p1": [6.30, 0.00], "p2": [8.70, 0.00]},
+      "note": "bottom wall, room2(bottom) window; cross-checked against window_cc_detector wall-gap x_px[652,795] -> x_m[6.31,8.70], matches"
+    },
+    {
+      "id": "W6",
+      "pen": "window",
+      "provenance": "dimension_derived",
+      "confidence": "high",
+      "dimension_refs": ["D_bot_seg9", "D_bot_seg10"],
+      "geometry": {"kind": "line", "p1": [11.36, 0.00], "p2": [13.76, 0.00]},
+      "note": "bottom wall, room3(bottom) window; cross-checked against window_cc_detector wall-gap x_px[954,1099] -> x_m[11.35,13.78], matches"
+    },
+    {
+      "id": "W7",
+      "pen": "window",
+      "provenance": "dimension_derived",
+      "confidence": "high",
+      "dimension_refs": ["D_right_seg2", "D_right_seg3", "D_right_seg4"],
+      "geometry": {"kind": "line", "p1": [15.00, 3.40], "p2": [15.00, 4.60]},
+      "note": "right wall window lighting the corridor; from right chain (340 sill + 1200 window + 340 head, offset from bottom room 2940mm); cross-checked against window_cc_detector wall-gap y_px[425,499] -> y_m[3.39,4.63], matches"
+    }
+  ],
+  "dimensions": [
+    {"id": "D_top_overall", "text_verbatim": "15000", "value_m": 15.00, "from": [0.00, 8.00], "to": [15.00, 8.00], "axis": "x", "chain_id": "C_top", "role": "overall", "order": 0, "note": "top overall width; segment sum below is 14.76m, 0.24m short of this overall - see unknowns_noted"},
+    {"id": "D_top_seg1", "text_verbatim": "1240", "value_m": 1.24, "from": [0.00, 8.00], "to": [1.24, 8.00], "axis": "x", "chain_id": "C_top", "role": "segment", "order": 1, "note": "segment 1"},
+    {"id": "D_top_seg2", "text_verbatim": "2400", "value_m": 2.40, "from": [1.24, 8.00], "to": [3.64, 8.00], "axis": "x", "chain_id": "C_top", "role": "segment", "order": 2, "note": "segment 2; spans room1 window (W1)"},
+    {"id": "D_top_seg3", "text_verbatim": "1300", "value_m": 1.30, "from": [3.64, 8.00], "to": [4.94, 8.00], "axis": "x", "chain_id": "C_top", "role": "segment", "order": 3, "note": "segment 3; a doubled/close extension-line tick (not a numbered dimension) follows here, visually near x=4.94-5.06, likely the room1/room2 partition wall thickness"},
+    {"id": "D_top_seg4", "text_verbatim": "1240", "value_m": 1.24, "from": [4.94, 8.00], "to": [6.18, 8.00], "axis": "x", "chain_id": "C_top", "role": "segment", "order": 4, "note": "segment 4 (cumulative position approximate; true partition wall sits at measured x=5.00, ~0.06m into this segment - see S7 note)"},
+    {"id": "D_top_seg5", "text_verbatim": "2400", "value_m": 2.40, "from": [6.18, 8.00], "to": [8.58, 8.00], "axis": "x", "chain_id": "C_top", "role": "segment", "order": 5, "note": "segment 5; spans room2 window (W2), placed at measured x=[6.30,8.70] rather than this raw cumulative range - see W2 note"},
+    {"id": "D_top_seg6", "text_verbatim": "1240", "value_m": 1.24, "from": [8.58, 8.00], "to": [9.82, 8.00], "axis": "x", "chain_id": "C_top", "role": "segment", "order": 6, "note": "segment 6; a second doubled/close extension-line tick follows here, visually near x=9.82-9.94, likely the room2/room3 partition wall thickness"},
+    {"id": "D_top_seg7", "text_verbatim": "1300", "value_m": 1.30, "from": [9.82, 8.00], "to": [11.12, 8.00], "axis": "x", "chain_id": "C_top", "role": "segment", "order": 7, "note": "segment 7 (cumulative position approximate; true partition wall sits at measured x=9.99 - see S9 note)"},
+    {"id": "D_top_seg8", "text_verbatim": "2400", "value_m": 2.40, "from": [11.12, 8.00], "to": [13.52, 8.00], "axis": "x", "chain_id": "C_top", "role": "segment", "order": 8, "note": "segment 8; spans room3 window (W3), placed at measured x=[11.36,13.76] rather than this raw cumulative range - see W3 note"},
+    {"id": "D_top_seg9", "text_verbatim": "1240", "value_m": 1.24, "from": [13.52, 8.00], "to": [14.76, 8.00], "axis": "x", "chain_id": "C_top", "role": "segment", "order": 9, "note": "segment 9 (final); cumulative end 14.76m vs overall 15.00m"},
+
+    {"id": "D_bot_overall", "text_verbatim": "15000", "value_m": 15.00, "from": [0.00, 0.00], "to": [15.00, 0.00], "axis": "x", "chain_id": "C_bottom", "role": "overall", "order": 0, "note": "bottom overall width; segments below sum exactly to 15.00m (closes cleanly, no gap)"},
+    {"id": "D_bot_seg1", "text_verbatim": "540", "value_m": 0.54, "from": [0.00, 0.00], "to": [0.54, 0.00], "axis": "x", "chain_id": "C_bottom", "role": "segment", "order": 1, "note": "segment 1; wall to door jamb"},
+    {"id": "D_bot_seg2", "text_verbatim": "900", "value_m": 0.90, "from": [0.54, 0.00], "to": [1.44, 0.00], "axis": "x", "chain_id": "C_bottom", "role": "segment", "order": 2, "note": "segment 2; entrance door width (healed into S1, see uncaptured)"},
+    {"id": "D_bot_seg3", "text_verbatim": "2000", "value_m": 2.00, "from": [1.44, 0.00], "to": [3.44, 0.00], "axis": "x", "chain_id": "C_bottom", "role": "segment", "order": 3, "note": "segment 3; wall run between door and window W4"},
+    {"id": "D_bot_seg4", "text_verbatim": "1200", "value_m": 1.20, "from": [3.44, 0.00], "to": [4.64, 0.00], "axis": "x", "chain_id": "C_bottom", "role": "segment", "order": 4, "note": "segment 4; window W4 width"},
+    {"id": "D_bot_seg5", "text_verbatim": "360", "value_m": 0.36, "from": [4.64, 0.00], "to": [5.00, 0.00], "axis": "x", "chain_id": "C_bottom", "role": "segment", "order": 5, "note": "segment 5"},
+    {"id": "D_bot_seg6", "text_verbatim": "1300", "value_m": 1.30, "from": [5.00, 0.00], "to": [6.30, 0.00], "axis": "x", "chain_id": "C_bottom", "role": "segment", "order": 6, "note": "segment 6"},
+    {"id": "D_bot_seg7", "text_verbatim": "2400", "value_m": 2.40, "from": [6.30, 0.00], "to": [8.70, 0.00], "axis": "x", "chain_id": "C_bottom", "role": "segment", "order": 7, "note": "segment 7; window W5 width"},
+    {"id": "D_bot_seg8", "text_verbatim": "1300", "value_m": 1.30, "from": [8.70, 0.00], "to": [10.00, 0.00], "axis": "x", "chain_id": "C_bottom", "role": "segment", "order": 8, "note": "segment 8"},
+    {"id": "D_bot_seg9", "text_verbatim": "1360", "value_m": 1.36, "from": [10.00, 0.00], "to": [11.36, 0.00], "axis": "x", "chain_id": "C_bottom", "role": "segment", "order": 9, "note": "segment 9"},
+    {"id": "D_bot_seg10", "text_verbatim": "2400", "value_m": 2.40, "from": [11.36, 0.00], "to": [13.76, 0.00], "axis": "x", "chain_id": "C_bottom", "role": "segment", "order": 10, "note": "segment 10; window W6 width"},
+    {"id": "D_bot_seg11", "text_verbatim": "1240", "value_m": 1.24, "from": [13.76, 0.00], "to": [15.00, 0.00], "axis": "x", "chain_id": "C_bottom", "role": "segment", "order": 11, "note": "segment 11 (final); cumulative end 15.00m matches overall exactly"},
+
+    {"id": "D_left_overall", "text_verbatim": "8000", "value_m": 8.00, "from": [0.00, 0.00], "to": [0.00, 8.00], "axis": "y", "chain_id": "C_left", "role": "overall", "order": 0, "note": "left overall height; segments below sum exactly to 8.00m (closes cleanly)"},
+    {"id": "D_left_seg1", "text_verbatim": "3000", "value_m": 3.00, "from": [0.00, 0.00], "to": [0.00, 3.00], "axis": "y", "chain_id": "C_left", "role": "segment", "order": 1, "note": "segment 1; bottom room1 wall height up to corridor wall"},
+    {"id": "D_left_seg2", "text_verbatim": "250", "value_m": 0.25, "from": [0.00, 3.00], "to": [0.00, 3.25], "axis": "y", "chain_id": "C_left", "role": "segment", "order": 2, "note": "segment 2; jamb margin below double door"},
+    {"id": "D_left_seg3", "text_verbatim": "1500", "value_m": 1.50, "from": [0.00, 3.25], "to": [0.00, 4.75], "axis": "y", "chain_id": "C_left", "role": "segment", "order": 3, "note": "segment 3; double-leaf door opening height (healed into S4, see uncaptured)"},
+    {"id": "D_left_seg4", "text_verbatim": "250", "value_m": 0.25, "from": [0.00, 4.75], "to": [0.00, 5.00], "axis": "y", "chain_id": "C_left", "role": "segment", "order": 4, "note": "segment 4; jamb margin above double door"},
+    {"id": "D_left_seg5", "text_verbatim": "3000", "value_m": 3.00, "from": [0.00, 5.00], "to": [0.00, 8.00], "axis": "y", "chain_id": "C_left", "role": "segment", "order": 5, "note": "segment 5; top room1 wall height from corridor wall to top exterior wall"},
+
+    {"id": "D_right_overall", "text_verbatim": "8000", "value_m": 8.00, "from": [15.00, 0.00], "to": [15.00, 8.00], "axis": "y", "chain_id": "C_right", "role": "overall", "order": 0, "note": "right overall height; segment sum below is 7.76m, 0.24m short of this overall - see unknowns_noted (same pattern as top chain)"},
+    {"id": "D_right_seg1", "text_verbatim": "2940", "value_m": 2.94, "from": [15.00, 0.00], "to": [15.00, 2.94], "axis": "y", "chain_id": "C_right", "role": "segment", "order": 1, "note": "segment 1; bottom room3 wall height"},
+    {"id": "D_right_seg2", "text_verbatim": "340", "value_m": 0.34, "from": [15.00, 2.94], "to": [15.00, 3.28], "axis": "y", "chain_id": "C_right", "role": "segment", "order": 2, "note": "segment 2; sill margin below window W7 (raw cumulative; W7 placed at measured y=3.40, see W7 note)"},
+    {"id": "D_right_seg3", "text_verbatim": "1200", "value_m": 1.20, "from": [15.00, 3.28], "to": [15.00, 4.48], "axis": "y", "chain_id": "C_right", "role": "segment", "order": 3, "note": "segment 3; window W7 height"},
+    {"id": "D_right_seg4", "text_verbatim": "340", "value_m": 0.34, "from": [15.00, 4.48], "to": [15.00, 4.82], "axis": "y", "chain_id": "C_right", "role": "segment", "order": 4, "note": "segment 4; head margin above window W7"},
+    {"id": "D_right_seg5", "text_verbatim": "2940", "value_m": 2.94, "from": [15.00, 4.82], "to": [15.00, 7.76], "axis": "y", "chain_id": "C_right", "role": "segment", "order": 5, "note": "segment 5 (final); top room3 wall height; cumulative end 7.76m vs overall 8.00m"},
+
+    {"id": "D_wt_left_1", "text_verbatim": "240", "value_m": 0.24, "from": [0.00, 6.60], "to": [0.24, 6.60], "axis": "x", "chain_id": "C_wt_left_1", "role": "overall", "order": 0, "note": "local wall-thickness callout on left exterior wall near top-left room corner; position approximate (read from crop inspection, not independently pixel-calibrated); not needed for stroke geometry since thickness_m is null"},
+    {"id": "D_wt_top_1", "text_verbatim": "240", "value_m": 0.24, "from": [2.11, 7.76], "to": [2.11, 8.00], "axis": "y", "chain_id": "C_wt_top_1", "role": "overall", "order": 0, "note": "local wall-thickness callout on top exterior wall near top-left room; position approximate"},
+    {"id": "D_wt_right_1", "text_verbatim": "240", "value_m": 0.24, "from": [14.76, 6.70], "to": [15.00, 6.70], "axis": "x", "chain_id": "C_wt_right_1", "role": "overall", "order": 0, "note": "local wall-thickness callout on right exterior wall near room3(top); position approximate"},
+    {"id": "D_wt_left_2", "text_verbatim": "240", "value_m": 0.24, "from": [0.00, 4.25], "to": [0.24, 4.25], "axis": "x", "chain_id": "C_wt_left_2", "role": "overall", "order": 0, "note": "local wall-thickness callout on left exterior wall at corridor level, near the double door; position approximate"}
+  ],
+  "ocr_texts": [],
+  "uncaptured": [
+    "healed door opening at x≈0.54-1.44 on bottom exterior wall S1 (single entrance door, swing arc seen)",
+    "healed door opening at y≈3.25-4.75 on left exterior wall S4 (double-leaf door, two swing arcs seen)",
+    "healed door openings at x≈3.76-4.65, 5.36-6.28, 10.36-11.25 on corridor north wall S5 (one swing-arc door per top room into corridor)",
+    "healed door openings at x≈3.76-4.65, 5.38-6.26, 10.37-11.25 on corridor south wall S6 (one swing-arc door per bottom room into corridor)",
+    "excluded furniture: 3x desk+2-chair sets in top row rooms (room1/2/3 top)",
+    "excluded furniture: L-shaped furniture piece in room1(bottom)",
+    "excluded furniture: L-shaped furniture piece in room2(bottom)",
+    "excluded furniture: round table + 4 chairs in room3(bottom)",
+    "excluded furniture: small chamfered reception-desk/counter shape near the bottom-left entrance, carrying its own two '240' dimension callouts (furniture geometry, not wall/window position) - these two dimension numbers were not transcribed into the dimensions[] array since they measure furniture, not structural/opening geometry",
+    "excluded: material-hatch/fill pattern inside exterior wall bands (poche) - informs wall recognition only, not a separate stroke",
+    "no north-arrow, scale bar, grid-axis, or title-block/legend elements visible anywhere in this image (genuinely absent, nothing skipped)",
+    "no room-name text labels visible in this image (only dimension numbers and furniture)"
+  ],
+  "self_check": {
+    "all_dimensions_transcribed": true,
+    "all_visible_strokes_captured": true,
+    "no_topology_inferred": true,
+    "pens_used": ["wall", "window"],
+    "unknowns_noted": [
+      "top dimension chain (C_top) segments sum to 14.76m vs stated overall 15.00m; 0.24m gap explained by two unlabeled close-double-tick extension-line offsets at the two interior partition walls (~0.12m each), consistent with the measured partition wall thickness (~0.117m from pixel FWHM) - not fabricated as dimension entries since no verbatim number backs them",
+      "right dimension chain (C_right) segments sum to 7.76m vs stated overall 8.00m; same 0.24m pattern, attributed to the two corridor wall thicknesses (~0.12m each) which the chain crosses without labeling",
+      "interior partition wall (S7/S9) and corridor wall (S5/S6) coordinates are pixel-measured via wall_line_profiler + px_m_calibrator (px_per_m=59.94, RMSE 0.0049m) rather than purely dimension-derived, because the raw cumulative dimension-segment sums do not cleanly resolve their exact position (see gap note above); measured values landed on suspiciously round numbers (x=5.00/10.00, y=3.00/5.00) consistent with the building being a clean 3x2 grid, cross-checked against window_cc_detector wall-gap boundaries with <2cm residual throughout",
+      "four local '240' (0.24m) wall-thickness callouts were transcribed with approximate (crop-inspection-based) from/to coordinates, not independently pixel-calibrated like the four main overall chains; they do not affect any stroke geometry since plan wall thickness_m is always null",
+      "exact door widths/heights (900mm, 1500mm double-door) were read from the dimension chains and used only to describe the healed-opening note; door geometry itself is not part of strokes per the door-healing rule"
+    ]
+  }
+}

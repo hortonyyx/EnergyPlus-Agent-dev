@@ -21,6 +21,8 @@ logs/
     execution/                      执行日志（*_execution_log.md）
   experiments/                    独立测试：A-B probe · 脚手架/迁移 audit · 模型对照 · reading run · 诊断 · 侦察
                                     （多为 `20xx-xx-xx_*/` 目录 bundle，被 .gitignore 的 `20*_*/` 规则整体忽略）
+  worklog/                        **翻篇的日更与状态摘要归档**（2026-08-18 立；从 CLAUDE.md §2 / plan.md 搬出，逐字未改）
+                                    ⛔ 非权威口径——与 CLAUDE.md / plan.md 冲突处以后者为准
   renders/                        判卷/demo 渲染图（`20*_*/` 子目录，gitignored 不入库）
   backup/                         历史备份
   downstream_agent_changes.md     **活记录**：本项目侧对下游 subagent 代码的 hotfix（唯一留在 logs 根的活文档，

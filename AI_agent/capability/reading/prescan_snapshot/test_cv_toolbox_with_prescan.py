@@ -1,0 +1,746 @@
+from __future__ import annotations
+
+import json
+import subprocess
+import sys
+from pathlib import Path
+
+import pytest
+from PIL import Image, ImageDraw
+
+from src.agent.reading.cv_toolbox import (
+    allocate_sidecar_path,
+    crop_zoom,
+    get_recipe,
+    overlay_logger,
+    prescan_elevation,
+    prescan_plan,
+    px_m_calibrator,
+    storey_line_profiler,
+    wall_line_profiler,
+    window_cc_detector,
+    write_sidecar,
+)
+from src.agent.reading.cv_toolbox.tools import _mask_clean_vector
+from src.agent.reading.cv_toolbox.recipes import _draw_prescan_overlay
+
+
+GRAY = (128, 128, 128)
+
+
+def _save_plan(path: Path) -> Path:
+    img = Image.new("RGB", (220, 160), "white")
+    draw = ImageDraw.Draw(img)
+    for x in (20, 80, 150):
+        draw.rectangle((x - 2, 10, x + 2, 150), fill=GRAY)
+    for y in (30, 110):
+        draw.rectangle((10, y - 2, 210, y + 2), fill=GRAY)
+    draw.line((5, 5, 215, 5), fill="black")
+    img.save(path)
+    return path
+
+
+def _save_windows(path: Path) -> Path:
+    img = Image.new("RGB", (120, 90), "white")
+    draw = ImageDraw.Draw(img)
+    for bbox in ((10, 10, 28, 28), (45, 10, 63, 28), (80, 10, 98, 28), (10, 50, 28, 68)):
+        draw.rectangle(bbox, fill=GRAY)
+    # Two close pieces should merge into one bbox.
+    draw.rectangle((45, 50, 54, 68), fill=GRAY)
+    draw.rectangle((56, 50, 65, 68), fill=GRAY)
+    img.save(path)
+    return path
+
+
+def _save_l_mask(path: Path) -> Path:
+    img = Image.new("RGB", (100, 100), "white")
+    draw = ImageDraw.Draw(img)
+    draw.rectangle((18, 10, 22, 90), fill=GRAY)
+    draw.rectangle((20, 18, 70, 22), fill=GRAY)
+    img.save(path)
+    return path
+
+
+def _save_dimension_ticks(path: Path) -> Path:
+    img = Image.new("RGB", (120, 80), "white")
+    draw = ImageDraw.Draw(img)
+    draw.rectangle((10, 58, 100, 62), fill=GRAY)
+    draw.rectangle((8, 52, 12, 68), fill=GRAY)
+    draw.rectangle((98, 52, 102, 68), fill=GRAY)
+    img.save(path)
+    return path
+
+
+def test_wall_and_storey_line_profiler_known_peaks(tmp_path: Path):
+    image = _save_plan(tmp_path / "plan.png")
+
+    payload, _ = wall_line_profiler(image, axis="col", source_name=image.name)
+    xs = [round(r["position_px"]) for r in payload["results"]]
+    assert xs == pytest.approx([20, 80, 150], abs=1)
+    assert all(r["strength"] > 0 for r in payload["results"])
+    assert all(abs(r["width_px"] - 5) <= 2 for r in payload["results"])
+
+    payload, _ = storey_line_profiler(image, source_name=image.name)
+    ys = [round(r["position_px"]) for r in payload["results"]]
+    assert ys == pytest.approx([30, 110], abs=1)
+    assert all(r["candidate_kind"] == "storey_line" for r in payload["results"])
+
+
+def test_px_m_calibrator_exact_and_residuals():
+    exact = px_m_calibrator(
+        [
+            {"axis": "x", "px_a": 0, "px_b": 300, "value_m": 3.0, "dimension_ref": "a"},
+            {"axis": "y", "px_a": 10, "px_b": 510, "value_m": 5.0, "dimension_ref": "b"},
+        ]
+    )
+    result = exact["results"][0]
+    assert result["px_per_m"] == pytest.approx(100.0, abs=1e-9)
+    assert result["m_per_px"] == pytest.approx(0.01, abs=1e-12)
+    assert result["rmse_px"] == pytest.approx(0.0, abs=1e-9)
+    assert all(abs(r["residual_px"]) < 1e-9 for r in result["residuals"])
+    assert result["axis_px_per_m"] == {"x": 100.0, "y": 100.0}
+    assert result["axis_relative_deviation"] == pytest.approx(0.0, abs=1e-12)
+
+    residual = px_m_calibrator(
+        [
+            {"axis": "x", "px_a": 0, "px_b": 300, "value_m": 3.0},
+            {"axis": "x", "px_a": 0, "px_b": 520, "value_m": 5.0},
+        ],
+        residual_warn_px=1,
+    )
+    assert residual["results"][0]["rmse_px"] > 0
+    assert residual["results"][0]["warnings"]
+
+    single = px_m_calibrator([{"axis": "x", "px_a": 0, "px_b": 250, "value_m": 2.5}])
+    assert single["results"][0]["residuals"] is None
+    assert single["results"][0]["rmse_px"] is None
+
+
+def test_px_m_calibrator_flags_cross_axis_disagreement_with_a_legal_exit_not_a_raise():
+    """C1 (2026-08-17): supersedes this test's own former name and body
+    (``test_px_m_calibrator_rejects_cross_axis_anisotropy_before_blending``).
+
+    OLD semantics (until 2026-08-17, since 2026-07-31/421c9d3): a cross-axis
+    relative deviation beyond ``calibration_max_axis_relative_deviation``
+    (0.3%) made ``px_m_calibrator`` raise
+    ``ValueError("cross-axis calibration disagreement: ...")`` BEFORE ever
+    blending ``px_per_m`` -- a dead end with no legal exit. This exact
+    ``pytest.raises`` assertion is what this test used to lock.
+
+    NEW semantics: the disagreement is still computed against the SAME 0.3%
+    limit and is still surfaced loudly -- ``axis_calibration_disagreement`` is
+    set ``True``, a ``warnings[]`` entry of type ``cross_axis_disagreement``
+    carries actionable next-step guidance, and ``metric_confidence`` is forced
+    to ``"low"`` -- but ``px_m_calibrator`` ALWAYS returns a usable
+    ``px_per_m`` instead of throwing it away.
+
+    Why the assertion is deliberately inverted here rather than left as a
+    raise lock: this project's own dispatch
+    (AI_agent/logs/experiments/2026-08-16_707_repro/
+    behavioral_change_inventory.md §C1) traced a real, observed consequence of
+    the old "raise, no escape" shape -- F-34, where the reading agent
+    abandoned pixel calibration entirely and fell back to eyeballing meters in
+    response to the hard failure, which is a strictly worse outcome than a
+    flagged, low-confidence number. This repo's own recurring judgment on this
+    class of problem: a rule with no legal exit breeds an invented one (立规则
+    不给合法出口 ⇒ 模型自己发明出口) -- so the gate itself is preserved (the
+    disagreement is still computed and still loudly flagged), only reshaped
+    from a dead end into a legal exit. A real-entry-point (subprocess against
+    the staged CLI wrapper) version of both halves of this test, plus a
+    neuter, lives at ``tests/test_cross_axis_exit.py`` -- this library-layer
+    (direct-import) test is kept alongside it as a second, independent lock on
+    the same underlying function, matching this file's existing convention of
+    testing ``cv_toolbox`` functions directly.
+    """
+
+    accepted = px_m_calibrator(
+        [
+            {"axis": "x", "px_a": 247.5, "px_b": 611.5, "value_m": 10.0},
+            {"axis": "y", "px_a": 150.5, "px_b": 877.5, "value_m": 20.0},
+        ]
+    )["results"][0]
+    assert accepted["axis_relative_deviation"] == pytest.approx(0.00137457, rel=1e-5)
+    assert accepted["axis_relative_deviation_limit"] == pytest.approx(0.003)
+    assert accepted["axis_calibration_disagreement"] is False
+    assert accepted["metric"]["confidence"] == "high"
+    assert accepted["warnings"] == []
+
+    disagreeing = px_m_calibrator(
+        [
+            {"axis": "x", "px_a": 245, "px_b": 620, "value_m": 10.0},
+            {"axis": "y", "px_a": 54, "px_b": 872, "value_m": 20.0},
+        ]
+    )["results"][0]
+    assert disagreeing["axis_calibration_disagreement"] is True
+    assert disagreeing["metric"]["confidence"] == "low"
+    warn_types = [w["type"] for w in disagreeing["warnings"]]
+    assert "cross_axis_disagreement" in warn_types, warn_types
+    cross_warning = next(w for w in disagreeing["warnings"] if w["type"] == "cross_axis_disagreement")
+    assert "re-crop and re-measure" in cross_warning["guidance"]
+    assert "recalibrate" in cross_warning["guidance"]
+    assert isinstance(disagreeing["px_per_m"], (int, float)) and disagreeing["px_per_m"] > 0
+    assert set(disagreeing["axis_px_per_m"]) == {"x", "y"}
+
+
+def test_window_cc_detector_count_bbox_and_merge(tmp_path: Path):
+    image = _save_windows(tmp_path / "elevation.png")
+    payload, _ = window_cc_detector(image, min_area_px=20, source_name=image.name)
+    boxes = [r["bbox_px"] for r in payload["results"]]
+    assert len(boxes) == 5
+    assert boxes[0] == pytest.approx([10, 10, 29, 29], abs=1)
+    assert boxes[-1] == pytest.approx([45, 50, 66, 69], abs=1)
+    assert payload["results"][-1]["merge_reason"] == "gap_x_overlap_y"
+
+
+def test_crop_round_trip_sidecar_schema_and_append_only(tmp_path: Path):
+    image = _save_plan(tmp_path / "plan.png")
+    payload, _crop, crop_chain = crop_zoom(
+        image,
+        [50, 20, 150, 100],
+        scale=2,
+        output_path=tmp_path / "crop.png",
+        source_name=image.name,
+    )
+    step = crop_chain[0]
+    local_x, local_y = 20, 30
+    source_x = step["bbox_px"][0] + local_x / step["scale"]
+    source_y = step["bbox_px"][1] + local_y / step["scale"]
+    restored_x = (source_x - step["bbox_px"][0]) * step["scale"]
+    restored_y = (source_y - step["bbox_px"][1]) * step["scale"]
+    assert (restored_x, restored_y) == pytest.approx((local_x, local_y))
+
+    sidecar = allocate_sidecar_path(tmp_path / "out", image, "crop_zoom", "001_crop_zoom")
+    written = write_sidecar(sidecar, image, payload, crop_chain=crop_chain)
+    data = json.loads(written.read_text(encoding="utf-8"))
+    assert data["cv_schema"] == "1"
+    assert data["source_image"]["name"] == "plan.png"
+    assert len(data["source_image"]["sha256"]) == 12
+    assert data["crop_chain"][0]["op"] == "crop_zoom"
+    assert data["results"][0]["anchor_px"]["kind"] == "bbox"
+    with pytest.raises(FileExistsError):
+        write_sidecar(sidecar, image, payload, crop_chain=crop_chain)
+
+
+def test_sidecar_rejects_path_escape_and_uses_exclusive_create(tmp_path: Path):
+    image = _save_plan(tmp_path / "plan.png")
+    payload, _crop, crop_chain = crop_zoom(image, [50, 20, 150, 100], source_name=image.name)
+
+    with pytest.raises(ValueError):
+        allocate_sidecar_path(tmp_path / "out", image, "crop_zoom", "../../../escaped")
+    with pytest.raises(ValueError):
+        allocate_sidecar_path(tmp_path / "out", image, "crop_zoom", "/tmp/escaped")
+
+    sidecar = allocate_sidecar_path(tmp_path / "out", image, "crop_zoom", "001_crop_zoom")
+    sidecar.parent.mkdir(parents=True, exist_ok=True)
+    sidecar.write_text("existing", encoding="utf-8")
+    with pytest.raises(FileExistsError):
+        write_sidecar(sidecar, image, payload, crop_chain=crop_chain)
+    assert sidecar.read_text(encoding="utf-8") == "existing"
+
+
+def test_fractional_crop_chain_uses_actual_integer_crop_bounds():
+    img = Image.new("RGB", (20, 20), "white")
+    img.putpixel((1, 2), GRAY)
+
+    _payload, crop, crop_chain = crop_zoom(img, [1.9, 2.9, 11.1, 12.1], scale=1)
+
+    assert crop.getpixel((0, 0)) == GRAY
+    step = crop_chain[0]
+    assert step["bbox_px"] == [1.0, 2.0, 12.0, 13.0]
+    source_x = step["bbox_px"][0] + 0 / step["scale"]
+    source_y = step["bbox_px"][1] + 0 / step["scale"]
+    assert (source_x, source_y) == (1.0, 2.0)
+
+
+def test_overlay_logger_smoke(tmp_path: Path):
+    image = _save_plan(tmp_path / "plan.png")
+    out = tmp_path / "overlay.png"
+    payload = overlay_logger(
+        image,
+        [
+            {
+                "candidate_id": "c1",
+                "geometry": {"kind": "bbox", "bbox_px": [10, 10, 40, 40]},
+                "status": "accepted",
+                "reason": "known fixture",
+            },
+            {
+                "candidate_id": "c2",
+                "geometry": {"kind": "line", "axis": "col", "x_px": 80},
+                "status": "rejected",
+                "reason": "test rejection",
+            },
+        ],
+        output_path=out,
+    )
+    assert out.exists()
+    assert payload["diagnostics"]["decisions"][1]["status"] == "rejected"
+
+
+def test_overlay_logger_rejects_candidate_without_drawable_geometry(tmp_path: Path):
+    image = _save_plan(tmp_path / "plan.png")
+    with pytest.raises(ValueError, match="drawable geometry"):
+        overlay_logger(
+            image,
+            [{"candidate_id": "c1", "status": "undecided", "reason": "missing geometry"}],
+            output_path=tmp_path / "overlay.png",
+        )
+
+
+def test_transparent_gray_rgba_is_not_clean_vector_mask():
+    img = Image.new("RGBA", (4, 4), (128, 128, 128, 0))
+
+    mask = _mask_clean_vector(img, get_recipe())
+    payload, _ = wall_line_profiler(img, axis="col")
+
+    assert int(mask.sum()) == 0
+    assert payload["results"] == []
+
+
+def test_real_sm21_case_data_plan_smoke():
+    image = Path("case_tests/e2e_tests/sm21_anchor/case_data/1f_view.png")
+    assert image.exists()
+    payload, _ = wall_line_profiler(image, axis="col", source_name=image.name)
+    assert len(payload["results"]) >= 5
+
+
+def test_cv_probe_cli_end_to_end(tmp_path: Path):
+    image = _save_plan(tmp_path / "plan.png")
+    cmd = [
+        sys.executable,
+        "scripts/tool_scripts/cv_probe.py",
+        "wall_line_profiler",
+        "--image",
+        str(image),
+        "--out-dir",
+        str(tmp_path / "reading"),
+        "--axis",
+        "col",
+    ]
+    subprocess.run(cmd, check=True)
+    sidecars = sorted((tmp_path / "reading" / "cv_evidence" / "plan").glob("*.json"))
+    overlays = sorted((tmp_path / "reading" / "cv_evidence" / "plan").glob("*_overlay.png"))
+    assert len(sidecars) == 1
+    assert len(overlays) == 1
+    data = json.loads(sidecars[0].read_text(encoding="utf-8"))
+    assert data["tool"] == "wall_line_profiler"
+    assert data["results"]
+    assert data["diagnostics"]["overlay_decisions"][0]["reason"] == "cv_probe automatic overlay"
+
+
+def test_prescan_plan_schema_and_combined_overlay(tmp_path: Path):
+    image = _save_plan(tmp_path / "plan.png")
+
+    candidates_path, overlay_path = prescan_plan(image, out_dir=tmp_path / "reading")
+
+    assert candidates_path == tmp_path / "reading" / "cv_evidence" / "plan" / "prescan" / "candidates.json"
+    assert overlay_path.exists()
+    data = json.loads(candidates_path.read_text(encoding="utf-8"))
+    assert data["cv_schema"] == "1"
+    assert data["tool"] == "prescan-plan"
+    assert data["params"]["advisory_only"] is True
+    assert data["overlay_path"] == "combined_overlay.png"
+    assert data["candidate_files"] == {
+        "all": "candidates.json",
+        "structural": "structural_candidates.json",
+        "cc_boxes": "cc_box_candidates.json",
+        "ticks": "tick_candidates.json",
+    }
+    assert data["derived_candidate_files"] == {
+        "calibration_spans": "calibration_span_candidates.json",
+        "long_structural_lines": "long_structural_lines.json",
+    }
+    assert data["overlay_paths"] == {
+        "default_structural": "combined_overlay.png",
+        "all": "all_candidates_overlay.png",
+        "cc_boxes": "cc_box_overlay.png",
+        "ticks": "tick_overlay.png",
+    }
+    assert data["derived_overlay_paths"] == {
+        "calibration_spans": "calibration_span_overlay.png",
+        "long_structural_lines": "long_structural_overlay.png",
+    }
+    assert data["capability_profile"]["requested"] == "orthogonal_polygon"
+    assert {"rectangular", "orthogonal_polygon"} <= set(data["capability_profile"]["supported"])
+    assert data["results"]
+    allowed = {"line_band_candidate", "cc_box_candidate", "tick_candidate"}
+    assert {result["kind"] for result in data["results"]} <= allowed
+    for result in data["results"]:
+        assert not result["kind"].startswith(("wall_", "window_"))
+        if result["kind"] == "cc_box_candidate":
+            assert len(result["bbox_px"]) == 4
+        else:
+            assert len(result["p1_px"]) == 2
+            assert len(result["p2_px"]) == 2
+            assert "strength" in result
+            assert "fwhm_px" in result
+
+
+def test_prescan_kind_views_are_lossless_and_separately_addressable(tmp_path: Path):
+    image = _save_dimension_ticks(tmp_path / "dimension.png")
+    candidates_path, _overlay_path = prescan_plan(image, out_dir=tmp_path / "reading")
+    root = candidates_path.parent
+    master = json.loads(candidates_path.read_text(encoding="utf-8"))
+    emitted_counts = {
+        kind: sum(item["kind"] == kind for item in master["results"])
+        for kind in ("line_band_candidate", "cc_box_candidate", "tick_candidate")
+    }
+    diagnostics = master["diagnostics"]
+    assert emitted_counts == {
+        "line_band_candidate": diagnostics["line_band_candidate_count"],
+        "cc_box_candidate": diagnostics["cc_box_candidate_count"],
+        "tick_candidate": diagnostics["tick_candidate_count"],
+    }
+    assert all(emitted_counts.values()), "fixture must exercise every kind"
+
+    views = []
+    for key, kind in [
+        ("structural", "line_band_candidate"),
+        ("cc_boxes", "cc_box_candidate"),
+        ("ticks", "tick_candidate"),
+    ]:
+        view_path = root / master["candidate_files"][key]
+        assert view_path.is_file()
+        view = json.loads(view_path.read_text(encoding="utf-8"))
+        assert view["candidate_kind"] == kind
+        assert view["candidate_count"] == len(view["results"])
+        assert {item["kind"] for item in view["results"]} <= {kind}
+        views.extend(view["results"])
+
+    # No filtering, dropping, duplication, renumbering, or re-encoding: because
+    # the master order is kind-grouped, concatenating the three addressable views
+    # reconstructs every emitted candidate object exactly.
+    assert views == master["results"]
+    assert len({item["candidate_id"] for item in views}) == len(views)
+
+
+def test_prescan_default_overlay_is_structural_only_and_other_kinds_remain_visible(
+    tmp_path: Path,
+):
+    image = _save_dimension_ticks(tmp_path / "dimension.png")
+    candidates_path, overlay_path = prescan_plan(image, out_dir=tmp_path / "reading")
+    root = candidates_path.parent
+    master = json.loads(candidates_path.read_text(encoding="utf-8"))
+    structural = json.loads(
+        (root / master["candidate_files"]["structural"]).read_text(encoding="utf-8")
+    )["results"]
+    assert structural
+    assert any(item["kind"] != "line_band_candidate" for item in master["results"])
+
+    expected = tmp_path / "expected_structural.png"
+    _draw_prescan_overlay(Image.open(image).convert("RGB"), structural, expected)
+    assert overlay_path.read_bytes() == expected.read_bytes()
+
+    all_overlay = root / master["overlay_paths"]["all"]
+    cc_overlay = root / master["overlay_paths"]["cc_boxes"]
+    tick_overlay = root / master["overlay_paths"]["ticks"]
+    assert all_overlay.is_file() and cc_overlay.is_file() and tick_overlay.is_file()
+    assert all_overlay.read_bytes() != overlay_path.read_bytes()
+
+
+def test_prescan_bounded_segments_do_not_span_full_l_mask(tmp_path: Path):
+    image = _save_l_mask(tmp_path / "l_shape.png")
+    candidates_path, _overlay_path = prescan_plan(image, out_dir=tmp_path / "reading", include_cc=False)
+    data = json.loads(candidates_path.read_text(encoding="utf-8"))
+
+    row_segments = [
+        result
+        for result in data["results"]
+        if result["kind"] == "line_band_candidate"
+        and result["axis"] == "row"
+        and abs(result["p1_px"][1] - 20) <= 2
+    ]
+    assert row_segments
+    assert any(15 <= seg["p1_px"][0] <= 25 and 65 <= seg["p2_px"][0] <= 75 for seg in row_segments)
+    assert all(not (seg["p1_px"][0] <= 1 and seg["p2_px"][0] >= 99) for seg in row_segments)
+
+
+def test_prescan_idempotent_candidates_json(tmp_path: Path):
+    image = _save_l_mask(tmp_path / "stable.png")
+
+    candidates_path, _overlay_path = prescan_plan(image, out_dir=tmp_path / "reading")
+    first = {
+        path.relative_to(candidates_path.parent).as_posix(): path.read_bytes()
+        for path in sorted(candidates_path.parent.iterdir())
+        if path.is_file()
+    }
+    candidates_path, _overlay_path = prescan_plan(image, out_dir=tmp_path / "reading")
+    second = {
+        path.relative_to(candidates_path.parent).as_posix(): path.read_bytes()
+        for path in sorted(candidates_path.parent.iterdir())
+        if path.is_file()
+    }
+
+    assert first == second
+
+
+def test_prescan_same_image_is_byte_identical_across_output_roots(tmp_path: Path):
+    image = _save_dimension_ticks(tmp_path / "stable.png")
+    first_path, _ = prescan_plan(image, out_dir=tmp_path / "run_a")
+    second_path, _ = prescan_plan(image, out_dir=tmp_path / "run_b")
+
+    def snapshot(root: Path) -> dict[str, bytes]:
+        return {
+            path.relative_to(root).as_posix(): path.read_bytes()
+            for path in sorted(root.iterdir())
+            if path.is_file()
+        }
+
+    first = snapshot(first_path.parent)
+    second = snapshot(second_path.parent)
+    assert set(first) == {
+        "all_candidates_overlay.png",
+        "calibration_span_candidates.json",
+        "calibration_span_overlay.png",
+        "candidates.json",
+        "cc_box_candidates.json",
+        "cc_box_overlay.png",
+        "combined_overlay.png",
+        "long_structural_lines.json",
+        "long_structural_overlay.png",
+        "structural_candidates.json",
+        "tick_candidates.json",
+        "tick_overlay.png",
+    }
+    assert first == second
+
+
+def test_prescan_sm24_calibration_spans_find_extension_line_intersections(tmp_path: Path):
+    image = Path("case_tests/e2e_tests/sm24_anchor/case_data/1f_view.png")
+    candidates_path, _ = prescan_plan(image, out_dir=tmp_path / "reading", include_cc=False)
+    master = json.loads(candidates_path.read_text(encoding="utf-8"))
+    derived = json.loads(
+        (candidates_path.parent / master["derived_candidate_files"]["calibration_spans"])
+        .read_text(encoding="utf-8")
+    )
+    spans = derived["results"]
+
+    overall_x = next(
+        item
+        for item in spans
+        if item["axis"] == "x"
+        and item["px_a"] == pytest.approx(247.5)
+        and item["px_b"] == pytest.approx(611.5)
+    )
+    overall_y = next(
+        item
+        for item in spans
+        if item["axis"] == "y"
+        and item["px_a"] == pytest.approx(150.5)
+        and item["px_b"] == pytest.approx(878.0)
+    )
+    assert overall_x["span_px"] == pytest.approx(364.0)
+    assert overall_y["span_px"] == pytest.approx(727.5)
+
+    calibrated = px_m_calibrator(
+        [
+            {"axis": "x", "px_a": overall_x["px_a"], "px_b": overall_x["px_b"], "value_m": 10.0},
+            {"axis": "y", "px_a": overall_y["px_a"], "px_b": overall_y["px_b"], "value_m": 20.0},
+        ]
+    )["results"][0]
+    assert calibrated["axis_relative_deviation"] < 0.003
+
+
+def test_prescan_sm24_long_structural_view_yields_four_exterior_wall_lines(tmp_path: Path):
+    image = Path("case_tests/e2e_tests/sm24_anchor/case_data/1f_view.png")
+    candidates_path, _ = prescan_plan(image, out_dir=tmp_path / "reading", include_cc=False)
+    master = json.loads(candidates_path.read_text(encoding="utf-8"))
+    structural = json.loads(
+        (candidates_path.parent / master["candidate_files"]["structural"])
+        .read_text(encoding="utf-8")
+    )["results"]
+    merged = json.loads(
+        (candidates_path.parent / master["derived_candidate_files"]["long_structural_lines"])
+        .read_text(encoding="utf-8")
+    )["results"]
+
+    # Additive view: every merge cites original fragments and no original
+    # candidate is removed or renumbered in the structural kind view.
+    structural_ids = {item["candidate_id"] for item in structural}
+    assert len(structural) == 348
+    assert structural[0]["candidate_id"] == "1f_view:prescan-plan:001"
+    assert structural[-1]["candidate_id"] == "1f_view:prescan-plan:348"
+    assert all(set(item["source_candidate_ids"]) <= structural_ids for item in merged)
+
+    expected = [
+        ("row", 155.283, 252.105, 606.883),
+        ("row", 873.428, 252.105, 606.883),
+        ("col", 252.105, 155.283, 873.428),
+        ("col", 606.883, 155.283, 873.428),
+    ]
+    exterior = []
+    for axis, position, start, end in expected:
+        matches = [
+            item
+            for item in merged
+            if item["axis"] == axis
+            and (item["p1_px"][1] if axis == "row" else item["p1_px"][0])
+            == pytest.approx(position, abs=0.01)
+            and (item["p1_px"][0] if axis == "row" else item["p1_px"][1])
+            == pytest.approx(start, abs=0.01)
+            and (item["p2_px"][0] if axis == "row" else item["p2_px"][1])
+            == pytest.approx(end, abs=0.01)
+        ]
+        assert len(matches) == 1
+        assert matches[0]["source_fragment_count"] >= 3
+        assert matches[0]["bridged_gaps_px"]
+        exterior.extend(matches)
+    assert len(exterior) == 4
+
+
+def test_prescan_unsupported_capability_profile_raises(tmp_path: Path):
+    image = _save_plan(tmp_path / "plan.png")
+
+    with pytest.raises(NotImplementedError, match="capability_profile"):
+        prescan_plan(image, out_dir=tmp_path / "reading", capability_profile="sloped_polygon")
+
+
+def test_prescan_triage_filters_line_bands_but_never_ticks(tmp_path: Path):
+    image = _save_dimension_ticks(tmp_path / "dimension.png")
+
+    full_path, _ = prescan_plan(image, out_dir=tmp_path / "reading", include_cc=False)
+    triage_path, _ = prescan_plan(
+        image,
+        out_dir=tmp_path / "reading",
+        include_cc=False,
+        min_strength=0.08,
+        min_line_len_px=50,
+        label="prescan_triage",
+    )
+
+    assert triage_path != full_path
+    full = json.loads(full_path.read_text(encoding="utf-8"))
+    triage = json.loads(triage_path.read_text(encoding="utf-8"))
+    full_lines = [r for r in full["results"] if r["kind"] == "line_band_candidate"]
+    triage_lines = [r for r in triage["results"] if r["kind"] == "line_band_candidate"]
+    assert len(triage_lines) < len(full_lines)
+    for cand in triage_lines:
+        x0, y0 = cand["p1_px"]
+        x1, y1 = cand["p2_px"]
+        assert cand["strength"] >= 0.08
+        assert ((x1 - x0) ** 2 + (y1 - y0) ** 2) ** 0.5 >= 50
+    # Ticks are calibration anchors: identical geometry with and without the filter.
+    tick_geoms = lambda data: [  # noqa: E731
+        (r["p1_px"], r["p2_px"]) for r in data["results"] if r["kind"] == "tick_candidate"
+    ]
+    assert tick_geoms(triage) == tick_geoms(full)
+    assert triage["params"]["min_strength"] == 0.08
+    assert triage["params"]["min_line_len_px"] == 50
+    assert triage["params"]["label"] == "prescan_triage"
+    diag = triage["diagnostics"]
+    assert diag["line_band_candidate_count_prefilter"] == len(full_lines)
+    assert diag["line_band_candidate_count"] == len(triage_lines)
+
+
+def test_prescan_axis_summary_groups_candidates_per_peak(tmp_path: Path):
+    image = _save_plan(tmp_path / "plan.png")
+
+    candidates_path, _ = prescan_plan(image, out_dir=tmp_path / "reading", include_cc=False)
+
+    data = json.loads(candidates_path.read_text(encoding="utf-8"))
+    summary = data["diagnostics"]["axis_summary"]
+    assert len(summary) == data["diagnostics"]["projection_peak_count"]
+    by_id = {r["candidate_id"]: r for r in data["results"]}
+    line_ids = {cid for cid, r in by_id.items() if r["kind"] == "line_band_candidate"}
+    seen: set[str] = set()
+    for entry in summary:
+        assert entry["axis"] in {"row", "col"}
+        assert entry["run_count"] == len(entry["candidate_ids"])
+        for cid in entry["candidate_ids"]:
+            assert cid in line_ids
+            assert by_id[cid]["axis"] == entry["axis"]
+        seen.update(entry["candidate_ids"])
+    # Every emitted line-band candidate is reachable from exactly one peak group.
+    assert seen == line_ids
+
+
+def test_prescan_rejects_unsafe_label(tmp_path: Path):
+    image = _save_plan(tmp_path / "plan.png")
+
+    with pytest.raises(ValueError, match="label"):
+        prescan_plan(image, out_dir=tmp_path / "reading", label="../escape")
+
+
+def test_prescan_tick_detection_on_dimension_line(tmp_path: Path):
+    image = _save_dimension_ticks(tmp_path / "dimension.png")
+    candidates_path, _overlay_path = prescan_plan(image, out_dir=tmp_path / "reading", include_cc=False)
+    data = json.loads(candidates_path.read_text(encoding="utf-8"))
+
+    ticks = [result for result in data["results"] if result["kind"] == "tick_candidate"]
+    assert ticks
+    assert any(result["axis"] == "col" and 6 <= abs(result["p2_px"][1] - result["p1_px"][1]) <= 25 for result in ticks)
+
+
+def test_prescan_elevation_cli_writes_candidates_and_overlay(tmp_path: Path):
+    image = _save_dimension_ticks(tmp_path / "elevation.png")
+    cmd = [
+        sys.executable,
+        "scripts/tool_scripts/cv_probe.py",
+        "prescan-elevation",
+        "--image",
+        str(image),
+        "--out-dir",
+        str(tmp_path / "reading"),
+    ]
+    subprocess.run(cmd, check=True)
+
+    candidates = tmp_path / "reading" / "cv_evidence" / "elevation" / "prescan" / "candidates.json"
+    overlay = tmp_path / "reading" / "cv_evidence" / "elevation" / "prescan" / "combined_overlay.png"
+    assert candidates.exists()
+    assert overlay.exists()
+    data = json.loads(candidates.read_text(encoding="utf-8"))
+    assert data["tool"] == "prescan-elevation"
+    assert data["capability_profile"]["requested"] == "rectangular"
+
+
+# --------------------------------------------------------------------------- #
+# F-1 / S3 — prescan --out-dir semantics: the tool appends cv_evidence/<stem>/
+# prescan/ itself, so a caller who pre-concatenated either layer must be rejected
+# fail-closed (else the nested landing is never copied into staging). On success
+# the CLI echoes the final landing absolute path, which must agree with the
+# isolation copy-guard `_is_run_prescan_path`.
+# --------------------------------------------------------------------------- #
+@pytest.mark.parametrize("nested_last", ["cv_evidence", "prescan"])
+def test_cv_probe_rejects_nested_prescan_out_dir(tmp_path: Path, nested_last: str):
+    image = _save_plan(tmp_path / "plan.png")
+    out_dir = tmp_path / "run_x" / "0_reading" / nested_last
+    cmd = [
+        sys.executable,
+        "scripts/tool_scripts/cv_probe.py",
+        "prescan-plan",
+        "--image", str(image),
+        "--out-dir", str(out_dir),
+        "--no-cc",
+    ]
+    proc = subprocess.run(cmd, capture_output=True, text=True, check=False)
+    assert proc.returncode != 0, "nested --out-dir must be rejected (nonzero exit)"
+    # fail-closed: nothing is written anywhere under the run root
+    assert not any((tmp_path / "run_x").rglob("candidates.json"))
+    assert not (out_dir / "cv_evidence").exists()
+
+
+def test_cv_probe_prescan_echoes_landing_matching_copy_guard(tmp_path: Path):
+    """S3 headline lock: a normal --out-dir (= the reading root) lands at a path
+    the isolation copy-guard `_is_run_prescan_path` accepts — i.e. the landing
+    semantics and the staging copy rule agree. This is the real regression: if
+    either side drifts, prescan files silently stop entering staging."""
+    from src.agent.execution.isolation import _is_run_prescan_path
+
+    image = _save_plan(tmp_path / "plan.png")
+    run_root = tmp_path / "run_x"
+    out_dir = run_root / "0_reading"
+    cmd = [
+        sys.executable,
+        "scripts/tool_scripts/cv_probe.py",
+        "prescan-plan",
+        "--image", str(image),
+        "--out-dir", str(out_dir),
+        "--no-cc",
+    ]
+    proc = subprocess.run(cmd, capture_output=True, text=True, check=False)
+    assert proc.returncode == 0, proc.stderr
+    landing = Path(proc.stdout.strip())
+    assert landing.exists(), f"echoed landing not written: {landing}"
+    assert landing.name == "candidates.json"
+    # the echoed landing must be recognized by the staging copy-guard
+    assert _is_run_prescan_path(landing), f"landing not copy-guard-recognized: {landing}"

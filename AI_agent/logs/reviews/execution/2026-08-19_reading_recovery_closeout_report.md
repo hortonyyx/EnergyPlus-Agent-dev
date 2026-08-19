@@ -261,7 +261,7 @@ r2：
 以下既有未提交内容不属于本轮收口提交，保持原样：
 
 - `AI_agent/CLAUDE.md`；
-- `AI_agent/capability/reading_improvement_methodology.md`；
+- `AI_agent/capability/reading/improvement_methodology.md`；
 - `AI_agent/guides/codex_execution_protocol.md`；
 - `AI_agent/logs/README.md`；
 - `AI_agent/plan.md`；

@@ -298,7 +298,6 @@ def build_isolation_workspace(
     _copy_reading_skill(staging_root, manifest)
     _copy_worked_example(staging_root, manifest)
     _copy_cv_toolbox(staging_root, manifest)
-    _copy_prescan(run_dir, staging_root, manifest)
     _write_kickoff(case_dir, staging_root, manifest, pilot_review_gate=pilot_review_gate)
     _write_guard_profile(staging_root, guard_profile)
     _write_guard_and_wrappers(staging_root, manifest)
@@ -323,6 +322,7 @@ def prepare_single_plan_experiment(
     model: str,
     capability_profile: str = "orthogonal_polygon",
     guard_profile: str = "observe",
+    vision_resize_tier: str | None = None,
 ) -> dict:
     """Freeze and build a new one-plan, same-session recovery experiment.
 
@@ -397,6 +397,7 @@ def prepare_single_plan_experiment(
         staging_root=staging_root,
         pilot_review_gate=True,
         guard_profile=guard_profile,
+        vision_resize_tier=vision_resize_tier,
     )
     directive_path = staging_root / "directive.md"
     directive_path.write_text(
@@ -1503,20 +1504,6 @@ def _copy_cv_toolbox(staging_root: Path, manifest: WorkspaceManifest) -> None:
     _write_generated(staging_root / "tools" / "cv_probe.py", cv_probe_src, "tool", manifest)
 
 
-def _copy_prescan(run_dir: Path | None, staging_root: Path, manifest: WorkspaceManifest) -> None:
-    if run_dir is None:
-        return
-    src = run_dir / "0_reading" / "cv_evidence"
-    if not src.exists():
-        return
-    # Layout parity with staging-direct generation (--out-dir <staging>/prescan):
-    # prescan/cv_evidence/<stem>/prescan/... either way.
-    dest_root = staging_root / "prescan" / "cv_evidence"
-    for path in sorted(src.glob("*/prescan/**/*")):
-        if path.is_file():
-            _assert_source_allowed(path)
-            _copy_file(path, dest_root / path.relative_to(src), "prescan", manifest)
-
 
 def _write_kickoff(
     case_dir: Path, staging_root: Path, manifest: WorkspaceManifest,
@@ -1563,19 +1550,8 @@ def _write_kickoff(
             "summary — and finish in this one turn.\n"
         )
     )
-    if (staging_root / "prescan").exists():
-        text += (
-            "Deterministic prescan candidates are provided under "
-            "prescan/cv_evidence/<image_stem>/prescan/: `candidates.json` (all "
-            "candidates); kind views `structural_candidates.json`, "
-            "`cc_box_candidates.json`, and `tick_candidates.json`; overlays "
-            "`combined_overlay.png` (structural-only), `cc_box_overlay.png`, "
-            "`tick_overlay.png`, and `all_candidates_overlay.png` (all "
-            "candidates). Nothing is dropped: every candidate remains reachable "
-            "through `candidates.json` and the kind views; consume them per the "
-            "cv_toolbox discipline.\n"
-        )
     _write_generated(staging_root / "kickoff_prompt.md", text, "kickoff", manifest)
+
 
 
 def _write_guard_profile(staging_root: Path, profile: str) -> None:
@@ -1662,21 +1638,6 @@ def _assert_source_allowed(path: Path) -> None:
     _assert_rel_allowed(rel)
 
 
-def _is_run_prescan_path(rel: Path) -> bool:
-    """Only run-dir subtree readable by the builder: orchestrator-produced
-    prescan candidates at run_*/0_reading/cv_evidence/<stem>/prescan/**."""
-    parts = rel.parts
-    for i, part in enumerate(parts[:-1]):
-        if part.startswith("run_"):
-            tail = parts[i + 1 :]
-            return (
-                len(tail) >= 5
-                and tail[0] == "0_reading"
-                and tail[1] == "cv_evidence"
-                and tail[3] == "prescan"
-            )
-    return False
-
 
 def _assert_rel_allowed(rel: Path) -> None:
     parts = set(rel.parts)
@@ -1685,7 +1646,11 @@ def _assert_rel_allowed(rel: Path) -> None:
         raise ValueError(f"forbidden source file: {rel}")
     if "test_baseline" in parts and "gt" in parts:
         raise ValueError(f"forbidden gt source path: {rel}")
-    if any(part.startswith("run_") for part in rel.parts[:-1]) and not _is_run_prescan_path(rel):
+    # 2026-08-19: prescan was withdrawn from the working tree (archived under
+    # AI_agent/capability/reading/prescan_snapshot/), so the one exception that used to let
+    # run_*/0_reading/cv_evidence/<stem>/prescan/** through is gone with it.
+    # Every run_* source path is now forbidden, full stop.
+    if any(part.startswith("run_") for part in rel.parts[:-1]):
         raise ValueError(f"forbidden run source path: {rel}")
     if parts & HARD_BLOCK_PARTS:
         raise ValueError(f"forbidden source path component: {rel}")

@@ -165,60 +165,6 @@ def test_forbidden_source_paths_are_rejected(path: str):
         _assert_source_allowed(Path(path))
 
 
-def test_run_prescan_source_path_is_allowed():
-    _assert_source_allowed(
-        Path("case_tests/e2e_tests/sm21_anchor/run_x/0_reading/cv_evidence/1f_view/prescan/candidates.json")
-    )
-    # Judgment artifacts stay blocked even inside a prescan folder.
-    with pytest.raises(ValueError):
-        _assert_source_allowed(
-            Path("case_tests/e2e_tests/sm21_anchor/run_x/0_reading/cv_evidence/1f_view/prescan/grade.png")
-        )
-    # Non-prescan run paths stay blocked.
-    with pytest.raises(ValueError):
-        _assert_source_allowed(
-            Path("case_tests/e2e_tests/sm21_anchor/run_x/0_reading/cv_evidence/1f_view/001_crop_zoom.json")
-        )
-
-
-def test_build_copies_run_prescan_and_kickoff_mentions_it(tmp_path: Path):
-    run_dir = tmp_path / "run_probe"
-    run_dir.mkdir()
-    src = run_dir / "0_reading" / "cv_evidence" / "1f_view" / "prescan"
-    src.mkdir(parents=True)
-    prescan_files = {
-        "candidates.json",
-        "structural_candidates.json",
-        "cc_box_candidates.json",
-        "tick_candidates.json",
-        "combined_overlay.png",
-        "all_candidates_overlay.png",
-        "cc_box_overlay.png",
-        "tick_overlay.png",
-    }
-    for name in prescan_files:
-        (src / name).write_bytes(name.encode("utf-8"))
-
-    manifest = _formal_build(CASE_DIR, run_dir, tmp_path / "staging")
-    staging = manifest.staging_root
-
-    copied_root = staging / "prescan" / "cv_evidence" / "1f_view" / "prescan"
-    assert {path.name for path in copied_root.iterdir()} == prescan_files
-    for name in prescan_files:
-        assert (copied_root / name).read_bytes() == (src / name).read_bytes()
-    kickoff = (staging / "kickoff_prompt.md").read_text(encoding="utf-8")
-    assert "prescan/cv_evidence/<image_stem>/prescan/" in kickoff
-    prescan_line = next(
-        line for line in kickoff.splitlines() if line.startswith("Deterministic prescan candidates")
-    )
-    named_files = set(re.findall(r"`([^`]+\.(?:json|png))`", prescan_line))
-    assert named_files, "no prescan artifacts were parsed from the generated kickoff"
-    assert named_files == prescan_files
-    assert "`combined_overlay.png` (structural-only)" in prescan_line
-    assert "`candidates.json` (all candidates)" in prescan_line
-    assert "Nothing is dropped" in prescan_line
-
-
 def test_build_kickoff_names_outputs_by_expected_output_id_not_view_suffix(tmp_path: Path):
     """M-2 / N-2 (r1, F-3): the generated kickoff_prompt.md is the FIRST
     instruction the reader receives (spawn_command feeds it to ``claude -p

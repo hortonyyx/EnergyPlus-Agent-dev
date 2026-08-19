@@ -67,3 +67,29 @@
 3. `zone_frame: axis | exterior` 出模选项：run_config 接线 + 内核周边边界投影 + frame-aware 判卷/渲染换算函数（W5 泛化保留）+ 厚度 prior 档 advisory + gt 墙厚字段语义复核
 4. MEP 侧 per-surface 厚度+材料赋值环节的接口（输入端补充进来的挂点）
 5. 迁移与回归：sm20/sm21 anchors 重derive 对账（axis 档应与现行为字节级一致=天然回归基线）
+
+---
+
+## ⭐ 2026-08-19 收进本专项：`scale_origin`（读图器的世界原点申报）
+
+**它为什么属于这里、不属于 reading**：`scale_origin` 要求读图器申报
+「整栋**跨层**投影最大边界的**内**角」——判「内角」就必须判**墙厚 / 内外皮**，
+而墙厚基准正是本专项尚未定案的题（`zone_frame: axis|exterior`）。
+⇒ 它把一个未解决的尺寸基准问题，转嫁成了读图器的一项必填申报。
+
+**沿革**：
+- 好版本（07-07 / 07-08）`guide.md` §1 明写 **"the reading stage does NO world placement"**，
+  两份满分产物**都没有这个字段**。
+- `68fd6d0`（2026-07-31）把它变成**每张平面图必填**，且扩散到 5 处（kickoff 非可议项 / §1 / §2 schema
+  注释 / §6 自检清单 / pen_library）——**方向与好版本的禁令相反**。
+- `0ae4b93`（2026-08-17）退回 **SHOULD**（同图可见参考点 · 拿不准留 null · 省略不算自检失败）。
+  起因是 orchestrator 写的「两份好 reading 都没有它」**事实错**（两份都有 world-placement 禁令，
+  且 `git show 723b0f9:guide.md` 零提及 ⇒ 从来不是成文规则）。
+
+**⛔ 遗留的真问题（本专项要答）**：
+1. 退回 SHOULD 后，**"拿不准留 null" 会撞上 v3 判卷的 `retain_as_miss`**
+   ⇒ 整条 plan 通道按 miss 计（详 [reading 专项 §9.4](../capability/reading/improvement_methodology.md)）。
+   **这是 sm24 验收的准入门**，且碰判卷 = 工程档、作者不得是 orchestrator。
+2. 世界原点到底该由**谁**定：读图器申报（现状，需判墙厚）/ correction 段推导 / 代码从尺寸链确定性求解？
+   ⇒ 与本专项的 `zone_frame` 定案是同一个决定的两面。
+

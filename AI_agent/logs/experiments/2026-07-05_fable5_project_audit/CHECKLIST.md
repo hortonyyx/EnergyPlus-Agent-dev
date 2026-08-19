@@ -13,7 +13,7 @@
 1. `AI_agent/CLAUDE.md` — 根文档：项目结构 + 当前状态 §2 + **关键不变量 §1.5**（尤其 #1 判断-几何分工 / #2 单一世界坐标 / #4 gt 铁律 / #6 建筑复杂度可扩展性铁律）。
 2. `AI_agent/architecture/pipeline_stage_contracts.md` — 唯一「当前稳定架构」活文档：逐阶段 输入·输出·校验 + 两道门 + 不变量 + 接缝缺口。
 3. `AI_agent/plan.md` — 活计划（近细远粗）；`AI_agent/decision_log.md` — 历史决策归档。
-4. `AI_agent/capability/pipeline_0-5_capability_upgrade_suggestions.md`（C2/C3/C4 阶梯）· `AI_agent/capability/reading_improvement_methodology.md`（reading 提升 + Phase A/B/C + CV 工具箱）· `AI_agent/proposals/geometry_first_zonification.md`（再拓扑休眠支线）· `AI_agent/architecture/judge_grade_model.md`（判卷子系统活规格）。
+4. `AI_agent/capability/pipeline_0-5_capability_upgrade_suggestions.md`（C2/C3/C4 阶梯）· `AI_agent/capability/reading/improvement_methodology.md`（reading 提升 + Phase A/B/C + CV 工具箱）· `AI_agent/proposals/geometry_first_zonification.md`（再拓扑休眠支线）· `AI_agent/architecture/judge_grade_model.md`（判卷子系统活规格）。
 5. 代码地基：`src/agent/pipeline.py`（run_pipeline）· `src/agent/geometry/`（内核）· `src/agent/correction/` · `src/validator/checks/` · `src/agent/execution/validation_run.py`（validate_case capstone）· `src/agent/judge/`。
 
 ## 背景（体检要带上的当前判断）
@@ -46,7 +46,7 @@
 对**每个阶段**给分阶段升级方案（含**但不限于脚手架约束升级**）：`0_reading` schema/脚手架 · `1_correction` schema/判断 · `2_modelling+3_split_pairing` 几何内核 · `4_mep` · `5_intakeoutput` 契约 · gate① 确定性门 · gate② judge + **判卷模型**（见 C2 附加）· gt/答案模型。**硬约束不变量 #6**：复杂体量 = schema 加槽位（per-floor footprint / 变高区 / void）+ kernel 实现扩展 = **接缝内长，非架构推翻**；明确指出**哪些当前简化假设（共用 footprint / 每层满铺楼板 / 固定层高）被烤死在哪、如何松动**。
 
 **B2 · reading 上 CV 到底怎么做（风格泛化是核心约束）**
-基于 `capability/reading_improvement_methodology.md`（Phase A/B/C + CV 工具箱洞察：sm21_pre 好 reading 的 forensics 证强模型是**自发写经典 CV**——灰度投影定位墙线 + 连通域数窗——才拿 0.0m 精度）。给分阶段方案：CV 前端做成 0_reading 的**显式工具箱**（crop / 墙线投影 / px↔m 标定 / 窗连通域）给弱/开源 VLM 当拐杖；**怎么保证跨建筑图纸风格泛化**（不 overfit sm21，要吃各种画法/图例/线型）；怎么桥接 Phase B（算术下沉）与 Phase C。**注**：本目录 `codex_cv_plan.md` = Codex 预先出的更细 CV 工具箱方案，作交叉参考基线——你在它之上给**方向裁决 + 风格泛化策略 + 与 Phase B/C 的衔接**，认同/挑战它的分阶段，不必重抠实现细节。
+基于 `capability/reading/improvement_methodology.md`（Phase A/B/C + CV 工具箱洞察：sm21_pre 好 reading 的 forensics 证强模型是**自发写经典 CV**——灰度投影定位墙线 + 连通域数窗——才拿 0.0m 精度）。给分阶段方案：CV 前端做成 0_reading 的**显式工具箱**（crop / 墙线投影 / px↔m 标定 / 窗连通域）给弱/开源 VLM 当拐杖；**怎么保证跨建筑图纸风格泛化**（不 overfit sm21，要吃各种画法/图例/线型）；怎么桥接 Phase B（算术下沉）与 Phase C。**注**：本目录 `codex_cv_plan.md` = Codex 预先出的更细 CV 工具箱方案，作交叉参考基线——你在它之上给**方向裁决 + 风格泛化策略 + 与 Phase B/C 的衔接**，认同/挑战它的分阶段，不必重抠实现细节。
 
 **B3 · 再拓扑路径怎么启 + 怎么纳入 pipeline**
 `proposals/geometry_first_zonification.md` 休眠支线（热区积木 + 确定性内核）。给分阶段方案：启动入口是什么、怎么作为**kernel 策略替换**与当前「造面+切配」内核共存/替换（不变量 #6 = 策略替换非架构推翻）、需要哪些 schema/契约变更、迁移路径、与 C2/C3/C4 的关系（再拓扑是否是复杂体量的更优解）。

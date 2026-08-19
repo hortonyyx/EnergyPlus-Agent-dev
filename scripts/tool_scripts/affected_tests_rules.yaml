@@ -32,7 +32,6 @@ uncovered_allowlist:
   scripts/tool_scripts/spawn_isolated_reader.py: "isolation helper invoked outside the project test graph"
   src/agent/execution/isolation_templates/__init__.py: "isolation-template package marker; no direct project test imports it"
   src/agent/execution/isolation_templates/guard.py: "resources.files dynamically injects this into staging; test_isolation executes its copy inside isolated staging, which the static graph cannot capture, so no-cover falls back to FULL"
-  src/agent/execution/isolation_templates/run_cv_probe.py: "resources.files dynamically injects this into staging; test_isolation executes its copy inside isolated staging, which the static graph cannot capture, so no-cover falls back to FULL"
   src/database/datatools/_share.py: "database tooling module; no project-side tests cover this legacy area"
   src/database/datatools/constructions.py: "database tooling module; no project-side tests cover this legacy area"
   src/database/datatools/datadescription.py: "database tooling module; no project-side tests cover this legacy area"

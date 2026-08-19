@@ -85,17 +85,44 @@ def test_case_data_has_no_dxf_or_dwg():
     assert not offenders, f"case_data must hold no DXF/DWG (use staging): {offenders}"
 
 
-def test_prescan_entry_points_stay_gt_blind():
-    paths = [
-        Path("src/agent/reading/cv_toolbox/recipes.py"),
-        Path("scripts/tool_scripts/cv_probe.py"),
+def test_prescan_stays_deleted_until_the_reading_专项_decides_otherwise():
+    """Sentinel, not a capability lock — and BEHAVIOURAL, not lexical.
+
+    prescan (`prescan-plan` / `prescan-elevation`) was WITHDRAWN FROM THE WORKING TREE on
+    2026-08-19 by user ruling — deferred to the reading 专项, NOT abandoned; the code,
+    tests and restore steps live in `AI_agent/capability/reading/prescan_snapshot/`. It had spent 2026-08-15..08-19 half-dead: the implementation shipped while
+    `run_cv_probe.ALLOWED_TOOLS` no longer listed it, so the reader could not call it
+    and only the orchestrator could pre-stage its output. That half-dead shape is what
+    this sentinel prevents from recurring — prescan returns as a DECISION recorded in
+    `AI_agent/capability/reading/`, or it stays archived until one is taken.
+
+    ⚠️ The first draft of this sentinel grepped the source for "prescan_plan" and
+    tripped on its own module docstring recording the deletion. This repo has been
+    bitten six times by lexical matching over unbounded text (F-49 → F-60 → N-1/N-2 →
+    F-61 → F-62); a sentinel that repeats the mistake is worse than none. So this asks
+    the code, not the characters.
+    """
+    import importlib
+
+    toolbox = importlib.import_module("src.agent.reading.cv_toolbox")
+    for name in ("prescan_plan", "prescan_elevation"):
+        assert not hasattr(toolbox, name), f"cv_toolbox re-exports {name}"
+
+    probe = _load_module_from_path(
+        "cv_probe_sentinel", Path("scripts/tool_scripts/cv_probe.py")
+    )
+    parser = probe.build_parser()
+    subparser_actions = [
+        a for a in parser._actions if hasattr(a, "choices") and isinstance(a.choices, dict)
     ]
-    for path in paths:
-        text = path.read_text(encoding="utf-8")
-        assert "prescan-plan" in text or "prescan_plan" in text
-        assert "prescan-elevation" in text or "prescan_elevation" in text
-    hits = _scan(paths)
-    assert not hits, f"prescan entry points must not reference gt: {hits}"
+    tools = set()
+    for action in subparser_actions:
+        tools.update(action.choices)
+    assert not {t for t in tools if "prescan" in t}, f"cv_probe still offers prescan: {sorted(tools)}"
+
+    wrapper = Path("src/agent/execution/isolation_templates/run_cv_probe.py")
+    allowed = _load_module_from_path("run_cv_probe_sentinel", wrapper).ALLOWED_TOOLS
+    assert not {t for t in allowed if "prescan" in t}, f"wrapper authorizes prescan: {allowed}"
 
 
 def test_judge_side_gt_readers_remain_confined_to_judge_package():
@@ -134,3 +161,12 @@ def test_v3_overlay_path_has_no_legacy_density_or_fixed_panel_vocabulary():
     source = Path("scripts/tool_scripts/render_gt_overlay.py").read_text(encoding="utf-8")
     v3 = source[source.index("def build_gt_overlay_images_v3"):source.index("def write_gt_overlay_images_v3")]
     assert not [token for token in ("_calibrate", "_FLOOR_PNG", "_FACADE_PNG", "range(4)", "largest bbox") if token in v3]
+
+def _load_module_from_path(name: str, path: Path):
+    """Import a standalone script by path (neither is an installed package)."""
+    import importlib.util
+
+    spec = importlib.util.spec_from_file_location(name, path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module

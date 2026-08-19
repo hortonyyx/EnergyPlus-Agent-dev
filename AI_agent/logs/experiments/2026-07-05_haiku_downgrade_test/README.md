@@ -25,7 +25,7 @@ score_criteria：`walls_complete=severe(0/9)` · `windows_placed=severe(0/7)` ·
 ## 裁决
 - **模型能力是主导杠杆**。同一套让 Sonnet 5 达 9/9·15/15·0.0m 的脚手架，换 Haiku 4.5 → 除 trivially-dimensioned 外框/楼层线外**全线归零**。脚手架**有它托不起弱 VLM 的能力地板**：约束能提示"读准坐标/别过度分割/窗中尺寸锚定"，但弱模型在满家具图上**感知就是错的**，脚手架给不出它看不到的东西。
 - **非方差**。坍塌是 0/15、0/9 的整体性，不同于当年 Sonnet 4.6 窗 4–11 的 run 方差带；n=1 已足够定性（若要 n>1 可补 reread，但结论不会翻）。
-- **CV 提上日程**（Phase C / 经典 CV 工具箱当 VLM 看图小工具，见 [capability/reading_improvement_methodology.md](../../capability/reading_improvement_methodology.md)）：sm21_pre 那次好 reading 的 forensics 已证 Sonnet 5 是**自发写经典 CV**（灰度投影定位墙线 + 连通域数窗）才拿到 0.0m 精度——弱 VLM 拿不到这套拐杖就崩。把 CV"量而非看"做成显式工具箱是给弱/开源 VLM 的关键杠杆。
+- **CV 提上日程**（Phase C / 经典 CV 工具箱当 VLM 看图小工具，见 [capability/reading/improvement_methodology.md](../../../capability/reading/improvement_methodology.md)）：sm21_pre 那次好 reading 的 forensics 已证 Sonnet 5 是**自发写经典 CV**（灰度投影定位墙线 + 连通域数窗）才拿到 0.0m 精度——弱 VLM 拿不到这套拐杖就崩。把 CV"量而非看"做成显式工具箱是给弱/开源 VLM 的关键杠杆。
 
 ## 产物
 - run：`case_tests/e2e_tests/sm21_anchor/run_2026-07-05_haiku_downgrade/`（停在 J0 characterization stop，未推下游；DeepSeek 额度未花）。

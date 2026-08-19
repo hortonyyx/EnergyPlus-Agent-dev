@@ -85,7 +85,13 @@ def staging(tmp_path_factory: pytest.TempPathFactory) -> Path:
     so nothing collides under this repo's default parallel test run."""
 
     root = tmp_path_factory.mktemp("f51_staging")
-    manifest = build_isolation_workspace(CASE_DIR, staging_root=root / "staging")
+    # 2026-08-19: the DEFAULT tier is now "none" (stage the original; user ruling —
+    # cost-driven downscaling is off the table and the frame tradeoff is packaged into
+    # the reading 专项). These tests exist to lock the RESIZE MECHANISM, so they ask for
+    # the tier by name. "default = none" is locked separately below.
+    manifest = build_isolation_workspace(
+        CASE_DIR, staging_root=root / "staging", vision_resize_tier="standard"
+    )
     return manifest.staging_root
 
 
@@ -176,7 +182,8 @@ def test_plan_view_staged_at_vision_resize_target_and_actually_shrunk(
     with Image.open(staging / "case_data" / name) as staged_im:
         staged_size = staged_im.size
 
-    computed_target = resized_size_for_tier(*orig_size)
+    # ask for the same tier the `staging` fixture built with (default is now "none")
+    computed_target = resized_size_for_tier(*orig_size, "standard")
     assert staged_size == computed_target, (
         f"staged size disagrees with a fresh resized_size_for_tier call: "
         f"orig={orig_size} staged={staged_size} computed_target={computed_target}"
@@ -307,7 +314,9 @@ def test_neuter_cutting_the_resize_wiring_reproduces_the_original_frame_mismatch
 
     monkeypatch.setattr(isolation_module, "resize_image_file_to_tier", _passthrough_no_resize)
 
-    manifest = build_isolation_workspace(CASE_DIR, staging_root=tmp_path / "neuter_staging")
+    manifest = build_isolation_workspace(
+        CASE_DIR, staging_root=tmp_path / "neuter_staging", vision_resize_tier="standard"
+    )
     neuter_staging = manifest.staging_root
 
     with Image.open(CASE_DATA / "1f_view.png") as orig_im:
@@ -326,3 +335,45 @@ def test_neuter_cutting_the_resize_wiring_reproduces_the_original_frame_mismatch
     assert got != PLAN_VIEW_TARGETS["1f_view.png"], (
         "neuter had no effect -- cv_probe still sees the resized frame"
     )
+
+
+def test_default_tier_stages_the_original_bytes(tmp_path: Path) -> None:
+    """⭐ 2026-08-19 user ruling lock: the DEFAULT staging behaviour is to leave the
+    drawing alone.
+
+    The rest of this file locks that the resize MECHANISM works when asked for. This
+    locks the other half — that it is not asked for by default. Before this ruling the
+    default was "standard", which silently shrank every plan to 1377x868; the reason it
+    is a lock and not a comment is that the tier had NO entry point at all until today,
+    so a default flip was previously indistinguishable from a code change nobody could
+    override.
+    """
+    from src.agent.execution.vision_resize import (
+        DEFAULT_VISION_RESIZE_TIER,
+        NO_VISION_RESIZE,
+    )
+
+    assert DEFAULT_VISION_RESIZE_TIER == NO_VISION_RESIZE
+
+    manifest = build_isolation_workspace(CASE_DIR, staging_root=tmp_path / "default_staging")
+    staged = Path(manifest.staging_root) / "case_data" / "1f_view.png"
+    source = CASE_DATA / "1f_view.png"
+
+    assert staged.read_bytes() == source.read_bytes(), (
+        "default staging must hand the reader the original file byte for byte"
+    )
+    with Image.open(staged) as a, Image.open(source) as b:
+        assert a.size == b.size
+
+
+def test_standard_tier_still_shrinks_when_asked(tmp_path: Path) -> None:
+    """Negative half of the lock above: flipping the default back to a resizing tier
+    must still be reachable and must still actually shrink, otherwise the first lock
+    would pass simply because the resize broke."""
+    manifest = build_isolation_workspace(
+        CASE_DIR, staging_root=tmp_path / "standard_staging", vision_resize_tier="standard"
+    )
+    staged = Path(manifest.staging_root) / "case_data" / "1f_view.png"
+    with Image.open(staged) as a, Image.open(CASE_DATA / "1f_view.png") as b:
+        assert a.size != b.size
+        assert a.size[0] < b.size[0]

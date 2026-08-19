@@ -1,0 +1,163 @@
+{
+  "applicability": "clean_vector",
+  "crop_chain": [
+    {
+      "bbox_px": [
+        750.0,
+        210.0,
+        1200.0,
+        460.0
+      ],
+      "crop_size_px": [
+        900,
+        500
+      ],
+      "local_to_source": {
+        "source_x": "750.0 + local_x / 2.0",
+        "source_y": "210.0 + local_y / 2.0"
+      },
+      "op": "crop_zoom",
+      "scale": 2.0,
+      "source_size_px": [
+        1377,
+        868
+      ],
+      "source_to_local": {
+        "local_x": "(source_x - 750.0) * 2.0",
+        "local_y": "(source_y - 210.0) * 2.0"
+      }
+    }
+  ],
+  "cv_schema": "1",
+  "diagnostics": {
+    "crop_chain": [
+      {
+        "bbox_px": [
+          750.0,
+          210.0,
+          1200.0,
+          460.0
+        ],
+        "crop_size_px": [
+          900,
+          500
+        ],
+        "local_to_source": {
+          "source_x": "750.0 + local_x / 2.0",
+          "source_y": "210.0 + local_y / 2.0"
+        },
+        "op": "crop_zoom",
+        "scale": 2.0,
+        "source_size_px": [
+          1377,
+          868
+        ],
+        "source_to_local": {
+          "local_x": "(source_x - 750.0) * 2.0",
+          "local_y": "(source_y - 210.0) * 2.0"
+        }
+      }
+    ],
+    "overlay_decisions": [
+      {
+        "candidate_id": "1f_view:crop_zoom:001:crop",
+        "geometry": {
+          "bbox_px": [
+            750.0,
+            210.0,
+            1200.0,
+            460.0
+          ],
+          "kind": "bbox"
+        },
+        "reason": "crop region",
+        "status": "accepted"
+      }
+    ]
+  },
+  "overlay_path": "out/0_reading/cv_evidence/1f_view/006_crop_zoom_overlay.png",
+  "params": {
+    "bbox_px": [
+      750.0,
+      210.0,
+      1200.0,
+      460.0
+    ],
+    "output_path": "out/0_reading/cv_evidence/1f_view/006_crop_zoom_crop.png",
+    "scale": 2.0
+  },
+  "recipe_id": "clean_vector_v1",
+  "results": [
+    {
+      "anchor_px": {
+        "kind": "bbox",
+        "value": {
+          "bbox_px": [
+            750.0,
+            210.0,
+            1200.0,
+            460.0
+          ]
+        }
+      },
+      "bbox_px": [
+        750.0,
+        210.0,
+        1200.0,
+        460.0
+      ],
+      "candidate_id": "1f_view:crop_zoom:001:crop",
+      "candidate_kind": "crop",
+      "coord_space": "source_px",
+      "crop_size_px": [
+        900,
+        500
+      ],
+      "geometry": {
+        "bbox_px": [
+          750.0,
+          210.0,
+          1200.0,
+          460.0
+        ],
+        "kind": "bbox"
+      },
+      "metric": {
+        "confidence": "high",
+        "dimension_refs": [],
+        "raw_segments": [],
+        "residuals": [],
+        "scale_px_per_m": null
+      },
+      "output_image": "out/0_reading/cv_evidence/1f_view/006_crop_zoom_crop.png",
+      "provenance": {
+        "crop_chain_id": "",
+        "recipe_id": "clean_vector_v1",
+        "source_image_sha256": "a2efe3c41cf4",
+        "tool": "crop_zoom",
+        "tool_version": "1"
+      },
+      "visual": {
+        "anchor_px": {
+          "kind": "bbox",
+          "value": {
+            "bbox_px": [
+              750.0,
+              210.0,
+              1200.0,
+              460.0
+            ]
+          }
+        },
+        "confidence": "high",
+        "relative": {}
+      }
+    }
+  ],
+  "source_image": {
+    "name": "1f_view.png",
+    "sha256": "a2efe3c41cf4"
+  },
+  "tool": "crop_zoom",
+  "tool_version": "1"
+}

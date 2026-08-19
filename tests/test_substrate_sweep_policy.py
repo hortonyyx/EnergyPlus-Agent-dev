@@ -363,35 +363,50 @@ def test_g8_dead_keys_and_no_missing_keys():
     guard_keys = set(_guard_direct_keys())
     authorized = {"crop_zoom", "wall_line_profiler", "storey_line_profiler",
                   "px_m_calibrator", "window_cc_detector", "overlay_logger"}
-    withdrawn = {"prescan-plan", "prescan-elevation"}
     accepted = set().union(*(per_tool[t] for t in authorized))
 
     # Direction B first: every key an authorized tool accepts must be guard-known.
     missing = sorted(accepted - guard_keys)
     assert not missing, f"authorized tools accept keys the guard denies: {missing}"
 
-    # Direction A: the guard-only keys are exactly the five prescan leftovers.
+    # Direction A: the guard must accept NOTHING the authorized tools do not.
+    # Until 2026-08-19 this pinned five known leftovers (capability_profile / label /
+    # min_line_len_px / min_strength / no_cc) — all prescan-only options that stayed in
+    # the guard table after prescan was withdrawn from ALLOWED_TOOLS on 2026-08-15.
+    # Withdrawing prescan from the working tree (user ruling; code archived, not abandoned)
+    # let the surface go to zero, and zero is
+    # the value worth pinning: any future non-empty dead set means the guard is
+    # advertising a parameter no authorized tool can consume.
     dead = sorted(guard_keys - accepted)
-    assert dead == ["capability_profile", "label", "min_line_len_px",
-                    "min_strength", "no_cc"], (
+    assert dead == [], (
         f"guard dead-key surface changed: {dead}"
     )
-    withdrawn_only = set().union(*(per_tool[t] for t in withdrawn))
-    assert set(dead) <= withdrawn_only, "dead keys must belong only to withdrawn tools"
 
 
 def test_g8_wrapper_boolean_flag_keys_are_dead_surface():
-    src = (
+    # 2026-08-19: read the ATTRIBUTE, not the source text. The previous regex
+    # (`BOOLEAN_FLAG_KEYS = {...}`) stopped matching the moment the set was written as
+    # `set()` instead of a brace literal — a lexical assertion breaking on a legal
+    # spelling change, which is the same shape as the six guard defects this file exists
+    # to police. Ask the module what it holds.
+    import importlib.util
+
+    wrapper_path = (
         REPO / "src" / "agent" / "execution" / "isolation_templates" / "run_cv_probe.py"
-    ).read_text(encoding="utf-8")
-    m = re.search(r"BOOLEAN_FLAG_KEYS = \{(.*?)\}", src, re.DOTALL)
-    flags = set(re.findall(r'"([a-z0-9_]+)"', m.group(1)))
+    )
+    spec = importlib.util.spec_from_file_location("run_cv_probe_flagcheck", wrapper_path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    flags = set(module.BOOLEAN_FLAG_KEYS)
     per_tool = _cv_probe_tool_keys()
     authorized = {"crop_zoom", "wall_line_profiler", "storey_line_profiler",
                   "px_m_calibrator", "window_cc_detector", "overlay_logger"}
     accepted = set().union(*(per_tool[t] for t in authorized))
-    assert flags <= {"no_cc"}, f"BOOLEAN_FLAG_KEYS grew: {flags}"
-    assert not (flags & accepted), "boolean flags should only serve withdrawn prescan"
+    # 2026-08-19: `no_cc` was prescan's only boolean flag and prescan is withdrawn, so
+    # the dead boolean surface should now be empty. A non-empty set means the wrapper
+    # is special-casing a flag no authorized tool accepts.
+    assert flags == set(), f"BOOLEAN_FLAG_KEYS should be empty while prescan is withdrawn: {flags}"
+    assert not (flags & accepted), "boolean flags must not shadow an authorized key"
 
 
 # --------------------------------------------------------------------------
@@ -420,29 +435,32 @@ def test_g9_sidecar_semantics(staging: Path):
 
 
 # --------------------------------------------------------------------------
-# G2 / F-53B — withdrawn prescan: guard SHOULD deny (currently allows -> xfail)
+# G2 / F-53B — guard does not validate --tool values (F-56): it SHOULD deny a tool
+# the wrapper refuses. Subject was "withdrawn prescan" until 2026-08-19; prescan is now
+# WITHDRAWN (archived, deferred to the 专项), so the probe uses a name that was never a tool — the defect being pinned is
+# the missing --tool value check, which prescan merely happened to expose.
 # --------------------------------------------------------------------------
 
 
-@pytest.mark.xfail(strict=True, reason="F-53B: guard allows withdrawn prescan tools "
-                                       "(no --tool value check; prescan keys still listed)")
+@pytest.mark.xfail(strict=True, reason="F-56: guard performs no --tool value check, "
+                                       "so it allows a tool the wrapper will refuse")
 @pytest.mark.parametrize("form", ["direct", "request"])
-def test_f53b_withdrawn_prescan_should_be_denied_by_guard(staging: Path, form: str):
+def test_f53b_unknown_tool_should_be_denied_by_guard(staging: Path, form: str):
     if form == "direct":
-        args = ["--tool", "prescan-plan", "--image", IMG, "--out-dir", "out/g2lock"]
+        args = ["--tool", "no_such_tool", "--image", IMG, "--out-dir", "out/g2lock"]
     else:
         (staging / "requests" / "g2lock.json").write_text(json.dumps(
-            {"tool": "prescan-plan", "args": {"image": IMG, "out_dir": "out/g2lock"}}))
+            {"tool": "no_such_tool", "args": {"image": IMG, "out_dir": "out/g2lock"}}))
         args = ["--request", "requests/g2lock.json"]
     decision, _ = guard_bash(staging, "python tools/run_cv_probe.py " + " ".join(args))
     assert decision == "deny", (
-        "guard should refuse what the wrapper refuses (withdrawn prescan)"
+        "guard should refuse what the wrapper refuses (unknown tool name)"
     )
 
 
-def test_f53b_wrapper_still_refuses_prescan(staging: Path):
+def test_f53b_wrapper_still_refuses_unknown_tool(staging: Path):
     """The wrapper side of G2 (current, correct behaviour — a plain lock)."""
-    args = ["--tool", "prescan-elevation", "--image", IMG, "--out-dir", "out/g2lock"]
+    args = ["--tool", "no_such_tool", "--image", IMG, "--out-dir", "out/g2lock"]
     proc = run_wrapper(staging, args)
     assert proc.returncode != 0
     assert "unsupported cv_probe tool" in proc.stderr

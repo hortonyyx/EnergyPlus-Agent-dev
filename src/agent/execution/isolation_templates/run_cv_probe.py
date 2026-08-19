@@ -12,8 +12,12 @@ from pathlib import Path
 # guard.py's PROBE_TOOL_NAMES exists only to phrase error messages and defers to
 # this list. Withdrawing a tool here is what actually removes the capability.
 #
-# 2026-08-15: `prescan-plan` / `prescan-elevation` withdrawn. Six draws across
-# 07-07..08-15 showed the reader always opens with prescan and then stops at the
+# 2026-08-15: `prescan-plan` / `prescan-elevation` withdrawn from this table;
+# 2026-08-19 it was WITHDRAWN FROM THE WORKING TREE (user ruling — a half-dead
+# feature whose code shipped while its authorization did not). Code + tests + restore
+# steps are archived under AI_agent/capability/reading/prescan_snapshot/;
+# whether prescan returns is a reading 专项 decision, not an abandonment. Historical rationale: six draws across 07-07..08-15 showed the reader
+# always opens with prescan and then stops at the
 # candidate layer; rolling the "spend fewer crops" wording back to the 07-07 text
 # changed nothing (C1/C2). The remaining hypothesis is that the free macro probe
 # is simply the path of least resistance, so the withdrawal is at the capability
@@ -35,7 +39,7 @@ PATH_KEYS = {"image", "out_dir", "anchors_json", "candidates_json"}
 # keeps the existing staging-contained path resolution below.
 JSON_OR_PATH_KEYS = {"anchors_json", "candidates_json"}
 # R2-2: parameters this wrapper turns into an OUTPUT LANDING POINT. `out_dir` is
-# the only one across all of ALLOWED_TOOLS (sidecar/crop/overlay/prescan paths
+# the only one across all of ALLOWED_TOOLS (sidecar/crop/overlay paths
 # are all derived from it; `sidecar_name` and `label` are regex-pinned name
 # components that cannot traverse). It must resolve into the writable root —
 # "inside staging" is not enough, or a request can make this wrapper write into
@@ -51,7 +55,10 @@ OUTPUT_ROOT_DIR = "out"
 # (`--no-cc true`) because the guard's parser is strictly paired; this is where
 # the pair is folded back into the flag, exactly as the request JSON's boolean
 # values already were (`_request_to_argv`'s bool branch).
-BOOLEAN_FLAG_KEYS = {"no_cc"}
+# 2026-08-19: emptied when prescan was deleted — `no_cc` was its only boolean flag.
+# Kept as a (now empty) hook because the parse path still branches on it; a non-empty
+# set here must correspond to a flag some authorized tool actually accepts.
+BOOLEAN_FLAG_KEYS: set[str] = set()
 _BOOLEAN_WORDS = {"true": True, "false": False}
 
 _USAGE_TEXT = """\

@@ -16,8 +16,6 @@ from src.agent.reading.cv_toolbox import (  # noqa: E402
     allocate_sidecar_path,
     crop_zoom,
     overlay_logger,
-    prescan_elevation,
-    prescan_plan,
     px_m_calibrator,
     storey_line_profiler,
     wall_line_profiler,
@@ -101,23 +99,6 @@ def _overlay_candidates(payload: dict, default_status: str = "undecided") -> lis
     return candidates
 
 
-def _reject_nested_prescan_out_dir(out_dir: Path) -> str:
-    """F-1: the prescan tool itself appends ``cv_evidence/<stem>/prescan/`` to
-    ``--out-dir``. If the caller already concatenated either of those layers
-    (``--out-dir`` ends in ``cv_evidence`` or ``prescan``), the result is a nested
-    ``.../cv_evidence/.../cv_evidence/...`` that the isolation copy-guard does
-    NOT recognize, so it silently never reaches staging. Fail-closed here with
-    the correct example rather than writing files in the wrong place. Returns an
-    error message when nested, else an empty string."""
-    last = Path(out_dir).name
-    if last in ("cv_evidence", "prescan"):
-        return (
-            f"--out-dir must be the reading root; the tool appends "
-            f"cv_evidence/<stem>/prescan/ itself, so a path ending in {last!r} "
-            f"would nest and never reach staging. Example: --out-dir <RUN>/0_reading"
-        )
-    return ""
-
 
 def _write(args: argparse.Namespace, payload: dict, crop_chain: list[dict] | None, overlay_candidates: list[dict]) -> Path:
     sidecar_path = allocate_sidecar_path(args.out_dir, args.image, payload["tool"], args.sidecar_name)
@@ -174,21 +155,6 @@ def build_parser() -> argparse.ArgumentParser:
     _common(p)
     p.add_argument("--candidates-json", required=True, type=_json_arg)
 
-    p = subparsers.add_parser("prescan-plan")
-    _common(p)
-    p.add_argument("--capability-profile", default="orthogonal_polygon")
-    p.add_argument("--no-cc", action="store_true")
-    p.add_argument("--min-strength", type=float)
-    p.add_argument("--min-line-len-px", type=float)
-    p.add_argument("--label", default="prescan")
-
-    p = subparsers.add_parser("prescan-elevation")
-    _common(p)
-    p.add_argument("--capability-profile", default="rectangular")
-    p.add_argument("--no-cc", action="store_true")
-    p.add_argument("--min-strength", type=float)
-    p.add_argument("--min-line-len-px", type=float)
-    p.add_argument("--label", default="prescan")
 
     return parser
 
@@ -312,24 +278,7 @@ def execute_probe(args: argparse.Namespace, parser: argparse.ArgumentParser) -> 
             crop_chain=[],
             overlay_path=overlay_path,
         )
-    elif args.tool in ("prescan-plan", "prescan-elevation"):
-        # F-1: reject a nested --out-dir (caller already appended a layer the tool
-        # adds itself) before writing anything, then echo the final landing path.
-        reason = _reject_nested_prescan_out_dir(args.out_dir)
-        if reason:
-            parser.error(reason)
-        prescan_fn = prescan_plan if args.tool == "prescan-plan" else prescan_elevation
-        candidates_path, _overlay_path = prescan_fn(
-            args.image,
-            out_dir=args.out_dir,
-            recipe_id=args.recipe,
-            capability_profile=args.capability_profile,
-            include_cc=not args.no_cc,
-            min_strength=args.min_strength,
-            min_line_len_px=args.min_line_len_px,
-            label=args.label,
-        )
-        return Path(candidates_path)
+
     else:
         parser.error(f"unknown tool: {args.tool}")
     raise AssertionError("argparse accepted an unhandled cv_probe tool")
@@ -338,11 +287,7 @@ def execute_probe(args: argparse.Namespace, parser: argparse.ArgumentParser) -> 
 def main(argv: list[str] | None = None) -> int:
     args, parser = parse_probe_args(argv)
     result_path = execute_probe(args, parser)
-    # Preserve the established single-prescan CLI contract: only prescan echoes
-    # its copy-guard-recognized landing path.  Batch aggregation calls
-    # execute_probe directly and emits one JSON result document instead.
-    if args.tool in ("prescan-plan", "prescan-elevation"):
-        print(str(result_path.resolve()))
+
     return 0
 
 

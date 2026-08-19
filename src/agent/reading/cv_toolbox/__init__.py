@@ -1,6 +1,6 @@
 """Deterministic CV probes for reading-stage audit evidence."""
 
-from .recipes import CLEAN_VECTOR_V1, get_recipe, prescan_elevation, prescan_plan
+from .recipes import CLEAN_VECTOR_V1, get_recipe
 from .sidecar import allocate_sidecar_path, write_sidecar
 from .tools import (
     crop_zoom,
@@ -17,8 +17,6 @@ __all__ = [
     "crop_zoom",
     "get_recipe",
     "overlay_logger",
-    "prescan_elevation",
-    "prescan_plan",
     "px_m_calibrator",
     "storey_line_profiler",
     "wall_line_profiler",

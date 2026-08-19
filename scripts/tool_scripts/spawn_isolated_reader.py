@@ -13,6 +13,7 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
+from src.agent.execution.vision_resize import VISION_RESIZE_CHOICES
 from src.agent.execution.isolation import (  # noqa: E402
     approve_pilot,
     build_isolation_workspace,
@@ -30,6 +31,7 @@ def _cmd_build(args: argparse.Namespace) -> int:
         staging_root=args.staging_root,
         pilot_review_gate=not args.no_pilot_gate,
         guard_profile=args.guard_profile,
+        vision_resize_tier=args.vision_resize_tier,
     )
     print(manifest.staging_root)
     return 0
@@ -44,6 +46,7 @@ def _cmd_prepare_single_plan(args: argparse.Namespace) -> int:
         model=args.model,
         capability_profile=args.capability_profile,
         guard_profile=args.guard_profile,
+        vision_resize_tier=args.vision_resize_tier,
     )
     print(json.dumps(result, sort_keys=True))
     return 0
@@ -119,6 +122,21 @@ def build_parser() -> argparse.ArgumentParser:
             "Recorded in the audit dir and stamped on every access_log entry."
         ),
     )
+    p.add_argument(
+        "--vision-resize-tier",
+        choices=list(VISION_RESIZE_CHOICES),
+        default=None,
+        help=(
+            "F-51 staging resize tier. 'none' (the DEFAULT since 2026-08-19) stages "
+            "the original drawing untouched. 'standard' matches "
+            "Haiku 4.5 and other pre-4.7 Anthropic vision models; 'high_res' matches "
+            "Claude 4.7+ (e.g. Sonnet 5) and is also the right choice for a reader "
+            "that does NOT go through the Anthropic vision pipeline at all (codex / "
+            "gpt-5.4-mini), because for these drawings it leaves the file untouched. "
+            "Picking the wrong tier silently changes what the reader sees relative to "
+            "what cv_probe measures."
+        ),
+    )
     p.set_defaults(func=_cmd_build)
 
     p = sub.add_parser(
@@ -140,6 +158,21 @@ def build_parser() -> argparse.ArgumentParser:
     )
     p.add_argument(
         "--guard-profile", choices=["strict", "relaxed", "observe"], default="observe"
+    )
+    p.add_argument(
+        "--vision-resize-tier",
+        choices=list(VISION_RESIZE_CHOICES),
+        default=None,
+        help=(
+            "F-51 staging resize tier. 'none' (the DEFAULT since 2026-08-19) stages "
+            "the original drawing untouched. 'standard' matches "
+            "Haiku 4.5 and other pre-4.7 Anthropic vision models; 'high_res' matches "
+            "Claude 4.7+ (e.g. Sonnet 5) and is also the right choice for a reader "
+            "that does NOT go through the Anthropic vision pipeline at all (codex / "
+            "gpt-5.4-mini), because for these drawings it leaves the file untouched. "
+            "Picking the wrong tier silently changes what the reader sees relative to "
+            "what cv_probe measures."
+        ),
     )
     p.set_defaults(func=_cmd_prepare_single_plan)
 

@@ -1,0 +1,53 @@
+# =====================================================================
+# run_config.yaml — run_2026-08-19_gpt54mini_historystack_P1 (sm21_anchor)
+#
+# ⛔ 探索档 · 诊断跑 · n=1 ⇒ 产物永远不得记成成绩（CLAUDE.md §0.2）。
+#
+# 判别臂（用户 2026-08-19 拍）：「先花一抽 gpt，复原历史树，尽量排除干扰」。
+# 问题：今天读图的失败，是 Haiku 这一侧变了，还是这套东西变了？
+#   本抽在 gpt-5.4-mini 自己的历史成功栈（git ebddada）上重跑同一个 case。
+#   · 它也一样错 ⇒ 不是 Haiku（用户当前那个「Haiku 死活不做」的总结要撤）
+#   · 它做对了 ⇒ 是 Haiku / 其服务端这一侧，修法改为换模型
+# 对照 = run_2026-07-08_gpt54mini_cv_retest（同模型同栈）：平面墙 9/9 · 平面窗 6/7。
+#
+# 协议照抄 run_2026-07-07_haiku_cv_retest，按 07-08 交接单改三处：
+#   ① models.reading → gpt-5.4-mini（codex CLI 喂图，Anthropic Agent tool 够不到）
+#   ② scope 收到 0_reading（reading-only 交叉测试，无下游 / 无 EP / 无 record）
+#   ③ spawn prompt ⛔ 不重复 measure-before-draw —— 07-08 原样，测的正是
+#      「E 批把纪律固化进 cv_toolbox.md」这件事还灵不灵。
+# =====================================================================
+
+scope:
+  stages:
+    - 0_reading
+  # 下游 / 4_mep / 5_intakeoutput / EP 全部不在范围（reading-only 判别臂）。
+
+judge:
+  mode: stop
+  resample_ladder: closed   # ⛔ 判别臂要看「第一次自然产出什么」，不要盲重抽掩盖
+
+review:
+  reading: true             # pilot 门保留：1f 先行、orchestrator 审后才放批量
+  correction: false
+  geometry: false
+
+models:
+  reading:
+    role: 0_reading
+    model_id: gpt-5.4-mini
+    provider: openai
+    effort: default
+    source: >-
+      codex CLI cold-start (`codex exec -m gpt-5.4-mini -i <png>`),
+      clean-room staging via ebddada-era spawn_isolated_reader build, cwd=staging.
+      ⚠️ Claude Code PreToolUse guard 层对 codex 不生效（与 07-08 同）——
+      隔离 = L1 物理 staging + cwd，gt 物理不在 staging 内。
+      per-run directive ⛔ 不含 measure-before-draw（07-08 原样）。
+  orchestrator:
+    role: judge2+orchestration
+    model_id: claude-opus-5
+    note: >-
+      ⚠️ 与 07-08 那次（Opus 4.8）不同，如实记。权威判据 = 确定性 gt 判卷
+      score_reading_vs_gt，orchestrator 只做 pilot 流程审 + 定性路由。
+
+# grade: 省略 ⇒ judge 侧默认容差，与 07-07/07-08 两臂完全一致。
