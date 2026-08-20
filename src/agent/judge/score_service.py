@@ -475,6 +475,30 @@ def score_criteria_for_payload(payload: ScorePayloadV9) -> tuple[ScoreCriterionV
     return tuple(values)
 
 
+def strict_payload_violation_reason(payload: ScorePayloadV9) -> str | None:
+    """The reason a strict profile must refuse this score, or ``None``.
+
+    2026-08-20 — extends the top-level-NA refusal to the structural case: a
+    scored payload whose plan channel is not_applicable because the product
+    declared no ``scale_origin`` (a legal SHOULD-level omission) still scores
+    every plan target as a miss, i.e. a frame-less zero that reads exactly like
+    bad tracing. The ``reading.plan_frame_declared`` FAIL criterion emitted by
+    the reading score assembly is the single source of that signal; strict
+    callers (``run_stage`` grading, the scoring CLI) raise on it AFTER the
+    score artifacts are committed, mirroring ``TopLevelNotApplicableError``'s
+    commit-then-raise contract.
+    """
+    if payload.kind == "not_applicable":
+        return payload.reason
+    for item in score_criteria_for_payload(payload):
+        if (
+            item.criterion_id == "reading.plan_frame_declared"
+            and item.verdict == "fail"
+        ):
+            return "plan_frame_unavailable"
+    return None
+
+
 def _failure_identity(*, typed_request: dict, capability) -> ScoreIdentityV9:
     from src.agent.correction.claims import CLAIMS_VOCAB_VERSION
     from src.agent.correction.facade_applicability import (

@@ -2019,6 +2019,7 @@ def _grade_typed_attempt_artifacts(stage: str, case: str, attempt_dir: Path, doc
         TopLevelNotApplicableError,
         score_attempt_service,
         score_criteria_for_payload,
+        strict_payload_violation_reason,
     )
 
     output_path = attempt_dir / "output.json"
@@ -2127,11 +2128,12 @@ def _grade_typed_attempt_artifacts(stage: str, case: str, attempt_dir: Path, doc
     if cached is None:
         commit_score_artifacts(sidecar_path=score_path, grade_path=grade_path,
                                sidecar=result.sidecar, grade_png=result.grade_png)
-    if (
-        result.payload.kind == "not_applicable"
-        and run_profile in {"golden", "regression"}
-    ):
-        raise TopLevelNotApplicableError(result.payload.reason)
+    # 2026-08-20 — strict profiles also refuse the structural plan-frame zero
+    # (legal null `scale_origin` scoring as all-miss); see
+    # strict_payload_violation_reason for the commit-then-raise contract.
+    strict_violation = strict_payload_violation_reason(result.payload)
+    if strict_violation is not None and run_profile in {"golden", "regression"}:
+        raise TopLevelNotApplicableError(strict_violation)
     return {"score_vs_gt": str(score_path), "grade": str(grade_path),
             "score_criteria": [
                 item.model_dump(mode="json")

@@ -1287,6 +1287,34 @@ def assemble_reading_score(
         segment_rows=segment_rows,
         opening_source_rows=source_rows,
     )
+    # 2026-08-20 — the silent-zero guard. A plan whose ``scale_origin`` is null
+    # is a LEGAL product (guide.md §1: "leave null rather than guess"), but the
+    # frame-less plan channel then scores every target as a miss — a structural
+    # zero whose criteria read exactly like bad tracing. Surface the structural
+    # cause as a first-class FAIL criterion so score consumers see "frame was
+    # never declared" next to the miss rows. eligible=True and denominator 1.0
+    # deliberately: the channel stays scored (retain_as_miss semantics are
+    # untouched — this is NOT a filter escape hatch); strict-profile callers
+    # fail closed on it via score_service.strict_payload_violation_reason.
+    plan_frame_na = sum(
+        1
+        for item in components
+        if item.channel == "plan"
+        and "plan_frame_unavailable" in item.reasons
+    )
+    structural_criteria: tuple[ScoreCriterionV9, ...] = ()
+    if plan_frame_na:
+        structural_criteria = (
+            ScoreCriterionV9(
+                criterion_id="reading.plan_frame_declared",
+                eligible=True,
+                denominator_units=1.0,
+                passing_units=0.0,
+                failing_units=1.0,
+                na_reasons={"plan_frame_unavailable": plan_frame_na},
+                verdict="fail",
+            ),
+        )
     identity = ScoreIdentityV9(
         **common_identity,
         reference_applicability_sha256=reference.content_sha256,
@@ -1309,7 +1337,8 @@ def assemble_reading_score(
         score_criteria=tuple(
             ScoreCriterionV9.model_validate(item.model_dump(mode="json"))
             for item in policy.criteria
-        ),
+        )
+        + structural_criteria,
         reference_ledger_sha256=reference.content_sha256,
         product_ledger_sha256=None,
         absence_ledger_sha256=None,

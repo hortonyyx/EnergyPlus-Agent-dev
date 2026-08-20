@@ -130,11 +130,14 @@ def main() -> int:
                 commit_score_artifacts(sidecar_path=out / "score_vs_gt.json", grade_path=out / "grade.png",
                     sidecar=result.sidecar, grade_png=result.grade_png)
             print(result.sidecar.model_dump_json(indent=2))
-            if (
-                result.payload.kind == "not_applicable"
-                and args.run_profile in {"golden", "regression"}
-            ):
-                raise TopLevelNotApplicableError(result.payload.reason)
+            from src.agent.judge.score_service import (
+                strict_payload_violation_reason,
+            )
+            strict_violation = strict_payload_violation_reason(result.payload)
+            if strict_violation is not None and args.run_profile in {
+                "golden", "regression"
+            }:
+                raise TopLevelNotApplicableError(strict_violation)
             return 0
         except Exception as exc:  # boundary prints no raw exception details
             print(f"typed elevation rejected: {getattr(exc, 'code', 'score_product_identity_invalid')}", file=sys.stderr)
