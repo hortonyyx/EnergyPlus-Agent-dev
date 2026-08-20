@@ -570,11 +570,16 @@ def _elevation_geometry(msp, evidence, view: ElevationViewBindingV1, manifest: G
     return GtWorldIntervalV3(lo=along[0], hi=along[1]), GtWorldIntervalV3(lo=z[0], hi=z[1]), refs
 
 
+def _elevation_floor_matches(opening: GtOpeningV3, evidence_floor_id: str) -> bool:
+    """Bind vertical containment to assignment without changing along-wall tie rules."""
+    return opening.floor_id == evidence_floor_id
+
+
 def _assign_elevation(evidence: list[tuple], openings: list[GtOpeningV3], view: ElevationViewBindingV1,
                       segments: Mapping[str, GtBoundarySegmentV3], tolerance: float, tie_epsilon: float) -> list[tuple[int, int]]:
-    """Return the unique global minimum-cost evidence→opening assignment."""
+    """Return the unique floor-bound global minimum-cost evidence→opening assignment."""
     options: list[list[tuple[int, float]]] = []
-    for item, along, _z, _refs in evidence:
+    for item, along, _z, _refs, evidence_floor_id in evidence:
         choices = []
         for index, opening in enumerate(openings):
             segment = segments[opening.boundary_segment_id]
@@ -585,7 +590,8 @@ def _assign_elevation(evidence: list[tuple], openings: list[GtOpeningV3], view: 
             # `item` is always a real evidence binding on the live call path
             # (`evidence.append((item, ...))`), so the former `item is None` guard was a
             # permanently-false branch and is removed rather than left as fake defence.
-            if (item.kind == opening.kind and opening.floor_id in view.floor_ids and view.projection_surface_key in segment.projection_surface_keys
+            if (item.kind == opening.kind and _elevation_floor_matches(opening, evidence_floor_id)
+                    and opening.floor_id in view.floor_ids and view.projection_surface_key in segment.projection_surface_keys
                     and visible and cost <= tolerance):
                 choices.append((index, cost))
         if not choices:
@@ -732,11 +738,11 @@ def extract_gt_v3(inputs: ExtractionInputs) -> GroundTruthV3:
             containing = [floor for floor in floors if floor.id in view.floor_ids and floor.z_floor_m <= z.lo < z.hi <= floor.z_floor_m + floor.ceiling_height_m]
             if len(containing) != 1:
                 _fail("elevation_opening_floor_ambiguous")
-            evidence.append((item, along, z, refs))
+            evidence.append((item, along, z, refs, containing[0].id))
         if evidence:
             pairs = _assign_elevation(evidence, openings, view, all_segments, inputs.tooling.tolerances.elevation_match_max_distance_m, inputs.tooling.tolerances.elevation_match_tie_epsilon_m)
             for evidence_index, opening_index in pairs:
-                opening = openings[opening_index]; _item, _along, z, refs = evidence[evidence_index]
+                opening = openings[opening_index]; _item, _along, z, refs, _floor_id = evidence[evidence_index]
                 old = z_by_opening.get(opening.id)
                 if old is not None and (old.lo, old.hi) != (z.lo, z.hi):
                     _fail("elevation_opening_vertical_disagreement")

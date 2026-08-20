@@ -12,6 +12,7 @@ import math
 from pathlib import Path
 
 import ezdxf
+from ezdxf import bbox as ezdxf_bbox
 import numpy as np
 import pytest
 
@@ -68,6 +69,209 @@ def green_sm24(tmp_path_factory):
     document = extract_gt_v3(ExtractionInputs(result.augmented_dxf_path, result.manifest, TOOLING,
                                               compute_gt_implementation_hashes(REPO_ROOT)))
     return request, result, document
+
+
+def _multifloor_sm24_fixture(tmp_path):
+    """Duplicate the signed sm24 plan/elevation geometry into a two-floor document."""
+    request = _calibrated_request()
+    plan = request.plan_views[0]
+    clip = plan.clip_box_dxf
+    plan_dx = 50000.0
+    floor_dz_native = 3600.0
+    source = tmp_path / "source.dxf"
+    doc = ezdxf.readfile(str(SOURCE))
+    msp = doc.modelspace()
+    originals = list(msp)
+
+    def inside(x, y):
+        return clip.xmin < x < clip.xmax and clip.ymin < y < clip.ymax
+
+    for entity in originals:
+        selected = False
+        if entity.dxftype() == "LINE" and entity.dxf.layer in plan.wall_selector.layers:
+            selected = (inside(float(entity.dxf.start.x), float(entity.dxf.start.y))
+                        and inside(float(entity.dxf.end.x), float(entity.dxf.end.y)))
+        elif entity.dxftype() == "INSERT" and entity.dxf.layer in plan.opening_selector.layers:
+            extent = ezdxf_bbox.extents([entity])
+            selected = inside((extent.extmin.x + extent.extmax.x) / 2,
+                              (extent.extmin.y + extent.extmax.y) / 2)
+        elif entity.dxftype() == "LWPOLYLINE" and entity.closed:
+            points = list(entity.get_points("xy"))
+            xs, ys = [point[0] for point in points], [point[1] for point in points]
+            selected = (abs(min(xs) - clip.xmin) < 1.0
+                        and abs(max(xs) - clip.xmax) < 1.0
+                        and abs(min(ys) - clip.ymin) < 1.0
+                        and abs(max(ys) - clip.ymax) < 1.0)
+        elif entity.dxftype() in {"TEXT", "MTEXT"}:
+            selected = inside(float(entity.dxf.insert.x), float(entity.dxf.insert.y))
+        if selected:
+            duplicate = entity.copy()
+            duplicate.translate(plan_dx, 0.0, 0.0)
+            if duplicate.dxftype() == "TEXT":
+                duplicate.dxf.text = "2f平面图"
+            elif duplicate.dxftype() == "MTEXT":
+                duplicate.text = "2f平面图"
+            msp.add_entity(duplicate)
+
+    second_datum_handles = {}
+    for view in request.elevation_views:
+        datum = view.floor_datums[0]
+        original_datum = next(entity for entity in msp
+                              if entity.dxf.handle == datum.entity_handle)
+        second_datum = original_datum.copy()
+        second_datum.translate(0.0, floor_dz_native, 0.0)
+        msp.add_entity(second_datum)
+        second_datum_handles[view.id] = second_datum.dxf.handle
+        for entity in originals:
+            selected = (entity.dxftype() == "LINE"
+                        and entity.dxf.layer in view.window_selector.layers
+                        and tn._inside(entity, view.clip_box_dxf))
+            selected = selected or (
+                view.door_selector is not None and entity.dxftype() == "INSERT"
+                and entity.dxf.layer in view.door_selector.layers
+                and tn._inside(entity, view.clip_box_dxf))
+            if selected:
+                duplicate = entity.copy()
+                duplicate.translate(0.0, floor_dz_native, 0.0)
+                msp.add_entity(duplicate)
+    doc.saveas(str(source))
+
+    second_affine = plan.world_from_source_m.model_copy(update={
+        "m02": plan.world_from_source_m.m02 - plan_dx * plan.world_from_source_m.m00})
+    second_zone_intent = plan.zone_intent.model_copy(update={
+        "entries": [entry.model_copy(update={"zone_id": f"f2_{entry.zone_id}"})
+                    for entry in plan.zone_intent.entries]})
+    second_plan = plan.model_copy(update={
+        "id": "plan-F2", "floor_id": "F2", "frame_title": "2f平面图",
+        "clip_box_dxf": clip.model_copy(update={
+            "xmin": clip.xmin + plan_dx, "xmax": clip.xmax + plan_dx}),
+        "world_from_source_m": second_affine,
+        "zone_intent": second_zone_intent})
+    elevations = []
+    for view in request.elevation_views:
+        second_datum = view.floor_datums[0].model_copy(update={
+            "floor_id": "F2", "entity_handle": second_datum_handles[view.id]})
+        elevations.append(view.model_copy(update={
+            "floor_ids": ["F1", "F2"],
+            "floor_datums": [view.floor_datums[0], second_datum]}))
+    first_plan_raster = next(binding for binding in request.raster_overlays
+                             if binding.view_id == plan.id)
+    second_plan_raster = first_plan_raster.model_copy(update={
+        "id": "raster_plan_F2", "view_id": second_plan.id,
+        "pixel_to_source_m": first_plan_raster.pixel_to_source_m.model_copy(update={
+            "m02": first_plan_raster.pixel_to_source_m.m02 + plan_dx * request.metres_per_unit}),
+        "calibration_controls": [control.model_copy(update={
+            "source_point_dxf": [control.source_point_dxf[0] + plan_dx,
+                                 control.source_point_dxf[1]]})
+            for control in first_plan_raster.calibration_controls]})
+    request = request.model_copy(update={
+        "source_dxf_sha256": hashlib.sha256(source.read_bytes()).hexdigest(),
+        "floors": [request.floors[0].model_copy(update={"ceiling_height_m": 3.6}),
+                   request.floors[0].model_copy(update={
+                       "id": "F2", "name": "2F", "z_floor_m": 3.6,
+                       "ceiling_height_m": 4.5})],
+        "plan_views": [plan, second_plan], "elevation_views": elevations,
+        "raster_overlays": [*request.raster_overlays, second_plan_raster],
+        "request_sha256": "0" * 64})
+    return _rehash(request), source
+
+
+def test_multifloor_conversion_routes_plan_and_elevation_evidence_by_floor(tmp_path):
+    request, source = _multifloor_sm24_fixture(tmp_path)
+    result = tn.run_tarch_conversion(source, request, TOOLING, tmp_path / "work")
+    plans = [view for view in result.manifest.views if view.kind == "plan"]
+    assert [(floor.id, floor.z_floor_m) for floor in result.manifest.floors] == [
+        ("F1", 0.0), ("F2", 3.6)]
+    assert [(view.id, view.floor_id) for view in plans] == [
+        ("plan-F1", "F1"), ("plan-F2", "F2")]
+    assert plans[0].footprint_boundary.handles != plans[1].footprint_boundary.handles
+    assert {entry.floor_id for entry in result.source_map.entries} == {"F1", "F2"}
+    assert _gate(result, "G1").passed and _gate(result, "G9").passed
+    assert len(result.elevation_records) == 28
+    assert {(opening.floor_id, opening.z_interval is not None)
+            for opening in result.elevation_document.openings} == {
+                ("F1", True), ("F2", True)}
+    assert {row["floor_id"] for row in result.conversion_report.elevation_audit_rows} == {
+        "F1", "F2"}
+
+
+def test_multifloor_persistence_neuter_dropping_second_plan_is_must_red(tmp_path, monkeypatch):
+    """The two-plan positive must reject an old first-plan-only persistence call."""
+    request, source = _multifloor_sm24_fixture(tmp_path)
+    real_writer = tn._write_multifloor_augmented_dxf
+
+    def first_plan_only(source_dxf, destination, plan_runs, source_sha256, request_sha256):
+        return real_writer(source_dxf, destination, plan_runs[:1],
+                           source_sha256, request_sha256)
+
+    monkeypatch.setattr(tn, "_write_multifloor_augmented_dxf", first_plan_only)
+    with pytest.raises(ValueError, match="each floor requires exactly one plan"):
+        tn.run_tarch_conversion(source, request, TOOLING, tmp_path / "work")
+
+
+def test_multifloor_elevation_floor_filter_is_must_red(tmp_path, monkeypatch):
+    """Neuter only z-derived floor ownership; aligned upper/lower windows must tie."""
+    from src.agent.judge import gt_extraction as extraction
+    request, source = _multifloor_sm24_fixture(tmp_path)
+    monkeypatch.setattr(extraction, "_elevation_floor_matches", lambda *_args: True)
+    result = tn.run_tarch_conversion(source, request, TOOLING, tmp_path / "work")
+    assert not _gate(result, "G9").passed
+    assert _gate(result, "G9").evidence["v3_code"] == "elevation_opening_assignment_ambiguous"
+    assert {gate.id for gate in result.gates if not gate.passed} == {"G6", "G9", "G10"}
+
+
+def test_multifloor_raster_footprint_lookup_is_handle_scoped_must_red(tmp_path, monkeypatch):
+    """Neuter per-view handles; only F2 calibration must reject the F1 footprint."""
+    request, source = _multifloor_sm24_fixture(tmp_path)
+    result = tn.run_tarch_conversion(source, request, TOOLING, tmp_path / "work")
+    handles = {view.id: view.footprint_boundary.handles
+               for view in result.manifest.views if view.kind == "plan"}
+    diagnostics = []
+    doc = ezdxf.readfile(str(result.augmented_dxf_path))
+    tn._validate_raster_intents(request, doc, tn._tols_from(TOOLING, request.metres_per_unit),
+                                diagnostics, handles)
+    assert not [diag for diag in diagnostics if diag.code == "tarch_raster_calibration_invalid"]
+    real_lookup = tn._plan_footprint_for_raster
+    monkeypatch.setattr(tn, "_plan_footprint_for_raster",
+                        lambda current_doc, _handles: real_lookup(current_doc, None))
+    diagnostics = []
+    tn._validate_raster_intents(request, doc, tn._tols_from(TOOLING, request.metres_per_unit),
+                                diagnostics, handles)
+    rejected = [diag for diag in diagnostics if diag.code == "tarch_raster_calibration_invalid"]
+    assert len(rejected) == 1 and rejected[0].context["view_id"] == "plan-F2"
+
+
+def test_multifloor_signed_rerun_and_promotion_have_no_single_floor_assumption(tmp_path):
+    from src.agent.judge import gt_promotion, tarch_review_bundle
+    from src.agent.judge.gt import load_gt_document
+    request, source = _multifloor_sm24_fixture(tmp_path)
+    request = _rehash(request.model_copy(update={
+        "request_version": 1, "elevation_views": [], "raster_overlays": [],
+        "request_sha256": "0" * 64}))
+    annotations = json.loads(Path(
+        "tests/fixtures/sm24_review/bundle_07_25/review_annotations.json"
+    ).read_text(encoding="utf-8"))["zone_roles"]
+    annotations.update({f"f2_{key}": value for key, value in list(annotations.items())})
+    bundle = tarch_review_bundle.build_review_bundle(
+        source, request, output_dir=tmp_path / "bundle",
+        raster_root=Path("case_tests/e2e_tests/sm24_anchor/case_data"),
+        review_annotations=annotations, tooling=TOOLING)
+    tarch_review_bundle.sign_review_bundle(
+        bundle, reviewer="multifloor_reviewer", signed_at="2026-08-20T00:00:00Z",
+        confirm_near_threshold=True)
+    tarch_review_bundle.rerun_signed_review_bundle(bundle, tooling=TOOLING)
+    report = json.loads((bundle / "conversion_report.json").read_text(encoding="utf-8"))
+    assert report["status"] == "PASS" and all(gate["passed"] for gate in report["gates"])
+    gt_root = tmp_path / "gt"
+    gt_root.mkdir()
+    (gt_root / gt_promotion.TEST_GT_ROOT_MARKER).write_text(
+        "test fixture\n", encoding="utf-8")
+    promoted = gt_promotion.promote_gt_v3(bundle, case=request.case, gt_dir=gt_root)
+    document = load_gt_document(request.case, gt_dir=gt_root)
+    assert promoted.destination == gt_root / request.case
+    assert document.verification.status == "human_verified"
+    assert [(floor.id, floor.z_floor_m) for floor in document.floors] == [
+        ("F1", 0.0), ("F2", 3.6)]
 
 
 # --------------------------------------------------------------------------- #

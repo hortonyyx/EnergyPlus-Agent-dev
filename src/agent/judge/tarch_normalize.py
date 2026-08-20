@@ -920,6 +920,25 @@ class P2ConversionResult:
         return any(d.severity == DiagnosticSeverity.BLOCK for d in self.diagnostics)
 
 
+@dataclass
+class MultiFloorConversionResult:
+    """Document-level aggregation of the unchanged one-plan P2 geometry runs."""
+    plan_results: list[P2ConversionResult]
+    gates: list[GateResultV1]
+    diagnostics: list[ConversionDiagnosticV1]
+    manifest: Any = None
+    augmented_dxf_path: Path | None = None
+    conversion_report: ConversionReportV1 | None = None
+    source_map: Any = None
+    overlay_path: Path | None = None
+    elevation_records: list[_ElevationRecord] = field(default_factory=list)
+    elevation_document: Any = None
+
+    @property
+    def has_block(self) -> bool:
+        return any(d.severity == DiagnosticSeverity.BLOCK for d in self.diagnostics)
+
+
 def _clean_collinear(coords: list[tuple[float, float]]) -> list[tuple[float, float]]:
     """Remove collinear vertices (plan §4 S7: degenerate-redundant removal)."""
     c = list(coords)
@@ -1790,20 +1809,11 @@ def _save_converter_augmented_dxf(doc, dest: Path, source_sha256: str,
         doc.export_sections(TagWriter(stream, write_handles=handles, dxfversion=doc.dxfversion))
 
 
-def _write_augmented_dxf(source_dxf: Path, dest: Path, footprint: Any,
-                         zones: list[ZoneExpansion], exterior_openings: list[ResolvedOpening],
-                         source_sha256: str, request_sha256: str
-                         ) -> tuple[dict[str, list[str]], dict[tuple[int, int], str]]:
-    """Append GTV3_* layers to a copy of the source DXF, preserving every original
-    handle (plan §8.1).  Returns the generated-entity handles per layer AND a
-    ``(zone_index, edge_index) -> handle`` map for the GTV3_ZONE lines, so each
-    emitted zoning line ties back to the exact zone edge (and its source ancestry)
-    that generated it."""
-    doc = ezdxf.readfile(str(source_dxf))
+def _append_plan_geometry(doc, footprint: Any, zones: list[ZoneExpansion],
+                          exterior_openings: list[ResolvedOpening]
+                          ) -> tuple[dict[str, list[str]], dict[tuple[int, int], str]]:
+    """Append one plan's canonical GTV3 geometry to an already-open document."""
     msp = doc.modelspace()
-    for layer in (GTV3_FOOTPRINT_LAYER, GTV3_ZONE_LAYER, GTV3_OPENING_LAYER):
-        if layer not in doc.layers:
-            doc.layers.add(layer)
     handles: dict[str, list[str]] = {GTV3_FOOTPRINT_LAYER: [], GTV3_ZONE_LAYER: [], GTV3_OPENING_LAYER: []}
 
     # GTV3_FOOTPRINT: closed LWPOLYLINE = outer-skin exterior ring (native mm).
@@ -1849,8 +1859,57 @@ def _write_augmented_dxf(source_dxf: Path, dest: Path, footprint: Any,
                                dxfattribs={"layer": GTV3_OPENING_LAYER}, close=True)
         handles[GTV3_OPENING_LAYER].append(e.dxf.handle)
 
+    return handles, zone_edge_handles
+
+
+def _write_augmented_dxf(source_dxf: Path, dest: Path, footprint: Any,
+                         zones: list[ZoneExpansion], exterior_openings: list[ResolvedOpening],
+                         source_sha256: str, request_sha256: str
+                         ) -> tuple[dict[str, list[str]], dict[tuple[int, int], str]]:
+    """Append GTV3_* layers to a copy of the source DXF, preserving every original
+    handle (plan §8.1).  Returns the generated-entity handles per layer AND a
+    ``(zone_index, edge_index) -> handle`` map for the GTV3_ZONE lines, so each
+    emitted zoning line ties back to the exact zone edge (and its source ancestry)
+    that generated it."""
+    doc = ezdxf.readfile(str(source_dxf))
+    for layer in (GTV3_FOOTPRINT_LAYER, GTV3_ZONE_LAYER, GTV3_OPENING_LAYER):
+        if layer not in doc.layers:
+            doc.layers.add(layer)
+    handles, zone_edge_handles = _append_plan_geometry(
+        doc, footprint, zones, exterior_openings)
     _save_converter_augmented_dxf(doc, dest, source_sha256, request_sha256)
     return handles, zone_edge_handles
+
+
+@dataclass
+class _PersistedPlan:
+    plan_view: PlanViewIntentV1
+    result: P2ConversionResult
+    exterior_openings: list[ResolvedOpening]
+    gtv3_handles: dict[str, list[str]]
+    zone_edge_handles: dict[tuple[int, int], str]
+
+
+def _write_multifloor_augmented_dxf(source_dxf: Path, dest: Path,
+                                    plan_runs: list[tuple[PlanViewIntentV1, P2ConversionResult]],
+                                    source_sha256: str, request_sha256: str) -> list[_PersistedPlan]:
+    """Append every plan to one DXF while retaining canonical layer names."""
+    doc = ezdxf.readfile(str(source_dxf))
+    for layer in (GTV3_FOOTPRINT_LAYER, GTV3_ZONE_LAYER, GTV3_OPENING_LAYER):
+        if layer not in doc.layers:
+            doc.layers.add(layer)
+    persisted: list[_PersistedPlan] = []
+    for plan_view, result in plan_runs:
+        exterior_openings = [opening for opening in result.p1.openings
+                             if opening.classification == "exterior"]
+        handles, edge_handles = _append_plan_geometry(
+            doc, result.footprint, result.zones, exterior_openings)
+        result.gtv3_handles = handles
+        result.gtv3_zone_edge_handles = edge_handles
+        persisted.append(_PersistedPlan(plan_view, result, exterior_openings,
+                                        handles, edge_handles))
+    _save_converter_augmented_dxf(doc, dest, source_sha256, request_sha256)
+    return persisted
 
 
 def _append_elevation_outlines(path: Path, records: list[_ElevationRecord], q: float,
@@ -1879,8 +1938,20 @@ def _append_elevation_outlines(path: Path, records: list[_ElevationRecord], q: f
     return emitted
 
 
+def _plan_footprint_for_raster(doc, handles: list[str] | None):
+    candidates = [item for item in doc.modelspace()
+                  if item.dxftype() == "LWPOLYLINE"
+                  and item.dxf.layer == GTV3_FOOTPRINT_LAYER]
+    if handles is None:
+        return next(iter(candidates), None)
+    wanted = set(handles)
+    matched = [item for item in candidates if item.dxf.handle in wanted]
+    return matched[0] if len(matched) == 1 else None
+
+
 def _validate_raster_intents(request: TarchConversionRequestV1, doc, tols: _Tols,
-                             diags: list[ConversionDiagnosticV1]) -> None:
+                             diags: list[ConversionDiagnosticV1],
+                             plan_footprint_handles: dict[str, list[str]] | None = None) -> None:
     """Validate signed v3 calibration facts; image bytes stay checked by overlay writer.
 
     ``pixel_to_source_m`` is source-metres (the manifest convention), whereas
@@ -1905,8 +1976,8 @@ def _validate_raster_intents(request: TarchConversionRequestV1, doc, tols: _Tols
         if len(controls) != len(binding.calibration_controls):
             _add(diags, _diag("tarch_raster_calibration_invalid", handles=[binding.calibration_controls[0].entity_handle])); continue
         if plan_intent is not None:
-            footprint = next((item for item in doc.modelspace()
-                              if item.dxftype() == "LWPOLYLINE" and item.dxf.layer == GTV3_FOOTPRINT_LAYER), None)
+            handles = None if plan_footprint_handles is None else plan_footprint_handles.get(plan_intent.id, [])
+            footprint = _plan_footprint_for_raster(doc, handles)
             if set(controls) != {"footprint_sw", "footprint_se", "footprint_nw"} or footprint is None:
                 _add(diags, _diag("tarch_raster_calibration_invalid", handles=[binding.calibration_controls[0].entity_handle])); continue
             vertices = [(float(point[0]), float(point[1])) for point in footprint.get_points("xy")]
@@ -2135,6 +2206,119 @@ def _build_manifest(request: TarchConversionRequestV1, plan_view: PlanViewIntent
     return GtExtractionManifestV1.model_validate(raw), seeds, plan_openings
 
 
+def _build_multifloor_manifest(request: TarchConversionRequestV1,
+                               persisted: list[_PersistedPlan], augmented_dxf: Path,
+                               elevation_records: list[_ElevationRecord] | None = None):
+    """Build one handle-pinned plan binding per floor over one normalized DXF."""
+    from .gt_manifest import (ElevationViewBindingV1, EntityLocatorV1,
+                              GtExtractionManifestV1, PlanOpeningBindingV1,
+                              PlanViewBindingV1, RasterOverlayBindingV1,
+                              ZoneSeedV1, compute_manifest_sha256)
+
+    mpu = request.metres_per_unit
+    plan_bindings = []
+    for item in persisted:
+        plan_view = item.plan_view
+        affine = plan_view.world_from_source_m
+        manifest_affine = Affine2D(
+            m00=affine.m00 / mpu, m01=affine.m01 / mpu, m02=affine.m02,
+            m10=affine.m10 / mpu, m11=affine.m11 / mpu, m12=affine.m12)
+        fp_handles = sorted(item.gtv3_handles[GTV3_FOOTPRINT_LAYER])
+        zo_handles = sorted(item.gtv3_handles[GTV3_ZONE_LAYER])
+        zo_mode = "only_listed" if zo_handles else "all_matching"
+        seeds = []
+        for zone, claim in zip(item.result.zones, item.result.claims):
+            seeds.append(ZoneSeedV1(
+                zone_id=claim["zone_id"], name=claim["name"], role=claim["role"],
+                point_world_m=_to_world(zone.seed_native, affine)))
+        plan_openings = []
+        for opening, handle in zip(item.exterior_openings,
+                                   sorted(item.gtv3_handles[GTV3_OPENING_LAYER])):
+            plan_openings.append(PlanOpeningBindingV1(
+                opening_id=f"op_{opening.handle.lower()}", kind=opening.kind,
+                geometry_mode="closed_outline_bbox", span_world_axis=opening.axis,
+                entities=[EntityLocatorV1(handle=handle)]))
+        plan_bindings.append(PlanViewBindingV1.model_validate({
+            "kind": "plan", "id": plan_view.id, "floor_id": plan_view.floor_id,
+            "clip_box_dxf": plan_view.clip_box_dxf,
+            "world_from_source_m": manifest_affine,
+            "footprint_boundary": {
+                "entity_types": ["LWPOLYLINE"], "layers": [GTV3_FOOTPRINT_LAYER],
+                "handles": fp_handles, "handle_mode": "only_listed",
+                "min_count": 1, "max_count": 1},
+            "zone_boundaries": {
+                "entity_types": ["LINE"], "layers": [GTV3_ZONE_LAYER],
+                "handles": zo_handles, "handle_mode": zo_mode,
+                "min_count": 1 if zo_handles else 0, "max_count": None},
+            "plan_openings": [opening.model_dump(mode="python") for opening in plan_openings],
+            "zone_seeds": [seed.model_dump(mode="python") for seed in seeds],
+            "boundary_reference": "outer_skin",
+            "default_wall_thickness_m": _outer_skin_thickness_m(item.result.zones, mpu),
+        }))
+
+    include_elevations = elevation_records is not None
+    elevation_records = elevation_records or []
+    elevation_bindings = []
+    intents = sorted((intent for intent in request.elevation_views
+                      if isinstance(intent, DatumBoundNamedElevationViewIntentV3)),
+                     key=lambda intent: intent.id) if include_elevations else []
+    for intent in intents:
+        evidence = []
+        records = sorted((record for record in elevation_records
+                          if record.view_id == intent.id),
+                         key=lambda record: (record.kind, record.raw_handles))
+        for record in records:
+            evidence.append({
+                "evidence_id": f"ev_{intent.id}_{min(record.raw_handles).lower()}",
+                "kind": record.kind, "geometry_mode": "closed_outline_bbox",
+                "entities": [{"handle": record.generated_handle}]})
+        elevation_bindings.append(ElevationViewBindingV1.model_validate({
+            "kind": "elevation", "id": intent.id, "floor_ids": intent.floor_ids,
+            "projection_surface_key": f"ps_{intent.id}",
+            "facade_family": intent.facade_family, "view_kind": "full",
+            "world_along_coverage": None, "direction_semantics": "building_axis",
+            "azimuth_deg": None, "clip_box_dxf": intent.clip_box_dxf,
+            "world_along_from_source_m": {
+                "source_axis": intent.world_along_from_source_m.source_axis,
+                "scale": intent.world_along_from_source_m.scale / mpu,
+                "offset": intent.world_along_from_source_m.offset},
+            "world_z_from_source_m": {
+                "source_axis": intent.world_z_from_source_m.source_axis,
+                "scale": intent.world_z_from_source_m.scale / mpu,
+                "offset": intent.world_z_from_source_m.offset},
+            "segment_scope_mode": "all_family_segments", "boundary_entities": [],
+            "opening_entities": evidence,
+        }))
+
+    rasters = []
+    if request.request_version == 3 and include_elevations:
+        for binding in request.raster_overlays:
+            rasters.append(RasterOverlayBindingV1.model_validate({
+                "id": binding.id, "source_label": binding.source_label,
+                "source_sha256": binding.source_sha256, "view_id": binding.view_id,
+                "pixel_to_source_m": binding.pixel_to_source_m.model_dump(mode="python"),
+            }))
+    raw = {
+        "manifest_version": 1, "case": request.case,
+        "source_id": request.normalized_source_id,
+        "source_dxf_label": augmented_dxf.name,
+        "source_dxf_sha256": hashlib.sha256(augmented_dxf.read_bytes()).hexdigest(),
+        "native_units": request.native_units,
+        "metres_per_unit": request.metres_per_unit,
+        "geometry_profile": request.target_geometry_profile,
+        "floors": [floor.model_dump(mode="python") for floor in request.floors],
+        "views": [*plan_bindings, *elevation_bindings],
+        "north_axis": None, "raster_overlays": rasters,
+        "manifest_sha256": "0" * 64,
+    }
+    import warnings
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", UserWarning)
+        raw["manifest_sha256"] = compute_manifest_sha256(
+            GtExtractionManifestV1.model_construct(**raw))
+    return GtExtractionManifestV1.model_validate(raw)
+
+
 # §6.5 compares two INDEPENDENT code paths that must agree exactly: the converter
 # audit z (request affine, native units, `_converter_elevation_z`) and the
 # authoritative GT z (manifest affine = request/mpu, then re-multiplied by mpu in
@@ -2293,6 +2477,52 @@ def _write_overlay_svg(path: Path, p1: P1PlanViewGeometry, footprint: Any,
                      f'height="{(y1-y0)*s:.1f}" fill="none" stroke="#0066ff" stroke-width="1.5"/>')
     parts.append("</svg>")
     Path(path).write_text("\n".join(parts), encoding="utf-8")
+
+
+def _write_multifloor_overlay_svg(path: Path, persisted: list[_PersistedPlan]) -> None:
+    """Deterministic source-space review overlay containing every plan frame."""
+    lines = [line for item in persisted for line in item.result.p1.wall_lines]
+    xs = [coord for _, x0, _y0, x1, _y1 in lines for coord in (x0, x1)]
+    ys = [coord for _, _x0, y0, _x1, y1 in lines for coord in (y0, y1)]
+    minx, maxx, miny, maxy = min(xs), max(xs), min(ys), max(ys)
+    width, height = 1600.0, 1200.0
+    pad = 0.02 * max(maxx - minx, maxy - miny)
+    lox, loy = minx - pad, miny - pad
+    span = max(maxx - minx, maxy - miny) + 2 * pad
+    scale = min(width / span, height / span)
+    x_px = lambda value: (value - lox) * scale
+    y_px = lambda value: height - (value - loy) * scale
+    palette = ["#e6194b", "#3cb44b", "#ffe119", "#4363d8", "#f58231",
+               "#911eb4", "#46f0f0", "#f032e6", "#bcf60c", "#fabebe"]
+    parts = [f'<svg xmlns="http://www.w3.org/2000/svg" width="{width:.0f}" height="{height:.0f}" '
+             f'viewBox="0 0 {width:.0f} {height:.0f}" font-family="sans-serif" font-size="13">',
+             f'<rect width="{width:.0f}" height="{height:.0f}" fill="white"/>']
+    for item in persisted:
+        for _, x0, y0, x1, y1 in item.result.p1.wall_lines:
+            parts.append(f'<line x1="{x_px(x0):.1f}" y1="{y_px(y0):.1f}" '
+                         f'x2="{x_px(x1):.1f}" y2="{y_px(y1):.1f}" '
+                         f'stroke="#cccccc" stroke-width="0.8"/>')
+        for index, zone in enumerate(item.result.zones):
+            colour = palette[index % len(palette)]
+            points = " ".join(f"{x_px(x):.1f},{y_px(y):.1f}" for x, y in zone.vertices)
+            parts.append(f'<polygon points="{points}" fill="{colour}" fill-opacity="0.28" '
+                         f'stroke="{colour}" stroke-width="2"/>')
+            label = zone.polygon.representative_point()
+            name = item.result.claims[index]["name"]
+            parts.append(f'<text x="{x_px(label.x):.1f}" y="{y_px(label.y):.1f}" '
+                         f'fill="black" text-anchor="middle" font-weight="bold">'
+                         f'{item.plan_view.floor_id}:{name}</text>')
+        if item.result.footprint.geom_type == "Polygon":
+            ring = " ".join(f"{x_px(x):.1f},{y_px(y):.1f}"
+                            for x, y in item.result.footprint.exterior.coords)
+            parts.append(f'<polygon points="{ring}" fill="none" stroke="black" stroke-width="2.5"/>')
+        for opening in item.exterior_openings:
+            x0, y0, x1, y1 = opening.rect_dxf_mm
+            parts.append(f'<rect x="{x_px(x0):.1f}" y="{y_px(y1):.1f}" '
+                         f'width="{(x1-x0)*scale:.1f}" height="{(y1-y0)*scale:.1f}" '
+                         f'fill="none" stroke="#0066ff" stroke-width="1.5"/>')
+    parts.append("</svg>")
+    path.write_text("\n".join(parts), encoding="utf-8")
 
 
 def _verify_human_review_ack(work_dir: Path, request: TarchConversionRequestV1,
@@ -2551,6 +2781,250 @@ def run_p2_conversion(dxf_path: Path, request: TarchConversionRequestV1,
     return result
 
 
+def _derive_multifloor_plan(dxf_path: Path, request: TarchConversionRequestV1,
+                            plan_view: PlanViewIntentV1, tooling) -> P2ConversionResult:
+    """Run the unchanged per-plan S0--S8 geometry without persisting a document."""
+    tols = _tols_from(tooling, request.metres_per_unit)
+    affine = plan_view.world_from_source_m
+    p1 = run_p1_plan_view(dxf_path, request, plan_view, tooling)
+    diagnostics = list(p1.diagnostics)
+    if any(diag.severity == DiagnosticSeverity.BLOCK for diag in diagnostics):
+        cavities, wall_region, footprint, near, claims = [], Polygon(), Polygon(), [], []
+    else:
+        cavities, wall_region, footprint, near = s5_identify_cavities(
+            p1, request, tols, diagnostics, affine)
+        claims = s6_bind_intent(cavities, plan_view, tols, diagnostics, affine)
+    zones: list[ZoneExpansion] = []
+    if claims and not any(diag.severity == DiagnosticSeverity.BLOCK for diag in diagnostics):
+        zones = s7_expand_zones(claims, wall_region, footprint, tols, diagnostics,
+                                p1.wall_lines, p1.wall_bands)
+    result = P2ConversionResult(
+        p1=p1, cavities=cavities, wall_region=wall_region, footprint=footprint,
+        near_threshold_faces=near, zones=zones, claims=claims, gates=[],
+        diagnostics=diagnostics)
+    result.gates = _build_p2_gates(
+        p1, cavities, wall_region, footprint, zones, claims, near,
+        request, plan_view, tols, diagnostics)
+    return result
+
+
+def _aggregate_plan_gates(plan_runs: list[tuple[PlanViewIntentV1, P2ConversionResult]]) -> list[GateResultV1]:
+    """Fold G1--G8 with explicit per-view evidence; no gate is averaged away."""
+    gates: list[GateResultV1] = []
+    for gate_id in ("G1", "G2", "G3", "G4", "G5", "G6", "G7", "G8"):
+        rows = []
+        name = ""
+        for plan_view, result in plan_runs:
+            gate = next(item for item in result.gates if item.id == gate_id)
+            name = gate.name
+            rows.append({"view_id": plan_view.id, "floor_id": plan_view.floor_id,
+                         "passed": gate.passed, "evidence": gate.evidence})
+        scope = "mixed_document_and_plan" if gate_id == "G1" else "per_plan"
+        evidence: dict[str, Any] = {"scope": scope, "views": rows}
+        if gate_id == "G6":
+            near_faces = [{"view_id": row["view_id"], "floor_id": row["floor_id"],
+                           "faces": row["evidence"].get("near_threshold_faces", [])}
+                          for row in rows
+                          if row["evidence"].get("near_threshold_faces")]
+            evidence.update({
+                "near_threshold_faces": near_faces,
+                "human_confirmation_required": bool(near_faces),
+            })
+        gates.append(GateResultV1(id=gate_id, name=name,
+                                  passed=all(row["passed"] for row in rows),
+                                  evidence=evidence))
+    return gates
+
+
+def _collect_multifloor_diagnostics(
+        plan_runs: list[tuple[PlanViewIntentV1, P2ConversionResult]]) -> list[ConversionDiagnosticV1]:
+    """Keep document-level input failures once while retaining every plan-local fact."""
+    document_codes = {"tarch_input_source_hash_mismatch", "tarch_source_proxy_present",
+                      "tarch_units_undeclared"}
+    seen_document_codes: set[str] = set()
+    diagnostics = []
+    for _view, plan in plan_runs:
+        for diagnostic in plan.diagnostics:
+            if diagnostic.code in document_codes:
+                if diagnostic.code in seen_document_codes:
+                    continue
+                seen_document_codes.add(diagnostic.code)
+            diagnostics.append(diagnostic)
+    return diagnostics
+
+
+def _validate_multifloor_request(request: TarchConversionRequestV1) -> list[PlanViewIntentV1]:
+    floor_ids = [floor.id for floor in request.floors]
+    plan_floor_ids = [view.floor_id for view in request.plan_views]
+    if len(floor_ids) != len(set(floor_ids)) or sorted(plan_floor_ids) != sorted(floor_ids):
+        raise ValueError("tarch_multifloor_plan_floor_mismatch")
+    dialects = [view.dialect_rules for view in request.plan_views]
+    if any(dialect != dialects[0] for dialect in dialects[1:]):
+        raise ValueError("tarch_multifloor_dialect_mismatch")
+    order = {floor.id: index for index, floor in enumerate(request.floors)}
+    return sorted(request.plan_views, key=lambda view: order[view.floor_id])
+
+
+def run_tarch_conversion(dxf_path: Path, request: TarchConversionRequestV1,
+                         tooling, work_dir: Path):
+    """Run one document; preserve the frozen one-plan path byte-for-byte."""
+    if len(request.plan_views) == 1 and len(request.floors) == 1:
+        return run_p2_conversion(dxf_path, request, request.plan_views[0], tooling, work_dir)
+
+    assert_staging_input(Path(dxf_path))
+    work_dir = Path(work_dir)
+    assert_staging_work_dir(work_dir)
+    work_dir.mkdir(parents=True, exist_ok=True)
+    plan_views = _validate_multifloor_request(request)
+    plan_runs = [(plan_view, _derive_multifloor_plan(dxf_path, request, plan_view, tooling))
+                 for plan_view in plan_views]
+    diagnostics = _collect_multifloor_diagnostics(plan_runs)
+    result = MultiFloorConversionResult(
+        plan_results=[plan for _view, plan in plan_runs], gates=[],
+        diagnostics=diagnostics)
+    source_sha256 = hashlib.sha256(Path(dxf_path).read_bytes()).hexdigest()
+    augmented_path: Path | None = None
+    persisted: list[_PersistedPlan] = []
+    document_ready = all(plan.zones and not plan.has_block for _view, plan in plan_runs)
+
+    if document_ready:
+        augmented_path = work_dir / "normalized.dxf"
+        persisted = _write_multifloor_augmented_dxf(
+            Path(dxf_path), augmented_path, plan_runs,
+            source_sha256, request.request_sha256)
+        manifest = _build_multifloor_manifest(request, persisted, augmented_path)
+        elevation_records: list[_ElevationRecord] = []
+        elevation_bound = False
+        if request.request_version == 3:
+            from pydantic import ValidationError as PydanticValidationError
+            from .gt_extraction import ExtractionError, ExtractionInputs, extract_gt_v3
+            from .gt_schema import REPO_ROOT, GtValidationError, compute_gt_implementation_hashes
+            plan_gt = None
+            try:
+                plan_gt = extract_gt_v3(ExtractionInputs(
+                    augmented_path, manifest, tooling,
+                    compute_gt_implementation_hashes(REPO_ROOT)))
+            except (ExtractionError, GtValidationError, PydanticValidationError) as exc:
+                first = plan_runs[0][1].p1.footprint_polygon.centroid
+                _add(diagnostics, _diag("tarch_v3_precondition",
+                                       points_dxf_mm=[(first.x, first.y)],
+                                       context={"v3_code": str(exc),
+                                                "stage": "elevation_plan_prepass"}))
+            if plan_gt is not None:
+                elevation_records, elevation_diags = _v3_elevation_records(
+                    augmented_path, request, plan_gt,
+                    _tols_from(tooling, request.metres_per_unit))
+                diagnostics.extend(elevation_diags)
+                if not any(diag.severity == DiagnosticSeverity.BLOCK
+                           for diag in elevation_diags):
+                    try:
+                        elevation_records = _append_elevation_outlines(
+                            augmented_path, elevation_records,
+                            _tols_from(tooling, request.metres_per_unit).quant_native,
+                            source_sha256, request.request_sha256)
+                    except ValueError:
+                        handles = ([elevation_records[0].raw_handles[0]]
+                                   if elevation_records else [plan_views[0].id])
+                        _add(diagnostics, _diag(
+                            "tarch_elevation_normalized_outline_drift", handles=handles))
+                    else:
+                        manifest = _build_multifloor_manifest(
+                            request, persisted, augmented_path, elevation_records)
+                        elevation_bound = True
+        result.elevation_records = elevation_records
+        overlay_path = work_dir / "overlay_plan.svg"
+        _write_multifloor_overlay_svg(overlay_path, persisted)
+
+        source_entries = []
+        for item in persisted:
+            source_map = _build_source_map(
+                request, item.plan_view, item.result.zones, item.exterior_openings,
+                item.gtv3_handles, item.zone_edge_handles, item.result.footprint,
+                item.result.p1, _tols_from(tooling, request.metres_per_unit))
+            source_entries.extend(source_map.entries)
+        source_map = SourceMapV1(
+            map_version=1, case=request.case, entries=source_entries,
+            source_map_sha256="0" * 64)
+        source_map = source_map.model_copy(update={
+            "source_map_sha256": compute_source_map_sha256(source_map)})
+
+        footprint_handles = {item.plan_view.id:
+                             item.gtv3_handles[GTV3_FOOTPRINT_LAYER]
+                             for item in persisted}
+        _validate_raster_intents(
+            request, ezdxf.readfile(str(augmented_path)),
+            _tols_from(tooling, request.metres_per_unit), diagnostics,
+            footprint_handles)
+        g9_ok, g9_code, g9_document = _run_g9_v3_preflight(
+            augmented_path, manifest, tooling)
+        result.elevation_document = g9_document
+        pairing_drift: list[str] = []
+        if not g9_ok:
+            first = plan_runs[0][1].p1.footprint_polygon.centroid
+            _add(diagnostics, _diag("tarch_v3_precondition",
+                                   points_dxf_mm=[(first.x, first.y)],
+                                   context={"v3_code": g9_code}))
+        elif elevation_bound:
+            pairing_drift = _verify_pairing_consistency(
+                g9_document, elevation_records, request)
+            if pairing_drift:
+                g9_ok = False
+                g9_code = "elevation_pairing_drift"
+                _add(diagnostics, _diag(
+                    "tarch_elevation_pairing_drift",
+                    handles=sorted({part for reason in pairing_drift
+                                    for part in reason.split(":")[1:2]
+                                    if part and all(char in "0123456789ABCDEF"
+                                                    for char in part)}),
+                    context={"reasons": pairing_drift[:8]}))
+        g9 = GateResultV1(
+            id="G9", name="v3 extraction preflight", passed=g9_ok,
+            evidence={"v3_code": g9_code,
+                      "pairing_drift": pairing_drift or None})
+        g10_ok, g10_evidence = _verify_human_review_ack(
+            work_dir, request, Path(dxf_path), overlay_path)
+        g10 = GateResultV1(id="G10", name="human-review overlay",
+                          passed=g10_ok, evidence=g10_evidence)
+        if g10_ok and g10_evidence.get("near_threshold_confirmed"):
+            for _view, plan in plan_runs:
+                plan.gates = [gate.model_copy(update={
+                    "passed": True,
+                    "evidence": {**gate.evidence, "human_confirmation": "signed"}})
+                    if gate.id == "G6"
+                    and gate.evidence.get("human_confirmation_required") else gate
+                    for gate in plan.gates]
+        result.gates = [*_aggregate_plan_gates(plan_runs), g9, g10]
+        blocked_gates = {gate for diag in diagnostics
+                         if diag.severity == DiagnosticSeverity.BLOCK
+                         for gate in diagnostic_spec(diag.code).gates}
+        result.gates = [gate.model_copy(update={
+            "passed": False, "evidence": {**gate.evidence, "elevation_block": True}})
+            if gate.id in blocked_gates else gate for gate in result.gates]
+        result.manifest = manifest
+        result.augmented_dxf_path = augmented_path
+        result.overlay_path = overlay_path
+        result.source_map = source_map
+    else:
+        overlay_path = work_dir / "overlay_diagnostics.svg"
+        _write_diagnostic_overlay(overlay_path, diagnostics)
+        result.gates = [*_aggregate_plan_gates(plan_runs),
+                        GateResultV1(id="G9", name="v3 extraction preflight",
+                                     passed=False, evidence={"reason": "blocked upstream; no bundle built"}),
+                        GateResultV1(id="G10", name="human-review overlay",
+                                     passed=False, evidence={"reason": "blocked upstream",
+                                                            "overlay_asset": overlay_path.name,
+                                                            "verification_status": "blocked"})]
+        result.overlay_path = overlay_path
+
+    order = {f"G{index}": index for index in range(1, 11)}
+    result.gates.sort(key=lambda gate: order[gate.id])
+    result.gates = _apply_test_neuter(result.gates)
+    result.diagnostics = diagnostics
+    result.conversion_report = build_multifloor_report(
+        result, request, persisted, tooling, Path(dxf_path), augmented_path)
+    return result
+
+
 def build_p2_report(result: P2ConversionResult, request: TarchConversionRequestV1,
                     plan_view: PlanViewIntentV1, tooling, source_dxf: Path,
                     augmented_dxf: Path | None) -> ConversionReportV1:
@@ -2664,10 +3138,104 @@ def build_p2_report(result: P2ConversionResult, request: TarchConversionRequestV
         elevation_audit_rows=audit_rows)
 
 
+def build_multifloor_report(result: MultiFloorConversionResult,
+                            request: TarchConversionRequestV1,
+                            persisted: list[_PersistedPlan], tooling,
+                            source_dxf: Path, augmented_dxf: Path | None) -> ConversionReportV1:
+    """Build one report whose plan geometry and gate evidence remain floor-scoped."""
+    plan_views = _validate_multifloor_request(request)
+    partials = []
+    for plan_view, plan_result in zip(plan_views, result.plan_results):
+        partials.append((plan_view, build_p2_report(
+            plan_result, request, plan_view, tooling, source_dxf, augmented_dxf)))
+
+    all_gates_passed = ({gate.id for gate in result.gates}
+                        == {f"G{index}" for index in range(1, 11)}
+                        and all(gate.passed for gate in result.gates))
+    status: Literal["PASS", "BLOCKED"] = (
+        "PASS" if not result.has_block and all_gates_passed else "BLOCKED")
+    normalized_hash = None
+    if status == "PASS":
+        normalized_hash = hashlib.sha256(
+            (augmented_dxf or source_dxf).read_bytes()).hexdigest()
+
+    opening_by_handle: dict[str, Any] = {}
+    if result.elevation_document is not None:
+        for opening in result.elevation_document.openings:
+            for ref in opening.source_refs:
+                if ref.role == "opening_elevation":
+                    opening_by_handle[ref.entity_handle] = opening
+    intents = {intent.id: intent for intent in request.elevation_views
+               if isinstance(intent, DatumBoundNamedElevationViewIntentV3)}
+    audit_rows = []
+    for record in sorted(result.elevation_records,
+                         key=lambda item: (item.view_id, item.kind, item.raw_handles)):
+        intent = intents[record.view_id]
+        axis = intent.world_along_from_source_m.source_axis
+        source_along = ((record.rect[0], record.rect[2]) if axis == "x"
+                        else (record.rect[1], record.rect[3]))
+        opening = opening_by_handle.get(record.generated_handle)
+        z_interval = _converter_elevation_z(record, intent)
+        floor_id = None if opening is None else opening.floor_id
+        if floor_id is None:
+            containing = [floor.id for floor in request.floors
+                          if floor.id in intent.floor_ids
+                          and floor.z_floor_m <= z_interval[0] < z_interval[1]
+                          <= floor.z_floor_m + floor.ceiling_height_m]
+            floor_id = containing[0] if len(containing) == 1 else None
+        audit_rows.append({
+            "opening_id": None if opening is None else opening.id,
+            "evidence_id": f"ev_{record.view_id}_{min(record.raw_handles).lower()}",
+            "view_id": record.view_id, "facade_family": record.facade,
+            "floor_id": floor_id, "kind": record.kind,
+            "host_zone_id": None if opening is None else opening.host_zone_id,
+            "plan_world_along_interval": None if opening is None else
+                [opening.world_along_interval.lo, opening.world_along_interval.hi],
+            "elevation_source_along_interval": list(source_along),
+            "world_along_interval": sorted([
+                value * intent.world_along_from_source_m.scale
+                + intent.world_along_from_source_m.offset for value in source_along]),
+            "z_interval": list(z_interval),
+            "datum_entity_handle": record.datum_handle,
+            "datum_source_start_point": list(record.datum_start),
+            "datum_source_end_point": list(record.datum_end),
+            "declared_world_along_lo_source_endpoint": record.declared_lo_endpoint,
+            "mapped_endpoint_pair": f"{record.declared_lo_endpoint}->plan.lo",
+            "raw_source_handles": list(record.raw_handles),
+            "structural_source_handles": list(record.structural_handles),
+        })
+
+    return ConversionReportV1(
+        report_version=1, status=status, case=request.case,
+        source_dxf_sha256=hashlib.sha256(source_dxf.read_bytes()).hexdigest(),
+        normalized_dxf_sha256=normalized_hash,
+        request_sha256=request.request_sha256,
+        judge_config_sha256=tooling.judge_config_sha256,
+        vg_config_sha256=tooling.vg_config_sha256,
+        converter_sha256=converter_sha256(), profile_version=1,
+        quantization_step_m=derive_quantization_step(tooling),
+        walls=[wall for _view, partial in partials for wall in partial.walls],
+        openings=[opening for _view, partial in partials for opening in partial.openings],
+        cavities=[cavity for _view, partial in partials for cavity in partial.cavities],
+        zones=[zone for _view, partial in partials for zone in partial.zones],
+        gates=result.gates, diagnostics=result.diagnostics,
+        wall_proof_coverage={
+            "scope": "per_plan",
+            "views": [{"view_id": view.id, **partial.wall_proof_coverage}
+                      for view, partial in partials]},
+        zone_intent_coverage={
+            "scope": "per_plan",
+            "views": [{"view_id": view.id, **partial.zone_intent_coverage}
+                      for view, partial in partials]},
+        elevation_audit_rows=audit_rows)
+
+
 __all__ = [
     "run_p1_plan_view", "build_p1_report", "converter_sha256",
     "P1PlanViewGeometry", "ResolvedOpening", "WallBand",
-    "run_p2_conversion", "build_p2_report", "P2ConversionResult", "ZoneExpansion",
+    "run_p2_conversion", "run_tarch_conversion", "build_p2_report",
+    "build_multifloor_report", "P2ConversionResult", "MultiFloorConversionResult",
+    "ZoneExpansion",
     "g8_reconstruct_wall_region", "s5_identify_cavities", "s6_bind_intent",
     "s7_expand_zones", "GTV3_FOOTPRINT_LAYER", "GTV3_ZONE_LAYER", "GTV3_OPENING_LAYER", "GTV3_ELEV_OPENING_LAYER", "elevation_block_definition_sha256",
 ]

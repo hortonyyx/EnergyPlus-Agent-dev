@@ -3,7 +3,9 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 import re
+import subprocess
 import sys
 from pathlib import Path
 
@@ -79,6 +81,73 @@ def test_r1_4_gt_and_all_seven_renders_are_byte_identical(tmp_path):
     assert gt_first.content_sha256 == gt_second.content_sha256
     assert _render_all(gt_first, first.manifest, tmp_path / "first" / "renders") == _render_all(
         gt_second, second.manifest, tmp_path / "second" / "renders")
+
+
+def _sm24_answer_content_for_hash_seed(source: Path, work_dir: Path, seed: str) -> dict:
+    output = work_dir / "answer-content.json"
+    script = """
+import json
+import sys
+from pathlib import Path
+
+from src.agent.judge import tarch_normalize as tn
+from src.agent.judge.gt_extraction import ExtractionInputs, extract_gt_v3
+from src.agent.judge.gt_schema import REPO_ROOT, compute_gt_implementation_hashes
+from src.agent.judge.tarch_converter_schema import TarchConversionRequestV1, resolve_converter_tooling
+
+repo, source, work_dir, output = map(Path, sys.argv[1:])
+request = TarchConversionRequestV1.model_validate_json(
+    (repo / "tests/fixtures/sm24_review/bundle_07_25/request_v3_calibrated.json").read_text(encoding="utf-8")
+)
+tooling = resolve_converter_tooling(
+    repo / "src/configs/judge_gt.yaml", repo / "src/configs/correction.yaml"
+)
+result = tn.run_p2_conversion(
+    source, request, request.plan_views[0], tooling, work_dir / "work"
+)
+document = extract_gt_v3(ExtractionInputs(
+    result.augmented_dxf_path, result.manifest, tooling,
+    compute_gt_implementation_hashes(REPO_ROOT),
+))
+raw = document.model_dump(mode="json")
+answer = {key: raw[key] for key in (
+    "schema_version", "case", "geometry_profile", "coordinate_frame",
+    "north_axis_deg", "north_axis_source_refs", "floors", "openings",
+)}
+output.write_text(
+    json.dumps(answer, sort_keys=True, separators=(",", ":"), ensure_ascii=False),
+    encoding="utf-8",
+)
+"""
+    environment = os.environ.copy()
+    environment["PYTHONHASHSEED"] = seed
+    completed = subprocess.run(
+        [sys.executable, "-c", script, str(REPO), str(source), str(work_dir), str(output)],
+        cwd=REPO, env=environment, capture_output=True, text=True, check=False,
+    )
+    assert completed.returncode == 0, (
+        f"PYTHONHASHSEED={seed} conversion failed\n{completed.stdout}\n{completed.stderr}"
+    )
+    return json.loads(output.read_text(encoding="utf-8"))
+
+
+def test_sm24_answer_content_is_stable_across_python_hash_seeds(tmp_path):
+    """DXF bytes and the derived ``content_sha256`` stamp are known unstable in dev.
+
+    Python hash-order dependence flows into DXF entity/handle order.  The answer
+    content (floors, nested zones/footprints, openings, and every coordinate) is
+    stable, so this lock compares those fields across independent hash-seeded runs.
+    Eliminating byte instability belongs to later productisation, not this dev lock.
+    """
+    source = tmp_path / "source.dxf"
+    source.write_bytes(SOURCE.read_bytes())
+    seeds = ("0", "1", "8675309")
+    answers = [
+        _sm24_answer_content_for_hash_seed(source, tmp_path / f"seed-{seed}", seed)
+        for seed in seeds
+    ]
+    for seed, answer in zip(seeds[1:], answers[1:]):
+        assert answer == answers[0], f"answer content drifted under PYTHONHASHSEED={seed}"
 
 
 def test_ezdxf_default_writer_matches_converter_writer_except_pinned_metadata(tmp_path):

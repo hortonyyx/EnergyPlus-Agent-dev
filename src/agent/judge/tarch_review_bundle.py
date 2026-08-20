@@ -14,7 +14,7 @@ from .gt_render_model import gt_to_render_model, render_elevation_model, render_
 from .gt_schema import REPO_ROOT, canonical_gt_v3_bytes, compute_gt_implementation_hashes
 from .tarch_converter_schema import (ConversionReportV1, HumanReviewAckV1,
                                      TarchConversionRequestV1, resolve_converter_tooling)
-from .tarch_normalize import run_p2_conversion
+from .tarch_normalize import run_tarch_conversion
 
 
 REVIEW_INDEX_SCHEMA = "tarch_review_index_v1"
@@ -166,7 +166,7 @@ def build_review_bundle(source_dxf: Path, request: TarchConversionRequestV1, *, 
         _write_json(staging / "request.json", request.model_dump(mode="json"))
         shutil.copytree(raster_root, staging / "rasters")
         _write_json(staging / "review_annotations.json", {"zone_roles": dict(review_annotations)})
-        result = run_p2_conversion(bundled_source, request, request.plan_views[0], tooling, staging)
+        result = run_tarch_conversion(bundled_source, request, tooling, staging)
         _write_candidate_outputs(staging, result, request, tooling, review_annotations)
         document_sha = json.loads((staging / "gt/gt.json").read_text(encoding="utf-8"))["content_sha256"]
         index = build_review_index(_review_files(staging), root=staging, candidate_gt_sha256=document_sha,
@@ -214,6 +214,6 @@ def rerun_signed_review_bundle(bundle_dir: Path, *, tooling=None) -> None:
     tooling = tooling or resolve_converter_tooling(REPO_ROOT / "src/configs/judge_gt.yaml",
                                                    REPO_ROOT / "src/configs/correction.yaml")
     annotations = json.loads((root / "review_annotations.json").read_text(encoding="utf-8"))["zone_roles"]
-    result = run_p2_conversion(root / "source.dxf", request, request.plan_views[0], tooling, root)
+    result = run_tarch_conversion(root / "source.dxf", request, tooling, root)
     _write_candidate_outputs(root, result, request, tooling, annotations)
     validate_review_index(root)

@@ -221,7 +221,7 @@ def test_elevation_global_assignment_tie_fails_closed(tmp_path):
     # against the opening kind, so a None item would only exercise a branch that the
     # production call path can never produce.
     item = next(entry for entry in view.opening_entities if entry.kind == opening.kind)
-    evidence = [(item, opening.world_along_interval, opening.z_interval, [])]
+    evidence = [(item, opening.world_along_interval, opening.z_interval, [], opening.floor_id)]
     duplicate = opening.model_copy(update={"id": "O2"})
     segments = {segment.id: segment for floor in doc.floors for segment in floor.boundary_segments}
     with pytest.raises(ExtractionError, match="elevation_opening_assignment_ambiguous"):
