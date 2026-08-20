@@ -218,7 +218,17 @@ EnergyPlus 经 `WorkflowTool.run_simulation`（eppy + ConverterManager，idfpy �
 > 立面开洞按 z 归层（此前**归层全链零竖向判别**）· 多层靠 view clip + handle 钉死 · sm24 答案内容零漂移。
 > **⑤ 两条新登记**：转换器输出**依赖 Python 哈希随机化**（答案内容不受影响 ⇒ 用户拍板登记不做）·
 > **已签字 sm24 的溯源戳与现行代码失配**（内容仍一致 ⇒ 历史成绩可信；用户将重签）。
-> **⑥ ⏭ 下一步 = 拿 Sonnet 推 sm25、至少验一次 C2**；卡在**写 sm25 的转换请求**（~16KB，无工具）。
+> **⑥ ⭐ 立面洞口「载体方言层」已落地（F-65）**：立面窗提取原先只认 `LINE`、
+> `window_selector.entity_types` 全文从未被读取 ⇒ sm25 **静默产 0 窗**。
+> 已改为**画法由请求声明、代码只匹配执行**（一张注册表 + 三种载体）+ 一道
+> **清点对账门**（声明图层上每个实体必须被消费/显式忽略，否则 G3 红并逐句柄点名）；
+> 旧请求走**纯翻译层**、执行只有一条路，sm24 签字 hash 一字节未动。
+> sol 施工 · GLM 审 **APPROVE**（0 BLOCKER/0 MAJOR）· 主控权威全量 **3 次 2937 绿 + 14 xfail**。
+> ⚠️ **只证明了解析器层能提出 sm25 的 31 窗 3 门，整条转换链尚未跑过 sm25。**
+> **⑦ ⏭ 下一步 = 写 sm25 转换请求 → 跑转换器 → 用户签字 → Sonnet 读图 → 验 C2**。
+> 机械部分已备齐（视图框/裁剪框/平面仿射约定/立面 datum/载体规则，见
+> [experiments](logs/experiments/2026-08-20_sm25_elevation_carriers/)）；
+> ⛔ **真正费人工的只剩「六张图的像素标定」**——工具链只有校验、没有求解。
 > 全档 [plan.md 本日条目](plan.md) · 产物 `case_tests/e2e_tests/sm21_anchor/run_2026-08-20_acceptance_*`。
 
 > **⛔⛔ reading 当前口径 banner（2026-08-16 用户当面定 + 08-17 复述确认；⛔ 凡与「环节控制边界」那套条文冲突处以本条为准；该正文 2026-08-18 已迁至 [capability/reading/improvement_methodology.md §8](capability/reading/improvement_methodology.md)）**
@@ -241,7 +251,7 @@ EnergyPlus 经 `WorkflowTool.run_simulation`（eppy + ConverterManager，idfpy �
 
 | 日期 | 一句话 | 详档 |
 |---|---|---|
-| **2026-08-20** | **✅ 07-07 水平在当前基座复现（Sonnet 9/9·7/7·15/15·0.0m）** · 转换器多层化落地 · 满分掩盖外轮廓偏移 · 停下上报 3/3 全是派工方题错 | [plan.md 本日](plan.md) · [专项 §10](capability/reading/improvement_methodology.md) |
+| **2026-08-20** | **✅ 07-07 水平在当前基座复现（Sonnet 9/9·7/7·15/15·0.0m）** · 转换器多层化 + **立面载体方言层（F-65）**落地 · 满分掩盖外轮廓偏移 · 停下上报 **4/4** 全是派工方题错 | [plan.md 本日](plan.md) · [专项 §10](capability/reading/improvement_methodology.md) |
 | **2026-08-19** | **三臂判别**：Sonnet 首抽零返工 4/4·3/3 · GPT 历史栈一轮返工 4/4 · Haiku 两臂皆崩 ⇒ 病灶 = 眼估入口敞开；根治归专项 | [plan.md 本日条目](plan.md) · [专项 §9](capability/reading/improvement_methodology.md) |
 | 2026-08-18 | 治理换挡（§0）· 707 完整环境还原仍不回来（22 抽）· 新建 reading 回归门 · **全案报告已出** | [plan.md](plan.md) · [全案报告](logs/reviews/request/2026-08-18_reading_regression_external_investigation.md) |
 | 2026-08-17 | 707 复现前置三件落地（F-51 单帧化 / `scale_origin` 退回 SHOULD / 跨轴合法出口）+ 全仓首次真零红 **2835 绿** | [plan.md](plan.md) |

@@ -368,6 +368,8 @@ TARCH_DIAGNOSTIC_REGISTRY: dict[str, DiagnosticSpec] = {
     "tarch_elevation_z_transform_mismatch": DiagnosticSpec("tarch_elevation_z_transform_mismatch", DiagnosticSeverity.BLOCK, TarchStage.S0_INPUT, "datum-derived z offset or elevation scale differs from the signed request", gates=("G1",)),
     "tarch_elevation_along_direction_mismatch": DiagnosticSpec("tarch_elevation_along_direction_mismatch", DiagnosticSeverity.BLOCK, TarchStage.S0_INPUT, "declared datum endpoint does not map to facade projection lo", gates=("G1",)),
     "tarch_elevation_opening_component_invalid": DiagnosticSpec("tarch_elevation_opening_component_invalid", DiagnosticSeverity.BLOCK, TarchStage.S3_OPENINGS, "selected elevation window lines do not form one rectangle", gates=("G3",)),
+    "tarch_elevation_entities_unconsumed": DiagnosticSpec("tarch_elevation_entities_unconsumed", DiagnosticSeverity.BLOCK, TarchStage.S3_OPENINGS, "entities on request-declared opening layers were neither consumed nor explicitly ignored; add an exact carrier or ignore declaration", gates=("G3",)),
+    "tarch_elevation_entity_double_consumed": DiagnosticSpec("tarch_elevation_entity_double_consumed", DiagnosticSeverity.BLOCK, TarchStage.S3_OPENINGS, "one elevation entity was consumed by more than one request-declared opening carrier", gates=("G3",)),
     "tarch_elevation_door_block_drift": DiagnosticSpec("tarch_elevation_door_block_drift", DiagnosticSeverity.BLOCK, TarchStage.S3_OPENINGS, "door block fingerprint or exhaustive role list drifted", gates=("G3",)),
     "tarch_elevation_door_structure_invalid": DiagnosticSpec("tarch_elevation_door_structure_invalid", DiagnosticSeverity.BLOCK, TarchStage.S3_OPENINGS, "door structural outline or its union is not one rectangle", gates=("G3",)),
     "tarch_elevation_normalized_outline_drift": DiagnosticSpec("tarch_elevation_normalized_outline_drift", DiagnosticSeverity.BLOCK, TarchStage.S9_PERSIST, "reopened normalized elevation outline differs from structural evidence", gates=("G3",)),
@@ -419,6 +421,7 @@ DiagCode = Literal[
     "tarch_elevation_title_mismatch", "tarch_elevation_datum_missing",
     "tarch_elevation_datum_invalid", "tarch_elevation_z_transform_mismatch",
     "tarch_elevation_along_direction_mismatch", "tarch_elevation_opening_component_invalid",
+    "tarch_elevation_entities_unconsumed", "tarch_elevation_entity_double_consumed",
     "tarch_elevation_door_block_drift", "tarch_elevation_door_structure_invalid",
     "tarch_elevation_normalized_outline_drift", "tarch_elevation_opening_no_candidate",
     "tarch_elevation_opening_assignment_ambiguous", "tarch_elevation_opening_kind_mismatch",
@@ -483,7 +486,10 @@ def derive_quantization_step(tooling: GtResolvedToolingConfigV1) -> float:
 # --------------------------------------------------------------------------- #
 # Conversion REQUEST contract (source-hash-bound, strict)
 # --------------------------------------------------------------------------- #
-TarchEntityType = Literal["LINE", "LWPOLYLINE", "POLYLINE", "INSERT", "TEXT", "MTEXT", "ATTRIB"]
+TarchEntityType = Literal[
+    "ARC", "ATTRIB", "CIRCLE", "DIMENSION", "HATCH", "INSERT", "LINE",
+    "LWPOLYLINE", "MTEXT", "POLYLINE", "TEXT",
+]
 
 
 class TarchEntitySelectorV1(_StrictModel):
@@ -496,6 +502,97 @@ class TarchEntitySelectorV1(_StrictModel):
         if (self.entity_types != sorted(set(self.entity_types))
                 or self.layers != sorted(set(self.layers))):
             raise ValueError("tarch_selector_lists_must_be_sorted_unique")
+        return self
+
+
+class BlockEntityRoleV1(_StrictModel):
+    """Declared semantic role of one direct entity in a block definition."""
+    entity_handle: DxfHandle
+    role: Literal["structural_outline", "nonstructural_detail"]
+
+
+class OpeningCarrierMatchV1(_StrictModel):
+    """Exact, request-declared DXF match for one opening carrier dialect."""
+    entity_type: TarchEntityType
+    layers: list[str] = Field(min_length=1)
+    block_name_exact: str | None = Field(default=None, min_length=1)
+    block_definition_sha256: Hex64 | None = None
+
+    @model_validator(mode="after")
+    def _match_contract(self):
+        if self.layers != sorted(set(self.layers)):
+            raise ValueError("opening carrier layers must be sorted unique")
+        if self.entity_type != "INSERT" and (
+                self.block_name_exact is not None
+                or self.block_definition_sha256 is not None):
+            raise ValueError("opening carrier block match fields require INSERT")
+        return self
+
+
+class OpeningOutlineV1(_StrictModel):
+    """Declared geometry resolver; the converter never infers this choice."""
+    kind: Literal[
+        "closed_polyline_rect",
+        "connected_line_group_rect",
+        "block_entity_rect",
+    ]
+    block_entity_roles: list[BlockEntityRoleV1] | None = None
+
+    @model_validator(mode="after")
+    def _block_roles_contract(self):
+        if self.kind != "block_entity_rect":
+            if self.block_entity_roles is not None:
+                raise ValueError("block entity roles require block_entity_rect")
+            return self
+        if not self.block_entity_roles:
+            raise ValueError("block_entity_rect requires block entity roles")
+        handles = [role.entity_handle for role in self.block_entity_roles]
+        if len(handles) != len(set(handles)):
+            raise ValueError("duplicate opening block entity role handle")
+        if not any(role.role == "structural_outline"
+                   for role in self.block_entity_roles):
+            raise ValueError("block_entity_rect requires structural outline roles")
+        return self
+
+
+class OpeningCarrierRuleV1(_StrictModel):
+    """Request-bound mapping from an exact carrier dialect to opening semantics."""
+    carrier_id: StableId
+    opening_kind: Literal["window", "door"]
+    match: OpeningCarrierMatchV1
+    outline: OpeningOutlineV1
+    module_union_strategy: Literal[
+        "same_band_strict_union",
+        "touching_rect_union",
+    ] | None = None
+    # Signed building-domain parameter, not a geometry tolerance.  It declares
+    # how large a same-band module gap may be before the modules are accepted as
+    # separate doors; touching_rect_union deliberately has no default.
+    module_union_min_gap_m: PositiveFiniteFloat | None = None
+
+    @model_validator(mode="after")
+    def _entity_type_matches_outline(self):
+        expected = {
+            "closed_polyline_rect": "LWPOLYLINE",
+            "connected_line_group_rect": "LINE",
+            "block_entity_rect": "INSERT",
+        }[self.outline.kind]
+        if self.match.entity_type != expected:
+            raise ValueError(
+                f"opening outline {self.outline.kind} requires {expected}")
+        if self.opening_kind == "window":
+            if (self.module_union_strategy is not None
+                    or self.module_union_min_gap_m is not None):
+                raise ValueError("window opening carriers cannot declare module union")
+        elif self.module_union_strategy is None:
+            raise ValueError("door opening carriers require a module union strategy")
+        elif self.module_union_strategy == "touching_rect_union":
+            if self.module_union_min_gap_m is None:
+                raise ValueError(
+                    "touching_rect_union requires module_union_min_gap_m")
+        elif self.module_union_min_gap_m is not None:
+            raise ValueError(
+                "module_union_min_gap_m is only valid for touching_rect_union")
         return self
 
 
@@ -702,6 +799,13 @@ class TarchConversionRequestV1(_StrictModel):
     floors: list["FloorIntentV1"] = Field(min_length=1)
     plan_views: list[PlanViewIntentV1] = Field(min_length=1)
     elevation_views: list[ElevationViewIntentV1 | DatumBoundNamedElevationViewIntentV3] = Field(default_factory=list)
+    # ``None`` is the migration state for already-signed requests.  A declared
+    # table (including an explicitly empty one) is request-hash-bound.
+    opening_carrier_rules: list[OpeningCarrierRuleV1] | None = None
+    # Union of exact (layer, DXF type) selectors exempted from the opening
+    # carrier ledger.  ``None`` is only the already-signed-request migration
+    # state; an explicit list, including [], is request-hash-bound.
+    ignore_selector: list[TarchEntitySelectorV1] | None = None
     north_axis: NorthAxisIntentV1 | None = None
     raster_overlays: list[StableId | RasterOverlayIntentV3] = Field(default_factory=list)
     label_role_map: dict[str, StableId] = Field(default_factory=dict)
@@ -733,6 +837,22 @@ class TarchConversionRequestV1(_StrictModel):
             raise ValueError("legacy request cannot contain v3 elevation intent")
         return self
 
+    @model_validator(mode="after")
+    def _opening_carrier_ids_unique(self):
+        if self.opening_carrier_rules is not None:
+            ids = [rule.carrier_id for rule in self.opening_carrier_rules]
+            if len(ids) != len(set(ids)):
+                raise ValueError("duplicate opening carrier id")
+            door_policies = {
+                (rule.module_union_strategy, rule.module_union_min_gap_m)
+                for rule in self.opening_carrier_rules
+                if rule.opening_kind == "door"
+            }
+            if len(door_policies) > 1:
+                raise ValueError(
+                    "all door opening carriers must declare one module union policy")
+        return self
+
 
 class FloorIntentV1(_StrictModel):
     id: StableId
@@ -753,6 +873,10 @@ def compute_request_sha256(request: TarchConversionRequestV1) -> str:
     if request.request_version == 1:
         payload.pop("wall_thickness_range_m", None)
         payload.pop("min_room_area_m2", None)
+    if request.opening_carrier_rules is None:
+        payload.pop("opening_carrier_rules", None)
+    if request.ignore_selector is None:
+        payload.pop("ignore_selector", None)
     payload = _normalise(payload)
     return _sha256_bytes(json.dumps(payload, sort_keys=True, separators=(",", ":"),
                                       ensure_ascii=False, allow_nan=False).encode("utf-8") + b"\n")

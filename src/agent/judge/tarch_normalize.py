@@ -51,7 +51,7 @@ import os
 import uuid
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Literal
+from typing import Any, Callable, Literal
 
 import ezdxf
 from ezdxf import bbox as ezdxf_bbox
@@ -63,11 +63,13 @@ from shapely.ops import polygonize_full, unary_union
 
 from .tarch_converter_schema import (
     Affine2D, CavityIRV1, CavityReportV1, ClipBoxDxf, ConversionDiagnosticV1,
-    DatumBoundNamedElevationViewIntentV3, ElevationDoorBlockRuleV1,
+    DatumBoundNamedElevationViewIntentV3,
     ConversionReportV1, DiagnosticSeverity, EdgeBasis, GateResultV1, HumanReviewAckV1,
-    OpeningReportV1, PlanViewIntentV1, Point2, PolygonIRV1, RingV1, StableId,
+    OpeningCarrierRuleV1, OpeningReportV1, PlanViewIntentV1, Point2, PolygonIRV1,
+    RingV1, StableId,
     SourceEntityRefV1, SourceMapEntryV1, SourceMapV1, TARCH_DIAGNOSTIC_REGISTRY,
-    TarchConversionRequestV1, TarchDialectRulesV1, ThicknessEvidenceV1,
+    TarchConversionRequestV1, TarchDialectRulesV1, TarchEntitySelectorV1,
+    ThicknessEvidenceV1,
     WallReportV1, WallRibbonSegmentV1, ZoneEdgeReportV1, ZoneReportV1,
     assert_staging_input, assert_staging_work_dir, compute_request_sha256,
     compute_source_map_sha256, derive_quantization_step,
@@ -1634,6 +1636,394 @@ def _line_components(lines, q: float) -> list[list[Any]]:
     return groups
 
 
+_ResolvedOpeningCarrier = tuple[
+    str,
+    Literal["window", "door"],
+    tuple[float, float, float, float],
+    tuple[str, ...],
+    tuple[str, ...],
+]
+_OpeningCarrierResolver = Callable[
+    [Any, OpeningCarrierRuleV1, Any, _Tols],
+    tuple[list[_ResolvedOpeningCarrier], list[ConversionDiagnosticV1]],
+]
+
+
+def _resolve_connected_line_group_rect(
+        view, rule: OpeningCarrierRuleV1, msp, tols: _Tols
+        ) -> tuple[list[_ResolvedOpeningCarrier], list[ConversionDiagnosticV1]]:
+    """Resolve only request-matched LINE components through the existing geometry path."""
+    lines = [entity for entity in msp
+             if entity.dxftype() == rule.match.entity_type
+             and entity.dxf.layer in rule.match.layers
+             and _inside(entity, view.clip_box_dxf)]
+    resolved: list[_ResolvedOpeningCarrier] = []
+    diagnostics: list[ConversionDiagnosticV1] = []
+    for group in _line_components(lines, tols.quant_native):
+        handles = tuple(sorted(entity.dxf.handle for entity in group))
+        rect = _rect_from_lines(group, tols.quant_native)
+        if rect is None:
+            _add(diagnostics, _diag(
+                "tarch_elevation_opening_component_invalid",
+                handles=list(handles),
+                context={"view_id": view.id, "carrier_id": rule.carrier_id}))
+            continue
+        resolved.append((rule.carrier_id, rule.opening_kind, rect,
+                         handles, handles))
+    return resolved, diagnostics
+
+
+@dataclass(frozen=True)
+class _CarrierPoint:
+    x: float
+    y: float
+
+
+@dataclass(frozen=True)
+class _CarrierLineDxf:
+    start: _CarrierPoint
+    end: _CarrierPoint
+
+
+@dataclass(frozen=True)
+class _CarrierLine:
+    dxf: _CarrierLineDxf
+
+
+def _carrier_line(start: tuple[float, float], end: tuple[float, float]) -> _CarrierLine:
+    return _CarrierLine(_CarrierLineDxf(_CarrierPoint(*start), _CarrierPoint(*end)))
+
+
+def _closed_polyline_rect(entity, q: float, matrix=None
+                          ) -> tuple[float, float, float, float] | None:
+    points = list(entity.get_points("xyseb"))
+    if not entity.closed or len(points) != 4 or any(point[4] != 0 for point in points):
+        return None
+    coords = []
+    for point in points:
+        if matrix is None:
+            coords.append((float(point[0]), float(point[1])))
+        else:
+            world = matrix.transform((point[0], point[1], 0.0))
+            coords.append((float(world.x), float(world.y)))
+    lines = [_carrier_line(coords[index], coords[(index + 1) % len(coords)])
+             for index in range(len(coords))]
+    return _rect_from_lines(lines, q)
+
+
+def _resolve_closed_polyline_rect(
+        view, rule: OpeningCarrierRuleV1, msp, tols: _Tols
+        ) -> tuple[list[_ResolvedOpeningCarrier], list[ConversionDiagnosticV1]]:
+    """Resolve each exactly matched entity as one declared closed rectangle."""
+    entities = [entity for entity in msp
+                if entity.dxftype() == rule.match.entity_type
+                and entity.dxf.layer in rule.match.layers
+                and _inside(entity, view.clip_box_dxf)]
+    resolved: list[_ResolvedOpeningCarrier] = []
+    diagnostics: list[ConversionDiagnosticV1] = []
+    for entity in entities:
+        rect = _closed_polyline_rect(entity, tols.quant_native)
+        if rect is None:
+            _add(diagnostics, _diag(
+                "tarch_elevation_opening_component_invalid",
+                handles=[entity.dxf.handle],
+                context={"view_id": view.id, "carrier_id": rule.carrier_id}))
+            continue
+        handles = (entity.dxf.handle,)
+        resolved.append((rule.carrier_id, rule.opening_kind, rect,
+                         handles, handles))
+    return resolved, diagnostics
+
+
+def _resolve_block_entity_rect(
+        view, rule: OpeningCarrierRuleV1, msp, tols: _Tols
+        ) -> tuple[list[_ResolvedOpeningCarrier], list[ConversionDiagnosticV1]]:
+    """Resolve request-role-bound block entities after the INSERT matrix transform."""
+    inserts = [entity for entity in msp
+               if entity.dxftype() == rule.match.entity_type
+               and entity.dxf.layer in rule.match.layers
+               and (rule.match.block_name_exact is None
+                    or entity.dxf.name == rule.match.block_name_exact)
+               and _inside(entity, view.clip_box_dxf)]
+    resolved: list[_ResolvedOpeningCarrier] = []
+    diagnostics: list[ConversionDiagnosticV1] = []
+    roles = {item.entity_handle: item.role
+             for item in (rule.outline.block_entity_roles or [])}
+    for insert in inserts:
+        block_entities = list(insert.doc.blocks.get(insert.dxf.name))
+        block_handles = {entity.dxf.handle for entity in block_entities}
+        fingerprint_bad = (
+            rule.match.block_definition_sha256 is not None
+            and elevation_block_definition_sha256(
+                insert.doc, insert.dxf.name) != rule.match.block_definition_sha256)
+        if fingerprint_bad or set(roles) != block_handles:
+            _add(diagnostics, _diag(
+                "tarch_elevation_door_block_drift",
+                handles=[insert.dxf.handle],
+                context={"view_id": view.id, "carrier_id": rule.carrier_id,
+                         "reason": ("block_definition_sha256_mismatch"
+                                    if fingerprint_bad else "block_entity_roles_drift")}))
+            continue
+        structural = [entity for entity in block_entities
+                      if roles[entity.dxf.handle] == "structural_outline"]
+        structural_handles = tuple(sorted(entity.dxf.handle for entity in structural))
+        matrix = insert.matrix44()
+        rect = None
+        if len(structural) == 1 and structural[0].dxftype() == "LWPOLYLINE":
+            rect = _closed_polyline_rect(
+                structural[0], tols.quant_native, matrix)
+        elif structural and all(entity.dxftype() == "LINE" for entity in structural):
+            lines = []
+            for entity in structural:
+                start = matrix.transform(entity.dxf.start)
+                end = matrix.transform(entity.dxf.end)
+                lines.append(_carrier_line(
+                    (float(start.x), float(start.y)),
+                    (float(end.x), float(end.y))))
+            rect = _rect_from_lines(lines, tols.quant_native)
+        if rect is None:
+            _add(diagnostics, _diag(
+                "tarch_elevation_door_structure_invalid",
+                handles=[insert.dxf.handle],
+                context={"view_id": view.id, "carrier_id": rule.carrier_id}))
+            continue
+        resolved.append((rule.carrier_id, rule.opening_kind, rect,
+                         (insert.dxf.handle,), structural_handles))
+    return resolved, diagnostics
+
+
+# One registry is the only dispatch point.  Later carrier dialects add one resolver
+# entry; existing resolver branches remain untouched.
+_OPENING_CARRIER_RESOLVERS: dict[str, _OpeningCarrierResolver] = {
+    "block_entity_rect": _resolve_block_entity_rect,
+    "closed_polyline_rect": _resolve_closed_polyline_rect,
+    "connected_line_group_rect": _resolve_connected_line_group_rect,
+}
+
+
+def _resolve_opening_carriers(
+        view, rules: list[OpeningCarrierRuleV1], msp, tols: _Tols
+        ) -> tuple[list[_ResolvedOpeningCarrier], list[ConversionDiagnosticV1]]:
+    """Execute only the opening carrier dialects explicitly declared by the request."""
+    resolved: list[_ResolvedOpeningCarrier] = []
+    diagnostics: list[ConversionDiagnosticV1] = []
+    for rule in rules:
+        resolver = _OPENING_CARRIER_RESOLVERS.get(rule.outline.kind)
+        if resolver is None:
+            raise ValueError(
+                f"tarch_elevation_opening_carrier_kind_unsupported:{rule.outline.kind}")
+        carriers, carrier_diagnostics = resolver(view, rule, msp, tols)
+        resolved.extend(carriers)
+        diagnostics.extend(carrier_diagnostics)
+    return resolved, diagnostics
+
+
+def _shared_elevation_dialect(request: TarchConversionRequestV1) -> TarchDialectRulesV1:
+    dialect = None
+    for plan_view in request.plan_views:
+        if dialect is None:
+            dialect = plan_view.dialect_rules
+        elif plan_view.dialect_rules != dialect:
+            raise ValueError("tarch_multifloor_dialect_mismatch")
+    if dialect is None:  # pragma: no cover - request schema requires a plan view
+        raise ValueError("tarch_multifloor_plan_floor_mismatch")
+    return dialect
+
+
+def _translate_legacy_opening_carrier_rules(
+        request: TarchConversionRequestV1,
+        view: DatumBoundNamedElevationViewIntentV3) -> list[OpeningCarrierRuleV1]:
+    """Pure migration: old selectors become rules and never produce geometry."""
+    if view.window_selector.entity_types != ["LINE"]:
+        raise ValueError("tarch_legacy_window_selector_not_translatable")
+    rules = [OpeningCarrierRuleV1(
+        carrier_id=f"legacy.window.{view.id}", opening_kind="window",
+        match={"entity_type": "LINE", "layers": list(view.window_selector.layers)},
+        outline={"kind": "connected_line_group_rect"})]
+    if view.door_selector is None:
+        return rules
+    if view.door_selector.entity_types != ["INSERT"]:
+        raise ValueError("tarch_legacy_door_selector_not_translatable")
+    dialect = _shared_elevation_dialect(request)
+    if not dialect.elevation_door_block_rules:
+        raise ValueError("tarch_legacy_door_rules_not_translatable")
+    for index, legacy in enumerate(dialect.elevation_door_block_rules):
+        rules.append(OpeningCarrierRuleV1(
+            carrier_id=f"legacy.door.{index}", opening_kind="door",
+            match={
+                "entity_type": "INSERT",
+                "layers": list(view.door_selector.layers),
+                "block_name_exact": legacy.block_name_exact,
+                "block_definition_sha256": legacy.block_definition_sha256,
+            },
+            outline={
+                "kind": "block_entity_rect",
+                "block_entity_roles": [role.model_dump(mode="python")
+                                       for role in legacy.entity_roles],
+            },
+            module_union_strategy="same_band_strict_union"))
+    return rules
+
+
+def _opening_carrier_rules_for_view(
+        request: TarchConversionRequestV1,
+        view: DatumBoundNamedElevationViewIntentV3) -> list[OpeningCarrierRuleV1]:
+    if request.opening_carrier_rules is None:
+        return _translate_legacy_opening_carrier_rules(request, view)
+    return list(request.opening_carrier_rules)
+
+
+def _translate_legacy_opening_ignore_selectors(
+        _request: TarchConversionRequestV1,
+        _view: DatumBoundNamedElevationViewIntentV3
+        ) -> list[TarchEntitySelectorV1]:
+    """Pure migration for signed requests; sm24 has no ledger exemptions."""
+    return []
+
+
+def _opening_ignore_selectors_for_view(
+        request: TarchConversionRequestV1,
+        view: DatumBoundNamedElevationViewIntentV3
+        ) -> list[TarchEntitySelectorV1]:
+    if request.ignore_selector is None:
+        return _translate_legacy_opening_ignore_selectors(request, view)
+    return list(request.ignore_selector)
+
+
+def _audit_opening_carrier_consumption(
+        view, rules: list[OpeningCarrierRuleV1],
+        ignore_selectors: list[TarchEntitySelectorV1], msp,
+        carriers: list[_ResolvedOpeningCarrier]
+        ) -> list[ConversionDiagnosticV1]:
+    """Account for every in-frame entity on a request-declared opening layer."""
+    declared_layers = {
+        layer for rule in rules for layer in rule.match.layers
+    }
+    ledger = {
+        entity.dxf.handle: entity for entity in msp
+        if entity.dxf.layer in declared_layers
+        and _inside(entity, view.clip_box_dxf)
+    }
+    consumers: dict[str, list[str]] = {handle: [] for handle in ledger}
+    for carrier_id, _kind, _rect, raw_handles, _structural_handles in carriers:
+        for handle in raw_handles:
+            if handle in consumers:
+                consumers[handle].append(carrier_id)
+
+    diagnostics: list[ConversionDiagnosticV1] = []
+    double_consumed = sorted(
+        handle for handle, carrier_ids in consumers.items()
+        if len(carrier_ids) > 1)
+    if double_consumed:
+        _add(diagnostics, _diag(
+            "tarch_elevation_entity_double_consumed",
+            handles=double_consumed,
+            context={
+                "view_id": view.id,
+                "consumers": {
+                    handle: sorted(consumers[handle])
+                    for handle in double_consumed
+                },
+            }))
+
+    def explicitly_ignored(entity) -> bool:
+        return any(
+            entity.dxf.layer in selector.layers
+            and entity.dxftype() in selector.entity_types
+            for selector in ignore_selectors)
+
+    unconsumed = sorted(
+        handle for handle, entity in ledger.items()
+        if not consumers[handle] and not explicitly_ignored(entity))
+    if unconsumed:
+        _add(diagnostics, _diag(
+            "tarch_elevation_entities_unconsumed",
+            handles=unconsumed,
+            context={"view_id": view.id}))
+    return diagnostics
+
+
+def _rects_touch_or_intersect(
+        first: tuple[float, float, float, float],
+        second: tuple[float, float, float, float], q: float) -> bool:
+    return (first[0] <= second[2] + q and first[2] + q >= second[0]
+            and first[1] <= second[3] + q and first[3] + q >= second[1])
+
+
+def _same_z_band(first: tuple[float, float, float, float],
+                 second: tuple[float, float, float, float], q: float) -> bool:
+    return (abs(first[1] - second[1]) <= q
+            and abs(first[3] - second[3]) <= q)
+
+
+def _horizontal_gap(first: tuple[float, float, float, float],
+                    second: tuple[float, float, float, float]) -> float:
+    return max(first[0] - second[2], second[0] - first[2], 0.0)
+
+
+def _merge_door_carriers(
+        modules: list[_ResolvedOpeningCarrier], rules: list[OpeningCarrierRuleV1],
+        tols: _Tols, view_id: str
+        ) -> tuple[list[_ResolvedOpeningCarrier], list[ConversionDiagnosticV1]]:
+    """Cluster by the signed policy, then use one shared rectangular-union check."""
+    if not modules:
+        return [], []
+    policies = {
+        (rule.module_union_strategy, rule.module_union_min_gap_m)
+        for rule in rules if rule.opening_kind == "door"
+    }
+    if len(policies) != 1:
+        raise ValueError("tarch_elevation_door_module_union_policy_ambiguous")
+    strategy, min_gap_m = next(iter(policies))
+    min_gap_native = (None if min_gap_m is None
+                      else min_gap_m / tols.metres_per_unit)
+
+    def shares_cluster(left: int, right: int) -> bool:
+        first, second = modules[left][2], modules[right][2]
+        if strategy == "same_band_strict_union":
+            return (_same_z_band(first, second, tols.quant_native)
+                    or _rects_touch_or_intersect(first, second, tols.quant_native))
+        if _rects_touch_or_intersect(first, second, tols.quant_native):
+            return True
+        return (_same_z_band(first, second, tols.quant_native)
+                and _horizontal_gap(first, second) < min_gap_native)
+
+    merged: list[_ResolvedOpeningCarrier] = []
+    diagnostics: list[ConversionDiagnosticV1] = []
+    pending = set(range(len(modules)))
+    while pending:
+        index = pending.pop()
+        cluster = [index]
+        changed = True
+        while changed:
+            changed = False
+            for candidate in list(pending):
+                if any(shares_cluster(candidate, member) for member in cluster):
+                    pending.remove(candidate)
+                    cluster.append(candidate)
+                    changed = True
+        rects = [modules[item][2] for item in cluster]
+        x0, y0 = min(rect[0] for rect in rects), min(rect[1] for rect in rects)
+        x1, y1 = max(rect[2] for rect in rects), max(rect[3] for rect in rects)
+        raw_handles = tuple(sorted(
+            handle for item in cluster for handle in modules[item][3]))
+        structural_handles = tuple(sorted(
+            handle for item in cluster for handle in modules[item][4]))
+        if (sum((rect[2] - rect[0]) * (rect[3] - rect[1]) for rect in rects)
+                != (x1 - x0) * (y1 - y0)):
+            _add(diagnostics, _diag(
+                "tarch_elevation_door_structure_invalid",
+                handles=list(raw_handles),
+                context={"view_id": view_id,
+                         "carrier_ids": sorted({modules[item][0]
+                                                for item in cluster}),
+                         "module_union_strategy": strategy}))
+            continue
+        merged.append((modules[index][0], "door", (x0, y0, x1, y1),
+                       raw_handles, structural_handles))
+    return merged, diagnostics
+
+
 def _v3_elevation_records(augmented_dxf: Path, request: TarchConversionRequestV1,
                           plan_gt, tols: _Tols) -> tuple[list[_ElevationRecord], list[ConversionDiagnosticV1]]:
     """E0--E4: validate named views/datum anchors and produce normalized evidence.
@@ -1648,12 +2038,13 @@ def _v3_elevation_records(augmented_dxf: Path, request: TarchConversionRequestV1
     for opening in plan_gt.openings:
         seg = segment_by_id[opening.boundary_segment_id]
         plan_openings.append((opening, seg.facade_family))
+    dialect = _shared_elevation_dialect(request)
     for view in request.elevation_views:
         if not isinstance(view, DatumBoundNamedElevationViewIntentV3):
             continue
         frame = next((e for e in msp if e.dxf.handle == view.frame_entity_handle), None)
         title = next((e for e in msp if e.dxf.handle == view.title_entity_handle), None)
-        mapped = request.plan_views[0].dialect_rules.elevation_title_map.get(view.frame_title)
+        mapped = dialect.elevation_title_map.get(view.frame_title)
         if frame is None or title is None or not _inside(title, view.clip_box_dxf) or _entity_text(title).strip() != view.frame_title or mapped != view.facade_family:
             _add(diags, _diag("tarch_elevation_title_mismatch", handles=[view.frame_entity_handle], context={"view_id": view.id})); continue
         facade_segments = [s for s in segment_by_id.values() if s.facade_family == view.facade_family and s.floor_id in view.floor_ids]
@@ -1691,67 +2082,29 @@ def _v3_elevation_records(augmented_dxf: Path, request: TarchConversionRequestV1
         if datum_bad is not None:
             _add(diags, datum_bad); continue
         datum, start, end = datum_state
-        lines = [e for e in msp if e.dxftype() == "LINE" and e.dxf.layer in view.window_selector.layers and _inside(e, view.clip_box_dxf)]
-        for group in _line_components(lines, tols.quant_native):
-            rect = _rect_from_lines(group, tols.quant_native)
-            if rect is None:
-                _add(diags, _diag("tarch_elevation_opening_component_invalid", handles=[group[0].dxf.handle])); continue
-            records.append(_ElevationRecord(view.id, view.facade_family, "window", rect, tuple(sorted(e.dxf.handle for e in group)), tuple(sorted(e.dxf.handle for e in group)), datum.entity_handle, start, end, datum.world_along_lo_source_endpoint))
-        if view.door_selector:
-            rules = {r.block_name_exact: r for r in request.plan_views[0].dialect_rules.elevation_door_block_rules}
-            modules = []
-            for ins in [e for e in msp if e.dxftype() == "INSERT" and e.dxf.layer in view.door_selector.layers and _inside(e, view.clip_box_dxf)]:
-                rule = rules.get(ins.dxf.name)
-                if rule is None or elevation_block_definition_sha256(doc, ins.dxf.name) != (rule.block_definition_sha256 if rule else ""):
-                    _add(diags, _diag("tarch_elevation_door_block_drift", handles=[ins.dxf.handle])); continue
-                block_entities = list(doc.blocks.get(ins.dxf.name)); roles = {x.entity_handle: x.role for x in rule.entity_roles}
-                if set(roles) != {x.dxf.handle for x in block_entities} or list(roles.values()).count("structural_outline") != 1:
-                    _add(diags, _diag("tarch_elevation_door_block_drift", handles=[ins.dxf.handle])); continue
-                index = next(i for i, x in enumerate(block_entities) if roles[x.dxf.handle] == "structural_outline")
-                structural = block_entities[index]
-                if structural.dxftype() != "LWPOLYLINE":
-                    _add(diags, _diag("tarch_elevation_door_structure_invalid", handles=[ins.dxf.handle])); continue
-                matrix = ins.matrix44()
-                pts = []
-                for point in structural.get_points("xyseb"):
-                    world = matrix.transform((point[0], point[1], 0.0))
-                    pts.append((world.x, world.y, point[2], point[3], point[4]))
-                pseudo = []
-                for i in range(len(pts)):
-                    a, b = pts[i], pts[(i + 1) % len(pts)]
-                    pseudo.append(type("L", (), {"dxf": type("D", (), {"start": type("P", (), {"x":a[0],"y":a[1]})(), "end": type("P", (), {"x":b[0],"y":b[1]})()})()})())
-                rect = _rect_from_lines(pseudo, tols.quant_native)
-                if rect is None:
-                    _add(diags, _diag("tarch_elevation_door_structure_invalid", handles=[ins.dxf.handle])); continue
-                modules.append((rect, ins.dxf.handle, block_entities[index].dxf.handle))
-            # Modules sharing a sill/head band declare one structural-door union.
-            # Do not silently split a gapped or overlapping pair into two doors:
-            # its bounding union must tile exactly, otherwise the G3 structural
-            # contract fails before pairing can hide the malformed geometry.
-            pending = set(range(len(modules)))
-            while pending:
-                i = pending.pop(); cluster = [i]; changed = True
-                while changed:
-                    changed = False
-                    for j in list(pending):
-                        if any(
-                            # Same z band is deliberately enough to join: a
-                            # positive gap/overlap must be inspected as one
-                            # claimed union rather than downgraded to doors.
-                            (abs(modules[j][0][1]-modules[k][0][1]) <= tols.quant_native
-                             and abs(modules[j][0][3]-modules[k][0][3]) <= tols.quant_native)
-                            # Different-z touching/intersecting modules are a
-                            # malformed T/step union and must share the check.
-                            or (modules[j][0][0] <= modules[k][0][2] + tols.quant_native
-                                and modules[j][0][2] + tols.quant_native >= modules[k][0][0]
-                                and modules[j][0][1] <= modules[k][0][3] + tols.quant_native
-                                and modules[j][0][3] + tols.quant_native >= modules[k][0][1])
-                            for k in cluster):
-                            pending.remove(j); cluster.append(j); changed = True
-                rects = [modules[k][0] for k in cluster]; x0,y0,x1,y1 = min(r[0] for r in rects),min(r[1] for r in rects),max(r[2] for r in rects),max(r[3] for r in rects)
-                if sum((r[2]-r[0])*(r[3]-r[1]) for r in rects) != (x1-x0)*(y1-y0):
-                    _add(diags, _diag("tarch_elevation_door_structure_invalid", handles=[modules[cluster[0]][1]])); continue
-                records.append(_ElevationRecord(view.id, view.facade_family, "door", (x0,y0,x1,y1), tuple(sorted(modules[k][1] for k in cluster)), tuple(sorted(modules[k][2] for k in cluster)), datum.entity_handle, start, end, datum.world_along_lo_source_endpoint))
+        rules = _opening_carrier_rules_for_view(request, view)
+        carriers, carrier_diagnostics = _resolve_opening_carriers(
+            view, rules, msp, tols)
+        diags.extend(carrier_diagnostics)
+        diags.extend(_audit_opening_carrier_consumption(
+            view, rules, _opening_ignore_selectors_for_view(request, view),
+            msp, carriers))
+        for _carrier_id, kind, rect, raw_handles, structural_handles in carriers:
+            if kind != "window":
+                continue
+            records.append(_ElevationRecord(
+                view.id, view.facade_family, kind, rect,
+                raw_handles, structural_handles, datum.entity_handle,
+                start, end, datum.world_along_lo_source_endpoint))
+        doors, door_diagnostics = _merge_door_carriers(
+            [carrier for carrier in carriers if carrier[1] == "door"],
+            rules, tols, view.id)
+        diags.extend(door_diagnostics)
+        for _carrier_id, kind, rect, raw_handles, structural_handles in doors:
+            records.append(_ElevationRecord(
+                view.id, view.facade_family, kind, rect,
+                raw_handles, structural_handles, datum.entity_handle,
+                start, end, datum.world_along_lo_source_endpoint))
     return records, diags
 
 
