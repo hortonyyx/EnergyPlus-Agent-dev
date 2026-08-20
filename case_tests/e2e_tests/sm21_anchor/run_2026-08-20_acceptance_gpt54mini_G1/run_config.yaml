@@ -1,0 +1,49 @@
+# =====================================================================
+# run_config.yaml — run_2026-08-20_acceptance_gpt54mini_G1 (sm21_anchor)
+#
+# ⭐ 档位 = **工程档**（用户 2026-08-20 拍板）。⛔ 不是探索档，也不是成绩档。
+#
+# 本 run 要回答的唯一问题：
+#   2026-08-19 那次 gpt-5.4-mini 一轮返工拿满分是在【历史代码树 ebddada】上、
+#   且【只读了 1 张平面图】。换到【当前 HEAD 基座】+【全套 6 张图】，还灵不灵？
+#   （这同时补上 08-19 那张 2×2 判别表缺的最后一格：GPT × 当前栈。）
+#
+# 与同批 Sonnet 臂（run_2026-08-20_acceptance_sonnet_S1）的**单变量关系**：
+#   两臂 staging 的 6 张图哈希逐字节相同、0_reading skill 串接哈希同为
+#   a65e14902109aea1、per-run directive 同为 6ac257f6b7302f88
+#   ⇒ **唯一差异 = 读图模型与其投递通道**。
+# =====================================================================
+
+scope:
+  stages:
+    - 0_reading
+
+judge:
+  mode: stop
+  resample_ladder: closed
+
+review:
+  reading: true
+  correction: false
+  geometry: false
+
+models:
+  reading:
+    role: 0_reading
+    model_id: gpt-5.4-mini
+    provider: openai
+    effort: xhigh
+    source: >-
+      codex CLI 0.144.1 冷启，prompt 走 stdin，工作目录 = /tmp/ep_accept_G1。
+      session id 01a01e2c-234e-7ae1-b582-02bf37009c5a（header 已核 model=gpt-5.4-mini，非 sol）。
+      三条坑已按记录规避：① `-i` 是可变参数会吞掉尾随位置 prompt ⇒ prompt 必须走 stdin；
+      ② `codex exec resume` 不继承 `-m` ⇒ 任何续跑显式带 `-m` 并复核 session header；
+      ③ effort：08-19 记「CLI default 未钉」，本次实测该版本默认已是 xhigh，如实记。
+      隔离 = L1 物理 staging + cwd；Claude Code 的 PreToolUse guard 对 codex 不生效（与 07-08 同）。
+  orchestrator:
+    role: judge2 + orchestration
+    model_id: claude-opus-5
+    note: >-
+      权威判据 = score_reading_vs_gt。
+      ⭐ 执行顺序纪律：先写返工/裁定并封存哈希，再判卷
+      （08-19 P1 臂正因先判卷后写返工而违反不变量 #7，本臂不得重犯）。

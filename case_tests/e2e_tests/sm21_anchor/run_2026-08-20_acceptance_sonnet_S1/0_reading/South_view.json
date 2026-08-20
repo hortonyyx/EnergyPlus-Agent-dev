@@ -1,0 +1,858 @@
+{
+  "image_label": "South elevation",
+  "image_kind": "elevation",
+  "scale_origin": null,
+  "facade": {
+    "view_facade": "South",
+    "mirrored": "unknown",
+    "orientation_evidence": [
+      {
+        "source": "image_name",
+        "detail": "file/label is 'South_view' / declared_direction_token=South in input_inventory.json",
+        "confidence": "high"
+      }
+    ]
+  },
+  "strokes": [
+    {
+      "id": "S1",
+      "pen": "wall_fill",
+      "provenance": "seen",
+      "confidence": "high",
+      "dimension_refs": [],
+      "geometry": {
+        "kind": "rect",
+        "x_range_m": [
+          0.0,
+          15.0
+        ],
+        "y_range_m": [
+          0.0,
+          3.0
+        ]
+      },
+      "note": "1F wall body; x/y from overall-outline bbox + storey_line_profiler floor line at y=396.0px -> z=3.00m (see out/cv/cv_evidence/South_view/001_storey_line_profiler.json), ground line at y=568.5px -> z=0.00m. Not fully broken by any opening, so kept as one fill for the floor."
+    },
+    {
+      "id": "S2",
+      "pen": "wall_fill",
+      "provenance": "seen",
+      "confidence": "high",
+      "dimension_refs": [],
+      "geometry": {
+        "kind": "rect",
+        "x_range_m": [
+          0.0,
+          15.0
+        ],
+        "y_range_m": [
+          3.0,
+          6.6
+        ]
+      },
+      "note": "2F wall body; top (roofline) at y=188.5px -> z=6.61m rounds to the dimensioned 6.60m overall; bottom at the same storey line as S1 (z=3.00m)."
+    },
+    {
+      "id": "W1",
+      "pen": "window",
+      "provenance": "dimension_derived",
+      "confidence": "high",
+      "dimension_refs": [
+        "D3",
+        "D12"
+      ],
+      "geometry": {
+        "kind": "rect",
+        "x_range_m": [
+          2.19,
+          3.39
+        ],
+        "y_range_m": [
+          4.0,
+          5.8
+        ]
+      },
+      "note": "2F office-A window; x from the top x-detail chain's 1200 segment (D3), z from the left z-detail chain's 800/1800/1000 breakdown (D11-D13: roof 6.60 - 0.80 = 5.80 top, -1.80 = 4.00 bottom = floor line + 1.00). Cross-checked against cyan rect x=[2.205,3.403] y=[4.011,5.799]."
+    },
+    {
+      "id": "W2",
+      "pen": "window",
+      "provenance": "dimension_derived",
+      "confidence": "high",
+      "dimension_refs": [
+        "D5",
+        "D12"
+      ],
+      "geometry": {
+        "kind": "rect",
+        "x_range_m": [
+          4.11,
+          5.31
+        ],
+        "y_range_m": [
+          4.0,
+          5.8
+        ]
+      },
+      "note": "2F office-B window; x from D5 (1200), same z as W1. Cross-checked against cyan rect x=[4.115,5.313] y=[4.011,5.799]."
+    },
+    {
+      "id": "W3",
+      "pen": "window",
+      "provenance": "dimension_derived",
+      "confidence": "high",
+      "dimension_refs": [
+        "D7",
+        "D12"
+      ],
+      "geometry": {
+        "kind": "rect",
+        "x_range_m": [
+          9.69,
+          10.9
+        ],
+        "y_range_m": [
+          4.0,
+          5.8
+        ]
+      },
+      "note": "2F office-C window; x from D7 (1200), same z as W1. Cross-checked against cyan rect x=[9.688,10.904] y=[4.011,5.799]."
+    },
+    {
+      "id": "W4",
+      "pen": "window",
+      "provenance": "dimension_derived",
+      "confidence": "high",
+      "dimension_refs": [
+        "D9",
+        "D12"
+      ],
+      "geometry": {
+        "kind": "rect",
+        "x_range_m": [
+          11.61,
+          12.81
+        ],
+        "y_range_m": [
+          4.0,
+          5.8
+        ]
+      },
+      "note": "2F office-D window; x from D9 (1200), same z as W1. Cross-checked against cyan rect x=[11.615,12.813] y=[4.011,5.799]."
+    },
+    {
+      "id": "W5",
+      "pen": "window",
+      "provenance": "dimension_derived",
+      "confidence": "high",
+      "dimension_refs": [
+        "D27",
+        "D15"
+      ],
+      "geometry": {
+        "kind": "rect",
+        "x_range_m": [
+          3.44,
+          4.64
+        ],
+        "y_range_m": [
+          1.5,
+          2.1
+        ]
+      },
+      "note": "1F SW-room small window; x from the bottom x-detail chain (D27, 1200), z from the left z-detail chain's 900/600 breakdown (D14/D15: floor 3.00 - 0.90 = 2.10 top, -0.60 = 1.50 bottom). Cross-checked against cyan rect x=[3.455,4.653] y=[1.511,2.101]. Matches 1f_view.json's window W4 exactly."
+    },
+    {
+      "id": "W6",
+      "pen": "window",
+      "provenance": "dimension_derived",
+      "confidence": "high",
+      "dimension_refs": [
+        "D29",
+        "D21"
+      ],
+      "geometry": {
+        "kind": "rect",
+        "x_range_m": [
+          6.3,
+          8.7
+        ],
+        "y_range_m": [
+          1.0,
+          2.6
+        ]
+      },
+      "note": "1F bottom-middle-room large window; x from D29 (2400), z from the right z-detail chain's 400/1600 breakdown (D20/D21: floor 3.00 - 0.40 = 2.60 top, -1.60 = 1.00 bottom). Cross-checked against cyan rect x=[6.303,8.716] y=[1.007,2.604]. Matches 1f_view.json's window W5."
+    },
+    {
+      "id": "W7",
+      "pen": "window",
+      "provenance": "dimension_derived",
+      "confidence": "high",
+      "dimension_refs": [
+        "D31",
+        "D21"
+      ],
+      "geometry": {
+        "kind": "rect",
+        "x_range_m": [
+          11.36,
+          13.77
+        ],
+        "y_range_m": [
+          1.0,
+          2.6
+        ]
+      },
+      "note": "1F bottom-right-room large window; x from D31 (2400), same z as W6. Cross-checked against cyan rect x=[11.372,13.768] y=[1.007,2.604]. Matches 1f_view.json's window W6."
+    }
+  ],
+  "dimensions": [
+    {
+      "id": "D1",
+      "text_verbatim": "15000",
+      "value_m": 15.0,
+      "from": [
+        0.0,
+        8.2
+      ],
+      "to": [
+        15.0,
+        8.2
+      ],
+      "axis": "x",
+      "chain_id": "C_top_overall_x",
+      "role": "overall",
+      "order": 0,
+      "anchor": null,
+      "note": "topmost overall width line, drawn above the 2F window x-detail chain; tick pixels x=312,1176"
+    },
+    {
+      "id": "D2",
+      "text_verbatim": "2190",
+      "value_m": 2.19,
+      "from": [
+        0.0,
+        8.0
+      ],
+      "to": [
+        2.19,
+        8.0
+      ],
+      "axis": "x",
+      "chain_id": "C_top_x",
+      "role": "segment",
+      "order": 1,
+      "anchor": null,
+      "note": "2F window x-detail chain (no separate overall on this line; D1 above it is the same total)"
+    },
+    {
+      "id": "D3",
+      "text_verbatim": "1200",
+      "value_m": 1.2,
+      "from": [
+        2.19,
+        8.0
+      ],
+      "to": [
+        3.39,
+        8.0
+      ],
+      "axis": "x",
+      "chain_id": "C_top_x",
+      "role": "segment",
+      "order": 2,
+      "anchor": null,
+      "note": "backs window W1"
+    },
+    {
+      "id": "D4",
+      "text_verbatim": "720",
+      "value_m": 0.72,
+      "from": [
+        3.39,
+        8.0
+      ],
+      "to": [
+        4.11,
+        8.0
+      ],
+      "axis": "x",
+      "chain_id": "C_top_x",
+      "role": "segment",
+      "order": 3,
+      "anchor": null,
+      "note": "wall pier between W1 and W2 (matches the plan's 360+360 door-zone width on the interior corridor side, not visible here)"
+    },
+    {
+      "id": "D5",
+      "text_verbatim": "1200",
+      "value_m": 1.2,
+      "from": [
+        4.11,
+        8.0
+      ],
+      "to": [
+        5.31,
+        8.0
+      ],
+      "axis": "x",
+      "chain_id": "C_top_x",
+      "role": "segment",
+      "order": 4,
+      "anchor": null,
+      "note": "backs window W2"
+    },
+    {
+      "id": "D6",
+      "text_verbatim": "4380",
+      "value_m": 4.38,
+      "from": [
+        5.31,
+        8.0
+      ],
+      "to": [
+        9.69,
+        8.0
+      ],
+      "axis": "x",
+      "chain_id": "C_top_x",
+      "role": "segment",
+      "order": 5,
+      "anchor": null,
+      "note": "wide wall pier between office-B and office-C windows"
+    },
+    {
+      "id": "D7",
+      "text_verbatim": "1200",
+      "value_m": 1.2,
+      "from": [
+        9.69,
+        8.0
+      ],
+      "to": [
+        10.9,
+        8.0
+      ],
+      "axis": "x",
+      "chain_id": "C_top_x",
+      "role": "segment",
+      "order": 6,
+      "anchor": null,
+      "note": "backs window W3"
+    },
+    {
+      "id": "D8",
+      "text_verbatim": "720",
+      "value_m": 0.72,
+      "from": [
+        10.9,
+        8.0
+      ],
+      "to": [
+        11.61,
+        8.0
+      ],
+      "axis": "x",
+      "chain_id": "C_top_x",
+      "role": "segment",
+      "order": 7,
+      "anchor": null,
+      "note": "wall pier between W3 and W4"
+    },
+    {
+      "id": "D9",
+      "text_verbatim": "1200",
+      "value_m": 1.2,
+      "from": [
+        11.61,
+        8.0
+      ],
+      "to": [
+        12.81,
+        8.0
+      ],
+      "axis": "x",
+      "chain_id": "C_top_x",
+      "role": "segment",
+      "order": 8,
+      "anchor": null,
+      "note": "backs window W4"
+    },
+    {
+      "id": "D10",
+      "text_verbatim": "2190",
+      "value_m": 2.19,
+      "from": [
+        12.81,
+        8.0
+      ],
+      "to": [
+        15.0,
+        8.0
+      ],
+      "axis": "x",
+      "chain_id": "C_top_x",
+      "role": "segment",
+      "order": 9,
+      "anchor": null,
+      "note": "sum of D2..D10 = 15.00m, closes D1"
+    },
+    {
+      "id": "D11",
+      "text_verbatim": "800",
+      "value_m": 0.8,
+      "from": [
+        -1.5,
+        5.8
+      ],
+      "to": [
+        -1.5,
+        6.6
+      ],
+      "axis": "y",
+      "chain_id": "C_left_z_2f_detail",
+      "role": "segment",
+      "order": 1,
+      "anchor": null,
+      "note": "left z-detail chain, roof to 2F-window top (parapet/eave gap); x-position is nominal (chain drawn off to the left of the facade)"
+    },
+    {
+      "id": "D12",
+      "text_verbatim": "1800",
+      "value_m": 1.8,
+      "from": [
+        -1.5,
+        4.0
+      ],
+      "to": [
+        -1.5,
+        5.8
+      ],
+      "axis": "y",
+      "chain_id": "C_left_z_2f_detail",
+      "role": "segment",
+      "order": 2,
+      "anchor": null,
+      "note": "2F window height; backs W1/W2/W3/W4"
+    },
+    {
+      "id": "D13",
+      "text_verbatim": "1000",
+      "value_m": 1.0,
+      "from": [
+        -1.5,
+        3.0
+      ],
+      "to": [
+        -1.5,
+        4.0
+      ],
+      "axis": "y",
+      "chain_id": "C_left_z_2f_detail",
+      "role": "segment",
+      "order": 3,
+      "anchor": null,
+      "note": "2F window sill to floor line; sum of D11-D13 = 3.60m matches the per-floor 2F height"
+    },
+    {
+      "id": "D14",
+      "text_verbatim": "900",
+      "value_m": 0.9,
+      "from": [
+        -1.5,
+        2.1
+      ],
+      "to": [
+        -1.5,
+        3.0
+      ],
+      "axis": "y",
+      "chain_id": "C_left_z_1f_detail",
+      "role": "segment",
+      "order": 1,
+      "anchor": null,
+      "note": "left z-detail chain, floor line down to small-window top (also matches the door head height)"
+    },
+    {
+      "id": "D15",
+      "text_verbatim": "600",
+      "value_m": 0.6,
+      "from": [
+        -1.5,
+        1.5
+      ],
+      "to": [
+        -1.5,
+        2.1
+      ],
+      "axis": "y",
+      "chain_id": "C_left_z_1f_detail",
+      "role": "segment",
+      "order": 2,
+      "anchor": null,
+      "note": "small window height; backs W5"
+    },
+    {
+      "id": "D16",
+      "text_verbatim": "1500",
+      "value_m": 1.5,
+      "from": [
+        -1.5,
+        0.0
+      ],
+      "to": [
+        -1.5,
+        1.5
+      ],
+      "axis": "y",
+      "chain_id": "C_left_z_1f_detail",
+      "role": "segment",
+      "order": 3,
+      "anchor": null,
+      "note": "small-window sill to ground; sum of D14-D16 = 3.00m matches the 1F height"
+    },
+    {
+      "id": "D17",
+      "text_verbatim": "800",
+      "value_m": 0.8,
+      "from": [
+        16.5,
+        5.8
+      ],
+      "to": [
+        16.5,
+        6.6
+      ],
+      "axis": "y",
+      "chain_id": "C_right_z_2f_detail",
+      "role": "segment",
+      "order": 1,
+      "anchor": null,
+      "note": "right z-detail chain (mirrors D11, same value); x-position nominal, chain drawn off to the right"
+    },
+    {
+      "id": "D18",
+      "text_verbatim": "1800",
+      "value_m": 1.8,
+      "from": [
+        16.5,
+        4.0
+      ],
+      "to": [
+        16.5,
+        5.8
+      ],
+      "axis": "y",
+      "chain_id": "C_right_z_2f_detail",
+      "role": "segment",
+      "order": 2,
+      "anchor": null,
+      "note": ""
+    },
+    {
+      "id": "D19",
+      "text_verbatim": "1000",
+      "value_m": 1.0,
+      "from": [
+        16.5,
+        3.0
+      ],
+      "to": [
+        16.5,
+        4.0
+      ],
+      "axis": "y",
+      "chain_id": "C_right_z_2f_detail",
+      "role": "segment",
+      "order": 3,
+      "anchor": null,
+      "note": "sum of D17-D19 = 3.60m"
+    },
+    {
+      "id": "D20",
+      "text_verbatim": "400",
+      "value_m": 0.4,
+      "from": [
+        16.5,
+        2.6
+      ],
+      "to": [
+        16.5,
+        3.0
+      ],
+      "axis": "y",
+      "chain_id": "C_right_z_1f_detail",
+      "role": "segment",
+      "order": 1,
+      "anchor": null,
+      "note": "right z-detail chain, floor line down to large-window top"
+    },
+    {
+      "id": "D21",
+      "text_verbatim": "1600",
+      "value_m": 1.6,
+      "from": [
+        16.5,
+        1.0
+      ],
+      "to": [
+        16.5,
+        2.6
+      ],
+      "axis": "y",
+      "chain_id": "C_right_z_1f_detail",
+      "role": "segment",
+      "order": 2,
+      "anchor": null,
+      "note": "large window height; backs W6/W7"
+    },
+    {
+      "id": "D22",
+      "text_verbatim": "1000",
+      "value_m": 1.0,
+      "from": [
+        16.5,
+        0.0
+      ],
+      "to": [
+        16.5,
+        1.0
+      ],
+      "axis": "y",
+      "chain_id": "C_right_z_1f_detail",
+      "role": "segment",
+      "order": 3,
+      "anchor": null,
+      "note": "large-window sill to ground; sum of D20-D22 = 3.00m"
+    },
+    {
+      "id": "D23",
+      "text_verbatim": "6600",
+      "value_m": 6.6,
+      "from": [
+        -0.8,
+        0.0
+      ],
+      "to": [
+        -0.8,
+        6.6
+      ],
+      "axis": "y",
+      "chain_id": "C_left_z",
+      "role": "overall",
+      "order": 0,
+      "anchor": null,
+      "note": "leftmost overall-height line; tick pixels y=189,569"
+    },
+    {
+      "id": "D24",
+      "text_verbatim": "3600",
+      "value_m": 3.6,
+      "from": [
+        -1.1,
+        3.0
+      ],
+      "to": [
+        -1.1,
+        6.6
+      ],
+      "axis": "y",
+      "chain_id": "C_left_z",
+      "role": "segment",
+      "order": 1,
+      "anchor": null,
+      "note": "2F storey height"
+    },
+    {
+      "id": "D25",
+      "text_verbatim": "3000",
+      "value_m": 3.0,
+      "from": [
+        -1.1,
+        0.0
+      ],
+      "to": [
+        -1.1,
+        3.0
+      ],
+      "axis": "y",
+      "chain_id": "C_left_z",
+      "role": "segment",
+      "order": 2,
+      "anchor": null,
+      "note": "1F storey height; sum of D24+D25 = 6.60m, closes D23"
+    },
+    {
+      "id": "D26",
+      "text_verbatim": "3440",
+      "value_m": 3.44,
+      "from": [
+        0.0,
+        -1.0
+      ],
+      "to": [
+        3.44,
+        -1.0
+      ],
+      "axis": "x",
+      "chain_id": "C_bottom_x",
+      "role": "segment",
+      "order": 1,
+      "anchor": null,
+      "note": "bottom x-detail chain (drawn below the facade); wall segment including the (not separately dimensioned here) SW door, matching 1f_view.json's door at x=0.54-1.44"
+    },
+    {
+      "id": "D27",
+      "text_verbatim": "1200",
+      "value_m": 1.2,
+      "from": [
+        3.44,
+        -1.0
+      ],
+      "to": [
+        4.64,
+        -1.0
+      ],
+      "axis": "x",
+      "chain_id": "C_bottom_x",
+      "role": "segment",
+      "order": 2,
+      "anchor": null,
+      "note": "backs window W5"
+    },
+    {
+      "id": "D28",
+      "text_verbatim": "1660",
+      "value_m": 1.66,
+      "from": [
+        4.64,
+        -1.0
+      ],
+      "to": [
+        6.3,
+        -1.0
+      ],
+      "axis": "x",
+      "chain_id": "C_bottom_x",
+      "role": "segment",
+      "order": 3,
+      "anchor": null,
+      "note": "wall pier between W5 and W6"
+    },
+    {
+      "id": "D29",
+      "text_verbatim": "2400",
+      "value_m": 2.4,
+      "from": [
+        6.3,
+        -1.0
+      ],
+      "to": [
+        8.7,
+        -1.0
+      ],
+      "axis": "x",
+      "chain_id": "C_bottom_x",
+      "role": "segment",
+      "order": 4,
+      "anchor": null,
+      "note": "backs window W6"
+    },
+    {
+      "id": "D30",
+      "text_verbatim": "2660",
+      "value_m": 2.66,
+      "from": [
+        8.7,
+        -1.0
+      ],
+      "to": [
+        11.36,
+        -1.0
+      ],
+      "axis": "x",
+      "chain_id": "C_bottom_x",
+      "role": "segment",
+      "order": 5,
+      "anchor": null,
+      "note": "wall pier between W6 and W7"
+    },
+    {
+      "id": "D31",
+      "text_verbatim": "2400",
+      "value_m": 2.4,
+      "from": [
+        11.36,
+        -1.0
+      ],
+      "to": [
+        13.76,
+        -1.0
+      ],
+      "axis": "x",
+      "chain_id": "C_bottom_x",
+      "role": "segment",
+      "order": 6,
+      "anchor": null,
+      "note": "backs window W7"
+    },
+    {
+      "id": "D32",
+      "text_verbatim": "1240",
+      "value_m": 1.24,
+      "from": [
+        13.76,
+        -1.0
+      ],
+      "to": [
+        15.0,
+        -1.0
+      ],
+      "axis": "x",
+      "chain_id": "C_bottom_x",
+      "role": "segment",
+      "order": 7,
+      "anchor": null,
+      "note": "sum of D26..D32 = 15.00m"
+    },
+    {
+      "id": "D33",
+      "text_verbatim": "15000",
+      "value_m": 15.0,
+      "from": [
+        0.0,
+        -1.4
+      ],
+      "to": [
+        15.0,
+        -1.4
+      ],
+      "axis": "x",
+      "chain_id": "C_bottom_overall_x",
+      "role": "overall",
+      "order": 0,
+      "anchor": null,
+      "note": "bottommost overall width line, drawn below C_bottom_x; tick pixels x=312,1176"
+    }
+  ],
+  "ocr_texts": [],
+  "uncaptured": [
+    "1F SW exterior door recognized but not drawn (elevation door pen does not exist); x≈0.54-1.44 z≈0.00-2.10, matching 1f_view.json's healed door on wall S4. Cyan door-leaf outline seen at x=[0.538,1.458] y=[0.00,2.101] (cyan cluster scan of case_data/South_view.png)",
+    "no explicit level-marker (▽) triangle symbols were found; the z=0.00 ground datum is taken from the overall-height dimension chain and storey_line_profiler's ground-line peak, not an explicit ±0.000 marker",
+    "outline not drawn as a separate stroke: the roof is flat with no parapet/setback beyond the wall_fill top edge (confirmed by storey_line_profiler and the full-outline bbox exactly matching the dimensioned 15.00 x 6.60 envelope), per pen_library's 'redundant -> log' rule"
+  ],
+  "self_check": {
+    "all_dimensions_transcribed": true,
+    "all_visible_strokes_captured": true,
+    "no_topology_inferred": true,
+    "pens_used": [
+      "wall_fill",
+      "window"
+    ],
+    "unknowns_noted": [
+      "facade.mirrored left 'unknown': no in-image cue (no north arrow / explicit mirror note) distinguishes a mirrored export from an unmirrored one; correction should cross-check this facade's window x-positions against the 1f_view/2f_view plan footprints to resolve world placement, per guide.md §7",
+      "the two vertical z-detail chains (left, right) and two horizontal x-detail chains (top, bottom) are each drawn once per side/end even though several values repeat (e.g. both z-detail chains show the same 800/1800/1000 2F-window breakdown) -- transcribed as separate dimension ids since they are literally separate drawn instances"
+    ]
+  }
+}

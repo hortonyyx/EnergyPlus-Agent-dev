@@ -1,0 +1,104 @@
+{
+  "run": "run_2026-08-20_acceptance_gpt54mini_G1",
+  "tier": "工程档 (engineering tier) — user ruling 2026-08-20. NOT exploratory, NOT a score run.",
+  "question": "The 2026-08-19 gpt-5.4-mini full-marks r2 ran on ITS OWN historical tree (ebddada) and read ONE image. Does the form hold on the CURRENT HEAD substrate across ALL SIX images? Also closes the last empty cell of the 08-19 2x2 discriminator (GPT x current stack).",
+  "batch": "本批四格验收之一。本格 = gpt-5.4-mini × sm21。",
+  "single_variable_vs_sibling_arm": {
+    "sibling": "run_2026-08-20_acceptance_sonnet_S1",
+    "images_sha_identical": "6/6",
+    "skill_0_reading_concat_sha256_16": "a65e14902109aea1 (identical in both arms)",
+    "directive_sha256_16": "6ac257f6b7302f88 (identical in both arms)",
+    "therefore": "唯一差异 = 读图模型与其投递通道"
+  },
+  "tree": {
+    "worktree": "/workspaces/EnergyPlus-Agent-dev",
+    "git_head_at_build": "f2ea22e (08.20_sm24AdmissionGate_PlanFrameSilentZero_MadeLoud)",
+    "branch": "6.15_ValidationArchM0toM4",
+    "note": "⚠️ 与 Sonnet 臂的 HEAD 差一笔：S1 建于 47e199a，G1 建于 f2ea22e。该提交只碰 v3 typed 判卷路与其锁，sm21 走 legacy 判卷路 ⇒ 对本臂读图与判卷均无影响（如实记，不掩盖）。"
+  },
+  "staging": {
+    "root": "/tmp/ep_accept_G1",
+    "dedicated_empty_root": true,
+    "guard": "⚠️ Claude Code PreToolUse guard 对 codex 不生效（与 07-08 同）。隔离 = L1 物理 staging + cwd，gt 物理不在其中。",
+    "vision_resize_tier": "none (原图逐字节不动)",
+    "pilot_gate": "kept",
+    "file_count": 32
+  },
+  "images_sha256_16": {
+    "1f_view.png": "ac62091683dde4ab",
+    "2f_view.png": "d7cd58d34bc6243e",
+    "East_view.png": "d09983ef9bdd4297",
+    "North_view.png": "3eea6a31223f0cee",
+    "South_view.png": "6c69efe4699b0a53",
+    "West_view.png": "88972f24bf728772"
+  },
+  "images_match_main_tree": "6/6 byte-identical (verified 2026-08-20)",
+  "skill_0_reading_concat_sha256_16": "a65e14902109aea1",
+  "reader": {
+    "model": "gpt-5.4-mini",
+    "channel": "codex CLI 0.144.1",
+    "session_id": "01a01e2c-234e-7ae1-b582-02bf37009c5a",
+    "session_header_verified": "model: gpt-5.4-mini (NOT gpt-5.6-sol) · reasoning effort: xhigh",
+    "effort": "xhigh — ⚠️ 08-19 记的是「CLI default 未钉」；本次实测该版本 CLI 默认已是 xhigh，如实记（与 07-08 的实际 effort 可能不同，构成一处未消除的差异）",
+    "invocation": "codex exec -m gpt-5.4-mini --dangerously-bypass-approvals-and-sandbox --cd /tmp/ep_accept_G1 -i case_data/1f_view.png < spawn_prompt_pilot.md",
+    "known_traps_avoided": [
+      "-i 是可变参数会吞掉尾随的位置 prompt ⇒ prompt 走 stdin",
+      "codex exec resume 不继承 -m（08-19 实测静默落回 gpt-5.6-sol）⇒ 续跑必须显式带 -m 并复核 session header"
+    ],
+    "rework_round_1": {
+      "verdict_sha256_16": "f83c806e804eaffc",
+      "verdict_sealed_before_scoring": true,
+      "artifact_r1_sha256_16": "3df4d7fb3ffdee46",
+      "feedback_sha256_16": "cd983e0b9ee4e759",
+      "feedback_content_class": "纯过程（只标定了一根轴 ⇒ 跨轴一致性判据无比对对象）；零坐标 / 零 gt 值 / 零「哪里画错」",
+      "r1_score_after_sealing": {
+        "walls": "4/4",
+        "windows": "3/3",
+        "max_wall_offset_m": 0.18
+      },
+      "prediction_check": "封存的裁定预测「墙仍判中但余量只剩一半」⇒ 实测 0.18 m / 容差 0.30 m，兑现；且漂移只出现在 x 向墙（y 向 Δ0.0），与「只标定 x 轴」的诊断一致"
+    }
+  },
+  "prompt": {
+    "file": "_run/spawn_prompt_pilot.md",
+    "sha256_16": "310d14cd8e0726ec",
+    "composition": "当前 build 生成的 kickoff_prompt.md + 与 Sonnet 臂逐字相同的 per-run directive",
+    "measure_before_draw_included": true,
+    "difference_from_P1": "⚠️ 08-19 P1 臂刻意【不含】measure-before-draw（复刻 07-08 原样）。本臂含。⇒ 与 P1 相比这是第二个变量，如实记；与同批 Sonnet 臂相比则是同一份。"
+  },
+  "contamination_sweep": {
+    "gt": "absent (0 hits)",
+    "prior_scores_grades_attempts": "absent (0 hits)",
+    "other_runs_prior_readings": "absent (dedicated empty root)"
+  },
+  "orchestrator": {
+    "model": "claude-opus-5",
+    "role": "pilot PROCESS review + routing only",
+    "authoritative_verdict": "deterministic gt scorer (score_reading_vs_gt)",
+    "ordering_discipline": "先写返工/裁定并封存哈希，再判卷（08-19 P1 臂正因反序而违反不变量 #7）"
+  },
+  "result": "PENDING",
+  "incidents": [
+    {
+      "id": "G1-INC-1",
+      "when": "2026-08-20T08:37Z",
+      "what": "⛔ orchestrator 用 `codex exec resume` 发返工时，工作目录落在【仓库根】而非隔离工作区。",
+      "root_cause": "`codex exec resume` 不接受 `--cd`（与 `codex exec` 不同，实测报 `unexpected argument '--cd'`）⇒ 它用了发起 shell 的 cwd = 仓库。",
+      "detection": "开跑 20 秒内核 session header 的 `workdir:` 字段发现，立即 pkill。",
+      "forensics": {
+        "method": "读 rollout jsonl，清点 08:37 之后的全部条目",
+        "entries_after_resume": 8,
+        "assistant_turns": 0,
+        "tool_calls": 0,
+        "file_reads": 0,
+        "what_actually_entered": "仅三条输入（environment_context / developer plugins 说明 / orchestrator 那句话）+ world_state + turn_context",
+        "world_state_filesystem_field": "只含 workspace root 路径字符串与权限档，**无目录列表、无文件内容**",
+        "keyword_scan": "'gt.json' / 'test_baseline' / '/gt/' / 'answer' 在整条 world_state 中计数均为 0"
+      },
+      "assessment": "泄露面 = 「cwd 是这个仓库」这一个路径字符串，进入了会话上下文；⛔ 未泄露 gt 位置、内容或任何目录清单；模型未产生任何一轮输出。",
+      "remediation": "改为从隔离目录发起：`cd /tmp/ep_accept_G1 && codex exec resume ...`，已复核 header 的 workdir 落在 staging。",
+      "carried_forward": "⚠️ 该会话上下文中留有一次 cwd=仓库 的 turn_context。本抽据此**不得**宣称「物理隔离全程无瑕」；按 2026-08-19 用户裁定的同类口径（信息没泄漏、物理上没隔离到位 ⇒ 不阻塞本抽），记入 reading 专项，⛔ 不作为拍板项反复上报。",
+      "new_trap_recorded": "`codex exec resume` 不接受 `--cd`，且【不继承原会话的 cwd】——必须从目标目录发起。本仓此前只记了它不继承 `-m` 与 sandbox。"
+    }
+  ]
+}

@@ -1,0 +1,444 @@
+{
+  "image_label": "East elevation",
+  "image_kind": "elevation",
+  "scale_origin": null,
+  "facade": {
+    "view_facade": "East",
+    "mirrored": "unknown",
+    "orientation_evidence": [
+      {
+        "source": "image_name",
+        "detail": "file/label is 'East_view' / declared_direction_token=East in input_inventory.json",
+        "confidence": "high"
+      }
+    ]
+  },
+  "strokes": [
+    {
+      "id": "S1",
+      "pen": "wall_fill",
+      "provenance": "seen",
+      "confidence": "high",
+      "dimension_refs": [],
+      "geometry": {
+        "kind": "rect",
+        "x_range_m": [
+          0.0,
+          8.0
+        ],
+        "y_range_m": [
+          0.0,
+          3.0
+        ]
+      },
+      "note": "1F wall body; storey_line_profiler floor line y=381.0px -> z=3.00m, ground line y=553.5px -> z=0.00m (see out/cv/cv_evidence/East_view/001_storey_line_profiler.json). Not fully broken by the window, kept as one fill."
+    },
+    {
+      "id": "S2",
+      "pen": "wall_fill",
+      "provenance": "seen",
+      "confidence": "high",
+      "dimension_refs": [],
+      "geometry": {
+        "kind": "rect",
+        "x_range_m": [
+          0.0,
+          8.0
+        ],
+        "y_range_m": [
+          3.0,
+          6.6
+        ]
+      },
+      "note": "2F wall body; roofline y=173.5px -> z=6.61m rounds to the dimensioned 6.60m overall."
+    },
+    {
+      "id": "W1",
+      "pen": "window",
+      "provenance": "dimension_derived",
+      "confidence": "high",
+      "dimension_refs": [
+        "D2",
+        "D6"
+      ],
+      "geometry": {
+        "kind": "rect",
+        "x_range_m": [
+          3.4,
+          4.6
+        ],
+        "y_range_m": [
+          4.0,
+          5.8
+        ]
+      },
+      "note": "2F corridor-level window; x from the top x-chain's 1200 segment (D2, matching 2f_view.json's window W8's y-extent along the wall), z from the left z-detail chain's 800/1800 breakdown (D5/D6: roof 6.60-0.80=5.80 top, -1.80=4.00 bottom). Cross-checked against cyan rect x=[3.389,4.606] y=[4.015,5.806]."
+    },
+    {
+      "id": "W2",
+      "pen": "window",
+      "provenance": "dimension_derived",
+      "confidence": "high",
+      "dimension_refs": [
+        "D2",
+        "D9"
+      ],
+      "geometry": {
+        "kind": "rect",
+        "x_range_m": [
+          3.4,
+          4.6
+        ],
+        "y_range_m": [
+          1.0,
+          2.8
+        ]
+      },
+      "note": "1F corridor-level window; same x as W1 (matches 1f_view.json's window W7's y-extent along the wall), z from the left z-detail chain's 200/1800 breakdown (D8/D9: floor 3.00-0.20=2.80 top, -1.80=1.00 bottom). Cross-checked against cyan rect x=[3.389,4.606] y=[1.008,2.816]. This window is 1800mm tall x 1200mm wide -- taller than the plan's along-wall span alone shows, since only elevations carry height information."
+    }
+  ],
+  "dimensions": [
+    {
+      "id": "D1",
+      "text_verbatim": "8000",
+      "value_m": 8.0,
+      "from": [
+        0.0,
+        6.9
+      ],
+      "to": [
+        8.0,
+        6.9
+      ],
+      "axis": "x",
+      "chain_id": "C_top_x",
+      "role": "overall",
+      "order": 0,
+      "anchor": null,
+      "note": "top overall width chain; tick pixels x=286,746"
+    },
+    {
+      "id": "D1b",
+      "text_verbatim": "3400",
+      "value_m": 3.4,
+      "from": [
+        0.0,
+        6.7
+      ],
+      "to": [
+        3.4,
+        6.7
+      ],
+      "axis": "x",
+      "chain_id": "C_top_x",
+      "role": "segment",
+      "order": 1,
+      "anchor": null,
+      "note": "wall pier south of the window"
+    },
+    {
+      "id": "D2",
+      "text_verbatim": "1200",
+      "value_m": 1.2,
+      "from": [
+        3.4,
+        6.7
+      ],
+      "to": [
+        4.6,
+        6.7
+      ],
+      "axis": "x",
+      "chain_id": "C_top_x",
+      "role": "segment",
+      "order": 2,
+      "anchor": null,
+      "note": "backs windows W1/W2"
+    },
+    {
+      "id": "D3",
+      "text_verbatim": "3400",
+      "value_m": 3.4,
+      "from": [
+        4.6,
+        6.7
+      ],
+      "to": [
+        8.0,
+        6.7
+      ],
+      "axis": "x",
+      "chain_id": "C_top_x",
+      "role": "segment",
+      "order": 3,
+      "anchor": null,
+      "note": "wall pier north of the window; sum of D1b..D3 = 8.00m, closes D1"
+    },
+    {
+      "id": "D4",
+      "text_verbatim": "6600",
+      "value_m": 6.6,
+      "from": [
+        -0.8,
+        0.0
+      ],
+      "to": [
+        -0.8,
+        6.6
+      ],
+      "axis": "y",
+      "chain_id": "C_left_z",
+      "role": "overall",
+      "order": 0,
+      "anchor": null,
+      "note": "leftmost overall-height line; tick pixels y=173.5,553.5"
+    },
+    {
+      "id": "D4b",
+      "text_verbatim": "3600",
+      "value_m": 3.6,
+      "from": [
+        -1.1,
+        3.0
+      ],
+      "to": [
+        -1.1,
+        6.6
+      ],
+      "axis": "y",
+      "chain_id": "C_left_z",
+      "role": "segment",
+      "order": 1,
+      "anchor": null,
+      "note": "2F storey height"
+    },
+    {
+      "id": "D4c",
+      "text_verbatim": "3000",
+      "value_m": 3.0,
+      "from": [
+        -1.1,
+        0.0
+      ],
+      "to": [
+        -1.1,
+        3.0
+      ],
+      "axis": "y",
+      "chain_id": "C_left_z",
+      "role": "segment",
+      "order": 2,
+      "anchor": null,
+      "note": "1F storey height; sum = 6.60m, closes D4"
+    },
+    {
+      "id": "D5",
+      "text_verbatim": "800",
+      "value_m": 0.8,
+      "from": [
+        -1.4,
+        5.8
+      ],
+      "to": [
+        -1.4,
+        6.6
+      ],
+      "axis": "y",
+      "chain_id": "C_left_z_detail",
+      "role": "segment",
+      "order": 1,
+      "anchor": null,
+      "note": "left z-detail chain; roof to 2F-window top"
+    },
+    {
+      "id": "D6",
+      "text_verbatim": "1800",
+      "value_m": 1.8,
+      "from": [
+        -1.4,
+        4.0
+      ],
+      "to": [
+        -1.4,
+        5.8
+      ],
+      "axis": "y",
+      "chain_id": "C_left_z_detail",
+      "role": "segment",
+      "order": 2,
+      "anchor": null,
+      "note": "2F window height; backs W1"
+    },
+    {
+      "id": "D7",
+      "text_verbatim": "1000",
+      "value_m": 1.0,
+      "from": [
+        -1.4,
+        3.0
+      ],
+      "to": [
+        -1.4,
+        4.0
+      ],
+      "axis": "y",
+      "chain_id": "C_left_z_detail",
+      "role": "segment",
+      "order": 3,
+      "anchor": null,
+      "note": "2F window sill to floor line; sum of D5-D7 = 3.60m"
+    },
+    {
+      "id": "D8",
+      "text_verbatim": "200",
+      "value_m": 0.2,
+      "from": [
+        -1.4,
+        2.8
+      ],
+      "to": [
+        -1.4,
+        3.0
+      ],
+      "axis": "y",
+      "chain_id": "C_left_z_detail",
+      "role": "segment",
+      "order": 4,
+      "anchor": null,
+      "note": "floor line down to 1F-window top"
+    },
+    {
+      "id": "D9",
+      "text_verbatim": "1800",
+      "value_m": 1.8,
+      "from": [
+        -1.4,
+        1.0
+      ],
+      "to": [
+        -1.4,
+        2.8
+      ],
+      "axis": "y",
+      "chain_id": "C_left_z_detail",
+      "role": "segment",
+      "order": 5,
+      "anchor": null,
+      "note": "1F window height; backs W2"
+    },
+    {
+      "id": "D10",
+      "text_verbatim": "1000",
+      "value_m": 1.0,
+      "from": [
+        -1.4,
+        0.0
+      ],
+      "to": [
+        -1.4,
+        1.0
+      ],
+      "axis": "y",
+      "chain_id": "C_left_z_detail",
+      "role": "segment",
+      "order": 6,
+      "anchor": null,
+      "note": "1F-window sill to ground; sum of D8-D10 = 3.00m"
+    },
+    {
+      "id": "D11",
+      "text_verbatim": "6600",
+      "value_m": 6.6,
+      "from": [
+        9.1,
+        0.0
+      ],
+      "to": [
+        9.1,
+        6.6
+      ],
+      "axis": "y",
+      "chain_id": "C_right_z",
+      "role": "overall",
+      "order": 0,
+      "anchor": null,
+      "note": "rightmost overall-height line (mirrors D4); no separate detail breakdown drawn on the right"
+    },
+    {
+      "id": "D12",
+      "text_verbatim": "3600",
+      "value_m": 3.6,
+      "from": [
+        8.8,
+        3.0
+      ],
+      "to": [
+        8.8,
+        6.6
+      ],
+      "axis": "y",
+      "chain_id": "C_right_z",
+      "role": "segment",
+      "order": 1,
+      "anchor": null,
+      "note": ""
+    },
+    {
+      "id": "D13",
+      "text_verbatim": "3000",
+      "value_m": 3.0,
+      "from": [
+        8.8,
+        0.0
+      ],
+      "to": [
+        8.8,
+        3.0
+      ],
+      "axis": "y",
+      "chain_id": "C_right_z",
+      "role": "segment",
+      "order": 2,
+      "anchor": null,
+      "note": "sum = 6.60m, closes D11"
+    },
+    {
+      "id": "D14",
+      "text_verbatim": "8000",
+      "value_m": 8.0,
+      "from": [
+        0.0,
+        -1.0
+      ],
+      "to": [
+        8.0,
+        -1.0
+      ],
+      "axis": "x",
+      "chain_id": "C_bottom_overall_x",
+      "role": "overall",
+      "order": 0,
+      "anchor": null,
+      "note": "bottommost overall width line (mirrors D1); tick pixels x=286,746"
+    }
+  ],
+  "ocr_texts": [],
+  "uncaptured": [
+    "no explicit level-marker (▽) triangle symbols were found; z=0.00 ground datum taken from the overall-height dimension chain and storey_line_profiler's ground-line peak",
+    "outline not drawn as a separate stroke: flat roof, no parapet/setback beyond the wall_fill top edge, per pen_library's 'redundant -> log' rule",
+    "no door symbols found on this facade"
+  ],
+  "self_check": {
+    "all_dimensions_transcribed": true,
+    "all_visible_strokes_captured": true,
+    "no_topology_inferred": true,
+    "pens_used": [
+      "wall_fill",
+      "window"
+    ],
+    "unknowns_noted": [
+      "facade.mirrored left 'unknown': no in-image cue distinguishes a mirrored export; correction should cross-check this facade's window position against the plan footprints (this window's x=[3.40,4.60] matches both 1f_view.json's W7 and 2f_view.json's W8 y-extent along the east wall) per guide.md §7",
+      "this facade's window is only 1200mm wide but 1800mm tall (from the z-detail chain) -- taller than what the plan alone showed, since plans carry no height information"
+    ]
+  }
+}

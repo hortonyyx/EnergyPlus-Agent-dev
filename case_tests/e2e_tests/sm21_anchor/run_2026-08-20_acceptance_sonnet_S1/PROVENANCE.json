@@ -1,0 +1,68 @@
+{
+  "run": "run_2026-08-20_acceptance_sonnet_S1",
+  "tier": "工程档 (engineering tier) — user ruling 2026-08-20. NOT exploratory, NOT a score run. Conclusion may say 'the form reproduces on the new substrate'; MUST NOT be recorded as a formal score (成绩档 would require 一口气不出错 + 连跑 ≥3 次).",
+  "question": "The 2026-08-19 Sonnet full-marks pilot ran on the HISTORICAL tree and read ONE image (1f). Does the same form still hold on the CURRENT HEAD substrate across ALL SIX images?",
+  "batch": "本批四格验收之一（gpt-5.4-mini / claude-sonnet-5 × sm21_anchor / sm24_anchor）。本格 = Sonnet × sm21。",
+  "controls": {
+    "run_2026-08-19_sonnet_sameform_R1": "same model, historical-tree staging, 1f only — walls 4/4, windows 3/3, crop_zoom 16, sub-pixel anchors 273.56/1172.48, calibration error 0.15%",
+    "run_2026-07-07_haiku_cv_retest": "THE TARGET — 9/9 walls, 7/7 windows, 0.0 m max offset",
+    "run_2026-07-02_sonnet_flow_e2e": "same model family, no CV toolbox — 9/9, 7/7"
+  },
+  "tree": {
+    "worktree": "/workspaces/EnergyPlus-Agent-dev",
+    "git_head": "47e199a5234467eca1a2a6e2bdb7ea8331c3155b",
+    "branch": "6.15_ValidationArchM0toM4",
+    "clean_at_build": true,
+    "note": "⭐ 这是本 run 与 R1 的唯一预期差异之一：R1 跑在历史树形态 staging 上，本 run 跑在当前 HEAD。"
+  },
+  "staging": {
+    "root": "/tmp/ep_accept_S1",
+    "built_by": "HEAD-era spawn_isolated_reader.py build",
+    "dedicated_empty_root": true,
+    "why": "⛔ R1 复用的是 Haiku 失败那次（Q2）的同一份 staging，里面留着 Haiku 的半成品脚本（trace_1f.py / rework_1f.py），Sonnet 在其 pilot 回执里主动报告了它们的存在。本 run 用专用空根从零建，杜绝该污染面。",
+    "guard_profile": "observe (记录不阻断；隔离靠物理 staging + gt 物理不在其中)",
+    "vision_resize_tier": "none (原图逐字节不动；Sonnet 5 = 4.7+ 一代，本案图纸下 high_res 本就是空操作)",
+    "pilot_gate": "kept — 1f first, then STOP and wait for external approval",
+    "file_count": 32
+  },
+  "images_sha256_16": {
+    "1f_view.png": "ac62091683dde4ab",
+    "2f_view.png": "d7cd58d34bc6243e",
+    "East_view.png": "d09983ef9bdd4297",
+    "North_view.png": "3eea6a31223f0cee",
+    "South_view.png": "6c69efe4699b0a53",
+    "West_view.png": "88972f24bf728772"
+  },
+  "images_match_main_tree": "6/6 byte-identical (verified 2026-08-20)",
+  "skill_0_reading_concat_sha256_16": "a65e14902109aea1",
+  "reader": {
+    "model": "claude-sonnet-5",
+    "channel": "Claude Code cold-start isolated sub-Agent (spawn_isolated_reader spawn --execute)",
+    "scope": "all 6 images (2 plans + 4 elevations) — ⭐ 与 R1 的第二处预期差异（R1 只读 1f）"
+  },
+  "directive": {
+    "file": "_run/directive.md",
+    "sha256_16": "6ac257f6b7302f88",
+    "text_identical_to_R1": true,
+    "content": "cv_toolbox.md is REQUIRED reading for this run, and wall-line / window-box / storey-line positions must be measured with cv_probe.py before drawing (measure-before-draw).",
+    "note": "recorded here as run provenance, NOT a skill-library edit (skills/intake_pipeline/0_reading is frozen for this batch)"
+  },
+  "contamination_sweep": {
+    "gt": "absent (find -iname '*gt*' → 0 hits)",
+    "prior_scores_grades_attempts": "absent (0 hits)",
+    "other_runs_prior_readings": "absent (dedicated empty root)"
+  },
+  "orchestrator": {
+    "model": "claude-opus-5",
+    "role": "pilot PROCESS review + routing only",
+    "authoritative_verdict": "deterministic gt scorer (score_reading_vs_gt)",
+    "ordering_discipline": "⭐ 2026-08-19 起硬纪律：先写返工/裁定并封存哈希，再判卷。本 run 必须遵守，使整臂可审计。"
+  },
+  "preflight": {
+    "staging_build": "OK",
+    "images_byte_identical": "OK 6/6",
+    "contamination_sweep": "OK clean",
+    "full_suite_baseline": "PENDING — recorded below after the run starts"
+  },
+  "result": "PENDING"
+}

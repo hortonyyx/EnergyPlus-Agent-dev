@@ -1,0 +1,8 @@
+Read skills/intake_pipeline/0_reading/session_kickoff.md and follow it for case sm21_anchor.
+The drawings are at case_data/. Write reading outputs under out/ — one file per source image named exactly `<expected_output_id>.json` (each image's expected_output_id is listed in `input_inventory.json`; do NOT derive the name from the source PNG by appending `_view` — a stem that already ends in `_view` IS its own expected_output_id) — plus reading_summary.md. Write CV-probe request JSON files under requests/. The normal probe form is `python tools/run_cv_probe.py --tool <tool> --image <path> --out-dir out/<name> [--<key> <value> ...]`; use `python tools/run_cv_probe.py --batch requests/<name>.json` for sweeps (maximum 32 requests, all validated before any run). The legacy `python tools/run_cv_probe.py --request requests/<name>.json` form is also available. This run has ONE pilot approval gate after the pilot image. Finish the first plan image, run the guide's self-check against it, then STOP and say the pilot is ready for review — ending your turn there is correct, not a failure to finish. If `feedback.md` exists in this directory it IS a rework request: read it first, revise ONLY the pilot, rerun its self-check, and STOP AGAIN. Do not start the remaining images until a later launcher turn explicitly says external review approved the revised pilot. After that approval, work through the remaining images and summary on your own; review is a one-way state transition, not a conversation, so do not ask questions.
+
+
+## Per-run directive (binding for this run)
+PER-RUN DIRECTIVE:
+`cv_toolbox.md` is REQUIRED reading for this run, and wall-line / window-box / storey-line
+positions must be measured with `cv_probe.py` before drawing (measure-before-draw).

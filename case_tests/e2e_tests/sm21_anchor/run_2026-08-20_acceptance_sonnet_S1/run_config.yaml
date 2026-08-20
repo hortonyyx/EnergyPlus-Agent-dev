@@ -1,0 +1,57 @@
+# =====================================================================
+# run_config.yaml — run_2026-08-20_acceptance_sonnet_S1 (sm21_anchor)
+#
+# ⭐ 档位 = **工程档**（用户 2026-08-20 拍板）。CLAUDE.md §0.2：
+#    gate① 全绿 + 全仓测试全量绿 + 同族自审。⛔ 不是探索档，也不是成绩档
+#    （成绩档要求「一口气不出错 + 连跑 ≥3 次」，本批不做那个口径）。
+#    结论允许写成「这个形式在新基座上复现成功」，⛔ 不得写成正式成绩。
+#
+# 本 run 要回答的唯一问题：
+#   2026-08-19 那次 Sonnet 首抽满分是在【历史代码树】上、且【只读了 1 张平面图】。
+#   换到【当前 HEAD 基座】+【全套 6 张图】，同一个形式还灵不灵？
+#
+# 对照：
+#   · run_2026-08-19_sonnet_sameform_R1（同模型，历史树形态 staging，仅 1f）
+#       → 1f 墙 4/4 · 窗 3/3 · crop_zoom 16 次 · 亚像素锚 273.56/1172.48 · 标定误差 0.15%
+#   · run_2026-07-02_sonnet_flow_e2e（同模型家族，无 CV 工具箱）→ 9/9 · 7/7
+#   · run_2026-07-07_haiku_cv_retest（07-07 那次满分）→ 9/9 · 7/7 · 0.0 m ← 真正的靶子
+#
+# ⛔ 与 R1 的一处**刻意差异**：R1 复用的是 Haiku 失败那次的同一份 staging，
+#    里面留着 Haiku 的半成品脚本（Sonnet 自己报告了它们的存在）。本 run 用
+#    **专用空 staging 根 /tmp/ep_accept_S1**，从零建，杜绝该污染面。
+# =====================================================================
+
+scope:
+  stages:
+    - 0_reading
+  # reading-only 验收臂：下游 / 1_correction / 4_mep / 5_intakeoutput / EP 全不在范围。
+
+judge:
+  mode: stop
+  resample_ladder: closed   # ⛔ 要看「第一次自然产出什么」，不要盲重抽掩盖
+
+review:
+  reading: true             # pilot 停等门保留：1f 先行、orchestrator 审过才放批量
+  correction: false
+  geometry: false
+
+models:
+  reading:
+    role: 0_reading
+    model_id: claude-sonnet-5
+    provider: anthropic
+    source: >-
+      冷启隔离子 Agent，经 spawn_isolated_reader（build → spawn → pilot 门 → approve → merge）。
+      staging 根 = /tmp/ep_accept_S1（专用空根，仓库外，_require_outside_repo 硬校验）。
+      guard_profile = observe（只记录不阻断；隔离靠物理 staging + gt 物理不在其中）。
+      vision_resize_tier = none（直接读原图，2026-08-19 用户拍板；Sonnet 5 = 4.7+ 一代，
+      本案图纸下 high_res 本就是空操作 ⇒ none 即天然帧对齐）。
+  orchestrator:
+    role: judge2 + orchestration
+    model_id: claude-opus-5
+    note: >-
+      权威判据 = 确定性 gt 判卷 score_reading_vs_gt。orchestrator 只做 pilot 流程审 + 定性路由。
+      ⭐ 执行顺序纪律（2026-08-19 定，本 run 必须遵守）：**先写返工/裁定并封存哈希，再判卷**，
+      使本臂从头到尾可审计。⛔ 不得先看分数再写返工。
+
+# grade: 省略 ⇒ judge 侧默认容差，与 07-07 / 07-08 / 08-19 各臂一致。

@@ -1,0 +1,394 @@
+{
+  "stage": "0_reading",
+  "rubric_id": "J0",
+  "rubric_doc": "skills/intake_pipeline/0_reading/judge_rubric.md",
+  "accepted_attempt_dir": "case_tests/e2e_tests/sm21_anchor/run_2026-08-20_acceptance_gpt54mini_G1/0_reading/attempts/001",
+  "source_images": [
+    "case_tests/e2e_tests/sm21_anchor/case_data/1f_view.png",
+    "case_tests/e2e_tests/sm21_anchor/case_data/2f_view.png",
+    "case_tests/e2e_tests/sm21_anchor/case_data/East_view.png",
+    "case_tests/e2e_tests/sm21_anchor/case_data/North_view.png",
+    "case_tests/e2e_tests/sm21_anchor/case_data/South_view.png",
+    "case_tests/e2e_tests/sm21_anchor/case_data/West_view.png"
+  ],
+  "renders": [
+    "case_tests/e2e_tests/sm21_anchor/run_2026-08-20_acceptance_gpt54mini_G1/0_reading/attempts/001/renders/1f_view.png",
+    "case_tests/e2e_tests/sm21_anchor/run_2026-08-20_acceptance_gpt54mini_G1/0_reading/attempts/001/renders/2f_view.png",
+    "case_tests/e2e_tests/sm21_anchor/run_2026-08-20_acceptance_gpt54mini_G1/0_reading/attempts/001/renders/East_view.png",
+    "case_tests/e2e_tests/sm21_anchor/run_2026-08-20_acceptance_gpt54mini_G1/0_reading/attempts/001/renders/North_view.png",
+    "case_tests/e2e_tests/sm21_anchor/run_2026-08-20_acceptance_gpt54mini_G1/0_reading/attempts/001/renders/South_view.png",
+    "case_tests/e2e_tests/sm21_anchor/run_2026-08-20_acceptance_gpt54mini_G1/0_reading/attempts/001/renders/West_view.png"
+  ],
+  "gt_path": "/workspaces/EnergyPlus-Agent-dev/case_tests/test_baseline/gt/sm21_anchor/gt.json",
+  "score_vs_gt": "case_tests/e2e_tests/sm21_anchor/run_2026-08-20_acceptance_gpt54mini_G1/0_reading/attempts/001/score_vs_gt.json",
+  "score_criteria": [
+    {
+      "criterion": "walls_complete",
+      "suggested_status": "severe",
+      "evidence": "wall_hits=7/9; missed=2; extra=0; max_offset_m=0.09; wall_tol_m=0.3",
+      "floors": [
+        {
+          "key": "1f_view",
+          "floor": "Floor 1",
+          "wall_hits": 4,
+          "wall_total": 4,
+          "boundary_hits": 4,
+          "boundary_total": 4,
+          "boundary_no_data": false,
+          "window_hits": 3,
+          "window_total": 3,
+          "extra_walls": 0,
+          "extra_windows": 0,
+          "wall_status_counts": {
+            "complete": 0,
+            "within_tol": 4,
+            "miss": 0,
+            "extra": 0
+          },
+          "window_status_counts": {
+            "complete": 0,
+            "within_tol": 3,
+            "miss": 0,
+            "extra": 0
+          },
+          "max_wall_offset_m": 0.09
+        },
+        {
+          "key": "2f_view",
+          "floor": "Floor 2",
+          "wall_hits": 3,
+          "wall_total": 5,
+          "boundary_hits": 4,
+          "boundary_total": 4,
+          "boundary_no_data": false,
+          "window_hits": 2,
+          "window_total": 4,
+          "extra_walls": 0,
+          "extra_windows": 0,
+          "wall_status_counts": {
+            "complete": 0,
+            "within_tol": 3,
+            "miss": 2,
+            "extra": 0
+          },
+          "window_status_counts": {
+            "complete": 0,
+            "within_tol": 2,
+            "miss": 2,
+            "extra": 0
+          },
+          "max_wall_offset_m": 0.02
+        }
+      ]
+    },
+    {
+      "criterion": "windows_placed",
+      "suggested_status": "severe",
+      "evidence": "window_hits=5/7; missed=2; extra=0; hit_ratio=0.714; centre_tol_m=0.4",
+      "floors": [
+        {
+          "key": "1f_view",
+          "floor": "Floor 1",
+          "wall_hits": 4,
+          "wall_total": 4,
+          "boundary_hits": 4,
+          "boundary_total": 4,
+          "boundary_no_data": false,
+          "window_hits": 3,
+          "window_total": 3,
+          "extra_walls": 0,
+          "extra_windows": 0,
+          "wall_status_counts": {
+            "complete": 0,
+            "within_tol": 4,
+            "miss": 0,
+            "extra": 0
+          },
+          "window_status_counts": {
+            "complete": 0,
+            "within_tol": 3,
+            "miss": 0,
+            "extra": 0
+          },
+          "max_wall_offset_m": 0.09
+        },
+        {
+          "key": "2f_view",
+          "floor": "Floor 2",
+          "wall_hits": 3,
+          "wall_total": 5,
+          "boundary_hits": 4,
+          "boundary_total": 4,
+          "boundary_no_data": false,
+          "window_hits": 2,
+          "window_total": 4,
+          "extra_walls": 0,
+          "extra_windows": 0,
+          "wall_status_counts": {
+            "complete": 0,
+            "within_tol": 3,
+            "miss": 2,
+            "extra": 0
+          },
+          "window_status_counts": {
+            "complete": 0,
+            "within_tol": 2,
+            "miss": 2,
+            "extra": 0
+          },
+          "max_wall_offset_m": 0.02
+        }
+      ]
+    },
+    {
+      "criterion": "boundary_complete",
+      "suggested_status": "pass",
+      "evidence": "boundary_hits=8/8; missed=0; no_data_floors=0; wall_tol_m=0.3",
+      "floors": [
+        {
+          "key": "1f_view",
+          "floor": "Floor 1",
+          "wall_hits": 4,
+          "wall_total": 4,
+          "boundary_hits": 4,
+          "boundary_total": 4,
+          "boundary_no_data": false,
+          "window_hits": 3,
+          "window_total": 3,
+          "extra_walls": 0,
+          "extra_windows": 0,
+          "wall_status_counts": {
+            "complete": 0,
+            "within_tol": 4,
+            "miss": 0,
+            "extra": 0
+          },
+          "window_status_counts": {
+            "complete": 0,
+            "within_tol": 3,
+            "miss": 0,
+            "extra": 0
+          },
+          "max_wall_offset_m": 0.09
+        },
+        {
+          "key": "2f_view",
+          "floor": "Floor 2",
+          "wall_hits": 3,
+          "wall_total": 5,
+          "boundary_hits": 4,
+          "boundary_total": 4,
+          "boundary_no_data": false,
+          "window_hits": 2,
+          "window_total": 4,
+          "extra_walls": 0,
+          "extra_windows": 0,
+          "wall_status_counts": {
+            "complete": 0,
+            "within_tol": 3,
+            "miss": 2,
+            "extra": 0
+          },
+          "window_status_counts": {
+            "complete": 0,
+            "within_tol": 2,
+            "miss": 2,
+            "extra": 0
+          },
+          "max_wall_offset_m": 0.02
+        }
+      ]
+    },
+    {
+      "criterion": "no_oversplit",
+      "suggested_status": "pass",
+      "evidence": "extra_vwalls+extra_hwalls=0; minor_threshold=2",
+      "floors": [
+        {
+          "key": "1f_view",
+          "floor": "Floor 1",
+          "wall_hits": 4,
+          "wall_total": 4,
+          "boundary_hits": 4,
+          "boundary_total": 4,
+          "boundary_no_data": false,
+          "window_hits": 3,
+          "window_total": 3,
+          "extra_walls": 0,
+          "extra_windows": 0,
+          "wall_status_counts": {
+            "complete": 0,
+            "within_tol": 4,
+            "miss": 0,
+            "extra": 0
+          },
+          "window_status_counts": {
+            "complete": 0,
+            "within_tol": 3,
+            "miss": 0,
+            "extra": 0
+          },
+          "max_wall_offset_m": 0.09
+        },
+        {
+          "key": "2f_view",
+          "floor": "Floor 2",
+          "wall_hits": 3,
+          "wall_total": 5,
+          "boundary_hits": 4,
+          "boundary_total": 4,
+          "boundary_no_data": false,
+          "window_hits": 2,
+          "window_total": 4,
+          "extra_walls": 0,
+          "extra_windows": 0,
+          "wall_status_counts": {
+            "complete": 0,
+            "within_tol": 3,
+            "miss": 2,
+            "extra": 0
+          },
+          "window_status_counts": {
+            "complete": 0,
+            "within_tol": 2,
+            "miss": 2,
+            "extra": 0
+          },
+          "max_wall_offset_m": 0.02
+        }
+      ]
+    },
+    {
+      "criterion": "elevation_windows_placed",
+      "suggested_status": "severe",
+      "evidence": "elevation_placed=8/15; complete=6; within_tol=2; missed=7; extra=4; no_data_floor_facades=0; hit_ratio=0.533; along_tol_m=0.4; sill_tol_m=0.3; head_tol_m=0.3; width_tol_m=0.4; overlap_accept=0.75; overlap_complete=0.95",
+      "floors": [
+        {
+          "facade": "North",
+          "floor": "Floor 1",
+          "orientation": "ambiguous",
+          "no_data": false,
+          "gt_count": 3,
+          "read_count": 2,
+          "matched_total": 0,
+          "placed_hit_total": 0,
+          "complete_total": 0,
+          "within_tol_total": 0,
+          "miss_total": 3,
+          "extra_total": 2
+        },
+        {
+          "facade": "North",
+          "floor": "Floor 2",
+          "orientation": "ambiguous",
+          "no_data": false,
+          "gt_count": 2,
+          "read_count": 2,
+          "matched_total": 0,
+          "placed_hit_total": 0,
+          "complete_total": 0,
+          "within_tol_total": 0,
+          "miss_total": 2,
+          "extra_total": 2
+        },
+        {
+          "facade": "South",
+          "floor": "Floor 1",
+          "orientation": "aligned",
+          "no_data": false,
+          "gt_count": 3,
+          "read_count": 2,
+          "matched_total": 2,
+          "placed_hit_total": 2,
+          "complete_total": 2,
+          "within_tol_total": 0,
+          "miss_total": 1,
+          "extra_total": 0
+        },
+        {
+          "facade": "South",
+          "floor": "Floor 2",
+          "orientation": "aligned",
+          "no_data": false,
+          "gt_count": 4,
+          "read_count": 4,
+          "matched_total": 4,
+          "placed_hit_total": 4,
+          "complete_total": 4,
+          "within_tol_total": 0,
+          "miss_total": 0,
+          "extra_total": 0
+        },
+        {
+          "facade": "East",
+          "floor": "Floor 1",
+          "orientation": "ambiguous",
+          "no_data": false,
+          "gt_count": 1,
+          "read_count": 0,
+          "matched_total": 0,
+          "placed_hit_total": 0,
+          "complete_total": 0,
+          "within_tol_total": 0,
+          "miss_total": 1,
+          "extra_total": 0
+        },
+        {
+          "facade": "East",
+          "floor": "Floor 2",
+          "orientation": "ambiguous",
+          "no_data": false,
+          "gt_count": 1,
+          "read_count": 1,
+          "matched_total": 1,
+          "placed_hit_total": 0,
+          "complete_total": 0,
+          "within_tol_total": 1,
+          "miss_total": 0,
+          "extra_total": 0
+        },
+        {
+          "facade": "West",
+          "floor": "Floor 1",
+          "orientation": "ambiguous",
+          "no_data": false,
+          "gt_count": 0,
+          "read_count": 0,
+          "matched_total": 0,
+          "placed_hit_total": 0,
+          "complete_total": 0,
+          "within_tol_total": 0,
+          "miss_total": 0,
+          "extra_total": 0
+        },
+        {
+          "facade": "West",
+          "floor": "Floor 2",
+          "orientation": "ambiguous",
+          "no_data": false,
+          "gt_count": 1,
+          "read_count": 1,
+          "matched_total": 1,
+          "placed_hit_total": 0,
+          "complete_total": 0,
+          "within_tol_total": 1,
+          "miss_total": 0,
+          "extra_total": 0
+        }
+      ]
+    }
+  ],
+  "grade": "case_tests/e2e_tests/sm21_anchor/run_2026-08-20_acceptance_gpt54mini_G1/0_reading/attempts/001/grade.png",
+  "gate1": {
+    "passed": true,
+    "flags": [
+      "1f_view.reading.dimension_chain_closure: dimension chain evidence is missing, incomplete, or non-closing",
+      "1f_view.reading.stroke_dimension_consistency: 6 plan wall stroke coordinate(s) coincide with dimension-chain cumulative positions; verify each is a real room-bounding wall",
+      "2f_view.reading.dimension_chain_closure: dimension chain evidence is missing, incomplete, or non-closing",
+      "2f_view.reading.partition_on_window_jamb: 2 interior wall stroke coordinate(s) coincide with window jambs; verify each is a real partition rather than a traced jamb",
+      "2f_view.reading.stroke_dimension_consistency: 1 plan wall stroke coordinate(s) coincide with dimension-chain cumulative positions; verify each is a real room-bounding wall",
+      "reading.calibration_axes_agree: 2 calibration result(s) report the two axes disagreeing beyond the tool's own limit; the pixel→metre ruler is inconsistent with itself, so geometry derived from it is wrong in at least one direction. The tool returns success in this case by design (2026-08-17 legal exit) — this check is what makes that outcome visible to anything other than a reader choosing to mention it"
+    ]
+  },
+  "note": "You are gate② judge. View the source images + renders (+ gt), then write a StageVerdict JSON and submit it with `judge ... --verdict`. score_criteria is machine-readable gt reconciliation evidence only; StageVerdict remains the authoritative checklist decision. Use the reconciliation first, images second; tolerances are relaxed."
+}

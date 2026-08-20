@@ -204,22 +204,22 @@ EnergyPlus 经 `WorkflowTool.run_simulation`（eppy + ConverterManager，idfpy �
 
 ## 2. 当前开发状态
 
-> **⭐ 2026-08-19 收工状态 banner（当前唯一口径；与 [worklog 归档](logs/worklog/) 里的历史叙述冲突处，以本 banner 为准）**
-> **① reading 病灶已定位（三臂判别，实测非推理）**：不是「模型不用工具」，是
-> **`px_m_calibrator` 收自由数字** —— 眼估的像素进去，出来一份带 `confidence: high` 的「测量结果」。
-> **② 好 reading 有【两条】路，不是一条**：**A 像素标定**（放大 2–8× 读回 ⇒ 亚像素锚；07-07 haiku · 08-19 sonnet）
-> 与 **B 尺寸链算术**（转录后直接算，几乎不碰像素；07-08 gpt-5.4-mini）。**两条各要一道门，只堵一条等于没堵。**
-> **③ 08-19 三臂**：Sonnet **首抽零返工 4/4·3/3**（16 次 crop、亚像素锚、误差 0.15%）·
-> GPT 历史栈一轮返工 4/4·3/3 · **Haiku 在同一份 staging 上 crop=0、整数锚、0/4**。
-> ⇒ 配方是好的；瓶颈在**肯不肯把「看」放到放大镜后面**。⛔ 「Haiku 后台变了」仍未证实（模型/CLI/图像投递三者未分开）。
-> **④ 用户拍板的收口**：根治 + Haiku 回归 + 图像分辨率 + **prescan** 四项全部归 reading 专项
-> （[`capability/reading/`](capability/reading/README.md)）；**本批只做两项验收**：
-> `gpt-5.4-mini` 与 `claude-sonnet-5` × `sm21` + `sm24` 都出好 reading。
-> **⑤ 已落地脚手架**：`--vision-resize-tier {none,standard,high_res}` 补入口、**默认 `none` = 直接读原图**；
-> **prescan 从工作环境撤出并完整留档**（⛔ 撤出 ≠ 放弃，见 `capability/reading/prescan_snapshot/RESTORE.md`）。
-> **⑥ ⛔ sm24 准入门**：v3 判卷对 null `scale_origin` 判 `retain_as_miss` ⇒ 整条 plan 通道按 miss 计，
-> **开跑前必须先解，且作者不得是 orchestrator**。
-> 全档 [plan.md 本日条目](plan.md) · 三臂产物 `case_tests/e2e_tests/sm21_anchor/run_2026-08-19_*`。
+> **⭐ 2026-08-20 收工状态 banner（当前唯一口径；与 [worklog 归档](logs/worklog/) 里的历史叙述冲突处，以本 banner 为准）**
+> **① ✅ 第一目标达成一格**：`run_2026-08-20_acceptance_sonnet_S1`（Sonnet 5 × sm21 全 6 图）
+> = **9/9 平面墙 · 7/7 平面窗 · 15/15 立面窗 · 0.0 m · 首抽零返工**，与 07-07 靶子逐项相同。
+> ⇒ **「07-07 那个形态在当前代码上还灵不灵」= 灵。** ⛔ 工程档 n=1，**不作正式成绩**。
+> **② ⚠️ 但满分掩盖了一处几何缺陷**（用户肉眼发现）：外墙落实测中心线（内缩 0.11–0.12 m）、
+> 窗仍落标称位置 ⇒ **两基准不一致**；而 gt 无 `walls`、判卷**从不比对外轮廓** ⇒ 零代价。
+> ⭐ **分数是代理量，不是「图读对了」本身**，全档 [reading 专项 §10](capability/reading/improvement_methodology.md)。
+> **③ GPT 那格未达标**（7/9 · 5/7 · 立面 6/15）：撞跨轴告警后**拆轴消警**（F-63 活体复现），
+> 且是 orchestrator 返工要求教出来的 ⇒ prompt 挡不住、只有工具层能。
+> ⛔ **不下「GPT 退化」结论**——缺「GPT × 历史树 × 全案」那一格，三变量未控。
+> **④ 转换器多层化已落地**（sol 施工 · GLM 跨家族审 · 主控轻门连跑两次 **2917 绿 + 14 xfail**）：
+> 立面开洞按 z 归层（此前**归层全链零竖向判别**）· 多层靠 view clip + handle 钉死 · sm24 答案内容零漂移。
+> **⑤ 两条新登记**：转换器输出**依赖 Python 哈希随机化**（答案内容不受影响 ⇒ 用户拍板登记不做）·
+> **已签字 sm24 的溯源戳与现行代码失配**（内容仍一致 ⇒ 历史成绩可信；用户将重签）。
+> **⑥ ⏭ 下一步 = 拿 Sonnet 推 sm25、至少验一次 C2**；卡在**写 sm25 的转换请求**（~16KB，无工具）。
+> 全档 [plan.md 本日条目](plan.md) · 产物 `case_tests/e2e_tests/sm21_anchor/run_2026-08-20_acceptance_*`。
 
 > **⛔⛔ reading 当前口径 banner（2026-08-16 用户当面定 + 08-17 复述确认；⛔ 凡与「环节控制边界」那套条文冲突处以本条为准；该正文 2026-08-18 已迁至 [capability/reading/improvement_methodology.md §8](capability/reading/improvement_methodology.md)）**
 > **本批 reading = 在【现有基座】上把 07-07 那个模式移植过来、拿到接近满分就行。**
@@ -241,6 +241,7 @@ EnergyPlus 经 `WorkflowTool.run_simulation`（eppy + ConverterManager，idfpy �
 
 | 日期 | 一句话 | 详档 |
 |---|---|---|
+| **2026-08-20** | **✅ 07-07 水平在当前基座复现（Sonnet 9/9·7/7·15/15·0.0m）** · 转换器多层化落地 · 满分掩盖外轮廓偏移 · 停下上报 3/3 全是派工方题错 | [plan.md 本日](plan.md) · [专项 §10](capability/reading/improvement_methodology.md) |
 | **2026-08-19** | **三臂判别**：Sonnet 首抽零返工 4/4·3/3 · GPT 历史栈一轮返工 4/4 · Haiku 两臂皆崩 ⇒ 病灶 = 眼估入口敞开；根治归专项 | [plan.md 本日条目](plan.md) · [专项 §9](capability/reading/improvement_methodology.md) |
 | 2026-08-18 | 治理换挡（§0）· 707 完整环境还原仍不回来（22 抽）· 新建 reading 回归门 · **全案报告已出** | [plan.md](plan.md) · [全案报告](logs/reviews/request/2026-08-18_reading_regression_external_investigation.md) |
 | 2026-08-17 | 707 复现前置三件落地（F-51 单帧化 / `scale_origin` 退回 SHOULD / 跨轴合法出口）+ 全仓首次真零红 **2835 绿** | [plan.md](plan.md) |
