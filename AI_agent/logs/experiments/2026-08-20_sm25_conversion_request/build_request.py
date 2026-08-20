@@ -309,7 +309,7 @@ def main() -> int:
         "normalized_source_id": "sm25-l-anchor-normalized",
         "target_geometry_profile": "c2_simple_orthogonal_no_holes",
         "native_units": "unitless", "metres_per_unit": MPU,
-        "wall_thickness_range_m": [0.06, 0.5], "min_room_area_m2": 2.0,
+        "wall_thickness_range_m": [0.06, 0.5], "min_room_area_m2": 5.0,
         "floors": [{"id": "F1", "name": "1F", "z_floor_m": 0.0, "ceiling_height_m": FLOOR_H},
                    {"id": "F2", "name": "2F", "z_floor_m": FLOOR_H, "ceiling_height_m": FLOOR_H}],
         "plan_views": plan_views,

@@ -65,7 +65,7 @@
 
 ---
 
-## 4. ⛔ 阻断项二：`min_room_area_m2` 沿用 sm24 的 2.0 是错的 → 应为 **5.0**
+## 4. ⛔ 阻断项二：`min_room_area_m2` 沿用 sm24 的 2.0 是错的 → 已改为 **5.0**（`build_request.py` 已更新，请求已重生成）
 
 `A_room` 是**纯按面积二分**（面积 > A_room 算房间，否则算墙）——**形状盲**。
 sm25 的墙带面是长条形（周长 × 墙厚），最大 4.93 m²，**超过 2.0** ⇒ 被当成房间
@@ -100,9 +100,38 @@ sm25 的墙带面是长条形（周长 × 墙厚），最大 4.93 m²，**超过
 都是**走廊与房间之间**的 240 墙。走廊是 54 顶点的非凸多边形；sm24 是单一矩形、8 间房，
 **从未走到这条路径**。
 
-⇒ 判读：**S7 分区扩展 / 逐边墙厚证据这一段，在非凸腔体（尤其是蛇形走廊）上不成立。**
-这属于 [capability/pipeline_0-5_capability_upgrade_suggestions.md](../../../capability/pipeline_0-5_capability_upgrade_suggestions.md) 的
-**C2（正交多边形）** 范畴，是能力批次，不是配置项。
+### 5.1 ⭐ sol 实测查清的根因（2026-08-20 夜，**推翻了主控两次判读**）
+
+**Bug 1 — 射线量错了对象**：`_ray_thickness` 对 `unary_union(wall_faces).boundary` 求交，
+射线在 **T 型接头**处拐进垂直墙链，实测**连续穿过 11 个墙面**
+（0→980→1880→2980→…→9500→14240 mm）才出界。
+⛔ **主控「sm24 没有相邻 wall face」的说法被推翻**：sm24 同样 43 个 wall face、50 对共享边界、
+union 成单一 Polygon；**真正的差别**是 sm24 没有射线落在 `outer_skin ↔ wall_axis` 的**转换接头**上。
+⛔ 主控提的「改成逐 wall face 取最近穿出」**也被推翻**：单个 S4 face 本身就是 T 形，
+逐面取最近穿出只会把 14240 换成 **980 / 2080.1**，仍是错量对象。
+
+**Bug 2 — 外窗被判成内窗**：`_classify_openings` 用**非凸 footprint 的全局代表点**判断哪边朝外。
+窗 `15D9`（`rect=(39811.8,33973.6,47811.8,34213.6)`，8 m 宽）的两个候选面，
+一面距外环 240 mm、一面距外环 **0 mm**，全局代表点选错了那面 ⇒ 真外窗被记为 `interior_excluded`
+⇒ 15 vs 16 / 17 vs 18。**与 A_room 无关**（分类发生在 P1，不读 A_room）。
+
+### 5.2 ⛔⛔ 真正的墙：一道**没有开洞的墙**拿不到厚度证据
+
+修 Bug 1 时撞到硬墙。走廊↔大会议之间那道 240 墙（源面 `y=42453.6`，句柄 `1449`/`146D`）：
+- 现有 `WallBand` 里**没有**以 42453.6 为面的 band，**没有** 42213.6–42453.6 的 240 band；
+- 两个源句柄**都不在任何 band 的 `cap_handles` 里**。
+
+原因：**`ThicknessEvidenceKind` 声明了六种证据，转换器只实现了第 2 种**
+（`wall_cap_or_opening_jamb` —— 靠门窗洞口的侧壁封边），
+`window_block_short_side` / `pub_dim_explicit` / `pub_hatch_outer_wall` /
+`reproduced_from_segment` / `source_hash_override` **五种全部零实现**（grep 全文，只有 :815 与 :1199 产出证据）。
+
+⇒ **一道整条上都没有门窗洞口的墙，在当前实现下永远拿不到厚度证据、只能 fail closed。**
+sm24 的墙恰好都有洞口，所以从未现形。
+
+⇒ **这不是 bug，是能力缺口 + 一个待拍板的设计选择**：sm25 要走通，
+必须至少再实现一种证据来源。属 `bind_face_pair`（**backlog wall-ribbon route**）那条线，
+schema 里挂了名、实现为空。
 
 ---
 
