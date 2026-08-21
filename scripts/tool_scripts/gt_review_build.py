@@ -7,6 +7,7 @@ Pairs with ``gt_review_sign.py`` (human G10 signature) and ``gt_review_rerun.py`
 from __future__ import annotations
 
 import argparse
+import json
 import shutil
 import tempfile
 from pathlib import Path
@@ -22,6 +23,8 @@ def main() -> int:
     ap.add_argument("--raster-dir", type=Path, required=True,
                     help="directory holding the case rasters (only *.png are bundled)")
     ap.add_argument("--out", type=Path, required=True, help="bundle dir; must not exist")
+    ap.add_argument("--zone-roles", type=Path, default=None,
+                    help="optional JSON {zone_id: role}; REVIEW-ONLY tint, never enters the GT")
     args = ap.parse_args()
 
     request = TarchConversionRequestV1.model_validate_json(args.request.read_bytes())
@@ -29,8 +32,10 @@ def main() -> int:
     try:
         for png in sorted(args.raster_dir.glob("*.png")):
             shutil.copy2(png, staging / png.name)
+        roles = json.loads(args.zone_roles.read_text(encoding="utf-8")) if args.zone_roles else {}
+        roles = {k: v for k, v in roles.items() if not k.startswith("_")}  # 下划线开头 = 注释键
         out = build_review_bundle(args.source_dxf, request, output_dir=args.out,
-                                  raster_root=staging, review_annotations={})
+                                  raster_root=staging, review_annotations=roles)
     finally:
         shutil.rmtree(staging, ignore_errors=True)
     print(f"bundle: {out}")

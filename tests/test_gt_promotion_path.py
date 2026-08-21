@@ -24,6 +24,19 @@ SOURCE = REPO / "case_tests/test_baseline/gt_sources/sm24_anchor/source.dxf"
 REQUEST = REPO / "tests/fixtures/sm24_review/bundle_07_25/request_v3_calibrated.json"
 ANNOTATIONS = REPO / "tests/fixtures/sm24_review/bundle_07_25/review_annotations.json"
 RASTERS = REPO / "case_tests/e2e_tests/sm24_anchor/case_data"
+FROZEN_GT = REPO / "tests/fixtures/sm24_review/bundle_07_25/gt/gt.json"
+
+
+def _without_registered_provenance_stamps(document: dict) -> dict:
+    """Remove only the registered code/DXF/manifest provenance hash chain."""
+    answer = json.loads(json.dumps(document))
+    answer.pop("content_sha256")
+    for field in ("extractor_sha256", "validator_sha256", "vg_implementation_sha256",
+                  "manifest_sha256"):
+        answer["generator"].pop(field)
+    for source in answer["sources"]:
+        source.pop("content_sha256")
+    return answer
 
 
 def _copy_bundle(source: Path, target: Path) -> Path:
@@ -125,6 +138,22 @@ def test_r2_6_two_bundles_have_identical_index(candidate_bundle, tmp_path):
     second = bundle_api.build_review_bundle(source, request, output_dir=tmp_path / "second", raster_root=RASTERS,
                                             review_annotations=annotations)
     assert _index_bytes(candidate_bundle) == _index_bytes(second)
+
+
+def test_sm24_rebuilt_gt_is_field_stable_except_registered_provenance_stamps(candidate_bundle):
+    """Lock final GT fields, not only converter records and normalized DXF bytes."""
+    rebuilt = json.loads((candidate_bundle / "gt/gt.json").read_text(encoding="utf-8"))
+    frozen = json.loads(FROZEN_GT.read_text(encoding="utf-8"))
+    code_hash_fields = ("extractor_sha256", "validator_sha256", "vg_implementation_sha256")
+    assert any(rebuilt["generator"][field] != frozen["generator"][field]
+               for field in code_hash_fields)
+    # The old signed bundle and current rebuild are known to carry different
+    # normalized-DXF/manifest/content stamps as well as implementation hashes.
+    # Every non-provenance field must nevertheless remain exactly equal.
+    assert rebuilt["sources"][0]["content_sha256"] != frozen["sources"][0]["content_sha256"]
+    assert rebuilt["generator"]["manifest_sha256"] != frozen["generator"]["manifest_sha256"]
+    assert _without_registered_provenance_stamps(rebuilt) \
+        == _without_registered_provenance_stamps(frozen)
 
 
 def test_r3_1_signs_and_existing_verifier_accepts(fresh_bundle):

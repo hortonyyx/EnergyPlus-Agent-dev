@@ -51,7 +51,7 @@
 | 11 | 跑 0–5 管线 = **真正验到 C2** | ❌ |
 
 **候选包**：[`logs/experiments/2026-08-20_sm25_conversion_request/review_bundle/`](logs/experiments/2026-08-20_sm25_conversion_request/review_bundle/)
-· `content_sha256 = 785f8273…`（主控与施工席**两次独立构建逐位相同**）
+· `content_sha256 = 6c36d9e8…`（主控与施工席**两次独立构建逐位相同**；GLM 审后由 `785f8273…` 修正而来）
 · 签字要看的：`gt/renders/overlay_*.png`（6 张）+ `overlay_plan.svg`
 · 立面 **31 窗 + 3 门**（西 4+2 · 南 7 · 北 8 · 东 12+1）· 分区 F1 **14** / F2 **15**
 
@@ -76,6 +76,10 @@
 | ~~F-66~~ | ~~东立面两门块重合~~ **⛔ 我报错了，已撤回**：拿插入点当外包框的代理量，实算 matrix44 变换后两块**相邻不重叠**（x 64727–65527 / 65527–66327）= 一樘 1600 宽双开门，现行 union 平铺逻辑正好合并它 | **撤销**（[[proxy-mistaken-for-the-thing]]）|
 | **⭐ 新** | **立面诊断码迁移**：门图层上块名不在任何规则里的 INSERT，旧报 `door_block_drift`、现报 `tarch_elevation_entities_unconsumed`（门仍 G3 红，仅码变）| **知悉即可**；下游若按诊断码分诊需更新对照 |
 | **⭐ 新** | `module_union_min_gap_m` 若声明值 ≤ 量化容差，「小于声明值必红」的区间退化为空 | **登记不做**（现实声明 0.5 m ≫ 容差；加下界属补围栏，§0.1）|
+| **⭐ 新 R-3** | **非方形外包导致 gt 内外墙基准对不齐**：内墙走**中轴**、外墙走**外包**，Z 形/退台上两者在拐角处必然错位 | **登记**（2026-08-21 用户令）→ 归**出模专项**解决，本轮不动 |
+| **⭐ 新 R-4** | **立面「前后关系轮廓线」**：C2 落地后非方形建筑的立面出现进深台阶线（sm25 西立面距左端 6000 那条竖线 = 西向墙面在 y=14 处从进深 0 退到 5 m）。数据**已在 gt 里**（每立面族 `boundary_segments` 各带进深坐标）| **① 叠图已画** ✅（2026-08-21，绿线 + `depth a→b` 标注，与图纸自身那条线重合）· **② 显式元素 + 判卷计分仍缺** → 归 C2/判卷专项 |
+| **⭐ 新 R-5** | **⛔ 全项目没有统一的房间类型词表**：gt 侧 `gt_schema.py:234 role: str`、pipeline 侧 `correction/schema.py:201 role: str = "office"` **都是自由字符串无枚举**；唯一的词表是叠图渲染器里那个**配色字典**（`office/meeting/corridor/reception/lobby`），两边谁都没引用它 ⇒ **表述不一致已是现实** | **登记**（2026-08-21 用户令）：建一套**全量房间类型表**，gt 与 pipeline 都从这里选；**下一个 case 落地** |
+| **⭐ 新** | **房间类型（role）sm25 全为 `unspecified`**：叠图着色用的是 orchestrator 目视判定，**只进 `review_annotations`、不进 gt**。用户 2026-08-21：**下一个 case 起由用户填房间类型，届时 orchestrator 提醒** | **登记 + 提醒项** |
 | F-62 · N-1 / N-2 | guard 词法围栏同族缺陷 | **未修**（`observe` 档下影响归零）|
 | F-63 | 跨轴门抓不住拆轴规避 | ⭐ **本轮活体复现**（GPT 主动拆轴消警）；修法归 [专项 §9.1](capability/reading/improvement_methodology.md) |
 | F-64 | gate① 对「零产出」是瞎的 | 登记 |
@@ -214,7 +218,7 @@ sm24 那条「100 mm 缝必红」的 must-red 会**从红变绿** = 放宽既有
 **G1–G5 · G7 · G8 · G9 全绿，零 BLOCK 诊断**；G6/G10 红是**设计上就该人签**的两道
 （G6 = 近阈值面待人工确认、G10 = 签字本身）。
 候选包 → [`logs/experiments/2026-08-20_sm25_conversion_request/review_bundle/`](logs/experiments/2026-08-20_sm25_conversion_request/review_bundle/)
-- `gt.json content_sha256 = 785f827324d4da902f3ef3460ee352ec8820d11c418e12274b78a1bf6c47ba87`
+- `gt.json content_sha256 = 6c36d9e83f0cfdf49b5b769cac2facf66a63dcb0b0ef5d62513b47c3e82dcfbb`
   ⭐ **主控与施工席两次完全独立构建，逐位相同**
 - 立面 **34 条 = 31 窗 + 3 门**（西 4+2 · 南 7 · 北 8 · 东 12+1）· 分区 F1 **14** / F2 **15**
 - 主控**亲自看过** 1F 平面叠图与西立面叠图：分区标注齐全、红色外轮廓贴合 Z 形、
@@ -263,6 +267,25 @@ sm24 那条「100 mm 缝必红」的 must-red 会**从红变绿** = 放宽既有
 | 「A_room 调到 5.0 就好」 | 分对了房间数，却暴露下游墙厚证据全崩（探路才发现）|
 | zone_id 直接抄 sm24 的 `z0..z13` | 两层撞 14 个；GT 合同要求**全局唯一** |
 | 「立面 scale 那行精确比较是缺陷」 | **反了**：比的是两个声明值，该逐位相等；是我用除法算出了 1–2 ULP 误差 |
+
+### 五之二、⭐⭐ GLM 跨家族审：**REWORK**，靠跨版本重建抓到两条谁都没看见的东西
+
+裁决 [`verdict/2026-08-21_sm25_plan_side_glm_verdict.md`](logs/reviews/verdict/2026-08-21_sm25_plan_side_glm_verdict.md)
+= 零 BLOCKER，三修有效、七把锁 neuter 全过、容差四项全过、全仓与主控逐位一致。**但两条 MAJOR：**
+
+| # | 内容 | 主控处置 |
+|---|---|---|
+| **F1** | ⭐ diff 里有**派工单未声明的第四处行为变化**：`_append_plan_geometry` 的发射条件改用 `footprint.exterior.covers()`。shapely `covers` 在**共线**几何上浮点误判（`distance` 精确为 0 却 `covers=False`）⇒ sm24 六条**纯外轮廓边**被误发射 ⇒ GTV3_ZONE 19→25 ⇒ **sm24 重建 gt.json 76 处字段差异、`content_sha256` 变化**（几何内容零漂移，变的是生成句柄与溯源）| ✅ **已修**：换成**整边判定** `edge.difference(exterior.buffer(node_join)).length <= node_join`。实测 sm24 纯轮廓边差集 = 0、sm25 必须发射的延伸段 ≈ **119 mm**，稳定可分。⛔ GLM 已证伪 `distance<=1e-6`（sm25 那 23 条延伸段 distance 全是 0）|
+| **F2** | face-pair **抢占** sm24 三条边的证据归因（38 全 cap/jamb → 35 + 3 face-pair）| ✅ **接受并显式声明**。⛔ 主控最初判「让 cap/jamb 优先」是**错的**：GLM 的 N3 反证显示这 3 条边**原本走 donor-collapse 借邻边的 cap 证据**，而 face-pair 是**本边自有的两条面线** ⇒ **自有证据取代借来的证据 = 归因更诚实**。已写进代码注释 |
+| F3 (MINOR) | 主控要求的「独立几何断言」实为**簿记一致性重读**（与 binding 读同一份不可变数据，活链上结构性恒真）；真正防线是 S4/G8（GLM 挪 `146E` 四档 0.1/0.5/1.5/60 mm 全部 BLOCK）| ✅ 改名 `_face_pair_binding_is_consistent` + 注释如实写明，⛔ 不改逻辑 |
+
+⭐ **真缺口 = 全仓 2946 把锁对 F1 全盲**：L1 只比对 `_ElevationRecord` 与规范化 DXF，
+**从不比对最终的 `gt.json`**。⇒ 已补**跨代码改动的 gt.json 稳定性锁**
+（sm24 走 `build_review_bundle` 全链重建、逐字段比冻结基线，只豁免已登记的溯源哈希链）；
+**自证**：换回旧 `covers` 判据该锁必红（GTV3_ZONE 19→25）。
+
+⚠️ **sm25 答案哈希因此变化**：`785f8273…` → **`6c36d9e8…`**（主控与施工席两次独立构建逐位相同）。
+⇒ **幸好用户还没签**——签名绑哈希，签了就得作废重签。
 
 ### 六、顺带落地
 

@@ -228,10 +228,14 @@ EnergyPlus 经 `WorkflowTool.run_simulation`（eppy + ConverterManager，idfpy �
 > **⑦ ⭐⭐⭐ 2026-08-21：sm25 gt 候选包已产出，⏸ 只差用户签字（G10）**。
 > `G1–G5 · G7 · G8 · G9` 全绿、零 BLOCK；G6/G10 红是**设计上就该人签**的两道。
 > 候选包 [`logs/experiments/2026-08-20_sm25_conversion_request/review_bundle/`](logs/experiments/2026-08-20_sm25_conversion_request/review_bundle/)
-> · `gt.json sha 785f8273…`（**主控与施工席两次独立构建逐位相同**）
+> · `gt.json sha 6c36d9e8…`（**主控与施工席两次独立构建逐位相同**）
 > · 立面 **31 窗 + 3 门** · 分区 F1 **14** / F2 **15** · 签字看 `gt/renders/overlay_*.png`。
 > 途中修掉转换器三处缺陷（面对面厚度证据 / 非凸内外判定 / 跨层轮廓浮点逐位比较）——
-> 三处都是「**多层 + 非凸**」才会现形，sm24 单层从未走到。⏳ GLM 跨家族审待派。
+> 三处都是「**多层 + 非凸**」才会现形，sm24 单层从未走到。
+> **GLM 跨家族审 = REWORK（0 BLOCKER / 2 MAJOR）**，靠**跨版本重建**抓到两条谁都没看见的：
+> ① 一处**未声明的第四处行为变化**（shapely `covers` 共线浮点误判 ⇒ sm24 答案文件哈希变了）
+> ② face-pair 抢占 sm24 三条边的证据归因（**已接受**：自有证据取代借来的 donor 证据 = 更诚实）。
+> ⭐ **真缺口 = 全仓锁从不比对最终 `gt.json`**，已补跨代码改动的重建稳定性锁。两条均已修，全量 **2947 绿**。
 > **⑧ ⚠️ 四处「肉眼看不出但实际差一点点」**（5.8 mm 画歪 / 11.858 µm 原点 / 3.55e-15 浮点 / 1–2 ULP）：
 > 用户口径 = **先接受、把 DXF 改对、在 gt 里声明**，通用处置策略登记待专项。
 > 原图存 `sm25-L_t3_as_received.dxf`（**核实 916 图元不少、恰好 5 条线变坐标**）。

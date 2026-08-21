@@ -899,6 +899,9 @@ class ZoneExpansion:
     edges: list[_ZoneEdgeRec]   # parallel: edge vertices[i] -> vertices[i+1]
     seed_native: tuple[float, float]
     area_m2: float
+    # Existing request/tooling tolerance carried with the derived geometry so
+    # persistence can make topology decisions without widening its stable API.
+    node_join_tolerance_native: float | None = None
 
 
 @dataclass
@@ -1340,10 +1343,16 @@ def _face_pair_binding_for_edge(a: tuple[float, float], b: tuple[float, float],
         normal=(nx, ny), thickness_native=ref_pair.thickness_native)
 
 
-def _face_pair_exit_is_supported(binding: _FacePairBinding, wall_lines,
-                                 wall_line_layers: dict[str, str],
-                                 tols: _Tols) -> bool:
-    """Independent re-read: predicted exit must hit the bound opposite support face."""
+def _face_pair_binding_is_consistent(binding: _FacePairBinding, wall_lines,
+                                     wall_line_layers: dict[str, str],
+                                     tols: _Tols) -> bool:
+    """Re-read the immutable source-face bookkeeping used to build ``binding``.
+
+    This is a consistency check, not an independent geometric observation: both
+    the binding and this re-read consume the same source WALL LINE records.  S4's
+    input topology checks and G8's round-trip check are the independent defences
+    against a missing or displaced opposite wall face.
+    """
     by_handle = {line[0]: _wall_line_geometry(line) for line in wall_lines}
     near = by_handle.get(binding.near_handle)
     far = by_handle.get(binding.far_handle)
@@ -1427,17 +1436,22 @@ def s7_expand_zones(claims: list[dict], wall_region: Any, footprint: Any,
                 sub = profile[j]
                 sub_along = ((sub[0][0], sub[1][0]) if a[1] == b[1]
                              else (sub[0][1], sub[1][1]))
+                # Evidence priority is intentional.  A source-bound face pair is
+                # this interval's own thickness evidence, so it is tried before
+                # donor-collapse can borrow a neighbouring cap/jamb proof.  This
+                # makes local evidence replace borrowed evidence when both routes
+                # are available; it is not an incidental loop-order side effect.
                 binding = _face_pair_binding_for_edge(
                     a, b, nx, ny, sub_along, src, face_pairs, wall_lines, tols)
                 if binding is not None:
-                    if not _face_pair_exit_is_supported(
+                    if not _face_pair_binding_is_consistent(
                             binding, wall_lines, wall_line_layers or {}, tols):
                         _add(diags, _diag(
                             "tarch_wall_thickness_unevidenced",
                             handles=binding.evidence.proof_handles,
                             points_dxf_mm=[sub[0], sub[1]],
                             context={"thickness_native": binding.thickness_native,
-                                     "reason": "face_pair_exit_unsupported"}))
+                                     "reason": "face_pair_bookkeeping_inconsistent"}))
                     else:
                         mid = ((sub[0][0] + sub[1][0]) / 2.0,
                                (sub[0][1] + sub[1][1]) / 2.0)
@@ -1525,7 +1539,8 @@ def s7_expand_zones(claims: list[dict], wall_region: Any, footprint: Any,
             edge.p2 = zone_verts[(i + 1) % len(zone_verts)]
         zones.append(ZoneExpansion(
             cavity_id=f"c_{k:02d}", polygon=poly, vertices=zone_verts, edges=edges,
-            seed_native=claim["seed_native"], area_m2=poly.area * mpu * mpu))
+            seed_native=claim["seed_native"], area_m2=poly.area * mpu * mpu,
+            node_join_tolerance_native=tols.node_join_native))
     return zones
 
 
@@ -2379,7 +2394,7 @@ def _save_converter_augmented_dxf(doc, dest: Path, source_sha256: str,
 
 
 def _append_plan_geometry(doc, footprint: Any, zones: list[ZoneExpansion],
-                          exterior_openings: list[ResolvedOpening]
+                          exterior_openings: list[ResolvedOpening],
                           ) -> tuple[dict[str, list[str]], dict[tuple[int, int], str]]:
     """Append one plan's canonical GTV3 geometry to an already-open document."""
     msp = doc.modelspace()
@@ -2403,6 +2418,15 @@ def _append_plan_geometry(doc, footprint: Any, zones: list[ZoneExpansion],
     # edge can extend past the footprint segment to the adjacent wall centreline.  It
     # must be emitted or the persisted topology has a short dangle even though G7 tiles.
     # The handle is recorded for every zone edge sharing the emitted source line.
+    # Test the whole edge, not its minimum distance or GEOS's exact collinear
+    # ``covers`` predicate.  The boundary band absorbs representation noise along
+    # an otherwise coincident edge; any portion extending farther than the existing
+    # node-join tolerance remains and must be emitted to close persisted topology.
+    node_join_tolerances = {zone.node_join_tolerance_native for zone in zones}
+    if len(node_join_tolerances) != 1 or None in node_join_tolerances:
+        raise ValueError("persisted zones require one node-join tolerance")
+    node_join_tolerance_native = next(iter(node_join_tolerances))
+    footprint_boundary_band = footprint.exterior.buffer(node_join_tolerance_native)
     seen: dict[tuple[float, float, float, float], str] = {}
     zone_edge_handles: dict[tuple[int, int], str] = {}
     for z_idx, z in enumerate(zones):
@@ -2411,8 +2435,10 @@ def _append_plan_geometry(doc, footprint: Any, zones: list[ZoneExpansion],
             a, b = verts[i], verts[(i + 1) % len(verts)]
             if edge.basis is None:
                 continue
+            support_edge = LineString([a, b])
             if (edge.basis == "outer_skin"
-                    and footprint.exterior.covers(LineString([a, b]))):
+                    and support_edge.difference(footprint_boundary_band).length
+                    <= node_join_tolerance_native):
                 continue
             key = (round(min(a[0], b[0]), 6), round(min(a[1], b[1]), 6),
                    round(max(a[0], b[0]), 6), round(max(a[1], b[1]), 6))
@@ -2439,7 +2465,7 @@ def _append_plan_geometry(doc, footprint: Any, zones: list[ZoneExpansion],
 
 def _write_augmented_dxf(source_dxf: Path, dest: Path, footprint: Any,
                          zones: list[ZoneExpansion], exterior_openings: list[ResolvedOpening],
-                         source_sha256: str, request_sha256: str
+                         source_sha256: str, request_sha256: str,
                          ) -> tuple[dict[str, list[str]], dict[tuple[int, int], str]]:
     """Append GTV3_* layers to a copy of the source DXF, preserving every original
     handle (plan §8.1).  Returns the generated-entity handles per layer AND a
@@ -3233,8 +3259,9 @@ def run_p2_conversion(dxf_path: Path, request: TarchConversionRequestV1,
         exterior_openings = [o for o in p1.openings if o.classification == "exterior"]
         augmented_path = work_dir / "normalized.dxf"
         source_sha256 = hashlib.sha256(Path(dxf_path).read_bytes()).hexdigest()
-        gtv3_handles, zone_edge_handles = _write_augmented_dxf(Path(dxf_path), augmented_path, footprint,
-                                            zones, exterior_openings, source_sha256, request.request_sha256)
+        gtv3_handles, zone_edge_handles = _write_augmented_dxf(
+            Path(dxf_path), augmented_path, footprint, zones, exterior_openings,
+            source_sha256, request.request_sha256)
         manifest, seeds, plan_openings = _build_manifest(
             request, plan_view, zones, claims, exterior_openings, gtv3_handles, augmented_path)
         # v3 elevation consumes the already-certified plan projection solely to
@@ -3631,7 +3658,8 @@ def build_p2_report(result: P2ConversionResult, request: TarchConversionRequestV
 
     # zones (edges carry their recorded basis + thickness — the D7/G8 compensation record;
     # source_handles = the real source wall-line handle(s) the cavity edge lay on; the
-    # derived GTV3_ZONE handle is the zoning LINE emitted for wall_axis edges only)
+    # derived GTV3_ZONE handle is the zoning LINE emitted for wall_axis edges and
+    # the outer_skin transition extensions not carried in full by the footprint)
     zeh = result.gtv3_zone_edge_handles or {}
     zones_r: list[ZoneReportV1] = []
     for k, (z, claim) in enumerate(zip(result.zones, result.claims)):

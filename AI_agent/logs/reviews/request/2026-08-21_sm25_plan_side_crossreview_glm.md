@@ -57,3 +57,16 @@ sm25-L（Z 形两层办公楼）跑转换器，平面侧全红。根因查清后
 裁决 → `AI_agent/logs/reviews/verdict/2026-08-21_sm25_plan_side_glm_verdict.md`：
 **APPROVE / REWORK** + 逐条 finding（BLOCKER/MAJOR/MINOR/NIT）+ 每条附实跑证据
 + neuter 结果表（含自证前提）+ §2.2 那条的专门结论 + 你自己的全仓数字。
+
+---
+
+## 五、主控已做（供你对账，⛔ 不作依据）
+
+- **权威全量**：`2946 passed, 14 xfailed`，exit 0（干净一轮；此前两轮各 1 红 = 主控新加的 CLI
+  未登记 `affected_tests_rules.yaml` 白名单，**那把锁抓得对**，已如实登记后转绿）
+- **候选包主控独立重建**：`gt.json content_sha256 = 785f8273…`
+  与施工席在完全不同目录下构建的结果**逐位相同**
+- **主控亲眼看过**：`overlay_1f_view.png`（14 个分区标注、红色外轮廓贴合 Z 形）
+  与 `overlay_West_view.png`（4 窗 + 2 门，位置与图上洞口逐个重合，门 z=[0.20,2.30]）
+- **DXF 修复核实**：916 图元一个不少 · 句柄集合完全相同 · 块定义 313 不变 · **恰好 5 条线变坐标**
+- 提交：`6589943`

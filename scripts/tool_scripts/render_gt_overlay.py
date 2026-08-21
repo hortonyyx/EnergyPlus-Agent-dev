@@ -57,6 +57,12 @@ DOOR = (255, 120, 0)
 _REVIEW_BASE_GAIN = 0.75      # ink luma retained (vs 0.38 under the legacy multiply)
 _SM21_REFERENCE_WIDTH = 2133  # sm21 plan raster the stroke/label proportions were tuned on
 _ENVELOPE = (255, 60, 60)     # footprint / facade envelope
+# 2026-08-21 用户令：分区边（= 内墙线）统一一个颜色。此前每个分区用自己的 role 色描边，
+# 于是同一道内墙两侧颜色不同、且与 role 填充同色 ⇒ 「有点看不出来」。
+# 现在：填充仍按 role（供人认房间类型），描边一律 _ZONE_EDGE（供人认墙位置）。
+_ZONE_EDGE = (160, 90, 255)   # 内墙 / 分区边界（紫，与外轮廓红、窗青、门橙均不撞）
+_DEPTH_STEP = (60, 230, 120)  # 立面进深台阶（绿）—— 见下方 2026-08-21 注
+_DEPTH_STEP_EPS = 1e-6        # 沿墙/进深比较的数值容差（native 世界米）
 _NEUTRAL_ROLE = (150, 150, 150)
 _V3_ROLE = {**ROLE, "reception": (200, 90, 200), "lobby": (0, 190, 190),
             "unspecified": _NEUTRAL_ROLE}
@@ -423,7 +429,10 @@ def build_gt_overlay_images_v3(
                 points = [_pixel_for_world_plan(view, binding, point) for point in zone.exterior]
                 for point in points: _within(image, point)
                 draw.polygon(points, fill=colour + (70,))
-                draw.line(points + [points[0]], fill=colour + (255,), width=weight["line"])
+                # 深色打底 + 亮色描边：保证在任何底图灰阶上都看得见（同 opening bar 的做法）
+                ring = points + [points[0]]
+                draw.line(ring, fill=(0, 0, 0, 255), width=weight["line"] + 4)
+                draw.line(ring, fill=_ZONE_EDGE + (255,), width=weight["line"])
                 anchor = _pixel_for_world_plan(view, binding, _label_anchor(zone.exterior))
                 _within(image, anchor)
                 text = zone.id if zone.id not in annotations else f"{zone.id} {annotations[zone.id]}"
@@ -485,6 +494,36 @@ def build_gt_overlay_images_v3(
                     points = [_pixel_for_world_elevation(view,binding,visible_low,z_floor), _pixel_for_world_elevation(view,binding,visible_high,z_floor)]
                     for point in points: _within(image, point)
                     draw.line(points, fill=(255,210,0,255), width=weight["line"])
+            # ── 立面「前后关系」轮廓线（2026-08-21 用户提）────────────────────────
+            # C2 落地后，非方形建筑的同一立面族由**不同进深**的分段拼成，图纸上因此
+            # 出现一条竖的进深台阶线（sm25 西立面距左端 6 m 那条 = 西向墙面从 y=14 处
+            # 退进 15 m）。这条信息 gt 里本来就有（每段各带自己的垂直坐标），只是从未
+            # 画出来 ⇒ 人没法核对读图器画的那条线到底对不对。
+            # ⚠️ 这里只是**把已有数据画出来**；gt 里尚无显式的「进深台阶」元素，
+            #    判卷也还不对它计分（登记 R-4，归 C2/判卷专项）。
+            perp = 1 if view.facade_family in {"North", "South"} else 0
+            for floor_id in sorted({segment.floor_id for segment in surface.segments}):
+                floor_segments = sorted((segment for segment in surface.segments
+                                         if segment.floor_id == floor_id),
+                                        key=lambda item: _along_extent(item)[0])
+                item = floor_by_id[floor_id]
+                band_lo, band_hi = item.z_floor_m, item.z_floor_m + item.ceiling_height_m
+                for left, right in zip(floor_segments, floor_segments[1:]):
+                    boundary = _along_extent(right)[0]
+                    if abs(_along_extent(left)[1] - boundary) > _DEPTH_STEP_EPS:
+                        continue                       # 两段不相接，不是台阶
+                    near, far = left.p1[perp], right.p1[perp]
+                    if abs(near - far) <= _DEPTH_STEP_EPS:
+                        continue                       # 同一进深，没有台阶
+                    points = [_pixel_for_world_elevation(view, binding, boundary, band_lo),
+                              _pixel_for_world_elevation(view, binding, boundary, band_hi)]
+                    for point in points: _within(image, point)
+                    draw.line(points, fill=(0, 0, 0, 255), width=weight["line"] + 4)
+                    draw.line(points, fill=_DEPTH_STEP + (255,), width=weight["line"])
+                    _label(draw, image,
+                           (points[0][0], (points[0][1] + points[1][1]) // 2),
+                           f"depth {near:.2f}\u2192{far:.2f}", _DEPTH_STEP + (255,),
+                           weight["font"], anchor="mm")
             for opening in surface.openings:
                 if opening.z_interval is None: continue
                 a,b = opening.world_along_interval; z0,z1 = opening.z_interval

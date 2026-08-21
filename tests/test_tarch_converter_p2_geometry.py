@@ -751,11 +751,12 @@ def test_face_pair_evidence_requires_positive_along_wall_overlap():
     assert not any("1449" in p.proof_handles for p in pairs)
 
 
-def test_face_pair_binds_t_junction_to_240_and_geometry_assertion_is_live():
+def test_face_pair_binds_t_junction_to_240_and_bookkeeping_re_read_is_live():
     """T-junction lock: the 1449/146D edge binds to its real 240 mm ribbon.
 
-    Moving the already-bound opposite face after binding must make the independent
-    exit-point assertion fail; this proves the assertion is not a decorative echo.
+    Moving the already-bound opposite face after binding must make the bookkeeping
+    consistency re-read fail; this proves the re-read is not a decorative echo.
+    S4/G8 remain the independent input-topology defences.
     """
     lines, layers, wall_region = _sm25_face_pair_fixture()
     tols = tn._tols_from(_tooling(), 0.001)
@@ -768,12 +769,12 @@ def test_face_pair_binds_t_junction_to_240_and_geometry_assertion_is_live():
     assert binding.evidence.value_m == pytest.approx(0.24)
     assert binding.evidence.source_kind == "wall_face_pair"
     assert binding.evidence.proof_handles == ["146D", "146E"]
-    assert tn._face_pair_exit_is_supported(binding, lines, layers, tols)
+    assert tn._face_pair_binding_is_consistent(binding, lines, layers, tols)
 
     moved = [line if line[0] != "146E" else
              ("146E", line[1], 42153.6, line[3], 42153.6)
              for line in lines]
-    assert not tn._face_pair_exit_is_supported(binding, moved, layers, tols)
+    assert not tn._face_pair_binding_is_consistent(binding, moved, layers, tols)
 
 
 def test_sm25_f2_t_junction_uses_face_pair_and_persists_closed_v3_topology(tmp_path):
