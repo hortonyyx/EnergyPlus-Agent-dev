@@ -586,9 +586,13 @@ def test_f44_access_log_allow_carries_excerpt_and_executed_code(staging: Path):
     assert deny_entry.get("tool_input_excerpt"), "deny entries keep their excerpt"
 
 
-@pytest.mark.xfail(strict=True, reason="F-35: CV sidecars do not reach the attempt "
-                                       "after merge (only 4 whitelist files archived)")
 def test_f35_cv_evidence_should_reach_attempt(formal_staging):
+    """F-35, registered as a strict xfail on 2026-08-16 and closed 2026-08-21.
+
+    Unlike the stub-based pair in test_e2e_break_r2_locks.py, this drives the
+    real cv_probe wrapper, so it also proves the archived tree matches what the
+    tool actually writes rather than what a fixture pretends it writes.
+    """
     staging, run_dir = formal_staging
     proc = run_wrapper(staging, ["--tool", "storey_line_profiler",
                                  "--image", IMG, "--out-dir", "out/cv"])

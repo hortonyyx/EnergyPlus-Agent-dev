@@ -1808,6 +1808,13 @@ def _archive_cv_evidence(staging_root: Path, attempt_dir: Path) -> dict | None:
     Archived per attempt rather than at the stage root: attempts are append-only,
     so the evidence stays bound to the attempt that produced it even when a later
     attempt supersedes it.
+
+    Size, measured on the 2026-07-07 sm21 tree: 12 MB total, of which the JSON
+    sidecars are 984 KB and the overlay PNGs are 11 MB. The 2026-08-21 dissection
+    that recovered how those readings worked read only the JSON — the overlays
+    are for a human doing visual review, which is a real consumer, so both are
+    kept and ``total_bytes`` is recorded rather than silently trimmed. If repo
+    growth ever forces a choice, that number is where to start.
     """
     src_root = staging_root / "out" / "cv"
     if not src_root.is_dir():
