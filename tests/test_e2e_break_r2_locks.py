@@ -566,3 +566,63 @@ def test_major1_stale_schema_sidecar_recomputed_current_reused(tmp_path, monkeyp
     calls.clear()
     rs._grade_attempt_artifacts("0_reading", "sm21_anchor", attempt_dir, gt, grade=grade)
     assert calls == [], "a current-schema sidecar must be reused, not recomputed"
+
+
+def test_f35_merge_carries_cv_evidence_out_of_staging(tmp_path):
+    """F-35: the reader's CV sidecars survive the workspace they were made in.
+
+    ``check_calibration_evidence`` reads ``out/cv`` during merge and then the
+    staging root is discarded, so until now the evidence died with it — the
+    2026-07-07 runs kept 92 and 38 sidecars and can still be audited step by
+    step, while the 2026-08-21 sm25 run made 42 cv_probe / 19 profiler / 56 crop
+    calls and left nothing to audit. Whether a reading measured or eyeballed is
+    what the evidence shows and the product hides.
+
+    Neuter: drop the ``_archive_cv_evidence`` call in ``merge_isolated_output``
+    ⇒ ``cv_evidence/`` is absent and the provenance digest is null ⇒ red.
+    """
+    run_dir = tmp_path / "case_run"
+    run_dir.mkdir()
+    manifest = _formal_build(_SM21, run_dir, tmp_path / "staging")
+    staging = manifest.staging_root
+    (staging / "out" / "output.json").write_text(
+        json.dumps({"views": _real_views()}), encoding="utf-8"
+    )
+    cv_dir = staging / "out" / "cv" / "1f_view"
+    cv_dir.mkdir(parents=True, exist_ok=True)
+    sidecar = json.dumps({"tool": "wall_line_profiler", "results": [{"position_px": 274.9}]})
+    (cv_dir / "001_wall_line_profiler.json").write_text(sidecar, encoding="utf-8")
+    (cv_dir / "001_wall_line_profiler_overlay.png").write_bytes(b"\x89PNG\r\n\x1a\n stub")
+
+    attempt_dir = merge_isolated_output(staging, run_dir)
+
+    archived = attempt_dir / "cv_evidence" / "1f_view"
+    assert (archived / "001_wall_line_profiler.json").read_text(encoding="utf-8") == sidecar
+    assert (archived / "001_wall_line_profiler_overlay.png").is_file(), (
+        "overlays are part of the audit trail, not just the JSON"
+    )
+    prov = json.loads((attempt_dir / "isolation_provenance.json").read_text(encoding="utf-8"))
+    assert prov["cv_evidence"]["file_count"] == 2
+    assert prov["cv_evidence"]["content_sha256"]
+
+
+def test_f35_merge_without_cv_evidence_records_an_explicit_null(tmp_path):
+    """A reader that produced no sidecars is a finding, not a gap in the record.
+
+    An absent key would read as "nobody looked"; an explicit null says "looked,
+    found none" — the same absence-is-not-a-signal discipline the summary hash
+    already follows.
+    """
+    run_dir = tmp_path / "case_run"
+    run_dir.mkdir()
+    manifest = _formal_build(_SM21, run_dir, tmp_path / "staging")
+    staging = manifest.staging_root
+    (staging / "out" / "output.json").write_text(
+        json.dumps({"views": _real_views()}), encoding="utf-8"
+    )
+
+    attempt_dir = merge_isolated_output(staging, run_dir)
+
+    prov = json.loads((attempt_dir / "isolation_provenance.json").read_text(encoding="utf-8"))
+    assert "cv_evidence" in prov and prov["cv_evidence"] is None
+    assert not (attempt_dir / "cv_evidence").exists()

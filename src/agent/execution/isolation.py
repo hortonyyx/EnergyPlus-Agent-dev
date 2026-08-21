@@ -872,6 +872,12 @@ def merge_isolated_output(
 
         provenance = _build_provenance(staging_root, output_hash)
         provenance["reading_summary_sha256"] = summary_hash
+        # Archived before provenance is written so the provenance hash — which
+        # checks.json then records — covers the evidence digest too. Recorded
+        # even when absent: an explicit null says "the reader produced no CV
+        # sidecars", which is itself a finding, whereas a missing key would read
+        # as "nobody looked".
+        provenance["cv_evidence"] = _archive_cv_evidence(staging_root, attempt_dir)
         provenance.update(
             {
                 "run_id": binding["run_id"],
@@ -1783,6 +1789,48 @@ def _archive_isolation_artifacts(staging_root: Path, attempt_dir: Path) -> None:
             # rather than let a read-only file appear somewhere no other code
             # in this tree expects one.
             dest.chmod(0o644)
+
+
+def _archive_cv_evidence(staging_root: Path, attempt_dir: Path) -> dict | None:
+    """Carry the reader's CV sidecars out of staging before it is discarded.
+
+    2026-08-21 (F-35). ``check_calibration_evidence`` already reads this tree
+    during merge, then the workspace goes away and the evidence with it. The
+    2026-07-07 runs kept 92 and 38 sidecars — per-image calibration residuals,
+    profiler runs, band-restricted detections, and overlay_logger ledgers giving
+    a disposition and a reason for every candidate — and that is why those
+    readings can still be audited step by step today. The 2026-08-21 sm25 run
+    made 42 cv_probe / 19 profiler / 56 crop calls and left nothing behind, so
+    how it reached a wrong answer can only be inferred from one line of prose in
+    a stroke note. Whether a reading measured or eyeballed is exactly what the
+    evidence shows and the product hides.
+
+    Archived per attempt rather than at the stage root: attempts are append-only,
+    so the evidence stays bound to the attempt that produced it even when a later
+    attempt supersedes it.
+    """
+    src_root = staging_root / "out" / "cv"
+    if not src_root.is_dir():
+        return None
+    dest_root = attempt_dir / "cv_evidence"
+    files: list[tuple[str, str]] = []
+    total_bytes = 0
+    for src in sorted(p for p in src_root.rglob("*") if p.is_file()):
+        rel = src.relative_to(src_root)
+        dest = dest_root / rel
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(src, dest)
+        dest.chmod(0o644)
+        files.append((rel.as_posix(), hash_file(dest)))
+        total_bytes += dest.stat().st_size
+    if not files:
+        return None
+    digest = hash_text("\n".join(f"{name}:{h}" for name, h in files))
+    return {
+        "file_count": len(files),
+        "total_bytes": total_bytes,
+        "content_sha256": digest,
+    }
 
 
 def _new_attempt_dir_retry(stage_dir: Path, retries: int = 5) -> Path:

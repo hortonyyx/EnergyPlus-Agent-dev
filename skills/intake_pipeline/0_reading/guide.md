@@ -244,11 +244,19 @@ In EnergyPlus a zone is enclosed by **surfaces (2D faces)**; a wall has no thick
       "value_m": 15.00,                     // parsed metres
       "from": [0.00, 0.00],
       "to":   [15.00, 0.00],
-      "axis": "x",                          // x | y | z (z only on elevation)
+      "axis": "x",                          // x | y | z. On an elevation the vertical dimension axis is "z",
+                                            // while elevation STROKES carry the same vertical extent as
+                                            // image-local `y_range_m` (§4). Same direction, two names —
+                                            // dimensions say z, strokes say y. Do not convert between them here.
       "chain_id": "C_bottom",               // groups the strings of one dimension chain
       "role": "overall",                    // overall | segment | baseline
       "order": 0,                           // position within the chain
-      "anchor": null,                       // optional pixel bbox/anchor of the number
+      "anchor": null,                       // optional; MUST be a flat list of numbers or null — never an object.
+                                            //   [x0, y0, x1, y1] = pixel bbox of the printed number
+                                            //   [x, y]           = a single pixel point
+                                            // For a chain entry prefer the bbox of the tick-to-tick SPAN;
+                                            // for a standalone callout use the bbox of the number itself.
+                                            // Rotated (vertical) text: say which of the two you used in `note`.
       "note": "bottom total-length chain"
     },
     {
@@ -334,6 +342,16 @@ Guardrails (to stop the reading stage inventing walls):
    stroke's note, and record it in the top-level `uncaptured` list, so SVG review can verify
    "the heal is correct, no real opening was covered up" (the linter flags a healed-door note with
    no matching `uncaptured` entry)
+
+### 2.1.1 Door z chains on an elevation: transcribe the bottom segment verbatim
+
+A door assembly's vertical chain often reads e.g. `1900 / 2400 / 200`, where the trailing `200` means
+the assembly bottom is drawn **200 mm above the ground line** (a threshold / step, or the door leaf
+starting above a plinth). Transcribe it as drawn and let it place the assembly where the drawing puts
+it. **Do not "correct" a non-zero bottom segment to 0** on the assumption every door starts at the
+floor — that silently moves the whole assembly down and, unlike a wrong number, leaves a chain that
+still closes. If the non-zero bottom looks like a drawing error rather than a real step, say so in the
+`note`; do not resolve it here.
 
 ---
 
