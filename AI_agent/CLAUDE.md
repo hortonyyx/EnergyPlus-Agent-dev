@@ -225,22 +225,20 @@ EnergyPlus 经 `WorkflowTool.run_simulation`（eppy + ConverterManager，idfpy �
 > 旧请求走**纯翻译层**、执行只有一条路，sm24 签字 hash 一字节未动。
 > sol 施工 · GLM 审 **APPROVE**（0 BLOCKER/0 MAJOR）· 主控权威全量 **3 次 2937 绿 + 14 xfail**。
 > ⚠️ **只证明了解析器层能提出 sm25 的 31 窗 3 门，整条转换链尚未跑过 sm25。**
-> **⑦ ⭐⭐⭐ 2026-08-21：sm25 gt 候选包已产出，⏸ 只差用户签字（G10）**。
-> `G1–G5 · G7 · G8 · G9` 全绿、零 BLOCK；G6/G10 红是**设计上就该人签**的两道。
-> 候选包 [`logs/experiments/2026-08-20_sm25_conversion_request/review_bundle/`](logs/experiments/2026-08-20_sm25_conversion_request/review_bundle/)
-> · `gt.json sha 6c36d9e8…`（**主控与施工席两次独立构建逐位相同**）
-> · 立面 **31 窗 + 3 门** · 分区 F1 **14** / F2 **15** · 签字看 `gt/renders/overlay_*.png`。
-> 途中修掉转换器三处缺陷（面对面厚度证据 / 非凸内外判定 / 跨层轮廓浮点逐位比较）——
-> 三处都是「**多层 + 非凸**」才会现形，sm24 单层从未走到。
-> **GLM 跨家族审 = REWORK（0 BLOCKER / 2 MAJOR）**，靠**跨版本重建**抓到两条谁都没看见的：
-> ① 一处**未声明的第四处行为变化**（shapely `covers` 共线浮点误判 ⇒ sm24 答案文件哈希变了）
-> ② face-pair 抢占 sm24 三条边的证据归因（**已接受**：自有证据取代借来的 donor 证据 = 更诚实）。
-> ⭐ **真缺口 = 全仓锁从不比对最终 `gt.json`**，已补跨代码改动的重建稳定性锁。两条均已修，全量 **2947 绿**。
-> **⑧ ⚠️ 四处「肉眼看不出但实际差一点点」**（5.8 mm 画歪 / 11.858 µm 原点 / 3.55e-15 浮点 / 1–2 ULP）：
-> 用户口径 = **先接受、把 DXF 改对、在 gt 里声明**，通用处置策略登记待专项。
-> 原图存 `sm25-L_t3_as_received.dxf`（**核实 916 图元不少、恰好 5 条线变坐标**）。
-> **⑨ ⏭ 下一步 = 用户签字 → 带签名重跑 + 晋升 → Sonnet 读六张图 → 跑 0–5 = 真正验到 C2**。
-> 全档 [plan.md 本日条目](plan.md)。
+> **⑦ ⭐⭐⭐ 2026-08-21：sm25 gt 已签字晋升入库，C2 首考已跑并判分**。
+> gt = **第二份 v3 转换器答案**（首份 sm24）、**首份多层 + 非凸（Z 形）**：
+> `gt/sm25-L_anchor/` `f97cea65…`，2 层 14/15 区 · 31 窗 + 3 门 · 签字 `hortonyyx` @ 06:52:50Z ·
+> 带签名重跑**十门全绿**且答案逐位复现 · 晋升前后仅 verification 块 5 处差异、**几何差异 0**。
+> 途中修转换器 3 处（面对面厚度证据 / 非凸内外判定 / 跨层轮廓浮点比较）+ 判卷 2 处
+> （F-68 判卷 sidecar 无生成器致**权威判卷被静默跳过** · F-67 一个角部歧义洞口**株连作废整份判卷**）。
+> **⑧ C2 首考成绩**（sm25 1f × Sonnet 5，探索档 n=1，⛔ 不作成绩）：
+> 外轮廓 **94.4%** · 全部墙 84.4% · **窗放对 8/15 = 53.3%**。
+> ⭐ **病灶已定位**：7 个 miss **全在东墙 `x=15`**（Z 形凹口那一面），其余六面墙 8/8；
+> 且 7 个窗**2 米模数节奏一个不差、整列沿墙偏 0.95 m**（容差 0.4 m）
+> ⇒ **不是「看不清」，是「数对了、锚错了」**。
+> **⑨ ⏭ 下一轮先拍两件**：**A** 查那个 0.95 m 锚点偏移 · **B** 修 grade.png 平面面板
+> （长哈希堆叠 + 判据轨道吃掉几何高度 + `na_reason` 文字平铺 ⇒ **诊断只能靠手挖 JSON**）；
+> **C** 读完剩下 5 张图（约 $40）放其后。全档 [plan.md 本日条目](plan.md)。
 
 > **⛔⛔ reading 当前口径 banner（2026-08-16 用户当面定 + 08-17 复述确认；⛔ 凡与「环节控制边界」那套条文冲突处以本条为准；该正文 2026-08-18 已迁至 [capability/reading/improvement_methodology.md §8](capability/reading/improvement_methodology.md)）**
 > **本批 reading = 在【现有基座】上把 07-07 那个模式移植过来、拿到接近满分就行。**
@@ -262,7 +260,7 @@ EnergyPlus 经 `WorkflowTool.run_simulation`（eppy + ConverterManager，idfpy �
 
 | 日期 | 一句话 | 详档 |
 |---|---|---|
-| **2026-08-21** | **⭐ sm25 gt 候选包产出（只差签字）** · 转换器三修（面对面厚度证据/非凸内外/跨层浮点比较）· 四处「肉眼看不见的一点点错」 · 停下上报 **6/6** 全是派工方题错（累计 21/21）| [plan.md 本日](plan.md) · [候选包](logs/experiments/2026-08-20_sm25_conversion_request/) |
+| **2026-08-21** | **⭐⭐ sm25 gt 签字晋升入库（首份多层+非凸答案）· C2 首考已判分**（外轮廓 94.4% / 窗 8/15，病灶=东墙整列偏 0.95 m）· 转换器三修 + 判卷两修 · 四处「肉眼看不见的一点点错」· 停下上报 **8/8** 全是派工方题错（累计 22/22）| [plan.md 本日](plan.md) · [gt](../case_tests/test_baseline/gt/sm25-L_anchor/) |
 | **2026-08-20** | **✅ 07-07 水平在当前基座复现（Sonnet 9/9·7/7·15/15·0.0m）** · 转换器多层化 + **立面载体方言层（F-65）**落地 · 满分掩盖外轮廓偏移 · 停下上报 **4/4** 全是派工方题错 | [plan.md 本日](plan.md) · [专项 §10](capability/reading/improvement_methodology.md) |
 | **2026-08-19** | **三臂判别**：Sonnet 首抽零返工 4/4·3/3 · GPT 历史栈一轮返工 4/4 · Haiku 两臂皆崩 ⇒ 病灶 = 眼估入口敞开；根治归专项 | [plan.md 本日条目](plan.md) · [专项 §9](capability/reading/improvement_methodology.md) |
 | 2026-08-18 | 治理换挡（§0）· 707 完整环境还原仍不回来（22 抽）· 新建 reading 回归门 · **全案报告已出** | [plan.md](plan.md) · [全案报告](logs/reviews/request/2026-08-18_reading_regression_external_investigation.md) |
