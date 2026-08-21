@@ -1,0 +1,20 @@
+run_profile: exploratory
+capability_profile: orthogonal_polygon
+scope:
+  stages: [0_reading]
+judge:
+  mode: stop
+review:
+  reading: false
+  correction: false
+  geometry: false
+models:
+  reading:
+    role: 0_reading
+    model_id: "claude-sonnet-5"
+    provider: anthropic
+    effort: default
+    source: controlled single-plan same-session isolation experiment
+reading_exam_scope:
+  input_ids: ["1f_view"]
+  reason: controlled reading-recovery single-plan reproduction

@@ -1,0 +1,36 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "hooks": [
+          {
+            "command": "/opt/venv/bin/python /tmp/ep_sm25_T1/guard.py",
+            "type": "command"
+          }
+        ],
+        "matcher": ""
+      }
+    ]
+  },
+  "permissions": {
+    "allow": [
+      "Read(//tmp/ep_sm25_T1/**)",
+      "Write(//tmp/ep_sm25_T1/out/**)",
+      "Edit(//tmp/ep_sm25_T1/out/**)",
+      "Write(//tmp/ep_sm25_T1/requests/**)",
+      "Edit(//tmp/ep_sm25_T1/requests/**)",
+      "Bash"
+    ],
+    "defaultMode": "default",
+    "deny": [
+      "Read(//workspaces/EnergyPlus-Agent-dev/**)",
+      "Read(//root/**)",
+      "Read(//home/**)",
+      "WebFetch",
+      "WebSearch",
+      "Agent",
+      "Task",
+      "mcp__*"
+    ]
+  }
+}
