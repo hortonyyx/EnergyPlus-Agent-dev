@@ -400,6 +400,14 @@ class PlanSegment:
 
 
 @dataclass(frozen=True)
+class PlanSupportAmbiguity:
+    """One product observation that cannot select a unique GT support line."""
+    observation_key: str
+    candidate_target_keys: tuple[str, ...]
+    support_lines: tuple[tuple[str, str, float], ...]
+
+
+@dataclass(frozen=True)
 class SegmentAssignment:
     matched: tuple[tuple[PlanSegment, PlanSegment], ...]
     unmatched_targets: tuple[PlanSegment, ...]
@@ -1862,6 +1870,71 @@ def _canonical_score_row(row: SegmentScore) -> tuple[object, ...]:
     )
 
 
+def _plan_segment_support_registration(
+    target_list: tuple[PlanSegment, ...],
+    obs_list: tuple[PlanSegment, ...],
+    config: JudgeScoreConfigV1,
+) -> tuple[
+    dict[str, tuple[str, str, float]],
+    tuple[PlanSupportAmbiguity, ...],
+]:
+    """Register unique supports and return every per-observation ambiguity.
+
+    The ordinary segment scorer rejects if the second return value is nonempty.
+    Reading scoring uses the same registration pass to quarantine only those
+    observations before measuring the remainder; this keeps the support-line
+    predicate single-sourced.
+    """
+    obs_support: dict[str, tuple[str, str, float]] = {}
+    ambiguities: list[PlanSupportAmbiguity] = []
+    for obs in obs_list:
+        if obs.length == 0:
+            continue
+        targets_by_line: dict[tuple[str, str, float], set[str]] = {}
+        for target in target_list:
+            if target.length == 0 or target.floor_id != obs.floor_id:
+                continue
+            if _candidate(target, obs, config) is None:
+                continue
+            targets_by_line.setdefault(_support_line_key(target), set()).add(
+                target.key
+            )
+        if not targets_by_line:
+            continue
+        if len(targets_by_line) >= 2:
+            ambiguities.append(
+                PlanSupportAmbiguity(
+                    observation_key=obs.key,
+                    candidate_target_keys=tuple(
+                        sorted(
+                            target_key
+                            for target_keys in targets_by_line.values()
+                            for target_key in target_keys
+                        )
+                    ),
+                    support_lines=tuple(sorted(targets_by_line)),
+                )
+            )
+            continue
+        obs_support[obs.key] = next(iter(targets_by_line))
+    return obs_support, tuple(ambiguities)
+
+
+def plan_segment_support_ambiguities(
+    *,
+    targets: Iterable[PlanSegment],
+    observations: Iterable[PlanSegment],
+    config: JudgeScoreConfigV1,
+) -> tuple[PlanSupportAmbiguity, ...]:
+    """Expose the scorer's own registration ambiguities for audit isolation."""
+    target_list = tuple(sorted(targets, key=_canonical_geometry))
+    obs_list = tuple(sorted(observations, key=_canonical_geometry))
+    _registered, ambiguities = _plan_segment_support_registration(
+        target_list, obs_list, config
+    )
+    return ambiguities
+
+
 def match_plan_segments(*, targets: Iterable[PlanSegment], observations: Iterable[PlanSegment],
                         config: JudgeScoreConfigV1) -> tuple[tuple[SegmentScore, ...], dict[str, tuple[str, ...]]]:
     """Joint-cutpoint atomization with one-way support-line registration (W3/B-1).
@@ -1895,30 +1968,23 @@ def match_plan_segments(*, targets: Iterable[PlanSegment], observations: Iterabl
     target_list = tuple(sorted(targets, key=_canonical_geometry))
     obs_list = tuple(sorted(observations, key=_canonical_geometry))
     # B-1 step 1: register each observation to its UNIQUE answer support line.
-    obs_support: dict[str, tuple[str, str, float]] = {}
-    for obs in obs_list:
-        if obs.length == 0:
-            continue
-        eligible_lines: set[tuple[str, str, float]] = set()
-        for target in target_list:
-            if target.length == 0 or target.floor_id != obs.floor_id:
-                continue
-            if _candidate(target, obs, config) is None:
-                continue
-            eligible_lines.add(_support_line_key(target))
-        if not eligible_lines:
-            continue  # 0 candidate lines: observation covers no target -> extra
-        if len(eligible_lines) >= 2:
-            raise_identity_conflict(
-                "score_identity_support_ambiguous",
-                predicate="support_registration_conflict",
-                reason="observation_eligible_for_multiple_support_lines",
-                observation=obs.key,
-                side="product",
-                floor_id=obs.floor_id,
-                support_lines=sorted(line for line in eligible_lines),
-            )
-        obs_support[obs.key] = next(iter(eligible_lines))
+    obs_support, ambiguities = _plan_segment_support_registration(
+        target_list, obs_list, config
+    )
+    if ambiguities:
+        ambiguity = ambiguities[0]
+        observation = next(
+            item for item in obs_list if item.key == ambiguity.observation_key
+        )
+        raise_identity_conflict(
+            "score_identity_support_ambiguous",
+            predicate="support_registration_conflict",
+            reason="observation_eligible_for_multiple_support_lines",
+            observation=observation.key,
+            side="product",
+            floor_id=observation.floor_id,
+            support_lines=list(ambiguity.support_lines),
+        )
     # B exact ledgers: construct every dual-domain claim before either ledger.
     # One request-local registry evaluates a shared geometry cut once per
     # observation; target and observation domains then consume the same claim

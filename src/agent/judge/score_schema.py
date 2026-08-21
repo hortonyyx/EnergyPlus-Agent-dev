@@ -967,6 +967,34 @@ class SourceApplicabilityCertificateV1(StrictWire):
         return self
 
 
+def count_unmeasurable_reading_observations(
+    normalization: ReadingNormalizationCertificateV1 | None,
+    applicability: SourceApplicabilityCertificateV1 | None,
+) -> int:
+    """Count product observations that the reading path could not measure.
+
+    Adapter-level malformed observations already have dedicated witnesses.
+    Registration ambiguities arise only after joining the certified product to
+    GT, so their exact observation/boundary witness belongs to the source
+    applicability certificate.  Count each support-ambiguous observation once
+    without changing the GT-derived denominator.
+    """
+    adapter_count = (
+        0
+        if normalization is None
+        else len(normalization.unmeasurable_observation_witnesses)
+    )
+    support_ambiguous = {
+        (witness.source_input_id, witness.component, observation_id)
+        for witness in (
+            () if applicability is None else applicability.ambiguity_witnesses
+        )
+        if witness.reason == "multiple_support_lines"
+        for observation_id in witness.observation_ids
+    }
+    return adapter_count + len(support_ambiguous)
+
+
 class ReadingChannelSummaryV1(StrictWire):
     channel: Literal["plan", "elevation"]
     status: Literal["applicable", "partially_applicable", "not_applicable"]
@@ -1304,10 +1332,8 @@ class ScoreSidecarV9(StrictWire):
                 raise ValueError(
                     "normalized channel NA requires both certificates"
                 )
-        expected_unmeasurable = (
-            0
-            if normalization is None
-            else len(normalization.unmeasurable_observation_witnesses)
+        expected_unmeasurable = count_unmeasurable_reading_observations(
+            normalization, applicability
         )
         if self.payload.unmeasurable_observations != expected_unmeasurable:
             raise ValueError("unmeasurable observation count mismatch")

@@ -48,11 +48,13 @@ from src.agent.judge.score_schema import (
     ScoreIdentityV9,
     SourceApplicabilityCertificateV1,
     canonical_sha256,
+    count_unmeasurable_reading_observations,
 )
 from src.agent.judge.segment_score import (
     PlanSegment,
     extract_gt_plan_segments,
     match_plan_segments,
+    plan_segment_support_ambiguities,
 )
 
 
@@ -90,7 +92,16 @@ def _channel_summaries(
     rows = tuple(components)
     output: list[ReadingChannelSummaryV1] = []
     for channel in ("plan", "elevation"):
-        local = tuple(item for item in rows if item.channel == channel)
+        # Channel status describes only components whose denominator disposition
+        # is ``score``.  Trusted-input ``filter`` rows were never read in this
+        # exam; other dispositions remain visible in the component certificate
+        # but do not redefine the measured channel summary.
+        local = tuple(
+            item
+            for item in rows
+            if item.channel == channel
+            and item.denominator_disposition == "score"
+        )
         applicable = tuple(
             sorted({item.component for item in local if item.status == "applicable"})
         )
@@ -283,7 +294,6 @@ def _opening_observations(
     values: list[OpeningObservation] = []
     extras: list[ExtraObservationV8] = []
     witnesses: list[ReadingAmbiguityWitnessV1] = []
-    ambiguous: dict[tuple[str, str], set[str]] = {}
 
     for audit in certificate.observations:
         if isinstance(audit, ReadingPlanOpeningAuditV1):
@@ -296,8 +306,6 @@ def _opening_observations(
                 position_tolerance=config.plan_position_tol_m,
             )
             if len(candidates) > 1:
-                key = (audit.source_input_id, "plan_openings")
-                ambiguous.setdefault(key, set()).add(audit.observation_id)
                 witnesses.append(
                     ReadingAmbiguityWitnessV1(
                         source_input_id=audit.source_input_id,
@@ -352,8 +360,6 @@ def _opening_observations(
                 continue
             candidates = _elevation_segment_candidates(audit, boundaries)
             if len(candidates) > 1:
-                key = (audit.source_input_id, "elevation_opening_xy")
-                ambiguous.setdefault(key, set()).add(audit.observation_id)
                 witnesses.append(
                     ReadingAmbiguityWitnessV1(
                         source_input_id=audit.source_input_id,
@@ -403,34 +409,6 @@ def _opening_observations(
                     channel="elevation",
                 )
             )
-
-    # A support ambiguity invalidates the affected input/component as a whole.
-    # Remove every observation from that component so no sorted-first residue
-    # can earn a pass.
-    if ambiguous:
-        values = [
-            item
-            for item in values
-            if (
-                item.source_view_id,
-                "plan_openings"
-                if item.channel == "plan"
-                else "elevation_opening_xy",
-            )
-            not in ambiguous
-        ]
-        for key in ambiguous:
-            components[key] = _na_component(
-                components[key],
-                reason="judge_support_registration_ambiguous",
-            )
-            if key[1] == "elevation_opening_xy":
-                z_key = (key[0], "elevation_opening_z")
-                if z_key in components:
-                    components[z_key] = _na_component(
-                        components[z_key],
-                        reason="judge_support_registration_ambiguous",
-                    )
 
     mapping = {
         item.input_id: tuple(item.gt_source_view_ids)
@@ -586,50 +564,48 @@ def _segment_rows(
         floor_observations = tuple(
             item for item in observations if item.floor_id == floor_id
         )
-        try:
-            local_rows, _mapping = match_plan_segments(
-                targets=floor_targets,
-                observations=floor_observations,
-                config=config,
+        ambiguities = plan_segment_support_ambiguities(
+            targets=floor_targets,
+            observations=floor_observations,
+            config=config,
+        )
+        ambiguous_ids = {item.observation_key for item in ambiguities}
+        observations_by_id = {item.key: item for item in floor_observations}
+        for ambiguity in ambiguities:
+            observation = observations_by_id[ambiguity.observation_key]
+            witnesses.append(
+                ReadingAmbiguityWitnessV1(
+                    source_input_id=next(
+                        item.source_input_id
+                        for item in certificate.observations
+                        if isinstance(item, ReadingPlanSegmentAuditV1)
+                        and item.observation_id == observation.key
+                    ),
+                    component="plan_segments",
+                    floor_ids=(floor_id,),
+                    observation_ids=(observation.key,),
+                    candidate_target_ids=ambiguity.candidate_target_keys,
+                    objective_preimage_sha256=canonical_sha256(
+                        {
+                            "observation_id": observation.key,
+                            "candidate_target_ids": (
+                                ambiguity.candidate_target_keys
+                            ),
+                            "support_lines": ambiguity.support_lines,
+                        }
+                    ),
+                    reason="multiple_support_lines",
+                )
             )
-        except Exception as exc:
-            from src.agent.judge.score_schema import ScoreContractError
-
-            if not isinstance(exc, ScoreContractError) or (
-                exc.code != "score_identity_support_ambiguous"
-            ):
-                raise
-            source_components = tuple(
+        local_rows, _mapping = match_plan_segments(
+            targets=floor_targets,
+            observations=tuple(
                 item
-                for item in component_by_key.values()
-                if item.component == "plan_segments"
-                and floor_id in item.floor_ids
-            )
-            observation_id = str(exc.context.get("observation", "unknown"))
-            candidates = tuple(sorted(item.key for item in floor_targets))
-            for item in source_components:
-                component_by_key[
-                    (item.source_input_id, item.component)
-                ] = _na_component(
-                    item,
-                    reason="judge_support_registration_ambiguous",
-                )
-                witnesses.append(
-                    ReadingAmbiguityWitnessV1(
-                        source_input_id=item.source_input_id,
-                        component="plan_segments",
-                        floor_ids=(floor_id,),
-                        observation_ids=(observation_id,),
-                        candidate_target_ids=candidates,
-                        objective_preimage_sha256=canonical_sha256(exc.context),
-                        reason="multiple_support_lines",
-                    )
-                )
-            local_rows, _mapping = match_plan_segments(
-                targets=floor_targets,
-                observations=(),
-                config=config,
-            )
+                for item in floor_observations
+                if item.key not in ambiguous_ids
+            ),
+            config=config,
+        )
         rows.extend(local_rows)
 
     serial = [
@@ -1244,8 +1220,8 @@ def assemble_reading_score(
             reason="no_scorable_reading_channel",
             detail="no_scorable_reading_channel",
             channel_applicability=channels,
-            unmeasurable_observations=len(
-                normalization.unmeasurable_observation_witnesses
+            unmeasurable_observations=count_unmeasurable_reading_observations(
+                normalization, source_applicability
             ),
             visibility_counts=counts,
             score_criteria=(),
@@ -1324,8 +1300,8 @@ def assemble_reading_score(
     payload = C2ScoredPayloadV9(
         kind="c2_scored",
         channel_applicability=channels,
-        unmeasurable_observations=len(
-            normalization.unmeasurable_observation_witnesses
+        unmeasurable_observations=count_unmeasurable_reading_observations(
+            normalization, source_applicability
         ),
         visibility_counts=counts,
         segment_rows=segment_rows,
