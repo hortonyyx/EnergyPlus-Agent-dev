@@ -16,7 +16,7 @@
 
 | # | run | 日期 | case | 模型 | 树 | 成绩（平面墙·窗） | 路线 |
 |---|---|---|---|---|---|---|---|
-| 1 | `run_2026-07-02_sonnet_flow_e2e` | 07-02 | sm21 | Sonnet 5 | `1595981` | 9/9 · 7/7 | ⚠️ **无工具箱**（本形式的**来源**，非实例）|
+| 1 | `run_2026-07-02_sonnet_flow_e2e` | 07-02 | sm21 | Sonnet 5 | `1595981` | 9/9 · 7/7 | ⚠️ **现造工具箱**（自写 PIL+scipy 流水线，60 次 Bash；本形式的**来源**，非实例）|
 | 2 | `run_2026-07-07_haiku_cv_retest` | 07-07 | sm21 | Haiku 4.5 | `723b0f9` | **9/9 · 7/7 · 0.0 m** | **A 像素标定** |
 | 3 | `run_2026-07-07_haiku_cv_probe` | 07-07 | **sm24** | Haiku 4.5 | `723b0f9` | **人工肉检满分**（14 墙·11 窗·51 尺寸全链闭合，⛔ 当时无 gt）| **A** |
 | 4 | `run_2026-07-08_gpt54mini_cv_retest` | 07-08 | sm21 | gpt-5.4-mini | `ebddada` | 9/9 · **6/7** | **B 尺寸链算术** |
@@ -83,7 +83,7 @@
 
 ## 三、共同的形式要件（四条实例的交集）
 
-1. **CV 工具箱可用**（#1 例外——它是工具箱的来源）
+1. **有代码测量能力**（#1 是自己现写的，其余用固化工具箱）—— ⭐ **五份好 reading 零例外，这是唯一无反例的不变量**
 2. **指令要求使用**：#2/#3 的 per-run directive 明写 measure-before-draw；
    #4 **不写**（E 批已把纪律固化进 `cv_toolbox.md` 自声明），#5 沿用 #2 的原文
 3. **pilot 停等门**：先做一张平面 → 停下等审 → 批准后才放批量。**四条实例全部保留了这道门**
@@ -126,7 +126,10 @@
 
 ## 五、⚠️ 收录时必须一并记的口径
 
-- **#1 已被剔出「本形式」**：无工具箱，是形式的**来源**不是实例，⛔ 不得当参照或判别臂。
+- **#1 已被剔出「本形式」**：⚠️ **不是「无工具箱」而是「现造工具箱」**（2026-08-21 用户纠正；
+  forensics 见 [`improvement_methodology.md §1.1`](improvement_methodology.md)：112 次工具调用 / 60 Bash /
+  PIL 裁图 → 灰度掩膜行列投影 → 总尺寸反推 px/m → scipy 连通域）。
+  它是形式的**来源**不是实例，⛔ 不得当参照或判别臂；⛔ 也不得当作「不用工具也能好」的反例。
 - **#3 当时没有 gt** ⇒ 它同时是「抄答案」与「主控泄答案」两说被证伪的依据。
 - **#2 的打回者本人持 gt**，打回前是否看过 gt 无记录 ⇒ 该基准**过程不可审计**。
   #5/#6 已改为**先写返工/裁定并封存哈希、再判卷**（#5 封存裁定写 APPROVE，判卷 4/4·3/3，**预测正确**）。
@@ -136,6 +139,8 @@
 
 ## 六、指针
 
+- **离线夹具 + 过程指标**（2026-08-21）→ [`../../logs/experiments/2026-08-21_historical_reading_dissection/README.md`](../../logs/experiments/2026-08-21_historical_reading_dissection/README.md)
+  · `case_tests/test_baseline/reading_fixtures.json` · `scripts/tool_scripts/reading_process_metrics.py`
 - 方法论与三包延后项 → [`improvement_methodology.md`](improvement_methodology.md)
 - 隔离面 → [`../../proposals/hard_isolation_direction.md`](../../proposals/hard_isolation_direction.md)
 - 尺寸基准 / 墙厚 / `scale_origin` → [`../../proposals/dimension_basis_and_wall_thickness_direction.md`](../../proposals/dimension_basis_and_wall_thickness_direction.md)

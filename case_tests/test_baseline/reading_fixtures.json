@@ -1,0 +1,229 @@
+{
+  "_doc": [
+    "Offline reading fixtures — the historical readings, classified, so that any",
+    "new reading gate / scaffold change can be validated WITHOUT spending a run.",
+    "",
+    "Why this file exists: reading_regression.py compares SCORES of a completed",
+    "run against recorded baselines. A score only exists after an LLM run has been",
+    "paid for. So the question 'does this new gate/rule hurt reading?' could only",
+    "be answered with money. These fixtures answer it offline.",
+    "",
+    "Acceptance rule for any new reading gate (see reading_process_metrics.py):",
+    "  a 'good' fixture may only raise flag codes listed in its known_defects,",
+    "  and at least one 'bad' fixture must go red.",
+    "A gate that greens everything has no discriminating power. A gate that reds a",
+    "good fixture for something NOT in its known_defects is a regression against a",
+    "reading already known to be correct.",
+    "",
+    "known_defects exists because 'good' turned out to be too coarse a label. The",
+    "07-08 reading is 9/9 walls but 6/7 windows, and the chain-placement gate reds",
+    "it for exactly the defect that cost it that window. The gate is right; the",
+    "binary label was wrong. Recording the defect keeps the fixture useful as a",
+    "green baseline for every OTHER gate while staying honest about this one.",
+    "",
+    "Paths point at in-repo run directories rather than copies. A moved or deleted",
+    "run makes --fixtures exit 2 by name instead of silently measuring fewer."
+  ],
+  "schema_version": 1,
+  "fixtures": [
+    {
+      "id": "sm21_2026-07-02_sonnet",
+      "label": "good",
+      "case": "sm21_anchor",
+      "run": "case_tests/e2e_tests/sm21_anchor/run_2026-07-02_sonnet_flow_e2e",
+      "model": "claude-sonnet-5",
+      "score": {
+        "plan_walls": "9/9",
+        "plan_windows": "7/7",
+        "elevation_windows": "15/15",
+        "max_wall_offset_m": 0.0
+      },
+      "why": "The ORIGIN of the CV toolbox: Sonnet built its own classical-CV pipeline on the spot (112 tool calls, 60 of them Bash — PIL crop, grey mask + row/column projection for wall lines, overall-dimension px/m calibration, scipy connected components for windows). NOT no-tooling, and NOT eyeballed. Kept as a green fixture but explicitly NOT a form baseline: self-made tooling is the SOURCE of the form, not an instance of it.",
+      "known_defects": []
+    },
+    {
+      "id": "sm21_2026-07-07_haiku",
+      "label": "good",
+      "case": "sm21_anchor",
+      "run": "case_tests/e2e_tests/sm21_anchor/run_2026-07-07_haiku_cv_retest",
+      "model": "claude-haiku-4-5-20251001",
+      "score": {
+        "plan_walls": "9/9",
+        "plan_windows": "7/7",
+        "elevation_windows": "15/15",
+        "max_wall_offset_m": 0.0
+      },
+      "why": "Weak model + CV toolbox + pilot review gate. The richest process trace in the repo: 92 CV sidecars, per-image calibration, 9 overlay_logger disposition ledgers.",
+      "known_defects": []
+    },
+    {
+      "id": "sm24_2026-07-07_haiku",
+      "label": "good",
+      "case": "sm24_anchor",
+      "run": "case_tests/e2e_tests/sm24_anchor/run_2026-07-07_haiku_cv_probe",
+      "model": "claude-haiku-4-5-20251001",
+      "score": {
+        "note": "no gt existed at the time; user-verified by eye as the cleanest output the project has produced"
+      },
+      "why": "Same form as sm21_2026-07-07_haiku on a DIFFERENT building. Carries the most complete reading_summary.md in the repo (per-image calibration RMSE, honest-provenance ledger, repeatedly-null ledger, schema feedback).",
+      "known_defects": []
+    },
+    {
+      "id": "sm21_2026-07-08_gpt54mini",
+      "label": "good",
+      "case": "sm21_anchor",
+      "run": "case_tests/e2e_tests/sm21_anchor/run_2026-07-08_gpt54mini_cv_retest",
+      "model": "gpt-5.4-mini",
+      "score": {
+        "plan_walls": "9/9",
+        "plan_windows": "6/7",
+        "elevation_windows": "15/15",
+        "max_wall_offset_m": 0.0
+      },
+      "why": "Third model family reaching the same result with the same form — the evidence that the toolbox removed model strength as a variable.",
+      "known_defects": [
+        "CHAIN-PLACEMENT"
+      ],
+      "known_defects_note": "Pure chain-arithmetic route with no pixel corroboration (0 of 70 strokes carry both). It transcribed sm21's top chain identically to 07-07 (segments 14.76, overall 15.00) but butted the segments end to end instead of placing the 0.24 m residual at the two unlabelled 120 mm partition bands, so the chain closes on 14.76 and every window after the first gap drifts -0.12 then -0.24 m. That is the 7th window it missed. Also 2f C_top (0.12 m) and 2f C_east (1.06 m)."
+    },
+    {
+      "id": "sm21_2026-08-20_sonnet_S1",
+      "label": "good",
+      "case": "sm21_anchor",
+      "run": "case_tests/e2e_tests/sm21_anchor/run_2026-08-20_acceptance_sonnet_S1",
+      "model": "claude-sonnet-5",
+      "score": {
+        "plan_walls": "9/9",
+        "plan_windows": "7/7",
+        "elevation_windows": "15/15",
+        "max_wall_offset_m": 0.0
+      },
+      "why": "The same form reproduced on the CURRENT tree. Known caveat: walls sit on measured centrelines (0.11-0.12 m inset) while windows sit at nominal positions — registered as R-2, invisible to the scorer.",
+      "known_defects": [],
+      "known_defects_note": "R-2: walls sit on measured centrelines (0.11-0.12 m inset) while windows sit at nominal chain positions — two different bases in one artifact, which is why chain_explained_pct is 40% here against 97-100% for the other good fixtures. No flag catches it yet; a chain-vs-pixel reconciliation gate would. The scorer never compares the outer boundary, so it cost nothing."
+    },
+    {
+      "id": "sm21_2026-07-05_haiku_downgrade",
+      "label": "bad",
+      "case": "sm21_anchor",
+      "run": "case_tests/e2e_tests/sm21_anchor/run_2026-07-05_haiku_downgrade",
+      "model": "claude-haiku-4-5-20251001",
+      "score": {
+        "plan_walls": "0/9",
+        "plan_windows": "0/7",
+        "elevation_windows": "0/15"
+      },
+      "why": "Weak model WITHOUT the toolbox. The control arm that shows the toolbox, not the model, is what moved.",
+      "known_defects": []
+    },
+    {
+      "id": "sm21_2026-08-15_A2",
+      "label": "bad",
+      "case": "sm21_anchor",
+      "run": "case_tests/e2e_tests/sm21_anchor/run_2026-08-15_reading_restart_A2",
+      "model": "claude-haiku-4-5-20251001",
+      "score": {
+        "plan_walls": "1/9",
+        "plan_windows": "1/7",
+        "elevation_windows": "0/15"
+      },
+      "why": "Eyeballed geometry: interior walls at 5.4/9.0/13.6 where the chain says 5.0/10.0, and 25 plan openings (gt has 15) including six under 0.6 m wide.",
+      "known_defects": []
+    },
+    {
+      "id": "sm21_2026-08-15_B1_reviewring",
+      "label": "bad",
+      "case": "sm21_anchor",
+      "run": "case_tests/e2e_tests/sm21_anchor/run_2026-08-15_reading_restart_B1_reviewring",
+      "model": "claude-haiku-4-5-20251001",
+      "score": {
+        "plan_walls": "2/9",
+        "plan_windows": "0/7",
+        "elevation_windows": "0/15"
+      },
+      "why": "Review-ring arm. Only 6 plan openings emitted where gt has 15, and 29% of coordinates are not explainable from its own transcribed chains. Kept because NO hard flag currently fires on it — it is the fixture that shows the flag set is incomplete.",
+      "known_defects": []
+    },
+    {
+      "id": "sm21_2026-08-15_D1_noprescan",
+      "label": "bad",
+      "case": "sm21_anchor",
+      "run": "case_tests/e2e_tests/sm21_anchor/run_2026-08-15_reading_restart_D1_noprescan",
+      "model": "claude-haiku-4-5-20251001",
+      "score": {
+        "plan_walls": "2/9",
+        "plan_windows": "0/7",
+        "elevation_windows": "0/15"
+      },
+      "why": "22 walls drawn on 1f (gt has 10) off 14 transcribed dimensions — the over-draw failure mode, while every coordinate still lands on a transcribed endpoint. Kept precisely because chain-explainability alone does NOT catch it.",
+      "known_defects": []
+    },
+    {
+      "id": "sm21_2026-08-16_E1_uncapped",
+      "label": "bad",
+      "case": "sm21_anchor",
+      "run": "case_tests/e2e_tests/sm21_anchor/run_2026-08-16_reading_restart_E1_uncapped",
+      "model": "claude-haiku-4-5-20251001",
+      "score": {
+        "plan_walls": "0/9",
+        "plan_windows": "0/7",
+        "elevation_windows": "0/15"
+      },
+      "why": "Capability-uncapped arm: 135 dimensions transcribed but only 60% of coordinates are chain-explainable — transcribed and then ignored.",
+      "known_defects": []
+    },
+    {
+      "id": "sm21_2026-08-16_F1_repro",
+      "label": "bad",
+      "case": "sm21_anchor",
+      "run": "case_tests/e2e_tests/sm21_anchor/run_2026-08-16_707_repro_F1",
+      "model": "claude-haiku-4-5-20251001",
+      "score": {
+        "note": "unscored; pilot approved while still wrong, review then lifted"
+      },
+      "why": "ZERO windows on both plan views, and 21 of 21 CV calls spent on one image while five images got none. F-64's canonical shape: a blank answer passes more gates than a wrong one.",
+      "known_defects": []
+    },
+    {
+      "id": "sm21_2026-08-18_J3",
+      "label": "bad",
+      "case": "sm21_anchor",
+      "run": "case_tests/e2e_tests/sm21_anchor/run_2026-08-18_707mode_J3",
+      "model": "claude-haiku-4-5-20251001",
+      "score": {
+        "plan_walls": "1/9",
+        "plan_windows": "0/7",
+        "elevation_windows": "0/15"
+      },
+      "why": "28 dimensions transcribed across six images (good runs transcribe 142-166) — the drawing's own numbers were largely never read.",
+      "known_defects": []
+    },
+    {
+      "id": "sm21_2026-08-20_G1_gpt54mini",
+      "label": "bad",
+      "case": "sm21_anchor",
+      "run": "case_tests/e2e_tests/sm21_anchor/run_2026-08-20_acceptance_gpt54mini_G1",
+      "model": "gpt-5.4-mini",
+      "score": {
+        "plan_walls": "7/9",
+        "plan_windows": "5/7",
+        "elevation_windows": "6/15"
+      },
+      "why": "Partial failure, same model family that scored 9/9 on 07-08. Failure mechanism observed live: split a two-axis calibration into two single-axis calls to silence the cross-axis warning (F-63).",
+      "known_defects": []
+    },
+    {
+      "id": "sm25_2026-08-21_T1_sonnet",
+      "label": "bad",
+      "case": "sm25-L_anchor",
+      "run": "case_tests/e2e_tests/sm25-L_anchor/run_2026-08-21_c2_first_sonnet_T1",
+      "model": "claude-sonnet-5",
+      "score": {
+        "boundary_complete": "94.4%",
+        "windows_placed": "8/15"
+      },
+      "why": "F-69: on the east wall the reader reported the solid PIERS between windows instead of the windows (every one matches a gt pier to within 0.15 m at both ends). Same artifact used the correct polarity on the north wall. First fixture for the polarity detector.",
+      "known_defects": []
+    }
+  ]
+}
