@@ -400,6 +400,28 @@ def test_s4_topology_residual_area_mismatch_unit():
                for d in diags)
 
 
+def test_nonconvex_footprint_classifies_reentrant_outer_opening_locally():
+    """An exterior opening on a concave arm cannot use one global interior point."""
+    footprint = tn.Polygon([
+        (0, 0), (10000, 0), (10000, 4000), (4000, 4000),
+        (4000, 8000), (10000, 8000), (10000, 12000), (0, 12000),
+    ])
+    opening = tn.ResolvedOpening(
+        handle="15D9", block_name="$TCHSYS$WIN2D", kind="window",
+        rect_dxf_mm=(6000, 3760, 8000, 4000), axis="x",
+        cross_section_mm=(3760, 4000), jamb_handles=["J1", "J2"])
+    rep = footprint.representative_point()
+    assert rep.y > 4000  # old global-point rule chooses the wrong (lower) face
+    assert footprint.exterior.distance(tn.Point(7000, 3760)) == pytest.approx(240.0)
+    assert footprint.exterior.distance(tn.Point(7000, 4000)) == pytest.approx(0.0)
+
+    diags = []
+    tn._classify_openings(
+        [opening], footprint, tn._tols_from(resolve_converter_tooling(GT_CONFIG, VG_CONFIG), 0.001), diags)
+    assert opening.classification == "exterior"
+    assert not diags
+
+
 # --------------------------------------------------------------------------- #
 # report contract
 # --------------------------------------------------------------------------- #

@@ -316,6 +316,17 @@ def _fail(code: str, pointer: str, **context: JsonValue) -> None:
     raise GtValidationError([GtValidationIssue(code, pointer, context)])
 
 
+def _ordered_rings_equal_within_tolerance(
+        reference: tuple[tuple[float, float], ...],
+        candidate: tuple[tuple[float, float], ...], tolerance: float) -> bool:
+    """Compare corresponding vertices without relaxing ring order or shape."""
+    if len(reference) != len(candidate):
+        return False
+    tolerance_sq = tolerance * tolerance
+    return all((left[0] - right[0]) ** 2 + (left[1] - right[1]) ** 2 <= tolerance_sq
+               for left, right in zip(reference, candidate))
+
+
 def _ring_vertices(ring: GtRingV3, pointer: str) -> tuple[tuple[float, float], ...]:
     pts = tuple((float(x), float(y)) for x, y in ring.vertices)
     if pts[0] == pts[-1]:
@@ -508,7 +519,8 @@ def validate_gt_v3(doc: GroundTruthV3, *, tolerances: GtResolvedToolingTolerance
             _fail("gt_profile_holes_unsupported", f_ptr + "/footprint/interior_rings")
         if canonical_footprint is None:
             canonical_footprint = ring
-        elif ring != canonical_footprint:
+        elif not _ordered_rings_equal_within_tolerance(
+                canonical_footprint, ring, tolerances.dxf_node_join_tolerance_m):
             _fail("gt_profile_floor_footprint_mismatch", f_ptr + "/footprint")
         fingerprint = footprint_fingerprint(list(ring))
         if floor.footprint_fingerprint != fingerprint:

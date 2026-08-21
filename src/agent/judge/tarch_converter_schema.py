@@ -19,7 +19,7 @@ Hard disciplines enforced structurally here (dispatch §2 + plan §2):
 
   1. fail-closed: ``DiagnosticSeverity`` has BLOCK/INFO only — there is no WARN,
      so no "warn-then-continue" degradation can be expressed.
-  2. no baked simplifying assumptions: thickness comes ONLY from the six discrete
+  2. no baked simplifying assumptions: thickness comes ONLY from discrete
      evidence kinds (:class:`ThicknessEvidenceV1`); there is no
      ``DEFAULT_WALL_THICKNESS`` / ``MAX_WALL_PAIR_DISTANCE`` / ``MIN_ROOM_WIDTH``
      constant anywhere.  IR carries multi-ring polygons + per-floor footprints
@@ -178,11 +178,12 @@ def staging_work_dir(case: str, date_ymd: str) -> Path:
 
 
 # --------------------------------------------------------------------------- #
-# §2.1 thickness evidence — six discrete kinds, no global default
+# §2.1 thickness evidence — discrete source-bound kinds, no global default
 # --------------------------------------------------------------------------- #
 ThicknessEvidenceKind = Literal[
     "window_block_short_side",     # 1. window block bbox short edge
     "wall_cap_or_opening_jamb",    # 2. cap / opening jamb connecting the two faces
+    "wall_face_pair",              # paired parallel source WALL LINE faces
     "pub_dim_explicit",            # 3. PUB_DIM dimension explicitly bound to this wall
     "pub_hatch_outer_wall",        # 4. PUB_HATCH both-side boundary (outer wall local only)
     "reproduced_from_segment",     # 5. exact reproduction of an already-certified segment

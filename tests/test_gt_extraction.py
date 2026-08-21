@@ -12,6 +12,7 @@ import pytest
 
 from src.agent.judge.gt_extraction import (ExtractionError, ExtractionInputs,
                                             InspectionInputs,
+                                            extract_gt_v3,
                                             extract_plan_geometry,
                                             inspect_extraction_inputs)
 import src.agent.judge.gt_extraction as extraction_module
@@ -68,6 +69,54 @@ def _dxf(path: Path, ring: list[tuple[float, float]], *, dangle: bool = False, c
     doc.saveas(path)
 
 
+def _translated_mm_dxf(path: Path, ring: list[tuple[float, float]]) -> None:
+    """Draw two metre-identical plans 54980.8 mm apart in one DXF."""
+    doc = ezdxf.new("R2010")
+    doc.header["$INSUNITS"] = 4
+    doc.layers.add("OUTER"); doc.layers.add("ZONE")
+    msp = doc.modelspace()
+    for source_x in (-30469.0, 24511.8):
+        points = [(source_x + x * 1000.0, 28213.6 + y * 1000.0) for x, y in ring]
+        msp.add_lwpolyline(points, close=True, dxfattribs={"layer": "OUTER"})
+        msp.add_line((source_x + 2000.0, 28213.6),
+                     (source_x + 2000.0, 29213.6), dxfattribs={"layer": "ZONE"})
+    doc.saveas(path)
+
+
+def _translated_mm_manifest(path: Path, ring: list[tuple[float, float]]) -> GtExtractionManifestV1:
+    floors, views = [], []
+    source_xs = (-30469.0, 24511.8)
+    world_x_offsets = (30.469, -24.511800000000004)
+    selector = {"entity_types": ["LWPOLYLINE"], "layers": ["OUTER"], "handles": [],
+                "handle_mode": "all_matching", "min_count": 1, "max_count": 1}
+    zones = {"entity_types": ["LINE"], "layers": ["ZONE"], "handles": [],
+             "handle_mode": "all_matching", "min_count": 1, "max_count": 1}
+    for index, (source_x, world_x_offset) in enumerate(zip(source_xs, world_x_offsets), 1):
+        floor_id = f"F{index}"
+        floors.append({"id": floor_id, "name": f"Floor {index}",
+                       "z_floor_m": float(index - 1) * 3.0, "ceiling_height_m": 3.0})
+        xs = [source_x + x * 1000.0 for x, _ in ring]
+        ys = [28213.6 + y * 1000.0 for _, y in ring]
+        views.append({"kind": "plan", "id": f"plan-{floor_id}", "floor_id": floor_id,
+                      "clip_box_dxf": {"xmin": min(xs) - 100.0, "ymin": min(ys) - 100.0,
+                                       "xmax": max(xs) + 100.0, "ymax": max(ys) + 100.0},
+                      "world_from_source_m": {"m00": 1.0, "m01": 0.0, "m02": world_x_offset,
+                                              "m10": 0.0, "m11": 1.0, "m12": -28.213600000000003},
+                      "footprint_boundary": selector, "zone_boundaries": zones, "plan_openings": [],
+                      "zone_seeds": [{"zone_id": f"Z{index}a", "name": "A", "role": "office",
+                                      "point_world_m": [0.5, 0.5]},
+                                     {"zone_id": f"Z{index}b", "name": "B", "role": "office",
+                                      "point_world_m": [3.5, 0.5]}],
+                      "boundary_reference": "outer_skin", "default_wall_thickness_m": None})
+    raw = {"manifest_version": 1, "case": "translated-mm", "source_id": "src",
+           "source_dxf_label": path.name,
+           "source_dxf_sha256": hashlib.sha256(path.read_bytes()).hexdigest(),
+           "native_units": "mm", "metres_per_unit": 0.001,
+           "geometry_profile": "c2_simple_orthogonal_no_holes", "floors": floors, "views": views,
+           "north_axis": None, "raster_overlays": [], "manifest_sha256": "0" * 64}
+    return _manifest_from_payload(raw)
+
+
 def _manifest_from_payload(payload: dict) -> GtExtractionManifestV1:
     payload["manifest_sha256"] = "0" * 64
     with warnings.catch_warnings():
@@ -90,6 +139,39 @@ def test_extracts_two_floor_l_or_u_plan_with_manifest_ancestry(tmp_path, ring):
     assert all(len(floor.zones) == 2 and floor.footprint.interior_rings == [] for floor in result.floors)
     assert result.floors[0].footprint.exterior.vertices == result.floors[1].footprint.exterior.vertices
     assert all(ref.source_id == "src" for floor in result.floors for refs in floor.boundary_edge_sources.values() for ref in refs)
+
+
+def test_translated_two_floor_profile_accepts_only_float_roundoff(tmp_path):
+    ring = [(0.0, 0.0), (4.0, 0.0), (4.0, 1.0),
+            (2.0, 1.0), (2.0, 3.0), (0.0, 3.0)]
+    path = tmp_path / "translated-mm.dxf"
+    _translated_mm_dxf(path, ring)
+    manifest = _translated_mm_manifest(path, ring)
+    tooling = load_gt_tooling_config(REPO_ROOT / "src/configs/judge_gt.yaml",
+                                     REPO_ROOT / "src/configs/correction.yaml")
+    first_x = -30469.0 * 0.001 + 30.469
+    second_x = 24511.8 * 0.001 - 24.511800000000004
+    float_residual = abs(first_x - second_x)
+    assert first_x != second_x
+    assert 0.0 < float_residual <= tooling.tolerances.dxf_node_join_tolerance_m
+
+    result = extract_gt_v3(ExtractionInputs(
+        path, manifest, tooling, compute_gt_implementation_hashes(REPO_ROOT)))
+    assert len(result.floors) == 2
+
+
+def test_profile_comparison_must_red_for_one_vertex_shifted_500_mm():
+    tooling = load_gt_tooling_config(REPO_ROOT / "src/configs/judge_gt.yaml",
+                                     REPO_ROOT / "src/configs/correction.yaml")
+    reference = ((0.0, 0.0), (4.0, 0.0), (4.0, 3.0), (0.0, 3.0))
+    shifted = ((0.5, 0.0), *reference[1:])
+    deltas = [((left[0] - right[0]) ** 2 + (left[1] - right[1]) ** 2) ** 0.5
+              for left, right in zip(reference, shifted)]
+    assert len(reference) == len(shifted)
+    assert deltas == [0.5, 0.0, 0.0, 0.0]
+    assert deltas[0] > tooling.tolerances.dxf_node_join_tolerance_m
+    assert not extraction_module._ordered_rings_equal_within_tolerance(
+        reference, shifted, tooling.tolerances.dxf_node_join_tolerance_m)
 
 
 @pytest.mark.parametrize("kwargs,code", [({"dangle": True}, "dxf_inspection_blocked"), ({"bulge": True}, "dxf_inspection_blocked")])

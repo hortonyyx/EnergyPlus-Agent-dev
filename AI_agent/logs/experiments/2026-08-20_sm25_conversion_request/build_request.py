@@ -21,6 +21,7 @@ from src.agent.judge.tarch_converter_schema import (          # noqa: E402
 DXF = REPO / "case_tests/test_baseline/gt_sources/sm25-L_anchor/sm25-L_t3.dxf"
 CASE = REPO / "case_tests/e2e_tests/sm25-L_anchor/case_data"
 MPU = 0.001
+QUANT = 0.1          # 转换器吸附步长（native mm）= dxf_node_join_tolerance_m / 10
 FLOOR_H = 3.6
 
 FRAMES = {"plan-F1": "37B", "plan-F2": "380",
@@ -214,6 +215,10 @@ def main() -> int:
     for vid, floor_id in (("plan-F1", "F1"), ("plan-F2", "F2")):
         box = boxes[vid]
         wx0, wy0, wx1, wy1 = wall_bbox(box)
+        # ⭐ 世界原点必须落在转换器的吸附网格上（q = tau_node/10 = 0.1 mm）。
+        # 否则两层各自的零头不同 ⇒ 同一个轮廓在世界坐标里差几微米 ⇒ 跨层轮廓门
+        # (dxf_profile_floor_footprint_mismatch) 逐顶点精确比较必红。
+        wx0, wy0 = round(wx0 / QUANT) * QUANT, round(wy0 / QUANT) * QUANT
         n = ZONE_COUNT[vid]
         plan_views.append({
             "id": vid, "floor_id": floor_id,
@@ -225,8 +230,11 @@ def main() -> int:
             "opening_selector": {"entity_types": ["INSERT"], "layers": ["WINDOW"]},
             "room_label_selector": None,
             "dialect_rules": dialect,
+            # ⚠️ zone_id 必须【全局唯一】（跨层也是）——GT 合同里 opening 只存 host_zone_id，
+            # 没有 floor 可以消歧。sm24 是单层，直接 z0..z7；多层必须带层前缀。
             "zone_intent": {"mode": "intent_file", "expected_count": n,
-                            "entries": [{"zone_id": f"z{i}", "name": f"r{i}",
+                            "entries": [{"zone_id": f"{floor_id}-z{i}",
+                                         "name": f"{floor_id}-r{i}",
                                          "role": "unspecified"} for i in range(n)]},
             "void_intent": [],
         })
@@ -244,7 +252,10 @@ def main() -> int:
         a0 = tuple(line.dxf.start)[:2]; a1 = tuple(line.dxf.end)[:2]
         lo_pt, hi_pt = (a0, a1) if lo_end == "start" else (a1, a0)
         span = 25.0 if facade in ("North", "South") else 20.0
-        scale = span / ((hi_pt[0] - lo_pt[0]))      # 沿墙：源 x -> 世界 [0, span]
+        # ⚠️ 沿墙比例的绝对值【按契约就等于 metres_per_unit】，⛔ 不能用 span/(hi-lo) 算出来：
+        # 除法会差 1–2 个 ULP，而校验用的是 abs(abs(scale) - metres_per_unit) != 0（逐位相等）。
+        # 只有 offset 才是该算的量。
+        scale = MPU if (hi_pt[0] - lo_pt[0]) > 0 else -MPU
         offset = -lo_pt[0] * scale
         z_scale = MPU
         z_offset = 0.0 - tuple(line.dxf.start)[1] * z_scale

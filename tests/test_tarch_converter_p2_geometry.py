@@ -47,6 +47,8 @@ REPO = Path(__file__).resolve().parents[1]
 GT_CONFIG = REPO / "src/configs/judge_gt.yaml"
 VG_CONFIG = REPO / "src/configs/correction.yaml"
 SM24_SOURCE = REPO / "case_tests/test_baseline/gt_sources/sm24_anchor/source.dxf"
+SM25_SOURCE = REPO / "case_tests/test_baseline/gt_sources/sm25-L_anchor/sm25-L_t3.dxf"
+SM25_REQUEST = REPO / "AI_agent/logs/experiments/2026-08-20_sm25_conversion_request/request_v3.json"
 
 WINDOW_BLOCK = "$TCHSYS$WIN2D"
 
@@ -699,6 +701,113 @@ def test_s7_thickness_without_independent_proof_emits_fail_closed_diagnostic():
                                outer, tols, diags, [], [])
     assert len(zones) == 1
     assert "tarch_wall_thickness_unevidenced" in {d.code for d in diags}
+
+
+def _sm25_face_pair_fixture():
+    """Two real F2 face pairs around the 1449/146D T-junction.
+
+    The first pair overlaps to the left of the junction and the second to its
+    right.  Their measured normal separation is independently asserted here so
+    this fixture cannot silently become a declared 240 mm expectation.
+    """
+    lines = [
+        ("1449", 24751.8, 42453.6, 29511.8, 42453.6),
+        ("144A", 24511.8, 42213.6, 29511.8, 42213.6),
+        ("146D", 29511.8, 42453.6, 33511.8, 42453.6),
+        ("146E", 29751.8, 42213.6, 33391.8, 42213.6),
+        # Nearby faces of another wall: their spans do not overlap this wall and
+        # therefore must never manufacture a 60/180 mm pair.
+        ("OTHER_LO", 35631.8, 42153.6, 39271.8, 42153.6),
+        ("OTHER_HI", 35631.8, 42273.6, 39271.8, 42273.6),
+    ]
+    assert lines[0][2] - lines[1][2] == pytest.approx(240.0)
+    assert min(lines[0][3], lines[1][3]) - max(lines[0][1], lines[1][1]) > 0
+    layers = {handle: "WALL" for handle, *_ in lines}
+    wall_region = Polygon([(24511.8, 42213.6), (33511.8, 42213.6),
+                           (33511.8, 42453.6), (24511.8, 42453.6)])
+    return lines, layers, wall_region
+
+
+def test_face_pair_evidence_reads_real_240_and_cites_the_two_source_faces():
+    """Face-pair positive: actual LINE separation is the value, never the range."""
+    lines, layers, wall_region = _sm25_face_pair_fixture()
+    tols = tn._tols_from(_tooling(), 0.001)
+    pairs = tn._build_wall_face_pairs(
+        lines, layers, wall_region, (80.0, 500.0), tols)
+    pair = next(p for p in pairs if set(p.proof_handles) == {"1449", "144A"})
+    assert pair.thickness_native == pytest.approx(240.0)
+    assert pair.proof_handles == ["1449", "144A"]
+
+
+def test_face_pair_evidence_requires_positive_along_wall_overlap():
+    """Face-pair must-red: removing overlap yields no proof, not a nearby false pair."""
+    lines, layers, wall_region = _sm25_face_pair_fixture()
+    moved = [line if line[0] != "144A" else
+             ("144A", 50000.0, 42213.6, 55000.0, 42213.6)
+             for line in lines]
+    tols = tn._tols_from(_tooling(), 0.001)
+    pairs = tn._build_wall_face_pairs(
+        moved, layers, wall_region, (80.0, 500.0), tols)
+    assert not any("1449" in p.proof_handles for p in pairs)
+
+
+def test_face_pair_binds_t_junction_to_240_and_geometry_assertion_is_live():
+    """T-junction lock: the 1449/146D edge binds to its real 240 mm ribbon.
+
+    Moving the already-bound opposite face after binding must make the independent
+    exit-point assertion fail; this proves the assertion is not a decorative echo.
+    """
+    lines, layers, wall_region = _sm25_face_pair_fixture()
+    tols = tn._tols_from(_tooling(), 0.001)
+    pairs = tn._build_wall_face_pairs(
+        lines, layers, wall_region, (80.0, 500.0), tols)
+    binding = tn._face_pair_binding_for_edge(
+        (24751.8, 42453.6), (33511.8, 42453.6), 0.0, -1.0,
+        (29511.8, 29751.8), ["1449", "146D"], pairs, lines, tols)
+    assert binding is not None
+    assert binding.evidence.value_m == pytest.approx(0.24)
+    assert binding.evidence.source_kind == "wall_face_pair"
+    assert binding.evidence.proof_handles == ["146D", "146E"]
+    assert tn._face_pair_exit_is_supported(binding, lines, layers, tols)
+
+    moved = [line if line[0] != "146E" else
+             ("146E", line[1], 42153.6, line[3], 42153.6)
+             for line in lines]
+    assert not tn._face_pair_exit_is_supported(binding, moved, layers, tols)
+
+
+def test_sm25_f2_t_junction_uses_face_pair_and_persists_closed_v3_topology(tmp_path):
+    """Real-path lock: 1449/146D becomes a 240 mm edge and G4/G7/G8/G9 close."""
+    dst = tmp_path / "source.dxf"
+    shutil.copyfile(SM25_SOURCE, dst)
+    payload = json.loads(SM25_REQUEST.read_text())
+    payload["plan_views"] = [v for v in payload["plan_views"] if v["id"] == "plan-F2"]
+    payload["elevation_views"] = []
+    payload["raster_overlays"] = [
+        item for item in payload["raster_overlays"] if item["view_id"] == "plan-F2"]
+    payload["floors"] = [f for f in payload["floors"] if f["id"] == "F2"]
+    payload["source_dxf_sha256"] = hashlib.sha256(dst.read_bytes()).hexdigest()
+    payload["request_sha256"] = "0" * 64
+    request = TarchConversionRequestV1.model_validate(payload)
+    payload["request_sha256"] = compute_request_sha256(request)
+    request = TarchConversionRequestV1.model_validate(payload)
+    assert request.min_room_area_m2 == 5.0
+
+    result = tn.run_p2_conversion(dst, request, request.plan_views[0],
+                                  resolve_converter_tooling(GT_CONFIG, VG_CONFIG), tmp_path / "work")
+    by_handle = {line[0]: line for line in result.p1.wall_lines}
+    assert by_handle["1449"][2] - by_handle["144A"][2] == pytest.approx(240.0)
+    target = [edge for zone in result.zones for edge in zone.edges
+              if {"1449", "146D"}.issubset(edge.source_handles)
+              and edge.thickness_evidence is not None
+              and edge.thickness_evidence.source_kind == "wall_face_pair"]
+    assert len(target) == 1
+    assert target[0].thickness_native == pytest.approx(240.0)
+    assert target[0].thickness_evidence.proof_handles == ["146D", "146E"]
+    assert not any(diag.code == "tarch_wall_thickness_unevidenced"
+                   for diag in result.diagnostics)
+    gates = {gate.id: gate.passed for gate in result.gates}
+    assert all(gates[gate] for gate in ("G4", "G7", "G8", "G9"))
 
 
 def test_same_wall_gate_splits_t_junction_overlaps_and_catches_conflicting_thickness():

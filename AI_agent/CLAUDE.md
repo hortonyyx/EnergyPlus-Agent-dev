@@ -225,11 +225,18 @@ EnergyPlus 经 `WorkflowTool.run_simulation`（eppy + ConverterManager，idfpy �
 > 旧请求走**纯翻译层**、执行只有一条路，sm24 签字 hash 一字节未动。
 > sol 施工 · GLM 审 **APPROVE**（0 BLOCKER/0 MAJOR）· 主控权威全量 **3 次 2937 绿 + 14 xfail**。
 > ⚠️ **只证明了解析器层能提出 sm25 的 31 窗 3 门，整条转换链尚未跑过 sm25。**
-> **⑦ ⏭ 下一步 = 写 sm25 转换请求 → 跑转换器 → 用户签字 → Sonnet 读图 → 验 C2**。
-> 机械部分已备齐（视图框/裁剪框/平面仿射约定/立面 datum/载体规则，见
-> [experiments](logs/experiments/2026-08-20_sm25_elevation_carriers/)）；
-> ⛔ **真正费人工的只剩「六张图的像素标定」**——工具链只有校验、没有求解。
-> 全档 [plan.md 本日条目](plan.md) · 产物 `case_tests/e2e_tests/sm21_anchor/run_2026-08-20_acceptance_*`。
+> **⑦ ⭐⭐⭐ 2026-08-21：sm25 gt 候选包已产出，⏸ 只差用户签字（G10）**。
+> `G1–G5 · G7 · G8 · G9` 全绿、零 BLOCK；G6/G10 红是**设计上就该人签**的两道。
+> 候选包 [`logs/experiments/2026-08-20_sm25_conversion_request/review_bundle/`](logs/experiments/2026-08-20_sm25_conversion_request/review_bundle/)
+> · `gt.json sha 785f8273…`（**主控与施工席两次独立构建逐位相同**）
+> · 立面 **31 窗 + 3 门** · 分区 F1 **14** / F2 **15** · 签字看 `gt/renders/overlay_*.png`。
+> 途中修掉转换器三处缺陷（面对面厚度证据 / 非凸内外判定 / 跨层轮廓浮点逐位比较）——
+> 三处都是「**多层 + 非凸**」才会现形，sm24 单层从未走到。⏳ GLM 跨家族审待派。
+> **⑧ ⚠️ 四处「肉眼看不出但实际差一点点」**（5.8 mm 画歪 / 11.858 µm 原点 / 3.55e-15 浮点 / 1–2 ULP）：
+> 用户口径 = **先接受、把 DXF 改对、在 gt 里声明**，通用处置策略登记待专项。
+> 原图存 `sm25-L_t3_as_received.dxf`（**核实 916 图元不少、恰好 5 条线变坐标**）。
+> **⑨ ⏭ 下一步 = 用户签字 → 带签名重跑 + 晋升 → Sonnet 读六张图 → 跑 0–5 = 真正验到 C2**。
+> 全档 [plan.md 本日条目](plan.md)。
 
 > **⛔⛔ reading 当前口径 banner（2026-08-16 用户当面定 + 08-17 复述确认；⛔ 凡与「环节控制边界」那套条文冲突处以本条为准；该正文 2026-08-18 已迁至 [capability/reading/improvement_methodology.md §8](capability/reading/improvement_methodology.md)）**
 > **本批 reading = 在【现有基座】上把 07-07 那个模式移植过来、拿到接近满分就行。**
@@ -251,6 +258,7 @@ EnergyPlus 经 `WorkflowTool.run_simulation`（eppy + ConverterManager，idfpy �
 
 | 日期 | 一句话 | 详档 |
 |---|---|---|
+| **2026-08-21** | **⭐ sm25 gt 候选包产出（只差签字）** · 转换器三修（面对面厚度证据/非凸内外/跨层浮点比较）· 四处「肉眼看不见的一点点错」 · 停下上报 **6/6** 全是派工方题错（累计 21/21）| [plan.md 本日](plan.md) · [候选包](logs/experiments/2026-08-20_sm25_conversion_request/) |
 | **2026-08-20** | **✅ 07-07 水平在当前基座复现（Sonnet 9/9·7/7·15/15·0.0m）** · 转换器多层化 + **立面载体方言层（F-65）**落地 · 满分掩盖外轮廓偏移 · 停下上报 **4/4** 全是派工方题错 | [plan.md 本日](plan.md) · [专项 §10](capability/reading/improvement_methodology.md) |
 | **2026-08-19** | **三臂判别**：Sonnet 首抽零返工 4/4·3/3 · GPT 历史栈一轮返工 4/4 · Haiku 两臂皆崩 ⇒ 病灶 = 眼估入口敞开；根治归专项 | [plan.md 本日条目](plan.md) · [专项 §9](capability/reading/improvement_methodology.md) |
 | 2026-08-18 | 治理换挡（§0）· 707 完整环境还原仍不回来（22 抽）· 新建 reading 回归门 · **全案报告已出** | [plan.md](plan.md) · [全案报告](logs/reviews/request/2026-08-18_reading_regression_external_investigation.md) |

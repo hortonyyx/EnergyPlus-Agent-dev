@@ -30,6 +30,7 @@ from .gt_schema import (DxfHandle, GtEntityRefV3, GtImplementationHashesV1,
                         GtSourceDocumentV3, GtSourceViewV3, GtRingV3,
                         GtVerificationV3, GtWorldIntervalV3, GroundTruthV3,
                         Hex64, JsonValue, StableId, StrictNonNegativeInt,
+                        _ordered_rings_equal_within_tolerance,
                         canonical_gt_v3_bytes, compute_gt_v3_content_sha256,
                         stable_boundary_segment_id, validate_gt_v3)
 from src.agent.correction.facade_visibility import VisibilityTolerances, vg_for_direction
@@ -387,7 +388,9 @@ def extract_plan_geometry(inputs: ExtractionInputs) -> PlanExtractionResult:
         footprint = _canonical_polygon(containing[0])
         ring = tuple(tuple(p) for p in footprint.exterior.vertices)
         if reference_ring is None: reference_ring = ring
-        elif ring != reference_ring: _fail("dxf_profile_floor_footprint_mismatch")
+        elif not _ordered_rings_equal_within_tolerance(
+                reference_ring, ring, inputs.tooling.tolerances.dxf_node_join_tolerance_m):
+            _fail("dxf_profile_floor_footprint_mismatch")
         zone_entities = _selector_entities(doc.modelspace(), view.zone_boundaries, view)
         zone_segments = _snap_segments(_segments(_selector_entities(doc.modelspace(), view.footprint_boundary, view) + zone_entities, view, inputs.manifest.metres_per_unit, "zone_boundary"), inputs.tooling.tolerances.dxf_node_join_tolerance_m, inputs.tooling.tolerances.dxf_axis_alignment_tolerance_m)
         zone_faces = _polygonize(zone_segments, inputs.tooling.tolerances.dxf_topology_area_tolerance_m2)
