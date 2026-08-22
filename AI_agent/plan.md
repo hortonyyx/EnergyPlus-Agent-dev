@@ -154,7 +154,7 @@
 | **⭐ 新 F-72** | ⭐⭐⭐ **现有链闭合门查「Σ段值==总长」，从结构上分不开「余量放对」与「余量丢掉」**。实证：07-07 与 07-08 对 sm21 顶链转录**逐字相同**（段和皆 14.76、总长皆 15.00，差 0.24 m）；07-07 把余量放进两条 120 mm 无标注隔墙带、末段收在 **15.00**；07-08 首尾相接、末段收在 **14.76** ⇒ 窗依次偏 −0.12/−0.24 ⇒ **6/7**。⭐ **新判据 = 落位闭合**（链摆到图上的跨度必须等于其声称总长），实测好夹具 4/5 绿、07-08 红（**红得对**）、坏夹具 F1+G1 命中 | **待拍板**：需同时引入夹具 `known_defects`（好夹具允许被红，当且仅当红的是已登记缺陷）|
 | **⭐ 新** | **cv_evidence 归档的仓库增长**：实测 07-07 sm21 一份 **12 MB**，其中 JSON 侧车仅 **984 KB**、overlay PNG **11 MB**（92%）。⭐ 08-21 那整轮解剖**只读了 JSON、一张 overlay 都没开**；但 overlay 的真实消费者是**人工目视复核**，故两者都留、并把 `total_bytes` 记进 provenance ⇒ 增长可见而非静默 | **登记不做**（§0.1）；若日后仓库变重，从这个数字下手 |
 | **⭐ 新 F-73** | 过程门 NARROW-OPENING 用**浮点严格小于**比 0.60 m：`10.9 − 10.3 = 0.5999999999999996` ⇒ **一扇图纸明写 600 mm 的窗被判成「窄得不可能」**，一份正确 reading 被门判红 | ✅ **已修**（改按毫米比较，域下限一毫米没动）+ 2 把锁；**neuter 实测**摘掉修复该锁即红 |
-| **⭐ 新 F-74** | gate① 的 `reading.view_manifest_coverage` 在 **flat-flow 路径**上不传已冻结的 `reading_exam_scope`（[run_stage.py:385](../scripts/tool_scripts/run_stage.py#L385) 与 [validation_run.py:314](../src/agent/execution/validation_run.py#L314) 都略掉了该参数）⇒ 声明只考两张图的 run **必然 BLOCK**；隔离壳 merge 路径会传 ⇒ **同一份声明、两个入口、两种判决**。⭐ 另：`check_view_manifest_merge` 全仓**零生产调用者** | ✅ **已修**（两个调用点各补传已冻结的应试范围）+ 2 把锁（含「范围内缺图仍须 BLOCK」反向锁）+ neuter 实测 |
+| **⭐ 新 F-74** | gate① 的 `reading.view_manifest_coverage` 在 **flat-flow 路径**上不传已冻结的 `reading_exam_scope`（[run_stage.py:385](../scripts/tool_scripts/run_stage.py#L385) 与 [validation_run.py:314](../src/agent/execution/validation_run.py#L314) 都略掉了该参数）⇒ 声明只考两张图的 run **必然 BLOCK**；隔离壳 merge 路径会传 ⇒ **同一份声明、两个入口、两种判决**。⛔ **本条曾附一句「另：`check_view_manifest_merge` 全仓零生产调用者」—— 那是我编的**：我把 `check_reading_stage` 的 docstring 里那句描述性的「merge 同门 checker」当成了函数名，并当作实测事实写进三份文档。**代码中从来没有过这个函数**（GLM 跨家族审 MINOR-1 抓出）。隔离壳路径其实一直是 `isolation.py:823 → check_reading_stage(exam_scope=...)`，修复前就传了 —— 「两个入口两种判决」这个结论本身成立，编造的只是那句附注。 | ✅ **已修**（两个调用点各补传已冻结的应试范围）+ 2 把锁（含「范围内缺图仍须 BLOCK」反向锁）+ neuter 实测 |
 | **⭐ 新 F-75** | flat-flow 把 attempt 产物写成裸 `{stem: view}` 而非 `{"views": {...}}` 的 ReadingViews-v2 信封 ⇒ `identify_reading_contract` 判 `unrecognized` ⇒ **权威 typed 判卷静默降级成 `not_applicable`**（F-68 同形、F-64 同族）| ✅ **已修**（两个调用点各补传已冻结的应试范围）+ 2 把锁（含「范围内缺图仍须 BLOCK」反向锁）+ neuter 实测 |
 | **⭐ 新 F-76** | v3 答案无法被 legacy 判卷器读（`gt_v3_requires_typed_consumer`），而 `score_reading_vs_gt.py` 把该异常**报成误导性的「could not map image to a gt floor; pass --floor」**。F-75+F-76 合起来 ⇒ **当前没有任何一条可用命令能给 flat-flow 产物判分** | ✅ **已修**（判卷接缝补上 flat→v2 信封归一化，与既有反向归一化互为镜像）+ **走真实入口的接线锁** + neuter 实测（⚠️ 第一版锁只测 helper、摘掉接线仍绿，已重写） |
 | **⭐ 新 F-77** | `cv_probe.py --sidecar-name` 只接受 `NNN_tool` 形式而 `--help` 只字未提，报错在栈底才现形 | **登记**（一行 help 文本）|
@@ -234,6 +234,43 @@ gate① = **1 block + 4 flag**，而那个 block 是 F-74（不是产物的问�
 碎片吸收只并入门不并入窗（南墙 4000 窗被切开后前半被删）→ 底部尺寸链 ·
 跨 case 抄近道 → 跨轴尺度检查 ·
 先设计「用面线断口定洞口边界」→ 实测断口噪声（0.930/0.974/0.995/1.017 忽大忽小）⇒ 改走颜色层+刻度。
+
+---
+
+## 2026-08-22（第四段）· **GLM 跨家族审 APPROVE** + ⛔ 抓出我一条凭空编造的「实测事实」
+
+裁决 → [`verdict/2026-08-22_scoring_path_glm_verdict.md`](logs/reviews/verdict/2026-08-22_scoring_path_glm_verdict.md)
+（请求书 → [`request/2026-08-22_scoring_path_crossreview_glm.md`](logs/reviews/request/2026-08-22_scoring_path_crossreview_glm.md)）
+
+**APPROVE · 0 BLOCKER · 1 MAJOR · 5 MINOR。** 三件必测全部**独立复现**（不是转述施工方）：
+neuter 四组（含两组我没做的）· 全量主树 `2994 passed / 13 xfailed`（837.67s）逐字对账 ·
+端到端在纯净 worktree 上 `gate① block=0` 且 `kind=="c2_scored"`。
+五条我自认薄弱处逐条证伪，其中最有价值的一条：**F-75 不会洗白错产物** ——
+GLM 拿垃圾 flat 产物实测，判出 **0/57.86 的诚实零分**而不是通过，且身份哈希实测仍绑包裹前的文件字节。
+
+### ⛔ MINOR-1 = 我凭空编了一个函数名，并当作实测事实写进三份文档
+
+我把 `check_reading_stage` 的 **docstring 里那句中文描述**「merge 同门 checker」当成了标识符
+`check_view_manifest_merge`，然后以「**全仓零生产调用者**」的口吻写进 plan.md / 工具缺口清单 / 派工单。
+**代码中从来没有过这个函数。** 已在两份文档就地撤回并写明原委。
+
+⭐ **这是本轮唯一一条没被任何工具拦下的错**，且与其它四条不同类：
+其它是**量错了**（工具当场红），这条是**把读到的东西记成了另一个东西** ——
+grep 不会告诉你「你查的这个名字是你自己造的」。
+⇒ 纪律：**引用一个标识符前先 `grep -n "^def <name>"` 确认它存在**；docstring 里的描述不是函数名。
+⚠️ 同族 [[proxy-mistaken-for-the-thing]]。**幸好这条的结论没受影响**：
+隔离壳路径实为 `isolation.py:823 → check_reading_stage(exam_scope=…)`，修复前就传 ⇒
+「同一份声明、两个入口、两种判决」成立，编造的只是那句附注。
+
+### MAJOR-1 已闭合：`validation_run.py` 那条接线原先零锁
+
+GLM 的 neuter 第 D 组实测：只摘 `validation_run.py` 的接线，**没有任何锁变红** ——
+而 F-74 本身就是「参数存在、无人传」造成的坑，正是缺锁会放回来的形状。
+⇒ 已补 **2 把 validate_case 级锁**（正向 + 「缩小 ≠ 关掉」反向锁，反向锁产出范围外那张、缺范围内那张，
+⛔ 不用空 run —— 零产出时 `validate_case` 根本不进 reading 分支）；**neuter 实测两把同时变红**。
+
+⚠️ GLM 另登记一条范围外观察，已独立复核属实：`test_downstream_only_scope_skips_geometry`
+是**预存的顺序依赖测试**（`set_idf` 全局初始化），单跑在父子两提交都红、全量里绿，与本案无关。
 
 ---
 

@@ -253,3 +253,76 @@ def test_sm21_anchor_ep_clean():
 
     end = read_ep_end(_RUN_21 / "EP" / "EP_run")
     assert end is not None and end["completed"] and end["severe"] == 0
+
+
+# --------------------------------------------------------------------------- #
+# F-74 / GLM cross-review MAJOR-1 (2026-08-22): `validate_case` is the SECOND
+# gate (1) entry point for `reading.view_manifest_coverage`. The first batch of
+# locks all went through `run_stage._draw_reading`, so GLM's neuter run D --
+# removing ONLY the validation_run wiring -- turned nothing red. The defect that
+# started this (a checker parameter no caller supplied) is exactly the shape a
+# missing lock lets back in, so it gets its own lock at its own entry point.
+# --------------------------------------------------------------------------- #
+
+
+def _scoped_two_view_run(tmp_path, produced: tuple[str, ...]):
+    import io
+    import json as _json
+
+    from PIL import Image
+
+    from src.agent.execution.view_manifest import provision_view_manifest
+
+    case_dir = tmp_path / "scoped_case"
+    (case_dir / "case_data").mkdir(parents=True)
+    for stem in ("1f_view", "2f_view"):
+        buf = io.BytesIO()
+        Image.new("RGB", (2, 2), color=(255, 255, 255)).save(buf, format="PNG")
+        (case_dir / "case_data" / f"{stem}.png").write_bytes(buf.getvalue())
+    (case_dir / "case_data" / "testdata_prompt.json").write_text(
+        _json.dumps({"Floor plans": [
+            {"floor": 1, "path": "case_data/1f_view.png", "thermal_zones": 1},
+            {"floor": 2, "path": "case_data/2f_view.png", "thermal_zones": 1},
+        ]}), encoding="utf-8")
+    run_dir = case_dir / "run"
+    (run_dir / "0_reading").mkdir(parents=True)
+    (run_dir / "run_config.yaml").write_text(
+        'reading_exam_scope:\n  input_ids: ["1f_view"]\n  reason: scoped-subset test\n',
+        encoding="utf-8")
+    for stem in produced:
+        (run_dir / "0_reading" / f"{stem}.json").write_text(
+            _json.dumps({"image_label": stem, "image_kind": "plan", "strokes": [],
+                         "dimensions": [], "ocr_texts": [], "uncaptured": []}),
+            encoding="utf-8")
+    provision_view_manifest(case_dir, run_dir)      # also freezes the declared scope
+    return run_dir
+
+
+def _coverage(res):
+    from src.validator.checks.schema import CheckStatus
+
+    rep = res.reports["0_reading::view_manifest"]
+    row = next(r for r in rep.results if r.check_id == "reading.view_manifest_coverage")
+    return row, CheckStatus
+
+
+def test_validate_case_honours_the_frozen_reading_exam_scope(tmp_path):
+    """A run that legally declares it reads only 1f must not be held to 2f."""
+    run_dir = _scoped_two_view_run(tmp_path, produced=("1f_view",))
+    row, CheckStatus = _coverage(validate_case(run_dir))
+    assert row.status is CheckStatus.PASS, row.message
+
+
+def test_validate_case_scope_narrows_coverage_it_does_not_disable_it(tmp_path):
+    """The declared view is still required, and a view outside the scope is
+    still an identity error. Without this, the fix above could equally have
+    been "turn the coverage check off" and the two would look identical.
+
+    Produces 2f (outside the declared scope) and not 1f (inside it), rather than
+    producing nothing: with no views at all `validate_case` does not enter the
+    reading block, so an empty run would prove nothing about this check."""
+    run_dir = _scoped_two_view_run(tmp_path, produced=("2f_view",))
+    row, CheckStatus = _coverage(validate_case(run_dir))
+    assert row.status is CheckStatus.FAIL
+    assert row.evidence["missing_expected_output_ids"] == ["1f_view"]
+    assert row.evidence["extra_stems"] == ["2f_view"]
