@@ -309,12 +309,28 @@ def validate_case(
                 message="run predates the view manifest wire (never provisioned)",
             )
         else:
+            from src.agent.execution.view_manifest import resolve_frozen_reading_exam_scope
+
             verification = verify_view_manifest(case_dir, run_dir)
             produced_stems = {vj.stem for vj in rdir.glob("*_view.json")}
+            base = verification.on_disk if verification.ok else None
+            # F-74: honour the run's frozen `reading_exam_scope` here too. The
+            # parameter has always existed on the checker and the isolation
+            # merge path passes it; this caller did not, so a run that legally
+            # declared a two-view subset was held to the full manifest and
+            # always BLOCKed -- one declaration, two entry points, two verdicts.
+            scope_reason = None
+            exam_scope = None
+            if base is not None:
+                try:
+                    exam_scope = resolve_frozen_reading_exam_scope(run_dir, base)
+                except ValueError as exc:
+                    base, scope_reason = None, f"reading exam scope drift: {exc}"
             vm_rep = check_view_manifest_coverage(
-                verification.on_disk if verification.ok else None,
+                base,
                 produced_stems,
-                manifest_missing_reason=verification.reason,
+                exam_scope=exam_scope,
+                manifest_missing_reason=scope_reason or verification.reason,
                 capability_profile=profile,
                 run_profile=run_profile,
             )

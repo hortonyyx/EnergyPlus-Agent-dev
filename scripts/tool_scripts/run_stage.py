@@ -347,7 +347,8 @@ def _draw_reading(run_dir: Path, policy: RunPolicy, dimensioned_views: set[str])
     miss, an artifact outside the expected set is an identity error, both BLOCK
     regardless of run_profile.
     """
-    from src.agent.execution.view_manifest import provision_view_manifest
+    from src.agent.execution.view_manifest import (provision_view_manifest,
+                                                    resolve_frozen_reading_exam_scope)
     from src.validator.checks.view_manifest import check_reading_stage
 
     rdir = run_dir / "0_reading"
@@ -360,6 +361,19 @@ def _draw_reading(run_dir: Path, policy: RunPolicy, dimensioned_views: set[str])
         manifest = provision_view_manifest(case_dir, run_dir)
     except ValueError as exc:
         manifest_missing_reason = f"could not provision view manifest: {exc}"
+
+    # F-74: a run that declares `reading_exam_scope` in run_config.yaml has that
+    # subset frozen into `_run/`, and the isolation merge path already honours
+    # it -- but this flat-flow path never passed it, so the SAME declaration
+    # produced a pass through one entry point and an always-BLOCK through the
+    # other. Scope drift is surfaced as a manifest failure rather than silently
+    # falling back to the full manifest.
+    exam_scope = None
+    if manifest is not None:
+        try:
+            exam_scope = resolve_frozen_reading_exam_scope(run_dir, manifest)
+        except ValueError as exc:
+            manifest, manifest_missing_reason = None, f"reading exam scope drift: {exc}"
 
     out: dict = {}
     for vj in views:
@@ -385,6 +399,7 @@ def _draw_reading(run_dir: Path, policy: RunPolicy, dimensioned_views: set[str])
     rep = check_reading_stage(
         manifest,
         out,
+        exam_scope=exam_scope,
         dimensioned_stems=dimensioned_views,
         manifest_missing_reason=manifest_missing_reason,
         capability_profile=eff_capability,
@@ -1515,6 +1530,37 @@ def _unwrap_reading_views_envelope(output: dict) -> dict:
     return output
 
 
+def _as_reading_views_envelope(output: object) -> object:
+    """Present a flat ``{stem: view}`` reading product in the v2 envelope.
+
+    Exact mirror of :func:`_unwrap_reading_views_envelope`, which already
+    normalizes the other direction for the legacy scorers. Both product layouts
+    are alive and deliberately supported (see ``_extract_reading_views``: the
+    isolation merge writes the envelope, the flat flow and the blind-re-read
+    protocol write ``{stem: view}``), but ``identify_reading_contract`` only
+    recognizes the envelope -- so a healthy flat product reached the typed
+    scorer as ``unrecognized`` and the capability gate answered
+    ``unsupported_reading_contract``, i.e. the AUTHORITATIVE scoring layer
+    silently degraded to not_applicable while gate (1) still reported normally.
+    Same shape as F-68 (authoritative judging silently skipped) and F-64 (zero
+    product does not go red).
+
+    Presentation only: the on-disk bytes are untouched and the product identity
+    still hashes ``output.json`` itself, so this cannot launder a wrong artifact
+    -- it only stops the scorer declining a shape it already supports elsewhere.
+    Non-reading and already-enveloped payloads are returned unchanged.
+    """
+    from src.agent.judge.reading_typed_adapter import identify_reading_contract
+
+    if not isinstance(output, dict):
+        return output
+    if identify_reading_contract(output).contract_id == "reading_views_v2":
+        return output
+    if not output or not all(isinstance(v, dict) for v in output.values()):
+        return output
+    return {"views": output}
+
+
 def _resolve_core_proof_with_identity_for_attempt(stage: str, attempt_dir: Path):
     """Resolve a writer-issued proof and its current manifest-bound identity.
 
@@ -2027,6 +2073,11 @@ def _grade_typed_attempt_artifacts(stage: str, case: str, attempt_dir: Path, doc
         return {"score_vs_gt": None, "grade": None, "score_criteria": []}
     output_text = output_path.read_text(encoding="utf-8")
     output = json.loads(output_text)
+    if stage == "0_reading":
+        # F-75: accept BOTH living reading product layouts. output_hash below is
+        # taken from output_text (the file bytes), so normalizing the in-memory
+        # object here changes no identity.
+        output = _as_reading_views_envelope(output)
     if stage != "0_reading" and not isinstance(output, dict):
         return {"score_vs_gt": None, "grade": None, "score_criteria": []}
     attempt = attempt_index_of(attempt_dir)

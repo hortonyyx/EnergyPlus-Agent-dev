@@ -1,0 +1,74 @@
+# harness 版本清单 —— 说明书见 harness_versioning.md
+#
+# ⛔ 准入唯一判据：走完开发循环 ①–④ 并在第 ④ 步对 gt 验过，才写进来。
+#    探索期的工具、还没验的候选，一律不进；它们留在 run 目录与 logs/experiments/。
+# ⛔ known_gaps 必填。不写边界的版本等于声称支持一切。
+schema_version: "1"
+
+capability_points:
+
+  - capability_key: reading.plan@c2_ortho_poly
+    version: v0
+    status: unversioned_legacy
+    note: >-
+      v0 = 尚无经验证的版本。当前跑 C2 平面用的是历史遗留实现（clean_vector_v1 单配方
+      + cv_probe 五探针），它从未走过 ①–④ 循环，也从未声明过自己支持哪些图纸方言。
+      2026-08-22 实测查出它对门窗颜色图层的灵敏度为 0（F-69 真因），即：它在
+      ink_layering=layered 的图纸上无法直接观测洞口，只能靠反推。
+    supports_dialects:
+      ink_layering: [monochrome]        # layered 图纸上它看不见门窗层，故不声称支持
+      wall_rep: [two_face_lines]
+      annotation_layer: [present]
+    admits:
+      - src/agent/reading/cv_toolbox/recipes.py::clean_vector_v1
+      - src/agent/reading/cv_toolbox/tools.py::{crop_zoom,wall_line_profiler,storey_line_profiler,px_m_calibrator,window_cc_detector,overlay_logger}
+      - scripts/tool_scripts/cv_probe.py
+    evidence: null                      # ⛔ 无准入证据 —— 这正是它是 v0 的原因
+    known_gaps:
+      - F-69/F-70：唯一掩膜只认 R≈G≈B，对门窗颜色图层灵敏度实测为 0
+      - window_cc_detector 的输出字段名（window_rect）预设了极性答案
+      - 无 solid_fill 墙体画法支持
+      - 墙厚不吸附到图纸声明值（F-78）
+
+  # ------------------------------------------------------------------ #
+  # 候选（⛔ 不是版本，不得被引用为「harness 已具备」）
+  # ------------------------------------------------------------------ #
+  candidates:
+    - name: plan_ink_dialect_and_opening_scan
+      stage: reading.plan
+      where: case_tests/e2e_tests/sm25-L_anchor/run_2026-08-22_orchestrator_handson_H1/out/tools/
+      loop_stage: "① 探索完成（1f+2f）；② 沉淀未完成；③④ 未做"
+      would_support:
+        ink_layering: [layered, monochrome]   # monochrome 显式降级并报 polarity_ambiguous
+        wall_rep: [two_face_lines, solid_fill]
+        annotation_layer: [present]
+      blocking_before_promotion:
+        - 四个立面未做（case 未探索完）
+        - 未按定稿工序干净跑一遍（第 ③ 步）
+        - 已有的对 gt 结果来自探索档产物，且暴露 R-2 基准问题（外轮廓 80.8%）
+      exploratory_readout_do_not_cite:
+        run: case_tests/e2e_tests/sm25-L_anchor/run_2026-08-22_orchestrator_handson_H1
+        windows_placed: "31/31"
+        window_plan_geometry: "62/62"
+        walls_complete: "168.5/208.5"
+        boundary_complete: "145.5/180.0"
+        why_not_citable: >-
+          orchestrator 已被 08-21 解剖污染；且这是边改工具边跑出来的产物，
+          不是按定稿工序的一次干净跑（循环第 ③ 步未做）。
+
+  # ------------------------------------------------------------------ #
+  # 已固化的门修复（不是能力版本，是既有版本的缺陷修复，记账用）
+  # ------------------------------------------------------------------ #
+  gate_fixes:
+    - id: F-73
+      what: reading_process_metrics NARROW-OPENING 域下限改按毫米比较
+      evidence: tests/test_reading_process_metrics.py（2 把锁 + neuter 实测）
+    - id: F-74
+      what: gate① 的 view_manifest_coverage 在 flat-flow 路径上传入已冻结的 reading_exam_scope
+      evidence: tests/test_run_stage_flow.py（含「范围内缺图仍须 BLOCK」反向锁 + neuter 实测）
+    - id: F-75
+      what: 判卷接缝补上 flat→v2 信封的归一化（原先权威判卷静默降级 not_applicable）
+      evidence: tests/test_reading_typed_score_integration.py（走真实入口的接线锁 + neuter 实测）
+    - id: F-76
+      what: legacy 判卷 CLI 不再把 v3 拒绝翻译成误导性的 floor-mapping 提示
+      evidence: tests/test_reading_typed_score_integration.py

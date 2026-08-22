@@ -18,8 +18,9 @@ from src.agent.execution.manifest import (
     load_run_manifest,
     save_run_manifest,
 )
+from src.agent.execution.policy import RunPolicy
 from src.agent.execution.view_manifest import provision_view_manifest
-from src.validator.checks.schema import CheckLayer, CheckReport
+from src.validator.checks.schema import CheckLayer, CheckReport, CheckStatus
 
 _SM21 = Path("case_tests/e2e_tests/sm21_anchor")
 
@@ -1189,3 +1190,128 @@ def test_R1_5_geometry_is_approved_uses_frozen_policy_check_headers(tmp_path, mo
     assert closure.status is CheckStatus.FAIL
     assert any(r.check_id == "reading.dimension_chain_closure"
                for r in reading_report.blocking())
+
+
+# --------------------------------------------------------------------------- #
+# F-74 / F-75 (2026-08-22): the flat reading product is a first-class layout.
+# Both defects were the same shape -- machinery that only recognized the
+# isolation-merge product, so an equally legal flat-flow product got a different
+# verdict from the SAME declaration / the SAME scorer.
+# --------------------------------------------------------------------------- #
+
+
+def _seed_two_view_case(tmp_path, case: str = "scoped") -> Path:
+    import io
+
+    from PIL import Image
+
+    case_dir = tmp_path / case
+    (case_dir / "case_data").mkdir(parents=True, exist_ok=True)
+    for stem in ("1f_view", "2f_view"):
+        buf = io.BytesIO()
+        Image.new("RGB", (2, 2), color=(255, 255, 255)).save(buf, format="PNG")
+        (case_dir / "case_data" / f"{stem}.png").write_bytes(buf.getvalue())
+    (case_dir / "case_data" / "testdata_prompt.json").write_text(
+        json.dumps(
+            {
+                "Floor plans": [
+                    {"floor": 1, "path": "case_data/1f_view.png", "thermal_zones": 1},
+                    {"floor": 2, "path": "case_data/2f_view.png", "thermal_zones": 1},
+                ]
+            }
+        ),
+        encoding="utf-8",
+    )
+    return case_dir
+
+
+def _scoped_run(case_dir: Path, produced: tuple[str, ...]) -> Path:
+    run_dir = case_dir / "run"
+    (run_dir / "0_reading").mkdir(parents=True, exist_ok=True)
+    (run_dir / "run_config.yaml").write_text(
+        'reading_exam_scope:\n  input_ids: ["1f_view"]\n  reason: scoped-subset test\n',
+        encoding="utf-8",
+    )
+    for stem in produced:
+        (run_dir / "0_reading" / f"{stem}.json").write_text(
+            json.dumps(
+                {
+                    "image_label": stem,
+                    "image_kind": "plan",
+                    "strokes": [],
+                    "dimensions": [],
+                    "ocr_texts": [],
+                    "uncaptured": [],
+                }
+            ),
+            encoding="utf-8",
+        )
+    return run_dir
+
+
+def test_flat_flow_gate1_honours_the_frozen_reading_exam_scope(tmp_path):
+    """F-74: `reading.view_manifest_coverage` must respect a run's declared
+    reading subset on the FLAT path too.
+
+    The checker has always taken an `exam_scope`, the run freezes one from
+    run_config.yaml, and the isolation merge path passes it -- but the flat
+    flow did not, so a run that legally declared "this round reads 1f only"
+    was held to the whole manifest and BLOCKed forever. One declaration, two
+    entry points, two verdicts."""
+    case_dir = _seed_two_view_case(tmp_path)
+    run_dir = _scoped_run(case_dir, produced=("1f_view",))
+
+    _, rep = rs._draw_reading(
+        run_dir, RunPolicy(capability_profile="orthogonal_polygon"), {"1f_view", "2f_view"}
+    )
+    by_id = {r.check_id: r for r in rep.results}
+
+    coverage = by_id["reading.view_manifest_coverage"]
+    assert coverage.status is CheckStatus.PASS, coverage.message
+    out_of_scope = by_id["reading.view_manifest_coverage.out_of_scope.2f_view"]
+    assert out_of_scope.status is CheckStatus.NOT_APPLICABLE
+
+
+def test_flat_flow_still_blocks_a_view_missing_from_inside_the_declared_scope(tmp_path):
+    """The scope narrows what is required; it does not stop requiring it. A run
+    that declares 1f and produces nothing must still fail -- otherwise the fix
+    above would have turned the coverage check off rather than scoped it."""
+    case_dir = _seed_two_view_case(tmp_path)
+    run_dir = _scoped_run(case_dir, produced=())
+
+    _, rep = rs._draw_reading(
+        run_dir, RunPolicy(capability_profile="orthogonal_polygon"), {"1f_view", "2f_view"}
+    )
+    by_id = {r.check_id: r for r in rep.results}
+    assert by_id["reading.view_manifest_coverage"].status is CheckStatus.FAIL
+
+
+def test_flat_reading_product_reaches_the_typed_scoring_contract(tmp_path):
+    """F-75: a flat `{stem: view}` product is a supported layout, but only the
+    envelope satisfied `identify_reading_contract`, so the AUTHORITATIVE typed
+    scorer answered `unsupported_reading_contract` and degraded to
+    not_applicable while gate (1) reported normally."""
+    from src.agent.judge.reading_typed_adapter import identify_reading_contract
+
+    flat = {"1f_view": {"image_kind": "plan"}, "2f_view": {"image_kind": "plan"}}
+    # the defect is real: unwrapped, the typed path declines this product
+    assert identify_reading_contract(flat).contract_id == "unrecognized"
+
+    wrapped = rs._as_reading_views_envelope(flat)
+    assert identify_reading_contract(wrapped).contract_id == "reading_views_v2"
+    assert wrapped["views"] == flat
+    # exact mirror of the existing opposite-direction normalizer
+    assert rs._unwrap_reading_views_envelope(wrapped) == flat
+
+
+def test_enveloped_reading_product_is_passed_through_untouched():
+    env = {"views": {"1f_view": {"image_kind": "plan"}}}
+    assert rs._as_reading_views_envelope(env) is env
+
+
+def test_non_reading_payloads_are_never_wrapped():
+    """Only a mapping whose every value is a view dict may be wrapped -- so a
+    correction product (scalar fields) and a non-dict payload pass through."""
+    assert rs._as_reading_views_envelope({"schema_version": "3"}) == {"schema_version": "3"}
+    assert rs._as_reading_views_envelope({}) == {}
+    assert rs._as_reading_views_envelope([1, 2]) == [1, 2]

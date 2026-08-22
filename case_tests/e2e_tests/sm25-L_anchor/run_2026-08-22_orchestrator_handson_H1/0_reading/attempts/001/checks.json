@@ -9,19 +9,60 @@
   "run_policy_source": "structured_config",
   "results": [
     {
-      "check_id": "reading.view_manifest_coverage",
-      "status": "fail",
+      "check_id": "reading.view_manifest_coverage.out_of_scope.East_view",
+      "status": "not_applicable",
       "layer": "invariant",
       "check_version": "1",
-      "message": "4 required view(s) have no matching produced artifact",
+      "message": "view is outside this run's declared reading exam scope",
       "evidence": {
-        "missing_expected_output_ids": [
-          "East_view",
-          "North_view",
-          "South_view",
-          "West_view"
-        ],
-        "extra_stems": []
+        "input_id": "East_view",
+        "source": "run_config.yaml:reading_exam_scope"
+      }
+    },
+    {
+      "check_id": "reading.view_manifest_coverage.out_of_scope.North_view",
+      "status": "not_applicable",
+      "layer": "invariant",
+      "check_version": "1",
+      "message": "view is outside this run's declared reading exam scope",
+      "evidence": {
+        "input_id": "North_view",
+        "source": "run_config.yaml:reading_exam_scope"
+      }
+    },
+    {
+      "check_id": "reading.view_manifest_coverage.out_of_scope.South_view",
+      "status": "not_applicable",
+      "layer": "invariant",
+      "check_version": "1",
+      "message": "view is outside this run's declared reading exam scope",
+      "evidence": {
+        "input_id": "South_view",
+        "source": "run_config.yaml:reading_exam_scope"
+      }
+    },
+    {
+      "check_id": "reading.view_manifest_coverage.out_of_scope.West_view",
+      "status": "not_applicable",
+      "layer": "invariant",
+      "check_version": "1",
+      "message": "view is outside this run's declared reading exam scope",
+      "evidence": {
+        "input_id": "West_view",
+        "source": "run_config.yaml:reading_exam_scope"
+      }
+    },
+    {
+      "check_id": "reading.view_manifest_coverage",
+      "status": "pass",
+      "layer": "invariant",
+      "check_version": "1",
+      "message": "",
+      "evidence": {
+        "expected_output_ids": [
+          "1f_view",
+          "2f_view"
+        ]
       }
     },
     {

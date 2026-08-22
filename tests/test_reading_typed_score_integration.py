@@ -9,6 +9,7 @@ from pathlib import Path
 
 from tests.test_reading_typed_scoring_slice0 import (
     GT_FILE,
+    REPO_ROOT,
     _denominator_wire,
     _grade_payload,
     _reading_grade_status_lines,
@@ -289,3 +290,55 @@ def test_reading_grade_status_lines_publish_all_six_first_class_counts():
         "Elevation local-x disagreements: 5",
         "Scorer internal failures: 6",
     )
+
+
+def test_flat_layout_of_the_same_reading_scores_identically(tmp_path):
+    """F-75 WIRING lock (2026-08-22): the typed scorer must reach a flat
+    ``{stem: view}`` product, not only the isolation-merge envelope.
+
+    Both layouts are alive and deliberately supported (``_extract_reading_views``
+    recognizes both; ``window_sources`` rebuilds stage-root mirrors in whichever
+    shape the accepted product uses), but ``identify_reading_contract`` only
+    knows the envelope -- so a healthy flat product reached the capability gate
+    as ``unrecognized`` and the AUTHORITATIVE scoring layer silently answered
+    not_applicable while gate (1) reported normally (F-68 / F-64 family).
+
+    Deliberately routed through ``_grade_typed_attempt_artifacts`` rather than
+    calling the normalizer directly: the first version of this lock tested the
+    helper alone and stayed green with the call site deleted."""
+    envelope = _real_payload()
+    flat = envelope["views"]
+    assert isinstance(flat, dict) and flat
+
+    enveloped, _ = _grade_payload(tmp_path, envelope, name="layout_envelope")
+    flat_scored, _ = _grade_payload(tmp_path, flat, name="layout_flat")
+
+    assert enveloped["payload"]["kind"] == "c2_scored"
+    assert flat_scored["payload"]["kind"] == "c2_scored"
+    assert flat_scored["payload"]["score_criteria"] == enveloped["payload"]["score_criteria"]
+
+
+def test_v3_gt_refusal_is_reported_as_itself_not_as_a_floor_mapping_hint(tmp_path):
+    """F-76: the legacy CLI path swallowed EVERY ValueError into one hint.
+
+    ``load_gt`` raises ``GtValidationError`` (a ValueError) carrying
+    ``gt_v3_requires_typed_consumer`` for every v3 answer, so the operator was
+    told to pass ``--floor`` -- a flag that cannot help, because this scorer
+    cannot read a v3 gt at all. Combined with F-75 that produced "no working
+    command scores this product" while every message pointed somewhere else."""
+    view = (
+        REPO_ROOT
+        / "case_tests/e2e_tests/sm25-L_anchor/run_2026-08-22_orchestrator_handson_H1"
+        / "0_reading/1f_view.json"
+    )
+    if not view.exists():                       # run artifacts are not a test dependency
+        import pytest
+
+        pytest.skip("sm25 hands-on run artifacts not present")
+    completed = subprocess.run(
+        [sys.executable, "scripts/tool_scripts/score_reading_vs_gt.py", str(view),
+         "--case", "sm25-L_anchor", "--floor", "F1"],
+        capture_output=True, text=True,
+    )
+    assert "gt_v3_requires_typed_consumer" in completed.stderr
+    assert "pass --floor" not in completed.stderr

@@ -215,9 +215,14 @@ EnergyPlus 经 `WorkflowTool.run_simulation`（eppy + ConverterManager，idfpy �
 > ⇒ **它看见的青色像素数 = 0**（实测）。读图器没有能直接看见窗的尺子，只能从灰墙线断口反推——
 > 北墙猜对、东墙猜反。**sm21/sm24 也有这个图层 ⇒ 项目历史上每次 reading 都对它是瞎的。**
 > ⇒ 新判据一行确定性：**墙带内有门窗色墨迹=洞口，只有灰墨/空白=墙垛**；sm20（纯灰度）显式降级不猜。
-> **⏭ 下一轮第一件事 = 固化**（详见 [固化计划](logs/experiments/2026-08-22_orchestrator_hands_on/README.md#七固化计划作业设计-五4)）：
-> 工具进 `cv_toolbox` + 彩色 recipe（F-70 正解）+ SOP 进 skill 库，**均须派工 + 跨家族审**；
-> 之后才是第 ④ 步降智验收。⛔ 本轮一切分数不作数（orchestrator 已被污染）。
+> **⭐⭐⭐ 开发循环（2026-08-22 用户当面定，⛔ 覆盖此前「跑完就固化」的做法）**：
+> **① 探索性把这个 case 做完 → ② 沉淀成定稿工序 → ③ 按定稿从头干净跑一遍 → ④ 对 gt 判分
+> →（做好了）⑤ 固化进 harness、版本 +1 → ⑥ 换弱模型跑 →（好）下一个 case /（差）查病因回②。**
+> ⛔ 我曾提议跑完两张平面就直接固化 —— **跳过了 ③④，被用户当场纠正**。
+> 第 ④ 步的作用是**验工序对不对**，不是给模型打分（所以「我被污染」不构成跳过它的理由）。
+> **配套：harness 按能力点做版本管理** → [architecture/harness_versioning.md](architecture/harness_versioning.md)：
+> 能力点 = **建筑复杂度（C 阶梯）× 图纸方言**两根轴；**探索性不进版本**。
+> **⏭ 当前位置 = 第 ① 步未完**（四个立面未做）。判卷路径三缺陷已修，第 ④ 步现在跑得通了。
 
 > **⭐⭐⭐ 2026-08-21 战略调整 banner（用户当面定；⛔ 与下方 reading banner 及 §1.5#7 冲突处以本条为准）**
 > **跑测的目的 = 升级 harness，不是拿分。** 开发循环四步：
@@ -361,6 +366,7 @@ EnergyPlus 经 `WorkflowTool.run_simulation`（eppy + ConverterManager，idfpy �
 | [plan.md](plan.md) | **活计划**：当前焦点 + 未闭合缺陷 + 本轮日志 + 近细远粗待办。⛔ 翻篇的日更不留在这里 |
 | [decision_log.md](decision_log.md) | **历史决策唯一归档**：里程碑时间线 + §5.1–5.13 决策详档 + 变更日志 |
 | [architecture/pipeline_stage_contracts.md](architecture/pipeline_stage_contracts.md) | **唯一「当前稳定架构」文档**（活）：逐阶段 输入·输出·校验 + 两道门 + 规范不变量 + 接缝缺口 |
+| [architecture/harness_versioning.md](architecture/harness_versioning.md) + [harness_versions.yaml](architecture/harness_versions.yaml) | **harness 版本管理**（2026-08-22 用户定）：能力点=建筑复杂度 × 图纸方言两根轴；**探索性不进版本、走完循环①–④对过 gt 的才进**；`known_gaps` 必填 |
 | [architecture/judge_grade_model.md](architecture/judge_grade_model.md) | **判卷子系统活规格**（gate② grade：reading+correction·平面+立面·三档色·容差带；§8b 开放 backlog=墙粒度/立面窗移位vs变尺寸/Hungarian/ambiguous/非方形）|
 | [guides/new_case_guide.md](guides/new_case_guide.md) | **主 Agent（编排器+judge②）操作手册**：换主控模型读此接手 |
 | [guides/codex_execution_protocol.md](guides/codex_execution_protocol.md) | **Claude 编排 / Codex 执行**协作规约：分工 + 省上下文机制 + 通道/沙箱校准 + 审阅反转 + 兜底纪律 |

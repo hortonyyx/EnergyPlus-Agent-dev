@@ -162,8 +162,17 @@ def main() -> int:
     except LookupError:
         print(f"no gt for case {args.case!r}", file=sys.stderr)
         return 2
-    except ValueError:
-        print("could not map image to a gt floor; pass --floor", file=sys.stderr)
+    except ValueError as exc:
+        # F-76: this handler used to translate EVERY ValueError into a floor-
+        # mapping hint. `load_gt` raises GtValidationError (a ValueError) with
+        # `gt_v3_requires_typed_consumer` for every v3 answer, so the real
+        # message -- "this scorer cannot read a v3 gt at all" -- was replaced by
+        # advice to pass a flag that does not help. Report the raised reason and
+        # keep the hint only for the case it was written for.
+        if str(exc) == "floor mapping":
+            print("could not map image to a gt floor; pass --floor", file=sys.stderr)
+        else:
+            print(f"legacy reading scorer refused this input: {exc}", file=sys.stderr)
         return 2
 
     tot_wh = tot_wt = tot_nh = tot_nt = 0

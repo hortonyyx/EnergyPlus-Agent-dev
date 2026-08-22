@@ -154,9 +154,9 @@
 | **⭐ 新 F-72** | ⭐⭐⭐ **现有链闭合门查「Σ段值==总长」，从结构上分不开「余量放对」与「余量丢掉」**。实证：07-07 与 07-08 对 sm21 顶链转录**逐字相同**（段和皆 14.76、总长皆 15.00，差 0.24 m）；07-07 把余量放进两条 120 mm 无标注隔墙带、末段收在 **15.00**；07-08 首尾相接、末段收在 **14.76** ⇒ 窗依次偏 −0.12/−0.24 ⇒ **6/7**。⭐ **新判据 = 落位闭合**（链摆到图上的跨度必须等于其声称总长），实测好夹具 4/5 绿、07-08 红（**红得对**）、坏夹具 F1+G1 命中 | **待拍板**：需同时引入夹具 `known_defects`（好夹具允许被红，当且仅当红的是已登记缺陷）|
 | **⭐ 新** | **cv_evidence 归档的仓库增长**：实测 07-07 sm21 一份 **12 MB**，其中 JSON 侧车仅 **984 KB**、overlay PNG **11 MB**（92%）。⭐ 08-21 那整轮解剖**只读了 JSON、一张 overlay 都没开**；但 overlay 的真实消费者是**人工目视复核**，故两者都留、并把 `total_bytes` 记进 provenance ⇒ 增长可见而非静默 | **登记不做**（§0.1）；若日后仓库变重，从这个数字下手 |
 | **⭐ 新 F-73** | 过程门 NARROW-OPENING 用**浮点严格小于**比 0.60 m：`10.9 − 10.3 = 0.5999999999999996` ⇒ **一扇图纸明写 600 mm 的窗被判成「窄得不可能」**，一份正确 reading 被门判红 | ✅ **已修**（改按毫米比较，域下限一毫米没动）+ 2 把锁；**neuter 实测**摘掉修复该锁即红 |
-| **⭐ 新 F-74** | gate① 的 `reading.view_manifest_coverage` 在 **flat-flow 路径**上不传已冻结的 `reading_exam_scope`（[run_stage.py:385](../scripts/tool_scripts/run_stage.py#L385) 与 [validation_run.py:314](../src/agent/execution/validation_run.py#L314) 都略掉了该参数）⇒ 声明只考两张图的 run **必然 BLOCK**；隔离壳 merge 路径会传 ⇒ **同一份声明、两个入口、两种判决**。⭐ 另：`check_view_manifest_merge` 全仓**零生产调用者** | **待派工**（碰 gate① 接线）|
-| **⭐ 新 F-75** | flat-flow 把 attempt 产物写成裸 `{stem: view}` 而非 `{"views": {...}}` 的 ReadingViews-v2 信封 ⇒ `identify_reading_contract` 判 `unrecognized` ⇒ **权威 typed 判卷静默降级成 `not_applicable`**（F-68 同形、F-64 同族）| **待派工** |
-| **⭐ 新 F-76** | v3 答案无法被 legacy 判卷器读（`gt_v3_requires_typed_consumer`），而 `score_reading_vs_gt.py` 把该异常**报成误导性的「could not map image to a gt floor; pass --floor」**。F-75+F-76 合起来 ⇒ **当前没有任何一条可用命令能给 flat-flow 产物判分** | **待派工** |
+| **⭐ 新 F-74** | gate① 的 `reading.view_manifest_coverage` 在 **flat-flow 路径**上不传已冻结的 `reading_exam_scope`（[run_stage.py:385](../scripts/tool_scripts/run_stage.py#L385) 与 [validation_run.py:314](../src/agent/execution/validation_run.py#L314) 都略掉了该参数）⇒ 声明只考两张图的 run **必然 BLOCK**；隔离壳 merge 路径会传 ⇒ **同一份声明、两个入口、两种判决**。⭐ 另：`check_view_manifest_merge` 全仓**零生产调用者** | ✅ **已修**（两个调用点各补传已冻结的应试范围）+ 2 把锁（含「范围内缺图仍须 BLOCK」反向锁）+ neuter 实测 |
+| **⭐ 新 F-75** | flat-flow 把 attempt 产物写成裸 `{stem: view}` 而非 `{"views": {...}}` 的 ReadingViews-v2 信封 ⇒ `identify_reading_contract` 判 `unrecognized` ⇒ **权威 typed 判卷静默降级成 `not_applicable`**（F-68 同形、F-64 同族）| ✅ **已修**（两个调用点各补传已冻结的应试范围）+ 2 把锁（含「范围内缺图仍须 BLOCK」反向锁）+ neuter 实测 |
+| **⭐ 新 F-76** | v3 答案无法被 legacy 判卷器读（`gt_v3_requires_typed_consumer`），而 `score_reading_vs_gt.py` 把该异常**报成误导性的「could not map image to a gt floor; pass --floor」**。F-75+F-76 合起来 ⇒ **当前没有任何一条可用命令能给 flat-flow 产物判分** | ✅ **已修**（判卷接缝补上 flat→v2 信封归一化，与既有反向归一化互为镜像）+ **走真实入口的接线锁** + neuter 实测（⚠️ 第一版锁只测 helper、摘掉接线仍绿，已重写） |
 | **⭐ 新 F-77** | `cv_probe.py --sidecar-name` 只接受 `NNN_tool` 形式而 `--help` 只字未提，报错在栈底才现形 | **登记**（一行 help 文本）|
 | **⭐ 新 F-78** | 墙带厚度取面线质心间距（像素），**未吸附到图纸声明的 240/120**：sm25 1f 量出 0.237–0.249 / 0.110–0.125，**2f 出现 0.131 / 0.146 两个不存在的厚度** ⇒ 那两条八成是错配的墙带，而**没有任何门会因此报红** | **登记**；修法与洞口同形（吸附+残差记账+超容差报红）|
 | **F-71③ 实战现形** | 孤立的**墙厚 callout 在当前 schema 里没有合法形态**：`dimension_chain_closure` 要求每个 `chain_id+axis` 组同时有 overall 与有序 segment，且 dimensioned 视图每条 dimension 都必须有 `chain_id` ⇒ **忠实转录「240」的读图器过不了 gate①** ⇒ 门在教读图器丢真标注（[[rule-without-legal-exit-breeds-invention]] 同族）。⭐ **07-07 那份 sm24 好 reading 同样会被拦**（它的 `C_thickness_callouts` 也只有 segment）| **待派工**（改 schema 枚举）|
@@ -234,6 +234,66 @@ gate① = **1 block + 4 flag**，而那个 block 是 F-74（不是产物的问�
 碎片吸收只并入门不并入窗（南墙 4000 窗被切开后前半被删）→ 底部尺寸链 ·
 跨 case 抄近道 → 跨轴尺度检查 ·
 先设计「用面线断口定洞口边界」→ 实测断口噪声（0.930/0.974/0.995/1.017 忽大忽小）⇒ 改走颜色层+刻度。
+
+---
+
+## 2026-08-22（第二段）· **开发循环被用户纠正 + 判卷路径三缺陷修复 + harness 版本管理立规**
+
+### 一、⭐⭐⭐ 开发循环（用户当面定，⛔ 覆盖我提的「跑完就固化」）
+
+**① 探索性把这个 case 做完 → ② 沉淀成定稿工序 → ③ 按定稿从头干净跑一遍 → ④ 对 gt 判分
+→（做好了）⑤ 固化进 harness 更新一个版本 → ⑥ 换弱模型跑 →（好）进下一个 case /（差）查病因回 ②。**
+
+⛔ **我错在两处**：① 提议跑完两张平面就直接固化，**跳过了 ③④**；
+② 把「我被污染 ⇒ 分数不许引用」推成了「判分没意义」——
+**第 ④ 步验的是工序对不对，与谁在执行无关**；跳过它就等于把没验证的工序固进版本，
+弱模型跑砸了都分不清是工序错还是模型弱。
+
+### 二、⭐⭐ harness 版本管理（用户令）→ [architecture/harness_versioning.md](architecture/harness_versioning.md) + [harness_versions.yaml](architecture/harness_versions.yaml)
+
+**按 case 对应的能力点做版本；探索性不进版本，确定性留下来的才进。**
+⭐ 能力点是**两根正交轴**：**建筑复杂度**（C 阶梯）× **图纸方言**（本轮首次量出来：
+`ink_layering` layered/monochrome · `wall_rep` two_face_lines/solid_fill · `annotation_layer`）。
+只声明「支持 C2」不合格——实证：sm25 上造好的工具迁到 sm24 **第一次直接失效**（零墙带），
+差别就在 `wall_rep`。`known_gaps` 定为必填项：不写边界的版本等于声称支持一切。
+当前清单里 `reading.plan@c2_ortho_poly` 记为 **v0 / unversioned_legacy**（历史实现从未走过 ①–④）。
+
+### 三、判卷路径三缺陷已修（小活，主控直接干，待 GLM 验）
+
+⭐ **F-75 的定性被自己收窄了**：flat 形态**不是遗漏，是被刻意支持的活契约**
+（`_extract_reading_views` 明写「⛔ 别再把 `.get("views")` 焊死进调用点」；`window_sources`
+按各自形态重建镜像比哈希）⇒ 真缺陷是**判卷侧只认信封**，缺的是既有 `_unwrap_reading_views_envelope`
+的**镜像**。修法从「改 flat-flow 写什么」缩到「判卷接缝加一次归一化」，风险小一个量级。
+
+| 编号 | 修法 | 锁 |
+|---|---|---|
+| F-74 | 两个调用点各补传已冻结的应试范围 | 2 把（含「范围内缺图仍须 BLOCK」反向锁）· neuter 实测 |
+| F-75 | 判卷接缝 flat→v2 信封归一化 | **走真实入口的接线锁** · neuter 实测 |
+| F-76 | 按原样报出被吞掉的真异常 | 1 把 |
+
+⚠️ **F-75 的第一版锁是坏的**：它直接调 helper，**摘掉接线仍然全绿**
+（[[neuter-must-cover-wiring-not-just-mechanism]] 当场现形）⇒ 已重写为经
+`_grade_typed_attempt_artifacts` 的接线锁，摘掉接线即红。
+
+**全量 2994 绿 / 13 xfail**（修改前 2946）。gate① 从 3 block → **0 block**，权威判卷从
+`not_applicable` → **`c2_scored`**。
+
+### 四、⭐⭐ 第 ④ 步立刻兑现价值：查出一个所有无 gt 自证指标都看不见的问题
+
+判卷结果（⛔ **探索档产物、不得引用**）：
+
+| 判据 | 结果 |
+|---|---|
+| **windows_placed** | **31 / 31 = 100%** |
+| **window_plan_geometry** | **62 / 62 = 100%** |
+| walls_complete | 168.5 / 208.5 = 80.8% |
+| boundary_complete | 145.5 / 180.0 = 80.8% |
+
+**病灶 = 基准（R-2/R-3），不是精度也不是覆盖**：匹配上的墙位置误差最大 0.134 m、平均 0.036 m；
+**gt 的外轮廓走「外皮」，我把墙全放在「中线」上**，逐边偏差恒为 **±0.12 m = 240 墙厚的一半**，
+F1/F2 各 8 条外轮廓边**无一例外**，内墙那批大额 miss 同源。
+⭐ 信息没丢——每笔墙都带 `thickness_m`，中线↔外皮可互推 ⇒ 这是**基准约定要定死**的设计问题，
+归第 ② 步沉淀时处理。**以前判卷对外轮廓是瞎的（R-1），现在 C2 的 boundary 判据把它量出来了。**
 
 ---
 
