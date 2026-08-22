@@ -1,0 +1,27 @@
+run_profile: exploratory
+capability_profile: orthogonal_polygon
+scope:
+  stages: [0_reading]
+judge:
+  mode: stop
+review:
+  reading: false
+  correction: false
+  geometry: false
+models:
+  reading:
+    role: 0_reading
+    model_id: "claude-opus-5"
+    provider: anthropic
+    effort: default
+    source: >-
+      orchestrator hands-on, FULL CASE (2 plans + 4 elevations). Development
+      loop step (1): exploratory. Products are the SOP + tools; the reading
+      itself is the by-product that proves the SOP runs.
+      ORCHESTRATOR IS CONTAMINATED (read sm25 1f pixels and gt east-wall window
+      positions during the 2026-08-21 dissection) => this run's score is a
+      steering signal only and MUST NOT be cited. The citable readout comes
+      from loop step (3): a clean single pass under the frozen procedure.
+harness:
+  capability_key: reading@c2_ortho_poly
+  version: exploratory

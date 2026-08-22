@@ -222,7 +222,10 @@ EnergyPlus 经 `WorkflowTool.run_simulation`（eppy + ConverterManager，idfpy �
 > 第 ④ 步的作用是**验工序对不对**，不是给模型打分（所以「我被污染」不构成跳过它的理由）。
 > **配套：harness 按能力点做版本管理** → [architecture/harness_versioning.md](architecture/harness_versioning.md)：
 > 能力点 = **建筑复杂度（C 阶梯）× 图纸方言**两根轴；**探索性不进版本**。
-> **⏭ 当前位置 = 第 ① 步未完**（四个立面未做）。判卷路径三缺陷已修，第 ④ 步现在跑得通了。
+> **⏭ 当前位置 = 第 ① 步已完**（六张图全做完：平面 31 窗、立面 31 窗+3 门，与 gt 逐面吻合；
+> gate① 0 block、离线指标零告警）。**⛔ 第 ④ 步在全案上撞死** —— 立面判卷绑定不存在
+> （F-68 未做完的另一半），六图 run 判分直接 `rejected`；平面频道单独可判。
+> **⇒ 待拍板：实现立面判卷绑定＝碰 judge 的实质改动，须派工。**
 
 > **⭐⭐⭐ 2026-08-21 战略调整 banner（用户当面定；⛔ 与下方 reading banner 及 §1.5#7 冲突处以本条为准）**
 > **跑测的目的 = 升级 harness，不是拿分。** 开发循环四步：

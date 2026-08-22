@@ -715,3 +715,94 @@ def find_chain_baselines(mask_annotation: np.ndarray, *, coverage: float = 0.30,
                 "support_px": int(prof[g].sum()),
             })
     return out
+
+
+# --------------------------------------------------------------------------
+# Elevations: same ink dialect, different geometry.
+#
+# A plan wall is a band and its openings are runs along it; an elevation face
+# has no band at all -- each opening is a closed rectangle drawn on the face.
+# So the polarity principle is unchanged (measure the fenestration layer, never
+# infer from gaps in the structure lines) while the extractor changes from
+# "tile a band" to "connected components".
+# --------------------------------------------------------------------------
+
+
+def fenestration_boxes(
+    a: np.ndarray,
+    *,
+    min_area_px: int = 40,
+    nest_tol_px: int = 2,
+) -> list[dict[str, Any]]:
+    """Opening outlines on an elevation, one box per opening.
+
+    Each opening is drawn as a NESTED PAIR -- an outer frame and an inner
+    glazing line -- which labels as two components. Taking every component
+    would double every opening, so a component fully contained in another
+    (within `nest_tol_px`) is folded into it and reported as its `inner_box`
+    rather than dropped, since the pair itself is evidence that this is a
+    drawn opening and not a stray mark.
+    """
+    from scipy import ndimage
+
+    fen = ink_families(a)["fenestration"]
+    labels, count = ndimage.label(fen, structure=np.ones((3, 3), dtype=np.uint8))
+    raw: list[dict[str, Any]] = []
+    for comp in range(1, count + 1):
+        ys, xs = np.nonzero(labels == comp)
+        if len(xs) < min_area_px:
+            continue
+        raw.append({
+            "bbox_px": [int(xs.min()), int(ys.min()), int(xs.max()) + 1, int(ys.max()) + 1],
+            "area_px": int(len(xs)),
+        })
+    raw.sort(key=lambda b: -( (b["bbox_px"][2] - b["bbox_px"][0]) * (b["bbox_px"][3] - b["bbox_px"][1]) ))
+
+    out: list[dict[str, Any]] = []
+    for box in raw:
+        x0, y0, x1, y1 = box["bbox_px"]
+        host = None
+        for kept in out:
+            k0, m0, k1, m1 = kept["bbox_px"]
+            if x0 >= k0 - nest_tol_px and y0 >= m0 - nest_tol_px and x1 <= k1 + nest_tol_px and y1 <= m1 + nest_tol_px:
+                host = kept
+                break
+        if host is None:
+            out.append({**box, "inner_boxes": []})
+        else:
+            host["inner_boxes"].append(box["bbox_px"])
+    out.sort(key=lambda b: (b["bbox_px"][0], b["bbox_px"][1]))
+    return out
+
+
+def snap_box(
+    box: dict[str, Any],
+    ticks_x: list[float],
+    ticks_y: list[float],
+    *,
+    tol_px: float = 4.0,
+) -> dict[str, Any]:
+    """Snap an opening box's four edges to dimension witness ticks.
+
+    Same A x B reconciliation as the plan band scan: the ink says WHICH
+    rectangle is an opening, the chains say where its edges are. An edge with
+    no tick in range keeps its pixel value and is marked `snapped: false`.
+    """
+    x0, y0, x1, y1 = box["bbox_px"]
+    edges = {}
+    vals = []
+    for name, v, pool in (("x0", x0, ticks_x), ("x1", x1, ticks_x),
+                          ("y0", y0, ticks_y), ("y1", y1, ticks_y)):
+        if pool:
+            near = min(pool, key=lambda t: abs(t - v))
+            if abs(near - v) <= tol_px:
+                edges[name] = {"from": float(v), "to": near, "delta_px": round(near - v, 2), "snapped": True}
+                vals.append(near)
+                continue
+            edges[name] = {"from": float(v), "to": float(v), "snapped": False,
+                           "nearest_tick_px": near, "nearest_dist_px": round(abs(near - v), 2)}
+        else:
+            edges[name] = {"from": float(v), "to": float(v), "snapped": False}
+        vals.append(float(v))
+    return {**box, "snapped_px": vals, "snap": edges,
+            "snap_count": sum(1 for e in edges.values() if e.get("snapped"))}
