@@ -237,6 +237,47 @@ gate① = **1 block + 4 flag**，而那个 block 是 F-74（不是产物的问�
 
 ---
 
+## 2026-08-22（第六段）· **立面判卷绑定：GLM 施工交付，sm24 通了；sm25 撞结构阻塞并已拍板**
+
+派工单 → [`request/2026-08-22_elevation_score_bindings_dispatch.md`](logs/reviews/request/2026-08-22_elevation_score_bindings_dispatch.md)
+执行日志 → [`execution/2026-08-22_elevation_bindings_glm_execution.md`](logs/reviews/execution/2026-08-22_elevation_bindings_glm_execution.md)
+席位：用户指定 **GLM 施工 / GPT 跨家族复核**。
+
+### 一、⭐ 交付：立面判分真的通了（主控独立复跑验证）
+
+`run_stage.py artifacts sm24_anchor run_2026-08-02_sonnet_full_unsup 0_reading`
+→ **`window_elevation_geometry 44/44 pass`**、elevation 频道 `applicable`。
+生成器对该 run 重产的 5 条绑定与**手工产的已知好参照逐字段一致（5/5）** ⇒ 推导正确性有独立参照背书，
+且**不是为 sm25 特化**。
+
+三把新锁均在真实入口 + 真实夹具上实测（sign 反转两路拒收 · 镜像门好绿坏红 · neuter 摘接线）。
+
+### 二、⛔ 我的派工单错了一条（P7），停下上报第 23/23 次抓住派工方
+
+P7 我写「judge 侧对 gt 的绑定校验不比对指纹」——**字面为真但以偏概全**：我只查了
+`validate_score_view_bindings_against_gt` 一处接缝，就当成判卷全链如此。
+实际 Va 在 [`facade_applicability.py:459-465`](../src/agent/correction/facade_applicability.py#L459-L465)
+**逐 opening 按其宿主层**比对 `绑定指纹 == 该层指纹` 且 `along_origin == 该层该族端点`（严格 `==`、无容差）。
+⇒ 这是我今天第三次「查了一处当成全都如此」（前两次：编造函数名 · 把错误信息词表当未定项）。
+
+### 三、S1 升级为结构阻塞，用户已拍板
+
+主控独立核实：**四个立面的两层指纹全不同**（`36fb25250aad…` vs `fbfc5e046f79…`）；
+**北/南两层连沿墙端点都不同**（`0.0` vs `-3.552713678800501e-15`）。
+⇒ 单条立面绑定**结构上不可能同时满足两层**，任何 17 字段取值都过不去 —— 不是"格子填哪个"的问题。
+
+⭐ **关键先例**（主控查到）：本项目在同一个转换器里已对这类噪声签过字 ——
+`tarch_normalize.py:2930` `_PAIRING_Z_TOLERANCE_M = 1e-9`，注释写明「浮点重结合噪声 O(1e-15)；
+1 纳米比毫米量化步长低 6 个数量级、比噪声底高 6 个数量级，绝不可能吸收真实漂移」。
+⇒ 「会不会引入没人签字的新阈值」这一反对意见，**对这一类噪声本项目已有答案**。
+
+**用户拍板（2026-08-22）= 修答案生成器，让几何相同的多层轮廓指纹逐位一致**（治根）。
+理由：下游所有严格相等比较从此变成对的，不必一处处加容差；sm25 目前无正式成绩挂靠，重签不作废任何东西；
+该缺陷本就登记在案（「跨层 footprint 浮点逐位比较，只要多层就永远过不去」——当时只修了比较、没修指纹）。
+⇒ **另出派工单**（碰 gt = 答案文件，gt 铁律敏感）。
+
+---
+
 ## 2026-08-22（第五段）· **立面左右朝向约定已测出，8/8 待拍板**
 
 全档 + 可复现脚本 → [`logs/experiments/2026-08-22_elevation_mirror_convention/`](logs/experiments/2026-08-22_elevation_mirror_convention/README.md)
