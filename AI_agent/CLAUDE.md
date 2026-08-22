@@ -209,11 +209,15 @@ EnergyPlus 经 `WorkflowTool.run_simulation`（eppy + ConverterManager，idfpy �
 > 立面载体方言层 F-65 · sm25 gt 晋升 · C2 首考 94.4% / 窗 8/15）。
 
 
-> **⏭ 下一轮第一件事（2026-08-21 收工时定）= orchestrator 亲自下场跑 sm25 1f。**
-> 作业设计**已在下场之前写成并封存**，⛔ 跑完不得回改：
-> [`logs/experiments/2026-08-21_historical_reading_dissection/orchestrator_hands_on_plan.md`](logs/experiments/2026-08-21_historical_reading_dissection/orchestrator_hands_on_plan.md)。
-> ⚠️ 该轮**产物是 SOP + 工具，不是 reading**；且 orchestrator 已被本轮调查污染
-> （读过 sm25 像素、看过 gt 东墙窗位）⇒ **其分数一律不得引用**，真正验收在第 ④ 步降智那一跑。
+> **✅ 2026-08-22 已跑完（1f+2f，用户当场把范围从 1f 扩到两张）** → [全档](logs/experiments/2026-08-22_orchestrator_hands_on/README.md)。
+> ⭐⭐⭐ **头条：F-69 不是判断力失误，是观测能力缺失** —— 这些 CAD 图**按图层配色，门窗画在青色图层上**
+> （sm25 12.3% / sm24 15.6% / sm21 9.7% 的墨迹），而唯一的掩膜 `clean_vector_v1` 只认 `R≈G≈B`
+> ⇒ **它看见的青色像素数 = 0**（实测）。读图器没有能直接看见窗的尺子，只能从灰墙线断口反推——
+> 北墙猜对、东墙猜反。**sm21/sm24 也有这个图层 ⇒ 项目历史上每次 reading 都对它是瞎的。**
+> ⇒ 新判据一行确定性：**墙带内有门窗色墨迹=洞口，只有灰墨/空白=墙垛**；sm20（纯灰度）显式降级不猜。
+> **⏭ 下一轮第一件事 = 固化**（详见 [固化计划](logs/experiments/2026-08-22_orchestrator_hands_on/README.md#七固化计划作业设计-五4)）：
+> 工具进 `cv_toolbox` + 彩色 recipe（F-70 正解）+ SOP 进 skill 库，**均须派工 + 跨家族审**；
+> 之后才是第 ④ 步降智验收。⛔ 本轮一切分数不作数（orchestrator 已被污染）。
 
 > **⭐⭐⭐ 2026-08-21 战略调整 banner（用户当面定；⛔ 与下方 reading banner 及 §1.5#7 冲突处以本条为准）**
 > **跑测的目的 = 升级 harness，不是拿分。** 开发循环四步：
@@ -260,6 +264,7 @@ EnergyPlus 经 `WorkflowTool.run_simulation`（eppy + ConverterManager，idfpy �
 
 | 日期 | 一句话 | 详档 |
 |---|---|---|
+| **2026-08-22** | **⭐⭐⭐ orchestrator 亲自下场跑通 sm25 1f+2f**：F-69 真因 = **门窗在独立颜色图层上而现行掩膜看不见它**（青色像素数实测 0）· A×B 对账落成代码规则（像素定哪段是洞口、刻度定边界）⇒ **31/31 扇窗坐标取自尺寸链、零笔无证据、12 条链闭合 0.0 mm** · **跨 case 迁到 sm24：11 扇历史窗逐个复现宽度全同** · 修 F-73 · 登记 F-74/75/76/77/78 | [全档](logs/experiments/2026-08-22_orchestrator_hands_on/README.md) · [SOP](logs/experiments/2026-08-22_orchestrator_hands_on/sop_plan_reading.md) · [缺口清单](logs/experiments/2026-08-22_orchestrator_hands_on/tool_gaps.md) |
 | **2026-08-21 夜** | **⭐⭐⭐ 战略换挡：跑测=升级 harness 不是拿分** · 历史 reading 解剖（27 份独立、19 个满分是同一份复用）· **离线夹具 + 过程指标 + 四道硬门**（此前「改脚手架伤没伤 reading」只能花钱跑抽）· A/B 互为盲区实证 → CHAIN-PLACEMENT 门 · F-35 侧车带回 · 登记 F-69/70/71/72 | [解剖档](logs/experiments/2026-08-21_historical_reading_dissection/README.md) · [作业设计](logs/experiments/2026-08-21_historical_reading_dissection/orchestrator_hands_on_plan.md) |
 | **2026-08-21** | **⭐⭐ sm25 gt 签字晋升入库（首份多层+非凸答案）· C2 首考已判分**（外轮廓 94.4% / 窗 8/15，病灶=F-69 极性反了·把墙垛当窗）· 转换器三修 + 判卷两修 · 四处「肉眼看不见的一点点错」· 停下上报 **8/8** 全是派工方题错（累计 22/22）| [plan.md 本日](plan.md) · [gt](../case_tests/test_baseline/gt/sm25-L_anchor/) |
 | **2026-08-20** | **✅ 07-07 水平在当前基座复现（Sonnet 9/9·7/7·15/15·0.0m）** · 转换器多层化 + **立面载体方言层（F-65）**落地 · 满分掩盖外轮廓偏移 · 停下上报 **4/4** 全是派工方题错 | [plan.md 本日](plan.md) · [专项 §10](capability/reading/improvement_methodology.md) |

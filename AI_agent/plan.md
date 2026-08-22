@@ -95,14 +95,16 @@
 |---|---|---|
 | 1 | 四道过程门接进 gate① | ⏸ **派工单已出、待拍板派发**（碰 `src/validator/` 须换人施工 + 跨家族审）→ [派工单](logs/reviews/request/2026-08-21_reading_process_gates_into_gate1.md) |
 | 2 | 隔离壳 merge 带回 `cv_evidence/` | ✅ **已修（F-35 闭合）**⭐ 该缺陷 08-16 就登记成 **strict xfail**（`test_f35_cv_evidence_should_reach_attempt`），本次修完它自动 XPASS ⇒ 已摘 xfail；全仓 xfail 14→13。：整棵 `out/cv` 拷进 `attempts/NNN/cv_evidence/`，含 overlay PNG；provenance 记 file_count/bytes/sha256，缺席显式记 null。2 把锁 + neuter 实测（摘掉即红）|
-| 3 | 07-07 的四件套 + 台账写成 SOP 进 skill 库 | ⏸ 按新战略须先由 orchestrator 亲自跑一遍验证 → [作业设计已写](logs/experiments/2026-08-21_historical_reading_dissection/orchestrator_hands_on_plan.md) |
+| 3 | 07-07 的四件套 + 台账写成 SOP 进 skill 库 | ✅ **已跑完并写成草稿**（2026-08-22 orchestrator 下场 1f+2f）→ [SOP 草稿](logs/experiments/2026-08-22_orchestrator_hands_on/sop_plan_reading.md)；进 skill 库属固化项 |
 | 4 | 收 07-07 六条 schema feedback | ✅ **已收**：①④⑤ 本轮修完（guide.md），②早已修，剩 ③（枚举，须派工）+ ⑥（=F-70）|
 
-**⭐ 下一步 = orchestrator 亲自下场跑 sm25 1f**（新战略第 1–2 步）。
-作业设计**已在下场之前写成并提交**（含五条纪律 · 四个已知坑 · **预先登记的四条预测**）：
-[`orchestrator_hands_on_plan.md`](logs/experiments/2026-08-21_historical_reading_dissection/orchestrator_hands_on_plan.md)。
-⚠️ **该轮产物不是 reading 而是 SOP + 工具**；且 orchestrator **已被本轮调查污染**
-（读过 sm25 像素、看过 gt 东墙窗位）⇒ **其分数一律不得引用**，真正验收在第 4 步降智那一跑。
+**✅ 已跑完（2026-08-22，范围经用户当场扩到 1f+2f）** → 见本文「2026-08-22」条目与
+[全档](logs/experiments/2026-08-22_orchestrator_hands_on/README.md)。
+**⭐ 下一步 = 固化**（新战略第 ③ 步），三项均须**派工 + 跨家族审**：
+① 墨迹方言探针 + 洞口带扫描 + 刻度对账 → `src/agent/reading/cv_toolbox/` + `cv_probe.py` CLI
+② 彩色 recipe `layered_cad_v1`（**F-70 的正解**）与 `clean_vector_v1` 并列，由方言探针选，⛔ 不许删旧的（sm20 还要用）
+③ SOP 进 `skills/intake_pipeline/0_reading/`（主控可直接改）
+之后才是第 ④ 步降智验收。⛔ 本轮一切分数不作数。
 
 ### ⏭ 更早的下一步（2026-08-21 白天收工态）
 
@@ -151,6 +153,13 @@
 | **⭐ 新 F-71** | **07-07 schema feedback 六条里四条至今未修**（结转 #4 已收，详见解剖档 §七之二）：~~① `anchor` 字段形状~~ ✅ 已修 · ③ 厚度 callout 无 `role`（枚举仍 `overall|segment|baseline`）· ~~④ 门 z 链非零底段~~ ✅ 已修（guide §2.1.1）· ~~⑤~~ ✅ 已修 · **剩 ③ 厚度 callout 无 role（改枚举，须派工）+ ⑥ = F-70**。②已修（无填充立面裁决在 `pen_library.md:26`）。⭐ 顺带确认 08-16 行为清单的 **D1（`local_x_positive` 自相矛盾）已修** | ✅ **①④⑤ 本轮已修**；剩 ③（枚举，须派工）与 ⑥（=F-70）|
 | **⭐ 新 F-72** | ⭐⭐⭐ **现有链闭合门查「Σ段值==总长」，从结构上分不开「余量放对」与「余量丢掉」**。实证：07-07 与 07-08 对 sm21 顶链转录**逐字相同**（段和皆 14.76、总长皆 15.00，差 0.24 m）；07-07 把余量放进两条 120 mm 无标注隔墙带、末段收在 **15.00**；07-08 首尾相接、末段收在 **14.76** ⇒ 窗依次偏 −0.12/−0.24 ⇒ **6/7**。⭐ **新判据 = 落位闭合**（链摆到图上的跨度必须等于其声称总长），实测好夹具 4/5 绿、07-08 红（**红得对**）、坏夹具 F1+G1 命中 | **待拍板**：需同时引入夹具 `known_defects`（好夹具允许被红，当且仅当红的是已登记缺陷）|
 | **⭐ 新** | **cv_evidence 归档的仓库增长**：实测 07-07 sm21 一份 **12 MB**，其中 JSON 侧车仅 **984 KB**、overlay PNG **11 MB**（92%）。⭐ 08-21 那整轮解剖**只读了 JSON、一张 overlay 都没开**；但 overlay 的真实消费者是**人工目视复核**，故两者都留、并把 `total_bytes` 记进 provenance ⇒ 增长可见而非静默 | **登记不做**（§0.1）；若日后仓库变重，从这个数字下手 |
+| **⭐ 新 F-73** | 过程门 NARROW-OPENING 用**浮点严格小于**比 0.60 m：`10.9 − 10.3 = 0.5999999999999996` ⇒ **一扇图纸明写 600 mm 的窗被判成「窄得不可能」**，一份正确 reading 被门判红 | ✅ **已修**（改按毫米比较，域下限一毫米没动）+ 2 把锁；**neuter 实测**摘掉修复该锁即红 |
+| **⭐ 新 F-74** | gate① 的 `reading.view_manifest_coverage` 在 **flat-flow 路径**上不传已冻结的 `reading_exam_scope`（[run_stage.py:385](../scripts/tool_scripts/run_stage.py#L385) 与 [validation_run.py:314](../src/agent/execution/validation_run.py#L314) 都略掉了该参数）⇒ 声明只考两张图的 run **必然 BLOCK**；隔离壳 merge 路径会传 ⇒ **同一份声明、两个入口、两种判决**。⭐ 另：`check_view_manifest_merge` 全仓**零生产调用者** | **待派工**（碰 gate① 接线）|
+| **⭐ 新 F-75** | flat-flow 把 attempt 产物写成裸 `{stem: view}` 而非 `{"views": {...}}` 的 ReadingViews-v2 信封 ⇒ `identify_reading_contract` 判 `unrecognized` ⇒ **权威 typed 判卷静默降级成 `not_applicable`**（F-68 同形、F-64 同族）| **待派工** |
+| **⭐ 新 F-76** | v3 答案无法被 legacy 判卷器读（`gt_v3_requires_typed_consumer`），而 `score_reading_vs_gt.py` 把该异常**报成误导性的「could not map image to a gt floor; pass --floor」**。F-75+F-76 合起来 ⇒ **当前没有任何一条可用命令能给 flat-flow 产物判分** | **待派工** |
+| **⭐ 新 F-77** | `cv_probe.py --sidecar-name` 只接受 `NNN_tool` 形式而 `--help` 只字未提，报错在栈底才现形 | **登记**（一行 help 文本）|
+| **⭐ 新 F-78** | 墙带厚度取面线质心间距（像素），**未吸附到图纸声明的 240/120**：sm25 1f 量出 0.237–0.249 / 0.110–0.125，**2f 出现 0.131 / 0.146 两个不存在的厚度** ⇒ 那两条八成是错配的墙带，而**没有任何门会因此报红** | **登记**；修法与洞口同形（吸附+残差记账+超容差报红）|
+| **F-71③ 实战现形** | 孤立的**墙厚 callout 在当前 schema 里没有合法形态**：`dimension_chain_closure` 要求每个 `chain_id+axis` 组同时有 overall 与有序 segment，且 dimensioned 视图每条 dimension 都必须有 `chain_id` ⇒ **忠实转录「240」的读图器过不了 gate①** ⇒ 门在教读图器丢真标注（[[rule-without-legal-exit-breeds-invention]] 同族）。⭐ **07-07 那份 sm24 好 reading 同样会被拦**（它的 `C_thickness_callouts` 也只有 segment）| **待派工**（改 schema 枚举）|
 | F-62 · N-1 / N-2 | guard 词法围栏同族缺陷 | **未修**（`observe` 档下影响归零）|
 | F-63 | 跨轴门抓不住拆轴规避 | ⭐ **本轮活体复现**（GPT 主动拆轴消警）；修法归 [专项 §9.1](capability/reading/improvement_methodology.md) |
 | F-64 | gate① 对「零产出」是瞎的 | 登记 |
@@ -167,6 +176,66 @@
 - 07-07 水平在当前基座复现（Sonnet 9/9·7/7·15/15·0.0 m）· 转换器多层化 · 三条判据修正
 - 立面洞口「载体方言层」落地（F-65）· sm25 立面阻断解除（31 窗 + 3 门）
 ⇒ 全文见 [`logs/worklog/2026-08_plan_log.md`](logs/worklog/2026-08_plan_log.md)
+
+## 2026-08-22 · ⭐⭐⭐ **orchestrator 亲自下场跑通 sm25 1f+2f —— 产物是 SOP + 工具**
+
+全档 → [`logs/experiments/2026-08-22_orchestrator_hands_on/`](logs/experiments/2026-08-22_orchestrator_hands_on/README.md)
+（[SOP 草稿](logs/experiments/2026-08-22_orchestrator_hands_on/sop_plan_reading.md) ·
+[工具缺口清单](logs/experiments/2026-08-22_orchestrator_hands_on/tool_gaps.md)）
+run = `case_tests/e2e_tests/sm25-L_anchor/run_2026-08-22_orchestrator_handson_H1/`
+
+> ⛔ **本轮一切分数不作数**（orchestrator 已被 08-21 解剖污染，作业设计 §四）。范围经用户当场从 1f 扩到 1f+2f。
+
+### 一、⭐⭐⭐ 头条：F-69 不是判断力失误，是**观测能力缺失**
+
+这些 CAD 图**按图层配色，门窗画在独立的青色图层上**（占墨迹：sm25 1f **12.3%** · 2f 12.9% ·
+sm24 **15.6%** · sm21 **9.7%** · sm20 **0%**），而全仓唯一的掩膜 `clean_vector_v1` 只认 `R≈G≈B`
+（`rgb_tol=8`）⇒ **它看见的青色像素数 = 0**（实测，非推断）。
+⇒ 读图器**没有任何能直接看见窗的尺子**，只能从灰色墙面线的断口反推 —— 北墙猜对、东墙猜反。
+同族 [[verify-the-path-works-before-blaming-the-model]]：**这条路根本不通。**
+⭐⭐ 更重的一层：**sm21 / sm24 也有这个图层 ⇒ 项目历史上每一次 reading 都对它是瞎的**，
+07-07 那两份满分是靠灰线反推挣来的。
+⇒ 新判据一行确定性：**墙带内有门窗色墨迹 = 洞口；只有灰墨/空白 = 墙垛**。
+门窗之分同样是测量：门的墨迹**延伸到墙带之外**（开启弧），窗在墙面线处收住。
+**降级显式**：sm20 纯灰度 ⇒ 返回 `mode="monochrome"` 并标 `polarity_ambiguous`，⛔ 不给自信的错答案。
+
+### 二、A×B 对账落成一条代码规则
+
+像素（门窗色层）定**哪一段是洞口**、尺寸链见证刻度定**边界精确在哪**；
+**规则 = 把每个洞口两端吸附到最近刻度**（3 px 容差），吸附距离逐条记账，超容差保留像素值并标 `snapped:false`。
+sm25 东墙 7 扇窗吸附后宽度 = **900 mm 整**。
+
+### 三、自证指标（⛔ 不含 gt）
+
+12 条尺寸链**全部闭合 0.0 mm**（最差 rmse 0.269 px）· 跨轴尺度偏差 ≤0.038% ·
+**31/31 扇窗坐标取自链上毫米值**（零像素兜底）· **零笔无证据** ·
+窗宽全为整模数（0.6/0.9/1.2/1.8/2.4/4.0/4.32/8.0 m）· 离线过程指标**零硬告警** ·
+gate① = **1 block + 4 flag**，而那个 block 是 F-74（不是产物的问题）。
+
+### 四、⭐⭐ 跨 case 验证（兑现「⛔ 不为新 case 特化」）
+
+**第一次迁移失败且是门抓住的**：跨轴尺度偏差 **57%** ⇒ 真因是我抄近道跳过了 SOP 第 2 步（OCR 转录）。
+老实重做后撞出真的画法差异：sm24 的墙是**单条实心填充带**（sm25 是两条面线+中空）、
+家具并入结构色、240 mm 只有 8.7 px 而抗锯齿撑到 11 px。
+⇒ 三处**增量**修改（单线自身宽度即成带 / 厚度容差按比例 / **相邻同类洞口合并**）。
+**结果**：10 条链全闭合 0.0 mm；**07-07 那份 sm24 好 reading 的 11 扇窗逐个复现、宽度全同**，
+多出 1 扇 0.99 m 落在实测 186 mm 的带上（声明只有 240）⇒ 来源清楚 = 放宽容差的代价，且产物里看得见。
+
+### 五、封存预测 vs 实际（⛔ 计划书 §六 未回改）
+
+预测 ②④ 成立（时间确实花在造配方上 · Z 形凹口全程没出现）；
+① 未直接检验但机制已坐实；③ **对了一半** —— 极性确实是最大缺口，但答案落在 **F-70**（掩膜看不见颜色），
+而计划书 §二 明写「不预先造新 recipe，只在实际卡住时才造」——**第一步就卡住了**。
+
+### 六、我犯的 5 处错，工具当场拦下 4 处
+
+2f 右侧中链 OCR 数错（四个 2000 读成五个）→ **链闭合检查**在下游用它之前拦下 ·
+墙厚 callout 的 `axis` 手填错 → gate① `axis_endpoint_consistent` ·
+碎片吸收只并入门不并入窗（南墙 4000 窗被切开后前半被删）→ 底部尺寸链 ·
+跨 case 抄近道 → 跨轴尺度检查 ·
+先设计「用面线断口定洞口边界」→ 实测断口噪声（0.930/0.974/0.995/1.017 忽大忽小）⇒ 改走颜色层+刻度。
+
+---
 
 ## 2026-08-21 · ⭐⭐⭐ **sm25 gt 候选包已产出，只差用户签字**
 

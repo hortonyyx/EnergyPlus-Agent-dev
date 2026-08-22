@@ -284,7 +284,14 @@ def measure_views(loaded: list[dict], names: list[str] | None = None) -> dict:
                     coords.extend(float(v) for v in rng)
             if is_plan and pen == "window":
                 width = _opening_width(stroke)
-                if width is not None and width < MIN_PLAUSIBLE_OPENING_M:
+                # Compare in whole millimetres. Drawings declare openings to the
+                # millimetre, and a coordinate pair taken straight off a
+                # dimension chain does not survive binary floating point:
+                # 10.9 - 10.3 is 0.5999999999999996, so a real 600 mm window
+                # tripped this flag as "narrower than anything real". Rounding
+                # to the unit the drawing actually uses removes the artefact
+                # without moving the domain floor by one millimetre.
+                if width is not None and round(width * 1000.0) < round(MIN_PLAUSIBLE_OPENING_M * 1000.0):
                     narrow_openings.append({
                         "view": name,
                         "stroke": stroke.get("id", "?"),

@@ -1,0 +1,39 @@
+{
+  "image": "case_tests/e2e_tests/sm25-L_anchor/case_data/2f_view.png",
+  "image_label": "Floor 2 plan view (sm25-L_anchor)",
+  "view_name": "2f_view.json",
+  "out_dir": "case_tests/e2e_tests/sm25-L_anchor/run_2026-08-22_orchestrator_handson_H1/0_reading",
+  "evidence_dir": "case_tests/e2e_tests/sm25-L_anchor/run_2026-08-22_orchestrator_handson_H1/out/cv/2f",
+  "drawing_box": [330, 1275, 230, 1400],
+  "world_zero_px": [241.0, 1258.5],
+  "declared_thickness_mm": [240, 120],
+  "min_band_extent_px": 25,
+  "primary_x_chain": "C_top_fine",
+  "primary_y_chain": "C_left_outer",
+  "chains": {
+    "C_top_overall":  {"axis":"row","strip":[76,98],   "values_mm":[25000], "world_start_mm":0,"direction":1,"ref_coord_m":20.0},
+    "C_top_coarse":   {"axis":"row","strip":[172,194], "values_mm":[5000,4940,1120,3940,10000], "world_start_mm":0,"direction":1,"ref_coord_m":20.0},
+    "C_top_fine":     {"axis":"row","strip":[267,289], "values_mm":[2240,2400,720,2400,2540,600,4100,300,8000,1700], "world_start_mm":0,"direction":1,"ref_coord_m":20.0},
+    "C_bot_fine":     {"axis":"row","strip":[1351,1373],"values_mm":[5000,1930,1800,720,1800,3500,1800,720,1800,2230,1800,1900], "world_start_mm":0,"direction":1,"ref_coord_m":0.0},
+    "C_bot_coarse":   {"axis":"row","strip":[1417,1439],"values_mm":[5000,4090,3910,3910,4030,4060], "world_start_mm":0,"direction":1,"ref_coord_m":0.0},
+    "C_bot_overall":  {"axis":"row","strip":[1489,1511],"values_mm":[25000], "world_start_mm":0,"direction":1,"ref_coord_m":0.0},
+    "C_left_overall": {"axis":"col","strip":[68,90],   "values_mm":[20000], "world_start_mm":20000,"direction":-1,"ref_coord_m":0.0},
+    "C_left_outer":   {"axis":"col","strip":[140,162], "values_mm":[3940,2060,4000,4120,1940,3940], "world_start_mm":20000,"direction":-1,"ref_coord_m":0.0},
+    "C_left_inner":   {"axis":"col","strip":[181,203], "values_mm":[6000,1840,4320,2380,1200,4260], "world_start_mm":20000,"direction":-1,"ref_coord_m":0.0},
+    "C_right_fine":   {"axis":"col","strip":[1426,1448],"values_mm":[4740,900,720,900,1480,900,720,900,1100,900,740,6000], "world_start_mm":20000,"direction":-1,"ref_coord_m":25.0},
+    "C_right_mid":    {"axis":"col","strip":[1486,1508],"values_mm":[3940,2060,2000,2000,2000,2000,2060,3940], "world_start_mm":20000,"direction":-1,"ref_coord_m":25.0},
+    "C_right_overall":{"axis":"col","strip":[1568,1590],"values_mm":[20000], "world_start_mm":20000,"direction":-1,"ref_coord_m":25.0}
+  },
+  "thickness_callouts": [
+    {"text":"240","value_mm":240,"axis":"y","from":[0.0,19.88],"to":[0.24,19.88],"anchor_px":[241.0,252.0]},
+    {"text":"240","value_mm":240,"axis":"y","from":[5.0,7.88],"to":[5.24,7.88],"anchor_px":[471.0,482.0]}
+  ],
+  "uncaptured_extra": [
+    "excluded furniture (magenta ink layer, 22.1% of drawing ink): desks, task chairs, conference tables, sofas",
+    "excluded door swing arcs and leaves - doors are healed into the wall per guide 2.1",
+    "no room name labels are printed on this drawing; room roles left unread"
+  ],
+  "unknowns": [
+    "orchestrator mis-transcribed C_right_mid on the first pass (read five 2000 segments where the drawing has four); the chain-closure check rejected it at 22000 vs 20000 and the value was re-derived from tick spacing before anything downstream used it"
+  ]
+}

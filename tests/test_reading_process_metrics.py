@@ -151,6 +151,23 @@ def test_narrow_opening_flag_silent_at_the_declared_floor():
     assert not any("NARROW-OPENING" in f for f in rpm.flags(rpm.measure_views([view])))
 
 
+def test_narrow_opening_flag_silent_exactly_at_the_declared_floor():
+    """A 600 mm opening is legal, including when its coordinates came off a
+    dimension chain and so do not subtract to exactly 0.60 in binary floating
+    point. sm25 1f carries such a window (x 10.300 -> 10.900, whose difference
+    is 0.5999999999999996); before the millimetre comparison this flag called it
+    narrower than anything real and reddened a correct reading."""
+    view = _plan([_wall(0, 0, 20, 0), _window(10.3, 10.9)])
+    assert 10.9 - 10.3 < rpm.MIN_PLAUSIBLE_OPENING_M      # the artefact is real
+    assert not any("NARROW-OPENING" in f for f in rpm.flags(rpm.measure_views([view])))
+
+
+def test_narrow_opening_flag_still_fires_one_millimetre_below_the_floor():
+    """The floor itself has not moved: 599 mm is still flagged."""
+    view = _plan([_wall(0, 0, 20, 0), _window(1.0, 1.599)])
+    assert any("NARROW-OPENING" in f for f in rpm.flags(rpm.measure_views([view])))
+
+
 def _chain(chain_id, overall_m, segments, axis="x"):
     """One transcribed chain: an overall plus placed segments."""
     dims = [{"chain_id": chain_id, "axis": axis, "role": "overall", "value_m": overall_m,
