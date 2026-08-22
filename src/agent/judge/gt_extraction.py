@@ -7,6 +7,7 @@ later phase and this module never writes a GT asset.
 from __future__ import annotations
 
 import hashlib
+import os
 from collections import Counter, defaultdict
 from dataclasses import dataclass
 from pathlib import Path
@@ -186,17 +187,68 @@ def _selector_entities(msp, selector: EntitySelectorV1, view: PlanViewBindingV1)
     return sorted(selected, key=_handle)
 
 
-def _transform(point: tuple[float, float], view: PlanViewBindingV1, metres_per_unit: float) -> tuple[float, float]:
+# Multi-plan world-transform exit snap (S1, 2026-08-22 dispatch).
+#
+# The converter quantises wall geometry on its declared native grid
+# (q = tau_node/10, e.g. 0.1 mm for mm-native sources) BEFORE the per-view
+# world affine is applied here.  Two plan views that draw the same outline at
+# different sheet positions carry different affine offsets (m02/m12), so the
+# same mathematical world coordinate is evaluated through two different float
+# sums and can differ by pure re-association noise (measured 3.55e-15 m on
+# sm25 at |world| <= ~55 m).  Multi-floor consumers compare footprints and
+# extents with strict bitwise equality (footprint_fingerprint; Va's per-floor
+# along-extent equality), so that noise must not survive the transform.
+#
+# 1e-9 m reuses the already-signed pairing-noise criterion
+# (``tarch_normalize._PAIRING_Z_TOLERANCE_M``) and its argument form: it sits
+# 5 orders of magnitude BELOW the declared native quantisation step expressed
+# in world metres (0.1 mm = 1e-4 m; 6 orders below the 1 mm node-join
+# tolerance), so it can never absorb a real geometric difference the pipeline
+# can represent; and ~6 orders of magnitude ABOVE the measured re-association
+# noise floor (3.55e-15 m), so it deterministically collapses that noise.
+_WORLD_SNAP_GRID_M = 1e-9
+
+# Fresh-process mutation seam (same shape as tarch_normalize.TARCH_NEUTER_GATE):
+# unwires the snap so the canonical gate suite can prove locks 1/2 depend on it.
+_NEUTER_WORLD_SNAP_ENV = "GT_NEUTER_WORLD_SNAP"
+
+
+def _plan_world_snap_grid(manifest: GtExtractionManifestV1 | None) -> float | None:
+    """Grid for the world-transform exit snap, or None on the frozen single-plan path.
+
+    The cross-affine re-association noise this snap removes exists exactly when
+    one case maps geometry into the same world region through two or more plan
+    affines; with a single plan view there is no second affine to disagree
+    with, so the single-plan path stays byte-frozen (signed single-floor
+    answers must rebuild identically).
+    """
+    if manifest is None or os.environ.get(_NEUTER_WORLD_SNAP_ENV):
+        return None
+    plan_views = [view for view in manifest.views if isinstance(view, PlanViewBindingV1)]
+    return _WORLD_SNAP_GRID_M if len(plan_views) > 1 else None
+
+
+def _transform(point: tuple[float, float], view: PlanViewBindingV1, metres_per_unit: float,
+               snap_grid_m: float | None = None) -> tuple[float, float]:
     x, y = point[0] * metres_per_unit, point[1] * metres_per_unit
     affine = view.world_from_source_m
-    return (affine.m00 * x + affine.m01 * y + affine.m02,
-            affine.m10 * x + affine.m11 * y + affine.m12)
+    world_x = affine.m00 * x + affine.m01 * y + affine.m02
+    world_y = affine.m10 * x + affine.m11 * y + affine.m12
+    if snap_grid_m is None:
+        return (world_x, world_y)
+    # Deterministic nearest-lattice rounding.  Grid-quantised inputs sit on
+    # integer multiples of 1e5 lattice units (0.1 mm = 1e5 nm), so the quotient
+    # is within float error (~1e-5 lattice units) of an integer and never lands
+    # on a .5 boundary; both floors evaluate the identical rounding path.
+    return (round(world_x / snap_grid_m) * snap_grid_m,
+            round(world_y / snap_grid_m) * snap_grid_m)
 
 
-def _segments(entities, view: PlanViewBindingV1, metres_per_unit: float, role: str):
+def _segments(entities, view: PlanViewBindingV1, metres_per_unit: float, role: str,
+              snap_grid_m: float | None = None):
     output: list[tuple[tuple[float, float], tuple[float, float], GtEntityRefV3]] = []
     for entity in entities:
-        points = [_transform(p, view, metres_per_unit) for p in _entity_points(entity)]
+        points = [_transform(p, view, metres_per_unit, snap_grid_m) for p in _entity_points(entity)]
         if len(points) < 2:
             _fail("dxf_empty_entity")
         if entity.dxftype() == "LWPOLYLINE" and entity.closed and points[0] != points[-1]:
@@ -335,14 +387,15 @@ def inspect_extraction_inputs(inputs: InspectionInputs) -> DxfInspectionReportV1
         views = []
     else:
         views = []
+        snap_grid_m = _plan_world_snap_grid(inputs.manifest)
         for view in sorted((v for v in inputs.manifest.views if isinstance(v, PlanViewBindingV1)), key=lambda v: v.id):
             diagnostics = {"dangle_count": 0, "cut_count": 0, "invalid_ring_count": 0}
             try:
                 footprint = _selector_entities(doc.modelspace(), view.footprint_boundary, view)
-                segments = _snap_segments(_segments(footprint, view, inputs.manifest.metres_per_unit, "footprint_boundary"), inputs.tooling.tolerances.dxf_node_join_tolerance_m, inputs.tooling.tolerances.dxf_axis_alignment_tolerance_m)
+                segments = _snap_segments(_segments(footprint, view, inputs.manifest.metres_per_unit, "footprint_boundary", snap_grid_m), inputs.tooling.tolerances.dxf_node_join_tolerance_m, inputs.tooling.tolerances.dxf_axis_alignment_tolerance_m)
                 polygons = _polygonize(segments, inputs.tooling.tolerances.dxf_topology_area_tolerance_m2, diagnostics)
                 zone = _selector_entities(doc.modelspace(), view.zone_boundaries, view)
-                _polygonize(_snap_segments(_segments(footprint + zone, view, inputs.manifest.metres_per_unit, "zone_boundary"), inputs.tooling.tolerances.dxf_node_join_tolerance_m, inputs.tooling.tolerances.dxf_axis_alignment_tolerance_m), inputs.tooling.tolerances.dxf_topology_area_tolerance_m2, diagnostics)
+                _polygonize(_snap_segments(_segments(footprint + zone, view, inputs.manifest.metres_per_unit, "zone_boundary", snap_grid_m), inputs.tooling.tolerances.dxf_node_join_tolerance_m, inputs.tooling.tolerances.dxf_axis_alignment_tolerance_m), inputs.tooling.tolerances.dxf_topology_area_tolerance_m2, diagnostics)
                 counts = Counter(e.dxftype() for e in footprint); layers = Counter(e.dxf.layer for e in footprint)
                 views.append(DxfViewInspectionV1(view_id=view.id, kind="plan", entity_count_by_type=dict(counts), entity_count_by_layer=dict(layers), matched_handles=[_handle(e) for e in footprint], polygon_count=len(polygons), **diagnostics))
             except ExtractionError as error:
@@ -380,8 +433,9 @@ def extract_plan_geometry(inputs: ExtractionInputs) -> PlanExtractionResult:
     floors = []
     reference_ring = None
     floor_info = {floor.id: floor for floor in inputs.manifest.floors}
+    snap_grid_m = _plan_world_snap_grid(inputs.manifest)
     for view in sorted((v for v in inputs.manifest.views if isinstance(v, PlanViewBindingV1)), key=lambda v: v.floor_id):
-        footprint_segments = _snap_segments(_segments(_selector_entities(doc.modelspace(), view.footprint_boundary, view), view, inputs.manifest.metres_per_unit, "footprint_boundary"), inputs.tooling.tolerances.dxf_node_join_tolerance_m, inputs.tooling.tolerances.dxf_axis_alignment_tolerance_m)
+        footprint_segments = _snap_segments(_segments(_selector_entities(doc.modelspace(), view.footprint_boundary, view), view, inputs.manifest.metres_per_unit, "footprint_boundary", snap_grid_m), inputs.tooling.tolerances.dxf_node_join_tolerance_m, inputs.tooling.tolerances.dxf_axis_alignment_tolerance_m)
         footprint_faces = _polygonize(footprint_segments, inputs.tooling.tolerances.dxf_topology_area_tolerance_m2)
         containing = [face for face in footprint_faces if all(face.contains(Point(seed.point_world_m)) for seed in view.zone_seeds)]
         if len(containing) != 1: _fail("dxf_footprint_seed_ambiguous")
@@ -392,7 +446,7 @@ def extract_plan_geometry(inputs: ExtractionInputs) -> PlanExtractionResult:
                 reference_ring, ring, inputs.tooling.tolerances.dxf_node_join_tolerance_m):
             _fail("dxf_profile_floor_footprint_mismatch")
         zone_entities = _selector_entities(doc.modelspace(), view.zone_boundaries, view)
-        zone_segments = _snap_segments(_segments(_selector_entities(doc.modelspace(), view.footprint_boundary, view) + zone_entities, view, inputs.manifest.metres_per_unit, "zone_boundary"), inputs.tooling.tolerances.dxf_node_join_tolerance_m, inputs.tooling.tolerances.dxf_axis_alignment_tolerance_m)
+        zone_segments = _snap_segments(_segments(_selector_entities(doc.modelspace(), view.footprint_boundary, view) + zone_entities, view, inputs.manifest.metres_per_unit, "zone_boundary", snap_grid_m), inputs.tooling.tolerances.dxf_node_join_tolerance_m, inputs.tooling.tolerances.dxf_axis_alignment_tolerance_m)
         zone_faces = _polygonize(zone_segments, inputs.tooling.tolerances.dxf_topology_area_tolerance_m2)
         zones = []
         for face in zone_faces:
@@ -552,7 +606,7 @@ def _bbox_for_locators(msp, locators: list[EntityLocatorV1], *, geometry_mode: s
 
 def _plan_opening_geometry(msp, binding, view: PlanViewBindingV1, manifest: GtExtractionManifestV1) -> tuple[GtWorldIntervalV3, tuple[float, float], list[GtEntityRefV3]]:
     box, refs = _bbox_for_locators(msp, binding.entities, geometry_mode=binding.geometry_mode, role="opening_plan", source_id=manifest.source_id, view_id=view.id, clip_box=view.clip_box_dxf)
-    corners = [_transform(point, view, manifest.metres_per_unit) for point in ((box[0], box[1]), (box[0], box[3]), (box[2], box[1]), (box[2], box[3]))]
+    corners = [_transform(point, view, manifest.metres_per_unit, _plan_world_snap_grid(manifest)) for point in ((box[0], box[1]), (box[0], box[3]), (box[2], box[1]), (box[2], box[3]))]
     xs, ys = zip(*corners)
     lo, hi = (min(xs), max(xs)) if binding.span_world_axis == "x" else (min(ys), max(ys))
     if hi - lo <= 0:
