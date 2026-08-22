@@ -237,6 +237,40 @@ gate① = **1 block + 4 flag**，而那个 block 是 F-74（不是产物的问�
 
 ---
 
+## 2026-08-22（第七段）· **立面判卷绑定落地**（GPT 复核 REWORK → GLM 返工 → 全量 3008 绿）
+
+裁决 → [`verdict/2026-08-22_elevation_score_bindings_gpt_verdict.md`](logs/reviews/verdict/2026-08-22_elevation_score_bindings_gpt_verdict.md)
+
+**GPT 跨家族复核：REWORK · 0 BLOCKER / 2 MAJOR / 2 MINOR。**
+⭐ 两条 MAJOR **正是主控在复核请求 §三.3 / §三.5 点名要求证伪的两条**，均成立：
+
+| # | 内容 | 返工修法（主控逐条核过 diff）|
+|---|---|---|
+| MAJOR-1 | 过渡旗标 exit 0 产出一份通过前置校验、却被权威 Va 拒收的绑定（静默不可用路径，F-64/F-68/F-75 同族）；不给 `--out` 还会直接覆盖 run 的正式绑定文件 | **旗标删净**，只留一条「传了必须报错」的锁；默认 fail closed 保留 |
+| MAJOR-2 | 跨层并集 `along_origin` 与 Va 的**逐层严格相等**契约不等价（单层一致是退化、不是等价）| 改为逐层 `(指纹, 沿墙区间)` 配对、任一分歧即 fail closed，**与校正侧同算法** |
+| MINOR-1 | 主控派工单 **P6 字面不成立**：schema 用「两字段同时非空」定义 `has_orientation`，单边填写会被 schema 与 judge 侧接受、直到 Va 才拒 | 生成器加成对断言 + 注释写明这是补 schema 的缝 |
+| MINOR-2 | `test_va_neuter_removes_the_sign_wiring` 没测 live wiring（monkeypatch 了校验函数、调用的又是同一个被 patch 的函数）| 重写：先在真实入口证明前提，再**只摘接线** |
+
+⚠️ **MINOR-2 与主控本轮自己栽的那次一模一样**（F-75 第一版锁只测 helper、摘掉接线仍全绿）
+⇒ [[neuter-must-cover-wiring-not-just-mechanism]] 一天内在两个席位上各现形一次。
+
+**⭐ GPT 给出一条对 S1 至关重要的推论**：即便 S1 只把**指纹**规范化一致、不动 `world_along_interval`
+的浮点值，默认生成器仍会**越过指纹门**、继续为 North/South 产出无效 `along_origin`
+⇒ **S1 的修法必须同时让沿墙区间一致**，光统一指纹不够。已写进 S1 派工单要求。
+
+**结果**：全量 **3008 passed / 13 xfailed**（基线 2996 → 首轮 3006 → 返工 +2 锁）；
+`case_tests/` 零污染。sm24 立面判分 `window_elevation_geometry 44/44 pass`。
+⚠️ **GPT 尚未复审返工**（主控只做了轻门：逐条核 diff + 12 把锁 + 权威全量）。
+
+### ⛔ 主控本轮前提错误累计四条（同一个毛病）
+
+编造函数名 → 把生成器错误信息的词表当未定项 → P7 以偏概全 → P6 字面不成立。
+**四条全是「查了一处就当成全都如此」。** 其中三条由施工/复核席位抓出，一条由我自己发现。
+⇒ [[grep-zero-hits-conflates-unused-with-nonexistent}]] 的更一般形式：
+**声称一个跨全链的事实之前，先枚举这条链上有几个接缝。**
+
+---
+
 ## 2026-08-22（第六段）· **立面判卷绑定：GLM 施工交付，sm24 通了；sm25 撞结构阻塞并已拍板**
 
 派工单 → [`request/2026-08-22_elevation_score_bindings_dispatch.md`](logs/reviews/request/2026-08-22_elevation_score_bindings_dispatch.md)

@@ -496,6 +496,15 @@ def strict_payload_violation_reason(payload: ScorePayloadV9) -> str | None:
             and item.verdict == "fail"
         ):
             return "plan_frame_unavailable"
+        if (
+            item.criterion_id == "reading.elevation_mirror_visible"
+            and item.verdict == "fail"
+        ):
+            # Dispatch 2026-08-22 lock 3: a whole-facade reflection fitting GT
+            # better than the declared frame means the product or the binding
+            # disagrees with the ratified mirror convention. Scoring it
+            # silently (as a plain miss) would bury the convention failure.
+            return "elevation_mirror_disagreement"
     return None
 
 

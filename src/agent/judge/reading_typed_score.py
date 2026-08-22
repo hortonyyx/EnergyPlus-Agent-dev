@@ -66,6 +66,105 @@ class ReadingScoreAssembly:
     ledger_counts: tuple[int, int, int]
 
 
+ELEVATION_MIRROR_CRITERION_ID = "reading.elevation_mirror_visible"
+
+
+def elevation_mirror_flip_witnesses(
+    *,
+    gt,
+    score_bindings,
+    observations: tuple[OpeningObservation, ...],
+    center_tol_m: float,
+) -> tuple[dict[str, object], ...]:
+    """Dispatch 2026-08-22 lock 3 — the mirror-visibility gate.
+
+    The ratified drawing convention is "each facade drawn as seen from outside"
+    (user, 2026-08-22).  If reflecting a whole facade's observed window
+    positions about the GT facade's along-wall center makes them fit GT
+    STRICTLY better (by more than the judge's own opening center tolerance)
+    than the declared frame does, the product or the binding disagrees with the
+    mirror convention.  That must surface as a FAIL criterion, never as a
+    silently-scored low result.
+
+    Cost = sum over this input's elevation window observations of the distance
+    from the observation center to the nearest GT window center on the same
+    facade family and floors.  The reflection center comes from GT segment
+    extents only — it is independent of both the product and the binding's
+    ``along_origin``.  A symmetric window layout reflects onto itself, the two
+    costs tie, and the gate correctly stays silent: symmetry carries no
+    direction evidence either way.
+    """
+    from src.agent.judge.score_schema import ElevationScoreViewBindingV1
+
+    segment_families = {
+        segment.id: segment.facade_family
+        for floor in gt.floors
+        for segment in floor.boundary_segments
+    }
+    witnesses: list[dict[str, object]] = []
+    for binding in score_bindings.bindings:
+        if not isinstance(binding, ElevationScoreViewBindingV1):
+            continue
+        local = tuple(
+            item
+            for item in observations
+            if item.channel == "elevation"
+            and item.source_view_id == binding.input_id
+        )
+        if not local:
+            continue
+        targets = tuple(
+            opening
+            for opening in gt.openings
+            if opening.kind == "window"
+            and opening.floor_id in set(binding.floor_ids)
+            and segment_families.get(opening.boundary_segment_id)
+            == binding.resolved_building_direction
+        )
+        if not targets:
+            continue
+        extents = [
+            segment.world_along_interval
+            for floor in gt.floors
+            if floor.id in set(binding.floor_ids)
+            for segment in floor.boundary_segments
+            if segment.facade_family == binding.resolved_building_direction
+        ]
+        center = (
+            min(interval.lo for interval in extents)
+            + max(interval.hi for interval in extents)
+        ) / 2.0
+        target_centers = tuple(
+            (item.world_along_interval.lo + item.world_along_interval.hi) / 2.0
+            for item in targets
+        )
+        as_is_cost = sum(
+            min(abs(obs_center - t) for t in target_centers)
+            for obs_center in (
+                (item.world_along_interval[0] + item.world_along_interval[1]) / 2.0
+                for item in local
+            )
+        )
+        flipped_cost = sum(
+            min(abs(2.0 * center - obs_center - t) for t in target_centers)
+            for obs_center in (
+                (item.world_along_interval[0] + item.world_along_interval[1]) / 2.0
+                for item in local
+            )
+        )
+        if flipped_cost <= as_is_cost - center_tol_m:
+            witnesses.append(
+                {
+                    "input_id": binding.input_id,
+                    "observation_count": len(local),
+                    "as_is_center_cost_m": as_is_cost,
+                    "flipped_center_cost_m": flipped_cost,
+                    "reflection_center_m": center,
+                }
+            )
+    return tuple(witnesses)
+
+
 def _visibility_counts(certificate) -> ReadingVisibilityCountsV1:
     return ReadingVisibilityCountsV1(
         nonzero_plan_origins=sum(
@@ -1288,6 +1387,31 @@ def assemble_reading_score(
                 passing_units=0.0,
                 failing_units=1.0,
                 na_reasons={"plan_frame_unavailable": plan_frame_na},
+                verdict="fail",
+            ),
+        )
+    # Dispatch 2026-08-22 lock 3: a whole-facade reflection fitting GT better
+    # than the declared frame is a mirror-convention failure and must be a
+    # visible FAIL, never a silently-scored low result (strict callers fail
+    # closed on it via score_service.strict_payload_violation_reason).
+    mirror_witnesses = elevation_mirror_flip_witnesses(
+        gt=gt,
+        score_bindings=score_bindings,
+        observations=_observations,
+        center_tol_m=c2_config.opening_match_center_tol_m,
+    )
+    if mirror_witnesses:
+        structural_criteria += (
+            ScoreCriterionV9(
+                criterion_id=ELEVATION_MIRROR_CRITERION_ID,
+                eligible=True,
+                denominator_units=float(len(mirror_witnesses)),
+                passing_units=0.0,
+                failing_units=float(len(mirror_witnesses)),
+                na_reasons={
+                    witness["input_id"]: witness["observation_count"]  # type: ignore[index]
+                    for witness in mirror_witnesses
+                },
                 verdict="fail",
             ),
         )
