@@ -133,6 +133,28 @@ def main() -> int:
     total = len(rows)
     print(f"\n=== rule: local +x = (-outward_normal) x z_hat  ('drawn as seen from outside') ===")
     print(f"=== {total - failures}/{total} facades agree across {len({r[0] for r in rows})} buildings ===")
+
+    # The project ALREADY declares this convention, in one gt-free module whose
+    # own docstring says it had only ever been proven "with a hand-written
+    # external truth table, not by calling this module to generate its own
+    # expected values". That is precisely the hole this script fills: the same
+    # four numbers, checked against real drawings through gt instead of against
+    # a hand-typed table. If these two ever disagree, one of them is wrong and
+    # the elevation channel is silently mis-scoring.
+    from src.agent.correction import facade_convention as fc
+
+    print("\n=== cross-check vs the declared convention module (facade_convention) ===")
+    for _case, fam, _n, axis, _pred, observed, _n_win, _ok in rows:
+        declared_axis = fc.FACADE_WORLD_AXIS[fam]
+        declared_sign = fc.resolve_sign(fam, mirrored=False, local_x_positive="image_left_to_right")
+        agree = declared_axis == axis and declared_sign == observed
+        failures += not agree
+        print(f"   {fam:6s} declared=({declared_axis}, {declared_sign:+d})  "
+              f"measured=({axis}, {observed:+d})  {'OK' if agree else 'DISAGREE'}")
+    print("\n=> the drawings follow the declared convention UN-MIRRORED, so a judge-side\n"
+          "   binding may set mirrored=False / local_x_positive=image_left_to_right.\n"
+          "   (`normalize_mirror_flag` deliberately refuses to default it -- this is the\n"
+          "    evidence that lets a caller choose, rather than guess.)")
     return 1 if failures else 0
 
 
