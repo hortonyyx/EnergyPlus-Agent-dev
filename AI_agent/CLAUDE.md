@@ -209,6 +209,12 @@ EnergyPlus 经 `WorkflowTool.run_simulation`（eppy + ConverterManager，idfpy �
 > 立面载体方言层 F-65 · sm25 gt 晋升 · C2 首考 94.4% / 窗 8/15）。
 
 
+> **⏭ 下一轮第一件事（2026-08-21 收工时定）= orchestrator 亲自下场跑 sm25 1f。**
+> 作业设计**已在下场之前写成并封存**，⛔ 跑完不得回改：
+> [`logs/experiments/2026-08-21_historical_reading_dissection/orchestrator_hands_on_plan.md`](logs/experiments/2026-08-21_historical_reading_dissection/orchestrator_hands_on_plan.md)。
+> ⚠️ 该轮**产物是 SOP + 工具，不是 reading**；且 orchestrator 已被本轮调查污染
+> （读过 sm25 像素、看过 gt 东墙窗位）⇒ **其分数一律不得引用**，真正验收在第 ④ 步降智那一跑。
+
 > **⭐⭐⭐ 2026-08-21 战略调整 banner（用户当面定；⛔ 与下方 reading banner 及 §1.5#7 冲突处以本条为准）**
 > **跑测的目的 = 升级 harness，不是拿分。** 开发循环四步：
 > **① 最强模型（orchestrator）亲自下场做 reading，边做边定工具/SOP/约束 → ② 自己真做出一份不错的输出
