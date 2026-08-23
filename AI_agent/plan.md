@@ -176,6 +176,21 @@
 > ⛔ **本节内容只在分支 `08.23_AsDrawnReading` 上**。主线只留指针，合不合并待评估。
 > 全档 → [`logs/experiments/2026-08-23_as_drawn_reading_prototype/README.md`](logs/experiments/2026-08-23_as_drawn_reading_prototype/README.md)
 
+### 〇、⭐⭐⭐ 用户 2026-08-23 的架构更正（覆盖下方「一」的部分表述）
+
+**语义归 reading、由模型做** —— ⛔ 主控此前提「语义搬去 correction」**违反不变量 #1**
+（「LLM 只做**感知** + 校正判断 + 物理语义」，感知就是语义），已收回。
+⛔ 主控的补救提案「颜色→构件映射搬进配置逐图声明」**也被否**：还是人工填，一样不泛化。
+
+**用户原话要点**：语义识别不能定死，要模型做，因为后面图纸要泛化（各种风格各种画法，不止颜色区分）；
+即使现在画法一致也不能烤死；**所有动作都要考虑升级的泛化性**。知识库查询减轻模型识别难度 = 后续方向。
+**correction 的职责是「把这些语义组装得合理」，不是产生语义。**
+
+**四刀**：量=代码 · **认=模型（在 reading）** · 对账=代码门 · 装配=correction。
+昨天「下放 correction」五项按此重分：塌中线/判内外/分段/模数吸附=几何归 correction；**门窗分类=语义留 reading**。
+
+⇒ 落地见 A4，全档 [设计稿 §v3](logs/experiments/2026-08-23_as_drawn_reading_prototype/design_as_drawn_layer.md)。
+
 ### 一、用户拍板的架构调整
 
 **reading 只忠实描摹（as-drawn），塌中线 / 判内外 / 分段 / 模数吸附 / 门窗分类全部下放 1_correction。**
@@ -202,7 +217,8 @@ sm24 正向对账**显式降级**（家具图层实测 0.00%、被并进结构�
 |---|---|---|
 | **A** | 修 P-1/P-2 · 补立面 as-drawn 形态（P-6）· 出设计稿走跨家族审 | ✅ **完成**（另顺带诊断 P-4）· 设计稿已送审，**裁决 = REJECT** → [裁决](logs/reviews/verdict/2026-08-23_as_drawn_design_crossreview_sol.md) · [稿](logs/experiments/2026-08-23_as_drawn_reading_prototype/design_as_drawn_layer.md) |
 | **A2** | 按裁决重写设计稿 + 修 G-1 → 二审 | ✅ 已做 · ⛔ **二审仍 REJECT** → [裁决](logs/reviews/verdict/2026-08-23b_as_drawn_design_v2_crossreview_sol.md) |
-| **A3** | ⭐⭐⭐ **真做出 v2 三层 JSON 夹具，用它重跑全部数字** | ⏭ **下一件，且是唯一一件** —— 二审头条 = **我写了一份自己代码没有实现的设计稿**，v2 的实证全部由 v1 形态产物产出 ⇒ **在此之前 v2 的数不作数** |
+| **A3** | 真做出 v2 三层产物，用它重跑全部数字 | ✅ **已做** → `tools/as_drawn_v2.py` + `reconstruct_check_v2.py`。诚实数 sm24 **100.0** / sm25 **93.3**；二审两个作弊形态一个必红（1px：0.0/0.0）一个免疫 |
+| **A4** | ⭐⭐⭐ **语义去写死化**（用户 08-23 拍板的架构更正）| ✅ **已做** → `tools/ink_palette.py`。颜色族**发现**而非写死（与原划分重合 94–100%，参数 0.25–0.60 不影响族数，未归入 0.0%）· 语义指派**从外部进来**，缺失/指向不存在的族**响亮失败**（= F-69 根治）· **判据消费指派 ⇒ 指错就红**（sm25 93.3→45.3）|
 | **B** | **gt 加 as-drawn 层** | ⛔ **冻结**，二审通过前不动（动 gt 不可逆）。工程量已由「小」上修为「中」 |
 | **C** | reading 产物形态落地 + gate① | ⏸ 中大：`src/validator/checks/reading.py` **1724 行 / 88 把锁** |
 | **D** | reading grade 新判分器（线段对线段，四判据）| ⏸ 中，新写。⛔ 不改现有 6817 行（原地转给 correction）|

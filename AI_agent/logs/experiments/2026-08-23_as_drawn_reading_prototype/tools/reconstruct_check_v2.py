@@ -62,17 +62,26 @@ def _cover(runs, lo, hi) -> float:
     return min(1.0, total / (hi - lo))
 
 
-def _extent(face, *, opening_span_min: float) -> list[list[float]]:
+def _extent(face, *, opening_span_min: float, fen_family: str | None) -> list[list[float]]:
     """A face line's drawn stretches, plus the gaps the drawing calls openings.
 
     A wall continues through its own doorway, so a gap the drawing fills with
     opening ink counts.  A gap with no such ink is a stretch of wall the reader
     did not draw and must NOT count -- that is the whole difference between
     this check and one that cannot see a missing middle.
+
+    ⭐ WHICH ink family is the opening layer is not decided here: it is read out
+    of the product's own ``hypotheses.family_roles`` (a perception output).
+    That is deliberate -- it makes the naming FALSIFIABLE.  Point the role at
+    the wrong family and this check goes red, which is the whole reason the
+    naming lives in the product instead of in this file.
     """
     out = [list(r) for r in face["runs_m"]]
+    if fen_family is None:
+        return out
     for g in face.get("gaps", []):
-        if g.get("opening_ink", {}).get("span_ratio", 0.0) >= opening_span_min:
+        prof = g.get("ink_by_family", {}).get(fen_family)
+        if prof and prof.get("span_ratio", 0.0) >= opening_span_min:
             out.append(list(g["span_m"]))
     return out
 
@@ -88,7 +97,7 @@ def _axis_lines(doc, axis_is_x):
             if f["constant_world_axis"] == want]
 
 
-def _best_exterior(lines, const, lo, hi, osm, m_per_px):
+def _best_exterior(lines, const, lo, hi, osm, m_per_px, fen):
     """gt records the OUTER FACE, so either a thin line or one edge of a band."""
     best = None
     for f in lines:
@@ -98,7 +107,7 @@ def _best_exterior(lines, const, lo, hi, osm, m_per_px):
             d = abs(v - const)
             if d > POS_TOL_M:
                 continue
-            cov = _cover(_extent(f, opening_span_min=osm), lo, hi)
+            cov = _cover(_extent(f, opening_span_min=osm, fen_family=fen), lo, hi)
             key = (cov, -d)
             if best is None or key > best[0]:
                 best = (key, {"matched": f["id"], "kind": f"face_{kind}",
@@ -106,7 +115,7 @@ def _best_exterior(lines, const, lo, hi, osm, m_per_px):
     return best
 
 
-def _best_interior(lines, const, lo, hi, osm, m_per_px):
+def _best_interior(lines, const, lo, hi, osm, m_per_px, fen):
     """Two things can put a wall CENTRE at the target, and both are measured."""
     best = None
     # case B -- one filled group whose own two edges straddle the target
@@ -129,7 +138,7 @@ def _best_interior(lines, const, lo, hi, osm, m_per_px):
         d = abs((e[0] + e[1]) / 2.0 - const)
         if d > POS_TOL_M:
             continue
-        cov = _cover(_extent(f, opening_span_min=osm), lo, hi)
+        cov = _cover(_extent(f, opening_span_min=osm, fen_family=fen), lo, hi)
         key = (cov, -d)
         if best is None or key > best[0]:
             best = (key, {"matched": f["id"], "kind": "filled_band",
@@ -149,8 +158,9 @@ def _best_interior(lines, const, lo, hi, osm, m_per_px):
             d = abs((A["pos_m"] + B["pos_m"]) / 2.0 - const)
             if d > POS_TOL_M:
                 continue
-            cov = _cover(_intersect(_extent(A, opening_span_min=osm),
-                                    _extent(B, opening_span_min=osm)), lo, hi)
+            cov = _cover(_intersect(_extent(A, opening_span_min=osm, fen_family=fen),
+                                    _extent(B, opening_span_min=osm, fen_family=fen)),
+                         lo, hi)
             key = (cov, -d)
             if best is None or key > best[0]:
                 best = (key, {"matched": f"{A['id']}+{B['id']}", "kind": "straddling_pair",
@@ -220,6 +230,20 @@ def _mutate(doc: dict, kind: str) -> str:
         drop = {p["face_b"] for p in doc["hypotheses"]["pairs"]}
         doc["observations"]["face_lines"] = [f for f in fl if f["id"] not in drop]
         return f"MUTATED: {len(drop)} of the paired face lines removed"
+    if kind == "misname_opening_family":
+        # ⭐ The semantic neuter: point the opening role at the wrong family.
+        # Nothing about the MEASUREMENTS changes -- only the naming -- so if
+        # this does not go red, the naming was never load-bearing and the model
+        # could have said anything.
+        a = doc["hypotheses"]["family_roles"]["assignment"]
+        fams = sorted({k for f in doc["observations"]["face_lines"]
+                       for g in f.get("gaps", []) for k in g.get("ink_by_family", {})})
+        wrong = next((x for x in fams if x != a.get("fenestration")), None)
+        a["fenestration"] = wrong
+        return f"MUTATED: opening role re-pointed from the drawing's own family to {wrong}"
+    if kind == "drop_opening_role":
+        doc["hypotheses"]["family_roles"]["assignment"].pop("fenestration", None)
+        return "MUTATED: opening role removed entirely"
     if kind == "widen_all":
         for f in fl:
             c = f["pos_m"]
@@ -247,8 +271,9 @@ def main(gt_case: str, docs: dict[str, str], out_path: str, *,
         lo, hi = sorted((x1, x2) if horizontal else (y1, y2))
         lines = _axis_lines(doc, axis_is_x=not horizontal)
         m_per_px = doc["observations"]["calibration"]["mm_per_px"] / 1000.0
+        fen = doc["hypotheses"]["family_roles"]["assignment"].get("fenestration")
         best = (_best_exterior if t.exterior else _best_interior)(
-            lines, const, lo, hi, opening_span_min, m_per_px)
+            lines, const, lo, hi, opening_span_min, m_per_px, fen)
         row = {"target": t.key[:60], "floor": t.floor_id, "exterior": t.exterior,
                "const": round(const, 3), "span": [round(lo, 3), round(hi, 3)],
                "length_m": round(hi - lo, 3)}

@@ -34,6 +34,17 @@ What changed from v1, and why each one was forced:
     not recompute.  Worse, the check built on it could be satisfied by ONE
     pixel.  Each gap now carries a distance PROFILE plus the along-gap span
     that actually has opening ink, and the components themselves are emitted.
+  * ⭐ **No colour is called a wall.**  ``plan_ink.ink_families`` hard-codes
+    ``neutral -> structure`` / ``cyan -> fenestration`` / ``magenta ->
+    furniture``.  That is a drawing convention, and inventing it in code makes
+    every unfamiliar drawing style a silent failure -- which is exactly how
+    F-69 happened (windows lived on a colour layer the one mask could not see,
+    and it returned a confident zero).  Ink families are now DISCOVERED by
+    measurement (``ink_palette``) and left unnamed; which family carries walls
+    and which carries openings is **perception, so it comes in from outside**
+    (the model; here, the config stands in for it) and is recorded as a
+    hypothesis with the measured evidence beside it.  ⛔ An assignment naming a
+    family the drawing does not have is a LOUD failure, never a quiet zero.
   * **Pairing is a hypothesis with every admissible partner listed.**  v1 took
     the first admissible partner and broke.  (Measured: that greedy order was
     not what mis-paired sm24 -- 0 of its 98 lines had more than one admissible
@@ -50,9 +61,9 @@ import numpy as np
 
 sys.path.insert(0, str(Path(__file__).parent))
 from plan_ink import (  # noqa: E402
-    Axis, dialect_report, dump, fit_chain, ink_families, load_rgb,
-    vertical_runs_mask, witness_ticks,
+    Axis, INK_MIN, dump, fit_chain, load_rgb, vertical_runs_mask, witness_ticks,
 )
+from ink_palette import MERGE_DIST, _chroma_key, _merge_cells, MIN_SHARE, palette
 
 SCHEMA = "as_drawn_plan_v2"
 
@@ -115,16 +126,48 @@ def _profile(mask: np.ndarray, lo: int, hi: int, c0: int, c1: int) -> dict[str, 
             "span_ratio": round(float(rows.mean()), 4), "nearest_px": nearest}
 
 
-def _ink_groups(structure: np.ndarray, fenestration: np.ndarray, *, axis: Axis,
+def _family_masks(a: np.ndarray, merge_dist: float = MERGE_DIST) -> dict[str, np.ndarray]:
+    """Pixel mask per DISCOVERED ink family. ⛔ None of them is named."""
+    ink = a.max(2) >= INK_MIN
+    idx = np.flatnonzero(ink.ravel())
+    px = a.reshape(-1, 3)[idx]
+    keys = _chroma_key(px)
+    from collections import Counter
+    counts, total = Counter(keys.tolist()), len(keys)
+    cells = []
+    for k, n in counts.most_common():
+        if n / total < MIN_SHARE:
+            continue
+        rep = px[keys == k]
+        mx = rep.max(axis=1, keepdims=True)
+        mx[mx == 0] = 1
+        cells.append((k, n, (rep / mx).mean(axis=0)))
+    merged = _merge_cells(cells, merge_dist)
+    if not merged:
+        return {}
+    centres = np.array([f["centre"] for f in merged])
+    mx = px.max(axis=1, keepdims=True).astype(float)
+    mx[mx == 0] = 1
+    # ⭐ nearest-centre assignment, ⛔ no pixel dropped for being rare
+    nearest = np.abs((px / mx)[:, None, :] - centres[None, :, :]).max(axis=2).argmin(axis=1)
+    out = {}
+    for i in range(len(merged)):
+        m = np.zeros(a.shape[:2], dtype=bool)
+        m.ravel()[idx[nearest == i]] = True
+        out[f"F{i}"] = m
+    return out
+
+
+def _ink_groups(structure: np.ndarray, others: dict[str, np.ndarray], *, axis: Axis,
                 min_run_px: int, min_support: int) -> list[dict[str, Any]]:
-    """Every column group of structural ink that behaves like a drawn line.
+    """Every column group of one family's ink that behaves like a drawn line.
 
     ⛔ This is an OBSERVATION, not a wall face: a group may be one thin line or
     a whole solid band.  Which it is, and whether two of them are one wall, is
     decided in ``hypotheses``.
     """
     m = structure if axis == "col" else structure.T
-    f = fenestration if axis == "col" else fenestration.T
+    fam_t = {k: (v if axis == "col" else v.T) for k, v in others.items()}
     keep = vertical_runs_mask(m, min_run_px)
     support = keep.sum(0)
     cols = np.flatnonzero(support >= min_support)
@@ -150,9 +193,11 @@ def _ink_groups(structure: np.ndarray, fenestration: np.ndarray, *, axis: Axis,
         for lo, hi in gaps:
             gap_rows.append({
                 "lo_px": lo, "hi_px": hi, "len_px": int(hi - lo),
-                # ⛔ no class. Three measured families of evidence instead.
-                "opening_ink": _profile(f, lo, hi, c0, c1),
-                "structure_ink": _profile(m, lo, hi, c0, c1),
+                # ⛔ no class, and ⛔ no family called "opening": every
+                # discovered family's ink across this blank is measured and
+                # keyed by the family's own neutral id.
+                "ink_by_family": {k: _profile(v, lo, hi, c0, c1)
+                                  for k, v in fam_t.items()},
             })
         out.append({
             "pos_px": round(float(np.average(g, weights=support[g])), 2),
@@ -189,10 +234,50 @@ def _chain_zero_px(fit, chain: dict) -> float:
     return fit.origin_px - chain["world_start_mm"] / (chain["direction"] * fit.mm_per_px)
 
 
+class AssignmentError(SystemExit):
+    """⭐ A role assignment the drawing cannot support is a LOUD failure.
+
+    F-69's whole shape was a confident zero: the only mask could not see the
+    layer the windows were on, returned no windows, and nothing reported it.
+    An assignment that names a family this drawing does not have must stop the
+    run, never quietly produce an empty product.
+    """
+
+
 def build(cfg: dict) -> dict:
     a = load_rgb(cfg["image"])
-    fams = ink_families(a)
-    st = fams["structure"].copy()
+    pal = palette(a)
+    masks = _family_masks(a)
+
+    # ⭐ PERCEPTION COMES IN FROM OUTSIDE. Which discovered family carries the
+    # walls is not something a ruler settles, so this module does not decide it
+    # -- the model does (invariant #1: LLM does perception, code does geometry).
+    # The config supplies it here only because there is no model in this
+    # prototype's loop; the INTERFACE is the point.
+    roles = dict(cfg.get("family_roles") or {})
+    if not roles:
+        raise AssignmentError(
+            f"{cfg['image']}: no family_roles supplied. Discovered families = "
+            + json.dumps({f["id"]: {"chromaticity": f["chromaticity"],
+                                    "pct_of_ink": f["pct_of_ink"],
+                                    "shape": f["shape"]} for f in pal["families"]},
+                         ensure_ascii=False)
+            + " -- name them (perception) and pass family_roles.")
+    for role, fid in roles.items():
+        if fid not in masks:
+            raise AssignmentError(
+                f"{cfg['image']}: role {role!r} was assigned to family {fid!r}, "
+                f"which this drawing does not have. Discovered: {sorted(masks)}. "
+                f"⛔ Refusing to return an empty product for a role nobody can see.")
+    for need in ("structure", "annotation"):
+        if need not in roles:
+            raise AssignmentError(
+                f"{cfg['image']}: no family assigned the {need!r} role. "
+                f"⛔ Without it there is no ruler: the dimension chains are read "
+                f"off the annotation family and every coordinate depends on them.")
+    ann = masks[roles["annotation"]]
+
+    st = masks[roles["structure"]].copy()
     r0, r1, c0, c1 = cfg["drawing_box"]
     st[:r0, :] = False
     st[r1:, :] = False
@@ -202,7 +287,7 @@ def build(cfg: dict) -> dict:
     chains = cfg["chains"]
     fits, tick_map = {}, {"x": {}, "y": {}}
     for cid, c in chains.items():
-        f = fit_chain(witness_ticks(fams["annotation"], axis=c["axis"], strip=tuple(c["strip"])),
+        f = fit_chain(witness_ticks(ann, axis=c["axis"], strip=tuple(c["strip"])),
                       c["values_mm"], axis=c["axis"], overall_mm=sum(c["values_mm"]))
         fits[cid] = f
         world = "x" if c["axis"] == "row" else "y"
@@ -225,7 +310,7 @@ def build(cfg: dict) -> dict:
     for axis in ("col", "row"):
         pos_w = to_x if axis == "col" else to_y
         along_w = to_y if axis == "col" else to_x
-        for grp in _ink_groups(st, fams["fenestration"], axis=axis,
+        for grp in _ink_groups(st, masks, axis=axis,
                                min_run_px=cfg.get("min_run_px", 14),
                                min_support=cfg.get("min_support", 10)):
             for gap in grp["gaps"]:
@@ -317,10 +402,13 @@ def build(cfg: dict) -> dict:
                 "profile_bins_px": list(PROFILE_BINS_PX),
                 "fill_ratio": FILL_RATIO,
             },
-            "ink_dialect": dialect_report(a),
+            "ink_palette": pal,
             "face_lines": face_lines,
-            "opening_components": _components(fams["fenestration"],
-                                              cfg.get("min_area_px", 40)),
+            # ⛔ not "openings": components of every discovered family, keyed
+            # by the family's own neutral id. Naming them is the model's job.
+            "components_by_family": {
+                k: _components(v, cfg.get("min_area_px", 40))
+                for k, v in masks.items()},
             "dimension_witnesses": tick_map,
         },
         "declarations": {
@@ -334,6 +422,18 @@ def build(cfg: dict) -> dict:
             "drawing_box_px": cfg["drawing_box"],
         },
         "hypotheses": {
+            # ⭐ Perception, not measurement. Supplied from outside and recorded
+            # here with the evidence a reviewer needs to disagree with it.
+            "family_roles": {
+                "assignment": roles,
+                "source": cfg.get("family_roles_source", "supplied (model stand-in)"),
+                "evidence": {fid: {"chromaticity": f["chromaticity"],
+                                   "pct_of_ink": f["pct_of_ink"],
+                                   "shape": f["shape"]}
+                             for f in pal["families"] for fid in [f["id"]]
+                             if fid in roles.values()},
+                "achromatic_only": pal["achromatic_only"],
+            },
             "pairs": pairs,
             "note": "⛔ derived, not scored. Rebuildable from observations + declarations: "
                     "pairs = face-line spacings matching a declared callout within "
@@ -345,8 +445,9 @@ def build(cfg: dict) -> dict:
             "gaps_total": sum(len(f["gaps"]) for f in face_lines),
             "pairs": len(pairs),
             "faces_in_a_pair": len({x for p in pairs for x in (p["face_a"], p["face_b"])}),
-            "opening_components": len(_components(fams["fenestration"],
-                                                  cfg.get("min_area_px", 40))),
+            "families_discovered": len(pal["families"]),
+            "families_assigned": len(roles),
+            "unassigned_ink_pct": pal["unassigned_pct"],
             "bridging_applied": False,
             "gap_classified": False,
             "pairing_in_observations": False,
@@ -360,7 +461,9 @@ def main(cfg_path: str, out_path: str) -> int:
     L = doc["ledger"]
     print(f"{Path(cfg_path).stem:16s} face_lines={L['face_lines']:3d} runs={L['runs_total']:4d} "
           f"gaps={L['gaps_total']:4d} pairs={L['pairs']:3d} "
-          f"paired_faces={L['faces_in_a_pair']:3d} components={L['opening_components']:3d}")
+          f"paired_faces={L['faces_in_a_pair']:3d} "
+          f"families={L['families_discovered']}/{L['families_assigned']} "
+          f"unassigned_ink={L['unassigned_ink_pct']}%")
     return 0
 
 
