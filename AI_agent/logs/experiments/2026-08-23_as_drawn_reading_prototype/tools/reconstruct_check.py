@@ -30,16 +30,35 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[4]))
 from src.agent.judge.gt import load_gt_document  # noqa: E402
 from src.agent.judge.segment_score import extract_gt_plan_segments  # noqa: E402
 
-POS_TOL_M = 0.08          # >= half the thinnest declared wall (120 mm)          # a face line must sit within 50 mm of the target line
-SPAN_MIN_COVER = 0.80     # and its runs must span at least this much of it
+POS_TOL_M = 0.08          # a face line must sit within half the thinnest declared wall (120 mm)
+SPAN_MIN_COVER = 0.80     # and its runs must span at least this much of the target
 
 
 def _cover(runs: list[list[float]], lo: float, hi: float) -> float:
+    """Fraction of [lo,hi] covered by the UNION of ``runs``.
+
+    ⭐ 2026-08-23 cross-family review (sol): this used to sum the clipped
+    intervals without merging them.  The interval set handed in here is runs U
+    openings U bridged gaps, and those overlap by construction, so the sum
+    double-counted.  Measured on the 240 candidate evaluations of sm24+sm25:
+    47 were inflated, the worst by 0.291 -- more than the whole margin between
+    a pass and a fail.
+    """
     if hi <= lo:
         return 1.0
-    total = 0.0
-    for a, b in runs:
-        total += max(0.0, min(hi, b) - max(lo, a))
+    clipped = sorted([max(lo, min(a, b)), min(hi, max(a, b))] for a, b in runs)
+    total, cur = 0.0, None
+    for a, b in clipped:
+        if b <= a:
+            continue
+        if cur is not None and a <= cur[1]:
+            cur[1] = max(cur[1], b)
+        else:
+            if cur is not None:
+                total += cur[1] - cur[0]
+            cur = [a, b]
+    if cur is not None:
+        total += cur[1] - cur[0]
     return min(1.0, total / (hi - lo))
 
 
@@ -58,13 +77,27 @@ def _full_extent(runs_m: list[list[float]],
     two are the same kind of object, so the asymmetry understated coverage
     wherever pairing failed -- measured on sm24, every SHORT_COVERAGE row was
     matched to an unpaired line (U09/U11/U57).
+
+    ⭐⭐ 2026-08-23 cross-family review (sol) overturned the first version of
+    this rule.  It bridged EVERY internal gap unconditionally, which made the
+    whole check blind to the most realistic failure of all -- a face line whose
+    MIDDLE was never read.  Measured: deleting the middle 20% of 153 (sm24) /
+    198 (sm25) runs left the score at 100.0 / 94.7, bit for bit.
+
+    A gap is now bridged only when the band's own transcribed fenestration ink
+    overlaps it, i.e. only when the drawing says an opening is there.  That is
+    the same data, read honestly: an unexplained hole in a face line is not
+    evidence of a wall.  An UNPAIRED line has no opening evidence at all, so
+    none of its gaps bridge -- which is why sm24 (69 unpaired lines) drops from
+    an inflated 100.0% to 85.0% while sm25 does not move at all (94.7%).
     """
-    runs = [list(r) for r in runs_m]
-    if openings:
-        runs += [list(o) for o in openings]
+    ops = [list(o) for o in (openings or [])]
+    runs = [list(r) for r in runs_m] + ops
     for i in range(len(runs_m) - 1):
         lo, hi = sorted((max(runs_m[i]), min(runs_m[i + 1])))
-        if hi > lo:
+        if hi <= lo:
+            continue
+        if any(max(lo, min(a, b)) < min(hi, max(a, b)) for a, b in ops):
             runs.append([lo, hi])
     return runs
 
@@ -113,6 +146,20 @@ def _candidates(doc: dict, axis_is_x: bool):
 
 def _mutate(doc: dict, kind: str) -> str:
     lines = [f for band in doc["wall_bands"] for f in band["faces"]]
+    if kind == "punch_middle":
+        # ⭐ The mutation the first neuter set missed (sol, 2026-08-23): a face
+        # line read at both ends but not in the middle. This is what a reader
+        # that loses a stretch of wall actually produces.
+        for f in lines + doc.get("unpaired_face_lines", []):
+            out = []
+            for a, b in f["runs_m"]:
+                lo, hi = sorted((a, b))
+                if hi - lo > 0.5:
+                    out += [[lo, lo + 0.4 * (hi - lo)], [hi - 0.4 * (hi - lo), hi]]
+                else:
+                    out.append([lo, hi])
+            f["runs_m"] = out
+        return "MUTATED: middle 20% of every run longer than 0.5 m deleted"
     if kind == "shrink_runs":
         # every drawn run loses a quarter of its length at each end
         for f in lines + doc.get("unpaired_face_lines", []):
