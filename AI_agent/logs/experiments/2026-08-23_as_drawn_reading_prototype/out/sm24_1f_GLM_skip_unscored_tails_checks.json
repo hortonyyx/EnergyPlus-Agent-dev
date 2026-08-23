@@ -30,6 +30,7 @@
   },
   {
    "check": "gap_evidence_recomputable_from_original_image",
+   "fabricated_candidate_profile": [],
    "gaps_checked": 87,
    "tolerance_px": 1.5,
    "fabricated_ink_profile": [],
@@ -40,121 +41,9 @@
   {
    "check": "face_span_fully_accounted_by_runs_or_gaps",
    "floor_px": 3,
-   "longest_unaccounted_px": 42,
-   "longest_unaccounted_m": 1.155,
+   "longest_unaccounted_px": 10,
+   "longest_unaccounted_m": 0.275,
    "violations": [
-    {
-     "face": "L006",
-     "px": [
-      414,
-      456
-     ],
-     "length_m": 1.155
-    },
-    {
-     "face": "L006",
-     "px": [
-      535,
-      577
-     ],
-     "length_m": 1.155
-    },
-    {
-     "face": "L012",
-     "px": [
-      760,
-      791
-     ],
-     "length_m": 0.853
-    },
-    {
-     "face": "L007",
-     "px": [
-      763,
-      792
-     ],
-     "length_m": 0.798
-    },
-    {
-     "face": "L025",
-     "px": [
-      837,
-      854
-     ],
-     "length_m": 0.468
-    },
-    {
-     "face": "L007",
-     "px": [
-      688,
-      703
-     ],
-     "length_m": 0.413
-    },
-    {
-     "face": "L036",
-     "px": [
-      602,
-      613
-     ],
-     "length_m": 0.303
-    },
-    {
-     "face": "L037",
-     "px": [
-      602,
-      613
-     ],
-     "length_m": 0.303
-    },
-    {
-     "face": "L044",
-     "px": [
-      602,
-      613
-     ],
-     "length_m": 0.303
-    },
-    {
-     "face": "L045",
-     "px": [
-      602,
-      613
-     ],
-     "length_m": 0.303
-    },
-    {
-     "face": "L074",
-     "px": [
-      602,
-      613
-     ],
-     "length_m": 0.303
-    },
-    {
-     "face": "L075",
-     "px": [
-      602,
-      613
-     ],
-     "length_m": 0.303
-    },
-    {
-     "face": "L080",
-     "px": [
-      602,
-      613
-     ],
-     "length_m": 0.303
-    },
-    {
-     "face": "L081",
-     "px": [
-      602,
-      613
-     ],
-     "length_m": 0.303
-    },
     {
      "face": "L016",
      "px": [
@@ -170,41 +59,444 @@
       765
      ],
      "length_m": 0.275
+    }
+   ],
+   "violation_count": 2,
+   "status": "red"
+  },
+  {
+   "check": "support_strip_is_one_stroke",
+   "mirrors": "_ink_groups(min_run_px=14, min_support=10, gap>1px)",
+   "ink_column_groups_histogram": {
+    "1": 98
+   },
+   "violations": [],
+   "violation_count": 0,
+   "status": "green"
+  },
+  {
+   "check": "runs_match_the_strip",
+   "face_lines": 98,
+   "matched_a_recomputed_group": 98,
+   "violations": [
+    {
+     "face": "L016",
+     "declared_runs": [
+      [
+       300,
+       358
+      ],
+      [
+       452,
+       584
+      ],
+      [
+       642,
+       879
+      ]
+     ],
+     "recomputed_runs": [
+      [
+       300,
+       359
+      ],
+      [
+       452,
+       584
+      ],
+      [
+       632,
+       879
+      ]
+     ],
+     "declared_total_px": 427,
+     "recomputed_total_px": 438
+    },
+    {
+     "face": "L017",
+     "declared_runs": [
+      [
+       300,
+       360
+      ],
+      [
+       392,
+       420
+      ],
+      [
+       451,
+       599
+      ],
+      [
+       630,
+       752
+      ],
+      [
+       765,
+       879
+      ]
+     ],
+     "recomputed_runs": [
+      [
+       300,
+       361
+      ],
+      [
+       392,
+       420
+      ],
+      [
+       451,
+       599
+      ],
+      [
+       630,
+       752
+      ],
+      [
+       755,
+       879
+      ]
+     ],
+     "declared_total_px": 472,
+     "recomputed_total_px": 483
+    },
+    {
+     "face": "L018",
+     "declared_runs": [
+      [
+       171,
+       199
+      ],
+      [
+       300,
+       324
+      ],
+      [
+       355,
+       383
+      ],
+      [
+       414,
+       588
+      ],
+      [
+       697,
+       752
+      ]
+     ],
+     "recomputed_runs": [
+      [
+       171,
+       199
+      ],
+      [
+       300,
+       324
+      ],
+      [
+       355,
+       383
+      ],
+      [
+       414,
+       588
+      ],
+      [
+       696,
+       752
+      ]
+     ],
+     "declared_total_px": 309,
+     "recomputed_total_px": 310
+    },
+    {
+     "face": "L019",
+     "declared_runs": [
+      [
+       300,
+       322
+      ],
+      [
+       416,
+       584
+      ],
+      [
+       701,
+       756
+      ]
+     ],
+     "recomputed_runs": [
+      [
+       300,
+       323
+      ],
+      [
+       416,
+       584
+      ],
+      [
+       700,
+       756
+      ]
+     ],
+     "declared_total_px": 245,
+     "recomputed_total_px": 247
     },
     {
      "face": "L036",
-     "px": [
-      247,
-      256
+     "declared_runs": [
+      [
+       256,
+       408
+      ],
+      [
+       452,
+       602
+      ]
      ],
-     "length_m": 0.248
+     "recomputed_runs": [
+      [
+       247,
+       408
+      ],
+      [
+       452,
+       613
+      ]
+     ],
+     "declared_total_px": 302,
+     "recomputed_total_px": 322
     },
     {
      "face": "L037",
-     "px": [
-      247,
-      256
+     "declared_runs": [
+      [
+       256,
+       399
+      ],
+      [
+       461,
+       602
+      ]
      ],
-     "length_m": 0.248
+     "recomputed_runs": [
+      [
+       247,
+       399
+      ],
+      [
+       461,
+       613
+      ]
+     ],
+     "declared_total_px": 284,
+     "recomputed_total_px": 304
+    },
+    {
+     "face": "L044",
+     "declared_runs": [
+      [
+       461,
+       602
+      ]
+     ],
+     "recomputed_runs": [
+      [
+       461,
+       613
+      ]
+     ],
+     "declared_total_px": 141,
+     "recomputed_total_px": 152
+    },
+    {
+     "face": "L045",
+     "declared_runs": [
+      [
+       461,
+       602
+      ]
+     ],
+     "recomputed_runs": [
+      [
+       461,
+       613
+      ]
+     ],
+     "declared_total_px": 141,
+     "recomputed_total_px": 152
     },
     {
      "face": "L047",
-     "px": [
-      247,
-      256
+     "declared_runs": [
+      [
+       256,
+       397
+      ]
      ],
-     "length_m": 0.248
+     "recomputed_runs": [
+      [
+       247,
+       399
+      ]
+     ],
+     "declared_total_px": 141,
+     "recomputed_total_px": 152
     },
     {
      "face": "L048",
-     "px": [
-      247,
-      256
+     "declared_runs": [
+      [
+       256,
+       397
+      ]
      ],
-     "length_m": 0.248
+     "recomputed_runs": [
+      [
+       247,
+       399
+      ]
+     ],
+     "declared_total_px": 141,
+     "recomputed_total_px": 152
+    },
+    {
+     "face": "L074",
+     "declared_runs": [
+      [
+       256,
+       399
+      ],
+      [
+       461,
+       602
+      ]
+     ],
+     "recomputed_runs": [
+      [
+       247,
+       399
+      ],
+      [
+       461,
+       613
+      ]
+     ],
+     "declared_total_px": 284,
+     "recomputed_total_px": 304
+    },
+    {
+     "face": "L075",
+     "declared_runs": [
+      [
+       256,
+       399
+      ],
+      [
+       457,
+       602
+      ]
+     ],
+     "recomputed_runs": [
+      [
+       247,
+       399
+      ],
+      [
+       457,
+       613
+      ]
+     ],
+     "declared_total_px": 288,
+     "recomputed_total_px": 308
+    },
+    {
+     "face": "L080",
+     "declared_runs": [
+      [
+       457,
+       560
+      ],
+      [
+       591,
+       602
+      ]
+     ],
+     "recomputed_runs": [
+      [
+       457,
+       560
+      ],
+      [
+       591,
+       613
+      ]
+     ],
+     "declared_total_px": 114,
+     "recomputed_total_px": 125
+    },
+    {
+     "face": "L081",
+     "declared_runs": [
+      [
+       461,
+       559
+      ],
+      [
+       593,
+       602
+      ]
+     ],
+     "recomputed_runs": [
+      [
+       461,
+       559
+      ],
+      [
+       593,
+       613
+      ]
+     ],
+     "declared_total_px": 107,
+     "recomputed_total_px": 118
+    },
+    {
+     "face": "L086",
+     "declared_runs": [
+      [
+       402,
+       457
+      ]
+     ],
+     "recomputed_runs": [
+      [
+       402,
+       458
+      ]
+     ],
+     "declared_total_px": 55,
+     "recomputed_total_px": 56
+    },
+    {
+     "face": "L087",
+     "declared_runs": [
+      [
+       402,
+       461
+      ]
+     ],
+     "recomputed_runs": [
+      [
+       402,
+       463
+      ]
+     ],
+     "declared_total_px": 59,
+     "recomputed_total_px": 61
     }
    ],
-   "violation_count": 40,
+   "violation_count": 16,
    "status": "red"
   },
   {

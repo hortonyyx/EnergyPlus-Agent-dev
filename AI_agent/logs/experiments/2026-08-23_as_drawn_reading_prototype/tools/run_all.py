@@ -61,6 +61,8 @@ SHORT = {"reverse_ledger_no_phantom_ink": "phantom",
          "face_span_fully_accounted_by_runs_or_gaps": "spanacct",
          "opening_role_matches_where_the_ink_sits": "openrole",
          "opening_naming_supported_by_ink": "opennaming",
+         "support_strip_is_one_stroke": "support",
+         "runs_match_the_strip": "runs",
          "pair_hypothesis_reconciles_with_observations": "reconcile",
          "pair_spacing_explicable_by_callouts": "spacing",
          "forward_ledger_structural_ink_claimed": "forward"}
@@ -247,6 +249,12 @@ def main() -> int:
     gc_path = OUT / "glm_cheats.json"
     res["glm_cheats"] = (json.loads(gc_path.read_text()) if rc == 0 and gc_path.exists()
                          else {"error": se[-300:]})
+
+    # ⭐ the FIFTH review's (GLM) cheats -- band_collapse etc.
+    rc, so, se = run([str(T / "glm_rework.py")])
+    rw = OUT / "glm_rework.json"
+    res["glm_rework"] = (json.loads(rw.read_text()) if rw.exists()
+                         else {"error": (se or "")[-300:]})
 
     # elevation structure lines
     docs = json.dumps({f"{v}_view": str(OUT / f"sm25_{v.lower()}_as_drawn.json")

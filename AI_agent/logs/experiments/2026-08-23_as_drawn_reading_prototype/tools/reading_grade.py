@@ -48,6 +48,7 @@ POS_TOL_M = 0.08      # same band the reconstruction uses: half the thinnest wal
 SPAN_MIN = 0.80       # a target counts as drawn when this much of it is covered
 END_TOL_M = 0.30      # how close a run end must be to the answer's run end
 EXTRA_MIN_M = 0.10    # ignore slivers shorter than this when counting 多画
+WIDTH_COEFF = 1.0     # how wide an observation must be to answer TWO faces; swept
 
 
 def _union(spans):
@@ -116,7 +117,12 @@ def grade(doc: dict, den: dict, *, pos_tol: float = POS_TOL_M,
             prior = [c for (lid, c) in claimed if lid == ln["id"]]
             if any(abs(c - t["const_m"]) > 1e-6 for c in prior):
                 need = max(abs(c - t["const_m"]) for c in prior)
-                if ln["width_m"] < 0.5 * need:
+                # ⚠️ 0.5 was unscanned and let a HALF-aperture band through
+                # (GLM's scan: partial-0.5 fixture scored 100.0).  The honest
+                # sm24 bands' own ratio is 1.146-1.261, so 1.0 costs the honest
+                # dialects nothing and kills the half-aperture family; the
+                # full-span ``band_collapse`` is caught by the support-strip gate.
+                if ln["width_m"] < WIDTH_COEFF * need:
                     continue
             cov = _covered(ln["runs"], lo, hi)
             if best is None or cov > best[0]:

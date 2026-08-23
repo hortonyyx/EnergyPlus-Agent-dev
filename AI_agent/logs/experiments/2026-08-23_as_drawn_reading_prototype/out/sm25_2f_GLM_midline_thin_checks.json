@@ -373,6 +373,88 @@
   },
   {
    "check": "gap_evidence_recomputable_from_original_image",
+   "fabricated_candidate_profile": [
+    {
+     "candidate": "L010g0",
+     "problem": "unknown face line"
+    },
+    {
+     "candidate": "L011g0",
+     "problem": "unknown face line"
+    },
+    {
+     "candidate": "L015g0",
+     "problem": "unknown face line"
+    },
+    {
+     "candidate": "L015g1",
+     "problem": "unknown face line"
+    },
+    {
+     "candidate": "L015g2",
+     "problem": "unknown face line"
+    },
+    {
+     "candidate": "L015g3",
+     "problem": "unknown face line"
+    },
+    {
+     "candidate": "L015g4",
+     "problem": "unknown face line"
+    },
+    {
+     "candidate": "L016g0",
+     "problem": "unknown face line"
+    },
+    {
+     "candidate": "L016g1",
+     "problem": "unknown face line"
+    },
+    {
+     "candidate": "L016g2",
+     "problem": "unknown face line"
+    },
+    {
+     "candidate": "L016g3",
+     "problem": "unknown face line"
+    },
+    {
+     "candidate": "L016g4",
+     "problem": "unknown face line"
+    },
+    {
+     "candidate": "L016g5",
+     "problem": "unknown face line"
+    },
+    {
+     "candidate": "L016g6",
+     "problem": "unknown face line"
+    },
+    {
+     "candidate": "L016g7",
+     "problem": "unknown face line"
+    },
+    {
+     "candidate": "L016g8",
+     "problem": "unknown face line"
+    },
+    {
+     "candidate": "L029g0",
+     "problem": "unknown face line"
+    },
+    {
+     "candidate": "L029g1",
+     "problem": "unknown face line"
+    },
+    {
+     "candidate": "L029g2",
+     "problem": "unknown face line"
+    },
+    {
+     "candidate": "L029g3",
+     "problem": "unknown face line"
+    }
+   ],
    "gaps_checked": 65,
    "tolerance_px": 1.5,
    "fabricated_ink_profile": [
@@ -576,17 +658,241 @@
     }
    ],
    "inconsistent_span": [],
-   "violation_count": 18,
+   "violation_count": 55,
    "status": "red"
   },
   {
    "check": "face_span_fully_accounted_by_runs_or_gaps",
    "floor_px": 3,
-   "longest_unaccounted_px": 1,
-   "longest_unaccounted_m": 0.022,
+   "longest_unaccounted_px": 0,
+   "longest_unaccounted_m": 0.0,
    "violations": [],
    "violation_count": 0,
    "status": "green"
+  },
+  {
+   "check": "support_strip_is_one_stroke",
+   "mirrors": "_ink_groups(min_run_px=14, min_support=10, gap>1px)",
+   "ink_column_groups_histogram": {
+    "0": 11,
+    "1": 22
+   },
+   "violations": [
+    {
+     "face": "L010_L011_MID",
+     "support_cols_px": [
+      650,
+      651
+     ],
+     "ink_column_groups": 0,
+     "why": "no column of the declared strip carries a stroke"
+    },
+    {
+     "face": "L013_L014_MID",
+     "support_cols_px": [
+      696,
+      697
+     ],
+     "ink_column_groups": 0,
+     "why": "no column of the declared strip carries a stroke"
+    },
+    {
+     "face": "L015_L016_MID",
+     "support_cols_px": [
+      748,
+      749
+     ],
+     "ink_column_groups": 0,
+     "why": "no column of the declared strip carries a stroke"
+    },
+    {
+     "face": "L017_L018_MID",
+     "support_cols_px": [
+      837,
+      838
+     ],
+     "ink_column_groups": 0,
+     "why": "no column of the declared strip carries a stroke"
+    },
+    {
+     "face": "L021_L022_MID",
+     "support_cols_px": [
+      1016,
+      1017
+     ],
+     "ink_column_groups": 0,
+     "why": "no column of the declared strip carries a stroke"
+    },
+    {
+     "face": "L023_L024_MID",
+     "support_cols_px": [
+      1201,
+      1202
+     ],
+     "ink_column_groups": 0,
+     "why": "no column of the declared strip carries a stroke"
+    },
+    {
+     "face": "L029_L030_MID",
+     "support_cols_px": [
+      521,
+      522
+     ],
+     "ink_column_groups": 0,
+     "why": "no column of the declared strip carries a stroke"
+    },
+    {
+     "face": "L035_L036_MID",
+     "support_cols_px": [
+      708,
+      709
+     ],
+     "ink_column_groups": 0,
+     "why": "no column of the declared strip carries a stroke"
+    },
+    {
+     "face": "L037_L038_MID",
+     "support_cols_px": [
+      799,
+      800
+     ],
+     "ink_column_groups": 0,
+     "why": "no column of the declared strip carries a stroke"
+    },
+    {
+     "face": "L039_L040_MID",
+     "support_cols_px": [
+      891,
+      892
+     ],
+     "ink_column_groups": 0,
+     "why": "no column of the declared strip carries a stroke"
+    },
+    {
+     "face": "L043_L044_MID",
+     "support_cols_px": [
+      1077,
+      1078
+     ],
+     "ink_column_groups": 0,
+     "why": "no column of the declared strip carries a stroke"
+    }
+   ],
+   "violation_count": 11,
+   "status": "red"
+  },
+  {
+   "check": "runs_match_the_strip",
+   "face_lines": 33,
+   "matched_a_recomputed_group": 20,
+   "violations": [
+    {
+     "face": "L006_L008_MID",
+     "problem": "no ink group with these support columns",
+     "support_cols_px": [
+      470,
+      471
+     ]
+    },
+    {
+     "face": "L010_L011_MID",
+     "problem": "no ink group with these support columns",
+     "support_cols_px": [
+      650,
+      651
+     ]
+    },
+    {
+     "face": "L013_L014_MID",
+     "problem": "no ink group with these support columns",
+     "support_cols_px": [
+      696,
+      697
+     ]
+    },
+    {
+     "face": "L015_L016_MID",
+     "problem": "no ink group with these support columns",
+     "support_cols_px": [
+      748,
+      749
+     ]
+    },
+    {
+     "face": "L017_L018_MID",
+     "problem": "no ink group with these support columns",
+     "support_cols_px": [
+      837,
+      838
+     ]
+    },
+    {
+     "face": "L021_L022_MID",
+     "problem": "no ink group with these support columns",
+     "support_cols_px": [
+      1016,
+      1017
+     ]
+    },
+    {
+     "face": "L023_L024_MID",
+     "problem": "no ink group with these support columns",
+     "support_cols_px": [
+      1201,
+      1202
+     ]
+    },
+    {
+     "face": "L029_L030_MID",
+     "problem": "no ink group with these support columns",
+     "support_cols_px": [
+      521,
+      522
+     ]
+    },
+    {
+     "face": "L032_L034_MID",
+     "problem": "no ink group with these support columns",
+     "support_cols_px": [
+      616,
+      617
+     ]
+    },
+    {
+     "face": "L035_L036_MID",
+     "problem": "no ink group with these support columns",
+     "support_cols_px": [
+      708,
+      709
+     ]
+    },
+    {
+     "face": "L037_L038_MID",
+     "problem": "no ink group with these support columns",
+     "support_cols_px": [
+      799,
+      800
+     ]
+    },
+    {
+     "face": "L039_L040_MID",
+     "problem": "no ink group with these support columns",
+     "support_cols_px": [
+      891,
+      892
+     ]
+    },
+    {
+     "face": "L043_L044_MID",
+     "problem": "no ink group with these support columns",
+     "support_cols_px": [
+      1077,
+      1078
+     ]
+    }
+   ],
+   "violation_count": 13,
+   "status": "red"
   },
   {
    "check": "opening_role_matches_where_the_ink_sits",

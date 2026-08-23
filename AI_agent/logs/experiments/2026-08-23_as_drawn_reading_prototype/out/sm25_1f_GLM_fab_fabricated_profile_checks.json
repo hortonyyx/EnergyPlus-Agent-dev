@@ -1,5 +1,5 @@
 {
- "source": "/workspaces/EnergyPlus-Agent-dev/AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/out/sm25_1f_CROSS_all_non_wall.json",
+ "source": "/workspaces/EnergyPlus-Agent-dev/AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/out/sm25_1f_GLM_fab_fabricated_profile.json",
  "image": "case_tests/e2e_tests/sm25-L_anchor/case_data/1f_view.png",
  "schema": "as_drawn_plan_v2",
  "mutation": null,
@@ -31,13 +31,21 @@
   },
   {
    "check": "gap_evidence_recomputable_from_original_image",
-   "fabricated_candidate_profile": [],
+   "fabricated_candidate_profile": [
+    {
+     "candidate": "L043g0",
+     "family": "F3",
+     "field": "on_line",
+     "stated": 500,
+     "recomputed": 0
+    }
+   ],
    "gaps_checked": 85,
    "tolerance_px": 1.5,
    "fabricated_ink_profile": [],
    "inconsistent_span": [],
-   "violation_count": 0,
-   "status": "green"
+   "violation_count": 1,
+   "status": "red"
   },
   {
    "check": "face_span_fully_accounted_by_runs_or_gaps",
@@ -87,8 +95,8 @@
    "candidates": 85,
    "named": 85,
    "by_kind": {
-    "ambiguous": 4,
-    "door": 32,
+    "ambiguous": 3,
+    "door": 33,
     "not_opening": 19,
     "window": 30
    },
@@ -107,16 +115,32 @@
   },
   {
    "check": "pair_hypothesis_reconciles_with_observations",
-   "status": "red",
-   "violation_count": 1,
+   "pairs": 22,
    "coverage": {
     "face_lines": 49,
-    "in_a_wall": 0,
-    "non_wall": 49,
+    "in_a_wall": 44,
+    "non_wall": 5,
     "ambiguous": 0,
     "unpaired_wall_face": 0
    },
-   "zero_wall": "perception identified no wall at all on a drawing with 49 face lines -- a confident zero"
+   "status_from_product": "SELECTED",
+   "face_lines_unaccounted_for": [],
+   "bucket_entries_without_a_reason": [],
+   "declared_non_wall": [
+    "L003",
+    "L018",
+    "L035",
+    "L036",
+    "L049"
+   ],
+   "declared_unpaired_wall_face": [],
+   "declared_solid_band_wall": [],
+   "declared_ambiguous": [],
+   "dangling_reference": [],
+   "face_claimed_twice": [],
+   "supports_overlap": [],
+   "violation_count": 0,
+   "status": "green"
   },
   {
    "check": "pair_spacing_explicable_by_callouts",

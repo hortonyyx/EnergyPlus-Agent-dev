@@ -352,6 +352,7 @@
   },
   {
    "check": "gap_evidence_recomputable_from_original_image",
+   "fabricated_candidate_profile": [],
    "gaps_checked": 170,
    "tolerance_px": 1.5,
    "fabricated_ink_profile": [],
@@ -362,8 +363,26 @@
   {
    "check": "face_span_fully_accounted_by_runs_or_gaps",
    "floor_px": 3,
-   "longest_unaccounted_px": 2,
-   "longest_unaccounted_m": 0.043,
+   "longest_unaccounted_px": 0,
+   "longest_unaccounted_m": 0.0,
+   "violations": [],
+   "violation_count": 0,
+   "status": "green"
+  },
+  {
+   "check": "support_strip_is_one_stroke",
+   "mirrors": "_ink_groups(min_run_px=14, min_support=10, gap>1px)",
+   "ink_column_groups_histogram": {
+    "1": 98
+   },
+   "violations": [],
+   "violation_count": 0,
+   "status": "green"
+  },
+  {
+   "check": "runs_match_the_strip",
+   "face_lines": 98,
+   "matched_a_recomputed_group": 98,
    "violations": [],
    "violation_count": 0,
    "status": "green"

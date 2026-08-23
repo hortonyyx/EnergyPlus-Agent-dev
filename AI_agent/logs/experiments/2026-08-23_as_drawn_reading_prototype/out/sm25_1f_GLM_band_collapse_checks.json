@@ -1,0 +1,345 @@
+{
+ "source": "/workspaces/EnergyPlus-Agent-dev/AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/out/sm25_1f_GLM_band_collapse.json",
+ "image": "case_tests/e2e_tests/sm25-L_anchor/case_data/1f_view.png",
+ "schema": "as_drawn_plan_v2",
+ "mutation": null,
+ "role_assignment": {
+  "structure": "F0",
+  "annotation": "F1",
+  "furniture": "F2",
+  "fenestration": "F3"
+ },
+ "checks": [
+  {
+   "check": "reverse_ledger_no_phantom_ink",
+   "threshold": 0.8,
+   "runs_sampled": 104,
+   "worst_coverage": 1.0,
+   "longest_hole_px": 0,
+   "violations": [],
+   "violation_count": 0,
+   "status": "green"
+  },
+  {
+   "check": "observations_recomputable_from_own_pixels",
+   "tolerance_m": 0.0325,
+   "stated_edges_wrong": [],
+   "stated_runs_wrong": [],
+   "face_lines_sharing_ink": [],
+   "violation_count": 0,
+   "status": "green"
+  },
+  {
+   "check": "gap_evidence_recomputable_from_original_image",
+   "fabricated_candidate_profile": [],
+   "gaps_checked": 65,
+   "tolerance_px": 1.5,
+   "fabricated_ink_profile": [],
+   "inconsistent_span": [],
+   "violation_count": 0,
+   "status": "green"
+  },
+  {
+   "check": "face_span_fully_accounted_by_runs_or_gaps",
+   "floor_px": 3,
+   "longest_unaccounted_px": 0,
+   "longest_unaccounted_m": 0.0,
+   "violations": [],
+   "violation_count": 0,
+   "status": "green"
+  },
+  {
+   "check": "support_strip_is_one_stroke",
+   "mirrors": "_ink_groups(min_run_px=14, min_support=10, gap>1px)",
+   "ink_column_groups_histogram": {
+    "1": 29,
+    "2": 10
+   },
+   "violations": [
+    {
+     "face": "BND_L008_L009",
+     "support_cols_px": [
+      692,
+      699
+     ],
+     "ink_column_groups": 2,
+     "why": "a wall face is ONE stroke; two groups means this 'band' spans two separate strokes with white space between them"
+    },
+    {
+     "face": "BND_L010_L011",
+     "support_cols_px": [
+      738,
+      745
+     ],
+     "ink_column_groups": 2,
+     "why": "a wall face is ONE stroke; two groups means this 'band' spans two separate strokes with white space between them"
+    },
+    {
+     "face": "BND_L012_L013",
+     "support_cols_px": [
+      790,
+      797
+     ],
+     "ink_column_groups": 2,
+     "why": "a wall face is ONE stroke; two groups means this 'band' spans two separate strokes with white space between them"
+    },
+    {
+     "face": "BND_L014_L015",
+     "support_cols_px": [
+      880,
+      887
+     ],
+     "ink_column_groups": 2,
+     "why": "a wall face is ONE stroke; two groups means this 'band' spans two separate strokes with white space between them"
+    },
+    {
+     "face": "BND_L019_L020",
+     "support_cols_px": [
+      1247,
+      1254
+     ],
+     "ink_column_groups": 2,
+     "why": "a wall face is ONE stroke; two groups means this 'band' spans two separate strokes with white space between them"
+    },
+    {
+     "face": "BND_L025_L026",
+     "support_cols_px": [
+      400,
+      407
+     ],
+     "ink_column_groups": 2,
+     "why": "a wall face is ONE stroke; two groups means this 'band' spans two separate strokes with white space between them"
+    },
+    {
+     "face": "BND_L037_L038",
+     "support_cols_px": [
+      677,
+      684
+     ],
+     "ink_column_groups": 2,
+     "why": "a wall face is ONE stroke; two groups means this 'band' spans two separate strokes with white space between them"
+    },
+    {
+     "face": "BND_L039_L040",
+     "support_cols_px": [
+      769,
+      777
+     ],
+     "ink_column_groups": 2,
+     "why": "a wall face is ONE stroke; two groups means this 'band' spans two separate strokes with white space between them"
+    },
+    {
+     "face": "BND_L041_L042",
+     "support_cols_px": [
+      862,
+      869
+     ],
+     "ink_column_groups": 2,
+     "why": "a wall face is ONE stroke; two groups means this 'band' spans two separate strokes with white space between them"
+    },
+    {
+     "face": "BND_L045_L046",
+     "support_cols_px": [
+      1050,
+      1057
+     ],
+     "ink_column_groups": 2,
+     "why": "a wall face is ONE stroke; two groups means this 'band' spans two separate strokes with white space between them"
+    }
+   ],
+   "violation_count": 10,
+   "status": "red"
+  },
+  {
+   "check": "runs_match_the_strip",
+   "face_lines": 39,
+   "matched_a_recomputed_group": 29,
+   "violations": [
+    {
+     "face": "BND_L008_L009",
+     "problem": "no ink group with these support columns",
+     "support_cols_px": [
+      692,
+      699
+     ]
+    },
+    {
+     "face": "BND_L010_L011",
+     "problem": "no ink group with these support columns",
+     "support_cols_px": [
+      738,
+      745
+     ]
+    },
+    {
+     "face": "BND_L012_L013",
+     "problem": "no ink group with these support columns",
+     "support_cols_px": [
+      790,
+      797
+     ]
+    },
+    {
+     "face": "BND_L014_L015",
+     "problem": "no ink group with these support columns",
+     "support_cols_px": [
+      880,
+      887
+     ]
+    },
+    {
+     "face": "BND_L019_L020",
+     "problem": "no ink group with these support columns",
+     "support_cols_px": [
+      1247,
+      1254
+     ]
+    },
+    {
+     "face": "BND_L025_L026",
+     "problem": "no ink group with these support columns",
+     "support_cols_px": [
+      400,
+      407
+     ]
+    },
+    {
+     "face": "BND_L037_L038",
+     "problem": "no ink group with these support columns",
+     "support_cols_px": [
+      677,
+      684
+     ]
+    },
+    {
+     "face": "BND_L039_L040",
+     "problem": "no ink group with these support columns",
+     "support_cols_px": [
+      769,
+      777
+     ]
+    },
+    {
+     "face": "BND_L041_L042",
+     "problem": "no ink group with these support columns",
+     "support_cols_px": [
+      862,
+      869
+     ]
+    },
+    {
+     "face": "BND_L045_L046",
+     "problem": "no ink group with these support columns",
+     "support_cols_px": [
+      1050,
+      1057
+     ]
+    }
+   ],
+   "violation_count": 10,
+   "status": "red"
+  },
+  {
+   "check": "opening_role_matches_where_the_ink_sits",
+   "gaps_measured": 65,
+   "ink_in_gaps_by_family": {
+    "F0": 160,
+    "F1": 34,
+    "F2": 15,
+    "F3": 4892
+   },
+   "named_opening_family": "F3",
+   "min_share": 0.5,
+   "share_of_gap_ink": 0.959,
+   "family_with_most_gap_ink": "F3",
+   "violation_count": 0,
+   "status": "green"
+  },
+  {
+   "check": "opening_naming_supported_by_ink",
+   "candidates": 65,
+   "named": 65,
+   "by_kind": {
+    "ambiguous": 4,
+    "door": 21,
+    "not_opening": 10,
+    "window": 30
+   },
+   "named_but_no_opening_ink": [],
+   "dangling_reference": [],
+   "unnamed_candidates": [],
+   "contradiction_called_not_opening_but_ink_is_there": [
+    {
+     "candidate": "L031g0",
+     "len_m": 0.0433,
+     "span_ratio": 0.5
+    }
+   ],
+   "violation_count": 0,
+   "status": "green"
+  },
+  {
+   "check": "pair_hypothesis_reconciles_with_observations",
+   "pairs": 12,
+   "coverage": {
+    "face_lines": 39,
+    "in_a_wall": 34,
+    "non_wall": 5,
+    "ambiguous": 0,
+    "unpaired_wall_face": 0
+   },
+   "status_from_product": "SELECTED",
+   "face_lines_unaccounted_for": [],
+   "bucket_entries_without_a_reason": [],
+   "declared_non_wall": [
+    "L003",
+    "L018",
+    "L035",
+    "L036",
+    "L049"
+   ],
+   "declared_unpaired_wall_face": [],
+   "declared_solid_band_wall": [
+    "BND_L008_L009",
+    "BND_L010_L011",
+    "BND_L012_L013",
+    "BND_L014_L015",
+    "BND_L019_L020",
+    "BND_L025_L026",
+    "BND_L037_L038",
+    "BND_L039_L040",
+    "BND_L041_L042",
+    "BND_L045_L046"
+   ],
+   "declared_ambiguous": [],
+   "dangling_reference": [],
+   "face_claimed_twice": [],
+   "supports_overlap": [],
+   "violation_count": 0,
+   "status": "green"
+  },
+  {
+   "check": "pair_spacing_explicable_by_callouts",
+   "declared_mm": [
+    240,
+    120
+   ],
+   "violations": [],
+   "violation_count": 0,
+   "status": "green"
+  },
+  {
+   "check": "forward_ledger_structural_ink_claimed",
+   "structure_family": "F0",
+   "structure_px_in_box": 21441,
+   "unclaimed_px": 672,
+   "unclaimed_pct": 3.13,
+   "component_floor_px": 400,
+   "large_unclaimed_components": [],
+   "furniture_family": "F2",
+   "furniture_layer_pct_of_ink": 21.92,
+   "status": "green",
+   "threshold_pct": 8.0
+  }
+ ]
+}

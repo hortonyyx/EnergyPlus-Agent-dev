@@ -1,5 +1,5 @@
 {
- "source": "/workspaces/EnergyPlus-Agent-dev/AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/out/sm24_1f_v2.json",
+ "source": "/workspaces/EnergyPlus-Agent-dev/AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/out/sm24_1f_GLM_launder_non_wall.json",
  "image": "case_tests/e2e_tests/sm24_anchor/case_data/1f_view.png",
  "schema": "as_drawn_plan_v2",
  "mutation": null,
@@ -30,7 +30,6 @@
   },
   {
    "check": "gap_evidence_recomputable_from_original_image",
-   "fabricated_candidate_profile": [],
    "gaps_checked": 87,
    "tolerance_px": 1.5,
    "fabricated_ink_profile": [],
@@ -41,29 +40,172 @@
   {
    "check": "face_span_fully_accounted_by_runs_or_gaps",
    "floor_px": 3,
-   "longest_unaccounted_px": 0,
-   "longest_unaccounted_m": 0.0,
-   "violations": [],
-   "violation_count": 0,
-   "status": "green"
-  },
-  {
-   "check": "support_strip_is_one_stroke",
-   "mirrors": "_ink_groups(min_run_px=14, min_support=10, gap>1px)",
-   "ink_column_groups_histogram": {
-    "1": 98
-   },
-   "violations": [],
-   "violation_count": 0,
-   "status": "green"
-  },
-  {
-   "check": "runs_match_the_strip",
-   "face_lines": 98,
-   "matched_a_recomputed_group": 98,
-   "violations": [],
-   "violation_count": 0,
-   "status": "green"
+   "longest_unaccounted_px": 42,
+   "longest_unaccounted_m": 1.155,
+   "violations": [
+    {
+     "face": "L006",
+     "px": [
+      414,
+      456
+     ],
+     "length_m": 1.155
+    },
+    {
+     "face": "L006",
+     "px": [
+      535,
+      577
+     ],
+     "length_m": 1.155
+    },
+    {
+     "face": "L012",
+     "px": [
+      760,
+      791
+     ],
+     "length_m": 0.853
+    },
+    {
+     "face": "L007",
+     "px": [
+      763,
+      792
+     ],
+     "length_m": 0.798
+    },
+    {
+     "face": "L025",
+     "px": [
+      837,
+      854
+     ],
+     "length_m": 0.468
+    },
+    {
+     "face": "L007",
+     "px": [
+      688,
+      703
+     ],
+     "length_m": 0.413
+    },
+    {
+     "face": "L052",
+     "px": [
+      496,
+      504
+     ],
+     "length_m": 0.22
+    },
+    {
+     "face": "L052",
+     "px": [
+      565,
+      572
+     ],
+     "length_m": 0.193
+    },
+    {
+     "face": "L024",
+     "px": [
+      563,
+      569
+     ],
+     "length_m": 0.165
+    },
+    {
+     "face": "L057",
+     "px": [
+      264,
+      270
+     ],
+     "length_m": 0.165
+    },
+    {
+     "face": "L070",
+     "px": [
+      264,
+      270
+     ],
+     "length_m": 0.165
+    },
+    {
+     "face": "L008",
+     "px": [
+      815,
+      820
+     ],
+     "length_m": 0.138
+    },
+    {
+     "face": "L024",
+     "px": [
+      394,
+      399
+     ],
+     "length_m": 0.138
+    },
+    {
+     "face": "L049",
+     "px": [
+      545,
+      549
+     ],
+     "length_m": 0.11
+    },
+    {
+     "face": "L066",
+     "px": [
+      264,
+      268
+     ],
+     "length_m": 0.11
+    },
+    {
+     "face": "L070",
+     "px": [
+      546,
+      550
+     ],
+     "length_m": 0.11
+    },
+    {
+     "face": "L079",
+     "px": [
+      361,
+      365
+     ],
+     "length_m": 0.11
+    },
+    {
+     "face": "L083",
+     "px": [
+      366,
+      370
+     ],
+     "length_m": 0.11
+    },
+    {
+     "face": "L088",
+     "px": [
+      285,
+      289
+     ],
+     "length_m": 0.11
+    },
+    {
+     "face": "L004",
+     "px": [
+      547,
+      550
+     ],
+     "length_m": 0.083
+    }
+   ],
+   "violation_count": 24,
+   "status": "red"
   },
   {
    "check": "opening_role_matches_where_the_ink_sits",
@@ -102,11 +244,11 @@
    "check": "pair_hypothesis_reconciles_with_observations",
    "status": "degraded",
    "violation_count": 0,
-   "pairs": 8,
+   "pairs": 1,
    "coverage": {
     "face_lines": 98,
-    "in_a_wall": 20,
-    "non_wall": 0,
+    "in_a_wall": 6,
+    "non_wall": 14,
     "ambiguous": 78,
     "unpaired_wall_face": 0
    },
@@ -204,58 +346,9 @@
      "nearest_declared_m": 0.24,
      "excess_m": 0.1162,
      "tolerance_m": 0.072
-    },
-    {
-     "pair": "P1",
-     "spacing_m": 0.1262,
-     "nearest_declared_m": 0.24,
-     "excess_m": 0.1138,
-     "tolerance_m": 0.072
-    },
-    {
-     "pair": "P2",
-     "spacing_m": 0.1238,
-     "nearest_declared_m": 0.24,
-     "excess_m": 0.1162,
-     "tolerance_m": 0.072
-    },
-    {
-     "pair": "P3",
-     "spacing_m": 0.1238,
-     "nearest_declared_m": 0.24,
-     "excess_m": 0.1162,
-     "tolerance_m": 0.072
-    },
-    {
-     "pair": "P4",
-     "spacing_m": 0.1238,
-     "nearest_declared_m": 0.24,
-     "excess_m": 0.1162,
-     "tolerance_m": 0.072
-    },
-    {
-     "pair": "P5",
-     "spacing_m": 0.1238,
-     "nearest_declared_m": 0.24,
-     "excess_m": 0.1162,
-     "tolerance_m": 0.072
-    },
-    {
-     "pair": "P6",
-     "spacing_m": 0.1238,
-     "nearest_declared_m": 0.24,
-     "excess_m": 0.1162,
-     "tolerance_m": 0.072
-    },
-    {
-     "pair": "P7",
-     "spacing_m": 0.1238,
-     "nearest_declared_m": 0.24,
-     "excess_m": 0.1162,
-     "tolerance_m": 0.072
     }
    ],
-   "violation_count": 8,
+   "violation_count": 1,
    "status": "red"
   },
   {

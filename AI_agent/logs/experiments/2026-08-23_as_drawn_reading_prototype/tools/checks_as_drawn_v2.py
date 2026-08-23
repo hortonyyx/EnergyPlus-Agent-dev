@@ -40,6 +40,7 @@ import numpy as np
 
 sys.path.insert(0, str(Path(__file__).parent))
 from as_drawn_v2 import _family_masks, _profile  # noqa: E402
+from plan_ink import vertical_runs_mask  # noqa: E402
 from plan_ink import load_rgb  # noqa: E402
 
 MIN_RUN_COVERAGE = 0.80   # a stroke must sit on real ink; swept in the README
@@ -210,8 +211,36 @@ def check_gaps_recomputable(doc: dict, masks: dict, tol_px: float = 1.5) -> dict
                                             "stated": stated_prof.get(key),
                                             "recomputed": want.get(key)})
                         break
-    bad = len(bad_profile) + len(bad_span)
+    # ⭐ 2026-08-24 (GLM Finding 2): the naming gate reads
+    # ``hypotheses.opening_candidates[*].ink_by_family`` -- a SECOND copy of the
+    # same measurement that nothing recomputed.  Measured A/B: naming a
+    # zero-ink 2.185 m gap a door is caught when the copy stays honest, and
+    # passes every gate once the copy is fabricated.  Same data, same function.
+    faces = {f["id"]: f for f in doc["observations"]["face_lines"]}
+    bad_candidates = []
+    for c in doc["hypotheses"].get("opening_candidates", []) or []:
+        f = faces.get(c.get("face_line"))
+        if f is None:
+            bad_candidates.append({"candidate": c.get("id"), "problem": "unknown face line"})
+            continue
+        gs = f.get("gaps") or []
+        gi = c.get("gap_index")
+        if not isinstance(gi, int) or gi >= len(gs):
+            bad_candidates.append({"candidate": c.get("id"), "problem": "gap_index out of range"})
+            continue
+        g = gs[gi]
+        for fid, stated in (c.get("ink_by_family") or {}).items():
+            truth = (g.get("ink_by_family") or {}).get(fid) or {}
+            for key in ("on_line", "span_ratio", "nearest_px"):
+                if abs((stated.get(key) or 0) - (truth.get(key) or 0)) > 1e-4:
+                    bad_candidates.append({"candidate": c.get("id"), "family": fid,
+                                           "field": key, "stated": stated.get(key),
+                                           "recomputed": truth.get(key)})
+                    break
+
+    bad = len(bad_profile) + len(bad_span) + len(bad_candidates)
     return {"check": "gap_evidence_recomputable_from_original_image",
+            "fabricated_candidate_profile": bad_candidates[:20],
             "gaps_checked": n, "tolerance_px": tol_px,
             "fabricated_ink_profile": bad_profile[:20],
             "inconsistent_span": bad_span[:20],
@@ -252,18 +281,14 @@ def check_face_span_accounted(doc: dict, masks: dict, roles: dict,
             continue
         m = by_axis[f["axis"]]
         c0, c1 = f["support_cols_px"]
+        # ⚠️ An earlier version walked OUTWARD from the first/last run while ink
+        # continued, to catch tail trimming.  On sm24's filled-band dialect that
+        # walk runs straight into every perpendicular wall at a T-junction and
+        # false-reddened 24 honest face lines.  Tail trimming is now caught by
+        # ``check_runs_match_the_strip`` instead -- by recomputing the runs with
+        # the producer's own extractor, which needs no outward guess at all.
         lo, hi = min(a for a, _ in runs), max(b for _, b in runs)
-        # ⭐ 2026-08-24 (GLM): walk OUTWARD from the first/last run while the same
-        # stroke continues.  Trimming the tails a reading does not want to be
-        # scored on left every gate green on sm25 2F, because the scan used to be
-        # bounded by the runs the product chose to declare.
-        col = slice(max(0, c0 - SAMPLE_HALF_PX), c1 + SAMPLE_HALF_PX)
-        full = m[:, col].any(axis=1)
-        while lo > 0 and full[lo - 1]:
-            lo -= 1
-        while hi < len(full) and full[hi]:
-            hi += 1
-        inked = full[lo:hi]
+        inked = m[lo:hi, max(0, c0 - SAMPLE_HALF_PX):c1 + SAMPLE_HALF_PX].any(axis=1)
         accounted = [False] * (hi - lo)
         for a, b in runs:
             for i in range(max(lo, a) - lo, min(hi, b) - lo):
@@ -293,6 +318,121 @@ def check_face_span_accounted(doc: dict, masks: dict, roles: dict,
             "longest_unaccounted_m": round(worst * m_px, 3),
             "violations": sorted(rows, key=lambda r: -r["length_m"])[:20],
             "violation_count": len(rows), "status": "red" if rows else "green"}
+
+
+def check_runs_match_the_strip(doc: dict, masks: dict, roles: dict, cfg: dict) -> dict:
+    """⭐ Are the declared runs the ones the strip actually carries?
+
+    Mirrors the producer end-to-end: re-run ``_ink_groups`` on the original image
+    with this drawing's own settings and compare, group by group, with what the
+    product declares.  ⛔ No threshold, no outward guessing.
+
+    This replaces an outward-walk heuristic that caught tail trimming on one
+    dialect and false-reddened 24 honest face lines on the other (sm24's filled
+    bands run into a perpendicular wall at every T-junction).
+
+    ⚠️ Stated limit: for a DETERMINISTIC observation layer this is close to a
+    tautology -- it re-runs the extractor.  Its value is for the layer this batch
+    is heading to, where the observations arrive from somewhere else (a model, an
+    outside product, a hand-built fixture); there it is the only thing that ties
+    the declared runs back to the pixels.  Differences are REPORTED per face
+    line, not summarised away.
+    """
+    from as_drawn_v2 import _ink_groups
+    st = masks[roles["structure"]].copy()
+    r0, r1, c0b, c1b = doc["declarations"]["drawing_box_px"]
+    st[:r0, :] = False
+    st[r1:, :] = False
+    st[:, :c0b] = False
+    st[:, c1b:] = False
+    truth: dict[tuple[str, int, int], list] = {}
+    for axis in ("col", "row"):
+        for g in _ink_groups(st, masks, axis=axis,
+                             min_run_px=cfg.get("min_run_px", 14),
+                             min_support=cfg.get("min_support", 10)):
+            truth[(axis, g["support_cols_px"][0], g["support_cols_px"][1])] = g["runs_px"]
+    rows, matched = [], 0
+    for f in doc["observations"]["face_lines"]:
+        key = (f["axis"], f["support_cols_px"][0], f["support_cols_px"][1])
+        want = truth.get(key)
+        if want is None:
+            rows.append({"face": f["id"], "problem": "no ink group with these support columns",
+                         "support_cols_px": f["support_cols_px"]})
+            continue
+        matched += 1
+        got = [[int(a), int(b)] for a, b in f["runs_px"]]
+        if [[int(a), int(b)] for a, b in want] != got:
+            rows.append({"face": f["id"], "declared_runs": got[:6],
+                         "recomputed_runs": [[int(a), int(b)] for a, b in want][:6],
+                         "declared_total_px": sum(b - a for a, b in got),
+                         "recomputed_total_px": sum(int(b) - int(a) for a, b in want)})
+    return {"check": "runs_match_the_strip", "face_lines": len(doc["observations"]["face_lines"]),
+            "matched_a_recomputed_group": matched, "violations": rows[:20],
+            "violation_count": len(rows), "status": "red" if rows else "green"}
+
+
+def check_support_strip_is_one_stroke(doc: dict, masks: dict, roles: dict, *,
+                                      min_run_px: int = 14, min_support: int = 10) -> dict:
+    """⭐ Is the support strip a face line declares actually ONE stroke of ink?
+
+    Added 2026-08-24 after the FIFTH cross-family review (GLM) built
+    ``band_collapse``: two real ink lines of a wall declared as ONE filled band,
+    with support columns = the two real strokes, runs = their union, every metre
+    recomputed by the producer's own affine, and every gap profile honestly
+    re-measured over the widened strip.  ⛔ NOTHING in that product is fabricated,
+    and it beat the honest product on two criteria (C2 98.7 > 98.6, C4 0.473 <
+    0.722) with all eight gates green and the gt-side score unchanged.
+
+    Why every other gate was blind: they all anchor on the aperture the PRODUCT
+    chose.  ``edges_m`` is recomputed from the product's own support columns --
+    declare a wider strip and the recomputation simply agrees.  The reverse
+    ledger asks whether ANY column of the strip has ink.  Nothing asked the one
+    question that separates a real filled band from two lines with white space
+    between them: **is the strip one stroke?**
+
+    ⛔ Threshold-free: it mirrors ``_ink_groups``'s OWN grouping rule (a column
+    counts when it carries >= ``min_support`` rows of a run at least
+    ``min_run_px`` long; groups split on a gap wider than 1 px).  Measured:
+    honest sm25 1F all 49 face lines -> 1 group; honest sm24 all 98 -> 1 group
+    (its four genuine solid bands included); every collapsed band -> 2.
+    """
+    # ⚠️ mirror the producer exactly: it groups on the structure mask CLIPPED to
+    # the drawing box.  Without the clip, ink outside the plan frame joins the
+    # strip and an honest face line reads as two groups.
+    st = masks[roles["structure"]].copy()
+    r0, r1, c0b, c1b = doc["declarations"]["drawing_box_px"]
+    st[:r0, :] = False
+    st[r1:, :] = False
+    st[:, :c0b] = False
+    st[:, c1b:] = False
+    by_axis = {"col": st, "row": st.T}
+    rows = []
+    hist: dict[int, int] = {}
+    for f in doc["observations"]["face_lines"]:
+        m = by_axis[f["axis"]]
+        c0, c1 = f["support_cols_px"]
+        keep = vertical_runs_mask(m, min_run_px)
+        support = keep[:, c0:c1].sum(0)
+        cols = [int(c) for c in np.flatnonzero(support >= min_support)]
+        groups = 0
+        prev = None
+        for c in cols:
+            if prev is None or c - prev > 1:
+                groups += 1
+            prev = c
+        hist[groups] = hist.get(groups, 0) + 1
+        if groups != 1:
+            rows.append({"face": f["id"], "support_cols_px": [c0, c1],
+                         "ink_column_groups": groups,
+                         "why": ("a wall face is ONE stroke; two groups means this "
+                                 "'band' spans two separate strokes with white space "
+                                 "between them" if groups > 1 else
+                                 "no column of the declared strip carries a stroke")})
+    return {"check": "support_strip_is_one_stroke",
+            "mirrors": "_ink_groups(min_run_px=%d, min_support=%d, gap>1px)" % (min_run_px, min_support),
+            "ink_column_groups_histogram": {str(k): v for k, v in sorted(hist.items())},
+            "violations": rows[:20], "violation_count": len(rows),
+            "status": "red" if rows else "green"}
 
 
 def check_opening_role_matches_ink(doc: dict, min_share: float = 0.50) -> dict:
@@ -679,6 +819,8 @@ def main(doc_path: str, cfg_path: str, out_path: str, *, mutate: str | None = No
                          check_self_consistency(doc),
                          check_gaps_recomputable(doc, masks),
                          check_face_span_accounted(doc, masks, roles),
+                         check_support_strip_is_one_stroke(doc, masks, roles),
+                         check_runs_match_the_strip(doc, masks, roles, cfg),
                          check_opening_role_matches_ink(doc),
                          check_opening_naming_supported(doc),
                          check_pair_reconciliation(doc),

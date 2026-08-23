@@ -1,5 +1,5 @@
 {
- "source": "/workspaces/EnergyPlus-Agent-dev/AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/out/sm25_1f_CROSS_all_non_wall.json",
+ "source": "/workspaces/EnergyPlus-Agent-dev/AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/out/sm25_1f_GLM_fab_honest_profile.json",
  "image": "case_tests/e2e_tests/sm25-L_anchor/case_data/1f_view.png",
  "schema": "as_drawn_plan_v2",
  "mutation": null,
@@ -87,12 +87,20 @@
    "candidates": 85,
    "named": 85,
    "by_kind": {
-    "ambiguous": 4,
-    "door": 32,
+    "ambiguous": 3,
+    "door": 33,
     "not_opening": 19,
     "window": 30
    },
-   "named_but_no_opening_ink": [],
+   "named_but_no_opening_ink": [
+    {
+     "candidate": "L043g0",
+     "named": "door",
+     "len_m": 2.185,
+     "opening_ink_on_line": 0,
+     "span_ratio": 0.0
+    }
+   ],
    "dangling_reference": [],
    "unnamed_candidates": [],
    "contradiction_called_not_opening_but_ink_is_there": [
@@ -102,21 +110,37 @@
      "span_ratio": 0.5
     }
    ],
-   "violation_count": 0,
-   "status": "green"
+   "violation_count": 1,
+   "status": "red"
   },
   {
    "check": "pair_hypothesis_reconciles_with_observations",
-   "status": "red",
-   "violation_count": 1,
+   "pairs": 22,
    "coverage": {
     "face_lines": 49,
-    "in_a_wall": 0,
-    "non_wall": 49,
+    "in_a_wall": 44,
+    "non_wall": 5,
     "ambiguous": 0,
     "unpaired_wall_face": 0
    },
-   "zero_wall": "perception identified no wall at all on a drawing with 49 face lines -- a confident zero"
+   "status_from_product": "SELECTED",
+   "face_lines_unaccounted_for": [],
+   "bucket_entries_without_a_reason": [],
+   "declared_non_wall": [
+    "L003",
+    "L018",
+    "L035",
+    "L036",
+    "L049"
+   ],
+   "declared_unpaired_wall_face": [],
+   "declared_solid_band_wall": [],
+   "declared_ambiguous": [],
+   "dangling_reference": [],
+   "face_claimed_twice": [],
+   "supports_overlap": [],
+   "violation_count": 0,
+   "status": "green"
   },
   {
    "check": "pair_spacing_explicable_by_callouts",
