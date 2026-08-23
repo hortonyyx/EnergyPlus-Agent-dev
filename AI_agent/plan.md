@@ -176,7 +176,21 @@
 > ⛔ **本节内容只在分支 `08.23_AsDrawnReading` 上**。主线只留指针，合不合并待评估。
 > 全档 → [`logs/experiments/2026-08-23_as_drawn_reading_prototype/README.md`](logs/experiments/2026-08-23_as_drawn_reading_prototype/README.md)
 
-### 〇、⭐⭐⭐ 用户 2026-08-23 的架构更正（覆盖下方「一」的部分表述）
+### 〇、⭐⭐⭐ 本批开发指南已成文 → [`guides/reading_correction_split_guide.md`](guides/reading_correction_split_guide.md)
+
+**用户 2026-08-23 追加拍板四条**（全部已写进指南）：
+① **判分器拆两个**，且**都对着 gt** —— reading grade 判描摹+语义，correction grade **沿用现有 judge 形式 + 出 grade 图**
+（⭐ 现有 6817 行不扔，它就是 correction 判分器）。出模方式一旦确定，gt 就派生一个确定的答案形式。
+② ⭐⭐ **只判答案，不判过程** —— 「过程怎么提升可以产出更好的答案，这就是优化 harness 的工作」。
+⛔ orchestrator 提的「判裁决对不对」**已撤回**（那是给一种做法打分，而做法本来就要迭代）。
+③ **配对（哪两条线是一堵墙）= 模型认，代码给候选 + 事后对账**。
+④ **历史校验尺度 = 新工具跑得通 + 降级显式**，⛔ 不要求历史 case 出分。
+⑤ **correction 核心思想 = 让 reading 出来的图纸变成合理的建筑图纸；模型核心介入点 = 总体把控和判断**
+⇒ 落成**三拍循环**（代码算+列待裁决清单 → 模型逐条裁决+总体把控 → 代码执行+复查），
+⭐ 铁律：**模型出决定、代码出坐标**。
+⑥ **把原图纳入 reading 生产**（不再靠人手填 `drawing_box` / 手工转录 `chains`）→ **harness 迭代 + reading 专项**。
+
+### 〇之二、⭐⭐⭐ 用户 2026-08-23 的架构更正（覆盖下方「一」的部分表述）
 
 **语义归 reading、由模型做** —— ⛔ 主控此前提「语义搬去 correction」**违反不变量 #1**
 （「LLM 只做**感知** + 校正判断 + 物理语义」，感知就是语义），已收回。

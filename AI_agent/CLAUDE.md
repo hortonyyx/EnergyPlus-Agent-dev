@@ -209,6 +209,13 @@ EnergyPlus 经 `WorkflowTool.run_simulation`（eppy + ConverterManager，idfpy �
 > 立面载体方言层 F-65 · sm25 gt 晋升 · C2 首考 94.4% / 窗 8/15）。
 
 
+> **⭐⭐⭐ 本批开发指南（2026-08-23 用户令「免得我时不时进来纠偏」）→
+> [guides/reading_correction_split_guide.md](guides/reading_correction_split_guide.md)**
+> —— 分工四刀（量=代码 · **认=模型（在 reading）** · 对账=代码门 · 装配=correction）·
+> correction 三拍循环（**模型出决定、代码出坐标**）· ⭐ **只判答案不判过程，两个判分器都对着 gt** ·
+> 八条硬纪律（每条都有 08-23 实犯）· 验收尺度 · 两个专项的并入与留尾。
+> ⛔ 与本文其余各节冲突处，**reading/correction 分工与判分口径以该指南为准**。
+
 > **⭐⭐⭐ 2026-08-23 收工状态 banner**
 > **① sm25 gt 已签字入库**（用户当场看叠图签字）。⛔ 候选包**不能直接入库** —— 强制二次转换红了，
 > 因为它是旧版转换器代码产的；几何逐字段相同、只差实现指纹 ⇒ 用现行代码重建重签入库
@@ -375,6 +382,7 @@ EnergyPlus 经 `WorkflowTool.run_simulation`（eppy + ConverterManager，idfpy �
 | [architecture/harness_versioning.md](architecture/harness_versioning.md) + [harness_versions.yaml](architecture/harness_versions.yaml) | **harness 版本管理**（2026-08-22 用户定）：能力点=建筑复杂度 × 图纸方言两根轴；**探索性不进版本、走完循环①–④对过 gt 的才进**；`known_gaps` 必填 |
 | [architecture/judge_grade_model.md](architecture/judge_grade_model.md) | **判卷子系统活规格**（gate② grade：reading+correction·平面+立面·三档色·容差带；§8b 开放 backlog=墙粒度/立面窗移位vs变尺寸/Hungarian/ambiguous/非方形）|
 | [guides/new_case_guide.md](guides/new_case_guide.md) | **主 Agent（编排器+judge②）操作手册**：换主控模型读此接手 |
+| [guides/reading_correction_split_guide.md](guides/reading_correction_split_guide.md) | **本批开发指南**（2026-08-23）：reading/correction 新分工 + 只判答案不判过程 + 八条硬纪律 + 验收尺度 |
 | [guides/codex_execution_protocol.md](guides/codex_execution_protocol.md) | **Claude 编排 / Codex 执行**协作规约：分工 + 省上下文机制 + 通道/沙箱校准 + 审阅反转 + 兜底纪律 |
 | [capability/](capability) | **识图→建模能力主线**：`recognition_modeling_capability.md`(质量主线) · `reading/improvement_methodology.md`(**reading 提升唯一管理文档**：诊断+Phase A/B/C+CV 工具箱方法论+决策) · `floorplan_redraw_strategy.md`(两步法策略/POC 史) · `pipeline_0-5_capability_upgrade_suggestions.md`(C2/C3/C4 复杂度升级) |
 | [proposals/](proposals) | **未落地的设想 / deferred 设计**（一旦动工搬进 capability，不两处并存）：`geometry_first_zonification.md`(再拓扑支线,休眠) · `editable_geometry_confirmation.md`(可编辑几何确认,DEFERRED) · `cad_to_gt_extraction_plan.md`(CAD→gt,设计待审) · `role_binding_phase2.md`(role 确定性绑定 phase-2,DEFERRED·2026-07-05 抽出) · `j23_geometry_judge.md`(J23 几何 judge,P2 DEFERRED·2026-07-05 抽出) |
