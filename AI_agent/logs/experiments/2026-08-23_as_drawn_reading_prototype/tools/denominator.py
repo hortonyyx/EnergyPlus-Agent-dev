@@ -158,11 +158,20 @@ def denominator(dxf: Path, request_path: Path, view_id: str, *,
         return near(lo) and near(hi)
 
     groups: dict[tuple[str, float], list[tuple[float, float]]] = {}
+    allowed: list[dict] = []          # ⭐ D2': drawn, allowed, not required
     n_cap, n_face, n_cap_by_converter = 0, 0, 0
     for axis, const, lo, hi, cap_key in segs:
         n_cap_by_converter += cap_key in caps
         if _is_cap(axis, const, lo, hi):                 # D2 (geometric)
             n_cap += 1
+            # ⚠️ 2026-08-24, fourth cross-family review (GLM): excluding caps from
+            # the targets while still counting a reading's ink on them as 多画 is
+            # ASYMMETRIC -- drawing the real stroke is punished and not drawing it
+            # is free.  Measured: the honest sm25 1F product's 0.36 m of "extra"
+            # lands exactly on D2-excluded segments.  So caps now leave the
+            # denominator as an ALLOWED set: not scored for, not scored against.
+            allowed.append({"axis": axis, "const_m": const,
+                            "lo_m": round(lo, QUANT), "hi_m": round(hi, QUANT)})
             continue
         n_face += 1
         groups.setdefault((axis, round(const, GROUP_QUANT)), []).append((lo, hi))
@@ -244,6 +253,7 @@ def denominator(dxf: Path, request_path: Path, view_id: str, *,
             "merges_blocked_by_an_opening": guarded,
         },
         "targets": targets,
+        "allowed_not_required": allowed,
         "opening_targets": opening_targets,
         "opening_ledger": {"total": len(opening_targets),
                            "by_kind": {k: sum(1 for o in opening_targets if o["kind"] == k)

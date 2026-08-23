@@ -21,7 +21,10 @@ one criterion per failure mode the third cross-family review named:
                 (门窗身份 — ⭐ measured 2026-08-24: swapping every door and window
                  in the reading moved the gt-side reconstruction by 0.0 points,
                  because that check only ever asks "is this stretch an opening")
-  C4 EXTRA      length the reading claims as wall that no target explains
+  C4 EXTRA      length the reading claims as wall that no target explains AND
+                that the answer does not even ALLOW.  ⭐ The jamb caps D2 keeps
+                out of the targets are real strokes on the drawing: not scored
+                for, and (since the fourth review) not scored against either.
                 (多画 — ⭐ the direction a gt-only ruler REWARDS: claiming a
                  line runs edge-to-edge raised the old reconstruct score above
                  the honest product's)
@@ -144,7 +147,10 @@ def grade(doc: dict, den: dict, *, pos_tol: float = POS_TOL_M,
         # length of this line that no target on its axis+const can explain
         tgt = _union([(t["lo_m"], t["hi_m"]) for t in den["targets"]
                       if t["axis"] == ln["axis"]
-                      and min(abs(c - t["const_m"]) for c in ln["consts"]) <= pos_tol])
+                      and min(abs(c - t["const_m"]) for c in ln["consts"]) <= pos_tol]
+                     + [(a["lo_m"], a["hi_m"]) for a in den.get("allowed_not_required", [])
+                        if a["axis"] == ln["axis"]
+                        and min(abs(c - a["const_m"]) for c in ln["consts"]) <= pos_tol])
         unexplained = drawn - sum(_covered(tgt, a, b) for a, b in ln["runs"])
         if unexplained >= extra_min:
             extras.append({"face": ln["id"], "axis": ln["axis"],
