@@ -1,0 +1,115 @@
+{
+ "source": "AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/out/sm24_1f_as_drawn.json",
+ "image": "case_tests/e2e_tests/sm24_anchor/case_data/1f_view.png",
+ "mutation": null,
+ "checks": [
+  {
+   "check": "reverse_ledger_no_phantom_ink",
+   "threshold": 0.8,
+   "worst_coverage": 0.74,
+   "violations": [
+    {
+     "run_px": [
+      422,
+      472
+     ],
+     "length_px": 50,
+     "ink_coverage": 0.74,
+     "band": "B08",
+     "face": "b"
+    },
+    {
+     "run_px": [
+      519,
+      569
+     ],
+     "length_px": 50,
+     "ink_coverage": 0.74,
+     "band": "B08",
+     "face": "b"
+    }
+   ],
+   "status": "red"
+  },
+  {
+   "check": "band_spacing_explicable_by_callouts",
+   "violations": [],
+   "status": "green"
+  },
+  {
+   "check": "forward_ledger_structural_ink_claimed",
+   "structure_px_in_box": 28602,
+   "unclaimed_px": 11974,
+   "unclaimed_pct": 41.86,
+   "component_floor_px": 400,
+   "large_unclaimed_components": [
+    {
+     "px": 913,
+     "bbox_px": [
+      275,
+      316,
+      362,
+      362
+     ]
+    },
+    {
+     "px": 707,
+     "bbox_px": [
+      456,
+      171,
+      579,
+      248
+     ]
+    },
+    {
+     "px": 626,
+     "bbox_px": [
+      288,
+      685,
+      367,
+      769
+     ]
+    },
+    {
+     "px": 539,
+     "bbox_px": [
+      287,
+      739,
+      367,
+      796
+     ]
+    },
+    {
+     "px": 472,
+     "bbox_px": [
+      397,
+      632,
+      398,
+      867
+     ]
+    },
+    {
+     "px": 472,
+     "bbox_px": [
+      402,
+      700,
+      557,
+      867
+     ]
+    },
+    {
+     "px": 450,
+     "bbox_px": [
+      522,
+      766,
+      547,
+      853
+     ]
+    }
+   ],
+   "furniture_layer_pct_of_ink": 0.0,
+   "status": "degraded",
+   "degraded_reason": "no separate furniture ink layer: structural colour carries furniture too, so unclaimed structural ink is NOT a wall-coverage measure on this drawing"
+  }
+ ]
+}
