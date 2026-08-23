@@ -6,8 +6,10 @@
 > **v1 那份混合口径的实证档**（二审据此 REJECT）逐字保留在
 > [`README_v1_mixed_evidence.md`](README_v1_mixed_evidence.md)，**⛔ 只作历史，别引用它的数**。
 >
-> **两轮裁决** → [一审](../../reviews/verdict/2026-08-23_as_drawn_design_crossreview_sol.md) ·
-> [二审](../../reviews/verdict/2026-08-23b_as_drawn_design_v2_crossreview_sol.md)
+> **三轮裁决**（全部 REJECT）→ [一审](../../reviews/verdict/2026-08-23_as_drawn_design_crossreview_sol.md) ·
+> [二审](../../reviews/verdict/2026-08-23b_as_drawn_design_v2_crossreview_sol.md) ·
+> [**三审**](../../reviews/verdict/2026-08-24_as_drawn_v2_perception_crossreview_sol.md)（送审书见
+> [request](../../reviews/request/2026-08-24_as_drawn_v2_perception_crossreview_request.md)）
 > **本批口径** → [`guides/reading_correction_split_guide.md`](../../../guides/reading_correction_split_guide.md)
 >
 > ⛔ 全程探索档：**未改 `src/`、未改 gt、未改现有判分器、未写测试锁。**
@@ -63,12 +65,14 @@ hypotheses     认出来的，带证据引用        ← ⛔ 不直接计分、�
 
 ---
 
-## 二、不读 gt 的自证判据（五条）
+## 二、不读 gt 的自证判据（**八条**）
 
 | 判据 | 问的问题 | sm25 1f | sm25 2f | sm24 1f |
 |---|---|---|---|---|
 | `reverse_ledger_no_phantom_ink` | 声称画过的每一段，原图上真有墨吗 | 🟢 | 🟢 | 🟢 |
 | `observations_recomputable_from_own_pixels` | ⭐ 产物报的每个米数，能从它自己的像素重算吗 | 🟢 | 🟢 | 🟢 |
+| ⭐ `gap_evidence_recomputable_from_original_image` | **空档里那些「门窗墨」的数，能从原图重算出来吗**（三审补）| 🟢 | 🟢 | 🟢 |
+| ⭐ `face_span_fully_accounted_by_runs_or_gaps` | **面线自己跨度内的每一行墨，要么在区间里要么在断口里**（三审补）| 🟢 | 🟢 | 🟢 |
 | `opening_role_matches_where_the_ink_sits` | ⭐ 叫「门窗」的族，墨迹真长在墙的断口里吗 | 🟢 | 🟢 | 🟢 |
 | `pair_hypothesis_reconciles_with_observations` | 引用在不在 · 有没有一线两卖 · 支撑是否重叠 · **有没有面线没人认领** | 🟢 | 🟢 | ⚪ **降级**（78 条未认领）|
 | `pair_spacing_explicable_by_callouts` | 量到的间距，图纸自己的 callout 解释得了吗 | 🟢 | 🟢 | 🔴 **8 条**（见下）|
@@ -87,7 +91,8 @@ hypotheses     认出来的，带证据引用        ← ⛔ 不直接计分、�
   在其余四条判据下**全绿**；加上「必须能从自己的像素重算」后**变红**。
 - ⚠️ **这道新门第一版差点误伤诚实产物**：sm24 偏 **1.480 px**，门是 1.5 px。
   真因是**我的重算公式偷设了「墨迹质心 = 支撑列中点」这个生产者从没做过的假设**。
-  按生产者自己的仿射映射逐边重算后，三份诚实产物最大偏差 **0.004 px** ⇒ 门与它差 **400 倍**。
+  按生产者自己的仿射映射逐边重算后，三份诚实产物最大偏差 **0.004835 px**（sm25 2f 的 `L027`）⇒ 门与它差 **310 倍**。
+  ⚠️ 此处初稿写「0.004 px / 400 倍」，**三审实测更正**。
 
 ### 分辨力（对 sm25 1f 施加变异；`out/*_checks_v2_MUT_*.json`）
 
@@ -112,9 +117,77 @@ hypotheses     认出来的，带证据引用        ← ⛔ 不直接计分、�
 | 引用一条不存在的面线 | 🔴 | 🟢 | 94.6（看不见）|
 | **把「窗」和「家具」的族名对调** | 🟢 | 🟢 | **94.6 → 51.4** |
 
-⭐ 最后一行原来是**六道门全绿而 gt 侧掉 43 分**的洞 ⇒ 据此新增了
+⭐ 最后一行原来是**其余各门全绿而 gt 侧掉 43 分**的洞 ⇒ 据此新增了
 `opening_role_matches_where_the_ink_sits`（门窗墨迹落在墙断口里的占比：
 sm25 1f **97.8%** / sm24 **80.3%**，家具族只有 0.14%），现在它**变红**。
+
+---
+
+## 二之二、⛔⛔ 跨家族**三审 REJECT** —— 它第三次击穿了我（2026-08-24）
+
+**裁决** → [`2026-08-24_as_drawn_v2_perception_crossreview_sol.md`](../../reviews/verdict/2026-08-24_as_drawn_v2_perception_crossreview_sol.md)
+**审阅方自己写的变异工具** → `tools/crossreview_mutate_v2.py`（⛔ 永久留在矩阵里：
+**一个曾经真的骗过判据的作弊，是最有价值的回归夹具**）
+
+### ⭐⭐⭐ 它找到的新作弊：**把真的漏读说成洞口**
+
+1. reading 在 `L012+L013` 两个面上**真的漏掉 1.2 m 墙**；
+2. 又把这段**谎报成门窗断口**，在评分器真正读的 `gaps[*].ink_by_family[<门窗族>]` 里写假证据；
+3. ⇒ gt 侧 **89.2 → 94.6**（回到诚实产物的分数），而**当时六道门全绿**。
+
+**病根**：我上一轮只把**阈值**做成了单像素动不了（`OPENING_SPAN_MIN` 按空档长度占比），
+**但那个量本身仍然是产物说了算** —— 与 `edges_m` 同一个病，深一层，**而我是被指出两次才看见**。
+
+### ⛔ 而且我拿来证明「二审 #2 已解决」的那个变异，根本没跑到消费者
+
+`punch_middle_one_pixel` 写的是 `opening_ink`，**消费者读的是 `ink_by_family`** ⇒
+它的 0.0 / 0.0 是**挖空本身**挣来的，**从未走到桥接分支**。
+改写成真实 schema 后实测：**36 / 194 个伪造空档确实越过了 `OPENING_SPAN_MIN`**，
+分数仍是 0.0 —— 但原因是「剩下的区间太短、没有目标能到 80% 覆盖」，
+⛔ **不是「一个像素推不动它」**。这条解释本轮已撤回。
+（同族纪律 §五#5 是我自己写的：「变异没效果」和「变异没跑」在产物上分不开。）
+
+### 它的另外两个绕过
+
+- **49/49 全塞 `non_wall_face_lines`** ⇒ 当时**六门全绿**、gt 仍 94.6；
+- **49/49 全塞 `ambiguous_face_lines`** ⇒ 五绿一降级、`violation_count=0`、gt 仍 94.6。
+
+### ⇒ 本轮据此补的四件（每件都用它的夹具验过）
+
+| 补的东西 | 拦住了什么 |
+|---|---|
+| ⭐ `gap_evidence_recomputable_from_original_image` | 空档的 `len_px` / `span_m` / 每个族的 `on_line`·`span_ratio`·`nearest_px` **全部从原图重算**；⛔ 连像素索引都没有的空档 = 伪造 |
+| ⭐ `face_span_fully_accounted_by_runs_or_gaps` | **面线自己跨度内的每一行墨，要么在区间里、要么在已声明的断口里**。⛔ 无阈值：产物自己声称这条线从 A 画到 B |
+| ⭐ **ZERO-WALL**（对账门）| 「一堵墙都没认出来」= 自信的零（F-69 那条规矩），⛔ 无论理由。⚠️ **分级的弃权预算是领域参数、需要签字 + 冷启样本，本轮故意没有发明** |
+| ⭐ **gt 侧分数自报可采信性** | `admissibility.admissible_as_a_grade` —— 没过不读 gt 的重算门就**不是成绩**，并点名哪几道门红了 |
+
+**实测（`RESULTS_v2.json → crossreview_neuters`，诚实产物 gt=94.6 / 八门全绿）**：
+
+| 三审夹具 | gt 侧 | 变红的门 |
+|---|---:|---|
+| `missing_wall_middle`（真丢 1.2 m）| 89.2 | `spanacct` |
+| `fake_opening_over_missing_wall`（丢了再谎称是洞口）| 94.6 | **`gaps` + `spanacct`** |
+| `one_pixel_actual_schema`（单像素写进真实 schema）| 0.0 | `recompute` + `gaps` + `spanacct` |
+| `all_ambiguous`（49/49 弃权）| 94.6 | `reconcile` |
+| `all_non_wall`（49/49 说不是墙）| 94.6 | `reconcile` |
+
+### ⭐ 「每道门都真红过也真绿过」现在是**机器算的**，不是我嘴上说的
+
+三审 Finding 7 抓出 README 曾断言「没有一条判据恒红或恒绿」，而它指向的那张矩阵里
+`openrole` 与 `spacing` **6/6 全绿**。现在 `run_all.py` 跨**全部夹具**统计每道门见过的状态，
+恒红/恒绿会被直接标 `NEVER_RED` / `NEVER_GREEN`。当前八门**全部 `ok`**。
+
+### 三审其余的裁决，我已核并接受
+
+- **无-gt 判据是六条不是五条**（当时；现在是**八条**）—— 请求书与 README 都写错了，已改。
+- **perception 坏夹具是 5/5 红**，不是「5 种 4 种红」—— 请求书的旧计数，已改。
+- **「诚实产物上抓到 4 条面线被卖两次」是历史发现**（perception 接进来之前那版**代码替身配对**），
+  ⛔ 不是当前 `run_all.py` 的数（当前三份诚实产物 reconcile 违规数都是 0）。已在下文与 plan.md 标明。
+- **最大重算偏差 0.004835 px、门差 310 倍**，不是 0.004 px / 400 倍。已改。
+- **cfg 与 perception 双源**：原先 `setdefault` 会让 legacy cfg **静默压过** perception 文件
+  ⇒ 已改为**双源即响亮失败**。
+- **四个桶的 reason 从来没人读** ⇒ 已加**语法级**要求（每条必须有非空说明）。
+  ⚠️ 如实标明：它**只能强制你写一句话，判不了这句话对不对**。
 
 ---
 
@@ -212,7 +285,7 @@ sm25 gt 侧 93.3 → **94.7**、sm24 仍 100.0，**但 sm24 有 5 个洞口断�
 | `tools/as_drawn_v2.py` | 三层产物：量 + 穷举配对候选（⛔ 无间距阈值）+ 接 perception |
 | `tools/ink_palette.py` | 墨迹族**发现**（⛔ 不起建筑名字）|
 | `perception/<case>.json` | ⭐ **认**：族角色 + 配对选择 + 认不出来的显式声明 |
-| `tools/checks_as_drawn_v2.py` | 五条不读 gt 的判据 + 6 种产物变异 |
+| `tools/checks_as_drawn_v2.py` | **八条**不读 gt 的判据 + 6 种产物变异 |
 | `tools/reconstruct_check_v2.py` | 对 gt 的信息没丢反证 + 10 种变异 |
 | `tools/as_drawn_elev.py` · `tools/reconstruct_elev_check.py` | 立面形态 + 洞口反证（34/34，见 v1 档）|
 | `tools/reconstruct_elev_lines_check_v2.py` | 立面结构线反证 v2（比 runs + 一对一 + 按 view）|
@@ -229,9 +302,16 @@ python3 AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/tools/ru
 
 ---
 
-## 七、⏭ 仍未结（送三审时必须列出）
+## 七、⏭ 仍未结（三审后更新；送四审必须列出）
 
-1. **gt 的可评分分母未定义** —— 哪些 primitive / run 是 reading 必须画出来的，仍没有机器规则。
+0. ⭐⭐⭐ **三审的总裁决是 REJECT，⛔ gt 仍不能动。** 它给的最小前置组是三条：
+   ① **机器化的可评分分母 + 双向计分规则**（含切段、多画、jamb cap / 文字笔画 / 家具怎么进出分母）
+   ② **关掉本轮 gap 假绿**（✅ 本轮已做，见 §二之二）
+   ③ **冻结 perception 契约**（perception 唯一来源 ✅ · 门窗身份逐洞口外置 ❌ ·
+   弃权预算 ⛔ 需签字 · **用从没看过 gt 分数的冷启读图器跑一次** ❌）。
+1. **gt 的可评分分母未定义** —— 哪些 primitive / run 是 reading 必须画出来的，仍没有机器规则。**这是进 B 步的第一道门。**
+1b. **门窗身份没有外置**：指南把「这洞是门还是窗」判给 reading 的模型，但六个桶里
+   **没有逐洞口 / 逐组件的 opening 身份桶**；现在代码只做「门窗墨够多 ⇒ 可桥接」的二值判断。
 2. **一对一 assignment 无真实夹具**（见 §四）。
 3. **进深台阶线仍只有一栋楼的正例**；sm24/sm21 立面坐标未验。
 4. **多画（`unpredicted` / `spray_lines`）在立面侧不计分**，只有旗标。

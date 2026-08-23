@@ -1,0 +1,102 @@
+{
+ "source": "/workspaces/EnergyPlus-Agent-dev/AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/out/sm25_1f_CROSS_all_non_wall.json",
+ "image": "case_tests/e2e_tests/sm25-L_anchor/case_data/1f_view.png",
+ "schema": "as_drawn_plan_v2",
+ "mutation": null,
+ "role_assignment": {
+  "structure": "F0",
+  "annotation": "F1",
+  "furniture": "F2",
+  "fenestration": "F3"
+ },
+ "checks": [
+  {
+   "check": "reverse_ledger_no_phantom_ink",
+   "threshold": 0.8,
+   "runs_sampled": 134,
+   "worst_coverage": 1.0,
+   "violations": [],
+   "violation_count": 0,
+   "status": "green"
+  },
+  {
+   "check": "observations_recomputable_from_own_pixels",
+   "tolerance_m": 0.0325,
+   "stated_edges_wrong": [],
+   "stated_runs_wrong": [],
+   "face_lines_sharing_ink": [],
+   "violation_count": 0,
+   "status": "green"
+  },
+  {
+   "check": "gap_evidence_recomputable_from_original_image",
+   "gaps_checked": 85,
+   "tolerance_px": 1.5,
+   "fabricated_ink_profile": [],
+   "inconsistent_span": [],
+   "violation_count": 0,
+   "status": "green"
+  },
+  {
+   "check": "face_span_fully_accounted_by_runs_or_gaps",
+   "floor_px": 6,
+   "longest_unaccounted_px": 0,
+   "longest_unaccounted_m": 0.0,
+   "violations": [],
+   "violation_count": 0,
+   "status": "green"
+  },
+  {
+   "check": "opening_role_matches_where_the_ink_sits",
+   "gaps_measured": 85,
+   "ink_in_gaps_by_family": {
+    "F0": 64,
+    "F1": 34,
+    "F2": 7,
+    "F3": 4727
+   },
+   "named_opening_family": "F3",
+   "min_share": 0.5,
+   "share_of_gap_ink": 0.9783,
+   "family_with_most_gap_ink": "F3",
+   "violation_count": 0,
+   "status": "green"
+  },
+  {
+   "check": "pair_hypothesis_reconciles_with_observations",
+   "status": "red",
+   "violation_count": 1,
+   "coverage": {
+    "face_lines": 49,
+    "in_a_wall": 0,
+    "non_wall": 49,
+    "ambiguous": 0,
+    "unpaired_wall_face": 0
+   },
+   "zero_wall": "perception identified no wall at all on a drawing with 49 face lines -- a confident zero"
+  },
+  {
+   "check": "pair_spacing_explicable_by_callouts",
+   "declared_mm": [
+    240,
+    120
+   ],
+   "violations": [],
+   "violation_count": 0,
+   "status": "green"
+  },
+  {
+   "check": "forward_ledger_structural_ink_claimed",
+   "structure_family": "F0",
+   "structure_px_in_box": 21441,
+   "unclaimed_px": 594,
+   "unclaimed_pct": 2.77,
+   "component_floor_px": 400,
+   "large_unclaimed_components": [],
+   "furniture_family": "F2",
+   "furniture_layer_pct_of_ink": 21.92,
+   "status": "green",
+   "threshold_pct": 8.0
+  }
+ ]
+}

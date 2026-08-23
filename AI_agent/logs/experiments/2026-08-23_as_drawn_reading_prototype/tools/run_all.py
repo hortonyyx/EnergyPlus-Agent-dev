@@ -35,8 +35,16 @@ ELEV_NEUTERS = ["shift_lines", "clear_runs", "shrink_runs", "spray_lines",
 # token, so `pair_hypothesis_*` and `pair_spacing_*` both became "pair" and the
 # dict silently kept only the last one -- the table showed "green" for a gate
 # that was red.  A display bug is still a wrong number on the page.
+# ⭐ The third cross-family review's own fixtures (tools/crossreview_mutate_v2.py).
+# ⛔ They stay in the matrix permanently: a reviewer's cheat that once worked is
+# the most valuable regression fixture there is.
+CROSS_NEUTERS = ["missing_wall_middle", "fake_opening_over_missing_wall",
+                 "one_pixel_actual_schema", "all_ambiguous", "all_non_wall"]
+
 SHORT = {"reverse_ledger_no_phantom_ink": "phantom",
          "observations_recomputable_from_own_pixels": "recompute",
+         "gap_evidence_recomputable_from_original_image": "gaps",
+         "face_span_fully_accounted_by_runs_or_gaps": "spanacct",
          "opening_role_matches_where_the_ink_sits": "openrole",
          "pair_hypothesis_reconciles_with_observations": "reconcile",
          "pair_spacing_explicable_by_callouts": "spacing",
@@ -135,7 +143,27 @@ def main() -> int:
                            json.dumps({"F1": str(doc)}), str(scratch / f"{name}_gt.json")])
         res["perception_neuters"][name] = {
             "pairs_status": json.loads(doc.read_text())["hypotheses"]["pairs_status"],
-            "gates": {c2["check"]: c2["status"] for c2 in d["checks"]},
+            "gates": {SHORT.get(c2["check"], c2["check"]): c2["status"] for c2 in d["checks"]},
+            "gt_side_ok_pct": json.loads(so2)["overall_ok_pct"] if rc2 == 0 else "ERROR"}
+
+    # ⭐ the third review's fixtures, re-run every time
+    res["crossreview_neuters"] = {}
+    for m in CROSS_NEUTERS:
+        doc = OUT / f"sm25_1f_CROSS_{m}.json"
+        rc, so, se = run([str(T / "crossreview_mutate_v2.py"), str(OUT / "sm25_1f_v2.json"),
+                          str(doc), m])
+        if rc:
+            res["crossreview_neuters"][m] = {"outcome": "MUTATION_FAILED",
+                                             "message": se.strip()[-200:]}
+            continue
+        rc, _, _ = run([str(T / "checks_as_drawn_v2.py"), str(doc), str(T / "cfg_1f_full.json"),
+                        str(OUT / f"sm25_1f_CROSS_{m}_checks.json")])
+        d = json.loads((OUT / f"sm25_1f_CROSS_{m}_checks.json").read_text())
+        rc2, so2, _ = run([str(T / "reconstruct_check_v2.py"), "sm25-L_anchor",
+                           json.dumps({"F1": str(doc)}), str(OUT / f"sm25_1f_CROSS_{m}_gt.json")])
+        res["crossreview_neuters"][m] = {
+            "mutation": json.loads(doc.read_text()).get("crossreview_mutation"),
+            "gates": {SHORT.get(c["check"], c["check"]): c["status"] for c in d["checks"]},
             "gt_side_ok_pct": json.loads(so2)["overall_ok_pct"] if rc2 == 0 else "ERROR"}
 
     # elevation structure lines
@@ -154,6 +182,33 @@ def main() -> int:
                                           "unpredicted_lines": d["unpredicted_lines"]}
     rc, so2, _ = run([str(T / "reconstruct_elev_lines_check_v2.py"), "--selftest"])
     res["elevation"]["one_to_one_selftest"] = json.loads(so2)
+
+    # ⭐ MACHINE-CHECKED, not asserted in prose: a gate that is never red on any
+    # fixture has no discriminating power, and one that is never green is
+    # structurally unobservable.  The README used to CLAIM this; the third review
+    # showed the claim was false for two gates on the matrix it pointed at.
+    seen: dict[str, set] = {}
+    for v in res["plans"].values():
+        if not isinstance(v, dict) or "self_checks" not in v:
+            continue
+        for c, st in v["self_checks"].items():
+            seen.setdefault(SHORT.get(c, c), set()).add(st)
+        for mut in v["self_check_neuters"].values():
+            if isinstance(mut, dict):
+                for c, st in mut.items():
+                    seen.setdefault(c, set()).add(st)
+    for group in ("perception_neuters", "crossreview_neuters"):
+        for v in res[group].values():
+            for c, st in (v.get("gates") or {}).items():
+                # ⚠️ normalise: one group stored full check names and another the
+                # short ones, which split every gate into two half-populated rows
+                # and made four gates look NEVER_RED.
+                seen.setdefault(SHORT.get(c, c), set()).add(st)
+    res["gate_discriminating_power"] = {
+        g: {"seen": sorted(st),
+            "verdict": ("ok" if {"green", "red"} <= st
+                        else "NEVER_RED" if "red" not in st else "NEVER_GREEN")}
+        for g, st in sorted(seen.items())}
 
     (OUT / "RESULTS_v2.json").write_text(json.dumps(res, ensure_ascii=False, indent=1) + "\n")
 
@@ -176,6 +231,17 @@ def main() -> int:
             continue
         print(f"  {k:38s} gt={v['gt_side_ok_pct']:<6} "
               + " ".join(f"{SHORT.get(c, c)}={st}" for c, st in v["gates"].items()))
+    print("== third-review fixtures (sm25 1f; honest gt=94.6, all gates green) ==")
+    for k, v in res["crossreview_neuters"].items():
+        if "gates" not in v:
+            print(f"  {k:34s} {v['outcome']}")
+            continue
+        reds = [g for g, st in v["gates"].items() if st == "red"]
+        print(f"  {k:34s} gt={v['gt_side_ok_pct']:<6} red_gates={reds or 'NONE ⛔'}")
+    print("== gate discriminating power (machine-checked) ==")
+    for g, v in res["gate_discriminating_power"].items():
+        mark = "  " if v["verdict"] == "ok" else "⛔"
+        print(f"  {mark} {g:12s} seen={','.join(v['seen']):<24} {v['verdict']}")
     print("== elevation ==")
     e = res["elevation"]
     print(f"  honest {e['honest']['ok']}/{e['honest']['targets']} "

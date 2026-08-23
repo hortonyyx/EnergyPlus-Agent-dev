@@ -1,0 +1,92 @@
+{
+ "source": "AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/out/sm25_1f_CROSS_fake_opening.json",
+ "image": "case_tests/e2e_tests/sm25-L_anchor/case_data/1f_view.png",
+ "schema": "as_drawn_plan_v2",
+ "mutation": null,
+ "role_assignment": {
+  "structure": "F0",
+  "annotation": "F1",
+  "furniture": "F2",
+  "fenestration": "F3"
+ },
+ "checks": [
+  {
+   "check": "reverse_ledger_no_phantom_ink",
+   "threshold": 0.8,
+   "runs_sampled": 135,
+   "worst_coverage": 1.0,
+   "violations": [],
+   "violation_count": 0,
+   "status": "green"
+  },
+  {
+   "check": "observations_recomputable_from_own_pixels",
+   "tolerance_m": 0.0325,
+   "stated_edges_wrong": [],
+   "stated_runs_wrong": [],
+   "face_lines_sharing_ink": [],
+   "violation_count": 0,
+   "status": "green"
+  },
+  {
+   "check": "opening_role_matches_where_the_ink_sits",
+   "gaps_measured": 87,
+   "ink_in_gaps_by_family": {
+    "F0": 64,
+    "F1": 34,
+    "F2": 7,
+    "F3": 4837
+   },
+   "named_opening_family": "F3",
+   "min_share": 0.5,
+   "share_of_gap_ink": 0.9788,
+   "family_with_most_gap_ink": "F3",
+   "violation_count": 0,
+   "status": "green"
+  },
+  {
+   "check": "pair_hypothesis_reconciles_with_observations",
+   "pairs": 22,
+   "status_from_product": "SELECTED",
+   "face_lines_unaccounted_for": [],
+   "declared_non_wall": [
+    "L003",
+    "L018",
+    "L035",
+    "L036",
+    "L049"
+   ],
+   "declared_unpaired_wall_face": [],
+   "declared_solid_band_wall": [],
+   "declared_ambiguous": [],
+   "dangling_reference": [],
+   "face_claimed_twice": [],
+   "supports_overlap": [],
+   "violation_count": 0,
+   "status": "green"
+  },
+  {
+   "check": "pair_spacing_explicable_by_callouts",
+   "declared_mm": [
+    240,
+    120
+   ],
+   "violations": [],
+   "violation_count": 0,
+   "status": "green"
+  },
+  {
+   "check": "forward_ledger_structural_ink_claimed",
+   "structure_family": "F0",
+   "structure_px_in_box": 21441,
+   "unclaimed_px": 797,
+   "unclaimed_pct": 3.72,
+   "component_floor_px": 400,
+   "large_unclaimed_components": [],
+   "furniture_family": "F2",
+   "furniture_layer_pct_of_ink": 21.92,
+   "status": "green",
+   "threshold_pct": 8.0
+  }
+ ]
+}

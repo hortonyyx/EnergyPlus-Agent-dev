@@ -201,11 +201,31 @@ def _mutate(doc: dict, kind: str) -> str:
                 if hi <= lo:
                     continue
                 length_px = max(1, int(round((hi - lo) / 0.0216)))
+                # ⚠️ 2026-08-24, third cross-family review: this used to write a
+                # key called ``opening_ink`` -- WHICH NOTHING READS.  The
+                # consumer is ``ink_by_family[<the product's own opening
+                # family>].span_ratio``.  So the 0.0 / 0.0 this neuter scored was
+                # produced by the deleted middles alone; it never exercised the
+                # bridge at all, and "one pixel cannot move the span judgement"
+                # was an unearned claim.  Same shape as the discipline I wrote
+                # down myself: "a mutation that did not run and a mutation with
+                # no effect are indistinguishable in the artifact".
+                fen = doc["hypotheses"]["family_roles"]["assignment"].get("fenestration")
                 g.append({"span_m": [lo, hi], "len_px": length_px,
-                          "opening_ink": {"on_line": 1,
-                                          "span_ratio": round(1.0 / length_px, 6)}})
+                          "ink_by_family": {fen: {"on_line": 1,
+                                                  "span_ratio": round(1.0 / length_px, 6),
+                                                  "nearest_px": 0,
+                                                  "by_distance_px": {}}}})
             f["gaps"] = g
-        return "MUTATED: middles deleted, each new gap claimed as an opening on 1 px"
+        # report how many fabricated gaps actually clear the bridge threshold,
+        # so "immune" can never again mean "never reached the branch"
+        hits = sum(1 for x in fl for gg in x["gaps"]
+                   for pr in [list(gg["ink_by_family"].values())[0]]
+                   if pr["span_ratio"] >= OPENING_SPAN_MIN)
+        total = sum(len(x["gaps"]) for x in fl)
+        return ("MUTATED: middles deleted, each new gap claimed as an opening on 1 px "
+                f"in the CONSUMED schema; {hits}/{total} fabricated gaps clear "
+                f"OPENING_SPAN_MIN={OPENING_SPAN_MIN}")
     if kind == "duplicate_face":
         # ⭐ The other exploit: a twin line 0.2 mm away, same runs.
         twins = []
@@ -272,6 +292,50 @@ def _mutate(doc: dict, kind: str) -> str:
     raise SystemExit(f"unknown mutation {kind!r}")
 
 
+def _admissibility(docs: dict[str, str], mutate: str | None) -> dict:
+    """⛔ This score alone is NOT a grade.
+
+    2026-08-24, third cross-family review: a product that really failed to read
+    1.2 m of wall and then FABRICATED the gap evidence for that stretch scores
+    the same 94.6 here as the honest product.  What catches it is the gt-free
+    recompute gate (``checks_as_drawn_v2.py``), not this file -- this file has no
+    image to check against.  So every report says out loud whether the product it
+    scored was verified, instead of letting the number travel on its own.
+    """
+    state = []
+    for fid, path in docs.items():
+        name = Path(path).name
+        cands = [Path(path).with_name(name.replace("_v2.json", "_checks_v2.json")),
+                 Path(path).with_name(Path(path).stem + "_checks.json")]
+        d, rep = None, None
+        for c in cands:
+            if not c.exists() or c == Path(path):
+                continue
+            try:
+                cand = json.loads(c.read_text())
+            except (json.JSONDecodeError, OSError):
+                continue
+            if isinstance(cand.get("checks"), list):
+                d, rep = cand, c
+                break
+        if mutate or d is None:
+            state.append({"floor": fid, "verified_by": None})
+            continue
+        state.append({"floor": fid, "verified_by": str(rep),
+                      "gates": {c["check"]: c["status"] for c in d["checks"]}})
+    reds = sorted({g for s in state for g, v in (s.get("gates") or {}).items() if v == "red"})
+    ok = all(s.get("gates") and all(v != "red" for v in s["gates"].values()) for s in state)
+    return {"admissible_as_a_grade": bool(ok and not mutate),
+            "red_gt_free_gates": reds,
+            "why": ("every floor's product passed the gt-free recompute gates"
+                    if ok and not mutate else
+                    f"⛔ NOT a grade: red gt-free gates {reds}" if reds else
+                    "⛔ NOT a grade: the scored product was mutated, or was not "
+                    "verified by checks_as_drawn_v2.py. A fabricated gap profile "
+                    "is invisible here by construction."),
+            "per_floor": state}
+
+
 def main(gt_case: str, docs: dict[str, str], out_path: str, *,
          mutate: str | None = None, opening_span_min: float = OPENING_SPAN_MIN) -> int:
     gt = load_gt_document(gt_case)
@@ -329,7 +393,8 @@ def main(gt_case: str, docs: dict[str, str], out_path: str, *,
                                        if used else None),
                "pos_tol_m": POS_TOL_M, "span_min_cover": SPAN_MIN_COVER,
                "wall_band_m": [MIN_WALL_M, MAX_WALL_M],
-               "opening_span_min": opening_span_min}
+               "opening_span_min": opening_span_min,
+               "admissibility": _admissibility(docs, mutate)}
     Path(out_path).write_text(json.dumps({"summary": summary, "rows": rows,
                                           "not_recoverable": missing},
                                          ensure_ascii=False, indent=1) + "\n")

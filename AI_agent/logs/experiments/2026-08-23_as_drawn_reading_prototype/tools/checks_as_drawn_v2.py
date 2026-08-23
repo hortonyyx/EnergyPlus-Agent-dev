@@ -39,7 +39,7 @@ from typing import Any
 import numpy as np
 
 sys.path.insert(0, str(Path(__file__).parent))
-from as_drawn_v2 import _family_masks  # noqa: E402
+from as_drawn_v2 import _family_masks, _profile  # noqa: E402
 from plan_ink import load_rgb  # noqa: E402
 
 MIN_RUN_COVERAGE = 0.80   # a stroke must sit on real ink; swept in the README
@@ -132,6 +132,136 @@ def check_self_consistency(doc: dict) -> dict:
             "violation_count": bad, "status": "red" if bad else "green"}
 
 
+def check_gaps_recomputable(doc: dict, masks: dict, tol_px: float = 1.5) -> dict:
+    """⭐ Every number describing a GAP must be recomputable from the original image.
+
+    Added 2026-08-24 after the THIRD cross-family review (sol) walked straight
+    through everything else with this chain:
+
+      1. really fail to read 1.2 m of a wall (both faces of L012+L013),
+      2. call that stretch a doorway by writing a fabricated
+         ``gaps[*].ink_by_family[<opening family>]`` profile,
+      3. the gt-side reconstruction believes the fabricated profile and bridges
+         the hole -> the score goes back from 89.2 to the honest 94.6, and all
+         six gt-free gates stayed green.
+
+    The earlier fix only made the THRESHOLD immune to one stray pixel; the
+    QUANTITY itself was still whatever the product said it was.  ⛔ A check that
+    trusts a number it could recompute is not a check -- the same lesson as
+    ``edges_m``, one level deeper, and I had to be shown it twice.
+
+    ⚠️ The recomputation must mirror the producer's own axis handling: for a
+    ``col`` face line the masks are used as-is, for a ``row`` one they are
+    transposed (that is what ``_ink_groups`` does).
+    """
+    m_px = doc["observations"]["calibration"]["mm_per_px"] / 1000.0
+    tol_m = m_px * tol_px
+    bad_profile, bad_span, n = [], [], 0
+    by_axis = {"col": masks, "row": {k: v.T for k, v in masks.items()}}
+    for f in doc["observations"]["face_lines"]:
+        fam_t = by_axis[f["axis"]]
+        c0, c1 = f["support_cols_px"]
+        for g in f.get("gaps", []):
+            n += 1
+            if g.get("lo_px") is None or g.get("hi_px") is None:
+                # ⛔ A gap with no pixel indices cannot be recomputed at all --
+                # that is a fabricated claim, not a measurement.  (The third
+                # review's cheat produced exactly this shape.)
+                bad_profile.append({"face": f["id"], "gap_px": None,
+                                    "problem": "gap carries no pixel indices; "
+                                               "nothing about it can be recomputed"})
+                continue
+            lo, hi = int(g["lo_px"]), int(g["hi_px"])
+            if g.get("len_px") != hi - lo:
+                bad_span.append({"face": f["id"], "gap_px": [lo, hi],
+                                 "stated_len_px": g.get("len_px"),
+                                 "recomputed_len_px": hi - lo})
+            if g.get("span_m") is not None:
+                stated = abs(g["span_m"][1] - g["span_m"][0])
+                if abs(stated - (hi - lo) * m_px) > tol_m:
+                    bad_span.append({"face": f["id"], "gap_px": [lo, hi],
+                                     "stated_len_m": round(stated, 4),
+                                     "recomputed_len_m": round((hi - lo) * m_px, 4)})
+            for fid, stated_prof in (g.get("ink_by_family") or {}).items():
+                if fid not in fam_t:
+                    bad_profile.append({"face": f["id"], "gap_px": [lo, hi],
+                                        "family": fid, "problem": "no such ink family"})
+                    continue
+                want = _profile(fam_t[fid], lo, hi, c0, c1)
+                for key in ("on_line", "span_ratio", "nearest_px"):
+                    if abs((stated_prof.get(key) or 0) - (want.get(key) or 0)) > 1e-4:
+                        bad_profile.append({"face": f["id"], "gap_px": [lo, hi],
+                                            "family": fid, "field": key,
+                                            "stated": stated_prof.get(key),
+                                            "recomputed": want.get(key)})
+                        break
+    bad = len(bad_profile) + len(bad_span)
+    return {"check": "gap_evidence_recomputable_from_original_image",
+            "gaps_checked": n, "tolerance_px": tol_px,
+            "fabricated_ink_profile": bad_profile[:20],
+            "inconsistent_span": bad_span[:20],
+            "violation_count": bad, "status": "red" if bad else "green"}
+
+
+def check_face_span_accounted(doc: dict, masks: dict, roles: dict,
+                              floor_px: int = 6) -> dict:
+    """⭐ Inside a face line's own span, every inked row must be a run or a gap.
+
+    Added 2026-08-24 with the gap-recompute gate.  The third cross-family review
+    deleted 1.2 m from the middle of two real wall faces and declared nothing:
+    the reverse ledger only samples the runs that remain, and the forward ledger
+    measures unclaimed ink as a fraction of the WHOLE drawing (2.77% -> 3.72%
+    under an 8% threshold), so a localised miss of a whole wall stretch was
+    invisible to all six gates.
+
+    ⛔ Threshold-free by construction: the product itself asserts a line runs
+    from A to B, so ink under its own strip that it neither claims (run) nor
+    accounts for (gap) is a stretch it dropped.  ``floor_px`` only absorbs
+    anti-alias specks and is swept in the README.
+    """
+    st = masks[roles["structure"]]
+    m_px = doc["observations"]["calibration"]["mm_per_px"] / 1000.0
+    by_axis = {"col": st, "row": st.T}
+    rows, worst = [], 0
+    for f in doc["observations"]["face_lines"]:
+        runs = [(int(min(r)), int(max(r))) for r in f["runs_px"]]
+        if not runs:
+            continue
+        m = by_axis[f["axis"]]
+        c0, c1 = f["support_cols_px"]
+        lo, hi = min(a for a, _ in runs), max(b for _, b in runs)
+        inked = m[lo:hi, max(0, c0 - SAMPLE_HALF_PX):c1 + SAMPLE_HALF_PX].any(axis=1)
+        accounted = [False] * (hi - lo)
+        for a, b in runs:
+            for i in range(max(lo, a) - lo, min(hi, b) - lo):
+                accounted[i] = True
+        for g in f.get("gaps", []):
+            if g.get("lo_px") is None:
+                continue
+            for i in range(max(lo, int(g["lo_px"])) - lo, min(hi, int(g["hi_px"])) - lo):
+                accounted[i] = True
+        start = None
+        for i in range(hi - lo):
+            unaccounted = bool(inked[i]) and not accounted[i]
+            if unaccounted and start is None:
+                start = i
+            elif not unaccounted and start is not None:
+                if i - start >= floor_px:
+                    rows.append({"face": f["id"], "px": [lo + start, lo + i],
+                                 "length_m": round((i - start) * m_px, 3)})
+                worst = max(worst, i - start)
+                start = None
+        if start is not None and (hi - lo) - start >= floor_px:
+            rows.append({"face": f["id"], "px": [lo + start, hi],
+                         "length_m": round(((hi - lo) - start) * m_px, 3)})
+            worst = max(worst, (hi - lo) - start)
+    return {"check": "face_span_fully_accounted_by_runs_or_gaps",
+            "floor_px": floor_px, "longest_unaccounted_px": worst,
+            "longest_unaccounted_m": round(worst * m_px, 3),
+            "violations": sorted(rows, key=lambda r: -r["length_m"])[:20],
+            "violation_count": len(rows), "status": "red" if rows else "green"}
+
+
 def check_opening_role_matches_ink(doc: dict, min_share: float = 0.50) -> dict:
     """⭐ Is the family called "openings" the one whose ink sits IN the wall gaps?
 
@@ -210,6 +340,14 @@ def check_pair_reconciliation(doc: dict) -> dict:
     # ⭐ COMPLETENESS: a face line perception says nothing about is not "fine",
     # it is unaccounted for.  Silence is how the five callout-text strokes got
     # quietly paired into walls before anybody looked.
+    # ⛔ 2026-08-24, third review: the buckets' reason strings were never read at
+    # all -- only their keys went into a set.  "not a wall, and here is what it
+    # is" was documented but ungated.  This is a SYNTACTIC requirement only, and
+    # is labelled as such: it forces a statement, it cannot judge one.
+    reasonless = [f"{b}:{k}" for b in ("non_wall_face_lines", "unpaired_wall_faces",
+                                       "ambiguous_face_lines", "solid_band_walls")
+                  for k, v in (doc["hypotheses"].get(b) or {}).items()
+                  if not (isinstance(v, str) and v.strip())]
     non_wall = set(doc["hypotheses"].get("non_wall_face_lines", {}))
     lone = set(doc["hypotheses"].get("unpaired_wall_faces", {}))
     band = set(doc["hypotheses"].get("solid_band_walls", {}))
@@ -223,18 +361,39 @@ def check_pair_reconciliation(doc: dict) -> dict:
     # gate green on a perception that cited a face line that does not exist.
     status = doc["hypotheses"].get("pairs_status")
     bad = (len(dangling) + len(reused) + len(overlapping) + len(unaccounted)
+           + len(reasonless)
            + (0 if status in (None, "SELECTED") else 1))
+    # ⭐ ZERO-WALL (threshold-free, F-69's rule applied to perception itself).
+    # The third review walked through by declaring ALL 49 face lines not-a-wall
+    # -- six gates green, gt unchanged -- and again by declaring them all
+    # ambiguous.  A drawing whose reading positively identifies NO wall at all is
+    # a confident zero, and that must be loud whatever the reason.
+    # ⚠️ A GRADED abstention budget ("no more than X% ambiguous") is a domain
+    # parameter and needs a signature + cold-start data; ⛔ it is deliberately
+    # NOT invented here, because the only samples available were produced by a
+    # perception that had already seen the gt-side scores.
+    positive = {x for p in pairs for x in (p.get("face_a"), p.get("face_b"))} | band
+    coverage = {"face_lines": len(faces), "in_a_wall": len(positive),
+                "non_wall": len(non_wall), "ambiguous": len(ambiguous),
+                "unpaired_wall_face": len(lone)}
+    if not positive and faces:
+        return {"check": "pair_hypothesis_reconciles_with_observations",
+                "status": "red", "violation_count": 1, "coverage": coverage,
+                "zero_wall": ("perception identified no wall at all on a drawing with "
+                              f"{len(faces)} face lines -- a confident zero")}
     if not bad and ambiguous:
         # ⛔ NOT green: perception declined on some lines, and a reader must see
         # that rather than infer "everything checked out".
         return {"check": "pair_hypothesis_reconciles_with_observations",
                 "status": "degraded", "violation_count": 0, "pairs": len(pairs),
-                "declared_ambiguous": sorted(ambiguous),
+                "coverage": coverage, "declared_ambiguous": sorted(ambiguous),
                 "degraded_reason": f"perception declined on {len(ambiguous)} of "
                                    f"{len(faces)} face lines; the rest reconcile"}
     return {"check": "pair_hypothesis_reconciles_with_observations",
-            "pairs": len(pairs), "status_from_product": doc["hypotheses"].get("pairs_status"),
+            "pairs": len(pairs), "coverage": coverage,
+            "status_from_product": doc["hypotheses"].get("pairs_status"),
             "face_lines_unaccounted_for": unaccounted,
+            "bucket_entries_without_a_reason": reasonless[:20],
             "declared_non_wall": sorted(non_wall),
             "declared_unpaired_wall_face": sorted(lone),
             "declared_solid_band_wall": sorted(band),
@@ -434,6 +593,8 @@ def main(doc_path: str, cfg_path: str, out_path: str, *, mutate: str | None = No
               "mutation": note, "role_assignment": roles,
               "checks": [check_reverse(doc, st),
                          check_self_consistency(doc),
+                         check_gaps_recomputable(doc, masks),
+                         check_face_span_accounted(doc, masks, roles),
                          check_opening_role_matches_ink(doc),
                          check_pair_reconciliation(doc),
                          check_spacing_declared(doc),

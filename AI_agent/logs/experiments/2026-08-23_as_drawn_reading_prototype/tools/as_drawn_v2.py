@@ -252,9 +252,19 @@ def build(cfg: dict) -> dict:
     percept = {}
     if cfg.get("perception"):
         percept = json.loads(Path(cfg["perception"]).read_text())
+        # ⛔ 2026-08-24, third cross-family review: this used ``setdefault``, so a
+        # legacy cfg key would SILENTLY win over the perception file.  Two
+        # sources with a precedence rule is how the answer quietly comes from the
+        # wrong place; a conflict must be loud instead.
+        clash = [k for k in ("family_roles", "wall_pairs") if k in cfg]
+        if clash:
+            raise AssignmentError(
+                f"{cfg['image']}: perception is supplied as a file "
+                f"({cfg['perception']}) AND inline in the config ({clash}). "
+                "⛔ Refusing to pick one: perception has exactly one source.")
         cfg = dict(cfg)
-        cfg.setdefault("family_roles", percept.get("family_roles"))
-        cfg.setdefault("wall_pairs", percept.get("wall_pairs"))
+        cfg["family_roles"] = percept.get("family_roles")
+        cfg["wall_pairs"] = percept.get("wall_pairs")
         cfg["family_roles_source"] = percept.get("_produced_by", cfg["perception"])
 
     a = load_rgb(cfg["image"])

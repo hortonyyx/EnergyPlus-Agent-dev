@@ -407,6 +407,245 @@
    "status": "red"
   },
   {
+   "check": "gap_evidence_recomputable_from_original_image",
+   "gaps_checked": 82,
+   "tolerance_px": 1.5,
+   "fabricated_ink_profile": [
+    {
+     "face": "L003",
+     "gap_px": [
+      431,
+      448
+     ],
+     "family": "F2",
+     "field": "span_ratio",
+     "stated": 0.0,
+     "recomputed": 0.9412
+    },
+    {
+     "face": "L003",
+     "gap_px": [
+      522,
+      523
+     ],
+     "family": "F0",
+     "field": "on_line",
+     "stated": 1,
+     "recomputed": 0
+    },
+    {
+     "face": "L007",
+     "gap_px": [
+      701,
+      900
+     ],
+     "family": "F3",
+     "field": "on_line",
+     "stated": 398,
+     "recomputed": 199
+    },
+    {
+     "face": "L007",
+     "gap_px": [
+      1008,
+      1064
+     ],
+     "family": "F0",
+     "field": "on_line",
+     "stated": 15,
+     "recomputed": 7
+    },
+    {
+     "face": "L007",
+     "gap_px": [
+      1008,
+      1064
+     ],
+     "family": "F3",
+     "field": "on_line",
+     "stated": 97,
+     "recomputed": 49
+    },
+    {
+     "face": "L009",
+     "gap_px": [
+      701,
+      900
+     ],
+     "family": "F3",
+     "field": "on_line",
+     "stated": 398,
+     "recomputed": 199
+    },
+    {
+     "face": "L009",
+     "gap_px": [
+      1008,
+      1064
+     ],
+     "family": "F0",
+     "field": "on_line",
+     "stated": 15,
+     "recomputed": 8
+    },
+    {
+     "face": "L009",
+     "gap_px": [
+      1008,
+      1064
+     ],
+     "family": "F1",
+     "field": "nearest_px",
+     "stated": 5,
+     "recomputed": 25
+    },
+    {
+     "face": "L009",
+     "gap_px": [
+      1008,
+      1064
+     ],
+     "family": "F3",
+     "field": "on_line",
+     "stated": 97,
+     "recomputed": 48
+    },
+    {
+     "face": "L010",
+     "gap_px": [
+      630,
+      705
+     ],
+     "family": "F1",
+     "field": "nearest_px",
+     "stated": 5,
+     "recomputed": 10
+    },
+    {
+     "face": "L010",
+     "gap_px": [
+      630,
+      705
+     ],
+     "family": "F3",
+     "field": "on_line",
+     "stated": 9,
+     "recomputed": 10
+    },
+    {
+     "face": "L011",
+     "gap_px": [
+      630,
+      705
+     ],
+     "family": "F1",
+     "field": "nearest_px",
+     "stated": 5,
+     "recomputed": 2
+    },
+    {
+     "face": "L011",
+     "gap_px": [
+      630,
+      705
+     ],
+     "family": "F3",
+     "field": "on_line",
+     "stated": 9,
+     "recomputed": 0
+    },
+    {
+     "face": "L015",
+     "gap_px": [
+      564,
+      600
+     ],
+     "family": "F1",
+     "field": "nearest_px",
+     "stated": 2,
+     "recomputed": 5
+    },
+    {
+     "face": "L015",
+     "gap_px": [
+      564,
+      600
+     ],
+     "family": "F3",
+     "field": "span_ratio",
+     "stated": 0.3056,
+     "recomputed": 0.25
+    },
+    {
+     "face": "L015",
+     "gap_px": [
+      634,
+      669
+     ],
+     "family": "F3",
+     "field": "span_ratio",
+     "stated": 0.3143,
+     "recomputed": 0.2286
+    },
+    {
+     "face": "L015",
+     "gap_px": [
+      748,
+      783
+     ],
+     "family": "F3",
+     "field": "span_ratio",
+     "stated": 0.3143,
+     "recomputed": 0.2286
+    },
+    {
+     "face": "L015",
+     "gap_px": [
+      818,
+      853
+     ],
+     "family": "F3",
+     "field": "span_ratio",
+     "stated": 0.2857,
+     "recomputed": 0.2286
+    },
+    {
+     "face": "L015",
+     "gap_px": [
+      909,
+      944
+     ],
+     "family": "F3",
+     "field": "span_ratio",
+     "stated": 0.3143,
+     "recomputed": 0.2286
+    },
+    {
+     "face": "L016",
+     "gap_px": [
+      564,
+      600
+     ],
+     "family": "F1",
+     "field": "nearest_px",
+     "stated": 2,
+     "recomputed": 10
+    }
+   ],
+   "inconsistent_span": [],
+   "violation_count": 96,
+   "status": "red"
+  },
+  {
+   "check": "face_span_fully_accounted_by_runs_or_gaps",
+   "floor_px": 6,
+   "longest_unaccounted_px": 0,
+   "longest_unaccounted_m": 0.0,
+   "violations": [],
+   "violation_count": 0,
+   "status": "green"
+  },
+  {
    "check": "opening_role_matches_where_the_ink_sits",
    "gaps_measured": 82,
    "ink_in_gaps_by_family": {
@@ -425,8 +664,16 @@
   {
    "check": "pair_hypothesis_reconciles_with_observations",
    "pairs": 21,
+   "coverage": {
+    "face_lines": 46,
+    "in_a_wall": 42,
+    "non_wall": 3,
+    "ambiguous": 0,
+    "unpaired_wall_face": 1
+   },
    "status_from_product": "SELECTED",
    "face_lines_unaccounted_for": [],
+   "bucket_entries_without_a_reason": [],
    "declared_non_wall": [
     "L001",
     "L004",
