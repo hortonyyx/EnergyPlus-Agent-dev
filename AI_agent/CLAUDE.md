@@ -32,12 +32,24 @@ orchestrator 当时判读为「病灶更窄 = 一个护栏类型选错」——*
 但其中一句保留有效：测试锁在 08-18 一天里三次抓住 orchestrator 自己的手滑，
 **这类锁便宜、不该一刀切减** ⇒ 故本条给的是**分档**，不是一律减。）
 
-### 0.0 ⭐ 当前唯一第一目标（2026-08-18 用户重申）
+### 0.0 ⭐ 当前第一目标（2026-08-21 战略换挡 → 2026-08-23 细化）
 
-> **恢复到 07-07 的水平。⛔ 不要再大量做无关紧要的东西。**
+> **跑测的目的 = 升级 harness，不是拿分。分数只是 harness 硬不硬的读数。**
 
-凡不直接服务于「下一抽能不能跑、跑出来像不像 07-07」的工作，**一律登记不做**——
-包括补围栏、补审、补锁、补文档完备性。本条是 §0.1 判断法则的具体化，冲突时以本条为准。
+⛔ **~~「恢复到 07-07 的水平」（2026-08-18）已作废~~** —— 被 08-21 用户当面换挡覆盖：
+**不再纠结复原 07-07**，改为把历史好 reading 沉淀进现行 harness；
+**三种 reading 模式作废**（模型强度是连续刻度，不是并列赛道）。
+⛔ **硬约束**：harness 只做**增量升级、不为新 case 特化**。
+
+**本批（分支 `08.23_AsDrawnReading`）的三条目标**（2026-08-23 用户定）：
+1. **实现 reading、correction —— 代码与模型两轴的新分工**
+2. **对应的 gate、judge 跟上**
+3. 继续推进 harness。验收 = **sm21 / sm24 / sm25**，**先做 sm25** 再以历史校验；
+   **先探索性做好并完整跑过一遍**，⛔ **不着急降模型智力**
+
+⇒ **⭐ 展开与硬纪律全在 [guides/reading_correction_split_guide.md](guides/reading_correction_split_guide.md)**
+（用户令「这条线上的开发都先读这份指南」）。
+凡不服务这三条的工作**一律登记进 [plan.md](plan.md) 不做**（同 §0.1）。
 
 ### 0.1 唯一判断法则
 
@@ -153,6 +165,9 @@ run_pipeline（image-blind，src/agent/pipeline.py）几何彻底确定性化：
 自动下游（9 subagent，本地 LangGraph）→ InterZone 门 + schedule 门(EP前) → IDF / EnergyPlus
 ```
 
+- ⭐ **2026-08-23 起 0_reading / 1_correction 的分工按新口径**（分支 `08.23_AsDrawnReading`，未合并）：
+  **量=代码 · 认=模型（在 reading）· 对账=代码门 · 装配=correction（模型出决定、代码出坐标）**
+  ⇒ 全档 [guides/reading_correction_split_guide.md](guides/reading_correction_split_guide.md)。
 - **每段两道门校验**：① 确定性自校验（代码，`*_checks.json`）+ ② LLM/VLM judge（结构化清单，dev 期）。
   逐段阻塞编排见 [`src/agent/execution/step_orchestrator.py`](../src/agent/execution/step_orchestrator.py) +
   CLI [`scripts/tool_scripts/run_stage.py`](../scripts/tool_scripts/run_stage.py)；几何确认门 = 离线 3D 查看器
@@ -185,7 +200,10 @@ LangGraph + LangChain（`init_chat_model` 路由）；多模态走 base64 图块
 EnergyPlus 经 `WorkflowTool.run_simulation`（eppy + ConverterManager，idfpy 切换搁置）。
 
 ### 1.5 仍有约束力的关键不变量（详档见 [decision_log.md §B](decision_log.md)）
-1. **分工铁律**：LLM 只做 感知 + 校正判断 + 物理语义；**代码做所有几何（建模+切配）+ 装配**。
+1. **分工铁律**：LLM 只做 **感知** + 校正判断 + 物理语义；**代码做所有几何（建模+切配）+ 装配**。
+   ⚠️ **2026-08-23 用户据此当场纠正 orchestrator**：「语义搬去 1_correction」的提法**违反本条**——
+   **感知就是语义**，它本来就归 reading 的模型。展开见
+   [guides/reading_correction_split_guide.md §一](guides/reading_correction_split_guide.md)。
 2. **全局唯一世界坐标系**：原点 = 整栋投影最大边界 SW 内角，禁每层本地原点。
 3. **交接契约 = IntakeOutput Pydantic 11 字段**（[state.py](../src/agent/state.py#L23)）；下游 9 subagent 消费、不归本项目管。
 4. **gt 铁律**：评测答案 `case_tests/test_baseline/gt/<case>/gt.json` **只 gate② judge / 人 可读**，gate①/执行器绝不 import（dev/prod 一致 + 防照抄）。
@@ -204,74 +222,47 @@ EnergyPlus 经 `WorkflowTool.run_simulation`（eppy + ConverterManager，idfpy �
 
 ## 2. 当前开发状态
 
-> **2026-08-20 收工状态 banner** —— 已被下方 08-21 战略 banner 覆盖，逐字搬入
-> [`logs/worklog/2026-08_plan_log.md`](logs/worklog/2026-08_plan_log.md)（07-07 水平复现 · 转换器多层化 ·
-> 立面载体方言层 F-65 · sm25 gt 晋升 · C2 首考 94.4% / 窗 8/15）。
-
-
-> **⭐⭐⭐ 本批开发指南（2026-08-23 用户令「免得我时不时进来纠偏」）→
-> [guides/reading_correction_split_guide.md](guides/reading_correction_split_guide.md)**
-> —— 分工四刀（量=代码 · **认=模型（在 reading）** · 对账=代码门 · 装配=correction）·
-> correction 三拍循环（**模型出决定、代码出坐标**）· ⭐ **只判答案不判过程，两个判分器都对着 gt** ·
-> 八条硬纪律（每条都有 08-23 实犯）· 验收尺度 · 两个专项的并入与留尾。
+> # ⭐⭐⭐ 先读本批开发指南 → [guides/reading_correction_split_guide.md](guides/reading_correction_split_guide.md)
+> 用户 2026-08-23 令：「**最近这条线上的开发你都先读这份指南**，有违背的或者需要我裁定的再来找我。」
+> ⇒ 它就是为了**减少用户进来纠偏**而立的；⛔ **别再拿它已经定死的事去问用户**。
+> **内含**：分工四刀（量=代码 · **认=模型（在 reading）** · 对账=代码门 · 装配=correction）·
+> reading 三层产物 · correction 三拍循环（**模型出决定、代码出坐标**）·
+> ⭐ **只判答案不判过程，两个判分器都对着 gt** · 墙厚归属 · 回叠比对 ·
+> **八条硬纪律**（每条都有 08-23 实犯）· 验收尺度 · 两个专项的并入与留尾。
 > ⛔ 与本文其余各节冲突处，**reading/correction 分工与判分口径以该指南为准**。
 
-> **⭐⭐⭐ 2026-08-23 收工状态 banner**
-> **① sm25 gt 已签字入库**（用户当场看叠图签字）。⛔ 候选包**不能直接入库** —— 强制二次转换红了，
-> 因为它是旧版转换器代码产的；几何逐字段相同、只差实现指纹 ⇒ 用现行代码重建重签入库
-> （新 `content_sha256 = 135b282c…`，两层轮廓指纹现已逐位相同 `52f382ee…`）。
-> **② 判分首次真正跑通**：此前 grade 是一块「拒绝判分」的告示牌，根因链 = 旧 gt 两层指纹不一致
-> → 立面绑定拒产 → 绑定不全 → 整份拒收。首个真分数：墙 80.8% · 外轮廓 80.8% · 平面窗 30/31。
-> **③ ⭐⭐ 全案对完答案：我的真错只有三条，且同源** —— 墙的沿墙范围取了面线的**首尾**而非
-> **墨迹实际连续区间** ⇒ 走廊幻墙 2.1 m + Z 形凹口 15 m + 内墙画穿 19.7 m（每层）。
-> ⛔ **推翻我自己两条结论**：「80.8% 是判卷天花板」不成立（F-81 降级）；「三樘门全漏」不成立
-> （门坐标全对，是立面 schema 没有 `door` 笔，已记进 `uncaptured`）。立面 31 扇窗手工对账**全对，≤0.02 m**。
-> ⛔ **F-78 推翻**：1 px = 21.8 mm，全部 22 条墙带间距离声明值都在 **1.00 px** 内 ⇒ 那不是测量错误，
-> 是**把带噪声的观测量命名成「厚度」这个事实性名字**。
-> **④ 新缺陷 F-83**（立面判分器只支持单层，sm25 是首栋两层楼 ⇒ 这条路从未走到）·
-> **F-84**（`no_extra_walls` 分母恒 0 ⇒「多画」从未被判）· **F-85**（转角歧义吃掉一扇读对的窗）。
-> **⏭ ⭐ 用户拍板试验新路线，已开分叉**：**reading 只忠实描摹（as-drawn），塌中线/判内外/分段全部下放
-> 1_correction**；历史 reading 走 (b)（只对旧层判分）。⛔ **未合并，效果待评估**，内容全在分叉上。
+> **⭐⭐⭐ 2026-08-23 收工状态 banner（当前唯一口径）**
+> **分支 `08.23_AsDrawnReading`**（未合并）。⛔ **`src/` 一行未动** —— 全部在 `logs/experiments/` 探索档。
+>
+> **① as-drawn v2 三层产物已真正实现**（`observations` / `declarations` / `hypotheses`）：
+> 不跨接 · 空档无分类标签只带测量量 · **颜色族发现而非写死**（与原写死划分重合 94–100%；
+> sm20 纯灰度自报 `achromatic_only`）· **语义指派从外部进来**，缺失或指向不存在的族 = **响亮失败**（F-69 根治）。
+> **数**：平面反证 sm24 **100.0** / sm25 **93.3**（10 种变异 8 红 2 免疫）·
+> 立面洞口 **34/34**（最大误差 0.033 m，未吸附）· 立面结构线 **24/24**（最大 0.0065 m）。
+>
+> **② ⛔ 设计稿两轮跨家族审（sol）均 REJECT，六+五条 findings 主控逐条复算全部属实**
+> → [一审](logs/reviews/verdict/2026-08-23_as_drawn_design_crossreview_sol.md) ·
+> [二审](logs/reviews/verdict/2026-08-23b_as_drawn_design_v2_crossreview_sol.md)。
+> ⭐⭐ **两轮同一病根：我产出的叙述比我产出的东西更合规**（一审=自选变异挑不出自己盲区；
+> 二审=设计稿描述了代码根本没实现的形态）。⇒ 已写成指南 §五 八条硬纪律。
+>
+> **③ ⛔ gt 冻结中**，三审通过前不动。二审未结四条：立面线反证只比坐标（不比 runs / 无一对一 assignment）·
+> gt 可评分分母未定义 · G-1 的错误配对与 assignment 复用坏夹具未做 · 实验 README 仍是混合口径。
+>
+> **④ ⭐ R-6（用户质疑后更正）**：**内墙厚度不是「gt 里没有」，是「量了、用掉了、存盘时扔了」** ——
+> 转换器每条 zone 边都存 `_ZoneEdgeRec`（`basis` + **实测厚度** + 偏移，内墙用 t/2 撑到中轴），
+> 但 `GtZoneV3` 只序列化 `polygon`。⭐ `basis` **字面就是出模形式的开关** ⇒ 留下它就能
+> **换出模形式而不重跑转换器/不重签**。⇒ 归 B 步（gt 加 as-drawn 层）同一件事。
+>
+> **⏭ 下一步**：补完 reading 判据的坏夹具 → **让模型真进环**（`family_roles` 从配置替身换成模型输出 + 对账门）
+> → 送三审 → 通过了才动 gt。
 
-> **2026-08-22 收工状态 banner** —— 已被上方 08-23 banner 覆盖，逐字搬入
-> [`logs/worklog/2026-08_plan_log.md`](logs/worklog/2026-08_plan_log.md)（F-69 真因=门窗在独立颜色图层上 · A×B 对账落成代码规则 · **开发循环六步** · harness 按能力点做版本管理）。⭐ **开发循环那条仍然有效**。
-
-> **⭐⭐⭐ 2026-08-21 战略调整 banner（用户当面定；⛔ 与下方 reading banner 及 §1.5#7 冲突处以本条为准）**
-> **跑测的目的 = 升级 harness，不是拿分。** 开发循环四步：
-> **① 最强模型（orchestrator）亲自下场做 reading，边做边定工具/SOP/约束 → ② 自己真做出一份不错的输出
-> → ③ 把能固化的（工具·skill·提示词·门）固化进 harness → ④ 逐级降智验收，弱模型也能做到 = 固化成功。**
-> ⛔ 反向做（直接让弱模型跑、指望它对）= 许愿不是开发。
-> **三种 reading 模式作废**（autonomous / controlled / dev 职能）—— 模型强度是**连续刻度**不是并列赛道。
-> **不再纠结「复原 07-07」**，改为把历史好 reading 沉淀进现行 harness。
-> ⛔ **硬约束：harness 只做增量升级、不为新 case 特化，历史 case 也要照样做好**（每条沉淀物须对 5 份历史好 reading 全绿）。
-> **隔离铁律适用范围**：探索/造 SOP 阶段 orchestrator 可亲自看图亲自做，受 08-02 四条铁律约束
-> （不给生产喂信息 · 这类跑不作成绩 · **收官验收 orchestrator 退场**、跑已固化工序 + 已冻结工具箱）。
-> **首批沉淀已落地** → [解剖全档](logs/experiments/2026-08-21_historical_reading_dissection/README.md)：
-> 独立 reading 只有 27 份（19 个「满分」是同一份复用）·
-> ⭐ **不变量 = 几何靠代码量、不靠看（5/5 好 reading 零例外）**；⛔ 具体做法层面无单一杠杆
-> ⇒ 多路径可行处**先做成工具**、后续再取舍或留作图纸类型适配选项 ·
-> 证据密度 14/14 分开（provisional）· 三道硬门（含 F-69 抽象成的 POLARITY）·
-> 新增**离线**夹具 + 过程指标（此前「改脚手架伤没伤 reading」只能花钱跑抽才知道）·
-> 查出 harness 退化：CV 侧车在隔离壳 merge 里丢了（**当夜已修，F-35**）。
-> **⭐ A/B 两条路线不冲突、互为盲区**（用户 08-21 提出，已实证）：07-07 与 07-08 对 sm21 顶链
-> 转录**逐字相同**（段和 14.76 / 总长 15.00），07-07 把 0.24 m 残量放进两条 120 mm 无标注隔墙带、
-> 收在 15.00；07-08 丢在链尾、收在 14.76 ⇒ 窗依次偏 −0.12/−0.24 ⇒ **丢一扇窗**。
-> ⇒ 正确形态**不是「选 A 还是 B」而是「两者都产出 + 代码对账」**，且不依赖模型智力。
-> 由此得 **CHAIN-PLACEMENT 门**（现有值闭合门从结构上分不开这两者，F-72）。
-> **结转四条已收三条**：#2 ✅ F-35 · #4 ✅（六条 feedback 修完四条）· #1 ⏸ 派工单已出待拍板 ·
-> #3 ⏸ 须先由 orchestrator 亲自跑一遍（**作业设计已在下场前写成并提交**）。
-
-> **⛔⛔ reading 当前口径 banner（2026-08-16 用户当面定 + 08-17 复述确认；⛔ 凡与「环节控制边界」那套条文冲突处以本条为准；该正文 2026-08-18 已迁至 [capability/reading/improvement_methodology.md §8](capability/reading/improvement_methodology.md)）**
-> **本批 reading = 在【现有基座】上把 07-07 那个模式移植过来、拿到接近满分就行。**
-> 07-07 模式 = **orchestrator 亲自审 pilot**、多轮同一会话 —— **这个形态现在是被接受的**，直接在它上面跑实验拿结果。
-> **`reading-agent` / autonomous↔controlled lane / 成绩归因 / 隔离档位这一整包，已打包延后、全部归 reading 专项**；
-> 「在 07-07 模式之上后面怎么改」也归该专项。
-> ⇒ **⛔ 不得再把「谁当审阅者 / 这算不算正式成绩 / 要不要先实现 reading-agent」当拍板项去问用户**——
-> 这不是待定问题，是**已经关掉的**问题。那套条文（现 [reading 专项 §8](capability/reading/improvement_methodology.md)）是**长期目标形态，不是本批准入门**。
-> **撞到「这么跑合不合规」的念头时，默认答案 = 按 07-07 模式跑、继续往前**，把合规顾虑写一行结转给专项。
-> 真要停，**只停在具体配置上**（跑哪个 case / 哪个模型 / 几抽），⛔ 不停在治理口径上。
-> ⚠️ orchestrator 已因误读那套条文 **连续三次**得出「07-07 模式违规、须先实现 reading-agent」的错误结论
-> （08-16 两次 + 08-17 一次，最后一次是把 08-02 的旧口径当现行说给用户）。
+> **已翻篇的 banner（均逐字搬入 [`logs/worklog/2026-08_plan_log.md`](logs/worklog/2026-08_plan_log.md)）**：
+> **08-23 早间**（sm25 gt 签字入库 · 判分首次跑通 · 全案对答案「真错只有三条且同源」· 推翻 F-78）·
+> **08-22**（F-69 真因=门窗在独立颜色图层上 · **开发循环六步** ⭐ 仍有效 · harness 按能力点做版本管理）·
+> **08-21 战略**（核心已提炼进 §0.0；历史 reading 解剖 · 离线夹具 + 四道硬门 · CHAIN-PLACEMENT 门）·
+> **08-20**（07-07 水平复现 · 立面载体方言层 F-65 · C2 首考 94.4%）·
+> **08-16 reading 口径**（已被 08-21「三种模式作废」与 08-23 新分工覆盖）。
 
 ### 2.1 最近节点索引
 
@@ -281,7 +272,7 @@ EnergyPlus 经 `WorkflowTool.run_simulation`（eppy + ConverterManager，idfpy �
 
 | 日期 | 一句话 | 详档 |
 |---|---|---|
-| **2026-08-23** | **sm25 gt 签字入库**（候选包须用现行代码重建重签）· **判分首次真正跑通**（墙 80.8% / 平面窗 30/31）· ⭐⭐ **全案对答案：真错只有三条且同源**（沿墙范围取首尾而非墨迹连续区间）· ⛔ 推翻 F-78 与「判卷天花板」二说 · 登记 F-83/84/85 · **用户拍板试验 as-drawn 新路线，已开分叉未合并** | [plan.md 本日](plan.md) |
+| **2026-08-23** | 上午：sm25 gt 签字入库 · **判分首次真正跑通** · ⭐⭐ 全案对答案「**真错只有三条且同源**」· 推翻 F-78 · 登记 F-83/84/85。下午起分叉 `08.23_AsDrawnReading`：**as-drawn v2 三层实现** · **语义去写死化**（颜色族发现 + 指派外部化）· ⛔ **两轮跨家族审均 REJECT** · ⭐⭐⭐ **用户定新分工与判分口径 → 本批开发指南成文** · R-6 更正 | [指南](guides/reading_correction_split_guide.md) · [实验档](logs/experiments/2026-08-23_as_drawn_reading_prototype/README.md) · [裁决](logs/reviews/verdict/) |
 | **2026-08-22** | **⭐⭐⭐ orchestrator 亲自下场跑通 sm25 1f+2f**：F-69 真因 = **门窗在独立颜色图层上而现行掩膜看不见它**（青色像素数实测 0）· A×B 对账落成代码规则（像素定哪段是洞口、刻度定边界）⇒ **31/31 扇窗坐标取自尺寸链、零笔无证据、12 条链闭合 0.0 mm** · **跨 case 迁到 sm24：11 扇历史窗逐个复现宽度全同** · 修 F-73 · 登记 F-74/75/76/77/78 | [全档](logs/experiments/2026-08-22_orchestrator_hands_on/README.md) · [SOP](logs/experiments/2026-08-22_orchestrator_hands_on/sop_plan_reading.md) · [缺口清单](logs/experiments/2026-08-22_orchestrator_hands_on/tool_gaps.md) |
 | **2026-08-21 夜** | **⭐⭐⭐ 战略换挡：跑测=升级 harness 不是拿分** · 历史 reading 解剖（27 份独立、19 个满分是同一份复用）· **离线夹具 + 过程指标 + 四道硬门**（此前「改脚手架伤没伤 reading」只能花钱跑抽）· A/B 互为盲区实证 → CHAIN-PLACEMENT 门 · F-35 侧车带回 · 登记 F-69/70/71/72 | [解剖档](logs/experiments/2026-08-21_historical_reading_dissection/README.md) · [作业设计](logs/experiments/2026-08-21_historical_reading_dissection/orchestrator_hands_on_plan.md) |
 | **2026-08-21** | **⭐⭐ sm25 gt 签字晋升入库（首份多层+非凸答案）· C2 首考已判分**（外轮廓 94.4% / 窗 8/15，病灶=F-69 极性反了·把墙垛当窗）· 转换器三修 + 判卷两修 · 四处「肉眼看不见的一点点错」· 停下上报 **8/8** 全是派工方题错（累计 22/22）| [plan.md 本日](plan.md) · [gt](../case_tests/test_baseline/gt/sm25-L_anchor/) |
@@ -292,10 +283,7 @@ EnergyPlus 经 `WorkflowTool.run_simulation`（eppy + ConverterManager，idfpy �
 | 2026-08-16 晚 | 移植基座一次性普查：40 分钟撞出 7 条（此前串行一天撞 3 条）· 修 5 条 · +135 锁 | [worklog](logs/worklog/2026-08_plan_log.md) · [sweep README](logs/experiments/2026-08-16_substrate_sweep/README.md) |
 | 2026-08-16 | 方法论转向「读 diff 不猜变量」· 撤能力封口（A3）证伪 | [worklog](logs/worklog/2026-08_plan_log.md) · [行为清单](logs/experiments/2026-08-16_707_repro/behavioral_change_inventory.md) |
 | 2026-08-15 | reading 重启七抽全否 · ⭐ 基准本身被查出「不可审计」 | [worklog](logs/worklog/2026-08_plan_log.md) · [实验档](logs/experiments/2026-08-15_reading_restart/README.md) |
-| 2026-08-14 | **验收首次达成**：一口气推完不出错 · 连跑 3/3 · F-28 修法有效（⛔ 用的是冻结老识图件）| [worklog](logs/worklog/2026-08_plan_log.md) |
-| 2026-08-13 | 下游断链真因坐实（截断 ⇒ 幽灵 tool_call ⇒ 400）· BLOCKER-1 工程侧闭合 | [worklog](logs/worklog/2026-08_plan_log.md) |
-| 2026-08-10/11 | **全链首次跑通到 EnergyPlus（0 Severe）** | [worklog](logs/worklog/2026-08_plan_log.md) |
-| ≤2026-08-09 | F-8…F-21 端到端工程缺陷批 · 判卷身份与度量批 · reading 监督污染立项 | [status digest](logs/worklog/status_digest_to_2026-08-17.md) · [2026-07 worklog](logs/worklog/2026-07_plan_log.md) |
+| ≤2026-08-14 | 验收首次达成（一口气推完不出错·连跑 3/3）· 下游断链真因坐实（截断⇒幽灵 tool_call⇒400）· **全链首次跑到 EnergyPlus（0 Severe）** · F-8…F-21 缺陷批 · 判卷身份与度量批 | [worklog](logs/worklog/2026-08_plan_log.md) · [status digest](logs/worklog/status_digest_to_2026-08-17.md) · [2026-07](logs/worklog/2026-07_plan_log.md) |
 
 ---
 
