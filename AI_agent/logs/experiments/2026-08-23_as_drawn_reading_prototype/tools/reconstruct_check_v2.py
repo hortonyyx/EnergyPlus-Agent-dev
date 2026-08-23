@@ -227,7 +227,12 @@ def _mutate(doc: dict, kind: str) -> str:
                 f["runs_m"] = [max(f["runs_m"], key=lambda r: abs(r[1] - r[0]))]
         return "MUTATED: only the longest run kept per face line"
     if kind == "drop_one_of_each_pair":
-        drop = {p["face_b"] for p in doc["hypotheses"]["pairs"]}
+        # ⭐ works off the SELECTION when the model has made one, else off the
+        # code-enumerated candidates -- the neuter must not go quiet just
+        # because nobody has chosen yet.
+        src = (doc["hypotheses"].get("pairs")
+               or doc["hypotheses"].get("pair_candidates") or [])
+        drop = {p["face_b"] for p in src}
         doc["observations"]["face_lines"] = [f for f in fl if f["id"] not in drop]
         return f"MUTATED: {len(drop)} of the paired face lines removed"
     if kind == "misname_opening_family":
@@ -244,6 +249,21 @@ def _mutate(doc: dict, kind: str) -> str:
     if kind == "drop_opening_role":
         doc["hypotheses"]["family_roles"]["assignment"].pop("fenestration", None)
         return "MUTATED: opening role removed entirely"
+    if kind == "extend_runs_full":
+        # ⭐ The cheat this gt-side check CANNOT see, kept here on purpose so the
+        # pair of checks can be compared on one fixture: claim every face line is
+        # drawn edge to edge.  Every target is then fully covered for free.  The
+        # ⛔ gt-free reverse ledger (checks_as_drawn_v2.py) is what kills it --
+        # it samples the ORIGINAL image under each claimed stretch.
+        for axis in ("x", "y"):
+            same = [f for f in fl if f["constant_world_axis"] == axis]
+            if not same:
+                continue
+            lo = min(min(r) for f in same for r in f["runs_m"])
+            hi = max(max(r) for f in same for r in f["runs_m"])
+            for f in same:
+                f["runs_m"] = [[lo, hi]]
+        return "MUTATED: every face line claims to be drawn across the whole plan"
     if kind == "widen_all":
         for f in fl:
             c = f["pos_m"]

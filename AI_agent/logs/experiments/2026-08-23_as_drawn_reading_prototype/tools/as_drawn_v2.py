@@ -245,6 +245,18 @@ class AssignmentError(SystemExit):
 
 
 def build(cfg: dict) -> dict:
+    # ⭐ 2026-08-24: perception now arrives as its OWN FILE, produced by whoever
+    # did the recognising (today the orchestrator by hand, tomorrow the reading
+    # model).  It carries the role naming AND the wall pairing -- both are "认",
+    # and neither is something a ruler settles.  The config only points at it.
+    percept = {}
+    if cfg.get("perception"):
+        percept = json.loads(Path(cfg["perception"]).read_text())
+        cfg = dict(cfg)
+        cfg.setdefault("family_roles", percept.get("family_roles"))
+        cfg.setdefault("wall_pairs", percept.get("wall_pairs"))
+        cfg["family_roles_source"] = percept.get("_produced_by", cfg["perception"])
+
     a = load_rgb(cfg["image"])
     pal = palette(a)
     masks = _family_masks(a)
@@ -350,15 +362,18 @@ def build(cfg: dict) -> dict:
     def _tol(t_px: float) -> float:
         return max(tol_px, 0.30 * t_px)
 
-    pairs = []
+    # ⭐ 2026-08-24: the guide's rule -- CODE ENUMERATES, THE MODEL CHOOSES.
+    # v2's first cut filtered candidates by the DECLARED thickness, which is the
+    # very mechanism that silently lost sm24's whole batch of 120 mm partitions
+    # (the drawing only calls out 240).  So there is ⛔ NO spacing threshold here
+    # any more: every same-axis pair of face lines that rest on disjoint ink and
+    # actually overlap along the wall is a candidate, and the declared callout is
+    # attached as a LABEL, never as a gate.
+    candidates = []
     for i, A in enumerate(face_lines):
         for j in range(i + 1, len(face_lines)):
             B = face_lines[j]
             if A["axis"] != B["axis"]:
-                continue
-            d = abs(B["pos_px"] - A["pos_px"])
-            hits = [t for t in declared_px if abs(d - t) <= _tol(t)]
-            if not hits:
                 continue
             # ⭐ distinct support: two readings of ONE stroke are not a wall.
             (a0, a1), (b0, b1) = A["support_cols_px"], B["support_cols_px"]
@@ -369,23 +384,65 @@ def build(cfg: dict) -> dict:
                 for q in B["runs_px"]:
                     ov += max(0, min(p[1], q[1]) - max(p[0], q[0]))
             if ov < cfg.get("min_overlap_px", 10):
-                continue
-            pairs.append({"face_a": A["id"], "face_b": B["id"],
-                          "spacing_px": round(d, 2),
-                          "spacing_m": round(d * mmpx / 1000.0, 4),
-                          "matched_declared_mm": [round(t * mmpx) for t in hits],
-                          "overlap_px": int(ov),
-                          "basis": "declared thickness +/- max(2px, 30%), "
-                                   "disjoint support columns, overlapping runs"})
-    # ⭐ every admissible partner, ⛔ no first-match-and-break
+                continue          # a measurement, not a semantic threshold
+            d = abs(B["pos_px"] - A["pos_px"])
+            hits = [t for t in declared_px if abs(d - t) <= _tol(t)]
+            candidates.append({"face_a": A["id"], "face_b": B["id"],
+                               "spacing_px": round(d, 2),
+                               "spacing_m": round(d * mmpx / 1000.0, 4),
+                               "matched_declared_mm": [round(t * mmpx) for t in hits],
+                               "overlap_px": int(ov)})
+    candidates.sort(key=lambda c: (c["face_a"], c["spacing_px"]))
     by_face: dict[str, list[str]] = {}
-    for p in pairs:
-        by_face.setdefault(p["face_a"], []).append(p["face_b"])
-        by_face.setdefault(p["face_b"], []).append(p["face_a"])
-    for p in pairs:
-        p["admissible_alternatives"] = sorted(
-            set(by_face.get(p["face_a"], []) + by_face.get(p["face_b"], []))
-            - {p["face_a"], p["face_b"]})
+    for c in candidates:
+        by_face.setdefault(c["face_a"], []).append(c["face_b"])
+        by_face.setdefault(c["face_b"], []).append(c["face_a"])
+
+    # ⭐ THE SELECTION IS PERCEPTION AND MUST COME FROM OUTSIDE (same rule as
+    # ``family_roles``).  ⛔ Absent selection is a LOUD downgrade, never a quiet
+    # substitution of a code rule dressed up as the model's answer.
+    sel_raw = cfg.get("wall_pairs")
+    if sel_raw is None:
+        pairs = None
+        pairs_status = "ABSENT_NO_MODEL_SELECTION"
+        pairs_note = ("no wall pairing supplied. Which two face lines are one wall is "
+                      "perception (2026-08-23 user ruling) -- code enumerates the "
+                      "candidates below and reconciles the answer, it does not choose. "
+                      f"{len(candidates)} candidates over {len(by_face)} face lines.")
+    else:
+        index = {(c["face_a"], c["face_b"]): c for c in candidates}
+        pairs, unknown = [], []
+        for a, b in sel_raw:
+            c = index.get((a, b)) or index.get((b, a))
+            if c is None:
+                unknown.append([a, b])
+            else:
+                pairs.append(dict(c, source="selected"))
+        # ⭐ COMPLETENESS: every face line must be accounted for -- either it is
+        # half of a wall, or perception must say out loud what it is instead.
+        # ⛔ Silence about a face line is the failure mode this catches: that is
+        # how the five callout-TEXT strokes of sm25 1f got quietly paired into
+        # walls by the declaration-driven rule.
+        declared_non_wall = set(percept.get("non_wall_face_lines", {}))
+        # ⭐ a third honest answer: "this IS a wall face, but the drawing's other
+        # face never reached the observations".  ⛔ Without this bucket the only
+        # ways to account for such a line are to call it not-a-wall (false) or to
+        # pair it with something it is not (worse).
+        declared_lone = set(percept.get("unpaired_wall_faces", {}))
+        # a filled band whose OWN two edges are the wall's two faces (the sm24
+        # dialect): one observation, one wall, ⛔ no partner to look for.
+        declared_band = set(percept.get("solid_band_walls", {}))
+        # ⭐ and the answer a model must be allowed to give: "I cannot tell."
+        # ⛔ Forcing a call here is how a desk edge becomes a wall face.
+        declared_ambig = set(percept.get("ambiguous_face_lines", {}))
+        accounted = ({x for p in pairs for x in (p["face_a"], p["face_b"])}
+                     | declared_non_wall | declared_lone | declared_band
+                     | declared_ambig)
+        unaccounted = sorted({f["id"] for f in face_lines} - accounted)
+        pairs_status = "SELECTED" if not (unknown or unaccounted) else "SELECTED_INCOMPLETE"
+        pairs_note = (f"{len(pairs)} pairs selected from the candidate list; "
+                      f"unknown references: {unknown}; "
+                      f"face lines neither paired nor declared non-wall: {unaccounted}")
 
     return {
         "schema": SCHEMA,
@@ -434,17 +491,30 @@ def build(cfg: dict) -> dict:
                              if fid in roles.values()},
                 "achromatic_only": pal["achromatic_only"],
             },
+            "pair_candidates": candidates,
+            "pair_candidates_basis": "every same-axis face-line pair with disjoint "
+                                     "support columns and >= min_overlap_px of shared "
+                                     "run; ⛔ NO spacing threshold. declared callouts "
+                                     "attached as a label only.",
             "pairs": pairs,
-            "note": "⛔ derived, not scored. Rebuildable from observations + declarations: "
-                    "pairs = face-line spacings matching a declared callout within "
-                    "max(2px,30%), with disjoint support columns and overlapping runs.",
+            "non_wall_face_lines": percept.get("non_wall_face_lines", {}),
+            "unpaired_wall_faces": percept.get("unpaired_wall_faces", {}),
+            "solid_band_walls": percept.get("solid_band_walls", {}),
+            "ambiguous_face_lines": percept.get("ambiguous_face_lines", {}),
+            "perception_source": percept.get("_produced_by"),
+            "pairs_status": pairs_status,
+            "pairs_note": pairs_note,
+            "note": "⛔ derived, not scored. Candidates are rebuildable from the "
+                    "observations alone; the selection is not -- it is perception.",
         },
         "ledger": {
             "face_lines": len(face_lines),
             "runs_total": sum(len(f["runs_px"]) for f in face_lines),
             "gaps_total": sum(len(f["gaps"]) for f in face_lines),
-            "pairs": len(pairs),
-            "faces_in_a_pair": len({x for p in pairs for x in (p["face_a"], p["face_b"])}),
+            "pair_candidates": len(candidates),
+            "faces_with_a_candidate": len(by_face),
+            "pairs_selected": (len(pairs) if pairs is not None else None),
+            "pairs_status": pairs_status,
             "families_discovered": len(pal["families"]),
             "families_assigned": len(roles),
             "unassigned_ink_pct": pal["unassigned_pct"],
@@ -460,8 +530,9 @@ def main(cfg_path: str, out_path: str) -> int:
     dump(doc, out_path)
     L = doc["ledger"]
     print(f"{Path(cfg_path).stem:16s} face_lines={L['face_lines']:3d} runs={L['runs_total']:4d} "
-          f"gaps={L['gaps_total']:4d} pairs={L['pairs']:3d} "
-          f"paired_faces={L['faces_in_a_pair']:3d} "
+          f"gaps={L['gaps_total']:4d} cand={L['pair_candidates']:4d} "
+          f"faces_with_cand={L['faces_with_a_candidate']:3d} "
+          f"pairs={L['pairs_selected']} [{L['pairs_status']}] "
           f"families={L['families_discovered']}/{L['families_assigned']} "
           f"unassigned_ink={L['unassigned_ink_pct']}%")
     return 0

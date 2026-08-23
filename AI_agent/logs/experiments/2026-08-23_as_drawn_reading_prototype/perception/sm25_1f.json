@@ -1,0 +1,43 @@
+{
+  "_what": "PERCEPTION OUTPUT for sm25-L_anchor 1f — the 'recognise' half of the split.",
+  "_produced_by": "orchestrator (Opus 5) reading the drawing directly, 2026-08-24",
+  "_standing_in_for": "the reading model. Step ① of the 2026-08-21 development loop: the strongest model does the job by hand first, so the workflow and the evidence pack can be found out.",
+  "_evidence_seen": [
+    "the drawing itself (case_data/1f_view.png), full page and four 8x zoom crops",
+    "observations.ink_palette — discovered families' chromaticity / share / shape stats",
+    "hypotheses.pair_candidates — 374 code-enumerated pairs with spacing + overlap",
+    "per-face candidate table (tools/render_face_lines.py evidence sheet)"
+  ],
+  "_contamination_disclosure": "⛔ EXPLORATORY ONLY, never a score. Before producing this, the same session had already run the gt-side reconstruct check and seen which targets fail. A clean measurement of 'can a model do this' needs a cold isolated reader.",
+
+  "family_roles": {
+    "structure": "F0",
+    "annotation": "F1",
+    "furniture": "F2",
+    "fenestration": "F3"
+  },
+  "family_roles_basis": {
+    "F0": "achromatic (chromaticity 0.99/0.99/0.99), 368 components, the long thin strokes that bound rooms — walls. ⚠️ SEE non_wall_face_lines: this drawing also renders its thickness-callout TEXT in the same achromatic colour, so F0 is not purely structural.",
+    "F1": "pure green, 25 components, longest extent 1164 px running outside the plan — the dimension chains and their text.",
+    "F2": "magenta, fill_ratio 0.97, elongated_fraction 0.0, blocky — desks, chairs, sofas, tables.",
+    "F3": "cyan, the multi-stroke bands sitting inside wall gaps and the door swing arcs — openings."
+  },
+
+  "wall_pairs": [
+    ["L001", "L002"], ["L004", "L006"], ["L005", "L007"], ["L008", "L009"],
+    ["L010", "L011"], ["L012", "L013"], ["L014", "L015"], ["L016", "L017"],
+    ["L019", "L020"], ["L021", "L022"],
+    ["L023", "L024"], ["L025", "L026"], ["L027", "L029"], ["L028", "L030"],
+    ["L031", "L033"], ["L032", "L034"], ["L037", "L038"], ["L039", "L040"],
+    ["L041", "L042"], ["L043", "L044"], ["L045", "L046"], ["L047", "L048"]
+  ],
+
+  "non_wall_face_lines": {
+    "L003": "stroke of the '240' thickness-callout text (achromatic, so it lands in F0)",
+    "L018": "stroke of the '240' thickness-callout text",
+    "L035": "stroke of the '240' thickness-callout text",
+    "L036": "stroke of the '240' thickness-callout text",
+    "L049": "stroke of the '240'/'540' callout text below the south wall"
+  },
+  "_note_on_the_text_finding": "All five unpaired face lines are 0.30–0.33 m long with 14–15 px of support and sit next to a green '240' callout. At 8x zoom they are digit strokes. ⭐ Code cannot rule them out: they are achromatic, straight, and their nearest neighbour sits at a legal wall spacing (L035↔L033 = 0.119 m). The declaration-driven pairing that v2 shipped with DID pair them, which is how the reconciliation gate caught 4 face lines being sold to two walls at once."
+}

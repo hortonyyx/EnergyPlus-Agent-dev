@@ -1,0 +1,433 @@
+{
+ "source": "/workspaces/EnergyPlus-Agent-dev/AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/out/sm24_1f_v2.json",
+ "image": "case_tests/e2e_tests/sm24_anchor/case_data/1f_view.png",
+ "schema": "as_drawn_plan_v2",
+ "mutation": "MUTATED: every face line claims a 0.24 m band in edges_m (mm/px=27.504)",
+ "role_assignment": {
+  "structure": "F0",
+  "annotation": "F1",
+  "fenestration": "F2"
+ },
+ "checks": [
+  {
+   "check": "reverse_ledger_no_phantom_ink",
+   "threshold": 0.8,
+   "runs_sampled": 185,
+   "worst_coverage": 1.0,
+   "violations": [],
+   "violation_count": 0,
+   "status": "green"
+  },
+  {
+   "check": "observations_recomputable_from_own_pixels",
+   "tolerance_m": 0.0413,
+   "stated_edges_wrong": [
+    {
+     "face": "L001",
+     "stated_m": [
+      -0.0012,
+      0.2388
+     ],
+     "recomputed_m": [
+      -0.0201,
+      0.2824
+     ]
+    },
+    {
+     "face": "L003",
+     "stated_m": [
+      0.6576,
+      0.8976
+     ],
+     "recomputed_m": [
+      0.7498,
+      0.8323
+     ]
+    },
+    {
+     "face": "L004",
+     "stated_m": [
+      0.8798,
+      1.1198
+     ],
+     "recomputed_m": [
+      0.9698,
+      1.0523
+     ]
+    },
+    {
+     "face": "L005",
+     "stated_m": [
+      1.0104,
+      1.2504
+     ],
+     "recomputed_m": [
+      1.1073,
+      1.1623
+     ]
+    },
+    {
+     "face": "L006",
+     "stated_m": [
+      1.1202,
+      1.3602
+     ],
+     "recomputed_m": [
+      1.1899,
+      1.3274
+     ]
+    },
+    {
+     "face": "L007",
+     "stated_m": [
+      1.4867,
+      1.7267
+     ],
+     "recomputed_m": [
+      1.5473,
+      1.7123
+     ]
+    },
+    {
+     "face": "L008",
+     "stated_m": [
+      1.845,
+      2.085
+     ],
+     "recomputed_m": [
+      1.8773,
+      2.0423
+     ]
+    },
+    {
+     "face": "L009",
+     "stated_m": [
+      1.9907,
+      2.2307
+     ],
+     "recomputed_m": [
+      2.0972,
+      2.1522
+     ]
+    },
+    {
+     "face": "L010",
+     "stated_m": [
+      2.1211,
+      2.3611
+     ],
+     "recomputed_m": [
+      2.2348,
+      2.2898
+     ]
+    },
+    {
+     "face": "L011",
+     "stated_m": [
+      2.3045,
+      2.5445
+     ],
+     "recomputed_m": [
+      2.3997,
+      2.4823
+     ]
+    },
+    {
+     "face": "L012",
+     "stated_m": [
+      2.6287,
+      2.8687
+     ],
+     "recomputed_m": [
+      2.6747,
+      2.8397
+     ]
+    },
+    {
+     "face": "L013",
+     "stated_m": [
+      3.0057,
+      3.2457
+     ],
+     "recomputed_m": [
+      3.0872,
+      3.1972
+     ]
+    },
+    {
+     "face": "L014",
+     "stated_m": [
+      3.1047,
+      3.3447
+     ],
+     "recomputed_m": [
+      3.2247,
+      3.2522
+     ]
+    },
+    {
+     "face": "L015",
+     "stated_m": [
+      3.1872,
+      3.4272
+     ],
+     "recomputed_m": [
+      3.3072,
+      3.3347
+     ]
+    },
+    {
+     "face": "L016",
+     "stated_m": [
+      3.9984,
+      4.2384
+     ],
+     "recomputed_m": [
+      4.1046,
+      4.1597
+     ]
+    },
+    {
+     "face": "L017",
+     "stated_m": [
+      4.1221,
+      4.3621
+     ],
+     "recomputed_m": [
+      4.2421,
+      4.2696
+     ]
+    },
+    {
+     "face": "L018",
+     "stated_m": [
+      5.632,
+      5.872
+     ],
+     "recomputed_m": [
+      5.727,
+      5.782
+     ]
+    },
+    {
+     "face": "L019",
+     "stated_m": [
+      5.7582,
+      5.9982
+     ],
+     "recomputed_m": [
+      5.8644,
+      5.9195
+     ]
+    },
+    {
+     "face": "L021",
+     "stated_m": [
+      7.0644,
+      7.3044
+     ],
+     "recomputed_m": [
+      7.1569,
+      7.2394
+     ]
+    },
+    {
+     "face": "L022",
+     "stated_m": [
+      7.2899,
+      7.5299
+     ],
+     "recomputed_m": [
+      7.3769,
+      7.4594
+     ]
+    }
+   ],
+   "stated_runs_wrong": [],
+   "face_lines_sharing_ink": [],
+   "violation_count": 91,
+   "status": "red"
+  },
+  {
+   "check": "opening_role_matches_where_the_ink_sits",
+   "gaps_measured": 87,
+   "ink_in_gaps_by_family": {
+    "F0": 1660,
+    "F1": 194,
+    "F2": 7546
+   },
+   "named_opening_family": "F2",
+   "min_share": 0.5,
+   "share_of_gap_ink": 0.8028,
+   "family_with_most_gap_ink": "F2",
+   "violation_count": 0,
+   "status": "green"
+  },
+  {
+   "check": "pair_hypothesis_reconciles_with_observations",
+   "status": "degraded",
+   "violation_count": 0,
+   "pairs": 8,
+   "declared_ambiguous": [
+    "L002",
+    "L003",
+    "L004",
+    "L005",
+    "L006",
+    "L007",
+    "L008",
+    "L009",
+    "L010",
+    "L011",
+    "L012",
+    "L013",
+    "L014",
+    "L015",
+    "L020",
+    "L021",
+    "L022",
+    "L023",
+    "L024",
+    "L025",
+    "L026",
+    "L027",
+    "L028",
+    "L029",
+    "L032",
+    "L033",
+    "L034",
+    "L035",
+    "L038",
+    "L039",
+    "L040",
+    "L041",
+    "L042",
+    "L043",
+    "L046",
+    "L049",
+    "L050",
+    "L051",
+    "L052",
+    "L053",
+    "L054",
+    "L055",
+    "L056",
+    "L057",
+    "L058",
+    "L059",
+    "L060",
+    "L061",
+    "L062",
+    "L063",
+    "L064",
+    "L065",
+    "L066",
+    "L067",
+    "L068",
+    "L069",
+    "L070",
+    "L071",
+    "L072",
+    "L073",
+    "L076",
+    "L077",
+    "L078",
+    "L079",
+    "L082",
+    "L083",
+    "L084",
+    "L085",
+    "L088",
+    "L089",
+    "L090",
+    "L091",
+    "L092",
+    "L093",
+    "L094",
+    "L095",
+    "L096",
+    "L097"
+   ],
+   "degraded_reason": "perception declined on 78 of 98 face lines; the rest reconcile"
+  },
+  {
+   "check": "pair_spacing_explicable_by_callouts",
+   "declared_mm": [
+    240
+   ],
+   "violations": [
+    {
+     "pair": "P0",
+     "spacing_m": 0.1238,
+     "nearest_declared_m": 0.24,
+     "excess_m": 0.1162,
+     "tolerance_m": 0.072
+    },
+    {
+     "pair": "P1",
+     "spacing_m": 0.1262,
+     "nearest_declared_m": 0.24,
+     "excess_m": 0.1138,
+     "tolerance_m": 0.072
+    },
+    {
+     "pair": "P2",
+     "spacing_m": 0.1238,
+     "nearest_declared_m": 0.24,
+     "excess_m": 0.1162,
+     "tolerance_m": 0.072
+    },
+    {
+     "pair": "P3",
+     "spacing_m": 0.1238,
+     "nearest_declared_m": 0.24,
+     "excess_m": 0.1162,
+     "tolerance_m": 0.072
+    },
+    {
+     "pair": "P4",
+     "spacing_m": 0.1238,
+     "nearest_declared_m": 0.24,
+     "excess_m": 0.1162,
+     "tolerance_m": 0.072
+    },
+    {
+     "pair": "P5",
+     "spacing_m": 0.1238,
+     "nearest_declared_m": 0.24,
+     "excess_m": 0.1162,
+     "tolerance_m": 0.072
+    },
+    {
+     "pair": "P6",
+     "spacing_m": 0.1238,
+     "nearest_declared_m": 0.24,
+     "excess_m": 0.1162,
+     "tolerance_m": 0.072
+    },
+    {
+     "pair": "P7",
+     "spacing_m": 0.1238,
+     "nearest_declared_m": 0.24,
+     "excess_m": 0.1162,
+     "tolerance_m": 0.072
+    }
+   ],
+   "violation_count": 8,
+   "status": "red"
+  },
+  {
+   "check": "forward_ledger_structural_ink_claimed",
+   "structure_family": "F0",
+   "structure_px_in_box": 28683,
+   "unclaimed_px": 3027,
+   "unclaimed_pct": 10.55,
+   "component_floor_px": 400,
+   "large_unclaimed_components": [],
+   "furniture_family": null,
+   "furniture_layer_pct_of_ink": 0.0,
+   "status": "degraded",
+   "degraded_reason": "no separate furniture ink family in this drawing's role assignment: the structural family carries furniture too, so unclaimed structural ink is NOT a wall-coverage measure here"
+  }
+ ]
+}

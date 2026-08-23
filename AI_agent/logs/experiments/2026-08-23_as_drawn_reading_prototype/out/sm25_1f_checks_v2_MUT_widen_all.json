@@ -1,0 +1,313 @@
+{
+ "source": "/workspaces/EnergyPlus-Agent-dev/AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/out/sm25_1f_v2.json",
+ "image": "case_tests/e2e_tests/sm25-L_anchor/case_data/1f_view.png",
+ "schema": "as_drawn_plan_v2",
+ "mutation": "MUTATED: every face line claims a 0.24 m band in edges_m (mm/px=21.636)",
+ "role_assignment": {
+  "structure": "F0",
+  "annotation": "F1",
+  "furniture": "F2",
+  "fenestration": "F3"
+ },
+ "checks": [
+  {
+   "check": "reverse_ledger_no_phantom_ink",
+   "threshold": 0.8,
+   "runs_sampled": 134,
+   "worst_coverage": 1.0,
+   "violations": [],
+   "violation_count": 0,
+   "status": "green"
+  },
+  {
+   "check": "observations_recomputable_from_own_pixels",
+   "tolerance_m": 0.0325,
+   "stated_edges_wrong": [
+    {
+     "face": "L001",
+     "stated_m": [
+      -0.1255,
+      0.1145
+     ],
+     "recomputed_m": [
+      -0.0165,
+      0.0267
+     ]
+    },
+    {
+     "face": "L002",
+     "stated_m": [
+      0.1129,
+      0.3529
+     ],
+     "recomputed_m": [
+      0.2214,
+      0.2647
+     ]
+    },
+    {
+     "face": "L003",
+     "stated_m": [
+      4.5472,
+      4.7872
+     ],
+     "recomputed_m": [
+      4.6564,
+      4.6997
+     ]
+    },
+    {
+     "face": "L004",
+     "stated_m": [
+      4.8176,
+      5.0576
+     ],
+     "recomputed_m": [
+      4.9376,
+      4.9592
+     ]
+    },
+    {
+     "face": "L005",
+     "stated_m": [
+      4.8826,
+      5.1226
+     ],
+     "recomputed_m": [
+      5.0026,
+      5.0242
+     ]
+    },
+    {
+     "face": "L006",
+     "stated_m": [
+      4.9366,
+      5.1766
+     ],
+     "recomputed_m": [
+      5.0458,
+      5.0891
+     ]
+    },
+    {
+     "face": "L007",
+     "stated_m": [
+      5.1205,
+      5.3605
+     ],
+     "recomputed_m": [
+      5.2405,
+      5.2621
+     ]
+    },
+    {
+     "face": "L008",
+     "stated_m": [
+      8.755,
+      8.995
+     ],
+     "recomputed_m": [
+      8.875,
+      8.8966
+     ]
+    },
+    {
+     "face": "L009",
+     "stated_m": [
+      8.874,
+      9.114
+     ],
+     "recomputed_m": [
+      8.9832,
+      9.0265
+     ]
+    },
+    {
+     "face": "L010",
+     "stated_m": [
+      9.761,
+      10.001
+     ],
+     "recomputed_m": [
+      9.8702,
+      9.9135
+     ]
+    },
+    {
+     "face": "L011",
+     "stated_m": [
+      9.88,
+      10.12
+     ],
+     "recomputed_m": [
+      10.0,
+      10.0216
+     ]
+    },
+    {
+     "face": "L012",
+     "stated_m": [
+      10.884,
+      11.124
+     ],
+     "recomputed_m": [
+      10.9951,
+      11.0384
+     ]
+    },
+    {
+     "face": "L013",
+     "stated_m": [
+      10.9956,
+      11.2356
+     ],
+     "recomputed_m": [
+      11.1033,
+      11.1465
+     ]
+    },
+    {
+     "face": "L014",
+     "stated_m": [
+      12.8222,
+      13.0622
+     ],
+     "recomputed_m": [
+      12.9422,
+      12.9638
+     ]
+    },
+    {
+     "face": "L015",
+     "stated_m": [
+      12.9412,
+      13.1812
+     ],
+     "recomputed_m": [
+      13.0504,
+      13.0937
+     ]
+    },
+    {
+     "face": "L016",
+     "stated_m": [
+      14.6394,
+      14.8794
+     ],
+     "recomputed_m": [
+      14.7594,
+      14.781
+     ]
+    },
+    {
+     "face": "L017",
+     "stated_m": [
+      14.8774,
+      15.1174
+     ],
+     "recomputed_m": [
+      14.9974,
+      15.019
+     ]
+    },
+    {
+     "face": "L018",
+     "stated_m": [
+      15.2772,
+      15.5172
+     ],
+     "recomputed_m": [
+      15.3868,
+      15.4301
+     ]
+    },
+    {
+     "face": "L019",
+     "stated_m": [
+      20.7618,
+      21.0018
+     ],
+     "recomputed_m": [
+      20.8818,
+      20.9034
+     ]
+    },
+    {
+     "face": "L020",
+     "stated_m": [
+      20.8808,
+      21.1208
+     ],
+     "recomputed_m": [
+      20.99,
+      21.0333
+     ]
+    }
+   ],
+   "stated_runs_wrong": [],
+   "face_lines_sharing_ink": [],
+   "violation_count": 49,
+   "status": "red"
+  },
+  {
+   "check": "opening_role_matches_where_the_ink_sits",
+   "gaps_measured": 85,
+   "ink_in_gaps_by_family": {
+    "F0": 64,
+    "F1": 34,
+    "F2": 7,
+    "F3": 4727
+   },
+   "named_opening_family": "F3",
+   "min_share": 0.5,
+   "share_of_gap_ink": 0.9783,
+   "family_with_most_gap_ink": "F3",
+   "violation_count": 0,
+   "status": "green"
+  },
+  {
+   "check": "pair_hypothesis_reconciles_with_observations",
+   "pairs": 22,
+   "status_from_product": "SELECTED",
+   "face_lines_unaccounted_for": [],
+   "declared_non_wall": [
+    "L003",
+    "L018",
+    "L035",
+    "L036",
+    "L049"
+   ],
+   "declared_unpaired_wall_face": [],
+   "declared_solid_band_wall": [],
+   "declared_ambiguous": [],
+   "dangling_reference": [],
+   "face_claimed_twice": [],
+   "supports_overlap": [],
+   "violation_count": 0,
+   "status": "green"
+  },
+  {
+   "check": "pair_spacing_explicable_by_callouts",
+   "declared_mm": [
+    240,
+    120
+   ],
+   "violations": [],
+   "violation_count": 0,
+   "status": "green"
+  },
+  {
+   "check": "forward_ledger_structural_ink_claimed",
+   "structure_family": "F0",
+   "structure_px_in_box": 21441,
+   "unclaimed_px": 594,
+   "unclaimed_pct": 2.77,
+   "component_floor_px": 400,
+   "large_unclaimed_components": [],
+   "furniture_family": "F2",
+   "furniture_layer_pct_of_ink": 21.92,
+   "status": "green",
+   "threshold_pct": 8.0
+  }
+ ]
+}
