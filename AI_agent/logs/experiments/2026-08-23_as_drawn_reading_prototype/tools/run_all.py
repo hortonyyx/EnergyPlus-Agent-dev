@@ -19,6 +19,20 @@ REPO = EXP.parents[3]
 BIND = ("case_tests/e2e_tests/sm25-L_anchor/run_2026-08-22_orchestrator_handson_H2_fullcase"
         "/_run/judge_score_bindings.json")
 
+# ⭐ the scoreable denominator (denominator.py) + the reading grade (reading_grade.py):
+# answer source, conversion request, plan view id, product name
+DEN = [("sm25_F1", "case_tests/test_baseline/gt_sources/sm25-L_anchor/sm25-L_t3.dxf",
+        "AI_agent/logs/experiments/2026-08-20_sm25_conversion_request/request_v3.json",
+        "plan-F1", "sm25_1f"),
+       ("sm25_F2", "case_tests/test_baseline/gt_sources/sm25-L_anchor/sm25-L_t3.dxf",
+        "AI_agent/logs/experiments/2026-08-20_sm25_conversion_request/request_v3.json",
+        "plan-F2", "sm25_2f"),
+       ("sm24_F1", "case_tests/test_baseline/gt_sources/sm24_anchor/source.dxf",
+        "tests/fixtures/sm24_review/bundle_07_25/request_v3_calibrated.json",
+        "plan-F1", "sm24_1f")]
+GRADE_NEUTERS = ["punch_middle", "shrink_runs", "keep_longest_run", "drop_one_of_each_pair",
+                 "duplicate_face", "widen_all", "extend_runs_full"]
+
 PLANS = [("sm25_1f", "cfg_1f_full", "sm25-L_anchor", "F1"),
          ("sm25_2f", "cfg_2f_full", "sm25-L_anchor", "F2"),
          ("sm24_1f", "cfg_sm24", "sm24_anchor", "F1")]
@@ -166,6 +180,42 @@ def main() -> int:
             "gates": {SHORT.get(c["check"], c["check"]): c["status"] for c in d["checks"]},
             "gt_side_ok_pct": json.loads(so2)["overall_ok_pct"] if rc2 == 0 else "ERROR"}
 
+    # ⭐ denominator + reading grade
+    res["denominator"], res["reading_grade"] = {}, {}
+    for key, dxf, req_path, view, product in DEN:
+        den_out = OUT / f"denominator_{key}.json"
+        rc, so, se = run([str(T / "denominator.py"), dxf, req_path, view, str(den_out)])
+        assert rc == 0, se[-400:]
+        res["denominator"][key] = json.loads(den_out.read_text())["ledger"]
+        g_out = OUT / f"grade_{product}.json"
+        rc, so, se = run([str(T / "reading_grade.py"), str(OUT / f"{product}_v2.json"),
+                          str(den_out), str(g_out)])
+        assert rc == 0, se[-400:]
+        g = json.loads(g_out.read_text())
+        res["reading_grade"][product] = {"scores": g["scores"], "by_verdict": g["by_verdict"],
+                                         "perception": g["perception"]}
+    # ⛔ a 100% needs its ruler shaken: every neuter must move the grade the right way
+    import copy as _copy
+    import importlib.util as _ilu
+
+    def _load(name):
+        spec = _ilu.spec_from_file_location(name, T / f"{name}.py")
+        mod = _ilu.module_from_spec(spec)
+        sys.path.insert(0, str(T))
+        spec.loader.exec_module(mod)
+        return mod
+    RC, RG = _load("reconstruct_check_v2"), _load("reading_grade")
+    doc0 = json.loads((OUT / "sm25_1f_v2.json").read_text())
+    den0 = json.loads((OUT / "denominator_sm25_F1.json").read_text())
+    res["reading_grade_neuters"] = {}
+    for m in GRADE_NEUTERS:
+        d = _copy.deepcopy(doc0)
+        try:
+            RC._mutate(d, m)
+        except SystemExit:
+            continue
+        res["reading_grade_neuters"][m] = RG.grade(d, den0)["scores"]
+
     # elevation structure lines
     docs = json.dumps({f"{v}_view": str(OUT / f"sm25_{v.lower()}_as_drawn.json")
                        for v in ("East", "North", "South", "West")})
@@ -238,6 +288,22 @@ def main() -> int:
             continue
         reds = [g for g, st in v["gates"].items() if st == "red"]
         print(f"  {k:34s} gt={v['gt_side_ok_pct']:<6} red_gates={reds or 'NONE ⛔'}")
+    print("== denominator + reading grade ==")
+    for k, v in res["denominator"].items():
+        print(f"  {k}: {v['wall_layer_segments_collected']} segs -> "
+              f"caps {v['excluded_jamb_caps_geometric']} (converter's length rule would cut "
+              f"{v['would_be_excluded_by_converter_length_rule']}) -> "
+              f"{v['scoreable_targets_after_merge']} targets / {v['total_scoreable_length_m']} m")
+    for k, v in res["reading_grade"].items():
+        s2 = v["scores"]
+        print(f"  {k:9s} drawn={s2['C1_C2_targets_drawn_pct']}%  coverage={s2['C2_length_coverage_pct']}%"
+              f"  bad_split={s2['C3_bad_split']}  extra={s2['C4_extra_length_m']} m"
+              f"  abstained={v['perception']['abstained']}")
+    print("  neuters (sm25_1f, honest drawn=100.0 / coverage=98.2):")
+    for m, s2 in res["reading_grade_neuters"].items():
+        print(f"    {m:24s} drawn={s2['C1_C2_targets_drawn_pct']:>6}  "
+              f"coverage={s2['C2_length_coverage_pct']:>6}  split={s2['C3_bad_split']:>4}  "
+              f"extra={s2['C4_extra_length_m']:>8}")
     print("== gate discriminating power (machine-checked) ==")
     for g, v in res["gate_discriminating_power"].items():
         mark = "  " if v["verdict"] == "ok" else "⛔"
