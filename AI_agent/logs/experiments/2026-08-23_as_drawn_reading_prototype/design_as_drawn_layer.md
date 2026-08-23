@@ -1,11 +1,26 @@
 # 设计稿 v2 · as-drawn reading 层（平面 + 立面）
 
-> **状态**：⏸ **待用户拍板后送二审**。v1 已被 gpt-5.6-sol 跨家族审 **REJECT**
-> （[裁决 + 主控逐条复核](../../reviews/verdict/2026-08-23_as_drawn_design_crossreview_sol.md) ·
-> [v1 原稿存档](design_as_drawn_layer_v1_rejected.md)）。
-> **本稿累计式自包含** —— ⛔ 不引用 v1 正文，可独立通读（规约：禁「vN 不变」）。
-> **实证全档** → [`README.md`](README.md)。⛔ 本文所有数字均为实测，非估算。
-> **档位**：B/C/D/E 均为工程档（碰 `src/`、gt）⇒ 派工 + 跨家族审；本稿本身是探索档产物。
+> # ⛔⛔⛔ 状态：**v2 二审仍是 REJECT（2026-08-23）**
+> **裁决 + 主控逐条复核** → [`../../reviews/verdict/2026-08-23b_as_drawn_design_v2_crossreview_sol.md`](../../reviews/verdict/2026-08-23b_as_drawn_design_v2_crossreview_sol.md)
+> （一审：[REJECT](../../reviews/verdict/2026-08-23_as_drawn_design_crossreview_sol.md) · [v1 原稿](design_as_drawn_layer_v1_rejected.md)）
+>
+> ## ⭐⭐⭐ 头条：**本稿描述的形态，代码一样都没实现**
+> 本稿写的是三层 schema / 不跨接 / 无 `class` / `admissible_alternatives` / 面线级 `ink_coverage`；
+> 而 `tools/` 里仍是 `wall_bands` + `class` + `OPENING_MIN_M` 跨接 + `declared_thickness_candidates_mm`。
+> ⇒ **§八 引用的每一个数都是 v1 形态产物产出的，证明不了本稿。**
+> 同族 [[self-report-more-compliant-than-artifact]]。
+>
+> **二审实测出的三处假绿（主控已逐条复跑确认）**：
+> ① **1 个像素桥回整段墙** —— 给挖空产物的每个空档伪造 1 个门窗像素，sm24 **30.0→100.0**、sm25 **56.0→93.3**；
+> ② **G-1 可被重复面线骗过** —— 两条完全重合、相距 **0.2 mm** 的线 ⇒ `span_coverage=1.0` 判合法；
+> ③ **立面 24/24 只验了坐标** —— 把全部 `runs_m` 清空仍是 24/24。
+> ⛔ **并推翻本稿 §七的核心证据**：B08.b 那个 `ink_coverage=0.74` 是 **v1 跨接的产物**，
+> 按本稿主张的不跨接拆回极大连续段后**五段全是 1.000**，与真墙面分不开。
+>
+> ⏭ **进 gt 前必须先做的第一件**：**真产出一份 v2 三层 JSON 夹具，用它重跑全部数字。**
+> 在此之前本稿的所有实证不作数。⛔ B 步继续冻结。
+>
+> ⚠️ **以下正文是 v2 原文，未改** —— 凡与上方裁决冲突处，**一律以裁决为准**。
 
 ---
 
