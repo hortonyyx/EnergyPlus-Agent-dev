@@ -371,8 +371,9 @@ def check_runs_match_the_strip(doc: dict, masks: dict, roles: dict, cfg: dict) -
             "violation_count": len(rows), "status": "red" if rows else "green"}
 
 
-def check_support_strip_is_one_stroke(doc: dict, masks: dict, roles: dict, *,
-                                      min_run_px: int = 14, min_support: int = 10) -> dict:
+def check_support_strip_is_one_stroke(doc: dict, masks: dict, roles: dict, cfg: dict, *,
+                                      min_run_px: int | None = None,
+                                      min_support: int | None = None) -> dict:
     """⭐ Is the support strip a face line declares actually ONE stroke of ink?
 
     Added 2026-08-24 after the FIFTH cross-family review (GLM) built
@@ -399,6 +400,11 @@ def check_support_strip_is_one_stroke(doc: dict, masks: dict, roles: dict, *,
     # ⚠️ mirror the producer exactly: it groups on the structure mask CLIPPED to
     # the drawing box.  Without the clip, ink outside the plan frame joins the
     # strip and an honest face line reads as two groups.
+    # ⚠️ read the SAME cfg keys the producer reads (sixth review note): hardcoding
+    # the defaults is equivalent today because no cfg overrides them, but it would
+    # fork silently the first time one does.
+    min_run_px = cfg.get("min_run_px", 14) if min_run_px is None else min_run_px
+    min_support = cfg.get("min_support", 10) if min_support is None else min_support
     st = masks[roles["structure"]].copy()
     r0, r1, c0b, c1b = doc["declarations"]["drawing_box_px"]
     st[:r0, :] = False
@@ -819,7 +825,7 @@ def main(doc_path: str, cfg_path: str, out_path: str, *, mutate: str | None = No
                          check_self_consistency(doc),
                          check_gaps_recomputable(doc, masks),
                          check_face_span_accounted(doc, masks, roles),
-                         check_support_strip_is_one_stroke(doc, masks, roles),
+                         check_support_strip_is_one_stroke(doc, masks, roles, cfg),
                          check_runs_match_the_strip(doc, masks, roles, cfg),
                          check_opening_role_matches_ink(doc),
                          check_opening_naming_supported(doc),

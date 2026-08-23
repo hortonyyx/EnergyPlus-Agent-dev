@@ -175,6 +175,45 @@
 
 ---
 
+## 2026-08-24（第六段）· ⭐⭐⭐ **六审（GLM）APPROVE —— gt 放行书写**，四道成绩闸随层落库
+
+> 裁决 → [`logs/reviews/verdict/2026-08-24d_support_strip_gate_recheck_verdict.md`](logs/reviews/verdict/2026-08-24d_support_strip_gate_recheck_verdict.md) ·
+> ⭐ 层契约 → [`architecture/as_drawn_layer_contract.md`](architecture/as_drawn_layer_contract.md)
+
+**它先独立复验五审那三处修**（不信 `RESULTS`，直接对夹具跑新门）：
+`band_collapse` 1F **support 红 10 + runs 红 10**、2F **11+11**；伪造候选 profile **gap_evidence 红**；
+墨列组直方图 1F{1:49} / 2F{1:46} / sm24{1:98} 与请求书一字不差；
+并**接受我作废「分辨率级盲区」的声明**（`skip_unscored_tails` 三案全红）。
+
+**然后系统性打了八个攻击面**（免费桥 · 全命名桥 · `pos_m` 滑动 · 缩画框 · 标定缩放谎 ·
+弃权洗 C4 · C5 面 · 外来 1px 产物）—— **没有找到一个能赚钱的真实作弊**。
+
+### 它给的三条新发现（都不碰 denominator 与层内容）
+
+1. ⭐⭐⭐ **`runs_match_the_strip` 是外来观测层的硬墙，而且这堵墙承重**：一份与参考提取器
+   **只差 1 px** 的合理外来读数 ⇒ 49 条面线全红；⛔ 但不能松 —— 削尾家族是当前利润最高的作弊
+   （`foreign_1px` 把多画 0.722→**0** 且十门全绿），而 2F 每端只削 1–2 px ⇒ **任何 ≥1 px 容差都放行**。
+   ⇒ 处置不是改门，是**写进层契约**：观测层只能由参考提取器机器产出，**外来/模型输入只限 perception 字段**。
+2. ⭐⭐ **矩阵在 HEAD 上静默吃陈旧产物**：`glm_rework.py` 的漂移守卫因我把 0.5 改成常量而开火，
+   `run_all.py` **不看退出码**照样打包旧文件 ⇒ **页面上两个旗舰作弊显示为全绿**。
+   ✅ **已修**（守卫改锚常量 + 检查退出码 + 要求产物本轮重写）；验收已满足（现显示红）。
+3. ⭐⭐ **画框与标定是「产物自报、零门重算」的承重孔径**：诚实产物自己就靠框丢弃
+   **41.43% / 40.54% / 20.89%** 的结构族墨。今天不赚钱，但与五审根因同构
+   ⇒ 已在契约里**声明为已知盲区**并记下这组数。
+
+### ⛔ 记成绩的四道闸：2/4 已做，2 条待你拍板
+
+| # | 闸 | 状态 |
+|---|---|---|
+| 1 | **`span_min` 签字** ⚠️ 六审实测：诚实 1F 有 **7 个目标覆盖恰在 0.841**，阈值 0.80 ⇒ **悬崖离诚实值只有 0.04** | ⛔ 待用户 |
+| 2 | **冷启隔离读图器首考**（不阻塞书写、阻塞记成绩）⚠️ 六审推断：按那道墙，冷启读图器**不可能**过 `runs_match` ⇒ 首考对象只能是 **perception 字段** | ⛔ 待用户（要花钱）|
+| 3 | 矩阵不许打包陈旧产物 | ✅ 已修 |
+| 4 | 层契约落字 | ✅ [`architecture/as_drawn_layer_contract.md`](architecture/as_drawn_layer_contract.md) |
+
+⚠️ **GLM 席位在写完裁决后撞到 5 小时限额**（配额 2026-08-24 07:10 重置）。
+
+---
+
 ## 2026-08-24（第五段）· ⛔ **五审（GLM 复审）REWORK** —— 一个「没有一个假数」却更优的作弊，已修三处
 
 > 裁决 → [`logs/reviews/verdict/2026-08-24c_glm_rework_response_verdict.md`](logs/reviews/verdict/2026-08-24c_glm_rework_response_verdict.md) ·

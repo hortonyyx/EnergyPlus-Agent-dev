@@ -228,19 +228,19 @@ EnergyPlus 经 `WorkflowTool.run_simulation`（eppy + ConverterManager，idfpy �
 > 逐段全档 → [plan.md 本日四段](plan.md) · [实验档](logs/experiments/2026-08-23_as_drawn_reading_prototype/README.md)
 > （一条命令重跑全部数字：`tools/run_all.py` → `out/RESULTS_v2.json`）。
 >
-> **① 认与量彻底分开**：识别的产物 = 独立文件 `perception/<case>.json`（族角色 · 配对选择 · 实心带 ·
-> 只观测到一个面 · 不是墙 · **门窗身份逐洞口** · ⭐「**我认不出来**」）。⛔ 代码不再按声明厚度筛配对、
+> **① 认与量彻底分开**：识别的产物 = 独立文件 `perception/<case>.json`（族角色 · 配对 · 实心带 ·
+> 只观测到一个面 · 不是墙 · **逐洞口门窗身份** · ⭐「**我认不出来**」）。⛔ 代码不再按声明厚度筛配对、
 > 也不再按墨迹阈值判「这段是不是洞口」；**缺 perception 即响亮降级、双源即失败**。
-> 认出三件代码分不出的事：`240` 标注文字是无彩色的 · **族编号跨图不稳定**（1f 墙=F0、2f 墙=F1）·
-> sm24 无家具图层 ⇒ 78 条面线显式弃权。
+> 认出三件代码分不出的事：`240` 标注文字是无彩色的 · **族编号跨图不稳定** · sm24 无家具图层 ⇒ 78 条弃权。
 >
-> **② 判据现有九条**（不读 gt）+ **可评分分母 `denominator_v1`** + **reading 判分器 `reading_grade_v1`**
-> （C1 位置 · C2 覆盖 · C3 错切 · C4 多画 · C5 门窗身份）。
-> **诚实数**：sm25 1F **110 目标 / C1 100.0 / C2 98.6 / C5 31/31** · 2F 106 / 98.1 / 97.0 / 30/30 ·
-> sm24 70 / **95.7** / 97.5 / 20/21；gt 侧 sm25 **93.3** / sm24 **100.0**（全部由 perception 的命名驱动）。
-> 「每道门都真红过也真绿过」是 `run_all.py` **机器统计**的（九门全 ok）。
+> **② 判据现有十一条**（不读 gt）+ **可评分分母 `denominator_v1`** + **判分器 `reading_grade_v1`**
+> （位置 · 覆盖 · 错切 · 多画 · 门窗身份）。**诚实数**：sm25 1F **110 目标 / 100.0 / 98.6 / 31·31** ·
+> 2F 106 / 98.1 / 97.0 / 30·30 · sm24 70 / **95.7** / 97.5 / 20·21；gt 侧 **93.3 / 100.0**（由 perception 命名驱动）。
+> 「每道门都真红过也真绿过」是 `run_all.py` **机器统计**的（十一门全 ok）。
 >
-> **③ ⛔⛔ 五轮跨家族审全部未通过**（三审 sol REJECT · 四审 GLM REWORK · **五审 GLM 复审 REWORK**）。
+> **③ ⭐⭐⭐ 六审（GLM）APPROVE —— 可以开始动 gt（写 as-drawn 层）**，四条成绩闸随层落库 →
+> [层契约](architecture/as_drawn_layer_contract.md)。它八个攻击面**没找到一个赚钱的作弊**。
+> 前五轮全部未通过（三审 sol REJECT · 四审 GLM REWORK · **五审 GLM 复审 REWORK**）。
 > 每轮各击穿我一次：中间段没读到 · 一像素桥回整段墙 · **把真的漏读说成洞口** ·
 > **画穿一扇真窗 + 分母无墙/带身份** · ⭐ **`band_collapse`：两线墙塌成「自洽的带」，
 > 产物里没有一个假数，却在 C2/C4 上优于诚实产物且八门全绿**。
@@ -254,8 +254,9 @@ EnergyPlus 经 `WorkflowTool.run_simulation`（eppy + ConverterManager，idfpy �
 > sm24 44.3% 的归因（真因是带方言错配，修完 95.7）。
 > ⚠️ 程序错误：**送审期间我还在改树**，审阅方只好钉冻结副本 ⇒ 送审后到裁决前不许动被审对象。
 >
-> **④ ⛔ gt 仍冻结。五审的最小前置组 3/5 已做，剩下两件都要用户拍板**：
-> **`span_min` 签字**（唯一承重参数，等价于宣布「一堵墙漏画多少算漏」）·
+> **④ gt 已放行书写；记成绩的四道闸 2/4 已做**（矩阵不许打包陈旧产物 ✅ · 层契约落字 ✅），
+> **剩下两件都要用户拍板**：
+> **`span_min` 签字**（等价于宣布「一堵墙漏画多少算漏」；⚠️ 六审实测**悬崖离诚实值只有 0.04**）·
 > ⭐ **冷启隔离读图器跑一次（要花钱、待用户拍板）** —— 本轮 perception 全是主控亲手且已看过 gt 侧结果，
 > **「模型能不能做到」至今没有回答**。**登记 F-86 / F-87 / F-88。**
 
@@ -382,6 +383,7 @@ EnergyPlus 经 `WorkflowTool.run_simulation`（eppy + ConverterManager，idfpy �
 | [decision_log.md](decision_log.md) | **历史决策唯一归档**：里程碑时间线 + §5.1–5.13 决策详档 + 变更日志 |
 | [architecture/pipeline_stage_contracts.md](architecture/pipeline_stage_contracts.md) | **唯一「当前稳定架构」文档**（活）：逐阶段 输入·输出·校验 + 两道门 + 规范不变量 + 接缝缺口 |
 | [architecture/harness_versioning.md](architecture/harness_versioning.md) + [harness_versions.yaml](architecture/harness_versions.yaml) | **harness 版本管理**（2026-08-22 用户定）：能力点=建筑复杂度 × 图纸方言两根轴；**探索性不进版本、走完循环①–④对过 gt 的才进**；`known_gaps` 必填 |
+| [architecture/as_drawn_layer_contract.md](architecture/as_drawn_layer_contract.md) | ⭐ **as-drawn 层契约**（2026-08-24 六审 APPROVE 时随层落库）：谁能写观测层 · 画框/标定是已声明盲区 · 记成绩的四道闸 |
 | [architecture/judge_grade_model.md](architecture/judge_grade_model.md) | **判卷子系统活规格**（gate② grade：reading+correction·平面+立面·三档色·容差带；§8b 开放 backlog=墙粒度/立面窗移位vs变尺寸/Hungarian/ambiguous/非方形）|
 | [guides/new_case_guide.md](guides/new_case_guide.md) | **主 Agent（编排器+judge②）操作手册**：换主控模型读此接手 |
 | [guides/reading_correction_split_guide.md](guides/reading_correction_split_guide.md) | **本批开发指南**（2026-08-23）：reading/correction 新分工 + 只判答案不判过程 + 八条硬纪律 + 验收尺度 |

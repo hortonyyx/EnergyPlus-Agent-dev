@@ -399,7 +399,12 @@ def strip_stats(doc_path: Path, cfg: str) -> dict:
 # --------------------------------------------------------- coefficient sweep --
 def _grade_with_coeff(coeff: float):
     src = (T / "reading_grade.py").read_text()
-    old = "ln[\"width_m\"] < 0.5 * need"
+    # ⚠️ 2026-08-24 (six审 Finding 2): this guard was anchored on the literal 0.5.
+    # When the coefficient became the named constant WIDTH_COEFF the guard fired
+    # -- correctly -- but the harness swallowed the failure and shipped a STALE
+    # glm_rework.json, so RESULTS_v2 showed the fifth review's two flagship
+    # cheats as GREEN.  Re-anchored on the constant; the guard itself stays.
+    old = "ln[\"width_m\"] < WIDTH_COEFF * need"
     assert old in src, "width rule source drifted"
     import types
     mod = types.ModuleType(f"rg_c{coeff}")

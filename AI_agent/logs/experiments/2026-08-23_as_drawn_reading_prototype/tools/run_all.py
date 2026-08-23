@@ -251,10 +251,23 @@ def main() -> int:
                          else {"error": se[-300:]})
 
     # ⭐ the FIFTH review's (GLM) cheats -- band_collapse etc.
-    rc, so, se = run([str(T / "glm_rework.py")])
+    # ⚠️ 2026-08-24 (sixth review, Finding 2): this used to pack whatever file was
+    # on disk without checking the exit code.  The script's own drift guard fired,
+    # the failure was swallowed, and RESULTS_v2 shipped a PRE-FIX snapshot in
+    # which both flagship cheats read GREEN.  A stale artefact is a wrong number
+    # on the page -- the same lesson as "退出码文件跨两次跑复用".  Now: non-zero
+    # exit is an error, and the file must have been rewritten by THIS run.
     rw = OUT / "glm_rework.json"
-    res["glm_rework"] = (json.loads(rw.read_text()) if rw.exists()
-                         else {"error": (se or "")[-300:]})
+    before = rw.stat().st_mtime if rw.exists() else 0.0
+    rc, so, se = run([str(T / "glm_rework.py")])
+    if rc != 0:
+        res["glm_rework"] = {"error": "glm_rework.py exited %d" % rc,
+                             "tail": (se or "")[-300:]}
+    elif not rw.exists() or rw.stat().st_mtime <= before:
+        res["glm_rework"] = {"error": "glm_rework.json was not rewritten by this run "
+                                      "(stale artefact refused)"}
+    else:
+        res["glm_rework"] = json.loads(rw.read_text())
 
     # elevation structure lines
     docs = json.dumps({f"{v}_view": str(OUT / f"sm25_{v.lower()}_as_drawn.json")

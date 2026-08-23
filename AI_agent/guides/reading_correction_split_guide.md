@@ -288,7 +288,10 @@ gt（原始信息 + 出模形式声明）
 三层产物 · 颜色族发现 · 语义指派外部化 · 平面反证（sm24 **100.0** / sm25 **93.3**，10 种变异 8 红 2 免疫）·
 立面洞口反证 **34/34** · 立面结构线反证 **24/24**。
 
-**⛔ gt 冻结中。三审 REJECT（sol）· 四审 REWORK（GLM）** →
+**⭐ gt 已放行书写（2026-08-24 六审 GLM APPROVE）**，随层落库的四道成绩闸见
+[`architecture/as_drawn_layer_contract.md`](../architecture/as_drawn_layer_contract.md)
+（⛔ 其中 `span_min` 签字与冷启读图器首考**待用户**，在它们完成前本层任何分数**不得记成绩**）。
+历史：三审 REJECT（sol）· 四审 REWORK（GLM）· 五审 REWORK（GLM）→
 [四审裁决](../logs/reviews/verdict/2026-08-24b_denominator_and_reading_grade_crossreview_glm.md) ·
 [裁决](../logs/reviews/verdict/2026-08-24_as_drawn_v2_perception_crossreview_sol.md)。
 
