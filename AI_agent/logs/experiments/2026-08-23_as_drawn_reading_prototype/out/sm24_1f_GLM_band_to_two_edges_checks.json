@@ -1,0 +1,609 @@
+{
+ "source": "/workspaces/EnergyPlus-Agent-dev/AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/out/sm24_1f_GLM_band_to_two_edges.json",
+ "image": "case_tests/e2e_tests/sm24_anchor/case_data/1f_view.png",
+ "schema": "as_drawn_plan_v2",
+ "mutation": null,
+ "role_assignment": {
+  "structure": "F0",
+  "annotation": "F1",
+  "fenestration": "F2"
+ },
+ "checks": [
+  {
+   "check": "reverse_ledger_no_phantom_ink",
+   "threshold": 0.8,
+   "runs_sampled": 203,
+   "worst_coverage": 0.0,
+   "longest_hole_px": 91,
+   "violations": [
+    {
+     "run_px": [
+      247,
+      267
+     ],
+     "length_px": 20,
+     "ink_coverage": 0.55,
+     "longest_hole_px": 9,
+     "hole_floor_px": 6,
+     "face": "L031_E0"
+    },
+    {
+     "run_px": [
+      327,
+      417
+     ],
+     "length_px": 90,
+     "ink_coverage": 0.0333,
+     "longest_hole_px": 87,
+     "hole_floor_px": 6,
+     "face": "L031_E0"
+    },
+    {
+     "run_px": [
+      593,
+      613
+     ],
+     "length_px": 20,
+     "ink_coverage": 0.55,
+     "longest_hole_px": 9,
+     "hole_floor_px": 6,
+     "face": "L031_E0"
+    },
+    {
+     "run_px": [
+      247,
+      267
+     ],
+     "length_px": 20,
+     "ink_coverage": 0.0,
+     "longest_hole_px": 20,
+     "hole_floor_px": 6,
+     "face": "L031_E1"
+    },
+    {
+     "run_px": [
+      327,
+      417
+     ],
+     "length_px": 90,
+     "ink_coverage": 0.0,
+     "longest_hole_px": 90,
+     "hole_floor_px": 6,
+     "face": "L031_E1"
+    },
+    {
+     "run_px": [
+      593,
+      613
+     ],
+     "length_px": 20,
+     "ink_coverage": 0.0,
+     "longest_hole_px": 20,
+     "hole_floor_px": 6,
+     "face": "L031_E1"
+    },
+    {
+     "run_px": [
+      247,
+      267
+     ],
+     "length_px": 20,
+     "ink_coverage": 0.0,
+     "longest_hole_px": 20,
+     "hole_floor_px": 6,
+     "face": "L098_E0"
+    },
+    {
+     "run_px": [
+      323,
+      413
+     ],
+     "length_px": 90,
+     "ink_coverage": 0.0,
+     "longest_hole_px": 90,
+     "hole_floor_px": 6,
+     "face": "L098_E0"
+    },
+    {
+     "run_px": [
+      446,
+      537
+     ],
+     "length_px": 91,
+     "ink_coverage": 0.0,
+     "longest_hole_px": 91,
+     "hole_floor_px": 6,
+     "face": "L098_E0"
+    },
+    {
+     "run_px": [
+      593,
+      613
+     ],
+     "length_px": 20,
+     "ink_coverage": 0.0,
+     "longest_hole_px": 20,
+     "hole_floor_px": 6,
+     "face": "L098_E0"
+    },
+    {
+     "run_px": [
+      247,
+      267
+     ],
+     "length_px": 20,
+     "ink_coverage": 0.55,
+     "longest_hole_px": 9,
+     "hole_floor_px": 6,
+     "face": "L098_E1"
+    },
+    {
+     "run_px": [
+      323,
+      413
+     ],
+     "length_px": 90,
+     "ink_coverage": 0.0333,
+     "longest_hole_px": 74,
+     "hole_floor_px": 6,
+     "face": "L098_E1"
+    },
+    {
+     "run_px": [
+      446,
+      537
+     ],
+     "length_px": 91,
+     "ink_coverage": 0.0,
+     "longest_hole_px": 91,
+     "hole_floor_px": 6,
+     "face": "L098_E1"
+    },
+    {
+     "run_px": [
+      593,
+      613
+     ],
+     "length_px": 20,
+     "ink_coverage": 0.55,
+     "longest_hole_px": 9,
+     "hole_floor_px": 6,
+     "face": "L098_E1"
+    }
+   ],
+   "violation_count": 14,
+   "status": "red"
+  },
+  {
+   "check": "observations_recomputable_from_own_pixels",
+   "tolerance_m": 0.0413,
+   "stated_edges_wrong": [],
+   "stated_runs_wrong": [],
+   "face_lines_sharing_ink": [],
+   "violation_count": 0,
+   "status": "green"
+  },
+  {
+   "check": "gap_evidence_recomputable_from_original_image",
+   "gaps_checked": 101,
+   "tolerance_px": 1.5,
+   "fabricated_ink_profile": [],
+   "inconsistent_span": [],
+   "violation_count": 0,
+   "status": "green"
+  },
+  {
+   "check": "face_span_fully_accounted_by_runs_or_gaps",
+   "floor_px": 3,
+   "longest_unaccounted_px": 42,
+   "longest_unaccounted_m": 1.155,
+   "violations": [
+    {
+     "face": "L006",
+     "px": [
+      414,
+      456
+     ],
+     "length_m": 1.155
+    },
+    {
+     "face": "L006",
+     "px": [
+      535,
+      577
+     ],
+     "length_m": 1.155
+    },
+    {
+     "face": "L012",
+     "px": [
+      760,
+      791
+     ],
+     "length_m": 0.853
+    },
+    {
+     "face": "L007",
+     "px": [
+      763,
+      792
+     ],
+     "length_m": 0.798
+    },
+    {
+     "face": "L025",
+     "px": [
+      837,
+      854
+     ],
+     "length_m": 0.468
+    },
+    {
+     "face": "L007",
+     "px": [
+      688,
+      703
+     ],
+     "length_m": 0.413
+    },
+    {
+     "face": "L052",
+     "px": [
+      496,
+      504
+     ],
+     "length_m": 0.22
+    },
+    {
+     "face": "L052",
+     "px": [
+      565,
+      572
+     ],
+     "length_m": 0.193
+    },
+    {
+     "face": "L024",
+     "px": [
+      563,
+      569
+     ],
+     "length_m": 0.165
+    },
+    {
+     "face": "L057",
+     "px": [
+      264,
+      270
+     ],
+     "length_m": 0.165
+    },
+    {
+     "face": "L070",
+     "px": [
+      264,
+      270
+     ],
+     "length_m": 0.165
+    },
+    {
+     "face": "L008",
+     "px": [
+      815,
+      820
+     ],
+     "length_m": 0.138
+    },
+    {
+     "face": "L024",
+     "px": [
+      394,
+      399
+     ],
+     "length_m": 0.138
+    },
+    {
+     "face": "L049",
+     "px": [
+      545,
+      549
+     ],
+     "length_m": 0.11
+    },
+    {
+     "face": "L066",
+     "px": [
+      264,
+      268
+     ],
+     "length_m": 0.11
+    },
+    {
+     "face": "L070",
+     "px": [
+      546,
+      550
+     ],
+     "length_m": 0.11
+    },
+    {
+     "face": "L079",
+     "px": [
+      361,
+      365
+     ],
+     "length_m": 0.11
+    },
+    {
+     "face": "L083",
+     "px": [
+      366,
+      370
+     ],
+     "length_m": 0.11
+    },
+    {
+     "face": "L088",
+     "px": [
+      285,
+      289
+     ],
+     "length_m": 0.11
+    },
+    {
+     "face": "L004",
+     "px": [
+      547,
+      550
+     ],
+     "length_m": 0.083
+    }
+   ],
+   "violation_count": 24,
+   "status": "red"
+  },
+  {
+   "check": "opening_role_matches_where_the_ink_sits",
+   "gaps_measured": 101,
+   "ink_in_gaps_by_family": {
+    "F0": 1607,
+    "F1": 30,
+    "F2": 450
+   },
+   "named_opening_family": "F2",
+   "min_share": 0.5,
+   "share_of_gap_ink": 0.2156,
+   "family_with_most_gap_ink": "F0",
+   "violation_count": 1,
+   "status": "red"
+  },
+  {
+   "check": "opening_naming_supported_by_ink",
+   "candidates": 87,
+   "named": 87,
+   "by_kind": {
+    "ambiguous": 55,
+    "door": 15,
+    "not_opening": 1,
+    "passage": 4,
+    "window": 12
+   },
+   "named_but_no_opening_ink": [],
+   "dangling_reference": [],
+   "unnamed_candidates": [],
+   "contradiction_called_not_opening_but_ink_is_there": [],
+   "violation_count": 0,
+   "status": "green"
+  },
+  {
+   "check": "pair_hypothesis_reconciles_with_observations",
+   "status": "degraded",
+   "violation_count": 0,
+   "pairs": 12,
+   "coverage": {
+    "face_lines": 102,
+    "in_a_wall": 24,
+    "non_wall": 0,
+    "ambiguous": 78,
+    "unpaired_wall_face": 0
+   },
+   "declared_ambiguous": [
+    "L002",
+    "L003",
+    "L004",
+    "L005",
+    "L006",
+    "L007",
+    "L008",
+    "L009",
+    "L010",
+    "L011",
+    "L012",
+    "L013",
+    "L014",
+    "L015",
+    "L020",
+    "L021",
+    "L022",
+    "L023",
+    "L024",
+    "L025",
+    "L026",
+    "L027",
+    "L028",
+    "L029",
+    "L032",
+    "L033",
+    "L034",
+    "L035",
+    "L038",
+    "L039",
+    "L040",
+    "L041",
+    "L042",
+    "L043",
+    "L046",
+    "L049",
+    "L050",
+    "L051",
+    "L052",
+    "L053",
+    "L054",
+    "L055",
+    "L056",
+    "L057",
+    "L058",
+    "L059",
+    "L060",
+    "L061",
+    "L062",
+    "L063",
+    "L064",
+    "L065",
+    "L066",
+    "L067",
+    "L068",
+    "L069",
+    "L070",
+    "L071",
+    "L072",
+    "L073",
+    "L076",
+    "L077",
+    "L078",
+    "L079",
+    "L082",
+    "L083",
+    "L084",
+    "L085",
+    "L088",
+    "L089",
+    "L090",
+    "L091",
+    "L092",
+    "L093",
+    "L094",
+    "L095",
+    "L096",
+    "L097"
+   ],
+   "degraded_reason": "perception declined on 78 of 102 face lines; the rest reconcile"
+  },
+  {
+   "check": "pair_spacing_explicable_by_callouts",
+   "declared_mm": [
+    240
+   ],
+   "violations": [
+    {
+     "pair": "P0",
+     "spacing_m": 0.1238,
+     "nearest_declared_m": 0.24,
+     "excess_m": 0.1162,
+     "tolerance_m": 0.072
+    },
+    {
+     "pair": "P1",
+     "spacing_m": 0.1262,
+     "nearest_declared_m": 0.24,
+     "excess_m": 0.1138,
+     "tolerance_m": 0.072
+    },
+    {
+     "pair": "P2",
+     "spacing_m": 0.1238,
+     "nearest_declared_m": 0.24,
+     "excess_m": 0.1162,
+     "tolerance_m": 0.072
+    },
+    {
+     "pair": "P3",
+     "spacing_m": 0.1238,
+     "nearest_declared_m": 0.24,
+     "excess_m": 0.1162,
+     "tolerance_m": 0.072
+    },
+    {
+     "pair": "P4",
+     "spacing_m": 0.1238,
+     "nearest_declared_m": 0.24,
+     "excess_m": 0.1162,
+     "tolerance_m": 0.072
+    },
+    {
+     "pair": "P5",
+     "spacing_m": 0.1238,
+     "nearest_declared_m": 0.24,
+     "excess_m": 0.1162,
+     "tolerance_m": 0.072
+    },
+    {
+     "pair": "P6",
+     "spacing_m": 0.1238,
+     "nearest_declared_m": 0.24,
+     "excess_m": 0.1162,
+     "tolerance_m": 0.072
+    },
+    {
+     "pair": "P7",
+     "spacing_m": 0.1238,
+     "nearest_declared_m": 0.24,
+     "excess_m": 0.1162,
+     "tolerance_m": 0.072
+    }
+   ],
+   "violation_count": 8,
+   "status": "red"
+  },
+  {
+   "check": "forward_ledger_structural_ink_claimed",
+   "structure_family": "F0",
+   "structure_px_in_box": 28683,
+   "unclaimed_px": 9461,
+   "unclaimed_pct": 32.98,
+   "component_floor_px": 400,
+   "large_unclaimed_components": [
+    {
+     "px": 999,
+     "bbox_px": [
+      325,
+      150,
+      416,
+      160
+     ]
+    },
+    {
+     "px": 909,
+     "bbox_px": [
+      445,
+      869,
+      536,
+      878
+     ]
+    },
+    {
+     "px": 730,
+     "bbox_px": [
+      323,
+      869,
+      395,
+      878
+     ]
+    },
+    {
+     "px": 648,
+     "bbox_px": [
+      606,
+      703,
+      609,
+      864
+     ]
+    }
+   ],
+   "furniture_family": null,
+   "furniture_layer_pct_of_ink": 0.0,
+   "status": "degraded",
+   "degraded_reason": "no separate furniture ink family in this drawing's role assignment: the structural family carries furniture too, so unclaimed structural ink is NOT a wall-coverage measure here"
+  }
+ ]
+}

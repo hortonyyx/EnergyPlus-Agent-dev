@@ -454,6 +454,22 @@ def build(cfg: dict) -> dict:
                       f"unknown references: {unknown}; "
                       f"face lines neither paired nor declared non-wall: {unaccounted}")
 
+    # ⭐ 2026-08-24 (F-87): OPENING CANDIDATES.  Every blank stretch of a face
+    # line is offered to perception as a candidate, ⛔ with no classification and
+    # ⛔ no threshold -- the measured ink of every discovered family across the
+    # stretch is already there.  Before this, whether a gap "is an opening" was
+    # decided inside the SCORER by an ink threshold: a semantic call living in
+    # code, which the third cross-family review named (Q3(b)#1).
+    opening_candidates = []
+    for f in face_lines:
+        for gi, g in enumerate(f["gaps"]):
+            opening_candidates.append({
+                "id": f"{f['id']}g{gi}",
+                "face_line": f["id"], "gap_index": gi,
+                "span_m": g["span_m"], "len_m": g["len_m"], "len_px": g["len_px"],
+                "ink_by_family": g["ink_by_family"],
+            })
+
     return {
         "schema": SCHEMA,
         "image": cfg["image"],
@@ -501,6 +517,12 @@ def build(cfg: dict) -> dict:
                              if fid in roles.values()},
                 "achromatic_only": pal["achromatic_only"],
             },
+            "opening_candidates": opening_candidates,
+            "opening_candidates_basis": "every blank stretch of a face line, with the "
+                                        "measured ink of every discovered family across "
+                                        "it; ⛔ no classification, ⛔ no threshold.",
+            "opening_types": percept.get("opening_types", None),
+            "opening_types_source": percept.get("_produced_by") if percept.get("opening_types") else None,
             "pair_candidates": candidates,
             "pair_candidates_basis": "every same-axis face-line pair with disjoint "
                                      "support columns and >= min_overlap_px of shared "
@@ -521,6 +543,9 @@ def build(cfg: dict) -> dict:
             "face_lines": len(face_lines),
             "runs_total": sum(len(f["runs_px"]) for f in face_lines),
             "gaps_total": sum(len(f["gaps"]) for f in face_lines),
+            "opening_candidates": len(opening_candidates),
+            "opening_types_named": (len(percept.get("opening_types") or {})
+                                    if percept.get("opening_types") is not None else None),
             "pair_candidates": len(candidates),
             "faces_with_a_candidate": len(by_face),
             "pairs_selected": (len(pairs) if pairs is not None else None),

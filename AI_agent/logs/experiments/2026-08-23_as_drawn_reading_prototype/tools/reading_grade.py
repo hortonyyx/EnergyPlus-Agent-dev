@@ -5,12 +5,22 @@ as-drawn product against ``denominator.py``'s targets, in BOTH directions, with
 one criterion per failure mode the third cross-family review named:
 
   C1 POSITION   is the drawn face line where the answer's face line is?
+                ⭐ and is it a DIFFERENT observation (or a different EDGE of one
+                filled band) for each of a wall's two faces?  One thin stroke
+                drawn down the middle of a 120 mm wall sits within tolerance of
+                BOTH faces; without this rule a centreline reading -- the shape
+                the batch guide forbids outright -- scored exactly like the
+                honest product (fourth cross-family review, GLM).
   C2 COVERAGE   is the answer's run actually drawn over its whole length?
                 (少画 — the failure a "does it look right" glance never sees)
   C3 SEGMENTATION  do the reading's run ENDS land on the answer's run ends?
                 (错切 — one stroke drawn straight through a doorway is C1+C2
                  perfect and still wrong; the gt-free ledger says so itself:
                  "it cannot judge whether a stroke should have been split")
+  C5 OPENING    is each opening the answer has both FOUND and NAMED right?
+                (门窗身份 — ⭐ measured 2026-08-24: swapping every door and window
+                 in the reading moved the gt-side reconstruction by 0.0 points,
+                 because that check only ever asks "is this stretch an opening")
   C4 EXTRA      length the reading claims as wall that no target explains
                 (多画 — ⭐ the direction a gt-only ruler REWARDS: claiming a
                  line runs edge-to-edge raised the old reconstruct score above
@@ -66,33 +76,63 @@ def grade(doc: dict, den: dict, *, pos_tol: float = POS_TOL_M,
         if f["id"] not in graded_ids:
             continue
         axis = "x" if f["constant_world_axis"] == "x" else "y"
+        # ⭐ 2026-08-24, fourth cross-family review (GLM): a wall drawn as ONE
+        # FILLED BAND (the sm24 dialect) has its two faces at the band's own
+        # EDGES, not at its centre.  Matching only on ``pos_m`` scored the honest
+        # sm24 product 44.3% and rewarded a re-representation of the very same
+        # ink with 85.7% -- the grade was measuring dialect, not correctness.
+        # ⚠️ Consuming ``edges_m`` is only safe because
+        # ``observations_recomputable_from_own_pixels`` recomputes it from the
+        # support columns; ⛔ without that gate this would trust a claim.
+        consts = [float(f["pos_m"])] + [float(e) for e in (f.get("edges_m") or [])]
+        edges = [float(e) for e in (f.get("edges_m") or [])]
         lines.append({"id": f["id"], "axis": axis, "const": float(f["pos_m"]),
+                      "consts": consts,
+                      "width_m": (max(edges) - min(edges)) if len(edges) >= 2 else 0.0,
                       "runs": _union([tuple(r) for r in f["runs_m"]])})
 
     rows, used_len = [], {ln["id"]: 0.0 for ln in lines}
+    claimed: dict[tuple[str, float], int] = {}
     for t in den["targets"]:
-        cands = [ln for ln in lines
-                 if ln["axis"] == t["axis"] and abs(ln["const"] - t["const_m"]) <= pos_tol]
         lo, hi = t["lo_m"], t["hi_m"]
         best = None
-        for ln in cands:
+        for ln in lines:
+            if ln["axis"] != t["axis"]:
+                continue
+            # which of this observation's own constants answers this target?
+            ci = min(range(len(ln["consts"])),
+                     key=lambda i: abs(ln["consts"][i] - t["const_m"]))
+            if abs(ln["consts"][ci] - t["const_m"]) > pos_tol:
+                continue
+            # ⛔ One observation may answer a SECOND face only if it is itself as
+            # wide as the wall -- i.e. it is a filled band whose own two edges are
+            # those faces.  A thin stroke down the middle of a 120 mm wall sits
+            # within tolerance of both faces; letting it answer both is exactly
+            # the centreline reading the batch guide forbids, and it scored
+            # identically to the honest product until this rule (GLM, 4th review).
+            prior = [c for (lid, c) in claimed if lid == ln["id"]]
+            if any(abs(c - t["const_m"]) > 1e-6 for c in prior):
+                need = max(abs(c - t["const_m"]) for c in prior)
+                if ln["width_m"] < 0.5 * need:
+                    continue
             cov = _covered(ln["runs"], lo, hi)
             if best is None or cov > best[0]:
-                best = (cov, ln)
+                best = (cov, ln, ci)
         row = {"axis": t["axis"], "const_m": t["const_m"], "span": [lo, hi],
                "length_m": t["length_m"]}
         if best is None or best[0] <= 0:
             row.update({"verdict": "MISSING", "matched": None, "coverage": 0.0})
             rows.append(row)
             continue
-        cov, ln = best
+        cov, ln, ci = best
+        claimed[(ln["id"], t["const_m"])] = ci
         frac = cov / max(1e-9, hi - lo)
         used_len[ln["id"]] += cov
         # C3: does a drawn end sit near each answer end?
         ends = [e for r in ln["runs"] for e in r]
         end_err = [min((abs(e - x) for e in ends), default=9.9) for x in (lo, hi)]
         row.update({"matched": ln["id"], "coverage": round(frac, 4),
-                    "const_err_m": round(abs(ln["const"] - t["const_m"]), 4),
+                    "const_err_m": round(min(abs(c - t["const_m"]) for c in ln["consts"]), 4),
                     "end_err_m": [round(e, 3) for e in end_err],
                     "verdict": ("OK" if frac >= span_min and max(end_err) <= end_tol
                                 else "SHORT" if frac < span_min else "BAD_SPLIT")})
@@ -103,13 +143,46 @@ def grade(doc: dict, den: dict, *, pos_tol: float = POS_TOL_M,
         drawn = sum(b - a for a, b in ln["runs"])
         # length of this line that no target on its axis+const can explain
         tgt = _union([(t["lo_m"], t["hi_m"]) for t in den["targets"]
-                      if t["axis"] == ln["axis"] and abs(t["const_m"] - ln["const"]) <= pos_tol])
+                      if t["axis"] == ln["axis"]
+                      and min(abs(c - t["const_m"]) for c in ln["consts"]) <= pos_tol])
         unexplained = drawn - sum(_covered(tgt, a, b) for a, b in ln["runs"])
         if unexplained >= extra_min:
             extras.append({"face": ln["id"], "axis": ln["axis"],
                            "const_m": round(ln["const"], 4),
                            "unexplained_m": round(unexplained, 3),
                            "drawn_m": round(drawn, 3)})
+
+    # ---- C5: opening identity, against the answer's own resolved openings
+    otypes = hyp.get("opening_types") or {}
+    cands = {c["id"]: c for c in doc["observations"].get("opening_candidates", [])
+             or hyp.get("opening_candidates", [])}
+    faces = {f["id"]: f for f in doc["observations"]["face_lines"]}
+    o_rows = []
+    for t in den.get("opening_targets", []):
+        c_lo, c_hi = t["const_range_m"]
+        best, best_ov = None, 0.0
+        for cid, kind in otypes.items():
+            if kind not in ("door", "window"):
+                continue
+            c = cands.get(cid)
+            if c is None:
+                continue
+            f = faces.get(c["face_line"])
+            if f is None or ("x" if f["constant_world_axis"] == "x" else "y") != t["axis"]:
+                continue
+            if not (c_lo - pos_tol <= float(f["pos_m"]) <= c_hi + pos_tol):
+                continue
+            lo, hi = sorted(c["span_m"])
+            ov = max(0.0, min(hi, t["hi_m"]) - max(lo, t["lo_m"]))
+            if ov > best_ov:
+                best, best_ov = (cid, kind), ov
+        if best is None or best_ov < 0.5 * (t["hi_m"] - t["lo_m"]):
+            o_rows.append({**t, "verdict": "NOT_FOUND", "named": None})
+        else:
+            o_rows.append({**t, "verdict": "OK" if best[1] == t["kind"] else "WRONG_KIND",
+                           "named": best[1], "candidate": best[0],
+                           "overlap_m": round(best_ov, 3)})
+    o_ok = sum(1 for r in o_rows if r["verdict"] == "OK")
 
     n = len(rows)
     ok = sum(1 for r in rows if r["verdict"] == "OK")
@@ -128,6 +201,11 @@ def grade(doc: dict, den: dict, *, pos_tol: float = POS_TOL_M,
             "C3_bad_split": sum(1 for r in rows if r["verdict"] == "BAD_SPLIT"),
             "C4_extra_length_m": round(extra_len, 3),
             "C4_extra_pct_of_answer": round(100.0 * extra_len / max(1e-9, tot_len), 1),
+            "C5_openings_named_right_pct": (round(100.0 * o_ok / len(o_rows), 1)
+                                            if o_rows else None),
+            "C5_openings": {"targets": len(o_rows), "ok": o_ok,
+                            "wrong_kind": sum(1 for r in o_rows if r["verdict"] == "WRONG_KIND"),
+                            "not_found": sum(1 for r in o_rows if r["verdict"] == "NOT_FOUND")},
         },
         "by_verdict": {v: sum(1 for r in rows if r["verdict"] == v)
                        for v in ("OK", "SHORT", "BAD_SPLIT", "MISSING")},
@@ -137,6 +215,7 @@ def grade(doc: dict, den: dict, *, pos_tol: float = POS_TOL_M,
         "worst_targets": sorted([r for r in rows if r["verdict"] != "OK"],
                                 key=lambda r: -r["length_m"])[:12],
         "extras": sorted(extras, key=lambda e: -e["unexplained_m"])[:12],
+        "opening_rows": [r for r in o_rows if r["verdict"] != "OK"][:16],
     }
 
 

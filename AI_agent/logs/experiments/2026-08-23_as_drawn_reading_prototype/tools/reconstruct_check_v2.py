@@ -62,7 +62,8 @@ def _cover(runs, lo, hi) -> float:
     return min(1.0, total / (hi - lo))
 
 
-def _extent(face, *, opening_span_min: float, fen_family: str | None) -> list[list[float]]:
+def _extent(face, *, opening_span_min: float, fen_family: str | None,
+            opening_types: dict | None = None) -> list[list[float]]:
     """A face line's drawn stretches, plus the gaps the drawing calls openings.
 
     A wall continues through its own doorway, so a gap the drawing fills with
@@ -77,11 +78,21 @@ def _extent(face, *, opening_span_min: float, fen_family: str | None) -> list[li
     naming lives in the product instead of in this file.
     """
     out = [list(r) for r in face["runs_m"]]
-    if fen_family is None:
-        return out
-    for g in face.get("gaps", []):
-        prof = g.get("ink_by_family", {}).get(fen_family)
-        if prof and prof.get("span_ratio", 0.0) >= opening_span_min:
+    # ⭐ 2026-08-24 (F-87): WHICH blank stretch is an opening is PERCEPTION, and it
+    # now arrives named, per candidate, from the perception file.  Before this the
+    # scorer decided it itself from an ink threshold -- a semantic call living in
+    # code, which the third cross-family review named (Q3(b)#1).  ⛔ When no naming
+    # is supplied nothing is bridged and the report says so: a silent fallback to
+    # the old threshold would make the externalisation cosmetic.
+    # ⚠️ The first version of this said "nothing is bridged without a naming" in
+    # the report while the code still fell through to the old ink threshold --
+    # a false sentence in the artifact, caught by re-reading my own diff.
+    if opening_types is None:
+        return out                      # ⛔ no naming ⇒ no bridging. Full stop.
+    for gi, g in enumerate(face.get("gaps", [])):
+        # ⭐ `passage` (a doorless opening: the wall really stops) is NOT bridged --
+        # same treatment as not_opening, but the name does not lie about what it is.
+        if opening_types.get(f"{face['id']}g{gi}") in ("door", "window"):
             out.append(list(g["span_m"]))
     return out
 
@@ -97,7 +108,7 @@ def _axis_lines(doc, axis_is_x):
             if f["constant_world_axis"] == want]
 
 
-def _best_exterior(lines, const, lo, hi, osm, m_per_px, fen):
+def _best_exterior(lines, const, lo, hi, osm, m_per_px, fen, otypes=None):
     """gt records the OUTER FACE, so either a thin line or one edge of a band."""
     best = None
     for f in lines:
@@ -107,7 +118,8 @@ def _best_exterior(lines, const, lo, hi, osm, m_per_px, fen):
             d = abs(v - const)
             if d > POS_TOL_M:
                 continue
-            cov = _cover(_extent(f, opening_span_min=osm, fen_family=fen), lo, hi)
+            cov = _cover(_extent(f, opening_span_min=osm, fen_family=fen,
+                                 opening_types=otypes), lo, hi)
             key = (cov, -d)
             if best is None or key > best[0]:
                 best = (key, {"matched": f["id"], "kind": f"face_{kind}",
@@ -115,7 +127,7 @@ def _best_exterior(lines, const, lo, hi, osm, m_per_px, fen):
     return best
 
 
-def _best_interior(lines, const, lo, hi, osm, m_per_px, fen):
+def _best_interior(lines, const, lo, hi, osm, m_per_px, fen, otypes=None):
     """Two things can put a wall CENTRE at the target, and both are measured."""
     best = None
     # case B -- one filled group whose own two edges straddle the target
@@ -138,7 +150,8 @@ def _best_interior(lines, const, lo, hi, osm, m_per_px, fen):
         d = abs((e[0] + e[1]) / 2.0 - const)
         if d > POS_TOL_M:
             continue
-        cov = _cover(_extent(f, opening_span_min=osm, fen_family=fen), lo, hi)
+        cov = _cover(_extent(f, opening_span_min=osm, fen_family=fen,
+                             opening_types=otypes), lo, hi)
         key = (cov, -d)
         if best is None or key > best[0]:
             best = (key, {"matched": f["id"], "kind": "filled_band",
@@ -158,8 +171,10 @@ def _best_interior(lines, const, lo, hi, osm, m_per_px, fen):
             d = abs((A["pos_m"] + B["pos_m"]) / 2.0 - const)
             if d > POS_TOL_M:
                 continue
-            cov = _cover(_intersect(_extent(A, opening_span_min=osm, fen_family=fen),
-                                    _extent(B, opening_span_min=osm, fen_family=fen)),
+            cov = _cover(_intersect(_extent(A, opening_span_min=osm, fen_family=fen,
+                                            opening_types=otypes),
+                                    _extent(B, opening_span_min=osm, fen_family=fen,
+                                            opening_types=otypes)),
                          lo, hi)
             key = (cov, -d)
             if best is None or key > best[0]:
@@ -356,8 +371,9 @@ def main(gt_case: str, docs: dict[str, str], out_path: str, *,
         lines = _axis_lines(doc, axis_is_x=not horizontal)
         m_per_px = doc["observations"]["calibration"]["mm_per_px"] / 1000.0
         fen = doc["hypotheses"]["family_roles"]["assignment"].get("fenestration")
+        otypes = doc["hypotheses"].get("opening_types")
         best = (_best_exterior if t.exterior else _best_interior)(
-            lines, const, lo, hi, opening_span_min, m_per_px, fen)
+            lines, const, lo, hi, opening_span_min, m_per_px, fen, otypes)
         row = {"target": t.key[:60], "floor": t.floor_id, "exterior": t.exterior,
                "const": round(const, 3), "span": [round(lo, 3), round(hi, 3)],
                "length_m": round(hi - lo, 3)}
@@ -394,6 +410,15 @@ def main(gt_case: str, docs: dict[str, str], out_path: str, *,
                "pos_tol_m": POS_TOL_M, "span_min_cover": SPAN_MIN_COVER,
                "wall_band_m": [MIN_WALL_M, MAX_WALL_M],
                "opening_span_min": opening_span_min,
+               "opening_naming": ({"source": "perception", "named": len(
+                   {k: v for d0 in loaded.values()
+                    for k, v in (d0["hypotheses"].get("opening_types") or {}).items()})}
+                   if any(d0["hypotheses"].get("opening_types") is not None
+                          for d0 in loaded.values())
+                   else {"source": None,
+                         "note": "⛔ no opening_types in perception: NOTHING was bridged. "
+                                 "Openings are perception's call (F-87); the scorer no "
+                                 "longer decides it from an ink threshold."}),
                "admissibility": _admissibility(docs, mutate)}
     Path(out_path).write_text(json.dumps({"summary": summary, "rows": rows,
                                           "not_recoverable": missing},

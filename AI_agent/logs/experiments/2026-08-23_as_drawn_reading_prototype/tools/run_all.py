@@ -60,6 +60,7 @@ SHORT = {"reverse_ledger_no_phantom_ink": "phantom",
          "gap_evidence_recomputable_from_original_image": "gaps",
          "face_span_fully_accounted_by_runs_or_gaps": "spanacct",
          "opening_role_matches_where_the_ink_sits": "openrole",
+         "opening_naming_supported_by_ink": "opennaming",
          "pair_hypothesis_reconciles_with_observations": "reconcile",
          "pair_spacing_explicable_by_callouts": "spacing",
          "forward_ledger_structural_ink_claimed": "forward"}
@@ -216,6 +217,37 @@ def main() -> int:
             continue
         res["reading_grade_neuters"][m] = RG.grade(d, den0)["scores"]
 
+    # ⭐ opening-naming neuters: a wrong NAME must cost, or the naming is decorative
+    res["opening_naming_neuters"] = {}
+    OPEN_NEUTERS = {
+        "swap_door_window": lambda t: {k: ("window" if v == "door" else "door" if v == "window" else v)
+                                       for k, v in t.items()},
+        "call_everything_door": lambda t: {k: "door" for k in t},
+        "call_openings_not_opening": lambda t: {k: ("not_opening" if v in ("door", "window") else v)
+                                                for k, v in t.items()},
+        "abstain_on_all_openings": lambda t: {k: "ambiguous" for k in t},
+    }
+    for name, fn in OPEN_NEUTERS.items():
+        d = _copy.deepcopy(doc0)
+        d["hypotheses"]["opening_types"] = fn(d["hypotheses"]["opening_types"])
+        g = RG.grade(d, den0)["scores"]
+        import tempfile as _tf
+        with _tf.NamedTemporaryFile("w", suffix=".json", delete=False) as fh:
+            json.dump(d, fh)
+            pth = fh.name
+        rc, so, _ = run([str(T / "reconstruct_check_v2.py"), "sm25-L_anchor",
+                         json.dumps({"F1": pth}), "/tmp/on.json"])
+        res["opening_naming_neuters"][name] = {
+            "C5_openings_named_right_pct": g["C5_openings_named_right_pct"],
+            "C5_openings": g["C5_openings"],
+            "gt_side_ok_pct": json.loads(so)["overall_ok_pct"] if rc == 0 else "ERROR"}
+
+    # ⭐ the FOURTH review's (GLM) own cheats -- kept permanently, same rule as sol's
+    rc, so, se = run([str(T / "glm_cheats.py")])
+    gc_path = OUT / "glm_cheats.json"
+    res["glm_cheats"] = (json.loads(gc_path.read_text()) if rc == 0 and gc_path.exists()
+                         else {"error": se[-300:]})
+
     # elevation structure lines
     docs = json.dumps({f"{v}_view": str(OUT / f"sm25_{v.lower()}_as_drawn.json")
                        for v in ("East", "North", "South", "West")})
@@ -298,12 +330,30 @@ def main() -> int:
         s2 = v["scores"]
         print(f"  {k:9s} drawn={s2['C1_C2_targets_drawn_pct']}%  coverage={s2['C2_length_coverage_pct']}%"
               f"  bad_split={s2['C3_bad_split']}  extra={s2['C4_extra_length_m']} m"
+              f"  openings={s2['C5_openings_named_right_pct']}% {s2['C5_openings']}"
               f"  abstained={v['perception']['abstained']}")
     print("  neuters (sm25_1f, honest drawn=100.0 / coverage=98.2):")
     for m, s2 in res["reading_grade_neuters"].items():
         print(f"    {m:24s} drawn={s2['C1_C2_targets_drawn_pct']:>6}  "
               f"coverage={s2['C2_length_coverage_pct']:>6}  split={s2['C3_bad_split']:>4}  "
               f"extra={s2['C4_extra_length_m']:>8}")
+    print("== opening-naming neuters (sm25_1f; honest C5=100.0, gt=94.6) ==")
+    for k, v in res["opening_naming_neuters"].items():
+        print(f"  {k:28s} C5={str(v['C5_openings_named_right_pct']):>6}  "
+              f"gt={v['gt_side_ok_pct']:<6} {v['C5_openings']}")
+    g = res.get("glm_cheats") or {}
+    if isinstance(g, dict) and "error" not in g:
+        print("== fourth-review (GLM) cheats ==")
+        for case, rows in g.items():
+            h = rows.get("honest") or {}
+            for k, v in rows.items():
+                if k == "honest" or not isinstance(v, dict):
+                    continue
+                gr = v.get("scores", v)
+                reds = [g2 for g2, st in (v.get("gates") or {}).items() if st == "red"]
+                print(f"  {case:9s} {k:20s} drawn={gr.get('C1_C2_targets_drawn_pct')} "
+                      f"(honest {h.get('C1_C2_targets_drawn_pct')})  "
+                      f"gt={v.get('gt_side_ok_pct')}  red={reds or 'NONE'}")
     print("== gate discriminating power (machine-checked) ==")
     for g, v in res["gate_discriminating_power"].items():
         mark = "  " if v["verdict"] == "ok" else "⛔"

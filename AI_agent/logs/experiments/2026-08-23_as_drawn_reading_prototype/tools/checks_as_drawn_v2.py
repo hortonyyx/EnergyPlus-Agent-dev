@@ -51,15 +51,29 @@ def _strip(face: dict) -> tuple[int, int]:
     return max(0, c0 - SAMPLE_HALF_PX), c1 + SAMPLE_HALF_PX
 
 
-def _sample_runs(structure: np.ndarray, *, axis: str, face: dict) -> list[dict[str, Any]]:
+def _sample_runs(structure: np.ndarray, *, axis: str, face: dict,
+                 hole_floor_px: int = 6) -> list[dict[str, Any]]:
+    """Ink under each claimed run -- as an average AND as its longest HOLE.
+
+    ⚠️ 2026-08-24, fourth cross-family review (GLM): the average alone let a
+    product draw straight through a real 0.6 m window and still pass, because a
+    28 px hole inside a 190 px run only pulls the mean to 0.85 -- above the 0.80
+    threshold.  A local hole is a local fact and must be reported as one.
+    """
     lo_p, hi_p = _strip(face)
     out = []
     for a, b in face["runs_px"]:
         a, b = int(min(a, b)), int(max(a, b))
         strip = structure[a:b, lo_p:hi_p] if axis == "col" else structure[lo_p:hi_p, a:b]
         along = strip.any(axis=1 if axis == "col" else 0)
+        hole = cur = 0
+        for v in along:
+            cur = 0 if v else cur + 1
+            hole = max(hole, cur)
         out.append({"run_px": [a, b], "length_px": b - a,
-                    "ink_coverage": round(float(along.mean()) if along.size else 0.0, 4)})
+                    "ink_coverage": round(float(along.mean()) if along.size else 0.0, 4),
+                    "longest_hole_px": int(hole),
+                    "hole_floor_px": hole_floor_px})
     return out
 
 
@@ -72,10 +86,11 @@ def check_reverse(doc: dict, structure: np.ndarray) -> dict:
             n += 1
             s["face"] = f["id"]
             worst = min(worst, s["ink_coverage"])
-            if s["ink_coverage"] < MIN_RUN_COVERAGE:
+            if s["ink_coverage"] < MIN_RUN_COVERAGE or s["longest_hole_px"] > s["hole_floor_px"]:
                 rows.append(s)
     return {"check": "reverse_ledger_no_phantom_ink", "threshold": MIN_RUN_COVERAGE,
             "runs_sampled": n, "worst_coverage": round(worst, 4),
+            "longest_hole_px": max((r["longest_hole_px"] for r in rows), default=0),
             "violations": rows[:40], "violation_count": len(rows),
             "status": "red" if rows else "green"}
 
@@ -204,7 +219,7 @@ def check_gaps_recomputable(doc: dict, masks: dict, tol_px: float = 1.5) -> dict
 
 
 def check_face_span_accounted(doc: dict, masks: dict, roles: dict,
-                              floor_px: int = 6) -> dict:
+                              floor_px: int = 3) -> dict:
     """⭐ Inside a face line's own span, every inked row must be a run or a gap.
 
     Added 2026-08-24 with the gap-recompute gate.  The third cross-family review
@@ -217,7 +232,15 @@ def check_face_span_accounted(doc: dict, masks: dict, roles: dict,
     ⛔ Threshold-free by construction: the product itself asserts a line runs
     from A to B, so ink under its own strip that it neither claims (run) nor
     accounts for (gap) is a stretch it dropped.  ``floor_px`` only absorbs
-    anti-alias specks and is swept in the README.
+    anti-alias specks.
+
+    ⚠️ DECLARED BLIND SPOT (swept 2026-08-24 against GLM's ``skip_unscored_tails``):
+    on sm25 2F that cheat trims 1-2 px off each line end -- 1.16 m in total -- and
+    NO floor separates it from the honest product: at floor 2 the cheat shows 14
+    violations but the honest product shows 1; at floor 3 and above both are
+    clean.  So under-reading by a pixel per line end is below this instrument's
+    resolution.  It also costs ~0 on the grade (98.1 either way), so nothing is
+    being bought by it -- but the limit is stated rather than hidden.
     """
     st = masks[roles["structure"]]
     m_px = doc["observations"]["calibration"]["mm_per_px"] / 1000.0
@@ -230,7 +253,17 @@ def check_face_span_accounted(doc: dict, masks: dict, roles: dict,
         m = by_axis[f["axis"]]
         c0, c1 = f["support_cols_px"]
         lo, hi = min(a for a, _ in runs), max(b for _, b in runs)
-        inked = m[lo:hi, max(0, c0 - SAMPLE_HALF_PX):c1 + SAMPLE_HALF_PX].any(axis=1)
+        # ⭐ 2026-08-24 (GLM): walk OUTWARD from the first/last run while the same
+        # stroke continues.  Trimming the tails a reading does not want to be
+        # scored on left every gate green on sm25 2F, because the scan used to be
+        # bounded by the runs the product chose to declare.
+        col = slice(max(0, c0 - SAMPLE_HALF_PX), c1 + SAMPLE_HALF_PX)
+        full = m[:, col].any(axis=1)
+        while lo > 0 and full[lo - 1]:
+            lo -= 1
+        while hi < len(full) and full[hi]:
+            hi += 1
+        inked = full[lo:hi]
         accounted = [False] * (hi - lo)
         for a, b in runs:
             for i in range(max(lo, a) - lo, min(hi, b) - lo):
@@ -299,6 +332,57 @@ def check_opening_role_matches_ink(doc: dict, min_share: float = 0.50) -> dict:
                 "violation_count": 0 if (share >= min_share and named == top) else 1,
                 "status": "green" if (share >= min_share and named == top) else "red"})
     return out
+
+
+def check_opening_naming_supported(doc: dict) -> dict:
+    """⭐ Every stretch perception CALLS an opening must have opening ink on it.
+
+    Added 2026-08-24 with F-87.  Measured first: naming every blank stretch a
+    door costs NOTHING on the gt-side reconstruction (94.6 either way), because
+    bridging only ever helps coverage.  So over-claiming openings is free there
+    and has to be caught here, where the ink can be recomputed from the image.
+
+    ⛔ Deliberately asymmetric, and the asymmetry is stated:
+      * "you called it an opening but there is no opening ink"  -> RED. Provable.
+      * "you called it not-an-opening but there IS opening ink" -> reported as a
+        CONTRADICTION, not scored: a door leaf drawn across a wall junction can
+        put opening ink on a stretch that is not itself an opening, so absence of
+        an opening is not provable from ink alone.
+    """
+    types = doc["hypotheses"].get("opening_types")
+    cands = {c["id"]: c for c in doc["hypotheses"].get("opening_candidates", [])}
+    if types is None:
+        return {"check": "opening_naming_supported_by_ink", "status": "degraded",
+                "violation_count": 0, "candidates": len(cands),
+                "degraded_reason": "perception supplied no opening_types; ⛔ the scorer "
+                                   "bridges nothing (F-87) -- naming is perception's call"}
+    fen = doc["hypotheses"]["family_roles"]["assignment"].get("fenestration")
+    dangling = [k for k in types if k not in cands]
+    unnamed = [k for k in cands if k not in types]
+    no_ink, contradictions = [], []
+    for k, kind in types.items():
+        c = cands.get(k)
+        if c is None:
+            continue
+        prof = (c.get("ink_by_family") or {}).get(fen) or {}
+        ink = (prof.get("on_line") or 0) + (prof.get("span_ratio") or 0.0)
+        if kind in ("door", "window") and ink <= 0:
+            no_ink.append({"candidate": k, "named": kind, "len_m": c["len_m"],
+                           "opening_ink_on_line": prof.get("on_line"),
+                           "span_ratio": prof.get("span_ratio")})
+        if kind in ("not_opening", "passage") and (prof.get("span_ratio") or 0.0) >= 0.5:
+            contradictions.append({"candidate": k, "len_m": c["len_m"],
+                                   "span_ratio": prof.get("span_ratio")})
+    bad = len(dangling) + len(unnamed) + len(no_ink)
+    return {"check": "opening_naming_supported_by_ink",
+            "candidates": len(cands), "named": len(types),
+            "by_kind": {k: sum(1 for v in types.values() if v == k)
+                        for k in sorted(set(types.values()))},
+            "named_but_no_opening_ink": no_ink[:20],
+            "dangling_reference": dangling[:20], "unnamed_candidates": unnamed[:20],
+            # ⛔ reported, NOT scored -- see the docstring
+            "contradiction_called_not_opening_but_ink_is_there": contradictions[:20],
+            "violation_count": bad, "status": "red" if bad else "green"}
 
 
 def check_pair_reconciliation(doc: dict) -> dict:
@@ -596,6 +680,7 @@ def main(doc_path: str, cfg_path: str, out_path: str, *, mutate: str | None = No
                          check_gaps_recomputable(doc, masks),
                          check_face_span_accounted(doc, masks, roles),
                          check_opening_role_matches_ink(doc),
+                         check_opening_naming_supported(doc),
                          check_pair_reconciliation(doc),
                          check_spacing_declared(doc),
                          check_forward(doc, masks, roles, box,

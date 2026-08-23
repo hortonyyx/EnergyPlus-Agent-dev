@@ -42,10 +42,16 @@ producer's definition measures the difference between two opinions.
                  harmless).
   D3 GROUP       remaining segments are grouped by (axis, constant coordinate)
                  after quantization: that is one drawn face line.
-  D4 MERGE       within a group, fragments whose gap is <= MERGE_M are one run.
-                 ⛔ The merge distance is a DECLARED domain parameter, reported in
-                 the ledger and swept, ⛔ not silently chosen: a gap wider than
-                 this is a real break (a doorway) and must survive as two runs.
+  D4 MERGE       within a group, fragments whose gap is <= MERGE_M are one run,
+                 ⛔ NEVER across a gap that the answer itself calls an opening.
+                 ⚠️⚠️ 2026-08-24, fourth cross-family review (GLM): the first
+                 version merged on distance alone, and at MERGE_M = 0.60 it
+                 merged straight across the answer's own 0.6 m window on the
+                 north wall ([10.3, 10.9] at y = 19.76/20.0) -- the denominator
+                 was deleting a real opening from the answer.  My own sweep had
+                 said "0.40-0.80 is a clean plateau"; that sweep was run BEFORE
+                 D2 changed and I never re-ran it.  With the opening guard the
+                 distance again stops mattering (swept below).
   D5 TARGETS     each surviving run is one scoreable target, keyed by
                  (axis, const, lo, hi) in world metres.
 
@@ -79,7 +85,13 @@ VG_CFG = REPO / "src/configs/correction.yaml"
 from src.agent.judge.tarch_normalize import _to_world, run_p1_plan_view  # noqa: E402
 
 MERGE_M = 0.60          # declared; swept in the README
-QUANT = 4               # rounding of world coordinates when grouping (0.1 mm)
+QUANT = 4               # rounding of stored world coordinates (0.1 mm)
+# ⚠️ 2026-08-24: the GROUPING key used QUANT too, so one face line whose
+# fragments quantised to 9.9399 and 9.9400 became TWO groups 0.1 mm apart -- and
+# the grade's "one observation may not answer two different faces" rule then
+# refused the second of them.  Group at 1 mm: finer than any tolerance in play,
+# coarser than the answer's own rounding noise.
+GROUP_QUANT = 3
 
 
 def _merge(spans: list[tuple[float, float]], gap_m: float) -> list[list[float]]:
@@ -153,16 +165,65 @@ def denominator(dxf: Path, request_path: Path, view_id: str, *,
             n_cap += 1
             continue
         n_face += 1
-        groups.setdefault((axis, const), []).append((lo, hi))
+        groups.setdefault((axis, round(const, GROUP_QUANT)), []).append((lo, hi))
 
-    targets, frag_hist = [], []
+    # openings first: D4 needs them
+    opening_spans: dict[str, list[tuple[float, float, float, float]]] = {"x": [], "y": []}
+    for o in geo.openings:
+        r = o.rect_dxf_mm
+        (ax0, ay0), (ax1, ay1) = _to_world((r[0], r[1]), affine), _to_world((r[2], r[3]), affine)
+        x0, x1 = sorted((ax0, ax1))
+        y0, y1 = sorted((ay0, ay1))
+        if (x1 - x0) >= (y1 - y0):
+            opening_spans["y"].append((y0, y1, x0, x1))
+        else:
+            opening_spans["x"].append((x0, x1, y0, y1))
+
+    def _crosses_opening(axis, const, a, b):
+        """Is the blank between two fragments an opening the answer knows about?"""
+        for c0, c1, lo, hi in opening_spans[axis]:
+            if c0 - 0.05 <= const <= c1 + 0.05 and min(b, hi) - max(a, lo) > -0.05:
+                return True
+        return False
+
+    targets, frag_hist, guarded = [], [], 0
     for (axis, const), spans in sorted(groups.items()):
         frag_hist.append(len(spans))
-        for lo, hi in _merge(spans, merge_m):            # D4
+        merged: list[list[float]] = []
+        for lo, hi in sorted(spans):
+            if (merged and lo - merged[-1][1] <= merge_m
+                    and not _crosses_opening(axis, const, merged[-1][1], lo)):
+                merged[-1][1] = max(merged[-1][1], hi)
+            else:
+                if merged and lo - merged[-1][1] <= merge_m:
+                    guarded += 1
+                merged.append([lo, hi])
+        for lo, hi in merged:
             targets.append({"axis": axis, "const_m": const,
                             "lo_m": round(lo, 4), "hi_m": round(hi, 4),
                             "length_m": round(hi - lo, 4)})
     frag_hist.sort()
+
+    # ⭐ OPENING TARGETS (2026-08-24, F-87): the answer's own resolved openings,
+    # in world metres, carrying the ONE thing the reconstruction never scored --
+    # door vs window.  Measured first: swapping every door and window in the
+    # reading changed the reconstruction by 0.0 points, because that check only
+    # ever asks "is this stretch an opening", never "which kind".
+    opening_targets = []
+    for o in geo.openings:
+        r = o.rect_dxf_mm
+        (ax0, ay0), (ax1, ay1) = _to_world((r[0], r[1]), affine), _to_world((r[2], r[3]), affine)
+        x0, x1 = sorted((round(ax0, QUANT), round(ax1, QUANT)))
+        y0, y1 = sorted((round(ay0, QUANT), round(ay1, QUANT)))
+        # the opening lies ALONG the wall it sits in: its long side is the width
+        if (x1 - x0) >= (y1 - y0):
+            axis, const_lo, const_hi, lo, hi = "y", y0, y1, x0, x1
+        else:
+            axis, const_lo, const_hi, lo, hi = "x", x0, x1, y0, y1
+        opening_targets.append({"kind": o.kind, "axis": axis,
+                                "const_range_m": [const_lo, const_hi],
+                                "lo_m": lo, "hi_m": hi,
+                                "width_m": round(hi - lo, 4)})
     return {
         "rule_version": "denominator_v1",
         "view_id": view_id, "floor_id": view.floor_id,
@@ -180,8 +241,13 @@ def denominator(dxf: Path, request_path: Path, view_id: str, *,
                 "median": frag_hist[len(frag_hist) // 2] if frag_hist else 0,
                 "max": frag_hist[-1] if frag_hist else 0},
             "total_scoreable_length_m": round(sum(t["length_m"] for t in targets), 3),
+            "merges_blocked_by_an_opening": guarded,
         },
         "targets": targets,
+        "opening_targets": opening_targets,
+        "opening_ledger": {"total": len(opening_targets),
+                           "by_kind": {k: sum(1 for o in opening_targets if o["kind"] == k)
+                                       for k in sorted({o["kind"] for o in opening_targets})}},
     }
 
 
@@ -189,7 +255,8 @@ def main(dxf: str, request: str, view_id: str, out: str,
          merge_m: float = MERGE_M) -> int:
     d = denominator(Path(dxf), Path(request), view_id, merge_m=merge_m)
     Path(out).write_text(json.dumps(d, ensure_ascii=False, indent=1) + "\n")
-    print(json.dumps({"view": view_id, **d["ledger"], "merge_m": merge_m}, ensure_ascii=False))
+    print(json.dumps({"view": view_id, **d["ledger"], "openings": d["opening_ledger"],
+                      "merge_m": merge_m}, ensure_ascii=False))
     return 0
 
 

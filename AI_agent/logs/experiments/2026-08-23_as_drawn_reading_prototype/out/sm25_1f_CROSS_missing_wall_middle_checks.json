@@ -15,6 +15,7 @@
    "threshold": 0.8,
    "runs_sampled": 135,
    "worst_coverage": 1.0,
+   "longest_hole_px": 0,
    "violations": [],
    "violation_count": 0,
    "status": "green"
@@ -39,7 +40,7 @@
   },
   {
    "check": "face_span_fully_accounted_by_runs_or_gaps",
-   "floor_px": 6,
+   "floor_px": 3,
    "longest_unaccounted_px": 56,
    "longest_unaccounted_m": 1.212,
    "violations": [
@@ -84,6 +85,29 @@
    "min_share": 0.5,
    "share_of_gap_ink": 0.9783,
    "family_with_most_gap_ink": "F3",
+   "violation_count": 0,
+   "status": "green"
+  },
+  {
+   "check": "opening_naming_supported_by_ink",
+   "candidates": 85,
+   "named": 85,
+   "by_kind": {
+    "ambiguous": 4,
+    "door": 32,
+    "not_opening": 19,
+    "window": 30
+   },
+   "named_but_no_opening_ink": [],
+   "dangling_reference": [],
+   "unnamed_candidates": [],
+   "contradiction_called_not_opening_but_ink_is_there": [
+    {
+     "candidate": "L031g0",
+     "len_m": 0.0433,
+     "span_ratio": 0.5
+    }
+   ],
    "violation_count": 0,
    "status": "green"
   },

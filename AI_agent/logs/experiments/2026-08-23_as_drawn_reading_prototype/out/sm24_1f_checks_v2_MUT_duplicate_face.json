@@ -14,6 +14,7 @@
    "threshold": 0.8,
    "runs_sampled": 370,
    "worst_coverage": 1.0,
+   "longest_hole_px": 0,
    "violations": [],
    "violation_count": 0,
    "status": "green"
@@ -359,12 +360,173 @@
   },
   {
    "check": "face_span_fully_accounted_by_runs_or_gaps",
-   "floor_px": 6,
-   "longest_unaccounted_px": 0,
-   "longest_unaccounted_m": 0.0,
-   "violations": [],
-   "violation_count": 0,
-   "status": "green"
+   "floor_px": 3,
+   "longest_unaccounted_px": 42,
+   "longest_unaccounted_m": 1.155,
+   "violations": [
+    {
+     "face": "L006",
+     "px": [
+      414,
+      456
+     ],
+     "length_m": 1.155
+    },
+    {
+     "face": "L006",
+     "px": [
+      535,
+      577
+     ],
+     "length_m": 1.155
+    },
+    {
+     "face": "L006_TWIN",
+     "px": [
+      414,
+      456
+     ],
+     "length_m": 1.155
+    },
+    {
+     "face": "L006_TWIN",
+     "px": [
+      535,
+      577
+     ],
+     "length_m": 1.155
+    },
+    {
+     "face": "L012",
+     "px": [
+      760,
+      791
+     ],
+     "length_m": 0.853
+    },
+    {
+     "face": "L012_TWIN",
+     "px": [
+      760,
+      791
+     ],
+     "length_m": 0.853
+    },
+    {
+     "face": "L007",
+     "px": [
+      763,
+      792
+     ],
+     "length_m": 0.798
+    },
+    {
+     "face": "L007_TWIN",
+     "px": [
+      763,
+      792
+     ],
+     "length_m": 0.798
+    },
+    {
+     "face": "L025",
+     "px": [
+      837,
+      854
+     ],
+     "length_m": 0.468
+    },
+    {
+     "face": "L025_TWIN",
+     "px": [
+      837,
+      854
+     ],
+     "length_m": 0.468
+    },
+    {
+     "face": "L007",
+     "px": [
+      688,
+      703
+     ],
+     "length_m": 0.413
+    },
+    {
+     "face": "L007_TWIN",
+     "px": [
+      688,
+      703
+     ],
+     "length_m": 0.413
+    },
+    {
+     "face": "L052",
+     "px": [
+      496,
+      504
+     ],
+     "length_m": 0.22
+    },
+    {
+     "face": "L052_TWIN",
+     "px": [
+      496,
+      504
+     ],
+     "length_m": 0.22
+    },
+    {
+     "face": "L052",
+     "px": [
+      565,
+      572
+     ],
+     "length_m": 0.193
+    },
+    {
+     "face": "L052_TWIN",
+     "px": [
+      565,
+      572
+     ],
+     "length_m": 0.193
+    },
+    {
+     "face": "L024",
+     "px": [
+      563,
+      569
+     ],
+     "length_m": 0.165
+    },
+    {
+     "face": "L057",
+     "px": [
+      264,
+      270
+     ],
+     "length_m": 0.165
+    },
+    {
+     "face": "L070",
+     "px": [
+      264,
+      270
+     ],
+     "length_m": 0.165
+    },
+    {
+     "face": "L024_TWIN",
+     "px": [
+      563,
+      569
+     ],
+     "length_m": 0.165
+    }
+   ],
+   "violation_count": 48,
+   "status": "red"
   },
   {
    "check": "opening_role_matches_where_the_ink_sits",
@@ -378,6 +540,24 @@
    "min_share": 0.5,
    "share_of_gap_ink": 0.8028,
    "family_with_most_gap_ink": "F2",
+   "violation_count": 0,
+   "status": "green"
+  },
+  {
+   "check": "opening_naming_supported_by_ink",
+   "candidates": 87,
+   "named": 87,
+   "by_kind": {
+    "ambiguous": 55,
+    "door": 15,
+    "not_opening": 1,
+    "passage": 4,
+    "window": 12
+   },
+   "named_but_no_opening_ink": [],
+   "dangling_reference": [],
+   "unnamed_candidates": [],
+   "contradiction_called_not_opening_but_ink_is_there": [],
    "violation_count": 0,
    "status": "green"
   },
