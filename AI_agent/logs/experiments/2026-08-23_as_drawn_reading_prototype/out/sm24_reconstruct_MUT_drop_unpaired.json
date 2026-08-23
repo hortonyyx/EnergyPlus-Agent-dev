@@ -3,15 +3,16 @@
   "gt_case": "sm24_anchor",
   "mutation": "MUTATED: all 69 unpaired face lines dropped",
   "targets": 20,
+  "interior_pair_spacing_m": null,
   "exterior": {
    "n": 4,
    "ok_pct": 100.0
   },
   "interior": {
    "n": 16,
-   "ok_pct": 37.5
+   "ok_pct": 0.0
   },
-  "overall_ok_pct": 50.0,
+  "overall_ok_pct": 20.0,
   "pos_tol_m": 0.08,
   "span_min_cover": 0.8
  },
@@ -61,11 +62,8 @@
     4.18
    ],
    "length_m": 4.18,
-   "matched": "B18.b",
-   "kind": "face",
-   "offset_m": 0.0638,
-   "span_coverage": 0.995,
-   "verdict": "OK"
+   "matched": null,
+   "verdict": "NO_STRADDLING_PAIR"
   },
   {
    "target": "interior:F1:(0.0, 12.999999999999996):(4.18, 12.999999999999",
@@ -78,11 +76,12 @@
     4.18
    ],
    "length_m": 4.18,
-   "matched": "B17.a",
-   "kind": "face",
-   "offset_m": 0.062,
-   "span_coverage": 1.0,
-   "verdict": "OK"
+   "matched": "B10.b+B17.a",
+   "kind": "straddling_pair",
+   "spacing_m": 0.1788,
+   "offset_m": 0.0274,
+   "span_coverage": 0.0,
+   "verdict": "SHORT_COVERAGE"
   },
   {
    "target": "interior:F1:(0.0, 15.939999999999994):(4.18, 15.939999999999",
@@ -95,11 +94,12 @@
     4.18
    ],
    "length_m": 4.18,
-   "matched": "B16.a",
-   "kind": "face",
-   "offset_m": 0.0653,
-   "span_coverage": 1.0,
-   "verdict": "OK"
+   "matched": "B16.a+B16.b",
+   "kind": "straddling_pair",
+   "spacing_m": 0.2751,
+   "offset_m": 0.0722,
+   "span_coverage": 0.0,
+   "verdict": "SHORT_COVERAGE"
   },
   {
    "target": "F1:boundary:ea6ab5959cad49df5dc8d9b4",
@@ -130,7 +130,7 @@
    ],
    "length_m": 3.44,
    "matched": null,
-   "verdict": "NO_LINE_AT_COORDINATE"
+   "verdict": "NO_STRADDLING_PAIR"
   },
   {
    "target": "interior:F1:(4.18, 3.4400000000000013):(4.18, 8.059999999999",
@@ -144,7 +144,7 @@
    ],
    "length_m": 4.62,
    "matched": null,
-   "verdict": "NO_LINE_AT_COORDINATE"
+   "verdict": "NO_STRADDLING_PAIR"
   },
   {
    "target": "interior:F1:(4.18, 3.4400000000000013):(5.819999999999997, 3",
@@ -157,8 +157,12 @@
     5.82
    ],
    "length_m": 1.64,
-   "matched": null,
-   "verdict": "NO_LINE_AT_COORDINATE"
+   "matched": "B20.b+B21.a",
+   "kind": "straddling_pair",
+   "spacing_m": 0.4828,
+   "offset_m": 0.0161,
+   "span_coverage": 0.0,
+   "verdict": "SHORT_COVERAGE"
   },
   {
    "target": "interior:F1:(4.18, 8.059999999999999):(4.18, 12.999999999999",
@@ -172,7 +176,7 @@
    ],
    "length_m": 4.94,
    "matched": null,
-   "verdict": "NO_LINE_AT_COORDINATE"
+   "verdict": "NO_STRADDLING_PAIR"
   },
   {
    "target": "interior:F1:(4.18, 12.999999999999996):(4.18, 15.93999999999",
@@ -186,7 +190,7 @@
    ],
    "length_m": 2.94,
    "matched": null,
-   "verdict": "NO_LINE_AT_COORDINATE"
+   "verdict": "NO_STRADDLING_PAIR"
   },
   {
    "target": "interior:F1:(4.18, 15.939999999999994):(5.819999999999997, 1",
@@ -199,11 +203,12 @@
     5.82
    ],
    "length_m": 1.64,
-   "matched": "B16.a",
-   "kind": "face",
-   "offset_m": 0.0653,
-   "span_coverage": 1.0,
-   "verdict": "OK"
+   "matched": "B16.a+B16.b",
+   "kind": "straddling_pair",
+   "spacing_m": 0.2751,
+   "offset_m": 0.0722,
+   "span_coverage": 0.771,
+   "verdict": "SHORT_COVERAGE"
   },
   {
    "target": "interior:F1:(5.819999999999997, 3.4400000000000013):(5.81999",
@@ -217,7 +222,7 @@
    ],
    "length_m": 1.5,
    "matched": null,
-   "verdict": "NO_LINE_AT_COORDINATE"
+   "verdict": "NO_STRADDLING_PAIR"
   },
   {
    "target": "interior:F1:(5.819999999999997, 4.940000000000001):(10.0, 4.",
@@ -231,7 +236,7 @@
    ],
    "length_m": 4.18,
    "matched": null,
-   "verdict": "NO_LINE_AT_COORDINATE"
+   "verdict": "NO_STRADDLING_PAIR"
   },
   {
    "target": "interior:F1:(5.819999999999997, 8.059999999999999):(5.819999",
@@ -245,7 +250,7 @@
    ],
    "length_m": 5.94,
    "matched": null,
-   "verdict": "NO_LINE_AT_COORDINATE"
+   "verdict": "NO_STRADDLING_PAIR"
   },
   {
    "target": "interior:F1:(5.819999999999997, 8.059999999999999):(10.0, 8.",
@@ -258,11 +263,8 @@
     10.0
    ],
    "length_m": 4.18,
-   "matched": "B18.b",
-   "kind": "face",
-   "offset_m": 0.0638,
-   "span_coverage": 0.989,
-   "verdict": "OK"
+   "matched": null,
+   "verdict": "NO_STRADDLING_PAIR"
   },
   {
    "target": "interior:F1:(5.819999999999997, 13.999999999999996):(5.81999",
@@ -276,7 +278,7 @@
    ],
    "length_m": 1.94,
    "matched": null,
-   "verdict": "NO_LINE_AT_COORDINATE"
+   "verdict": "NO_STRADDLING_PAIR"
   },
   {
    "target": "interior:F1:(5.819999999999997, 13.999999999999996):(10.0, 1",
@@ -290,7 +292,7 @@
    ],
    "length_m": 4.18,
    "matched": null,
-   "verdict": "NO_LINE_AT_COORDINATE"
+   "verdict": "NO_STRADDLING_PAIR"
   },
   {
    "target": "interior:F1:(5.819999999999997, 15.939999999999994):(10.0, 1",
@@ -303,11 +305,12 @@
     10.0
    ],
    "length_m": 4.18,
-   "matched": "B16.a",
-   "kind": "face",
-   "offset_m": 0.0653,
-   "span_coverage": 1.0,
-   "verdict": "OK"
+   "matched": "B16.a+B16.b",
+   "kind": "straddling_pair",
+   "spacing_m": 0.2751,
+   "offset_m": 0.0722,
+   "span_coverage": 0.585,
+   "verdict": "SHORT_COVERAGE"
   },
   {
    "target": "F1:boundary:26d42c3893b4a8a0b1bce309",
@@ -329,6 +332,56 @@
  ],
  "not_recoverable": [
   {
+   "target": "interior:F1:(0.0, 8.059999999999999):(4.18, 8.05999999999999",
+   "floor": "F1",
+   "exterior": false,
+   "horizontal": true,
+   "const": 8.06,
+   "span": [
+    0.0,
+    4.18
+   ],
+   "length_m": 4.18,
+   "matched": null,
+   "verdict": "NO_STRADDLING_PAIR"
+  },
+  {
+   "target": "interior:F1:(0.0, 12.999999999999996):(4.18, 12.999999999999",
+   "floor": "F1",
+   "exterior": false,
+   "horizontal": true,
+   "const": 13.0,
+   "span": [
+    0.0,
+    4.18
+   ],
+   "length_m": 4.18,
+   "matched": "B10.b+B17.a",
+   "kind": "straddling_pair",
+   "spacing_m": 0.1788,
+   "offset_m": 0.0274,
+   "span_coverage": 0.0,
+   "verdict": "SHORT_COVERAGE"
+  },
+  {
+   "target": "interior:F1:(0.0, 15.939999999999994):(4.18, 15.939999999999",
+   "floor": "F1",
+   "exterior": false,
+   "horizontal": true,
+   "const": 15.94,
+   "span": [
+    0.0,
+    4.18
+   ],
+   "length_m": 4.18,
+   "matched": "B16.a+B16.b",
+   "kind": "straddling_pair",
+   "spacing_m": 0.2751,
+   "offset_m": 0.0722,
+   "span_coverage": 0.0,
+   "verdict": "SHORT_COVERAGE"
+  },
+  {
    "target": "interior:F1:(4.18, 0.0):(4.18, 3.4400000000000013)",
    "floor": "F1",
    "exterior": false,
@@ -340,7 +393,7 @@
    ],
    "length_m": 3.44,
    "matched": null,
-   "verdict": "NO_LINE_AT_COORDINATE"
+   "verdict": "NO_STRADDLING_PAIR"
   },
   {
    "target": "interior:F1:(4.18, 3.4400000000000013):(4.18, 8.059999999999",
@@ -354,7 +407,7 @@
    ],
    "length_m": 4.62,
    "matched": null,
-   "verdict": "NO_LINE_AT_COORDINATE"
+   "verdict": "NO_STRADDLING_PAIR"
   },
   {
    "target": "interior:F1:(4.18, 3.4400000000000013):(5.819999999999997, 3",
@@ -367,8 +420,12 @@
     5.82
    ],
    "length_m": 1.64,
-   "matched": null,
-   "verdict": "NO_LINE_AT_COORDINATE"
+   "matched": "B20.b+B21.a",
+   "kind": "straddling_pair",
+   "spacing_m": 0.4828,
+   "offset_m": 0.0161,
+   "span_coverage": 0.0,
+   "verdict": "SHORT_COVERAGE"
   },
   {
    "target": "interior:F1:(4.18, 8.059999999999999):(4.18, 12.999999999999",
@@ -382,7 +439,7 @@
    ],
    "length_m": 4.94,
    "matched": null,
-   "verdict": "NO_LINE_AT_COORDINATE"
+   "verdict": "NO_STRADDLING_PAIR"
   },
   {
    "target": "interior:F1:(4.18, 12.999999999999996):(4.18, 15.93999999999",
@@ -396,7 +453,25 @@
    ],
    "length_m": 2.94,
    "matched": null,
-   "verdict": "NO_LINE_AT_COORDINATE"
+   "verdict": "NO_STRADDLING_PAIR"
+  },
+  {
+   "target": "interior:F1:(4.18, 15.939999999999994):(5.819999999999997, 1",
+   "floor": "F1",
+   "exterior": false,
+   "horizontal": true,
+   "const": 15.94,
+   "span": [
+    4.18,
+    5.82
+   ],
+   "length_m": 1.64,
+   "matched": "B16.a+B16.b",
+   "kind": "straddling_pair",
+   "spacing_m": 0.2751,
+   "offset_m": 0.0722,
+   "span_coverage": 0.771,
+   "verdict": "SHORT_COVERAGE"
   },
   {
    "target": "interior:F1:(5.819999999999997, 3.4400000000000013):(5.81999",
@@ -410,7 +485,7 @@
    ],
    "length_m": 1.5,
    "matched": null,
-   "verdict": "NO_LINE_AT_COORDINATE"
+   "verdict": "NO_STRADDLING_PAIR"
   },
   {
    "target": "interior:F1:(5.819999999999997, 4.940000000000001):(10.0, 4.",
@@ -424,7 +499,7 @@
    ],
    "length_m": 4.18,
    "matched": null,
-   "verdict": "NO_LINE_AT_COORDINATE"
+   "verdict": "NO_STRADDLING_PAIR"
   },
   {
    "target": "interior:F1:(5.819999999999997, 8.059999999999999):(5.819999",
@@ -438,7 +513,21 @@
    ],
    "length_m": 5.94,
    "matched": null,
-   "verdict": "NO_LINE_AT_COORDINATE"
+   "verdict": "NO_STRADDLING_PAIR"
+  },
+  {
+   "target": "interior:F1:(5.819999999999997, 8.059999999999999):(10.0, 8.",
+   "floor": "F1",
+   "exterior": false,
+   "horizontal": true,
+   "const": 8.06,
+   "span": [
+    5.82,
+    10.0
+   ],
+   "length_m": 4.18,
+   "matched": null,
+   "verdict": "NO_STRADDLING_PAIR"
   },
   {
    "target": "interior:F1:(5.819999999999997, 13.999999999999996):(5.81999",
@@ -452,7 +541,7 @@
    ],
    "length_m": 1.94,
    "matched": null,
-   "verdict": "NO_LINE_AT_COORDINATE"
+   "verdict": "NO_STRADDLING_PAIR"
   },
   {
    "target": "interior:F1:(5.819999999999997, 13.999999999999996):(10.0, 1",
@@ -466,7 +555,25 @@
    ],
    "length_m": 4.18,
    "matched": null,
-   "verdict": "NO_LINE_AT_COORDINATE"
+   "verdict": "NO_STRADDLING_PAIR"
+  },
+  {
+   "target": "interior:F1:(5.819999999999997, 15.939999999999994):(10.0, 1",
+   "floor": "F1",
+   "exterior": false,
+   "horizontal": true,
+   "const": 15.94,
+   "span": [
+    5.82,
+    10.0
+   ],
+   "length_m": 4.18,
+   "matched": "B16.a+B16.b",
+   "kind": "straddling_pair",
+   "spacing_m": 0.2751,
+   "offset_m": 0.0722,
+   "span_coverage": 0.585,
+   "verdict": "SHORT_COVERAGE"
   }
  ]
 }

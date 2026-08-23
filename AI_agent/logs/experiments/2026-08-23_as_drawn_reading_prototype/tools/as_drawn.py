@@ -44,6 +44,14 @@ from plan_ink import (  # noqa: E402
 # valley here: 5 gaps <= 15 px, 2 in 16..30 px, 34 in 31..60 px.
 OPENING_MIN_M = 0.60
 
+# Measurement WINDOW, not a classification threshold: how far either side of a
+# face line an opening's ink is looked for. 0.30 m is one wall thickness of
+# margin over the project's thickest declared wall (240 mm; gt's
+# `boundary_segments[].wall_thickness_m` is 0.24 on both signed cases). Both the
+# narrow (on-line) and the windowed count are emitted, so a consumer that
+# disagrees with the window can still see the raw number.
+NEAR_WINDOW_M = 0.30
+
 
 def _runs(flags: np.ndarray, *, break_gap_px: float) -> tuple[list[list[int]], list[dict[str, Any]]]:
     """Continuous runs of True, plus every blank gap between them.
@@ -87,7 +95,9 @@ FILL_RATIO = 0.5
 
 
 def face_line_runs(mask_structure: np.ndarray, *, axis: Axis, min_run_px: int,
-                   min_support: int, break_gap_px: float) -> list[dict[str, Any]]:
+                   min_support: int, break_gap_px: float,
+                   mask_fenestration: np.ndarray | None = None,
+                   near_window_px: int = 14) -> list[dict[str, Any]]:
     """Like ``plan_ink.face_lines`` but keeps each line's ACTUAL runs.
 
     ``face_lines`` reports ``extent_px = [rows.min(), rows.max()+1]``.  That one
@@ -95,6 +105,8 @@ def face_line_runs(mask_structure: np.ndarray, *, axis: Axis, min_run_px: int,
     resumes on the far side is reported as one unbroken stretch.
     """
     m = mask_structure if axis == "col" else mask_structure.T
+    fmask = None if mask_fenestration is None else (
+        mask_fenestration if axis == "col" else mask_fenestration.T)
     keep = vertical_runs_mask(m, min_run_px)
     support = keep.sum(0)
     cols = np.flatnonzero(support >= min_support)
@@ -111,6 +123,39 @@ def face_line_runs(mask_structure: np.ndarray, *, axis: Axis, min_run_px: int,
         runs, gaps = _runs(along, break_gap_px=break_gap_px)
         if not runs:
             continue
+        # ⭐ Every gap carries its OWN measurements (2026-08-23 design v2).
+        # Previously only a paired band knew where its openings were, because
+        # opening ink was measured per band; a line that failed to pair had
+        # gaps with no evidence attached, so nothing downstream could tell its
+        # doorway from a stretch of missing wall.  Measured consequence on
+        # sm24, whose walls mostly fail to pair: the information-not-lost check
+        # scored 65.0% purely because six targets' doorways could not be
+        # recognised as doorways.
+        #
+        # ⛔ No classification here -- the three numbers are handed over and
+        # the call is 1_correction's.  Measured separability (sm25+sm24):
+        # 1-4 px gaps carry no fenestration ink and no crossing ink;
+        # 5-27 px carry no fenestration ink but 14-23 px of CROSSING structure
+        # ink (another wall passing through); >=28 px mostly carry fenestration
+        # ink.  Three physical kinds, three measured signatures.
+        w = int(near_window_px)
+        wide = slice(max(0, g[0] - w), g[-1] + 1 + w)
+        own = slice(g[0], g[-1] + 1)
+        for gap in gaps:
+            lo_px, hi_px = gap["lo_px"], gap["hi_px"]
+            # ⚠️ BOTH windows are reported, because they answer different
+            # questions and the narrow one is not sufficient on its own.
+            # Measured on sm25 1f, whose face lines are 1-2 px wide: 20 of 62
+            # break gaps carry ZERO fenestration ink on the line's own columns
+            # while only 2 do within the near window -- an opening is drawn
+            # ACROSS the wall, not along one of its faces. Using the narrow
+            # number alone cost the information-not-lost check 26.6 points.
+            gap["fenestration_px_on_line"] = (
+                0 if fmask is None else int(fmask[lo_px:hi_px, own].sum()))
+            gap["fenestration_px_near"] = (
+                0 if fmask is None else int(fmask[lo_px:hi_px, wide].sum()))
+            gap["crossing_structure_px"] = (
+                int(m[lo_px:hi_px, wide].sum()) - int(m[lo_px:hi_px, own].sum()))
         out.append({
             "pos_px": round(float(np.average(g, weights=support[g])), 2),
             "cols_px": [g[0], g[-1] + 1],
@@ -281,6 +326,11 @@ def build_as_drawn(cfg: dict) -> dict:
         return round((y_zero - px) * fity.mm_per_px / 1000.0, 4)
 
     break_gap_px = OPENING_MIN_M * 1000.0 / mmpx
+    # How far from a face line an opening's own ink may sit. An opening is drawn
+    # ACROSS the wall, so evidence for it is not on the face line itself. The
+    # window is one wall-thickness of margin, kept in metres so it means the
+    # same thing on every drawing scale, and recorded in the calibration block.
+    near_window_px = int(round(NEAR_WINDOW_M * 1000.0 / mmpx))
     thick_px = [t / mmpx for t in cfg["declared_thickness_mm"]]
 
     wall_bands: list[dict[str, Any]] = []
@@ -291,7 +341,9 @@ def build_as_drawn(cfg: dict) -> dict:
         along_to_world = to_y if axis == "col" else to_x
         lines = face_line_runs(st, axis=axis, min_run_px=cfg.get("min_run_px", 14),
                                min_support=cfg.get("min_support", 10),
-                               break_gap_px=break_gap_px)
+                               break_gap_px=break_gap_px,
+                               mask_fenestration=fams["fenestration"],
+                               near_window_px=near_window_px)
         bands, loose = pair_bands_as_drawn(lines, thick_px, tol_px=cfg.get("thickness_tol_px", 2.0))
         for b in bands:
             # A solid filled band (sm24 dialect) is detected as ONE group, but the
@@ -344,10 +396,14 @@ def build_as_drawn(cfg: dict) -> dict:
                                    for lo, hi in b["overlap_runs_px"]],
                 "opening_runs": ops,
             })
+        # ⭐ An unpaired line now carries its gaps too, with the same per-gap
+        # measurements a banded face gets. Without them a consumer had no way
+        # to tell an unpaired line's doorway from a hole in the reading.
         unpaired += [{"axis": axis, "pos_px": lines[i]["pos_px"], "pos_m": pos_to_world(lines[i]["pos_px"]),
                       "cols_px": lines[i]["cols_px"], "runs_px": lines[i]["runs_px"],
                       "runs_m": [[round(v, 4) for v in sorted((along_to_world(lo), along_to_world(hi)))]
                                  for lo, hi in lines[i]["runs_px"]],
+                      "gaps": lines[i]["gaps"],
                       "covered_px": lines[i]["covered_px"]} for i in loose]
 
     return {
@@ -363,6 +419,8 @@ def build_as_drawn(cfg: dict) -> dict:
             "world_zero_source": "chain_fit",
             "world_zero_crosscheck": zero_crosscheck,
             "break_gap_px": round(break_gap_px, 2),
+            "near_window_px": near_window_px,
+            "near_window_basis": f"NEAR_WINDOW_M={NEAR_WINDOW_M} m (measurement window, not a threshold)",
             "break_gap_basis": f"OPENING_MIN_M={OPENING_MIN_M} (signed domain bound, F-73)",
         },
         # Witness ticks are carried as EVIDENCE, not applied. Snapping a face-line

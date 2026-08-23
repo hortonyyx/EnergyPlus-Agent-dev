@@ -14,10 +14,25 @@ Two target families, and they are read differently on purpose:
   * EXTERIOR boundary segments -- gt records the OUTER FACE, so the match is
     against a single face line;
   * INTERIOR zone edges -- gt records the shared zone edge (the wall's centre),
-    so the match is against the MIDPOINT of a band's two faces.
+    so the match needs TWO face lines STRADDLING the target, and is scored on
+    the stretch where both of them are drawn.
 That asymmetry is exactly R-3 ("内墙走中轴、外墙走外包"), and seeing it survive
 here is the point: the as-drawn layer carries both, so correction can emit
 either frame instead of having one baked in.
+
+⭐ G-1 (2026-08-23, raised by the first cross-family review): the interior rule
+used to fall back to a LONE face line.  That made the check answer a much
+weaker question than the one it claims to ask -- a single unpaired line, with
+no thickness, no side and no partner, cannot yield a centreline.  Measured
+under the old rule, all 16 of sm24's interior targets passed on a lone face and
+15 of its 20 targets matched an UNPAIRED line, so its score said nothing about
+whether correction could recover the answer.
+
+The straddling pair is searched over ALL transcribed face lines, not over the
+product's emitted bands: pairing is a HYPOTHESIS and this check deliberately
+asks what the OBSERVATIONS alone can support.  The only bound is a domain one
+(no wall in this building family is thicker than ``MAX_WALL_M``), and every
+spacing actually used is reported so the bound cannot hide behind the score.
 """
 from __future__ import annotations
 
@@ -32,6 +47,10 @@ from src.agent.judge.segment_score import extract_gt_plan_segments  # noqa: E402
 
 POS_TOL_M = 0.08          # a face line must sit within half the thinnest declared wall (120 mm)
 SPAN_MIN_COVER = 0.80     # and its runs must span at least this much of the target
+MAX_WALL_M = 0.50         # domain bound for "these two faces could be one wall";
+                          # every spacing actually used is reported, so a run
+                          # that only passes via implausible 0.4 m "walls" is
+                          # visible instead of hidden inside the percentage.
 
 
 def _cover(runs: list[list[float]], lo: float, hi: float) -> float:
@@ -63,7 +82,8 @@ def _cover(runs: list[list[float]], lo: float, hi: float) -> float:
 
 
 def _full_extent(runs_m: list[list[float]],
-                 openings: list[list[float]] | None = None) -> list[list[float]]:
+                 openings: list[list[float]] | None = None,
+                 gaps: list[dict] | None = None) -> list[list[float]]:
     """A line's full drawn extent = its runs U openings U its INTERNAL break gaps.
 
     A break between two consecutive runs is a hole in a wall (a doorway), not
@@ -93,45 +113,103 @@ def _full_extent(runs_m: list[list[float]],
     """
     ops = [list(o) for o in (openings or [])]
     runs = [list(r) for r in runs_m] + ops
+    # The i-th run boundary is the i-th gap the scanner classed as a "break";
+    # hairline gaps were absorbed into a run and are not boundaries.
+    breaks = [g for g in (gaps or []) if g.get("class") == "break"]
     for i in range(len(runs_m) - 1):
         lo, hi = sorted((max(runs_m[i]), min(runs_m[i + 1])))
         if hi <= lo:
+            continue
+        # ⭐ Prefer the GAP's own fenestration measurement (design v2 §three).
+        # Falling back to the band's opening list is what made this check blind
+        # to an unpaired line's doorways: opening ink used to be measured per
+        # band, so a line that never paired had gaps with no evidence at all.
+        if i < len(breaks) and "fenestration_px_near" in breaks[i]:
+            if breaks[i]["fenestration_px_near"] > 0:
+                runs.append([lo, hi])
             continue
         if any(max(lo, min(a, b)) < min(hi, max(a, b)) for a, b in ops):
             runs.append([lo, hi])
     return runs
 
 
-def _candidates(doc: dict, axis_is_x: bool):
-    """(constant coord, along-runs, label) for every face line and band midline."""
+def _face_lines(doc: dict, axis_is_x: bool):
+    """Every transcribed face line on this axis, banded or not.
+
+    ⛔ Deliberately flat: a band is a pairing HYPOTHESIS, and this check asks
+    what the observations support on their own.  Openings ride along with the
+    band they were measured in, because a run's hole is only known to be an
+    opening when the drawing put fenestration ink there.
+    """
     out = []
+    want = "x" if axis_is_x else "y"
     for band in doc["wall_bands"]:
-        want = "x" if axis_is_x else "y"
         if band["constant_world_axis"] != want:
             continue
-        # gt records the wall as one continuous entity (openings are separate
-        # objects), so comparing drawn runs alone would score every window as a
-        # hole in the wall.
         ops = [o["run_m"] for o in band.get("opening_runs", [])]
         for f in band["faces"]:
-            out.append((f["pos_m"], _full_extent(f["runs_m"], ops),
-                        f"{band['id']}.{f['role']}", "face"))
-        if len(band["faces"]) == 2:
-            mid = (band["faces"][0]["pos_m"] + band["faces"][1]["pos_m"]) / 2.0
-            out.append((mid, _full_extent(band["faces"][0]["runs_m"], ops),
-                        f"{band['id']}.mid", "midline"))
+            out.append({"pos": f["pos_m"],
+                        "runs": _full_extent(f["runs_m"], ops, f.get("gaps")),
+                        "label": f"{band['id']}.{f['role']}"})
     # An UNPAIRED face line is still transcribed information -- it is in the
-    # product, just without a partner. Excluding it would understate what the
-    # as-drawn layer carries (sm25 2f's x=9.146 partition is exactly this case).
+    # product, just without a partner.
     for i, l in enumerate(doc.get("unpaired_face_lines", [])):
-        want_axis = "col" if axis_is_x else "row"
-        if l["axis"] != want_axis:
+        if l["axis"] != ("col" if axis_is_x else "row"):
             continue
-        runs_m = l.get("runs_m")
-        if runs_m is None:
+        if l.get("runs_m") is None:
             continue
-        out.append((l["pos_m"], _full_extent(runs_m), f"U{i:02d}", "face"))
+        out.append({"pos": l["pos_m"],
+                    "runs": _full_extent(l["runs_m"], None, l.get("gaps")),
+                    "label": f"U{i:02d}"})
     return out
+
+
+def _intersect(a: list[list[float]], b: list[list[float]]) -> list[list[float]]:
+    """Stretches where BOTH faces are drawn -- that is where the wall is."""
+    out = []
+    for p in a:
+        for q in b:
+            lo, hi = max(min(p), min(q)), min(max(p), max(q))
+            if hi > lo:
+                out.append([lo, hi])
+    return out
+
+
+def _best_exterior(lines, const, lo, hi):
+    best = None
+    for f in lines:
+        d = abs(f["pos"] - const)
+        if d > POS_TOL_M:
+            continue
+        cov = _cover(f["runs"], lo, hi)
+        if best is None or (cov, -d) > best[0]:
+            best = ((cov, -d), {"matched": f["label"], "kind": "face",
+                                "offset_m": round(d, 4), "span_coverage": round(cov, 3)})
+    return best
+
+
+def _best_interior(lines, const, lo, hi):
+    """Two face lines straddling the target, scored where both are drawn."""
+    best = None
+    for i, a in enumerate(lines):
+        for b in lines[i + 1:]:
+            gap = abs(a["pos"] - b["pos"])
+            if gap <= 0.0 or gap > MAX_WALL_M:
+                continue
+            if not (min(a["pos"], b["pos"]) < const < max(a["pos"], b["pos"])
+                    or abs((a["pos"] + b["pos"]) / 2.0 - const) <= 1e-9):
+                continue
+            d = abs((a["pos"] + b["pos"]) / 2.0 - const)
+            if d > POS_TOL_M:
+                continue
+            cov = _cover(_intersect(a["runs"], b["runs"]), lo, hi)
+            if best is None or (cov, -d) > best[0]:
+                best = ((cov, -d), {"matched": f"{a['label']}+{b['label']}",
+                                    "kind": "straddling_pair",
+                                    "spacing_m": round(gap, 4),
+                                    "offset_m": round(d, 4),
+                                    "span_coverage": round(cov, 3)})
+    return best
 
 
 # ---------------------------------------------------------------- neuter ----
@@ -139,18 +217,15 @@ def _candidates(doc: dict, axis_is_x: bool):
 # discriminates must REMOVE information.  ``checks_as_drawn.py``'s merge_runs
 # mutation is the wrong direction here -- collapsing runs to [min,max] ADDS
 # span, so it would make this check greener, not redder.
-#
-# ⭐ Why these exist (2026-08-23): fixing P-1 and P-2 took sm24 from 70.0% to
-# 100.0%.  A check that has just gone all-green has to prove it can still go
-# red, or the jump is indistinguishable from having loosened the ruler.
 
 def _mutate(doc: dict, kind: str) -> str:
     lines = [f for band in doc["wall_bands"] for f in band["faces"]]
+    loose = doc.get("unpaired_face_lines", [])
     if kind == "punch_middle":
         # ⭐ The mutation the first neuter set missed (sol, 2026-08-23): a face
         # line read at both ends but not in the middle. This is what a reader
         # that loses a stretch of wall actually produces.
-        for f in lines + doc.get("unpaired_face_lines", []):
+        for f in lines + loose:
             out = []
             for a, b in f["runs_m"]:
                 lo, hi = sorted((a, b))
@@ -161,8 +236,7 @@ def _mutate(doc: dict, kind: str) -> str:
             f["runs_m"] = out
         return "MUTATED: middle 20% of every run longer than 0.5 m deleted"
     if kind == "shrink_runs":
-        # every drawn run loses a quarter of its length at each end
-        for f in lines + doc.get("unpaired_face_lines", []):
+        for f in lines + loose:
             out = []
             for a, b in f["runs_m"]:
                 lo, hi = sorted((a, b))
@@ -171,14 +245,24 @@ def _mutate(doc: dict, kind: str) -> str:
             f["runs_m"] = out
         return "MUTATED: every face-line run shortened 25% at each end"
     if kind == "keep_longest_run":
-        for f in lines + doc.get("unpaired_face_lines", []):
+        for f in lines + loose:
             if len(f["runs_m"]) > 1:
                 f["runs_m"] = [max(f["runs_m"], key=lambda r: abs(r[1] - r[0]))]
         return "MUTATED: only the longest run kept per face line"
     if kind == "drop_unpaired":
-        n = len(doc.get("unpaired_face_lines", []))
+        n = len(loose)
         doc["unpaired_face_lines"] = []
         return f"MUTATED: all {n} unpaired face lines dropped"
+    if kind == "drop_one_face":
+        # ⭐ G-1's own neuter: keep only one face of every band. Under the old
+        # lone-face interior rule this was invisible; a straddling-pair rule
+        # must see it.
+        n = 0
+        for band in doc["wall_bands"]:
+            if len(band["faces"]) == 2:
+                band["faces"] = band["faces"][:1]
+                n += 1
+        return f"MUTATED: second face removed from {n} bands"
     raise SystemExit(f"unknown mutation {kind!r}")
 
 
@@ -202,31 +286,21 @@ def main(gt_case: str, docs: dict[str, str], out_path: str,
         horizontal = abs(y2 - y1) < 1e-6
         const = y1 if horizontal else x1
         lo, hi = sorted((x1, x2) if horizontal else (y1, y2))
-        want_kinds = ("face",) if t.exterior else ("midline", "face")
-        best = None
-        for pos, runs, label, kind in _candidates(doc, axis_is_x=not horizontal):
-            if kind not in want_kinds:
-                continue
-            d = abs(pos - const)
-            if d > POS_TOL_M:
-                continue
-            cov = _cover(runs, lo, hi)
-            score = (cov, -d)
-            if best is None or score > best[0]:
-                best = (score, label, kind, d, cov)
+        lines = _face_lines(doc, axis_is_x=not horizontal)
+        best = (_best_exterior if t.exterior else _best_interior)(lines, const, lo, hi)
         row = {"target": t.key[:60], "floor": floor, "exterior": t.exterior,
                "horizontal": horizontal,
                "const": round(const, 3), "span": [round(lo, 3), round(hi, 3)],
                "length_m": round(hi - lo, 3)}
         if best is None:
-            row.update({"matched": None, "verdict": "NO_LINE_AT_COORDINATE"})
+            row.update({"matched": None,
+                        "verdict": "NO_LINE_AT_COORDINATE" if t.exterior
+                                   else "NO_STRADDLING_PAIR"})
             missing.append(row)
         else:
-            _s, label, kind, d, cov = best
-            ok = cov >= SPAN_MIN_COVER
-            row.update({"matched": label, "kind": kind, "offset_m": round(d, 4),
-                        "span_coverage": round(cov, 3),
-                        "verdict": "OK" if ok else "SHORT_COVERAGE"})
+            row.update(best[1])
+            ok = row["span_coverage"] >= SPAN_MIN_COVER
+            row["verdict"] = "OK" if ok else "SHORT_COVERAGE"
             if not ok:
                 missing.append(row)
         rows.append(row)
@@ -237,7 +311,13 @@ def main(gt_case: str, docs: dict[str, str], out_path: str,
     def rate(rs):
         return round(100.0 * sum(1 for r in rs if r["verdict"] == "OK") / max(1, len(rs)), 1)
 
+    used_gaps = sorted(r["spacing_m"] for r in rows
+                       if r["verdict"] == "OK" and "spacing_m" in r)
     summary = {"gt_case": gt_case, "mutation": note, "targets": len(rows),
+               # ⭐ the bound cannot hide behind the score: every wall spacing
+               # this run leaned on is reported.
+               "interior_pair_spacing_m": ([used_gaps[0], used_gaps[len(used_gaps) // 2],
+                                            used_gaps[-1]] if used_gaps else None),
                "exterior": {"n": len(ext), "ok_pct": rate(ext)},
                "interior": {"n": len(inte), "ok_pct": rate(inte)},
                "overall_ok_pct": rate(rows),
