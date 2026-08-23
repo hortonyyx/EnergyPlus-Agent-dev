@@ -239,7 +239,40 @@ def build_as_drawn(cfg: dict) -> dict:
     fitx = fits[cfg["primary_x_chain"]]
     fity = fits[cfg["primary_y_chain"]]
     mmpx = (fitx.mm_per_px + fity.mm_per_px) / 2.0
-    x_zero, y_zero = cfg["world_zero_px"]
+
+    # World zero is DERIVED from the same chain fit that gives the scale, not
+    # taken from the config.  The config value stays as a declared cross-check
+    # and its delta is written to the ledger, so a drawing where the two
+    # disagree gets NAMED instead of silently absorbed.
+    #
+    # Why this changed (measured 2026-08-23): the scale came from the fitted
+    # dimension chain but the origin was hand-entered.  Across the six axes of
+    # three drawings the hand-entered value agreed to within 0.31 px on five of
+    # them -- the two sm25 plans, which the orchestrator had tuned by eye -- and
+    # was off by 1.73 px (47.6 mm) on sm24's x axis, which nobody had looked at
+    # closely.  That single offset pushed sm24's east exterior face from 0.044 m
+    # to 0.092 m away from its gt line, past the 0.08 m tolerance, and was the
+    # real cause of P-2 (previously mis-diagnosed as a candidate-filter gap).
+    # An eyeballed number is accurate exactly where somebody looked hard.
+    def _chain_zero_px(fit, chain: dict) -> float:
+        """Pixel where this chain's world coordinate is 0."""
+        return fit.origin_px - chain["world_start_mm"] / (
+            chain["direction"] * fit.mm_per_px)
+
+    x_zero = _chain_zero_px(fitx, chains[cfg["primary_x_chain"]])
+    y_zero = _chain_zero_px(fity, chains[cfg["primary_y_chain"]])
+    declared_zero = cfg.get("world_zero_px")
+    zero_crosscheck = None
+    if declared_zero is not None:
+        zero_crosscheck = {
+            "declared_px": list(declared_zero),
+            "derived_px": [round(x_zero, 3), round(y_zero, 3)],
+            "delta_px": [round(declared_zero[0] - x_zero, 3),
+                         round(declared_zero[1] - y_zero, 3)],
+            "delta_mm": [round((declared_zero[0] - x_zero) * fitx.mm_per_px, 1),
+                         round((declared_zero[1] - y_zero) * fity.mm_per_px, 1)],
+            "source": "chain_fit",
+        }
 
     def to_x(px: float) -> float:
         return round((px - x_zero) * fitx.mm_per_px / 1000.0, 4)
@@ -326,7 +359,9 @@ def build_as_drawn(cfg: dict) -> dict:
             "x": fitx.as_dict(), "y": fity.as_dict(),
             "mm_per_px": round(mmpx, 6),
             "cross_axis_relative_deviation": round(abs(fitx.mm_per_px - fity.mm_per_px) / mmpx, 6),
-            "world_zero_px": [x_zero, y_zero],
+            "world_zero_px": [round(x_zero, 3), round(y_zero, 3)],
+            "world_zero_source": "chain_fit",
+            "world_zero_crosscheck": zero_crosscheck,
             "break_gap_px": round(break_gap_px, 2),
             "break_gap_basis": f"OPENING_MIN_M={OPENING_MIN_M} (signed domain bound, F-73)",
         },

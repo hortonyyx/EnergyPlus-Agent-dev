@@ -43,6 +43,32 @@ def _cover(runs: list[list[float]], lo: float, hi: float) -> float:
     return min(1.0, total / (hi - lo))
 
 
+def _full_extent(runs_m: list[list[float]],
+                 openings: list[list[float]] | None = None) -> list[list[float]]:
+    """A line's full drawn extent = its runs U openings U its INTERNAL break gaps.
+
+    A break between two consecutive runs is a hole in a wall (a doorway), not
+    the wall's end -- the wall's end is simply where the run set stops.  Both
+    the runs and the gaps are already transcribed, so nothing new is judged
+    here.  Openings are the band's transcribed fenestration runs; a line with
+    no band (an unpaired face line) has none, and gets the gap union only.
+
+    ⭐ P-1 fix (2026-08-23): this used to be a closure applied to paired band
+    faces only, while unpaired face lines were compared on their RAW runs.  The
+    two are the same kind of object, so the asymmetry understated coverage
+    wherever pairing failed -- measured on sm24, every SHORT_COVERAGE row was
+    matched to an unpaired line (U09/U11/U57).
+    """
+    runs = [list(r) for r in runs_m]
+    if openings:
+        runs += [list(o) for o in openings]
+    for i in range(len(runs_m) - 1):
+        lo, hi = sorted((max(runs_m[i]), min(runs_m[i + 1])))
+        if hi > lo:
+            runs.append([lo, hi])
+    return runs
+
+
 def _candidates(doc: dict, axis_is_x: bool):
     """(constant coord, along-runs, label) for every face line and band midline."""
     out = []
@@ -50,35 +76,17 @@ def _candidates(doc: dict, axis_is_x: bool):
         want = "x" if axis_is_x else "y"
         if band["constant_world_axis"] != want:
             continue
-        # A wall's full extent as drawn = its drawn runs UNION its openings.
         # gt records the wall as one continuous entity (openings are separate
         # objects), so comparing drawn runs alone would score every window as a
         # hole in the wall.
         ops = [o["run_m"] for o in band.get("opening_runs", [])]
-
-        def _full(face):
-            # drawn runs U openings U the face's own INTERNAL break gaps. A break
-            # between two runs is a hole in a wall (a doorway), not the wall's
-            # end -- the wall's end is simply where the run set stops. The gaps
-            # are already transcribed, so no new judgement is introduced.
-            runs = [list(r) for r in face["runs_m"]] + [list(o) for o in ops]
-            rp = face["runs_px"]
-            for g, (lo_px, hi_px) in zip([g for g in face["gaps"] if g["class"] == "break"],
-                                         [(a[1], b[0]) for a, b in zip(rp, rp[1:])]):
-                pass
-            # map each internal px gap to metres via the neighbouring runs
-            for i in range(len(face["runs_m"]) - 1):
-                a = max(face["runs_m"][i]); b = min(face["runs_m"][i + 1])
-                lo, hi = sorted((a, b))
-                if hi > lo:
-                    runs.append([lo, hi])
-            return runs
-
         for f in band["faces"]:
-            out.append((f["pos_m"], _full(f), f"{band['id']}.{f['role']}", "face"))
+            out.append((f["pos_m"], _full_extent(f["runs_m"], ops),
+                        f"{band['id']}.{f['role']}", "face"))
         if len(band["faces"]) == 2:
             mid = (band["faces"][0]["pos_m"] + band["faces"][1]["pos_m"]) / 2.0
-            out.append((mid, _full(band["faces"][0]), f"{band['id']}.mid", "midline"))
+            out.append((mid, _full_extent(band["faces"][0]["runs_m"], ops),
+                        f"{band['id']}.mid", "midline"))
     # An UNPAIRED face line is still transcribed information -- it is in the
     # product, just without a partner. Excluding it would understate what the
     # as-drawn layer carries (sm25 2f's x=9.146 partition is exactly this case).
@@ -89,20 +97,60 @@ def _candidates(doc: dict, axis_is_x: bool):
         runs_m = l.get("runs_m")
         if runs_m is None:
             continue
-        out.append((l["pos_m"], runs_m, f"U{i:02d}", "face"))
+        out.append((l["pos_m"], _full_extent(runs_m), f"U{i:02d}", "face"))
     return out
 
 
-def main(gt_case: str, docs: dict[str, str], out_path: str) -> int:
+# ---------------------------------------------------------------- neuter ----
+# This check asks "is the information still THERE", so a neuter that proves it
+# discriminates must REMOVE information.  ``checks_as_drawn.py``'s merge_runs
+# mutation is the wrong direction here -- collapsing runs to [min,max] ADDS
+# span, so it would make this check greener, not redder.
+#
+# ⭐ Why these exist (2026-08-23): fixing P-1 and P-2 took sm24 from 70.0% to
+# 100.0%.  A check that has just gone all-green has to prove it can still go
+# red, or the jump is indistinguishable from having loosened the ruler.
+
+def _mutate(doc: dict, kind: str) -> str:
+    lines = [f for band in doc["wall_bands"] for f in band["faces"]]
+    if kind == "shrink_runs":
+        # every drawn run loses a quarter of its length at each end
+        for f in lines + doc.get("unpaired_face_lines", []):
+            out = []
+            for a, b in f["runs_m"]:
+                lo, hi = sorted((a, b))
+                cut = (hi - lo) * 0.25
+                out.append([lo + cut, hi - cut])
+            f["runs_m"] = out
+        return "MUTATED: every face-line run shortened 25% at each end"
+    if kind == "keep_longest_run":
+        for f in lines + doc.get("unpaired_face_lines", []):
+            if len(f["runs_m"]) > 1:
+                f["runs_m"] = [max(f["runs_m"], key=lambda r: abs(r[1] - r[0]))]
+        return "MUTATED: only the longest run kept per face line"
+    if kind == "drop_unpaired":
+        n = len(doc.get("unpaired_face_lines", []))
+        doc["unpaired_face_lines"] = []
+        return f"MUTATED: all {n} unpaired face lines dropped"
+    raise SystemExit(f"unknown mutation {kind!r}")
+
+
+def main(gt_case: str, docs: dict[str, str], out_path: str,
+         *, mutate: str | None = None) -> int:
     gt = load_gt_document(gt_case)
     targets = extract_gt_plan_segments(gt)
     rows, missing = [], []
+    loaded: dict[str, dict] = {}
+    note = None
+    for floor_id, path in docs.items():
+        loaded[floor_id] = json.loads(Path(path).read_text())
+        if mutate:
+            note = _mutate(loaded[floor_id], mutate)
     for t in targets:
         floor = t.floor_id
-        doc_path = docs.get(floor)
-        if doc_path is None:
+        doc = loaded.get(floor)
+        if doc is None:
             continue
-        doc = json.loads(Path(doc_path).read_text())
         (x1, y1), (x2, y2) = tuple(t.p1), tuple(t.p2)
         horizontal = abs(y2 - y1) < 1e-6
         const = y1 if horizontal else x1
@@ -142,7 +190,7 @@ def main(gt_case: str, docs: dict[str, str], out_path: str) -> int:
     def rate(rs):
         return round(100.0 * sum(1 for r in rs if r["verdict"] == "OK") / max(1, len(rs)), 1)
 
-    summary = {"gt_case": gt_case, "targets": len(rows),
+    summary = {"gt_case": gt_case, "mutation": note, "targets": len(rows),
                "exterior": {"n": len(ext), "ok_pct": rate(ext)},
                "interior": {"n": len(inte), "ok_pct": rate(inte)},
                "overall_ok_pct": rate(rows),
@@ -161,4 +209,5 @@ def main(gt_case: str, docs: dict[str, str], out_path: str) -> int:
 
 
 if __name__ == "__main__":
-    raise SystemExit(main(sys.argv[1], json.loads(sys.argv[2]), sys.argv[3]))
+    raise SystemExit(main(sys.argv[1], json.loads(sys.argv[2]), sys.argv[3],
+                          mutate=sys.argv[4] if len(sys.argv) > 4 else None))

@@ -112,41 +112,170 @@ as-drawn 同时携带两者，correction 想出哪个框都行。）
 | | 外轮廓 | 内墙 | 总体 |
 |---|---|---|---|
 | **sm25（两层，75 条目标）** | **100.0%** | **93.2%** | **94.7%** |
-| sm24（20 条目标） | 75.0% | 68.8% | 70.0% |
+| **sm24（20 条目标）** | **100.0%** | **100.0%** | **100.0%** |
+
+> ⚠️ sm24 这一行**第一轮读数是 75.0 / 68.8 / 70.0**，差额全部来自两处**本层之外**的缺陷
+> （P-1 = 反证脚本自己的不对称口径；P-2 = 产物原点手填）。两处修完后见 §四 / §五。
+> ⛔ **不是把判据改松**：同一把尺子在三种丢信息变异下仍全部报红（§五）。
 
 **sm25 剩下的 4 条全部是 0.12 米长的转角碎片**（`(5,14)→(5,14.12)` 与 `(15,5.88)→(15,6)`），
 是答案在 Z 形拐角处的分区铺砌产物，不是墙。
 
-⇒ **结论：as-drawn 层没有丢信息，彻底版不会退化。**
+⇒ **结论：as-drawn 层没有丢信息，彻底版不会退化。**（平面 94.7 / 100.0，立面 34/34 见 §六）
 
 ---
 
-## 四、⛔ 已知缺口（如实登记，未修）
+## 四、缺口台账（P-1…P-6）
 
-| # | 缺口 | 性质 |
+| # | 缺口 | 状态（2026-08-23 第二轮） |
 |---|---|---|
-| P-1 | **sm24 反证只有 70%**。逐条查过：失败项 `matched=U09/U11/U57` 全是**未配对面线**，而反证脚本只对成对墙带做「∪断口∪洞口」的合并，未配对线拿的是裸区间 ⇒ 覆盖率被系统性低估 | **反证脚本的缺口**，非信息丢失 |
-| P-2 | sm24 `NO_LINE_AT_COORDINATE 外 x=10.0 span y[0,20]`：该坐标附近确有未配对面线（9.944 / 10.045），是候选筛选还有缝 | 同上 |
-| P-3 | **sm24 未配对面线 69 / 111**（sm25 只有 3 / 49）。其中至少 4 对间距 ≈124 mm，而 sm24 的配置只声明了 240 ⇒ 图上很可能有未声明的 120 mm 隔墙 | ⭐ **对账门起作用了**：没声明的形态被点名，而不是被静默吸收 |
-| P-4 | sm24 反向对账仍有 2 条红（最差 0.74） | 未诊断 |
-| P-5 | 成对性判据在这三张图上**从未报红**（最大偏差 1.00 px）⇒ **尚未证明有分辨力**，按收录判据只能算 provisional | 登记 |
-| P-6 | 立面尚未做 as-drawn 形态（本轮只做平面） | 待办 |
+| P-1 | 反证脚本只对**成对**墙带做「∪断口∪洞口」的合并，未配对面线拿**裸区间** ⇒ 覆盖率被系统性低估 | ✅ **已修**。两者是同一种东西，统一走 `_full_extent()`。实测 sm24 内墙 68.8% → **100.0%** |
+| P-2 | ~~「该坐标附近确有未配对面线 9.944 / 10.045，候选筛选还有缝」~~ | ⛔ **上一轮判读错了**：那两条是 `axis="row"`（水平线，常数 y≈10），我把 `pos_m` 的数值当成了 x 坐标。**真因在产物侧**：`as_drawn.py` 的尺度取自链拟合、**原点却取自 cfg 手填的 `world_zero_px`**。✅ **已修**（原点改为从同一次链拟合导出）|
+| P-3 | sm24 未配对面线 69/111（sm25 只有 3/49），其中至少 4 对间距 ≈124 mm，而 cfg 只声明了 240 | **登记**。⭐ 实测**不能靠补声明解决**：把 120 补进 sm24 声明后墙带 21→56、反向对账红 2→6、间距判据红 0→21 —— 多出来的全是家具框（sm24 家具与结构同色） |
+| P-4 | sm24 反向对账仍有 2 条红（最差 0.74），未诊断 | ✅ **已诊断**：**它是 P-3 的症状，不是独立缺陷**。像素实测：真墙 = 第 319–321 与 324–325 列两条面线（间距 ≈120 mm，未声明故配不上对），配对器转而把左面线跟 **10.04 px 外一个家具框的竖边**配成「240 墙」，那条假面线压在家具墨迹上 ⇒ 覆盖 0.74 报红。⭐ **反证在两种声明下都是 100%** ⇒ 这是**多画**问题不是**漏画**问题 |
+| P-5 | 成对性判据从未在真实夹具上报过红 ⇒ 尚未证明有分辨力 | **仍 provisional**（本轮未新增证据）|
+| P-6 | 立面尚未做 as-drawn 形态 | ✅ **已做**（见 §六）|
+
+## 五、⭐ 反证判据本身的分辨力（本轮补）
+
+sm24 从 70.0% 跳到 100.0%，**一个刚变全绿的判据必须证明自己还能变红**，否则跟「把尺子改松了」
+在产物上不可区分。三种**丢信息**的变异（⛔ `checks_as_drawn.py` 的 `merge_runs` 方向不对——
+把 runs 塌成 `[min,max]` 会让覆盖变**高**）：
+
+| 变异 | sm24 | sm25 |
+|---|---|---|
+| 正常 | **100.0** | **94.7** |
+| 每段两端各截 25% | 🔴 65.0 | 🔴 53.3 |
+| 每条面线只留最长一段 | 🔴 40.0 | 🔴 42.7 |
+| 删掉全部未配对面线 | 🔴 50.0 | 🔴 93.3 |
+
+两处修法的**功劳可分离**（各修一头，且都必要）：
+
+| | 外轮廓 | 内墙 | 总体 |
+|---|---|---|---|
+| 基线 | 75.0 | 68.8 | 70.0 |
+| 只修 P-1（脚本） | 75.0 | **100.0** | 95.0 |
+| 只修原点（产物） | **100.0** | 81.2 | 85.0 |
+| **两处都修** | **100.0** | **100.0** | **100.0** |
+
+⭐ **sm25 在四种组合下逐格不变（94.7%）**，没有被这两处改动伤到。三条不读 gt 的自证判据也逐条不变。
+
+### ⭐ 原点那一格：「靠看」留下的最后一处
+
+六根轴（三张图 × x/z）里，手填 `world_zero_px` 与链拟合导出值的差：
+
+| | x | y/z |
+|---|---|---|
+| sm25 1f | −0.314 px（−6.8 mm）| −0.182 px |
+| sm25 2f | +0.246 px | +0.295 px |
+| **sm24 1f** | **−1.730 px（−47.6 mm）** | +0.194 px |
+
+五根准、一根偏 —— 偏的正是**我没细看的那张跨 case 图**。那 1.73 px 把 sm24 东墙外皮从
+离答案 0.044 m 顶到 0.0917 m，越过 0.08 容差，就是 P-2 的全部内容。
+⇒ 手填值现已降级为**声明的交叉核对**，差值逐轴记进 `calibration.world_zero_crosscheck`
+（[[declare-the-dialect-plus-consumption-ledger]]：没对上的形态要被点名，不能静默吸收）。
 
 ---
 
-## 五、文件
+## 六、⭐⭐ 立面 as-drawn（P-6，本轮新做，此前一次都没试过）
 
-- `tools/as_drawn.py` — 形态提取（面线真实区间 + 成对 + 洞口墨迹 + 见证刻度）
-- `tools/checks_as_drawn.py` — 三条自证判据 + `merge_runs` neuter 变异
-- `tools/reconstruct_check.py` — 信息没丢反证（**唯一读 gt 的**）
-- `out/*_as_drawn.json` · `out/*_checks.json` · `out/*_checks_MUTATED.json` · `out/*_reconstruct.json`
+`tools/as_drawn_elev.py` — 与平面**同一套原则**，三处判断全部搬走：
+
+| 搬走的判断 | 原先在哪 | 现在交什么 |
+|---|---|---|
+| **吸附到刻度** | `assemble_elevation.py` 只发吸附后的数 | 裸像素测量 **+** 每条边的最近刻度、距离（px / mm）、该刻度上汇合的 dimension id |
+| **门窗分类** | `DOOR_MAX_SILL_M = 0.50` 就住在 reading 里 | 一律叫 `opening`；发**窗台高**与**离所站结构线的高度** |
+| **轮廓 / 楼层线 / 进深台阶线（R-4）** | `uncaptured` 里的一句散文 | 一等元素 `structure_lines`，走**平面那套同一个扫线器**（保留真实连续区间）·⛔ **不命名**（「哪条是地坪线」是识别，归 correction）|
+
+### 实测（sm25 四立面）
+
+结构线**条数自动跟着建筑形态走**，不是写死的：
+
+| | 洞口 | 结构线 | 其中 |
+|---|---|---|---|
+| East | 13 | 6 | x=0.001 / **5.997（R-4 进深台阶）** / 19.996 · z=7.202 / 3.600 / −0.002 |
+| North | 8 | 6 | x=−0.001 / 10.003 / 24.997 |
+| South | 7 | 6 | x=0.004 / 4.998 / 24.998 |
+| West | 6 | 6 | x=0.001 / 6.000 / 20.001（楼层线 2 段，`span_ratio` 0.97）|
+
+⇒ **34 个洞口 = 31 窗 + 3 门**，与 gt 逐面一致（东 12+1门 · 北 8 · 南 7 · 西 4+2门）。
+⭐ **三樘门不再丢**：旧形态因为 schema 没有 `door` 笔把它们写进 `uncaptured`，新形态里它们就是普通洞口。
+
+### 反证（`tools/reconstruct_elev_check.py`，⛔ 唯一读 gt 的立面脚本）
+
+用该 run 自己的 score binding（`world_along = along_origin + sign × local_x`）换算，⛔ **不施加吸附**：
+
+**34 / 34 全部还原 · 最大误差 0.0326 m · 中位 0.0215 m**（≈1.6 px @13.6 mm/px）
+
+分辨力（丢信息变异）：整体沿墙平移 0.10 m ⇒ **0/34**；丢掉小洞口 ⇒ 22/34。
+
+### ⭐ 门窗可分性：应该量哪个数
+
+判据不由 reading 施加，但**必须验证下游拿得到足够信息**：
+
+| 测量量 | 门（3 个） | 窗（31 个） | 空档 |
+|---|---|---|---|
+| **离自己所站那条结构线的高度** | [0.182, 0.183] | [0.968, **0.984**] | 0.785 m |
+| 裸窗台高 `sill` | [0.181, 0.181] | [0.968, **4.587**] | 0.785 m |
+
+两者空档一样宽，但前者**与楼层无关**（窗族收在 16 mm 带内，后者因二层窗摊开 3.6 m）
+⇒ **阈值下放 correction 时应当量前者**。⚠️ 单栋建筑 n=1，**provisional**；且真定阈值时它是
+领域参数、须签字（[[silent-default-threshold-behind-otherwise-conclusions]]）。
+
+### 跨方言探针（不需标定，只验形态的两个核心假设）
+
+| case | 立面洞口 | 结构线/张 | 极性 |
+|---|---|---|---|
+| sm25（两层 L 形）| 13+8+7+6 = **34** = gt 34 ✓ | 6 | measured |
+| **sm24（单层矩形）**| 4+2+3+5 = **14**，**逐面与 gt 完全一致** ✓ | 4（无楼层线、无台阶线）| measured |
+| sm21（两层矩形）| 2+5+8+2 = 17 | 5（多一条楼层线）| measured |
+| **sm20（纯灰度）**| **0** | 4 | 🟡 **POLARITY_AMBIGUOUS** |
+
+⭐ sm24 **零调参逐面对上**，是形态跨方言成立的第一份硬证据。
+sm20 的显式降级按 F-69 那条规矩响了（⛔ 不给自信的错答案）。
+⚠️ **未验的**：sm24/sm21 立面只数了洞口个数，**坐标没验**（需手工转录四组尺寸链，本轮未做）。
+
+---
+
+## 七、文件
+
+**平面**
+- `tools/as_drawn.py` — 形态提取（面线真实区间 + 成对 + 洞口墨迹 + 见证刻度）；⭐ 本轮原点改为链拟合导出
+- `tools/checks_as_drawn.py` — 三条自证判据 + `merge_runs` 变异
+- `tools/reconstruct_check.py` — 信息没丢反证；⭐ 本轮修 P-1 + 补三种丢信息变异
+
+**立面（本轮新增）**
+- `tools/as_drawn_elev.py` — 立面形态提取（结构线 + 裸洞口 + 刻度证据）
+- `tools/reconstruct_elev_check.py` — 立面反证（**唯一读 gt 的**）
+
+**其它**
+- `tools/render_grade.py` — 人工复核用的判卷图（⛔ 只是视图，不重算分数）
+- `out/*_as_drawn.json` · `out/*_checks.json` · `out/*_reconstruct.json` · `out/*_MUT_*.json`
 
 复现：
 
 ```bash
 EXP=AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype
+B=case_tests/e2e_tests/sm25-L_anchor/run_2026-08-22_orchestrator_handson_H2_fullcase/_run/judge_score_bindings.json
+
+# 平面
 python3 $EXP/tools/as_drawn.py $EXP/tools/cfg_1f_full.json $EXP/out/sm25_1f_as_drawn.json
 python3 $EXP/tools/checks_as_drawn.py $EXP/out/sm25_1f_as_drawn.json $EXP/tools/cfg_1f_full.json $EXP/out/sm25_1f_checks.json
-python3 $EXP/tools/checks_as_drawn.py $EXP/out/sm25_1f_as_drawn.json $EXP/tools/cfg_1f_full.json /tmp/x.json merge_runs   # 必须红
-python3 $EXP/tools/reconstruct_check.py sm25-L_anchor '{"F1":"'$EXP'/out/sm25_1f_as_drawn.json","F2":"'$EXP'/out/sm25_2f_as_drawn.json"}' $EXP/out/sm25_reconstruct.json
+python3 $EXP/tools/reconstruct_check.py sm24_anchor '{"F1":"'$EXP'/out/sm24_1f_as_drawn.json"}' /tmp/r.json
+python3 $EXP/tools/reconstruct_check.py sm24_anchor '{"F1":"'$EXP'/out/sm24_1f_as_drawn.json"}' /tmp/r.json shrink_runs   # 必须红
+
+# 立面
+for f in east north south west; do
+  python3 $EXP/tools/as_drawn_elev.py $EXP/tools/cfg_$f.json $EXP/out/sm25_${f}_as_drawn.json
+done
+python3 $EXP/tools/reconstruct_elev_check.py sm25-L_anchor $B \
+  '{"East_view":"'$EXP'/out/sm25_east_as_drawn.json","North_view":"'$EXP'/out/sm25_north_as_drawn.json","South_view":"'$EXP'/out/sm25_south_as_drawn.json","West_view":"'$EXP'/out/sm25_west_as_drawn.json"}' \
+  $EXP/out/sm25_elev_reconstruct.json
 ```
+
+---
+
+## 八、⏭ 下一步
+
+**设计稿已出** → [`design_as_drawn_layer.md`](design_as_drawn_layer.md)（走跨家族审，因为 B 步动 gt 不可逆）。
+本轮把 plan.md 五步里的 **A 步做完**（P-1/P-2 修完 + P-4 诊断 + 立面形态 + 设计稿）。
