@@ -231,13 +231,31 @@ sm24 从 70.0% 跳到 100.0%，**一个刚变全绿的判据必须证明自己�
 ⇒ **34 个洞口 = 31 窗 + 3 门**，与 gt 逐面一致（东 12+1门 · 北 8 · 南 7 · 西 4+2门）。
 ⭐ **三樘门不再丢**：旧形态因为 schema 没有 `door` 笔把它们写进 `uncaptured`，新形态里它们就是普通洞口。
 
-### 反证（`tools/reconstruct_elev_check.py`，⛔ 唯一读 gt 的立面脚本）
+### 反证之一：洞口（`tools/reconstruct_elev_check.py`）
 
 用该 run 自己的 score binding（`world_along = along_origin + sign × local_x`）换算，⛔ **不施加吸附**：
 
 **34 / 34 全部还原 · 最大误差 0.0326 m · 中位 0.0215 m**（≈1.6 px @13.6 mm/px）
 
 分辨力（丢信息变异）：整体沿墙平移 0.10 m ⇒ **0/34**；丢掉小洞口 ⇒ 22/34。
+
+### ⭐⭐ 反证之二：结构线（`tools/reconstruct_elev_lines_check.py`，⛔ 未改 gt 一个字节）
+
+跨家族审指出：洞口那份反证只遍历 `gt.openings`，**新升为一等元素的结构线在 gt 里没有对应目标**
+⇒ 「一面输出一面说不用管」不成立。**补上了，而且结论仍是「不用动 gt」——但理由换了，这次有实证**：
+这些目标**已经躺在答案里**，只是在为别的目的放进去的字段上。
+
+| 结构线 | 由现有 gt 的哪个字段推出 |
+|---|---|
+| 地坪 / 楼层线 / 屋面 | `floors[].z_floor_m` + `ceiling_height_m` ⇒ 0.0 / 3.6 / 7.2 |
+| 左右轮廓 | 该立面族 `boundary_segments[].world_along_interval` 的外包 |
+| **R-4 进深台阶线** | 同一立面族里 **`depth` 发生变化的那个 along 坐标** |
+
+> **24 / 24 全部对上 · 最大误差 0.0065 m** · 进深台阶 **4/4** · 楼层 **12/12** · 轮廓 **8/8** ·
+> **`unpredicted_lines` = 0**。分辨力：全体平移 0.10 m ⇒ **0/24**。
+
+⚠️ 「答案能预测每一条画出来的线」这个更强的主张**本轮没挣到**（只测了一栋楼）
+⇒ 脚本把预测不到的线报成 `unpredicted` 而**不计分**。
 
 ### ⭐ 门窗可分性：应该量哪个数
 
@@ -276,7 +294,8 @@ sm20 的显式降级按 F-69 那条规矩响了（⛔ 不给自信的错答案�
 
 **立面（本轮新增）**
 - `tools/as_drawn_elev.py` — 立面形态提取（结构线 + 裸洞口 + 刻度证据）
-- `tools/reconstruct_elev_check.py` — 立面反证（**唯一读 gt 的**）
+- `tools/reconstruct_elev_check.py` — 洞口反证（读 gt）
+- `tools/reconstruct_elev_lines_check.py` — **结构线反证**（读 gt；目标由 `z_floor_m` / `depth` 推出）
 
 **其它**
 - `tools/render_grade.py` — 人工复核用的判卷图（⛔ 只是视图，不重算分数）
@@ -309,7 +328,12 @@ python3 $EXP/tools/reconstruct_elev_check.py sm25-L_anchor $B \
 
 本轮把 plan.md 五步里的 **A 步做完**（P-1/P-2 修完 + P-4 诊断 + 立面形态 + 设计稿 + 送审）。
 
-**⛔ 设计稿已送跨家族审，裁决 = REJECT** → [裁决全档](../../reviews/verdict/2026-08-23_as_drawn_design_crossreview_sol.md)。
-六条 findings 主控已逐条复算、**全部属实**；其中两条（并集 / 桥接）本轮当场修完，
-其余五条须**重写设计稿 §5.3 与 schema 边界**后再送二审。
-⛔ **B 步（动 gt）在此之前冻结。**
+**⛔ 设计稿 v1 已送跨家族审，裁决 = REJECT** → [裁决全档](../../reviews/verdict/2026-08-23_as_drawn_design_crossreview_sol.md)。
+六条 findings 主控已逐条复算、**全部属实**。
+**⇒ [设计稿 v2 已重写完毕](design_as_drawn_layer.md)（累计式自包含），待拍板送二审**：
+① reading 里**一个阈值都不留**，空档当观测量交（长度/门窗墨/穿越结构墨，三类本来就分得开，代价只多 13 段）·
+② schema 改**三层制**（观测 / 声明 / 派生假设），**两侧对称** ·
+③ 立面结构线用现有 gt 验通 **24/24** ·
+④ **修正了一审对配对器的诊断**（贪心在但不是 sm24 的病因；实测 sm24 歧义 0 条、82 条零伙伴）·
+⑤ 接受一审驳回：未配对面线**不得**直接进可评分 gt（CAD 里混有门垛横截面线）。
+⛔ **B 步（动 gt）在二审通过前冻结。**
