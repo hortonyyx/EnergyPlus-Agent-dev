@@ -134,3 +134,42 @@ venv 里有个 stale 的 editable-install `.pth` **硬编码指向主树** `/wor
 
 ⚠️ 请**只看**：派工单 + 本文 + `git diff 2b41cda..283e868`（实际为 `2b01ca6..283e868`）+ 你自己跑出来的输出。
 ⛔ **不要看施工方的长篇自述**（本项目纪律：复核简报只看原始需求 + diff + 测试输出）。
+
+---
+
+## 七、补充（2026-08-25 送审后追加，第一次审阅被请求方的 timeout 掐断后补入）
+
+### ① 主树权威全量基线已经跑出来了 —— 这是**数据**，⛔ 不是让你跳过判断
+
+```
+主树 /workspaces/EnergyPlus-Agent-dev  HEAD 2b01ca6
+python3 -m pytest -n auto -q
+→ 3010 passed / 1 failed / 3 errors / 13 xfailed   (701 s)
+
+FAILED tests/test_elevation_score_bindings.py::test_generator_fails_closed_on_sm25_multi_floor_fingerprint
+ERROR  tests/test_reading_typed_score_f67.py  × 3   (score_view_binding_invalid / identity mismatch)
+```
+
+请求方**另在昨天的提交 `f7d64f4` 上复跑过同样这些测试，红的是同样 4 项** ⇒ 与本次搬运无关。
+
+⇒ **你可以不必自己再跑一遍 12 分钟的全量**（除非你认为该跑）。但 ⭐ **§三#6 那个攻击面仍然成立且更尖锐了**：
+
+**施工方报的是 7 项（4 fail + 3 error），主树只有 4 项（1 fail + 3 error）。**
+多出的 3 项（DXF/inspect_dxf 契约、`test_zone_agent` 的 openai 依赖）**只在 worktree 里红**。
+请求方的解读是：这与施工方自己发现的 stale `.pth` 环境隐患（见 §四③）一致，
+即那 3 项是 **worktree 环境产物**，⛔ 不是「前置失败」。
+**请你独立判断这个解读对不对** —— 如果对，施工方那句「7 项皆前置」就是**过计**（虽非虚报）。
+
+### ② 请求方已登记 F-93（供你交叉核，⛔ 不要求你认同）
+
+那 4 项红的根因，请求方判定为：**gt 于 `e982eba`(08-23) 重签入库，而锁改于 `96604c9`(08-22)，gt 晚一天、锁没跟着走**。
+- `test_generator_fails_closed_on_sm25_multi_floor_fingerprint` assert「两层 footprint 指纹不一致时必须 fail closed」，
+  而 **08-22 用户拍板的 S1 修法正是让指纹逐位一致**；实测 sm25 两层指纹与顶点**逐位相同**
+  ⇒ 请求方判定**锁陈旧、非回归**，并据此推论「orchestrator 08-25 用该生成器建的六图绑定合法」。
+- ⭐ **这条推论如果错了，请求方今天整套 C2 评估的结论都要跟着作废。请你重点看这一条。**
+
+### ③ 时限说明
+
+第一次审阅被请求方设的 50 分钟 timeout 掐断，**GLM 侧没有任何产出丢失的证据**（输出仅 35 字节）。
+本次时限放宽。⭐ **请你把裁决文件【一开始就建起来】并随查随写**，⛔ 不要攒到最后一次性输出——
+这样即使再被掐断，已完成的部分也留得住。
