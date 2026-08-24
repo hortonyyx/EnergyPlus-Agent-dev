@@ -382,6 +382,7 @@ EnergyPlus 经 `WorkflowTool.run_simulation`（eppy + ConverterManager，idfpy �
 | [architecture/pipeline_stage_contracts.md](architecture/pipeline_stage_contracts.md) | **唯一「当前稳定架构」文档**（活）：逐阶段 输入·输出·校验 + 两道门 + 规范不变量 + 接缝缺口 |
 | [architecture/harness_versioning.md](architecture/harness_versioning.md) + [harness_versions.yaml](architecture/harness_versions.yaml) | **harness 版本管理**（2026-08-22 用户定）：能力点=建筑复杂度 × 图纸方言两根轴；**探索性不进版本、走完循环①–④对过 gt 的才进**；`known_gaps` 必填 |
 | [architecture/as_drawn_layer_contract.md](architecture/as_drawn_layer_contract.md) | ⭐ **as-drawn 层契约**（2026-08-24 六审 APPROVE 时随层落库）：谁能写观测层 · 画框/标定是已声明盲区 · 记成绩的四道闸 |
+| [architecture/reading_pipeline_architecture.md](architecture/reading_pipeline_architecture.md) | ⭐⭐⭐ **0_reading 唯一架构文档**（2026-08-25 用户令单独成文）：当前七步形态（量=代码·**认=模型**·11 道不读 gt 的门）· **目标形态 = `reading-agent` 拿 SOP+判例库+工具箱自选工序** · 三层归属（量具/工序/出口）· SOP≠判例 · 两条不让给 agent 的边界 · 演进路线 · **六条已知盲区**（单色图 / 「洞口=空档」是方言 / 尺寸只定尺子）|
 | [architecture/judge_grade_model.md](architecture/judge_grade_model.md) | **判卷子系统活规格**（gate② grade：reading+correction·平面+立面·三档色·容差带；§8b 开放 backlog=墙粒度/立面窗移位vs变尺寸/Hungarian/ambiguous/非方形）|
 | [guides/new_case_guide.md](guides/new_case_guide.md) | **主 Agent（编排器+judge②）操作手册**：换主控模型读此接手 |
 | [guides/reading_correction_split_guide.md](guides/reading_correction_split_guide.md) | **本批开发指南**（2026-08-23）：reading/correction 新分工 + 只判答案不判过程 + 八条硬纪律 + 验收尺度 |
