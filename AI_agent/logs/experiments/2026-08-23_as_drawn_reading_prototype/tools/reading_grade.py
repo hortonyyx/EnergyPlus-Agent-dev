@@ -145,8 +145,10 @@ def grade(doc: dict, den: dict, *, pos_tol: float = POS_TOL_M,
 
     rows, used_len = [], {ln["id"]: 0.0 for ln in lines}
     claimed: dict[tuple[str, float], int] = {}
+    tot_required = 0.0
     for t in den["targets"]:
         lo, hi = t["lo_m"], t["hi_m"]
+        tot_required += t.get("required_length_m", t["length_m"])
         best = None
         for ln in lines:
             if ln["axis"] != t["axis"]:
@@ -176,7 +178,7 @@ def grade(doc: dict, den: dict, *, pos_tol: float = POS_TOL_M,
             if best is None or cov > best[0]:
                 best = (cov, ln, ci)
         row = {"axis": t["axis"], "const_m": t["const_m"], "span": [lo, hi],
-               "length_m": t["length_m"]}
+               "length_m": t["length_m"], "holes": t.get("holes") or []}
         if best is None or best[0] <= 0:
             row.update({"verdict": "MISSING", "matched": None, "coverage": 0.0,
                         "uncovered": [[lo, hi]],
@@ -186,19 +188,33 @@ def grade(doc: dict, den: dict, *, pos_tol: float = POS_TOL_M,
             continue
         cov, ln, ci = best
         claimed[(ln["id"], t["const_m"])] = ci
-        frac = cov / max(1e-9, hi - lo)
+        # ⭐ 2026-08-25: a target may carry HOLES -- blanks the answer itself does
+        # not fill, because another wall lands there and the DXF is in two
+        # fragments across it (measured: zero ink of every family, and the
+        # distance merge alone invented 3.36 m of demand not in the answer).
+        # Ink there is neither required nor punished; the target stays ONE target
+        # so its ENDS remain where a cut really is expected (C3).
+        holes = t.get("holes") or []
+        req = _uncovered(holes, lo, hi) if holes else [[lo, hi]]
+        req_len = sum(b - a for a, b in req)
+        cov = sum(_covered(ln["runs"], a, b) for a, b in req)
+        frac = cov / max(1e-9, req_len)
         used_len[ln["id"]] += cov
         # C3: does a drawn end sit near each answer end?
         ends = [e for r in ln["runs"] for e in r]
         end_err = [min((abs(e - x) for e in ends), default=9.9) for x in (lo, hi)]
         row.update({"matched": ln["id"], "coverage": round(frac, 4),
+                    # ⛔ recorded, never reconstructed: `length_m * coverage` was
+                    # wrong the moment `coverage` became a fraction of the
+                    # REQUIRED span rather than the raw one (it read 100.4%).
+                    "covered_m": round(cov, 4), "required_m": round(req_len, 4),
                     "const_err_m": round(min(abs(c - t["const_m"]) for c in ln["consts"]), 4),
                     "end_err_m": [round(e, 3) for e in end_err],
                     "verdict": ("OK" if frac >= span_min and max(end_err) <= end_tol
                                 else "SHORT" if frac < span_min else "BAD_SPLIT")})
         # ⭐ view-only: the exact stretches the reading did not draw, so the grade
         # picture shows WHERE the loss is instead of only how much of it there is.
-        unc = _uncovered(ln["runs"], lo, hi)
+        unc = [u for a, b in req for u in _uncovered(ln["runs"], a, b)]
         row["uncovered"] = [[round(a, 4), round(b, 4)] for a, b in unc]
         row["uncovered_at_tjunction"] = [_lands_here(den, t["axis"], t["const_m"], a, b)
                                          for a, b in unc]
@@ -213,7 +229,10 @@ def grade(doc: dict, den: dict, *, pos_tol: float = POS_TOL_M,
                       and min(abs(c - t["const_m"]) for c in ln["consts"]) <= pos_tol]
                      + [(a["lo_m"], a["hi_m"]) for a in den.get("allowed_not_required", [])
                         if a["axis"] == ln["axis"]
-                        and min(abs(c - a["const_m"]) for c in ln["consts"]) <= pos_tol])
+                        and min(abs(c - a["const_m"]) for c in ln["consts"]) <= pos_tol]
+                     + [tuple(h) for t2 in den["targets"] for h in (t2.get("holes") or [])
+                        if t2["axis"] == ln["axis"]
+                        and min(abs(c - t2["const_m"]) for c in ln["consts"]) <= pos_tol])
         unexplained = drawn - sum(_covered(tgt, a, b) for a, b in ln["runs"])
         if unexplained >= extra_min:
             # ⭐ view-only: which stretches of this line nothing explains (多画)
@@ -258,8 +277,11 @@ def grade(doc: dict, den: dict, *, pos_tol: float = POS_TOL_M,
 
     n = len(rows)
     ok = sum(1 for r in rows if r["verdict"] == "OK")
-    tot_len = sum(r["length_m"] for r in rows)
-    cov_len = sum(r["length_m"] * r["coverage"] for r in rows)
+    # ⭐ the answer's REQUIRED length: raw span minus the holes the answer itself
+    # leaves blank.  ⛔ Using the raw span would keep demanding ink that is not in
+    # the answer (measured 2026-08-25: 3.36 m on sm25 1F alone).
+    tot_len = tot_required
+    cov_len = sum(r.get("covered_m", 0.0) for r in rows)
     extra_len = sum(e["unexplained_m"] for e in extras)
     return {
         "grade_version": "reading_grade_v1",

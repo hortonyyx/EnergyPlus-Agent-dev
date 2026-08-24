@@ -17,12 +17,11 @@ What a glance has to answer, in the user's words -- 画崩了 / 一般 / 画得�
 
   GREEN   the answer's wall, and the reading drew it            (画对)
   RED     the answer's wall, and the reading did NOT draw it    (漏画)
-  AMBER   ⚠️ 漏画 that sits exactly where a perpendicular wall lands and the
-          DRAWING ITSELF breaks the face line.  40-62% of the honest products'
-          red is this kind (measured 2026-08-24: zero ink of every family across
-          those stretches).  It is drawn apart because it is NOT the reading's
-          fault -- and because whether the denominator should keep requiring it
-          is an open decision.  ⛔ It is still counted as 漏画 in every number.
+  AMBER   a blank the ANSWER ITSELF leaves: another wall lands here and the gt
+          DXF is in two fragments across it (measured: zero ink of every family).
+          ⭐ 2026-08-25 the user ruled it is NOT deducted -- ink here is neither
+          required (C2) nor punished (C4).  It is still DRAWN, because a reader
+          has to be able to see where the answer stopped asking.
   MAGENTA ink the reading claims as wall that no target explains  (多画)
   Openings: box per opening the answer has -- green named right, amber named the
           wrong kind, red not found at all.
@@ -108,18 +107,20 @@ def render(doc_path: str, grade_path: str, out_path: str) -> dict:
     for r in detail["targets"]:
         lo, hi = r["span"]
         _seg(d, r["axis"], r["const_m"], lo, hi, to_x, to_y, C_OK, W_OK)
+    hole_m = 0.0
+    for r in detail["targets"]:                       # blanks the answer itself leaves
+        for a, b in r.get("holes") or []:
+            _seg(d, r["axis"], r["const_m"], a, b, to_x, to_y, C_TJ, W_BAD)
+            hole_m += b - a
+    # ⛔ One colour, one meaning: AMBER = the answer leaves it blank (not scored),
+    # RED = the reading missed it (scored).  The grader still carries a vestigial
+    # `uncovered_at_tjunction` flag from when amber WAS deducted; ignoring it here
+    # keeps 0.013 m of leftovers from painting "not scored" over a real miss.
     for r in detail["targets"]:
-        unc = r.get("uncovered") or []
-        flags = r.get("uncovered_at_tjunction") or [False] * len(unc)
-        for (a, b), at_tj in zip(unc, flags):
-            _seg(d, r["axis"], r["const_m"], a, b, to_x, to_y,
-                 C_TJ if at_tj else C_MISS, W_BAD)
-            if at_tj:
-                n_tj += 1
-                tj_m += b - a
-            else:
-                n_miss += 1
-                miss_m += b - a
+        for a, b in r.get("uncovered") or []:
+            _seg(d, r["axis"], r["const_m"], a, b, to_x, to_y, C_MISS, W_BAD)
+            n_miss += 1
+            miss_m += b - a
 
     # ---- layer 2: ink claimed as wall that no target explains (多画) --------
     n_extra = 0
@@ -157,8 +158,8 @@ def render(doc_path: str, grade_path: str, out_path: str) -> dict:
         (f"openings {tally['OK']}/{len(detail['openings'])} named right"
          + (f"   wrong kind {tally['WRONG_KIND']}" if tally["WRONG_KIND"] else "")
          + (f"   not found {tally['NOT_FOUND']}" if tally["NOT_FOUND"] else ""), FG),
-        (f"of the miss, {tj_m:.2f} m ({n_tj} places) is where a wall lands at a T "
-         f"and the drawing itself breaks the line  [amber]", C_TJ),
+        (f"amber = {hole_m:.2f} m the ANSWER leaves blank where another wall lands; "
+         f"NOT required, NOT punished", C_TJ),
         (f"{den['view']}   {den['targets']} targets   "
          f"perception graded {g['perception']['face_lines_graded']} face lines, "
          f"abstained {sum(g['perception']['abstained'].values())}", MUTED),
@@ -202,7 +203,7 @@ def render(doc_path: str, grade_path: str, out_path: str) -> dict:
 
     # legend, top-right
     key = [("answer drawn", C_OK), ("answer MISSED", C_MISS),
-           ("miss at T-junction", C_TJ), ("OVERDRAWN", C_EXTRA),
+           ("answer leaves blank", C_TJ), ("OVERDRAWN", C_EXTRA),
            ("opening ok", C_OPEN_OK), ("opening WRONG", C_OPEN_KIND)]
     bw = 210
     dd.rectangle([im.width - bw - 10, 8, im.width - 8, 12 + 22 * len(key)],

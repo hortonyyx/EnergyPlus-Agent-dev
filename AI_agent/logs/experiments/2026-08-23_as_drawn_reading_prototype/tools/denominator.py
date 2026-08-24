@@ -195,22 +195,70 @@ def denominator(dxf: Path, request_path: Path, view_id: str, *,
                 return True
         return False
 
-    targets, frag_hist, guarded = [], [], 0
+    # ⭐⭐ 2026-08-25 (user: "橙色标注，不扣分").  Second guard, SAME SHAPE as the
+    # opening one.  Measured: at a T-junction the answer's own DXF is already in
+    # two fragments -- x = 8.88 carries [9.644, 9.940] and [10.060, 10.364] with
+    # the perpendicular wall's two faces sitting at exactly y = 9.94 / 10.06 --
+    # and MERGE_M welded them into one 0.72 m target that then demanded ink no
+    # drawing has (measured: zero ink of EVERY family across the blank).  Over
+    # the whole view the distance merge invented 3.36 m that is not in the DXF
+    # (278.92 -> 282.28 m).  ⛔ So this is not "excusing" a miss: the denominator
+    # was requiring something the answer itself does not contain.
+    #
+    # ⛔ CONTAINMENT, not intersection: the blank must fit BETWEEN the two faces
+    # of ONE perpendicular wall.  A mere "some wall lands inside this blank" test
+    # would excuse a genuinely missed 3.64 m run (measured on 2F while this was
+    # still only a picture annotation).
+    LANDING_TOL_M = 0.05     # same slack the opening guard uses
+    LANDING_MAX_WALL_M = 0.50  # widest thing that can still BE a wall (240/120 declared)
+
+    perp_reach: dict[str, dict[float, list[tuple[float, float]]]] = {"x": {}, "y": {}}
+    for (gax, gconst), gspans in groups.items():
+        perp_reach["y" if gax == "x" else "x"].setdefault(gconst, []).extend(gspans)
+
+    def _crosses_a_wall_landing(axis, const, a, b):
+        """Is the blank exactly where ONE perpendicular wall lands on this face?"""
+        reaching = sorted(c for c, sp in perp_reach[axis].items()
+                          if any(lo - LANDING_TOL_M <= const <= hi + LANDING_TOL_M
+                                 for lo, hi in sp))
+        for i, c1 in enumerate(reaching):
+            for c2 in reaching[i + 1:]:
+                if c2 - c1 > LANDING_MAX_WALL_M:
+                    break
+                if c1 - LANDING_TOL_M <= a and b <= c2 + LANDING_TOL_M:
+                    return True
+        return False
+
+    targets, frag_hist, guarded, n_holes, hole_m = [], [], 0, 0, 0.0
     for (axis, const), spans in sorted(groups.items()):
         frag_hist.append(len(spans))
-        merged: list[list[float]] = []
+        merged: list[list] = []                      # [lo, hi, holes]
         for lo, hi in sorted(spans):
             if (merged and lo - merged[-1][1] <= merge_m
                     and not _crosses_opening(axis, const, merged[-1][1], lo)):
+                blank = (merged[-1][1], lo)
+                # ⭐ It is still ONE wall (so it stays ONE target, and its ENDS
+                # remain where a cut really is expected -- C3), but the answer
+                # itself has no ink across this blank, so it is not REQUIRED.
+                if blank[1] - blank[0] > 1e-9 and _crosses_a_wall_landing(axis, const, *blank):
+                    merged[-1][2].append([round(blank[0], 4), round(blank[1], 4)])
+                    n_holes += 1
+                    hole_m += blank[1] - blank[0]
                 merged[-1][1] = max(merged[-1][1], hi)
             else:
                 if merged and lo - merged[-1][1] <= merge_m:
                     guarded += 1
-                merged.append([lo, hi])
-        for lo, hi in merged:
+                merged.append([lo, hi, []])
+        for lo, hi, holes in merged:
+            span_m = hi - lo
+            req = span_m - sum(b - a for a, b in holes)
             targets.append({"axis": axis, "const_m": const,
                             "lo_m": round(lo, 4), "hi_m": round(hi, 4),
-                            "length_m": round(hi - lo, 4)})
+                            "length_m": round(span_m, 4),
+                            # ⭐ blanks the answer itself does not fill: ink here is
+                            # neither required (C2) nor punished (C4).
+                            "holes": holes,
+                            "required_length_m": round(req, 4)})
     frag_hist.sort()
 
     # ⭐ OPENING TARGETS (2026-08-24, F-87): the answer's own resolved openings,
@@ -251,6 +299,8 @@ def denominator(dxf: Path, request_path: Path, view_id: str, *,
                 "max": frag_hist[-1] if frag_hist else 0},
             "total_scoreable_length_m": round(sum(t["length_m"] for t in targets), 3),
             "merges_blocked_by_an_opening": guarded,
+            "wall_landing_holes": n_holes,
+            "wall_landing_hole_length_m": round(hole_m, 4),
         },
         "targets": targets,
         "allowed_not_required": allowed,
