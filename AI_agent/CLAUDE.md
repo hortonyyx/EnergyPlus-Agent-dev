@@ -44,8 +44,12 @@ orchestrator 当时判读为「病灶更窄 = 一个护栏类型选错」——*
 **本批（分支 `08.23_AsDrawnReading`）的三条目标**（2026-08-23 用户定）：
 1. **实现 reading、correction —— 代码与模型两轴的新分工**
 2. **对应的 gate、judge 跟上**
-3. 继续推进 harness。验收 = **sm21 / sm24 / sm25**，**先做 sm25** 再以历史校验；
-   **先探索性做好并完整跑过一遍**，⛔ **不着急降模型智力**
+3. 继续推进 harness。验收 = **sm21 / sm24 / sm25**；**先探索性做好并完整跑过一遍**，⛔ **不着急降模型智力**
+
+⭐ **执行次序（2026-08-25 用户定，覆盖此前的「先做 sm25」）**：
+**① 支线回并 → ② 统一按新 reading 做 → ③ 新 reading 落地后先拿 sm25 全流程撞通。**
+理由 = 拿旧格式 reading 测出来的结论，新 reading 落地后还得重测一遍。
+⭐⭐ 且用户定死：**「新 reading 本身就和 correction 是一体的，要一起改」** ⇒ ⛔ 不许只改一边。
 
 ⇒ **⭐ 展开与硬纪律全在 [guides/reading_correction_split_guide.md](guides/reading_correction_split_guide.md)**
 （用户令「这条线上的开发都先读这份指南」）。
@@ -223,45 +227,33 @@ EnergyPlus 经 `WorkflowTool.run_simulation`（eppy + ConverterManager，idfpy �
 > **八条硬纪律**（每条都有 08-23 实犯）· 验收尺度 · 两个专项的并入与留尾。
 > ⛔ 与本文其余各节冲突处，**reading/correction 分工与判分口径以该指南为准**。
 
-> **⭐⭐⭐ 2026-08-24 收工状态 banner（当前唯一口径）**
-> **分支 `08.23_AsDrawnReading`**（未合并）。⛔ **`src/` 一行未动** —— 全部在 `logs/experiments/` 探索档。
-> 逐段全档 → [plan.md 本日四段](plan.md) · [实验档](logs/experiments/2026-08-23_as_drawn_reading_prototype/README.md)
-> （一条命令重跑全部数字：`tools/run_all.py` → `out/RESULTS_v2.json`）。
+> **⭐⭐⭐ 2026-08-25 收工状态 banner（当前唯一口径）**
+> **分支 `08.23_AsDrawnReading`**（未合并）· 支线 `toolbox_into_src_08.25` @ `283e868`（**跨家族 APPROVE，待合并**）。
+> 逐段全档 → [plan.md 本日](plan.md) · [实验档](logs/experiments/2026-08-23_as_drawn_reading_prototype/README.md)。
 >
-> **① 认与量彻底分开**：识别的产物 = 独立文件 `perception/<case>.json`（族角色 · 配对 · 实心带 ·
-> 只观测到一个面 · 不是墙 · **逐洞口门窗身份** · ⭐「**我认不出来**」）。⛔ 代码不再按声明厚度筛配对、
-> 也不再按墨迹阈值判「这段是不是洞口」；**缺 perception 即响亮降级、双源即失败**。
-> 认出三件代码分不出的事：`240` 标注文字是无彩色的 · **族编号跨图不稳定** · sm24 无家具图层 ⇒ 78 条弃权。
+> **① reading 架构定稿并单独成文** → [architecture/reading_pipeline_architecture.md](architecture/reading_pipeline_architecture.md)
+> （**量具=代码当卡尺 · 工序=模型 · 出口=代码且 agent 改不动** · SOP 与判例是两份东西 ·
+> 落地节奏「先代码固定编排、后期改模型驱动」· 九条已知盲区）。
+> 判分口径细化：**reading 判「描得像不像」· correction 判「画得对不对」**（guide §四）。
+> **管子已拆**：`build()` 316 行 → 9 工序 + 薄 build + CLI `reading_toolbox.py`，**产物逐字节相同**。
+> **T 形接头已解**（用户定不扣分）：真因是分母凭空多要 3.36 m；`merge_m` **彻底不承重**。
 >
-> **② 判据现有十一条**（不读 gt）+ **可评分分母 `denominator_v1`** + **判分器 `reading_grade_v1`**
-> （位置 · 覆盖 · 错切 · 多画 · 门窗身份）。**诚实数**：sm25 1F **110 目标 / 100.0 / 98.6 / 31·31** ·
-> 2F 106 / 98.1 / 97.0 / 30·30 · sm24 70 / **95.7** / 97.5 / 20·21；gt 侧 **93.3 / 100.0**（由 perception 命名驱动）。
-> 「每道门都真红过也真绿过」是 `run_all.py` **机器统计**的（十一门全 ok）。
+> **② ⭐⭐ C2 首次被真正量过（sm25，⏸ 已停在 correction）**：L 形外轮廓 **8 顶点逐点对上、拓扑一致**，
+> 每点内缩 0.11–0.13 m = 半个 240 墙厚 ⇒ **形状全对、只差一条基准换算**；窗沿墙 **31/31 误差 0.0 m**。
+> ⛔ 但 **F-91 立面多平面是空的**（窗被画到楼外）· **F-92 cell 多边形未用** ·
+> ⭐⭐ **F-89 / F-90 两侧都没法判分** ⇒ **C 批不是没落地，是落地了但没有尺子量过**。
 >
-> **③ ⭐⭐⭐ 六审（GLM）APPROVE —— 可以开始动 gt（写 as-drawn 层）**，四条成绩闸随层落库 →
-> [层契约](architecture/as_drawn_layer_contract.md)。它八个攻击面**没找到一个赚钱的作弊**。
-> 前五轮全部未通过（三审 sol REJECT · 四审 GLM REWORK · **五审 GLM 复审 REWORK**）。
-> 每轮各击穿我一次：中间段没读到 · 一像素桥回整段墙 · **把真的漏读说成洞口** ·
-> **画穿一扇真窗 + 分母无墙/带身份** · ⭐ **`band_collapse`：两线墙塌成「自洽的带」，
-> 产物里没有一个假数，却在 C2/C4 上优于诚实产物且八门全绿**。
-> 五审的根因一句话：**所有自洽门都锚在「产物自选的观测孔径」上，没人问过这条支撑条是不是一条墨**。
-> 已补两道免阈值的门（**镜像 `_ink_groups` 自己的分组定义数墨列组数** · **区间必须与墨条重算相符**）
-> ⇒ **五轮累计九种作弊现在全部被拦或被拉开，十一道门每道都真红过也真绿过**。
-> ⛔ 并作废我上一轮声明的「分辨率级盲区」：**盲区不成立，是我选错了量**。
-> 每轮的作弊夹具都**永久留在矩阵里**（`crossreview_mutate_v2.py` / `glm_cheats.py` 等），修完全部拦下
-> （唯一例外：2f 上 1–2 px 的欠读，已声明为**分辨率级盲区**）。
-> ⚠️ 四审还证伪了我两个数：`merge_m` 的「干净平台」（**那次扫描在 D2 改之前跑的**）·
-> sm24 44.3% 的归因（真因是带方言错配，修完 95.7）。
-> ⚠️ 程序错误：**送审期间我还在改树**，审阅方只好钉冻结副本 ⇒ 送审后到裁决前不许动被审对象。
+> **③ ⛔ 全仓已红 4 项两天（F-93）**：gt 于 08-23 重签、锁改于 08-22，**gt 晚一天锁没跟着走**。
+> 权威全量 = **3010 passed / 1 failed / 3 errors / 13 xfailed**。另 **F-94**：venv `.pth` 硬编码主树
+> ⇒ **合并回主线前必须处理**（合并后踩坑从响亮失败变**静默串台**）。
 >
-> **④ gt 已放行书写；记成绩的四道闸 2/4 已做**（矩阵不许打包陈旧产物 ✅ · 层契约落字 ✅），
-> **剩下两件都要用户拍板**：
-> **`span_min` 签字**（等价于宣布「一堵墙漏画多少算漏」；⚠️ 六审实测**悬崖离诚实值只有 0.04**）·
-> ⭐ **冷启隔离读图器跑一次（要花钱、待用户拍板）** —— 本轮 perception 全是主控亲手且已看过 gt 侧结果，
-> **「模型能不能做到」至今没有回答**。**登记 F-86 / F-87 / F-88。**
+> **④ ⏭ 下一步（用户 08-25 定序）**：**支线回并 → 统一按新 reading 做 → 先拿 sm25 全流程撞通**。
+> ⭐⭐ **「新 reading 本身就和 correction 是一体的，要一起改」** —— 今天发现 **as-drawn 产物喂不进 correction**
+> （schema 与基准都不通、零接线）。⭐ **先拉 sol 讨论架构**（涉 reading 专项 + 出模专项主体）。
+> **登记 F-89 / F-90 / F-91 / F-92 / F-93 / F-94 + 债 D-1。**
 
 > **已翻篇的 banner（均逐字搬入 [`logs/worklog/2026-08_plan_log.md`](logs/worklog/2026-08_plan_log.md)）**：
-> **08-23 收工**（as-drawn v2 三层 · 语义去写死化 · 两轮 REJECT · R-6 更正）· **08-23 早间**（sm25 gt 入库 ·
+> **08-24 收工**（六审 APPROVE·gt 放行书写 · 五审 `band_collapse` · 可评分分母+判分器落成 · 模型真进环）· **08-23 收工**（as-drawn v2 三层 · 语义去写死化 · 两轮 REJECT · R-6 更正）· **08-23 早间**（sm25 gt 入库 ·
 > 判分首次跑通 · 真错只有三条且同源 · 推翻 F-78）· **08-22**（F-69 真因 · **开发循环六步** ⭐ 仍有效 ·
 > harness 版本管理）· **08-21 战略**（核心已进 §0.0；历史 reading 解剖 · 离线夹具 + 四道硬门）·
 > **08-20**（707 复现 · 立面载体方言层 F-65 · C2 首考 94.4%）· **08-16 reading 口径**（已被后续覆盖）。
@@ -274,6 +266,7 @@ EnergyPlus 经 `WorkflowTool.run_simulation`（eppy + ConverterManager，idfpy �
 
 | 日期 | 一句话 | 详档 |
 |---|---|---|
+| **2026-08-25** | ⭐⭐⭐ **reading 架构定稿并单独成文**（量具/工序/出口三层归属 · SOP≠判例 · 九条盲区）· **管子拆成 9 工序 + 工具箱 CLI**（产物逐字节相同）· **T 形接头已解**（`merge_m` 彻底不承重）· **grade 图落成** · ⭐⭐ **C2 首次被真正量过**（L 形 8 顶点逐点对上、只差半个墙厚；但 **F-91 立面多平面为空** / **F-92 cell 多边形未用** / **F-89·F-90 两侧都判不了分**）· **工具箱转正跨家族 APPROVE** · ⛔ **F-93 全仓已红两天**（gt 晚于锁一天入库）· **F-94 `.pth` 合并阻塞** · 派工「停下上报」累计 **23/23 全是派工方题错** | [架构](architecture/reading_pipeline_architecture.md) · [裁决](logs/reviews/verdict/2026-08-25b_toolbox_transplant_crossreview_glm_verdict.md) · [plan.md 本日](plan.md) |
 | **2026-08-24** | ⭐⭐⭐ **模型真进环**（perception 独立成文件：族角色 + 配对选择 + 「认不出来」；代码穷举候选**无阈值**）· ⭐⭐ **两把尺子互补是实测**（作弊在 gt 侧 93.3→97.3、在原图对账上 49 条违规）· 立面结构线判据 v2（清空 runs 从 24/24 → 0/24）· 新增两条判据（自洽重算 / 门窗族落位）· 登记 **F-86** · 实验 README 重写为纯 v2 口径。晚间：⭐⭐⭐ **可评分分母 + reading 判分器落成**（sm25 1F 108 目标 / 100% / 98.2%；作弊 0%）· 登记 **F-88** · ⛔⛔ **跨家族三审 REJECT**（新作弊=把真的漏读说成洞口 · 我的单像素变异从没跑到消费者）⇒ 补四道门 · 登记 **F-87/F-88**（F-88 已查清=只污染溯源、不动几何）。**夜间连打四→六审（GLM）**：四审证伪我两个数 · 五审 `band_collapse`（没有一个假数却优于诚实、八门全绿）· ⭐⭐⭐ **六审 APPROVE，gt 放行书写**，落 [层契约](architecture/as_drawn_layer_contract.md)，记成绩四道闸 2/4 已做（剩 `span_min` 签字 + 冷启首考，待用户）| [实验档](logs/experiments/2026-08-23_as_drawn_reading_prototype/README.md) · [RESULTS_v2.json](logs/experiments/2026-08-23_as_drawn_reading_prototype/out/RESULTS_v2.json) · [plan.md 本日](plan.md) |
 | **2026-08-23** | 上午：sm25 gt 签字入库 · **判分首次真正跑通** · ⭐⭐ 全案对答案「**真错只有三条且同源**」· 推翻 F-78 · 登记 F-83/84/85。下午起分叉 `08.23_AsDrawnReading`：**as-drawn v2 三层实现** · **语义去写死化**（颜色族发现 + 指派外部化）· ⛔ **两轮跨家族审均 REJECT** · ⭐⭐⭐ **用户定新分工与判分口径 → 本批开发指南成文** · R-6 更正 | [指南](guides/reading_correction_split_guide.md) · [实验档](logs/experiments/2026-08-23_as_drawn_reading_prototype/README.md) · [裁决](logs/reviews/verdict/) |
 | **2026-08-22** | **⭐⭐⭐ orchestrator 亲自下场跑通 sm25 1f+2f**：F-69 真因 = **门窗在独立颜色图层上而现行掩膜看不见它**（青色像素数实测 0）· A×B 对账落成代码规则（像素定哪段是洞口、刻度定边界）⇒ **31/31 扇窗坐标取自尺寸链、零笔无证据、12 条链闭合 0.0 mm** · **跨 case 迁到 sm24：11 扇历史窗逐个复现宽度全同** · 修 F-73 · 登记 F-74/75/76/77/78 | [全档](logs/experiments/2026-08-22_orchestrator_hands_on/README.md) · [SOP](logs/experiments/2026-08-22_orchestrator_hands_on/sop_plan_reading.md) · [缺口清单](logs/experiments/2026-08-22_orchestrator_hands_on/tool_gaps.md) |

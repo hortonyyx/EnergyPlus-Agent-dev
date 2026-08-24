@@ -23,7 +23,7 @@
 （请以它为准，本文只补充审阅要点）。
 
 **背景架构**（判断"这么放对不对"需要）→
-[`../../architecture/reading_pipeline_architecture.md`](../../architecture/reading_pipeline_architecture.md)。
+[`../../architecture/reading_pipeline_architecture.md`](../../../architecture/reading_pipeline_architecture.md)。
 
 ⛔ **本单明令不含任何新能力**：不调阈值、不加分支、不重构、不接线进 `run_pipeline`/gate①。
 

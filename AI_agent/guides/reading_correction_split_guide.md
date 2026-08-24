@@ -167,6 +167,22 @@ gt（原始信息 + 出模形式声明）
 ⛔ **由此纠正的一个倾向**：此前把完备性负担全压在 reading（读得足够好就不需要 correction）——
 **那是分工塌了**，不是 reading 强。correction 存在的理由是**收束**，不是**补漏**。
 
+### ⭐⭐⭐ 推论（2026-08-25 用户定死）：**reading 与 correction 是一体的，要一起改**
+
+> 用户原话：「**新 reading 本身就和 correction 是一体的，要一起改**。」
+
+**触发它的实测（2026-08-25）**：as-drawn 产物**喂不进 correction**，而且不是接口小事——
+`1_correction` 读 `*_view.json` 的 `strokes`（每笔带 `pen`；prompt 还要求引用笔画 id、并数 `pen=="window"`），
+as-drawn 产的是 `observations.face_lines` / `declarations` / `hypotheses`。**两套 schema 零接线**。
+⭐ 更深的是**基准不同**：旧 reading 自述「全图唯一基准 = **墙中线**」，
+而本指南 §四之二 定死 as-drawn **⛔ 没有厚度字段、只有两条面线**。
+
+⛔ **所以「写个转换层把两条面线塌成中线」是错的解**：那等于在 reading 侧偷偷替 correction 做基准统一，
+并把 as-drawn 刚挣来的信息扔掉 —— 与 **R-6「量了、用掉了、存盘时扔了」同形**。
+⇒ **正解 = correction 改成吃两条面线**，基准统一/模数吸附仍归它（同 §四之二）。
+
+⭐ **落地前置**：先与 **sol** 讨论架构（涉 **reading 专项 + 出模专项**主体内容，用户 2026-08-25 令）。
+
 ---
 
 ## 四之二、⭐ 墙厚归谁（2026-08-23 用户问，据此定死）

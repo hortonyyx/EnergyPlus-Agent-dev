@@ -2,7 +2,7 @@
 
 > **日期** 2026-08-25 · **出单** orchestrator（Claude Opus 5）· **待用户拍板派谁**
 > **分支** `08.23_AsDrawnReading` · **提交** `c28f302`（拆管子那次）
-> **治理依据** [CLAUDE.md §0.4#3](../../CLAUDE.md)：`src/` 须**派工 + 换人审**，orchestrator 只能直接改探索档。
+> **治理依据** [CLAUDE.md §0.4#3](../../../CLAUDE.md)：`src/` 须**派工 + 换人审**，orchestrator 只能直接改探索档。
 
 ---
 
@@ -55,7 +55,7 @@
 ## 四、⭐ 一条硬约束：判分器碰 gt，接线必须走 judge 侧
 
 `denominator.py` 读 **gt 的 DXF**，`reading_grade.py` 读**分母**。
-按 [CLAUDE.md §1.5#4 gt 铁律](../../CLAUDE.md)：
+按 [CLAUDE.md §1.5#4 gt 铁律](../../../CLAUDE.md)：
 **评测答案只 gate② judge / 人 可读，gate①/执行器绝不 import。**
 
 ⇒ 落位必须是 `src/agent/judge/` 下，且**执行路径（`run_pipeline` / gate① / 11 道门）不得 import 它**。
