@@ -299,8 +299,8 @@ as-drawn 产 `observations.face_lines`/`hypotheses` —— **两套 schema 完�
 
 | 阶段 | # | 事项 | 状态 |
 |---|---|---|---|
-| **0 清合并阻塞** | 0-a | **F-94** venv `.pth` 硬编码主树 | ⛔ 待派工 |
-| | 0-b | **F-93** 全仓 4 项红（陈旧锁 + 陈旧夹具） | ⛔ 待派工（建议与 0-a 打包）|
+| **0 清合并阻塞** | 0-a | **F-94** venv `.pth` 硬编码主树 | ⭐ **派工单已出**（先出方案后施工）→ [单](logs/reviews/request/2026-08-25_merge_blockers_f93_f94.md) · **待用户拍板派发** |
+| | 0-b | **F-93** 全仓 4 项红（陈旧锁 + 陈旧夹具） | ⭐ **同一张单**（已与 0-a 打包）· 四项 2026-08-25 由主控复跑确证 |
 | | 0-c | 重跑 `RESULTS_v2.json`（陈旧，主控造成） | ⏭ 主控 |
 | | 0-d | 合并 `toolbox_into_src_08.25` → `08.23_AsDrawnReading` | ⏭ |
 | **1 新 reading 落地** | 1-a | ⭐⭐ **reading + correction 一体改**（含 as-drawn→correction 接线） | ⭐ **先与 sol 讨论架构** |
