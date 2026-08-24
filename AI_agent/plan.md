@@ -170,6 +170,7 @@
 | **⭐⭐ 新 F-92** | **cell 多边形能力未被使用**：sm25 实测两层 38 个 cell 的 `polygon` **全为 `null`**，全部是 x/y 矩形区间。⭐ 后果不是「切错了」——实测 F1 19/20、F2 18/18 的 cell **≥95% 落在单一 gt 分区内**、零 cell 越界、零 gt 分区漏覆盖；真正的差别是 **gt 把整栋走廊建成一个 18 顶点连通多边形，correction 把它拆成 7 个矩形**。⚠️ 并注意 gt 自己也几乎全是矩形（F1 13/14、F2 14/15 是四边形），⛔ 所以「矩形化」本身不等于错，错的是**非矩形的那一个（走廊）无法表达** | **登记**（2026-08-25）· C2 阶梯表「cell 多边形」本体 |
 | **⭐⭐⭐ 新 F-93** | ⛔ **全仓已红 4 项且两天无人发现，四项同源 = gt 重签后锁与夹具没跟着更新**。2026-08-25 主控权威全量实测：**3010 passed / 1 failed / 3 errors / 13 xfailed**（⛔ 不是 CLAUDE.md §1.3 仍写着的「2835 绿」）。**已在昨天的提交 `f7d64f4` 上复跑，同样 4 项红 ⇒ 与今日工作、与工具箱转正均无关。** 逐项：① `test_elevation_score_bindings::test_generator_fails_closed_on_sm25_multi_floor_fingerprint` —— 它 assert「两层 footprint 指纹不一致时生成器必须 fail closed」，而 **08-22 用户拍板的 S1 修法正是让指纹逐位一致**；实测 sm25 两层指纹与顶点均**逐位相同** ⇒ **锁的前提已被修没了，锁是陈旧的，⛔ 不是生成器回归** （同族 [[regression-case-must-prove-its-own-premise]]）。⭐ **推论：orchestrator 2026-08-25 用该生成器建的六图绑定是合法的**。② ③ ④ `test_reading_typed_score_f67` 三项 ERROR = `score_view_binding_invalid / identity mismatch`：夹具指向的 `run_2026-08-21_c2_first_sonnet_T1` 记的 `gt_content_sha256=f97cea65…`，而当前 gt 是 `135b282c…`。⭐ **时间线**：锁改于 `96604c9`(08-22)、gt 改于 `e982eba`(08-23) ⇒ **gt 晚于锁一天入库，锁没跟着走**。⚠️ **治理后果**：期间所有「全仓绿」的说法都是失效的口径 | **登记**（2026-08-25）· 修法须派工（碰 `tests/`+夹具）|
 | **⭐⭐ 新 F-94** | ⛔ **venv 里的 editable-install `.pth` 硬编码指向主树，合并回主线后会从「响亮失败」变「静默串台」**：`/opt/venv/lib/python3.12/site-packages/_editable_impl_energyplus_agent.pth` 内容 = `/workspaces/EnergyPlus-Agent-dev`（主控实测确认）。后果：在**任何非主树的工作树**里**裸跑**（非 `-m`、非 pytest）一个 `from src.xxx import …` 的脚本，若脚本自身目录下无 `src/` 包，`src` 会**静默从主树解析**。⭐ 由施工席位在转正工作中撞出并用探针实测复现；跨家族审（GLM）独立确证根因链：脚本模式 `sys.path[0]`=脚本目录 → `src` 落主树 → `REPO_ROOT` 指错树 → 路径守卫 raise，并实测受影响面三项（探针 / `inspect_dxf` 两测试 / `reading_toolbox` 裸跑 `ModuleNotFoundError`）。⭐⭐ **GLM 判定为合并前必须处理项**（合并后同名文件在两棵树都存在，踩坑不再报错、改成静默用错那棵树的代码）| **登记**（2026-08-25，跨家族审随裁决带出）· ⛔ **合并回主线前必须处理** |
+| **⭐⭐ 新 F-97** | ⛔ **新识图产物会被当原始文本喂进校正提示词，同时绕过识图门 —— 一条沉默路径**：`discover_vector_files`（[pipeline.py:84-107](../src/agent/pipeline.py#L84)）扫 `*.json` **全部**并分成 plans / elevations / **`others`**（= 不匹配平面图正则、且不以 `_view.json` 结尾的所有 JSON）⇒ 一份 `sm25_1f_v2.json` 放进 `0_reading/` 会落进 `others` 并进提示词；而识图门 [`evidence_preflight.py:229`](../src/agent/execution/evidence_preflight.py#L229) 只 `glob("*_view.json")` ⇒ **看不见它**。⭐ **由 GPT 跨家族设计答复点出，orchestrator 已独立复核两处代码确证**。⛔ **它比「喂不进去」严重**：喂不进去是响亮失败，这条是**静默地半喂进去**。⇒ 一体改的**契约判别器**必须显式化：未知契约类型响亮失败 | **登记**（2026-08-25）· ⛔ 碰 `src/agent/pipeline` 须派工 |
 | **⭐⭐⭐ 新 F-95** | ⛔ **顶点规范化把凹多边形毁掉，而校验器与生产者共用同一个实现**：[`canonicalize_ring_vertices`](../src/validator/data_model.py#L1047) 用**绕质心角度排序**重排环，对凸多边形能还原、**对凹多边形还原成另一个形状**。离线夹具 [`concave_canonicalization_matrix.py`](logs/experiments/2026-08-25_kernel_probe_from_gt/tools/concave_canonicalization_matrix.py)（不需 gt/LLM/跑抽）：矩形 **OK** · 单凹角 L 形 84.000→84.000 **OK** · **U 形 8 顶点 76.000→70.000** · Z 形 8 顶点 68.000→68.000 **OK** · **梳形 12 顶点 66.000→59.000** · **sm25 走廊 14 顶点 97.731→226.457**。⚠️ **该表当场证伪了 orchestrator 初稿的断言「两个及以上凹角就坏」—— Z 形 2 凹角却无损** ⇒ **凹角数不是判据**，判据是「顶点绕质心的极角是否单调」，凹是**必要非充分**条件 ⇒ ⛔ 按「有没有凹角」挑回归夹具会挑出假绿的那一半。实测后果：`Z10_F1_Office_S` 地板面积 **226.457 vs 自己的轮廓 97.731**（2.3 倍）、`Z22_F2_Office_SW` 174.332 vs 78.558 ⇒ `kernel.zone_closure` 4 条阻塞。⚠️ **规范化后的环仍 `is_valid=True`** ⇒ 任何"多边形有效性"检查都放行，**只有面积对账抓得住**。⭐⭐ **两条附带教训**：① 已有的 `test_lshape_polygon_clean` 断言的正是那个**恰好无损**的单凹角 L 形 ⇒ **有锁 ≠ 有分辨力**（[[neuter-proves-wiring-not-discriminating-power]]）；② kernel 与 validator **刻意共用**这一实现（build.py 注释：避免 F-13 两套算法分歧）⇒ 校验器与生产者共享同一个错误假设。⭐ **现行管线撞不到它**：R0 的 38 个 cell 带 `polygon` 的 = **0**（全 bbox=凸）⇒ 与 **F-92 是一对**（多边形能力没被用，所以它的缺陷也没被暴露）| **登记**（2026-08-25，答案直喂内核撞出）· ⛔ 碰 `src/validator/`+`src/agent/geometry/` 须派工 |
 | **⭐⭐ 新 F-96** | ⛔ **跨层切分产生的碎片没有守卫，而同层吸附还把它做得更小**：1F 一道隔墙中轴 `y=15.9996`、2F 对应 `y=16.06`。⭐ **已溯源到原始 DXF 逐条坐标**（`sm25-L_t3.dxf` `WALL` 层，mm）：1F 右半段两条面线 44153.221/44273.221、其余三处（1F 左半段 + 2F 两段）均为 44213.552/44333.552 ⇒ **四处厚度都是 120，错位的是位置：1F 右半段那道墙整体往南偏 60.3 mm** ⇒ ⛔ 既不是转换器造的、也不是噪声、更不是两种墙厚，**原图就这么画的**，gt 忠实转录。确定性核第二步破坏第一步 —— ① 跨层对齐判 `provenance-aware sliver guard kept axes separate`（delta=0.0，决定不合并）；② 同层吸附随即把 1F 那条推到 **16.03**（delta=0.0304，`AXIS_JITTER_TOL+SNAP_GRID+MIN_EDGE_LENGTH`）⇒ 间距 0.0604 **缩到 0.03**，方向正朝着它刚判定要保持分离的那条轴。跨层切分于是切出 **0.03 m 宽**天花/地板条，InterZone 门事后报 `degenerate surface … EP may segfault`。**三点判别**（只改这一个量）：0.0604→2 条 · 抖动归整 0.0600→**仍 2 条**（⇒ 与 0.4 mm 抖动无关）· 拉到 0.20→**0 条** · 完全对齐→**0 条**。⭐ **别记错主因**：0.06 本来就 < 碎片下限 0.1，**不挪也会出碎片** ⇒ 主因 = **跨层碎片无守卫**，吸附朝错方向挪只是**加重因子** | **登记**（2026-08-25，同上）· ⛔ 碰 `src/agent/correction/deterministic.py` 须派工 |
 | **⭐ 新债 D-1** | **`tools/` 原件与 `src/` 新件双份并存**：跨家族审裁定 (a) 接受双份 + 登记 + **限期退役**。成因是 `glm_cheats.py`/`glm_rework.py`/`glm_probes.py`/`glm_sweeps.py` 用 `spec_from_file_location` **按文件路径**加载被搬走的模块，删原件会炸掉五轮跨家族审累积的全部作弊夹具。⛔ 与「不两处并存」冲突，**日后改一份忘另一份是必然的**。⇒ 退役动作 = 夹具改成按模块加载，**须另开单** | **登记**（2026-08-25）|
@@ -266,9 +267,13 @@
 **② 建议换个落点**，理由是两条，都不是偏好问题：
 
 1. **gt 铁律**（CLAUDE.md §0.3#1）：动 gt = 全部历史成绩作废。
-2. ⭐ **更要命的是判据会塌**：gt 若把那 6 cm 抹平，
-   「correction 到底有没有吸收这个偏差」**就永远判不出来了** —— 答案里已经没有偏差，
-   吸不吸收都是同一个分 ⇒ 等于把处置偷偷藏进判据（[[silent-default-threshold-behind-otherwise-conclusions]]）。
+2. ⭐ **更要命的是判据会塌** —— ⚠️ **但这句要写准确**（2026-08-25 GPT 跨家族答复更正 orchestrator，已接受）：
+   会塌的前提是「**只保存归一化后的答案、把原始层覆盖掉**」；那时「correction 到底有没有吸收这个偏差」
+   就永远判不出来 —— 答案里已经没有偏差，吸不吸收都是同一个分
+   （[[silent-default-threshold-behind-otherwise-conclusions]]）。
+   ⭐ **归一化的答案本身并不有害，恰恰是它才能区分「已吸收」与「未吸收」**；有害的只是**丢掉原始层**。
+   orchestrator 此前对用户的措辞漏写了这个前提，特此更正
+   ⇒ 下面那套三层方案本来就规避了它，**结论方向不变**。
 
 ⭐ **正解是用户自己 2026-08-20 定过的那条**：「**gt 不应是一张确定的图，而应是原始信息集合，
 按出模形式派生对应的标准答案**」⇒ 三层而不是二选一：
@@ -303,7 +308,7 @@ as-drawn 产 `observations.face_lines`/`hypotheses` —— **两套 schema 完�
 | | 0-b | **F-93** 全仓 4 项红（陈旧锁 + 陈旧夹具） | ⭐ **同一张单**（已与 0-a 打包）· 四项 2026-08-25 由主控复跑确证 |
 | | 0-c | 重跑 `RESULTS_v2.json`（陈旧，主控造成） | ⏭ 主控 |
 | | 0-d | 合并 `toolbox_into_src_08.25` → `08.23_AsDrawnReading` | ⏭ |
-| **1 新 reading 落地** | 1-a | ⭐⭐ **reading + correction 一体改**（含 as-drawn→correction 接线） | ⭐ **先与 sol 讨论架构** |
+| **1 新 reading 落地** | 1-a | ⭐⭐ **reading + correction 一体改**（含 as-drawn→correction 接线） | ⭐ **先与 sol 讨论架构** → [讨论稿](logs/reviews/request/2026-08-26_reading_correction_joint_architecture_discussion_sol.md)；⭐⭐ **备料已到**：GPT 跨家族设计答复 → [全档](logs/reviews/verdict/2026-08-25_reading_correction_unification_gpt_design.md)（**证伪了我方倾向**：接口不能定成「吃两条面线」—— sm24 实物有 4 堵墙是单条实心带）|
 | | 1-b | **冷启读图器首考**（模型真产 perception）| ⛔ 要花钱，待拍板 |
 | | 1-c | 补新工具 + 判例 + SOP | 用户定：属 harness 迭代，**回并后再做** |
 | | 1-d | **F-90** 楼层 id 映射（否则撞通了也量不了）| 建议提前到本阶段 |
