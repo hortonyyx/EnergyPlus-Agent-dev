@@ -70,6 +70,46 @@ def test_executors_do_not_reference_gt():
     assert not hits, f"executors / gate① capstone must not reference gt: {hits}"
 
 
+def test_pipeline_import_closure_excludes_gt_and_as_drawn_judge():
+    """⭐ 2026-08-25 (as-drawn toolbox transplant, dispatch §四): a BEHAVIOURAL
+    companion to the lexical scans above, added for the same reason those scans
+    exist rather than a single one -- this repo has been bitten repeatedly by
+    lexical matching over unbounded text (worklog: F-49 -> F-60 -> N-1/N-2 ->
+    F-61 -> F-62), and a lexical grep only proves "the forbidden STRING is not
+    present", never "the forbidden MODULE is not reachable" (an indirect import,
+    a re-export, or a renamed alias would all slip past ``_scan`` above silently).
+
+    The transplant added a SECOND gt-reading pair -- denominator.py +
+    reading_grade.py under src/agent/judge/as_drawn/ -- alongside the existing
+    src/agent/judge/gt.py.  Both must stay judge-side only: gate① / the
+    executor must never import either, mirroring the gt iron law
+    (CLAUDE.md §1.5#4).  This actually imports src.agent.pipeline in a FRESH
+    subprocess (so an already-populated sys.modules from an earlier test in the
+    same session cannot hide a real gap, and a genuinely absent one cannot
+    produce a false positive either) and inspects sys.modules for what really
+    loaded, rather than grepping source text for a token.
+    """
+    import json
+    import subprocess
+    import sys
+
+    repo_root = Path(__file__).resolve().parents[1]
+    probe = (
+        "import sys, json\n"
+        "import src.agent.pipeline\n"
+        "hits = sorted(m for m in sys.modules "
+        "if m == 'src.agent.judge.gt' or m.startswith('src.agent.judge.as_drawn'))\n"
+        "print(json.dumps(hits))\n"
+    )
+    r = subprocess.run(
+        [sys.executable, "-c", probe],
+        capture_output=True, text=True, cwd=repo_root,
+    )
+    assert r.returncode == 0, f"pipeline import failed: {r.stderr}"
+    hits = json.loads(r.stdout.strip().splitlines()[-1])
+    assert hits == [], f"pipeline import closure reaches judge/gt or judge/as_drawn: {hits}"
+
+
 def test_case_data_has_no_dxf_or_dwg():
     """opus §8.5.3: no DXF/DWG (incl. a future normalized.dxf) under any case_data/.
 

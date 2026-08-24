@@ -41,3 +41,55 @@ uncovered_allowlist:
   src/database/datatools/schedulecompact.py: "database tooling module; no project-side tests cover this legacy area"
   src/database/datatools/scheduletypelimits.py: "database tooling module; no project-side tests cover this legacy area"
   src/database/datatools/standard_materials.py: "database tooling module; no project-side tests cover this legacy area"
+  src/agent/reading/as_drawn/__init__.py: >-
+    package marker for the as-drawn reading toolbox, transplanted 2026-08-25 from
+    AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/tools/ (dispatch:
+    2026-08-25_reading_toolbox_into_src_dispatch.md); no project-side test imports
+    the package root directly.
+  src/agent/reading/as_drawn/_plan_ink.py: >-
+    transplanted 2026-08-25 from tools/plan_ink.py, byte-identical apart from its
+    own new module path; no project-side test imports src/ directly yet. Verified
+    by hand: rebuilding all three exploration views (sm25 1F/2F, sm24) through the
+    new src/ location and `cmp -s` against the tracked exploration reference
+    out/{view}_v2.json, all three byte-identical.
+  src/agent/reading/as_drawn/as_drawn_v2.py: >-
+    transplanted 2026-08-25 from tools/as_drawn_v2.py (the 9 stage functions +
+    Ruler + the thin default build()); same no-test-yet situation and same
+    by-hand cmp -s verification as _plan_ink.py above.
+  src/agent/reading/as_drawn/pens.py: >-
+    transplanted 2026-08-25 from tools/ink_palette.py; same no-test-yet situation
+    and same by-hand cmp -s verification as _plan_ink.py above.
+  src/validator/checks/as_drawn.py: >-
+    transplanted 2026-08-25 from tools/checks_as_drawn_v2.py (the 11 gt-free
+    as-drawn gates); this dispatch is relocation only and does not wire it into
+    run_pipeline/gate①, so no project-side test reaches it yet. Verified by hand:
+    all 11 gates re-run against all three exploration views produce the same
+    green/red/degraded pattern as the tracked exploration reference (sm25 1F/2F
+    all green; sm24 exactly reconcile=degraded, spacing=red, forward=degraded).
+  src/agent/judge/as_drawn/__init__.py: >-
+    package marker for the as-drawn judge pair (denominator + reading grade),
+    transplanted 2026-08-25; gt-reading, judge-only by design (CLAUDE.md §1.5#4)
+    so gate①/the executor must not reach it -- no project-side test imports the
+    package root directly.
+  src/agent/judge/as_drawn/denominator.py: >-
+    transplanted 2026-08-25 from tools/denominator.py; deliberately judge-only
+    (reads the gt DXF), so gate①/the executor never import it -- confirmed by a
+    fresh-subprocess import-closure scan of src.agent.pipeline
+    (tests/test_gt_discipline.py::test_pipeline_import_closure_excludes_gt_and_as_drawn_judge).
+    No project-side test imports this module directly yet; verified by hand via
+    `cmp -s` of its output against the tracked exploration reference
+    out/denominator_{sm25_F1,sm25_F2,sm24_F1}.json, all three byte-identical.
+  src/agent/judge/as_drawn/reading_grade.py: >-
+    transplanted 2026-08-25 from tools/reading_grade.py; same judge-only rationale
+    and same by-hand cmp -s verification as denominator.py above (against
+    out/grade_{sm25_1f,sm25_2f,sm24_1f}.json).
+  scripts/tool_scripts/reading_toolbox.py: >-
+    transplanted 2026-08-25 from tools/reading_toolbox.py; a CLI toolbox
+    (pens/ruler/faces/pairs/gaps/build), no project-side test drives it. Verified
+    by hand: all six subcommands produce output identical to the old tools/
+    location for the same inputs.
+  scripts/tool_scripts/render_reading_grade.py: >-
+    transplanted 2026-08-25 from tools/render_reading_grade.py; a picture-only
+    view CLI (never a source of score, per its own docstring), no project-side
+    test drives it. Verified by hand: byte-identical PNG output against the old
+    tools/ location for the same inputs.
