@@ -5819,3 +5819,31 @@ cfg 与 perception **双源改为响亮失败**（原先 `setdefault` 让 legacy
 
 ---
 
+---
+
+## 2026-08-25 收工状态 banner（逐字搬自 CLAUDE.md §2，2026-08-25 晚搬）
+
+> **⭐⭐⭐ 2026-08-25 收工状态 banner（当前唯一口径）**
+> **分支 `08.23_AsDrawnReading`**（未合并）· 支线 `toolbox_into_src_08.25` @ `283e868`（**跨家族 APPROVE，待合并**）。
+> 逐段全档 → [plan.md 本日](plan.md) · [实验档](logs/experiments/2026-08-23_as_drawn_reading_prototype/README.md)。
+>
+> **① reading 架构定稿并单独成文** → [architecture/reading_pipeline_architecture.md](architecture/reading_pipeline_architecture.md)
+> （**量具=代码当卡尺 · 工序=模型 · 出口=代码且 agent 改不动** · SOP 与判例是两份东西 ·
+> 落地节奏「先代码固定编排、后期改模型驱动」· 九条已知盲区）。
+> 判分口径细化：**reading 判「描得像不像」· correction 判「画得对不对」**（guide §四）。
+> **管子已拆**：`build()` 316 行 → 9 工序 + 薄 build + CLI `reading_toolbox.py`，**产物逐字节相同**。
+> **T 形接头已解**（用户定不扣分）：真因是分母凭空多要 3.36 m；`merge_m` **彻底不承重**。
+>
+> **② ⭐⭐ C2 首次被真正量过（sm25，⏸ 已停在 correction）**：L 形外轮廓 **8 顶点逐点对上、拓扑一致**，
+> 每点内缩 0.11–0.13 m = 半个 240 墙厚 ⇒ **形状全对、只差一条基准换算**；窗沿墙 **31/31 误差 0.0 m**。
+> ⛔ 但 **F-91 立面多平面是空的**（窗被画到楼外）· **F-92 cell 多边形未用** ·
+> ⭐⭐ **F-89 / F-90 两侧都没法判分** ⇒ **C 批不是没落地，是落地了但没有尺子量过**。
+>
+> **③ ⛔ 全仓已红 4 项两天（F-93）**：gt 于 08-23 重签、锁改于 08-22，**gt 晚一天锁没跟着走**。
+> 权威全量 = **3010 passed / 1 failed / 3 errors / 13 xfailed**。另 **F-94**：venv `.pth` 硬编码主树
+> ⇒ **合并回主线前必须处理**（合并后踩坑从响亮失败变**静默串台**）。
+>
+> **④ ⏭ 下一步（用户 08-25 定序）**：**支线回并 → 统一按新 reading 做 → 先拿 sm25 全流程撞通**。
+> ⭐⭐ **「新 reading 本身就和 correction 是一体的，要一起改」** —— 今天发现 **as-drawn 产物喂不进 correction**
+> （schema 与基准都不通、零接线）。⭐ **先拉 sol 讨论架构**（涉 reading 专项 + 出模专项主体）。
+> **登记 F-89 / F-90 / F-91 / F-92 / F-93 / F-94 + 债 D-1。**

@@ -227,32 +227,38 @@ EnergyPlus 经 `WorkflowTool.run_simulation`（eppy + ConverterManager，idfpy �
 > **八条硬纪律**（每条都有 08-23 实犯）· 验收尺度 · 两个专项的并入与留尾。
 > ⛔ 与本文其余各节冲突处，**reading/correction 分工与判分口径以该指南为准**。
 
-> **⭐⭐⭐ 2026-08-25 收工状态 banner（当前唯一口径）**
-> **分支 `08.23_AsDrawnReading`**（未合并）· 支线 `toolbox_into_src_08.25` @ `283e868`（**跨家族 APPROVE，待合并**）。
-> 逐段全档 → [plan.md 本日](plan.md) · [实验档](logs/experiments/2026-08-23_as_drawn_reading_prototype/README.md)。
+> **⭐⭐⭐ 2026-08-25 晚 · 当前唯一口径 banner**
+> **分支 `08.23_AsDrawnReading`** · 支线 `toolbox_into_src_08.25` @ `283e868`（跨家族 APPROVE，**待合并**）。
+> 逐段全档 → [plan.md 本日](plan.md)。
 >
-> **① reading 架构定稿并单独成文** → [architecture/reading_pipeline_architecture.md](architecture/reading_pipeline_architecture.md)
-> （**量具=代码当卡尺 · 工序=模型 · 出口=代码且 agent 改不动** · SOP 与判例是两份东西 ·
-> 落地节奏「先代码固定编排、后期改模型驱动」· 九条已知盲区）。
-> 判分口径细化：**reading 判「描得像不像」· correction 判「画得对不对」**（guide §四）。
-> **管子已拆**：`build()` 316 行 → 9 工序 + 薄 build + CLI `reading_toolbox.py`，**产物逐字节相同**。
-> **T 形接头已解**（用户定不扣分）：真因是分母凭空多要 3.36 m；`merge_m` **彻底不承重**。
+> **① ⏳ 清合并阻塞（进行中）** —— 用户 08-25 拍板派发（施工 Claude 席位 / 审 GLM）：
+> **F-93** 全仓 4 项红（陈旧锁 + 陈旧夹具，同源 = gt 08-23 重签而锁改于 08-22）· **F-94** venv `.pth` 硬编码主树
+> （⛔ 只出方案）→ [派工单](logs/reviews/request/2026-08-25_merge_blockers_f93_f94.md)（每个数由主控当日亲手复跑）。
 >
-> **② ⭐⭐ C2 首次被真正量过（sm25，⏸ 已停在 correction）**：L 形外轮廓 **8 顶点逐点对上、拓扑一致**，
-> 每点内缩 0.11–0.13 m = 半个 240 墙厚 ⇒ **形状全对、只差一条基准换算**；窗沿墙 **31/31 误差 0.0 m**。
-> ⛔ 但 **F-91 立面多平面是空的**（窗被画到楼外）· **F-92 cell 多边形未用** ·
-> ⭐⭐ **F-89 / F-90 两侧都没法判分** ⇒ **C 批不是没落地，是落地了但没有尺子量过**。
+> **② ⭐⭐ 答案直喂内核，撞出两条现行管线撞不到的缺陷**（探索档 ⛔ 永不作成绩）→
+> [实验档](logs/experiments/2026-08-25_kernel_probe_from_gt/README.md)。
+> 先证实**内核不是卡点**（R0 真实产物 38 zone / 266 面 / 门全绿），同时量到 **R0 的 38 个 cell 带 `polygon` 的 = 0**
+> ⇒ **C2 多边形路径从未被内核吃过** ⇒ **F-95** 顶点规范化毁凹多边形（走廊 97.731→226.457；⛔ 已有 L 形锁没有分辨力）
+> · **F-96** 跨层碎片无守卫。⭐ 6 cm 已溯源到原始 DXF：四处墙厚同为 120、**1F 右半段整体南偏 60.3 mm** ⇒ **原图就这么画的**。
 >
-> **③ ⛔ 全仓已红 4 项两天（F-93）**：gt 于 08-23 重签、锁改于 08-22，**gt 晚一天锁没跟着走**。
-> 权威全量 = **3010 passed / 1 failed / 3 errors / 13 xfailed**。另 **F-94**：venv `.pth` 硬编码主树
-> ⇒ **合并回主线前必须处理**（合并后踩坑从响亮失败变**静默串台**）。
+> **③ ⭐⭐ gt 该录「原图」还是「修复后的建筑」**（用户 08-25 提，主控给了不同落点，全档 plan.md 三之三）：
+> 同意「加校验」与「误差归 correction 吸收」；**「录入时就修复」建议改落点** = 用户 08-20 定的**三层**
+> （忠实原始层 + 显式不规整清单 + 按出模规则派生的答案层）。⛔ **实测硬前置**：纯坐标分不开
+> 「真墙」与「画图偏差」⇒ **「gt 加校验」与 R-6 是同一件事**；R-6 工作量**下调**（`ZoneEdgeReportV1` 已是正式 schema）。
 >
-> **④ ⏭ 下一步（用户 08-25 定序）**：**支线回并 → 统一按新 reading 做 → 先拿 sm25 全流程撞通**。
-> ⭐⭐ **「新 reading 本身就和 correction 是一体的，要一起改」** —— 今天发现 **as-drawn 产物喂不进 correction**
-> （schema 与基准都不通、零接线）。⭐ **先拉 sol 讨论架构**（涉 reading 专项 + 出模专项主体）。
-> **登记 F-89 / F-90 / F-91 / F-92 / F-93 / F-94 + 债 D-1。**
+> **④ ⭐⭐⭐ 一体改备料已到，我方核心倾向被证伪** → [GPT 设计答复](logs/reviews/verdict/2026-08-25_reading_correction_unification_gpt_design.md)：
+> ~~correction 吃两条面线~~ ⇒ **吃「带原始引用的【多形态】墙证据」**（sm24 实物 4 堵墙是单条实心带）。
+> ⭐ **基准归属更正**：不是「旧 reading 自述中线」，**是 correction 的提示词在要求中线**
+> （`pipeline.py:365-369` 逐字 `wall CENTERLINE`）⇒ 一体改必须动那两句。
+> ⇒ **F-97**：新识图产物会进提示词收集器的 `others` 桶**进提示词**，而识图门只看 `*_view.json`
+> ⇒ **静默地半喂进去**，⛔ 比「喂不进去」严重。
+> 给 sol 的讨论稿已累计式改写至最新 → [讨论稿](logs/reviews/request/2026-08-26_reading_correction_joint_architecture_discussion_sol.md)。
+>
+> **⑤ ⏭ 次序未变**：清完阻塞 → 支线回并 → 一体改（⭐ **先与 sol 讨论**）→ 拿 sm25 撞 C2
+> （F-95/F-96/F-91/F-92 归这一步）· gt 层（R-6 + 校验）并进其后。
 
 > **已翻篇的 banner（均逐字搬入 [`logs/worklog/2026-08_plan_log.md`](logs/worklog/2026-08_plan_log.md)）**：
+> **08-25 收工**（reading 架构定稿 · 管子拆 9 工序 · C2 首次被真正量过 · 工具箱转正 APPROVE · F-93/F-94）·
 > **08-24 收工**（六审 APPROVE·gt 放行书写 · 五审 `band_collapse` · 可评分分母+判分器落成 · 模型真进环）· **08-23 收工**（as-drawn v2 三层 · 语义去写死化 · 两轮 REJECT · R-6 更正）· **08-23 早间**（sm25 gt 入库 ·
 > 判分首次跑通 · 真错只有三条且同源 · 推翻 F-78）· **08-22**（F-69 真因 · **开发循环六步** ⭐ 仍有效 ·
 > harness 版本管理）· **08-21 战略**（核心已进 §0.0；历史 reading 解剖 · 离线夹具 + 四道硬门）·
@@ -266,6 +272,7 @@ EnergyPlus 经 `WorkflowTool.run_simulation`（eppy + ConverterManager，idfpy �
 
 | 日期 | 一句话 | 详档 |
 |---|---|---|
+| **2026-08-25 晚** | ⏳ **清合并阻塞已派发**（F-93/F-94，施工 Claude / 审 GLM）· ⭐⭐ **答案直喂内核**撞出 **F-95**（顶点规范化毁凹多边形 97.731→226.457，且已有 L 形锁**没有分辨力**）与 **F-96**（跨层碎片无守卫）· 6 cm 偏差**溯源到原始 DXF**（四处同为 120 墙，1F 右半段南偏 60.3 mm，原图如此）· ⭐⭐ **gt 三层立场**（加校验与 R-6 是同一件事）· ⭐⭐⭐ **GPT 跨家族证伪我方核心倾向**（→ 多形态墙证据）+ **基准归属更正**（是 correction 提示词在要中线）+ **F-97 静默半喂路径** | [实验档](logs/experiments/2026-08-25_kernel_probe_from_gt/README.md) · [GPT 答复](logs/reviews/verdict/2026-08-25_reading_correction_unification_gpt_design.md) · [派工单](logs/reviews/request/2026-08-25_merge_blockers_f93_f94.md) |
 | **2026-08-25** | ⭐⭐⭐ **reading 架构定稿并单独成文**（量具/工序/出口三层归属 · SOP≠判例 · 九条盲区）· **管子拆成 9 工序 + 工具箱 CLI**（产物逐字节相同）· **T 形接头已解**（`merge_m` 彻底不承重）· **grade 图落成** · ⭐⭐ **C2 首次被真正量过**（L 形 8 顶点逐点对上、只差半个墙厚；但 **F-91 立面多平面为空** / **F-92 cell 多边形未用** / **F-89·F-90 两侧都判不了分**）· **工具箱转正跨家族 APPROVE** · ⛔ **F-93 全仓已红两天**（gt 晚于锁一天入库）· **F-94 `.pth` 合并阻塞** · 派工「停下上报」累计 **23/23 全是派工方题错** | [架构](architecture/reading_pipeline_architecture.md) · [裁决](logs/reviews/verdict/2026-08-25b_toolbox_transplant_crossreview_glm_verdict.md) · [plan.md 本日](plan.md) |
 | **2026-08-24** | ⭐⭐⭐ **模型真进环**（perception 独立成文件：族角色 + 配对选择 + 「认不出来」；代码穷举候选**无阈值**）· ⭐⭐ **两把尺子互补是实测**（作弊在 gt 侧 93.3→97.3、在原图对账上 49 条违规）· 立面结构线判据 v2（清空 runs 从 24/24 → 0/24）· 新增两条判据（自洽重算 / 门窗族落位）· 登记 **F-86** · 实验 README 重写为纯 v2 口径。晚间：⭐⭐⭐ **可评分分母 + reading 判分器落成**（sm25 1F 108 目标 / 100% / 98.2%；作弊 0%）· 登记 **F-88** · ⛔⛔ **跨家族三审 REJECT**（新作弊=把真的漏读说成洞口 · 我的单像素变异从没跑到消费者）⇒ 补四道门 · 登记 **F-87/F-88**（F-88 已查清=只污染溯源、不动几何）。**夜间连打四→六审（GLM）**：四审证伪我两个数 · 五审 `band_collapse`（没有一个假数却优于诚实、八门全绿）· ⭐⭐⭐ **六审 APPROVE，gt 放行书写**，落 [层契约](architecture/as_drawn_layer_contract.md)，记成绩四道闸 2/4 已做（剩 `span_min` 签字 + 冷启首考，待用户）| [实验档](logs/experiments/2026-08-23_as_drawn_reading_prototype/README.md) · [RESULTS_v2.json](logs/experiments/2026-08-23_as_drawn_reading_prototype/out/RESULTS_v2.json) · [plan.md 本日](plan.md) |
 | **2026-08-23** | 上午：sm25 gt 签字入库 · **判分首次真正跑通** · ⭐⭐ 全案对答案「**真错只有三条且同源**」· 推翻 F-78 · 登记 F-83/84/85。下午起分叉 `08.23_AsDrawnReading`：**as-drawn v2 三层实现** · **语义去写死化**（颜色族发现 + 指派外部化）· ⛔ **两轮跨家族审均 REJECT** · ⭐⭐⭐ **用户定新分工与判分口径 → 本批开发指南成文** · R-6 更正 | [指南](guides/reading_correction_split_guide.md) · [实验档](logs/experiments/2026-08-23_as_drawn_reading_prototype/README.md) · [裁决](logs/reviews/verdict/) |
