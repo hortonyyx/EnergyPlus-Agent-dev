@@ -174,12 +174,32 @@ gt（原始信息 + 出模形式声明）
 **触发它的实测（2026-08-25）**：as-drawn 产物**喂不进 correction**，而且不是接口小事——
 `1_correction` 读 `*_view.json` 的 `strokes`（每笔带 `pen`；prompt 还要求引用笔画 id、并数 `pen=="window"`），
 as-drawn 产的是 `observations.face_lines` / `declarations` / `hypotheses`。**两套 schema 零接线**。
-⭐ 更深的是**基准不同**：旧 reading 自述「全图唯一基准 = **墙中线**」，
-而本指南 §四之二 定死 as-drawn **⛔ 没有厚度字段、只有两条面线**。
+⭐ 更深的是**基准不同**，而本指南 §四之二 定死 as-drawn **⛔ 没有厚度字段、只有两条面线**。
 
-⛔ **所以「写个转换层把两条面线塌成中线」是错的解**：那等于在 reading 侧偷偷替 correction 做基准统一，
-并把 as-drawn 刚挣来的信息扔掉 —— 与 **R-6「量了、用掉了、存盘时扔了」同形**。
-⇒ **正解 = correction 改成吃两条面线**，基准统一/模数吸附仍归它（同 §四之二）。
+> ⭐⭐ **2026-08-25 更正（归属）**：此处原写「**旧 reading 自述**全图唯一基准 = 墙中线」。
+> 逐条复核后找到了更硬、也更要紧的出处：**是 `1_correction` 的提示词在要求中线**，
+> 且是写在提示词正文的字符串里 —— [`src/agent/pipeline.py:365-369`](../../src/agent/pipeline.py#L365)
+> 逐字要求模型产出 **"world-frame, `wall-centerline`, self-consistent room cells"**，
+> 并再次强调 **"put every coordinate in one world frame at `wall CENTERLINE`"**。
+> ⇒ **不是「reading 换了格式所以要适配」，是 correction 自己在要求这个基准。**
+> 一体改**必须动这两句字符串**，⛔ 这也是为什么它不是加个适配器就完事。
+> （原「旧 reading 自述」那句的出处 orchestrator **没有找到**，故只更正归属、不断言原句错。）
+
+⛔ **「写个转换层把两条面线塌成中线」仍然是错的解**：那等于在 reading 侧偷偷替 correction 做基准统一，
+并把 as-drawn 刚挣来的信息扔掉 —— 与 **R-6「量了、用掉了、存盘时扔了」同形**。**这条不变。**
+
+⚠️ **但由此推出的「正解」被跨家族证伪了，已改**（2026-08-25 GPT 设计答复，orchestrator 已独立确证）：
+
+> ~~正解 = correction 改成吃**两条面线**~~
+> ⇒ **正解 = correction 改成吃「带原始引用的【多形态】墙证据」**，基准统一/模数吸附仍归它。
+
+**证伪依据（不需跑代码）**：`sm24_1f_v2.json` 里有 **4 个 `solid_band_walls`** ——
+本指南 §二自己就写着「**一堵墙不一定是两条线**」（本文 §二 perception 六桶那张表）。
+⇒ **任何只接受「两条面线」的接口，会在合法输入上丢掉那 4 堵墙，或被迫伪造不存在的第二张面。**
+墙证据的形态至少有六种：`paired_faces` · `solid_band` · `single_face`（是墙面但另一面没进观测）·
+`axis_trace`（旧 reading 给的中线）· `ambiguous` · `non_wall`。
+**中线只允许在 correction 内部由代码派生**，⛔ 不回写 reading、⛔ 不覆盖面线。
+⇒ 全档 [`../logs/reviews/verdict/2026-08-25_reading_correction_unification_gpt_design.md`](../logs/reviews/verdict/2026-08-25_reading_correction_unification_gpt_design.md)。
 
 ⭐ **落地前置**：先与 **sol** 讨论架构（涉 **reading 专项 + 出模专项**主体内容，用户 2026-08-25 令）。
 

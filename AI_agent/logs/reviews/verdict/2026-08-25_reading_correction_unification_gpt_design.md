@@ -142,5 +142,40 @@
 2. **第一节第 3 条要当缺陷登记**：「新产物可能被当原始文本塞给模型却绕过识图门」——
    这是**沉默的错误路径**，⛔ 比"喂不进去"严重。**待 orchestrator 独立复核后登记。**
 3. **第五节对我的更正接受**，措辞已改（见该节末）。
-4. **⛔ 尚未复核**：本文引用的行号与结论，orchestrator **只抽查了第 2 节那条**（`solid_band_walls` 确为 4 个，已核）。
-   其余**待逐条复核**后才能进 plan.md 当事实。
+4. ✅ **引用已逐条复核完毕**（2026-08-25，orchestrator 亲手，见下节）。
+
+---
+
+## 八、orchestrator 的逐条复核（2026-08-25，13 处引用）
+
+**结论：12 处准确（含差 1–2 行的可接受偏移），1 处行号指错。** 整体可信。
+
+| 它引的 | 复核结果 |
+|---|---|
+| `pipeline.py:451-461` 窗引用约束完整范围 | ✅ 准确（我原写的 455-456 只是其中两行）|
+| `pipeline.py:512` 计数定义 · `:557` 真正拦截 | ✅ 准确（`_reading_window_stroke_count` 定义在 512；`if expected_window_strokes > 0 and not geom.windows:` 在 557）|
+| `pipeline.py:365,369,383` 提示词要模型填世界坐标 | ✅ 准确，**且比它说的更要紧 —— 见下** |
+| `reading/contract.py:23,33` 只识别 `reading_views_v2` | ✅ 准确（`READING_PRODUCT_CONTRACT = "reading_views_v2"`；`identify_reading_contract` 在 33）|
+| `correction/window_sources.py:313` 只遍历 `pen == "window"` | ✅ 准确（313 是函数定义，**筛选在 321**：`if stroke.pen != "window": continue`）|
+| `correction/schema.py:234` · `:243` 自由字典 | ✅ 准确（`CorrectedGeometry` docstring 自写 "centerline geometry primitives"；`corrections`/`conflicts`/`unsupported` 均为 `list[dict]`）|
+| `as_drawn_v2.py:617` opening 字段生产者 | ✅ 准确（`opening_candidates` 在 617、`opening_types` 在 621）|
+| `sm24_1f_v2.json:24320` 4 个 `solid_band_walls` | ✅ 准确（已独立确证）|
+| `judge/gt_schema.py:164-222` | ✅ 准确 —— `GtZoneV3` 只有 `id/name/role/polygon/source_refs`，**确实没有任何厚度或基准字段** |
+| `judge/tarch_converter_schema.py:1096` 逐边 basis/thickness/offset | ✅ 准确，**且比它说的更要紧 —— 见下** |
+| `reading_correction_split_guide.md:90` | ✅ **逐字准确** |
+| `kernel_round16/correction_snapped.json:3405` | ✅ 基本准确（snap 记录实际从 3406 起，差 1 行）|
+| `reading_correction_split_guide.md:305`（称「先 sm25 再 sm24 的次序」）| ⚠️ **行号指错** —— 305 附近是「## 六、验收尺度」，不是次序。**结论本身仍成立**（次序是用户 08-25 定的，记在 CLAUDE.md §0.0 与 plan.md），只是出处引错。|
+
+### ⭐⭐ 复核过程本身撞出的两条（比被复核的结论更有用）
+
+1. ⭐⭐⭐ **「基准不同」的具体载体找到了：它写在 correction 的提示词正文里，不在 schema 里。**
+   [`pipeline.py:365-369`](../../../src/agent/pipeline.py#L365) 逐字要求模型产出
+   **"world-frame, `wall-centerline`, self-consistent room cells"**，并再次强调
+   **"put every coordinate in one world frame at `wall CENTERLINE`"**。
+   ⇒ 此前文档一直记成「旧 reading 自述唯一基准 = 墙中线」，**那是记错了归属** ——
+   **是 correction 的提示词在要求中线**。⭐ 一体改必须动这两句字符串，
+   而这也解释了为什么「让 correction 吃两条面线」不是加个适配器就完事。
+2. ⭐⭐ **R-6 的修法比设想的近**：`ZoneEdgeReportV1` **已经是一个正式定义好的 schema 类型**
+   （`p1` / `p2` / `basis` / `thickness_m` / `offset_m` / `derived_handle`），
+   ⛔ **不需要重新设计记录格式** —— 缺的只是**把它晋升进 gt 的序列化**。
+   ⇒ 「gt 保留逐边厚度」这件事的工作量应据此下调重估。

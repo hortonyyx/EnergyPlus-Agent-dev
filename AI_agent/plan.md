@@ -287,6 +287,13 @@ correction 的靶子于是明确：它要把 15.9996 和 16.06 收成同一条�
 （「这段距离等不等于某条已知墙的实测厚度」）⇒ **需要 gt 保留逐边 `basis`+`thickness`
 —— 那正是已登记的 R-6** ⇒ **「gt 加校验」与 R-6 是同一件事，⛔ 不能分别排期。**
 
+⭐ **R-6 的工作量应下调重估**（2026-08-25 复核 GPT 引用时撞出）：
+`ZoneEdgeReportV1`（[tarch_converter_schema.py:1096](../src/agent/judge/tarch_converter_schema.py#L1096)）
+**已经是一个正式定义好的 schema 类型**（`p1`/`p2`/`basis`/`thickness_m`/`offset_m`/`derived_handle`）
+⇒ ⛔ **不需要重新设计记录格式**，缺的只是**把它晋升进 gt 的序列化**
+（`GtZoneV3` 现在只有 `id`/`name`/`role`/`polygon`/`source_refs`，
+[gt_schema.py:164](../src/agent/judge/gt_schema.py#L164)，确实没有任何厚度或基准字段）。
+
 **已 DXF 确证的两处偏差**：1F 右半段隔墙整体南偏 **60.3 mm** · 1F 左段同一道隔墙分两段画差 **0.088 mm**
 ⇒ **量级差 700 倍、成因不同**，⛔ 别指望一条规则同时收掉。
 
@@ -298,7 +305,7 @@ correction 的靶子于是明确：它要把 15.9996 和 16.06 收成同一条�
 **⭐⭐ 今天新发现的最大缺口：as-drawn 产物喂不进 correction。**
 correction 读 `*_view.json` 的 `strokes`（带 `pen`，prompt 还引用笔画 id、数 `pen=="window"`），
 as-drawn 产 `observations.face_lines`/`hypotheses` —— **两套 schema 完全不通，零接线**。
-且**基准不同**：旧 reading 自述「唯一基准=墙中线」，as-drawn 指南定死「⛔ 无厚度字段、只有两条面线」。
+且**基准不同**。⭐ **2026-08-25 更正归属**：原写「旧 reading 自述唯一基准=墙中线」，复核后找到更硬出处 —— **是 `1_correction` 的提示词在要求中线**（[pipeline.py:365-369](../src/agent/pipeline.py#L365) 逐字写着 `wall-centerline` / `wall CENTERLINE`）⇒ **不是 reading 换格式要适配，是 correction 自己在要这个基准**，一体改必须动那两句字符串。
 ⇒ 写转换层塌成中线 = 在 reading 侧偷偷替 correction 干活并扔掉信息（**R-6 同形**）。
 ⇒ **用户已定方向：reading 与 correction 一起改。⭐ 先拉 sol 讨论架构**（涉及 reading 专项 + 出模专项主体）。
 
