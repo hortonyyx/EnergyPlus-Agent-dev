@@ -244,12 +244,63 @@ class AssignmentError(SystemExit):
     """
 
 
-def build(cfg: dict) -> dict:
-    # ⭐ 2026-08-24: perception now arrives as its OWN FILE, produced by whoever
-    # did the recognising (today the orchestrator by hand, tomorrow the reading
-    # model).  It carries the role naming AND the wall pairing -- both are "认",
-    # and neither is something a ruler settles.  The config only points at it.
-    percept = {}
+# ══════════════════════════════════════════════════════════════════════════
+# STAGE TOOLS -- one per question a reader actually asks
+#
+# ⭐ 2026-08-25 (user: "整体架构还是要由模型驱动，因为图纸千奇百怪，确定的代码工序
+# 很多都接不了" / "不能因为某种情况下代码可以做好就给烤死了").
+#
+# ``build()`` used to be ONE 316-line function, which welded two different things
+# together: the measuring INSTRUMENTS and the ORDER OF WORK.  A drawing in a
+# different dialect could then only be met by tuning numbers -- never by taking a
+# different route -- and the config's 15 keys were, every one of them, a
+# parameter rather than a step.
+#
+# Each stage below is now a tool a caller invokes on its own: today ``build()``
+# in a fixed order (the user's ruling: "现在先代码固定编排吧，后期要改成模型驱动"),
+# tomorrow a ``reading-agent`` picking its own route.
+#
+# ⛔ This splits the ORCHESTRATION ONLY.  Every instrument measures exactly what
+# it measured before, and the three products are byte-identical across the change
+# (verified per view, see the commit message).
+#
+# ⭐ The division this preserves: code is the CALLIPER, never the PROCEDURE.
+# Perception -- which family is a wall, which two lines are one wall, what each
+# blank is -- arrives from outside at ``load_perception`` and is consumed at
+# ``resolve_roles`` / ``select_pairs``; ⛔ no stage invents it when it is absent.
+# ══════════════════════════════════════════════════════════════════════════
+
+
+class Ruler:
+    """px <-> world metres, fitted from the drawing's OWN dimension chains.
+
+    ⛔ Not a declared scale: ``mm_per_px`` and the world origin both come out of
+    fitting the chain ticks against the chain's declared segment values (sm25
+    measured: chain closure 0.0 mm, max residual 8.2 mm).
+    """
+
+    def __init__(self, fx, fy, x_zero: float, y_zero: float, tick_map: dict):
+        self.fx, self.fy = fx, fy
+        self.x_zero, self.y_zero = x_zero, y_zero
+        self.tick_map = tick_map
+        self.mm_per_px = (fx.mm_per_px + fy.mm_per_px) / 2.0
+
+    def to_x(self, px: float) -> float:
+        return round((px - self.x_zero) * self.fx.mm_per_px / 1000.0, 4)
+
+    def to_y(self, px: float) -> float:
+        return round((self.y_zero - px) * self.fy.mm_per_px / 1000.0, 4)
+
+
+def load_perception(cfg: dict) -> tuple[dict, dict]:
+    """⭐ 认 comes in from OUTSIDE. Returns (cfg-with-perception-folded-in, percept).
+
+    ⭐ 2026-08-24: perception arrives as its OWN FILE, produced by whoever did the
+    recognising (today the orchestrator by hand, tomorrow the reading model).  It
+    carries the role naming AND the wall pairing -- both are "认", and neither is
+    something a ruler settles.  The config only points at it.
+    """
+    percept: dict = {}
     if cfg.get("perception"):
         percept = json.loads(Path(cfg["perception"]).read_text())
         # ⛔ 2026-08-24, third cross-family review: this used ``setdefault``, so a
@@ -266,16 +317,25 @@ def build(cfg: dict) -> dict:
         cfg["family_roles"] = percept.get("family_roles")
         cfg["wall_pairs"] = percept.get("wall_pairs")
         cfg["family_roles_source"] = percept.get("_produced_by", cfg["perception"])
+    return cfg, percept
 
+
+def discover_pens(cfg: dict):
+    """"这张图用了几种笔？" -> (rgb array, palette, per-family masks).
+
+    ⛔ Names no family. Which one carries the walls is perception.
+    """
     a = load_rgb(cfg["image"])
-    pal = palette(a)
-    masks = _family_masks(a)
+    return a, palette(a), _family_masks(a)
 
-    # ⭐ PERCEPTION COMES IN FROM OUTSIDE. Which discovered family carries the
-    # walls is not something a ruler settles, so this module does not decide it
-    # -- the model does (invariant #1: LLM does perception, code does geometry).
-    # The config supplies it here only because there is no model in this
-    # prototype's loop; the INTERFACE is the point.
+
+def resolve_roles(cfg: dict, pal: dict, masks: dict) -> dict:
+    """Consume perception's family naming, and refuse loudly if it cannot hold.
+
+    ⭐ PERCEPTION COMES IN FROM OUTSIDE. Which discovered family carries the walls
+    is not something a ruler settles, so this module does not decide it -- the
+    model does (invariant #1: LLM does perception, code does geometry).
+    """
     roles = dict(cfg.get("family_roles") or {})
     if not roles:
         raise AssignmentError(
@@ -297,15 +357,28 @@ def build(cfg: dict) -> dict:
                 f"{cfg['image']}: no family assigned the {need!r} role. "
                 f"⛔ Without it there is no ruler: the dimension chains are read "
                 f"off the annotation family and every coordinate depends on them.")
-    ann = masks[roles["annotation"]]
+    return roles
 
+
+def structure_mask(cfg: dict, masks: dict, roles: dict):
+    """The structural ink, cropped to the declared drawing box.
+
+    ⚠️ The box is a DECLARED aperture, not a measurement: the honest products
+    themselves discard 41.43% / 40.54% / 20.89% of the structural ink with it
+    (sixth cross-family review).  Declared as a known blind spot in
+    ``architecture/as_drawn_layer_contract.md``.
+    """
     st = masks[roles["structure"]].copy()
     r0, r1, c0, c1 = cfg["drawing_box"]
     st[:r0, :] = False
     st[r1:, :] = False
     st[:, :c0] = False
     st[:, c1:] = False
+    return st
 
+
+def fit_ruler(cfg: dict, ann) -> Ruler:
+    """"这张图的比例尺和原点是多少？" -- fitted off the annotation family's ticks."""
     chains = cfg["chains"]
     fits, tick_map = {}, {"x": {}, "y": {}}
     for cid, c in chains.items():
@@ -318,20 +391,18 @@ def build(cfg: dict) -> dict:
                 continue
             tick_map[world][str(round(px, 1))] = c["world_start_mm"] + c["direction"] * cum
     fx, fy = fits[cfg["primary_x_chain"]], fits[cfg["primary_y_chain"]]
-    mmpx = (fx.mm_per_px + fy.mm_per_px) / 2.0
-    x_zero = _chain_zero_px(fx, chains[cfg["primary_x_chain"]])
-    y_zero = _chain_zero_px(fy, chains[cfg["primary_y_chain"]])
+    return Ruler(fx, fy,
+                 _chain_zero_px(fx, chains[cfg["primary_x_chain"]]),
+                 _chain_zero_px(fy, chains[cfg["primary_y_chain"]]),
+                 tick_map)
 
-    def to_x(px: float) -> float:
-        return round((px - x_zero) * fx.mm_per_px / 1000.0, 4)
 
-    def to_y(px: float) -> float:
-        return round((y_zero - px) * fy.mm_per_px / 1000.0, 4)
-
+def trace_face_lines(cfg: dict, st, masks: dict, ruler: Ruler) -> list[dict[str, Any]]:
+    """"每条线从哪画到哪、中间哪儿是空的？" -- pure measurement, no naming."""
     face_lines: list[dict[str, Any]] = []
     for axis in ("col", "row"):
-        pos_w = to_x if axis == "col" else to_y
-        along_w = to_y if axis == "col" else to_x
+        pos_w = ruler.to_x if axis == "col" else ruler.to_y
+        along_w = ruler.to_y if axis == "col" else ruler.to_x
         for grp in _ink_groups(st, masks, axis=axis,
                                min_run_px=cfg.get("min_run_px", 14),
                                min_support=cfg.get("min_support", 10)):
@@ -354,7 +425,7 @@ def build(cfg: dict) -> dict:
                 # entirely, which is what "observations must stand alone" means.
                 "edges_m": sorted((pos_w(float(grp["support_cols_px"][0])),
                                    pos_w(float(grp["support_cols_px"][1])))),
-                "support_width_m": round(grp["width_px"] * mmpx / 1000.0, 4),
+                "support_width_m": round(grp["width_px"] * ruler.mm_per_px / 1000.0, 4),
                 "runs_px": grp["runs_px"],
                 "runs_m": [[round(v, 4) for v in sorted((along_w(lo), along_w(hi)))]
                            for lo, hi in grp["runs_px"]],
@@ -362,23 +433,27 @@ def build(cfg: dict) -> dict:
                 "ink_coverage_per_run": grp["ink_coverage_per_run"],
                 "covered_px": grp["covered_px"], "support_px": grp["support_px"],
             })
+    return face_lines
 
-    # ------------------------------------------------------- hypotheses ----
-    # ⛔ Everything below is DERIVED and carries its basis. A consumer may drop
-    # this whole block and rebuild it from observations + declarations.
+
+def enumerate_pair_candidates(cfg: dict, face_lines: list, ruler: Ruler):
+    """"哪些线可能两两是一堵墙的两个面？" -> (candidates, by_face).
+
+    ⭐ 2026-08-24: the guide's rule -- CODE ENUMERATES, THE MODEL CHOOSES.
+    v2's first cut filtered candidates by the DECLARED thickness, which is the
+    very mechanism that silently lost sm24's whole batch of 120 mm partitions
+    (the drawing only calls out 240).  So there is ⛔ NO spacing threshold here
+    any more: every same-axis pair of face lines that rest on disjoint ink and
+    actually overlap along the wall is a candidate, and the declared callout is
+    attached as a LABEL, never as a gate.
+    """
+    mmpx = ruler.mm_per_px
     declared_px = [t / mmpx for t in cfg["declared_thickness_mm"]]
     tol_px = cfg.get("thickness_tol_px", 2.0)
 
     def _tol(t_px: float) -> float:
         return max(tol_px, 0.30 * t_px)
 
-    # ⭐ 2026-08-24: the guide's rule -- CODE ENUMERATES, THE MODEL CHOOSES.
-    # v2's first cut filtered candidates by the DECLARED thickness, which is the
-    # very mechanism that silently lost sm24's whole batch of 120 mm partitions
-    # (the drawing only calls out 240).  So there is ⛔ NO spacing threshold here
-    # any more: every same-axis pair of face lines that rest on disjoint ink and
-    # actually overlap along the wall is a candidate, and the declared callout is
-    # attached as a LABEL, never as a gate.
     candidates = []
     for i, A in enumerate(face_lines):
         for j in range(i + 1, len(face_lines)):
@@ -407,69 +482,91 @@ def build(cfg: dict) -> dict:
     for c in candidates:
         by_face.setdefault(c["face_a"], []).append(c["face_b"])
         by_face.setdefault(c["face_b"], []).append(c["face_a"])
+    return candidates, by_face
 
-    # ⭐ THE SELECTION IS PERCEPTION AND MUST COME FROM OUTSIDE (same rule as
-    # ``family_roles``).  ⛔ Absent selection is a LOUD downgrade, never a quiet
-    # substitution of a code rule dressed up as the model's answer.
+
+def select_pairs(cfg: dict, percept: dict, candidates: list, face_lines: list, by_face: dict):
+    """Consume perception's pairing -> (pairs, status, note).
+
+    ⭐ THE SELECTION IS PERCEPTION AND MUST COME FROM OUTSIDE (same rule as
+    ``family_roles``).  ⛔ Absent selection is a LOUD downgrade, never a quiet
+    substitution of a code rule dressed up as the model's answer.
+    """
     sel_raw = cfg.get("wall_pairs")
     if sel_raw is None:
-        pairs = None
-        pairs_status = "ABSENT_NO_MODEL_SELECTION"
-        pairs_note = ("no wall pairing supplied. Which two face lines are one wall is "
-                      "perception (2026-08-23 user ruling) -- code enumerates the "
-                      "candidates below and reconciles the answer, it does not choose. "
-                      f"{len(candidates)} candidates over {len(by_face)} face lines.")
-    else:
-        index = {(c["face_a"], c["face_b"]): c for c in candidates}
-        pairs, unknown = [], []
-        for a, b in sel_raw:
-            c = index.get((a, b)) or index.get((b, a))
-            if c is None:
-                unknown.append([a, b])
-            else:
-                pairs.append(dict(c, source="selected"))
-        # ⭐ COMPLETENESS: every face line must be accounted for -- either it is
-        # half of a wall, or perception must say out loud what it is instead.
-        # ⛔ Silence about a face line is the failure mode this catches: that is
-        # how the five callout-TEXT strokes of sm25 1f got quietly paired into
-        # walls by the declaration-driven rule.
-        declared_non_wall = set(percept.get("non_wall_face_lines", {}))
-        # ⭐ a third honest answer: "this IS a wall face, but the drawing's other
-        # face never reached the observations".  ⛔ Without this bucket the only
-        # ways to account for such a line are to call it not-a-wall (false) or to
-        # pair it with something it is not (worse).
-        declared_lone = set(percept.get("unpaired_wall_faces", {}))
-        # a filled band whose OWN two edges are the wall's two faces (the sm24
-        # dialect): one observation, one wall, ⛔ no partner to look for.
-        declared_band = set(percept.get("solid_band_walls", {}))
-        # ⭐ and the answer a model must be allowed to give: "I cannot tell."
-        # ⛔ Forcing a call here is how a desk edge becomes a wall face.
-        declared_ambig = set(percept.get("ambiguous_face_lines", {}))
-        accounted = ({x for p in pairs for x in (p["face_a"], p["face_b"])}
-                     | declared_non_wall | declared_lone | declared_band
-                     | declared_ambig)
-        unaccounted = sorted({f["id"] for f in face_lines} - accounted)
-        pairs_status = "SELECTED" if not (unknown or unaccounted) else "SELECTED_INCOMPLETE"
-        pairs_note = (f"{len(pairs)} pairs selected from the candidate list; "
-                      f"unknown references: {unknown}; "
-                      f"face lines neither paired nor declared non-wall: {unaccounted}")
+        return None, "ABSENT_NO_MODEL_SELECTION", (
+            "no wall pairing supplied. Which two face lines are one wall is "
+            "perception (2026-08-23 user ruling) -- code enumerates the "
+            "candidates below and reconciles the answer, it does not choose. "
+            f"{len(candidates)} candidates over {len(by_face)} face lines.")
 
-    # ⭐ 2026-08-24 (F-87): OPENING CANDIDATES.  Every blank stretch of a face
-    # line is offered to perception as a candidate, ⛔ with no classification and
-    # ⛔ no threshold -- the measured ink of every discovered family across the
-    # stretch is already there.  Before this, whether a gap "is an opening" was
-    # decided inside the SCORER by an ink threshold: a semantic call living in
-    # code, which the third cross-family review named (Q3(b)#1).
-    opening_candidates = []
+    index = {(c["face_a"], c["face_b"]): c for c in candidates}
+    pairs, unknown = [], []
+    for a, b in sel_raw:
+        c = index.get((a, b)) or index.get((b, a))
+        if c is None:
+            unknown.append([a, b])
+        else:
+            pairs.append(dict(c, source="selected"))
+    # ⭐ COMPLETENESS: every face line must be accounted for -- either it is
+    # half of a wall, or perception must say out loud what it is instead.
+    # ⛔ Silence about a face line is the failure mode this catches: that is
+    # how the five callout-TEXT strokes of sm25 1f got quietly paired into
+    # walls by the declaration-driven rule.
+    declared_non_wall = set(percept.get("non_wall_face_lines", {}))
+    # ⭐ a third honest answer: "this IS a wall face, but the drawing's other
+    # face never reached the observations".  ⛔ Without this bucket the only
+    # ways to account for such a line are to call it not-a-wall (false) or to
+    # pair it with something it is not (worse).
+    declared_lone = set(percept.get("unpaired_wall_faces", {}))
+    # a filled band whose OWN two edges are the wall's two faces (the sm24
+    # dialect): one observation, one wall, ⛔ no partner to look for.
+    declared_band = set(percept.get("solid_band_walls", {}))
+    # ⭐ and the answer a model must be allowed to give: "I cannot tell."
+    # ⛔ Forcing a call here is how a desk edge becomes a wall face.
+    declared_ambig = set(percept.get("ambiguous_face_lines", {}))
+    accounted = ({x for p in pairs for x in (p["face_a"], p["face_b"])}
+                 | declared_non_wall | declared_lone | declared_band
+                 | declared_ambig)
+    unaccounted = sorted({f["id"] for f in face_lines} - accounted)
+    status = "SELECTED" if not (unknown or unaccounted) else "SELECTED_INCOMPLETE"
+    note = (f"{len(pairs)} pairs selected from the candidate list; "
+            f"unknown references: {unknown}; "
+            f"face lines neither paired nor declared non-wall: {unaccounted}")
+    return pairs, status, note
+
+
+def enumerate_opening_candidates(face_lines: list) -> list:
+    """"每条线上的空档在哪，里面有哪几族的墨？"
+
+    ⭐ 2026-08-24 (F-87): Every blank stretch of a face line is offered to
+    perception as a candidate, ⛔ with no classification and ⛔ no threshold --
+    the measured ink of every discovered family across the stretch is already
+    there.  Before this, whether a gap "is an opening" was decided inside the
+    SCORER by an ink threshold: a semantic call living in code, which the third
+    cross-family review named (Q3(b)#1).
+    """
+    out = []
     for f in face_lines:
         for gi, g in enumerate(f["gaps"]):
-            opening_candidates.append({
+            out.append({
                 "id": f"{f['id']}g{gi}",
                 "face_line": f["id"], "gap_index": gi,
                 "span_m": g["span_m"], "len_m": g["len_m"], "len_px": g["len_px"],
                 "ink_by_family": g["ink_by_family"],
             })
+    return out
 
+
+def assemble(cfg: dict, percept: dict, pal: dict, masks: dict, roles: dict,
+             ruler: Ruler, face_lines: list, candidates: list, by_face: dict,
+             pairs, pairs_status: str, pairs_note: str,
+             opening_candidates: list) -> dict:
+    """The three-layer product: 观测 (what I saw) / 声明 (what the drawing says) /
+    假设 (what I think they are).  ⛔ Nothing is measured here; this only files
+    what the stages above produced into the layer it belongs to."""
+    chains = cfg["chains"]
+    fx, fy, mmpx = ruler.fx, ruler.fy, ruler.mm_per_px
     return {
         "schema": SCHEMA,
         "image": cfg["image"],
@@ -480,7 +577,7 @@ def build(cfg: dict) -> dict:
                 "mm_per_px": round(mmpx, 6),
                 "cross_axis_relative_deviation":
                     round(abs(fx.mm_per_px - fy.mm_per_px) / mmpx, 6),
-                "world_zero_px": [round(x_zero, 3), round(y_zero, 3)],
+                "world_zero_px": [round(ruler.x_zero, 3), round(ruler.y_zero, 3)],
                 "world_zero_source": "chain_fit",
                 "profile_bins_px": list(PROFILE_BINS_PX),
                 "fill_ratio": FILL_RATIO,
@@ -492,7 +589,7 @@ def build(cfg: dict) -> dict:
             "components_by_family": {
                 k: _components(v, cfg.get("min_area_px", 40))
                 for k, v in masks.items()},
-            "dimension_witnesses": tick_map,
+            "dimension_witnesses": ruler.tick_map,
         },
         "declarations": {
             "thickness_callouts_mm": cfg["declared_thickness_mm"],
@@ -558,6 +655,28 @@ def build(cfg: dict) -> dict:
             "pairing_in_observations": False,
         },
     }
+
+
+# ── the default route ──────────────────────────────────────────────────────
+# ⭐ This IS the orchestration, and it is deliberately the only thing in this
+# file that decides an ORDER.  A ``reading-agent`` replacing it calls the same
+# stages, possibly in a different order, possibly with different instruments --
+# ⛔ and still cannot skip the exit: the eleven gates and the grade run on the
+# product, not on the route taken to it.
+def build(cfg: dict) -> dict:
+    cfg, percept = load_perception(cfg)
+    a, pal, masks = discover_pens(cfg)
+    roles = resolve_roles(cfg, pal, masks)
+    ruler = fit_ruler(cfg, masks[roles["annotation"]])
+    st = structure_mask(cfg, masks, roles)
+    face_lines = trace_face_lines(cfg, st, masks, ruler)
+    candidates, by_face = enumerate_pair_candidates(cfg, face_lines, ruler)
+    pairs, pairs_status, pairs_note = select_pairs(cfg, percept, candidates,
+                                                   face_lines, by_face)
+    opening_candidates = enumerate_opening_candidates(face_lines)
+    return assemble(cfg, percept, pal, masks, roles, ruler, face_lines,
+                    candidates, by_face, pairs, pairs_status, pairs_note,
+                    opening_candidates)
 
 
 def main(cfg_path: str, out_path: str) -> int:
