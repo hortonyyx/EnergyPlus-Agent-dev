@@ -231,9 +231,10 @@ EnergyPlus 经 `WorkflowTool.run_simulation`（eppy + ConverterManager，idfpy �
 > **分支 `08.23_AsDrawnReading`** · 支线 `toolbox_into_src_08.25` @ `283e868`（跨家族 APPROVE，**待合并**）。
 > 逐段全档 → [plan.md 本日](plan.md)。
 >
-> **① ⏳ 清合并阻塞（进行中）** —— 用户 08-25 拍板派发（施工 Claude 席位 / 审 GLM）：
-> **F-93** 全仓 4 项红（陈旧锁 + 陈旧夹具，同源 = gt 08-23 重签而锁改于 08-22）· **F-94** venv `.pth` 硬编码主树
-> （⛔ 只出方案）→ [派工单](logs/reviews/request/2026-08-25_merge_blockers_f93_f94.md)（每个数由主控当日亲手复跑）。
+> **① ✅ F-93 已清（全仓恢复全绿 `3014 passed, 13 xfailed`，GLM 自己跑的）· ⏳ F-94 待用户拍板** ——
+> 施工 `b3e0a32`（Claude 席位）· **GLM 跨家族 APPROVE-WITH-FINDINGS** · ⭐ 派工单本身题错 **2 处（累计 25/25）**；
+> **F-94 三候选 A/B/C 已出并经审，GLM 补充「长期应对齐 B」⇒ 当前唯一挂起的用户决策** →
+> [裁决](logs/reviews/verdict/2026-08-25_merge_blockers_f93_f94_glm_verdict.md)。
 >
 > **② ⭐⭐ 答案直喂内核，撞出两条现行管线撞不到的缺陷**（探索档 ⛔ 永不作成绩）→
 > [实验档](logs/experiments/2026-08-25_kernel_probe_from_gt/README.md)。
@@ -254,8 +255,7 @@ EnergyPlus 经 `WorkflowTool.run_simulation`（eppy + ConverterManager，idfpy �
 > ⇒ **静默地半喂进去**，⛔ 比「喂不进去」严重。
 > 给 sol 的讨论稿已累计式改写至最新 → [讨论稿](logs/reviews/request/2026-08-26_reading_correction_joint_architecture_discussion_sol.md)。
 >
-> **⑤ ⏭ 次序未变**：清完阻塞 → 支线回并 → 一体改（⭐ **先与 sol 讨论**）→ 拿 sm25 撞 C2
-> （F-95/F-96/F-91/F-92 归这一步）· gt 层（R-6 + 校验）并进其后。
+> **⑤ ⏭ 次序未变**：清完阻塞 → 支线回并 → 一体改（⭐ **先与 sol 讨论**）→ 拿 sm25 撞 C2（F-95/F-96/F-91/F-92）· gt 层（R-6+校验）并进其后。
 
 > **已翻篇的 banner（均逐字搬入 [`logs/worklog/2026-08_plan_log.md`](logs/worklog/2026-08_plan_log.md)）**：
 > **08-25 收工**（reading 架构定稿 · 管子拆 9 工序 · C2 首次被真正量过 · 工具箱转正 APPROVE · F-93/F-94）·
