@@ -50,6 +50,17 @@ END_TOL_M = 0.30      # how close a run end must be to the answer's run end
 EXTRA_MIN_M = 0.10    # ignore slivers shorter than this when counting 多画
 WIDTH_COEFF = 1.0     # how wide an observation must be to answer TWO faces; swept
 
+# ⭐ ANNOTATION ONLY -- these two never touch a score.  They label an uncovered
+# stretch as "a perpendicular wall lands here", because 2026-08-24 measurement
+# showed 40-62% of the honest products' 漏画 sits exactly where a wall meets
+# this one at a T and the DRAWING ITSELF breaks the face line (measured: zero
+# ink of EVERY family across those stretches).  Whether the denominator should
+# stop requiring ink there is a separate, unmade decision; until it is made the
+# score is unchanged and the picture simply shows which red is of this kind.
+TJ_ALONG_TOL_M = 0.06   # slack at each side of the perpendicular wall's own faces
+TJ_REACH_TOL_M = 0.25   # how close its end must come to this face to be "landing"
+TJ_MAX_WALL_M = 0.50    # widest thing that can still BE a wall (drawings declare 240/120)
+
 
 def _union(spans):
     out = []
@@ -59,6 +70,43 @@ def _union(spans):
         else:
             out.append([lo, hi])
     return out
+
+
+def _uncovered(spans, lo, hi):
+    """pieces of [lo, hi] that ``spans`` does not cover -- the 漏画, drawable."""
+    out, cur = [], lo
+    for a, b in sorted([min(x, y), max(x, y)] for x, y in spans):
+        if b <= cur or a >= hi:
+            continue
+        if a > cur:
+            out.append([cur, min(a, hi)])
+        cur = max(cur, min(b, hi))
+    if cur < hi:
+        out.append([cur, hi])
+    return [[a, b] for a, b in out if b - a > 1e-6]
+
+
+def _lands_here(den, axis, const_m, a, b):
+    """⭐ annotation only: is [a, b] the footprint of ONE perpendicular wall that
+    lands on this face?
+
+    ⛔ First version asked only "does some perpendicular wall fall inside [a,b]",
+    which labelled a 3.64 m wholly-missed target as a T-junction because walls
+    happen to land inside it -- i.e. it excused a real 漏读.  Over-claiming "this
+    red is not your fault" is the dangerous direction, so the test is now
+    CONTAINMENT: [a, b] must fit between the two faces of a single perpendicular
+    wall, both of which must reach this face.
+    """
+    consts = sorted({t["const_m"] for t in den["targets"]
+                     if t["axis"] != axis
+                     and t["lo_m"] - TJ_REACH_TOL_M <= const_m <= t["hi_m"] + TJ_REACH_TOL_M})
+    for i, c1 in enumerate(consts):
+        for c2 in consts[i + 1:]:
+            if c2 - c1 > TJ_MAX_WALL_M:
+                break
+            if c1 - TJ_ALONG_TOL_M <= a and b <= c2 + TJ_ALONG_TOL_M:
+                return True
+    return False
 
 
 def _covered(spans, lo, hi):
@@ -130,7 +178,10 @@ def grade(doc: dict, den: dict, *, pos_tol: float = POS_TOL_M,
         row = {"axis": t["axis"], "const_m": t["const_m"], "span": [lo, hi],
                "length_m": t["length_m"]}
         if best is None or best[0] <= 0:
-            row.update({"verdict": "MISSING", "matched": None, "coverage": 0.0})
+            row.update({"verdict": "MISSING", "matched": None, "coverage": 0.0,
+                        "uncovered": [[lo, hi]],
+                        "uncovered_at_tjunction": [_lands_here(den, t["axis"],
+                                                               t["const_m"], lo, hi)]})
             rows.append(row)
             continue
         cov, ln, ci = best
@@ -145,6 +196,12 @@ def grade(doc: dict, den: dict, *, pos_tol: float = POS_TOL_M,
                     "end_err_m": [round(e, 3) for e in end_err],
                     "verdict": ("OK" if frac >= span_min and max(end_err) <= end_tol
                                 else "SHORT" if frac < span_min else "BAD_SPLIT")})
+        # ⭐ view-only: the exact stretches the reading did not draw, so the grade
+        # picture shows WHERE the loss is instead of only how much of it there is.
+        unc = _uncovered(ln["runs"], lo, hi)
+        row["uncovered"] = [[round(a, 4), round(b, 4)] for a, b in unc]
+        row["uncovered_at_tjunction"] = [_lands_here(den, t["axis"], t["const_m"], a, b)
+                                         for a, b in unc]
         rows.append(row)
 
     extras = []
@@ -159,10 +216,13 @@ def grade(doc: dict, den: dict, *, pos_tol: float = POS_TOL_M,
                         and min(abs(c - a["const_m"]) for c in ln["consts"]) <= pos_tol])
         unexplained = drawn - sum(_covered(tgt, a, b) for a, b in ln["runs"])
         if unexplained >= extra_min:
+            # ⭐ view-only: which stretches of this line nothing explains (多画)
+            spans = [sp for a, b in ln["runs"] for sp in _uncovered(tgt, a, b)]
             extras.append({"face": ln["id"], "axis": ln["axis"],
                            "const_m": round(ln["const"], 4),
                            "unexplained_m": round(unexplained, 3),
-                           "drawn_m": round(drawn, 3)})
+                           "drawn_m": round(drawn, 3),
+                           "spans": [[round(a, 4), round(b, 4)] for a, b in spans]})
 
     # ---- C5: opening identity, against the answer's own resolved openings
     otypes = hyp.get("opening_types") or {}
@@ -228,6 +288,10 @@ def grade(doc: dict, den: dict, *, pos_tol: float = POS_TOL_M,
                                 key=lambda r: -r["length_m"])[:12],
         "extras": sorted(extras, key=lambda e: -e["unexplained_m"])[:12],
         "opening_rows": [r for r in o_rows if r["verdict"] != "OK"][:16],
+        # ⭐ 2026-08-24: the complete row set, for the grade PICTURE only.
+        # ⛔ It is the same `rows`/`o_rows`/`extras` the scores above were counted
+        # from -- the renderer must never recompute anything of its own.
+        "detail": {"targets": rows, "openings": o_rows, "extras": extras},
     }
 
 
