@@ -336,12 +336,41 @@ def test_generator_reproduces_hand_authored_sm24_bindings(tmp_path):
             family, mirrored=binding["mirrored"], local_x_positive=binding["local_x_positive"])
 
 
-def test_generator_fails_closed_on_sm25_multi_floor_fingerprint(tmp_path):
-    out = tmp_path / "sm25_bindings.json"
-    result = _run_builder(SM25_RUN, SM25_GT, out=out)
-    assert result.returncode != 0
-    assert "S1" in result.stderr and "fingerprints" in result.stderr
-    assert not out.exists()
+def test_generator_fails_closed_on_sm25_multi_floor_fingerprint():
+    """Re-anchored 2026-08-25 (F-93): S1 (dispatch §五, ratified 2026-08-22) is
+    the fix that makes identical multi-floor outlines carry bit-identical
+    footprint fingerprints, and the real sm25 gt was regenerated on that fix
+    (`e982eba`, 2026-08-23) — F1/F2's South-facade fingerprints now agree
+    byte-for-byte, so the CLI entry on the real run+gt no longer disagrees and
+    can no longer exercise this path. The behavior this lock guards (fail
+    closed when a multi-floor footprint genuinely disagrees) is still live, so
+    per [[regression-case-must-prove-its-own-premise]] this now builds a
+    sample that actually satisfies the premise instead of asserting on gt that
+    no longer does — mirroring the sibling extent-disagreement lock below
+    (MAJOR-2): a synthetic gt via ``SimpleNamespace`` calling the real
+    ``_elevation_binding_fields`` directly, with two floors carrying
+    DIFFERENT footprint fingerprints (not float residue, which the extent
+    lock already covers).
+    """
+    from types import SimpleNamespace
+
+    from scripts.tool_scripts.build_score_view_bindings import _elevation_binding_fields
+
+    def segment(floor_id, fingerprint):
+        return SimpleNamespace(floor_id=floor_id, facade_family="South",
+            source_footprint_fingerprint=fingerprint,
+            world_along_interval=SimpleNamespace(lo=0.0, hi=25.0))
+
+    gt = SimpleNamespace(floors=[
+        SimpleNamespace(id="F1", boundary_segments=[segment("F1", "a" * 64)]),
+        SimpleNamespace(id="F2", boundary_segments=[segment("F2", "b" * 64)])])
+    views = {"South": [SimpleNamespace(id="South_view", floor_ids=("F1", "F2"))]}
+    entry = SimpleNamespace(input_id="South_view", view_type="elevation",
+        direction_semantics="building_axis", building_view_direction="South")
+
+    with pytest.raises(SystemExit) as excinfo:
+        _elevation_binding_fields(entry, gt, views)
+    assert "S1" in str(excinfo.value) and "fingerprints" in str(excinfo.value)
 
 
 def test_generator_rejects_the_deleted_pending_s1_flag(tmp_path):
