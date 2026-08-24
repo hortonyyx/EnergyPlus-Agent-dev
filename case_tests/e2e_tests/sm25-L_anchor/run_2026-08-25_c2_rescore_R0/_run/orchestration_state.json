@@ -2,14 +2,27 @@
   "stages": {
     "0_reading": {
       "stage": "0_reading",
-      "status": "awaiting_judge",
+      "status": "judge_pass",
       "attempts_used": 1,
       "accepted_attempt": 1,
-      "message": "gate① passed — awaiting judge J0 (you, multimodal)",
+      "message": "judge verdict pass-through (2 severe/fatal correction-recoverable J0 criterion/criteria) → advance to correction",
+      "recoverable_criteria_count": 2,
       "gate1": {
         "passed": true,
         "block": 0,
         "flag": 4
+      }
+    },
+    "1_correction": {
+      "stage": "1_correction",
+      "status": "awaiting_judge",
+      "attempts_used": 1,
+      "accepted_attempt": 1,
+      "message": "gate① passed — awaiting judge J1 (you, multimodal)",
+      "gate1": {
+        "passed": true,
+        "block": 0,
+        "flag": 0
       }
     }
   },

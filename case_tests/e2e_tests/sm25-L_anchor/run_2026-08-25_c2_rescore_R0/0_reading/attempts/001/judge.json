@@ -1,0 +1,47 @@
+{
+  "stage": "0_reading",
+  "rubric_id": "J0",
+  "criteria": [
+    {
+      "criterion": "walls_complete",
+      "status": "severe",
+      "recoverability": "correction_recoverable",
+      "evidence": "168.34/208.52 m = 80.7%. ⭐ 缺口主体是【基准差】不是漏读：L 形凹口那两条边(5.0/10.0 m)读图器都画了(W15 y=14.119 跨 0.239-8.94；W20 y=5.875 跨 5.246-24.771)，与 gt 外包皮差 0.119 m = 半个 240 墙厚 ⇒ 已登记的 R-2/R-3。命中行 position_error 中位 0.008 m。消除 as-drawn 与出模基准之差正是 1_correction 的职责，故判 correction_recoverable。"
+    },
+    {
+      "criterion": "boundary_complete",
+      "status": "severe",
+      "recoverability": "correction_recoverable",
+      "evidence": "145.15/180.00 m = 80.6%，与 walls_complete 同源(同一基准差)。外墙 miss 的 16 条里 12 条长度落在 0.238-0.498 m，即 240 墙厚及其两倍的拐角短段；另 4 条为 L 形凹口的 5.0/10.0 m 边，实测读图器已画。"
+    },
+    {
+      "criterion": "windows_placed",
+      "status": "minor",
+      "recoverability": "correction_recoverable",
+      "evidence": "30/31。唯一 miss = North 立面 F2 的 op_15d9(grade.png 中的红框)。31 扇窗坐标全部 dimension_derived。"
+    },
+    {
+      "criterion": "window_plan_geometry",
+      "status": "minor",
+      "recoverability": "correction_recoverable",
+      "evidence": "60/62。"
+    },
+    {
+      "criterion": "window_elevation_geometry",
+      "status": "not_applicable",
+      "recoverability": "unknown",
+      "evidence": "⛔ 判不了，非产物问题：F-89 —— reading_typed_adapter.py:667 `if len(floor_ids) != 1` 把跨两层的立面视图的【全部】elevation 组件过滤成 not_applicable(elevation_floor_partition_unresolved, cause_class=trusted_input)。sm25 两层、四张立面各跨 F1+F2 ⇒ 全被丢。⭐ 产物本身是有的：East 12/North 8/South 7/West 4 = 31 扇，全部 provenance=dimension_derived、confidence=high、带 dimension_refs。判分器缺能力，⛔ 不是 reading 缺产物。"
+    },
+    {
+      "criterion": "floor_lines_complete",
+      "status": "not_applicable",
+      "recoverability": "unknown",
+      "evidence": "同 F-89，立面频道整体被过滤。"
+    }
+  ],
+  "root_stage": null,
+  "root_confidence": 0.0,
+  "retriable": false,
+  "judge_disabled": false,
+  "notes": "⭐⭐ 本裁定【明知不完美仍放行】，理由写在这里以免日后被误读为『judge 放水』：本轮目的是验 C2 批(主体在 1_correction)落地后【平面侧链路通不通】，用户 2026-08-25 定『全跑完，correction 配置不变』。walls/boundary 那 20% 缺口经逐条核对，主体是 as-drawn 与出模两套基准之差(R-2/R-3)，而【消除这个差正是 correction 要做的事】——把 reading 改到对上 gt，等于替 correction 把活干了，那样跑出来的结果不能回答『correction 对不对』。⛔ retriable=false：本轮刻意复用 08-22 那份既有 reading(orchestrator 亲手，非模型)，不盲重抽。⛔ 本 run 是探索档，任何分数不得记成绩(reading 由 orchestrator 手产且产出前已看过 gt 侧结果)。⚠️ 立面侧本轮【无法验收】，被 F-89 卡住，已登记待另开派工。"
+}
