@@ -301,19 +301,23 @@ ValueError: cell F2_ML: polygon edge 1 length 0.005000 m
 is below min_edge_length_m 0.100000 m
 ```
 
-只读复核真实 producer 发现 Floor 2 本来就有两个不属于 0.12m facade span 的 cell gap：
+当时的只读探针还从归档 `window_resolver_inputs.json` 内嵌的 pre-final
+`producer_draw_canonical_bytes` 读到两个 cell gap：
 
 ```text
 (0.12, 14.12, 5.13, 14.125) area=0.02505
 (14.88, 5.88, 24.89, 5.89) area=0.10010
 ```
 
+该对象不是最终 accepted `output.json`，因此不能把这两个 gap 归因为最终产物的属性。
 要继续得到可验证十判据，只剩两条路：
 
 - 绕过真实 proof/host/cell validator；或
 - 额外重铺 Floor 2 cell topology，修改 facade span 之外的输入量。
 
 两条都违反判据 B 的“只中和 F-99 一个量 / 其余一切保持真实”。因此按派工单 §五第 5 条停止，没有伪造 `c2_scored`，也没有提供不存在的十判据表。本探针只使用 `/tmp`/内存，已清理；GT、容差、判分代码均未为 B 修改。
+
+**更正（2026-08-26）**：撤回“Floor 2 本来就有两个 cell gap”的表述；上述现象来自归档 resolver input 内嵌的 pre-final producer，不是 accepted output。orchestrator 复核未改动的原始 `output.json` 后确认：两层 cell 覆盖的 gap/overhang 均为 `0.0`。
 
 ## 九、判据 C：测试
 
@@ -365,7 +369,7 @@ python -m pytest -n auto
 
 ### 10.1 判据 B 再次把施工方逼进“绕过 vs 扩范围”二选一
 
-派工把“8 段 facade span 的 0.12m”写成可独立中和的输入量，但真实 B5 六件套把它与 cell 边、plan source window 窄带、locator hash、host proof 和 output identity 共同冻结。仅调整 facade span 无法同时保持 proof 有效；修到输入自洽又必须处理两个非 F-99 的真实 Floor 2 cell gap。该前提错误触发 §五第 5 条，建议派工方重写 B：明确授权一个经共同审阅的、proof-valid 的输入变换闭包，或提供已中和 F-99 且重新签发六件套的真实产物。
+派工把“8 段 facade span 的 0.12m”写成可独立中和的输入量，但真实 B5 六件套把它与 cell 边、plan source window 窄带、locator hash、host proof 和 output identity 共同冻结。仅调整 facade span 无法同时保持 proof 有效；要使 resolver 输入闭包自洽，又必须重建并重签与该偏差共同冻结的 cell/proof/identity 输入。该前提错误触发 §五第 5 条，建议派工方重写 B：明确授权一个经共同审阅的、proof-valid 的输入变换闭包，或提供已中和 F-99 且重新签发六件套的真实产物。
 
 ### 10.2 fail-closed reason 数量写错
 
@@ -375,3 +379,10 @@ python -m pytest -n auto
 
 仍按用户命令使用手工 v4/v5，没有顺手实施派生摘要。先前结论不变：人工版本只证明标签被改，不能证明语义实现已改；从实现闭包派生组合摘要应另开独立派工。
 
+## 十二、交给下一位审阅者的已知薄弱点
+
+1. `host_inputs_by_window` 遇到 claim link 的 locator 不在 source catalog 时，现在报 `window_host_claim_ambiguous_source` 且 `candidate_inputs: []`；“查无此源”被命名为“歧义”，会误导分诊和修复方向。该分支应有专属 reason，与“候选多于一个”分开。
+2. 窗户已在 catalog 中但一条 host claim link 都没有时，`len(candidate_inputs) == 0` 也落入 `window_host_claim_ambiguous_source`。该分支同样应给专属 reason：它与“locator 不在 catalog”是两个不同的失败谓词，处置方向也不同。
+3. 手工 helper 版本字符串（v1→v5）只能证明有人改了标签，不能证明实现真的发生对应语义变化；实现内容派生的组合摘要仍值得独立改造。
+4. `tests/test_f102_score_cache_identity.py` 显式依赖归档 R0 sidecar 的 opening matcher 仍是 `reading_opening_global_assignment_v1`；若有人重跑并提交那份 sidecar，这把锁的前提就会消失，需重建一个不依赖可重生归档的 pre-fix identity 信任根。
+5. 判据 B 未达成：真实 case 的十判据读数至今不存在，仍挡在 F-99 后面；本报告不把它写成已验收。
