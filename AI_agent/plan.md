@@ -364,6 +364,56 @@ F-89 是判卷**代码**里的缺陷（`reading_typed_adapter.py:667`），换�
 ⇒ **看起来**没有调用方依赖旧 docstring 那句「能吃乱序/自交」。
 ⛔ **这只是 grep 级，不是行为验证** ⇒ 已作为「我方最弱的一点」写进复核请求单 §3.2，交 GLM 升级成行为验证。
 
+### 七、⭐⭐⭐ 「没有可信的图纸↔世界标定」这句话**在 gt 侧是错的** —— 它已经存在，而且已经被签过字
+
+CLAUDE.md 08-26 banner ③(a) 把「⛔ 没有可信的图纸↔世界标定（现在这个标定是 **reading 自己算的**）」
+列为 gt 的四个缺口之一。orchestrator 本夜只读核查，**这条要更正**：
+
+**gt 抽取 manifest 里本来就有逐视图的「像素 → 源坐标」仿射**，且每条都绑着该 PNG 自己的 sha256：
+
+```
+GtExtractionManifestV1.raster_overlays[] = RasterOverlayBindingV1
+    { id, source_label, source_sha256, view_id, pixel_to_source_m: Affine2D }
+                                                └─ 像素 → DXF 原生坐标（米）
+PlanViewBindingV1.world_from_source_m : Affine2D   ← 源坐标 → 世界米
+```
+
+- sm25 的 manifest **六个视图全部填满**（`1f_view.png` / `2f_view.png` + 四立面），
+  `manifest_sha256` 又被写进 `gt.json` 的 `generator.manifest_sha256`（= 在人工签字覆盖内）。
+- **唯一的消费者是叠图渲染器**（`scripts/tool_scripts/render_gt_overlay.py:333 _pixel_for_world_plan`），
+  ⛔ **没有任何判分路径用它**。
+- ⚠️ **sm24 的 manifest `raster_overlays` 是空的 `[]`** ⇒ **这个能力不是全 case 都有**，
+  跨 case 迁移前必须逐 case 查，⛔ 别假设它在。
+
+#### 实测：判分侧那把尺子和产物自报的尺子，量出来差多少
+
+拿 as-drawn 原型产物自报的标定，与 manifest 的仿射逐轴比（都换算到世界米，比**匹配刻度之间的跨距**）：
+
+| 视图 | 轴 | 判分侧仿射 − 尺寸链真值 | 产物自报标定 − 尺寸链真值 |
+|---|---|---|---|
+| 1F | x | **+14.54 mm** | +9.05 mm |
+| 1F | y | −5.68 mm | −6.70 mm |
+| 2F | x | **+10.24 mm** | −3.09 mm |
+| 2F | y | +3.83 mm | +3.49 mm |
+
+⇒ 在 20–25 m 的跨距上两者都在 **±15 mm（≤0.06%）** 内，**判分侧那把略差一点**（合理：
+产物是拿刻度拟合出来的，manifest 那把来自 DXF 视图框↔栅格的配准）。
+
+**这三条结论要分开记，⛔ 别混**：
+1. ✅ **[sol]#2「产品自报的标定不能用来换算它自己的答案」现在有解了** ——
+   判分侧有一把**独立且已签字**的尺子，G3 从「发明一把标定」变成「**把已有的这把接上**」。
+2. ⚠️ **它的残差要显式声明并进预算**：`reading_grade.py` 的 `POS_TOL_M = 0.08 m`，
+   而这把尺子自带 **~15 mm** ⇒ **吃掉约 19% 的容差带**。⛔ 不许当零。
+3. ⛔ **本次比对本身不是对判分侧仿射的验证** —— 我比的是「匹配刻度之间的跨距」，
+   而那些刻度像素位置是**产物自己挑的锚点** ⇒ 同族 [[self-consistent-gates-anchor-on-product-chosen-apertures]]。
+   它只能说明**两把尺子的比例尺一致**，⛔ 不能说明 manifest 那把的**原点**对。
+   ⭐ 原点要验，必须拿**判分侧自己拥有的**特征（例如已签字叠图上 gt 外轮廓与图纸墙线的贴合）去验，
+   而且要挑**没人细看过的那张图**（同族 [[half-measured-calibration-hides-as-downstream-gap]]：
+   细看过的两张准到 0.31 px，没细看的那张偏 1.73 px）。
+
+⇒ **G3 包的题面据此收窄**：① 判分侧读 manifest 的 `pixel_to_source_m` + `world_from_source_m`；
+② 残差预算显式声明并从 `POS_TOL_M` 里扣；③ 逐视图 applicability（sm24 那种空 `[]` 必须**响亮降级**，
+⛔ 不许静默回退到产物自报的标定）；④ 判别实验（[sol] 给的）：**故意改产品标定 ⇒ 标定分该变、描图分不该变**。
 ---
 
 ## 2026-08-26 · **F-90 补审 = REJECT**；一条缓存路径让「修没修好」在官方口子上看不出来

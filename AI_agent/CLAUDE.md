@@ -272,8 +272,20 @@ EnergyPlus 经 `WorkflowTool.run_simulation`（eppy + ConverterManager，idfpy �
 > ### ③ ⭐⭐ 两条决定排期的结论（本日实测得出）
 > **(a) gt 修正是一体改的【前置】，不是后续。** 实测清点：当前 gt **缺**四样，且缺的正好是新 reading 判分要的 ——
 > ⛔ 没有「图上那两条面线在哪」· ⛔ 没有像素坐标（溯源指 **DXF 句柄**，而 reading 从 **PNG** 量）·
-> ⛔ 没有可信的图纸↔世界标定（现在这个标定是 **reading 自己算的**）· ⛔ 边界段有 `wall_thickness_m` 却**没有 basis**（= R-6）。
-> ⭐ 用户选的「从 DXF 机械生成」正好打通：转换器**本来就量了每条边的两个面**（`ZoneEdgeReportV1`），只是存盘时扔了。
+> ~~⛔ 没有可信的图纸↔世界标定~~ · ~~⛔ 边界段有 `wall_thickness_m` 却没有 basis（= R-6）~~。
+> ⭐ 用户选的「从 DXF 机械生成」正好打通：转换器**本来就量了每条边的两个面**（`ZoneEdgeReportV1`）。
+>
+> ⭐⭐⭐ **2026-08-27 实测更正上面划掉的两条（详见 [plan.md](plan.md) 本日 §二 / §七）**：
+> **①「原始层存盘时扔了」是错的** —— sm25 `gt/<case>/review/conversion_report.json` 里 29 zone / **136 条边**
+> 每条都带 `basis`（wall_axis 90 / outer_skin 46）+ `thickness_m`（0.12×78 / 0.24×58）+ `offset_m` + 真 DXF 句柄。
+> 真缺口是「**判分侧没人读它**」+「它被 `_RUNTIME_BUNDLE_FILES` **显式排除在人工签字之外**」
+> ⇒ 信任根只能是「**从已签字源 DXF 机械复现**」（= G1 包）。
+> **②「没有可信标定」也是错的** —— `GtExtractionManifestV1.raster_overlays[].pixel_to_source_m`
+> 是**逐视图的像素→源坐标仿射**、绑该 PNG 的 sha256，sm25 **六视图全填满**，manifest 又被 `gt.json` 的
+> `generator.manifest_sha256` 覆盖 ⇒ **判分侧本来就有一把独立且已签字的尺子**。
+> 唯一消费者是叠图渲染器，⛔ 判分零消费。实测它与产物自报标定在 20–25 m 跨距上差 **≤15 mm**
+> （判分侧那把略差），⚠️ 而 `reading_grade.POS_TOL_M = 0.08 m` ⇒ **残差吃掉约 19% 容差带，必须显式进预算**。
+> ⚠️ **sm24 的 `raster_overlays` 是空 `[]`** ⇒ 这能力不是全 case 都有，⛔ 别假设它在。
 >
 > **(b) ⛔ 两种出模形式，现在严格说一种都没跑通。** 「选出模形式」的开关**不存在**
 > （`zone_frame: axis|exterior` 是决议、从未实现）；外皮支有机制（外包对账）但**证据不够整条轴 skip**，R0 即如此；
