@@ -227,35 +227,29 @@ EnergyPlus 经 `WorkflowTool.run_simulation`（eppy + ConverterManager，idfpy �
 > **八条硬纪律**（每条都有 08-23 实犯）· 验收尺度 · 两个专项的并入与留尾。
 > ⛔ 与本文其余各节冲突处，**reading/correction 分工与判分口径以该指南为准**。
 
-> **⭐⭐⭐ 2026-08-25 晚 · 当前唯一口径 banner**
-> **分支 `08.23_AsDrawnReading`** · 支线 `toolbox_into_src_08.25` @ `283e868`（跨家族 APPROVE，**待合并**）。
-> 逐段全档 → [plan.md 本日](plan.md)。
+> **⭐⭐⭐ 2026-08-25 收工 banner（当前唯一口径）· ⭐ 本轮已合并回 `main`**
+> 分支 `08.23_AsDrawnReading` **快进合入 `main`**（main 自 2026-06-14 起 586 个提交未动、零独有提交 ⇒ 零冲突）。
 >
-> **① ✅ 合并阻塞已全清 + ✅ 支线已回并**（两步都跨家族审过）：**F-93** `b3e0a32` · **F-94 A 案** `91ae82d`
-> （16 脚本自举 + **AST 机械锁**）· 支线 `toolbox_into_src_08.25` 于 `0182bea` **零冲突回并**。
-> 全量 **`3017 passed, 13 xfailed`**。⭐⭐ **那道新锁的第一次真实捕获就发生在合并上** ——
-> 它点名支线带进来的 `reading_toolbox.py:39`（import `src` 无自举），补上后转绿。
-> ⚠️ GLM 裁定：锁 = **在枚举过的暴露面上把「忘关门」从静默变响亮**，⛔ **不是根治** ⇒
-> **B 案 = 债 D-2「中高紧迫、本批收尾前后排期」**（覆盖外仍有活例 `tests_scripts/deepseek_review.py`）。
-> ⭐ 派工单累计题错 **26/26**。
+> **① ✅ 三笔账本轮收完**（均跨家族审）：**F-93** 全仓 4 项红 `b3e0a32` ·
+> **F-94 A 案**（16 脚本自举 + AST 机械锁）`91ae82d` · **支线回并** `0182bea` ·
+> **债 D-1 双份代码退役** `98e72d6`→cherry-pick（GPT APPROVE）· **F-90 楼层 id 映射** `3f6731f`。
+> ⭐⭐ **那道新锁的第一次真实捕获发生在合并上**：点名支线带来的 `reading_toolbox.py:39`。
 >
-> **② ⭐⭐ 答案直喂内核，撞出两条现行管线撞不到的缺陷**（探索档 ⛔ 永不作成绩）→
-> [实验档](logs/experiments/2026-08-25_kernel_probe_from_gt/README.md)：**内核不是卡点**，但 **R0 的 38 个 cell 带 `polygon` 的 = 0**
-> ⇒ **C2 多边形路径从未被内核吃过** ⇒ **F-95** 顶点规范化毁凹多边形（97.731→226.457；⛔ 已有 L 形锁没分辨力）· **F-96** 跨层碎片无守卫。
-> ⭐ 6 cm 已溯源到原始 DXF：四处墙厚同为 120、**1F 右半段整体南偏 60.3 mm** ⇒ **原图就这么画的**。
+> **② ⛔ 唯一未过跨家族审的是 F-90** —— 审阅单已出（GPT），
+> ⇒ **下一轮第一件事 = 补审** → [单](logs/reviews/request/2026-08-25_f90_crossreview_gpt.md)。
+> ⭐ 它实测**同根因 5 处**而非派工单点名的 1 处，且**只修第 1 处会从崩溃退化成【静默全错】**。
 >
-> **③ ⭐⭐ gt 该录「原图」还是「修复后的建筑」**（用户 08-25 提；全档 plan.md 三之三）：同意「加校验」与「误差归 correction 吸收」；
-> **「录入时就修复」改落点** = 用户 08-20 定的**三层**（忠实原始层 + 显式不规整清单 + 按出模规则派生的答案层）。
-> ⛔ 实测：纯坐标分不开「真墙」与「画图偏差」⇒ **「gt 加校验」与 R-6 是同一件事**；R-6 工作量**下调**。
+> **③ ⭐⭐ 本轮撞出的新缺陷**：**F-95** 顶点规范化毁凹多边形 · **F-96** 跨层碎片无守卫 ·
+> **F-97** 新识图产物静默半喂进 correction（行为实测：门还给绿灯）· **F-98** 判分对浮点末位敏感 ·
+> **F-99** 立面段与 gt 边界差 `0.12 m`（= 半个 240 墙厚，与基准换算同源）⇒ **F-90 修完 sm25 仍判不出分**。
 >
-> **④ ⭐⭐⭐ 一体改备料已到，我方核心倾向被证伪** → [GPT 设计答复](logs/reviews/verdict/2026-08-25_reading_correction_unification_gpt_design.md)：~~吃两条面线~~ ⇒ **吃「带原始引用的【多形态】墙证据」**（sm24 实物 4 堵墙是单条实心带）。
-> ⭐ **基准归属更正**：不是「旧 reading 自述中线」，**是 correction 的提示词在要求中线**
-> （`pipeline.py:365-369` 逐字 `wall CENTERLINE`）⇒ 一体改必须动那两句。
-> ⇒ **F-97**：新识图产物会进提示词收集器的 `others` 桶**进提示词**，而识图门只看 `*_view.json`
-> ⇒ **静默地半喂进去**，⛔ 比「喂不进去」严重。
-> 给 sol 的讨论稿已累计式改写至最新 → [讨论稿](logs/reviews/request/2026-08-26_reading_correction_joint_architecture_discussion_sol.md)。
+> **④ ⏳ 债**：**D-2 装机路径根治（B 案）中高紧迫**（GLM 裁定：那道锁只是**执行机制**不是**根治机制**，
+> 覆盖外仍有活例 `tests_scripts/deepseek_review.py`）· **D-1 已退役**（⚠️ GPT 指出其判据是
+> **一次性检查、非防漂移门，且未接入 CI**）。
 >
-> **⑤ ⏭ 下一步**：~~清阻塞~~ ✅ → ~~支线回并~~ ✅ → **一体改**（⭐ **卡在「与 sol 讨论」，需用户拉人**）→ 拿 sm25 撞 C2（F-95/F-96/F-91/F-92）· gt 层（R-6+校验）并进其后。⭐ **可并行推进且不依赖 sol 的**：**F-90** 楼层 id 映射（撞 C2 的前置）。
+> **⑤ ⏭ 下一步**：补审 F-90 → **派 D-2** → **一体改**（⭐ **卡在「与 sol 讨论」，需用户拉人**）→ 撞 sm25/C2
+> （F-95/F-96/F-91/F-92/F-99）· gt 层（R-6+校验）。
+> ⭐ 派工单累计题错 **28/28** —— 本轮新增 4 次，全部由施工/审阅席位查出。
 
 > **已翻篇的 banner（均逐字搬入 [`logs/worklog/2026-08_plan_log.md`](logs/worklog/2026-08_plan_log.md)）**：
 > **08-25 收工**（reading 架构定稿 · 管子拆 9 工序 · C2 首次被真正量过 · 工具箱转正 APPROVE · F-93/F-94）·
@@ -272,6 +266,7 @@ EnergyPlus 经 `WorkflowTool.run_simulation`（eppy + ConverterManager，idfpy �
 
 | 日期 | 一句话 | 详档 |
 |---|---|---|
+| **2026-08-25 收工** | ⭐ **合并回 `main`**（快进，586 提交零冲突）· ✅ **三笔账收完**：合并阻塞（F-93 + F-94 A 案）· 支线回并 · **债 D-1 退役**（identity 壳，GPT APPROVE）· **F-90 楼层 id 映射**（⭐ 同根因 **5 处**，只修 1 处会从崩溃退化成**静默全错**）· ⭐⭐ **新锁首次真实捕获**（合并时点名 `reading_toolbox.py`）· 新登记 **F-95～F-99** 五条 · ⛔ **F-90 未过跨家族审 ⇒ 下轮第一件事** · 派工单累计题错 **28/28** | [F-90 审阅单](logs/reviews/request/2026-08-25_f90_crossreview_gpt.md) · [D-1 裁决](logs/reviews/verdict/2026-08-25_d1_retirement_gpt_verdict.md) · [内核探针](logs/experiments/2026-08-25_kernel_probe_from_gt/README.md) |
 | **2026-08-25 晚** | ⏳ **清合并阻塞已派发**（F-93/F-94，施工 Claude / 审 GLM）· ⭐⭐ **答案直喂内核**撞出 **F-95**（顶点规范化毁凹多边形 97.731→226.457，且已有 L 形锁**没有分辨力**）与 **F-96**（跨层碎片无守卫）· 6 cm 偏差**溯源到原始 DXF**（四处同为 120 墙，1F 右半段南偏 60.3 mm，原图如此）· ⭐⭐ **gt 三层立场**（加校验与 R-6 是同一件事）· ⭐⭐⭐ **GPT 跨家族证伪我方核心倾向**（→ 多形态墙证据）+ **基准归属更正**（是 correction 提示词在要中线）+ **F-97 静默半喂路径** | [实验档](logs/experiments/2026-08-25_kernel_probe_from_gt/README.md) · [GPT 答复](logs/reviews/verdict/2026-08-25_reading_correction_unification_gpt_design.md) · [派工单](logs/reviews/request/2026-08-25_merge_blockers_f93_f94.md) |
 | **2026-08-25** | ⭐⭐⭐ **reading 架构定稿并单独成文**（量具/工序/出口三层归属 · SOP≠判例 · 九条盲区）· **管子拆成 9 工序 + 工具箱 CLI**（产物逐字节相同）· **T 形接头已解**（`merge_m` 彻底不承重）· **grade 图落成** · ⭐⭐ **C2 首次被真正量过**（L 形 8 顶点逐点对上、只差半个墙厚；但 **F-91 立面多平面为空** / **F-92 cell 多边形未用** / **F-89·F-90 两侧都判不了分**）· **工具箱转正跨家族 APPROVE** · ⛔ **F-93 全仓已红两天**（gt 晚于锁一天入库）· **F-94 `.pth` 合并阻塞** · 派工「停下上报」累计 **23/23 全是派工方题错** | [架构](architecture/reading_pipeline_architecture.md) · [裁决](logs/reviews/verdict/2026-08-25b_toolbox_transplant_crossreview_glm_verdict.md) · [plan.md 本日](plan.md) |
 | **2026-08-24** | ⭐⭐⭐ **模型真进环**（perception 独立成文件：族角色 + 配对选择 + 「认不出来」；代码穷举候选**无阈值**）· ⭐⭐ **两把尺子互补是实测**（作弊在 gt 侧 93.3→97.3、在原图对账上 49 条违规）· 立面结构线判据 v2（清空 runs 从 24/24 → 0/24）· 新增两条判据（自洽重算 / 门窗族落位）· 登记 **F-86** · 实验 README 重写为纯 v2 口径。晚间：⭐⭐⭐ **可评分分母 + reading 判分器落成**（sm25 1F 108 目标 / 100% / 98.2%；作弊 0%）· 登记 **F-88** · ⛔⛔ **跨家族三审 REJECT**（新作弊=把真的漏读说成洞口 · 我的单像素变异从没跑到消费者）⇒ 补四道门 · 登记 **F-87/F-88**（F-88 已查清=只污染溯源、不动几何）。**夜间连打四→六审（GLM）**：四审证伪我两个数 · 五审 `band_collapse`（没有一个假数却优于诚实、八门全绿）· ⭐⭐⭐ **六审 APPROVE，gt 放行书写**，落 [层契约](architecture/as_drawn_layer_contract.md)，记成绩四道闸 2/4 已做（剩 `span_min` 签字 + 冷启首考，待用户）| [实验档](logs/experiments/2026-08-23_as_drawn_reading_prototype/README.md) · [RESULTS_v2.json](logs/experiments/2026-08-23_as_drawn_reading_prototype/out/RESULTS_v2.json) · [plan.md 本日](plan.md) |
@@ -283,9 +278,7 @@ EnergyPlus 经 `WorkflowTool.run_simulation`（eppy + ConverterManager，idfpy �
 | **2026-08-19** | **三臂判别**：Sonnet 首抽零返工 4/4·3/3 · GPT 历史栈一轮返工 4/4 · Haiku 两臂皆崩 ⇒ 病灶 = 眼估入口敞开；根治归专项 | [plan.md 本日条目](plan.md) · [专项 §9](capability/reading/improvement_methodology.md) |
 | 2026-08-18 | 治理换挡（§0）· 707 完整环境还原仍不回来（22 抽）· 新建 reading 回归门 · **全案报告已出** | [plan.md](plan.md) · [全案报告](logs/reviews/request/2026-08-18_reading_regression_external_investigation.md) |
 | 2026-08-17 | 707 复现前置三件落地（F-51 单帧化 / `scale_origin` 退回 SHOULD / 跨轴合法出口）+ 全仓首次真零红 **2835 绿** | [plan.md](plan.md) |
-| 2026-08-16 晚 | 移植基座一次性普查：40 分钟撞出 7 条（此前串行一天撞 3 条）· 修 5 条 · +135 锁 | [worklog](logs/worklog/2026-08_plan_log.md) · [sweep README](logs/experiments/2026-08-16_substrate_sweep/README.md) |
-| 2026-08-16 | 方法论转向「读 diff 不猜变量」· 撤能力封口（A3）证伪 | [worklog](logs/worklog/2026-08_plan_log.md) · [行为清单](logs/experiments/2026-08-16_707_repro/behavioral_change_inventory.md) |
-| 2026-08-15 | reading 重启七抽全否 · ⭐ 基准本身被查出「不可审计」 | [worklog](logs/worklog/2026-08_plan_log.md) · [实验档](logs/experiments/2026-08-15_reading_restart/README.md) |
+| 2026-08-15 ～ 08-16 | reading 重启七抽全否 · ⭐ 基准本身被查出「不可审计」· 移植基座一次性普查（40 分钟撞出 7 条）· 方法论转向「读 diff 不猜变量」· 撤能力封口证伪 | [worklog](logs/worklog/2026-08_plan_log.md) · [sweep](logs/experiments/2026-08-16_substrate_sweep/README.md) |
 | ≤2026-08-14 | 验收首次达成（一口气推完不出错·连跑 3/3）· 下游断链真因坐实（截断⇒幽灵 tool_call⇒400）· **全链首次跑到 EnergyPlus（0 Severe）** · F-8…F-21 缺陷批 · 判卷身份与度量批 | [worklog](logs/worklog/2026-08_plan_log.md) · [status digest](logs/worklog/status_digest_to_2026-08-17.md) · [2026-07](logs/worklog/2026-07_plan_log.md) |
 
 ---
