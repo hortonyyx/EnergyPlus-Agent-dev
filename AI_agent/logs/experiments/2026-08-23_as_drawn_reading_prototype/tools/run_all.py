@@ -77,10 +77,11 @@ def main() -> int:
     res: dict = {"generated_from": "tools/run_all.py", "plans": {}, "elevation": {}}
 
     for name, cfg, gt_case, floor in PLANS:
-        rc, so, se = run([str(T / "as_drawn_v2.py"), str(T / f"{cfg}.json"), str(OUT / f"{name}_v2.json")])
+        rc, so, se = run(["-m", "src.agent.reading.as_drawn.as_drawn_v2",
+                          str(T / f"{cfg}.json"), str(OUT / f"{name}_v2.json")])
         assert rc == 0, se
         doc = json.loads((OUT / f"{name}_v2.json").read_text())
-        rc, so, se = run([str(T / "checks_as_drawn_v2.py"), str(OUT / f"{name}_v2.json"),
+        rc, so, se = run(["-m", "src.validator.checks.as_drawn", str(OUT / f"{name}_v2.json"),
                           str(T / f"{cfg}.json"), str(OUT / f"{name}_checks_v2.json")])
         chk = json.loads((OUT / f"{name}_checks_v2.json").read_text())
         res["plans"][name] = {
@@ -94,7 +95,7 @@ def main() -> int:
             "self_check_neuters": {},
         }
         for m in PLAN_NEUTERS_SELF:
-            rc, so, se = run([str(T / "checks_as_drawn_v2.py"), str(OUT / f"{name}_v2.json"),
+            rc, so, se = run(["-m", "src.validator.checks.as_drawn", str(OUT / f"{name}_v2.json"),
                               str(T / f"{cfg}.json"), str(OUT / f"{name}_checks_v2_MUT_{m}.json"), m])
             if rc:
                 res["plans"][name]["self_check_neuters"][m] = "ERROR"
@@ -148,12 +149,12 @@ def main() -> int:
         cf = scratch / f"cfg_{name}.json"
         cf.write_text(json.dumps(c, ensure_ascii=False, indent=1))
         doc = scratch / f"{name}_product.json"
-        rc, so, se = run([str(T / "as_drawn_v2.py"), str(cf), str(doc)])
+        rc, so, se = run(["-m", "src.agent.reading.as_drawn.as_drawn_v2", str(cf), str(doc)])
         if rc:
             res["perception_neuters"][name] = {"outcome": "LOUD_FAILURE",
                                                "message": se.strip().splitlines()[-1][:160]}
             continue
-        rc, so, se = run([str(T / "checks_as_drawn_v2.py"), str(doc), str(cf),
+        rc, so, se = run(["-m", "src.validator.checks.as_drawn", str(doc), str(cf),
                           str(scratch / f"{name}_checks.json")])
         d = json.loads((scratch / f"{name}_checks.json").read_text())
         rc2, so2, _ = run([str(T / "reconstruct_check_v2.py"), "sm25-L_anchor",
@@ -173,7 +174,7 @@ def main() -> int:
             res["crossreview_neuters"][m] = {"outcome": "MUTATION_FAILED",
                                              "message": se.strip()[-200:]}
             continue
-        rc, _, _ = run([str(T / "checks_as_drawn_v2.py"), str(doc), str(T / "cfg_1f_full.json"),
+        rc, _, _ = run(["-m", "src.validator.checks.as_drawn", str(doc), str(T / "cfg_1f_full.json"),
                         str(OUT / f"sm25_1f_CROSS_{m}_checks.json")])
         d = json.loads((OUT / f"sm25_1f_CROSS_{m}_checks.json").read_text())
         rc2, so2, _ = run([str(T / "reconstruct_check_v2.py"), "sm25-L_anchor",
@@ -187,11 +188,11 @@ def main() -> int:
     res["denominator"], res["reading_grade"] = {}, {}
     for key, dxf, req_path, view, product in DEN:
         den_out = OUT / f"denominator_{key}.json"
-        rc, so, se = run([str(T / "denominator.py"), dxf, req_path, view, str(den_out)])
+        rc, so, se = run(["-m", "src.agent.judge.as_drawn.denominator", dxf, req_path, view, str(den_out)])
         assert rc == 0, se[-400:]
         res["denominator"][key] = json.loads(den_out.read_text())["ledger"]
         g_out = OUT / f"grade_{product}.json"
-        rc, so, se = run([str(T / "reading_grade.py"), str(OUT / f"{product}_v2.json"),
+        rc, so, se = run(["-m", "src.agent.judge.as_drawn.reading_grade", str(OUT / f"{product}_v2.json"),
                           str(den_out), str(g_out)])
         assert rc == 0, se[-400:]
         g = json.loads(g_out.read_text())
@@ -201,13 +202,18 @@ def main() -> int:
     import copy as _copy
     import importlib.util as _ilu
 
-    def _load(name):
-        spec = _ilu.spec_from_file_location(name, T / f"{name}.py")
+    def _load(name, path=None):
+        spec = _ilu.spec_from_file_location(name, path or (T / f"{name}.py"))
         mod = _ilu.module_from_spec(spec)
         sys.path.insert(0, str(T))
         spec.loader.exec_module(mod)
         return mod
-    RC, RG = _load("reconstruct_check_v2"), _load("reading_grade")
+    # ⭐ 2026-08-25: reading_grade.py transplanted to src/agent/judge/as_drawn/ per
+    # the toolbox-into-src dispatch; loaded from its new canonical path so this
+    # in-process neuter sweep grades against the SAME file the subprocess calls
+    # above now use (reconstruct_check_v2.py was not moved -- stays in tools/).
+    RC = _load("reconstruct_check_v2")
+    RG = _load("reading_grade", REPO / "src/agent/judge/as_drawn/reading_grade.py")
     doc0 = json.loads((OUT / "sm25_1f_v2.json").read_text())
     den0 = json.loads((OUT / "denominator_sm25_F1.json").read_text())
     res["reading_grade_neuters"] = {}
