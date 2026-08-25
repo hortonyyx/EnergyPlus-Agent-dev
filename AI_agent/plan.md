@@ -313,20 +313,23 @@ as-drawn 产 `observations.face_lines`/`hypotheses` —— **两套 schema 完�
 
 | 阶段 | # | 事项 | 状态 |
 |---|---|---|---|
-| **0 清合并阻塞** | 0-a | **F-94** venv `.pth` 硬编码主树 | ⏳ **方案已出、GLM 审过「合格」，待用户在 A / B / A+B 之间拍板** |
-| | 0-b | **F-93** 全仓 4 项红 | ✅ **已闭合**（`b3e0a32` · GLM APPROVE-WITH-FINDINGS · 全仓 3014 passed 全绿）|
+| **0 清合并阻塞** | 0-b | **F-93** 全仓 4 项红 | ✅ **已闭合**（`b3e0a32` · GLM APPROVE-WITH-FINDINGS · 全仓 `3014 passed` 全绿）|
+| | 0-a | **F-94** 装机路径 —— **A 案止血** | ⏳ **施工中**（Claude 席位，2026-08-25 派发）→ [单](logs/reviews/request/2026-08-25_f94_bootstrap_dispatch.md)；交件后 **GLM 跨家族审** |
+| | 0-a′ | **F-94 B 案根治** | ✅ **已转债 D-2**（用户 08-25 拍板）· 退役须另开单 |
 | | 0-e | GLM 三条不阻塞 findings（测试改名 · **1-a 锁内置反向对照** · docstring 小瑕）| ⏭ 下轮派工打包 |
-| | 0-c | 重跑 `RESULTS_v2.json`（陈旧，主控造成） | ⏭ 主控 |
-| | 0-d | 合并 `toolbox_into_src_08.25` → `08.23_AsDrawnReading` | ⏭ |
-| **1 新 reading 落地** | 1-a | ⭐⭐ **reading + correction 一体改**（含 as-drawn→correction 接线） | ⭐ **先与 sol 讨论架构** → [讨论稿](logs/reviews/request/2026-08-26_reading_correction_joint_architecture_discussion_sol.md)；⭐⭐ **备料已到**：GPT 跨家族设计答复 → [全档](logs/reviews/verdict/2026-08-25_reading_correction_unification_gpt_design.md)（**证伪了我方倾向**：接口不能定成「吃两条面线」—— sm24 实物有 4 堵墙是单条实心带）|
-| | 1-b | **冷启读图器首考**（模型真产 perception）| ⛔ 要花钱，待拍板 |
-| | 1-c | 补新工具 + 判例 + SOP | 用户定：属 harness 迭代，**回并后再做** |
-| | 1-d | **F-90** 楼层 id 映射（否则撞通了也量不了）| 建议提前到本阶段 |
-| **2 撞通** | 2-a | sm25 全流程（用新 reading）| **用户 08-25 定：推完主线再用 sm25 撞，把 C2 批的问题撞出来** |
-| | 2-b′ | **F-95 / F-96**（答案直喂内核已撞出，见「三之二」）| 撞通时一并处置 |
-| **3 gt 层** | 3-a | ⭐ **R-6 + gt 不规整校验（同一件事）** | 用户 08-25「**这个可能要提前了**」⇒ **建议并进本阶段，不单独提前** |
-| | 3-b | correction 的**模数/共线吸附**（guide §四之二 登记未实现）| 建议并进 1-a 一体改 |
-| | 2-b | **F-89** 多层立面判卷 | 立面侧再说 |
+| **1 支线回并** | 1-a | 合并 `toolbox_into_src_08.25` → `08.23_AsDrawnReading` | ⏭ **0 清完即可做**；**债 D-1**（双份代码）随此步处置 |
+| **2 一体改** | 2-a | ⭐⭐ **reading + correction 一体改** | ⏳ **前置 = 与 sol 讨论架构**（⭐ **需用户拉人**）→ [讨论稿（已改写至最新）](logs/reviews/request/2026-08-26_reading_correction_joint_architecture_discussion_sol.md) · [GPT 备料](logs/reviews/verdict/2026-08-25_reading_correction_unification_gpt_design.md) |
+| | 2-b | **F-97** 契约判别器（未知契约响亮失败）| **一体改的必做项**（已行为实测：门不但看不见它，还给绿灯）|
+| | 2-c | **F-87** 门窗身份没外置 | 归 reading 侧，随一体改 |
+| **3 撞 sm25 / C2** | 3-0 | ⭐ **F-90** 楼层 id 两套命名无映射层 | ⭐⭐ **本阶段前置，且⛔ 不依赖 sol** —— 不修则「撞通了也量不了」（GLM 亦点名）。**建议 0/1 完成后即派工，与等 sol 并行** |
+| | 3-a | sm25 全流程（用新 reading）| 等 2 |
+| | 3-b | **F-95** 顶点规范化毁凹多边形 + **F-92** cell 多边形未用 | ⭐ **是一对**（正因多边形没被用，它的缺陷才躺了一个月）|
+| | 3-c | **F-96** 跨层碎片无守卫 | 同批 |
+| | 3-d | **F-91** 立面多平面为空 + **F-89** 多层立面判卷 | 立面侧，一对 |
+| | 3-e | **F-98** 判分对浮点末位敏感 | 观察项，随判分侧改动一并评估 |
+| **4 gt 层** | 4-a | ⭐ **R-6（保留逐边 basis+thickness）+ gt 不规整校验** | ⭐ **同一件事，⛔ 不能分别排期**；工作量已下调（`ZoneEdgeReportV1` 已是正式 schema）|
+| | 4-b | **R-1** 判卷对外轮廓是瞎的 · **R-5** 房间类型词表 | 随 gt 层 |
+| | 4-c | **R-3** 内外墙基准拐角错位 | 归**出模专项**，本轮不动 |
 
 ⛔ **D-1 双份代码债**（`tools/` 原件与 `src/` 新件并存）：GLM 裁定 (a) 接受 + 登记 + **限期退役**，退役须另开单。
 
