@@ -93,3 +93,66 @@
 2. 世界原点到底该由**谁**定：读图器申报（现状，需判墙厚）/ correction 段推导 / 代码从尺寸链确定性求解？
    ⇒ 与本专项的 `zone_frame` 定案是同一个决定的两面。
 
+
+---
+
+## ⭐⭐⭐ 2026-08-27 实测更新：**「出模形式」现在不是配置出来的，是【读图证据够不够】涌现出来的**
+
+> 本节由 orchestrator 夜班只读核查得出（⛔ 未改任何代码）。
+> 它把用户 2026-08-26 第 2 条口径 ——「**出模就定两种，不变；两种成绩分开排；
+> 相当于是两个答案，答案在起跑的配置就决定了**」—— 从「加个开关」重新定性成
+> **「先把现在这条隐式决定路径拆掉」**。
+
+### 一、`zone_frame: axis | exterior` 这个开关，至今**不存在**（实测）
+
+`grep -rn zone_frame src/` 只命中 `src/agent/state.py` / `output_coordinates.py` / `nodes/zone.py` 里的
+**EnergyPlus zone 原点归零**（`zero_zone_frames_with_audit`），**与本专项的出模基准同名不同物**。
+⇒ §5 排队单第 3 条**一行未落地**。⚠️ 后续引用这个名字时先说清是哪一个，别再撞名。
+
+### 二、⭐⭐ 真正在决定基准的是这条路径（三段，逐段实测）
+
+1. `correction/finalize.py:124` 调 `extract_authoritative_envelope(vector_dir, footprint=geom, …)`
+   —— **从 reading 产物目录里抽立面外包证据**。
+2. `correction/envelope.py:520-530` 逐轴裁决：
+   ```python
+   elif not (has_overall_authority or has_opposite_view_agreement or has_same_view_stroke_agreement):
+       axes[axis] = EnvelopeAxisResolution(axis=axis, status="skipped",
+           reason="insufficient evidence: no corroborating facade envelope signal")
+   ```
+   ⇒ **证据不够 ⇒ 整条轴 `skipped`。**
+3. `correction/deterministic.py:924` `if authoritative_envelope is None: return geom`
+   + 逐轴 `status != "accepted"` 就 `continue` ⇒ **不投影**。
+
+⇒ **结论：产物落在中线还是外皮，取决于这一抽 reading 的立面证据够不够。**
+这正是 CLAUDE.md 08-26 banner ③(b) 记的「外皮支有机制但证据不够整条轴 skip，R0 即如此」的**机制层解释**，
+⭐ 而且它是**代码侧属性**（换一份产物这条结论仍在），不随旧产物作废。
+
+**为什么这是个必须先拆掉的形状**（⛔ 不只是「缺个开关」）：
+- 用户要的是「**起跑的配置决定答案形式**」，现在是「**跑完才知道拿到哪一种**」；
+- 两种成绩要**分开排**，而现在**同一次配置可能产出两种形式的混合物**（一轴 accepted、另一轴 skipped）
+  —— 那既不是 axis 档也不是 exterior 档，**是第三种没人定义过的东西，且没有任何门会说它不对**；
+- 同族教训 [[silent-default-threshold-behind-otherwise-conclusions]]：
+  「证据不够就保持原样」= 把出模形式的默认值**偷设成 axis**，而这个默认**没有人签过字**。
+
+### 三、gt 侧已经具备派生两种形式的原料（2026-08-27 实测）
+
+`review/conversion_report.json` 里每条 zone 边都带 `basis`（`wall_axis` / `outer_skin`）+ `thickness_m` + `offset_m`
+（sm25：136 条边，`wall_axis` 90 / `outer_skin` 46；厚度 0.12×78 / 0.24×58）。
+⇒ **gt 的「派生答案层」按哪种出模形式派生，是可机械计算的**，⛔ 不需要重新签字
+（正对用户口径 12 的「换出模形式只重新派生、不必重签」）。
+⚠️ 但这一层目前**没有任何判分路径读它**、且**不在人工签字覆盖范围内**（详见 plan.md 2026-08-27 §二）
+⇒ 已派 **G1** 单独解决。
+
+### 四、⇒ ②-1 包（「冻结出模形式」）的形状，据此收窄为四件
+
+1. **run_config 增一个出模形式声明**，跑前冻结、写进 run 的 provenance；⛔ 不给「自动/按证据决定」这一档。
+2. **确定性代码按声明投影**（厚度已知时两口径互为无损换算，差 = 周边一圈 t/2）——
+   ⛔ 投影发生在代码里，不在提示词里；correction 提示词那两句写死 `wall-centerline` 的字符串一并处理（②-2）。
+3. **立面自动跟随**：`correction/finalize.py:139` 的 `facade_segments` 是唯一写入者且跑在 core-final ring 上
+   ⇒ 平面投影对了立面会跟着对（08-26 已核实，此处只记指针）。
+4. **判分侧核对声明一致**：产物自报的出模形式 ≠ 跑前冻结的那个 ⇒ **响亮失败**
+   （与用户口径 9 对「吸附分辨率」的处置**同一个形状**：gt 声明 → 跑前抄进配置 → 判分侧核对，不一致响亮失败）。
+   ⭐ 且必须记住 [sol]#2：**产品自报的东西不能用来换算它自己的答案** ——
+   这里的「自报出模形式」只能作为**被核对的声明**，⛔ 不能作为判分器的换算依据。
+
+⛔ **本节只是把 ②-1 的题面收窄，⛔ 不是已实现。** 落地要出正式派工单 + 跨家族审。
