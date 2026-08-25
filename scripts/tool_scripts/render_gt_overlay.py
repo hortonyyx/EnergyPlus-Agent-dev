@@ -23,9 +23,14 @@ import json
 import os
 import re
 import shutil
+import sys
 import tempfile
 from pathlib import Path
 from typing import Mapping
+
+_REPO_ROOT = Path(__file__).resolve().parents[2]
+if str(_REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(_REPO_ROOT))
 
 import numpy as np
 from PIL import Image, ImageDraw, ImageEnhance, ImageFont

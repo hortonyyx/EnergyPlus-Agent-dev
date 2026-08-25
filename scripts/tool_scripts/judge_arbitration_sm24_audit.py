@@ -15,9 +15,14 @@ import hashlib
 import json
 from pathlib import Path
 import statistics
+import sys
 import time
 import tracemalloc
 from typing import Any
+
+_REPO_ROOT = Path(__file__).resolve().parents[2]
+if str(_REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(_REPO_ROOT))
 
 
 def _canonical_bytes(value: object) -> bytes:

@@ -11,9 +11,14 @@ import json
 import os
 import re
 import shutil
+import sys
 import warnings
 from collections import Counter
 from pathlib import Path
+
+_REPO_ROOT = Path(__file__).resolve().parents[2]
+if str(_REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(_REPO_ROOT))
 
 from src.agent.execution.run_meta import RUN_META_DIR
 from src.agent.execution.stage_runner import STAGE_ORDER
