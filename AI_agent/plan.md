@@ -179,6 +179,7 @@
 | **⭐⭐ 新 F-101** | ⛔ **合法的 `src:<64hex>` 溯源 locator 被 F-90 新映射器当成未注册输入拒掉**：[`window_sources.py:952-957`](../src/agent/correction/window_sources.py#L952) 白纸黑字声明**两种合法形式**（① 已解析的 `src:<64hex>` 直通 ② `<expected_output_id>/<observation_id>`），而新映射器 [`score_service.py:200`](../src/agent/judge/score_service.py#L200) 一律 `split("/", 1)[0]` ⇒ 整串 hash 被当 `input_id`，落进 `window_host_source_not_a_registered_plan_input`。复核方实测：一个带 `src:<hash>` host 引用的 B5 bundle **成功产出 `VerifiedWindowHostProof`**，随后 scorer 拒绝它。⭐ **这是第 3 条「派工方题错」**（派工单暗含前提「host `source_ids` 总能按 `/` 拆出 input id」，该前提不完整）。⛔ 不是坏输入被挡住，是**合法输入被挡住**；修法 = 从已复验的 `window_host_proof` / `window_resolver_inputs` catalog 把 locator 解析回 source input | **登记**（2026-08-26，GPT 跨家族补审 finding 4）· ⛔ 碰 `src/agent/judge/` 须派工 |
 | **⭐⭐⭐ 新 F-102** | ⛔ **判分语义改了、缓存 identity 没改 ⇒ 官方 run-stage 会继续命中修复前的旧 sidecar**：复核方在真实 R0 上实测 `live = not_applicable/unsupported_view_contract`（已走到 F-99）、`cache_hit = True`、`cached = rejected/score_view_binding_invalid`（= **修复前**的结论）、`same_identity = True`。位置：[`score_service.py:269-278`](../src/agent/judge/score_service.py#L269) · [`score_schema.py:1665-1691`](../src/agent/judge/score_schema.py#L1665) · [`run_stage.py:2176-2181`](../scripts/tool_scripts/run_stage.py#L2176)。⭐⭐ **治理后果比缺陷本身重**：F-90 修没修好，**从官方跑测口子上看不出来** —— 走 `flow` 拿到的仍是旧结论。⇒ 同族 [[cache-in-front-of-a-gate-is-a-second-entrance]]（「我验的是这道门，还是绕过它的那条路」）+ [[version-number-is-not-behavior-attestation]]。修法 = 给 correction floor/source normalization 版本化 helper identity + 补一把「旧 sidecar 必须 cache miss」的回归锁 | **登记**（2026-08-26，GPT 跨家族补审 finding 5）· ⛔ 碰 `src/agent/judge/` + `scripts/` 须派工 |
 | **⭐ 新 F-104** | ⚠️ **同一个 attempt 目录里存着两份不一致的几何，且都被跟踪**：`1_correction/attempts/001/output.json`（accepted，核后）两层 cell 对 footprint **零 gap 零 overhang**；而同目录 `window_resolver_inputs.json` 内嵌的 `producer_draw_canonical_bytes`（核前草图）`floor_2` 的 symmetric difference = **0.12515 m²**（`(0.12,14.12,5.13,14.125)` 0.02505 + `(14.88,5.88,24.89,5.89)` 0.10010）。⭐ **大概率是设计如此**（确定性核在 LLM 草图之后跑，两份本就该不同），⛔ **所以本条先记成观察项、不记成缺陷**。**值得盯的点**：窗户 host proof / resolver-input catalog 是**对着核前草图**认证的，而被判分的 plan segment 来自**核后产物** ⇒ 若确定性核哪天会重排/重编楼层，F-90 那条桥的 rank 依据就会与认证依据脱节（当前 rank 取自 accepted 产物的 `z_floor` 排序，故**现在是安全的**）。⭐ 附带教训见本日「五之三」：orchestrator 只核了「坐标在不在 accepted 产物里」就断言了它**来自哪里**，被对方证据当场推翻 | **观察项**（2026-08-26）· ⛔ 未证实为缺陷，先请审阅方判 |
+| **⭐ 新 F-105** | **reading 侧的「判不出分」原因文本语义变了，但 reading 的 helper 版本没跟着提** ⇒ **旧 sidecar 会 cache 命中并返回旧值**：F-103 把 `not_applicable` 分支的 `detail` 从粗分类 `reason` 改成了具体 `error.code`（[`score_service.py:899`](../src/agent/judge/score_service.py#L899)），而该函数 `_total_failure_result` **reading / correction 两 stage 共用**（调用点 `:1003` / `:1010`）；correction 侧的 `opening_matcher` 已提到 v5，**reading 侧恒为 `reading_opening_global_assignment_v1`**（[`score_schema.py:53`](../src/agent/judge/score_schema.py#L53)）。⭐⭐ **这是 F-102「语义变了 identity 没变」的微型重演**，同一天、同一个包里又长出来一次 ⇒ 佐证 GLM finding #3 的判定（**手工版本号是执行机制不是根治机制**）。**当前无实害**（`detail` 全仓零代码消费者，GLM 已扩面 grep 确认）。**处置**：下次动 reading 判分语义**必须**升 `READING_OPENING_MATCHER_HELPER_VERSION`；或现在就升一档 + 补一把「旧 reading NA sidecar 必须 cache miss」的锁 | **登记**（2026-08-26，GLM 跨家族审 finding 2）· ⛔ 碰 `src/agent/judge/` 须派工 |
 | **⭐ 新债 D-2** | **装机路径的根治（B 案）= 工程维护债**（用户 2026-08-25 拍板：「按你的推荐，这个 B 登记到工程维护债上」）。**A 案先做止血**（给裸跑脚本各加一行自举，⛔ 只收窄暴露面**不消除机制**）；**B 案 = 删掉共享 `.pth` + 全部入口改走 `python -m`**，届时踩坑从**静默串台**变**响亮失败**。⛔ **代价即它成为债的原因**：破坏 ≥15 处已写进 `guides/` 的裸跑命令 + 各席位的手指记忆，须一次系统性迁移。⭐ **GLM 独立意见与此一致**：「长期应对齐 B，A 只是收窄暴露面、不消除机制」。⭐⭐ **2026-08-25 GLM 复核明确裁定：紧迫度⛔ 不因 A 案的机械锁降低** —— 「那道锁把 A 从**约定**变成了**机制**，但只是**执行机制**（enforcement），不是**根治机制**；『真正的机制性根治仍然只有 B』**一字不改**」。三条实测据：① `.pth` 注入机制**原样活着**（实测在 `sys.path` 末尾 index 5）· ② **锁的覆盖边界 = A 的收窄边界**，覆盖外有**现成活例** `tests_scripts/deepseek_review.py:28`（模块级 src 导入 + 无自举 + docstring 文档化裸跑，在 worktree 里跑就静默串台，锁对此沉默）· ③ 锁**只验形态不验参数**（`parents[N]` 层数写错则锁绿而串台依旧）。⇒ ⭐ **准确表述：锁 = 在一个枚举过的暴露面上，把「忘关门」从静默变成响亮；它机制化了「A 的完备性不退化」，⛔ 没有也不可能机制化掉串台本身。** | ⭐ **中高紧迫**（GLM 定：**本批收尾前后排期，⛔ 不写「远期」**）—— 多席位 worktree 是常态（当前挂着 3 棵树），每次开树都在 A 覆盖外的入口冒险；而 B 成本不高（删 `.pth` + 全走 `python -m`），**收益是整个缺陷类目消失**。退役须另开单 |
 | **⭐ 新债 D-1** | **`tools/` 原件与 `src/` 新件双份并存**：跨家族审裁定 (a) 接受双份 + 登记 + **限期退役**。成因是 `glm_cheats.py`/`glm_rework.py`/`glm_probes.py`/`glm_sweeps.py` 用 `spec_from_file_location` **按文件路径**加载被搬走的模块，删原件会炸掉五轮跨家族审累积的全部作弊夹具。⛔ 与「不两处并存」冲突，**日后改一份忘另一份是必然的**。⇒ 退役动作 = 夹具改成按模块加载，**须另开单** | **登记**（2026-08-25）|
 | F-62 · N-1 / N-2 | guard 词法围栏同族缺陷 | **未修**（`observe` 档下影响归零）|
@@ -348,6 +349,62 @@ resolver locator/output hash · host claim + accepted identity）。**三次尝�
 F-103 消费者审计 · 全量 · 范围 · 容差零改动）**全是纯代码审，仍然有效**。
 ⇒ ⛔ **不打断它**（GLM 一轮审 ≈ 一个大额度块），**裁决回来后把那两问的结论作废**即可。
 
+### 五之五、✅ **F-90 返工 = GLM APPROVE-WITH-FINDINGS**（0 阻断 / 7 不阻断）
+
+裁决 → [`logs/reviews/verdict/2026-08-26_f90_rework_glm_verdict.md`](logs/reviews/verdict/2026-08-26_f90_rework_glm_verdict.md)
+· 全量 **`3029 passed, 13 xfailed`（GLM 独立复跑，与施工三数逐位相同）** · 容差与 gt **零改动**（它自己核的）。
+
+**⭐⭐⭐ 本轮复核最值钱的三件（都是送审方没做的）**：
+1. **它自己造了「两层楼 + 二层零窗」的端到端用例** → `boundary_complete 32/32 pass`
+   ⇒ **换信任根的收益是真实兑现的**（旧根按窗户 fail-closed，零窗层根本进不了桥）。这是纸面推理拿不到的证据。
+2. **逐分支摘除**，把「变红」升级成「**定向**变红」：摘 F-101 修复 ⇒ **只有 `[locator]` 红、`[view_observation]` 仍绿**。
+   ⇒ 顺带撞出 **实验 2c：「locator 不在 catalog」那个分支零锁覆盖**（把它 reason 错标，七锁全绿）。
+3. ⭐ **它点了 orchestrator 一处流程问题**：我把复核请求单的「范围」文件清单**改写成了实际 diff 的文件集**
+   ⇒ **验收标准跟着结果走**。⛔ 这条我认，已记为下方的流程账。
+
+**⚠️ 复核方原话，全文照收**：
+> **任何把本单记成「sm25 真实产物判分已恢复」或「F-90 已在真实 case 上验收」的表述都是错的。**
+
+#### 七条不阻断 findings 的去处
+
+| # | 内容 | 去处 |
+|---|---|---|
+| 1 | 「locator 不在 catalog」分支**错命名 + 零锁**（报成 `..._ambiguous_source` + `candidate_inputs: []`，与真歧义同名）；`:231` 空集分支同理 | ⏭ **小单**（一个字符串常量 + 两条参数化锁案例）|
+| 2 | ⭐ **reading 侧 NA `detail` 语义变了但 reading 的 helper 版本恒 v1** ⇒ 旧 reading NA sidecar 会 cache 命中返旧值 = **F-102 微型重演** | ⏭ **F-105**（见缺陷表）|
+| 3 | 手工 helper 版本 = **执行机制非根治机制**（忘提版本时零拦截：锁全绿、缓存照常命中旧 sidecar）| ⏭ **债 D-3**（派生摘要，另开单；本轮禁令维持）|
+| 4 | ⭐ **验收标准跟着结果走**：派工单括号列举 ≠ 实际 diff ≠ 请求单验收清单；`run_stage.py` 那 2 行超出「仅第 1 项」字面 | ⏭ **流程账**（见下）|
+| 5 | `test_f102` 前提依赖**仓库纪律而非机制**（归档 sidecar 一旦被重跑提交，前提就没了；实测是**响亮红**，良性）| ⏭ 补 docstring；长期随 #3 根治 |
+| 6 | 施工报告「reason 的四个取值」—— schema Literal 实为 **5** 个 | ⏭ 改字 |
+| 7 | judge 侧 z 排名**镜像**生产者定义，但两侧无互引锁 ⇒ 将来改生产侧排名会静默分歧 | ⏭ 观察项 + 加指针 |
+
+#### ⭐ 流程账（finding #4，orchestrator 自记）
+
+**我在写复核请求单时，把「范围」那一节的文件清单照着实际 diff 写了** —— 于是「有没有超范围」这个判据
+**永远不可能不通过**。⇒ 同族 [[gate-with-only-negative-assertions-is-unobservable]]：
+**判据若是从结果反推出来的，它就不是判据。**
+✅ **改法**：范围清单只能来自**派工单**；施工过程中范围有演进（本单的 F-103 = 第 1b 项就是）
+⇒ **必须回写派工单并注明是演进**，⛔ 不许悄悄改到复核单里。
+
+#### 「停下上报」计数 → **34**
+
+复核方逐条认同 29–33 全成立，并**自提第 6 条（弱）**：
+判据 A 原版把「必须前进到 `score_product_segment_unresolved`」**写死**为通过标志，
+而实际到达的是 `score_identity_support_ambiguous`（更早的 `scoring.input_identity` 门）
+⇒ **按字面判据 A 应 FAIL**。⭐ **「把具体报错码写死为判据」这个病又犯了一次**。⇒ 累计 **34/34**。
+
+### 五之六、⛔ F-95 派工被顶回来（第 35 条，我的题面自相矛盾）
+
+派工后 GPT **没动手就停报**：派工单一边写「输入是**有序简单环**，只需反向 + 旋转起点」，
+一边在验收判据里要求「**自交的乱序输入**」也全绿 —— **反向和旋转消不掉自交**，重新排序又会把 F-95 带回来。
+
+⭐ **核查后发现根子比派工单更深**：`canonicalize_ring_vertices` 的 docstring **白纸黑字承诺**
+`any input order, including scrambled / self-intersecting` ⇒ ⛔ **不是我一个人写错题，是现有契约本身在承诺一件做不到的事**。
+（另：它还指出那份夹具矩阵脚本**硬编码主树路径**，违反本单的 worktree 约束。）
+
+**它的建议**：把输入契约明确成「有序简单环」，乱序/自交**响亮拒绝**，该负例的「绿」= **预期拒绝**。
+⇒ **orchestrator 采纳方向**，但落单前必须先查一件事：**现在有没有调用方真的在依赖「能吃乱序输入」这个承诺**。
+⛔ 查清之前不重派（[[dont-delete-normalization-without-finding-its-contract]]）。
+
 ### 六、程序合规
 
 - 主树 `git status --porcelain` 为空、`git worktree list` 无残留（复核方的 `/tmp/f90-gpt-review` 已自行清理）⇒ **只审未改**成立。
@@ -504,6 +561,8 @@ as-drawn 产 `observations.face_lines`/`hypotheses` —— **两套 schema 完�
 | **4 gt 层** | 4-a | ⭐ **R-6（保留逐边 basis+thickness）+ gt 不规整校验** | ⭐ **同一件事，⛔ 不能分别排期**；工作量已下调（`ZoneEdgeReportV1` 已是正式 schema）|
 | | 4-b | **R-1** 判卷对外轮廓是瞎的 · **R-5** 房间类型词表 | 随 gt 层 |
 | | 4-c | **R-3** 内外墙基准拐角错位 | 归**出模专项**，本轮不动 |
+
+⛔ **债 D-3（2026-08-26 新登记）**：判分缓存的 helper 版本是**手工字符串**，改了语义忘提版本时**零拦截**（锁全绿、缓存照常命中旧 sidecar）⇒ 应改成**从实现闭包派生的组合摘要**，人工版本降为可读标签。GPT 与 GLM **两家独立给出同一判定**；⛔ 本轮明令不实施，另开单。同族 [[version-number-is-not-behavior-attestation]]。
 
 ⛔ **D-1 双份代码债**（`tools/` 原件与 `src/` 新件并存）：GLM 裁定 (a) 接受 + 登记 + **限期退役**，退役须另开单。
 
