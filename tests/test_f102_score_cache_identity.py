@@ -83,37 +83,41 @@ def test_pre_f102_real_sidecar_misses_through_official_flow(
         and after["payload"].get("error_code") == "score_view_binding_invalid"
     )
 
-    # Item 2 changes correction plan-floor normalization after F-102's v2
-    # release.  A sidecar produced under that intermediate v2 release must
-    # also miss once the correction helper advances to v3.
-    pre_item2 = deepcopy(after)
-    pre_item2["identity"]["helpers"]["opening_matcher"] = (
-        "correction_opening_global_assignment_v2"
-    )
-    pre_item2["content_sha256"] = canonical_sha256(
-        {
-            key: value
-            for key, value in pre_item2.items()
-            if key != "content_sha256"
-        }
-    )
-    score_path.write_text(
-        ScoreSidecarV9.model_validate_json(
-            json.dumps(pre_item2, separators=(",", ":"))
-        ).model_dump_json(),
-        encoding="utf-8",
-    )
-    run_stage._grade_typed_attempt_artifacts(
-        "1_correction",
-        document.case,
-        attempt,
-        document,
-        gt_file=_REAL_GT,
-        manifest=manifest,
-        grade=run_stage.GradeConfig(),
-    )
-    after_item2 = json.loads(score_path.read_text(encoding="utf-8"))
-    assert cache_hits == [False, False]
-    assert after_item2["identity"]["helpers"]["opening_matcher"] == (
+    # Every correction normalization release can produce sidecars between
+    # review rounds.  Item 2=v3, F-100=v4 and F-101=v5 must therefore be
+    # independently cache-distinct rather than sharing one bundle-level bump.
+    for old_release in (
+        "correction_opening_global_assignment_v2",
+        "correction_opening_global_assignment_v3",
+        "correction_opening_global_assignment_v4",
+    ):
+        old_sidecar = deepcopy(after)
+        old_sidecar["identity"]["helpers"]["opening_matcher"] = old_release
+        old_sidecar["content_sha256"] = canonical_sha256(
+            {
+                key: value
+                for key, value in old_sidecar.items()
+                if key != "content_sha256"
+            }
+        )
+        score_path.write_text(
+            ScoreSidecarV9.model_validate_json(
+                json.dumps(old_sidecar, separators=(",", ":"))
+            ).model_dump_json(),
+            encoding="utf-8",
+        )
+        run_stage._grade_typed_attempt_artifacts(
+            "1_correction",
+            document.case,
+            attempt,
+            document,
+            gt_file=_REAL_GT,
+            manifest=manifest,
+            grade=run_stage.GradeConfig(),
+        )
+
+    after_item4 = json.loads(score_path.read_text(encoding="utf-8"))
+    assert cache_hits == [False, False, False, False]
+    assert after_item4["identity"]["helpers"]["opening_matcher"] == (
         CORRECTION_OPENING_MATCHER_HELPER_VERSION
     )

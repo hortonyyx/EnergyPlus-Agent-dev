@@ -75,6 +75,7 @@ from src.agent.judge.score_schema import (
     canonical_sha256,
     decide_score_capability,
 )
+from src.agent.judge.gt_schema import GtEntityRefV3
 from src.agent.judge.score_config import load_judge_score_config
 from src.agent.judge.score_service import score_typed_attempt
 from src.validator.checks.kernel import _window_parent_binding, check_kernel
@@ -155,6 +156,7 @@ def _bundle(
     include_window: bool = True,
     include_elevation: bool = False,
     host_source_ids: tuple[str, ...] | None = ("plan/W-01",),
+    host_source_form: str = "view_observation",
 ):
     manifest, raw_manifest = _manifest(include_elevation=include_elevation)
     reading = json.dumps(
@@ -174,6 +176,12 @@ def _bundle(
         observation_id="W-01",
         output_sha256=hashlib.sha256(reading).hexdigest(),
     )
+    if host_source_form not in {"view_observation", "locator"}:
+        raise ValueError("unknown host_source_form")
+    if host_source_ids is not None and host_source_form == "locator":
+        if host_source_ids != ("plan/W-01",):
+            raise ValueError("locator form does not accept custom source ids")
+        host_source_ids = (locator,)
     geom = CorrectedGeometryV3.model_validate({
         "schema_version": "3",
         "footprint_x": [0.0, 4.0],
@@ -1469,7 +1477,10 @@ def _f90_gt(geom, *, floor_id: str):
     )
     opening = SimpleNamespace(id="gt-w1", floor_id=floor_id, kind="window", boundary_segment_id=south.id,
         host_zone_id="r1", world_along_interval=SimpleNamespace(lo=1.0, hi=3.0),
-        z_interval=SimpleNamespace(lo=1.0, hi=2.0), source_refs=())
+        z_interval=SimpleNamespace(lo=1.0, hi=2.0), source_refs=(GtEntityRefV3(
+            source_id="gt-source", view_id="gt-plan", entity_handle="A",
+            role="opening_plan",
+        ),))
     return SimpleNamespace(
         generator=SimpleNamespace(tolerances=SimpleNamespace(vg_depth_epsilon_m=0.3, vg_endpoint_epsilon_m=0.3)),
         content_sha256="e" * 64, floors=[floor], openings=[opening])
@@ -1494,13 +1505,25 @@ def _f90_stub_renderer(monkeypatch):
     monkeypatch.setattr(render_grade, "render_score_grade_png", lambda **kw: b"")
 
 
-def test_f90_window_floor_id_and_gt_floor_id_are_independent_namespaces(monkeypatch, tmp_path):
-    bundle = _bundle(tmp_path)
+@pytest.mark.parametrize(
+    "host_source_form",
+    ("view_observation", "locator"),
+)
+def test_f90_window_floor_id_and_gt_floor_id_are_independent_namespaces(
+    monkeypatch, tmp_path, host_source_form
+):
+    bundle = _bundle(tmp_path, host_source_form=host_source_form)
     geom = bundle.result.geom
     # The product's own floor_id ("f1") deliberately never equals the GT/
     # binding-table floor_id used below ("F1") -- unlike every other fixture
     # in this file, which sets both sides to "f1".
     assert geom.windows[0].floor_id == "f1"
+    (host_source_id,) = geom.windows[0].provenance["host"].source_ids
+    if host_source_form == "view_observation":
+        assert host_source_id == "plan/W-01"
+    else:
+        assert host_source_id.startswith("src:")
+        assert len(host_source_id) == 68
     common = dict(gt_identity=_official_gt_identity(), gt=_f90_gt(geom, floor_id="F1"), stage="correction",
                   product_payload=geom.model_dump(mode="json"),
                   product_identity=_official_product_identity(
@@ -1521,6 +1544,135 @@ def test_f90_window_floor_id_and_gt_floor_id_are_independent_namespaces(monkeypa
     assert boundary.verdict == "pass"
     assert boundary.passing_units == boundary.denominator_units == 16.0
     assert boundary.failing_units == 0.0
+    criteria = {item.criterion_id: item for item in result.payload.score_criteria}
+    for criterion_id in ("windows_placed", "window_plan_geometry"):
+        assert criteria[criterion_id].eligible is True
+        assert criteria[criterion_id].verdict == "pass"
+    claim_rows = {item.claim: item for item in result.payload.claim_rows}
+    for claim in ("existence", "host", "along", "width"):
+        row = claim_rows[claim]
+        assert row.eligible_units > 0
+        assert row.result == "complete"
+
+
+@pytest.mark.parametrize(
+    "reason",
+    (
+        "window_host_claim_missing_source_ids",
+        "window_host_claim_ambiguous_source",
+        "window_host_source_not_a_registered_plan_input",
+        "floor_id_maps_to_multiple_plan_inputs",
+        "verified_plan_floor_catalog_not_total",
+        "verified_plan_floor_not_registered_for_scoring",
+        "window_host_disagrees_with_verified_plan_floor_catalog",
+    ),
+)
+def test_correction_floor_plan_bridge_fails_closed_with_named_reason(reason):
+    from src.agent.judge.score_service import (
+        _derive_correction_floor_plan_sources,
+        _derive_window_floor_plan_sources,
+    )
+
+    def window(window_id, *, floor_id="f1", with_host=True):
+        provenance = (
+            {"host": SimpleNamespace(source_ids=(f"raw/{window_id}",))}
+            if with_host
+            else {}
+        )
+        return SimpleNamespace(
+            id=window_id,
+            floor_id=floor_id,
+            provenance=provenance,
+        )
+
+    def inputs(*, sources=(), links=(), entries=()):
+        return SimpleNamespace(
+            source_windows=tuple(
+                SimpleNamespace(source_locator=locator, source_input_id=input_id)
+                for locator, input_id in sources
+            ),
+            claim_links=tuple(
+                SimpleNamespace(
+                    window_id=window_id,
+                    claim="host",
+                    source_locator=locator,
+                )
+                for window_id, locator in links
+            ),
+            view_manifest=SimpleNamespace(
+                required_entries=lambda: tuple(entries)
+            ),
+        )
+
+    def bindings(*input_ids):
+        return SimpleNamespace(bindings=tuple(
+            SimpleNamespace(kind="plan", input_id=input_id)
+            for input_id in input_ids
+        ))
+
+    floor = SimpleNamespace(id="f1", z_floor=0.0)
+    if reason == "window_host_claim_missing_source_ids":
+        call = lambda: _derive_window_floor_plan_sources(
+            geometry=SimpleNamespace(windows=(window("w1", with_host=False),)),
+            score_bindings=bindings("plan-a"),
+            resolver_inputs=inputs(),
+        )
+    elif reason == "window_host_claim_ambiguous_source":
+        call = lambda: _derive_window_floor_plan_sources(
+            geometry=SimpleNamespace(windows=(window("w1"),)),
+            score_bindings=bindings("plan-a", "plan-b"),
+            resolver_inputs=inputs(
+                sources=(("loc-a", "plan-a"), ("loc-b", "plan-b")),
+                links=(("w1", "loc-a"), ("w1", "loc-b")),
+            ),
+        )
+    elif reason == "window_host_source_not_a_registered_plan_input":
+        call = lambda: _derive_window_floor_plan_sources(
+            geometry=SimpleNamespace(windows=(window("w1"),)),
+            score_bindings=bindings("plan-a"),
+            resolver_inputs=inputs(
+                sources=(("loc-x", "plan-x"),),
+                links=(("w1", "loc-x"),),
+            ),
+        )
+    elif reason == "floor_id_maps_to_multiple_plan_inputs":
+        call = lambda: _derive_window_floor_plan_sources(
+            geometry=SimpleNamespace(windows=(window("w1"), window("w2"))),
+            score_bindings=bindings("plan-a", "plan-b"),
+            resolver_inputs=inputs(
+                sources=(("loc-a", "plan-a"), ("loc-b", "plan-b")),
+                links=(("w1", "loc-a"), ("w2", "loc-b")),
+            ),
+        )
+    elif reason == "verified_plan_floor_catalog_not_total":
+        call = lambda: _derive_correction_floor_plan_sources(
+            geometry=SimpleNamespace(floors=(floor,), windows=()),
+            score_bindings=bindings("plan-a"),
+            resolver_inputs=inputs(),
+        )
+    elif reason == "verified_plan_floor_not_registered_for_scoring":
+        entry = SimpleNamespace(view_type="plan", floor_ref=1, input_id="plan-a")
+        call = lambda: _derive_correction_floor_plan_sources(
+            geometry=SimpleNamespace(floors=(floor,), windows=()),
+            score_bindings=bindings("plan-b"),
+            resolver_inputs=inputs(entries=(entry,)),
+        )
+    else:
+        entry = SimpleNamespace(view_type="plan", floor_ref=1, input_id="plan-a")
+        call = lambda: _derive_correction_floor_plan_sources(
+            geometry=SimpleNamespace(floors=(floor,), windows=(window("w1"),)),
+            score_bindings=bindings("plan-a", "plan-b"),
+            resolver_inputs=inputs(
+                sources=(("loc-b", "plan-b"),),
+                links=(("w1", "loc-b"),),
+                entries=(entry,),
+            ),
+        )
+
+    with pytest.raises(ScoreContractError) as exc:
+        call()
+    assert exc.value.code == "score_view_binding_invalid"
+    assert exc.value.context.get("reason") == reason
 
 
 def test_f90_window_without_plan_host_reference_fails_closed_not_silently(monkeypatch, tmp_path):

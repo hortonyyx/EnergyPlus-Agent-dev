@@ -183,7 +183,9 @@ def _resolve_facade_product_to_gt(*, geometry, gt, product_floor_to_gt_floor: di
     return mapping
 
 
-def _derive_window_floor_plan_sources(*, geometry, score_bindings) -> dict[str, str]:
+def _derive_window_floor_plan_sources(
+    *, geometry, score_bindings, resolver_inputs
+) -> dict[str, str]:
     """Derive per-window floor -> plan-input evidence for corroboration.
 
     The verified resolver-input catalog supplies the total floor bridge,
@@ -193,6 +195,27 @@ def _derive_window_floor_plan_sources(*, geometry, score_bindings) -> dict[str, 
     """
     plan_input_ids = {item.input_id for item in score_bindings.bindings
                       if getattr(item, "kind", None) == "plan"}
+    source_by_locator = {
+        row.source_locator: row for row in resolver_inputs.source_windows
+    }
+    host_inputs_by_window: dict[str, set[str]] = {}
+    for link in resolver_inputs.claim_links:
+        if link.claim != CLAIM_HOST:
+            continue
+        source = source_by_locator.get(link.source_locator)
+        if source is None:
+            raise ScoreContractError(
+                "score_view_binding_invalid",
+                "scoring.view_bindings",
+                context={
+                    "window_id": link.window_id,
+                    "reason": "window_host_claim_ambiguous_source",
+                    "candidate_inputs": [],
+                },
+            )
+        host_inputs_by_window.setdefault(link.window_id, set()).add(
+            source.source_input_id
+        )
     floor_plan_source: dict[str, str] = {}
     for window in geometry.windows:
         provenance = window.provenance or {}
@@ -201,7 +224,11 @@ def _derive_window_floor_plan_sources(*, geometry, score_bindings) -> dict[str, 
             raise ScoreContractError("score_view_binding_invalid", "scoring.view_bindings",
                                      context={"floor_id": window.floor_id, "window_id": window.id,
                                               "reason": "window_host_claim_missing_source_ids"})
-        candidate_inputs = {source_id.split("/", 1)[0] for source_id in host.source_ids}
+        # The proof verifier has already translated both legal producer forms
+        # (`src:<sha256>` and `<view>/<observation>`) into canonical claim
+        # links.  Consume that authenticated catalog instead of reparsing the
+        # raw producer string or treating a locator hash as an input id.
+        candidate_inputs = host_inputs_by_window.get(window.id, set())
         if len(candidate_inputs) != 1:
             raise ScoreContractError("score_view_binding_invalid", "scoring.view_bindings",
                                      context={"floor_id": window.floor_id, "window_id": window.id,
@@ -272,6 +299,7 @@ def _derive_correction_floor_plan_sources(
     window_sources = _derive_window_floor_plan_sources(
         geometry=geometry,
         score_bindings=score_bindings,
+        resolver_inputs=resolver_inputs,
     )
     for floor_id, input_id in window_sources.items():
         if floor_plan_source.get(floor_id) != input_id:
@@ -377,8 +405,11 @@ def score_typed_attempt(*, gt_identity, gt, stage: Literal["reading", "correctio
         derive_reference_ledger, gt_openings_to_va_claims, gt_to_va_visibility, score_opening_claims_v3,
         summarize_claim_rows,
     )
-    from src.agent.judge.score_inputs import (build_effective_view_manifest,
-                                              materialize_va_elevation_bindings)
+    from src.agent.judge.score_inputs import (
+        build_effective_view_manifest,
+        materialize_va_elevation_bindings,
+        source_view_to_gt_view_ids,
+    )
     from src.agent.judge.score_policy import c2_v3_score_policy
     from src.agent.judge.segment_score import (coerce_plan_observations,
                                                extract_correction_plan_segments, extract_gt_plan_segments,
@@ -617,7 +648,8 @@ def score_typed_attempt(*, gt_identity, gt, stage: Literal["reading", "correctio
                 z_interval=None if window.z is None else tuple(window.z), channel="plan"))
         observations = tuple(converted)
     opening_assignment = assign_openings(targets=tuple(gt.openings), observations=observations,
-                                         config=c2_config, product_to_gt_segment=product_to_gt)
+                                         config=c2_config, product_to_gt_segment=product_to_gt,
+                                         source_view_to_gt_view_ids=source_view_to_gt_view_ids(score_bindings))
     visibility = gt_to_va_visibility(gt)
     reference = derive_reference_ledger(gt=gt, bindings=score_bindings, effective_manifest=effective)
     # Product declarations are deliberately derived separately.  A source only

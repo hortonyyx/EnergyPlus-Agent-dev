@@ -23,7 +23,10 @@ from src.agent.judge.reading_typed_adapter import (
     derive_reading_denominator_v1,
     normalize_reading_attempt,
 )
-from src.agent.judge.score_inputs import build_reading_score_manifest
+from src.agent.judge.score_inputs import (
+    build_reading_score_manifest,
+    source_view_to_gt_view_ids,
+)
 from src.agent.judge.score_schema import (
     CLAIM_ORDER,
     C2ScoredPayloadV9,
@@ -509,10 +512,7 @@ def _opening_observations(
                 )
             )
 
-    mapping = {
-        item.input_id: tuple(item.gt_source_view_ids)
-        for item in score_bindings.bindings
-    }
+    mapping = source_view_to_gt_view_ids(score_bindings)
     product_to_gt = {
         segment.id: segment.id for segment in boundaries
     }

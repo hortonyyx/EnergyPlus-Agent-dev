@@ -134,6 +134,16 @@ def select_score_view_bindings(*, bindings: JudgeScoreViewBindingsV1,
     return JudgeScoreViewBindingsV1.model_validate(payload)
 
 
+def source_view_to_gt_view_ids(
+    score_bindings: JudgeScoreViewBindingsV1,
+) -> dict[str, tuple[str, ...]]:
+    """Return the reviewed input-id -> GT-view bridge for matchers."""
+    return {
+        item.input_id: tuple(item.gt_source_view_ids)
+        for item in score_bindings.bindings
+    }
+
+
 def validate_score_view_bindings_against_gt(*, bindings: JudgeScoreViewBindingsV1, base: ViewManifest,
                                             gt: GroundTruthV3,
                                             input_ids: set[str] | None = None) -> None:
