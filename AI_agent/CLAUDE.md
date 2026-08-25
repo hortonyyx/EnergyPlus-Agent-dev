@@ -292,6 +292,25 @@ EnergyPlus 经 `WorkflowTool.run_simulation`（eppy + ConverterManager，idfpy �
 > ⭐⭐ **由此定性那 12 cm**：⛔ **不是「漏了一次变换」，是「这次变换该由谁、在哪一步做」还没定死**
 > —— 正是一体改要定的东西，且与 sol 的 Q1 答案一致（**出模形式跑前冻结，由确定性代码在最后一步投影**）。
 >
+> **②⁗ ⭐⭐ 2026-08-26 用户再两项 + orchestrator 实测答复**
+>
+> **(1) ①观测 × ②声明 对不上时：reading 只报差异、correction 裁**（用户拍板，与「correction 有权翻案」一致，
+> 也与旧提示词 `ARBITRATE stroke-vs-dimension conflicts (trust dimensions)` 同向）。
+> ⇒ ⛔ reading **不许为迁就一方改另一方的数**，两个值与差额都要写进产物。
+>
+> **(2) 出模形式就定两种，不变**（用户）。**「现在能处理吗」= orchestrator 实测答复**：
+> | | 实测 |
+> |---|---|
+> | **「选出模形式」的开关** | ⛔ **不存在**。记录里那句 `zone_frame: axis\|exterior` 是**决议、从未实现**；全仓 `zone_frame` 只有 `zone_frame_normalizations`（把房间原点归零给 EnergyPlus，**另一回事**）|
+> | ⭐ **立面会不会脱节** | ✅ **不会，自动跟随**。[`finalize.py:139`](../src/agent/correction/finalize.py#L139) 注释写死：`facade_segments` 的**唯一写入者**、跑在 **core-final ring** 上 ⇒ 外轮廓一动，立面段整个重新生成 |
+> | **外皮支** | ⚠️ **有机制未启用** —— `extract_authoritative_envelope` + `apply_v3_envelope_transaction`：从识图产物抽图上**总尺寸标注**把外轮廓挪过去。⛔ 不是形式选择器；**证据不够整条轴 `skipped`**，R0 那次即如此 ⇒ 产物停在中线 |
+> | **中轴支** | ⚠️ **产物在中轴（不做变换即可），但没有中轴 gt** ⇒ 判分对不上 = 那 12 cm |
+>
+> ⇒ ⛔ **「跑前选一种、两边都能判分」这个能力现在根本不存在** —— 正是 sol 第 1 号工作包
+> （冻结出模形式 + 参考包两个投影），**它排在最前面是对的**。
+> ⚠️ 附带约束：外包对账**依赖图上有总尺寸标注** ⇒ 没标注的图外皮支自动降级，
+> 与用户「像素一定有、标注不一定有」是同一条，设计里必须认掉。
+>
 > **②′ F-90 返工五项已交，⏳ GLM 跨家族审在飞**（施工 = GPT，它同时是上一轮复核方 ⇒ 不能审自己）→
 > [复核单](logs/reviews/request/2026-08-26_f90_rework_crossreview_glm.md) · 检查点 `b735db4` + `8ea9aca` · 全量 `3029 passed`。
 > ⚠️ 复核单十问里只有**第 2 问 + 必答第 1 问**锚在旧产物上（裁决回来**作废这两问**），其余八问是纯代码审、仍有效。
