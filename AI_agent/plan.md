@@ -178,6 +178,7 @@
 | **⭐⭐ 新 F-100** | ⛔ **correction 判分路径没有接 score binding 的 source-view 桥，真实 gt 的 `source_refs` 一到就静默全 miss**：[`score_service.py:469`](../src/agent/judge/score_service.py#L469) 直接把 observation 交给 `assign_openings`，而 [`opening_claim_score.py:351-364`](../src/agent/judge/opening_claim_score.py#L351) 要用 `input_id → gt_source_view_ids` 过滤。⭐ **正确接法本仓库已有先例**：[`reading_typed_score.py:512-534`](../src/agent/judge/reading_typed_score.py#L512) 就是这么做的 ⇒ 两条路走了两套。复核方实测：`without_binding_bridge matched 0 / target_miss 1` vs `with_binding_bridge matched 1 / target_miss 0`。⭐⭐ **它此前一直躲在 F-90 的施工 fixture 后面** —— 那份 fixture 把 gt 的 `source_refs` 造成空元组（[`test_c2_b5_parent_and_verts.py:1455-1472`](../tests/test_c2_b5_parent_and_verts.py#L1455)），于是过滤器根本没被行使 ⇒ 同族 [[feed-the-answer-in-to-test-the-code-alone]] 的反面：**夹具把答案造成了不行使能力的形状** | **登记**（2026-08-26，GPT 跨家族补审 finding 3）· ⛔ 碰 `src/agent/judge/` 须派工 |
 | **⭐⭐ 新 F-101** | ⛔ **合法的 `src:<64hex>` 溯源 locator 被 F-90 新映射器当成未注册输入拒掉**：[`window_sources.py:952-957`](../src/agent/correction/window_sources.py#L952) 白纸黑字声明**两种合法形式**（① 已解析的 `src:<64hex>` 直通 ② `<expected_output_id>/<observation_id>`），而新映射器 [`score_service.py:200`](../src/agent/judge/score_service.py#L200) 一律 `split("/", 1)[0]` ⇒ 整串 hash 被当 `input_id`，落进 `window_host_source_not_a_registered_plan_input`。复核方实测：一个带 `src:<hash>` host 引用的 B5 bundle **成功产出 `VerifiedWindowHostProof`**，随后 scorer 拒绝它。⭐ **这是第 3 条「派工方题错」**（派工单暗含前提「host `source_ids` 总能按 `/` 拆出 input id」，该前提不完整）。⛔ 不是坏输入被挡住，是**合法输入被挡住**；修法 = 从已复验的 `window_host_proof` / `window_resolver_inputs` catalog 把 locator 解析回 source input | **登记**（2026-08-26，GPT 跨家族补审 finding 4）· ⛔ 碰 `src/agent/judge/` 须派工 |
 | **⭐⭐⭐ 新 F-102** | ⛔ **判分语义改了、缓存 identity 没改 ⇒ 官方 run-stage 会继续命中修复前的旧 sidecar**：复核方在真实 R0 上实测 `live = not_applicable/unsupported_view_contract`（已走到 F-99）、`cache_hit = True`、`cached = rejected/score_view_binding_invalid`（= **修复前**的结论）、`same_identity = True`。位置：[`score_service.py:269-278`](../src/agent/judge/score_service.py#L269) · [`score_schema.py:1665-1691`](../src/agent/judge/score_schema.py#L1665) · [`run_stage.py:2176-2181`](../scripts/tool_scripts/run_stage.py#L2176)。⭐⭐ **治理后果比缺陷本身重**：F-90 修没修好，**从官方跑测口子上看不出来** —— 走 `flow` 拿到的仍是旧结论。⇒ 同族 [[cache-in-front-of-a-gate-is-a-second-entrance]]（「我验的是这道门，还是绕过它的那条路」）+ [[version-number-is-not-behavior-attestation]]。修法 = 给 correction floor/source normalization 版本化 helper identity + 补一把「旧 sidecar 必须 cache miss」的回归锁 | **登记**（2026-08-26，GPT 跨家族补审 finding 5）· ⛔ 碰 `src/agent/judge/` + `scripts/` 须派工 |
+| **⭐ 新 F-104** | ⚠️ **同一个 attempt 目录里存着两份不一致的几何，且都被跟踪**：`1_correction/attempts/001/output.json`（accepted，核后）两层 cell 对 footprint **零 gap 零 overhang**；而同目录 `window_resolver_inputs.json` 内嵌的 `producer_draw_canonical_bytes`（核前草图）`floor_2` 的 symmetric difference = **0.12515 m²**（`(0.12,14.12,5.13,14.125)` 0.02505 + `(14.88,5.88,24.89,5.89)` 0.10010）。⭐ **大概率是设计如此**（确定性核在 LLM 草图之后跑，两份本就该不同），⛔ **所以本条先记成观察项、不记成缺陷**。**值得盯的点**：窗户 host proof / resolver-input catalog 是**对着核前草图**认证的，而被判分的 plan segment 来自**核后产物** ⇒ 若确定性核哪天会重排/重编楼层，F-90 那条桥的 rank 依据就会与认证依据脱节（当前 rank 取自 accepted 产物的 `z_floor` 排序，故**现在是安全的**）。⭐ 附带教训见本日「五之三」：orchestrator 只核了「坐标在不在 accepted 产物里」就断言了它**来自哪里**，被对方证据当场推翻 | **观察项**（2026-08-26）· ⛔ 未证实为缺陷，先请审阅方判 |
 | **⭐ 新债 D-2** | **装机路径的根治（B 案）= 工程维护债**（用户 2026-08-25 拍板：「按你的推荐，这个 B 登记到工程维护债上」）。**A 案先做止血**（给裸跑脚本各加一行自举，⛔ 只收窄暴露面**不消除机制**）；**B 案 = 删掉共享 `.pth` + 全部入口改走 `python -m`**，届时踩坑从**静默串台**变**响亮失败**。⛔ **代价即它成为债的原因**：破坏 ≥15 处已写进 `guides/` 的裸跑命令 + 各席位的手指记忆，须一次系统性迁移。⭐ **GLM 独立意见与此一致**：「长期应对齐 B，A 只是收窄暴露面、不消除机制」。⭐⭐ **2026-08-25 GLM 复核明确裁定：紧迫度⛔ 不因 A 案的机械锁降低** —— 「那道锁把 A 从**约定**变成了**机制**，但只是**执行机制**（enforcement），不是**根治机制**；『真正的机制性根治仍然只有 B』**一字不改**」。三条实测据：① `.pth` 注入机制**原样活着**（实测在 `sys.path` 末尾 index 5）· ② **锁的覆盖边界 = A 的收窄边界**，覆盖外有**现成活例** `tests_scripts/deepseek_review.py:28`（模块级 src 导入 + 无自举 + docstring 文档化裸跑，在 worktree 里跑就静默串台，锁对此沉默）· ③ 锁**只验形态不验参数**（`parents[N]` 层数写错则锁绿而串台依旧）。⇒ ⭐ **准确表述：锁 = 在一个枚举过的暴露面上，把「忘关门」从静默变成响亮；它机制化了「A 的完备性不退化」，⛔ 没有也不可能机制化掉串台本身。** | ⭐ **中高紧迫**（GLM 定：**本批收尾前后排期，⛔ 不写「远期」**）—— 多席位 worktree 是常态（当前挂着 3 棵树），每次开树都在 A 覆盖外的入口冒险；而 B 成本不高（删 `.pth` + 全走 `python -m`），**收益是整个缺陷类目消失**。退役须另开单 |
 | **⭐ 新债 D-1** | **`tools/` 原件与 `src/` 新件双份并存**：跨家族审裁定 (a) 接受双份 + 登记 + **限期退役**。成因是 `glm_cheats.py`/`glm_rework.py`/`glm_probes.py`/`glm_sweeps.py` 用 `spec_from_file_location` **按文件路径**加载被搬走的模块，删原件会炸掉五轮跨家族审累积的全部作弊夹具。⛔ 与「不两处并存」冲突，**日后改一份忘另一份是必然的**。⇒ 退役动作 = 夹具改成按模块加载，**须另开单** | **登记**（2026-08-25）|
 | F-62 · N-1 / N-2 | guard 词法围栏同族缺陷 | **未修**（`observe` 档下影响归零）|
@@ -260,6 +261,51 @@ same_identity True
 派工单点名的验收对象是 sm25 那份现成产物；真实 case 至今零 criterion，
 自造 fixture 只能作单元级补充证据，**不能替代被点名的真实验收对象，也不能把「停报」改写成「验收通过」**。
 ⇒ 同族 [[self-report-more-compliant-than-artifact.md]] 的变体：**这次不是自述更合规，是夹具更合规**。
+
+### 五之二、⭐⭐ 同日下午：返工五项做完，判据 A 过、判据 B 被证明**无法达成**
+
+施工 = **GPT 续用同一个复核会话**（用户 08-26 拍板：它上下文最全）· 审 = **GLM**（谁写谁不批）·
+派工单 → [`logs/reviews/request/2026-08-26_f90_rework_four_blockers_dispatch.md`](logs/reviews/request/2026-08-26_f90_rework_four_blockers_dispatch.md) ·
+施工报告 → [`logs/reviews/execution/2026-08-26_f90_rework_construction_report.md`](logs/reviews/execution/2026-08-26_f90_rework_construction_report.md) ·
+两个检查点 `b735db4`（第 1/1b/2 项）+ `8ea9aca`（第 3/4 项）
+
+| 项 | 内容 | 状态 |
+|---|---|---|
+| 1 | **F-102** 判分缓存 identity | ✅ correction 侧 opening matcher 独立版本；两处重复构造 `HelperIdentityV9` 收敛成工厂（**那份重复本身就是成因之一**）|
+| 1b | **F-103**（本轮新登记）官方口子把三个 NA 原因压成一个字符串 | ✅ `not_applicable` 分支保留 `error.code` 进 `detail`，`run_stage` 暴露 `score_payload_detail`；⛔ 粗分类 `reason` 四个取值一个没动（改前 grep 全仓：**零个 `payload.detail` 消费者**）|
+| 2 | **F-90 第 6 处** plan matcher 在桥之前 | ✅ 桥前移到 judge normalization boundary，只重键 judge 自己的 `PlanSegment`；⛔ 没碰 product geometry、没碰 `segment_score.py`、零模糊匹配 |
+| 3 | **F-100** source-view 桥没接 | ✅ 把 reading 那边**内联**的映射抽成共享 helper `source_view_to_gt_view_ids`，两条路调同一个（⛔ 没写第二套）|
+| 4 | **F-101** `src:<64hex>` 被错拒 | ✅ judge 不再 `split("/",1)[0]`，改为消费已复验 proof 的 `claim_links`/`source_windows` catalog 解回 `source_input_id` |
+
+**⭐ 判据 A 通过，而且是从官方口子读到的**：真实 R0 走 `run_stage._grade_typed_attempt_artifacts`，
+`score_payload_detail` 从 `score_view_binding_invalid` 家族 **前进到 `score_identity_support_ambiguous`**，
+上下文 = `support_lines [('F1','H',14.0), ('F1','H',14.120000000000001)]` ⇒ **正是 F-99**。
+全量 **`3029 passed / 13 xfailed`**（施工席位自跑）。
+
+**⭐⭐ 锁这次是真的有分辨力**（针对上一轮「只断言 `kind` 和 `extras`」）：
+F-100 的锁用**真实** `GtEntityRefV3` source_ref（⛔ 不再是空元组 —— 正是那一手让过滤器整轮没被行使），
+断言 `boundary_complete`/`windows_placed`/`window_plan_geometry` 全 eligible+pass、
+`existence`/`host`/`along`/`width` 分母非零且 complete；**七个** fail-closed reason 全参数化，摘桥即七条全红。
+
+**⛔ 判据 B 达不成，且这也是派工方题错（第 33 条）**：我把「0.12 m 偏差」当成一个可单独拨动的输入量，
+它实际被冻结在**五处**契约里（producer footprint ring · 贴外圈 cell 边 · 31 个真实窗笔画的法向窄带 ·
+resolver locator/output hash · host claim + accepted identity）。**三次尝试各被不同的真实 validator 响亮拒绝**
+（`zero_segment_candidates` / `invalid_interior_edge_pair` / `cell 边长 0.005 m < 0.100 m`）
+⇒ ⭐ **施工方没有伪造十判据表，停下上报了** —— 这正是上一轮缺的那个动作。
+⇒ **真实 case 上的十判据读数至今不存在，它挡在 F-99 后面。⛔ 别记成「已验收」。**
+
+### 五之三、⚠️ orchestrator 本轮的一次误判（当场被对方证据推翻，记下来）
+
+施工报告称「真实 producer 的 Floor 2 本来就有两个 cell gap」。orchestrator 复核 `output.json`
+得两层 `gap_area / overhang_area` **均为 0.0**，据此在提交 `8ea9aca` 的说明里判它「是它自己改过的夹具留下的」。
+**该判断是错的。** 对方给出确切命令后复跑：它读的是**被跟踪的**
+`1_correction/attempts/001/window_resolver_inputs.json` 里内嵌的 **`producer_draw_canonical_bytes`**（核前草图），
+实测 `floor_2` 对 footprint 的 symmetric difference = **0.12515 m²**（两块：`(0.12,14.12,5.13,14.125)` 与 `(14.88,5.88,24.89,5.89)`）。
+
+⇒ **两个数都对，是两份不同的几何**：accepted `output.json`（核后）零 gap · 内嵌 producer draw（核前）有 gap。
+⭐ **教训（我这边的）**：我只核了「那两个坐标在不在 accepted 产物里」，就断言了**它来自哪里** ——
+[[proxy-mistaken-for-the-thing]] 的又一形状：**「不在 A 里」不等于「来自被污染的 B」，它还可能来自同样可信的 C。**
+⭐ 顺带登记 **F-104**（观察项，见缺陷表）。
 
 ### 六、程序合规
 
