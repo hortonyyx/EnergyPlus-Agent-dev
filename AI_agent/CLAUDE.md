@@ -235,7 +235,15 @@ EnergyPlus 经 `WorkflowTool.run_simulation`（eppy + ConverterManager，idfpy �
 > **债 D-1 双份代码退役** `98e72d6`→cherry-pick（GPT APPROVE）· **F-90 楼层 id 映射** `3f6731f`。
 > ⭐⭐ **那道新锁的第一次真实捕获发生在合并上**：点名支线带来的 `reading_toolbox.py:39`。
 >
-> **② ⛔⛔ F-90 补审已做完 = REJECT**（2026-08-26，GPT `gpt-5.6-sol`/xhigh）→
+> **② ✅ F-90 返工五项已交，⏳ 正在 GLM 跨家族审**（施工 = GPT，它同时是上一轮复核方 ⇒ 不能审自己）→
+> [复核单](logs/reviews/request/2026-08-26_f90_rework_crossreview_glm.md) · 两个检查点 `b735db4` + `8ea9aca`。
+> **⭐ 判据 A 通过且是从官方口子读到的**：真实 R0 的 `score_payload_detail` 从 `score_view_binding_invalid` 家族
+> 前进到 `score_identity_support_ambiguous`（14.0 vs 14.12 双 support line = **F-99**）⇒ 本单四条不再是第一块拦路石。
+> **⛔ 判据 B 达不成**（0.12 m 被冻进五处契约，三次中和尝试各被真实 validator 拒绝）
+> ⇒ **真实 case 上的十判据读数至今不存在，挡在 F-99 后面。⛔ 别记成「已验收」。**
+> ⭐ 本单一家贡献「停下上报」**5 条**（29–33），累计 **33/33**。
+>
+> **②′ 上一轮的补审结论（已执行完毕，留档）= REJECT**（2026-08-26，GPT `gpt-5.6-sol`/xhigh）→
 > [裁决](logs/reviews/verdict/2026-08-25_f90_floor_id_mapping_gpt_verdict.md)。**四条阻断**：
 > **同根因第 6 处未修**（plan segment matcher 在楼层桥建好之前就比字符串）· **F-100** source-view 桥没接 ·
 > **F-101** 合法 `src:<64hex>` locator 被错拒 · **F-102** ⭐⭐⭐ **判分缓存 identity 没随语义变**。
@@ -252,8 +260,10 @@ EnergyPlus 经 `WorkflowTool.run_simulation`（eppy + ConverterManager，idfpy �
 > 覆盖外仍有活例 `tests_scripts/deepseek_review.py`）· **D-1 已退役**（⚠️ GPT 指出其判据是
 > **一次性检查、非防漂移门，且未接入 CI**）。
 >
-> **⑤ ⏭ 下一步**：~~补审 F-90~~ ✅ 已做（REJECT）→ **F-90 修复单**（含第 6 处 + F-100/101/**102 优先**）
-> → **派 D-2** → **一体改**（⭐ **卡在「与 sol 讨论」，需用户拉人**）→ 撞 sm25/C2（F-95/F-96/F-91/F-92/F-99）· gt 层（R-6+校验）。
+> **⑤ ⏭ 下一步**：~~补审 F-90~~ ✅ → ~~F-90 修复单~~ ✅ 五项已交 → ⏳ **等 GLM 裁决**
+> → **派 D-2**（用户 08-26 已拍板并派；⚠️ 摘 `.pth` 那一步须排到 F-90 包落地后，共享环境会撞车）
+> → **一体改**（⭐ **卡在「与 sol 讨论」，需用户拉人**）→ 撞 sm25/C2（⭐ **F-99 现在是唯一挡着真实 case 判分的那块**
+> · F-95/F-96/F-91/F-92）· gt 层（R-6+校验）。
 > ⭐ 派工单累计题错 **仍 28/28**（⛔ 别记成 29）：复核方划掉施工上报的第 1 条、另新增第 3 条（= F-101），−1 +1。
 
 > **已翻篇的 banner（均逐字搬入 [`logs/worklog/2026-08_plan_log.md`](logs/worklog/2026-08_plan_log.md)）**：
