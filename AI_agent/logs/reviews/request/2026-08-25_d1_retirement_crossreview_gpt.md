@@ -12,7 +12,12 @@
 ## 一、⭐ 请重点攻的五条
 
 1. ⭐⭐⭐ **identity 壳的语义等价性真的成立吗？**（**orchestrator 认为这是本单最脆的一点**）
-   每个退役件现在是 ~25 行的壳：`globals().update(vars(_impl))` 把 src 件的**整个命名空间**搬进来。
+   每个退役件现在是 ~25 行的壳。
+   > ⛔⛔ **2026-08-25 更正（GPT 复核指出，orchestrator 已核 diff 属实）**：本行原写
+   > 「`globals().update(vars(_impl))` 把 src 件的**整个命名空间**搬进来」—— **错**。
+   > 真实实现是**逐项复制并排除 dunder**：`for _name,_value in vars(_impl).items(): if not _name.startswith("__"): globals()[_name]=_value`。
+   > ⇒ 壳的 `__name__`/`__file__` **仍指 tools 文件**，与本行原假设相反。
+   > ⭐ 我是**照抄施工席位的自述**写的，⛔ 没去核 diff —— 正是 §5#8「一律以 diff 为准」的活例。
    请攻**它在什么情况下不等价**，至少覆盖：
    - **模块级可变状态**：src 件里若有模块级 `list`/`dict`/缓存，壳与 src 现在**共享同一对象**
      —— 这是等价还是新耦合？某个夹具改了它，会不会串到 `python -m src.…` 的跑法上？
