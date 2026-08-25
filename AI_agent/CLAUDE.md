@@ -248,8 +248,7 @@ EnergyPlus 经 `WorkflowTool.run_simulation`（eppy + ConverterManager，idfpy �
 > **「录入时就修复」改落点** = 用户 08-20 定的**三层**（忠实原始层 + 显式不规整清单 + 按出模规则派生的答案层）。
 > ⛔ 实测：纯坐标分不开「真墙」与「画图偏差」⇒ **「gt 加校验」与 R-6 是同一件事**；R-6 工作量**下调**。
 >
-> **④ ⭐⭐⭐ 一体改备料已到，我方核心倾向被证伪** → [GPT 设计答复](logs/reviews/verdict/2026-08-25_reading_correction_unification_gpt_design.md)：
-> ~~correction 吃两条面线~~ ⇒ **吃「带原始引用的【多形态】墙证据」**（sm24 实物 4 堵墙是单条实心带）。
+> **④ ⭐⭐⭐ 一体改备料已到，我方核心倾向被证伪** → [GPT 设计答复](logs/reviews/verdict/2026-08-25_reading_correction_unification_gpt_design.md)：~~吃两条面线~~ ⇒ **吃「带原始引用的【多形态】墙证据」**（sm24 实物 4 堵墙是单条实心带）。
 > ⭐ **基准归属更正**：不是「旧 reading 自述中线」，**是 correction 的提示词在要求中线**
 > （`pipeline.py:365-369` 逐字 `wall CENTERLINE`）⇒ 一体改必须动那两句。
 > ⇒ **F-97**：新识图产物会进提示词收集器的 `others` 桶**进提示词**，而识图门只看 `*_view.json`
