@@ -570,6 +570,10 @@ def test_b_facade_multi_span_straddle_fails_closed_not_first():
     # candidate and is NOT mapped -- "take first" would silently mis-bind a
     # window to the wrong wall with no test going red.  No mapping makes the
     # window fail closed (unmatched).  A single-contained span maps normally.
+    # F-90 (2026-08-25): `product_floor_to_gt_floor` is now required -- this
+    # fixture deliberately shares the id "F" on both sides so the identity
+    # bridge exercises only the containment logic under test, not floor
+    # mapping (that gets its own locks in test_c2_b5_parent_and_verts.py).
     from src.agent.judge.score_service import _resolve_facade_product_to_gt
     gt = SimpleNamespace(floors=[SimpleNamespace(id="F", boundary_segments=[
         SimpleNamespace(id="gt-a", floor_id="F", facade_family="North",
@@ -581,12 +585,12 @@ def test_b_facade_multi_span_straddle_fails_closed_not_first():
         id="prod-long", floor_id="F", facade_family="North",
         world_along_interval=SimpleNamespace(lo=0., hi=4.))])
     # multi-cover: straddles both -> not mapped (never "take first").
-    assert _resolve_facade_product_to_gt(geometry=straddle, gt=gt) == {}
+    assert _resolve_facade_product_to_gt(geometry=straddle, gt=gt, product_floor_to_gt_floor={"F": "F"}) == {}
     contained = SimpleNamespace(facade_segments=[SimpleNamespace(
         id="prod-a", floor_id="F", facade_family="North",
         world_along_interval=SimpleNamespace(lo=0.5, hi=1.5))])
     # single-contained -> maps to gt-a.
-    assert _resolve_facade_product_to_gt(geometry=contained, gt=gt) == {"prod-a": "gt-a"}
+    assert _resolve_facade_product_to_gt(geometry=contained, gt=gt, product_floor_to_gt_floor={"F": "F"}) == {"prod-a": "gt-a"}
 
 
 def test_b_facade_multi_candidate_gt_span_is_not_mapped():
@@ -614,7 +618,7 @@ def test_b_facade_multi_candidate_gt_span_is_not_mapped():
         SimpleNamespace(id="prod-inner", floor_id="F", facade_family="South",
             world_along_interval=SimpleNamespace(lo=1.5, hi=2.5)),
     ])
-    assert _resolve_facade_product_to_gt(geometry=geometry, gt=gt) == {"prod-full": "south-wide"}
+    assert _resolve_facade_product_to_gt(geometry=geometry, gt=gt, product_floor_to_gt_floor={"F": "F"}) == {"prod-full": "south-wide"}
 
 
 def test_b_facade_multi_candidate_window_temporary_binding_fails_closed():

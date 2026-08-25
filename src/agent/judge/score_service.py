@@ -12,6 +12,7 @@ import warnings
 from dataclasses import dataclass
 from typing import Callable, Literal
 
+from src.agent.correction.claims import CLAIM_HOST
 from src.agent.judge.elevation_score import (
     ProjectedElevationObservation,
     TypedElevationObservation,
@@ -145,7 +146,7 @@ def _opening_observations(*, payload: dict, score_bindings: object):
     return tuple(values)
 
 
-def _resolve_facade_product_to_gt(*, geometry, gt) -> dict[str, str]:
+def _resolve_facade_product_to_gt(*, geometry, gt, product_floor_to_gt_floor: dict[str, str]) -> dict[str, str]:
     """Map product facade spans to GT facade spans (one-way, product -> answer).
 
     §5-B: a product facade span maps only to the UNIQUE GT facade span that
@@ -153,18 +154,69 @@ def _resolve_facade_product_to_gt(*, geometry, gt) -> dict[str, str]:
     facades has >1 candidate and is deliberately NOT mapped -- "take first" would
     silently mis-bind a window to the wrong wall with no test going red.  No
     mapping makes the window fail closed (unmatched), never silently wrong.
+
+    F-90 (2026-08-25 dispatch): "floor" here means a product `FacadeSegment.
+    floor_id` -- a namespace the GT never assigned and has no reason to share
+    (real sm25: product "floor_1"/"floor_2" vs GT "F1"/"F2"). Comparing the
+    two floor_id strings directly (the prior code) can only match by
+    coincidence, so the caller resolves `product_floor_to_gt_floor` from the
+    same window-provenance evidence used for the plan-source lookup and hands
+    it in here; a product floor absent from that map (no window evidence
+    reaches it) contributes no candidates, which is the function's existing
+    fail-closed behaviour for an unresolved span, not a new case.
     """
     mapping: dict[str, str] = {}
     gt_facades = tuple(segment for floor in gt.floors for segment in floor.boundary_segments)
     for product_segment in geometry.facade_segments:
+        gt_floor_id = product_floor_to_gt_floor.get(product_segment.floor_id)
+        if gt_floor_id is None:
+            continue
         candidates = tuple(target for target in gt_facades
-            if target.floor_id == product_segment.floor_id
+            if target.floor_id == gt_floor_id
             and target.facade_family == product_segment.facade_family
             and target.world_along_interval.lo <= product_segment.world_along_interval.lo
             and product_segment.world_along_interval.hi <= target.world_along_interval.hi)
         if len(candidates) == 1:
             mapping[product_segment.id] = candidates[0].id
     return mapping
+
+
+def _derive_window_floor_plan_sources(*, geometry, score_bindings) -> dict[str, str]:
+    """F-90: derive each product `floor_id` -> plan `input_id` from window
+    evidence -- the only bridge between the product's own floor namespace and
+    the GT/binding-table one (see module docstring at the call sites below
+    for the full "host" claim contract). Fails closed per-window; never
+    guesses a default for a floor no window speaks for."""
+    plan_input_ids = {item.input_id for item in score_bindings.bindings
+                      if getattr(item, "kind", None) == "plan"}
+    floor_plan_source: dict[str, str] = {}
+    for window in geometry.windows:
+        provenance = window.provenance or {}
+        host = provenance.get(CLAIM_HOST)
+        if host is None or not host.source_ids:
+            raise ScoreContractError("score_view_binding_invalid", "scoring.view_bindings",
+                                     context={"floor_id": window.floor_id, "window_id": window.id,
+                                              "reason": "window_host_claim_missing_source_ids"})
+        candidate_inputs = {source_id.split("/", 1)[0] for source_id in host.source_ids}
+        if len(candidate_inputs) != 1:
+            raise ScoreContractError("score_view_binding_invalid", "scoring.view_bindings",
+                                     context={"floor_id": window.floor_id, "window_id": window.id,
+                                              "reason": "window_host_claim_ambiguous_source",
+                                              "candidate_inputs": sorted(candidate_inputs)})
+        (input_id,) = candidate_inputs
+        if input_id not in plan_input_ids:
+            raise ScoreContractError("score_view_binding_invalid", "scoring.view_bindings",
+                                     context={"floor_id": window.floor_id, "window_id": window.id,
+                                              "reason": "window_host_source_not_a_registered_plan_input",
+                                              "input_id": input_id})
+        existing = floor_plan_source.get(window.floor_id)
+        if existing is not None and existing != input_id:
+            raise ScoreContractError("score_view_binding_invalid", "scoring.view_bindings",
+                                     context={"floor_id": window.floor_id,
+                                              "reason": "floor_id_maps_to_multiple_plan_inputs",
+                                              "input_ids": sorted({existing, input_id})})
+        floor_plan_source[window.floor_id] = input_id
+    return floor_plan_source
 
 
 def score_typed_attempt(*, gt_identity, gt, stage: Literal["reading", "correction"],
@@ -348,17 +400,49 @@ def score_typed_attempt(*, gt_identity, gt, stage: Literal["reading", "correctio
     # choice is audit-only and pinned by a deterministic sort, never input order.
     product_to_gt = {obs_key: target_keys[0] for obs_key, target_keys in observation_to_targets.items()}
     product_to_gt.update({item.key: item.key for item in plan_observations if item.key in {target.key for target in gt_segments}})
+    floor_plan_source: dict[str, str] = {}
+    product_floor_to_gt_floor: dict[str, str] = {}
     if geometry is not None:
+        # F-90 (2026-08-25 dispatch): `PlanScoreViewBindingV1.floor_id` is the
+        # GT-side floor id ("F1"/"F2" for sm25); a product `floor_id`
+        # (`WindowV3.floor_id` / `FacadeSegment.floor_id`) is the PRODUCT-side
+        # id ("floor_1"/"floor_2"). The two namespaces are independently
+        # assigned by two different producers and were never guaranteed to
+        # line up -- comparing them directly (the prior code, both for the
+        # window plan-source lookup below AND for `_resolve_facade_product_
+        # to_gt`'s floor filter) can only match by coincidence, and in real
+        # runs (sm25) it always misses, rejecting every attempt before a
+        # single criterion is scored.
+        #
+        # The only legitimate bridge between the two namespaces is evidence
+        # the product itself declared: per the E2' claims vocabulary
+        # (`claims.py`), "host" is the ONE window claim that can only be
+        # attested by the plan channel (it is absent from
+        # `ELEVATION_POTENTIALLY_OBSERVABLE_CLAIMS`), so its `source_ids`
+        # name the plan input the window's host wall was drawn from, as
+        # `"<input_id>/<observation_id>"` (window_sources
+        # `_translate_observation_reference`). `_derive_window_floor_plan_
+        # sources` derives each product floor_id's plan input from that
+        # claim (fail-closed on missing/ambiguous/unregistered/contradictory
+        # evidence); joining through `score_bindings` (input_id -> GT
+        # floor_id) then bridges BOTH consumers -- the facade-span resolver
+        # below and the window observations built further down -- without
+        # either one guessing at floor identity.
+        floor_plan_source = _derive_window_floor_plan_sources(geometry=geometry, score_bindings=score_bindings)
+        input_to_gt_floor = {item.input_id: item.floor_id for item in score_bindings.bindings
+                             if getattr(item, "kind", None) == "plan"}
+        product_floor_to_gt_floor = {product_floor: input_to_gt_floor[input_id]
+                                     for product_floor, input_id in floor_plan_source.items()
+                                     if input_id in input_to_gt_floor}
         # §5-B: facade spans are resolved by the one-way containment helper;
         # a multi-span straddle is left unmapped (window fails closed), never
         # silently bound to the first candidate.
-        product_to_gt.update(_resolve_facade_product_to_gt(geometry=geometry, gt=gt))
+        product_to_gt.update(_resolve_facade_product_to_gt(
+            geometry=geometry, gt=gt, product_floor_to_gt_floor=product_floor_to_gt_floor))
 
     if geometry is None:
         observations = _opening_observations(payload=product_payload, score_bindings=score_bindings)
     else:
-        plan_sources = {item.floor_id: item.input_id for item in score_bindings.bindings
-                        if getattr(item, "kind", None) == "plan"}
         converted: list[OpeningObservation] = []
         for window in geometry.windows:
             segment, _method = bind_correction_window_segment(
@@ -366,13 +450,21 @@ def score_typed_attempt(*, gt_identity, gt, stage: Literal["reading", "correctio
                 segments=geometry.facade_segments,
                 allow_temporary_binding=False,
             )
-            source = plan_sources.get(window.floor_id)
-            if source is None:
-                raise ScoreContractError("score_view_binding_invalid", "scoring.view_bindings",
-                                         context={"floor_id": window.floor_id})
-            converted.append(OpeningObservation(id=window.id, floor_id=window.floor_id, kind="window",
-                facade_segment_id=segment.id, world_along_interval=tuple(window.span), source_view_id=source,
-                room_id=window.room, z_interval=None if window.z is None else tuple(window.z), channel="plan"))
+            source = floor_plan_source[window.floor_id]
+            # F-90: `OpeningObservation.floor_id` is matched against GT
+            # openings by direct equality further down (`_assign_openings_
+            # for_source` in opening_claim_score.py) and used to key
+            # `floor_refs` for absence classification -- both GT-side
+            # consumers. Storing the product's own `window.floor_id` there
+            # (the prior code) made every v3 correction window unmatched by
+            # construction, silently (no exception): a fully correct answer
+            # would score every window a miss. Translate to the GT floor_id
+            # here, once, at the one place a v3 window crosses from the
+            # product namespace into the GT-matching namespace.
+            converted.append(OpeningObservation(id=window.id, floor_id=product_floor_to_gt_floor[window.floor_id],
+                kind="window", facade_segment_id=segment.id, world_along_interval=tuple(window.span),
+                source_view_id=source, room_id=window.room,
+                z_interval=None if window.z is None else tuple(window.z), channel="plan"))
         observations = tuple(converted)
     opening_assignment = assign_openings(targets=tuple(gt.openings), observations=observations,
                                          config=c2_config, product_to_gt_segment=product_to_gt)
@@ -397,7 +489,8 @@ def score_typed_attempt(*, gt_identity, gt, stage: Literal["reading", "correctio
         host_resolver = build_correction_host_resolver(
             geometry=geometry,
             product_to_gt_segment=product_to_gt,
-            product_to_gt_zone=map_product_cells_to_gt_zones(geometry=geometry, gt=gt),
+            product_to_gt_zone=map_product_cells_to_gt_zones(
+                geometry=geometry, gt=gt, product_floor_to_gt_floor=product_floor_to_gt_floor),
             allow_temporary_binding=False,
         )
     rows = score_opening_claims_v3(gt=gt, reference_ledger=reference, product_ledger=product,
@@ -405,6 +498,11 @@ def score_typed_attempt(*, gt_identity, gt, stage: Literal["reading", "correctio
                                    host_resolver=host_resolver)
     summaries = summarize_claim_rows(rows)
 
+    # F-90: `observation.floor_id` is the GT-side id for every OpeningObservation
+    # (the v3 correction window loop above translates it through
+    # `product_floor_to_gt_floor` at construction time; the v1/v2 reading path
+    # already emits GT-consistent floor_id), so `floor_refs` below is keyed by
+    # GT floor_id directly -- no product-namespace re-keying needed here.
     floors = {floor.id: index + 1 for index, floor in enumerate(gt.floors)}
     families = {segment.id: segment.facade_family for floor in gt.floors for segment in floor.boundary_segments}
     unmatched = opening_assignment.unmatched_observations

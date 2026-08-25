@@ -127,8 +127,21 @@ def build_correction_host_resolver(*, geometry, product_to_gt_segment: dict[str,
     return resolve
 
 
-def map_product_cells_to_gt_zones(*, geometry, gt: GroundTruthV3) -> dict[str, str]:
-    """Map zones only by full polygon equality; never by center or id."""
+def map_product_cells_to_gt_zones(*, geometry, gt: GroundTruthV3,
+                                  product_floor_to_gt_floor: dict[str, str] | None = None) -> dict[str, str]:
+    """Map zones only by full polygon equality; never by center or id.
+
+    F-90 (2026-08-25 dispatch): `floor.id` here is the PRODUCT's own floor
+    namespace ("floor_1"/"floor_2" for sm25); `gt_by_floor` is keyed by the
+    GT's ("F1"/"F2"). The two were never guaranteed to line up (they are two
+    independent producers' choices), so `product_floor_to_gt_floor` (the same
+    window-provenance-derived bridge the caller already built for the plan
+    source and facade-span lookups) translates the product floor before the
+    GT-side dict is consulted. Without it, a product floor absent from the
+    map (e.g. `None`, the caller's back-compat default) resolves no zones for
+    that floor -- every window's host-zone claim then fails closed as a
+    miss, never a silent guess.
+    """
     from shapely.geometry import Polygon
     from src.agent.correction.cell_geometry import cell_polygon
 
@@ -138,9 +151,11 @@ def map_product_cells_to_gt_zones(*, geometry, gt: GroundTruthV3) -> dict[str, s
         )
         for floor in gt.floors
     }
+    bridge = product_floor_to_gt_floor or {}
     mapping: dict[str, str] = {}
     for floor in geometry.floors:
-        targets = gt_by_floor.get(floor.id, ())
+        gt_floor_id = bridge.get(floor.id, floor.id)
+        targets = gt_by_floor.get(gt_floor_id, ())
         for cell in floor.cells:
             polygon = cell_polygon(cell)
             candidates = [zone_id for zone_id, target in targets if polygon.equals(target)]

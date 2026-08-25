@@ -154,6 +154,7 @@ def _bundle(
     facade: str = "South",
     include_window: bool = True,
     include_elevation: bool = False,
+    host_source_ids: tuple[str, ...] | None = ("plan/W-01",),
 ):
     manifest, raw_manifest = _manifest(include_elevation=include_elevation)
     reading = json.dumps(
@@ -198,10 +199,25 @@ def _bundle(
             "span": [1.0, 3.0],
             "z": [1.0, 2.0],
             "room": "r1",
-            "provenance": {"existence": {
-                "provenance": "observed",
-                "source_ids": [locator],
-            }},
+            "provenance": {
+                "existence": {
+                    "provenance": "observed",
+                    "source_ids": [locator],
+                },
+                # F-90 (2026-08-25): the judge-side plan-source lookup keys off
+                # this claim specifically -- "host" is the one E2' claim that
+                # can ONLY come from the plan channel (absent from
+                # ELEVATION_POTENTIALLY_OBSERVABLE_CLAIMS in claims.py), so a
+                # real correction draw always cites it as
+                # "<expected_output_id>/<observation_id>" for a plan-hosted
+                # window (see window_sources._translate_observation_reference).
+                # Without this, score_service cannot derive which plan input
+                # backed this window's host wall and now fails closed instead
+                # of guessing. `host_source_ids=None` (test-only knob) lets
+                # F-90 locks build a window that omits the claim entirely.
+                **({"host": {"provenance": "derived", "source_ids": list(host_source_ids)}}
+                   if host_source_ids is not None else {}),
+            },
         }] if include_window else []),
         "facade_segments": [],
     })
@@ -1414,3 +1430,108 @@ def test_n1_facade_update_feeds_window_host_resolution_e2e(monkeypatch, tmp_path
     with pytest.raises(ScoreContractError) as exc:
         score_typed_attempt(**common)
     assert exc.value.code == "score_product_segment_unresolved"
+
+
+# ---------------------------------------------------------------------------
+# F-90 (2026-08-25 dispatch): score_service's plan-source lookup for a v3
+# correction window used to be `plan_sources.get(window.floor_id)`, where
+# `plan_sources` is keyed by `PlanScoreViewBindingV1.floor_id` -- the GT-side
+# floor id ("F1"/"F2" for sm25) -- while `window.floor_id` is the PRODUCT-side
+# id ("floor_1"/"floor_2"). The two namespaces are independently assigned and
+# were never guaranteed to line up; every prior unit fixture in this file
+# (`_n1_gt`/`_n1_bindings`) happens to use "f1" on both sides, which is
+# exactly the coincidence that hid the bug (real sm25: `rejected` /
+# `score_view_binding_invalid`, 0/10 criteria scored). The locks below use a
+# GT/bindings pair whose floor id ("F1") deliberately differs from the
+# product window's own floor_id ("f1") to reproduce the real-world clash at
+# unit scale, plus a fail-closed lock for a window with no plan reference at
+# all.
+# ---------------------------------------------------------------------------
+
+
+def _f90_gt(geom, *, floor_id: str):
+    south = next(segment for segment in geom.facade_segments if segment.facade_family == "South")
+
+    def _wrap(segment):
+        return SimpleNamespace(
+            id=segment.id, floor_id=floor_id, facade_family=segment.facade_family,
+            p1=tuple(segment.p1), p2=tuple(segment.p2), outward_normal=tuple(segment.outward_normal),
+            world_along_interval=segment.world_along_interval, depth=segment.depth,
+            source_footprint_fingerprint=segment.source_footprint_fingerprint, source_refs=())
+
+    floor = SimpleNamespace(
+        id=floor_id,
+        footprint=SimpleNamespace(exterior=SimpleNamespace(vertices=[[0.0, 0.0], [4.0, 0.0], [4.0, 4.0], [0.0, 4.0]])),
+        footprint_fingerprint=geom.facade_segments[0].source_footprint_fingerprint,
+        zones=[SimpleNamespace(id="r1", polygon=SimpleNamespace(exterior=SimpleNamespace(
+            vertices=[[0.0, 0.0], [4.0, 0.0], [4.0, 4.0], [0.0, 4.0]])))],
+        boundary_segments=[_wrap(segment) for segment in geom.facade_segments],
+    )
+    opening = SimpleNamespace(id="gt-w1", floor_id=floor_id, kind="window", boundary_segment_id=south.id,
+        host_zone_id="r1", world_along_interval=SimpleNamespace(lo=1.0, hi=3.0),
+        z_interval=SimpleNamespace(lo=1.0, hi=2.0), source_refs=())
+    return SimpleNamespace(
+        generator=SimpleNamespace(tolerances=SimpleNamespace(vg_depth_epsilon_m=0.3, vg_endpoint_epsilon_m=0.3)),
+        content_sha256="e" * 64, floors=[floor], openings=[opening])
+
+
+def _f90_bindings(bundle, *, floor_id: str, input_id: str = "plan"):
+    plan_binding = PlanScoreViewBindingV1(kind="plan", input_id=input_id, floor_id=floor_id, gt_source_view_ids=("gt-plan",))
+    payload = {"schema_version": "1", "case_id": "case", "gt_content_sha256": "b" * 64,
+               "case_metadata_sha256": H, "base_view_manifest_sha256": bundle.manifest.content_sha256,
+               "bindings": [plan_binding.model_dump(mode="json")]}
+    return JudgeScoreViewBindingsV1(schema_version="1", case_id="case", gt_content_sha256="b" * 64,
+        case_metadata_sha256=H, base_view_manifest_sha256=bundle.manifest.content_sha256,
+        bindings=(plan_binding,), content_sha256=canonical_sha256(payload))
+
+
+def _f90_stub_renderer(monkeypatch):
+    import sys
+    scripts_dir = str(Path(__file__).resolve().parents[1] / "scripts" / "tool_scripts")
+    if scripts_dir not in sys.path:
+        sys.path.insert(0, scripts_dir)
+    import render_grade
+    monkeypatch.setattr(render_grade, "render_score_grade_png", lambda **kw: b"")
+
+
+def test_f90_window_floor_id_and_gt_floor_id_are_independent_namespaces(monkeypatch, tmp_path):
+    bundle = _bundle(tmp_path)
+    geom = bundle.result.geom
+    # The product's own floor_id ("f1") deliberately never equals the GT/
+    # binding-table floor_id used below ("F1") -- unlike every other fixture
+    # in this file, which sets both sides to "f1".
+    assert geom.windows[0].floor_id == "f1"
+    common = dict(gt_identity=_official_gt_identity(), gt=_f90_gt(geom, floor_id="F1"), stage="correction",
+                  product_payload=geom.model_dump(mode="json"),
+                  product_identity=_official_product_identity(
+                      bundle, output_sha256=bundle.result.prepared_candidate_identity.output_sha256),
+                  base_view_manifest=bundle.manifest, score_bindings=_f90_bindings(bundle, floor_id="F1"),
+                  completeness_overlay=None, c2_config=load_judge_score_config("src/configs/judge_score.yaml"),
+                  window_host_proof=bundle.proof)
+    _f90_stub_renderer(monkeypatch)
+    result = score_typed_attempt(**common)
+    assert result.payload.kind == "c2_scored"
+    assert result.payload.extras == ()
+
+
+def test_f90_window_without_plan_host_reference_fails_closed_not_silently(monkeypatch, tmp_path):
+    """Dispatch §四#3: a window that carries no plan-channel evidence to bind
+    it to a registered plan input must fail loudly (a distinct, named
+    reason), never silently fall back to a default or an arbitrary
+    binding."""
+    bundle = _bundle(tmp_path, host_source_ids=None)
+    geom = bundle.result.geom
+    assert geom.windows[0].provenance is not None
+    assert "host" not in geom.windows[0].provenance
+    common = dict(gt_identity=_official_gt_identity(), gt=_f90_gt(geom, floor_id="F1"), stage="correction",
+                  product_payload=geom.model_dump(mode="json"),
+                  product_identity=_official_product_identity(
+                      bundle, output_sha256=bundle.result.prepared_candidate_identity.output_sha256),
+                  base_view_manifest=bundle.manifest, score_bindings=_f90_bindings(bundle, floor_id="F1"),
+                  completeness_overlay=None, c2_config=load_judge_score_config("src/configs/judge_score.yaml"),
+                  window_host_proof=bundle.proof)
+    _f90_stub_renderer(monkeypatch)
+    with pytest.raises(ScoreContractError) as exc:
+        score_typed_attempt(**common)
+    assert exc.value.code == "score_view_binding_invalid"
+    assert exc.value.context.get("reason") == "window_host_claim_missing_source_ids"
