@@ -23,8 +23,10 @@ from src.agent.judge.score_schema import (
     HelperIdentityV9, ManifestIdentityV8, NotApplicablePayloadV9,
     ProductIdentityV8, RejectedPayloadV9, ScoreContractError,
     ScoreCriterionV9, ScoreIdentityV9, ScorePayloadV9, SegmentScoreRowV8,
-    SEGMENT_SCORER_HELPER_VERSION, canonical_sha256, decide_score_capability,
-    empty_visibility_counts_v1, finalize_score_sidecar_v9,
+    CORRECTION_OPENING_MATCHER_HELPER_VERSION,
+    READING_OPENING_MATCHER_HELPER_VERSION, SEGMENT_SCORER_HELPER_VERSION,
+    canonical_sha256, decide_score_capability, empty_visibility_counts_v1,
+    finalize_score_sidecar_v9,
 )
 from src.agent.judge.score_schema import ElevationScoreViewBindingV1
 from src.agent.judge.identity_provenance import (
@@ -182,11 +184,13 @@ def _resolve_facade_product_to_gt(*, geometry, gt, product_floor_to_gt_floor: di
 
 
 def _derive_window_floor_plan_sources(*, geometry, score_bindings) -> dict[str, str]:
-    """F-90: derive each product `floor_id` -> plan `input_id` from window
-    evidence -- the only bridge between the product's own floor namespace and
-    the GT/binding-table one (see module docstring at the call sites below
-    for the full "host" claim contract). Fails closed per-window; never
-    guesses a default for a floor no window speaks for."""
+    """Derive per-window floor -> plan-input evidence for corroboration.
+
+    The verified resolver-input catalog supplies the total floor bridge,
+    including zero-window floors.  This narrower witness independently checks
+    every window's declared host source and fails closed on contradictory or
+    malformed evidence.
+    """
     plan_input_ids = {item.input_id for item in score_bindings.bindings
                       if getattr(item, "kind", None) == "plan"}
     floor_plan_source: dict[str, str] = {}
@@ -217,6 +221,145 @@ def _derive_window_floor_plan_sources(*, geometry, score_bindings) -> dict[str, 
                                               "input_ids": sorted({existing, input_id})})
         floor_plan_source[window.floor_id] = input_id
     return floor_plan_source
+
+
+def _derive_correction_floor_plan_sources(
+    *, geometry, score_bindings, resolver_inputs
+) -> dict[str, str]:
+    """Build the total product-floor -> plan-input bridge from verified data.
+
+    The resolver-input verifier already freezes plan ``floor_ref`` values and
+    checks that they form a total 1..N contract with product floors ranked by
+    ``z_floor``.  Reconstruct that reviewed mapping here so zero-window floors
+    remain scorable.  Per-window host claims are still checked and must agree
+    with the catalog; they are corroboration, not the only source of totality.
+    """
+    plan_entries = tuple(
+        entry
+        for entry in resolver_inputs.view_manifest.required_entries()
+        if entry.view_type == "plan"
+    )
+    product_floors = tuple(
+        sorted(geometry.floors, key=lambda floor: floor.z_floor)
+    )
+    if len(plan_entries) != len(product_floors):
+        raise ScoreContractError(
+            "score_view_binding_invalid",
+            "scoring.view_bindings",
+            context={"reason": "verified_plan_floor_catalog_not_total"},
+        )
+    plan_by_ref = {entry.floor_ref: entry.input_id for entry in plan_entries}
+    registered_plan_inputs = {
+        item.input_id
+        for item in score_bindings.bindings
+        if getattr(item, "kind", None) == "plan"
+    }
+    floor_plan_source: dict[str, str] = {}
+    for floor_ref, floor in enumerate(product_floors, start=1):
+        input_id = plan_by_ref.get(floor_ref)
+        if input_id is None or input_id not in registered_plan_inputs:
+            raise ScoreContractError(
+                "score_view_binding_invalid",
+                "scoring.view_bindings",
+                context={
+                    "floor_id": floor.id,
+                    "reason": "verified_plan_floor_not_registered_for_scoring",
+                    "input_id": input_id,
+                },
+            )
+        floor_plan_source[floor.id] = input_id
+
+    window_sources = _derive_window_floor_plan_sources(
+        geometry=geometry,
+        score_bindings=score_bindings,
+    )
+    for floor_id, input_id in window_sources.items():
+        if floor_plan_source.get(floor_id) != input_id:
+            raise ScoreContractError(
+                "score_view_binding_invalid",
+                "scoring.view_bindings",
+                context={
+                    "floor_id": floor_id,
+                    "reason": "window_host_disagrees_with_verified_plan_floor_catalog",
+                    "input_ids": sorted(
+                        {input_id, floor_plan_source.get(floor_id) or "<missing>"}
+                    ),
+                },
+            )
+    return floor_plan_source
+
+
+def _score_helper_identity_v9(
+    *,
+    stage: Literal["reading", "correction"],
+    va_helper: str,
+    claims_contract: str,
+) -> HelperIdentityV9:
+    """Return the stage-specific helper release bound into score caches.
+
+    Correction scoring consumes judge-owned floor/source normalization before
+    plan and opening matching.  Its helper release must therefore be
+    independent from reading's opening assignment release: otherwise a
+    correction normalization change can retain the exact same cache identity
+    and silently reuse a pre-change sidecar (F-102).
+    """
+    opening_matcher = (
+        READING_OPENING_MATCHER_HELPER_VERSION
+        if stage == "reading"
+        else CORRECTION_OPENING_MATCHER_HELPER_VERSION
+    )
+    return HelperIdentityV9(
+        scorer_schema="9",
+        segment_scorer=SEGMENT_SCORER_HELPER_VERSION,
+        opening_matcher=opening_matcher,
+        gt_to_va_adapter="b4b_gt_to_va_v1",
+        denominator_helper="b4b_denominator_v1",
+        grade_renderer="b4b_grade_png_v2",
+        va_helper=va_helper,
+        vg_helper="facade_visibility_v1",
+        claims_contract=claims_contract,
+        reading_contract_detector="reading_contract_detector_v2",
+        reading_adapter="reading_typed_adapter_v2",
+        reading_source_applicability="reading_source_applicability_v2",
+    )
+
+
+def _normalize_correction_plan_floor_ids(
+    *, observations, product_floor_to_gt_floor: dict[str, str]
+):
+    """Translate product plan segments at the judge normalization boundary.
+
+    `match_plan_segments` deliberately compares exact floor ids inside one
+    namespace.  Correction output and GT use independent namespaces, so the
+    explicit evidence-derived bridge must be applied before that matcher; the
+    matcher itself must never guess by spelling, case, or ordering.
+    """
+    from src.agent.judge.segment_score import PlanSegment
+
+    normalized: list[PlanSegment] = []
+    for observation in observations:
+        gt_floor_id = product_floor_to_gt_floor.get(observation.floor_id)
+        if gt_floor_id is None:
+            raise ScoreContractError(
+                "score_view_binding_invalid",
+                "scoring.view_bindings",
+                context={
+                    "floor_id": observation.floor_id,
+                    "reason": "product_floor_has_no_explicit_gt_floor_binding",
+                },
+            )
+        normalized.append(
+            PlanSegment(
+                observation.key,
+                gt_floor_id,
+                observation.p1,
+                observation.p2,
+                observation.zone_ids,
+                observation.source_ids,
+                observation.exterior,
+            )
+        )
+    return tuple(normalized)
 
 
 def score_typed_attempt(*, gt_identity, gt, stage: Literal["reading", "correction"],
@@ -266,16 +409,10 @@ def score_typed_attempt(*, gt_identity, gt, stage: Literal["reading", "correctio
         completeness_overlay_sha256=None if completeness_overlay is None else completeness_overlay.content_sha256,
         score_view_bindings_sha256=score_bindings.content_sha256,
     )
-    helpers = HelperIdentityV9(
-        scorer_schema="9", segment_scorer=SEGMENT_SCORER_HELPER_VERSION,
-        opening_matcher="reading_opening_global_assignment_v1",
-        gt_to_va_adapter="b4b_gt_to_va_v1",
-        denominator_helper="b4b_denominator_v1", grade_renderer="b4b_grade_png_v2",
-        va_helper=FACADE_APPLICABILITY_HELPER_VERSION, vg_helper="facade_visibility_v1",
+    helpers = _score_helper_identity_v9(
+        stage=stage,
+        va_helper=FACADE_APPLICABILITY_HELPER_VERSION,
         claims_contract=CLAIMS_VOCAB_VERSION,
-        reading_contract_detector="reading_contract_detector_v2",
-        reading_adapter="reading_typed_adapter_v2",
-        reading_source_applicability="reading_source_applicability_v2",
     )
     if stage == "reading":
         from src.agent.judge.reading_typed_score import (
@@ -337,10 +474,13 @@ def score_typed_attempt(*, gt_identity, gt, stage: Literal["reading", "correctio
     identity_analysis = AnalysisCollector()
     gt_segments = extract_gt_plan_segments(gt, _analysis=identity_analysis)
     geometry = None
+    floor_plan_source: dict[str, str] = {}
+    product_floor_to_gt_floor: dict[str, str] = {}
     if stage == "correction":
         from src.agent.correction.schema import CorrectedGeometryV3
         from src.agent.geometry.build import (
             VerifiedWindowHostProof,
+            _resolver_inputs_from_verified_proof,
             _reverify_window_host_proof,
         )
         if not product_identity.accepted or not isinstance(
@@ -369,8 +509,33 @@ def score_typed_attempt(*, gt_identity, gt, stage: Literal["reading", "correctio
                 "score_product_identity_invalid",
                 reason="b5_product_payload_differs_from_verified_output",
             )
-        plan_observations = extract_correction_plan_segments(
+        # F-90/F-102 item 2: establish the product-floor -> plan-input ->
+        # GT-floor bridge before plan matching, then translate only the
+        # judge-owned PlanSegment observations.  Product geometry and the
+        # matcher remain untouched.
+        resolver_inputs = _resolver_inputs_from_verified_proof(
+            verified_proof
+        ).inputs
+        floor_plan_source = _derive_correction_floor_plan_sources(
+            geometry=geometry,
+            score_bindings=score_bindings,
+            resolver_inputs=resolver_inputs,
+        )
+        input_to_gt_floor = {
+            item.input_id: item.floor_id
+            for item in score_bindings.bindings
+            if getattr(item, "kind", None) == "plan"
+        }
+        product_floor_to_gt_floor = {
+            product_floor: input_to_gt_floor[input_id]
+            for product_floor, input_id in floor_plan_source.items()
+        }
+        extracted_plan_observations = extract_correction_plan_segments(
             geometry, _analysis=identity_analysis
+        )
+        plan_observations = _normalize_correction_plan_floor_ids(
+            observations=extracted_plan_observations,
+            product_floor_to_gt_floor=product_floor_to_gt_floor,
         )
     else:
         plan_observations = coerce_plan_observations(product_payload.get("segments", ()))
@@ -400,8 +565,6 @@ def score_typed_attempt(*, gt_identity, gt, stage: Literal["reading", "correctio
     # choice is audit-only and pinned by a deterministic sort, never input order.
     product_to_gt = {obs_key: target_keys[0] for obs_key, target_keys in observation_to_targets.items()}
     product_to_gt.update({item.key: item.key for item in plan_observations if item.key in {target.key for target in gt_segments}})
-    floor_plan_source: dict[str, str] = {}
-    product_floor_to_gt_floor: dict[str, str] = {}
     if geometry is not None:
         # F-90 (2026-08-25 dispatch): `PlanScoreViewBindingV1.floor_id` is the
         # GT-side floor id ("F1"/"F2" for sm25); a product `floor_id`
@@ -414,26 +577,13 @@ def score_typed_attempt(*, gt_identity, gt, stage: Literal["reading", "correctio
         # runs (sm25) it always misses, rejecting every attempt before a
         # single criterion is scored.
         #
-        # The only legitimate bridge between the two namespaces is evidence
-        # the product itself declared: per the E2' claims vocabulary
-        # (`claims.py`), "host" is the ONE window claim that can only be
-        # attested by the plan channel (it is absent from
-        # `ELEVATION_POTENTIALLY_OBSERVABLE_CLAIMS`), so its `source_ids`
-        # name the plan input the window's host wall was drawn from, as
-        # `"<input_id>/<observation_id>"` (window_sources
-        # `_translate_observation_reference`). `_derive_window_floor_plan_
-        # sources` derives each product floor_id's plan input from that
-        # claim (fail-closed on missing/ambiguous/unregistered/contradictory
-        # evidence); joining through `score_bindings` (input_id -> GT
-        # floor_id) then bridges BOTH consumers -- the facade-span resolver
-        # below and the window observations built further down -- without
-        # either one guessing at floor identity.
-        floor_plan_source = _derive_window_floor_plan_sources(geometry=geometry, score_bindings=score_bindings)
-        input_to_gt_floor = {item.input_id: item.floor_id for item in score_bindings.bindings
-                             if getattr(item, "kind", None) == "plan"}
-        product_floor_to_gt_floor = {product_floor: input_to_gt_floor[input_id]
-                                     for product_floor, input_id in floor_plan_source.items()
-                                     if input_id in input_to_gt_floor}
+        # The total bridge above comes from the already-verified resolver-input
+        # catalog: product floor z-rank -> manifest floor_ref -> plan input.
+        # Per-window host claims independently corroborate that catalog and
+        # fail closed on missing/ambiguous/unregistered/contradictory evidence.
+        # Joining through score_bindings (input_id -> GT floor_id) feeds both
+        # the facade-span resolver below and the window observations without
+        # either consumer guessing at floor identity.
         # §5-B: facade spans are resolved by the one-way containment helper;
         # a multi-span straddle is left unmapped (window fails closed), never
         # silently bound to the first candidate.
@@ -632,19 +782,10 @@ def _failure_identity(*, typed_request: dict, capability) -> ScoreIdentityV9:
         ),
         score_view_bindings_sha256=typed_request["score_bindings"].content_sha256,
     )
-    helpers = HelperIdentityV9(
-        scorer_schema="9",
-        segment_scorer=SEGMENT_SCORER_HELPER_VERSION,
-        opening_matcher="reading_opening_global_assignment_v1",
-        gt_to_va_adapter="b4b_gt_to_va_v1",
-        denominator_helper="b4b_denominator_v1",
-        grade_renderer="b4b_grade_png_v2",
+    helpers = _score_helper_identity_v9(
+        stage=typed_request["stage"],
         va_helper=FACADE_APPLICABILITY_HELPER_VERSION,
-        vg_helper="facade_visibility_v1",
         claims_contract=CLAIMS_VOCAB_VERSION,
-        reading_contract_detector="reading_contract_detector_v2",
-        reading_adapter="reading_typed_adapter_v2",
-        reading_source_applicability="reading_source_applicability_v2",
     )
     return ScoreIdentityV9(
         gt=typed_request["gt_identity"],
@@ -719,7 +860,11 @@ def _total_failure_result(
         payload = NotApplicablePayloadV9(
             kind="not_applicable",
             reason=reason,
-            detail=reason,
+            # Keep the established coarse `reason` taxonomy for existing
+            # consumers, but retain the originating score-contract code so
+            # the official flow can distinguish otherwise identical NA
+            # outcomes (F-103).
+            detail=(error.code if isinstance(error, ScoreContractError) else reason),
             channel_applicability=(),
             unmeasurable_observations=0,
             visibility_counts=counts,

@@ -2186,6 +2186,7 @@ def _grade_typed_attempt_artifacts(stage: str, case: str, attempt_dir: Path, doc
     if strict_violation is not None and run_profile in {"golden", "regression"}:
         raise TopLevelNotApplicableError(strict_violation)
     return {"score_vs_gt": str(score_path), "grade": str(grade_path),
+            "score_payload_detail": getattr(result.payload, "detail", None),
             "score_criteria": [
                 item.model_dump(mode="json")
                 for item in score_criteria_for_payload(result.payload)
@@ -2249,6 +2250,7 @@ def _judge_packet(stage: str, case: str, case_dir: Path, run_dir: Path,
         "renders": renders,
         "gt_path": str(gt_path(case)) if has_gt(case) else None,
         "score_vs_gt": gt_artifacts["score_vs_gt"],
+        "score_payload_detail": gt_artifacts.get("score_payload_detail"),
         "score_criteria": gt_artifacts["score_criteria"],
         "grade": gt_artifacts["grade"],
         "gate1": {

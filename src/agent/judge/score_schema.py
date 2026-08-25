@@ -50,6 +50,8 @@ JUDGE_SCORE_CONFIG_SCHEMA = "1"
 JUDGE_SCORE_BINDINGS_SCHEMA = "1"
 JUDGE_COMPLETENESS_OVERLAY_SCHEMA = "1"
 SEGMENT_SCORER_HELPER_VERSION = "b4b_segment_score_v3_ic1"
+READING_OPENING_MATCHER_HELPER_VERSION = "reading_opening_global_assignment_v1"
+CORRECTION_OPENING_MATCHER_HELPER_VERSION = "correction_opening_global_assignment_v3"
 GT_TO_VA_ADAPTER_VERSION = "b4b_gt_to_va_v1"
 DENOMINATOR_HELPER_VERSION = "b4b_denominator_v1"
 GRADE_RENDERER_VERSION = "b4b_grade_png_v1"
@@ -1015,7 +1017,11 @@ class ReadingVisibilityCountsV1(StrictWire):
 class HelperIdentityV9(StrictWire):
     scorer_schema: Literal["9"]
     segment_scorer: StableId
-    opening_matcher: Literal["reading_opening_global_assignment_v1"]
+    opening_matcher: Literal[
+        "reading_opening_global_assignment_v1",
+        "correction_opening_global_assignment_v2",
+        "correction_opening_global_assignment_v3",
+    ]
     gt_to_va_adapter: StableId
     denominator_helper: StableId
     grade_renderer: Literal["b4b_grade_png_v2"]

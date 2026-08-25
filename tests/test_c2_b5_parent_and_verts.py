@@ -1512,6 +1512,15 @@ def test_f90_window_floor_id_and_gt_floor_id_are_independent_namespaces(monkeypa
     result = score_typed_attempt(**common)
     assert result.payload.kind == "c2_scored"
     assert result.payload.extras == ()
+    boundary = next(
+        item
+        for item in result.payload.score_criteria
+        if item.criterion_id == "boundary_complete"
+    )
+    assert boundary.eligible is True
+    assert boundary.verdict == "pass"
+    assert boundary.passing_units == boundary.denominator_units == 16.0
+    assert boundary.failing_units == 0.0
 
 
 def test_f90_window_without_plan_host_reference_fails_closed_not_silently(monkeypatch, tmp_path):
