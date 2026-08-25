@@ -318,7 +318,8 @@ as-drawn 产 `observations.face_lines`/`hypotheses` —— **两套 schema 完�
 | | 0-f | GLM 对 A 案的 5 条 findings（**锁不验 `parents[N]` 参数** · ⭐ **`tests_scripts/` 是覆盖外的现存串台入口** · 保守误报清单 · E402 现在不动 · 锁 CLI 恒 exit 0）| ⏭ 与 0-e 一并打包下轮派工；⭐ 第 2 条**或并入 D-2** |
 | | 0-a′ | **F-94 B 案根治** | ✅ **已转债 D-2**（用户 08-25 拍板）· 退役须另开单 |
 | | 0-e | GLM 三条不阻塞 findings（测试改名 · **1-a 锁内置反向对照** · docstring 小瑕）| ⏭ 下轮派工打包 |
-| **1 支线回并** | 1-a | 合并 `toolbox_into_src_08.25` → `08.23_AsDrawnReading` | ⏭ **0 清完即可做**；**债 D-1**（双份代码）随此步处置 |
+| **1 支线回并** | 1-a | 合并 `toolbox_into_src_08.25` → `08.23_AsDrawnReading` | ✅ **已回并**（`0182bea`，13 文件/3741 行**零冲突**；全量 **`3017 passed`**）。⭐⭐ **合并适配一处由新锁抓出**：`reading_toolbox.py:39` import `src` 无自举 ⇒ **锁的第一次真实捕获**（非夹具、非人造）|
+| | 1-b | **债 D-1** 双份代码（`tools/` 原件 vs `src/` 新件）| ⚠️ **自本次合并起在主线上正式成立**（实测两处 `as_drawn_v2.py` 并存）· 退役须另开单 |
 | **2 一体改** | 2-a | ⭐⭐ **reading + correction 一体改** | ⏳ **前置 = 与 sol 讨论架构**（⭐ **需用户拉人**）→ [讨论稿（已改写至最新）](logs/reviews/request/2026-08-26_reading_correction_joint_architecture_discussion_sol.md) · [GPT 备料](logs/reviews/verdict/2026-08-25_reading_correction_unification_gpt_design.md) |
 | | 2-b | **F-97** 契约判别器（未知契约响亮失败）| **一体改的必做项**（已行为实测：门不但看不见它，还给绿灯）|
 | | 2-c | **F-87** 门窗身份没外置 | 归 reading 侧，随一体改 |

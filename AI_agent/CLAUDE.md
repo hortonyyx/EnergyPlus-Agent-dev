@@ -231,16 +231,18 @@ EnergyPlus 经 `WorkflowTool.run_simulation`（eppy + ConverterManager，idfpy �
 > **分支 `08.23_AsDrawnReading`** · 支线 `toolbox_into_src_08.25` @ `283e868`（跨家族 APPROVE，**待合并**）。
 > 逐段全档 → [plan.md 本日](plan.md)。
 >
-> **① ✅ F-93 已清（全仓恢复全绿 `3014 passed, 13 xfailed`，GLM 自己跑的）· ⏳ F-94 待用户拍板** ——
-> 施工 `b3e0a32`（Claude 席位）· **GLM 跨家族 APPROVE-WITH-FINDINGS** · ⭐ 派工单本身题错 **2 处（累计 25/25）**；
-> **F-94 三候选 A/B/C 已出并经审，GLM 补充「长期应对齐 B」⇒ 当前唯一挂起的用户决策** →
-> [裁决](logs/reviews/verdict/2026-08-25_merge_blockers_f93_f94_glm_verdict.md)。
+> **① ✅ 合并阻塞已全清 + ✅ 支线已回并**（两步都跨家族审过）：**F-93** `b3e0a32` · **F-94 A 案** `91ae82d`
+> （16 脚本自举 + **AST 机械锁**）· 支线 `toolbox_into_src_08.25` 于 `0182bea` **零冲突回并**。
+> 全量 **`3017 passed, 13 xfailed`**。⭐⭐ **那道新锁的第一次真实捕获就发生在合并上** ——
+> 它点名支线带进来的 `reading_toolbox.py:39`（import `src` 无自举），补上后转绿。
+> ⚠️ GLM 裁定：锁 = **在枚举过的暴露面上把「忘关门」从静默变响亮**，⛔ **不是根治** ⇒
+> **B 案 = 债 D-2「中高紧迫、本批收尾前后排期」**（覆盖外仍有活例 `tests_scripts/deepseek_review.py`）。
+> ⭐ 派工单累计题错 **26/26**。
 >
 > **② ⭐⭐ 答案直喂内核，撞出两条现行管线撞不到的缺陷**（探索档 ⛔ 永不作成绩）→
-> [实验档](logs/experiments/2026-08-25_kernel_probe_from_gt/README.md)。
-> 先证实**内核不是卡点**（R0 真实产物 38 zone / 266 面 / 门全绿），同时量到 **R0 的 38 个 cell 带 `polygon` 的 = 0**
-> ⇒ **C2 多边形路径从未被内核吃过** ⇒ **F-95** 顶点规范化毁凹多边形（走廊 97.731→226.457；⛔ 已有 L 形锁没有分辨力）
-> · **F-96** 跨层碎片无守卫。⭐ 6 cm 已溯源到原始 DXF：四处墙厚同为 120、**1F 右半段整体南偏 60.3 mm** ⇒ **原图就这么画的**。
+> [实验档](logs/experiments/2026-08-25_kernel_probe_from_gt/README.md)：**内核不是卡点**，但 **R0 的 38 个 cell 带 `polygon` 的 = 0**
+> ⇒ **C2 多边形路径从未被内核吃过** ⇒ **F-95** 顶点规范化毁凹多边形（97.731→226.457；⛔ 已有 L 形锁没分辨力）· **F-96** 跨层碎片无守卫。
+> ⭐ 6 cm 已溯源到原始 DXF：四处墙厚同为 120、**1F 右半段整体南偏 60.3 mm** ⇒ **原图就这么画的**。
 >
 > **③ ⭐⭐ gt 该录「原图」还是「修复后的建筑」**（用户 08-25 提，主控给了不同落点，全档 plan.md 三之三）：
 > 同意「加校验」与「误差归 correction 吸收」；**「录入时就修复」建议改落点** = 用户 08-20 定的**三层**
@@ -255,7 +257,7 @@ EnergyPlus 经 `WorkflowTool.run_simulation`（eppy + ConverterManager，idfpy �
 > ⇒ **静默地半喂进去**，⛔ 比「喂不进去」严重。
 > 给 sol 的讨论稿已累计式改写至最新 → [讨论稿](logs/reviews/request/2026-08-26_reading_correction_joint_architecture_discussion_sol.md)。
 >
-> **⑤ ⏭ 次序未变**：清完阻塞 → 支线回并 → 一体改（⭐ **先与 sol 讨论**）→ 拿 sm25 撞 C2（F-95/F-96/F-91/F-92）· gt 层（R-6+校验）并进其后。
+> **⑤ ⏭ 下一步**：~~清阻塞~~ ✅ → ~~支线回并~~ ✅ → **一体改**（⭐ **卡在「与 sol 讨论」，需用户拉人**）→ 拿 sm25 撞 C2（F-95/F-96/F-91/F-92）· gt 层（R-6+校验）并进其后。⭐ **可并行推进且不依赖 sol 的**：**F-90** 楼层 id 映射（撞 C2 的前置）。
 
 > **已翻篇的 banner（均逐字搬入 [`logs/worklog/2026-08_plan_log.md`](logs/worklog/2026-08_plan_log.md)）**：
 > **08-25 收工**（reading 架构定稿 · 管子拆 9 工序 · C2 首次被真正量过 · 工具箱转正 APPROVE · F-93/F-94）·
