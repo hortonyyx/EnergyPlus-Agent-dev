@@ -50,7 +50,7 @@ as-drawn 产的：      observations.{calibration,ink_palette,face_lines,compone
 
 ⭐ **更深的是基准不同**（⚠️ **归属已于 2026-08-25 更正**：此前记成「旧 reading 自述」，
 复核后找到更硬的出处 —— **是 `1_correction` 的提示词在要求中线**，写在提示词正文的字符串里：
-[`pipeline.py:365-369`](../../../src/agent/pipeline.py#L365) 逐字要求
+[`pipeline.py:365-369`](../../../../src/agent/pipeline.py#L365) 逐字要求
 "world-frame, **wall-centerline**" 并强调 "put every coordinate in one world frame at **wall CENTERLINE**"
 ⇒ **不是「reading 换了格式所以要适配」，是 correction 自己在要这个基准**）：
 
@@ -184,13 +184,13 @@ L 形上「北」不是一道墙：y=20（x 0→15）和 y=6（x 15→25），�
 ## 七、⭐ 2026-08-25 之后新增的、原稿没有的四条（请一并考虑）
 
 1. ⭐⭐ **F-97：这不是「喂不进去」，是「静默地半喂进去」**（我已复核代码确证）。
-   `discover_vector_files`（[`pipeline.py:84-107`](../../../src/agent/pipeline.py#L84)）扫识图目录里的
+   `discover_vector_files`（[`pipeline.py:84-107`](../../../../src/agent/pipeline.py#L84)）扫识图目录里的
    **全部** `*.json`，分成 plans / elevations / **`others`** 三桶 ——
    一份 `sm25_1f_v2.json` 放进 `0_reading/` 会落进 `others` **并进 correction 的提示词**；
-   而识图门 [`evidence_preflight.py:229`](../../../src/agent/execution/evidence_preflight.py#L229)
+   而识图门 [`evidence_preflight.py:229`](../../../../src/agent/execution/evidence_preflight.py#L229)
    只 `glob("*_view.json")` ⇒ **看不见它**。
    ⇒ **接口设计必须包含一个显式的契约判别器：未知契约类型响亮失败。**
-   现有判别器只认 `reading_views_v2`（[`reading/contract.py:23`](../../../src/agent/reading/contract.py#L23)）。
+   现有判别器只认 `reading_views_v2`（[`reading/contract.py:23`](../../../../src/agent/reading/contract.py#L23)）。
 
 2. ⭐ **「三拍循环」里必须有一条强制的「整栋复核」通道**（GPT 提，我认为这条最值钱）。
    理由用的是我们自己的实证：那三个真错（走廊幻墙 2.1 m · Z 形凹口没分段 · 内墙画穿多段）
@@ -291,7 +291,7 @@ L 形上「北」不是一道墙：y=20（x 0→15）和 y=6（x 15→25），�
 **F-92**（38 个 cell 的 `polygon` 全 null）· **F-104**（核前草图有 cell 缺口）。
 
 ⚠️ 但 **F-99 的病根请你考虑进设计**：它源自 **correction 提示词在要求墙中线基准**
-（[`pipeline.py:365-369`](../../../src/agent/pipeline.py#L365) 逐字 `wall-centerline` / `wall CENTERLINE`），
+（[`pipeline.py:365-369`](../../../../src/agent/pipeline.py#L365) 逐字 `wall-centerline` / `wall CENTERLINE`），
 而 gt 是「外墙外包 + 内墙中轴」。**一体改必须处理这两句字符串** —— 这正是第八节说的「基准归属」。
 
 ## 9.7 ⛔ 我方今天新暴露的三个自身问题（先声明，免得你当新发现）

@@ -17,9 +17,9 @@
 ## ⚠️ orchestrator 的独立核查（⛔ 不照抄）
 
 **它说「提示词与 judge 的墙线约定互相矛盾」—— 部分成立，但需说准**：
-- 提示词确实逐字要求「全部按 wall CENTERLINE」（[`pipeline.py:365-369`](../../../src/agent/pipeline.py#L365)），
-  schema docstring 也写 centerline（[`schema.py:234`](../../../src/agent/correction/schema.py#L234)）。
-- judge 侧声明的约定是「**外墙外皮 + 内墙中轴**」（[`correction_score.py:55-75`](../../../src/agent/judge/correction_score.py#L55)）。
+- 提示词确实逐字要求「全部按 wall CENTERLINE」（[`pipeline.py:365-369`](../../../../src/agent/pipeline.py#L365)），
+  schema docstring 也写 centerline（[`schema.py:234`](../../../../src/agent/correction/schema.py#L234)）。
+- judge 侧声明的约定是「**外墙外皮 + 内墙中轴**」（[`correction_score.py:55-75`](../../../../src/agent/judge/correction_score.py#L55)）。
 - ⭐ **但两者本来是靠确定性核的外包变换（F-17）对齐的，且注释写明只对 schema v3 成立** ⇒ **不是无人处理的矛盾，是一次有意的转换。**
 
 ⭐⭐ **由此把 F-99 那 12 cm 定位得更准了**（⛔ 覆盖此前「correction 全程中线」的说法）：
@@ -31,7 +31,7 @@
 ## ⭐⭐⭐ 它带回的两条最重、必须进设计的结论
 
 1. **当前 gt 不能直接当新 reading 的答案** —— 它只有设计/楼层/zone/opening 等**最终语义**
-   （[`gt_schema.py:73`](../../../src/agent/judge/gt_schema.py#L73) / [`:164`](../../../src/agent/judge/gt_schema.py#L164)），
+   （[`gt_schema.py:73`](../../../../src/agent/judge/gt_schema.py#L73) / [`:164`](../../../../src/agent/judge/gt_schema.py#L164)），
    **没有来源空间的墙面、也没有可信的栅格标定** ⇒ 直接影响本批第三件目标（gt 出判分答案）。
 2. ⭐ **产品自报的标定不能用来换算它自己的答案** —— 那是**自证回路**。
    描图分必须比来源像素/来源原生坐标，或用**裁判自己拥有的**变换；标定只能作为**另一个被判的答案**。
