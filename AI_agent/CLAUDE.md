@@ -235,9 +235,14 @@ EnergyPlus 经 `WorkflowTool.run_simulation`（eppy + ConverterManager，idfpy �
 > **债 D-1 双份代码退役** `98e72d6`→cherry-pick（GPT APPROVE）· **F-90 楼层 id 映射** `3f6731f`。
 > ⭐⭐ **那道新锁的第一次真实捕获发生在合并上**：点名支线带来的 `reading_toolbox.py:39`。
 >
-> **② ⛔ 唯一未过跨家族审的是 F-90** —— 审阅单已出（GPT），
-> ⇒ **下一轮第一件事 = 补审** → [单](logs/reviews/request/2026-08-25_f90_crossreview_gpt.md)。
-> ⭐ 它实测**同根因 5 处**而非派工单点名的 1 处，且**只修第 1 处会从崩溃退化成【静默全错】**。
+> **② ⛔⛔ F-90 补审已做完 = REJECT**（2026-08-26，GPT `gpt-5.6-sol`/xhigh）→
+> [裁决](logs/reviews/verdict/2026-08-25_f90_floor_id_mapping_gpt_verdict.md)。**四条阻断**：
+> **同根因第 6 处未修**（plan segment matcher 在楼层桥建好之前就比字符串）· **F-100** source-view 桥没接 ·
+> **F-101** 合法 `src:<64hex>` locator 被错拒 · **F-102** ⭐⭐⭐ **判分缓存 identity 没随语义变**。
+> ⭐⭐ **那份「十判据读数」被推翻**：唯一 eligible 的 `boundary_complete=0/32` **判的就是第 6 处的 bug**
+> ⇒ 实为「九条没判 + 一条判的是自己的 bug」（= 请求单里我自己标注的最弱点，答案比我猜的更糟；已独立复跑坐实）。
+> ⭐ **F-102 排最优先**：它让「F-90 修没修好」在官方 `flow` 口子上**看不出来**（live 走到 F-99、cache 仍返修复前结论）。
+> ⛔ 处置 = **在 `main` 上另开修复单**，不回退历史。
 >
 > **③ ⭐⭐ 本轮撞出的新缺陷**：**F-95** 顶点规范化毁凹多边形 · **F-96** 跨层碎片无守卫 ·
 > **F-97** 新识图产物静默半喂进 correction（行为实测：门还给绿灯）· **F-98** 判分对浮点末位敏感 ·
@@ -247,9 +252,9 @@ EnergyPlus 经 `WorkflowTool.run_simulation`（eppy + ConverterManager，idfpy �
 > 覆盖外仍有活例 `tests_scripts/deepseek_review.py`）· **D-1 已退役**（⚠️ GPT 指出其判据是
 > **一次性检查、非防漂移门，且未接入 CI**）。
 >
-> **⑤ ⏭ 下一步**：补审 F-90 → **派 D-2** → **一体改**（⭐ **卡在「与 sol 讨论」，需用户拉人**）→ 撞 sm25/C2
-> （F-95/F-96/F-91/F-92/F-99）· gt 层（R-6+校验）。
-> ⭐ 派工单累计题错 **28/28** —— 本轮新增 4 次，全部由施工/审阅席位查出。
+> **⑤ ⏭ 下一步**：~~补审 F-90~~ ✅ 已做（REJECT）→ **F-90 修复单**（含第 6 处 + F-100/101/**102 优先**）
+> → **派 D-2** → **一体改**（⭐ **卡在「与 sol 讨论」，需用户拉人**）→ 撞 sm25/C2（F-95/F-96/F-91/F-92/F-99）· gt 层（R-6+校验）。
+> ⭐ 派工单累计题错 **仍 28/28**（⛔ 别记成 29）：复核方划掉施工上报的第 1 条、另新增第 3 条（= F-101），−1 +1。
 
 > **已翻篇的 banner（均逐字搬入 [`logs/worklog/2026-08_plan_log.md`](logs/worklog/2026-08_plan_log.md)）**：
 > **08-25 收工**（reading 架构定稿 · 管子拆 9 工序 · C2 首次被真正量过 · 工具箱转正 APPROVE · F-93/F-94）·

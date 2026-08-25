@@ -165,7 +165,7 @@
 | **⭐ 新 F-87** | **门窗身份没有外置**：本批指南把「这洞是门还是窗」判给 reading 的模型，但 perception 的六个桶里**没有逐洞口 / 逐组件的 opening 身份桶**；现行代码只做「门窗族墨迹够多 ⇒ 这段空档可桥接」的二值判断，且该判断长在评分器里（`_extent`）。⇒ 「认」还有一块留在代码里 | **登记**（2026-08-24，跨家族三审 Q3(b)#4 指出，主控复核属实）· 归 B 步前置组第 3 项 |
 | **⭐ 新 F-88** | **转换器把真墙面片段误判成门垛**：门垛识别只看长度（落在墙厚区间 [0.06,0.50] m 即算），而 sm25 走廊墙连着 7 樘门、**门与门之间的真墙面只有 0.36 m** ⇒ 实测 sm25 1F 长度规则排 **124** 条、按几何（必须横跨两条对向面线）只应排 **65** 条 ⇒ **59 条真墙面被删**。后果之一：45 个 `wall_bands` 里 **32 个厚度 > 0.25 m**（0.30×16 / 0.36×11 …），而该图只声明 240 / 120 | **已查清**（2026-08-24 夜，`tools/f88_probe.py` 只读探针）：**症状坐实** —— 已签字 gt 的转换报告里 84 条墙厚证据有 **60 条 > 0.25 m**（0.30×32 / 0.36×22 …），来源全是 `wall_cap_or_opening_jamb`。**影响实测 = 无**：把门垛判定换成几何判定重跑同一份转换（sm25 移除 119/244 个门垛、sm24 移除 23/73），**房间多边形逐字节相同**（29 / 8 个）⇒ **污染的是溯源记录那一层，没挪动答案几何，历史成绩不作废**。⭐ 探针自带「补丁生效证明」。**仍应修，但不是 gt 准入阻塞项** |
 | **⭐⭐ 新 F-89** | ⛔ **多层立面的 reading 判卷从未实现，且失败方式是静默整份过滤**：[`reading_typed_adapter.py:667`](../src/agent/judge/reading_typed_adapter.py#L667) `if len(floor_ids) != 1:` ⇒ 一张立面图只要跨两层，该视图的**全部** elevation 组件被打成 `not_applicable` / `elevation_floor_partition_unresolved`（`cause_class=trusted_input`、`denominator_disposition=filter`）。sm25 是**两层**，四张立面每张都覆盖 F1+F2 ⇒ **四张立面全被丢**，`window_elevation_geometry` / `floor_lines_complete` 一律 `not_applicable`。⭐ **后果**：C2 的另一半「立面多平面」**至今一次都没被判过分**，而 sm25 正是第一个多层非矩形 case。⛔ 与 F-65（立面窗只认 LINE）不同族：那条是**产不出窗**，这条是**产出了但判卷不收**。实测 2026-08-25 重判 `run_2026-08-25_c2_rescore_R0`，绑定六图全建成、`content_sha256` 与 08-22 那次逐位相同 ⇒ ⛔ **不是缺绑定** | **登记**（2026-08-25）· 阻塞「C2 立面侧验收」，⛔ 不阻塞平面侧 |
-| **⭐⭐ 新 F-90** | ⛔ **correction 侧判分对多层 case 整份被拒，真因是楼层 id 两套命名且无映射层**：判分绑定用 gt 的命名 `floor_id="F1"/"F2"`，而 correction 产物的窗用管线内部命名 `floor_id="floor_1"/"floor_2"`；[`score_service.py:371`](../src/agent/judge/score_service.py#L371) `plan_sources.get(window.floor_id)` 取不到 ⇒ 抛 `score_view_binding_invalid`（gate `scoring.view_bindings`）⇒ `score_vs_gt.payload.kind="rejected"`，**十个判据一个都没跑**。⭐ 与 **F-89 是一对**：F-89 让立面侧判不了、F-90 让 correction 侧判不了 ⇒ **C2 批两侧至今都没有被判过分**。实测 2026-08-25 `run_2026-08-25_c2_rescore_R0`（gate① 反而是零 block 零 flag 通过的）| **登记**（2026-08-25）· ⛔ 碰 `src/agent/judge/` 须派工 |
+| **⭐⭐ 新 F-90** | ⛔ **correction 侧判分对多层 case 整份被拒，真因是楼层 id 两套命名且无映射层**：判分绑定用 gt 的命名 `floor_id="F1"/"F2"`，而 correction 产物的窗用管线内部命名 `floor_id="floor_1"/"floor_2"`；[`score_service.py:371`](../src/agent/judge/score_service.py#L371) `plan_sources.get(window.floor_id)` 取不到 ⇒ 抛 `score_view_binding_invalid`（gate `scoring.view_bindings`）⇒ `score_vs_gt.payload.kind="rejected"`，**十个判据一个都没跑**。⭐ 与 **F-89 是一对**：F-89 让立面侧判不了、F-90 让 correction 侧判不了 ⇒ **C2 批两侧至今都没有被判过分**。实测 2026-08-25 `run_2026-08-25_c2_rescore_R0`（gate① 反而是零 block 零 flag 通过的）⭐⭐⭐ **2026-08-26 跨家族补审 = REJECT**（GPT `gpt-5.6-sol`/xhigh）→ [裁决](logs/reviews/verdict/2026-08-25_f90_floor_id_mapping_gpt_verdict.md)。**阻断点 = 同根因还有第 6 处未修**：`score_typed_attempt` 在楼层桥建好之前（[`score_service.py:389`](../src/agent/judge/score_service.py#L389) vs 桥在 `:431`）就调 plan segment matcher，而 matcher [`segment_score.py:1751`](../src/agent/judge/segment_score.py#L1751) 直接比 `target.floor_id != observed.floor_id`。**orchestrator 已独立复跑坐实**：同一份几何、只把楼层名 `f1`→`F1`，从 `16 m extra + 16 m miss` 变成 `16 m complete`。⭐⭐ **由此推翻施工那份十判据读数的意义**：那唯一 eligible 的 `boundary_complete=0/32` **就是这第 6 处的读数**，不是产物的错 ⇒ 我拿到的是「九条没判 + 一条判的是自己的 bug」（正是请求单第 2 条我自己标注的最弱点，答案比我猜的更糟）。另有阻断项 3 条 → **F-100 / F-101 / F-102**（见下）| ⛔ **REJECT，未闭合**（2026-08-26）· 处置 = 在 `main` 上另开修复单，⛔ 不回退历史 |
 | **⭐⭐⭐ 新 F-91** | ⛔ **C2 的「立面多平面」在 correction 产物里是空的，窗因此无法定位**：sm25 实测 `facade_segments = 0`、**31/31 扇窗的 `facade_segment_id` 全为 `null`**。⭐ 而 L 形上「北」「东」各自**不是一道墙**：朝北的有 y=20(x 0→15) 与 y=6(x 15→25) 两道、进深差 14 m；朝东的有 x=15(y 6→20) 与 x=25(y 0→6) 两道、进深差 10 m。实测 F1 北面有一扇窗 span=[15.3,23.3]，**完全落在 y=20 那道墙的范围之外**（那道墙只到 x=15）⇒ 它属于 y=6 那道，但没有任何字段这么说 ⇒ 渲染器与下游只能猜，窗被画到楼外（用户 2026-08-25 目视发现「窗户没在位置」，orchestrator 复核属实）。⭐⭐ **沿墙数值本身是全对的**：31/31 扇与 gt 的 `world_along_interval` 两端误差合计 **0.0 m** ⇒ ⛔ **不是算错，是没绑定**。⚠️ **2026-08-25 晚补注（免得两个数打架）**：当天「答案直喂内核」的诊断里测到 `facade_segments` = **16 条非空** —— ⛔ **那不构成本条已消失的证据**，两者输入不同：本条测的是 **R0 的真实 correction 产物**，那次测的是**从 gt 机械派生的输入**。⇒ 只能说明「立面段在答案输入下产得出来」，⛔ 不能说明「模型产的那份为什么是空的」。 | **登记**（2026-08-25）· 这是 C2 阶梯表里 C2 那一行的「立面多平面」本体 |
 | **⭐⭐ 新 F-92** | **cell 多边形能力未被使用**：sm25 实测两层 38 个 cell 的 `polygon` **全为 `null`**，全部是 x/y 矩形区间。⭐ 后果不是「切错了」——实测 F1 19/20、F2 18/18 的 cell **≥95% 落在单一 gt 分区内**、零 cell 越界、零 gt 分区漏覆盖；真正的差别是 **gt 把整栋走廊建成一个 18 顶点连通多边形，correction 把它拆成 7 个矩形**。⚠️ 并注意 gt 自己也几乎全是矩形（F1 13/14、F2 14/15 是四边形），⛔ 所以「矩形化」本身不等于错，错的是**非矩形的那一个（走廊）无法表达** | **登记**（2026-08-25）· C2 阶梯表「cell 多边形」本体 |
 | **⭐⭐⭐ 新 F-93** | ⛔ **全仓已红 4 项且两天无人发现，四项同源 = gt 重签后锁与夹具没跟着更新**。2026-08-25 主控权威全量实测：**3010 passed / 1 failed / 3 errors / 13 xfailed**（⛔ 不是 CLAUDE.md §1.3 仍写着的「2835 绿」）。**已在昨天的提交 `f7d64f4` 上复跑，同样 4 项红 ⇒ 与今日工作、与工具箱转正均无关。** 逐项：① `test_elevation_score_bindings::test_generator_fails_closed_on_sm25_multi_floor_fingerprint` —— 它 assert「两层 footprint 指纹不一致时生成器必须 fail closed」，而 **08-22 用户拍板的 S1 修法正是让指纹逐位一致**；实测 sm25 两层指纹与顶点均**逐位相同** ⇒ **锁的前提已被修没了，锁是陈旧的，⛔ 不是生成器回归** （同族 [[regression-case-must-prove-its-own-premise]]）。⭐ **推论：orchestrator 2026-08-25 用该生成器建的六图绑定是合法的**。② ③ ④ `test_reading_typed_score_f67` 三项 ERROR = `score_view_binding_invalid / identity mismatch`：夹具指向的 `run_2026-08-21_c2_first_sonnet_T1` 记的 `gt_content_sha256=f97cea65…`，而当前 gt 是 `135b282c…`。⭐ **时间线**：锁改于 `96604c9`(08-22)、gt 改于 `e982eba`(08-23) ⇒ **gt 晚于锁一天入库，锁没跟着走**。⚠️ **治理后果**：期间所有「全仓绿」的说法都是失效的口径 ⭐ **✅ 2026-08-25 晚闭合**：施工 `b3e0a32`（Claude 席位）· **GLM 跨家族 APPROVE-WITH-FINDINGS** → [裁决](logs/reviews/verdict/2026-08-25_merge_blockers_f93_f94_glm_verdict.md)。**全仓恢复全绿：`3014 passed, 13 xfailed`（GLM 自己跑的，EXIT=0）**。1-a 保留锁、换成真正满足前提的合成 gt；1-b 走了派工单没给的第三条路（现场对当前 gt 重建绑定、只写 tmp、不动历史 run、不换被测对象）。⛔ 剩 3 条不阻塞 findings 见裁决 §五 | **✅ CLOSED**（2026-08-25）|
@@ -175,6 +175,9 @@
 | **⭐⭐ 新 F-97** | ⛔ **新识图产物会被当原始文本喂进校正提示词，同时绕过识图门 —— 一条沉默路径**：`discover_vector_files`（[pipeline.py:84-107](../src/agent/pipeline.py#L84)）扫 `*.json` **全部**并分成 plans / elevations / **`others`**（= 不匹配平面图正则、且不以 `_view.json` 结尾的所有 JSON）⇒ 一份 `sm25_1f_v2.json` 放进 `0_reading/` 会落进 `others` 并进提示词；而识图门 [`evidence_preflight.py:229`](../src/agent/execution/evidence_preflight.py#L229) 只 `glob("*_view.json")` ⇒ **看不见它**。⭐ **由 GPT 跨家族设计答复点出，orchestrator 已独立复核两处代码 + 做了行为实测**（⛔ 不是只读代码）：把 `1f_view.json` 与 `sm25_1f_v2.json` 并排放进一个 `0_reading/`，`discover_vector_files` 返回 **`['1f_view.json', 'sm25_1f_v2.json']`** ⇒ **as-drawn 产物确实会进 correction 的输入**；同一目录上 `compute_reading_report_from_vector_dir` 跑了 **21 项检查、0 阻塞** ⇒ ⭐⭐ **门不只是看不见它，还给出了绿灯** —— 比「看不见」更糟。⛔ **它比「喂不进去」严重**：喂不进去是响亮失败，这条是**静默地半喂进去**。⇒ 一体改的**契约判别器**必须显式化：未知契约类型响亮失败 | **登记**（2026-08-25）· ⛔ 碰 `src/agent/pipeline` 须派工 |
 | **⭐⭐⭐ 新 F-95** | ⛔ **顶点规范化把凹多边形毁掉，而校验器与生产者共用同一个实现**：[`canonicalize_ring_vertices`](../src/validator/data_model.py#L1047) 用**绕质心角度排序**重排环，对凸多边形能还原、**对凹多边形还原成另一个形状**。离线夹具 [`concave_canonicalization_matrix.py`](logs/experiments/2026-08-25_kernel_probe_from_gt/tools/concave_canonicalization_matrix.py)（不需 gt/LLM/跑抽）：矩形 **OK** · 单凹角 L 形 84.000→84.000 **OK** · **U 形 8 顶点 76.000→70.000** · Z 形 8 顶点 68.000→68.000 **OK** · **梳形 12 顶点 66.000→59.000** · **sm25 走廊 14 顶点 97.731→226.457**。⚠️ **该表当场证伪了 orchestrator 初稿的断言「两个及以上凹角就坏」—— Z 形 2 凹角却无损** ⇒ **凹角数不是判据**，判据是「顶点绕质心的极角是否单调」，凹是**必要非充分**条件 ⇒ ⛔ 按「有没有凹角」挑回归夹具会挑出假绿的那一半。实测后果：`Z10_F1_Office_S` 地板面积 **226.457 vs 自己的轮廓 97.731**（2.3 倍）、`Z22_F2_Office_SW` 174.332 vs 78.558 ⇒ `kernel.zone_closure` 4 条阻塞。⚠️ **规范化后的环仍 `is_valid=True`** ⇒ 任何"多边形有效性"检查都放行，**只有面积对账抓得住**。⭐⭐ **两条附带教训**：① 已有的 `test_lshape_polygon_clean` 断言的正是那个**恰好无损**的单凹角 L 形 ⇒ **有锁 ≠ 有分辨力**（[[neuter-proves-wiring-not-discriminating-power]]）；② kernel 与 validator **刻意共用**这一实现（build.py 注释：避免 F-13 两套算法分歧）⇒ 校验器与生产者共享同一个错误假设。⭐ **打击面已界定**（`grep` 清点调用点）：生产侧 [`build.py:78`](../src/agent/geometry/build.py#L78) 对**每个面**、[`:84`](../src/agent/geometry/build.py#L84) 对**每扇窗**各跑一次；校验侧 [`data_model.py:1338`](../src/validator/data_model.py#L1338) 与 [`checks/kernel.py:398`](../src/validator/checks/kernel.py#L398) **用同一个函数**。⇒ ⭐ **实际受害的只有凹多边形 zone 的 Floor/Ceiling/Roof** —— 墙面与窗都是矩形（凸），规范化对它们无损。**这与实测自洽**：`zone_closure` 报的正是 `floor_area` / `top_area`，⛔ 没有一条 wall 告警。⇒ 修法的回归面应据此收窄。⭐ **现行管线撞不到它**：R0 的 38 个 cell 带 `polygon` 的 = **0**（全 bbox=凸）⇒ 与 **F-92 是一对**（多边形能力没被用，所以它的缺陷也没被暴露）| **登记**（2026-08-25，答案直喂内核撞出）· ⛔ 碰 `src/validator/`+`src/agent/geometry/` 须派工 |
 | **⭐⭐ 新 F-96** | ⛔ **跨层切分产生的碎片没有守卫，而同层吸附还把它做得更小**：1F 一道隔墙中轴 `y=15.9996`、2F 对应 `y=16.06`。⭐ **已溯源到原始 DXF 逐条坐标**（`sm25-L_t3.dxf` `WALL` 层，mm）：1F 右半段两条面线 44153.221/44273.221、其余三处（1F 左半段 + 2F 两段）均为 44213.552/44333.552 ⇒ **四处厚度都是 120，错位的是位置：1F 右半段那道墙整体往南偏 60.3 mm** ⇒ ⛔ 既不是转换器造的、也不是噪声、更不是两种墙厚，**原图就这么画的**，gt 忠实转录。确定性核第二步破坏第一步 —— ① 跨层对齐判 `provenance-aware sliver guard kept axes separate`（delta=0.0，决定不合并）；② 同层吸附随即把 1F 那条推到 **16.03**（delta=0.0304，`AXIS_JITTER_TOL+SNAP_GRID+MIN_EDGE_LENGTH`）⇒ 间距 0.0604 **缩到 0.03**，方向正朝着它刚判定要保持分离的那条轴。跨层切分于是切出 **0.03 m 宽**天花/地板条，InterZone 门事后报 `degenerate surface … EP may segfault`。**三点判别**（只改这一个量）：0.0604→2 条 · 抖动归整 0.0600→**仍 2 条**（⇒ 与 0.4 mm 抖动无关）· 拉到 0.20→**0 条** · 完全对齐→**0 条**。⭐ **别记错主因**：0.06 本来就 < 碎片下限 0.1，**不挪也会出碎片** ⇒ 主因 = **跨层碎片无守卫**，吸附朝错方向挪只是**加重因子** | **登记**（2026-08-25，同上）· ⛔ 碰 `src/agent/correction/deterministic.py` 须派工 |
+| **⭐⭐ 新 F-100** | ⛔ **correction 判分路径没有接 score binding 的 source-view 桥，真实 gt 的 `source_refs` 一到就静默全 miss**：[`score_service.py:469`](../src/agent/judge/score_service.py#L469) 直接把 observation 交给 `assign_openings`，而 [`opening_claim_score.py:351-364`](../src/agent/judge/opening_claim_score.py#L351) 要用 `input_id → gt_source_view_ids` 过滤。⭐ **正确接法本仓库已有先例**：[`reading_typed_score.py:512-534`](../src/agent/judge/reading_typed_score.py#L512) 就是这么做的 ⇒ 两条路走了两套。复核方实测：`without_binding_bridge matched 0 / target_miss 1` vs `with_binding_bridge matched 1 / target_miss 0`。⭐⭐ **它此前一直躲在 F-90 的施工 fixture 后面** —— 那份 fixture 把 gt 的 `source_refs` 造成空元组（[`test_c2_b5_parent_and_verts.py:1455-1472`](../tests/test_c2_b5_parent_and_verts.py#L1455)），于是过滤器根本没被行使 ⇒ 同族 [[feed-the-answer-in-to-test-the-code-alone]] 的反面：**夹具把答案造成了不行使能力的形状** | **登记**（2026-08-26，GPT 跨家族补审 finding 3）· ⛔ 碰 `src/agent/judge/` 须派工 |
+| **⭐⭐ 新 F-101** | ⛔ **合法的 `src:<64hex>` 溯源 locator 被 F-90 新映射器当成未注册输入拒掉**：[`window_sources.py:952-957`](../src/agent/correction/window_sources.py#L952) 白纸黑字声明**两种合法形式**（① 已解析的 `src:<64hex>` 直通 ② `<expected_output_id>/<observation_id>`），而新映射器 [`score_service.py:200`](../src/agent/judge/score_service.py#L200) 一律 `split("/", 1)[0]` ⇒ 整串 hash 被当 `input_id`，落进 `window_host_source_not_a_registered_plan_input`。复核方实测：一个带 `src:<hash>` host 引用的 B5 bundle **成功产出 `VerifiedWindowHostProof`**，随后 scorer 拒绝它。⭐ **这是第 3 条「派工方题错」**（派工单暗含前提「host `source_ids` 总能按 `/` 拆出 input id」，该前提不完整）。⛔ 不是坏输入被挡住，是**合法输入被挡住**；修法 = 从已复验的 `window_host_proof` / `window_resolver_inputs` catalog 把 locator 解析回 source input | **登记**（2026-08-26，GPT 跨家族补审 finding 4）· ⛔ 碰 `src/agent/judge/` 须派工 |
+| **⭐⭐⭐ 新 F-102** | ⛔ **判分语义改了、缓存 identity 没改 ⇒ 官方 run-stage 会继续命中修复前的旧 sidecar**：复核方在真实 R0 上实测 `live = not_applicable/unsupported_view_contract`（已走到 F-99）、`cache_hit = True`、`cached = rejected/score_view_binding_invalid`（= **修复前**的结论）、`same_identity = True`。位置：[`score_service.py:269-278`](../src/agent/judge/score_service.py#L269) · [`score_schema.py:1665-1691`](../src/agent/judge/score_schema.py#L1665) · [`run_stage.py:2176-2181`](../scripts/tool_scripts/run_stage.py#L2176)。⭐⭐ **治理后果比缺陷本身重**：F-90 修没修好，**从官方跑测口子上看不出来** —— 走 `flow` 拿到的仍是旧结论。⇒ 同族 [[cache-in-front-of-a-gate-is-a-second-entrance]]（「我验的是这道门，还是绕过它的那条路」）+ [[version-number-is-not-behavior-attestation]]。修法 = 给 correction floor/source normalization 版本化 helper identity + 补一把「旧 sidecar 必须 cache miss」的回归锁 | **登记**（2026-08-26，GPT 跨家族补审 finding 5）· ⛔ 碰 `src/agent/judge/` + `scripts/` 须派工 |
 | **⭐ 新债 D-2** | **装机路径的根治（B 案）= 工程维护债**（用户 2026-08-25 拍板：「按你的推荐，这个 B 登记到工程维护债上」）。**A 案先做止血**（给裸跑脚本各加一行自举，⛔ 只收窄暴露面**不消除机制**）；**B 案 = 删掉共享 `.pth` + 全部入口改走 `python -m`**，届时踩坑从**静默串台**变**响亮失败**。⛔ **代价即它成为债的原因**：破坏 ≥15 处已写进 `guides/` 的裸跑命令 + 各席位的手指记忆，须一次系统性迁移。⭐ **GLM 独立意见与此一致**：「长期应对齐 B，A 只是收窄暴露面、不消除机制」。⭐⭐ **2026-08-25 GLM 复核明确裁定：紧迫度⛔ 不因 A 案的机械锁降低** —— 「那道锁把 A 从**约定**变成了**机制**，但只是**执行机制**（enforcement），不是**根治机制**；『真正的机制性根治仍然只有 B』**一字不改**」。三条实测据：① `.pth` 注入机制**原样活着**（实测在 `sys.path` 末尾 index 5）· ② **锁的覆盖边界 = A 的收窄边界**，覆盖外有**现成活例** `tests_scripts/deepseek_review.py:28`（模块级 src 导入 + 无自举 + docstring 文档化裸跑，在 worktree 里跑就静默串台，锁对此沉默）· ③ 锁**只验形态不验参数**（`parents[N]` 层数写错则锁绿而串台依旧）。⇒ ⭐ **准确表述：锁 = 在一个枚举过的暴露面上，把「忘关门」从静默变成响亮；它机制化了「A 的完备性不退化」，⛔ 没有也不可能机制化掉串台本身。** | ⭐ **中高紧迫**（GLM 定：**本批收尾前后排期，⛔ 不写「远期」**）—— 多席位 worktree 是常态（当前挂着 3 棵树），每次开树都在 A 覆盖外的入口冒险；而 B 成本不高（删 `.pth` + 全走 `python -m`），**收益是整个缺陷类目消失**。退役须另开单 |
 | **⭐ 新债 D-1** | **`tools/` 原件与 `src/` 新件双份并存**：跨家族审裁定 (a) 接受双份 + 登记 + **限期退役**。成因是 `glm_cheats.py`/`glm_rework.py`/`glm_probes.py`/`glm_sweeps.py` 用 `spec_from_file_location` **按文件路径**加载被搬走的模块，删原件会炸掉五轮跨家族审累积的全部作弊夹具。⛔ 与「不两处并存」冲突，**日后改一份忘另一份是必然的**。⇒ 退役动作 = 夹具改成按模块加载，**须另开单** | **登记**（2026-08-25）|
 | F-62 · N-1 / N-2 | guard 词法围栏同族缺陷 | **未修**（`observe` 档下影响归零）|
@@ -185,6 +188,84 @@
 | — | 读图器会自发产出**清单外文件**（`_validated_1f_view.json`）| 本轮由 merge 门拦住并归档；登记 |
 
 **复审债**：甲-5 · 丙-1 / 丙-2（同前）。**本轮新增零复审债**——转换器批已由 GLM 跨家族审 + 主控轻门。
+
+---
+
+## 2026-08-26 · **F-90 补审 = REJECT**；一条缓存路径让「修没修好」在官方口子上看不出来
+
+> 本日第一件事按 CLAUDE.md §2 banner ⑤ 执行 = **补审 F-90**（上一轮唯一未过跨家族审的一笔）。
+> 审阅方 **GPT 家族**（`gpt-5.6-sol` / effort `xhigh`，MCP `danger-full-access`）·
+> 裁决 → [`logs/reviews/verdict/2026-08-25_f90_floor_id_mapping_gpt_verdict.md`](logs/reviews/verdict/2026-08-25_f90_floor_id_mapping_gpt_verdict.md)
+
+### 一、结论：**REJECT**，四条阻断
+
+⛔ 处置按请求单事先约定：**在 `main` 上另开修复单，不回退历史**。
+
+| # | 阻断项 | 一句话 |
+|---|---|---|
+| 1 | **F-90 第 6 处未修** | plan segment matcher 在楼层桥建好**之前**就比字符串（`score_service.py:389` vs 桥在 `:431`；matcher 在 `segment_score.py:1751`）|
+| 2 | **F-100** | correction 判分路径没接 source-view 桥 ⇒ 真实 gt 的 `source_refs` 一到就静默全 miss（reading 那条路已经接对了，两条路两套）|
+| 3 | **F-101** | 合法的 `src:<64hex>` locator 被新映射器的 `split("/",1)[0]` 当成未注册输入拒掉 |
+| 4 | **F-102** | ⭐⭐⭐ 判分语义改了、**缓存 identity 没改** ⇒ 官方 `flow` 继续命中修复前的 sidecar |
+
+### 二、⭐⭐ 本轮最值钱的一条：我自己标注的「最不确定」被查实，而且比我猜的更糟
+
+请求单第 2 条我写过一句「**这条是 orchestrator 自己最不确定的地方**」——
+问的是「只有一条判据 eligible、且那条还全 fail，能不能算真的判出分」。
+
+复核方的答案：**不能，而且那条 fail 本身就是第 6 处缺陷的读数**。
+⇒ 那份十判据读数的真实含义是 **「九条没判 + 一条判的是我自己的 bug」**。
+
+**orchestrator 已独立复跑坐实**（⛔ 不照抄裁决）：
+
+```text
+target_floor_ids ['F1']   obs_floor_ids ['f1']   same_geometry True
+before [('extra',4.0)×4, ('miss',4.0)×4]
+after  [('complete',4.0)×4]
+```
+
+同一份几何、只把楼层名从 `f1` 翻成 `F1`，就从「16 m 多画 + 16 m 漏画」变成「16 m 全对」。
+
+### 三、⭐⭐⭐ F-102 为什么排到最优先（比它自己的严重度高一档）
+
+复核方在真实 R0 上的实测：
+
+```text
+live       not_applicable  unsupported_view_contract   ← 现在的代码走到了 F-99
+cache_hit  True
+cached     rejected  score_view_binding_invalid        ← 官方 flow 拿到的是【修复前】的结论
+same_identity True
+```
+
+⇒ **「F-90 到底修没修好」这个问题，从官方跑测口子上是看不出来的。**
+不先解这条，后面每一次「判出分了吗」的读数都可能是旧 sidecar。
+同族两条老账：[[cache-in-front-of-a-gate-is-a-second-entrance]]（我验的是这道门，还是绕过它的那条路）
++ [[version-number-is-not-behavior-attestation]]。
+
+### 四、⭐ 「停下上报」计数的更正（⛔ 不是净增一条）
+
+上一轮记的是 **28 次全是派工方题错**，其中含本单施工席位上报的 2 条。复核方逐条重判：
+
+- 第 1 条（「派工单只点名 1 处 ⇒ 题错」）—— **不认同**：派工单写过候选清单可能不完备并授权继续找；
+  且施工自己的「5 处」仍漏了第 6 处。⇒ **这条从计数里划掉。**
+- 第 2 条（「修好 F-90 就能让 sm25 判出分」这个前提不成立 = F-99）—— **认同事实**，
+  但**不认同用它豁免验收**：那应当导致「停下上报 + 验收未满足」，而不是换成自造 fixture 宣布达标。
+- ⭐ **新增第 3 条**：派工单暗含前提「合法 host `source_ids` 总能按 `/` 拆出 input id」，**该前提不完整**（= F-101）。
+
+⇒ **累计仍是 28/28**，但构成变了（−1 +1）。⛔ 别把它记成 29。
+
+### 五、⭐ 复核方对「验收有没有满足」的直答
+
+原话：**「算绕过，不满足验收判据。」**
+派工单点名的验收对象是 sm25 那份现成产物；真实 case 至今零 criterion，
+自造 fixture 只能作单元级补充证据，**不能替代被点名的真实验收对象，也不能把「停报」改写成「验收通过」**。
+⇒ 同族 [[self-report-more-compliant-than-artifact.md]] 的变体：**这次不是自述更合规，是夹具更合规**。
+
+### 六、程序合规
+
+- 主树 `git status --porcelain` 为空、`git worktree list` 无残留（复核方的 `/tmp/f90-gpt-review` 已自行清理）⇒ **只审未改**成立。
+- 复核方自己跑的全量：`1 failed, 3018 passed, 13 xfailed`，唯一红 = `tests/test_zone_agent.py` 缺 API 凭据（已知环境坑，非回归）。
+- 提交范围合规：`3f6731f` 只动 `judge/opening_claim_score.py` · `judge/score_service.py` + 两个测试。
 
 ---
 
@@ -324,8 +405,9 @@ as-drawn 产 `observations.face_lines`/`hypotheses` —— **两套 schema 完�
 | **2 一体改** | 2-a | ⭐⭐ **reading + correction 一体改** | ⏳ **前置 = 与 sol 讨论架构**（⭐ **需用户拉人**）→ [讨论稿（已改写至最新）](logs/reviews/request/2026-08-26_reading_correction_joint_architecture_discussion_sol.md) · [GPT 备料](logs/reviews/verdict/2026-08-25_reading_correction_unification_gpt_design.md) |
 | | 2-b | **F-97** 契约判别器（未知契约响亮失败）| **一体改的必做项**（已行为实测：门不但看不见它，还给绿灯）|
 | | 2-c | **F-87** 门窗身份没外置 | 归 reading 侧，随一体改 |
-| **3 撞 sm25 / C2** | 3-0 | ⭐ **F-90** 楼层 id 两套命名无映射层 | ⏳ **已交件待审**（`3f6731f`）—— ⭐ **实测同根因 5 处**而非 1 处，**只修第 1 处会从崩溃退化成静默全错**；十判据读数已拿到；全量 `3019 passed`。审 = **GPT** |
+| **3 撞 sm25 / C2** | 3-0 | ⭐ **F-90** 楼层 id 两套命名无映射层 | ⛔ **补审 = REJECT**（2026-08-26，GPT）→ [裁决](logs/reviews/verdict/2026-08-25_f90_floor_id_mapping_gpt_verdict.md)。**未闭合**：同根因**第 6 处**（plan segment matcher，桥建立之前就比字符串）+ 三条独立阻断 **F-100/F-101/F-102**。⭐ 那份「十判据读数」被推翻（唯一 eligible 的那条判的就是第 6 处的 bug）。**⇒ 需另开修复单（派工 + 换人审）** |
 | | 3-0′ | ⭐⭐ **F-99** 立面段与 gt 边界差 `0.12 m`（= 半个 240 墙厚）⇒ 8/16 段不归位 | **新登记** —— F-90 修完后 sm25 **仍判不出分**卡在这条；与「基准换算」同源 |
+| | 3-0″ | ⭐⭐⭐ **F-102** 判分缓存 identity 没随语义变 | **最优先** —— 它让「F-90 到底修没修好」在官方 `flow` 口子上**看不出来**；⛔ 不先解这条，后面每一次「判出分了吗」的读数都可能是旧 sidecar |
 | | 3-a | sm25 全流程（用新 reading）| 等 2 |
 | | 3-b | **F-95** 顶点规范化毁凹多边形 + **F-92** cell 多边形未用 | ⭐ **是一对**（正因多边形没被用，它的缺陷才躺了一个月）|
 | | 3-c | **F-96** 跨层碎片无守卫 | 同批 |
