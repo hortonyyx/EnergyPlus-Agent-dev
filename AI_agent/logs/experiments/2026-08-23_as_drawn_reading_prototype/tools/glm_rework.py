@@ -398,7 +398,12 @@ def strip_stats(doc_path: Path, cfg: str) -> dict:
 
 # --------------------------------------------------------- coefficient sweep --
 def _grade_with_coeff(coeff: float):
-    src = (T / "reading_grade.py").read_text()
+    # ⭐ 2026-08-25 (debt D-1): tools/reading_grade.py is now a forwarding shim;
+    # the live ruler's SOURCE lives at src/agent/judge/as_drawn/reading_grade.py,
+    # so the coefficient sweep reads that copy -- the same move run_all.py made
+    # at transplant time.  The drift guard below still anchors on the literal
+    # rule text, which the src copy carries verbatim (line 175).
+    src = (EXP.parents[3] / "src/agent/judge/as_drawn/reading_grade.py").read_text()
     # ⚠️ 2026-08-24 (six审 Finding 2): this guard was anchored on the literal 0.5.
     # When the coefficient became the named constant WIDTH_COEFF the guard fired
     # -- correctly -- but the harness swallowed the failure and shipped a STALE
@@ -408,7 +413,7 @@ def _grade_with_coeff(coeff: float):
     assert old in src, "width rule source drifted"
     import types
     mod = types.ModuleType(f"rg_c{coeff}")
-    mod.__file__ = str(T / "reading_grade.py")
+    mod.__file__ = str(EXP.parents[3] / "src/agent/judge/as_drawn/reading_grade.py")
     exec(compile(src.replace(old, f"ln[\"width_m\"] < {coeff} * need"), "rg_coeff", "exec"),
          mod.__dict__)
     return mod
