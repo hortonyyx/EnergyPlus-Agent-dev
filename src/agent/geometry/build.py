@@ -64,8 +64,9 @@ def _canonicalize_bg_vertices(out: BuildingGeometry) -> None:
     (`_orient` in `modelling.py`), unchanged by F-13. So the outward normal
     to feed the shared canonicalizer is simply each surface's OWN Newell
     normal (`_newell`): self-consistent, requires no interior-point lookup,
-    and only re-derives the ring order + start vertex — it cannot flip a
-    winding that is already correct.
+    and only verifies/preserves the ring's boundary adjacency while
+    canonicalizing winding + start vertex — it cannot flip a winding that is
+    already correct.
 
     Degenerate (near-zero-area) faces are left untouched — same posture the
     kernel already takes elsewhere (a degenerate face has no well-defined

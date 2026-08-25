@@ -385,9 +385,10 @@ def _window_parent_binding(rep: CheckReport, bg: BuildingGeometry, proof) -> Non
             # AI_agent/logs/reviews/verdict/2026-08-06_f13_orchestrator_lightgate.md).
             # This does NOT tolerate a genuinely reversed winding (flipped
             # normal -- inside/outside swapped, window on the wrong room):
-            # canonicalize_ring_vertices only re-derives ring order + start
-            # vertex relative to the normal it is given, it cannot repair a
-            # winding that disagrees with the true outward direction (see
+            # canonicalize_ring_vertices preserves boundary adjacency and
+            # only canonicalizes winding + start vertex relative to the
+            # normal it is given; it cannot repair a winding that disagrees
+            # with the true outward direction (see
             # `_canonicalize_bg_vertices`'s own docstring for why that
             # holds), so a built ring that is actually wound backwards still
             # compares unequal to this correctly-oriented fresh recompute.

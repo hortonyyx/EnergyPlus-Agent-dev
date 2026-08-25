@@ -19,6 +19,8 @@ from pydantic import (
     model_validator,
 )
 from scipy.spatial import Delaunay
+from shapely.geometry import Polygon
+from shapely.validation import explain_validity
 
 from src.utils.logging import get_logger
 
@@ -1030,7 +1032,8 @@ class FenestrationSurfaceSchema(BaseSchema):
 # --------------------------------------------------------------------------- #
 # F-13 (2026-08-06): single-source vertex canonicalization.
 #
-# Extracted verbatim (no algorithmic change) from what were previously
+# Initially extracted verbatim (with no algorithmic change) from what were
+# previously
 # `GeometrySchema._sort_vertices_clockwise` / `._get_top_left_corner_from_normal`
 # instance methods, so the geometry kernel
 # (`src.agent.geometry.build.build_geometry`) can produce already-canonical
@@ -1042,45 +1045,78 @@ class FenestrationSurfaceSchema(BaseSchema):
 # AI_agent/logs/reviews/verdict/2026-08-06_f13_orchestrator_lightgate.md.
 #
 # `GeometrySchema._sort_vertices_clockwise` / `._get_top_left_corner_from_normal`
-# below now delegate to these two functions; their behavior is unchanged.
+# below delegate to these two functions. F-95 later narrowed the canonicalizer
+# contract to ordered simple rings and replaced the lossy centroid-angle sort
+# with adjacency-preserving reversal + rotation; the F-13 single-source
+# invariant remains unchanged.
 # --------------------------------------------------------------------------- #
 def canonicalize_ring_vertices(points: np.ndarray, normal_vector: np.ndarray) -> np.ndarray:
-    """Reorder a planar polygon's vertices (any input order, including
-    scrambled / self-intersecting) into IDF canonical form relative to
-    `normal_vector` — the surface's independently-known outward normal:
-    (1) the ring winds so its own normal agrees with `normal_vector`, and
-    (2) it starts at the ``GlobalGeometryRules = UpperLeftCorner`` vertex
-    (see `top_left_corner_index`). Both properties fall out of a single
-    angle-around-centroid sort keyed on `normal_vector`; no separate
-    winding-reversal step is needed or applied.
+    """Canonicalize an *ordered simple planar ring* for IDF output.
+
+    ``points`` must already follow the polygon boundary, with any starting
+    vertex and either winding. That supplied adjacency is authoritative: an
+    unordered point set cannot be reconstructed unambiguously, because one
+    set of concave-polygon vertices can describe multiple simple rings.
+    Self-intersecting/non-simple orders are therefore rejected with
+    ``canonicalize_ring_vertices.non_simple_ring`` rather than guessed at.
+
+    Canonicalization preserves every vertex and undirected boundary edge. It
+    only (1) reverses the complete ring when its winding opposes the surface's
+    independently-known ``normal_vector``, then (2) rotates the ring to start
+    at the ``GlobalGeometryRules = UpperLeftCorner`` vertex (see
+    :func:`top_left_corner_index`).
     """
-    normal = normal_vector / np.linalg.norm(normal_vector)
-    centroid = np.mean(points, axis=0)
+    points = np.asarray(points, dtype=float)
+    normal_vector = np.asarray(normal_vector, dtype=float)
 
-    def compare_points(idx1, idx2):
-        v1 = points[idx1] - centroid
-        v2 = points[idx2] - centroid
+    if points.ndim != 2 or points.shape[1:] != (3,):
+        raise ValueError(
+            "canonicalize_ring_vertices.non_simple_ring: ordered simple ring "
+            f"must have shape (n, 3) (shape={points.shape!r})"
+        )
+    if not np.all(np.isfinite(points)):
+        raise ValueError(
+            "canonicalize_ring_vertices.non_simple_ring: ordered simple ring "
+            f"contains a non-finite coordinate (vertex_count={len(points)})"
+        )
+    if len(points) < 3:
+        raise ValueError(
+            "canonicalize_ring_vertices.non_simple_ring: ordered simple ring "
+            f"requires at least 3 vertices (vertex_count={len(points)})"
+        )
+    if len(np.unique(points, axis=0)) != len(points):
+        raise ValueError(
+            "canonicalize_ring_vertices.non_simple_ring: ordered simple ring "
+            f"contains repeated vertices (vertex_count={len(points)})"
+        )
 
-        cross = np.cross(v1, v2)
+    normal_norm = float(np.linalg.norm(normal_vector))
+    if not np.isfinite(normal_norm) or normal_norm == 0.0:
+        raise ValueError(
+            "canonicalize_ring_vertices.invalid_normal: normal_vector must be "
+            f"finite and non-zero (normal_vector={normal_vector.tolist()!r})"
+        )
+    normal = normal_vector / normal_norm
 
-        sign = np.dot(cross, normal)
+    # A planar polygon remains topologically identical when projected by
+    # dropping the coordinate where its normal has greatest magnitude. That
+    # gives Shapely a non-degenerate 2-D view for horizontal, vertical, and
+    # oblique surfaces alike, without importing a second ordering algorithm.
+    drop_axis = int(np.argmax(np.abs(normal)))
+    projected = np.delete(points, drop_axis, axis=1)
+    polygon = Polygon(projected)
+    if not polygon.is_valid or not polygon.exterior.is_simple or polygon.area == 0.0:
+        raise ValueError(
+            "canonicalize_ring_vertices.non_simple_ring: ordered simple ring "
+            f"required (vertex_count={len(points)}, "
+            f"reason={explain_validity(polygon)!r})"
+        )
 
-        if sign > 1e-10:
-            return -1
-        elif sign < -1e-10:
-            return 1
-        else:
-            d1 = np.linalg.norm(v1)
-            d2 = np.linalg.norm(v2)
-            return -1 if d1 < d2 else 1
+    ring_normal = np.sum(np.cross(points, np.roll(points, -1, axis=0)), axis=0)
+    ordered_points = points[::-1] if float(np.dot(ring_normal, normal)) < 0.0 else points
+    top_left_index = top_left_corner_index(ordered_points, normal_vector)
 
-    from functools import cmp_to_key
-
-    sorted_indices = sorted(range(len(points)), key=cmp_to_key(compare_points))
-    sorted_points = points[sorted_indices]
-    top_left_index = top_left_corner_index(sorted_points, normal_vector)
-
-    return np.roll(sorted_points, -top_left_index, axis=0)
+    return np.roll(ordered_points, -top_left_index, axis=0)
 
 
 def top_left_corner_index(points: np.ndarray, normal_vector: np.ndarray) -> int:
@@ -1173,11 +1209,11 @@ class GeometrySchema(BaseSchema):
             `before`).
           - "winding_reversed": same points, opposite winding (`after` is
             some cyclic rotation of `before` reversed).
-          - "resorted": `before` was not already a simple loop in either
-            direction around its own centroid — a genuine re-sort into
-            angular order (the failure mode this normalization step exists
-            to repair; see the retired `_is_simple_angular_loop` check on
-            branch `f13-wip-2026-08-06` for the same concept).
+          - "resorted": `after` is neither a rotation of `before` nor of its
+            reverse. Retained as a historical diagnostic category; F-95 made
+            the canonicalizer reject non-simple input instead of guessing a
+            replacement edge order, so production canonicalization no longer
+            emits this category.
         """
         if np.array_equal(before, after):
             return None

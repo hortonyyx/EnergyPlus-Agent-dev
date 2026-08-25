@@ -189,14 +189,14 @@ def test_lock1_kernel_output_is_already_canonical_through_real_entry_points(
 def test_lock2_canonicalization_vertical_wall_top_left_and_outward():
     # South-facing wall on the y=0 plane, outward normal (0, -1, 0), fed
     # in an arbitrary (not top-left-first) order.
-    scrambled = np.array([
+    ordered_different_start = np.array([
         [1.0, 0.0, 1.0],
         [3.0, 0.0, 1.0],
         [3.0, 0.0, 2.0],
         [1.0, 0.0, 2.0],
     ])
     normal = np.array([0.0, -1.0, 0.0])
-    canonical = canonicalize_ring_vertices(scrambled, normal)
+    canonical = canonicalize_ring_vertices(ordered_different_start, normal)
     # top-left = highest z, then smallest x, given right=(1,0,0)/up=(0,0,1)
     # for this normal (independently hand-derived in the F-13 execution log).
     assert np.array_equal(canonical[0], np.array([1.0, 0.0, 2.0]))
@@ -228,14 +228,14 @@ def test_lock2_canonicalization_floor_top_left_and_outward():
     #   Ring points: (4,3,0) (4,0,0) (0,0,0) (0,3,0) — the two with Y=0 (the
     #   "top" group here, y=0 < y=3) are (4,0,0) and (0,0,0); smaller X of
     #   those is (0,0,0) ⇒ hand-derived top-left = (0.0, 0.0, 0.0).
-    scrambled = np.array([
+    ordered_different_start = np.array([
         [4.0, 3.0, 0.0],
         [4.0, 0.0, 0.0],
         [0.0, 0.0, 0.0],
         [0.0, 3.0, 0.0],
     ])
     normal = np.array([0.0, 0.0, -1.0])
-    canonical = canonicalize_ring_vertices(scrambled, normal)
+    canonical = canonicalize_ring_vertices(ordered_different_start, normal)
     assert np.array_equal(canonical[0], np.array([0.0, 0.0, 0.0]))
     assert top_left_corner_index(canonical, normal) == 0
     assert float(np.dot(_newell([tuple(p) for p in canonical]), normal)) > 0.99
@@ -261,14 +261,14 @@ def test_lock2_canonicalization_ceiling_top_left_and_outward():
     #   "top" group) are (4,3,3) and (0,3,3); smaller X of those is (0,3,3)
     #   ⇒ hand-derived top-left = (0.0, 3.0, 3.0) — the north-west corner,
     #   consistent with "north up, west left" plan-view convention.
-    scrambled = np.array([
+    ordered_different_start = np.array([
         [0.0, 0.0, 3.0],
         [4.0, 0.0, 3.0],
         [4.0, 3.0, 3.0],
         [0.0, 3.0, 3.0],
     ])
     normal = np.array([0.0, 0.0, 1.0])
-    canonical = canonicalize_ring_vertices(scrambled, normal)
+    canonical = canonicalize_ring_vertices(ordered_different_start, normal)
     assert np.array_equal(canonical[0], np.array([0.0, 3.0, 3.0]))
     assert top_left_corner_index(canonical, normal) == 0
     assert float(np.dot(_newell([tuple(p) for p in canonical]), normal)) > 0.99
@@ -282,14 +282,14 @@ def test_lock2_canonicalization_window_top_left_and_outward():
     # x. Ring points: (1,0,1) (2,0,1) (2,0,1.5) (1,0,1.5) — the two with
     # z=1.5 (the "top" group) are (2,0,1.5) and (1,0,1.5); smaller x of those
     # is (1,0,1.5) ⇒ hand-derived top-left = (1.0, 0.0, 1.5).
-    scrambled = np.array([
+    ordered_different_start = np.array([
         [1.0, 0.0, 1.0],
         [2.0, 0.0, 1.0],
         [2.0, 0.0, 1.5],
         [1.0, 0.0, 1.5],
     ])
     normal = np.array([0.0, -1.0, 0.0])
-    canonical = canonicalize_ring_vertices(scrambled, normal)
+    canonical = canonicalize_ring_vertices(ordered_different_start, normal)
     assert np.array_equal(canonical[0], np.array([1.0, 0.0, 1.5]))
     assert top_left_corner_index(canonical, normal) == 0
     assert float(np.dot(_newell([tuple(p) for p in canonical]), normal)) > 0.99
