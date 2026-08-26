@@ -193,7 +193,7 @@ run_pipeline（image-blind，src/agent/pipeline.py）几何彻底确定性化：
 | [../src/agent/llm.py](../src/agent/llm.py) + [../src/configs/llm.yaml](../src/configs/llm.yaml) | LLM 工厂 + 多 section（per-case `<case>/llm.yaml` 经 `EP_AGENT_LLM_CONFIG` 覆盖）；容差 [correction.yaml](../src/configs/correction.yaml) |
 | [../src/agent/graph.py](../src/agent/graph.py) | 下游 LangGraph（intake → 9 subagent → cross_ref → validate → simulate）；prompt 演进归协作者（§3）|
 | [../scripts/](../scripts) | 总启动 `run_full_pipeline.py`（`--reading-from`/`--intake-from`）；`tool_scripts/`=render×N + `run_stage.py` + `record_baseline.py` + `render_geometry_viewer.py` + `render_gt.py` + `gt_from_dxf.py` + `inspect_dxf.py`；`glm_code.sh`=GLM 席位启动器（默认 **glm-5.3**）+ `deepseek_code.sh`=DeepSeek 席位启动器（默认 **deepseek-v4-pro**，**⛔ 按量扣余额、与管线共用**）——两者**凭据只注入子进程，勿全局导出 `ANTHROPIC_*`**；家族版图见 [codex_execution_protocol §1](guides/codex_execution_protocol.md)|
-| [../tests/](../tests) | ✅ **当前全绿**：pytest **3046 passed / 13 xfailed / 0 failed**（2026-08-27 主控权威全量 **`10fb3b6`**，即 **G1 并回主线之后**跑的，`-n 6`、16m51s、exit 0）。⭐ **该读数带 `.pth` 哨兵**（跑前跑后各记一次 editable 装机文件的哈希，`58f547fa…` 两次相同、内容均为主树）—— ⛔ **同日 11:44 那轮同数值的读数已作废**：`.pth` 在 11:52 被改指到 `/tmp/ep_f97`、正好穿过那次跑测窗口 ⇒ **「全仓绿」的第四种假象 = 跑测【途中】启动器被第三方改掉**。⇒ ⛔⛔ **两条已成硬口径**：① **席位绝对不许跑 `pip install -e .` / 任何写 `site-packages` 的命令**（venv 全机器共享）；② **权威全量必须带 `.pth` 前后哨兵，两次相同才算数**。事故档 → [logs/experiments/2026-08-27_pth_hijack/](logs/experiments/2026-08-27_pth_hijack/)。⛔ **~~08-25 的「3010 passed / 1 failed / 3 errors」已作废~~** —— 那批红 = **F-93**，已于 `b3e0a32` 闭合（**全仓默认并行** `-n auto`，16 核 4.5–8 分钟；串行 `-n0` 15–26 分钟；⚠️ **有别的席位在同机跑时一律 `-n 6`**，见 §5#7.5。跑测三档节奏 + 「受影响子集」工具见 [codex_execution_protocol §7.5](guides/codex_execution_protocol.md)）（kernel/checks/judge/orchestrator/gt/interzone/schedule/viewer/flow/runner/grade/run_config/isolation/view_manifest/c2_b2_v3/c2_b2b_envelope_transform/c2_va_applicability/gt_schema/output_coordinate_×5/e4_relative_north_axis_e2e/c2_b5_source_routing/c2_b5_host_resolution/c2_b5_parent_and_verts/c2_b5_artifact_trust/c2_b5_legacy/reading_line_style_visibility/audit_remediation_accepted_inputs/tarch_converter_p{0,1,2}/tarch_elevation_must_red/**tarch_converter_reproducibility**/**gt_promotion_path**〔含 25 格 `mutation` 源码变异矩阵，默认收集内〕/gt_overlay…）|
+| [../tests/](../tests) | ✅ **当前全绿**：pytest **3124 passed / 13 xfailed / 0 failed**（2026-08-27 主控权威全量 **`6873d0c`**，即 **G1 + F-97 都并回主线之后**跑的，`-n 6`、16m55s、exit 0；`3124 = 3035 + 11(G1) + 78(F-97)`，算术对得上）。⭐⭐ **该读数带 `.pth` 哨兵**（跑前跑后各记一次 editable 装机文件哈希，`58f547fa…` 两次相同、内容均为主树）。⛔ **哨兵是 2026-08-27 因事故新立的**：`.pth` 曾被改指到 `/tmp/ep_f97`、正好穿过一次权威全量的窗口 ⇒ **「全仓绿」的第四种假象 = 跑测【途中】启动器被第三方改掉**，那轮读数已作废。⇒ ⛔⛔ **两条硬口径**：① **席位绝对不许跑 `pip install -e .` / 任何写 `site-packages` 的命令**（venv 全机器共享）；② **权威全量必须带 `.pth` 前后哨兵，两次相同才算数**。事故档 → [logs/experiments/2026-08-27_pth_hijack/](logs/experiments/2026-08-27_pth_hijack/)。⛔ **~~08-25 的「3010 passed / 1 failed / 3 errors」已作废~~** —— 那批红 = **F-93**，已于 `b3e0a32` 闭合（**全仓默认并行** `-n auto`，16 核 4.5–8 分钟；串行 `-n0` 15–26 分钟；⚠️ **有别的席位在同机跑时一律 `-n 6`**，见 §5#7.5。跑测三档节奏 + 「受影响子集」工具见 [codex_execution_protocol §7.5](guides/codex_execution_protocol.md)）（kernel/checks/judge/orchestrator/gt/interzone/schedule/viewer/flow/runner/grade/run_config/isolation/view_manifest/c2_b2_v3/c2_b2b_envelope_transform/c2_va_applicability/gt_schema/output_coordinate_×5/e4_relative_north_axis_e2e/c2_b5_source_routing/c2_b5_host_resolution/c2_b5_parent_and_verts/c2_b5_artifact_trust/c2_b5_legacy/reading_line_style_visibility/audit_remediation_accepted_inputs/tarch_converter_p{0,1,2}/tarch_elevation_must_red/**tarch_converter_reproducibility**/**gt_promotion_path**〔含 25 格 `mutation` 源码变异矩阵，默认收集内〕/gt_overlay…）|
 | [../case_tests/](../case_tests) | `0_reading_tests/` + `e2e_tests/`(含 sm20_anchor/sm21_anchor) + `test_baseline/`(方案+注册表+gt) |
 | `$ENERGYPLUS_EXE` | EnergyPlus 引擎；解析序 env→PATH→硬编码默认。容器内 25.1.0、宿主 Windows 25.2.0（patch 差异，数值对齐以容器为准）|
 | [../data/weather/Shenzhen.epw](../data/weather/Shenzhen.epw) | 默认 EPW 气象 |
@@ -288,14 +288,20 @@ EnergyPlus 经 `WorkflowTool.run_simulation`（eppy + ConverterManager，idfpy �
 > ⛔ **不要把 G1/G2/G3 与双投影拆成四套临时接口。**
 >
 > ### ⑤ ⏭ 下一步（按次序）
-> **1. ✅ G1 已过审并回主线** `10fb3b6` ⇒ 主树权威全量 **3046 passed / 13 xfailed / 0 failed**（`-n 6`，18m10s，exit 0）。
-> **2. ⏳ F-97 第二轮返工** —— 三条阻断都要行为级修（GLM 已给逐条返工要求）：
->    **BLK-A** 声明过 `schema` 却不匹配任何已登记契约 ⇒ 永远判 unknown（⛔ 但「已登记声明 + legacy 双命中 ⇒ AMBIGUOUS」要**保留**）·
->    **BLK-B** 把 `_preflight_vector_contracts` 提到 `run_pipeline_artifacts` 里**任何 `*_view.json` 消费之前**（至少先于 `:1368`）·
->    **BLK-C** `_classify_rows` 异常面收宽到「读不出/解不开 ⇒ 账上一行 error + offender」（捕 `OSError`+`UnicodeDecodeError`），
->    且 `_declares_unregistered_schema` 先 `isinstance(..., str)` 再判成员。
->    ⛔ 碰 `src/agent/pipeline` 内核 ⇒ **必须派工 + 换人审**；施工归 Claude（原施工方）、审归 GLM（提阻断的那家）。
-> **3. 才是 ①-2′ 垂直切片第 2 步**（exact manifest/request 落进 case-owned 路径 —— ⭐ **它同时是 F-111 的修法**）。
+> ✅✅ **第 ① 步「把判分修好」已收口** —— 三件未过审件全部过审并回主线：
+> **F-95**（顶点规范化收窄）· **G1**（零豁免复现门，`10fb3b6`）· **F-97**（契约判别器，`6873d0c`，两轮返工）。
+> 主树权威全量 **3124 passed / 13 xfailed / 0 failed**（带 `.pth` 哨兵）。
+>
+> **⏭ 下一件事 = ①-2′ 垂直切片五步**（sm25-F1「裁判事实包」）：
+> 还原并核对签字 candidate → **exact manifest/request 落进 case-owned 路径**（⭐ **同时是 F-111 的修法** ——
+> sm24 的签字 request 已实测不可寻、复现门可用面已掉到 2 份 case 里的 1 份）→
+> **未参与拟合的 DXF 特征做原点 holdout** → 直接以产品 `*_px` 做一次像素判分 →
+> **「只改产品标定：标定分变、描图分不变」判别实验**。
+> 之后才是 **② 一体改**（`ReferenceFactsV1` + 单一 `AnswerCompiler(profile)`）。
+>
+> ⛔⛔ **② 之前必须先拆的两颗雷**（都不是缺陷，是会伪装成缺陷的东西）：
+> **F-110** 一体改一动 `correction/schema.py`，sm25 复现门就常红 = 「树动了」不是回归 ·
+> **N-B** `==43`/`==328` 语料快照常量：第 ③ 步产物一入库就红 = 合法增长被当失败，**须先改成不变量断言**。
 > ⏳ 债：**D-2** 装机路径 · **D-3** 判分缓存版本派生摘要 · **F-106** gate① 报告反向流进提示词（登记，不追影响面）·
 > GLM/GPT 各轮不阻断 findings。
 > ⭐ **派工单累计题错 36 次「停下上报」全是派工方（我）的题错**，另加复核方点名题面问题 **11 条**（08-27 一夜）。
@@ -314,6 +320,7 @@ EnergyPlus 经 `WorkflowTool.run_simulation`（eppy + ConverterManager，idfpy �
 
 | 日期 | 一句话 | 详档 |
 |---|---|---|
+| **2026-08-27** | ✅✅ **第 ① 步收口**：**G1**（零豁免复现门）+ **F-97**（契约判别器，两轮返工）**双双过审并回主线**，主树权威全量 **3124 绿**（带 `.pth` 哨兵）· ⛔⛔ **事故：共享 venv 的 editable `.pth` 被改指到 `/tmp/ep_f97`、正好穿过一次权威全量窗口 ⇒ 「全仓绿」第四种假象 = **跑测途中启动器被第三方改掉**，该轮读数作废重跑 · ⭐⭐⭐ **方法论两条固化**：返工审必加第三格「**换同形输入仍走不通**」（实测前两格全绿、第三格一次抓 3 条阻断）· 停下上报触发器改**分层版**（承重才停、外围只记）—— 当天兑现两次、**两处题面错零轮空转** · ⭐⭐ **复核方当场推翻自己上一轮的逐字处方**（fifo 挂死无 except 可捕 / `RecursionError` 两者皆非）· 新登记 **F-107…F-114** · 派工单累计题错 **38/38** | [G1 裁决](logs/reviews/verdict/2026-08-27_g1_rework_glm_verdict.md) · [F-97 裁决](logs/reviews/verdict/2026-08-27_f97_rework2_glm_verdict.md) · [.pth 事故](logs/experiments/2026-08-27_pth_hijack/) · [plan.md 本日](plan.md) |
 | **2026-08-26** | ⭐⭐⭐ **用户一天定死 12 条口径**（四步次序 · 出模两种分开排 · **reading=as-drawn 准 / correction=as-designed 规整** · reading 交证据 correction 有权翻案 · 语义升格计分四条全升 · **gt 三层 + 来源空间答案从 DXF 机械生成**）· ✅ **F-90 返工五项 GLM APPROVE 零阻断**（⭐⭐ 复核方自造「两层楼+二层零窗」端到端 32/32，证明换信任根收益真实兑现）· ✅ **F-95** 顶点规范化收窄为有序简单环（走廊 97.731→97.731）· ⭐ **sol 一体改架构意见到位**（推翻我方四条前提 + 六个工作包）· ⭐⭐ 两条排期结论：**gt 修正是前置不是后续** · **两种出模形式现在一种都没跑通** · ⛔ 我方本日实犯三条（验收对象挂在即将作废的产物上 · 验收标准跟着结果走 · 把具体报错码写死为判据）· 派工单累计题错 **35/35** | [GLM 裁决](logs/reviews/verdict/2026-08-26_f90_rework_glm_verdict.md) · [sol 设计](logs/reviews/verdict/2026-08-26_reading_correction_joint_architecture_sol_design.md) · [plan.md 本日](plan.md) |
 | **2026-08-25 收工** | ⭐ **合并回 `main`**（快进，586 提交零冲突）· ✅ **三笔账收完**：合并阻塞（F-93 + F-94 A 案）· 支线回并 · **债 D-1 退役**（identity 壳，GPT APPROVE）· **F-90 楼层 id 映射**（⭐ 同根因 **5 处**，只修 1 处会从崩溃退化成**静默全错**）· ⭐⭐ **新锁首次真实捕获**（合并时点名 `reading_toolbox.py`）· 新登记 **F-95～F-99** 五条 · ⛔ **F-90 未过跨家族审 ⇒ 下轮第一件事** · 派工单累计题错 **28/28** | [F-90 审阅单](logs/reviews/request/2026-08-25_f90_crossreview_gpt.md) · [D-1 裁决](logs/reviews/verdict/2026-08-25_d1_retirement_gpt_verdict.md) · [内核探针](logs/experiments/2026-08-25_kernel_probe_from_gt/README.md) |
 | **2026-08-25 晚** | ⏳ **清合并阻塞已派发**（F-93/F-94，施工 Claude / 审 GLM）· ⭐⭐ **答案直喂内核**撞出 **F-95**（顶点规范化毁凹多边形 97.731→226.457，且已有 L 形锁**没有分辨力**）与 **F-96**（跨层碎片无守卫）· 6 cm 偏差**溯源到原始 DXF**（四处同为 120 墙，1F 右半段南偏 60.3 mm，原图如此）· ⭐⭐ **gt 三层立场**（加校验与 R-6 是同一件事）· ⭐⭐⭐ **GPT 跨家族证伪我方核心倾向**（→ 多形态墙证据）+ **基准归属更正**（是 correction 提示词在要中线）+ **F-97 静默半喂路径** | [实验档](logs/experiments/2026-08-25_kernel_probe_from_gt/README.md) · [GPT 答复](logs/reviews/verdict/2026-08-25_reading_correction_unification_gpt_design.md) · [派工单](logs/reviews/request/2026-08-25_merge_blockers_f93_f94.md) |
