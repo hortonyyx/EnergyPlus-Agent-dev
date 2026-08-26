@@ -149,7 +149,7 @@
 | 包 | 内容 | 来源 | 状态 |
 |---|---|---|---|
 | **①-1** | **F-95** 顶点规范化收窄为有序简单环（= C2 非方形那半的本体）| [我方] | ✅ **收口** —— GLM 跨家族审 **APPROVE / 0 阻断**（08-27），4 条不阻断 findings 已分流 |
-| **①-2** | **G1** gt **原始层**可读 API + **机械复现门** + 信任根显式化 | [用户]口径12 + [sol]#1 | ⏳ **施工中**（Claude 席位，08-27 夜派出）|
+| **①-2** | **G1** ~~gt 原始层~~ ⇒ **派生审计件的可读 API + 机械复现门**（命名经 sol 更正）| [用户]口径12 + [sol]#1 | ✅ **施工交件** `06dd513`（六条判据全过，全量 3042）· ⏳ **GLM 审中** |
 | **①-2′** | ⭐⭐⭐ **VS：sm25-F1「裁判事实包垂直切片」五步**（还原并核对签字 candidate → exact manifest/request 落进 case-owned 路径 → **未参与拟合的 DXF 特征做原点 holdout** → 直接以产品 `*_px` 做一次像素判分 → **「只改产品标定：标定分变、描图分不变」判别实验**）| [sol] 08-27 | ⏭ **下一件事**（覆盖原 ①-3/①-4 的排法）|
 | ~~①-3~~ | ~~**G2** 墙面线落盘 + 不规整清单~~ | [用户]口径12 | ⛔ **暂缓扩面**（sol：模数格点政策未签字前，「两种读法第一份清单相同」判早了）|
 | ~~①-4~~ | ~~**G3** 判分侧标定归裁判~~ | [sol]#2 | ⇒ **并入 ①-2′ 的第 2–5 步**（它本就该排在 G2 之前）|
@@ -593,6 +593,60 @@ as-drawn 产物的每条面线**同时**报两套坐标（sm25 1F 实测）：
 - **G3 排在 G2 后没有依赖依据** —— 标定信任与像素契约**反而应该先证实**（已按上面五步改）。
 - **①-5「语义升格必须与 ② 同批」与四步次序冲突** —— 应**先冻结判分 schema/语义，再允许 producer 实现**。
   ⇒ 派工盘 ①-5 就地改为：**判分侧的字段与语义先冻结（属 ①）**，producer 侧实现随 ②。
+### 十一、✅ **G1 施工交件**（`06dd513`）—— 且 §七 那条我最心虚的假设**实测成立**
+
+施工报告 → [`logs/reviews/execution/2026-08-27_g1_gt_raw_layer_construction_report.md`](logs/reviews/execution/2026-08-27_g1_gt_raw_layer_construction_report.md)
+· 新增 `src/agent/judge/gt_raw_layer.py`（493 行）+ `tests/test_gt_raw_layer.py`（147 行 / 7 条）+ 改 `tests/test_gt_discipline.py` 2 处
+· ⏳ **已送 GLM 跨家族审**（请求单 [`…_g1_gt_raw_layer_crossreview_glm.md`](logs/reviews/request/2026-08-27_g1_gt_raw_layer_crossreview_glm.md)）
+
+| 判据 | 实测读数 |
+|---|---|
+| A1 | zones **29** / edges **136** / basis `wall_axis 90 · outer_skin 46` / 厚度 `0.12×78 · 0.24×58`，136/136 全带 basis 且 `source_handles` 非空 ✅ |
+| A2 | 复现门未改动树：`status=reproduced`，`differing_pointers=()`，约 13 s ✅ |
+| A3 | 单边 `thickness_m` 0.12→0.13 ⇒ `content_mismatch` + **指名 `/zones/0/edges/0/thickness_m`** ✅ |
+| A4 | `converter_sha256` 漂移一位 ⇒ `implementation_drift`、`drifted=('converter_sha256',)`、`differing_pointers=()` ⇒ **两种红分开** ✅ |
+| A5 | 全量 **3042 passed / 13 xfailed / 0 failed** = 基线 3035 + 新增 7 ✅ |
+| A6 | neuter 双向定向：摘 `_diff_pointers` ⇒ 仅 a3 红；摘 `_fatal_fingerprints` ⇒ 仅 a4 红 ✅ |
+
+#### ⭐⭐⭐ §七 那条假设（「能不能从签字 DXF 确定性重跑出同一份内容」）：**成立**
+
+逐 JSON 指针比对：**全报告差异 15 条、内容字段差异 0 条**
+（walls 84 / openings 61 / cavities 29 / zones 29 含 136 边 / diagnostics 28 / elevation_audit_rows 34 / 全部 provenance sha **零差异**）。
+15 条**全部且只**落在 **G6(5) + G10(8) 两个人审门** + `/status`(1) + `/normalized_dxf_sha256`(1)，
+成因 = 临时目录里没有 `review_ack.json`；**生产者自己就把 G6/G10 定义成人审门**（`sign_review_bundle` 的 `if i not in {6,10}`）。
+⭐ **G6 的几何证据（cavity 14/14、`near_threshold_faces` 面积质心）两侧逐位相同。**
+`PYTHONHASHSEED` 1 / 7 / 12345 三跑内容摘要恒为 `0f57e5ee…`。
+
+#### ⛔ 派工单 §三 关于「输入在哪」的三处陈述**全错**（施工方查出，我认）
+
+`review/source.dxf` **不存在**（真身 = `case_tests/test_baseline/gt_sources/sm25-L_anchor/sm25-L_t3.dxf`，
+sha `1251f651…` 与 ack 一致）· `request.json` **不在 gt 树**（只在 `logs/experiments/`）·
+`manifest.json` **根本不是输入**（它是产物）。
+⇒ 施工方判定**不阻塞**，理由：`request_sha256` 可从内容重算（实测 = 签字值 `d738d0ac…`），
+**门按「谁重算出签字值谁就是它」认，位置无权威性**。⭐ 该理由已交 GLM 复核（请求单 §六）。
+
+#### ⚠️ 施工方主动交代的一处口径改动（已交 GLM 独立核）
+
+第一版把 `extractor_sha256` 也算致命 ⇒ 未改动树上 A2 **直接红**；查下来是**真漂移**
+（08-25 `91ae82d` 给 `gt_from_dxf.py` 加了 5 行 `sys.path` 自举）。
+它把该项**降为 advisory**（仍逐次报出不吞），依据 = 「实测转换 import 闭包不含 `gt_from_dxf`」。
+⭐ **这是本单最像「为了变绿而放宽判据」的一处**，已写进复核请求单 §3.4 要求独立核实闭包。
+
+#### ⭐⭐ 施工方自己点名的最心虚处（已成为复核的第一重点）
+
+`_pointer_is_signature_dependent` 的**豁免清单决定了 A2 能不能变绿，而它是看过实测 diff 之后才写的**
+⇒ [[acceptance-bar-must-not-be-written-from-the-result]] 的形状。
+且它对 **G10 豁免了整个 `evidence` 子树**（G6 只豁免 `passed` + `human_confirmation`，几何仍在比）
+⇒ **将来 G10 evidence 里塞进真几何信息，那部分会静默失去比对。**
+⇒ 复核请求单 §3.1 要求做**反向验证**：把豁免清单收窄到其声称的最小集后 A2 还绿不绿。
+
+#### ⚠️ 新登记的运维事实：**三个席位同机各跑 `-n auto` 会把全量跑崩**
+
+施工方实测：`load average 17.44 / 16 核` 时 `-n auto` **整场崩**（worker `OSError: cannot send`，**无 summary 行**）；
+降到 `-n 6` 后 EXIT=0。
+⇒ **并行席位一律 `-n 6`，⛔ 不用 `-n auto`**；且**无 summary 行的崩溃 = 同机竞争假红，重跑，⛔ 不记成回归**。
+⭐ 同族 [[green-suite-is-a-property-of-tree-and-launcher]]：这是**同一棵树 + 同一条命令 + 不同的机器负载**给出不同读数的第三种形态
+（前两种是「树不同」与「启动器环境不同」）。
 ---
 
 ## 2026-08-26（已翻篇，逐字归档）
