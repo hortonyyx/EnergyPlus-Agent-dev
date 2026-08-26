@@ -401,6 +401,16 @@ EnergyPlus 经 `WorkflowTool.run_simulation`（eppy + ConverterManager，idfpy �
 5. **本项目交接产物 = IntakeOutput JSON**；下游走 [run_full_pipeline.py](../scripts/run_full_pipeline.py) 自动跑产 IDF + 仿真；规则库 [`../skills/intake_pipeline/`](../skills/intake_pipeline) 按阶段运行时加载。**skill 库 = 英文纯当前版本 spec**：文件内不写时间戳/版本号/changelog/缘起 case（决策史归 decision_log + git）；0–5 阶段布局；旧 `energyplus_mcp` 单步库已退役。
 6. **回归门槛**：切默认 provider 前端到端跑通率 ≥ Anthropic 基线 80%（[reference/pivot_criteria.md](reference/pivot_criteria.md)）。
 7. **git 权限下放**：助手可在里程碑自行 `git add`+`commit`（message 仿 `<月.日>_<英文标签>`，body 含①改动②为何此刻③影响）。**push** 仅在**收工（§5#12）**或明确要求时（平时不主动 push）。**禁** force push / `reset --hard` / 跳 hook / 动 `git config`。
+7.5. ⭐⭐⭐ **并发治理：一个模型家族同时只能在飞一个任务**（2026-08-27 用户拍板，硬口径）
+    —— **跨家族可以同时开**（Claude 施工 ‖ GLM 复核 ‖ GPT 设计审 = 合法），
+    **同一家族⛔ 不许并行两个**（⛔ 两个 Claude 施工席位同时跑 = 违规）。
+    **立此条的事实依据**：2026-08-27 夜班同时开两个 Claude 施工席位 + GLM 复核 + 两轮 GPT 复核，
+    两个 Claude 席位实测烧掉 **约 16 万 + 33 万 token**，中途撞上月度上限中断；
+    并且**同机三路各跑 `-n auto` 会把全量测试跑崩**（`load average 17.44 / 16 核`，
+    worker `OSError: cannot send`、**无 summary 行** = 同机竞争假红，重跑即可、⛔ 不记回归）。
+    ⇒ **配套两条**：① 并行时跑测一律 **`-n 6`**，⛔ 不用 `-n auto`；
+    ② 派工前先点一遍「这个家族现在有没有别的活在飞」。
+
 8. **实质改动一律走角色矩阵**（操作手册 = [guides/codex_execution_protocol.md](guides/codex_execution_protocol.md)
    —— 四家族版图 / 四档对位阶梯 / 审阶梯 / 排工拍板制 / 席位运维**全在那里，⛔ 本文不重复**）：
    **主控 = Claude 家族开对话模型**（整场不切模型），亲手只做 ① 方案/规划 ② 审 diff/裁决 ③ judge

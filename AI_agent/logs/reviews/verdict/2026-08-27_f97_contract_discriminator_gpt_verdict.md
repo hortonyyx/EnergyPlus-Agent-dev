@@ -10,6 +10,18 @@
 
 ---
 
+> ⛔ **2026-08-27 更正**：正文改用复核方**自己写在 worktree 里的原件**（`/tmp/ep_f97/.../gpt_verdict.md`），
+> ⛔ 不再用 orchestrator 从回复里转录的那一版 —— 两者实测不同（13274 vs 13691 字节）。
+
+---
+
+# 跨家族复核裁决 · F-97 契约判别器（GPT 家族 sol）
+
+- **日期**：2026-08-27
+- **被审 commit**：`8fda4c10ca3a23f4159f78ff29aebf706d904eae`
+- **工作目录**：`/tmp/ep_f97`
+- **总判：REWORK**
+
 主体方向正确，现仓 371 份 `0_reading/*.json` 的兼容面、四种指定行为、两次 neuter 和全量都得到预期读数；但判别器仍有三条可复现的核心缺口：带未知显式 `schema` 的文件可被误当 legacy 消费、畸形 CheckReport 可被静默排除、真实 `run_correction` 可在写消费对账前先由 reading preflight 崩掉。它们分别破坏 F-a/F-b/F-c，不能以全量绿覆盖，因此须返工而不是附 findings 放行。
 
 ## 一、§四六条判据逐条读数
@@ -124,4 +136,4 @@
 - neuter① 全量：**3054 passed / 13 xfailed / 4 failed**，四红仅 F-97。
 - neuter② 定向：**1 failed**，仅反字面量锁。
 - 所有临时探针与两次变异均已删除/还原；被审源码、测试和规则文件相对 HEAD 无工作树 diff。
-- 开工前即已有未跟踪复核请求单；本席未修改或删除它。交件新增仅本裁决文件。
+- 开工前即已有未跟踪复核请求单 `AI_agent/logs/reviews/request/2026-08-27_f97_contract_discriminator_crossreview_gpt.md`；本席未修改或删除它。交件新增仅本裁决文件。
