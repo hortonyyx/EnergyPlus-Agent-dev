@@ -41,24 +41,6 @@ uncovered_allowlist:
   src/database/datatools/schedulecompact.py: "database tooling module; no project-side tests cover this legacy area"
   src/database/datatools/scheduletypelimits.py: "database tooling module; no project-side tests cover this legacy area"
   src/database/datatools/standard_materials.py: "database tooling module; no project-side tests cover this legacy area"
-  src/agent/reading/as_drawn/__init__.py: >-
-    package marker for the as-drawn reading toolbox, transplanted 2026-08-25 from
-    AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/tools/ (dispatch:
-    2026-08-25_reading_toolbox_into_src_dispatch.md); no project-side test imports
-    the package root directly.
-  src/agent/reading/as_drawn/_plan_ink.py: >-
-    transplanted 2026-08-25 from tools/plan_ink.py, byte-identical apart from its
-    own new module path; no project-side test imports src/ directly yet. Verified
-    by hand: rebuilding all three exploration views (sm25 1F/2F, sm24) through the
-    new src/ location and `cmp -s` against the tracked exploration reference
-    out/{view}_v2.json, all three byte-identical.
-  src/agent/reading/as_drawn/as_drawn_v2.py: >-
-    transplanted 2026-08-25 from tools/as_drawn_v2.py (the 9 stage functions +
-    Ruler + the thin default build()); same no-test-yet situation and same
-    by-hand cmp -s verification as _plan_ink.py above.
-  src/agent/reading/as_drawn/pens.py: >-
-    transplanted 2026-08-25 from tools/ink_palette.py; same no-test-yet situation
-    and same by-hand cmp -s verification as _plan_ink.py above.
   src/validator/checks/as_drawn.py: >-
     transplanted 2026-08-25 from tools/checks_as_drawn_v2.py (the 11 gt-free
     as-drawn gates); this dispatch is relocation only and does not wire it into
