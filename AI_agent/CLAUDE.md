@@ -193,7 +193,7 @@ run_pipeline（image-blind，src/agent/pipeline.py）几何彻底确定性化：
 | [../src/agent/llm.py](../src/agent/llm.py) + [../src/configs/llm.yaml](../src/configs/llm.yaml) | LLM 工厂 + 多 section（per-case `<case>/llm.yaml` 经 `EP_AGENT_LLM_CONFIG` 覆盖）；容差 [correction.yaml](../src/configs/correction.yaml) |
 | [../src/agent/graph.py](../src/agent/graph.py) | 下游 LangGraph（intake → 9 subagent → cross_ref → validate → simulate）；prompt 演进归协作者（§3）|
 | [../scripts/](../scripts) | 总启动 `run_full_pipeline.py`（`--reading-from`/`--intake-from`）；`tool_scripts/`=render×N + `run_stage.py` + `record_baseline.py` + `render_geometry_viewer.py` + `render_gt.py` + `gt_from_dxf.py` + `inspect_dxf.py`；`glm_code.sh`=GLM 席位启动器（默认 **glm-5.3**）+ `deepseek_code.sh`=DeepSeek 席位启动器（默认 **deepseek-v4-pro**，**⛔ 按量扣余额、与管线共用**）——两者**凭据只注入子进程，勿全局导出 `ANTHROPIC_*`**；家族版图见 [codex_execution_protocol §1](guides/codex_execution_protocol.md)|
-| [../tests/](../tests) | ⛔ **当前红着**：pytest **3010 passed / 1 failed / 3 errors / 13 xfailed**（2026-08-25 主控权威全量实测；四项同源见 plan.md **F-93**，与工具箱转正无关，08-24 提交上复跑同样红）（**全仓默认并行** `-n auto`，16 核 4.5–8 分钟；串行 `-n0` 15–26 分钟。跑测三档节奏 + 「受影响子集」工具见 [codex_execution_protocol §7.5](guides/codex_execution_protocol.md)）（kernel/checks/judge/orchestrator/gt/interzone/schedule/viewer/flow/runner/grade/run_config/isolation/view_manifest/c2_b2_v3/c2_b2b_envelope_transform/c2_va_applicability/gt_schema/output_coordinate_×5/e4_relative_north_axis_e2e/c2_b5_source_routing/c2_b5_host_resolution/c2_b5_parent_and_verts/c2_b5_artifact_trust/c2_b5_legacy/reading_line_style_visibility/audit_remediation_accepted_inputs/tarch_converter_p{0,1,2}/tarch_elevation_must_red/**tarch_converter_reproducibility**/**gt_promotion_path**〔含 25 格 `mutation` 源码变异矩阵，默认收集内〕/gt_overlay…）|
+| [../tests/](../tests) | ✅ **当前全绿**：pytest **3035 passed / 13 xfailed / 0 failed**（2026-08-27 主控权威全量，commit `ed0ba09`；当前 HEAD `534b5a2` 相对它**只改了 `AI_agent/` 文档**，`src`/`tests`/`scripts`/`skills` 零改动 ⇒ 该读数对当前 HEAD 仍成立）。⛔ **~~08-25 的「3010 passed / 1 failed / 3 errors」已作废~~** —— 那批红 = **F-93**，已于 `b3e0a32` 闭合（GLM APPROVE-WITH-FINDINGS）（**全仓默认并行** `-n auto`，16 核 4.5–8 分钟；串行 `-n0` 15–26 分钟；⚠️ **有别的席位在同机跑时一律 `-n 6`**，见 §5#7.5。跑测三档节奏 + 「受影响子集」工具见 [codex_execution_protocol §7.5](guides/codex_execution_protocol.md)）（kernel/checks/judge/orchestrator/gt/interzone/schedule/viewer/flow/runner/grade/run_config/isolation/view_manifest/c2_b2_v3/c2_b2b_envelope_transform/c2_va_applicability/gt_schema/output_coordinate_×5/e4_relative_north_axis_e2e/c2_b5_source_routing/c2_b5_host_resolution/c2_b5_parent_and_verts/c2_b5_artifact_trust/c2_b5_legacy/reading_line_style_visibility/audit_remediation_accepted_inputs/tarch_converter_p{0,1,2}/tarch_elevation_must_red/**tarch_converter_reproducibility**/**gt_promotion_path**〔含 25 格 `mutation` 源码变异矩阵，默认收集内〕/gt_overlay…）|
 | [../case_tests/](../case_tests) | `0_reading_tests/` + `e2e_tests/`(含 sm20_anchor/sm21_anchor) + `test_baseline/`(方案+注册表+gt) |
 | `$ENERGYPLUS_EXE` | EnergyPlus 引擎；解析序 env→PATH→硬编码默认。容器内 25.1.0、宿主 Windows 25.2.0（patch 差异，数值对齐以容器为准）|
 | [../data/weather/Shenzhen.epw](../data/weather/Shenzhen.epw) | 默认 EPW 气象 |
@@ -246,9 +246,17 @@ EnergyPlus 经 `WorkflowTool.run_simulation`（eppy + ConverterManager，idfpy �
 > | 事 | 状态 |
 > |---|---|
 > | **F-95** 顶点规范化收窄（= ① 的「C2 非方形」那半）| ✅ **收口**（GLM 跨家族审 **APPROVE / 0 阻断**）|
-> | **F-97** correction 只吃声明过的契约 | ⏳ **返工已交件** `f2a8ccf`（GPT 审 REWORK 三条阻断 → 三条全修，全量 **3070 passed / 0 failed**）· **⛔ 未过审** |
-> | **G1** 判分侧读转换审计件 + **机械复现门** | ⏳ **返工已交件** `ef41a39`（**整张豁免清单已删除**，改为把签字件喂进复现跑，全量 **3046 passed / 0 failed**）· **⛔ 未过审** |
-> ⛔⛔ **两条返工分支都还没并回主线、也没 push**：`wt/08.27_f97_contract`(`f2a8ccf`) · `wt/08.27_gt_raw_layer`(`ef41a39`)。
+> | **G1** 判分侧读转换审计件 + **机械复现门** | ✅ **过审**（`ef41a39` · GLM 跨家族审 **APPROVE / 0 阻断 / 5 findings**；复核方独立全量 **3046 passed / 13 xfailed / 0 failed**；11 种形态级变异 + 3 次 neuter 无一静默绿）|
+> | **F-97** correction 只吃声明过的契约 | ⏳ **仍未过审** `f2a8ccf` —— GPT 第三次派出**做完了实体复核（113k token）却在交件时被 provider 安全过滤拦掉**，裁决没写成 ⇒ 须改派。它的探针文件已保住（**⛔ 断言未经我方复跑，只作线索**）|
+> ⛔ **`wt/08.27_f97_contract`(`f2a8ccf`) 尚未并回主线。**
+>
+> ### ②′ ⭐⭐ G1 过审带回来的一条【必须先进跑测口径】的后果（F'-4）
+> **VG 指纹升 fatal 后，`vg_implementation_sha256` 覆盖的是 `correction/{facade_visibility,facade,footprint,schema}.py` 四件、
+> 且是【文件粒度】不是行为粒度** ⇒ **本批 reading/correction 一体改期间，只要动了 `correction/schema.py`（正是主战场），
+> sm25 的复现门就会报 `implementation_drift`、预计常红。**
+> ⭐ **这不是回归，是「树动了」的正确信号**；消化方式是**流程性的**（解释或重签），⛔ 代码消不掉。
+> ⛔ **谁在本批期间看到这道门红，先对照本条，别记成缺陷。**（另：**sm24 的签字 request 已不可寻**，
+> 该 case 今天实测就是 `inputs_unavailable` ⇒ **复现门可用面 = 现存 2 份 case 里的 1 份**，见 plan.md F'-5。）
 >
 > ### ③ ⭐⭐⭐ 08-27 夜班查明的四条（全部经跨家族复核，⛔ 有两条推翻了我方原结论）
 > | # | 结论 |
@@ -269,8 +277,12 @@ EnergyPlus 经 `WorkflowTool.run_simulation`（eppy + ConverterManager，idfpy �
 > ⛔ **不要把 G1/G2/G3 与双投影拆成四套临时接口。**
 >
 > ### ⑤ ⏭ 下一步（按次序）
-> **1. 两条返工各送一轮跨家族审**（F-97 返工 → GLM 或 Claude；G1 返工 → GLM 或 Claude，⛔ 不能是 GPT）·
-> **2. 审过并回主线** · **3. 才是 ①-2′ 垂直切片第 2 步**（exact manifest/request 落进 case-owned 路径）。
+> **1. ✅ G1 已过审** ⇒ **并回主线**（本轮做）。
+> **2. ⏳ F-97 改派复核** —— ⛔ 不能是 Claude（它施工的）、⛔ 也别再派 GPT（**同一份内容连吃两条 provider 安全过滤**，
+>    按 08-16 已定的「措辞最多改一次、然后换家族」⇒ **改派 GLM**）。请求单已就绪、只需换抬头：
+>    [F-97 请求单](logs/reviews/request/2026-08-27_f97_rework_crossreview_gpt.md)。
+>    ⭐ 交单时把 GPT 探针里那 5 条**当线索给它**，并要求它**独立复跑 + 另外自己找一遍**（⛔ 不作证据）。
+> **3. 才是 ①-2′ 垂直切片第 2 步**（exact manifest/request 落进 case-owned 路径）。
 > ⏳ 债：**D-2** 装机路径 · **D-3** 判分缓存版本派生摘要 · **F-106** gate① 报告反向流进提示词（登记，不追影响面）·
 > GLM/GPT 各轮不阻断 findings。
 > ⭐ **派工单累计题错 36 次「停下上报」全是派工方（我）的题错**，另加复核方点名题面问题 **11 条**（08-27 一夜）。

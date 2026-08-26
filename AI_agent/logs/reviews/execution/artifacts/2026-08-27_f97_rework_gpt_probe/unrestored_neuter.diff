@@ -1,0 +1,13 @@
+diff --git a/src/agent/reading/vector_contract.py b/src/agent/reading/vector_contract.py
+index 1ac64c3..ddc68ea 100644
+--- a/src/agent/reading/vector_contract.py
++++ b/src/agent/reading/vector_contract.py
+@@ -133,8 +133,6 @@ def _detect_legacy_reading_view(raw: dict) -> bool:
+     verdict here would silently pick a winner, which is what ⛔ first-match-wins
+     forbids.
+     """
+-    if _declares_unregistered_schema(raw):
+-        return False
+     # ⚠️ Both remaining conjuncts are load-bearing; see module docstring #3.
+     if not isinstance(raw.get("strokes"), list):
+         return False
