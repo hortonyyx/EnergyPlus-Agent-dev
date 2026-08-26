@@ -59,6 +59,7 @@ from src.agent.execution.evidence_preflight import (
     write_evidence_debt,
 )
 from src.agent.llm import load_llm_section, resolve_llm_config_path
+from src.agent.reading.vector_contract import classify_vector_dir
 from src.agent.state import IntakeOutput
 from src.validator.checks.schema import Disposition, RunProfile
 
@@ -417,7 +418,15 @@ def _build_correction_messages(
     chunks = [
         "Project metadata (testdata_prompt.json):\n```json\n" + testdata_text + "\n```\n"
     ]
-    vector_files = discover_vector_files(vector_dir)
+    # F-97: `discover_vector_files` only ORDERS the directory; it does not say
+    # what any file IS. Every name it returned used to be pasted into the prompt
+    # verbatim, so a JSON of any contract reached the model as untyped text
+    # having passed no reading gate. Classify first: consumable files survive in
+    # their original order, a declared non-input (check-report sidecar) is
+    # dropped but named in the ledger, and anything else raises.
+    vector_files = classify_vector_dir(
+        vector_dir, discover_vector_files(vector_dir)
+    ).consumed
     room_label_inputs = _reading_room_label_inputs(vector_dir, vector_files)
     if room_label_inputs:
         chunks.append(
@@ -639,6 +648,33 @@ def _make_correction_validator(
     return _validate
 
 
+_VECTOR_CONTRACT_LEDGER_NAME = "reading_vector_contract_ledger.json"
+
+
+def _write_vector_contract_ledger(vector_dir: Path, stage_out_dir: Path) -> Path | None:
+    """F-97 (F-c): record which contract each 0_reading JSON was consumed as.
+
+    ⭐ This is what turns extensibility from a promise into a reading: a shape
+    nobody declared stops being a silent paste and becomes a named row.
+    Lands in the run's existing `_run/` metadata dir (``stage_out_dir`` is the
+    1_correction stage dir, so its parent is the run dir).
+    """
+    from src.agent.execution.run_meta import run_meta_path
+    from src.agent.reading.vector_contract import ledger_for
+
+    try:
+        names = discover_vector_files(vector_dir)
+    except FileNotFoundError:
+        return None
+    ledger = ledger_for(vector_dir, names)
+    ledger["vector_dir"] = str(vector_dir)
+    path = run_meta_path(
+        Path(stage_out_dir).parent, _VECTOR_CONTRACT_LEDGER_NAME, for_write=True
+    )
+    path.write_text(json.dumps(ledger, indent=2, ensure_ascii=False), encoding="utf-8")
+    return path
+
+
 _UNSET_VALIDATOR = object()
 
 
@@ -695,6 +731,12 @@ def run_correction(
             "1_correction preflight blocked by reading evidence debt "
             f"under run_profile={run_profile}: {checks}"
         )
+    # F-97 (F-c): file the consumption ledger BEFORE the prompt is assembled, so
+    # a run that fails classification still leaves a record naming every file and
+    # the contract it was read as. `ledger_for` never raises; the loud failure is
+    # `_build_correction_messages`' job on the next line.
+    if out_dir is not None:
+        _write_vector_contract_ledger(vector_dir, out_dir)
     system_prompt, human = _build_correction_messages(
         vector_dir, testdata_text, feedback=feedback, evidence_debt=evidence_debt, target=target,
         observation_reference_catalog=observation_reference_catalog,
