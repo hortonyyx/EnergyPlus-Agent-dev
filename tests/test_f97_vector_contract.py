@@ -763,6 +763,15 @@ def test_r6_filesystem_shapes_also_stop_at_the_composite_entry(tmp_path, label, 
     with pytest.raises(UnconsumableVectorFile):
         run_pipeline_artifacts(vdir, "{}", out_dir=out_dir)
     assert (out_dir / "_run" / "reading_vector_contract_ledger.json").exists()
+    # ⭐ "it raised and there is a ledger" is delivered by `run_correction`'s own
+    # preflight too, so for a non-`_view` name that assertion alone stayed green
+    # with the composite-entry hoist removed -- it locked an outcome that two
+    # independent mechanisms both produce. The load-bearing claim is that
+    # NOTHING DOWNSTREAM RAN: with the hoist gone, `:1368` computes the reading
+    # report over the good view and files this artifact before anyone refuses.
+    assert not (out_dir / "0_reading" / "reading_checks.json").exists(), (
+        "the refusal must precede the reading report, not follow it"
+    )
 
 
 def test_r6_ledger_is_on_disk_before_every_view_consumer(tmp_path, monkeypatch):
