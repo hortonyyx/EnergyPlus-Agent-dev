@@ -223,3 +223,96 @@ for fname in vector_files:
 ## 六、停下上报触发器不变
 
 ⭐ 你这一次是对的，**继续这么干**。若本补充裁定里又有事实不成立，照样停下上报（那会是第 37 条）。
+
+---
+
+# ⛔⛔ 返工裁定（2026-08-27 · orchestrator）—— 跨家族复核 **REWORK / 3 条阻断**
+
+裁决全文 → [`../verdict/2026-08-27_f97_contract_discriminator_gpt_verdict.md`](../verdict/2026-08-27_f97_contract_discriminator_gpt_verdict.md)
+（GPT 家族 sol；⭐ 正文用的是**它自己写在 worktree 里的原件**，不是我从回复里转录的那版 —— 两版实测不同）
+
+⚠️ **先说清楚哪些是过的**，别把它们又改一遍：
+**A1 全量 `3058 passed / 13 xfailed / 0 failed`** ✅ · **A3 变化面（只减不增、43/43 全是边车、零 `*_view.json` 被移除）** ✅ ·
+**A5 neuter 双向定向（摘接线 4 红零附带；换字面量反字面量锁准确变红）** ✅ ·
+**A6 两次误替换无残留**（23 例全通过，逐行核过断言）✅ ·
+**A2 那 4 条 allowlist 删除是对的** ✅（⛔ **别回退**，见下方我的题面错 #2）。
+
+## 一、三条阻断，逐条要做什么
+
+### B-01 ⛔ 未知的显式 `schema` 会被当成 legacy 吃掉（**最要紧**）
+
+- **复现**：顶层 `schema="future_reading_contract_v99"` + 一份能被 `ReadingView` 解析的合法 `strokes`
+  ⇒ 实测判成 `ContractDecision(contract_id='reading_view_legacy', disposition=CONSUME)` ⇒ **进 correction 提示词**。
+- **根因**：`vector_contract.py:100-108` 的 legacy 判别器**不看显式声明**；`:171-173` 对唯一命中直接接受。
+- ⇒ **F-97 的静默通道换了个形态留了下来** —— 这正是本单要根除的东西。
+- **返工要求**：
+  1. **有显式 `schema` 声明、而该值未登记 ⇒ 一律 unknown 响亮红**，⛔ 不许因为「结构像 legacy」就放行。
+  2. **已登记的显式契约 + legacy 同时命中 ⇒ 仍报 `AMBIGUOUS`**（这条现有行为对，别动）。
+  3. **补一条走真实入口 `_build_correction_messages` 的锁**，⛔ 不许只测判别函数。
+
+### B-02 ⛔ 边车契约用「键名存在」冒充生产契约，畸形 JSON 被静默排除
+
+- **复现**：`{"stage":7,"results":"not-a-result-list","report_schema_version":{"not":"a version"}}`
+  ⇒ `CheckReport.model_validate` **拒绝**它，而判别器仍判 `stage_check_report/EXCLUDE`
+  ⇒ **坏文件既不红也不进提示词**，和「合法排除」混在一起。
+- **根因**：`vector_contract.py:140-145` 只看三个键名在不在。
+- **返工要求**：判据改成 **「三个键显式存在 **且** `src/validator/checks/schema.py:CheckReport` 解析成功」**；
+  **键齐但类型非法 ⇒ unknown 响亮红**，补入口锁。
+  ✅ **兼容面不用牺牲**：复核方实测**现存 43 份历史边车 43/43 都能通过这条更严的路**。
+
+### B-03 ⛔ 消费对账在真实入口写得太晚，分类失败时根本没有对账
+
+- **复现**：把一份**合法 JSON 但顶层是 list** 写成 `1f_view.json`，调真实 `run_correction(..., out_dir=...)`
+  ⇒ 先在 `pipeline.py:720-725` 的 evidence preflight 抛 `AttributeError: 'list' object has no attribute 'get'`；
+  `pipeline.py:738-739` 的 ledger **还没执行** ⇒ `_run/reading_vector_contract_ledger.json` **不存在**。
+- ⇒ **既没有 F-97 的点名异常，也没有 F-c 承诺的失败对账。**
+  且 `tests/test_f97_vector_contract.py:263-275` 只**直调** `_write_vector_contract_ledger`
+  —— 那是 helper proxy，**不是生产入口锁**（同族 [[lock-must-exercise-real-entry-point]]）。
+- **返工要求**：**在任何会解析 `*_view.json` 的 preflight 之前**完成分类 + 写 ledger，
+  或让 preflight **复用同一次分类结果**；**补真实 `run_correction` 入口负例**，至少覆盖「非对象」与「非法 JSON」。
+
+## 二、⛔ 我（派工方）三条题面错，一并回写
+
+1. ⛔⛔ **`as_drawn_plan_v2` 我写「132 份」是错的。实际 77 份**（= 32 份读图产物 + 45 份 checks 报告）；
+   加上 `as_drawn_plan_v0` 4 + `as_drawn_elevation_v0` 4，as-drawn 家族**共 85**。
+   ⚠️⚠️ **而且施工方原本报的就是正确的 77，是被我的题面数字带着改过去的**
+   ⇒ **派工方写错的数会污染施工方已经正确的读数。** 这条比数字本身重要，已进管理文档。
+2. ⛔ **我把 `affected_tests` 的「静态可达」当成了「行为覆盖」，判反了** ——
+   那张表维护的是**静态依赖图上不可达模块的精确集合**，不是行为覆盖清单；
+   四个模块现在各能选中 144 个测试文件 ⇒ **那 4 条 allowlist 本来就该删，⛔ 不要回退**。
+   「`_plan_ink` / `pens` 没有行为锁」是**另一笔测试债**（复核方记为 N-01），⛔ 不在本单解决，
+   也⛔ 不许靠「往不可达集合里塞已可达模块」来假装修好。
+3. ⛔ **我给 `stage_check_report` 的签名少了一层仓里已有的信任根** ——
+   只写「无 `schema` + 含三键」**直接导致了 B-02**。仓里就有 `CheckReport` 类型且 43/43 能解析
+   ⇒ 正确判据见 B-02。**这条按停下上报触发器本该由我先回写，是复核方替我发现的。**
+
+⭐ 另外，上一版派工单里 **A1 那条判据结构性永不可能红**（`basis=None` 的 step 边被 schema 层禁止）
+—— 那是 G1 单的事，但同一个病：**我声明「每条判据都自查过什么情况下会红」，却放进了一条不可能红的判据。**
+
+## 三、返工验收判据（⛔ 覆盖补充裁定的 §三）
+
+| # | 判据 | 什么情况下会红 |
+|---|---|---|
+| **R1** | B-01 夹具（未登记显式 schema + 合法 legacy strokes）⇒ **unknown 响亮红**，且**走真实 `_build_correction_messages` 入口** | 仍回落 legacy / 只在判别函数层测 |
+| **R2** | 已登记显式契约 + legacy 双命中 ⇒ **仍 `AMBIGUOUS`**（回归，别改坏） | 收紧 B-01 时把双命中一起打成 unknown |
+| **R3** | B-02 畸形边车夹具 ⇒ **unknown 响亮红**；且**现存 43 份历史边车仍全部走 EXCLUDE 路**（逐份实测报数） | 收紧后误伤真边车 |
+| **R4** | B-03：真实 `run_correction` 入口喂「顶层 list」与「非法 JSON」⇒ **点名异常 + ledger 已写在盘上**（两条都要实测存在） | ledger 仍在 preflight 之后 / 只测 helper |
+| **R5** | B1′ 回归：契约判 `reading_view_legacy` 的文件，提示词**逐字节不变**（重跑一遍字节比对，报数） | 收紧 B-01 时误伤真历史产物 |
+| **R6** | 全量：`python -m pytest -q -n 6`，三数报出来（基线 3035；上一版 3058） | 有回归 |
+| **R7** | neuter：摘掉每条新修复，对应锁必须红且**定向**（B-01 / B-02 / B-03 各一次） | 锁没接真实入口 / 连带外溢 |
+
+⛔ **「全量绿」不得单独作为通过标志。**
+
+## 四、⛔ 不做（原 §四 + 补充裁定 §五全部不变）+ 新增
+
+- ⛔ 不改 `wall-centerline` 那两句 · ⛔ 不给 as-drawn 真接线 · ⛔ 不碰 F-95 邻域文件 · ⛔ 不碰 `src/agent/judge/`。
+- ⛔ **不追 F-106**（gate① 报告反向流进提示词的影响面），只登记。
+- ⛔ **不动 N-01**（`_plan_ink` / `pens` 的行为测试债）、⛔ **不动 N-02**（as-drawn checks 报告登记）
+  —— 复核方明写为不阻断，另开单。
+- ⛔ **不回退那 4 条 allowlist 删除**（见 §二#2）。
+
+## 五、⛔ 停下上报触发器不变
+
+⭐ 你上一轮顶回来是对的（第 36 条）。本节若又有事实不成立，照样停下上报（那会是第 37 条）。
+⚠️ 并发新规（用户 2026-08-27 拍板）：**一个模型家族同时只能在飞一个任务** ⇒ 本轮 Claude 家族**只有你这一件**，
+跑测请用 **`-n 6`**（同机可能有别家族的复核在跑）。
