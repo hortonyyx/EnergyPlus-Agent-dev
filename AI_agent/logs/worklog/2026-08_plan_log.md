@@ -6229,3 +6229,272 @@ as-drawn 产 `observations.face_lines`/`hypotheses` —— **两套 schema 完�
 ⛔ **债 D-3（2026-08-26 新登记）**：判分缓存的 helper 版本是**手工字符串**，改了语义忘提版本时**零拦截**（锁全绿、缓存照常命中旧 sidecar）⇒ 应改成**从实现闭包派生的组合摘要**，人工版本降为可读标签。GPT 与 GLM **两家独立给出同一判定**；⛔ 本轮明令不实施，另开单。同族 [[version-number-is-not-behavior-attestation]]。
 
 ⛔ **D-1 双份代码债**（`tools/` 原件与 `src/` 新件并存）：GLM 裁定 (a) 接受 + 登记 + **限期退役**，退役须另开单。
+
+---
+
+## 2026-08-26 · **F-90 补审 = REJECT**；一条缓存路径让「修没修好」在官方口子上看不出来
+
+> 本日第一件事按 CLAUDE.md §2 banner ⑤ 执行 = **补审 F-90**（上一轮唯一未过跨家族审的一笔）。
+> 审阅方 **GPT 家族**（`gpt-5.6-sol` / effort `xhigh`，MCP `danger-full-access`）·
+> 裁决 → [`logs/reviews/verdict/2026-08-25_f90_floor_id_mapping_gpt_verdict.md`](../reviews/verdict/2026-08-25_f90_floor_id_mapping_gpt_verdict.md)
+
+### 一、结论：**REJECT**，四条阻断
+
+⛔ 处置按请求单事先约定：**在 `main` 上另开修复单，不回退历史**。
+
+| # | 阻断项 | 一句话 |
+|---|---|---|
+| 1 | **F-90 第 6 处未修** | plan segment matcher 在楼层桥建好**之前**就比字符串（`score_service.py:389` vs 桥在 `:431`；matcher 在 `segment_score.py:1751`）|
+| 2 | **F-100** | correction 判分路径没接 source-view 桥 ⇒ 真实 gt 的 `source_refs` 一到就静默全 miss（reading 那条路已经接对了，两条路两套）|
+| 3 | **F-101** | 合法的 `src:<64hex>` locator 被新映射器的 `split("/",1)[0]` 当成未注册输入拒掉 |
+| 4 | **F-102** | ⭐⭐⭐ 判分语义改了、**缓存 identity 没改** ⇒ 官方 `flow` 继续命中修复前的 sidecar |
+
+### 二、⭐⭐ 本轮最值钱的一条：我自己标注的「最不确定」被查实，而且比我猜的更糟
+
+请求单第 2 条我写过一句「**这条是 orchestrator 自己最不确定的地方**」——
+问的是「只有一条判据 eligible、且那条还全 fail，能不能算真的判出分」。
+
+复核方的答案：**不能，而且那条 fail 本身就是第 6 处缺陷的读数**。
+⇒ 那份十判据读数的真实含义是 **「九条没判 + 一条判的是我自己的 bug」**。
+
+**orchestrator 已独立复跑坐实**（⛔ 不照抄裁决）：
+
+```text
+target_floor_ids ['F1']   obs_floor_ids ['f1']   same_geometry True
+before [('extra',4.0)×4, ('miss',4.0)×4]
+after  [('complete',4.0)×4]
+```
+
+同一份几何、只把楼层名从 `f1` 翻成 `F1`，就从「16 m 多画 + 16 m 漏画」变成「16 m 全对」。
+
+### 三、⭐⭐⭐ F-102 为什么排到最优先（比它自己的严重度高一档）
+
+复核方在真实 R0 上的实测：
+
+```text
+live       not_applicable  unsupported_view_contract   ← 现在的代码走到了 F-99
+cache_hit  True
+cached     rejected  score_view_binding_invalid        ← 官方 flow 拿到的是【修复前】的结论
+same_identity True
+```
+
+⇒ **「F-90 到底修没修好」这个问题，从官方跑测口子上是看不出来的。**
+不先解这条，后面每一次「判出分了吗」的读数都可能是旧 sidecar。
+同族两条老账：[[cache-in-front-of-a-gate-is-a-second-entrance]]（我验的是这道门，还是绕过它的那条路）
++ [[version-number-is-not-behavior-attestation]]。
+
+### 四、⭐ 「停下上报」计数的更正（⛔ 不是净增一条）
+
+上一轮记的是 **28 次全是派工方题错**，其中含本单施工席位上报的 2 条。复核方逐条重判：
+
+- 第 1 条（「派工单只点名 1 处 ⇒ 题错」）—— **不认同**：派工单写过候选清单可能不完备并授权继续找；
+  且施工自己的「5 处」仍漏了第 6 处。⇒ **这条从计数里划掉。**
+- 第 2 条（「修好 F-90 就能让 sm25 判出分」这个前提不成立 = F-99）—— **认同事实**，
+  但**不认同用它豁免验收**：那应当导致「停下上报 + 验收未满足」，而不是换成自造 fixture 宣布达标。
+- ⭐ **新增第 3 条**：派工单暗含前提「合法 host `source_ids` 总能按 `/` 拆出 input id」，**该前提不完整**（= F-101）。
+
+⇒ **累计仍是 28/28**，但构成变了（−1 +1）。⛔ 别把它记成 29。
+
+### 五、⭐ 复核方对「验收有没有满足」的直答
+
+原话：**「算绕过，不满足验收判据。」**
+派工单点名的验收对象是 sm25 那份现成产物；真实 case 至今零 criterion，
+自造 fixture 只能作单元级补充证据，**不能替代被点名的真实验收对象，也不能把「停报」改写成「验收通过」**。
+⇒ 同族 [[self-report-more-compliant-than-artifact.md]] 的变体：**这次不是自述更合规，是夹具更合规**。
+
+### 五之二、⭐⭐ 同日下午：返工五项做完，判据 A 过、判据 B 被证明**无法达成**
+
+施工 = **GPT 续用同一个复核会话**（用户 08-26 拍板：它上下文最全）· 审 = **GLM**（谁写谁不批）·
+派工单 → [`logs/reviews/request/2026-08-26_f90_rework_four_blockers_dispatch.md`](../reviews/request/2026-08-26_f90_rework_four_blockers_dispatch.md) ·
+施工报告 → [`logs/reviews/execution/2026-08-26_f90_rework_construction_report.md`](../reviews/execution/2026-08-26_f90_rework_construction_report.md) ·
+两个检查点 `b735db4`（第 1/1b/2 项）+ `8ea9aca`（第 3/4 项）
+
+| 项 | 内容 | 状态 |
+|---|---|---|
+| 1 | **F-102** 判分缓存 identity | ✅ correction 侧 opening matcher 独立版本；两处重复构造 `HelperIdentityV9` 收敛成工厂（**那份重复本身就是成因之一**）|
+| 1b | **F-103**（本轮新登记）官方口子把三个 NA 原因压成一个字符串 | ✅ `not_applicable` 分支保留 `error.code` 进 `detail`，`run_stage` 暴露 `score_payload_detail`；⛔ 粗分类 `reason` 四个取值一个没动（改前 grep 全仓：**零个 `payload.detail` 消费者**）|
+| 2 | **F-90 第 6 处** plan matcher 在桥之前 | ✅ 桥前移到 judge normalization boundary，只重键 judge 自己的 `PlanSegment`；⛔ 没碰 product geometry、没碰 `segment_score.py`、零模糊匹配 |
+| 3 | **F-100** source-view 桥没接 | ✅ 把 reading 那边**内联**的映射抽成共享 helper `source_view_to_gt_view_ids`，两条路调同一个（⛔ 没写第二套）|
+| 4 | **F-101** `src:<64hex>` 被错拒 | ✅ judge 不再 `split("/",1)[0]`，改为消费已复验 proof 的 `claim_links`/`source_windows` catalog 解回 `source_input_id` |
+
+**⭐ 判据 A 通过，而且是从官方口子读到的**：真实 R0 走 `run_stage._grade_typed_attempt_artifacts`，
+`score_payload_detail` 从 `score_view_binding_invalid` 家族 **前进到 `score_identity_support_ambiguous`**，
+上下文 = `support_lines [('F1','H',14.0), ('F1','H',14.120000000000001)]` ⇒ **正是 F-99**。
+全量 **`3029 passed / 13 xfailed`**（施工席位自跑）。
+
+**⭐⭐ 锁这次是真的有分辨力**（针对上一轮「只断言 `kind` 和 `extras`」）：
+F-100 的锁用**真实** `GtEntityRefV3` source_ref（⛔ 不再是空元组 —— 正是那一手让过滤器整轮没被行使），
+断言 `boundary_complete`/`windows_placed`/`window_plan_geometry` 全 eligible+pass、
+`existence`/`host`/`along`/`width` 分母非零且 complete；**七个** fail-closed reason 全参数化，摘桥即七条全红。
+
+**⛔ 判据 B 达不成，且这也是派工方题错（第 33 条）**：我把「0.12 m 偏差」当成一个可单独拨动的输入量，
+它实际被冻结在**五处**契约里（producer footprint ring · 贴外圈 cell 边 · 31 个真实窗笔画的法向窄带 ·
+resolver locator/output hash · host claim + accepted identity）。**三次尝试各被不同的真实 validator 响亮拒绝**
+（`zero_segment_candidates` / `invalid_interior_edge_pair` / `cell 边长 0.005 m < 0.100 m`）
+⇒ ⭐ **施工方没有伪造十判据表，停下上报了** —— 这正是上一轮缺的那个动作。
+⇒ **真实 case 上的十判据读数至今不存在，它挡在 F-99 后面。⛔ 别记成「已验收」。**
+
+### 五之三、⚠️ orchestrator 本轮的一次误判（当场被对方证据推翻，记下来）
+
+施工报告称「真实 producer 的 Floor 2 本来就有两个 cell gap」。orchestrator 复核 `output.json`
+得两层 `gap_area / overhang_area` **均为 0.0**，据此在提交 `8ea9aca` 的说明里判它「是它自己改过的夹具留下的」。
+**该判断是错的。** 对方给出确切命令后复跑：它读的是**被跟踪的**
+`1_correction/attempts/001/window_resolver_inputs.json` 里内嵌的 **`producer_draw_canonical_bytes`**（核前草图），
+实测 `floor_2` 对 footprint 的 symmetric difference = **0.12515 m²**（两块：`(0.12,14.12,5.13,14.125)` 与 `(14.88,5.88,24.89,5.89)`）。
+
+⇒ **两个数都对，是两份不同的几何**：accepted `output.json`（核后）零 gap · 内嵌 producer draw（核前）有 gap。
+⭐ **教训（我这边的）**：我只核了「那两个坐标在不在 accepted 产物里」，就断言了**它来自哪里** ——
+[[proxy-mistaken-for-the-thing]] 的又一形状：**「不在 A 里」不等于「来自被污染的 B」，它还可能来自同样可信的 C。**
+⭐ 顺带登记 **F-104**（观察项，见缺陷表）。
+
+### 五之四、⭐⭐⭐ 用户当场纠偏：**别再拿旧 sm25 产物当验收对象**（2026-08-26）
+
+> 用户原话：「**不用拿之前的 sm25 产物来判分了，我们现在整个 reading 和 correction 流程都变了啊？
+> 我们直接用新的判分器，然后 reading correction 一体化改造完之后都用新的就行了啊，
+> 为什么要执着用旧的 sm25 来跑通？**」
+
+⛔ **orchestrator 跑偏了，而且偏离的是用户自己 08-25 就定过的次序**
+（CLAUDE.md §0.0：「**新 reading 落地后**先拿 sm25 全流程撞通」）：
+我把 F-90 返工包的判据 A / 判据 B 都锚在 `run_2026-08-25_c2_rescore_R0` 上 ——
+**那是旧格式 reading 走旧 correction 产的东西，一体改之后就作废。**
+
+#### 三条后果（已据此改口径）
+
+**① F-90 返工包的活不白做，白挂的是它的验收对象。**
+那五处修的是**判分器**（楼层命名桥 · 溯源过滤 · 缓存身份 · 官方口子能否看见原因）= **harness**，
+换成新产物照样要用。⇒ **验收判据就地改**：
+- ⛔ **删掉**「真实 case 报错码必须前进」（判据 A）与「十判据真实读数」（判据 B）；
+- ✅ **改为**：五处缺陷各自在**夹具上**被证明有分辨力（红/绿对照）+ 全仓绿；
+- ⭐ **「真实 case 判出分」整体后移**到一体改之后，**用新产物**验。
+
+**② F-99 现在修有很大概率白修。**
+它的病根 08-25 已查明 = **correction 提示词在要求墙中线基准**
+（[pipeline.py:365-369](../../../src/agent/pipeline.py#L365) 逐字 `wall-centerline`），而**一体改必须改那两句**。
+⇒ **挂起，不排期**；一体改落地后重测，再决定它还存不存在。
+
+**③ ⭐ 缺陷要按「代码侧 vs 旧产物侧」重新分类** —— 之前混在一张表里，导致产物侧的观察被当成代码的属性排期。
+
+| 仍然有效（**代码侧**，与产物格式无关） | ⏸ 挂起到一体改之后重测（**旧产物侧的观察**）|
+|---|---|
+| **F-95** 顶点规范化毁凹多边形（validator+geometry）· **F-96** 跨层碎片无守卫（确定性核）· **F-89** 一张立面跨两层就整份丢（judge）· **F-98** 判分对浮点末位敏感（judge）· **F-97** 新产物静默半喂进 correction（pipeline，**一体改必做**）| **F-99** 12 cm 基准差 · **F-91** 立面多平面为空（`facade_segments=0`）· **F-92** cell 多边形全 null · **F-104** 核前草图有 cell 缺口 |
+
+⭐ **判别法则**（本次立的）：**「这条结论是从哪份产物上读出来的？换一份产物它还在吗？」**
+在 ⇒ 代码侧，照常排期；不在 ⇒ 产物侧观察，**挂起，⛔ 不占本轮工期**。
+
+#### 在飞的 GLM 审怎么办
+
+复核单里的十问，只有**第 2 问（判据 A 复现）** 与**必答第 1 问（判据 B 做不做得到）** 锚在旧产物上，
+其余八问（信任根换对没有 · 七把锁有无分辨力 · 缓存 identity 是门还是标签 · 锁的前提能活多久 ·
+F-103 消费者审计 · 全量 · 范围 · 容差零改动）**全是纯代码审，仍然有效**。
+⇒ ⛔ **不打断它**（GLM 一轮审 ≈ 一个大额度块），**裁决回来后把那两问的结论作废**即可。
+
+### 五之五、✅ **F-90 返工 = GLM APPROVE-WITH-FINDINGS**（0 阻断 / 7 不阻断）
+
+裁决 → [`logs/reviews/verdict/2026-08-26_f90_rework_glm_verdict.md`](../reviews/verdict/2026-08-26_f90_rework_glm_verdict.md)
+· 全量 **`3029 passed, 13 xfailed`（GLM 独立复跑，与施工三数逐位相同）** · 容差与 gt **零改动**（它自己核的）。
+
+**⭐⭐⭐ 本轮复核最值钱的三件（都是送审方没做的）**：
+1. **它自己造了「两层楼 + 二层零窗」的端到端用例** → `boundary_complete 32/32 pass`
+   ⇒ **换信任根的收益是真实兑现的**（旧根按窗户 fail-closed，零窗层根本进不了桥）。这是纸面推理拿不到的证据。
+2. **逐分支摘除**，把「变红」升级成「**定向**变红」：摘 F-101 修复 ⇒ **只有 `[locator]` 红、`[view_observation]` 仍绿**。
+   ⇒ 顺带撞出 **实验 2c：「locator 不在 catalog」那个分支零锁覆盖**（把它 reason 错标，七锁全绿）。
+3. ⭐ **它点了 orchestrator 一处流程问题**：我把复核请求单的「范围」文件清单**改写成了实际 diff 的文件集**
+   ⇒ **验收标准跟着结果走**。⛔ 这条我认，已记为下方的流程账。
+
+**⚠️ 复核方原话，全文照收**：
+> **任何把本单记成「sm25 真实产物判分已恢复」或「F-90 已在真实 case 上验收」的表述都是错的。**
+
+#### 七条不阻断 findings 的去处
+
+| # | 内容 | 去处 |
+|---|---|---|
+| 1 | 「locator 不在 catalog」分支**错命名 + 零锁**（报成 `..._ambiguous_source` + `candidate_inputs: []`，与真歧义同名）；`:231` 空集分支同理 | ⏭ **小单**（一个字符串常量 + 两条参数化锁案例）|
+| 2 | ⭐ **reading 侧 NA `detail` 语义变了但 reading 的 helper 版本恒 v1** ⇒ 旧 reading NA sidecar 会 cache 命中返旧值 = **F-102 微型重演** | ⏭ **F-105**（见缺陷表）|
+| 3 | 手工 helper 版本 = **执行机制非根治机制**（忘提版本时零拦截：锁全绿、缓存照常命中旧 sidecar）| ⏭ **债 D-3**（派生摘要，另开单；本轮禁令维持）|
+| 4 | ⭐ **验收标准跟着结果走**：派工单括号列举 ≠ 实际 diff ≠ 请求单验收清单；`run_stage.py` 那 2 行超出「仅第 1 项」字面 | ⏭ **流程账**（见下）|
+| 5 | `test_f102` 前提依赖**仓库纪律而非机制**（归档 sidecar 一旦被重跑提交，前提就没了；实测是**响亮红**，良性）| ⏭ 补 docstring；长期随 #3 根治 |
+| 6 | 施工报告「reason 的四个取值」—— schema Literal 实为 **5** 个 | ⏭ 改字 |
+| 7 | judge 侧 z 排名**镜像**生产者定义，但两侧无互引锁 ⇒ 将来改生产侧排名会静默分歧 | ⏭ 观察项 + 加指针 |
+
+#### ⭐ 流程账（finding #4，orchestrator 自记）
+
+**我在写复核请求单时，把「范围」那一节的文件清单照着实际 diff 写了** —— 于是「有没有超范围」这个判据
+**永远不可能不通过**。⇒ 同族 [[gate-with-only-negative-assertions-is-unobservable]]：
+**判据若是从结果反推出来的，它就不是判据。**
+✅ **改法**：范围清单只能来自**派工单**；施工过程中范围有演进（本单的 F-103 = 第 1b 项就是）
+⇒ **必须回写派工单并注明是演进**，⛔ 不许悄悄改到复核单里。
+
+#### 「停下上报」计数 → **34**
+
+复核方逐条认同 29–33 全成立，并**自提第 6 条（弱）**：
+判据 A 原版把「必须前进到 `score_product_segment_unresolved`」**写死**为通过标志，
+而实际到达的是 `score_identity_support_ambiguous`（更早的 `scoring.input_identity` 门）
+⇒ **按字面判据 A 应 FAIL**。⭐ **「把具体报错码写死为判据」这个病又犯了一次**。⇒ 累计 **34/34**。
+
+### 五之六、⛔ F-95 派工被顶回来（第 35 条，我的题面自相矛盾）
+
+派工后 GPT **没动手就停报**：派工单一边写「输入是**有序简单环**，只需反向 + 旋转起点」，
+一边在验收判据里要求「**自交的乱序输入**」也全绿 —— **反向和旋转消不掉自交**，重新排序又会把 F-95 带回来。
+
+⭐ **核查后发现根子比派工单更深**：`canonicalize_ring_vertices` 的 docstring **白纸黑字承诺**
+`any input order, including scrambled / self-intersecting` ⇒ ⛔ **不是我一个人写错题，是现有契约本身在承诺一件做不到的事**。
+（另：它还指出那份夹具矩阵脚本**硬编码主树路径**，违反本单的 worktree 约束。）
+
+**它的建议**：把输入契约明确成「有序简单环」，乱序/自交**响亮拒绝**，该负例的「绿」= **预期拒绝**。
+⇒ **orchestrator 采纳方向**，但落单前必须先查一件事：**现在有没有调用方真的在依赖「能吃乱序输入」这个承诺**。
+⛔ 查清之前不重派（[[dont-delete-normalization-without-finding-its-contract]]）。
+
+### 五之七、⭐⭐ 用户反问：「我们的拆分到底怎么设计的」—— 现行口径 + **一处真实不一致**
+
+用户原话：「reading 产出的是**双通道和语义候选**吗？然后最终根据这些『证据』产出『建筑图纸』
+是 **correction 来判断和决断**吗？」
+
+**⭐ 现行口径（用户自己 08-23 拍的，见 [指南 §一](../../guides/reading_correction_split_guide.md)）与这句话有两处偏差**：
+
+| 用户这次的说法 | 现行口径 | 差在哪 |
+|---|---|---|
+| reading 产出「双通道」 | ✅ 对 —— `observations`（代码在像素上量的，**唯一可评分层**）+ `declarations`（标注逐字转录，只比字面）| 无 |
+| reading 产出「语义**候选**」 | ⚠️ **不是候选，是判断** —— `hypotheses` = **模型认出来的**，带证据引用 | 「候选」暗示由 correction 来选；现行口径是 **reading 的模型直接认定** |
+| correction「判断和决断」出建筑图纸 | ⚠️ **部分对** —— correction = **装配**（模型出决定、代码出坐标）| ⭐ **「哪两条线是一堵墙」「这洞是门还是窗」「哪族是墙/标注」已经在 reading 认完了**，correction ⛔ 不重做。correction 决断的是**工程化**的事：模数吸附 · 跨层对齐 · 基准转换 · 冲突仲裁 |
+
+#### ⛔ 一处真实不一致（必须先解决，才能回答「reading 成绩评不评认得对」）
+
+- **指南写**：`hypotheses`（模型认的那层）**⛔ 不直接计分、可整层丢弃**。
+- **实验判分器却直接读它打分**：`src/agent/judge/as_drawn/reading_grade.py:116` 直接消费 `hypotheses`
+  （sol 独立指出，列为它给的第 6 条错误）。
+
+⇒ **两条不能同时成立。** 两条出路：
+- **(a) 认得对不算 reading 正式成绩** ⇒ 判分器必须停止读 `hypotheses`；「认」的质量只在下游体现。
+- **(b) 认得对要算** ⇒ 那些语义**必须升格成正式答案字段**（不能一边叫「工作假设」、一边偷偷计分）
+  —— 这正是 sol 说的「⛔ 不许留判过程的后门」。
+
+⭐ **orchestrator 倾向 (b)**：用户说过「reading 判分相对不重要，因为你可以对 gt、我可以看图」，
+但「这洞是门还是窗」认错会**一路错到能耗模型**，而下游没有任何门能把它认回来
+（同族 [[absence-conflates-causes-in-observables]]）。⇒ 建议**升格为正式字段并计分**，
+但保持 sol 的纪律：**只判正式提交的最终答案，⛔ 绝不判候选与过程**。
+
+### 五之八、⭐ 基准差那 12 cm 的最终定性（⛔ 覆盖本日两次错误说法）
+
+用户问「不应该是 24 cm 吗」。**两个数都对，量的不是同一个东西**（orchestrator 实测）：
+
+```text
+产物  x 0.12 → 24.89     y 0.12 → 19.88      ← 外轮廓 / 房间格 / 立面段【全部在中线】
+gt    x 0.00 → 25.00     y 0.00 → 20.00      ← 【全部在外皮】，另记 wall_thickness_m = 0.24
+逐边差   0.12 m = 半个墙厚   ← 判分器报的（它逐边判包含）
+整体尺寸差 0.24 m = 一个墙厚   ← 用户说的（24.77 vs 25.00）
+```
+
+⛔ **本日两次说法都要更正**：
+① 「correction 全程中线」—— 方向对但没说清是**对 gt** 的差；
+② 「外轮廓已在外皮、只有立面段漏了外包变换」—— **错**。实测 `footprint_x = [0.12, 24.89]`
+⇒ **外轮廓本身也在中线** ⇒ F-17 那次外包变换在这份 schema-v3 产物上**根本没生效**。
+⭐ 也**不是**「平面按中线、立面按外包」的内部矛盾，是**整份产物 vs gt** 的基准差。
+⇒ 一体改必须处理的是**这一次转换在哪一层做、由谁做**（sol Q1：**出模形式跑前冻结、由确定性代码投影**）。
+
+### 六、程序合规
+
+- 主树 `git status --porcelain` 为空、`git worktree list` 无残留（复核方的 `/tmp/f90-gpt-review` 已自行清理）⇒ **只审未改**成立。
+- 复核方自己跑的全量：`1 failed, 3018 passed, 13 xfailed`，唯一红 = `tests/test_zone_agent.py` 缺 API 凭据（已知环境坑，非回归）。
+- 提交范围合规：`3f6731f` 只动 `judge/opening_claim_score.py` · `judge/score_service.py` + 两个测试。
+
+---
