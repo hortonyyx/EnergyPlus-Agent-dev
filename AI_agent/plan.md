@@ -272,6 +272,11 @@ as-drawn 产 `observations.face_lines`/`hypotheses` —— **两套 schema 完�
 | **⭐ 新债 D-2** | **装机路径的根治（B 案）= 工程维护债**（用户 2026-08-25 拍板：「按你的推荐，这个 B 登记到工程维护债上」）。**A 案先做止血**（给裸跑脚本各加一行自举，⛔ 只收窄暴露面**不消除机制**）；**B 案 = 删掉共享 `.pth` + 全部入口改走 `python -m`**，届时踩坑从**静默串台**变**响亮失败**。⛔ **代价即它成为债的原因**：破坏 ≥15 处已写进 `guides/` 的裸跑命令 + 各席位的手指记忆，须一次系统性迁移。⭐ **GLM 独立意见与此一致**：「长期应对齐 B，A 只是收窄暴露面、不消除机制」。⭐⭐ **2026-08-25 GLM 复核明确裁定：紧迫度⛔ 不因 A 案的机械锁降低** —— 「那道锁把 A 从**约定**变成了**机制**，但只是**执行机制**（enforcement），不是**根治机制**；『真正的机制性根治仍然只有 B』**一字不改**」。三条实测据：① `.pth` 注入机制**原样活着**（实测在 `sys.path` 末尾 index 5）· ② **锁的覆盖边界 = A 的收窄边界**，覆盖外有**现成活例** `tests_scripts/deepseek_review.py:28`（模块级 src 导入 + 无自举 + docstring 文档化裸跑，在 worktree 里跑就静默串台，锁对此沉默）· ③ 锁**只验形态不验参数**（`parents[N]` 层数写错则锁绿而串台依旧）。⇒ ⭐ **准确表述：锁 = 在一个枚举过的暴露面上，把「忘关门」从静默变成响亮；它机制化了「A 的完备性不退化」，⛔ 没有也不可能机制化掉串台本身。** | ⭐ **中高紧迫**（GLM 定：**本批收尾前后排期，⛔ 不写「远期」**）—— 多席位 worktree 是常态（当前挂着 3 棵树），每次开树都在 A 覆盖外的入口冒险；而 B 成本不高（删 `.pth` + 全走 `python -m`），**收益是整个缺陷类目消失**。退役须另开单 |
 | **⭐ 新债 D-1** | **`tools/` 原件与 `src/` 新件双份并存**：跨家族审裁定 (a) 接受双份 + 登记 + **限期退役**。成因是 `glm_cheats.py`/`glm_rework.py`/`glm_probes.py`/`glm_sweeps.py` 用 `spec_from_file_location` **按文件路径**加载被搬走的模块，删原件会炸掉五轮跨家族审累积的全部作弊夹具。⛔ 与「不两处并存」冲突，**日后改一份忘另一份是必然的**。⇒ 退役动作 = 夹具改成按模块加载，**须另开单** | **登记**（2026-08-25）|
 | **⭐⭐ 新 F-106** | ⛔ **gate① 的检查报告正被反向喂进 correction 的提示词**：`*_checks.json`（`stage_check_report`：无 `schema` 键，含 `stage`+`results`+`report_schema_version`）住在历史 run 的 `0_reading/` 里，而 `discover_vector_files` 把它归进 `others` ⇒ `pipeline.py` 逐份原样贴进提示词。实测 `case_tests` 下 `0_reading/**` 有 **108** 份带 `report_schema_version` 的 JSON（施工席位按 `0_reading/` 根目录口径数到 **43** 份）。**现代 run（sm25 R0 / sm21 2026-08-20）的 `0_reading/` 根目录已无边车 ⇒ 现网 live 路径干净**，但任何历史目录被重放、或先跑 `validate_case(write_reports=True)` 再跑 correction，边车就在 | **登记**（2026-08-27，F-97 施工席位「停下上报」时撞出，orchestrator 复核属实）· 处置已定 = 声明式排除 + 消费对账点名（随 F-97 落地）· ⛔ **影响面本轮不追** |
+| **⭐⭐ 新 F-107**（GLM 记 F'-1；= 原 F-4 结转）| ⛔ **G1 复现门与 `RawLayerTrust` 至今零生产消费方** —— GLM 窄+宽两轮 grep 实测（`verify_raw_layer_reproduction｜load_gt_raw_layer｜RawLayerTrust｜GtRawLayer｜reproduction_status｜inputs_unavailable｜not_attempted｜trustworthy`）：生产代码 **0 命中**，全部命中为无关注释/测试。⇒ **「响亮降级」目前只活在返回值与测试断言里**。⭐ 同族 [[absence-conflates-causes-in-observables]]：**没有消费者的响亮 = 没有响亮。** 修法 = 接线时消费者把**非 `reproduced` 一律当红** | **登记**（2026-08-27，GLM 返工审 F'-1）· ⛔ 接线时必做，⛔ 碰 `src/agent/judge/` 须派工 |
+| **⭐⭐ 新 F-108**（GLM 记 F'-2）| ⛔ **盘上报告 schema 非法时走【裸异常】而不是四态 verdict**：`gt_raw_layer.py:472` 的 `model_validate_json` **不在 try 内** ⇒ GLM 造的 11 种形态里有 **6 种**（数字→字符串 / 塞未知字段 / 删必填 / 改 gate id / 嵌套塌缩 / 外包一层）直接炸出 `ValidationError`。**今天响亮无害**（且无消费者，见 F-107）；⭐ **接线之日就是隐患** —— 调用方对异常的处理若与 verdict 分叉，「响亮」就漏气。修法照抄本单 F-2 的样式：接进 `content_mismatch`（或专设状态）+ 指针取自校验错误路径 | **登记**（2026-08-27，GLM 返工审 F'-2）· ⛔ 碰 `src/agent/judge/` 须派工 |
+| **⭐ 新 F-109**（GLM 记 F'-3）| **晋升件反解的掩护面 = 恰好 `verification.methods` 一个元数据字段**：GLM 实测篡改该字段**门照绿**（反解把它 reset 回 `[]` 再哈希，签字链管不到）。其余字段 status/reviewer/日期有交叉核对，再其余全在 content hash 里。⛔ **纯元数据、动不了几何**，故不阻断；但当前签字链对它**零绑定**。修法：docstring 声明，或给 methods 也加交叉核对 | **登记**（2026-08-27，GLM 返工审 F'-3）|
+| **⭐⭐⭐ 新 F-110**（GLM 记 F'-4）· ⭐ **口径已进 CLAUDE.md banner ②′** | ⚠️ **VG 指纹升 fatal 的运维代价：本批期间 sm25 复现门预计常红**。`vg_implementation_sha256` 覆盖 `correction/{facade_visibility,facade,footprint,schema}.py` 四件，且是**文件粒度**不是行为粒度 ⇒ **只改 `correction/schema.py` 里与转换无关的行（正是本批 reading/correction 一体改的主战场）也会报 `implementation_drift`**。⭐ **为什么仍成立**：归因不错（确实「这棵树不再是产出该报告的实现」），且组内无闭包外文件、不会混进假漂移。⭐⭐ **消化方式是流程性的**（红 = 「树动了」的信号 + 重签仪式），⛔ **代码消不掉**。⇒ **谁在本批期间看到这道门红，先对照本条，⛔ 别记成缺陷/回归** | **口径**（2026-08-27，GLM 返工审 F'-4）· ⛔ 不是待修缺陷，是**必须先声明的已知代价** |
+| **⭐⭐ 新 F-111**（GLM 记 F'-5）| ⛔ **sm24 的签字 request 已不可寻 ⇒ 复现门可用面 = 现存 2 份 case 里的 1 份**。GLM **实跑 sm24_anchor** ⇒ `inputs_unavailable`（`logs/experiments/` 下无 request.json 能重算出签字哈希）。门 **fail-closed 行为正确**（响亮、不假绿），但可用面只剩 sm25。⚠️ **orchestrator 题面错**：我把这条写成「目录**被清理则会**降级」的**将来时风险**，实测**它已经发生** ⇒ 下次盘点复现门读数按「**可用面 1/2**」记账。⭐ request 的权威来自**内容重算**（位置不承权）⇒ 把真件归档到耐久位置是安全的找回路径；或明确记「sm24 复现门不可用」 | **登记**（2026-08-27，GLM 返工审 F'-5）· 需排期：找回归档 or 明确放弃 |
 | **⭐ 新 N-3（F-95 审）** | `classify_ring_change` 的 `"resorted"` 类别在新合同下**生产侧永不触发**（docstring 已标注为历史诊断类）；将来若给 `GeometrySchema` 接非内核生产者需重读此合同 | **登记**（分类学债，极小）|
 | F-62 · N-1 / N-2 | guard 词法围栏同族缺陷 | **未修**（`observe` 档下影响归零）|
 | F-63 | 跨轴门抓不住拆轴规避 | ⭐ **本轮活体复现**（GPT 主动拆轴消警）；修法归 [专项 §9.1](capability/reading/improvement_methodology.md) |
@@ -486,6 +491,20 @@ GPT sol 第三次派出**没有再停**，实打实审了 **113,184 token**，�
 | `test_uppercase_and_nested_json_are_absent_from_ledger_inventory` | `MYSTERY.JSON`（大写）与子目录里的 json **不进 ledger 清单** |
 
 ⇒ **F-97 仍然【未过审】。** 下一轮的处置见本节末尾。
+
+#### ✅ **G1 已并回主线并过了主树权威全量**
+
+`10fb3b6`（`--no-ff` 合并 `wt/08.27_gt_raw_layer`，3 文件 / 779 行，**零冲突**）。
+**主树权威全量**（`python -m pytest -q -n 6`，18m10s，exit 0）：
+
+```
+3046 passed, 13 xfailed, 212 warnings in 1090.36s (0:18:10)
+```
+
+⇒ 与 GLM 在 worktree 里跑的 `3046 passed / 13 xfailed / 0 failed` **计数一致**；较合并前主树 3035 净增 11
+（G1 原件 7 + 返工 4）。**合并门通过。**
+⚠️ 该轮与 GLM 审 F-97 同机并行（各 `-n 6`，峰值 `load average 14.94/16 核`）—— **没有出现 08-27 那种无 summary 行的假红**，
+⇒ **`-n 6` × 2 路是安全配置**，`-n auto` × 3 路不是。这条给 §5#7.5 补了一个正例读数。
 
 ---
 
