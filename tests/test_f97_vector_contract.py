@@ -345,3 +345,197 @@ def test_real_historical_views_lacking_dimensions_are_recognized(path):
     raw = json.loads(path.read_text(encoding="utf-8"))
     assert "dimensions" not in raw
     assert classify_vector_json(raw).contract_id == CONTRACT_READING_VIEW_LEGACY
+
+
+# =========================================================================== #
+# Cross-family rework (2026-08-27, GPT sol): three blockers, each with a lock
+# that goes through a REAL entry point.
+# =========================================================================== #
+_STROKE = {"id": "S1", "pen": "wall", "points": [[0.0, 0.0], [1.0, 0.0]]}
+
+
+def _unregistered_but_legacy_shaped() -> dict:
+    """B-01's fixture: declares a contract nobody registered, yet still carries
+    a `strokes` list that `ReadingView` happily validates."""
+    return {
+        "schema": "future_reading_contract_v99",
+        "image_label": "1f",
+        "image_kind": "plan",
+        "strokes": [_STROKE],
+    }
+
+
+def _malformed_sidecar() -> dict:
+    """B-02's fixture: the three key names are present, the types are junk."""
+    return {
+        "stage": 7,
+        "results": "not-a-result-list",
+        "report_schema_version": {"not": "a version"},
+    }
+
+
+# --- R1: unknown explicit schema must not fall back to legacy --------------- #
+def test_r1_unregistered_schema_is_unknown_not_legacy():
+    decision = classify_vector_json(_unregistered_but_legacy_shaped())
+    assert decision.contract_id == CONTRACT_UNKNOWN
+    assert decision.disposition is None
+    assert "future_reading_contract_v99" in (decision.reason or "")
+
+
+def test_r1_unregistered_schema_fails_loudly_through_the_real_entry(tmp_path):
+    """⛔ Not a discriminator-level assertion: this goes through the same
+    `_build_correction_messages` the production stage calls."""
+    vdir = tmp_path / "0_reading"
+    _write(vdir, "1f_view.json", _legacy_view())
+    _write(vdir, "2f_view.json", _unregistered_but_legacy_shaped())
+    (vdir / "reading_summary.md").write_text("summary", encoding="utf-8")
+
+    with pytest.raises(UnconsumableVectorFile) as exc:
+        _build_correction_messages(vdir, "{}")
+    msg = str(exc.value)
+    assert "2f_view.json" in msg
+    assert "future_reading_contract_v99" in msg
+
+
+def test_r1_unregistered_schema_never_reaches_the_prompt(tmp_path):
+    """The point of B-01: such a file must not be pasted as untyped text."""
+    vdir = tmp_path / "0_reading"
+    _write(vdir, "1f_view.json", _unregistered_but_legacy_shaped())
+    assert classify_vector_dir.__module__  # sanity: real symbol, not a stub
+    with pytest.raises(UnconsumableVectorFile):
+        classify_vector_dir(vdir, discover_vector_files(vdir))
+
+
+# --- R2: registered declaration + legacy structure is STILL ambiguous ------- #
+def test_r2_registered_schema_plus_legacy_is_still_ambiguous():
+    """⚠️ Regression guard for the B-01 fix: tightening 'declared ⇒ not legacy'
+    must NOT collapse a genuine double match into one verdict."""
+    hybrid = {
+        "schema": PRODUCER_AS_DRAWN_SCHEMA,
+        "observations": {},
+        "declarations": {},
+        "hypotheses": {},
+        "strokes": [_STROKE],
+    }
+    decision = classify_vector_json(hybrid)
+    assert decision.contract_id == CONTRACT_UNKNOWN
+    assert "AMBIGUOUS" in (decision.reason or "")
+    assert CONTRACT_READING_VIEW_LEGACY in decision.reason
+    assert CONTRACT_AS_DRAWN_PLAN in decision.reason
+
+
+def test_r2_undeclared_legacy_still_recognized():
+    """The other side of the same fix: no `schema` key ⇒ structural fallback
+    still works, which is what keeps 328 historical products consumable."""
+    assert (
+        classify_vector_json({"image_kind": "plan", "strokes": [_STROKE]}).contract_id
+        == CONTRACT_READING_VIEW_LEGACY
+    )
+
+
+# --- R3: malformed sidecar is loud; real sidecars still excluded ------------ #
+def test_r3_malformed_sidecar_is_unknown_not_excluded():
+    from src.validator.checks.schema import CheckReport
+
+    with pytest.raises(Exception):
+        CheckReport.model_validate(_malformed_sidecar())
+    assert classify_vector_json(_malformed_sidecar()).contract_id == CONTRACT_UNKNOWN
+
+
+def test_r3_malformed_sidecar_fails_loudly_through_the_real_entry(tmp_path):
+    vdir = tmp_path / "0_reading"
+    _write(vdir, "1f_view.json", _legacy_view())
+    _write(vdir, "1f_view_checks.json", _malformed_sidecar())
+    (vdir / "reading_summary.md").write_text("summary", encoding="utf-8")
+
+    with pytest.raises(UnconsumableVectorFile) as exc:
+        _build_correction_messages(vdir, "{}")
+    assert "1f_view_checks.json" in str(exc.value)
+
+
+def test_r3_every_real_sidecar_still_parses_as_the_producer_type():
+    """Compatibility half of R3: the stricter path must not cost real artifacts.
+    Measured over every `0_reading/*.json` in the tree, not a sample."""
+    from src.validator.checks.schema import CheckReport
+
+    sidecars = [
+        p
+        for d in Path(".").rglob("0_reading")
+        if ".git" not in d.parts
+        for p in sorted(d.glob("*.json"))
+    ]
+    excluded = []
+    for path in sidecars:
+        raw = json.loads(path.read_text(encoding="utf-8"))
+        if classify_vector_json(raw).contract_id == CONTRACT_STAGE_CHECK_REPORT:
+            excluded.append(path)
+            CheckReport.model_validate(raw)  # must not raise
+    assert len(excluded) == 43, f"expected 43 real sidecars, got {len(excluded)}"
+
+
+def test_r3_all_real_legacy_views_still_consumed():
+    """R5's compatibility half, asserted rather than only measured by hand."""
+    legacy = 0
+    for d in Path(".").rglob("0_reading"):
+        if ".git" in d.parts:
+            continue
+        for path in sorted(d.glob("*.json")):
+            raw = json.loads(path.read_text(encoding="utf-8"))
+            if classify_vector_json(raw).contract_id == CONTRACT_READING_VIEW_LEGACY:
+                legacy += 1
+    assert legacy == 328, f"expected 328 legacy views, got {legacy}"
+
+
+# --- R4: real run_correction entry — named failure AND ledger on disk ------- #
+@pytest.mark.parametrize(
+    "name,payload,expect_in_message",
+    [
+        ("non_object", "[1, 2, 3]", "unknown contract"),
+        ("invalid_json", "{not json at all", "invalid JSON"),
+    ],
+)
+def test_r4_real_run_correction_names_the_file_and_files_the_ledger(
+    tmp_path, name, payload, expect_in_message
+):
+    """B-03: the reading evidence preflight parses `*_view.json` and dies on a
+    non-object with a bare AttributeError. Classification + ledger must come
+    FIRST, so the failure is named and the ledger is on disk either way.
+    ⛔ Goes through real `run_correction`, not the `_write_..._ledger` helper."""
+    from src.agent.pipeline import run_correction
+
+    vdir = tmp_path / "0_reading"
+    vdir.mkdir(parents=True)
+    (vdir / "1f_view.json").write_text(payload, encoding="utf-8")
+    (vdir / "reading_summary.md").write_text("summary", encoding="utf-8")
+    stage_dir = tmp_path / "1_correction"
+    stage_dir.mkdir()
+
+    with pytest.raises(UnconsumableVectorFile) as exc:
+        run_correction(vdir, "{}", out_dir=stage_dir)
+    assert "1f_view.json" in str(exc.value)
+    assert expect_in_message in str(exc.value)
+
+    ledger_path = tmp_path / "_run" / "reading_vector_contract_ledger.json"
+    assert ledger_path.exists(), (
+        "F-c: a run that fails classification still needs a ledger"
+    )
+    ledger = json.loads(ledger_path.read_text(encoding="utf-8"))
+    assert ledger["files"][0]["file"] == "1f_view.json"
+    assert ledger["files"][0]["contract"] == CONTRACT_UNKNOWN
+    assert ledger["consumed"] == []
+
+
+def test_r4_ledger_precedes_the_reading_evidence_preflight(tmp_path):
+    """⭐ Ordering is the fix. Before it, this raised `AttributeError: 'list'
+    object has no attribute 'get'` from the preflight with no ledger written."""
+    from src.agent.pipeline import run_correction
+
+    vdir = tmp_path / "0_reading"
+    vdir.mkdir(parents=True)
+    (vdir / "1f_view.json").write_text("[1, 2, 3]", encoding="utf-8")
+    stage_dir = tmp_path / "1_correction"
+    stage_dir.mkdir()
+
+    with pytest.raises(UnconsumableVectorFile):
+        run_correction(vdir, "{}", out_dir=stage_dir)
+    assert (tmp_path / "_run" / "reading_vector_contract_ledger.json").exists()

@@ -27,14 +27,22 @@ Discipline this module follows
    producers with two different shapes (the reading product, and the as-drawn
    check report from ``validator/checks/as_drawn.py``), so keying on the value
    alone would name one of them the other.
-3. ⭐ **Legacy views are recognized by the producer's own type + what correction
-   actually eats**, not by a key list induced from existing artifacts.  The type
-   is ``reading/schema.py:ReadingView``; the consumed field is ``strokes`` (the
-   prompt cites stroke ids and counts ``pen == "window"``).  ⚠️ ``ReadingView``
-   is ``extra="allow"`` with every field defaulted, so it validates ``{}`` too —
-   "parses" alone would recognize everything, hence the ``strokes`` conjunct.
+3. ⭐ **Every contract is recognized by its producer's own TYPE**, never by a key
+   list induced from existing artifacts.  Legacy views use
+   ``reading/schema.py:ReadingView`` plus the field correction actually eats,
+   ``strokes`` (the prompt cites stroke ids and counts ``pen == "window"``);
+   check-report sidecars use ``validator/checks/schema.py:CheckReport``.
+   ⚠️ Both models default every field, so they validate ``{}`` — "parses"
+   alone would recognize everything, hence the explicit-key conjuncts.
 4. ⭐ **Every detector is evaluated; first-match-wins is forbidden.**  Two
    matches is an ambiguity to report, not a race for the detector that ran first.
+5. ⭐ **Structural fallback is only for the undeclared.**  Legacy recognition
+   exists for artifacts written before ``schema`` did.  A file declaring a value
+   this module does not register is unknown by construction, even when it still
+   looks like a reading view — otherwise any future contract that kept a
+   ``strokes`` list would be silently consumed as a 2026-06 view, which is F-97
+   reopened in a new shape.  A file declaring a *registered* value while also
+   matching legacy structure still goes to the two-match path (#4).
 """
 from __future__ import annotations
 
@@ -97,12 +105,65 @@ def _is_declared(raw: dict, schema_value: str) -> bool:
     return raw.get("schema") == schema_value
 
 
+# Every schema value this module registers. A file declaring a value OUTSIDE
+# this set is unknown by construction -- ⛔ it must never fall back to structural
+# legacy recognition (B-01).
+DECLARED_SCHEMA_VALUES: frozenset[str] = frozenset(
+    {AS_DRAWN_PLAN_SCHEMA, AS_DRAWN_PLAN_V0_SCHEMA, AS_DRAWN_ELEVATION_V0_SCHEMA}
+)
+
+
+def _declares_unregistered_schema(raw: dict) -> bool:
+    return "schema" in raw and raw.get("schema") not in DECLARED_SCHEMA_VALUES
+
+
 def _detect_legacy_reading_view(raw: dict) -> bool:
-    # ⚠️ Both conjuncts are load-bearing; see module docstring #3.
+    """Legacy views are the ONE contract that predates explicit declaration.
+
+    ⭐ B-01: a file declaring an UNREGISTERED top-level `schema` is never legacy
+    by structure. Legacy recognition is the fallback for artifacts written
+    before the field existed; letting a declared-but-unregistered contract fall
+    back here just because it still carries `strokes` would re-open F-97's
+    silent channel in a new shape -- any future contract keeping a `strokes`
+    list would be consumed as if it were a 2026-06 reading view.
+
+    ⚠️ Only UNREGISTERED declarations are rejected here. A file declaring a
+    registered contract AND matching legacy structure must still reach the
+    two-match path so it is reported as AMBIGUOUS -- collapsing it to a single
+    verdict here would silently pick a winner, which is what ⛔ first-match-wins
+    forbids.
+    """
+    if _declares_unregistered_schema(raw):
+        return False
+    # ⚠️ Both remaining conjuncts are load-bearing; see module docstring #3.
     if not isinstance(raw.get("strokes"), list):
         return False
     try:
         ReadingView.model_validate(raw)
+    except Exception:
+        return False
+    return True
+
+
+def _detect_stage_check_report(raw: dict) -> bool:
+    """B-02: the three key names are a proxy; the producer's TYPE is the thing.
+
+    ⭐ Keying on `stage`/`results`/`report_schema_version` merely being present
+    let a malformed report (e.g. `results` a string) be silently EXCLUDEd --
+    neither loud nor consumed, filed in the ledger as a legitimate exclusion.
+    `CheckReport` is the type its producer actually writes, and all 43 real
+    sidecars in the tree parse under it, so the stricter path costs no
+    compatibility. Explicit presence is still required: `CheckReport` defaults
+    every field, so "parses" alone would swallow `{}`.
+    """
+    if "schema" in raw:
+        return False
+    if not _has_keys(raw, "stage", "results", "report_schema_version"):
+        return False
+    from src.validator.checks.schema import CheckReport
+
+    try:
+        CheckReport.model_validate(raw)
     except Exception:
         return False
     return True
@@ -140,9 +201,9 @@ CONTRACTS: tuple[ContractSpec, ...] = (
     ContractSpec(
         CONTRACT_STAGE_CHECK_REPORT,
         Disposition.EXCLUDE,
-        lambda raw: "schema" not in raw
-        and _has_keys(raw, "stage", "results", "report_schema_version"),
-        "undeclared CheckReport sidecar (stage/results/report_schema_version)",
+        _detect_stage_check_report,
+        "undeclared sidecar: declares stage/results/report_schema_version AND "
+        "parses as validator/checks/schema.py:CheckReport",
     ),
 )
 

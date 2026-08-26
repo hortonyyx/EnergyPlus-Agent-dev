@@ -675,6 +675,25 @@ def _write_vector_contract_ledger(vector_dir: Path, stage_out_dir: Path) -> Path
     return path
 
 
+def _preflight_vector_contracts(vector_dir: Path, out_dir: Path | None) -> None:
+    """F-97: classify the reading vector dir, file the ledger, then fail loudly.
+
+    ⭐ Runs before ANY consumer that parses `*_view.json`. The reading evidence
+    preflight further down assumes every view is an object and dies on a
+    non-object with a bare ``AttributeError: 'list' object has no attribute
+    'get'`` -- which is neither F-97's named refusal nor F-c's ledger. Ordering
+    is the fix: the ledger is on disk and the offending file is named before
+    anything else touches these files.
+    """
+    if out_dir is not None:
+        _write_vector_contract_ledger(vector_dir, out_dir)
+    try:
+        names = discover_vector_files(vector_dir)
+    except FileNotFoundError:
+        return  # "no *.json at all" is an existing, separately-reported failure
+    classify_vector_dir(vector_dir, names)
+
+
 _UNSET_VALIDATOR = object()
 
 
@@ -705,6 +724,13 @@ def run_correction(
     from src.agent.correction.parse import correction_target, parse_correction_draw
     ensure_schema_initialized()  # safe for standalone stage calls (idempotent)
     target = target or correction_target(capability_profile)
+    # F-97 (F-c, B-03): classify and FILE THE LEDGER FIRST -- before the reading
+    # evidence preflight below, which parses `*_view.json` and dies on a
+    # non-object with a bare `AttributeError: 'list' object has no attribute
+    # 'get'`. Filed later, a run that failed classification left neither F-97's
+    # named exception nor F-c's promised ledger. `_write_vector_contract_ledger`
+    # never raises; `_build_correction_messages` still owns the loud failure.
+    _preflight_vector_contracts(vector_dir, out_dir)
     if evidence_debt is None:
         from src.agent.execution.case_metadata import (
             dimensioned_states_from_data,
@@ -731,12 +757,6 @@ def run_correction(
             "1_correction preflight blocked by reading evidence debt "
             f"under run_profile={run_profile}: {checks}"
         )
-    # F-97 (F-c): file the consumption ledger BEFORE the prompt is assembled, so
-    # a run that fails classification still leaves a record naming every file and
-    # the contract it was read as. `ledger_for` never raises; the loud failure is
-    # `_build_correction_messages`' job on the next line.
-    if out_dir is not None:
-        _write_vector_contract_ledger(vector_dir, out_dir)
     system_prompt, human = _build_correction_messages(
         vector_dir, testdata_text, feedback=feedback, evidence_debt=evidence_debt, target=target,
         observation_reference_catalog=observation_reference_catalog,
