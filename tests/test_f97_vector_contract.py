@@ -539,3 +539,494 @@ def test_r4_ledger_precedes_the_reading_evidence_preflight(tmp_path):
     with pytest.raises(UnconsumableVectorFile):
         run_correction(vdir, "{}", out_dir=stage_dir)
     assert (tmp_path / "_run" / "reading_vector_contract_ledger.json").exists()
+
+
+# =========================================================================== #
+# Cross-family rework ROUND 2 (2026-08-27, GLM verdict): BLK-A / BLK-B / BLK-C.
+#
+# ⭐ What made round 1 insufficient was not that its fixes were wrong but that
+# each one was scoped to the ONE input that had been shown to it. Every group
+# below therefore locks the SHAPE CLASS -- all three registered values, several
+# missing-key variants, several filesystem realities -- not the single fixture
+# the reviewer happened to send.
+# =========================================================================== #
+_REGISTERED_VALUES = (
+    PRODUCER_AS_DRAWN_SCHEMA,
+    "as_drawn_plan_v0",
+    "as_drawn_elevation_v0",
+)
+
+# Each registered value paired with a key set that is INCOMPLETE for its own
+# contract -- the BLK-A shape: declared something real, then failed to be it.
+_MALFORMED_DECLARATIONS = (
+    (PRODUCER_AS_DRAWN_SCHEMA, {}),
+    (PRODUCER_AS_DRAWN_SCHEMA, {"observations": {}}),
+    (PRODUCER_AS_DRAWN_SCHEMA, {"observations": {}, "declarations": {}}),
+    ("as_drawn_plan_v0", {}),
+    ("as_drawn_plan_v0", {"wall_bands": []}),
+    ("as_drawn_elevation_v0", {}),
+    ("as_drawn_elevation_v0", {"openings": []}),
+)
+
+# The full key set for each registered value: declaration + key set + legacy
+# structure is a GENUINE double match and must stay AMBIGUOUS.
+_COMPLETE_DECLARATIONS = (
+    (PRODUCER_AS_DRAWN_SCHEMA, {"observations": {}, "declarations": {}, "hypotheses": {}},
+     CONTRACT_AS_DRAWN_PLAN),
+    ("as_drawn_plan_v0", {"wall_bands": [], "dimension_witnesses": []},
+     CONTRACT_AS_DRAWN_PLAN_V0),
+    ("as_drawn_elevation_v0", {"openings": [], "structure_lines": []},
+     CONTRACT_AS_DRAWN_ELEVATION_V0),
+)
+
+
+def _malformed_declared_view(schema_value: str, keys: dict) -> dict:
+    """Declares a REGISTERED contract, misses its key set, still looks legacy."""
+    return {
+        "schema": schema_value,
+        "image_label": "1f",
+        "image_kind": "plan",
+        **keys,
+        "strokes": [_STROKE],
+    }
+
+
+# --- R5 (BLK-A): a registered value declared MALFORMED is unknown, not legacy #
+@pytest.mark.parametrize("schema_value,keys", _MALFORMED_DECLARATIONS)
+def test_r5_registered_but_malformed_declaration_is_unknown_not_legacy(
+    schema_value, keys
+):
+    """⛔ Round 1 fixed only the *unregistered* half of 'declared ⇒ not legacy'.
+    A file that declares `as_drawn_plan_v2` and then fails that contract's key
+    set fell straight through to structural legacy recognition and was CONSUMED
+    -- pasted verbatim into the prompt, which is F-97 in a new shape."""
+    from src.agent.reading.vector_contract import UNEXPECTED_FAILURE_PREFIX
+
+    decision = classify_vector_json(_malformed_declared_view(schema_value, keys))
+    assert decision.contract_id == CONTRACT_UNKNOWN
+    assert decision.disposition is None
+    reason = decision.reason or ""
+    assert schema_value in reason, "the refusal must name what was declared"
+    assert UNEXPECTED_FAILURE_PREFIX not in reason, (
+        "must be a reasoned verdict, ⛔ not the last-resort net standing in for it"
+    )
+
+
+@pytest.mark.parametrize("schema_value", _REGISTERED_VALUES)
+def test_r5_registered_but_malformed_fails_loudly_through_the_real_entry(
+    tmp_path, schema_value
+):
+    """⛔ Not a discriminator-level assertion: the same
+    `_build_correction_messages` the production stage calls."""
+    vdir = tmp_path / "0_reading"
+    _write(vdir, "1f_view.json", _legacy_view())
+    _write(vdir, "2f_view.json", _malformed_declared_view(schema_value, {}))
+    (vdir / "reading_summary.md").write_text("summary", encoding="utf-8")
+
+    with pytest.raises(UnconsumableVectorFile) as exc:
+        _build_correction_messages(vdir, "{}")
+    msg = str(exc.value)
+    assert "2f_view.json" in msg
+    assert schema_value in msg
+
+
+@pytest.mark.parametrize("schema_value", _REGISTERED_VALUES)
+def test_r5_registered_but_malformed_never_reaches_the_prompt(tmp_path, schema_value):
+    vdir = tmp_path / "0_reading"
+    _write(vdir, "1f_view.json", _malformed_declared_view(schema_value, {}))
+    with pytest.raises(UnconsumableVectorFile):
+        classify_vector_dir(vdir, discover_vector_files(vdir))
+
+
+@pytest.mark.parametrize("schema_value,keys,contract_id", _COMPLETE_DECLARATIONS)
+def test_r5_complete_declaration_plus_legacy_is_still_ambiguous(
+    schema_value, keys, contract_id
+):
+    """⛔⛔ The regression this fix has now nearly caused TWICE.
+
+    Round 1 draft #1 wrote 'has a `schema` key ⇒ not legacy' and collapsed the
+    genuine double match from AMBIGUOUS to a single verdict. The BLK-A rule is
+    therefore guarded by `len(matches) == 1`: a file that declares a registered
+    value AND satisfies that contract's key set AND matches legacy structure has
+    two honest claims on it, and picking one silently is exactly what ⛔
+    first-match-wins forbids. R2 covered `as_drawn_plan_v2` only; all three
+    registered values are locked here."""
+    hybrid = {"schema": schema_value, **keys, "strokes": [_STROKE]}
+    decision = classify_vector_json(hybrid)
+    assert decision.contract_id == CONTRACT_UNKNOWN
+    reason = decision.reason or ""
+    assert "AMBIGUOUS" in reason
+    assert CONTRACT_READING_VIEW_LEGACY in reason
+    assert contract_id in reason
+
+
+def test_r5_registered_but_malformed_through_run_correction_leaves_a_ledger(tmp_path):
+    from src.agent.pipeline import run_correction
+
+    vdir = tmp_path / "0_reading"
+    _write(vdir, "1f_view.json", _malformed_declared_view(PRODUCER_AS_DRAWN_SCHEMA, {}))
+    (vdir / "reading_summary.md").write_text("summary", encoding="utf-8")
+    stage_dir = tmp_path / "1_correction"
+    stage_dir.mkdir()
+
+    with pytest.raises(UnconsumableVectorFile) as exc:
+        run_correction(vdir, "{}", out_dir=stage_dir)
+    assert PRODUCER_AS_DRAWN_SCHEMA in str(exc.value)
+    ledger = json.loads(
+        (tmp_path / "_run" / "reading_vector_contract_ledger.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    assert ledger["consumed"] == []
+    assert ledger["files"][0]["contract"] == CONTRACT_UNKNOWN
+
+
+# --- R6 (BLK-B): the COMPOSITE entry files the ledger before any view is read #
+_POISON_VIEWS = (
+    ("non_object", b"[1, 2, 3]"),
+    ("invalid_json", b"{not json at all"),
+    ("invalid_utf8", b"\xff\xfe\x00"),
+)
+
+
+def _poisoned_run(tmp_path, payload: bytes, name: str = "1f_view.json"):
+    vdir = tmp_path / "0_reading"
+    vdir.mkdir(parents=True)
+    (vdir / name).write_bytes(payload)
+    (vdir / "reading_summary.md").write_text("summary", encoding="utf-8")
+    out_dir = tmp_path / "run"
+    out_dir.mkdir()
+    return vdir, out_dir
+
+
+@pytest.mark.parametrize("label,payload", _POISON_VIEWS)
+def test_r6_run_pipeline_artifacts_names_the_file_and_files_the_ledger(
+    tmp_path, label, payload
+):
+    """⭐ BLK-B: round 1 hoisted the ledger above the evidence preflight INSIDE
+    `run_correction` -- and the composite entry production actually calls had
+    already parsed every `*_view.json` three times about forty lines upstream.
+    `_preflight_vector_contracts`'s docstring claimed 'runs before ANY consumer'
+    and that claim was the load-bearing part: entry LEVEL is part of 'any', not
+    a detail below it. Same fixture, one entry point out, and neither F-b nor
+    F-c existed."""
+    from src.agent.pipeline import run_pipeline_artifacts
+
+    vdir, out_dir = _poisoned_run(tmp_path, payload)
+    with pytest.raises(UnconsumableVectorFile) as exc:
+        run_pipeline_artifacts(vdir, "{}", out_dir=out_dir)
+    assert "1f_view.json" in str(exc.value)
+
+    ledger_path = out_dir / "_run" / "reading_vector_contract_ledger.json"
+    assert ledger_path.exists(), "F-c: a failed run still owes a ledger"
+    ledger = json.loads(ledger_path.read_text(encoding="utf-8"))
+    assert ledger["consumed"] == []
+    assert ledger["files"][0]["file"] == "1f_view.json"
+    assert ledger["files"][0]["contract"] == CONTRACT_UNKNOWN
+
+
+def test_r6_run_pipeline_wrapper_covers_the_same_ground(tmp_path):
+    """`run_pipeline` is a thin wrapper, but 'thin' is an assumption; the whole
+    blocker was an entry point nobody had exercised."""
+    from src.agent.pipeline import run_pipeline
+
+    vdir, out_dir = _poisoned_run(tmp_path, b"[1, 2, 3]")
+    with pytest.raises(UnconsumableVectorFile) as exc:
+        run_pipeline(vdir, "{}", out_dir=out_dir)
+    assert "1f_view.json" in str(exc.value)
+    assert (out_dir / "_run" / "reading_vector_contract_ledger.json").exists()
+
+
+@pytest.mark.parametrize(
+    "label,make",
+    [
+        ("directory_named_view", lambda v: (v / "2f_view.json").mkdir()),
+        ("dangling_symlink_view", lambda v: __import__("os").symlink(
+            "/nonexistent/target", v / "2f_view.json")),
+        ("directory_named_non_view", lambda v: (v / "backup.json").mkdir()),
+    ],
+)
+def test_r6_filesystem_shapes_also_stop_at_the_composite_entry(tmp_path, label, make):
+    """⭐ BLK-B x BLK-C: the two blockers meet here. These are not malformed
+    JSON, they are ordinary directory entries, and on the composite entry each
+    one died inside `load_reading_view` / the ledger writer with a bare
+    `IsADirectoryError` -- no name, no ledger."""
+    from src.agent.pipeline import run_pipeline_artifacts
+
+    vdir = tmp_path / "0_reading"
+    _write(vdir, "1f_view.json", _legacy_view())
+    (vdir / "reading_summary.md").write_text("summary", encoding="utf-8")
+    make(vdir)
+    out_dir = tmp_path / "run"
+    out_dir.mkdir()
+
+    with pytest.raises(UnconsumableVectorFile):
+        run_pipeline_artifacts(vdir, "{}", out_dir=out_dir)
+    assert (out_dir / "_run" / "reading_vector_contract_ledger.json").exists()
+
+
+def test_r6_ledger_is_on_disk_before_every_view_consumer(tmp_path, monkeypatch):
+    """⭐ The lock that does NOT depend on guessing a poison payload.
+
+    Round 1's gap was found by an input nobody had tried; enumerating inputs is
+    how it was missed in the first place. So measure the ORDERING directly: wrap
+    each of the composite entry's three `*_view.json` consumers and assert the
+    ledger was already on disk the moment each was first called. A fourth
+    consumer added upstream in future is caught the day someone wires it in --
+    ⛔ it does not need a matching fixture to become visible.
+
+    Runs the v3 profile so the observation-reference catalog (v3-only, the third
+    consumer) is exercised; it then fails on its own missing view manifest,
+    which is fine -- the ordering assertions have already fired, and F-c says
+    even that failure owes a ledger."""
+    import src.agent.correction.window_sources as window_sources
+    import src.agent.pipeline as pipeline
+    import src.agent.reading as reading
+
+    vdir = tmp_path / "0_reading"
+    _write(vdir, "1f_view.json", _legacy_view())
+    (vdir / "reading_summary.md").write_text("summary", encoding="utf-8")
+    out_dir = tmp_path / "run"
+    out_dir.mkdir()
+    ledger_path = out_dir / "_run" / "reading_vector_contract_ledger.json"
+    seen: list[str] = []
+
+    def _spy(label, fn):
+        def wrapper(*args, **kwargs):
+            seen.append(label)
+            assert ledger_path.exists(), (
+                f"{label} parsed 0_reading before the contract ledger existed"
+            )
+            return fn(*args, **kwargs)
+
+        return wrapper
+
+    monkeypatch.setattr(
+        pipeline,
+        "compute_reading_report_from_vector_dir",
+        _spy("reading_report", pipeline.compute_reading_report_from_vector_dir),
+    )
+    monkeypatch.setattr(
+        reading, "load_reading_view", _spy("load_view", reading.load_reading_view)
+    )
+    monkeypatch.setattr(
+        window_sources,
+        "build_observation_reference_catalog_from_run",
+        _spy("v3_catalog", window_sources.build_observation_reference_catalog_from_run),
+    )
+
+    with pytest.raises(Exception):
+        pipeline.run_pipeline_artifacts(
+            vdir, "{}", out_dir=out_dir, capability_profile="orthogonal_polygon"
+        )
+    assert seen == ["reading_report", "load_view", "v3_catalog"], seen
+    assert ledger_path.exists(), "F-c: even the catalog's own failure owes a ledger"
+
+
+# --- R7 (BLK-C): the ledger survives ordinary filesystem / encoding reality -- #
+def _dangling_symlink(vdir: Path) -> None:
+    import os
+
+    os.symlink("/nonexistent/target", vdir / "broken.json")
+
+
+def _symlink_loop(vdir: Path) -> None:
+    import os
+
+    os.symlink(str(vdir / "loop.json"), vdir / "loop.json")
+
+
+_UNREADABLE_SHAPES = (
+    ("nonstring_schema_list", "1f_view.json",
+     lambda v: (v / "1f_view.json").write_text('{"schema": [], "strokes": []}'),
+     "non-string schema"),
+    ("nonstring_schema_dict", "1f_view.json",
+     lambda v: (v / "1f_view.json").write_text('{"schema": {}, "strokes": []}'),
+     "non-string schema"),
+    ("nonstring_schema_null", "1f_view.json",
+     lambda v: (v / "1f_view.json").write_text('{"schema": null, "strokes": []}'),
+     "non-string schema"),
+    ("invalid_utf8", "bad.json",
+     lambda v: (v / "bad.json").write_bytes(b"\xff\xfe\x00"), "not valid UTF-8"),
+    ("utf16_product", "bad.json",
+     lambda v: (v / "bad.json").write_bytes(b"\xff\xfe{\x00}\x00"), "not valid UTF-8"),
+    ("latin1_byte", "bad.json",
+     lambda v: (v / "bad.json").write_bytes(b'{"a": "caf\xe9"}'), "not valid UTF-8"),
+    ("directory", "backup.json", lambda v: (v / "backup.json").mkdir(),
+     "not a readable regular file"),
+    ("dangling_symlink", "broken.json", _dangling_symlink,
+     "not a readable regular file"),
+    ("symlink_loop", "loop.json", _symlink_loop, "not a readable regular file"),
+)
+
+
+@pytest.mark.parametrize("label,offender,make,expect_reason", _UNREADABLE_SHAPES)
+def test_r7_unreadable_shapes_become_a_named_ledger_row(
+    tmp_path, label, offender, make, expect_reason
+):
+    """⭐ BLK-C: `ledger_for` promised 'never raises' and it was false three ways
+    at once. Each of these killed the ledger writer itself -- so the F-c record
+    was missing exactly for the runs it exists to explain. ⛔ None of these is an
+    adversarial input: a truncated UTF-16 product, a stray `mkdir`, a symlink
+    whose target moved."""
+    from src.agent.reading.vector_contract import UNEXPECTED_FAILURE_PREFIX
+
+    vdir = tmp_path / "0_reading"
+    vdir.mkdir(parents=True)
+    make(vdir)
+
+    ledger = ledger_for(vdir, discover_vector_files(vdir))  # ⭐ must not raise
+    row = next(r for r in ledger["files"] if r["file"] == offender)
+    assert row["contract"] == CONTRACT_UNKNOWN
+    assert row["disposition"] == "error"
+    assert expect_reason in (row["reason"] or ""), row
+    assert UNEXPECTED_FAILURE_PREFIX not in (row["reason"] or ""), (
+        "each of these has a NAMED path; ⛔ the last-resort net must not be the "
+        "thing making this test green, or neutering the named path stays green"
+    )
+    assert offender not in ledger["consumed"]
+
+
+def test_r7_a_name_that_vanished_between_listing_and_read(tmp_path):
+    """`ledger_for` takes the name list from its caller, so the file can be gone
+    by the time it is read -- a plain TOCTOU, not an attack."""
+    vdir = tmp_path / "0_reading"
+    _write(vdir, "1f_view.json", _legacy_view())
+    ledger = ledger_for(vdir, ["1f_view.json", "vanished.json"])
+    row = next(r for r in ledger["files"] if r["file"] == "vanished.json")
+    assert row["disposition"] == "error"
+    assert ledger["consumed"] == ["1f_view.json"]
+
+
+def test_r7_a_fifo_named_json_does_not_block_forever(tmp_path):
+    """⚠️ Worse than the three named crashes: `read_text` on a fifo HANGS, and no
+    `except` clause can catch a hang. This is why the guard is `is_file()` -- a
+    boundary that admits only regular files -- and ⛔ not a fourth exception
+    type appended to a list. Fenced with a real alarm so a regression fails the
+    suite instead of wedging it."""
+    import os
+    import signal
+
+    if not hasattr(signal, "SIGALRM"):  # pragma: no cover - Linux CI
+        pytest.skip("SIGALRM unavailable")
+
+    vdir = tmp_path / "0_reading"
+    _write(vdir, "1f_view.json", _legacy_view())
+    os.mkfifo(vdir / "pipe.json")
+
+    def _boom(signum, frame):
+        raise TimeoutError("ledger_for blocked on a fifo named *.json")
+
+    previous = signal.signal(signal.SIGALRM, _boom)
+    signal.setitimer(signal.ITIMER_REAL, 10.0)
+    try:
+        ledger = ledger_for(vdir, discover_vector_files(vdir))
+    finally:
+        signal.setitimer(signal.ITIMER_REAL, 0.0)
+        signal.signal(signal.SIGALRM, previous)
+    row = next(r for r in ledger["files"] if r["file"] == "pipe.json")
+    assert row["disposition"] == "error"
+    assert "not a readable regular file" in (row["reason"] or "")
+
+
+def test_r7_the_last_resort_net_exists_and_is_reachable(tmp_path):
+    """⭐ The reason the fix is a boundary and not an exception list.
+
+    `OSError` + `UnicodeDecodeError` + `JSONDecodeError` was the returned
+    verdict's literal prescription, and it does NOT cover this: JSON nested
+    deeply enough makes `json.loads` raise `RecursionError`, which is none of
+    the three. Enumerating exception types is the same shape of defence as
+    enumerating filename patterns -- it can never be finished
+    ([[lexical-guard-cannot-be-completed]]). The net turns the leftover tail
+    into a named row instead of a dead ledger."""
+    from src.agent.reading.vector_contract import UNEXPECTED_FAILURE_PREFIX
+
+    vdir = tmp_path / "0_reading"
+    vdir.mkdir(parents=True)
+    (vdir / "deep.json").write_text("[" * 200_000 + "]" * 200_000, encoding="utf-8")
+
+    ledger = ledger_for(vdir, discover_vector_files(vdir))  # ⭐ must not raise
+    row = ledger["files"][0]
+    assert row["contract"] == CONTRACT_UNKNOWN
+    assert row["disposition"] == "error"
+    assert UNEXPECTED_FAILURE_PREFIX in (row["reason"] or "")
+    assert "RecursionError" in (row["reason"] or ""), "the net must name what blew up"
+
+
+@pytest.mark.parametrize(
+    "label,payload",
+    [
+        ("nonstring_schema", b'{"schema": [], "strokes": []}'),
+        ("invalid_utf8", b"\xff\xfe\x00"),
+    ],
+)
+def test_r7_real_run_correction_names_them_and_files_the_ledger(
+    tmp_path, label, payload
+):
+    from src.agent.pipeline import run_correction
+
+    vdir = tmp_path / "0_reading"
+    vdir.mkdir(parents=True)
+    (vdir / "1f_view.json").write_bytes(payload)
+    (vdir / "reading_summary.md").write_text("summary", encoding="utf-8")
+    stage_dir = tmp_path / "1_correction"
+    stage_dir.mkdir()
+
+    with pytest.raises(UnconsumableVectorFile) as exc:
+        run_correction(vdir, "{}", out_dir=stage_dir)
+    assert "1f_view.json" in str(exc.value)
+    ledger_path = tmp_path / "_run" / "reading_vector_contract_ledger.json"
+    assert ledger_path.exists()
+    assert json.loads(ledger_path.read_text(encoding="utf-8"))["consumed"] == []
+
+
+def test_r7_directory_named_json_reaches_run_correction_with_a_ledger(tmp_path):
+    from src.agent.pipeline import run_correction
+
+    vdir = tmp_path / "0_reading"
+    _write(vdir, "1f_view.json", _legacy_view())
+    (vdir / "backup.json").mkdir()
+    (vdir / "reading_summary.md").write_text("summary", encoding="utf-8")
+    stage_dir = tmp_path / "1_correction"
+    stage_dir.mkdir()
+
+    with pytest.raises(UnconsumableVectorFile) as exc:
+        run_correction(vdir, "{}", out_dir=stage_dir)
+    assert "backup.json" in str(exc.value)
+    assert (tmp_path / "_run" / "reading_vector_contract_ledger.json").exists()
+
+
+def test_r7_a_hostile_run_dir_does_not_eat_the_named_refusal(tmp_path):
+    """⭐ The fourth way 'never raises' was false, and the one that costs most.
+
+    `_run` already existing as a FILE makes the ledger write raise
+    `FileExistsError` from inside `_write_vector_contract_ledger` -- so the run
+    died with a bare filesystem error and F-b (the NAMED refusal) went down with
+    F-c. Losing the ledger to an unusable run dir is unavoidable; losing the
+    named refusal too is a strict regression, so the write failure is logged and
+    the classification verdict still lands."""
+    from src.agent.pipeline import run_correction
+
+    vdir = tmp_path / "0_reading"
+    vdir.mkdir(parents=True)
+    (vdir / "1f_view.json").write_text("[1, 2, 3]", encoding="utf-8")
+    (vdir / "reading_summary.md").write_text("summary", encoding="utf-8")
+    stage_dir = tmp_path / "1_correction"
+    stage_dir.mkdir()
+    (tmp_path / "_run").write_text("not a directory", encoding="utf-8")
+
+    with pytest.raises(UnconsumableVectorFile) as exc:
+        run_correction(vdir, "{}", out_dir=stage_dir)
+    assert "1f_view.json" in str(exc.value)
+
+
+def test_r7_ledger_writer_itself_never_raises_on_a_hostile_run_dir(tmp_path):
+    from src.agent.pipeline import _write_vector_contract_ledger
+
+    vdir = tmp_path / "0_reading"
+    _write(vdir, "1f_view.json", _legacy_view())
+    stage_dir = tmp_path / "1_correction"
+    stage_dir.mkdir()
+    (tmp_path / "_run").write_text("not a directory", encoding="utf-8")
+
+    assert _write_vector_contract_ledger(vdir, stage_dir) is None

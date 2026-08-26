@@ -37,12 +37,28 @@ Discipline this module follows
 4. ⭐ **Every detector is evaluated; first-match-wins is forbidden.**  Two
    matches is an ambiguity to report, not a race for the detector that ran first.
 5. ⭐ **Structural fallback is only for the undeclared.**  Legacy recognition
-   exists for artifacts written before ``schema`` did.  A file declaring a value
-   this module does not register is unknown by construction, even when it still
-   looks like a reading view — otherwise any future contract that kept a
-   ``strokes`` list would be silently consumed as a 2026-06 view, which is F-97
-   reopened in a new shape.  A file declaring a *registered* value while also
-   matching legacy structure still goes to the two-match path (#4).
+   exists for artifacts written before ``schema`` did.  A file that declares a
+   ``schema`` **at all** is unknown unless the declaration lands on a registered
+   contract *including that contract's key set* — even when the file still looks
+   like a reading view.  Otherwise any future contract that kept a ``strokes``
+   list would be silently consumed as a 2026-06 view, which is F-97 reopened in
+   a new shape.
+   ⚠️ "Declares something this module cannot honour" has **three** shapes and
+   all three are unknown: an unregistered value, a *registered* value whose
+   required keys are absent (BLK-A), and a non-string value (BLK-C).  A file
+   declaring a registered value **and** satisfying that contract's key set
+   **and** matching legacy structure is a genuine double match and still goes to
+   #4's ambiguity path — ⛔ collapsing that one into a single verdict is the
+   failure mode this very fix nearly caused, twice.
+6. ⭐ **Classifying a file is never allowed to raise.**  Every entry point here
+   is upstream of the consumption ledger, so an exception escaping this module
+   destroys the record that was supposed to name the offender — the ledger is
+   then missing precisely for the runs it exists to explain.  ⛔ The defence is a
+   boundary, not an enumeration of exception types (an enumeration can never be
+   finished): unreadable path, undecodable bytes and unparsable text each get a
+   specific named row, and anything else at all is caught by a last-resort net
+   that still produces a named ``unknown/error`` row plus an offender.  Loud and
+   on the books either way.
 """
 from __future__ import annotations
 
@@ -114,7 +130,24 @@ DECLARED_SCHEMA_VALUES: frozenset[str] = frozenset(
 
 
 def _declares_unregistered_schema(raw: dict) -> bool:
-    return "schema" in raw and raw.get("schema") not in DECLARED_SCHEMA_VALUES
+    """True when the file declares a ``schema`` no registered contract answers to.
+
+    ⭐ BLK-C: the ``isinstance`` guard is load-bearing, ⛔ not defensive noise.
+    JSON allows ``"schema": []`` / ``{}``; those are unhashable, so the plain
+    ``... not in DECLARED_SCHEMA_VALUES`` raised ``TypeError: unhashable type``
+    from inside the ledger writer — the one function whose whole job is to
+    record the offender was itself the thing that died on it.
+
+    A non-string declaration is a *malformed declaration*, and that is two facts
+    at once: the file **did** declare (⛔ so no structural legacy fallback,
+    discipline #5) and the declaration matches nothing (so: unknown).
+    """
+    if "schema" not in raw:
+        return False
+    declared = raw.get("schema")
+    if not isinstance(declared, str):
+        return True
+    return declared not in DECLARED_SCHEMA_VALUES
 
 
 def _detect_legacy_reading_view(raw: dict) -> bool:
@@ -231,7 +264,27 @@ def classify_vector_json(raw: Any) -> ContractDecision:
         )
     matches = [spec for spec in CONTRACTS if spec.detect(raw)]
     if len(matches) == 1:
-        return ContractDecision(matches[0].contract_id, matches[0].disposition, None)
+        only = matches[0]
+        # ⭐ BLK-A: `_detect_legacy_reading_view` rejects UNREGISTERED
+        # declarations, so a lone legacy match can still mean "declared a
+        # registered value, then failed that contract's key set" — which the
+        # first fix let collapse into a silent CONSUME. Discipline #5 says
+        # structural fallback belongs to files that declare NOTHING, so the
+        # presence of the key alone disqualifies the fallback.
+        # ⚠️ Guarded by `len(matches) == 1` on purpose: a genuine double match
+        # (registered value + its key set + legacy structure) never reaches
+        # here and stays AMBIGUOUS. ⛔ Rejecting on `"schema" in raw` *before*
+        # counting matches is the exact regression this fix already caused once.
+        if only.contract_id == CONTRACT_READING_VIEW_LEGACY and "schema" in raw:
+            return ContractDecision(
+                CONTRACT_UNKNOWN,
+                None,
+                f"declares schema={raw.get('schema')!r} but matches no "
+                "registered contract's key set, so it is a malformed "
+                "declaration, not an undeclared legacy view; structural legacy "
+                "fallback is reserved for files that declare nothing",
+            )
+        return ContractDecision(only.contract_id, only.disposition, None)
     if len(matches) > 1:
         named = ", ".join(f"{m.contract_id} ({m.describe})" for m in matches)
         return ContractDecision(
@@ -241,12 +294,22 @@ def classify_vector_json(raw: Any) -> ContractDecision:
         )
     keys = sorted(k for k in raw if isinstance(k, str))[:12]
     declared = raw.get("schema")
-    declared_txt = (
-        f"declares schema={declared!r} but no registered contract has that value "
-        "with a matching key set"
-        if isinstance(declared, str)
-        else "declares no `schema` field and matches no structural contract"
-    )
+    if isinstance(declared, str):
+        declared_txt = (
+            f"declares schema={declared!r} but no registered contract has that "
+            "value with a matching key set"
+        )
+    elif "schema" in raw:
+        # ⚠️ `schema: null` used to be reported as "declares no `schema` field",
+        # which names an observation as a different fact than the one measured
+        # ([[observation-named-as-fact-travels-as-fact]]): the file DID declare,
+        # it declared something that is not a contract name.
+        declared_txt = (
+            f"declares a non-string schema={declared!r} "
+            f"({type(declared).__name__}), which names no registered contract"
+        )
+    else:
+        declared_txt = "declares no `schema` field and matches no structural contract"
     return ContractDecision(
         CONTRACT_UNKNOWN,
         None,
@@ -292,6 +355,89 @@ class UnconsumableVectorFile(RuntimeError):
     """A 0_reading JSON that 1_correction must not paste into its prompt."""
 
 
+UNEXPECTED_FAILURE_PREFIX = "unexpected classifier failure"
+"""⭐ Marks a row produced by the last-resort net rather than by a named path.
+
+A row carrying this prefix means the file was refused *because something blew
+up*, not because the discriminator understood it and said no.  ⛔ Tests must
+assert its ABSENCE when they mean to lock a specific named path — otherwise the
+net silently stands in for the mechanism under test and the neuter of that
+mechanism stays green ([[neuter-proves-wiring-not-discriminating-power]])."""
+
+
+def _unintelligible(name: str, reason: str) -> tuple[ContractDecision, str]:
+    """A file that never became a parsed JSON value: decision + offender line.
+
+    ⚠️ Deliberately phrased differently from "unknown contract": "I could not
+    read this" and "I read it and recognize no contract" are different findings
+    and the ledger must not blur them into one sentence.
+    """
+    return ContractDecision(CONTRACT_UNKNOWN, None, reason), f"{name}: {reason}"
+
+
+def _classify_one(
+    vector_dir: Path, name: str
+) -> tuple[ContractDecision, str | None]:
+    """Read, decode, parse and classify ONE file. ⭐ Never raises (discipline #6).
+
+    Returns ``(decision, offender_line)``; ``offender_line`` is non-``None`` only
+    when the file never became a parsed JSON value, so the caller can keep that
+    wording distinct from a classification verdict.
+
+    Every failure becomes a named decision instead of an exception. ⛔ These are
+    not adversarial inputs — a truncated UTF-16 product, a stray ``mkdir``, a
+    dangling symlink and a name that vanished between listing and read are
+    ordinary filesystem reality, and each of them used to kill the ledger writer
+    outright (BLK-C).
+
+    The ``is_file`` guard is a *boundary*, not a fourth exception clause: it
+    covers directories, dangling symlinks and symlink loops under one rule, and
+    it is the only thing that stops a fifo named ``*.json`` from blocking the
+    read forever — a hang, which no ``except`` can catch.
+    """
+    path = Path(vector_dir) / name
+    try:
+        if not path.is_file():
+            return _unintelligible(
+                name,
+                "not a readable regular file (directory, dangling symlink, "
+                "symlink loop, fifo, or removed between listing and read)",
+            )
+        text = path.read_text(encoding="utf-8")
+    except UnicodeDecodeError as exc:
+        return _unintelligible(name, f"not valid UTF-8: {exc}")
+    except OSError as exc:
+        return _unintelligible(name, f"unreadable file: {type(exc).__name__}: {exc}")
+    except Exception as exc:  # last-resort net; see discipline #6
+        return _unintelligible(
+            name,
+            f"{UNEXPECTED_FAILURE_PREFIX}: reading raised {type(exc).__name__}: {exc}",
+        )
+    try:
+        raw = json.loads(text)
+    except json.JSONDecodeError as exc:
+        # ⚠️ Wording preserved verbatim from before the BLK-C rework: the
+        # ledger row says "invalid JSON: <exc>" and the offender line says
+        # "<name>: invalid JSON (<exc>)".
+        return (
+            ContractDecision(CONTRACT_UNKNOWN, None, f"invalid JSON: {exc}"),
+            f"{name}: invalid JSON ({exc})",
+        )
+    except Exception as exc:  # e.g. RecursionError on pathologically nested JSON
+        return _unintelligible(
+            name,
+            f"{UNEXPECTED_FAILURE_PREFIX}: parsing raised {type(exc).__name__}: {exc}",
+        )
+    try:
+        return classify_vector_json(raw), None
+    except Exception as exc:
+        return _unintelligible(
+            name,
+            f"{UNEXPECTED_FAILURE_PREFIX}: classification raised "
+            f"{type(exc).__name__}: {exc}",
+        )
+
+
 def _classify_rows(
     vector_dir: Path, names: list[str]
 ) -> tuple[list[str], list[LedgerRow], list[str]]:
@@ -301,17 +447,11 @@ def _classify_rows(
     consumed: list[str] = []
     offenders: list[str] = []
     for name in names:
-        path = vector_dir / name
-        try:
-            raw = json.loads(path.read_text(encoding="utf-8"))
-        except json.JSONDecodeError as exc:
-            rows.append(
-                LedgerRow(name, CONTRACT_UNKNOWN, "error", f"invalid JSON: {exc}")
-            )
-            offenders.append(f"{name}: invalid JSON ({exc})")
-            continue
-        decision = classify_vector_json(raw)
-        if decision.disposition is Disposition.CONSUME:
+        decision, unintelligible = _classify_one(vector_dir, name)
+        if unintelligible is not None:
+            rows.append(LedgerRow(name, CONTRACT_UNKNOWN, "error", decision.reason))
+            offenders.append(unintelligible)
+        elif decision.disposition is Disposition.CONSUME:
             consumed.append(name)
             rows.append(
                 LedgerRow(

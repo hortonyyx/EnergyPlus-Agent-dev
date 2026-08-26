@@ -658,6 +658,15 @@ def _write_vector_contract_ledger(vector_dir: Path, stage_out_dir: Path) -> Path
     nobody declared stops being a silent paste and becomes a named row.
     Lands in the run's existing `_run/` metadata dir (``stage_out_dir`` is the
     1_correction stage dir, so its parent is the run dir).
+
+    ⭐ Never raises (BLK-C). Two separate ways it used to: `ledger_for` died on
+    an unreadable/undecodable member file (fixed in `vector_contract`), and the
+    write itself dies when the run dir is hostile (`_run` already exists as a
+    FILE => `FileExistsError`). Both destroyed F-b along with F-c: the caller
+    never got to raise the NAMED refusal, it got a bare filesystem error
+    instead. Losing the ledger to an unwritable disk is unavoidable; losing the
+    named refusal too is a strict regression, so the write failure is logged and
+    swallowed while classification carries on to its loud verdict.
     """
     from src.agent.execution.run_meta import run_meta_path
     from src.agent.reading.vector_contract import ledger_for
@@ -668,22 +677,45 @@ def _write_vector_contract_ledger(vector_dir: Path, stage_out_dir: Path) -> Path
         return None
     ledger = ledger_for(vector_dir, names)
     ledger["vector_dir"] = str(vector_dir)
-    path = run_meta_path(
-        Path(stage_out_dir).parent, _VECTOR_CONTRACT_LEDGER_NAME, for_write=True
-    )
-    path.write_text(json.dumps(ledger, indent=2, ensure_ascii=False), encoding="utf-8")
+    try:
+        path = run_meta_path(
+            Path(stage_out_dir).parent, _VECTOR_CONTRACT_LEDGER_NAME, for_write=True
+        )
+        path.write_text(
+            json.dumps(ledger, indent=2, ensure_ascii=False), encoding="utf-8"
+        )
+    except OSError as exc:
+        # ⛔ Not a silent skip: the run dir is unusable, say so. The named
+        # refusal from `classify_vector_dir` still follows.
+        logger.warning(
+            "F-97: could not file the reading contract ledger under {}: {}: {}",
+            Path(stage_out_dir).parent,
+            type(exc).__name__,
+            exc,
+        )
+        return None
     return path
 
 
 def _preflight_vector_contracts(vector_dir: Path, out_dir: Path | None) -> None:
     """F-97: classify the reading vector dir, file the ledger, then fail loudly.
 
-    ⭐ Runs before ANY consumer that parses `*_view.json`. The reading evidence
+    ⭐ Runs before ANY consumer that parses `*_view.json` -- in `run_correction`
+    AND in the composite `run_pipeline_artifacts` entry. The reading evidence
     preflight further down assumes every view is an object and dies on a
     non-object with a bare ``AttributeError: 'list' object has no attribute
     'get'`` -- which is neither F-97's named refusal nor F-c's ledger. Ordering
     is the fix: the ledger is on disk and the offending file is named before
     anything else touches these files.
+
+    ⚠️ BLK-B: "before any consumer" was only true INSIDE `run_correction`. The
+    composite entry parsed `*_view.json` three times (reading report, view load,
+    v3 catalog) about forty lines upstream of it, so the whole promise evaporated
+    for the entry production actually calls. The docstring was the load-bearing
+    claim and it was false -- entry LEVEL is part of "any consumer", not a detail
+    below it. `run_pipeline_artifacts` now calls this first; `run_correction`
+    still calls it too, so it remains a real entry point on its own and the
+    second call is a cheap idempotent rewrite of the same ledger.
     """
     if out_dir is not None:
         _write_vector_contract_ledger(vector_dir, out_dir)
@@ -1352,6 +1384,16 @@ def run_pipeline_artifacts(
         d = out_dir / name
         d.mkdir(parents=True, exist_ok=True)
         return d
+
+    # F-97 (F-b + F-c, BLK-B): FIRST, before anything in this function parses a
+    # `*_view.json`. `run_correction` ~45 lines below runs the same preflight,
+    # but by then this entry has already loaded every view three times over (the
+    # reading report, the view list, and the v3 observation catalog), and a file
+    # this stage cannot honour blew up inside one of those with a bare
+    # `AttributeError` / `UnicodeDecodeError` / `IsADirectoryError` -- no named
+    # refusal, no ledger. Measured on the composite entry, not on `run_correction`
+    # in isolation: entry LEVEL is part of "which entries does the promise cover".
+    _preflight_vector_contracts(vector_dir, _stage("1_correction"))
 
     logger.info("1_correction: correcting from {}", vector_dir)
     from src.agent.execution.case_metadata import (
