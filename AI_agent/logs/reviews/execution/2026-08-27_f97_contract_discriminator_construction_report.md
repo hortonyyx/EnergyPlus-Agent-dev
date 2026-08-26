@@ -1,248 +1,184 @@
-# 施工报告 · F-97 契约判别器（第二轮：补充裁定后施工完成）
+# 施工报告 · F-97 契约判别器（第三轮：跨家族 REWORK 返工完成）
 
 - **日期**：2026-08-27　**施工席位**：Claude 家族　**worktree**：`/tmp/ep_f97`（分支 `wt/08.27_f97_contract`）
-- **派工单**：`../request/2026-08-27_f97_contract_discriminator_dispatch.md`（含末尾「⭐⭐⭐ 补充裁定」整节）
-- **本轮结论**：**三条裁定全部落地，B1′/B1″/B2′/B3′/B3″/B3‴/B4′/B5 全部实测通过。**
+- **返工依据**：`../verdict/2026-08-27_f97_contract_discriminator_gpt_verdict.md`（GPT 家族 sol，REWORK / 3 阻断）
+  + 派工单末尾「⛔⛔ 返工裁定」整节
+- **本轮结论**：**B-01 / B-02 / B-03 三条阻断全部修复，R1–R7 全部实测通过。无第 37 条停下上报。**
 
-> ⚠️ **本报告累计式自包含**。第一轮（停下上报，第 36 条）的完整证据表在提交 `e08c79b`，
-> 其结论已被 orchestrator 复核采纳并写进补充裁定；本文 §七 留索引。
+> ⚠️ **累计式自包含**。第一轮（停下上报，第 36 条）= 提交 `e08c79b`；第二轮（首次施工）= `8fda4c1`。
+> 本文 §八留索引，⛔ 不复述已过判据。
 
 ---
 
-## 〇、开工自检
+## 〇、⛔ 三条阻断：**先独立复现，再动手**
 
-| 项 | 要求 | 实测 |
+⭐ 我没有照单改，三条都自己跑出来了：
+
+| 阻断 | 我的独立复现读数 |
+|---|---|
+| **B-01** | `{"schema":"future_reading_contract_v99", strokes:[合法]}` ⇒ 实测 `ContractDecision(contract_id='reading_view_legacy', disposition=CONSUME)` **⇒ 会进提示词** |
+| **B-02** | 畸形边车 ⇒ `CheckReport.model_validate` 抛 `ValidationError`，而判别器返回 `stage_check_report/EXCLUDE` **⇒ 坏文件既不红也不进提示词** |
+| **B-03** | 顶层 list 的 `1f_view.json` 走真实 `run_correction(..., out_dir=)` ⇒ `AttributeError: 'list' object has no attribute 'get'`，且 `_run/reading_vector_contract_ledger.json` **不存在** |
+
+⇒ 三条**全部成立**，复核方的证据与根因定位准确。
+
+---
+
+## 一、三条阻断的修法
+
+### B-01　显式声明不再无条件回落 legacy
+
+新增 `DECLARED_SCHEMA_VALUES`（本模块登记的全部 schema 值）与 `_declares_unregistered_schema()`。
+`_detect_legacy_reading_view` 开头加一条：**声明了「本模块没登记的 schema 值」⇒ 直接不是 legacy。**
+
+⭐ **关键的分寸（R2 的坑，我第一次改就踩了）**：
+最初我写的是「有 `schema` 键就不是 legacy」，**当场把双命中打没了** ——
+`as_drawn_plan_v2 + strokes` 从 `AMBIGUOUS` 塌成单命中 `as_drawn_plan`。
+实测抓到后收窄为「**未登记的**声明才否决」：
+
+- 未登记声明 + legacy 结构 ⇒ `unknown` 响亮红（B-01 修好）
+- **已登记**声明 + legacy 结构 ⇒ **仍走双命中路 ⇒ `AMBIGUOUS`**（R2 保住）
+- 无 `schema` 键 ⇒ 结构回落照常（328 份历史产物不受影响）
+
+### B-02　边车判据从「键名代理」搬到生产者类型
+
+`_detect_stage_check_report` 改为 **「三键显式存在 **且** `validator/checks/schema.py:CheckReport` 解析成功」**。
+⚠️ `CheckReport` 同样字段全有默认值 ⇒ **必须保留三键显式存在**，否则 `{}` 会被吞。
+
+### B-03　分类 + ledger 提到所有 preflight 之前
+
+新增 `_preflight_vector_contracts(vector_dir, out_dir)`，放在 `run_correction` 体内**第一批语句**，
+在 `compute_evidence_debt_from_vector_dir`（会解析 `*_view.json`）**之前**：先写 ledger（永不抛），再 `classify_vector_dir` 抛点名异常。
+原先那处在提示词组装前的 ledger 写入已删除（避免两处）。
+
+---
+
+## 二、⭐ R1–R7 实测读数（数字全真）
+
+### R1 —— 未登记显式 schema ⇒ unknown 响亮红，且走真实入口
+
+```
+classify_vector_json({"schema":"future_reading_contract_v99", "strokes":[...]})
+  -> contract_id='unknown', disposition=None
+     reason="declares schema='future_reading_contract_v99' but no registered
+             contract has that value with a matching key set; top-level keys=[...]"
+```
+入口锁 3 条，全部经 **真实 `_build_correction_messages`**（⛔ 不是只测判别函数）：
+`test_r1_unregistered_schema_is_unknown_not_legacy` ·
+`test_r1_unregistered_schema_fails_loudly_through_the_real_entry`（断言报文含 `2f_view.json` + 该 schema 值）·
+`test_r1_unregistered_schema_never_reaches_the_prompt`。
+
+### R2 —— 双命中仍 AMBIGUOUS（回归，没改坏）
+
+```
+{"schema": as_drawn_v2.SCHEMA, observations/declarations/hypotheses, "strokes":[...]}
+  -> unknown, reason="AMBIGUOUS: matches 2 declared contracts at once:
+                      reading_view_legacy (...), as_drawn_plan (...)"
+```
+另加 `test_r2_undeclared_legacy_still_recognized` 守住反方向（无 `schema` ⇒ 仍 legacy）。
+
+### R3 —— 畸形边车红；43 份真边车全绿
+
+| 项 | 实测 |
+|---|---|
+| 畸形夹具 `{"stage":7,"results":"not-a-result-list","report_schema_version":{...}}` | `unknown` ⇒ 真实入口响亮红并点名 `1f_view_checks.json` ✅ |
+| **现存历史边车走 EXCLUDE** | **43 / 43** ✅（且逐份 `CheckReport.model_validate` 不抛） |
+| **现存历史 legacy 走 CONSUME** | **328 / 328** ✅ |
+
+⇒ **收紧零代价**：兼容面一份没丢，与复核方「43/43 都能过更严的路」的实测一致。
+这两条已写成断言（`test_r3_every_real_sidecar_still_parses_as_the_producer_type` 硬断言 `== 43`；
+`test_r3_all_real_legacy_views_still_consumed` 硬断言 `== 328`），⛔ 不再只是手量。
+
+### R4 —— 真实 `run_correction` 入口：点名异常 + ledger 确实在盘上
+
+两种负例（参数化），**都走真实 `run_correction(vdir, "{}", out_dir=stage_dir)`**：
+
+| 负例 | 异常 | ledger 在盘上？ |
 |---|---|---|
-| 本轮起点 commit | `e08c79b`（第一轮 stop-and-report） | 一致 ✅ |
-| `AI_agent/CLAUDE.md` 行数 | 447 | 447 ✅ |
-| import 是否串主树 | 必须解析到 worktree | `/tmp/ep_f97/src/agent/pipeline.py` ✅ |
-| `.env` | orchestrator 已软链 | `.env -> /workspaces/EnergyPlus-Agent-dev/.env` ✅ |
+| 顶层 list `[1, 2, 3]` | `UnconsumableVectorFile`，含 `1f_view.json` + `unknown contract` ✅ | ✅ `_run/reading_vector_contract_ledger.json` 存在，`files[0].contract == "unknown"`，`consumed == []` |
+| 非法 JSON `{not json at all` | `UnconsumableVectorFile`，含 `1f_view.json` + `invalid JSON` ✅ | ✅ 同上 |
 
----
+⇒ **旧的 `AttributeError` 不再出现**；F-b 的点名异常与 F-c 的失败对账**同时**成立。
 
-## 一、补充裁定的前置事实：**逐条复核，全部成立**（⇒ 无第 37 条）
+### R5 —— B1′ 字节比对回归（收紧后重跑）
 
-裁定改了做法，所以裁定所依赖的每条事实我又量了一遍：
+```
+dirs measured           : 56
+bytes IDENTICAL         : 49
+bytes CHANGED           : 7
+loudly RAISED           : 0
+total bytes removed     : 170455
+```
+⇒ **与返工前逐字相同**，B-01/B-02 的收紧**没有误伤任何真实历史产物**。
 
-| 裁定依赖的事实 | 实测 | 结论 |
+### R6 —— 全量 `-n 6`
+
+```
+3070 passed, 13 xfailed, 211 warnings in 441.75s (0:07:21)
+```
+⭐ 对账：基线 **3035** + 本单累计新增 **35**（上一版 23 + 本轮 12）= **3070**，`xfailed` 13 一致，`failed` **0**。
+
+⚠️ 这一跑是在**最终 shipped 树**上跑的：上一次 R6 跑完后我又包了一行过长的测试 assert，
+所以**重跑了一次**，⛔ 不拿旧数字充当新树的读数。
+
+### R7 —— neuter **逐条**，每条都跑全量
+
+| neuter | 结果 | 红的是谁 |
 |---|---|---|
-| `as_drawn_v2.py` 有可 import 的 `SCHEMA` 常量 | `as_drawn_v2.py:67 SCHEMA = "as_drawn_plan_v2"`；import 0.19 s，无副作用 | ✅ |
-| `ReadingView` 在 `reading/schema.py:117` | 确在 117 行 | ✅ |
-| `ReadingView` 是 `extra="allow"` 且字段全有默认值 ⇒ 对 `{}` 也解析成功 | 实测 `ReadingView.model_validate({})` **成功** ⇒「解析成功」单独**等于没判** | ✅ 裁定 3 的警告完全正确 |
-| 「解析成功 + 非缺省 `strokes`」能认全历史 legacy | **328 / 328** | ✅ |
-| `dimensions` 会误杀 | 只在 **322/328** 里有，缺的 6 份全在 `sm21_anchor/run_2026-06-20_gpt54_reading/` | ✅ 已按裁定排除出签名 |
-| `denominator.py` 有「⛔ 绝不第二次重新定义」的先例 | 在 **`denominator.py:14-15`**，英文原文：「⭐ It derives that from the CONVERTER'S OWN collection pass (`run_p1_plan_view`), ⛔ **never from a second re-implementation of "what a wall line is"**」 | ✅ 引用属实（原文是英文，转译无失真） |
-| `.env` 缺失是那条红的真因 | ✅ 见 §五 B4′ | ✅ 我第一轮的归因确实差一层 |
+| **B-01**（去掉未登记声明否决） | `3 failed, 3067 passed, 13 xfailed` | 恰好 R1 三条，**零附带** |
+| **B-02**（`CheckReport` 校验去掉，退回只看键名） | `2 failed, 3068 passed, 13 xfailed` | 恰好 R3 两条畸形锁，**零附带**（43 份真边车锁仍绿 ⇒ 说明它测的是畸形，不是兼容） |
+| **B-03**（把分类/ledger 挪回 preflight 之后） | `3 failed, 3067 passed, 13 xfailed` | 恰好 R4 三条（两条参数化 + 顺序锁），**零附带** |
 
-⭐ **额外自查（B3‴ 的前提）**：实测**没有任何**真实产物同时命中两个契约
-（328 份 legacy、140 份 as-drawn 家族、43 份边车，交叉命中 **0**）
-⇒ 歧义判据在真实数据上**恒绿**，**必须造夹具才有分辨力**——裁定要求「造个夹具证明」正为此，已照做。
+⇒ 三次 `passed + failed` 均 = **3070**，**定向变红成立、互不外溢**，且红的全部经真实入口。
 
 ---
 
-## 二、改了哪些文件
+## 三、改了哪些文件（本轮返工）
 
-| 文件 | 性质 | 说明 |
-|---|---|---|
-| `src/agent/reading/vector_contract.py` | ⭐ **新增**（约 260 行） | 单文件级契约判别器 + 消费对账 |
-| `src/agent/pipeline.py` | 改（+44 行） | 三处：import · 提示词组装处接线 · 对账落盘 |
-| `tests/test_f97_vector_contract.py` | **新增**（23 用例） | B1′/B2′/B3′/B3″/B3‴ + 两个 neuter 靶子 |
-| `scripts/tool_scripts/affected_tests_rules.yaml` | 改（−4 条） | 见 §六「唯一的意外」 |
+| 文件 | 改动 |
+|---|---|
+| `src/agent/reading/vector_contract.py` | +81/−16：`DECLARED_SCHEMA_VALUES` + `_declares_unregistered_schema` + `_detect_stage_check_report` 复用 `CheckReport` + 模块 docstring 增第 5 条纪律 |
+| `src/agent/pipeline.py` | +32/−?：新增 `_preflight_vector_contracts`，在 `run_correction` 首批语句调用；删除原先偏后的 ledger 写入 |
+| `tests/test_f97_vector_contract.py` | +192：R1(3) · R2(2) · R3(4) · R4(3) = **12 条新锁**，共 35 条 |
 
-⛔ **§四/§五「明确不做」全部未碰**：`wall-centerline` 那两句原样（`git diff` 零命中）·
-as-drawn 未接线 · 未碰 `src/validator/data_model.py` / `checks/kernel.py` / `tests/test_f95_*` / `tests/test_f13_*` ·
-未碰 `src/agent/judge/` · 未改任何 reading 判分/容差 · **未追 F-106**。
-
-### 设计要点（三条裁定的落地形态）
-
-1. **裁定 1**：`from src.agent.reading.as_drawn.as_drawn_v2 import SCHEMA as AS_DRAWN_PLAN_SCHEMA`
-   —— ⛔ 字面量零出现，并**加锁**（`test_b3_as_drawn_schema_value_comes_from_its_producer`
-   断言源码里不得出现 `"as_drawn_plan_v2"` 字面量）。
-   `as_drawn_plan_v0` / `as_drawn_elevation_v0` 按裁定以**字面量**登记，
-   注释写明「历史原型值，无在册生产者，⛔ 不要为它去 import 实验代码」。
-2. **裁定 2**：`stage_check_report` = 第 4 类契约，处置 `EXCLUDE`（排除 + 对账逐份点名）。
-3. **裁定 3**：legacy 判据 = `ReadingView.model_validate(raw)` 成功 **且** `isinstance(raw.get("strokes"), list)`。
-4. ⭐ **契约 = (schema 值 × 必需键集合) 配对**，且**全部检测器都跑**、⛔ 无 first-match-wins：
-   0 命中 ⇒ unknown；1 命中 ⇒ 该契约；**≥2 命中 ⇒ 报歧义并响亮失败**。
-5. **对账落盘**：`<run>/_run/reading_vector_contract_ledger.json`（跟着现有 `_run/` 纪律，⛔ 没新开目录），
-   ⭐ **在提示词组装之前写**，所以**分类失败的 run 也留下点名记录**（`ledger_for` 永不抛）。
+⛔ **不做清单全部遵守**：`wall-centerline` 两句 diff 零命中 · as-drawn 未接线 ·
+未碰 F-95 邻域（`validator/data_model.py`/`checks/kernel.py`/`test_f95_*`/`test_f13_*`）· 未碰 `src/agent/judge/` ·
+未追 F-106 · **未动 N-01 / N-02** · **未回退那 4 条 allowlist 删除**。
 
 ---
 
-## 三、⭐ 判别器实际登记的契约表
+## 四、⭐ 关于派工方三条题面错的处理
 
-| 契约 id | 识别条件 | 处置 |
-|---|---|---|
-| `reading_view_legacy` | 解析成 `ReadingView` **且** 声明 `strokes` 列表 | **CONSUME**（贴进提示词） |
-| `as_drawn_plan` | `schema == as_drawn_v2.SCHEMA`（**import**）且含 `observations`+`declarations`+`hypotheses` | **KNOWN_NOT_CONSUMED** ⇒ 响亮失败 |
-| `as_drawn_plan_v0` | `schema=="as_drawn_plan_v0"` 且含 `wall_bands`+`dimension_witnesses` | 同上 |
-| `as_drawn_elevation_v0` | `schema=="as_drawn_elevation_v0"` 且含 `openings`+`structure_lines` | 同上 |
-| `stage_check_report` | **无** `schema` 键，含 `stage`+`results`+`report_schema_version` | **EXCLUDE** ⇒ 排除 + 对账点名 |
-| `unknown` | 以上皆不命中，或**同时命中 ≥2 个** | **响亮失败**（点名文件 + 理由） |
-
-⚠️ **我没有登记的一个形态（据实报，见 §八#2）**：as-drawn 的 **checks 报告**
-（`schema==as_drawn_plan_v2` 但键是 `checks/source/role_assignment`，45 份，产出者 `validator/checks/as_drawn.py:821`）。
-它落 `unknown` ⇒ 真放进 `0_reading/` 会响亮红。
-**这是我的判断，不是裁定给的**：登记它等于新增第 5 类处置，属扩范围（§0.1），
-且实测这 45 份**全在 `logs/experiments/out/`，从不出现在任何 `0_reading/``**。⇒ 登记为已知缺口，请 orchestrator 定夺。
+1. **`as_drawn_plan_v2` 份数**：⭐ **我第一轮实测就是 77**（32 读图产物 + 45 checks 报告），
+   是被派工单「132 份」带着改过去的。**本轮已改回实测值**；as-drawn 家族合计 **85**（77+4+4）。
+   ⇒ 教训我照单收下：**派工方给的数与我的实测冲突时，以实测为准并当场顶回来**，⛔ 不许默默对齐。
+2. **allowlist 4 条**：按裁定**不回退**。我上轮自陈的「行为没覆盖」是事实但归为 N-01，⛔ 本单不做，
+   也⛔ 没有靠往不可达集合塞已可达模块来假装修好。
+3. **`stage_check_report` 签名**：B-02 正是我上轮 §八#3 自陈「弱的那个是这一个」的地方 ——
+   ⭐ **我识别出了它弱，却没有去修**。这条比阻断本身更值得记：**自陈不确定 ≠ 已处理**。
 
 ---
 
-## 四、⛔ 缺陷复现（改动前）
+## 五、⭐ 我自己认为最可能塌的地方（必答）
 
-```
-discover_vector_files(sm20_anchor/run_2026-06-15_baseline/0_reading)
-  -> [..., '1f_view_checks.json', '2f_view_checks.json', ... 共 7 份边车]
-```
-
-`1f_view_checks.json` 不匹配 `_PLAN_RE`、不以 `_view.json` 结尾 ⇒ 落 `others` ⇒ **原样贴进提示词**。
-生产入口 `run_stage.py:_draw_correction` 用 `rdir = run_dir/"0_reading"` 作 `vector_dir` ⇒ 目录即 run 的 0_reading 本体。
-
-⭐ **机制的根**：**识图门只 glob `*_view.json`**（`evidence_preflight.py:229`），
-而**提示词收集器 glob `*.json`**（`pipeline.py:91`）—— 两个 glob 不一致，那条缝就是 F-97。
-
----
-
-## 五、⭐ 验收判据实测读数（数字全部真实，无估算）
-
-### B1′ —— 提示词**逐字节**比对（⛔ 未用结构推理）
-
-方法：对全仓 **56** 个含 `*.json` 的 `0_reading/` 目录，用改动前的 paste 循环原样重建提示词片段，
-与改动后重建的**逐字节 `==`** 比较。
-
-```
-dirs measured                 : 56
-B1'  bytes IDENTICAL          : 49
-B1'' bytes CHANGED            : 7
-     loudly RAISED            : 0
-```
-
-⇒ **49/56 逐字节不变，0 个历史目录被打断。**
-其中派工单点名的 `sm25-L_anchor/run_2026-08-25_c2_rescore_R0/0_reading` 六份
-**全部判 `reading_view_legacy`、字节不变**。
-
-### B1″ —— ⭐ 变化面（⛔ 未藏）
-
-**7 个历史 run 目录**的提示词会变，**全部**只因排除 `*_checks.json` 边车，**共移除 170,455 字节**：
-
-| 减少字节 | 边车份数 | 目录 |
-|---:|---:|---|
-| 60,892 | 6 | `sm21_anchor/run_2026-07-01_sonnet_e2e_r2/0_reading` |
-| 42,013 | 6 | `sm21_anchor/run_2026-07-01_sonnet_e2e_r1/0_reading` |
-| 15,230 | 7 | `sm20_anchor/run_2026-06-15_baseline/0_reading` |
-| 13,080 | 6 | `sm21_anchor/run_2026-06-21_sonnet_reading_retry/0_reading` |
-| 13,080 | 6 | `sm21_anchor/run_2026-06-20_sonnet_reading/0_reading` |
-| 13,080 | 6 | `sm21_anchor/run_2026-06-20_gpt54_reading/0_reading` |
-| 13,080 | 6 | `sm21_anchor/run_2026-06-16_opus_e2e/0_reading` |
-| **170,455** | **43** | **合计**（43 = 裁定 2 说的那 43 份） |
-
-⚠️ **方向说明**：这 7 个目录的提示词**只减不增**，减掉的**全是 gate① 的检查报告**（即 F-106 的载体）。
-⛔ 没有任何一份**读图产物**被移除（每个目录的 `*_view.json` 全部保留且字节不变）。
-
-### B2′ / B3′ / B3″ / B3‴
-
-| # | 判据 | 实测 |
-|---|---|---|
-| **B2′** | `{"hello":1}` ⇒ 响亮红并点名 | ✅ `UnconsumableVectorFile`，报文含 `mystery.json` + `unknown contract` + 实际看到的键 |
-| **B3′** | `as_drawn_plan_v2`（**取自生产者常量**）⇒「认识但不消费」 | ✅ 报文含 `no wire for it` + `NOT unknown`，且**不含** `unknown contract` ⇒ 与 B2′ 可区分 |
-| **B3′** | `as_drawn_plan_v0` / `as_drawn_elevation_v0` | ✅ 同为 `KNOWN_NOT_CONSUMED` |
-| **B3″** | 边车 ⇒ 排除 + 对账点名 | ✅ 不抛异常；提示词里搜不到 `1f_view_checks.json` 与 `report_schema_version`；对账 `counts == {"consume":1,"exclude":1}` 且该行 `reason` 非空 |
-| **B3‴** | 两契约同时命中 ⇒ 报歧义 | ✅ 夹具（`schema=as_drawn_plan_v2` + 合法 `strokes`）⇒ `AMBIGUOUS`，理由**同时点名两个契约**；⛔ 未按顺序择一 |
-
-### B4′ —— 全量
-
-```
-3058 passed, 13 xfailed, 211 warnings in 333.93s (0:05:33)
-```
-
-⭐ **对账**：orchestrator 基线 **3035** + 本轮新增 **23** 条 = **3058**，`xfailed` **13** 一致，`failed` **0**。
-⇒ 数目逐项对得上，**没有顺手改动别的用例**。
-✅ 第一轮那条 `test_zone_agent.py` 红**已消失**（`.env` 软链生效），orchestrator 的归因得到验证。
-
-### B5 —— neuter 定向变红（**两个方向都测了**）
-
-**neuter ①（摘掉接线）**：把 `pipeline.py:427` 改回 `vector_files = discover_vector_files(vector_dir)`，**跑全量**：
-
-```
-4 failed, 3054 passed, 13 xfailed in 308.41s
-FAILED tests/test_f97_vector_contract.py::test_b2_unknown_contract_raises_and_names_the_file
-FAILED tests/test_f97_vector_contract.py::test_b3_as_drawn_raises_and_says_known_not_unknown
-FAILED tests/test_f97_vector_contract.py::test_b3_check_report_sidecar_is_excluded_not_raised
-FAILED tests/test_f97_vector_contract.py::test_b3_ambiguous_file_fails_loudly
-```
-
-⇒ **恰好 4 红，全部在我新加的文件里，零附带**（3054+4 = 3058，与全绿总数一致）
-⇒ **定向变红成立**，且 4 条全部走**真实入口** `_build_correction_messages`（⛔ 不是直接调判别器）。
-
-**neuter ②（把 import 换成抄来的字面量）**：
-`AS_DRAWN_PLAN_SCHEMA = "as_drawn_plan_v2"` 替换 import ⇒
-`test_b3_as_drawn_schema_value_comes_from_its_producer` **红**
-⇒ 裁定 1「⛔ 不许抄字面量」这条**有分辨力，不是恒绿装饰**。
-
----
-
-## 六、唯一的意外：`affected_tests_rules.yaml` 少了 4 条
-
-首轮全量出现 1 红：`test_affected_tests_map.py::test_every_production_module_is_mapped_or_honestly_allowlisted`。
-
-**不是我漏映射，方向相反**：该判据要求「未被任何测试到达的生产模块」集合与 allowlist **完全相等**。
-我的新测试 import 了 `as_drawn_v2.SCHEMA`，**给 as-drawn 读图工具箱建立了第一条测试可达边**，
-于是这 4 个模块不再 uncovered，而 allowlist 里它们的条目
-（写着「no project-side test imports src/ directly yet」）**陈述过时**：
-
-```
-src/agent/reading/as_drawn/{__init__,_plan_ink,as_drawn_v2,pens}.py
-```
-
-⇒ 已删除这 4 条（其余 30 条未动；`src/validator/checks/as_drawn.py` 与
-`src/agent/judge/as_drawn/*` 仍 uncovered，条目保留）。
-
-⭐ **顺带一条正面证据**：`tests/test_gt_discipline.py::test_pipeline_import_closure_excludes_gt_and_as_drawn_judge`
-**全程绿** ⇒ 我把 `pipeline` 接到的是 **reading 侧** as-drawn，
-**没有**把 judge 侧 gt 代码拉进管线导入闭包（不变量 §1.5#4 未破）。
-
-⚠️ **但这条「覆盖」是 import 边，不是行为覆盖**，见 §八#1。
-
----
-
-## 七、第一轮（停下上报，第 36 条）证据存档
-
-完整文本见提交 `e08c79b`。三条否证已被 orchestrator 复核采纳并写进补充裁定：
-**A** as-drawn 值不是 `v0`（3 值 4 形态，生产者产 `v2`；病根 = 派工单点名 `sm25_1f_v2.json` 却描述了 `sm25_1f_as_drawn.json`）·
-**B** `schema` 单独不足以判契约（`as_drawn_plan_v2` 被两个生产者共用）·
-**C** 43 份 CheckReport 边车住在历史 `0_reading/` 里且正被贴进提示词（⇒ 已登记为 F-106）。
-另：§七 三键签名会漏 6/328（`dimensions` 322/328）。
-
----
-
-## 八、⭐ 我自己认为最不确定 / 最可能塌的地方（必答）
-
-1. **⭐ 最不确定：我删了 `affected_tests_map` 的 4 条 allowlist，但那 4 个模块的「覆盖」是 import 边撑起来的，不是行为覆盖。**
-   我的测试只 import 了一个字符串常量 `SCHEMA`，**一行 `_plan_ink.py` / `pens.py` 的逻辑都没跑过**。
-   对「改了 X 该跑哪些测试」这个用途，import 边是对的信号（`as_drawn_v2.py` 一改我的锁确实该跑）；
-   但对 `_plan_ink.py` / `pens.py` 是**传递性的、很弱的**边——它们现在**看起来被覆盖了，实际没有**。
-   ⇒ 这正是 [[proxy-mistaken-for-the-thing]] 的形状：**我把「可达」当成了「被测」**。
-   建议 orchestrator 复核这 4 条删除是否该改成「保留条目 + 改写理由」。**这是本轮我最可能被推翻的一处。**
-
-2. **as-drawn 的 checks 报告（45 份）我没登记，它落 unknown ⇒ 真放进 `0_reading/` 会响亮红。**
-   我按「不扩范围」决定不登记，理由是它们从不出现在 `0_reading/`（实测）。
-   但这条推理**锚在「现在的产物分布」上**，而不是锚在「代码能不能产出它到那里」——
-   正是 [[is-this-conclusion-product-side-or-code-side]] 警告的形状。**换一份产物这条结论可能不在。**
-
-3. **`stage_check_report` 的签名仍是我从 43 份边车归纳的**，不是从 `CheckReport` 的类型定义推的。
-   裁定 3 把 legacy 从「归纳」搬到了「生产者类型」，**但裁定 2 的这个签名没做同样的搬迁**，
-   我也没主动搬（会动到 `validator/checks/schema.py`，属 §四 F-95 在审的邻域）。
-   ⇒ 同一份代码里两个契约用了两种成色的判据，**弱的那个是这一个**。
-
-4. **B1″ 的 170,455 字节只覆盖「仓库里现存的 56 个目录」。**
-   ⛔ 它不是「所有历史 run」的变化面——未入库的、别处的 run 目录我量不到。
-   我报的是**可测全集**，不是**真全集**。
-
-5. **施工过程中我两次用行号做文本替换、两次都替错了位置**
-   （把一个 `_write(...)` 覆盖成 docstring、把一段 `sorted(...)` 塞进了字典字面量里），
-   第二次直接产生 `SyntaxError` 才被发现。已全部修好且全量绿，
-   但这说明**我这一轮的编辑手法不稳**；若审阅席位要抽查，建议优先 diff `tests/test_f97_vector_contract.py` 的完整性。
-
-6. **我在一次 neuter 全量跑着的时候改了树**（两处换行整形），当场作废了那次跑并重跑。
-   最终 B5 读数取自**改完之后**干净的一跑，但这是我自己踩了
-   [[green-suite-is-a-property-of-tree-and-launcher]] 的「⛔ 全量在跑时不许动树」。
+1. **⭐ 最不确定：`DECLARED_SCHEMA_VALUES` 是本模块自己维护的第二处清单。**
+   `as_drawn_plan_v2` 那个值来自 import（对），但**「哪些值算已登记」这份集合是我手写的** ——
+   将来往 `CONTRACTS` 里加一条契约却忘了同步这个 frozenset，
+   就会出现「已登记的契约被 B-01 判成未登记」的静默错配。
+   ⭐ 严格更优的做法是**从 `CONTRACTS` 自动派生**该集合，但 `CONTRACTS` 的 detect 是闭包、
+   schema 值没有以数据形式暴露在 `ContractSpec` 上 —— 要改就得动 `ContractSpec` 的形状。
+   我判断这属于本轮范围外（三条阻断都不要求），**故留着并在此点名**。
+   **这是本轮我最可能被推翻的一处**，且它是 F-97 同型（「第二个定义」）的第三次现形。
+2. **`_preflight_vector_contracts` 现在做了两遍分类**（这里一遍、`_build_correction_messages` 里一遍）。
+   行为上确定性一致，但**「两处各自分类」本身就是我上一条担心的形状**：
+   将来若有人只改其中一处的过滤口径，两者会静默分叉。
+3. **R3 的两条硬断言（`== 43` / `== 328`）会随仓库内容变化而红。**
+   它们现在守的是兼容面，但**任何人新增一份 `0_reading/*.json` 都会让它们红** ——
+   这可能被后来者当成「误报」而放宽，从而悄悄丢掉兼容面守卫。⚠️ 我没有给它们写「为什么是这个数」的出口。
+4. **B-02 用 `CheckReport` 做信任根，但我没有验证「生产者写盘时用的就是这个类型」**，
+   只验证了「43 份现存产物能被它解析」。⇒ 这仍是**产物侧**证据，不是**代码侧**证据
+   （`validation_run.py:292 _write(rdir/..., rep)` 我没有回溯 `rep` 的构造类型）。
+   同族 [[is-this-conclusion-product-side-or-code-side]]。
+5. **本轮跑测纪律**：⭐ 三次 neuter 全量 + 两次干净全量，**全程没有在跑测时动树**（上轮踩过一次，这轮没再犯）。
+   但每次 neuter 我都是**手工 patch/还原**，靠 `cp` 备份；若某次还原不全，
+   后续读数就会带着残留 —— 我用最终 `git diff` 与全量 3070 交叉核对过，但这条链**依赖我自己不出错**。
