@@ -1393,7 +1393,13 @@ def run_pipeline_artifacts(
     # `AttributeError` / `UnicodeDecodeError` / `IsADirectoryError` -- no named
     # refusal, no ledger. Measured on the composite entry, not on `run_correction`
     # in isolation: entry LEVEL is part of "which entries does the promise cover".
-    _preflight_vector_contracts(vector_dir, _stage("1_correction"))
+    # ⚠️ ⛔ NOT `_stage("1_correction")`: that would mkdir the stage dir before
+    # the refusal, and "1_correction does not exist yet" is a live assertion in
+    # this repo (tests/test_run_stage_flow.py). The ledger writer only reads
+    # `.parent` off this path, so the directory itself is never needed.
+    _preflight_vector_contracts(
+        vector_dir, None if out_dir is None else out_dir / "1_correction"
+    )
 
     logger.info("1_correction: correcting from {}", vector_dir)
     from src.agent.execution.case_metadata import (

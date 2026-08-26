@@ -772,8 +772,11 @@ def test_r6_ledger_is_on_disk_before_every_view_consumer(tmp_path, monkeypatch):
     how it was missed in the first place. So measure the ORDERING directly: wrap
     each of the composite entry's three `*_view.json` consumers and assert the
     ledger was already on disk the moment each was first called. A fourth
-    consumer added upstream in future is caught the day someone wires it in --
-    ⛔ it does not need a matching fixture to become visible.
+    ⚠️ This spy names the three consumers that exist today, so it cannot see a
+    FOURTH one added upstream tomorrow -- which is exactly how BLK-B survived
+    round 1. The test below closes that half by intercepting the READ instead of
+    the consumer; this one stays because it also pins the call ORDER and gives a
+    readable failure when the order moves.
 
     Runs the v3 profile so the observation-reference catalog (v3-only, the third
     consumer) is exercised; it then fails on its own missing view manifest,
@@ -895,6 +898,10 @@ def test_r7_a_name_that_vanished_between_listing_and_read(tmp_path):
     ledger = ledger_for(vdir, ["1f_view.json", "vanished.json"])
     row = next(r for r in ledger["files"] if r["file"] == "vanished.json")
     assert row["disposition"] == "error"
+    # ⭐ The reason is load-bearing, ⛔ not "it did not crash": with only the
+    # disposition asserted this test stayed green under EVERY read-path neuter,
+    # so it locked nothing at all ([[gate-with-only-negative-assertions-is-unobservable]]).
+    assert "not a readable regular file" in (row["reason"] or ""), row
     assert ledger["consumed"] == ["1f_view.json"]
 
 
@@ -954,15 +961,16 @@ def test_r7_the_last_resort_net_exists_and_is_reachable(tmp_path):
 
 
 @pytest.mark.parametrize(
-    "label,payload",
+    "label,payload,expect_reason",
     [
-        ("nonstring_schema", b'{"schema": [], "strokes": []}'),
-        ("invalid_utf8", b"\xff\xfe\x00"),
+        ("nonstring_schema", b'{"schema": [], "strokes": []}', "non-string schema"),
+        ("invalid_utf8", b"\xff\xfe\x00", "not valid UTF-8"),
     ],
 )
 def test_r7_real_run_correction_names_them_and_files_the_ledger(
-    tmp_path, label, payload
+    tmp_path, label, payload, expect_reason
 ):
+    from src.agent.reading.vector_contract import UNEXPECTED_FAILURE_PREFIX
     from src.agent.pipeline import run_correction
 
     vdir = tmp_path / "0_reading"
@@ -977,7 +985,13 @@ def test_r7_real_run_correction_names_them_and_files_the_ledger(
     assert "1f_view.json" in str(exc.value)
     ledger_path = tmp_path / "_run" / "reading_vector_contract_ledger.json"
     assert ledger_path.exists()
-    assert json.loads(ledger_path.read_text(encoding="utf-8"))["consumed"] == []
+    ledger = json.loads(ledger_path.read_text(encoding="utf-8"))
+    assert ledger["consumed"] == []
+    # ⭐ "a ledger exists" is satisfied by the last-resort net too, so asserting
+    # only that left this test green while its own mechanism was removed.
+    reason = ledger["files"][0]["reason"] or ""
+    assert expect_reason in reason, ledger
+    assert UNEXPECTED_FAILURE_PREFIX not in reason
 
 
 def test_r7_directory_named_json_reaches_run_correction_with_a_ledger(tmp_path):
@@ -993,7 +1007,13 @@ def test_r7_directory_named_json_reaches_run_correction_with_a_ledger(tmp_path):
     with pytest.raises(UnconsumableVectorFile) as exc:
         run_correction(vdir, "{}", out_dir=stage_dir)
     assert "backup.json" in str(exc.value)
-    assert (tmp_path / "_run" / "reading_vector_contract_ledger.json").exists()
+    ledger = json.loads(
+        (tmp_path / "_run" / "reading_vector_contract_ledger.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    row = next(r for r in ledger["files"] if r["file"] == "backup.json")
+    assert "not a readable regular file" in (row["reason"] or ""), row
 
 
 def test_r7_a_hostile_run_dir_does_not_eat_the_named_refusal(tmp_path):
@@ -1030,3 +1050,65 @@ def test_r7_ledger_writer_itself_never_raises_on_a_hostile_run_dir(tmp_path):
     (tmp_path / "_run").write_text("not a directory", encoding="utf-8")
 
     assert _write_vector_contract_ledger(vdir, stage_dir) is None
+
+
+def test_r6_no_reading_file_is_read_before_the_ledger_is_on_disk(tmp_path, monkeypatch):
+    """⭐ The consumer-agnostic half: locks the PROMISE, not today's consumer list.
+
+    F-c says a run that touches `0_reading` and fails still owes a ledger naming
+    the offender. Round 1 delivered that for `run_correction` and it evaporated
+    one entry point out, because the fix was measured against the consumers
+    somebody had thought of. So stop enumerating consumers: intercept the read.
+    Every `Path.read_text` / `Path.read_bytes` of a file in the vector dir whose
+    call stack does not pass through the discriminator itself must find the
+    ledger already written. A fourth consumer wired in upstream trips this the
+    day it lands, with ⛔ no fixture and no new spy.
+
+    (The discriminator's own reads are excluded because they are what PRODUCES
+    the ledger — it cannot be expected to exist before the read that writes it.)
+    """
+    import sys
+
+    import src.agent.pipeline as pipeline
+
+    vdir = tmp_path / "0_reading"
+    _write(vdir, "1f_view.json", _legacy_view())
+    (vdir / "reading_summary.md").write_text("summary", encoding="utf-8")
+    out_dir = tmp_path / "run"
+    out_dir.mkdir()
+    ledger_path = out_dir / "_run" / "reading_vector_contract_ledger.json"
+    too_early: list[str] = []
+
+    real_text, real_bytes = Path.read_text, Path.read_bytes
+
+    def _note(target: Path) -> None:
+        if Path(target).parent != vdir or ledger_path.exists():
+            return
+        frames, frame = [], sys._getframe()
+        while frame is not None:
+            frames.append(frame.f_code.co_filename)
+            frame = frame.f_back
+        if any(f.endswith("vector_contract.py") for f in frames):
+            return  # this read is the one that writes the ledger
+        too_early.append(f"{Path(target).name} <- {Path(frames[2]).name}")
+
+    def _text_spy(self, *args, **kwargs):
+        _note(self)
+        return real_text(self, *args, **kwargs)
+
+    def _bytes_spy(self, *args, **kwargs):
+        _note(self)
+        return real_bytes(self, *args, **kwargs)
+
+    monkeypatch.setattr(Path, "read_text", _text_spy)
+    monkeypatch.setattr(Path, "read_bytes", _bytes_spy)
+
+    with pytest.raises(Exception):
+        pipeline.run_pipeline_artifacts(
+            vdir, "{}", out_dir=out_dir, capability_profile="orthogonal_polygon"
+        )
+    assert too_early == [], (
+        "F-c: these reads of 0_reading happened while no ledger existed: "
+        f"{too_early}"
+    )
+    assert ledger_path.exists()
