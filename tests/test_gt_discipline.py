@@ -81,8 +81,10 @@ def test_pipeline_import_closure_excludes_gt_and_as_drawn_judge():
 
     The transplant added a SECOND gt-reading pair -- denominator.py +
     reading_grade.py under src/agent/judge/as_drawn/ -- alongside the existing
-    src/agent/judge/gt.py.  Both must stay judge-side only: gate① / the
-    executor must never import either, mirroring the gt iron law
+    src/agent/judge/gt.py.  ⭐ 2026-08-27 (G1) added a THIRD: gt_raw_layer.py,
+    the reader for the gt RAW layer (per-edge basis/thickness inside
+    review/conversion_report.json).  All must stay judge-side only: gate① / the
+    executor must never import any of them, mirroring the gt iron law
     (CLAUDE.md §1.5#4).  This actually imports src.agent.pipeline in a FRESH
     subprocess (so an already-populated sys.modules from an earlier test in the
     same session cannot hide a real gap, and a genuinely absent one cannot
@@ -98,7 +100,8 @@ def test_pipeline_import_closure_excludes_gt_and_as_drawn_judge():
         "import sys, json\n"
         "import src.agent.pipeline\n"
         "hits = sorted(m for m in sys.modules "
-        "if m == 'src.agent.judge.gt' or m.startswith('src.agent.judge.as_drawn'))\n"
+        "if m in ('src.agent.judge.gt', 'src.agent.judge.gt_raw_layer') "
+        "or m.startswith('src.agent.judge.as_drawn'))\n"
         "print(json.dumps(hits))\n"
     )
     r = subprocess.run(
