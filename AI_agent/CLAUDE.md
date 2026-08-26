@@ -247,8 +247,15 @@ EnergyPlus 经 `WorkflowTool.run_simulation`（eppy + ConverterManager，idfpy �
 > |---|---|
 > | **F-95** 顶点规范化收窄（= ① 的「C2 非方形」那半）| ✅ **收口**（GLM 跨家族审 **APPROVE / 0 阻断**）|
 > | **G1** 判分侧读转换审计件 + **机械复现门** | ✅ **过审**（`ef41a39` · GLM 跨家族审 **APPROVE / 0 阻断 / 5 findings**；复核方独立全量 **3046 passed / 13 xfailed / 0 failed**；11 种形态级变异 + 3 次 neuter 无一静默绿）|
-> | **F-97** correction 只吃声明过的契约 | ⏳ **仍未过审** `f2a8ccf` —— GPT 第三次派出**做完了实体复核（113k token）却在交件时被 provider 安全过滤拦掉**，裁决没写成 ⇒ 须改派。它的探针文件已保住（**⛔ 断言未经我方复跑，只作线索**）|
-> ⛔ **`wt/08.27_f97_contract`(`f2a8ccf`) 尚未并回主线。**
+> | **F-97** correction 只吃声明过的契约 | ⛔ **REWORK**（`f2a8ccf` · GLM 第四次派出 · **3 阻断 BLK-A/B/C + 6 不阻断**）。⭐ 返工是真修（GPT 三条原夹具全不再复现、三次 neuter 零附带、全量 3070 绿、**GPT 三条无一判错**），但**三条新阻断全部出自「换同形输入又走通」这一条判据**：**BLK-A** 只修了「未登记」半、已登记值的畸形声明仍塌成 legacy 被消费 · **BLK-B** `run_pipeline_artifacts` 在 `:1368/:1376/:1411` **自己先解析了 `*_view.json`**（早于 `:1414` 的 `run_correction`）⇒ 组合入口无账 · **BLK-C** 「ledger 永不抛」为假（`schema=[]` / 非法 UTF-8 / **`*.json` 是个目录** 三种普通现实都崩在账前）|
+> ⛔ **`wt/08.27_f97_contract`(`f2a8ccf`) 未过审、未并回主线。**
+>
+> ### ②″ ⭐⭐⭐ 本轮最值钱的一条方法论（**已固化，下次照抄**）
+> **凡「修了某条阻断」的返工审，判据必须同时要求三件事**：
+> **① 旧 commit 上复现得出**（复现不出 ⇒ 上一轮判错了）· **② 新 commit 上复现不出** ·
+> **③ ⭐ 换【同形】输入仍走不通**。
+> ⇒ 08-27 实测：**③ 是本轮唯一新加的判据，一次抓出全部 3 条阻断**；①② 全绿。
+> ⛔ 只做 ①② 的返工审 = 验证「被举的那一个例子修好了」，不是「那类缺陷修好了」。
 >
 > ### ②′ ⭐⭐ G1 过审带回来的一条【必须先进跑测口径】的后果（F'-4）
 > **VG 指纹升 fatal 后，`vg_implementation_sha256` 覆盖的是 `correction/{facade_visibility,facade,footprint,schema}.py` 四件、
@@ -277,12 +284,14 @@ EnergyPlus 经 `WorkflowTool.run_simulation`（eppy + ConverterManager，idfpy �
 > ⛔ **不要把 G1/G2/G3 与双投影拆成四套临时接口。**
 >
 > ### ⑤ ⏭ 下一步（按次序）
-> **1. ✅ G1 已过审** ⇒ **并回主线**（本轮做）。
-> **2. ⏳ F-97 改派复核** —— ⛔ 不能是 Claude（它施工的）、⛔ 也别再派 GPT（**同一份内容连吃两条 provider 安全过滤**，
->    按 08-16 已定的「措辞最多改一次、然后换家族」⇒ **改派 GLM**）。请求单已就绪、只需换抬头：
->    [F-97 请求单](logs/reviews/request/2026-08-27_f97_rework_crossreview_gpt.md)。
->    ⭐ 交单时把 GPT 探针里那 5 条**当线索给它**，并要求它**独立复跑 + 另外自己找一遍**（⛔ 不作证据）。
-> **3. 才是 ①-2′ 垂直切片第 2 步**（exact manifest/request 落进 case-owned 路径）。
+> **1. ✅ G1 已过审并回主线** `10fb3b6` ⇒ 主树权威全量 **3046 passed / 13 xfailed / 0 failed**（`-n 6`，18m10s，exit 0）。
+> **2. ⏳ F-97 第二轮返工** —— 三条阻断都要行为级修（GLM 已给逐条返工要求）：
+>    **BLK-A** 声明过 `schema` 却不匹配任何已登记契约 ⇒ 永远判 unknown（⛔ 但「已登记声明 + legacy 双命中 ⇒ AMBIGUOUS」要**保留**）·
+>    **BLK-B** 把 `_preflight_vector_contracts` 提到 `run_pipeline_artifacts` 里**任何 `*_view.json` 消费之前**（至少先于 `:1368`）·
+>    **BLK-C** `_classify_rows` 异常面收宽到「读不出/解不开 ⇒ 账上一行 error + offender」（捕 `OSError`+`UnicodeDecodeError`），
+>    且 `_declares_unregistered_schema` 先 `isinstance(..., str)` 再判成员。
+>    ⛔ 碰 `src/agent/pipeline` 内核 ⇒ **必须派工 + 换人审**；施工归 Claude（原施工方）、审归 GLM（提阻断的那家）。
+> **3. 才是 ①-2′ 垂直切片第 2 步**（exact manifest/request 落进 case-owned 路径 —— ⭐ **它同时是 F-111 的修法**）。
 > ⏳ 债：**D-2** 装机路径 · **D-3** 判分缓存版本派生摘要 · **F-106** gate① 报告反向流进提示词（登记，不追影响面）·
 > GLM/GPT 各轮不阻断 findings。
 > ⭐ **派工单累计题错 36 次「停下上报」全是派工方（我）的题错**，另加复核方点名题面问题 **11 条**（08-27 一夜）。
