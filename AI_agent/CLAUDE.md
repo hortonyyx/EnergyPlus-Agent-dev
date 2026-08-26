@@ -247,8 +247,12 @@ EnergyPlus 经 `WorkflowTool.run_simulation`（eppy + ConverterManager，idfpy �
 > |---|---|
 > | **F-95** 顶点规范化收窄（= ① 的「C2 非方形」那半）| ✅ **收口**（GLM 跨家族审 **APPROVE / 0 阻断**）|
 > | **G1** 判分侧读转换审计件 + **机械复现门** | ✅ **过审**（`ef41a39` · GLM 跨家族审 **APPROVE / 0 阻断 / 5 findings**；复核方独立全量 **3046 passed / 13 xfailed / 0 failed**；11 种形态级变异 + 3 次 neuter 无一静默绿）|
-> | **F-97** correction 只吃声明过的契约 | ⛔ **REWORK**（`f2a8ccf` · GLM 第四次派出 · **3 阻断 BLK-A/B/C + 6 不阻断**）。⭐ 返工是真修（GPT 三条原夹具全不再复现、三次 neuter 零附带、全量 3070 绿、**GPT 三条无一判错**），但**三条新阻断全部出自「换同形输入又走通」这一条判据**：**BLK-A** 只修了「未登记」半、已登记值的畸形声明仍塌成 legacy 被消费 · **BLK-B** `run_pipeline_artifacts` 在 `:1368/:1376/:1411` **自己先解析了 `*_view.json`**（早于 `:1414` 的 `run_correction`）⇒ 组合入口无账 · **BLK-C** 「ledger 永不抛」为假（`schema=[]` / 非法 UTF-8 / **`*.json` 是个目录** 三种普通现实都崩在账前）|
-> ⛔ **`wt/08.27_f97_contract`(`f2a8ccf`) 未过审、未并回主线。**
+> | **F-97** correction 只吃声明过的契约 | ✅ **过审**（`c3fc3fd` · GLM **APPROVE-WITH-FINDINGS / 0 阻断 / 5 不阻断**）。三条阻断**三格全过**，且第三格是**双份**的（施工方自跑一轮 + 复核方换方向再找一轮，未击穿）；复核方独立全量 **3113 passed / 13 xfailed / 0 failed**；**A8 `.pth` 哨兵首次生效**|
+> ⭐⭐⭐ **本轮出现一件此前没有过的事：复核方当场推翻了自己上一轮的【逐字处方】并写进裁决。**
+> 施工方指出「名叫 `*.json` 的 fifo 会让 `read_text` 永久挂死、**没有任何 except 捕得到**」与「深嵌套 JSON 的 `RecursionError`
+> 既非 `OSError` 也非 `UnicodeDecodeError`」⇒ **照 GLM 上一轮的逐字处方做仍会崩**。GLM 用**干净子进程 + 8 秒墙钟**实锤，
+> 并交代**它自己第一版探针被 `TimeoutError ⊂ OSError` 的围栏伪影骗过**，全盘接受 `is_file()` 边界方向。
+> ⇒ **「本轮你没有维持一致的义务」这句写进复核请求单是有回报的**，已固化进模板。
 >
 > ### ②″ ⭐⭐⭐ 本轮最值钱的一条方法论（**已固化，下次照抄**）
 > **凡「修了某条阻断」的返工审，判据必须同时要求三件事**：
