@@ -8,6 +8,7 @@ reproduction from inputs that ARE signed, so these tests check the gate's
 DISCRIMINATING POWER, not merely that it runs:
 
   * a single tampered ``thickness_m`` must be caught AND named (test_a3);
+  * signed human-review inputs must not hide tampered G6 geometry (test_r2);
   * a drifted implementation must be reported as drift, never as a bad
     artefact (test_a4).
 
@@ -23,6 +24,7 @@ from pathlib import Path
 
 import pytest
 
+import src.agent.judge.gt_raw_layer as raw_layer
 from src.agent.judge.gt_raw_layer import (load_gt_raw_layer,
                                           verify_raw_layer_reproduction)
 
@@ -114,6 +116,34 @@ def test_a3_single_tampered_thickness_is_caught_and_named(tmp_path):
     assert expected in verdict.differing_pointers, verdict.differing_pointers
 
 
+def test_r2_signed_review_inputs_do_not_hide_tampered_g6_geometry(tmp_path):
+    root = _clone_gt(tmp_path)
+    path = _report_path(root)
+    report = json.loads(path.read_text(encoding="utf-8"))
+    gates = {gate["id"]: gate for gate in report["gates"]}
+    face = gates["G6"]["evidence"]["views"][0]["evidence"]["near_threshold_faces"][0]
+    recorded = face["area_m2"]
+    face["area_m2"] = recorded + 0.001
+    path.write_text(json.dumps(report, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+
+    verdict = verify_raw_layer_reproduction(CASE, gt_dir=root)
+    expected = "/gates/G6/evidence/views/0/evidence/near_threshold_faces/0/area_m2"
+    assert verdict.status == "content_mismatch", verdict.detail
+    assert expected in verdict.differing_pointers, verdict.differing_pointers
+
+
+def test_r4_duplicate_gate_id_is_a_content_mismatch(tmp_path):
+    root = _clone_gt(tmp_path)
+    path = _report_path(root)
+    report = json.loads(path.read_text(encoding="utf-8"))
+    report["gates"].append(dict(report["gates"][0]))
+    path.write_text(json.dumps(report, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+
+    verdict = verify_raw_layer_reproduction(CASE, gt_dir=root)
+    assert verdict.status == "content_mismatch", verdict.detail
+    assert verdict.differing_pointers == ("/gates",)
+
+
 # --------------------------------------------------------------------------- #
 # A4 -- the two reds stay apart
 # --------------------------------------------------------------------------- #
@@ -136,6 +166,22 @@ def test_a4_implementation_drift_is_not_reported_as_content_mismatch(tmp_path):
     assert verdict.differing_pointers == ()
 
 
+def test_r5_vg_implementation_drift_is_fatal(monkeypatch):
+    current = raw_layer.compute_gt_implementation_hashes(raw_layer.REPO_ROOT)
+    recorded = current.vg_implementation_sha256
+    moved = ("1" if recorded[0] != "1" else "2") + recorded[1:]
+    monkeypatch.setattr(
+        raw_layer,
+        "compute_gt_implementation_hashes",
+        lambda _root: current.model_copy(update={"vg_implementation_sha256": moved}),
+    )
+
+    verdict = verify_raw_layer_reproduction(CASE)
+    assert verdict.status == "implementation_drift", verdict.detail
+    assert verdict.drifted_fingerprints == ("vg_implementation_sha256",)
+    assert verdict.differing_pointers == ()
+
+
 # --------------------------------------------------------------------------- #
 # Degradation is explicit, never a silent pass
 # --------------------------------------------------------------------------- #
@@ -145,3 +191,27 @@ def test_missing_signed_inputs_report_inputs_unavailable(tmp_path):
     verdict = verify_raw_layer_reproduction(CASE, gt_dir=root)
     assert verdict.status == "inputs_unavailable"
     assert verdict.reproduced is False
+
+
+def test_tampered_signed_chain_is_rejected_before_reproduction(tmp_path):
+    root = _clone_gt(tmp_path)
+    path = root / CASE / "review" / "review_index.json"
+    index = json.loads(path.read_text(encoding="utf-8"))
+    index["files"][0]["sha256"] = "0" * 64
+    path.write_text(json.dumps(index, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+
+    verdict = verify_raw_layer_reproduction(CASE, gt_dir=root)
+    assert verdict.status == "inputs_unavailable"
+    assert "review_index_inventory_mismatch" in verdict.detail
+
+    second_parent = tmp_path / "promoted-tamper"
+    second_parent.mkdir()
+    second_root = _clone_gt(second_parent)
+    gt_path = second_root / CASE / "gt.json"
+    document = json.loads(gt_path.read_text(encoding="utf-8"))
+    document["generator"]["vg_implementation_sha256"] = "0" * 64
+    gt_path.write_text(json.dumps(document, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+
+    verdict = verify_raw_layer_reproduction(CASE, gt_dir=second_root)
+    assert verdict.status == "inputs_unavailable"
+    assert "promoted_gt_signed_semantics_mismatch" in verdict.detail

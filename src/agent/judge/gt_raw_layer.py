@@ -50,30 +50,25 @@ be reported as a suspect artefact.
 
 ### Which fingerprints are fatal, and why exactly those
 
-The **fatal** set is the three the report *itself* binds: ``converter_sha256``
-(= ``tarch_normalize.py``), ``judge_config_sha256`` and ``vg_config_sha256``.
-That mirrors the producer's own declaration of "what implementation made me",
-which is the standing rule for a recomputing gate: a check whose definition does
-not mirror the producer's measures the difference between two opinions.
+The **fatal** set contains the three fingerprints the report itself binds —
+``converter_sha256`` (= ``tarch_normalize.py``), ``judge_config_sha256`` and
+``vg_config_sha256`` — plus the signed ``gt.json`` generator's
+``vg_implementation_sha256``.  The latter is an exact group hash over the four
+correction modules in the measured conversion import closure, with no
+closure-external file, so it is a precise converter-drift signal.
 
-The signed ``gt.json`` generator block carries three more —
-``extractor_sha256`` / ``validator_sha256`` / ``vg_implementation_sha256`` — but
-those are the fingerprints of a *different* artefact.  They are reported as an
-**advisory**, never as a fatal drift, for a measured reason: ``extractor_sha256``
-is a group hash over ``gt_extraction.py`` + ``gt_manifest.py`` +
-``scripts/tool_scripts/gt_from_dxf.py``, and the last of those is a CLI entry
-point that the conversion import closure was MEASURED (2026-08-27) not to load
-at all.  Treating that group as fatal makes a CLI-only edit — precisely what
-commit ``91ae82d`` did on 2026-08-25, adding five lines of ``sys.path``
-bootstrap — masquerade as converter drift.  A fingerprint that is wider than the
-question is the same false-red species as comparing bytes.
+The signed generator also carries ``extractor_sha256`` and
+``validator_sha256``.  Those remain **advisory** because their groups include
+closure-external files.  In particular, ``extractor_sha256`` includes
+``scripts/tool_scripts/gt_from_dxf.py``, a CLI entry point that the conversion
+closure was measured (2026-08-27) not to load.  Treating that group as fatal
+would turn a CLI-only edit into converter drift.
 
-⚠️ **Declared blind spot.**  ``gt_extraction.py``, ``gt_manifest.py`` and
-``tarch_converter_schema.py`` ARE inside the conversion import closure but have
-no exactly-scoped signed fingerprint.  Drift confined to them is therefore
-reported as ``content_mismatch``, not ``implementation_drift`` — the difference
-is still caught loudly, but its *attribution* is wrong.  This is a genuine
-residual hole, written down rather than papered over.
+⚠️ **Declared blind spot.**  ``gt_extraction.py``, ``gt_manifest.py``,
+``gt_schema.py`` and ``tarch_converter_schema.py`` are in the conversion import
+closure but have no exactly-scoped signed fingerprint.  Drift confined to them
+is therefore reported as ``content_mismatch``, not ``implementation_drift`` —
+the difference is still caught loudly, but its attribution is wrong.
 
 ## Nothing degrades silently (G1-c)
 
@@ -94,7 +89,9 @@ from pathlib import Path
 from typing import Iterator, Literal
 
 from .gt import DEFAULT_GT_DIR, case_gt_dir
-from .gt_schema import REPO_ROOT, compute_gt_implementation_hashes
+from .gt_schema import (REPO_ROOT, GroundTruthV3,
+                        compute_gt_implementation_hashes,
+                        compute_gt_v3_content_sha256)
 from .tarch_converter_schema import (GT_SOURCES_ROOT, ConversionReportV1,
                                      HumanReviewAckV1, TarchConversionRequestV1,
                                      ZoneEdgeReportV1, compute_request_sha256,
@@ -103,49 +100,7 @@ from .tarch_converter_schema import (GT_SOURCES_ROOT, ConversionReportV1,
 __all__ = [
     "RawEdge", "GtRawLayer", "RawLayerTrust", "ReproductionVerdict",
     "load_gt_raw_layer", "verify_raw_layer_reproduction",
-    "SIGNATURE_DEPENDENT_POINTERS", "HUMAN_REVIEW_GATE_IDS",
 ]
-
-
-# --------------------------------------------------------------------------- #
-# What is allowed to differ between the on-disk report and a fresh re-run
-# --------------------------------------------------------------------------- #
-# ⭐ Derived from the PRODUCER's own declaration, NOT from an observed diff.
-# ``tarch_review_bundle.sign_review_bundle`` requires every gate to be green
-# *except* ``{6, 10}`` at signing time -- i.e. the producer itself names G6 and
-# G10 as the gates whose verdict is a function of the human signature rather
-# than of the drawing.  A fresh re-run happens in a work dir with no
-# review_ack.json / review_index.json, so exactly those two are red there.
-HUMAN_REVIEW_GATE_IDS = frozenset({"G6", "G10"})
-
-# ``ConversionReportV1._status_geom_contract`` makes both of these a mechanical
-# CONSEQUENCE of a red gate: status is BLOCKED, and a non-PASS report is not
-# allowed to carry ``normalized_dxf_sha256``.
-SIGNATURE_DEPENDENT_POINTERS = frozenset({"/status", "/normalized_dxf_sha256"})
-
-
-def _pointer_is_signature_dependent(pointer: str) -> bool:
-    """True only for differences that the human signature itself explains.
-
-    Everything else -- every wall, opening, cavity, zone edge, diagnostic, the
-    provenance hashes, and even G6's *geometric* evidence -- must match.
-    """
-    if pointer in SIGNATURE_DEPENDENT_POINTERS:
-        return True
-    parts = pointer.split("/")
-    if len(parts) < 3 or parts[1] != "gates" or parts[2] not in HUMAN_REVIEW_GATE_IDS:
-        return False
-    tail = parts[3:]
-    if parts[2] == "G10":
-        # G10 *is* the signature check; its whole evidence body is about the ack.
-        return tail[:1] in ([], ["passed"], ["evidence"])
-    # G6 is a real geometric gate that merely needs a human to confirm the
-    # near-threshold faces.  Only its verdict and the confirmation stamp may
-    # move; cavity counts, areas and centroids must still reproduce.
-    if tail == ["passed"]:
-        return True
-    return (len(tail) >= 3 and tail[:2] == ["evidence", "views"]
-            and (tail[3:] == ["passed"] or tail[3:] == ["evidence", "human_confirmation"]))
 
 
 # --------------------------------------------------------------------------- #
@@ -348,28 +303,82 @@ def find_signed_request(expected_sha256: str) -> TarchConversionRequestV1 | None
     return None
 
 
-def _fatal_fingerprints(report: ConversionReportV1) -> list[tuple[str, str, str]]:
-    """(name, recorded, current) for the hashes the REPORT ITSELF binds.
+def _verified_signed_review_material(
+        review: Path) -> tuple[HumanReviewAckV1, Path, Path]:
+    """Load ack/index only after proving the signed inventory chain.
 
-    Mirroring the producer's own declaration is the whole point: these three are
-    what ``build_p1_report`` / the P2 report builder stamp into the artefact as
-    "the implementation that made me".
+    A promoted review tree no longer has the original bundle layout, so the
+    full file-inventory validator cannot run here.  The signature root remains
+    verifiable: recompute the canonical digest of ``files``, require the index
+    to declare that digest, then require the ack to sign the same digest.
     """
-    tooling = resolve_converter_tooling(REPO_ROOT / "src/configs/judge_gt.yaml",
-                                        REPO_ROOT / "src/configs/correction.yaml")
-    return [
-        ("converter_sha256", report.converter_sha256, _converter_sha256_now()),
-        ("judge_config_sha256", report.judge_config_sha256, tooling.judge_config_sha256),
-        ("vg_config_sha256", report.vg_config_sha256, tooling.vg_config_sha256),
-    ]
+    ack_path = review / "review_ack.json"
+    index_path = review / "review_index.json"
+    if not ack_path.is_file():
+        raise ValueError("review_ack_missing")
+    if not index_path.is_file():
+        raise ValueError("review_index_missing")
+    try:
+        ack = HumanReviewAckV1.model_validate_json(ack_path.read_bytes())
+        index = json.loads(index_path.read_text(encoding="utf-8"))
+    except Exception as exc:
+        raise ValueError("signed_review_material_invalid") from exc
+
+    from .tarch_review_bundle import (INVENTORY_ALGORITHM,
+                                      REVIEW_INDEX_SCHEMA,
+                                      _canonical_inventory_sha256)
+
+    if not isinstance(index, dict) or index.get("schema") != REVIEW_INDEX_SCHEMA:
+        raise ValueError("review_index_schema_invalid")
+    files = index.get("files")
+    if not isinstance(files, list) or any(not isinstance(item, dict) for item in files):
+        raise ValueError("review_index_files_invalid")
+    normalized: list[dict[str, str]] = []
+    for item in files:
+        path = item.get("path")
+        digest = item.get("sha256")
+        if not isinstance(path, str) or not isinstance(digest, str):
+            raise ValueError("review_index_files_invalid")
+        normalized.append({"path": path, "sha256": digest})
+    if normalized != sorted(normalized, key=lambda item: item["path"]):
+        raise ValueError("review_index_files_unsorted")
+    if index.get("inventory_algorithm") != INVENTORY_ALGORITHM:
+        raise ValueError("review_index_algorithm_invalid")
+    canonical = _canonical_inventory_sha256(normalized)
+    if index.get("inventory_sha256") != canonical:
+        raise ValueError("review_index_inventory_mismatch")
+    if ack.review_index_sha256 != canonical:
+        raise ValueError("review_ack_index_signature_mismatch")
+
+    # Promotion intentionally changes candidate verification metadata and the
+    # dependent content hash, so its gt.json bytes cannot equal the indexed
+    # candidate bytes.  Invert exactly that allowed transform and prove every
+    # semantic field (including the generator fingerprints) still hashes to the
+    # candidate identity bound by the signed index.
+    promoted_path = review.parent / "gt.json"
+    try:
+        promoted = GroundTruthV3.model_validate_json(promoted_path.read_bytes())
+    except Exception as exc:
+        raise ValueError("promoted_gt_invalid") from exc
+    verification = promoted.verification
+    if (verification.status != "human_verified"
+            or verification.reviewer_id != ack.reviewer
+            or verification.reviewed_on != ack.signed_at[:10]):
+        raise ValueError("promoted_gt_review_identity_mismatch")
+    candidate_verification = verification.model_copy(update={
+        "status": "candidate", "reviewer_id": None, "reviewed_on": None,
+        "methods": [],
+    })
+    candidate = promoted.model_copy(update={
+        "verification": candidate_verification, "content_sha256": "0" * 64,
+    })
+    if compute_gt_v3_content_sha256(candidate) != index.get("candidate_gt_sha256"):
+        raise ValueError("promoted_gt_signed_semantics_mismatch")
+    return ack, ack_path, index_path
 
 
-def _advisory_fingerprints(case: str, gt_dir: Path | str) -> list[tuple[str, str, str]]:
-    """Signed fingerprints of the NEIGHBOURING artefact (gt.json's generator block).
-
-    Reported, never fatal — ``extractor_sha256`` bundles a CLI script that the
-    conversion closure does not import.  See the module docstring.
-    """
+def _generator_fingerprints(case: str, gt_dir: Path | str) -> list[tuple[str, str, str]]:
+    """(name, signed, current) for fingerprints in the signed gt generator."""
     gt_path = case_gt_dir(case, gt_dir=gt_dir) / "gt.json"
     if not gt_path.is_file():
         return []
@@ -380,6 +389,37 @@ def _advisory_fingerprints(case: str, gt_dir: Path | str) -> list[tuple[str, str
             if key in generator]
 
 
+def _fatal_fingerprints(report: ConversionReportV1, case: str,
+                        gt_dir: Path | str) -> list[tuple[str, str, str]]:
+    """Hashes precisely scoped to the conversion implementation.
+
+    Mirroring the producer's own declaration is the whole point: these three are
+    what ``build_p1_report`` / the P2 report builder stamp into the artefact as
+    "the implementation that made me".  The signed vg group is also exact: its
+    four correction modules are all in the measured conversion closure.
+    """
+    tooling = resolve_converter_tooling(REPO_ROOT / "src/configs/judge_gt.yaml",
+                                        REPO_ROOT / "src/configs/correction.yaml")
+    report_fingerprints = [
+        ("converter_sha256", report.converter_sha256, _converter_sha256_now()),
+        ("judge_config_sha256", report.judge_config_sha256, tooling.judge_config_sha256),
+        ("vg_config_sha256", report.vg_config_sha256, tooling.vg_config_sha256),
+    ]
+    vg_fingerprint = [entry for entry in _generator_fingerprints(case, gt_dir)
+                      if entry[0] == "vg_implementation_sha256"]
+    return report_fingerprints + vg_fingerprint
+
+
+def _advisory_fingerprints(case: str, gt_dir: Path | str) -> list[tuple[str, str, str]]:
+    """Signed fingerprints of the NEIGHBOURING artefact (gt.json's generator block).
+
+    Reported, never fatal — ``extractor_sha256`` bundles a CLI script that the
+    conversion closure does not import.  See the module docstring.
+    """
+    return [entry for entry in _generator_fingerprints(case, gt_dir)
+            if entry[0] in {"extractor_sha256", "validator_sha256"}]
+
+
 def _converter_sha256_now() -> str:
     from .tarch_normalize import converter_sha256
     return converter_sha256()
@@ -388,7 +428,11 @@ def _converter_sha256_now() -> str:
 def _normalise_for_diff(report: ConversionReportV1) -> dict:
     """Report as JSON, with gates re-keyed by id so pointers survive reordering."""
     payload = report.model_dump(mode="json")
-    payload["gates"] = {gate["id"]: gate for gate in payload.get("gates", [])}
+    gates = payload.get("gates", [])
+    keyed_gates = {gate["id"]: gate for gate in gates}
+    if len(gates) != len(keyed_gates):
+        raise ValueError("duplicate_gate_ids")
+    payload["gates"] = keyed_gates
     return payload
 
 
@@ -427,9 +471,12 @@ def verify_raw_layer_reproduction(case: str, *, gt_dir: Path | str = DEFAULT_GT_
         return ReproductionVerdict("inputs_unavailable", f"no conversion_report.json under {review}")
     on_disk = ConversionReportV1.model_validate_json(report_path.read_bytes())
 
-    ack = _read_ack(review)
-    if ack is None:
-        return ReproductionVerdict("inputs_unavailable", f"no review_ack.json under {review}")
+    try:
+        ack, ack_path, index_path = _verified_signed_review_material(review)
+    except ValueError as exc:
+        return ReproductionVerdict(
+            "inputs_unavailable",
+            f"signed review material under {review} failed closed: {exc}")
 
     source = find_signed_source_dxf(case, ack.source_dxf_sha256)
     if source is None:
@@ -448,7 +495,8 @@ def verify_raw_layer_reproduction(case: str, *, gt_dir: Path | str = DEFAULT_GT_
                      in _advisory_fingerprints(case, gt_dir) if recorded != current)
 
     # ⭐ Fingerprints FIRST: a moved tree must never be reported as a bad artefact.
-    drifted = [name for name, recorded, current in _fatal_fingerprints(on_disk)
+    drifted = [name for name, recorded, current
+               in _fatal_fingerprints(on_disk, case, gt_dir)
                if recorded != current]
     if drifted:
         return ReproductionVerdict(
@@ -463,8 +511,13 @@ def verify_raw_layer_reproduction(case: str, *, gt_dir: Path | str = DEFAULT_GT_
     try:
         # assert_staging_input forbids converting a DXF in place under gt_sources/,
         # so the signed source is copied out first (as build_review_bundle does).
+        # The already-verified ack/index complete the human-review environment;
+        # with them present G6/G10 evaluate identically on both sides.
+        root.mkdir(parents=True, exist_ok=True)
         staged = root / "source.dxf"
         shutil.copyfile(source, staged)
+        shutil.copyfile(ack_path, root / "review_ack.json")
+        shutil.copyfile(index_path, root / "review_index.json")
         from .tarch_normalize import run_tarch_conversion
         tooling = resolve_converter_tooling(REPO_ROOT / "src/configs/judge_gt.yaml",
                                             REPO_ROOT / "src/configs/correction.yaml")
@@ -473,20 +526,30 @@ def verify_raw_layer_reproduction(case: str, *, gt_dir: Path | str = DEFAULT_GT_
         if owned_work:
             shutil.rmtree(root, ignore_errors=True)
 
-    pointers = _diff_pointers(_normalise_for_diff(fresh), _normalise_for_diff(on_disk))
-    unexplained = tuple(p for p in pointers if not _pointer_is_signature_dependent(p))
-    if unexplained:
+    try:
+        fresh_payload = _normalise_for_diff(fresh)
+        on_disk_payload = _normalise_for_diff(on_disk)
+    except ValueError as exc:
         return ReproductionVerdict(
             "content_mismatch",
-            f"{len(unexplained)} field(s) of {report_path} could not be reproduced from the "
+            f"{report_path} cannot be compared without data loss: {exc}",
+            differing_pointers=("/gates",),
+            advisory_drifted_fingerprints=advisory)
+
+    pointers = tuple(_diff_pointers(fresh_payload, on_disk_payload))
+    if pointers:
+        return ReproductionVerdict(
+            "content_mismatch",
+            f"{len(pointers)} field(s) of {report_path} could not be reproduced from the "
             f"signed source DXF + request under an IDENTICAL implementation: "
-            f"{', '.join(unexplained[:20])}"
-            + (f" (+{len(unexplained) - 20} more)" if len(unexplained) > 20 else ""),
-            differing_pointers=unexplained, advisory_drifted_fingerprints=advisory)
+            f"{', '.join(pointers[:20])}"
+            + (f" (+{len(pointers) - 20} more)" if len(pointers) > 20 else ""),
+            differing_pointers=pointers, advisory_drifted_fingerprints=advisory)
     return ReproductionVerdict(
         "reproduced",
         f"every content field of {report_path} re-derived from the signed source DXF "
-        f"({source.name}) and the signed request; only signature-dependent fields differ."
+        f"({source.name}) and the signed request, with the verified review ack/index; "
+        "zero JSON pointers differ."
         + (f" ADVISORY: neighbouring-artefact fingerprints moved ({', '.join(advisory)}); "
            "outside the measured conversion import closure, see module docstring."
            if advisory else ""),
