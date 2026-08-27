@@ -65,6 +65,35 @@ producer's definition measures the difference between two opinions.
        So the denominator is clean while the reading task is not -- that is a
        property of the answer source, not a claim that the task is easy.
   * a face line's two ends beyond the last fragment -> not extrapolated.
+
+## ⛔ An EMPTY denominator is never a denominator (2026-08-29, F-126)
+
+MEASURED: fed ``sm25-L_t3_as_received.dxf`` against the signed ``request.json``,
+this function used to RETURN NORMALLY with ``targets: []``, ``opening_targets:
+[]`` and ``wall_layer_segments_collected: 0`` -- because ``run_p1_plan_view``
+fails closed on its source-hash gate (``tarch_input_source_hash_mismatch``,
+severity BLOCK) and hands back an empty ``P1PlanViewGeometry``.  The BLOCK
+diagnostic was then dropped on the floor: the returned dict had no field that
+could carry it.
+
+⇒ A zero denominator is indistinguishable, IN THE ARTIFACT, from "the product
+is perfect" and from "there was nothing to score here" -- the downstream reads
+"the ruler never measured" as "the measured thing is bad"
+([[absence-conflates-causes-in-observables]], same root as F-64).  So:
+
+  * ``diagnostics`` is now a top-level key, always, on every return path.
+  * an empty ``targets`` RAISES ``DenominatorUnavailable`` instead of returning,
+    and the two ways of being empty carry DIFFERENT reasons -- an upstream BLOCK
+    (codes named in the message) versus geometry that ran clean and still found
+    nothing.  ⛔ They are not collapsed into one exit.
+
+⚠️ SCOPE, stated so it is not mistaken for an oversight: a BLOCK diagnostic
+alongside a NON-empty denominator still returns.  MEASURED, that combination is
+real -- re-signed, ``sm25-L_t3_as_received.dxf`` at ``plan-F1`` yields 223 wall
+lines together with ``tarch_wall_nonorthogonal`` / ``tarch_wall_free_end`` --
+and deciding whether such a denominator is scoreable is a policy question this
+file does not own.  What F-126 fixes is the SILENCE: those codes now ride out in
+``diagnostics`` where a caller can see them.
 """
 from __future__ import annotations
 
@@ -92,6 +121,65 @@ QUANT = 4               # rounding of stored world coordinates (0.1 mm)
 # refused the second of them.  Group at 1 mm: finer than any tolerance in play,
 # coarser than the answer's own rounding noise.
 GROUP_QUANT = 3
+
+
+#: reason codes for :class:`DenominatorUnavailable` -- ⛔ two DISTINCT exits, so
+#: "the upstream refused to produce geometry" can never be read as "the geometry
+#: is fine and this view genuinely has nothing to score".
+REASON_UPSTREAM_BLOCK = "upstream_block_diagnostics"
+REASON_ZERO_TARGETS = "geometry_ran_but_zero_targets"
+
+
+class DenominatorUnavailable(RuntimeError):
+    """⭐ F-126: raised instead of handing back a denominator with no targets.
+
+    A caller cannot mistake this for a usable denominator -- there is no dict to
+    keep using.  Everything the empty run knew is carried on the exception:
+    ``reason`` (one of the two constants above), ``blocking_codes`` (the BLOCK
+    diagnostic codes, named in ``str(exc)`` as well), the full ``diagnostics``
+    records, and the ``ledger`` counters of the run that came up empty.
+    """
+
+    def __init__(self, reason: str, *, view_id: str, floor_id: str,
+                 diagnostics: list[dict], ledger: dict) -> None:
+        self.reason = reason
+        self.view_id = view_id
+        self.floor_id = floor_id
+        self.diagnostics = diagnostics
+        self.ledger = ledger
+        self.blocking_codes = sorted({d["code"] for d in diagnostics
+                                      if d["severity"] == "BLOCK"})
+        if reason == REASON_UPSTREAM_BLOCK:
+            why = ("the upstream converter refused to produce geometry; "
+                   f"BLOCK diagnostics: {', '.join(self.blocking_codes)}")
+        else:
+            why = ("the upstream converter produced geometry with NO block "
+                   "diagnostics, and the D1-D5 rule still yielded zero "
+                   "scoreable targets")
+        super().__init__(
+            f"denominator_unavailable[{reason}] view={view_id} floor={floor_id}: {why} "
+            f"(wall_layer_segments_collected="
+            f"{ledger.get('wall_layer_segments_collected')}, "
+            f"face_segments={ledger.get('face_segments')})")
+
+
+def _diagnostic_records(geo) -> list[dict]:
+    """⭐ R1: carry the converter's diagnostics OUT, ⛔ not to a log line.
+
+    ``severity``/``stage`` are ``str`` enums and ``code`` is a plain ``Literal``
+    string; normalise all three to bare strings so the result stays json-safe
+    for ``main()``.
+    """
+    out = []
+    for d in geo.diagnostics:
+        out.append({
+            "code": str(getattr(d.code, "value", d.code)),
+            "severity": str(getattr(d.severity, "value", d.severity)),
+            "stage": str(getattr(d.stage, "value", d.stage)),
+            "action_code": d.action_code,
+            "context": d.context,
+        })
+    return out
 
 
 def _merge(spans: list[tuple[float, float]], gap_m: float) -> list[list[float]]:
@@ -128,10 +216,28 @@ def denominator(dxf: Path, request_path: Path, view_id: str, *,
 
     # pass 1 -- every orthogonal segment in WORLD coordinates
     segs = []
-    n_diag = 0
+    # ⭐ 2026-08-29 (F-126, R3): D1 drops non-orthogonal strokes, and the ledger
+    # used to record only HOW MANY.  A bare count cannot be pointed at: "1
+    # segment was discarded" does not say WHICH 1 m of wall left the answer.  So
+    # the discarded strokes are now itemised, in both frames.
+    # ⛔ OUT-ACCOUNTING ONLY -- the discard rule itself is untouched here; changing
+    # it is F-129 (an as-yet-unbuilt capability), deliberately not in this change.
+    # ⚠️ field names say which frame they are in: ``*_dxf`` is native DXF units,
+    # ``*_m`` is world metres ([[cross-representation-mutation-must-be-equivalent]]:
+    # a field called ``pos_m`` that holds pixels is how the last one went wrong).
+    excluded_non_orthogonal: list[dict] = []
     for _handle, x0, y0, x1, y1 in geo.wall_lines:
         if x0 != x1 and y0 != y1:
-            n_diag += 1                                  # D1: out of profile
+            (nx0, ny0) = _to_world((x0, y0), affine)     # D1: out of profile
+            (nx1, ny1) = _to_world((x1, y1), affine)
+            excluded_non_orthogonal.append({
+                "handle": _handle,
+                "p0_dxf": [round(x0, 6), round(y0, 6)],
+                "p1_dxf": [round(x1, 6), round(y1, 6)],
+                "p0_m": [round(nx0, QUANT), round(ny0, QUANT)],
+                "p1_m": [round(nx1, QUANT), round(ny1, QUANT)],
+                "length_m": round(((nx1 - nx0) ** 2 + (ny1 - ny0) ** 2) ** 0.5, QUANT),
+            })
             continue
         (wx0, wy0), (wx1, wy1) = _to_world((x0, y0), affine), _to_world((x1, y1), affine)
         if abs(wx1 - wx0) < abs(wy1 - wy0):
@@ -281,7 +387,8 @@ def denominator(dxf: Path, request_path: Path, view_id: str, *,
                                 "const_range_m": [const_lo, const_hi],
                                 "lo_m": lo, "hi_m": hi,
                                 "width_m": round(hi - lo, 4)})
-    return {
+    diagnostics = _diagnostic_records(geo)              # ⭐ R1: always, every path
+    result = {
         "rule_version": "denominator_v1",
         "view_id": view_id, "floor_id": view.floor_id,
         "params": {"merge_m": merge_m, "coordinate_round_decimals": QUANT},
@@ -289,7 +396,9 @@ def denominator(dxf: Path, request_path: Path, view_id: str, *,
             "wall_layer_segments_collected": len(geo.wall_lines),
             "excluded_jamb_caps_geometric": n_cap,
             "would_be_excluded_by_converter_length_rule": n_cap_by_converter,
-            "excluded_non_orthogonal": n_diag,
+            # ⭐ the count and its itemisation are built from ONE list, so they
+            # cannot drift apart (R3's lock asserts the two agree AND are > 0).
+            "excluded_non_orthogonal": len(excluded_non_orthogonal),
             "face_segments": n_face,
             "face_lines_after_grouping": len(groups),
             "scoreable_targets_after_merge": len(targets),
@@ -304,11 +413,27 @@ def denominator(dxf: Path, request_path: Path, view_id: str, *,
         },
         "targets": targets,
         "allowed_not_required": allowed,
+        # ⭐ R3: the count in the ledger, the items here -- same shape as
+        # ``allowed_not_required`` already uses.
+        "excluded_non_orthogonal_segments": excluded_non_orthogonal,
         "opening_targets": opening_targets,
         "opening_ledger": {"total": len(opening_targets),
                            "by_kind": {k: sum(1 for o in opening_targets if o["kind"] == k)
                                        for k in sorted({o["kind"] for o in opening_targets})}},
+        # ⭐ R1: the converter's own diagnostics ride out with the denominator.
+        # ⛔ NOT a log line -- a log line is not in the artifact, and the artifact
+        # is what the downstream reads.
+        "diagnostics": diagnostics,
     }
+    # ⭐⭐ R2: the loud failure.  Built the ledger first ON PURPOSE, so the
+    # exception can carry everything the empty run did know.
+    if not targets:
+        raise DenominatorUnavailable(
+            REASON_UPSTREAM_BLOCK if any(d["severity"] == "BLOCK" for d in diagnostics)
+            else REASON_ZERO_TARGETS,
+            view_id=view_id, floor_id=view.floor_id,
+            diagnostics=diagnostics, ledger=result["ledger"])
+    return result
 
 
 def main(dxf: str, request: str, view_id: str, out: str,

@@ -48,19 +48,12 @@ uncovered_allowlist:
     all 11 gates re-run against all three exploration views produce the same
     green/red/degraded pattern as the tracked exploration reference (sm25 1F/2F
     all green; sm24 exactly reconcile=degraded, spacing=red, forward=degraded).
-  src/agent/judge/as_drawn/__init__.py: >-
-    package marker for the as-drawn judge pair (denominator + reading grade),
-    transplanted 2026-08-25; gt-reading, judge-only by design (CLAUDE.md §1.5#4)
-    so gate①/the executor must not reach it -- no project-side test imports the
-    package root directly.
-  src/agent/judge/as_drawn/denominator.py: >-
-    transplanted 2026-08-25 from tools/denominator.py; deliberately judge-only
-    (reads the gt DXF), so gate①/the executor never import it -- confirmed by a
-    fresh-subprocess import-closure scan of src.agent.pipeline
-    (tests/test_gt_discipline.py::test_pipeline_import_closure_excludes_gt_and_as_drawn_judge).
-    No project-side test imports this module directly yet; verified by hand via
-    `cmp -s` of its output against the tracked exploration reference
-    out/denominator_{sm25_F1,sm25_F2,sm24_F1}.json, all three byte-identical.
+  # ⭐ 2026-08-29 (F-126): ``as_drawn/__init__.py`` and ``as_drawn/denominator.py``
+  # LEFT this allowlist.  Their entries said, in as many words, "no project-side
+  # test imports this module directly YET" -- tests/test_as_drawn_denominator_f126.py
+  # now does, so keeping them here would be the allowlist telling a lie the gate
+  # is built to catch.  ⛔ Do not re-add them to silence a red: the honest way
+  # back onto this list is for the coverage to actually go away.
   src/agent/judge/as_drawn/reading_grade.py: >-
     transplanted 2026-08-25 from tools/reading_grade.py; same judge-only rationale
     and same by-hand cmp -s verification as denominator.py above (against
