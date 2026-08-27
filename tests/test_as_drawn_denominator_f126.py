@@ -34,6 +34,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import math
 from pathlib import Path
 
 import pytest
@@ -60,9 +61,15 @@ HASH_GATE_CODE = "tarch_input_source_hash_mismatch"
 # MEASURED 2026-08-29 on the signed drawing, before any of this change landed.
 # ⭐ Two views, not one: [[rework-review-needs-the-same-shape-input]] -- a fix
 # proven on ``plan-F1`` alone only proves ``plan-F1`` was fixed.
+# ⭐ F-D (F-126 cross-review, 2026-08-29): counts alone cannot tell "the
+# numbers are the same" from "the counts still agree but the COORDINATES
+# rotted" -- every target a centimetre longer leaves every count untouched.
+# The ledger already carries two geometric quantities; pin them too.
 SIGNED_EXPECTED = {
-    "plan-F1": {"targets": 110, "openings": 31, "segments": 225},
-    "plan-F2": {"targets": 106, "openings": 30, "segments": 222},
+    "plan-F1": {"targets": 110, "openings": 31, "segments": 225,
+                "total_scoreable_length_m": 282.28, "face_lines_after_grouping": 44},
+    "plan-F2": {"targets": 106, "openings": 30, "segments": 222,
+                "total_scoreable_length_m": 289.04, "face_lines_after_grouping": 44},
 }
 
 
@@ -109,6 +116,12 @@ def test_l1_signed_drawing_still_yields_the_same_denominator(anchor_present, vie
     assert len(result["opening_targets"]) == want["openings"]
     assert result["ledger"]["wall_layer_segments_collected"] == want["segments"]
     assert result["view_id"] == view_id
+    # ⭐ F-D: the counts agree AND the geometry they summarise still weighs
+    # what it weighed -- "same counts, rotted coordinates" is the shape these
+    # two lines exist to catch (the by-hand cmp -s that used to catch it went
+    # away with the allowlist entry in 48f1d10).
+    assert result["ledger"]["total_scoreable_length_m"] == want["total_scoreable_length_m"]
+    assert result["ledger"]["face_lines_after_grouping"] == want["face_lines_after_grouping"]
 
 
 # --------------------------------------------------------------------------- #
@@ -210,15 +223,41 @@ def test_l4_discarded_non_orthogonal_segments_are_itemised(anchor_present, tmp_p
     ``len(items) == count`` is ``0 == 0`` and passes on code that never builds
     the list.  So this uses the re-signed as-received drawing, measured to carry
     exactly one discarded stroke, and asserts NON-EMPTINESS first.
+
+    ⭐ F-C (F-126 cross-review, 2026-08-29): this test is ALSO the pin -- until
+    now unlabelled -- on the POLICY that ``denominator()`` RETURNS when BLOCK
+    diagnostics ride alongside a NON-empty denominator.  It feeds the one
+    fixture measured to produce exactly that combination (108 targets together
+    with ``tarch_wall_nonorthogonal`` x2 + ``tarch_wall_free_end`` x1, all
+    BLOCK) and expects a normal return.  Read literally, "any BLOCK => fail
+    loudly" (the F-126 dispatch's R2) would make THIS fixture raise and this
+    test go red -- deliberately: the scope note in ``denominator.py`` owns the
+    distinction (F-126 fixed the silence, not the policy), and changing the
+    policy should have to come through here, in the open.
+
+    ⭐ F-B (same review): the BLOCK codes must SURVIVE the success path.  A
+    "successful run doesn't need its BLOCK diagnostics" trim (keep INFO only)
+    passes every other lock in this file: L3's success-path assertions run on
+    the SIGNED drawing, whose diagnostics are all INFO, so filtering them
+    changes nothing there.  Only this fixture holds BLOCK-on-success inventory.
     """
     request_path = _resigned_request(tmp_path, AS_RECEIVED_DXF)
     result = denominator(AS_RECEIVED_DXF, request_path, "plan-F1")
+
+    # ⭐ F-B: the two BLOCK codes measured on this fixture still ride out in
+    # ``diagnostics`` -- exactly this set, so a trim to INFO-only, a rename,
+    # or a swallowed code all fail here.
+    assert {d["code"] for d in result["diagnostics"] if d["severity"] == "BLOCK"} == {
+        "tarch_wall_free_end", "tarch_wall_nonorthogonal"}
 
     items = result["excluded_non_orthogonal_segments"]
     count = result["ledger"]["excluded_non_orthogonal"]
 
     assert count > 0, "fixture no longer carries a non-orthogonal stroke"
     assert len(items) == count
+
+    metres_per_unit = TarchConversionRequestV1.model_validate_json(
+        request_path.read_text()).metres_per_unit
 
     for item in items:
         # ⭐ "which stroke", answerable: a handle and real endpoints in BOTH
@@ -231,6 +270,15 @@ def test_l4_discarded_non_orthogonal_segments_are_itemised(anchor_present, tmp_p
         # it really is non-orthogonal: neither coordinate is shared
         assert item["p0_dxf"][0] != item["p1_dxf"][0]
         assert item["p0_dxf"][1] != item["p1_dxf"][1]
+        # ⭐ F-C: the two frames must agree ON THE SAME STROKE.  Each frame
+        # separately can look healthy while the metres side lies -- an affine
+        # or rounding regression hits exactly this new path, and the signed
+        # drawing holds ZERO inventory here, so L1 cannot see it.  MEASURED:
+        # implied scale = length_m / |Δdxf| = 0.0009999986 == declared
+        # metres_per_unit 0.001 (residual 1.7e-07 m on the 0.12 m stroke).
+        dxf_len = math.hypot(item["p1_dxf"][0] - item["p0_dxf"][0],
+                             item["p1_dxf"][1] - item["p0_dxf"][1])
+        assert abs(item["length_m"] - dxf_len * metres_per_unit) < 1e-3
 
 
 def test_l4b_signed_drawing_has_no_non_orthogonal_inventory(anchor_present):
