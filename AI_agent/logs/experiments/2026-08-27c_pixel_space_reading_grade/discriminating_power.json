@@ -1,0 +1,202 @@
+{
+ "probe": "pixel_grade_discriminating_power",
+ "view": "plan-F1",
+ "base": {
+  "C1_C2_targets_drawn_pct": 100.0,
+  "C2_length_coverage_pct": 99.2,
+  "C3_bad_split": 0,
+  "C4_extra_length_m": 33.761,
+  "C5_openings_named_right_pct": 100.0
+ },
+ "pixel_tolerances": {
+  "pos_tol": 3.697049674365198,
+  "span_min": 0.8,
+  "end_tol": 13.863936278869492,
+  "extra_min": 4.621312092956497
+ },
+ "rows": [
+  {
+   "mutation": "对照：不变异",
+   "expectation": "⛔ 必须与 BASE 逐位相同",
+   "face_lines_actually_mutated": 0,
+   "scores": {
+    "C1_C2_targets_drawn_pct": 100.0,
+    "C2_length_coverage_pct": 99.2,
+    "C3_bad_split": 0,
+    "C4_extra_length_m": 33.761,
+    "C5_openings_named_right_pct": 100.0
+   },
+   "moved_vs_base": {},
+   "went_red": false
+  },
+  {
+   "mutation": "A 观测整体偏 4.62 px（=0.10 m）",
+   "expectation": "C1/C2 应崩",
+   "face_lines_actually_mutated": 49,
+   "scores": {
+    "C1_C2_targets_drawn_pct": 23.6,
+    "C2_length_coverage_pct": 30.3,
+    "C3_bad_split": 2,
+    "C4_extra_length_m": 9044.99,
+    "C5_openings_named_right_pct": 100.0
+   },
+   "moved_vs_base": {
+    "C1_C2_targets_drawn_pct": [
+     100.0,
+     23.6
+    ],
+    "C2_length_coverage_pct": [
+     99.2,
+     30.3
+    ],
+    "C3_bad_split": [
+     0,
+     2
+    ],
+    "C4_extra_length_m": [
+     33.761,
+     9044.99
+    ]
+   },
+   "went_red": true
+  },
+  {
+   "mutation": "A′ 观测整体偏 2.0 px",
+   "expectation": "应有可见损失",
+   "face_lines_actually_mutated": 49,
+   "scores": {
+    "C1_C2_targets_drawn_pct": 85.5,
+    "C2_length_coverage_pct": 81.6,
+    "C3_bad_split": 1,
+    "C4_extra_length_m": 200.843,
+    "C5_openings_named_right_pct": 100.0
+   },
+   "moved_vs_base": {
+    "C1_C2_targets_drawn_pct": [
+     100.0,
+     85.5
+    ],
+    "C2_length_coverage_pct": [
+     99.2,
+     81.6
+    ],
+    "C3_bad_split": [
+     0,
+     1
+    ],
+    "C4_extra_length_m": [
+     33.761,
+     200.843
+    ]
+   },
+   "went_red": true
+  },
+  {
+   "mutation": "B 观测尺度 ×1.005",
+   "expectation": "C1/C2 应崩",
+   "face_lines_actually_mutated": 49,
+   "scores": {
+    "C1_C2_targets_drawn_pct": 46.4,
+    "C2_length_coverage_pct": 53.1,
+    "C3_bad_split": 2,
+    "C4_extra_length_m": 4437.438,
+    "C5_openings_named_right_pct": 100.0
+   },
+   "moved_vs_base": {
+    "C1_C2_targets_drawn_pct": [
+     100.0,
+     46.4
+    ],
+    "C2_length_coverage_pct": [
+     99.2,
+     53.1
+    ],
+    "C3_bad_split": [
+     0,
+     2
+    ],
+    "C4_extra_length_m": [
+     33.761,
+     4437.438
+    ]
+   },
+   "went_red": true
+  },
+  {
+   "mutation": "C 漏画：5 条面线各删最长一段",
+   "expectation": "⭐ 应伤 C2",
+   "face_lines_actually_mutated": 5,
+   "scores": {
+    "C1_C2_targets_drawn_pct": 95.5,
+    "C2_length_coverage_pct": 93.8,
+    "C3_bad_split": 0,
+    "C4_extra_length_m": 33.761,
+    "C5_openings_named_right_pct": 100.0
+   },
+   "moved_vs_base": {
+    "C1_C2_targets_drawn_pct": [
+     100.0,
+     95.5
+    ],
+    "C2_length_coverage_pct": [
+     99.2,
+     93.8
+    ]
+   },
+   "went_red": true
+  },
+  {
+   "mutation": "D 画穿：每条面线合成一段",
+   "expectation": "⭐ 应伤 C3/C4",
+   "face_lines_actually_mutated": 25,
+   "scores": {
+    "C1_C2_targets_drawn_pct": 18.2,
+    "C2_length_coverage_pct": 100.0,
+    "C3_bad_split": 90,
+    "C4_extra_length_m": 4749.555,
+    "C5_openings_named_right_pct": 100.0
+   },
+   "moved_vs_base": {
+    "C1_C2_targets_drawn_pct": [
+     100.0,
+     18.2
+    ],
+    "C2_length_coverage_pct": [
+     99.2,
+     100.0
+    ],
+    "C3_bad_split": [
+     0,
+     90
+    ],
+    "C4_extra_length_m": [
+     33.761,
+     4749.555
+    ]
+   },
+   "went_red": true
+  },
+  {
+   "mutation": "E 塌成中线：支撑列压成一列",
+   "expectation": "⭐ 应伤 C1",
+   "face_lines_actually_mutated": 49,
+   "scores": {
+    "C1_C2_targets_drawn_pct": 100.0,
+    "C2_length_coverage_pct": 99.2,
+    "C3_bad_split": 0,
+    "C4_extra_length_m": 33.761,
+    "C5_openings_named_right_pct": 100.0
+   },
+   "moved_vs_base": {},
+   "went_red": false
+  }
+ ],
+ "verdict": "FAIL",
+ "criteria": {
+  "control_unchanged": true,
+  "every_real_error_went_red": false,
+  "silent_mutations": [
+   "E 塌成中线：支撑列压成一列"
+  ]
+ }
+}

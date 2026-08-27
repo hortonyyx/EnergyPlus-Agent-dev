@@ -1,0 +1,73 @@
+{
+ "probe": "support_strip_gate_on_band_collapse",
+ "product_affine_residual_m": {
+  "const:x": 6.3e-05,
+  "const:y": 6e-05,
+  "run:y": 9e-05,
+  "run:y_orientation": "flipped",
+  "run:x": 8.6e-05,
+  "run:x_orientation": "straight"
+ },
+ "rows": {
+  "诚实产物": {
+   "status": "green",
+   "violation_count": 0,
+   "ink_column_groups_histogram": {
+    "1": 49
+   },
+   "mirrors": "_ink_groups(min_run_px=14, min_support=10, gap>1px)",
+   "first_violations": []
+  },
+  "F 中线读法（22 对合成一条）": {
+   "status": "red",
+   "violation_count": 22,
+   "ink_column_groups_histogram": {
+    "1": 5,
+    "2": 16,
+    "3": 6
+   },
+   "mirrors": "_ink_groups(min_run_px=14, min_support=10, gap>1px)",
+   "first_violations": [
+    {
+     "face": "L001",
+     "support_cols_px": [
+      281,
+      294
+     ],
+     "ink_column_groups": 2,
+     "why": "a wall face is ONE stroke; two groups means this 'band' spans two separate strokes with white space between them"
+    },
+    {
+     "face": "L004",
+     "support_cols_px": [
+      510,
+      517
+     ],
+     "ink_column_groups": 3,
+     "why": "a wall face is ONE stroke; two groups means this 'band' spans two separate strokes with white space between them"
+    },
+    {
+     "face": "L005",
+     "support_cols_px": [
+      513,
+      525
+     ],
+     "ink_column_groups": 3,
+     "why": "a wall face is ONE stroke; two groups means this 'band' spans two separate strokes with white space between them"
+    }
+   ]
+  }
+ },
+ "gate_inputs_are_pixel_only": {
+  "reads": [
+   "masks（从 PNG 直接算）",
+   "support_cols_px",
+   "drawing_box_px",
+   "cfg.min_run_px",
+   "cfg.min_support"
+  ],
+  "reads_any_metre_quantity": false,
+  "⇒": "把描图分挪进像素空间不会影响这道门；它本来就与产品标定无关"
+ },
+ "verdict": "✅ 这道门确实是拦 band_collapse 的那一道：诚实全绿、中线读法变红"
+}
