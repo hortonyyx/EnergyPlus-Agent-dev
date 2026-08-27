@@ -52,7 +52,7 @@
 | 包 | 内容 | 来源 | 状态 |
 |---|---|---|---|
 | **②-0** | **F-97** correction 只吃**声明过的契约**，未声明的**响亮失败** + 消费对账 | [我方] | ⏳ **返工已交件** `f2a8ccf`（三条阻断全修，全量 3070）· **⛔ 未过审** |
-| **②-1** | **冻结出模形式** + **`ReferenceFactsV1` + 单一确定性 `AnswerCompiler(profile)`**（同一份 facts 同时派生 axis 投影 · exterior 投影 · 像素描图分母 · 不规整事实表；run config 只选哪个是正式成绩，⛔ 不让证据阈值选形式；metamorphic 门：两投影只差声明的 t/2、往返可恢复、缺资料整份 `unprojectable`）| [用户]口径2 + [sol] 08-27 第三形态 | ⏭ **② 的第 1 号包**。⭐⭐⭐ **①-2′ 的读数到了，定形依据已具备**：**像素空间判别实验通过**（七行标定扰动描图分逐位不动，而同一次跑里米制列照样动）⇒ **「描图分挪进像素空间」从「待验证的通过条件」变成「已验证可行」**，且**不需要重写判分器**（`grade()` 打分路径实测单位无关，两侧一起换单位即可）；⛔ 投影是**整层事务**，任一必需墙边不可派生就整份响亮 NA，⛔ 不许逐轴保留原样 |
+| **②-1** | **冻结出模形式** + **`ReferenceFactsV1` + 单一确定性 `AnswerCompiler(profile)`**（同一份 facts 同时派生 axis 投影 · exterior 投影 · 像素描图分母 · 不规整事实表；run config 只选哪个是正式成绩，⛔ 不让证据阈值选形式；metamorphic 门：两投影只差声明的 t/2、往返可恢复、缺资料整份 `unprojectable`）| [用户]口径2 + [sol] 08-27 第三形态 | ⏭ **② 的第 1 号包**。⭐⭐⭐ **①-2′ 的读数到了，定形依据已具备**：**像素空间判别实验通过**（七行标定扰动描图分逐位不动，而同一次跑里米制列照样动）⇒ **「描图分挪进像素空间」从「待验证的通过条件」变成「已验证可行」**，且**不需要重写判分器**（`grade()` 打分路径实测单位无关，两侧一起换单位即可）；⛔ 投影是**整层事务**，任一必需墙边不可派生就整份响亮 NA，⛔ 不许逐轴保留原样<br><br>⛔⛔ **2026-08-28 架构评审结果：sol 对抗审 = REWORK / 6 条阻断，⛔ 现在不能开工。** 流程 = 我出题面 → GLM 共同出案（[稿](logs/reviews/verdict/2026-08-28_joint_architecture_glm_design.md)）→ sol 对抗审（[裁决](logs/reviews/verdict/2026-08-28_joint_architecture_sol_review.md)）。**六条阻断 → F-121 · F-122 · F-123 · F-124 · F-125 · 作废半径**。⭐ **施工前最小返工清单（sol 给，6 条）**：① facts 编译器要**外部获授权指纹锚**，画清输入/实现/facts 谁签谁 · ② 定义**真正投影前**的 `ReferenceFactsV1`，⛔ 不许直接复制 `ZoneEdgeReportV1.p1/p2/basis` · ③ **authority root 与 as-received 观测根分名**，并裁定 sm25 那 5 条线修订属于哪层 · ④ affine 改 **domain/codomain 双端空间合同**（⛔ 单个 `source_unit` 表达不了），标定门与类型门**拆两门** · ⑤ 新增 edge **`boundary_condition`**（⛔ 非 zone `role`、⛔ 不吃 `basis`）+ 投影前证据 · ⑥ **作废半径 = 依赖闭包**（⛔ 不是「层」也不是「边」）写进 AnswerCompiler 契约，再写「缺一边」夹具预期。<br>✅ **不阻断且保留**：Q11 先于换单位排期（sol 确认）· facts 纯派生无人工通道 + 版本入答案键 · 「缺一条边」分辨力夹具 + `unprojectable` 坐标零泄漏 · 往返门降权为冗余数值门 |
 | **②-2** | correction 改成吃「**带原始引用的多形态墙证据**」（六形态：paired_faces / solid_band / single_face / axis_trace / ambiguous / non_wall）· **并改掉提示词里那两句 `wall-centerline`** | [用户] + [GPT 08-25 证伪] | ⏭ 一体改本体 |
 | **②-3** | **F-87** 门窗身份逐洞口外置（「认」还有一块留在评分器里）| [我方] | ⏭ 随 ②-1/②-2 |
 | **②-4** | **墙厚**：优先双通道（像素+标注）· 像素单通道兜底 · **浮点吸附归 correction** · **吸附分辨率跟 gt 走**（gt 声明 → 跑前抄进配置 → 判分侧核对一致，不一致响亮失败）| [用户]口径8/9 | ⏭ 随 ②-2；⚠️ **那个分辨率参数目前没有名字、没人签字** |
@@ -170,9 +170,18 @@ as-drawn 产 `observations.face_lines`/`hypotheses` —— **两套 schema 完�
 | **⭐⭐ 新 F-112**（GLM 记 N-G）| ⛔ **preflight 与首个消费者之间存在时间窗**：账落盘后、`compute_reading_report` 调用前，目录里新出现的 `*_view.json` ⇒ **消费者裸崩**（`AttributeError` @ `pipeline.py:1416`）**且账里不含该文件**。单线程管线不触发。⭐ **根治方向正是 BLK-B 返工要求的【另一半】** —— 那条要求原文给了两条路「把 preflight 提前 **或** 让 reading-report / catalog 消费**复用同一次分类结果**」，施工方走了第一条，而第二条同时能消掉本条。⇒ 建议与 **F-107 系列 / N-A** 同单排队 | **登记**（2026-08-27，GLM 复核 N-G 实测）· ⛔ 碰 `src/agent/pipeline` 须派工 |
 | **⭐ 新 F-113**（GLM 记 N-H）| `vector_dir` **本身是个文件**（不是目录）⇒ preflight 的 `except FileNotFoundError` 把它当「没有 `*.json`」**静默放过**，run 死在下游消费者：**响亮、但无账、无点名**。环境级畸形，与 N-C 同族。修法极小：preflight 对 `vector_dir` 非目录的形态**显式记一行账**即可 | **登记**（2026-08-27，GLM 复核 N-H 实测）|
 | **⭐⭐ 新 方法论备忘（F-114）** | ⛔ **「挂死」类形态的测试围栏本身有伪影面**：用 `SIGALRM` 做超时围栏时，它抛的 **`TimeoutError` 是 `OSError` 的子类** ⇒ 会被「把 except 元组加长」的**退化实现意外接住**，于是围栏在坏实现下也绿。⭐ **GLM 自陈它第一版探针就被这个骗过**，改用**干净子进程 + 8 秒墙钟**才实锤。⇒ **围栏测试的通过判据必须落在 reason 措辞上**，⛔ 不能只落在「有没有抛异常」（现有锁恰是这么写的，故仍有分辨力）。同族 [[gate-with-only-negative-assertions-is-unobservable]] | **口径**（2026-08-27）· ⛔ 不是待修缺陷，是写围栏时的必读 |
-| **⭐⭐⭐ 新 F-115** | ⛔ **判分侧的那把尺子自己也住在可清理目录里** —— reading 判分/像素判分依赖的图纸↔世界标定 (`raster_overlays[].pixel_to_source_m`) 唯一副本在 `AI_agent/logs/experiments/2026-08-20_sm25_conversion_request/review_bundle/manifest.json`。**与 F-111 同形**，⛔ **但不能照搬修法**：`review_ack.json` 实测只签 8 个字段、**没有 manifest 的签字锚** ⇒ 拷进 `gt_sources/` 等于在信任路径上放一个**无法用签字重算验证**的文件（正是 F-111 修法的红线 1 要防的形态）。⭐ GLM 复核独立确认「并入那一单 = 用错误的方法修对的问题」 ⇒ **需先回答「这把尺子自己的信任根是什么」** | **登记**（2026-08-27，orchestrator 实测于 [holdout 实验档 §六](logs/experiments/2026-08-27d_judge_ruler_pointwise_holdout/README.md)）· 需排期 |
+| **⭐⭐⭐ F-115** · ⛔ **归因已推翻并改写（2026-08-28）** | **读数对、原因错 —— 与 F-111 完全同形。** ~~「判分侧那把尺子的**唯一副本**在可清理目录、且**没有签字锚**」~~ ⇒ ⛔ **两半都错**：① `pixel_to_source_m` **逐位就在签字 request 里**（[`tarch_converter_schema.py:767`](../src/agent/judge/tarch_converter_schema.py#L767) `RasterOverlayIntentV3`，每项带 3 个 `calibration_controls`）。⚠️ **2026-08-28 晚 sol 复审限定了这半句，我已复跑逐位命中**：**只有 4 个立面视图的 control 是真锚**（到所声明实体最近顶点距离 **0.000**）；**两张平面图不是** —— 三个 control 共用同一个 handle（`37B`/`380`，`edge` 图层上的 LWPOLYLINE），而控制点离它最近顶点 **11801～12921 native units（≈12 m）** ⇒ **平面侧的「锚」是名义的、不可重取验证**，而平面恰恰是像素判分要用的那两张（→ F-125）。**F-115 的本体不受影响**（标定值确在签字 request 里、受 `request_sha256` 绑定），sm25 六个视图全在，与可清理目录那份 manifest **逐位相同**；② 它**有签字锚** —— request 整体被 `request_sha256` 绑定、复现门按内容重算，且自 `60cc4ca` 起已住进 `gt_sources/<case>/request.json`。⇒ **不需要「先回答这把尺子的信任根是什么」**，它有；真问题只是**消费者指错了文件**（[像素判分探针 `probe_pixel_grade.py:42`](logs/experiments/2026-08-27c_pixel_space_reading_grade/probe_pixel_grade.py) 写死了 manifest 路径）。⭐ **正确写法仓里已经有了**：[`denominator.py:117`](../src/agent/judge/as_drawn/denominator.py#L117) 明写「用 request 自己的 source→world 仿射，⛔ 别乘 `metres_per_unit` 然后祈祷」 | **改写**（2026-08-28 orchestrator 实测）· 降级为 **F-111 同形的接线单**（把消费者指向签字 request），⛔ 不再是架构前置 |
+| **⭐⭐⭐ 新 F-120**（查 F-115 时撞出，比 F-115 本身危险） | ⛔ **`world_from_source_m` 这个名字跨两份文件是两个不同的域，差 1000×，而两边一模一样地叫这个名字。** 实测 sm25 `plan-F1`：**签字 request 里** `m00 = 0.001`（native mm → world m，即 `m00 == metres_per_unit`，[`tarch_converter_schema.py:692`](../src/agent/judge/tarch_converter_schema.py#L692) `PlanViewIntentV1`）；**manifest 里** `m00 = 1.0`（source-metre → world，[`gt_manifest.py:117`](../src/agent/judge/gt_manifest.py#L117)）。两者平移项**完全相同**（`m02 = 30.469`）—— 因为尺度被除掉了而平移本来就是世界米 ⇒ **两份都自洽、都算得出对的世界坐标**，⭐⭐ **陷阱比这更近 —— 它在【同一份签字文件内部】**（GLM 加码发现 B-1，orchestrator 已独立复跑）：同一份 request 里 `pixel_to_source_m` 的**输出**实测就是 **source-metre**（`native × 0.001`，三个 `calibration_controls` 逐个对上），而同文件 `world_from_source_m` **吃的是 native** ⇒ **按字面读最顺的那条链 `pixel_to_source_m → world_from_source_m` 恰好就是错的那条**。⭐ 实算后果：尺度塌成千分之一后只剩平移项 ⇒ **坐标偏约 30 m**（不是「偏 1000 倍」，是**尺度错 1000×、位置错几十米**）。⛔ 且**没有任何门在看**。生产者自己知道这件事（[`tarch_normalize.py:2732-2734`](../src/agent/judge/tarch_normalize.py#L2732) 两行注释分别标了两个域），**但那是注释，不是类型，也不是门**。⇒ 一体改把「两个空间一起换单位」当基本动作，这条正踩在必经之路上 | **登记**（2026-08-28）· ⭐ **随 ②-1**；同族 [[observation-named-as-fact-travels-as-fact]] 与 [[cross-representation-mutation-must-be-equivalent]]（后者正是「字段**叫** `pos_m` 却装着像素」的 08-27 实犯）|
 | **⭐⭐⭐ 新 F-116**（GLM finding 1+2）| ⛔ **F-111 那 6 把新锁对「搜索面往 `logs` 方向回宽」整体失明**：以「向后兼容」为名加回旧根做回退腿 ⇒ **17 passed 零红**。根因 = `test_f111_c` 夹具选了 **sm24（在 `logs` 下 0 份）**，而 **sm25 在那儿有 4 份** ⇒ logs 方向恰是该锁**唯一没牙的方向**；且 c/d/e 三把都是 None-断言，**分不清「因为拒绝」与「因为没往那儿找」**。⭐ **实害已实测**（orchestrator 独立复现）：该变异下把 sm25 的 case 目录做成只有 DXF，门仍从 `logs` 捞到真件并重算命中 ⇒ **信任根可得性静默挂回可清理目录**。附带：`test_f111_c` 的 docstring 声称 "any future widening turns this red"，对 logs 方向**实测不成立**（叙述>实际）。**修法（便宜）**：加 `test_f111_c` 的 **sm25 变体** —— 锁「**搜索根面**」而不是 glob 名字 | **登记**（2026-08-27，GLM 主发现 · orchestrator 已独立复现）· ⭐ **下轮优先**，与施工方自陈的「放宽 glob 无分辨力」是同一个洞的两半 |
-| **⭐⭐ 新 F-117**（GLM finding 3）| **结构性再犯窗口**：`promote_gt_v3`（`gt_promotion.py:74`）的拷贝清单是 `gt.json + renders + review 五件`，**无 `request.json`**；`build_review_bundle` 只把 request 写进评审 bundle 的 staging。⇒ **下一个 case 走完晋升流程后必然重演** F-111：签字 request 只住 bundle 目录、复现门 `inputs_unavailable`、要人手工再回填一次。**修法 = 一行**（拷贝清单加 `request.json`）+ 一把「晋升后 case 目录里有可重算的 request」锁 | **登记**（2026-08-27）· ⭐ GLM 明言「把『结构上不可能』定为这类修法的验收线是更对的尺」，但**不判本单欠交** |
+| **⭐⭐⭐ 新 F-121**（GLM 提出 · orchestrator 反证失败 · **sol 复审换掉了论证对象**）| ⛔ **「这条 zone 边是外墙还是内墙」没有独立于转换器自身 `basis` 判定的来源。** ⚠️⚠️ **原登记引的证据是错的对象，2026-08-28 晚由 sol 纠正、orchestrator 已复跑**：~~「`role` 全 `unspecified` ⇒ 边角色缺列」~~ ⇒ **`role` 挂在 zone 模型上 = 房间用途**（edge 模型**根本没有 role 字段**，实测 edge 键 = `basis/derived_handle/offset_m/p1/p2/source_handles/thickness_evidence/thickness_m`；且 `review_annotations.json` 里实际有 `corridor/office/meeting/reception`）⇒ 那个读数证明的是**房间用途没进答案**，不是边角色缺列。⭐ **正确论证**（sol 给）：`basis` 由「穿过墙后是否落进 footprint exterior」判出并**立即决定偏移量**（`tarch_normalize.py:1023-1029,1456-1463`）⇒ **让 exterior profile 直接吃 `basis` 等价于恒等映射**：转换器判什么、编译器复述什么。⭐ orchestrator 另一条反证也已撤回（拿 `boundary_segments` 当独立第二列 —— `GTV3_FOOTPRINT` 按定义就是 outer-skin 环，同义反复）。**裁定（sol）**：需新增**投影前的 `boundary_condition`**（`exterior`/`interzone`/`unclaimed_void`/`unknown`）+ 证据，⛔ 不复用 zone `role`、⛔ 不直接吃 `basis` | **登记**（2026-08-28）· ⭐ **②-1 前置** |
+| **⭐⭐⭐ 新 F-122**（sol 阻断 B2 · orchestrator 已复跑）| ⛔⛔ **`ZoneEdgeReportV1.p1/p2/basis/offset_m` 不是「投影前的逐边测量事实」，是【已按 basis 扩张后的答案边】+ 它的补偿记录。** 实测 sm25：`offset_m == (t if outer_skin else t/2)` **136/136**（= `_offset_for` 的定义回放，不是第二列证据）；272 个端点**全部**已离开 claimed cavity 原边界，距离 **0.060–0.339 m**。⇒ ⛔ **我方 10.2-D 那句「R-6 要的逐边事实已经是正式类型，缺的只是谁把它落进事实包」是错的** —— 把这些字段搬进 `ReferenceFactsV1` **不是接线，是一次语义逆迁移**：再拿它验证 AnswerCompiler，只会复现生产者的选择。**修法（sol）**：facts 必须在 **S7 扩张之前**截取（cavity support line · 方向 · 两面 source handles · 厚度与 proof · 邻接/外界 witness · junction 约束）；现有 report 只能当 migration 输入，且须先证明「扩张边 + 补偿 → 投影前支撑图」在转角/厚度台阶/共享墙上**是双射** | **登记**（2026-08-28）· ⭐⭐⭐ **这条最改 ②-1 的工作量**：`ReferenceFactsV1` 不是重新归置已有字段 |
+| **⭐⭐ 新 F-123**（sol 阻断 B1 · 现行代码缺陷）| ⛔ **G1 复现门三项 fatal 指纹的「期望值」取自【未签字】的 `conversion_report.json`** （`gt_raw_layer.py:419-438`：`converter_sha256` / `judge_config_sha256` / `vg_config_sha256`；其中 `converter_sha256` 在已签 `gt.json.generator` 里**根本没有对照**，实测 `report=539615ab… / signed_gt=None`）⇒ **「实现与产物一起改」这一格测不出来**：自报指纹跟着实现一起更新，重算内容也跟着对上，门全绿。⇒ 现役 `implementation_drift` 语义只覆盖**单边变化**。⭐⭐ **orchestrator 复核时找到了更细的一层，修法因此便宜很多**（2026-08-28 实测）：三项里**有两项的签字对照本来就躺在已签 `gt.json.generator` 里、且值完全相同** —— `judge_config_sha256` 两侧同为 `843466dde0…`、`vg_config_sha256` 两侧同为 `ad3aeeb910…`，**代码却偏去读未签的 report 那份**；⛔ **真正缺签字锚的只有 `converter_sha256` 一项**（已签侧 = `None`）。并实测 `conversion_report.json` **不在签字清单里**（`review_index.json` 11 条，无它）。**修法**：① 那两项**直接改读已签 generator 块**（近乎零成本，且今天两侧同值 ⇒ 改完读数不动）；② `converter_sha256` 需要一个 facts/report 之外的**获授权记录**（已签 review index / 受控 release manifest）；③ 红必须报出闭包文件 diff | **登记**（2026-08-28）· ⭐ 它同时是 ②-1 里 `ReferenceFactsV1` 立信链的前置 |
+| **⭐⭐ 新 F-124**（sol 阻断 B3）| ⛔ **「签字 DXF + 签字 request = 原始层」把「获授权的答案输入」与「as-received 观测源」混成了一个。** 实测：`review_ack.source_dxf_sha256 = 1251f651…`（`sm25-L_t3.dxf`），而 as-received 那份是 `4a949224…`，**两份 916 实体、handle 集相同，但 5 个实体坐标不同**（`13AD/13AC/13AF/160A/13AE`；`gt/README.md:34` 明写签前修过 5 条线、最大约 6 mm）。⇒ 本批要的 as-drawn「忠实转录、保留图纸偏差」语义**在这个根上拿不到**。**二选一**（sol）：① 把包改名为 `ReviewerNormalizedFactsV1` 并**删掉「保留图纸偏差」的承诺**；② authority envelope 纳入 as-received DXF + 六张 raster + **签字修订台账**（5 线变更及理由）| **登记**（2026-08-28）· ⭐ **需用户裁定**：本批的 as-drawn 到底对哪一层 |
+| **⭐ 新 F-125**（sol 阻断 B4 后半 · orchestrator 已复跑）| ⛔ **两张平面图的标定控制点不是「按 entity handle 可重取的锚」**：三个 control 共用同一 handle（`37B`/`380`，`edge` 图层 LWPOLYLINE），控制点到该实体最近顶点 **11801/12376/12921（F1）· 12009/12574/12713（F2）native units**；⭐ **四个立面视图则全部为 0.000** ⇒ 立面是真锚、平面不是。另：`pixel_point` 与 `pixel_to_source_m` 由**同一次标定拟合**产出（`build_request.py:180-204`）⇒ 任何「把 control 用仿射映回去比残差」的门**只能证明成对自洽**，⛔ 不是独立物理标定门。**修法（sol）**：拆两门 —— A 纯空间类型/组合门（专抓 1000×，F-120）· B 标定证据门（锚真实 source feature + 独立观测的 pixel feature）；平面 control 要么重签为可唯一重取的点，要么**明确标成 `reviewed_coordinate`，别伪装成 entity point** | **登记**（2026-08-28）· ⭐ 随 ②-1；与 F-120 是同一道门的两半 |
+| **⭐⭐⭐ 新 F-126**（2026-08-28 orchestrator 实测，查 F-124 时撞出）| ⛔ **reading 判分的分母遇到「哈希对不上的 DXF」会【静默返回空分母】，不报错、不降级、不留痕。** 实测 sm25 `plan-F1`：喂签字件 ⇒ `targets=110 / opening_targets=31 / wall_layer_segments_collected=225`；喂同目录的 `_as_received.dxf` ⇒ **全部为 0**，且 `denominator()` **正常返回**。真因**不是几何** —— [`tarch_normalize.py:705`](../src/agent/judge/tarch_normalize.py#L705) 有一道源图哈希门：`actual_sha != request.source_dxf_sha256` ⇒ 记一条 `tarch_input_source_hash_mismatch` 诊断并 **return 全空 `P1PlanViewGeometry`**，**一行几何都不跑**。⛔ 而 `denominator()` 的返回值里**根本没有诊断字段**（顶层键 = `allowed_not_required/floor_id/ledger/opening_ledger/opening_targets/params/rule_version/targets/view_id`）⇒ **那条诊断被丢掉了**。⭐ **危害**：分母为 0 的判分与「全对」「无题可判」在产物上不可区分 —— 正是 F-64 家族「零产出不报红」。**修法**：`denominator()` 必须把 `diagnostics` 透出来，且**空分母一律响亮失败**，⛔ 不许返回 `targets: []` | **登记**（2026-08-28）· ⭐ **F-124 拍板成什么样都得修**；同族 [[absence-conflates-causes-in-observables]] · [[instrument-blind-to-the-asked-quantity]] |
+| **⭐⭐⭐ 新 F-127**（GLM 主发现 G-1，2026-08-28）| ⛔ **用 `os.walk` 实现的第三方向回退腿，骗过全部 10 把锁（`f116 or f111` 全绿）。** 盲区 = **两类锁的交集**：结构锁 `f116_c` 只记录 `Path.glob/rglob`（看不见 `os.walk`/`scandir`/`listdir`）；存货锁 `f116_a`/`f111_c` 只覆盖 **logs-sm25** 与 **fixtures-sm24** 两个已知方向。⭐ **复核方证明了「变异是活的、不是失效」**：同一变异下往 `gt/sm25-L_anchor/review/` 暂放一份签字 request ⇒ `f116_a` **立刻红** ⇒ 骗过的机制是**潜伏**（那个方向暂时没货），不是腿没跑。⭐⭐ **活化条件是书面存在的** —— F-117 的**原登记处方**「拷贝清单加 `request.json`」拷的正是 `gt/<case>/review/`；谁哪天照原文补一刀，这条腿就活了，而 F-118 刚写进 README 的「the ONLY place … will ever look」被静默打破。⇒ **已即时处置**：F-117 那句处方已在本表划掉并写明后果（2026-08-28）。**两个便宜动作**：① `f116_c` docstring 把「no fallback of ANY shape」收窄成「no widening of the **search-root** face」（现在的声称比锁的真实牙强）· ② 把「有存货的方向必有存货锁」列为**派工时的显式检查项** | **登记**（2026-08-28）· 复核方判「登记即可、不必现在补」（§0.1，且新枚举原语黑名单按 [[lexical-guard-cannot-be-completed]] 永远补不完）；⭐ 但**活化条件有书面出处**，故 orchestrator 已当场把出处消掉 |
+| **⭐⭐ 新 F-128**（GLM 实验 D，2026-08-28）| **晋升的回滚不对称**：`promote_gt_v3` 的 `except` 只 `rmtree(destination)`（`gt/` 侧），对 `sources_destination`（`gt_sources/` 侧）**无清理** ⇒ 若将来在 sources 写入之后**再追加任何一步**且它失败，会留下「签字输入落地、答案没落地」的**孤儿**（复核方注入 `raise` 实测到了这个残留）。⭐ **当前不可达**（sources 写入是 try 的最后一句）—— 但那是**顺序运气不是结构保证**，而 docstring 声称的「or neither does」**比实际强**。**修法便宜**：`except` 分支加 `if sources_destination.exists(): rmtree(...)`，或给 `f117_c` 补一个「replace 之后失败」的注入格 | **登记**（2026-08-28）· 不阻断（孤儿会让下次 promote 撞 `promotion_sources_target_exists` 响亮挡住，fail-closed 仍在）|
+| **⭐⭐ 新 F-117**（GLM finding 3）| **结构性再犯窗口**：`promote_gt_v3`（`gt_promotion.py:74`）的拷贝清单是 `gt.json + renders + review 五件`，**无 `request.json`**；`build_review_bundle` 只把 request 写进评审 bundle 的 staging。⇒ **下一个 case 走完晋升流程后必然重演** F-111：签字 request 只住 bundle 目录、复现门 `inputs_unavailable`、要人手工再回填一次。⛔⛔ **~~原登记的「修法 = 一行：拷贝清单加 `request.json`」已划掉，⛔ 任何人都不要照它做~~** —— 那张清单拷进的是 `gt/<case>/review/`，而复现门**不看那个目录**；⭐⭐ 更要紧的是 **2026-08-28 GLM 复核实测**：照它做会**激活 F-127 那条潜伏回退腿**（`gt/<case>/review/` 目前无 `request*.json`，正因为无货才骗过全部 10 把锁）。**实际修法**（`b1ad92a`）= 晋升时把 `source.dxf` + `request.json` 原子写进 **`gt_sources/<case>/`** | ✅ **已闭合**（`b1ad92a`，GLM 跨家族审 **APPROVE-WITH-FINDINGS / 0 阻断**）· 登记于 2026-08-27· ⭐ GLM 明言「把『结构上不可能』定为这类修法的验收线是更对的尺」，但**不判本单欠交** |
 | **⭐ 新 F-118**（GLM finding 4）| **`gt_sources/` 的持久性是推出来的、不是被声明的** —— 该目录无 README，管理文档只把它列为「不得修改」的保护根，而**「不得修改」≠「永不清理」**。⇒ 信任根从「被声明可丢」搬到了「**没人声明过会不会丢**」。**修法 = 一行文字**（在 `gt/README.md` 或新建 `gt_sources/README.md` 声明它是签字输入的持久住所、与 `logs/` 不同类） | **登记**（2026-08-27）· 趁热写 |
 | **⭐ 新 F-119** | `hypotheses.opening_candidates` 只发布 **`span_m`**（另有 `len_px`），**没有 `span_px`** ⇒ 像素空间的消费者拿不到洞口像素区间。**它其实存在**：候选引用的 `face_lines[].gaps[gap_index]` 自带 `lo_px`/`hi_px`（实测 85/85 全可找回）。⇒ **一体改时应把 `span_px` 提到候选那一层**，⛔ 别让每个消费者各自去 gap 里掏。同族 R-6 的轻症版（没扔，只是没发布到该在的那一层） | **登记**（2026-08-27，[像素判分实验档 §七](logs/experiments/2026-08-27c_pixel_space_reading_grade/README.md)）· 随 ②-1 |
 | **⭐ 新 N-3（F-95 审）** | `classify_ring_change` 的 `"resorted"` 类别在新合同下**生产侧永不触发**（docstring 已标注为历史诊断类）；将来若给 `GeometrySchema` 接非内核生产者需重读此合同 | **登记**（分类学债，极小）|
@@ -187,415 +196,72 @@ as-drawn 产 `observations.face_lines`/`hypotheses` —— **两套 schema 完�
 
 ---
 
-## 2026-08-27（夜后半场 · 用户在场）
+## 2026-08-28（用户在场 · 三方流程首跑）
 
-> **一句话**：**①-2′ 五步做完四步、第 2 步已过审**；⭐⭐⭐ **像素空间判别实验通过 = 第 ② 步的门槛条件兑现**；
-> ⛔ **F-111 的前提被推翻**（资料没丢，是门只往一个可清理目录按一个固定文件名找）。
+> **一句话**：清障单四条一单清并过审；**第 ② 步架构被对抗审判 REWORK / 6 条阻断，现在不能开工**；
+> ⭐⭐⭐ **用户定下「两层 gt、两道工序各判各的」** —— 取代了对抗审给的二选一。
 
-### 一、⛔ 先核前提，结果前提两半都错（第 1 步）
+### 一、✅ 清障单四条一单清（`b1ad92a`）
 
-派工前先核 F-111 的题面 —— **sm24 的签字 request 一直都在**
-`tests/fixtures/sm24_review/bundle_07_25/request_v3_calibrated.json`，**内容重算逐位命中** `ae0fec08…`
-（= 门自己声明的唯一权威判据「位置不承权」）。同目录还躺着配套 `manifest.json`。
-⇒ 真问题是**门的查找面窄在两处** + ⭐ **信任根被放在项目自己声明为可清理的目录里**（sm25 同样中招，4 份副本全在那儿）。
-⭐ 并多探一步答掉一个不问就会白派一轮工的问题：**找回 request 必要但不充分** ——
-sm24 随后撞 `implementation_drift`，要真绿需**用户重签**（08-20 已允诺，属人的动作）。
-⇒ 派工单 §四**预先写死**「sm24 修完预期是 `implementation_drift` 而不是绿」并明禁为变绿动指纹。
-→ [实测档](logs/experiments/2026-08-27b_signed_request_recovery/README.md)
+**F-116 / F-117 / F-118 / N-B**，Claude 执行档施工 ‖ GLM 跨家族审 ⇒ **APPROVE-WITH-FINDINGS / 0 阻断 / 6 不阻断**。
+主控权威全量 **`3138 passed / 13 xfailed / 0 failed`**（`-n 6`、996.83s、⛔ 不带 `-m`，`.pth` 前后哨兵同为 `58f547fa…`）；
+复核方独立全量同读数（1005.47s），独立推出 `3130 + 8 = 3138`（逐个列出那 8 条新测试名），
+并以 `pytest -m mutation --collect-only` 实读复核变异矩阵**恰好 25 格**（销掉它自己用正则数出的错）。
 
-### 二、✅ 第 2 步过审（`60cc4ca`，Claude 施工 ‖ GLM 复核，用户拍板席位）
-
-**GLM：APPROVE-WITH-FINDINGS / 0 阻断 / 4 不阻断。**
-主控权威全量 **3130 passed / 13 xfailed / 0 failed**（`-n 6`，1030s，`.pth` 前后哨兵同为 `58f547fa…`）；
-复核方独立全量同读数。两份 case：**sm25 `reproduced`（零字段相异）· sm24 `implementation_drift`** —— 与预写预期逐条命中。
-
-**施工方两处自由裁量，我裁定接受、GLM 复核同意**：
-① **不拷 manifest**（ack 实测 8 字段、**无 manifest 锚** ⇒ 拷进去等于在信任路径上放一个无法用签字重算验证的文件）——
-另立 **F-115**；② **移除旧搜索根不留回退**（留着就无法区分「绿是新路径生效」还是「老路径兜住」）。
+⭐ **施工方超出要求的两处**：第三格做成**结构锁**（劫持 `Path.glob/rglob` 记录搜索触及的每个目录、断言恰好一个），
+且**跑两种形态**（真根成功路径 + 收窄根失败路径）逼出「只在主查找失败时才走」的回退腿；
+另加一条**守卫的守卫** `test_f116_0`（把夹具存货表本身钉住，存货被清理时响亮红而非静默失去牙齿）。
 
-**⚠️ 施工方主动上报一次程序失误**：权威全量跑到 50% 时改了树（注释），**自行作废、杀进程、定稿后重跑**。
-GLM 判处置足够，并补一句：那次「碰巧」可能未受污染，**但零容忍口径下作废是唯一正确处置，不该去赌这个碰巧**。
+### 二、⭐⭐⭐ GLM 又找到了我点名要它找的洞（→ **F-127**）
 
-### 三、⭐⭐⭐ GLM 找到了我点名要它找的那个洞（→ **F-116**）
-
-请求单明写「**再找一种能骗过那 6 把锁的真实错误形态**」。它找到了：
-**以「向后兼容」为名加回 logs 回退腿 ⇒ 17 passed 零红**。
-根因 = `f111_c` 夹具选了 sm24（logs 下 **0** 份）而 sm25 有 **4** 份 ⇒ logs 方向是该锁**唯一没牙的方向**。
-⭐ **orchestrator 已独立复现**：施加变异 ⇒ 17 passed；并实测实害 —— sm25 的 case 目录做成只有 DXF，
-门仍从 logs 捞到真件并重算命中。变异已还原（`bb38ab49dd6401ff` = HEAD blob）。
+复核单 §四 明写「再找一种能骗过这批新锁的真实错误形态」。它找到了：
+**用 `os.walk` 实现的第三方向回退腿 ⇒ 10 把锁全绿**。
+盲区 = **两类锁的交集**（结构锁只看 pathlib；存货锁只覆盖两个已知方向）。
+⭐ 它还**证明了变异是活的**：同一变异下往 `gt/sm25-L_anchor/review/` 暂放一份签字 request ⇒ `f116_a` 立刻红
+⇒ **骗过的机制是潜伏，不是腿没跑**。
+⭐⭐ **活化条件是书面存在的** —— F-117 的**原登记处方**拷的正是那个目录 ⇒ **我已当场把那句处方划掉并写明后果**。
 
-### 四、⭐⭐⭐ 第 4+5 步：像素空间判别实验**通过**（→ 第 ② 步的门槛条件）
-
-上一轮实测判别实验**不通过**（只改产品标定，描图分就动）。本轮兑现「改到像素空间判」：
-**七行扰动描图分逐位不动**，而**同一次跑里米制列照样动**（100→92.7 / 49.1）⇒ 扰动是活的。
-未扰动时两空间 **C1/C2/C3/C5 逐位相同**、C4 换算后差 1.2% ⇒ **换单位没改变答案**。
-分辨力仍在：5 种真实读图错**全部变红且方向对**。
-`band_collapse` 归 support-strip gate 管（实测诚实 green `{1:49}` / 中线读法 red 22 违规），**该门只吃像素** ⇒ 与换空间无关。
-⛔ **我自己两处错已记档**：扰动组合次序写反 · 端点配对方向假设错（`run:y` 残差 7.29 m，**差点让我写下「像素空间丢了免费的正确性」**）。
-→ [实验档](logs/experiments/2026-08-27c_pixel_space_reading_grade/README.md)
-
-### 五、✅ 第 3 步：逐点 holdout（sol 点名、此前一直欠着）
-
-**24 个隔离特征 / 96 条逐边测量**：**max 0.85 px ≈ 18 mm**、最差 RMS 0.396 px、逐组偏置 ≤0.21 px、
-采样窗四档扫描**完全持平**（参数不承重）；sol 的「每视图 ≥3 个非共线点」两张平面图都满足。
-⇒ 这次能看见外包法看不见的**局部畸变/旋转**，实测没有。
-⛔ **三次迭代全是我自己的方法错**：拿整块配碎片（31 窗↔49 墨块、13 门↔155 墨块）· 比质心 vs 外包中心 ·
-**扫描时一次动了两个变量**（症状是非单调：1.4→0.97 / **1.8→33.7** / 2.4→0.85，此时挑好看的档位就是判据跟着结果走）。
-→ [实验档](logs/experiments/2026-08-27d_judge_ruler_pointwise_holdout/README.md)
-
-### 六、⚠️ 派工时踩了一个假绿（值得记）
-
-`scripts/glm_code.sh` **没有可执行位**（已登记「登记不改」项）⇒ `Permission denied`；
-而我写的是 `... | tail -120`，**退出码是 `tail` 的** ⇒ 系统报回 `exit 0`，看着像跑成功了。
-**抓住它的不是退出码，是「裁决文件写出来了吗」这一问。** ⇒ 同族 [[exit-code-file-must-not-be-reused-across-runs]]：
-**判跑完看产物/汇总行，⛔ 不看退出码**。改用 `bash scripts/glm_code.sh` 且不经管道后正常。
-
----
-
-## 2026-08-27（夜班 · 用户睡觉，orchestrator 持续推进）
-
-> 用户交代：「**施工优先走 claude 侧，GLM 审，三方 GPT 待命**；没有重大问题需要我判断的你就持续推。」
-> ⇒ 本节 = 夜班的全部动作与读数。**口径类结论一律同步进 CLAUDE.md**（§5#12 ①-c）。
-
-### 一～十二、⛔ **已逐字搬走** → [`logs/worklog/2026-08_plan_log.md` · 2026-08-27 夜班](logs/worklog/2026-08_plan_log.md)
-
-> 内含：主树全量基线 3035 绿 · **R-6 更正（原始层已在盘上）** · 判别法则补成两问 · sol 架构意见未落库的记录 ·
-> 三个席位派出 · F-95 前置核查 · **「没有可信图纸↔世界标定」在 gt 侧是错的** · gt 三层重新定位 ·
-> **F-95 跨家族 APPROVE** · **sol 判我四条结论全部只「部分成立」并给出严格更优的路** · G1 施工交件 · 夜班暂停。
-
-### 十三、✅ **两条返工同时落地**（额度恢复后一轮做完）—— ⛔ 但**两条都还没过审**
-
-> ⚠️ 用户 08-27 新拍板并已进 CLAUDE.md §5#7.5：**一个模型家族同时只能在飞一个任务**，跨家族可并行。
-> 本轮据此排：**Claude 家族 = F-97 返工**（唯一一件）· **GPT 家族 = G1 返工** ·
-> GLM 留着做下一轮复核（且 14:00–18:00 CST 是它 3 倍扣额的高峰）。
-
-| 单 | 席位 | commit | 全量 | 状态 |
-|---|---|---|---|---|
-| **F-97 返工** | Claude | `f2a8ccf` | **3070 passed / 13 xfailed / 0 failed** | ⏳ **未过审** |
-| **G1 返工** | GPT sol | `ef41a39` | **3046 passed / 13 xfailed / 0 failed** | ⏳ **未过审** |
-
-#### F-97 返工：三条阻断全修（施工方**先独立复现了三条**再动手）
-
-| 判据 | 读数 |
-|---|---|
-| R1 | 未登记声明 ⇒ `unknown` 并点名 `future_reading_contract_v99`；**3 条锁全走真实 `_build_correction_messages`** |
-| R2 | 已登记声明 + legacy ⇒ 仍 `AMBIGUOUS: matches 2 declared contracts`，同时点名两契约 |
-| R3 | 畸形边车 ⇒ 真实入口红并点名；**兼容面 43/43 边车仍 EXCLUDE、328/328 legacy 仍 CONSUME**（已写成硬断言）|
-| R4 | 真实 `run_correction` 两负例（顶层 list / 非法 JSON）⇒ 点名异常 + **ledger 两次都在盘上** |
-| R5 | 字节变化面 `56/49/7/0，移除 170,455 B` —— **与返工前逐字相同 ⇒ 收紧零代价** |
-| R7 | neuter 逐条：B-01→3 红 · B-02→2 红 · B-03→3 红，三次 `passed+failed` 均 = 3070 ⇒ **零附带** |
-
-⭐⭐ **它自己撞到并修好了裁定预警的那个坑**：第一版写「有 `schema` 键就不是 legacy」，
-**当场把双命中从 `AMBIGUOUS` 塌成单命中** —— 实测抓到后收窄成「只否决**未登记的**声明」。
-⭐⭐⭐ **它自陈最值钱的一条**：B-02 正是它上一轮自陈「弱的就是这个」的地方
-⇒ **「自陈不确定」≠「已处理」**，识别出弱点却没修，复核方就会把它变成阻断。
-
-#### G1 返工：**整张豁免清单已删除**（⛔ 不是收窄成白名单）
-
-按上一轮 GLM 实测出的更优解：**把已验证的 `review_ack.json` + `review_index.json` 一并喂进复现跑**
-⇒ **diff = 0 指针**，`_pointer_is_signature_dependent` / `SIGNATURE_DEPENDENT_POINTERS` /
-`HUMAN_REVIEW_GATE_IDS` **全部删除**，复现结果**不再过滤任何指针**。
-
-| 判据 | 读数 |
-|---|---|
-| R1 | 旧豁免符号 `rg` **0 命中**；未改动树 `status=reproduced` / `differing_pointers=()`；签字链三值一致 `49065597…` |
-| **R2** | ⭐ **分辨力没退化**（我最担心的一条）：边厚度 0.12→0.13 ⇒ 指名 `/zones/0/edges/0/thickness_m`；**篡改 G6 几何证据 `near_threshold_faces/0/area_m2` 2.544→2.545 ⇒ 仍红并指名** |
-| R3 | `converter_sha256` 漂移 ⇒ `implementation_drift`，与 `content_mismatch` 仍可分 |
-| R4 | **F-2 已修**：`gates` 塞重复 id ⇒ `content_mismatch` 指针 `/gates`（原本静默照绿）|
-| R5 | **F-3 选「VG 升 fatal」**：`vg_implementation_sha256` 精确覆盖 correction 四件、四件全在闭包内且无闭包外噪声；extractor/validator 仍 advisory |
-| R7 | 五次 neuter 每次 **1 failed / 10 passed**，只红对应锁 |
-| R8 | **补上原 A1/A6 的真值**（上一轮 GLM 裁决里那两个 `{{PASSED}}` 占位符）：A1 = 29 zone / 136 边 / basis 90:46 / 厚度 78:58；A6 双向各 1 failed / 6 passed |
-
-⭐ **它还顺手补了一个我没想到的洞**：晋升后的 `gt.json` 会**合法**改变 `verification` 与 `content_sha256`
-⇒ 字节哈希不等于 index 里的 candidate；复现门现在**反解这两个允许的变化并重算 `candidate_gt_sha256`**，
-证明其余语义（含 generator 指纹）仍来自签字 candidate。
-
-#### ⛔ 两位施工方各自点名的「最可能塌」（下一轮复核的靶子）
-
-- **F-97**：`DECLARED_SCHEMA_VALUES` 是**手写的第二处清单**，往 `CONTRACTS` 加契约却忘同步
-  ⇒ 「已登记被判成未登记」静默错配。⭐ **这是「第二个定义」这个病的第三次现形。**
-  另：`_preflight_vector_contracts` 与 `_build_correction_messages` **各分类一遍**；
-  `==43`/`==328` 硬断言没写「为什么是这个数」的出口，后来者可能当误报放宽；
-  B-02 的 `CheckReport` 信任根只验了产物侧、**没回溯 `validation_run.py:292` 的构造类型**。
-- **G1**：签字 request **只在 `logs/experiments/**` 可得**（目录被清理 ⇒ 响亮降级 `inputs_unavailable`，不假绿但门失效）；
-  晋升语义将来若新增可变字段本门会 fail-closed；`gt_extraction`/`gt_manifest`/`gt_schema`/`tarch_converter_schema`
-  在闭包内但无精确指纹（**抓得住、归因错**）；全部实测**只在 sm25 一个 case**。
-
-#### ⏭ 下一轮第一件事
-
-**两条返工各送一轮跨家族审** —— F-97 返工由 Claude 施工 ⇒ 审可派 **GLM**；
-G1 返工由 GPT 施工 ⇒ 审可派 **GLM 或 Claude**，⛔ 不能是 GPT。
-⚠️ 按新并发规，**同一家族同时只接一件**；GLM 高峰 14:00–18:00 CST 3 倍扣额，长审排 18:00 后。
-### 十四、⏳ **两条返工的跨家族审已派出（日班，用户拍板「现在同开」）**
-
-| 单 | 被审 commit | worktree | 施工方 | **复核席位** | 为什么是它 |
-|---|---|---|---|---|---|
-| **F-97 返工** | `f2a8ccf` | `/tmp/ep_f97` | **Claude** | **GPT sol** | 上一轮那三条阻断是它提的 ⇒ 让它自己验有没有堵上 |
-| **G1 返工** | `ef41a39` | `/tmp/ep_g1` | **GPT sol** | **GLM** | 「把签字件喂进复现跑、整张豁免清单直接删」这条路是它上一轮提的 ⇒ 让它自己回头验 |
-
-⛔ **两条都不是「谁写谁批」**：F-97 由 Claude 施工故 Claude 不能审；G1 由 GPT 施工故 GPT 不能审。
-⇒ CLAUDE.md banner ⑤ 原写「F-97 返工 → GLM 或 Claude」**是错的**，已当场改正。
-✅ 符合 §5#7.5 并发规：**GPT 一件 · GLM 一件**，Claude 家族只留 orchestrator。
-⚠️ 用户知情并拍板：GLM 现在处在 14:00–18:00 CST 的 **3× 扣额高峰**，照跑。
-
-**两份请求单**（结构一致）→ [F-97](logs/reviews/request/2026-08-27_f97_rework_crossreview_gpt.md) ·
-[G1](logs/reviews/request/2026-08-27_g1_rework_crossreview_glm.md)。
-两份都写了：原始问题（⛔ 不是「diff 干了什么」）· 上一轮裁决原文 · 重点处 · **A1–A7 逐条判据且每条都写明「什么情况下会不通过」**（对治
-[[acceptance-bar-must-not-be-written-from-the-result]]）· 明确不做 · 停下上报触发器（含「都次优但有更优解」）·
-**「orchestrator 自认可能写错的地方，请优先证伪」**。
-
-#### ⛔⛔ 第 37 次「停下上报」—— 又是派工方（我）的题错，**而且是当场自造的**
-
-**GPT 第一次派出开工即停**，⛔ 没做任何实体复核。它抓的是：
-我在 §〇 写「工作树干净、`status --porcelain` 为空」（**开单那一刻确实为空**），
-可我**紧接着自己把请求单拷进了那个 worktree**；再叠上「交件时只剩你的裁决文件」
-⇒ **两条结构上不可同时满足**，且它无权删/提交那份既有文件。
-
-⭐ **这条的新意不在「我写错了一个数」，而在于**：那句话**写下时是真的**，是我**自己后续的动作**把它变成了假的。
-⇒ **派工单里凡是描述「工作树/环境当前长什么样」的句子，必须在【最后一个准备动作做完之后】重新核一遍**，
-⛔ 不能在写单时核完就当数。同族 [[stop-and-report-catches-dispatcher-errors]]。
-⭐ 顺带：**同一个坑在 G1 单上也埋着**（我写「3 份 untracked」，拷进请求单后实际是 4 份）——
-GPT 的红让我在 GLM 撞上之前先改掉了。**跨家族的价值又一次不是在被审对象上兑现的。**
-
-**处置**：停下上报裁决逐字归档 → [`stopreport.md`](logs/reviews/verdict/2026-08-27_f97_rework_gpt_stopreport.md)；
-题面已修；worktree 清回「只剩请求单一份」；**已重新派出**。
-
-#### ⛔⛔⛔ 第 38 次 —— 而这一次**病因不是那个数，是我的触发器写得不分层**
-
-第二次派出，GPT sol **又是开工即停**：我在 §〇 写返工面「另有**三份** md」，`--numstat` 实测**四份**
-（我是照着 `--stat` 的省略显示随手数的，数漏一行）。它引的正是我自己写的触发器 #1
-「数值 / 文件名对不上 ⇒ 停下上报」。**它照办，完全正确。**
-
-⭐⭐⭐ **代价与病因严重错配**：返工面里有几份 markdown，**与「三条阻断有没有被堵上」零关系**，
-却让**整轮实体复核（全量 + neuter + 主动找缝 + 三条阻断双向验证）一次都没跑**。**两轮空转、约 5.3 万 token。**
-⛔⛔ **而「触发器必须分层」这条，我 2026-08-12 就写进 memory 了**
-（[[stop-and-report-catches-dispatcher-errors]] How-to-apply #11：
-「① 承重前提错 ⇒ 停；② 外围论据错 ⇒ **报告并继续审其余**。⛔ 不许再写成无差别的『发现前提错就停』」），
-**然后在这份派工单上写了无差别版。** ⇒ **「写下自检 ≠ 执行自检」这个形状，在同一条 memory 里已是第二次。**
-
-**两条机械化修法（已落地到两份派工单）**：
-1. 触发器 #1 改成**分层版**，并附判别问法：**「这条错如果成立，我还需不需要审这份 diff？需要 ⇒ 只记不停。」**
-2. ⭐ 凡写「共 N 份 / 另有 N 个」这类**计数**，一律**贴 `--numstat` / `--name-status` 原始输出**，
-   ⛔ 不用自己数出来的中文数词。§〇 的起点、提交链、diff 面现在全是逐字读数。
-⇒ **累计题错 38/38。**
-
-⚠️ **同一分层修法已同步补进 G1 那份请求单**（GLM 正在飞，避免它撞同一堵墙）。
-⇒ **第三次派出已发。**
-
-⭐ **顺带一条对「跨家族价值」的读数更正**：本轮 GPT 两次交件**零实体产出**，
-但它两次都精准打在**派工方**身上 —— 这与 08-27 之前「跨家族抓的是被审对象」的印象不同。
-⛔ 别把「复核轮空转」记成复核方的问题。
-
-#### 顺手修掉的一处过期口径
-
-**CLAUDE.md §1.3 `tests/` 行**原写「⛔ **当前红着**：3010 passed / 1 failed / 3 errors」（08-25 读数），
-而那批红 = **F-93**，早已于 `b3e0a32` 闭合。⇒ 已改为
-**✅ 全绿 3035 passed / 13 xfailed / 0 failed**（08-27 主控权威全量，commit `ed0ba09`），
-并注明**当前 HEAD `534b5a2` 相对 `ed0ba09` 只动了 `AI_agent/` 文档**（`src`/`tests`/`scripts`/`skills` 零改动，已实测）
-⇒ 该读数对当前 HEAD 仍成立。**这正是 §5#12 ①-b 要防的「每次新会话第一眼读到过期口径」。**
-
-#### ✅ **G1 返工 = APPROVE / 0 阻断**（GLM，[裁决逐字](logs/reviews/verdict/2026-08-27_g1_rework_glm_verdict.md)）
-
-**它先跑全量**（我在单子里把这条排成第一个动作，就是冲着上一轮的欠账去的）：
-逐字 `3046 passed, 13 xfailed, 211 warnings in 405.32s`，exit 0。
-⇒ **上一轮那两格 `{{PASSED}}` 占位符（A1/A6）清偿。**
-
-| 上一轮 finding | 现状 |
-|---|---|
-| **F-1** 豁免形状从结果反推 | ✅ **整张清单已删**（非白名单化）；`rg` 0 命中；比对路径**不过滤任何指针** |
-| **F-2** 重复 gate id 照绿 | ✅ 已修（`content_mismatch` / 指针 `/gates`），且**接进 verdict 通道而非裸炸** |
-| **F-3** VG 纯闭包却降 advisory | ✅ 选了升 fatal；docstring 洞清单已含 `gt_schema` |
-| **F-4** `inputs_unavailable` 无生产消费者 | ⏭ **结转债**（派工单本就划出范围）⇒ 现 **F'-1** |
-
-⭐⭐⭐ **它回头验了自己上一轮提的那条路线（「把签字件喂进复现跑」）会不会变成自证 —— 实测【不成立】**，
-而且给了非循环依据：喂进去的 `review_ack.json` / `review_index.json` **不是从被审报告派生的**
-（`_RUNTIME_BUNDLE_FILES` 明确把 `conversion_report.json` / ack / index 都排除在 index 之外；
-ack 签的是 DXF 字节哈希 + request 内容哈希 + files 清单规范摘要，**没有一样来自被审报告**），
-且门**自己重算** files 摘要、不信自报值。
-⭐ **而且比旧设计强**：旧豁免对那 8 族指针**完全免检**（塞什么假 evidence 都行），新设计要求它们与签字件**逐字段一致**。
-
-⭐⭐ **换方向自造 11 种形态级变异 + 3 次独立 neuter，无一「改内容却照绿」。**
-（重排 / 空数组 / 类型变化 / 塞未知字段 / 删必填 / 改 gate id / 嵌套塌缩 / 外包一层 —— 6 种走 schema 裸异常路径，见 F'-2。）
-
-#### ⭐ G1 的五条不阻断 findings（**F'-4 与 F'-5 有排期含义，别只当记账**）
-
-| # | 内容 | 我的处置 |
-|---|---|---|
-| **F'-1** | 复现门与 `RawLayerTrust` 至今**零生产消费方**（窄+宽 grep 实测）⇒「响亮降级」只活在返回值与测试断言里 | **接线时必做**：消费者把非 `reproduced` 一律当红 |
-| **F'-2** | 盘上报告 schema 非法时以**裸 `ValidationError`** 退出（`gt_raw_layer.py:472` 的 `model_validate_json` 不在 try 内），不是四态 verdict | 今天无消费者故无害；**接线之日即隐患**。修法照抄本单 F-2 的样式 |
-| **F'-3** | 反解的掩护面 = **恰好 `verification.methods` 一个元数据字段**（实测篡改它门照绿） | 纯元数据、动不了几何；登记 + 声明或补交叉核对 |
-| ⭐ **F'-4** | **VG 升 fatal 的运维代价**：vg 组 = `correction/{facade_visibility,facade,footprint,schema}.py` **文件粒度指纹** ⇒ **本批 reading/correction 一体改期间，只要动 `correction/schema.py` 就会 `implementation_drift`**，sm25 **预计常红** | ⭐⭐ **必须先写进本批跑测口径**，否则届时会被当回归。已进 CLAUDE.md |
-| ⭐ **F'-5** | **sm24 的签字 request 已不可寻** —— GLM 实跑 sm24_anchor ⇒ `inputs_unavailable`。⇒ **门的可用面 = 现存 2 份 case 里的 1 份** | 找回真件归档到耐久位置，或明确记「sm24 复现门不可用」 |
-
-⚠️ **它据此更正了我的一处题面**：我把「request 目录被清理**则会**响亮降级」写成**将来时的风险**，
-**实测它已经发生**（sm24 今天就是 `inputs_unavailable`）。⇒ 下次盘点复现门读数按「**可用面 1/2**」记账。
-⭐ 另：它按分层触发器把「3 份 vs 4 份 untracked md」**只记不停** ⇒ **今天改触发器这一下当场兑现。**
-
-#### ⛔⛔ F-97 复核：**第三次派出做完了实体复核，但交件被 provider 安全过滤拦掉**
-
-GPT sol 第三次派出**没有再停**，实打实审了 **113,184 token**，造出了新夹具、还跑了 neuter
-（我在 worktree 里捡到它没来得及还原的那一处：`vector_contract.py` 摘掉 `_declares_unregistered_schema` 那两行）。
-**但最后写裁决时连吃两条 `ERROR: This content was flagged for possible cybersecurity risk`** ⇒
-**裁决文件没写成、neuter 没还原**（我已 `git checkout --` 还原，worktree 现只剩请求单一份 untracked）。
-⇒ 同族已登记：08-16「审隔离壳的活被 GPT provider 过滤拦死 6 次，改派 GLM，**措辞最多改一次**」。
-
-⭐ **它的探针文件已保住** → [`artifacts/2026-08-27_f97_rework_gpt_probe/`](logs/reviews/execution/artifacts/2026-08-27_f97_rework_gpt_probe/)
-（`_review_f97_new_probe.py` 118 行 + 未还原的 neuter diff；⚠️ 完整 stdout 因 `*.log` 被 ignore **只在本机**
-`AI_agent/logs/reviews/execution/2026-08-27_f97_rework_gpt_review.stdout.log`，⛔ 未入库）。
-
-⛔⛔ **以下全是【它写的断言】，orchestrator 一条都没跑过 —— ⛔ 不是实测事实，只作下一轮复核的线索**：
-
-| 探针 | 它断言的 |
-|---|---|
-| `test_new_b01/b02/b03_..._at_real_run` | 三条阻断的**原夹具**已在真实入口被拦、被点名、被记账 |
-| ⭐ `test_registered_but_malformed_declaration_still_falls_back_and_is_consumed` | 顶层声明 **as-drawn schema** 但只带 legacy `strokes` ⇒ 仍判 `reading_view_legacy` 并**被消费** |
-| ⭐⭐ `test_unhashable_schema_crashes_before_ledger`（`schema=[]` / `{}`）· `test_invalid_utf8_crashes_before_ledger` | **崩在 ledger 之前 ⇒ 与 B-03 同形**（B-03 可能只修了它举的那一种输入） |
-| `test_empty_and_bom_files_are_named_and_ledgered` | 空文件 / BOM ⇒ 点名且记账（**这条是好消息**）|
-| `test_uppercase_and_nested_json_are_absent_from_ledger_inventory` | `MYSTERY.JSON`（大写）与子目录里的 json **不进 ledger 清单** |
-
-⇒ **F-97 仍然【未过审】。** 下一轮的处置见本节末尾。
-
-#### ✅ **G1 已并回主线并过了主树权威全量**
-
-`10fb3b6`（`--no-ff` 合并 `wt/08.27_gt_raw_layer`，3 文件 / 779 行，**零冲突**）。
-**主树权威全量**（`python -m pytest -q -n 6`，18m10s，exit 0）：
-
-```
-3046 passed, 13 xfailed, 212 warnings in 1090.36s (0:18:10)
-```
-
-⇒ 与 GLM 在 worktree 里跑的 `3046 passed / 13 xfailed / 0 failed` **计数一致**；较合并前主树 3035 净增 11
-（G1 原件 7 + 返工 4）。**合并门通过。**
-⚠️ 该轮与 GLM 审 F-97 同机并行（各 `-n 6`，峰值 `load average 14.94/16 核`）—— **没有出现 08-27 那种无 summary 行的假红**，
-⇒ **`-n 6` × 2 路是安全配置**，`-n auto` × 3 路不是。这条给 §5#7.5 补了一个正例读数。
-
-#### ⛔ **F-97 返工 = REWORK / 3 条阻断**（GLM 第四次派出，[裁决逐字](logs/reviews/verdict/2026-08-27_f97_rework_glm_verdict.md)）
-
-**先说公道话**（GLM 原话）：**返工是真修** —— GPT 三条阻断在 `8fda4c1` 上它用独立夹具**全部复现**
-（B-03 连 `AttributeError: 'list' object has no attribute 'get'` 原文都一致），在 `f2a8ccf` 上**各自原夹具全部不再复现**；
-三次 neuter 各跑全量，红集 **3/2/3** 与施工自述全对上、**零附带**；干净树全量 **3070 passed / 13 xfailed / 0 failed**。
-⭐ **GPT 那三条阻断，无一判错。**
-
-⭐⭐⭐ **三条新阻断【全部】出自请求单 §3.1 的判据 ③「修法只堵住了被举的那一种输入，换同形输入又走通」** ——
-**那是本轮唯一新加的一条判据，一次抓三条。**⇒ **值得固化进模板**：凡「修了某条阻断」的返工审，
-判据必须同时要求 ①旧 commit 复现得出 ②新 commit 复现不出 ③**换同形输入仍走不通**。
-
-| 阻断 | 内容 |
-|---|---|
-| **BLK-A** | **B-01 只修了「未登记」这半** —— GPT 的返工要求原文是「未登记 / **畸形**显式 schema + legacy 结构 ⇒ unknown」。声明**已登记**值但**缺该契约必需键** + `strokes` ⇒ **仍判 `reading_view_legacy` 并被静默消费**。三个已登记值（`as_drawn_plan_v2` / `v0` / `elevation_v0`）**全部实测塌缩** |
-| **BLK-B** | **B-03 在【组合入口】原样保留** —— `run_pipeline_artifacts` 在 `pipeline.py:1368 / :1376 / :1411` **自己先解析了 `*_view.json`**，全部先于 `:1414` 的 `run_correction`。同一夹具在 `f2a8ccf` 上仍死在**逐字相同**的 `AttributeError`、**无 ledger**。⭐ **正对照**：同一毒文件改名 `mystery.json` ⇒ 正确点名 + 记账 ⇒ **纯入口顺序问题**。⛔ 返工自己 docstring 写的 "Runs before ANY consumer that parses `*_view.json`" **在这一层是假的** |
-| **BLK-C** | **「ledger 永不抛」这个前提不成立** —— 三个**普通文件系统/编码现实**全部崩在账落盘之前：① `schema=[]`/`{}` ⇒ 对 frozenset 判成员 `TypeError: unhashable type`；② 非法 UTF-8 ⇒ `UnicodeDecodeError`（`_classify_rows` 只捕 `JSONDecodeError`）；③ **`0_reading/backup.json` 是个目录** ⇒ `IsADirectoryError`。⭐ 前两个是复跑 GPT 探针线索、**第三个是 GLM 自加的** |
-
-⭐ **GPT 探针那 5 条线索的最终判定**（GLM 逐条复跑）：#2 → **BLK-A** · #3 → **BLK-C** ·
-#1 成立但「真实入口」只覆盖到 `run_correction`（⇒ 正是 BLK-B 藏身处）· #4 成立**非缺陷** · #5 成立**不阻断**（N-E）。
-⇒ ⭐⭐ **「把另一席位的探针当线索交下去、要求独立复跑 + 另外自己找」这个做法兑现了**：
-GPT 被过滤拦掉的那 113k token **没有白烧**。
-
-#### ⭐ 六条不阻断里两条有排期含义
-
-- **N-B**｜`==43` / `==328` **语料快照常量** —— ⚠️ **本批第 ③ 步「产出新方案产物」一落地、任何新 `0_reading/*.json` 入库就会让它们红**
-  ⇒ **合法增长被当失败，诱发后来者机械放宽**；且语料根 `Path(".")` 依赖 cwd。
-  建议改**不变量断言**（unknown==0 / 被移除的 `*_view.json`==0 / 每份被判边车可由 `CheckReport` 解析）替代计数快照。
-- **N-A**｜`DECLARED_SCHEMA_VALUES` **无机械对账的第二处清单** —— **今天不会错配**（探针证三值↔三契约一一对应），
-  但**加契约时会静默**，GLM 用 monkeypatch **双方向都实测演示过**：只加 spec 不进集合 ⇒ 原 AMBIGUOUS **静默塌缩成单判**；
-  只进集合不加 spec ⇒ **B-01 经漂移重开**。建议给 `ContractSpec` 加 `declared_schema_value` 字段**从源头派生**。
-
-#### ✅ **本轮题面零承重错、零停下上报** —— 38 连败后的第一份干净派工单
-
-GLM 逐项核过 §〇 的全部 git 读数（HEAD / 两段 `--numstat` / 3 提交链 / 祖先关系 / 开工恰 2 份 untracked）**逐字一致**。
-唯一点名：**我把 B-03 的病根概括成「helper proxy 冒充生产入口锁」过窄** ——
-它给了更好的写法，**已采纳**：
-> **F-c 的「失败必留账」要在【所有】会碰 `0_reading` 的入口、与【所有】输入形态下成立。**
-
-⇒ 这正是 BLK-B（入口层级）与 BLK-C（输入形态）两条的统一描述，而它们**都与 helper proxy 无关**（锁全走真实入口也拦不住）。
-⭐ 另一处口径澄清：`170,455` = **提示词块字节**（含包装、strip 后内容），**原始文件字节是 168,149** ——
-以后此类数字须注明口径。
-
-#### ⏳ **F-97 第二轮返工已派出**（用户拍板 · Claude 施工 ‖ GLM 审）
-
-[派工单](logs/reviews/request/2026-08-27_f97_rework2_dispatch.md) · worktree `/tmp/ep_f97` · 起点 `f2a8ccf`。
-✅ 符合 §5#7.5 并发规（Claude 一件、GLM 待命）与 §0.4#3（碰 `src/agent/pipeline` 内核 ⇒ 派工 + 换人审）。
-
-⭐⭐⭐ **本单把「换同形输入」这一格【下放给施工方自己跑】** —— 三条阻断各要交满三格：
-① `f2a8ccf` 上复现得出 · ② 新 commit 上复现不出 · ③ **自己造同形输入去打，并写出按什么方向找的**。
-理由即本日读数：**前两格上一轮全绿，第三格一次抓三条。**⛔ 别再把这一格全押在复核方身上。
-
-⭐ **N-A / N-B 明确本轮不做**，但 **N-B 挂了硬闸**：
-**本批第 ③ 步「产出新方案产物」开工前必须先把 `==43`/`==328` 改成不变量断言** ——
-否则新 `0_reading/*.json` 一入库就红，**合法增长被当失败**。
-
-#### ⭐ 发单前最后一刻重跑，当场抓到两处自己的题面错
-
-`§〇` 我先写「3 份 untracked / CLAUDE.md 448 行」，**最后一刻重跑实测是 4 份 / 447 行**
-（第 4 份正是本派工单自己；448 是主树的行数、worktree 那份是 `f2a8ccf` 时的 447）。
-⇒ **今天花两轮空转换来的那条新规矩（描述环境现状的句子必须在最后一个准备动作之后重核）当场兑现**，
-**这两条没有变成第 39、40 次停下上报。**
-
-#### ⛔⛔⛔ **事故：共享 venv 的 editable `.pth` 被改到了别的树，主树那轮合并门读数因此作废**
-
-**实测事实**（证据留于 [`logs/experiments/2026-08-27_pth_hijack/`](logs/experiments/2026-08-27_pth_hijack/)）：
-`/opt/venv/lib/python3.12/site-packages/_editable_impl_energyplus_agent.pth` 内容 = **`/tmp/ep_f97`**，
-`mtime = 2026-08-26 11:52:41`。原本应为主树 `/workspaces/EnergyPlus-Agent-dev`。
-
-⭐ **是 F-97 的施工席位在自述里点出来的**（它说「那句『裸跑会串到主树』的警告现在方向是反的」），
-**并且它没有去动它** —— 这个处置对。
-
-⛔⛔ **后果**：**11:52 落在 orchestrator 那轮主树权威全量的跑测窗口内**（11:44 起、12:07 止）
-⇒ **`3046 passed` 那个合并门读数是在「共享 venv 指向另一棵树」的环境下跑出来的** ⇒ **作废，已重跑**。
-⭐ 这正是 [[green-suite-is-a-property-of-tree-and-launcher]] 的**第四种假象**：
-前三种是「树不对 / 启动器不对 / 同机竞争」，这一种是**跑测途中启动器被第三方改掉**。
-
-**处置**：① `.pth` 已还原指向主树 · ② 主树全量**带 `.pth` 前后哨兵重跑**（两次哈希相同才算读数有效）·
-③ **新增硬禁令进所有派工/复核单**：⛔ 席位绝对不许跑 `pip install -e .` / 任何写 `site-packages` 的命令
-（这个 venv 全机器共享）；import 有问题一律用 `python -m` / pytest 入口解决 ·
-④ 复核单加 **A8 `.pth` 哨兵判据**（开工前与交件前各读一次，变了即停下上报）。
-⚠️ **⛔ 不追责到具体席位** —— 11:52 那个窗口里 `/tmp/ep_f97` 上有活动的是 F-97 的复核轮，
-但我**没有直接证据**指认是谁执行的安装，按 [[repeat-the-run-before-accusing-a-seat]] 不下指控。
-⭐ 它同时是 **D-2（装机路径根治，B 案）** 迄今最硬的一次实证：
-**A 案只收窄「裸跑」这个暴露面，而这次是 `.pth` 本身被改** —— A 案的锁对此完全沉默。
-
-#### ✅ **F-97 第二轮返工交件**（Claude 施工，`c3fc3fd`）—— orchestrator 已独立核过交付面
-
-**⛔ 以下「核过」的只有这四项**（其余全部是它的自述，⛔ 未复跑，留给 GLM）：
-提交链 `f2a8ccf → 8f9728f → f30f89e → 41a568a → c3fc3fd` 完整 · 树干净（只剩 orchestrator 的 untracked md）·
-**报告确在 `HEAD` 里**（`git show HEAD:<path>` = **495 行**，⛔ 没看工作区，本仓库有「被 ignore 的文件 `git add` 静默失败」前科）·
-`diff --numstat f2a8ccf HEAD` = `pipeline.py 53/5` · `vector_contract.py 165/25` · 测试 **582/0** · 报告 495/0。
-
-**它自述的要点（⛔ 全部待 GLM 复跑）**：
-- 三条阻断在 `f2a8ccf` 上**全部复现**（11/11 探针）、在 `c3fc3fd` 上**全部不再复现**；全量 **3113 passed / 13 xfailed**，exit 0。
-- **红集对账 9 次变异 ⇒ 最终 43/43 把锁至少红过一次**；过程中**发现并收紧了 5 把自己写的假锁**
-  （「我写的断言，光靠最后那道兜底网就能满足」）。最后一把判定为**真没有分辨力**而非变异没生效，
-  自证两条：`apply.py` 每锚点断言 `count(old)==1`（打不中即中止）+ 同一变异下同函数另两个参数变红。
-- ⭐⭐ **第三格（换同形输入）撞出五条，其中两条是对 GLM 上一轮【逐字处方】的实质性证伪**：
-  ① **名叫 `*.json` 的 fifo 会让 `read_text` 永久挂死，没有任何 except 捕得到** ⇒ 修法必须是 `is_file()` 边界，
-  ⛔ 不是更长的 except 元组；② **深嵌套 JSON 的 `RecursionError`** 既不是 `OSError` 也不是 `UnicodeDecodeError`
-  ⇒ 照处方逐字做**仍会崩**。另三条：v3 catalog 在**完全没有毒文件**时也丢账 · `_run` 不可写时
-  **F-c 的存储失败会把 F-b 的点名拒绝一起毁掉** · `:1376` 结构上被 `:1368` 遮蔽不可能先崩（用顺序锁覆盖，⛔ 没伪造 payload）。
-- **它自陈最可能塌**：**嵌套声明** `{"meta":{"schema":...}}` 仍被当 legacy 消费（**故意没修**，
-  需先在契约数据面定义「什么算一次声明」）—— 它自己说「producer 哪天把声明包进信封，它就是 BLK-A 的孪生兄弟」；
-  以及 **`pipeline.py:528` 是同一个错的第二份拷贝，只因 preflight 挡在前面才不可达**。
-
-#### ⭐⭐ 我的两处题面错，**都被分层触发器接住了 —— 零轮空转**
-
-施工方判「**零承重错**」，另点名两处外围错（照 (b) 记下继续做）：
-1. ⛔ 派工单 §四 写「不要动 `src/agent/pipeline` **以外**的模块」，
-   **与 BLK-A / BLK-C 的返工要求直接冲突**（要改的 `_classify_rows` / `_declares_unregistered_schema`
-   就住在 `reading/vector_contract.py`）⇒ **验收条件自相矛盾**，本文件登记过的老形状。
-   已在复核单里更正：**`vector_contract.py` 的改动在范围内，⛔ 不得当超范围记。**
-2. 「裸跑会串到主树」那句在它施工时**方向是反的**（见上面的 `.pth` 事故）。
-
-⭐⭐⭐ **这两条若在今天上午，会是第 39、40 次「停下上报」、再空转两轮。**
-分层触发器改了之后，它们变成报告里的两行记录，**工作没停**。
-⇒ **今天改触发器这一下，一天内兑现了两次**（GLM 一次、施工席位一次）。
-
-#### ⏳ F-97 第二轮返工已送 GLM 复核
-
-[复核请求单](logs/reviews/request/2026-08-27_f97_rework2_crossreview_glm.md) · 被审 `c3fc3fd`。
-⭐ 本单的重点排法与前几轮不同：**第三格已由施工方跑过 ⇒ 复核方的任务不是复读它，而是【另外再找一遍】**；
-并把**「它证伪了 GLM 自己上一轮的处方」**这条摆到 A5，明写「本轮你没有维持一致的义务」。
-新增 **A8 = `.pth` 哨兵**。
-
----
+### 三、⛔⛔ 第 ② 步架构：**共同出案 → 对抗审 = REWORK / 6 条阻断**
+
+三方流程首跑（用户 08-28 定）：**我出题面 → GLM 共同出案 → sol 对抗审**。
+六条阻断 → **F-121 · F-122 · F-123 · F-124 · F-125 + 作废半径**，**全部经 orchestrator 独立复跑**。
+⭐⭐⭐ **最贵的是 F-122，它直接打翻我写下的一句**：我说过「逐边事实已经是正式类型，缺的只是谁把它落进事实包」——
+错的。那些字段是**已按 basis 扩张后的答案边**（`offset == (t if outer_skin else t/2)` **136/136** = 生产者公式回放；
+272 个端点**全部**离开原 cavity，0.06–0.34 m）⇒ **不是接线，是语义逆迁移**。
+
+### 四、⭐⭐⭐ 用户给的方向：两层 gt（→ 已进 [开发指南](guides/reading_correction_split_guide.md)）
+
+「reading 按**修正前** gt 判、correction 按**修正后** gt 判，两道工序各判各的（判的还是结果）」。
+**事实前提 git 层面坐实**：08-05 那个提交里签字图与六张截屏图**同时落库**，且**那一版逐位等于今天的 `_as_received`**。
+⇒ 取代 sol 的「改名 / 建台账」二选一：修正前那层一旦是**活的判分参照**，就丢不掉，两层之差也随时算得出（白送「手改上界」）。
+⛔ **三条硬提醒全在指南里**：sm25 分辨不出（0.2773 px vs 尺子噪声 0.85 px，**⛔ 不许拿它验证通过**）·
+修正前那层现在产不出来且卡点是**源图哈希门**不是几何 · 措辞待用户确认。
+
+### 五、⚠️ 我方本日实犯三条（**两条自己抓住、一条复核方抓住**）
+
+1. ⭐⭐ **拿「到外轮廓的垂距」当独立第二列去反驳 GLM** —— 量出 2 m 分离间隙、136/136 全对，
+   查源码才发现 `GTV3_FOOTPRINT` **按定义就是 outer-skin 环**、`GTV3_ZONE` 按定义是「footprint 没带走的」
+   ⇒ **同义反复，一致率恒等于 100%**。第一版探针里还塞了个 0.30 m 容差。**发给 sol 之前自己撤回。**
+2. **复核单里四个行号全错**（写 95/115/117/118、实际 394/414/415/417）——
+   我拿 `grep -n` 搜的是 `git show` 的**输出文本**。GLM 逐条核出，按分层触发器**只记一行没停工**（内容全属实）。
+   → [[line-numbers-from-diff-output-are-not-file-lines]]
+3. **headless 席位日志空白读成「死了」** ⇒ 砍掉正在干活的会话；改 `nohup &` 后又 grep 错进程名再启一次
+   ⇒ **一度并行两个 GLM 会话跑同一份题**（违 §5#7.5 + 抢写同一文件 + 双份额度）。已杀。
+   → [[headless-seat-silence-is-not-death]]，运维口径已进 [规约 §6.5⑥](guides/codex_execution_protocol.md)
+
+⭐ **两份派工/复核单本身零承重题错**（GLM 逐项核过 numstat / 分布表 / 复现门读数，除行号外逐字一致）。
+
+### 六、新登记
+
+**F-120**（同名仿射差 1000×，⭐ 陷阱在**同一份文件内部**）· **F-121**（边的内外角色无独立来源，⛔ 原证据对象是错的）·
+**F-122**（逐边字段是答案不是事实）· **F-123**（判分门指纹取自未签文件，⭐ 三项里两项的签字对照本来就在已签答案里）·
+**F-124**（签字根 ≠ 原图，5 条墙线）· **F-125**（平面标定锚是名义的，立面才是真锚）·
+**F-126**（空分母静默返回）· **F-127**（`os.walk` 骗过 10 把锁）· **F-128**（晋升回滚不对称）。
+
+
+## 2026-08-27（已翻篇，逐字归档）
+
+> 夜班 + 夜后半场两段日更已于 2026-08-28 **逐字搬入** [`logs/worklog/2026-08_plan_log.md`](logs/worklog/2026-08_plan_log.md)（①-2′ 垂直切片 · 像素空间判别实验通过 · `.pth` 事故 · 返工审三格方法论）。
 
 ## 2026-08-26（已翻篇，逐字归档）
 
