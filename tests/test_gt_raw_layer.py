@@ -361,3 +361,133 @@ def test_f111_f_a_malformed_sibling_does_not_hide_the_real_request(monkeypatch, 
     request = raw_layer.find_signed_request(SM24, expected)
     assert request is not None
     assert raw_layer.compute_request_sha256(request) == expected
+
+
+# --------------------------------------------------------------------------- #
+# F-116 -- the F-111 lock's teeth follow FIXTURE INVENTORY, not the code path
+#
+# test_f111_c/d/e/f above all use SM24 as the case under test, narrowing
+# GT_SOURCES_ROOT to a directory holding only its DXFs. That genuinely proves
+# "reaching tests/fixtures/ buys nothing" -- SM24_REQUEST_ELSEWHERE is a real,
+# byte-identical copy sitting there, so a resurrected fallback that searched it
+# would be caught. It proves NOTHING about a resurrected fallback to
+# AI_agent/logs/experiments/: SM24's signed request has ZERO copies there, so
+# if such a branch existed, ran, and searched, it would still (correctly, for
+# THIS case) come back empty -- indistinguishable on this fixture from the
+# branch never having existed at all. That is exactly the "assert ... is None
+# can't tell 'rejected' from 'never looked'" trap the dispatch calls out.
+#
+# Measured 2026-08-27 (re-verified with the production hash-recompute path,
+# not text grep -- a file can *contain* a hash string, e.g. in review_ack.json,
+# without being a request*.json that recomputes to it):
+#
+#   case (hash prefix)      gt_sources/   AI_agent/logs/   tests/fixtures/
+#   sm25-L_anchor (d738d0ac)      1              4                0
+#   sm24_anchor   (ae0fec08)      1              0                1
+#
+# The two cases' inventories are complementary. A lock built entirely on SM24
+# is structurally blind in the logs/ direction; sm25 (CASE) is what gives that
+# direction teeth.  ⭐ Gate ② below does not depend on picking the right case at
+# all: it asserts the search touches no directory but the one case-owned root,
+# which is true or false independent of what happens to be lying around.
+# --------------------------------------------------------------------------- #
+LOGS_EXPERIMENTS_ROOT = Path("AI_agent/logs")
+
+
+def _count_matching_requests(root: Path, expected_sha256: str) -> int:
+    """Mirrors find_signed_request's own matching rule exactly (recompute, tolerate junk)."""
+    count = 0
+    for candidate in root.rglob(raw_layer.SIGNED_REQUEST_GLOB):
+        try:
+            request = raw_layer.TarchConversionRequestV1.model_validate_json(candidate.read_bytes())
+        except Exception:
+            continue
+        if raw_layer.compute_request_sha256(request) == expected_sha256:
+            count += 1
+    return count
+
+
+def test_f116_0_the_fixture_inventory_table_above_is_not_stale():
+    """⛔ Guards the guard: test_f116_a below only has teeth because sm25 has
+    real inventory under AI_agent/logs/. If that inventory is ever cleaned up,
+    this fails LOUDLY instead of test_f116_a silently losing its teeth."""
+    assert _count_matching_requests(LOGS_EXPERIMENTS_ROOT, _signed_request_sha256(CASE)) == 4
+    assert _count_matching_requests(LOGS_EXPERIMENTS_ROOT, _signed_request_sha256(SM24)) == 0
+    assert _count_matching_requests(Path("tests/fixtures"), _signed_request_sha256(SM24)) == 1
+    assert _count_matching_requests(Path("tests/fixtures"), _signed_request_sha256(CASE)) == 0
+
+
+def test_f116_a_sm25_logs_direction_narrowing_has_teeth(monkeypatch, tmp_path):
+    """① The sm25-case mirror of test_f111_c, for the direction SM24 is blind
+    to. A resurrected "also fall back to AI_agent/logs/experiments/" leg would
+    find one of the 4 real copies proven above and return non-None here --
+    unlike the SM24 fixture, where the same mutation would still (wrongly)
+    look green.
+    """
+    expected = _signed_request_sha256(CASE)
+    monkeypatch.setattr(raw_layer, "GT_SOURCES_ROOT", _case_sources(tmp_path, CASE))
+
+    assert raw_layer.find_signed_request(CASE, expected) is None
+    verdict = raw_layer.verify_raw_layer_reproduction(CASE)
+    assert verdict.status == "inputs_unavailable", verdict.detail
+    assert expected in verdict.detail
+
+
+def test_f116_b_tests_fixtures_direction_narrowing_still_has_teeth():
+    """② Documents that the pre-existing test_f111_c already covers this
+    direction (SM24_REQUEST_ELSEWHERE is real inventory under tests/fixtures/)
+    -- named explicitly here so F-116's three-cell verification has an address
+    for it rather than relying on a reader to notice it lives elsewhere."""
+    assert SM24_REQUEST_ELSEWHERE.is_file()
+    assert raw_layer.compute_request_sha256(
+        raw_layer.TarchConversionRequestV1.model_validate_json(SM24_REQUEST_ELSEWHERE.read_bytes())
+    ) == _signed_request_sha256(SM24)
+    # test_f111_c is the actual lock for this direction; see its docstring.
+
+
+def test_f116_c_no_directory_other_than_the_case_owned_root_is_ever_opened(monkeypatch, tmp_path):
+    """③ Structural lock, not example-based: catches ANY widening, named or
+    not -- including ones nobody has thought of yet, e.g. falling back to
+    case_gt_dir(case)/review/ (the promoted review tree, which F-117 does NOT
+    populate with request.json -- see gt_promotion.py), or widening the root to
+    GT_SOURCES_ROOT.parent, or anything else. ①② prove specific historical
+    fallbacks buy nothing; this proves no fallback of ANY shape was ever taken,
+    by recording every directory pathlib.Path.glob()/.rglob() is invoked on
+    during find_signed_request and asserting the set is exactly the one
+    case-owned root -- independent of what fixtures happen to exist anywhere.
+
+    ⚠️ Runs the search in TWO shapes, not one: with the real root (finds the
+    request immediately) AND with a root narrowed to hold only the DXFs (finds
+    nothing). A fallback branch reached only on a failed primary lookup -- the
+    realistic shape for "backward compat" code, and exactly what mutation cell
+    ① below adds -- is never entered, and so never recorded, if this test only
+    ever exercises the already-succeeding path.
+    """
+    seen: list[Path] = []
+    real_glob = Path.glob
+    real_rglob = Path.rglob
+
+    def recording_glob(self, pattern, *args, **kwargs):
+        seen.append(self)
+        return real_glob(self, pattern, *args, **kwargs)
+
+    def recording_rglob(self, pattern, *args, **kwargs):
+        seen.append(self)
+        return real_rglob(self, pattern, *args, **kwargs)
+
+    monkeypatch.setattr(Path, "glob", recording_glob)
+    monkeypatch.setattr(Path, "rglob", recording_rglob)
+
+    for case in (CASE, SM24):
+        seen.clear()
+        expected = _signed_request_sha256(case)
+        raw_layer.find_signed_request(case, expected)
+        assert seen == [raw_layer.case_signed_inputs_root(case)], ("real root", case, seen)
+
+    for case in (CASE, SM24):
+        narrowed = _case_sources(tmp_path / case, case)
+        monkeypatch.setattr(raw_layer, "GT_SOURCES_ROOT", narrowed)
+        seen.clear()
+        expected = _signed_request_sha256(case)
+        raw_layer.find_signed_request(case, expected)
+        assert seen == [raw_layer.case_signed_inputs_root(case)], ("narrowed root", case, seen)

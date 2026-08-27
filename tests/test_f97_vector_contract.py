@@ -453,37 +453,103 @@ def test_r3_malformed_sidecar_fails_loudly_through_the_real_entry(tmp_path):
     assert "1f_view_checks.json" in str(exc.value)
 
 
-def test_r3_every_real_sidecar_still_parses_as_the_producer_type():
-    """Compatibility half of R3: the stricter path must not cost real artifacts.
-    Measured over every `0_reading/*.json` in the tree, not a sample."""
-    from src.validator.checks.schema import CheckReport
+# --------------------------------------------------------------------------- #
+# N-B: the corpus-wide checks below assert INVARIANTS, not snapshot counts.
+#
+# They used to hard-assert `== 43` / `== 328`.  That froze the corpus at its
+# 2026-08-27 size: the moment batch step ③ ("produce new-scheme artefacts")
+# lands a single new `0_reading/*.json`, legitimate growth would read as
+# failure, and the natural next move -- bump the number -- would gut these
+# tests of any remaining meaning.  What they actually guard is unchanged by
+# growth: no corpus file should be unclassifiable, and the two real shapes the
+# corpus is known to contain (stage-check-report sidecars, legacy views) must
+# stay recognized as themselves.
+#
+# ⛔⛔ The corpus root was also `Path(".")` -- cwd-dependent.  Converting the
+# assertions to invariants makes an EMPTY corpus a silent, vacuous pass (every
+# "for all files, P(file)" loop is trivially true over zero files) where the
+# old exact-count form would at least have failed loudly (0 != 43).  Anchoring
+# to the repo root closes the cwd hole; `_require_nonempty_corpus` closes the
+# vacuous-pass hole, and is itself exercised against a real empty directory by
+# test_n_b_empty_corpus_root_is_a_loud_red_not_a_silent_pass below.
+# --------------------------------------------------------------------------- #
+_REPO_ROOT = Path(__file__).resolve().parents[1]
 
-    sidecars = [
+
+def _corpus_0_reading_json_files(root: Path = _REPO_ROOT) -> list[Path]:
+    """Every `0_reading/*.json` file under ``root``, repo-anchored by default."""
+    return [
         p
-        for d in Path(".").rglob("0_reading")
+        for d in root.rglob("0_reading")
         if ".git" not in d.parts
         for p in sorted(d.glob("*.json"))
     ]
+
+
+def _require_nonempty_corpus(files: list[Path]) -> list[Path]:
+    """The shared guard: an empty corpus must fail loudly, never pass vacuously."""
+    assert files, (
+        "0_reading/*.json corpus is empty -- every invariant below would pass "
+        "vacuously (a 'for all X in corpus' check over zero files is trivially true)"
+    )
+    return files
+
+
+def test_n_b_empty_corpus_root_is_a_loud_red_not_a_silent_pass(tmp_path):
+    """⭐ Proves the non-empty lower bound has teeth, per the dispatch's own
+    requirement: point the corpus root at a directory with no 0_reading/
+    anywhere under it and confirm the SAME guard the two tests below actually
+    use really does fire, rather than letting an empty corpus vacuously pass."""
+    files = _corpus_0_reading_json_files(tmp_path)
+    assert files == [], "premise of this test is a genuinely empty corpus"
+    with pytest.raises(AssertionError, match="corpus is empty"):
+        _require_nonempty_corpus(files)
+
+
+def test_r3_every_real_sidecar_still_parses_as_the_producer_type():
+    """Compatibility half of R3: the stricter path must not cost real artifacts.
+    Measured over every `0_reading/*.json` in the tree, not a sample.
+
+    Invariant, not a snapshot count: every sidecar the classifier recognizes as
+    a stage-check-report must actually validate as one (CheckReport must not
+    raise) -- and the "excluded" set itself must be non-empty, or that
+    per-file check would run zero times and pass vacuously regardless of
+    whether the whole corpus is empty."""
+    from src.validator.checks.schema import CheckReport
+
+    sidecars = _require_nonempty_corpus(_corpus_0_reading_json_files())
     excluded = []
     for path in sidecars:
         raw = json.loads(path.read_text(encoding="utf-8"))
         if classify_vector_json(raw).contract_id == CONTRACT_STAGE_CHECK_REPORT:
             excluded.append(path)
             CheckReport.model_validate(raw)  # must not raise
-    assert len(excluded) == 43, f"expected 43 real sidecars, got {len(excluded)}"
+    assert excluded, (
+        "no corpus file classified as a stage-check-report sidecar -- the "
+        "CheckReport-parses check above ran zero times"
+    )
 
 
 def test_r3_all_real_legacy_views_still_consumed():
-    """R5's compatibility half, asserted rather than only measured by hand."""
+    """R5's compatibility half, asserted rather than only measured by hand.
+
+    Invariant, not a snapshot count: "still consumed" means no corpus file
+    falls to CONTRACT_UNKNOWN (the B-01 fix must not have tightened
+    classification into rejecting a real historical shape), and that legacy
+    views specifically remain a real, non-empty, recognized slice of the
+    corpus rather than "however many there happen to be right now"."""
+    files = _require_nonempty_corpus(_corpus_0_reading_json_files())
+    unknown = []
     legacy = 0
-    for d in Path(".").rglob("0_reading"):
-        if ".git" in d.parts:
-            continue
-        for path in sorted(d.glob("*.json")):
-            raw = json.loads(path.read_text(encoding="utf-8"))
-            if classify_vector_json(raw).contract_id == CONTRACT_READING_VIEW_LEGACY:
-                legacy += 1
-    assert legacy == 328, f"expected 328 legacy views, got {legacy}"
+    for path in files:
+        raw = json.loads(path.read_text(encoding="utf-8"))
+        contract = classify_vector_json(raw).contract_id
+        if contract == CONTRACT_UNKNOWN:
+            unknown.append(path)
+        elif contract == CONTRACT_READING_VIEW_LEGACY:
+            legacy += 1
+    assert not unknown, f"{len(unknown)} corpus file(s) fell to CONTRACT_UNKNOWN: {unknown[:10]}"
+    assert legacy > 0, "no corpus file was recognized as a legacy view"
 
 
 # --- R4: real run_correction entry — named failure AND ledger on disk ------- #

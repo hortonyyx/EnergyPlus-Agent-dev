@@ -11,12 +11,14 @@ from pathlib import Path
 import pytest
 
 from src.agent.judge import gt_promotion as promotion
+from src.agent.judge import gt_raw_layer as raw_layer
 from src.agent.judge import tarch_normalize as tn
 from src.agent.judge import tarch_review_bundle as bundle_api
 from src.agent.judge.gt import load_gt_document
 from src.agent.judge.gt_promotion import promote_gt_v3
 from src.agent.judge.gt_schema import canonical_gt_v3_bytes, compute_gt_v3_content_sha256
-from src.agent.judge.tarch_converter_schema import TarchConversionRequestV1
+from src.agent.judge.tarch_converter_schema import (GT_SOURCES_ROOT,
+                                                     TarchConversionRequestV1)
 
 
 REPO = Path(__file__).resolve().parents[1]
@@ -298,6 +300,78 @@ def test_r4_2_semantic_invariant(ready_bundle, tmp_path):
     for document in (candidate, verified):
         document.pop("verification"); document.pop("content_sha256")
     assert candidate == verified
+
+
+# --------------------------------------------------------------------------- #
+# F-117 -- promotion is now the ONLY writer gt_sources/<case>/ needs
+#
+# Until now, promote_gt_v3 read request.json (for report.request_sha256) and
+# source.dxf out of the bundle root but never wrote either anywhere durable --
+# case_tests/test_baseline/gt_sources/<case>/ was populated by hand for the
+# three existing cases, so the next promoted case would reproduce F-111 (the
+# reproduction gate's signed-inputs resolver finds nothing).  ⛔ The lock below
+# deliberately drives the REAL entry point (promote_gt_v3), not the private
+# helper: F-116 already established that a helper-only test cannot see a
+# search-root regression the way an end-to-end resolve can.
+# --------------------------------------------------------------------------- #
+def test_f117_a_signed_inputs_root_mirrors_the_production_constant():
+    """Pure path arithmetic, no filesystem writes: for the real (default) gt_dir,
+    the sibling-of-gt/ formula this module uses must equal the actual constant
+    the reproduction gate reads from (tarch_converter_schema.GT_SOURCES_ROOT).
+    If a future edit lets the two drift apart, promotion would keep writing
+    signed inputs nobody's reproduction gate ever looks at again."""
+    target_root = promotion._approved_target_root(Path(promotion.DEFAULT_GT_DIR))
+    assert promotion._signed_inputs_root(target_root) == GT_SOURCES_ROOT.resolve()
+
+
+def test_f117_b_real_promotion_populates_gt_sources_and_the_gate_resolves_it(ready_bundle, tmp_path):
+    """The actual lock: promote through promote_gt_v3, then ask the real
+    reproduction-gate resolvers (gt_raw_layer.find_signed_request /
+    find_signed_source_dxf / verify_raw_layer_reproduction) to find what
+    promotion just wrote -- with NOTHING hand-placed.  ⛔ Not a helper test."""
+    gt_root = _test_gt_root(tmp_path)
+    sources_root = gt_root.parent / "gt_sources"
+    assert not sources_root.exists()  # nothing hand-placed for this fresh case
+
+    result = promote_gt_v3(ready_bundle, case="sm24_anchor", gt_dir=gt_root)
+
+    ack = json.loads((result.destination / "review" / "review_ack.json").read_text())
+    monkeypatch = pytest.MonkeyPatch()
+    monkeypatch.setattr(raw_layer, "GT_SOURCES_ROOT", sources_root)
+    try:
+        request = raw_layer.find_signed_request("sm24_anchor", ack["request_sha256"])
+        assert request is not None, "promotion wrote request.json but the gate cannot resolve it"
+        assert raw_layer.compute_request_sha256(request) == ack["request_sha256"]
+
+        dxf = raw_layer.find_signed_source_dxf("sm24_anchor", ack["source_dxf_sha256"])
+        assert dxf is not None, "promotion wrote source.dxf but the gate cannot resolve it"
+
+        verdict = raw_layer.verify_raw_layer_reproduction("sm24_anchor", gt_dir=gt_root)
+        assert verdict.status == "reproduced", verdict.detail
+    finally:
+        monkeypatch.undo()
+
+
+def test_f117_c_signed_inputs_write_failure_rolls_back_the_answer_too(ready_bundle, tmp_path, monkeypatch):
+    """Atomicity: gt/<case> and gt_sources/<case>/ land as one unit. A failure
+    writing the new sources copy must not leave the sibling answer behind
+    half-promoted -- the exact "half-finished state" the dispatch warned against."""
+    gt_root = _test_gt_root(tmp_path)
+    real_copy = promotion.shutil.copyfile
+
+    def fail_on_source_dxf_copy(src, dst):
+        # "source.dxf" is never a copy DESTINATION anywhere in promote_gt_v3
+        # except inside _promote_signed_inputs -- the gt/<case> loops above it
+        # copy renders/*.png and five differently-named review/ files.
+        if Path(dst).name == "source.dxf":
+            raise RuntimeError("injected sources copy failure")
+        return real_copy(src, dst)
+
+    monkeypatch.setattr(promotion.shutil, "copyfile", fail_on_source_dxf_copy)
+    with pytest.raises(RuntimeError, match="injected sources copy failure"):
+        promote_gt_v3(ready_bundle, case="sm24_anchor", gt_dir=gt_root)
+    assert not (gt_root / "sm24_anchor").exists(), "the gt/<case> answer must not survive a sources-write failure"
+    assert not (gt_root.parent / "gt_sources" / "sm24_anchor").exists()
 
 
 def test_r4_3_production_path_rejects_pure_geometry_mutation(ready_bundle, tmp_path, monkeypatch):
