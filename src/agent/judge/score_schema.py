@@ -11,7 +11,7 @@ import json
 import os
 from pathlib import Path
 import tempfile
-from typing import Annotated, Literal
+from typing import Annotated, ClassVar, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, StrictBool, StrictStr, StringConstraints, ValidationError, model_validator
 
@@ -576,6 +576,29 @@ ReadingComponent = Literal[
 
 
 class Affine2DV1(StrictWire):
+    """The reading-side plan frame affine, with its two ends declared.
+
+    Unlike ``gt_manifest.Affine2D`` -- which one type carries across three
+    different domain/codomain pairs -- this type has exactly one producer
+    (``reading_typed_adapter._plan_frame``) and exactly one application site
+    (``reading_typed_adapter.apply_affine_2d``), and both ends are constant:
+    reading-local plan metres (``units="metre"``, ``local_axes="drawing_right_up"``
+    on the enclosing :class:`PlanFrameCertificateV1`) into world metres.
+
+    Because the pair is a compile-time constant, it is declared as class
+    attributes rather than wire fields.  That is deliberate on two counts: a
+    constant does not belong on the wire, and keeping it off the wire leaves
+    ``PlanFrameCertificateV1.preimage_sha256`` -- which is stamped onto every
+    plan observation as ``transform_sha256`` and persisted in every
+    ``score_vs_gt.json`` -- byte-identical.  ``affine_space.affine_spaces()``
+    reads these class attributes, so this type participates in
+    ``compose_affine`` / ``require_affine_spaces`` exactly like the wire-carried
+    ``Affine2D`` does.
+    """
+
+    DOMAIN_SPACE: ClassVar[str] = "reading_plan_local_metre"
+    CODOMAIN_SPACE: ClassVar[str] = "world_metre"
+
     xx: FiniteFloat
     xy: FiniteFloat
     x0: FiniteFloat

@@ -44,6 +44,7 @@ from typing import Annotated, Any, Literal, TypeAlias
 
 from pydantic import BaseModel, ConfigDict, Field, Strict, model_validator
 
+from .affine_space import bind_affine_spaces, strip_affine_space_keys
 from .gt_manifest import Affine1D, Affine2D, ClipBoxDxf, load_gt_tooling_config
 from .gt_schema import (DateYmd, DxfHandle, GtResolvedToolingConfigV1, Hex64,
                         HumanLabel, JsonValue, NonNegativeFiniteFloat,
@@ -697,6 +698,15 @@ class PlanViewIntentV1(_StrictModel):
     zone_intent: ZoneIntentSpecV1
     void_intent: list[VoidIntentAnchorV1] = Field(default_factory=list)
 
+    @model_validator(mode="after")
+    def _bind_affine_spaces(self):
+        # The REQUEST copy consumes raw DXF-native coordinates (m00 == metres_per_unit).
+        # The identically named PlanViewBindingV1 field consumes source METRES.
+        # Same name, same type, 1000x apart on every sm24/sm25 anchor.
+        bind_affine_spaces(self, "world_from_source_m",
+                           domain="dxf_native", codomain="world_metre")
+        return self
+
 
 class ElevationViewIntentV1(_StrictModel):
     """Elevation views are passed through; the converter re-binds handles, never re-infers."""
@@ -766,6 +776,12 @@ class RasterOverlayIntentV3(_StrictModel):
     view_id: StableId
     pixel_to_source_m: Affine2D
     calibration_controls: list[RasterCalibrationControlV1] = Field(min_length=3)
+
+    @model_validator(mode="after")
+    def _bind_affine_spaces(self):
+        bind_affine_spaces(self, "pixel_to_source_m",
+                           domain="pixel", codomain="source_metre")
+        return self
 
 
 class NorthAxisIntentV1(_StrictModel):
@@ -862,18 +878,37 @@ class FloorIntentV1(_StrictModel):
     ceiling_height_m: PositiveFiniteFloat
 
 
+#: Request versions signed BEFORE the affine two-end space contract existed.
+#: Their canonical preimage omits ``domain_space``/``codomain_space`` so every
+#: already-signed request keeps its hash byte-for-byte.
+#:
+#: MIGRATION HONESTY: this currently lists *every* legal ``request_version``,
+#: so the space contract is deliberately OUTSIDE the signature.  It protects the
+#: *code paths* -- a mis-spaced affine is rejected by the owning model's
+#: validator before it can be used -- and it does NOT mean any signed request
+#: has attested to its affine spaces.  ``test_affine_space_contract.py`` goes red
+#: the moment a new request version is added without deciding whether it binds
+#: the spaces into the signature.
+REQUEST_VERSIONS_WITHOUT_SPACE_BINDING: frozenset[int] = frozenset({1, 2, 3})
+
+
 def compute_request_sha256(request: TarchConversionRequestV1) -> str:
     """Canonical request hash with an explicit v1 migration path.
 
     P0 v1 did not contain ``wall_thickness_range_m`` or ``min_room_area_m2``.
     Omitting them when hashing a declared v1 request preserves old signatures;
     all new requests must declare v2 and bind both fields.
+
+    The affine two-end space contract follows the same shape but a wider gate:
+    see :data:`REQUEST_VERSIONS_WITHOUT_SPACE_BINDING`.
     """
     payload = request.model_dump(mode="json")
     payload["request_sha256"] = "0" * 64
     if request.request_version == 1:
         payload.pop("wall_thickness_range_m", None)
         payload.pop("min_room_area_m2", None)
+    if request.request_version in REQUEST_VERSIONS_WITHOUT_SPACE_BINDING:
+        payload = strip_affine_space_keys(payload)
     if request.opening_carrier_rules is None:
         payload.pop("opening_carrier_rules", None)
     if request.ignore_selector is None:

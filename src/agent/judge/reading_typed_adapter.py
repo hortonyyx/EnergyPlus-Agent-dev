@@ -9,6 +9,7 @@ from typing import Literal
 from pydantic import ValidationError
 
 from src.agent.execution.view_manifest import RequiredViewEntry
+from src.agent.judge.affine_space import require_affine_spaces
 from src.agent.judge.elevation_score import (
     TypedElevationObservation,
     project_typed_elevation_observation,
@@ -82,6 +83,19 @@ def apply_affine_2d(
     frame: Affine2DV1,
     point: tuple[float, float],
 ) -> tuple[float, float]:
+    """Map one reading-local plan point (metres) into world metres.
+
+    The space check is the point: the caller hands in local drawing metres and
+    gets world metres back, and any affine that does not declare exactly that
+    pair -- a manifest ``world_from_source_m`` for instance -- is refused by
+    name instead of being read coefficient-by-coefficient into a wrong answer.
+    """
+    require_affine_spaces(
+        frame,
+        domain="reading_plan_local_metre",
+        codomain="world_metre",
+        context="apply_affine_2d",
+    )
     return (
         frame.xx * point[0] + frame.xy * point[1] + frame.x0,
         frame.yx * point[0] + frame.yy * point[1] + frame.y0,

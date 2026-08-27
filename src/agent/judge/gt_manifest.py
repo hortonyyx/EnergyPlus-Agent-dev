@@ -13,6 +13,8 @@ from typing import Annotated, Literal
 from omegaconf import OmegaConf
 from pydantic import BaseModel, ConfigDict, Field, Strict, model_validator
 
+from .affine_space import (AffineSpace, bind_affine_spaces,
+                           strip_affine_space_keys)
 from .gt_schema import (DateYmd, DxfHandle, GtResolvedToolingConfigV1,
                         GtResolvedToolingTolerancesV1, GtWorldIntervalV3,
                         Hex64, HumanLabel, Point2, PositiveFiniteFloat,
@@ -37,17 +39,37 @@ class ClipBoxDxf(_StrictModel):
 
 
 class Affine2D(_StrictModel):
+    """A 2-D affine plus its two-end space contract.
+
+    The six coefficients alone are ambiguous: this one type carries
+    ``pixel -> source_metre`` (``pixel_to_source_m``), ``dxf_native -> world_metre``
+    (``PlanViewIntentV1.world_from_source_m``) and ``source_metre -> world_metre``
+    (``PlanViewBindingV1.world_from_source_m``) -- the last two share a field name
+    and differ by exactly ``metres_per_unit`` (1000x on sm24/sm25).
+
+    ``domain_space``/``codomain_space`` default to ``None`` so every already-signed
+    request and manifest still loads; the *owning* model stamps them in its
+    validator via :func:`~.affine_space.bind_affine_spaces`, and an affine that
+    arrives already declaring a different pair is rejected there.  Consumers read
+    the pair through :func:`~.affine_space.affine_spaces`, which treats an
+    undeclared affine as an error rather than as "any space".
+    """
+
     m00: StrictFiniteFloat
     m01: StrictFiniteFloat
     m02: StrictFiniteFloat
     m10: StrictFiniteFloat
     m11: StrictFiniteFloat
     m12: StrictFiniteFloat
+    domain_space: AffineSpace | None = None
+    codomain_space: AffineSpace | None = None
 
     @model_validator(mode="after")
     def _non_singular(self):
         if self.m00 * self.m11 - self.m01 * self.m10 == 0:
             raise ValueError("affine transform is singular")
+        if (self.domain_space is None) != (self.codomain_space is None):
+            raise ValueError("affine space contract must declare both ends or neither")
         return self
 
 
@@ -122,6 +144,15 @@ class PlanViewBindingV1(_StrictModel):
     boundary_reference: Literal["outer_skin", "centerline"]
     default_wall_thickness_m: PositiveFiniteFloat | None
 
+    @model_validator(mode="after")
+    def _bind_affine_spaces(self):
+        # v3 extraction pre-multiplies native by metres_per_unit before applying
+        # this affine, so the manifest copy starts in source METRES -- unlike the
+        # identically named PlanViewIntentV1 field, which starts in dxf-native.
+        bind_affine_spaces(self, "world_from_source_m",
+                           domain="source_metre", codomain="world_metre")
+        return self
+
 
 class ElevationViewBindingV1(_StrictModel):
     kind: Literal["elevation"]
@@ -170,6 +201,12 @@ class RasterOverlayBindingV1(_StrictModel):
     source_sha256: Hex64
     view_id: StableId
     pixel_to_source_m: Affine2D
+
+    @model_validator(mode="after")
+    def _bind_affine_spaces(self):
+        bind_affine_spaces(self, "pixel_to_source_m",
+                           domain="pixel", codomain="source_metre")
+        return self
 
 
 class FloorBindingV1(_StrictModel):
@@ -225,9 +262,24 @@ class GtExtractionManifestV1(_StrictModel):
         return self
 
 
+#: Manifest versions signed BEFORE the affine two-end space contract existed.
+#: Their canonical preimage omits ``domain_space``/``codomain_space`` so already
+#: signed manifests keep their hash byte-for-byte.
+#:
+#: MIGRATION HONESTY: while every legal ``manifest_version`` is listed here, the
+#: space contract is deliberately OUTSIDE the signature.  This protects the
+#: *code paths* (a mis-spaced affine is rejected by the owning model's
+#: validator); it does NOT mean a signed manifest has attested to its spaces.
+#: ``test_affine_space_contract.py`` fails the moment a manifest version is
+#: added without deciding whether it binds the spaces.
+MANIFEST_VERSIONS_WITHOUT_SPACE_BINDING: frozenset[int] = frozenset({1})
+
+
 def canonical_manifest_payload(manifest: GtExtractionManifestV1) -> dict:
     payload = manifest.model_dump(mode="json")
     payload["manifest_sha256"] = "0" * 64
+    if manifest.manifest_version in MANIFEST_VERSIONS_WITHOUT_SPACE_BINDING:
+        payload = strip_affine_space_keys(payload)
     return _normalise(payload)
 
 
