@@ -168,3 +168,79 @@ def check(floors, declared_t_mm):
     # 只是把【结构上可疑的】排到前面 —— 可疑 = 两条墙带物理重叠却没对齐。
     F.sort(key=lambda f: (not f.get("suspicious", True), -f["mm"]))
     return F
+
+
+def check_openings(floors, openings):
+    """⭐ 洞口类检查（2026-08-29 补）—— 此前「洞口一条没查」是最大的缺口。
+
+    ⛔ 同样零阈值：判据全部来自【洞口自己/墙自己携带的量】。
+    """
+    F = []
+    for fid, (W, _) in floors.items():
+        for t in openings.get(fid, []):
+            c0, c1 = t["const_range_m"]
+            cmid = (c0 + c1) / 2.0
+            # ── ① 洞口落在墙上吗 ──────────────────────────────
+            # 结构判据：洞口的横向范围必须【落在某堵墙的两条面线之间】，
+            # 且洞口沿墙方向要与那堵墙有重叠。⛔ 不设容差：面线就是墙的边界。
+            # ⚠️ 2026-08-29 变异测试抓出：原来只验【中点】在墙里 ⇒ 洞口挪 1 mm
+            # （一端捅出墙面）照样全绿。⭐ 改验【整个厚度方向范围被墙带包住】。
+            # 这条改动是「M4 期望它报、它没报」逼出来的 —— ⭐ 写变异时那句"期望"
+            # 本身就是信号：我以为它能查，其实不能。
+            host, host_loose = None, None
+            for w in W:
+                if w["axis"] != t["axis"]:
+                    continue
+                if not (w["f0"] <= cmid <= w["f1"]):
+                    continue
+                if min(w["hi"], t["hi_m"]) - max(w["lo"], t["lo_m"]) > 0:
+                    host_loose = w
+                if not (w["f0"] - 1e-9 <= c0 and c1 <= w["f1"] + 1e-9):
+                    continue
+                if min(w["hi"], t["hi_m"]) - max(w["lo"], t["lo_m"]) <= 0:
+                    continue
+                host = w
+                break
+            if host is None and host_loose is not None:
+                # 中点在墙里、但整个范围没被包住 ⇒ 洞口捅出了墙面
+                out_mm = max(host_loose["f0"] - c0, c1 - host_loose["f1"]) * 1000
+                F.append({"kind": "opening_pokes_out_of_wall", "mm": round(out_mm, 3),
+                          "where": fid, "axis": t["axis"], "suspicious": True,
+                          "detail": (f"{fid} 这个{t.get('kind','洞口')}的厚度方向范围 "
+                                     f"[{c0:.4f},{c1:.4f}] 没有被承载墙 "
+                                     f"[{host_loose['f0']:.4f},{host_loose['f1']:.4f}] 包住"
+                                     f"（捅出 {out_mm:.1f} mm）"),
+                          "span": [round(t["lo_m"], 3), round(t["hi_m"], 3)],
+                          "floor": fid, "wall": host_loose})
+                continue
+            if host is None:
+                F.append({"kind": "opening_not_on_a_wall",
+                          "mm": round((t["hi_m"] - t["lo_m"]) * 1000, 1),
+                          "where": fid, "axis": t["axis"], "suspicious": True,
+                          "detail": (f"{fid} 这个{t.get('kind','洞口')}（{t['axis']}∈[{c0:.4f},{c1:.4f}]，"
+                                     f"沿墙 [{t['lo_m']:.3f},{t['hi_m']:.3f}]）"
+                                     f"**找不到承载它的墙**"),
+                          "span": [round(t["lo_m"], 3), round(t["hi_m"], 3)],
+                          "floor": fid, "wall": None})
+                continue
+            # ── ② 洞口宽度 vs 墙段长度：洞口不该比它所在的墙还长 ────────
+            if t["hi_m"] - t["lo_m"] > host["hi"] - host["lo"] + 1e-9:
+                F.append({"kind": "opening_wider_than_host",
+                          "mm": round((t["hi_m"] - t["lo_m"] - (host["hi"] - host["lo"])) * 1000, 1),
+                          "where": fid, "axis": t["axis"], "suspicious": True,
+                          "detail": (f"{fid} 这个{t.get('kind','洞口')}宽 {t['hi_m']-t['lo_m']:.3f} m，"
+                                     f"比承载它的墙（{host['hi']-host['lo']:.3f} m）还长"),
+                          "span": [round(t["lo_m"], 3), round(t["hi_m"], 3)],
+                          "floor": fid, "wall": host})
+            # ── ③ 洞口厚度方向必须与墙厚一致（洞口是墙上挖的） ──────────
+            dt = abs((c1 - c0) - host["t"]) * 1000
+            if dt > 1e-6:
+                F.append({"kind": "opening_depth_ne_wall_thickness", "mm": round(dt, 3),
+                          "where": fid, "axis": t["axis"],
+                          "suspicious": dt < host["t"] * 1000,   # 同一堵墙的量级 ⇒ 可疑
+                          "detail": (f"{fid} 这个{t.get('kind','洞口')}的厚度方向跨度 {(c1-c0)*1000:.1f} mm，"
+                                     f"与承载墙的厚度 {host['t']*1000:.1f} mm 不一致"),
+                          "span": [round(t["lo_m"], 3), round(t["hi_m"], 3)],
+                          "floor": fid, "wall": host})
+    F.sort(key=lambda f: (not f.get("suspicious", True), -f["mm"]))
+    return F
