@@ -112,3 +112,82 @@ sol 自己已经给了答案：可以显示总 verdict NA，**但必须保留其
 6.     然后才是"坐标改整数存储"（⛔ 它是 B4 的下游，不是独立小事）
 + R3′  收窄"原始层"措辞（⛔ 文档动作，随时可做，但要在别人照旧文读之前）
 ```
+
+---
+
+# 附：B4 摊开（2026-08-29 orchestrator 对着代码逐条核过）
+
+> ⛔ **本节的每个数都是 orchestrator 自己跑/读出来的**，⛔ 不是转抄 sol。
+> 之所以先摊 B4：它是施工次序的**第一位**，而今天已经出过一次"题面本身错了"（派工单第 39 次）。
+
+## 1｜⭐ 陷阱本体找到了，就写在代码注释里
+
+`Affine2D` 是**六个裸浮点数，⛔ 没有任何空间标注**（[`gt_manifest.py:39`](../../../src/agent/judge/gt_manifest.py#L39)）：
+
+```
+m00 m01 m02 m10 m11 m12   +  一个"非奇异"校验
+```
+
+**同一个类型承载三种不同的两端空间，其中两个还同名**：
+
+| 字段 | 在哪 | domain → codomain |
+|---|---|---|
+| `pixel_to_source_m` | `tarch_converter_schema.py:767` | **pixel → source-metre** |
+| `world_from_source_m` | `tarch_converter_schema.py:692`（`PlanViewIntentV1`）| **dxf-native → world-metre** |
+| `world_from_source_m` | `gt_manifest.py:117`（`GtExtractionManifestV1`）| ⭐ **source-metre → world-metre** |
+
+⭐⭐ **后两条同名、差一个 `metres_per_unit = 0.001` ⇒ 正好 1000×**，而**陷阱写在同一份文件里**
+（[`tarch_normalize.py:2732-2740`](../../../src/agent/judge/tarch_normalize.py#L2732) 的注释逐字写着）：
+
+> `affine = plan_view.world_from_source_m` **# native -> world (m00 = metres_per_unit)**
+> …so the manifest `world_from_source_m` maps **source-METRES → world** …
+> **NOT native → world** (which is what `PlanViewIntentV1` carries).
+
+⇒ 现在靠**一段注释 + 一次手工把 mpu 因子除出去**来避免撞车。**F-120 坐实。**
+
+⚠️ **另有第二个 affine 类型**：`Affine2DV1`（[`score_schema.py:578`](../../../src/agent/judge/score_schema.py#L578)）——
+判分侧自己一份。**B4 的空间合同必须覆盖它，⛔ 否则只修一半。**
+
+## 2｜⭐⭐ 好消息：**B4 不需要重签答案** —— 迁移机制已经在文件里了
+
+**先说风险**：`compute_request_sha256` 哈希的是 `request.model_dump(mode="json")` = **整个模型**
+⇒ 给 `Affine2D` 加字段，**直觉上会让所有已签字 request 的哈希失效** ⇒ 全部重签。
+
+**但它已经有一条版本闸的先例**（[`tarch_converter_schema.py`](../../../src/agent/judge/tarch_converter_schema.py) 逐字）：
+
+```python
+if request.request_version == 1:
+    payload.pop("wall_thickness_range_m", None)
+    payload.pop("min_room_area_m2", None)
+```
+> docstring：「Omitting them when hashing a declared v1 request **preserves old signatures**;
+> all new requests must declare v2 and bind both fields.」
+
+**实测**：sm25 与 sm24 的 `request.json` **都是 `request_version = 3`**。
+⇒ **B4 照抄这条路子**：新字段对 `request_version <= 3` 一律 `pop`，新 request 声明 v4 并绑定空间。
+⇒ **已签字答案逐位不动，⛔ 不用重签。**
+
+⚠️ **但要如实写进设计的一句**：对 v3 的 case，空间合同**不进签名** ⇒ 那道类型门在迁移期
+**保护的是代码、不是签字产物**。等 case 迁到 v4 才两者都护住。⛔ 别把它说成"签名已经覆盖空间"。
+
+## 3｜B4 的验收判据（⛔ 每条都要能不通过）
+
+1. **类型门**：`compose(left, right)` 在 `left.codomain != right.domain` 时**必须红**；
+   ⭐ 夹具直接用上面那对**同名 1000× 的真货**，⛔ 不要造合成 affine。
+2. **⛔ 类型门与标定门分开两门**（sol B4 主张 2）：现有 residual 门的 `pixel_point` 与 `pixel_to_source_m`
+   **由同一个标定解生成** ⇒ 它只能证明**成对自洽**，⛔ 不得宣传为独立物理标定门。
+3. **签字不变**：三份已签字答案的 `request_sha256` / `manifest_sha256` **跑前跑后逐位相同**
+   （= F-130 给"动转换器"定的那条硬要求）。
+4. **`Affine2DV1` 一并覆盖**，⛔ 不许只改 `gt_manifest` 那一个。
+
+## 4｜⛔ 仍需用户拍板的一件事（B4 里唯一的）
+
+sol 的**主张 2**：plan controls 的三个点**填的是图框 handle**（`37B/380`），
+而点本身来自 wall bbox ⇒ 按 handle 重取，control 点到最近顶点距离
+**plan-F1 = 12375 / 12921 / 11801 native units**（elevation 四个视图则**均为 0**）。
+
+⇒ **二选一，sol 说哪个都行，但必须挑一个**：
+- **(a)** plan control 重签为「能从指定 source entity 唯一重取的点」（给真实 wall/footprint handle + feature 定义）
+- **(b)** 明确声明它是 **`reviewed_coordinate`（人工签字坐标）**，**取消"能独立重取"这个主张**
+
+⚠️ **(a) 要人重新签**，(b) 只改声明。⛔ 但**不许继续含糊**——现在它"长得像 entity 锚，实际不是"。
