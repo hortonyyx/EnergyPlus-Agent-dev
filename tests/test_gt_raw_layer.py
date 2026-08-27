@@ -215,3 +215,149 @@ def test_tampered_signed_chain_is_rejected_before_reproduction(tmp_path):
     verdict = verify_raw_layer_reproduction(CASE, gt_dir=second_root)
     assert verdict.status == "inputs_unavailable"
     assert "promoted_gt_signed_semantics_mismatch" in verdict.detail
+
+
+# --------------------------------------------------------------------------- #
+# F-111 -- the signed request lives in the case's own persistent directory
+#
+# Until 2026-08-27 ``find_signed_request`` rglob'd ``request.json`` out of
+# ``AI_agent/logs/experiments`` -- a tree ``AI_agent/logs/README.md`` declares to
+# be process traces that may be cleaned at any time.  sm24's signed request was
+# not in that tree at all, so its gate read ``inputs_unavailable``; sm25's was
+# there only as a leftover of the staging run that signed it.  The search now
+# resolves BOTH signed inputs (source DXF + request) from ``gt_sources/<case>/``.
+#
+# ⛔ The tests below are deliberately split into "can it find the real one" and
+# four flavours of "does the perfect path buy anything" -- because the point of
+# the change is that it buys NOTHING.  Location moved; authority did not.
+# --------------------------------------------------------------------------- #
+SM24 = "sm24_anchor"
+SOURCES_ROOT = Path("case_tests/test_baseline/gt_sources")
+# A byte-identical copy of sm24's signed request also lives here -- this is
+# where it was recovered from on 2026-08-27.  It is a tracked test fixture, not
+# a log, so the path is a stable anchor, and its mere existence is what gives
+# "only the case-owned root is consulted" below its teeth: any search face that
+# reaches outside gt_sources/<case>/ finds this file and turns that test red.
+# (Measured: widening the search to tests/fixtures reds four of these six.)
+SM24_REQUEST_ELSEWHERE = Path("tests/fixtures/sm24_review/bundle_07_25/request_v3_calibrated.json")
+# Same schema, same bundle family, DIFFERENT request (recomputes to de20e741...).
+SM24_DECOY_REQUEST = Path("tests/fixtures/sm24_review/bundle_07_24/request_v3_calibrated.json")
+
+
+def _signed_request_sha256(case: str) -> str:
+    ack = json.loads((GT_ROOT / case / "review" / "review_ack.json").read_text(encoding="utf-8"))
+    return ack["request_sha256"]
+
+
+def _case_sources(tmp_path: Path, case: str) -> Path:
+    """A writable stand-in for gt_sources/ carrying only the case's signed DXFs."""
+    root = tmp_path / "gt_sources"
+    (root / case).mkdir(parents=True)
+    for dxf in sorted((SOURCES_ROOT / case).glob("*.dxf")):
+        shutil.copyfile(dxf, root / case / dxf.name)
+    return root
+
+
+def test_f111_a_signed_request_resolves_from_the_case_owned_path():
+    """1. The real file now lives with the case, and the gate finds it there."""
+    for case in (CASE, SM24):
+        expected = _signed_request_sha256(case)
+        request = raw_layer.find_signed_request(case, expected)
+        assert request is not None, f"{case}: signed request not resolved from gt_sources/"
+        # ⭐ re-hash rather than read the declared field: same rule as production.
+        assert raw_layer.compute_request_sha256(request) == expected
+        assert (SOURCES_ROOT / case / "request.json").is_file()
+
+
+def test_f111_b_sm24_is_no_longer_blocked_on_missing_inputs():
+    """1'. sm24 escapes ``inputs_unavailable`` -- the F-111 symptom.
+
+    ⚠️ It is deliberately NOT asserted to be green.  sm24's recorded
+    ``converter_sha256`` / ``vg_implementation_sha256`` no longer match this
+    tree, so the honest reading is ``implementation_drift`` until the case is
+    re-signed by a human.  Asserting only "not inputs_unavailable" keeps this
+    test correct on both sides of that re-signing.
+    """
+    verdict = verify_raw_layer_reproduction(SM24)
+    assert verdict.status != "inputs_unavailable", verdict.detail
+
+
+def test_f111_c_only_the_case_owned_root_is_consulted(monkeypatch, tmp_path):
+    """3. Request absent from the case dir ⇒ loud ``inputs_unavailable``.
+
+    ⭐ Discriminating power: a byte-identical copy of this exact request IS
+    still on disk elsewhere in the repo, so a search face that reaches beyond
+    the case-owned root -- the pre-2026-08-27 shape of this function, or any
+    future "let's also look over there" widening -- turns this red.
+    """
+    assert SM24_REQUEST_ELSEWHERE.is_file()
+    monkeypatch.setattr(raw_layer, "GT_SOURCES_ROOT", _case_sources(tmp_path, SM24))
+
+    assert raw_layer.find_signed_request(SM24, _signed_request_sha256(SM24)) is None
+    verdict = verify_raw_layer_reproduction(SM24)
+    assert verdict.status == "inputs_unavailable", verdict.detail
+    assert verdict.reproduced is False
+    assert _signed_request_sha256(SM24) in verdict.detail
+
+
+def test_f111_d_tampered_request_at_the_perfect_path_is_rejected(monkeypatch, tmp_path):
+    """2. One changed field ⇒ refused, even with the signed stamp left intact.
+
+    The file is at the canonical path, under the canonical name, and still
+    *declares* the signed ``request_sha256``.  Only the recomputation decides.
+    """
+    root = _case_sources(tmp_path, SM24)
+    expected = _signed_request_sha256(SM24)
+    payload = json.loads(SM24_REQUEST_ELSEWHERE.read_text(encoding="utf-8"))
+    assert payload["request_sha256"] == expected
+    assert payload["metres_per_unit"] == 0.001
+    payload["metres_per_unit"] = 0.002          # one field; the stamp is untouched
+    target = root / SM24 / "request.json"
+    target.write_text(json.dumps(payload, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    # ⛔ prove the mutation is not a no-op, or this test is a false green.
+    mutated = raw_layer.TarchConversionRequestV1.model_validate_json(target.read_bytes())
+    assert raw_layer.compute_request_sha256(mutated) != expected
+
+    monkeypatch.setattr(raw_layer, "GT_SOURCES_ROOT", root)
+    assert raw_layer.find_signed_request(SM24, expected) is None
+    assert verify_raw_layer_reproduction(SM24).status == "inputs_unavailable"
+
+
+def test_f111_e_same_shape_wrong_identity_request_is_rejected(monkeypatch, tmp_path):
+    """4. Same-shape input: a genuine, well-formed, *different* signed request.
+
+    Nothing about it is malformed -- it is a real request for the same case from
+    the neighbouring review bundle, at the canonical path under the canonical
+    name.  It is the wrong one, and only the content hash can say so.
+    """
+    root = _case_sources(tmp_path, SM24)
+    expected = _signed_request_sha256(SM24)
+    decoy = raw_layer.TarchConversionRequestV1.model_validate_json(SM24_DECOY_REQUEST.read_bytes())
+    assert raw_layer.compute_request_sha256(decoy) != expected     # a real request...
+    assert decoy.case == SM24                                       # ...for this very case
+    shutil.copyfile(SM24_DECOY_REQUEST, root / SM24 / "request.json")
+
+    monkeypatch.setattr(raw_layer, "GT_SOURCES_ROOT", root)
+    assert raw_layer.find_signed_request(SM24, expected) is None
+    assert verify_raw_layer_reproduction(SM24).status == "inputs_unavailable"
+
+
+def test_f111_f_a_malformed_sibling_does_not_hide_the_real_request(monkeypatch, tmp_path):
+    """Junk in the case dir must not shadow the genuine request.
+
+    ``gt_sources/<case>/`` is a real working directory: it also holds
+    manifest/source_map/conversion_report JSON, and a re-signing round can leave
+    a half-written ``request*.json`` behind.  Neither may turn the signed
+    request into ``inputs_unavailable``.  ⚠️ This locks tolerance, NOT the
+    narrowness of the glob -- widening to ``*.json`` would still pass here.
+    """
+    root = _case_sources(tmp_path, SM24)
+    expected = _signed_request_sha256(SM24)
+    shutil.copyfile(SM24_REQUEST_ELSEWHERE, root / SM24 / "request.json")
+    (root / SM24 / "request_broken.json").write_text("{not json", encoding="utf-8")
+    shutil.copyfile(SOURCES_ROOT / SM24 / "manifest.json", root / SM24 / "manifest.json")
+
+    monkeypatch.setattr(raw_layer, "GT_SOURCES_ROOT", root)
+    request = raw_layer.find_signed_request(SM24, expected)
+    assert request is not None
+    assert raw_layer.compute_request_sha256(request) == expected

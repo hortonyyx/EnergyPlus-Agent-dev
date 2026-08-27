@@ -30,6 +30,11 @@ mechanically out of inputs that ARE signed:
 Re-running the converter on those two and comparing the result field-by-field is
 what :func:`verify_raw_layer_reproduction` does.
 
+Both of those inputs are resolved from **one case-owned persistent directory**,
+``case_tests/test_baseline/gt_sources/<case>/`` -- see
+:func:`case_signed_inputs_root`.  ⛔ That is a statement about *availability*,
+not about trust: neither resolver ever accepts a file because of where it sits.
+
 ⛔ Content fields, never bytes.  The converter's normalized-DXF bytes (and hence
 ``normalized_dxf_sha256``) depend on Python hash randomisation; comparing bytes
 would be a guaranteed false red.  Measured on 2026-08-27: the content fields are
@@ -264,16 +269,36 @@ def load_gt_raw_layer(case: str, *, gt_dir: Path | str = DEFAULT_GT_DIR,
 # --------------------------------------------------------------------------- #
 # G1-b: the mechanical reproduction gate
 # --------------------------------------------------------------------------- #
-REQUEST_SEARCH_ROOT = REPO_ROOT / "AI_agent/logs/experiments"
+#: Both signed conversion inputs live in the case's own persistent source dir,
+#: ``gt_sources/<case>/``: the source DXF has always been read from there, and
+#: since 2026-08-27 so is the request.  The previous request root was
+#: ``AI_agent/logs/experiments``, which ``AI_agent/logs/README.md`` declares to
+#: be process traces that may be cleaned at any time -- i.e. the *availability*
+#: of the trust root depended on a directory the project reserves the right to
+#: delete.  (Its *authority* never did, and still does not: see below.)
+#:
+#: The name is a narrow prefix glob, not ``*.json``: ``gt_sources/<case>/`` also
+#: holds ``manifest.json`` / ``source_map.json`` / ``conversion_report.json``,
+#: and feeding every JSON file in a directory to a strict parser to see what
+#: sticks is the malformed-input shape this repo has been bitten by before.
+#: ``build_review_bundle`` writes the canonical copy as ``request.json``; the
+#: glob additionally tolerates a re-signed sibling (e.g. the reviewer's own
+#: ``request_v3_calibrated.json``) without a code change.
+SIGNED_REQUEST_GLOB = "request*.json"
 
 
 def _sha256_file(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
+def case_signed_inputs_root(case: str) -> Path:
+    """The case-owned, persistent home of both signed conversion inputs."""
+    return GT_SOURCES_ROOT / case
+
+
 def find_signed_source_dxf(case: str, expected_sha256: str) -> Path | None:
     """A DXF is *the* signed source iff its bytes hash to the signed value."""
-    case_root = GT_SOURCES_ROOT / case
+    case_root = case_signed_inputs_root(case)
     if not case_root.is_dir():
         return None
     for candidate in sorted(case_root.glob("*.dxf")):
@@ -282,18 +307,20 @@ def find_signed_source_dxf(case: str, expected_sha256: str) -> Path | None:
     return None
 
 
-def find_signed_request(expected_sha256: str) -> TarchConversionRequestV1 | None:
+def find_signed_request(case: str, expected_sha256: str) -> TarchConversionRequestV1 | None:
     """A request is *the* signed request iff its content RE-HASHES to the signed value.
 
     ⭐ The declared ``request_sha256`` field is never trusted: it is recomputed
     from the request body, so a tampered copy cannot pass by rewriting its own
-    stamp.  Location therefore carries no authority -- which matters, because
-    promotion does not copy request.json into the answer tree and the only
-    copies live under the experiments staging root.
+    stamp.  **Location carries no authority** -- narrowing the search to the
+    case's own directory changed *where we look*, never *why we believe*: a file
+    sitting at the perfect path under the perfect name is rejected exactly as
+    hard as one found anywhere else if its content does not re-hash.
     """
-    if not REQUEST_SEARCH_ROOT.is_dir():
+    case_root = case_signed_inputs_root(case)
+    if not case_root.is_dir():
         return None
-    for candidate in sorted(REQUEST_SEARCH_ROOT.rglob("request.json")):
+    for candidate in sorted(case_root.glob(SIGNED_REQUEST_GLOB)):
         try:
             request = TarchConversionRequestV1.model_validate_json(candidate.read_bytes())
         except Exception:
@@ -482,14 +509,14 @@ def verify_raw_layer_reproduction(case: str, *, gt_dir: Path | str = DEFAULT_GT_
     if source is None:
         return ReproductionVerdict(
             "inputs_unavailable",
-            f"no DXF under {GT_SOURCES_ROOT / case} hashes to the signed "
+            f"no DXF under {case_signed_inputs_root(case)} hashes to the signed "
             f"source_dxf_sha256={ack.source_dxf_sha256}")
-    request = find_signed_request(ack.request_sha256)
+    request = find_signed_request(case, ack.request_sha256)
     if request is None:
         return ReproductionVerdict(
             "inputs_unavailable",
-            f"no request.json under {REQUEST_SEARCH_ROOT} recomputes to the signed "
-            f"request_sha256={ack.request_sha256}")
+            f"no {SIGNED_REQUEST_GLOB} under {case_signed_inputs_root(case)} recomputes "
+            f"to the signed request_sha256={ack.request_sha256}")
 
     advisory = tuple(name for name, recorded, current
                      in _advisory_fingerprints(case, gt_dir) if recorded != current)
