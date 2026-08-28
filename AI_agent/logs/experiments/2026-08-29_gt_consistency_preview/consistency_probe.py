@@ -244,3 +244,44 @@ def check_openings(floors, openings):
                           "floor": fid, "wall": host})
     F.sort(key=lambda f: (not f.get("suspicious", True), -f["mm"]))
     return F
+
+
+def check_converter_readouts(dens):
+    """⭐ 把【转换器自己已经算出来的】读数接进清单（2026-08-29 用户令「第一类提前」）。
+
+    ⛔⛔ 本函数**一个几何都不算** —— 闭合性 / 孤立墙段 / 房间封闭 / 零面积
+    这一整类，转换器 S4 早就算了（`s4_close_topology` 返回 dangles / cuts），
+    诊断码也现成（`tarch_wall_free_end` / `tarch_topology_residual` /
+    `tarch_zone_tiling_residual` / `tarch_opening_*` …）。
+    ⭐ 此前 `denominator()` 把它们丢在地上；`cbaaeb9` 接线之后，这里只负责**捡起来**。
+
+    ⇒ 教训与 GLM 在 F-126b 裁决里点名的 F-A 同形：**⛔ 不新造策略，仓库已有答案。**
+    """
+    F = []
+    for fid, d in dens.items():
+        for g in d.get("gates", []):
+            if not g.get("passed"):
+                F.append({"kind": "converter_gate_failed", "mm": 0.0, "where": fid,
+                          "axis": "-", "suspicious": True,
+                          "detail": f"{fid} 转换器自己的门 **{g.get('id')} ({g.get('name')}) 没过**",
+                          "span": [0, 0], "floor": fid, "wall": None})
+        L = d.get("ledger", {})
+        for key, human in (("s4_dangles", "悬空端（墙没接上）"),
+                           ("s4_cuts", "切口"),
+                           ("s4_invalid", "无效环")):
+            n = L.get(key, 0)
+            if n:
+                F.append({"kind": f"closure_{key}", "mm": float(n), "where": fid,
+                          "axis": "-", "suspicious": True,
+                          "detail": f"{fid} 转换器 S4 报 **{human} × {n}**",
+                          "span": [0, 0], "floor": fid, "wall": None})
+        for x in d.get("diagnostics", []):
+            if x.get("severity") == "INFO":
+                continue                      # INFO 不进清单，⛔ 但也不丢：由 §盲区 记账
+            loc = (f"handle={x.get('handles')} at {x.get('points_dxf_mm')}"
+                   if x.get("locatable") else "⛔ **无法定位**（诊断没带 handle/坐标）")
+            F.append({"kind": f"diag_{x['code']}", "mm": 0.0, "where": fid, "axis": "-",
+                      "suspicious": True,
+                      "detail": f"{fid} 转换器诊断 **{x['code']}**（{x['severity']}）— {loc}",
+                      "span": [0, 0], "floor": fid, "wall": None})
+    return F
