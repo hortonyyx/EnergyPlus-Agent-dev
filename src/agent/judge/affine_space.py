@@ -32,11 +32,40 @@ The contract is read through :func:`affine_spaces`, which accepts two carriers:
   at exactly one site, always ``reading_plan_local_metre -> world_metre``.
   Declaring those as class attributes keeps them out of ``model_dump`` and so
   leaves ``PlanFrameCertificateV1.preimage_sha256`` byte-identical.
+
+The numeric half of the contract (B4-(2)a)
+------------------------------------------
+Declarations alone are stamped **by slot and blind to content**: hand an owner
+model six bare coefficients with no ``domain_space``/``codomain_space`` and
+:func:`bind_affine_spaces` will happily stamp them with whatever that slot is
+supposed to carry.  That is not hypothetical -- migration-era signed artifacts
+carry exactly that shape (it is why the strip helper exists), and
+``tarch_normalize._build_manifest`` still constructs bare ``Affine2D`` /
+``Affine1D`` values with a hand-written ``/ metres_per_unit``.  Moving the
+manifest affine into the request slot therefore passed silently and put the
+sm24 clip corner 12264.66 m away from the truth.
+
+:func:`require_affine_magnitudes` closes that with a check the declaration
+cannot fake, because it reads the *coefficients*: once the two ends are known,
+the owning document's own ``metres_per_unit`` fixes how much the affine's
+linear part is allowed to stretch.
+
+* ``dxf_native`` measures ``metres_per_unit`` metres per unit;
+* ``source_metre`` / ``world_metre`` / ``reading_plan_local_metre`` measure 1;
+* ``pixel`` measures *nothing the document knows* -- pixel size is a property
+  of the raster -- so affines touching it are explicitly not predicted.
+
+For a 2-D affine the prediction is on ``|det|`` and for a 1-D affine on
+``|scale|``, so the check is invariant under rotation, reflection and
+translation: a drawing turned by an arbitrary angle is never mis-flagged.
+Measured on every request/manifest in the repository (127 affine slots), the
+relative deviation from the prediction is exactly ``0.0``.
 """
 from __future__ import annotations
 
+import math
 from dataclasses import dataclass
-from typing import Any, Literal, get_args
+from typing import Any, Iterator, Literal, get_args
 
 #: Every space a 2-D affine in this repo may start or end in.
 AffineSpace = Literal[
@@ -64,6 +93,15 @@ class AffineSpaceUndeclared(AffineSpaceError):
 
 class AffineSpaceMismatch(AffineSpaceError):
     """The affine's declared two ends are not the ones the call site requires."""
+
+
+class AffineMagnitudeMismatch(AffineSpaceError):
+    """The affine's coefficients contradict the two ends it declares.
+
+    Raised by :func:`require_affine_magnitude`.  Separate from
+    :class:`AffineSpaceMismatch` because the failure is the opposite direction:
+    the declaration is well-formed, the *numbers* are from another space.
+    """
 
 
 def _coerce_space(value: object, *, what: str) -> str:
@@ -185,6 +223,147 @@ def compose_affine(left: Any, right: Any, *, context: str = "compose_affine") ->
     )
 
 
+# --------------------------------------------------------------------------- #
+# The numeric half of the contract: coefficients must agree with the two ends
+# --------------------------------------------------------------------------- #
+
+#: Relative tolerance for the magnitude prediction.
+#:
+#: NOT fitted to the fixtures.  The floor is double-precision noise on a
+#: two-term product of coefficients (~1e-16 relative) plus whatever a rotation
+#: costs (``cos^2 + sin^2`` is 1 to within ~1e-16), so 1e-9 leaves seven orders
+#: of headroom for honest arithmetic.  The ceiling is the hazard being caught,
+#: which is a whole factor of ``metres_per_unit`` (1e3 per axis, 1e6 on ``|det|``
+#: for sm24/sm25) -- fifteen orders above this tolerance.  There is no value in
+#: between that a real drawing occupies.
+AFFINE_MAGNITUDE_REL_TOL: float = 1e-9
+
+
+def space_unit_metres(space: str, *, metres_per_unit: float) -> float | None:
+    """How many metres one unit of *space* measures for this document.
+
+    ``None`` means the document does not fix a metric for that space -- there is
+    exactly one such space, ``pixel``, whose size belongs to the raster and not
+    to the drawing.  Returning ``None`` rather than 1.0 is deliberate: silence
+    must not be read as "unit scale" any more than an undeclared affine may be
+    read as "any space".
+    """
+    space = _coerce_space(space, what="space")
+    if space == "pixel":
+        return None
+    if space == "dxf_native":
+        return float(metres_per_unit)
+    return 1.0
+
+
+def affine_magnitude(affine: Any) -> tuple[float, str]:
+    """Return ``(value, kind)`` -- ``|det|`` for a 2-D affine, ``|scale|`` for 1-D."""
+    if hasattr(affine, "scale") and hasattr(affine, "source_axis"):
+        return abs(float(affine.scale)), "abs_scale"
+    xx, xy, _x0, yx, yy, _y0 = affine_coefficients(affine)
+    return abs(xx * yy - xy * yx), "abs_det"
+
+
+def expected_affine_magnitude(
+    affine: Any, *, metres_per_unit: float
+) -> tuple[float, str] | None:
+    """Predicted ``(value, kind)`` from the declared two ends, or ``None``.
+
+    ``None`` is returned only when one end is a space the document assigns no
+    metric to (``pixel``).  An affine that declares no ends at all raises
+    :class:`AffineSpaceUndeclared` here, exactly as everywhere else.
+    """
+    domain, codomain = affine_spaces(affine)
+    domain_unit = space_unit_metres(domain, metres_per_unit=metres_per_unit)
+    codomain_unit = space_unit_metres(codomain, metres_per_unit=metres_per_unit)
+    if domain_unit is None or codomain_unit is None:
+        return None
+    gain = domain_unit / codomain_unit
+    _actual, kind = affine_magnitude(affine)
+    return ((gain * gain) if kind == "abs_det" else gain), kind
+
+
+def require_affine_magnitude(
+    affine: Any, *, metres_per_unit: float, context: str = "affine"
+) -> Any:
+    """Fail loudly when the coefficients contradict the declared two ends.
+
+    This is the half of the contract that bare coefficients cannot slip past:
+    the declaration is stamped by slot and is blind to content, but ``|det|``
+    (resp. ``|scale|``) is read off the numbers themselves.
+    """
+    prediction = expected_affine_magnitude(affine, metres_per_unit=metres_per_unit)
+    if prediction is None:
+        return affine
+    expected, kind = prediction
+    actual, _kind = affine_magnitude(affine)
+    if not math.isclose(actual, expected, rel_tol=AFFINE_MAGNITUDE_REL_TOL, abs_tol=0.0):
+        domain, codomain = affine_spaces(affine)
+        ratio = (actual / expected) if expected else float("inf")
+        raise AffineMagnitudeMismatch(
+            f"{context}: an affine declaring {domain} -> {codomain} in a document with "
+            f"metres_per_unit={metres_per_unit!r} must have {kind}={expected!r}, but its "
+            f"coefficients give {kind}={actual!r} (off by a factor of {ratio:.6g})"
+        )
+    return affine
+
+
+def _is_affine_like(value: Any) -> bool:
+    """Duck-test for 'this object is an affine carrying a two-end contract'.
+
+    Structural rather than a type list on purpose: this module is imported *by*
+    the model modules, so it cannot name their classes, and a hard-coded list is
+    precisely the thing that rots when a fifth affine slot is added.
+    """
+    if hasattr(value, "scale") and hasattr(value, "source_axis"):
+        return True
+    return (hasattr(value, "m00") and hasattr(value, "m11")) or (
+        hasattr(value, "xx") and hasattr(value, "yy")
+    )
+
+
+def iter_affines(model: Any, *, path: str = "") -> Iterator[tuple[str, Any]]:
+    """Yield ``(dotted_path, affine)`` for every affine anywhere under *model*.
+
+    Walks pydantic models, lists and tuples.  Discovery is by shape, so a newly
+    added affine field is covered the day it is added rather than the day
+    somebody remembers to extend a list.
+    """
+    if _is_affine_like(model):
+        yield (path or type(model).__name__, model)
+        return
+    if isinstance(model, (list, tuple)):
+        for index, item in enumerate(model):
+            yield from iter_affines(item, path=f"{path}[{index}]")
+        return
+    fields = getattr(type(model), "model_fields", None)
+    if not isinstance(fields, dict):
+        return
+    for name in fields:
+        child = getattr(model, name, None)
+        if child is None or isinstance(child, (str, bytes, int, float, bool)):
+            continue
+        yield from iter_affines(child, path=f"{path}.{name}" if path else name)
+
+
+def require_affine_magnitudes(
+    model: Any, *, metres_per_unit: float, context: str
+) -> Any:
+    """Run :func:`require_affine_magnitude` over every affine under *model*.
+
+    Called from the root model that owns ``metres_per_unit`` -- the only place
+    that knows the document's native scale.  Because discovery is structural,
+    an affine field added without an owning ``bind_affine_spaces`` call does not
+    quietly escape the gate: it reaches here undeclared and raises
+    :class:`AffineSpaceUndeclared`.
+    """
+    for where, affine in iter_affines(model):
+        require_affine_magnitude(
+            affine, metres_per_unit=metres_per_unit, context=f"{context}.{where}"
+        )
+    return model
+
+
 def strip_affine_space_keys(value: Any) -> Any:
     """Recursively drop the space-contract keys from a JSON-ready payload.
 
@@ -240,17 +419,25 @@ def bind_affine_spaces(model: Any, field: str, *, domain: str, codomain: str) ->
 
 
 __all__ = [
+    "AFFINE_MAGNITUDE_REL_TOL",
     "AFFINE_SPACES",
     "AFFINE_SPACE_KEYS",
+    "AffineMagnitudeMismatch",
     "AffineSpace",
     "AffineSpaceError",
     "AffineSpaceMismatch",
     "AffineSpaceUndeclared",
     "ComposedAffine",
     "affine_coefficients",
+    "affine_magnitude",
     "affine_spaces",
     "bind_affine_spaces",
     "compose_affine",
+    "expected_affine_magnitude",
+    "iter_affines",
+    "require_affine_magnitude",
+    "require_affine_magnitudes",
     "require_affine_spaces",
+    "space_unit_metres",
     "strip_affine_space_keys",
 ]

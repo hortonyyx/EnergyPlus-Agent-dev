@@ -23,6 +23,7 @@ import shutil
 from pathlib import Path
 
 import pytest
+from pydantic import ValidationError
 
 import src.agent.judge.gt_raw_layer as raw_layer
 from src.agent.judge.gt_raw_layer import (load_gt_raw_layer,
@@ -310,8 +311,21 @@ def test_f111_d_tampered_request_at_the_perfect_path_is_rejected(monkeypatch, tm
     expected = _signed_request_sha256(SM24)
     payload = json.loads(SM24_REQUEST_ELSEWHERE.read_text(encoding="utf-8"))
     assert payload["request_sha256"] == expected
-    assert payload["metres_per_unit"] == 0.001
-    payload["metres_per_unit"] = 0.002          # one field; the stamp is untouched
+
+    # Retiring the old ``metres_per_unit`` tamper on the record, not silently:
+    # since B4-(2)a the affine two-end MAGNITUDE gate refuses that payload at
+    # ``model_validate`` -- an mpu moved without its affines following is
+    # arithmetically impossible -- so the probe below could no longer build it.
+    # That is a strictly stronger outcome than "the hash refuses it", and it is
+    # asserted here rather than dropped.
+    mpu_tampered = dict(payload, metres_per_unit=0.002)
+    with pytest.raises(ValidationError, match="abs_det"):
+        raw_layer.TarchConversionRequestV1.model_validate(mpu_tampered)
+
+    # ... and the leg this test is actually about needs a tamper that stays
+    # well-formed, so that ONLY the recomputation can decide.
+    assert payload["min_room_area_m2"] == 2.0
+    payload["min_room_area_m2"] = 3.0           # one field; the stamp is untouched
     target = root / SM24 / "request.json"
     target.write_text(json.dumps(payload, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
     # ⛔ prove the mutation is not a no-op, or this test is a false green.

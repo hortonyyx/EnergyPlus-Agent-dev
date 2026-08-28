@@ -14,7 +14,7 @@ from omegaconf import OmegaConf
 from pydantic import BaseModel, ConfigDict, Field, Strict, model_validator
 
 from .affine_space import (AffineSpace, bind_affine_spaces,
-                           strip_affine_space_keys)
+                           require_affine_magnitudes, strip_affine_space_keys)
 from .gt_schema import (DateYmd, DxfHandle, GtResolvedToolingConfigV1,
                         GtResolvedToolingTolerancesV1, GtWorldIntervalV3,
                         Hex64, HumanLabel, Point2, PositiveFiniteFloat,
@@ -74,14 +74,33 @@ class Affine2D(_StrictModel):
 
 
 class Affine1D(_StrictModel):
+    """A 1-D affine plus its two-end space contract (B4-(2)a, F-E).
+
+    Same hazard as :class:`Affine2D`, one dimension down and previously
+    untreated: ``world_along_from_source_m`` / ``world_z_from_source_m`` appear
+    on the request intents (``dxf_native -> world_metre``, ``scale`` is
+    ``+/- metres_per_unit``) and on ``ElevationViewBindingV1``
+    (``source_metre -> world_metre``, ``scale`` is ``+/- 1``), same names, same
+    type, 1000x apart -- and ``tarch_normalize._build_manifest`` bridges them
+    with the same hand-written ``/ metres_per_unit`` that the 2-D pair uses.
+
+    The fields default to ``None`` and the *owning* model stamps them, exactly
+    as for :class:`Affine2D`; the canonical hash preimages strip both keys, so
+    every already-signed request and manifest keeps its digest byte-for-byte.
+    """
+
     source_axis: Literal["x", "y"]
     scale: StrictFiniteFloat
     offset: StrictFiniteFloat
+    domain_space: AffineSpace | None = None
+    codomain_space: AffineSpace | None = None
 
     @model_validator(mode="after")
     def _nonzero(self):
         if self.scale == 0:
             raise ValueError("affine scale is zero")
+        if (self.domain_space is None) != (self.codomain_space is None):
+            raise ValueError("affine space contract must declare both ends or neither")
         return self
 
 
@@ -172,6 +191,16 @@ class ElevationViewBindingV1(_StrictModel):
     opening_entities: list[ElevationOpeningEvidenceV1] = Field(default_factory=list)
 
     @model_validator(mode="after")
+    def _bind_affine_spaces(self):
+        # v3 extraction pre-multiplies native by metres_per_unit before applying
+        # these, so the manifest copies start in source METRES -- unlike the
+        # identically named request-intent fields, which start in dxf-native.
+        for field in ("world_along_from_source_m", "world_z_from_source_m"):
+            bind_affine_spaces(self, field,
+                               domain="source_metre", codomain="world_metre")
+        return self
+
+    @model_validator(mode="after")
     def _elevation_contract(self):
         if self.floor_ids != sorted(set(self.floor_ids)):
             raise ValueError("elevation floor IDs must be sorted and unique")
@@ -230,6 +259,20 @@ class GtExtractionManifestV1(_StrictModel):
     north_axis: NorthAxisBindingV1 | None
     raster_overlays: list[RasterOverlayBindingV1] = Field(default_factory=list)
     manifest_sha256: Hex64
+
+    @model_validator(mode="after")
+    def _affine_magnitudes(self):
+        """Numeric half of the affine contract -- see ``affine_space``.
+
+        The manifest root is the only place that knows ``metres_per_unit``, and
+        every affine under it is reachable from here.  This is what catches a
+        regression in ``_build_manifest``'s hand-written ``/ metres_per_unit``:
+        that function ends in ``GtExtractionManifestV1.model_validate``, so a
+        manifest affine left in dxf-native (or divided twice) cannot be built.
+        """
+        return require_affine_magnitudes(
+            self, metres_per_unit=self.metres_per_unit,
+            context="GtExtractionManifestV1")
 
     @model_validator(mode="after")
     def _manifest_contract(self):

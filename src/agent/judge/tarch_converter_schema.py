@@ -44,7 +44,8 @@ from typing import Annotated, Any, Literal, TypeAlias
 
 from pydantic import BaseModel, ConfigDict, Field, Strict, model_validator
 
-from .affine_space import bind_affine_spaces, strip_affine_space_keys
+from .affine_space import (bind_affine_spaces, require_affine_magnitudes,
+                           strip_affine_space_keys)
 from .gt_manifest import Affine1D, Affine2D, ClipBoxDxf, load_gt_tooling_config
 from .gt_schema import (DateYmd, DxfHandle, GtResolvedToolingConfigV1, Hex64,
                         HumanLabel, JsonValue, NonNegativeFiniteFloat,
@@ -718,6 +719,15 @@ class ElevationViewIntentV1(_StrictModel):
     world_z_from_source_m: Affine1D
 
     @model_validator(mode="after")
+    def _bind_affine_spaces(self):
+        # REQUEST copy consumes raw DXF-native coordinates (|scale| == metres_per_unit).
+        # The identically named ElevationViewBindingV1 fields consume source METRES.
+        for field in ("world_along_from_source_m", "world_z_from_source_m"):
+            bind_affine_spaces(self, field,
+                               domain="dxf_native", codomain="world_metre")
+        return self
+
+    @model_validator(mode="after")
     def _axes_differ(self):
         if self.world_along_from_source_m.source_axis == self.world_z_from_source_m.source_axis:
             raise ValueError("elevation source axes must differ")
@@ -750,6 +760,13 @@ class DatumBoundNamedElevationViewIntentV3(_StrictModel):
     door_selector: TarchEntitySelectorV1 | None = None
     view_kind: Literal["full"]
     segment_scope_mode: Literal["all_family_segments"]
+
+    @model_validator(mode="after")
+    def _bind_affine_spaces(self):
+        for field in ("world_along_from_source_m", "world_z_from_source_m"):
+            bind_affine_spaces(self, field,
+                               domain="dxf_native", codomain="world_metre")
+        return self
 
     @model_validator(mode="after")
     def _v3_contract(self):
@@ -829,6 +846,25 @@ class TarchConversionRequestV1(_StrictModel):
     critical_dimensions: list[CriticalDimensionV1] = Field(default_factory=list)
     overrides: list[TarchOverrideV1] = Field(default_factory=list)
     request_sha256: Hex64
+
+    @model_validator(mode="after")
+    def _affine_magnitudes(self):
+        """Numeric half of the affine contract (B4-(2)a, F-A).
+
+        The type gate stamps a slot's two ends *blind to content*: six bare
+        coefficients lifted out of the manifest and dropped into a request slot
+        are stamped ``dxf_native -> world_metre`` and used 1000x off (measured
+        on sm24: the clip corner lands 12264.66 m away).  This validator reads
+        the coefficients instead, and the request's own ``metres_per_unit`` is
+        what pins them -- so it has teeth on a completely undeclared affine,
+        and it needs no counterpart slot to compare against.  That matters:
+        sm25-L, the main case, ships a request and no manifest at all.
+
+        See ``affine_space.require_affine_magnitudes`` for the prediction.
+        """
+        return require_affine_magnitudes(
+            self, metres_per_unit=self.metres_per_unit,
+            context="TarchConversionRequestV1")
 
     @model_validator(mode="after")
     def _label_basename(self):

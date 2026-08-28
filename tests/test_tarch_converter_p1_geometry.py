@@ -109,7 +109,13 @@ def _make_dxf(path: Path, *, window_block: str = WINDOW_BLOCK,
 def _request(case: str, sha: str, clip: dict, frame_title: str = "test1f",
              native_units: str = "unitless", metres_per_unit: float = 0.001,
              expected_count: int = 1) -> tuple[TarchConversionRequestV1, PlanViewIntentV1]:
-    aff = {"m00": 0.001, "m01": 0.0, "m02": -1.0, "m10": 0.0, "m11": 0.001, "m12": -1.0}
+    # dxf_native -> world_metre, so the linear part IS the declared native scale.
+    # Derived rather than hard-coded at 0.001 because one caller below declares
+    # metres_per_unit=0.01: the affine two-end magnitude gate (B4-(2)a) rejects a
+    # request whose coefficients contradict its own metres_per_unit, and that
+    # caller's intended defect is a units *label* mismatch, not a bad affine.
+    aff = {"m00": metres_per_unit, "m01": 0.0, "m02": -1.0,
+           "m10": 0.0, "m11": metres_per_unit, "m12": -1.0}
     pv = PlanViewIntentV1(
         id="plan-F1", floor_id="F1", frame_title=frame_title, clip_box_dxf=clip,
         world_from_source_m=aff,
