@@ -811,6 +811,18 @@ def apply_v3_envelope_transaction(
                                 and any(i.lo - tol.envelope_axis_attach_tol_m <= endpoint <= i.hi + tol.envelope_axis_attach_tol_m for i in component.intervals)):
                             window.span[n] = component.new_value; moved["window_span_refs"].append(f"{window.id}:span[{n}]")
         for window in candidate.windows:
+            # ⚠️ F-133 R2 note (2026-08-28) — SEMANTIC BORROWING, not a shared
+            # meaning. `min_edge_length_m` is declared in correction.yaml as the
+            # *structural axis / cell-edge* sliver floor (its stated job: no two
+            # canonical axes closer than this, so EnergyPlus cannot segfault on a
+            # degenerate strip). Here it is reused as a *window width / height*
+            # admission floor — a different quantity that merely wants a number
+            # of the same order ([[proxy-mistaken-for-the-thing]]).
+            # ⇒ Retuning `min_edge_length_m` for axis-merge reasons will silently
+            #   also move which windows are admitted. If that ever becomes
+            #   undesirable, the fix is a window-side constant of its own, NOT a
+            #   compensating tweak here. Deliberately left as-is by F-133, which
+            #   changed no tolerance value.
             if (window.span[1] - window.span[0] < tol.min_edge_length_m
                     or window.z[1] - window.z[0] < tol.min_edge_length_m):
                 raise EnvelopeTransformRejected(

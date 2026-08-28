@@ -26,15 +26,46 @@ from src.agent.correction.cell_geometry import (
     cell_has_polygon,
     cell_polygon as _validated_cell_polygon,
 )
+from src.agent.correction.config import load_core_tolerances
 from src.agent.correction.schema import Cell, CorrectedGeometry
 from src.agent.correction.footprint import footprint_bbox
 from src.agent.geometry.capability import FEATURE_CELL_POLYGON, require_supported_geometry_contract, schema_supports
 
 # Shared tolerances (single source; split_pairing imports these).
-_MIN_EDGE = 0.10      # m — below this a face is a degenerate sliver (gate floor)
 _Z_TOL = 0.02         # m — floors stack when |lower ceiling z - upper floor z| <= this
 _AREA_MIN = 0.05      # m^2 — ignore overlaps/segments smaller than this
 _NAME_QUANT = 6       # shared precision for deterministic public-name keys
+
+
+def _min_edge() -> float:
+    """The degenerate-sliver floor (m), read from the ACTIVE correction config.
+
+    F-133 R2 (2026-08-28): this used to be a second, independent literal
+    (`_MIN_EDGE = 0.10`) sitting next to `correction.yaml`'s
+    `min_edge_length_m: 0.100`. The two were not merely the same number by
+    coincidence — they are handed to the *same* validator
+    (`cell_geometry.cell_polygon`) on two different call paths: the correction
+    path (`deterministic.py`, `envelope_transform.py`, `parse.py`,
+    `pipeline.py`) passed `tol.min_edge_length_m`, while `_cell_polygon` /
+    `_iter_segments` here passed the literal. Measured before this change with
+    an override config at `min_edge_length_m: 0.200`: a 0.15 m cell edge was
+    REJECTED on the correction path and ACCEPTED here — one validator, two
+    answers, and nothing in the tree could see the drift.
+
+    Resolved lazily (not bound at import) because the active config path comes
+    from `$EP_AGENT_CORRECTION_CONFIG`, which a caller may set after this
+    module is imported; an import-time binding would re-open the same drift it
+    is meant to close. `load_core_tolerances` is lru_cached per resolved path,
+    so this is a dict lookup.
+
+    ⛔ The VALUE is unchanged (0.100 m under the shipped config). Whether this
+    floor should instead track EnergyPlus' own very-small-vertex threshold is a
+    separate question and deliberately NOT decided here — see the dispatch's
+    §五.2: the geometry kernel's sliver floor (polygon edges / face segments)
+    and correction's axis-merge parameter are different quantities that happen
+    to share a source today.
+    """
+    return load_core_tolerances().min_edge_length_m
 
 
 # --------------------------------------------------------------------------- #
@@ -216,7 +247,7 @@ def _zone_quadrant(poly: Polygon, footprint_x: list[float], footprint_y: list[fl
 
 def _cell_polygon(c: Cell) -> Polygon:
     """Cell -> validated CCW shapely Polygon. Prefer explicit polygon."""
-    return _validated_cell_polygon(c, min_edge_length_m=_MIN_EDGE)
+    return _validated_cell_polygon(c, min_edge_length_m=_min_edge())
 
 
 def _is_ccw(coords: list) -> bool:
@@ -265,7 +296,7 @@ def _iter_segments(geom):
         cs = list(ln.coords)
         for i in range(len(cs) - 1):
             p1, p2 = cs[i], cs[i + 1]
-            if LineString([p1, p2]).length >= _MIN_EDGE:
+            if LineString([p1, p2]).length >= _min_edge():
                 yield (float(p1[0]), float(p1[1])), (float(p2[0]), float(p2[1]))
 
 

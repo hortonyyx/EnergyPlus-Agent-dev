@@ -391,9 +391,76 @@ def _reconcile_cross_floor(
     audit: list[dict] = []
     ambiguous_seen: set[tuple[str, tuple[int, ...]]] = set()
 
+    # F-133 (2026-08-28): same-floor axis-merge ledger.
+    #
+    # Two DIFFERENT axis values that live on the SAME floor can be collapsed
+    # into one canonical axis at two independent points below, and before this
+    # ledger existed BOTH were silent -- a real building step (e.g. a 240/120
+    # wall-basis jog, measured at 60 mm) came out of the core as a single axis
+    # with `conflicts == []` and nothing in `corrections` naming the two values
+    # that were destroyed. Collapsing axes ACROSS floors is what
+    # `cross_floor_align_tol_m` is *for* and is already audited by
+    # `deterministic_core.cross_floor_align`; that case is deliberately NOT
+    # recorded here, or the ledger drowns in its own intended behaviour.
+    #
+    # ⛔ This ledger is OBSERVATION ONLY. It appends audit rows and touches no
+    # coordinate, no grouping decision and no tolerance -- the merge policy is
+    # bit-for-bit what it was before. Telling a real same-floor step apart from
+    # the model's own 5-10 mm jitter is NOT possible at this layer (correction
+    # holds coordinates only -- no walls, no thickness, and the two quantities
+    # overlap numerically), so the honest move today is to make the loss
+    # loud rather than to guess at a threshold. See R-6 / the wall-basis
+    # diagnostics under logs/experiments/2026-08-28_wall_basis_jog/.
+    #
+    # ⚠️ `output_precision_m` deliberately does NOT filter these rows. That
+    # threshold governs "how far did one coordinate move" (a normalization
+    # question); this ledger reports "two distinct axes became one" (an
+    # identity question). A 10 mm step shifts each side by only 5 mm and would
+    # be filtered out by an output-precision gate while still having erased a
+    # real wall line -- the exact case [[absence-conflates-causes-in-observables]]
+    # warns about.
+    same_floor_merges: list[dict] = []
+
+    def record_same_floor_merge(
+        floor: str,
+        values: list[float],
+        step: str,
+        tolerance_name: str,
+        probe_raw: float,
+    ) -> None:
+        """Queue one 'N distinct axes on `floor` became one' event.
+
+        `probe_raw` is any raw input coordinate belonging to the merged set; the
+        final canonical value is only known once the whole reconcile has settled
+        (a merged group can merge again), so the resolved value / deltas are
+        filled in from the finished `mapping` at the end of this function.
+        """
+        distinct = sorted({_axis_value(v) for v in values})
+        if len(distinct) < 2:
+            return
+        same_floor_merges.append(
+            {
+                "floor": floor,
+                "values": distinct,
+                "step": step,
+                "tolerance_name": tolerance_name,
+                "probe_raw": _axis_value(probe_raw),
+            }
+        )
+
     nodes: list[_AxisNode] = []
     for floor in sorted(per_floor_axes):
         for cluster in _identity_clusters(per_floor_axes[floor], tol):
+            # Kill site 1: identity clustering runs PER FLOOR, so a cluster
+            # holding more than one distinct value is by construction a
+            # same-floor merge driven by `axis_jitter_tol_m` (< 50 mm steps).
+            record_same_floor_merge(
+                floor,
+                list(cluster.raw),
+                "identity_cluster",
+                "AXIS_JITTER_TOL",
+                cluster.raw[0],
+            )
             nodes.append(
                 _AxisNode(
                     idx=len(nodes),
@@ -615,6 +682,20 @@ def _reconcile_cross_floor(
                     next_groups.append(a)
                     i += 1
                 else:
+                    # Kill site 2: the sliver guard is allowed to collapse two
+                    # groups closer than `min_edge_length_m` (50-100 mm steps
+                    # survive clustering but die here). Record it only when the
+                    # two groups both carry support on the SAME floor -- a
+                    # purely cross-floor collapse is this parameter's stated
+                    # purpose and is already covered by `cross_floor_align`.
+                    for shared in sorted(set(a.support_by_floor) & set(b.support_by_floor)):
+                        record_same_floor_merge(
+                            shared,
+                            a.support_by_floor[shared] + b.support_by_floor[shared],
+                            "sliver_merge",
+                            "MIN_EDGE_LENGTH",
+                            (a.raw or b.raw or [a.canonical])[0],
+                        )
                     next_groups.append(_merge_axis_groups(a, b, tol))
                     merged_any = True
                     i += 2
@@ -653,6 +734,42 @@ def _reconcile_cross_floor(
                     "tolerance_name": "CROSS_FLOOR_ALIGN_TOL+SNAP_GRID+MIN_EDGE_LENGTH",
                 }
             )
+
+    # F-133: flush the same-floor merge ledger. `mapping` has settled, so each
+    # event can now name the value it actually landed on and how far each of the
+    # collapsed axes had to travel to get there.
+    for event in same_floor_merges:
+        resolved = _axis_value(
+            mapping.get(event["probe_raw"], event["values"][0])
+        )
+        values = event["values"]
+        deltas = [round(resolved - v, 4) for v in values]
+        audit.append(
+            {
+                "rule_id": "deterministic_core.same_floor_axis_merge",
+                "stage": "core",
+                "target": (
+                    f"{axis}.axis[{event['floor']}:"
+                    + "|".join(f"{v:.4f}" for v in values)
+                    + "]"
+                ),
+                "axis": axis,
+                "floor": event["floor"],
+                "step": event["step"],
+                "original_value": [round(v, 4) for v in values],
+                "resolved_value": round(resolved, 4),
+                "delta": max(deltas, key=abs),
+                "per_value_delta": deltas,
+                "separation": round(values[-1] - values[0], 4),
+                "tolerance_name": event["tolerance_name"],
+                "reason": (
+                    "two or more distinct axes on ONE floor were collapsed into a "
+                    "single canonical axis; if they were a real building step it "
+                    "is gone from the geometry (correction cannot tell a real "
+                    "step from model jitter -- see R-6)"
+                ),
+            }
+        )
 
     return mapping, audit
 
