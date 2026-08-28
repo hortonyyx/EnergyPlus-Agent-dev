@@ -94,6 +94,30 @@ lines together with ``tarch_wall_nonorthogonal`` / ``tarch_wall_free_end`` --
 and deciding whether such a denominator is scoreable is a policy question this
 file does not own.  What F-126 fixes is the SILENCE: those codes now ride out in
 ``diagnostics`` where a caller can see them.
+
+## The consistency readouts the converter already computed (2026-08-29, F-A)
+
+F-126's cross-review (F-A) pointed at the half this file owns: the converter
+computes its OWN verdicts and ``denominator()`` handed the downstream only
+``diagnostics``, dropping the rest on the floor.  So the return (and the
+exception) now also carry, measured on the shipped sm25-L anchor fixtures:
+
+  * ``gates`` -- ``run_p1_plan_view``'s own G1-G5 verdicts (id/name/passed).
+    MEASURED: signed ``plan-F1`` = G1..G3, G5 all pass; re-signed as-received =
+    G1 False (``tarch_wall_nonorthogonal`` is a G1 code) and G5 False.  ⚠️ "all
+    gates pass" is a property of the FIXTURE, not of this code -- the re-signed
+    fixture is the one that proves a ``gates`` lock can go red.
+  * localisation on every diagnostic -- ``handles`` + ``points_dxf_mm``, the
+    same pair the schema's own BLOCK-localisability validator uses.  MEASURED:
+    ``tarch_wall_degenerate_line`` has ``context == {}`` but carries handle
+    ``13DC`` + a DXF point; the old passthrough kept the empty context and
+    dropped both fields, so every diagnostic arrived saying WHAT, never WHERE.
+    ``locatable`` states presence/absence explicitly -- never fabricated.
+  * ``s4_dangles`` / ``s4_cuts`` / ``s4_invalid`` in the ledger -- S4's closure
+    counts.  MEASURED: signed 0/0/0; re-signed as-received 4/0/0 (which is why
+    G5 fails there).  S4's residual GEOMETRY (which endpoints dangle) is not on
+    ``P1PlanViewGeometry`` -- only counts are -- and the one localised dangle
+    point rides out on the ``tarch_wall_free_end`` diagnostic instead.
 """
 from __future__ import annotations
 
@@ -137,16 +161,21 @@ class DenominatorUnavailable(RuntimeError):
     keep using.  Everything the empty run knew is carried on the exception:
     ``reason`` (one of the two constants above), ``blocking_codes`` (the BLOCK
     diagnostic codes, named in ``str(exc)`` as well), the full ``diagnostics``
-    records, and the ``ledger`` counters of the run that came up empty.
+    records, the ``ledger`` counters of the run that came up empty, and (F-A)
+    the upstream's own ``gates`` verdicts -- MEASURED: even the hash-mismatch
+    empty geometry carries assembled gates (G1 False, G2 False), so dropping
+    them here would be the same silence F-126 closed on the success path.
     """
 
     def __init__(self, reason: str, *, view_id: str, floor_id: str,
-                 diagnostics: list[dict], ledger: dict) -> None:
+                 diagnostics: list[dict], ledger: dict,
+                 gates: list[dict]) -> None:
         self.reason = reason
         self.view_id = view_id
         self.floor_id = floor_id
         self.diagnostics = diagnostics
         self.ledger = ledger
+        self.gates = gates
         self.blocking_codes = sorted({d["code"] for d in diagnostics
                                       if d["severity"] == "BLOCK"})
         if reason == REASON_UPSTREAM_BLOCK:
@@ -169,17 +198,47 @@ def _diagnostic_records(geo) -> list[dict]:
     ``severity``/``stage`` are ``str`` enums and ``code`` is a plain ``Literal``
     string; normalise all three to bare strings so the result stays json-safe
     for ``main()``.
+
+    ⭐ F-A (2026-08-29): the LOCALISATION rides out too.  MEASURED on the signed
+    sm25-L anchor: ``tarch_wall_degenerate_line`` has ``context == {}`` yet
+    carries handle ``13DC`` and a DXF point in ``source_entity_handles`` /
+    ``source_points_dxf_mm`` -- exactly the pair this passthrough used to drop,
+    so a diagnostic could say "there is a degenerate line" while refusing to
+    say which one.  ``locatable`` mirrors the pair the schema's own
+    BLOCK-localisability validator uses (a BLOCK must carry a handle or a
+    point); it states "cannot be located" visibly instead of leaving the
+    absence silent.  ⛔ Nothing here fabricates a location: the fields are the
+    converter's own, copied, not derived.
     """
     out = []
     for d in geo.diagnostics:
+        handles = [str(h) for h in d.source_entity_handles]
+        points = [[float(p[0]), float(p[1])] for p in d.source_points_dxf_mm]
         out.append({
             "code": str(getattr(d.code, "value", d.code)),
             "severity": str(getattr(d.severity, "value", d.severity)),
             "stage": str(getattr(d.stage, "value", d.stage)),
             "action_code": d.action_code,
             "context": d.context,
+            "handles": handles,
+            "points_dxf_mm": points,
+            "locatable": bool(handles or points),
         })
     return out
+
+
+def _gate_records(geo) -> list[dict]:
+    """⭐ F-A producer half: the converter's own gate verdicts ride out.
+
+    ``run_p1_plan_view`` assembles G1 (input preflight) through G5 (topology
+    closure + area conservation) before handing back the geometry;
+    ``denominator()`` used to keep only ``diagnostics``, so "the upstream's own
+    G1 refused this input" was computed and then invisible to every caller.
+    id/name/passed only -- the ``evidence`` dict stays the converter's to
+    narrate; what a grader needs from here is the verdict, and the closure
+    counts behind G5 are exposed separately in the ledger.
+    """
+    return [{"id": g.id, "name": g.name, "passed": g.passed} for g in geo.gates]
 
 
 def _merge(spans: list[tuple[float, float]], gap_m: float) -> list[list[float]]:
@@ -388,12 +447,22 @@ def denominator(dxf: Path, request_path: Path, view_id: str, *,
                                 "lo_m": lo, "hi_m": hi,
                                 "width_m": round(hi - lo, 4)})
     diagnostics = _diagnostic_records(geo)              # ⭐ R1: always, every path
+    gates = _gate_records(geo)                          # ⭐ F-A: ditto, the G1-G5 verdicts
     result = {
         "rule_version": "denominator_v1",
         "view_id": view_id, "floor_id": view.floor_id,
         "params": {"merge_m": merge_m, "coordinate_round_decimals": QUANT},
         "ledger": {
             "wall_layer_segments_collected": len(geo.wall_lines),
+            # ⭐ F-A: S4's closure counts, straight off the converter's own
+            # topology pass.  "Is this wall closed / are there orphan segments"
+            # was ALREADY answered upstream; these three lines are what makes
+            # the answer reachable from the artifact.  (The residual geometry
+            # is not on P1PlanViewGeometry -- only the counts are -- so counts
+            # are all this file can hand out without touching the converter.)
+            "s4_dangles": geo.dangles,
+            "s4_cuts": geo.cuts,
+            "s4_invalid": geo.invalid,
             "excluded_jamb_caps_geometric": n_cap,
             "would_be_excluded_by_converter_length_rule": n_cap_by_converter,
             # ⭐ the count and its itemisation are built from ONE list, so they
@@ -424,6 +493,10 @@ def denominator(dxf: Path, request_path: Path, view_id: str, *,
         # ⛔ NOT a log line -- a log line is not in the artifact, and the artifact
         # is what the downstream reads.
         "diagnostics": diagnostics,
+        # ⭐ F-A: ...and so do its gate verdicts, same reason -- the downstream
+        # reads the artifact, and "G1 refused this input" lives in the artifact
+        # or it lives nowhere.
+        "gates": gates,
     }
     # ⭐⭐ R2: the loud failure.  Built the ledger first ON PURPOSE, so the
     # exception can carry everything the empty run did know.
@@ -432,7 +505,7 @@ def denominator(dxf: Path, request_path: Path, view_id: str, *,
             REASON_UPSTREAM_BLOCK if any(d["severity"] == "BLOCK" for d in diagnostics)
             else REASON_ZERO_TARGETS,
             view_id=view_id, floor_id=view.floor_id,
-            diagnostics=diagnostics, ledger=result["ledger"])
+            diagnostics=diagnostics, ledger=result["ledger"], gates=gates)
     return result
 
 
