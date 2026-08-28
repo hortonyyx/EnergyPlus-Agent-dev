@@ -297,17 +297,24 @@ EnergyPlus 经 `WorkflowTool.run_simulation`（eppy + ConverterManager，idfpy �
 > ⇒ **sol 的返工清单（B1/B2/B4/B5/B6）一一落在这五步里**，⛔ 不是另一批活。
 >
 > ### ⑤-b ⏭ 当前工作面（用户 08-29 定：**先把 gt 修完，再重做 sm25 的 gt**）
-> ✅ **B4-① 已收口**（`dc8821b` · GLM 跨家族审 **APPROVE-WITH-FINDINGS / 0 阻断 / 5 不阻断** ·
-> **主控权威全量 `3167 passed / 13 xfailed / 0 failed`** 带 `.pth` 哨兵 · 复核方独立同读数并独立推出 `3167−21=3146`）。
-> ✅ **F-126b 已收口**（`6ae582a` · orchestrator 判 APPROVE / 0 阻断）。
-> ⏭ **B4-②**（五条 findings + 平面标定锚点按「派生点」形式重签）—— 详见 [plan.md](plan.md) 的 B4-② 行。
+> ✅✅ **2026-08-29 五单全部过审**：**F-126**(`48f1d10`) · **F-126b**(`6ae582a`) · **B4-①**(`dc8821b`) ·
+> **F-A 生产方读数接线**(`cbaaeb9`) · **B4-②a 数值门**(`2757cb6`)。
+> **主控权威全量 `3146 → 3167 → 3195 passed / 13 xfailed / 0 failed`**，每轮带 `.pth` 前后哨兵；
+> ⭐ 末轮 **HEAD 跑前跑后同为 `2757cb6`**（⛔ 无第三方改树），算术 **`3167 + 28 = 3195`** 精确对上。
+> ⏭ **B4-②b**（F-A2 成对 offset 相等腿 + `PlanFrameCertificateV1` 接数值门 + `iter_affines` dict 分支
+> + F-C 版本机制 + F-D 指纹加宽 + 平面锚点重签）—— ⭐ 前三件复核方判「**十行内的活，可并单派**」；
+> 后三件**都要重签答案** ⇒ 随 **gt 重做**一起。详见 [plan.md](plan.md) 的 B4-②/B4-②b 两行。
 > ⭐⭐⭐ **其中 F-A 必须进 B4-② 的题面**：空间合同的牙**只随声明走**，盖章**按槽位、内容盲**
 > ⇒ 裸系数换槽**全绿通过、偏 12264.7 m**；且 `tarch_normalize.py` 里 `require_affine_spaces` **零调用**、
 > `_build_manifest` 今天仍产**裸 `Affine2D`** ⇒ **`/mpu` 算术回归会静默通过**。
 > ⭐ 复核方给的修法 = **加一条数值门**（同名两槽 `|det|` 相差恰好 `mpu²`，旋转不变、五行、⛔ 不进签名 payload）
 > —— 正好补上 sol B4 主张 2 要的**第二道门**（类型门 + 数值/证据门）。
+> ⭐⭐⭐ **另一条今日固化**：**「成对」不是唯一的检查形态。** orchestrator 与跨家族复核方
+> **同时**把 F-E 判成「潜伏」，病根都是拿「有没有成对的对照物」当唯一判据；
+> 换成**单侧自锚**（每个 affine 由它自己那份文档的 `mpu` 定死量级）后，**主力 case 上的存货从 0 变成 10**。
+> ⇒ **判一道门有没有牙，要问「它声称覆盖的每种量各自有没有被量到」，⛔ 不是「有没有对照物」。**
 > ```
-> 1. ~~B4-① affine 两端空间合同~~ ✅ 已收口   →  ⏭ **B4-②**（五条 findings + 锚点重签）
+> 1. ~~B4-① affine 两端空间合同~~ ✅ 已收口 · ~~B4-②a 数值门~~ ✅ 已收口  →  ⏭ **B4-②b**
 > 2.     事实层落库   as_measured + revisions + as_signed（坐标存 0.1mm 整数）
 > 3.     一致性检查   ⛔ 无阈值 · 靠【互为最近邻】收敛 · 排序不是阈值
 > 4.     渲染标注     复原式（⛔ 渲染器只照搬不推导）
@@ -337,6 +344,7 @@ EnergyPlus 经 `WorkflowTool.run_simulation`（eppy + ConverterManager，idfpy �
 
 | 日期 | 一句话 | 详档 |
 |---|---|---|
+| **2026-08-29** | ⭐⭐⭐ **用户一天定死 15 条口径**，gt 那条线**从「要不要两层」问到「事实层三截怎么落库」**（⛔ **两层 gt 撤销** · 出模两种+净空派生 · **内墙只能中轴**(EP InterZone) · **吸附按尺度切两半** · **事实层三截** `as_measured`+`revisions`+`as_signed` · 签字根挪事实层 · 坐标 0.1mm 整数 · 锚点允许**派生点** · 分辨率 1mm · **分族不绑颜色** · 落库四条 · rev-001 · 第一类提前 · 先不做 3D(**DXF→3D 是 CAD 模态输入的预演**)) · ✅✅ **五单全过审**（F-126 · F-126b · B4-① · F-A 接线 · B4-②a），权威全量 **3146→3167→3195** · ⭐⭐⭐ **结构性收获：「gt 的活」与「②-1 包」是同一件事** · ⭐⭐ **三条方法论**（**问题不在阈值在比对单位**——同一检查连错六版 625→1 · **零阈值 = 让被测对象自己提供尺子** · ⭐ **造尺子前先看仓库有没有**——闭合/孤立/封闭/零面积转换器早就算了，是 `denominator()` 把读数丢在地上） · ⚠️ **我方实犯七条**（派工题错 39/40/41 · `git add -A` 差点扫走在飞席位的半成品 · 拿 `echo` 退出码当席位的 · 一致性检查连错六版 · `mpu²` 写反 · **F-E 判成潜伏且与复核方同错** · 第 40 条只修了一半——共用工作树没隔离） | [B4-①裁决](logs/reviews/verdict/2026-08-29_b4_crossreview_glm_verdict.md) · [B4-②a裁决](logs/reviews/verdict/2026-08-29_b4_2a_crossreview_glm_verdict.md) · [落库方案](architecture/gt_revision_ledger.md) · [方法论](capability/geometry_consistency/README.md) · [实验档](logs/experiments/2026-08-29_gt_consistency_preview/README.md) · [plan.md 本日](plan.md) |
 | **2026-08-28** | ✅ **清障单四条一单清并过审**（`b1ad92a` · GLM **APPROVE-WITH-FINDINGS / 0 阻断 / 6 不阻断** · 主控权威全量 **3138 绿**带 `.pth` 哨兵 · 复核方独立同读数）· ⛔⛔ **第 ② 步架构对抗审 = REWORK / 6 条阻断** （三方流程首跑：我出题面 → GLM 共同出案 → sol 对抗审）· ⭐⭐⭐ **F-122 最贵**：逐边字段是**已扩张的答案**不是测量事实（`offset` 恒等式 136/136 · 272 端点全部离开 cavity）⇒ 事实包须在 S7 扩张前截取 · ⭐⭐⭐ **用户定方向：两层 gt、两道工序各判各的**（git 坐实截屏图对应修正前那份）· ⭐ **GLM 又找到我点名要的洞**（`os.walk` 回退腿骗过全部 10 把锁，F-127；⭐ 活化条件正是 F-117 的原处方，**已当场划掉**）· 新登记 **F-120…F-128** · ⚠️ **我方本日实犯三条**：拿「到外轮廓的垂距」当独立第二列去反驳（**同义反复**，发出前自己撤回）· 复核单四个行号全错（`grep -n` 数的是 diff 文本）· headless 席位日志空白读成死了 ⇒ **一度并行两个 GLM 会话** | [GLM 裁决](logs/reviews/verdict/2026-08-28_trust_root_batch_glm_verdict.md) · [sol 对抗审](logs/reviews/verdict/2026-08-28_joint_architecture_sol_review.md) · [GLM 出案](logs/reviews/verdict/2026-08-28_joint_architecture_glm_design.md) · [plan.md 本日](plan.md) |
 | **2026-08-27** | ✅✅ **第 ① 步收口**：**G1** + **F-97** 双双过审并回主线 · ⛔⛔ **事故：共享 venv 的 editable `.pth` 被改指到 `/tmp/ep_f97`、正好穿过一次权威全量窗口** ⇒ 「全仓绿」第四种假象，该轮读数作废重跑 · ⭐⭐⭐ **方法论两条固化**：返工审必加第三格「换同形输入仍走不通」· 停下上报触发器改**分层版** · ⭐⭐ **复核方当场推翻自己上一轮的逐字处方** <br>**夜后半场**：✅✅ **①-2′ 五步做完四步、第 2 步过审**（`60cc4ca`，主控权威全量 **3130 绿** 带 `.pth` 哨兵）· ⛔ **F-111 前提被推翻**（资料一直都在；真因是门只往一个**可清理目录**按固定文件名找，且 sm25 同样中招）· ⭐⭐⭐ **像素空间判别实验通过** ⇒ 「描图分挪像素空间」从待验证变成**已验证可行**，且**不需重写判分器** · ⭐ **逐点 holdout 补齐**（24 点/96 边 · max 0.85 px · 四档扫描持平）· ⭐⭐ **GLM 找到我点名要它找的洞**（回退腿骗过全部 6 把锁、17 passed 零红；我已独立复现并实测实害）· 新登记 **F-115…F-119** · ⚠️ **我方本夜实犯三条**：探针扰动次序写反 · 端点配对方向错（差点写下错结论）· 拿 `| tail` 的退出码当跑测结果（假绿，靠「产物写出来了吗」抓住）· 派工单累计题错 **38/38** | [GLM 裁决](logs/reviews/verdict/2026-08-27_signed_inputs_case_owned_glm_verdict.md) · [像素判分](logs/experiments/2026-08-27c_pixel_space_reading_grade/README.md) · [逐点 holdout](logs/experiments/2026-08-27d_judge_ruler_pointwise_holdout/README.md) · [.pth 事故](logs/experiments/2026-08-27_pth_hijack/) · [plan.md 本日](plan.md) |
 | **2026-08-26** | ⭐⭐⭐ **用户一天定死 12 条口径**（四步次序 · 出模两种分开排 · **reading=as-drawn 准 / correction=as-designed 规整** · reading 交证据 correction 有权翻案 · 语义升格计分四条全升 · **gt 三层 + 来源空间答案从 DXF 机械生成**）· ✅ **F-90 返工五项 GLM APPROVE 零阻断**（⭐⭐ 复核方自造「两层楼+二层零窗」端到端 32/32，证明换信任根收益真实兑现）· ✅ **F-95** 顶点规范化收窄为有序简单环（走廊 97.731→97.731）· ⭐ **sol 一体改架构意见到位**（推翻我方四条前提 + 六个工作包）· ⭐⭐ 两条排期结论：**gt 修正是前置不是后续** · **两种出模形式现在一种都没跑通** · ⛔ 我方本日实犯三条（验收对象挂在即将作废的产物上 · 验收标准跟着结果走 · 把具体报错码写死为判据）· 派工单累计题错 **35/35** | [GLM 裁决](logs/reviews/verdict/2026-08-26_f90_rework_glm_verdict.md) · [sol 设计](logs/reviews/verdict/2026-08-26_reading_correction_joint_architecture_sol_design.md) · [plan.md 本日](plan.md) |
