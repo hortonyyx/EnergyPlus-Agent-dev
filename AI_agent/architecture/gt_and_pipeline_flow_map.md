@@ -104,7 +104,7 @@
 
 | 层 | 信任根 |
 |---|---|
-| `as_measured` | `source.dxf` 哈希 + `request` 哈希 + **转换器实现指纹**（⛔ 后者 = sol 的 **B1**，未解） |
+| `as_measured` | `source.dxf` 哈希 + `request` 哈希 + **转换器实现指纹** ⚠️ **字段已填但【外部锚未解】**（②-1b 把它从 `None` 填成 13 文件 AST 闭包哈希，⛔ 仍是「代码算自己」；sol 的 **B1** 要的外部授权锚**未解**，施工方自认、GLM 复核确认）|
 | `revisions` | ⭐ **人的签字**（逐条）；整份 revisions 的哈希**进 `as_signed` 的派生键** |
 | `as_signed` | ⛔ **无独立信任根**（它是派生的），⭐ 但必须可复现 |
 
@@ -177,7 +177,7 @@
 | `AsMeasuredV1` schema + builder + 两道消费台账 + 0.1 mm 整数 | ✅ **产物已落盘** | [`as_measured.py`](../../src/agent/judge/as_measured.py)；②-1b（`9f0266b`）起落在 **`case_tests/test_baseline/gt_staging/sm25-L_anchor/facts/`**，⛔ **不是 `gt/` 答案根**（晋升接法未做，见下一行）。⚠️ **F-136**：消费台账守的是「收集到的」不是「看见的」 |
 | as-received 图 + 专用 request | ✅ | `gt_sources/sm25-L_anchor/` 有 `sm25-L_t3_as_received.dxf` + `request_as_measured.json` |
 | `walls` 走面线配对（⛔ 不用 `wall_bands`） | ✅ | ②-1a-R；旧 band 仍逐字留作 `converter_readouts.jamb_cap_bands` |
-| `revisions.json` 台账 + `as_signed.json` + 可复现门 + B1 指纹锚 | ✅ **已落地，⏳ 跨家族审在途** | ②-1b `9f0266b`+`2196723`；权威全量 **3292 passed / 13 xfailed / 0 failed**（`.pth` 哨兵前后同）。⚠️ 三条已知缺口：**F-137**（签 `translate` 后墙与面线静默失同步）· F-D legacy 豁免集合**今天无锁** · `gt_staging/` **无写保护** |
+| `revisions.json` 台账 + `as_signed.json` + 可复现门 + B1 指纹**字段** | 🟡 **已落地但判 REWORK** | ②-1b `9f0266b`+`2196723`；权威全量 **3292 passed / 13 xfailed / 0 failed**（`.pth` 哨兵前后同）。⛔ GLM 跨家族审 **REWORK / 阻断 1 条**（**F-137**）；不阻断项含 **F-139**（换轴伪装成 translate）· F-D legacy 豁免**今天无锁且已让 sm25 指纹信号死亡** · `gt_staging/` 无写保护 · **B1 外部锚未解** |
 | 晋升接法（`promote_gt_v3` 拷 `facts/` + 晋升前跑可复现门）+ **F-128** | ❌ | 随 gt 重做重签；②-1b 只留了接缝说明 |
 | `AnswerCompiler(profile)` + 两种出模形式 + 6a/6b/6c + 依赖闭包/局部计分 | ❌ | = **②-1c** |
 | 逐边 `boundary_condition` | ❌ | = **②-1d**（F-121） |
