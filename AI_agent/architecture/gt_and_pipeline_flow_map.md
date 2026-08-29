@@ -177,7 +177,7 @@
 | `AsMeasuredV1` schema + builder + 两道消费台账 + 0.1 mm 整数 | ✅ **产物已落盘** | [`as_measured.py`](../../src/agent/judge/as_measured.py)；②-1b（`9f0266b`）起落在 **`case_tests/test_baseline/gt_staging/sm25-L_anchor/facts/`**，⛔ **不是 `gt/` 答案根**（晋升接法未做，见下一行）。⚠️ **F-136**：消费台账守的是「收集到的」不是「看见的」 |
 | as-received 图 + 专用 request | ✅ | `gt_sources/sm25-L_anchor/` 有 `sm25-L_t3_as_received.dxf` + `request_as_measured.json` |
 | `walls` 走面线配对（⛔ 不用 `wall_bands`） | ✅ | ②-1a-R；旧 band 仍逐字留作 `converter_readouts.jamb_cap_bands` |
-| `revisions.json` 台账 + `as_signed.json` + 可复现门 + B1 指纹**字段** | 🟡 **已落地但判 REWORK** | ②-1b `9f0266b`+`2196723`；权威全量 **3292 passed / 13 xfailed / 0 failed**（`.pth` 哨兵前后同）。⛔ GLM 跨家族审 **REWORK / 阻断 1 条**（**F-137**）；不阻断项含 **F-139**（换轴伪装成 translate）· F-D legacy 豁免**今天无锁且已让 sm25 指纹信号死亡** · `gt_staging/` 无写保护 · **B1 外部锚未解** |
+| `revisions.json` 台账 + `as_signed.json` + 可复现门 + B1 指纹**字段** | 🟡 **返工已交付，⏳ 复审在途** | ②-1b `9f0266b`+`2196723`；权威全量 **3292 passed / 13 xfailed / 0 failed**（`.pth` 哨兵前后同）。②-1b-R（`201f47f`+`f140708`）已修 F-137 / F-139 / A1 集合锁 / F-136 守恒面；主控权威门 **3305 passed / 13 xfailed / 0 failed**（哨兵前后同 · HEAD 前后同 · **树跑前跑后皆空**）。⚠️ 仍开着：**F-140**（一致性门下限 0.5 mm 无名无锁）· `gt_staging/` 无写保护 · **B1 外部锚未解** |
 | 晋升接法（`promote_gt_v3` 拷 `facts/` + 晋升前跑可复现门）+ **F-128** | ❌ | 随 gt 重做重签；②-1b 只留了接缝说明 |
 | `AnswerCompiler(profile)` + 两种出模形式 + 6a/6b/6c + 依赖闭包/局部计分 | ❌ | = **②-1c** |
 | 逐边 `boundary_condition` | ❌ | = **②-1d**（F-121） |
