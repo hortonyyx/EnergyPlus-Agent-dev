@@ -217,4 +217,4 @@ tests/test_tarch_converter_reproducibility.py  13 -> 14   +1 条（R3 A1 自证�
 
 ## 七、Commit
 
-（见下方）
+`201f47f` on `08.23_AsDrawnReading`（11 files changed, 686 insertions(+), 36 deletions(-)）
