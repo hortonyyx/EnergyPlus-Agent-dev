@@ -77,6 +77,7 @@ from typing import Iterable, Literal
 
 from pydantic import Field, model_validator
 
+from .as_drawn import denominator as _denominator
 from .as_measured import (UNITS_PER_METRE, AsMeasuredFaceLineV1,
                           AsMeasuredV1, AsMeasuredViewV1, content_sha256)
 from .gt_schema import DxfHandle, Hex64, HumanLabel, StableId
@@ -286,16 +287,6 @@ def _group_along_extent(faces: list[AsMeasuredFaceLineV1]) -> tuple[int, int]:
     return min(f.along_min for f in faces), max(f.along_max for f in faces)
 
 
-#: Mirrors ``denominator.GROUP_QUANT`` (metres, decimal places) -- the D3
-#: grouping pass keys a face group on ``round(const_m, GROUP_QUANT)``, i.e.
-#: the nearest millimetre.  ``face_lo``/``face_hi`` on a wall are THAT
-#: rounded group coordinate, ⛔ not necessarily any one member stroke's own
-#: exact ``const`` -- ``AsMeasuredWallV1``'s own docstring documents this
-#: ("quantised at 1 mm ... where the two differ the group is listed in
-#: face_groups_with_a_split_const").
-_GROUP_QUANT_DECIMALS = 3
-
-
 def _group_const_of(face: AsMeasuredFaceLineV1) -> int:
     """The group coordinate a face line's OWN (possibly just-translated)
     ``const`` would land on.  ⛔ MUST be used instead of raw ``const`` here:
@@ -309,9 +300,35 @@ def _group_const_of(face: AsMeasuredFaceLineV1) -> int:
     and disagreement means a translate moved the const far enough to change
     which millimetre bucket it falls in -- the thing this gate exists to
     catch.
+
+    ⚠️ F-140 (GLM N-a, MEASURED): this gate's real resolution is NOT a
+    constant 0.5 mm -- it is "how far the line's current ``const`` sits from
+    the nearest millimetre-grid boundary", which is POSITION-DEPENDENT:
+    [0.1, 0.9+] mm on real data (a line sitting exactly at a group's centre
+    tolerates up to ~0.5 mm either way; a line already 0.4 mm off-centre
+    (a legitimate split-const member) tolerates as little as 0.1 mm moving
+    further off-centre before it crosses into the next millimetre).  This is
+    the correct, EXPECTED consequence of "the check must mirror the
+    producer's own rounding" (D3 quantises to 1 mm; a check built on the same
+    rounding inherits the same grid) -- ⛔ it is not a bug to smooth over with
+    a bigger or smaller single number.  ``test_f140_*`` below pins BOTH sides
+    of this real, position-dependent boundary rather than one arbitrary delta.
+
+    ⭐ F-140 (②-1b-S R5, GLM N-a): the rounding precision below reads
+    ``_denominator.GROUP_QUANT`` as a LIVE MODULE ATTRIBUTE (⛔ not a
+    module-level copy taken once at import time -- ``from ... import
+    GROUP_QUANT`` would bind an independent name and go silently stale the
+    instant the producer's own constant changed, which is EXACTLY the
+    failure GLM measured: mutating ``denominator.GROUP_QUANT`` in isolation
+    left this gate reporting SUCCESS on real sm25 data with zero revisions).
+    Reading the attribute through the module object means there is
+    STRUCTURALLY only one definition -- ``test_f140_the_grouping_constant_
+    tracks_the_live_module_attribute`` proves the coupling is live by
+    monkeypatching the producer's constant and observing this function's OWN
+    output move with it, not just asserting the two happen to be equal now.
     """
     metres = face.const / UNITS_PER_METRE
-    return round(round(metres, _GROUP_QUANT_DECIMALS) * UNITS_PER_METRE)
+    return round(round(metres, _denominator.GROUP_QUANT) * UNITS_PER_METRE)
 
 
 def _verify_walls_still_match_their_face_lines(view: AsMeasuredViewV1) -> None:
@@ -369,6 +386,45 @@ def _verify_walls_still_match_their_face_lines(view: AsMeasuredViewV1) -> None:
                 f"overlap is [{expected_along_min},{expected_along_max}]")
 
 
+def _refresh_split_const_groups(view: AsMeasuredViewV1) -> AsMeasuredViewV1:
+    """⭐ F-142 (②-1b-S R5, GLM complementary): a ``face_groups_with_a_split_
+    const`` entry names its member handles' ``const`` values AT AS-MEASURED
+    TIME.  MEASURED (GLM): translating 140E by -1 unit (0.1 mm, still inside
+    its own millimetre group -- a legal, F-137-approved move) leaves the
+    registry entry's ``member_consts`` reading the OLD value (159396) while
+    the actual face line now reads 159395 -- the diagnostic and the geometry
+    it describes have gone out of sync.
+
+    ⛔ NOT a second grouping decision: this does not re-run D3 (which handles
+    belong to which group is UNCHANGED, since a translate never moves a
+    handle across ``face_line_ids_lo``/``_hi`` membership -- that would be a
+    different kind of edit entirely).  It only RE-READS the same named
+    handles' CURRENT ``const`` off the already-updated ``face_lines``, and
+    drops the entry outright if the translate happened to move every member
+    back onto the group coordinate (the entry would otherwise claim a split
+    that no longer exists -- an honest reading of "no longer split" beats a
+    silently-stale "still split").
+    """
+    r = view.converter_readouts
+    if not r.face_groups_with_a_split_const:
+        return view
+    by_id = {f.id: f for f in view.face_lines}
+    refreshed: list[dict] = []
+    for group in r.face_groups_with_a_split_const:
+        current = sorted({by_id[h].const for h in group["handles"] if h in by_id})
+        if any(const != group["group_const"] for const in current):
+            refreshed.append({**group, "member_consts": current})
+        # else: the translate moved every member back onto the group
+        # coordinate -- this group is no longer split, so it is dropped
+        # rather than carried forward with a now-false claim.
+    if refreshed == r.face_groups_with_a_split_const:
+        return view          # nothing moved -- ⛔ avoid a spurious rebuild
+    return AsMeasuredViewV1.model_validate({
+        **view.model_dump(mode="json"),
+        "converter_readouts": {**r.model_dump(mode="json"),
+                               "face_groups_with_a_split_const": refreshed}})
+
+
 def derive_as_signed(as_measured: AsMeasuredV1, revisions: RevisionsLedgerV1) -> AsSignedV1:
     """⭐ THE mechanical derivation (ledger §六).  Pure: no file I/O.
 
@@ -406,9 +462,10 @@ def derive_as_signed(as_measured: AsMeasuredV1, revisions: RevisionsLedgerV1) ->
             raise AsSignedReproductionError(
                 f"as_signed_translate_target_not_found:{target.handle} "
                 f"(revision {revision.id}, view {target.view_id})")
-        by_view[target.view_id] = AsMeasuredViewV1.model_validate(
+        updated_view = AsMeasuredViewV1.model_validate(
             {**view.model_dump(mode="json"),
              "face_lines": [f.model_dump(mode="json") for f in new_faces]})
+        by_view[target.view_id] = _refresh_split_const_groups(updated_view)
 
     views = [by_view[v.view_id] for v in as_measured.views]   # preserve original order
     for view in views:
@@ -430,7 +487,30 @@ _FACE_LINE_SCALAR_FIELDS: tuple[str, ...] = ("const", "along_min", "along_max")
 
 
 def _index_face_lines_by_handle(doc: AsMeasuredV1) -> dict[str, tuple[str, AsMeasuredFaceLineV1]]:
-    return {face.id: (view.view_id, face) for view in doc.views for face in view.face_lines}
+    """⭐ F-141 (②-1b-S R5, GLM's N-7, "具体化"): a dict comprehension over
+    ALL views silently lets a LATER view's entry overwrite an EARLIER one for
+    the same handle -- ⛔ real sm25 data does not trigger this today (F1∩F2
+    face-line-handle intersection measured empty), but the failure mode is
+    real and dangerous: ``detect_translate_candidates`` would then compare
+    against the WRONG view's line while still reporting the candidate's
+    ``target.view_id`` as the intended (different) view -- "compares the
+    wrong line, signs onto the right-looking view", the shape GLM's F-1
+    (axis/layer) finding is the sibling of.  ⛔ Raising here, rather than
+    silently keeping either the first or the last, is the only response that
+    does not itself pick a winner for a data shape this function has no way
+    to judge.
+    """
+    out: dict[str, tuple[str, AsMeasuredFaceLineV1]] = {}
+    for view in doc.views:
+        for face in view.face_lines:
+            if face.id in out and out[face.id][0] != view.view_id:
+                raise ValueError(
+                    f"as_measured_face_line_handle_reused_across_views:{face.id} "
+                    f"appears in both {out[face.id][0]!r} and {view.view_id!r} -- "
+                    "detect_translate_candidates cannot know which view a "
+                    "revision naming this handle targets")
+            out[face.id] = (view.view_id, face)
+    return out
 
 
 def detect_translate_candidates(before: AsMeasuredV1, after: AsMeasuredV1,
@@ -496,19 +576,35 @@ def detect_translate_candidates(before: AsMeasuredV1, after: AsMeasuredV1,
         # of what was compared.  ⛔ MUST be checked BEFORE the scalar diff --
         # comparing const/along_min/along_max across different axes is not
         # merely "no candidate", it is comparing the wrong quantities.
-        if before_face.axis != after_face.axis:
+        # ⭐ F-141 (②-1b-S R5, GLM's F-1/N-6 "第7种同形输入·主"): the axis check
+        # above stops comparing const/along across a coordinate-TYPE change,
+        # but a LAYER change is the other half of the same sentence -- a
+        # handle that used to be a WALL face line and is now, say, an
+        # AXIS-GRID reference line is not "the same wall line, moved"; it is
+        # not the same kind of entity at all, and a numeric coincidence on
+        # const/along must not be signed as if it were.  MEASURED (GLM):
+        # before ``layer`` was checked, a WALL->AXIS-GRID handle with a
+        # coincidental small const delta was reported as a well-formed
+        # ``translate`` candidate with no mention of the layer change
+        # anywhere in ``finding.detail``.
+        if before_face.axis != after_face.axis or before_face.layer != after_face.layer:
+            changed = ([f"axis {before_face.axis!r}->{after_face.axis!r}"]
+                      if before_face.axis != after_face.axis else []) + (
+                      [f"layer {before_face.layer!r}->{after_face.layer!r}"]
+                      if before_face.layer != after_face.layer else [])
             out.append(RevisionV1(
                 id=f"rev-{handle.lower()}", target=target,
                 finding=RevisionFindingV1(
-                    check="face_line_axis_changed",
+                    check="face_line_identity_changed",
                     detail=(
-                        f"handle {handle} runs along axis {before_face.axis!r} in the "
-                        f"first drawing and {after_face.axis!r} in the second; const on "
-                        "one axis is a DIFFERENT physical coordinate than const on the "
-                        "other (an x-intercept is not commensurable with a y-intercept), "
-                        "so no scalar field of this face line can be compared numerically "
-                        "-- not expressible as a translate; needs an action kind ①'s "
-                        "'遇到再加' has not implemented yet")),
+                        f"handle {handle} changed identity between the two drawings "
+                        f"({'; '.join(changed)}); const on one axis is a DIFFERENT "
+                        "physical coordinate than const on the other, and a layer "
+                        "change means this may no longer even be the same KIND of "
+                        "line -- no scalar field of this face line can be compared "
+                        "numerically across that change, so this is not expressible "
+                        "as a translate; needs an action kind ①'s '遇到再加' has not "
+                        "implemented yet")),
                 verdict="unsigned"))
             continue
         diffs = [(field, getattr(after_face, field) - getattr(before_face, field))

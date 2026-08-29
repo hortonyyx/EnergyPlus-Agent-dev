@@ -8,7 +8,14 @@ only**:
                         non-axis-parallel rejected
   S1  coordinate quantize   ``q = tau_node/10`` (a derived value); G2 conservation
                         (quantize may denoise but never merge two coords > tau_node
-                        apart); zero-length (degenerate) lines bookkept as INFO
+                        apart); zero-length (degenerate) lines bookkept as INFO;
+                        a stroke whose two legs both exceed ``tau_axis`` is
+                        SNAPPED onto its dominant axis (short leg -> zero) when
+                        the short leg is within ``AXIS_SNAP_MAX_DEVIATION_M``
+                        (⛔⛔ a PLACEHOLDER pending sign-off, dispatch ②-1b-S
+                        R1) and itemised as ``tarch_wall_axis_snapped``
+                        (INFO); beyond that threshold it is still refused,
+                        unchanged, as ``tarch_wall_nonorthogonal`` (BLOCK)
   S2  wall collect + jamb-cap identification  the short cross-section lines are
                         thickness evidence kind #2 (``wall_cap_or_opening_jamb``);
                         the legal thickness *range* is a sanity bound only, never
@@ -36,10 +43,19 @@ Hard disciplines enforced here (dispatch §2 / plan §2):
      [t_min, t_max] range is a sanity filter, not a source.  No
      ``DEFAULT_WALL_THICKNESS`` / ``MAX_WALL_PAIR_DISTANCE`` constant.
   3. non-exact-orthogonal — axis-ness is decided by ``|dx|,|dy| <= tau_axis``,
-     never by float ``==`` (D: walls deviate up to 1.31e-10 mm).
+     never by float ``==`` (D: walls deviate up to 1.31e-10 mm); a stroke that
+     fails this may still be admitted by the SNAP path above rather than
+     dropped, but the decision is still a named threshold, never a re-run of
+     float ``==``.
   4. no fabricated tolerance — every threshold is read from ``judge_gt.yaml`` via
      :func:`resolve_converter_tooling`; the quantization step is derived
-     (``tau_node/10``), not a config key.
+     (``tau_node/10``), not a config key.  ⛔ ONE declared exception:
+     ``AXIS_SNAP_MAX_DEVIATION_M`` is a plain module constant, not a
+     ``judge_gt.yaml`` key — deliberately, because it is an UNSIGNED
+     placeholder and that schema's serialized form is baked into every
+     already-signed gt.json's content hash (see the constant's own
+     docstring for the empirical proof this would otherwise be silently
+     unsafe).
   5. gt isolation — this module is judge-side.  Tianzheng layer names, block-name
      prefixes and the view-frame convention are read ONLY from the request's
      :class:`TarchDialectRulesV1` / selectors, never from a module constant.
@@ -77,8 +93,46 @@ from .tarch_converter_schema import (
     compute_source_map_sha256, derive_quantization_step,
     diagnostic_spec)
 
+#: ⛔⛔ PLACEHOLDER, PENDING USER SIGN-OFF — dispatch ②-1b-S R1 (2026-08-29).
+#:
+#: What it decides: once a collected wall-line stroke's two legs (|dx|, |dy|)
+#: BOTH exceed ``tau_axis`` (``dxf_axis_alignment_tolerance_m``, 1 mm — i.e. it
+#: is not already axis-aligned within measurement noise), this value is the
+#: line between "drawn crooked" (admit: snap the SHORT leg to zero, see
+#: ``_snap_short_leg_to_axis``) and "a real diagonal line" (still refused,
+#: unchanged ``tarch_wall_nonorthogonal`` BLOCK + drop).
+#:
+#: ⭐ Why it exists as a SEPARATE constant and not a new key on
+#: ``judge_gt.yaml`` / ``GtExtractionTolerancesV1``: EMPIRICALLY VERIFIED
+#: (②-1b-S execution report) that adding even an OPTIONAL field with a
+#: default to that schema flips ``gt_hash_content_mismatch`` on the real
+#: SIGNED ``sm25-L_anchor/gt.json`` — that schema's serialized form is baked
+#: into every already-signed gt.json's ``content_sha256``.  This value is
+#: explicitly UNSIGNED and must never silently enter that trust root before a
+#: human signs it off, so it lives here instead, exactly as ``MERGE_M`` in
+#: ``as_drawn/denominator.py`` is a plain declared module constant rather than
+#: a ``judge_gt.yaml`` key (same precedent, same reason: a domain parameter
+#: that is declared and swept, not yet a signed tolerance).
+#:
+#: ⭐ Value: the SMALLEST round number (0.1 mm-grid) that admits the two real
+#: instances measured across every in-scope case (sm24_anchor signed,
+#: sm25-L_anchor signed, sm25-L_anchor as-received — the only fixtures that
+#: run through this converter; ``sm21_anchor`` ships no ``request.json`` and
+#: is not converted through this path at all, see
+#: ``tests/test_affine_magnitude_gate.py::UNSIGNED_ANCHORS``) —
+#: sm25 as-received ``plan-F1`` handles 13AD (minor leg 5.8084 mm) and 13AE
+#: (minor leg 5.8087 mm), the ONLY two ``tarch_wall_nonorthogonal`` diagnostics
+#: that exist anywhere in the in-scope corpus today.  It is NOT a considered
+#: engineering judgement — see the ②-1b-S execution report's "阈值" section for
+#: the full distribution (n=2, both ~5.81 mm, both from the same physical
+#: drafting slip) and the stop-and-report this dispatch requires before any
+#: value here may be treated as final.
+AXIS_SNAP_MAX_DEVIATION_M = 0.006
+
+
 # --------------------------------------------------------------------------- #
 # Tolerance bundle — the only thresholds, all from judge_gt.yaml
+# (+ AXIS_SNAP_MAX_DEVIATION_M above, deliberately NOT from judge_gt.yaml)
 # --------------------------------------------------------------------------- #
 @dataclass(frozen=True)
 class _Tols:
@@ -87,6 +141,8 @@ class _Tols:
     node_join_m: float           # tau_node   (quantize base, node merge)
     axis_align_m: float          # tau_axis   (orthogonality)
     topo_area_m2: float          # tau_area   (area conservation)
+    #: ⛔ PLACEHOLDER, pending sign-off — see ``AXIS_SNAP_MAX_DEVIATION_M``.
+    axis_snap_max_m: float = AXIS_SNAP_MAX_DEVIATION_M
     @property
     def node_join_native(self) -> float:
         return self.node_join_m / self.metres_per_unit
@@ -96,16 +152,52 @@ class _Tols:
         return self.axis_align_m / self.metres_per_unit
 
     @property
+    def axis_snap_max_native(self) -> float:
+        return self.axis_snap_max_m / self.metres_per_unit
+
+    @property
     def quant_native(self) -> float:
         # q = tau_node / 10, expressed in the DXF native unit (mm for sm24).
         return self.node_join_native / 10.0
 
-def _tols_from(tooling, metres_per_unit: float, _legacy_unused: float | None = None) -> _Tols:
+def _tols_from(tooling, metres_per_unit: float, _legacy_unused: float | None = None,
+              *, axis_snap_max_m: float = AXIS_SNAP_MAX_DEVIATION_M) -> _Tols:
     t = tooling.tolerances
     return _Tols(metres_per_unit=metres_per_unit,
                  node_join_m=t.dxf_node_join_tolerance_m,
                  axis_align_m=t.dxf_axis_alignment_tolerance_m,
-                 topo_area_m2=t.dxf_topology_area_tolerance_m2)
+                 topo_area_m2=t.dxf_topology_area_tolerance_m2,
+                 axis_snap_max_m=axis_snap_max_m)
+
+
+def _snap_short_leg_to_axis(sx0: float, sy0: float, sx1: float, sy1: float
+                            ) -> tuple[float, float, float, float, str]:
+    """Zero out the SHORT leg of a (dx, dy) pair; the LONG leg's endpoints are
+    never touched.  Returns ``(sx0', sy0', sx1', sy1', snapped_axis)``.
+
+    ⛔ NOT part of the pending-sign-off threshold (dispatch ②-1b-S §二 R1's
+    "另一条设计约束" is stated as fixed, not up for signature): only WHICH
+    lines get snapped is pending; HOW a snap is done is fixed by the dispatch
+    to "snap the short leg to zero, never move the long-leg-direction
+    endpoints, never change the along-wall interval".
+
+    ``snapped_axis`` names the axis whose coordinate was collapsed to one
+    shared value -- "x" if x0/x1 were made equal (the wall now runs along y),
+    "y" if y0/y1 were made equal (runs along x).  The shared value is the
+    MIDPOINT of the two raw endpoints on that axis: the dispatch fixes "zero
+    the short leg" but not which of the two original values survives, and the
+    midpoint is the only symmetric choice (no arbitrary bias toward whichever
+    endpoint the DXF happened to list first) that still satisfies both fixed
+    constraints -- it moves neither long-leg-direction coordinate (so the
+    along-wall span in ``along_min``/``along_max`` is bit-for-bit unchanged)
+    and it does not touch which axis the wall runs along.
+    """
+    dx, dy = abs(sx1 - sx0), abs(sy1 - sy0)
+    if dx <= dy:
+        mid_x = (sx0 + sx1) / 2.0
+        return mid_x, sy0, mid_x, sy1, "x"
+    mid_y = (sy0 + sy1) / 2.0
+    return sx0, mid_y, sx1, mid_y, "y"
 
 
 # --------------------------------------------------------------------------- #
@@ -390,14 +482,42 @@ def _collect_walls(msp, plan_view: PlanViewIntentV1, request: TarchConversionReq
         if not (_point_strictly_inside(sx0, sy0, clip) and _point_strictly_inside(sx1, sy1, clip)):
             continue
         all_handles.add(e.dxf.handle)
-        # S1 orthogonality (non-exact): reject if both legs exceed tau_axis.
-        if abs(sx1 - sx0) > tau_axis and abs(sy1 - sy0) > tau_axis:
-            _add(diags, _diag("tarch_wall_nonorthogonal",
-                              handles=[e.dxf.handle],
-                              points_dxf_mm=[(sx0, sy0), (sx1, sy1)]))
-            continue
+        # S1 orthogonality (non-exact): both legs > tau_axis means the stroke
+        # is not already axis-aligned within measurement noise.  ⭐ dispatch
+        # ②-1b-S R1: this used to be an unconditional drop.  It no longer is --
+        # ⛔⛔ but the line between "drawn crooked, snap it" and "a real
+        # diagonal, still refuse it" (``axis_snap_max_native``) is an EXPLICIT
+        # PLACEHOLDER PENDING USER SIGN-OFF, see ``AXIS_SNAP_MAX_DEVIATION_M``.
+        dx_raw, dy_raw = abs(sx1 - sx0), abs(sy1 - sy0)
+        snapped: tuple[tuple[float, float], tuple[float, float], str, float] | None = None
+        if dx_raw > tau_axis and dy_raw > tau_axis:
+            minor_leg = min(dx_raw, dy_raw)
+            if minor_leg <= tols.axis_snap_max_native:
+                before_p0, before_p1 = (sx0, sy0), (sx1, sy1)
+                sx0, sy0, sx1, sy1, snapped_axis = _snap_short_leg_to_axis(sx0, sy0, sx1, sy1)
+                snapped = (before_p0, before_p1, snapped_axis, minor_leg)
+            else:
+                # genuinely diagonal (beyond the admission threshold) --
+                # ⛔ UNCHANGED from before this dispatch: still refused.
+                _add(diags, _diag("tarch_wall_nonorthogonal",
+                                  handles=[e.dxf.handle],
+                                  points_dxf_mm=[(sx0, sy0), (sx1, sy1)]))
+                continue
         x0, y0 = _quantize(sx0, q), _quantize(sy0, q)
         x1, y1 = _quantize(sx1, q), _quantize(sy1, q)
+        if snapped is not None:
+            # ⭐ emitted AFTER quantization so "after_p0"/"after_p1" are the
+            # EXACT coordinates that end up in ``wall_lines`` -- a consumer
+            # can therefore verify this record against the resulting face
+            # line bit-for-bit, not against an intermediate value.
+            before_p0, before_p1, snapped_axis, minor_leg = snapped
+            _add(diags, _diag("tarch_wall_axis_snapped",
+                              handles=[e.dxf.handle],
+                              points_dxf_mm=[(x0, y0), (x1, y1)],
+                              context={"before_p0": list(before_p0),
+                                       "before_p1": list(before_p1),
+                                       "snapped_axis": snapped_axis,
+                                       "minor_leg_mm": minor_leg}))
         # G2 conservation bookkeeping (per axis, pre vs post quantize)
         for src, snap in ((sx0, x0), (sx1, x1)):
             source_x.setdefault(snap, []).append(src)

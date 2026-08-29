@@ -399,6 +399,147 @@ def test_f137_g_split_const_group_is_not_a_false_positive():
 
 
 # =========================================================================== #
+# F-140 (②-1b-S R5, GLM N-a) -- the gate's real resolution is POSITION-
+# DEPENDENT (a group-centre line and a split-const line cross their
+# millimetre boundary at different deltas), and the RED side of that
+# boundary had no test pinning it before this battery (test_f137_a's delta=
+# 500 is 100x past the edge and says nothing about WHERE it is).
+# =========================================================================== #
+def test_f140_a_group_centre_line_crossing_the_boundary_is_caught():
+    """1A1 sits EXACTLY on its group's rounding centre (const=1000, no
+    split).  MEASURED (this synthetic fixture): delta=1/2/3/4 units (up to
+    0.4 mm) all stay in the SAME millimetre group; delta=5 (0.5 mm) is the
+    smallest that reliably crosses -- pinning the red side here, ⛔ not just
+    trusting that SOME big-enough delta eventually gets caught."""
+    doc = _minimal_doc()
+    ledger = RevisionsLedgerV1(case="synthetic", as_measured_content_sha256=content_sha256(doc),
+                              revisions=[_signed_revision(handle="1A1", field="const", delta=5)])
+    with pytest.raises(AsSignedReproductionError, match="as_signed_wall_face_lo_disagrees"):
+        derive_as_signed(doc, ledger)
+
+
+def test_f140_b_a_split_const_line_crosses_at_a_different_delta_than_the_centre_line():
+    """⭐⭐ The position-dependence itself, pinned: the SAME 1A1 handle, now
+    pre-existing 0.4 mm off its group centre (the ``test_f137_g`` shape,
+    const=996 vs group_const=1000), crosses its boundary at delta=-2 units
+    (-0.2 mm) -- a SMALLER magnitude than the centre line's delta=5 needed
+    above, because it started closer to the edge.  ⛔ If this gate's real
+    resolution were the constant "~0.5 mm" ``test_f137_g``'s old docstring
+    said, delta=-2 would stay green; it does not."""
+    view = _minimal_view()
+    faces = list(view.face_lines)
+    faces[0] = AsMeasuredFaceLineV1.model_validate(
+        {**faces[0].model_dump(mode="json"), "const": 996})   # 0.4mm off face_lo=1000
+    view = AsMeasuredViewV1.model_validate(
+        {**view.model_dump(mode="json"),
+         "face_lines": [f.model_dump(mode="json") for f in faces]})
+    doc = AsMeasuredV1.model_validate({
+        **_minimal_doc().model_dump(mode="json"),
+        "views": [view.model_dump(mode="json")]})
+    ledger = RevisionsLedgerV1(case="synthetic", as_measured_content_sha256=content_sha256(doc),
+                              revisions=[_signed_revision(handle="1A1", field="const", delta=-2)])
+    with pytest.raises(AsSignedReproductionError, match="as_signed_wall_face_lo_disagrees"):
+        derive_as_signed(doc, ledger)
+    # ⭐ the smaller-magnitude neighbour (-1) must still be GREEN -- the exact
+    # boundary this test claims, not "somewhere in the neighbourhood of -2"
+    green_ledger = RevisionsLedgerV1(
+        case="synthetic", as_measured_content_sha256=content_sha256(doc),
+        revisions=[_signed_revision(handle="1A1", field="const", delta=-1)])
+    derive_as_signed(doc, green_ledger)   # must NOT raise
+
+
+def test_f140_the_grouping_constant_tracks_the_live_module_attribute(monkeypatch):
+    """⭐⭐ F-140's real fix, made an executable fact: the coupling to
+    ``denominator.GROUP_QUANT`` is LIVE (read through the module object each
+    call), ⛔ not a value copied into a local name at import time -- a
+    ``from ... import GROUP_QUANT`` copy would go silently stale the instant
+    the producer's constant changed, which is EXACTLY GLM's measured finding
+    (mutating ``GROUP_QUANT`` in isolation left this gate SILENTLY reporting
+    SUCCESS on real sm25 data with zero revisions).  Proved here by actually
+    monkeypatching the producer's constant and observing ``_group_const_of``'s
+    OWN output move with it -- not by asserting the two happen to be equal
+    right now, which a stale copy would also satisfy on an unmutated tree.
+    """
+    import src.agent.judge.gt_revisions as gr
+    from src.agent.judge.as_drawn import denominator as den
+
+    face = _face("ABCD", const=15955)   # 1.5955 m
+    before = gr._group_const_of(face)
+    assert before == 15950, "premise: rounds to the nearest millimetre (GROUP_QUANT=3)"
+
+    monkeypatch.setattr(den, "GROUP_QUANT", 2)   # nearest CENTIMETRE instead
+    after = gr._group_const_of(face)
+    assert after == 16000, (
+        f"_group_const_of did not react to denominator.GROUP_QUANT changing "
+        f"(still {after}) -- the coupling is a stale copy, not live")
+    assert after != before
+
+
+# =========================================================================== #
+# F-142 (②-1b-S R5, GLM complementary) -- ``face_groups_with_a_split_const``
+# must not go stale after an in-group translate touches one of its members.
+# =========================================================================== #
+def test_f142_an_in_group_translate_refreshes_the_split_const_registry():
+    """⭐⭐ MEASURED (GLM): signing 140E's shape (a legal, F-137-approved
+    in-group translate: const moves from 996 to 995, still inside the SAME
+    millimetre group -- ``test_f140_b``'s green boundary) left the registry
+    entry's ``member_consts`` reading the OLD value (996) while the face
+    line it names now reads 995 -- diagnostic and geometry desynced.  After
+    the F-142 fix, the registry entry must read the CURRENT const.
+    """
+    view = _minimal_view()
+    faces = list(view.face_lines)
+    faces[0] = AsMeasuredFaceLineV1.model_validate(
+        {**faces[0].model_dump(mode="json"), "const": 996})   # 0.4mm split, group_const=1000
+    readouts = view.converter_readouts.model_dump(mode="json")
+    readouts["face_groups_with_a_split_const"] = [{
+        "axis": "y", "group_const": 1000, "member_consts": [996], "handles": ["1A1"]}]
+    view = AsMeasuredViewV1.model_validate(
+        {**view.model_dump(mode="json"),
+         "face_lines": [f.model_dump(mode="json") for f in faces],
+         "converter_readouts": readouts})
+    doc = AsMeasuredV1.model_validate({
+        **_minimal_doc().model_dump(mode="json"),
+        "views": [view.model_dump(mode="json")]})
+    # in-group translate: 996 -> 995, still inside [995.5-0.5mm window] i.e.
+    # group_const stays 1000 (test_f140_b's own green boundary, delta=-1)
+    ledger = RevisionsLedgerV1(case="synthetic", as_measured_content_sha256=content_sha256(doc),
+                              revisions=[_signed_revision(handle="1A1", field="const", delta=-1)])
+    signed = derive_as_signed(doc, ledger)
+    signed_view = signed.views[0]
+    group = signed_view.converter_readouts.face_groups_with_a_split_const
+    assert len(group) == 1, "the group is still split (995 != group_const 1000) -- not dropped"
+    assert group[0]["member_consts"] == [995], (
+        "the registry entry still reads the OLD const (996) after a translate "
+        f"moved it to 995 -- got {group[0]['member_consts']}")
+
+
+def test_f142_a_translate_that_fully_closes_the_split_drops_the_entry():
+    """The other direction: if a translate moves every member back onto the
+    group coordinate, the entry no longer describes a real split and must be
+    DROPPED, not carried forward claiming a split that no longer exists."""
+    view = _minimal_view()
+    faces = list(view.face_lines)
+    faces[0] = AsMeasuredFaceLineV1.model_validate(
+        {**faces[0].model_dump(mode="json"), "const": 996})
+    readouts = view.converter_readouts.model_dump(mode="json")
+    readouts["face_groups_with_a_split_const"] = [{
+        "axis": "y", "group_const": 1000, "member_consts": [996], "handles": ["1A1"]}]
+    view = AsMeasuredViewV1.model_validate(
+        {**view.model_dump(mode="json"),
+         "face_lines": [f.model_dump(mode="json") for f in faces],
+         "converter_readouts": readouts})
+    doc = AsMeasuredV1.model_validate({
+        **_minimal_doc().model_dump(mode="json"),
+        "views": [view.model_dump(mode="json")]})
+    # translate the member exactly onto the group coordinate: 996 -> 1000
+    ledger = RevisionsLedgerV1(case="synthetic", as_measured_content_sha256=content_sha256(doc),
+                              revisions=[_signed_revision(handle="1A1", field="const", delta=4)])
+    signed = derive_as_signed(doc, ledger)
+    assert signed.views[0].converter_readouts.face_groups_with_a_split_const == []
+
+
+# =========================================================================== #
 # detect_translate_candidates -- R1's "机器算出" detector
 # =========================================================================== #
 def test_detect_a_single_field_translate():
@@ -467,6 +608,109 @@ def test_detect_axis_swap_with_numeric_coincidence_is_not_reported_as_translate(
     assert len(candidates) == 1
     assert candidates[0].candidate_action is None, (
         "an axis-swapped numeric coincidence must NOT be reported as a translate")
-    assert candidates[0].finding.check == "face_line_axis_changed"
+    # ⭐ ②-1b-S R5/F-141: renamed from "face_line_axis_changed" -- the same
+    # check code now also covers a layer-identity change (F-141's own test
+    # below), so the name no longer promises "axis" specifically.
+    assert candidates[0].finding.check == "face_line_identity_changed"
     assert "axis" in candidates[0].finding.detail.lower()
     assert candidates[0].verdict == "unsigned"
+
+
+def test_detect_layer_swap_with_numeric_coincidence_is_not_reported_as_translate():
+    """⭐⭐ F-141 (②-1b-S R5, GLM's F-1: "第7种同形输入·主"): same shape as the
+    axis-swap test above, LAYER instead of axis -- before is a WALL line,
+    after is the SAME handle now on ``AXIS-GRID`` (no longer even a wall
+    stroke), with a numerically plausible const delta.  ⛔ Without this
+    check (i.e. reverting the ``or before_face.layer != after_face.layer``
+    half of the R1 fix) this is exactly GLM's measured finding: reported as
+    a well-formed ``translate`` with ``finding.detail`` never mentioning
+    layer.  MEASURED here that it does NOT reproduce with the fix live --
+    the mutation direction is asserted explicitly (see next test) so this
+    one is not vacuously green.
+    """
+    before = _minimal_doc()
+    after_view = _minimal_view()
+    relabelled = AsMeasuredFaceLineV1.model_validate({
+        **after_view.face_lines[0].model_dump(mode="json"),
+        "layer": "AXIS-GRID", "const": 990})   # was layer="WALL", const=1000
+    after_view = AsMeasuredViewV1.model_validate({
+        **after_view.model_dump(mode="json"),
+        "face_lines": [relabelled.model_dump(mode="json"),
+                      after_view.face_lines[1].model_dump(mode="json"),
+                      after_view.face_lines[2].model_dump(mode="json")]})
+    after = AsMeasuredV1.model_validate({**before.model_dump(mode="json"),
+                                        "views": [after_view.model_dump(mode="json")]})
+    candidates = detect_translate_candidates(before, after, ["1A1"])
+    assert len(candidates) == 1
+    assert candidates[0].candidate_action is None, (
+        "a layer-swapped numeric coincidence must NOT be reported as a translate")
+    assert candidates[0].finding.check == "face_line_identity_changed"
+    assert "layer" in candidates[0].finding.detail.lower()
+
+
+def test_detect_layer_swap_reproduces_pre_fix_without_the_layer_comparison():
+    """⭐ Mutation-direction proof for the test above: with ONLY the axis
+    comparison (the pre-F-141 shape), the same layer-swapped input IS
+    reported as a well-formed translate -- i.e. the axis check alone has no
+    power over this input, so F-141's real teeth are the ``layer`` half."""
+    before_face = _face("1A1", axis="y", const=1000)
+    after_face = AsMeasuredFaceLineV1.model_validate({
+        **before_face.model_dump(mode="json"), "layer": "AXIS-GRID", "const": 990})
+    # the pre-F-141 comparison: axis only
+    assert before_face.axis == after_face.axis, "premise: axis is unchanged"
+    diffs = [(field, getattr(after_face, field) - getattr(before_face, field))
+            for field in ("const", "along_min", "along_max")
+            if getattr(after_face, field) != getattr(before_face, field)]
+    assert len(diffs) == 1 and diffs[0][0] == "const", (
+        "premise: exactly one scalar field differs -- an axis-only gate "
+        "would have reported this as a well-formed translate candidate")
+
+
+def test_detect_translate_candidates_refuses_a_handle_reused_across_views():
+    """⭐ F-141 (②-1b-S R5, GLM's N-7 "跨视图同名handle遮蔽"): a handle that
+    (however unlikely on real data today) names a face line in TWO different
+    views must not silently resolve to "whichever view iterated last" --
+    that is exactly the shape where a candidate could compare against the
+    wrong view's line while still reporting the OTHER view as its target.
+    """
+    doc_f1 = _minimal_view("plan-F1")
+    doc_f2 = AsMeasuredViewV1.model_validate({
+        **_minimal_view("plan-F2").model_dump(mode="json"),
+        "face_lines": [_face("1A1", axis="x", const=5000).model_dump(mode="json"),
+                      _minimal_view().face_lines[1].model_dump(mode="json"),
+                      _minimal_view().face_lines[2].model_dump(mode="json")]})
+    doc = AsMeasuredV1.model_validate({
+        "case": "synthetic", "source_dxf_label": "x.dxf",
+        "source_dxf_sha256": "a" * 64, "request_sha256": "b" * 64,
+        "converter_implementation_fingerprint": "c" * 64,
+        "views": [doc_f1.model_dump(mode="json"), doc_f2.model_dump(mode="json")]})
+    with pytest.raises(ValueError, match="as_measured_face_line_handle_reused_across_views"):
+        detect_translate_candidates(doc, doc, ["1A1"])
+
+
+def test_index_face_lines_pre_fix_shape_would_have_silently_shadowed_plan_f1():
+    """⭐ Mutation-direction proof for the test above: the PRE-F-141 shape
+    (a bare dict comprehension over all views, no collision check) resolves
+    the SAME two-view input to whichever view iterated LAST -- silently.
+    This is what "本来是绿的" (the bug used to be invisible) looks like made
+    concrete, not asserted from memory.
+    """
+    doc_f1 = _minimal_view("plan-F1")
+    doc_f2 = AsMeasuredViewV1.model_validate({
+        **_minimal_view("plan-F2").model_dump(mode="json"),
+        "face_lines": [_face("1A1", axis="x", const=5000).model_dump(mode="json"),
+                      _minimal_view().face_lines[1].model_dump(mode="json"),
+                      _minimal_view().face_lines[2].model_dump(mode="json")]})
+    doc = AsMeasuredV1.model_validate({
+        "case": "synthetic", "source_dxf_label": "x.dxf",
+        "source_dxf_sha256": "a" * 64, "request_sha256": "b" * 64,
+        "converter_implementation_fingerprint": "c" * 64,
+        "views": [doc_f1.model_dump(mode="json"), doc_f2.model_dump(mode="json")]})
+    pre_fix_index = {face.id: (view.view_id, face)
+                     for view in doc.views for face in view.face_lines}
+    view_id, face = pre_fix_index["1A1"]
+    assert view_id == "plan-F2", (
+        "premise: the bare comprehension silently keeps the LAST view's "
+        "entry for a duplicate handle")
+    assert face.axis == "x" and face.const == 5000, (
+        "premise: it is genuinely the wrong (F2) line, not F1's real 1A1")

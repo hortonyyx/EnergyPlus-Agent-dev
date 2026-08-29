@@ -321,6 +321,38 @@ class AsMeasuredNonOrthogonalLineV1(_StrictModel):
     p1: list[int] = Field(min_length=2, max_length=2)
 
 
+class AsMeasuredAxisSnapV1(_StrictModel):
+    """One S1 stroke ADMITTED by snapping, ⛔ not one that was already exact.
+
+    ⭐⭐ dispatch ②-1b-S R1/R2: a stroke whose two legs BOTH exceed ``tau_axis``
+    (so it would, before this dispatch, have been dropped as
+    ``tarch_wall_nonorthogonal``) but whose SHORT leg is within the
+    (⛔⛔ PLACEHOLDER, PENDING SIGN-OFF -- see
+    ``tarch_normalize.AXIS_SNAP_MAX_DEVIATION_M``) admission threshold is now
+    kept: the short leg is snapped to zero and the line becomes a real face
+    line.  ⭐ GLM's exact demand (dispatch §二 R2): "被吸附过" and "本来就是正
+    的" must never look the same on the record -- this is the record that
+    keeps them apart.  A face line with a handle also listed here was NOT
+    drawn exactly on axis; one that is not listed here either was, or was
+    excluded/dropped for an unrelated reason.
+
+    ``before_p0``/``before_p1`` are the RAW (un-snapped, un-quantized)
+    endpoints; ``after_p0``/``after_p1`` are what the resulting face line's
+    two endpoints became (one coordinate now shared -- the value this
+    document's ``AsMeasuredFaceLineV1.const`` for this handle equals, up to
+    quantization).  ``minor_leg_units`` is how much the short leg was worth
+    (0.1 mm world) -- i.e. the actual skew this specific line had.
+    """
+    id: DxfHandle
+    layer: HumanLabel
+    snapped_axis: Literal["x", "y"]      # which coordinate was collapsed to one value
+    before_p0: list[int] = Field(min_length=2, max_length=2)   # 0.1 mm world, PRE-snap
+    before_p1: list[int] = Field(min_length=2, max_length=2)
+    after_p0: list[int] = Field(min_length=2, max_length=2)    # 0.1 mm world, POST-snap
+    after_p1: list[int] = Field(min_length=2, max_length=2)
+    minor_leg_units: StrictNonNegativeInt   # 0.1 mm world -- the skew this line actually had
+
+
 class AsMeasuredConverterReadoutsV1(_StrictModel):
     """The converter's OWN verdicts, carried VERBATIM.
 
@@ -357,6 +389,14 @@ class AsMeasuredConverterReadoutsV1(_StrictModel):
     degenerate_in_wall_lines: StrictNonNegativeInt
     all_wall_handles: list[DxfHandle] = Field(default_factory=list)
     non_orthogonal_lines: list[AsMeasuredNonOrthogonalLineV1] = Field(default_factory=list)
+    #: ⭐⭐ dispatch ②-1b-S R1/R2: strokes ADMITTED by the (placeholder,
+    #: pending-sign-off) snap threshold -- ⛔ a DIFFERENT population from
+    #: ``s1_nonorthogonal_discarded_handles`` above (those are strokes that
+    #: were STILL refused, unchanged) and from ``non_orthogonal_lines`` above
+    #: (a different mechanism entirely -- post-quantization skew on a stroke
+    #: that never failed the S1 "both legs > tau_axis" test at all).  See
+    #: ``AsMeasuredAxisSnapV1``.
+    axis_snapped_lines: list[AsMeasuredAxisSnapV1] = Field(default_factory=list)
     unresolved_opening_carriers: list[JsonDict] = Field(default_factory=list)
     #: ⛔ ②-1a-R: the converter's ``wall_bands``, carried VERBATIM and under a
     #: name that says what they are grouped from -- JAMB CAPS (S2), ⛔ NOT wall
@@ -382,6 +422,26 @@ class AsMeasuredConverterReadoutsV1(_StrictModel):
     diagnostics: list[JsonDict] = Field(default_factory=list)
     gates: list[JsonDict] = Field(default_factory=list)
 
+    @model_validator(mode="after")
+    def _axis_snap_ledger_has_teeth(self):
+        """⭐ dispatch ②-1b-S R3's "delete an item from the snap list -> the
+        identity must go red" requirement, self-proving.  ``diagnostics``
+        above is a VERBATIM, independently-populated carry of every converter
+        diagnostic (``_readout_records``); ``axis_snapped_lines`` is built by
+        a SEPARATE pass over that same population (``_axis_snap_records``).
+        If the two ever disagree in COUNT, one of them lost or invented an
+        entry relative to the converter's own record -- which is exactly what
+        deleting one entry from ``axis_snapped_lines`` by hand does.
+        """
+        diag_count = sum(1 for d in self.diagnostics
+                         if d.get("code") == "tarch_wall_axis_snapped")
+        if len(self.axis_snapped_lines) != diag_count:
+            raise ValueError(
+                f"as_measured_axis_snapped_ledger_broken: "
+                f"{len(self.axis_snapped_lines)} axis_snapped_lines != "
+                f"{diag_count} tarch_wall_axis_snapped diagnostics")
+        return self
+
 
 class AsMeasuredViewV1(_StrictModel):
     view_id: StableId
@@ -401,6 +461,27 @@ class AsMeasuredViewV1(_StrictModel):
         red ([[declare-the-dialect-plus-consumption-ledger]]).
         """
         r = self.converter_readouts
+        ids = [f.id for f in self.face_lines]
+        if len(ids) != len(set(ids)):
+            raise ValueError("as_measured_face_line_id_not_unique")
+        known = set(ids)
+        # ⭐ dispatch ②-1b-S R2, checked FIRST and deliberately ahead of the
+        # wide S1 ledger below: a handle "被吸附过" must be provably a real
+        # face line now (it made it INTO the answer, ⛔ not itemised and then
+        # also dropped) and must never ALSO claim to be S1-discarded (admitted
+        # and refused are mutually exclusive outcomes for the same stroke --
+        # and double-booking one always ALSO breaks the wide identity below,
+        # but this is the more specific diagnosis of WHY).
+        snapped_ids = {s.id for s in r.axis_snapped_lines}
+        dangling_snapped = sorted(snapped_ids - known)
+        if dangling_snapped:
+            raise ValueError(
+                f"as_measured_axis_snapped_not_a_face_line:{dangling_snapped}")
+        both_snapped_and_discarded = sorted(
+            snapped_ids & set(r.s1_nonorthogonal_discarded_handles))
+        if both_snapped_and_discarded:
+            raise ValueError(
+                f"as_measured_axis_snapped_also_discarded:{both_snapped_and_discarded}")
         total = (len(self.face_lines) + len(r.non_orthogonal_lines)
                  + r.degenerate_in_wall_lines)
         if total != r.wall_lines_total:
@@ -431,10 +512,6 @@ class AsMeasuredViewV1(_StrictModel):
                 f"as_measured_degenerate_line_handles_count_mismatch: "
                 f"{len(r.degenerate_line_handles)} handles listed != "
                 f"degenerate_line_count={r.degenerate_line_count}")
-        ids = [f.id for f in self.face_lines]
-        if len(ids) != len(set(ids)):
-            raise ValueError("as_measured_face_line_id_not_unique")
-        known = set(ids)
         for wall in self.walls:
             for ref in (*wall.face_line_ids_lo, *wall.face_line_ids_hi):
                 if ref not in known:
@@ -945,6 +1022,38 @@ def _handles_with_diagnostic_code(geo: P1PlanViewGeometry, code: str) -> list[st
     return out
 
 
+def _axis_snap_records(geo: P1PlanViewGeometry, sx: float, tx: float,
+                       sy: float, ty: float) -> list[AsMeasuredAxisSnapV1]:
+    """⭐⭐ dispatch ②-1b-S R2: itemize the ``tarch_wall_axis_snapped``
+    diagnostics into the "snap list" GLM required -- ⛔ transport of the
+    converter's own before/after/axis/magnitude readout, nothing recomputed
+    except the world-frame affine + 0.1 mm unit conversion every other field
+    in this document already goes through.
+    """
+    records: list[AsMeasuredAxisSnapV1] = []
+    for d in geo.diagnostics:
+        if str(getattr(d.code, "value", d.code)) != "tarch_wall_axis_snapped":
+            continue
+        handle = str(d.source_entity_handles[0])
+        layer = geo.wall_line_layers.get(handle, "")
+        ctx = d.context
+        bx0, by0 = ctx["before_p0"]
+        bx1, by1 = ctx["before_p1"]
+        snapped_axis = ctx["snapped_axis"]
+        minor_leg_mm = float(ctx["minor_leg_mm"])
+        (ax0, ay0), (ax1, ay1) = d.source_points_dxf_mm
+        scale = sx if snapped_axis == "x" else sy
+        records.append(AsMeasuredAxisSnapV1(
+            id=handle, layer=layer, snapped_axis=snapped_axis,
+            before_p0=[to_units(sx * bx0 + tx), to_units(sy * by0 + ty)],
+            before_p1=[to_units(sx * bx1 + tx), to_units(sy * by1 + ty)],
+            after_p0=[to_units(sx * ax0 + tx), to_units(sy * ay0 + ty)],
+            after_p1=[to_units(sx * ax1 + tx), to_units(sy * ay1 + ty)],
+            minor_leg_units=to_units(abs(scale) * minor_leg_mm)))
+    records.sort(key=lambda r: r.id)
+    return records
+
+
 def _readout_records(geo: P1PlanViewGeometry) -> tuple[list[dict], list[dict]]:
     """Diagnostics + gates, VERBATIM.  ⛔ Nothing here is recomputed or filtered.
 
@@ -1032,6 +1141,7 @@ def build_view(geo: P1PlanViewGeometry, affine: Affine2D, *,
     bands, faceless = _jamb_cap_band_records(geo, faces, sx, tx, sy, ty)
     openings, unresolved = _opening_records(geo, walls, sx, tx, sy, ty)
     diagnostics, gates = _readout_records(geo)
+    axis_snapped = _axis_snap_records(geo, sx, tx, sy, ty)
     return AsMeasuredViewV1(
         view_id=geo.view_id, floor_id=geo.floor_id,
         face_lines=faces, walls=walls, openings=openings,
@@ -1047,6 +1157,7 @@ def build_view(geo: P1PlanViewGeometry, affine: Affine2D, *,
             degenerate_in_wall_lines=degenerate,
             all_wall_handles=_sorted_handles(geo.all_wall_handles),
             non_orthogonal_lines=skew,
+            axis_snapped_lines=axis_snapped,
             unresolved_opening_carriers=unresolved,
             jamb_cap_bands=bands,
             jamb_cap_bands_missing_a_face_line=faceless,
@@ -1093,7 +1204,7 @@ __all__ = [
     "AsMeasuredUnavailable", "AsMeasuredV1", "AsMeasuredViewV1",
     "AsMeasuredFaceLineV1", "AsMeasuredWallV1", "AsMeasuredOpeningV1",
     "AsMeasuredRingV1", "AsMeasuredFootprintV1",
-    "AsMeasuredNonOrthogonalLineV1", "AsMeasuredConverterReadoutsV1",
+    "AsMeasuredNonOrthogonalLineV1", "AsMeasuredAxisSnapV1", "AsMeasuredConverterReadoutsV1",
     "assert_request_is_pure_source_swap", "derive_as_measured_request",
     "request_file_bytes", "AS_RECEIVED_ID_SUFFIX",
     "build_as_measured", "build_view",

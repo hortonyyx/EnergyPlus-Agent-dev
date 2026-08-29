@@ -14,7 +14,24 @@ same inventory, and the difference is exactly where this unit lives:
 
     fixture                        wall_lines  non-orth  BLOCK        S4 dangles
     sm25-L_t3.dxf      (signed)    225          0        none         0
-    ..._as_received.dxf            223          1        2 codes      4
+    ..._as_received.dxf            225          1        1 code       8
+
+⚠️ ②-1b-S UPDATE (2026-08-29): the ``wall_lines_total=223``/``2 codes``/
+``4 dangles`` row above is the PRE-snap reading.  Dispatch ②-1b-S R1 changed
+S1's non-orthogonal action from unconditional drop to "snap the short leg to
+zero when it is within ``AXIS_SNAP_MAX_DEVIATION_M`` (⛔⛔ placeholder, pending
+sign-off), else still drop" -- 13AD/13AE (minor leg ~5.81 mm) are now admitted
+via snap rather than S1-discarded, so ``s1_nonorthogonal_discarded_handles``
+is empty and ``wall_lines_total``/``face_lines`` grew by 2.  ``tarch_wall_free_
+end``/S4 dangles going 4->8 is a REAL, expected topology consequence of
+admitting two previously-absent segments whose along-axis endpoints do not
+happen to coincide with a perpendicular wall's own quantized position --
+⛔ NOT a regression this dispatch introduces or is scoped to fix (S4 junction
+resolution is untouched code; ``tarch_wall_free_end`` was ALREADY a BLOCK on
+this un-retouched drawing before this change, per
+``_refuse_if_the_ruler_never_measured``'s own docstring, so no previously
+-green gate went red).  See the ②-1b-S execution report's "阈值" section for
+the full measurement.
 
 ⇒ ⛔ A lock written only against the signed drawing is blind in every direction
 this unit cares about: it has no skew stroke to itemise, no content-level BLOCK
@@ -92,12 +109,18 @@ SM24_MANIFEST_SHA256 = "c40cbc8bb566e4d8fc3999ad5ccb07bd27747b9f57f9ad30fe6691c7
 #: been just as green on the ghost-wall build (45/39/44/39 walls looked fine).
 #: The drawing declares 120 and 240 mm and contains nothing else.
 EXPECTED = {
-    ("as_received", "plan-F1"): {"face_lines": 222, "walls": 54, "openings": 31,
-                                 "wall_lines_total": 223, "non_orthogonal": 1,
-                                 "dangles": 4, "gates_failed": ["G1", "G5"],
-                                 "block_codes": ["tarch_wall_free_end",
-                                                 "tarch_wall_nonorthogonal"],
-                                 "thickness_mm": {120: 27, 240: 27},
+    # ⭐ ②-1b-S R1: 13AD/13AE are now SNAPPED (admitted), not S1-discarded --
+    # face_lines/wall_lines_total each +2, the "tarch_wall_nonorthogonal"
+    # BLOCK and its G1 gate failure are gone, ``walls``/``thickness_mm`` now
+    # match the SIGNED drawing exactly (the pair completes a real 120 mm
+    # wall), and S4 dangles goes 4->8 (see the module docstring's ②-1b-S
+    # UPDATE note -- a real, out-of-scope topology consequence, not a defect
+    # in the snap itself; ``tarch_wall_free_end`` was already a BLOCK before).
+    ("as_received", "plan-F1"): {"face_lines": 224, "walls": 55, "openings": 31,
+                                 "wall_lines_total": 225, "non_orthogonal": 1,
+                                 "dangles": 8, "gates_failed": ["G5"],
+                                 "block_codes": ["tarch_wall_free_end"],
+                                 "thickness_mm": {120: 28, 240: 27},
                                  "jamb_cap_bands": 44,
                                  "bands_missing_a_face_line": 11,
                                  "split_const_groups": 2},
@@ -310,13 +333,15 @@ def test_r2_the_as_received_drawing_differs_from_the_signed_one_as_f129_measured
 
     f1_a, f1_s = view(as_received_doc, "plan-F1"), view(signed_doc, "plan-F1")
     assert f1_a.model_dump(mode="json") != f1_s.model_dump(mode="json")
-    # the three handles F-129 names: two never collected, one collected but skew
-    skew_codes = {d["code"]: sorted(h for h in d["handles"])
-                  for d in f1_a.converter_readouts.diagnostics
-                  if d["code"] == "tarch_wall_nonorthogonal"}
+    # the three handles F-129 names: two SNAPPED (⭐ ②-1b-S R1, was "never
+    # collected" pre-snap), one collected but skew (a different mechanism,
+    # untouched by R1 -- see the module docstring's ②-1b-S UPDATE note)
     rejected = sorted(h for d in f1_a.converter_readouts.diagnostics
                       if d["code"] == "tarch_wall_nonorthogonal" for h in d["handles"])
-    assert rejected == ["13AD", "13AE"], skew_codes
+    assert rejected == [], "13AD/13AE are now snapped, not S1-discarded"
+    assert sorted(s.id for s in f1_a.converter_readouts.axis_snapped_lines) == ["13AD", "13AE"]
+    assert not f1_s.converter_readouts.axis_snapped_lines, (
+        "the signed drawing has no skew to snap -- both lines are already exact")
     assert [n.id for n in f1_a.converter_readouts.non_orthogonal_lines] == ["13AF"]
     assert not f1_s.converter_readouts.non_orthogonal_lines
 
@@ -499,20 +524,26 @@ def test_r2_a_dangling_reference_is_refused(as_received_doc):
 # F-136/A3 (②-1b-R R4): the WIDER S1 handle ledger has teeth
 # =========================================================================== #
 def test_r4_the_wider_s1_identity_is_real_on_as_received_plan_f1(as_received_doc):
-    """⭐ Sanity, MEASURED exactly as GLM's N-2/A3 finding: AS-RECEIVED
-    plan-F1 has 226 collected handles, only 223 reach ``geo.wall_lines`` --
-    the other 3 (13AD/13AE non-orthogonal, 13DC zero-length) are now
-    itemized rather than silently absent from every bucket.  ⚠️ MUST use
-    as-received, not signed: 13AD/13AE are exactly the 2 of the 5 real
-    revision-worklist handles that get STRAIGHTENED into clean, axis-aligned
-    face lines in the signed drawing, so they are no longer non-orthogonal
-    discards there and this identity's numbers differ.
+    """⭐ Sanity, MEASURED: AS-RECEIVED plan-F1 has 226 collected handles.
+
+    ⚠️ ②-1b-S UPDATE: this used to read 223 in ``wall_lines_total`` with
+    13AD/13AE itemized in ``s1_nonorthogonal_discarded_handles`` (both S1
+    -discarded, pre-snap).  Dispatch ②-1b-S R1 now ADMITS both via the snap
+    path (their minor leg, ~5.81 mm, is within the placeholder
+    ``AXIS_SNAP_MAX_DEVIATION_M``) instead of discarding them, so they move
+    INTO ``wall_lines_total`` and ``s1_nonorthogonal_discarded_handles`` is
+    now empty; only 13DC (zero-length, a different mechanism, out of this
+    dispatch's scope) is still itemized outside ``wall_lines_total``.  ⚠️
+    MUST use as-received, not signed: on the signed drawing both lines are
+    already exact (no snap needed), so this identity's numbers there differ
+    again (``wall_lines_total==225``, no snapped/discarded handles at all).
     """
     view = next(v for v in as_received_doc.views if v.view_id == "plan-F1")
     r = view.converter_readouts
     assert len(r.all_wall_handles) == 226
-    assert r.wall_lines_total == 223
-    assert sorted(r.s1_nonorthogonal_discarded_handles) == ["13AD", "13AE"]
+    assert r.wall_lines_total == 225
+    assert r.s1_nonorthogonal_discarded_handles == []
+    assert sorted(s.id for s in r.axis_snapped_lines) == ["13AD", "13AE"]
     assert r.degenerate_line_handles == ["13DC"]
     assert r.degenerate_line_count == 1
     assert (len(r.all_wall_handles)
@@ -551,6 +582,71 @@ def test_r4_consumed_wall_handles_field_is_gone(as_received_doc):
     readouts = as_received_doc.views[0].converter_readouts
     assert not hasattr(readouts, "consumed_wall_handles")
     assert "consumed_wall_handles" not in readouts.model_dump(mode="json")
+
+
+# =========================================================================== #
+# ②-1b-S R1/R2/R3 -- the snap list ("吸附清单") is real, real data holds two
+# entries, and the ledger it feeds has teeth (⛔ delete an entry -> must go red)
+# =========================================================================== #
+def test_o21bs_the_real_snap_list_has_exactly_the_two_known_handles(as_received_doc):
+    """⭐ Acceptance 1: 13AD/13AE (minor leg ~5.81 mm, dispatch's own example)
+    are itemised in the snap list on the real as-received sm25 plan-F1, and
+    each entry carries every field R2 demands (handle, before, axis, magnitude)."""
+    view = next(v for v in as_received_doc.views if v.view_id == "plan-F1")
+    snapped = view.converter_readouts.axis_snapped_lines
+    assert sorted(s.id for s in snapped) == ["13AD", "13AE"]
+    for s in snapped:
+        assert s.snapped_axis == "y"
+        assert s.before_p0 != s.before_p1          # was genuinely skew before
+        assert s.after_p0[1] == s.after_p1[1]       # is exactly axis-aligned after
+        assert 55 <= s.minor_leg_units <= 60, (     # ~5.81 mm == 58 units of 0.1mm
+            "minor_leg_units drifted away from the measured ~5.81 mm skew")
+
+
+def test_o21bs_deleting_a_snap_entry_turns_the_ledger_red(as_received_doc):
+    """⭐⭐ Dispatch ②-1b-S R3's explicit self-proof requirement: "把吸附清单
+    里任一条删掉 -> 恒等式必须红".  The face line itself (still 13AD, still a
+    real orthogonal stroke) is untouched -- only its itemisation entry in
+    ``axis_snapped_lines`` is removed, proving the CROSS-COUNT check (not
+    just "the list is non-empty") is what has teeth here."""
+    raw = as_received_doc.model_dump(mode="json")
+    view = next(v for v in raw["views"] if v["view_id"] == "plan-F1")
+    snapped = view["converter_readouts"]["axis_snapped_lines"]
+    assert len(snapped) == 2, "premise: the fixture really holds 2 entries"
+    view["converter_readouts"]["axis_snapped_lines"] = snapped[:1]   # drop one
+    with pytest.raises(ValueError, match="as_measured_axis_snapped_ledger_broken"):
+        AsMeasuredV1.model_validate(raw)
+
+
+def test_o21bs_a_snapped_handle_must_be_a_real_face_line(as_received_doc):
+    """⭐ GLM's exact demand (R2): "被吸附过" and "本来就是正的" must never look
+    the same, AND a snap entry can never point at a handle that is not
+    actually IN the answer -- itemised-and-then-also-dropped is refused."""
+    raw = as_received_doc.model_dump(mode="json")
+    view = next(v for v in raw["views"] if v["view_id"] == "plan-F1")
+    fabricated = dict(view["converter_readouts"]["axis_snapped_lines"][0])
+    fabricated["id"] = "FFFF"   # not a real face line handle anywhere
+    view["converter_readouts"]["axis_snapped_lines"].append(fabricated)
+    # keep the cross-count check quiet by also faking a matching diagnostic,
+    # isolating the OTHER validator (dangling-handle) this test targets
+    view["converter_readouts"]["diagnostics"].append({
+        "code": "tarch_wall_axis_snapped", "severity": "INFO", "stage": "S1_QUANTIZE",
+        "action_code": None, "handles": ["FFFF"], "points_dxf_mm": [],
+        "context": {}})
+    with pytest.raises(ValueError, match="as_measured_axis_snapped_not_a_face_line"):
+        AsMeasuredV1.model_validate(raw)
+
+
+def test_o21bs_a_handle_cannot_be_both_snapped_and_s1_discarded(as_received_doc):
+    """Admitted and refused are mutually exclusive outcomes for one stroke --
+    the same 13AF (already a real face-line-adjacent skew handle in this
+    fixture, see F-129) cannot ALSO claim to have been S1-discarded."""
+    raw = as_received_doc.model_dump(mode="json")
+    view = next(v for v in raw["views"] if v["view_id"] == "plan-F1")
+    handle = view["converter_readouts"]["axis_snapped_lines"][0]["id"]
+    view["converter_readouts"]["s1_nonorthogonal_discarded_handles"].append(handle)
+    with pytest.raises(ValueError, match="as_measured_axis_snapped_also_discarded"):
+        AsMeasuredV1.model_validate(raw)
 
 
 def test_r2_readouts_are_the_converters_own_numbers(as_received_doc):
@@ -895,7 +991,9 @@ def test_r1_pairing_every_collected_face_line_puts_the_ghost_walls_back():
     """
     geo, view_intent = _geo_for("plan-F1")
     view = build_view(geo, view_intent.world_from_source_m, t_max_m=T_MAX_M)
-    assert len(view.face_lines) == 222        # as-received plan-F1
+    # ⭐ ②-1b-S R1: 224, not 222 -- 13AD/13AE are now snapped in (see the
+    # module docstring's ②-1b-S UPDATE note); still as-received plan-F1
+    assert len(view.face_lines) == 224
     every_stroke = [{"axis": "y" if f.axis == "x" else "x",   # ⚠️ into DEN's frame
                      "const_m": f.const / am.UNITS_PER_METRE,
                      "lo_m": f.along_min / am.UNITS_PER_METRE,

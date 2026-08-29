@@ -124,16 +124,25 @@ def test_l5_gates_ride_out_on_the_signed_drawing(anchor_present, view_id):
 def test_l6_gates_discriminate_on_the_blocked_geometry(anchor_present, tmp_path):
     """⛔ THE anti-tautology fixture.  A ``gates`` lock that only ever ran on
     the signed drawing could not tell "readout exposed" from "readout pinned
-    to True"; this is the inventory that separates them (MEASURED: G1 False
-    -- ``tarch_wall_nonorthogonal`` is a G1 code -- and G5 False with 4
-    dangles), plus the per-view control: the SAME drawing file at ``plan-F2``
-    measures all-pass, so the verdict must follow the view's geometry.
+    to True"; this is the inventory that separates them, plus the per-view
+    control: the SAME drawing file at ``plan-F2`` measures all-pass, so the
+    verdict must follow the view's geometry.
+
+    ⚠️ ②-1b-S UPDATE (2026-08-29): this used to measure G1 False (a
+    ``tarch_wall_nonorthogonal`` BLOCK) and G5 False with 4 dangles.  Dispatch
+    ②-1b-S R1 admits 13AD/13AE via snap instead of S1-discarding them (minor
+    leg ~5.81 mm is within the placeholder ``AXIS_SNAP_MAX_DEVIATION_M``), so
+    G1 now PASSES on this fixture (no more ``tarch_wall_nonorthogonal``); G5
+    still fails, now with 8 dangles (a real, unrelated S4 topology
+    consequence of admitting the two previously-absent segments -- see
+    ``AsMeasuredConverterReadoutsV1``'s ②-1b-S docstring note / the ②-1b-S
+    execution report).
     """
     request_path = _resigned_request(tmp_path)
 
     blocked = denominator(AS_RECEIVED_DXF, request_path, "plan-F1")
     verdict = {g["id"]: g["passed"] for g in blocked["gates"]}
-    assert verdict == {"G1": False, "G2": True, "G3": True, "G5": False}
+    assert verdict == {"G1": True, "G2": True, "G3": True, "G5": False}
 
     control = denominator(AS_RECEIVED_DXF, request_path, "plan-F2")
     assert [(g["id"], g["passed"]) for g in control["gates"]] == ALL_PASS
@@ -177,13 +186,19 @@ def test_l7b_block_diagnostics_are_localisable_and_fields_always_present(
     """Every record carries the three fields (a silent KeyError is not
     "visible un-localisability"), and every BLOCK record is localisable --
     the pair (handles, points) mirrors the schema's own BLOCK-localisability
-    validator.  The re-signed as-received plan-F1 holds the BLOCK inventory
-    (3 records, MEASURED); the signed drawing holds none, so this lock must
-    run on the fixture that carries the inventory."""
+    validator.  The re-signed as-received plan-F1 holds the BLOCK inventory;
+    the signed drawing holds none, so this lock must run on the fixture that
+    carries the inventory.
+
+    ⚠️ ②-1b-S UPDATE (2026-08-29): this fixture used to carry 3 BLOCK records
+    (``tarch_wall_nonorthogonal`` x2 + ``tarch_wall_free_end`` x1).  Dispatch
+    ②-1b-S R1 admits the two ``tarch_wall_nonorthogonal`` strokes via snap
+    instead of S1-discarding them, so only ``tarch_wall_free_end`` remains.
+    """
     result = denominator(AS_RECEIVED_DXF, _resigned_request(tmp_path), "plan-F1")
 
     blocked = [d for d in result["diagnostics"] if d["severity"] == "BLOCK"]
-    assert len(blocked) == 3, "fixture no longer carries 3 BLOCK records"
+    assert len(blocked) == 1, "fixture no longer carries 1 BLOCK record"
     for d in result["diagnostics"]:
         assert set(d) >= {"handles", "points_dxf_mm", "locatable"}
     for d in blocked:
@@ -217,8 +232,17 @@ def test_l7c_unlocalisable_is_stated_not_silent():
 def test_l8_s4_closure_counts_ride_out(anchor_present, tmp_path):
     """``s4_dangles``/``s4_cuts``/``s4_invalid`` in the ledger, pinned to the
     measured values on both fixtures -- zeros on the signed drawing (both
-    views), 4 dangles on the re-signed as-received plan-F1 that carries the
-    inventory, and zeros again on the same file's clean plan-F2."""
+    views), 8 dangles on the re-signed as-received plan-F1 that carries the
+    inventory, and zeros again on the same file's clean plan-F2.
+
+    ⚠️ ②-1b-S UPDATE (2026-08-29): this used to measure 4 dangles.  Dispatch
+    ②-1b-S R1 admits 13AD/13AE via snap instead of S1-discarding them, so
+    ``geo.wall_lines`` gains two previously-absent segments; their along-axis
+    endpoints do not happen to coincide with a perpendicular wall's own
+    quantized position, which is a real (and, per this dispatch's scope,
+    untouched) S4 topology consequence -- doubling the dangle count, not a
+    defect in the snap mechanism itself.
+    """
     for view_id in ("plan-F1", "plan-F2"):
         signed = denominator(SIGNED_DXF, REQUEST, view_id)
         assert (signed["ledger"]["s4_dangles"], signed["ledger"]["s4_cuts"],
@@ -228,7 +252,7 @@ def test_l8_s4_closure_counts_ride_out(anchor_present, tmp_path):
 
     blocked = denominator(AS_RECEIVED_DXF, _resigned_request(tmp_path), "plan-F1")
     assert (blocked["ledger"]["s4_dangles"], blocked["ledger"]["s4_cuts"],
-            blocked["ledger"]["s4_invalid"]) == (4, 0, 0)
+            blocked["ledger"]["s4_invalid"]) == (8, 0, 0)
     # ⭐ the two new readouts agree WITH EACH OTHER: G5 is literally computed
     # from these counts, so a nonzero residual with a passing G5 (or the
     # reverse, absent an area mismatch) means one of the two passthroughs

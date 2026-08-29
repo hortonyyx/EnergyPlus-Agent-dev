@@ -226,14 +226,24 @@ def test_l4_discarded_non_orthogonal_segments_are_itemised(anchor_present, tmp_p
 
     ⭐ F-C (F-126 cross-review, 2026-08-29): this test is ALSO the pin -- until
     now unlabelled -- on the POLICY that ``denominator()`` RETURNS when BLOCK
-    diagnostics ride alongside a NON-empty denominator.  It feeds the one
-    fixture measured to produce exactly that combination (108 targets together
-    with ``tarch_wall_nonorthogonal`` x2 + ``tarch_wall_free_end`` x1, all
-    BLOCK) and expects a normal return.  Read literally, "any BLOCK => fail
-    loudly" (the F-126 dispatch's R2) would make THIS fixture raise and this
-    test go red -- deliberately: the scope note in ``denominator.py`` owns the
-    distinction (F-126 fixed the silence, not the policy), and changing the
-    policy should have to come through here, in the open.
+    diagnostics ride alongside a NON-empty denominator.  ⚠️ ②-1b-S UPDATE
+    (2026-08-29): it used to feed the fixture measured to produce 108 targets
+    together with ``tarch_wall_nonorthogonal`` x2 + ``tarch_wall_free_end`` x1
+    (all BLOCK) -- dispatch ②-1b-S R1 changed the S1 non-orthogonal action
+    from unconditional drop to "snap the short leg to zero when within the
+    (⛔⛔ placeholder, pending sign-off) admission threshold", and this
+    fixture's two ``tarch_wall_nonorthogonal`` strokes (13AD/13AE, minor leg
+    ~5.81 mm) are now admitted via snap -- ``geo.wall_lines`` no longer omits
+    them and the S1-level ``tarch_wall_nonorthogonal`` BLOCK no longer fires
+    for this fixture at all.  Only ``tarch_wall_free_end`` (a S4/G5 BLOCK,
+    unrelated mechanism, unaffected by R1) remains.  The POLICY this test pins
+    (BLOCK-alongside-non-empty-denominator still returns normally) still
+    applies -- it is exercised on one fewer BLOCK code now, not on zero.
+    Read literally, "any BLOCK => fail loudly" (the F-126 dispatch's R2) would
+    make THIS fixture raise and this test go red -- deliberately: the scope
+    note in ``denominator.py`` owns the distinction (F-126 fixed the silence,
+    not the policy), and changing the policy should have to come through
+    here, in the open.
 
     ⭐ F-B (same review): the BLOCK codes must SURVIVE the success path.  A
     "successful run doesn't need its BLOCK diagnostics" trim (keep INFO only)
@@ -244,11 +254,11 @@ def test_l4_discarded_non_orthogonal_segments_are_itemised(anchor_present, tmp_p
     request_path = _resigned_request(tmp_path, AS_RECEIVED_DXF)
     result = denominator(AS_RECEIVED_DXF, request_path, "plan-F1")
 
-    # ⭐ F-B: the two BLOCK codes measured on this fixture still ride out in
-    # ``diagnostics`` -- exactly this set, so a trim to INFO-only, a rename,
-    # or a swallowed code all fail here.
+    # ⭐ F-B: the (now single) BLOCK code measured on this fixture still rides
+    # out in ``diagnostics`` -- exactly this set, so a trim to INFO-only, a
+    # rename, or a swallowed code all fail here.
     assert {d["code"] for d in result["diagnostics"] if d["severity"] == "BLOCK"} == {
-        "tarch_wall_free_end", "tarch_wall_nonorthogonal"}
+        "tarch_wall_free_end"}
 
     items = result["excluded_non_orthogonal_segments"]
     count = result["ledger"]["excluded_non_orthogonal"]

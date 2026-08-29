@@ -23,6 +23,7 @@ from __future__ import annotations
 import hashlib
 import shutil
 from pathlib import Path
+from types import SimpleNamespace
 
 import ezdxf
 import pytest
@@ -480,3 +481,104 @@ def test_staging_discipline_rejects_protected_source():
     with pytest.raises(ValueError, match="tarch_staging_input_protected_path"):
         tn.run_p1_plan_view(SM24_SOURCE, *_sm24_request("0" * 64),
                             resolve_converter_tooling(GT_CONFIG, VG_CONFIG))
+
+
+# =========================================================================== #
+# dispatch ②-1b-S R1 -- S1 "drop" -> "snap the short leg (⛔⛔ PLACEHOLDER
+# threshold, pending sign-off) or still drop if genuinely diagonal"
+#
+# ⭐ Unit-level, not through the full DXF/S0/S3/S4 pipeline: ``_collect_walls``
+# is what implements the decision, and its inputs (``plan_view.wall_selector``,
+# ``request.wall_thickness_range_m``, a ``_Tols`` with a CONTROLLED
+# ``axis_snap_max_m``) are cheap to build directly -- this is what lets test 3
+# below prove the threshold is a real parameter and not a number baked into
+# the ``if``.
+# =========================================================================== #
+def _one_line_msp(dx_mm: float, dy_mm: float, *, x0: float = 1000.0, y0: float = 1000.0):
+    """A bare ezdxf modelspace holding exactly one WALL line, endpoints
+    ``(x0, y0)`` -> ``(x0+dx_mm, y0+dy_mm)``.  ⛔ No frame/title/other walls --
+    ``_collect_walls`` needs none of them, only S0 preflight does."""
+    doc = ezdxf.new("R2010")
+    msp = doc.modelspace()
+    msp.add_line((x0, y0), (x0 + dx_mm, y0 + dy_mm), dxfattribs={"layer": "WALL"})
+    return msp
+
+
+def _collect_with_snap_threshold(dx_mm: float, dy_mm: float, *, axis_snap_max_m: float,
+                                 tau_axis_m: float = 0.001):
+    """Call ``tn._collect_walls`` directly with a hand-built, fully controlled
+    ``_Tols`` -- ⭐ this is the "parameterized, not hardcoded in an if" proof:
+    the SAME code path is exercised twice with two different threshold values
+    below (test 3) and the admitted/refused outcome flips with it."""
+    plan_view = SimpleNamespace(wall_selector=TarchEntitySelectorV1(
+        entity_types=["LINE"], layers=["WALL"]))
+    request = SimpleNamespace(wall_thickness_range_m=[0.06, 0.50])
+    tols = tn._Tols(metres_per_unit=0.001, node_join_m=0.001, axis_align_m=tau_axis_m,
+                    topo_area_m2=1e-6, axis_snap_max_m=axis_snap_max_m)
+    msp = _one_line_msp(dx_mm, dy_mm)
+    diags: list = []
+    clip = (0.0, 0.0, 1000.0 + abs(dx_mm) + 10.0, 1000.0 + abs(dy_mm) + 10.0)
+    collect = tn._collect_walls(msp, plan_view, request, clip, tols, diags)
+    return collect, diags
+
+
+def test_axis_snap_admits_a_line_within_the_threshold_and_itemises_it():
+    """Minor leg 3 mm, major leg 2000 mm, threshold 6 mm (the ②-1b-S
+    placeholder) -> ADMITTED: no ``tarch_wall_nonorthogonal``, one
+    ``tarch_wall_axis_snapped``, and the line reaches ``wall_lines``."""
+    collect, diags = _collect_with_snap_threshold(2000.0, 3.0, axis_snap_max_m=0.006)
+    codes = [d.code for d in diags]
+    assert "tarch_wall_nonorthogonal" not in codes
+    assert codes.count("tarch_wall_axis_snapped") == 1
+    assert len(collect.wall_lines) == 1
+    handle, x0, y0, x1, y1 = collect.wall_lines[0]
+    # ⭐ the short leg (y) is zeroed -- the line is now EXACTLY axis-aligned
+    assert y0 == y1
+    # ⭐ the long leg (x) endpoints are the dispatch's fixed design constraint:
+    # untouched by the snap (⛔ not the pending-sign-off part)
+    assert (x0, x1) == (pytest.approx(1000.0), pytest.approx(3000.0))
+    snapped = next(d for d in diags if d.code == "tarch_wall_axis_snapped")
+    assert snapped.context["snapped_axis"] == "y"
+    assert snapped.context["minor_leg_mm"] == pytest.approx(3.0)
+    # ⭐ before_p0/before_p1's LONG-leg coordinate equals the raw input exactly
+    # -- the along-wall span is bit-for-bit unmoved by the snap
+    assert snapped.context["before_p0"][0] == pytest.approx(1000.0)
+    assert snapped.context["before_p1"][0] == pytest.approx(3000.0)
+
+
+def test_axis_snap_still_refuses_a_genuine_diagonal_beyond_the_threshold():
+    """Minor leg 20 mm, threshold 6 mm -> UNCHANGED behaviour: still refused,
+    still ``tarch_wall_nonorthogonal``, still absent from ``wall_lines`` --
+    the exact pre-②-1b-S outcome for anything beyond the admission line."""
+    collect, diags = _collect_with_snap_threshold(2000.0, 20.0, axis_snap_max_m=0.006)
+    codes = [d.code for d in diags]
+    assert codes.count("tarch_wall_nonorthogonal") == 1
+    assert "tarch_wall_axis_snapped" not in codes
+    assert collect.wall_lines == []
+
+
+def test_axis_snap_threshold_is_a_real_parameter_not_hardcoded():
+    """⭐⭐ Acceptance 4's teeth: the SAME 20 mm-skew line is refused under one
+    threshold value and admitted under another -- proving the comparison
+    reads a passed-in value, not a number written into the ``if``."""
+    refused, diags_lo = _collect_with_snap_threshold(2000.0, 20.0, axis_snap_max_m=0.006)
+    assert refused.wall_lines == []
+    assert any(d.code == "tarch_wall_nonorthogonal" for d in diags_lo)
+
+    admitted, diags_hi = _collect_with_snap_threshold(2000.0, 20.0, axis_snap_max_m=0.030)
+    assert len(admitted.wall_lines) == 1
+    assert any(d.code == "tarch_wall_axis_snapped" for d in diags_hi)
+    assert not any(d.code == "tarch_wall_nonorthogonal" for d in diags_hi)
+
+
+def test_axis_snap_along_axis_endpoints_survive_bit_for_bit_through_quantize():
+    """⭐ Acceptance 3, at the unit level: the along-wall (major-axis)
+    endpoints that end up in ``wall_lines`` are EXACTLY the same value
+    quantizing the raw, un-snapped major-axis coordinates would have produced
+    -- the snap contributes ZERO extra movement on that axis."""
+    tols_ref = tn._Tols(metres_per_unit=0.001, node_join_m=0.001, axis_align_m=0.001,
+                        topo_area_m2=1e-6)
+    collect, _ = _collect_with_snap_threshold(2000.0, 3.0, axis_snap_max_m=0.006)
+    _, x0, _, x1, _ = collect.wall_lines[0]
+    assert x0 == tn._quantize(1000.0, tols_ref.quant_native)
+    assert x1 == tn._quantize(3000.0, tols_ref.quant_native)

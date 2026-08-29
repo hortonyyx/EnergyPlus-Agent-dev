@@ -286,8 +286,23 @@ TARCH_DIAGNOSTIC_REGISTRY: dict[str, DiagnosticSpec] = {
     # --- S1 quantize --------------------------------------------------------
     "tarch_wall_nonorthogonal": DiagnosticSpec(
         "tarch_wall_nonorthogonal", DiagnosticSeverity.BLOCK, TarchStage.S1_QUANTIZE,
-        "wall not axis-aligned beyond tau_axis — out of scope this round; fix drawing or log an extension need.",
+        "wall not axis-aligned beyond tau_axis AND beyond the axis-snap admission "
+        "threshold — a real diagonal, out of scope this round; fix drawing or log "
+        "an extension need.",
         gates=("G1",)),
+    # ⭐ dispatch ②-1b-S R1/R2: a stroke whose two legs both exceed tau_axis
+    # (so it is NOT already axis-aligned within measurement noise) but whose
+    # SHORT leg is still within the (placeholder, unsigned) snap-admission
+    # threshold is no longer dropped -- it is snapped onto its dominant axis
+    # and kept as a real face line.  INFO, not BLOCK: this is now a HANDLED,
+    # itemised outcome (the same status as ``tarch_wall_degenerate_line``),
+    # not an out-of-scope refusal.  ⛔ Genuinely diagonal strokes (short leg
+    # beyond the threshold) are UNCHANGED -- they still raise
+    # ``tarch_wall_nonorthogonal`` above and are still dropped.
+    "tarch_wall_axis_snapped": DiagnosticSpec(
+        "tarch_wall_axis_snapped", DiagnosticSeverity.INFO, TarchStage.S1_QUANTIZE,
+        "wall drawn slightly off-axis (short leg within the snap-admission "
+        "threshold) — snapped onto its dominant axis; itemised, not a refusal."),
     "tarch_wall_degenerate_line": DiagnosticSpec(
         "tarch_wall_degenerate_line", DiagnosticSeverity.INFO, TarchStage.S1_QUANTIZE,
         "zero-length line after quantization — bookkeeping only (sm24 observed 1)."),
@@ -412,7 +427,8 @@ def diagnostic_spec(code: str) -> DiagnosticSpec:
 DiagCode = Literal[
     "tarch_input_source_hash_mismatch", "tarch_source_proxy_present",
     "tarch_units_undeclared", "tarch_view_frame_missing", "tarch_view_frame_ambiguous",
-    "tarch_entity_unsupported", "tarch_wall_nonorthogonal", "tarch_wall_degenerate_line",
+    "tarch_entity_unsupported", "tarch_wall_nonorthogonal", "tarch_wall_axis_snapped",
+    "tarch_wall_degenerate_line",
     "tarch_quantization_conflict", "tarch_wall_thickness_unevidenced",
     "tarch_opening_block_unresolved", "tarch_opening_block_ambiguous",
     "tarch_opening_kind_ambiguous", "tarch_interior_opening_excluded",

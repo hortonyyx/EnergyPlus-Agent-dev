@@ -14,6 +14,7 @@ import pytest
 
 from src.agent.judge import tarch_normalize as tn
 from src.agent.judge.gt_extraction import ExtractionInputs, extract_gt_v3
+from src.agent.judge.gt_raw_layer import verify_raw_layer_reproduction
 from src.agent.judge.gt_render_model import gt_to_render_model
 from src.agent.judge.gt_schema import REPO_ROOT, compute_gt_implementation_hashes
 from src.agent.judge.tarch_converter_schema import TarchConversionRequestV1, resolve_converter_tooling
@@ -265,6 +266,43 @@ def test_f_d_d2_the_exact_equality_assertion_actually_has_teeth():
     padded = frozenset(tn.KNOWN_PRE_F_D_CONVERTER_SHA256 | {"f" * 64})
     with pytest.raises(AssertionError):
         assert padded == frozenset({sm25_report["converter_sha256"]})
+
+
+def test_o21bs_r4_sm25s_legacy_exemption_survives_this_closure_edit_by_design():
+    """⭐⭐ dispatch ②-1b-S R4, stop-and-report finding (2026-08-29): the
+    dispatch's literal acceptance wording ("verify_raw_layer_reproduction('sm25
+    -L_anchor') 变成 implementation_drift") does NOT hold, and CANNOT hold
+    without touching ``_expected_converter_sha256``'s exemption logic itself
+    -- which this dispatch explicitly forbids ("不许往豁免集合里塞任何值" /
+    "不许扩大豁免集合").
+
+    MEASURED (this exact tree, after R1's edit to ``tarch_normalize.py`` +
+    ``tarch_converter_schema.py``, both CONVERTER_CLOSURE_FILES members):
+    ``_expected_converter_sha256`` returns ``recorded`` UNCONDITIONALLY for any
+    case whose on-disk ``conversion_report.json`` ``converter_sha256`` is a
+    member of ``KNOWN_PRE_F_D_CONVERTER_SHA256`` -- sm25-L_anchor's IS such a
+    member (pinned since ②-1b-R, see ``test_f_d_d``), so the comparison is
+    ``recorded == recorded``, trivially true, REGARDLESS of how much the
+    closure moves.  This is not a bug this dispatch introduced: it is the
+    exact "sm25's converter_sha256 signal is DEAD ... until the case is next
+    re-signed" behaviour ``_expected_converter_sha256``'s own docstring
+    documents as an ACCEPTED, GLM-verified limitation of ②-1b-R's widening.
+
+    sm24_anchor (NOT a member of the exemption set) is the fixture that is
+    actually sensitive to a closure edit, and IS correctly red here -- this is
+    what "the assertion still has teeth, just not on sm25" looks like.
+    """
+    sm25 = verify_raw_layer_reproduction("sm25-L_anchor")
+    assert sm25.status == "reproduced", (
+        "sm25 is legacy-exempted by design (②-1b-R) -- if this ever starts "
+        "reporting drift, either the exemption set moved (forbidden by this "
+        "dispatch) or sm25 was re-signed, and this test's premise needs "
+        "re-checking either way, not silently accepted")
+    assert "converter_sha256" not in sm25.drifted_fingerprints
+
+    sm24 = verify_raw_layer_reproduction("sm24_anchor")
+    assert sm24.status == "implementation_drift"
+    assert "converter_sha256" in sm24.drifted_fingerprints
 
 
 # --------------------------------------------------------------------------- #
