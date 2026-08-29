@@ -33,6 +33,47 @@ the S7 expansion step" into "unsolved".  So a wall is stored as
 ``(two face lines, thickness, along-wall interval)`` and the along-wall interval
 is for the denominator and for locating openings -- ⛔ NOT for deciding corners.
 
+## ⭐⭐ A wall is TWO PAIRED FACE LINES -- ⛔ not a converter ``wall_band``
+
+②-1a took ``walls`` straight off ``P1PlanViewGeometry.wall_bands``.  MEASURED
+(②-1a-R, 2026-08-29) that was the WRONG SOURCE: ``WallBand``'s own docstring
+says it is "grouped from its **jamb caps**" -- the little strokes that cross a
+wall at a door or a window -- ⛔ not from the two faces of a wall.  Signed
+drawing, ``plan-F1``:
+
+    from ``wall_bands``   45 "walls", thickness {100:1, 120:5, 240:7, 296:1,
+                              300:16, 304:1, 356:1, 360:11, 364:1, 500:1} mm
+    from face pairing     55 walls,   thickness {120: 28, 240: 27} mm
+
+⛔ The drawing has no 300 mm wall.  Those 16 were a door/window JAMB paired
+with the face of a real 120 mm partition 300 mm away, so the reported
+"thickness" was the distance from an opening frame to the next wall.  That is
+33 walls that do not exist, about to be written into the standard answer that
+BOTH reading and correction are then graded against.
+
+⭐ So ``walls`` is now derived by ``denominator.face_line_targets`` -- THE SAME
+D1-D5 pass the scoreable denominator runs, ⛔ never a second implementation of
+"what a wall face is" -- and the pairing rule is: same axis, overlapping along
+the wall, NEAREST opposite face.  ⛔ There is no thickness threshold anywhere in
+it: filtering candidate pairs by declared thickness is precisely the mechanism
+that silently deleted sm24's entire 120 mm partition family (batch guide §一).
+
+⛔⛔ THE TRAP THAT MAKES THIS NON-OBVIOUS: ``face_lines`` holds 225 strokes on
+signed ``plan-F1`` and only 110 of them are pairable.  Pairing all 225 puts the
+very same ghosts back, because the other 115 ARE the jamb caps and stubs.  The
+exclusion is D2's, REUSED.
+
+⚠️ AXIS CONVENTION -- written down because BOTH seats mis-read it while
+diagnosing this: ``denominator``'s ``axis`` names the axis the CONSTANT
+coordinate sits on, this module's ``axis`` names the axis a line RUNS ALONG.
+They are OPPOSITE.  :func:`_pair_face_lines_into_walls` flips it exactly once,
+deliberately ([[cross-representation-mutation-must-be-equivalent]]: a field
+NAMED one thing and HOLDING another is how that whole family of errors runs).
+
+⭐ Nothing is deleted by the change: the 45 bands are still carried, verbatim,
+as ``converter_readouts.jamb_cap_bands`` -- under a name that says what they
+are grouped from.
+
 ## 0.1 mm integers, and why that is a REPRESENTATION change, ⛔ not a snap
 
 User 2026-08-29: coordinates are stored as integers in units of 0.1 mm.  ⛔ This
@@ -79,6 +120,7 @@ from .gt_schema import (REPO_ROOT, DxfHandle, Hex64, HumanLabel, StableId,
                         StrictNonNegativeInt)
 from .tarch_converter_schema import (JsonDict, TarchConversionRequestV1,
                                      _StrictModel, compute_request_sha256)
+from .as_drawn.denominator import MERGE_M, face_line_targets
 from .tarch_normalize import P1PlanViewGeometry, run_p1_plan_view
 
 GT_CFG = REPO_ROOT / "src/configs/judge_gt.yaml"
@@ -164,12 +206,30 @@ class AsMeasuredFaceLineV1(_StrictModel):
 
 
 class AsMeasuredWallV1(_StrictModel):
-    """One thickness-homogeneous wall band = its two face lines + its extent.
+    """One wall = TWO PAIRED FACE LINES + the stretch over which both are drawn.
 
     ⭐ ``thickness`` is DERIVED (``face_hi - face_lo``) and stored anyway, so a
     consumer never has to re-derive it -- but it is stored as the INTEGER
     DIFFERENCE OF THE TWO STORED FACES, so "recompute it from the two faces and
     compare bit-for-bit" is a real check and not a re-run of a float formula.
+
+    ⛔⛔ ``face_line_ids_lo`` / ``_hi`` MAY NOT BE EMPTY.  In ②-1a they could be,
+    because ``walls`` came from the converter's jamb-cap ``wall_bands`` and a
+    band's "second face" was often a coordinate with no stroke on it at all.
+    That is exactly how 33 walls the drawing does not contain got into the
+    record, so the impossibility is now STRUCTURAL rather than a test that some
+    later edit could forget to run: a wall that cannot name the ink on both of
+    its faces is not a wall this layer will construct.
+
+    ``face_lo`` / ``face_hi`` are the D3 GROUP coordinate of each face -- the
+    producer's own answer to "which strokes are one drawn face line", quantised
+    at 1 mm by ``denominator.GROUP_QUANT``, then stored in the document's 0.1 mm
+    unit.  ⛔ Not a new snap and ⛔ not a tolerance: the strokes' own exact
+    0.1 mm coordinates are untouched on the ``face_lines`` this record names by
+    handle, and where the two differ the group is listed in
+    ``converter_readouts.face_groups_with_a_split_const`` (MEASURED: 2 groups on
+    signed ``plan-F1``, 0 on the other three views) rather than absorbed
+    silently ([[absence-conflates-causes-in-observables]]).
     """
     id: StableId
     axis: Literal["x", "y"]             # along-wall (running) axis
@@ -179,12 +239,9 @@ class AsMeasuredWallV1(_StrictModel):
     along_min: int
     along_max: int
     #: handles of the face lines lying on ``face_lo`` / ``face_hi``.  A face can
-    #: be drawn as several collinear fragments, hence lists.  ⛔ Empty is legal
-    #: and MEANINGFUL (the band was evidenced by jamb caps whose face line was
-    #: not collected) -- it is never papered over.
-    face_line_ids_lo: list[DxfHandle] = Field(default_factory=list)
-    face_line_ids_hi: list[DxfHandle] = Field(default_factory=list)
-    cap_handles: list[DxfHandle] = Field(default_factory=list)
+    #: be drawn as several collinear fragments, hence lists.  ⛔ NEVER empty.
+    face_line_ids_lo: list[DxfHandle] = Field(min_length=1)
+    face_line_ids_hi: list[DxfHandle] = Field(min_length=1)
 
     @model_validator(mode="after")
     def _thickness_is_the_difference(self):
@@ -192,6 +249,8 @@ class AsMeasuredWallV1(_StrictModel):
             raise ValueError("as_measured_thickness_not_face_difference")
         if self.thickness <= 0:
             raise ValueError("as_measured_thickness_not_positive")
+        if self.along_min >= self.along_max:
+            raise ValueError("as_measured_wall_along_interval_degenerate")
         return self
 
 
@@ -205,10 +264,20 @@ class AsMeasuredOpeningV1(_StrictModel):
     along_max: int
     cross_lo: int                       # normal-axis interval, 0.1 mm
     cross_hi: int
-    #: ⛔ ``None`` is a stated fact, not an omission: the matching wall band was
-    #: absent or ambiguous, and ``converter_readouts.unresolved_opening_carriers``
-    #: says which.
-    carrier_wall_id: StableId | None = None
+    #: The wall RUNS this opening is a gap in.  ⛔ PLURAL since ②-1a-R, and the
+    #: plural is the honest shape, not a convenience: a wall is now a paired
+    #: pair of drawn face-line RUNS, and D4 refuses to merge a run across an
+    #: opening -- so an opening lies BETWEEN two runs of one wall rather than
+    #: inside one.  MEASURED on all four views (signed/as-received x F1/F2):
+    #: every single opening has EXACTLY 2 touching runs, 0 that it strictly
+    #: overlaps, and those 2 always share ONE face pair -- i.e. the WALL is
+    #: unambiguous and only "which of its two runs" is not, which is a question
+    #: with no answer rather than one this layer may invent.
+    #: ⛔ Naming one of the two would be [[observation-named-as-fact-travels-as-fact]]:
+    #: a consumer would read "the opening is inside that run", which is false.
+    #: ⛔ Empty is a stated fact, not an omission --
+    #: ``converter_readouts.unresolved_opening_carriers`` says why.
+    carrier_wall_ids: list[StableId] = Field(default_factory=list)
     jamb_handles: list[DxfHandle] = Field(default_factory=list)
     classification: Literal["exterior", "interior_excluded"] = "exterior"
 
@@ -270,7 +339,25 @@ class AsMeasuredConverterReadoutsV1(_StrictModel):
     consumed_wall_handles: list[DxfHandle] = Field(default_factory=list)
     non_orthogonal_lines: list[AsMeasuredNonOrthogonalLineV1] = Field(default_factory=list)
     unresolved_opening_carriers: list[JsonDict] = Field(default_factory=list)
-    walls_missing_a_face_line: list[StableId] = Field(default_factory=list)
+    #: ⛔ ②-1a-R: the converter's ``wall_bands``, carried VERBATIM and under a
+    #: name that says what they are grouped from -- JAMB CAPS (S2), ⛔ NOT wall
+    #: faces.  ②-1a stored these as ``walls``; that is the defect this unit
+    #: undoes.  They stay in the record because they ARE a converter readout,
+    #: and throwing a readout on the floor is the failure F-A had just closed.
+    jamb_cap_bands: list[JsonDict] = Field(default_factory=list)
+    #: bands (⛔ not walls) one of whose two faces carries no collected stroke.
+    jamb_cap_bands_missing_a_face_line: list[StableId] = Field(default_factory=list)
+    #: ⭐ the consumption ledger for ``face_lines``: every collected face line
+    #: sits in EXACTLY ONE of {referenced by a wall, excluded as a jamb cap,
+    #: pairable but unpaired}, enforced by the view validator.  ⛔ Without it a
+    #: stroke can leave the record by simply never being appended to a list --
+    #: which is how 115 of signed ``plan-F1``'s 225 strokes would vanish.
+    face_lines_excluded_as_jamb_caps: list[DxfHandle] = Field(default_factory=list)
+    face_lines_not_paired_into_a_wall: list[DxfHandle] = Field(default_factory=list)
+    #: D3 groups whose member strokes do not all sit ON the group coordinate
+    #: (the 1 mm grouping absorbs at most 0.5 mm).  MEASURED: 2 on signed
+    #: ``plan-F1``, 0 elsewhere.  ⛔ Named rather than absorbed silently.
+    face_groups_with_a_split_const: list[JsonDict] = Field(default_factory=list)
     #: ⭐ the ONLY subtree in the whole document allowed to contain floats: these
     #: are the converter's own records in the converter's own frames.
     diagnostics: list[JsonDict] = Field(default_factory=list)
@@ -312,10 +399,33 @@ class AsMeasuredViewV1(_StrictModel):
                 if ref not in known:
                     raise ValueError(f"as_measured_dangling_face_line_ref:{ref}")
         wall_ids = {w.id for w in self.walls}
+        if len(wall_ids) != len(self.walls):
+            raise ValueError("as_measured_wall_id_not_unique")
         for opening in self.openings:
-            if opening.carrier_wall_id is not None and opening.carrier_wall_id not in wall_ids:
+            for ref in opening.carrier_wall_ids:
+                if ref not in wall_ids:
+                    raise ValueError(f"as_measured_dangling_carrier_ref:{ref}")
+        # ⭐⭐ ②-1a-R: the SECOND consumption ledger, and the one that keeps the
+        # 225-vs-110 trap from ever being silent again.  A wall is built from
+        # PAIRED face lines, so most collected strokes are deliberately NOT in a
+        # wall -- and "deliberately excluded" must not look like "quietly lost".
+        paired = {ref for wall in self.walls
+                  for ref in (*wall.face_line_ids_lo, *wall.face_line_ids_hi)}
+        capped = set(r.face_lines_excluded_as_jamb_caps)
+        loose = set(r.face_lines_not_paired_into_a_wall)
+        for name_a, a, name_b, b in (("wall", paired, "jamb_cap", capped),
+                                     ("wall", paired, "unpaired", loose),
+                                     ("jamb_cap", capped, "unpaired", loose)):
+            both = sorted(a & b)
+            if both:
                 raise ValueError(
-                    f"as_measured_dangling_carrier_ref:{opening.carrier_wall_id}")
+                    f"as_measured_face_line_in_two_buckets[{name_a}+{name_b}]:{both}")
+        accounted = paired | capped | loose
+        if accounted != known:
+            raise ValueError(
+                "as_measured_face_line_consumption_ledger_broken: "
+                f"unaccounted={sorted(known - accounted)} "
+                f"not_a_face_line={sorted(accounted - known)}")
         return self
 
 
@@ -493,7 +603,29 @@ def _face_line_sort_key(face: "AsMeasuredFaceLineV1"):
 
 
 def _wall_sort_key(wall: "AsMeasuredWallV1"):
+    """⚠️ ②-1a-R moved what this seam holds up, so it is stated rather than
+    assumed ([[moving-a-gate-to-a-new-measurement-point]]).
+
+    In ②-1a the walls came straight off ``geo.wall_bands`` in the upstream's
+    iteration order, so THIS sort was what made a reversed input produce
+    identical bytes.  It no longer is: walls are now built from
+    ``face_line_targets``, which sorts its own groups, so reversing the input
+    leaves the wall order alone even with this key neutered.  ⭐ What the key
+    still uniquely holds up is the DOCUMENTED TOTAL ORDER of ``walls`` (the
+    pairing emits them in the denominator's axis convention, i.e. the flipped
+    one), and that is the direction its neuter test now measures.
+    """
     return (wall.axis, wall.face_lo, wall.face_hi, wall.along_min, wall.along_max, wall.id)
+
+
+def _band_sort_key(band):
+    """Total order for the converter's own ``wall_bands`` readout.
+
+    ⭐ A named, patchable seam like the other four: ``geo.wall_bands`` arrives
+    as a list and the reproducibility probe reverses it, so without this sort
+    the document's bytes would follow the upstream's iteration order.
+    """
+    return (band.band_id, band.axis, band.face_lo_mm, band.face_hi_mm)
 
 
 def _opening_sort_key(opening: "AsMeasuredOpeningV1"):
@@ -543,46 +675,128 @@ def _face_line_records(geo: P1PlanViewGeometry, sx: float, tx: float,
     return faces, skew, degenerate
 
 
-def _wall_records(geo: P1PlanViewGeometry, faces: list[AsMeasuredFaceLineV1],
-                  sx: float, tx: float, sy: float,
-                  ty: float) -> tuple[list[AsMeasuredWallV1], list[str]]:
-    """Bands -> walls, with each band's two faces named by handle.
+def _jamb_cap_band_records(geo: P1PlanViewGeometry, faces: list[AsMeasuredFaceLineV1],
+                           sx: float, tx: float, sy: float,
+                           ty: float) -> tuple[list[dict], list[str]]:
+    """The converter's ``wall_bands``, VERBATIM -- ⛔ under a truthful name.
 
-    ⭐ The reference is resolved by matching the band's own face coordinate
-    against the face lines' constant coordinate IN THE STORED UNIT -- i.e. the
-    two are compared after both have gone through ``to_units``.  ⛔ Comparing
-    floats here would make the reference depend on the 12th decimal place.
+    ⛔ These are NOT walls, and ②-1a's mistake was to store them as such.  The
+    converter groups them from JAMB CAPS: a stroke counts as a cap when its
+    LENGTH lands inside ``wall_thickness_range_m`` = [0.06, 0.50] m, so a door
+    frame and a real partition face 0.30 m away become one "300 mm wall".
+
+    ⭐ They are still carried, in the converter's own native millimetres (this
+    subtree is the document's only float-bearing one), because they are a real
+    readout of a real producer -- what changes is the NAME and the fact that
+    nothing downstream may mistake them for the wall list.
+
+    The second return value keeps ②-1a's measurement alive: bands one of whose
+    two faces has no collected stroke at all (MEASURED 9 / 7 / 11 / 7 across the
+    four views) -- the evidence that band grouping is not face pairing.
     """
     by_const: dict[tuple[str, int], list[str]] = {}
     for face in faces:
         by_const.setdefault((face.axis, face.const), []).append(face.id)
-    walls: list[AsMeasuredWallV1] = []
-    unresolved: list[str] = []
-    for band in geo.wall_bands:
+    records: list[dict] = []
+    missing: list[str] = []
+    for band in sorted(geo.wall_bands, key=_band_sort_key):
         if band.axis == "x":               # runs along x, faces are y coords
-            lo, hi = to_units(sy * band.face_lo_mm + ty), to_units(sy * band.face_hi_mm + ty)
-            amin = to_units(sx * band.along_min_mm + tx)
-            amax = to_units(sx * band.along_max_mm + tx)
-            face_axis = "x"                # the FACE LINES run along x
+            lo = to_units(sy * band.face_lo_mm + ty)
+            hi = to_units(sy * band.face_hi_mm + ty)
         else:                              # runs along y, faces are x coords
-            lo, hi = to_units(sx * band.face_lo_mm + tx), to_units(sx * band.face_hi_mm + tx)
-            amin = to_units(sy * band.along_min_mm + ty)
-            amax = to_units(sy * band.along_max_mm + ty)
-            face_axis = "y"
+            lo = to_units(sx * band.face_lo_mm + tx)
+            hi = to_units(sx * band.face_hi_mm + tx)
         lo, hi = (lo, hi) if lo <= hi else (hi, lo)
-        amin, amax = (amin, amax) if amin <= amax else (amax, amin)
-        wall_id = f"w_{band.axis}_{lo}_{hi}"
-        ids_lo = sorted(by_const.get((face_axis, lo), []))
-        ids_hi = sorted(by_const.get((face_axis, hi), []))
-        if not ids_lo or not ids_hi:
-            unresolved.append(wall_id)
+        if not by_const.get((band.axis, lo)) or not by_const.get((band.axis, hi)):
+            missing.append(band.band_id)
+        records.append({
+            "band_id": band.band_id, "axis": band.axis,
+            "face_lo_mm": float(band.face_lo_mm), "face_hi_mm": float(band.face_hi_mm),
+            "along_min_mm": float(band.along_min_mm),
+            "along_max_mm": float(band.along_max_mm),
+            "thickness_mm": float(band.thickness_mm),
+            "cap_handles": _sorted_handles(set(band.cap_handles))})
+    return records, _sorted_handles(set(missing))
+
+
+def _pair_face_lines_into_walls(
+        targets: list[dict], known: set[str]) -> tuple[list[AsMeasuredWallV1], list[str]]:
+    """⭐ Two face lines make a wall: same axis, overlapping, NEAREST opposite.
+
+    ⛔ There is NO thickness threshold in this function, by design.  "Keep the
+    pairs whose gap looks like a declared wall" is the rule that silently
+    deleted sm24's whole 120 mm partition family; the structural substitute is
+    that each face may be consumed once, by its nearest overlapping opposite.
+
+    ⚠️⚠️ ``targets`` speak the DENOMINATOR's axis convention -- ``axis`` names
+    the axis the CONSTANT coordinate sits on -- while every ``axis`` in this
+    module names the axis a line RUNS ALONG.  The flip happens HERE, once, and
+    nowhere else ([[cross-representation-mutation-must-be-equivalent]]).
+
+    ``known`` filters the references down to strokes this layer actually stored
+    as ``face_lines``; a collected stroke that is degenerate never becomes one,
+    and a reference to it would dangle.
+    """
+    used: set[int] = set()
+    walls: list[AsMeasuredWallV1] = []
+    for i, a in enumerate(targets):
+        if i in used:
+            continue
+        best: tuple[float, int, dict] | None = None
+        for j in range(i + 1, len(targets)):
+            if j in used or targets[j]["axis"] != a["axis"]:
+                continue
+            b = targets[j]
+            overlap = min(a["hi_m"], b["hi_m"]) - max(a["lo_m"], b["lo_m"])
+            gap = abs(a["const_m"] - b["const_m"])
+            if overlap <= 0 or gap < 1e-9:
+                continue
+            if best is None or gap < best[0]:
+                best = (gap, j, b)
+        if best is None:
+            continue
+        _gap, j, b = best
+        used |= {i, j}
+        lo_t, hi_t = (a, b) if a["const_m"] <= b["const_m"] else (b, a)
+        face_lo, face_hi = to_units(lo_t["const_m"]), to_units(hi_t["const_m"])
+        along_min = to_units(max(a["lo_m"], b["lo_m"]))
+        along_max = to_units(min(a["hi_m"], b["hi_m"]))
+        run_axis = "y" if a["axis"] == "x" else "x"          # ⚠️ the one flip
         walls.append(AsMeasuredWallV1(
-            id=wall_id, axis=band.axis, face_lo=lo, face_hi=hi, thickness=hi - lo,
-            along_min=amin, along_max=amax,
-            face_line_ids_lo=ids_lo, face_line_ids_hi=ids_hi,
-            cap_handles=_sorted_handles(set(band.cap_handles))))
+            id=f"w_{run_axis}_{face_lo}_{face_hi}_{along_min}_{along_max}",
+            axis=run_axis, face_lo=face_lo, face_hi=face_hi,
+            thickness=face_hi - face_lo,
+            along_min=along_min, along_max=along_max,
+            face_line_ids_lo=sorted(h for h in lo_t["handles"] if h in known),
+            face_line_ids_hi=sorted(h for h in hi_t["handles"] if h in known)))
+    unpaired = _sorted_handles({h for i, tgt in enumerate(targets) if i not in used
+                                for h in tgt["handles"] if h in known})
     walls.sort(key=_wall_sort_key)
-    return walls, _sorted_handles(set(unresolved))
+    return walls, unpaired
+
+
+def _split_const_groups(targets: list[dict],
+                        by_id: dict[str, AsMeasuredFaceLineV1]) -> list[dict]:
+    """D3 groups whose members do not all sit on the group coordinate.
+
+    ⛔ Not a defect report and ⛔ not a filter: the 1 mm grouping is the
+    producer's own answer to "which strokes are one face line", and a wall's
+    ``face_lo``/``face_hi`` are that group coordinate.  This names the (small,
+    MEASURED: 2 on signed ``plan-F1``) set where the group coordinate and a
+    member stroke's own coordinate differ, so the 0.1 mm is visible in the
+    record instead of being absorbed by a rounding nobody can see.
+    """
+    out: list[dict] = []
+    for tgt in targets:
+        group_const = to_units(tgt["const_m"])
+        members = sorted({by_id[h].const for h in tgt["handles"] if h in by_id})
+        if any(const != group_const for const in members):
+            out.append({"axis": "y" if tgt["axis"] == "x" else "x",
+                        "group_const": group_const, "member_consts": members,
+                        "handles": _sorted_handles(h for h in tgt["handles"]
+                                                   if h in by_id)})
+    out.sort(key=lambda g: (g["axis"], g["group_const"], g["handles"]))
+    return out
 
 
 def _opening_records(geo: P1PlanViewGeometry, walls: list[AsMeasuredWallV1],
@@ -606,18 +820,16 @@ def _opening_records(geo: P1PlanViewGeometry, walls: list[AsMeasuredWallV1],
             cross = sorted((to_units(sx * c0 + tx), to_units(sx * c1 + tx)))
         candidates = [w for w in by_face.get((op.axis, cross[0], cross[1]), [])
                       if not (along_max < w.along_min or along_min > w.along_max)]
-        carrier: str | None = None
-        if len(candidates) == 1:
-            carrier = candidates[0].id
-        else:
+        carriers = _sorted_handles(w.id for w in candidates)
+        if not candidates:
             unresolved.append({"opening_id": op.handle, "axis": op.axis,
                                "cross_lo": cross[0], "cross_hi": cross[1],
-                               "candidate_wall_ids": _sorted_handles(w.id for w in candidates),
-                               "reason": "no_band" if not candidates else "ambiguous"})
+                               "candidate_wall_ids": [],
+                               "reason": "no_wall_with_this_face_pair"})
         records.append(AsMeasuredOpeningV1(
             id=op.handle, block_name=op.block_name, kind=op.kind, axis=op.axis,
             along_min=along_min, along_max=along_max,
-            cross_lo=cross[0], cross_hi=cross[1], carrier_wall_id=carrier,
+            cross_lo=cross[0], cross_hi=cross[1], carrier_wall_ids=carriers,
             jamb_handles=_sorted_handles(set(op.jamb_handles)),
             classification=op.classification))
     records.sort(key=_opening_sort_key)
@@ -711,12 +923,29 @@ def _refuse_if_the_ruler_never_measured(geo: P1PlanViewGeometry) -> None:
                    "input and must not share its exit")
 
 
-def build_view(geo: P1PlanViewGeometry, affine: Affine2D) -> AsMeasuredViewV1:
-    """⭐ Pure: P1 geometry in, facts document out.  ⛔ Reads no file."""
+def build_view(geo: P1PlanViewGeometry, affine: Affine2D, *,
+               t_max_m: float, merge_m: float = MERGE_M) -> AsMeasuredViewV1:
+    """⭐ Pure: P1 geometry in, facts document out.  ⛔ Reads no file.
+
+    ``t_max_m`` is the request's widest DECLARED wall thickness.  ⛔ It is not a
+    pairing threshold -- it bounds the denominator's D2 jamb-cap test only, and
+    it has to be passed in because this function is pure and the range lives on
+    the request.
+    """
     _refuse_if_the_ruler_never_measured(geo)
     sx, tx, sy, ty = _axis_aligned(affine, geo.view_id)
     faces, skew, degenerate = _face_line_records(geo, sx, tx, sy, ty)
-    walls, faceless = _wall_records(geo, faces, sx, tx, sy, ty)
+    by_id = {face.id: face for face in faces}
+    # ⭐ THE SAME D1-D5 pass the scoreable denominator runs -- ⛔ not a second
+    # implementation, and ⛔ not the raw ``face_lines`` (225 of them on signed
+    # plan-F1, of which only 110 are pairable; pairing all 225 puts the ghost
+    # walls straight back).
+    drawn = face_line_targets(geo, affine, t_max_m=t_max_m, merge_m=merge_m)
+    walls, unpaired = _pair_face_lines_into_walls(drawn["targets"], set(by_id))
+    caps = _sorted_handles({a["handle"] for a in drawn["allowed_not_required"]
+                            if a["handle"] in by_id})
+    split_const = _split_const_groups(drawn["targets"], by_id)
+    bands, faceless = _jamb_cap_band_records(geo, faces, sx, tx, sy, ty)
     openings, unresolved = _opening_records(geo, walls, sx, tx, sy, ty)
     diagnostics, gates = _readout_records(geo)
     return AsMeasuredViewV1(
@@ -732,7 +961,11 @@ def build_view(geo: P1PlanViewGeometry, affine: Affine2D) -> AsMeasuredViewV1:
             consumed_wall_handles=_sorted_handles(geo.consumed_wall_handles),
             non_orthogonal_lines=skew,
             unresolved_opening_carriers=unresolved,
-            walls_missing_a_face_line=faceless,
+            jamb_cap_bands=bands,
+            jamb_cap_bands_missing_a_face_line=faceless,
+            face_lines_excluded_as_jamb_caps=caps,
+            face_lines_not_paired_into_a_wall=unpaired,
+            face_groups_with_a_split_const=split_const,
             diagnostics=diagnostics, gates=gates))
 
 
@@ -756,7 +989,9 @@ def build_as_measured(dxf: Path, request_path: Path, *,
         for view_id in wanted:
             view = next(v for v in request.plan_views if v.id == view_id)
             geo = run_p1_plan_view(staged, request, view, tooling)
-            views.append(build_view(geo, view.world_from_source_m))
+            views.append(build_view(
+                geo, view.world_from_source_m,
+                t_max_m=max(float(t) for t in request.wall_thickness_range_m)))
     return AsMeasuredV1(
         case=request.case,
         source_dxf_label=dxf.name,

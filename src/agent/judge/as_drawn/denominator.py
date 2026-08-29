@@ -251,27 +251,49 @@ def _merge(spans: list[tuple[float, float]], gap_m: float) -> list[list[float]]:
     return out
 
 
-def denominator(dxf: Path, request_path: Path, view_id: str, *,
-                merge_m: float = MERGE_M) -> dict:
-    request = TarchConversionRequestV1.model_validate_json(Path(request_path).read_text())
-    view = next(v for v in request.plan_views if v.id == view_id)
-    tooling = load_gt_tooling_config(GT_CFG, VG_CFG)
-    with tempfile.TemporaryDirectory() as tmp:          # staging: the answer source is protected
-        staged = Path(tmp) / dxf.name
-        shutil.copy2(dxf, staged)
-        geo = run_p1_plan_view(staged, request, view, tooling)
+def face_line_targets(geo, affine, *, t_max_m: float,
+                      merge_m: float = MERGE_M) -> dict:
+    """⭐ D1-D5 as a PURE pass: P1 geometry in, the DRAWN FACE LINES out.
 
-    # ⭐ Use the request's OWN source->world affine (``plan_view.world_from_source_m``),
-    # ⛔ never "multiply by metres_per_unit and hope": the world frame's origin is the
-    # whole building's SW inner corner (invariant #2), not the DXF origin, and on a
-    # multi-floor request each plan view sits somewhere else in DXF space entirely.
-    affine = view.world_from_source_m
+    ⛔ Extracted 2026-08-29 (②-1a-R) WITHOUT a behaviour change, so that the
+    facts layer (``judge/as_measured.py``) can pair face lines into walls using
+    THE SAME exclusion rule the denominator already applies -- ⛔ not a second
+    implementation of "what is a wall face".  The rework order's own warning is
+    the reason this had to be shared rather than re-typed:
+
+        as_measured's stored ``face_lines``   225   (every wall-layer stroke)
+        this function's pairable ``targets``  110   (jamb caps / stubs removed)
+
+    Pairing all 225 reproduces exactly the ghost walls ②-1a-R exists to delete,
+    so the 115-stroke difference IS the fix ([[dont-delete-normalization-without-finding-its-contract]]).
+
+    ⚠⚠ AXIS CONVENTION -- the trap this unit actually stepped in.  Here ``axis``
+    names the axis the CONSTANT coordinate lies on: a vertical stroke (running
+    along y, constant x) is ``axis="x"``.  ``as_measured``'s ``axis`` is the
+    OPPOSITE convention -- the axis the line RUNS ALONG -- so a caller crossing
+    between the two must flip it (``den_axis = "y" if am_axis == "x" else "x"``).
+    Both the orchestrator and this seat mis-read it once while diagnosing the
+    ghost walls ([[cross-representation-mutation-must-be-equivalent]]: a field
+    that is NAMED one thing and HOLDS another is how that class of error runs).
+
+    ⭐ ``targets[i]["handles"]`` is new here: the DXF handles of the strokes that
+    were merged into that run.  Without it a consumer can only re-find the
+    member strokes by matching coordinates, and D3 groups at 1 mm while the
+    strokes are stored at 0.1 mm -- MEASURED on signed ``plan-F1``, two groups
+    have members 0.1 mm off their own group coordinate, so a coordinate match
+    would silently drop them.  Every other key is unchanged.
+
+    ``t_max_m`` is the widest DECLARED wall (``request.wall_thickness_range_m``);
+    it bounds D2's cap test only.  ⛔ It is NOT a pairing threshold -- filtering
+    pairs by declared thickness is the mechanism that silently dropped sm24's
+    whole 120 mm partition family (batch guide §一).
+    """
     caps = {(round(c, 6), round(lo, 6), round(hi, 6), "v")
             for c, spans in geo.jamb_caps_v.items() for lo, hi in spans}
     caps |= {(round(c, 6), round(lo, 6), round(hi, 6), "h")
              for c, spans in geo.jamb_caps_h.items() for lo, hi in spans}
 
-    t_max = max(float(t) for t in request.wall_thickness_range_m)
+    t_max = float(t_max_m)
 
     # pass 1 -- every orthogonal segment in WORLD coordinates
     segs = []
@@ -302,15 +324,17 @@ def denominator(dxf: Path, request_path: Path, view_id: str, *,
         if abs(wx1 - wx0) < abs(wy1 - wy0):
             segs.append(("x", round((wx0 + wx1) / 2.0, QUANT),
                          round(min(wy0, wy1), QUANT), round(max(wy0, wy1), QUANT),
-                         (round(x0, 6), round(min(y0, y1), 6), round(max(y0, y1), 6), "v")))
+                         (round(x0, 6), round(min(y0, y1), 6), round(max(y0, y1), 6), "v"),
+                         _handle))
         else:
             segs.append(("y", round((wy0 + wy1) / 2.0, QUANT),
                          round(min(wx0, wx1), QUANT), round(max(wx0, wx1), QUANT),
-                         (round(y0, 6), round(min(x0, x1), 6), round(max(x0, x1), 6), "h")))
+                         (round(y0, 6), round(min(x0, x1), 6), round(max(x0, x1), 6), "h"),
+                         _handle))
 
     # pass 2 -- which consts carry a LONG stroke?  Only those can host a cap's end.
     long_const = {"x": set(), "y": set()}
-    for axis, const, lo, hi, _ in segs:
+    for axis, const, lo, hi, _, _h in segs:
         if hi - lo > t_max:
             long_const[axis].add(const)
 
@@ -322,10 +346,10 @@ def denominator(dxf: Path, request_path: Path, view_id: str, *,
         near = lambda v: any(abs(v - c) <= 0.02 for c in long_const[other])
         return near(lo) and near(hi)
 
-    groups: dict[tuple[str, float], list[tuple[float, float]]] = {}
+    groups: dict[tuple[str, float], list[tuple[float, float, str]]] = {}
     allowed: list[dict] = []          # ⭐ D2': drawn, allowed, not required
     n_cap, n_face, n_cap_by_converter = 0, 0, 0
-    for axis, const, lo, hi, cap_key in segs:
+    for axis, const, lo, hi, cap_key, handle in segs:
         n_cap_by_converter += cap_key in caps
         if _is_cap(axis, const, lo, hi):                 # D2 (geometric)
             n_cap += 1
@@ -336,10 +360,15 @@ def denominator(dxf: Path, request_path: Path, view_id: str, *,
             # lands exactly on D2-excluded segments.  So caps now leave the
             # denominator as an ALLOWED set: not scored for, not scored against.
             allowed.append({"axis": axis, "const_m": const,
-                            "lo_m": round(lo, QUANT), "hi_m": round(hi, QUANT)})
+                            "lo_m": round(lo, QUANT), "hi_m": round(hi, QUANT),
+                            # ⭐ ②-1a-R: itemised by handle for the same reason
+                            # ``excluded_non_orthogonal`` is -- a count cannot be
+                            # pointed at, and the facts layer has to account for
+                            # every collected stroke in exactly one bucket.
+                            "handle": handle})
             continue
         n_face += 1
-        groups.setdefault((axis, round(const, GROUP_QUANT)), []).append((lo, hi))
+        groups.setdefault((axis, round(const, GROUP_QUANT)), []).append((lo, hi, handle))
 
     # openings first: D4 needs them
     opening_spans: dict[str, list[tuple[float, float, float, float]]] = {"x": [], "y": []}
@@ -377,7 +406,7 @@ def denominator(dxf: Path, request_path: Path, view_id: str, *,
     LANDING_TOL_M = 0.05     # same slack the opening guard uses
     LANDING_MAX_WALL_M = 0.50  # widest thing that can still BE a wall (240/120 declared)
 
-    perp_reach: dict[str, dict[float, list[tuple[float, float]]]] = {"x": {}, "y": {}}
+    perp_reach: dict[str, dict[float, list[tuple[float, float, str]]]] = {"x": {}, "y": {}}
     for (gax, gconst), gspans in groups.items():
         perp_reach["y" if gax == "x" else "x"].setdefault(gconst, []).extend(gspans)
 
@@ -385,7 +414,7 @@ def denominator(dxf: Path, request_path: Path, view_id: str, *,
         """Is the blank exactly where ONE perpendicular wall lands on this face?"""
         reaching = sorted(c for c, sp in perp_reach[axis].items()
                           if any(lo - LANDING_TOL_M <= const <= hi + LANDING_TOL_M
-                                 for lo, hi in sp))
+                                 for lo, hi, _member in sp))
         for i, c1 in enumerate(reaching):
             for c2 in reaching[i + 1:]:
                 if c2 - c1 > LANDING_MAX_WALL_M:
@@ -397,8 +426,8 @@ def denominator(dxf: Path, request_path: Path, view_id: str, *,
     targets, frag_hist, guarded, n_holes, hole_m = [], [], 0, 0, 0.0
     for (axis, const), spans in sorted(groups.items()):
         frag_hist.append(len(spans))
-        merged: list[list] = []                      # [lo, hi, holes]
-        for lo, hi in sorted(spans):
+        merged: list[list] = []                      # [lo, hi, holes, handles]
+        for lo, hi, handle in sorted(spans):
             if (merged and lo - merged[-1][1] <= merge_m
                     and not _crosses_opening(axis, const, merged[-1][1], lo)):
                 blank = (merged[-1][1], lo)
@@ -410,11 +439,12 @@ def denominator(dxf: Path, request_path: Path, view_id: str, *,
                     n_holes += 1
                     hole_m += blank[1] - blank[0]
                 merged[-1][1] = max(merged[-1][1], hi)
+                merged[-1][3].append(handle)
             else:
                 if merged and lo - merged[-1][1] <= merge_m:
                     guarded += 1
-                merged.append([lo, hi, []])
-        for lo, hi, holes in merged:
+                merged.append([lo, hi, [], [handle]])
+        for lo, hi, holes, member_handles in merged:
             span_m = hi - lo
             req = span_m - sum(b - a for a, b in holes)
             targets.append({"axis": axis, "const_m": const,
@@ -423,8 +453,55 @@ def denominator(dxf: Path, request_path: Path, view_id: str, *,
                             # ⭐ blanks the answer itself does not fill: ink here is
                             # neither required (C2) nor punished (C4).
                             "holes": holes,
-                            "required_length_m": round(req, 4)})
+                            "required_length_m": round(req, 4),
+                            # ⭐ ②-1a-R: WHICH strokes this run is made of.  The
+                            # facts layer names a wall's two faces by handle, and
+                            # a coordinate match cannot do it (D3 groups at 1 mm,
+                            # strokes are stored at 0.1 mm).
+                            "handles": sorted(set(member_handles))})
     frag_hist.sort()
+    return {
+        "targets": targets,
+        "allowed_not_required": allowed,
+        "excluded_non_orthogonal_segments": excluded_non_orthogonal,
+        "counts": {
+            "excluded_jamb_caps_geometric": n_cap,
+            "would_be_excluded_by_converter_length_rule": n_cap_by_converter,
+            "face_segments": n_face,
+            "face_lines_after_grouping": len(groups),
+            "fragments_per_face_line": {
+                "min": frag_hist[0] if frag_hist else 0,
+                "median": frag_hist[len(frag_hist) // 2] if frag_hist else 0,
+                "max": frag_hist[-1] if frag_hist else 0},
+            "merges_blocked_by_an_opening": guarded,
+            "wall_landing_holes": n_holes,
+            "wall_landing_hole_length_m": round(hole_m, 4),
+        },
+    }
+
+
+def denominator(dxf: Path, request_path: Path, view_id: str, *,
+                merge_m: float = MERGE_M) -> dict:
+    request = TarchConversionRequestV1.model_validate_json(Path(request_path).read_text())
+    view = next(v for v in request.plan_views if v.id == view_id)
+    tooling = load_gt_tooling_config(GT_CFG, VG_CFG)
+    with tempfile.TemporaryDirectory() as tmp:          # staging: the answer source is protected
+        staged = Path(tmp) / dxf.name
+        shutil.copy2(dxf, staged)
+        geo = run_p1_plan_view(staged, request, view, tooling)
+
+    # ⭐ Use the request's OWN source->world affine (``plan_view.world_from_source_m``),
+    # ⛔ never "multiply by metres_per_unit and hope": the world frame's origin is the
+    # whole building's SW inner corner (invariant #2), not the DXF origin, and on a
+    # multi-floor request each plan view sits somewhere else in DXF space entirely.
+    affine = view.world_from_source_m
+    faces = face_line_targets(
+        geo, affine, merge_m=merge_m,
+        t_max_m=max(float(t) for t in request.wall_thickness_range_m))
+    targets = faces["targets"]
+    allowed = faces["allowed_not_required"]
+    excluded_non_orthogonal = faces["excluded_non_orthogonal_segments"]
+    counts = faces["counts"]
 
     # ⭐ OPENING TARGETS (2026-08-24, F-87): the answer's own resolved openings,
     # in world metres, carrying the ONE thing the reconstruction never scored --
@@ -463,22 +540,20 @@ def denominator(dxf: Path, request_path: Path, view_id: str, *,
             "s4_dangles": geo.dangles,
             "s4_cuts": geo.cuts,
             "s4_invalid": geo.invalid,
-            "excluded_jamb_caps_geometric": n_cap,
-            "would_be_excluded_by_converter_length_rule": n_cap_by_converter,
+            "excluded_jamb_caps_geometric": counts["excluded_jamb_caps_geometric"],
+            "would_be_excluded_by_converter_length_rule":
+                counts["would_be_excluded_by_converter_length_rule"],
             # ⭐ the count and its itemisation are built from ONE list, so they
             # cannot drift apart (R3's lock asserts the two agree AND are > 0).
             "excluded_non_orthogonal": len(excluded_non_orthogonal),
-            "face_segments": n_face,
-            "face_lines_after_grouping": len(groups),
+            "face_segments": counts["face_segments"],
+            "face_lines_after_grouping": counts["face_lines_after_grouping"],
             "scoreable_targets_after_merge": len(targets),
-            "fragments_per_face_line": {
-                "min": frag_hist[0] if frag_hist else 0,
-                "median": frag_hist[len(frag_hist) // 2] if frag_hist else 0,
-                "max": frag_hist[-1] if frag_hist else 0},
+            "fragments_per_face_line": counts["fragments_per_face_line"],
             "total_scoreable_length_m": round(sum(t["length_m"] for t in targets), 3),
-            "merges_blocked_by_an_opening": guarded,
-            "wall_landing_holes": n_holes,
-            "wall_landing_hole_length_m": round(hole_m, 4),
+            "merges_blocked_by_an_opening": counts["merges_blocked_by_an_opening"],
+            "wall_landing_holes": counts["wall_landing_holes"],
+            "wall_landing_hole_length_m": counts["wall_landing_hole_length_m"],
         },
         "targets": targets,
         "allowed_not_required": allowed,

@@ -27,6 +27,7 @@ built in ``tmp_path``.
 """
 from __future__ import annotations
 
+import collections
 import copy
 import dataclasses
 import hashlib
@@ -86,27 +87,54 @@ SM24_MANIFEST_SHA256 = "c40cbc8bb566e4d8fc3999ad5ccb07bd27747b9f57f9ad30fe6691c7
 
 # MEASURED 2026-08-28 with this change in the tree.  ⭐ Both drawings, both
 # views: a number proven on one view only proves that view.
+#: ⭐⭐ ②-1a-R: ``walls`` is now PAIRED FACE LINES, and ``thickness_mm`` is the
+#: acceptance that actually catches the defect -- the counts alone would have
+#: been just as green on the ghost-wall build (45/39/44/39 walls looked fine).
+#: The drawing declares 120 and 240 mm and contains nothing else.
 EXPECTED = {
-    ("as_received", "plan-F1"): {"face_lines": 222, "walls": 44, "openings": 31,
+    ("as_received", "plan-F1"): {"face_lines": 222, "walls": 54, "openings": 31,
                                  "wall_lines_total": 223, "non_orthogonal": 1,
                                  "dangles": 4, "gates_failed": ["G1", "G5"],
                                  "block_codes": ["tarch_wall_free_end",
                                                  "tarch_wall_nonorthogonal"],
-                                 "walls_missing_a_face_line": 11},
-    ("as_received", "plan-F2"): {"face_lines": 222, "walls": 39, "openings": 30,
+                                 "thickness_mm": {120: 27, 240: 27},
+                                 "jamb_cap_bands": 44,
+                                 "bands_missing_a_face_line": 11,
+                                 "split_const_groups": 2},
+    ("as_received", "plan-F2"): {"face_lines": 222, "walls": 53, "openings": 30,
                                  "wall_lines_total": 222, "non_orthogonal": 0,
                                  "dangles": 0, "gates_failed": [],
                                  "block_codes": [],
-                                 "walls_missing_a_face_line": 7},
-    ("signed", "plan-F1"): {"face_lines": 225, "walls": 45, "openings": 31,
+                                 "thickness_mm": {120: 28, 240: 25},
+                                 "jamb_cap_bands": 39,
+                                 "bands_missing_a_face_line": 7,
+                                 "split_const_groups": 0},
+    ("signed", "plan-F1"): {"face_lines": 225, "walls": 55, "openings": 31,
                             "wall_lines_total": 225, "non_orthogonal": 0,
                             "dangles": 0, "gates_failed": [], "block_codes": [],
-                            "walls_missing_a_face_line": 9},
-    ("signed", "plan-F2"): {"face_lines": 222, "walls": 39, "openings": 30,
+                            "thickness_mm": {120: 28, 240: 27},
+                            "jamb_cap_bands": 45,
+                            "bands_missing_a_face_line": 9,
+                            "split_const_groups": 4},
+    ("signed", "plan-F2"): {"face_lines": 222, "walls": 53, "openings": 30,
                             "wall_lines_total": 222, "non_orthogonal": 0,
                             "dangles": 0, "gates_failed": [], "block_codes": [],
-                            "walls_missing_a_face_line": 7},
+                            "thickness_mm": {120: 28, 240: 25},
+                            "jamb_cap_bands": 39,
+                            "bands_missing_a_face_line": 7,
+                            "split_const_groups": 0},
 }
+
+#: ⛔ Read from the request, ⛔ not typed in: the D2 cap test is bounded by the
+#: DECLARED widest wall, and a literal here could drift away from the request
+#: without anything going red.
+T_MAX_M = max(float(x) for x in json.loads(
+    AS_MEASURED_REQUEST.read_text(encoding="utf-8"))["wall_thickness_range_m"])
+
+
+def thickness_hist_mm(walls) -> dict[int, int]:
+    """Thickness histogram in whole millimetres -- the acceptance ① readout."""
+    return dict(sorted(collections.Counter(w.thickness // 10 for w in walls).items()))
 
 
 @pytest.fixture(scope="module", autouse=True)
@@ -255,7 +283,14 @@ def test_r2_measured_inventory(which, view_id, as_received_doc, signed_doc):
     assert [g["id"] for g in readouts.gates if not g["passed"]] == want["gates_failed"]
     assert sorted({d["code"] for d in readouts.diagnostics
                    if d["severity"] == "BLOCK"}) == want["block_codes"]
-    assert len(readouts.walls_missing_a_face_line) == want["walls_missing_a_face_line"]
+    assert thickness_hist_mm(view.walls) == want["thickness_mm"], (
+        "⛔ ②-1a-R acceptance ①: a thickness the drawing does not contain means "
+        "``walls`` is being built from something that is not a pair of faces")
+    assert len(readouts.jamb_cap_bands) == want["jamb_cap_bands"]
+    assert (len(readouts.jamb_cap_bands_missing_a_face_line)
+            == want["bands_missing_a_face_line"])
+    assert (len(readouts.face_groups_with_a_split_const)
+            == want["split_const_groups"])
 
 
 def test_r2_the_as_received_drawing_differs_from_the_signed_one_as_f129_measured(
@@ -309,46 +344,63 @@ def test_r2_every_reference_resolves(as_received_doc, signed_doc):
                 assert set(wall.face_line_ids_lo) <= ids
                 assert set(wall.face_line_ids_hi) <= ids
             for opening in view.openings:
-                assert opening.carrier_wall_id is None or opening.carrier_wall_id in wall_ids
+                assert set(opening.carrier_wall_ids) <= wall_ids
 
 
 def test_r2_every_opening_names_its_carrier_wall(as_received_doc, signed_doc):
     """MEASURED: 31/31 and 30/30 on BOTH drawings -- the carrier reference the
-    dispatch worried might be missing is fully derivable inside P1."""
+    dispatch worried might be missing is fully derivable inside P1.
+
+    ⭐ ②-1a-R made the reference PLURAL, and this pins the reason rather than
+    the convenience: D4 never merges a face-line run across an opening, so an
+    opening sits BETWEEN two runs of one wall.  MEASURED on all four views --
+    every opening touches EXACTLY 2 runs, strictly overlaps 0 of them, and both
+    runs carry the SAME face pair.  So the WALL is unambiguous; "which of its
+    two runs" is a question with no answer, and ⛔ picking one would put a false
+    statement ("the opening is inside this run") into the record.
+    """
     for doc in (as_received_doc, signed_doc):
         for view in doc.views:
-            unresolved = [o.id for o in view.openings if o.carrier_wall_id is None]
+            unresolved = [o.id for o in view.openings if not o.carrier_wall_ids]
             assert unresolved == [], f"{doc.source_dxf_label}/{view.view_id}"
             assert view.converter_readouts.unresolved_opening_carriers == []
+            by_id = {w.id: w for w in view.walls}
+            for opening in view.openings:
+                assert len(opening.carrier_wall_ids) == 2, opening.id
+                faces = {(by_id[i].axis, by_id[i].face_lo, by_id[i].face_hi)
+                         for i in opening.carrier_wall_ids}
+                assert len(faces) == 1, (
+                    f"{opening.id}: its runs disagree about which wall it is in")
+                assert faces == {(opening.axis, opening.cross_lo, opening.cross_hi)}
 
 
 def test_r2_a_band_whose_second_face_was_never_drawn_is_named_not_dropped(
         as_received_doc, signed_doc):
-    """⚠️⚠️ The dispatch's §一.2 said P1 carries "两条面线的引用" for every wall.
-    MEASURED, it does not, and this test pins the gap rather than papering it.
+    """⚠️⚠️ ②-1a measured this and ②-1a-R explains it: ``wall_bands`` is NOT a
+    list of walls, and the bands one of whose faces has no ink are the proof.
 
-    ``wall_bands`` is NOT a list of walls: the converter calls a stroke a jamb
-    cap on LENGTH alone (inside ``wall_thickness_range_m`` = [0.06, 0.50] m), so
-    a 0.36 m stroke drawn on the WALL layer that is not a cap still produces a
-    "band".  MEASURED on the SIGNED drawing, ``plan-F1``: band
-    ``w_x_35853.6_36213.6`` has two face lines on its low face and NONE on its
-    high face, whose nearest neighbours are +/- 60 (the two faces of a 120 mm
-    wall whose centre it lands on).  This is the same false-positive the
-    denominator's D2 clause already refuses to inherit.
+    The converter calls a stroke a jamb cap on LENGTH alone (inside
+    ``wall_thickness_range_m`` = [0.06, 0.50] m), so a 0.36 m stroke drawn on
+    the WALL layer that is not a cap still produces a "band".  MEASURED on the
+    SIGNED drawing, ``plan-F1``: band ``w_x_35853.6_36213.6`` has two face lines
+    on its low face and NONE on its high face, whose nearest neighbours are
+    +/- 60 -- the two faces of a 120 mm wall whose CENTRE it lands on.
 
-    ⛔ So the layer neither filters those bands out (that would be a judgement
-    this unit is not authorised to make) nor pretends they have two faces: they
-    are recorded with empty reference lists and named in
-    ``walls_missing_a_face_line`` ([[absence-conflates-causes-in-observables]]).
+    ⭐ ②-1a-R: the bands are still carried (⛔ a converter readout is never
+    dropped) but they are no longer called ``walls``, and this count is now a
+    statement ABOUT THE BANDS.  ⛔ It is kept, not deleted, because it is the
+    measurement that shows band grouping and face pairing are different things.
     """
     for doc in (as_received_doc, signed_doc):
         for view in doc.views:
-            named = set(view.converter_readouts.walls_missing_a_face_line)
-            actual = {w.id for w in view.walls
-                      if not w.face_line_ids_lo or not w.face_line_ids_hi}
-            assert named == actual, f"{doc.source_dxf_label}/{view.view_id}"
+            readouts = view.converter_readouts
+            named = set(readouts.jamb_cap_bands_missing_a_face_line)
+            known = {b["band_id"] for b in readouts.jamb_cap_bands}
+            assert named <= known, f"{doc.source_dxf_label}/{view.view_id}"
             # ⛔ and the gap is real inventory, not an empty promise
             assert named, "this assertion would be vacuous with no such band"
+            # ⭐ every wall, by contrast, names ink on BOTH faces -- structurally
+            assert all(w.face_line_ids_lo and w.face_line_ids_hi for w in view.walls)
 
 
 def test_r2_the_three_forbidden_fields_are_absent(as_received_doc):
@@ -631,8 +683,9 @@ def test_r3_upstream_iteration_order_cannot_move_the_digest():
     """
     geo, view_intent = _geo_for("plan-F1")
     affine = view_intent.world_from_source_m
-    straight = canonical_bytes_of_view(build_view(geo, affine))
-    flipped = canonical_bytes_of_view(build_view(_reversed_geo(geo), affine))
+    straight = canonical_bytes_of_view(build_view(geo, affine, t_max_m=T_MAX_M))
+    flipped = canonical_bytes_of_view(
+        build_view(_reversed_geo(geo), affine, t_max_m=T_MAX_M))
     assert straight == flipped
 
 
@@ -641,7 +694,18 @@ def test_r3_upstream_iteration_order_cannot_move_the_digest():
 #: "the teeth of a lock are spread across different mutation directions" -- a
 #: single neuter would prove only that ONE of the four sorts is load-bearing,
 #: and the other three could be dead code holding nothing up.
-_ORDERING_SEAMS = ("_face_line_sort_key", "_wall_sort_key", "_opening_sort_key",
+#: ⚠️⚠️ ②-1a-R REPLACED ``_wall_sort_key`` here with ``_band_sort_key``, and the
+#: swap is a measurement, ⛔ not tidying ([[moving-a-gate-to-a-new-measurement-point]]):
+#: walls no longer come from ``geo.wall_bands`` in upstream order, they come
+#: from ``face_line_targets``, which sorts its own groups.  So reversing the
+#: input leaves the wall order alone EVEN WITH ``_wall_sort_key`` neutered --
+#: this seam has no teeth in the reversal direction any more, and leaving it in
+#: the list would have made the test fail honestly rather than pass vacuously.
+#: ⭐ ``_wall_sort_key`` still uniquely holds the DOCUMENTED TOTAL ORDER up, and
+#: ``test_r3_the_wall_sort_key_is_what_makes_walls_totally_ordered`` measures it
+#: in that direction.  ``geo.wall_bands`` IS still delivered in upstream order,
+#: so ``_band_sort_key`` inherits the reversal tooth this slot needs.
+_ORDERING_SEAMS = ("_face_line_sort_key", "_band_sort_key", "_opening_sort_key",
                    "_sorted_handles")
 
 
@@ -664,8 +728,9 @@ def test_r3_each_ordering_seam_is_load_bearing(monkeypatch, seam):
     affine = view_intent.world_from_source_m
     neuter = (lambda values: list(values)) if seam == "_sorted_handles" else (lambda item: 0)
     monkeypatch.setattr(am, seam, neuter)
-    straight = canonical_bytes_of_view(build_view(geo, affine))
-    flipped = canonical_bytes_of_view(build_view(_reversed_geo(geo), affine))
+    straight = canonical_bytes_of_view(build_view(geo, affine, t_max_m=T_MAX_M))
+    flipped = canonical_bytes_of_view(
+        build_view(_reversed_geo(geo), affine, t_max_m=T_MAX_M))
     assert straight != flipped, (
         f"neutering {seam} changed nothing -- that seam is not what keeps the "
         "document order-independent, so the gate has no teeth in its direction")
@@ -688,14 +753,19 @@ def test_r3_the_builder_leaves_every_list_in_a_total_order(as_received_doc, sign
             readouts = view.converter_readouts
             assert readouts.all_wall_handles == sorted(readouts.all_wall_handles)
             assert readouts.consumed_wall_handles == sorted(readouts.consumed_wall_handles)
-            assert readouts.walls_missing_a_face_line == sorted(
-                readouts.walls_missing_a_face_line)
+            for name in ("jamb_cap_bands_missing_a_face_line",
+                         "face_lines_excluded_as_jamb_caps",
+                         "face_lines_not_paired_into_a_wall"):
+                got = getattr(readouts, name)
+                assert got == sorted(got), name
+            assert ([b["band_id"] for b in readouts.jamb_cap_bands]
+                    == sorted(b["band_id"] for b in readouts.jamb_cap_bands))
             for wall in walls:
-                assert wall.cap_handles == sorted(wall.cap_handles)
                 assert wall.face_line_ids_lo == sorted(wall.face_line_ids_lo)
                 assert wall.face_line_ids_hi == sorted(wall.face_line_ids_hi)
             for opening in openings:
                 assert opening.jamb_handles == sorted(opening.jamb_handles)
+                assert opening.carrier_wall_ids == sorted(opening.carrier_wall_ids)
 
 
 def test_r3_in_process_rebuild_is_byte_identical():
@@ -708,3 +778,295 @@ def test_r3_in_process_rebuild_is_byte_identical():
 
 def test_r3_a_deep_copy_of_the_document_hashes_the_same(as_received_doc):
     assert content_sha256(copy.deepcopy(as_received_doc)) == content_sha256(as_received_doc)
+
+
+# =========================================================================== #
+# ②-1a-R -- ``walls`` comes from PAIRED FACE LINES, ⛔ not from ``wall_bands``
+# =========================================================================== #
+def _thicknesses_from_wall_bands_mm(geo, affine) -> dict[int, int]:
+    """②-1a's mapping, kept HERE and nowhere in ``src`` -- ⛔ its only job is to
+    prove the acceptance above can go RED.
+
+    A gate that only ever sees the fixed build cannot tell "the walls are right"
+    from "this assertion is true of anything"
+    ([[gate-with-only-negative-assertions-is-unobservable]]).
+    """
+    sx, tx, sy, ty = affine.m00, affine.m02, affine.m11, affine.m12
+    out = []
+    for band in geo.wall_bands:
+        if band.axis == "x":               # runs along x, faces are y coords
+            lo, hi = to_units(sy * band.face_lo_mm + ty), to_units(sy * band.face_hi_mm + ty)
+        else:
+            lo, hi = to_units(sx * band.face_lo_mm + tx), to_units(sx * band.face_hi_mm + tx)
+        lo, hi = (lo, hi) if lo <= hi else (hi, lo)
+        out.append((hi - lo) // 10)
+    return dict(sorted(collections.Counter(out).items()))
+
+
+def test_r1_the_old_wall_band_source_makes_the_thickness_gate_go_red():
+    """⭐⭐ Acceptance ④ (anti-vacuity): put the OLD source back, gate must fail.
+
+    MEASURED on signed ``plan-F1``: the band mapping yields 45 "walls" whose
+    thicknesses are {100, 120, 240, 296, 300, 304, 356, 360, 364, 500} mm.  The
+    drawing contains 120 and 240 only -- 300 mm appears SIXTEEN times and is a
+    door/window jamb paired with the face of a real 120 mm partition 300 mm
+    away.  ⛔ The counts alone would not have caught this (45 walls looks like a
+    plausible number); only the THICKNESS does.
+    """
+    geo, view_intent = _geo_for("plan-F1")
+    band_hist = _thicknesses_from_wall_bands_mm(geo, view_intent.world_from_source_m)
+    assert set(band_hist) - {120, 240}, (
+        "the band source no longer produces impossible thicknesses -- then this "
+        "guard proves nothing and the acceptance above is vacuous")
+    assert band_hist.get(300, 0) >= 10, band_hist
+    paired = build_view(geo, view_intent.world_from_source_m, t_max_m=T_MAX_M)
+    assert set(thickness_hist_mm(paired.walls)) == {120, 240}, "the fixed build"
+
+
+def test_r1_pairing_every_collected_face_line_puts_the_ghost_walls_back():
+    """⛔⛔ The trap the rework order names in bold: 225 face lines, 110 pairable.
+
+    The exclusion is not a detail of the pairing -- it IS the fix.  Pairing
+    every collected stroke (i.e. skipping D2, which is what "just pair the face
+    lines" would mean if taken literally) reproduces the same impossible
+    thicknesses, because the other 115 strokes ARE the jamb caps and stubs.
+
+    ⭐ This is the direction that proves the REUSE is load-bearing: the shared
+    ``face_line_targets`` pass, not the two-line pairing loop, is what deletes
+    the ghosts.
+    """
+    geo, view_intent = _geo_for("plan-F1")
+    view = build_view(geo, view_intent.world_from_source_m, t_max_m=T_MAX_M)
+    assert len(view.face_lines) == 222        # as-received plan-F1
+    every_stroke = [{"axis": "y" if f.axis == "x" else "x",   # ⚠️ into DEN's frame
+                     "const_m": f.const / am.UNITS_PER_METRE,
+                     "lo_m": f.along_min / am.UNITS_PER_METRE,
+                     "hi_m": f.along_max / am.UNITS_PER_METRE,
+                     "handles": [f.id]}
+                    for f in view.face_lines]
+    ghosts, _unpaired = am._pair_face_lines_into_walls(
+        every_stroke, {f.id for f in view.face_lines})
+    ghost_hist = thickness_hist_mm(ghosts)
+    assert set(ghost_hist) - {120, 240}, (
+        "pairing ALL 225 strokes produced only real thicknesses -- then D2's "
+        "exclusion is not what is holding the fix up and this unit is wrong "
+        f"about why it works: {ghost_hist}")
+    assert set(thickness_hist_mm(view.walls)) == {120, 240}
+
+
+def test_r1_a_wall_cannot_be_built_without_ink_on_both_faces():
+    """⭐ Acceptance ③ (zero ghosts) as a STRUCTURAL impossibility, ⛔ not a scan.
+
+    ②-1a could record a wall whose second face had no stroke at all; that is
+    what a jamb-cap band is.  Making it a schema refusal means a future edit
+    cannot reintroduce the class by forgetting to run a filter.
+    """
+    from pydantic import ValidationError
+
+    good = dict(id="w_x_0_1200_0_1000", axis="x", face_lo=0, face_hi=1200,
+                thickness=1200, along_min=0, along_max=1000,
+                face_line_ids_lo=["1A"], face_line_ids_hi=["1B"])
+    am.AsMeasuredWallV1(**good)                      # the premise: this is legal
+    for side in ("face_line_ids_lo", "face_line_ids_hi"):
+        with pytest.raises(ValidationError):
+            am.AsMeasuredWallV1(**{**good, side: []})
+
+
+def test_r1_the_face_line_consumption_ledger_has_teeth(signed_doc):
+    """⛔ Prove the 225-vs-110 ledger can go red, in BOTH of its directions.
+
+    A stroke that is neither in a wall, nor excluded as a cap, nor named as
+    unpaired has left the record silently -- which is exactly the failure mode
+    the whole unit is about.
+    """
+    raw = signed_doc.model_dump(mode="json")
+    view = next(v for v in raw["views"] if v["view_id"] == "plan-F1")
+    assert view["converter_readouts"]["face_lines_excluded_as_jamb_caps"]
+
+    dropped = copy.deepcopy(raw)
+    v = next(x for x in dropped["views"] if x["view_id"] == "plan-F1")
+    v["converter_readouts"]["face_lines_excluded_as_jamb_caps"].pop()
+    with pytest.raises(Exception, match="consumption_ledger_broken"):
+        AsMeasuredV1.model_validate(dropped)
+
+    doubled = copy.deepcopy(raw)
+    v = next(x for x in doubled["views"] if x["view_id"] == "plan-F1")
+    a_wall = v["walls"][0]["face_line_ids_lo"][0]
+    v["converter_readouts"]["face_lines_excluded_as_jamb_caps"].append(a_wall)
+    with pytest.raises(Exception, match="face_line_in_two_buckets"):
+        AsMeasuredV1.model_validate(doubled)
+
+
+def test_r1_the_wall_axis_and_its_face_lines_agree_after_the_one_flip(
+        signed_doc, as_received_doc):
+    """⚠️⚠️ The axis flip, measured -- ⛔ not asserted in a comment.
+
+    ``denominator``'s ``axis`` names the axis the CONSTANT sits on; this
+    module's names the axis a line RUNS ALONG.  They are opposite, and both the
+    orchestrator and this seat mis-read it once while diagnosing the ghosts.
+    If the single flip in ``_pair_face_lines_into_walls`` were dropped, every
+    wall would claim the running axis of the perpendicular family and this goes
+    red on all four views ([[cross-representation-mutation-must-be-equivalent]]).
+    """
+    for doc in (signed_doc, as_received_doc):
+        for view in doc.views:
+            by_id = {f.id: f for f in view.face_lines}
+            split = {c for g in view.converter_readouts.face_groups_with_a_split_const
+                     for c in g["member_consts"]}
+            assert view.walls
+            for wall in view.walls:
+                for const, refs in ((wall.face_lo, wall.face_line_ids_lo),
+                                    (wall.face_hi, wall.face_line_ids_hi)):
+                    for handle in refs:
+                        face = by_id[handle]
+                        assert face.axis == wall.axis, (
+                            f"{wall.id}/{handle}: the denominator->document axis "
+                            "flip is wrong")
+                        assert face.const == const or face.const in split, (
+                            wall.id, handle, face.const, const)
+
+
+def test_r3_the_wall_sort_key_is_what_makes_walls_totally_ordered():
+    """⭐ ``_wall_sort_key``'s tooth MOVED; this measures it where it now is.
+
+    It is no longer what makes a reversed input produce identical bytes (the
+    upstream ``face_line_targets`` sorts its own groups), so it was taken out of
+    ``_ORDERING_SEAMS``.  ⛔ Taking it out without measuring it somewhere else
+    would have left a sort nothing proves -- so: neuter it, and the documented
+    total order must break.
+    """
+    geo, view_intent = _geo_for("plan-F1")
+    affine = view_intent.world_from_source_m
+    key = (lambda w: (w.axis, w.face_lo, w.face_hi, w.along_min, w.along_max, w.id))
+
+    ordered = build_view(geo, affine, t_max_m=T_MAX_M).walls
+    assert ordered == sorted(ordered, key=key)
+
+    original = am._wall_sort_key
+    try:
+        am._wall_sort_key = lambda wall: 0
+        neutered = build_view(geo, affine, t_max_m=T_MAX_M).walls
+    finally:
+        am._wall_sort_key = original
+    assert neutered != sorted(neutered, key=key), (
+        "with _wall_sort_key neutered the walls came out totally ordered anyway "
+        "-- then that key is holding nothing up in any direction")
+
+
+# =========================================================================== #
+# ②-1a-R rework audit ③ -- "a DIFFERENT input of the same shape still works"
+# =========================================================================== #
+#  ⛔ The two halves above only ever prove "this example is fixed".  A SYNTHETIC
+#  plan is the third input whose answer is known BY CONSTRUCTION, so it can be
+#  asked the question the two real drawings cannot: is the JAMB-CAP EXCLUSION
+#  what removes the ghosts, or did sm25 just happen to come out clean?
+# =========================================================================== #
+def _synthetic_geo():
+    """A 10 x 6 m room, 240 mm envelope, one 120 mm partition with a door.
+
+    Coordinates are DXF-native millimetres; the affine below is the usual
+    ``x/1000`` used by both shipped anchors.  ⭐ The two 120 mm strokes at the
+    door reveal are REAL jamb caps -- the very shape that produced sm25's 16
+    fictitious "300 mm walls" when the record was built from ``wall_bands``.
+    """
+    from src.agent.judge.tarch_normalize import P1PlanViewGeometry
+
+    def h(x0, y0, x1, y1):
+        return (x0, y0, x1, y1)
+
+    strokes = {
+        # envelope: two faces per side, 240 mm apart
+        "A1": h(0, 0, 10000, 0),        "A2": h(0, 240, 10000, 240),
+        "A3": h(0, 5760, 10000, 5760),  "A4": h(0, 6000, 10000, 6000),
+        "A5": h(0, 0, 0, 6000),         "A6": h(240, 0, 240, 6000),
+        "A7": h(9760, 0, 9760, 6000),   "A8": h(10000, 0, 10000, 6000),
+        # 120 mm partition, each face drawn as TWO runs because a door splits it
+        "B1": h(4940, 240, 4940, 2000), "B2": h(4940, 2900, 4940, 5760),
+        "B3": h(5060, 240, 5060, 2000), "B4": h(5060, 2900, 5060, 5760),
+        # the door's two jamb caps -- 120 mm long, spanning BETWEEN the faces
+        "C1": h(4940, 2000, 5060, 2000),
+        "C2": h(4940, 2900, 5060, 2900),
+    }
+    wall_lines = [(k, *v) for k, v in sorted(strokes.items())]
+    return P1PlanViewGeometry(
+        view_id="plan-SYN", floor_id="F1", quant_step_native=1.0,
+        wall_lines=wall_lines, degenerate_line_count=0,
+        jamb_caps_v={}, jamb_caps_h={}, cap_handles_v={}, cap_handles_h={},
+        wall_bands=[], openings=[], opening_fills=[], faces=[],
+        dangles=0, cuts=0, invalid=0, sum_area_m2=0.0, footprint_area_m2=0.0,
+        footprint_polygon=None,
+        wall_line_layers={k: "WALL" for k in strokes},
+        diagnostics=[], gates=[],
+        consumed_wall_handles=set(strokes), all_wall_handles=set(strokes))
+
+
+def _synthetic_affine():
+    from src.agent.judge.gt_manifest import Affine2D
+    return Affine2D(m00=0.001, m01=0.0, m02=0.0, m10=0.0, m11=0.001, m12=0.0)
+
+
+def test_r3_audit_a_synthetic_plan_yields_exactly_the_walls_it_was_built_from():
+    """⭐⭐ Rework audit ③: a DIFFERENT input, whose answer is known a priori.
+
+    Built into the fixture: 4 envelope walls of 240 mm and one 120 mm partition
+    that a door cuts into 2 runs => 6 walls, {240: 4, 120: 2}, and ⛔ NOTHING
+    else.  The two jamb caps must contribute no wall at all.
+    """
+    view = build_view(_synthetic_geo(), _synthetic_affine(), t_max_m=0.5)
+    assert thickness_hist_mm(view.walls) == {120: 2, 240: 4}, [
+        (w.id, w.thickness) for w in view.walls]
+    readouts = view.converter_readouts
+    assert readouts.face_lines_excluded_as_jamb_caps == ["C1", "C2"], (
+        "the two door jambs are what D2 must exclude; if they are not here the "
+        "next assertion is not measuring the exclusion")
+    assert readouts.face_lines_not_paired_into_a_wall == []
+    assert all(w.face_line_ids_lo and w.face_line_ids_hi for w in view.walls)
+    # the partition really did come out as two runs, ⛔ not one welded through
+    partitions = [w for w in view.walls if w.thickness == 1200]
+    assert sorted((w.along_min, w.along_max) for w in partitions) == [
+        (2400, 20000), (29000, 57600)]
+
+
+def test_r3_audit_the_synthetic_plan_shows_the_caps_are_what_make_the_ghosts():
+    """⛔ The other direction on the SAME fixture: skip the exclusion, and the
+    ghost class comes straight back.
+
+    MEASURED: the two jamb caps, paired with each other, invent a 900 mm "wall"
+    -- the synthetic twin of sm25's 300 mm ghosts, which were a jamb paired
+    with a real partition face.  ⭐ This is what makes the check above a test of
+    the MECHANISM rather than of this fixture's luck.
+    """
+    view = build_view(_synthetic_geo(), _synthetic_affine(), t_max_m=0.5)
+    every_stroke = [{"axis": "y" if f.axis == "x" else "x",   # ⚠️ into DEN's frame
+                     "const_m": f.const / am.UNITS_PER_METRE,
+                     "lo_m": f.along_min / am.UNITS_PER_METRE,
+                     "hi_m": f.along_max / am.UNITS_PER_METRE,
+                     "handles": [f.id]}
+                    for f in view.face_lines]
+    ghosts, _unpaired = am._pair_face_lines_into_walls(
+        every_stroke, {f.id for f in view.face_lines})
+    ghost_hist = thickness_hist_mm(ghosts)
+    assert set(ghost_hist) - {120, 240}, ghost_hist
+    assert 900 in ghost_hist, (
+        f"expected the two jamb caps to invent a 900 mm wall, got {ghost_hist}")
+
+
+def test_r3_audit_sm24_a_different_building_has_only_real_thicknesses():
+    """⭐⭐ Rework audit ③, the real-drawing half: sm24 is a DIFFERENT building.
+
+    ⚠️ The rework order expected this to be impossible ("sm24 已知会 BLOCK,
+    F-132 晋升件漂移").  MEASURED, it is not: the request's declared
+    ``source_dxf_label`` is ``sm24_source.dxf`` while the file on disk is
+    ``source.dxf``, but the identity gate hashes BYTES, not names, and those
+    match.  ⇒ sm24 runs, and it is the strongest of the three inputs because
+    nothing about it was tuned by this unit.
+
+    ⭐ Its 17 partitions at 120 mm are also the direct answer to the batch
+    guide's §一 warning: filtering candidate pairs by declared thickness is what
+    once deleted that whole family, and this pairing has no such filter.
+    """
+    doc = build_as_measured(SM24 / "source.dxf", SM24 / "request.json")
+    view = next(v for v in doc.views if v.view_id == "plan-F1")
+    assert thickness_hist_mm(view.walls) == {120: 17, 240: 18}
+    assert all(w.face_line_ids_lo and w.face_line_ids_hi for w in view.walls)
+    assert view.converter_readouts.face_lines_not_paired_into_a_wall == []
