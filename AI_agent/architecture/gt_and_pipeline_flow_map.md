@@ -174,13 +174,14 @@
 | 目标态的件 | 今天 | 出处 / 实测 |
 |---|---|---|
 | 转换器 S0–S4 / S5–S7 / G1–G10 · 0.1 mm 量化 · 签字晋升入库 | ✅ | [`tarch_normalize.py`](../../src/agent/judge/tarch_normalize.py) · [`tarch_review_bundle.py`](../../src/agent/judge/tarch_review_bundle.py) · [`gt_promotion.py`](../../src/agent/judge/gt_promotion.py) |
-| `AsMeasuredV1` schema + builder + 两道消费台账 + 0.1 mm 整数 | 🟡 **代码有，产物不落盘** | [`as_measured.py`](../../src/agent/judge/as_measured.py)；**唯一调用者是 `tests/test_as_measured_facts_layer.py`**，无 CLI、`gt/<case>/facts/` 目录不存在 |
+| `AsMeasuredV1` schema + builder + 两道消费台账 + 0.1 mm 整数 | ✅ **产物已落盘** | [`as_measured.py`](../../src/agent/judge/as_measured.py)；②-1b（`9f0266b`）起落在 **`case_tests/test_baseline/gt_staging/sm25-L_anchor/facts/`**，⛔ **不是 `gt/` 答案根**（晋升接法未做，见下一行）。⚠️ **F-136**：消费台账守的是「收集到的」不是「看见的」 |
 | as-received 图 + 专用 request | ✅ | `gt_sources/sm25-L_anchor/` 有 `sm25-L_t3_as_received.dxf` + `request_as_measured.json` |
 | `walls` 走面线配对（⛔ 不用 `wall_bands`） | ✅ | ②-1a-R；旧 band 仍逐字留作 `converter_readouts.jamb_cap_bands` |
-| `revisions.json` 台账 + `as_signed.json` + 可复现门 + B1 指纹锚 | ❌ | = **②-1b**（下一单） |
+| `revisions.json` 台账 + `as_signed.json` + 可复现门 + B1 指纹锚 | ✅ **已落地，⏳ 跨家族审在途** | ②-1b `9f0266b`+`2196723`；权威全量 **3292 passed / 13 xfailed / 0 failed**（`.pth` 哨兵前后同）。⚠️ 三条已知缺口：**F-137**（签 `translate` 后墙与面线静默失同步）· F-D legacy 豁免集合**今天无锁** · `gt_staging/` **无写保护** |
+| 晋升接法（`promote_gt_v3` 拷 `facts/` + 晋升前跑可复现门）+ **F-128** | ❌ | 随 gt 重做重签；②-1b 只留了接缝说明 |
 | `AnswerCompiler(profile)` + 两种出模形式 + 6a/6b/6c + 依赖闭包/局部计分 | ❌ | = **②-1c** |
 | 逐边 `boundary_condition` | ❌ | = **②-1d**（F-121） |
-| **正交吸附**（转换器把画歪的线吸到轴上） | ❌ | 今天两套处置：算轮廓走**吸附**（[`gt_extraction.py:283`](../../src/agent/judge/gt_extraction.py#L283)）· 收墙线走**整条丢弃**（`tarch_wall_nonorthogonal` + `continue`，[`tarch_normalize.py:383-387`](../../src/agent/judge/tarch_normalize.py#L383)）；共用容差 1 mm。⭐ 它的理由是**不变量 #6 可扩展性**（后面要解锁非正交），⛔ 不是今天的判分缺陷 |
+| **正交吸附**（转换器把画歪的线吸到轴上） | ❌ ⭐ **2026-08-29 起【承重】，见 F-138** | 今天两套处置：算轮廓走**吸附**（[`gt_extraction.py:283`](../../src/agent/judge/gt_extraction.py#L283)）· 收墙线走**整条丢弃**（`tarch_wall_nonorthogonal` + `continue`，[`tarch_normalize.py:383-387`](../../src/agent/judge/tarch_normalize.py#L383)）；共用容差 1 mm。⭐ 原判「理由是不变量 #6 可扩展性，⛔ 不是今天的判分缺陷」—— ⛔ **已被 F-138 推翻**：`as_measured` 改从 **as-received** 出之后歪线进了事实层输入，实测签字件 225 面线 / as-received 222(+1)，差集恰为 `13AD/13AE/13AF` |
 | 净空面积表 | ❌ | 派生量，随 ②-1c |
 | **今天的 `gt.json` 仍是「那张确定的图」** | ⚠️ | 实测：`zones` 只有 `id/name/polygon/role/source_refs`；`boundary_segments` **8 条、厚度值集 `{0.24}`** ⇒ **内墙 120 的厚度 gt 里没有**（= **R-6**）。S7 逐边量到的 `basis`/`thickness` 在序列化那步全丢 |
 
