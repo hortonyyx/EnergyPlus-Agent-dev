@@ -181,7 +181,7 @@
 | 晋升接法（`promote_gt_v3` 拷 `facts/` + 晋升前跑可复现门）+ **F-128** | ❌ | 随 gt 重做重签；②-1b 只留了接缝说明 |
 | `AnswerCompiler(profile)` + 两种出模形式 + 6a/6b/6c + 依赖闭包/局部计分 | ❌ | = **②-1c** |
 | 逐边 `boundary_condition` | ❌ | = **②-1d**（F-121） |
-| **正交吸附**（转换器把画歪的线吸到轴上） | ✅ **已落地（②-1b-S `22202c1`），⏳ 跨家族审在途**；⛔ **上限阈值待用户签字（F-143）** | 今天两套处置：算轮廓走**吸附**（[`gt_extraction.py:283`](../../src/agent/judge/gt_extraction.py#L283)）· 收墙线走**整条丢弃**（`tarch_wall_nonorthogonal` + `continue`，[`tarch_normalize.py:383-387`](../../src/agent/judge/tarch_normalize.py#L383)）；共用容差 1 mm。实测 as-received `plan-F1` 面线 **222→224** · 墙 **54→55（= 签字件）** · 吸附清单 `['13AD','13AE']` · `plan-F2` 逐位不变。<br>⭐ 原判「理由是不变量 #6 可扩展性，⛔ 不是今天的判分缺陷」—— ⛔ **已被 F-138 推翻**：`as_measured` 改从 **as-received** 出之后歪线进了事实层输入，实测签字件 225 面线 / as-received 222(+1)，差集恰为 `13AD/13AE/13AF` |
+| **正交吸附**（转换器把画歪的线吸到轴上） | ✅ **已落地并收口**（②-1b-S `22202c1`；GLM **APPROVE-WITH-FINDINGS / 阻断 0**）；⛔ **上限阈值待用户签字（F-143）**，且复核方已证**绝对毫米是错的形状**（角度含义随线长漂 ~120 倍）⇒ 推荐**双门限** | 今天两套处置：算轮廓走**吸附**（[`gt_extraction.py:283`](../../src/agent/judge/gt_extraction.py#L283)）· 收墙线走**整条丢弃**（`tarch_wall_nonorthogonal` + `continue`，[`tarch_normalize.py:383-387`](../../src/agent/judge/tarch_normalize.py#L383)）；共用容差 1 mm。实测 as-received `plan-F1` 面线 **222→224** · 墙 **54→55（= 签字件）** · 吸附清单 `['13AD','13AE']` · `plan-F2` 逐位不变。<br>⭐ 原判「理由是不变量 #6 可扩展性，⛔ 不是今天的判分缺陷」—— ⛔ **已被 F-138 推翻**：`as_measured` 改从 **as-received** 出之后歪线进了事实层输入，实测签字件 225 面线 / as-received 222(+1)，差集恰为 `13AD/13AE/13AF` |
 | 净空面积表 | ❌ | 派生量，随 ②-1c |
 | **今天的 `gt.json` 仍是「那张确定的图」** | ⚠️ | 实测：`zones` 只有 `id/name/polygon/role/source_refs`；`boundary_segments` **8 条、厚度值集 `{0.24}`** ⇒ **内墙 120 的厚度 gt 里没有**（= **R-6**）。S7 逐边量到的 `basis`/`thickness` 在序列化那步全丢 |
 
