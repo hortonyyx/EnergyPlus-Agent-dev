@@ -1070,3 +1070,51 @@ def test_r3_audit_sm24_a_different_building_has_only_real_thicknesses():
     assert thickness_hist_mm(view.walls) == {120: 17, 240: 18}
     assert all(w.face_line_ids_lo and w.face_line_ids_hi for w in view.walls)
     assert view.converter_readouts.face_lines_not_paired_into_a_wall == []
+
+
+# =========================================================================== #
+# B1 -- ②-1b R3: the "stated absence" is now a real (widened) fingerprint
+# =========================================================================== #
+def test_b1_the_field_is_no_longer_a_stated_none(as_received_doc):
+    """The ②-1a placeholder was ``converter_implementation_fingerprint: None``.
+    It must now be a real Hex64, and specifically the WIDENED (F-D, R4)
+    conversion-closure fingerprint -- not some other, unrelated hash."""
+    import re
+
+    from src.agent.judge.tarch_normalize import converter_sha256
+
+    value = as_received_doc.converter_implementation_fingerprint
+    assert value is not None
+    assert re.fullmatch(r"[0-9a-f]{64}", value)
+    assert value == converter_sha256()
+
+
+def test_b1_schema_no_longer_accepts_the_none_placeholder():
+    """⛔ Structural, not just "the builder happens to fill it in": the type
+    itself must refuse the ②-1a shape now that B1 is solved."""
+    from pydantic import ValidationError
+    with pytest.raises(ValidationError):
+        AsMeasuredV1.model_validate({
+            "case": "probe", "source_dxf_label": "x.dxf",
+            "source_dxf_sha256": "a" * 64, "request_sha256": "b" * 64,
+            "converter_implementation_fingerprint": None,
+            "views": [],
+        })
+
+
+def test_b1_two_documents_from_the_same_tree_agree_on_the_fingerprint(
+        as_received_doc, signed_doc):
+    """The fingerprint is a property of the IMPLEMENTATION, not of which
+    drawing was measured -- as-received and signed docs share one value."""
+    assert (as_received_doc.converter_implementation_fingerprint
+            == signed_doc.converter_implementation_fingerprint)
+
+
+def test_b1_content_sha256_covers_the_fingerprint_field(as_received_doc):
+    """⭐ Acceptance-adjacent: FACTS' own hash must move if the fingerprint
+    field is tampered, i.e. the field is inside the signed surface
+    ``content_sha256`` actually covers -- not bolted on beside it."""
+    before = content_sha256(as_received_doc)
+    raw = as_received_doc.model_dump(mode="json")
+    raw["converter_implementation_fingerprint"] = "0" * 64
+    assert content_sha256(AsMeasuredV1.model_validate(raw)) != before

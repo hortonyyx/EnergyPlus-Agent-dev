@@ -121,7 +121,7 @@ from .gt_schema import (REPO_ROOT, DxfHandle, Hex64, HumanLabel, StableId,
 from .tarch_converter_schema import (JsonDict, TarchConversionRequestV1,
                                      _StrictModel, compute_request_sha256)
 from .as_drawn.denominator import MERGE_M, face_line_targets
-from .tarch_normalize import P1PlanViewGeometry, run_p1_plan_view
+from .tarch_normalize import P1PlanViewGeometry, converter_sha256, run_p1_plan_view
 
 GT_CFG = REPO_ROOT / "src/configs/judge_gt.yaml"
 VG_CFG = REPO_ROOT / "src/configs/correction.yaml"
@@ -432,10 +432,10 @@ class AsMeasuredViewV1(_StrictModel):
 class AsMeasuredV1(_StrictModel):
     """The facts-layer document for one drawing.  ⛔ Never edited after writing.
 
-    Trust root (ledger §七): the source DXF hash + the request hash.  ⛔ The
-    converter IMPLEMENTATION fingerprint is sol's B1 and is NOT solved here --
-    stating that plainly is the point; a field holding a value nobody signed
-    would read as an attestation.
+    Trust root (ledger §七): the source DXF hash + the request hash + the
+    converter IMPLEMENTATION fingerprint (sol's B1, filled in ②-1b R3 -- see
+    ``converter_implementation_fingerprint``'s own docstring for exactly what
+    kind of anchor this is and is not).
     """
     schema_version: Literal[1] = 1
     case: StableId
@@ -446,8 +446,38 @@ class AsMeasuredV1(_StrictModel):
     request_sha256: Hex64
     coordinate_unit: Literal["0.1mm"] = "0.1mm"
     units_per_metre: Literal[10000] = 10000
-    #: ⛔ Stated absence, not a missing field: B1 is ②-1b.
-    converter_implementation_fingerprint: None = None
+    #: ⭐ ②-1b R3 (B1): the widened conversion-CLOSURE fingerprint (F-D, R4;
+    #: see ``tarch_normalize.converter_sha256`` / ``CONVERTER_CLOSURE_FILES``).
+    #:
+    #: ⚠️ "谁签谁" (dispatch B1's own bar -- not "there is a hash", but "who
+    #: signs what"), stated plainly rather than implied by the field existing:
+    #:   INPUT   (source_dxf_sha256 / request_sha256, above) -- content-
+    #:           addressed, exactly as they already were before this unit;
+    #:           NOT yet human-signed for the as-received drawing (that
+    #:           happens in the signing flow, ledger §五, which this dispatch
+    #:           does not run -- R1's revisions stay ``unsigned``).
+    #:   IMPL    this field -- ALSO content-addressed (13-file closure,
+    #:           AST-normalized), ⛔ NOT human- or cryptographically signed:
+    #:           this repo's commits carry no GPG signature (checked
+    #:           2026-08-29: ``git config commit.gpgsign`` unset, no
+    #:           signature on HEAD) and no existing signed carrier
+    #:           (``HumanReviewAckV1``) covers an implementation fingerprint
+    #:           at all -- inventing one here would mean re-signing
+    #:           infrastructure this dispatch has no event to drive (no human
+    #:           signs anything in this unit) and no license to add (⛔ "不
+    #:           许改任何已签字件的哈希").  So "external anchor" here means
+    #:           exactly what it already means for source_dxf_sha256 /
+    #:           request_sha256: a value computed by a NAMED, AUDITABLE,
+    #:           reproducible method (CONVERTER_CLOSURE_FILES has an out --
+    #:           see its own docstring and
+    #:           tests/test_tarch_converter_reproducibility.py's provenance
+    #:           tests) rather than an opaque, unscoped self-hash.  Turning
+    #:           this into a HUMAN-authorized value is future work with a
+    #:           named hook, not a claim made here (ledger §七, §八).
+    #:   FACTS   this document's own ``content_sha256`` (canonical_bytes/
+    #:           content_sha256 below) covers every byte above, including
+    #:           this field.
+    converter_implementation_fingerprint: Hex64
     views: list[AsMeasuredViewV1] = Field(min_length=1)
 
     @model_validator(mode="after")
@@ -997,6 +1027,7 @@ def build_as_measured(dxf: Path, request_path: Path, *,
         source_dxf_label=dxf.name,
         source_dxf_sha256=hashlib.sha256(dxf.read_bytes()).hexdigest(),
         request_sha256=compute_request_sha256(request),
+        converter_implementation_fingerprint=converter_sha256(),
         views=views)
 
 

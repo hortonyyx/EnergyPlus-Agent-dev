@@ -56,11 +56,23 @@ be reported as a suspect artefact.
 ### Which fingerprints are fatal, and why exactly those
 
 The **fatal** set contains the three fingerprints the report itself binds —
-``converter_sha256`` (= ``tarch_normalize.py``), ``judge_config_sha256`` and
-``vg_config_sha256`` — plus the signed ``gt.json`` generator's
-``vg_implementation_sha256``.  The latter is an exact group hash over the four
-correction modules in the measured conversion import closure, with no
-closure-external file, so it is a precise converter-drift signal.
+``converter_sha256`` (= the 13-file conversion CLOSURE, AST-normalized —
+widened 2026-08-29, dispatch ②-1b R4/F-D; see ``tarch_normalize.
+CONVERTER_CLOSURE_FILES``), ``judge_config_sha256`` and ``vg_config_sha256`` —
+plus the signed ``gt.json`` generator's ``vg_implementation_sha256``.  The
+latter is an exact group hash over the four correction modules in the
+measured conversion import closure, with no closure-external file, so it is a
+precise converter-drift signal.
+
+⚠️ ``converter_sha256`` specifically is compared through
+:func:`_expected_converter_sha256`, which accepts EITHER the current widened
+value OR a member of ``tarch_normalize.KNOWN_PRE_F_D_CONVERTER_SHA256`` for a
+record that still carries one of those pinned legacy values — a named,
+bounded exemption for the one artefact (sm25-L_anchor) that was clean before
+the widening.  sm24_anchor's legacy value is deliberately NOT in that set —
+F-132 already found it drifted under the OLD definition too, and this gate
+must keep reporting that, not launder it into "reproduced" as a side effect
+of the widening.
 
 The signed generator also carries ``extractor_sha256`` and
 ``validator_sha256``.  Those remain **advisory** because their groups include
@@ -416,6 +428,33 @@ def _generator_fingerprints(case: str, gt_dir: Path | str) -> list[tuple[str, st
             if key in generator]
 
 
+def _expected_converter_sha256(recorded: str) -> str:
+    """⭐ F-D widening (②-1b R4), "legacy" exemption -- named, not silent.
+
+    ``converter_sha256()`` was widened from "sha256(tarch_normalize.py's own
+    raw bytes)" to an AST-normalized hash over the whole conversion closure
+    (13 files).  On-disk ``conversion_report.json`` files stamped BEFORE that
+    change (sm24_anchor / sm25-L_anchor today) recorded the OLD definition's
+    value and cannot be rewritten here -- that file sits outside the human
+    signature, but rewriting it is still a ``gt/`` write this dispatch has no
+    promotion path for, and no re-sign event happens in this dispatch either.
+
+    So: if ``recorded`` matches the OLD (legacy) definition and NOT the new
+    one, it is compared against the legacy definition -- this is the ONLY case
+    where that happens, and it means exactly one thing: this record predates
+    F-D's fix and drift confined to ``tarch_converter_schema.py`` /
+    ``gt_manifest.py`` / the rest of the widened closure is NOT detectable for
+    it (a NAMED, bounded gap, closed the moment the case is next re-signed --
+    every conversion produced by CURRENT code, including a fresh re-sign,
+    stamps the widened value and is compared against it with full teeth).
+    """
+    from .tarch_normalize import KNOWN_PRE_F_D_CONVERTER_SHA256
+    current_wide = _converter_sha256_now()
+    if recorded != current_wide and recorded in KNOWN_PRE_F_D_CONVERTER_SHA256:
+        return recorded
+    return current_wide
+
+
 def _fatal_fingerprints(report: ConversionReportV1, case: str,
                         gt_dir: Path | str) -> list[tuple[str, str, str]]:
     """Hashes precisely scoped to the conversion implementation.
@@ -428,7 +467,8 @@ def _fatal_fingerprints(report: ConversionReportV1, case: str,
     tooling = resolve_converter_tooling(REPO_ROOT / "src/configs/judge_gt.yaml",
                                         REPO_ROOT / "src/configs/correction.yaml")
     report_fingerprints = [
-        ("converter_sha256", report.converter_sha256, _converter_sha256_now()),
+        ("converter_sha256", report.converter_sha256,
+         _expected_converter_sha256(report.converter_sha256)),
         ("judge_config_sha256", report.judge_config_sha256, tooling.judge_config_sha256),
         ("vg_config_sha256", report.vg_config_sha256, tooling.vg_config_sha256),
     ]
@@ -552,6 +592,19 @@ def verify_raw_layer_reproduction(case: str, *, gt_dir: Path | str = DEFAULT_GT_
     finally:
         if owned_work:
             shutil.rmtree(root, ignore_errors=True)
+
+    # ⭐ The fingerprint check above (drifted == []) already vetted
+    # ``on_disk.converter_sha256`` -- either it equals the CURRENT widened
+    # value, or it is a pinned pre-F-D legacy value this gate has explicitly
+    # decided not to treat as drift.  Re-comparing the raw field here as
+    # ordinary CONTENT would report a permanent, un-fixable content_mismatch
+    # for sm25-L_anchor the moment converter_sha256() was widened (dispatch
+    # ②-1b R4): the field's IDENTITY question is the fingerprint check's job,
+    # already answered; this pass compares GEOMETRY.  Neutralising it here
+    # only after the fingerprint gate passed keeps a genuinely tampered
+    # ``converter_sha256`` (one that matches NEITHER the current nor a known
+    # legacy value) caught upstream as drift, never silently absorbed here.
+    fresh = fresh.model_copy(update={"converter_sha256": on_disk.converter_sha256})
 
     try:
         fresh_payload = _normalise_for_diff(fresh)

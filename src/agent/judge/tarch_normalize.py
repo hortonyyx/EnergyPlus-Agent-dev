@@ -46,6 +46,7 @@ Hard disciplines enforced here (dispatch §2 / plan §2):
 """
 from __future__ import annotations
 
+import ast
 import hashlib
 import json
 import os
@@ -795,9 +796,141 @@ def _assemble_gates(result: P1PlanViewGeometry, s0_ok: bool, g2_ok: bool, tols: 
 # --------------------------------------------------------------------------- #
 # Report builder — exercise the P0 contract with the P1 geometry
 # --------------------------------------------------------------------------- #
+#: repo root, computed the same way ``gt_schema.REPO_ROOT`` is (this file sits
+#: at the same depth, ``src/agent/judge/``) -- kept local so this fingerprint
+#: has no import-time dependency on any OTHER closure member.
+_CONVERTER_REPO_ROOT = Path(__file__).resolve().parents[3]
+
+#: ⭐⭐ F-D (dispatch ②-1b R4): the files that make up "the conversion
+#: IMPLEMENTATION" for fingerprinting purposes.  ⛔ NOT hand-picked: this is
+#: what a real closure walk from THIS file finds, by two mechanisms that are
+#: each individually checked (not merely believed):
+#:
+#: 1. MODULE-LEVEL imports, transitively, from every ``from .X import ...`` /
+#:    ``from src.agent....X import ...`` statement written at column 0 of a
+#:    file already in the set.  ``tests/test_tarch_converter_reproducibility.py
+#:    ::test_f_d_closure_membership_matches_a_static_import_walk`` re-derives
+#:    this half mechanically and fails loudly if it and this tuple disagree --
+#:    that is the "membership has an out" this fingerprint is required to have.
+#:
+#: 2. ONE lazy (function-body) import that a top-level-only scan cannot see:
+#:    ``_run_g9_v3_preflight`` -- itself called from ``run_p2_conversion``, on
+#:    the real P2 conversion path -- does ``from .gt_extraction import
+#:    extract_gt_v3`` to run "the real v3 extractor" as a preflight GATE, so
+#:    ``gt_extraction.py``'s bytes really can change what a conversion reports.
+#:    (``gt_extraction.py``'s own top-level imports are already members of
+#:    this set, so it adds no further files.)
+#:
+#: Two OTHER lazy imports elsewhere in this same closure were CHECKED and
+#: EXCLUDED, not merely unnoticed -- each is grep-verified dead from every
+#: entry point this fingerprint covers:
+#:   * ``gt_schema.py``'s ``from .gt import DEFAULT_GT_DIR`` lives in
+#:     ``_protected_candidate_path``, whose only caller (``write_gt_v3_candidate``)
+#:     is called ONLY by the CLI ``scripts/tool_scripts/gt_from_dxf.py`` --
+#:     never by anything on the conversion path.  (This mirrors the ALREADY
+#:     declared blind spot for ``extractor_sha256`` in gt_raw_layer.py, which
+#:     excludes that same CLI script for the same measured reason.)
+#:   * ``schema.py``'s ``from src.agent.correction.window_host import
+#:     WindowHostResolutionAuditV1`` runs only inside ``CorrectedGeometryV3``'s
+#:     own validator, gated on a ``kind == "window_host_resolution"`` row.
+#:     Nothing on the conversion path ever constructs a ``CorrectedGeometryV3``
+#:     (the only ``CorrectedGeometryV3.model_validate`` call sites in the whole
+#:     judge package are ``correction_score.py`` / ``score_service.py`` /
+#:     ``segment_score.py``, none of which this closure imports).
+CONVERTER_CLOSURE_FILES: tuple[str, ...] = tuple(sorted((
+    "src/agent/judge/tarch_normalize.py",
+    "src/agent/judge/tarch_converter_schema.py",
+    "src/agent/judge/affine_space.py",
+    "src/agent/judge/gt_manifest.py",
+    "src/agent/judge/gt_schema.py",
+    "src/agent/judge/gt_extraction.py",
+    "src/agent/correction/facade_visibility.py",
+    "src/agent/correction/footprint.py",
+    "src/agent/correction/facade.py",
+    "src/agent/correction/schema.py",
+    "src/agent/correction/facade_convention.py",
+    "src/agent/correction/claims.py",
+    "src/agent/correction/constants.py",
+)))
+
+
+def _behavioural_source_digest(text: str) -> bytes:
+    """AST-normalized digest of one file's source: comments/formatting don't move it.
+
+    ``ast.dump(..., include_attributes=False)`` drops line/column numbers (so a
+    brand-new comment LINE, which shifts every later statement's lineno, still
+    doesn't move this) and comments are never AST nodes at all -- Python throws
+    them away at parse time, before this function ever sees the tree.  A real
+    behavioural edit (new statement, changed literal, renamed anything) always
+    changes the dump.  ⚠️ NOT immune to docstring/string-literal edits -- those
+    ARE ``Constant`` nodes -- only to ``#`` comments and layout, which is
+    exactly dispatch's own example ("改一个字的注释").
+    """
+    return ast.dump(ast.parse(text), include_attributes=False).encode("utf-8")
+
+
 def converter_sha256() -> str:
-    """sha256 of this module's source (the converter implementation fingerprint)."""
-    return hashlib.sha256(Path(__file__).read_bytes()).hexdigest()
+    """⭐⭐ F-D, widened (dispatch ②-1b R4): sha256 over the CONVERSION CLOSURE,
+    AST-normalized -- ⛔ not ``sha256(tarch_normalize.py's own raw bytes)``.
+
+    The pre-fix definition was wrong in both directions at once: a same-
+    behaviour comment edit to this one file flipped it (noise), while a real
+    behavioural edit to ``tarch_converter_schema.py`` / ``gt_manifest.py`` --
+    files the conversion's OUTPUT actually depends on -- left it silent (the
+    false negative that matters).  See ``CONVERTER_CLOSURE_FILES`` for exactly
+    which files and why, and ``_behavioural_source_digest`` for why a comment
+    no longer moves this.
+
+    ⚠️ Existing signed-adjacent artefacts (``case_tests/test_baseline/gt/
+    {sm24_anchor,sm25-L_anchor}/review/conversion_report.json``) recorded a
+    ``converter_sha256`` under the OLD, narrow, raw-bytes definition and are
+    NOT rewritten by this change (that file sits outside the human signature
+    per gt_raw_layer.py's own docstring, but rewriting it is still a ``gt/``
+    write this dispatch has no promotion path for).  ``gt_raw_layer.
+    _fatal_fingerprints`` therefore accepts EITHER this value OR a member of
+    ``KNOWN_PRE_F_D_CONVERTER_SHA256`` for an on-disk record that matches one
+    -- an explicit, named exemption (dispatch ②-1b R4 "legacy" option), not a
+    silent widening of what counts as a match.  New conversions (this tree,
+    from here on) only ever stamp the widened value.
+    """
+    material = bytearray()
+    for relative in CONVERTER_CLOSURE_FILES:
+        path = (_CONVERTER_REPO_ROOT / relative).resolve()
+        if not path.is_relative_to(_CONVERTER_REPO_ROOT) or not path.is_file():
+            raise ValueError(f"converter_closure_file_missing:{relative}")
+        digest = _behavioural_source_digest(path.read_text(encoding="utf-8"))
+        material.extend(relative.encode("utf-8")); material.extend(b"\0")
+        material.extend(digest); material.extend(b"\0")
+    return hashlib.sha256(bytes(material)).hexdigest()
+
+
+#: ⭐ FROZEN, not recomputed: each value is what
+#: ``sha256(tarch_normalize.py's raw bytes)`` (the PRE-F-D-fix definition)
+#: equalled at the commit that produced the named on-disk
+#: ``conversion_report.json``, measured directly off that file
+#: (2026-08-29, dispatch ②-1b R4).  A *computed* "legacy" function would be
+#: self-defeating the moment this very fix edits ``tarch_normalize.py``: "hash
+#: of this file's current bytes" stops equalling either on-disk value the
+#: instant the file changes at all, which is exactly what adding this comment
+#: does.  So the two values that already exist in the repo are pinned here
+#: instead of re-derived.
+#:
+#: ⛔ ``sm24_anchor``'s value is DELIBERATELY NOT a member: F-132 already
+#: measured (independently of this widening) that sm24's report predates the
+#: current tree even under the OLD narrow definition, and the dispatch that
+#: ordered this widening ("必须能看见这种漂移，⛔ 不许只在 sm25 上有牙")
+#: requires that this gate keep reporting it as drifted -- exempting it here
+#: would hide a real, already-known drift instead of merely tolerating a
+#: definition change.  ⛔ This set must never grow silently: a NEW case
+#: converted from here on always stamps the widened ``converter_sha256()``,
+#: so a value can only earn a place here by having existed before this
+#: dispatch AND being confirmed (by an independent measurement, not by "it
+#: would be convenient") to have no other drift.
+KNOWN_PRE_F_D_CONVERTER_SHA256: frozenset[str] = frozenset({
+    # case_tests/test_baseline/gt/sm25-L_anchor/review/conversion_report.json,
+    # commit a40d56d (this dispatch's baseline).
+    "539615abee77a636f6b3432394e1abc50f0021dac54af652071cae81aec59696",
+})
 
 
 def build_p1_report(result: P1PlanViewGeometry, request: TarchConversionRequestV1,
@@ -3839,6 +3972,7 @@ def build_multifloor_report(result: MultiFloorConversionResult,
 
 __all__ = [
     "run_p1_plan_view", "build_p1_report", "converter_sha256",
+    "KNOWN_PRE_F_D_CONVERTER_SHA256", "CONVERTER_CLOSURE_FILES",
     "P1PlanViewGeometry", "ResolvedOpening", "WallBand",
     "run_p2_conversion", "run_tarch_conversion", "build_p2_report",
     "build_multifloor_report", "P2ConversionResult", "MultiFloorConversionResult",

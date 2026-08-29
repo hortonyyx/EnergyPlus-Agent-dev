@@ -1,6 +1,7 @@
 """WP-1 byte-reproducibility locks for converter-produced augmented DXFs."""
 from __future__ import annotations
 
+import ast
 import hashlib
 import json
 import os
@@ -148,6 +149,186 @@ def test_sm24_answer_content_is_stable_across_python_hash_seeds(tmp_path):
     ]
     for seed, answer in zip(seeds[1:], answers[1:]):
         assert answer == answers[0], f"answer content drifted under PYTHONHASHSEED={seed}"
+
+
+# --------------------------------------------------------------------------- #
+# F-D (dispatch ②-1b R4): converter_sha256() widened to a conversion CLOSURE,
+# AST-normalized.  ⛔ Two mutation directions, EACH with its own real edit --
+# "variant didn't run" and "variant had no effect" are indistinguishable on the
+# product alone, so each direction below actually performs the edit it claims
+# to and checks the number the edit is supposed to move.
+# --------------------------------------------------------------------------- #
+def _copy_converter_closure(tmp_path: Path) -> Path:
+    """A writable mirror of every CONVERTER_CLOSURE_FILES member, so a mutation
+    test can edit a file without touching the real tree."""
+    root = tmp_path / "closure_copy"
+    for relative in tn.CONVERTER_CLOSURE_FILES:
+        src = REPO / relative
+        dst = root / relative
+        dst.parent.mkdir(parents=True, exist_ok=True)
+        dst.write_text(src.read_text(encoding="utf-8"), encoding="utf-8")
+    return root
+
+
+def test_f_d_a_comment_only_edit_does_not_flip_the_closure_fingerprint(tmp_path, monkeypatch):
+    """F-D direction 1: dispatch's own example ("改一个字的注释就让指纹翻转").
+
+    The pre-fix definition (sha256 of tarch_normalize.py's raw bytes) WOULD
+    flip here; ``converter_sha256()``'s AST-normalized digest must not.
+    """
+    root = _copy_converter_closure(tmp_path)
+    monkeypatch.setattr(tn, "_CONVERTER_REPO_ROOT", root)
+    before = tn.converter_sha256()
+
+    target = root / "src/agent/judge/tarch_normalize.py"
+    mutated = target.read_text(encoding="utf-8").replace(
+        "def converter_sha256() -> str:",
+        "# a completely harmless re-wording of an existing comment\n"
+        "def converter_sha256() -> str:", 1)
+    assert mutated != target.read_text(encoding="utf-8"), "the edit must actually change the file"
+    target.write_text(mutated, encoding="utf-8")
+
+    after = tn.converter_sha256()
+    assert after == before, "a comment-only edit moved the widened fingerprint"
+
+    # ⛔ the OLD definition WOULD have flipped -- prove the mutation was real,
+    # not merely a no-op that any digest would survive.
+    old_before = hashlib.sha256((REPO / "src/agent/judge/tarch_normalize.py").read_bytes()).hexdigest()
+    old_after = hashlib.sha256(target.read_bytes()).hexdigest()
+    assert old_after != old_before, "mutation did not even change raw bytes -- test is vacuous"
+
+
+def test_f_d_b_a_schema_behaviour_edit_flips_the_closure_fingerprint(tmp_path, monkeypatch):
+    """F-D direction 2: the false NEGATIVE that mattered -- a real behavioural
+    edit to a closure-external-to-tarch_normalize.py file (tarch_converter_schema.py)
+    used to leave ``converter_sha256()`` silent.  It must not any more.
+    """
+    root = _copy_converter_closure(tmp_path)
+    monkeypatch.setattr(tn, "_CONVERTER_REPO_ROOT", root)
+    before = tn.converter_sha256()
+
+    target = root / "src/agent/judge/tarch_converter_schema.py"
+    mutated = target.read_text(encoding="utf-8") + "\nF_D_MUTATION_PROBE_NEW_STATEMENT = 1\n"
+    target.write_text(mutated, encoding="utf-8")
+
+    after = tn.converter_sha256()
+    assert after != before, "a real code addition to a closure member left the fingerprint unchanged"
+
+
+def test_f_d_c_widening_actually_moved_the_value_relative_to_the_legacy_definition():
+    """Sanity: the widened value really differs from sha256(this file's raw
+    bytes alone) on the UNMODIFIED tree -- i.e. this is not a no-op rename."""
+    legacy = hashlib.sha256((REPO / "src/agent/judge/tarch_normalize.py").read_bytes()).hexdigest()
+    assert tn.converter_sha256() != legacy
+
+
+def test_f_d_d_known_pre_fix_values_are_pinned_not_recomputed():
+    """``KNOWN_PRE_F_D_CONVERTER_SHA256`` must contain exactly the values that
+    are actually on disk today for the cases this dispatch's legacy exemption
+    covers -- not sm24_anchor's (F-132: that one is deliberately left to keep
+    reporting drift, see the constant's own docstring)."""
+    sm25_report = json.loads((REPO / "case_tests/test_baseline/gt/sm25-L_anchor"
+                              "/review/conversion_report.json").read_text(encoding="utf-8"))
+    assert sm25_report["converter_sha256"] in tn.KNOWN_PRE_F_D_CONVERTER_SHA256
+    sm24_report = json.loads((REPO / "case_tests/test_baseline/gt/sm24_anchor"
+                              "/review/conversion_report.json").read_text(encoding="utf-8"))
+    assert sm24_report["converter_sha256"] not in tn.KNOWN_PRE_F_D_CONVERTER_SHA256
+
+
+# --------------------------------------------------------------------------- #
+# CONVERTER_CLOSURE_FILES membership must have an OUT: a real static import
+# walk, not a hand-typed list nobody re-checks ([[dispatch ②-1b R4]]).
+# --------------------------------------------------------------------------- #
+def _module_level_local_imports(path: Path) -> set[Path]:
+    """Relative/`src.agent.*`-absolute imports written at MODULE SCOPE (not
+    inside a function body) in ``path``.  AST-based: comments can't fool it,
+    and a lazy (function-body) import is correctly invisible here -- those are
+    the ones ``CONVERTER_CLOSURE_FILES``'s own docstring names and justifies
+    by hand, one grep-checked case at a time (below)."""
+    tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
+    out: set[Path] = set()
+    for node in tree.body:                      # ⛔ .body only, not ast.walk
+        if isinstance(node, ast.ImportFrom) and node.module:
+            if node.level == 1:                 # `from .X import ...`
+                candidate = path.parent / (node.module.replace(".", "/") + ".py")
+                out.add(candidate.resolve())
+            elif node.level == 0 and node.module.startswith("src.agent."):
+                base = REPO / (node.module.replace(".", "/"))
+                as_module = base.with_suffix(".py")
+                if as_module.is_file():
+                    out.add(as_module.resolve())
+                else:
+                    # `from src.agent.correction import facade_convention` --
+                    # `node.module` names the PACKAGE, and each imported name
+                    # may itself be a submodule file rather than a symbol.
+                    for alias in node.names:
+                        submodule = (base / alias.name).with_suffix(".py")
+                        if submodule.is_file():
+                            out.add(submodule.resolve())
+    return out
+
+
+def _static_closure(entry: Path) -> set[Path]:
+    seen = {entry.resolve()}
+    frontier = [entry.resolve()]
+    while frontier:
+        current = frontier.pop()
+        for dep in _module_level_local_imports(current):
+            if dep.is_file() and dep not in seen:
+                seen.add(dep)
+                frontier.append(dep)
+    return seen
+
+
+def test_f_d_closure_membership_matches_a_static_import_walk():
+    """The provenance CONVERTER_CLOSURE_FILES's own docstring promises: a real
+    AST walk of MODULE-LEVEL imports, starting at tarch_normalize.py, must
+    equal the tuple minus the one hand-added lazy dependency."""
+    entry = REPO / "src/agent/judge/tarch_normalize.py"
+    discovered = {str(p.relative_to(REPO)) for p in _static_closure(entry)}
+    expected = set(tn.CONVERTER_CLOSURE_FILES) - {"src/agent/judge/gt_extraction.py"}
+    assert discovered == expected, (
+        f"static top-level import closure disagrees with CONVERTER_CLOSURE_FILES "
+        f"(update BOTH together): missing={sorted(expected - discovered)} "
+        f"extra={sorted(discovered - expected)}")
+
+
+def test_f_d_gt_extraction_lazy_dependency_is_real_and_on_the_p2_path():
+    """The ONE member the static walk above cannot see: prove the lazy
+    ``from .gt_extraction import`` sits inside a function this file's own
+    source shows is called from the P2 conversion path, rather than trusting
+    the docstring's claim."""
+    text = (REPO / "src/agent/judge/tarch_normalize.py").read_text(encoding="utf-8")
+    tree = ast.parse(text)
+    holders = {node.name for node in ast.walk(tree) if isinstance(node, ast.FunctionDef)
+              and any(isinstance(sub, ast.ImportFrom) and sub.module == "gt_extraction"
+                      for sub in ast.walk(node))}
+    assert "_run_g9_v3_preflight" in holders
+    assert "def run_p2_conversion(" in text or "run_p2_conversion" in text
+    assert "_run_g9_v3_preflight(" in text  # actually called somewhere in this file
+
+
+def test_f_d_excluded_lazy_imports_are_confirmed_unreachable():
+    """The two lazy imports CONVERTER_CLOSURE_FILES's docstring EXCLUDES by
+    name must still be unreachable from the conversion path.  If a future
+    edit wires either in for real, this must fail loudly rather than let
+    F-D's blind spot silently reopen."""
+    write_gt_v3_candidate_callers = subprocess.run(
+        ["grep", "-rn", "write_gt_v3_candidate(", "--include=*.py", "src", "scripts"],
+        cwd=REPO, capture_output=True, text=True,
+    ).stdout.splitlines()
+    call_sites = [line for line in write_gt_v3_candidate_callers
+                 if "def write_gt_v3_candidate" not in line]
+    assert call_sites and all(line.startswith("scripts/tool_scripts/gt_from_dxf.py:")
+                              for line in call_sites), call_sites
+
+    corrected_geometry_validators = subprocess.run(
+        ["grep", "-rlE", r"CorrectedGeometryV3\.model_validate(_json)?\(",
+         "--include=*.py", "src/agent/judge"],
+        cwd=REPO, capture_output=True, text=True,
+    ).stdout.split()
+    closure_paths = set(tn.CONVERTER_CLOSURE_FILES)
+    assert not (set(corrected_geometry_validators) & closure_paths), corrected_geometry_validators
 
 
 def test_ezdxf_default_writer_matches_converter_writer_except_pinned_metadata(tmp_path):
