@@ -15,7 +15,7 @@ from pathlib import Path
 import pytest
 
 from src.agent.judge.as_measured import build_as_measured, content_sha256
-from src.agent.judge.gt_facts_staging import facts_staging_dir, read_facts_candidate
+from src.agent.judge.gt_facts_staging import _facts_staging_dir, read_facts_candidate
 from src.agent.judge.gt_revisions import (AsSignedReproductionError, AsSignedV1,
                                           RevisionsLedgerV1,
                                           as_signed_content_sha256,
@@ -31,7 +31,7 @@ CHANGED_HANDLES = ("13AD", "13AC", "13AF", "160A", "13AE")
 
 @pytest.fixture(scope="module", autouse=True)
 def staging_present():
-    out = facts_staging_dir(CASE)
+    out = _facts_staging_dir(CASE)
     for name in ("as_measured.json", "revisions.json", "as_signed.json"):
         assert (out / name).is_file(), f"missing ②-1b staged fact: {out / name}"
 
