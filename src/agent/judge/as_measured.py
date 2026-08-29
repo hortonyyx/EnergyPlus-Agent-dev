@@ -331,12 +331,31 @@ class AsMeasuredConverterReadoutsV1(_StrictModel):
     dangles: StrictNonNegativeInt
     cuts: StrictNonNegativeInt
     invalid: StrictNonNegativeInt
+    #: ⭐ ②-1b-R (F-136/A3, GLM): the S1 zero-length discards, ITEMIZED by
+    #: handle -- ⛔ not just this count.  Measured on signed ``plan-F1``:
+    #: ``["13DC"]`` (``degenerate_line_count == 1``).  Verbatim from the
+    #: ``tarch_wall_degenerate_line`` diagnostic, ⛔ never recomputed --
+    #: ``degenerate_in_wall_lines`` below is recomputed FROM ``geo.wall_lines``,
+    #: which structurally cannot contain a zero-length stroke (the converter
+    #: already dropped it before appending), so that field is a real but
+    #: always-empty check; THIS field and ``degenerate_line_count`` are the
+    #: converter's own S1-stage readout and are what actually accounts for
+    #: a handle leaving the record as "zero length".
     degenerate_line_count: StrictNonNegativeInt
+    degenerate_line_handles: list[DxfHandle] = Field(default_factory=list)
+    #: ⭐ ②-1b-R (F-136/A3, GLM): the S1 non-orthogonal discards, ITEMIZED --
+    #: strokes whose BOTH legs exceed ``tau_axis`` and are therefore dropped
+    #: before ever becoming a ``geo.wall_lines`` entry (⛔ a DIFFERENT
+    #: population from ``non_orthogonal_lines`` below, which are strokes that
+    #: DID reach ``geo.wall_lines`` and are skew there -- one is a continuous-
+    #: quantity tolerance on the ORIGINAL drawing, the other is a discrete
+    #: quantization-grid property; see the module docstring's "two rulers"
+    #: note).  Measured on signed ``plan-F1``: ``["13AD", "13AE"]``.
+    s1_nonorthogonal_discarded_handles: list[DxfHandle] = Field(default_factory=list)
     #: identity partners for the face-line ledger (see the document validator)
     wall_lines_total: StrictNonNegativeInt
     degenerate_in_wall_lines: StrictNonNegativeInt
     all_wall_handles: list[DxfHandle] = Field(default_factory=list)
-    consumed_wall_handles: list[DxfHandle] = Field(default_factory=list)
     non_orthogonal_lines: list[AsMeasuredNonOrthogonalLineV1] = Field(default_factory=list)
     unresolved_opening_carriers: list[JsonDict] = Field(default_factory=list)
     #: ⛔ ②-1a-R: the converter's ``wall_bands``, carried VERBATIM and under a
@@ -390,6 +409,28 @@ class AsMeasuredViewV1(_StrictModel):
                 f"{r.wall_lines_total} collected != {len(self.face_lines)} face_lines "
                 f"+ {len(r.non_orthogonal_lines)} non_orthogonal "
                 f"+ {r.degenerate_in_wall_lines} degenerate")
+        # ⭐⭐ ②-1b-R (F-136/A3, GLM): the identity above only accounts for what
+        # made it INTO ``geo.wall_lines`` -- ⛔ it says nothing about a handle
+        # that never got that far.  MEASURED on signed plan-F1: 226 collected
+        # handles, only 223 in ``geo.wall_lines`` (3 left silently: 13AD/13AE
+        # were S1 non-orthogonal discards, 13DC was an S1 zero-length
+        # discard) -- the OLD identity was 222+1+0==223, green, while those 3
+        # left the record with no bucket at all.  This is the WIDER identity,
+        # over ``all_wall_handles`` -- the true universe of collected
+        # handles -- rather than ``wall_lines_total``, an intermediate count:
+        s1_total = (r.wall_lines_total + len(r.s1_nonorthogonal_discarded_handles)
+                   + r.degenerate_line_count)
+        if len(r.all_wall_handles) != s1_total:
+            raise ValueError(
+                f"as_measured_s1_handle_ledger_broken: "
+                f"{len(r.all_wall_handles)} all_wall_handles != {r.wall_lines_total} wall_lines_total "
+                f"+ {len(r.s1_nonorthogonal_discarded_handles)} s1_nonorthogonal_discarded "
+                f"+ {r.degenerate_line_count} degenerate_line_count")
+        if len(r.degenerate_line_handles) != r.degenerate_line_count:
+            raise ValueError(
+                f"as_measured_degenerate_line_handles_count_mismatch: "
+                f"{len(r.degenerate_line_handles)} handles listed != "
+                f"degenerate_line_count={r.degenerate_line_count}")
         ids = [f.id for f in self.face_lines]
         if len(ids) != len(set(ids)):
             raise ValueError("as_measured_face_line_id_not_unique")
@@ -666,10 +707,10 @@ def _opening_sort_key(opening: "AsMeasuredOpeningV1"):
 def _sorted_handles(values) -> list[str]:
     """Total order for every handle collection.
 
-    ⭐ This is the one that the seed actually attacks: ``all_wall_handles`` and
-    ``consumed_wall_handles`` are ``set[str]``, and ``str`` is the type whose
-    hash Python randomises per process.  ⛔ Iterating them directly would make
-    the document's bytes a function of ``PYTHONHASHSEED``.
+    ⭐ This is the one that the seed actually attacks: ``all_wall_handles`` is a
+    ``set[str]``, and ``str`` is the type whose hash Python randomises per
+    process.  ⛔ Iterating it directly would make the document's bytes a
+    function of ``PYTHONHASHSEED``.
     """
     return sorted(values)
 
@@ -891,6 +932,19 @@ def _footprint_record(geo: P1PlanViewGeometry, sx: float, tx: float,
         is_empty=bool(poly is None or poly.is_empty), rings=rings)
 
 
+def _handles_with_diagnostic_code(geo: P1PlanViewGeometry, code: str) -> list[str]:
+    """⭐ ②-1b-R (F-136/A3): itemize a diagnostic population by HANDLE, ⛔ not
+    just its count -- the converter already names exactly which strokes it
+    dropped and why (``d.code`` / ``d.source_entity_handles``); this is
+    transport of that readout, not a re-derivation of it.
+    """
+    out: list[str] = []
+    for d in geo.diagnostics:
+        if str(getattr(d.code, "value", d.code)) == code:
+            out.extend(str(h) for h in d.source_entity_handles)
+    return out
+
+
 def _readout_records(geo: P1PlanViewGeometry) -> tuple[list[dict], list[dict]]:
     """Diagnostics + gates, VERBATIM.  ⛔ Nothing here is recomputed or filtered.
 
@@ -985,10 +1039,13 @@ def build_view(geo: P1PlanViewGeometry, affine: Affine2D, *,
         converter_readouts=AsMeasuredConverterReadoutsV1(
             dangles=geo.dangles, cuts=geo.cuts, invalid=geo.invalid,
             degenerate_line_count=geo.degenerate_line_count,
+            degenerate_line_handles=_sorted_handles(
+                _handles_with_diagnostic_code(geo, "tarch_wall_degenerate_line")),
+            s1_nonorthogonal_discarded_handles=_sorted_handles(
+                _handles_with_diagnostic_code(geo, "tarch_wall_nonorthogonal")),
             wall_lines_total=len(geo.wall_lines),
             degenerate_in_wall_lines=degenerate,
             all_wall_handles=_sorted_handles(geo.all_wall_handles),
-            consumed_wall_handles=_sorted_handles(geo.consumed_wall_handles),
             non_orthogonal_lines=skew,
             unresolved_opening_carriers=unresolved,
             jamb_cap_bands=bands,

@@ -495,6 +495,64 @@ def test_r2_a_dangling_reference_is_refused(as_received_doc):
         AsMeasuredV1.model_validate(raw)
 
 
+# =========================================================================== #
+# F-136/A3 (②-1b-R R4): the WIDER S1 handle ledger has teeth
+# =========================================================================== #
+def test_r4_the_wider_s1_identity_is_real_on_as_received_plan_f1(as_received_doc):
+    """⭐ Sanity, MEASURED exactly as GLM's N-2/A3 finding: AS-RECEIVED
+    plan-F1 has 226 collected handles, only 223 reach ``geo.wall_lines`` --
+    the other 3 (13AD/13AE non-orthogonal, 13DC zero-length) are now
+    itemized rather than silently absent from every bucket.  ⚠️ MUST use
+    as-received, not signed: 13AD/13AE are exactly the 2 of the 5 real
+    revision-worklist handles that get STRAIGHTENED into clean, axis-aligned
+    face lines in the signed drawing, so they are no longer non-orthogonal
+    discards there and this identity's numbers differ.
+    """
+    view = next(v for v in as_received_doc.views if v.view_id == "plan-F1")
+    r = view.converter_readouts
+    assert len(r.all_wall_handles) == 226
+    assert r.wall_lines_total == 223
+    assert sorted(r.s1_nonorthogonal_discarded_handles) == ["13AD", "13AE"]
+    assert r.degenerate_line_handles == ["13DC"]
+    assert r.degenerate_line_count == 1
+    assert (len(r.all_wall_handles)
+           == r.wall_lines_total + len(r.s1_nonorthogonal_discarded_handles)
+           + r.degenerate_line_count)
+
+
+def test_r4_removing_13dc_from_the_itemized_list_turns_the_identity_red(as_received_doc):
+    """⭐⭐ Verification (dispatch ②-1b-R R4): "把 13DC 从零长清单里删掉 ⇒
+    恒等式必须红" -- this is the self-proof that the new ledger has teeth
+    and is not merely vacuously true today."""
+    raw = as_received_doc.model_dump(mode="json")
+    view = next(v for v in raw["views"] if v["view_id"] == "plan-F1")
+    assert "13DC" in view["converter_readouts"]["degenerate_line_handles"]
+    view["converter_readouts"]["degenerate_line_handles"] = []
+    with pytest.raises(ValueError, match="as_measured_degenerate_line_handles_count_mismatch"):
+        AsMeasuredV1.model_validate(raw)
+
+
+def test_r4_removing_13dc_and_its_count_together_breaks_the_primary_identity(as_received_doc):
+    """The SAME tamper, isolating the PRIMARY (all_wall_handles) identity
+    from the secondary (list-length-matches-count) one: drop 13DC from both
+    the itemized list AND the count it feeds, so only the wider identity can
+    catch it."""
+    raw = as_received_doc.model_dump(mode="json")
+    view = next(v for v in raw["views"] if v["view_id"] == "plan-F1")
+    view["converter_readouts"]["degenerate_line_handles"] = []
+    view["converter_readouts"]["degenerate_line_count"] = 0
+    with pytest.raises(ValueError, match="as_measured_s1_handle_ledger_broken"):
+        AsMeasuredV1.model_validate(raw)
+
+
+def test_r4_consumed_wall_handles_field_is_gone(as_received_doc):
+    """F-136/A3: the field was structurally always empty (zero write sites
+    repo-wide) and is now deleted, not silently carried forward."""
+    readouts = as_received_doc.views[0].converter_readouts
+    assert not hasattr(readouts, "consumed_wall_handles")
+    assert "consumed_wall_handles" not in readouts.model_dump(mode="json")
+
+
 def test_r2_readouts_are_the_converters_own_numbers(as_received_doc):
     """⛔ Carried, ⛔ not recomputed: compared against a fresh P1 run.
 
@@ -668,8 +726,7 @@ def _reversed_geo(geo):
         wall_lines=list(reversed(geo.wall_lines)),
         wall_bands=list(reversed(geo.wall_bands)),
         openings=list(reversed(geo.openings)),
-        all_wall_handles=list(reversed(sorted(geo.all_wall_handles))),
-        consumed_wall_handles=list(reversed(sorted(geo.consumed_wall_handles))))
+        all_wall_handles=list(reversed(sorted(geo.all_wall_handles))))
 
 
 def test_r3_upstream_iteration_order_cannot_move_the_digest():
@@ -752,10 +809,11 @@ def test_r3_the_builder_leaves_every_list_in_a_total_order(as_received_doc, sign
                 o.axis, o.cross_lo, o.cross_hi, o.along_min, o.along_max, o.id))
             readouts = view.converter_readouts
             assert readouts.all_wall_handles == sorted(readouts.all_wall_handles)
-            assert readouts.consumed_wall_handles == sorted(readouts.consumed_wall_handles)
             for name in ("jamb_cap_bands_missing_a_face_line",
                          "face_lines_excluded_as_jamb_caps",
-                         "face_lines_not_paired_into_a_wall"):
+                         "face_lines_not_paired_into_a_wall",
+                         "s1_nonorthogonal_discarded_handles",
+                         "degenerate_line_handles"):
                 got = getattr(readouts, name)
                 assert got == sorted(got), name
             assert ([b["band_id"] for b in readouts.jamb_cap_bands]
@@ -997,7 +1055,7 @@ def _synthetic_geo():
         footprint_polygon=None,
         wall_line_layers={k: "WALL" for k in strokes},
         diagnostics=[], gates=[],
-        consumed_wall_handles=set(strokes), all_wall_handles=set(strokes))
+        all_wall_handles=set(strokes))
 
 
 def _synthetic_affine():

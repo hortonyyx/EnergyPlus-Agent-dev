@@ -36,16 +36,26 @@ def _face(handle: str, *, axis="y", const=1000, along_min=0, along_max=5000) -> 
 
 def _minimal_view(view_id="plan-F1") -> AsMeasuredViewV1:
     lo, hi = _face("1A1", const=1000), _face("1A2", const=1240)
+    #: ⭐ ②-1b-R (F-137): a THIRD face line, deliberately NOT referenced by any
+    #: wall.  The generic "does a translate move exactly the named field"
+    #: tests below use THIS handle -- "1A1"/"1A2" are wall-referenced, and
+    #: since F-137's own consistency gate now runs at the end of every
+    #: ``derive_as_signed``, translating either of them by any amount beyond
+    #: the ~0.5mm group-quantisation tolerance correctly desyncs their wall
+    #: and raises.  Using an unreferenced handle for the generic mechanics
+    #: tests keeps them testing what they say they test; the F-137-specific
+    #: battery below deliberately targets "1A1"/"1A2" to exercise the gate.
+    unreferenced = _face("1A3", const=2000)
     wall = AsMeasuredWallV1(id="w1", axis="y", face_lo=1000, face_hi=1240, thickness=240,
                             along_min=0, along_max=5000,
                             face_line_ids_lo=["1A1"], face_line_ids_hi=["1A2"])
     readouts = AsMeasuredConverterReadoutsV1(
         dangles=0, cuts=0, invalid=0, degenerate_line_count=0,
-        wall_lines_total=2, degenerate_in_wall_lines=0,
-        all_wall_handles=["1A1", "1A2"], consumed_wall_handles=["1A1", "1A2"],
-        face_lines_excluded_as_jamb_caps=[], face_lines_not_paired_into_a_wall=[])
+        wall_lines_total=3, degenerate_in_wall_lines=0,
+        all_wall_handles=["1A1", "1A2", "1A3"],
+        face_lines_excluded_as_jamb_caps=[], face_lines_not_paired_into_a_wall=["1A3"])
     footprint = AsMeasuredFootprintV1(geom_type="Polygon", is_empty=False, rings=[])
-    return AsMeasuredViewV1(view_id=view_id, floor_id="F1", face_lines=[lo, hi],
+    return AsMeasuredViewV1(view_id=view_id, floor_id="F1", face_lines=[lo, hi, unreferenced],
                             walls=[wall], openings=[], footprint=footprint,
                             converter_readouts=readouts)
 
@@ -57,7 +67,7 @@ def _minimal_doc() -> AsMeasuredV1:
                         views=[_minimal_view()])
 
 
-def _signed_revision(handle="1A1", field="const", delta=10, rev_id="rev-1") -> RevisionV1:
+def _signed_revision(handle="1A3", field="const", delta=10, rev_id="rev-1") -> RevisionV1:
     return RevisionV1(
         id=rev_id, target=RevisionTargetV1(view_id="plan-F1", handle=handle),
         finding=RevisionFindingV1(check="probe", detail="synthetic probe"),
@@ -169,14 +179,17 @@ def test_r1_ledger_ids_must_be_unique():
 # R2 -- mechanical derivation
 # =========================================================================== #
 def test_r2_translate_moves_exactly_the_named_field():
+    """⭐ Uses the wall-UNREFERENCED handle "1A3" -- this test is about the
+    mechanics of ``_apply_translate``, not F-137's wall-consistency gate
+    (covered separately, on purpose, by the ``test_f137_*`` battery above)."""
     doc = _minimal_doc()
     ledger = RevisionsLedgerV1(case="synthetic", as_measured_content_sha256=content_sha256(doc),
-                              revisions=[_signed_revision(handle="1A1", field="const", delta=10)])
+                              revisions=[_signed_revision(handle="1A3", field="const", delta=10)])
     signed = derive_as_signed(doc, ledger)
     view = next(v for v in signed.views if v.view_id == "plan-F1")
-    h1 = next(f for f in view.face_lines if f.id == "1A1")
+    h3 = next(f for f in view.face_lines if f.id == "1A3")
     h2 = next(f for f in view.face_lines if f.id == "1A2")
-    assert h1.const == 1010          # 1000 + 10
+    assert h3.const == 2010          # 2000 + 10
     assert h2.const == 1240          # untouched
 
 
@@ -292,6 +305,100 @@ def test_gate_canonical_bytes_is_a_pure_function_of_the_document():
 
 
 # =========================================================================== #
+# F-137 (②-1b-R B-1, ⛔ BLOCKING) -- a wall must still match its named face
+# lines after a translate.  ``_minimal_doc``'s wall is deliberately TIED
+# (both "1A1" and "1A2" share along=[0,5000]), so translating EITHER handle
+# by ANY nonzero amount on ANY field immediately makes it the binding side --
+# no accidental "this delta happened not to be the binding constraint" noise
+# (a real pitfall MEASURED against actual sm25 data while building this
+# battery: a small along_min delta on a non-binding handle produces no
+# observable change and must NOT be mistaken for a gate that lacks teeth).
+# =========================================================================== #
+def test_f137_a_const_translate_desyncs_face_lo_is_caught():
+    """The original defect shape: translate the LO-side handle's ``const``;
+    the wall's self-reported ``face_lo`` goes stale."""
+    doc = _minimal_doc()
+    ledger = RevisionsLedgerV1(case="synthetic", as_measured_content_sha256=content_sha256(doc),
+                              revisions=[_signed_revision(handle="1A1", field="const", delta=500)])
+    with pytest.raises(AsSignedReproductionError, match="as_signed_wall_face_lo_disagrees"):
+        derive_as_signed(doc, ledger)
+
+
+def test_f137_b_same_shape_different_face_line_is_also_caught():
+    """⭐ Verification #2: a DIFFERENT face line (the HI side instead of LO)
+    must ALSO be caught -- ①只证明「这个例子修好了」，②才证明「这类缺陷修好了」."""
+    doc = _minimal_doc()
+    ledger = RevisionsLedgerV1(case="synthetic", as_measured_content_sha256=content_sha256(doc),
+                              revisions=[_signed_revision(handle="1A2", field="const", delta=500)])
+    with pytest.raises(AsSignedReproductionError, match="as_signed_wall_face_hi_disagrees"):
+        derive_as_signed(doc, ledger)
+
+
+def test_f137_c_same_shape_different_field_along_min_is_caught():
+    """⭐ Verification #2: field=along_min must ALSO be caught."""
+    doc = _minimal_doc()
+    ledger = RevisionsLedgerV1(case="synthetic", as_measured_content_sha256=content_sha256(doc),
+                              revisions=[_signed_revision(handle="1A1", field="along_min", delta=500)])
+    with pytest.raises(AsSignedReproductionError, match="as_signed_wall_along_extent_disagrees"):
+        derive_as_signed(doc, ledger)
+
+
+def test_f137_d_same_shape_different_field_along_max_is_caught():
+    """⭐ Verification #2: field=along_max must ALSO be caught."""
+    doc = _minimal_doc()
+    ledger = RevisionsLedgerV1(case="synthetic", as_measured_content_sha256=content_sha256(doc),
+                              revisions=[_signed_revision(handle="1A2", field="along_max", delta=-500)])
+    with pytest.raises(AsSignedReproductionError, match="as_signed_wall_along_extent_disagrees"):
+        derive_as_signed(doc, ledger)
+
+
+def test_f137_e_same_shape_negative_delta_is_also_caught():
+    """⭐ Verification #2: the SIGN of the delta must not matter."""
+    doc = _minimal_doc()
+    ledger = RevisionsLedgerV1(case="synthetic", as_measured_content_sha256=content_sha256(doc),
+                              revisions=[_signed_revision(handle="1A1", field="const", delta=-500)])
+    with pytest.raises(AsSignedReproductionError, match="as_signed_wall_face_lo_disagrees"):
+        derive_as_signed(doc, ledger)
+
+
+def test_f137_f_zero_revisions_does_not_misfire():
+    """⭐ Verification #3 (⛔ not misfiring is as real a requirement as
+    catching the defect): an untouched document must reproduce cleanly --
+    the gate compares against the SAME (group-quantised) coordinate the wall
+    was originally built from, not a stricter one nothing could ever satisfy."""
+    doc = _minimal_doc()
+    ledger = RevisionsLedgerV1(case="synthetic", as_measured_content_sha256=content_sha256(doc),
+                              revisions=[])
+    derive_as_signed(doc, ledger)   # must not raise
+
+
+def test_f137_g_split_const_group_is_not_a_false_positive():
+    """⭐⭐ Regression for the false positive this gate ACTUALLY produced while
+    being built: a wall's ``face_lo``/``face_hi`` is the 1 mm GROUP coordinate
+    (``AsMeasuredWallV1``'s own docstring), which can legitimately differ from
+    an untouched member face line's own exact ``const`` by up to ~0.5 mm --
+    MEASURED on real sm25-L_anchor data (handle ``140E``, const=159396, its
+    wall's face_lo=159400, zero revisions applied) BEFORE this test existed,
+    when the gate compared raw ``const`` instead of the group-rounded value.
+    Reproduced here with a synthetic 0.4 mm split so it runs fast and never
+    depends on the real DXF fixture staying exactly as it is today.
+    """
+    view = _minimal_view()
+    faces = list(view.face_lines)
+    faces[0] = AsMeasuredFaceLineV1.model_validate(
+        {**faces[0].model_dump(mode="json"), "const": 996})   # 0.4mm off face_lo=1000
+    view = AsMeasuredViewV1.model_validate(
+        {**view.model_dump(mode="json"),
+         "face_lines": [f.model_dump(mode="json") for f in faces]})
+    doc = AsMeasuredV1.model_validate({
+        **_minimal_doc().model_dump(mode="json"),
+        "views": [view.model_dump(mode="json")]})
+    ledger = RevisionsLedgerV1(case="synthetic", as_measured_content_sha256=content_sha256(doc),
+                              revisions=[])
+    derive_as_signed(doc, ledger)   # must NOT raise -- 0.4mm is within the 1mm group tolerance
+
+
+# =========================================================================== #
 # detect_translate_candidates -- R1's "机器算出" detector
 # =========================================================================== #
 def test_detect_a_single_field_translate():
@@ -302,6 +409,7 @@ def test_detect_a_single_field_translate():
         "face_lines": [
             {**after_view.face_lines[0].model_dump(mode="json"), "const": 1010},
             after_view.face_lines[1].model_dump(mode="json"),
+            after_view.face_lines[2].model_dump(mode="json"),
         ]})
     after = AsMeasuredV1.model_validate({**before.model_dump(mode="json"),
                                         "views": [after_view.model_dump(mode="json")]})
@@ -325,6 +433,7 @@ def test_detect_multi_field_change_is_flagged_not_guessed():
         "face_lines": [
             {**after_view.face_lines[0].model_dump(mode="json"), "const": 1010, "along_min": 100},
             after_view.face_lines[1].model_dump(mode="json"),
+            after_view.face_lines[2].model_dump(mode="json"),
         ]})
     after = AsMeasuredV1.model_validate({**before.model_dump(mode="json"),
                                         "views": [after_view.model_dump(mode="json")]})
@@ -332,3 +441,32 @@ def test_detect_multi_field_change_is_flagged_not_guessed():
     assert len(candidates) == 1
     assert candidates[0].candidate_action is None
     assert candidates[0].finding.check == "face_line_multiple_fields_changed"
+
+
+def test_detect_axis_swap_with_numeric_coincidence_is_not_reported_as_translate():
+    """⭐⭐ F-139 (②-1b-R, GLM ⭐ new-break finding N-6): reproduces the exact
+    probe GLM used -- before is a y-running line, after is the SAME handle
+    now x-running, with a ``const`` that happens to differ by a plausible
+    "translate" amount.  Before the fix this was reported as a well-formed
+    translate candidate with no mention of axis at all; it must now be
+    refused, named, like the 3 real "needs a straighten" sm25 candidates.
+    """
+    before = _minimal_doc()
+    after_view = _minimal_view()
+    swapped = AsMeasuredFaceLineV1.model_validate({
+        **after_view.face_lines[0].model_dump(mode="json"),
+        "axis": "x", "const": 990})   # was axis="y", const=1000 -- numeric coincidence, wrong axis
+    after_view = AsMeasuredViewV1.model_validate({
+        **after_view.model_dump(mode="json"),
+        "face_lines": [swapped.model_dump(mode="json"),
+                      after_view.face_lines[1].model_dump(mode="json"),
+                      after_view.face_lines[2].model_dump(mode="json")]})
+    after = AsMeasuredV1.model_validate({**before.model_dump(mode="json"),
+                                        "views": [after_view.model_dump(mode="json")]})
+    candidates = detect_translate_candidates(before, after, ["1A1"])
+    assert len(candidates) == 1
+    assert candidates[0].candidate_action is None, (
+        "an axis-swapped numeric coincidence must NOT be reported as a translate")
+    assert candidates[0].finding.check == "face_line_axis_changed"
+    assert "axis" in candidates[0].finding.detail.lower()
+    assert candidates[0].verdict == "unsigned"

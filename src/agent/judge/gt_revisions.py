@@ -77,8 +77,8 @@ from typing import Iterable, Literal
 
 from pydantic import Field, model_validator
 
-from .as_measured import (AsMeasuredFaceLineV1, AsMeasuredV1,
-                          AsMeasuredViewV1, content_sha256)
+from .as_measured import (UNITS_PER_METRE, AsMeasuredFaceLineV1,
+                          AsMeasuredV1, AsMeasuredViewV1, content_sha256)
 from .gt_schema import DxfHandle, Hex64, HumanLabel, StableId
 from .tarch_converter_schema import _StrictModel
 
@@ -277,6 +277,98 @@ def _apply_translate(face: AsMeasuredFaceLineV1, action: TranslateActionV1) -> A
         {**face.model_dump(mode="json"), action.field: updated})
 
 
+def _group_along_extent(faces: list[AsMeasuredFaceLineV1]) -> tuple[int, int]:
+    """The union along-extent of a wall's one-sided face group (⛔ a wall's
+    ``face_line_ids_lo`` / ``_hi`` are plural: a face can be several collinear
+    fragments).  Mirrors how ``_pair_face_lines_into_walls`` derived the
+    group's own extent in the first place -- this is the SAME formula, run
+    again, ⛔ not a second opinion about what a group's extent means."""
+    return min(f.along_min for f in faces), max(f.along_max for f in faces)
+
+
+#: Mirrors ``denominator.GROUP_QUANT`` (metres, decimal places) -- the D3
+#: grouping pass keys a face group on ``round(const_m, GROUP_QUANT)``, i.e.
+#: the nearest millimetre.  ``face_lo``/``face_hi`` on a wall are THAT
+#: rounded group coordinate, ⛔ not necessarily any one member stroke's own
+#: exact ``const`` -- ``AsMeasuredWallV1``'s own docstring documents this
+#: ("quantised at 1 mm ... where the two differ the group is listed in
+#: face_groups_with_a_split_const").
+_GROUP_QUANT_DECIMALS = 3
+
+
+def _group_const_of(face: AsMeasuredFaceLineV1) -> int:
+    """The group coordinate a face line's OWN (possibly just-translated)
+    ``const`` would land on.  ⛔ MUST be used instead of raw ``const`` here:
+    comparing a wall's ``face_lo``/``face_hi`` against a member's raw
+    ``const`` flags every PRE-EXISTING split-const group as a false
+    positive -- MEASURED on real, untouched sm25-L_anchor data (handle
+    ``140E``, ``const=159396``, its wall's ``face_lo=159400``, a legitimate
+    ~0.4 mm split already named in ``face_groups_with_a_split_const``, with
+    ZERO revisions applied).  Reproducing the SAME 1 mm rounding the group
+    coordinate was built from means an untouched face line always agrees,
+    and disagreement means a translate moved the const far enough to change
+    which millimetre bucket it falls in -- the thing this gate exists to
+    catch.
+    """
+    metres = face.const / UNITS_PER_METRE
+    return round(round(metres, _GROUP_QUANT_DECIMALS) * UNITS_PER_METRE)
+
+
+def _verify_walls_still_match_their_face_lines(view: AsMeasuredViewV1) -> None:
+    """⭐⭐ F-137 (②-1b-R B-1, ⛔ BLOCKING): a wall's own self-reported
+    ``face_lo`` / ``face_hi`` / ``thickness`` / ``along_min`` / ``along_max``
+    must still equal what its NAMED face lines actually say, after any
+    ``translate`` has been applied to this view.
+
+    ⛔ NOT "re-run pairing": pairing (which two lines are one wall) is
+    ``denominator``'s D1-D5, decided once when ``as_measured`` was built
+    (as_measured.py's own docstring, §一/§⭐⭐).  Re-pairing here would move
+    that decision into the derivation step, change wall ids, and blow up
+    every dependency closure that names a wall by id.  This is a narrower,
+    purely NUMERIC claim: the numbers a wall carries about ITSELF must not
+    silently disagree with the objects it already names by handle.
+
+    This is precisely the check ``AsMeasuredWallV1``'s own docstring already
+    promises ("stored as the INTEGER DIFFERENCE OF THE TWO STORED FACES, so
+    'recompute it from the two faces and compare bit-for-bit' is a real
+    check") -- MEASURED (GLM cross-review, F-137/A6) to have had no code
+    doing it anywhere in the repo before this function existed.  A translate
+    on ``const`` breaks ``face_lo``/``face_hi``/``thickness``; a translate on
+    ``along_min``/``along_max`` breaks the wall's own along-extent -- both
+    are checked here, not just the one the first-found defect happened to hit.
+    """
+    by_id = {face.id: face for face in view.face_lines}
+    for wall in view.walls:
+        lo_faces = [by_id[h] for h in wall.face_line_ids_lo]
+        hi_faces = [by_id[h] for h in wall.face_line_ids_hi]
+        lo_consts = {_group_const_of(f) for f in lo_faces}
+        hi_consts = {_group_const_of(f) for f in hi_faces}
+        if lo_consts != {wall.face_lo}:
+            raise AsSignedReproductionError(
+                f"as_signed_wall_face_lo_disagrees_with_its_face_lines: wall {wall.id} "
+                f"reports face_lo={wall.face_lo} but face_line_ids_lo="
+                f"{sorted(wall.face_line_ids_lo)} actually sit at const={sorted(lo_consts)}")
+        if hi_consts != {wall.face_hi}:
+            raise AsSignedReproductionError(
+                f"as_signed_wall_face_hi_disagrees_with_its_face_lines: wall {wall.id} "
+                f"reports face_hi={wall.face_hi} but face_line_ids_hi="
+                f"{sorted(wall.face_line_ids_hi)} actually sit at const={sorted(hi_consts)}")
+        if wall.thickness != wall.face_hi - wall.face_lo:
+            raise AsSignedReproductionError(
+                f"as_signed_wall_thickness_disagrees_with_its_faces: wall {wall.id} "
+                f"reports thickness={wall.thickness} but face_hi-face_lo="
+                f"{wall.face_hi - wall.face_lo}")
+        lo_min, lo_max = _group_along_extent(lo_faces)
+        hi_min, hi_max = _group_along_extent(hi_faces)
+        expected_along_min = max(lo_min, hi_min)
+        expected_along_max = min(lo_max, hi_max)
+        if wall.along_min != expected_along_min or wall.along_max != expected_along_max:
+            raise AsSignedReproductionError(
+                f"as_signed_wall_along_extent_disagrees_with_its_face_lines: wall {wall.id} "
+                f"reports along=[{wall.along_min},{wall.along_max}] but its face lines' "
+                f"overlap is [{expected_along_min},{expected_along_max}]")
+
+
 def derive_as_signed(as_measured: AsMeasuredV1, revisions: RevisionsLedgerV1) -> AsSignedV1:
     """⭐ THE mechanical derivation (ledger §六).  Pure: no file I/O.
 
@@ -319,6 +411,8 @@ def derive_as_signed(as_measured: AsMeasuredV1, revisions: RevisionsLedgerV1) ->
              "face_lines": [f.model_dump(mode="json") for f in new_faces]})
 
     views = [by_view[v.view_id] for v in as_measured.views]   # preserve original order
+    for view in views:
+        _verify_walls_still_match_their_face_lines(view)
     return AsSignedV1(
         case=as_measured.case,
         source_dxf_label=as_measured.source_dxf_label,
@@ -387,6 +481,36 @@ def detect_translate_candidates(before: AsMeasuredV1, after: AsMeasuredV1,
             continue
         _, before_face = left
         _, after_face = right
+        # ⭐⭐ ②-1b-R (F-139/N-6, GLM ⭐ new-break finding): ``const`` on a
+        # y-running line and ``const`` on an x-running line are DIFFERENT
+        # physical coordinates (one is an x-intercept, the other a
+        # y-intercept) -- comparing them as the same quantity is a TYPE
+        # error, not a tolerance question.  MEASURED (GLM's probe): an
+        # axis-swapped before/after pair with a numeric coincidence on
+        # ``const`` was reported as a well-formed ``translate`` candidate,
+        # with ``finding.detail`` never mentioning axis at all -- sign it and
+        # ``as_signed`` ends up with a vertical line wearing a horizontal
+        # line's coordinate, and every downstream gate (this module's
+        # reproducibility gate included) stays green, because they all
+        # verify the ARITHMETIC of the derivation, never the axis semantics
+        # of what was compared.  ⛔ MUST be checked BEFORE the scalar diff --
+        # comparing const/along_min/along_max across different axes is not
+        # merely "no candidate", it is comparing the wrong quantities.
+        if before_face.axis != after_face.axis:
+            out.append(RevisionV1(
+                id=f"rev-{handle.lower()}", target=target,
+                finding=RevisionFindingV1(
+                    check="face_line_axis_changed",
+                    detail=(
+                        f"handle {handle} runs along axis {before_face.axis!r} in the "
+                        f"first drawing and {after_face.axis!r} in the second; const on "
+                        "one axis is a DIFFERENT physical coordinate than const on the "
+                        "other (an x-intercept is not commensurable with a y-intercept), "
+                        "so no scalar field of this face line can be compared numerically "
+                        "-- not expressible as a translate; needs an action kind ①'s "
+                        "'遇到再加' has not implemented yet")),
+                verdict="unsigned"))
+            continue
         diffs = [(field, getattr(after_face, field) - getattr(before_face, field))
                  for field in _FACE_LINE_SCALAR_FIELDS
                  if getattr(after_face, field) != getattr(before_face, field)]

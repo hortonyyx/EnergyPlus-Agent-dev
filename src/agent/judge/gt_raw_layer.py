@@ -441,12 +441,23 @@ def _expected_converter_sha256(recorded: str) -> str:
 
     So: if ``recorded`` matches the OLD (legacy) definition and NOT the new
     one, it is compared against the legacy definition -- this is the ONLY case
-    where that happens, and it means exactly one thing: this record predates
-    F-D's fix and drift confined to ``tarch_converter_schema.py`` /
-    ``gt_manifest.py`` / the rest of the widened closure is NOT detectable for
-    it (a NAMED, bounded gap, closed the moment the case is next re-signed --
-    every conversion produced by CURRENT code, including a fresh re-sign,
-    stamps the widened value and is compared against it with full teeth).
+    where that happens.
+
+    ⚠️⚠️ Say plainly what that means, MEASURED not softened (②-1b-R, GLM N-1):
+    it is NOT "drift confined to the rest of the closure is undetectable" --
+    that undersells it.  ``_expected_converter_sha256`` returning ``recorded``
+    makes the comparison ``recorded == recorded`` for this one case: **sm25's
+    ``converter_sha256`` signal is DEAD -- it reads ``reproduced`` UNCONDITIONALLY,
+    for ANY edit anywhere in the 13-file closure, until the case is next
+    re-signed.**  GLM proved this by actually moving the widened fingerprint
+    (a real statement appended to ``tarch_converter_schema.py``) and observing
+    sm25 still report ``reproduced`` while sm24 (not exempted) correctly
+    reported ``implementation_drift`` on the SAME code path -- i.e. the content
+    diff underneath (footprint/openings/zones) is still a real, independent
+    check, but THIS ONE FIELD'S check is not exercising anything for sm25
+    right now.  Closed the moment the case is next re-signed: every
+    conversion produced by CURRENT code, including a fresh re-sign, stamps
+    the widened value and is compared against it with full teeth.
     """
     from .tarch_normalize import KNOWN_PRE_F_D_CONVERTER_SHA256
     current_wide = _converter_sha256_now()

@@ -226,7 +226,17 @@ class P1PlanViewGeometry:
     wall_line_layers: dict[str, str] = field(default_factory=dict)  # handle -> source layer
     diagnostics: list[ConversionDiagnosticV1] = field(default_factory=list)
     gates: list[GateResultV1] = field(default_factory=list)
-    consumed_wall_handles: set[str] = field(default_factory=set)
+    #: ⛔ ②-1b-R (F-136, GLM A3): ``consumed_wall_handles`` was DELETED here --
+    #: repo-wide zero write sites (only the ``default_factory=set`` default),
+    #: so it was structurally always empty and its name promised a concept
+    #: ("handles that fed a wall") that predates the ②-1a-R face-pairing
+    #: rework and was never redefined for it.  The equivalent, ACTUALLY
+    #: populated accounting already exists under names that say what they
+    #: are: ``AsMeasuredConverterReadoutsV1.face_lines_excluded_as_jamb_caps``
+    #: / ``face_lines_not_paired_into_a_wall`` (the paired/capped/unpaired
+    #: three-bucket ledger `as_measured.py`'s view validator already
+    #: enforces) plus the new S1-stage itemizations
+    #: (``s1_nonorthogonal_discarded_handles`` / ``degenerate_line_handles``).
     all_wall_handles: set[str] = field(default_factory=set)
 
     @property

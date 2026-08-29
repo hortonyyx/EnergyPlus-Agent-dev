@@ -223,16 +223,48 @@ def test_f_d_c_widening_actually_moved_the_value_relative_to_the_legacy_definiti
 
 
 def test_f_d_d_known_pre_fix_values_are_pinned_not_recomputed():
-    """``KNOWN_PRE_F_D_CONVERTER_SHA256`` must contain exactly the values that
-    are actually on disk today for the cases this dispatch's legacy exemption
-    covers -- not sm24_anchor's (F-132: that one is deliberately left to keep
-    reporting drift, see the constant's own docstring)."""
+    """⭐⭐ A1 (②-1b-R, GLM N-1): the set must equal EXACTLY the pinned sm25
+    value -- ⛔ ``in``/``not in`` alone has ZERO discriminating power against
+    an extra, unvetted member being padded into the set (MEASURED, GLM: a
+    fabricated hash added to the set produced 0 test failures across
+    ``test_gt_raw_layer.py`` + ``test_gt_promotion_path.py`` +
+    ``test_tarch_converter_reproducibility.py`` before this assertion
+    existed).  ⚠️ This locks the SET, ⛔ it does not change what the set is
+    allowed to exempt -- see ``KNOWN_PRE_F_D_CONVERTER_SHA256``'s own
+    docstring; that behaviour is untouched by this rework (changing it needs
+    a re-sign, not a test).
+    """
     sm25_report = json.loads((REPO / "case_tests/test_baseline/gt/sm25-L_anchor"
                               "/review/conversion_report.json").read_text(encoding="utf-8"))
-    assert sm25_report["converter_sha256"] in tn.KNOWN_PRE_F_D_CONVERTER_SHA256
+    assert tn.KNOWN_PRE_F_D_CONVERTER_SHA256 == frozenset({sm25_report["converter_sha256"]})
     sm24_report = json.loads((REPO / "case_tests/test_baseline/gt/sm24_anchor"
                               "/review/conversion_report.json").read_text(encoding="utf-8"))
     assert sm24_report["converter_sha256"] not in tn.KNOWN_PRE_F_D_CONVERTER_SHA256
+
+    # ⭐ Second layer (GLM N-1's "加强"): anchor the pinned value to an
+    # IMMUTABLE git object rather than to this module's own say-so -- "who
+    # may declare a legacy exemption" moves from "whoever edits this file"
+    # to "the commit the docstring already names".
+    frozen_bytes = subprocess.run(
+        ["git", "show", "a40d56d:src/agent/judge/tarch_normalize.py"],
+        cwd=REPO, capture_output=True, check=True,
+    ).stdout
+    assert hashlib.sha256(frozen_bytes).hexdigest() in tn.KNOWN_PRE_F_D_CONVERTER_SHA256
+
+
+def test_f_d_d2_the_exact_equality_assertion_actually_has_teeth():
+    """⭐ Self-proof (GLM's own measured fact, made executable): padding the
+    set with one arbitrary extra member must break the SAME shape of
+    assertion the test above makes.  ⛔ Constructed locally, no monkeypatch
+    of module state -- this proves the ASSERTION SHAPE has discriminating
+    power, independent of whether anyone remembers to run it against a
+    mutated module.
+    """
+    sm25_report = json.loads((REPO / "case_tests/test_baseline/gt/sm25-L_anchor"
+                              "/review/conversion_report.json").read_text(encoding="utf-8"))
+    padded = frozenset(tn.KNOWN_PRE_F_D_CONVERTER_SHA256 | {"f" * 64})
+    with pytest.raises(AssertionError):
+        assert padded == frozenset({sm25_report["converter_sha256"]})
 
 
 # --------------------------------------------------------------------------- #
