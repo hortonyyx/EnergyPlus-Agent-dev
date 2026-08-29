@@ -56,7 +56,7 @@
 
 ### ⛔ 当前形态的三个硬事实
 
-1. **`src/` 一行未动** —— 全部在 [`../logs/experiments/2026-08-23_as_drawn_reading_prototype/`](../logs/experiments/2026-08-23_as_drawn_reading_prototype/)。
+1. ~~**`src/` 一行未动**~~ ⛔ **2026-08-29 实测已过期，更正**：产（[`src/agent/reading/as_drawn/as_drawn_v2.py`](../../src/agent/reading/as_drawn/as_drawn_v2.py)）· 门（[`src/validator/checks/as_drawn.py`](../../src/validator/checks/as_drawn.py)）· 判（[`src/agent/judge/as_drawn/{denominator,reading_grade}.py`](../../src/agent/judge/as_drawn/)）**都已在 `src/`**。⭐ **真实缺口 = 零编排接线**（生产路径上只有 `as_measured.py` 复用了 `denominator`，而 `vector_contract.py` 认得出 as-drawn 产物但 `KNOWN_NOT_CONSUMED` 拒绝吃）。逐格出处 → [`gt_and_pipeline_flow_map.md`](gt_and_pipeline_flow_map.md)。原型档仍在 [`../logs/experiments/2026-08-23_as_drawn_reading_prototype/`](../logs/experiments/2026-08-23_as_drawn_reading_prototype/)。
 2. **第 ④ 步的「认」由 orchestrator 手填**，⛔ 至今**没有任何模型真跑过**；且手填者产出前**已看过 gt 侧结果**
    ⇒ 「模型能不能做到」**没有回答**，本层任何分数**不得记成绩**（闸见 [as_drawn_layer_contract.md](as_drawn_layer_contract.md)）。
    ⭐ 但手填的是**纯选择题**：三份 perception 文件里**数字个数 = 0**（机器核过），⛔ 一个坐标都没有。

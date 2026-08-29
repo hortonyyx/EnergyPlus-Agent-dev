@@ -319,6 +319,12 @@ reading 新 grade 图形式定案 · **sm25 gt 整份重做重签后移到改造
 
 **②-1b**（`revisions` 台账 + `as_signed` 派生 + B1 外部指纹锚 + F-D 指纹加宽）→ ②-1c → ②-1d → ②-2
 → **sm25 完整走一遍 gt 流程【走查】** → 用户逐条签 → 新 gt 入库。
+> ⭐ **②-1b 派工单已出（2026-08-29，基线 `866d518`）** →
+> [`logs/reviews/request/2026-08-29_o21b_revisions_and_as_signed.md`](logs/reviews/request/2026-08-29_o21b_revisions_and_as_signed.md)，
+> **⏸ 待用户拍席位配置后启动**（§5#14 跑前必确认配置）。单里 R5 显式留了一条张力给施工方判断
+> （facts 落 `gt/` 答案根 vs 不写答案根），并写明 ⛔ 本单不改 `promote_gt_v3`。
+> ⭐ 同日落 [`architecture/gt_and_pipeline_flow_map.md`](architecture/gt_and_pipeline_flow_map.md)
+> = gt 链与 pipeline 链的**目标态说明书 + 每格今天到哪**（用户令「主要关注目标态」）。
 不占主线的小单：**B4-②b 三件** · **correction grade 图算术**（面板 scale 变负，平面塌在左上角）。
 
 ---

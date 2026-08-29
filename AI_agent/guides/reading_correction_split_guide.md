@@ -103,6 +103,9 @@ reading 题目册    形式A 多边形     形式B 多边形     净空面积表
 
 ⭐ 两者**都只判结果，⛔ 不判过程**。
 
+> ⭐ **逐步产物地图**（每一步吃什么、吐哪个文件、今天存不存在，带 file:line）→
+> [`../architecture/gt_and_pipeline_flow_map.md`](../architecture/gt_and_pipeline_flow_map.md)（2026-08-29 实测）。
+
 ### D. 现状 vs 目标（⛔ 每格都要能指出出处）
 
 | | ✅ 已实现 | ⏳ 还没做 |
@@ -603,7 +606,7 @@ as-drawn 产的是 `observations.face_lines` / `declarations` / `hypotheses`。*
 
 ## 九、当前进度与下一步
 
-**已实现**（⛔ 全在 `logs/experiments/` 探索档，`src/` 一行未动）：
+**已实现**（⚠️ **括号里那句「全在 `logs/experiments/` 探索档、`src/` 一行未动」2026-08-29 实测已过期** —— 产/门/判三件都已在 `src/`，缺的是**编排接线**；逐格出处 → [`../architecture/gt_and_pipeline_flow_map.md`](../architecture/gt_and_pipeline_flow_map.md)）：
 三层产物 · 颜色族发现 · 语义指派外部化 · 平面反证（sm24 **100.0** / sm25 **93.3**，10 种变异 8 红 2 免疫）·
 立面洞口反证 **34/34** · 立面结构线反证 **24/24**。
 
