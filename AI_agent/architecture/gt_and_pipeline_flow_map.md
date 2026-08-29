@@ -178,7 +178,8 @@
 | as-received 图 + 专用 request | ✅ | `gt_sources/sm25-L_anchor/` 有 `sm25-L_t3_as_received.dxf` + `request_as_measured.json` |
 | `walls` 走面线配对（⛔ 不用 `wall_bands`） | ✅ | ②-1a-R；旧 band 仍逐字留作 `converter_readouts.jamb_cap_bands` |
 | `revisions.json` 台账 + `as_signed.json` + 可复现门 + B1 指纹**字段** | ✅ **已收口**（GLM 复审 APPROVE-WITH-FINDINGS / 阻断 0）| ②-1b `9f0266b`+`2196723`；权威全量 **3292 passed / 13 xfailed / 0 failed**（`.pth` 哨兵前后同）。②-1b-R（`201f47f`+`f140708`）已修 F-137 / F-139 / A1 集合锁 / F-136 守恒面；主控权威门 **3305 passed / 13 xfailed / 0 failed**（哨兵前后同 · HEAD 前后同 · **树跑前跑后皆空**）。⚠️ 仍开着（**全部不阻断**）：**F-140**（一致性门灵敏度 **[0.1,0.9+] mm 位置依赖**、无锁）· **F-141**（换图层伪装）· **F-142**（split-const 登记 stale）· `gt_staging/` 无写保护 · **B1 外部锚未解** |
-| 晋升接法（`promote_gt_v3` 拷 `facts/` + 晋升前跑可复现门）+ **F-128** | ❌ | 随 gt 重做重签；②-1b 只留了接缝说明 |
+| 暂存区进出门（写/读两侧强制跑复现门 + 收窄公开 API）| ✅ **已落地，⏳ 复审在途**（②-1b-T `5b836ee`）| ⭐ 未来晋升在**类型/API 层**没有「拷目录」这条路；⚠️ 防不住「硬编码路径绕开本模块」（施工方如实承认）|
+| 晋升接法（`promote_gt_v3` 拷 `facts/` + 晋升前跑可复现门）+ **F-128** | ❌ | 随 gt 重做重签 |
 | `AnswerCompiler(profile)` + 两种出模形式 + 6a/6b/6c + 依赖闭包/局部计分 | ❌ | = **②-1c** |
 | 逐边 `boundary_condition` | ❌ | = **②-1d**（F-121） |
 | **正交吸附**（转换器把画歪的线吸到轴上） | ✅ **已落地并收口**（②-1b-S `22202c1`；GLM **APPROVE-WITH-FINDINGS / 阻断 0**）；⛔ **上限阈值待用户签字（F-143）**，且复核方已证**绝对毫米是错的形状**（角度含义随线长漂 ~120 倍）⇒ 推荐**双门限** | 今天两套处置：算轮廓走**吸附**（[`gt_extraction.py:283`](../../src/agent/judge/gt_extraction.py#L283)）· 收墙线走**整条丢弃**（`tarch_wall_nonorthogonal` + `continue`，[`tarch_normalize.py:383-387`](../../src/agent/judge/tarch_normalize.py#L383)）；共用容差 1 mm。实测 as-received `plan-F1` 面线 **222→224** · 墙 **54→55（= 签字件）** · 吸附清单 `['13AD','13AE']` · `plan-F2` 逐位不变。<br>⭐ 原判「理由是不变量 #6 可扩展性，⛔ 不是今天的判分缺陷」—— ⛔ **已被 F-138 推翻**：`as_measured` 改从 **as-received** 出之后歪线进了事实层输入，实测签字件 225 面线 / as-received 222(+1)，差集恰为 `13AD/13AE/13AF` |
