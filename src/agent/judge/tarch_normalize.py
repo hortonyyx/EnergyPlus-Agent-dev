@@ -12,10 +12,15 @@ only**:
                         a stroke whose two legs both exceed ``tau_axis`` is
                         SNAPPED onto its dominant axis (short leg -> zero) when
                         the short leg is within ``AXIS_SNAP_MAX_DEVIATION_M``
-                        (⛔⛔ a PLACEHOLDER pending sign-off, dispatch ②-1b-S
-                        R1) and itemised as ``tarch_wall_axis_snapped``
-                        (INFO); beyond that threshold it is still refused,
-                        unchanged, as ``tarch_wall_nonorthogonal`` (BLOCK)
+                        (10 mm) AND the stroke's angle off-axis is within
+                        ``AXIS_SNAP_MAX_ANGLE_DEG`` (1.0°) -- ⭐ TWO gates,
+                        ANDed, both SIGNED BY THE USER 2026-08-30 (F-143,
+                        landed by F-147; ⛔ the angle gate did not exist
+                        before F-147) -- and itemised as
+                        ``tarch_wall_axis_snapped`` (INFO) carrying BOTH
+                        readings; failing EITHER gate it is still refused,
+                        as ``tarch_wall_nonorthogonal`` (BLOCK), whose
+                        context now NAMES the gate(s) that refused it
   S2  wall collect + jamb-cap identification  the short cross-section lines are
                         thickness evidence kind #2 (``wall_cap_or_opening_jamb``);
                         the legal thickness *range* is a sanity bound only, never
@@ -50,12 +55,13 @@ Hard disciplines enforced here (dispatch §2 / plan §2):
   4. no fabricated tolerance — every threshold is read from ``judge_gt.yaml`` via
      :func:`resolve_converter_tooling`; the quantization step is derived
      (``tau_node/10``), not a config key.  ⛔ ONE declared exception:
-     ``AXIS_SNAP_MAX_DEVIATION_M`` is a plain module constant, not a
-     ``judge_gt.yaml`` key — deliberately, because it is an UNSIGNED
-     placeholder and that schema's serialized form is baked into every
-     already-signed gt.json's content hash (see the constant's own
-     docstring for the empirical proof this would otherwise be silently
-     unsafe).
+     ``AXIS_SNAP_MAX_DEVIATION_M`` and ``AXIS_SNAP_MAX_ANGLE_DEG`` are
+     plain module constants, not ``judge_gt.yaml`` keys — deliberately.
+     Their VALUES are signed (user, 2026-08-30, F-143/F-147), but signing a
+     value is not the same act as admitting a KEY into that schema: its
+     serialized form is baked into every already-signed gt.json's content
+     hash, so a new key there retroactively invalidates signed answers (see
+     the constants' own docstrings for the empirical proof).
   5. gt isolation — this module is judge-side.  Tianzheng layer names, block-name
      prefixes and the view-frame convention are read ONLY from the request's
      :class:`TarchDialectRulesV1` / selectors, never from a module constant.
@@ -65,6 +71,7 @@ from __future__ import annotations
 import ast
 import hashlib
 import json
+import math
 import os
 import uuid
 from dataclasses import dataclass, field
@@ -93,41 +100,72 @@ from .tarch_converter_schema import (
     compute_source_map_sha256, derive_quantization_step,
     diagnostic_spec)
 
-#: ⛔⛔ PLACEHOLDER, PENDING USER SIGN-OFF — dispatch ②-1b-S R1 (2026-08-29).
+#: ⭐⭐⭐ SIGNED BY THE USER 2026-08-30 (F-143 → landed by F-147).
+#: ⛔ No longer a placeholder: the user was shown the distribution and the
+#: risk (below) and chose these two values verbatim -- "签，角度调到 1 度吧".
 #:
 #: What it decides: once a collected wall-line stroke's two legs (|dx|, |dy|)
-#: BOTH exceed ``tau_axis`` (``dxf_axis_alignment_tolerance_m``, 1 mm — i.e. it
+#: BOTH exceed ``tau_axis`` (``dxf_axis_alignment_tolerance_m``, 1 mm -- i.e. it
 #: is not already axis-aligned within measurement noise), this value is the
-#: line between "drawn crooked" (admit: snap the SHORT leg to zero, see
-#: ``_snap_short_leg_to_axis``) and "a real diagonal line" (still refused,
-#: unchanged ``tarch_wall_nonorthogonal`` BLOCK + drop).
+#: FIRST of TWO gates (see ``AXIS_SNAP_MAX_ANGLE_DEG`` for the second, and
+#: ``_collect_walls`` for the AND) between "drawn crooked" (admit: snap the
+#: SHORT leg to zero, see ``_snap_short_leg_to_axis``) and "a real diagonal
+#: line" (still refused, unchanged ``tarch_wall_nonorthogonal`` BLOCK + drop).
 #:
 #: ⭐ Why it exists as a SEPARATE constant and not a new key on
 #: ``judge_gt.yaml`` / ``GtExtractionTolerancesV1``: EMPIRICALLY VERIFIED
 #: (②-1b-S execution report) that adding even an OPTIONAL field with a
 #: default to that schema flips ``gt_hash_content_mismatch`` on the real
-#: SIGNED ``sm25-L_anchor/gt.json`` — that schema's serialized form is baked
-#: into every already-signed gt.json's ``content_sha256``.  This value is
-#: explicitly UNSIGNED and must never silently enter that trust root before a
-#: human signs it off, so it lives here instead, exactly as ``MERGE_M`` in
-#: ``as_drawn/denominator.py`` is a plain declared module constant rather than
-#: a ``judge_gt.yaml`` key (same precedent, same reason: a domain parameter
-#: that is declared and swept, not yet a signed tolerance).
+#: SIGNED ``sm25-L_anchor/gt.json`` -- that schema's serialized form is baked
+#: into every already-signed gt.json's ``content_sha256``.  Signing the VALUE
+#: (what the user did) is not the same act as admitting the KEY into that
+#: trust root (which would invalidate already-signed hashes), so it stays
+#: here, exactly as ``MERGE_M`` in ``as_drawn/denominator.py`` is a plain
+#: declared module constant rather than a ``judge_gt.yaml`` key.
 #:
-#: ⭐ Value: the SMALLEST round number (0.1 mm-grid) that admits the two real
-#: instances measured across every in-scope case (sm24_anchor signed,
-#: sm25-L_anchor signed, sm25-L_anchor as-received — the only fixtures that
-#: run through this converter; ``sm21_anchor`` ships no ``request.json`` and
+#: ⭐ Evidence the user was shown before signing: the only two instances in
+#: the whole in-scope corpus (sm24_anchor signed, sm25-L_anchor signed,
+#: sm25-L_anchor as-received -- ``sm21_anchor`` ships no ``request.json`` and
 #: is not converted through this path at all, see
-#: ``tests/test_affine_magnitude_gate.py::UNSIGNED_ANCHORS``) —
-#: sm25 as-received ``plan-F1`` handles 13AD (minor leg 5.8084 mm) and 13AE
-#: (minor leg 5.8087 mm), the ONLY two ``tarch_wall_nonorthogonal`` diagnostics
-#: that exist anywhere in the in-scope corpus today.  It is NOT a considered
-#: engineering judgement — see the ②-1b-S execution report's "阈值" section for
-#: the full distribution (n=2, both ~5.81 mm, both from the same physical
-#: drafting slip) and the stop-and-report this dispatch requires before any
-#: value here may be treated as final.
-AXIS_SNAP_MAX_DEVIATION_M = 0.006
+#: ``tests/test_affine_magnitude_gate.py::UNSIGNED_ANCHORS``) are sm25
+#: as-received ``plan-F1`` handles 13AD (minor leg 5.8084 mm, 0.091°) and
+#: 13AE (5.8087 mm, 0.091°) -- one physical drafting slip, two faces.
+#: 10 mm admits both with margin and is a round 0.1 mm-grid number.
+AXIS_SNAP_MAX_DEVIATION_M = 0.010
+
+#: ⭐⭐⭐ SIGNED BY THE USER 2026-08-30 (F-143 → landed by F-147) -- the SECOND
+#: admission gate, ANDed with ``AXIS_SNAP_MAX_DEVIATION_M`` in ``_collect_walls``.
+#:
+#: ⭐⭐ Why an ANGLE gate had to exist at all, and why tightening the
+#: millimetre one could not substitute for it: **the same millimetre number
+#: means a ~120x different angle depending on the stroke's length**.  6 mm on
+#: the 3640 mm stroke 13AD is 0.094° (obvious hand-tremor); 6 mm on a 30 mm
+#: stroke is 11.310° (an unmistakable diagonal).  An absolute-millimetre
+#: threshold is therefore the WRONG SHAPE for this decision: it is
+#: simultaneously too permissive on long strokes (a gentle slant sails
+#: through) and too twitchy on short ones.  The angle gate is the dimension
+#: the millimetre gate structurally cannot see.  ⛔ That is why this is a new
+#: gate rather than a smaller value for the old one.
+#:
+#: ⛔⛔ SIGNED RESIDUAL RISK, recorded because it is real and was accepted
+#: with full knowledge, ⛔ NOT because it is believed to be correct:
+#: **1.0° admits the cross-reviewer's 0.39° gently-slanted wall**.  That
+#: negative sample was built end-to-end on an as-received copy: two faces,
+#: 800 mm long, each 5.5 mm out, 120 mm apart -- both faces snap to their
+#: midlines, the pair stays exactly 120 mm apart, and the pairing step
+#: therefore MANUFACTURES a wall that does not exist on the drawing
+#: (walls 55 -> 56).  This is the same defect family as the project's 33
+#: fabricated walls.  0.25° would refuse it.  The admissible interval was
+#: only ``(0.091°, 0.394°)`` -- one real tremor on one side, one synthetic
+#: slant on the other -- and 0.25°/0.3° were recommended.  The user restated
+#: the consequence and still chose 1.0°.
+#: ⭐ The compensating control is the LAST gate, unchanged: a human reads the
+#: itemised snap list (``axis_snapped_lines``) line by line when signing
+#: ``revisions``.  Nothing here is silent -- every admission emits
+#: ``tarch_wall_axis_snapped`` carrying both readings.
+#: See ``tests/test_tarch_converter_p1_geometry.py``'s
+#: ``..._KNOWN_SIGNED_RISK`` test for the executable form of this paragraph.
+AXIS_SNAP_MAX_ANGLE_DEG = 1.0
 
 
 # --------------------------------------------------------------------------- #
@@ -141,8 +179,13 @@ class _Tols:
     node_join_m: float           # tau_node   (quantize base, node merge)
     axis_align_m: float          # tau_axis   (orthogonality)
     topo_area_m2: float          # tau_area   (area conservation)
-    #: ⛔ PLACEHOLDER, pending sign-off — see ``AXIS_SNAP_MAX_DEVIATION_M``.
+    #: ⭐ Signed 2026-08-30 (F-143/F-147) — see ``AXIS_SNAP_MAX_DEVIATION_M``.
     axis_snap_max_m: float = AXIS_SNAP_MAX_DEVIATION_M
+    #: ⭐ Signed 2026-08-30 (F-143/F-147) — see ``AXIS_SNAP_MAX_ANGLE_DEG``.
+    #: ⛔ Scale-free by construction: an angle needs no ``metres_per_unit``
+    #: conversion, which is precisely the property the millimetre gate lacks
+    #: (hence no ``_native`` sibling property below).
+    axis_snap_max_angle_deg: float = AXIS_SNAP_MAX_ANGLE_DEG
     @property
     def node_join_native(self) -> float:
         return self.node_join_m / self.metres_per_unit
@@ -161,13 +204,24 @@ class _Tols:
         return self.node_join_native / 10.0
 
 def _tols_from(tooling, metres_per_unit: float, _legacy_unused: float | None = None,
-              *, axis_snap_max_m: float = AXIS_SNAP_MAX_DEVIATION_M) -> _Tols:
+              *, axis_snap_max_m: float = AXIS_SNAP_MAX_DEVIATION_M,
+              axis_snap_max_angle_deg: float = AXIS_SNAP_MAX_ANGLE_DEG) -> _Tols:
+    """⭐ Both snap thresholds are INJECTABLE keyword parameters, on purpose.
+
+    A test that needs to widen exactly one of the two gates passes it here and
+    exercises the real production code path.  ⛔ It must NOT monkeypatch the
+    module-level constant instead: ``from X import Y`` binds through the PARENT
+    PACKAGE attribute, not ``sys.modules``, and that mistake has already
+    produced a whole band of false-red "DID NOT RAISE" in this repo.  The
+    object under test provides its own injection port; ⛔ no stand-in needed.
+    """
     t = tooling.tolerances
     return _Tols(metres_per_unit=metres_per_unit,
                  node_join_m=t.dxf_node_join_tolerance_m,
                  axis_align_m=t.dxf_axis_alignment_tolerance_m,
                  topo_area_m2=t.dxf_topology_area_tolerance_m2,
-                 axis_snap_max_m=axis_snap_max_m)
+                 axis_snap_max_m=axis_snap_max_m,
+                 axis_snap_max_angle_deg=axis_snap_max_angle_deg)
 
 
 def _snap_short_leg_to_axis(sx0: float, sy0: float, sx1: float, sy1: float
@@ -484,24 +538,44 @@ def _collect_walls(msp, plan_view: PlanViewIntentV1, request: TarchConversionReq
         all_handles.add(e.dxf.handle)
         # S1 orthogonality (non-exact): both legs > tau_axis means the stroke
         # is not already axis-aligned within measurement noise.  ⭐ dispatch
-        # ②-1b-S R1: this used to be an unconditional drop.  It no longer is --
-        # ⛔⛔ but the line between "drawn crooked, snap it" and "a real
-        # diagonal, still refuse it" (``axis_snap_max_native``) is an EXPLICIT
-        # PLACEHOLDER PENDING USER SIGN-OFF, see ``AXIS_SNAP_MAX_DEVIATION_M``.
+        # ②-1b-S R1 turned the unconditional drop into an admission decision;
+        # ⭐⭐⭐ F-147 (user sign-off 2026-08-30) makes that decision TWO GATES
+        # ANDed together, because one millimetre number means a ~120x
+        # different angle depending on stroke length (see
+        # ``AXIS_SNAP_MAX_ANGLE_DEG`` for the measured 0.094° / 11.310° pair):
+        #     admit  <=>  minor_leg <= axis_snap_max_native
+        #                 AND degrees(atan2(minor_leg, major_leg)) <= angle_max
+        # ⛔ Refusing is not silent any more: which gate said no is recorded,
+        # because two different reasons were previously collapsed into the
+        # same absence.
         dx_raw, dy_raw = abs(sx1 - sx0), abs(sy1 - sy0)
-        snapped: tuple[tuple[float, float], tuple[float, float], str, float] | None = None
+        snapped: tuple[tuple[float, float], tuple[float, float], str, float, float] | None = None
         if dx_raw > tau_axis and dy_raw > tau_axis:
             minor_leg = min(dx_raw, dy_raw)
-            if minor_leg <= tols.axis_snap_max_native:
+            major_leg = max(dx_raw, dy_raw)
+            # ⭐ Scale-free: the ratio is in native units on BOTH sides, so no
+            # ``metres_per_unit`` conversion can go missing here.
+            angle_deg = math.degrees(math.atan2(minor_leg, major_leg))
+            mm_gate_ok = minor_leg <= tols.axis_snap_max_native
+            angle_gate_ok = angle_deg <= tols.axis_snap_max_angle_deg
+            if mm_gate_ok and angle_gate_ok:
                 before_p0, before_p1 = (sx0, sy0), (sx1, sy1)
                 sx0, sy0, sx1, sy1, snapped_axis = _snap_short_leg_to_axis(sx0, sy0, sx1, sy1)
-                snapped = (before_p0, before_p1, snapped_axis, minor_leg)
+                snapped = (before_p0, before_p1, snapped_axis, minor_leg, angle_deg)
             else:
-                # genuinely diagonal (beyond the admission threshold) --
-                # ⛔ UNCHANGED from before this dispatch: still refused.
+                # genuinely diagonal under at least one gate -- refused, as
+                # before.  ⭐ F-147 R3: the refusal now NAMES the gate(s).
+                refused_by = ([] if mm_gate_ok else ["deviation_mm"]) + \
+                             ([] if angle_gate_ok else ["angle_deg"])
                 _add(diags, _diag("tarch_wall_nonorthogonal",
                                   handles=[e.dxf.handle],
-                                  points_dxf_mm=[(sx0, sy0), (sx1, sy1)]))
+                                  points_dxf_mm=[(sx0, sy0), (sx1, sy1)],
+                                  context={"refused_by": refused_by,
+                                           "minor_leg_mm": minor_leg,
+                                           "major_leg_mm": major_leg,
+                                           "angle_deg": angle_deg,
+                                           "axis_snap_max_native": tols.axis_snap_max_native,
+                                           "axis_snap_max_angle_deg": tols.axis_snap_max_angle_deg}))
                 continue
         x0, y0 = _quantize(sx0, q), _quantize(sy0, q)
         x1, y1 = _quantize(sx1, q), _quantize(sy1, q)
@@ -510,14 +584,19 @@ def _collect_walls(msp, plan_view: PlanViewIntentV1, request: TarchConversionReq
             # EXACT coordinates that end up in ``wall_lines`` -- a consumer
             # can therefore verify this record against the resulting face
             # line bit-for-bit, not against an intermediate value.
-            before_p0, before_p1, snapped_axis, minor_leg = snapped
+            before_p0, before_p1, snapped_axis, minor_leg, angle_deg = snapped
             _add(diags, _diag("tarch_wall_axis_snapped",
                               handles=[e.dxf.handle],
                               points_dxf_mm=[(x0, y0), (x1, y1)],
                               context={"before_p0": list(before_p0),
                                        "before_p1": list(before_p1),
                                        "snapped_axis": snapped_axis,
-                                       "minor_leg_mm": minor_leg}))
+                                       "minor_leg_mm": minor_leg,
+                                       # ⭐ F-147 R3: the second gate's reading,
+                                       # alongside the first gate's, so a human
+                                       # signing the snap list sees BOTH numbers
+                                       # that admitted this stroke.
+                                       "angle_deg": angle_deg}))
         # G2 conservation bookkeeping (per axis, pre vs post quantize)
         for src, snap in ((sx0, x0), (sx1, x1)):
             source_x.setdefault(snap, []).append(src)

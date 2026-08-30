@@ -324,11 +324,12 @@ class AsMeasuredNonOrthogonalLineV1(_StrictModel):
 class AsMeasuredAxisSnapV1(_StrictModel):
     """One S1 stroke ADMITTED by snapping, ⛔ not one that was already exact.
 
-    ⭐⭐ dispatch ②-1b-S R1/R2: a stroke whose two legs BOTH exceed ``tau_axis``
-    (so it would, before this dispatch, have been dropped as
-    ``tarch_wall_nonorthogonal``) but whose SHORT leg is within the
-    (⛔⛔ PLACEHOLDER, PENDING SIGN-OFF -- see
-    ``tarch_normalize.AXIS_SNAP_MAX_DEVIATION_M``) admission threshold is now
+    ⭐⭐ dispatch ②-1b-S R1/R2 (thresholds SIGNED BY THE USER 2026-08-30,
+    F-143/F-147): a stroke whose two legs BOTH exceed ``tau_axis`` (so it
+    would, before ②-1b-S, have been dropped as ``tarch_wall_nonorthogonal``)
+    but which passes BOTH signed admission gates -- SHORT leg within
+    ``tarch_normalize.AXIS_SNAP_MAX_DEVIATION_M`` (10 mm) AND off-axis angle
+    within ``tarch_normalize.AXIS_SNAP_MAX_ANGLE_DEG`` (1.0°) -- is now
     kept: the short leg is snapped to zero and the line becomes a real face
     line.  ⭐ GLM's exact demand (dispatch §二 R2): "被吸附过" and "本来就是正
     的" must never look the same on the record -- this is the record that
@@ -389,8 +390,9 @@ class AsMeasuredConverterReadoutsV1(_StrictModel):
     degenerate_in_wall_lines: StrictNonNegativeInt
     all_wall_handles: list[DxfHandle] = Field(default_factory=list)
     non_orthogonal_lines: list[AsMeasuredNonOrthogonalLineV1] = Field(default_factory=list)
-    #: ⭐⭐ dispatch ②-1b-S R1/R2: strokes ADMITTED by the (placeholder,
-    #: pending-sign-off) snap threshold -- ⛔ a DIFFERENT population from
+    #: ⭐⭐ dispatch ②-1b-S R1/R2: strokes ADMITTED by the two USER-SIGNED
+    #: snap gates (2026-08-30, F-143/F-147: deviation ≤ 10 mm AND angle ≤
+    #: 1.0°) -- ⛔ a DIFFERENT population from
     #: ``s1_nonorthogonal_discarded_handles`` above (those are strokes that
     #: were STILL refused, unchanged) and from ``non_orthogonal_lines`` above
     #: (a different mechanism entirely -- post-quantization skew on a stroke

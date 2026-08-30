@@ -484,8 +484,9 @@ def test_staging_discipline_rejects_protected_source():
 
 
 # =========================================================================== #
-# dispatch ②-1b-S R1 -- S1 "drop" -> "snap the short leg (⛔⛔ PLACEHOLDER
-# threshold, pending sign-off) or still drop if genuinely diagonal"
+# dispatch ②-1b-S R1 -- S1 "drop" -> "snap the short leg or still drop if
+# genuinely diagonal".  ⭐ F-147 (2026-08-30) made the admission TWO gates
+# ANDed (deviation ≤ 10 mm AND angle ≤ 1.0°), both USER-SIGNED.
 #
 # ⭐ Unit-level, not through the full DXF/S0/S3/S4 pipeline: ``_collect_walls``
 # is what implements the decision, and its inputs (``plan_view.wall_selector``,
@@ -568,6 +569,267 @@ def test_axis_snap_threshold_is_a_real_parameter_not_hardcoded():
     admitted, diags_hi = _collect_with_snap_threshold(2000.0, 20.0, axis_snap_max_m=0.030)
     assert len(admitted.wall_lines) == 1
     assert any(d.code == "tarch_wall_axis_snapped" for d in diags_hi)
+    assert not any(d.code == "tarch_wall_nonorthogonal" for d in diags_hi)
+
+
+# =========================================================================== #
+# F-147 (2026-08-30) -- the SECOND, ANGLE gate.  Acceptance ①..⑤.
+#
+# ⭐⭐⭐ Why an angle gate exists at all: the SAME millimetre number means a
+# ~120x different angle depending on how long the stroke is.  6 mm on the real
+# 3640 mm stroke 13AD is 0.094° (hand tremor); 6 mm on a 30 mm stroke is
+# 11.310° (an unmistakable diagonal).  An absolute-millimetre threshold is
+# therefore the wrong SHAPE for this decision, and no amount of tightening it
+# recovers the dimension it cannot see.  ⛔ Hence a new gate, not a new number.
+#
+# ⛔ Every test below drives the thresholds through ``_Tols``/``_tols_from``
+# keyword arguments -- the injection port the production code provides.
+# ⛔ NOTHING here monkeypatches ``tn.AXIS_SNAP_MAX_*``: ``from X import Y``
+# binds via the parent package attribute, not ``sys.modules``, and patching
+# the wrong object has already manufactured a band of false-red in this repo.
+# =========================================================================== #
+SM25_AS_RECEIVED = (REPO /
+    "case_tests/test_baseline/gt_sources/sm25-L_anchor/sm25-L_t3_as_received.dxf")
+SM25_AS_MEASURED_REQUEST = (REPO /
+    "case_tests/test_baseline/gt_sources/sm25-L_anchor/request_as_measured.json")
+
+
+def _two_line_msp(specs, *, layer: str = "WALL"):
+    """A bare modelspace holding one WALL line per ``(x0, y0, x1, y1)`` spec."""
+    doc = ezdxf.new("R2010")
+    msp = doc.modelspace()
+    for x0, y0, x1, y1 in specs:
+        msp.add_line((x0, y0), (x1, y1), dxfattribs={"layer": layer})
+    return msp
+
+
+def _collect_lines(specs, *, axis_snap_max_m: float = tn.AXIS_SNAP_MAX_DEVIATION_M,
+                   axis_snap_max_angle_deg: float = tn.AXIS_SNAP_MAX_ANGLE_DEG,
+                   tau_axis_m: float = 0.001):
+    """``_collect_walls`` on N hand-built lines with BOTH gates controlled.
+
+    Defaults are the PRODUCTION constants, so a test that overrides exactly one
+    keyword is measuring exactly one gate.
+    """
+    plan_view = SimpleNamespace(wall_selector=TarchEntitySelectorV1(
+        entity_types=["LINE"], layers=["WALL"]))
+    request = SimpleNamespace(wall_thickness_range_m=[0.06, 0.50])
+    tols = tn._Tols(metres_per_unit=0.001, node_join_m=0.001, axis_align_m=tau_axis_m,
+                    topo_area_m2=1e-6, axis_snap_max_m=axis_snap_max_m,
+                    axis_snap_max_angle_deg=axis_snap_max_angle_deg)
+    msp = _two_line_msp(specs)
+    diags: list = []
+    xs = [c for s in specs for c in (s[0], s[2])]
+    ys = [c for s in specs for c in (s[1], s[3])]
+    clip = (min(xs) - 10.0, min(ys) - 10.0, max(xs) + 10.0, max(ys) + 10.0)
+    collect = tn._collect_walls(msp, plan_view, request, clip, tols, diags)
+    return collect, diags
+
+
+def _refusal(diags):
+    """The single ``tarch_wall_nonorthogonal`` diagnostic's context."""
+    refusals = [d for d in diags if d.code == "tarch_wall_nonorthogonal"]
+    assert len(refusals) == 1, [d.code for d in diags]
+    return refusals[0].context
+
+
+def _admission(diags):
+    """The single ``tarch_wall_axis_snapped`` diagnostic's context."""
+    snaps = [d for d in diags if d.code == "tarch_wall_axis_snapped"]
+    assert len(snaps) == 1, [d.code for d in diags]
+    return snaps[0].context
+
+
+# --------------------------------------------------------------------------- #
+# ① REAL hand tremor -- ⛔ not synthetic: handle 13AD on the as-received sm25
+#    drawing, the only such stroke that exists anywhere in the corpus.
+# --------------------------------------------------------------------------- #
+def test_f147_acceptance_1_real_tremor_13ad_is_admitted_by_both_gates(tmp_path):
+    """13AD: 5.8084 mm out over a 3639.9 mm run = 0.091°.  Inside BOTH signed
+    gates, so it snaps -- and the diagnostic now carries BOTH readings, which
+    is what makes the two-gate decision auditable by the human who signs the
+    snap list.  ⭐ Real drawing, run through ``run_p1_plan_view``."""
+    request = TarchConversionRequestV1.model_validate_json(
+        SM25_AS_MEASURED_REQUEST.read_text(encoding="utf-8"))
+    view = next(v for v in request.plan_views if v.id == "plan-F1")
+    staged = tmp_path / SM25_AS_RECEIVED.name
+    shutil.copy2(SM25_AS_RECEIVED, staged)
+    geo = tn.run_p1_plan_view(staged, request, view,
+                              resolve_converter_tooling(GT_CONFIG, VG_CONFIG))
+
+    snapped = {d.source_entity_handles[0]: d.context for d in geo.diagnostics
+               if d.code == "tarch_wall_axis_snapped"}
+    assert set(snapped) == {"13AD", "13AE"}, sorted(snapped)
+    assert not any(d.code == "tarch_wall_nonorthogonal" for d in geo.diagnostics)
+
+    ctx = snapped["13AD"]
+    assert ctx["minor_leg_mm"] == pytest.approx(5.8084, abs=5e-4)
+    # ⭐ R3: the angle reading, which did not exist before F-147
+    assert ctx["angle_deg"] == pytest.approx(0.0914, abs=5e-4)
+    assert ctx["angle_deg"] < tn.AXIS_SNAP_MAX_ANGLE_DEG
+    assert ctx["minor_leg_mm"] < tn.AXIS_SNAP_MAX_DEVIATION_M * 1000.0
+    # ⭐ and 13AD's own numbers prove the "same mm, 120x the angle" point that
+    # motivated the gate: 5.81 mm reads as 0.09° ONLY because the run is long.
+    assert snapped["13AE"]["angle_deg"] == pytest.approx(0.0914, abs=5e-4)
+
+
+# --------------------------------------------------------------------------- #
+# ①b The SIGNED 10 mm VALUE ITSELF has teeth.
+#     ⭐ Added beyond the dispatch's five: the mutation matrix measured that
+#     reverting 6 mm -> 10 mm left every other fixture GREEN, i.e. R1's value
+#     change was landing unguarded.  The corpus has no stroke in the 6-10 mm
+#     band, so the fixture has to supply one -- that absence is exactly why
+#     nothing else could see this direction.
+# --------------------------------------------------------------------------- #
+def test_f147_acceptance_1b_the_signed_10mm_deviation_value_has_teeth():
+    """2000 mm run, 8 mm out = 0.229°.  The ANGLE gate says yes either way, so
+    this stroke's verdict is decided by the deviation value ALONE: admitted
+    under the signed 10 mm, refused under the old unsigned 6 mm placeholder.
+
+    ⛔ The main claim below runs on the PRODUCTION default (no keyword passed),
+    so it goes red if anyone edits ``AXIS_SNAP_MAX_DEVIATION_M`` back down.
+    """
+    spec = [(1000.0, 1000.0, 3000.0, 1008.0)]
+    admitted, diags = _collect_lines(spec)            # ⭐ production constants
+    ctx = _admission(diags)
+    assert len(admitted.wall_lines) == 1
+    assert ctx["minor_leg_mm"] == pytest.approx(8.0)
+    assert ctx["angle_deg"] == pytest.approx(0.2292, abs=1e-3)
+
+    # the pre-F-147 placeholder refused exactly this, on the deviation gate:
+    refused, diags_6mm = _collect_lines(spec, axis_snap_max_m=0.006)
+    assert refused.wall_lines == []
+    assert _refusal(diags_6mm)["refused_by"] == ["deviation_mm"]
+
+
+# --------------------------------------------------------------------------- #
+# ② SHORT slanted stroke -- the millimetre gate WOULD LET THIS THROUGH.
+#    This single fixture is the whole reason the angle gate exists.
+# --------------------------------------------------------------------------- #
+def test_f147_acceptance_2_short_slant_passes_the_mm_gate_and_the_angle_gate_stops_it():
+    """60 mm long, 5 mm out = 4.764°.  5 mm is comfortably inside the 10 mm
+    signed deviation gate, so the PRE-F-147 code would have snapped this
+    obvious little diagonal into an axis-aligned wall.  ⭐ It is refused only
+    because the angle gate exists, and the refusal NAMES that gate."""
+    collect, diags = _collect_lines([(1000.0, 1000.0, 1060.0, 1005.0)])
+    ctx = _refusal(diags)
+    assert collect.wall_lines == []
+    assert not any(d.code == "tarch_wall_axis_snapped" for d in diags)
+    assert ctx["angle_deg"] == pytest.approx(4.7636, abs=1e-3)
+    # ⭐⭐ the load-bearing half: the millimetre gate SAID YES here.
+    assert ctx["minor_leg_mm"] == pytest.approx(5.0)
+    assert ctx["minor_leg_mm"] <= ctx["axis_snap_max_native"]
+    # ⇒ so the ONLY reason it was refused is the angle gate:
+    assert ctx["refused_by"] == ["angle_deg"]
+
+
+# --------------------------------------------------------------------------- #
+# ③ 45° control -- both gates refuse.
+# --------------------------------------------------------------------------- #
+def test_f147_acceptance_3_forty_five_degrees_is_refused_by_both_gates():
+    """1000 mm x 1000 mm.  Not a subtle case; it is here so that "refused" is
+    never confused with "refused for the reason I assumed" -- the record shows
+    BOTH gates said no, which is a different observation from ② and from ⑤b."""
+    collect, diags = _collect_lines([(1000.0, 1000.0, 2000.0, 2000.0)])
+    ctx = _refusal(diags)
+    assert collect.wall_lines == []
+    assert ctx["angle_deg"] == pytest.approx(45.0)
+    assert ctx["minor_leg_mm"] == pytest.approx(1000.0)
+    assert ctx["refused_by"] == ["deviation_mm", "angle_deg"]
+
+
+# --------------------------------------------------------------------------- #
+# ④ ⛔⛔ KNOWN SIGNED RISK -- ⛔ NOT a correctness expectation.
+# --------------------------------------------------------------------------- #
+def test_f147_signed_1deg_admits_the_0p39deg_slanted_wall_KNOWN_SIGNED_RISK():
+    """⛔⛔ THIS TEST PINS A COST THE USER KNOWINGLY ACCEPTED.  ⛔ It does NOT
+    assert that the behaviour is correct, and ⛔ nobody should read it as
+    evidence that this case was verified to be right.
+
+    What it pins: the cross-reviewer's negative sample -- a REAL gently
+    slanted wall, two faces 800 mm long, each 5.5 mm out (0.394°), 120 mm
+    apart.  Under the signed 1.0° gate BOTH faces are admitted and each is
+    snapped to its own midline; the pair therefore stays exactly 120 mm apart
+    and looks like a perfectly ordinary orthogonal wall to everything
+    downstream.  On the real as-received drawing this is what took walls
+    55 -> 56: ⛔ a wall that is not on the drawing.  Same defect family as
+    this project's 33 fabricated walls.
+
+    ⭐ At 0.25° the same input is REFUSED (asserted below, so this test also
+    records what the alternative would have bought).  The admissible interval
+    was only (0.091°, 0.394°): one real tremor on one side, one synthetic
+    slant on the other.  0.25°/0.3° were recommended.  The user was told the
+    consequence, restated it, and chose 1.0° -- "签，角度调到 1 度吧"
+    (2026-08-30, F-143).  This test exists so the next reader sees a PRICE,
+    ⛔ not a verified behaviour.
+
+    ⭐ The compensating control is the last gate, unchanged and outside this
+    file: a human reads ``axis_snapped_lines`` line by line when signing
+    ``revisions``.  Both faces below appear on that list, with their angles.
+    """
+    faces = [(1000.0, 1000.0, 1800.0, 1005.5),      # 800 mm run, 5.5 mm out
+             (1000.0, 1120.0, 1800.0, 1125.5)]      # its partner, 120 mm away
+    collect, diags = _collect_lines(faces)
+
+    snaps = [d for d in diags if d.code == "tarch_wall_axis_snapped"]
+    assert len(snaps) == 2, [d.code for d in diags]
+    assert not any(d.code == "tarch_wall_nonorthogonal" for d in diags)
+    for d in snaps:
+        assert d.context["angle_deg"] == pytest.approx(0.3939, abs=1e-3)
+        assert d.context["angle_deg"] <= tn.AXIS_SNAP_MAX_ANGLE_DEG
+
+    # ⛔ the actual harm, made visible: two snapped midlines, still 120 mm
+    # apart -- i.e. indistinguishable from a genuine 120 mm wall.
+    ys = sorted({round(y0, 6) for _h, _x0, y0, _x1, y1 in collect.wall_lines
+                 if y0 == y1})
+    assert len(ys) == 2 and ys[1] - ys[0] == pytest.approx(120.0, abs=0.05)
+
+    # ⭐ and the counterfactual the user was shown before signing: 0.25° refuses it.
+    refused, diags_025 = _collect_lines(faces, axis_snap_max_angle_deg=0.25)
+    assert refused.wall_lines == []
+    assert [d.code for d in diags_025].count("tarch_wall_nonorthogonal") == 2
+    assert all(d.context["refused_by"] == ["angle_deg"]
+               for d in diags_025 if d.code == "tarch_wall_nonorthogonal")
+
+
+# --------------------------------------------------------------------------- #
+# ⑤ Each gate has teeth ON ITS OWN.  ⛔ "both had to move" would not count.
+# --------------------------------------------------------------------------- #
+def test_f147_acceptance_5a_widening_only_the_angle_gate_flips_a_case():
+    """Same 60 mm / 5 mm stroke as ②.  ⛔ The millimetre gate is left at the
+    production value throughout -- ONLY ``axis_snap_max_angle_deg`` moves, and
+    the verdict moves with it.  ⇒ the angle gate is load-bearing by itself."""
+    refused, diags_lo = _collect_lines([(1000.0, 1000.0, 1060.0, 1005.0)],
+                                       axis_snap_max_angle_deg=1.0)
+    assert refused.wall_lines == []
+    assert _refusal(diags_lo)["refused_by"] == ["angle_deg"]
+
+    admitted, diags_hi = _collect_lines([(1000.0, 1000.0, 1060.0, 1005.0)],
+                                        axis_snap_max_angle_deg=10.0)
+    assert len(admitted.wall_lines) == 1
+    assert _admission(diags_hi)["angle_deg"] == pytest.approx(4.7636, abs=1e-3)
+    assert not any(d.code == "tarch_wall_nonorthogonal" for d in diags_hi)
+
+
+def test_f147_acceptance_5b_widening_only_the_deviation_gate_flips_a_different_case():
+    """A LONG stroke: 2000 mm run, 20 mm out = 0.573°.  ⭐ The angle gate says
+    YES to this one (0.573° < 1.0°) at the production value, which is left
+    untouched here -- ONLY ``axis_snap_max_m`` moves.  ⇒ the millimetre gate
+    is load-bearing by itself, and ⛔ the two gates are not redundant: ② and
+    this case are refused by DIFFERENT gates, so neither gate could be deleted
+    without letting one of them through."""
+    spec = [(1000.0, 1000.0, 3000.0, 1020.0)]
+    refused, diags_lo = _collect_lines(spec, axis_snap_max_m=0.010)
+    assert refused.wall_lines == []
+    ctx = _refusal(diags_lo)
+    assert ctx["angle_deg"] == pytest.approx(0.5729, abs=1e-3)
+    # ⭐ the angle gate SAID YES; only the millimetre gate refused.
+    assert ctx["angle_deg"] <= ctx["axis_snap_max_angle_deg"]
+    assert ctx["refused_by"] == ["deviation_mm"]
+
+    admitted, diags_hi = _collect_lines(spec, axis_snap_max_m=0.030)
+    assert len(admitted.wall_lines) == 1
+    assert _admission(diags_hi)["minor_leg_mm"] == pytest.approx(20.0)
     assert not any(d.code == "tarch_wall_nonorthogonal" for d in diags_hi)
 
 

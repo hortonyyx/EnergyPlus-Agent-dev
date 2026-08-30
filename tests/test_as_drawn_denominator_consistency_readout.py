@@ -131,7 +131,9 @@ def test_l6_gates_discriminate_on_the_blocked_geometry(anchor_present, tmp_path)
     ⚠️ ②-1b-S UPDATE (2026-08-29): this used to measure G1 False (a
     ``tarch_wall_nonorthogonal`` BLOCK) and G5 False with 4 dangles.  Dispatch
     ②-1b-S R1 admits 13AD/13AE via snap instead of S1-discarding them (minor
-    leg ~5.81 mm is within the placeholder ``AXIS_SNAP_MAX_DEVIATION_M``), so
+    leg ~5.81 mm / 0.091° is within BOTH user-signed gates,
+    ``AXIS_SNAP_MAX_DEVIATION_M`` = 10 mm and ``AXIS_SNAP_MAX_ANGLE_DEG`` =
+    1.0°, signed 2026-08-30 -- F-143/F-147), so
     G1 now PASSES on this fixture (no more ``tarch_wall_nonorthogonal``); G5
     still fails, now with 8 dangles (a real, unrelated S4 topology
     consequence of admitting the two previously-absent segments -- see

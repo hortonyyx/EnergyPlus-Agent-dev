@@ -19,8 +19,10 @@ same inventory, and the difference is exactly where this unit lives:
 ⚠️ ②-1b-S UPDATE (2026-08-29): the ``wall_lines_total=223``/``2 codes``/
 ``4 dangles`` row above is the PRE-snap reading.  Dispatch ②-1b-S R1 changed
 S1's non-orthogonal action from unconditional drop to "snap the short leg to
-zero when it is within ``AXIS_SNAP_MAX_DEVIATION_M`` (⛔⛔ placeholder, pending
-sign-off), else still drop" -- 13AD/13AE (minor leg ~5.81 mm) are now admitted
+zero when it is within ``AXIS_SNAP_MAX_DEVIATION_M``, else still drop"; F-147
+added a second, ANDed ``AXIS_SNAP_MAX_ANGLE_DEG`` gate and both thresholds are
+now SIGNED (user, 2026-08-30: 10 mm / 1.0°) -- 13AD/13AE (minor leg ~5.81 mm,
+0.091°, i.e. inside BOTH signed gates) are now admitted
 via snap rather than S1-discarded, so ``s1_nonorthogonal_discarded_handles``
 is empty and ``wall_lines_total``/``face_lines`` grew by 2.  ``tarch_wall_free_
 end``/S4 dangles going 4->8 is a REAL, expected topology consequence of
@@ -529,8 +531,9 @@ def test_r4_the_wider_s1_identity_is_real_on_as_received_plan_f1(as_received_doc
     ⚠️ ②-1b-S UPDATE: this used to read 223 in ``wall_lines_total`` with
     13AD/13AE itemized in ``s1_nonorthogonal_discarded_handles`` (both S1
     -discarded, pre-snap).  Dispatch ②-1b-S R1 now ADMITS both via the snap
-    path (their minor leg, ~5.81 mm, is within the placeholder
-    ``AXIS_SNAP_MAX_DEVIATION_M``) instead of discarding them, so they move
+    path (minor leg ~5.81 mm and 0.091° off-axis, inside BOTH signed gates
+    ``AXIS_SNAP_MAX_DEVIATION_M`` = 10 mm and ``AXIS_SNAP_MAX_ANGLE_DEG`` =
+    1.0°, signed by the user 2026-08-30) instead of discarding them, so they move
     INTO ``wall_lines_total`` and ``s1_nonorthogonal_discarded_handles`` is
     now empty; only 13DC (zero-length, a different mechanism, out of this
     dispatch's scope) is still itemized outside ``wall_lines_total``.  ⚠️
