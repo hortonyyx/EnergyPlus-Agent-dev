@@ -4,6 +4,8 @@
 - **席位**：GPT 家族设计出稿
 - **性质**：可施工设计稿，**不是代码、不是裁决**
 - **复核工作点**：当前主树 `08.23_AsDrawnReading`，复核时 HEAD = `c7c17b4`；请求书所列基线虽为 `bc8e354`，下述四条承重事实在当前主树仍逐条成立
+- **返工工作点**：同一主树、同一分支；返工派单点为 `fd4e666`。开工时 HEAD = `0b837b8`，其相对派单点只改 `AI_agent/plan.md`，本稿、返工单、裁决书、f9 fixture 与本稿引用的承重代码均无差异
+- **返工依据**：[`2026-08-30_o22_design_crossreview_glm.md`](2026-08-30_o22_design_crossreview_glm.md) 的 B-1 与 NF-1～NF-9；本稿保留已过审主体，累计补强而非另起方案
 - **范围**：reading → correction 的墙证据接缝、correction 内的基准转换与三拍协议；⛔ 不设计或改动 gt 侧
 
 ## 一、结论先行
@@ -54,7 +56,14 @@
 
 四条均成立，故不触发停下上报。
 
-另有一个对本设计承重的反例：[`ReadingView`](../../../../src/agent/reading/schema.py#L117) 的 `Stroke.geometry` 是自由 dict，类型上没有 `basis`。现有真实夹具又同时存在“外皮线”墙笔画（[`f9 ... 1f_view.json:35`](../../../../tests/fixtures/f9_window_host_crash/0_reading/1f_view.json#L35)）和明确写 `centerline` 的墙笔画（[`smalloffice_22/1f_view.json:27`](../../../../case_tests/e2e_tests/smalloffice_22/0_reading/1f_view.json#L27)）。所以“旧 reading 给的是中线 ⇒ 适配成 `axis_trace`”不成立；prompt 要中线不能倒推输入已经是中线。
+另有一个对本设计承重的反例：[`Stroke.geometry`](../../../../src/agent/reading/schema.py#L49) 是自由 dict，类型上没有墙几何 `basis`。现有真实夹具又同时存在“外皮线”墙笔画（[`f9 ... 1f_view.json:35`](../../../../tests/fixtures/f9_window_host_crash/0_reading/1f_view.json#L35)）和明确写 `centerline` 的墙笔画（[`smalloffice_22/1f_view.json:27`](../../../../case_tests/e2e_tests/smalloffice_22/0_reading/1f_view.json#L27)）。所以“旧 reading 给的是中线 ⇒ 适配成 `axis_trace`”不成立；prompt 要中线不能倒推输入已经是中线。
+
+全仓已经存在 [`RoomRoleObservation.basis`](../../../../src/agent/reading/schema.py#L113)，它描述房间角色判断的依据，不是墙线几何基准。施工新增 `geometry.basis` 时，源模型字段注释必须逐字点明这两处同名字段语义不同，禁止复用或互相回填。
+
+返工开工自检又直接读取
+[`f9 1f_view.json`](../../../../tests/fixtures/f9_window_host_crash/0_reading/1f_view.json)：`pen=="wall"` 恰有 10 条，
+其 `geometry.thickness_m` 全为 `null`；S1–S4 的 note 写“外皮线”，S5–S10 写“中线”。这份历史产物既是无类型化厚度的 B-1 夹具，
+又在同一文件内混合基准，不能靠文件级默认解释。
 
 ## 三、源类型与统一证据包
 
@@ -127,14 +136,14 @@ perception_source_ref
 source_contract_id
 ```
 
-| `kind` | 它断言什么 | 它明确没有断言什么 | 必带原始引用 |
-|---|---|---|---|
-| `paired_faces` | 两条被观测面线在二者共同覆盖的沿墙区间内，是同一堵墙的两侧面 | 不断言中线、名义厚度、内外墙、输出基准；也不断言两条面的所有 runs 等长 | 两个 `ObservationRefV1`，各自回指 `observations.face_lines[i]` 及 `support_cols_px/runs_px/gaps`；选中 `pairs[j]` 的 `hypothesis_ref`；对应 `pair_candidates[k]` 的 pointer。`spacing_m` 只作缓存审计，代码必须从两面重算 |
-| `solid_band` | 一条被观测墨带本身表达一堵墙；该观测自己的两条 `edges_m` 是墨带边界 | 不断言这两边已经是规范墙面、不把 `support_width_m` 命名为事实厚度、不判内外 | 一个 face-line ref；指到 `solid_band_walls.<id>` 的 hypothesis ref；必须指到 `support_cols_px`、`edges_m`、`runs_px` 的像素 witness |
-| `single_face` | 该观测是墙的一张面；另一面**没有进入当前 observations** | 不断言另一面在哪一侧、离多远、为何缺失，也不断言可直接产出中线 | 一个 face-line ref；指到 `unpaired_wall_faces.<id>`；保留原 reason。canonical 字段只写 `counterface_state=not_in_observations`，不能从 prose 猜 side 或 thickness |
-| `legacy_wall_trace` | 旧 `ReadingView` 的某条 `pen=="wall"` stroke 是墙相关线迹 | 除非有类型化字段证明，否则不保证它是中线、外皮或墙面；`geometry.thickness_m` 也不能无条件晋升为实测厚度 | 回指原 `strokes[i]`、stroke id 与 geometry pointer；`source_basis = centerline | wall_face | outer_skin | unknown`。非 `unknown` 必须有**结构化** basis evidence ref；禁止解析自由 `note` 猜基准 |
+| `kind` | 几何角色已知？ | 它断言什么 | 它明确没有断言什么 | 必带原始引用 |
+|---|---|---|---|---|
+| `paired_faces` | 是：墙的两侧面 | 两条被观测面线在二者共同覆盖的沿墙区间内，是同一堵墙的两侧面 | 不断言中线、名义厚度、内外墙、输出基准；也不断言两条面的所有 runs 等长 | 两个 `ObservationRefV1`，各自回指 `observations.face_lines[i]` 及 `support_cols_px/runs_px/gaps`；选中 `pairs[j]` 的 `hypothesis_ref`；对应 `pair_candidates[k]` 的 pointer。`spacing_m` 只作缓存审计，代码必须从两面重算 |
+| `solid_band` | 是：墙的墨带 | 一条被观测墨带本身表达一堵墙；该观测自己的两条 `edges_m` 是墨带边界 | 不断言这两边已经是规范墙面、不把 `support_width_m` 命名为事实厚度、不判内外 | 一个 face-line ref；指到 `solid_band_walls.<id>` 的 hypothesis ref；必须指到 `support_cols_px`、`edges_m`、`runs_px` 的像素 witness |
+| `single_face` | 是：墙的一张面 | 该观测是墙的一张面；另一面没有成为同一 claim 的已认领 counterface | 不断言另一面是否完全未被观测、在哪一侧、离多远或为何未被认领，也不断言可直接产出中线 | 一个 face-line ref；指到 `unpaired_wall_faces.<id>`；保留原 reason。`counterface_state = not_in_observations \| observed_unclaimed`；后者必须再带被观测但未被认作 counterface 的原节点 pointer 与其 disposition，不能从 prose 猜 side 或 thickness |
+| `legacy_wall_trace` | 否：仅知是墙相关线迹 | 旧 `ReadingView` 的某条 `pen=="wall"` stroke 是墙相关线迹 | 除非有类型化字段证明，否则不保证它是中线、外皮或墙面；`geometry.thickness_m` 也不能无条件晋升为实测厚度 | 回指原 `strokes[i]`、stroke id 与 geometry pointer；`source_basis = centerline \| wall_face \| outer_skin \| unknown`。非 `unknown` 必须有**结构化** basis evidence ref；禁止解析自由 `note` 猜基准 |
 
-请求书中的 `axis_trace` 由此降为 `legacy_wall_trace(source_basis="centerline")` 的特例，而不是独立、无条件成立的来源形态。
+请求书中的 `axis_trace` 由此降为 `legacy_wall_trace(source_basis="centerline")` 的特例，而不是独立、无条件成立的来源形态。上表也显式承认隐藏轴：前三类是“几何角色已知”的正向观测，`legacy_wall_trace` 是“角色未知”的降级声明；四类仍按“证据与墙的关系”组成同一个 union，但不得拿它们做同层几何角色的完备性证明。
 
 一个重要的保真规则：`paired_faces` 只在两张面实际共同覆盖的区间内编译为双面墙。A 面独有或 B 面独有的余段，必须由代码切成仍引用原 claim 的 `single_face_fragment`；⛔ 不得因为“这两条总体配过对”就取交集后把余段扔掉，也不得把并集全当双面。这正对应指南所记的 T 接头与两侧不同步。
 
@@ -171,6 +180,7 @@ source_contract_id
 6. 所有 detector 全跑；单文件命中两个源契约是 `AMBIGUOUS_CONTRACT_MATCH`；
 7. 显式声明了 schema 但验不过该 schema 的生产者模型，是 `MALFORMED_DECLARED_CONTRACT`，不得回退成 legacy；
 8. canonical 排序与 `content_sha256` 一致；同一原始 bytes 必须生成逐字节相同的证据包。
+9. **basis 无 centerline 证据的墙，其候选集不得包含 identity 类操作；已进入 `open_items` 的 item 不受“只剩一个候选 / Pareto 支配 ⇒ 自动执行”管辖（该规则只适用于未开项情况）。**
 
 ## 五、基准在哪里转换，以及厚度怎样活到内核
 
@@ -196,9 +206,32 @@ reading 不新增 `centerline` 方便字段，适配器也不生成一份“中�
 | `paired_faces` | 从两条原面重算共同区间、观测间距和几何中分线；共同段的中线坐标是纯代码结果 | 保持观测宽度还是吸到某个 callout/模数；存在多个设计轴/拓扑解释时选哪一个 |
 | `solid_band` | 从该墨带两条原始 edge 重算中分线与 observed width | 该观测宽度是否代表设计厚度、是否模数化 |
 | `single_face` | 保留这张面作为锚，枚举“向正侧/负侧按候选厚度偏移”等**符号候选**，坐标预览由代码算 | 没有唯一 side/thickness 依据时不得自动造中线；需要总体判断或重新感知 |
-| `legacy_wall_trace` | `basis=centerline` 时原线可作 provisional axis；显式 `wall_face/outer_skin` 且有唯一厚度/方向规则时由代码偏移 | `basis=unknown` 必须开项；不能因 correction prompt 曾要求中线就自动 identity |
+| `legacy_wall_trace` | `basis=centerline` 时原线可作 provisional axis；显式 `wall_face/outer_skin` 且有唯一厚度/方向规则时由代码偏移 | `basis=unknown` 必须先开项；无论有无 `thickness_m`，都先按 §4.4 #9 排除 identity，且开项后不得再被唯一候选/Pareto 自动规则消化 |
 
 墙角不传播原观测端点。遵守指南 §十#6c：传播的是 resolved support-line，最终多边形角点由相邻 support-lines 求交；原 `runs/along intervals` 只控制证据覆盖、洞口落位和墙段有效区间。
+
+### 5.2.1 ⭐ 同形但不同输入：`basis=unknown` 且有厚度
+
+这不是只给 f9 的 `thickness_m=null` 打补丁。真实 legacy 产物
+[`sm25-L_anchor/.../1f_view.json` 的 W01](../../../../case_tests/e2e_tests/sm25-L_anchor/run_2026-08-22_orchestrator_handson_H1/0_reading/1f_view.json#L12)
+具有与 f9 相同的旧 `Stroke.geometry` 形状：它有
+[`thickness_m=0.239`](../../../../case_tests/e2e_tests/sm25-L_anchor/run_2026-08-22_orchestrator_handson_H1/0_reading/1f_view.json#L29)，
+但 geometry 内没有类型化 `basis`。自由 note 即使写了 `centreline` 也不满足结构化证据门。因此它在 adapter 后是
+`legacy_wall_trace(source_basis="unknown")`。该实物已在 `/tmp` 的主树归档副本上用
+`ReadingView.model_validate` 与 `_detect_legacy_reading_view` 求证，二者都接收；模块来源哨兵指向 `/tmp` 副本。
+
+按本设计逐门推演：
+
+1. 非空厚度只给 compiler 一个可用于构造 `OFFSET_POSITIVE(thickness_ref)` / `OFFSET_NEGATIVE(thickness_ref)`
+   等符号候选的尺度；它不能证明原线本来就是中线，也不能证明偏移方向。
+2. §4.4 #9 在候选生成门先删去 `IDENTITY_AS_CENTERLINE`；note、prompt、最小扰动均不能把它放回来。
+3. `basis=unknown` 随即进入 `open_items`。若正负偏移都存活，它显然不是自动唯一；若拓扑或尺寸硬约束把候选压到唯一，
+   或某候选 Pareto 支配其余候选，§4.4 #9 的后半仍禁止 executor 自动吃掉这个**已开项** item。
+4. 合法终点只能是绑定 packet 的显式模型决定、墙级定向再感知，或 profile 允许且带 residual debt 的 degraded；
+   候选为空则 `unsupported_or_reperceive`。任何终点都不会产出静默 identity 中线。
+
+因此“有厚度”不会把 unknown 偷换成 centerline；它至多丰富待裁决的偏移候选。这个反例锁的是整类输入，
+与 f9 的“无厚度、候选可能只剩 identity/空”是不同分支。
 
 ### 5.3 厚度的三个名字必须分开
 
@@ -230,7 +263,7 @@ ResolvedWallV1
   observed_face_spacing_m
   resolved_thickness_m
   observed_basis
-  output_basis
+  output_basis               # Literal["wall_axis", "outer_skin"]
   boundary_role             # topology 完成后由代码确定
   thickness_resolution
   derivation_hash
@@ -244,6 +277,28 @@ CorrectionResolvedV1
   residual_evidence_debts[]
   content_sha256
 ```
+
+`output_basis` 不另造 correction 方词表，值域机械复用判分侧既有
+[`CompiledZoneEdgeV1.basis: Literal["wall_axis", "outer_skin"]`](../../../../src/agent/judge/answer_compiler.py#L110)：
+canonical 中线输出写 `wall_axis`，外皮输出写 `outer_skin`；`centerline`、`wall_face`、`unknown` 只可出现在
+`observed_basis` / open item，不能作为 `output_basis` 发给下游。这里仅引用既有定义，不修改 gt 侧。
+
+兼容投影必须带可消费的债务落点，不能只落一份裸 `CorrectedGeometry`：
+
+```text
+CorrectedGeometryProjectionEnvelopeV1
+  source_resolved_sha256
+  geometry                         # 由同一 CorrectionResolvedV1 确定性派生
+  completion = complete | degraded
+  residual_evidence_debt_ids[]
+  projection_sha256
+```
+
+attempt/report 记录必须消费这个 envelope，并保存 `source_resolved_sha256`、`completion` 与 debt ids；strict profile
+在投影交给 judge 前拒绝 `degraded`，exploratory profile 可以照常把 `geometry` 交给现有 judge，但报告必须显示
+`degraded` 且不得缩 judge 分母。当前 `correction_score.py` 不读 conflicts/degraded，正因如此，状态权威必须留在
+envelope/attempt 记录而不能指望 judge 从几何猜出来。丢 envelope、hash 对不上、debt ids 与
+`CorrectionResolvedV1.residual_evidence_debts` 不闭合，都是投影失败，不得把裸 geometry 当完整产物。
 
 几何内核的权威输入改为 `CorrectionResolvedV1`，其中 `resolved_walls` 承载墙线、厚度、basis 与原始引用。现有 `CorrectedGeometry(V3)` 可以暂时保留为**从同一 resolved wall IR 确定性派生的兼容投影**，但不能与 `resolved_walls` 成为两份并列真相，也不能继续由模型直接手填。
 
@@ -305,11 +360,14 @@ reversibility
 | `non_wall` | 自动排除，写 `auto_actions(kind=honor_non_wall_declaration)` |
 | 双面/实心带的中分线计算 | 自动；这是坐标运算，不是设计决定 |
 | 显式 centerline legacy trace | 自动 identity，并写 basis 证据 |
-| 硬约束筛后只剩一个候选，或一候选在全部 cost 维度 Pareto 支配其余候选 | 自动执行并记账 |
+| **未进入过 `open_items`**，且硬约束筛后只剩一个候选，或一候选在全部 cost 维度 Pareto 支配其余候选 | 自动执行并记账；此规则不得用于“回收”已经开项的 item |
 | 已签规则唯一决定的数值闭合、同墙连续段接缝 | 自动；规则 id 必须入账 |
-| `single_face` 的 side/thickness 多解、legacy basis unknown、互不支配的设计轴/拓扑候选 | 进入 `open_items` |
+| `single_face` 的 side/thickness 多解、legacy basis unknown、互不支配的设计轴/拓扑候选 | **先**进入 `open_items`；即使后续筛成唯一或 Pareto 支配也仍需显式决定/再感知 |
 | reading `pairs` 缺失、`ambiguous` 可能影响墙拓扑 | `reperception_required`；不让 correction 代做读图 |
 | 没有任何合法候选 | `unsupported_or_reperceive`，⛔ 不选最近值 |
+
+执行优先序是：先过输入完整性门，再应用 §4.4 #9 的 basis/identity 候选门，再判定是否开项，最后才允许对
+**从未开项**的候选使用唯一候选/Pareto 自动规则。`open_items` 是状态边界，不是一个能被隔壁自动表重新分类的展示列表。
 
 ### 6.2 第二拍：模型只输出决定 + 总体把控
 
@@ -328,9 +386,22 @@ CorrectionDecisionResponseV1
       kind
       affected_entity_ids[]
       source_refs[]
-      requested_effect       # 结构化意图，不含坐标
+      requested_effect       # RequestedEffectV1 discriminated union，不含坐标
       rationale
 ```
+
+`requested_effect.kind` 的封闭值域为：
+
+| `kind` | 允许模型指定 | 代码怎样消费 |
+|---|---|---|
+| `review_alignment` | packet 内的 subject/reference entity ids；关系仅限 `collinear/parallel/perpendicular` | compiler 从这组既有实体生成有界 alignment candidates；模型不提供目标线或坐标 |
+| `review_segmentation` | packet 内 subject ids；关系仅限 `split_required/merge_review_required` | compiler 根据 source intervals 枚举切分/合并候选 |
+| `review_topology_relation` | packet 内 subject/reference ids；关系仅限 `connect/separate` | compiler 枚举合法连接或分离操作并重跑围合 |
+| `review_opening_host` | packet 内 opening id 与候选 wall ids | opening resolver 生成 rehost 候选；finding 本身不改 host |
+| `request_wall_reperception` | packet 内 wall/item ids、source refs 与 reason code | 生成 §7.3 的墙级定向请求，不生成几何 |
+
+每个 kind 使用自己的 strict schema，禁止未列字段；所有 entity/ref 必须已在 packet 中。模型指定“参照谁/检查何种关系”
+只是下一轮候选生成输入，不是吸附坐标。executor 只执行下一轮 packet 明列、重新 hash 后的 symbolic candidate。
 
 模型输出 schema `extra="forbid"`，不存在任何 `x/y/z/p1/p2/span/thickness_m` 字段。出现坐标、直接新造 wall id、选择不在 packet 内的 candidate、回复陈旧 packet hash，全部拒绝。
 
@@ -369,6 +440,22 @@ CorrectionDecisionResponseV1
 
 这一区分同时保住两条：模型可以诚实说“认不出来”；弃权也不能悄悄换来一份自称完整的建筑。
 
+### 7.3 墙级定向再感知，以及 note 的边界
+
+unknown 的第三条路不是整图重跑，也不是配置逐图补默认，而是**墙级带锚点定向再感知**：compiler 从
+`scope_entity_ids + source_refs + pixel_witness_pointers` 生成墙区域 crop 请求，reading 模型在能看到原图的层重新返回
+类型化 basis 声明、像素 witness 与新的 source artifact；新 artifact 仍走 §3.2 的 sha256 身份绑定和 adapter，
+不能由 correction 直接回填。调用成本随 unknown 墙数线性增长，即
+`O(unknown 墙数)`，不是按整图全通道重跑；该量级沿用
+[`GLM 裁决 §二 NF-2`](2026-08-30_o22_design_crossreview_glm.md#L147) 的复核结论。
+
+自由 note 的禁令要分清主体：**代码**不得正则解析 note 成 basis/thickness/side 事实；但 note 可以作为
+`open_item.untrusted_context` 给决定模型看，供它解释为何选择 `request_reperception` 或某个已存在的非 identity 候选。
+它永远不生成结构化 basis evidence ref、不满足 §4.4 #9 的 centerline 门、不让 identity 进入候选，也不能触发自动动作。
+真实存量 note 同时存在互相冲突的“中线/centerline”与“外皮”信号，具体计数见
+[`GLM 裁决:126-129`](2026-08-30_o22_design_crossreview_glm.md#L126)，所以推荐路径始终是有图的墙级再感知，
+note 只是一条不受信线索。
+
 ## 八、新旧契约并存与判别器
 
 ### 8.1 并存什么，取代什么
@@ -392,14 +479,40 @@ CorrectionDecisionResponseV1
 
 旧 `ReadingView` adapter 对 `pen==wall` 一律先产 `legacy_wall_trace`：
 
-- 新增的类型化 `geometry.basis` 或签名 sidecar 明确写 `centerline/wall_face/outer_skin` 时，才填对应 basis；
+- 新增的类型化 `geometry.basis` 或**验证通过**的签名 sidecar 明确写 `centerline/wall_face/outer_skin` 时，才填对应 basis；
 - 当前历史产物没有类型化声明时填 `unknown`；
-- 禁止正则解析 `note` 里的 “centerline / 外皮线”；自由文本只能做审计展示，不能承重；
+- 禁止代码正则解析 `note` 里的 “centerline / 外皮线”；自由文本可作审计展示或 §7.3 的不受信模型线索，不能承重、不能生成 basis evidence ref；
 - `unknown` 进入待裁决或重新感知。为追平历史基线而暗设 `unknown→centerline` 会原样复活本单要消掉的基准错误。
+
+`geometry.basis` 的源模型注释必须明确它是“墙线几何相对墙体的基准”，与
+[`RoomRoleObservation.basis`](../../../../src/agent/reading/schema.py#L113) 的“房间角色判断依据”同名不同义。
+adapter 不得在两者之间拷贝值。
+
+所谓“签名 sidecar”必须是可验证的 `SignedLegacyBasisAssertionV1`，至少把下列 canonical payload 一起签入：
+
+```text
+input_id
+source_contract_id
+source_output_sha256
+json_pointer
+observation_id
+basis = centerline | wall_face | outer_skin
+issuer
+key_id
+```
+
+verifier 必须先按 §3.2 冻结 bytes 重算 `source_output_sha256`，再验证签名覆盖上述完整 payload，并确认 pointer/id
+在该 sha256 身份内唯一解析、issuer/key 受当前 profile 信任。任何 hash、pointer、id、签名或信任链不匹配都把声明判无效，
+回到 `basis=unknown`；不得“sidecar 文件存在就相信”。这样签名绑定的是 §3.2 的内容身份，而不是可被替换的文件名或一句 prose。
 
 ## 九、迁移次序与验收
 
 ### 9.1 施工顺序
+
+可开工最小集固定为 §十所列 correction/reading **模块 1–6 + `vector_contract` 的一行 as-drawn adapter 注册**；
+这个切片来自 [`GLM 裁决 §五`](2026-08-30_o22_design_crossreview_glm.md#L219)。`CONSUME→ADAPT` 命名收窄与目录 ledger
+重排属于模块 7 的收窄工程，已登记 `AI_agent/plan.md`，本批不做；但 as-drawn disposition 指向新 adapter 的注册不能缓，
+否则 adapter 永远不会生效。
 
 1. **先建源模型，不改消费**：`AsDrawnPlanV2` 覆盖当前 sm25 1F/2F、sm24 1F 三份产物；生产者经模型出口，现有字段与语义不变。
 2. **建统一 source ref 与 bundle**：复用 manifest、source locator、raw bytes/hash 绑定；先 shadow 生成，不进模型。
@@ -425,6 +538,8 @@ CorrectionDecisionResponseV1
 | `test_paired_face_unshared_tail_survives_as_single_face_fragment` | 两面不等长时不取交集丢信息、不取并集造双面 |
 | `test_sm24_four_solid_bands_become_four_wall_claims_without_fake_faces` | 请求书最直接的反例不会回归 |
 | `test_legacy_outer_skin_stroke_does_not_become_axis_trace` | f9 形状的旧外皮线保持 basis unknown/outer_skin，不吃 prompt 默认 |
+| `test_unknown_basis_item_is_never_auto_resolved` | 喂 f9 形状的 legacy fixture：墙 stroke 无类型化 `geometry.basis`、`geometry.thickness_m=null`，note 即使写外皮也只作审计。断言 packet 中有对应 `open_item` 或终点为 `unsupported_or_reperceive`，候选集不含 identity；`auto_actions` 不出现 identity/中线动作，且 executor 不产出该 claim 的静默 axis trace |
+| `test_unknown_basis_with_thickness_still_never_silent_identity` | 喂 §5.2.1 的 W01 形状：`basis=unknown` 且厚度非空。断言 identity 仍不入候选；即使硬约束只留一个偏移或形成 Pareto 支配，已开项 item 仍不进 `auto_actions`，只能显式决定/再感知/degraded |
 | `test_non_wall_is_auto_accounted_but_ambiguous_is_evidence_debt` | 两种状态不塌成同一弃权 |
 | `test_model_decision_schema_rejects_coordinate_fields` | 模型输出决定、代码输出坐标 |
 | `test_stale_packet_hash_and_unknown_candidate_are_rejected` | 三拍响应不能串轮或新造操作 |
@@ -448,7 +563,7 @@ CorrectionDecisionResponseV1
 |---|---|
 | sm25 新 as-drawn plan + 固定决定 vs 冻结 legacy correction 基线 | correction judge 各项不下降；无新增 hard gate；每条 resolved wall 可反查原 face；observed spacing 未覆盖 |
 | sm24 新 as-drawn | 4 个 solid band 全部进入墙 IR；不得伪造第二 observation；最终 correction judge 不低于冻结历史基线 |
-| 旧 ReadingView 历史 case | 显式 centerline 的 fixture 保持兼容；basis 不明者必须显示 open item/degraded，不能以静默 centerline 换表面分数 |
+| 旧 ReadingView 历史 case | **今天没有可验的“显式 centerline 存量子集”**：存量 `pen==wall` 为 1240/1240 unknown，geometry basis 键为 0；读数与空集结论见 [`GLM 裁决:122-146`](2026-08-30_o22_design_crossreview_glm.md#L122)。strict 终点是阻止成功并发墙级定向再感知；exploratory 终点是 `completion=degraded`、保留 open item/debt、projection envelope 显示 degraded，judge 分母不缩。两档都不得宣称“兼容且不下降”。sm21 又没有 as-drawn 产物，strict 必须走墙级再感知，exploratory 只能诚实 degraded；该实物缺口见 [`GLM 裁决:130-151`](2026-08-30_o22_design_crossreview_glm.md#L130)。将来只有出现类型化/验签 centerline fixture 后，才新增非空兼容验收子集 |
 | `ambiguous` 反事实 | 删除 debt 或改写为 `non_wall` 不得无记录通过；strict profile 必须阻止完整成功 |
 | 厚度反事实 | 只保留中线、丢 observed/resolved thickness 的变异必须被 gate 抓住；只改厚度不改轴、只改轴且破坏双面间距，分别失败 |
 | 未知/混装契约 | 未注册 schema、已声明但缺字段、同槽双源、单文件双匹配全部在调用模型前失败且 ledger 点名 offender |
@@ -459,21 +574,58 @@ CorrectionDecisionResponseV1
 
 本设计对应的模块职责建议如下，便于派工时不再现场发明：
 
-- `reading/as_drawn/schema.py`：as-drawn v2 生产者类型；
-- `reading/vector_contract.py`：只做源识别/目录 ledger，不做几何、不直接决定 prompt paste；
-- `correction/evidence_contract.py`：source refs、四种 wall claim、三种 disposition、bundle；
-- `correction/evidence_adapters.py`：legacy/as-drawn 双 adapter；
-- `correction/wall_compiler.py`：ref resolve、切段、中线/候选/厚度 IR；
-- `correction/decision_schema.py`：packet 与 response；
-- `correction/decision_executor.py`：执行符号决定、复算坐标与 hash；
+- 模块 1 · `reading/as_drawn/schema.py`：as-drawn v2 生产者类型；
+- 模块 2 · `correction/evidence_contract.py`：source refs、四种 wall claim、三种 disposition、bundle；
+- 模块 3 · `correction/evidence_adapters.py`：legacy/as-drawn 双 adapter；
+- 模块 4 · `correction/wall_compiler.py`：ref resolve、切段、中线/候选/厚度 IR；
+- 模块 5 · `correction/decision_schema.py`：packet 与 response；
+- 模块 6 · `correction/decision_executor.py`：执行符号决定、复算坐标与 hash；
+- 模块 7 · `reading/vector_contract.py`：本批只做 as-drawn 指向新 adapter 的一行注册；`CONSUME→ADAPT` 重命名与 ledger 重排登记 plan、暂不施工；
 - pipeline 只编排上述阶段，不再内嵌第二套“看到某几个键就当某契约”的判断。
 
 ⛔ 本单不要求改 gt schema、AnswerCompiler、promote 路径或重签答案；验收只消费既有 correction judge 结果，不向 judge 侧新增事实。
 
-## 十一、我认为最薄弱的一处
+## 十一、返工处置与新增量化来源对账
 
-最薄弱的是 **`single_face` 与 `legacy_wall_trace(basis=unknown)` 如何在不重做 reading 感知的前提下收束**。本稿给出了安全边界——无唯一 side/thickness/basis 就开项或重新感知——但当前实物还不足以证明这条路不会让大量历史输入都退化为 unresolved。这个风险不能用 `unknown→centerline` 默认值掩盖；施工前需要拿 f9 的“外皮线”与明确 centerline 的历史产物做成对夹具，实测候选生成和总体判断的可用性。
+### 11.1 NF-1～NF-9 逐条处置
 
-## 十二、希望 GLM 复核时重点打哪里
+| finding | 处置 | 落点与理由 |
+|---|---|---|
+| NF-1 | **已改** | §9.4 删除今天取空的“显式 centerline fixture 保持兼容”承诺，写明 strict/exploratory 两档终点，并点名 sm21 零 as-drawn 的代价；degraded 不再冒充“不比现在差” |
+| NF-2 | **已改** | §7.3 加墙级带锚点定向再感知，成本为 `O(unknown 墙数)`；同时把 note 的“代码禁解析”与“模型可见但不受信”边界拆开 |
+| NF-3 | **已改** | §4.1 表新增“几何角色已知？”列，明确 `legacy_wall_trace` 是角色未知的降级声明，不能与其余类型做同层几何完备性证明 |
+| NF-4 | **已改** | §4.1 将 `single_face.counterface_state` 扩为 `not_in_observations \| observed_unclaimed`，后者强制带原节点与 disposition 引用 |
+| NF-5 | **已改** | §5.4 新增 `CorrectedGeometryProjectionEnvelopeV1`，attempt/report 消费 completion 与 debt ids；strict 前置阻断，exploratory judge 不缩分母且报告 degraded |
+| NF-6 | **已改** | §6.2 把 `requested_effect.kind` 收成封闭枚举，并规定 entity/ref 必须来自 packet、坐标只由下一轮 compiler 候选产生 |
+| NF-7 | **已改** | §9.1 与 §十固定最小集为模块 1–6 加模块 7 的 adapter 注册；模块 7 的重命名/ledger 收窄登记 plan、本批不做 |
+| NF-8 | **已改** | §5.4 的 `output_basis` 直接采用判分侧既有 `wall_axis \| outer_skin`，并写机械映射；只引用、不改 gt 侧 |
+| NF-9 | **已改** | §二把 `Stroke.geometry` 锚点修到 `schema.py:49`，点明 `RoomRoleObservation.basis:113` 的同名不同义；§8.3 要求源模型注释隔离语义，并把签名 sidecar 绑定 §3.2 sha256 身份与验证门 |
 
-请重点攻击**旧输入并存是否仍藏着一条静默中线腿**：从 detector、legacy adapter、packet、兼容 `CorrectedGeometry` 投影一直追到 kernel，尝试构造一份 `ReadingView`，其中外墙是 outer-skin、内墙是 centerline、自由 note 又互相矛盾；看它能否在没有类型化 basis 证据、没有 open item、没有 degraded ledger 的情况下被当成全中线成功消费。若能，本设计最核心的基准隔离仍未成立。
+### 11.2 本轮新增数值/数量的 provenance
+
+- f9 自检的墙笔画、null 厚度与 S1–S4“外皮线”/S5–S10“中线”均直接来自
+  [`tests/fixtures/f9_window_host_crash/0_reading/1f_view.json`](../../../../tests/fixtures/f9_window_host_crash/0_reading/1f_view.json)；
+  本稿不从 note 推导 basis，只用它复核混合历史事实。
+- “存量 `pen==wall` 为 1240、geometry basis 键为 0、有厚度墙为 132、sm21 零 as-drawn”均沿用
+  [`GLM 裁决:122-151`](2026-08-30_o22_design_crossreview_glm.md#L122) 的仓库递归复核及其可复现脚本；本稿没有外推新计数。
+- §5.2.1 的 `0.239` 直接取自
+  [`sm25-L_anchor W01 geometry`](../../../../case_tests/e2e_tests/sm25-L_anchor/run_2026-08-22_orchestrator_handson_H1/0_reading/1f_view.json#L19)，
+  同一节点没有 basis 键；`ReadingView` 接收门见
+  [`schema.py:49`](../../../../src/agent/reading/schema.py#L49) 与
+  [`vector_contract.py:153-178`](../../../../src/agent/reading/vector_contract.py#L153)。
+- 模块 1–6 加模块 7 一行注册的切片来自
+  [`GLM 裁决 §五`](2026-08-30_o22_design_crossreview_glm.md#L219)；`output_basis` 的两个既有词值来自
+  [`answer_compiler.py:110`](../../../../src/agent/judge/answer_compiler.py#L110)。
+
+## 十二、我认为这次返工后最薄弱的一处
+
+最薄弱的是 **residual debt 从 `CorrectionResolvedV1` 经 projection envelope 落到 attempt/report 的真实消费者**。
+本稿已经定义了唯一落点和 strict/exploratory 行为，但当前 `correction_score.py` 不读 degraded/conflicts，尚无代码实证证明
+runner 不会只拿出 envelope 内的裸 geometry、把状态留在旁边。这个缝若施工漏接，unknown 虽未变成 identity，degraded 仍可能在报告面伪装成完整成功。
+
+## 十三、希望复核方重点打哪里
+
+请优先打两处相连的门：其一，用 §5.2.1 那种 `basis=unknown + thickness_m 非空` 输入，故意让硬约束只剩一个偏移候选，
+看 executor 能否绕过“已开项不自动”而记成 `auto_actions`；其二，从同一 degraded resolved artifact 只抽裸
+`CorrectedGeometry` 去跑 judge，看 attempt/report 是否会因 envelope 缺失或 hash/debt 不闭合而响亮失败。前者若穿透，静默中线腿仍在；
+后者若穿透，degraded 会在投影面伪装成 complete。两处都是本次返工最值得用反证测试而不是文字复核去打的地方。
