@@ -252,4 +252,4 @@ $ python -m pytest -p no:cacheprovider -q tests/test_gt_facts_staging_gate.py \
 
 ---
 
-**commit**：见下方提交记录。
+**commit**：`93bdc33`（`08.29_O21bTR_case穿越准入门加真实形状回归锁定`）。
