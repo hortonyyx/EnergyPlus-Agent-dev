@@ -62,8 +62,9 @@ orchestrator 当时判读为「病灶更窄 = 一个护栏类型选错」——*
 （用户令「这条线上的开发都先读这份指南」）。
 凡不服务这三条的工作**一律登记进 [plan.md](plan.md) 不做**（同 §0.1）。
 
-> ⭐ **此刻在哪（2026-08-30）**：四步次序里的 **第 ② 步在推进** —— `②-1` 四单里 **②-1a / ②-1b 及其 S / T 两个补丁单全部收口**；
-> **②-1b-T-R 已交付但 ⛔ 未过跨家族审**（本轮第一件事就是送审）；⭐ 用户已签 F-143 阈值 ⇒ **F-147 = 下一单施工**。
+> ⭐ **此刻在哪（2026-08-30 收工）**：第 ② 步推进到 **②-1c 已交付**（`407fa44`，全仓 **3378 绿**）——
+> `②-1a`/`②-1b`(含 R/S/T/T-R)/`F-147` 均已过跨家族审收口；**②-1c 与 ②-2 设计稿两份 GPT 产物 ⛔ 未过审**。
+> ⭐ **下轮第一件事 = GLM 额度恢复后交换审这两份**。⚠️ 本批目标的另一半（correction 侧）**仍一行未动**。
 > ⛔ 上一版 banner 那句「② 现在不能开工」**已作废**（sol 六条阻断解掉一多半，剩 ①⑤）。详见 §2 banner。
 
 ### 0.1 唯一判断法则
@@ -197,7 +198,7 @@ run_pipeline（image-blind，src/agent/pipeline.py）几何彻底确定性化：
 | [../src/agent/llm.py](../src/agent/llm.py) + [../src/configs/llm.yaml](../src/configs/llm.yaml) | LLM 工厂 + 多 section（per-case `<case>/llm.yaml` 经 `EP_AGENT_LLM_CONFIG` 覆盖）；容差 [correction.yaml](../src/configs/correction.yaml) |
 | [../src/agent/graph.py](../src/agent/graph.py) | 下游 LangGraph（intake → 9 subagent → cross_ref → validate → simulate）；prompt 演进归协作者（§3）|
 | [../scripts/](../scripts) | 总启动 `run_full_pipeline.py`（`--reading-from`/`--intake-from`）；`tool_scripts/`=render×N + `run_stage.py` + `record_baseline.py` + `render_geometry_viewer.py` + `render_gt.py` + `gt_from_dxf.py` + `inspect_dxf.py`；`glm_code.sh`=GLM 席位启动器（默认 **glm-5.3**）+ `deepseek_code.sh`=DeepSeek 席位启动器（默认 **deepseek-v4-pro**，**⛔ 按量扣余额、与管线共用**）——两者**凭据只注入子进程，勿全局导出 `ANTHROPIC_*`**；家族版图见 [codex_execution_protocol §1](guides/codex_execution_protocol.md)|
-| [../tests/](../tests) | ✅ **当前全绿**：pytest **3355 passed / 13 xfailed / 0 failed**（2026-08-30 主控权威全量 **`3df006d`**，13m15s、`-n auto`、exit 0；`3348 + 7 = 3355`，**+7 全在 `test_tarch_converter_p1_geometry.py`（27→34）**、另两个改动文件 Δ0，逐文件闭合；⛔ **`3130`/`3fe0d29` 那条读数已过期，勿再引用**）。⭐⭐ **该读数带 `.pth` 哨兵**（跑前跑后各记一次 editable 装机文件哈希，`58f547fa…` 两次相同、内容均为主树）。⛔ **哨兵是 2026-08-27 因事故新立的**：`.pth` 曾被改指到 `/tmp/ep_f97`、正好穿过一次权威全量的窗口 ⇒ **「全仓绿」的第四种假象 = 跑测【途中】启动器被第三方改掉**，那轮读数已作废。⇒ ⛔⛔ **两条硬口径**：① **席位绝对不许跑 `pip install -e .` / 任何写 `site-packages` 的命令**（venv 全机器共享）；② **权威全量必须带 `.pth` 前后哨兵，两次相同才算数**。事故档 → [logs/experiments/2026-08-27_pth_hijack/](logs/experiments/2026-08-27_pth_hijack/)。⛔ **~~08-25 的「3010 passed / 1 failed / 3 errors」已作废~~** —— 那批红 = **F-93**，已于 `b3e0a32` 闭合（**全仓默认并行** `-n auto`，16 核 4.5–8 分钟；串行 `-n0` 15–26 分钟；⚠️ **有别的席位在同机跑时一律 `-n 6`**，见 §5#7.5。跑测三档节奏 + 「受影响子集」工具见 [codex_execution_protocol §7.5](guides/codex_execution_protocol.md)）（kernel/checks/judge/orchestrator/gt/interzone/schedule/viewer/flow/runner/grade/run_config/isolation/view_manifest/c2_b2_v3/c2_b2b_envelope_transform/c2_va_applicability/gt_schema/output_coordinate_×5/e4_relative_north_axis_e2e/c2_b5_source_routing/c2_b5_host_resolution/c2_b5_parent_and_verts/c2_b5_artifact_trust/c2_b5_legacy/reading_line_style_visibility/audit_remediation_accepted_inputs/tarch_converter_p{0,1,2}/tarch_elevation_must_red/**tarch_converter_reproducibility**/**gt_promotion_path**〔含 25 格 `mutation` 源码变异矩阵，默认收集内〕/gt_overlay…）|
+| [../tests/](../tests) | ✅ **当前全绿**：pytest **3378 passed / 13 xfailed / 0 failed**（2026-08-30 主控权威全量 **`407fa44`**，14m28s、`-n auto`、exit 0；`3355 + 23 = 3378` 逐文件闭合：`answer_compiler_{closure,exit_gate,profiles}` 6+3+8 · `denominator_from_facts` **5**（⚠️ 3 个 `def` 但**含参数化**，⛔ `grep def test_` 会低估）· `as_measured_facts_layer` +1；⛔ **`3130`/`3fe0d29` 那条读数已过期，勿再引用**）。⭐⭐ **该读数带 `.pth` 哨兵**（跑前跑后各记一次 editable 装机文件哈希，`58f547fa…` 两次相同、内容均为主树）。⛔ **哨兵是 2026-08-27 因事故新立的**：`.pth` 曾被改指到 `/tmp/ep_f97`、正好穿过一次权威全量的窗口 ⇒ **「全仓绿」的第四种假象 = 跑测【途中】启动器被第三方改掉**，那轮读数已作废。⇒ ⛔⛔ **两条硬口径**：① **席位绝对不许跑 `pip install -e .` / 任何写 `site-packages` 的命令**（venv 全机器共享）；② **权威全量必须带 `.pth` 前后哨兵，两次相同才算数**。事故档 → [logs/experiments/2026-08-27_pth_hijack/](logs/experiments/2026-08-27_pth_hijack/)。⛔ **~~08-25 的「3010 passed / 1 failed / 3 errors」已作废~~** —— 那批红 = **F-93**，已于 `b3e0a32` 闭合（**全仓默认并行** `-n auto`，16 核 4.5–8 分钟；串行 `-n0` 15–26 分钟；⚠️ **有别的席位在同机跑时一律 `-n 6`**，见 §5#7.5。跑测三档节奏 + 「受影响子集」工具见 [codex_execution_protocol §7.5](guides/codex_execution_protocol.md)）（kernel/checks/judge/orchestrator/gt/interzone/schedule/viewer/flow/runner/grade/run_config/isolation/view_manifest/c2_b2_v3/c2_b2b_envelope_transform/c2_va_applicability/gt_schema/output_coordinate_×5/e4_relative_north_axis_e2e/c2_b5_source_routing/c2_b5_host_resolution/c2_b5_parent_and_verts/c2_b5_artifact_trust/c2_b5_legacy/reading_line_style_visibility/audit_remediation_accepted_inputs/tarch_converter_p{0,1,2}/tarch_elevation_must_red/**tarch_converter_reproducibility**/**gt_promotion_path**〔含 25 格 `mutation` 源码变异矩阵，默认收集内〕/gt_overlay…）|
 | [../case_tests/](../case_tests) | `0_reading_tests/` + `e2e_tests/`(含 sm20_anchor/sm21_anchor) + `test_baseline/`(方案+注册表+gt) |
 | `$ENERGYPLUS_EXE` | EnergyPlus 引擎；解析序 env→PATH→硬编码默认。容器内 25.1.0、宿主 Windows 25.2.0（patch 差异，数值对齐以容器为准）|
 | [../data/weather/Shenzhen.epw](../data/weather/Shenzhen.epw) | 默认 EPW 气象 |
@@ -242,67 +243,48 @@ EnergyPlus 经 `WorkflowTool.run_simulation`（eppy + ConverterManager，idfpy �
 
 > ⛔ **2026-08-29 收工 banner 已逐字搬入** [`logs/worklog/2026-08_plan_log.md`](logs/worklog/2026-08_plan_log.md)（§0.5 三步，对账 0 缺失）。
 
-> **⭐⭐⭐ 2026-08-30 banner（当前唯一口径）**
-> 分支 `08.23_AsDrawnReading` · HEAD `3df006d` · 全仓 **3355 passed / 13 xfailed / 0 failed**（`.pth` + HEAD 前后哨兵均同、树两次皆空）
+> **⭐⭐⭐ 2026-08-30 收工 banner（当前唯一口径）**
+> 分支 `08.23_AsDrawnReading` · HEAD `407fa44` · 全仓 **3378 passed / 13 xfailed / 0 failed**
+> （14m28s、`-n auto`、exit 0；`.pth` 与 HEAD 前后哨兵均同、树两次皆空；`3355 + 23 = 3378` 逐文件闭合）
 >
-> ### ① 四步次序不变，第 ② 步在推进
-> **① 判分 → ② 改造 harness → ③ 出产物 → ④ 验证**。②-1 拆四单，子单进度：
-> **②-1a ✅ → ②-1b ✅ → ②-1b-S ✅ → ②-1b-T ✅ → ②-1b-T-R 已交付、⛔ 未过跨家族审**。
+> ### ① 四步次序不变，第 ② 步推进到 ②-1c
+> **① 判分 → ② 改造 harness → ③ 出产物 → ④ 验证**。②-1 四单：
+> **②-1a ✅ → ②-1b ✅（含 R/S/T/T-R 四补丁单）→ F-147 ✅ → ②-1c ✅ 交付**（⏳ 未过跨家族审）**→ ②-1d ⏭ → ②-2 ⏭**。
 >
-> ### ② ⭐⭐⭐ 用户签字：正交吸附阈值 = **歪出量 ≤ 10 mm 且 角度 ≤ 1.0°**（F-143）
-> 用户原话「签，角度调到 1 度吧」。⚠️ **风险在用户确认【前】已提示、用户复述后仍选 1.0°，已记账**：
-> **1.0° 会放过复核方那堵 0.39° 缓斜墙 ⇒ 会重新产出一堵虚构墙**（0.25° 下则被拒）；
-> 可选区间本是 `(0.091°, 0.394°)`，一边 1 条真手抖、一边 1 条人造斜墙撑出来的。
-> ⇒ **落地单 = F-147**：⛔ **今天代码里只有毫米那一道门，角度门根本不存在 ⇒ 是加一道新门，不是改常量。**
+> ### ② ⭐⭐⭐ 用户签字：吸附阈值 = **歪出量 ≤ 10 mm 且 角度 ≤ 1.0°**（F-143 → F-147 落地）
+> ⚠️ **风险在确认前已提示、用户复述后仍选 1.0°，已记账**：1.0° 会放过那堵 **0.39°** 缓斜墙 ⇒ **会重新产出虚构墙**（0.25° 下拒）。
+> 复核方**已端到端跑实**：改前 227/**56** · 改后 226/**56** · 干净件 224/**55** · 注入 0.25° ⇒ 224/**55**
+> ⇒ **签字风险属实、没有被说大**。⭐ 顺带坐实 F-147 的**真实增益**：4.76° 短斜线改前会被吸、现在被角度门拦下。
+> ⛔⛔ **但 F-148**：用户被告知的**补偿闸是空的** —— 人过目的吸附清单里**没有角度**，
+> 而风险的全部区分度就在角度上（真手抖 5.81 mm/0.091° vs 缓斜墙 5.5 mm/0.394°，**毫米数几乎一样**）⇒ 随 ②-1c 后续同批修。
 >
-> ### ③ ⭐⭐⭐ 方法论：跨家族审**连续五轮击穿、五次同一病族**，没有一次是「门算错了」
-> 一条线两头读到中间没读到 · 一个像素桥回满分 · `band_collapse` 无一假数却八门全绿 ·
-> 换轴/换图层伪装 translate · **F-146 `case` 路径穿越把未签字候选种进答案根**。
-> ⇒ **立门必须两问**：① 量得准不准 ② ⭐ **它量的那个东西能不能被换掉**（锚/坐标系/分组键/目标目录/比较字段集
-> —— 全在门自己的计算之外，**加严阈值碰不到**）。⛔ 别用词法锁堵；有效解 = **让那条路在类型层不存在** 或 **出口全检（不是入口收窄）**。
+> ### ③ ⭐⭐⭐ 方法论：跨家族审**连续六轮击穿、六次同一病族**，没有一次是「门算错了」
+> 前五轮（两头读到中间没读到 · 一个像素桥回满分 · `band_collapse` · 换轴/换图层伪装 · `case` 路径穿越）+
+> **第六轮 NF-1**：docstring 称「两个公开函数都不把 `Path` 交给调用方」，而 `write_facts_candidate` 签名**就是** `-> Path`
+> ⇒ **全公开面两行**即可拷进答案根；上一轮只查了 `import *` 面、**没查返回类型** ⇒ **被换掉的是「公开面」这个词的外延**。
+> ⇒ **立门三问**：① 量得准不准 ② ⭐ **它量的东西能不能被换掉**（锚/坐标系/分组键/目标目录/字段集/**每个名词的外延**）
+> ③ ⭐⭐ **反问「哪个方向【没有】锁」再问「为什么没有」** —— 这里写侧零锁的理由是「**一写就会红**」，
+> 那不是缺锁、**是缺陷本身在挡着锁**。⛔ 别用词法锁堵；有效解 = **让那条路在类型层不存在** 或 **出口全检（不是入口收窄）**。
 >
-> ### ④ ✅ 本轮两单都已落地
-> | 单 | 结果 |
-> |---|---|
-> | **②-1b-T-R** 跨家族复审（GLM）| ✅ **APPROVE-WITH-FINDINGS / 阻断 0 / 不阻断 5** ⇒ **收口**。[裁决](logs/reviews/verdict/2026-08-30_o21bTR_crossreview_glm.md) |
-> | **F-147** 角度门落地（Claude 施工）| ✅ **收口**：`cfb8ba7` + 主控权威门 **3355** + GLM **APPROVE-WITH-FINDINGS / 阻断 0 / 不阻断 4**。[裁决](logs/reviews/verdict/2026-08-30_f147_crossreview_glm.md) |
+> ### ④ ✅ 本日四单落地
+> | 单 | 家族 | 结果 |
+> |---|---|---|
+> | **②-1b-T-R** | GLM 审 | ✅ APPROVE-WITH-FINDINGS / 阻断 0 / 不阻断 5 ⇒ **收口** |
+> | **F-147** 角度门 | Claude 施工 · GLM 审 | ✅ 阻断 0 / 不阻断 4 ⇒ **收口** |
+> | **②-1c** AnswerCompiler + 出模两形式 | **GPT 施工** | ✅ 交付 `407fa44`；出口全检**已实现**；NF-1 裁成 `-> None`（**让代码符合文档**，⛔ 不是改弱文档）· ⏳ **未过审** |
+> | **②-2 证据契约设计稿** | **GPT 出稿** | ✅ 交付；**否决了我的「六形态」**（题错 #48）· ⏳ **未过审** |
 >
-> ⭐⭐⭐ **NF-1 = 同一病族的【第六轮】，且复核方主动认了是自己上一轮的处方盲区**：
-> docstring 称「两个公开函数都不把 `Path` 交给调用方」⇒ 据此判「拷目录这条路在 API 层不存在」；
-> 实测 `write_facts_candidate` 签名**就是** `-> Path` 且 `return out_dir`
-> ⇒ **全公开面两行**即可拷进答案根。上一轮查「公开面」只查了 `import *` 面、**没查返回类型**。
-> ⇒ ⭐ **被换掉的载体这次是「公开面」这个词的外延**；⭐⭐ 配套新自查：
-> **反问「哪个方向【没有】锁」再问「为什么没有」** —— 这里写侧零锁的理由是「**一写就会红**」，
-> 那不是缺锁，**是缺陷本身在挡着锁**。
-> 另四条：**NF-2 TOCTOU 实测坐实**（字节真落根外、write 静默 OK；不阻断因 ②-1c 不引入并发）·
-> **NF-3** 清扫器 neuter 后 70 passed = **结构上不可观测**属实 · **NF-4** gate 测试理由与断言自相矛盾 ·
-> **NF-5** 18 维逐条对账**无一维落在锁外**。⇒ NF-1/2/3 **移交 ②-1c**（同一正解 = 出口全检），NF-4 顺手改。
+> ### ⑤ ⏭ 下轮从这里接（⛔ 第一件事）
+> **GLM 额度 18:57 恢复 ⇒ 交换审两份 GPT 产物**：**②-1c 实现** + **②-2 设计稿**。
+> GPT 已点名要 GLM 攻：「旧输入里是否仍藏着一条**静默中线腿**」。
+> 其后：**②-1d**（edge boundary_condition）→ **②-2 施工**（按设计稿）→ **F-148** → **走查 sm25 → 用户逐条签 → 新 gt 入库**。
+> ⚠️ **本批目标的另一半仍未动**：`pipeline.py:367/370` 那两句 `wall-centerline` 逐字还在，correction 仍读旧 `strokes`。
 >
-> ⭐ **F-147 两条值得记**：① 施工方**变异矩阵抓出 R1 落地时无锁**（毫米门 6→10 那一格七格全绿，
-> 因为**全语料在 6–10 mm 带零存货**）⇒ 自加夹具供货；② 施工方**更正了派工单一条事实**（**题错 #47**）：
-> **`#` 注释不翻闭包指纹、但 docstring 会翻**（AST 里 docstring 是 `Constant` 节点）。
-> ⭐ 主控独立逐叶对账确认**几何零变动**：staging `as_measured` 全文件**恰好 3 片差异** = 1 指纹 + 2 个新增 `angle_deg`。
->
-> ⭐⭐⭐ **F-147 复审的三条硬结论**：① **`walls 55→56` 属实，签字风险【没有】被说大**（复核方用自己造的原件端到端跑：改前 227/**56** · 改后 226/**56** · 干净件 224/**55** · 注入 0.25° ⇒ 224/**55**）；
-> ② ⭐ **顺带坐实 F-147 的真实增益** —— 那条 **4.76° 短斜线改前会被吸、现在被角度门拦下**，本单不只是「按签字值改数」；
-> ③ ⭐⭐⭐ **13 文件转换器闭包【不含】`gt_facts_staging.py`**（主控已独立枚举确认）⇒ **NF-1 落地不翻指纹** ——
-> ⛔ **主控此前「NF-1 一落地就会再翻一次指纹、要排期」的判断【作废】**；原则 = **闭包内**的改动才需攒批。
->
-> ⛔⛔ **新登记 F-148（GLM 审 F-147 抓出，正是主控点名要查的第 3 问）**：
-> **用户签字时被告知的【补偿控制】现在是空的** —— 「人签 `revisions` 逐条过目吸附清单」那份清单
-> （`axis_snapped_lines`）**没有 `angle_deg`**，角度只活在 `diagnostics` 里。
-> ⭐ 而**签字风险的全部区分度就在角度上**：真手抖 **5.81 mm**(0.091°) 与那堵缓斜墙 **5.5 mm**(0.394°)
-> 在清单上**毫米数几乎一样、风险差一个量级** ⇒ 那道闸**结构上分辨不出该拦哪一条**。
-> ⇒ 随 ②-1c 同批修（schema 加一字段 + transport 一行）；⚠️ **在它落地前，F-143 的签字风险实际上没有补偿措施**。
->
-> ### ⑤ ⏭ 两单收口后接
-> ```
-> ②-1c  AnswerCompiler + 出模两种形式（三条补充）+ 依赖闭包 + 局部计分   ← 含 F-146 的结构性正解「出口全检」
-> ②-1d  edge boundary_condition（B5 / F-121）
-> ②-2   correction 改吃多形态墙证据 + 改掉提示词那两句 wall-centerline
->   ↓ sm25 完整走一遍 gt 流程【走查】 → 用户逐条签 revisions → 派生器出两种形式 → 新 gt 入库
-> 另有小单不占主线：B4-②b 三件 · correction grade 图算术（面板 scale 变负，平面塌在左上角）
-> ```
+> ### ⑥ ⚠️ 我方本日实犯（**四条**）
+> 1. **题错 #47**：派工单写「注释/docstring 都不翻闭包指纹」——**`#` 注释不翻、docstring 会翻**（AST 里是 `Constant` 节点），施工方实测更正
+> 2. **题错 #48**：「六形态」混了三种性质（正向语义声明 / 消费处置 / 一个只在声明中线基准时成立的特例），GPT 跨家族否决
+> 3. **排程责任**：明知 GLM 正在审 `gt_facts_staging.py`，仍派了动 `src/` 的活 ⇒ 复核方中途撞红（自行归因、改用干净副本，读数未污染）
+> 4. **`pgrep -f "<命令串>"` 匹配到我自己那条命令** ⇒ 把已死的席位读成「活着 1 个」；⭐ 认进程只能按**可执行名**或 `/proc/<pid>/environ`
 
 ### 2.1 最近节点索引
 
@@ -312,7 +294,7 @@ EnergyPlus 经 `WorkflowTool.run_simulation`（eppy + ConverterManager，idfpy �
 
 | 日期 | 一句话 | 详档 |
 |---|---|---|
-| **2026-08-30** | ⭐⭐⭐ **用户签字 F-143 阈值**：`歪出量 ≤ 10 mm` **且** `角度 ≤ 1.0°`（风险已在确认前提示并记账 —— **1.0° 会放过那堵 0.39° 缓斜墙 ⇒ 会重新产出虚构墙**，用户复述后仍选 1.0°）⇒ 登记 **F-147** 落地单（⛔ **角度门今天代码里不存在，是加新门不是改常量**）· ✅ **②-1b-T-R 返工交付并过主控权威门 3348**（`93bdc33`+`e52d1ad`；⭐ 施工方自己找到**第三种逃逸**=staging 根内已存在的符号链接，并造**反向例子** `case="."` 证明两层缺一不可；自报最薄弱处 = 层2 的 **TOCTOU 窗口**）· ✅ **该返工当日过 GLM 跨家族审（阻断 0 / 不阻断 5）收口**，⭐ 其中 **NF-1 = 病族第六轮**（「公开面没有 Path」这个判断本身被换掉——只查了 `import *` 面，Path 从**返回类型**出去了）· ✅ **F-147 当日交付 `cfb8ba7`**（六条夹具、几何逐叶零变动、**变异矩阵抓出 R1 本来无锁**）· ⚠️ **题错 #47**（`#` 注释不翻指纹但 docstring 会翻）· ⭐⭐⭐ **方法论固化：跨家族审连续五轮击穿、五次同一病族，没有一次是「门算错了」**⇒ **立门必须两问：量得准不准 + 它量的那个东西能不能被换掉** · **本轮（开工）**：CLAUDE.md 补更（滞后 8 个提交）+ 出两份单子（GLM 复审 · F-147 派工）| [复审请求书](logs/reviews/request/2026-08-30_o21bTR_crossreview_glm.md) · [F-147 派工单](logs/reviews/request/2026-08-30_f147_angle_gate_dispatch.md) · [返工执行档](logs/reviews/execution/2026-08-29_o21bT_R_rework_execution.md) · [plan.md](plan.md) |
+| **2026-08-30** | ⭐⭐⭐ **用户签字 F-143 阈值**：`歪出量 ≤ 10 mm` **且** `角度 ≤ 1.0°`（风险已在确认前提示并记账 —— **1.0° 会放过那堵 0.39° 缓斜墙 ⇒ 会重新产出虚构墙**，用户复述后仍选 1.0°）⇒ 登记 **F-147** 落地单（⛔ **角度门今天代码里不存在，是加新门不是改常量**）· ✅ **②-1b-T-R 返工交付并过主控权威门 3348**（`93bdc33`+`e52d1ad`；⭐ 施工方自己找到**第三种逃逸**=staging 根内已存在的符号链接，并造**反向例子** `case="."` 证明两层缺一不可；自报最薄弱处 = 层2 的 **TOCTOU 窗口**）· ✅ **该返工当日过 GLM 跨家族审（阻断 0 / 不阻断 5）收口**，⭐ 其中 **NF-1 = 病族第六轮**（「公开面没有 Path」这个判断本身被换掉——只查了 `import *` 面，Path 从**返回类型**出去了）· ✅ **F-147 当日交付 `cfb8ba7`**（六条夹具、几何逐叶零变动、**变异矩阵抓出 R1 本来无锁**）· ⚠️ **题错 #47**（`#` 注释不翻指纹但 docstring 会翻）· ⭐⭐⭐ **方法论固化：跨家族审连续五轮击穿、五次同一病族，没有一次是「门算错了」**⇒ **立门必须两问：量得准不准 + 它量的那个东西能不能被换掉** · ✅ **F-147 当日过 GLM 审收口**（阻断 0 / 不阻断 4）—— ⭐ 复核方**端到端跑实签字风险**（改前 227/**56** · 改后 226/**56** · 干净件 224/**55** · 0.25° ⇒ 224/**55**）⇒ **风险属实、没被说大**，⭐ 并坐实 F-147 **真实增益**（4.76° 短斜线改前会被吸、现在被拦）· ⛔⛔ **新登记 F-148**：用户被告知的**补偿闸是空的**（人过目的吸附清单里没有角度，而风险的全部区分度就在角度上）· ✅ **②-1c 交付 `407fa44`**（**GPT 施工**；出口全检已实现 · NF-1 裁成 `-> None` = **让代码符合文档** · ⛔ **没照抄前一席位的 `wall_bands` 改动**，改用 `cap_handles_v/h` 直取并证明 band 并集 == direct map 全集 + 一条反事实锁）· ✅ **②-2 证据契约设计稿交付**（**GPT 出稿，否决我的「六形态」**：混了正向语义声明 / 消费处置 / 一个只在声明中线基准时成立的特例 ⇒ 改 4+3+候选图；⭐ 承重反例 = 两份真实历史产物同一个 `pen=="wall"` 字段，基准**一个外皮一个中线且只写在自由文本 note 里**）· ⛔ **两份 GPT 产物均未过审 ⇒ 下轮第一件事** · ⚠️ **GLM 撞 5 小时额度上限**，半成品移出主线存为线索（`logs/experiments/2026-08-30_o21c_probe/`）· 权威全量 **3348 → 3355 → 3378** 每轮带哨兵 · ⚠️ **我方实犯四条**（题错 #47 docstring 会翻指纹 · #48 六形态 · 排程责任 · `pgrep -f` 自匹配把死席位读成活着）| [复审请求书](logs/reviews/request/2026-08-30_o21bTR_crossreview_glm.md) · [F-147 派工单](logs/reviews/request/2026-08-30_f147_angle_gate_dispatch.md) · [返工执行档](logs/reviews/execution/2026-08-29_o21bT_R_rework_execution.md) · [plan.md](plan.md) |
 | **2026-08-29** | ⭐⭐⭐ **第 ② 步开工**：`②-1` 拆四单、**②-1a 事实层 `as_measured` 落库完成并过审** · ✅ **两单收口零阻断**（**F-133** pipeline 侧同层轴合并静默 `10115eb` · **②-1a(+R)** gt 侧 `af7c64d`），权威全量 **3208→3244→3253** 每轮带 `.pth` 哨兵、复核方两次独立同读数 · ⭐⭐⭐ **最值钱：②-1a 在确定性 DXF 上产出 33 条虚构墙**（`wall_bands` 是按**门窗边框**分组的，被我当成了「配好的墙」）⇒ 返工后四组直方图全干净、sm24 第二栋楼零幽灵 · ⭐⭐⭐ **一条推理被驳回**：「输入确定 ⇒ 推导正确」⛔ 不成立（②-1a 自己就是反例）⇒ 落成 **gt 侧配对准入条件五条**（指南 §十二）· ⭐⭐ **EnergyPlus 小面阈值实测 = 10 mm**（<10mm 静默删顶点、面积对折、区域不闭合，却 rc=0 + Completed Successfully）· ⭐ 用户拍板六条（grade 图定案 · gt 重签后移且是**走查** · `as_measured` 从 as-received 出 ⇒ **F-124 重开** · 局部计分 · ①-5 冻结 · **出模形式补三条**）· 新登记 **F-133/F-134/F-135** · ⚠️ **我方实犯六条**（题错 #42–#46 · **席位跑全量时提交文档造成假红，同型第三次** · 拿死代码当证据 · 轴向约定用反） | [F-133 裁决](logs/reviews/verdict/2026-08-28_f133_crossreview_glm_verdict.md) · [②-1a-R 裁决](logs/reviews/verdict/2026-08-29_o21a_rework_crossreview_glm_verdict.md) · [碎片诊断](logs/experiments/2026-08-28_wall_basis_jog/README.md) · [指南 §十–§十二](guides/reading_correction_split_guide.md) · [plan.md 本日](plan.md) |
 | **2026-08-29** | ⭐⭐⭐ **用户一天定死 15 条口径**，gt 那条线**从「要不要两层」问到「事实层三截怎么落库」**（⛔ **两层 gt 撤销** · 出模两种+净空派生 · **内墙只能中轴**(EP InterZone) · **吸附按尺度切两半** · **事实层三截** `as_measured`+`revisions`+`as_signed` · 签字根挪事实层 · 坐标 0.1mm 整数 · 锚点允许**派生点** · 分辨率 1mm · **分族不绑颜色** · 落库四条 · rev-001 · 第一类提前 · 先不做 3D(**DXF→3D 是 CAD 模态输入的预演**)) · ✅✅ **五单全过审**（F-126 · F-126b · B4-① · F-A 接线 · B4-②a），权威全量 **3146→3167→3195** · ⭐⭐⭐ **结构性收获：「gt 的活」与「②-1 包」是同一件事** · ⭐⭐ **三条方法论**（**问题不在阈值在比对单位**——同一检查连错六版 625→1 · **零阈值 = 让被测对象自己提供尺子** · ⭐ **造尺子前先看仓库有没有**——闭合/孤立/封闭/零面积转换器早就算了，是 `denominator()` 把读数丢在地上） · ⚠️ **我方实犯七条**（派工题错 39/40/41 · `git add -A` 差点扫走在飞席位的半成品 · 拿 `echo` 退出码当席位的 · 一致性检查连错六版 · `mpu²` 写反 · **F-E 判成潜伏且与复核方同错** · 第 40 条只修了一半——共用工作树没隔离） | [B4-①裁决](logs/reviews/verdict/2026-08-29_b4_crossreview_glm_verdict.md) · [B4-②a裁决](logs/reviews/verdict/2026-08-29_b4_2a_crossreview_glm_verdict.md) · [落库方案](architecture/gt_revision_ledger.md) · [方法论](capability/geometry_consistency/README.md) · [实验档](logs/experiments/2026-08-29_gt_consistency_preview/README.md) · [plan.md 本日](plan.md) |
 | **2026-08-28** | ✅ **清障单四条一单清并过审**（`b1ad92a` · GLM **APPROVE-WITH-FINDINGS / 0 阻断 / 6 不阻断** · 主控权威全量 **3138 绿**带 `.pth` 哨兵 · 复核方独立同读数）· ⛔⛔ **第 ② 步架构对抗审 = REWORK / 6 条阻断** （三方流程首跑：我出题面 → GLM 共同出案 → sol 对抗审）· ⭐⭐⭐ **F-122 最贵**：逐边字段是**已扩张的答案**不是测量事实（`offset` 恒等式 136/136 · 272 端点全部离开 cavity）⇒ 事实包须在 S7 扩张前截取 · ⭐⭐⭐ **用户定方向：两层 gt、两道工序各判各的**（git 坐实截屏图对应修正前那份）· ⭐ **GLM 又找到我点名要的洞**（`os.walk` 回退腿骗过全部 10 把锁，F-127；⭐ 活化条件正是 F-117 的原处方，**已当场划掉**）· 新登记 **F-120…F-128** · ⚠️ **我方本日实犯三条**：拿「到外轮廓的垂距」当独立第二列去反驳（**同义反复**，发出前自己撤回）· 复核单四个行号全错（`grep -n` 数的是 diff 文本）· headless 席位日志空白读成死了 ⇒ **一度并行两个 GLM 会话** | [GLM 裁决](logs/reviews/verdict/2026-08-28_trust_root_batch_glm_verdict.md) · [sol 对抗审](logs/reviews/verdict/2026-08-28_joint_architecture_sol_review.md) · [GLM 出案](logs/reviews/verdict/2026-08-28_joint_architecture_glm_design.md) · [plan.md 本日](plan.md) |

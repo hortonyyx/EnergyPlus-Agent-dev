@@ -356,7 +356,19 @@ reading 新 grade 图形式定案 · **sm25 gt 整份重做重签后移到改造
 > （AST 归一化里 docstring 是 `Constant` 节点）。⇒ 下游后果已列进 F-147 送审 A4：
 > **NF-1 的移交内容正是「改一句 docstring」** ⇒ 它一落地就会让 gt 侧再 drift 一次，排期要一并定。
 
-**②-1b**（`revisions` 台账 + `as_signed` 派生 + B1 外部指纹锚 + F-D 指纹加宽）→ ②-1c → ②-1d → ②-2
+> ✅ **②-1c 已交付并过主控权威门（2026-08-30，GPT 施工）**：commit **`407fa44`**；
+> 权威全量 **3378 passed / 13 xfailed / 0 failed**（14m28s、`-n auto`、exit 0；`.pth` 与 HEAD 前后哨兵均同、树前后皆空）；
+> `3355 + 23 = 3378` 逐文件闭合（⚠️ `denominator_from_facts` 是 **5** 不是 3 —— **含参数化**，⛔ `grep def test_` 会低估，主控最初就这么算差了 2 个）。
+> **验收**：1a 合成已签台账逐位复现 ✅ · **1b 真实 `rev-13ad/13ae/13af` 响亮列 unresolved、受影响 ring NA、坐标零泄漏** ✅ ·
+> 形式 B 可投影的 **25 个 zone 与现有 `gt.json` 顶点逐位一致** ✅ · 6a/6b/6c + B6 六条闭包 + 两形式变形关系双向 ✅。
+> ⭐⭐ **§六五条移交全部背走**，其中 **F-146 的结构性正解「出口全检」已真正实现**（`answer_compiler.read_facts_for_compilation`）；
+> **NF-1 裁成把 `write_facts_candidate` 改为 `-> None`** —— ⭐ **让代码去符合文档的声明，⛔ 不是把文档改弱迁就代码**。
+> ⭐⭐⭐ **它没有照抄前一席位的 `wall_bands` 改动**：改用 `cap_handles_v/h` 直取，并**证明**所有 band 的 handle 并集恰等于 direct map 全集
+> （sm24/sm25 各锁一条 + **一条反事实锁**：清空 `jamb_cap_bands` 只让历史审计数归零，`targets`/`opening_targets` 逐位不变）
+> ⇒ **是论证，不是「看起来合理」**。F-126/R3 的记账也确认未被删。
+> ⏳ **未过跨家族审 ⇒ 下轮第一件事**（连同 ②-2 设计稿一并交给 GLM 交换审）。
+
+**②-1b** ✅ → **②-1c** ✅（未过审）→ **②-1d** ⏭ → **②-2** ⏭（按 GPT 设计稿，⛔ 该稿亦未过审）
 → **sm25 完整走一遍 gt 流程【走查】** → 用户逐条签 → 新 gt 入库。
 > ✅ **②-1b-T-R 返工已交付并过主控权威门（2026-08-30）**：commit **`93bdc33`**+**`e52d1ad`**；
 > 权威全量 **3348 passed / 13 xfailed / 0 failed**（11m31s、哨兵与 HEAD 前后同、**树前后皆空**）；`3330 + 18 = 3348`，`18 = 15+3+0` 闭合。

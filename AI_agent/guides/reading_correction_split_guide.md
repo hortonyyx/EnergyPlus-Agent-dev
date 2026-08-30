@@ -480,6 +480,38 @@ as-drawn 产的是 `observations.face_lines` / `declarations` / `hypotheses`。*
 
 ---
 
+## 三之二、⏳ **correction 要吃的证据契约（2026-08-30 GPT 设计稿，⛔ 未过审、⛔ 尚不是口径）**
+
+> ⛔⛔ **本节是【待审设计】，不是已定口径。** 过 GLM 交换审之前，⛔ 不得据此施工。
+> 全文 → [`logs/reviews/verdict/2026-08-30_o22_evidence_contract_gpt_design.md`](../logs/reviews/verdict/2026-08-30_o22_evidence_contract_gpt_design.md)
+
+⭐⭐⭐ **它否决了本指南此前口头流传的「六形态」**（那是 orchestrator 转写出来的、从没人签字的划分 —— **题错 #48**）。
+理由：那六个东西**混了三种不同性质的类别**：
+
+| 我方原写法 | 实际是什么 |
+|---|---|
+| `paired_faces` / `solid_band` / `single_face` | **正向的墙语义声明** ✅ 保留 |
+| `ambiguous` / `non_wall` | **对面线的消费处置**（且两者不等价：一个是弃权，一个是**明确的否定性断言**）|
+| `axis_trace` | ⛔ **根本不是一种形态** —— 只是「旧输入**在声明了中线基准时**」的特例，而**旧输入不保证这一点** |
+
+⇒ 改成三块正交契约：**4 种正向墙声明**（+ `legacy_wall_trace`）· **3 种面线处置** · **候选图**。
+
+### ⭐⭐⭐ 它的承重反例（主控已独立复核，比其陈述更硬）
+
+两份**真实历史产物**、同一个 `pen=="wall"` 字段，基准**一个是外皮线、一个是中线**，
+而且**只写在自由文本 `note` 里**：
+- `tests/fixtures/f9_window_host_crash/0_reading/1f_view.json` ——「南侧外周墙（**外皮线** y=0…）」
+- `case_tests/e2e_tests/smalloffice_22/0_reading/1f_view.json` ——「south perimeter wall **centerline**」
+
+主控另核实：全仓唯一的 `basis` 字段挂在 `RoomRoleObservation` 上、**不在 `Stroke` 上**，
+`Stroke.geometry` 的 docstring 明写是 free dict。
+
+⇒ ⛔ **「旧 reading 给的是中线 ⇒ 适配成中线轨迹」不成立**；
+而设计稿自己又**禁止正则解析 `note` 猜基准**（那是拿自由文本承重）。
+⭐ 这条若没被发现，②-2 施工会**静默**多出一条中线腿 —— 正是本项目反复栽的形状。
+
+---
+
 ## 四之二、⭐ 墙厚归谁（2026-08-23 用户问，据此定死）
 
 | 在哪 | 怎么处理 |
