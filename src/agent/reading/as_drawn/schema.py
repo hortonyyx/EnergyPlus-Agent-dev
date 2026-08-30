@@ -49,7 +49,17 @@ tree on 2026-08-30, the answer is four:
   1. ``as_drawn_v2.select_pairs`` (the producer of the completeness invariant)
      reads exactly four declared buckets -- ``non_wall_face_lines``,
      ``unpaired_wall_faces``, ``solid_band_walls``, ``ambiguous_face_lines``.
-  2. ``src/validator/checks/as_drawn.py`` names the same four, and no other.
+  2. ``validator/checks/as_drawn.py:576-583`` names the same four, and no other.
+     ⛔⛔ The repo-root prefix is missing ON PURPOSE and ⛔ must not be added
+     back.  With it, this one sentence became the ONLY dependency edge into that
+     module -- ``affected_tests.build_edges`` reads EVERY string constant,
+     docstrings included, and builds a real edge from any repo-relative path it
+     finds inside one -- so 166 test files "reached" a module no test exercises
+     and its honest ``uncovered_allowlist`` entry turned into a lie.  The
+     authority suite caught it (2026-08-30, ②-2 module 1).
+     ⚠️ Note that this warning cannot spell the string it is warning about
+     without re-creating the very edge -- which is why the rule is stated as
+     "⛔ never prefix a cited production path here", ⛔ not as an example.
   3. All three tracked products (``sm25_1f`` / ``sm25_2f`` / ``sm24_1f``) carry
      exactly those four keys under ``hypotheses``.
 

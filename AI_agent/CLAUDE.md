@@ -374,6 +374,14 @@ EnergyPlus 经 `WorkflowTool.run_simulation`（eppy + ConverterManager，idfpy �
    复核简报只看原始需求 + diff + 测试输出，不看执行者长篇自述。
    **⚠️ 同一形状已三次实犯**（2026-06-27 / 07-11 / 07-14，详见规约 §2.1）：**「出了方案 ≠ 可以自己执行」**；
    返工轮 / findings 修复 / 探针·实验执行**同属实质改动**；察觉自己在编辑 `src`/`tests`/`skills` 即违规信号——停手改派。
+8.5. ⭐⭐ **在 `.py` 的 docstring 里引用【生产文件的仓库相对路径】会造出一条真实依赖边**（2026-08-30 实证，F-152）
+    —— `affected_tests.py` 对**任何字符串常量（docstring 也算）**做仓库相对路径子串匹配就建边。
+    实害：一句正当的引证把一个**真·无人测试**的生产模块静默变成「已覆盖」，诚实门红。
+    ⇒ **在 `.py` 里引用生产模块时，⛔ 不要带仓库根前缀**（用不带前缀的相对写法或点号模块名）。
+    ⚠️⚠️ **这条规则本身不能在 `.py` 里举例说明** —— 写出那个形式就又造一条边（施工方实测：举例版边还在，去掉例子才 1→0）。
+    ⭐ **本文件（markdown）不受影响**：依赖图只遍历一等 Python 文件。
+    ⛔ 与「引用位置一律回文件 `grep -n` 核」不冲突：**该核照核，只是别把仓库根前缀写进 `.py` 的字符串常量**。
+
 9. **开发环境统一 VS Code Dev Container**（[../.devcontainer/README.md](../.devcontainer/README.md)）：容器内 EnergyPlus 25.1.0；git 是唯一同步通道，禁文件同步工具同步本目录；`.devcontainer/`(bind mount, VS Code) vs `docker/`(COPY 代码, MCP server 发布) 别混。
 10. **DeepSeek**：v4-pro thinking 默认关（langchain_openai 不回传 reasoning_content 多轮 tool-call 必 400）；管线内 correction 模型角色不变；原 `deepseek-bridge` MCP 承接的省额度小活（简单文本任务）现优先派 luna/Haiku 轻档（§5#8 矩阵），bridge 保留备选；架构/编辑/集成仍主模型负责。
     **⚠️ 2026-07-21 用户定**：DeepSeek **非订阅制（按量计费）** ⇒ **不作日常开发选项**，项目开发里**只在用户专门指定时才用**；**管线内角色不受此限**（1_correction / 4_mep / 下游 9 subagent 照旧，有 baseline 沉淀、不轻动）。
