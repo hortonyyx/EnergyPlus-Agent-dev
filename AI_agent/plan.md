@@ -338,7 +338,20 @@ reading 新 grade 图形式定案 · **sm25 gt 整份重做重签后移到改造
 
 ### 九、⏭ 下轮从这里接
 
-> ⚠️ **派工单累计题错 47 次「停下上报」全是派工方（我）的题错** —— **第 47 次 = F-147 派工单 §四②**：
+> ⚠️ **派工单累计题错 48 次「停下上报」全是派工方（我）的题错** —— **第 48 次 = ②-2 设计单的「六形态」**：
+> GPT 跨家族出稿**否决了这个划分**，理由成立且我已复核 —— 那六个东西**混了三种不同性质的类别**：
+> `paired_faces`/`solid_band`/`single_face` 是**正向墙语义声明** · `ambiguous`/`non_wall` 是**对面线的消费处置**（且两者不等价：一个弃权、一个是明确的否定断言）·
+> ⭐ `axis_trace` **根本不是一种形态**，它只是「旧输入**在声明了中线基准时**」的特例，而**旧输入不保证这一点**。
+> ⇒ 改成三块正交契约：**4 种正向墙声明 + 3 种面线处置 + 候选图**。
+> ⭐⭐⭐ **它的承重反例（主控已独立复核，且比它陈述的更硬）**：两份真实历史产物、同一个 `pen=="wall"` 字段，
+> 基准**一个是外皮线一个是中线**，而且**只写在自由文本 `note` 里** ——
+> `tests/fixtures/f9_window_host_crash/0_reading/1f_view.json`「南侧外周墙（**外皮线** y=0…）」vs
+> `case_tests/e2e_tests/smalloffice_22/0_reading/1f_view.json`「south perimeter wall **centerline**」；
+> 主控另核实：全仓唯一的 `basis` 字段挂在 `RoomRoleObservation` 上、**不在 `Stroke` 上**，`Stroke.geometry` 的 docstring 明写是 free dict。
+> ⇒ **「旧 reading 给的是中线 ⇒ 适配成中线轨迹」不成立**；而设计稿自己又禁止正则解析 `note` 猜基准（那是拿自由文本承重）。
+> ⛔ 这条若没被发现，②-2 施工会**静默**多出一条中线腿。⭐ 设计稿 → [`2026-08-30_o22_evidence_contract_gpt_design.md`](logs/reviews/verdict/2026-08-30_o22_evidence_contract_gpt_design.md)（⏳ 待 GLM 交换审）
+
+> ⚠️ **派工单累计题错 47 次** —— **第 47 次 = F-147 派工单 §四②**：
 > 我写「纯注释 / docstring 改动 ⇒ 不该翻闭包指纹」，施工方实测更正：**`#` 注释不翻，但 docstring 会翻**
 > （AST 归一化里 docstring 是 `Constant` 节点）。⇒ 下游后果已列进 F-147 送审 A4：
 > **NF-1 的移交内容正是「改一句 docstring」** ⇒ 它一落地就会让 gt 侧再 drift 一次，排期要一并定。
