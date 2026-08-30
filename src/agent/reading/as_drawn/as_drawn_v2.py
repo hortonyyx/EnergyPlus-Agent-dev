@@ -63,8 +63,14 @@ from src.agent.reading.as_drawn._plan_ink import (
     Axis, INK_MIN, dump, fit_chain, load_rgb, vertical_runs_mask, witness_ticks,
 )
 from src.agent.reading.as_drawn.pens import MERGE_DIST, _chroma_key, _merge_cells, MIN_SHARE, palette
+from src.agent.reading.as_drawn.schema import SCHEMA, validate_as_drawn_plan
 
-SCHEMA = "as_drawn_plan_v2"
+# ⭐ ``SCHEMA`` is DEFINED in ``schema.py`` and re-exported here, ⛔ not defined
+# twice.  ``vector_contract`` imports it from this module (and a test asserts
+# that import line), so the name has to stay reachable here -- but a second
+# literal would be a second definition that silently stops matching the day one
+# of them changes, which is the same trap ``vector_contract``'s discipline #1
+# already names.
 
 # Distance bins (px) for the per-gap opening-ink profile. A profile, not a
 # single windowed count, is what makes the evidence re-computable: a consumer
@@ -563,10 +569,18 @@ def assemble(cfg: dict, percept: dict, pal: dict, masks: dict, roles: dict,
              opening_candidates: list) -> dict:
     """The three-layer product: 观测 (what I saw) / 声明 (what the drawing says) /
     假设 (what I think they are).  ⛔ Nothing is measured here; this only files
-    what the stages above produced into the layer it belongs to."""
+    what the stages above produced into the layer it belongs to.
+
+    ⭐ 2026-08-30 (②-2 module 1): the product leaves through this package's OWN
+    type (``schema.AsDrawnPlanV2``).  ⛔ Not a formality -- before this, the only
+    thing that ever looked at the product's shape was a three-key presence test
+    in ``vector_contract``, so a bucket could hold anything at all and still be
+    called a recognised as-drawn plan.  ``validate_as_drawn_plan`` returns the
+    SAME dict, ⛔ never a re-serialisation, so the bytes are unchanged.
+    """
     chains = cfg["chains"]
     fx, fy, mmpx = ruler.fx, ruler.fy, ruler.mm_per_px
-    return {
+    return validate_as_drawn_plan({
         "schema": SCHEMA,
         "image": cfg["image"],
         "image_label": cfg.get("image_label"),
@@ -653,7 +667,7 @@ def assemble(cfg: dict, percept: dict, pal: dict, masks: dict, roles: dict,
             "gap_classified": False,
             "pairing_in_observations": False,
         },
-    }
+    })
 
 
 # ── the default route ──────────────────────────────────────────────────────

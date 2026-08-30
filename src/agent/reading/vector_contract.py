@@ -178,6 +178,44 @@ def _detect_legacy_reading_view(raw: dict) -> bool:
     return True
 
 
+def _detect_as_drawn_plan(raw: dict) -> bool:
+    """⭐ 2026-08-30: discipline #3, finally applied to this contract.
+
+    This detector used to be ``_is_declared(...) and _has_keys(raw,
+    "observations", "declarations", "hypotheses")`` -- exactly the "key list
+    induced from existing artifacts" the module docstring forbids.  Measured
+    before the change: **15** element-level corruptions of the real
+    ``sm25_2f_v2.json`` all came back ``as_drawn_plan / KNOWN_NOT_CONSUMED``,
+    i.e. a malformed product was filed as a well-formed one.  ⭐ That premise is
+    re-stated and asserted, not remembered, in
+    ``tests/test_o22m1_as_drawn_producer_types.py``.
+
+    ⚠️ The explicit-key conjunct is kept even though ``AsDrawnPlanV2`` requires
+    the same three: it is the module's stated pattern (see #3), and a test locks
+    that the TYPE rejects a missing layer on its own, so the conjunct is a belt
+    and never the only thing holding.
+
+    ⛔ Tightening this cannot silently reclassify anything into CONSUME: a file
+    that declares a registered value and then fails its contract falls to the
+    BLK-A rule in ``classify_vector_json`` and comes out UNKNOWN, never legacy.
+
+    ⛔ Deliberately NOT changed here: the disposition stays
+    ``KNOWN_NOT_CONSUMED``.  Pointing this contract at a correction adapter is a
+    later module's work.
+    """
+    if not _is_declared(raw, AS_DRAWN_PLAN_SCHEMA):
+        return False
+    if not _has_keys(raw, "observations", "declarations", "hypotheses"):
+        return False
+    from src.agent.reading.as_drawn.schema import AsDrawnPlanV2
+
+    try:
+        AsDrawnPlanV2.model_validate(raw)
+    except Exception:
+        return False
+    return True
+
+
 def _detect_stage_check_report(raw: dict) -> bool:
     """B-02: the three key names are a proxy; the producer's TYPE is the thing.
 
@@ -212,10 +250,10 @@ CONTRACTS: tuple[ContractSpec, ...] = (
     ContractSpec(
         CONTRACT_AS_DRAWN_PLAN,
         Disposition.KNOWN_NOT_CONSUMED,
-        lambda raw: _is_declared(raw, AS_DRAWN_PLAN_SCHEMA)
-        and _has_keys(raw, "observations", "declarations", "hypotheses"),
+        _detect_as_drawn_plan,
         f"schema=={AS_DRAWN_PLAN_SCHEMA!r} (imported from its producer) "
-        "with observations/declarations/hypotheses",
+        "with observations/declarations/hypotheses AND parses as "
+        "reading/as_drawn/schema.py:AsDrawnPlanV2",
     ),
     ContractSpec(
         CONTRACT_AS_DRAWN_PLAN_V0,

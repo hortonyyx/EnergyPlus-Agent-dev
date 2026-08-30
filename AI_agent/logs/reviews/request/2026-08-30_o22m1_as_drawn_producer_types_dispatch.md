@@ -13,7 +13,32 @@
 - 2026-08-27：同机三路各跑 `-n auto` ⇒ `load average 17.44/16 核`、worker `OSError`、**无 summary 行**（同机竞争假红）
 - ⛔ **也不许用 worktree 绕开**：editable 的 `.pth` **硬编码指向主树**，别的树里跑 python 会**静默串台**
 
-⇒ **开工条件 = ②-1d 已交件且主树 `git status` 干净。** 开工第一件事就是核这两条，不成立就停下上报。
+⇒ ⛔ **~~原开工条件「②-1d 已交件且主树 git status 干净」已作废~~**（2026-08-30 二次发单时改写）。
+
+### ⭐ 二次发单的实况与新口径（**派工方已预先裁定，⛔ 别为它停下上报**）
+
+**同机确实有另一个写席位在飞**（GPT 家族，②-1d 返工，正在写 `src/agent/judge/answer_compiler.py`
+与 `tests/test_boundary_condition_facts.py`）。**派工方判定可以并行**，依据是**实测的 import 隔离**：
+
+```
+本单面：reading/as_drawn/ · vector_contract.py · tests/test_f97_vector_contract.py
+对方面：judge/answer_compiler.py · tests/test_boundary_condition_facts.py
+
+实测 ① tests/test_f97_vector_contract.py 里 "judge" 出现 0 次
+实测 ② as_drawn_v2.py / vector_contract.py 里的 3 处 "judge" 全是【注释】，无一是 import
+实测 ③ 运行时 import reading 侧两个模块 ⇒ 被拉进来的 judge 模块 = 【零】
+⇒ 你的测试看不见对方的在途改动
+```
+
+**⇒ 因此本单的开工纪律改成三条硬约束：**
+1. ⛔⛔ **不许 `git commit`、不许 `git add`（任何形式）** —— 提交归主控。
+   理由：对方席位也在这棵树上，**`git add -A` 会扫走它写了一半的东西**（本项目已实犯三次），
+   而 `commit` 会移动 HEAD、作废我给对方的环境读数（本项目今天已实犯一次）。
+   ⇒ **你只管改文件，改完在收工报告里列全路径，主控来提交。**
+2. ⛔ **跑测只跑你自己那几个文件，且用 `-n 4`** —— ⛔ 不许 `-n auto`、
+   ⛔ 不许跑 `affected_tests.py` 的全仓 AST 遍历（对方文件可能处于半截状态）、⛔ 不许跑全量。
+3. ⭐ **`git status` 现在【不干净】是正常的** —— 那是对方的在途改动。
+   ⛔ 别读成异常、⛔ 别清理、⛔ 别 `git checkout --` 任何不属于你的文件。
 
 ⭐ **发单时的实况（2026-08-30）**：②-1d 已交件（`8442442`）并过主控权威全量 **3385 绿**，基线已推进到 `2be082d`。
 ⚠️ **同机有一个【只读】的审阅席位在飞**（GLM 家族，审 ②-1d，实验全在 `/tmp` 副本、只写自己的裁决书）
@@ -94,7 +119,7 @@ ContractSpec(
 | 4 | 「五桶」到底几个 + 依据，**写进 docstring 或执行档** | 含糊带过 |
 | 5 | 缓做通道**显式声明**，且**能列出清单** | 用 `extra="allow"` 静默放行、说不清缓了哪些 |
 | 6 | `Disposition` 仍是 `KNOWN_NOT_CONSUMED`（⛔ 本单不接 adapter）| 顺手把 as-drawn 接进 correction ⇒ 越界到模块 3 |
-| 7 | 受影响子集绿 · **开工时 `git status` 干净** · **收工时 `git status` 只含本单 §六 列出的路径**（⛔ 证明没跟别的席位抢树，也没扫到别人的半成品）| 开工时树就不干净 ⇒ 排程前提破了；收工时出现本单之外的路径 ⇒ 可能扫到了别的席位的在途改动 |
+| 7 | ⛔ **~~原文「开工时 git status 干净」已作废~~（派工方题错 #50，施工方当场抓出）** —— 二次发单时 §〇 已改成「不干净是正常的（那是并行席位）」，而我**没把验收表重新对撞一遍**。<br>**现行口径**：受影响子集绿 · **收工时 `git status` 里属于本单的路径 == §六 清单**（其余路径必须能指出是谁的）· ⛔ **零 `git add`/`commit`** | 收工时出现本单之外**且说不清归属**的路径 ⇒ 可能扫到了别的席位的在途改动 |
 
 ---
 
