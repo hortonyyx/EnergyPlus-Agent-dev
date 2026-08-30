@@ -273,6 +273,20 @@ as-drawn 产 `observations.face_lines`/`hypotheses` —— **两套 schema 完�
 用户拍板**串行（先代码后设计稿）** + 主控这轮**只做不碰代码的活**。
 ⭐ 送审前主控自己量出**四条线索**，全部写进请求书（⛔ 都是线索不是裁决，等 GLM 独立复核）。
 
+### 〇、⭐⭐⭐ 用户拍板（2026-08-30）：**sm25 新 gt 签完后，先拿它验一遍几何内核（C2 批）**
+
+> 用户原话：「sm25 按新 gt 走查签字入库的时候**加一个用这个签完的 gt 先验一下几何内核**
+> （就是 C2 批那批 ok），**不作为任何跑测**，我只是想先验一下 C2 批。」
+
+- **位置** = 走查签字入库流程里**新增一步**（签完 → 验内核 → 再入库）
+- **档位** = **探索档**。⛔ **不作为任何跑测、⛔ 不记成绩**（§0.2 反向铁律：探索档产物永不进成绩账）
+- **手法** = [[feed-the-answer-in-to-test-the-code-alone]]：把签完的 gt 当**输入**喂进几何内核，单测代码自己
+- **先例** = [`logs/experiments/2026-08-25_kernel_probe_from_gt/`](logs/experiments/2026-08-25_kernel_probe_from_gt/README.md)
+  —— 同一手法当场撞出 **F-95**（顶点规范化毁凹多边形 97.731→226.457）与 **F-96**（跨层碎片无守卫）
+- **验的对象 = C2 批** = 正交多边形（非方形）+ 多平面立面
+  ⭐ **为什么值得单独验**：**C2 批两侧至今都没有被判过分**；
+  「立面多平面」那一半**一次都没被判过分**（F-91：sm25 实测 `facade_segments = 0`）
+
 ### 一、✅ ②-1c 收口 · ⏳ ②-2 设计稿审在飞
 
 **②-1c 过 GLM 跨家族审：`APPROVE-WITH-FINDINGS` / 阻断 0 / 不阻断 7 ⇒ 收口。**
@@ -321,6 +335,52 @@ as-drawn 产 `observations.face_lines`/`hypotheses` —— **两套 schema 完�
 （`ResolvedWallV1.output_basis` **只有名字没有值域**，而判分侧已有
 `basis: Literal["wall_axis","outer_skin"]`（[`answer_compiler.py:110`](../src/agent/judge/answer_compiler.py#L110)）⇒ 两套词表无对齐人）。
 
+### 一之四、✅ ②-2 设计稿返工**过审** ⇒ **它现在是口径了**
+
+GLM 返工复审 **`APPROVE-WITH-FINDINGS` / 阻断 0 / 不阻断 7**
+→ [裁决](logs/reviews/verdict/2026-08-30_o22_design_rework_crossreview_glm.md) ·
+[请求书](logs/reviews/request/2026-08-30_o22_design_rework_crossreview_glm.md)。
+**返工审三条全过**（① 旧稿复现得出 · ② 新稿复现不出 · ③ 换同形输入仍走不通）。
+
+> ⭐⭐⭐ **③ 的价值再次兑现，而且是复核方【自己找的题】**：我在请求书里给了一个同形输入并要求
+> 「**再找一个它没想到的**」，它找了**两个，全是真实产物**：
+> 1. **178 条「`basis=unknown` + 厚度只挂在 callout 上」的墙**（sm21 各 run：墙自身 `thickness_m=null`，
+>    而 refs 上挂着 0.25/0.36/0.4 的真墙厚）—— ⭐ **比 f9 那个形状更隐蔽**：f9 账面上还看得出「无 t 可用」，
+>    **这 178 条连那个破绽都没有**。旧稿同样放行，新稿被 #9 两半挡死。
+> 2. **sm25 2F 的 `L012`**（真实 `single_face`，对面**墨迹在、被 reader 丢了** = F-86）——
+>    静默中线路径堵住了，但暴露 `counterface_state` 两值枚举**盖不住的第六种真实状态** ⇒ **N-1**。
+>
+> ⭐ 它还把我建议的另两个方向（两端 note 打架 / 多值厚度打架）**全仓实测 = 0 例** ⇒ 只能合成、未采用。
+> **「查过」与「跳过」的区别，它写清楚了。**
+
+**⭐⭐ 同一病族又冒一次（N-2）**：§6.1 里「**已签规则 ⇒ 自动**」那一行**没进新加的优先序句**，
+不受第 9 条后半的字面管辖 ⇒ **补的是那一行，不是那一类**。一句话收口，但形状值得记。
+
+**七条不阻断（N-1…N-7）全部折进 ②-2 施工单**：
+N-1 第六态 `ink_present_unpromoted`（L012 实证，且是模块 1 首批必须覆盖的产物之一）·
+N-2 上述 · N-3 成功判定缺「开项闭环」不变量 · N-4 它自报最薄弱处**零测试行** ·
+N-5 sidecar 验的是「身份+签名」不是「主张有据」· N-6 `requested_effect` 枚举与「走廊幻墙」例子没对账 ·
+N-7 代价诚实度：**W01 所在那个 view，22 堵墙全部 unknown**。
+
+### 一之五、✅ ②-1d 交付并过主控权威门
+
+commit **`8442442`**（GPT 施工）· 权威全量 **3385 passed / 13 xfailed / 0 failed**
+（17m35s、**`-n 6`**〔GLM 同机在飞〕、exit 0；`.pth` `58f547fa…` 与 HEAD `8442442` **前后哨兵均同、树两次皆空**）。
+**逐文件闭合**：`3378 + 8 − 1 = 3385` —— `test_boundary_condition_facts.py` 新文件 **+8** ·
+`test_answer_compiler_profiles.py` **8→7**（删掉 F-150 那把旧词法 scrub 锁）· 另两个改动文件 **Δ0**
+（⛔ 用 `pytest --collect-only` 数的，`grep def test_` 会低估参数化）。
+
+**施工方自报**（⏳ 未过跨家族审）：`boundary_condition` 成为**投影前**的事实层一等字段（sol 返工条 ⑤）；
+对账门 sm25 **100/100 配对、不一致 0、结构失败 0**（32 `exterior↔outer_skin` / 68 `interzone↔wall_axis`）；
+单边突变**只点名该边**并转红；两种配对依据在 25 个 ring 同解、替代方向残差严格更差；
+**R3 选方案 ②** —— 给 `unclaimed_void` 与 `unknown` 做**谓词级**合成供货（⛔ 不靠 monkeypatch）；
+**F-150 背走**（旧词法 scrub 锁删除，换名载体的语义反事实锁落地）。
+**自报最薄弱处**：跨表示配对只有 sm25 一份真实语料。
+
+⚠️ **主控另点名一处给复核方**：`tests/test_as_measured_facts_layer.py` 里
+`test_r2_the_three_forbidden_fields_are_absent` **被改名为** `..._projection_fields_are_absent_but_boundary_condition_is_first_class`
+⇒ **一道既有的「禁字段」门被改宽了**。合理（那正是本单目的），但**必须有人验它宽得对不对**。
+
 ### 一之三、⚠️ 我方本轮实犯（**两条，都是复核方当场纠正**）
 
 1. **A6.2 机制表述问错** —— 我写「删 allowlist 条目 ⇒ 受影响子集半径缩小」，
@@ -330,7 +390,17 @@ as-drawn 产 `observations.face_lines`/`hypotheses` —— **两套 schema 完�
    **漏了 profile 分档这个第三态**；且**第三条路真的存在** = **墙级定向再感知**
    （`reperception_required` 已在框架内，只缺粒度；成本 O(unknown 墙数)）⇒ 已写进返工单 NF-2 要求采纳。
 
-⇒ ⭐ 两条都不是「量错了」，是**问法**错。同族 [[dispatch-options-list-is-itself-a-hidden-premise]]。
+3. **给席位的环境读数被我自己作废** —— 派 ②-2 返工时写 HEAD `fd4e666`，然后**在它开工后**我又提交了
+   plan.md ⇒ 读数当场失效（席位自己发现并报告，未造成空转）。同族：**描述环境现状的话，
+   要在【最后一个准备动作之后】重核**。
+4. ⛔ **对席位的承诺没守住** —— ②-1d 派工单里我写「这一轮我不会在你干活时动树」，
+   随后又往树上写了两份 `o22...` 派工文档。**席位发现了、原样保留没碰、并在收工报告里点名**。
+   ⇒ 承诺就是承诺；下次要么不写，要么开工前写完。
+5. ⚠️ **一句当场自纠**：`grep -rln record_baseline tests/` 返回了 **3 个文件**，我却顺手写了「上面为空」。
+   查下去那三个都在 `tmp_path` 上跑、不扫真实树（结论不变、并行跑测确实安全），**但那句话本身是错的**。
+
+⇒ ⭐ 前两条都不是「量错了」，是**问法**错（同族 [[dispatch-options-list-is-itself-a-hidden-premise]]）；
+后三条是**纪律**，不是判断。
 
 送审对象 `407fa44` / 基线 `88ea056` · 请求书
 [`2026-08-30_o21c_crossreview_glm.md`](logs/reviews/request/2026-08-30_o21c_crossreview_glm.md)（**六个攻击面**）。
