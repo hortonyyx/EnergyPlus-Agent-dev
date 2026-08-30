@@ -178,7 +178,7 @@
 | as-received 图 + 专用 request | ✅ | `gt_sources/sm25-L_anchor/` 有 `sm25-L_t3_as_received.dxf` + `request_as_measured.json` |
 | `walls` 走面线配对（⛔ 不用 `wall_bands`） | ✅ | ②-1a-R；旧 band 仍逐字留作 `converter_readouts.jamb_cap_bands` |
 | `revisions.json` 台账 + `as_signed.json` + 可复现门 + B1 指纹**字段** | ✅ **已收口**（GLM 复审 APPROVE-WITH-FINDINGS / 阻断 0）| ②-1b `9f0266b`+`2196723`；权威全量 **3292 passed / 13 xfailed / 0 failed**（`.pth` 哨兵前后同）。②-1b-R（`201f47f`+`f140708`）已修 F-137 / F-139 / A1 集合锁 / F-136 守恒面；主控权威门 **3305 passed / 13 xfailed / 0 failed**（哨兵前后同 · HEAD 前后同 · **树跑前跑后皆空**）。⚠️ 仍开着（**全部不阻断**）：**F-140**（一致性门灵敏度 **[0.1,0.9+] mm 位置依赖**、无锁）· **F-141**（换图层伪装）· **F-142**（split-const 登记 stale）· `gt_staging/` 无写保护 · **B1 外部锚未解** |
-| 暂存区进出门（写/读两侧强制跑复现门 + 收窄公开 API）| ✅ **已落地，⏳ 复审在途**（②-1b-T `5b836ee`）| ⭐ 未来晋升在**类型/API 层**没有「拷目录」这条路；⚠️ 防不住「硬编码路径绕开本模块」（施工方如实承认）|
+| 暂存区进出门（写/读两侧强制跑复现门 + 收窄公开 API + **case 准入双层**）| ✅ 已落地（②-1b-T `5b836ee` 过审 / **-R `93bdc33` ⛔ 未过审**）| ⭐ 未来晋升在**类型/API 层**没有「拷目录」这条路；⚠️ 防不住「硬编码路径绕开本模块」（施工方如实承认）|
 | 晋升接法（`promote_gt_v3` 拷 `facts/` + 晋升前跑可复现门）+ **F-128** | ❌ | 随 gt 重做重签 |
 | `AnswerCompiler(profile)` + 两种出模形式 + 6a/6b/6c + 依赖闭包/局部计分 | ❌ | = **②-1c** |
 | 逐边 `boundary_condition` | ❌ | = **②-1d**（F-121） |
