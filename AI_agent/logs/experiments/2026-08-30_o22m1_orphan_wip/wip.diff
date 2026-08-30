@@ -1,0 +1,379 @@
+diff --git a/src/agent/reading/as_drawn/as_drawn_v2.py b/src/agent/reading/as_drawn/as_drawn_v2.py
+index f3b43c3..f938406 100644
+--- a/src/agent/reading/as_drawn/as_drawn_v2.py
++++ b/src/agent/reading/as_drawn/as_drawn_v2.py
+@@ -63,8 +63,10 @@ from src.agent.reading.as_drawn._plan_ink import (
+     Axis, INK_MIN, dump, fit_chain, load_rgb, vertical_runs_mask, witness_ticks,
+ )
+ from src.agent.reading.as_drawn.pens import MERGE_DIST, _chroma_key, _merge_cells, MIN_SHARE, palette
+-
+-SCHEMA = "as_drawn_plan_v2"
++# ⭐ 2026-08-30 (②-2 module 1): the producer now owns a TYPE, and ``SCHEMA``
++# lives with it -- still ONE definition, re-exported here so every historical
++# import site (``vector_contract``, tests) keeps naming the producer.
++from src.agent.reading.as_drawn.schema import SCHEMA, validate_plan_document
+ 
+ # Distance bins (px) for the per-gap opening-ink profile. A profile, not a
+ # single windowed count, is what makes the evidence re-computable: a consumer
+@@ -563,10 +565,25 @@ def assemble(cfg: dict, percept: dict, pal: dict, masks: dict, roles: dict,
+              opening_candidates: list) -> dict:
+     """The three-layer product: 观测 (what I saw) / 声明 (what the drawing says) /
+     假设 (what I think they are).  ⛔ Nothing is measured here; this only files
+-    what the stages above produced into the layer it belongs to."""
++    what the stages above produced into the layer it belongs to.
++
++    ⭐ 2026-08-30 (②-2 module 1): the assembled product is checked against the
++    producer's OWN type on the way out (``as_drawn/schema.py``).  Two things
++    about how that is done are deliberate:
++
++    * ⭐ The **original dict is returned**, never a model dump.  The gate is
++      typed ``-> None`` precisely so there is no validated object here to
++      serialize by accident; the product is byte-for-byte what this function
++      built ([[free-correctness-evaporates-when-representation-changes]]).
++    * ⭐ The realistic failure this catches is a **perception file with the
++      wrong shape**: ``percept`` is written outside this repo's control (today
++      by hand, tomorrow by the reading model), and its buckets land in
++      ``hypotheses`` verbatim.  Before this gate a bucket holding objects where
++      the product's contract says strings travelled all the way to a consumer.
++    """
+     chains = cfg["chains"]
+     fx, fy, mmpx = ruler.fx, ruler.fy, ruler.mm_per_px
+-    return {
++    doc = {
+         "schema": SCHEMA,
+         "image": cfg["image"],
+         "image_label": cfg.get("image_label"),
+@@ -654,6 +671,8 @@ def assemble(cfg: dict, percept: dict, pal: dict, masks: dict, roles: dict,
+             "pairing_in_observations": False,
+         },
+     }
++    validate_plan_document(doc)
++    return doc
+ 
+ 
+ # ── the default route ──────────────────────────────────────────────────────
+diff --git a/src/agent/reading/vector_contract.py b/src/agent/reading/vector_contract.py
+index 705f27d..2af814c 100644
+--- a/src/agent/reading/vector_contract.py
++++ b/src/agent/reading/vector_contract.py
+@@ -16,7 +16,9 @@ never a contract: ``1f_view_checks.json`` is a check report, not a reading view.
+ Discipline this module follows
+ ------------------------------
+ 1. ⭐ **The as-drawn schema value is imported from its producer**, never copied.
+-   ``as_drawn_v2.SCHEMA`` is the one place that string is defined; a literal here
++   ``as_drawn_v2.SCHEMA`` is the one place that string is defined (since
++   2026-08-30 it is *defined* in the producer's own ``as_drawn/schema.py`` and
++   re-exported there, which is still one definition); a literal here
+    would be a second definition that silently stops matching the day the
+    producer's value changes.  Same lesson as ``judge/as_drawn/denominator.py:14``
+    ("⛔ never from a second re-implementation ... a check whose recomputation
+@@ -31,9 +33,18 @@ Discipline this module follows
+    list induced from existing artifacts.  Legacy views use
+    ``reading/schema.py:ReadingView`` plus the field correction actually eats,
+    ``strokes`` (the prompt cites stroke ids and counts ``pen == "window"``);
+-   check-report sidecars use ``validator/checks/schema.py:CheckReport``.
+-   ⚠️ Both models default every field, so they validate ``{}`` — "parses"
++   check-report sidecars use ``validator/checks/schema.py:CheckReport``;
++   ⭐ as-drawn plans use ``reading/as_drawn/schema.py:AsDrawnPlanV2``.
++   ⚠️ Both legacy models default every field, so they validate ``{}`` — "parses"
+    alone would recognize everything, hence the explicit-key conjuncts.
++   ⛔ **Until 2026-08-30 the as-drawn detector had NO type conjunct at all**: it
++   asked only "does it declare our schema value and carry three top-level
++   keys", so a file whose buckets held the wrong element shape was recognized
++   as a well-formed product and its structure was never looked at by anything
++   (``validator/checks/as_drawn.py`` is not wired into ``run_pipeline``, so
++   nothing downstream covered for it either).  That is the shape the ②-2 design
++   draft §4.4 #7 names ``MALFORMED_DECLARED_CONTRACT``; see
++   ``_malformed_declared_reason`` below for where it now lands.
+ 4. ⭐ **Every detector is evaluated; first-match-wins is forbidden.**  Two
+    matches is an ambiguity to report, not a race for the detector that ran first.
+ 5. ⭐ **Structural fallback is only for the undeclared.**  Legacy recognition
+@@ -69,6 +80,7 @@ from pathlib import Path
+ from typing import Any, Callable
+ 
+ from src.agent.reading.as_drawn.as_drawn_v2 import SCHEMA as AS_DRAWN_PLAN_SCHEMA
++from src.agent.reading.as_drawn.schema import explain_rejection as _as_drawn_plan_rejection
+ from src.agent.reading.schema import ReadingView
+ 
+ # Historical as-drawn prototype values.  ⚠️ Registered as LITERALS on purpose:
+@@ -121,6 +133,57 @@ def _is_declared(raw: dict, schema_value: str) -> bool:
+     return raw.get("schema") == schema_value
+ 
+ 
++AS_DRAWN_PLAN_TOP_KEYS = ("observations", "declarations", "hypotheses")
++MALFORMED_DECLARED_PREFIX = "MALFORMED_DECLARED_CONTRACT"
++"""⭐ Names the ②-2 design draft's §4.4 #7 failure inside the refusal reason.
++
++The verdict itself stays ``CONTRACT_UNKNOWN`` with ``disposition=None``, which
++is exactly where BLK-A already puts "declared a registered value and then
++failed to be it" — ⛔ inventing a fourth ``Disposition`` or a new ledger row
++kind would be the ``vector_contract`` narrowing work this dispatch's §四 puts
++out of scope.  What changes is that the reason now says *why*: the producer's
++own type rejected it, and which fields."""
++
++
++def _detect_as_drawn_plan(raw: dict) -> bool:
++    """⭐ R2: recognised by the producer's own TYPE, ⛔ not by a key list.
++
++    The declaration and key conjuncts are kept in front of the type check so
++    that "declared our value but is missing a top-level layer" (BLK-A) and
++    "declared our value, has all three layers, and is structurally wrong"
++    (``MALFORMED_DECLARED_CONTRACT``) stay tellable apart in the ledger.
++    """
++    return (
++        _is_declared(raw, AS_DRAWN_PLAN_SCHEMA)
++        and _has_keys(raw, *AS_DRAWN_PLAN_TOP_KEYS)
++        and _as_drawn_plan_rejection(raw) is None
++    )
++
++
++def _malformed_declared_reason(raw: dict) -> str | None:
++    """Reason text when ``raw`` claims to be an as-drawn plan and is not one.
++
++    ``None`` unless the file declares the as-drawn schema value AND carries all
++    three top-level layers AND the producer's type rejects it — i.e. exactly the
++    case that used to be waved through as a recognised product.
++    """
++    if not (
++        _is_declared(raw, AS_DRAWN_PLAN_SCHEMA)
++        and _has_keys(raw, *AS_DRAWN_PLAN_TOP_KEYS)
++    ):
++        return None
++    detail = _as_drawn_plan_rejection(raw)
++    if detail is None:
++        return None
++    return (
++        f"{MALFORMED_DECLARED_PREFIX}: declares schema={AS_DRAWN_PLAN_SCHEMA!r} "
++        f"and carries {'/'.join(AS_DRAWN_PLAN_TOP_KEYS)}, but its own producer's "
++        f"type (reading/as_drawn/schema.py:AsDrawnPlanV2) rejects it — {detail}. "
++        "⛔ A declared-but-invalid product must not fall back to any other "
++        "contract, least of all to structural legacy recognition."
++    )
++
++
+ # Every schema value this module registers. A file declaring a value OUTSIDE
+ # this set is unknown by construction -- ⛔ it must never fall back to structural
+ # legacy recognition (B-01).
+@@ -212,10 +275,10 @@ CONTRACTS: tuple[ContractSpec, ...] = (
+     ContractSpec(
+         CONTRACT_AS_DRAWN_PLAN,
+         Disposition.KNOWN_NOT_CONSUMED,
+-        lambda raw: _is_declared(raw, AS_DRAWN_PLAN_SCHEMA)
+-        and _has_keys(raw, "observations", "declarations", "hypotheses"),
++        _detect_as_drawn_plan,
+         f"schema=={AS_DRAWN_PLAN_SCHEMA!r} (imported from its producer) "
+-        "with observations/declarations/hypotheses",
++        "with observations/declarations/hypotheses, ⭐ and validating against "
++        "the producer's own type",
+     ),
+     ContractSpec(
+         CONTRACT_AS_DRAWN_PLAN_V0,
+@@ -263,6 +326,18 @@ def classify_vector_json(raw: Any) -> ContractDecision:
+             f"top-level JSON is {type(raw).__name__}, not an object",
+         )
+     matches = [spec for spec in CONTRACTS if spec.detect(raw)]
++    # ⭐ Computed once, up front, because it has to beat TWO different generic
++    # messages below — both of which would otherwise report a structurally
++    # broken product as "no registered contract has that value with a matching
++    # key set", naming an observation as a fact that was never measured
++    # ([[observation-named-as-fact-travels-as-fact]]). The key set matched; the
++    # SHAPE did not.
++    # ⚠️ It can never steal a live match: it is non-None only when the file
++    # declares ``as_drawn_plan_v2``, which the three other declared contracts
++    # exclude by their own schema conjunct and which the check-report detector
++    # excludes by requiring no ``schema`` at all — so the only detector that can
++    # co-fire is the structural legacy one, and BLK-A already refuses that file.
++    malformed = _malformed_declared_reason(raw)
+     if len(matches) == 1:
+         only = matches[0]
+         # ⭐ BLK-A: `_detect_legacy_reading_view` rejects UNREGISTERED
+@@ -276,6 +351,8 @@ def classify_vector_json(raw: Any) -> ContractDecision:
+         # here and stays AMBIGUOUS. ⛔ Rejecting on `"schema" in raw` *before*
+         # counting matches is the exact regression this fix already caused once.
+         if only.contract_id == CONTRACT_READING_VIEW_LEGACY and "schema" in raw:
++            if malformed is not None:
++                return ContractDecision(CONTRACT_UNKNOWN, None, malformed)
+             return ContractDecision(
+                 CONTRACT_UNKNOWN,
+                 None,
+@@ -292,6 +369,8 @@ def classify_vector_json(raw: Any) -> ContractDecision:
+             None,
+             f"AMBIGUOUS: matches {len(matches)} declared contracts at once: {named}",
+         )
++    if malformed is not None:
++        return ContractDecision(CONTRACT_UNKNOWN, None, malformed)
+     keys = sorted(k for k in raw if isinstance(k, str))[:12]
+     declared = raw.get("schema")
+     if isinstance(declared, str):
+diff --git a/tests/test_f97_vector_contract.py b/tests/test_f97_vector_contract.py
+index 37e1df5..14a65a3 100644
+--- a/tests/test_f97_vector_contract.py
++++ b/tests/test_f97_vector_contract.py
+@@ -44,6 +44,59 @@ def _legacy_view(**extra) -> dict:
+     return view
+ 
+ 
++def _as_drawn_plan(**extra) -> dict:
++    """The smallest document that IS an as-drawn plan v2 product.
++
++    ⭐ 2026-08-30 (②-2 module 1): before that dispatch the fixture here was
++    ``{"observations": {}, "declarations": {}, "hypotheses": {}}`` — three empty
++    layers, which the key-shape detector accepted as a well-formed product.  It
++    is no longer one, and the tests below assert things about *valid* as-drawn
++    products, so their fixture has to actually be one; otherwise each of them
++    would be quietly re-scoped into a statement about malformed files
++    ([[regression-case-must-prove-its-own-premise]]).
++    """
++    doc = {
++        "schema": PRODUCER_AS_DRAWN_SCHEMA,
++        "image": "x.png",
++        "image_label": "1f",
++        "observations": {
++            "calibration": {},
++            "ink_palette": {},
++            "face_lines": [],
++            "components_by_family": {},
++            "dimension_witnesses": {},
++        },
++        "declarations": {
++            "thickness_callouts_mm": [],
++            "thickness_callout_note": "",
++            "world_zero_px_declared": None,
++            "chains": {},
++            "drawing_box_px": [],
++        },
++        "hypotheses": {
++            "family_roles": {},
++            "opening_candidates": [],
++            "opening_candidates_basis": "",
++            "opening_types": None,
++            "opening_types_source": None,
++            "pair_candidates": [],
++            "pair_candidates_basis": "",
++            "pairs": [],
++            "non_wall_face_lines": {},
++            "unpaired_wall_faces": {},
++            "solid_band_walls": {},
++            "ambiguous_face_lines": {},
++            "perception_source": None,
++            "pairs_status": "SELECTED",
++            "pairs_note": "",
++            "note": "",
++        },
++        "ledger": {},
++    }
++    doc.update(extra)
++    return doc
++
++
+ def _write(d: Path, name: str, payload: dict) -> Path:
+     d.mkdir(parents=True, exist_ok=True)
+     p = d / name
+@@ -127,16 +180,7 @@ def test_b2_non_object_json_is_unknown():
+ # B3' — as-drawn is KNOWN but NOT CONSUMED (a third behaviour, not the other two)
+ # --------------------------------------------------------------------------- #
+ def test_b3_as_drawn_plan_is_known_but_not_consumed():
+-    raw = {
+-        "schema": PRODUCER_AS_DRAWN_SCHEMA,
+-        "image": "x.png",
+-        "image_label": "1f",
+-        "observations": {},
+-        "declarations": {},
+-        "hypotheses": {},
+-        "ledger": {},
+-    }
+-    decision = classify_vector_json(raw)
++    decision = classify_vector_json(_as_drawn_plan())
+     assert decision.contract_id == CONTRACT_AS_DRAWN_PLAN
+     assert decision.disposition is Disposition.KNOWN_NOT_CONSUMED
+ 
+@@ -147,16 +191,7 @@ def test_b3_as_drawn_raises_and_says_known_not_unknown(tmp_path):
+     heard of it' must stay tellable apart."""
+     vdir = tmp_path / "0_reading"
+     _write(vdir, "1f_view.json", _legacy_view())
+-    _write(
+-        vdir,
+-        "sm25_1f_v2.json",
+-        {
+-            "schema": PRODUCER_AS_DRAWN_SCHEMA,
+-            "observations": {},
+-            "declarations": {},
+-            "hypotheses": {},
+-        },
+-    )
++    _write(vdir, "sm25_1f_v2.json", _as_drawn_plan())
+     (vdir / "reading_summary.md").write_text("summary", encoding="utf-8")
+ 
+     with pytest.raises(UnconsumableVectorFile) as exc:
+@@ -279,14 +314,10 @@ def test_b3_ledger_is_filed_even_when_classification_fails(tmp_path):
+ # B3''' — two contracts at once is an AMBIGUITY, ⛔ never first-match-wins
+ # --------------------------------------------------------------------------- #
+ def test_b3_double_match_reports_ambiguity_instead_of_picking_one():
+-    hybrid = {
+-        "schema": PRODUCER_AS_DRAWN_SCHEMA,
+-        "observations": {},
+-        "declarations": {},
+-        "hypotheses": {},
++    hybrid = _as_drawn_plan(
+         # ...and simultaneously a valid legacy view
+-        "strokes": [{"id": "S1", "pen": "wall", "points": [[0.0, 0.0], [1.0, 0.0]]}],
+-    }
++        strokes=[{"id": "S1", "pen": "wall", "points": [[0.0, 0.0], [1.0, 0.0]]}],
++    )
+     decision = classify_vector_json(hybrid)
+     assert decision.contract_id == CONTRACT_UNKNOWN
+     assert decision.disposition is None
+@@ -300,15 +331,9 @@ def test_b3_ambiguous_file_fails_loudly(tmp_path):
+     _write(
+         vdir,
+         "1f_view.json",
+-        {
+-            "schema": PRODUCER_AS_DRAWN_SCHEMA,
+-            "observations": {},
+-            "declarations": {},
+-            "hypotheses": {},
+-            "strokes": [
+-                {"id": "S1", "pen": "wall", "points": [[0.0, 0.0], [1.0, 0.0]]}
+-            ],
+-        },
++        _as_drawn_plan(
++            strokes=[{"id": "S1", "pen": "wall", "points": [[0.0, 0.0], [1.0, 0.0]]}]
++        ),
+     )
+     (vdir / "reading_summary.md").write_text("summary", encoding="utf-8")
+     with pytest.raises(UnconsumableVectorFile) as exc:
+@@ -410,13 +435,7 @@ def test_r1_unregistered_schema_never_reaches_the_prompt(tmp_path):
+ def test_r2_registered_schema_plus_legacy_is_still_ambiguous():
+     """⚠️ Regression guard for the B-01 fix: tightening 'declared ⇒ not legacy'
+     must NOT collapse a genuine double match into one verdict."""
+-    hybrid = {
+-        "schema": PRODUCER_AS_DRAWN_SCHEMA,
+-        "observations": {},
+-        "declarations": {},
+-        "hypotheses": {},
+-        "strokes": [_STROKE],
+-    }
++    hybrid = _as_drawn_plan(strokes=[_STROKE])
+     decision = classify_vector_json(hybrid)
+     assert decision.contract_id == CONTRACT_UNKNOWN
+     assert "AMBIGUOUS" in (decision.reason or "")
+@@ -636,9 +655,17 @@ _MALFORMED_DECLARATIONS = (
+ 
+ # The full key set for each registered value: declaration + key set + legacy
+ # structure is a GENUINE double match and must stay AMBIGUOUS.
++# ⭐ 2026-08-30: for `as_drawn_plan_v2` "the full key set" now means "a document
++# its producer's own type accepts" — three empty layers are no longer a
++# complete declaration, they are a malformed one, and a fixture that stayed
++# empty would have silently moved this case out of the ambiguity path it exists
++# to lock.  ⚠️ The as-drawn model's top level is `extra="ignore"` precisely so
++# that this genuine double match remains constructible.
++_AS_DRAWN_COMPLETE_KEYS = {
++    k: v for k, v in _as_drawn_plan().items() if k != "schema"
++}
+ _COMPLETE_DECLARATIONS = (
+-    (PRODUCER_AS_DRAWN_SCHEMA, {"observations": {}, "declarations": {}, "hypotheses": {}},
+-     CONTRACT_AS_DRAWN_PLAN),
++    (PRODUCER_AS_DRAWN_SCHEMA, _AS_DRAWN_COMPLETE_KEYS, CONTRACT_AS_DRAWN_PLAN),
+     ("as_drawn_plan_v0", {"wall_bands": [], "dimension_witnesses": []},
+      CONTRACT_AS_DRAWN_PLAN_V0),
+     ("as_drawn_elevation_v0", {"openings": [], "structure_lines": []},
