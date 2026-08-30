@@ -41,7 +41,8 @@ from shapely.ops import unary_union
 from .as_measured import (UNITS_PER_METRE, AsMeasuredBoundaryEdgeV1,
                           AsMeasuredOpeningV1, AsMeasuredV1,
                           AsMeasuredViewV1, AsMeasuredWallV1,
-                          BoundaryConditionEvidenceV1)
+                          BoundaryConditionEvidenceV1,
+                          derive_boundary_edges)
 from .gt_revisions import (AsSignedV1, RevisionsLedgerV1,
                            revisions_content_sha256,
                            verify_as_signed_reproduction)
@@ -53,7 +54,7 @@ __all__ = [
     "ANSWER_COMPILER_VERSION", "DEPENDENCY_CLOSURE_VERSION",
     "OutputProfile", "AnswerCompiler", "AnswerCompilerInputError",
     "BoundaryConditionMismatchError", "BoundaryBasisMismatchError",
-    "BoundaryBasisAuditV1", "BoundaryBasisRowV1",
+    "BoundaryBasisAuditV1", "BoundaryBasisExclusionV1", "BoundaryBasisRowV1",
     "BoundaryPairingProofV1", "BOUNDARY_PAIRING_MAX_RESIDUAL_UNITS",
     "NaRecordV1", "CompiledZoneEdgeV1", "CompiledZoneV1",
     "CompiledOpeningV1", "MetricResultV1", "CompiledViewV1",
@@ -163,12 +164,24 @@ class BoundaryBasisRowV1(_StrictModel):
     matches: bool
 
 
+class BoundaryBasisExclusionV1(_StrictModel):
+    """A converter zone accounted for without pretending edges were paired."""
+
+    view_id: str
+    facts_cavity_id: str
+    converter_zone_id: str
+    reason: Literal["facts_cavity_has_no_logical_boundary_ring"]
+
+
 class BoundaryBasisAuditV1(_StrictModel):
     passed: bool
     paired_edges: int
+    converter_zones: int
+    accounted_converter_zones: int
     rows: list[BoundaryBasisRowV1]
     mismatches: list[BoundaryBasisRowV1]
     pairings: list[BoundaryPairingProofV1]
+    exclusions: list[BoundaryBasisExclusionV1]
     structural_failures: list[str]
 
     def assert_consistent(self) -> None:
@@ -979,16 +992,94 @@ def reconcile_boundary_basis(
 
     rows: list[BoundaryBasisRowV1] = []
     pairings: list[BoundaryPairingProofV1] = []
+    exclusions: list[BoundaryBasisExclusionV1] = []
     structural: list[str] = []
+    accounted_converter_zones: set[tuple[str, str]] = set()
+    claimed_converter_zones: dict[tuple[str, str], tuple[str, str]] = {}
     expected_basis = {
         "exterior": "outer_skin",
         "interzone": "wall_axis",
     }
 
+    if not conversion_report.zones:
+        structural.append("converter_zones_empty")
+    for floor_id, zones in sorted(converter_by_floor.items()):
+        counts: dict[str, int] = {}
+        for zone in zones:
+            counts[zone.zone_id] = counts.get(zone.zone_id, 0) + 1
+        for zone_id, count in sorted(counts.items()):
+            if count != 1:
+                structural.append(
+                    f"converter_zone_identity_not_unique:{floor_id}:{zone_id}:"
+                    f"count={count}")
+
     for view in as_signed.views:
+        if not view.boundary_edges:
+            structural.append(f"facts_boundary_edges_empty:{view.view_id}")
         by_cavity: dict[str, list[AsMeasuredBoundaryEdgeV1]] = {}
         for edge in view.boundary_edges:
             by_cavity.setdefault(edge.cavity_id, []).append(edge)
+
+        # Account for the complete converter-zone population before doing the
+        # edge-level comparison.  A raw facts cavity may deliberately have no
+        # logical ring (the four explicit NA zones in normal sm25); those rows
+        # remain visible as exclusions instead of being mistaken for paired
+        # edges.  Conversely, deleting a ring that the production derivation
+        # can still make is a structural failure, not an exclusion.
+        try:
+            footprint, _ring_records = _footprint_polygon(view)
+        except AnswerCompilerInputError as exc:
+            structural.append(
+                f"facts_boundary_footprint_unusable:{view.view_id}:{exc}")
+            raw_cavities: list[Polygon] = []
+            derivable_by_cavity: dict[str, list[AsMeasuredBoundaryEdgeV1]] = {}
+        else:
+            geometry = footprint.difference(_wall_region(view))
+            raw_cavities = sorted([
+                part for part in getattr(geometry, "geoms", [geometry])
+                if (part.geom_type == "Polygon" and not part.is_empty
+                    and part.area > 0)
+            ], key=_cavity_sort_key)
+            derivable_by_cavity = {}
+            for edge in derive_boundary_edges(view, min_room_area_m2=0.0):
+                derivable_by_cavity.setdefault(edge.cavity_id, []).append(edge)
+
+        raw_by_id = {
+            _cavity_id(view.view_id, cavity): cavity for cavity in raw_cavities}
+        for zone in sorted(
+                converter_by_floor.get(view.floor_id, []),
+                key=lambda item: item.zone_id):
+            zone_polygon = Polygon([
+                _world_point_to_units(point)
+                for point in zone.polygon_m.exterior.vertices])
+            if (zone_polygon.is_empty or not zone_polygon.is_valid
+                    or zone_polygon.area <= 0):
+                structural.append(
+                    f"converter_zone_polygon_invalid:{view.view_id}:{zone.zone_id}")
+                continue
+            representative = zone_polygon.representative_point()
+            cavity_matches = [
+                cavity_id for cavity_id, cavity in raw_by_id.items()
+                if cavity.covers(representative)]
+            if len(cavity_matches) != 1:
+                structural.append(
+                    f"converter_zone_facts_cavity_pairing_not_unique:"
+                    f"{view.view_id}:{zone.zone_id}:{sorted(cavity_matches)}")
+                continue
+            cavity_id = cavity_matches[0]
+            zone_key = (zone.floor_id, zone.zone_id)
+            if cavity_id in derivable_by_cavity:
+                if cavity_id not in by_cavity:
+                    structural.append(
+                        f"facts_boundary_ring_missing:{view.view_id}:{cavity_id}:"
+                        f"converter={zone.zone_id}")
+            else:
+                exclusions.append(BoundaryBasisExclusionV1(
+                    view_id=view.view_id, facts_cavity_id=cavity_id,
+                    converter_zone_id=zone.zone_id,
+                    reason="facts_cavity_has_no_logical_boundary_ring"))
+            accounted_converter_zones.add(zone_key)
+
         for cavity_id, unordered in sorted(by_cavity.items()):
             facts_edges = sorted(unordered, key=lambda edge: edge.sequence)
             if [edge.sequence for edge in facts_edges] != list(range(len(facts_edges))):
@@ -1015,6 +1106,16 @@ def reconcile_boundary_basis(
                     f"{[zone.zone_id for zone in zone_matches]}")
                 continue
             zone = zone_matches[0]
+            zone_key = (zone.floor_id, zone.zone_id)
+            accounted_converter_zones.add(zone_key)
+            previous = claimed_converter_zones.get(zone_key)
+            if previous is not None:
+                structural.append(
+                    f"converter_zone_claimed_by_multiple_facts_cavities:"
+                    f"{zone.floor_id}:{zone.zone_id}:"
+                    f"{previous[0]}:{previous[1]}:{view.view_id}:{cavity_id}")
+                continue
+            claimed_converter_zones[zone_key] = (view.view_id, cavity_id)
             if len(zone.edges) != len(facts_edges):
                 structural.append(
                     f"boundary_edge_count_mismatch:{view.view_id}:{cavity_id}:"
@@ -1104,11 +1205,25 @@ def reconcile_boundary_basis(
                     converter_basis=converter_edge.basis,
                     matches=(expected == converter_edge.basis)))
 
+    # The facts-driven loop above proves every stored cavity has exactly one
+    # converter partner.  This reverse pass closes the other half of the set
+    # equality: a converter zone must be either edge-paired or explicitly
+    # excluded by a named non-logical facts cavity.  Anything else remains an
+    # unclaimed converter invention (E2c), while E3/E4 are caught by the
+    # derivable-ring completeness check above.
+    for floor_id, zones in sorted(converter_by_floor.items()):
+        for zone in sorted(zones, key=lambda item: item.zone_id):
+            if (floor_id, zone.zone_id) not in accounted_converter_zones:
+                structural.append(
+                    f"converter_zone_unclaimed_by_facts:{floor_id}:{zone.zone_id}")
+
     mismatches = [row for row in rows if not row.matches]
     return BoundaryBasisAuditV1(
         passed=not structural and not mismatches,
-        paired_edges=len(rows), rows=rows, mismatches=mismatches,
-        pairings=pairings, structural_failures=structural)
+        paired_edges=len(rows), converter_zones=len(conversion_report.zones),
+        accounted_converter_zones=len(accounted_converter_zones),
+        rows=rows, mismatches=mismatches, pairings=pairings,
+        exclusions=exclusions, structural_failures=structural)
 
 
 def _merge_projected_spans(edges: list[CompiledZoneEdgeV1]) -> list[CompiledZoneEdgeV1]:

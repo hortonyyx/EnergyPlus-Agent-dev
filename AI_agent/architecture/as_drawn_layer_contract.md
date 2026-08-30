@@ -76,7 +76,59 @@ C1 100 / C2 98.6 / **C4 0.215**，在 sm25 2F 上**只被这一道门**拦住，
 
 ---
 
-## 五、这份契约的来历（六轮跨家族审，每轮都击穿过一次）
+## 五、boundary facts 的真实存货与对账门（②-1d 返工）
+
+### 5.1 ⛔ schema/谓词能力不等于落库存货
+
+sm25 当前 facts 落库共 100 条 logical boundary edge：`exterior=32`、
+`interzone=68`、`unclaimed_void=0`、`unknown=0`。后两档只有生产谓词级的
+合成形态证明，**落库级真实存货仍为 0**；因此不得再表述为“真实 facts 已覆盖
+四档”。新增真实 case 前，这两档仍是明确盲区。
+
+`_boundary_footprint` 的 `exterior ring != 1` 分支也同样是**零真实存货**：
+2026-08-30 普查的 sm24 plan-F1、sm25 签字件 F1/F2、sm25 as-received F1/F2
+全是恰好一个 exterior ring；sm21 无 request，结构上不能进入该路径。
+永久回归只能用**合成的第二 exterior ring**触发，⛔ 该夹具不是、也不得被描述成
+真实语料覆盖。真实 sm25 的 2 m 顶点毛刺另有独立锁，但它覆盖的是“生产路径把
+整层 boundary edges 静默清空后，门必须红”，不替上述 multi-exterior 分支冒充存货。
+
+### 5.2 双向全集账本与失败半径
+
+`reconcile_boundary_basis` 必须同时证明：
+
+1. 每个 stored logical facts cavity ring 恰好配到一个 converter zone，且逐边
+   方向/旋转、血缘和 basis 对账；
+2. 每个 converter zone 都被一个 facts cavity 认领；若该 cavity 本来就不能形成
+   logical boundary ring，必须作为**具名 exclusion**列出，⛔ 不计入 paired edges；
+3. 生产几何仍能导出的 logical ring 不得从 stored facts 中消失；任一 view 的
+   `boundary_edges=[]` 必须是结构红，零比较绝不等于一致。
+
+正常 sm25 的账本读数是 converter zone `29/29` 全部有去向：25 个 ring、100 条边
+逐边配对，另 4 个既有 NA cavity 明列 exclusion（F1-z0/z4/z5、F2-z0），所以
+`paired_edges=100` 仍绿，但绝不把 4 个 exclusion 写成“已配对”。E3 删一 ring 只点名
+该 ring；E2c 在所有 facts cavity 外多出的 zone 只点名该 zone；E4 空列逐 view/逐 ring
+列出缺口。门只观测，绝不改写 facts `boundary_condition` 或 converter `basis`。
+
+### 5.3 五项已知边界与接线
+
+- **残差上限待签字**：`5_000` units（0.5 m）仍是待签数字，只用于限制跨表示
+  配对残差（包含 cavity 内皮与 converter 墙中线/外皮之间的系统基准差），不得解释成
+  几何正确性容差。sm25 的选中残差 0.247–0.339 m；外墙 offset ≥0.36 m 的方言可能
+  对正确配对假红。进入下一份方言前必须 per-case 参数化或由用户签定，⛔ 本返工不
+  就地发明替代数。
+- **F-150 锁是列举式**：当前清空 6 个判断字段，并覆盖
+  `diagnostics[].context` 这条自由 dict 通道；现有编译器消费面已被锁住，但未来新增
+  第四个消费点不会自动进入清单，必须同步扩锁。
+- **staging 接线**：官方 sm25 facts staging producer
+  `build_sm25_facts_staging.py` 在写入三件套前强制运行本门并
+  `assert_consistent()`；这属于 staging/走查，不改变、也不绕过 `promote_gt_v3`。
+- **既有静默出口的处置**：`exterior != 1`、polygon invalid、以及未提供
+  `min_room_area_m2` 导致不产 boundary edges 的既有路径，本返工按“纯门侧”禁令不改
+  任一列；统一由非空/全集门具名变红。本实现没有新增静默出口。
+
+---
+
+## 六、这份契约的来历（六轮跨家族审，每轮都击穿过一次）
 
 | 轮 | 家族 | 裁决 | 它找到的作弊 |
 |---|---|---|---|

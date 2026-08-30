@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from collections import Counter
+from copy import deepcopy
 from pathlib import Path
 
 import pytest
@@ -20,7 +21,9 @@ from src.agent.judge.answer_compiler import (
 from src.agent.judge.as_measured import (
     AsMeasuredBoundaryEdgeV1,
     AsMeasuredFaceLineV1,
+    AsMeasuredViewV1,
     AsMeasuredWallV1,
+    derive_boundary_edges,
 )
 from src.agent.judge.gt_revisions import AsSignedV1
 from src.agent.judge.tarch_converter_schema import (
@@ -90,8 +93,16 @@ def test_r2_real_sm25_pairs_every_edge_and_lists_zero_mismatches():
     audit = reconcile_boundary_basis(signed, report)
     assert audit.passed
     assert audit.paired_edges == 100
+    assert (audit.accounted_converter_zones, audit.converter_zones) == (29, 29)
     assert audit.mismatches == []
     assert audit.structural_failures == []
+    assert [(row.view_id, row.converter_zone_id, row.reason)
+            for row in audit.exclusions] == [
+        ("plan-F1", "F1-z0", "facts_cavity_has_no_logical_boundary_ring"),
+        ("plan-F1", "F1-z4", "facts_cavity_has_no_logical_boundary_ring"),
+        ("plan-F1", "F1-z5", "facts_cavity_has_no_logical_boundary_ring"),
+        ("plan-F2", "F2-z0", "facts_cavity_has_no_logical_boundary_ring"),
+    ]
     assert Counter((row.facts_boundary_condition, row.converter_basis)
                    for row in audit.rows) == {
         ("exterior", "outer_skin"): 32,
@@ -142,6 +153,134 @@ def test_r2_pairing_exhausts_both_directions_and_all_rotations_with_hard_limit()
         assert proof.geometry_and_ancestry_pairing_identical
         assert (proof.geometric_converter_edge_indices
                 == proof.ancestry_converter_edge_indices)
+
+
+def _assert_structural_red(audit, expected_fragment: str) -> None:
+    assert not audit.passed
+    assert audit.mismatches == []
+    assert any(expected_fragment in item for item in audit.structural_failures)
+    with pytest.raises(BoundaryBasisMismatchError) as exc_info:
+        audit.assert_consistent()
+    assert expected_fragment in str(exc_info.value)
+
+
+def test_rework_e3_deleting_one_complete_facts_ring_reddens_only_that_ring():
+    _measured, _ledger, signed, _request, report = _real_inputs()
+    baseline = reconcile_boundary_basis(signed, report)
+    pairing = next(row for row in baseline.pairings
+                   if row.converter_zone_id == "F1-z3")
+    removed = set(pairing.facts_edge_ids)
+    raw = signed.model_dump(mode="json")
+    for view in raw["views"]:
+        view["boundary_edges"] = [
+            edge for edge in view["boundary_edges"] if edge["id"] not in removed]
+
+    audit = reconcile_boundary_basis(AsSignedV1.model_validate(raw), report)
+    assert audit.paired_edges == 96
+    assert (audit.accounted_converter_zones, audit.converter_zones) == (29, 29)
+    assert audit.structural_failures == [
+        f"facts_boundary_ring_missing:plan-F1:{pairing.cavity_id}:converter=F1-z3"]
+    _assert_structural_red(audit, "facts_boundary_ring_missing:plan-F1")
+
+
+def test_rework_e4_all_boundary_facts_empty_is_never_zero_comparisons_green():
+    _measured, _ledger, signed, _request, report = _real_inputs()
+    raw = signed.model_dump(mode="json")
+    for view in raw["views"]:
+        view["boundary_edges"] = []
+
+    audit = reconcile_boundary_basis(AsSignedV1.model_validate(raw), report)
+    assert audit.paired_edges == 0
+    assert (audit.accounted_converter_zones, audit.converter_zones) == (29, 29)
+    assert sum(item.startswith("facts_boundary_edges_empty:")
+               for item in audit.structural_failures) == 2
+    assert sum(item.startswith("facts_boundary_ring_missing:")
+               for item in audit.structural_failures) == 25
+    assert not any(item.startswith("converter_zone_unclaimed_by_facts:")
+                   for item in audit.structural_failures)
+    _assert_structural_red(audit, "facts_boundary_edges_empty:plan-F1")
+
+
+def test_rework_e2c_converter_zone_fifty_metres_outside_all_facts_is_named():
+    _measured, _ledger, signed, _request, report = _real_inputs()
+    report_raw = report.model_dump(mode="python")
+    phantom = deepcopy(next(zone for zone in report_raw["zones"]
+                            if zone["zone_id"] == "F1-z3"))
+    phantom["zone_id"] = "F1-phantom-50m"
+    phantom["name"] = "phantom-50m"
+    for edge in phantom["edges"]:
+        edge["p1"] = [edge["p1"][0] + 50.0, edge["p1"][1] + 50.0]
+        edge["p2"] = [edge["p2"][0] + 50.0, edge["p2"][1] + 50.0]
+    phantom["polygon_m"]["exterior"]["vertices"] = [
+        [point[0] + 50.0, point[1] + 50.0]
+        for point in phantom["polygon_m"]["exterior"]["vertices"]]
+    phantom["seed_point_world_m"] = [
+        phantom["seed_point_world_m"][0] + 50.0,
+        phantom["seed_point_world_m"][1] + 50.0,
+    ]
+    report_raw["zones"].append(phantom)
+
+    audit = reconcile_boundary_basis(
+        signed, ConversionReportV1.model_validate(report_raw))
+    assert audit.paired_edges == 100
+    assert (audit.accounted_converter_zones, audit.converter_zones) == (29, 30)
+    assert audit.structural_failures == [
+        "converter_zone_facts_cavity_pairing_not_unique:"
+        "plan-F1:F1-phantom-50m:[]",
+        "converter_zone_unclaimed_by_facts:F1:F1-phantom-50m",
+    ]
+    _assert_structural_red(
+        audit, "converter_zone_unclaimed_by_facts:F1:F1-phantom-50m")
+
+
+def test_rework_real_sm25_two_metre_footprint_vertex_spike_reddens_the_lost_view():
+    """Acceptance 3: real sm25 geometry, not a hand-cleared edge list."""
+    _measured, _ledger, signed, request, report = _real_inputs()
+    raw = signed.model_dump(mode="json")
+    plan_f1 = next(view for view in raw["views"]
+                   if view["view_id"] == "plan-F1")
+    exterior = next(ring for ring in plan_f1["footprint"]["rings"]
+                    if ring["kind"] == "exterior")
+    vertex = exterior["points"].index([50_000, 40_000])
+    exterior["points"][vertex] = [50_000, 60_000]  # +20,000 units = +2 m
+    for view in raw["views"]:
+        measured_view = AsMeasuredViewV1.model_validate(view)
+        view["boundary_edges"] = [
+            edge.model_dump(mode="json") for edge in derive_boundary_edges(
+                measured_view, min_room_area_m2=request.min_room_area_m2)]
+
+    perturbed = AsSignedV1.model_validate(raw)
+    assert {view.view_id: len(view.boundary_edges) for view in perturbed.views} == {
+        "plan-F1": 0, "plan-F2": 56}
+    audit = reconcile_boundary_basis(perturbed, report)
+    assert audit.paired_edges == 56
+    assert (audit.accounted_converter_zones, audit.converter_zones) == (15, 29)
+    assert all("plan-F2" not in item for item in audit.structural_failures)
+    _assert_structural_red(
+        audit, "facts_boundary_footprint_unusable:plan-F1")
+
+
+def test_rework_e4_multi_exterior_branch_has_an_explicit_synthetic_lock():
+    """The corpus has zero real multi-exterior stock; this fixture is synthetic."""
+    _measured, _ledger, signed, request, report = _real_inputs()
+    raw = signed.model_dump(mode="json")
+    plan_f1 = next(view for view in raw["views"]
+                   if view["view_id"] == "plan-F1")
+    exterior = deepcopy(next(ring for ring in plan_f1["footprint"]["rings"]
+                             if ring["kind"] == "exterior"))
+    exterior["polygon_index"] = 1
+    exterior["points"] = [[x + 500_000, y] for x, y in exterior["points"]]
+    plan_f1["footprint"]["rings"].append(exterior)
+    measured_view = AsMeasuredViewV1.model_validate(plan_f1)
+    plan_f1["boundary_edges"] = [
+        edge.model_dump(mode="json") for edge in derive_boundary_edges(
+            measured_view, min_room_area_m2=request.min_room_area_m2)]
+    assert plan_f1["boundary_edges"] == []
+
+    audit = reconcile_boundary_basis(AsSignedV1.model_validate(raw), report)
+    assert audit.paired_edges == 56
+    _assert_structural_red(
+        audit, "answer_compiler_requires_one_exterior_ring:plan-F1:2")
 
 
 def test_r3_synthetic_supply_measures_unclaimed_void_and_unknown():
