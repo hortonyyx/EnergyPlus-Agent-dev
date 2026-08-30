@@ -93,6 +93,13 @@
 
 #### 债 / 小单（不占主线工期）
 
+⭐ **新登记「明确不做」**（2026-08-30，GLM 判 B5 最小集时给的）：**②-2 模块 7 的收窄工程**
+（`vector_contract.py` 的 `CONSUME`→`ADAPT` 重命名 + 目录 ledger 重排）—— 过 §0.1 判断法则：
+**不做它跑测照常**（现有 `CONSUME` 语义上 = ADAPT-to-legacy-adapter，键名不换不跑偏）。
+⛔ **例外的一片属【甲】、必须做**：`as_drawn_plan` 的 disposition 从 `KNOWN_NOT_CONSUMED`
+改为指向新 adapter —— **一行注册**，是模块 3 生效的前提，⛔ 不是收窄工程。
+欠账 = 将来做收窄时要补「跑测读数不因键名变化失配」的一次核对。
+
 **D-2** 装机路径根治（⚠️ 摘 `.pth` 须排在 G1/F-97 落地后，共享环境会撞车）· **D-3** 判分缓存版本改派生摘要 ·
 **D-1** 双份代码限期退役 · GLM 七条不阻断 findings（含「locator 不在 catalog」分支错命名 + 零锁）·
 **F-105** reading 侧 NA detail 语义变了但 helper 版本没提 · `scripts/*.sh` 缺可执行位（登记不改）。
@@ -283,10 +290,47 @@ as-drawn 产 `observations.face_lines`/`hypotheses` —— **两套 schema 完�
 > ⇒ **结论不变，代价比它自己的复现更重**。⭐ 教训：**「自己挑的破坏方式挑不出自己的盲区」对复核方一样成立** ——
 > 它结论对、探针不对；我的义务是**换个探针再判**，⛔ 不是拿一次复现失败去驳它。
 
-### 一之二、⏳ 在飞：②-2 设计稿跨家族审（GLM，串行第二审）
+### 一之二、⛔ ②-2 设计稿判 **REWORK / 阻断 1 / 不阻断 9** ⇒ ⏳ 已退回 GPT 返工
 
-[请求书](logs/reviews/request/2026-08-30_o22_design_crossreview_glm.md)（**六个攻击面**，
-⭐ 第一刀砍「文字有没有跑在实现前面」·B5 要**一份能今天开工的最小集**）。基线 `ea19582`。
+[请求书](logs/reviews/request/2026-08-30_o22_design_crossreview_glm.md) ·
+[裁决](logs/reviews/verdict/2026-08-30_o22_design_crossreview_glm.md) ·
+[返工单](logs/reviews/request/2026-08-30_o22_design_rework_gpt.md)（用户 2026-08-30 拍板「退回 GPT 返工」）。
+
+> ⭐ **设计主体没被推翻** —— 裁决原文：「三块正交契约、统一证据包、三拍协议、迁移纪律、验收矩阵
+> **逐面审下来无一被推翻**，B1 主腿被它自己的设计堵住，B6 六问全答。」
+
+**⛔ 阻断 B-1 = GPT 点名要 GLM 攻的那条「静默中线腿」，被 GLM 在【GPT 自己的 §6.1】里找到了。**
+机制：`basis=unknown` 且**无厚度**时，±t 偏移候选**无 t 可用** ⇒ 候选集只剩 `{identity}`；
+而 §6.1 写着「硬约束筛后**只剩一个候选** ⇒ 自动执行并记账」
+⇒ **外皮线静默当中线、账面 `auto_action` 齐全看似合规**。
+稿子现有的话堵不住：§5.2 只禁「因 **prompt** 曾要求中线」这个**理由**，没禁「因唯一候选」；
+「unknown 必须开项」与「唯一候选自动执行」两行**无优先序**，在最典型输入上给出**相反指令**；
+§9.2 那条锁测的是 **adapter 层**，**executor 层零覆盖**。
+**修法一句话级**（硬不变量第 9 条**两半** + `test_unknown_basis_item_is_never_auto_resolved`）。
+
+> ⭐⭐ **主控独立复核，触发面比裁决书说的更宽**：f9 那份真实产物里
+> **10 条 `pen=="wall"` 笔画的 `geometry.thickness_m` 全是 `None`**（⛔ 不只外墙 4 条），
+> 且**同一份产物** S1–S4 的 note 明写「外皮线」、S5–S10 明写「中线」
+> ⇒ **它同时具备触发条件与混合基准**，照稿施工四条外墙会静默变中线。
+> ⭐ 与 ②-1a 的 **33 条虚构墙**同族：**没有一个数是伪造的，但结论是凭空的。**
+
+**⭐ B5 我要的「能今天开工的最小集」它给了**：**6 个模块 + `vector_contract` 一行注册**
+（砍掉的不是第 7 个模块，是**模块 7 的收窄工程**）⇒ 见下方「债 / 小单」。
+
+**九条不阻断已进返工单逐条给处置口径**；其中 **NF-8** 坐实了我请求书 §三 点名的那条缝
+（`ResolvedWallV1.output_basis` **只有名字没有值域**，而判分侧已有
+`basis: Literal["wall_axis","outer_skin"]`（[`answer_compiler.py:110`](../src/agent/judge/answer_compiler.py#L110)）⇒ 两套词表无对齐人）。
+
+### 一之三、⚠️ 我方本轮实犯（**两条，都是复核方当场纠正**）
+
+1. **A6.2 机制表述问错** —— 我写「删 allowlist 条目 ⇒ 受影响子集半径缩小」，
+   实测 **allowlist 在 `affected_tests` 的选择逻辑里零消费**（删前删后子集**一字不差**）。
+   正确问法 = 「`reading_grade` 的覆盖到底是什么」⇒ 已登记 **F-151**。
+2. **B2.1 问法判窄** —— 我把选项写成「重新感知 or 暗设默认」二选一，
+   **漏了 profile 分档这个第三态**；且**第三条路真的存在** = **墙级定向再感知**
+   （`reperception_required` 已在框架内，只缺粒度；成本 O(unknown 墙数)）⇒ 已写进返工单 NF-2 要求采纳。
+
+⇒ ⭐ 两条都不是「量错了」，是**问法**错。同族 [[dispatch-options-list-is-itself-a-hidden-premise]]。
 
 送审对象 `407fa44` / 基线 `88ea056` · 请求书
 [`2026-08-30_o21c_crossreview_glm.md`](logs/reviews/request/2026-08-30_o21c_crossreview_glm.md)（**六个攻击面**）。
