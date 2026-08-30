@@ -257,6 +257,59 @@ as-drawn 产 `observations.face_lines`/`hypotheses` —— **两套 schema 完�
 
 ---
 
+## 2026-08-30 夜（**本轮 · 进行中**）· 交换审两份 GPT 产物
+
+**一句话**：按 08-30 收工 banner 的「下轮第一件事」执行 —— 两份 GPT 产物送 GLM 交换审；
+用户拍板**串行（先代码后设计稿）** + 主控这轮**只做不碰代码的活**。
+⭐ 送审前主控自己量出**四条线索**，全部写进请求书（⛔ 都是线索不是裁决，等 GLM 独立复核）。
+
+### 一、⏳ 在飞：②-1c 跨家族审（GLM）
+
+送审对象 `407fa44` / 基线 `88ea056` · 请求书
+[`2026-08-30_o21c_crossreview_glm.md`](logs/reviews/request/2026-08-30_o21c_crossreview_glm.md)（**六个攻击面**）。
+席位按 `/proc/<pid>/environ` 认过 —— **恰好 1 个 GLM**（⛔ 不用 `pgrep -f`，它会匹配到我自己那条命令）。
+
+### 二、⭐⭐⭐ 主控送审前自量的四条线索
+
+| # | 线索 | 实测 |
+|---|---|---|
+| **1** | ⭐⭐⭐ **「出口全检」的信任根是空的** | `verify_as_signed_reproduction`（[`gt_revisions.py:634`](../src/agent/judge/gt_revisions.py#L634)）**只验内部自洽** = `as_signed == derive(as_measured, revisions)`，**不读任何外部锚** ⇒ 三件套一起改成自洽的应能全绿放行。⭐ 与 sol 返工条 ①「外部获授权指纹锚」**仍标 ⛔ 未做**互相印证 ⇒ 要判的是**本单的文字有没有把它说成已经做了** |
+| **2** | ⭐⭐⭐ **那道门今天走不到** | 答案根 `case_tests/test_baseline/gt/` 底下**零个 `facts/` 目录** ⇒ 每一次真实调用都走 [`answer_compiler.py:1030-1031`](../src/agent/judge/answer_compiler.py#L1030) 的 staging 回退；三条锁全靠 `monkeypatch REPO_ROOT` + 合成三件套 ⇒ [[two-kinds-of-latency-no-ruler-vs-never-reached]] 的「没跑到那一段」|
+| **3** | ⭐⭐⭐ **验收 2 那道门疑似零存货** | 真实 `gt_staging/sm25-L_anchor/facts/as_signed.json` 里**键名含 `basis` 的字段 = 0 个**（递归全量扫）⇒ [`test_..._does_not_read_any_stored_basis_shaped_value`](../tests/test_answer_compiler_profiles.py#L101) 的 scrub 在真实数据上是 **no-op**，两次编译的唯一差别**是测试自己刚种进去的一个 diagnostics blob** ⇒ 同族 [[gate-teeth-direction-follows-fixture-inventory]] |
+| **4** | ⭐⭐ **设计稿自报的风险，实测是 100%** | 历史 `0_reading/*_view.json` **327 份 / 3353 条 stroke / `pen=="wall"` 1240 条 / 声明了基准的 0 条** ⇒ 按设计稿 §8.3 的迁移纪律（⛔ 禁解析 note、⛔ 禁 `unknown→centerline`），**1240 条 100% 落进 `basis=unknown`** |
+
+### 三、⭐⭐ 新量到的：`boundary_condition` 四档有**两档零存货**
+
+sm25（**今天唯一有事实层的 case**）两个 profile 读数逐位相同：
+```
+已投影 edge = 100 · exterior 32 · interzone 68 · unclaimed_void 0 · unknown 0 · 无 edge 的 ring（NA）= 4
+```
+⇒ **schema 承诺四档、真实数据只行使两档**；依赖闭包规则 5 靠 monkeypatch **强制** `unclaimed_void`，
+`unknown` 那条腿在真实数据上**一次都没触发过**。⇒ 已写进 ②-1d 草稿的 R3。
+
+### 四、⭐⭐⭐ 一条**猜错并当场撤回**的推理（⛔ 别继承）
+
+写 ②-1d 单前我猜：「编译器自己重判 = 把恒等映射换个实现位置」。**查了代码，猜错了**——两个谓词不是同一个：
+
+| | 转换器 `basis`（[`tarch_normalize.py:1804`](../src/agent/judge/tarch_normalize.py#L1804)）| 编译器 `boundary_condition`（[`answer_compiler.py:747`](../src/agent/judge/answer_compiler.py#L747)）|
+|---|---|---|
+| 出射点 | `mid + n × thickness_native` | `farthest_face + outward` |
+| 判据 | 到 footprint **外环的距离** ≤ `node_join_native`（**带容差**）| **不被 footprint covers 且不被 wall_region covers**（**零容差**）|
+| 值域 | 2 档 | 4 档（多 `interzone` 的 cavity 归属与 `unclaimed_void`）|
+
+⇒ ⭐ **它们可以不一致，而今天没有任何东西在比它们** —— 这才是 F-121 要的那根独立第二列
+⇒ ②-1d 的真正产出 = **对账门**（⛔ 不许让任何一方服从另一方）。
+⚠️ 另：**F-121 登记里引的 `tarch_normalize.py:1023-1029,1456-1463` 两处行号已失效**（文件自 08-28 被动过三次），
+已在 ②-1d 草稿 §一.1 按锚点更正 ⇒ 同族 [[line-numbers-from-diff-output-are-not-file-lines]]。
+
+### 五、⏭ 本轮排程
+
+`②-1c 审（在飞）` → `②-2 设计稿审（GLM，同一席位串行）` → 两份裁决落地 → **②-1d 定稿并发**
+（草稿已出 → [`2026-08-30_o21d_boundary_condition_dispatch.md`](logs/reviews/request/2026-08-30_o21d_boundary_condition_dispatch.md)，
+⛔ **未发**，基线待 ②-1c 裁决后重取）→ ②-2 施工。
+
+---
+
 ## 2026-08-28/29（跨日一轮 · **第 ② 步开工** · 提交 `08.28a`…`08.29f`）
 
 > ⚠️ **会话内日期从 08-28 滚到 08-29**，故提交号跨两天但是同一轮。

@@ -4,6 +4,13 @@
 - ⭐ **送审对象** = 一份**设计稿**（⛔ 不是代码）→
   [`../verdict/2026-08-30_o22_evidence_contract_gpt_design.md`](../verdict/2026-08-30_o22_evidence_contract_gpt_design.md)
 - **原派工单** → [`2026-08-30_o22_evidence_contract_design_gpt.md`](2026-08-30_o22_evidence_contract_design_gpt.md)
+- ⭐ **你刚审完 ②-1c**（同一家族、**新会话所以不记得**）——裁决书在
+  [`../verdict/2026-08-30_o21c_crossreview_glm.md`](../verdict/2026-08-30_o21c_crossreview_glm.md)，
+  **APPROVE-WITH-FINDINGS / 阻断 0 / 不阻断 7**。本单 §三 最后那条缝（出模两形式 ↔ `ResolvedWallV1.output_basis`）
+  请把它当**同一条线**来判。⭐ 另：你那份裁决的 **NF-1 主控已独立复核 —— 结论成立，且比你的复现更严重**
+  （你用的那个改一面的扰动会把墙压坏 ⇒ 编译成 NA，所以 `58800→59150` 我这边复现不出来；
+  换成**整堵墙平移、厚度不变**的合法伪造 ⇒ 出口全检 GREEN、答案 **58800→58100**，
+  **无 NA、无诊断、坐标干净地流进答案**）。⇒ 结论不变，严重性上调。
 - **工作树**：`08.23_AsDrawnReading` @ `422c627`（设计稿自述其复核点是 `c7c17b4`；代码面在这两个 commit 之间没变）
 
 ---
