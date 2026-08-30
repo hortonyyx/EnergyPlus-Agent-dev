@@ -14,7 +14,6 @@ from src.agent.judge.answer_compiler import (
     _support_vertices,
     read_facts_for_compilation,
 )
-from src.agent.judge.gt_revisions import AsSignedV1
 from src.agent.judge.tarch_converter_schema import TarchConversionRequestV1
 from tests.answer_compiler_fixtures import synthetic_signed_facts
 
@@ -96,31 +95,6 @@ def test_1b_real_sm25_reproduces_every_projectable_form_b_zone_and_names_unsigne
             assert set(map(tuple, zone.vertices)) == expected_vertices
             checked += 1
     assert checked == 25
-
-
-def test_compiler_does_not_read_any_stored_basis_shaped_value():
-    _measured, ledger, signed, request = synthetic_signed_facts()
-    raw = signed.model_dump(mode="json")
-    raw["views"][0]["converter_readouts"]["diagnostics"] = [{
-        "code": "synthetic_ignored_metadata", "severity": "INFO",
-        "stage": "test", "action_code": "none", "handles": [],
-        "points_dxf_mm": [],
-        "context": {"basis": "outer_skin", "edge_basis": "wall_axis"},
-    }]
-    with_basis = AsSignedV1.model_validate(raw)
-
-    def scrub(value):
-        if isinstance(value, dict):
-            return {key: scrub(item) for key, item in value.items()
-                    if "basis" not in key.lower()}
-        if isinstance(value, list):
-            return [scrub(item) for item in value]
-        return value
-
-    without_basis = AsSignedV1.model_validate(scrub(raw))
-    compiler = AnswerCompiler(OutputProfile.FORM_B_EXTERIOR_SKIN)
-    assert (compiler.compile(with_basis, ledger, request).model_dump(mode="json")
-            == compiler.compile(without_basis, ledger, request).model_dump(mode="json"))
 
 
 def test_6a_axis_profile_deduplicates_a_collapsed_step_and_counterfactual_is_red():

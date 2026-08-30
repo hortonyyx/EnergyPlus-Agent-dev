@@ -12,6 +12,7 @@ from src.agent.judge.as_measured import (
     AsMeasuredViewV1,
     AsMeasuredWallV1,
     content_sha256,
+    derive_boundary_edges,
 )
 from src.agent.judge.gt_revisions import (
     AsSignedV1,
@@ -126,6 +127,13 @@ def synthetic_signed_facts() -> tuple[
                 points=[[0, 0], [100000, 0], [100000, 60000],
                         [0, 60000], [0, 0]])]),
         converter_readouts=readouts)
+    view = AsMeasuredViewV1.model_validate({
+        **view.model_dump(mode="json"),
+        "boundary_edges": [edge.model_dump(mode="json") for edge in
+                           derive_boundary_edges(
+                               view,
+                               min_room_area_m2=float(request.min_room_area_m2))],
+    })
     measured = AsMeasuredV1(
         case=request.case, source_dxf_label=request.source_dxf_label,
         source_dxf_sha256=request.source_dxf_sha256,

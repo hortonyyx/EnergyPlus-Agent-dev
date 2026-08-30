@@ -28,6 +28,7 @@ def _assert_na_zone_has_no_coordinate_payload(zone):
 
 def _without_partition(signed: AsSignedV1) -> AsSignedV1:
     view = signed.views[0].model_dump(mode="json")
+    view["boundary_edges"] = []
     view["walls"] = [wall for wall in view["walls"] if wall["id"] != "wall-partition"]
     view["converter_readouts"]["face_lines_not_paired_into_a_wall"] = ["A9", "AA"]
     return replace_signed_view(signed, view)
@@ -57,6 +58,7 @@ def test_rule_2_uncertain_junction_invalidates_every_incident_segment_and_ring()
     # support-line intersection invariant has no answer.
     view["footprint"]["rings"][0]["points"] = [
         [0, 0], [100000, 0], [99000, 60000], [0, 60000], [0, 0]]
+    view["boundary_edges"] = []
     # Remove the east strip so the right cavity actually reaches that diagonal
     # boundary; otherwise the strip masks it and the fixture has no stock.
     view["walls"] = [wall for wall in view["walls"] if wall["id"] != "wall-east"]
@@ -116,6 +118,9 @@ def test_rule_4_ambiguous_opening_is_local_and_does_not_kill_zones_or_outline():
 
 def test_rule_5_boundary_unknown_is_profile_sensitive_axis_green_exterior_na(monkeypatch):
     _measured, ledger, signed, request = synthetic_signed_facts()
+    raw = signed.model_dump(mode="json")
+    raw["views"][0]["boundary_edges"] = []
+    signed = AsSignedV1.model_validate(raw)
     original = ac._classify_boundary
 
     def unknown(*args, **kwargs):

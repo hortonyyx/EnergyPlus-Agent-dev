@@ -7,7 +7,7 @@
 ⛔ WHAT IT IS NOT: an answer.  Nothing here is projected, expanded, or given a
 modelling ``basis``; ⛔ this file does not know what an outer skin is.
 
-## Three things it deliberately does NOT store (dispatch ②-1a R2)
+## Projection choices it deliberately does NOT store
 
 1. ``basis`` -- axis vs outer-skin is a CHOICE MADE WHEN COMPILING AN ANSWER
    (guide §十.6b), not something a drawing can be measured for.  ⇒ ②-1c.
@@ -17,7 +17,9 @@ modelling ``basis``; ⛔ this file does not know what an outer skin is.
    already 0.060-0.339 m outside their claimed cavity).  Copying them in would
    be a semantic reverse-migration, and any compiler then validated against
    them would only replay the producer's own choice.
-3. ``boundary_condition`` (interior/exterior identity) -- ⇒ ②-1d.
+``boundary_condition`` is now a first-class, cavity-side edge fact (②-1d).
+It is derived before any answer-profile offset is selected and independently
+rechecked by the answer compiler; it is not copied from stored ``basis``.
 
 ⭐ Consequently the source of every field here is **P1 (S0-S4)**, i.e.
 ``run_p1_plan_view``, and ⛔ never S5-S7.  ``test_as_measured_facts_layer.py``
@@ -85,10 +87,12 @@ Every geometric number below is ``int``; ⛔ there is no float in the document
 outside ``converter_readouts``, where the converter's own records ride out
 VERBATIM (see below).  ``test_as_measured_facts_layer.py`` asserts exactly that.
 
-## ⛔ Nothing is re-derived from the drawing
+## ⛔ Nothing is silently re-measured from the drawing
 
-Everything is either copied from ``P1PlanViewGeometry`` or is a unit conversion
-of something copied from it.  The 2026-08-29 lesson (the converter had already
+The measured geometry is either copied from ``P1PlanViewGeometry`` or is a unit
+conversion of something copied from it.  Boundary conditions are a named
+topological derivation over those stored integers, with an independent
+compiler-side recomputation.  The 2026-08-29 lesson (the converter had already
 computed the readouts and the consumer dropped them on the floor) is why
 ``dangles`` / ``cuts`` / ``invalid`` / ``diagnostics`` / ``gates`` are carried
 through untouched, ⛔ never recomputed.
@@ -110,10 +114,13 @@ import hashlib
 import json
 import shutil
 import tempfile
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Literal
 
 from pydantic import Field, model_validator
+from shapely.geometry import Point, Polygon
+from shapely.ops import unary_union
 
 from .gt_manifest import Affine2D, load_gt_tooling_config
 from .gt_schema import (REPO_ROOT, DxfHandle, Hex64, HumanLabel, StableId,
@@ -307,6 +314,71 @@ class AsMeasuredFootprintV1(_StrictModel):
     rings: list[AsMeasuredRingV1] = Field(default_factory=list)
 
 
+class BoundaryConditionEvidenceV1(_StrictModel):
+    """Projection-free evidence for one cavity-side boundary decision.
+
+    Coordinates use the facts document's 0.1 mm integer grid.  ``exit_point``
+    is a classifier witness only: no output-profile support line or expanded
+    corner is stored here.  Near/far handles make the two wall faces explicit
+    instead of asking a consumer to recover them by list position.
+    """
+
+    method: Literal["facts_geometry_ray_exit_v1"] = "facts_geometry_ray_exit_v1"
+    raw_face_const: int
+    opposite_face_const: int
+    thickness_units: StrictNonNegativeInt
+    outward_normal: list[int] = Field(min_length=2, max_length=2)
+    exit_point: list[int] = Field(min_length=2, max_length=2)
+    footprint_ring_id: StableId
+    footprint_edge_id: StableId | None = None
+    footprint_edge_points: list[list[int]] | None = None
+    adjacent_cavity_id: StableId | None = None
+    cavity_side_face_line_ids: list[DxfHandle] = Field(min_length=1)
+    far_side_face_line_ids: list[DxfHandle] = Field(min_length=1)
+
+    @model_validator(mode="after")
+    def _positive_thickness_and_point_pairs(self):
+        if self.thickness_units <= 0:
+            raise ValueError("as_measured_boundary_thickness_not_positive")
+        if (self.footprint_edge_points is not None
+                and (len(self.footprint_edge_points) != 2
+                     or any(len(point) != 2 for point in self.footprint_edge_points))):
+            raise ValueError("as_measured_boundary_footprint_edge_not_two_points")
+        return self
+
+
+class AsMeasuredBoundaryEdgeV1(_StrictModel):
+    """One logical cavity-side edge before any profile chooses an offset."""
+
+    id: StableId
+    cavity_id: StableId
+    sequence: StrictNonNegativeInt
+    axis: Literal["x", "y"]
+    cavity_const: int
+    span_lo: int
+    span_hi: int
+    side: Literal[-1, 1]
+    p1: list[int] = Field(min_length=2, max_length=2)
+    p2: list[int] = Field(min_length=2, max_length=2)
+    wall_ids: list[StableId] = Field(min_length=1)
+    face_line_handles: list[DxfHandle] = Field(min_length=1)
+    boundary_condition: Literal[
+        "exterior", "interzone", "unclaimed_void", "unknown"]
+    evidence: BoundaryConditionEvidenceV1
+
+    @model_validator(mode="after")
+    def _geometry_and_evidence_agree(self):
+        if self.span_lo >= self.span_hi or self.p1 == self.p2:
+            raise ValueError("as_measured_boundary_edge_degenerate")
+        if any(len(point) != 2 for point in (self.p1, self.p2)):
+            raise ValueError("as_measured_boundary_edge_point_not_a_pair")
+        expected_normal = ([self.side * -1, 0] if self.axis == "y"
+                           else [0, self.side * -1])
+        if self.evidence.outward_normal != expected_normal:
+            raise ValueError("as_measured_boundary_outward_normal_disagrees_with_side")
+        return self
+
+
 class AsMeasuredNonOrthogonalLineV1(_StrictModel):
     """A collected stroke that is neither horizontal nor vertical.
 
@@ -471,6 +543,10 @@ class AsMeasuredViewV1(_StrictModel):
     walls: list[AsMeasuredWallV1] = Field(default_factory=list)
     openings: list[AsMeasuredOpeningV1] = Field(default_factory=list)
     footprint: AsMeasuredFootprintV1
+    #: ②-1d: logical cavity-side edges, classified before profile projection.
+    #: Empty remains schema-valid so an older/stripped facts document can be
+    #: independently recomputed by AnswerCompiler (dispatch acceptance #5).
+    boundary_edges: list[AsMeasuredBoundaryEdgeV1] = Field(default_factory=list)
     converter_readouts: AsMeasuredConverterReadoutsV1
 
     @model_validator(mode="after")
@@ -565,6 +641,18 @@ class AsMeasuredViewV1(_StrictModel):
                 "as_measured_face_line_consumption_ledger_broken: "
                 f"unaccounted={sorted(known - accounted)} "
                 f"not_a_face_line={sorted(accounted - known)}")
+        boundary_ids = [edge.id for edge in self.boundary_edges]
+        if len(boundary_ids) != len(set(boundary_ids)):
+            raise ValueError("as_measured_boundary_edge_id_not_unique")
+        for edge in self.boundary_edges:
+            dangling_walls = sorted(set(edge.wall_ids) - wall_ids)
+            dangling_faces = sorted(set(edge.face_line_handles) - known)
+            if dangling_walls:
+                raise ValueError(
+                    f"as_measured_boundary_edge_dangling_walls:{edge.id}:{dangling_walls}")
+            if dangling_faces:
+                raise ValueError(
+                    f"as_measured_boundary_edge_dangling_faces:{edge.id}:{dangling_faces}")
         return self
 
 
@@ -968,6 +1056,421 @@ def _split_const_groups(targets: list[dict],
     return out
 
 
+# --------------------------------------------------------------------------- #
+# ②-1d boundary-condition facts -- deliberately independent of AnswerCompiler
+# --------------------------------------------------------------------------- #
+@dataclass(frozen=True)
+class _BoundaryWallGroup:
+    axis: Literal["x", "y"]
+    face_lo: int
+    face_hi: int
+    runs: tuple[AsMeasuredWallV1, ...]
+    openings: tuple[AsMeasuredOpeningV1, ...]
+
+    @property
+    def key(self) -> tuple[str, int, int]:
+        return self.axis, self.face_lo, self.face_hi
+
+    @property
+    def wall_ids(self) -> list[str]:
+        return sorted(wall.id for wall in self.runs)
+
+    @property
+    def face_line_handles(self) -> list[str]:
+        return sorted({handle for wall in self.runs
+                       for handle in (*wall.face_line_ids_lo,
+                                      *wall.face_line_ids_hi)})
+
+    def coverage(self) -> list[tuple[int, int]]:
+        return ([(wall.along_min, wall.along_max) for wall in self.runs]
+                + [(opening.along_min, opening.along_max)
+                   for opening in self.openings])
+
+    def handles(self, side: Literal["lo", "hi"]) -> list[str]:
+        return sorted({handle for wall in self.runs
+                       for handle in (wall.face_line_ids_lo if side == "lo"
+                                      else wall.face_line_ids_hi)})
+
+
+@dataclass
+class _BoundarySpan:
+    axis: Literal["x", "y"]
+    cavity_const: int
+    lo: int
+    hi: int
+    side: Literal[-1, 1]
+    p1: tuple[int, int]
+    p2: tuple[int, int]
+    group: _BoundaryWallGroup
+    boundary_condition: str
+
+
+def _boundary_opaque_id(prefix: str, *parts: object) -> str:
+    payload = "|".join(str(part) for part in parts).encode("utf-8")
+    return f"{prefix}:{hashlib.sha256(payload).hexdigest()[:16]}"
+
+
+def _boundary_wall_groups(view: AsMeasuredViewV1) -> dict[
+        tuple[str, int, int], _BoundaryWallGroup]:
+    grouped: dict[tuple[str, int, int], list[AsMeasuredWallV1]] = {}
+    for wall in view.walls:
+        grouped.setdefault((wall.axis, wall.face_lo, wall.face_hi), []).append(wall)
+    by_wall_id = {wall.id: wall for wall in view.walls}
+    opening_groups: dict[tuple[str, int, int], list[AsMeasuredOpeningV1]] = {}
+    for opening in view.openings:
+        keys = {
+            (by_wall_id[wall_id].axis, by_wall_id[wall_id].face_lo,
+             by_wall_id[wall_id].face_hi)
+            for wall_id in opening.carrier_wall_ids if wall_id in by_wall_id}
+        geometric_key = (opening.axis, opening.cross_lo, opening.cross_hi)
+        if geometric_key in grouped:
+            keys.add(geometric_key)
+        for key in keys:
+            opening_groups.setdefault(key, []).append(opening)
+    result = {}
+    for key, runs in grouped.items():
+        result[key] = _BoundaryWallGroup(
+            axis=key[0], face_lo=key[1], face_hi=key[2],
+            runs=tuple(sorted(
+                runs, key=lambda wall: (wall.along_min, wall.along_max, wall.id))),
+            openings=tuple(sorted(
+                {opening.id: opening
+                 for opening in opening_groups.get(key, [])}.values(),
+                key=lambda opening: (
+                    opening.along_min, opening.along_max, opening.id))))
+    return result
+
+
+def _boundary_band_rectangle(axis: str, face_lo: int, face_hi: int,
+                             along_lo: int, along_hi: int) -> Polygon:
+    if axis == "x":
+        return Polygon([(along_lo, face_lo), (along_hi, face_lo),
+                        (along_hi, face_hi), (along_lo, face_hi)])
+    return Polygon([(face_lo, along_lo), (face_lo, along_hi),
+                    (face_hi, along_hi), (face_hi, along_lo)])
+
+
+def _boundary_wall_region(view: AsMeasuredViewV1) -> Any:
+    rectangles = [_boundary_band_rectangle(
+        wall.axis, wall.face_lo, wall.face_hi, wall.along_min, wall.along_max)
+        for wall in view.walls]
+    rectangles.extend(_boundary_band_rectangle(
+        opening.axis, opening.cross_lo, opening.cross_hi,
+        opening.along_min, opening.along_max) for opening in view.openings)
+    return unary_union(rectangles) if rectangles else Polygon()
+
+
+def _boundary_footprint(view: AsMeasuredViewV1
+                        ) -> tuple[Polygon, list[tuple[str, list[list[int]]]]]:
+    exterior = [ring for ring in view.footprint.rings if ring.kind == "exterior"]
+    if len(exterior) != 1:
+        return Polygon(), []
+    ext = exterior[0]
+    holes = [ring.points for ring in view.footprint.rings
+             if ring.kind == "interior" and ring.polygon_index == ext.polygon_index]
+    polygon = Polygon(ext.points, holes=holes)
+    if polygon.is_empty or not polygon.is_valid:
+        return Polygon(), []
+    ring_id = f"footprint:{view.view_id}:ring:{ext.polygon_index}"
+    return polygon, [(ring_id, ext.points)]
+
+
+def _boundary_cavity_id(view_id: str, cavity: Polygon) -> str:
+    bounds = tuple(round(value, 6) for value in cavity.bounds)
+    return _boundary_opaque_id("cavity", view_id, *bounds, round(cavity.area, 3))
+
+
+def _boundary_owners(groups: dict[tuple[str, int, int], _BoundaryWallGroup],
+                     axis: str, const: int, lo: int,
+                     hi: int) -> list[_BoundaryWallGroup]:
+    found = []
+    for group in groups.values():
+        if group.axis != axis or const not in (group.face_lo, group.face_hi):
+            continue
+        if any(min(hi, end) - max(lo, start) > 0
+               for start, end in group.coverage()):
+            found.append(group)
+    return sorted(found, key=lambda group: (group.key, group.wall_ids))
+
+
+def _boundary_ray_witness(
+        axis: str, start_const: int, exit_const: int, mid_along: int,
+        ring_records: list[tuple[str, list[list[int]]]],
+        ) -> tuple[str, str, list[list[int]]] | None:
+    low, high = sorted((start_const, exit_const))
+    for ring_id, points in ring_records:
+        ring = points[:-1] if len(points) > 1 and points[0] == points[-1] else points
+        for index, (a, b) in enumerate(zip(ring, ring[1:] + ring[:1])):
+            if axis == "y" and a[0] == b[0]:
+                const, along_lo, along_hi = a[0], min(a[1], b[1]), max(a[1], b[1])
+            elif axis == "x" and a[1] == b[1]:
+                const, along_lo, along_hi = a[1], min(a[0], b[0]), max(a[0], b[0])
+            else:
+                continue
+            if low <= const <= high and along_lo <= mid_along <= along_hi:
+                return ring_id, f"{ring_id}:edge:{index}", [list(a), list(b)]
+    return None
+
+
+def _classify_boundary_fact(
+        span: _BoundarySpan, raw_near: int, raw_far: int,
+        footprint: Polygon, ring_records: list[tuple[str, list[list[int]]]],
+        wall_region: Any, cavities: list[Polygon],
+        cavity_ids: dict[int, str],
+        ) -> tuple[str, BoundaryConditionEvidenceV1, bool]:
+    """Facts-side classifier, independent of ``answer_compiler._classify_boundary``.
+
+    The boolean says whether the span is a logical pre-projection edge.  A ray
+    still inside wall material is a junction fragment, not a boundary record;
+    an outside ray without an axis-aligned footprint witness is a genuine
+    ``unknown`` record and remains representable (R3's diagonal-façade supply).
+    """
+    outward = -span.side
+    mid_along = (span.lo + span.hi) // 2
+    stored_far = span.group.face_hi if outward > 0 else span.group.face_lo
+    farthest = max(raw_far, stored_far) if outward > 0 else min(raw_far, stored_far)
+    exit_const = farthest + outward
+    exit_point = ([exit_const, mid_along] if span.axis == "y"
+                  else [mid_along, exit_const])
+    point = Point(exit_point)
+    outside = not footprint.covers(point) and not wall_region.covers(point)
+    footprint_ring_id = ring_records[0][0]
+    footprint_edge_id = None
+    footprint_edge_points = None
+    adjacent = None
+    logical_edge = True
+    if outside:
+        witness = _boundary_ray_witness(
+            span.axis, raw_near, exit_const, mid_along, ring_records)
+        if witness is None:
+            condition = "unknown"
+        else:
+            footprint_ring_id, footprint_edge_id, footprint_edge_points = witness
+            condition = "exterior"
+    else:
+        adjacent_cavities = [cavity for cavity in cavities if cavity.covers(point)]
+        if len(adjacent_cavities) == 1:
+            condition = "interzone"
+            adjacent = cavity_ids[id(adjacent_cavities[0])]
+        elif footprint.covers(point) and not wall_region.covers(point):
+            condition = "unclaimed_void"
+        else:
+            condition = "unknown"
+            logical_edge = False
+
+    near_side: Literal["lo", "hi"] = "lo" if span.side < 0 else "hi"
+    far_side: Literal["lo", "hi"] = "hi" if near_side == "lo" else "lo"
+    near_handles = span.group.handles(near_side)
+    far_handles = span.group.handles(far_side)
+    evidence = BoundaryConditionEvidenceV1(
+        raw_face_const=raw_near,
+        opposite_face_const=raw_far,
+        thickness_units=abs(raw_far - raw_near),
+        outward_normal=([outward, 0] if span.axis == "y" else [0, outward]),
+        exit_point=exit_point,
+        footprint_ring_id=footprint_ring_id,
+        footprint_edge_id=footprint_edge_id,
+        footprint_edge_points=footprint_edge_points,
+        adjacent_cavity_id=adjacent,
+        cavity_side_face_line_ids=near_handles,
+        far_side_face_line_ids=far_handles)
+    return condition, evidence, logical_edge
+
+
+def _boundary_spans_mergeable(left: _BoundarySpan,
+                              right: _BoundarySpan) -> bool:
+    return (left.axis == right.axis
+            and left.cavity_const == right.cavity_const
+            and left.side == right.side
+            and left.group.key == right.group.key
+            and left.boundary_condition == right.boundary_condition
+            and left.p2 == right.p1)
+
+
+def _merge_boundary_spans(spans: list[_BoundarySpan]) -> list[_BoundarySpan]:
+    if not spans:
+        return []
+    start = 0
+    for index, span in enumerate(spans):
+        if not _boundary_spans_mergeable(spans[index - 1], span):
+            start = index
+            break
+    rotated = spans[start:] + spans[:start]
+    merged: list[_BoundarySpan] = []
+    for span in rotated:
+        if merged and _boundary_spans_mergeable(merged[-1], span):
+            previous = merged[-1]
+            merged[-1] = _BoundarySpan(
+                axis=previous.axis, cavity_const=previous.cavity_const,
+                lo=min(previous.lo, span.lo), hi=max(previous.hi, span.hi),
+                side=previous.side, p1=previous.p1, p2=span.p2,
+                group=previous.group,
+                boundary_condition=previous.boundary_condition)
+        else:
+            merged.append(span)
+    return merged
+
+
+def derive_boundary_edges(view: AsMeasuredViewV1, *, min_room_area_m2: float
+                          ) -> list[AsMeasuredBoundaryEdgeV1]:
+    """Derive logical boundary facts without selecting an output profile."""
+    footprint, ring_records = _boundary_footprint(view)
+    if footprint.is_empty or not ring_records:
+        return []
+    wall_region = _boundary_wall_region(view)
+    geometry = footprint.difference(wall_region)
+    threshold = float(min_room_area_m2) * UNITS_PER_METRE * UNITS_PER_METRE
+    cavities = [part for part in getattr(geometry, "geoms", [geometry])
+                if (part.geom_type == "Polygon" and not part.is_empty
+                    and part.area > threshold)]
+    cavities.sort(key=lambda cavity: tuple(round(value, 6)
+                                            for value in cavity.bounds))
+    cavity_ids = {id(cavity): _boundary_cavity_id(view.view_id, cavity)
+                  for cavity in cavities}
+    groups = _boundary_wall_groups(view)
+    face_by_id = {face.id: face for face in view.face_lines}
+    records: list[AsMeasuredBoundaryEdgeV1] = []
+
+    for cavity in cavities:
+        cavity_id = cavity_ids[id(cavity)]
+        ring = [(int(round(x)), int(round(y)))
+                for x, y in list(cavity.exterior.coords)[:-1]]
+        representative = cavity.representative_point()
+        spans: list[_BoundarySpan] = []
+        ring_is_logical = True
+        for a, b in zip(ring, ring[1:] + ring[:1]):
+            if a[0] == b[0] and a[1] != b[1]:
+                axis: Literal["x", "y"] = "y"
+                cavity_const, lo, hi = a[0], min(a[1], b[1]), max(a[1], b[1])
+                side: Literal[-1, 1] = -1 if representative.x < cavity_const else 1
+            elif a[1] == b[1] and a[0] != b[0]:
+                axis = "x"
+                cavity_const, lo, hi = a[1], min(a[0], b[0]), max(a[0], b[0])
+                side = -1 if representative.y < cavity_const else 1
+            else:
+                ring_is_logical = False
+                break
+            owners = _boundary_owners(groups, axis, cavity_const, lo, hi)
+            if len(owners) != 1:
+                ring_is_logical = False
+                break
+            group = owners[0]
+            near_side: Literal["lo", "hi"] = "lo" if side < 0 else "hi"
+            far_side: Literal["lo", "hi"] = "hi" if near_side == "lo" else "lo"
+            near_handles, far_handles = group.handles(near_side), group.handles(far_side)
+            raw_near = round(sum(face_by_id[handle].const for handle in near_handles)
+                             / len(near_handles))
+            raw_far = round(sum(face_by_id[handle].const for handle in far_handles)
+                            / len(far_handles))
+            candidate = _BoundarySpan(
+                axis=axis, cavity_const=cavity_const, lo=lo, hi=hi,
+                side=side, p1=a, p2=b, group=group,
+                boundary_condition="unknown")
+            condition, _evidence, logical = _classify_boundary_fact(
+                candidate, raw_near, raw_far, footprint, ring_records,
+                wall_region, cavities, cavity_ids)
+            if not logical:
+                ring_is_logical = False
+                break
+            candidate.boundary_condition = condition
+            spans.append(candidate)
+        if not ring_is_logical:
+            continue
+
+        merged = _merge_boundary_spans(spans)
+        if len(merged) < 3:
+            continue
+        for sequence, span in enumerate(merged):
+            near_side = "lo" if span.side < 0 else "hi"
+            far_side = "hi" if near_side == "lo" else "lo"
+            near_handles = span.group.handles(near_side)
+            far_handles = span.group.handles(far_side)
+            raw_near = round(sum(face_by_id[handle].const for handle in near_handles)
+                             / len(near_handles))
+            raw_far = round(sum(face_by_id[handle].const for handle in far_handles)
+                            / len(far_handles))
+            condition, evidence, logical = _classify_boundary_fact(
+                span, raw_near, raw_far, footprint, ring_records,
+                wall_region, cavities, cavity_ids)
+            if not logical:
+                raise ValueError(
+                    f"as_measured_boundary_merge_changed_logical_status:{cavity_id}")
+            records.append(AsMeasuredBoundaryEdgeV1(
+                id=_boundary_opaque_id(
+                    "boundary-edge", cavity_id, sequence, span.axis,
+                    span.cavity_const, span.lo, span.hi, span.side,
+                    *span.group.wall_ids),
+                cavity_id=cavity_id, sequence=sequence, axis=span.axis,
+                cavity_const=span.cavity_const, span_lo=span.lo, span_hi=span.hi,
+                side=span.side, p1=list(span.p1), p2=list(span.p2),
+                wall_ids=span.group.wall_ids,
+                face_line_handles=span.group.face_line_handles,
+                boundary_condition=condition, evidence=evidence))
+    return records
+
+
+def refresh_boundary_edges(view: AsMeasuredViewV1) -> AsMeasuredViewV1:
+    """Refresh boundary evidence after an authorised face-line translation.
+
+    Revision actions cannot re-pair walls or invent cavities.  The stored
+    projection-free edge geometry therefore remains the identity anchor, while
+    raw/opposite face readings, exit witnesses, and the classification itself
+    are recomputed from the translated face lines.  This keeps ``as_signed`` a
+    truthful derivation rather than carrying stale ``as_measured`` evidence.
+    """
+    if not view.boundary_edges:
+        return view
+    footprint, ring_records = _boundary_footprint(view)
+    if footprint.is_empty or not ring_records:
+        return view
+    wall_region = _boundary_wall_region(view)
+    by_cavity: dict[str, list[AsMeasuredBoundaryEdgeV1]] = {}
+    for edge in view.boundary_edges:
+        by_cavity.setdefault(edge.cavity_id, []).append(edge)
+    cavities = []
+    cavity_ids: dict[int, str] = {}
+    for cavity_id, edges in sorted(by_cavity.items()):
+        ordered = sorted(edges, key=lambda edge: edge.sequence)
+        cavity = Polygon([edge.p1 for edge in ordered])
+        if cavity.is_empty or not cavity.is_valid or cavity.area <= 0:
+            raise ValueError(f"as_measured_boundary_refresh_invalid_cavity:{cavity_id}")
+        cavities.append(cavity)
+        cavity_ids[id(cavity)] = cavity_id
+    groups = _boundary_wall_groups(view)
+    groups_by_walls = {tuple(group.wall_ids): group for group in groups.values()}
+    face_by_id = {face.id: face for face in view.face_lines}
+    refreshed = []
+    for edge in view.boundary_edges:
+        group = groups_by_walls.get(tuple(edge.wall_ids))
+        if group is None:
+            raise ValueError(
+                f"as_measured_boundary_refresh_wall_group_missing:{edge.id}")
+        span = _BoundarySpan(
+            axis=edge.axis, cavity_const=edge.cavity_const,
+            lo=edge.span_lo, hi=edge.span_hi, side=edge.side,
+            p1=tuple(edge.p1), p2=tuple(edge.p2), group=group,
+            boundary_condition=edge.boundary_condition)
+        near_side: Literal["lo", "hi"] = "lo" if edge.side < 0 else "hi"
+        far_side: Literal["lo", "hi"] = "hi" if near_side == "lo" else "lo"
+        near_handles, far_handles = group.handles(near_side), group.handles(far_side)
+        raw_near = round(sum(face_by_id[handle].const for handle in near_handles)
+                         / len(near_handles))
+        raw_far = round(sum(face_by_id[handle].const for handle in far_handles)
+                        / len(far_handles))
+        condition, evidence, _logical = _classify_boundary_fact(
+            span, raw_near, raw_far, footprint, ring_records,
+            wall_region, cavities, cavity_ids)
+        refreshed.append(AsMeasuredBoundaryEdgeV1.model_validate({
+            **edge.model_dump(mode="json"),
+            "boundary_condition": condition,
+            "evidence": evidence.model_dump(mode="json"),
+        }))
+    return AsMeasuredViewV1.model_validate({
+        **view.model_dump(mode="json"),
+        "boundary_edges": [edge.model_dump(mode="json") for edge in refreshed],
+    })
+
+
 def _opening_records(geo: P1PlanViewGeometry, walls: list[AsMeasuredWallV1],
                      sx: float, tx: float, sy: float,
                      ty: float) -> tuple[list[AsMeasuredOpeningV1], list[dict]]:
@@ -1139,7 +1642,8 @@ def _refuse_if_the_ruler_never_measured(geo: P1PlanViewGeometry) -> None:
 
 
 def build_view(geo: P1PlanViewGeometry, affine: Affine2D, *,
-               t_max_m: float, merge_m: float = MERGE_M) -> AsMeasuredViewV1:
+               t_max_m: float, merge_m: float = MERGE_M,
+               min_room_area_m2: float | None = None) -> AsMeasuredViewV1:
     """⭐ Pure: P1 geometry in, facts document out.  ⛔ Reads no file.
 
     ``t_max_m`` is the request's widest DECLARED wall thickness.  ⛔ It is not a
@@ -1164,7 +1668,7 @@ def build_view(geo: P1PlanViewGeometry, affine: Affine2D, *,
     openings, unresolved = _opening_records(geo, walls, sx, tx, sy, ty)
     diagnostics, gates = _readout_records(geo)
     axis_snapped = _axis_snap_records(geo, sx, tx, sy, ty)
-    return AsMeasuredViewV1(
+    view = AsMeasuredViewV1(
         view_id=geo.view_id, floor_id=geo.floor_id,
         face_lines=faces, walls=walls, openings=openings,
         footprint=_footprint_record(geo, sx, tx, sy, ty),
@@ -1187,6 +1691,14 @@ def build_view(geo: P1PlanViewGeometry, affine: Affine2D, *,
             face_lines_not_paired_into_a_wall=unpaired,
             face_groups_with_a_split_const=split_const,
             diagnostics=diagnostics, gates=gates))
+    if min_room_area_m2 is None:
+        return view
+    return AsMeasuredViewV1.model_validate({
+        **view.model_dump(mode="json"),
+        "boundary_edges": [edge.model_dump(mode="json") for edge in
+                           derive_boundary_edges(
+                               view, min_room_area_m2=min_room_area_m2)],
+    })
 
 
 def build_as_measured(dxf: Path, request_path: Path, *,
@@ -1211,7 +1723,8 @@ def build_as_measured(dxf: Path, request_path: Path, *,
             geo = run_p1_plan_view(staged, request, view, tooling)
             views.append(build_view(
                 geo, view.world_from_source_m,
-                t_max_m=max(float(t) for t in request.wall_thickness_range_m)))
+                t_max_m=max(float(t) for t in request.wall_thickness_range_m),
+                min_room_area_m2=float(request.min_room_area_m2)))
     return AsMeasuredV1(
         case=request.case,
         source_dxf_label=dxf.name,
@@ -1226,10 +1739,12 @@ __all__ = [
     "AsMeasuredUnavailable", "AsMeasuredV1", "AsMeasuredViewV1",
     "AsMeasuredFaceLineV1", "AsMeasuredWallV1", "AsMeasuredOpeningV1",
     "AsMeasuredRingV1", "AsMeasuredFootprintV1",
+    "BoundaryConditionEvidenceV1", "AsMeasuredBoundaryEdgeV1",
     "AsMeasuredNonOrthogonalLineV1", "AsMeasuredAxisSnapV1", "AsMeasuredConverterReadoutsV1",
     "assert_request_is_pure_source_swap", "derive_as_measured_request",
     "request_file_bytes", "AS_RECEIVED_ID_SUFFIX",
-    "build_as_measured", "build_view",
+    "build_as_measured", "build_view", "derive_boundary_edges",
+    "refresh_boundary_edges",
     "S0_INPUT_STAGE",
     "canonical_bytes", "content_sha256", "to_units",
 ]

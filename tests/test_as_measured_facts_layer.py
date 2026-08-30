@@ -432,16 +432,19 @@ def test_r2_a_band_whose_second_face_was_never_drawn_is_named_not_dropped(
             assert all(w.face_line_ids_lo and w.face_line_ids_hi for w in view.walls)
 
 
-def test_r2_the_three_forbidden_fields_are_absent(as_received_doc):
-    """⭐ Acceptance: ⛔ ``basis`` / expanded endpoints / ``boundary_condition``.
+def test_r2_projection_fields_are_absent_but_boundary_condition_is_first_class(
+        as_received_doc):
+    """②-1d keeps topology while S7 projection choices remain forbidden.
 
     Checked on the SERIALISED document, not on the class definitions: a field
     can arrive through a verbatim passthrough without ever being declared.
     """
     text = canonical_bytes(as_received_doc).decode("utf-8")
-    for forbidden in ('"basis"', '"boundary_condition"', '"offset_m"',
+    for forbidden in ('"basis"', '"offset_m"',
                       '"outer_skin"', '"zone_edges"'):
         assert forbidden not in text, forbidden
+    assert '"boundary_condition"' in text
+    assert sum(len(view.boundary_edges) for view in as_received_doc.views) == 100
 
 
 def test_r2_no_s7_dependency_in_the_module_source():

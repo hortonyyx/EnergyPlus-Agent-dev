@@ -28,6 +28,7 @@ so partially calculated coordinates cannot leak through an NA result.
 from __future__ import annotations
 
 import hashlib
+import math
 from dataclasses import dataclass, field
 from enum import Enum
 from pathlib import Path
@@ -37,28 +38,61 @@ from pydantic import Field, model_validator
 from shapely.geometry import LineString, Point, Polygon
 from shapely.ops import unary_union
 
-from .as_measured import (UNITS_PER_METRE, AsMeasuredOpeningV1,
-                          AsMeasuredV1, AsMeasuredViewV1, AsMeasuredWallV1)
+from .as_measured import (UNITS_PER_METRE, AsMeasuredBoundaryEdgeV1,
+                          AsMeasuredOpeningV1, AsMeasuredV1,
+                          AsMeasuredViewV1, AsMeasuredWallV1,
+                          BoundaryConditionEvidenceV1)
 from .gt_revisions import (AsSignedV1, RevisionsLedgerV1,
                            revisions_content_sha256,
                            verify_as_signed_reproduction)
 from .gt_schema import REPO_ROOT
-from .tarch_converter_schema import TarchConversionRequestV1, _StrictModel
+from .tarch_converter_schema import (ConversionReportV1,
+                                     TarchConversionRequestV1, _StrictModel)
 
 __all__ = [
     "ANSWER_COMPILER_VERSION", "DEPENDENCY_CLOSURE_VERSION",
     "OutputProfile", "AnswerCompiler", "AnswerCompilerInputError",
+    "BoundaryConditionMismatchError", "BoundaryBasisMismatchError",
+    "BoundaryBasisAuditV1", "BoundaryBasisRowV1",
+    "BoundaryPairingProofV1", "BOUNDARY_PAIRING_MAX_RESIDUAL_UNITS",
     "NaRecordV1", "CompiledZoneEdgeV1", "CompiledZoneV1",
     "CompiledOpeningV1", "MetricResultV1", "CompiledViewV1",
     "CompiledAnswerV1", "read_facts_for_compilation",
+    "reconcile_boundary_basis",
 ]
 
-ANSWER_COMPILER_VERSION = 1
+ANSWER_COMPILER_VERSION = 2
 DEPENDENCY_CLOSURE_VERSION = 1
+BOUNDARY_PAIRING_MAX_RESIDUAL_UNITS = 5_000
 
 
 class AnswerCompilerInputError(ValueError):
     """The compiler inputs do not identify the same facts derivation."""
+
+
+class BoundaryConditionMismatchError(AnswerCompilerInputError):
+    """A stored boundary fact disagrees with the compiler's independent ray."""
+
+    def __init__(self, mismatches: list[dict[str, Any]]) -> None:
+        self.mismatches = mismatches
+        details = "; ".join(
+            f"{row['facts_edge_id']} stored={row['stored']} "
+            f"recomputed={row['recomputed']}"
+            for row in mismatches)
+        super().__init__(f"answer_compiler_boundary_condition_mismatch:{details}")
+
+
+class BoundaryBasisMismatchError(AnswerCompilerInputError):
+    """The independent converter-basis reconciliation gate is red."""
+
+    def __init__(self, audit: "BoundaryBasisAuditV1") -> None:
+        self.audit = audit
+        named = [f"{row.facts_edge_id}:{row.facts_boundary_condition}->"
+                 f"{row.converter_basis}" for row in audit.mismatches]
+        super().__init__(
+            "boundary_basis_reconciliation_failed:"
+            f"mismatches={len(audit.mismatches)}[{','.join(named)}] "
+            f"structural={audit.structural_failures}")
 
 
 class OutputProfile(str, Enum):
@@ -83,20 +117,63 @@ class NaRecordV1(_StrictModel):
     propagated_from: list[str] = Field(default_factory=list)
 
 
-class ProjectionEvidenceV1(_StrictModel):
+class ProjectionEvidenceV1(BoundaryConditionEvidenceV1):
     """Independent boundary-classification evidence for one valid edge."""
 
-    method: Literal["facts_geometry_ray_exit_v1"] = "facts_geometry_ray_exit_v1"
     boundary_condition: Literal["exterior", "interzone", "unclaimed_void", "unknown"]
-    raw_face_const: int
-    opposite_face_const: int
-    thickness_units: int
-    outward_normal: list[int] = Field(min_length=2, max_length=2)
-    exit_point: list[int] = Field(min_length=2, max_length=2)
-    footprint_ring_id: str
-    footprint_edge_id: str | None = None
-    footprint_edge_points: list[list[int]] | None = None
-    adjacent_cavity_id: str | None = None
+    facts_boundary_edge_id: str | None = None
+
+
+class BoundaryPairingHypothesisV1(_StrictModel):
+    direction: Literal["forward", "reverse"]
+    rotation: int
+    converter_edge_indices: list[int]
+    max_residual_units: float
+    total_residual_units: float
+    source_handle_matches: int
+
+
+class BoundaryPairingProofV1(_StrictModel):
+    view_id: str
+    cavity_id: str
+    converter_zone_id: str
+    facts_edge_ids: list[str]
+    geometric_converter_edge_indices: list[int]
+    ancestry_converter_edge_indices: list[int]
+    selected_direction: Literal["forward", "reverse"]
+    selected_rotation: int
+    selected_max_residual_units: float
+    residual_hard_limit_units: int
+    alternative_min_residual_units: float
+    all_alternatives_strictly_worse: bool
+    geometry_and_ancestry_pairing_identical: bool
+    hypotheses: list[BoundaryPairingHypothesisV1]
+
+
+class BoundaryBasisRowV1(_StrictModel):
+    view_id: str
+    cavity_id: str
+    facts_edge_id: str
+    converter_zone_id: str
+    converter_edge_index: int
+    facts_boundary_condition: Literal[
+        "exterior", "interzone", "unclaimed_void", "unknown"]
+    expected_converter_basis: Literal["wall_axis", "outer_skin"] | None
+    converter_basis: Literal["wall_axis", "outer_skin"]
+    matches: bool
+
+
+class BoundaryBasisAuditV1(_StrictModel):
+    passed: bool
+    paired_edges: int
+    rows: list[BoundaryBasisRowV1]
+    mismatches: list[BoundaryBasisRowV1]
+    pairings: list[BoundaryPairingProofV1]
+    structural_failures: list[str]
+
+    def assert_consistent(self) -> None:
+        if not self.passed:
+            raise BoundaryBasisMismatchError(self)
 
 
 class CompiledZoneEdgeV1(_StrictModel):
@@ -522,8 +599,8 @@ class AnswerCompiler:
                         propagated_from=unresolved))
                 else:
                     span.projected, projection_na = self._project_span(
-                        span, group, face_by_id, footprint, ring_records,
-                        wall_region, cavities, cavity_ids)
+                        view, cavity_id, span, group, face_by_id, footprint,
+                        ring_records, wall_region, cavities, cavity_ids)
                     span.na.extend(projection_na)
             spans.append(span)
 
@@ -560,7 +637,8 @@ class AnswerCompiler:
             clear_span_area_units2=int(round(cavity.area)), na=[])
 
     def _project_span(
-            self, span: _Span, group: _WallGroup,
+            self, view: AsMeasuredViewV1, cavity_id: str,
+            span: _Span, group: _WallGroup,
             face_by_id: dict[str, Any], footprint: Polygon,
             ring_records: list[tuple[str, list[list[int]]]], wall_region: Any,
             cavities: list[Polygon], cavity_ids: dict[int, str],
@@ -582,6 +660,22 @@ class AnswerCompiler:
         condition, raw_evidence = _classify_boundary(
             span, group, raw_near, raw_far, outward, footprint,
             ring_records, wall_region, cavities, cavity_ids)
+        stored = _stored_boundary_for_span(view, cavity_id, span, group)
+        if stored is not None:
+            recomputed = condition or "unknown"
+            if stored.boundary_condition != recomputed:
+                raise BoundaryConditionMismatchError([{
+                    "view_id": view.view_id,
+                    "cavity_id": cavity_id,
+                    "span_component_id": span.component_id,
+                    "facts_edge_id": stored.id,
+                    "stored": stored.boundary_condition,
+                    "recomputed": recomputed,
+                }])
+            # The stored value is the compiler input.  The independently
+            # recomputed value above remains the second column and must agree.
+            condition = stored.boundary_condition
+            raw_evidence["facts_boundary_edge_id"] = stored.id
         if condition not in {"exterior", "interzone"}:
             if self.profile is OutputProfile.FORM_B_EXTERIOR_SKIN:
                 return None, [NaRecordV1(
@@ -617,6 +711,26 @@ class AnswerCompiler:
             span_lo=span.lo, span_hi=span.hi, support_const=support,
             basis=basis, wall_ids=group.wall_ids,
             face_line_handles=sorted(group.handles), evidence=evidence), []
+
+
+def _stored_boundary_for_span(
+        view: AsMeasuredViewV1, cavity_id: str, span: _Span,
+        group: _WallGroup) -> AsMeasuredBoundaryEdgeV1 | None:
+    """Pair a raw compiler span to its projection-free logical facts edge."""
+    candidates = [edge for edge in view.boundary_edges
+                  if (edge.cavity_id == cavity_id
+                      and edge.axis == span.axis
+                      and edge.cavity_const == span.cavity_const
+                      and edge.side == span.side
+                      and edge.span_lo <= span.lo
+                      and edge.span_hi >= span.hi
+                      and edge.wall_ids == group.wall_ids)]
+    if len(candidates) > 1:
+        raise AnswerCompilerInputError(
+            "answer_compiler_boundary_span_has_multiple_fact_matches:"
+            f"{view.view_id}:{cavity_id}:{span.component_id}:"
+            f"{sorted(edge.id for edge in candidates)}")
+    return candidates[0] if candidates else None
 
 
 def _view_coordinate_failure(view: AsMeasuredViewV1, plan_view: Any) -> NaRecordV1 | None:
@@ -783,6 +897,16 @@ def _classify_boundary(
         else:
             condition = None
             adjacent = None
+    near_side: Literal["lo", "hi"] = "lo" if span.side < 0 else "hi"
+    far_side: Literal["lo", "hi"] = "hi" if near_side == "lo" else "lo"
+    near_handles = sorted({handle for wall in group.runs
+                           for handle in (wall.face_line_ids_lo
+                                          if near_side == "lo"
+                                          else wall.face_line_ids_hi)})
+    far_handles = sorted({handle for wall in group.runs
+                          for handle in (wall.face_line_ids_lo
+                                         if far_side == "lo"
+                                         else wall.face_line_ids_hi)})
     evidence = {
         "boundary_condition": condition or "unknown",
         "raw_face_const": raw_near,
@@ -794,6 +918,8 @@ def _classify_boundary(
         "footprint_edge_id": footprint_edge_id,
         "footprint_edge_points": footprint_edge_points,
         "adjacent_cavity_id": adjacent,
+        "cavity_side_face_line_ids": near_handles,
+        "far_side_face_line_ids": far_handles,
     }
     return condition, evidence
 
@@ -815,6 +941,174 @@ def _footprint_ray_witness(
             if low <= const <= high and along_lo <= mid_along <= along_hi:
                 return ring_id, f"{ring_id}:edge:{index}", [list(a), list(b)]
     return None
+
+
+def _world_point_to_units(point: list[float]) -> tuple[int, int]:
+    return (round(float(point[0]) * UNITS_PER_METRE),
+            round(float(point[1]) * UNITS_PER_METRE))
+
+
+def _undirected_segment_residual(
+        facts_edge: AsMeasuredBoundaryEdgeV1,
+        converter_points: tuple[tuple[int, int], tuple[int, int]]) -> float:
+    fp1, fp2 = tuple(facts_edge.p1), tuple(facts_edge.p2)
+    cp1, cp2 = converter_points
+
+    def distance(a: tuple[int, int], b: tuple[int, int]) -> float:
+        return math.hypot(a[0] - b[0], a[1] - b[1])
+
+    direct = max(distance(fp1, cp1), distance(fp2, cp2))
+    reversed_ = max(distance(fp1, cp2), distance(fp2, cp1))
+    return min(direct, reversed_)
+
+
+def reconcile_boundary_basis(
+        as_signed: AsSignedV1,
+        conversion_report: ConversionReportV1) -> BoundaryBasisAuditV1:
+    """Pair and compare facts ``boundary_condition`` with converter ``basis``.
+
+    Pairing does not consult the facts classification value.  It independently
+    chooses the lowest-residual ring direction/rotation and the highest source-
+    ancestry overlap, then requires both choices to identify the same edge map.
+    A changed classification therefore reddens exactly its row instead of
+    perturbing the pairing radius.
+    """
+    converter_by_floor: dict[str, list[Any]] = {}
+    for zone in conversion_report.zones:
+        converter_by_floor.setdefault(zone.floor_id, []).append(zone)
+
+    rows: list[BoundaryBasisRowV1] = []
+    pairings: list[BoundaryPairingProofV1] = []
+    structural: list[str] = []
+    expected_basis = {
+        "exterior": "outer_skin",
+        "interzone": "wall_axis",
+    }
+
+    for view in as_signed.views:
+        by_cavity: dict[str, list[AsMeasuredBoundaryEdgeV1]] = {}
+        for edge in view.boundary_edges:
+            by_cavity.setdefault(edge.cavity_id, []).append(edge)
+        for cavity_id, unordered in sorted(by_cavity.items()):
+            facts_edges = sorted(unordered, key=lambda edge: edge.sequence)
+            if [edge.sequence for edge in facts_edges] != list(range(len(facts_edges))):
+                structural.append(
+                    f"facts_boundary_sequence_not_contiguous:{view.view_id}:{cavity_id}")
+                continue
+            facts_polygon = Polygon([edge.p1 for edge in facts_edges])
+            if (facts_polygon.is_empty or not facts_polygon.is_valid
+                    or facts_polygon.area <= 0):
+                structural.append(
+                    f"facts_boundary_ring_invalid:{view.view_id}:{cavity_id}")
+                continue
+            representative = facts_polygon.representative_point()
+            zone_matches = []
+            for zone in converter_by_floor.get(view.floor_id, []):
+                polygon = Polygon([
+                    _world_point_to_units(point)
+                    for point in zone.polygon_m.exterior.vertices])
+                if polygon.covers(representative):
+                    zone_matches.append(zone)
+            if len(zone_matches) != 1:
+                structural.append(
+                    f"converter_zone_pairing_not_unique:{view.view_id}:{cavity_id}:"
+                    f"{[zone.zone_id for zone in zone_matches]}")
+                continue
+            zone = zone_matches[0]
+            if len(zone.edges) != len(facts_edges):
+                structural.append(
+                    f"boundary_edge_count_mismatch:{view.view_id}:{cavity_id}:"
+                    f"facts={len(facts_edges)} converter={len(zone.edges)}")
+                continue
+
+            converter_segments = [
+                (_world_point_to_units(edge.p1), _world_point_to_units(edge.p2))
+                for edge in zone.edges]
+            hypotheses: list[BoundaryPairingHypothesisV1] = []
+            count = len(facts_edges)
+            for direction_value, step in (("forward", 1), ("reverse", -1)):
+                for rotation in range(count):
+                    indices = [(rotation + step * index) % count
+                               for index in range(count)]
+                    residuals = [
+                        _undirected_segment_residual(facts_edges[index],
+                                                     converter_segments[converter_index])
+                        for index, converter_index in enumerate(indices)]
+                    source_matches = sum(bool(
+                        set(facts_edges[index].face_line_handles)
+                        & set(zone.edges[converter_index].source_handles))
+                        for index, converter_index in enumerate(indices))
+                    hypotheses.append(BoundaryPairingHypothesisV1(
+                        direction=direction_value, rotation=rotation,
+                        converter_edge_indices=indices,
+                        max_residual_units=max(residuals),
+                        total_residual_units=sum(residuals),
+                        source_handle_matches=source_matches))
+
+            geometric = min(
+                hypotheses,
+                key=lambda item: (
+                    item.max_residual_units, item.total_residual_units,
+                    item.direction, item.rotation))
+            ancestry = min(
+                hypotheses,
+                key=lambda item: (
+                    -item.source_handle_matches, item.max_residual_units,
+                    item.total_residual_units, item.direction, item.rotation))
+            alternatives = [item for item in hypotheses if item is not geometric]
+            alternative_min = min(item.max_residual_units for item in alternatives)
+            alternatives_worse = all(
+                item.max_residual_units > geometric.max_residual_units
+                for item in alternatives)
+            same_pairing = (geometric.converter_edge_indices
+                            == ancestry.converter_edge_indices)
+            proof = BoundaryPairingProofV1(
+                view_id=view.view_id, cavity_id=cavity_id,
+                converter_zone_id=zone.zone_id,
+                facts_edge_ids=[edge.id for edge in facts_edges],
+                geometric_converter_edge_indices=geometric.converter_edge_indices,
+                ancestry_converter_edge_indices=ancestry.converter_edge_indices,
+                selected_direction=geometric.direction,
+                selected_rotation=geometric.rotation,
+                selected_max_residual_units=geometric.max_residual_units,
+                residual_hard_limit_units=BOUNDARY_PAIRING_MAX_RESIDUAL_UNITS,
+                alternative_min_residual_units=alternative_min,
+                all_alternatives_strictly_worse=alternatives_worse,
+                geometry_and_ancestry_pairing_identical=same_pairing,
+                hypotheses=hypotheses)
+            pairings.append(proof)
+            if geometric.max_residual_units > BOUNDARY_PAIRING_MAX_RESIDUAL_UNITS:
+                structural.append(
+                    f"boundary_pairing_residual_exceeds_hard_limit:"
+                    f"{view.view_id}:{cavity_id}:{geometric.max_residual_units}")
+            if not alternatives_worse:
+                structural.append(
+                    f"boundary_pairing_direction_not_unique:{view.view_id}:{cavity_id}")
+            if not same_pairing:
+                structural.append(
+                    f"boundary_geometry_and_ancestry_pairing_disagree:"
+                    f"{view.view_id}:{cavity_id}")
+
+            for facts_index, converter_index in enumerate(
+                    geometric.converter_edge_indices):
+                facts_edge = facts_edges[facts_index]
+                converter_edge = zone.edges[converter_index]
+                expected = expected_basis.get(facts_edge.boundary_condition)
+                rows.append(BoundaryBasisRowV1(
+                    view_id=view.view_id, cavity_id=cavity_id,
+                    facts_edge_id=facts_edge.id,
+                    converter_zone_id=zone.zone_id,
+                    converter_edge_index=converter_index,
+                    facts_boundary_condition=facts_edge.boundary_condition,
+                    expected_converter_basis=expected,
+                    converter_basis=converter_edge.basis,
+                    matches=(expected == converter_edge.basis)))
+
+    mismatches = [row for row in rows if not row.matches]
+    return BoundaryBasisAuditV1(
+        passed=not structural and not mismatches,
+        paired_edges=len(rows), rows=rows, mismatches=mismatches,
+        pairings=pairings, structural_failures=structural)
 
 
 def _merge_projected_spans(edges: list[CompiledZoneEdgeV1]) -> list[CompiledZoneEdgeV1]:

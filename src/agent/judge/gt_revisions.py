@@ -79,7 +79,8 @@ from pydantic import Field, model_validator
 
 from .as_drawn import denominator as _denominator
 from .as_measured import (UNITS_PER_METRE, AsMeasuredFaceLineV1,
-                          AsMeasuredV1, AsMeasuredViewV1, content_sha256)
+                          AsMeasuredV1, AsMeasuredViewV1, content_sha256,
+                          refresh_boundary_edges)
 from .gt_schema import DxfHandle, Hex64, HumanLabel, StableId
 from .tarch_converter_schema import _StrictModel
 
@@ -102,7 +103,7 @@ __all__ = [
 #: ``else: pass``).
 SUPPORTED_ACTION_KINDS: tuple[str, ...] = ("translate",)
 
-CURRENT_DERIVER_VERSION = 1
+CURRENT_DERIVER_VERSION = 2
 
 
 # --------------------------------------------------------------------------- #
@@ -231,7 +232,7 @@ class AsSignedDerivationKeyV1(_StrictModel):
     the whole revisions ledger's hash, and the deriver's own version."""
     as_measured_content_sha256: Hex64
     revisions_content_sha256: Hex64
-    deriver_version: Literal[1] = 1
+    deriver_version: Literal[2] = 2
 
 
 class AsSignedV1(_StrictModel):
@@ -442,6 +443,7 @@ def derive_as_signed(as_measured: AsMeasuredV1, revisions: RevisionsLedgerV1) ->
             f"got {content_sha256(as_measured)}")
 
     by_view: dict[str, AsMeasuredViewV1] = {v.view_id: v for v in as_measured.views}
+    touched_views: set[str] = set()
     for revision in revisions.revisions:
         if revision.verdict != "drawing_error":
             continue
@@ -466,8 +468,12 @@ def derive_as_signed(as_measured: AsMeasuredV1, revisions: RevisionsLedgerV1) ->
             {**view.model_dump(mode="json"),
              "face_lines": [f.model_dump(mode="json") for f in new_faces]})
         by_view[target.view_id] = _refresh_split_const_groups(updated_view)
+        touched_views.add(target.view_id)
 
-    views = [by_view[v.view_id] for v in as_measured.views]   # preserve original order
+    views = [
+        (refresh_boundary_edges(by_view[v.view_id])
+         if v.view_id in touched_views else by_view[v.view_id])
+        for v in as_measured.views]   # preserve original order
     for view in views:
         _verify_walls_still_match_their_face_lines(view)
     return AsSignedV1(
