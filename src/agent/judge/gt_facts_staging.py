@@ -37,9 +37,9 @@ the bytes got onto disk.
 ⛔ ``FACTS_STAGING_ROOT`` and the ``case -> Path`` helper are deliberately
 NOT in ``__all__`` (renamed with a leading underscore).  This module's ONLY
 public exits are :func:`write_facts_candidate` (takes three already-typed,
-already-*matching* documents) and :func:`read_facts_candidate` (returns
-three freshly-verified, already-typed documents) -- neither one hands a
-caller a ``Path`` to this directory.
+already-*matching* documents and returns ``None``) and
+:func:`read_facts_candidate` (returns three freshly-verified, already-typed
+documents) -- neither one hands a caller a ``Path`` to this directory.
 
 What this narrowing actually buys, restated after ②-1b-T-R's cross-review
 (GLM F-5) MEASURED it to be weaker than the original wording claimed: it
@@ -61,8 +61,9 @@ skip this module entirely and hardcode the literal staging path string, or
 through R1's own case-name admission gate below with a case value that
 *is* a legitimate single path segment -- see F-1's finding.
 
-GLM's F-5 names the actually-structural fix, deliberately NOT implemented by
-this dispatch (rework §四 / §五 "⛔ 出口全检"): hang the SAME reproducibility
+GLM's F-5 names the actually-structural fix, now implemented by
+``answer_compiler.read_facts_for_compilation`` (rework §四 / §五
+"⛔ 出口全检"): hang the SAME reproducibility
 gate this module already runs on read (:func:`verify_as_signed_reproduction`)
 on the READ side of the ANSWER root's own ``gt/<case>/facts/``, once that
 directory exists and has a consumer. That is an "exit gate", not an "entry
@@ -71,9 +72,8 @@ narrowing" -- it does not care HOW bytes arrived under ``gt/<case>/facts/``
 own escape hatch before R1's fix, or anything else not yet invented), only
 whether what is there NOW reproduces. An entry-side narrowing, however
 tight, can only ever enumerate ways IN it has thought of; an exit-side gate
-does not need to enumerate anything. This module does not implement that
-gate (it lives in a future consumer of the answer root, out of scope here)
--- it is recorded so the next unit does not have to rediscover it.
+does not need to enumerate anything.  This staging module does not own the
+answer-root reader; its compiler consumer now does.
 
 F-128 (promotion's rollback asymmetry: its ``except`` only cleans the ``gt/``
 side, not ``gt_sources/``) is UNCHANGED by this staging root -- it is a
@@ -249,7 +249,7 @@ def _sweep_stale_tmp_orphans(out_dir: Path) -> None:
 
 
 def write_facts_candidate(case: str, as_measured: AsMeasuredV1,
-                          revisions: RevisionsLedgerV1, as_signed: AsSignedV1) -> Path:
+                          revisions: RevisionsLedgerV1, as_signed: AsSignedV1) -> None:
     """Write the trio into the staging root, atomically, one file at a time.
 
     ⭐⭐ ②-1b-T R1: runs :func:`src.agent.judge.gt_revisions.
@@ -272,7 +272,6 @@ def write_facts_candidate(case: str, as_measured: AsMeasuredV1,
     _write_atomic(out_dir / "as_measured.json", canonical_as_measured_bytes(as_measured))
     _write_atomic(out_dir / "revisions.json", canonical_revisions_bytes(revisions))
     _write_atomic(out_dir / "as_signed.json", canonical_as_signed_bytes(as_signed))
-    return out_dir
 
 
 def read_facts_candidate(case: str) -> tuple[AsMeasuredV1, RevisionsLedgerV1, AsSignedV1]:

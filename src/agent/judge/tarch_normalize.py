@@ -159,10 +159,12 @@ AXIS_SNAP_MAX_DEVIATION_M = 0.010
 #: only ``(0.091°, 0.394°)`` -- one real tremor on one side, one synthetic
 #: slant on the other -- and 0.25°/0.3° were recommended.  The user restated
 #: the consequence and still chose 1.0°.
-#: ⭐ The compensating control is the LAST gate, unchanged: a human reads the
-#: itemised snap list (``axis_snapped_lines``) line by line when signing
-#: ``revisions``.  Nothing here is silent -- every admission emits
-#: ``tarch_wall_axis_snapped`` carrying both readings.
+#: ⭐ The compensating control is the LAST gate: every admission emits
+#: ``tarch_wall_axis_snapped`` and the facts transport copies BOTH
+#: ``minor_leg_mm`` and ``angle_deg`` onto its corresponding itemised
+#: ``axis_snapped_lines`` row.  The signer can therefore review the two signed
+#: gate readings on the row itself instead of joining it to diagnostics by
+#: handle (F-148).
 #: See ``tests/test_tarch_converter_p1_geometry.py``'s
 #: ``..._KNOWN_SIGNED_RISK`` test for the executable form of this paragraph.
 AXIS_SNAP_MAX_ANGLE_DEG = 1.0

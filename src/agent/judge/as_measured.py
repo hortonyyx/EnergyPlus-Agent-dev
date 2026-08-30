@@ -117,7 +117,7 @@ from pydantic import Field, model_validator
 
 from .gt_manifest import Affine2D, load_gt_tooling_config
 from .gt_schema import (REPO_ROOT, DxfHandle, Hex64, HumanLabel, StableId,
-                        StrictNonNegativeInt)
+                        StrictFiniteFloat, StrictNonNegativeInt)
 from .tarch_converter_schema import (JsonDict, TarchConversionRequestV1,
                                      _StrictModel, compute_request_sha256)
 from .as_drawn.denominator import MERGE_M, face_line_targets
@@ -342,7 +342,10 @@ class AsMeasuredAxisSnapV1(_StrictModel):
     two endpoints became (one coordinate now shared -- the value this
     document's ``AsMeasuredFaceLineV1.const`` for this handle equals, up to
     quantization).  ``minor_leg_units`` is how much the short leg was worth
-    (0.1 mm world) -- i.e. the actual skew this specific line had.
+    (0.1 mm world) and ``angle_deg`` is the converter's independently
+    transported off-axis angle.  Both signed admission readings therefore
+    live on the itemised row the human reviews (F-148), not only in a separate
+    diagnostics blob.
     """
     id: DxfHandle
     layer: HumanLabel
@@ -352,6 +355,7 @@ class AsMeasuredAxisSnapV1(_StrictModel):
     after_p0: list[int] = Field(min_length=2, max_length=2)    # 0.1 mm world, POST-snap
     after_p1: list[int] = Field(min_length=2, max_length=2)
     minor_leg_units: StrictNonNegativeInt   # 0.1 mm world -- the skew this line actually had
+    angle_deg: StrictFiniteFloat = Field(ge=0.0, le=90.0)
 
 
 class AsMeasuredConverterReadoutsV1(_StrictModel):
@@ -435,13 +439,28 @@ class AsMeasuredConverterReadoutsV1(_StrictModel):
         entry relative to the converter's own record -- which is exactly what
         deleting one entry from ``axis_snapped_lines`` by hand does.
         """
-        diag_count = sum(1 for d in self.diagnostics
-                         if d.get("code") == "tarch_wall_axis_snapped")
+        snap_diags = [d for d in self.diagnostics
+                      if d.get("code") == "tarch_wall_axis_snapped"]
+        diag_count = len(snap_diags)
         if len(self.axis_snapped_lines) != diag_count:
             raise ValueError(
                 f"as_measured_axis_snapped_ledger_broken: "
                 f"{len(self.axis_snapped_lines)} axis_snapped_lines != "
                 f"{diag_count} tarch_wall_axis_snapped diagnostics")
+        diag_angles = {
+            str(handle): float(diagnostic.get("context", {}).get("angle_deg"))
+            for diagnostic in snap_diags
+            for handle in diagnostic.get("handles", [])}
+        row_ids = [row.id for row in self.axis_snapped_lines]
+        if len(row_ids) != len(set(row_ids)) or set(row_ids) != set(diag_angles):
+            raise ValueError(
+                "as_measured_axis_snapped_handles_disagree_with_diagnostics: "
+                f"rows={sorted(row_ids)} diagnostics={sorted(diag_angles)}")
+        for row in self.axis_snapped_lines:
+            if row.angle_deg != diag_angles[row.id]:
+                raise ValueError(
+                    "as_measured_axis_snapped_angle_disagrees_with_diagnostic: "
+                    f"{row.id} row={row.angle_deg} diagnostic={diag_angles[row.id]}")
         return self
 
 
@@ -1051,7 +1070,8 @@ def _axis_snap_records(geo: P1PlanViewGeometry, sx: float, tx: float,
             before_p1=[to_units(sx * bx1 + tx), to_units(sy * by1 + ty)],
             after_p0=[to_units(sx * ax0 + tx), to_units(sy * ay0 + ty)],
             after_p1=[to_units(sx * ax1 + tx), to_units(sy * ay1 + ty)],
-            minor_leg_units=to_units(abs(scale) * minor_leg_mm)))
+            minor_leg_units=to_units(abs(scale) * minor_leg_mm),
+            angle_deg=float(ctx["angle_deg"])))
     records.sort(key=lambda r: r.id)
     return records
 

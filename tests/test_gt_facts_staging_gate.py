@@ -79,7 +79,9 @@ def test_r1_a_consistent_trio_still_writes_in(tmp_path, monkeypatch):
     as_measured = _minimal_doc()
     ledger = _empty_ledger(as_measured)
     genuine = derive_as_signed(as_measured, ledger)
-    out_dir = write_facts_candidate(CASE, as_measured, ledger, genuine)
+    result = write_facts_candidate(CASE, as_measured, ledger, genuine)
+    assert result is None, "the public writer must not hand out the staging Path"
+    out_dir = gt_facts_staging._facts_staging_dir(CASE)
     assert (out_dir / "as_measured.json").is_file()
     assert (out_dir / "revisions.json").is_file()
     assert (out_dir / "as_signed.json").is_file()
@@ -157,8 +159,11 @@ def test_r3_no_public_path_or_directory_accessor_is_exported():
     about. Hence: assert the *specific* names this dispatch closed off
     stay closed, not that ``__all__`` is frozen at exactly two entries.
     """
-    assert set(gt_facts_staging.__all__) == {
+    allowed_exports = {
         "write_facts_candidate", "read_facts_candidate", "FactsStagingCaseError"}
+    assert set(gt_facts_staging.__all__) <= allowed_exports
+    assert {"write_facts_candidate", "read_facts_candidate"} <= set(
+        gt_facts_staging.__all__)
     assert not hasattr(gt_facts_staging, "facts_staging_dir")
     assert not hasattr(gt_facts_staging, "FACTS_STAGING_ROOT")
     # FactsStagingCaseError being public does not reopen R3's gap: it is an

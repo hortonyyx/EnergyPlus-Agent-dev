@@ -56,8 +56,8 @@ def main() -> None:
     as_signed = derive_as_signed(as_received, ledger)
     verify_as_signed_reproduction(as_received, ledger, as_signed)
 
-    out_dir = write_facts_candidate("sm25-L_anchor", as_received, ledger, as_signed)
-    print(f"wrote {out_dir}")
+    write_facts_candidate("sm25-L_anchor", as_received, ledger, as_signed)
+    print("wrote verified sm25-L_anchor facts candidate")
     for record in candidates:
         action = record.candidate_action
         print(f"  {record.id}: {record.finding.check} "

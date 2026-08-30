@@ -342,6 +342,8 @@ def test_r2_the_as_received_drawing_differs_from_the_signed_one_as_f129_measured
                       if d["code"] == "tarch_wall_nonorthogonal" for h in d["handles"])
     assert rejected == [], "13AD/13AE are now snapped, not S1-discarded"
     assert sorted(s.id for s in f1_a.converter_readouts.axis_snapped_lines) == ["13AD", "13AE"]
+    assert all(0.091 <= s.angle_deg <= 0.092
+               for s in f1_a.converter_readouts.axis_snapped_lines)
     assert not f1_s.converter_readouts.axis_snapped_lines, (
         "the signed drawing has no skew to snap -- both lines are already exact")
     assert [n.id for n in f1_a.converter_readouts.non_orthogonal_lines] == ["13AF"]
@@ -594,7 +596,8 @@ def test_r4_consumed_wall_handles_field_is_gone(as_received_doc):
 def test_o21bs_the_real_snap_list_has_exactly_the_two_known_handles(as_received_doc):
     """⭐ Acceptance 1: 13AD/13AE (minor leg ~5.81 mm, dispatch's own example)
     are itemised in the snap list on the real as-received sm25 plan-F1, and
-    each entry carries every field R2 demands (handle, before, axis, magnitude)."""
+    each entry carries every field R2/F-148 demands (handle, before, axis,
+    magnitude, and angle)."""
     view = next(v for v in as_received_doc.views if v.view_id == "plan-F1")
     snapped = view.converter_readouts.axis_snapped_lines
     assert sorted(s.id for s in snapped) == ["13AD", "13AE"]
@@ -604,6 +607,22 @@ def test_o21bs_the_real_snap_list_has_exactly_the_two_known_handles(as_received_
         assert s.after_p0[1] == s.after_p1[1]       # is exactly axis-aligned after
         assert 55 <= s.minor_leg_units <= 60, (     # ~5.81 mm == 58 units of 0.1mm
             "minor_leg_units drifted away from the measured ~5.81 mm skew")
+        assert s.angle_deg == pytest.approx(0.0914, abs=5e-4)
+
+
+def test_f148_snap_list_angle_is_required_and_bound_to_its_diagnostic(as_received_doc):
+    raw = as_received_doc.model_dump(mode="json")
+    view = next(v for v in raw["views"] if v["view_id"] == "plan-F1")
+    del view["converter_readouts"]["axis_snapped_lines"][0]["angle_deg"]
+    with pytest.raises(ValueError):
+        AsMeasuredV1.model_validate(raw)
+
+    raw = as_received_doc.model_dump(mode="json")
+    view = next(v for v in raw["views"] if v["view_id"] == "plan-F1")
+    view["converter_readouts"]["axis_snapped_lines"][0]["angle_deg"] += 0.1
+    with pytest.raises(
+            ValueError, match="as_measured_axis_snapped_angle_disagrees_with_diagnostic"):
+        AsMeasuredV1.model_validate(raw)
 
 
 def test_o21bs_deleting_a_snap_entry_turns_the_ledger_red(as_received_doc):
@@ -635,7 +654,7 @@ def test_o21bs_a_snapped_handle_must_be_a_real_face_line(as_received_doc):
     view["converter_readouts"]["diagnostics"].append({
         "code": "tarch_wall_axis_snapped", "severity": "INFO", "stage": "S1_QUANTIZE",
         "action_code": None, "handles": ["FFFF"], "points_dxf_mm": [],
-        "context": {}})
+        "context": {"angle_deg": fabricated["angle_deg"]}})
     with pytest.raises(ValueError, match="as_measured_axis_snapped_not_a_face_line"):
         AsMeasuredV1.model_validate(raw)
 

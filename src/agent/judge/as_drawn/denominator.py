@@ -288,12 +288,14 @@ def face_line_targets(geo, affine, *, t_max_m: float,
     pairs by declared thickness is the mechanism that silently dropped sm24's
     whole 120 mm partition family (batch guide §一).
     """
-    caps = {(round(c, 6), round(lo, 6), round(hi, 6), "v")
-            for c, spans in geo.jamb_caps_v.items() for lo, hi in spans}
-    caps |= {(round(c, 6), round(lo, 6), round(hi, 6), "h")
-             for c, spans in geo.jamb_caps_h.items() for lo, hi in spans}
-
-    t_max = float(t_max_m)
+    # The live path has the converter's direct cap-handle maps, so it uses
+    # those rather than routing the readout back through ``wall_bands``.  The
+    # latter are cap-grouped evidence bands, not walls (the 33-ghost-wall
+    # incident); they must never become a wall-recognition input here.
+    converter_cap_handles = {
+        handle for table in (geo.cap_handles_v, geo.cap_handles_h)
+        for spans in table.values() for handles in spans.values()
+        for handle in handles}
 
     # pass 1 -- every orthogonal segment in WORLD coordinates
     segs = []
@@ -324,17 +326,46 @@ def face_line_targets(geo, affine, *, t_max_m: float,
         if abs(wx1 - wx0) < abs(wy1 - wy0):
             segs.append(("x", round((wx0 + wx1) / 2.0, QUANT),
                          round(min(wy0, wy1), QUANT), round(max(wy0, wy1), QUANT),
-                         (round(x0, 6), round(min(y0, y1), 6), round(max(y0, y1), 6), "v"),
                          _handle))
         else:
             segs.append(("y", round((wy0 + wy1) / 2.0, QUANT),
                          round(min(wx0, wx1), QUANT), round(max(wx0, wx1), QUANT),
-                         (round(y0, 6), round(min(x0, x1), 6), round(max(x0, x1), 6), "h"),
                          _handle))
+
+    # Openings are converted before entering the shared D2-D5 core because D4
+    # must refuse a merge across a gap the answer itself calls an opening.
+    opening_spans: dict[str, list[tuple[float, float, float, float]]] = {"x": [], "y": []}
+    for o in geo.openings:
+        r = o.rect_dxf_mm
+        (ax0, ay0), (ax1, ay1) = (_to_world((r[0], r[1]), affine),
+                                  _to_world((r[2], r[3]), affine))
+        x0, x1 = sorted((ax0, ax1))
+        y0, y1 = sorted((ay0, ay1))
+        if (x1 - x0) >= (y1 - y0):
+            opening_spans["y"].append((y0, y1, x0, x1))
+        else:
+            opening_spans["x"].append((x0, x1, y0, y1))
+
+    return _d1_d5_core(
+        segs, opening_spans, converter_cap_handles,
+        excluded_non_orthogonal, t_max_m=t_max_m, merge_m=merge_m)
+
+
+def _d1_d5_core(segs, opening_spans, converter_cap_handles,
+                excluded_non_orthogonal, *, t_max_m: float,
+                merge_m: float) -> dict:
+    """Shared D2-D5 implementation for live geometry and frozen facts.
+
+    ``segs`` use the denominator convention: ``axis`` names the constant
+    world axis.  ``converter_cap_handles`` affects only the historical
+    converter-length-rule ledger line; D2's geometric cap decision and every
+    target remain independent of it.
+    """
+    t_max = float(t_max_m)
 
     # pass 2 -- which consts carry a LONG stroke?  Only those can host a cap's end.
     long_const = {"x": set(), "y": set()}
-    for axis, const, lo, hi, _, _h in segs:
+    for axis, const, lo, hi, _h in segs:
         if hi - lo > t_max:
             long_const[axis].add(const)
 
@@ -349,8 +380,8 @@ def face_line_targets(geo, affine, *, t_max_m: float,
     groups: dict[tuple[str, float], list[tuple[float, float, str]]] = {}
     allowed: list[dict] = []          # ⭐ D2': drawn, allowed, not required
     n_cap, n_face, n_cap_by_converter = 0, 0, 0
-    for axis, const, lo, hi, cap_key, handle in segs:
-        n_cap_by_converter += cap_key in caps
+    for axis, const, lo, hi, handle in segs:
+        n_cap_by_converter += handle in converter_cap_handles
         if _is_cap(axis, const, lo, hi):                 # D2 (geometric)
             n_cap += 1
             # ⚠️ 2026-08-24, fourth cross-family review (GLM): excluding caps from
@@ -369,18 +400,6 @@ def face_line_targets(geo, affine, *, t_max_m: float,
             continue
         n_face += 1
         groups.setdefault((axis, round(const, GROUP_QUANT)), []).append((lo, hi, handle))
-
-    # openings first: D4 needs them
-    opening_spans: dict[str, list[tuple[float, float, float, float]]] = {"x": [], "y": []}
-    for o in geo.openings:
-        r = o.rect_dxf_mm
-        (ax0, ay0), (ax1, ay1) = _to_world((r[0], r[1]), affine), _to_world((r[2], r[3]), affine)
-        x0, x1 = sorted((ax0, ax1))
-        y0, y1 = sorted((ay0, ay1))
-        if (x1 - x0) >= (y1 - y0):
-            opening_spans["y"].append((y0, y1, x0, x1))
-        else:
-            opening_spans["x"].append((x0, x1, y0, y1))
 
     def _crosses_opening(axis, const, a, b):
         """Is the blank between two fragments an opening the answer knows about?"""
@@ -478,6 +497,152 @@ def face_line_targets(geo, affine, *, t_max_m: float,
             "wall_landing_hole_length_m": round(hole_m, 4),
         },
     }
+
+
+def _converter_cap_handles_from_facts(view) -> set[str]:
+    """Recover one converter-owned audit population, never a wall list.
+
+    ``as_measured`` transports ``P1PlanViewGeometry.wall_bands`` under the
+    truthful name ``jamb_cap_bands``.  In the producer, ``_build_wall_bands``
+    partitions every entry in ``cap_handles_v/h`` by cross-section and takes
+    the union of its member handles; therefore the union below is exactly the
+    direct cap-handle population used by the live path.  Only
+    ``would_be_excluded_by_converter_length_rule`` consumes it.  D2 targets,
+    wall pairing, and projection do not.
+    """
+    return {str(handle)
+            for band in view.converter_readouts.jamb_cap_bands
+            for handle in band.get("cap_handles", [])}
+
+
+def denominator_from_facts(view, request: "TarchConversionRequestV1", *,
+                           merge_m: float = MERGE_M) -> dict:
+    """Derive the reading question book from one frozen facts-layer view.
+
+    This is F-130's structural fix: correction geometry and the reading ruler
+    now share the same on-disk fact, instead of the reading side re-running a
+    converter whose implementation may have moved since ``gt.json`` froze.
+    D2-D5 are not reimplemented here; this adapter only translates 0.1 mm
+    integer records into the existing shared :func:`_d1_d5_core` inputs.
+
+    The F-126 itemisation remains intact.  Non-orthogonal strokes carry their
+    world endpoints and length; native-DXF endpoints are honestly absent
+    because the facts schema never stored them.
+    """
+    units = 10000.0
+    readouts = view.converter_readouts
+    segs = []
+    for face in view.face_lines:
+        den_axis = "y" if face.axis == "x" else "x"
+        segs.append((
+            den_axis,
+            round(face.const / units, QUANT),
+            round(face.along_min / units, QUANT),
+            round(face.along_max / units, QUANT),
+            face.id))
+
+    opening_spans: dict[str, list[tuple[float, float, float, float]]] = {"x": [], "y": []}
+    for opening in view.openings:
+        den_axis = "y" if opening.axis == "x" else "x"
+        opening_spans[den_axis].append((
+            round(opening.cross_lo / units, QUANT),
+            round(opening.cross_hi / units, QUANT),
+            round(opening.along_min / units, QUANT),
+            round(opening.along_max / units, QUANT)))
+
+    # ⭐ 2026-08-29 (F-126, R3), facts-side transport: keep WHICH discarded
+    # stroke left the denominator.  This is out-accounting only; no snap or
+    # replacement geometry is inferred here.
+    excluded_non_orthogonal = []
+    for stroke in readouts.non_orthogonal_lines:
+        p0 = [round(stroke.p0[0] / units, QUANT),
+              round(stroke.p0[1] / units, QUANT)]
+        p1 = [round(stroke.p1[0] / units, QUANT),
+              round(stroke.p1[1] / units, QUANT)]
+        excluded_non_orthogonal.append({
+            "handle": stroke.id,
+            "p0_m": p0,
+            "p1_m": p1,
+            "length_m": round(
+                ((p1[0] - p0[0]) ** 2 + (p1[1] - p0[1]) ** 2) ** 0.5,
+                QUANT),
+        })
+
+    faces = _d1_d5_core(
+        segs, opening_spans, _converter_cap_handles_from_facts(view),
+        excluded_non_orthogonal,
+        t_max_m=max(float(value) for value in request.wall_thickness_range_m),
+        merge_m=merge_m)
+    targets = faces["targets"]
+    allowed = faces["allowed_not_required"]
+    counts = faces["counts"]
+
+    opening_targets = []
+    for opening in view.openings:
+        den_axis = "y" if opening.axis == "x" else "x"
+        lo = round(opening.along_min / units, QUANT)
+        hi = round(opening.along_max / units, QUANT)
+        cross_lo = round(opening.cross_lo / units, QUANT)
+        cross_hi = round(opening.cross_hi / units, QUANT)
+        opening_targets.append({
+            "kind": opening.kind,
+            "axis": den_axis,
+            "const_range_m": [cross_lo, cross_hi],
+            "lo_m": lo,
+            "hi_m": hi,
+            "width_m": round(hi - lo, 4),
+        })
+
+    diagnostics = [
+        {**record,
+         "locatable": bool(record.get("handles") or record.get("points_dxf_mm"))}
+        for record in readouts.diagnostics]
+    gates = [dict(record) for record in readouts.gates]
+    result = {
+        "rule_version": "denominator_v1",
+        "view_id": view.view_id,
+        "floor_id": view.floor_id,
+        "params": {"merge_m": merge_m, "coordinate_round_decimals": QUANT},
+        "ledger": {
+            "wall_layer_segments_collected": readouts.wall_lines_total,
+            "s4_dangles": readouts.dangles,
+            "s4_cuts": readouts.cuts,
+            "s4_invalid": readouts.invalid,
+            "excluded_jamb_caps_geometric": counts["excluded_jamb_caps_geometric"],
+            "would_be_excluded_by_converter_length_rule":
+                counts["would_be_excluded_by_converter_length_rule"],
+            "excluded_non_orthogonal": len(excluded_non_orthogonal),
+            "face_segments": counts["face_segments"],
+            "face_lines_after_grouping": counts["face_lines_after_grouping"],
+            "scoreable_targets_after_merge": len(targets),
+            "fragments_per_face_line": counts["fragments_per_face_line"],
+            "total_scoreable_length_m": round(
+                sum(target["length_m"] for target in targets), 3),
+            "merges_blocked_by_an_opening": counts["merges_blocked_by_an_opening"],
+            "wall_landing_holes": counts["wall_landing_holes"],
+            "wall_landing_hole_length_m": counts["wall_landing_hole_length_m"],
+        },
+        "targets": targets,
+        "allowed_not_required": allowed,
+        "excluded_non_orthogonal_segments": excluded_non_orthogonal,
+        "opening_targets": opening_targets,
+        "opening_ledger": {
+            "total": len(opening_targets),
+            "by_kind": {
+                kind: sum(item["kind"] == kind for item in opening_targets)
+                for kind in sorted({item["kind"] for item in opening_targets})},
+        },
+        "diagnostics": diagnostics,
+        "gates": gates,
+    }
+    if not targets:
+        raise DenominatorUnavailable(
+            REASON_UPSTREAM_BLOCK
+            if any(record["severity"] == "BLOCK" for record in diagnostics)
+            else REASON_ZERO_TARGETS,
+            view_id=view.view_id, floor_id=view.floor_id,
+            diagnostics=diagnostics, ledger=result["ledger"], gates=gates)
+    return result
 
 
 def denominator(dxf: Path, request_path: Path, view_id: str, *,

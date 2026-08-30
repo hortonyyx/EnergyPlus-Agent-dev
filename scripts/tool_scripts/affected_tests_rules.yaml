@@ -54,14 +54,6 @@ uncovered_allowlist:
   # now does, so keeping them here would be the allowlist telling a lie the gate
   # is built to catch.  ⛔ Do not re-add them to silence a red: the honest way
   # back onto this list is for the coverage to actually go away.
-  src/agent/judge/as_drawn/reading_grade.py: >-
-    transplanted 2026-08-25 from tools/reading_grade.py; judge-only by design
-    (scores readings against the gt-derived denominator, so gate①/the executor
-    never import it -- held by
-    tests/test_gt_discipline.py::test_pipeline_import_closure_excludes_gt_and_as_drawn_judge,
-    which scans the whole src.agent.judge.as_drawn prefix).  Verified by hand at
-    transplant: cmp -s against the old tools/ location's outputs
-    (out/grade_{sm25_1f,sm25_2f,sm24_1f}.json).
   scripts/tool_scripts/reading_toolbox.py: >-
     transplanted 2026-08-25 from tools/reading_toolbox.py; a CLI toolbox
     (pens/ruler/faces/pairs/gaps/build), no project-side test drives it. Verified
