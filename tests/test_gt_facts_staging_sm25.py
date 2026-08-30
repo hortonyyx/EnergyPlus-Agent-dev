@@ -10,12 +10,17 @@ one copy, and check the gate reacts -- never mutate the real files in place.
 """
 from __future__ import annotations
 
+import json
 from pathlib import Path
 
 import pytest
+from pydantic import ValidationError
 
+import src.agent.judge.gt_facts_staging as gt_facts_staging
 from src.agent.judge.as_measured import build_as_measured, content_sha256
-from src.agent.judge.gt_facts_staging import _facts_staging_dir, read_facts_candidate
+from src.agent.judge.gt_facts_staging import (_facts_staging_dir,
+                                              read_facts_candidate,
+                                              write_facts_candidate)
 from src.agent.judge.gt_revisions import (AsSignedReproductionError, AsSignedV1,
                                           RevisionsLedgerV1,
                                           as_signed_content_sha256,
@@ -107,3 +112,94 @@ def test_3_hand_tampering_a_revisions_action_moves_as_signed_and_its_hash(tmp_pa
     with pytest.raises(AsSignedReproductionError):
         verify_as_signed_reproduction(as_measured, signed_ledger, as_signed)
     assert content_sha256(as_measured) == before_hash  # as_measured itself untouched
+
+
+# =========================================================================== #
+# ②-1b-T-R R2 (GLM F-2): real-shape mutations locked in on disk, through the
+# ACTUAL read_facts_candidate entry point -- not the synthetic 1-view fixture
+# in tests/test_gt_revisions_and_as_signed.py, and not an in-memory-only
+# verify_as_signed_reproduction() call the way test_3_a_hand_tampered_*
+# above does it.
+#
+# Cross-review ran a 20-dimension real-shape tamper matrix (18 red, 2 green
+# and known-harmless) and found this file had locked in NONE of it. Picking
+# WHICH 2-3 to add: the judging criterion is "does it declare covering a
+# quantity that nothing here actually measures yet" -- so the three below
+# are chosen to be pairwise DIFFERENT along every axis that matters, not
+# "three tampers that happen to work":
+#   1. as_signed.json,  on-disk, via read_facts_candidate -- the file this
+#      dispatch mutates elsewhere, but never through the real read path.
+#   2. as_measured.json, on-disk -- ZERO existing coverage of this file at
+#      all before this rework, any dimension.
+#   3. revisions.json,  on-disk, engineered to fail PYDANTIC SCHEMA
+#      validation (a DxfHandle pattern violation) rather than
+#      verify_as_signed_reproduction -- GLM's F-2 headline: 4/18 of its red
+#      dimensions were caught by this "second line of defense", which this
+#      module's own docstrings never claimed and nothing here tests.
+# Each is therefore a genuinely distinct quantity: a different FILE, and (for
+# #3) a different FAILURE MECHANISM -- not three variations on one theme.
+# =========================================================================== #
+def _real_trio_cloned_into(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
+    """Round-trip the REAL committed sm25 trio into an isolated tmp staging
+    root via the actual public write/read API (never mutate the committed
+    files in place -- this file's own docstring's stated pattern)."""
+    real_am, real_revisions, real_as_signed = read_facts_candidate(CASE)
+    monkeypatch.setattr(gt_facts_staging, "_FACTS_STAGING_ROOT", tmp_path)
+    write_facts_candidate(CASE, real_am, real_revisions, real_as_signed)
+    return gt_facts_staging._facts_staging_dir(CASE)
+
+
+def test_r2_on_disk_as_signed_tamper_is_caught_through_the_real_read_path(tmp_path, monkeypatch):
+    """Distinct from test_3_a_hand_tampered_integer_in_the_staged_as_signed_is_caught
+    above: that test builds an in-memory ``AsSignedV1`` and calls
+    ``verify_as_signed_reproduction`` directly. This one hand-edits the
+    actual on-disk byte and goes through ``read_facts_candidate`` -- the
+    entry point ②-1c will actually call -- on the real 2-view/446-face-line
+    sm25 shape."""
+    out_dir = _real_trio_cloned_into(tmp_path, monkeypatch)
+    p = out_dir / "as_signed.json"
+    raw = json.loads(p.read_text())
+    raw["views"][0]["face_lines"][0]["const"] += 1
+    p.write_text(json.dumps(raw), encoding="utf-8")
+    with pytest.raises(AsSignedReproductionError):
+        read_facts_candidate(CASE)
+
+
+def test_r2_on_disk_as_measured_hash_break_is_caught(tmp_path, monkeypatch):
+    """``as_measured.json`` had ZERO real-shape mutation coverage in this
+    file before this rework. Flips one hex digit of ``source_dxf_sha256``
+    (schema-valid: still a 64-char lowercase-hex ``Hex64``, so this is NOT
+    the schema-layer mechanism #3 below exercises) -- the only thing that
+    can catch it is ``derive_as_signed``'s own FIRST check, the
+    ``as_measured_content_sha256`` cross-reference against the ledger."""
+    out_dir = _real_trio_cloned_into(tmp_path, monkeypatch)
+    p = out_dir / "as_measured.json"
+    raw = json.loads(p.read_text())
+    original = raw["source_dxf_sha256"]
+    raw["source_dxf_sha256"] = ("0" if original[0] != "0" else "1") + original[1:]
+    assert raw["source_dxf_sha256"] != original
+    p.write_text(json.dumps(raw), encoding="utf-8")
+    with pytest.raises(AsSignedReproductionError,
+                       match="as_signed_revisions_do_not_target_this_as_measured"):
+        read_facts_candidate(CASE)
+
+
+def test_r2_on_disk_revisions_schema_break_is_caught_before_verify_even_runs(tmp_path, monkeypatch):
+    """⭐⭐ GLM's F-2 headline finding, locked in: lower-cases one DXF handle
+    in the staged revisions ledger. ``DxfHandle`` is ``^[0-9A-F]+$``
+    (uppercase only, ``gt_schema.py``), so this fails
+    ``RevisionsLedgerV1.model_validate_json`` INSIDE ``read_facts_candidate``
+    -- a ``pydantic.ValidationError``, raised before
+    ``verify_as_signed_reproduction`` is ever reached. A completely
+    different failure mechanism from the other two tests in this section,
+    which both raise ``AsSignedReproductionError`` from our OWN gate."""
+    out_dir = _real_trio_cloned_into(tmp_path, monkeypatch)
+    p = out_dir / "revisions.json"
+    raw = json.loads(p.read_text())
+    entry = raw["revisions"][0]
+    original_handle = entry["target"]["handle"]
+    entry["target"]["handle"] = original_handle.lower()
+    assert entry["target"]["handle"] != original_handle
+    p.write_text(json.dumps(raw), encoding="utf-8")
+    with pytest.raises(ValidationError):
+        read_facts_candidate(CASE)

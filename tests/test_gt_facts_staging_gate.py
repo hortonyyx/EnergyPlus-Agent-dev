@@ -142,13 +142,33 @@ def test_r3_no_public_path_or_directory_accessor_is_exported():
     ``["FACTS_STAGING_ROOT", "facts_staging_dir", "write_facts_candidate",
     "read_facts_candidate"]`` -- a future ``promote_gt_v3`` could import
     ``facts_staging_dir(case)`` and ``shutil.copytree`` it straight into
-    ``gt/<case>/facts/`` without ever going through a verified read. After
-    this dispatch, the only names this module exports are the two functions
-    that hand out validated Pydantic objects, never a ``Path``.
+    ``gt/<case>/facts/`` without ever going through a verified read.
+
+    ⭐ ②-1b-T-R (rework, R1/GLM F-1): ``__all__`` grew a THIRD name,
+    ``FactsStagingCaseError`` -- deliberately public, because a caller
+    building ``case`` from something outside its control needs a stable
+    exception type to catch. This does NOT reopen the R3 gap: an exception
+    CLASS is not a path or a directory handle, it cannot be handed to
+    ``shutil.copytree``, and asserting the exact 2-name set (as the
+    pre-rework version of this test did) would now fail on every future
+    legitimate addition to ``__all__`` that has nothing to do with paths --
+    the test would be measuring "did the set change at all", not "is a
+    path/directory accessor exported", which is the actual thing R3 cares
+    about. Hence: assert the *specific* names this dispatch closed off
+    stay closed, not that ``__all__`` is frozen at exactly two entries.
     """
-    assert set(gt_facts_staging.__all__) == {"write_facts_candidate", "read_facts_candidate"}
+    assert set(gt_facts_staging.__all__) == {
+        "write_facts_candidate", "read_facts_candidate", "FactsStagingCaseError"}
     assert not hasattr(gt_facts_staging, "facts_staging_dir")
     assert not hasattr(gt_facts_staging, "FACTS_STAGING_ROOT")
+    # FactsStagingCaseError being public does not reopen R3's gap: it is an
+    # exception CLASS, not a callable that could ever return a Path a caller
+    # hands to shutil.copytree (that property is checked on the actual
+    # return values of the other two exports by
+    # test_r3_read_facts_candidate_returns_typed_documents_never_a_path,
+    # below).
+    assert isinstance(gt_facts_staging.FactsStagingCaseError, type)
+    assert issubclass(gt_facts_staging.FactsStagingCaseError, ValueError)
     # The capability has not vanished (staging still has to know where its
     # own files live) -- it is merely no longer part of the public surface a
     # future promotion implementer would discover and reach for:
