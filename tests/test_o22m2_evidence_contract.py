@@ -62,6 +62,7 @@ from src.agent.correction.evidence_contract import (
     validate_evidence_bundle,
     wall_claim_id,
 )
+from src.agent.correction import evidence_contract
 from src.agent.correction.window_sources import (
     canonical_json_bytes,
     source_locator,
@@ -1234,6 +1235,247 @@ def test_nf4_5_unselected_dangling_candidate_passes_today_module3_4_pinned():
     # ... and note the boundary honestly: the same corruption on a SELECTED
     # candidate is loud (nf4_1 / inv3), so the pin covers exactly the
     # unselected mass of the candidate graph.
+
+
+# =========================================================================== #
+# Cross-review rework (2026-08-31) -- F-1 payload closure, F-2 single sourcing
+# (verdict: ../verdict/2026-08-31_o22m2_crossreview_claude.md, findings F-1/F-2)
+# =========================================================================== #
+def _empty_artifact() -> CorrectionEvidenceBundleArtifactV1:
+    """The reviewer's F-1 shape: a LEGAL as-drawn product whose face_lines
+    and hypotheses are both empty, wired as walls=present.  Nothing in the
+    OLD validator objects -- that is the hole, reproduced."""
+    doc = {"schema": SCHEMA, "observations": {"face_lines": []},
+           "declarations": {}, "hypotheses": {}}
+    AsDrawnPlanV2.model_validate(doc)  # premise: empty IS a legal product
+    raw = json.dumps(doc, indent=1).encode("utf-8")
+    sha = hashlib.sha256(raw).hexdigest()
+    meta = SourceArtifactV1(
+        input_id="empty_plan", source_contract_id=SOURCE_CONTRACT_AS_DRAWN,
+        source_output_sha256=sha, view_type="plan", floor_ref="5f",
+    )
+    absent = ("plan_openings", "elevation_openings", "dimensions", "room_roles")
+    debts = [EvidenceDebtV1(
+        debt_id=f"debt_{ch}_empty", kind="missing_channel", channel=ch,
+        description="channel not carried by this empty product",
+    ) for ch in absent]
+    return CorrectionEvidenceBundleArtifactV1(
+        bundle=finalize_bundle(CorrectionEvidenceBundleV1(
+            schema_version=BUNDLE_SCHEMA_VERSION,
+            source_artifacts=[meta],
+            channel_status=[
+                ChannelStatusV1(channel="walls", state="present",
+                                source_input_ids=("empty_plan",)),
+                *(ChannelStatusV1(
+                    channel=ch, state="absent",
+                    covered_by_debt_ids=(f"debt_{ch}_empty",),
+                ) for ch in absent),
+            ],
+            wall_claims=[], face_dispositions=[], opening_claims=[],
+            evidence_debts=debts,
+        )),
+        frozen_sources=[FrozenSourceV1(artifact=meta, raw_bytes=raw)],
+    )
+
+
+def test_f1_present_channel_requires_payload_or_an_explicit_debt(monkeypatch):
+    """Cross-review F-1.  BEFORE: with the closure check neutered, the
+    reviewer's shape validates on THIS tree (the hole was real, not
+    transcribed).  AFTER: loud -- and the honest "wired, produced nothing"
+    debt still passes, so the gate kills only the SILENT empty run."""
+    art = _empty_artifact()
+    # BEFORE: neuter the new check and the old validator waves it through
+    monkeypatch.setattr(
+        evidence_contract, "_assert_channel_payload_closure", lambda b: None
+    )
+    validate_evidence_bundle(art)
+    monkeypatch.undo()
+
+    # AFTER: loud, with the stable code and the offending channel named
+    err = _expect_error(art, "PRESENT_CHANNEL_WITHOUT_PAYLOAD")
+    assert err.context == {"channel": "walls"}
+
+    # ⭐ the honest shape still passes (the gate's other direction)
+    honest = art.model_copy(deep=True)
+    honest.bundle.evidence_debts.append(EvidenceDebtV1(
+        debt_id="debt_zero_walls", kind="zero_payload_channel",
+        channel="walls", description="walls wired, produced nothing",
+    ))
+    validate_evidence_bundle(_refinalize(honest))
+
+    # a zero-payload debt without a channel cannot keep the gate honest
+    dangling = art.model_copy(deep=True)
+    dangling.bundle.evidence_debts.append(EvidenceDebtV1(
+        debt_id="debt_zero_none", kind="zero_payload_channel",
+        description="no channel named",
+    ))
+    _expect_error(_refinalize(dangling), "ZERO_PAYLOAD_DEBT_WITHOUT_CHANNEL")
+
+    # plan_openings, the second channel WITH payload members: present with
+    # zero opening claims is loud the same way (tiny carries real payload
+    # everywhere else, so the red can only come from the emptied channel)
+    art2 = _tiny_artifact()
+    art2.bundle.opening_claims = []
+    err2 = _expect_error(_refinalize(art2), "PRESENT_CHANNEL_WITHOUT_PAYLOAD")
+    assert err2.context == {"channel": "plan_openings"}
+
+    # the three channels with NO payload member on this bundle can never
+    # witness a present: declaring one present without a debt is loud too
+    art3 = _tiny_artifact()
+    art3.bundle.channel_status = [
+        (
+            c.model_copy(update={
+                "state": "present",
+                "source_input_ids": ("tiny",),
+                "covered_by_debt_ids": (),
+            })
+            if c.channel == "elevation_openings" else c
+        )
+        for c in art3.bundle.channel_status
+    ]
+    err3 = _expect_error(_refinalize(art3), "PRESENT_CHANNEL_WITHOUT_PAYLOAD")
+    assert err3.context == {"channel": "elevation_openings"}
+
+
+def _cross_input_artifact(cross: str) -> CorrectionEvidenceBundleArtifactV1:
+    """The reviewer's F-2/A3 shape: TWO legal products (planA 1f / planB 2f,
+    same face ids, same axes), one paired_faces claim spanning them.  Every
+    reference resolves, the hypothesis and candidate matches succeed, the
+    axes agree -- structurally flawless, physically impossible.
+
+    ``cross="face_b"``: the wall's two faces in two products ("cross-floor"
+    wall).  ``cross="hypothesis"``: faces same-source, the hypothesis node
+    in the other product -- proving the gate covers ALL refs, not just the
+    two face refs."""
+    doc_a = _tiny_doc()
+    doc_b = _tiny_doc()
+    doc_b["observations"]["face_lines"] = \
+        doc_b["observations"]["face_lines"][:2]
+    doc_b["hypotheses"]["non_wall_face_lines"] = {}
+    doc_b["hypotheses"]["unpaired_wall_faces"] = {}
+    doc_b["hypotheses"]["pair_candidates"] = \
+        doc_b["hypotheses"]["pair_candidates"][:1]
+    AsDrawnPlanV2.model_validate(doc_a)
+    AsDrawnPlanV2.model_validate(doc_b)  # premise: both are legal products
+    raw_a = json.dumps(doc_a, indent=1).encode("utf-8")
+    raw_b = json.dumps(doc_b, indent=1).encode("utf-8")
+    sha_a = hashlib.sha256(raw_a).hexdigest()
+    sha_b = hashlib.sha256(raw_b).hexdigest()
+    contract = SOURCE_CONTRACT_AS_DRAWN
+    meta_a = SourceArtifactV1(
+        input_id="planA", source_contract_id=contract,
+        source_output_sha256=sha_a, view_type="plan", floor_ref="1f",
+    )
+    meta_b = SourceArtifactV1(
+        input_id="planB", source_contract_id=contract,
+        source_output_sha256=sha_b, view_type="plan", floor_ref="2f",
+    )
+
+    def fref(input_id: str, sha: str, i: int, fid: str) -> ObservationRefV1:
+        base = f"/observations/face_lines/{i}"
+        return _fref(input_id, contract, sha, base, fid,
+                     (f"{base}/support_cols_px", f"{base}/runs_px",
+                      f"{base}/edges_m", f"{base}/gaps"))
+
+    if cross == "face_b":
+        face_a = fref("planA", sha_a, 0, "F01")
+        face_b = fref("planB", sha_b, 1, "F02")
+        hyp = _pref("planA", contract, sha_a, "/hypotheses/pairs/0")
+        a_f02_claimed, b_f02_claimed = False, True
+    else:
+        face_a = fref("planA", sha_a, 0, "F01")
+        face_b = fref("planA", sha_a, 1, "F02")
+        hyp = _pref("planB", contract, sha_b, "/hypotheses/pairs/0")
+        a_f02_claimed, b_f02_claimed = True, False
+
+    claim = PairedFacesWallClaimV1(
+        claim_id="pending",
+        hypothesis_ref=hyp,
+        perception_source_ref=_pref("planA", contract, sha_a, "/hypotheses"),
+        source_contract_id=contract,
+        face_a_ref=face_a,
+        face_b_ref=face_b,
+        pair_candidate_ref=_pref(
+            "planA", contract, sha_a, "/hypotheses/pair_candidates/0"
+        ),
+    )
+    claim = claim.model_copy(update={"claim_id": wall_claim_id(claim)})
+
+    def reason(input_id: str, sha: str) -> ArtifactPointerV1:
+        pointer = ("/hypotheses/non_wall_face_lines/F03"
+                   if input_id == "planA" else "/hypotheses")
+        return _pref(input_id, contract, sha, pointer)
+
+    def disp(ref: ObservationRefV1, claimed: bool) -> FaceDispositionV1:
+        if claimed:
+            return FaceDispositionV1(
+                face_ref=ref, status="claimed_wall",
+                consuming_claim_id=claim.claim_id,
+            )
+        return FaceDispositionV1(
+            face_ref=ref, status="non_wall",
+            reason_ref=reason(ref.input_id, ref.source_output_sha256),
+        )
+
+    dispositions = [
+        disp(fref("planA", sha_a, 0, "F01"), True),
+        disp(fref("planA", sha_a, 1, "F02"), a_f02_claimed),
+        disp(fref("planA", sha_a, 2, "F03"), False),
+        disp(fref("planA", sha_a, 3, "F04"), False),
+        disp(fref("planB", sha_b, 0, "F01"), False),
+        disp(fref("planB", sha_b, 1, "F02"), b_f02_claimed),
+    ]
+    absent = ("plan_openings", "elevation_openings", "dimensions", "room_roles")
+    debts = [EvidenceDebtV1(
+        debt_id=f"debt_{ch}_cross", kind="missing_channel", channel=ch,
+        description="channel not carried by this probe bundle",
+    ) for ch in absent]
+    return CorrectionEvidenceBundleArtifactV1(
+        bundle=finalize_bundle(CorrectionEvidenceBundleV1(
+            schema_version=BUNDLE_SCHEMA_VERSION,
+            source_artifacts=[meta_a, meta_b],
+            channel_status=[
+                ChannelStatusV1(channel="walls", state="present",
+                                source_input_ids=("planA", "planB")),
+                *(ChannelStatusV1(
+                    channel=ch, state="absent",
+                    covered_by_debt_ids=(f"debt_{ch}_cross",),
+                ) for ch in absent),
+            ],
+            wall_claims=[claim],
+            face_dispositions=dispositions,
+            opening_claims=[],
+            evidence_debts=debts,
+        )),
+        frozen_sources=[
+            FrozenSourceV1(artifact=meta_a, raw_bytes=raw_a),
+            FrozenSourceV1(artifact=meta_b, raw_bytes=raw_b),
+        ],
+    )
+
+
+def test_f2_claim_refs_must_share_one_input_id(monkeypatch):
+    """Cross-review F-2.  Green premise first: a same-source claim on the
+    tiny fixture (and all three real products, in test_acceptance_2) still
+    validates.  BEFORE: with the single-sourcing check neutered, BOTH
+    cross-input variants validate on THIS tree.  AFTER: loud, with the two
+    offending input ids named."""
+    validate_evidence_bundle(_tiny_artifact())  # same-source premise
+
+    for cross in ("face_b", "hypothesis"):
+        art = _cross_input_artifact(cross)
+        # BEFORE: neuter the new check and the old validator waves it
+        # through -- every dereference, hypothesis match, candidate match
+        # and axis check above it genuinely succeeds.
+        monkeypatch.setattr(
+            evidence_contract, "_assert_claim_refs_single_sourced",
+            lambda c: None,
+        )
+        validate_evidence_bundle(art)
+        monkeypatch.undo()
+
+        err = _expect_error(art, "CLAIM_REFS_SPAN_MULTIPLE_INPUTS")
+        assert err.context["input_ids"] == ["planA", "planB"], err.context
 
 
 # =========================================================================== #

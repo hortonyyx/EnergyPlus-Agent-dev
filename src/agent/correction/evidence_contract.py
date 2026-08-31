@@ -61,6 +61,22 @@ graph, not wall claims), so an unselected dangling candidate is invisible to
 this layer.  It belongs to module 3 (the adapter walks candidates) and
 module 4 (the compiler recomputes the candidate graph and must dereference
 ``face_b`` there).  ⛔ Do not leave this as a silent gap between documents.
+
+Cross-review rework (2026-08-31): two structural invariants the first
+review found missing, both intra-bundle (no adapter, no prose) --
+---------------------------------------------------------------
+F-1 payload closure: a ``present`` channel must actually carry payload
+(``walls`` -> a wall claim or a disposition; ``plan_openings`` -> an
+opening claim); zero payload is legal ONLY with an explicit
+``zero_payload_channel`` debt -- an honest "wired, produced nothing this
+run", ⛔ never a silent empty run.  The three channels with no payload
+member on this bundle can never witness a present, so for them the debt is
+the only legal companion to a ``present`` row.
+F-2 single sourcing: identity IS ``input_id`` (design §3.2), so every ref
+on ONE claim must point into the SAME frozen source.  A wall whose two
+faces live in two different products is structurally legal (``F01``/
+``F02``-style ids exist in every floor's product, so hypothesis and
+candidate matches still succeed) but physically impossible.
 """
 from __future__ import annotations
 
@@ -410,7 +426,13 @@ class ChannelStatusV1(BaseModel):
 
 class EvidenceDebtV1(BaseModel):
     """A structured, named known-missing (design §3.3).  Whether a profile may
-    continue past it is module 3+/pipeline policy, ⛔ not this type's call."""
+    continue past it is module 3+/pipeline policy, ⛔ not this type's call.
+
+    ``zero_payload_channel`` (cross-review F-1) is the explicit companion of
+    a ``present`` channel that produced no payload this run -- distinct from
+    ``missing_channel``, which covers an ``absent`` channel.  It is what
+    keeps the payload-closure gate from killing the honest "wired, produced
+    nothing" shape."""
 
     model_config = _CFG
 
@@ -419,6 +441,7 @@ class EvidenceDebtV1(BaseModel):
         "missing_channel",
         "ambiguous_face",
         "pairs_selection_absent",
+        "zero_payload_channel",
         "other_known_missing",
     ]
     channel: ChannelName | None = None
@@ -650,6 +673,93 @@ def as_drawn_face_index(doc: dict) -> dict[str, tuple[int, dict]]:
             )
         index[face_id] = (i, face)
     return index
+
+
+# ── cross-review rework (2026-08-31): F-1 / F-2 structural invariants ─────── #
+def _channel_has_payload(
+    bundle: CorrectionEvidenceBundleV1, channel: str
+) -> bool:
+    """Does this bundle actually carry ``channel``'s payload?
+
+    Only ``walls`` and ``plan_openings`` have payload members here (design
+    §3.3); the remaining three channels have NO member to witness a
+    ``present`` with, so for them this is always False."""
+    if channel == "walls":
+        return bool(bundle.wall_claims or bundle.face_dispositions)
+    if channel == "plan_openings":
+        return bool(bundle.opening_claims)
+    return False
+
+
+def _assert_channel_payload_closure(
+    bundle: CorrectionEvidenceBundleV1,
+) -> None:
+    """F-1: a PRESENT channel must actually carry payload, or say so.
+
+    A present-but-empty channel is only legal with an explicit
+    ``zero_payload_channel`` debt -- ⛔ never a silent empty run (that is
+    exactly the shape design §3.3 raised ``channel_status`` against: "walls
+    wired" quietly meaning the walls leg produced nothing).
+    """
+    zero_payload: set[str] = set()
+    for debt in bundle.evidence_debts:
+        if debt.kind == "zero_payload_channel":
+            if debt.channel is None:
+                raise EvidenceContractError(
+                    "ZERO_PAYLOAD_DEBT_WITHOUT_CHANNEL",
+                    {"debt_id": debt.debt_id},
+                )
+            zero_payload.add(debt.channel)
+    for status in bundle.channel_status:
+        if status.state != "present":
+            continue
+        if _channel_has_payload(bundle, status.channel):
+            continue
+        if status.channel not in zero_payload:
+            raise EvidenceContractError(
+                "PRESENT_CHANNEL_WITHOUT_PAYLOAD",
+                {"channel": status.channel},
+            )
+
+
+def _claim_source_input_ids(claim: WallClaimV1) -> set[str]:
+    """F-2: every ``input_id`` ONE claim's references point into."""
+    ids = {
+        claim.hypothesis_ref.input_id,
+        claim.perception_source_ref.input_id,
+    }
+    if claim.kind == "paired_faces":
+        ids.update(
+            {
+                claim.face_a_ref.input_id,
+                claim.face_b_ref.input_id,
+                claim.pair_candidate_ref.input_id,
+            }
+        )
+    elif claim.kind == "solid_band":
+        ids.add(claim.band_face_ref.input_id)
+    elif claim.kind == "single_face":
+        ids.add(claim.face_ref.input_id)
+        if claim.counterface_observation_ref is not None:
+            ids.add(claim.counterface_observation_ref.input_id)
+    else:
+        ids.add(claim.trace_ref.input_id)
+        if claim.basis_evidence_ref is not None:
+            ids.add(claim.basis_evidence_ref.input_id)
+    return ids
+
+
+def _assert_claim_refs_single_sourced(claim: WallClaimV1) -> None:
+    """F-2: identity IS ``input_id`` (design §3.2) -- one wall's faces,
+    hypothesis and candidate evidence must all live in the SAME frozen
+    source.  A claim spanning two inputs is structurally legal (ids like
+    ``F01`` exist in every floor's product) but physically impossible."""
+    claim_inputs = _claim_source_input_ids(claim)
+    if len(claim_inputs) != 1:
+        raise EvidenceContractError(
+            "CLAIM_REFS_SPAN_MULTIPLE_INPUTS",
+            {"claim_id": claim.claim_id, "input_ids": sorted(claim_inputs)},
+        )
 
 
 # ── the validator: hard invariants 1-8 (+ NF-4 additions) ─────────────────── #
@@ -963,6 +1073,11 @@ def validate_evidence_bundle(
                     claim.basis_evidence_ref.source_output_sha256,
                     claim.basis_evidence_ref.json_pointer,
                 )
+        # F-2 (checked AFTER dereference on purpose: a ref naming a
+        # never-frozen input must keep reporting UNKNOWN_INPUT_ID, the
+        # sharper diagnosis -- cross-input spanning is the residual case
+        # every dereference above happily survives).
+        _assert_claim_refs_single_sourced(claim)
 
     # -- opening claims: reference integrity incl. NF-4 #4 (gap_index) -----
     opening_seen: set[tuple[str, str]] = set()
@@ -1136,6 +1251,8 @@ def validate_evidence_bundle(
                     "CHANNEL_SOURCE_UNKNOWN",
                     {"channel": status.channel, "input_id": input_id},
                 )
+    # F-1: present must mean payload (or an explicit zero-payload debt)
+    _assert_channel_payload_closure(bundle)
     for disposition in bundle.face_dispositions:
         if disposition.status != "ambiguous":
             continue
