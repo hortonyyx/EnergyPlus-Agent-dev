@@ -19,7 +19,9 @@ What is locked here, per acceptance item
 4  paired-face fidelity at THIS layer, both directions: unequal-length faces
    stay ONE claim with full segmentation evidence (and are never re-bucketed),
    equal-length faces produce no fragment of any kind; the tail segmentation
-   itself is pinned to module 4 with the design's own charter as evidence;
+   itself belongs to module 4's compiler -- the old pin was flipped onto the
+   real implementation by module 4's dispatch (see
+   ``test_tail_segmentation_is_delivered_by_module_4``);
 5  a cleared ``pairs`` selection is never rebuilt from the candidate graph:
    the real-product shape (pairs=None, buckets untouched) refuses loudly with
    ``PAIRS_SELECTION_ABSENT``; the honest covered shape travels with a
@@ -439,22 +441,23 @@ def test_acceptance_4_equal_runs_produce_no_fragment_claims():
     assert len(art.bundle.face_dispositions) == 3
 
 
-def test_tail_segmentation_is_pinned_to_module_4():
-    """PIN: turning a pair's unshared tails into ``single_face_fragment``
-    pieces is NOT this module's output -- the approved design charters the
-    provisional compiler with it (its pipeline step is "resolve refs →
-    SEGMENT EVIDENCE → derive support lines"; module 4's module list line is
-    "ref resolve, segmentation, centerline/candidate/thickness IR"; and the
-    module-4 build step is verified by "paired-face tails survive").  A
-    bundle claim carries ⛔ no geometry values, so "which interval is a tail"
-    -- a computed result -- has no type slot here.
+def test_tail_segmentation_is_delivered_by_module_4():
+    """PIN FLIPPED by module 4's dispatch (its carried mandate ①).  This
+    used to be ``test_tail_segmentation_is_pinned_to_module_4`` and asserted
+    only the negative half -- segmentation does NOT happen at the adapter
+    layer.  Module 4's compiler now exists, so the pin points at the real
+    implementation: unequal runs must surface as ``single_face_fragment``
+    pieces that still name the original claim, and equal runs must produce
+    none.
 
-    What module 3 owns, and locks above: the pairing decision and the full
-    segmentation evidence reach the bundle intact.  The teeth for "tails not
-    dropped / union not inflated" belong to the compiler's tests, where the
-    segmentation actually happens.  ⛔ Do not let this stay a silent gap
-    between the two dispatches: module 4's dispatch must carry it.
+    The module-3 boundary half stays and keeps its teeth: the BUNDLE is
+    shape-identical for equal and unequal runs -- if the difference ever
+    surfaced here, THIS layer would be computing geometry (design §4.1: a
+    claim carries ⛔ no geometry values, so "which interval is a tail" has
+    no type slot at this layer).
     """
+    from src.agent.correction.wall_compiler import compile_wall_ir
+
     unequal = _adapt_doc(
         _pair_doc(runs_a_px=[[10, 100]], runs_b_px=[[10, 40]]),
         "pin_module4_unequal", "9f",
@@ -477,6 +480,31 @@ def test_tail_segmentation_is_pinned_to_module_4():
         ]
     assert _shape(unequal) == _shape(equal)
     assert all(c.kind != "single_face" for c in unequal.bundle.wall_claims)
+
+    # ── the flipped half: the compiler segments, faithfully both ways ─────
+    compiled_unequal = compile_wall_ir(unequal)
+    pair_walls = [
+        w for w in compiled_unequal.walls if w.claim_kind == "paired_faces"
+    ]
+    assert len(pair_walls) == 1
+    wall = pair_walls[0]
+    # A's unshared stretch [4, 10] survives as a fragment STILL OWNED by the
+    # claim; the double-face wall covers only the joint stretch [1, 4]
+    assert len(wall.unshared_tail_fragments) == 1
+    fragment = wall.unshared_tail_fragments[0]
+    assert fragment.source_claim_id == wall.source_claim_ids[0]
+    assert fragment.tail_of == "face_a"
+    assert fragment.face_ref.observation_id == "F01"
+    assert fragment.along_interval_m == (4.0, 10.0)
+    assert wall.double_face_intervals == ((1.0, 4.0),)
+    assert wall.resolved_along_intervals == ((1.0, 10.0),)
+
+    compiled_equal = compile_wall_ir(equal)
+    equal_wall = next(
+        w for w in compiled_equal.walls if w.claim_kind == "paired_faces"
+    )
+    assert equal_wall.unshared_tail_fragments == ()
+    assert equal_wall.double_face_intervals == ((1.0, 8.0),)
 
 
 # =========================================================================== #
