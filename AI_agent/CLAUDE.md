@@ -257,7 +257,10 @@ EnergyPlus 经 `WorkflowTool.run_simulation`（eppy + ConverterManager，idfpy �
 > ⛔ **2026-08-31（白天）banner 已逐字搬入** [`logs/worklog/2026-08_plan_log.md`](logs/worklog/2026-08_plan_log.md)（§0.5 三步）。
 
 > **⭐⭐⭐ 2026-08-31【收工】banner（当前唯一口径）**
-> 分支 `08.23_AsDrawnReading` · HEAD 见 git（本轮**分开**提交：`2148409` 模块2二轮返工 · `6a29e92` 模块4 · 文档另提）
+> 分支 `08.23_AsDrawnReading` · HEAD 见 git（本轮**分开**提交：`2148409` 模块2二轮返工 · `6a29e92` 模块4 · `f96c728` 文档）
+> · ⭐ **收工权威全量 = 3519 passed / 13 xfailed / 0 failed**（`f96c728`，12m14s、`-n auto`、exit 0，
+> **四项哨兵全干净**：HEAD 前后同 · **树前后皆 0** · `.pth` 前后同）。
+> **逐文件闭合**：`3494 + 22`（模块 4）`+ 3`（模块 2 二轮返工）`= 3519` ✅（`--collect-only` 实数 55 = 33 + 22）
 >
 > ### ① 本批目标另一半推进到 **模块 4/7**
 > | 模块 | 状态 |
