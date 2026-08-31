@@ -413,7 +413,14 @@ class AsMeasuredBoundaryFailureSpanV1(_StrictModel):
 
 
 class AsMeasuredBoundaryRingLossV1(_StrictModel):
-    """Derived readout for an above-threshold cavity that yielded no edges."""
+    """Stored readout for an above-threshold cavity that yielded no edges.
+
+    The value is still a pure derivation of the other measured geometry.  It is
+    persisted here for the narrower reason that the as-measured draft must
+    acknowledge its own gaps: a missing logical ring must not disappear as an
+    unobservable absence.  This is not a rule that derived values in general
+    belong in the facts layer.
+    """
 
     cavity_id: StableId
     area_units2: StrictNonNegativeInt
@@ -599,6 +606,11 @@ class AsMeasuredViewV1(_StrictModel):
     #: Empty remains schema-valid so an older/stripped facts document can be
     #: independently recomputed by AnswerCompiler (dispatch acceptance #5).
     boundary_edges: list[AsMeasuredBoundaryEdgeV1] = Field(default_factory=list)
+    #: F-153: cavities above the request threshold that could not yield a
+    #: logical ring.  This is generated in the same pass as ``boundary_edges``
+    #: so a cavity is represented by exactly one of the two outcomes.
+    boundary_ring_losses: list[AsMeasuredBoundaryRingLossV1] = Field(
+        default_factory=list)
     converter_readouts: AsMeasuredConverterReadoutsV1
 
     @model_validator(mode="after")
@@ -696,6 +708,16 @@ class AsMeasuredViewV1(_StrictModel):
         boundary_ids = [edge.id for edge in self.boundary_edges]
         if len(boundary_ids) != len(set(boundary_ids)):
             raise ValueError("as_measured_boundary_edge_id_not_unique")
+        loss_cavity_ids = [loss.cavity_id for loss in self.boundary_ring_losses]
+        if len(loss_cavity_ids) != len(set(loss_cavity_ids)):
+            raise ValueError("as_measured_boundary_ring_loss_cavity_not_unique")
+        both_edges_and_loss = sorted(
+            {edge.cavity_id for edge in self.boundary_edges}
+            & set(loss_cavity_ids))
+        if both_edges_and_loss:
+            raise ValueError(
+                "as_measured_boundary_cavity_has_edges_and_loss:"
+                f"{both_edges_and_loss}")
         for edge in self.boundary_edges:
             dangling_walls = sorted(set(edge.wall_ids) - wall_ids)
             dangling_faces = sorted(set(edge.face_line_handles) - known)
@@ -1929,6 +1951,8 @@ def build_view(geo: P1PlanViewGeometry, affine: Affine2D, *,
         **view.model_dump(mode="json"),
         "boundary_edges": [edge.model_dump(mode="json")
                            for edge in boundary.edges],
+        "boundary_ring_losses": [loss.model_dump(mode="json")
+                                 for loss in boundary.losses],
     })
 
 

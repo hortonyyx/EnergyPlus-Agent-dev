@@ -300,3 +300,189 @@ exit 0
 最薄弱处已从上一轮的 end-cap 第四路换成：**为保持既有 edge 身份，几何交点切分只在旧整段 witness 先判 illogical 时启动**。这足以移除 F-153 形态 A 的“一个 midpoint 判死整个 cavity”承重，但对“midpoint 本来 logical、同一 span 内其实跨过不同 boundary condition”的情形仍保留旧粒度；它不会再造成 cavity 静默丢失，却可能继续压平细粒度分类。请复核方优先造这种反例，检查这是本单恰当的最小修复还是应另单扩大切分语义。
 
 第二个需复核的点是 sm21 的结构性 N/A：本席位没有为过验收而伪造/落库 request。若主控掌握一份权威 sm21 conversion request，应拿那份重跑同一纯函数；当前仓内找不到这样的输入。
+
+---
+
+# 第三轮（按 2026-08-31 甲案与 §六～§九补充裁决续做）
+
+## 本轮实现
+
+- `AsMeasuredViewV1.boundary_ring_losses` 已恢复为存储字段，与
+  `boundary_edges` 由同一次 `_derive_boundary_facts` 生成并进入
+  `canonical_bytes()`。
+- view 级门要求 loss 的 `cavity_id` 唯一，并禁止同一个 cavity 同时出现在
+  `boundary_edges` 与 `boundary_ring_losses`。
+- `AsMeasuredBoundaryRingLossV1` 的 docstring 已明确：该值虽然是纯派生，仍存盘的
+  窄理由是“底稿必须自己承认自己的缺口”；这不构成“凡派生值都该存”的规则。
+- 形态 A 的几何交点切分、形态 B 的只报不修以及两个上游线索字段均保持上一轮实现，
+  `_boundary_owners` 未加入容差匹配。
+
+## §三验收表逐项回答
+
+### 1. sm25 三个 cavity 落库；sm24 按新裁决记执行档
+
+sm25 由 `sm25-L_t3_as_received.dxf + request_as_measured.json` 重建后，落库
+`as_measured.json` 的三个 loss 为：
+
+```text
+plan-F1 cavity:8bd127719198fd63
+  area=88.2656 m² reason=owner_count owner_count=0
+  span=(axis=y, const=98800, lo=160000, hi=161200, side=1)
+  nearest_same_axis_wall_face_const=110000
+  span_to_nearest_same_axis_wall_face_delta=-11200
+
+plan-F1 cavity:04e1293098b1a95a
+  area=28.683212 m² reason=owner_count owner_count=0
+  span=(axis=y, const=52401, lo=99430, hi=100630, side=-1)
+  nearest_same_axis_wall_face_const=52400
+  span_to_nearest_same_axis_wall_face_delta=1
+
+plan-F2 cavity:495501ce9b36f0f3
+  area=70.3392 m² reason=owner_count owner_count=0
+  span=(axis=x, const=60000, lo=110000, hi=111200, side=1)
+  nearest_same_axis_wall_face_const=40000
+  span_to_nearest_same_axis_wall_face_delta=20000
+```
+
+另以 `build_as_measured(sm24_anchor/source.dxf, sm24_anchor/request.json)` 只在内存
+复测（未调用 writer、未创建 staging）得到：
+
+```text
+plan-F1 cavity:c52b0caa54bfb8e4  23.1672 m²  reason=owner_count owner_count=0
+plan-F1 cavity:78c72977c3b7e2c2  30.8464 m²  reason=owner_count owner_count=0
+```
+
+sm24 本单为**结构性 N/A**，原因是**该 case 尚无事实层基线**；遵照 §七，本轮不首次
+创建。以上两项**待 sm24 事实层建立后自动落库**。
+
+### 2. 新旧哈希与三件套自洽
+
+```text
+旧 as_measured content_sha256:
+839d67a224851b64309faa17368648b0666d08d4f9505e6514c6d65b818abea8
+
+新 as_measured content_sha256:
+0d3aefa229d277b3197b5cf007747df5885641d58c8a1b6e6cdc376236f2548c
+
+revisions.json.as_measured_content_sha256:
+0d3aefa229d277b3197b5cf007747df5885641d58c8a1b6e6cdc376236f2548c
+
+as_signed.json.derivation.as_measured_content_sha256:
+0d3aefa229d277b3197b5cf007747df5885641d58c8a1b6e6cdc376236f2548c
+
+新 revisions content_sha256:
+4db9e12690d761581e0c9787515a944fc7606aace969796c3ae24305d9bbbda5
+
+as_signed.json.derivation.revisions_content_sha256:
+4db9e12690d761581e0c9787515a944fc7606aace969796c3ae24305d9bbbda5
+```
+
+`read_facts_candidate("sm25-L_anchor")` 与
+`verify_as_signed_reproduction(...)` 均通过。
+
+### 3. 从 DXF + request 机械重生成，两次逐字节相同
+
+实际生成链（两次独立执行同一 `generate()`，比较 canonical bytes 后才写真实 staging）：
+
+```text
+build_as_measured(sm25-L_t3_as_received.dxf, request_as_measured.json)
+build_as_measured(sm25-L_t3.dxf,             request.json)
+detect_translate_candidates(before, after, [13AD,13AC,13AF,160A,13AE])
+RevisionsLedgerV1(as_measured_content_sha256=content_sha256(before), ...)
+derive_as_signed(before, ledger)
+write_facts_candidate("sm25-L_anchor", before, ledger, as_signed)
+```
+
+读数：
+
+```text
+two_runs_byte_identical True
+revision_rows_byte_identical True
+canonical sizes: as_measured=211180 revisions=2238 as_signed=211405
+```
+
+未直接编辑任何 staging JSON。
+
+### 4. 5 条 revision 正文/verdict 未变
+
+将当前 JSON 与 `git show HEAD:<path>` 解析后递归比较，差异路径严格为：
+
+```text
+as_measured.json:
+  views[0].boundary_ring_losses
+  views[1].boundary_ring_losses
+
+revisions.json:
+  as_measured_content_sha256
+
+as_signed.json:
+  derivation.as_measured_content_sha256
+  derivation.revisions_content_sha256
+  views[0].boundary_ring_losses
+  views[1].boundary_ring_losses
+```
+
+重新检测出的 5 条 revision rows 与旧 rows canonical bytes 相同；verdict 读数为
+`unsigned × 5`，`signed_by/signed_at` 仍全空，未签任何 revision。
+
+### 5. 指定四文件测试
+
+实际命令：
+
+```bash
+pytest -n 6 tests/test_boundary_condition_facts.py tests/test_as_measured_facts_layer.py tests/test_gt_facts_staging_sm25.py tests/test_denominator_from_facts.py -q
+```
+
+读数：
+
+```text
+84 passed in 19.04s
+exit 0
+```
+
+既有行为断言改动：**无**。钉旧哈希的测试常量改动：**无（0 行）**；这四个测试文件
+均未修改。
+
+### 6. 形态 A / B 与上一轮行为一致
+
+形态 A 当前实测（F1/F2 的目标 span 均切在相同的真实几何交点）：
+
+```text
+旧整段 46400..53600, mid=50000 -> unknown / logical=False
+cuts -> [46400, 49400, 50600, 53600]
+46400..49400, mid=47900 -> logical=True
+49400..50600, mid=50000 -> unknown / logical=False
+50600..53600, mid=52100 -> logical=True
+```
+
+反事实探针仍为每层 `121/721 (16.8%)` 采样点落在中毒区
+`[49400,50600]`，旧 midpoint 正中；当前行为与上一轮一样，只排除中间真实失效段，
+不让该单点判死整圈。
+
+形态 B 当前仍为：
+
+```text
+cavity:04e1293098b1a95a
+reason=owner_count owner_count=0
+span const=52401
+nearest same-axis wall face const=52400
+delta=1
+```
+
+读数与上一轮一致；该 `delta=1` 只存为上游线索，未改变精确 owner 匹配，也未修几何。
+此外逐 view 比较确认 stored edges/losses 与即时重新 derive 的结果逐项相等：
+`plan-F1 44 edges / 2 losses`，`plan-F2 56 edges / 1 loss`。
+
+### 7. 本轮改动路径（未提交）
+
+- `src/agent/judge/as_measured.py`
+- `case_tests/test_baseline/gt_staging/sm25-L_anchor/facts/as_measured.json`
+- `case_tests/test_baseline/gt_staging/sm25-L_anchor/facts/revisions.json`
+- `case_tests/test_baseline/gt_staging/sm25-L_anchor/facts/as_signed.json`
+- `AI_agent/logs/reviews/execution/2026-08-30_f153_boundary_ring_loss_execution.md`
+
+未改 `gt_sources/`、`src/agent/judge/answer_compiler.py`、任何既有测试断言、
+`src/agent/correction/` 或 `tests/test_o22m3*`。`git status` 中其余 `AI_agent/` 文件及
+O22m3 文件为他人改动，本席位未触碰。
+
+未执行 `git add`、`git commit`、`pip install -e .`、`-n auto` 或全量测试。
