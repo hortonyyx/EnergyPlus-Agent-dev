@@ -41,8 +41,7 @@ from shapely.ops import unary_union
 from .as_measured import (UNITS_PER_METRE, AsMeasuredBoundaryEdgeV1,
                           AsMeasuredOpeningV1, AsMeasuredV1,
                           AsMeasuredViewV1, AsMeasuredWallV1,
-                          BoundaryConditionEvidenceV1,
-                          derive_boundary_edges)
+                          BoundaryConditionEvidenceV1)
 from .gt_revisions import (AsSignedV1, RevisionsLedgerV1,
                            revisions_content_sha256,
                            verify_as_signed_reproduction)
@@ -165,12 +164,28 @@ class BoundaryBasisRowV1(_StrictModel):
 
 
 class BoundaryBasisExclusionV1(_StrictModel):
-    """A converter zone accounted for without pretending edges were paired."""
+    """A converter zone accounted for without pretending edges were paired.
+
+    ②-1d rework2: an exclusion is only licensed by INDEPENDENT evidence that the
+    cavity genuinely yields no logical ring -- either a matching entry in the
+    hash-covered ``boundary_ring_losses`` ledger (a named, above-threshold
+    known defect) or the cavity being below the production area threshold (a
+    by-design drop).  The gate no longer asks the producer to re-derive the
+    ring to decide this, so a co-cause failure can no longer manufacture a
+    silent NA container ([[gate-measures-right-but-carrier-gets-swapped]]).
+    """
 
     view_id: str
     facts_cavity_id: str
     converter_zone_id: str
     reason: Literal["facts_cavity_has_no_logical_boundary_ring"]
+    #: Which independent artifact licenses this exclusion.  ``registered_ring_loss``
+    #: points at a ``boundary_ring_losses`` entry (the 3 sm25 known defects);
+    #: ``below_request_area_threshold`` is a by-design sub-threshold drop.
+    evidence: Literal["registered_ring_loss", "below_request_area_threshold"]
+    #: Populated from the ledger loss when ``evidence == "registered_ring_loss"``.
+    registered_loss_reason: str | None = None
+    registered_loss_area_units2: int | None = None
 
 
 class BoundaryBasisAuditV1(_StrictModel):
@@ -977,7 +992,9 @@ def _undirected_segment_residual(
 
 def reconcile_boundary_basis(
         as_signed: AsSignedV1,
-        conversion_report: ConversionReportV1) -> BoundaryBasisAuditV1:
+        conversion_report: ConversionReportV1,
+        *,
+        min_room_area_m2: float | None = None) -> BoundaryBasisAuditV1:
     """Pair and compare facts ``boundary_condition`` with converter ``basis``.
 
     Pairing does not consult the facts classification value.  It independently
@@ -985,7 +1002,21 @@ def reconcile_boundary_basis(
     ancestry overlap, then requires both choices to identify the same edge map.
     A changed classification therefore reddens exactly its row instead of
     perturbing the pairing radius.
+
+    ②-1d rework2: a converter zone whose facts cavity holds no stored ring is a
+    legitimate exclusion ONLY with independent evidence -- a matching
+    ``boundary_ring_losses`` ledger entry, or (when ``min_room_area_m2`` is the
+    production threshold) a below-threshold by-design drop.  Anything else is a
+    silent gap and reddens.  The gate no longer re-derives the ring itself, so
+    the exclusion decision is not co-caused with the producer.  ``min_room_area_m2``
+    is optional and defaults to ``None`` (fail-loud: no ring + not in the ledger
+    reddens regardless of area), which is the aligned replacement for the old
+    ``derive(0.0)`` re-derivation that raised false ``ring_missing`` alarms on
+    below-threshold cavities the producer dropped by design (N3').
     """
+    area_threshold_units2 = (
+        None if min_room_area_m2 is None
+        else float(min_room_area_m2) * UNITS_PER_METRE * UNITS_PER_METRE)
     converter_by_floor: dict[str, list[Any]] = {}
     for zone in conversion_report.zones:
         converter_by_floor.setdefault(zone.floor_id, []).append(zone)
@@ -1021,18 +1052,18 @@ def reconcile_boundary_basis(
             by_cavity.setdefault(edge.cavity_id, []).append(edge)
 
         # Account for the complete converter-zone population before doing the
-        # edge-level comparison.  A raw facts cavity may deliberately have no
-        # logical ring (the four explicit NA zones in normal sm25); those rows
-        # remain visible as exclusions instead of being mistaken for paired
-        # edges.  Conversely, deleting a ring that the production derivation
-        # can still make is a structural failure, not an exclusion.
+        # edge-level comparison.  A raw facts cavity may genuinely have no
+        # logical ring, but ONLY the ``boundary_ring_losses`` ledger (an
+        # above-threshold known defect) or a below-threshold by-design drop
+        # licenses that exclusion -- ⛔ never the producer re-deriving its own
+        # ring, whose co-cause failure would silently absorb real rooms and
+        # hallucinated zones alike ([[gate-measures-right-but-carrier-gets-swapped]]).
         try:
             footprint, _ring_records = _footprint_polygon(view)
         except AnswerCompilerInputError as exc:
             structural.append(
                 f"facts_boundary_footprint_unusable:{view.view_id}:{exc}")
             raw_cavities: list[Polygon] = []
-            derivable_by_cavity: dict[str, list[AsMeasuredBoundaryEdgeV1]] = {}
         else:
             geometry = footprint.difference(_wall_region(view))
             raw_cavities = sorted([
@@ -1040,12 +1071,12 @@ def reconcile_boundary_basis(
                 if (part.geom_type == "Polygon" and not part.is_empty
                     and part.area > 0)
             ], key=_cavity_sort_key)
-            derivable_by_cavity = {}
-            for edge in derive_boundary_edges(view, min_room_area_m2=0.0):
-                derivable_by_cavity.setdefault(edge.cavity_id, []).append(edge)
 
         raw_by_id = {
             _cavity_id(view.view_id, cavity): cavity for cavity in raw_cavities}
+        # ②-1d rework2: the independent exclusion anchor -- consumed, not derived.
+        loss_by_id = {loss.cavity_id: loss for loss in view.boundary_ring_losses}
+        excluded_zone_polys: dict[str, list[tuple[str, Polygon]]] = {}
         for zone in sorted(
                 converter_by_floor.get(view.floor_id, []),
                 key=lambda item: item.zone_id):
@@ -1068,17 +1099,52 @@ def reconcile_boundary_basis(
                 continue
             cavity_id = cavity_matches[0]
             zone_key = (zone.floor_id, zone.zone_id)
-            if cavity_id in derivable_by_cavity:
-                if cavity_id not in by_cavity:
-                    structural.append(
-                        f"facts_boundary_ring_missing:{view.view_id}:{cavity_id}:"
-                        f"converter={zone.zone_id}")
-            else:
+            if cavity_id in by_cavity:
+                # A stored ring exists -> the zone is edge-paired by the reverse
+                # pass below (which also enforces zone/cavity uniqueness).
+                accounted_converter_zones.add(zone_key)
+                continue
+            # No stored ring.  Grant an exclusion only on independent evidence;
+            # ⛔ the producer's re-derivation is never consulted.
+            loss = loss_by_id.get(cavity_id)
+            if loss is not None:
                 exclusions.append(BoundaryBasisExclusionV1(
                     view_id=view.view_id, facts_cavity_id=cavity_id,
                     converter_zone_id=zone.zone_id,
-                    reason="facts_cavity_has_no_logical_boundary_ring"))
+                    reason="facts_cavity_has_no_logical_boundary_ring",
+                    evidence="registered_ring_loss",
+                    registered_loss_reason=loss.reason,
+                    registered_loss_area_units2=loss.area_units2))
+                excluded_zone_polys.setdefault(cavity_id, []).append(
+                    (zone.zone_id, zone_polygon))
+            elif (area_threshold_units2 is not None
+                    and raw_by_id[cavity_id].area <= area_threshold_units2):
+                exclusions.append(BoundaryBasisExclusionV1(
+                    view_id=view.view_id, facts_cavity_id=cavity_id,
+                    converter_zone_id=zone.zone_id,
+                    reason="facts_cavity_has_no_logical_boundary_ring",
+                    evidence="below_request_area_threshold"))
+                excluded_zone_polys.setdefault(cavity_id, []).append(
+                    (zone.zone_id, zone_polygon))
+            else:
+                structural.append(
+                    f"facts_boundary_ring_missing:{view.view_id}:{cavity_id}:"
+                    f"converter={zone.zone_id}")
             accounted_converter_zones.add(zone_key)
+
+        # ②-1d rework2 uniqueness: a single NA cavity may legitimately host more
+        # than one real room (adjacent rooms the under-segmented raw cavity did
+        # not split -- sm25 z4/z5 share one cavity, disjoint interiors), but two
+        # claimed zones ⛔ cannot occupy the SAME space.  A phantom parked on top
+        # of a real excluded zone reddens here.
+        for shared_cavity_id, members in sorted(excluded_zone_polys.items()):
+            for i in range(len(members)):
+                for j in range(i + 1, len(members)):
+                    if members[i][1].relate_pattern(members[j][1], "T********"):
+                        structural.append(
+                            "converter_zones_overlap_in_shared_exclusion_cavity:"
+                            f"{view.view_id}:{shared_cavity_id}:"
+                            f"{members[i][0]}:{members[j][0]}")
 
         for cavity_id, unordered in sorted(by_cavity.items()):
             facts_edges = sorted(unordered, key=lambda edge: edge.sequence)

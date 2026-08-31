@@ -98,14 +98,35 @@ sm25 当前 facts 落库共 100 条 logical boundary edge：`exterior=32`、
 
 1. 每个 stored logical facts cavity ring 恰好配到一个 converter zone，且逐边
    方向/旋转、血缘和 basis 对账；
-2. 每个 converter zone 都被一个 facts cavity 认领；若该 cavity 本来就不能形成
-   logical boundary ring，必须作为**具名 exclusion**列出，⛔ 不计入 paired edges；
+2. 每个 converter zone 都被一个 facts cavity 认领。**若该 cavity 没有 stored
+   ring，只有两种合法出口，且都必须有【独立证据】——⛔ 门不再调生产者的
+   `derive_boundary_edges` 重导来判断「有没有 ring」（那与生产者同因）**：
+   - **`registered_ring_loss`**：cavity 命中事实层里那份被哈希覆盖的
+     `boundary_ring_losses` 台账（一条具名的、超阈值却导不出 ring 的**已知缺陷**），
+     exclusion 记 `evidence=registered_ring_loss` 并携带台账的 `reason` 与面积；
+   - **`below_request_area_threshold`**：cavity 面积 < 生产阈值 `min_room_area_m2`
+     （按设计丢弃的次阈值腔体，如 0.27 m² 管井腔），仅当门被传入生产阈值时成立。
+   两者都不成立（超阈值、无 stored ring、又不在台账里）= **静默豁口**，门必须红
+   `facts_boundary_ring_missing`（不传阈值时=fail-loud 默认）。⛔ 阈值只用于识别
+   按设计的次阈值丢弃，⛔ 不得调到恰好容纳现状。
+   **唯一性**：一个 NA cavity 可以合法容纳**多个**真实房间（欠切分的原始 cavity
+   没能把相邻房间劈开——sm25 的 z4/z5 就共用一个 cavity，内部互不相交），但两个
+   claimed zone ⛔ 不得占据**同一块空间**；共用同一 exclusion cavity 的 zone 内部
+   两两相交即 `converter_zones_overlap_in_shared_exclusion_cavity` 结构红（幻觉
+   zone 叠在真实 zone 上被此拦下）。
 3. 生产几何仍能导出的 logical ring 不得从 stored facts 中消失；任一 view 的
    `boundary_edges=[]` 必须是结构红，零比较绝不等于一致。
 
 正常 sm25 的账本读数是 converter zone `29/29` 全部有去向：25 个 ring、100 条边
-逐边配对，另 4 个既有 NA cavity 明列 exclusion（F1-z0/z4/z5、F2-z0），所以
-`paired_edges=100` 仍绿，但绝不把 4 个 exclusion 写成“已配对”。E3 删一 ring 只点名
+逐边配对，另 3 个 cavity（4 个 zone-去向：F1-z0、F1-z4/z5 共用、F2-z0）走
+`registered_ring_loss` **显式登记** exclusion，所以 `paired_edges=100` 仍绿，但绝不
+把它们写成“已配对”，也 ⛔ **不再写成“既有 NA cavity / 天然无 ring”**。这 3 个 cavity
+的实测性质（F-153/F-154 主控独立复现）是：面积 **88.27 / 28.68 / 70.34 m²**，全部
+≫ 5 m² 生产阈值；边界贴墙率 **400/400 · 401/401 · 400/400**，最远采样点距墙带
+**0.000 m** ⇒ 它们是**被墙完全围合的真实房间**。导不出 ring 的真因是环的构造方式
+（span 端点首尾接、走廊形状拼不拢自交 / owner≠1），台账 `reason=owner_count`，⛔
+**不是天然没有 ring**；ring 修好之后（F-155 线）这 3 条登记自然清空。未过阈值的
+0.058 m² 碎屑 cavity 是墙垛，不会进台账、也没有 zone 指向它们。E3 删一 ring 只点名
 该 ring；E2c 在所有 facts cavity 外多出的 zone 只点名该 zone；E4 空列逐 view/逐 ring
 列出缺口。门只观测，绝不改写 facts `boundary_condition` 或 converter `basis`。
 
