@@ -408,28 +408,46 @@ def test_no_new_contract_became_consumable():
 # The two F-97 behaviours this change could have broken. ⭐ Pinned here on
 # purpose: both were checked deliberately, ⛔ neither was left to luck.
 # =========================================================================== #
-def test_the_declared_skeleton_is_still_recognised():
-    """⚠️ The boundary of this version, stated out loud: teeth are on ELEMENT
-    structure, ⛔ not on emptiness. ``{observations:{}, declarations:{},
-    hypotheses:{}}`` must stay recognised -- F-97's R5 ambiguity lock depends on
-    it, and tightening it here would turn a genuine double match into a silent
-    single verdict."""
+def test_the_declared_skeleton_is_now_a_loud_unknown():
+    """⭐ NF-1 (2026-09-01), FLIPPED from ``..._is_still_recognised``.
+
+    The boundary moved on purpose.  ``observations.face_lines`` is now required
+    (no default), and the producer's ``assemble()`` writes that key
+    unconditionally -- so the empty ``{observations:{}, declarations:{},
+    hypotheses:{}}`` skeleton is something the producer CANNOT emit.  It is
+    hand-made or corrupt, and ``vector_contract``'s BLK-A rule turns it into a
+    LOUD unknown that names the declared schema.  ⛔ NOT recognised as
+    ``as_drawn_plan`` any more, ⛔ NOT silently dropped.
+    ⚠️ This teeth is on the PRESENCE of the key -- an honest EMPTY reading
+    ``{observations: {face_lines: []}}`` is a different thing and is STILL
+    recognised (locked in ``test_f97_vector_contract`` NF-1 tests)."""
     skeleton = {"schema": SCHEMA, "observations": {}, "declarations": {},
                 "hypotheses": {}}
-    assert classify_vector_json(skeleton).contract_id == CONTRACT_AS_DRAWN_PLAN
+    decision = classify_vector_json(skeleton)
+    assert decision.contract_id == CONTRACT_UNKNOWN
+    assert decision.disposition is None
+    assert SCHEMA in (decision.reason or ""), "the refusal must name what was declared"
 
 
-def test_a_hybrid_that_also_looks_legacy_is_still_ambiguous_not_consumed():
-    """⛔ The regression a stricter detector invites: if the type rejected the
-    stray ``strokes`` key, this file would drop to a single LEGACY match and be
-    CONSUMED -- pasted verbatim into the correction prompt, which is F-97."""
+def test_an_empty_skeleton_hybrid_that_looks_legacy_is_loud_unknown_not_consumed():
+    """⭐ NF-1 (2026-09-01), FLIPPED from ``..._is_still_ambiguous_not_consumed``.
+
+    ⭐ The invariant that MATTERS is unchanged and still holds: a file that also
+    looks legacy is ⛔ NOT consumed (F-97 stays shut).  What changed is the
+    PATH: with ``face_lines`` required, the empty-skeleton half legitimately
+    fails the as-drawn type, so this is no longer a genuine double match -- it is
+    a malformed declaration and comes out of BLK-A as a loud unknown, ⛔ never
+    pasted into the correction prompt.  The genuine as-drawn+legacy double match
+    (a REAL product plus ``strokes``) still returns AMBIGUOUS and is locked in
+    ``test_f97_vector_contract`` (R2 / R5 / double-match), now carrying one real
+    face line."""
     hybrid = {"schema": SCHEMA, "observations": {}, "declarations": {},
               "hypotheses": {},
               "strokes": [{"id": "s1", "pen": "wall", "geometry": {}}]}
     decision = classify_vector_json(hybrid)
     assert decision.contract_id == CONTRACT_UNKNOWN
-    assert "AMBIGUOUS" in (decision.reason or "")
-    assert CONTRACT_READING_VIEW_LEGACY in (decision.reason or "")
+    assert decision.disposition is not Disposition.CONSUME
+    assert "malformed declaration" in (decision.reason or "")
 
 
 def test_a_type_failure_never_downgrades_a_file_into_being_consumed():

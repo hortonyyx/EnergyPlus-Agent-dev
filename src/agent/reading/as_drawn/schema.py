@@ -237,7 +237,15 @@ class ObservationsV2(_Node):
     measurement substrate and are declared-but-unchecked (``DEFERRED_CHANNELS``).
     """
 
-    face_lines: list[FaceLineV2] = Field(default_factory=list)
+    face_lines: list[FaceLineV2]
+    """⭐ REQUIRED, no default (NF-1, 2026-09-01).  The key must be present; an
+    empty list is still legal (a honest reading of a blank image produces it).
+    ⛔ The producer's ``assemble()`` writes ``face_lines`` unconditionally
+    (``as_drawn_v2.py``), so a product that omits the key entirely could not have
+    come from the producer -- it is hand-made or corrupt, and this schema makes
+    that a loud unknown instead of a recognised ``as_drawn_plan``.  ⛔ Do NOT put
+    a ``default`` back: "量到零" (measured zero) is scored by grade/zero-wall, ⛔
+    not by pretending the key was there."""
     calibration: Any = Field(default=None, description="deferred: module 1 trim")
     ink_palette: Any = Field(default=None, description="deferred: module 1 trim")
     components_by_family: Any = Field(default=None, description="deferred: module 1 trim")
@@ -341,10 +349,15 @@ class AsDrawnPlanV2(BaseModel):
 
     The three layers are REQUIRED (a file with only ``observations`` is a
     malformed declaration, which ``vector_contract``'s BLK-A rule turns into a
-    loud unknown), but each layer's own members default, so the historical
-    "declared skeleton" ``{observations: {}, declarations: {}, hypotheses: {}}``
-    still validates.  ⚠️ That is a real boundary, not an oversight: this version
-    puts teeth on ELEMENT structure, ⛔ not on emptiness.
+    loud unknown).  ⭐ NF-1 (2026-09-01): ``observations.face_lines`` is now also
+    required (no default), so the historical "declared skeleton"
+    ``{observations: {}, declarations: {}, hypotheses: {}}`` **no longer
+    validates** -- the producer emits ``face_lines`` unconditionally, so an empty
+    skeleton can only be hand-made or corrupt and is turned into a loud unknown.
+    ⚠️ That teeth is on the PRESENCE of the ``face_lines`` key, ⛔ not on
+    emptiness: ``face_lines: []`` (a honest reading of a blank image) still
+    validates and still routes to ``as_drawn_plan``; whether zero measured walls
+    is right is grade/zero-wall's job, ⛔ never a structural refusal here.
     """
 
     model_config = ConfigDict(extra="allow", populate_by_name=True, strict=True)

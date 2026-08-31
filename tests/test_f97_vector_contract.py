@@ -44,6 +44,36 @@ def _legacy_view(**extra) -> dict:
     return view
 
 
+def _min_observations() -> dict:
+    """⭐ NF-1 (2026-09-01): ``observations.face_lines`` is required (no default),
+    so a fixture that must stay a recognised ``as_drawn_plan`` carries ONE minimal
+    real face line -- the 14 typed fields, ``gaps: []``, two runs, every interval
+    pinned to length 2.  ⛔ This is fixture LOAD only; no assertion changes.
+    (An honest empty reading ``{"face_lines": []}`` is still legal -- see
+    ``schema.py`` -- but these fixtures assert RECOGNITION, which needs a product
+    the producer could actually have emitted.)"""
+    return {
+        "face_lines": [
+            {
+                "id": "F1",
+                "axis": "col",
+                "constant_world_axis": "x",
+                "pos_px": 100.0,
+                "pos_m": 1.0,
+                "support_cols_px": [10, 20],
+                "edges_m": [0.0, 5.0],
+                "support_width_m": 0.12,
+                "runs_px": [[10, 40], [60, 90]],
+                "runs_m": [[0.1, 0.4], [0.6, 0.9]],
+                "gaps": [],
+                "ink_coverage_per_run": [1.0, 1.0],
+                "covered_px": 60,
+                "support_px": 80,
+            }
+        ]
+    }
+
+
 def _write(d: Path, name: str, payload: dict) -> Path:
     d.mkdir(parents=True, exist_ok=True)
     p = d / name
@@ -131,12 +161,52 @@ def test_b3_as_drawn_plan_is_known_but_not_consumed():
         "schema": PRODUCER_AS_DRAWN_SCHEMA,
         "image": "x.png",
         "image_label": "1f",
-        "observations": {},
+        "observations": _min_observations(),
         "declarations": {},
         "hypotheses": {},
         "ledger": {},
     }
     decision = classify_vector_json(raw)
+    assert decision.contract_id == CONTRACT_AS_DRAWN_PLAN
+    assert decision.disposition is Disposition.KNOWN_NOT_CONSUMED
+
+
+# --------------------------------------------------------------------------- #
+# NF-1 (2026-09-01): the two halves of the boundary, opposite verdicts.
+#   missing `face_lines` key  ⇒ loud unknown (producer cannot emit it)
+#   `face_lines: []`          ⇒ still as_drawn_plan (honest empty reading)
+# ⛔ These are the collision check for the dispatch's acceptance #1: reject the
+# empty list and the second one goes red; keep the skeleton the first goes red.
+# --------------------------------------------------------------------------- #
+def test_nf1_missing_face_lines_key_is_a_loud_unknown():
+    """The empty declared skeleton -- which the producer's ``assemble()`` can
+    never emit, since it always writes ``face_lines`` -- is a malformed
+    declaration, ⛔ not a recognised ``as_drawn_plan``."""
+    skeleton = {
+        "schema": PRODUCER_AS_DRAWN_SCHEMA,
+        "observations": {},
+        "declarations": {},
+        "hypotheses": {},
+    }
+    decision = classify_vector_json(skeleton)
+    assert decision.contract_id == CONTRACT_UNKNOWN
+    assert decision.disposition is None
+    assert PRODUCER_AS_DRAWN_SCHEMA in (decision.reason or "")
+
+
+def test_nf1_empty_face_lines_list_is_still_as_drawn_plan():
+    """⭐ The other half, opposite verdict (⛔ do NOT reject this): an honest
+    reading of a blank image produces ``face_lines: []`` -- the key is present,
+    the list is empty.  It stays routed to ``as_drawn_plan`` (账面: as-drawn
+    plan, zero face lines).  Whether zero measured walls is *right* is
+    grade/zero-wall's job, ⛔ never a structural refusal here."""
+    empty = {
+        "schema": PRODUCER_AS_DRAWN_SCHEMA,
+        "observations": {"face_lines": []},
+        "declarations": {},
+        "hypotheses": {},
+    }
+    decision = classify_vector_json(empty)
     assert decision.contract_id == CONTRACT_AS_DRAWN_PLAN
     assert decision.disposition is Disposition.KNOWN_NOT_CONSUMED
 
@@ -152,7 +222,7 @@ def test_b3_as_drawn_raises_and_says_known_not_unknown(tmp_path):
         "sm25_1f_v2.json",
         {
             "schema": PRODUCER_AS_DRAWN_SCHEMA,
-            "observations": {},
+            "observations": _min_observations(),
             "declarations": {},
             "hypotheses": {},
         },
@@ -281,7 +351,7 @@ def test_b3_ledger_is_filed_even_when_classification_fails(tmp_path):
 def test_b3_double_match_reports_ambiguity_instead_of_picking_one():
     hybrid = {
         "schema": PRODUCER_AS_DRAWN_SCHEMA,
-        "observations": {},
+        "observations": _min_observations(),
         "declarations": {},
         "hypotheses": {},
         # ...and simultaneously a valid legacy view
@@ -302,7 +372,7 @@ def test_b3_ambiguous_file_fails_loudly(tmp_path):
         "1f_view.json",
         {
             "schema": PRODUCER_AS_DRAWN_SCHEMA,
-            "observations": {},
+            "observations": _min_observations(),
             "declarations": {},
             "hypotheses": {},
             "strokes": [
@@ -412,7 +482,7 @@ def test_r2_registered_schema_plus_legacy_is_still_ambiguous():
     must NOT collapse a genuine double match into one verdict."""
     hybrid = {
         "schema": PRODUCER_AS_DRAWN_SCHEMA,
-        "observations": {},
+        "observations": _min_observations(),
         "declarations": {},
         "hypotheses": {},
         "strokes": [_STROKE],
@@ -637,7 +707,8 @@ _MALFORMED_DECLARATIONS = (
 # The full key set for each registered value: declaration + key set + legacy
 # structure is a GENUINE double match and must stay AMBIGUOUS.
 _COMPLETE_DECLARATIONS = (
-    (PRODUCER_AS_DRAWN_SCHEMA, {"observations": {}, "declarations": {}, "hypotheses": {}},
+    (PRODUCER_AS_DRAWN_SCHEMA,
+     {"observations": _min_observations(), "declarations": {}, "hypotheses": {}},
      CONTRACT_AS_DRAWN_PLAN),
     ("as_drawn_plan_v0", {"wall_bands": [], "dimension_witnesses": []},
      CONTRACT_AS_DRAWN_PLAN_V0),
