@@ -77,6 +77,21 @@ on ONE claim must point into the SAME frozen source.  A wall whose two
 faces live in two different products is structurally legal (``F01``/
 ``F02``-style ids exist in every floor's product, so hypothesis and
 candidate matches still succeed) but physically impossible.
+
+Rework-2 (2026-08-31), B-1 / B-2 -- same-family carrier swaps F-1 missed
+-----------------------------------------------------------------------
+B-1 source closure: F-1 asked whether a present channel has payload AT
+ALL; it never asked WHERE the payload came from.  Declaring the walls
+channel's source as one frozen product while the claims all live in
+another therefore passed.  Now ``channel_status`` is a routing table that
+must close in BOTH directions: payload sources ⊆ declared sources, and a
+declared source with no payload this run needs a ``zero_payload_channel``
+debt scoped to it (``affected_refs``); a channel-granularity debt only
+covers the whole-channel zero run, where its statement is actually true.
+B-2: ``dimensions`` / ``room_roles`` / ``elevation_openings`` have NO
+payload member on this bundle, so no debt can make a ``present`` true for
+them -- their only legal shape is ``absent`` + ``missing_channel``, and a
+``zero_payload_channel`` debt naming one of them is refused outright.
 """
 from __future__ import annotations
 
@@ -676,6 +691,14 @@ def as_drawn_face_index(doc: dict) -> dict[str, tuple[int, dict]]:
 
 
 # ── cross-review rework (2026-08-31): F-1 / F-2 structural invariants ─────── #
+#: The channels whose payload this bundle type can actually witness (design
+#: §3.3).  ⭐ The OTHER three channels have no payload member at all, so a
+#: ``zero_payload_channel`` debt for them is a pass for a state that can never
+#: be true -- rework-2 B-2 retired that exit for them (only ``absent`` +
+#: ``missing_channel`` is legal there until they grow real payload members).
+_CHANNELS_WITH_PAYLOAD_MEMBERS = ("walls", "plan_openings")
+
+
 def _channel_has_payload(
     bundle: CorrectionEvidenceBundleV1, channel: str
 ) -> bool:
@@ -700,6 +723,11 @@ def _assert_channel_payload_closure(
     ``zero_payload_channel`` debt -- ⛔ never a silent empty run (that is
     exactly the shape design §3.3 raised ``channel_status`` against: "walls
     wired" quietly meaning the walls leg produced nothing).
+
+    Rework-2 B-2: that debt exit exists ONLY for the channels whose payload
+    this layer can see.  A channel with no payload member can never witness
+    a ``present`` -- no debt can make "present" true for it, so the debt
+    itself is refused, not just ignored.
     """
     zero_payload: set[str] = set()
     for debt in bundle.evidence_debts:
@@ -708,6 +736,11 @@ def _assert_channel_payload_closure(
                 raise EvidenceContractError(
                     "ZERO_PAYLOAD_DEBT_WITHOUT_CHANNEL",
                     {"debt_id": debt.debt_id},
+                )
+            if debt.channel not in _CHANNELS_WITH_PAYLOAD_MEMBERS:
+                raise EvidenceContractError(
+                    "ZERO_PAYLOAD_DEBT_WITHOUT_PAYLOAD_CARRIER",
+                    {"debt_id": debt.debt_id, "channel": debt.channel},
                 )
             zero_payload.add(debt.channel)
     for status in bundle.channel_status:
@@ -760,6 +793,97 @@ def _assert_claim_refs_single_sourced(claim: WallClaimV1) -> None:
             "CLAIM_REFS_SPAN_MULTIPLE_INPUTS",
             {"claim_id": claim.claim_id, "input_ids": sorted(claim_inputs)},
         )
+
+
+# ── rework-2 (2026-08-31) B-1: payload must come from the DECLARED source ─── #
+def _channel_payload_source_ids(
+    bundle: CorrectionEvidenceBundleV1, channel: str
+) -> set[str]:
+    """B-1: every ``input_id`` ``channel``'s payload actually lives in.
+
+    The walls channel's payload is its wall claims (all of each claim's refs)
+    plus its disposition ledger; the openings channel's is its opening claims.
+    A channel with no payload member here carries nothing by definition."""
+    if channel == "walls":
+        ids: set[str] = set()
+        for claim in bundle.wall_claims:
+            ids |= _claim_source_input_ids(claim)
+        for disposition in bundle.face_dispositions:
+            ids.add(disposition.face_ref.input_id)
+            if disposition.reason_ref is not None:
+                ids.add(disposition.reason_ref.input_id)
+        return ids
+    if channel == "plan_openings":
+        return {
+            opening.source_ref.input_id for opening in bundle.opening_claims
+        }
+    return set()
+
+
+def _assert_channel_source_closure(
+    bundle: CorrectionEvidenceBundleV1,
+    frozen: dict[str, FrozenSourceV1],
+) -> None:
+    """B-1: ``channel_status`` must be a truthful routing table, not just a
+    non-empty one.  Two directions, per PRESENT channel that has payload
+    members:
+
+    * forward -- every input the payload actually came from must be one of
+      the channel's declared ``source_input_ids`` (payload from somewhere
+      else is the "wrong-source payload" swap the rework-2 review found);
+    * reverse -- a declared source that contributed no payload this run must
+      be excused by a ``zero_payload_channel`` debt SCOPED to it via
+      ``affected_refs``.  ⛔ A channel-granularity debt cannot excuse it: that
+      debt says "this channel produced nothing", which is FALSE while other
+      declared sources did produce.  (A whole-channel zero run keeps the
+      F-1 global-debt exit -- there the statement is true.)
+
+    A scoped debt's refs must name real frozen sources by their full
+    identity, so the excuse cannot be minted against a made-up input.
+    """
+    scoped: dict[str, set[str]] = {}
+    for debt in bundle.evidence_debts:
+        if debt.kind != "zero_payload_channel" or debt.channel is None:
+            continue
+        for ref in debt.affected_refs:
+            source = frozen.get(ref.input_id)
+            if source is None or (
+                ref.source_output_sha256
+                != source.artifact.source_output_sha256
+                or ref.source_contract_id != source.artifact.source_contract_id
+            ):
+                raise EvidenceContractError(
+                    "SCOPED_ZERO_PAYLOAD_DEBT_REF_UNKNOWN",
+                    {"debt_id": debt.debt_id, "input_id": ref.input_id},
+                )
+        if debt.affected_refs:
+            scoped.setdefault(debt.channel, set()).update(
+                r.input_id for r in debt.affected_refs
+            )
+    for status in bundle.channel_status:
+        if status.channel not in _CHANNELS_WITH_PAYLOAD_MEMBERS:
+            continue  # payloadless channels: B-2's business, not ours
+        if status.state != "present":
+            continue
+        declared = set(status.source_input_ids)
+        payload = _channel_payload_source_ids(bundle, status.channel)
+        if payload - declared:
+            raise EvidenceContractError(
+                "PAYLOAD_FROM_UNDECLARED_SOURCE",
+                {
+                    "channel": status.channel,
+                    "payload_input_ids": sorted(payload),
+                    "declared_input_ids": sorted(declared),
+                },
+            )
+        if not payload:
+            continue  # whole-channel zero run: F-1's exit owns that case
+        unscoped = (declared - payload) - scoped.get(status.channel, set())
+        if unscoped:
+            raise EvidenceContractError(
+                "CHANNEL_SOURCE_WITHOUT_PAYLOAD_OR_SCOPED_DEBT",
+                {"channel": status.channel, "input_ids": sorted(unscoped)},
+            )
 
 
 # ── the validator: hard invariants 1-8 (+ NF-4 additions) ─────────────────── #
@@ -1253,6 +1377,10 @@ def validate_evidence_bundle(
                 )
     # F-1: present must mean payload (or an explicit zero-payload debt)
     _assert_channel_payload_closure(bundle)
+    # B-1 (rework-2): that payload must come from the channel's declared
+    # sources, and a declared source with no payload needs a source-scoped
+    # debt -- a channel-granularity debt cannot stand in for it.
+    _assert_channel_source_closure(bundle, frozen)
     for disposition in bundle.face_dispositions:
         if disposition.status != "ambiguous":
             continue

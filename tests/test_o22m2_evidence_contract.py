@@ -870,7 +870,21 @@ def test_inv5_one_source_per_semantic_slot():
                 *a.bundle.source_artifacts,
                 *b.bundle.source_artifacts,
             ],
-            channel_status=a.bundle.channel_status,
+            channel_status=[
+                # rework-2 B-1: the green premise merges BOTH products' wall
+                # claims, so its routing table must list both payload
+                # sources.  (Before source closure nobody looked, and the
+                # table silently claimed tiny alone while carrying
+                # legacy_plan's claims -- B-1's shape, in a fixture.)
+                (
+                    s.model_copy(update={
+                        "source_input_ids": ("tiny", "legacy_plan")
+                    })
+                    if s.channel == "walls"
+                    else s
+                )
+                for s in a.bundle.channel_status
+            ],
             wall_claims=[*a.bundle.wall_claims, *b.bundle.wall_claims],
             face_dispositions=a.bundle.face_dispositions,
             opening_claims=a.bundle.opening_claims,
@@ -1476,6 +1490,230 @@ def test_f2_claim_refs_must_share_one_input_id(monkeypatch):
 
         err = _expect_error(art, "CLAIM_REFS_SPAN_MULTIPLE_INPUTS")
         assert err.context["input_ids"] == ["planA", "planB"], err.context
+
+
+# =========================================================================== #
+# Rework-2 (2026-08-31) -- B-1 source closure, B-2 payloadless present
+# (verdict: ../verdict/2026-08-31_o22m2_rework_crossreview_gpt.md, B-1/B-2:
+#  F-1 asked whether a present channel has payload AT ALL, never WHERE the
+#  payload came from; and the zero-payload pass was open to three channels
+#  that have no payload member to witness a present with.)
+# =========================================================================== #
+def _merge_empty_plan(
+    art: CorrectionEvidenceBundleArtifactV1,
+) -> CorrectionEvidenceBundleArtifactV1:
+    """Freeze the legal empty product ALONGSIDE tiny's payload -- the
+    reviewer's B-1 staging: the routing table can now lie in both
+    directions (payload from an undeclared source; a declared source with
+    no payload)."""
+    merged = art.model_copy(deep=True)
+    src = _empty_artifact().frozen_sources[0]
+    merged.frozen_sources.append(src)
+    merged.bundle.source_artifacts.append(src.artifact)
+    return merged
+
+
+def _set_channel_sources(
+    art: CorrectionEvidenceBundleArtifactV1,
+    channel: str,
+    input_ids: tuple[str, ...],
+) -> CorrectionEvidenceBundleArtifactV1:
+    art.bundle.channel_status = [
+        (
+            s.model_copy(update={"source_input_ids": input_ids})
+            if s.channel == channel
+            else s
+        )
+        for s in art.bundle.channel_status
+    ]
+    return art
+
+
+def _zero_payload_debt(
+    debt_id: str, channel: str, scoped_to: tuple[ArtifactPointerV1, ...] = ()
+) -> EvidenceDebtV1:
+    return EvidenceDebtV1(
+        debt_id=debt_id,
+        kind="zero_payload_channel",
+        channel=channel,
+        affected_refs=scoped_to,
+        description="wired, produced nothing this run",
+    )
+
+
+def _empty_plan_pointer() -> ArtifactPointerV1:
+    meta = _empty_artifact().frozen_sources[0].artifact
+    return ArtifactPointerV1(
+        input_id=meta.input_id,
+        source_contract_id=meta.source_contract_id,
+        source_output_sha256=meta.source_output_sha256,
+        json_pointer="",
+    )
+
+
+def test_b1_payload_must_come_from_the_channels_declared_source(monkeypatch):
+    """Rework-2 B-1, forward.  BEFORE (source closure neutered): declaring
+    the walls -- or plan_openings -- channel's source as the empty product
+    while the payload still all comes from tiny VALIDATES (F-1 is honestly
+    satisfied: the channel DOES carry payload).  AFTER: loud, with both the
+    real and the declared routing named.  The other direction: the three
+    real products and the untouched fixtures stay green."""
+    for channel in ("walls", "plan_openings"):
+        art = _set_channel_sources(
+            _merge_empty_plan(_tiny_artifact()), channel, ("empty_plan",)
+        )
+        # BEFORE: neuter the new closure and the tree-of-record waves it
+        # through -- the red can only come from the gate under test
+        monkeypatch.setattr(
+            evidence_contract,
+            "_assert_channel_source_closure",
+            lambda b, f: None,
+        )
+        validate_evidence_bundle(_refinalize(art.model_copy(deep=True)))
+        monkeypatch.undo()
+
+        # AFTER: loud
+        err = _expect_error(
+            _refinalize(art.model_copy(deep=True)),
+            "PAYLOAD_FROM_UNDECLARED_SOURCE",
+        )
+        assert err.context["channel"] == channel
+        assert err.context["payload_input_ids"] == ["tiny"]
+        assert err.context["declared_input_ids"] == ["empty_plan"]
+
+    # the other direction: honest single-source routing still passes (the
+    # three real products, the tiny fixture, the legacy fixture)
+    for name in _TRACKED:
+        validate_evidence_bundle(_built(name))
+    validate_evidence_bundle(_tiny_artifact())
+    validate_evidence_bundle(_legacy_artifact())
+
+
+def test_b1_declared_source_without_payload_needs_a_scoped_debt(monkeypatch):
+    """Rework-2 B-1, reverse.  The channel DOES carry payload (all of it
+    from tiny) while the table also lists the empty product.  BEFORE: that
+    validates with no debt at all.  AFTER: each payload-free declared
+    source must be excused by a ``zero_payload_channel`` debt SCOPED to it
+    via ``affected_refs`` -- ⛔ a channel-granularity debt does NOT count
+    (its statement "this channel produced nothing" is false while tiny
+    produced), and the scoped debt must name the frozen source by its real
+    identity, so the excuse cannot be minted against a made-up one."""
+    base = _set_channel_sources(
+        _merge_empty_plan(_tiny_artifact()), "walls", ("empty_plan", "tiny")
+    )
+
+    # BEFORE: neuter the new closure and the tree-of-record waves it through
+    monkeypatch.setattr(
+        evidence_contract, "_assert_channel_source_closure", lambda b, f: None
+    )
+    validate_evidence_bundle(_refinalize(base.model_copy(deep=True)))
+    monkeypatch.undo()
+
+    # AFTER, no debt: loud, with the payload-free source named
+    err = _expect_error(
+        _refinalize(base.model_copy(deep=True)),
+        "CHANNEL_SOURCE_WITHOUT_PAYLOAD_OR_SCOPED_DEBT",
+    )
+    assert err.context == {"channel": "walls", "input_ids": ["empty_plan"]}
+
+    # a channel-granularity debt still does not excuse it
+    global_debt = base.model_copy(deep=True)
+    global_debt.bundle.evidence_debts.append(
+        _zero_payload_debt("debt_zero_walls", "walls")
+    )
+    _expect_error(
+        _refinalize(global_debt),
+        "CHANNEL_SOURCE_WITHOUT_PAYLOAD_OR_SCOPED_DEBT",
+    )
+
+    # the scoped debt does: it names the empty source by its frozen identity
+    scoped = base.model_copy(deep=True)
+    scoped.bundle.evidence_debts.append(_zero_payload_debt(
+        "debt_zero_walls_empty", "walls", scoped_to=(_empty_plan_pointer(),)
+    ))
+    validate_evidence_bundle(_refinalize(scoped))
+
+    # and the excuse cannot be forged: the ref must carry the frozen
+    # source's real hash, not just its input_id
+    forged = base.model_copy(deep=True)
+    forged.bundle.evidence_debts.append(_zero_payload_debt(
+        "debt_zero_walls_forged",
+        "walls",
+        scoped_to=(
+            _empty_plan_pointer().model_copy(
+                update={"source_output_sha256": "0" * 64}
+            ),
+        ),
+    ))
+    _expect_error(
+        _refinalize(forged), "SCOPED_ZERO_PAYLOAD_DEBT_REF_UNKNOWN"
+    )
+
+
+def test_b2_a_channel_without_payload_carrier_can_never_be_present(monkeypatch):
+    """Rework-2 B-2.  BEFORE: dimensions=present + zero_payload_channel(
+    dimensions) VALIDATES -- the pass was open to a channel with no payload
+    member, which can never witness a present.  AFTER: that debt itself is
+    refused (and a present with no debt at all keeps F-1's original code).
+    The other direction: walls=present + zero_payload_channel(walls) on a
+    genuine whole-channel zero run STAYS GREEN -- that exit belongs to the
+    channels this layer can actually check."""
+    art = _tiny_artifact()
+    art.bundle.channel_status = [
+        (
+            s.model_copy(update={
+                "state": "present",
+                "source_input_ids": ("tiny",),
+                "covered_by_debt_ids": (),
+            })
+            if s.channel == "dimensions"
+            else s
+        )
+        for s in art.bundle.channel_status
+    ]
+    art.bundle.evidence_debts.append(
+        _zero_payload_debt("debt_zero_dimensions", "dimensions")
+    )
+
+    # BEFORE: neuter the payload-closure gate (where B-2's fix lives) and
+    # the tree-of-record waves it through
+    monkeypatch.setattr(
+        evidence_contract, "_assert_channel_payload_closure", lambda b: None
+    )
+    validate_evidence_bundle(_refinalize(art.model_copy(deep=True)))
+    monkeypatch.undo()
+
+    # AFTER: the pass no longer exists for a payloadless channel
+    _expect_error(
+        _refinalize(art.model_copy(deep=True)),
+        "ZERO_PAYLOAD_DEBT_WITHOUT_PAYLOAD_CARRIER",
+    )
+
+    # and with no debt at all, present is still impossible there (F-1's
+    # original code, unchanged -- the debt gate did not replace it)
+    naked = _tiny_artifact()
+    naked.bundle.channel_status = [
+        (
+            s.model_copy(update={
+                "state": "present",
+                "source_input_ids": ("tiny",),
+                "covered_by_debt_ids": (),
+            })
+            if s.channel == "dimensions"
+            else s
+        )
+        for s in naked.bundle.channel_status
+    ]
+    err = _expect_error(_refinalize(naked), "PRESENT_CHANNEL_WITHOUT_PAYLOAD")
+    assert err.context == {"channel": "dimensions"}
+
+    # the other direction: the genuine whole-channel zero run keeps its
+    # exit (walls CAN carry payload, and this run carried none)
+    honest = _empty_artifact()
+    honest.bundle.evidence_debts.append(
+        _zero_payload_debt("debt_zero_walls", "walls")
+    )
+    validate_evidence_bundle(_refinalize(honest))
 
 
 # =========================================================================== #
