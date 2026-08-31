@@ -276,6 +276,142 @@ as-drawn 产 `observations.face_lines`/`hypotheses` —— **两套 schema 完�
 
 ---
 
+## 2026-09-01（**本轮 · 进行中**）· ⭐⭐⭐ 用户拍板**旧格式整条拆** · 三席起飞 · 两件绿件跨家族审出结果
+
+### ⭐⭐⭐ 本日最要紧：**用户拍板「旧格式不兼顾，全部按新的来」**
+用户原话两句：「**旧格式不用兼顾，全部按新的来**」·
+「**sm21、24、25 这几个都可以按新格式重新完整做（gt 和 pipeline），所以不用兼顾旧的**」。
+⇒ 口径已落 [`guides/reading_correction_split_guide.md §十之二`](guides/reading_correction_split_guide.md)
++ [CLAUDE.md §2 banner](CLAUDE.md)。**⛔ 它覆盖了已过审设计稿的 §8.1「并存」与 §9.1 第 8 步**，
+连带作废 §8.3 与那套只为旧产物服务的签名 sidecar。
+⭐ **主控提过一条顾虑并被用户当场解掉**：我实测「sm21/24/25 识图产物**全是旧格式**、
+`case_tests/` 下**新格式零份**」⇒ 拆了没东西喂新路径；用户答「三个都重做」⇒ 顾虑不成立。
+⭐ **依赖闭包已量**（`58bb59f`）：`tests/` 3 文件 14 处 + `src/` 4 文件 19 处，**全在模块 2/3/4 + 契约注册表**，
+⛔ 没有历史回归测试挂在上面。**第三格对撞干净**：bundle 哈希未落盘、`gt_staging` 三件套零 `legacy` 字样。
+⇒ 拆单已写 → [派工单](logs/reviews/request/2026-09-01_o22m8_drop_the_legacy_leg.md)，
+⛔ **必须排在模块 5/6 落地之后**（它们正 import 编译器）。
+
+### ⭐ 三席起飞（家族各一 · 写面互不相交 · 已按 `environ` 点名核实）
+| 席位 | 任务 | 状态 |
+|---|---|---|
+| **GPT** | [F-154 重发](logs/reviews/request/2026-09-01_f154_reissue_wall_endcap_unowned.md)（**授权重做基线**）| ⏳ 在飞 |
+| **GLM** | [模块 5+6](logs/reviews/request/2026-09-01_o22m56_decision_packet_and_executor.md)（待裁决包 / 决定响应 / 执行器）| ⏳ 在飞 |
+| **Claude 席** | [NF-1 微单](logs/reviews/request/2026-08-30_nf1_empty_skeleton_micro_dispatch.md) | ✅ **已交件**（⛔ 未过跨家族审 —— Claude 写的，须换家族）|
+
+### ⛔ 模块 4 = **REWORK / 阻断 1 / 不阻断 2** → [裁决](logs/reviews/verdict/2026-09-01_o22m4_crossreview_claude.md)
+主控自造 **8 个变异**（每个 = 一种历史缺陷形状）在**独立 worktree** 里跑（⛔ 主树零改动，三席在飞）：**6 有牙 / 2 全绿**。
+⭐⭐⭐ **阻断**：把「单面墙遇多解必须开项」整个摘掉 ⇒ **43 全绿，完全看不见**。
+⛔ 先排除「变异没跑」，做**四通道存货普查**：
+`_compile_paired 260 · _compile_solid_band 16 · _compile_single_face 0 · _compile_legacy_trace 35`
+—— 那个函数**只有一个出口**，探针就在唯一出口上。
+⭐ **旧腿一拆它从「四选一」变「三选一」，更承重**；且**模块 6 的成功条件第一项正是「无 blocking open item」**。
+⇒ 返工单已写 → [派工单](logs/reviews/request/2026-09-01_o22m4_rework_single_face_channel.md)（**补锁单，⛔ 不改生产代码**）。
+⭐ **不阻断 2 条**：① 余段 canonical 排序无锁但**⛔ 未证明有害**（恒等类变异，不记缺陷）；
+② 中线取值的牙**挂在别人的测试上**（M4/M6 唯一红的那条主题是余段），将来重构会静默失去。
+
+### ✅ 模块 2 二轮返工 = **APPROVE-WITH-FINDINGS / 阻断 0** → [裁决](logs/reviews/verdict/2026-09-01_o22m2_rework2_crossreview_claude.md)
+返工审三条检查：① 两条阻断关掉 ✅ ② **主控独立 neuter 复跑**（摘掉校验器 ⇒ **16 红**，三条新锁全在名单）
+⇒ 新门确实在**校验器**里不是测试工厂里 ✅ ③ ⭐⭐⭐ **换同形输入 —— 仍走得通**。
+**主控独立构造实测**：`walls` 声明 `absent` 而 2 条 wall claim / 4 条 disposition **照旧在包里** ⇒ **放行**；
+`plan_openings` 同形 ⇒ **放行**。机制 = 两道新门**都以 `if state != "present": continue` 开头**。
+⭐⭐⭐ **同一病族第三次换载体**（① 全局空载荷 → ② 错误来源的载荷 → ③ **`absent` 却带着载荷**）。
+⇒ ⛔ 不阻断本次返工（这条是**施工方自己交出来的**），**另立单** →
+[派工单](logs/reviews/request/2026-09-01_o22m2_absent_with_payload_dispatch.md)。
+⭐ 不阻断 N2：scoped 豁免是**超集语义**（施工方自报，主控确认）—— 登记不改。
+
+### ⚠️ 本轮题错 **#55**（累计 **55，仍 55/55**）
+模块 4 那条阻断的根**在派工方**：我的派工单里 `single_face` 出现 3 次**全部**在说双面墙的**余段**，
+**没有一次**说那个 **claim 通道**；验收表 8 项**唯独没有一项要求它**。
+⇒ ⭐ **配套解（本轮起执行）**：派工单验收表必须与**设计稿里该模块被点名的每一个枚举值/通道**做**机械对账**，
+⛔ 不是凭印象挑重点。
+
+### ⭐⭐⭐ 第二程最要紧：**F-153/F-154 这条线的题面低了一层**（主控已独立复现）
+GPT 席把「墙端头可被认领」实现出来，**条数完全达标**（`44/2→88/1` · `56/1→91/0`，与上一轮预报逐位对上），
+**但正式落库门拒绝** —— 救回来的两个腔**环自交**（`facts_boundary_ring_invalid`）。
+**主控独立探针**（⛔ 用与席位不同的环重建方式，F2 自交点位逐字一致、F1 略有出入 ⇒ **结论对重建方式不敏感**）：
+```
+plan-F1  健康的 11 个腔 各 4 条边 全 valid ｜ 救回来的那个 44 条边 自交
+plan-F2  健康的 14 个腔 各 4 条边 全 valid ｜ 救回来的那个 35 条边 自交
+```
+⭐⭐⭐ **自交的两个都是走廊形状、几十个 T 接头** ⇒ 病灶不在「端头能不能被认领」，
+在**环是怎么造出来的**（`derive_boundary_edges` 把 span 端点首尾接）。
+⇒ **这撞上的是用户 2026-08-29 已签字的口径**（[指南 §十.6c](guides/reading_correction_split_guide.md)：
+「接头处传播**线**、⛔ 不传播端点，端点由相邻两条线求交算出」，当时就注明「gt 侧已这么做、另一侧没有，
+**事实层存逐边端点后它会从已解变成未解**」）—— **那句预言应验了**，
+`s7_expand_zones` docstring 逐字「rebuild the zone polygon from **offset support-line corners**」为存在性证明。
+⇒ 席位实现已撤下树、保全进
+[`logs/experiments/2026-09-01_f154_endcap_selfintersection/`](logs/experiments/2026-09-01_f154_endcap_selfintersection/README.md)（**线索非证据**）；
+⇒ 新立 **F-155 判别实验**（⛔ 只出读数不改 `src/`）→ [派工单](logs/reviews/request/2026-09-01_f155_ring_from_supportline_intersection_probe.md)。
+
+### ⛔ 模块 5/6 = **REWORK / 阻断 4 / 不阻断 3**（GPT 跨家族审）→ [裁决](logs/reviews/verdict/2026-09-01_o22m56_crossreview_gpt.md)
+**B-1** 对**旧** provisional 的 accept 放行了**执行后的新** geometry（独立读数：`8b2f1ff4…` ≠ `52552c17…` 却 success），
+⭐ **且有一条测试把这个错误语义钉住了** · **B-2** 多轮不累计决定，第二轮撤销第一轮 ·
+**B-3** strict residual debt 被收窄为仅 `ambiguous_face`（⭐ **正是施工方自报「请重点打」的那处，一打就中**）·
+**B-4** 洞口宿主实体闭包漏检 candidate wall ids，且真实产物 **85/87/87 个洞口一个都没进 packet**。
+⇒ 返工单已发 → [返工单](logs/reviews/request/2026-09-01_o22m56_rework_glm.md)（**返工要求逐字贴复核方原文**）。
+
+### ⭐ 第二程派工（三席，家族各一）
+GLM = 模块 5/6 返工 · GPT = F-155 判别实验 · Claude 席 = [②-1d 第二轮返工](logs/reviews/request/2026-09-01_o21d_rework2_exclusion_gap.md)。
+⭐ **②-1d 解锁的原因**：它的返工要求带一句「先核清那 3 个 exclusion 的真实性质再定登记口径」，
+而 F-153/F-154 今天把这件事**答完了**（真实围合房间 · 导不出 ring 是**已知缺陷**不是天然 NA）
+⇒ 口径写进单子 §二，走「带独立证据的显式登记」，⛔ 不许调阈值容纳现状。
+⚠️ 已加**防撞条款**：②-1d 新锁放新文件，⛔ 不许动 F-155 要用作基线的 `test_boundary_condition_facts.py`。
+
+### ⚠️ 本轮题错累计 **57（仍 57/57）**
+**#55** 验收表漏了设计稿点名的整条通道 · **#56** 把候选生成写进执行器（设计稿指派给 compiler）·
+**#57** ⭐⭐⭐ **把代理量写进验收的承重位置**（「边数变了」当成「环成立」）——
+上一轮那个 `44/2→88/1` 我在线索区正确标了「线索非证据」，**却在验收 1 里把它的结论当成承重前提**
+（[[citing-someone-elses-fact-does-not-transfer-responsibility]] + [[proxy-mistaken-for-the-thing]]）。
+⭐ **配套解**：写每条验收时问「**这个数达标了，那件事就一定成立吗？**」
+⭐⭐ **停报机制本轮两次各省下一整轮返工**（#56 GLM · #57 GPT）。
+
+### ⭐⭐⭐ 第二程结果：**F-155 判别实验通过，换表示一次治好两个「不同」的病**
+主控**逐位复跑核验**（并先查了探针有没有抄答案：角点由相邻支撑线求交算、不垂直即 raise；
+每条支撑线必须在事实层墙带目录里找得到、找不到即 raise ⇒ **不是抄的**，且**隔离了正确的变量**：
+同一组支撑线下，端点首尾接 ⇒ 自交，求交算角点 ⇒ valid）：
+```
+TARGET plan-F1 valid=True vertices=24 area=88.265600 delta=-0.004400 interval_misses=0
+TARGET plan-F2 valid=True vertices=16 area=70.339200 delta=-0.000800 interval_misses=0
+HEALTHY count=25 all_rebuilt_vertices_4=True all_valid=True all_interval_misses_0=True
+MISALIGNED_0P1MM cavity:04e1293098b1a95a alive=True vertices=8 valid=True
+```
+⭐⭐⭐ **两条结论**：① **28.68 那个也活了** ⇒ **F-153「这是两个病、别当一个修」的结论被推翻**
+（它只在**旧表示下**成立）—— [[representation-collapse-manufactures-unrelated-errors]] 再次兑现；
+② **`interval_misses=0` + 对称差 0.000000 ⇒ 腔多边形一直是对的**，
+`derive_boundary_edges` 是**从正确源头造出了自交的环** ⇒ 不是补数据，是换角点算法 ⇒ **修法轻得多**。
+⇒ [主控核验裁定](logs/reviews/verdict/2026-09-01_f155_ring_probe_orchestrator_verification.md) ·
+[F-156 实现单](logs/reviews/request/2026-09-01_f156_ring_from_intersection_implementation.md)（**授权重做基线**）。
+
+### ✅ 模块 5/6 返工已交（GLM）· ⏳ 未复审
+四条阻断逐条修：**B-1** 成功条件改为 `packet.provisional_geometry == compilation.content_sha256`
+（**并翻掉那条锁错语义的测试**）· **B-2** 执行器侧累计已接受决定一次性传入（**模块 4 零改动**）·
+**B-3** 改成 **20 格显式 profile × debt kind 表**，未登记格 raise（⛔ 不是一律阻断，有反向锁）·
+**B-4** 加封闭 `entity_kind` + packet 必填 bundle ⇒ 真实产物洞口 **85/85 · 87/87 · 87/87 全进 packet**。
+锁 **30 → 73**；既有四文件 53/33/21/22 一个不变（主控独立核）；模块 1–4 `git diff` = **0**（主控独立核）。
+⭐ 它点名三处要复核方裁（自主扩的一格 policy · opening refs 投影丢 `observation_id` · packet 平行推导）。
+
+### ✅ ②-1d 第二轮返工已交（Claude 席）· ⏳ 未过审
+**删掉同因重导**（`grep derive_boundary_edges` 在 `answer_compiler.py` = **0**，主控独立核）⇒
+改**消费被哈希覆盖的 `boundary_ring_losses` 台账**；exclusion 三分支（登记 / 次阈值合法出口 / 否则红）；
+唯一性改用「内部不相交」。**事实层三份哈希逐字节未变**（主控独立核）；**91 passed**（84 + 7 新锁，
+新锁全在新文件，**未碰** `test_boundary_condition_facts.py` ⇒ 主控的防撞条款生效）。
+⭐ 它撞出一条：复核方穿透 ② 的合成夹具**已失效** —— F-153/F-154 的改动恰好修好了那个 junction fragment。
+
+### ⚠️ 题错 **#58**（累计 **58，仍 58/58**）：**判据钉住了缺陷本身的存在**
+我的 ②-1d 验收 5 写「**那 3 个 cavity** 走显式登记」⇒ 施工方照做，
+`tests/test_o21d_exclusion_gap.py:89` 逐个断言三个腔的登记面积。
+**F-156 把环修好后它们不再是 exclusion ⇒ 这条锁必红。**
+⇒ ⭐ 改法（已写进 [②-1d 单 §九](logs/reviews/request/2026-09-01_o21d_rework2_exclusion_gap.md)）：
+拆成**规则**（任何过阈值的 exclusion 必须登记并引用台账，与是哪几个无关）+ **读数**（台账条数）两半。
+⛔ **施工方无过** —— F-155 的结论是在它开工之后才出来的。
+
+### ⏭ 下轮从这里接
+① 模块 5/6 落地后送 GPT 审 · ② **拆旧腿单**（含模块 7 那一行）· ③ **模块 4 补锁返工** ·
+④ NF-1 送跨家族审（⛔ Claude 写的，须换家族）· ⑤ `absent` 却带着载荷 · ⑥ **②-1d 第二轮返工**（等 F-154 落地）·
+⑦ ⭐ **产出新格式产物**（用户已拍「提到前面，下一批就做」）· ⑧ 首次建 sm24 事实层。
+
+---
+
 ## 2026-08-31 收工 · **模块 2 二轮返工 + 模块 4 交付** · F-154 撞上甲案的结构性代价
 
 ### ⭐ 收工权威全量：**3519 passed / 13 xfailed / 0 failed**

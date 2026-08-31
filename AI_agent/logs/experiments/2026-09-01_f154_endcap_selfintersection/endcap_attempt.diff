@@ -1,0 +1,355 @@
+diff --git a/src/agent/judge/as_measured.py b/src/agent/judge/as_measured.py
+index abf1410..9daa16b 100644
+--- a/src/agent/judge/as_measured.py
++++ b/src/agent/judge/as_measured.py
+@@ -323,7 +323,10 @@ class BoundaryConditionEvidenceV1(_StrictModel):
+     instead of asking a consumer to recover them by list position.
+     """
+ 
+-    method: Literal["facts_geometry_ray_exit_v1"] = "facts_geometry_ray_exit_v1"
++    method: Literal[
++        "facts_geometry_ray_exit_v1",
++        "facts_exact_wall_endcap_v1",
++    ] = "facts_geometry_ray_exit_v1"
+     raw_face_const: int
+     opposite_face_const: int
+     thickness_units: StrictNonNegativeInt
+@@ -1175,10 +1178,52 @@ class _BoundarySpan:
+     side: Literal[-1, 1]
+     p1: tuple[int, int]
+     p2: tuple[int, int]
+-    group: _BoundaryWallGroup
++    owner: "_BoundaryOwner"
+     boundary_condition: str
+ 
+ 
++@dataclass(frozen=True)
++class _BoundaryOwner:
++    """One exact topological claim on a cavity span.
++
++    A face claim is the existing relation: the cavity span lies on one of a
++    parallel wall group's two faces.  An endcap claim is perpendicular: the
++    wall's two drawn faces terminate exactly on the two faces of an
++    intersecting wall band, while its transverse face interval overlaps the
++    span by positive length.  No coordinate is rounded and no near-enough
++    distance is admitted.  Requiring that exact T-junction is what keeps a
++    split ``52399``/``52401`` end from masquerading as a cap of the wall band
++    whose measured face is ``52400``.
++    """
++
++    kind: Literal["face", "endcap"]
++    group: _BoundaryWallGroup
++    wall: AsMeasuredWallV1 | None = None
++
++    @property
++    def key(self) -> tuple[object, ...]:
++        return (self.kind, self.group.key, self.wall.id if self.wall else "")
++
++    @property
++    def wall_ids(self) -> list[str]:
++        if self.wall is not None:
++            return [self.wall.id]
++        return self.group.wall_ids
++
++    @property
++    def face_line_handles(self) -> list[str]:
++        if self.wall is not None:
++            return sorted({*self.wall.face_line_ids_lo,
++                           *self.wall.face_line_ids_hi})
++        return self.group.face_line_handles
++
++    def handles(self, side: Literal["lo", "hi"]) -> list[str]:
++        if self.wall is None:
++            return self.group.handles(side)
++        return sorted(self.wall.face_line_ids_lo if side == "lo"
++                      else self.wall.face_line_ids_hi)
++
++
+ @dataclass
+ class _BoundaryDerivation:
+     edges: list[AsMeasuredBoundaryEdgeV1]
+@@ -1260,17 +1305,69 @@ def _boundary_cavity_id(view_id: str, cavity: Polygon) -> str:
+     return _boundary_opaque_id("cavity", view_id, *bounds, round(cavity.area, 3))
+ 
+ 
+-def _boundary_owners(groups: dict[tuple[str, int, int], _BoundaryWallGroup],
+-                     axis: str, const: int, lo: int,
+-                     hi: int) -> list[_BoundaryWallGroup]:
+-    found = []
++def _boundary_owners(
++        groups: dict[tuple[str, int, int], _BoundaryWallGroup],
++        face_by_id: dict[str, AsMeasuredFaceLineV1], axis: str, const: int,
++        lo: int, hi: int) -> list[_BoundaryOwner]:
++    """Return every exact face or perpendicular-wall-endcap owner.
++
++    Face ownership and endcap ownership are two orientations of the same
++    topological question: does measured wall ink coincide with this span?
++    Faces use the long-standing parallel-face test.  Endcaps require exact
++    termination on both faces of an intersecting band plus positive interval
++    overlap; there is deliberately no distance tolerance or fallback
++    admission.
++    """
++    face_owners: list[_BoundaryOwner] = []
++    endcap_owners: list[_BoundaryOwner] = []
+     for group in groups.values():
+-        if group.axis != axis or const not in (group.face_lo, group.face_hi):
++        if (group.axis == axis
++                and const in (group.face_lo, group.face_hi)
++                and any(min(hi, end) - max(lo, start) > 0
++                        for start, end in group.coverage())):
++            face_owners.append(_BoundaryOwner(kind="face", group=group))
++            continue
++        if group.axis == axis:
+             continue
+-        if any(min(hi, end) - max(lo, start) > 0
+-               for start, end in group.coverage()):
+-            found.append(group)
+-    return sorted(found, key=lambda group: (group.key, group.wall_ids))
++        for wall in group.runs:
++            if const not in (wall.along_min, wall.along_max):
++                continue
++            if min(hi, wall.face_hi) - max(lo, wall.face_lo) <= 0:
++                continue
++            endpoint_name = ("along_min" if const == wall.along_min
++                             else "along_max")
++            junctions = [
++                parallel for parallel in groups.values()
++                if (parallel.axis == axis
++                    and const in (parallel.face_lo, parallel.face_hi)
++                    and any(min(hi, end) - max(lo, start) >= 0
++                            for start, end in parallel.coverage()))]
++            exact_junction = False
++            for junction in junctions:
++                junction_faces = {junction.face_lo, junction.face_hi}
++                lo_ends = any(
++                    getattr(face_by_id[handle], endpoint_name)
++                    in junction_faces
++                    for handle in wall.face_line_ids_lo
++                    if handle in face_by_id)
++                hi_ends = any(
++                    getattr(face_by_id[handle], endpoint_name)
++                    in junction_faces
++                    for handle in wall.face_line_ids_hi
++                    if handle in face_by_id)
++                if lo_ends and hi_ends:
++                    exact_junction = True
++                    break
++            if exact_junction:
++                endcap_owners.append(_BoundaryOwner(
++                    kind="endcap", group=group, wall=wall))
++    # At a T-junction the same short span can lie on the continuing wall's
++    # face and on the terminating wall's cap.  The cap is the more specific
++    # ownership: its exact two-band proof is what turns the junction fragment
++    # into boundary supply.  Preserve multiplicity among caps so two distinct
++    # wall ends on one span still yield ``owner_count != 1``.
++    found = endcap_owners if endcap_owners else face_owners
++    return sorted(found, key=lambda owner: owner.key)
+ 
+ 
+ def _boundary_nearest_same_axis_face(
+@@ -1300,7 +1397,8 @@ def _boundary_nearest_same_axis_face(
+ 
+ def _boundary_exit_const(span: _BoundarySpan, raw_far: int) -> int:
+     outward = -span.side
+-    stored_far = span.group.face_hi if outward > 0 else span.group.face_lo
++    stored_far = (span.owner.group.face_hi if outward > 0
++                  else span.owner.group.face_lo)
+     farthest = max(raw_far, stored_far) if outward > 0 else min(raw_far, stored_far)
+     return farthest + outward
+ 
+@@ -1360,7 +1458,7 @@ def _boundary_subspan(span: _BoundarySpan, lo: int, hi: int) -> _BoundarySpan:
+               else (high_point, low_point))
+     return _BoundarySpan(
+         axis=span.axis, cavity_const=span.cavity_const, lo=lo, hi=hi,
+-        side=span.side, p1=p1, p2=p2, group=span.group,
++        side=span.side, p1=p1, p2=p2, owner=span.owner,
+         boundary_condition=span.boundary_condition)
+ 
+ 
+@@ -1415,6 +1513,34 @@ def _classify_boundary_fact(
+     """
+     outward = -span.side
+     mid_along = (span.lo + span.hi) // 2
++    near_side: Literal["lo", "hi"] = "lo" if span.side < 0 else "hi"
++    far_side: Literal["lo", "hi"] = "hi" if near_side == "lo" else "lo"
++    near_handles = span.owner.handles(near_side)
++    far_handles = span.owner.handles(far_side)
++
++    if span.owner.kind == "endcap":
++        # An exact interior-wall cap is wall-axis supply, not outer-skin
++        # supply.  A ray through its normal immediately enters the wall run,
++        # so the ordinary face classifier would intentionally call it a
++        # junction fragment.  Here the exact two-face termination is the
++        # stronger topology: it closes the cavity ring as an interzone edge
++        # while retaining the wall's real transverse thickness and ink.
++        exit_const = span.cavity_const + outward
++        exit_point = ([exit_const, mid_along] if span.axis == "y"
++                      else [mid_along, exit_const])
++        evidence = BoundaryConditionEvidenceV1(
++            method="facts_exact_wall_endcap_v1",
++            raw_face_const=raw_near,
++            opposite_face_const=raw_far,
++            thickness_units=abs(raw_far - raw_near),
++            outward_normal=([outward, 0] if span.axis == "y"
++                             else [0, outward]),
++            exit_point=exit_point,
++            footprint_ring_id=ring_records[0][0],
++            cavity_side_face_line_ids=near_handles,
++            far_side_face_line_ids=far_handles)
++        return "interzone", evidence, True
++
+     exit_const = _boundary_exit_const(span, raw_far)
+     exit_point = ([exit_const, mid_along] if span.axis == "y"
+                   else [mid_along, exit_const])
+@@ -1444,10 +1570,6 @@ def _classify_boundary_fact(
+             condition = "unknown"
+             logical_edge = False
+ 
+-    near_side: Literal["lo", "hi"] = "lo" if span.side < 0 else "hi"
+-    far_side: Literal["lo", "hi"] = "hi" if near_side == "lo" else "lo"
+-    near_handles = span.group.handles(near_side)
+-    far_handles = span.group.handles(far_side)
+     evidence = BoundaryConditionEvidenceV1(
+         raw_face_const=raw_near,
+         opposite_face_const=raw_far,
+@@ -1468,7 +1590,7 @@ def _boundary_spans_mergeable(left: _BoundarySpan,
+     return (left.axis == right.axis
+             and left.cavity_const == right.cavity_const
+             and left.side == right.side
+-            and left.group.key == right.group.key
++            and left.owner.key == right.owner.key
+             and left.boundary_condition == right.boundary_condition
+             and left.p2 == right.p1)
+ 
+@@ -1490,7 +1612,7 @@ def _merge_boundary_spans(spans: list[_BoundarySpan]) -> list[_BoundarySpan]:
+                 axis=previous.axis, cavity_const=previous.cavity_const,
+                 lo=min(previous.lo, span.lo), hi=max(previous.hi, span.hi),
+                 side=previous.side, p1=previous.p1, p2=span.p2,
+-                group=previous.group,
++                owner=previous.owner,
+                 boundary_condition=previous.boundary_condition)
+         else:
+             merged.append(span)
+@@ -1541,7 +1663,8 @@ def _derive_boundary_facts(view: AsMeasuredViewV1, *, min_room_area_m2: float
+                     span=_boundary_failure_span(p1=a, p2=b),
+                     reason="non_axis_segment")
+                 break
+-            owners = _boundary_owners(groups, axis, cavity_const, lo, hi)
++            owners = _boundary_owners(
++                groups, face_by_id, axis, cavity_const, lo, hi)
+             if len(owners) != 1:
+                 nearest_face = _boundary_nearest_same_axis_face(
+                     groups, axis, cavity_const, lo, hi)
+@@ -1554,17 +1677,18 @@ def _derive_boundary_facts(view: AsMeasuredViewV1, *, min_room_area_m2: float
+                     span=failure_span, reason="owner_count",
+                     owner_count=len(owners))
+                 break
+-            group = owners[0]
++            owner = owners[0]
+             near_side: Literal["lo", "hi"] = "lo" if side < 0 else "hi"
+             far_side: Literal["lo", "hi"] = "hi" if near_side == "lo" else "lo"
+-            near_handles, far_handles = group.handles(near_side), group.handles(far_side)
++            near_handles = owner.handles(near_side)
++            far_handles = owner.handles(far_side)
+             raw_near = round(sum(face_by_id[handle].const for handle in near_handles)
+                              / len(near_handles))
+             raw_far = round(sum(face_by_id[handle].const for handle in far_handles)
+                             / len(far_handles))
+             candidate = _BoundarySpan(
+                 axis=axis, cavity_const=cavity_const, lo=lo, hi=hi,
+-                side=side, p1=a, p2=b, group=group,
++                side=side, p1=a, p2=b, owner=owner,
+                 boundary_condition="unknown")
+             condition, _evidence, logical = _classify_boundary_fact(
+                 candidate, raw_near, raw_far, footprint, ring_records,
+@@ -1620,8 +1744,8 @@ def _derive_boundary_facts(view: AsMeasuredViewV1, *, min_room_area_m2: float
+         for sequence, span in enumerate(merged):
+             near_side = "lo" if span.side < 0 else "hi"
+             far_side = "hi" if near_side == "lo" else "lo"
+-            near_handles = span.group.handles(near_side)
+-            far_handles = span.group.handles(far_side)
++            near_handles = span.owner.handles(near_side)
++            far_handles = span.owner.handles(far_side)
+             raw_near = round(sum(face_by_id[handle].const for handle in near_handles)
+                              / len(near_handles))
+             raw_far = round(sum(face_by_id[handle].const for handle in far_handles)
+@@ -1636,12 +1760,12 @@ def _derive_boundary_facts(view: AsMeasuredViewV1, *, min_room_area_m2: float
+                 id=_boundary_opaque_id(
+                     "boundary-edge", cavity_id, sequence, span.axis,
+                     span.cavity_const, span.lo, span.hi, span.side,
+-                    *span.group.wall_ids),
++                    *span.owner.wall_ids),
+                 cavity_id=cavity_id, sequence=sequence, axis=span.axis,
+                 cavity_const=span.cavity_const, span_lo=span.lo, span_hi=span.hi,
+                 side=span.side, p1=list(span.p1), p2=list(span.p2),
+-                wall_ids=span.group.wall_ids,
+-                face_line_handles=span.group.face_line_handles,
++                wall_ids=span.owner.wall_ids,
++                face_line_handles=span.owner.face_line_handles,
+                 boundary_condition=condition, evidence=evidence))
+     return _BoundaryDerivation(edges=records, losses=losses)
+ 
+@@ -1689,22 +1813,31 @@ def refresh_boundary_edges(view: AsMeasuredViewV1) -> AsMeasuredViewV1:
+         cavities.append(cavity)
+         cavity_ids[id(cavity)] = cavity_id
+     groups = _boundary_wall_groups(view)
+-    groups_by_walls = {tuple(group.wall_ids): group for group in groups.values()}
+     face_by_id = {face.id: face for face in view.face_lines}
+     refreshed = []
+     for edge in view.boundary_edges:
+-        group = groups_by_walls.get(tuple(edge.wall_ids))
+-        if group is None:
++        wanted_kind = ("endcap"
++                       if edge.evidence.method == "facts_exact_wall_endcap_v1"
++                       else "face")
++        matching = [
++            owner for owner in _boundary_owners(
++                groups, face_by_id, edge.axis, edge.cavity_const,
++                edge.span_lo, edge.span_hi)
++            if owner.kind == wanted_kind and owner.wall_ids == edge.wall_ids]
++        if len(matching) != 1:
+             raise ValueError(
+-                f"as_measured_boundary_refresh_wall_group_missing:{edge.id}")
++                f"as_measured_boundary_refresh_owner_count:{edge.id}:"
++                f"{len(matching)}")
++        owner = matching[0]
+         span = _BoundarySpan(
+             axis=edge.axis, cavity_const=edge.cavity_const,
+             lo=edge.span_lo, hi=edge.span_hi, side=edge.side,
+-            p1=tuple(edge.p1), p2=tuple(edge.p2), group=group,
++            p1=tuple(edge.p1), p2=tuple(edge.p2), owner=owner,
+             boundary_condition=edge.boundary_condition)
+         near_side: Literal["lo", "hi"] = "lo" if edge.side < 0 else "hi"
+         far_side: Literal["lo", "hi"] = "hi" if near_side == "lo" else "lo"
+-        near_handles, far_handles = group.handles(near_side), group.handles(far_side)
++        near_handles = owner.handles(near_side)
++        far_handles = owner.handles(far_side)
+         raw_near = round(sum(face_by_id[handle].const for handle in near_handles)
+                          / len(near_handles))
+         raw_far = round(sum(face_by_id[handle].const for handle in far_handles)
+diff --git a/tests/test_boundary_condition_facts.py b/tests/test_boundary_condition_facts.py
+index b53ca12..3de5c31 100644
+--- a/tests/test_boundary_condition_facts.py
++++ b/tests/test_boundary_condition_facts.py
+@@ -303,9 +303,10 @@ def test_r3_synthetic_supply_measures_unclaimed_void_and_unknown():
+         face_line_ids_lo=["A1"], face_line_ids_hi=["A2"])
+     group = am._BoundaryWallGroup(
+         axis="y", face_lo=100, face_hi=200, runs=(wall,), openings=())
++    owner = am._BoundaryOwner(kind="face", group=group)
+     span = am._BoundarySpan(
+         axis="y", cavity_const=100, lo=100, hi=900, side=-1,
+-        p1=(100, 100), p2=(100, 900), group=group,
++        p1=(100, 100), p2=(100, 900), owner=owner,
+         boundary_condition="unknown")
+     rectangular = Polygon([(0, 0), (1000, 0), (1000, 1000), (0, 1000)])
+     rectangular_ring = [(
+@@ -330,7 +331,8 @@ def test_r3_synthetic_supply_measures_unclaimed_void_and_unknown():
+         openings=())
+     diagonal_span = am._BoundarySpan(
+         axis="y", cavity_const=700, lo=100, hi=900, side=-1,
+-        p1=(700, 100), p2=(700, 900), group=diagonal_group,
++        p1=(700, 100), p2=(700, 900),
++        owner=am._BoundaryOwner(kind="face", group=diagonal_group),
+         boundary_condition="unknown")
+     condition, unknown_evidence, logical = am._classify_boundary_fact(
+         diagonal_span, 700, 800, diagonal, diagonal_ring,
