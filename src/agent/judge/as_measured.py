@@ -119,7 +119,7 @@ from pathlib import Path
 from typing import Any, Literal
 
 from pydantic import Field, model_validator
-from shapely.geometry import Point, Polygon
+from shapely.geometry import LineString, Point, Polygon
 from shapely.ops import unary_union
 
 from .gt_manifest import Affine2D, load_gt_tooling_config
@@ -376,6 +376,58 @@ class AsMeasuredBoundaryEdgeV1(_StrictModel):
                            else [0, self.side * -1])
         if self.evidence.outward_normal != expected_normal:
             raise ValueError("as_measured_boundary_outward_normal_disagrees_with_side")
+        return self
+
+
+class AsMeasuredBoundaryFailureSpanV1(_StrictModel):
+    """The exact ring segment that prevented a cavity from yielding edges."""
+
+    axis: Literal["x", "y", "non_axis"]
+    const: int | None = None
+    lo: int | None = None
+    hi: int | None = None
+    side: Literal[-1, 1] | None = None
+    p1: list[int] = Field(min_length=2, max_length=2)
+    p2: list[int] = Field(min_length=2, max_length=2)
+    nearest_same_axis_wall_face_const: int | None = None
+    span_to_nearest_same_axis_wall_face_delta: int | None = None
+
+    @model_validator(mode="after")
+    def _axis_fields_are_explicit(self):
+        scalars = (self.const, self.lo, self.hi, self.side)
+        if self.axis == "non_axis":
+            if any(value is not None for value in scalars):
+                raise ValueError("as_measured_non_axis_failure_has_axis_fields")
+        elif any(value is None for value in scalars):
+            raise ValueError("as_measured_axis_failure_missing_axis_fields")
+        elif self.lo >= self.hi:
+            raise ValueError("as_measured_boundary_failure_span_degenerate")
+        nearest = self.nearest_same_axis_wall_face_const
+        delta = self.span_to_nearest_same_axis_wall_face_delta
+        if (nearest is None) != (delta is None):
+            raise ValueError("as_measured_boundary_failure_nearest_face_unpaired")
+        if nearest is not None:
+            if self.const is None or delta != self.const - nearest:
+                raise ValueError("as_measured_boundary_failure_nearest_face_delta")
+        return self
+
+
+class AsMeasuredBoundaryRingLossV1(_StrictModel):
+    """Derived readout for an above-threshold cavity that yielded no edges."""
+
+    cavity_id: StableId
+    area_units2: StrictNonNegativeInt
+    span: AsMeasuredBoundaryFailureSpanV1
+    reason: Literal[
+        "non_axis_segment", "owner_count", "classify_illogical", "merged_lt_3"]
+    owner_count: StrictNonNegativeInt | None = None
+
+    @model_validator(mode="after")
+    def _owner_count_matches_reason(self):
+        if (self.reason == "owner_count") != (self.owner_count is not None):
+            raise ValueError("as_measured_boundary_loss_owner_count_mismatch")
+        if self.area_units2 <= 0:
+            raise ValueError("as_measured_boundary_loss_area_not_positive")
         return self
 
 
@@ -1105,6 +1157,12 @@ class _BoundarySpan:
     boundary_condition: str
 
 
+@dataclass
+class _BoundaryDerivation:
+    edges: list[AsMeasuredBoundaryEdgeV1]
+    losses: list[AsMeasuredBoundaryRingLossV1]
+
+
 def _boundary_opaque_id(prefix: str, *parts: object) -> str:
     payload = "|".join(str(part) for part in parts).encode("utf-8")
     return f"{prefix}:{hashlib.sha256(payload).hexdigest()[:16]}"
@@ -1193,6 +1251,114 @@ def _boundary_owners(groups: dict[tuple[str, int, int], _BoundaryWallGroup],
     return sorted(found, key=lambda group: (group.key, group.wall_ids))
 
 
+def _boundary_nearest_same_axis_face(
+        groups: dict[tuple[str, int, int], _BoundaryWallGroup], axis: str,
+        const: int, lo: int, hi: int) -> int | None:
+    """Report the nearest overlapping same-axis wall face without matching it.
+
+    The result is evidence only.  It never changes owner lookup: a face one
+    integer unit away remains a different face just as a face 1000 units away
+    does.  Requiring exact along-span overlap keeps the clue tied to this ring
+    segment rather than to an unrelated parallel wall elsewhere in the view.
+    """
+    candidates: list[tuple[int, int, tuple[str, ...]]] = []
+    for group in groups.values():
+        if group.axis != axis:
+            continue
+        if not any(min(hi, end) - max(lo, start) > 0
+                   for start, end in group.coverage()):
+            continue
+        for face_const in (group.face_lo, group.face_hi):
+            candidates.append((
+                abs(const - face_const), face_const, tuple(group.wall_ids)))
+    if not candidates:
+        return None
+    return min(candidates)[1]
+
+
+def _boundary_exit_const(span: _BoundarySpan, raw_far: int) -> int:
+    outward = -span.side
+    stored_far = span.group.face_hi if outward > 0 else span.group.face_lo
+    farthest = max(raw_far, stored_far) if outward > 0 else min(raw_far, stored_far)
+    return farthest + outward
+
+
+def _boundary_transition_points(
+        span: _BoundarySpan, raw_far: int, footprint: Polygon,
+        wall_region: Any, cavities: list[Polygon]) -> list[int]:
+    """Partition a ray-exit span at every geometry membership transition.
+
+    The classifier may still use a witness point *inside* each resulting cell,
+    but no chosen point decides which side of a wall/cavity/footprint boundary
+    the whole unsplit span represents.  All cut coordinates come from the
+    measured geometries themselves; no sampling interval or tolerance exists.
+    """
+    exit_const = _boundary_exit_const(span, raw_far)
+    if span.axis == "y":
+        probe = LineString([(exit_const, span.lo), (exit_const, span.hi)])
+        along_index = 1
+    else:
+        probe = LineString([(span.lo, exit_const), (span.hi, exit_const)])
+        along_index = 0
+    cuts = {span.lo, span.hi}
+
+    def collect(geometry: Any) -> None:
+        intersection = probe.intersection(geometry)
+
+        def visit(part: Any) -> None:
+            if part.is_empty:
+                return
+            if hasattr(part, "geoms"):
+                for child in part.geoms:
+                    visit(child)
+                return
+            if hasattr(part, "coords"):
+                for point in part.coords:
+                    value = int(round(point[along_index]))
+                    if span.lo < value < span.hi:
+                        cuts.add(value)
+
+        visit(intersection)
+
+    for geometry in (footprint, wall_region, *cavities):
+        collect(geometry)
+    return sorted(cuts)
+
+
+def _boundary_subspan(span: _BoundarySpan, lo: int, hi: int) -> _BoundarySpan:
+    if span.axis == "y":
+        low_point, high_point = ((span.cavity_const, lo),
+                                 (span.cavity_const, hi))
+        forward = span.p1[1] < span.p2[1]
+    else:
+        low_point, high_point = ((lo, span.cavity_const),
+                                 (hi, span.cavity_const))
+        forward = span.p1[0] < span.p2[0]
+    p1, p2 = ((low_point, high_point) if forward
+              else (high_point, low_point))
+    return _BoundarySpan(
+        axis=span.axis, cavity_const=span.cavity_const, lo=lo, hi=hi,
+        side=span.side, p1=p1, p2=p2, group=span.group,
+        boundary_condition=span.boundary_condition)
+
+
+def _boundary_failure_span(
+        *, p1: tuple[int, int], p2: tuple[int, int],
+        axis: Literal["x", "y"] | None = None, const: int | None = None,
+        lo: int | None = None, hi: int | None = None,
+        side: Literal[-1, 1] | None = None,
+        nearest_same_axis_wall_face_const: int | None = None,
+        ) -> AsMeasuredBoundaryFailureSpanV1:
+    delta = (None if const is None or nearest_same_axis_wall_face_const is None
+             else const - nearest_same_axis_wall_face_const)
+    return AsMeasuredBoundaryFailureSpanV1(
+        axis=axis or "non_axis", const=const, lo=lo, hi=hi, side=side,
+        p1=list(p1), p2=list(p2),
+        nearest_same_axis_wall_face_const=(
+            nearest_same_axis_wall_face_const),
+        span_to_nearest_same_axis_wall_face_delta=delta)
+
+
 def _boundary_ray_witness(
         axis: str, start_const: int, exit_const: int, mid_along: int,
         ring_records: list[tuple[str, list[list[int]]]],
@@ -1227,9 +1393,7 @@ def _classify_boundary_fact(
     """
     outward = -span.side
     mid_along = (span.lo + span.hi) // 2
-    stored_far = span.group.face_hi if outward > 0 else span.group.face_lo
-    farthest = max(raw_far, stored_far) if outward > 0 else min(raw_far, stored_far)
-    exit_const = farthest + outward
+    exit_const = _boundary_exit_const(span, raw_far)
     exit_point = ([exit_const, mid_along] if span.axis == "y"
                   else [mid_along, exit_const])
     point = Point(exit_point)
@@ -1311,12 +1475,12 @@ def _merge_boundary_spans(spans: list[_BoundarySpan]) -> list[_BoundarySpan]:
     return merged
 
 
-def derive_boundary_edges(view: AsMeasuredViewV1, *, min_room_area_m2: float
-                          ) -> list[AsMeasuredBoundaryEdgeV1]:
-    """Derive logical boundary facts without selecting an output profile."""
+def _derive_boundary_facts(view: AsMeasuredViewV1, *, min_room_area_m2: float
+                           ) -> _BoundaryDerivation:
+    """Derive edges and the named readout for cavities that yield no edges."""
     footprint, ring_records = _boundary_footprint(view)
     if footprint.is_empty or not ring_records:
-        return []
+        return _BoundaryDerivation(edges=[], losses=[])
     wall_region = _boundary_wall_region(view)
     geometry = footprint.difference(wall_region)
     threshold = float(min_room_area_m2) * UNITS_PER_METRE * UNITS_PER_METRE
@@ -1330,6 +1494,7 @@ def derive_boundary_edges(view: AsMeasuredViewV1, *, min_room_area_m2: float
     groups = _boundary_wall_groups(view)
     face_by_id = {face.id: face for face in view.face_lines}
     records: list[AsMeasuredBoundaryEdgeV1] = []
+    losses: list[AsMeasuredBoundaryRingLossV1] = []
 
     for cavity in cavities:
         cavity_id = cavity_ids[id(cavity)]
@@ -1337,7 +1502,8 @@ def derive_boundary_edges(view: AsMeasuredViewV1, *, min_room_area_m2: float
                 for x, y in list(cavity.exterior.coords)[:-1]]
         representative = cavity.representative_point()
         spans: list[_BoundarySpan] = []
-        ring_is_logical = True
+        local_failures: list[AsMeasuredBoundaryFailureSpanV1] = []
+        fatal_loss: AsMeasuredBoundaryRingLossV1 | None = None
         for a, b in zip(ring, ring[1:] + ring[:1]):
             if a[0] == b[0] and a[1] != b[1]:
                 axis: Literal["x", "y"] = "y"
@@ -1348,11 +1514,23 @@ def derive_boundary_edges(view: AsMeasuredViewV1, *, min_room_area_m2: float
                 cavity_const, lo, hi = a[1], min(a[0], b[0]), max(a[0], b[0])
                 side = -1 if representative.y < cavity_const else 1
             else:
-                ring_is_logical = False
+                fatal_loss = AsMeasuredBoundaryRingLossV1(
+                    cavity_id=cavity_id, area_units2=int(round(cavity.area)),
+                    span=_boundary_failure_span(p1=a, p2=b),
+                    reason="non_axis_segment")
                 break
             owners = _boundary_owners(groups, axis, cavity_const, lo, hi)
             if len(owners) != 1:
-                ring_is_logical = False
+                nearest_face = _boundary_nearest_same_axis_face(
+                    groups, axis, cavity_const, lo, hi)
+                failure_span = _boundary_failure_span(
+                    p1=a, p2=b, axis=axis, const=cavity_const,
+                    lo=lo, hi=hi, side=side,
+                    nearest_same_axis_wall_face_const=nearest_face)
+                fatal_loss = AsMeasuredBoundaryRingLossV1(
+                    cavity_id=cavity_id, area_units2=int(round(cavity.area)),
+                    span=failure_span, reason="owner_count",
+                    owner_count=len(owners))
                 break
             group = owners[0]
             near_side: Literal["lo", "hi"] = "lo" if side < 0 else "hi"
@@ -1369,16 +1547,53 @@ def derive_boundary_edges(view: AsMeasuredViewV1, *, min_room_area_m2: float
             condition, _evidence, logical = _classify_boundary_fact(
                 candidate, raw_near, raw_far, footprint, ring_records,
                 wall_region, cavities, cavity_ids)
-            if not logical:
-                ring_is_logical = False
-                break
-            candidate.boundary_condition = condition
-            spans.append(candidate)
-        if not ring_is_logical:
+            if logical:
+                candidate.boundary_condition = condition
+                spans.append(candidate)
+                continue
+
+            # A single witness may reveal that a span crosses a junction, but
+            # it must not decide the fate of the entire span or cavity.  Only
+            # then partition at measured geometry transitions and reclassify
+            # every resulting cell.  Already-logical spans retain their
+            # established identity and classification granularity.
+            cuts = _boundary_transition_points(
+                candidate, raw_far, footprint, wall_region, cavities)
+            for child_lo, child_hi in zip(cuts, cuts[1:]):
+                child = _boundary_subspan(candidate, child_lo, child_hi)
+                condition, _evidence, logical = _classify_boundary_fact(
+                    child, raw_near, raw_far, footprint, ring_records,
+                    wall_region, cavities, cavity_ids)
+                if not logical:
+                    local_failures.append(_boundary_failure_span(
+                        p1=child.p1, p2=child.p2, axis=child.axis,
+                        const=child.cavity_const, lo=child.lo, hi=child.hi,
+                        side=child.side))
+                    continue
+                child.boundary_condition = condition
+                spans.append(child)
+        if fatal_loss is not None:
+            losses.append(fatal_loss)
             continue
 
         merged = _merge_boundary_spans(spans)
         if len(merged) < 3:
+            if local_failures:
+                losses.append(AsMeasuredBoundaryRingLossV1(
+                    cavity_id=cavity_id, area_units2=int(round(cavity.area)),
+                    span=local_failures[0], reason="classify_illogical"))
+            elif merged:
+                witness = merged[0]
+                losses.append(AsMeasuredBoundaryRingLossV1(
+                    cavity_id=cavity_id, area_units2=int(round(cavity.area)),
+                    span=_boundary_failure_span(
+                        p1=witness.p1, p2=witness.p2, axis=witness.axis,
+                        const=witness.cavity_const, lo=witness.lo, hi=witness.hi,
+                        side=witness.side),
+                    reason="merged_lt_3"))
+            else:
+                raise ValueError(
+                    f"as_measured_boundary_empty_without_failure:{cavity_id}")
             continue
         for sequence, span in enumerate(merged):
             near_side = "lo" if span.side < 0 else "hi"
@@ -1406,7 +1621,22 @@ def derive_boundary_edges(view: AsMeasuredViewV1, *, min_room_area_m2: float
                 wall_ids=span.group.wall_ids,
                 face_line_handles=span.group.face_line_handles,
                 boundary_condition=condition, evidence=evidence))
-    return records
+    return _BoundaryDerivation(edges=records, losses=losses)
+
+
+def derive_boundary_edges(view: AsMeasuredViewV1, *, min_room_area_m2: float
+                          ) -> list[AsMeasuredBoundaryEdgeV1]:
+    """Derive logical boundary facts without selecting an output profile."""
+    return _derive_boundary_facts(
+        view, min_room_area_m2=min_room_area_m2).edges
+
+
+def derive_boundary_ring_losses(
+        view: AsMeasuredViewV1, *, min_room_area_m2: float
+        ) -> list[AsMeasuredBoundaryRingLossV1]:
+    """Return the named readout for above-threshold cavities with no edges."""
+    return _derive_boundary_facts(
+        view, min_room_area_m2=min_room_area_m2).losses
 
 
 def refresh_boundary_edges(view: AsMeasuredViewV1) -> AsMeasuredViewV1:
@@ -1693,11 +1923,12 @@ def build_view(geo: P1PlanViewGeometry, affine: Affine2D, *,
             diagnostics=diagnostics, gates=gates))
     if min_room_area_m2 is None:
         return view
+    boundary = _derive_boundary_facts(
+        view, min_room_area_m2=min_room_area_m2)
     return AsMeasuredViewV1.model_validate({
         **view.model_dump(mode="json"),
-        "boundary_edges": [edge.model_dump(mode="json") for edge in
-                           derive_boundary_edges(
-                               view, min_room_area_m2=min_room_area_m2)],
+        "boundary_edges": [edge.model_dump(mode="json")
+                           for edge in boundary.edges],
     })
 
 
@@ -1740,10 +1971,12 @@ __all__ = [
     "AsMeasuredFaceLineV1", "AsMeasuredWallV1", "AsMeasuredOpeningV1",
     "AsMeasuredRingV1", "AsMeasuredFootprintV1",
     "BoundaryConditionEvidenceV1", "AsMeasuredBoundaryEdgeV1",
+    "AsMeasuredBoundaryFailureSpanV1", "AsMeasuredBoundaryRingLossV1",
     "AsMeasuredNonOrthogonalLineV1", "AsMeasuredAxisSnapV1", "AsMeasuredConverterReadoutsV1",
     "assert_request_is_pure_source_swap", "derive_as_measured_request",
     "request_file_bytes", "AS_RECEIVED_ID_SUFFIX",
     "build_as_measured", "build_view", "derive_boundary_edges",
+    "derive_boundary_ring_losses",
     "refresh_boundary_edges",
     "S0_INPUT_STAGE",
     "canonical_bytes", "content_sha256", "to_units",

@@ -118,6 +118,14 @@ reading 题目册    形式A 多边形     形式B 多边形     净空面积表
 ⛔⛔ **最大的一条：新 reading 与 correction 零接线** —— `pipeline.py` 至今在吃旧格式
 （`*_view.json` 的 `strokes`、数 `pen=="window"`）。**这就是 ②-1 / ②-2 一体改的本体。**
 
+> ⭐⭐⭐ **2026-08-30 主控把这条走查成了逐格可指的九步** →
+> [`../logs/experiments/2026-08-30_wiring_gap_survey/README.md`](../logs/experiments/2026-08-30_wiring_gap_survey/README.md)。
+> **一句话结论**：**闸门只有一行**（`vector_contract.py` 里 `as_drawn_plan → KNOWN_NOT_CONSUMED`，
+> 全表唯一 `CONSUME` 的是 `reading_view_legacy`），**但闸门后面的模块 2–6 一个文件都不存在**
+> （`correction/{evidence_contract,evidence_adapters,wall_compiler,decision_schema,decision_executor}.py`
+> 实测全部 ❌）⇒ ⛔ **今天动那一行是有害的**（as-drawn 会以未类型化裸文本进 prompt = F-97 修掉的那件事）。
+> **本批投入实测**：`judge` **+6629/−142**（16 文件）· `reading` +950/−4 · **`correction` +129/−0（零删除）**。
+
 ---
 
 ## 一、⭐ 分工：四刀
