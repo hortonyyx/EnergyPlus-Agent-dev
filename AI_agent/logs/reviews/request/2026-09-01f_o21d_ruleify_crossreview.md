@@ -1,6 +1,6 @@
 # 复核单 · **②-1d exclusion 锁「规则化」交付件**（跨家族审）
 
-- **日期**：2026-09-01 · **派工方**：orchestrator · **复核方**：**GPT 家族**
+- **日期**：2026-09-01 · **派工方**：orchestrator · **复核方**：**GLM 家族**（⚠️ **原派 GPT，其席位被 provider 内容过滤打断、未交件** ⇒ 孤儿件已隔离，见 [`../experiments/2026-09-01_gpt_filter_orphan_o21d_review/`](../experiments/2026-09-01_gpt_filter_orphan_o21d_review/README.md)，⛔ **线索非证据，不许复用**）
   （⛔ **绝对不得 Claude** —— 施工方与主控都是 Claude 家族）
 - **被审 commit**：**`5ac0885`**（`09.01n_O21dRuleified_GreenAnchorsMustAnchorOnWhatTheLockOwns`）
 - **被审对象**：`tests/test_o21d_exclusion_gap.py` **+466 / −128**（⛔ **零生产代码改动**）
@@ -26,14 +26,28 @@ $ git diff --stat 5ac0885 HEAD -- tests/test_o21d_exclusion_gap.py
 
 $ python -m pytest tests/test_o21d_exclusion_gap.py -q -n 6
 ...........                                                              [100%]
-11 passed in 6.78s
-
-$ sha256sum /opt/venv/lib/python3.12/site-packages/_editable_impl_energyplus_agent.pth
-58f547fa9433af6eca0e8f362652b78916b13a21fbeab4ef06f1e07e46744e43
+11 passed
 ```
+（⛔ 秒数是会漂的字段，本单不写。）
 
 ⭐ **本单的承重断言就是最窄的那一条：被审对象自 `5ac0885` 起零 diff。**
 ⛔ 我**没有**断言「树上除了 md 什么都没改」—— 那句话任何并发席位都能打破。
+
+### ⭐⭐⭐ 环境判据（2026-09-01 改写 · ⛔ 别再用 `.pth` 哈希）
+
+**上一版本单写「哨兵应为 `58f547fa…`，变了即停下上报」——那是个【代理量】，害 GPT 席位白停一轮（题错 #69）。**
+真因已查清：本项目 `.mcp.json` 用 `uv run` 起 MCP server + 全局 `UV_PROJECT_ENVIRONMENT=/opt/venv`
+⇒ **任何以 worktree 为工作目录启动的 claude 家族席位，光是【启动】就把共享 editable 安装改指到自己那棵树**
+（不是谁违纪；`codex` 席位不吃 `.mcp.json`、实测不触发）。
+
+⇒ **承重的不变量改成这一条**：
+```
+python -c "import src.agent.judge.answer_compiler as m; print(m.__file__)"
+```
+**必须落在你自己的工作目录里** —— 这才是「我导入的是我要测的那份代码」。
+⭐ **每次取读数（尤其变异实测）都把这一句和 pytest 放同一条命令里跑并贴出来**，
+否则「变异注入了但没生效」与「锁没牙」在读数上**长得一模一样**。
+⛔ `.pth` 哈希降级为「读到不符只记一条、**不必停报**」。
 
 ---
 
@@ -145,7 +159,7 @@ $ sha256sum /opt/venv/lib/python3.12/site-packages/_editable_impl_energyplus_age
 
 ## 六、交件形式
 
-写 `AI_agent/logs/reviews/verdict/2026-09-01f_o21d_ruleify_crossreview_gpt.md`，含：
+写 `AI_agent/logs/reviews/verdict/2026-09-01f_o21d_ruleify_crossreview_glm.md`（⛔ 别覆盖同名的 `_gpt.md`，那是上一席的停报记录），含：
 
 1. **裁决** + 阻断 N / 不阻断 M
 2. ⭐⭐⭐ **攻击面 1 的读数**（25 腔底料喂进 11 条锁的 `pytest` 原文）—— **这条没有就等于没审**
