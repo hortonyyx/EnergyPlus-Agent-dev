@@ -265,6 +265,16 @@ EnergyPlus 经 `WorkflowTool.run_simulation`（eppy + ConverterManager，idfpy �
 
 > **⭐⭐⭐ 2026-09-01【本轮收工】banner（当前唯一口径）**
 > 分支 `08.23_AsDrawnReading` · 本轮 **九席次**（Claude ×4 · GPT ×4 有效 + **4 次停审** · GLM ×2）。
+> **权威全量：`3632 passed / 13 xfailed / 0 failed`**（`ec6cb0e`，14m32s、`-n auto`、exit 0；
+> `.pth` 哨兵前后同为 `58f547fa…` 且指向主树，跑前跑后工作树均干净）。
+>
+> ### ⓪ ⛔⛔⛔ **本轮清点撞出的头号事实：新链是一座【孤岛】**
+> 五个模块（`evidence_contract` / `evidence_adapters` / `wall_compiler` /
+> `decision_schema` / `decision_executor`）**今天全部存在**（08-30 走查时全部 ❌），
+> **但它们只互相 import** —— `evidence_adapters` 与 `decision_executor` **外部无人 import**，
+> **`pipeline.py` 对整条链零引用**（实测 `grep` 为空）。
+> ⇒ ⭐⭐⭐ **08-30 那条「今天动闸门那一行是有害的（因为闸门后面模块 2–6 一个都不存在）」的理由【已经消失】**，
+> 而**没有任何单子在做「接线」这件事** —— 它是 sm25 开跑的**唯一关键路径**，⛔ 下轮必须先立单。
 > ⭐ **今天的产出主要不是代码，是判据形态。**
 >
 > ### ① 交付与裁决
