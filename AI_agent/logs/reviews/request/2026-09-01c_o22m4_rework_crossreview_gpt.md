@@ -4,8 +4,11 @@
 - **⛔ 为什么是你**：模块 4 与本次返工**都是 GLM 写的** ⇒ 谁写谁不批；Claude 家族在施工席上有活 ⇒ 本轮只能你审。
 - **被审 commit**：**`a13120d`**（`09.01f`）
 - ⚠️ **当前 HEAD 会比它新**（本单之后主控仍在提交 md）—— ⛔ **本单不写死当前 HEAD**（那个字段会漂）。
-  **以启动 prompt 给的那个为准**，并自己跑 `git diff --stat a13120d..HEAD` 确认
-  **`src/` 与 `tests/` 零 diff**；若非零 ⇒ 那才是停下上报的理由。
+  **以启动 prompt 给的那个为准。**
+  ⚠️ **`src/` 整体【不是】零 diff** —— F-156 v3（另一件事，`src/agent/judge/`）之后落了树。
+  **你要确认的只是【模块 4 的两个文件】零 diff**：
+  `git diff --stat a13120d..HEAD -- src/agent/correction/wall_compiler.py tests/test_o22m4_wall_compiler.py`
+  ⇒ **应为空输出**；不为空才是停下上报的理由。
 - **权威全量**：**3601 passed / 13 xfailed / 0 failed**（`636ce56`、`-n auto`、exit 0，`.pth` 哨兵前后一致）
 - **返工单**：[2026-09-01_o22m4_rework_single_face_channel.md](2026-09-01_o22m4_rework_single_face_channel.md)
 - **上一轮裁决**（Claude 家族出的，判 **REWORK / 阻断 1 / 不阻断 2**）：[../verdict/2026-09-01_o22m4_crossreview_claude.md](../verdict/2026-09-01_o22m4_crossreview_claude.md)
