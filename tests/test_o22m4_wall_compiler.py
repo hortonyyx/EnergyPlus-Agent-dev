@@ -39,6 +39,18 @@ spacing+thickness survive to the IR the kernel will read, same bundle +
 same decisions compile byte-identically, and the module-4 half of module
 2's NF-4 #5 pin: a dangling UNSELECTED candidate dies in this compiler's
 own full-graph walk.
+
+Rework (2026-09-01, cross-review blocker 1): the ``single_face`` CHANNEL
+now has fixtures of its own.  The review measured every ``_compile_*``
+entry point over this file plus module 3's and found this one had ZERO
+inventory -- a mutation removing the open item entirely survived 43 green
+tests.  Locked here now: the real unpaired face (sm25_2f ``L012``) opens
+an ``axis_offset_undetermined`` item with both offset families, a unique
+thickness scale still requires a decision (design §6.1: even a candidate
+that survives filtering unique needs an explicit decision / re-perception),
+a source with NO scale opens with an empty candidate set, and the two
+non-default ``counterface_state`` values compile through the same channel
+with the same no-silent-axis behaviour.
 """
 from __future__ import annotations
 
@@ -71,6 +83,7 @@ from src.agent.correction.evidence_contract import (
     FrozenSourceV1,
     ObservationRefV1,
     ArtifactPointerV1,
+    SingleFaceWallClaimV1,
     SourceArtifactV1,
     as_drawn_face_index,
     finalize_bundle,
@@ -1043,3 +1056,254 @@ def test_unknown_and_duplicate_decisions_are_loud():
         )),
         "DUPLICATE_DECISION_FOR_ITEM",
     )
+
+
+# =========================================================================== #
+# Rework (2026-09-01, blocker 1): the single_face CHANNEL, measured
+# =========================================================================== #
+def _unpaired_face_doc(
+    callouts: list[int] | None, *, with_counterface: bool = True
+) -> dict:
+    """One honest as-drawn product with ONE unpaired wall face (F04) and,
+    optionally, one non-wall line (F05).  ``callouts`` is the drawing's own
+    thickness declaration list, or ``None`` for a source carrying NO
+    thickness scale at all."""
+    faces = [_face("F04", "col", "x", 300, [[10, 90]])]
+    non_wall: dict[str, str] = {}
+    if with_counterface:
+        faces.append(_face("F05", "row", "y", 200, [[5, 9]]))
+        non_wall = {"F05": "a furniture edge"}
+    doc = {
+        "schema": SCHEMA,
+        "observations": {"face_lines": faces},
+        "declarations": ({} if callouts is None
+                         else {"thickness_callouts_mm": callouts}),
+        "hypotheses": {
+            "pairs": [], "pair_candidates": [], "opening_candidates": [],
+            "opening_types": None, "pairs_status": "SELECTED",
+            "non_wall_face_lines": non_wall,
+            "unpaired_wall_faces": {
+                "F04": ("IS a wall face; its counterface is not in the "
+                        "observations")
+            },
+            "solid_band_walls": {}, "ambiguous_face_lines": {},
+        },
+    }
+    AsDrawnPlanV2.model_validate(doc)  # premise: this IS a legal product
+    return doc
+
+
+def _assert_axis_item_open_not_silent(comp, wall):
+    """The single_face invariant in one place: with no side/thickness basis
+    an ``axis_offset_undetermined`` item is OPEN, identity is excluded, no
+    axis / thickness / output basis is minted, and NO auto action the
+    compiler took on its own touches the wall (design §4.1: the claim
+    asserts neither side nor thickness; §5.2: no silent midline; §6.1: the
+    open item is a state boundary only a decision closes)."""
+    item = next(
+        i for i in comp.open_items if i.scope_entity_ids == (wall.wall_id,)
+    )
+    assert item.kind == "axis_offset_undetermined"
+    assert IDENTITY_BAN_SET <= set(item.exclusions)
+    assert wall.resolved_centerline is None  # ⛔ no silent axis
+    assert wall.output_basis is None
+    assert wall.observed_face_spacing_m is None
+    assert wall.resolved_thickness_m is None
+    assert all(wall.wall_id not in a.scope_entity_ids
+               for a in comp.auto_actions)
+    return item
+
+
+def test_single_face_real_l012_opens_axis_item_with_both_offset_families():
+    """The REAL shape (sm25_2f): one unpaired wall face on a drawing that
+    declares two thickness scales.  The channel must OPEN, enumerate both
+    offset families over both scales, and leave the axis to an explicit
+    decision -- the exact invariant a dropped ``return wall, [], []`` used
+    to remove invisibly (cross-review M7: 43 green, zero hits)."""
+    raw = _raw_product("sm25_2f_v2.json")
+    doc = json.loads(raw)
+    hyp = doc["hypotheses"]
+    # premise, measured on the product: exactly one unpaired face, no
+    # ambiguous debt (so strict can run), two declared scales
+    assert list(hyp["unpaired_wall_faces"]) == ["L012"]
+    assert not (hyp["ambiguous_face_lines"] or {})
+    assert doc["declarations"]["thickness_callouts_mm"] == [240, 120]
+
+    art = adapt_as_drawn_plan(raw, input_id="sm25_2f_v2", floor_ref="2f")
+    sf_claims = [c for c in art.bundle.wall_claims if c.kind == "single_face"]
+    assert [c.counterface_state for c in sf_claims] == [
+        "not_in_observations"
+    ]  # the adapter's mechanical translation of the unpaired bucket
+
+    comp = wc.compile_wall_ir(art, profile="strict")
+    wall = next(w for w in comp.walls if w.claim_kind == "single_face")
+    assert wall.observed_basis == "single_observed_face"
+    item = _assert_axis_item_open_not_silent(comp, wall)
+    assert comp.completion == "degraded"  # the open item is a real boundary
+
+    # candidates: BOTH signs over BOTH declared scales, each preview anchored
+    # on the face's own pos (re-read from the doc, not from the output)
+    pos = next(f["pos_m"] for f in doc["observations"]["face_lines"]
+               if f["id"] == "L012")
+    got = {
+        (c.symbolic_operation, c.thickness_source.value_m):
+            c.preview_constant_pos_m
+        for c in item.candidates
+    }
+    assert set(got) == {
+        (op, value) for op in ("OFFSET_POSITIVE", "OFFSET_NEGATIVE")
+        for value in (0.24, 0.12)
+    }
+    for (op, value), preview in got.items():
+        sign = 1.0 if op == "OFFSET_POSITIVE" else -1.0
+        assert preview == pytest.approx(pos + sign * value / 2.0)
+    assert all(c.thickness_source.provenance == "declared_callout"
+               for c in item.candidates)
+
+    # the legal exit exists and is the ONLY closer: an explicit decision
+    chosen = next(
+        c for c in item.candidates
+        if c.symbolic_operation == "OFFSET_POSITIVE"
+        and c.thickness_source.value_m == 0.24
+    )
+    decided = wc.compile_wall_ir(
+        art, profile="strict",
+        decisions=(wc.FixedDecisionV1(
+            item_id=item.item_id, candidate_id=chosen.candidate_id
+        ),),
+    )
+    wall_decided = next(
+        w for w in decided.walls if w.wall_id == wall.wall_id
+    )
+    assert wall_decided.resolved_centerline is not None
+    assert wall_decided.resolved_centerline.constant_pos_m == \
+        pytest.approx(pos + 0.24 / 2.0)
+    assert wall_decided.output_basis == "wall_axis"
+    assert wall_decided.resolved_thickness_m == 0.24
+    assert not any(i.item_id == item.item_id for i in decided.open_items)
+
+
+def test_single_face_unique_thickness_scale_still_requires_a_decision():
+    """Design §6.1's explicit rule: when every candidate shares ONE
+    thickness scale -- the value is unique, only the sign is left, which is
+    'filtered unique' pushed to the edge this compiler can see -- the
+    compiler must NOT converge and must keep the item open; a silent
+    'unique ⇒ auto-execute' leg is exactly the path this lock exists to
+    keep red."""
+    art = _adapt_doc(_unpaired_face_doc([200]),
+                     "single_face_one_scale", "9f")
+    comp = wc.compile_wall_ir(art, profile="strict")
+    wall = next(w for w in comp.walls if w.claim_kind == "single_face")
+    item = _assert_axis_item_open_not_silent(comp, wall)
+
+    # premise of THIS lock: one scale, two signs
+    assert {c.thickness_source.value_m for c in item.candidates} == {0.2}
+    assert {c.symbolic_operation for c in item.candidates} == {
+        "OFFSET_POSITIVE", "OFFSET_NEGATIVE"
+    }
+    assert {c.preview_constant_pos_m for c in item.candidates} == \
+        {3.0 + 0.1, 3.0 - 0.1}
+
+    # and recompiling without a decision changes nothing: no auto path
+    again = wc.compile_wall_ir(art, profile="strict")
+    assert next(w for w in again.walls if w.wall_id == wall.wall_id
+                ).resolved_centerline is None
+    assert any(i.item_id == item.item_id for i in again.open_items)
+
+
+def test_single_face_without_any_scale_opens_with_empty_candidates():
+    """The no-scale leg: the source carries NO thickness scale at all.  The
+    candidate set is empty and the item is STILL opened -- the legal exits
+    the code itself names are an explicit decision, wall-level
+    re-perception, or a degraded profile; a silent axis is not among them,
+    and a decision against the empty set is loud rather than invented."""
+    art = _adapt_doc(_unpaired_face_doc(None), "single_face_no_scale", "9f")
+    comp = wc.compile_wall_ir(art, profile="strict")
+    wall = next(w for w in comp.walls if w.claim_kind == "single_face")
+    item = _assert_axis_item_open_not_silent(comp, wall)
+    assert item.candidates == ()
+
+    err = _expect_error(
+        lambda: wc.compile_wall_ir(
+            art, profile="strict",
+            decisions=(wc.FixedDecisionV1(
+                item_id=item.item_id, candidate_id="cand_invented"
+            ),),
+        ),
+        "UNKNOWN_DECISION_CANDIDATE",
+    )
+    assert err.context["available"] == []
+
+
+def _rebound_single_face_claim(art, **updates):
+    """Rebuild the adapter's own bundle with the single_face claim's
+    counterface fields replaced.  The adapter only ever emits the mechanical
+    default state, so the other two values are hand-bound here on top of a
+    bundle the adapter itself produced (its channel/debt routing is reused
+    verbatim, not hand-copied)."""
+    old = art.bundle
+    claim = next(c for c in old.wall_claims if c.kind == "single_face")
+    data = claim.model_dump()
+    data.update(updates)
+    new_claim = SingleFaceWallClaimV1(**data)
+    rebuilt = finalize_bundle(CorrectionEvidenceBundleV1(
+        schema_version=old.schema_version,
+        source_artifacts=old.source_artifacts,
+        channel_status=old.channel_status,
+        wall_claims=[new_claim],
+        face_dispositions=old.face_dispositions,
+        opening_claims=old.opening_claims,
+        evidence_debts=old.evidence_debts,
+    ))
+    return art.model_copy(update={"bundle": rebuilt})
+
+
+def test_single_face_observed_unclaimed_counterface_still_no_silent_axis():
+    """counterface_state='observed_unclaimed': the other face IS observed
+    but was consumed by a non_wall disposition (its node pointer and
+    disposition travel on the claim).  That is MORE evidence about the
+    counterface, yet still no side/thickness basis -- the channel behaves
+    exactly like the default state."""
+    art = _adapt_doc(
+        _unpaired_face_doc(None, with_counterface=True),
+        "single_face_unclaimed", "9f",
+    )
+    f05_ref = next(
+        d.face_ref for d in art.bundle.face_dispositions
+        if d.face_ref.observation_id == "F05"
+    )
+    rebound = _rebound_single_face_claim(
+        art,
+        counterface_state="observed_unclaimed",
+        counterface_observation_ref=f05_ref.model_dump(),
+        counterface_disposition_status="non_wall",
+    )
+    validate_evidence_bundle(rebound)  # green premise: still a legal bundle
+    comp = wc.compile_wall_ir(rebound, profile="strict")
+    wall = next(w for w in comp.walls if w.claim_kind == "single_face")
+    item = _assert_axis_item_open_not_silent(comp, wall)
+    assert item.candidates == ()  # no scale in this source either
+
+
+def test_single_face_ink_present_unpromoted_witness_still_no_silent_axis():
+    """counterface_state='ink_present_unpromoted' (sm25_2f L012's own prose
+    story, hand-bound): the counterface's ink is on the drawing but was
+    never promoted to a face line.  The layer's one hard property of a
+    witness pointer is that it RESOLVES (the ink position has no structured
+    slot yet -- the producer's own types pin that absence), and the channel
+    behaves the same: evidence ABOUT the other side is not a side/thickness
+    basis for this one."""
+    art = _adapt_doc(
+        _unpaired_face_doc(None, with_counterface=False),
+        "single_face_ink", "9f",
+    )
+    rebound = _rebound_single_face_claim(
+        art,
+        counterface_state="ink_present_unpromoted",
+        counterface_witness_pointers=("/observations/face_lines/0/runs_px",),
+    )
+    validate_evidence_bundle(rebound)  # witness resolves: green premise
+    comp = wc.compile_wall_ir(rebound, profile="strict")
+    wall = next(w for w in comp.walls if w.claim_kind == "single_face")
+    item = _assert_axis_item_open_not_silent(comp, wall)
+    assert item.candidates == ()
