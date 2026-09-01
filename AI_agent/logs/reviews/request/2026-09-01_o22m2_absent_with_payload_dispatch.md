@@ -87,3 +87,49 @@
 ## 六、交付
 代码（⛔ 不提交）+ 执行档 `AI_agent/logs/reviews/execution/<日期>_o22m2_absent_with_payload_execution.md`，
 逐条给命令+读数、**你自己认为最薄弱的一处**、希望复核方重点打哪里。
+
+---
+
+## ⭐ 2026-09-01 排工补丁（⛔ 开工前必读，覆盖本单头部的过期读数）
+
+- **施工方**：⏳ 待排 → **GLM 家族施工席**（2026-09-01 派出）
+- **基线**：`58bb59f` / 3519 passed → ⛔ **已过期**，现为 **`01371e3`** ·
+  **权威全量 3601 passed / 13 xfailed / 0 failed**（`636ce56`、`-n auto`、exit 0，`.pth` 哨兵前后一致）
+- **审**：**GPT 或 Claude 家族**（跨家族）
+
+### ⛔⛔ 三席同飞 —— 并发条款
+
+**同时在飞**：Claude 席 = F-156 v3（写 `src/agent/judge/` + sm25 staging 基线）·
+GPT 席 = 复审模块 4 返工件（**只读** `wall_compiler.py`，会临时变异后立刻还原）。
+
+**你的写面**：`src/agent/correction/evidence_contract.py` + 它的测试 + 你自己的执行档。
+⛔ **不许碰** `src/agent/correction/wall_compiler.py`（GPT 正在只读审它，且会做临时变异）·
+`src/agent/judge/` 下任何文件 · sm25 staging 基线。
+
+1. ⛔⛔ **不许跑全量 pytest**（另两席在写树，全量必假红）；只跑受影响子集，路径显式列出
+2. ⛔ **一律 `-n 6`**，不用 `-n auto`
+3. ⭐⭐⭐ **撞到不属于你写面的红 ⇒ 先 `git status --porcelain`，然后【停下上报】** ——
+   ⛔ 不许自行修、⛔ 不许写进 RESULTS 当回归
+   ⚠️ **`git checkout` 还原只点名你自己动过的文件，⛔ 绝对不许 `git checkout -- .`**
+4. ⛔ **绝对不许** `pip install -e .` / 任何写 `site-packages` 的命令（venv 全机器共享）。
+   **开工前 + 交件前各读一次哨兵**：
+   `sha256sum /opt/venv/lib/python3.12/site-packages/_editable_impl_energyplus_agent.pth`
+   应为 `58f547fa9433af6eca0e8f362652b78916b13a21fbeab4ef06f1e07e46744e43`，**变了即停下上报**
+
+### ⭐⭐ 写判据时请自问这三句（本轮换来的，⛔ 三次实犯都是派工方）
+
+① 「这个数达标了，那件事就一定成立吗？」（#57：拿「边数变了」当「环成立」）
+② 「这个数是**对着谁**达标的？」（#59：拿「valid + 面积」当「环是对的」，实测它只是与源腔恒等）
+③ ⭐ 「**我拿来比的这两个东西，本来就该一样吗？**」（#62：拿两个不同基准的多边形比对称差）
+
+⇒ **判据写成规则，⛔ 不写成现状名单**（#58：判据钉住缺陷本身的存在 ⇒ 缺陷一修好锁必红）。
+
+### ⭐ 停下上报受鼓励
+
+至今 **62 次停报，62 次全部是派工方的题错**；**今天一天四次**，其中两次各救下一整轮返工。
+承重前提对不上、任务项与禁令自相矛盾、本单点名的东西树上不存在 ⇒ **立刻停，⛔ 别猜着往下做**。
+
+### 交件
+
+写执行档 `AI_agent/logs/reviews/execution/2026-09-01c_o22m2_absent_execution.md`。
+⛔ **不要 `git add` / `git commit`**，交给主控。
