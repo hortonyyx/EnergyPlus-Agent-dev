@@ -14,6 +14,24 @@
 - **上一轮裁决**（Claude 家族出的，判 **REWORK / 阻断 1 / 不阻断 2**）：[../verdict/2026-09-01_o22m4_crossreview_claude.md](../verdict/2026-09-01_o22m4_crossreview_claude.md)
 - **施工方执行档**：[../execution/2026-09-01_o22m4_rework_execution.md](../execution/2026-09-01_o22m4_rework_execution.md)
 
+
+### ⭐ 本单引用的每一条 git 事实，主控都跑了命令（⛔ 不是从记忆里写的）
+
+```
+$ git rev-parse --short a13120d^
+a6f5383
+$ git diff --stat 636ce56..a6f5383 -- src tests
+（空 —— a6f5383 是纯 md 提交，所以它的代码 == 636ce56 的代码）
+$ git diff --stat 636ce56..a6f5383 -- src/agent/correction/wall_compiler.py tests/test_o22m4_wall_compiler.py
+（空）
+$ git diff --stat a6f5383..a13120d -- src/agent/correction/wall_compiler.py tests/test_o22m4_wall_compiler.py
+ tests/test_o22m4_wall_compiler.py | 264 ++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 264 insertions(+)
+```
+⇒ **链路** `636ce56 → a6f5383（纯 md）→ a13120d（模块 4 的 +264）`。
+⚠️ **本单前两版就是栽在「git 事实凭记忆写」上**（题错 #64 / #66），
+⇒ 若你发现上面任何一条命令的输出与写的不符，**照旧停下上报**。
+
 ---
 
 ## 一、这件事的形状（⭐ 它和一般返工不一样）
@@ -42,7 +60,7 @@
 
 | 格 | 要你做什么 | 它证明什么 |
 |---|---|---|
-| ① | **在 `a13120d^`（= `636ce56`）上**重跑那条变异（`return wall, [item], []` → `return wall, [], []`）⇒ **必须仍然 43 passed**（= 缺陷当时真的在） | 前提成立 |
+| ① | **在 `a6f5383` 上**（= `a13120d^`，⭐ **主控已跑 `git rev-parse --short a13120d^` 核过**）重跑那条变异（`return wall, [item], []` → `return wall, [], []`）⇒ **必须仍然 43 passed**（= 缺陷当时真的在） | 前提成立 |
 | ② | **在 `a13120d` 上**跑同一条变异 ⇒ **必须红**，且**红的是新加的那几条** | 这个例子修好了 |
 | ③ | ⭐⭐⭐ **换一份你自己找的同形输入**：`single_face` 这条通道**还有别的进入路径 / 别的形态**吗？ | **只有这一格验证「这类缺陷修好了」** |
 
@@ -90,7 +108,7 @@
 
 **A 层 —— 承重前提错 ⇒ 立刻停**：
 - 本单点名的文件 / commit / 读数在树上找不到
-- 第①格在 `636ce56` 上复现不出（= 缺陷当时就不在，这件事从根上不成立）
+- 第①格在 `a6f5383` 上复现不出（= 缺陷当时就不在，这件事从根上不成立）
 - 本单要求与返工单、或与上一轮裁决**自相矛盾**
 - 本单要你做一件本单自己禁止的事
 
